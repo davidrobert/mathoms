@@ -4,7 +4,7 @@ type: lane
 title: "Decisão do flip warn→strict do evidencia_path (requisito de done da A25)"
 sprint: A25
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: evidencia-strict-decision
 adrs:
@@ -14,7 +14,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a25
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/llm
