@@ -45,7 +45,7 @@ theme: "data-lineage"
 | [[A25.l4]] | `dl-f7-debug-llm` (renderer/diff/tools/eval nightly + seed #606/#607) | ✅ shipped #603 | — |
 | [[A25.l5]] | `dl-f6-produto-n1n2` (selo+popover; teste 5s dogfood pendente, flag off) | ✅ shipped #602 | — |
 | [[A25.l6]] | `kr2-resto` (parte A ✅ #609 — **KR2 6/6 lineage**; **parte B `member_hashes` reais impl. (PR #648)** — natural_key no item E4 + gate classe-c + fixture K4) | in_progress | parte B: l2 |
-| [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — decisão informada, gate <5% sobre ≥20 gerações; amostra 0 em 2026-06-11) | planned | telemetria |
+| [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — **decisão registrada 2026-06-16: carry-over A26** — só 3 gerações c/ telemetria << 20; taxa ~89%, 81% conformidade de path) | in_progress | telemetria |
 
 **Precedência de corte (squeeze):** F7 > F6. MLP = l3+l4+l5 + decisão l7;
 l1 must-condicional; l2 must-se-l1; l6 stretch cortável.
@@ -58,4 +58,6 @@ l1 must-condicional; l2 must-se-l1; l6 stretch cortável.
   (kickoff 2026-06-10): patrimônio (liquido+bruto = 1), reserva, despesa_total,
   investimentos.total, fluxo_liquido, endividamento.total_dividas.
 - **Requisito de done:** decisão registrada do flip `warn→strict` do
-  `evidencia_path` (flip OU carry-over A26 com gate idêntico).
+  `evidencia_path` (flip OU carry-over A26 com gate idêntico). ✅ **Cumprido**
+  ([[A25.l7]] §Decisão 2026-06-16): **carry-over A26** — amostra 3 << 20; modo
+  segue `warn`. Flip vira lane própria na A26.
