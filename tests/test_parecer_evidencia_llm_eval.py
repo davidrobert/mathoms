@@ -56,25 +56,40 @@ class _NoCache:
         return None
 
 
+# ADR-292: missing_path (prosa cita R$ sem path verificável) é cobertura, não
+# citação incorreta. Pós-coerção path-filtro → None ele sobe mecanicamente (antes
+# morria em reask e nunca chegava ao verificador). Só estas camadas — citação que
+# resolve ERRADO — contam como violação de gate; missing_path vira métrica à parte.
+_HARD_LAYERS = ("value_mismatch", "whitelist_miss", "resolve_null")
+
+
+def _verdict(fixture, result) -> dict:
+    """Veredito de citação (PII-free) de uma geração."""
+    summary = result.evidencia_summary or {}
+    by_layer = summary.get("failures_by_layer", {})
+    hard_failed = sum(int(by_layer.get(k, 0)) for k in _HARD_LAYERS)
+    return {
+        "fixture": fixture.fixture_id,
+        "stratum": fixture.stratum,
+        "ok": result.output is not None,
+        "failed": int(summary.get("evidencia_failed", 0)),
+        "hard_failed": hard_failed,
+        "missing_path": int(by_layer.get("missing_path", 0)),
+        "verified": int(summary.get("evidencia_verified", 0)),
+        "money_tokens": int(summary.get("money_tokens_total", 0)),
+        "failures_by_layer": by_layer,
+        "violation": hard_failed > 0,
+        "cost_usd": float(result.cost_usd),
+    }
+
+
 def _run_once(fixture, temperature: float, run_idx: int) -> dict:
     """Gera 1 parecer real e extrai o veredito de citação (PII-free)."""
     config = ParecerOrchestratorConfig(
         workspace_id=f"eval-{fixture.fixture_id}-{run_idx}", temperature=temperature
     )
     result = generate_parecer(e5_data=fixture.e5, config=config, cache=_NoCache())
-    summary = result.evidencia_summary or {}
-    failed = int(summary.get("evidencia_failed", 0))
-    return {
-        "fixture": fixture.fixture_id,
-        "stratum": fixture.stratum,
-        "ok": result.output is not None,
-        "failed": failed,
-        "verified": int(summary.get("evidencia_verified", 0)),
-        "money_tokens": int(summary.get("money_tokens_total", 0)),
-        "failures_by_layer": summary.get("failures_by_layer", {}),
-        "violation": failed > 0,
-        "cost_usd": float(result.cost_usd),
-    }
+    return _verdict(fixture, result)
 
 
 def _wilson_upper(k: int, n: int, z: float = 1.96) -> float:
@@ -88,22 +103,28 @@ def _wilson_upper(k: int, n: int, z: float = 1.96) -> float:
     return (centre + margin) / denom
 
 
-def _collect() -> dict:
-    gate = [_run_once(f, _GATE_TEMP, i) for f in HOLDOUT for i in range(_GATE_RUNS)]
-    diag = [_run_once(f, _DIAG_TEMP, 0) for f in HOLDOUT]
+def _build_report(gate: list[dict], diag: list[dict]) -> dict:
+    """Agrega vereditos em métricas de gate + cobertura (missing_path à parte, ADR-292)."""
     ok_gate = [r for r in gate if r["ok"]]
     violations = sum(r["violation"] for r in ok_gate)
-    report = {
+    return {
         "gate_runs": gate,
         "diag_runs": diag,
         "n_ok_gate": len(ok_gate),
         "per_parecer_violations": violations,
         "per_parecer_ub_ic95": _wilson_upper(violations, len(ok_gate)),
+        "missing_path_pareceres": sum(1 for r in ok_gate if r["missing_path"] > 0),
         "per_citation_conformidade": _conformidade(ok_gate),
         "density_median": statistics.median([r["money_tokens"] for r in ok_gate] or [0]),
         "diag_violations": sum(r["violation"] for r in diag if r["ok"]),
         "total_cost_usd": sum(r["cost_usd"] for r in gate + diag),
     }
+
+
+def _collect() -> dict:
+    gate = [_run_once(f, _GATE_TEMP, i) for f in HOLDOUT for i in range(_GATE_RUNS)]
+    diag = [_run_once(f, _DIAG_TEMP, 0) for f in HOLDOUT]
+    report = _build_report(gate, diag)
     _REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     _REPORT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return report

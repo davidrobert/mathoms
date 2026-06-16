@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-282 ADRs (ADR-001 a ADR-291) em [`docs/adr/`](../../adr/).
+283 ADRs (ADR-001 a ADR-292) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 214
+- **Decidido**: 215
 - **Proposto**: 64
 - **Roadmap**: 4
 
@@ -405,12 +405,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## llm
 
-### Decidido (4)
+### Decidido (5)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
 - [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
 - [[ADR-169]] — Modo incremental estendido aos stages globais E1
+- [[ADR-292]] — evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) · phase A26 · parecer reliability
 
 ### Proposto (10)
 

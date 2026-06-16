@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import TypeAdapter
 
-from pipeline.llm.schemas.parecer_planejador import Confianca, Risco, Sugestao
+from pipeline.llm.schemas.parecer_planejador import CampoFaltante, Confianca, Risco, Sugestao
 
 _CONFIANCA = TypeAdapter(Confianca)
 
@@ -85,3 +85,60 @@ def test_sugestao_normaliza_antes_de_checar_impacto_estimado_so_alta():
     s = Sugestao(**payload)
     assert s.confianca == "alta"
     assert s.impacto_estimado is not None
+
+
+# -----------------------------------------------------------------------
+# ADR-292 — coerção de evidencia_path/field_path inválido → None.
+# Regressão do incidente parecer 2026-06-16 (workspace 5@5.com): claude-sonnet-4-6
+# emitia JSONPath com filtros → pattern hard-fail → reask storm (~243s/needs_review).
+# -----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "bad_path",
+    [
+        "$.alocacao_por_classe[?(@.classe=='Caixa')].valor",  # filtro — incidente real
+        "$.ativos[?(@.descricao=~'.*Gisele.*')].valor",  # filtro + regex match
+        "$..total_liquida",  # recursive descent
+        "$.reserva emergencia.total",  # espaço (segmento inválido)
+    ],
+)
+def test_risco_evidencia_path_invalido_coerce_para_none(bad_path):
+    r = Risco(**_risco(evidencia_path=bad_path))
+    assert r.evidencia_path is None
+
+
+@pytest.mark.parametrize(
+    "good_path",
+    [
+        "$.reserva_emergencia.total_liquida",
+        "$.patrimonio.composicao.imoveis_residencia",
+        "$.ativos[0].valor",
+        "$.alocacao_por_classe[*]",
+    ],
+)
+def test_risco_evidencia_path_valido_passa(good_path):
+    r = Risco(**_risco(evidencia_path=good_path))
+    assert r.evidencia_path == good_path
+
+
+def test_sugestao_evidencia_path_filtro_coerce_para_none():
+    s = Sugestao(**_sugestao(evidencia_path="$.investimentos[?(@.tipo=='RF')].saldo"))
+    assert s.evidencia_path is None
+
+
+def test_campo_faltante_field_path_filtro_coerce_para_none_preserva_motivo():
+    """Regra 3 do prompt manda registrar paths NÃO-whitelistados aqui — i.e. os
+    que falham o regex. Coerção → None com motivo intacto, sem reask."""
+    cf = CampoFaltante(
+        field_path="$.ativos[?(@.descricao=~'.*imovel.*')].valor",
+        motivo="Sem path escalar para o imóvel específico citado.",
+    )
+    assert cf.field_path is None
+    assert cf.motivo.startswith("Sem path escalar")
+
+
+def test_caps_de_prosa_elevados_adr292():
+    """Caps subiram (sign-off product-designer) — texto no novo teto valida."""
+    Risco(**_risco(descricao="d" * 650))
+    Sugestao(**_sugestao(acao="a" * 340, impacto_qualitativo="i" * 420))

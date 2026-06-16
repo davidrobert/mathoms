@@ -68,7 +68,7 @@
     "diagnostico_geral": {
       "type": "string",
       "minLength": 50,
-      "maxLength": 500,
+      "maxLength": 750,
       "description": "Texto curto orientativo (1-3 frases) que ancora o leitor no estado financeiro. Sigilo §13 enforçado pelo validador anti-token em parecer_generator.py (ADR-207 camada 2)."
     },
 
@@ -332,7 +332,7 @@
           "minLength": 3,
           "maxLength": 120
         },
-        "descricao": {"$ref": "#/$defs/no_ticker_body", "maxLength": 400},
+        "descricao": {"$ref": "#/$defs/no_ticker_body", "maxLength": 520},
         "ancora_metodologica": {"$ref": "#/$defs/ancora_metodologica"},
         "tema_canonico": {"$ref": "#/$defs/tema_canonico"},
         "section_id": {"$ref": "#/$defs/section_id"}
@@ -357,12 +357,12 @@
           "minLength": 3,
           "maxLength": 140
         },
-        "descricao": {"$ref": "#/$defs/no_ticker_body", "maxLength": 500},
+        "descricao": {"$ref": "#/$defs/no_ticker_body", "maxLength": 650},
         "ancora_metodologica": {"$ref": "#/$defs/ancora_metodologica"},
         "tema_canonico": {"$ref": "#/$defs/tema_canonico"},
         "evidencia": {
           "type": "string",
-          "maxLength": 300,
+          "maxLength": 390,
           "description": "Frase curta apontando a evidência (ex.: 'Reserva atual cobre 2.1 meses de despesa essencial; alvo é 6+ meses')."
         },
         "evidencia_path": {"$ref": "#/$defs/evidencia_path"},
@@ -389,7 +389,7 @@
         "caveat": {
           "type": "string",
           "minLength": 10,
-          "maxLength": 240,
+          "maxLength": 300,
           "description": "Disclaimer obrigatório descrevendo premissa/incerteza. UI mostra como tooltip."
         },
         "tipo": {
@@ -424,14 +424,14 @@
         "acao": {
           "allOf": [
             {"$ref": "#/$defs/no_ticker_body"},
-            {"minLength": 10, "maxLength": 280}
+            {"minLength": 10, "maxLength": 340}
           ],
           "description": "Frase imperativa curta descrevendo o movimento. Sem citar ativo específico (ticker)."
         },
         "impacto_qualitativo": {
           "allOf": [
             {"$ref": "#/$defs/no_ticker_body"},
-            {"minLength": 10, "maxLength": 320}
+            {"minLength": 10, "maxLength": 420}
           ],
           "description": "Por que essa ação importa. Linguagem descritiva, não prescritiva."
         },
@@ -512,7 +512,7 @@
         "conteudo": {
           "allOf": [
             {"$ref": "#/$defs/no_ticker_body"},
-            {"minLength": 20, "maxLength": 600}
+            {"minLength": 20, "maxLength": 780}
           ],
           "description": "Body da nota. Sigilo §13 também enforçado pelo validador Python."
         },
@@ -530,8 +530,8 @@
     "campo_faltante": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["field_path", "motivo"],
-      "description": "ADR-206 §D2 fonte primária de telemetria M4.",
+      "required": ["motivo"],
+      "description": "ADR-206 §D2 fonte primária de telemetria M4. field_path opcional desde ADR-292 (coerção de path inválido → null no boundary do LLM).",
       "properties": {
         "field_path": {"$ref": "#/$defs/evidencia_path"},
         "motivo": {

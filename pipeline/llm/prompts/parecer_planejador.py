@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.6.0"
+PROMPT_VERSION = "1.7.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -36,11 +36,12 @@ SYSTEM_PROMPT_TEMPLATE = """\
      ≤15 total); ≤10 métricas; ≤5 notas.
    - **count(P0) ≤ 2** no agregado dos 3 horizontes (raro por construção).
    - **Concisão (limites rígidos de caracteres):** cada campo de prosa tem teto
-     validado downstream — exceder = resposta descartada. Escreva denso, sem
-     preâmbulo; frase curta > frase explicativa. Tetos-guia (deixe ~15% de
-     folga): `diagnostico_geral` ≤ 420; `descricao` de risco/sugestão/ponto
-     forte ≤ 340; `acao` ≤ 240; `impacto_qualitativo` ≤ 270; `evidencia` ≤ 250;
-     `caveat` ≤ 200; `conteudo` de nota ≤ 500.
+     validado downstream. Escreva denso, sem preâmbulo; frase curta > frase
+     explicativa. Tetos-guia (mire ABAIXO deles — folga ~15% sobra como teto de
+     segurança): `diagnostico_geral` ≤ 600; `descricao` de risco ≤ 560, de ponto
+     forte ≤ 440; `acao` ≤ 300 (é o TÍTULO do card — uma frase imperativa, não
+     parágrafo); `impacto_qualitativo` ≤ 360; `evidencia` ≤ 330; `caveat` ≤ 260;
+     `conteudo` de nota ≤ 680.
 
 5. **Persona_hash, manifest_version, model_id, tier_at_generation, generated_at**
    em `metadata` são placeholders — o orchestrator sobrescreve após sua resposta.
@@ -111,6 +112,14 @@ SYSTEM_PROMPT_TEMPLATE = """\
     - "reserva cobre só ~2 meses (R$ 84.000)" → `$.reserva_emergencia.total_liquida`
     - "fluxo livre de R$ 240.000/ano" → `$.fluxo_caixa.fluxo_liquido`
     - "dívida de R$ 500.000" → `$.endividamento.total_dividas`
+    - **Gramática do path (rígida):** APENAS paths simples são aceitos —
+      `$.secao.campo`, `$.secao.sub.campo`, `$.lista[0].campo`, `$.lista[*]`.
+      PROIBIDO filtro ou expressão: `[?(@.classe=='Caixa')]`, `=~`, `..`,
+      `$..campo`. Se o valor só seria alcançável por filtro (ex.: um elemento de
+      lista selecionado por nome/atributo), NÃO invente o filtro — paths
+      inválidos são descartados (viram null) e você perde a citação. Em vez
+      disso, omita `evidencia_path` e registre o que faltou em
+      `campos_faltantes_pediria_se_iterasse[]`.
 
 12. **Valor escalar é passthrough (ADR-290):** quando o campo-fonte é escalar
     numérico, copie-o do payload — não derive faixa, média nem arredondamento
