@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import unicodedata
 from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
+
+logger = logging.getLogger("mathoms.llm.parecer_planejador")
 
 
 def _normalize_confianca(v):
@@ -85,6 +88,38 @@ _SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 _VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+(\.[0-9]+)?$")
 
 
+def _jsonpath_drift_category(v: str) -> str:
+    """Categoria PII-safe do path inválido. NUNCA retorna o valor — um filtro como
+    ``$.ativos[?(@.descricao=~'.*Gisele.*')]`` carrega nome próprio (LGPD)."""
+    if "[?" in v or "?(" in v:
+        return "filter"
+    if "=~" in v:
+        return "regex_match"
+    if ".." in v:
+        return "recursive_descent"
+    return "other"
+
+
+def _coerce_jsonpath_or_none(v):
+    """Boundary do LLM (ADR-292): ``evidencia_path``/``field_path`` fora do subset
+    suportado vira ``None`` em vez de hard-fail de schema. Mata o reask storm —
+    claude-sonnet-4-6 emite filtros JSONPath (``[?(...)]``, ``=~``) que o
+    verificador não resolve (ver ``_JSONPATH_RE`` em planner_drill_down). Mesmo
+    padrão de ``_normalize_confianca``: coerção no boundary > ``pattern=`` que
+    disparava 4 reasks por geração (incidente parecer 2026-06-16, ~243s/needs_review).
+    Path coercido vira ``missing_path`` no verificador (não-fatal em ``warn``)."""
+    if not isinstance(v, str) or (len(v) <= 255 and _JSONPATH_RE.match(v)):
+        return v
+    logger.warning(
+        "parecer_evidencia_path_coerced", extra={"category": _jsonpath_drift_category(v)}
+    )
+    return None
+
+
+# Aplicado em evidencia_path (Risco/Sugestao) + field_path (CampoFaltante).
+EvidenciaPath = Annotated[Optional[str], BeforeValidator(_coerce_jsonpath_or_none)]
+
+
 def _check_no_ticker_no_sigilo(text: str) -> str:
     """Valida body textual: sem ticker, sem termos sigilo §13."""
     if _TICKER_RE.search(text):
@@ -108,7 +143,7 @@ class Metadata(BaseModel):
 
 class PontoForte(BaseModel):
     titulo: str = Field(..., min_length=3, max_length=120)
-    descricao: str = Field(..., min_length=1, max_length=400)
+    descricao: str = Field(..., min_length=1, max_length=520)
     ancora_metodologica: AncoraMetodologica
     tema_canonico: Optional[TemaCanonico] = None
     section_id: Optional[SectionId] = None
@@ -122,11 +157,11 @@ class PontoForte(BaseModel):
 class Risco(BaseModel):
     severidade: Severidade
     titulo: str = Field(..., min_length=3, max_length=140)
-    descricao: str = Field(..., min_length=1, max_length=500)
+    descricao: str = Field(..., min_length=1, max_length=650)
     ancora_metodologica: AncoraMetodologica
     tema_canonico: TemaCanonico
-    evidencia: Optional[str] = Field(None, max_length=300)
-    evidencia_path: Optional[str] = Field(None, pattern=_JSONPATH_RE.pattern)
+    evidencia: Optional[str] = Field(None, max_length=390)
+    evidencia_path: EvidenciaPath = None
     section_id: SectionId
     confianca: Optional[Confianca] = None
 
@@ -143,7 +178,7 @@ class ImpactoEstimado(BaseModel):
         ..., description="Positivo = ganho; negativo = perda evitada."
     )
     unidade: UnidadeImpacto
-    caveat: str = Field(..., min_length=10, max_length=240)
+    caveat: str = Field(..., min_length=10, max_length=300)
     # ADR-220: tipagem do impacto. Ausência aceita (compat) → renderer trata
     # como "outro". Para sugestão de tema IF (regra 25× Perini), manifest check
     # exige >=1 sugestão com tipo='patrimonio_alvo' (dev/check_parecer_manifest_in_sync.py).
@@ -152,15 +187,15 @@ class ImpactoEstimado(BaseModel):
 
 class Sugestao(BaseModel):
     prioridade: Prioridade
-    acao: str = Field(..., min_length=10, max_length=280)
-    impacto_qualitativo: str = Field(..., min_length=10, max_length=320)
+    acao: str = Field(..., min_length=10, max_length=340)
+    impacto_qualitativo: str = Field(..., min_length=10, max_length=420)
     ancora_metodologica: AncoraMetodologica
     tema_canonico: TemaCanonico
     confianca: Confianca
     section_id: SectionId
     suggestion_dedup_key: str = Field(..., pattern=_SHA256_RE.pattern)
     impacto_estimado: Optional[ImpactoEstimado] = None
-    evidencia_path: Optional[str] = Field(None, pattern=_JSONPATH_RE.pattern)
+    evidencia_path: EvidenciaPath = None
     # ADR-220: categoria editorial da sugestão (natureza do impacto). Opcional;
     # quando presente, renderer agrupa sugestões irmãs e exibe label semântico.
     # Pode diferir de impacto_estimado.tipo (sugestão pode ter "categoria=if"
@@ -191,7 +226,7 @@ class Metrica(BaseModel):
 
 class NotaMetodologica(BaseModel):
     titulo: str = Field(..., min_length=3, max_length=120)
-    conteudo: str = Field(..., min_length=20, max_length=600)
+    conteudo: str = Field(..., min_length=20, max_length=780)
     ancoras_metodologicas: list[AncoraMetodologica] = Field(..., min_length=1, max_length=4)
 
     @field_validator("conteudo")
@@ -201,7 +236,11 @@ class NotaMetodologica(BaseModel):
 
 
 class CampoFaltante(BaseModel):
-    field_path: str = Field(..., pattern=_JSONPATH_RE.pattern)
+    # ADR-292: coerce inválido → None (era ``str`` com ``pattern=``). A regra 3 do
+    # prompt instrui o modelo a registrar paths NÃO-whitelistados aqui — i.e.
+    # exatamente os que falham o regex. Hard-fail viraria reask; ``motivo`` carrega
+    # o sinal mesmo com path None.
+    field_path: EvidenciaPath = None
     motivo: str = Field(..., min_length=5, max_length=200)
 
 
@@ -210,7 +249,7 @@ class ParecerPlanejadorOutput(BaseModel):
 
     version: str = Field("1.0", pattern=_VERSION_RE.pattern)
     metadata: Metadata
-    diagnostico_geral: str = Field(..., min_length=50, max_length=500)
+    diagnostico_geral: str = Field(..., min_length=50, max_length=750)
     pontos_fortes: list[PontoForte] = Field(..., min_length=3, max_length=6)
     riscos: list[Risco] = Field(..., max_length=12)
     sugestoes_execucao: list[Sugestao] = Field(..., max_length=5)

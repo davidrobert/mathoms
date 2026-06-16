@@ -16,7 +16,9 @@ from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 
 # Entra no composite de compute_cache_key — bump invalida caches pré-F4.
-EVIDENCIA_VERIFICATION_VERSION = "1"
+# "2" (ADR-292): coerção de evidencia_path inválido → None muda o output
+# persistido (path-filtro que antes virava reask agora vira null + missing_path).
+EVIDENCIA_VERIFICATION_VERSION = "2"
 
 _EVIDENCIA_MODE_ENV = "MATHOMS_PARECER_EVIDENCIA_MODE"
 _VALID_MODES = ("warn", "strict")
