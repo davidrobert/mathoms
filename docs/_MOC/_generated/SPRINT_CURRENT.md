@@ -5,12 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-2 in_progress.
+3 in_progress.
 
-## In progress (2)
+## In progress (3)
 
 - [[A25.l2]] — Flip do consumo E4 para identidade v2 (passo 2 da B4) · priority P0 · branch `dedup-e4-flip-v2`
 - [[A25.l6]] — KR2 6/6 — fluxo_liquido + endividamento.total_dividas + member_hashes reais · priority P2 · branch `kr2-resto`
+- [[A25.l7]] — Decisão do flip warn→strict do evidencia_path (requisito de done da A25) · priority P0 · branch `evidencia-strict-decision`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
