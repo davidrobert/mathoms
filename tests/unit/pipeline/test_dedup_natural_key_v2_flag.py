@@ -17,7 +17,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from pipeline.domain.services._tx_identity import compute_transaction_hash  # noqa: E402
+from pipeline.domain.services._tx_identity import (  # noqa: E402
+    _has_discriminants,
+    compute_transaction_hash,
+)
 from pipeline.domain.services.cash_flow_builder import CashFlowBuilder  # noqa: E402
 from pipeline.domain.services.transaction_classifier import (  # noqa: E402
     ClassifierConfig,
@@ -177,3 +180,39 @@ class TestBuilderFallbackRespectsFlag:
             [self._bare_tx(500.0, "credito"), self._bare_tx(-500.0, "debito")]
         )
         assert cf.transferencias_count == 2
+
+
+class TestHasDiscriminants:
+    """Gate classe-c do K4 (ADR-278) extraído para _tx_identity (fonte única, l6B)."""
+
+    def test_three_present_is_true(self):
+        assert _has_discriminants("itau", "david", "extratoconta") is True
+
+    def test_any_missing_is_false(self):
+        assert _has_discriminants("itau", "", "extratoconta") is False
+        assert _has_discriminants("itau", "  ", "extratoconta") is False
+        assert _has_discriminants(None, "david", "extratoconta") is False
+        assert _has_discriminants("itau", "david", None) is False
+
+
+class TestNaturalKeyStampGate:
+    """(l6B) item E4 carrega ``natural_key`` só sob v2 + discriminantes; nunca degenerado."""
+
+    def _despesa(self):
+        return [{"data": "2026-03-30", "descricao": "PAGAMENTO MERCADO", "valor": -100.0}]
+
+    def test_v2_with_discriminants_stamps_k4_equal_to_tx_hash(self):
+        txs = _classifier(v2=True).classify_account(_account(self._despesa()))
+        item = txs[0].to_legacy_dict()
+        assert item["natural_key"]["hash_version"] == 2
+        assert item["natural_key"]["hash"] == item["transaction_hash"]
+
+    def test_v2_without_titular_is_classe_c_none(self):
+        account = _account(self._despesa())
+        account["titular"] = ""
+        txs = _classifier(v2=True).classify_account(account)
+        assert "natural_key" not in txs[0].to_legacy_dict()
+
+    def test_v1_off_never_stamps_natural_key(self):
+        txs = _classifier(v2=False).classify_account(_account(self._despesa()))
+        assert "natural_key" not in txs[0].to_legacy_dict()
