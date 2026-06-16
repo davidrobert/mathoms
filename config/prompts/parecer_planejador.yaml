@@ -25,9 +25,11 @@
 #   - ADR breaking quando DSL muda; tunning de paths/labels é editorial
 # ==============================================================================
 
+# 1.5 — A26.l1 (ADR-279 §E): catálogo de citação (citation_catalog) injeta as
+# folhas monetárias citáveis no exec context; bump invalida cache Redis.
 # 1.4 — ADR-290 F2: hints de valor determinístico (saude_balanco +
 # independencia_financeira); bump invalida cache Redis (prompt novo).
-version: "1.4"
+version: "1.5"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -387,6 +389,18 @@ max_exec_context_bytes: 5120  # ~5KB hard limit base (pré tool calls)
 # Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação sem bloquear;
 # strict marca needs_review. Override operacional: env MATHOMS_PARECER_EVIDENCIA_MODE.
 evidencia_verification_mode: "warn"
+
+# Catálogo de citação (A26.l1 · ADR-279 §E): injeta no exec context a lista
+# fechada das folhas monetárias não-nulas do E5 — o LLM cita de uma lista em vez
+# de adivinhar JSONPath (telemetria 1.5.0: 79% das falhas eram whitelist_miss).
+# Bloco computado por parecer_citation_catalog.py; aqui só a intenção declarativa.
+# emit:false reproduz o exec context pré-A26 byte-a-byte.
+citation_catalog:
+  emit: true
+  format: "flat_path_list"
+  monetary_only: true
+  max_entries: 30
+  max_bytes: 1600
 
 # ==============================================================================
 # HARD CAPS (ADR-202 §D5)
