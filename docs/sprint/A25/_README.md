@@ -32,7 +32,7 @@ theme: "data-lineage"
 - **F7 — debug LLM + eval** ([[A25.l4]]): renderer linearizado, `lineage_diff`,
   tools, eval de injeção (KR1 ≥85%, KR3 p95 ≤6; nightly G-g).
 - **Herdados:** cutover override v2 ([[A25.l1]], slice 4 da [[A23.l4]]) → flip dedup
-  E4→v2 ([[A25.l2]], exige ADR Proposto) → KR2 6/6 ([[A25.l6]], stretch) + decisão
+  E4→v2 ([[A25.l2]], [[ADR-287]] `Decidido`) → KR2 6/6 ([[A25.l6]], stretch) + decisão
   flip strict `evidencia_path` ([[A25.l7]], requisito de done).
 
 ## Lanes (kickoff 2026-06-10 — co-design registrado em cada lane)
@@ -40,11 +40,11 @@ theme: "data-lineage"
 | Lane | Slug | Status | Dep |
 |---|---|---|---|
 | [[A25.l1]] | `a23l4-cutover-override` (dual-read 6 call-sites + flag; M2 → carry-over) | ✅ shipped #604 | A23.l4 s3 ✅ #563 |
-| [[A25.l2]] | `dedup-e4-flip-v2` ([[ADR-287]] `Proposto` #605; **slice 1 shipped #619/#621** — flag `dedup_natural_key_v2_enabled` OFF + dispatch `compute_identity_hash` + 16 testes paridade; **G-f aprovado pelo owner 2026-06-12** — zero delta monetário) | open (slice 1 ✅; residual: cutover flip ON + rebaseline G-c + `member_hashes` reais via l6B) | l1 ✅ |
+| [[A25.l2]] | `dedup-e4-flip-v2` ([[ADR-287]] `Decidido`; slice 1 #619/#621 + **cutover impl. (PR #648)** — resolver+sentinela, flip DEFAULTS→True, rebaseline vazio v2≡v1, G-f zero delta) | in_progress (PR #648 aguardando merge) | l1 ✅ |
 | [[A25.l3]] | `dl-f5-reverso` (edge table + hook pós-run; teto run→doc documentado) | ✅ shipped #600 | — |
 | [[A25.l4]] | `dl-f7-debug-llm` (renderer/diff/tools/eval nightly + seed #606/#607) | ✅ shipped #603 | — |
 | [[A25.l5]] | `dl-f6-produto-n1n2` (selo+popover; teste 5s dogfood pendente, flag off) | ✅ shipped #602 | — |
-| [[A25.l6]] | `kr2-resto` (parte A ✅ #609 — **KR2 6/6 lineage**; parte B member_hashes após l2) | in_progress | parte B: l2 |
+| [[A25.l6]] | `kr2-resto` (parte A ✅ #609 — **KR2 6/6 lineage**; **parte B `member_hashes` reais impl. (PR #648)** — natural_key no item E4 + gate classe-c + fixture K4) | in_progress | parte B: l2 |
 | [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — decisão informada, gate <5% sobre ≥20 gerações; amostra 0 em 2026-06-11) | planned | telemetria |
 
 **Precedência de corte (squeeze):** F7 > F6. MLP = l3+l4+l5 + decisão l7;
