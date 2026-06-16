@@ -45,6 +45,26 @@ flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
 
 ## Sprint candidate (próxima)
 
+> Ordem relativa entre candidates é **decisão de priorização do owner** (número maior não
+> implica prioridade — A18 é mais antiga; A26 é continuação direta da frente recém-fechada).
+
+### A26 — Data Lineage: consolidação (`candidate` 2026-06-16)
+
+**Reservada — 5ª janela do plano [[PLAN-data-lineage]], sucede A25.** Remove as redes de
+segurança da frente Data Lineage (shims de identidade v1, modo `warn` do `evidencia_path`)
+após observação em produção. 5 lanes em 2 regimes: **Regime A** (l1 — fix de citação do
+`evidencia_path`, executável já, sem gate) + **Regime B** (l2 flip strict · l3 drop shim
+dedup · l4 override v2 ON + instrumentação · l5 M2 override destrutiva), todas gated por
+**volume de tráfego de produção** (≥20 gerações de parecer; ≥1 sprint com flags v2 a 100%
++ `dualread.v1_fallback` zerado com uso real). Co-design 2026-06-16 (PM + IA + data-engineer
++ prompt-engineer + sre-devops). Sem ADR nova (ADR-279/287 cobrem; ADR-282 flippa `Decidido`
+quando a M2 override fechar). **Pré-condição de promoção `candidate → current`:** existir
+tráfego que feche os gates — pré-launch, fecham por uso, não por calendário. Exceção: l1
+não depende de tráfego e é elegível para pickup imediato.
+
+- **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) (5 lanes) · **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5.
+- **Carry-overs de origem:** [[A25.l7]] (decisão evidencia_path) · [[ADR-287]] §Cutover · [[A25.l1]] §5.
+
 ### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
 
 **Próxima na fila.** 3 lanes coordenadas que destravam ingestão de CRLV-e, apólices polimórficas (combinada multi-bem como caso V1), e refresh assíncrono de valor de mercado via BrasilAPI. ADR canônica [[ADR-239]] (`Proposto`). Diagnóstico dogfood 2026-05-21: 6 PDFs (3 CRLV + 3 apólices) todos em `.other` silencioso.
