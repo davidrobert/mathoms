@@ -4,7 +4,7 @@ type: lane
 title: "Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM"
 sprint: A26
 plan: PLAN-data-lineage
-status: open
+status: in_progress
 priority: P1
 branch_slug: evidencia-prompt-catalogo
 adrs:
@@ -14,7 +14,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a26
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/data-lineage
   - area/llm
@@ -79,6 +79,37 @@ sem esperar tráfego, e instrumentar um eval golden que meça o gate de forma de
   (≥20 gerações reais). Documentar os dois papéis para não confundir o owner.
 - `resolve_null` legítimo (cliente sem o campo) → o LLM **não deve citar valor**, não
   relaxar a camada para aceitar null (reabriria a porta da alucinação).
+
+## Estado da implementação (2026-06-16)
+
+Código completo (PR `a26-l1-evidencia-prompt`); `in_progress` até o owner rodar o eval.
+
+- **Diagnóstico (passo 1) — feito sobre o DB local** (`pipeline_stage_logs`, n=4): o
+  perfil mudou vs A25.l7. No prompt **1.5.0** (o que estamos bumpando): conformidade
+  **9,4%**, `whitelist_miss` **79%** das falhas, `resolve_null` **0**, `value_mismatch`
+  **21%**. (A25.l7 media o prompt antigo, resolve_null-dominante.) A classificação
+  fina raiz/sintaxe/folha exigiria decriptar o artifact (Fernet); o catálogo cobre
+  todos os sub-tipos de `whitelist_miss` por construção, então não muda a decisão.
+- **Catálogo (passo 2) — feito:** `backend/app/services/parecer_citation_catalog.py`
+  enumera folhas monetárias não-nulas, resolvidas pelo **mesmo** `get_e5_jsonpath` do
+  verificador (mata `whitelist_miss`+`resolve_null` por construção); valor `brl` faz
+  round-trip em cents (mata `value_mismatch`). Flag declarativa `citation_catalog`
+  no manifest (espelha `gating`/`hard_caps`) + property no schema; bump `version`
+  1.4→1.5. **Sem ADR nova** (precedente de chaves de topo computadas; ADR-200 intacto;
+  conforma ADR-279 §E).
+- **Prompt (passo 3) — feito:** regra 11 reforçada + guarda anti-sub-citação + 3
+  few-shot. `PROMPT_VERSION` 1.5.0→1.6.0; `_PROMPT_BASELINE_CHARS` 5846→6633.
+- **Eval (passo 4) — harness + 25 fixtures entregues; RUN é do owner.**
+  `tests/test_parecer_evidencia_llm_eval.py` (`@pytest.mark.llm_eval`, fora do PR gate).
+  Emendas do co-design: **5 runs/holdout**, gate = **UB do IC95 (Wilson) per-parecer
+  <5%**, braço **temp=0** diagnóstico + **temp=0.1** gate, guarda de **densidade de
+  citação**, cap de custo.
+
+**Owner-gated p/ fechar a lane (KR1):** rodar
+`MATHOMS_RUN_LLM_EVAL=1 ANTHROPIC_API_KEY=… pytest tests/test_parecer_evidencia_llm_eval.py -m llm_eval`
+e confirmar holdout UB IC95 <5% + densidade ≥ piso. Relatório em
+`_scratch/parecer_evidencia_eval_report.json`. O eval **antecipa** o gate; não
+substitui o gate de produção da [[A26.l2]] (≥20 gerações reais).
 
 ## Owner
 
