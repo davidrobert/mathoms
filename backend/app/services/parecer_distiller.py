@@ -5,6 +5,10 @@ from __future__ import annotations
 import json
 from typing import Any, Mapping
 
+from backend.app.services.parecer_citation_catalog import (
+    build_citation_catalog,
+    render_citation_catalog,
+)
 from backend.app.services.parecer_manifest import ManifestData
 from pipeline.llm.prompts._sanitization import contains_injection_pattern
 from pipeline.llm.value_formatter import format_value
@@ -165,8 +169,19 @@ def _render_section(section: dict, e5_data: Mapping[str, Any]) -> list[str]:
     return parts
 
 
+def _render_catalog_block(manifest: ManifestData, e5_data: Mapping[str, Any]) -> str:
+    """Catálogo de citação (A26.l1) — vazio se emit desligado."""
+    cfg = manifest.citation_catalog
+    if not cfg.emit:
+        return ""
+    entries = build_citation_catalog(
+        e5_data, section_whitelist=manifest.tools_section_whitelist, max_entries=cfg.max_entries
+    )
+    return render_citation_catalog(entries, max_bytes=cfg.max_bytes)
+
+
 def distill_exec_context(manifest: ManifestData, e5_data: Mapping[str, Any]) -> str:
-    """Aplica manifest sobre E5 → texto destilado (≤ ``max_exec_context_bytes``)."""
+    """Aplica manifest sobre E5 → texto destilado + catálogo de citação (A26.l1)."""
     parts: list[str] = []
     for section in manifest.sections:
         parts.extend(_render_section(section, e5_data))
@@ -174,4 +189,7 @@ def distill_exec_context(manifest: ManifestData, e5_data: Mapping[str, Any]) -> 
     cap = manifest.max_exec_context_bytes
     if len(body.encode("utf-8")) > cap:
         body = body.encode("utf-8")[:cap].decode("utf-8", errors="ignore") + _TRUNCATION_MARKER
-    return body
+    # Catálogo tem orçamento próprio (cfg.max_bytes), anexado APÓS o cap das
+    # narrativas — nunca truncado por elas (prompt-engineer 2026-06-16).
+    catalog = _render_catalog_block(manifest, e5_data)
+    return f"{body}\n\n{catalog}" if catalog else body

@@ -3,12 +3,23 @@
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
 _MANIFEST_PATH = "config/prompts/parecer_planejador.yaml"
 _PERSONA_PATH = "config/agents/planner_persona.md"
+
+
+@dataclass(frozen=True)
+class CitationCatalogConfig:
+    """Intenção declarativa do catálogo de citação (A26.l1 · ADR-279 §E)."""
+
+    emit: bool = False
+    fmt: str = "flat_path_list"
+    monetary_only: bool = True
+    max_entries: int = 30
+    max_bytes: int = 1600
 
 
 @dataclass
@@ -23,6 +34,7 @@ class ManifestData:
     max_total_input_tokens: int
     max_exec_context_bytes: int
     evidencia_verification_mode: str = "warn"
+    citation_catalog: CitationCatalogConfig = field(default_factory=CitationCatalogConfig)
 
 
 def _resolve_repo_path(rel: str) -> Path:
@@ -69,6 +81,18 @@ def _extract_format_hints(sections: list[dict]) -> dict[str, str]:
     return fmt_hints
 
 
+def _parse_citation_catalog(raw: dict) -> CitationCatalogConfig:
+    """Lê o bloco citation_catalog; ausente = emit desligado (pré-A26)."""
+    cc = raw.get("citation_catalog") or {}
+    return CitationCatalogConfig(
+        emit=bool(cc.get("emit", False)),
+        fmt=str(cc.get("format", "flat_path_list")),
+        monetary_only=bool(cc.get("monetary_only", True)),
+        max_entries=int(cc.get("max_entries", 30)),
+        max_bytes=int(cc.get("max_bytes", 1600)),
+    )
+
+
 def load_manifest(path: Optional[str] = None) -> ManifestData:
     """Lê manifest YAML e expõe os campos consumidos pelo orchestrator."""
     import yaml
@@ -85,6 +109,7 @@ def load_manifest(path: Optional[str] = None) -> ManifestData:
         max_total_input_tokens=int(raw.get("max_total_input_tokens", 50_000)),
         max_exec_context_bytes=int(raw.get("max_exec_context_bytes", 5120)),
         evidencia_verification_mode=str(raw.get("evidencia_verification_mode", "warn")),
+        citation_catalog=_parse_citation_catalog(raw),
     )
 
 

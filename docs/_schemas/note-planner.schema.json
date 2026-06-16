@@ -88,6 +88,19 @@
       "enum": ["warn", "strict"],
       "description": "Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação; strict marca needs_review. Override via env MATHOMS_PARECER_EVIDENCIA_MODE."
     },
+    "citation_catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["emit"],
+      "description": "Catálogo de citação (A26.l1 · ADR-279 §E). As folhas monetárias não-nulas do E5 viram lista fechada de evidencia_path citáveis no exec context — o LLM cita de uma lista em vez de adivinhar JSONPath. Bloco computado pelo distiller (parecer_citation_catalog.py); este bloco declara só a intenção (espelha o padrão de gating/hard_caps). Invisível ao coverage gate (fora de context_sections).",
+      "properties": {
+        "emit": {"type": "boolean", "description": "Liga o catálogo no exec context. false = byte-idêntico ao comportamento pré-A26."},
+        "format": {"type": "string", "enum": ["flat_path_list"], "description": "Forma do bloco — único formato suportado: lista plana path→valor agrupada por raiz."},
+        "monetary_only": {"type": "boolean", "description": "Só folhas monetárias (R$); o verificador só checa tokens R$."},
+        "max_entries": {"type": "integer", "minimum": 1, "maximum": 60, "description": "Cap de folhas, priorizadas por densidade de citação esperada."},
+        "max_bytes": {"type": "integer", "minimum": 256, "maximum": 8192, "description": "Orçamento próprio do bloco — independente de max_exec_context_bytes (narrativas truncam antes)."}
+      }
+    },
     "hard_caps": {
       "type": "object",
       "additionalProperties": false,

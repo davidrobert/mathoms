@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.5.0"
+PROMPT_VERSION = "1.6.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -97,9 +97,20 @@ SYSTEM_PROMPT_TEMPLATE = """\
       DD/MM/AAAA — confirme se está em processo de renovação". Sem
       urgência teatral.
 
-11. **Citação verificada (ADR-279):** valor `R$` na prosa (`descricao`,
-    `evidencia`, `acao`) exige `evidencia_path` que resolva no E5 para o
-    número citado. Ex.: "R$ 84.000" → `$.reserva_emergencia.total_liquida`.
+11. **Citação verificada (ADR-279 · catálogo A26):** todo valor `R$` na prosa
+    (`descricao`, `evidencia`, `acao`) exige `evidencia_path`. Regras:
+    - Cite EXCLUSIVAMENTE paths listados em "Evidência citável
+      (evidencia_paths_disponiveis)" no contexto, COPIANDO o valor exato de lá
+      — não recalcule, não arredonde, não invente faixa.
+    - Valor que você quer citar NÃO está na lista → NÃO cite o número; registre
+      o que faltou em `campos_faltantes_pediria_se_iterasse[]`.
+    - A lista é seu vocabulário de evidência: quando um número dela for
+      relevante ao ponto, CITE-O. Não omita valores legítimos só para evitar
+      violação — prosa vaga sem ancoragem numérica é pior que o número certo.
+    Exemplos de citação correta (token R$ na prosa → leaf path exato):
+    - "reserva cobre só ~2 meses (R$ 84.000)" → `$.reserva_emergencia.total_liquida`
+    - "fluxo livre de R$ 240.000/ano" → `$.fluxo_caixa.fluxo_liquido`
+    - "dívida de R$ 500.000" → `$.endividamento.total_dividas`
 
 12. **Valor escalar é passthrough (ADR-290):** quando o campo-fonte é escalar
     numérico, copie-o do payload — não derive faixa, média nem arredondamento
@@ -133,4 +144,5 @@ Cap: 6 iterações. Cache em sessão (mesmo path/section não custa nova iteraç
 
 Produza o `ParecerPlanejadorOutput` completo. Lembre dos invariantes:
 sigilo §13, count(P0) ≤ 2, hard caps, sem ticker no body, sem prescrever ativo.
+Todo valor R$ citado vem da lista "Evidência citável" acima (regra 11).
 """

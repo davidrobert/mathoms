@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 open.
+1 in_progress.
 
-## Open (1)
+## In progress (1)
 
 - [[A26.l1]] — Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM · priority P1 · branch `evidencia-prompt-catalogo`
 
