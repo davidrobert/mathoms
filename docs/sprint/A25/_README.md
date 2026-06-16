@@ -3,20 +3,24 @@ id: MOC-sprint-a25
 type: moc
 title: "Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM"
 aliases: ["A25", "Sprint A25"]
-sprint_status: current
+sprint_status: done
 date: "2026-06-10"
 theme: "data-lineage"
 ---
 
 # Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM
 
-> **Status:** `current` — promovida em 2026-06-10, sucedendo [[MOC-sprint-a24]]
-> (`done` — G3 atingido, KR2 4/6, de-leak cirúrgico confirmado no dado real via G-f).
-> Fast-follow do plano [[PLAN-data-lineage]]: a A25 **colhe o valor** do substrato —
-> query reversa, primeira UI cliente do lineage e o agente de debug LLM — mais dois
-> herdados (cutover override v2 e a **decisão** do flip strict do `evidencia_path`).
+> **Status:** `done` (encerrada 2026-06-16) — promovida em 2026-06-10, sucedendo
+> [[MOC-sprint-a24]]. **7/7 lanes shipped**: l1/l3/l4/l5 + cutover do flip dedup v2 e
+> `member_hashes` reais (l2/l6, #648) + decisão do `evidencia_path` (l7 — **carry-over
+> A26**, requisito de done cumprido). Sem nova `current` promovida (decisão do owner
+> 2026-06-16). Fast-follow do plano [[PLAN-data-lineage]]: a A25 **colheu o valor** do
+> substrato — query reversa, 1ª UI cliente do lineage e o agente de debug LLM.
 > Perfil DIFERENTE da A24: pouco risco de número (lineage é aditivo), muito risco de
 > UI/UX (F6) e de eval LLM (F7 define KR1/KR3).
+>
+> **Carry-overs para A26:** flip `warn→strict` do `evidencia_path` (l7 §Decisão —
+> gate idêntico, foco conformidade de path) + drop do shim v1 do dedup (M2, [[ADR-287]]).
 >
 > **Plano dono:** [[PLAN-data-lineage]] ([plan/DATA_LINEAGE/_README.md](../../plan/DATA_LINEAGE/_README.md)).
 > **Prompt de orquestração:** [agent_prompts/orchestrator_a25_f5f6f7.md](../../agent_prompts/orchestrator_a25_f5f6f7.md)

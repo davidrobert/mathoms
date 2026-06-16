@@ -12,26 +12,27 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A25 — Data Lineage: reverso + produto N1/N2 + debug LLM (`current` 2026-06-10)
-
-**Promovida em 2026-06-10, sucedendo A24 (`done` — G3, KR2 4/6, G-f validado).**
-Fast-follow do plano [[PLAN-data-lineage]] que **colhe o valor** do substrato: F5
-(query reversa via `artifact_lineage_edge`, hook pós-run, N=1) + F6 (1ª UI cliente —
-selo N1 + popover N2 "Como chegamos a esse número", régua §6.3) + F7 (debug LLM:
-renderer linearizado, `lineage_diff`, tools, eval de injeção — **KR1 ≥85% / KR3 p95
-≤6**, nightly G-g) + herdados: cutover override v2 ([[A23.l4]] slice 4 → flip dedup
-E4→v2 com ADR própria) e **decisão** do flip `warn→strict` do `evidencia_path`
-(requisito de done — gate <5% sobre ≥20 gerações; amostra insuficiente → carry-over
-documentado). Perfil distinto da A24: pouco risco de número, muito risco de UI/UX e
-eval LLM. Precedência de corte: **F7 > F6**.
-
-- **Sprint:** [sprint/A25/_README.md](../sprint/A25/_README.md) (7 lanes, co-design
-  registrado por lane em 2026-06-10) · **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
-- **Prompt:** [agent_prompts/orchestrator_a25_f5f6f7.md](../agent_prompts/orchestrator_a25_f5f6f7.md).
-- **Abrem já (∥):** l1 (cutover) + l3 (reverso) + l4 (debug LLM) + l5 (produto);
-  l2 após l1 (+ADR); l6 stretch após l2; l7 por último.
+Nenhuma sprint corrente no momento. **A25 encerrou `done` em 2026-06-16** sem promoção
+de sucessora (decisão do owner). Próxima `candidate` na fila: A18 (ver abaixo) — será
+promovida via `candidate → current` quando o owner decidir.
 
 ## Sprint recém-fechada
+
+### A25 — Data Lineage: reverso + produto N1/N2 + debug LLM (`done` 2026-06-16)
+
+**Encerrada em 2026-06-16 — 7/7 lanes shipped.** Cutover do flip dedup `natural_key`
+v2 + `member_hashes` reais (l2/l6, #648), query reversa (l3, #600), debug LLM/eval
+(l4, #603), produto N1/N2 (l5, #602), cutover override (l1, #604). A l7 (decisão do
+flip `warn→strict` do `evidencia_path`) fechou como **carry-over A26** (#649) — o gate
+exige ≥20 gerações e só há 3 com telemetria (taxa ~89%, 81% conformidade de path) →
+flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
+
+- **Carry-overs A26:** flip strict `evidencia_path` (foco prompt/whitelist via
+  `prompt-engineer`) + drop do shim v1 do dedup (M2, [[ADR-287]]).
+- **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) ·
+  **Sprint:** [sprint/A25/_README.md](../sprint/A25/_README.md).
+
+## Sprint anterior
 
 ### A24 — Data Lineage: extração limpa + walking skeleton (`done` 2026-06-10)
 
