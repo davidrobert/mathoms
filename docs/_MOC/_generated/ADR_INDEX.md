@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-285 ADRs (ADR-001 a ADR-295) em [`docs/adr/`](../../adr/).
+286 ADRs (ADR-001 a ADR-295) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 215
-- **Proposto**: 66
+- **Proposto**: 67
 - **Roadmap**: 4
 
 ## Fundação
@@ -414,7 +414,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-169]] — Modo incremental estendido aos stages globais E1
 - [[ADR-292]] — evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) · phase A26 · parecer reliability
 
-### Proposto (11)
+### Proposto (12)
 
 - [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-199]] — Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
@@ -426,6 +426,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-207]] — Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-208]] — Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
+- [[ADR-294]] — Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) · phase A26 · parecer reliability
 - [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability
 
 ## marketing
