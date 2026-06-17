@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-283 ADRs (ADR-001 a ADR-292) em [`docs/adr/`](../../adr/).
+284 ADRs (ADR-001 a ADR-293) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 215
-- **Proposto**: 64
+- **Proposto**: 65
 - **Roadmap**: 4
 
 ## Fundação
@@ -341,9 +341,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-287]] — Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) · phase A25 · l2/l6B
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-282]] — Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) · phase A23 · pré-passo-2 B4
+- [[ADR-293]] — Citação de parecer (E6→E5) como edge de lineage por chave natural · phase A26 · Onda 6 (impl. A27)
 
 ## docs
 

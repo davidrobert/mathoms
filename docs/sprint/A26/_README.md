@@ -53,6 +53,8 @@ lane destrutiva tem um **gate verificável**, não um prazo.
 | [[A26.l3]] | `drop-dedup-v1-shim` | B (reversível) | blocked | dedup v2 100% + counter zerado ≥1 sprint |
 | [[A26.l4]] | `override-v2-on-instrumentacao` | B (habilitador) | blocked | flip override flag→True + `v2_match_count` + query agendada `v1_fallback` |
 | [[A26.l5]] | `m2-override-drop` | B (IRREVERSÍVEL) | blocked | l4 + G1/G2/G3 + PITR + owner go/no-go |
+| [[A26.l6]] | `evidencia-coverage-kpi` | A (sem gate) | planned | — · roda antes de l7 (baseline) |
+| [[A26.l7]] | `evidencia-catalog-listas` | A (sem gate) | planned | l1 · recomendada antes do flip l2, não bloqueante |
 
 **Ordem de execução (risco crescente):** l1 → l2 (flip precisa do prompt corrigido);
 l3 (drop reversível, "canário") antes de l5 (drop irreversível); l4 habilita o gate de
@@ -60,15 +62,32 @@ l5. l3/l4/l5 independentes de l1/l2.
 
 **Precedência de corte:** **Must** = l1 (destrava a métrica) + l2 (flip strict é o
 núcleo do guardrail). **Should** = l3 (higiene de dead code; v1/v2 dual-read não custa
-rodando) + l4 (habilita o gate da l5). **Could / cortável sem dó** = l5 (M2 override —
-destrutivo + PITR, maior risco; corta para A27 se a janela de tráfego for curta —
-nunca forçar sob gate apertado).
+rodando) + l4 (habilita o gate da l5) + **l6** (instrumenta o gate de l2 — auditável,
+mesma classe de l4) + **l7** (fecha a raiz comportamental do [[ADR-292]]; barato,
+sem-gate, mas cortável p/ A27 — l2 flipa fail-open sem ela). **Could / cortável sem dó**
+= l5 (M2 override — destrutivo + PITR, maior risco; corta para A27 se a janela de tráfego
+for curta — nunca forçar sob gate apertado).
+
+## Cobertura de citação (Onda 6 — adições pós-[[ADR-292]])
+
+Ortogonal aos dois regimes de bloqueio acima: a [[A26.l6]] + [[A26.l7]] não removem
+rede de segurança (tese da Onda 5) — **ampliam a cobertura** da citação verificada
+E5→E6, fechando a raiz do incidente do parecer (2026-06-16, `claude-sonnet-4-6` emitia
+JSONPath com filtros para citar valores de **lista** que o catálogo v1 não oferecia;
+[[ADR-292]] coagiu path inválido→None, mas o gap de cobertura persiste). São **Regime A**
+(sem gate de tráfego). Ordem: **l6 (KPI/baseline) → l7 (catálogo cobre listas)**, para
+medir a redução de `missing_path`. Conformam [[ADR-279]] §E + [[ADR-292]] — **sem ADR
+nova**. O follow-up mais profundo (citação de lista por chave estável + materializar a
+citação como edge no grafo de lineage) é **A27 / Onda 6**, atrás de [[ADR-293]] `Proposto`
+(uma decisão só: edge sem chave = lineage podre; chave sem edge = código morto).
 
 ## KRs da janela (readiness/saúde, não "conclusão")
 
 - **KR1** — conformidade de citação do `evidencia_path` (path ∈ whitelist + resolve
   não-nulo) **≥95%** sobre as gerações disponíveis (baseline A25: ~28% conforme).
-  Controlável **hoje** via l1; é o que destrava os demais gates.
+  Controlável **hoje** via l1; é o que destrava os demais gates. **Pós-[[A26.l7]]** o
+  denominador passa a incluir paths de **lista** (cobertura ampliada) — a meta ≥95% é
+  re-ancorada na baseline medida pela [[A26.l6]]; é refinamento de definição, não KR novo.
 - **KR2** — `mathoms.categorization.dualread.v1_fallback` **= 0 sustentado por ≥1
   sprint de tráfego v2 a 100%** com uso real exercitado (não zero por inatividade).
   Mede a *condição de gate* dos drops, não o ato de dropar (l4 instrumenta).
