@@ -95,19 +95,52 @@ def _is_money_leaf(key: str, value: Any) -> bool:
     return not isinstance(value, bool) and isinstance(value, (int, float)) and _is_money_key(key)
 
 
+# Top-K itens por lista (A26.l7). Listas de alto valor (top_ativos) já vêm
+# ordenadas por valor desc; o cap evita estourar max_entries com lista longa.
+_MAX_LIST_ITEMS = 5
+
+
 def _leaf_paths_for(key: str, value: Any, prefix: str) -> Iterator[str]:
-    """Paths citáveis de um único par chave/valor (recursa em dicts)."""
+    """Paths citáveis de um par chave/valor (recursa em dicts E listas — A26.l7)."""
     if not key.isidentifier() or (prefix == "$" and key in _NON_MONEY_ROOTS):
         return
     path = f"{prefix}.{key}"
     if isinstance(value, Mapping):
         yield from _iter_money_leaf_paths(value, path)
-    elif _is_money_leaf(key, value):
+        return
+    if isinstance(value, list):
+        yield from _iter_list_money_leaf_paths(value, path, key)
+        return
+    if _is_money_leaf(key, value):
         yield path
 
 
+def _item_money_value(item: Any):
+    """Valor representativo do item de lista, para ranquear top-K (maior folha R$)."""
+    if isinstance(item, Mapping):
+        return max((v for k, v in item.items() if _is_money_leaf(k, v)), default=0)
+    return item if isinstance(item, (int, float)) and not isinstance(item, bool) else 0
+
+
+def _top_money_indices(items: list, k: int) -> list[int]:
+    """Índices ORIGINAIS dos k itens de maior valor (re-indexar quebraria o path)."""
+    ranked = sorted(range(len(items)), key=lambda i: _item_money_value(items[i]), reverse=True)
+    return sorted(ranked[:k])
+
+
+def _iter_list_money_leaf_paths(items: list, prefix: str, key: str) -> Iterator[str]:
+    """Folhas R$ de itens de lista — top-K por valor, índice original, ``[idx].subkey`` escalar (nunca ``[*]``: resolveria à lista inteira e o ``any()`` do verificador maximizaria falso-verde, ADR-292)."""
+    for i in _top_money_indices(items, _MAX_LIST_ITEMS):
+        item = items[i]
+        if isinstance(item, Mapping):
+            yield from _iter_money_leaf_paths(item, f"{prefix}[{i}]")
+            continue
+        if _is_money_leaf(key, item):
+            yield f"{prefix}[{i}]"
+
+
 def _iter_money_leaf_paths(data: Any, prefix: str = "$") -> Iterator[str]:
-    """Paths $.a.b.c de folhas monetárias (int/float); strings/listas ficam fora do v1."""
+    """Paths $.a.b.c de folhas monetárias (int/float), recursando dicts e listas (A26.l7)."""
     if not isinstance(data, Mapping):
         return
     for key, value in data.items():
