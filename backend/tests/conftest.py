@@ -286,4 +286,37 @@ async def auth_client_with_doc(auth_client: AsyncClient) -> AsyncClient:
 #   user = await factories.make_user(db, email="x@test.com")
 # Or import directly from backend.tests.factories.
 
+# ─── A26: snapshot de rotas pré-poluição + detector de poluidor (CI flake) ───
+# Ver backend/tests/_app_routes.py. Congela app.routes ANTES de qualquer teste
+# (pytest_sessionstart roda pós-import de conftest, pré-coleta) para imunizar os
+# testes-invariante de rota; e nomeia o teste que derruba rotas de workspace.
+import warnings as _warnings  # noqa: E402
+
+from backend.tests import _app_routes as _routes_diag  # noqa: E402
 from backend.tests import factories  # noqa: E402,F401
+
+_WS_BASELINE: dict[str, int] = {}
+_POLLUTER_REPORTED: dict[str, bool] = {}
+
+
+def pytest_sessionstart(session):  # noqa: ARG001
+    from backend.app.main import app
+
+    _routes_diag.ROUTES_SNAPSHOT[:] = list(app.routes)
+    _WS_BASELINE["n"] = _routes_diag._ws_route_count(_routes_diag.ROUTES_SNAPSHOT)
+
+
+def pytest_runtest_teardown(item):
+    """Nomeia o 1º teste após o qual rotas de workspace somem do app vivo (A26)."""
+    if _POLLUTER_REPORTED.get("done") or "n" not in _WS_BASELINE:
+        return
+    from backend.app.main import app
+
+    now = _routes_diag._ws_route_count(list(app.routes))
+    if now < _WS_BASELINE["n"]:
+        _POLLUTER_REPORTED["done"] = True
+        _warnings.warn(
+            f"ROUTE_POLLUTION: workspace GET routes {_WS_BASELINE['n']}→{now} "
+            f"após {item.nodeid} (worker={os.environ.get('PYTEST_XDIST_WORKER', '?')})",
+            stacklevel=2,
+        )

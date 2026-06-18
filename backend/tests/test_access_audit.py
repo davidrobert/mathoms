@@ -8,7 +8,6 @@ from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.main import app
 from backend.app.models.audit_log import AuditLog
 from backend.app.services.access_audit import (
     AccessAuditDetails,
@@ -16,6 +15,7 @@ from backend.app.services.access_audit import (
     assert_pii_free,
 )
 from backend.app.services.audit import READ_ACCESS_ACTIONS
+from backend.tests._app_routes import effective_routes
 
 # --- Superfície sensível e allowlist justificada -----------------------------
 
@@ -53,7 +53,7 @@ def _has_access_audit(route) -> bool:
 def test_every_sensitive_get_is_audited_or_allowlisted():
     """Anti-drift: toda GET sensível do titular tem audit de acesso OU está na allowlist justificada."""
     offenders = []
-    for route in app.routes:
+    for route in effective_routes():
         if not hasattr(route, "dependant") or not _is_sensitive_titular_get(route):
             continue
         if _has_access_audit(route):
@@ -70,7 +70,7 @@ def test_allowlist_has_no_stale_entries():
     """Allowlist não acumula entradas órfãs — cada path allowlistado existe e não é auditado."""
     live_paths = {
         r.path
-        for r in app.routes
+        for r in effective_routes()
         if hasattr(r, "dependant") and _is_sensitive_titular_get(r) and not _has_access_audit(r)
     }
     stale = set(_ACCESS_AUDIT_ALLOWLIST) - live_paths
