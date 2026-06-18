@@ -81,12 +81,46 @@ Materializar a citação como edge esbarra em dois fatos de contrato (co-design
 
 - Reverse-lineage e drill-down passam a cobrir as afirmações do parecer.
 - Custo: +1 produtor de edge; risco mitigado pela regra de DELETE-por-produtor.
-- **Gate de discovery (pré-impl, A27):** medir empiricamente se `top_ativos`
-  reordena entre runs reais. Se a ordem for estável na prática, a chave natural
-  vira defesa barata; se reordenar (esperado), é pré-requisito duro do edge.
+- **Gate de discovery (pré-impl, A27) — RESOLVIDO 2026-06-18:** medir se
+  `top_ativos` reordena entre runs. **Medição empírica em prod-local bloqueada:**
+  os artefatos E5 em `pipeline_artifacts.content_json` são Fernet-encrypted
+  (`{"_encrypted": true, ...}`) — não decripto dado financeiro real para medir
+  ordenação. **Conclusão analítica (conclusiva, dispensa o empírico):**
+  `top_ativos_analyzer` ordena por `valor` desc; a magnitude relativa dos ativos
+  muda mês a mês (novo extrato, rebaseline) → a posição `[idx]` aponta para outro
+  ativo entre runs. Logo a **chave natural é pré-requisito duro** do edge (não
+  over-engineering). Salvaguarda na impl: teste de reprodutibilidade cross-run
+  com fixture sintética (reordena a lista; o edge por chave natural ainda resolve
+  o ativo certo; o por índice falharia).
 
 ## Escopo de implementação
 
 A27 / [[PLAN-data-lineage]] §Onda 6. Lane única (chave natural + edge são **uma**
 decisão: edge sem chave = lineage podre; chave sem edge = código morto). PR de
 implementação flippa esta ADR → `Decidido (A27)`.
+
+**Slices (ordem de dependência):**
+
+1. **Resolver chave natural** — helper que, dado um path de citação de lista
+   (`$.investimentos.top_ativos[i].valor`), resolve a chave natural do item no E5:
+   `alocacao_por_classe` → `classe` (enum único); `top_ativos` → tupla
+   `(membro, instituicao, nome)` com `posicao` como tie-break. **Sem** tocar o
+   schema E5 (chave fica só na serialização do edge — zero migration).
+2. **Emitir edge** — no `parecer_orchestrator`, após `verify_evidencia`, materializar
+   `edge_type="parecer_citation"`: `src` = folha E5 por chave natural; `dst` =
+   identidade do item de parecer (`risco[2]`, `sugestao_tatica[0]`) em `dst_field`
+   string. Reusar `lineage_edge_writer`.
+3. **Coexistência com retenção N=1** — o `materialize_lineage_edges` faz
+   `DELETE ... WHERE workspace_id` (apaga tudo). Mudar para **delete-por-produtor**
+   (`edge_type IN (...)`) **ou** materializador terminal único E5→doc + E6→E5 na
+   mesma transação. Invariante: um produtor nunca apaga edges do outro.
+4. **Reverse-lineage cobre parecer** — estender a query reversa ([[A25.l3]]) +
+   drill-down de produto ([[A25.l5]]) para responder "de onde veio este R$ do
+   parecer?".
+
+**Gates:** zero migration (confinar a `dst_field`/`edge_type` strings; coluna nova
+só se necessário → aditiva online `ADD COLUMN NULL`, tabela rebuildável N=1). Teste
+de reprodutibilidade cross-run (reordena lista → edge por chave natural ainda
+resolve certo). Teste de coexistência (E5→doc + E6→E5 sobrevivem ao DELETE).
+Co-design `data-engineer` (contrato do edge) feito no F0 desta ADR; revalidar
+`senior-cto` no slice 3 (estratégia de DELETE).
