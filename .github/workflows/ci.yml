@@ -280,18 +280,16 @@ jobs:
           version: "0.5.x"
 
       - name: Restore venv cache
-        # Venv cache pula install na hit (ganho ~60-90s). Com uv (instala
-        # via prebuilt wheels paralelo), miss também fica ~10-15s. Bumped
-        # key v2→v3 porque migrei venv creation de `python -m venv` para
-        # `uv venv` (layout diferente em alguns pacotes binários).
-        # `restore-keys`: fallback partial-match para reuso quando hash muda.
+        # Key no hash do requirements.lock (pinado + hashes, ADR-254) — paridade
+        # com o Dockerfile (`pip install --require-hashes`). SEM restore-keys: o
+        # fallback de prefixo restaurava venv de lock divergente e mascarava drift
+        # de transitiva (incidente 2026-06-18: install do .in loose pegou release
+        # nova que quebrou registro de routers). Miss → rebuild do lock ~10-15s (uv).
         id: venv-cache
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v5
-          restore-keys: |
-            venv-${{ runner.os }}-py313-
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
 
       - name: Install dependencies (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
@@ -299,9 +297,9 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install -r requirements.in -r backend/requirements.in
+          uv pip install --require-hashes -r requirements.lock
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
-          uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
 
       - name: Garante test-deps no venv (sempre — cache pode não tê-los)
         # O venv cache (key v5) é compartilhado entre pipeline-tests,
@@ -314,7 +312,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -386,17 +384,14 @@ jobs:
           version: "0.5.x"
 
       - name: Restore venv cache
-        # Mesmo cache key que pipeline-tests — mesma combinação de
-        # requirements.in + backend/requirements.in. Ambos jobs compartilham
-        # cache; quem executar primeiro popula, o segundo só restaura.
-        # restore-keys: fallback partial-match para reuso quando hash muda.
+        # Mesma key que pipeline-tests (hash do requirements.lock). Ambos jobs
+        # compartilham cache; quem executar primeiro popula. SEM restore-keys —
+        # ver pipeline-tests (evita restaurar venv de lock divergente).
         id: venv-cache
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v5
-          restore-keys: |
-            venv-${{ runner.os }}-py313-
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
 
       - name: Install dependencies (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
@@ -404,9 +399,9 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install -r requirements.in -r backend/requirements.in
+          uv pip install --require-hashes -r requirements.lock
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
-          uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
 
       - name: Garante test-deps no venv (sempre — cache pode não tê-los)
         # Ver pipeline-tests: cache HIT pula o install acima; venv populado
@@ -415,7 +410,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -549,8 +544,8 @@ jobs:
 
       - name: Install backend deps
         run: |
-          pip install -r requirements.in -r backend/requirements.in
-          pip install asyncpg reportlab
+          pip install --require-hashes -r requirements.lock
+          pip install reportlab
 
       - name: Run alembic migrations
         env:
