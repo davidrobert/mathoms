@@ -11,6 +11,7 @@ relates_to:
   - "[[ADR-270]]"
   - "[[ADR-203]]"
   - "[[ADR-289]]"
+  - "[[ADR-294]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 292", "evidencia_path coercion", "parecer reask storm"]

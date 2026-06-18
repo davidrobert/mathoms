@@ -142,3 +142,54 @@ def test_caps_de_prosa_elevados_adr292():
     """Caps subiram (sign-off product-designer) — texto no novo teto valida."""
     Risco(**_risco(descricao="d" * 650))
     Sugestao(**_sugestao(acao="a" * 340, impacto_qualitativo="i" * 420))
+
+
+# -----------------------------------------------------------------------
+# ADR-294 — coerção dos reask triggers remanescentes (incidente 5@5.com
+# 2026-06-17, run 2d555c7f): prosa acima do teto é truncada no boundary e
+# impacto_estimado com confianca != 'alta' é dropado, em vez de hard-fail → reask.
+# -----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("cap,field", [(650, "descricao"), (140, "titulo")])
+def test_risco_prosa_acima_do_teto_trunca_em_vez_de_falhar(cap, field):
+    """Prosa > cap não dá hard-fail (que viraria reask): trunca no boundary ≤ cap."""
+    long = "Frase de teste sem ticker nem sigilo. " * 60
+    r = Risco(**_risco(**{field: long}))
+    assert len(getattr(r, field)) <= cap
+
+
+def test_diagnostico_geral_acima_do_teto_trunca_em_frase():
+    """diagnostico_geral > 750 (incidente: 699 vs cap stale 500) trunca limpo ≤ 750."""
+    from pipeline.llm.schemas.parecer_planejador import _cut_at_sentence
+
+    long = "Diagnostico denso da familia. " * 40  # ~1200 chars, sem ticker/sigilo
+    cut = _cut_at_sentence(long, 750)
+    assert 50 <= len(cut) <= 750
+    assert cut.endswith(".")  # corte em fim de frase, sem reticências
+
+
+def test_sugestao_impacto_estimado_com_confianca_baixa_dropa_sem_falhar():
+    """ADR-294: impacto_estimado + confianca != 'alta' → dropa (None), não raise.
+    Era reask trigger no run 2d555c7f (sugestoes_estrategicas[1])."""
+    payload = _sugestao(confianca="media")
+    payload["impacto_estimado"] = {
+        "valor_estimado_brl": 250000.0,
+        "unidade": "ano",
+        "caveat": "Estimativa indicativa baseada em premissas conservadoras.",
+    }
+    s = Sugestao(**payload)
+    assert s.impacto_estimado is None
+    assert s.confianca == "media"  # confianca preservada — não promovida
+
+
+def test_sugestao_impacto_estimado_com_alta_preservado():
+    """Invariante ADR-202 §D6 mantida: com confianca='alta' o impacto sobrevive."""
+    payload = _sugestao(confianca="alta")
+    payload["impacto_estimado"] = {
+        "valor_estimado_brl": 1000.0,
+        "unidade": "ano",
+        "caveat": "Estimativa indicativa baseada em premissas conservadoras.",
+    }
+    s = Sugestao(**payload)
+    assert s.impacto_estimado is not None

@@ -119,6 +119,54 @@ def _coerce_jsonpath_or_none(v):
 # Aplicado em evidencia_path (Risco/Sugestao) + field_path (CampoFaltante).
 EvidenciaPath = Annotated[Optional[str], BeforeValidator(_coerce_jsonpath_or_none)]
 
+# Fim de frase para truncação graciosa — terminador seguido de espaço ou fim.
+_SENTENCE_END_RE = re.compile(r"[.!?](?=\s|$)")
+
+
+def _cut_at_sentence(text: str, cap: int) -> str:
+    """Trunca ``text`` em ≤ ``cap`` no último fim de frase; fallback: limite de
+    palavra; último recurso: corte duro em ``cap``. Sem reticências (poluiria o
+    renderer). Invariante: todos os caps de prosa são >> ``min_length`` do campo,
+    logo o corte nunca viola o piso (ADR-294)."""
+    head = text[:cap]
+    ends = [m.end() for m in _SENTENCE_END_RE.finditer(head)]
+    if ends:
+        return head[: ends[-1]].rstrip()
+    space = head.rfind(" ")
+    return (head[:space] if space > 0 else head).rstrip()
+
+
+def _truncate_prose_at_cap(cap: int):
+    """Boundary do LLM (ADR-294): prosa acima do teto é truncada no fim de frase
+    em vez de hard-fail → reask. Mata o reask storm de comprimento (incidente
+    5@5.com 2026-06-17: ``diagnostico_geral`` 699 chars contra cap stale 500 →
+    4 reasks/233s/needs_review). O teto-guia do prompt (~15% abaixo do cap)
+    continua sendo a 1ª linha; o schema vira boundary defensivo, não gatilho de
+    reask. Como ``BeforeValidator``, roda ANTES do ``field_validator`` de sigilo/
+    ticker — a checagem de §13 vê o texto já truncado."""
+
+    def _coerce(v):
+        if not isinstance(v, str) or len(v) <= cap:
+            return v
+        logger.warning("parecer_prose_truncated", extra={"original_len": len(v), "cap": cap})
+        return _cut_at_sentence(v, cap)
+
+    return _coerce
+
+
+def _prose(min_length: int, cap: int):
+    """Prosa obrigatória do LLM: truncação no boundary + constraints de tamanho."""
+    return Annotated[
+        str,
+        BeforeValidator(_truncate_prose_at_cap(cap)),
+        Field(min_length=min_length, max_length=cap),
+    ]
+
+
+def _prose_opt(cap: int):
+    """Prosa opcional do LLM (default ``None``) com truncação no boundary."""
+    return Annotated[Optional[str], BeforeValidator(_truncate_prose_at_cap(cap))]
+
 
 def _check_no_ticker_no_sigilo(text: str) -> str:
     """Valida body textual: sem ticker, sem termos sigilo §13."""
@@ -142,8 +190,8 @@ class Metadata(BaseModel):
 
 
 class PontoForte(BaseModel):
-    titulo: str = Field(..., min_length=3, max_length=120)
-    descricao: str = Field(..., min_length=1, max_length=520)
+    titulo: _prose(3, 120)
+    descricao: _prose(1, 520)
     ancora_metodologica: AncoraMetodologica
     tema_canonico: Optional[TemaCanonico] = None
     section_id: Optional[SectionId] = None
@@ -156,11 +204,11 @@ class PontoForte(BaseModel):
 
 class Risco(BaseModel):
     severidade: Severidade
-    titulo: str = Field(..., min_length=3, max_length=140)
-    descricao: str = Field(..., min_length=1, max_length=650)
+    titulo: _prose(3, 140)
+    descricao: _prose(1, 650)
     ancora_metodologica: AncoraMetodologica
     tema_canonico: TemaCanonico
-    evidencia: Optional[str] = Field(None, max_length=390)
+    evidencia: _prose_opt(390) = None
     evidencia_path: EvidenciaPath = None
     section_id: SectionId
     confianca: Optional[Confianca] = None
@@ -178,7 +226,7 @@ class ImpactoEstimado(BaseModel):
         ..., description="Positivo = ganho; negativo = perda evitada."
     )
     unidade: UnidadeImpacto
-    caveat: str = Field(..., min_length=10, max_length=300)
+    caveat: _prose(10, 300)
     # ADR-220: tipagem do impacto. Ausência aceita (compat) → renderer trata
     # como "outro". Para sugestão de tema IF (regra 25× Perini), manifest check
     # exige >=1 sugestão com tipo='patrimonio_alvo' (dev/check_parecer_manifest_in_sync.py).
@@ -187,8 +235,8 @@ class ImpactoEstimado(BaseModel):
 
 class Sugestao(BaseModel):
     prioridade: Prioridade
-    acao: str = Field(..., min_length=10, max_length=340)
-    impacto_qualitativo: str = Field(..., min_length=10, max_length=420)
+    acao: _prose(10, 340)
+    impacto_qualitativo: _prose(10, 420)
     ancora_metodologica: AncoraMetodologica
     tema_canonico: TemaCanonico
     confianca: Confianca
@@ -209,8 +257,15 @@ class Sugestao(BaseModel):
 
     @model_validator(mode="after")
     def _ck_impacto_only_if_alta(self) -> "Sugestao":
+        """ADR-294 (emenda ADR-202 §D6): impacto_estimado exige confianca='alta'.
+        Coerce (drop) em vez de raise — raise virava reask storm (incidente 5@5.com
+        2026-06-17). Dropar > promover confianca: promover mentiria sobre a confiança
+        que o modelo atribuiu e ADR-208 usa 'alta' como gate de feature paga."""
         if self.impacto_estimado is not None and self.confianca != "alta":
-            raise ValueError("impacto_estimado só permitido com confianca='alta' (ADR-202 §D6)")
+            logger.warning(
+                "parecer_impacto_dropped_low_confianca", extra={"confianca": self.confianca}
+            )
+            self.impacto_estimado = None
         return self
 
 
@@ -225,8 +280,8 @@ class Metrica(BaseModel):
 
 
 class NotaMetodologica(BaseModel):
-    titulo: str = Field(..., min_length=3, max_length=120)
-    conteudo: str = Field(..., min_length=20, max_length=780)
+    titulo: _prose(3, 120)
+    conteudo: _prose(20, 780)
     ancoras_metodologicas: list[AncoraMetodologica] = Field(..., min_length=1, max_length=4)
 
     @field_validator("conteudo")
@@ -249,7 +304,7 @@ class ParecerPlanejadorOutput(BaseModel):
 
     version: str = Field("1.0", pattern=_VERSION_RE.pattern)
     metadata: Metadata
-    diagnostico_geral: str = Field(..., min_length=50, max_length=750)
+    diagnostico_geral: _prose(50, 750)
     pontos_fortes: list[PontoForte] = Field(..., min_length=3, max_length=6)
     riscos: list[Risco] = Field(..., max_length=12)
     sugestoes_execucao: list[Sugestao] = Field(..., max_length=5)

@@ -289,6 +289,7 @@
 | ADR-291 | adr | Decidido |  | from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) | `adr/291-from-stage-base-run-fallback.md` |
 | ADR-292 | adr | Decidido |  | evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) | `adr/292-evidencia-path-boundary-coercion.md` |
 | ADR-293 | adr | Proposto |  | Citação de parecer (E6→E5) como edge de lineage por chave natural | `adr/293-parecer-citation-edge-chave-natural.md` |
+| ADR-294 | adr | Proposto |  | Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) | `adr/294-parecer-boundary-coercion-prose-impacto.md` |
 | ADR-295 | adr | Proposto |  | Enforcement por-item da citação verificada no modo strict (parecer E6) | `adr/295-enforcement-por-item-citacao-strict.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
