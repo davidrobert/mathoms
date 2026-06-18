@@ -17,6 +17,7 @@ from backend.app.services.parecer_distiller import distill_exec_context
 from backend.app.services.parecer_evidencia import (
     EVIDENCIA_VERIFICATION_VERSION,
     EvidenciaVerification,
+    log_evidencia_kpi,
     resolve_evidencia_mode,
     verify_evidencia,
 )
@@ -379,6 +380,7 @@ def _check_evidencia(
         e5_data=e5_data, section_whitelist=manifest.tools_section_whitelist, format_hints={}
     )
     verification = verify_evidencia(output=raw, drill=drill)
+    log_evidencia_kpi(verification, config.workspace_id)
     if not verification.violations:
         return verification, None, raw, 0
     mode = resolve_evidencia_mode(manifest.evidencia_verification_mode)

@@ -162,6 +162,58 @@ class TestStrictPerItemEnforcement:
 
 
 # -----------------------------------------------------------------------
+# A26.l6 — KPI cobertura (missing_path) vs. correção (value_mismatch + …)
+# -----------------------------------------------------------------------
+
+
+class TestCoverageVsCorrectnessKpi:
+    def test_missing_path_conta_como_cobertura_nao_correcao(self):
+        result, _ = _run_with_risco("Reserva líquida de R$ 84.000 é insuficiente.", None)
+        agg = result["evidencia_verification"]
+        assert agg["coverage_failed"] == 1
+        assert agg["correctness_failed"] == 0
+        assert agg["by_section"]["risco"]["missing_path"] == 1
+
+    def test_value_mismatch_conta_como_correcao_nao_cobertura(self):
+        result, _ = _run_with_risco(
+            "Reserva líquida de R$ 99.999,99 é insuficiente.",
+            "$.reserva_emergencia.total_liquida",
+        )
+        agg = result["evidencia_verification"]
+        assert agg["coverage_failed"] == 0
+        assert agg["correctness_failed"] == 1
+        assert agg["by_section"]["risco"]["value_mismatch"] == 1
+
+    def test_verificado_nao_conta_em_nenhuma_falha(self):
+        result, _ = _run_with_risco(
+            "Reserva total líquida de R$ 84.000 cobre poucos meses.",
+            "$.reserva_emergencia.total_liquida",
+        )
+        agg = result["evidencia_verification"]
+        assert agg["coverage_failed"] == 0
+        assert agg["correctness_failed"] == 0
+
+    def test_by_section_unit_agrega_por_item_type(self):
+        from backend.app.services.parecer_evidencia import EvidenciaVerification
+
+        v = EvidenciaVerification(
+            entries=[
+                {"item_type": "risco", "item_index": 0, "path": None, "outcome": "missing_path"},
+                {"item_type": "risco", "item_index": 1, "path": "$.x", "outcome": "verified"},
+                {
+                    "item_type": "sugestoes_taticas",
+                    "item_index": 0,
+                    "path": "$.y",
+                    "outcome": "value_mismatch",
+                },
+            ]
+        )
+        by_section = v.by_section()
+        assert by_section["risco"] == {"missing_path": 1, "verified": 1}
+        assert by_section["sugestoes_taticas"] == {"value_mismatch": 1}
+
+
+# -----------------------------------------------------------------------
 # Modo warn (default) — violação loga + telemetria, status normal
 # -----------------------------------------------------------------------
 
