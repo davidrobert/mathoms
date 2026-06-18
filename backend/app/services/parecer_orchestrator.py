@@ -28,6 +28,7 @@ from backend.app.services.parecer_finalization import (
     validate_anti_sigilo,
 )
 from backend.app.services.parecer_manifest import ManifestData, load_manifest, load_persona
+from backend.app.services.parecer_strict_enforcement import enforce_strict_per_item
 from pipeline.llm.models_catalog import PARECER_MODEL
 from pipeline.llm.prompts.parecer_planejador import (
     PROMPT_VERSION,
@@ -370,22 +371,32 @@ def _check_evidencia(
     manifest: ManifestData,
     e5_data: Mapping[str, Any],
     config: ParecerOrchestratorConfig,
-) -> tuple[EvidenciaVerification, Optional[str]]:
-    """Citação verificada E5→E6 (ADR-279 §E) — strict + violação → motivo de needs_review."""
+) -> tuple[EvidenciaVerification, Optional[str], ParecerPlanejadorOutput, int]:
+    """Citação verificada E5→E6 (ADR-279 §E). Strict aplica enforcement per-item (ADR-295):
+    item ofensor sai; needs_review só se severidade alta. Retorna (verificação, motivo de
+    needs_review|None, output possivelmente com itens removidos, nº de itens removidos)."""
     drill = PlannerDrillDown(
         e5_data=e5_data, section_whitelist=manifest.tools_section_whitelist, format_hints={}
     )
     verification = verify_evidencia(output=raw, drill=drill)
     if not verification.violations:
-        return verification, None
+        return verification, None, raw, 0
     mode = resolve_evidencia_mode(manifest.evidencia_verification_mode)
     logger.warning(
         "parecer_planejador_evidencia_violations",
         extra={"workspace_id": config.workspace_id, "mode": mode},
     )
     if mode != "strict":
-        return verification, None
-    return verification, f"evidencia unverified: {verification.violations[0]}"
+        return verification, None, raw, 0
+    decision = enforce_strict_per_item(raw, verification.violations)
+    if decision.needs_review_reason:
+        return verification, decision.needs_review_reason, raw, 0
+    if decision.dropped:
+        logger.warning(
+            "parecer_planejador_items_dropped",
+            extra={"workspace_id": config.workspace_id, "count": len(decision.dropped)},
+        )
+    return verification, None, decision.output, len(decision.dropped)
 
 
 def _generate_with_llm(
@@ -429,7 +440,7 @@ def _generate_with_llm(
             config=config,
             elapsed_ms=_elapsed_ms(start),
         )
-    evidencia, evidencia_err = _check_evidencia(raw, manifest, e5_data, config)
+    evidencia, evidencia_err, raw, items_dropped = _check_evidencia(raw, manifest, e5_data, config)
     if evidencia_err:
         base = _needs_review(
             reason=evidencia_err,
@@ -463,7 +474,9 @@ def _generate_with_llm(
     )
     return replace(
         success,
-        evidencia_summary=evidencia.summary(needs_review_triggered=False),
+        evidencia_summary=evidencia.summary(
+            needs_review_triggered=False, items_dropped=items_dropped
+        ),
         evidencia_entries=evidencia.entries,
     )
 
