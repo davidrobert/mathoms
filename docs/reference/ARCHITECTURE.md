@@ -11,7 +11,7 @@
 ### Backend
 - **FastAPI** (Python 3.11+) — API server
 - **SQLAlchemy 2.0** (async + sync engines) — ORM
-- **Alembic** — DB migrations (17 revisions)
+- **Alembic** — DB migrations
 - **Pydantic v2** — validação e serialização
 - **Celery + Redis** — task queue + pub/sub para WebSocket
 - **Fernet (cryptography)** — encryption at-rest (CPFs, API keys, senhas PDF)
@@ -49,8 +49,8 @@
 ┌──────────────────────────────────────────────────────────────┐
 │                    FRONTEND (SPA)                             │
 │  Next.js 16 + TypeScript + Tailwind CSS 4 + Recharts          │
-│  19 rotas (5 públicas + 14 protegidas)                        │
-│  117 componentes (report: 50, tasks: 9, charts: 3, ui: 18)   │
+│  Rotas públicas + protegidas (Next App Router)                │
+│  Componentes: report, tasks, charts, ui                       │
 └────────────────────────┬─────────────────────────────────────┘
                          │ REST API (OpenAPI)
                          │ + WebSocket (progress, via Redis Pub/Sub)
@@ -67,7 +67,7 @@
 │  ┌─────────────────────────────────────────────────────────┐  │
 │  │         Pipeline Core (package Python)                   │  │
 │  │   stage_spec.py (STAGE_REGISTRY)  stage_config.py        │  │
-│  │   artifact_store.py (Protocol + Disk/InMemory impls)     │  │
+│  artifact_store.py (Protocol + InMemory; DB store no backend)  │
 │  │   domain/ (models + services — Money, Reconciliation…)   │  │
 │  │   stages/ (wrappers) + llm/prompts/ + llm/validators/    │  │
 │  └─────────────────────────────────────────────────────────┘  │
@@ -101,7 +101,7 @@ Report layout (report_layout.yaml)
 
 ---
 
-## 4. Modelo de dados (21 models)
+## 4. Modelo de dados
 
 > **Contagem real** (2026-04-24): `ls backend/app/models/*.py | grep -v __init__` → 21 arquivos. `DB_SCHEMA_REFERENCE.md` (auto-gerado) lista as tabelas expandidas incluindo associativas e partial indexes.
 
@@ -324,7 +324,7 @@ bloqueia recriação acidental.
 
 ---
 
-## 5. API Surface (20 routers, ~80 endpoints)
+## 5. API Surface
 
 > **Contagem real** (2026-04-24): `ls backend/app/api/*.py | grep -v __init__` → 20 arquivos de router.
 
@@ -350,7 +350,7 @@ bloqueia recriação acidental.
 
 ---
 
-## 6. Services (42 top-level + `internal_ops/` submódulo)
+## 6. Services (+ `internal_ops/` submódulo)
 
 > **Contagem real** (2026-04-24): `ls backend/app/services/*.py | grep -v __init__` → 42. Tabela abaixo é **parcial** (originalmente "26") e precisa de rodada de sync — entradas conhecidas faltantes: `artifact_reader`, `canonical_routing`, `classification_telemetry`, `config_defaults`, `document_classification`, `document_duplicates`, `document_extract_json_service`, `document_pipeline_sync`, `document_reclassify_bulk_service`, `document_retry_service`, `document_upload_service`, `password_vault_reader`, `pipeline_client`, `premissas_snapshot`, `report_lineage`, `stage_duration_estimator`, mais `internal_ops/` submódulo (F7F-Local, ADR-116). Não duplicar lista — fonte de verdade é o filesystem.
 
@@ -713,7 +713,7 @@ nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 
 ## 8. Frontend — Rotas e componentes
 
-### Rotas (25 `page.tsx` — 21 produto + 2 playgrounds `_dev` + 2 auth públicas extras)
+### Rotas (`page.tsx` — produto + playgrounds `_dev` + auth públicas)
 
 > **Contagem real** (2026-04-24): `find frontend/src/app -name page.tsx` → 25 arquivos. Produto: dashboard, documents, pipeline, transactions, reports (list+[id]), plano (home), plano/meta-if (+wizard), plano/aportes (+wizard), plano/dolarizacao (+wizard), plano/alocacao (+wizard), plano-de-acao (+sugestoes), vault, config. Playgrounds: reports/_dev/charts, reports/_dev/ui. Públicas: /, /login, /register, /invite/[token]. A tabela abaixo cobre o caminho principal — wizards de Aporte/Dolarização/Alocação e playgrounds `_dev` existem mas não estão enumerados.
 
@@ -853,7 +853,7 @@ Goldens E3/E4/E5/E5.N preservam paridade byte-a-byte vs pré-A7
 mathoms.ai/
 ├── backend/
 │   ├── app/
-│   │   ├── api/               # 17 routers REST + WebSocket
+│   │   ├── api/               # routers REST + WebSocket
 │   │   │   ├── auth.py, workspaces.py, invitations.py
 │   │   │   ├── documents.py, vault.py, pipeline.py
 │   │   │   ├── config.py, llm.py, reports.py
@@ -870,8 +870,8 @@ mathoms.ai/
 │   │   │   └── pipeline_task.py  # Celery @task principal
 │   │   ├── worker.py          # Celery app config
 │   │   └── main.py            # FastAPI app
-│   ├── alembic/               # 32 DB migrations (2026-04-24; `ls backend/alembic/versions/*.py`)
-│   ├── tests/                 # ~50 test files, ~450 tests
+│   ├── alembic/               # DB migrations (`ls backend/alembic/versions/*.py`)
+│   ├── tests/                 # test files
 │   │   ├── factories/         # Type-safe builders
 │   │   ├── fixtures/          # LLM mock, pipeline runs, PDF generator
 │   │   └── regressions/       # Anti-regression bank (24 tests)
