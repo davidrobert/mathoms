@@ -17,8 +17,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.security import create_access_token
-from backend.app.main import app
 from backend.app.models.user import User
+from backend.tests._app_routes import effective_routes
 from backend.tests.factories import make_user, make_workspace
 
 
@@ -30,7 +30,7 @@ def _auth_headers(user: User) -> dict[str, str]:
 def _workspace_get_routes() -> list[tuple[str, set[str]]]:
     """Lista (path_template, methods) para rotas que aceitam {workspace_id} no path."""
     out: list[tuple[str, set[str]]] = []
-    for route in app.routes:
+    for route in effective_routes():
         if not hasattr(route, "methods") or not hasattr(route, "path"):
             continue
         path = route.path
