@@ -44,9 +44,20 @@ atualizada para refletir isso.
 | Consumidor | Arquivo | Modo |
 |---|---|---|
 | `Dockerfile` (build de imagem prod) | `requirements.lock` | `pip install --require-hashes` |
-| CI — jobs de teste (`ci.yml`, `nightly.yml`, etc.) | `requirements.in` + `backend/requirements.in` | `uv pip install` (loose, inclui dev extras) |
+| CI — jobs de teste (`ci.yml`, `nightly.yml`, smoke, monthly) | `requirements.lock` | `uv pip install --require-hashes` (paridade com prod) + test-deps inline (reportlab/xlwt/pytest-cov/pytest-xdist/fakeredis) |
 | CI — `security.yml` pip-audit | `requirements.lock` | auditoria de versões pinadas (precisa) |
 | Dev local | `requirements-dev.txt` (via `make setup`) | `pip install -e . -r requirements-dev.txt` |
+
+> **Por que CI usa o lock (não os `.in`):** até 2026-06-18 o CI-tests instalava
+> dos `.in` loose (`>=`) com cache key só no hash dos `.in`. Resultado: o venv
+> cacheado congelava transitivas resolvidas há meses; quando o cache era
+> evictado/limpo, o `uv pip install -r requirements.in` re-resolvia para releases
+> novas e uma transitiva quebrou o registro de routers (backend-tests vermelho
+> repo-wide). Fix: CI instala do `requirements.lock` pinado (`--require-hashes`),
+> cache key no hash do **lock**, **sem `restore-keys`** (o fallback de prefixo
+> restaurava venv de lock divergente — a armadilha). test-deps puros
+> (reportlab/xlwt/pytest-cov/pytest-xdist/fakeredis) seguem inline (fora do lock);
+> pinar via `requirements-test.lock` é débito aberto.
 
 ## ⚠️ Constraint crítico: gerar o lock SEMPRE em container linux/amd64
 
