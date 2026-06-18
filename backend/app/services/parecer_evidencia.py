@@ -50,6 +50,10 @@ def _is_legit_range_path(path: str) -> bool:
 
 
 _LAYERS = ("missing_path", "whitelist_miss", "resolve_null", "value_mismatch")
+# ADR-292/A26.l6: cobertura (prosa cita R$ sem path verificável) ≠ correção
+# (citação que resolve errado). Mesma partição que o gate do eval (test #655).
+_COVERAGE_LAYER = "missing_path"
+_CORRECTNESS_LAYERS = ("whitelist_miss", "resolve_null", "value_mismatch")
 _REASON_TO_LAYER = {
     "path_not_whitelisted": "whitelist_miss",
     "value_null": "resolve_null",
@@ -80,11 +84,32 @@ class EvidenciaVerification:
     money_tokens_total: int = 0
     range_in_scalar_count: int = 0
 
+    @property
+    def coverage_failed(self) -> int:
+        """Citações sem path verificável (missing_path) — gap de cobertura."""
+        return self.failures_by_layer.get(_COVERAGE_LAYER, 0)
+
+    @property
+    def correctness_failed(self) -> int:
+        """Citações que resolvem ERRADO — é o que o gate strict (l2) bloqueia."""
+        return sum(self.failures_by_layer.get(k, 0) for k in _CORRECTNESS_LAYERS)
+
+    def by_section(self) -> dict[str, dict[str, int]]:
+        """Outcomes por item_type (risco/sugestões) — qual seção perde citação."""
+        out: dict[str, dict[str, int]] = {}
+        for entry in self.entries:
+            section = out.setdefault(entry["item_type"], {})
+            section[entry["outcome"]] = section.get(entry["outcome"], 0) + 1
+        return out
+
     def summary(self, *, needs_review_triggered: bool, items_dropped: int = 0) -> dict:
         return {
             "evidencia_verified": self.verified,
             "evidencia_failed": self.failed,
+            "coverage_failed": self.coverage_failed,
+            "correctness_failed": self.correctness_failed,
             "failures_by_layer": dict(self.failures_by_layer),
+            "by_section": self.by_section(),
             "money_tokens_total": self.money_tokens_total,
             "range_in_scalar_count": self.range_in_scalar_count,
             # ADR-295: itens removidos pelo enforcement per-item no strict (auditável).
@@ -99,6 +124,19 @@ def resolve_evidencia_mode(manifest_mode: str) -> str:
     env_mode = os.environ.get(_EVIDENCIA_MODE_ENV, "").strip().lower()
     mode = env_mode or (manifest_mode or "warn").strip().lower()
     return mode if mode in _VALID_MODES else "warn"
+
+
+def log_evidencia_kpi(verification: "EvidenciaVerification", workspace_id: str) -> None:
+    """KPI de citação por geração (A26.l6) — cobertura vs. correção, PII-free, gate-auditável."""
+    logger.info(
+        "parecer_evidencia_kpi",
+        extra={
+            "workspace_id": workspace_id,
+            "verified": verification.verified,
+            "coverage_failed": verification.coverage_failed,
+            "correctness_failed": verification.correctness_failed,
+        },
+    )
 
 
 def verify_evidencia(
@@ -256,6 +294,7 @@ __all__ = [
     "EVIDENCIA_VERIFICATION_VERSION",
     "EvidenciaVerification",
     "MoneyToken",
+    "log_evidencia_kpi",
     "resolve_evidencia_mode",
     "verify_evidencia",
 ]

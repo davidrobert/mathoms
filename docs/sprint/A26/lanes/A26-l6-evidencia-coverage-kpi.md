@@ -4,9 +4,11 @@ type: lane
 title: "Telemetria de citação: cobertura (missing_path) vs. correção (value_mismatch) + drift"
 sprint: A26
 plan: PLAN-data-lineage
-status: planned
+status: shipped
 priority: P1
 branch_slug: evidencia-coverage-kpi
+ship_pr: 660
+ship_date: "2026-06-18"
 adrs:
   - "[[ADR-279]]"
   - "[[ADR-292]]"
