@@ -218,6 +218,19 @@ Ver [[A20.l10]] §"Métricas":
 - Build determinístico verificável entre runners: 100%
 - Tempo médio Dependabot → merge: <3 dias
 
+## Emenda 2026-06-18 — CI-tests também instala do lock
+
+A decisão original cobria build prod (`Dockerfile`) e pip-audit, mas os **jobs de
+teste do CI** (`ci.yml`, `nightly.yml`, smoke, monthly) seguiam instalando dos
+`.in` loose (`uv pip install -r requirements.in`) com cache key só no hash dos
+`.in`. Isso reabriu o gap que esta ADR fecha para prod: o venv cacheado congelava
+transitivas antigas; ao limpar o cache, o re-resolve pegou releases novas e uma
+transitiva quebrou o registro de routers (backend-tests vermelho repo-wide). **Fix:**
+CI-tests agora instala `uv pip install --require-hashes -r requirements.lock` (paridade
+com o Dockerfile), cache key no hash do **lock**, **sem `restore-keys`** no bloco venv
+(o fallback de prefixo restaurava venv de lock divergente). Detalhe operacional no
+runbook [python_dependencies.md](../reference/runbooks/python_dependencies.md).
+
 ## Referências externas
 
 - [pip-tools](https://github.com/jazzband/pip-tools) — `pip-compile`

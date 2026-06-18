@@ -113,9 +113,7 @@ jobs:
           path: .venv
           # Mesma key dos jobs de ci.yml — reusa cache populado pelo
           # último PR mergeado. Hit típico em main-smoke noturno.
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v5
-          restore-keys: |
-            venv-${{ runner.os }}-py313-
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
 
       - name: Install Python deps (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
@@ -123,7 +121,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install -r requirements.in -r backend/requirements.in
+          uv pip install --require-hashes -r requirements.lock
 
       - name: Garante test-deps no venv (sempre — cache pode não tê-los)
         # O venv cache é compartilhado com ci.yml; dependendo de qual job o
@@ -136,7 +134,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
 
       - name: Install system lint tools (sempre — não vão no venv cache)
         # pre-commit/ruff/jsonschema/pyyaml instalam no system python via
@@ -343,8 +341,8 @@ jobs:
 
       - name: Install backend deps
         run: |
-          pip install -r requirements.in -r backend/requirements.in
-          pip install asyncpg reportlab
+          pip install --require-hashes -r requirements.lock
+          pip install reportlab
 
       - name: Run alembic migrations
         env:
@@ -581,7 +579,7 @@ jobs:
 
       - name: Install backend deps + postgresql-client-16
         run: |
-          pip install -r requirements.in -r backend/requirements.in
+          pip install --require-hashes -r requirements.lock
           # Pin client = 16 p/ casar com o server postgres:16-alpine. pg_dump
           # mais NOVO que o server emite SETs que o server rejeita
           # (ex.: `transaction_timeout`, inexistente no 16) → pg_restore falha.
@@ -680,9 +678,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v5
-          restore-keys: |
-            venv-${{ runner.os }}-py313-
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
 
       - name: Install Python deps (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
@@ -690,7 +686,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install -r requirements.in -r backend/requirements.in
+          uv pip install --require-hashes -r requirements.lock
           uv pip install pytest pytest-asyncio
 
       - name: Activate venv (PATH)
