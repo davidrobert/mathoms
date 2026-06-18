@@ -7,7 +7,7 @@ phase: "Fase 0 do plano"
 date: "2026-04-23"
 relates_to: []
 supersedes: []
-superseded_by: ["[[ADR-151]]"]
+superseded_by: ["[[ADR-151]]", "[[ADR-168]]"]
 aliases: ["ADR 117"]
 tags:
   - area/frontend

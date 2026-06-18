@@ -6,7 +6,7 @@ status: Decidido
 phase: "Fase 1 — fundação arquitetural; implementação em Fase 2 sob lane v2.9"
 date: "2026-04-27"
 relates_to: ["[[ADR-024]]", "[[ADR-025]]", "[[ADR-090]]", "[[ADR-097]]", "[[ADR-105]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-122]]", "[[ADR-127]]", "[[ADR-128]]", "[[ADR-132]]"]
-supersedes: ["[[ADR-122]]", "[[ADR-111]]", "[[ADR-127]]", "[[ADR-144]]"]
+supersedes: ["[[ADR-122]]"]
 superseded_by: []
 aliases: ["ADR 144"]
 tags:

@@ -7,7 +7,7 @@ phase: "Fase 0"
 date: "2026-04-23"
 relates_to: []
 supersedes: []
-superseded_by: ["[[ADR-151]]"]
+superseded_by: ["[[ADR-154]]", "[[ADR-168]]"]
 aliases: ["ADR 123"]
 tags:
   - area/backend

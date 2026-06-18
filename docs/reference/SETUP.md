@@ -388,19 +388,12 @@ open htmlcov/index.html
 > de pipeline virou service-layer (`backend/app/services/internal_ops/pipeline_reset.py`),
 > consumido pelo console interno.
 >
-> **Única CLI sobrevivente:**
-> - `scripts/e0_audit.py` — inspeção read-only do filesystem do workspace
->   (detecta duplicatas + arquivos órfãos no inbox). Não toca
->   `pipeline_artifacts`; consome apenas `MATHOMS_WORKSPACE_ROOT`.
-
-```bash
-source .venv/bin/activate
-export MATHOMS_WORKSPACE_ROOT="$PWD/storage/<workspace_id>"
-
-# Inspeção read-only do inbox + duplicatas
-python scripts/e0_audit.py
-python scripts/e0_audit.py --json   # output JSON para scripts
-```
+> **Nenhuma CLI de pipeline sobrevive.** `scripts/e0_audit.py` — última CLI
+> mantida por [[ADR-212]] — foi **deletada em [[ADR-213]]** (era o stage
+> `audit_documents`, cujos checks dependiam de `processed/E2_extracts/`,
+> inexistente pós-[[ADR-212]]). Reset destrutivo de pipeline é service-layer
+> (`backend/app/services/internal_ops/pipeline_reset.py`), consumido pelo
+> console interno.
 
 Em produção (API + Celery worker), paths vêm via `WorkspaceContext` por-run; testes injetam `InMemoryArtifactStore` explícito ([[ADR-212]] PR2 removeu `MATHOMS_WORKSPACE_ROOT setdefault` global).
 

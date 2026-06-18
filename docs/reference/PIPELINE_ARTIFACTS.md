@@ -5,9 +5,10 @@
 > **Pós-[[ADR-212]] (2026-05-14):** artefatos do pipeline vivem em
 > `pipeline_artifacts` (DB); validação é universal via hook pós-write em
 > `DBArtifactStore.write` (mapping `SCHEMA_BY_STAGE`). Os paths
-> `storage/<ws>/processed/...` documentados abaixo permanecem como **convenção
-> histórica de `artifact_key`** (consumida pelo CLI read-only
-> `scripts/e0_audit.py`); o conteúdo canônico vive no DB.
+> `storage/<ws>/processed/...` documentados abaixo permanecem apenas como
+> **convenção histórica de `artifact_key`**; o conteúdo canônico vive no DB.
+> (O CLI read-only `scripts/e0_audit.py` que consumia esses paths foi
+> deletado em [[ADR-213]].)
 
 ## Schemas em `config/schemas/`
 

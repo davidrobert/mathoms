@@ -5,7 +5,7 @@ title: "Content-first classification no upload web"
 status: Decidido
 date: "2026-04-15"
 relates_to: []
-supersedes: []
+supersedes: ["[[ADR-016]]"]
 superseded_by: []
 aliases: ["ADR 079"]
 tags:
