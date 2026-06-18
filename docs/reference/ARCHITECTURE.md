@@ -393,9 +393,10 @@ bloqueia recriação acidental.
 ### Ordem completa (`FULL_ORDER` — premium)
 
 ```
-E0-unlock → E0-audit → E0-route
-→ E1 (LLM) → E1.5 (LLM) → E1.5c
-→ E2-llm (LLM) → E2-faturas → E2-extratos
+E0-unlock → E0-route
+→ E1 (LLM) → E1.5 (LLM) → E1.5c → E1.6 (LLM)
+→ E2-informe-aluguel (LLM) → E2-informe-anual (LLM) → E2-comprovante-bem (LLM)
+→ E2-faturas → E2-extratos → E2-llm (LLM)
 → E3 → E4 → E5 → E5.N
 → E7-crossval → E6-parecer (LLM)
 ```
@@ -403,7 +404,7 @@ E0-unlock → E0-audit → E0-route
 ### Ordem determinística (`DETERMINISTIC_ORDER` — free)
 
 ```
-E0-audit → E1.5c (skip se sem baseline)
+E0-unlock → E0-route → E1.5c (skip se sem baseline)
 → E2-faturas → E2-extratos
 → E3 → E4 → E5 → E5.N
 → E7-crossval
@@ -419,14 +420,17 @@ E0-audit → E1.5c (skip se sem baseline)
 | Stage          | Tipo       | Responsabilidade                                                 |
 | -------------- | ---------- | ---------------------------------------------------------------- |
 | E0-unlock      | det.       | Desbloqueia PDFs/ZIPs protegidos usando vault                    |
-| E0-audit       | det.       | 9 checks de integridade (filename↔content, órfãos, duplicatas)   |
 | E0-route       | det.       | Classifica docs por regex, move inbox/ → data/{dest_group}/      |
 | E1             | **LLM**    | Extrai dados pessoais (nome, CPF, role) de IRPFs/IDs             |
 | E1.5           | **LLM**    | Extrai baseline patrimonial (imóveis, veículos, investimentos)   |
 | E1.5c          | det.       | Consolida baseline (soma imóveis, deduplica)                     |
-| E2-llm         | **LLM**    | Extrai transações de docs sem parser determinístico              |
+| E1.6           | **LLM**    | IRPF completo — extração detalhada pós-baseline (ADR-157)        |
+| E2-informe-aluguel | **LLM** | Extrai informe de rendimentos de aluguel (ADR-216)              |
+| E2-informe-anual | **LLM**  | Extrai informes de rendimentos anuais avulsos (ADR-238)          |
+| E2-comprovante-bem | **LLM** | Extrai comprovantes de bens / apólices / CRLV (ADR-239)         |
 | E2-faturas     | det.       | Parse de faturas de cartão (11 parsers bancários)                |
 | E2-extratos    | det.       | Parse de extratos de conta (11 parsers bancários)                |
+| E2-llm         | **LLM**    | Extrai transações de docs sem parser determinístico              |
 | E3             | det.       | Reconciliação cross-banco, deduplicação, transferências internas |
 | E4             | det.       | Categorização por keywords (300+ em 16 categorias)               |
 | E5             | det.       | Análise: score, fluxo, patrimônio, goals, reserva emergência     |
@@ -893,7 +897,7 @@ mathoms.ai/
 │   └── stages/                # Thin wrappers (4-20 linhas cada)
 │
 ├── scripts/                   # Pipeline scripts determinísticos (worker)
-│   ├── e0_audit.py, e0_route.py, e0_unlock.py
+│   ├── e0_route.py, e0_unlock.py
 │   ├── e15_consolidate.py, e2_extract.py
 │   ├── e3_reconcile.py, e4_categorize.py
 │   ├── e5_analyze.py, e5n_narrativas.py
@@ -1026,7 +1030,7 @@ de ficheiros por workspace é `storage/<workspace_id>/` (gitignored por completo
 
 `.gitignore` também cobre nomes de pastas de **workspace legado na raiz do
 repo** (`data/`, `inbox/`, `inbox_processed/`, …) que sobrevivem para uploads
-de documento + audit read-only (`scripts/e0_audit.py`); pós-[[ADR-212]],
+de documento; pós-[[ADR-212]],
 artefatos do pipeline vivem em `pipeline_artifacts` (DB), não em diretórios.
 Além disso: `*.db`, `.env`, `config/passwords.txt`, `_scratch/`. O `pre-commit`
 (`dev/check_forbidden_paths.py`) aplica regras alinhadas em nível de hook.
