@@ -80,13 +80,15 @@ class EvidenciaVerification:
     money_tokens_total: int = 0
     range_in_scalar_count: int = 0
 
-    def summary(self, *, needs_review_triggered: bool) -> dict:
+    def summary(self, *, needs_review_triggered: bool, items_dropped: int = 0) -> dict:
         return {
             "evidencia_verified": self.verified,
             "evidencia_failed": self.failed,
             "failures_by_layer": dict(self.failures_by_layer),
             "money_tokens_total": self.money_tokens_total,
             "range_in_scalar_count": self.range_in_scalar_count,
+            # ADR-295: itens removidos pelo enforcement per-item no strict (auditável).
+            "items_dropped": items_dropped,
             "prompt_version": PROMPT_VERSION,
             "needs_review_triggered": needs_review_triggered,
         }

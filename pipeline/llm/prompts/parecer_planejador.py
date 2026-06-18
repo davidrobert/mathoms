@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.7.0"
+PROMPT_VERSION = "1.8.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -120,6 +120,13 @@ SYSTEM_PROMPT_TEMPLATE = """\
       inválidos são descartados (viram null) e você perde a citação. Em vez
       disso, omita `evidencia_path` e registre o que faltou em
       `campos_faltantes_pediria_se_iterasse[]`.
+    - **NÃO DERIVE o número (ADR-295):** o `R$` citado tem que ser **o valor de
+      UMA folha** do catálogo, não uma conta sua. Proibido somar baldes
+      (`rf + rv`), tirar média, calcular ratio/diferença e citar o resultado —
+      o verificador casa o número contra a folha do path, e uma conta derivada
+      não bate (vira `value_mismatch`, o item é descartado no strict). Se a tese
+      precisa de um agregado que não é folha isolada, descreva-a em palavras
+      **sem** `R$` (ou cite a folha-componente real), nunca invente o total.
 
 12. **Valor escalar é passthrough (ADR-290):** quando o campo-fonte é escalar
     numérico, copie-o do payload — não derive faixa, média nem arredondamento

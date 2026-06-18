@@ -27,14 +27,15 @@ _OUTPUT_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
 # 4664 pré-F4 (ADR-279) → 5411 em 1.4.0 (regras 12-13, ADR-290 F2) → 5846 em
 # 1.5.0 (limites de concisão na regra 4, incidente string_too_long 2026-06-12)
 # → 6633 em 1.6.0 (regra 11 + few-shot do catálogo de citação, A26.l1) → 7272 em
-# 1.7.0 (regra de gramática anti-filtro + concisão recalibrada, ADR-292 — bump
-# consciente: reseta a baseline; o gate de 5% protege drift futuro).
-_PROMPT_BASELINE_CHARS = 7272
+# 1.7.0 (regra de gramática anti-filtro + concisão recalibrada, ADR-292) → 7817 em
+# 1.8.0 (regra anti-derivação do número, ADR-295 — bump consciente: reseta a
+# baseline; o gate de 5% protege drift futuro).
+_PROMPT_BASELINE_CHARS = 7817
 
 
-def _risco(descricao: str, path: str | None) -> Risco:
+def _risco(descricao: str, path: str | None, severidade: str = "Alta") -> Risco:
     return Risco(
-        severidade="Alta",
+        severidade=severidade,
         titulo="Risco sintético para verificação de citação",
         descricao=descricao,
         ancora_metodologica="convergencia",
@@ -45,8 +46,12 @@ def _risco(descricao: str, path: str | None) -> Risco:
     )
 
 
-def _run_with_risco(descricao: str, path: str | None, workspace_id: str = "ws-evid"):
-    canned = make_canned_output().model_copy(update={"riscos": [_risco(descricao, path)]})
+def _run_with_risco(
+    descricao: str, path: str | None, workspace_id: str = "ws-evid", severidade: str = "Alta"
+):
+    canned = make_canned_output().model_copy(
+        update={"riscos": [_risco(descricao, path, severidade)]}
+    )
     return make_run_stage_with_mocks(make_workspace_e5(), canned, workspace_id=workspace_id)
 
 
@@ -57,7 +62,7 @@ def _risco_entries(store) -> list[dict]:
 
 
 # -----------------------------------------------------------------------
-# Negative cases — modo strict → needs_review
+# Strict — item SEVERIDADE ALTA com citação hard inválida → needs_review (ADR-295)
 # -----------------------------------------------------------------------
 
 
@@ -71,7 +76,7 @@ class TestStrictModeNegatives:
             "Reserva líquida de R$ 84.000 é insuficiente.", "$.secao_inexistente.campo"
         )
         assert result["status"] == "needs_review"
-        assert result["reason"] == "evidencia unverified: risco:0:whitelist_miss"
+        assert result["reason"] == "evidencia unverified (severidade alta): risco:0"
         assert _risco_entries(store)[0]["outcome"] == "whitelist_miss"
 
     def test_path_nao_resolve_resolve_null(self):
@@ -80,7 +85,7 @@ class TestStrictModeNegatives:
             "$.reserva_emergencia.campo_inexistente",
         )
         assert result["status"] == "needs_review"
-        assert result["reason"] == "evidencia unverified: risco:0:resolve_null"
+        assert result["reason"] == "evidencia unverified (severidade alta): risco:0"
         assert _risco_entries(store)[0]["outcome"] == "resolve_null"
 
     def test_numero_diferente_do_valor_value_mismatch(self):
@@ -89,29 +94,71 @@ class TestStrictModeNegatives:
             "$.reserva_emergencia.total_liquida",
         )
         assert result["status"] == "needs_review"
-        assert result["reason"] == "evidencia unverified: risco:0:value_mismatch"
+        assert result["reason"] == "evidencia unverified (severidade alta): risco:0"
         assert _risco_entries(store)[0]["outcome"] == "value_mismatch"
-
-    def test_prosa_monetaria_sem_path_missing_path(self):
-        result, store = _run_with_risco("Reserva líquida de R$ 84.000 é insuficiente.", None)
-        assert result["status"] == "needs_review"
-        assert result["reason"] == "evidencia unverified: risco:0:missing_path"
-        assert _risco_entries(store)[0]["outcome"] == "missing_path"
 
     def test_path_resolve_para_valor_errado_value_mismatch(self):
         result, store = _run_with_risco(
             "Reserva líquida de R$ 84.000 é insuficiente.", "$.patrimonio.bruto"
         )
         assert result["status"] == "needs_review"
-        assert result["reason"] == "evidencia unverified: risco:0:value_mismatch"
+        assert result["reason"] == "evidencia unverified (severidade alta): risco:0"
         assert _risco_entries(store)[0]["outcome"] == "value_mismatch"
 
     def test_needs_review_telemetry_aggregate(self):
-        result, _ = _run_with_risco("Reserva líquida de R$ 84.000 é insuficiente.", None)
+        result, _ = _run_with_risco(
+            "Reserva líquida de R$ 99.999,99 é insuficiente.", "$.reserva_emergencia.total_liquida"
+        )
         agg = result["evidencia_verification"]
         assert agg["evidencia_failed"] == 1
-        assert agg["failures_by_layer"]["missing_path"] == 1
+        assert agg["failures_by_layer"]["value_mismatch"] == 1
         assert agg["needs_review_triggered"] is True
+
+
+# -----------------------------------------------------------------------
+# Strict — enforcement per-item (ADR-295): item baixo/médio cai, parecer segue;
+# missing_path é cobertura (fail-open); item alto → needs_review (acima)
+# -----------------------------------------------------------------------
+
+
+class TestStrictPerItemEnforcement:
+    @pytest.fixture(autouse=True)
+    def _strict(self, monkeypatch):
+        monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "strict")
+
+    def test_item_baixa_severidade_value_mismatch_e_descartado(self):
+        result, store = _run_with_risco(
+            "Reserva líquida de R$ 99.999,99 é insuficiente.",
+            "$.reserva_emergencia.total_liquida",
+            severidade="Baixa",
+        )
+        assert result["success"] is True  # parecer publicado, item removido
+        agg = result["evidencia_verification"]
+        assert agg["items_dropped"] == 1
+        assert agg["failures_by_layer"]["value_mismatch"] == 1
+
+    def test_pareamento_errado_baixa_severidade_nao_falsifica(self):
+        """Adversarial: cita path errado de magnitude próxima → item cai, número NÃO é trocado."""
+        result, store = _run_with_risco(
+            "Reserva líquida de R$ 84.000 é insuficiente.",
+            "$.patrimonio.bruto",  # path errado (resolve, mas é outro valor)
+            severidade="Média",
+        )
+        assert result["success"] is True
+        assert result["evidencia_verification"]["items_dropped"] == 1
+        # o risco ofensor saiu do parecer publicado (não foi falsificado)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert all("99.999" not in (r.get("descricao") or "") for r in artifact.get("riscos", []))
+
+    def test_missing_path_e_cobertura_fail_open(self):
+        """missing_path (R$ sem path) é cobertura, não derruba item nem parecer (ADR-295/292)."""
+        result, store = _run_with_risco("Reserva líquida de R$ 84.000 é insuficiente.", None)
+        assert result["success"] is True
+        agg = result["evidencia_verification"]
+        assert agg["failures_by_layer"]["missing_path"] == 1
+        assert agg["items_dropped"] == 0
+        assert agg["needs_review_triggered"] is False
+        assert _risco_entries(store)[0]["outcome"] == "missing_path"
 
 
 # -----------------------------------------------------------------------
@@ -222,7 +269,7 @@ class TestValorDeterministicoF2:
         agg = result["evidencia_verification"]
         assert agg["money_tokens_total"] >= 1
         assert agg["range_in_scalar_count"] == 0
-        assert agg["prompt_version"] == "1.7.0"
+        assert agg["prompt_version"] == "1.8.0"
 
 
 # -----------------------------------------------------------------------
@@ -340,7 +387,7 @@ class TestPromptTokenBudget:
         current_tokens = len(SYSTEM_PROMPT_TEMPLATE) // 4
         delta = abs(current_tokens - baseline_tokens) / baseline_tokens
         assert delta < 0.05, f"delta de tokens {delta:.2%} excede 5% (F4)"
-        assert PROMPT_VERSION == "1.7.0"
+        assert PROMPT_VERSION == "1.8.0"
 
     def test_regras_valor_deterministico_presentes(self):
         """ADR-290 F2 — regras 12 (passthrough escalar) e 13 (cap de geração)."""
