@@ -6,7 +6,7 @@ status: Decidido
 date: "2026-04-14"
 relates_to: []
 supersedes: []
-superseded_by: ["[[ADR-064]]"]
+superseded_by: ["[[ADR-063]]"]
 aliases: ["ADR 062"]
 tags:
   - area/ops

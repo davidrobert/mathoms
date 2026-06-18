@@ -7,7 +7,7 @@ phase: "F4.5"
 date: "1970-01-01"
 relates_to: []
 supersedes: []
-superseded_by: []
+superseded_by: ["[[ADR-076]]"]
 aliases: ["ADR 050"]
 tags:
   - area/frontend

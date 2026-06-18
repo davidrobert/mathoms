@@ -7,7 +7,7 @@ phase: "F9"
 date: "2026-04-15"
 relates_to: []
 supersedes: ["[[ADR-050]]"]
-superseded_by: []
+superseded_by: ["[[ADR-124]]"]
 aliases: ["ADR 076"]
 tags:
   - area/frontend

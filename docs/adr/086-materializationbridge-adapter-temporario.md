@@ -6,7 +6,7 @@ status: Decidido
 date: "2026-04-19"
 relates_to: []
 supersedes: []
-superseded_by: []
+superseded_by: ["[[ADR-107]]"]
 aliases: ["ADR 086"]
 tags:
   - area/pipeline

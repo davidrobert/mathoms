@@ -5,7 +5,7 @@ title: "Descontinuação completa do renderer HTML server-side"
 status: Decidido
 date: "2026-04-24"
 relates_to: []
-supersedes: []
+supersedes: ["[[ADR-078]]", "[[ADR-124]]"]
 superseded_by: []
 aliases: ["ADR 129"]
 tags:

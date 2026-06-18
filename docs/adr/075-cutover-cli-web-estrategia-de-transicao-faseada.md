@@ -7,7 +7,7 @@ phase: "F8"
 date: "2026-04-15"
 relates_to: []
 supersedes: ["[[ADR-013]]"]
-superseded_by: []
+superseded_by: ["[[ADR-077]]"]
 aliases: ["ADR 075"]
 tags:
   - area/multitenancy
