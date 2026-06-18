@@ -106,7 +106,50 @@ corrigindo o boundary de abreviação, conforme [[ADR-295]].
   paralelo + persistência incremental foi provado em `_scratch/run_parecer_eval_parallel.py`
   (6 workers, ~13 min); promovê-lo ao harness committed é melhoria desta lane ou da [[A26.l6]].
 
+## Resultado do eval no 1.8.0 (strict) + classificação (2026-06-18)
+
+Eval real holdout (50 gate strict + 10 temp=0, sonnet-4-6, US$ 11,63):
+
+| Métrica | 1.8.0 | Alvo |
+|---|---|---|
+| **needs_review (gate strict)** | **11/50 · UB IC95 35,2%** | <5% 🔴 |
+| items_dropped (baixo/médio) | 4/50 | — |
+| raw hard (pré-enforcement) | 15/50 · UB 43,8% | (1.7.0 era 49,9%) |
+| conformidade por citação | 94,7% | ≥95% 🟡 |
+| diag temp=0 needs_review | 2/10 | 0 🔴 |
+
+**Por que não fecha:** ~73% das falhas hard caem em itens de **severidade alta** →
+`needs_review` (correto; não silenciamos risco crítico). O enforcement per-item só
+dropa baixo/médio (4/50). Gate per-parecer <5% não atingido.
+
+**Classificação do value_mismatch (40 gerações warn, captura do triple):**
+`wrong_pairing` **~87%** (número REAL do E5, mas atrelado ao path errado — ex.:
+escreve a receita R$ 720k citando `previdencia_pgbl.contribuicao_anual`),
+`hallucination` ~13% (inflado por cap de 50 folhas), **`rounding/abbrev` = 0**.
+
+**Implicações cravadas:**
+- Ampliar tolerância de abreviação no `_token_matches` (escopo §3) **não ajudaria**
+  (0 casos). Removido do escopo.
+- **Auto-correção (valor OU path) confirmada perigosa:** wrong_pairing = a *frase*
+  atribui número real ao *conceito errado*; corrigir publica afirmação enganosa.
+  needs_review é o destino correto. [[ADR-295]] validada empiricamente.
+- A raiz é **capacidade do LLM** de manter número↔conceito coerente; o catálogo
+  `path→valor` já existe e mesmo assim mispareia ~22%/parecer.
+
+**Caminhos abertos (decisão de produto/owner):**
+1. **Determinístico (recomendado p/ matar value_mismatch por construção):** parar de
+   deixar o LLM *escrever* o número — emitir `(claim_text, evidencia_path)` e
+   **renderizar o valor da folha server-side** (token tipo `MonetaryValue` a partir
+   do path). value_mismatch → 0 estrutural (o número exibido É o da folha). Resíduo
+   vira só "path/conceito errado", menor. Mudança de schema+prompt+renderer (co-design
+   `senior-cto` + `product-designer`). Avaliar como A26.l9 (onda nova).
+2. **Redefinir o gate (l2):** a propriedade que protege o usuário — "zero citação
+   errada publicada" — JÁ é atingida pelo enforcement. Trocar o gate de
+   "needs_review per-parecer <5%" para "0 falso publicado + needs_review tolerável".
+3. Iteração de prompt (pareamento número↔path) + modelo/temp — payoff incerto.
+
 ## Owner
 
 Agente da lane; co-design `prompt-engineer` (eval + few-shot anti-derivação) +
-`senior-cto` (granularidade per-item / [[ADR-295]]) — feito 2026-06-17.
+`senior-cto` (granularidade per-item / [[ADR-295]]) — feito 2026-06-17. Eval +
+classificação 2026-06-18.
