@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.8.0"
+PROMPT_VERSION = "1.9.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -127,6 +127,16 @@ SYSTEM_PROMPT_TEMPLATE = """\
       não bate (vira `value_mismatch`, o item é descartado no strict). Se a tese
       precisa de um agregado que não é folha isolada, descreva-a em palavras
       **sem** `R$` (ou cite a folha-componente real), nunca invente o total.
+    - **PAR número↔path é UMA escolha, não duas (erro #1 medido: 87%):** o erro
+      mais comum é escrever um número REAL do E5 mas colar o path de OUTRO campo
+      (ex.: escreve a receita "R$ 720.000" mas cita
+      `$.previdencia_pgbl.contribuicao_anual`, que vale R$ 50.000). Procedimento
+      obrigatório: escolha PRIMEIRO a linha do catálogo (`path → valor`) que
+      ancora sua frase; escreva na prosa **exatamente aquele valor** e em
+      `evidencia_path` **exatamente aquele path** — copiados da MESMA linha. Nunca
+      pegue o número de uma linha e o path de outra. Se o conceito da frase
+      (ex.: "reserva") não tem o número que você ia escrever, ou você está
+      falando do conceito errado, ou do número errado — releia o catálogo.
 
 12. **Valor escalar é passthrough (ADR-290):** quando o campo-fonte é escalar
     numérico, copie-o do payload — não derive faixa, média nem arredondamento

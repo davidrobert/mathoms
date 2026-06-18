@@ -28,9 +28,10 @@ _OUTPUT_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
 # 1.5.0 (limites de concisão na regra 4, incidente string_too_long 2026-06-12)
 # → 6633 em 1.6.0 (regra 11 + few-shot do catálogo de citação, A26.l1) → 7272 em
 # 1.7.0 (regra de gramática anti-filtro + concisão recalibrada, ADR-292) → 7817 em
-# 1.8.0 (regra anti-derivação do número, ADR-295 — bump consciente: reseta a
-# baseline; o gate de 5% protege drift futuro).
-_PROMPT_BASELINE_CHARS = 7817
+# 1.8.0 (regra anti-derivação do número, ADR-295) → 8571 em 1.9.0 (regra de
+# pareamento número↔path, A26.l8: wrong_pairing era 87% das falhas — bump
+# consciente; o gate de 5% protege drift futuro).
+_PROMPT_BASELINE_CHARS = 8571
 
 
 def _risco(descricao: str, path: str | None, severidade: str = "Alta") -> Risco:
@@ -321,7 +322,7 @@ class TestValorDeterministicoF2:
         agg = result["evidencia_verification"]
         assert agg["money_tokens_total"] >= 1
         assert agg["range_in_scalar_count"] == 0
-        assert agg["prompt_version"] == "1.8.0"
+        assert agg["prompt_version"] == "1.9.0"
 
 
 # -----------------------------------------------------------------------
@@ -439,7 +440,7 @@ class TestPromptTokenBudget:
         current_tokens = len(SYSTEM_PROMPT_TEMPLATE) // 4
         delta = abs(current_tokens - baseline_tokens) / baseline_tokens
         assert delta < 0.05, f"delta de tokens {delta:.2%} excede 5% (F4)"
-        assert PROMPT_VERSION == "1.8.0"
+        assert PROMPT_VERSION == "1.9.0"
 
     def test_regras_valor_deterministico_presentes(self):
         """ADR-290 F2 — regras 12 (passthrough escalar) e 13 (cap de geração)."""
