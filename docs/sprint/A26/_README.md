@@ -54,7 +54,7 @@ lane destrutiva tem um **gate verificável**, não um prazo.
 | [[A26.l4]] | `override-v2-on-instrumentacao` | B (habilitador) | blocked | flip override flag→True + `v2_match_count` + query agendada `v1_fallback` |
 | [[A26.l5]] | `m2-override-drop` | B (IRREVERSÍVEL) | blocked | l4 + G1/G2/G3 + PITR + owner go/no-go |
 | [[A26.l6]] | `evidencia-coverage-kpi` | A (sem gate) | shipped (#660) | — · roda antes de l7 (baseline) |
-| [[A26.l7]] | `evidencia-catalog-listas` | A (sem gate) | planned | l1 · recomendada antes do flip l2, não bloqueante |
+| [[A26.l7]] | `evidencia-catalog-listas` | A (sem gate) | shipped (#662) | l1 · recomendada antes do flip l2, não bloqueante |
 | [[A26.l8]] | `evidencia-value-mismatch` | A (sem gate) | planned | l1 · resíduo `value_mismatch` (eval 1.7.0: UB 49,9%); bloqueia l2 |
 | [[A26.l9]] | `citacao-deterministica` | A (sem gate) | planned | l1 · render valor da folha server-side (value_mismatch→0); **A27/Onda 6, Could, NÃO bloqueia l2** ([[ADR-296]]) |
 
