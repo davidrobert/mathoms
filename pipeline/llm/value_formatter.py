@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any, Literal
 
 FormatHint = Literal["raw", "brl", "pct", "percent2", "int", "string", "iso_date"]
@@ -39,15 +40,34 @@ def _coerce_number(value: Any) -> float | None:
     return None
 
 
+def _money_to_decimal(value: Any) -> Decimal | None:
+    """Decimal exato de int/float/str numérica (ADR-090: nunca float em money)."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return Decimal(str(value))
+    if isinstance(value, str):
+        cleaned = value.strip().replace(",", ".")
+        if cleaned in ("", "N/D", "nan"):
+            return None
+        try:
+            return Decimal(cleaned)
+        except InvalidOperation:
+            return None
+    return None
+
+
 def _format_brl(value: Any) -> str:
-    n = _coerce_number(value)
-    if n is None:
+    dec = _money_to_decimal(value)
+    if dec is None:
         return str(value)
-    sign = "-" if n < 0 else ""
-    n = abs(n)
-    integer, frac = divmod(round(n * 100), 100)
-    integer_str = f"{int(integer):,}".replace(",", ".")
-    return f"{sign}R$ {integer_str},{int(frac):02d}"
+    sign = "-" if dec < 0 else ""
+    # cents via Decimal ROUND_HALF_UP — byte-idêntico ao _to_cents do verificador
+    # (parecer_evidencia), garantindo round-trip valor-exibido↔cents (ADR-090/296).
+    cents = int((abs(dec) * 100).to_integral_value(rounding=ROUND_HALF_UP))
+    integer, frac = divmod(cents, 100)
+    integer_str = f"{integer:,}".replace(",", ".")
+    return f"{sign}R$ {integer_str},{frac:02d}"
 
 
 def _format_pct(value: Any, *, decimals: int) -> str:
