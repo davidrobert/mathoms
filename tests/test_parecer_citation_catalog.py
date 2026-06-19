@@ -86,3 +86,40 @@ def test_max_entries_cap(whitelist):
         make_workspace_e5(), section_whitelist=whitelist, max_entries=3
     )
     assert len(entries) == 3
+
+
+# -----------------------------------------------------------------------
+# A26.l7 — cobertura de folhas de LISTA via [idx].subkey escalar
+# -----------------------------------------------------------------------
+
+
+def test_list_element_leaves_are_catalogued(whitelist):
+    """E5 sintético tem $.investimentos.tabela_classes (lista) — agora citável."""
+    entries = build_citation_catalog(
+        make_workspace_e5(), section_whitelist=whitelist, max_entries=60
+    )
+    list_paths = [e.path for e in entries if "[" in e.path]
+    assert list_paths, "nenhuma folha de lista catalogada (regressão A26.l7)"
+    assert all(p.endswith("].valor") for p in list_paths)
+
+
+def test_list_path_resolve_para_escalar_unico_nao_lista_inteira(whitelist):
+    """[idx].valor → exatamente 1 folha numérica (não [*] que coletaria a lista)."""
+    e5 = make_workspace_e5()
+    entries = build_citation_catalog(e5, section_whitelist=whitelist, max_entries=60)
+    drill = PlannerDrillDown(e5_data=e5, section_whitelist=whitelist, format_hints={})
+    path = next(e.path for e in entries if "[" in e.path)
+    leaves = ev._numeric_leaves(drill.get_e5_jsonpath(path).value)
+    assert len(leaves) == 1, f"{path} resolveu para {len(leaves)} folhas (esperado 1 escalar)"
+
+
+def test_list_cap_top_k_por_valor_com_indice_original(whitelist):
+    """Lista de 40 itens → ≤ _MAX_LIST_ITEMS entradas, os de MAIOR valor, índice original."""
+    from backend.app.services.parecer_citation_catalog import _MAX_LIST_ITEMS
+
+    classes = [{"categoria": f"c{i}", "valor": i * 1000} for i in range(40)]
+    e5 = {"investimentos": {"tabela_classes": classes}}
+    entries = build_citation_catalog(e5, section_whitelist=whitelist, max_entries=60)
+    idxs = sorted(int(e.path.split("[")[1].split("]")[0]) for e in entries)
+    assert len(idxs) == _MAX_LIST_ITEMS
+    assert idxs == [35, 36, 37, 38, 39], "top-K deve ser por maior valor, com índice original"
