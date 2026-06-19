@@ -38,6 +38,12 @@ class TestFormatValueBRL:
     def test_brl_large_value(self):
         assert format_value(1_000_000, "brl") == "R$ 1.000.000,00"
 
+    def test_brl_half_cent_rounds_half_up_decimal(self):
+        # ADR-090/296: cents via Decimal(str(v)) + ROUND_HALF_UP. float round()
+        # daria "R$ 2,67" (float(2.675)=2.67499…); Decimal trava em "R$ 2,68",
+        # byte-idêntico ao _to_cents do verificador (parecer_evidencia).
+        assert format_value(2.675, "brl") == "R$ 2,68"
+
 
 class TestFormatValuePct:
     def test_pct_absolute_value_adr209(self):
