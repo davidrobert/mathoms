@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-from backend.app.services import parecer_evidencia as ev
 from backend.app.services.parecer_citation_catalog import (
     _PRIORITY_ROOTS,
     build_citation_catalog,
@@ -12,6 +11,7 @@ from backend.app.services.parecer_citation_catalog import (
 )
 from backend.app.services.parecer_manifest import load_manifest
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+from pipeline.llm.value_formatter import format_value
 from tests.test_parecer_planejador_golden import make_workspace_e5
 
 
@@ -28,12 +28,10 @@ def test_every_entry_roundtrips_against_verifier(whitelist):
     for entry in entries:
         result = drill.get_e5_jsonpath(entry.path)
         assert result.found, f"path {entry.path} não resolve no verificador (whitelist/null)"
-        tokens = ev._extract_money_tokens([entry.display_value])
-        assert tokens, f"display {entry.display_value!r} não produz token R$"
-        leaves = ev._numeric_leaves(result.value)
-        assert any(
-            ev._token_matches(t, leaf) for t in tokens for leaf in leaves
-        ), f"valor exibido de {entry.path} não bate em cents com a folha resolvida"
+        # ADR-296: display_value é format_value(value, 'brl') — round-trip determinístico.
+        assert entry.display_value == format_value(
+            result.value, "brl"
+        ), f"display de {entry.path} divergiu do valor resolvido"
 
 
 def test_no_percent_or_count_leaves_listed(whitelist):
@@ -109,8 +107,10 @@ def test_list_path_resolve_para_escalar_unico_nao_lista_inteira(whitelist):
     entries = build_citation_catalog(e5, section_whitelist=whitelist, max_entries=60)
     drill = PlannerDrillDown(e5_data=e5, section_whitelist=whitelist, format_hints={})
     path = next(e.path for e in entries if "[" in e.path)
-    leaves = ev._numeric_leaves(drill.get_e5_jsonpath(path).value)
-    assert len(leaves) == 1, f"{path} resolveu para {len(leaves)} folhas (esperado 1 escalar)"
+    val = drill.get_e5_jsonpath(path).value
+    assert isinstance(val, (int, float)) and not isinstance(
+        val, bool
+    ), f"{path} resolveu para {type(val).__name__} (esperado escalar único, não lista)"
 
 
 def test_list_cap_top_k_por_valor_com_indice_original(whitelist):

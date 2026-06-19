@@ -60,7 +60,7 @@ class _NoCache:
 # citação incorreta. Pós-coerção path-filtro → None ele sobe mecanicamente (antes
 # morria em reask e nunca chegava ao verificador). Só estas camadas — citação que
 # resolve ERRADO — contam como violação de gate; missing_path vira métrica à parte.
-_HARD_LAYERS = ("value_mismatch", "whitelist_miss", "resolve_null")
+_HARD_LAYERS = ("pairing_mismatch", "whitelist_miss", "resolve_null")
 
 
 def _verdict(fixture, result) -> dict:

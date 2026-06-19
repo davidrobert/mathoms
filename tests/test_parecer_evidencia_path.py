@@ -1,4 +1,4 @@
-"""Golden estrutural da citação verificada E5→E6 — evidencia_path F4 (ADR-279 §E).
+"""Golden estrutural da citação determinística E5→E6 — ancoras (ADR-296, supersede F4).
 
 Estende o harness de tests/test_parecer_planejador_golden.py (LLM mockado);
 vive em módulo próprio para respeitar o limite de 500 linhas por arquivo.
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.llm.schemas.parecer_planejador import Risco
+from pipeline.llm.schemas.parecer_planejador import Ancora, Risco
 from tests.test_parecer_planejador_golden import (
     make_canned_output,
     make_run_stage_with_mocks,
@@ -23,36 +23,32 @@ from tests.test_parecer_planejador_golden import (
 _REPO = Path(__file__).resolve().parents[1]
 _OUTPUT_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
 
-# Baseline do SYSTEM_PROMPT_TEMPLATE (chars; aproximação tokens = len//4).
-# 4664 pré-F4 (ADR-279) → 5411 em 1.4.0 (regras 12-13, ADR-290 F2) → 5846 em
-# 1.5.0 (limites de concisão na regra 4, incidente string_too_long 2026-06-12)
-# → 6633 em 1.6.0 (regra 11 + few-shot do catálogo de citação, A26.l1) → 7272 em
-# 1.7.0 (regra de gramática anti-filtro + concisão recalibrada, ADR-292) → 7817 em
-# 1.8.0 (regra anti-derivação do número, ADR-295) → 8571 em 1.9.0 (regra de
-# pareamento número↔path, A26.l8: wrong_pairing era 87% das falhas — bump
-# consciente; o gate de 5% protege drift futuro).
+# Baseline do SYSTEM_PROMPT_TEMPLATE (chars; aproximação tokens = len//4). O template
+# wrapper não carrega as regras (vêm do manifest YAML); ADR-296 mudou as regras no
+# YAML, não o template — delta ~0. Bump só de PROMPT_VERSION (1.9.0 → 2.0.0).
 _PROMPT_BASELINE_CHARS = 8571
 
 
-def _risco(descricao: str, path: str | None, severidade: str = "Alta") -> Risco:
+def _risco(ancoras: list[tuple[str | None, str | None]], severidade: str = "Alta") -> Risco:
+    """Risco sintético com âncoras (path, rotulo); prosa SEM R$ (ADR-296)."""
     return Risco(
         severidade=severidade,
         titulo="Risco sintético para verificação de citação",
-        descricao=descricao,
+        descricao="Reserva insuficiente para cobrir as despesas essenciais da família.",
         ancora_metodologica="convergencia",
         tema_canonico="Liquidez",
         section_id="S1",
         confianca="alta",
-        evidencia_path=path,
+        ancoras=[Ancora(path=p, rotulo=r) for p, r in ancoras],
     )
 
 
-def _run_with_risco(
-    descricao: str, path: str | None, workspace_id: str = "ws-evid", severidade: str = "Alta"
+def _run(
+    ancoras: list[tuple[str | None, str | None]],
+    workspace_id: str = "ws-evid",
+    severidade: str = "Alta",
 ):
-    canned = make_canned_output().model_copy(
-        update={"riscos": [_risco(descricao, path, severidade)]}
-    )
+    canned = make_canned_output().model_copy(update={"riscos": [_risco(ancoras, severidade)]})
     return make_run_stage_with_mocks(make_workspace_e5(), canned, workspace_id=workspace_id)
 
 
@@ -60,6 +56,11 @@ def _risco_entries(store) -> list[dict]:
     artifact = store.read("E6-parecer", "parecer_planejador")
     entries = artifact["_meta"]["evidencia_verification"]
     return [e for e in entries if e["item_type"] == "risco"]
+
+
+# Paths/rótulos canônicos do E5 sintético (root == 1º segmento do path).
+_RESERVA = ("$.reserva_emergencia.total_liquida", "reserva_emergencia")
+_IMOVEL = ("$.patrimonio.composicao.imoveis_residencia", "patrimonio")
 
 
 # -----------------------------------------------------------------------
@@ -73,46 +74,35 @@ class TestStrictModeNegatives:
         monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "strict")
 
     def test_path_fora_da_whitelist_whitelist_miss(self):
-        result, store = _run_with_risco(
-            "Reserva líquida de R$ 84.000 é insuficiente.", "$.secao_inexistente.campo"
-        )
+        result, store = _run([("$.secao_inexistente.campo", "secao_inexistente")])
         assert result["status"] == "needs_review"
         assert result["reason"] == "evidencia unverified (severidade alta): risco:0"
         assert _risco_entries(store)[0]["outcome"] == "whitelist_miss"
 
     def test_path_nao_resolve_resolve_null(self):
-        result, store = _run_with_risco(
-            "Reserva líquida de R$ 84.000 é insuficiente.",
-            "$.reserva_emergencia.campo_inexistente",
-        )
+        result, store = _run([("$.reserva_emergencia.campo_inexistente", "reserva_emergencia")])
         assert result["status"] == "needs_review"
         assert result["reason"] == "evidencia unverified (severidade alta): risco:0"
         assert _risco_entries(store)[0]["outcome"] == "resolve_null"
 
-    def test_numero_diferente_do_valor_value_mismatch(self):
-        result, store = _run_with_risco(
-            "Reserva líquida de R$ 99.999,99 é insuficiente.",
-            "$.reserva_emergencia.total_liquida",
-        )
+    def test_rotulo_incoerente_com_root_pairing_mismatch(self):
+        """ADR-296: path resolve mas rotulo aponta seção errada → pairing_mismatch."""
+        result, store = _run([("$.reserva_emergencia.total_liquida", "patrimonio")])
         assert result["status"] == "needs_review"
         assert result["reason"] == "evidencia unverified (severidade alta): risco:0"
-        assert _risco_entries(store)[0]["outcome"] == "value_mismatch"
+        assert _risco_entries(store)[0]["outcome"] == "pairing_mismatch"
 
-    def test_path_resolve_para_valor_errado_value_mismatch(self):
-        result, store = _run_with_risco(
-            "Reserva líquida de R$ 84.000 é insuficiente.", "$.patrimonio.bruto"
-        )
+    def test_rotulo_none_com_path_valido_pairing_mismatch(self):
+        """rotulo coercido a None (forma inválida) com path válido → pairing_mismatch."""
+        result, store = _run([("$.reserva_emergencia.total_liquida", "tem espaço")])
         assert result["status"] == "needs_review"
-        assert result["reason"] == "evidencia unverified (severidade alta): risco:0"
-        assert _risco_entries(store)[0]["outcome"] == "value_mismatch"
+        assert _risco_entries(store)[0]["outcome"] == "pairing_mismatch"
 
     def test_needs_review_telemetry_aggregate(self):
-        result, _ = _run_with_risco(
-            "Reserva líquida de R$ 99.999,99 é insuficiente.", "$.reserva_emergencia.total_liquida"
-        )
+        result, _ = _run([("$.reserva_emergencia.total_liquida", "patrimonio")])
         agg = result["evidencia_verification"]
         assert agg["evidencia_failed"] == 1
-        assert agg["failures_by_layer"]["value_mismatch"] == 1
+        assert agg["failures_by_layer"]["pairing_mismatch"] == 1
         assert agg["needs_review_triggered"] is True
 
 
@@ -127,33 +117,24 @@ class TestStrictPerItemEnforcement:
     def _strict(self, monkeypatch):
         monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "strict")
 
-    def test_item_baixa_severidade_value_mismatch_e_descartado(self):
-        result, store = _run_with_risco(
-            "Reserva líquida de R$ 99.999,99 é insuficiente.",
-            "$.reserva_emergencia.total_liquida",
-            severidade="Baixa",
-        )
+    def test_item_baixa_severidade_pairing_mismatch_e_descartado(self):
+        result, _ = _run([("$.reserva_emergencia.total_liquida", "patrimonio")], severidade="Baixa")
         assert result["success"] is True  # parecer publicado, item removido
         agg = result["evidencia_verification"]
         assert agg["items_dropped"] == 1
-        assert agg["failures_by_layer"]["value_mismatch"] == 1
+        assert agg["failures_by_layer"]["pairing_mismatch"] == 1
 
     def test_pareamento_errado_baixa_severidade_nao_falsifica(self):
-        """Adversarial: cita path errado de magnitude próxima → item cai, número NÃO é trocado."""
-        result, store = _run_with_risco(
-            "Reserva líquida de R$ 84.000 é insuficiente.",
-            "$.patrimonio.bruto",  # path errado (resolve, mas é outro valor)
-            severidade="Média",
-        )
+        """Adversarial: rotulo errado → item cai, citação NÃO é auto-corrigida."""
+        result, store = _run([("$.patrimonio.bruto", "reserva_emergencia")], severidade="Média")
         assert result["success"] is True
         assert result["evidencia_verification"]["items_dropped"] == 1
-        # o risco ofensor saiu do parecer publicado (não foi falsificado)
         artifact = store.read("E6-parecer", "parecer_planejador")
-        assert all("99.999" not in (r.get("descricao") or "") for r in artifact.get("riscos", []))
+        assert artifact.get("riscos", []) == []  # risco ofensor saiu do publicado
 
     def test_missing_path_e_cobertura_fail_open(self):
-        """missing_path (R$ sem path) é cobertura, não derruba item nem parecer (ADR-295/292)."""
-        result, store = _run_with_risco("Reserva líquida de R$ 84.000 é insuficiente.", None)
+        """path None (coerce ADR-292) é cobertura, não derruba item nem parecer."""
+        result, store = _run([(None, "reserva_emergencia")])
         assert result["success"] is True
         agg = result["evidencia_verification"]
         assert agg["failures_by_layer"]["missing_path"] == 1
@@ -163,33 +144,27 @@ class TestStrictPerItemEnforcement:
 
 
 # -----------------------------------------------------------------------
-# A26.l6 — KPI cobertura (missing_path) vs. correção (value_mismatch + …)
+# A26.l6 — KPI cobertura (missing_path) vs. correção (pairing_mismatch + …)
 # -----------------------------------------------------------------------
 
 
 class TestCoverageVsCorrectnessKpi:
     def test_missing_path_conta_como_cobertura_nao_correcao(self):
-        result, _ = _run_with_risco("Reserva líquida de R$ 84.000 é insuficiente.", None)
+        result, _ = _run([(None, "reserva_emergencia")])
         agg = result["evidencia_verification"]
         assert agg["coverage_failed"] == 1
         assert agg["correctness_failed"] == 0
         assert agg["by_section"]["risco"]["missing_path"] == 1
 
-    def test_value_mismatch_conta_como_correcao_nao_cobertura(self):
-        result, _ = _run_with_risco(
-            "Reserva líquida de R$ 99.999,99 é insuficiente.",
-            "$.reserva_emergencia.total_liquida",
-        )
+    def test_pairing_mismatch_conta_como_correcao_nao_cobertura(self):
+        result, _ = _run([("$.reserva_emergencia.total_liquida", "patrimonio")])
         agg = result["evidencia_verification"]
         assert agg["coverage_failed"] == 0
         assert agg["correctness_failed"] == 1
-        assert agg["by_section"]["risco"]["value_mismatch"] == 1
+        assert agg["by_section"]["risco"]["pairing_mismatch"] == 1
 
     def test_verificado_nao_conta_em_nenhuma_falha(self):
-        result, _ = _run_with_risco(
-            "Reserva total líquida de R$ 84.000 cobre poucos meses.",
-            "$.reserva_emergencia.total_liquida",
-        )
+        result, _ = _run([_RESERVA])
         agg = result["evidencia_verification"]
         assert agg["coverage_failed"] == 0
         assert agg["correctness_failed"] == 0
@@ -205,13 +180,13 @@ class TestCoverageVsCorrectnessKpi:
                     "item_type": "sugestoes_taticas",
                     "item_index": 0,
                     "path": "$.y",
-                    "outcome": "value_mismatch",
+                    "outcome": "pairing_mismatch",
                 },
             ]
         )
         by_section = v.by_section()
         assert by_section["risco"] == {"missing_path": 1, "verified": 1}
-        assert by_section["sugestoes_taticas"] == {"value_mismatch": 1}
+        assert by_section["sugestoes_taticas"] == {"pairing_mismatch": 1}
 
 
 # -----------------------------------------------------------------------
@@ -222,7 +197,7 @@ class TestCoverageVsCorrectnessKpi:
 class TestWarnModeDefault:
     def test_violation_does_not_block_in_warn(self, monkeypatch):
         monkeypatch.delenv("MATHOMS_PARECER_EVIDENCIA_MODE", raising=False)
-        result, store = _run_with_risco("Reserva líquida de R$ 84.000 é insuficiente.", None)
+        result, store = _run([(None, "reserva_emergencia")])
         assert result["success"] is True
         agg = result["evidencia_verification"]
         assert agg["evidencia_failed"] == 1
@@ -232,7 +207,7 @@ class TestWarnModeDefault:
 
     def test_artifact_with_meta_block_validates_against_json_schema(self, monkeypatch):
         monkeypatch.delenv("MATHOMS_PARECER_EVIDENCIA_MODE", raising=False)
-        _, store = _run_with_risco("Reserva líquida de R$ 84.000 é insuficiente.", None)
+        _, store = _run([_RESERVA])
         artifact = store.read("E6-parecer", "parecer_planejador")
         jsonschema = pytest.importorskip("jsonschema")
         schema = json.loads(_OUTPUT_SCHEMA.read_text(encoding="utf-8"))
@@ -249,84 +224,38 @@ class TestStrictModePositives:
     def _strict(self, monkeypatch):
         monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "strict")
 
-    def test_match_exato_em_cents(self):
-        result, store = _run_with_risco(
-            "Reserva total líquida de R$ 84.000 cobre poucos meses.",
-            "$.reserva_emergencia.total_liquida",
-        )
+    def test_pareamento_correto_verifica(self):
+        result, store = _run([_RESERVA])
         assert result["success"] is True
         assert _risco_entries(store)[0]["outcome"] == "verified"
 
-    def test_match_abreviado_meia_casa_significativa(self):
-        result, store = _run_with_risco(
-            "Residência avaliada em R$ 1,8 mi concentra o patrimônio.",
-            "$.patrimonio.composicao.imoveis_residencia",
-        )
+    def test_segunda_secao_pareada_verifica(self):
+        result, store = _run([_IMOVEL])
         assert result["success"] is True
         assert _risco_entries(store)[0]["outcome"] == "verified"
 
-    def test_neutro_sem_token_monetario_sem_path_passa(self):
-        result, store = _run_with_risco(
-            "Cobertura de 2,1 meses está abaixo do alvo de 6 meses (25× despesas).", None
-        )
+    def test_item_sem_ancora_nao_gera_entrada(self):
+        result, store = _run([])
         assert result["success"] is True
         assert _risco_entries(store) == []
 
-    def test_dois_numeros_um_casa_passa(self):
-        result, store = _run_with_risco(
-            "Reserva entre R$ 10.000 e R$ 84.000 fica aquém do necessário.",
-            "$.reserva_emergencia.total_liquida",
-        )
+    def test_duas_ancoras_ambas_corretas_verificam(self):
+        result, store = _run([_RESERVA, _IMOVEL])
         assert result["success"] is True
-        assert _risco_entries(store)[0]["outcome"] == "verified"
+        outcomes = [e["outcome"] for e in _risco_entries(store)]
+        assert outcomes == ["verified", "verified"]
+
+    def test_valor_renderizado_gravado_pelo_finalize(self):
+        """ADR-296: o finalize resolve path→valor_renderizado (snapshot, R$ formatado)."""
+        _, store = _run([_RESERVA])
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        ancora = artifact["riscos"][0]["ancoras"][0]
+        assert ancora["path"] == _RESERVA[0]
+        assert ancora["valor_renderizado"].startswith("R$ ")
 
 
 # -----------------------------------------------------------------------
-# Valor determinístico (ADR-290 F2) — faixa inventada em campo escalar
-# bloqueia; faixa legítima (Monte Carlo/cenários/projeções) é suprimida.
-# Eval golden determinístico do KR2; o ≥98% de match é gate operacional
-# medido em runs reais via telemetria (money_tokens_total / value_mismatch).
-# -----------------------------------------------------------------------
-
-
-class TestValorDeterministicoF2:
-    @pytest.fixture(autouse=True)
-    def _strict(self, monkeypatch):
-        monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "strict")
-
-    def test_faixa_inventada_em_campo_escalar_bloqueia(self):
-        result, store = _run_with_risco(
-            "Recomendamos reserva entre R$ 250-300 mil para a família.",
-            "$.reserva_emergencia.total_liquida",
-        )
-        assert result["status"] == "needs_review"
-        assert _risco_entries(store)[0]["outcome"] == "value_mismatch"
-        agg = result["evidencia_verification"]
-        assert agg["range_in_scalar_count"] == 1
-
-    def test_faixa_legitima_monte_carlo_suprimida(self):
-        result, store = _run_with_risco(
-            "Projeção indica patrimônio entre R$ 4,0 mi a R$ 6,5 mi no percentil 90.",
-            "$.if_monte_carlo.prazo_p50",
-        )
-        assert result["success"] is True
-        assert _risco_entries(store)[0]["outcome"] == "verified"
-        assert result["evidencia_verification"]["range_in_scalar_count"] == 0
-
-    def test_match_exato_conta_tokens_na_telemetria(self):
-        result, _ = _run_with_risco(
-            "Reserva total líquida de R$ 84.000 cobre poucos meses.",
-            "$.reserva_emergencia.total_liquida",
-        )
-        assert result["success"] is True
-        agg = result["evidencia_verification"]
-        assert agg["money_tokens_total"] >= 1
-        assert agg["range_in_scalar_count"] == 0
-        assert agg["prompt_version"] == "1.9.0"
-
-
-# -----------------------------------------------------------------------
-# Extração de tokens monetários — regex ancorada em R$
+# Extração de tokens monetários — telemetria number_in_prose (ADR-296: deve ser 0)
 # -----------------------------------------------------------------------
 
 
@@ -336,22 +265,6 @@ class TestMoneyTokenExtraction:
 
         prose = "Cobertura de 2,1 meses, 44,7% da renda, meta 25× até 2030 em 6 meses."
         assert _extract_money_tokens([prose]) == []
-
-    def test_abbreviated_interval_semantics(self):
-        from backend.app.services.parecer_evidencia import _extract_money_tokens, _token_matches
-
-        token = _extract_money_tokens(["R$ 1,2 mi"])[0]
-        assert _token_matches(token, 115_000_000)  # R$ 1.150.000,00 inclusivo
-        assert _token_matches(token, 124_999_999)
-        assert not _token_matches(token, 125_000_000)  # limite superior exclusivo
-
-    def test_mil_multiplier_half_step(self):
-        from backend.app.services.parecer_evidencia import _extract_money_tokens, _token_matches
-
-        token = _extract_money_tokens(["R$ 800 mil"])[0]
-        assert _token_matches(token, 80_000_000)
-        assert _token_matches(token, 79_950_000)
-        assert not _token_matches(token, 80_050_000)
 
     def test_exact_cents_precision(self):
         from backend.app.services.parecer_evidencia import _extract_money_tokens
@@ -428,7 +341,7 @@ class TestCacheKeyBump:
 
 
 # -----------------------------------------------------------------------
-# Prompt — instrução additive cabe no budget de tokens
+# Prompt — bump de versão + budget de tokens
 # -----------------------------------------------------------------------
 
 
@@ -440,12 +353,4 @@ class TestPromptTokenBudget:
         current_tokens = len(SYSTEM_PROMPT_TEMPLATE) // 4
         delta = abs(current_tokens - baseline_tokens) / baseline_tokens
         assert delta < 0.05, f"delta de tokens {delta:.2%} excede 5% (F4)"
-        assert PROMPT_VERSION == "1.9.0"
-
-    def test_regras_valor_deterministico_presentes(self):
-        """ADR-290 F2 — regras 12 (passthrough escalar) e 13 (cap de geração)."""
-        from pipeline.llm.prompts.parecer_planejador import SYSTEM_PROMPT_TEMPLATE
-
-        assert "Valor escalar é passthrough" in SYSTEM_PROMPT_TEMPLATE
-        assert "Priorize, não preencha" in SYSTEM_PROMPT_TEMPLATE
-        assert "máximo 3 sugestões" in SYSTEM_PROMPT_TEMPLATE
+        assert PROMPT_VERSION == "2.0.0"

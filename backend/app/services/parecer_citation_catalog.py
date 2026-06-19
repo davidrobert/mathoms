@@ -68,10 +68,11 @@ _PRIORITY_ROOTS = (
 
 _CATALOG_HEADER = "### Evidência citável (evidencia_paths_disponiveis)"
 _CATALOG_INSTRUCTION = (
-    "_Cite valores R$ EXCLUSIVAMENTE destes paths, copiando o valor exato. "
-    "Campo ausente daqui → não cite o valor (use "
-    "campos_faltantes_pediria_se_iterasse[]). A lista é seu vocabulário de "
-    "evidência: cite o que ESTÁ nela quando relevante._"
+    "_Para fundamentar um valor, NÃO escreva o R$ na prosa: emita uma âncora "
+    "ancoras:[{path, rotulo}] copiando UMA linha abaixo — path = o path da linha, "
+    "rotulo = o cabeçalho de grupo (em negrito) acima dela. O sistema renderiza o "
+    "número a partir do path. Conceito ausente daqui → não ancore (use "
+    "campos_faltantes_pediria_se_iterasse[])._"
 )
 
 

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.9.0"
+# 2.0.0 (ADR-296): citação determinística — prosa sem R$, contrato ancoras[{path,rotulo}].
+PROMPT_VERSION = "2.0.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\

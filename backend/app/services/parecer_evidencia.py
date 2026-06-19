@@ -6,8 +6,8 @@ import logging
 import os
 import re
 from dataclasses import dataclass, field
-from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
-from typing import Any, Iterator, Optional
+from decimal import ROUND_HALF_UP, Decimal
+from typing import Iterator, Optional
 
 from pipeline.llm.prompts.parecer_planejador import PROMPT_VERSION
 from pipeline.llm.schemas.parecer_planejador import Ancora, ParecerPlanejadorOutput
@@ -29,26 +29,9 @@ _MONEY_RE = re.compile(
     r"R\$\s*(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?(?:\s*(milh(?:[õo]es|[ãa]o)|mil|mi)\b)?"
 )
 
-# Faixa monetária inventada ("R$ 250-300 mil", "R$ 260 a 520 mil") — telemetria
-# KR2 do PLAN-suggestion-lifecycle (ADR-290 F2): faixa só é legítima quando o
-# campo-fonte é faixa (ver _LEGIT_RANGE_PATH_PREFIXES).
+# Faixa monetária na prosa ("R$ 250-300 mil") — telemetria de number_in_prose
+# (ADR-296: prosa não deve conter R$; deve ser 0).
 _RANGE_RE = re.compile(r"R\$\s*[\d.,]+\s*(?:-|–|\ba\b|\baté\b)\s*(?:R\$\s*)?[\d.,]+")
-
-# Paths cujo valor é legitimamente faixa/banda (percentis Monte Carlo, cenários,
-# projeções) — suprimem a camada value_mismatch (mitigação do risco R3 do plano;
-# escolha validada com prompt-engineer 2026-06-12). Escalares exatos
-# (reserva_emergencia, endividamento, patrimonio) ficam FORA por design.
-_LEGIT_RANGE_PATH_PREFIXES = (
-    "$.if_monte_carlo",
-    "$.cenarios_conjuge",
-    "$.passive_income",
-    "$.ratios.rentabilidade",
-)
-
-
-def _is_legit_range_path(path: str) -> bool:
-    return path.startswith(_LEGIT_RANGE_PATH_PREFIXES)
-
 
 # ADR-296: pairing_mismatch substitui value_mismatch (este zerado por construção —
 # prosa não tem R$). Ordem preservada p/ telemetria; value_mismatch fica no histórico.
@@ -62,7 +45,6 @@ _REASON_TO_LAYER = {
     "value_null": "resolve_null",
     "value_absent": "resolve_null",
 }
-_MAX_NUMERIC_LEAVES = 50
 
 
 @dataclass(frozen=True)
@@ -240,53 +222,6 @@ def _token_from_match(m: re.Match) -> MoneyToken:
 
 def _to_cents(value: Decimal) -> int:
     return int((value * 100).to_integral_value(rounding=ROUND_HALF_UP))
-
-
-def _token_matches(token: MoneyToken, leaf_cents: int) -> bool:
-    """Exato em cents; abreviado = meia-casa-significativa: [c-h, c+h)."""
-    if token.half_step_cents == 0:
-        return token.cents == leaf_cents
-    lower = token.cents - token.half_step_cents
-    upper = token.cents + token.half_step_cents
-    return lower <= leaf_cents < upper
-
-
-# ----------------------------------------------------------------------
-# Folhas numéricas do valor resolvido (camada 3)
-# ----------------------------------------------------------------------
-
-
-def _numeric_leaves(value: Any) -> list[int]:
-    """Cents int de cada folha numérica — ``Decimal(str(v))``, nunca float (ADR-090)."""
-    leaves: list[int] = []
-    _collect_numeric_leaves(value, leaves)
-    return leaves
-
-
-def _collect_numeric_leaves(value: Any, leaves: list[int]) -> None:
-    if len(leaves) >= _MAX_NUMERIC_LEAVES or isinstance(value, bool):
-        return
-    if isinstance(value, (int, float)):
-        leaves.append(_to_cents(Decimal(str(value))))
-    elif isinstance(value, str):
-        _append_str_leaf(value, leaves)
-    for child in _children(value):
-        _collect_numeric_leaves(child, leaves)
-
-
-def _children(value: Any) -> tuple:
-    if isinstance(value, dict):
-        return tuple(value.values())
-    if isinstance(value, list):
-        return tuple(value)
-    return ()
-
-
-def _append_str_leaf(value: str, leaves: list[int]) -> None:
-    try:
-        leaves.append(_to_cents(Decimal(value)))
-    except InvalidOperation:
-        return
 
 
 __all__ = [
