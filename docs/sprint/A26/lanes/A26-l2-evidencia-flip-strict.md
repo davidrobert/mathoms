@@ -52,9 +52,10 @@ guardrail anti-alucinação do Parecer.
 - **Budget de UX (orçamento, NÃO-binário):** taxa de `needs_review` per-parecer **≤15%**
   sobre **≥20 gerações reais** (teto inicial, re-ancorável no 1º tráfego — Regime B).
   Cruzar o budget **NÃO reabre o flip** (a segurança já está garantida); vira sinal para
-  priorizar [[A26.l9]] (citação determinística, A27). O eval 1.8.0 (holdout sintético,
-  estratificado-difícil) deu 22% — sinal de que o budget pode ficar apertado em tráfego
-  real; medir no real antes de cravar.
+  priorizar [[A26.l9]] (citação determinística, A27). **Re-eval no 1.9.0** (regra de
+  pareamento, 2026-06-19) deu needs_review **6% (ponto) / UB 16,2%** no holdout sintético
+  — **sinal favorável** de que o flip passa o budget (vs 22% no 1.8.0); medir no real
+  (≥20 ger) antes de cravar, pois UB de n=50 é largo.
 - **Query de referência:** `count(*) WHERE evidencia_failed > 0` separado de
   `count(*) WHERE needs_review_triggered` — segurança (zero errado publicado, derivado do
   enforcement) vs. UX (taxa de needs_review).

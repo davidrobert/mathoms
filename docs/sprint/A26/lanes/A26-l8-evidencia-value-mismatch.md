@@ -110,13 +110,13 @@ corrigindo o boundary de abreviação, conforme [[ADR-295]].
 
 Eval real holdout (50 gate strict + 10 temp=0, sonnet-4-6, US$ 11,63):
 
-| Métrica | 1.8.0 | Alvo |
-|---|---|---|
-| **needs_review (gate strict)** | **11/50 · UB IC95 35,2%** | <5% 🔴 |
-| items_dropped (baixo/médio) | 4/50 | — |
-| raw hard (pré-enforcement) | 15/50 · UB 43,8% | (1.7.0 era 49,9%) |
-| conformidade por citação | 94,7% | ≥95% 🟡 |
-| diag temp=0 needs_review | 2/10 | 0 🔴 |
+| Métrica | 1.8.0 | **1.9.0** (pós regra de pareamento, #666) | Alvo (gate redefinido) |
+|---|---|---|---|
+| **needs_review (gate strict)** | 11/50 · UB 35,2% | **3/50 = 6% · UB 16,2%** | ≤15% 🟢 (ponto) / UB 🟡 |
+| items_dropped (baixo/médio) | 4/50 | 5/50 | — |
+| raw hard (pré-enforcement) | 15/50 · UB 43,8% | **UB 28,5%** | (1.7.0 era 49,9%) |
+| conformidade por citação | 94,7% | **98,6%** | ≥95% 🟢 |
+| diag temp=0 needs_review | 2/10 | 3/10 | 0 🔴 (resíduo determinístico) |
 
 **Por que não fecha:** ~73% das falhas hard caem em itens de **severidade alta** →
 `needs_review` (correto; não silenciamos risco crítico). O enforcement per-item só
@@ -135,6 +135,15 @@ escreve a receita R$ 720k citando `previdencia_pgbl.contribuicao_anual`),
   needs_review é o destino correto. [[ADR-295]] validada empiricamente.
 - A raiz é **capacidade do LLM** de manter número↔conceito coerente; o catálogo
   `path→valor` já existe e mesmo assim mispareia ~22%/parecer.
+
+**Re-eval no 1.9.0 (2026-06-19, regra "par número↔path é UMA escolha"):** o caminho 3
+(iteração de prompt) foi a iteração **mais eficaz** — needs_review **22% → 6%**,
+conformidade **94,7% → 98,6%**, raw hard UB **43,8% → 28,5%**. Contra o gate redefinido
+(budget ≤15%): **ponto estimado 6% passa; UB IC95 16,2% marginal** (largura de n=50, 3
+eventos — aperta com mais volume real). temp=0 mantém 3/10 → resíduo determinístico que
+só a [[A26.l9]] elimina. **Conclusão:** o flip ([[A26.l2]]) fica **viável no critério
+redefinido** (segurança ✅ + budget ~6%); a l9 rebaixa de "necessária p/ o flip" para
+"polir o resíduo de 6%→0" (A27).
 
 **Caminhos abertos (decisão de produto/owner):**
 1. **Determinístico (recomendado p/ matar value_mismatch por construção):** parar de
