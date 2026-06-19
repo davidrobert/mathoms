@@ -315,9 +315,12 @@ def _forbidden_name_offender(rel: str, start: int, end: int, name: str, kind: st
 
 
 def detect_multiparagraph_docstring(path: Path, tree: ast.Module) -> list[Offender]:
-    """P7: docstrings multi-parágrafo (CLAUDE.md 'Uma linha de intent')."""
+    """P7: docstrings multi-parágrafo de função/classe (CLAUDE.md 'Uma linha
+    de intent'). Docstring de MÓDULO é isenta — cabeçalho de arquivo com
+    contexto/rationale multi-parágrafo é padrão legítimo (migrations Alembic,
+    ADRs as code), não a docstring de API que a regra mira (QUA-05)."""
     rel = _rel(path)
-    candidates: list[ast.AST] = [tree]
+    candidates: list[ast.AST] = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             candidates.append(node)
