@@ -95,8 +95,12 @@ divergir).
 - **[[ADR-295]] coexiste** (não superseded): é a máquina de decisão (drop vs
   needs_review); l9 só troca o sinal que a alimenta. Protege também pareceres v1
   legados durante a transição.
-- **Forma do render (inline placeholder vs âncora-chip vs híbrido)** é decisão de
-  `product-designer` na implementação — não a fixa esta ADR.
+- **Forma do render: D2-puro** (decisão do owner, 2026-06-19) — prosa sem número +
+  chips de âncora (`rótulo`/`valor_renderizado`) no rodapé do card. Descartados o
+  placeholder `{{N}}` inline e o híbrido: `product-designer` argumenta que o híbrido
+  vaza o modelo de confiança interno (inconsistência visual entre âncora inline vs
+  chip), e o D2-puro é o mais seguro (nunca intercala número autorado na prosa,
+  reforçando o invariante `number_in_prose_violation == 0`).
 
 ## Alternativas rejeitadas
 
