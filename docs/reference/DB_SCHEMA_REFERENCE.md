@@ -1121,6 +1121,10 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - FOREIGN KEY (pipeline_run_id) REFERENCES pipeline_runs.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 
+**Indexes:**
+
+- UNIQUE `ux_reports_workspace_pipeline_run` (workspace_id, pipeline_run_id)
+
 ### `review_reasons`
 
 | Column | Type | Nullable | Default | Tags |
