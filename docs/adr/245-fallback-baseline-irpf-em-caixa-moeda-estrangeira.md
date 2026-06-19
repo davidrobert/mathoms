@@ -2,7 +2,7 @@
 id: ADR-245
 type: adr
 title: "`caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR"
-status: Proposto
+status: Decidido
 phase: A17.incremental-correctness
 date: "2026-05-21"
 relates_to:
@@ -23,7 +23,7 @@ tags:
 
 # ADR-245 — Fallback baseline IRPF para `caixa_moeda_estrangeira`
 
-**Status:** Proposto • **Data:** 2026-05-21 • **Relaciona** [[ADR-145]] (taxonomia patrimonial), [[ADR-157]] (IRPF full), [[ADR-241]] (E2 ws-scoped), [[ADR-244]] (informe rendimentos)
+**Status:** Decidido • **Data:** 2026-05-21 • **Relaciona** [[ADR-145]] (taxonomia patrimonial), [[ADR-157]] (IRPF full), [[ADR-241]] (E2 ws-scoped), [[ADR-244]] (informe rendimentos)
 
 ## Contexto
 

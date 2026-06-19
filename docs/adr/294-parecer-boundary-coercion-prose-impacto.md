@@ -2,7 +2,7 @@
 id: ADR-294
 type: adr
 title: "Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop)"
-status: Proposto
+status: Decidido
 phase: "A26 · parecer reliability"
 date: "2026-06-17"
 relates_to:
@@ -23,7 +23,7 @@ tags:
 
 # ADR-294 — Coerção no boundary dos reask triggers remanescentes do parecer
 
-**Status:** Proposto (A26 · parecer reliability) • **Data:** 2026-06-17 •
+**Status:** Decidido (A26 · parecer reliability) • **Data:** 2026-06-17 •
 **Emenda** [[ADR-292]] §2 (caps de prosa) • **Relaciona** [[ADR-202]] (schema §D6),
 [[ADR-208]] (impacto como gate de feature premium), [[ADR-270]] (timeout/retry LLM).
 

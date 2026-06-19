@@ -2,7 +2,7 @@
 id: ADR-266
 type: adr
 title: "Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural"
-status: Proposto
+status: Decidido
 phase: A16
 date: "2026-05-23"
 relates_to:

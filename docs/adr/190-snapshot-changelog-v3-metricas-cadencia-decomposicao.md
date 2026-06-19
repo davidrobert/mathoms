@@ -2,7 +2,7 @@
 id: ADR-190
 type: adr
 title: "Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica"
-status: Proposto
+status: Decidido
 phase: A11
 date: "2026-05-11"
 relates_to:

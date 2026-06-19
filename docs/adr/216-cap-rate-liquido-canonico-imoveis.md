@@ -2,7 +2,7 @@
 id: ADR-216
 type: adr
 title: "Cap rate líquido como métrica canônica de imóveis de investimento (S4)"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-15"
 relates_to:

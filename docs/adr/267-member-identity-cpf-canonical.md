@@ -2,7 +2,7 @@
 id: ADR-267
 type: adr
 title: "Identidade canônica de membro do workspace via CPF (não slug-de-nome)"
-status: Proposto
+status: Decidido
 phase: A17.member-identity
 date: "2026-05-23"
 relates_to:
@@ -27,7 +27,7 @@ tags:
 
 # ADR-267 — Identidade canônica de membro via CPF
 
-**Status:** Proposto • **Data:** 2026-05-23 • **Relaciona** [[ADR-225]] (PropertyIdentity invariante), [[ADR-243]] (MemberNameResolver slug-based, **supersedido parcialmente** por esta ADR), [[ADR-246]] (dedup imóveis cross-IRPF), [[ADR-255]] (dedup transações cross-document — paralelo metodológico), [[ADR-265]] (fuzzy PropertyIdentity).
+**Status:** Decidido • **Data:** 2026-05-23 • **Relaciona** [[ADR-225]] (PropertyIdentity invariante), [[ADR-243]] (MemberNameResolver slug-based, **supersedido parcialmente** por esta ADR), [[ADR-246]] (dedup imóveis cross-IRPF), [[ADR-255]] (dedup transações cross-document — paralelo metodológico), [[ADR-265]] (fuzzy PropertyIdentity).
 
 ## Contexto
 

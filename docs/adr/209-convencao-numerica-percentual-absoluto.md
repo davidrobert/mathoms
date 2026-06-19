@@ -2,7 +2,7 @@
 id: ADR-209
 type: adr
 title: "Convenção numérica de percentual no contrato E5 — valor absoluto"
-status: Proposto
+status: Decidido
 phase: "Pré-requisito PR-2 do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -28,7 +28,7 @@ tags:
 
 # ADR-209 — Convenção numérica de percentual no contrato E5 (valor absoluto)
 
-**Status:** Proposto (pré-requisito PR-2 do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (pré-requisito PR-2 do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

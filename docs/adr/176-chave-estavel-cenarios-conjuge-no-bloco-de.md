@@ -2,7 +2,7 @@
 id: ADR-176
 type: adr
 title: "Chave estável `cenarios_conjuge` no bloco de narrativas E5.N"
-status: Proposto
+status: Decidido
 date: "2026-05-06"
 relates_to: ["[[ADR-143]]", "[[ADR-166]]", "[[ADR-167]]"]
 supersedes: []
@@ -20,7 +20,7 @@ size_lines: 39
 
 # ADR-176 — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
 
-**Status:** Proposto • **Data:** 2026-05-06 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5), [ADR-167](#adr-167--eligibility-gate-de-cenário-do-cônjuge-no-domain-service). **Origem:** card "Cenários de Estresse — Sem renda do cônjuge" renderizando vazio em [S3InvestimentosSection.tsx:68](../../frontend/src/components/report/sections/S3InvestimentosSection.tsx:68).
+**Status:** Decidido • **Data:** 2026-05-06 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5), [ADR-167](#adr-167--eligibility-gate-de-cenário-do-cônjuge-no-domain-service). **Origem:** card "Cenários de Estresse — Sem renda do cônjuge" renderizando vazio em [S3InvestimentosSection.tsx:68](../../frontend/src/components/report/sections/S3InvestimentosSection.tsx:68).
 
 **Contexto:** ADR-166 estabilizou a chave do **payload** E5 em `cenarios_conjuge` literal, mas explicitamente **não tocou** `key_cenarios_section` (em `pipeline/domain/services/narrativas/context.py:69`), que continua derivando `f"{conjuge_key}_cenarios"` (ex.: `mariana_cenarios`) e é usada em `ChartsNarrator.narrate()` (em `pipeline/domain/services/narrativas/charts_narrator.py:81`) como chave de inserção no dict `narratives.charts`. ADR-166 §Follow-ups item 2 deixou registrado: *"`key_cenarios_section` ({conjuge_key}_cenarios) — outro rename, ADR separada quando justificado."*
 

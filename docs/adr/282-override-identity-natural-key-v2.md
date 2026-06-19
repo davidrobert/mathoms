@@ -2,7 +2,7 @@
 id: ADR-282
 type: adr
 title: "Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3)"
-status: Proposto
+status: Decidido
 phase: "A23 · pré-passo-2 B4"
 date: "2026-06-08"
 relates_to:
@@ -25,7 +25,7 @@ tags:
 
 # ADR-282 — Identidade de `TransactionOverride` unificada no `natural_key` v2
 
-**Status:** Proposto (A23 · pré-passo-2 B4) • **Data:** 2026-06-08 • **Relaciona**
+**Status:** Decidido (A23 · pré-passo-2 B4) • **Data:** 2026-06-08 • **Relaciona**
 [[ADR-278]] (B3/B4, §D6), [[ADR-255]], [[ADR-090]], [[ADR-186]], [[ADR-188]], [[ADR-212]].
 
 > Estende [[ADR-278]] (não a reabre) para o subsistema de override/learning. Fecha a

@@ -2,7 +2,7 @@
 id: ADR-244
 type: adr
 title: "InvestmentsConsolidator aceita `tipo_documento=informe_rendimentos` como posição"
-status: Proposto
+status: Decidido
 phase: A17.incremental-correctness
 date: "2026-05-21"
 relates_to:
@@ -24,7 +24,7 @@ tags:
 
 # ADR-244 — `informe_rendimentos` é fonte legítima de posição de investimento
 
-**Status:** Proposto • **Data:** 2026-05-21 • **Relaciona** [[ADR-145]] (taxonomia patrimonial), [[ADR-226]] (account resolver), [[ADR-241]] (E2 ws-scoped), [[ADR-242]] (LLM hint), [[ADR-243]] (member resolver)
+**Status:** Decidido • **Data:** 2026-05-21 • **Relaciona** [[ADR-145]] (taxonomia patrimonial), [[ADR-226]] (account resolver), [[ADR-241]] (E2 ws-scoped), [[ADR-242]] (LLM hint), [[ADR-243]] (member resolver)
 
 ## Contexto
 

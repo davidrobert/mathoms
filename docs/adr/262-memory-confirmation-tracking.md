@@ -2,7 +2,7 @@
 id: ADR-262
 type: adr
 title: "Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req)"
-status: Proposto
+status: Decidido
 phase: A17.competitive-pierre-3e-prereq
 date: "2026-05-23"
 relates_to:
@@ -27,7 +27,7 @@ tags:
 
 # ADR-262 — Memory confirmation tracking
 
-**Status:** Proposto • **Data:** 2026-05-23 • **Relaciona** [[ADR-073]] (Goal versionado), [[ADR-136]] (Decision event-sourced), [[ADR-157]] (IRPF schema), [[ADR-178]] (Risk aggregate), [[PLAN-competitive-pierre]] (Fase 3.E Financial Memories surface).
+**Status:** Decidido • **Data:** 2026-05-23 • **Relaciona** [[ADR-073]] (Goal versionado), [[ADR-136]] (Decision event-sourced), [[ADR-157]] (IRPF schema), [[ADR-178]] (Risk aggregate), [[PLAN-competitive-pierre]] (Fase 3.E Financial Memories surface).
 
 ## Contexto
 

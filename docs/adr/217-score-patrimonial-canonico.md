@@ -2,7 +2,7 @@
 id: ADR-217
 type: adr
 title: "Score patrimonial canônico — composição, fórmula e ciclo de vida"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-15"
 relates_to:

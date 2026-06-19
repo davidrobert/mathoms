@@ -2,7 +2,7 @@
 id: ADR-246
 type: adr
 title: "Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c"
-status: Proposto
+status: Decidido
 phase: A17.imovel-dedup
 date: "2026-05-21"
 relates_to:
@@ -23,7 +23,7 @@ tags:
 
 # ADR-246 — Dedup de imóveis co-declarados em IRPFs de titular + cônjuge
 
-**Status:** Proposto • **Data:** 2026-05-21 • **Relaciona** [[ADR-215]] (PropertyIdentity), [[ADR-225]] (dedup cascade canonical), [[ADR-235]] (nu-proprietário invariante)
+**Status:** Decidido • **Data:** 2026-05-21 • **Relaciona** [[ADR-215]] (PropertyIdentity), [[ADR-225]] (dedup cascade canonical), [[ADR-235]] (nu-proprietário invariante)
 
 ## Contexto
 

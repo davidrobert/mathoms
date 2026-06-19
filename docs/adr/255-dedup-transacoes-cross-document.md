@@ -2,7 +2,7 @@
 id: ADR-255
 type: adr
 title: "Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review)"
-status: Proposto
+status: Decidido
 phase: A17.tx-dedup-cross-doc
 date: "2026-05-22"
 relates_to:
@@ -26,7 +26,7 @@ tags:
 
 # ADR-255 — Dedup de transações cross-document no pipeline E3→E4
 
-**Status:** Proposto • **Data:** 2026-05-22 • **Relaciona** [[ADR-097]] (fatura sintetizada D2), [[ADR-093]] (stage names), [[ADR-212]] (DBArtifactStore), [[ADR-186]] (learned rules), [[ADR-228]] (dedup de documento upstream).
+**Status:** Decidido • **Data:** 2026-05-22 • **Relaciona** [[ADR-097]] (fatura sintetizada D2), [[ADR-093]] (stage names), [[ADR-212]] (DBArtifactStore), [[ADR-186]] (learned rules), [[ADR-228]] (dedup de documento upstream).
 
 ## Contexto
 

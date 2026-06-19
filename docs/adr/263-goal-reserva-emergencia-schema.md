@@ -2,7 +2,7 @@
 id: ADR-263
 type: adr
 title: "Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req)"
-status: Proposto
+status: Decidido
 phase: A17.competitive-pierre-3e-prereq
 date: "2026-05-23"
 relates_to:
@@ -28,7 +28,7 @@ tags:
 
 # ADR-263 — Goal type RESERVA_EMERGENCIA
 
-**Status:** Proposto • **Data:** 2026-05-23 • **Relaciona** [[ADR-073]] (Goal versionado), [[ADR-143]] (methodology = code), [[ADR-177]] (thresholds metodológicos), [[PLAN-competitive-pierre]] (Fase 3.E F11 + INV1).
+**Status:** Decidido • **Data:** 2026-05-23 • **Relaciona** [[ADR-073]] (Goal versionado), [[ADR-143]] (methodology = code), [[ADR-177]] (thresholds metodológicos), [[PLAN-competitive-pierre]] (Fase 3.E F11 + INV1).
 
 ## Contexto
 

@@ -2,7 +2,7 @@
 id: ADR-130
 type: adr
 title: "Internacionalização com `next-intl` + persistência em `users.locale`"
-status: Proposto
+status: Decidido
 phase: "F12"
 date: "2026-04-25"
 relates_to: ["[[ADR-108]]", "[[ADR-109]]", "[[ADR-111]]"]
@@ -20,7 +20,7 @@ size_lines: 175
 
 # ADR-130 — Internacionalização com `next-intl` + persistência em `users.locale`
 
-**Status:** Proposto (F12) • **Data:** 2026-04-25 • **Revisões:**
+**Status:** Decidido (F12) • **Data:** 2026-04-25 • **Revisões:**
 2026-04-26 (escopo 11 → 10 locales; troca hi/ar/bn/id por de/ja/ko) ·
 2026-05-15 (escopo 10 → 3 locales; ICP confirmado nômade BR; plano
 permanece pausado com gatilho de reentrada).

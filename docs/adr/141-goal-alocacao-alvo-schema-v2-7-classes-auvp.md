@@ -2,7 +2,7 @@
 id: ADR-141
 type: adr
 title: "Goal alocação-alvo schema v2 (7 classes AUVP)"
-status: Proposto
+status: Decidido
 date: "2026-04-27"
 phase: A12
 relates_to: ["[[ADR-075]]", "[[ADR-140]]", "[[ADR-193]]"]
@@ -21,7 +21,7 @@ size_lines: 75
 
 # ADR-141 — Goal alocação-alvo schema v2 (7 classes AUVP)
 
-**Status:** Proposto (A12) • **Data:** 2026-04-27, promoção Roadmap→Proposto em 2026-05-11 • **Implementação:** schema candidato em `config/schemas/goal.alocacao_alvo.v2.schema.json`; backend (`pipeline_adapter._serialize_alocacao_goal`), frontend (`plano/alocacao/page.tsx`) e seeds operam em v1. Card de relatório S3 (`AlocacaoAtualVsAlvoCard`) entregue em A11 calcula desvio client-side sobre v1 — débito explícito desta ADR.
+**Status:** Decidido (A12) • **Data:** 2026-04-27, promoção Roadmap→Proposto em 2026-05-11 • **Implementação:** schema candidato em `config/schemas/goal.alocacao_alvo.v2.schema.json`; backend (`pipeline_adapter._serialize_alocacao_goal`), frontend (`plano/alocacao/page.tsx`) e seeds operam em v1. Card de relatório S3 (`AlocacaoAtualVsAlvoCard`) entregue em A11 calcula desvio client-side sobre v1 — débito explícito desta ADR.
 
 **Contexto:** Auditoria multi-agente (rodada 1, item 9; rodada 2, item B2) identificou que a caracterização da AUVP em [methodology.md](../../config/methodology.md) e nos schemas era reducionista. AUVP é **alocação multi-classe + rebalanceamento por aporte via Diagrama do Cerrado** — não "fundamentalista + FIIs" como dizia v1 do `methodology.md`. O schema v1 de alocação-alvo (`renda_fixa_pct`, `acoes_pct`, `imoveis_reits_pct`, `liquidez_usd_pct` — 4 buckets) cola RF pré/pós/IPCA em um único bucket e mistura ações BR com internacionais — perde o que é distintivo na metodologia.
 

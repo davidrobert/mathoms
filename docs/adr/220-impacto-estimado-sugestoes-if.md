@@ -2,7 +2,7 @@
 id: ADR-220
 type: adr
 title: "Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-15"
 relates_to:

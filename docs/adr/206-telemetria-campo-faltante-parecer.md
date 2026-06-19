@@ -2,7 +2,7 @@
 id: ADR-206
 type: adr
 title: "Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188)"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -30,7 +30,7 @@ tags:
 
 # ADR-206 — Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188)
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

@@ -2,7 +2,7 @@
 id: ADR-234
 type: adr
 title: "Adicionar `paused` ao vocabulário de `sprint_status` (4º valor)"
-status: Proposto
+status: Decidido
 phase: A15
 date: "2026-05-20"
 relates_to:

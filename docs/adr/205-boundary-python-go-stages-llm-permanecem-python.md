@@ -2,7 +2,7 @@
 id: ADR-205
 type: adr
 title: "Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -31,7 +31,7 @@ tags:
 
 # ADR-205 — Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

@@ -2,7 +2,7 @@
 id: ADR-203
 type: adr
 title: "Tool use híbrido + guardrails — drill-down sob demanda no parecer"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -28,7 +28,7 @@ tags:
 
 # ADR-203 — Tool use híbrido + guardrails — drill-down sob demanda no parecer
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 
