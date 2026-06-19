@@ -4,7 +4,7 @@ type: adr
 title: "`scripts/e6_render.py` aposentado em favor de SSR standalone do Next"
 status: Decidido
 phase: "Fase 0"
-date: "1970-01-01"
+date: "2026-04-23"
 relates_to: []
 supersedes: ["[[ADR-076]]"]
 superseded_by: ["[[ADR-129]]"]

@@ -713,9 +713,9 @@
 | PLAN-suggestion-lifecycle | plan | in_progress |  | Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos | `plan/SUGGESTION_LIFECYCLE/_README.md` |
 | PLAN-tributario-pj | plan | draft |  | Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto) | `plan/TRIBUTARIO_PJ/_README.md` |
 | runbook-python-dependencies | runbook | ativo |  | Runbook — Dependências Python (pip-tools lockfile com hashes) | `reference/runbooks/python_dependencies.md` |
-| TRACK-a11-w2-t04-stuck-runs-heartbeat | track | ready | A11 | W2-T04 — Stuck-runs detector + last_heartbeat_at | `sprint/A11/tracks/w2-t04-stuck-runs-heartbeat.md` |
-| TRACK-a11-w2-t05-prompt-version-gate | track | ready | A11 | W2-T05 — extract_with_llm incremental + PROMPT_VERSION gate CI | `sprint/A11/tracks/w2-t05-prompt-version-gate.md` |
-| TRACK-a11-w2-t06-stage-to-suffix-descriptive | track | ready | A11 | W2-T06 — _STAGE_TO_SUFFIX cobre keys descritivas (paridade legacy ↔ descritivo) | `sprint/A11/tracks/w2-t06-stage-to-suffix-descriptive.md` |
+| TRACK-a11-w2-t04-stuck-runs-heartbeat | track | ready | A11 | W2-T04 — Stuck-runs detector + last_heartbeat_at | `sprint/A11/tracks/a11-w2-t04-stuck-runs-heartbeat.md` |
+| TRACK-a11-w2-t05-prompt-version-gate | track | ready | A11 | W2-T05 — extract_with_llm incremental + PROMPT_VERSION gate CI | `sprint/A11/tracks/a11-w2-t05-prompt-version-gate.md` |
+| TRACK-a11-w2-t06-stage-to-suffix-descriptive | track | ready | A11 | W2-T06 — _STAGE_TO_SUFFIX cobre keys descritivas (paridade legacy ↔ descritivo) | `sprint/A11/tracks/a11-w2-t06-stage-to-suffix-descriptive.md` |
 | TRACK-a11-w5-t06-rentabilidade-card | track | consumed | A11 | Card S3 Rentabilidade — rebrand TRS efetiva + enriquecimento + cobertura essencial | `sprint/A11/tracks/a11-w5-t06-rentabilidade-card.md` |
 | TRACK-a15-fu3-onda1-schema | track | ready | A15 | Track A15 FU-3 Onda 1 — Schema + repos + models (Debt + property_market_value) | `sprint/A15/tracks/a15-fu3-onda1-schema.md` |
 | TRACK-a15-fu3-onda2-backfill | track | ready | A15 | Track A15 FU-3 Onda 2 — Backfill total_dividas → rows Debt + audit log | `sprint/A15/tracks/a15-fu3-onda2-backfill.md` |

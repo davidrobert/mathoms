@@ -297,7 +297,7 @@ módulo enforcer.
 | Membros familiares (titular/cônjuge/dependente) | `backend/app/models/family_member.py::FamilyMember.role` + `family_members.json` workspace-specific | — |
 | Contas bancárias + override de tier de fonte | `backend/app/models/family_member.py::BankAccount.source_tier` | [ADR-146](../DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
 | Instituições financeiras (catálogo + workspace overrides) | `backend/app/models/institution_catalog.py` + resolver | [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
-| Categorias de receita/despesa (catálogo + workspace overrides) | `backend/app/models/category_template.py` + `workspace_category_override.py` + resolver | [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
+| Categorias de receita/despesa (catálogo + workspace overrides) | `backend/app/models/category_template.py` (`CategoryTemplate` + `WorkspaceCategoryOverride`) + resolver | [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
 | 7 categorias canonical da composição patrimonial | `pipeline/domain/services/patrimonio_calculator.py::PatrimonioCalculator` (módulo docstring) | [ADR-145](../DECISIONS.md#adr-145--7-categorias-canonical-da-composição-patrimonial) |
 | Hierarquia de fontes E3 + tie-breaking de reconciliação | `pipeline/domain/services/source_tier.py` + `reconciliation_service.py` (docstring) | [ADR-146](../DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
 | Programas de milhagem — método de valuation universal + storage workspace-scoped (`<workspace>/notes/milhas.md`, gitignored) | `scripts/e5_analyze.py::parse_milhas_md_content` (docstring) | [ADR-147](../DECISIONS.md#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped) |
@@ -860,10 +860,14 @@ mathoms.ai/
 │   │   │   ├── transactions.py, dashboard.py, notifications.py
 │   │   │   ├── goals.py, tasks.py, audit.py, feature_flags.py
 │   │   │   └── ws.py          # WebSocket (JWT auth, Redis Pub/Sub)
+│   │   ├── application/       # use cases / application layer (ADR-101 R15)
 │   │   ├── core/              # Settings, database, security, deps
-│   │   ├── models/            # 20 SQLAlchemy models
+│   │   ├── events/            # domain events
+│   │   ├── middleware/        # correlation id, CSP, etc.
+│   │   ├── models/            # SQLAlchemy models (contagem real: §5)
+│   │   ├── repositories/      # Repository pattern (ADR-101 R13)
 │   │   ├── schemas/           # Pydantic request/response
-│   │   ├── services/          # 26 services (business logic)
+│   │   ├── services/          # business logic (contagem real: §6)
 │   │   ├── scripts/           # Operational scripts (seed, reclassify, cutover)
 │   │   ├── generated/         # Codegen (report_layout.py from YAML)
 │   │   ├── tasks/
