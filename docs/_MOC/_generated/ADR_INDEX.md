@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-287 ADRs (ADR-001 a ADR-296) em [`docs/adr/`](../../adr/).
+288 ADRs (ADR-001 a ADR-298) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 258
+- **Decidido**: 259
 - **Proposto**: 25
 - **Roadmap**: 4
 
@@ -512,6 +512,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (1)
 
 - [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A20.failure-diagnostics
+
+## quality
+
+### Decidido (1)
+
+- [[ADR-298]] — Ratchet de estilo: metas decrescentes via save-baseline manual + correção da distribuição de dívida (resposta audit r2) · phase audit-r2 · item 6
 
 ## relatorio
 
