@@ -33,7 +33,10 @@ tags:
 > 6 especialistas 2026-06-19. **Escopo de sprint (product-manager): A27 / Onda 6**,
 > NÃO consolidação A26 — é feature de *contrato*, e a A26 (desligar redes) fecha via
 > [[A26.l2]] com o gate redefinido, sem esta lane. Registrada em A26 como origem;
-> **Could / cortável; NÃO bloqueia o flip strict.**
+> **Could / cortável; NÃO bloqueia o flip strict.** **Urgência rebaixada (2026-06-19):**
+> o re-eval no 1.9.0 (regra de pareamento) levou needs_review de 22% → **6%**, abaixo do
+> budget ≤15% da [[A26.l2]] — a l9 deixa de ser "necessária p/ viabilizar o flip" e vira
+> **polir o resíduo de 6%→0** (incl. o núcleo determinístico que prompt não resolve: temp=0 3/10).
 
 ## Problema
 
