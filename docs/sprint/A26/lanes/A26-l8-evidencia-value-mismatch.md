@@ -142,7 +142,7 @@ escreve a receita R$ 720k citando `previdencia_pgbl.contribuicao_anual`),
    **renderizar o valor da folha server-side** (token tipo `MonetaryValue` a partir
    do path). value_mismatch → 0 estrutural (o número exibido É o da folha). Resíduo
    vira só "path/conceito errado", menor. Mudança de schema+prompt+renderer (co-design
-   `senior-cto` + `product-designer`). Avaliar como A26.l9 (onda nova).
+   `senior-cto` + `product-designer`). Aberto como [[A26.l9]] (A27/Onda 6, [[ADR-296]]).
 2. **Redefinir o gate (l2):** a propriedade que protege o usuário — "zero citação
    errada publicada" — JÁ é atingida pelo enforcement. Trocar o gate de
    "needs_review per-parecer <5%" para "0 falso publicado + needs_review tolerável".

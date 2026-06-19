@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-286 ADRs (ADR-001 a ADR-295) em [`docs/adr/`](../../adr/).
+287 ADRs (ADR-001 a ADR-296) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 258
-- **Proposto**: 24
+- **Proposto**: 25
 - **Roadmap**: 4
 
 ## Fundação
@@ -411,11 +411,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-292]] — evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) · phase A26 · parecer reliability
 - [[ADR-294]] — Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) · phase A26 · parecer reliability
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability
+- [[ADR-296]] — Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha · phase A27 · parecer reliability
 
 ## marketing
 

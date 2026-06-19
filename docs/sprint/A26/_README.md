@@ -56,6 +56,7 @@ lane destrutiva tem um **gate verificável**, não um prazo.
 | [[A26.l6]] | `evidencia-coverage-kpi` | A (sem gate) | shipped (#660) | — · roda antes de l7 (baseline) |
 | [[A26.l7]] | `evidencia-catalog-listas` | A (sem gate) | planned | l1 · recomendada antes do flip l2, não bloqueante |
 | [[A26.l8]] | `evidencia-value-mismatch` | A (sem gate) | planned | l1 · resíduo `value_mismatch` (eval 1.7.0: UB 49,9%); bloqueia l2 |
+| [[A26.l9]] | `citacao-deterministica` | A (sem gate) | planned | l1 · render valor da folha server-side (value_mismatch→0); **A27/Onda 6, Could, NÃO bloqueia l2** ([[ADR-296]]) |
 
 **Ordem de execução (risco crescente):** l1 → l2 (flip precisa do prompt corrigido);
 l3 (drop reversível, "canário") antes de l5 (drop irreversível); l4 habilita o gate de
