@@ -19,6 +19,17 @@ _INSECURE_SECRET_DEFAULTS: frozenset[str] = frozenset(
 )
 _MIN_PROD_SECRET_LEN = 32
 
+# P0-4 (SEC-06) — chaves Fernet públicas-por-design no repo (compose dev +
+# CI/nightly). Em produção cifrariam BYOK/dado real com chave conhecida; o
+# fail-fast de boot fecha o cenário "subiu prod esquecendo de trocar a env".
+# Valor vazio já é barrado em uso por vault.py; aqui barramos os defaults conhecidos.
+_INSECURE_FERNET_DEFAULTS: frozenset[str] = frozenset(
+    {
+        "03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg=",  # docker-compose.dev.yml
+        "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=",  # ci.yml / nightly.yml  # gitleaks:allow
+    }
+)
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Mathoms AI"
@@ -160,6 +171,8 @@ class Settings(BaseSettings):
             )
         if "sqlite" in (self.DATABASE_URL or "").lower():
             raise RuntimeError("DATABASE_URL must not use sqlite in production")
+        if self.FERNET_KEY in _INSECURE_FERNET_DEFAULTS:
+            raise RuntimeError("FERNET_KEY must not use a development/CI default in production")
         return self
 
     @property

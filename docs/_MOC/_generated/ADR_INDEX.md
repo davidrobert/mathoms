@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-288 ADRs (ADR-001 a ADR-298) em [`docs/adr/`](../../adr/).
+289 ADRs (ADR-001 a ADR-298) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 259
+- **Decidido**: 260
 - **Proposto**: 25
 - **Roadmap**: 4
 
@@ -81,12 +81,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Task Queue
 
-### Decidido (4)
+### Decidido (5)
 
 - [[ADR-029-TQ]] — Celery + Redis · phase F5
 - [[ADR-031]] — Redis para queue + pub/sub · phase F5
 - [[ADR-032]] — Cancel stage-boundary · phase F5
 - [[ADR-172]] — Stuck-runs detector via heartbeat + Celery beat · phase Sprint A11.W2
+- [[ADR-297]] — Report idempotente sob redelivery do Celery — índice único parcial + guarda terminal · phase audit-r2 · REL-03
 
 ## Frontend / Design
 

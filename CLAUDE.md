@@ -230,8 +230,10 @@ mistura doc + código, a regra normal volta a valer.
   fora de util genérico. Tipos concretos em assinaturas. Errors tipados
   (`var ErrNotFound = errors.New(...)` ou struct com `Error()`), nunca
   `errors.New("...")` espalhado inline.
-- **Dinheiro nunca é `float`** (ADR-090): `Money` em Python, `Decimal`
-  string no wire, `int64` em cents em Go.
+- **Dinheiro nunca é `float`** em memória/cálculo (ADR-090): `Money` /
+  `Decimal` em Python. No wire HTTP os DTOs serializam JSON `number` via
+  `PlainSerializer` (`MoneyBRL`/`MoneyUSD`, A6g.3b — o frontend TS espera
+  `number`); `int64` em cents em Go.
 
 ### Erros e validação
 
@@ -541,9 +543,11 @@ mora em `backend/app/services/db_artifact_store.py` por esse motivo.
 
 ### Dinheiro nunca é `float` (ADR-090)
 
-`Money.brl("1.23")` ou `Decimal(str(v))` no call-site. Wire: string decimal.
-Go: `int64` cents. Quebrar essa regra **sempre** produz bugs de
-arredondamento silenciosos.
+`Money.brl("1.23")` ou `Decimal(str(v))` no call-site. Wire HTTP: JSON
+`number` (DTOs `MoneyBRL`/`MoneyUSD` com `PlainSerializer`; `Decimal` em
+memória — ADR-090 §consequências + A6g.3b). Go: `int64` cents. A regra que
+**sempre** produz bug de arredondamento silencioso é `float` em
+cálculo/acúmulo — não a representação no wire.
 
 ### Services de domínio seguem ISP (ADR-089 / ADR-097 D3)
 

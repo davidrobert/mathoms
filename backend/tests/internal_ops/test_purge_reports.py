@@ -35,7 +35,7 @@ async def test_purge_reports_preview_does_not_delete(db, audit_path: Path) -> No
     run = await make_run(db, workspace=ws)
     art = await _make_artifact(db, run=run, stage="E5", key="analyze")
     r1 = await make_report(db, workspace=ws, pipeline_run=run, analysis_artifact_id=art.id)
-    r2 = await make_report(db, workspace=ws, pipeline_run=run)
+    r2 = await make_report(db, workspace=ws, pipeline_run=await make_run(db, workspace=ws))
     await db.commit()
 
     result = await purge_reports(

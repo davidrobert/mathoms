@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, Numeric, String
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, Integer, Numeric, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -45,6 +45,23 @@ class Report(Base):
     patrimonio_liquido: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    # REL-03 — idempotência de Report sob redelivery do Celery (acks_late +
+    # reject_on_worker_lost): worker-lost reenfileira a mensagem e o run
+    # re-roda, recriando o Report. Índice único parcial é o backstop à prova
+    # de corrida (a guarda de estado terminal em ``_mark_run_started`` é só
+    # otimização). Parcial em ``IS NOT NULL`` porque ``pipeline_run_id`` é
+    # nullable (run hard-deleted → SET NULL; múltiplos Reports órfãos são OK).
+    __table_args__ = (
+        Index(
+            "ux_reports_workspace_pipeline_run",
+            "workspace_id",
+            "pipeline_run_id",
+            unique=True,
+            sqlite_where=text("pipeline_run_id IS NOT NULL"),
+            postgresql_where=text("pipeline_run_id IS NOT NULL"),
+        ),
     )
 
     workspace = relationship("Workspace", back_populates="reports")

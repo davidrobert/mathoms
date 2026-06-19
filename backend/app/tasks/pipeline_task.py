@@ -20,6 +20,8 @@ from zoneinfo import ZoneInfo
 _BRT = ZoneInfo("America/Sao_Paulo")
 from pathlib import Path
 
+from sqlalchemy.exc import IntegrityError
+
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.pipeline_run import (
     PipelineRun,
@@ -463,7 +465,18 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             premissas_snapshot_json=premissas_snapshot,
         )
         db.add(report)
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            # REL-03 — índice único (workspace_id, pipeline_run_id): um
+            # redelivery concorrente já criou o Report deste run. Idempotente:
+            # rollback e segue (o relatório existente é válido).
+            db.rollback()
+            logger.warning(
+                "report_already_exists ws=%s run=%s — idempotent skip (REL-03)",
+                ws_id,
+                run_id,
+            )
 
 
 def _is_cancelled(run_id: str) -> bool:
@@ -506,6 +519,16 @@ _CRASH_RUN_STATUSES = (
     PipelineRunStatus.pending,
     PipelineRunStatus.running,
     PipelineRunStatus.resuming,
+)
+
+# REL-03 — estados terminais: um redelivery não deve re-executar o pipeline.
+# ``running``/``resuming``/``pending``/``needs_review`` ficam de fora de
+# propósito (crash-recovery e resume legítimos precisam re-entrar).
+_TERMINAL_RUN_STATUSES = (
+    PipelineRunStatus.completed,
+    PipelineRunStatus.failed,
+    PipelineRunStatus.partial_failure,
+    PipelineRunStatus.cancelled,
 )
 
 
@@ -725,11 +748,16 @@ def _rollback_and_close_artifact_session(session) -> None:
 
 
 def _mark_run_started(run_id: str, tier: str, celery_task_id: str) -> bool:
-    """Muda ``PipelineRun.status`` para ``running``. Retorna ``False`` se
-    o run não existe — caller deve abortar."""
+    """Muda ``PipelineRun.status`` para ``running``. ``False`` se o run não
+    existe ou já está terminal (REL-03: redelivery não re-executa)."""
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
         if not run:
+            return False
+        if run.status in _TERMINAL_RUN_STATUSES:
+            logger.warning(
+                "redelivery_of_terminal_run run_id=%s status=%s", run_id, run.status.value
+            )
             return False
         run.status = PipelineRunStatus.running
         run.tier_at_run = tier
