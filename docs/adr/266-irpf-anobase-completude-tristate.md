@@ -22,7 +22,7 @@ tags:
   - methodology/perini
   - methodology/cerbasi
   - phase/a16
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

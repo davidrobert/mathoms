@@ -22,7 +22,7 @@ tags:
   - area/pipeline
   - area/ops
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

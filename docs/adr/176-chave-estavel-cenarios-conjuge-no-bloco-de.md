@@ -13,7 +13,7 @@ tags:
   - area/pipeline
   - area/report
   - phase/a8-4
-  - status/proposto
+  - status/decidido
   - type/adr
 size_lines: 39
 ---

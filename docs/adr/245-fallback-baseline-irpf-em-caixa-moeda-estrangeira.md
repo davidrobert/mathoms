@@ -17,7 +17,7 @@ aliases:
   - "Caixa ME fallback IRPF"
 tags:
   - area/pipeline
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

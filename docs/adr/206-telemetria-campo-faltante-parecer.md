@@ -24,7 +24,7 @@ tags:
   - area/observability
   - area/pipeline
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

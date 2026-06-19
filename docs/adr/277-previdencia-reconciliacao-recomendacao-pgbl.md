@@ -18,7 +18,7 @@ aliases:
   - "Reconciliação recomendação PGBL"
 tags:
   - area/pipeline
-  - status/proposto
+  - status/decidido
   - type/adr
   - methodology/cerbasi
 ---

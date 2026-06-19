@@ -21,7 +21,7 @@ tags:
   - area/testing
   - area/devex
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

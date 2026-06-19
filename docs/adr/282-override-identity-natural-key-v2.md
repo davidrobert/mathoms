@@ -17,7 +17,7 @@ superseded_by: []
 aliases: ["ADR 282", "override natural_key", "D6 third hash"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/data-lineage
   - area/backend
   - area/persistence

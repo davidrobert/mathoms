@@ -19,7 +19,7 @@ tags:
   - area/domain
   - area/methodology
   - area/persistence
-  - status/proposto
+  - status/decidido
   - type/adr
   - methodology/perini
   - methodology/cerbasi

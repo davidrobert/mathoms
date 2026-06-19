@@ -20,7 +20,7 @@ tags:
   - area/methodology
   - area/pipeline
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

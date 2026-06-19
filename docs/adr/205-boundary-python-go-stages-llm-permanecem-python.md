@@ -25,7 +25,7 @@ tags:
   - area/pipeline
   - area/architecture
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

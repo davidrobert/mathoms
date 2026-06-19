@@ -20,7 +20,7 @@ aliases:
 tags:
   - area/pipeline
   - area/domain
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

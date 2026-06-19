@@ -19,7 +19,7 @@ tags:
   - area/pipeline
   - area/persistence
   - area/multitenancy
-  - status/proposto
+  - status/decidido
   - type/adr
 size_lines: 168
 ---

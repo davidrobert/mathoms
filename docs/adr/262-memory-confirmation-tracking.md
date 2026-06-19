@@ -21,7 +21,7 @@ tags:
   - area/persistence
   - area/domain
   - area/competitive
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

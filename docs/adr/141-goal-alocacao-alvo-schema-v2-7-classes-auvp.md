@@ -14,7 +14,7 @@ tags:
   - area/money
   - area/persistence
   - methodology/auvp
-  - status/proposto
+  - status/decidido
   - type/adr
 size_lines: 75
 ---

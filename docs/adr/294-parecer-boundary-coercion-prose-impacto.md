@@ -15,7 +15,7 @@ superseded_by: []
 aliases: ["ADR 294", "parecer prose truncation", "impacto drop coercion"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/llm
   - area/pipeline
   - phase/a26
