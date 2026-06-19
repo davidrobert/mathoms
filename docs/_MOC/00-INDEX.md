@@ -16,6 +16,7 @@ Este é o ponto de entrada da vault Obsidian-friendly de `docs/`. Para LLMs: com
 |---|---|
 | "Onde estamos? sprint atual?" | [SPRINTS-active](SPRINTS-active.md) (editorial) → `_generated/SPRINT_CURRENT.md` |
 | "Que planos estão abertos?" | [PLANS-active](PLANS-active.md) (editorial) → `_generated/PLAN_PROGRESS.md` |
+| "Como foram tratados os achados das auditorias?" | [AUDITS-active](AUDITS-active.md) (editorial) |
 | "Que ADRs existem? Onde está X?" | `_generated/ADR_INDEX.md` (auto, agrupado por área) |
 | "O que mudou na última semana?" | `_generated/CHANGELOG_RECENT.md` (auto, últimos 14 dias) |
 | "Roadmap das fases F0-F11" | `_generated/ROADMAP.md` (auto, populado em F5) |
@@ -31,6 +32,7 @@ docs/
 │   ├── 00-INDEX.md        ← você está aqui
 │   ├── SPRINTS-active.md  ← editorial: status da sprint
 │   ├── PLANS-active.md    ← editorial: planos abertos
+│   ├── AUDITS-active.md   ← editorial: rastreamento de auditorias
 │   └── _generated/        ← auto, snapshot test bloqueia drift
 ├── _schemas/              ← JSON Schemas para frontmatter
 ├── adr/                   ← ADRs atomizadas

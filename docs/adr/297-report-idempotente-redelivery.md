@@ -25,6 +25,8 @@ size_lines: 52
 
 **Status:** Decidido (audit-r2 · REL-03) • **Data:** 2026-06-18 • **Relaciona** [[ADR-131]] (Report→artifact por FK), [[ADR-172]] (heartbeat / crash-recovery)
 
+> Rastreado em [[AUDITS-active]] §r2.
+
 ## Contexto
 
 `run_pipeline_task` roda com `acks_late=True` + `reject_on_worker_lost=True` (`backend/app/tasks/pipeline_task.py`; globais em `worker.py`). O ack só ocorre ao fim do run; se o worker morre antes (OOM em stage LLM, `time_limit=3600`, kill), o broker reentrega a mensagem e **o run inteiro re-executa**, chamando `_create_report_from_output` de novo.

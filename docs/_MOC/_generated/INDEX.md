@@ -294,6 +294,7 @@
 | ADR-296 | adr | Proposto |  | Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha | `adr/296-citacao-deterministica-render-from-path.md` |
 | ADR-297 | adr | Decidido |  | Report idempotente sob redelivery do Celery — índice único parcial + guarda terminal | `adr/297-report-idempotente-redelivery.md` |
 | ADR-298 | adr | Decidido |  | Ratchet de estilo: metas decrescentes via save-baseline manual + correção da distribuição de dívida (resposta audit r2) | `adr/298-ratchet-metas-decrescentes-e-distribuicao-de-divida.md` |
+| ADR-299 | adr | Decidido |  | SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) | `adr/299-sec03-deps-17-cves-procede.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
