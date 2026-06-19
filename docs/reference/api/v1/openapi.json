@@ -443,6 +443,47 @@
         "title": "AlocacaoGoalUpsertCommand",
         "type": "object"
       },
+      "AncoraDTO": {
+        "additionalProperties": false,
+        "description": "\u00c2ncora de cita\u00e7\u00e3o determin\u00edstica (ADR-296) \u2014 chip D2-puro; `valor_renderizado` \u00e9 o R$ resolvido do `path` pelo finalize. v1 usa `evidencia_path` (dispatch por `version`).",
+        "properties": {
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "rotulo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rotulo"
+          },
+          "valor_renderizado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor Renderizado"
+          }
+        },
+        "title": "AncoraDTO",
+        "type": "object"
+      },
       "AnonymizeUserRequest": {
         "properties": {
           "confirm": {
@@ -9664,8 +9705,15 @@
       },
       "RiscoDTO": {
         "additionalProperties": false,
-        "description": "Risco user-facing \u2014 sem ancora (sigilo \u00a713).",
+        "description": "Risco user-facing \u2014 sem ancora metodol\u00f3gica (sigilo \u00a713).",
         "properties": {
+          "ancoras": {
+            "items": {
+              "$ref": "#/components/schemas/AncoraDTO"
+            },
+            "title": "Ancoras",
+            "type": "array"
+          },
           "confianca": {
             "anyOf": [
               {
@@ -10588,6 +10636,13 @@
           "acao": {
             "title": "Acao",
             "type": "string"
+          },
+          "ancoras": {
+            "items": {
+              "$ref": "#/components/schemas/AncoraDTO"
+            },
+            "title": "Ancoras",
+            "type": "array"
           },
           "confianca": {
             "enum": [
