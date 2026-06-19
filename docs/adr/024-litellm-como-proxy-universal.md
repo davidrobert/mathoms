@@ -4,7 +4,7 @@ type: adr
 title: "LiteLLM como proxy universal"
 status: Decidido
 phase: "F4"
-date: "1970-01-01"
+date: "2026-04-15"
 relates_to: []
 supersedes: []
 superseded_by: []

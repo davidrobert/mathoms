@@ -4,7 +4,7 @@ type: adr
 title: "VPS CX32 para sizing"
 status: Proposto
 phase: "F7"
-date: "1970-01-01"
+date: "2026-04-15"
 relates_to:
   - "[[ADR-005]]"
   - "[[ADR-184]]"
