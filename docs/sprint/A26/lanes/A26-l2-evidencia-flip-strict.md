@@ -1,7 +1,7 @@
 ---
 id: A26.l2
 type: lane
-title: "Flip evidencia_path warn→strict (gate per-parecer <5%)"
+title: "Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review)"
 sprint: A26
 plan: PLAN-data-lineage
 status: blocked
@@ -29,40 +29,54 @@ tags:
 
 ## Objetivo
 
-Virar `evidencia_verification_mode: warn → strict` em `config/prompts/parecer_planejador.yaml`
-— uma violação de citação passa a rejeitar o parecer (→ `needs_review`), em vez de só logar.
-É o núcleo da consolidação do guardrail anti-alucinação do Parecer.
+Virar `evidencia_verification_mode: warn → strict` em `config/prompts/parecer_planejador.yaml`.
+Em `strict`, citação que resolve errado dispara o **enforcement per-item** ([[A26.l8]]/
+[[ADR-295]]): o item ofensor é descartado (severidade baixa/média) ou o parecer vai a
+`needs_review` (severidade alta) — **nunca publica número errado**. É o núcleo do
+guardrail anti-alucinação do Parecer.
 
-## Gate (redefinido vs. A25.l7 — **per-parecer**, não per-citação)
+## Gate (REDEFINIDO 2026-06-19 — separa segurança de UX)
 
-A taxa de 89% da [[A25.l7]] era **per-citação** (`failed/(failed+verified)`). Mas em
-`strict` **uma** falha → o parecer inteiro vira `needs_review`. Logo o gate de flip deve
-medir o que o strict realmente bloqueia:
+> **Reabre a decisão "gate PER-PARECER <5%"** do orchestrator §5 (marcada "não reabrir"),
+> com a mesma força que a [[ADR-295]] reabriu "per-parecer→per-item": **evidência empírica
+> nova**. O eval 1.8.0 ([[A26.l8]], strict) mediu `needs_review` per-parecer = **22% (UB
+> 35%)** — inatingível abaixo de 5% porque ~87% das falhas é `wrong_pairing` (número real,
+> path errado) e ~73% cai em itens severidade alta. O gate <5% **mistura segurança com UX**;
+> separe-as.
 
-- **Gate primário (flip):** **% de pareceres com ≥1 violação < 5%** sobre **≥20 gerações**
-  reais — OU o eval golden holdout da [[A26.l1]] <5% como proxy documentado (pré-launch),
-  com re-validação em produção em 30 dias anotada no PR.
-- **Gate secundário (saúde):** taxa-citação <~2% como leading indicator + baseline de
-  `needs_review` por geração instrumentado **antes** do flip (transparency backfire).
-- **Ajuste da query de referência** (herdada da [[A25.l7]]): adicionar
-  `count(*) WHERE evidencia_failed > 0` (pareceres com ≥1 falha), não só somar citações.
+- **Gate de SEGURANÇA (binário, BLOQUEIA o flip):** **zero citação INCORRETA publicada.**
+  Garantido **por construção** pelo enforcement per-item ([[A26.l8]]): no strict, citação
+  que resolve errado vira `item_dropped` ou `needs_review`, jamais um número errado no
+  output publicado. **✅ já satisfeito** — é o que torna o flip seguro independente da
+  taxa de needs_review.
+- **Budget de UX (orçamento, NÃO-binário):** taxa de `needs_review` per-parecer **≤15%**
+  sobre **≥20 gerações reais** (teto inicial, re-ancorável no 1º tráfego — Regime B).
+  Cruzar o budget **NÃO reabre o flip** (a segurança já está garantida); vira sinal para
+  priorizar [[A26.l9]] (citação determinística, A27). O eval 1.8.0 (holdout sintético,
+  estratificado-difícil) deu 22% — sinal de que o budget pode ficar apertado em tráfego
+  real; medir no real antes de cravar.
+- **Query de referência:** `count(*) WHERE evidencia_failed > 0` separado de
+  `count(*) WHERE needs_review_triggered` — segurança (zero errado publicado, derivado do
+  enforcement) vs. UX (taxa de needs_review).
 
 ## Escopo
 
-- Re-medir pós-[[A26.l1]] com o gate per-parecer (produção ≥20 ger OU eval holdout).
-- 1 linha: `evidencia_verification_mode: strict`. PR com a análise no corpo (gate
-  per-parecer, banda do eval, holdout).
-- `needs_review` **é** o fallback graceful ([[ADR-081]]) — sem retry (não muda outcome
-  de citação determinística) e sem degradação parcial (abre buraco de auditoria). Violação
-  em strict → `needs_review` direto.
-- Atualizar `test_parecer_evidencia_path.py` se algum caso default mudar de caminho.
+- 1 linha: `evidencia_verification_mode: strict`. PR com a análise no corpo (segurança
+  binária já verde via enforcement + medição do budget de needs_review).
+- `needs_review` **é** o fallback graceful ([[ADR-081]]) — sem retry, sem degradação parcial.
+- Atualizar `test_parecer_evidencia_path.py` se algum caso default mudar de caminho (o
+  enforcement per-item já tem cobertura na [[A26.l8]]).
 
 ## Critério de aceite
 
-- Gate primário verde (% pareceres com ≥1 violação <5% sobre ≥20 ger OU eval holdout <5%).
-- Baseline de `needs_review` pré-flip registrado; pós-flip não dispara desproporcionalmente.
-- Flip mergeado em `strict` **somente** após gate verde; senão **carry-over A27** com gate
-  idêntico (não sequestra o fechamento da A26). Sem ADR nova (ADR-279 §E cobre).
+- **Gate de segurança verde** (zero citação incorreta publicada) — satisfeito por
+  construção pelo enforcement per-item ([[A26.l8]]); confirmar no PR.
+- **Budget de UX medido** sobre ≥20 gerações reais; se ≤15% → flip; se exceder → flip
+  ainda é seguro, mas registrar e priorizar [[A26.l9]] (não bloqueia indefinidamente).
+- Baseline de `needs_review` pré-flip registrado. Sem ADR nova (conforma [[ADR-279]] §E +
+  [[ADR-295]]; a redefinição do gate é decisão de produto registrada aqui + no orchestrator §5).
+- Flip mergeado em `strict` somente após a medição do budget em tráfego real (Regime B);
+  pré-launch permanece `blocked` por volume, agora contra um bar atingível.
 
 ## Owner
 
