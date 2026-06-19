@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-289 ADRs (ADR-001 a ADR-298) em [`docs/adr/`](../../adr/).
+290 ADRs (ADR-001 a ADR-299) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 260
+- **Decidido**: 261
 - **Proposto**: 25
 - **Roadmap**: 4
 
@@ -543,10 +543,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## security
 
-### Decidido (2)
+### Decidido (3)
 
 - [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11.W2
 - [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
+- [[ADR-299]] — SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) · phase audit-r2 · SEC-03
 
 ## Outras
 

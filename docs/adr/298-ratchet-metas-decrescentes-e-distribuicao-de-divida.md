@@ -24,6 +24,8 @@ size_lines: 60
 
 **Status:** Decidido (audit-r2 · item 6) • **Data:** 2026-06-18 • **Relaciona** [[ADR-114]] (enforcement do ratchet de estilo)
 
+> Rastreado em [[AUDITS-active]] §r2.
+
 ## Contexto
 
 A auditoria r2 (`repo-audit-mathoms.ai-2026-06-11-r2`) levantou três pontos de qualidade que, na validação contra o código, ou não são acionáveis ou estavam factualmente errados. Este ADR registra o veredito de forma durável para evitar re-litígio em auditorias futuras.
