@@ -4,7 +4,7 @@ type: adr
 title: "Transaction Explorer como core"
 status: Decidido
 phase: "F6"
-date: "1970-01-01"
+date: "2026-04-15"
 relates_to: []
 supersedes: []
 superseded_by: []

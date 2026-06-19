@@ -4,7 +4,7 @@ type: adr
 title: "Materializar config em disco"
 status: Decidido
 phase: "F3"
-date: "1970-01-01"
+date: "2026-04-15"
 relates_to: []
 supersedes: []
 superseded_by: ["[[ADR-085]]"]

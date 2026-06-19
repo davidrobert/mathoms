@@ -4,7 +4,7 @@ type: adr
 title: "Instructor + Pydantic para structured output"
 status: Decidido
 phase: "F4"
-date: "1970-01-01"
+date: "2026-04-15"
 relates_to: []
 supersedes: []
 superseded_by: []
