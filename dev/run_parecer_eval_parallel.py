@@ -22,8 +22,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from tests.fixtures.parecer_eval import HOLDOUT
-from tests.test_parecer_evidencia_llm_eval import (  # reuso: zero duplicação de veredito
+# Rodável como `python dev/run_parecer_eval_parallel.py` de qualquer cwd: como script,
+# sys.path[0] seria dev/ (não a raiz), e tests/backend não importariam.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from tests.fixtures.parecer_eval import HOLDOUT  # noqa: E402
+from tests.test_parecer_evidencia_llm_eval import (  # noqa: E402  reuso: zero duplicação
     _COST_CAP_USD,
     _DENSITY_FLOOR,
     _DIAG_TEMP,
