@@ -60,6 +60,17 @@ flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
 
 ## Sprint candidate (próxima)
 
+### A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer (`candidate` 2026-06-19)
+
+**Sucessora direta da A26.** 6ª e última janela do plano [[PLAN-data-lineage]]: fecha a
+raiz que a A26 contornou — o LLM para de autorar o número do parecer e o pipeline
+renderiza o valor da folha ([[ADR-296]], executada via [[A26.l9]]) — e materializa a
+citação verificada como **edge de lineage por chave natural** ([[ADR-293]], lane nativa
+[[A27.l1]]). Ordem: edge slices 1+3 ∥ l9 → slices 2+4 após o merge da l9 (acoplamento de
+contrato da âncora). Condicional: [[A26.l5]] `m2-override-drop` se não fechar na A26.
+
+- **Plano:** [sprint/A27/_README.md](../sprint/A27/_README.md) · **Dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 6.
+
 ### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
 
 **Próxima na fila.** 3 lanes coordenadas que destravam ingestão de CRLV-e, apólices polimórficas (combinada multi-bem como caso V1), e refresh assíncrono de valor de mercado via BrasilAPI. ADR canônica [[ADR-239]] (`Proposto`). Diagnóstico dogfood 2026-05-21: 6 PDFs (3 CRLV + 3 apólices) todos em `.other` silencioso.
