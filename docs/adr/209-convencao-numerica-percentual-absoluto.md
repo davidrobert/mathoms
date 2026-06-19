@@ -22,7 +22,7 @@ tags:
   - area/llm
   - area/data-contract
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

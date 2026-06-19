@@ -39,7 +39,7 @@ tags:
   - area/pipeline
   - area/report
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

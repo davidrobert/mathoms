@@ -21,7 +21,7 @@ aliases:
 tags:
   - area/pipeline
   - area/llm
-  - status/proposto
+  - status/decidido
   - type/adr
 size_lines: 144
 ---

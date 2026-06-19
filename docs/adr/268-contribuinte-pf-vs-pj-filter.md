@@ -20,7 +20,7 @@ tags:
   - area/pipeline
   - area/llm
   - area/identity
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

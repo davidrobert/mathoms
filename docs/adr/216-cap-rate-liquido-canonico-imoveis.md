@@ -27,7 +27,7 @@ tags:
   - methodology/perini
   - methodology/auvp
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

@@ -17,7 +17,7 @@ tags:
   - area/pipeline
   - area/llm
   - phase/a17
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

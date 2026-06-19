@@ -17,7 +17,7 @@ aliases:
 tags:
   - area/pipeline
   - area/methodology
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

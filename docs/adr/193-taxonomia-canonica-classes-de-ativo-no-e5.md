@@ -18,7 +18,7 @@ tags:
   - methodology/auvp
   - methodology/perini
   - methodology/cerbasi
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

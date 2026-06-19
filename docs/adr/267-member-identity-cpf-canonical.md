@@ -21,7 +21,7 @@ tags:
   - area/pipeline
   - area/domain
   - area/identity
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

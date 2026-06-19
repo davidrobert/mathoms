@@ -21,7 +21,7 @@ tags:
   - area/backend
   - area/pipeline
   - phase/a17
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

@@ -13,7 +13,7 @@ tags:
   - area/auth
   - area/frontend
   - area/persistence
-  - status/proposto
+  - status/decidido
   - type/adr
 size_lines: 175
 ---

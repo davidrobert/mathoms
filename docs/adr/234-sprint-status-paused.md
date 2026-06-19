@@ -17,7 +17,7 @@ tags:
   - area/docs
   - area/methodology
   - phase/a15
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
