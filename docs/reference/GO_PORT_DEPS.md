@@ -80,7 +80,6 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–477 LOC, mediana ~38) que
 | Stage | LOC wrapper | Núcleo onde mora a lógica |
 | --- | --- | --- |
 | `unlock_documents` | 17 | `pipeline/domain/services/document_unlocker.py` (não medido) |
-| `audit_documents` | 17 | `scripts/e0_audit.py` |
 | `route_documents` | 38 | `scripts/e0_route.py` + `backend/app/services/document_classification.py` (LLM) |
 | `extract_members` | 178 | `pipeline/domain/services/member_analyzer.py` (286) + LLM |
 | `extract_baseline` | 287 | `pipeline/domain/services/patrimonio_*.py` (~1.090) + LLM |

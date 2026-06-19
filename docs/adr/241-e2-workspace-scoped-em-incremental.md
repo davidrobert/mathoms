@@ -2,7 +2,7 @@
 id: ADR-241
 type: adr
 title: "E2 (extratos / faturas / LLM fallback) é workspace-scoped — incremental cumulativo correto"
-status: Proposto
+status: Decidido
 phase: A17.incremental-correctness
 date: "2026-05-21"
 relates_to:
@@ -26,7 +26,7 @@ size_lines: 168
 
 # ADR-241 — E2 workspace-scoped em incremental
 
-**Status:** Proposto • **Data:** 2026-05-21 • **Relaciona** [[ADR-080]] (incremental), [[ADR-082]] (`pipeline_artifacts`), [[ADR-132]] (lifecycle scoping), [[ADR-212]] (DB-only artifacts)
+**Status:** Decidido • **Data:** 2026-05-21 • **Relaciona** [[ADR-080]] (incremental), [[ADR-082]] (`pipeline_artifacts`), [[ADR-132]] (lifecycle scoping), [[ADR-212]] (DB-only artifacts)
 
 ## Contexto
 

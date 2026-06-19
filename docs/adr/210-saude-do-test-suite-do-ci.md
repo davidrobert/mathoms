@@ -2,7 +2,7 @@
 id: ADR-210
 type: adr
 title: "Saúde do test suite do CI — gates, telemetria e ciclo de vida"
-status: Proposto
+status: Decidido
 phase: "Sprint A12 (test health · CI cost)"
 date: "2026-05-14"
 relates_to:

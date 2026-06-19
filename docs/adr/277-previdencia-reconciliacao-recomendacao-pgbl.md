@@ -2,7 +2,7 @@
 id: ADR-277
 type: adr
 title: "Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo)"
-status: Proposto
+status: Decidido
 phase: A21.l4
 date: "2026-05-30"
 relates_to:
@@ -25,7 +25,7 @@ tags:
 
 # ADR-277 — Previdência F1-O4: reconciliação da recomendação PGBL
 
-**Status:** Proposto (Sprint A21, lane l4) • **Data:** 2026-05-30 • **Relaciona** [[ADR-236]] (base PGBL = renda tributável PF), [[ADR-189]] (capacidade/status PGBL), [[ADR-266]] (ano-base default), [[ADR-271]] (dedup investimentos), [[ADR-276]] (EntityDedupPolicy)
+**Status:** Decidido (Sprint A21, lane l4) • **Data:** 2026-05-30 • **Relaciona** [[ADR-236]] (base PGBL = renda tributável PF), [[ADR-189]] (capacidade/status PGBL), [[ADR-266]] (ano-base default), [[ADR-271]] (dedup investimentos), [[ADR-276]] (EntityDedupPolicy)
 
 ## Contexto — a lane mudou de natureza no co-design
 

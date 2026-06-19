@@ -2,7 +2,7 @@
 id: ADR-243
 type: adr
 title: "MemberNameResolver — normalizar `membro` extraído pelo LLM em chave canônica do workspace"
-status: Proposto
+status: Decidido
 phase: A17.incremental-correctness
 date: "2026-05-21"
 relates_to:
@@ -26,7 +26,7 @@ size_lines: 132
 
 # ADR-243 — MemberNameResolver canônico
 
-**Status:** Proposto • **Data:** 2026-05-21 • **Relaciona** [[ADR-127]] (family_members), [[ADR-137]] (family DB), [[ADR-226]] (AccountResolver), [[ADR-241]] (E2 workspace-scoped), [[ADR-242]] (LLM category hint)
+**Status:** Decidido • **Data:** 2026-05-21 • **Relaciona** [[ADR-127]] (family_members), [[ADR-137]] (family DB), [[ADR-226]] (AccountResolver), [[ADR-241]] (E2 workspace-scoped), [[ADR-242]] (LLM category hint)
 
 ## Contexto
 

@@ -2,7 +2,7 @@
 id: ADR-270
 type: adr
 title: "Retry de LLM calls — categoria network + cap de timeout"
-status: Proposto
+status: Decidido
 phase: A17.llm-retry
 date: "2026-05-28"
 relates_to:
@@ -23,7 +23,7 @@ tags:
 
 # ADR-270 — Retry de LLM calls: categoria `network` + cap de timeout
 
-**Status:** Proposto · **Data:** 2026-05-28 · **Relaciona** [[ADR-081]] (regex→LLM→needs_review), [[ADR-110]] (logging estruturado `mathoms.*`).
+**Status:** Decidido · **Data:** 2026-05-28 · **Relaciona** [[ADR-081]] (regex→LLM→needs_review), [[ADR-110]] (logging estruturado `mathoms.*`).
 
 ## Contexto
 

@@ -2,7 +2,7 @@
 id: ADR-199
 type: adr
 title: "Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -45,7 +45,7 @@ tags:
 
 # ADR-199 — Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

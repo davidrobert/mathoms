@@ -2,7 +2,7 @@
 id: ADR-187
 type: adr
 title: "Relatório publicado é imutável — conceito de mês fechado"
-status: Proposto
+status: Decidido
 phase: A11
 date: "2026-05-10"
 relates_to:

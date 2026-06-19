@@ -2,7 +2,7 @@
 id: ADR-208
 type: adr
 title: "Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium)"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -28,7 +28,7 @@ tags:
 
 # ADR-208 — Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium)
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

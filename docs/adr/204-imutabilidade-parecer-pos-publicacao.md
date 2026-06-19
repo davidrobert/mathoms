@@ -2,7 +2,7 @@
 id: ADR-204
 type: adr
 title: "Imutabilidade do parecer pós-publicação (estende ADR-187)"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -28,7 +28,7 @@ tags:
 
 # ADR-204 — Imutabilidade do parecer pós-publicação (estende ADR-187)
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

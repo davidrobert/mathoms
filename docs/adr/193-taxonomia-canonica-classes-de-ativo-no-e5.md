@@ -2,7 +2,7 @@
 id: ADR-193
 type: adr
 title: "Taxonomia canônica de classes de ativo no E5 (10 buckets)"
-status: Proposto
+status: Decidido
 date: "2026-05-11"
 relates_to:
   - "[[ADR-141]]"
@@ -24,7 +24,7 @@ tags:
 
 # ADR-193 — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 
-**Status:** Proposto · **Data:** 2026-05-11 · **Implementação:** `pipeline/domain/services/asset_classifier.py` (`classify_asset`, `BUCKETS`, `EVALUATION_ORDER`, `OutrosExcessivoWarning`); refatora `InvestimentosClassesAnalyzer` e `TopAtivosAnalyzer`; atualiza `config/scoring.json::asset_class_keywords` e `config/schemas/e5_analysis.schema.json` (enum em `top_ativos.classe` + `tabela_classes.categoria`); propaga `OutrosExcessivoWarning` para `alertas[]` via `build_alertas` em [`e5_serialization.py`](../../pipeline/domain/services/e5_serialization.py).
+**Status:** Decidido · **Data:** 2026-05-11 · **Implementação:** `pipeline/domain/services/asset_classifier.py` (`classify_asset`, `BUCKETS`, `EVALUATION_ORDER`, `OutrosExcessivoWarning`); refatora `InvestimentosClassesAnalyzer` e `TopAtivosAnalyzer`; atualiza `config/scoring.json::asset_class_keywords` e `config/schemas/e5_analysis.schema.json` (enum em `top_ativos.classe` + `tabela_classes.categoria`); propaga `OutrosExcessivoWarning` para `alertas[]` via `build_alertas` em [`e5_serialization.py`](../../pipeline/domain/services/e5_serialization.py).
 
 ## Contexto
 

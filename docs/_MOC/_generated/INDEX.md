@@ -127,7 +127,7 @@
 | ADR-127 | adr | Decidido |  | E1 members persiste via ArtifactStore | `adr/127-e1-members-persiste-via-artifactstore.md` |
 | ADR-128 | adr | Decidido |  | E7-review-llm lê/escreve via `ArtifactStore` | `adr/128-e7-review-llm-leescreve-via-artifactstore.md` |
 | ADR-129 | adr | Decidido |  | Descontinuação completa do renderer HTML server-side | `adr/129-descontinuacao-completa-do-renderer-html-server.md` |
-| ADR-130 | adr | Proposto |  | Internacionalização com `next-intl` + persistência em `users.locale` | `adr/130-internacionalizacao-com-next-intl-persistencia.md` |
+| ADR-130 | adr | Decidido |  | Internacionalização com `next-intl` + persistência em `users.locale` | `adr/130-internacionalizacao-com-next-intl-persistencia.md` |
 | ADR-131 | adr | Decidido |  | `Report` referencia `pipeline_artifact` por FK (drop `analysis_json_path`) | `adr/131-report-referencia-pipeline-artifact-por-fk-drop.md` |
 | ADR-132 | adr | Decidido |  | Lifecycle scoping de `pipeline_artifacts` (workspace vs run) | `adr/132-lifecycle-scoping-de-pipeline-artifacts.md` |
 | ADR-133 | adr | Decidido |  | `transferencias_internas` modelado em `transfer_configs` (workspace-scoped) | `adr/133-transferencias-internas-modelado-em-transfer.md` |
@@ -138,7 +138,7 @@
 | ADR-138 | adr | Decidido |  | Protocolo de supervisão CTO para Sprint A7 | `adr/138-protocolo-de-supervisao-cto-para-sprint-a7.md` |
 | ADR-139 | adr | Decidido |  | Finalização migração Recharts→Chart.js em /reports/** | `adr/139-finalizacao-migracao-rechartschartjs-em-reports.md` |
 | ADR-140 | adr | Roadmap |  | Goal IF schema v2 (renda passiva atual + IF meta líquida) | `adr/140-goal-if-schema-v2-renda-passiva-atual-if-meta.md` |
-| ADR-141 | adr | Proposto |  | Goal alocação-alvo schema v2 (7 classes AUVP) | `adr/141-goal-alocacao-alvo-schema-v2-7-classes-auvp.md` |
+| ADR-141 | adr | Decidido |  | Goal alocação-alvo schema v2 (7 classes AUVP) | `adr/141-goal-alocacao-alvo-schema-v2-7-classes-auvp.md` |
 | ADR-142 | adr | Decidido |  | Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem | `adr/142-toggle-imoveis-no-if-em-pipelinejson-invariante.md` |
 | ADR-143 | adr | Decidido |  | `docs/methodology/` é rules-as-code (Sprint A7.6) | `adr/143-docsmethodology-e-rules-as-code-sprint-a76.md` |
 | ADR-144 | adr | Decidido |  | `section_summaries` LLM-driven em E5 com cache + fallback determinístico (v2.9) | `adr/144-section-summaries-llm-driven-em-e5-com-cache.md` |
@@ -173,7 +173,7 @@
 | ADR-173 | adr | Proposto |  | LLM budget hard-stop + LLMCallLog populada universal | `adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md` |
 | ADR-174 | adr | Proposto |  | Off-site backup criptografado em Cloudflare R2 + restore drill | `adr/174-off-site-backup-criptografado-em-cloudflare-r2.md` |
 | ADR-175 | adr | Decidido |  | Prompt injection defense em camadas (sanitize + system clause + Pydantic strict) | `adr/175-prompt-injection-defense-em-camadas-sanitize.md` |
-| ADR-176 | adr | Proposto |  | Chave estável `cenarios_conjuge` no bloco de narrativas E5.N | `adr/176-chave-estavel-cenarios-conjuge-no-bloco-de.md` |
+| ADR-176 | adr | Decidido |  | Chave estável `cenarios_conjuge` no bloco de narrativas E5.N | `adr/176-chave-estavel-cenarios-conjuge-no-bloco-de.md` |
 | ADR-177 | adr | Decidido |  | Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`) | `adr/177-thresholds-e-referencias-metodologicas-como.md` |
 | ADR-178 | adr | Decidido |  | `Risk` aggregate workspace-scoped | `adr/178-risk-aggregate-workspace-scoped.md` |
 | ADR-179 | adr | Decidido |  | `Decision` aggregate — extensão de schema (`impact_1y/10y`, `horizon`, `priority`) | `adr/179-decision-aggregate-extensao-de-schema-impact.md` |
@@ -184,40 +184,40 @@
 | ADR-184 | adr | Proposto |  | Stack da landing estática (Hugo + CF Pages) | `adr/184-landing-static-stack-2026.md` |
 | ADR-185 | adr | Decidido |  | Política de edição e evolução de overrides de `category_templates` | `adr/185-politica-de-overrides-de-categoria.md` |
 | ADR-186 | adr | Decidido |  | Promoção de override de transação para regra de categorização (learning loop) | `adr/186-promocao-override-transacao-para-regra-categorizacao.md` |
-| ADR-187 | adr | Proposto |  | Relatório publicado é imutável — conceito de mês fechado | `adr/187-relatorio-publicado-imutavel-mes-fechado.md` |
+| ADR-187 | adr | Decidido |  | Relatório publicado é imutável — conceito de mês fechado | `adr/187-relatorio-publicado-imutavel-mes-fechado.md` |
 | ADR-188 | adr | Decidido |  | Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) | `adr/188-evolucao-schema-e-semantica-learning-loop-p3.md` |
 | ADR-189 | adr | Decidido |  | PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária | `adr/189-pgbl-diagnostico-tipificado-substitui-metrica-monovalor.md` |
-| ADR-190 | adr | Proposto |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `adr/190-snapshot-changelog-v3-metricas-cadencia-decomposicao.md` |
+| ADR-190 | adr | Decidido |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `adr/190-snapshot-changelog-v3-metricas-cadencia-decomposicao.md` |
 | ADR-191 | adr | Decidido |  | Card Rentabilidade do relatório expõe TRS efetiva — não retorno total | `adr/191-card-rentabilidade-trs-efetiva.md` |
 | ADR-192 | adr | Decidido |  | `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) | `adr/192-protection-aggregate-protectionbundle-secao-9.md` |
-| ADR-193 | adr | Proposto |  | Taxonomia canônica de classes de ativo no E5 (10 buckets) | `adr/193-taxonomia-canonica-classes-de-ativo-no-e5.md` |
+| ADR-193 | adr | Decidido |  | Taxonomia canônica de classes de ativo no E5 (10 buckets) | `adr/193-taxonomia-canonica-classes-de-ativo-no-e5.md` |
 | ADR-194 | adr | Decidido |  | Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) | `adr/194-irpf-kpis-dependentes-dedutiveis-extension.md` |
 | ADR-195 | adr | Decidido |  | PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel | `adr/195-pgbl-threshold-auvp-modula-variante.md` |
 | ADR-196 | adr | Decidido |  | Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZACAO (IRPF declarado) por priorização condicional | `adr/196-reconciliacao-cards-pgbl-s7-irpf.md` |
 | ADR-197 | adr | Decidido |  | Estado modelo_simplificado expõe componentes elegíveis e redireciona para PGD/MIR (estende ADR-189 §4 Estado 2) | `adr/197-irpf-simplificado-componentes-elegiveis-pgd-mir.md` |
 | ADR-198 | adr | Decidido |  | Chip "Espaço de R$ X" condicional ao pgbl_status no card Dedutíveis Aplicados (encerra débito ADR-194 §6.4) | `adr/198-dedutiveis-chip-espaco-condicional-pgbl-status.md` |
-| ADR-199 | adr | Proposto |  | Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced | `adr/199-parecer-planejador-supersede-review-finances.md` |
-| ADR-200 | adr | Proposto |  | Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml` | `adr/200-manifest-declarativo-parecer-context.md` |
-| ADR-201 | adr | Proposto |  | Persona do planejador como rules-as-code — `config/agents/planner_persona.md` | `adr/201-persona-planner-rules-as-code.md` |
-| ADR-202 | adr | Proposto |  | Output schema + invariantes do parecer — `parecer_planejador.schema.json` | `adr/202-output-schema-parecer-planejador.md` |
-| ADR-203 | adr | Proposto |  | Tool use híbrido + guardrails — drill-down sob demanda no parecer | `adr/203-tool-use-hibrido-drill-down-parecer.md` |
-| ADR-204 | adr | Proposto |  | Imutabilidade do parecer pós-publicação (estende ADR-187) | `adr/204-imutabilidade-parecer-pos-publicacao.md` |
-| ADR-205 | adr | Proposto |  | Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis | `adr/205-boundary-python-go-stages-llm-permanecem-python.md` |
-| ADR-206 | adr | Proposto |  | Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) | `adr/206-telemetria-campo-faltante-parecer.md` |
-| ADR-207 | adr | Proposto |  | Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` | `adr/207-sigilo-metodologico-parecer-mapeamento-ancora-tema.md` |
-| ADR-208 | adr | Proposto |  | Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) | `adr/208-gating-parecer-holistico-free-vs-premium.md` |
-| ADR-209 | adr | Proposto |  | Convenção numérica de percentual no contrato E5 — valor absoluto | `adr/209-convencao-numerica-percentual-absoluto.md` |
-| ADR-210 | adr | Proposto |  | Saúde do test suite do CI — gates, telemetria e ciclo de vida | `adr/210-saude-do-test-suite-do-ci.md` |
+| ADR-199 | adr | Decidido |  | Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced | `adr/199-parecer-planejador-supersede-review-finances.md` |
+| ADR-200 | adr | Decidido |  | Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml` | `adr/200-manifest-declarativo-parecer-context.md` |
+| ADR-201 | adr | Decidido |  | Persona do planejador como rules-as-code — `config/agents/planner_persona.md` | `adr/201-persona-planner-rules-as-code.md` |
+| ADR-202 | adr | Decidido |  | Output schema + invariantes do parecer — `parecer_planejador.schema.json` | `adr/202-output-schema-parecer-planejador.md` |
+| ADR-203 | adr | Decidido |  | Tool use híbrido + guardrails — drill-down sob demanda no parecer | `adr/203-tool-use-hibrido-drill-down-parecer.md` |
+| ADR-204 | adr | Decidido |  | Imutabilidade do parecer pós-publicação (estende ADR-187) | `adr/204-imutabilidade-parecer-pos-publicacao.md` |
+| ADR-205 | adr | Decidido |  | Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis | `adr/205-boundary-python-go-stages-llm-permanecem-python.md` |
+| ADR-206 | adr | Decidido |  | Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) | `adr/206-telemetria-campo-faltante-parecer.md` |
+| ADR-207 | adr | Decidido |  | Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` | `adr/207-sigilo-metodologico-parecer-mapeamento-ancora-tema.md` |
+| ADR-208 | adr | Decidido |  | Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) | `adr/208-gating-parecer-holistico-free-vs-premium.md` |
+| ADR-209 | adr | Decidido |  | Convenção numérica de percentual no contrato E5 — valor absoluto | `adr/209-convencao-numerica-percentual-absoluto.md` |
+| ADR-210 | adr | Decidido |  | Saúde do test suite do CI — gates, telemetria e ciclo de vida | `adr/210-saude-do-test-suite-do-ci.md` |
 | ADR-211 | adr | Proposto |  | llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) | `adr/211-llm-config-db-overrides.md` |
 | ADR-212 | adr | Decidido |  | Sunset `MATHOMS_USE_DB_ARTIFACTS` + `DiskArtifactStore` + CLI standalone do pipeline | `adr/212-sunset-mathoms-use-db-artifacts-disk-store-cli.md` |
 | ADR-213 | adr | Decidido |  | Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) | `adr/213-sunset-stage-audit-documents.md` |
 | ADR-214 | adr | Decidido |  | `Decision.code` é server-generated com `pg_advisory_xact_lock` | `adr/214-decision-code-server-generated.md` |
 | ADR-215 | adr | Decidido |  | Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` | `adr/215-classificacao-imoveis-override-db-first.md` |
-| ADR-216 | adr | Proposto |  | Cap rate líquido como métrica canônica de imóveis de investimento (S4) | `adr/216-cap-rate-liquido-canonico-imoveis.md` |
-| ADR-217 | adr | Proposto |  | Score patrimonial canônico — composição, fórmula e ciclo de vida | `adr/217-score-patrimonial-canonico.md` |
+| ADR-216 | adr | Decidido |  | Cap rate líquido como métrica canônica de imóveis de investimento (S4) | `adr/216-cap-rate-liquido-canonico-imoveis.md` |
+| ADR-217 | adr | Decidido |  | Score patrimonial canônico — composição, fórmula e ciclo de vida | `adr/217-score-patrimonial-canonico.md` |
 | ADR-218 | adr | Proposto |  | Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini | `adr/218-reserva-emergencia-denominador-essencial.md` |
-| ADR-219 | adr | Proposto |  | Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 | `adr/219-premissas-economicas-versionadas.md` |
-| ADR-220 | adr | Proposto |  | Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados | `adr/220-impacto-estimado-sugestoes-if.md` |
+| ADR-219 | adr | Decidido |  | Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 | `adr/219-premissas-economicas-versionadas.md` |
+| ADR-220 | adr | Decidido |  | Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados | `adr/220-impacto-estimado-sugestoes-if.md` |
 | ADR-221 | adr | Proposto |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `adr/221-catalog-driven-market-rate-ingestion.md` |
 | ADR-222 | adr | Decidido |  | Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` | `adr/222-imoveis-no-if-per-workspace.md` |
 | ADR-223 | adr | Decidido |  | Default conservador `imoveis_no_if=false` para workspaces novos + banner contextual | `adr/223-flip-default-imoveis-no-if-conservador.md` |
@@ -230,20 +230,20 @@
 | ADR-230 | adr | Decidido |  | Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning | `adr/230-security-gates-ci.md` |
 | ADR-231 | adr | Decidido |  | Encryption at-rest de PII em pipeline_artifacts via Fernet wrapper (hook em DBArtifactStore) | `adr/231-pii-encryption-pipeline-artifacts.md` |
 | ADR-232 | adr | Decidido |  | Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) | `adr/232-security-headers-cors-strict.md` |
-| ADR-233 | adr | Proposto |  | Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump | `adr/233-prompt-version-format.md` |
-| ADR-234 | adr | Proposto |  | Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) | `adr/234-sprint-status-paused.md` |
+| ADR-233 | adr | Decidido |  | Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump | `adr/233-prompt-version-format.md` |
+| ADR-234 | adr | Decidido |  | Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) | `adr/234-sprint-status-paused.md` |
 | ADR-235 | adr | Decidido |  | Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro | `adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md` |
 | ADR-236 | adr | Decidido |  | Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados) | `adr/236-tributario-pj-cascata-fiscal-canonica.md` |
 | ADR-237 | adr | Decidido |  | Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) | `adr/237-monte-carlo-if-with-pmt.md` |
 | ADR-238 | adr | Decidido |  | Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 | `adr/238-ingestao-informes-rendimentos-anuais-avulsos.md` |
 | ADR-239 | adr | Decidido |  | Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 | `adr/239-comprovantes-bens-apolices-fipe.md` |
 | ADR-240 | adr | Decidido |  | Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) | `adr/240-card-protecao-patrimonial-pilar-auvp.md` |
-| ADR-241 | adr | Proposto |  | E2 (extratos / faturas / LLM fallback) é workspace-scoped — incremental cumulativo correto | `adr/241-e2-workspace-scoped-em-incremental.md` |
-| ADR-242 | adr | Proposto |  | LLM `category_hint` consumido no TransactionClassifier + sentinel `info_fiscal_anual` | `adr/242-llm-category-hint-consumido-no-classifier.md` |
-| ADR-243 | adr | Proposto |  | MemberNameResolver — normalizar `membro` extraído pelo LLM em chave canônica do workspace | `adr/243-membername-resolver-canonico.md` |
-| ADR-244 | adr | Proposto |  | InvestmentsConsolidator aceita `tipo_documento=informe_rendimentos` como posição | `adr/244-informe-rendimentos-em-investments-consolidator.md` |
-| ADR-245 | adr | Proposto |  | `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR | `adr/245-fallback-baseline-irpf-em-caixa-moeda-estrangeira.md` |
-| ADR-246 | adr | Proposto |  | Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c | `adr/246-dedup-imoveis-cross-irpf.md` |
+| ADR-241 | adr | Decidido |  | E2 (extratos / faturas / LLM fallback) é workspace-scoped — incremental cumulativo correto | `adr/241-e2-workspace-scoped-em-incremental.md` |
+| ADR-242 | adr | Decidido |  | LLM `category_hint` consumido no TransactionClassifier + sentinel `info_fiscal_anual` | `adr/242-llm-category-hint-consumido-no-classifier.md` |
+| ADR-243 | adr | Decidido |  | MemberNameResolver — normalizar `membro` extraído pelo LLM em chave canônica do workspace | `adr/243-membername-resolver-canonico.md` |
+| ADR-244 | adr | Decidido |  | InvestmentsConsolidator aceita `tipo_documento=informe_rendimentos` como posição | `adr/244-informe-rendimentos-em-investments-consolidator.md` |
+| ADR-245 | adr | Decidido |  | `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR | `adr/245-fallback-baseline-irpf-em-caixa-moeda-estrangeira.md` |
+| ADR-246 | adr | Decidido |  | Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c | `adr/246-dedup-imoveis-cross-irpf.md` |
 | ADR-247 | adr | Decidido |  | Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero | `adr/247-markdown-canonico-html-apenas-artefato-derivado.md` |
 | ADR-248 | adr | Decidido |  | Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 | `adr/248-multi-stage-backend-playwright-dual-target.md` |
 | ADR-249 | adr | Decidido |  | SHA pinning de imagens base + Dependabot Docker — Sprint A20 | `adr/249-sha-pinning-bases-dependabot-docker.md` |
@@ -252,32 +252,32 @@
 | ADR-252 | adr | Decidido |  | Compose dev unificado + Makefile targets opt-in — Sprint A20 | `adr/252-compose-dev-unificado-makefile-onboarding.md` |
 | ADR-253 | adr | Decidido |  | Postgres driver — drop psycopg2 → psycopg v3 (sync) — Sprint A20 | `adr/253-postgres-driver-consolidation.md` |
 | ADR-254 | adr | Decidido |  | Python lockfile com hashes — pip-tools vs uv — Sprint A20 | `adr/254-python-lockfile-com-hashes.md` |
-| ADR-255 | adr | Proposto |  | Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) | `adr/255-dedup-transacoes-cross-document.md` |
+| ADR-255 | adr | Decidido |  | Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) | `adr/255-dedup-transacoes-cross-document.md` |
 | ADR-256 | adr | Decidido |  | Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` | `adr/256-uow-stages-pipeline-store-session.md` |
 | ADR-259 | adr | Proposto |  | Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) | `adr/259-boundary-llm-unified.md` |
 | ADR-260 | adr | Proposto |  | Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP | `adr/260-llm-telemetry-by-prompt-version.md` |
 | ADR-261 | adr | Proposto |  | Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale | `adr/261-llm-cache-invalidation-policy.md` |
-| ADR-262 | adr | Proposto |  | Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req) | `adr/262-memory-confirmation-tracking.md` |
-| ADR-263 | adr | Proposto |  | Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req) | `adr/263-goal-reserva-emergencia-schema.md` |
+| ADR-262 | adr | Decidido |  | Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req) | `adr/262-memory-confirmation-tracking.md` |
+| ADR-263 | adr | Decidido |  | Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req) | `adr/263-goal-reserva-emergencia-schema.md` |
 | ADR-264 | adr | Proposto |  | Goal type META_OBJETIVO — schema genérico para metas estruturadas (casa, educação, intercâmbio, aposentadoria do cônjuge) (Fase 3.E pré-req) | `adr/264-goal-meta-objetivo-schema.md` |
 | ADR-265 | adr | Decidido |  | Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C) | `adr/265-fuzzy-canonical-property-identity.md` |
-| ADR-266 | adr | Proposto |  | Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural | `adr/266-irpf-anobase-completude-tristate.md` |
-| ADR-267 | adr | Proposto |  | Identidade canônica de membro do workspace via CPF (não slug-de-nome) | `adr/267-member-identity-cpf-canonical.md` |
-| ADR-268 | adr | Proposto |  | Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro | `adr/268-contribuinte-pf-vs-pj-filter.md` |
-| ADR-269 | adr | Proposto |  | Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado | `adr/269-task-suggestion-dedup-supersede.md` |
-| ADR-270 | adr | Proposto |  | Retry de LLM calls — categoria network + cap de timeout | `adr/270-llm-retry-network-category-timeout-cap.md` |
+| ADR-266 | adr | Decidido |  | Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural | `adr/266-irpf-anobase-completude-tristate.md` |
+| ADR-267 | adr | Decidido |  | Identidade canônica de membro do workspace via CPF (não slug-de-nome) | `adr/267-member-identity-cpf-canonical.md` |
+| ADR-268 | adr | Decidido |  | Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro | `adr/268-contribuinte-pf-vs-pj-filter.md` |
+| ADR-269 | adr | Decidido |  | Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado | `adr/269-task-suggestion-dedup-supersede.md` |
+| ADR-270 | adr | Decidido |  | Retry de LLM calls — categoria network + cap de timeout | `adr/270-llm-retry-network-category-timeout-cap.md` |
 | ADR-271 | adr | Decidido |  | Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c | `adr/271-dedup-investimentos-cross-irpf.md` |
 | ADR-272 | adr | Decidido |  | Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) | `adr/272-needs-review-razao-estruturada.md` |
 | ADR-273 | adr | Proposto |  | Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) | `adr/273-logging-estruturado-pipeline.md` |
-| ADR-274 | adr | Proposto |  | Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício | `adr/274-patrimonio-ano-base-vs-exercicio.md` |
+| ADR-274 | adr | Decidido |  | Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício | `adr/274-patrimonio-ano-base-vs-exercicio.md` |
 | ADR-275 | adr | Decidido |  | Auditoria de acesso + política de retenção LGPD | `adr/275-auditoria-de-acesso-e-retencao-lgpd.md` |
-| ADR-276 | adr | Proposto |  | EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c | `adr/276-entity-dedup-policy-contract.md` |
-| ADR-277 | adr | Proposto |  | Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo) | `adr/277-previdencia-reconciliacao-recomendacao-pgbl.md` |
+| ADR-276 | adr | Decidido |  | EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c | `adr/276-entity-dedup-policy-contract.md` |
+| ADR-277 | adr | Decidido |  | Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo) | `adr/277-previdencia-reconciliacao-recomendacao-pgbl.md` |
 | ADR-278 | adr | Decidido |  | SourceAdapter + SourceRef + data_source + contrato canônico E2 v3 | `adr/278-source-adapter-canonical-contract.md` |
 | ADR-279 | adr | Decidido |  | Lineage field-level inline (_lineage) + índice reverso artifact_lineage_edge | `adr/279-lineage-field-level-reverse-index.md` |
 | ADR-280 | adr | Decidido |  | Critério de corte Extract | Transform + check de pureza de extração | `adr/280-extract-transform-cut-criterion.md` |
 | ADR-281 | adr | Decidido |  | rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) | `adr/281-lineage-rule-ref-debug-substrate.md` |
-| ADR-282 | adr | Proposto |  | Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) | `adr/282-override-identity-natural-key-v2.md` |
+| ADR-282 | adr | Decidido |  | Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) | `adr/282-override-identity-natural-key-v2.md` |
 | ADR-283 | adr | Decidido |  | Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items) | `adr/283-float-monetario-persistido-e-hardening-de-boundary.md` |
 | ADR-284 | adr | Decidido |  | Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift | `adr/284-schema-validation-mode-overrides-per-stage.md` |
 | ADR-285 | adr | Proposto |  | backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio | `adr/285-services-subpacotes-por-natureza-tecnica.md` |
@@ -289,7 +289,7 @@
 | ADR-291 | adr | Decidido |  | from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) | `adr/291-from-stage-base-run-fallback.md` |
 | ADR-292 | adr | Decidido |  | evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) | `adr/292-evidencia-path-boundary-coercion.md` |
 | ADR-293 | adr | Proposto |  | Citação de parecer (E6→E5) como edge de lineage por chave natural | `adr/293-parecer-citation-edge-chave-natural.md` |
-| ADR-294 | adr | Proposto |  | Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) | `adr/294-parecer-boundary-coercion-prose-impacto.md` |
+| ADR-294 | adr | Decidido |  | Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) | `adr/294-parecer-boundary-coercion-prose-impacto.md` |
 | ADR-295 | adr | Proposto |  | Enforcement por-item da citação verificada no modo strict (parecer E6) | `adr/295-enforcement-por-item-citacao-strict.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |

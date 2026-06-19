@@ -2,7 +2,7 @@
 id: ADR-202
 type: adr
 title: "Output schema + invariantes do parecer — `parecer_planejador.schema.json`"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -33,7 +33,7 @@ tags:
 
 # ADR-202 — Output schema + invariantes do parecer — `parecer_planejador.schema.json`
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

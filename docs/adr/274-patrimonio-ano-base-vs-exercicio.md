@@ -2,7 +2,7 @@
 id: ADR-274
 type: adr
 title: "Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício"
-status: Proposto
+status: Decidido
 phase: A21.patrimonio-ano-base
 date: "2026-05-30"
 relates_to:
@@ -23,7 +23,7 @@ tags:
 
 # ADR-274 — Contrato de ano no consolidador E1.5c→E5: resumo em ano-base 31/12, não exercício
 
-**Status:** Proposto (Sprint A21) • **Data:** 2026-05-30 • **Relaciona** [[ADR-271]] (year-stamping por-item — precedente direto), [[ADR-215]] (classification de imóveis), [[ADR-097]] (warnings tipados)
+**Status:** Decidido (Sprint A21) • **Data:** 2026-05-30 • **Relaciona** [[ADR-271]] (year-stamping por-item — precedente direto), [[ADR-215]] (classification de imóveis), [[ADR-097]] (warnings tipados)
 
 ## Contexto
 

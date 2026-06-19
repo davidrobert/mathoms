@@ -2,7 +2,7 @@
 id: ADR-200
 type: adr
 title: "Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml`"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -31,7 +31,7 @@ tags:
 
 # ADR-200 — Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml`
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

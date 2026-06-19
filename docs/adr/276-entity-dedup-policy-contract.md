@@ -2,7 +2,7 @@
 id: ADR-276
 type: adr
 title: "EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c"
-status: Proposto
+status: Decidido
 phase: A21.l3
 date: "2026-05-30"
 relates_to:
@@ -22,7 +22,7 @@ tags:
 
 # ADR-276 — EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais
 
-**Status:** Proposto (Sprint A21, lane l3) • **Data:** 2026-05-30 • **Relaciona** [[ADR-246]] (dedup imóveis), [[ADR-265]] (fuzzy canonical), [[ADR-271]] (dedup investimentos)
+**Status:** Decidido (Sprint A21, lane l3) • **Data:** 2026-05-30 • **Relaciona** [[ADR-246]] (dedup imóveis), [[ADR-265]] (fuzzy canonical), [[ADR-271]] (dedup investimentos)
 
 ## Contexto
 

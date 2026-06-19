@@ -2,7 +2,7 @@
 id: ADR-268
 type: adr
 title: "Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro"
-status: Proposto
+status: Decidido
 phase: A17.member-identity
 date: "2026-05-24"
 relates_to:
@@ -26,7 +26,7 @@ tags:
 
 # ADR-268 — Filtro PF vs PJ no Contribuinte do IRPF
 
-**Status:** Proposto • **Data:** 2026-05-24 • **Relaciona** [[ADR-157]] (E1.6 extract_irpf_full), [[ADR-238]] (data_adesao não é hard-fail), [[ADR-243]] (MemberNameResolver), [[ADR-266]] (IRPF completude tri-state), [[ADR-267]] (membro identity por CPF).
+**Status:** Decidido • **Data:** 2026-05-24 • **Relaciona** [[ADR-157]] (E1.6 extract_irpf_full), [[ADR-238]] (data_adesao não é hard-fail), [[ADR-243]] (MemberNameResolver), [[ADR-266]] (IRPF completude tri-state), [[ADR-267]] (membro identity por CPF).
 
 > **Revisão 2026-05-30.** A v1 desta ADR (mecanismo: `field_validator` em
 > `Contribuinte.nome` que `raise ValidationError`) shipou em `PROMPT_VERSION

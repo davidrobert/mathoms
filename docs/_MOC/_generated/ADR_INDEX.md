@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 215
-- **Proposto**: 67
+- **Decidido**: 258
+- **Proposto**: 24
 - **Roadmap**: 4
 
 ## Fundação
@@ -69,18 +69,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## LLM
 
-### Decidido (6)
+### Decidido (7)
 
 - [[ADR-024]] — LiteLLM como proxy universal · phase F4
 - [[ADR-025]] — BYOK (Bring Your Own Key) · phase F4
 - [[ADR-026]] — Instructor + Pydantic para structured output · phase F4
 - [[ADR-027]] — Retry → needs_review em falha de validação · phase F4
 - [[ADR-028]] — E7 full scope na Fase 4 · phase F4
-- [[ADR-288]] — Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable
-
-### Proposto (1)
-
 - [[ADR-270]] — Retry de LLM calls — categoria network + cap de timeout · phase A17.llm-retry
+- [[ADR-288]] — Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable
 
 ## Task Queue
 
@@ -114,7 +111,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Produção & Infra (F7)
 
-### Decidido (12)
+### Decidido (14)
 
 - [[ADR-007]] — Fernet app-level para criptografia · phase F4→F7
 - [[ADR-040]] — Billing adiado para pós-launch · phase F7
@@ -127,13 +124,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-061]] — Telemetria privacy-first · phase F7
 - [[ADR-108]] — Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS
 - [[ADR-116]] — F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local) · phase F7F-Local
-- [[ADR-284]] — Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift · phase Débito técnico (A24)
-
-### Proposto (4)
-
-- [[ADR-058]] — VPS CX32 para sizing · phase F7
 - [[ADR-206]] — Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-210]] — Saúde do test suite do CI — gates, telemetria e ciclo de vida · phase Sprint A12 (test health · CI cost)
+- [[ADR-284]] — Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift · phase Débito técnico (A24)
+
+### Proposto (2)
+
+- [[ADR-058]] — VPS CX32 para sizing · phase F7
 - [[ADR-260]] — Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP · phase A20.W2 + A20.W3
 
 ## Testing
@@ -240,7 +237,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Internacionalização (F12)
 
-### Proposto (1)
+### Decidido (1)
 
 - [[ADR-130]] — Internacionalização com `next-intl` + persistência em `users.locale` · phase F12
 
@@ -256,7 +253,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sprint A7 — Rules-as-Code & Cutover
 
-### Decidido (9)
+### Decidido (10)
 
 - [[ADR-134]] — `ConfigStore`: protocolo de leitura tipado (pipeline + backend) · phase Sprint A7
 - [[ADR-135]] — Versionamento temporal de séries fiscais e câmbio · phase Sprint A7
@@ -267,22 +264,16 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-145]] — 7 categorias canonical da composição patrimonial · phase Sprint A7.6 · CTO sign-off 2026-04-27
 - [[ADR-146]] — E3 source hierarchy + `BankAccount.source_tier` schema · phase Sprint A7.6 · CTO sign-off 2026-04-27
 - [[ADR-147]] — Milhas: valuation methodology universal + storage workspace-scoped · phase Sprint A7.6 · CTO sign-off 2026-04-27
-
-### Proposto (1)
-
 - [[ADR-201]] — Persona do planejador como rules-as-code — `config/agents/planner_persona.md` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 
 ## Decisões metodológicas pós-auditoria (Roadmap v2)
 
-### Decidido (3)
+### Decidido (4)
 
+- [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP) · phase A12
 - [[ADR-142]] — Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem
 - [[ADR-222]] — Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` · phase A12
 - [[ADR-223]] — Default conservador `imoveis_no_if=false` para workspaces novos + banner contextual · phase A12
-
-### Proposto (1)
-
-- [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP) · phase A12
 
 ### Roadmap (1)
 
@@ -306,7 +297,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (11)
+### Decidido (12)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -316,15 +307,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) · phase Sprint A11.W5
 - [[ADR-213]] — Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) · phase A12.sunset-audit
 - [[ADR-214]] — `Decision.code` é server-generated com `pg_advisory_xact_lock` · phase A12.decision-code-autogen
+- [[ADR-269]] — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado · phase A17.task-suggestion-dedup
 - [[ADR-283]] — Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items) · phase Débito técnico (A12)
 - [[ADR-289]] — Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) · phase F1
 - [[ADR-290]] — Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion · phase A25
 
-### Proposto (4)
+### Proposto (3)
 
 - [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
-- [[ADR-269]] — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado · phase A17.task-suggestion-dedup
 - [[ADR-285]] — backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio · phase Débito técnico
 
 ## categorization
@@ -337,35 +328,35 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## data-lineage
 
-### Decidido (1)
-
-- [[ADR-287]] — Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) · phase A25 · l2/l6B
-
-### Proposto (2)
+### Decidido (2)
 
 - [[ADR-282]] — Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) · phase A23 · pré-passo-2 B4
+- [[ADR-287]] — Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) · phase A25 · l2/l6B
+
+### Proposto (1)
+
 - [[ADR-293]] — Citação de parecer (E6→E5) como edge de lineage por chave natural · phase A26 · Onda 6 (impl. A27)
 
 ## docs
 
-### Decidido (1)
-
-- [[ADR-247]] — Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero · phase A11
-
-### Proposto (1)
+### Decidido (2)
 
 - [[ADR-234]] — Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) · phase A15
+- [[ADR-247]] — Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero · phase A11
 
 ## domain
 
-### Proposto (2)
+### Decidido (1)
 
 - [[ADR-263]] — Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
+
+### Proposto (1)
+
 - [[ADR-264]] — Goal type META_OBJETIVO — schema genérico para metas estruturadas (casa, educação, intercâmbio, aposentadoria do cônjuge) (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
 
 ## frontend
 
-### Decidido (6)
+### Decidido (7)
 
 - [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
 - [[ADR-152]] — `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) · phase Direção E · Onda 6
@@ -373,9 +364,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-156]] — Patrimônio em `/plano` é single-source via `patrimonio_snapshot` (Direção E · Onda 7) · phase Direção E · Onda 7
 - [[ADR-158]] — Pipeline review screen — UI dedicada para aprovar/editar `StageReview` · phase Sprint A8 · Lane pipeline-review-screen
 - [[ADR-168]] — Remoção do Modo USA do relatório · phase A8.4 PR4
-
-### Proposto (1)
-
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
 
 ## infra
@@ -406,17 +394,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## llm
 
-### Decidido (5)
+### Decidido (14)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
 - [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
 - [[ADR-169]] — Modo incremental estendido aos stages globais E1
-- [[ADR-292]] — evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) · phase A26 · parecer reliability
-
-### Proposto (12)
-
-- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-199]] — Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-200]] — Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-202]] — Output schema + invariantes do parecer — `parecer_planejador.schema.json` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
@@ -425,8 +408,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-205]] — Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-207]] — Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-208]] — Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
-- [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
+- [[ADR-292]] — evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) · phase A26 · parecer reliability
 - [[ADR-294]] — Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) · phase A26 · parecer reliability
+
+### Proposto (3)
+
+- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
+- [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability
 
 ## marketing
@@ -478,40 +466,25 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## persistence
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-163]] — Decision congela `context_snapshot` ao aceitar Suggestion · phase Onda 8
 - [[ADR-225]] — Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb · phase A12
-- [[ADR-265]] — Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C) · phase A17.canonical-fuzzy
-
-### Proposto (1)
-
 - [[ADR-262]] — Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
+- [[ADR-265]] — Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C) · phase A17.canonical-fuzzy
 
 ## pipeline
 
-### Decidido (13)
+### Decidido (30)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
-- [[ADR-237]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
-- [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
-- [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.l1
-- [[ADR-256]] — Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` · phase A19.uow-stages
-- [[ADR-271]] — Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c · phase A20.invest-dedup
-- [[ADR-272]] — Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) · phase A20.failure-diagnostics
-- [[ADR-278]] — SourceAdapter + SourceRef + data_source + contrato canônico E2 v3 · phase A23 · F0
-- [[ADR-279]] — Lineage field-level inline (_lineage) + índice reverso artifact_lineage_edge · phase A23 · F0
-- [[ADR-280]] — Critério de corte Extract | Transform + check de pureza de extração · phase A23 · F0
-- [[ADR-281]] — rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) · phase A23 · F0
-- [[ADR-286]] — Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo · phase A24.l7
-- [[ADR-291]] — from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) · phase A25 · dogfood
-
-### Proposto (18)
-
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
 - [[ADR-219]] — Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 · phase A12
 - [[ADR-233]] — Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump · phase A11.W2
+- [[ADR-237]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
+- [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
+- [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.l1
 - [[ADR-241]] — E2 (extratos / faturas / LLM fallback) é workspace-scoped — incremental cumulativo correto · phase A17.incremental-correctness
 - [[ADR-242]] — LLM `category_hint` consumido no TransactionClassifier + sentinel `info_fiscal_anual` · phase A17.incremental-correctness
 - [[ADR-243]] — MemberNameResolver — normalizar `membro` extraído pelo LLM em chave canônica do workspace · phase A17.incremental-correctness
@@ -519,34 +492,46 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-245]] — `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR · phase A17.incremental-correctness
 - [[ADR-246]] — Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c · phase A17.imovel-dedup
 - [[ADR-255]] — Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) · phase A17.tx-dedup-cross-doc
+- [[ADR-256]] — Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` · phase A19.uow-stages
 - [[ADR-266]] — Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural · phase A16
 - [[ADR-267]] — Identidade canônica de membro do workspace via CPF (não slug-de-nome) · phase A17.member-identity
 - [[ADR-268]] — Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro · phase A17.member-identity
-- [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A20.failure-diagnostics
+- [[ADR-271]] — Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c · phase A20.invest-dedup
+- [[ADR-272]] — Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) · phase A20.failure-diagnostics
 - [[ADR-274]] — Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício · phase A21.patrimonio-ano-base
 - [[ADR-276]] — EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c · phase A21.l3
 - [[ADR-277]] — Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo) · phase A21.l4
+- [[ADR-278]] — SourceAdapter + SourceRef + data_source + contrato canônico E2 v3 · phase A23 · F0
+- [[ADR-279]] — Lineage field-level inline (_lineage) + índice reverso artifact_lineage_edge · phase A23 · F0
+- [[ADR-280]] — Critério de corte Extract | Transform + check de pureza de extração · phase A23 · F0
+- [[ADR-281]] — rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) · phase A23 · F0
+- [[ADR-286]] — Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo · phase A24.l7
+- [[ADR-291]] — from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) · phase A25 · dogfood
+
+### Proposto (1)
+
+- [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A20.failure-diagnostics
 
 ## relatorio
 
-### Proposto (4)
+### Decidido (3)
 
 - [[ADR-216]] — Cap rate líquido como métrica canônica de imóveis de investimento (S4) · phase A12
 - [[ADR-217]] — Score patrimonial canônico — composição, fórmula e ciclo de vida · phase A12
-- [[ADR-218]] — Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini · phase A12
 - [[ADR-220]] — Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados · phase A12
+
+### Proposto (1)
+
+- [[ADR-218]] — Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini · phase A12
 
 ## report
 
-### Decidido (2)
-
-- [[ADR-191]] — Card Rentabilidade do relatório expõe TRS efetiva — não retorno total · phase A11.W5
-- [[ADR-240]] — Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) · phase A19.l1
-
-### Proposto (2)
+### Decidido (4)
 
 - [[ADR-187]] — Relatório publicado é imutável — conceito de mês fechado · phase A11
 - [[ADR-190]] — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica · phase A11
+- [[ADR-191]] — Card Rentabilidade do relatório expõe TRS efetiva — não retorno total · phase A11.W5
+- [[ADR-240]] — Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) · phase A19.l1
 
 ## security
 

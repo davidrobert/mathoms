@@ -2,7 +2,7 @@
 id: ADR-201
 type: adr
 title: "Persona do planejador como rules-as-code — `config/agents/planner_persona.md`"
-status: Proposto
+status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
 relates_to:
@@ -28,7 +28,7 @@ tags:
 
 # ADR-201 — Persona do planejador como rules-as-code — `config/agents/planner_persona.md`
 
-**Status:** Proposto (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+**Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
 ## Contexto
 

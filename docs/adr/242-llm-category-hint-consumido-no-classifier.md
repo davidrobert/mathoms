@@ -2,7 +2,7 @@
 id: ADR-242
 type: adr
 title: "LLM `category_hint` consumido no TransactionClassifier + sentinel `info_fiscal_anual`"
-status: Proposto
+status: Decidido
 phase: A17.incremental-correctness
 date: "2026-05-21"
 relates_to:
@@ -28,7 +28,7 @@ size_lines: 144
 
 # ADR-242 — LLM `category_hint` consumido no TransactionClassifier
 
-**Status:** Proposto • **Data:** 2026-05-21 • **Relaciona** [[ADR-097]] (warnings tipados), [[ADR-137]] (category_template canônico), [[ADR-143]] (methodology=code), [[ADR-186]] (learned rules), [[ADR-233]] (prompt versioning), [[ADR-236]] (PJ labels), [[ADR-241]] (E2 workspace-scoped)
+**Status:** Decidido • **Data:** 2026-05-21 • **Relaciona** [[ADR-097]] (warnings tipados), [[ADR-137]] (category_template canônico), [[ADR-143]] (methodology=code), [[ADR-186]] (learned rules), [[ADR-233]] (prompt versioning), [[ADR-236]] (PJ labels), [[ADR-241]] (E2 workspace-scoped)
 
 ## Contexto
 

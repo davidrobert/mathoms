@@ -2,7 +2,7 @@
 id: ADR-233
 type: adr
 title: "Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump"
-status: Proposto
+status: Decidido
 phase: A11.W2
 date: "2026-05-20"
 relates_to:

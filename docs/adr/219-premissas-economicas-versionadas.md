@@ -2,7 +2,7 @@
 id: ADR-219
 type: adr
 title: "Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-15"
 relates_to:

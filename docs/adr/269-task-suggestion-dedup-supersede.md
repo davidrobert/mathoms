@@ -2,7 +2,7 @@
 id: ADR-269
 type: adr
 title: "Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado"
-status: Proposto
+status: Decidido
 phase: A17.task-suggestion-dedup
 date: "2026-05-23"
 relates_to:
@@ -27,7 +27,7 @@ tags:
 
 # ADR-269 — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado
 
-**Status:** Proposto · **Data:** 2026-05-23 · **Relaciona** [[ADR-074]] (TaskSuggestion queue), [[ADR-082]] (pipeline_artifacts versionado por run_id), [[ADR-153]] (Suggestion aggregate dedup), [[ADR-186]]/[[ADR-188]] (Categorization Learning Loop — padrão de override sticky).
+**Status:** Decidido · **Data:** 2026-05-23 · **Relaciona** [[ADR-074]] (TaskSuggestion queue), [[ADR-082]] (pipeline_artifacts versionado por run_id), [[ADR-153]] (Suggestion aggregate dedup), [[ADR-186]]/[[ADR-188]] (Categorization Learning Loop — padrão de override sticky).
 
 ## Contexto
 
