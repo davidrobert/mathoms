@@ -116,8 +116,35 @@ def _coerce_jsonpath_or_none(v):
     return None
 
 
-# Aplicado em evidencia_path (Risco/Sugestao) + field_path (CampoFaltante).
+# Aplicado em field_path (CampoFaltante) + Ancora.path.
 EvidenciaPath = Annotated[Optional[str], BeforeValidator(_coerce_jsonpath_or_none)]
+
+
+def _coerce_rotulo_or_none(v):
+    """Boundary do LLM (ADR-296): ``rótulo`` fora da FORMA (não-identifier ASCII ou
+    > 64 chars) vira ``None`` — nunca reask. A PERTINÊNCIA (``rótulo == root do path``)
+    é do verificador, não do schema: o conjunto válido é o catálogo daquela geração,
+    não um ``Literal`` estático (root novo no E5 → falso-drop sistemático). Mesmo
+    padrão de ``_coerce_jsonpath_or_none``. NUNCA loga o valor (pode carregar prosa)."""
+    if not isinstance(v, str) or (len(v) <= 64 and v.isidentifier()):
+        return v
+    logger.warning("parecer_rotulo_coerced", extra={"len": len(v)})
+    return None
+
+
+# Aplicado em Ancora.rotulo — root da seção dona do path (1º segmento do JSONPath).
+Rotulo = Annotated[Optional[str], BeforeValidator(_coerce_rotulo_or_none)]
+
+
+class Ancora(BaseModel):
+    """Citação determinística (ADR-296): LLM emite ``path``+``rotulo`` copiados da MESMA
+    linha do catálogo; ``valor_renderizado`` é escrito pelo finalize (não pelo LLM) —
+    ``value_mismatch`` por transcrição vira impossível por construção."""
+
+    path: EvidenciaPath = None
+    rotulo: Rotulo = None
+    valor_renderizado: Optional[str] = None  # escrito pelo finalize, não pelo LLM
+
 
 # Fim de frase para truncação graciosa — terminador seguido de espaço ou fim.
 _SENTENCE_END_RE = re.compile(r"[.!?](?=\s|$)")
@@ -209,7 +236,7 @@ class Risco(BaseModel):
     ancora_metodologica: AncoraMetodologica
     tema_canonico: TemaCanonico
     evidencia: _prose_opt(390) = None
-    evidencia_path: EvidenciaPath = None
+    ancoras: list[Ancora] = Field(default_factory=list, max_length=3)
     section_id: SectionId
     confianca: Optional[Confianca] = None
 
@@ -243,7 +270,7 @@ class Sugestao(BaseModel):
     section_id: SectionId
     suggestion_dedup_key: str = Field(..., pattern=_SHA256_RE.pattern)
     impacto_estimado: Optional[ImpactoEstimado] = None
-    evidencia_path: EvidenciaPath = None
+    ancoras: list[Ancora] = Field(default_factory=list, max_length=3)
     # ADR-220: categoria editorial da sugestão (natureza do impacto). Opcional;
     # quando presente, renderer agrupa sugestões irmãs e exibe label semântico.
     # Pode diferir de impacto_estimado.tipo (sugestão pode ter "categoria=if"
@@ -302,7 +329,10 @@ class CampoFaltante(BaseModel):
 class ParecerPlanejadorOutput(BaseModel):
     """Output canônico do stage ``review_finances_holistic`` (ADR-199/202)."""
 
-    version: str = Field("1.0", pattern=_VERSION_RE.pattern)
+    # ADR-296: bump major — evidencia_path:str → ancoras:[{path,rotulo,valor_renderizado}].
+    # Pareceres v1 persistidos não migram (content_json imutável, ADR-204); renderer
+    # faz dispatch por version.
+    version: str = Field("2.0", pattern=_VERSION_RE.pattern)
     metadata: Metadata
     diagnostico_geral: _prose(50, 750)
     pontos_fortes: list[PontoForte] = Field(..., min_length=3, max_length=6)
@@ -356,6 +386,7 @@ class ParecerPlanejadorOutput(BaseModel):
 
 
 __all__ = [
+    "Ancora",
     "AncoraMetodologica",
     "CampoFaltante",
     "CategoriaSugestao",

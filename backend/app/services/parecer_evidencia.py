@@ -10,15 +10,16 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any, Iterator, Optional
 
 from pipeline.llm.prompts.parecer_planejador import PROMPT_VERSION
-from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
+from pipeline.llm.schemas.parecer_planejador import Ancora, ParecerPlanejadorOutput
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 
 # Entra no composite de compute_cache_key — bump invalida caches pré-F4.
-# "2" (ADR-292): coerção de evidencia_path inválido → None muda o output
-# persistido (path-filtro que antes virava reask agora vira null + missing_path).
-EVIDENCIA_VERIFICATION_VERSION = "2"
+# "2" (ADR-292): coerção de evidencia_path inválido → None.
+# "3" (ADR-296): contrato ancoras[{path,rotulo,valor_renderizado}]; value_mismatch
+# (transcrição de número) substituído por pairing_mismatch (rotulo ↔ root do path).
+EVIDENCIA_VERIFICATION_VERSION = "3"
 
 _EVIDENCIA_MODE_ENV = "MATHOMS_PARECER_EVIDENCIA_MODE"
 _VALID_MODES = ("warn", "strict")
@@ -49,11 +50,13 @@ def _is_legit_range_path(path: str) -> bool:
     return path.startswith(_LEGIT_RANGE_PATH_PREFIXES)
 
 
-_LAYERS = ("missing_path", "whitelist_miss", "resolve_null", "value_mismatch")
-# ADR-292/A26.l6: cobertura (prosa cita R$ sem path verificável) ≠ correção
-# (citação que resolve errado). Mesma partição que o gate do eval (test #655).
+# ADR-296: pairing_mismatch substitui value_mismatch (este zerado por construção —
+# prosa não tem R$). Ordem preservada p/ telemetria; value_mismatch fica no histórico.
+_LAYERS = ("missing_path", "whitelist_miss", "resolve_null", "pairing_mismatch")
+# ADR-292/A26.l6: cobertura (item sem âncora verificável) ≠ correção (âncora que
+# resolve errado / rotulo incoerente). Mesma partição que o gate do eval.
 _COVERAGE_LAYER = "missing_path"
-_CORRECTNESS_LAYERS = ("whitelist_miss", "resolve_null", "value_mismatch")
+_CORRECTNESS_LAYERS = ("whitelist_miss", "resolve_null", "pairing_mismatch")
 _REASON_TO_LAYER = {
     "path_not_whitelisted": "whitelist_miss",
     "value_null": "resolve_null",
@@ -142,45 +145,41 @@ def log_evidencia_kpi(verification: "EvidenciaVerification", workspace_id: str) 
 def verify_evidencia(
     *, output: ParecerPlanejadorOutput, drill: PlannerDrillDown
 ) -> EvidenciaVerification:
-    """Camadas 1-3 sobre riscos + sugestões; ``drill`` é instância dedicada."""
+    """Cross-check por âncora sobre riscos + sugestões; ``drill`` é instância dedicada."""
     result = EvidenciaVerification()
-    for item_type, index, prose_fields, path in _iter_items(output):
-        tokens = _extract_money_tokens(prose_fields)
-        result.money_tokens_total += len(tokens)
-        if path is None or not _is_legit_range_path(path):
-            result.range_in_scalar_count += _count_ranges(prose_fields)
-        if not tokens and path is None:
-            continue
-        failed_layer = "missing_path" if path is None else _check_item(drill, tokens, path)
-        _record(result, item_type=item_type, index=index, path=path, layer=failed_layer)
+    for item_type, index, prose_fields, ancoras in _iter_items(output):
+        # ADR-296: prosa NÃO deve conter R$. money_tokens_total vira telemetria de
+        # number_in_prose (deve ser 0); range_in_scalar idem.
+        result.money_tokens_total += len(_extract_money_tokens(prose_fields))
+        result.range_in_scalar_count += _count_ranges(prose_fields)
+        for ancora in ancoras:
+            layer = _check_anchor(drill, ancora)
+            _record(result, item_type=item_type, index=index, path=ancora.path, layer=layer)
     return result
 
 
 def _iter_items(
     output: ParecerPlanejadorOutput,
-) -> Iterator[tuple[str, int, list[Optional[str]], Optional[str]]]:
-    """(item_type, índice, campos de prosa, evidencia_path) por item verificável."""
+) -> Iterator[tuple[str, int, list[Optional[str]], list[Ancora]]]:
+    """(item_type, índice, campos de prosa, âncoras) por item verificável."""
     for i, risco in enumerate(output.riscos):
-        yield "risco", i, [risco.descricao, risco.evidencia], risco.evidencia_path
+        yield "risco", i, [risco.descricao, risco.evidencia], risco.ancoras
     for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
         for i, sug in enumerate(getattr(output, horizon)):
-            yield horizon, i, [sug.acao], sug.evidencia_path
+            yield horizon, i, [sug.acao], sug.ancoras
 
 
-def _check_item(drill: PlannerDrillDown, tokens: list[MoneyToken], path: str) -> Optional[str]:
-    """None = verificado; senão o nome da camada que falhou."""
-    tool_result = drill.get_e5_jsonpath(path)
+def _check_anchor(drill: PlannerDrillDown, ancora: Ancora) -> Optional[str]:
+    """None = verificado; senão a camada que falhou (ADR-296)."""
+    if ancora.path is None:
+        return "missing_path"  # path coercido (ADR-292) — cobertura, fail-open
+    tool_result = drill.get_e5_jsonpath(ancora.path)
     if not tool_result.found:
         return _REASON_TO_LAYER.get(tool_result.reason or "", "resolve_null")
-    if _is_legit_range_path(path):
-        # Campo-fonte é faixa/banda legítima — value_mismatch suprimido (R3).
-        return None
-    if not tokens:
-        return None
-    leaves = _numeric_leaves(tool_result.value)
-    if any(_token_matches(t, leaf) for t in tokens for leaf in leaves):
-        return None
-    return "value_mismatch"
+    # Cross-check determinístico: rotulo deve casar a seção dona do path (1º segmento).
+    if ancora.rotulo != ancora.path[2:].split(".", 1)[0]:
+        return "pairing_mismatch"
+    return None
 
 
 def _record(

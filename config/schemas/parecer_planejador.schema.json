@@ -307,6 +307,17 @@
       "description": "JSONPath subset (sintaxe igual ao manifest DSL — ADR-200 §D1) apontando o campo do E5 que fundamenta o item. Validação de existência no schema E5 é responsabilidade do stage (Draft-2020-12 não resolve JSONPath)."
     },
 
+    "ancora": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": ["string", "null"]},
+        "rotulo": {"type": ["string", "null"]},
+        "valor_renderizado": {"type": ["string", "null"]}
+      },
+      "description": "Citação determinística (ADR-296): path+rotulo do LLM (copiados da mesma linha do catálogo); valor_renderizado escrito pelo finalize. path/rotulo nullable (coerce de boundary, ADR-292/296)."
+    },
+
     "suggestion_dedup_key": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$",
@@ -365,7 +376,7 @@
           "maxLength": 390,
           "description": "Frase curta apontando a evidência (ex.: 'Reserva atual cobre 2.1 meses de despesa essencial; alvo é 6+ meses')."
         },
-        "evidencia_path": {"$ref": "#/$defs/evidencia_path"},
+        "ancoras": {"type": "array", "items": {"$ref": "#/$defs/ancora"}, "maxItems": 3},
         "section_id": {"$ref": "#/$defs/section_id"},
         "confianca": {"$ref": "#/$defs/confianca"}
       }
@@ -441,7 +452,7 @@
         "section_id": {"$ref": "#/$defs/section_id"},
         "suggestion_dedup_key": {"$ref": "#/$defs/suggestion_dedup_key"},
         "impacto_estimado": {"$ref": "#/$defs/impacto_estimado"},
-        "evidencia_path": {"$ref": "#/$defs/evidencia_path"},
+        "ancoras": {"type": "array", "items": {"$ref": "#/$defs/ancora"}, "maxItems": 3},
         "categoria_sugestao": {
           "type": "string",
           "enum": [
