@@ -101,8 +101,9 @@ força número==valor-do-path → verificador sempre passa → wrong_pairing **i
 - **Não bloqueia [[A26.l2]]:** o enforcement da l8 já protege o usuário (0 falso
   publicado). O flip strict procede sob o gate redefinido (segurança binária +
   budget de needs_review), independente da l9.
-- **Promover o harness paralelo** (`_scratch/run_parecer_eval_parallel.py`, 6 workers,
-  ~13 min) ao committed é pré-requisito (o eval sequencial de ~1,7h sofre kill).
+- **Harness paralelo: ✅ committed** em `dev/run_parecer_eval_parallel.py` (6 workers,
+  ~13 min; [#679](https://github.com/davidrobert/mathoms/pull/679)) — era pré-requisito
+  (o eval sequencial de ~1,7h sofre kill). Resta `ANTHROPIC_API_KEY` no ambiente p/ rodar.
 - **l9 coexiste com l8** (não supersede): l8 é a máquina de decisão; l9 muda o sinal.
 
 ## Owner
