@@ -618,6 +618,7 @@
 | A26.l7 | lane | shipped | A26 | Catálogo de citação cobre folhas de LISTA (fonte única forward↔reverse) | `sprint/A26/lanes/A26-l7-evidencia-catalog-listas.md` |
 | A26.l8 | lane | planned | A26 | value_mismatch residual: enforcement per-item no strict (path válido, número errado) | `sprint/A26/lanes/A26-l8-evidencia-value-mismatch.md` |
 | A26.l9 | lane | planned | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
+| A27.l1 | lane | planned | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -693,6 +694,7 @@
 | MOC-sprint-a24 | moc |  |  | Sprint A24 — Data Lineage: extração limpa + walking skeleton | `sprint/A24/_README.md` |
 | MOC-sprint-a25 | moc |  |  | Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM | `sprint/A25/_README.md` |
 | MOC-sprint-a26 | moc |  |  | Sprint A26 — Data Lineage: consolidação | `sprint/A26/_README.md` |
+| MOC-sprint-a27 | moc |  |  | Sprint A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer, ponta a ponta | `sprint/A27/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
