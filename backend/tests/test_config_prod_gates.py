@@ -19,10 +19,13 @@ from backend.app.core.config import Settings
 def _prod_kwargs(**overrides: object) -> dict[str, object]:
     """Kwargs base para Settings em ENVIRONMENT=production — inclui DATABASE_URL
     não-sqlite por default para isolar cada gate sob teste."""
+    from cryptography.fernet import Fernet
+
     base: dict[str, object] = {
         "ENVIRONMENT": "production",
         "SECRET_KEY": "A" * 64,
         "DATABASE_URL": "postgresql+asyncpg://user:pass@host/db",
+        "FERNET_KEY": Fernet.generate_key().decode(),
     }
     base.update(overrides)
     return base
@@ -52,12 +55,36 @@ def test_prod_rejects_sqlite_database_url() -> None:
         )
 
 
-def test_prod_accepts_proper_config() -> None:
+def test_prod_rejects_dev_fernet_key() -> None:
+    with pytest.raises(RuntimeError, match="FERNET_KEY"):
+        Settings(**_prod_kwargs(FERNET_KEY="03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg="))
+
+
+def test_prod_rejects_ci_fernet_key() -> None:
+    with pytest.raises(RuntimeError, match="FERNET_KEY"):
+        Settings(  # gitleaks:allow
+            **_prod_kwargs(FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=")
+        )
+
+
+def test_prod_accepts_unique_fernet_key() -> None:
+    from cryptography.fernet import Fernet
+
+    s = Settings(**_prod_kwargs(FERNET_KEY=Fernet.generate_key().decode()))
+    assert s.ENVIRONMENT == "production"
+
+
+def test_dev_allows_dev_fernet_key() -> None:
+    """O gate de Fernet só aplica em production — dev usa o default do compose."""
     s = Settings(
-        ENVIRONMENT="production",
-        SECRET_KEY="A" * 64,
-        DATABASE_URL="postgresql+asyncpg://user:pass@host/db",
+        ENVIRONMENT="development",
+        FERNET_KEY="03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg=",
     )
+    assert s.FERNET_KEY == "03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg="
+
+
+def test_prod_accepts_proper_config() -> None:
+    s = Settings(**_prod_kwargs())
     assert s.ENVIRONMENT == "production"
     assert s.SECRET_KEY == "A" * 64
 
