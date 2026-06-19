@@ -49,7 +49,7 @@ lane destrutiva tem um **gate verificável**, não um prazo.
 | Lane | Slug | Regime | Status | Dep / Gate |
 |---|---|---|---|---|
 | [[A26.l1]] | `evidencia-prompt-catalogo` | A (sem gate) | **open** | — · ponto de entrada da sprint |
-| [[A26.l2]] | `evidencia-flip-strict` | B | blocked | l1 + gate per-parecer <5% sobre ≥20 ger (ou eval holdout) |
+| [[A26.l2]] | `evidencia-flip-strict` | B | blocked | gate redefinido (2026-06-19): segurança binária (0 errado publicado — ✅ via l8) + budget needs_review ≤15% sobre ≥20 ger |
 | [[A26.l3]] | `drop-dedup-v1-shim` | B (reversível) | blocked | dedup v2 100% + counter zerado ≥1 sprint |
 | [[A26.l4]] | `override-v2-on-instrumentacao` | B (habilitador) | blocked | flip override flag→True + `v2_match_count` + query agendada `v1_fallback` |
 | [[A26.l5]] | `m2-override-drop` | B (IRREVERSÍVEL) | blocked | l4 + G1/G2/G3 + PITR + owner go/no-go |
@@ -96,10 +96,16 @@ citação como edge no grafo de lineage) é **A27 / Onda 6**, atrás de [[ADR-29
 - **KR3** — consolidações destrutivas executadas **com gate fechado verificado antes do
   PR**: flip strict (l2) + drop shim dedup (l3) + M2 override (l5). Binário condicionado
   ao gate — não incentiva deletar cedo.
-- **Gate de saúde (pré-flip):** instrumentar baseline de `needs_review` por geração
-  **antes** do flip strict — se 19% de `value_mismatch` virar 19% de pareceres em
-  `needs_review`, o flip degradou a UX (transparency backfire). O flip só procede se a
-  taxa per-parecer estiver genuinamente <5%.
+- **Gate do flip strict (REDEFINIDO 2026-06-19 — ver [[A26.l2]]):** o gate original
+  "`needs_review` per-parecer <5%" misturava **segurança** com **UX** e era inatingível
+  (eval 1.8.0: 22%, pois ~87% das falhas é `wrong_pairing` em itens severidade alta).
+  Separado em: **(1) segurança (binário, bloqueia):** zero citação incorreta publicada —
+  **já garantido por construção** pelo enforcement per-item ([[A26.l8]]/[[ADR-295]]: item
+  dropado ou `needs_review`, nunca número errado no output); **(2) budget de UX
+  (orçamento, não bloqueia):** `needs_review` per-parecer **≤15%** sobre ≥20 ger reais,
+  re-ancorável no 1º tráfego — exceder prioriza [[A26.l9]] (A27), não reabre o flip.
+  Reabre a decisão "per-parecer <5%" do orchestrator §5 com evidência empírica (mesma
+  força da [[ADR-295]]); sem ADR nova (conforma [[ADR-279]] §E + [[ADR-295]]).
 
 ## Decisões herdadas (sem ADR nova)
 

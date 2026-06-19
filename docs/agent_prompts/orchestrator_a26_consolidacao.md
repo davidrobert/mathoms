@@ -49,7 +49,7 @@ cada lane destrutiva tem **gate verificável**, não prazo.
 | Lane | Status | O quê | Gate de desbloqueio |
 |---|---|---|---|
 | [[A26.l1]] | `open` | fix de citação do `evidencia_path` (catálogo de paths) + eval golden | **nenhum** — atacar já |
-| [[A26.l2]] | `blocked` | flip `evidencia_verification_mode: warn→strict` | l1 + **per-parecer <5% sobre ≥20 ger** (ou eval holdout) |
+| [[A26.l2]] | `blocked` | flip `evidencia_verification_mode: warn→strict` | gate redefinido (§5): segurança binária (0 errado publicado — ✅ via l8) + budget `needs_review` ≤15% sobre ≥20 ger |
 | [[A26.l3]] | `blocked` | M2-A: drop `compute_transaction_hash` (`_tx_identity.py`, dedup) — reversível | dedup v2 100% + counter zerado ≥1 sprint |
 | [[A26.l4]] | `blocked` | flip `override_natural_key_v2_enabled`→True + `v2_match_count` + query agendada | habilitador (código + observação) |
 | [[A26.l5]] | `blocked` | M2-B: drop coluna `transaction_hash` + `generate_transaction_hash` (`transaction_service.py`) — IRREVERSÍVEL | l4 + G1/G2/G3 + PITR + **owner go/no-go** |
@@ -96,10 +96,15 @@ violação); `tests/test_parecer_evidencia_path.py` verde (não-regressão do ve
 
 ## 5. Decisões cravadas no co-design (NÃO reabrir)
 
-- **Gate do flip é PER-PARECER** (% pareceres com ≥1 violação <5%), NÃO per-citação — em
-  `strict` uma falha rejeita o parecer inteiro → `needs_review` (fallback graceful
-  [[ADR-081]], sem retry/degradação). Ajustar a query SQL da [[A25.l7]] com
-  `count(*) WHERE evidencia_failed > 0`.
+- **~~Gate do flip é PER-PARECER <5%~~ → REDEFINIDO 2026-06-19 (ver [[A26.l2]] §Gate).**
+  Esta decisão foi **reaberta** com evidência empírica (eval 1.8.0: needs_review 22%,
+  inatingível <5% porque ~87% é `wrong_pairing` em itens severidade alta) — mesma força
+  com que a [[ADR-295]] reabriu "per-parecer→per-item". Também desatualizada: em `strict`
+  a falha **não** rejeita o parecer inteiro — o enforcement per-item ([[A26.l8]]/[[ADR-295]])
+  dropa o item (baixo/médio) ou vai a `needs_review` (alta). **Gate novo:** (1) segurança
+  binária = zero citação incorreta publicada (já garantida pelo enforcement); (2) budget
+  de UX = `needs_review` per-parecer ≤15% sobre ≥20 ger reais (exceder prioriza [[A26.l9]],
+  não reabre o flip).
 - **M2-A (l3) e M2-B (l5) são lanes SEPARADAS**, M2-A primeiro (reversível, código).
   ⚠️ `compute_transaction_hash` (dedup) ∈ `_tx_identity.py`; `generate_transaction_hash`
   (override) ∈ `backend/app/services/transaction_service.py` — **funções/módulos
@@ -110,7 +115,9 @@ violação); `tests/test_parecer_evidencia_path.py` verde (não-regressão do ve
 - **Migration destrutiva (l5):** `downgrade`→`raise RuntimeError` explicando
   irreversibilidade + caminho PITR; `upgrade` com hard-assert de G1 embutido; sem
   `IF EXISTS`. Backup `pg_dump` + sha256 + retenção 30d. **Go/no-go do owner**, não do agente.
-- **Sem ADR nova:** [[ADR-279]] §E (evidencia) e [[ADR-287]] §Cutover (dedup) cobrem;
+- **ADRs da frente de citação (atualizado 2026-06-19):** l1/l2/l6/l7 conformam [[ADR-279]]
+  §E (sem ADR nova); **l8 abriu [[ADR-295]]** (enforcement per-item, `Decidido`); **l9 abriu
+  [[ADR-296]]** (citação determinística, `Proposto`, A27). Dedup: [[ADR-287]] §Cutover;
   **[[ADR-282]] flippa `Proposto→Decidido (A26)`** no merge da M2-B (l5).
 
 ## 6. KRs da janela (readiness/saúde, não "conclusão")
@@ -119,8 +126,10 @@ violação); `tests/test_parecer_evidencia_path.py` verde (não-regressão do ve
 - **KR2** — `dualread.v1_fallback==0` por ≥1 sprint **com `v2_match>=1`** (uso real). Via l4.
 - **KR3** — consolidações destrutivas (l2/l3/l5) executadas **com gate fechado verificado
   ANTES do PR** — não incentiva deletar cedo.
-- **Gate de saúde pré-flip:** baseline de `needs_review` por geração instrumentado antes
-  do flip (transparency backfire — flip só procede se taxa per-parecer genuinamente <5%).
+- **Gate de saúde pré-flip (REDEFINIDO 2026-06-19, ver [[A26.l2]] §Gate):** segurança
+  binária (0 citação errada publicada — já garantida pelo enforcement per-item da [[A26.l8]])
+  + budget de `needs_review` per-parecer ≤15% sobre ≥20 ger reais (não mais <5%, inatingível
+  pelo eval 1.8.0; exceder prioriza [[A26.l9]], não reabre o flip).
 
 ## 7. Convenções do repo (CLAUDE.md — não violar)
 
