@@ -50,9 +50,11 @@ veio este R$ do parecer?" — hoje a camada mais user-facing fica cega.
 - **Must (núcleo — nunca cortar):** [[A26.l9]] `citacao-deterministica` ([[ADR-296]]
   `Proposto`) — decidida no co-design da A26, **executada A27/Onda 6**. É a única lane
   que fecha a raiz do gate strict que a A26 contornou. **Slice 0 (pré-requisito não
-  opcional):** promover o harness de eval paralelo (`_scratch/run_parecer_eval_parallel.py`,
-  6 workers, ~13 min) ao committed — o eval sequencial (~1,7h) sofre kill e a l9 **não
-  fecha seu critério de aceite** (re-eval holdout) sem ele.
+  opcional): ✅ entregue** ([#679](https://github.com/davidrobert/mathoms/pull/679)) —
+  harness de eval paralelo promovido ao committed em
+  [`dev/run_parecer_eval_parallel.py`](../../../dev/run_parecer_eval_parallel.py)
+  (6 workers, ~13 min). O eval sequencial (~1,7h) sofria kill; sem ele a l9 não fecha
+  seu critério de aceite (re-eval holdout). Resta só `ANTHROPIC_API_KEY` no ambiente.
 - **Condicional (carry-over A26, só ativa se o gate de tráfego não fechar na janela
   A26):** [[A26.l5]] `m2-override-drop` ([[ADR-282]] `Proposto`, DESTRUTIVO
   IRREVERSÍVEL) — cortada da A26 sob gate apertado; executa A27 **somente** com G1/G2/G3

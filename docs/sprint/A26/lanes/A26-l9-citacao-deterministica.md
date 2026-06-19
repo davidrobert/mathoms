@@ -75,12 +75,13 @@ força número==valor-do-path → verificador sempre passa → wrong_pairing **i
 5. **Emissão LLM:** prosa SEM token R$ (invariante de contrato: `R$` cru na prosa =
    violação); `evidencia_path` reusa coerce [[ADR-292]]; `rótulo` é `Literal`+coerce→sentinela
    (nunca reask). Regra 11 reescrita; `PROMPT_VERSION` major. (Co-design `prompt-engineer`.)
-6. **Forma do render — DECISÃO ABERTA p/ a implementação** (`product-designer` +
-   `senior-cto`): **D2-puro** (prosa sem número + chips de âncora no rodapé do card —
-   product-designer recomenda, mais seguro) vs **placeholder `{{N}}` inline** (prompt-engineer
-   — preserva leitura) vs **híbrido** (senior-cto — inline quando `rótulo==root`, senão
-   chip). product-designer argumenta que híbrido vaza o modelo de confiança interno
-   (inconsistência visual) → tende a D2-puro.
+6. **Forma do render — DECIDIDO: D2-puro** (owner, 2026-06-19). Prosa sem número +
+   chips de âncora (`rótulo`/`valor_renderizado`) no rodapé do card. Descartados o
+   **placeholder `{{N}}` inline** (prompt-engineer — preservava leitura) e o **híbrido**
+   (senior-cto — inline quando `rótulo==root`, senão chip): product-designer argumenta
+   que o híbrido vaza o modelo de confiança interno (inconsistência visual) e o D2-puro
+   é o mais seguro — nunca intercala número autorado na prosa, reforça o invariante
+   `number_in_prose_violation == 0`.
 
 ## Critério de aceite
 
@@ -100,8 +101,9 @@ força número==valor-do-path → verificador sempre passa → wrong_pairing **i
 - **Não bloqueia [[A26.l2]]:** o enforcement da l8 já protege o usuário (0 falso
   publicado). O flip strict procede sob o gate redefinido (segurança binária +
   budget de needs_review), independente da l9.
-- **Promover o harness paralelo** (`_scratch/run_parecer_eval_parallel.py`, 6 workers,
-  ~13 min) ao committed é pré-requisito (o eval sequencial de ~1,7h sofre kill).
+- **Harness paralelo: ✅ committed** em `dev/run_parecer_eval_parallel.py` (6 workers,
+  ~13 min; [#679](https://github.com/davidrobert/mathoms/pull/679)) — era pré-requisito
+  (o eval sequencial de ~1,7h sofre kill). Resta `ANTHROPIC_API_KEY` no ambiente p/ rodar.
 - **l9 coexiste com l8** (não supersede): l8 é a máquina de decisão; l9 muda o sinal.
 
 ## Owner
