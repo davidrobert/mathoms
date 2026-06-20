@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Any, Mapping, Optional
 
 from backend.app.schemas.dto.planner_review.response import (
+    AncoraDTO,
     GatedCounts,
     ImpactoEstimadoDTO,
     MetricaDTO,
@@ -76,6 +77,18 @@ def _ponto_dto(raw: Mapping[str, Any]) -> PontoForteDTO:
     )
 
 
+def _ancoras_dto(raw: Mapping[str, Any]) -> list[AncoraDTO]:
+    """Âncoras v2 (ADR-296). v1 traz evidencia_path; lista vazia aqui."""
+    return [
+        AncoraDTO(
+            path=a.get("path"),
+            rotulo=a.get("rotulo"),
+            valor_renderizado=a.get("valor_renderizado"),
+        )
+        for a in raw.get("ancoras", [])
+    ]
+
+
 def _risco_dto(raw: Mapping[str, Any]) -> RiscoDTO:
     return RiscoDTO(
         severidade=raw["severidade"],
@@ -84,6 +97,7 @@ def _risco_dto(raw: Mapping[str, Any]) -> RiscoDTO:
         tema_canonico=raw["tema_canonico"],
         evidencia=raw.get("evidencia"),
         evidencia_path=raw.get("evidencia_path"),
+        ancoras=_ancoras_dto(raw),
         section_id=raw["section_id"],
         confianca=raw.get("confianca"),
     )
@@ -112,6 +126,7 @@ def _sugestao_dto(raw: Mapping[str, Any]) -> SugestaoDTO:
         suggestion_dedup_key=raw["suggestion_dedup_key"],
         impacto_estimado=_impacto_dto(raw.get("impacto_estimado")),
         evidencia_path=raw.get("evidencia_path"),
+        ancoras=_ancoras_dto(raw),
     )
 
 

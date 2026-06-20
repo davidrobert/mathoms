@@ -51,7 +51,8 @@ narrative_hints_global:
   - "Sigilo §13: NUNCA cite 'Perini', 'Cerbasi', 'AUVP', 'Bruno Perini', 'Gustavo Cerbasi', 'Raul Sena' no body textual. Use ancora_metodologica (enum interno) para indicar a metodologia."
   - "NUNCA prescreva ativo específico (ticker). Parecer é orientativo metodológico, não recomendação de investimento."
   - "Quando confiança não for 'alta', evite linguagem prescritiva — descreva o quê, não o porquê especulado."
-  - "Cite apenas números/categorias/fatos presentes no exec context ou retornados por tool. Se faltar, declare em campos_faltantes_pediria_se_iterasse."
+  - "Cite apenas números/categorias/fatos presentes no exec context ou retornados por tool."
+  - "Citação determinística (ADR-296): NUNCA escreva valores em R$ na prosa — descreva o conceito; o sistema renderiza o número a partir do path. Para cada valor que fundamenta um Risco/Sugestão, emita uma âncora em ancoras:[{path, rotulo}] copiada de UMA linha do catálogo 'evidencia_paths_disponiveis': path = o path daquela linha; rotulo = o cabeçalho de grupo (em negrito, ex. 'reserva_emergencia') sob o qual aquele path está listado. Escolha a linha pelo CONCEITO da frase (path e rotulo vêm da MESMA linha). Máximo 3 âncoras por item. Se o conceito não está no catálogo, NÃO ancore — declare em campos_faltantes_pediria_se_iterasse."
   - "Convenção numérica de percentual (ADR-209): TODOS os campos *_pct, pct_*, percentual_* são valores ABSOLUTOS (44.7 = 44,7%; nunca 4470% nem 0,447%). Valores > 100 são válidos quando semanticamente possível (cobertura_despesa_essencial_pct: 350.0 = renda passiva cobre 3,5× a despesa). Valores < 1 são válidos (valor_pct: 0.5 = 0,5% a.a.). Exceção: ratios.rentabilidade_pct, ratios.aliquota_efetiva_ir_pct, irpf_kpis.aliquota_sobre_tributavel_pct, irpf_kpis.aliquota_sobre_total_pct vêm como STRING ('22.50' ou 'N/D') — faça cast antes de operar; trate 'N/D' como indisponibilidade."
   - "Tipagem de impacto (ADR-220): em impacto_estimado.tipo, declare a natureza do valor: 'patrimonio_alvo' (estoque-alvo necessário, ex. 25× despesa anual para IF), 'fluxo_anual' (renda anual desejada ou despesa anual evitada), 'economia_anual_irpf' (PGBL, dedutíveis), 'gap_protecao' (capital de seguro faltante), 'outro' (não-monetário ou casos especiais). Para sugestões com tema_canonico='Renda passiva', emita SEMPRE pelo menos uma sugestão com tipo='patrimonio_alvo' calculado pela regra metodológica (estoque, não fluxo). Opcionalmente, emita também uma sugestão-irmã com tipo='fluxo_anual' descrevendo a renda projetada. NUNCA marque o fluxo anual como 'patrimonio_alvo' — isso confunde estoque com fluxo no produto."
 
@@ -174,7 +175,7 @@ context_sections:
       # ADR-290 F2 — valor determinístico: o LLM recalculava/arredondava a
       # reserva entre runs (R$ 224k..540k no dogfood); o escalar exato já
       # existe no payload.
-      - "Cite o valor de reserva copiando o escalar do payload, com evidencia_path na folha ($.reserva_emergencia.nivel_6_meses, nivel_12_meses, total_liquida) — nunca no bloco-pai. Proibido faixa ou arredondamento próprio."
+      - "Ancore a reserva via ancoras (NÃO escreva o R$ na prosa): path na folha ($.reserva_emergencia.nivel_6_meses, nivel_12_meses, total_liquida), rotulo='reserva_emergencia' — nunca o bloco-pai."
 
   # --------------------------------------------------------------------------
   # 5) Ratios + rentabilidade (S1/S3 — leitura cruzada)
@@ -222,7 +223,7 @@ context_sections:
       - "Ao citar prazo, mencione que é projeção sob premissa de retorno real do payload — não invente a taxa."
       - "Cenários cônjuge ausentes (objeto vazio) = workspace solteiro ou casal sem meta IF; não force narrativa."
       # ADR-290 F2 — valor determinístico (par do hint de saude_balanco).
-      - "Cite patrimônio-alvo/renda passiva copiando o escalar do payload, com evidencia_path na folha ($.passive_income.*, $.if_monte_carlo.*). Banda de Monte Carlo é faixa legítima — aponte o campo-faixa, não invente intervalo."
+      - "Ancore patrimônio-alvo/renda passiva via ancoras (NÃO escreva o R$ na prosa): path na folha ($.passive_income.*, $.if_monte_carlo.*), rotulo = a seção dona (passive_income / if_monte_carlo)."
 
   # --------------------------------------------------------------------------
   # 7) Previdência + IRPF (S8 / S_IRPF_RENDA / S_IRPF_OTIMIZACAO)

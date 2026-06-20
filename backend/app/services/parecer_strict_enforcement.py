@@ -15,7 +15,8 @@ from typing import Optional
 from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
 
 # Citação que resolve ERRADO — derruba item. missing_path (cobertura) fica fora.
-_HARD_LAYERS = frozenset({"whitelist_miss", "resolve_null", "value_mismatch"})
+# ADR-296: pairing_mismatch (rotulo ↔ root incoerente) substitui value_mismatch.
+_HARD_LAYERS = frozenset({"whitelist_miss", "resolve_null", "pairing_mismatch"})
 _HIGH_SEVERIDADE = frozenset({"Crítica", "Alta"})
 _SUGESTAO_HORIZONS = frozenset(
     {"sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"}

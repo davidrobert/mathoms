@@ -5,7 +5,13 @@ from __future__ import annotations
 import pytest
 from pydantic import TypeAdapter
 
-from pipeline.llm.schemas.parecer_planejador import CampoFaltante, Confianca, Risco, Sugestao
+from pipeline.llm.schemas.parecer_planejador import (
+    Ancora,
+    CampoFaltante,
+    Confianca,
+    Risco,
+    Sugestao,
+)
 
 _CONFIANCA = TypeAdapter(Confianca)
 
@@ -103,9 +109,9 @@ def test_sugestao_normaliza_antes_de_checar_impacto_estimado_so_alta():
         "$.reserva emergencia.total",  # espaço (segmento inválido)
     ],
 )
-def test_risco_evidencia_path_invalido_coerce_para_none(bad_path):
-    r = Risco(**_risco(evidencia_path=bad_path))
-    assert r.evidencia_path is None
+def test_ancora_path_invalido_coerce_para_none(bad_path):
+    """ADR-296 reusa o coerce do ADR-292 em Ancora.path."""
+    assert Ancora(path=bad_path).path is None
 
 
 @pytest.mark.parametrize(
@@ -117,14 +123,37 @@ def test_risco_evidencia_path_invalido_coerce_para_none(bad_path):
         "$.alocacao_por_classe[*]",
     ],
 )
-def test_risco_evidencia_path_valido_passa(good_path):
-    r = Risco(**_risco(evidencia_path=good_path))
-    assert r.evidencia_path == good_path
+def test_ancora_path_valido_passa(good_path):
+    assert Ancora(path=good_path).path == good_path
 
 
-def test_sugestao_evidencia_path_filtro_coerce_para_none():
-    s = Sugestao(**_sugestao(evidencia_path="$.investimentos[?(@.tipo=='RF')].saldo"))
-    assert s.evidencia_path is None
+@pytest.mark.parametrize(
+    "bad_rotulo",
+    [
+        "tem espaço",  # não-identifier
+        "$.reserva_emergencia",  # path, não root
+        "x" * 65,  # > 64 chars
+        "com-hifen",  # não-identifier
+    ],
+)
+def test_ancora_rotulo_invalido_coerce_para_none(bad_rotulo):
+    """ADR-296: rótulo fora da FORMA (não-identifier/>64) → None, nunca reask.
+    Pertinência (rótulo == root) é do verificador, não do schema."""
+    assert Ancora(rotulo=bad_rotulo).rotulo is None
+
+
+@pytest.mark.parametrize("good_rotulo", ["reserva_emergencia", "patrimonio", "if_monte_carlo"])
+def test_ancora_rotulo_valido_passa(good_rotulo):
+    assert Ancora(rotulo=good_rotulo).rotulo == good_rotulo
+
+
+def test_risco_aceita_ate_3_ancoras():
+    r = Risco(
+        **_risco(
+            ancoras=[{"path": "$.reserva_emergencia.total_liquida", "rotulo": "reserva_emergencia"}]
+        )
+    )
+    assert len(r.ancoras) == 1 and r.ancoras[0].rotulo == "reserva_emergencia"
 
 
 def test_campo_faltante_field_path_filtro_coerce_para_none_preserva_motivo():

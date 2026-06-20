@@ -26,6 +26,7 @@ from backend.app.services.parecer_finalization import (
     empty_needs_review_output,
     finalize_output,
     severity_from_prioridade,
+    stamp_ancora_values,
     validate_anti_sigilo,
 )
 from backend.app.services.parecer_manifest import ManifestData, load_manifest, load_persona
@@ -457,7 +458,7 @@ def _generate_with_llm(
             evidencia_entries=evidencia.entries,
         )
     final = finalize_output(
-        output=raw,
+        output=stamp_ancora_values(raw, tools),  # ADR-296: snapshot path→valor_renderizado
         workspace_id=config.workspace_id,
         tier=config.tier,
         model_id=config.model_id,

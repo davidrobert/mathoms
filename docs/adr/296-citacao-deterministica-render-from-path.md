@@ -117,3 +117,26 @@ divergir).
   contrato), não consolidação A26. A A26 fecha via redefinição do gate da [[A26.l2]]
   (segurança "0 falso publicado" já atingida + budget de `needs_review`), sem l9.
 - Materialização da citação como **edge de lineage por chave natural** ([[ADR-293]]).
+
+## Implementação — design do `rótulo` (co-design `prompt-engineer`, 2026-06-19)
+
+Ponto deixado em aberto pela §Decisão, fechado na implementação da [[A26.l9]]:
+
+- **`rotulo` é validação dinâmica, NÃO `Literal` estático.** `Rotulo =
+  Annotated[Optional[str], BeforeValidator]` coage só a FORMA (`isidentifier()` ASCII +
+  ≤64 chars → `None`); a PERTINÊNCIA (`rotulo == root do path`) é do verificador. Um
+  `Literal` dos money-roots quebraria a paridade catálogo↔geração e geraria falso-drop
+  sistemático em root novo do E5.
+- **`rotulo` = root puro** (1º segmento do path), copiado do cabeçalho de grupo do
+  catálogo (`**reserva_emergencia**`). Legibilidade do chip é do renderer (root→label),
+  não do contrato. Detecção de `wrong_pairing` vem do LLM cruzar grupos (path de um,
+  rotulo de outro).
+- **Sentinela = `None`** → `pairing_mismatch` ∈ `_CORRECTNESS_LAYERS`/`_HARD_LAYERS`
+  (drop/needs_review). `path=None` + rotulo presente → continua `missing_path`
+  (cobertura, fail-open — ADR-292). Nunca reask.
+- **Densidade:** `ancoras: list[Ancora]` cap 3, sem piso por-item (anti-sub-citação é
+  agregado por parecer, telemetria — não constraint Pydantic).
+- **Estado (2026-06-19):** backend implementado e verde (2658 testes backend + 199
+  pipeline parecer). `EVIDENCIA_VERIFICATION_VERSION` 3, `PROMPT_VERSION` 2.0.0,
+  schema `version` 2.0. Pendente: renderer D2-puro (frontend) + re-eval holdout
+  (owner-gated) → flip desta ADR para `Decidido` no merge final.

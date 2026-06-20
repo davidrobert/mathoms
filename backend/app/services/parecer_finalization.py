@@ -8,11 +8,15 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from pipeline.llm.schemas.parecer_planejador import (
+    Ancora,
     Metadata,
     ParecerPlanejadorOutput,
     PontoForte,
+    Risco,
     Sugestao,
 )
+from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
+from pipeline.llm.value_formatter import format_value
 
 # Termos sigilo §13 — camada 2 de defesa (persona é 1, UI é 3 — ADR-207).
 _FORBIDDEN_TERMS = (
@@ -163,6 +167,32 @@ def _stamped_metadata(
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
     )
+
+
+def _resolve_ancora(ancora: Ancora, drill: PlannerDrillDown) -> Ancora:
+    """Resolve path→valor_renderizado via format_value (fonte única = catálogo, ADR-296)."""
+    if ancora.path is None:
+        return ancora
+    result = drill.get_e5_jsonpath(ancora.path)
+    if not result.found:
+        return ancora
+    return ancora.model_copy(update={"valor_renderizado": format_value(result.value, "brl")})
+
+
+def _stamp_item(item: Risco | Sugestao, drill: PlannerDrillDown) -> Risco | Sugestao:
+    if not item.ancoras:
+        return item
+    return item.model_copy(update={"ancoras": [_resolve_ancora(a, drill) for a in item.ancoras]})
+
+
+def stamp_ancora_values(
+    output: ParecerPlanejadorOutput, drill: PlannerDrillDown
+) -> ParecerPlanejadorOutput:
+    """ADR-296: grava o snapshot valor_renderizado de cada âncora (LLM não autora o número)."""
+    update: dict = {"riscos": [_stamp_item(r, drill) for r in output.riscos]}
+    for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+        update[horizon] = [_stamp_item(s, drill) for s in getattr(output, horizon)]
+    return output.model_copy(update=update)
 
 
 def finalize_output(

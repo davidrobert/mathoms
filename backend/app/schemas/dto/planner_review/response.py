@@ -55,8 +55,18 @@ class PontoForteDTO(BaseModel):
     section_id: Optional[SectionId] = None
 
 
+class AncoraDTO(BaseModel):
+    """Âncora de citação determinística (ADR-296) — chip D2-puro; `valor_renderizado` é o R$ resolvido do `path` pelo finalize. v1 usa `evidencia_path` (dispatch por `version`)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    path: Optional[str] = None
+    rotulo: Optional[str] = None
+    valor_renderizado: Optional[str] = None
+
+
 class RiscoDTO(BaseModel):
-    """Risco user-facing — sem ancora (sigilo §13)."""
+    """Risco user-facing — sem ancora metodológica (sigilo §13)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -65,7 +75,8 @@ class RiscoDTO(BaseModel):
     descricao: str
     tema_canonico: TemaCanonico
     evidencia: Optional[str] = None
-    evidencia_path: Optional[str] = None
+    evidencia_path: Optional[str] = None  # v1 (ADR-296: renderer dispatch por version)
+    ancoras: list[AncoraDTO] = Field(default_factory=list)
     section_id: SectionId
     confianca: Optional[Confianca] = None
 
@@ -96,7 +107,8 @@ class SugestaoDTO(BaseModel):
     section_id: SectionId
     suggestion_dedup_key: str
     impacto_estimado: Optional[ImpactoEstimadoDTO] = None
-    evidencia_path: Optional[str] = None
+    evidencia_path: Optional[str] = None  # v1 (ADR-296: renderer dispatch por version)
+    ancoras: list[AncoraDTO] = Field(default_factory=list)
 
 
 class MetricaDTO(BaseModel):
