@@ -48,6 +48,15 @@ export interface PontoForte {
   section_id: PlannerSectionId | null;
 }
 
+/** ADR-296: âncora de citação determinística — chip D2-puro no rodapé do card.
+ *  `valor_renderizado` é o R$ resolvido do `path` pelo finalize (snapshot). v1
+ *  (sem `ancoras`) usa `evidencia_path`; renderer faz dispatch por `content.version`. */
+export interface Ancora {
+  path: string | null;
+  rotulo: string | null;
+  valor_renderizado: string | null;
+}
+
 export interface Risco {
   severidade: Severidade;
   titulo: string;
@@ -55,6 +64,7 @@ export interface Risco {
   tema_canonico: TemaCanonico;
   evidencia: string | null;
   evidencia_path: string | null;
+  ancoras: Ancora[];
   section_id: PlannerSectionId;
   confianca: Confianca | null;
 }
@@ -90,6 +100,7 @@ export interface Sugestao {
   suggestion_dedup_key: string;
   impacto_estimado: ImpactoEstimado | null;
   evidencia_path: string | null;
+  ancoras: Ancora[];
   /** ADR-220: categoria editorial da sugestão (natureza do impacto), ortogonal
    *  a tema_canonico (tema = metodologia; categoria = natureza). */
   categoria_sugestao?: ImpactoTipo | null;

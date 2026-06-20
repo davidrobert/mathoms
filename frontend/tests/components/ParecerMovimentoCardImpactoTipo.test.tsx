@@ -12,9 +12,11 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { ParecerMovimentoCard } from "@/components/report/sections/SParecer/ParecerMovimentoCard";
-import type { ImpactoTipo, Sugestao } from "@/lib/api";
+import type { Ancora, ImpactoTipo, Sugestao } from "@/lib/api";
 
-function makeSugestao(overrides: { tipo?: ImpactoTipo | null } = {}): Sugestao {
+function makeSugestao(
+  overrides: { tipo?: ImpactoTipo | null; ancoras?: Ancora[] } = {},
+): Sugestao {
   return {
     prioridade: "P1",
     acao: "Acumular o patrimônio necessário para destravar IF.",
@@ -30,6 +32,7 @@ function makeSugestao(overrides: { tipo?: ImpactoTipo | null } = {}): Sugestao {
       tipo: overrides.tipo === undefined ? null : overrides.tipo,
     },
     evidencia_path: null,
+    ancoras: overrides.ancoras ?? [],
   };
 }
 
@@ -101,5 +104,39 @@ describe("ParecerMovimentoCard — label semântico do impacto (ADR-220)", () =>
       />,
     );
     expect(screen.getByText(/Impacto estimado:/)).toBeInTheDocument();
+  });
+});
+
+describe("ParecerMovimentoCard — chips de âncora D2-puro (ADR-296)", () => {
+  it("renderiza rótulo legível + valor renderizado do path", () => {
+    render(
+      <ParecerMovimentoCard
+        sugestao={makeSugestao({
+          ancoras: [
+            {
+              path: "$.reserva_emergencia.total_liquida",
+              rotulo: "reserva_emergencia",
+              valor_renderizado: "R$ 84.000,00",
+            },
+          ],
+        })}
+        workspaceId="ws-1"
+        readOnly
+      />,
+    );
+    const chips = screen.getByTestId("parecer-ancoras");
+    expect(chips).toHaveTextContent("Reserva de emergência");
+    expect(chips).toHaveTextContent("R$ 84.000,00");
+  });
+
+  it("não renderiza chips quando ancoras vazio (v1/sem valor)", () => {
+    render(
+      <ParecerMovimentoCard
+        sugestao={makeSugestao({ ancoras: [] })}
+        workspaceId="ws-1"
+        readOnly
+      />,
+    );
+    expect(screen.queryByTestId("parecer-ancoras")).not.toBeInTheDocument();
   });
 });
