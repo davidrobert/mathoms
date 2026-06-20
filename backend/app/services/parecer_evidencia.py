@@ -64,10 +64,11 @@ class EvidenciaVerification:
     failures_by_layer: dict[str, int] = field(default_factory=lambda: dict.fromkeys(_LAYERS, 0))
     entries: list[dict] = field(default_factory=list)
     violations: list[str] = field(default_factory=list)  # "tipo:índice:camada"
-    # KR2/KR4 (ADR-290 F2) — denominador p/ taxa de mismatch + faixa inventada
-    # em campo escalar (drift de prompt 1.3.0 → 1.4.0).
+    # ADR-296: money_tokens_total agora é number_in_prose (R$ cru na prosa — deve ser 0);
+    # ancoras_total é a densidade de citação (substitui money_tokens como piso anti-sub-citação).
     money_tokens_total: int = 0
     range_in_scalar_count: int = 0
+    ancoras_total: int = 0
 
     @property
     def coverage_failed(self) -> int:
@@ -97,6 +98,7 @@ class EvidenciaVerification:
             "by_section": self.by_section(),
             "money_tokens_total": self.money_tokens_total,
             "range_in_scalar_count": self.range_in_scalar_count,
+            "ancoras_total": self.ancoras_total,
             # ADR-295: itens removidos pelo enforcement per-item no strict (auditável).
             "items_dropped": items_dropped,
             "prompt_version": PROMPT_VERSION,
@@ -134,6 +136,7 @@ def verify_evidencia(
         # number_in_prose (deve ser 0); range_in_scalar idem.
         result.money_tokens_total += len(_extract_money_tokens(prose_fields))
         result.range_in_scalar_count += _count_ranges(prose_fields)
+        result.ancoras_total += len(ancoras)
         for ancora in ancoras:
             layer = _check_anchor(drill, ancora)
             _record(result, item_type=item_type, index=index, path=ancora.path, layer=layer)
