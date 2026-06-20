@@ -9,6 +9,7 @@ import { useState } from "react";
 import { ArrowRight, Check, ChevronDown, X } from "lucide-react";
 
 import { MonetaryValue } from "../../MonetaryValue";
+import { ParecerAncoraChips } from "./ParecerAncoraChips";
 import type { ImpactoTipo, Prioridade, Sugestao } from "@/lib/api";
 import { useSuggestionActions } from "@/hooks/useSuggestionActions";
 
@@ -160,6 +161,8 @@ export function ParecerMovimentoCard({
           </span>
         </p>
       )}
+
+      <ParecerAncoraChips ancoras={sugestao.ancoras} />
 
       {!readOnly && (
         <div className="parecer-action mt-3 flex flex-wrap items-center gap-2">

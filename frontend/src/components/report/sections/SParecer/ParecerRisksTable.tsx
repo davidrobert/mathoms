@@ -6,6 +6,7 @@
 
 import { AlertOctagon, AlertTriangle, Info } from "lucide-react";
 
+import { ParecerAncoraChips } from "./ParecerAncoraChips";
 import type { Risco, Severidade } from "@/lib/api";
 
 const SEVERIDADE_RANK: Record<Severidade, number> = {
@@ -139,6 +140,7 @@ function RiscoRow({ risco }: { risco: Risco }) {
           §{risco.section_id} · {risco.tema_canonico}
           {risco.confianca && ` · confiança ${risco.confianca}`}
         </p>
+        <ParecerAncoraChips ancoras={risco.ancoras} />
       </div>
     </li>
   );
