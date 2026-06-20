@@ -95,7 +95,11 @@ _GATE_CHECKS = (
     ),
     (
         lambda r: r["density_median"] < _DENSITY_FLOOR,
-        lambda r: f"densidade {r['density_median']} < piso {_DENSITY_FLOOR}",
+        lambda r: f"densidade {r['density_median']} âncoras < piso {_DENSITY_FLOOR}",
+    ),
+    (
+        lambda r: r["number_in_prose_total"] != 0,
+        lambda r: f"{r['number_in_prose_total']} tokens R$ na prosa (contrato ADR-296: prosa sem R$)",
     ),
     (
         lambda r: r["total_cost_usd"] > _COST_CAP_USD,
@@ -118,7 +122,8 @@ _SUMMARY_ROWS = (
     ("per-parecer UB IC95", "per_parecer_ub_ic95", "{:.2%}"),
     ("missing_path pareceres", "missing_path_pareceres", "{}"),
     ("conformidade citação", "per_citation_conformidade", "{:.2%}"),
-    ("densidade (mediana)", "density_median", "{}"),
+    ("densidade âncoras (med)", "density_median", "{}"),
+    ("R$ na prosa (deve=0)", "number_in_prose_total", "{}"),
     ("diag temp=0 violações", "diag_violations", "{}"),
     ("custo total US$", "total_cost_usd", "{:.2f}"),
 )

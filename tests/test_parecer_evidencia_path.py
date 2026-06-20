@@ -253,6 +253,11 @@ class TestStrictModePositives:
         assert ancora["path"] == _RESERVA[0]
         assert ancora["valor_renderizado"].startswith("R$ ")
 
+    def test_ancoras_total_conta_densidade(self):
+        """ADR-296: ancoras_total é a densidade de citação (substitui money_tokens no eval)."""
+        result, _ = _run([_RESERVA, _IMOVEL])
+        assert result["evidencia_verification"]["ancoras_total"] == 2
+
 
 # -----------------------------------------------------------------------
 # Extração de tokens monetários — telemetria number_in_prose (ADR-296: deve ser 0)

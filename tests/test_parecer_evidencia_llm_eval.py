@@ -33,9 +33,10 @@ _GATE_RUNS = 5
 _GATE_TEMP = 0.1
 _DIAG_TEMP = 0.0
 _PER_PARECER_GATE = 0.05
-# Colapso-guarda: mediana de tokens R$/parecer não pode despencar (baseline warn
-# 1.5.0 ~17 tokens; piso conservador tolera estratos de baixo ativo).
-_DENSITY_FLOOR = 8
+# Colapso-guarda (ADR-296): pós-l9 a prosa não tem R$, então a densidade é a mediana
+# de ÂNCORAS/parecer (não mais money_tokens). Piso conservador — re-ancorar na 1ª
+# medição real (o anti-sub-citação importa, não o número absoluto).
+_DENSITY_FLOOR = 5
 _COST_CAP_USD = 20.0
 
 
@@ -76,7 +77,8 @@ def _verdict(fixture, result) -> dict:
         "hard_failed": hard_failed,
         "missing_path": int(by_layer.get("missing_path", 0)),
         "verified": int(summary.get("evidencia_verified", 0)),
-        "money_tokens": int(summary.get("money_tokens_total", 0)),
+        "number_in_prose": int(summary.get("money_tokens_total", 0)),  # ADR-296: deve=0
+        "ancoras": int(summary.get("ancoras_total", 0)),  # densidade de citação
         "failures_by_layer": by_layer,
         "violation": hard_failed > 0,
         "cost_usd": float(result.cost_usd),
@@ -115,7 +117,9 @@ def _build_report(gate: list[dict], diag: list[dict]) -> dict:
         "per_parecer_ub_ic95": _wilson_upper(violations, len(ok_gate)),
         "missing_path_pareceres": sum(1 for r in ok_gate if r["missing_path"] > 0),
         "per_citation_conformidade": _conformidade(ok_gate),
-        "density_median": statistics.median([r["money_tokens"] for r in ok_gate] or [0]),
+        "density_median": statistics.median([r["ancoras"] for r in ok_gate] or [0]),
+        # ADR-296: contrato exige prosa sem R$ — total de tokens R$ na prosa deve ser 0.
+        "number_in_prose_total": sum(r["number_in_prose"] for r in ok_gate),
         "diag_violations": sum(r["violation"] for r in diag if r["ok"]),
         "total_cost_usd": sum(r["cost_usd"] for r in gate + diag),
     }
@@ -160,10 +164,17 @@ def test_diagnostic_temp0_zero_violations(eval_report):
 
 
 def test_citation_density_floor(eval_report):
-    """Anti-sub-citação: 95% conforme não pode ser 'o LLM calou a boca'."""
+    """Anti-sub-citação (ADR-296): mediana de âncoras/parecer não pode despencar."""
     assert (
         eval_report["density_median"] >= _DENSITY_FLOOR
-    ), f"densidade {eval_report['density_median']} < piso {_DENSITY_FLOOR} — possível sub-citação"
+    ), f"densidade {eval_report['density_median']} âncoras < piso {_DENSITY_FLOOR} — sub-citação"
+
+
+def test_number_in_prose_is_zero(eval_report):
+    """ADR-296: o LLM nunca digita R$ na prosa (o número é renderizado do path)."""
+    assert (
+        eval_report["number_in_prose_total"] == 0
+    ), f"{eval_report['number_in_prose_total']} tokens R$ na prosa — viola o contrato (prosa sem R$)"
 
 
 def test_cost_within_cap(eval_report):
