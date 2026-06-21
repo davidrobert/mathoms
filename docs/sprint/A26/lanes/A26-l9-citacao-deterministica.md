@@ -4,7 +4,7 @@ type: lane
 title: "citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural"
 sprint: A26
 plan: PLAN-data-lineage
-status: planned
+status: shipped
 priority: P1
 branch_slug: citacao-deterministica
 adrs:
@@ -20,7 +20,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a26
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/data-lineage
   - area/llm
@@ -28,6 +28,14 @@ tags:
 ---
 
 # A26.l9 — `citacao-deterministica` (Onda 6 · cobertura de citação · Regime A)
+
+> **✅ SHIPPED (2026-06-20):** backend (#684) + frontend D2-puro (#685) + determinismo
+> (#682) + re-eval prep (#686). Re-eval holdout real validou: **0 violações de pairing
+> per-parecer** (era 26%), **temp=0 = 0** (resíduo determinístico eliminado), conformidade
+> **100%**. `value_mismatch` impossível por construção. [[ADR-296]] → `Decidido`. Dois
+> ajustes de gate por evidência (ver ADR §Re-eval): UB IC95 → "violações==0" (Wilson ~7,1%
+> em n=50 com 0 violações é inalcançável <5%); `number_in_prose` → budget (chip é
+> autoritativo; ~0,22/parecer, mediana 0).
 
 > **Origem:** "Caminho aberto 1" da [[A26.l8]]. Implementa [[ADR-296]]. Co-design
 > 6 especialistas 2026-06-19. **Escopo de sprint (product-manager): A27 / Onda 6**,

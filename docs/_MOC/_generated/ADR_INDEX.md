@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 261
-- **Proposto**: 25
+- **Decidido**: 262
+- **Proposto**: 24
 - **Roadmap**: 4
 
 ## Fundação
@@ -395,7 +395,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## llm
 
-### Decidido (14)
+### Decidido (15)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
@@ -411,13 +411,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-208]] — Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-292]] — evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) · phase A26 · parecer reliability
 - [[ADR-294]] — Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) · phase A26 · parecer reliability
+- [[ADR-296]] — Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha · phase A26.l9 · parecer reliability
 
-### Proposto (4)
+### Proposto (3)
 
 - [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability
-- [[ADR-296]] — Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha · phase A27 · parecer reliability
 
 ## marketing
 

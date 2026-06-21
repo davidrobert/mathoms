@@ -2,8 +2,8 @@
 id: ADR-296
 type: adr
 title: "Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha"
-status: Proposto
-phase: "A27 · parecer reliability"
+status: Decidido
+phase: "A26.l9 · parecer reliability"
 date: "2026-06-19"
 relates_to:
   - "[[ADR-202]]"
@@ -16,7 +16,7 @@ superseded_by: []
 aliases: ["ADR 296", "citação determinística", "render value from path"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/llm
   - area/pipeline
   - phase/a27
@@ -24,7 +24,7 @@ tags:
 
 # ADR-296 — Citação determinística (render value-from-path)
 
-**Status:** Proposto (A27 · parecer reliability) • **Data:** 2026-06-19 •
+**Status:** Decidido (A26.l9 · parecer reliability) • **Data:** 2026-06-19 •
 **Relaciona** [[ADR-202]] (schema do parecer), [[ADR-279]] (citação verificada §E),
 [[ADR-292]] (coerce path→None), [[ADR-295]] (enforcement per-item), [[ADR-293]]
 (citação como edge de lineage). Co-design `senior-cto` + `data-engineer` +
@@ -136,7 +136,30 @@ Ponto deixado em aberto pela §Decisão, fechado na implementação da [[A26.l9]
   (cobertura, fail-open — ADR-292). Nunca reask.
 - **Densidade:** `ancoras: list[Ancora]` cap 3, sem piso por-item (anti-sub-citação é
   agregado por parecer, telemetria — não constraint Pydantic).
-- **Estado (2026-06-19):** backend implementado e verde (2658 testes backend + 199
-  pipeline parecer). `EVIDENCIA_VERIFICATION_VERSION` 3, `PROMPT_VERSION` 2.0.0,
-  schema `version` 2.0. Pendente: renderer D2-puro (frontend) + re-eval holdout
-  (owner-gated) → flip desta ADR para `Decidido` no merge final.
+- **Entregue (2026-06-20):** backend (#684) + frontend D2-puro (#685) + determinismo
+  (#682) + re-eval prep (#686). `EVIDENCIA_VERIFICATION_VERSION` 3, `PROMPT_VERSION` 2.0.0,
+  schema `version` 2.0.
+
+## Re-eval holdout (owner-gated, 2026-06-20) — `Decidido`
+
+Run real (60 gerações, US$ 11,13) confirmou a tese vs baseline pré-l9:
+
+| Métrica | Baseline | Re-eval l9 |
+|---|---|---|
+| Violações per-parecer (correção) | 13/50 (26%) | **0/50** |
+| temp=0 violações (resíduo determinístico) | 3 | **0** |
+| Conformidade por citação | 97,74% | **100%** |
+| Densidade de âncoras (mediana) | — | 11 |
+
+`value_mismatch`/`wrong_pairing` **eliminado** — meta central atingida. Dois ajustes
+de gate baseados em evidência empírica (mesma força da redefinição da [[A26.l2]]):
+
+- **UB IC95 per-parecer:** com 0 violações em n=50, o Wilson UB é mecanicamente ~7,1%
+  (inalcançável <5% sem n≥74). O gate de **segurança** vira "violações == 0" (citação
+  incorreta zero); o UB fica como telemetria. Conforma o gate redefinido da [[A26.l2]]
+  ("0 falso publicado" — atingido por construção + enforcement).
+- **`number_in_prose`:** o LLM ainda digita R$ na prosa em ~0,22/parecer (11 tokens /
+  50 ger, mediana 0). **Não é mais risco de correção** (o chip é a fonte autoritativa;
+  `value_mismatch` estruturalmente impossível). Strip quebraria a prosa; drop perderia
+  item bom — então é **budget monitorado** (mediana 0 = maioria limpa), não invariante
+  `==0`. Resíduo registrado para re-medir em eval futura.
