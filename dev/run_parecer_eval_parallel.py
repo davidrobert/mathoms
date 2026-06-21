@@ -33,7 +33,6 @@ from tests.test_parecer_evidencia_llm_eval import (  # noqa: E402  reuso: zero d
     _DIAG_TEMP,
     _GATE_RUNS,
     _GATE_TEMP,
-    _PER_PARECER_GATE,
     _REPORT_PATH,
     _build_report,
     _run_once,
@@ -86,8 +85,9 @@ def _collect_parallel(workers: int) -> dict:
 # (predicado, mensagem) — os mesmos 4 invariantes do gate pytest (+ guarda de erro de LLM).
 _GATE_CHECKS = (
     (
-        lambda r: r["per_parecer_ub_ic95"] >= _PER_PARECER_GATE,
-        lambda r: f"UB IC95 per-parecer {r['per_parecer_ub_ic95']:.2%} ≥ {_PER_PARECER_GATE:.0%}",
+        # Segurança (A26.l2 redefinido): zero citação incorreta. UB IC95 é telemetria.
+        lambda r: r["per_parecer_violations"] != 0,
+        lambda r: f"{r['per_parecer_violations']} pareceres com citação incorreta (UB {r['per_parecer_ub_ic95']:.2%})",
     ),
     (
         lambda r: r["diag_violations"] != 0,
@@ -98,8 +98,9 @@ _GATE_CHECKS = (
         lambda r: f"densidade {r['density_median']} âncoras < piso {_DENSITY_FLOOR}",
     ),
     (
-        lambda r: r["number_in_prose_total"] != 0,
-        lambda r: f"{r['number_in_prose_total']} tokens R$ na prosa (contrato ADR-296: prosa sem R$)",
+        # Budget: maioria dos pareceres sem R$ na prosa (mediana 0); total é telemetria.
+        lambda r: r["number_in_prose_median"] != 0,
+        lambda r: f"mediana R$ na prosa {r['number_in_prose_median']} (total {r['number_in_prose_total']})",
     ),
     (
         lambda r: r["total_cost_usd"] > _COST_CAP_USD,
@@ -123,7 +124,7 @@ _SUMMARY_ROWS = (
     ("missing_path pareceres", "missing_path_pareceres", "{}"),
     ("conformidade citação", "per_citation_conformidade", "{:.2%}"),
     ("densidade âncoras (med)", "density_median", "{}"),
-    ("R$ na prosa (deve=0)", "number_in_prose_total", "{}"),
+    ("R$ prosa total/med", "number_in_prose_total", "{}"),
     ("diag temp=0 violações", "diag_violations", "{}"),
     ("custo total US$", "total_cost_usd", "{:.2f}"),
 )

@@ -291,7 +291,7 @@
 | ADR-293 | adr | Proposto |  | Citação de parecer (E6→E5) como edge de lineage por chave natural | `adr/293-parecer-citation-edge-chave-natural.md` |
 | ADR-294 | adr | Decidido |  | Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) | `adr/294-parecer-boundary-coercion-prose-impacto.md` |
 | ADR-295 | adr | Proposto |  | Enforcement por-item da citação verificada no modo strict (parecer E6) | `adr/295-enforcement-por-item-citacao-strict.md` |
-| ADR-296 | adr | Proposto |  | Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha | `adr/296-citacao-deterministica-render-from-path.md` |
+| ADR-296 | adr | Decidido |  | Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha | `adr/296-citacao-deterministica-render-from-path.md` |
 | ADR-297 | adr | Decidido |  | Report idempotente sob redelivery do Celery — índice único parcial + guarda terminal | `adr/297-report-idempotente-redelivery.md` |
 | ADR-298 | adr | Decidido |  | Ratchet de estilo: metas decrescentes via save-baseline manual + correção da distribuição de dívida (resposta audit r2) | `adr/298-ratchet-metas-decrescentes-e-distribuicao-de-divida.md` |
 | ADR-299 | adr | Decidido |  | SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) | `adr/299-sec03-deps-17-cves-procede.md` |
@@ -619,7 +619,7 @@
 | A26.l6 | lane | shipped | A26 | Telemetria de citação: cobertura (missing_path) vs. correção (value_mismatch) + drift | `sprint/A26/lanes/A26-l6-evidencia-coverage-kpi.md` |
 | A26.l7 | lane | shipped | A26 | Catálogo de citação cobre folhas de LISTA (fonte única forward↔reverse) | `sprint/A26/lanes/A26-l7-evidencia-catalog-listas.md` |
 | A26.l8 | lane | planned | A26 | value_mismatch residual: enforcement per-item no strict (path válido, número errado) | `sprint/A26/lanes/A26-l8-evidencia-value-mismatch.md` |
-| A26.l9 | lane | planned | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
+| A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
 | A27.l1 | lane | planned | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
