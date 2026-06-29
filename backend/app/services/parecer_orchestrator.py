@@ -30,6 +30,7 @@ from backend.app.services.parecer_finalization import (
     validate_anti_sigilo,
 )
 from backend.app.services.parecer_manifest import ManifestData, load_manifest, load_persona
+from backend.app.services.parecer_red_lines import RED_LINES_VERSION, check_red_lines
 from backend.app.services.parecer_strict_enforcement import enforce_strict_per_item
 from pipeline.llm.models_catalog import PARECER_MODEL
 from pipeline.llm.prompts.parecer_planejador import (
@@ -67,6 +68,7 @@ class ParecerGenerationResult:
     error_detail: Optional[str] = None
     evidencia_summary: Optional[dict] = None
     evidencia_entries: Optional[list[dict]] = None
+    red_lines_summary: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if self.tool_trace is None:
@@ -108,9 +110,10 @@ def compute_cache_key(
     e5_raw = json.dumps(e5_data, sort_keys=True, ensure_ascii=False, default=str)
     e5_hash = hashlib.sha256(e5_raw.encode("utf-8")).hexdigest()[:16]
     # ev{N}: ADR-279 §E. p{prompt_version}: bump de prompt auto-invalida (emenda ADR-199).
+    # rl{N}: ADR-300 — parecer cacheado sob rl antigo não passou pela red line nova.
     composite = (
         f"{workspace_id}:{e5_hash}:{manifest_version}:{schema_version}:{model_id}"
-        f":ev{EVIDENCIA_VERIFICATION_VERSION}:p{prompt_version}"
+        f":ev{EVIDENCIA_VERIFICATION_VERSION}:p{prompt_version}:rl{RED_LINES_VERSION}"
     )
     digest = hashlib.sha256(composite.encode("utf-8")).hexdigest()
     return f"mathoms:llm:parecer_planejador:{digest}"
@@ -356,6 +359,28 @@ def _build_prompts(
     )
 
 
+def _check_red_lines(
+    raw: ParecerPlanejadorOutput,
+    e5_data: Mapping[str, Any],
+    config: ParecerOrchestratorConfig,
+) -> tuple[Optional[str], dict]:
+    """Red lines de conselho (ADR-300): ≥1 hard-block → needs_review global; roda 1º."""
+    result = check_red_lines(raw.model_dump(mode="python"), e5_data)
+    reason = result.block_reason()
+    if result.violations:
+        ids = [v.rl_id for v in result.violations]
+        logger.warning(
+            "parecer_planejador_red_line_triggered",
+            extra={
+                "workspace_id": config.workspace_id,
+                "red_lines": ids,
+                "blocked": result.blocked,
+                "red_lines_version": RED_LINES_VERSION,
+            },
+        )
+    return reason, result.summary(needs_review_triggered=reason is not None)
+
+
 def _check_sigilo(raw: ParecerPlanejadorOutput, config: ParecerOrchestratorConfig) -> Optional[str]:
     """Retorna mensagem de erro se sigilo §13 violado; senão None."""
     violations = validate_anti_sigilo(raw)
@@ -434,14 +459,27 @@ def _generate_with_llm(
             config=config,
             elapsed_ms=_elapsed_ms(start),
         )
-    sigilo_err = _check_sigilo(raw, config)
-    if sigilo_err:
-        return _needs_review(
-            reason=sigilo_err,
+    red_lines_err, red_lines_summary = _check_red_lines(raw, e5_data, config)
+    if red_lines_err:
+        base = _needs_review(
+            reason=red_lines_err,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
             elapsed_ms=_elapsed_ms(start),
+        )
+        return replace(base, red_lines_summary=red_lines_summary)
+    sigilo_err = _check_sigilo(raw, config)
+    if sigilo_err:
+        return replace(
+            _needs_review(
+                reason=sigilo_err,
+                persona_hash=persona_hash,
+                manifest=manifest,
+                config=config,
+                elapsed_ms=_elapsed_ms(start),
+            ),
+            red_lines_summary=red_lines_summary,
         )
     evidencia, evidencia_err, raw, items_dropped = _check_evidencia(raw, manifest, e5_data, config)
     if evidencia_err:
@@ -456,6 +494,7 @@ def _generate_with_llm(
             base,
             evidencia_summary=evidencia.summary(needs_review_triggered=True),
             evidencia_entries=evidencia.entries,
+            red_lines_summary=red_lines_summary,
         )
     final = finalize_output(
         output=stamp_ancora_values(raw, tools),  # ADR-296: snapshot path→valor_renderizado
@@ -481,6 +520,7 @@ def _generate_with_llm(
             needs_review_triggered=False, items_dropped=items_dropped
         ),
         evidencia_entries=evidencia.entries,
+        red_lines_summary=red_lines_summary,
     )
 
 
