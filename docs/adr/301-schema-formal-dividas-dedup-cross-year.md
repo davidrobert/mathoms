@@ -2,8 +2,8 @@
 id: ADR-301
 type: adr
 title: "Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy)"
-status: Proposto
-phase: "A22 · F1-O3 launch-trust"
+status: Decidido
+phase: "A22.l5 · F1-O3 launch-trust"
 date: "2026-06-26"
 relates_to:
   - "[[ADR-276]]"
@@ -12,12 +12,13 @@ relates_to:
   - "[[ADR-090]]"
   - "[[ADR-097]]"
   - "[[ADR-212]]"
+  - "[[ADR-300]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 301", "schema dividas", "dedup dívida cross-year"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/data-lineage
   - phase/a22
@@ -25,7 +26,7 @@ tags:
 
 # ADR-301 — Schema formal de dívidas + dedup cross-IRPF
 
-**Status:** Proposto (A22 · F1-O3 launch-trust) • **Data:** 2026-06-26 •
+**Status:** Decidido (A22.l5 · F1-O3 launch-trust — implementada em #689) • **Data:** 2026-06-26 •
 **Relaciona** [[ADR-276]] (runner `EntityDedupPolicy`), [[ADR-271]] (dedup
 investimentos — molde de chave), [[ADR-246]] (label "casal"), [[ADR-090]] (Money),
 [[ADR-097]] (warning tipado), [[ADR-212]] (artifact DB-only). Co-design

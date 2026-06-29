@@ -12,6 +12,7 @@ relates_to:
   - "[[ADR-295]]"
   - "[[ADR-296]]"
   - "[[ADR-081]]"
+  - "[[ADR-301]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 300", "red lines", "parecer defensável", "guardrail de conselho"]
@@ -86,7 +87,9 @@ de lemmas** versionada, não NLP; verbo ambíguo → warning, não block.
 
 Red lines entram **também** no system prompt como REGRA 14 (prevenção → menos
 needs_review, melhor UX) **e** na validação (garantia). Espelha o padrão sigilo
-§13 ("persona é 1ª linha; validador é defesa"). Bump `PROMPT_VERSION → 2.1.0`.
+§13 ("persona é 1ª linha; validador é defesa"). **Entregue nesta lane: só a
+validação (garantia).** O prompt-side (REGRA 14 + bump `PROMPT_VERSION → 2.1.0`)
+é follow-up owner-gated — ver §Follow-ups.
 
 ### Versionamento e cache
 
