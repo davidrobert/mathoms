@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-290 ADRs (ADR-001 a ADR-299) em [`docs/adr/`](../../adr/).
+292 ADRs (ADR-001 a ADR-301) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 262
-- **Proposto**: 24
+- **Proposto**: 26
 - **Roadmap**: 4
 
 ## Fundação
@@ -413,11 +413,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-294]] — Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) · phase A26 · parecer reliability
 - [[ADR-296]] — Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha · phase A26.l9 · parecer reliability
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability
+- [[ADR-300]] — Red lines do parecer: 4ª camada de validação determinística (conselho defensável) · phase A22 · F3 launch-trust
 
 ## marketing
 
@@ -510,9 +511,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-286]] — Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo · phase A24.l7
 - [[ADR-291]] — from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) · phase A25 · dogfood
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A20.failure-diagnostics
+- [[ADR-301]] — Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) · phase A22 · F1-O3 launch-trust
 
 ## quality
 
