@@ -540,7 +540,7 @@
 | A10.5 | lane | shipped | A10 | Top5 + Bubble como projeção (charts_narrator switch) | `sprint/A10/lanes/A10-5-top5-bubble-como-projecao.md` |
 | A10.6 | lane | shipped | A10 | Pipeline cutover via `StageConfig.config_store` (ADR-180) | `sprint/A10/lanes/A10-6-pipeline-cutover-via-stageconfig-config-store.md` |
 | A10.7 | lane | shipped | A10 | Seed refactor + `tributario` migration | `sprint/A10/lanes/A10-7-seed-refactor-tributario-migration.md` |
-| A10.8 | lane | in_progress | A10 | Final cutover + `forbidden_paths` (ADR-181) | `sprint/A10/lanes/A10-8-final-cutover-forbidden-paths.md` |
+| A10.8 | lane | shipped | A10 | Final cutover + `forbidden_paths` (ADR-181) | `sprint/A10/lanes/A10-8-final-cutover-forbidden-paths.md` |
 | A11.report-publication | lane | shipped | A11 | Report publication — mês fechado imutável | `sprint/A11/lanes/A11-report-publication-month-closed.md` |
 | A11.w1 | lane | shipped | A11 | Hot patches + ADR backfill (8 tasks) | `sprint/A11/lanes/A11-w1-hot-patches-adr-backfill.md` |
 | A11.w2 | lane | shipped | A11 | Pipeline + DB hardening (6 tasks) | `sprint/A11/lanes/A11-w2-pipeline-db-hardening.md` |
@@ -597,10 +597,10 @@
 | A23.l2 | lane | shipped | A23 | Data Lineage F1 — substrato de golden (diff tool + view-model snapshot + invariantes) | `sprint/A23/lanes/A23-l2-golden-substrate.md` |
 | A23.l3 | lane | shipped | A23 | Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4) | `sprint/A23/lanes/A23-l3-natural-key.md` |
 | A23.l4 | lane | shipped | A23 | Data Lineage F1 — alinhar 3º hash (override) ao K4 v2 (D6) | `sprint/A23/lanes/A23-l4-override-hash-k4-parity.md` |
-| A23.l5 | lane | in_progress | A23 | Data Lineage F1 — fonte plugável (data_source + SourceRef) | `sprint/A23/lanes/A23-l5-data-source.md` |
-| A23.l6 | lane | in_progress | A23 | Data Lineage F1 — amount decimal ao lado de valor (B5) | `sprint/A23/lanes/A23-l6-amount-decimal.md` |
-| A23.l7 | lane | in_progress | A23 | Data Lineage F1 — gate de pureza de extração (ADR-280) | `sprint/A23/lanes/A23-l7-extract-check.md` |
-| A23.l8 | lane | in_progress | A23 | Data Lineage F1 — runbook de migrations + FK DB (G-e) | `sprint/A23/lanes/A23-l8-migration-runbook.md` |
+| A23.l5 | lane | shipped | A23 | Data Lineage F1 — fonte plugável (data_source + SourceRef) | `sprint/A23/lanes/A23-l5-data-source.md` |
+| A23.l6 | lane | shipped | A23 | Data Lineage F1 — amount decimal ao lado de valor (B5) | `sprint/A23/lanes/A23-l6-amount-decimal.md` |
+| A23.l7 | lane | shipped | A23 | Data Lineage F1 — gate de pureza de extração (ADR-280) | `sprint/A23/lanes/A23-l7-extract-check.md` |
+| A23.l8 | lane | shipped | A23 | Data Lineage F1 — runbook de migrations + FK DB (G-e) | `sprint/A23/lanes/A23-l8-migration-runbook.md` |
 | A24.l1 | lane | shipped | A24 | Data Lineage F2 — discovery do de-leak + substrato de rebaseline endurecido | `sprint/A24/lanes/A24-l1-f2-discovery.md` |
 | A24.l2 | lane | shipped | A24 | Data Lineage F2 — de-leak numero_conta_norm (extração emite raw) | `sprint/A24/lanes/A24-l2-deleak-account-norm.md` |
 | A24.l3 | lane | shipped | A24 | Data Lineage F2 — de-leak tipo_lancamento (delete do output + contrato) | `sprint/A24/lanes/A24-l3-deleak-tipo-lancamento.md` |

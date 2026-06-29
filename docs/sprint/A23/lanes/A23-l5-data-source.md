@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F1 — fonte plugável (data_source + SourceRef)"
 sprint: A23
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: dl-f1-data-source
 adrs:
