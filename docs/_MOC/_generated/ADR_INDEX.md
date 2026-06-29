@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 263
-- **Proposto**: 25
+- **Decidido**: 264
+- **Proposto**: 24
 - **Roadmap**: 4
 
 ## Fundação
@@ -478,7 +478,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (30)
+### Decidido (31)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -510,11 +510,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-281]] — rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) · phase A23 · F0
 - [[ADR-286]] — Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo · phase A24.l7
 - [[ADR-291]] — from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) · phase A25 · dogfood
+- [[ADR-301]] — Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) · phase A22.l5 · F1-O3 launch-trust
 
-### Proposto (2)
+### Proposto (1)
 
 - [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A20.failure-diagnostics
-- [[ADR-301]] — Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) · phase A22 · F1-O3 launch-trust
 
 ## quality
 

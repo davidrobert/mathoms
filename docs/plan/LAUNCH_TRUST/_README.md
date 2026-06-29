@@ -105,6 +105,15 @@ do cliente pagante.**
 | **KR7** | Golden eval do Parecer (24 fixtures) em CI, 7 red lines com hard-block | verde, 0 red-line violada | F3 |
 | **KR8** | Fallback `needs_review` atômico testado: LLM down → relatório não quebra | teste de regressão verde | F3 |
 
+> **Status 2026-06-29.** **F1 🟢** (A21 9/9 + dedup de dívida F1-O3 em
+> [#689](https://github.com/davidrobert/mathoms/pull/689), [[ADR-301]] `Decidido` —
+> fecha KR2/KR3). **F3 🟢 no núcleo:** KR7 entregue em
+> [#690](https://github.com/davidrobert/mathoms/pull/690) ([[ADR-300]] `Decidido` —
+> 7 red lines determinísticas + eval no PR gate); KR8 (fallback atômico) já existia
+> desde A23–A27. Residual owner-gated: prompt-side das red lines (REGRA 14 + bump
+> `PROMPT_VERSION`, exige re-eval LLM). **F2 🟡:** KR5 (deploy reproduzível) +
+> off-site permanecem owner-gated ([[ADR-228]] G2/G3).
+
 ---
 
 ## Frente 1 — Confiabilidade do número (OWNED)

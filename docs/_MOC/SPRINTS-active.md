@@ -89,11 +89,12 @@ Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: l
 
 ### A22 — Launch Trust: Parecer defensável (F3) (`paused` 2026-06-02)
 
-**Suspensa em 2026-06-02 em favor de A23 (Data Lineage)** — re-priorização do owner (transição `current → paused`, [[ADR-234]]). Débito conhecido: 5 lanes abertas (`l1`/`l3`/`l5` open, `l2`/`l4` planned), **nenhuma shipped**. Fecha o núcleo da Frente 3 (Parecer defensável): eval em CI com 24 goldens + 7 red lines hard-block (KR7), validação em 3 camadas, fallback `needs_review` atômico (KR8). Restrição mantida: zero passo humano, zero deploy.
+**Suspensa em 2026-06-02 em favor de A23 (Data Lineage)** — re-priorização do owner (transição `current → paused`, [[ADR-234]]). Fecha o núcleo da Frente 3 (Parecer defensável): eval em CI + 7 red lines hard-block (KR7), validação em 3 camadas, fallback `needs_review` atômico (KR8).
+
+**Atualização 2026-06-29 — núcleo entregue (sprint segue `paused`):** ao retomar, a reconciliação contra o código mostrou `l1` (harness eval) e `l3` (fallback atômico) **já entregues em A23–A27**. As duas lanes de gap fecharam: **`l5`** dedup de dívida + schema ([#689](https://github.com/davidrobert/mathoms/pull/689), [[ADR-301]] `Decidido`) e **`l2`** 7 red lines / KR7 ([#690](https://github.com/davidrobert/mathoms/pull/690), [[ADR-300]] `Decidido`). KR7+KR8 verdes. Resta `l4` (drift, Should) + prompt-side das red lines (**owner-gated**, exige re-eval LLM).
 
 - **Plano dono:** [plan/LAUNCH_TRUST/_README.md](../plan/LAUNCH_TRUST/_README.md) · **Sprint:** [sprint/A22/_README.md](../sprint/A22/_README.md).
-- **ADR Proposto antes do PR (ao retomar):** l2 (7 red lines), l5 (schema formal de `dividas`).
-- **Retomada:** flip `paused → current` quando o owner decidir retomar F3.
+- **Retomada:** flip `paused → current` quando o owner decidir retomar o residual de F3.
 
 ### A20 — Docker dev↔prod parity + P0 production gates (`paused` 2026-05-29)
 

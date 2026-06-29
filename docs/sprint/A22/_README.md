@@ -12,9 +12,17 @@ theme: "parecer-defensavel"
 
 > **Status:** `paused` — suspensa em 2026-06-02 (transição `current → paused`,
 > [[ADR-234]]) em favor de [[MOC-sprint-a23]] (Data Lineage), por re-priorização
-> do owner. Débito conhecido: 5 lanes abertas (`l1`/`l3`/`l5` open, `l2`/`l4`
-> planned), nenhuma shipped. Segunda janela de execução do plano
-> [[PLAN-launch-trust]].
+> do owner. Segunda janela de execução do plano [[PLAN-launch-trust]].
+>
+> **Atualização 2026-06-29 (núcleo de F3 entregue, sprint segue `paused`):** ao
+> retomar a F3, a reconciliação contra o código mostrou que `l1` (harness de eval)
+> e `l3` (fallback `needs_review` atômico) **já haviam sido entregues em A23–A27**.
+> As duas lanes de gap genuíno foram fechadas: **`l5` dedup de dívida + schema
+> ([#689](https://github.com/davidrobert/mathoms/pull/689), [[ADR-301]] `Decidido`)**
+> e **`l2` 7 red lines / KR7 ([#690](https://github.com/davidrobert/mathoms/pull/690),
+> [[ADR-300]] `Decidido`)**. Resta `l4` (drift como gate, Should) + o prompt-side
+> das red lines (REGRA 14 + bump `PROMPT_VERSION`), **owner-gated** (exige re-eval
+> LLM). KR7 + KR8 verdes; KR2/KR3 estendidos por `l5`.
 >
 > **Plano dono:** [[PLAN-launch-trust]] ([plan/LAUNCH_TRUST/_README.md](../../plan/LAUNCH_TRUST/_README.md)).
 > A21 abriu os dois gates de F3 (F1-O0 verde + defesa de injeção [[ADR-175]] em
@@ -67,13 +75,13 @@ Hard-rank por **destravamento**. `l1` é pré-requisito duro de `l2` e `l4`
 (o harness de eval + fixtures é o que permite testar as red lines e medir
 drift). `l3` e `l5` são independentes e arrancam no dia 1.
 
-| Lane | Frente | Prioridade | Effort | Depende de | ADR Proposto | Owner |
+| Lane | Frente | Status | Prioridade | Effort | ADR | Owner |
 |---|---|---|---|---|---|---|
-| [[A22.l1]] | F3-O0 | P0 | M | — | — | prompt-engineer |
-| [[A22.l2]] | F3-O1 | P0 | M | l1 | **Sim** (7 red lines = invariante de domínio + boundary schema) | prompt-engineer + financial-planner (co-review) |
-| [[A22.l3]] | F3-O2 | P0 | S–M | — | — (abre ADR só se mudar contrato de stage) | senior-cto |
-| [[A22.l4]] | F3-O4 | P1 | M | l1 | — | prompt-engineer |
-| [[A22.l5]] | F1-O3 | P1 | S | — | **Sim** (schema formal de `dividas`) | data-engineer + financial-planner (co-review) |
+| [[A22.l1]] | F3-O0 | ✅ pré-existente (A23–A27) | P0 | M | — | prompt-engineer |
+| [[A22.l2]] | F3-O1 | ✅ #690 | P0 | M | [[ADR-300]] `Decidido` | prompt-engineer + financial-planner |
+| [[A22.l3]] | F3-O2 | ✅ pré-existente (A23–A27) | P0 | S–M | — | senior-cto |
+| [[A22.l4]] | F3-O4 | ⬜ aberta (Should) | P1 | M | — | prompt-engineer |
+| [[A22.l5]] | F1-O3 | ✅ #689 | P1 | S | [[ADR-301]] `Decidido` | data-engineer + financial-planner |
 
 > **Tier:** Must (gate de fechamento) = `l1`, `l2`, `l3`. Should = `l4`, `l5`.
 > Se a janela apertar, `l4`/`l5` escorregam para A23 sem perder os KRs de
