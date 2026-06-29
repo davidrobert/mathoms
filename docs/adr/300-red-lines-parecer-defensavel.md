@@ -2,8 +2,8 @@
 id: ADR-300
 type: adr
 title: "Red lines do parecer: 4ª camada de validação determinística (conselho defensável)"
-status: Proposto
-phase: "A22 · F3 launch-trust"
+status: Decidido
+phase: "A22.l2 · F3 launch-trust"
 date: "2026-06-26"
 relates_to:
   - "[[ADR-202]]"
@@ -17,7 +17,7 @@ superseded_by: []
 aliases: ["ADR 300", "red lines", "parecer defensável", "guardrail de conselho"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/llm
   - area/seguranca
   - phase/a22
@@ -25,7 +25,7 @@ tags:
 
 # ADR-300 — Red lines do parecer (4ª camada de validação)
 
-**Status:** Proposto (A22 · F3 launch-trust) • **Data:** 2026-06-26 •
+**Status:** Decidido (A22.l2 · F3 launch-trust) • **Data:** 2026-06-26 •
 **Relaciona** [[ADR-202]] (schema do parecer), [[ADR-279]]/[[ADR-295]]/[[ADR-296]]
 (citação verificada + enforcement), [[ADR-081]] (determinístico decide). Co-design
 `financial-planner` + `prompt-engineer` (mecânica) 2026-06-26. Implementação na
@@ -124,23 +124,31 @@ constantes (método do braço diagnóstico do eval).
   aceitável — a segurança é binária (bloqueia), o budget de UX (`needs_review`
   ≤15%, [[A26]] §gate) é observado, não bloqueante.
 
-## Riscos / itens abertos (reconciliar antes da impl. dos predicados)
+## Reconciliação dos predicados (resolvida — A22.l2)
 
-Os campos reais do E5 são **mais pobres** que o co-design assumiu (verificado
-2026-06-26 em `reserva_emergencia_calculator.py` / `endividamento_analyzer.py`):
+Os campos reais do E5 são mais pobres que o co-design supôs; predicados
+reconciliados (financial-planner 2026-06-26) e ancorados em campos verificados.
+Implementação em `backend/app/services/parecer_red_lines.py` + eval determinístico
+`tests/test_parecer_red_lines.py` (14 envenenadas + 7 limpas + gate de completude):
 
-- `reserva_emergencia` expõe `cobertura_meses` + `avaliacao_liquidity`, **não**
-  `meses_cobertos_essencial`/`meta_meses`. RL-1/RL-6 ancoram em `cobertura_meses <
-  piso` (piso 6 da config de níveis) + `avaliacao_liquidity == "Insuficiente"`.
-- `endividamento.dividas[].taxa_juros` é **string "N/D"** por default — não há
-  `taxa_mensal` numérico. **RL-2 degrada para best-effort:** só dispara quando a
-  taxa é conhecida e parseável > piso; taxa desconhecida → não bloqueia (não
-  inventa dado). Documentar o gap como follow-up de extração.
-- `reserva_emergencia`/`endividamento`/`dividas` são `{"type":"object/array"}`
-  genéricos no schema E5 — predicados leem campos não-validados; **reconciliar
-  predicado↔campo real é pré-requisito de implementação** (predicado contra campo
-  inexistente = red line silenciosa, o pior modo de falha de camada de segurança).
+- **RL-1/RL-6** ancoram em `reserva_emergencia.cobertura_meses < 6` **ou**
+  `avaliacao_liquidity == "Insuficiente"` (não existe `meta_meses`); NaN-safe.
+- **RL-2 best-effort:** `endividamento.dividas[].taxa_juros` é string "N/D" por
+  default → ramo hard só dispara quando a taxa parseável > 1,5% a.m.; senão proxy
+  `ratios.taxa_endividamento_pct ≥ 40` vira **warning** (não bloqueia financiamento
+  barato). Follow-up: extrair `taxa_mensal` numérica no `endividamento_analyzer`.
+- **RL-7 só sinal estruturado:** `real_estate.concentracao_pct > 40` /
+  `real_estate.alertas` (tema inequívoco). `pontos_urgentes` é texto livre, sem
+  tema mapeável deterministicamente → **fora do hard-block** (follow-up: tag de
+  tema por item de urgência).
+- **RL-4 ticker é o caminho vivo;** match de instituição nominada exige injetar o
+  `institution_catalog` (param `institutions`, hoje vazio) → follow-up.
 
-Esta reconciliação (financial-planner, com os shapes reais) precede a camada
-Python; o gate de completude + as fixtures "envenenadas" são a prova empírica de
-que cada predicado dispara de fato.
+## Follow-ups (não bloqueiam o enforcement)
+
+- **Prompt-side (REGRA 14 + bump `PROMPT_VERSION → 2.1.0`):** owner-gated — exige
+  re-rodar o eval LLM real (`ANTHROPIC_API_KEY`) comparando 2.0.0 vs 2.1.0 sem
+  regressão de citação/densidade/custo. O enforcement determinístico (esta entrega)
+  é a **garantia**; o prompt-side é prevenção (reduz `needs_review`).
+- Extração de `taxa_mensal` numérica (fortalece RL-2); injeção do
+  `institution_catalog` em RL-4; tag de tema em `pontos_urgentes` (amplia RL-7).
