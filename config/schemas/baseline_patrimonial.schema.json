@@ -142,7 +142,66 @@
       }
     },
     "dividas": {
-      "type": "array"
+      "type": "array",
+      "description": "Dívidas consolidadas cross-IRPF (ADR-301). Schema apertado de array-livre; valida em warn até dogfood limpo. Produtor: e15_consolidate; dedup: dividas_dedup.",
+      "items": {
+        "type": "object",
+        "required": ["descricao", "saldo_31_12"],
+        "additionalProperties": false,
+        "properties": {
+          "descricao": {"type": "string", "minLength": 1},
+          "proprietario": {"type": "string"},
+          "saldo_31_12": {
+            "type": "object",
+            "minProperties": 1,
+            "patternProperties": {
+              "^\\d{4}$": {"type": "number", "minimum": 0}
+            },
+            "additionalProperties": false,
+            "description": "Saldo devedor por ano-base. number no wire; Decimal/cents em cálculo (ADR-090)."
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "financiamento_imobiliario",
+              "financiamento_veiculo",
+              "consignado",
+              "emprestimo_pessoal",
+              "cheque_especial",
+              "cartao_credito",
+              "credito_rotativo",
+              "outros"
+            ]
+          },
+          "credor": {"type": "string"},
+          "numero_contrato": {"type": "string"},
+          "indexador": {"type": ["string", "null"]},
+          "taxa_juros_aa": {"type": ["number", "null"]},
+          "parcelas_total": {"type": ["integer", "null"], "minimum": 0},
+          "fonte": {"type": "string", "enum": ["irpf", "xlsx", "informe", "manual"]},
+          "ano_referencia": {"type": "integer", "minimum": 2000, "maximum": 2100},
+          "divida_id": {
+            "type": ["string", "null"],
+            "description": "Hash estável de (numero_contrato | tipo|credor_norm|desc_norm). Identidade de dedup; não FK."
+          },
+          "proprietarios": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "União de declarantes quando dívida conjunta (casal)."
+          },
+          "_dedup_warning": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["saldo_divergente_ano", "saldo_nao_monotonico", "possivel_duplicata"]
+              },
+              "values": {"type": "array", "items": {"type": "number"}},
+              "diff_pct": {"type": "number"}
+            }
+          }
+        }
+      }
     },
     "receipts": {
       "type": "array"

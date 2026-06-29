@@ -804,6 +804,20 @@ def main_with_store(ctx) -> dict:
             f"{_inv_dedup.count_after} (warnings={len(_inv_dedup.warnings)})"
         )
 
+    # 3d. Dedup de dívidas cross-IRPF (ADR-301). Cross-year une `saldo_31_12`
+    #     (foto recente = ano máximo); cross-declarante funde "casal" só se saldo
+    #     idêntico ao centavo. Warning de saldo não-monotônico só p/ amortizável
+    #     fixa. Helper puro; no-op sem duplicatas. Idempotente.
+    from pipeline.domain.services.dividas_dedup import dedup_dividas_consolidadas
+
+    _div_dedup = dedup_dividas_consolidadas(consolidated.get("dividas", []))
+    consolidated["dividas"] = _div_dedup.dividas
+    if _div_dedup.count_after < _div_dedup.count_before:
+        print(
+            f"  [E1.5c] Dívidas dedup: {_div_dedup.count_before} → "
+            f"{_div_dedup.count_after} (warnings={len(_div_dedup.warnings)})"
+        )
+
     # 4. Reconciliação fuzzy IRPF G02 ↔ vehicles (ADR-239 D3+D4). Degradação
     #    graceful — backend indisponível (CLI/tests) ou workspace_id ausente
     #    pula a etapa silenciosamente (mesma forma de property_id enrichment).
