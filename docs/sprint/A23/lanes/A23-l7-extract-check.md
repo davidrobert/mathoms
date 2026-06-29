@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F1 — gate de pureza de extração (ADR-280)"
 sprint: A23
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: dl-f1-extract-check
 adrs:

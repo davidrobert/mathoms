@@ -3,7 +3,7 @@ id: A10.8
 type: lane
 title: "Final cutover + `forbidden_paths` (ADR-181)"
 sprint: A10
-status: in_progress
+status: shipped
 branch_slug: a10-8-cutover-final
 adrs: ["[[ADR-181]]"]
 depends_on: []

@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F1 — amount decimal ao lado de valor (B5)"
 sprint: A23
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: dl-f1-amount-decimal
 adrs:

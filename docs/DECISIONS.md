@@ -64,7 +64,7 @@ PRs antigos linkam `docs/DECISIONS.md#adr-NNN-...` (slug GitHub Slugger). Os anc
 <a id="adr-026--instructor--pydantic-para-structured-output"></a> [ADR-026](adr/026-instructor-pydantic-para-structured-output.md)
 <a id="adr-027--retry--needs_review-em-falha-de-validação"></a> [ADR-027](adr/027-retry-needs-review-em-falha-de-validacao.md)
 <a id="adr-028--e7-full-scope-na-fase-4"></a> [ADR-028](adr/028-e7-full-scope-na-fase-4.md)
-<a id="adr-029--alembic-para-migrations"></a> [ADR-029](adr/029-tq-celery-redis.md)
+<a id="adr-029--alembic-para-migrations"></a> [ADR-029](adr/029-alembic-para-migrations.md)
 <a id="adr-029-tq--celery--redis"></a> [ADR-029-TQ](adr/029-tq-celery-redis.md)
 <a id="adr-030--cancelamento-cooperativo-via-threadingevent"></a> [ADR-030](adr/030-cancelamento-cooperativo-via-threadingevent.md)
 <a id="adr-030-ws--websocket--polling-fallback"></a> [ADR-030-WS](adr/030-ws-websocket-polling-fallback.md)

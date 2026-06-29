@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F1 — runbook de migrations + FK DB (G-e)"
 sprint: A23
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: dl-f1-migration-runbook
 adrs:
