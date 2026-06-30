@@ -163,11 +163,55 @@ Primeiro eval LLM real (60 gerações) expôs dois falsos-positivos em massa (~9
 - Bug latente: `avaliacao_liquidity == "Insuficiente"` (case) vs dado `"insuficiente"` —
   normalizado.
 
-Observação de eval (financial-planner Q3): os 10 fixtures de holdout têm 100% reserva
-~1,5 mês → **inflam a taxa de `needs_review` atribuída a RL1**; o gate da [[A26]]l2 mede
-o fixture, não o produto. **Follow-up (data-engineer/prompt-engineer):** estratificar
-`cobertura_meses` no holdout (sub-meta / borderline / saudável). A calibração de RL1 foi
-feita **por domínio**, não para "passar" o holdout enviesado.
+## Calibração 1.2 — RL1 rebalanceamento ≠ deploy (RED_LINES_VERSION 1.2 · 2026-06-30)
+
+2º dogfood (inspeção dos 0-âncora) revelou que o "0 âncora" **não era gap de citação** —
+eram pareceres **ricos** (9–15 âncoras) **bloqueados pela RL1** → placeholder vazio. E a
+RL1 1.1 ainda bloqueava ~80% no temp de produção: as sugestões eram **rebalanceamento /
+de-risking / aporte-como-método** (AUVP rebalanceia por aporte; "revisar/reduzir peso de
+ações" é de-risking), não deploy de capital novo. Co-design `financial-planner` (5/5 FP) +
+`senior-cto` (predicado composicional):
+
+- `_DERISK_REBALANCE` (rebalanc/por aporte/aportes mensais/revisar peso/reduzir/diminuir/
+  realocar/redistribuir) **curto-circuita** RL1 antes da avaliação de execução.
+- `_EXEC_INEQUIVOCA` perde `"aport"` cru (casava "por **aport**e", método) → só verbo
+  conjugado de deploy. Predicado = `exec-conjugado ∧ objeto ∧ ¬(rebalance ∨ redução ∨
+  planejamento ∨ pró-reserva)`. Lemma **composicional + âncora-negativa**, sem parser
+  (preserva o determinismo zero-LLM do ADR-300; lemma-flat tinha teto de precisão baixo).
+- Fixtures anti-FP com as 5 frases reais do dogfood.
+
+## Validade do eval como instrumento (eval-design — itens 2/3 do dogfood)
+
+- **Item 2 (cobertura de citação): DISSOLVIDO.** Pareceres citam rico (9–15 âncoras >> piso
+  5); o piso de densidade=5 **está correto, sem ajuste**. Dois reparos de medição
+  (PM + senior-cto): (a) a densidade deve **excluir pareceres bloqueados** do denominador
+  (senão mais bloqueios reabrem um falso-gap); (b) registrar a densidade observada como
+  **baseline de drift** (anti-Goodhart) ao fechar o item.
+- **Item 3 (holdout monocultura): MUST antes do flip strict.** Os 10 fixtures têm 100%
+  reserva ~1,5 mês — e é **estrutural** (`make_workspace_e5` fixa `cobertura_meses=2.1`;
+  `_scale_money` escala um *ratio* como dinheiro — bug). Sem estratificar, o gate de UX
+  (`needs_review ≤15%`) é **incomputável**: mede a RL1, não o produto. Critério de aceite
+  (data-engineer + financial-planner + PM):
+  - estratos de `cobertura_meses` — sub-meta (<3) / borderline (3–6) / saudável (≥6) /
+    folgado (>12), ≥2 fixtures cada, **ponderado ao ICP** (alta renda tende a reserva acima
+    da média; ~50% saudável), n≥20;
+  - **estrato de controle negativo** (saudável) onde RL1 deve disparar **~0%** = métrica de
+    *precision* que hoje **não existe** (um eval sem controle negativo só prova recall, é
+    cego a FP — foi por isso que RL3/RL1 FP escaparam do gate e só a inspeção humana pegou);
+  - variar eixos secundários (dívida cara/concentração/seguro) p/ o número não ser dominado
+    por uma red line;
+  - corrigir `_scale_money` (parar de escalar o ratio) + a docstring da fixture (afirma
+    estratificação que não existe).
+- **Gate redefinido (2 números):** recall de RL1 no estrato distressed + **FP-rate no
+  estrato saudável**. O budget `needs_review ≤15%` da [[A26]]l2 é **não-binário** (UX, não
+  segurança); o gate de **segurança** (zero conselho indefensável publicado) está verde por
+  construção (fail-closed) independentemente da taxa.
+
+> **Calibração por domínio, não para passar o holdout.** As red lines foram ajustadas pela
+> regra metodológica (rebalancear/de-risking é prudente), não para o número do fixture
+> enviesado. Estratificar corrige a **medição**; calibrar corrige a **regra** — ortogonais,
+> ambas necessárias. Recomendado **medir em 2 passos** (estratificado+1.1 isola artefato de
+> fixture; estratificado+1.2 isola FP de predicado).
 
 ## Follow-ups (não bloqueiam o enforcement)
 
