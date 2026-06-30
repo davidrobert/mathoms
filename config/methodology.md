@@ -1,6 +1,15 @@
 # Methodology — Pipeline Ferreira Campos
 ## Versão: 5.3 — abr/2026
 
+> ⚠️ **LEGADO v5.3 — NÃO é fonte de verdade.** Documento do pipeline CLI/relatório-HTML
+> pré-2026: o renderer HTML foi descontinuado (ADR-129), e a metodologia hoje é
+> **rules-as-code** (ADR-143) com índice em `docs/reference/ARCHITECTURE.md §4.1 Domain
+> glossary`. Mantido apenas porque comentários em `config/scoring.json` /
+> `config/report_layout.yaml` ainda o citam como referência histórica de fórmula.
+> **Não use para decisão de produto ou conselho** — fluxos/paths aqui podem violar
+> `check_forbidden_paths` e o sigilo §13.
+
+
 ---
 
 ## PERSONA E ABORDAGEM
@@ -305,4 +314,4 @@ Incluir nota de disclaimer nos seguintes contextos:
 - Todos os números = visão pós-quitação do financiamento
 - Benchmark fundos = retorno acumulado desde aporte (NÃO "últimos 12 meses")
 - Para questões tributárias EUA, sempre sinalize necessidade de CPA especializado
-- Quando possível, fazer recomendações específicas de produtos financeiros
+- NUNCA recomende produtos financeiros específicos (ticker/fundo/instituição) — viola sigilo §13 + risco CVM; recomende por classe/conceito (ADR-201/300, persona R5). [corrigido: regra v5.3 original invertia isto]

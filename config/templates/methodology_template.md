@@ -1,6 +1,12 @@
 # Methodology — Pipeline {{NOME_FAMILIA}}
 ## Versão: 1.0 — {{DATA_CRIACAO}}
 
+> ⚠️ **TEMPLATE LEGADO v5.3 — obsoleto, não usar.** Gera artefatos do fluxo CLI antigo
+> cujos destinos (`decisions.md` / `definitions.md` / `source_hierarchy.md`,
+> `docs/methodology/`) são **paths proibidos** — migrados para o DB (ADR-134/136/137) ou
+> para o renderer React (ADR-129). Mantido só como referência histórica.
+
+
 ---
 
 ## PERSONA E ABORDAGEM
