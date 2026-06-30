@@ -147,6 +147,28 @@ Implementação em `backend/app/services/parecer_red_lines.py` + eval determiní
 - **RL-4 ticker é o caminho vivo;** match de instituição nominada exige injetar o
   `institution_catalog` (param `institutions`, hoje vazio) → follow-up.
 
+## Calibração pós-dogfood (RED_LINES_VERSION 1.1 · 2026-06-30)
+
+Primeiro eval LLM real (60 gerações) expôs dois falsos-positivos em massa (~97%
+`needs_review` — quebraria o flip strict da [[A26]]l2). Corrigidos (RED_LINES_VERSION
+`1.0`→`1.1`, invalida cache):
+
+- **RL3** checava a palavra-de-garantia isolada; restaurada a spec (garantia **+
+  objeto-de-retorno** em proximidade). FP real: "folga … **garante** capacidade de
+  aporte", FGC "fundo **garant**idor".
+- **RL1** bloqueava planejamento de arcabouço (definir política/alocação-alvo — núcleo
+  AUVP) como se fosse deploy. Calibração (financial-planner): execução inequívoca
+  sempre bloqueia; verbo ambíguo (`investir/alocar em`) só em P0/P1; planejamento puro
+  não bloqueia.
+- Bug latente: `avaliacao_liquidity == "Insuficiente"` (case) vs dado `"insuficiente"` —
+  normalizado.
+
+Observação de eval (financial-planner Q3): os 10 fixtures de holdout têm 100% reserva
+~1,5 mês → **inflam a taxa de `needs_review` atribuída a RL1**; o gate da [[A26]]l2 mede
+o fixture, não o produto. **Follow-up (data-engineer/prompt-engineer):** estratificar
+`cobertura_meses` no holdout (sub-meta / borderline / saudável). A calibração de RL1 foi
+feita **por domínio**, não para "passar" o holdout enviesado.
+
 ## Follow-ups (não bloqueiam o enforcement)
 
 - **Prompt-side (REGRA 14 + bump `PROMPT_VERSION → 2.1.0`):** owner-gated — exige

@@ -12,18 +12,35 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
-RED_LINES_VERSION = "1.0"
+RED_LINES_VERSION = "1.1"
 
 # Lemmas (radicais, sem acento, lowercase) — lista controlada, não NLP.
-_APORTE_RISCO = (
+# RL1 (ADR-300, calibração financial-planner 2026-06-30): "reserva antes de risco"
+# proíbe DEPLOY de capital, não planejamento de arcabouço (definir política/alocação-
+# alvo é o núcleo do método AUVP). Execução inequívoca sempre dispara; verbo ambíguo
+# só dispara em P0/P1; planejamento puro de arcabouço não dispara.
+_EXEC_INEQUIVOCA = (
     "aport",
-    "investir em",
-    "alocar em",
     "comprar",
+    "montar posic",
     "aumentar exposic",
     "elevar exposic",
-    "montar posic",
     "destinar a",
+)
+_APORTE_AMBIGUO = ("investir em", "alocar em")
+_PLANEJAMENTO_ARCABOUCO = (
+    "definir politica",
+    "politica de investiment",
+    "alocacao-alvo",
+    "alocacao alvo",
+    "desvio maximo",
+    "arcabouco",
+    "diretriz",
+    "estrategia de alocac",
+    "plano de",
+    "estabelecer meta",
+    "revisar a carteira",
+    "mapear",
 )
 _OBJETO_RISCO = ("acoes", "acao", "fii", "fiis", "renda variavel", "bolsa", "cripto", "rv")
 _PRO_RESERVA = ("reserva", "caixa", "tesouro selic", "rf pos", "pos-fixad", "liquidez")
@@ -61,10 +78,19 @@ _RECOMENDA = (
     "escolher",
 )
 
-_PROMESSA = re.compile(
-    r"(garant\w+|assegur\w+|promet\w+|certeza de|com certeza|sem risco de perda"
-    r"|rentabilidade garantida|retorno garantido|vai render|rendera|rende \d)",
+# RL3 (ADR-300): promessa de retorno = garantia PRÓXIMA de objeto-de-retorno (spec
+# financial-planner). Genérico "garant\w+" isolado é falso-positivo em massa
+# ("garante capacidade de aporte", FGC "fundo garantidor", "garantir a reserva").
+_PROMESSA_FORTE = re.compile(  # promessa inequívoca — dispara mesmo com hedge
+    r"(rentabilidade garantida|retorno garantido|ganho garantido|lucro garantido"
+    r"|rentabilidade certa|sem risco de perda)"
 )
+_RENDER_PROMESSA = re.compile(r"(vai render|rendera|rende \d)")  # render+futuro/figura
+_GARANTIA_GEN = re.compile(r"(garant\w+|assegur\w+|promet\w+|certeza)")  # exige obj-retorno perto
+_RETORNO_OBJ = re.compile(
+    r"(retorno|rentabili|lucro|ganho|valoriz|render|dividend|% ?a\.?\s?a|ao ano)"
+)
+_PROX = 45
 _HEDGE = re.compile(r"(pode render|historicamente|busca rentabili|tende a|pode valoriz)")
 _TICKER = re.compile(r"\b[A-Z]{4}\d{1,2}\b")
 
@@ -127,7 +153,14 @@ def _is_aporte_risco(sug: Mapping[str, Any]) -> bool:
         return False
     if _has_any(acao, _PRO_RESERVA):
         return False
-    return _has_any(acao, _APORTE_RISCO) and _has_any(acao, _OBJETO_RISCO)
+    exec_imediata = _has_any(acao, _EXEC_INEQUIVOCA)
+    if _has_any(acao, _PLANEJAMENTO_ARCABOUCO) and not exec_imediata:
+        return False  # planejamento de arcabouço (AUVP/Cerbasi) — não é deploy de risco
+    if not _has_any(acao, _OBJETO_RISCO):
+        return False
+    if exec_imediata:
+        return True
+    return _has_any(acao, _APORTE_AMBIGUO) and sug.get("prioridade") in {"P0", "P1"}
 
 
 def _has_quitacao(out: Mapping[str, Any]) -> bool:
@@ -147,9 +180,14 @@ def _prose_blobs(out: Mapping[str, Any]) -> list[str]:
     return [b for b in blobs if b]
 
 
+def _avaliacao_insuficiente(res: Mapping[str, Any]) -> bool:
+    # E5 emite "insuficiente" (minúsculo); case-insensitive p/ não morrer o branch.
+    return (res.get("avaliacao_liquidity") or "").strip().lower() == "insuficiente"
+
+
 def _reserva_sub_meta(e5: Mapping[str, Any]) -> bool:
     res = e5.get("reserva_emergencia") or {}
-    if res.get("avaliacao_liquidity") == "Insuficiente":
+    if _avaliacao_insuficiente(res):
         return True
     cob = res.get("cobertura_meses")
     return isinstance(cob, (int, float)) and cob == cob and cob < 6.0  # NaN-safe
@@ -188,10 +226,22 @@ def _parse_taxa_mensal(raw: Any) -> float | None:
     return float(m.group(1).replace(",", ".")) if m else None
 
 
+def _promete_retorno(n: str) -> bool:
+    if _PROMESSA_FORTE.search(n):
+        return True
+    if _HEDGE.search(n):
+        return False
+    if _RENDER_PROMESSA.search(n):
+        return True
+    for m in _GARANTIA_GEN.finditer(n):  # garantia genérica só com obj-retorno por perto
+        if _RETORNO_OBJ.search(n[max(0, m.start() - _PROX) : m.end() + _PROX]):
+            return True
+    return False
+
+
 def _rl3_promessa_retorno(out, e5) -> list[RedLineViolation]:
     for blob in _prose_blobs(out):
-        n = _norm(blob)
-        if _PROMESSA.search(n) and not _HEDGE.search(n):
+        if _promete_retorno(_norm(blob)):
             return [RedLineViolation("RL3", "block", "promessa/garantia de retorno (CVM)")]
     return []
 
@@ -235,7 +285,7 @@ def _rl6_blob_violation(n: str, insuficiente: bool) -> RedLineViolation | None:
 
 
 def _rl6_mexer_reserva_protecao(out, e5) -> list[RedLineViolation]:
-    insuficiente = (e5.get("reserva_emergencia") or {}).get("avaliacao_liquidity") == "Insuficiente"
+    insuficiente = _avaliacao_insuficiente(e5.get("reserva_emergencia") or {})
     for blob in _prose_blobs(out):
         violation = _rl6_blob_violation(_norm(blob), insuficiente)
         if violation:
