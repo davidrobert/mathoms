@@ -31,8 +31,12 @@ _REPO = Path(__file__).resolve().parents[1]
 _OUTPUT_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
 
 
-def make_workspace_e5() -> dict:
-    """E5 sintético rico — família alta renda PJ/CLT + cônjuge + dependentes + RV/RF/imóveis."""
+def make_workspace_e5(
+    *,
+    cobertura_meses: float = 2.1,
+    avaliacao_liquidity: str = "insuficiente",
+) -> dict:
+    """E5 sintético rico — alta renda PJ/CLT; reserva parametrizável p/ estratificar o holdout."""
     return {
         "periodo_dados": "2024-01-01 a 2025-12-31",
         "data_analise": "2026-01-15",
@@ -72,9 +76,9 @@ def make_workspace_e5() -> dict:
         },
         "reserva_emergencia": {
             "despesas_mensais": 40_000.0,
-            "cobertura_meses": 2.1,
+            "cobertura_meses": cobertura_meses,
             "total_liquida": 84_000.0,
-            "avaliacao_liquidity": "insuficiente",
+            "avaliacao_liquidity": avaliacao_liquidity,
         },
         "endividamento": {
             "total_dividas": 500_000.0,

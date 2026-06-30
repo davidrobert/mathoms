@@ -1,8 +1,32 @@
-"""Fixtures E5 PII-zero para o eval golden do evidencia_path (A26.l1)."""
+"""Fixtures E5 PII-zero para o eval golden do Parecer (A26.l9 + ADR-300 §holdout).
 
-# 25 variantes estratificadas derivadas do E5 sintético do golden (zero PII —
-# valores e nomes fictícios). Split 15 tuning / 10 holdout; o holdout é lacrado e
-# estratificado (cada modo de falha tem ≥1 caso), nunca visto no tuning.
+Holdout estratificado para o gate de ``needs_review``/RL1 ter significado. O eixo
+primário é a **saúde da reserva** (``reserva_emergencia.cobertura_meses``), em 4 faixas
+ponderadas ao ICP do Mathoms (PJ/CLT alta renda + famílias com patrimônio diversificado —
+tendem a reserva ACIMA da média, NÃO 100% distressed):
+
+| estrato     | cobertura_meses | avaliacao_liquidity | papel no eval                         | n holdout |
+| ----------- | --------------- | ------------------- | ------------------------------------- | --------- |
+| ``sub_meta``   | < 3          | insuficiente        | stress — RL1 deve disparar se houver deploy de risco | 6 (25%) |
+| ``borderline`` | 3–6          | adequada            | zona cinzenta                          | 4 (17%) |
+| ``saudavel``   | ≥ 6          | adequada            | **controle negativo** — RL1 ~0% (precision) | 10 (42%) |
+| ``folgado``    | > 12         | confortavel         | reserva ampla                          | 4 (17%) |
+
+n_holdout = 24 (≥20 exigido por ADR-300). ``saudavel + folgado = 14/24 ≈ 58%`` — maioria,
+coerente com o ICP. O estrato ``saudavel`` é o **controle negativo**: mede *precision* (RL1
+disparando aqui é falso-positivo), métrica que o holdout monocultura anterior (100%
+~1,5 mês) não tinha — só provava recall, cego a FP (ADR-300 §Item 3).
+
+Eixos secundários variados entre fixtures (para o número do gate não ser dominado por
+uma red line): presença/ausência de dívida cara (RL2 — ``endividamento.dividas[].taxa_juros``),
+concentração imobiliária > 40 (RL7 — ``real_estate.concentracao_pct``), presença de seguro
+(RL6 — ``alertas`` sem ``seguro_vida_ausente``). PII-zero: nenhum CPF, valores sintéticos.
+
+``make_workspace_e5`` fixa a reserva pelos parâmetros explícitos por estrato — ``cobertura_meses``
+é *ratio*, não dinheiro; escalá-lo (bug do ``_scale_money`` anterior) é semanticamente errado e
+mantinha 2.1×fator < 6 (monocultura). ``_scale_money`` agora perturba só valores monetários
+genuínos e NÃO toca ``reserva_emergencia``.
+"""
 
 from __future__ import annotations
 
@@ -12,10 +36,19 @@ from typing import Any, Callable
 
 from tests.test_parecer_planejador_golden import make_workspace_e5
 
+# Faixas de reserva por estrato: (cobertura_meses, avaliacao_liquidity, total_liquida).
+# total_liquida ≈ cobertura_meses × despesas_mensais (40k no E5 base) — coerência interna.
+_RESERVA_POR_ESTRATO: dict[str, tuple[float, str, float]] = {
+    "sub_meta": (2.1, "insuficiente", 84_000.0),
+    "borderline": (4.5, "adequada", 180_000.0),
+    "saudavel": (8.0, "adequada", 320_000.0),
+    "folgado": (18.0, "confortavel", 720_000.0),
+}
+
 
 @dataclass(frozen=True)
 class EvalFixture:
-    """Um caso de eval: id legível, estrato, payload E5, split tuning/holdout."""
+    """Um caso de eval: id legível, estrato de reserva, payload E5, split tuning/holdout."""
 
     fixture_id: str
     stratum: str
@@ -30,66 +63,99 @@ def _scale_block(block: dict, factor: float) -> None:
 
 
 def _scale_money(e5: dict, factor: float) -> dict:
-    """Perturba valores monetários por um fator (variedade entre fixtures)."""
-    for key in ("patrimonio", "fluxo_caixa", "reserva_emergencia", "investimentos"):
+    """Perturba só valores monetários genuínos; NÃO toca reserva_emergencia (ratio, não R$)."""
+    # reserva_emergencia fica fora: cobertura_meses é ratio e os campos vêm de _set_reserva.
+    for key in ("patrimonio", "fluxo_caixa", "investimentos"):
         block = e5.get(key)
         if isinstance(block, dict):
             _scale_block(block, factor)
     return e5
 
 
-def _mut_happy(e5: dict) -> dict:
+def _set_reserva(e5: dict, stratum: str) -> dict:
+    """Seta cobertura_meses + avaliacao_liquidity + total_liquida coerentes ao estrato."""
+    cobertura, avaliacao, total = _RESERVA_POR_ESTRATO[stratum]
+    res = e5.setdefault("reserva_emergencia", {})
+    res["cobertura_meses"] = cobertura
+    res["avaliacao_liquidity"] = avaliacao
+    res["total_liquida"] = total
     return e5
 
 
-def _mut_sem_previdencia(e5: dict) -> dict:
-    e5["previdencia_pgbl"] = {}
+# --- eixos secundários (RL2 dívida cara / RL7 concentração imobiliária / RL6 seguro) ---
+
+
+def _add_divida_cara(e5: dict) -> dict:
+    """RL2: dívida com taxa mensal > 1,5% conhecida no E5."""
+    endiv = e5.setdefault("endividamento", {})
+    endiv.setdefault("dividas", []).append(
+        {"descricao": "rotativo cartão", "taxa_juros": "12,90% a.m.", "saldo": 25_000.0}
+    )
     return e5
 
 
-def _mut_sem_imovel(e5: dict) -> dict:
-    e5["investimentos"]["n_imoveis_total"] = 0
-    comp = e5["patrimonio"].get("composicao", {})
-    comp["imoveis_residencia"] = 0.0
-    comp["imoveis_investimento"] = 0.0
+def _add_concentracao_imovel(e5: dict) -> dict:
+    """RL7: concentração imobiliária > 40% do patrimônio líquido."""
+    e5["real_estate"] = {"concentracao_pct": 52.0, "valor_total_imoveis": 2_600_000.0}
     return e5
 
 
-def _mut_leaf_nulo(e5: dict) -> dict:
-    e5["reserva_emergencia"]["total_liquida"] = None
-    e5["passive_income"]["renda_passiva_mensal"] = None
+def _add_seguro(e5: dict) -> dict:
+    """RL6: seguro presente — remove o alerta seguro_vida_ausente."""
+    e5["alertas"] = [a for a in e5.get("alertas", []) if a != "seguro_vida_ausente"]
     return e5
 
 
-def _mut_periodo_999999(e5: dict) -> dict:
-    e5["periodo_dados"] = "999999"
-    return e5
+# (label, mutador) — combináveis; cada fixture aplica um subconjunto p/ variar os eixos.
+_AXIS_DIVIDA = ("divida", _add_divida_cara)
+_AXIS_IMOVEL = ("imovel", _add_concentracao_imovel)
+_AXIS_SEGURO = ("seguro", _add_seguro)
 
-
-def _mut_solteiro(e5: dict) -> dict:
-    e5["cenarios_conjuge"] = {}
-    e5["irpf_kpis"]["dependentes_count"] = 0
-    return e5
-
-
-# (estrato, mutador, n_casos, n_holdout) — soma 25 fixtures, 10 holdout.
-_PLAN: list[tuple[str, Callable[[dict], dict], int, int]] = [
-    ("happy", _mut_happy, 6, 2),
-    ("sem_previdencia", _mut_sem_previdencia, 4, 1),
-    ("sem_imovel", _mut_sem_imovel, 4, 1),
-    ("leaf_nulo", _mut_leaf_nulo, 4, 2),
-    ("periodo_999999", _mut_periodo_999999, 3, 2),
-    ("solteiro", _mut_solteiro, 4, 2),
+# Combinações de eixos secundários, cicladas dentro de cada estrato para cobrir o produto
+# cartesiano relevante sem explodir n. ``()`` = baseline (sem dívida cara, sem concentração,
+# seguro ausente — o default do E5 base).
+_AXIS_CYCLE: list[tuple[tuple[str, Callable[[dict], dict]], ...]] = [
+    (),
+    (_AXIS_DIVIDA,),
+    (_AXIS_IMOVEL,),
+    (_AXIS_SEGURO,),
+    (_AXIS_DIVIDA, _AXIS_IMOVEL),
+    (_AXIS_SEGURO, _AXIS_IMOVEL),
 ]
+
+
+# (estrato, n_holdout, n_tuning) — holdout ponderado ao ICP (saudável+folgado = maioria).
+_PLAN: list[tuple[str, int, int]] = [
+    ("sub_meta", 6, 4),
+    ("borderline", 4, 3),
+    ("saudavel", 10, 6),
+    ("folgado", 4, 3),
+]
+
+
+def _make_e5(stratum: str, idx: int) -> dict:
+    """E5 do estrato com reserva explícita + eixos secundários ciclados + jitter monetário."""
+    e5 = copy.deepcopy(make_workspace_e5())
+    _scale_money(e5, 0.7 + 0.05 * idx)
+    _set_reserva(e5, stratum)
+    for _label, mutator in _AXIS_CYCLE[idx % len(_AXIS_CYCLE)]:
+        mutator(e5)
+    return e5
+
+
+def _axes_label(stratum: str, idx: int) -> str:
+    axes = [label for label, _ in _AXIS_CYCLE[idx % len(_AXIS_CYCLE)]]
+    return "_".join([stratum, *axes]) if axes else f"{stratum}_base"
 
 
 def _build() -> list[EvalFixture]:
     fixtures: list[EvalFixture] = []
-    for stratum, mutator, n, n_holdout in _PLAN:
-        for i in range(n):
-            e5 = _scale_money(copy.deepcopy(make_workspace_e5()), 0.7 + 0.1 * i)
+    for stratum, n_holdout, n_tuning in _PLAN:
+        for i in range(n_holdout + n_tuning):
             split = "holdout" if i < n_holdout else "tuning"
-            fixtures.append(EvalFixture(f"{stratum}_{i}", stratum, split, mutator(e5)))
+            fixtures.append(
+                EvalFixture(f"{_axes_label(stratum, i)}_{i}", stratum, split, _make_e5(stratum, i))
+            )
     return fixtures
 
 
