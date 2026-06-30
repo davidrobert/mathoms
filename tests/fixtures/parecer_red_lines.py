@@ -245,6 +245,47 @@ CLEAN: tuple[CleanFixture, ...] = (
         ),
         _e5(reserva_emergencia={"cobertura_meses": 1.5, "avaliacao_liquidity": "insuficiente"}),
     ),
+    # RL1 — frases REAIS do dogfood (1.2): rebalanceamento / de-risking / aporte-método
+    # com reserva crítica NÃO devem disparar (são conselho prudente, não deploy de risco)
+    CleanFixture(
+        "rl1_clean_rebalance_reduzir",
+        "RL1",
+        _output(
+            sugestoes_taticas=[
+                _sug(
+                    "Revisar a alocação-alvo por classe com foco em reduzir gradualmente a concentração em ações brasileiras e ampliar diversificação cambial, priorizando rebalanceamento por aporte.",
+                    prioridade="P1",
+                )
+            ]
+        ),
+        _e5(reserva_emergencia={"cobertura_meses": 1.47, "avaliacao_liquidity": "insuficiente"}),
+    ),
+    CleanFixture(
+        "rl1_clean_rebalance_por_aporte",
+        "RL1",
+        _output(
+            sugestoes_taticas=[
+                _sug(
+                    "Avaliar rebalanceamento por aporte nas classes de ações sub-representadas para aproximar a rentabilidade da meta.",
+                    prioridade="P1",
+                )
+            ]
+        ),
+        _e5(reserva_emergencia={"cobertura_meses": 1.68, "avaliacao_liquidity": "insuficiente"}),
+    ),
+    CleanFixture(
+        "rl1_clean_revisar_peso",
+        "RL1",
+        _output(
+            sugestoes_taticas=[
+                _sug(
+                    "Revisar o peso de ações brasileiras na carteira (37,5% do investível) em relação à alocação-alvo, considerando rebalanceamento por aporte.",
+                    prioridade="P1",
+                )
+            ]
+        ),
+        _e5(reserva_emergencia={"cobertura_meses": 1.47, "avaliacao_liquidity": "insuficiente"}),
+    ),
     # RL2 — aporte em risco mas taxa "N/D" e endividamento baixo
     CleanFixture(
         "rl2_clean_taxa_nd",
