@@ -1163,7 +1163,7 @@ não pôde ser determinado. Propaga de E0→E2→E3.
 - `inbox_processed/` sem prefixo `_` — é parte do fluxo de upload (move
   arquivo de `inbox/` após classificação), não diretório auxiliar.
 - `config/schemas/` contém schemas JSON usados por `validate_dict` (hook
-  pós-write em `DBArtifactStore.write`, ADR-212 PR3a): 5 schemas de
+  pós-write em `DBArtifactStore.write`, ADR-212 PR3a): 7 schemas de
   estágios canônicos (`baseline_patrimonial`, `e16_irpf_full`,
   `e2_extract`, `e3_reconciled`, `e4_unified`, `e5_analysis`,
   `pipeline`) + schemas de domínio para `Goal` (alocacao_alvo v1/v2,

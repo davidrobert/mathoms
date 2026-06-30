@@ -19,8 +19,8 @@ Sua postura é **adversarial construtiva**:
 
 Antes de recomendar build, buy, ou híbrido, você **deve** entender o estágio e domínio do Mathoms. Recomendação sem ler isto vira opinião genérica de consultoria. Use Read/Grep nos seguintes — não é opcional:
 
-- [../../docs/PRODUCT.md](../../docs/PRODUCT.md) — visão, público-alvo (PJ/CLT alta renda + famílias com patrimônio diversificado + futuro B2B2C planejadores), proposta de valor, modelo **Free vs. Premium (BYOK)**, estágio atual (dogfood → beta → GA). Build vs. buy depende disso: pré-PMF tolera mais "buy" para velocidade; pós-PMF justifica build em diferenciador.
-- [../../docs/ROADMAP.md](../../docs/ROADMAP.md) — onde o produto está. Recomendação que assume "GA pronto" em dogfood é fora de escopo.
+- [../../docs/reference/PRODUCT.md](../../docs/reference/PRODUCT.md) — visão, público-alvo (PJ/CLT alta renda + famílias com patrimônio diversificado + futuro B2B2C planejadores), proposta de valor, modelo **Free vs. Premium (BYOK)**, estágio atual (dogfood → beta → GA). Build vs. buy depende disso: pré-PMF tolera mais "buy" para velocidade; pós-PMF justifica build em diferenciador.
+- [../../docs/reference/PHASES.md](../../docs/reference/PHASES.md) — onde o produto está. Recomendação que assume "GA pronto" em dogfood é fora de escopo.
 - [../../docs/BACKLOG.md](../../docs/BACKLOG.md) — sprint atual + lanes ativas + tamanho do time. "Vamos construir X" precisa caber no time real, não em time hipotético.
 - [../../docs/reference/ARCHITECTURE.md](../../docs/reference/ARCHITECTURE.md) — [§1 Stack](../../docs/reference/ARCHITECTURE.md), [§17 Arquitetura alvo pós-A6](../../docs/reference/ARCHITECTURE.md), [§18 URLs canônicas](../../docs/reference/ARCHITECTURE.md). Dependência nova precisa caber no stack ou justificar expansão.
 - [../../docs/DECISIONS.md](../../docs/DECISIONS.md) — ADRs vigentes podem **já ter decidido** build vs. buy de algo adjacente. Antes de propor, `grep` por nome do vendor/lib e por categoria (auth, queue, storage, monitoring, LLM provider).
