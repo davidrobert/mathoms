@@ -213,6 +213,23 @@ ações" é de-risking), não deploy de capital novo. Co-design `financial-plann
 > ambas necessárias. Recomendado **medir em 2 passos** (estratificado+1.1 isola artefato de
 > fixture; estratificado+1.2 isola FP de predicado).
 
+### Resultado medido (holdout estratificado + RL1 1.2 · 2026-06-30 · 24×1 temp=0.1 · US$2,90)
+
+| Métrica | Monocultura + 1.1 | Estratificado + 1.2 |
+|---|---|---|
+| `needs_review` | 9/10 (90%) | **8/24 (33%)** |
+| **RL1 disparos** | 8/10 | **0/24** (sub 0/6 · border 0/4 · **saudável 0/10** · folgado 0/4) |
+
+**RL1 1.2 validado:** FP-rate **0% no estrato saudável** (precision perfeita) e 0% nos demais
+— rebalance/planning não dispara; recall coberto pelos testes determinísticos (`rl1_*` com
+"aportar em ações"). O `needs_review` residual (33%) **não é mais RL1** — é **RL3 (5×)** e
+**RL7 (6×)**. RL7 nos fixtures `imovel` (concentração 52%) é **plausivelmente correto** (alerta
+sem risco Alto correspondente). **RL3 (5×, fixtures divida/imovel) é suspeito de FP residual**
+(provável "quitar dívida **garante** economia de **juros**" — garantia + objeto-de-retorno em
+proximidade, mas é economia, não retorno de investimento). **Próxima iteração** (fora do escopo
+desta entrega): inspecionar texto de RL3, e confirmar se RL7-concentração é TP ou se o parecer
+deveria ter emitido o risco Alto. Run completo 5× (IC95, ~US$29) opcional p/ fechar o número.
+
 ## Follow-ups (não bloqueiam o enforcement)
 
 - **Prompt-side (REGRA 14 + bump `PROMPT_VERSION → 2.1.0`):** owner-gated — exige
