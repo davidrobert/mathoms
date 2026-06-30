@@ -232,6 +232,15 @@ CLEAN: tuple[CleanFixture, ...] = (
         ),
         _e5(),
     ),
+    # RL3 — "garante" SEM objeto-de-retorno por perto (falso-positivo real do dogfood 2026-06-30)
+    CleanFixture(
+        "rl3_clean_garante_sem_retorno",
+        "RL3",
+        _output(
+            diagnostico_geral="A folga mensal de R$ 15.000 garante capacidade de aporte disciplinado; o FGC, fundo garantidor de crédito, cobre a renda fixa bancária."
+        ),
+        _e5(),
+    ),
     # RL4 — classe genérica, sem ticker nem instituição
     CleanFixture(
         "rl4_clean_classe",

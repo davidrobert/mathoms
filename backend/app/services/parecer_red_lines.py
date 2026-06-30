@@ -61,10 +61,19 @@ _RECOMENDA = (
     "escolher",
 )
 
-_PROMESSA = re.compile(
-    r"(garant\w+|assegur\w+|promet\w+|certeza de|com certeza|sem risco de perda"
-    r"|rentabilidade garantida|retorno garantido|vai render|rendera|rende \d)",
+# RL3 (ADR-300): promessa de retorno = garantia PRÓXIMA de objeto-de-retorno (spec
+# financial-planner). Genérico "garant\w+" isolado é falso-positivo em massa
+# ("garante capacidade de aporte", FGC "fundo garantidor", "garantir a reserva").
+_PROMESSA_FORTE = re.compile(  # promessa inequívoca — dispara mesmo com hedge
+    r"(rentabilidade garantida|retorno garantido|ganho garantido|lucro garantido"
+    r"|rentabilidade certa|sem risco de perda)"
 )
+_RENDER_PROMESSA = re.compile(r"(vai render|rendera|rende \d)")  # render+futuro/figura
+_GARANTIA_GEN = re.compile(r"(garant\w+|assegur\w+|promet\w+|certeza)")  # exige obj-retorno perto
+_RETORNO_OBJ = re.compile(
+    r"(retorno|rentabili|lucro|ganho|valoriz|render|dividend|% ?a\.?\s?a|ao ano)"
+)
+_PROX = 45
 _HEDGE = re.compile(r"(pode render|historicamente|busca rentabili|tende a|pode valoriz)")
 _TICKER = re.compile(r"\b[A-Z]{4}\d{1,2}\b")
 
@@ -147,9 +156,14 @@ def _prose_blobs(out: Mapping[str, Any]) -> list[str]:
     return [b for b in blobs if b]
 
 
+def _avaliacao_insuficiente(res: Mapping[str, Any]) -> bool:
+    # E5 emite "insuficiente" (minúsculo); case-insensitive p/ não morrer o branch.
+    return (res.get("avaliacao_liquidity") or "").strip().lower() == "insuficiente"
+
+
 def _reserva_sub_meta(e5: Mapping[str, Any]) -> bool:
     res = e5.get("reserva_emergencia") or {}
-    if res.get("avaliacao_liquidity") == "Insuficiente":
+    if _avaliacao_insuficiente(res):
         return True
     cob = res.get("cobertura_meses")
     return isinstance(cob, (int, float)) and cob == cob and cob < 6.0  # NaN-safe
@@ -188,10 +202,22 @@ def _parse_taxa_mensal(raw: Any) -> float | None:
     return float(m.group(1).replace(",", ".")) if m else None
 
 
+def _promete_retorno(n: str) -> bool:
+    if _PROMESSA_FORTE.search(n):
+        return True
+    if _HEDGE.search(n):
+        return False
+    if _RENDER_PROMESSA.search(n):
+        return True
+    for m in _GARANTIA_GEN.finditer(n):  # garantia genérica só com obj-retorno por perto
+        if _RETORNO_OBJ.search(n[max(0, m.start() - _PROX) : m.end() + _PROX]):
+            return True
+    return False
+
+
 def _rl3_promessa_retorno(out, e5) -> list[RedLineViolation]:
     for blob in _prose_blobs(out):
-        n = _norm(blob)
-        if _PROMESSA.search(n) and not _HEDGE.search(n):
+        if _promete_retorno(_norm(blob)):
             return [RedLineViolation("RL3", "block", "promessa/garantia de retorno (CVM)")]
     return []
 
@@ -235,7 +261,7 @@ def _rl6_blob_violation(n: str, insuficiente: bool) -> RedLineViolation | None:
 
 
 def _rl6_mexer_reserva_protecao(out, e5) -> list[RedLineViolation]:
-    insuficiente = (e5.get("reserva_emergencia") or {}).get("avaliacao_liquidity") == "Insuficiente"
+    insuficiente = _avaliacao_insuficiente(e5.get("reserva_emergencia") or {})
     for blob in _prose_blobs(out):
         violation = _rl6_blob_violation(_norm(blob), insuficiente)
         if violation:
