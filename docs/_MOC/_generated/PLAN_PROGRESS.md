@@ -16,13 +16,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Lanes: 0 done · 1 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-186]], [[ADR-188]]
 
-### PLAN-cenarios-estresse — Cenários de Estresse — plano canônico
-
-- Status: `in_progress` · Sprint atual: A11
-- Sprints envolvidas: A8
-- Lanes: 0 done · 1 in_progress · 0 open · 0 blocked
-- ADRs canônicas: —
-
 ### PLAN-data-lineage — Data Lineage fim-a-fim + Fonte plugável
 
 - Status: `in_progress` · Sprint atual: A26
@@ -96,6 +89,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Pausado em: 2026-05-06 · Razão: Substituído por PLAN-platform-review (revisão multi-agente 2026-05-06).
 
 ## Concluídos (`done`)
+
+### PLAN-cenarios-estresse — Cenários de Estresse — plano canônico
+
+- Status: `done` · Sprint atual: A11
+- Sprints envolvidas: A8
+- Lanes: 1 done · 0 in_progress · 0 open · 0 blocked
+- ADRs canônicas: [[ADR-168]]
 
 ### PLAN-planner-review — Parecer do Planejador (E6) — substituição de review_finances + aterrissagem operacional
 

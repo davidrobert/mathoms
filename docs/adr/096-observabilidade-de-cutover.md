@@ -7,7 +7,7 @@ phase: "execução paralela à Fase 2"
 date: "2026-04-19"
 relates_to: []
 supersedes: []
-superseded_by: []
+superseded_by: ["[[ADR-212]]"]
 aliases: ["ADR 096"]
 tags:
   - area/ops
@@ -18,6 +18,12 @@ size_lines: 64
 ---
 
 # ADR-096 — Observabilidade de cutover
+
+> ⚠️ **OBSOLETA — não implementada, superseded por [[ADR-212]].** Este kit observava
+> a janela de cutover disk↔DB (`MATHOMS_USE_DB_ARTIFACTS`). A [[ADR-212]] tornou o
+> `ArtifactStore` **DB-only** e deletou o `DiskArtifactStore` + o flag — o "lado disk"
+> da comparação deixou de existir. Mantida como registro histórico; `status` segue
+> `Proposto` porque nunca virou decisão (ficou obsoleta antes de implementar).
 
 **Status:** Proposto (execução paralela à Fase 2) • **Data:** 2026-04-19 • **Plano:** §16
 

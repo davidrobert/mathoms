@@ -2,7 +2,7 @@
 id: ADR-211
 type: adr
 title: "llm_config e pipeline.json como overrides DB-direto (cutover completo do A7)"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-14"
 relates_to:
@@ -19,9 +19,15 @@ tags:
   - area/pipeline
   - area/security
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
+
+> **Decidido (A12) — rollout parcial.** A decisão (overrides DB-direto p/ `llm_config`)
+> está tomada e o **contrato central da lane 1 shipou** (`serialize_llm_config` em
+> `build_config_overrides_from_db`). Resíduo de faxina: lane 3 (deletar
+> `prepare_pipeline_config_dir`) segue pendente — ver §"Roadmap pós-PR" abaixo. Não há
+> tabela duplicada; o roadmap residual é a fonte de status das lanes.
 
 ## Contexto
 

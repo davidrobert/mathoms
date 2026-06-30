@@ -44,12 +44,12 @@ theme: "data-lineage"
 | Lane | Slug | Status | Dep |
 |---|---|---|---|
 | [[A25.l1]] | `a23l4-cutover-override` (dual-read 6 call-sites + flag; M2 → carry-over) | ✅ shipped #604 | A23.l4 s3 ✅ #563 |
-| [[A25.l2]] | `dedup-e4-flip-v2` ([[ADR-287]] `Decidido`; slice 1 #619/#621 + **cutover impl. (PR #648)** — resolver+sentinela, flip DEFAULTS→True, rebaseline vazio v2≡v1, G-f zero delta) | in_progress (PR #648 aguardando merge) | l1 ✅ |
+| [[A25.l2]] | `dedup-e4-flip-v2` ([[ADR-287]] `Decidido`; slice 1 #619/#621 + **cutover impl. (PR #648)** — resolver+sentinela, flip DEFAULTS→True, rebaseline vazio v2≡v1, G-f zero delta) | ✅ shipped #648 | l1 ✅ |
 | [[A25.l3]] | `dl-f5-reverso` (edge table + hook pós-run; teto run→doc documentado) | ✅ shipped #600 | — |
 | [[A25.l4]] | `dl-f7-debug-llm` (renderer/diff/tools/eval nightly + seed #606/#607) | ✅ shipped #603 | — |
 | [[A25.l5]] | `dl-f6-produto-n1n2` (selo+popover; teste 5s dogfood pendente, flag off) | ✅ shipped #602 | — |
-| [[A25.l6]] | `kr2-resto` (parte A ✅ #609 — **KR2 6/6 lineage**; **parte B `member_hashes` reais impl. (PR #648)** — natural_key no item E4 + gate classe-c + fixture K4) | in_progress | parte B: l2 |
-| [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — **decisão registrada 2026-06-16: carry-over A26** — só 3 gerações c/ telemetria << 20; taxa ~89%, 81% conformidade de path) | in_progress | telemetria |
+| [[A25.l6]] | `kr2-resto` (parte A ✅ #609 — **KR2 6/6 lineage**; **parte B `member_hashes` reais impl. (PR #648)** — natural_key no item E4 + gate classe-c + fixture K4) | ✅ shipped #609/#648 | parte B: l2 |
+| [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — **decisão registrada 2026-06-16: carry-over A26** — só 3 gerações c/ telemetria << 20; taxa ~89%, 81% conformidade de path) | ✅ shipped #649 | telemetria |
 
 **Precedência de corte (squeeze):** F7 > F6. MLP = l3+l4+l5 + decisão l7;
 l1 must-condicional; l2 must-se-l1; l6 stretch cortável.

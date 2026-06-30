@@ -2,23 +2,28 @@
 id: PLAN-cenarios-estresse
 type: plan
 title: Cenários de Estresse — plano canônico
-status: in_progress
+status: done
 created_at: 2026-05-06
-last_review: 2026-05-07
+last_review: 2026-06-29
 sprint_origem: A8
 sprint_atual: A11
 sprints_envolvidas: [A8, A11]
 paused_at: null
 pause_reason: null
-adrs_canonical: []
+adrs_canonical: ["[[ADR-168]]"]
 tags:
   - type/plan
-  - status/in-progress
+  - status/done
 ---
 
 # Cenários de Estresse — plano canônico
 
-> **Status:** 🚧 Em execução · **Iniciado:** 2026-05-06 · **Sprint host:** A8 (segue pós-Onda 7/8/9)
+> **Status:** ✅ **Concluído (2026-06-29).** Condição de done do próprio plano satisfeita
+> (0 hits de `UsaSections`/`mariana_cenarios` em `frontend/src` + `config/`; modo USA
+> U1–U4 deletado, [[ADR-168]] `Decidido` — ver §640). Mantido in-place em `docs/plan/`
+> (não arquivado) porque o `id` é alvo de wikilinks vivos e de `plan:` de lane (A8-4).
+> O checklist `[ ]` remanescente abaixo é texto aspiracional do escopo original, não
+> trabalho pendente. **Iniciado:** 2026-05-06 · **Sprint host:** A8.
 >
 > **Owner:** principal + 4 especialistas (financial-planner · product-designer · senior-cto · data-engineer)
 >

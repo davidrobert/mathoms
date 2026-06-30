@@ -208,7 +208,7 @@
 | ADR-208 | adr | Decidido |  | Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) | `adr/208-gating-parecer-holistico-free-vs-premium.md` |
 | ADR-209 | adr | Decidido |  | Convenção numérica de percentual no contrato E5 — valor absoluto | `adr/209-convencao-numerica-percentual-absoluto.md` |
 | ADR-210 | adr | Decidido |  | Saúde do test suite do CI — gates, telemetria e ciclo de vida | `adr/210-saude-do-test-suite-do-ci.md` |
-| ADR-211 | adr | Proposto |  | llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) | `adr/211-llm-config-db-overrides.md` |
+| ADR-211 | adr | Decidido |  | llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) | `adr/211-llm-config-db-overrides.md` |
 | ADR-212 | adr | Decidido |  | Sunset `MATHOMS_USE_DB_ARTIFACTS` + `DiskArtifactStore` + CLI standalone do pipeline | `adr/212-sunset-mathoms-use-db-artifacts-disk-store-cli.md` |
 | ADR-213 | adr | Decidido |  | Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) | `adr/213-sunset-stage-audit-documents.md` |
 | ADR-214 | adr | Decidido |  | `Decision.code` é server-generated com `pg_advisory_xact_lock` | `adr/214-decision-code-server-generated.md` |
@@ -513,10 +513,31 @@
 | CHG-2026-06-03-A23-L1 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-03-A23-L1.md` |
 | CHG-2026-06-08-A23-L2 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L2.md` |
 | CHG-2026-06-08-A23-L3 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L3.md` |
+| CHG-2026-06-09-A23-L4-OVERRIDE-NATURAL-KEY-V2 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-09-A23-L4-OVERRIDE-NATURAL-KEY-V2.md` |
+| CHG-2026-06-09-A23-L5-DATA-SOURCE | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-09-A23-L5-DATA-SOURCE.md` |
+| CHG-2026-06-09-A23-L6-AMOUNT-DECIMAL | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-09-A23-L6-AMOUNT-DECIMAL.md` |
+| CHG-2026-06-09-A23-L7-EXTRACT-CHECK | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-09-A23-L7-EXTRACT-CHECK.md` |
+| CHG-2026-06-09-A23-L8-MIGRATION-RUNBOOK | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-09-A23-L8-MIGRATION-RUNBOOK.md` |
+| CHG-2026-06-09-A24-L2-DELEAK-ACCOUNT-NORM | changelog-entry |  | A24 |  | `sprint/A24/changelog/CHG-2026-06-09-A24-L2-DELEAK-ACCOUNT-NORM.md` |
+| CHG-2026-06-09-A24-L3-DELEAK-TIPO-LANCAMENTO | changelog-entry |  | A24 |  | `sprint/A24/changelog/CHG-2026-06-09-A24-L3-DELEAK-TIPO-LANCAMENTO.md` |
 | CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET.md` |
 | CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS.md` |
+| CHG-2026-06-10-A24-L1-F2-DISCOVERY | changelog-entry |  | A24 |  | `sprint/A24/changelog/CHG-2026-06-10-A24-L1-F2-DISCOVERY.md` |
+| CHG-2026-06-10-A24-L4-EVIDENCIA-PATH | changelog-entry |  | A24 |  | `sprint/A24/changelog/CHG-2026-06-10-A24-L4-EVIDENCIA-PATH.md` |
+| CHG-2026-06-10-A24-L5-SKELETON-PATRIMONIO | changelog-entry |  | A24 |  | `sprint/A24/changelog/CHG-2026-06-10-A24-L5-SKELETON-PATRIMONIO.md` |
+| CHG-2026-06-10-A24-L6-SKELETON-RESTO | changelog-entry |  | A24 |  | `sprint/A24/changelog/CHG-2026-06-10-A24-L6-SKELETON-RESTO.md` |
+| CHG-2026-06-10-A25-L3-F5-LINEAGE-REVERSO | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-10-A25-L3-F5-LINEAGE-REVERSO.md` |
+| CHG-2026-06-10-A25-L4-F7-DEBUG-LLM | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-10-A25-L4-F7-DEBUG-LLM.md` |
+| CHG-2026-06-11-A25-L1-CUTOVER-OVERRIDE-V2 | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-11-A25-L1-CUTOVER-OVERRIDE-V2.md` |
 | CHG-2026-06-12-REMOVE-HISTORICO-CICLOS | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-12-REMOVE-HISTORICO-CICLOS.md` |
 | CHG-2026-06-12-SUGGESTION-LIFECYCLE-F1-F4 | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-12-SUGGESTION-LIFECYCLE-F1-F4.md` |
+| CHG-2026-06-15-A25-L5-F6-PRODUTO-N1N2 | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-15-A25-L5-F6-PRODUTO-N1N2.md` |
+| CHG-2026-06-16-A25-L2-DEDUP-E4-FLIP-V2 | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-16-A25-L2-DEDUP-E4-FLIP-V2.md` |
+| CHG-2026-06-16-A25-L6-KR2-RESTO | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-16-A25-L6-KR2-RESTO.md` |
+| CHG-2026-06-16-A25-L7-EVIDENCIA-STRICT-DECISION | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-16-A25-L7-EVIDENCIA-STRICT-DECISION.md` |
+| CHG-2026-06-18-A26-L6-EVIDENCIA-COVERAGE-KPI | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-18-A26-L6-EVIDENCIA-COVERAGE-KPI.md` |
+| CHG-2026-06-19-A26-L7-EVIDENCIA-CATALOG-LISTAS | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-19-A26-L7-EVIDENCIA-CATALOG-LISTAS.md` |
+| CHG-2026-06-21-A26-L9-CITACAO-DETERMINISTICA | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-21-A26-L9-CITACAO-DETERMINISTICA.md` |
 | CHG-2026-06-29-A22-L2-RED-LINES | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-06-29-A22-L2-RED-LINES.md` |
 | CHG-2026-06-29-A22-L5-DIVIDAS-DEDUP | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-06-29-A22-L5-DIVIDAS-DEDUP.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
@@ -650,7 +671,7 @@
 | A8.1 | lane | planned | A8 | MileageProgram aggregate (DB + API + UI) | `sprint/A8/lanes/A8-1-mileageprogram-aggregate.md` |
 | A8.2 | lane | shipped | A8 | IRPF full schema (E1.6 — pipeline + analyzer + E5 wire) | `sprint/A8/lanes/A8-2-irpf-full-schema.md` |
 | A8.3 | lane | shipped | A8 | TRS real — Carteira de renda + Taxa de Retirada Sustentável efetiva (S7) | `sprint/A8/lanes/A8-3-trs-real-carteira-de-renda-taxa-de.md` |
-| A8.4 | lane | in_progress | A8 | Cenários de Estresse — remoção de prototipagem família-específica + APP_C universal | `sprint/A8/lanes/A8-4-cenarios-de-estresse-remocao-de-prototipagem-familia.md` |
+| A8.4 | lane | shipped | A8 | Cenários de Estresse — remoção de prototipagem família-específica + APP_C universal | `sprint/A8/lanes/A8-4-cenarios-de-estresse-remocao-de-prototipagem-familia.md` |
 | A9.0.6-p2-p3 | lane | shipped | A9 | LGPD self-service + tenancy gate | `sprint/A9/lanes/A9-0-6-p2-p3-lgpd-self-service-tenancy-gate.md` |
 | A9.a1 | lane | shipped | A9 | feat Alembic stage rename migration | `sprint/A9/lanes/A9-a1-feat-alembic-stage-rename-migration.md` |
 | A9.a2 | lane | shipped | A9 | refactor `content_classifier` | `sprint/A9/lanes/A9-a2-refactor-content-classifier.md` |
@@ -706,7 +727,7 @@
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
 | MOC-sprint-a9 | moc |  |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
 | PLAN-cat-learning-loop | plan | in_progress |  | Categorization Learning Loop — promoção de override de transação para regra | `plan/CAT_LEARNING_LOOP/_README.md` |
-| PLAN-cenarios-estresse | plan | in_progress |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
+| PLAN-cenarios-estresse | plan | done |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-data-lineage | plan | in_progress |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |

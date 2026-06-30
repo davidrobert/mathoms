@@ -15,6 +15,7 @@ relates_to:
 supersedes:
   - "[[ADR-118]]"
   - "[[ADR-106]]"
+  - "[[ADR-096]]"
 superseded_by: []
 aliases: ["ADR 212", "sunset disk artifact store", "DB-only artifacts"]
 tags:
