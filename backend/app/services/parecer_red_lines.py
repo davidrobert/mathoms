@@ -12,22 +12,46 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
-RED_LINES_VERSION = "1.1"
+RED_LINES_VERSION = "1.2"
 
 # Lemmas (radicais, sem acento, lowercase) — lista controlada, não NLP.
 # RL1 (ADR-300, calibração financial-planner 2026-06-30): "reserva antes de risco"
 # proíbe DEPLOY de capital, não planejamento de arcabouço (definir política/alocação-
 # alvo é o núcleo do método AUVP). Execução inequívoca sempre dispara; verbo ambíguo
 # só dispara em P0/P1; planejamento puro de arcabouço não dispara.
+# RL1 1.2 (dogfood 2026-06-30): "aport" cru casava "rebalanceamento por APORTE"
+# (substantivo de método AUVP/Perini). Só verbo CONJUGADO de deploy de capital novo.
 _EXEC_INEQUIVOCA = (
-    "aport",
+    "aportar",
+    "aporte de",
+    "aporte em",
+    "aporte inicial",
+    "aporte r$",
     "comprar",
+    "adquirir cota",
     "montar posic",
     "aumentar exposic",
     "elevar exposic",
     "destinar a",
 )
 _APORTE_AMBIGUO = ("investir em", "alocar em")
+# Rebalanceamento / de-risking / aporte-como-método: conselho prudente, NÃO deploy de
+# novo risco (AUVP rebalanceia por aporte; reduzir/revisar peso é de-risking). Curto-
+# circuita RL1 antes de avaliar execução (financial-planner + senior-cto, dogfood).
+_DERISK_REBALANCE = (
+    "rebalanc",
+    "por aporte",
+    "aportes mensais",
+    "via aporte",
+    "revisar o peso",
+    "revisar a alocac",
+    "revisar a carteira",
+    "reduzir",
+    "diminuir",
+    "realocar",
+    "redistribuir",
+    "ajustar a carteira",
+)
 _PLANEJAMENTO_ARCABOUCO = (
     "definir politica",
     "politica de investiment",
@@ -153,6 +177,8 @@ def _is_aporte_risco(sug: Mapping[str, Any]) -> bool:
         return False
     if _has_any(acao, _PRO_RESERVA):
         return False
+    if _has_any(acao, _DERISK_REBALANCE):
+        return False  # rebalance/de-risking/aporte-método — conselho prudente, não deploy
     exec_imediata = _has_any(acao, _EXEC_INEQUIVOCA)
     if _has_any(acao, _PLANEJAMENTO_ARCABOUCO) and not exec_imediata:
         return False  # planejamento de arcabouço (AUVP/Cerbasi) — não é deploy de risco

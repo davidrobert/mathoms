@@ -37,7 +37,10 @@ _PER_PARECER_GATE = 0.05
 # de ÂNCORAS/parecer (não mais money_tokens). Piso conservador — re-ancorar na 1ª
 # medição real (o anti-sub-citação importa, não o número absoluto).
 _DENSITY_FLOOR = 5
-_COST_CAP_USD = 20.0
+# Cap escalado ao holdout estratificado (ADR-300 §Item 3): n=24 fixtures × _GATE_RUNS +
+# diag (~144 gerações) vs. 60 do holdout monocultura — ~2,4×. ~US$29/run observado;
+# cap com folga p/ jitter de tokens. Budget é não-binário (UX); este cap só barra fuga.
+_COST_CAP_USD = 50.0
 
 
 def _env_or_skip() -> None:
