@@ -93,6 +93,14 @@ POISONED: tuple[RedLineFixture, ...] = (
         _output(sugestoes_taticas=[_sug(_APORTE)]),
         _e5(reserva_emergencia={"cobertura_meses": 5.0, "avaliacao_liquidity": "Insuficiente"}),
     ),
+    # RL1 — verbo ambíguo ("investir em") com prioridade imediata P1 → dispara (calibração FP)
+    RedLineFixture(
+        "rl1_ambiguo_p1",
+        "RL1",
+        "block",
+        _output(sugestoes_execucao=[_sug("Investir em renda variável agora.", prioridade="P1")]),
+        _e5(reserva_emergencia={"cobertura_meses": 1.5, "avaliacao_liquidity": "insuficiente"}),
+    ),
     # RL2 — dívida cara (taxa numérica) precede risco / proxy endividamento alto
     RedLineFixture(
         "rl2_taxa_numerica",
@@ -212,6 +220,30 @@ CLEAN: tuple[CleanFixture, ...] = (
             ]
         ),
         _e5(reserva_emergencia={"cobertura_meses": 2.0, "avaliacao_liquidity": "Insuficiente"}),
+    ),
+    # RL1 — planejamento de arcabouço (definir política/alocação-alvo) NÃO é deploy de
+    # risco mesmo com reserva sub-meta (núcleo AUVP — falso-positivo real do dogfood)
+    CleanFixture(
+        "rl1_clean_planejamento_arcabouco",
+        "RL1",
+        _output(
+            sugestoes_estrategicas=[
+                _sug(
+                    "Definir política de investimentos com alocação-alvo por classe e desvio máximo tolerado, contemplando renda variável e FIIs.",
+                    prioridade="P2",
+                )
+            ]
+        ),
+        _e5(reserva_emergencia={"cobertura_meses": 1.5, "avaliacao_liquidity": "insuficiente"}),
+    ),
+    # RL1 — verbo ambíguo ("investir em") em prioridade NÃO-imediata P2 → não dispara
+    CleanFixture(
+        "rl1_clean_ambiguo_p2",
+        "RL1",
+        _output(
+            sugestoes_estrategicas=[_sug("Investir em renda variável no futuro.", prioridade="P2")]
+        ),
+        _e5(reserva_emergencia={"cobertura_meses": 1.5, "avaliacao_liquidity": "insuficiente"}),
     ),
     # RL2 — aporte em risco mas taxa "N/D" e endividamento baixo
     CleanFixture(

@@ -12,18 +12,35 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
-RED_LINES_VERSION = "1.0"
+RED_LINES_VERSION = "1.1"
 
 # Lemmas (radicais, sem acento, lowercase) — lista controlada, não NLP.
-_APORTE_RISCO = (
+# RL1 (ADR-300, calibração financial-planner 2026-06-30): "reserva antes de risco"
+# proíbe DEPLOY de capital, não planejamento de arcabouço (definir política/alocação-
+# alvo é o núcleo do método AUVP). Execução inequívoca sempre dispara; verbo ambíguo
+# só dispara em P0/P1; planejamento puro de arcabouço não dispara.
+_EXEC_INEQUIVOCA = (
     "aport",
-    "investir em",
-    "alocar em",
     "comprar",
+    "montar posic",
     "aumentar exposic",
     "elevar exposic",
-    "montar posic",
     "destinar a",
+)
+_APORTE_AMBIGUO = ("investir em", "alocar em")
+_PLANEJAMENTO_ARCABOUCO = (
+    "definir politica",
+    "politica de investiment",
+    "alocacao-alvo",
+    "alocacao alvo",
+    "desvio maximo",
+    "arcabouco",
+    "diretriz",
+    "estrategia de alocac",
+    "plano de",
+    "estabelecer meta",
+    "revisar a carteira",
+    "mapear",
 )
 _OBJETO_RISCO = ("acoes", "acao", "fii", "fiis", "renda variavel", "bolsa", "cripto", "rv")
 _PRO_RESERVA = ("reserva", "caixa", "tesouro selic", "rf pos", "pos-fixad", "liquidez")
@@ -136,7 +153,14 @@ def _is_aporte_risco(sug: Mapping[str, Any]) -> bool:
         return False
     if _has_any(acao, _PRO_RESERVA):
         return False
-    return _has_any(acao, _APORTE_RISCO) and _has_any(acao, _OBJETO_RISCO)
+    exec_imediata = _has_any(acao, _EXEC_INEQUIVOCA)
+    if _has_any(acao, _PLANEJAMENTO_ARCABOUCO) and not exec_imediata:
+        return False  # planejamento de arcabouço (AUVP/Cerbasi) — não é deploy de risco
+    if not _has_any(acao, _OBJETO_RISCO):
+        return False
+    if exec_imediata:
+        return True
+    return _has_any(acao, _APORTE_AMBIGUO) and sug.get("prioridade") in {"P0", "P1"}
 
 
 def _has_quitacao(out: Mapping[str, Any]) -> bool:
