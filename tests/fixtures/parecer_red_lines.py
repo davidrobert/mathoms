@@ -206,6 +206,14 @@ POISONED: tuple[RedLineFixture, ...] = (
         _output(riscos=[]),
         _e5(real_estate={"concentracao_pct": 65.0, "alertas": []}),
     ),
+    # RL7 1.4 — 40-60% com tema só em Baixa = subdiagnóstico (anti-FN do narrow graduado)
+    RedLineFixture(
+        "rl7_meia_concentracao_so_baixa",
+        "RL7",
+        "block",
+        _output(riscos=[_risco("Baixa", "Alocação")]),
+        _e5(real_estate={"concentracao_pct": 52.0, "alertas": []}),
+    ),
 )
 
 
@@ -314,6 +322,23 @@ CLEAN: tuple[CleanFixture, ...] = (
         ),
         _e5(),
     ),
+    # RL3 — substring-FP do 2º dogfood (1.3): "comPROMETER"≠prometer, "inCERTEZA"≠certeza
+    CleanFixture(
+        "rl3_clean_comprometer_rentabilidade",
+        "RL3",
+        _output(
+            diagnostico_geral="Evitar desvios estruturais que comprometam a rentabilidade ajustada ao risco no longo prazo."
+        ),
+        _e5(),
+    ),
+    CleanFixture(
+        "rl3_clean_incerteza_retornos",
+        "RL3",
+        _output(
+            diagnostico_geral="A dispersão dos cenários reflete incerteza sobre retornos futuros; manter a taxa de poupança."
+        ),
+        _e5(),
+    ),
     # RL4 — classe genérica, sem ticker nem instituição
     CleanFixture(
         "rl4_clean_classe",
@@ -348,5 +373,13 @@ CLEAN: tuple[CleanFixture, ...] = (
         "RL7",
         _output(riscos=[_risco("Alta", "Saúde de balanço")]),
         _e5(real_estate={"concentracao_pct": 65.0, "alertas": []}),
+    ),
+    # RL7 1.4 — 40-60% com tema abordado em MÉDIA é defensável (Cerbasi×AUVP divergem),
+    # NÃO subdiagnóstico — falso-positivo real do 2º dogfood (52% com riscos Média/Alocação)
+    CleanFixture(
+        "rl7_clean_meia_concentracao_media",
+        "RL7",
+        _output(riscos=[_risco("Média", "Alocação"), _risco("Alta", "Liquidez")]),
+        _e5(real_estate={"concentracao_pct": 52.0, "alertas": []}),
     ),
 )

@@ -224,11 +224,27 @@ ações" é de-risking), não deploy de capital novo. Co-design `financial-plann
 — rebalance/planning não dispara; recall coberto pelos testes determinísticos (`rl1_*` com
 "aportar em ações"). O `needs_review` residual (33%) **não é mais RL1** — é **RL3 (5×)** e
 **RL7 (6×)**. RL7 nos fixtures `imovel` (concentração 52%) é **plausivelmente correto** (alerta
-sem risco Alto correspondente). **RL3 (5×, fixtures divida/imovel) é suspeito de FP residual**
-(provável "quitar dívida **garante** economia de **juros**" — garantia + objeto-de-retorno em
-proximidade, mas é economia, não retorno de investimento). **Próxima iteração** (fora do escopo
-desta entrega): inspecionar texto de RL3, e confirmar se RL7-concentração é TP ou se o parecer
-deveria ter emitido o risco Alto. Run completo 5× (IC95, ~US$29) opcional p/ fechar o número.
+sem risco Alto correspondente). **RL3 (5×)** e **RL7 (6×)** foram o resíduo.
+
+### Resolução de RL3 e RL7 (3ª rodada · RED_LINES_VERSION 1.4 · 2026-06-30)
+
+Inspeção do texto real (captura cirúrgica) + co-design `financial-planner`:
+
+- **RL3 → 4/5 era FP de SUBSTRING** (não de proximidade): `promet\w+` casava
+  "com**PROMET**am/com**PROMET**e" (comprometer ≠ prometer) e "certeza" casava
+  "in**CERTEZA**" (o oposto). Fix `\b` (word-boundary) nos lemmas genéricos (1.3). O
+  **1/5 restante é TP confirmado** — "retorno imediato e garantido **superior a qualquer
+  aplicação**" (argumento de quitar dívida): o comparativo superlativo é linguagem CVM-
+  perigosa mesmo para dívida; **sem exceção de contexto** (mandato zero-FN da RL3). Atrito
+  → follow-up prompt-side (REGRA 14), não validador.
+- **RL7 → FP de calibração** (não bug): exigia Alta em todo nível >40%, mas em 40–60%
+  Cerbasi (imóvel próprio = estabilidade) e AUVP (diversificar) **legitimamente divergem**
+  → Média basta (abordar ≠ silenciar). **Narrow graduado (1.4):** >60% ou alerta
+  estruturado → exige Alta; 40–60% → Média+; ≤40 → N/A. Os 6 casos em 52% deixam de
+  disparar; anti-FN preservado (52% com tema só em Baixa → dispara).
+
+RED_LINES_VERSION: 1.2 (RL1) → 1.3 (RL3 `\b`) → 1.4 (RL7 graduado). Re-eval confirmatório
+(combinado) pendente — run per-estrato ~US$3 ou 5× IC95 ~US$29 (owner-gated).
 
 ## Follow-ups (não bloqueiam o enforcement)
 
