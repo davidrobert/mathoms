@@ -314,6 +314,23 @@ CLEAN: tuple[CleanFixture, ...] = (
         ),
         _e5(),
     ),
+    # RL3 — substring-FP do 2º dogfood (1.3): "comPROMETER"≠prometer, "inCERTEZA"≠certeza
+    CleanFixture(
+        "rl3_clean_comprometer_rentabilidade",
+        "RL3",
+        _output(
+            diagnostico_geral="Evitar desvios estruturais que comprometam a rentabilidade ajustada ao risco no longo prazo."
+        ),
+        _e5(),
+    ),
+    CleanFixture(
+        "rl3_clean_incerteza_retornos",
+        "RL3",
+        _output(
+            diagnostico_geral="A dispersão dos cenários reflete incerteza sobre retornos futuros; manter a taxa de poupança."
+        ),
+        _e5(),
+    ),
     # RL4 — classe genérica, sem ticker nem instituição
     CleanFixture(
         "rl4_clean_classe",

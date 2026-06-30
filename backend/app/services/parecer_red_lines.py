@@ -12,7 +12,7 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
-RED_LINES_VERSION = "1.2"
+RED_LINES_VERSION = "1.3"
 
 # Lemmas (radicais, sem acento, lowercase) — lista controlada, não NLP.
 # RL1 (ADR-300, calibração financial-planner 2026-06-30): "reserva antes de risco"
@@ -110,7 +110,9 @@ _PROMESSA_FORTE = re.compile(  # promessa inequívoca — dispara mesmo com hedg
     r"|rentabilidade certa|sem risco de perda)"
 )
 _RENDER_PROMESSA = re.compile(r"(vai render|rendera|rende \d)")  # render+futuro/figura
-_GARANTIA_GEN = re.compile(r"(garant\w+|assegur\w+|promet\w+|certeza)")  # exige obj-retorno perto
+# \b evita substring-FP (dogfood 1.3): "comPROMETam/comPROMETE" (comprometer ≠ prometer),
+# "inCERTEZA" (≠ certeza). Exige objeto-de-retorno por perto (ver _promete_retorno).
+_GARANTIA_GEN = re.compile(r"\b(garant\w+|assegur\w+|promet\w+|certeza)")
 _RETORNO_OBJ = re.compile(
     r"(retorno|rentabili|lucro|ganho|valoriz|render|dividend|% ?a\.?\s?a|ao ano)"
 )
