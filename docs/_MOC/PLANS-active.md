@@ -16,7 +16,6 @@ aliases: ["PLANS-active", "plans-active"]
 | [`PLAN-platform-review`](../plan/PLATFORM_REVIEW/_README.md) | Revisão A11: segurança, dados e produção. |
 | [`PLAN-cat-learning-loop`](../plan/CAT_LEARNING_LOOP/_README.md) | Categorização A12: pipeline, backend e UX. |
 | [`PLAN-report-premium`](../plan/REPORT_PREMIUM/_README.md) | Superfície principal de produto. |
-| [`PLAN-cenarios-estresse`](../plan/CENARIOS_ESTRESSE/_README.md) | Cenários de estresse e regras. |
 | [`PLAN-llm-prompts-hardening`](../plan/LLM_PROMPTS_HARDENING/_README.md) | LGPD/ADR-090/telemetria nos 9 prompts LLM — A17/A18/A20. |
 | [`PLAN-data-lineage`](../plan/DATA_LINEAGE/_README.md) | Lineage fim-a-fim (forward+reverso) legível por LLM + fonte plugável (`SourceAdapter`/`SourceRef`) + extração limpa. Gate F0 abre 4 ADR (278-281) + emenda ADR-146; nenhuma lane abre antes de B1–B8. **Sprint A23 (`current`)**. |
 | [`PLAN-suggestion-lifecycle`](../plan/SUGGESTION_LIFECYCLE/_README.md) | Inbox `/acao` com 158 sugestões acumuladas (dogfood): supersede-per-run + `thesis_key` + valores determinísticos no parecer + cap/ordering. Gate F0 abre ADR-290; nenhuma lane antes do merge. **Sprint A25**. |
@@ -30,6 +29,7 @@ aliases: ["PLANS-active", "plans-active"]
 
 ## Encerrados
 
+- [`PLAN-cenarios-estresse`](../plan/CENARIOS_ESTRESSE/_README.md) — ✅ `done` 2026-06-29 (modo USA removido, [[ADR-168]]); mantido in-place (não arquivado — `id` linkado por lane A8-4).
 - [`PRODUCT_PLAN-2026-04-15.md`](../archive/PRODUCT_PLAN-2026-04-15.md).
 - [`CONFIG_CUTOVER_PLAN-2026-04-27.md`](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).
 - [`GOALS_JSON_CUTOVER_PLAN-2026-05-07.md`](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
