@@ -7,6 +7,7 @@ phase: "execução distribuída em Fases 1-4 do plano"
 date: "2026-04-19"
 relates_to:
   - "[[ADR-275]]"
+  - "[[ADR-231]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 095"]
@@ -20,6 +21,14 @@ size_lines: 56
 ---
 
 # ADR-095 — Segurança de `content_json` (LGPD)
+
+> **Resolvida via supersedure parcial (A21) — nada pendente.** As 4 decisões desta
+> proposta aterrissaram em ADRs específicas: **D1/D2** (criptografia at-rest de PII)
+> → [[ADR-231]] (`Decidido`, Fernet wrapper no `DBArtifactStore`); **D3/D4** (audit de
+> acesso + retenção) → [[ADR-275]] (`Decidido`, reusa `audit_logs`, rejeita tabela nova).
+> `status` segue `Proposto` por ser supersedure em **granularidade de decisão** (não
+> expressável no `supersedes:` ADR-level); o estado real é "implementada via ADR-231 +
+> ADR-275". Reverificação r2 2026-06-30.
 
 **Status:** Proposto (execução distribuída em Fases 1-4 do plano) • **Data:** 2026-04-19 • **Plano:** §15
 
