@@ -1,49 +1,38 @@
-# Anti-regression bank — F6.5E.8
+# Anti-regression bank
 
-Cada arquivo `test_bug_NNN_<slug>.py` aqui prova que **um bug histórico não voltou**. Convenções:
+Prova que **bugs históricos não voltaram**. Tudo vive consolidado em
+**`test_anti_regression_bank.py`** — uma **classe por bug** (`TestBugNNN<Slug>` /
+`TestOpNNN<Slug>`), não um arquivo por bug. Cada classe tem docstring com sintoma
+original + fix + a assertion que falharia se o fix fosse revertido.
 
-- **Nome do arquivo:** `test_bug_<numero_zero_padded>_<slug>.py` (ex: `test_bug_004_fallback_cpf_leak.py`).
-- **Docstring obrigatória:** seção `# Bug` com sintoma original, `# Fix` com o que mudou, `# Por que falharia se revertido` com a assertion crítica.
-- **Cada test falha SE o fix for revertido.** Não use asserts genéricos — escreva o caso exato que reproduz o bug original.
-- Se o bug é frontend (ex: `animate-pulse` faltando), criar arquivo placeholder com `pytest.skip("frontend regression — coberto em frontend/tests/...")`.
+Convenções:
+
+- **Classe por bug:** `TestBug004FallbackCPFLeak`, `TestOp005RouteToDataDir`, etc.
+- **Cada test falha SE o fix for revertido** — caso exato que reproduz o bug, não
+  asserts genéricos.
+- Bug puramente de **frontend** não vira teste-placeholder aqui — fica coberto em
+  `frontend/tests/`; só é registrado no catálogo abaixo como `🎯 frontend`.
 
 ## Catálogo
 
-| Bug      | Origem            | Status do test | Arquivo |
-|----------|-------------------|----------------|---------|
-| BUG-001  | Celery worker     | ✅ direto      | `test_bug_001_celery_task_discovery.py` |
-| BUG-002  | Celery sys.path   | ✅ direto      | `test_bug_002_celery_pipeline_module.py` |
-| BUG-003  | Pipeline pending  | ✅ via on_failure | `test_bug_003_celery_on_failure_marks_failed.py` |
-| BUG-004  | CPF leak fallback | ✅ direto      | `test_bug_004_fallback_cpf_leak.py` |
-| BUG-005  | Vault sem nav     | 🎯 frontend    | placeholder |
-| BUG-006  | Botão Revisar     | 🎯 frontend    | placeholder |
-| BUG-007  | skip_llm tier     | ✅ direto      | `test_bug_007_skip_llm_respects_tier.py` |
-| BUG-008  | Notif silencia    | 🎯 frontend    | placeholder |
-| BUG-009  | Export CSV pag.   | ✅ via endpoint | `test_bug_009_csv_export_all_pages.py` |
-| BUG-011  | Dead imports      | 🎯 frontend (lint) | placeholder |
-| BUG-012  | deleteNotif sem UI| 🎯 frontend    | placeholder |
-| BUG-014  | account label     | ✅ direto      | `test_bug_014_account_label_field.py` |
-| BUG-015  | familia.sobrenome | ✅ JÁ no `test_serializers_round_trip.py` | (link) |
-| OP-1     | parse_args sys.argv | ✅ direto    | `test_bug_op001_parse_args_celery.py` |
-| OP-2     | SystemExit Celery | ✅ via orchestrator | `test_bug_op002_systemexit_in_celery.py` |
-| OP-3     | LLM stages skip   | ✅ direto      | `test_bug_op003_llm_stages_skip_gracefully.py` |
-| OP-4     | Pipeline validation | ✅ direto    | `test_bug_op004_pipeline_validation_pre.py` |
-| OP-5     | route_to_data_dir | ✅ direto      | `test_bug_op005_route_to_data_dir.py` |
-| OP-6     | _categorization global | ✅ direto | `test_bug_op006_categorization_global.py` |
-| OP-7     | skip_llm default  | ✅ direto      | `test_bug_op007_skip_llm_default.py` |
-| OP-8     | FERNET_KEY persist | ✅ direto     | `test_bug_op008_fernet_persistence.py` |
-| OP-9     | max_tokens E1.5   | ✅ direto      | `test_bug_op009_max_tokens_e15.py` |
-| OP-10    | started_at tz     | ✅ direto      | `test_bug_op010_started_at_tz_aware.py` |
-| OP-11    | animate-pulse     | 🎯 frontend    | placeholder |
+Backend coberto por classe em `test_anti_regression_bank.py` (BUG-001/002/003/004/
+007/014/015 + OP-001..010); frontend coberto em `frontend/tests/`. BUG-015 também
+tem cobertura em `test_serializers_round_trip.py`. Para o status vivo, leia as
+classes do arquivo (`rg "^class Test" test_anti_regression_bank.py`) — esta tabela
+não duplica o detalhe para não derivar.
 
-## Pre-existing failures detectados em Bootstrap (2026-04-15)
-
-10 falhas em `test_pipeline_api`, `test_pipeline_phase5`, `test_pipeline_review`, `test_retry_config`, `test_pipeline_task` — **NÃO catalogadas aqui** porque ainda não foram triadas e fixadas. Quando o root cause for identificado, criar `test_bug_PRENNN_<slug>.py` aqui.
+| Faixa | Origem | Cobertura |
+|---|---|---|
+| BUG-001/002/003 | Celery (discovery, sys.path, on_failure) | ✅ classe |
+| BUG-004 | CPF leak no fallback de members | ✅ classe |
+| BUG-007 | skip_llm respeita tier premium | ✅ classe |
+| BUG-014/015 | account label / família sobrenome | ✅ classe (+ serializers round-trip) |
+| BUG-005/006/008/011/012 | UI (nav, botão, notif, dead imports) | 🎯 frontend |
+| OP-001..010 | parse_args, SystemExit, LLM skip, validation, route_to_data_dir, categorization global, FERNET persist, max_tokens E1.5, tz-aware | ✅ classe |
 
 ## Como contribuir
 
-Quando detectar um bug em produção:
-1. Reproduza com test em `backend/tests/regressions/test_bug_NNN_<slug>.py` que **falha**.
-2. Aplique o fix no código de produto.
-3. O test agora deve **passar**.
-4. Atualize a tabela acima.
+1. Reproduza o bug com uma **classe nova** `TestBugNNN<Slug>` em
+   `test_anti_regression_bank.py` que **falha** sem o fix.
+2. Aplique o fix no código de produto; o teste passa.
+3. Anote a faixa na tabela acima.
