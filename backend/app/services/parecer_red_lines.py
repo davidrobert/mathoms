@@ -12,7 +12,7 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
-RED_LINES_VERSION = "1.3"
+RED_LINES_VERSION = "1.4"
 
 # Lemmas (radicais, sem acento, lowercase) — lista controlada, não NLP.
 # RL1 (ADR-300, calibração financial-planner 2026-06-30): "reserva antes de risco"
@@ -125,6 +125,10 @@ _TICKER = re.compile(r"\b[A-Z]{4}\d{1,2}\b")
 # deterministicamente) → fora do hard-block (follow-up: tag de tema por item).
 _TEMA_CONCENTRACAO = {"Alocação", "Saúde de balanço"}
 _SEVERIDADE_ALTA = {"Crítica", "Alta"}
+# RL7 graduado (1.4, financial-planner 2026-06-30): em 40–60% Cerbasi (estabilidade)
+# e AUVP (diversificar) legitimamente divergem → Média basta (abordar ≠ silenciar);
+# >60% mesmo Cerbasi não sustenta → exige Alta; alerta estruturado do E5 → exige Alta.
+_SEVERIDADE_MEDIA_MAIS = {"Crítica", "Alta", "Média"}
 
 
 @dataclass(frozen=True)
@@ -321,25 +325,34 @@ def _rl6_mexer_reserva_protecao(out, e5) -> list[RedLineViolation]:
     return []
 
 
-def _urgencias_e5(e5: Mapping[str, Any]) -> set[str]:
+def _severidade_exigida_concentracao(e5: Mapping[str, Any]) -> set[str] | None:
+    """Nível de severidade que o parecer precisa ter no tema de concentração, graduado
+    pelo nível (RL7 1.4). ``None`` = sem concentração relevante (RL7 não se aplica)."""
     real_estate = e5.get("real_estate") or {}
     conc = real_estate.get("concentracao_pct")
-    if (isinstance(conc, (int, float)) and conc > 40.0) or real_estate.get("alertas"):
-        return set(_TEMA_CONCENTRACAO)
-    return set()
+    conc = conc if isinstance(conc, (int, float)) else 0.0
+    if conc > 60.0 or real_estate.get("alertas"):
+        return _SEVERIDADE_ALTA
+    if conc > 40.0:
+        return _SEVERIDADE_MEDIA_MAIS
+    return None
 
 
 def _rl7_severidade_incoerente(out, e5) -> list[RedLineViolation]:
-    urgencias = _urgencias_e5(e5)
-    if not urgencias:
+    exige = _severidade_exigida_concentracao(e5)
+    if exige is None:
         return []
     cobertos = {
         r.get("tema_canonico")
         for r in (out.get("riscos") or [])
-        if isinstance(r, dict) and r.get("severidade") in _SEVERIDADE_ALTA
+        if isinstance(r, dict) and r.get("severidade") in exige
     }
-    if not (urgencias & cobertos):
-        return [RedLineViolation("RL7", "block", "subdiagnóstico: urgência do E5 sem risco Alto")]
+    if not (_TEMA_CONCENTRACAO & cobertos):
+        return [
+            RedLineViolation(
+                "RL7", "block", "subdiagnóstico: concentração sem risco no nível exigido"
+            )
+        ]
     return []
 
 
