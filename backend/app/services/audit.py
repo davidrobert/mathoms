@@ -84,6 +84,10 @@ class AuditAction(str, enum.Enum):
     # Meta — purge de retenção de audit de leitura (ADR-275 D5; retido, não purgado)
     audit_purge = "audit.purge"
 
+    # Override natural_key v2 — snapshot do gate da M2 destrutiva (ADR-282 §Emenda / A26.l4).
+    # Mutação-adjacente (evidência de gate): NÃO entra em READ_ACCESS_ACTIONS → sobrevive ao purge.
+    override_v2_dualread_snapshot = "override.v2_dualread_snapshot"
+
 
 # Ações de **leitura** (Art.37) — retenção 365d, purgadas por
 # ``purge_expired_audit_logs`` (ADR-275 D5). Audit de mutação NÃO entra aqui:

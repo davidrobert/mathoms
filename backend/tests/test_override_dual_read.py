@@ -24,6 +24,7 @@ from backend.app.application.categorization.rule_preview_service import (
 from backend.app.application.transaction.create_override import create_override
 from backend.app.application.transaction.delete_override import delete_override
 from backend.app.core.database import SyncSessionLocal
+from backend.app.models.audit_log import AuditLog
 from backend.app.models.categorization_rule import CategorizationRule
 from backend.app.models.transaction_override import (
     OVERRIDE_SOURCE_MANUAL,
@@ -31,11 +32,13 @@ from backend.app.models.transaction_override import (
     TransactionOverride,
 )
 from backend.app.schemas.transactions import TransactionItem, TransactionOverrideRequest
+from backend.app.services.audit import AuditAction
 from backend.app.services.categorization_learning_loop import apply_learning_loop
 from backend.app.services.feature_flags_service import set_flag
 from backend.app.services.override_dual_read import (
     OVERRIDE_NATURAL_KEY_V2_FLAG,
     OverrideMatchIndex,
+    persist_dualread_snapshot,
 )
 from backend.app.services.override_identity import (
     identity_from_classified_tx,
@@ -397,3 +400,96 @@ async def test_preview_counts_manual_override_via_v2(db):
         )
     assert response.matches_total == 1
     assert response.matches_with_manual_override == 1
+
+
+# -- instrumentação do gate da M2 (ADR-282 §Emenda / A26.l4) --
+
+
+def test_v2_match_increments_and_snapshot() -> None:
+    """Hit via v2 incrementa v2_match_count; snapshot reflete cobertura + zero divergência."""
+    item = _item(transaction_hash="v1-atual")
+    ov = _override(transaction_hash="v1-drifted", natural_key_hash=_v2_of(item))
+    index = OverrideMatchIndex.from_overrides([ov], workspace_id="ws", v2_enabled=True)
+
+    assert index.match(natural_key_hash=_v2_of(item), legacy_hash="v1-atual") is ov
+    assert index.snapshot() == {"v1_fallback": 0, "v2_match": 1, "divergence": 0}
+
+
+def test_shadow_compare_off_never_diverges() -> None:
+    """shadow_compare=False (default): v2 hit não computa v1 → divergence sempre 0."""
+    item = _item(transaction_hash="v1-atual")
+    a = _override(transaction_hash="hash-a", natural_key_hash=_v2_of(item))
+    b = _override(transaction_hash="v1-atual", natural_key_hash=None)  # v1 casaria outro
+    index = OverrideMatchIndex.from_overrides([a, b], workspace_id="ws", v2_enabled=True)
+
+    assert index.match(natural_key_hash=_v2_of(item), legacy_hash="v1-atual") is a
+    assert index.divergence_count == 0  # sem shadow, não olha o v1
+
+
+def test_shadow_compare_same_row_no_divergence() -> None:
+    """shadow ON + v2 e v1 casam a MESMA linha → divergence 0 (caso saudável)."""
+    item = _item(transaction_hash="v1-atual")
+    ov = _override(transaction_hash="v1-atual", natural_key_hash=_v2_of(item))
+    index = OverrideMatchIndex.from_overrides(
+        [ov], workspace_id="ws", v2_enabled=True, shadow_compare=True
+    )
+
+    assert index.match(natural_key_hash=_v2_of(item), legacy_hash="v1-atual") is ov
+    assert index.divergence_count == 0
+
+
+def test_shadow_compare_divergent_row_counts_and_warns() -> None:
+    """shadow ON + v2 casa A mas v1 casaria B → divergence+warning (o modo de falha 'sticky' cego ao gate de cobertura)."""
+    item = _item(transaction_hash="v1-atual")
+    a = _override(transaction_hash="hash-a", natural_key_hash=_v2_of(item))
+    b = _override(transaction_hash="v1-atual", natural_key_hash="outra-nk")
+    index = OverrideMatchIndex.from_overrides(
+        [a, b], workspace_id="ws-div", v2_enabled=True, shadow_compare=True
+    )
+
+    with _dualread_log_capture() as handler:
+        matched = index.match(natural_key_hash=_v2_of(item), legacy_hash="v1-atual")
+    assert matched is a  # v2 é a verdade em prod; shadow não altera o retorno
+    assert index.snapshot() == {"v1_fallback": 0, "v2_match": 1, "divergence": 1}
+    div = [r for r in handler.records if getattr(r, "event", "") == "divergence"]
+    assert len(div) == 1 and div[0].workspace_id == "ws-div"
+    for pii_attr in ("descricao", "valor", "titular"):
+        assert not hasattr(div[0], pii_attr)
+
+
+def test_persist_snapshot_noop_when_v2_disabled() -> None:
+    """Flag-OFF: nada a auditar (v2 nem rodou)."""
+    index = OverrideMatchIndex(workspace_id="ws", v2_enabled=False)
+    with SyncSessionLocal() as sync_db:
+        persist_dualread_snapshot(sync_db, index)
+        sync_db.commit()
+        rows = (
+            sync_db.execute(
+                select(AuditLog).where(
+                    AuditLog.action == AuditAction.override_v2_dualread_snapshot.value
+                )
+            )
+            .scalars()
+            .all()
+        )
+    assert rows == []
+
+
+@pytest.mark.asyncio
+async def test_persist_snapshot_writes_audit_row_when_v2_ran(db) -> None:
+    """Após exercício real do v2, o dreno grava 1 linha de AuditLog com as contagens (PII-zero)."""
+    ws = await _ws_with_flag(db, enabled=True)
+    item = _item(transaction_hash="v1-atual")
+    ov = _persisted_override(ws.id, transaction_hash="v1-drifted", natural_key_hash=_v2_of(item))
+    index = OverrideMatchIndex.from_overrides([ov], workspace_id=ws.id, v2_enabled=True)
+    index.match(natural_key_hash=_v2_of(item), legacy_hash="v1-atual")
+
+    with SyncSessionLocal() as sync_db:
+        persist_dualread_snapshot(sync_db, index)
+        sync_db.commit()
+        rows = (
+            sync_db.execute(select(AuditLog).where(AuditLog.workspace_id == ws.id)).scalars().all()
+        )
+    snapshots = [r for r in rows if r.action == AuditAction.override_v2_dualread_snapshot.value]
+    assert len(snapshots) == 1
+    assert snapshots[0].details == {"v1_fallback": 0, "v2_match": 1, "divergence": 0}
