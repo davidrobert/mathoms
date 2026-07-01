@@ -243,7 +243,8 @@ Inspeção do texto real (captura cirúrgica) + co-design `financial-planner`:
   estruturado → exige Alta; 40–60% → Média+; ≤40 → N/A. Os 6 casos em 52% deixam de
   disparar; anti-FN preservado (52% com tema só em Baixa → dispara).
 
-RED_LINES_VERSION: 1.2 (RL1) → 1.3 (RL3 `\b`) → 1.4 (RL7 graduado).
+RED_LINES_VERSION: 1.0 (base) → 1.1 (RL3 proximidade + RL1 P0/P1, #697) → 1.2 (RL1
+composicional/derisk, #698) → 1.3 (RL3 `\b` anti-substring, #700) → 1.4 (RL7 graduado, #700).
 
 ### Prompt-side REGRA 14 + resultado combinado (PROMPT_VERSION 2.1.0 · 2026-07-01)
 

@@ -540,6 +540,7 @@
 | CHG-2026-06-21-A26-L9-CITACAO-DETERMINISTICA | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-21-A26-L9-CITACAO-DETERMINISTICA.md` |
 | CHG-2026-06-29-A22-L2-RED-LINES | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-06-29-A22-L2-RED-LINES.md` |
 | CHG-2026-06-29-A22-L5-DIVIDAS-DEDUP | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-06-29-A22-L5-DIVIDAS-DEDUP.md` |
+| CHG-2026-07-01-A22-L2-RED-LINES-CALIBRATION | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-07-01-A22-L2-RED-LINES-CALIBRATION.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
