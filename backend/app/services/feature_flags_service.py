@@ -61,6 +61,12 @@ DEFAULTS: dict[str, bool] = {
     # os write-paths apenas populam natural_key_hash (dual-write); o match continua
     # no transaction_hash legado.
     "override_natural_key_v2_enabled": False,
+    # ADR-282 §Emenda · A26.l4 — shadow-compare do dual-read: quando o match resolve
+    # via v2, também computa o v1 e conta divergências (override que migraria de linha
+    # sob o flip). Default False: instrumentação de gate, ligada só na janela de
+    # observação da M2 (A26.l5); flag off ⇒ match idêntico, custo zero. Prova o gate
+    # de corretude (divergence==0) que o gate de cobertura (v1_fallback==0) não vê.
+    "override_dual_read_shadow_compare": False,
     # ADR-287 · A25.l2 — dedup/chaveamento E3→E4 deriva identidade do natural_key
     # v2 (+moeda +direction) em vez do shim v1. Default True pós-cutover: G-f
     # aprovado (zero delta monetário no dado real) + goldens v2≡v1. Rollback = flag
