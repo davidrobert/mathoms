@@ -190,7 +190,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-125]] — Workspace sharing: convites, viewer role, forced logout · phase F9
 - [[ADR-126]] — Multi-tenant Goals completos (APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO) · phase F8.5
 - [[ADR-127]] — E1 members persiste via ArtifactStore
-- [[ADR-128]] — E7-review-llm lê/escreve via `ArtifactStore` · phase A6-cleanup (Removed em A12.X — código deletado, superseded por ADR-199)
+- [[ADR-128]] — E7-review-llm lê/escreve via `ArtifactStore` · phase A6-cleanup
 - [[ADR-129]] — Descontinuação completa do renderer HTML server-side
 
 ## Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)
@@ -526,26 +526,21 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-298]] — Ratchet de estilo: metas decrescentes via save-baseline manual + correção da distribuição de dívida (resposta audit r2) · phase audit-r2 · item 6
 
-## relatorio
-
-### Decidido (3)
-
-- [[ADR-216]] — Cap rate líquido como métrica canônica de imóveis de investimento (S4) · phase A12
-- [[ADR-217]] — Score patrimonial canônico — composição, fórmula e ciclo de vida · phase A12
-- [[ADR-220]] — Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados · phase A12
-
-### Proposto (1)
-
-- [[ADR-218]] — Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini · phase A12
-
 ## report
 
-### Decidido (4)
+### Decidido (7)
 
 - [[ADR-187]] — Relatório publicado é imutável — conceito de mês fechado · phase A11
 - [[ADR-190]] — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica · phase A11
 - [[ADR-191]] — Card Rentabilidade do relatório expõe TRS efetiva — não retorno total · phase A11.W5
+- [[ADR-216]] — Cap rate líquido como métrica canônica de imóveis de investimento (S4) · phase A12
+- [[ADR-217]] — Score patrimonial canônico — composição, fórmula e ciclo de vida · phase A12
+- [[ADR-220]] — Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados · phase A12
 - [[ADR-240]] — Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) · phase A19.l1
+
+### Proposto (1)
+
+- [[ADR-218]] — Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini · phase A12
 
 ## security
 

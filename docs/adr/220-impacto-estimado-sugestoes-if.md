@@ -20,7 +20,7 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 220", "impacto-estimado-sugestoes-if", "patrimonio-alvo-regra-25x"]
 tags:
-  - area/relatorio
+  - area/report
   - area/parecer
   - area/methodology
   - methodology/perini

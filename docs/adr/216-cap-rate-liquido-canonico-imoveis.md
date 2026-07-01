@@ -21,7 +21,7 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 216", "cap-rate-liquido-canonico-imoveis", "s4-real-estate-enrichment"]
 tags:
-  - area/relatorio
+  - area/report
   - area/pipeline
   - area/methodology
   - methodology/perini

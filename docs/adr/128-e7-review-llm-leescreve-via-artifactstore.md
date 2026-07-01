@@ -3,7 +3,7 @@ id: ADR-128
 type: adr
 title: "E7-review-llm lê/escreve via `ArtifactStore`"
 status: Decidido
-phase: "A6-cleanup (Removed em A12.X — código deletado, superseded por ADR-199)"
+phase: "A6-cleanup"
 date: "2026-04-24"
 relates_to: []
 supersedes: []

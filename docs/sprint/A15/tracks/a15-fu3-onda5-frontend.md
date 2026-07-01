@@ -14,7 +14,7 @@ tags:
   - status/ready
   - area/frontend
   - area/ux
-  - area/relatorio
+  - area/report
 ---
 
 # Track A15 FU-3 Onda 5 — Frontend cutover

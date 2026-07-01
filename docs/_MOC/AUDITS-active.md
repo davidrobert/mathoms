@@ -36,6 +36,46 @@ Para que nenhum achado se perca entre auditorias:
 
 ---
 
+## r3 — `vault-2026-07-01-r3`
+
+> Primeira execução da skill [`audit-vault`](../../.claude/skills/audit-vault/SKILL.md) ([[ADR-302]]).
+> Escopo `all`/`comprehensive`. Gates determinísticos 6/6 verde (zero finding
+> mecânico). Camada 2: 24 candidatos (amostra estratificada). Julgamento por 4
+> especialistas (senior-cto, information-architect, product-manager,
+> prompt-engineer). Relatório bruto: `_scratch/audit-vault-2026-07-01.md`.
+> **Todos os 18 findings fechados neste PR** (docs + tema chart_conclusions).
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F01 — S4 plano entregue marcado `draft` | DOC-BLOCK | procede | procede-fechado | flip `status: done` + last_review; arquivamento deferido (5+ links inbound — cascade) |
+| F02 — CAT_LEARNING_LOOP status/last_review stale | DOC-DRIFT | procede | procede-fechado | last_review 2026-07-01 + nota datada; decisão do gate dogfood é ops do owner |
+| F03 — A26 prosa de entrada contradiz tabela (l1 shipada) | DOC-DRIFT | procede | procede-fechado | entrada reescrita → [[A26.l8]] |
+| F04 — A26 "segurança já garantida" mas l8 `planned` | DOC-DRIFT | procede | procede-fechado | "a garantir quando l8 shipar" |
+| F05 — ADR-208 Files touched aponta artefato inexistente | DOC-DRIFT | procede | procede-fechado | `apply_tier_filter` em service (não repository) |
+| F06 — ADR-208 >150 linhas sem size_lines | DOC-DRIFT | procede | procede-fechado | `size_lines: 187` |
+| F07 — ADR-168 supersedure via anchor GH bruto | DOC-DRIFT | procede | procede-fechado | trocado por `[[ADR-X]]` |
+| F08 — ADR-168/151 relates_to ausente (bidirecional) | DOC-DRIFT | procede | procede-fechado | `relates_to` recíproco 168↔151 |
+| F09 — chart_conclusions `alocacao_alvo` template diverge | DOC-DRIFT | procede | procede-fechado | YAML alinhado ao builder ("Maior desvio: … pp em …") |
+| F10 — chart_conclusions `score_gauge` required_keys incompleto | DOC-DRIFT | procede | procede-fechado | `+ score.max`; classe opcional documentada |
+| F11 — 12 templates fallback-only sem marca | DOC-DRIFT | procede | procede-fechado | marcados `# fallback-only` |
+| F12 — chart_conclusions sem gate de paridade | DOC-DRIFT | procede | procede-fechado | `dev/check_chart_conclusion_parity.py` + pre-commit + `version 1.1` |
+| F13 — tag `area/relatorio` vs `area/report` | DOC-DRIFT | procede | procede-fechado | normalizados 11 arquivos → `area/report` |
+| F14 — ADR-290 sem size_lines | DOC-POLISH | procede | procede-fechado | `size_lines: 105` |
+| F15 — ADR-208 aliases folksonomy | DOC-POLISH | procede | procede-fechado | trimmed p/ 2 |
+| F16 — ADR-128 campo `phase` com status+placeholder | DOC-POLISH | procede | procede-fechado | `phase: "A6-cleanup"` |
+| F17 — ADR-208 endpoint `{run_id}` vs `{report_id}` | DOC-POLISH | procede | procede-fechado | `{report_id}` |
+| F18 — chart_conclusions header sem formatter `num` | DOC-POLISH | procede | procede-fechado | documentado |
+
+**Falso-positivo evitado (prompt-engineer):** ausência de `model`/`temperature`
+em `chart_conclusions.yaml` **não** é finding — ADR-122 define esses templates
+como determinísticos por design.
+
+**Follow-up não-bloqueante:** arquivamento do plano S4 (F01) fica deferido — o
+`git mv` para `docs/archive/` quebraria 5+ links inbound; fazer junto com
+atualização desses links quando conveniente.
+
+---
+
 ## r2 — `repo-audit-mathoms.ai-2026-06-11-r2`
 
 > Relatório original efêmero (externo, não versionado). Esta seção foi

@@ -15,7 +15,7 @@ tags:
   - sprint/a12
   - area/llm
   - area/pipeline
-  - area/relatorio
+  - area/report
 adrs:
   - "[[ADR-128]]"
   - "[[ADR-199]]"

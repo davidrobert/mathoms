@@ -5,7 +5,7 @@ title: "Remoção do Modo Tático do relatório (Direção E do redesign de inte
 status: Decidido
 phase: "Direção E · Onda 3"
 date: "2026-04-29"
-relates_to: []
+relates_to: ["[[ADR-168]]"]
 supersedes: ["[[ADR-117]]"]
 superseded_by: []
 aliases: ["ADR 151"]

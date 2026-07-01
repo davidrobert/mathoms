@@ -18,7 +18,7 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 217", "score-patrimonial-canonico", "score-gauge-s1"]
 tags:
-  - area/relatorio
+  - area/report
   - area/pipeline
   - area/methodology
   - methodology/perini

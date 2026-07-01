@@ -2,20 +2,20 @@
 id: PLAN-s4-real-estate-enrichment
 type: plan
 title: S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel)
-status: draft
+status: done
 sprint_origem: A12
 sprint_atual: A12
 sprints_envolvidas: [A12]
 created_at: "2026-05-15"
-last_review: "2026-05-15"
+last_review: "2026-07-01"
 paused_at: null
 pause_reason: null
 adrs_canonical:
   - "[[ADR-216]]"
 tags:
   - type/plan
-  - status/draft
-  - area/relatorio
+  - status/done
+  - area/report
   - area/pipeline
   - area/frontend
   - methodology/perini
