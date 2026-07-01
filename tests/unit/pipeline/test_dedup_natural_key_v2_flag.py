@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.services._tx_identity import (  # noqa: E402
     _has_discriminants,
-    compute_transaction_hash,
+    _hash_v1,
 )
 from pipeline.domain.services.cash_flow_builder import CashFlowBuilder  # noqa: E402
 from pipeline.domain.services.transaction_classifier import (  # noqa: E402
@@ -60,7 +60,7 @@ class TestFlagOffZeroBehavior:
         # Byte-idêntico ao atual: hash do classifier == shim v1.
         account = _account([{"data": "2026-03-30", "descricao": "Pix recebido", "valor": 100.0}])
         txs = _classifier(v2=False).classify_account(account)
-        assert txs[0].transaction_hash == compute_transaction_hash(
+        assert txs[0].transaction_hash == _hash_v1(
             data="2026-03-30",
             banco="C6Bank",
             titular="david",

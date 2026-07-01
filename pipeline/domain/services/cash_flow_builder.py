@@ -12,7 +12,7 @@ frozen (``ReceitasUnified``, ``DespesasUnified``, ``FluxoMensal``) com
 ADR-255 (Camada A): aplica dedup cross-document por hash determinístico K4
 antes de agregar — defesa em profundidade. Quando ADR-255 PR2 propagar
 ``transaction_hash`` desde E3, o builder prefere o campo da tx; até lá,
-computa inline com :func:`compute_transaction_hash`.
+computa inline via :func:`compute_identity_hash`.
 """
 
 from __future__ import annotations

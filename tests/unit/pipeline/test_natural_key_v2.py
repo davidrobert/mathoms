@@ -7,9 +7,9 @@ from decimal import ROUND_DOWN, Decimal, localcontext
 import pytest
 
 from pipeline.domain.services._tx_identity import (
+    _hash_v1,
     build_hash_inputs,
     compute_natural_key,
-    compute_transaction_hash,
     decimal_cents,
     derive_direction,
     to_amount_string,
@@ -101,7 +101,7 @@ class TestParity:
 class TestFrozenAndVersion:
     def test_v1_frozen(self):
         # Contrato com hashes históricos no DB — NÃO pode mudar (ADR-278 D1).
-        h = compute_transaction_hash(
+        h = _hash_v1(
             data="2026-01-01",
             banco="C6 Bank",
             titular="Ana",
@@ -134,9 +134,7 @@ class TestFrozenAndVersion:
     def test_v1_still_collapses_sign(self):
         # v1 (shim) preserva o comportamento legado abs() para compat de DB.
         kw = dict(data="2026-01-01", banco="X", titular="y", tipo_conta="z", descricao="abc")
-        assert compute_transaction_hash(valor=100.0, **kw) == compute_transaction_hash(
-            valor=-100.0, **kw
-        )
+        assert _hash_v1(valor=100.0, **kw) == _hash_v1(valor=-100.0, **kw)
 
 
 class TestDeterminism:
