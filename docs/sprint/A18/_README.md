@@ -3,12 +3,12 @@ id: MOC-sprint-a18
 type: moc
 title: "Sprint A18 — Comprovantes de Bem (CRLV) + Apólices polimórficas + FIPE refresh (3 lanes coordenadas)"
 aliases: ["A18", "Sprint A18"]
-sprint_status: candidate
+sprint_status: paused
 ---
 
 # Sprint A18 — Comprovantes de Bem + Apólices + FIPE
 
-> **Status:** `in_progress` — L1 (CRLV-e) ✅ shipped 2026-05-22. [[ADR-239]] flippada `Decidido (Sprint A18 L1)`. L2 (apólice) e L3 (FIPE) `planned`.
+> **Status:** `paused` — tema central (CRLV + Apólice + FIPE) **entregue**: L1 (CRLV-e), L2 (apólice polimórfica) e L3 (FIPE refresh) todas `shipped` em 2026-05-22 (#388–#436); [[ADR-239]] `Decidido (Sprint A18 L1)`. **Débito conhecido:** [[A18.l4]] (W1α LGPD, `PLAN-llm-prompts-hardening`) segue `planned` — **P0, gate de [F7 R4](../../reference/PHASES.md) → Beta fechado** (CPF cru em schemas LLM `e1_members`/`informe_aluguel`). Não fecha como `done` enquanto a l4 estiver aberta. Retomada: flip `paused → current` quando a l4 (ou sua realocação) for priorizada.
 
 ## Resumo
 
