@@ -14,9 +14,12 @@ from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.services.lineage_edge_writer import (
+    PARECER_CITATION_DST_STAGE,
     aggregates_depending_on_source_document,
     materialize_lineage_edges,
+    materialize_parecer_citation_edges,
 )
+from pipeline.domain.services.lineage_edge_deriver import LineageEdge
 
 _E5_PAYLOAD = {
     "patrimonio": {"bruto": 100.0, "dividas": 20.0, "liquido": 80.0},
@@ -215,6 +218,100 @@ def test_hook_in_run_post_processing_materializes_edges(edge_db, tmp_path, monke
     task_module._run_post_processing(ws_id, run_id, tmp_path)
 
     assert {r.run_id for r in _edge_rows(factory, ws_id)} == {run_id}
+
+
+# -- A27.l1 slice 3: coexistência de produtores por dst_stage (ADR-293 §Emenda) --
+
+
+def _parecer_edge(*, dst_field: str = "risco[2]", src_field: str = "classe=Ações") -> LineageEdge:
+    return LineageEdge(
+        src_stage="E5",
+        src_key="analise_financeira",
+        src_field=src_field,
+        dst_stage=PARECER_CITATION_DST_STAGE,
+        dst_key="parecer_planejador",
+        dst_field=dst_field,
+        edge_type="parecer_citation",
+        rule_ref="",
+        source_document_id=None,
+        data_source_id=None,
+        winner=True,
+    )
+
+
+def _materialize_parecer(factory, ws_id: str, run_id: str, edges) -> int:
+    with factory() as db:
+        return materialize_parecer_citation_edges(
+            db, workspace_id=ws_id, run_id=run_id, edges=edges
+        )
+
+
+def _e5_doc_edge_row(ws_id: str, run_id: str, *, edge_type: str) -> ArtifactLineageEdge:
+    return ArtifactLineageEdge(
+        workspace_id=ws_id,
+        run_id=run_id,
+        src_stage="E2-extratos",
+        src_key="x",
+        src_field="",
+        dst_stage="E5",
+        dst_key="analise_financeira",
+        dst_field="patrimonio.liquido",
+        edge_type=edge_type,
+        rule_ref="",
+        source_document_id=None,
+        data_source_id=None,
+        winner=True,
+    )
+
+
+def test_parecer_dst_stage_matches_stage_name():
+    """DRY: a constante do writer casa com o STAGE_NAME real do parecer (sem magic-string solta)."""
+    from pipeline.stages.parecer_planejador import STAGE_NAME
+
+    assert PARECER_CITATION_DST_STAGE == STAGE_NAME
+
+
+def test_producers_coexist_delete_scoped_by_dst_stage(edge_db):
+    """E5→doc e parecer_citation coexistem; re-materializar um NUNCA apaga o outro (KR3)."""
+    factory, ws_id = edge_db
+    run_id = _seed_run(factory, ws_id, with_e2_doc=True)
+    _materialize(factory, ws_id, run_id)
+    assert _materialize_parecer(factory, ws_id, run_id, [_parecer_edge()]) == 1
+    assert len(_edge_rows(factory, ws_id)) == 4
+    _materialize(factory, ws_id, run_id)
+    _materialize_parecer(factory, ws_id, run_id, [_parecer_edge()])
+    rows = _edge_rows(factory, ws_id)
+    assert {r.dst_stage for r in rows} == {"E5", PARECER_CITATION_DST_STAGE}
+    assert len(rows) == 4
+
+
+def test_parecer_delete_is_by_dst_stage_not_edge_type(edge_db):
+    """DELETE do parecer não toca edge E5→doc com edge_type inédito — prova dst_stage, não allow-list."""
+    factory, ws_id = edge_db
+    run_id = _seed_run(factory, ws_id)
+    with factory() as db:
+        db.add(_e5_doc_edge_row(ws_id, run_id, edge_type="edge_type_novo_inedito"))
+        db.commit()
+    _materialize_parecer(factory, ws_id, run_id, [_parecer_edge()])
+    types = {r.edge_type for r in _edge_rows(factory, ws_id)}
+    assert "edge_type_novo_inedito" in types and "parecer_citation" in types
+
+
+def test_parecer_citation_orphan_guard_without_e5(edge_db):
+    """Sem E5 no run, o parecer_citation não é materializado (evita citação órfã)."""
+    factory, ws_id = edge_db
+    run_id = _seed_run(factory, ws_id, with_e5=False)
+    assert _materialize_parecer(factory, ws_id, run_id, [_parecer_edge()]) == 0
+    assert _edge_rows(factory, ws_id) == []
+
+
+def test_parecer_citation_empty_edges_preserves_previous(edge_db):
+    """Sem citações no run, preserva o parecer_citation do último run bom (espelha E5)."""
+    factory, ws_id = edge_db
+    run_id = _seed_run(factory, ws_id)
+    _materialize_parecer(factory, ws_id, run_id, [_parecer_edge()])
+    assert _materialize_parecer(factory, ws_id, run_id, []) == 0
+    assert any(r.edge_type == "parecer_citation" for r in _edge_rows(factory, ws_id))
 
 
 def test_hook_is_best_effort_when_writer_raises(edge_db, tmp_path, monkeypatch, caplog):

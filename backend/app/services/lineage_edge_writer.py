@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from backend.app.core.logging import get_logger
 from backend.app.models.artifact_lineage_edge import ArtifactLineageEdge
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.services.crypto import read_artifact_content
@@ -16,20 +19,55 @@ from pipeline.domain.services.lineage_edge_deriver import (
     derive_lineage_edges,
 )
 
+# ``dst_stage`` do edge parecer_citation (E6→E5) — == ``parecer_planejador.STAGE_NAME``.
+# DELETE-por-produtor discrimina por dst_stage (1:1 por produtor, robusto a edge_type novo),
+# não por edge_type — que é data-driven/aberto no _lineage (ADR-293 §Emenda).
+PARECER_CITATION_DST_STAGE = "review_finances_holistic"
+
+_logger = get_logger("lineage.edge_writer")
+
+
+def _delete_producer_edges(session: Session, workspace_id: str, dst_stage: str) -> None:
+    """Apaga só as edges cujo ``dst`` é o stage deste produtor (ADR-293 §Emenda)."""
+    session.execute(
+        delete(ArtifactLineageEdge).where(
+            ArtifactLineageEdge.workspace_id == workspace_id,
+            ArtifactLineageEdge.dst_stage == dst_stage,
+        )
+    )
+
 
 def materialize_lineage_edges(session: Session, *, workspace_id: str, run_id: str) -> int:
-    """Deriva e persiste as edges do run; retorna o nº de edges inseridas."""
+    """Deriva e persiste as edges E5→doc do run; retorna o nº de edges inseridas."""
     payload = _e5_payload(session, workspace_id, run_id)
     if payload is None:
         return 0
     edges = derive_lineage_edges(payload, consumed_sources=_consumed_sources(session, run_id))
     if not edges:
         return 0
-    session.execute(
-        delete(ArtifactLineageEdge).where(ArtifactLineageEdge.workspace_id == workspace_id)
-    )
+    _delete_producer_edges(session, workspace_id, E5_OUTPUT_STAGE)
     session.add_all(_row(workspace_id, run_id, edge) for edge in edges)
     session.commit()
+    _logger.info("lineage edges materializadas", extra={"producer": "e5_doc", "count": len(edges)})
+    return len(edges)
+
+
+def materialize_parecer_citation_edges(
+    session: Session, *, workspace_id: str, run_id: str, edges: Sequence[LineageEdge]
+) -> int:
+    """Persiste as edges de citação do parecer (E6→E5, ADR-293 slice 3). Órfão-guard: só grava
+    se houver E5 no run corrente (senão a citação apontaria para E5 de outro run); sem edges
+    preserva o último run bom (espelha E5). DELETE-por-produtor não toca edges E5→doc."""
+    if _e5_payload(session, workspace_id, run_id) is None:
+        return 0
+    if not edges:
+        return 0
+    _delete_producer_edges(session, workspace_id, PARECER_CITATION_DST_STAGE)
+    session.add_all(_row(workspace_id, run_id, edge) for edge in edges)
+    session.commit()
+    _logger.info(
+        "lineage edges materializadas", extra={"producer": "parecer_citation", "count": len(edges)}
+    )
     return len(edges)
 
 
