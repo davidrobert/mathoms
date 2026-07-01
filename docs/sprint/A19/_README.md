@@ -3,12 +3,12 @@ id: MOC-sprint-a19
 type: moc
 title: "Sprint A19 — Card S_PROTECAO (4º pilar AUVP Proteção Patrimonial)"
 aliases: ["A19", "Sprint A19"]
-sprint_status: candidate
+sprint_status: done
 ---
 
 # Sprint A19 — Card S_PROTECAO no relatório
 
-> **Status:** `candidate` — sprint reservada para começar quando A18 (CRLV + Apólice + FIPE) fechar. ADR canônica [[ADR-240]] mergeada como `Proposto`; PR de implementação começa quando L1 for puxada.
+> **Status:** `done` (2026-05-22) — L1 (lane única) entregue em 4 PRs (#430, #432, #435, #436); [[ADR-240]] flippada `Decidido (Sprint A19 L1)`. Escopo integral em `main`.
 
 ## Resumo
 
