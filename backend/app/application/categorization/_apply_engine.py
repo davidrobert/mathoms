@@ -27,8 +27,10 @@ from backend.app.repositories.categorization_rule_repository import (
 )
 from backend.app.services.feature_flags_service import is_enabled_sync
 from backend.app.services.override_dual_read import (
+    OVERRIDE_DUAL_READ_SHADOW_COMPARE_FLAG,
     OVERRIDE_NATURAL_KEY_V2_FLAG,
     OverrideMatchIndex,
+    persist_dualread_snapshot,
 )
 from backend.app.services.override_identity import identity_from_transaction_item
 from backend.app.services.report_publication import is_month_closed_sync
@@ -72,13 +74,9 @@ def _hash_scope(matching: list, v2_enabled: bool):
     return or_(scope, TransactionOverride.natural_key_hash.in_(v2_hashes))
 
 
-def _existing_override_index(
-    db: Session, workspace_id: str, *, matching: list, v2_enabled: bool
-) -> OverrideMatchIndex:
-    """Overrides ativos das txs candidatas (sticky check; scope p/ perf, ADR-188 PR3 R2/R3)."""
-    if not matching:
-        return OverrideMatchIndex(workspace_id=workspace_id, v2_enabled=v2_enabled)
-    stmt = (
+def _active_overrides_query(workspace_id: str, matching: list, v2_enabled: bool):
+    """Overrides ativos (``deleted_at IS NULL``) das txs candidatas, ordenados (perf R2/R3)."""
+    return (
         select(TransactionOverride)
         .where(
             TransactionOverride.workspace_id == workspace_id,
@@ -87,8 +85,27 @@ def _existing_override_index(
         )
         .order_by(TransactionOverride.created_at, TransactionOverride.id)
     )
-    rows = db.execute(stmt).scalars().all()
-    return OverrideMatchIndex.from_overrides(rows, workspace_id=workspace_id, v2_enabled=v2_enabled)
+
+
+def _existing_override_index(
+    db: Session,
+    workspace_id: str,
+    *,
+    matching: list,
+    v2_enabled: bool,
+    shadow_compare: bool = False,
+) -> OverrideMatchIndex:
+    """Índice de sticky check das txs candidatas (dual-read ADR-282; instrumenta o gate M2)."""
+    index = OverrideMatchIndex(
+        workspace_id=workspace_id, v2_enabled=v2_enabled, shadow_compare=shadow_compare
+    )
+    if matching:
+        rows = (
+            db.execute(_active_overrides_query(workspace_id, matching, v2_enabled)).scalars().all()
+        )
+        for row in rows:
+            index.add(row)
+    return index
 
 
 def _is_existing_sticky(
@@ -227,6 +244,7 @@ def _apply_one(tx, ctx: _ApplyCtx) -> bool:
 
 def _build_ctx(*, workspace_id: str, rule: CategorizationRule, detector, db, matching):
     v2_enabled = is_enabled_sync(workspace_id, OVERRIDE_NATURAL_KEY_V2_FLAG, db=db)
+    shadow_compare = is_enabled_sync(workspace_id, OVERRIDE_DUAL_READ_SHADOW_COMPARE_FLAG, db=db)
     return _ApplyCtx(
         workspace_id=workspace_id,
         rule=rule,
@@ -234,9 +252,20 @@ def _build_ctx(*, workspace_id: str, rule: CategorizationRule, detector, db, mat
         db=db,
         closed_cache={},
         match_index=_existing_override_index(
-            db, workspace_id, matching=matching, v2_enabled=v2_enabled
+            db,
+            workspace_id,
+            matching=matching,
+            v2_enabled=v2_enabled,
+            shadow_compare=shadow_compare,
         ),
     )
+
+
+def _run_apply(matching: list, ctx: _ApplyCtx) -> int:
+    """Aplica a regra a cada tx candidata + drena o snapshot do dual-read (ADR-282 §Emenda)."""
+    applied = sum(1 for tx in matching if _apply_one(tx, ctx))
+    persist_dualread_snapshot(ctx.db, ctx.match_index)
+    return applied
 
 
 def apply_retroactive_sync(
@@ -250,13 +279,9 @@ def apply_retroactive_sync(
     """Apply síncrono (≤``SYNC_APPLY_THRESHOLD``). Retorna applied count."""
     matching = filter_matching(rule, transactions)
     ctx = _build_ctx(
-        workspace_id=workspace_id,
-        rule=rule,
-        detector=detector,
-        db=db,
-        matching=matching,
+        workspace_id=workspace_id, rule=rule, detector=detector, db=db, matching=matching
     )
-    applied = sum(1 for tx in matching if _apply_one(tx, ctx))
+    applied = _run_apply(matching, ctx)
     if applied > 0:
         CategorizationRuleRepository(db).bump_applied_count(rule_id=rule.id, delta=applied)
     return applied
@@ -273,14 +298,9 @@ def apply_retroactive_async_safe(
     """Apply async (Celery) — sem threshold cap, idempotente via COUNT pós-fato."""
     matching = _matching_transactions(rule, transactions)
     ctx = _build_ctx(
-        workspace_id=workspace_id,
-        rule=rule,
-        detector=detector,
-        db=db,
-        matching=matching,
+        workspace_id=workspace_id, rule=rule, detector=detector, db=db, matching=matching
     )
-    for tx in matching:
-        _apply_one(tx, ctx)
+    _run_apply(matching, ctx)
     return count_applied_overrides(db, workspace_id, rule.id)
 
 
