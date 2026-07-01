@@ -26,7 +26,7 @@ tags:
   - status/done
   - area/llm
   - area/pipeline
-  - area/relatorio
+  - area/report
 ---
 
 # Parecer do Planejador (E6) — substituição de review_finances + aterrissagem operacional

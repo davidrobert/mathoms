@@ -29,7 +29,7 @@ tags:
   - area/persistence
   - area/pipeline
   - area/backend
-  - area/relatorio
+  - area/report
   - methodology/cerbasi
   - methodology/perini
   - phase/a16

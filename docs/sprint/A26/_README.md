@@ -18,9 +18,10 @@ theme: "data-lineage"
 > destrutivas) + `prompt-engineer` (flip strict) + `sre-devops` (runbook Fase E).
 > Prompt de orquestração: [agent_prompts/orchestrator_a26_consolidacao.md](../../agent_prompts/orchestrator_a26_consolidacao.md).
 >
-> **Ponto de entrada = [[A26.l1]]** (fix de prompt do `evidencia_path`) — **única lane
-> `open`, sem gate de tráfego**; destrava a métrica de todos os gates seguintes. As
-> demais (l2–l5) estão `blocked` por **gates de volume de produção** (≥20 gerações de
+> **[[A26.l1]] shipada (#654)** (fix de prompt do `evidencia_path`) — destravou a
+> métrica dos gates seguintes. O resíduo `value_mismatch` migrou para **[[A26.l8]]**
+> (`planned`, sem gate de tráfego; bloqueia o flip strict da [[A26.l2]]). As
+> demais (l2–l5) seguem `blocked` por **gates de volume de produção** (≥20 gerações de
 > parecer; ≥1 sprint com flags v2 a 100% + counter `dualread.v1_fallback` zerado **com
 > uso real exercitado**) — pré-launch, fecham por **tráfego/dogfood**, não por calendário.
 > Insumos para destravar: `ANTHROPIC_API_KEY` no ambiente + ~20 gerações de parecer +
@@ -100,8 +101,8 @@ citação como edge no grafo de lineage) é **A27 / Onda 6**, atrás de [[ADR-29
   "`needs_review` per-parecer <5%" misturava **segurança** com **UX** e era inatingível
   (eval 1.8.0: 22%, pois ~87% das falhas é `wrong_pairing` em itens severidade alta).
   Separado em: **(1) segurança (binário, bloqueia):** zero citação incorreta publicada —
-  **já garantido por construção** pelo enforcement per-item ([[A26.l8]]/[[ADR-295]]: item
-  dropado ou `needs_review`, nunca número errado no output); **(2) budget de UX
+  **a garantir pelo enforcement per-item** ([[A26.l8]] `planned` / [[ADR-295]]: item
+  dropado ou `needs_review`, nunca número errado no output — landa quando l8 shipar); **(2) budget de UX
   (orçamento, não bloqueia):** `needs_review` per-parecer **≤15%** sobre ≥20 ger reais,
   re-ancorável no 1º tráfego — exceder prioriza [[A26.l9]] (A27), não reabre o flip.
   Reabre a decisão "per-parecer <5%" do orchestrator §5 com evidência empírica (mesma

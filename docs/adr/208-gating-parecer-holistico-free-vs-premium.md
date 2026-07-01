@@ -16,7 +16,7 @@ superseded_by: []
 aliases:
   - "ADR 208"
   - "Gating freemium parecer"
-  - "Premium tier parecer"
+size_lines: 187
 tags:
   - area/llm
   - area/business
@@ -53,8 +53,8 @@ Adotar **Opção B+** com 4 mudanças mínimas: (D1) filtragem backend antes de 
 
 **Crítico:** filtragem **não pode** ser no frontend (cliente "vê e esconde com CSS"). Vazamento de payload completo via DevTools/network = vazamento de valor pago.
 
-- Endpoint `GET /workspaces/{id}/reports/{run_id}/planner-review` lê `workspace.tier` (existing column).
-- Repository tem método `to_tier_filtered_dto(tier: Literal["free", "premium"])` que retorna shape diferente:
+- Endpoint `GET /workspaces/{id}/reports/{report_id}/planner-review` lê `workspace.tier` (existing column).
+- A filtragem por tier `Literal["free", "premium"]` retorna shape diferente (implementada no cutover como `apply_tier_filter` em `backend/app/services/planner_review_tier_filter.py`, não como método de repository):
 
 **Free DTO:**
 ```jsonc
@@ -168,7 +168,7 @@ Métricas de aceite para promover do beta para GA Premium:
 - **Track(s) do plano:** T-22 (`planner-gating-tier-filter`).
 - **Files touched:**
   - `backend/app/api/planner_review.py` — endpoint com `tier_at_generation` lookup
-  - `backend/app/repositories/planner_review.py` — `to_tier_filtered_dto(tier)`
+  - `backend/app/services/planner_review_tier_filter.py` — `apply_tier_filter(tier)` (chamado em `api/planner_review.py`)
   - `backend/app/services/parecer_orchestrator.py` — `tier_at_generation` no `_meta`
   - `frontend/src/components/report/sections/SParecer*.tsx` — handling do payload tier-aware
   - `frontend/src/components/report/sections/SParecerTeaserUpgrade.tsx` — CTA específico

@@ -7,7 +7,7 @@ sprint_origem: A12
 sprint_atual: A12
 sprints_envolvidas: ["A12"]
 created_at: "2026-05-10"
-last_review: "2026-05-11"
+last_review: "2026-07-01"
 adrs_canonical:
   - "[[ADR-186]]"
   - "[[ADR-188]]"
@@ -102,6 +102,7 @@ Track: [report-publication-impl](../../sprint/A11/tracks/report-publication-impl
 - **Gate técnico dogfood** ✅ shipped (PR #202, `db3002e`, 2026-05-11) — `scripts/dogfood_gate_a12.py` + fixture 2880tx/24m, verdict inicial **PASS 11/11** invariantes
 - **P4 Frontend (UI mínima)** ✅ shipped (PR #203, `ff7fbf2`, 2026-05-11) — toast + modal `CreateRuleDialog` + badge "Regra" + heatmap mês fechado + feature flag `learning_loop_enabled`. **Escopo reduzido**: sem side-panel/highlight-to-extract (V2)
 - **Gate dogfood humano** ⏳ próximo passo (CEO no `5@5.com`, 7d wall-clock — ver [docs/reference/RUNBOOK.md §9](../../reference/RUNBOOK.md))
+  - **Atualização 2026-07-01 (audit-vault r3):** impl V1 (P1-P4 + gate técnico) ✅ shipada desde 2026-05-11; o gate dogfood humano segue pendente/vencido. Aguarda decisão do owner: PASS → `status: done` + arquivar; FAIL → registrar ação e reabrir.
 - **V2.A/B/C** ⏳ pós-tração (fora MVP V1)
 
 ## Fases (MVP V1)

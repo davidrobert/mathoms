@@ -18,7 +18,7 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 218", "reserva-emergencia-essencial", "denominador-essencial"]
 tags:
-  - area/relatorio
+  - area/report
   - area/pipeline
   - area/methodology
   - methodology/cerbasi

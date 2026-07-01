@@ -743,7 +743,7 @@
 | PLAN-platform-review | plan | in_progress |  | Platform Review Plan — 2026-05-06 | `plan/PLATFORM_REVIEW/_README.md` |
 | PLAN-report-premium | plan | in_progress |  | Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html` | `plan/REPORT_PREMIUM/_README.md` |
 | PLAN-residencia-e-uso | plan | draft |  | Residência e uso econômico de imóveis — override DB substitui keyword | `plan/RESIDENCIA_E_USO/_README.md` |
-| PLAN-s4-real-estate-enrichment | plan | draft |  | S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel) | `plan/S4_REAL_ESTATE_ENRICHMENT/_README.md` |
+| PLAN-s4-real-estate-enrichment | plan | done |  | S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel) | `plan/S4_REAL_ESTATE_ENRICHMENT/_README.md` |
 | PLAN-snapshot-changelog-v3 | plan | in_progress |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `plan/SNAPSHOT_CHANGELOG_V3/_README.md` |
 | PLAN-suggestion-lifecycle | plan | in_progress |  | Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos | `plan/SUGGESTION_LIFECYCLE/_README.md` |
 | PLAN-tributario-pj | plan | draft |  | Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto) | `plan/TRIBUTARIO_PJ/_README.md` |

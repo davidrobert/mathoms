@@ -18,7 +18,7 @@ aliases:
   - "ano-base completo"
 tags:
   - area/pipeline
-  - area/relatorio
+  - area/report
   - methodology/perini
   - methodology/cerbasi
   - phase/a16

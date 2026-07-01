@@ -14,6 +14,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases: ["ADR 290", "suggestion supersede", "thesis_key"]
+size_lines: 105
 tags:
   - type/adr
   - status/decidido

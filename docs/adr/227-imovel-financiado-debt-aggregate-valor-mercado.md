@@ -35,7 +35,7 @@ tags:
   - area/persistence
   - area/pipeline
   - area/backend
-  - area/relatorio
+  - area/report
   - methodology/perini
   - methodology/cerbasi
   - methodology/auvp

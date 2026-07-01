@@ -5,7 +5,7 @@ title: "Remoção do Modo USA do relatório"
 status: Decidido
 phase: "A8.4 PR4"
 date: "2026-05-06"
-relates_to: []
+relates_to: ["[[ADR-151]]"]
 supersedes: ["[[ADR-117]]", "[[ADR-123]]"]
 superseded_by: []
 aliases: ["ADR 168"]
@@ -20,7 +20,7 @@ size_lines: 45
 
 # ADR-168 — Remoção do Modo USA do relatório
 
-**Status:** Decidido (A8.4 PR4) • **Data:** 2026-05-06 • **Supersedes parcialmente** [ADR-117](#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml), [ADR-123](#adr-123--notas-t6-e-kanban-t3-persistidos-no-backend) • **Conclui agenda** [ADR-151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces).
+**Status:** Decidido (A8.4 PR4) • **Data:** 2026-05-06 • **Supersedes parcialmente** [[ADR-117]], [[ADR-123]] • **Conclui agenda** [[ADR-151]].
 
 **Contexto:** O relatório premium tinha **3 modos** historicamente: Estratégico (universal), Tático (curto prazo, removido em ADR-151) e USA (mudança internacional + Green Card EB2-NIW + NCLEX RN — específico do cliente piloto). Modo USA tinha 4 seções (U1 Mudança EUA F1/F2 · U2 Green Card EB2-NIW · U3 NCLEX Roadmap · U4 Simulação Mariana Sem Trabalhar) acopladas a artefatos de prototipagem família-específica (cônjuge enfermeira, processo EB2-NIW, F1/F2). ADR-151 (2026-04-26) já estabeleceu doutrina ao remover Tático: **modos opcionais sem cliente real são lastro** — manter abstração de modo custa em superfície de teste, layout YAML, components React, branches de roteamento e visual snapshots, sem benefício enquanto não há segundo cliente que justifique generalização. Modo USA tem o mesmo perfil de risco e idade.
 
