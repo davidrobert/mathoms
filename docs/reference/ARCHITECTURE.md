@@ -905,7 +905,7 @@ mathoms.ai/
 │   ├── e15_consolidate.py, e2_extract.py
 │   ├── e3_reconcile.py, e4_categorize.py
 │   ├── e5_analyze.py, e5n_narrativas.py
-│   ├── e7_review.py, e_reset.py
+│   ├── e7_review.py           # reset destrutivo → backend/app/services/internal_ops/pipeline_reset.py (ADR-212/213)
 │   ├── e2/                    # Parsers por banco (registry, common, banks/)
 │   └── pipeline_common.py     # Paths, config, JSON I/O (atomic writes), schema validation, structured logging
 │
@@ -953,19 +953,13 @@ mathoms.ai/
 │   ├── tokens.json            # Fonte única de verdade (cores, tipografia, spacing)
 │   └── build.py               # Gera CSS para frontend
 │
-├── config/                    # Configs globais (até A7.5; metodologia movida em A7.4 → docs/methodology/)
-│   ├── pipeline.json          # Parâmetros operacionais + report_version
-│   ├── family_members.json, categorization.json, institutions.json
-│   ├── methodology.md, report_spec.md
+├── config/                    # Configs globais (dados de domínio migraram p/ DB em A7 — ADR-134/135/137)
+│   ├── pipeline.json          # Parâmetros operacionais + report_version + schema_validation
 │   ├── report_layout.yaml     # Codegen source → TS + Pydantic
-│   ├── scoring.json, cenarios.json, taxas.json, parametros_fiscais.json
-│   ├── schemas/               # 11 JSON schemas (baseline, E2/E3/E4/E5, 4 goals, pipeline, report_layout)
-│   └── templates/             # 7 templates (HTML, MD, CSS)
-│
-├── docs/methodology/          # A7.4: documentação humana de produto (não-runtime)
-│   ├── definitions.md, regras_composicao_patrimonial.md
-│   ├── source_hierarchy.md, milhas.md
-│   └── README.md
+│   ├── scoring.json, cenarios.json, localization.json, i18n_glossary.yaml
+│   ├── methodology.md, report_spec.md, asset_catalog_seed_v1.yaml
+│   ├── schemas/               # 26 JSON schemas (stages, goals, informes, parecer, protecao, pipeline, report_layout)
+│   └── templates/             # 5 templates (definitions, methodology, report_spec, source_hierarchy, decisions)
 │
 ├── dev/                       # Dev tooling
 │   ├── commit.py, check_forbidden_paths.py, validate_commit_msg.py

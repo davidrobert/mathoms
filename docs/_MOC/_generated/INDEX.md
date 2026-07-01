@@ -535,6 +535,7 @@
 | CHG-2026-06-16-A25-L2-DEDUP-E4-FLIP-V2 | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-16-A25-L2-DEDUP-E4-FLIP-V2.md` |
 | CHG-2026-06-16-A25-L6-KR2-RESTO | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-16-A25-L6-KR2-RESTO.md` |
 | CHG-2026-06-16-A25-L7-EVIDENCIA-STRICT-DECISION | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-16-A25-L7-EVIDENCIA-STRICT-DECISION.md` |
+| CHG-2026-06-18-A26-L1-EVIDENCIA-CATALOGO | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-18-A26-L1-EVIDENCIA-CATALOGO.md` |
 | CHG-2026-06-18-A26-L6-EVIDENCIA-COVERAGE-KPI | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-18-A26-L6-EVIDENCIA-COVERAGE-KPI.md` |
 | CHG-2026-06-19-A26-L7-EVIDENCIA-CATALOG-LISTAS | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-19-A26-L7-EVIDENCIA-CATALOG-LISTAS.md` |
 | CHG-2026-06-21-A26-L9-CITACAO-DETERMINISTICA | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-21-A26-L9-CITACAO-DETERMINISTICA.md` |
@@ -610,11 +611,11 @@
 | A21.l7 | lane | shipped | A21 | LGPD Art.37 — audit log de acesso a dado sensível | `sprint/A21/lanes/A21-l7-lgpd-audit-log.md` |
 | A21.l8 | lane | shipped | A21 | LGPD Art.18 — export/deleção (data-subject rights) | `sprint/A21/lanes/A21-l8-lgpd-data-subject-rights.md` |
 | A21.l9 | lane | shipped | A21 | Backup/restore mechanism + drill CI-local (subset W4-T01) | `sprint/A21/lanes/A21-l9-backup-restore-drill-ci.md` |
-| A22.l1 | lane | open | A22 | 24 golden fixtures do Parecer + métrica de eval em CI | `sprint/A22/lanes/A22-l1-parecer-golden-eval.md` |
-| A22.l2 | lane | planned | A22 | Validação em 3 camadas (schema → invariante → 7 red lines hard-block) | `sprint/A22/lanes/A22-l2-validacao-3-camadas-red-lines.md` |
-| A22.l3 | lane | open | A22 | Fallback needs_review atômico (LLM down → relatório não quebra) | `sprint/A22/lanes/A22-l3-fallback-needs-review-atomico.md` |
+| A22.l1 | lane | shipped | A22 | 24 golden fixtures do Parecer + métrica de eval em CI | `sprint/A22/lanes/A22-l1-parecer-golden-eval.md` |
+| A22.l2 | lane | shipped | A22 | Validação em 3 camadas (schema → invariante → 7 red lines hard-block) | `sprint/A22/lanes/A22-l2-validacao-3-camadas-red-lines.md` |
+| A22.l3 | lane | shipped | A22 | Fallback needs_review atômico (LLM down → relatório não quebra) | `sprint/A22/lanes/A22-l3-fallback-needs-review-atomico.md` |
 | A22.l4 | lane | planned | A22 | Drift detection (3 sinais) + pin de model-snapshot | `sprint/A22/lanes/A22-l4-drift-detection-model-pin.md` |
-| A22.l5 | lane | open | A22 | Dedup de dívida cross-year (max(ano) + warning) + schema formal de dividas | `sprint/A22/lanes/A22-l5-dedup-divida-cross-year.md` |
+| A22.l5 | lane | shipped | A22 | Dedup de dívida cross-year (max(ano) + warning) + schema formal de dividas | `sprint/A22/lanes/A22-l5-dedup-divida-cross-year.md` |
 | A23.l1 | lane | shipped | A23 | Data Lineage F0 — fechar 4 ADR Proposto + emenda ADR-146 (B1–B8) | `sprint/A23/lanes/A23-l1-data-lineage-f0-adr-gate.md` |
 | A23.l2 | lane | shipped | A23 | Data Lineage F1 — substrato de golden (diff tool + view-model snapshot + invariantes) | `sprint/A23/lanes/A23-l2-golden-substrate.md` |
 | A23.l3 | lane | shipped | A23 | Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4) | `sprint/A23/lanes/A23-l3-natural-key.md` |
@@ -637,7 +638,7 @@
 | A25.l5 | lane | shipped | A25 | Data Lineage F6 — produto N1/N2: selo + popover 'Como chegamos a esse número' | `sprint/A25/lanes/A25-l5-dl-f6-produto-n1n2.md` |
 | A25.l6 | lane | shipped | A25 | KR2 6/6 — fluxo_liquido + endividamento.total_dividas + member_hashes reais | `sprint/A25/lanes/A25-l6-kr2-resto.md` |
 | A25.l7 | lane | shipped | A25 | Decisão do flip warn→strict do evidencia_path (requisito de done da A25) | `sprint/A25/lanes/A25-l7-evidencia-strict-decision.md` |
-| A26.l1 | lane | in_progress | A26 | Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM | `sprint/A26/lanes/A26-l1-evidencia-prompt-catalogo.md` |
+| A26.l1 | lane | shipped | A26 | Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM | `sprint/A26/lanes/A26-l1-evidencia-prompt-catalogo.md` |
 | A26.l2 | lane | blocked | A26 | Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review) | `sprint/A26/lanes/A26-l2-evidencia-flip-strict.md` |
 | A26.l3 | lane | blocked | A26 | M2-A — drop do shim v1 do dedup (compute_transaction_hash) | `sprint/A26/lanes/A26-l3-drop-dedup-v1-shim.md` |
 | A26.l4 | lane | blocked | A26 | Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) | `sprint/A26/lanes/A26-l4-override-v2-on-instrumentacao.md` |

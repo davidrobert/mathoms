@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — entregas recentes
 
-Janela de 14 dias a partir da última entrega registrada (2026-07-01). 6 entries entre 2026-06-18 e 2026-07-01.
+Janela de 14 dias a partir da última entrega registrada (2026-07-01). 7 entries entre 2026-06-18 e 2026-07-01.
 
 ## 2026-07-01 (1 entries)
 
@@ -22,8 +22,9 @@ Janela de 14 dias a partir da última entrega registrada (2026-07-01). 6 entries
 
 - [[CHG-2026-06-19-A26-L7-EVIDENCIA-CATALOG-LISTAS]] — Catálogo de citação cobre folhas de LISTA via [idx].subkey (fecha a raiz comportamental do ADR-292). (lane [[A26.l7]])
 
-## 2026-06-18 (1 entries)
+## 2026-06-18 (2 entries)
 
+- [[CHG-2026-06-18-A26-L1-EVIDENCIA-CATALOGO]] — Catálogo de citação do evidencia_path + eval golden (ponto de entrada da A26). (lane [[A26.l1]])
 - [[CHG-2026-06-18-A26-L6-EVIDENCIA-COVERAGE-KPI]] — KPI de citação: cobertura vs. correção + by_section (instrumenta o gate do flip strict da l2). (lane [[A26.l6]])
 
 ---

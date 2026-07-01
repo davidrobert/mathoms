@@ -4,7 +4,7 @@ type: lane
 title: "Dedup de dívida cross-year (max(ano) + warning) + schema formal de dividas"
 sprint: A22
 plan: PLAN-launch-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a22-l5-dedup-divida-cross-year
 depends_on: []
@@ -14,7 +14,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a22
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---
