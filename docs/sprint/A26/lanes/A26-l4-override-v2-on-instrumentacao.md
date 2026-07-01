@@ -40,22 +40,39 @@ tags:
 Tornar o gate da M2 override **real e auditável**: ligar o caminho v2 em produção e
 instrumentar a verificação.
 
-## Escopo
+## Escopo (revisto pós co-design 2026-07-01 — ver [[ADR-282]] §Emenda)
 
-- Flipar `DEFAULTS["override_natural_key_v2_enabled"] = True` em `feature_flags_service.py`.
-  Rollback = flag off por workspace (read-path volta a v1). NÃO é destrutivo.
-- Adicionar `v2_match_count` ao `OverrideMatchIndex` (espelho do `v1_fallback_count` já
-  existente), incrementado no ramo `via_v2 is not None`; emitir ambos no log estruturado.
-- **Query agendada** (cron/scheduled task) que conta `event=v1_fallback` e `v2_match` por
-  dia e persiste em registro auditável (tabela `ops_metrics` ou doc append-only commitado).
+- **Emissão:** adicionar `v2_match_count` ao `OverrideMatchIndex` (espelho do
+  `v1_fallback_count` já existente), incrementado no ramo `via_v2 is not None`; emitir ambos
+  no log estruturado (`mathoms.categorization.dualread`) — observabilidade/debug, **não** é a
+  fonte de verdade do gate. Counter per-request no dataclass é legítimo sob [[ADR-111]].
+- **Shadow-compare (habilita o gate de corretude da l5):** atrás de flag de observação
+  `override_dual_read_shadow_compare`, computar v1 **e** v2 no `match` durante a janela e
+  contar `divergence_count` quando `via_v2 != via_v1`. Removido antes da GA.
+- **Persistência = `AuditLog`, não tabela nova nem parse de log.** Drenar
+  `v1_fallback_count`/`v2_match_count`/`divergence_count` ao **fim do reprocesso de E4** (no
+  boundary com `Session`, não no `match()` do domínio — ISP) via novo
+  `AuditAction.override_v2_dualread_snapshot` (`details` PII-zero). Sem log aggregator no
+  stack, "query agendada sobre logs" é irrealizável; gate vira query SQL pontual sobre
+  `audit_log`. (Snapshot diário congelado via Celery beat é **opcional** — só se quiser
+  evidência datada no `SMOKE_TEST_HUMAN.md`.)
+- **Ordem do flip (armadilha do `_preflight`):** NÃO flipar `DEFAULTS` global como 1º ato —
+  trava o backfill (`cutover_already_active`). Sequência: backfill por workspace → flip por
+  workspace (override individual) → `DEFAULTS["override_natural_key_v2_enabled"]=True` só ao
+  final, como formalização.
 - Atualizar `SMOKE_TEST_HUMAN.md`: exercitar os 6 call-sites de override (criar/deletar
   override, preview de regra, learning loop) sob flag-ON — PII fora do CI.
 
-## Gate que esta lane habilita (G2 da l5)
+## Gate que esta lane habilita
 
-`sum(v1_fallback) == 0 AND sum(v2_match) >= 1` na janela de ≥1 sprint. A 2ª cláusula
-**prova exercício real** do v2 — mata o "zero por inatividade". Satisfeito pelo dogfood do
-owner (overrides nascem v2, reprocessa E4 sob flag-ON).
+- **Gate da l4 (cobertura):** `sum(v1_fallback)==0 AND sum(v2_match)>=1` na janela ≥1 sprint
+  (query sobre `audit_log`). A 2ª cláusula **prova exercício real** do v2 — mata o "zero por
+  inatividade". Satisfeito pelo dogfood do owner (overrides nascem v2, reprocessa E4 flag-ON).
+- **Gate adicional que esta lane instrumenta para a l5 (corretude):** `sum(divergence_count)==0`.
+  O gate de cobertura é **cego** a override grudado na linha errada (o `match` retorna no 1º
+  hit v2 sem consultar v1 → `v1_fallback` fica 0 com a correção no lugar errado). Só o
+  `divergence_count` do shadow-compare prova que v2 casa a MESMA linha que v1 — pré-requisito
+  do drop irreversível da [[A26.l5]] ([[ADR-282]] §Emenda item 3).
 
 ## Critério de aceite
 

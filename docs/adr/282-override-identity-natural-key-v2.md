@@ -193,6 +193,41 @@ v2 SHA-16) **não é breaking de shape de contrato** — não exige dual-read no
 - **Risco residual:** órfãos por re-extração (medidos e reportados, nunca silenciosos);
   exige quiesce de pipeline no backfill.
 
+## Emenda — instrumentação da M2 e gate de corretude (co-design `data-engineer` + `sre-devops`, 2026-07-01)
+
+Co-design das lanes de execução [[A26.l4]] (habilitador) + [[A26.l5]] (M2 destrutiva)
+revelou três correções à mecânica de cutover. Estende (não reabre) as Decisões 4/7/8.
+
+1. **Ordem obrigatória: `backfill → flip por workspace → `DEFAULTS` por último`.** Flipar
+   `DEFAULTS["override_natural_key_v2_enabled"]=True` **global antes** do backfill **trava
+   o próprio backfill**: `_preflight` (`backfill_override_identity.py`) aborta com
+   `cutover_already_active` quando a flag já está ON. Consequência: todo override legado com
+   `natural_key_hash IS NULL` cai em v1 permanentemente e o gate G2 **nunca** fica verde. O
+   flip do `DEFAULTS` é a **formalização final**, só após 100% dos workspaces backfillados +
+   flipados por override individual. Documentar no runbook da Fase E.
+
+2. **Persistência do gate = `AuditLog`, não tabela nova nem parse de log.** Não há log
+   aggregator no stack (OTLP opt-in, sem coletor garantido) — "query agendada que conta
+   `event=` nos logs" é **irrealizável**; a contagem precisa ser persistida no evento. Como
+   o gate é **transitório** (morre com a M2), criar tabela dedicada (`ops_metrics`/
+   `override_match_daily`) é over-engineering: reusar `AuditLog` via novo
+   `AuditAction.override_v2_dualread_snapshot` (`details={v1_fallback, v2_match,
+   divergence_count, workspace_id}`, PII-zero), drenado ao **fim do reprocesso de E4** (não
+   no `match()` do domínio — ISP). Gate = query SQL pontual sobre `audit_log`. O
+   `v1_fallback_count`/`v2_match_count` do `OverrideMatchIndex` seguem per-request (legítimo
+   sob [[ADR-111]]); só são drenados ao DB no boundary.
+
+3. **Gate de corretude para a M2 (novo requisito, além da cobertura).** O gate G2 original
+   (`sum(v1_fallback)==0 AND sum(v2_match)>=1`) mede **cobertura** (v2 exercitado), **não
+   corretude** (v2 casa a MESMA linha que v1 casaria). Divergência silenciosa v1↔v2 na mesma
+   linha gruda o override na transação errada e é **invisível** ao gate — o `match` retorna
+   no 1º hit v2 sem consultar v1, então `v1_fallback` fica 0 com a correção no lugar errado
+   (viola "override sticky"). **A M2 destrutiva ([[A26.l5]]) exige `sum(divergence_count)==0`**
+   além da cobertura, medido por shadow-compare (computa v1 e v2 na janela, conta divergências)
+   atrás de flag de observação `override_dual_read_shadow_compare`, removida na GA. Sem essa
+   métrica, o drop irreversível do `transaction_hash` remove o único fallback que mascararia o
+   erro. `divergence_count` é pré-requisito da **l5**, não da **l4** (o flip observável).
+
 ## Critério de aceite (para o PR de implementação que flippa esta ADR → Decidido)
 
 - `test_override_hash_equals_dedup_hash` — para a mesma linha E4, `natural_key_hash` do override
