@@ -79,6 +79,31 @@ guardrail anti-alucinação do Parecer.
 - Flip mergeado em `strict` somente após a medição do budget em tráfego real (Regime B);
   pré-launch permanece `blocked` por volume, agora contra um bar atingível.
 
+## Baseline pré-flip — eval sintético 2026-07-01 (holdout PII-zero)
+
+Rodado via [`dev/run_parecer_eval_parallel.py`](../../../../dev/run_parecer_eval_parallel.py)
+sobre o holdout estratificado (`tests/fixtures/parecer_eval.py`, n=24 fixtures × 5 runs @
+temp 0,1 = 120 gerações + 24 diag @ temp 0). **GATE PASSOU.**
+
+| Métrica | Valor | Nota |
+|---|---|---|
+| gerações ok | 120/120 | zero erro de LLM |
+| **per-parecer violações** | **0** | segurança binária: nenhuma citação incorreta publicada |
+| **per-parecer UB IC95** | **3,10%** | budget de UX << teto 15% (era 22% no eval 1.8.0) |
+| conformidade de citação | 100,00% | todo `evidencia_path` resolve certo |
+| missing_path (pareceres) | 0 | — |
+| densidade de âncoras (mediana) | 12,0 | piso `_DENSITY_FLOOR` = 5 |
+| R$ na prosa (mediana / total) | 0 / 61 | contrato "LLM não digita R$ na prosa" (mediana 0) |
+| diag temp=0 violações | 0 | determinismo sadio |
+| custo total | US$ 26,06 | cap US$ 50 |
+
+**Leitura:** o gate de segurança (0 citação incorreta) está verde e o budget de UX
+(UB IC95 3,10%) fica muito abaixo do teto de 15% — **sinal fortíssimo de que o flip
+strict passa**. **Ressalva:** é holdout **sintético**; o critério de aceite exige repetir
+a medição sobre **≥20 gerações reais** (Regime B / tráfego de produção) antes de cravar o
+flip. Este baseline remove o bloqueio do lado-eval; resta a confirmação em tráfego real.
+Relatório completo (efêmero, gitignored): `_scratch/parecer_eval_report_20260701.json`.
+
 ## Owner
 
 Agente da lane; co-design `prompt-engineer`. UX do `needs_review` (copy) → `product-designer`.
