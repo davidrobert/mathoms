@@ -56,7 +56,13 @@ Para que nenhum achado se perca entre auditorias:
 | **item 6** — nota Qual. 4→3 | — | não-acionável | não-acionável | [[ADR-298]] D1 (recalibração de avaliador, não regressão) |
 | **item 6** — "backend limpo, dívida no pipeline" | — | refutado | refutado | [[ADR-298]] D2 (medição: backend tem a maior fatia) |
 | **item 6** — ratchet "sem metas decrescentes" | — | procede | procede-fechado | [[ADR-298]] D1 (política documentada; já decresce) |
-| **DAT-01, DAT-02, REL-02, DAT-05** | — | refutado (#671) | refutado · **não reverificado** | #671 §"NÃO incluídos" 🔎 |
+| **DAT-01** (float monetário, reconstr.) | — | refutado | refutado · **reverificado** 2026-06-30 | data-engineer: ADR-283 shipou (Numeric(18,2), `check_float_money --scan-models`+hook, drop monthly_cap) |
+| **DAT-02** (contrato schema warn/strict, reconstr.) | — | refutado | refutado · **reverificado** 2026-06-30 | data-engineer: e2 `additionalProperties:false`+gate; flip strict é lane de telemetria consciente (ADR-283) |
+| **DAT-05** (PII/retenção/erasure, reconstr.) | — | refutado | refutado · **reverificado** 2026-06-30 | data-engineer: ADR-231 (crypto wired) + ADR-275 (retenção+erasure cascade FK fim-a-fim) Decididos |
+| **REL-02** (idempotência pós-run, reconstr.) | — | refutado | refutado · **reverificado** 2026-06-30 | sre-devops: guarda terminal ADR-297 ([`pipeline_task.py:757,527`](../../backend/app/tasks/pipeline_task.py)) cobre TODO o pós-processamento, não só Report; demais tasks idempotentes |
+| **REL-02b** (latente) — `TaskSuggestion.dedup_key` sem UC | P3 | procede | aceito-wontfix | sre-devops: inalcançável sob `reject_on_worker_lost`+`prefetch=1`; **gatilho:** reabrir P2 se `prefetch>1`/redelivery concorrente ([`task.py:242`](../../backend/app/models/task.py)) |
+| **r2-new-1** — ADR-095 status stale | P2 | procede | procede-fechado | data-engineer: 095 `Proposto` mas D1/D2→ADR-231, D3/D4→ADR-275 shipados; banner + `relates_to [[ADR-231]]` adicionado nesta rodada |
+| **r2-new-2** — LGPD export cobertura parcial | P2 | procede | **procede-aberto** (owner) | data-engineer: `lgpd_export_service.py` não exporta Debt/PropertyIdentity/Vehicle/Protection/Risk/TransactionOverride; **owner decide** se é escolha consciente de Art.18 → `aceito-wontfix`, senão P2 real |
 
 **⚠️ SEC-03 — lição de processo.** A validação manual de #671 colocou SEC-03 no
 balde "CVEs Python… refutados ou já endereçados (versões já patched)". Estava
@@ -65,10 +71,16 @@ versão pinada. Reaberto e fechado em #676 / [[ADR-299]]. Validar CVE **sempre**
 com `pip-audit` contra o lock — leitura manual de "versão X já é segura" decai
 conforme novas CVEs são divulgadas.
 
-**🔎 DAT-01/02, REL-02, DAT-05 — candidatos a reverificação.** Foram refutados
-**no mesmo passo de validação que errou o SEC-03** (#671 §"NÃO incluídos"). Como
-o relatório original sumiu, não há detalhe para re-litigar aqui, mas a refutação
-desse balde perdeu credibilidade. **Recomendação:** reverificar com a mesma
-disciplina empírica (DAT-* → `data-engineer`; REL-02 → `sre-devops`). Sem owner
-atribuído — decisão do owner do repo se vira `procede-aberto` (com gatilho de
-BACKLOG) ou se confirma `refutado` com evidência.
+**✅ DAT-01/02, REL-02, DAT-05 — reverificação concluída (2026-06-30).** O balde
+foi reverificado com disciplina empírica (`data-engineer` p/ DAT-*, `sre-devops` p/
+REL-02), exatamente porque fora refutado no mesmo passo que errou o SEC-03. **Resultado:
+diferente do SEC-03, a refutação RESISTIU** — cada decisão das ADRs correlatas foi
+confirmada *shipada no código* (não só lida na ADR): float monetário (ADR-283 +
+gate scan), `additionalProperties` (e2 + gate), criptografia/retenção/erasure
+(ADR-231/275 + cascade FK fim-a-fim), e a guarda terminal da ADR-297 cobrindo todo
+o pós-processamento. O relatório original é efêmero, então os códigos foram
+*reconstruídos* (rótulos exatos perdidos) e a superfície re-auditada do zero. A
+re-auditoria fresca levantou **2 achados novos** (r2-new-1 ADR-095 stale, fechado
+nesta rodada; r2-new-2 LGPD export parcial, `procede-aberto` p/ decisão do owner)
++ 1 latente (REL-02b, aceito-wontfix com gatilho). Lição SEC-03 aplicada: nenhuma
+refutação aceita sem evidência empírica de que o fix existe no código.
