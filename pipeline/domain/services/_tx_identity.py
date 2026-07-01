@@ -1,8 +1,8 @@
 """Identidade determinística de transações K4 versionada (ADR-255 + ADR-278 B3):
 ``_hash_v1`` é o contrato congelado com o DB histórico (abs sem moeda/direction,
 float); ``_hash_v2`` é o novo (moeda+direction, cents int via Decimal, sem drift);
-``compute_natural_key`` é a API de contrato; ``compute_transaction_hash`` é shim
-deprecado de ``_hash_v1``."""
+``compute_natural_key`` é a API de contrato. O dispatch flag-aware v2/v1 vive em
+``compute_identity_hash`` (fallback v1 sob flag-OFF)."""
 
 from __future__ import annotations
 
@@ -273,23 +273,3 @@ def build_item_identity(
         else None
     )
     return tx_hash, natural_key
-
-
-def compute_transaction_hash(
-    *,
-    data: str | None,
-    banco: str | None,
-    titular: str | None,
-    tipo_conta: str | None,
-    valor: float | int,
-    descricao: str | None,
-) -> str:
-    """DEPRECATED (ADR-278 B4): shim de ``_hash_v1`` no recompute E4; remover no passo 2."""
-    return _hash_v1(
-        data=data,
-        banco=banco,
-        titular=titular,
-        tipo_conta=tipo_conta,
-        valor=valor,
-        descricao=descricao,
-    )

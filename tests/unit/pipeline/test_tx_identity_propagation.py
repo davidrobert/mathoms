@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from pipeline.domain.services._tx_identity import compute_transaction_hash  # noqa: E402
+from pipeline.domain.services._tx_identity import _hash_v1  # noqa: E402
 from pipeline.domain.services.cash_flow_builder import CashFlowBuilder  # noqa: E402
 from pipeline.domain.services.transaction_classifier import (  # noqa: E402
     ClassifiedTransaction,
@@ -43,7 +43,7 @@ class TestHashPopulated:
         # Paridade com Camada A: hash do classifier == hash computado inline.
         account = _account([{"data": "2026-03-30", "descricao": "Pix recebido", "valor": 100.0}])
         txs = _classifier().classify_account(account)
-        expected = compute_transaction_hash(
+        expected = _hash_v1(
             data="2026-03-30",
             banco="C6Bank",
             titular="david",

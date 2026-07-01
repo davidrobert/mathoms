@@ -14,7 +14,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a26
-  - status/blocked
+  - status/shipped
   - priority/p2
   - area/data-lineage
   - area/pipeline
@@ -25,6 +25,16 @@ tags:
 > **Plano:** [[PLAN-data-lineage]] · executa a M2 do dedup ([[ADR-287]] §Cutover: "o shim
 > v1 é deletado no cutover final"). Co-design `data-engineer` 2026-06-16. É o drop de
 > **menor blast radius e reversível** — serve de canário antes do drop irreversível da [[A26.l5]].
+>
+> **Status: `shipped` (2026-07-01).** Deletado o shim público `compute_transaction_hash`
+> de `_tx_identity.py` — era **dead code** (zero callers vivos; G3 verde: só docstring +
+> testes o referenciavam). Por ser dead code, a deleção **independe do gate de tráfego** e
+> é reversível por `git revert`. **`_hash_v1` NÃO foi removido** — continua como fallback
+> flag-OFF em `compute_identity_hash` (contrato congelado do DB histórico); sua remoção é
+> passo futuro, aí sim gated por `dedup_natural_key_v2_enabled` zerado em tráfego real.
+> Testes do shim retargetados a `_hash_v1` (rename mecânico, assinatura idêntica) em vez de
+> deletados — preserva cobertura do contrato v1 congelado (desvio consciente do "deletar
+> testes" da lane, pois o path v1 segue vivo). 1787 testes de `tests/unit/pipeline/` verdes.
 
 ## Objetivo
 
