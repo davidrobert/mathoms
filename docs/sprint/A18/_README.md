@@ -3,12 +3,12 @@ id: MOC-sprint-a18
 type: moc
 title: "Sprint A18 — Comprovantes de Bem (CRLV) + Apólices polimórficas + FIPE refresh (3 lanes coordenadas)"
 aliases: ["A18", "Sprint A18"]
-sprint_status: paused
+sprint_status: done
 ---
 
 # Sprint A18 — Comprovantes de Bem + Apólices + FIPE
 
-> **Status:** `paused` — tema central (CRLV + Apólice + FIPE) **entregue**: L1 (CRLV-e), L2 (apólice polimórfica) e L3 (FIPE refresh) todas `shipped` em 2026-05-22 (#388–#436); [[ADR-239]] `Decidido (Sprint A18 L1)`. **Débito conhecido:** [[A18.l4]] (W1α LGPD, `PLAN-llm-prompts-hardening`) segue `planned` — **P0, gate de [F7 R4](../../reference/PHASES.md) → Beta fechado** (CPF cru em schemas LLM `e1_members`/`informe_aluguel`). Não fecha como `done` enquanto a l4 estiver aberta. Retomada: flip `paused → current` quando a l4 (ou sua realocação) for priorizada.
+> **Status:** `done` (2026-07-01) — tema integral (CRLV + Apólice + FIPE) **entregue**: L1 (CRLV-e), L2 (apólice polimórfica) e L3 (FIPE refresh) todas `shipped` em 2026-05-22 (#388–#436); [[ADR-239]] `Decidido (Sprint A18 L1)`. A antiga `A18.l4` (W1α LGPD) **não era desta sprint** — pertence ao `PLAN-llm-prompts-hardening` e foi **realocada para [[A20.l15]]** (2026-07-01), junto das irmãs W1β/W2/W3/W4. Escopo próprio da A18 fechado.
 
 ## Resumo
 

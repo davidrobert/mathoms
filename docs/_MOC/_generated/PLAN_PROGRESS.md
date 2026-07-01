@@ -123,7 +123,7 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 ### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting
 
 - Status: `draft` · Sprint atual: A17
-- Sprints envolvidas: A17, A18, A20
+- Sprints envolvidas: A17, A20
 - Lanes: 1 done · 0 in_progress · 5 open · 0 blocked
 - ADRs canônicas: [[ADR-081]], [[ADR-090]], [[ADR-097]], [[ADR-110]], [[ADR-111]], [[ADR-137]], [[ADR-157]], [[ADR-191]], [[ADR-212]], [[ADR-233]], [[ADR-246]]
 

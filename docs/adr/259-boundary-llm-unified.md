@@ -113,6 +113,6 @@ Nunca decriptografar em background job, em logs estruturados ou em export PDF ge
 ## Referências
 
 - Plano canônico: [[PLAN-llm-prompts-hardening]]
-- Lane W1α-T02 (e1_members): `docs/sprint/A18/lanes/A18-l4-llm-w1-alpha-lgpd.md`
+- Lane W1α-T02 (e1_members): `docs/sprint/A20/lanes/A20-l15-llm-w1-alpha-lgpd.md`
 - Lane W1β-T02 (e15_baseline): `docs/sprint/A20/lanes/A20-l11-llm-w1-beta-adr090.md`
 - LGPD art. 46 (segurança de dados pessoais); CMN 4.658 §segregação PII; ANPD Guia de Anonimização (2024).

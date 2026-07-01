@@ -60,7 +60,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | A15 | done |
 | A16 | done |
 | A17 | paused |
-| A18 | paused |
+| A18 | done |
 | A19 | done |
 | A20 | paused |
 | A21 | done |

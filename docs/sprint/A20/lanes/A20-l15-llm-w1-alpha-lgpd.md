@@ -1,22 +1,21 @@
 ---
-id: A18.l4
+id: A20.l15
 type: lane
 title: "LLM Hardening — W1α LGPD compliance (gate F7 R4 → Beta fechado)"
-sprint: A18
+sprint: A20
 plan: PLAN-llm-prompts-hardening
 status: planned
 priority: P0
-branch_slug: a18-l4-llm-w1-alpha-lgpd
+branch_slug: a20-l15-llm-w1-alpha-lgpd
 parallel_with:
-  - "[[A18.l1]]"
-  - "[[A18.l2]]"
+  - "[[A20.l11]]"
 adrs:
   - "[[ADR-259]]"
   - "[[ADR-111]]"
   - "[[ADR-246]]"
 tags:
   - type/lane
-  - sprint/a18
+  - sprint/a20
   - status/planned
   - priority/p0
   - area/llm
@@ -24,9 +23,9 @@ tags:
   - breaking/schema
 ---
 
-# A18.L4 — W1α LGPD compliance (3 PRs)
+# A20.L15 — W1α LGPD compliance (3 PRs)
 
-> **Onda 1α do plano [[PLAN-llm-prompts-hardening]].** Gate de [PHASES.md F7 R4](../../../reference/PHASES.md) → Beta fechado. Custo de não fazer = não abre beta. **Sinergia com [[A18.l2]]** (apólice também extrai CPF do segurado).
+> **Onda 1α do plano [[PLAN-llm-prompts-hardening]].** Gate de [PHASES.md F7 R4](../../../reference/PHASES.md) → Beta fechado. Custo de não fazer = não abre beta. **Realocada de A18.l4 → A20.l15** (2026-07-01): pertence ao `PLAN-llm-prompts-hardening`, junto das irmãs W1β/W2/W3/W4 ([[A20.l11]]–[[A20.l14]]); o tema CRLV/apólice/FIPE de A18 fechou. **Sinergia com [[A18.l2]]** (apólice, já `shipped`, também extraiu CPF do segurado — boundary [[ADR-259]] cobre ambos).
 
 ## Objetivo
 
@@ -73,9 +72,9 @@ Aderência a [[ADR-259]] (boundary LLM unificado): schema Pydantic emite `cpf_pr
 
 ## Coordenação
 
-Paralelo a [[A18.l1]] (CRLV) e [[A18.l2]] (apólice). [[A18.l2]] também extrai CPF (segurado) — sinergia: [[ADR-259]] cobre boundary unificado para ambos. Não competir por arquivos.
+Histórico: nasceu paralela a [[A18.l1]] (CRLV) e [[A18.l2]] (apólice) — ambas já `shipped`. [[A18.l2]] também extraiu CPF (segurado); [[ADR-259]] cobre o boundary unificado. Na retomada, paralela a [[A20.l11]] (W1β) — arquivos disjuntos.
 
-**Depende de**: nada. Pode iniciar imediatamente após A18 abrir.
+**Depende de**: nada. Pode iniciar imediatamente na retomada da A20.
 
 **Sequência interna**: T01 (audit) → T02 PR-A (foundation) → T02 PR-B + T03 (paralelos).
 
