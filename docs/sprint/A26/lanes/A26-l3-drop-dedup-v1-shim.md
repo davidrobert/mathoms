@@ -4,7 +4,7 @@ type: lane
 title: "M2-A — drop do shim v1 do dedup (compute_transaction_hash)"
 sprint: A26
 plan: PLAN-data-lineage
-status: blocked
+status: shipped
 priority: P2
 branch_slug: drop-dedup-v1-shim
 adrs:
