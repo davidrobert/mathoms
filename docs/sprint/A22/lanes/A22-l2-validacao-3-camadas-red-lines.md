@@ -4,7 +4,7 @@ type: lane
 title: "Validação em 3 camadas (schema → invariante → 7 red lines hard-block)"
 sprint: A22
 plan: PLAN-launch-trust
-status: planned
+status: shipped
 priority: P0
 branch_slug: a22-l2-validacao-3-camadas-red-lines
 depends_on:
@@ -13,7 +13,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a22
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/llm
 ---

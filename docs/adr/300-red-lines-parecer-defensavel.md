@@ -89,12 +89,14 @@ Red lines entram **também** no system prompt como REGRA 14 (prevenção → men
 needs_review, melhor UX) **e** na validação (garantia). Espelha o padrão sigilo
 §13 ("persona é 1ª linha; validador é defesa"). **Entregue nesta lane: só a
 validação (garantia).** O prompt-side (REGRA 14 + bump `PROMPT_VERSION → 2.1.0`)
-é follow-up owner-gated — ver §Follow-ups.
+era follow-up owner-gated. ✅ **Entregue em 2026-07-01** (PROMPT_VERSION 2.1.0) —
+ver §"Prompt-side REGRA 14 + resultado combinado" e §Follow-ups.
 
 ### Versionamento e cache
 
 Nova constante `RED_LINES_VERSION = "1.0"` (contrato de validação, análoga a
-`EVIDENCIA_VERIFICATION_VERSION`). Entra no cache key composite (`:rl{...}`) —
+`EVIDENCIA_VERIFICATION_VERSION`; **calibrada 1.0→1.4** após 3 rodadas de dogfood —
+ver §"Calibração pós-dogfood"). Entra no cache key composite (`:rl{...}`) —
 parecer cacheado sob `rl1.0` não passou pela red line de `rl1.1`; servir do cache
 publicaria conselho não-validado. `_SCHEMA_VERSION` **não** muda (output não ganha
 campo).

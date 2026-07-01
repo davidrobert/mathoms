@@ -16,7 +16,7 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 **Promovida em 2026-06-16, sucedendo A25 (`done`).** 5ª janela do plano [[PLAN-data-lineage]]:
 **remove as redes de segurança** da frente (shims de identidade v1, modo `warn` do
-`evidencia_path`) após observação de produção. 5 lanes em 2 regimes: **Regime A** —
+`evidencia_path`) após observação de produção. 9 lanes em 2 regimes: **Regime A** —
 [[A26.l1]] (fix de citação do `evidencia_path`, **única `open`, sem gate — ponto de
 entrada**) + **Regime B** — l2 flip strict · l3 drop shim dedup · l4 override v2 ON +
 instrumentação · l5 M2 override destrutiva (todas `blocked` por **volume de tráfego**:
@@ -26,7 +26,7 @@ sre-devops). Sem ADR nova (ADR-279/287 cobrem; ADR-282 flippa `Decidido` quando 
 override fechar). **Insumos para destravar l2–l5:** `ANTHROPIC_API_KEY` + ~20 gerações
 de parecer + exercício do override v2 por ≥1 sprint + confirmar PITR do Postgres.
 
-- **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) (5 lanes) · **Plano:**
+- **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) (9 lanes) · **Plano:**
   [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 · **Prompt:**
   [agent_prompts/orchestrator_a26_consolidacao.md](../agent_prompts/orchestrator_a26_consolidacao.md).
 - **Precedência de corte:** Must l1+l2 · Should l3+l4 · Could/cortável l5 (→ A27).

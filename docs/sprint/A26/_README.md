@@ -48,7 +48,7 @@ lane destrutiva tem um **gate verificável**, não um prazo.
 
 | Lane | Slug | Regime | Status | Dep / Gate |
 |---|---|---|---|---|
-| [[A26.l1]] | `evidencia-prompt-catalogo` | A (sem gate) | **open** | — · ponto de entrada da sprint |
+| [[A26.l1]] | `evidencia-prompt-catalogo` | A (sem gate) | ✅ shipped (#654) | — · ponto de entrada da sprint |
 | [[A26.l2]] | `evidencia-flip-strict` | B | blocked | gate redefinido (2026-06-19): segurança binária (0 errado publicado — ✅ via l8) + budget needs_review ≤15% sobre ≥20 ger |
 | [[A26.l3]] | `drop-dedup-v1-shim` | B (reversível) | blocked | dedup v2 100% + counter zerado ≥1 sprint |
 | [[A26.l4]] | `override-v2-on-instrumentacao` | B (habilitador) | blocked | flip override flag→True + `v2_match_count` + query agendada `v1_fallback` |

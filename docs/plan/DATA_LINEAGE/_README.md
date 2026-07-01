@@ -17,7 +17,7 @@ adrs_canonical:
   - "[[ADR-281]]"
 tags:
   - type/plan
-  - status/draft
+  - status/in-progress
   - area/pipeline
   - area/data-lineage
 ---

@@ -4,7 +4,7 @@ type: lane
 title: "Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM"
 sprint: A26
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: evidencia-prompt-catalogo
 adrs:
@@ -14,7 +14,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a26
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/data-lineage
   - area/llm

@@ -4,7 +4,7 @@ type: lane
 title: "Fallback needs_review atômico (LLM down → relatório não quebra)"
 sprint: A22
 plan: PLAN-launch-trust
-status: open
+status: shipped
 priority: P0
 branch_slug: a22-l3-fallback-needs-review-atomico
 depends_on: []
@@ -14,7 +14,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a22
-  - status/open
+  - status/shipped
   - priority/p0
   - area/llm
 ---

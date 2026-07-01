@@ -1162,14 +1162,16 @@ não pôde ser determinado. Propaga de E0→E2→E3.
   artefatos"). Artifacts em produção vivem em `pipeline_artifacts` (DB).
 - `inbox_processed/` sem prefixo `_` — é parte do fluxo de upload (move
   arquivo de `inbox/` após classificação), não diretório auxiliar.
-- `config/schemas/` contém schemas JSON usados por `validate_dict` (hook
-  pós-write em `DBArtifactStore.write`, ADR-212 PR3a): 7 schemas de
-  estágios canônicos (`baseline_patrimonial`, `e16_irpf_full`,
-  `e2_extract`, `e3_reconciled`, `e4_unified`, `e5_analysis`,
-  `pipeline`) + schemas de domínio para `Goal` (alocacao_alvo v1/v2,
-  aporte_mensal, dolarizacao, if v1/v2) + `parecer_planejador` +
-  `report_layout`. Modo `warn` (default) vs `strict` controlado por
-  `pipeline.json → schema_validation.mode` (override via env
+- `config/schemas/` contém 26 schemas JSON usados por `validate_dict` (hook
+  pós-write em `DBArtifactStore.write`, ADR-212 PR3a): estágios canônicos
+  (`baseline_patrimonial`, `e16_irpf_full`, `e2_extract`, `e2_llm_artifact`,
+  `e3_reconciled`, `e4_unified`, `e5_analysis`, `pipeline`) + `Goal`
+  (alocacao_alvo v1/v2, aporte_mensal, dolarizacao, if v1/v2,
+  reserva_emergencia) + informes (`informe_base`/`_pf`/`_pj`/`_aluguel`/
+  `_previdencia`/`_proventos`, ADR-238) + comprovantes de bem (`crlv`,
+  ADR-239) + `parecer_planejador` + `protecao_patrimonial` (ADR-240) +
+  `review_reason` + `report_layout`. Modo `warn` (default) vs `strict`
+  controlado por `pipeline.json → schema_validation.mode` (override via env
   `MATHOMS_PIPELINE_SCHEMA_MODE`).
 
 Para outras decisões idiossincráticas, consulte [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md).
@@ -1204,7 +1206,7 @@ Conteúdo que **era** duplicado neste arquivo e agora vive em sua fonte
 | Arquitetura alvo pós-A6 (migração infra+domínio)    | [docs/reference/ARCHITECTURE.md §17](docs/reference/ARCHITECTURE.md)                                           |
 | Sprint atual + lanes prontas — vault atomizado pós-F4 (ADR-182). [`docs/_MOC/_generated/SPRINT_CURRENT.md`](docs/_MOC/_generated/SPRINT_CURRENT.md) (auto, filtra `status: ready/open/in_progress`) + [`docs/_MOC/SPRINTS-active.md`](docs/_MOC/SPRINTS-active.md) (editorial). Detalhe por sprint: [`docs/sprint/<X>/_README.md`](docs/sprint/A11/_README.md). Detalhe por lane: `docs/sprint/<X>/lanes/<id>.md`. [docs/BACKLOG.md](docs/BACKLOG.md) é shim. | [docs/sprint/](docs/sprint/) |
 | Log cronológico de entregas (sessões A1–A6f por data) | [docs/CHANGELOG.md](docs/CHANGELOG.md)                                                   |
-| ADRs (001–182+) — notas atômicas em `docs/adr/NNN-slug.md` (ADR-182 · F2). Índice agrupado por categoria + status: [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) (auto-gerado por `dev/build_doc_index.py`). Gates: `dev/validate_frontmatter.py`, `dev/check_doc_filename_id.py`, `dev/check_doc_links.py`, `dev/check_adr_anchors.py`. Protocolo em §"ADRs → notas atômicas em docs/adr/" deste CLAUDE.md. [docs/DECISIONS.md](docs/DECISIONS.md) é shim com âncoras históricas | [docs/adr/](docs/adr/) |
+| ADRs (001–301+) — notas atômicas em `docs/adr/NNN-slug.md` (ADR-182 · F2). Índice agrupado por categoria + status: [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) (auto-gerado por `dev/build_doc_index.py`). Gates: `dev/validate_frontmatter.py`, `dev/check_doc_filename_id.py`, `dev/check_doc_links.py`, `dev/check_adr_anchors.py`. Protocolo em §"ADRs → notas atômicas em docs/adr/" deste CLAUDE.md. [docs/DECISIONS.md](docs/DECISIONS.md) é shim com âncoras históricas | [docs/adr/](docs/adr/) |
 | Domínios e URLs públicas (ADR-108)                  | [docs/reference/ARCHITECTURE.md §18](docs/reference/ARCHITECTURE.md)                                           |
 | Smoke test humano (gate pré-A6c)                    | [docs/reference/SMOKE_TEST_HUMAN.md](docs/reference/SMOKE_TEST_HUMAN.md)                                       |
 | Artefatos de pipeline + schemas                     | [docs/reference/PIPELINE_ARTIFACTS.md](docs/reference/PIPELINE_ARTIFACTS.md)                                   |

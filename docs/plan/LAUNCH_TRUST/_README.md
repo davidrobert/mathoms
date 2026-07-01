@@ -110,8 +110,9 @@ do cliente pagante.**
 > fecha KR2/KR3). **F3 🟢 no núcleo:** KR7 entregue em
 > [#690](https://github.com/davidrobert/mathoms/pull/690) ([[ADR-300]] `Decidido` —
 > 7 red lines determinísticas + eval no PR gate); KR8 (fallback atômico) já existia
-> desde A23–A27. Residual owner-gated: prompt-side das red lines (REGRA 14 + bump
-> `PROMPT_VERSION`, exige re-eval LLM). **F2 🟡:** KR5 (deploy reproduzível) +
+> desde A23–A27. Prompt-side das red lines (REGRA 14 + `PROMPT_VERSION 2.1.0`)
+> **entregue 2026-07-01**; residual owner-gated = só o run 24×5 IC95 para cravar a
+> taxa emergente. **F2 🟡:** KR5 (deploy reproduzível) +
 > off-site permanecem owner-gated ([[ADR-228]] G2/G3).
 
 ---
