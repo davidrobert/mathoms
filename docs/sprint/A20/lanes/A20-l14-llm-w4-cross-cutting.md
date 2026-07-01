@@ -9,7 +9,7 @@ priority: P1
 branch_slug: a20-l14-llm-w4-cross-cutting
 depends_on:
   - "[[A17.l5]]"
-  - "[[A18.l4]]"
+  - "[[A20.l15]]"
   - "[[A20.l11]]"
 parallel_with:
   - "[[A20.l12]]"
@@ -118,7 +118,7 @@ Entregas:
 
 **Depende de**:
 - [[A17.l5]] (W4-T00 — seed expandido `institution_catalog` com 15+ entries alta renda PJ).
-- [[A18.l4]] (W1α — prompts bumpados para semver puro pós-LGPD).
+- [[A20.l15]] (W1α — prompts bumpados para semver puro pós-LGPD).
 - [[A20.l11]] (W1β — `e15_baseline` em `Decimal` ADR-090).
 
 **Paralelo a**: [[A20.l12]] (W2) e [[A20.l13]] (W3) — não competem por arquivos.

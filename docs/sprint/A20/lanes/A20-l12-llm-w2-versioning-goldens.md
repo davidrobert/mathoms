@@ -8,7 +8,7 @@ status: planned
 priority: P0
 branch_slug: a20-l12-llm-w2-versioning-goldens
 depends_on:
-  - "[[A18.l4]]"
+  - "[[A20.l15]]"
   - "[[A20.l11]]"
 parallel_with:
   - "[[A20.l13]]"
@@ -33,7 +33,7 @@ tags:
 
 3 entregas sequenciais:
 
-1. **Padronização**: 5 prompts legados (`apolice-v1.0.0`, `crlv-v1.0.0`, `e16-v1.1.0`, `informe-aluguel-v1.1.0` ou `1.2.0` pós-[[A18.l4]], `informe-prev-v1.0.0`) → semver puro `\d+\.\d+\.\d+`. Migration coordenada de `LLMCallLog.prompt_version` + `pipeline_artifacts.metadata.prompt_version`.
+1. **Padronização**: 5 prompts legados (`apolice-v1.0.0`, `crlv-v1.0.0`, `e16-v1.1.0`, `informe-aluguel-v1.1.0` ou `1.2.0` pós-[[A20.l15]], `informe-prev-v1.0.0`) → semver puro `\d+\.\d+\.\d+`. Migration coordenada de `LLMCallLog.prompt_version` + `pipeline_artifacts.metadata.prompt_version`.
 2. **Goldens fiscais**: 7 fixtures `informe_previdencia` cobrindo casos brasileiros típicos do público-alvo (`financial-planner` revisão).
 3. **Telemetria SQL**: `LLMCallLog` ganha colunas `confidence` + `needs_review` (W2-T03). Desbloqueia análise SQL imediata.
 
@@ -56,7 +56,7 @@ Migrar 5 prompts legados em PR coordenado:
 | `apolice.py` | `apolice-v1.0.0` | `1.0.0` |
 | `crlv.py` | `crlv-v1.0.0` | `1.0.0` |
 | `e16_irpf_full.py` (schema) | `e16-v1.1.0` | `1.1.0` |
-| `informe_aluguel.py` (schema) | `1.2.0` (pós-[[A18.l4]]) | mantém — sem ação |
+| `informe_aluguel.py` (schema) | `1.2.0` (pós-[[A20.l15]]) | mantém — sem ação |
 | `informe_previdencia.py` | `informe-prev-v1.0.0` | `1.0.0` |
 
 Migration Alembic coordenada:
@@ -78,7 +78,7 @@ Migration Alembic coordenada:
   - **Regimes mistos PGBL prog + reg no mesmo CPF** (cliente 45-60 anos — aporte pré-2005 em prog).
   - **Portabilidade entre seguradoras no ano-base** (`saldo_01_01 ≠ saldo_31_12_ano_anterior`).
 - **`e15_baseline`**: adicionar 2 fixtures (declaração truncada `confidence` baixa, baseline com dependente).
-- **`e1_members`**: fixture família 5 membros já criada em [[A18.l4]] T02.
+- **`e1_members`**: fixture família 5 membros já criada em [[A20.l15]] T02.
 - **`e2_llm`**: fixture com `info_fiscal_anual` (v1.1.0 ADR-242 sem fixture que prova anti-double-counting).
 - **`e16_irpf_full`**: 1 fixture "fail gracefully" (declaração truncada, confidence baixo, notes populado).
 
@@ -109,7 +109,7 @@ GROUP BY prompt_name, prompt_version;
 
 ## Coordenação
 
-**Depende de**: [[A18.l4]] (W1α completo — `informe_aluguel` em `1.2.0` antes da migration coordenada) + [[A20.l11]] (W1β completo — `e15_baseline` em `1.1.0`).
+**Depende de**: [[A20.l15]] (W1α completo — `informe_aluguel` em `1.2.0` antes da migration coordenada) + [[A20.l11]] (W1β completo — `e15_baseline` em `1.1.0`).
 
 **Paralelo a**: [[A20.l13]] (W3 OTLP) e [[A20.l14]] (W4 cross-cutting) — não competem por arquivos.
 
