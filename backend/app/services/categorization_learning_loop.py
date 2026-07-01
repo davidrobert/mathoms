@@ -20,8 +20,10 @@ from backend.app.repositories.categorization_rule_repository import (
 )
 from backend.app.services.feature_flags_service import is_enabled_sync
 from backend.app.services.override_dual_read import (
+    OVERRIDE_DUAL_READ_SHADOW_COMPARE_FLAG,
     OVERRIDE_NATURAL_KEY_V2_FLAG,
     OverrideMatchIndex,
+    persist_dualread_snapshot,
 )
 from backend.app.services.override_identity import identity_from_classified_tx
 from backend.app.services.report_publication import is_month_closed_sync
@@ -70,7 +72,7 @@ def _tx_hash(tx: ClassifiedTransaction) -> str:
 
 
 def _preload_override_index(
-    db: Session, workspace_id: str, *, v2_enabled: bool
+    db: Session, workspace_id: str, *, v2_enabled: bool, shadow_compare: bool = False
 ) -> OverrideMatchIndex:
     """Overrides ATIVOS (``deleted_at IS NULL`` · ADR-188 §D1) — dual-read ADR-282."""
     rows = (
@@ -85,7 +87,9 @@ def _preload_override_index(
         .scalars()
         .all()
     )
-    return OverrideMatchIndex.from_overrides(rows, workspace_id=workspace_id, v2_enabled=v2_enabled)
+    return OverrideMatchIndex.from_overrides(
+        rows, workspace_id=workspace_id, v2_enabled=v2_enabled, shadow_compare=shadow_compare
+    )
 
 
 def _is_month_closed_cached(
@@ -251,6 +255,20 @@ def _run_loop(matched: list[ClassifiedTransaction], state: _LoopState) -> tuple[
     return counts, applied_per_rule
 
 
+def _build_loop_state(workspace_id: str, db: Session) -> _LoopState:
+    """Monta o estado da loop lendo as flags de dual-read/shadow-compare (ADR-282)."""
+    v2_enabled = is_enabled_sync(workspace_id, OVERRIDE_NATURAL_KEY_V2_FLAG, db=db)
+    shadow_compare = is_enabled_sync(workspace_id, OVERRIDE_DUAL_READ_SHADOW_COMPARE_FLAG, db=db)
+    return _LoopState(
+        workspace_id=workspace_id,
+        db=db,
+        match_index=_preload_override_index(
+            db, workspace_id, v2_enabled=v2_enabled, shadow_compare=shadow_compare
+        ),
+        closed_months_cache={},
+    )
+
+
 def apply_learning_loop(
     *,
     workspace_id: str,
@@ -261,13 +279,8 @@ def apply_learning_loop(
     matched = [t for t in classified if t.learned_rule_id is not None]
     if not matched:
         return LearningLoopStats()
-    v2_enabled = is_enabled_sync(workspace_id, OVERRIDE_NATURAL_KEY_V2_FLAG, db=db)
-    state = _LoopState(
-        workspace_id=workspace_id,
-        db=db,
-        match_index=_preload_override_index(db, workspace_id, v2_enabled=v2_enabled),
-        closed_months_cache={},
-    )
+    state = _build_loop_state(workspace_id, db)
     counts, applied_per_rule = _run_loop(matched, state)
     _bump_counters_same_flush(db, applied_per_rule)
+    persist_dualread_snapshot(db, state.match_index)
     return LearningLoopStats(matches_total=len(matched), **counts)
