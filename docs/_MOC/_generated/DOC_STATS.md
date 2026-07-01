@@ -11,7 +11,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 | type | notas |
 | --- | ---: |
-| adr | 292 |
+| adr | 293 |
 | archive-index | 1 |
 | changelog-entry | 244 |
 | doc | 2 |
@@ -28,7 +28,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | type | status | notas |
 | --- | --- | ---: |
 | adr | Decidido | 265 |
-| adr | Proposto | 23 |
+| adr | Proposto | 24 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 244 |

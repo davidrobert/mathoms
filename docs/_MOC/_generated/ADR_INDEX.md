@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-292 ADRs (ADR-001 a ADR-301) em [`docs/adr/`](../../adr/).
+293 ADRs (ADR-001 a ADR-302) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 265
-- **Proposto**: 23
+- **Proposto**: 24
 - **Roadmap**: 4
 
 ## Fundação
@@ -57,6 +57,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-079]] — Content-first classification no upload web
 - [[ADR-080]] — Pipeline incremental: extrair só docs novos, consolidar full · phase F7
 - [[ADR-081]] — Classificação de documentos unificada (P2)
+
+### Proposto (1)
+
+- [[ADR-302]] — Skill audit-vault — auditoria recorrente de vault como procedimento do loop principal · phase A26
 
 ## Config (materialização legada)
 

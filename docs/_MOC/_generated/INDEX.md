@@ -297,6 +297,7 @@
 | ADR-299 | adr | Decidido |  | SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) | `adr/299-sec03-deps-17-cves-procede.md` |
 | ADR-300 | adr | Decidido |  | Red lines do parecer: 4ª camada de validação determinística (conselho defensável) | `adr/300-red-lines-parecer-defensavel.md` |
 | ADR-301 | adr | Decidido |  | Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) | `adr/301-schema-formal-dividas-dedup-cross-year.md` |
+| ADR-302 | adr | Proposto |  | Skill audit-vault — auditoria recorrente de vault como procedimento do loop principal | `adr/302-audit-vault-skill.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
