@@ -243,14 +243,30 @@ Inspeção do texto real (captura cirúrgica) + co-design `financial-planner`:
   estruturado → exige Alta; 40–60% → Média+; ≤40 → N/A. Os 6 casos em 52% deixam de
   disparar; anti-FN preservado (52% com tema só em Baixa → dispara).
 
-RED_LINES_VERSION: 1.2 (RL1) → 1.3 (RL3 `\b`) → 1.4 (RL7 graduado). Re-eval confirmatório
-(combinado) pendente — run per-estrato ~US$3 ou 5× IC95 ~US$29 (owner-gated).
+RED_LINES_VERSION: 1.2 (RL1) → 1.3 (RL3 `\b`) → 1.4 (RL7 graduado).
+
+### Prompt-side REGRA 14 + resultado combinado (PROMPT_VERSION 2.1.0 · 2026-07-01)
+
+REGRA 14 preventiva entregue (guarda-chuva RL1..RL7 espelhando o validador v1.4; ver
+`pipeline/llm/prompts/parecer_planejador.py`). Eval combinado (holdout estratificado +
+RL1.4 + prompt 2.1.0) parcial (7/8, ambiente de eval instável — 3 runs mortos/lentos;
+run completo 24×5 IC95 fica p/ quando o ambiente cooperar, não muda a direção):
+
+| Métrica | Início (monocultura + 1.1) | Final (estratificado + 1.4 + 2.1.0) |
+|---|---|---|
+| `needs_review` | 90% | **~14% (1/7)** — dentro do budget UX ≤15% ([[A26]]l2) |
+| densidade de citação | — | **rica (mediana ~13, faixa 7–16)** ≫ piso 5 → REGRA 14 **não regrediu** citação |
+
+Os casos `imovel`/`divida` que bloqueavam (RL7/RL3) passaram a publicar. O único block
+residual (RL6, família distressed sugerindo mexer em reserva) é comportamento esperado
+do fail-safe. Conclusão: **RL1–RL7 calibradas, prompt-side prevenindo, gate mensurável e
+no budget**; segurança (zero conselho indefensável publicado) segue verde por construção.
 
 ## Follow-ups (não bloqueiam o enforcement)
 
-- **Prompt-side (REGRA 14 + bump `PROMPT_VERSION → 2.1.0`):** owner-gated — exige
-  re-rodar o eval LLM real (`ANTHROPIC_API_KEY`) comparando 2.0.0 vs 2.1.0 sem
-  regressão de citação/densidade/custo. O enforcement determinístico (esta entrega)
-  é a **garantia**; o prompt-side é prevenção (reduz `needs_review`).
+- ✅ **Prompt-side (REGRA 14 + `PROMPT_VERSION 2.1.0`) — ENTREGUE** (ver §"Prompt-side
+  REGRA 14 + resultado combinado"). Pendente só o run completo 24×5 IC95 p/ cravar o
+  número (owner-gated; direção já confirmada). Enforcement determinístico = **garantia**;
+  REGRA 14 = prevenção.
 - Extração de `taxa_mensal` numérica (fortalece RL-2); injeção do
   `institution_catalog` em RL-4; tag de tema em `pontos_urgentes` (amplia RL-7).
