@@ -59,11 +59,17 @@ Materializar a citação como edge esbarra em dois fatos de contrato (co-design
    `top_ativos` → tupla `(membro, instituicao, nome)` com `posicao` como tie-break
    determinístico. Confinada à **serialização do edge** (`src_field` string) — **não**
    adiciona campo `id` ao payload E5 (isso rebaselinaria E5 + exigiria ADR de contrato).
-3. **Coexistência com retenção N=1:** o DELETE passa a ser **por produtor**
-   (`delete(...).where(edge_type.in_(<próprias do produtor>))`) **ou** um
-   materializador terminal único grava E5→doc + E6→E5 na mesma transação. Decisão
-   final do mecanismo fica no PR de implementação; o invariante é: **um produtor
-   nunca apaga edges do outro**.
+3. **Coexistência com retenção N=1:** o DELETE passa a ser **por produtor**. **Mecanismo
+   decidido (co-design `senior-cto` 2026-07-01, refina esta ADR):** discriminar por
+   **`dst_stage`** (`delete(...).where(dst_stage == <stage do produtor>)`), **não** por
+   `edge_type` — o `edge_type` do E5→doc é set **aberto** (data-driven do `_lineage.fields[]`),
+   enquanto `dst_stage` é 1:1 por produtor (E5→doc → `E5`; parecer_citation →
+   `review_finances_holistic`), robusto a `edge_type` novo sem allow-list. Materializador
+   terminal único (alternativa) rejeitado: só ganha atomicidade, inútil numa tabela
+   rebuildável N=1, e força re-derivação em rerun parcial. **Invariante de órfão:** o writer
+   do E6 só materializa se houver E5-com-`_lineage` no run corrente (espelha o guard do E5) —
+   senão a citação apontaria para E5 de outro run. Invariante central: **um produtor nunca
+   apaga edges do outro**.
 4. **Zero migration** se a identidade do item de parecer couber em `dst_field`/
    `edge_type` (strings existentes). Coluna nova (`producer`/`claim_id`) só se
    necessário → aditiva online (`ADD COLUMN NULL`, sem backfill — tabela é
@@ -110,10 +116,11 @@ implementação flippa esta ADR → `Decidido (A27)`.
    `edge_type="parecer_citation"`: `src` = folha E5 por chave natural; `dst` =
    identidade do item de parecer (`risco[2]`, `sugestao_tatica[0]`) em `dst_field`
    string. Reusar `lineage_edge_writer`.
-3. **Coexistência com retenção N=1** — o `materialize_lineage_edges` faz
-   `DELETE ... WHERE workspace_id` (apaga tudo). Mudar para **delete-por-produtor**
-   (`edge_type IN (...)`) **ou** materializador terminal único E5→doc + E6→E5 na
-   mesma transação. Invariante: um produtor nunca apaga edges do outro.
+3. **Coexistência com retenção N=1** — o `materialize_lineage_edges` fazia
+   `DELETE ... WHERE workspace_id` (apagava tudo). **Entregue (A27.l1 slice 3):**
+   delete-por-produtor via **`dst_stage`** (E5→doc apaga `dst_stage == "E5"`;
+   `materialize_parecer_citation_edges` apaga `dst_stage == "review_finances_holistic"`)
+   + guard de órfão no writer do E6. Invariante: um produtor nunca apaga edges do outro.
 4. **Reverse-lineage cobre parecer** — estender a query reversa ([[A25.l3]]) +
    drill-down de produto ([[A25.l5]]) para responder "de onde veio este R$ do
    parecer?".
