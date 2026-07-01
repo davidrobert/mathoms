@@ -24,7 +24,7 @@ tags:
 # A26.l5 — `m2-override-drop` (Regime B · DESTRUTIVO IRREVERSÍVEL · cortável p/ A27)
 
 > **Plano:** [[PLAN-data-lineage]] · executa a "Fase E" do [[ADR-282]] (M2 destrutiva).
-> **Bloqueada por [[A26.l4]]** (override v2 ON + gate auditável) + gates G1/G2/G3 + PITR +
+> **Bloqueada por [[A26.l4]]** (override v2 ON + gate auditável) + gates G1/G2/G2b/G3 + PITR +
 > **go/no-go do owner**. Co-design `data-engineer` (migration) + `sre-devops` (runbook).
 > **Maior risco da sprint — cortável sem dó para A27** se a janela de tráfego for curta.
 > Nunca forçar sob gate apertado: perda irreversível de identidade de override.
@@ -37,14 +37,20 @@ Remover o estado legado de identidade v1 do override, fechando a convergência p
 ramo v1/fallback de `override_dual_read.py` + flag `override_natural_key_v2_enabled` vira
 no-op. (A [[A25.l1]] §5 cravou: `generate_transaction_hash` deletado na mesma PR da M2.)
 
-## Gate (3 condições conjuntas, auditáveis — verificar TODAS antes do drop)
+## Gate (condições conjuntas, auditáveis — verificar TODAS antes do drop)
 
 - **G1 (estado de dado):** `SELECT count(*) FROM transaction_overrides WHERE
   natural_key_hash IS NULL AND orphaned_at IS NULL` **== 0** (todo override é v2-ancorado
   ou quarentenado). Quarentenados (`orphaned_at IS NOT NULL`) **NÃO bloqueiam** — estado
   terminal permanente ([[ADR-282]] §5).
-- **G2 (fallback zero COM exercício real):** via [[A26.l4]] — `sum(v1_fallback)==0 AND
-  sum(v2_match)>=1` por ≥1 sprint sob flag-ON.
+- **G2 (cobertura — fallback zero COM exercício real):** via [[A26.l4]] — `sum(v1_fallback)==0
+  AND sum(v2_match)>=1` por ≥1 sprint sob flag-ON (query sobre `audit_log`).
+- **G2b (corretude — NOVO, co-design 2026-07-01, [[ADR-282]] §Emenda item 3):**
+  `sum(divergence_count)==0` na janela, via shadow-compare (flag `override_dual_read_shadow_compare`,
+  instrumentado pela [[A26.l4]]). G2 sozinho mede **cobertura**, não corretude: o `match`
+  retorna no 1º hit v2 sem consultar v1, então override grudado na linha errada deixa
+  `v1_fallback==0` (verde falso). Sem G2b, o drop irreversível remove o único fallback que
+  mascararia a divergência.
 - **G3 (sentinela de código):** `dev/check_no_legacy_override_hash.py` (novo) falha se
   `transaction_hash`/`generate_transaction_hash` reaparecer em `backend/app`/`pipeline`.
 
@@ -78,7 +84,7 @@ no-op. (A [[A25.l1]] §5 cravou: `generate_transaction_hash` deletado na mesma P
 
 ## Critério de aceite
 
-- G1/G2/G3 verdes com snapshot no `SMOKE_TEST_HUMAN.md` (timestamp + contagens).
+- G1/G2/G2b/G3 verdes com snapshot no `SMOKE_TEST_HUMAN.md` (timestamp + contagens).
 - Migration exercitada em **staging** antes da prod; hard-assert testado (fixture com 1
   override legado não-quarentenado → migration aborta); `downgrade` testado para `raise`.
 - Model SQLAlchemy não referencia mais a coluna **no mesmo PR**; ORM lê override sem erro.
