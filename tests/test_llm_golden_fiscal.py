@@ -56,7 +56,9 @@ def test_previdencia_golden_multi_plano(fixture_name: str) -> None:
 
 
 def test_previdencia_pgbl_vgbl_mesmo_cpf_tem_tipos_distintos() -> None:
-    parsed = [InformeRendimentosBase(**env) for env in _load("informe_prev_pgbl_vgbl_mesmo_cpf.json")]
+    parsed = [
+        InformeRendimentosBase(**env) for env in _load("informe_prev_pgbl_vgbl_mesmo_cpf.json")
+    ]
     assert {p.previdencia.plano_tipo.value for p in parsed} == {"pgbl", "vgbl"}
 
 
@@ -106,3 +108,62 @@ def test_e16_fail_gracefully_valida_com_confidence_baixa() -> None:
     out = IRPFFullOutput(**_load("e16_irpf_full_fail_gracefully.json"))
     assert out.confidence <= 0.5
     assert out.notes
+
+
+# ─────────────────────── A17 L3/L4 — financeiro_pf (Wise) + proventos ────────
+
+
+def test_proventos_xp_multi_ticker_golden() -> None:
+    """XP Proventos: multi-ticker, JCP 15% definitivo, bonificação ≠ renda (A17 L4)."""
+    from pipeline.llm.schemas.informe_proventos import total_proventos_por_ticker
+
+    base = InformeRendimentosBase(**_load("informe_proventos_xp_multi.json"))
+    assert base.tipo_informe == "proventos_acoes"
+    payload = base.proventos
+    assert payload is not None
+    totais = total_proventos_por_ticker(payload)
+    # Bonificação ITSA4 (250.00) excluída — ITSA4 não aparece em renda.
+    assert "ITSA4" not in totais
+    assert totais["WEGE3"] == Decimal("492.40")
+    assert totais["MXRF11"] == Decimal("96.00")
+    # cnpj_pagador (XP) ≠ cnpj_fonte (WEGE3 emissora) preservados.
+    wege = [p for p in payload.proventos if p.ticker == "WEGE3"][0]
+    assert wege.cnpj_pagador != wege.cnpj_fonte
+
+
+def test_proventos_itausa_holding_golden() -> None:
+    """Itaúsa emite o informe do próprio ativo — cnpj_fonte == cnpj_emissor (A17 L4)."""
+    base = InformeRendimentosBase(**_load("informe_proventos_itausa_unico.json"))
+    payload = base.proventos
+    assert payload is not None
+    assert {p.ticker for p in payload.proventos} == {"ITSA4"}
+    assert all(p.cnpj_fonte == payload.cnpj_emissor for p in payload.proventos)
+    jcp = [p for p in payload.proventos if p.tipo.value == "jcp"][0]
+    assert jcp.ir_retido_brl == Decimal("21.00")
+
+
+def test_proventos_golden_alimenta_fiscal_source() -> None:
+    """Cadeia golden → FiscalSource.proventos_summaries (yield-on-cost ITSA4)."""
+    from pipeline.domain.services.fiscal_source import FiscalSource
+
+    informe = _load("informe_proventos_xp_multi.json")
+    summaries = FiscalSource.from_informes([informe]).proventos_summaries()
+    itsa = [s for s in summaries if s.ticker == "ITSA4"][0]
+    # 420 × 8.90 = 3738.00 de custo; bonificação não vira renda → total 0.
+    assert itsa.custo_total_brl == Decimal("3738.00")
+    assert itsa.total_proventos_brl == Decimal("0")
+
+
+def test_informe_pf_wise_multimoeda_golden() -> None:
+    """Wise: código 62 conta exterior USD/EUR; juros ME em tributáveis cód 13 (A17 L3)."""
+    base = InformeRendimentosBase(**_load("informe_pf_wise_multimoeda.json"))
+    assert base.tipo_informe == "financeiro_pf"
+    payload = base.financeiro_pf
+    assert payload is not None
+    moedas = {s.moeda for s in payload.saldos_31_12}
+    assert moedas == {"USD", "EUR"}
+    assert all(s.codigo_rfb == "62" for s in payload.saldos_31_12)
+    assert all(s.tipo.value == "conta_exterior" for s in payload.saldos_31_12)
+    # Juros em ME não caem em isentos (variação cambial é GCAP, juros é carnê-leão).
+    assert payload.rendimentos_isentos == []
+    assert payload.rendimentos_tributaveis[0].codigo_rfb == "13"
