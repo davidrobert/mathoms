@@ -187,7 +187,7 @@ class TestE16Goldens:
 
     @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
     def test_prompt_version_pinned(self, fixtures, fixture_name):
-        assert fixtures[fixture_name]["prompt_version"] == "e16-v1.1.0"
+        assert fixtures[fixture_name]["prompt_version"] == "1.1.0"
 
     @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
     def test_reconcile_ir_pago_within_tolerance(self, fixtures, fixture_name):

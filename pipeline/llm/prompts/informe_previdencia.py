@@ -1,7 +1,8 @@
 """Prompt LLM dedicado para Informe Anual de Previdência Privada (PGBL/VGBL) — A17 L1 (ADR-238)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
-PROMPT_VERSION = "informe-prev-v1.1.0"
+# Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "informe-prev-v1.1.0".
+PROMPT_VERSION = "1.1.0"
 
 
 SYSTEM_PROMPT = """\
@@ -106,7 +107,7 @@ Top-level:
 - confidence (0-1)
 - source_artifact_id = null (preenchido pelo orquestrador)
 - source_priority = 1 (default)
-- prompt_version = "informe-prev-v1.1.0"
+- prompt_version = "1.1.0"
 - needs_review = false (true automático se confidence < 0.7 ou PGBL patrocinador)
 
 Sub-payload `previdencia`:

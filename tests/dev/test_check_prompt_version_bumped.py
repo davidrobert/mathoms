@@ -66,9 +66,9 @@ def _seed_schemas(repo: Path) -> None:
     schemas_dir = repo / "pipeline" / "llm" / "schemas"
     schemas_dir.mkdir(parents=True)
     (schemas_dir / "__init__.py").write_text("")
-    # Schema com prefix-v<semver> legado (e16-style).
+    # Semver puro pós-A20.l12 — o repo não carrega mais formatos legados.
     (schemas_dir / "legacy.py").write_text(
-        '"""Legacy schema with prefix-v<semver>."""\n\nPROMPT_VERSION = "legacy-v2.3.4"\n'
+        '"""Schema migrado para semver puro (A20.l12)."""\n\nPROMPT_VERSION = "2.3.4"\n'
     )
 
 
@@ -223,18 +223,18 @@ def test_new_file_in_pr_passes(tmp_path: Path) -> None:
     assert code == 0
 
 
-def test_legacy_prefix_v_format_accepted(tmp_path: Path) -> None:
-    """``"legacy-v2.3.4"`` é aceito (ADR-233 §Tolerância para legados)."""
+def test_legacy_prefix_v_format_rejected(tmp_path: Path) -> None:
+    """Errata ADR-233 §Migration (A20.l12): ``<slug>-v<semver>`` deixou de ser aceito."""
     repo = _make_repo(tmp_path)
     target = repo / "pipeline" / "llm" / "schemas" / "legacy.py"
     target.write_text(
         '"""Legacy schema with prefix-v<semver>."""\n\n'
-        'PROMPT_VERSION = "legacy-v2.4.0"\n'  # bumped
+        'PROMPT_VERSION = "legacy-v2.4.0"\n'  # bumped, mas formato legado
         '\nNEW_CONST = "added"\n'
     )
 
     code, err = _gate_in_repo(repo)
-    assert code == 0, f"format ``<slug>-v<semver>`` deveria passar: {err}"
+    assert code == 1, "formato legado <slug>-v<semver> deveria falhar no modo estrito"
 
 
 def test_file_without_prompt_version_is_ignored(tmp_path: Path) -> None:
@@ -281,9 +281,10 @@ def test_argv_mode_filters_to_prompt_files(tmp_path: Path) -> None:
         ("1.0.0", True),
         ("2.1.3", True),
         ("10.20.30", True),
-        ("e16-v1.1.0", True),
-        ("informe-aluguel-v1.1.0", True),
-        ("legacy-v2.4.0", True),
+        # Errata ADR-233 §Migration (A20.l12): prefixo legado deixou de valer.
+        ("e16-v1.1.0", False),
+        ("informe-aluguel-v1.1.0", False),
+        ("legacy-v2.4.0", False),
         ("v1", False),
         ("1.0", False),
         ("1", False),

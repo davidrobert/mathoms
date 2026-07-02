@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import json
 import sys
 from decimal import Decimal
@@ -93,7 +95,7 @@ def _build_base(**overrides) -> InformeRendimentosBase:
         "titular_cpf_masked": None,
         "confidence": 0.92,
         "source_artifact_id": "art_pf_001",
-        "prompt_version": "informe-pf-v1.0.0",
+        "prompt_version": "1.0.0",
         "financeiro_pf": _build_payload(),
     }
     base.update(overrides)
@@ -318,7 +320,7 @@ def test_base_lenient_top_level_aceita_extra():
         fonte_pagadora_cnpj="60746948000112",
         fonte_pagadora_nome="Itaú",
         confidence=0.9,
-        prompt_version="informe-pf-v1.0.0",
+        prompt_version="1.0.0",
         financeiro_pf=_build_payload(),
         campo_futuro="ok",  # extra='allow' no base
     )
@@ -351,6 +353,6 @@ def test_json_schema_pf_moeda_iso_pattern():
 def test_prompt_version_bumpado():
     from pipeline.llm.prompts.informe_pf import PROMPT_VERSION
 
-    assert PROMPT_VERSION.startswith("informe-pf-v")
-    tail = PROMPT_VERSION.replace("informe-pf-v", "")
+    assert re.fullmatch(r"\d+\.\d+\.\d+", PROMPT_VERSION)
+    tail = PROMPT_VERSION
     assert all(part.isdigit() for part in tail.split("."))

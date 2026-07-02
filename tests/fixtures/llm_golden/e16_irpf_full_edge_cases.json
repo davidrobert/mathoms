@@ -107,5 +107,5 @@
   ],
   "confidence": 0.82,
   "notes": "Edge cases: 2 rendimentos exterior em moedas distintas (USD, EUR); dependente sem CPF + dependente filho universitario (23 anos); divida sem amortizacao no ano. Confidence 0.82 sinaliza extracao com warnings de prompt.",
-  "prompt_version": "e16-v1.1.0"
+  "prompt_version": "1.1.0"
 }

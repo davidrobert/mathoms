@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import json
 import sys
 from decimal import Decimal
@@ -43,7 +45,7 @@ def _build_base(**overrides) -> InformeRendimentosBase:
         "titular_cpf_masked": None,
         "confidence": 0.92,
         "source_artifact_id": "art_pj_001",
-        "prompt_version": "informe-pj-v1.0.0",
+        "prompt_version": "1.0.0",
         "financeiro_pj": _build_payload(),
     }
     base.update(overrides)
@@ -257,7 +259,7 @@ def test_base_lenient_top_level():
         fonte_pagadora_cnpj="16501555000157",
         fonte_pagadora_nome="Stone",
         confidence=0.9,
-        prompt_version="informe-pj-v1.0.0",
+        prompt_version="1.0.0",
         financeiro_pj=_build_payload(),
         campo_futuro="ok",
     )
@@ -322,7 +324,7 @@ def test_prompt_version_bumpado():
     """PROMPT_VERSION deve ter prefixo informe-pj-v* e sufixo semver."""
     from pipeline.llm.prompts.informe_pj import PROMPT_VERSION
 
-    assert PROMPT_VERSION.startswith("informe-pj-v"), f"PROMPT_VERSION={PROMPT_VERSION!r}"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", PROMPT_VERSION), f"PROMPT_VERSION={PROMPT_VERSION!r}"
     # semver tail
-    tail = PROMPT_VERSION.replace("informe-pj-v", "")
+    tail = PROMPT_VERSION
     assert all(part.isdigit() for part in tail.split(".")), f"semver inválido: {tail}"

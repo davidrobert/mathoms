@@ -136,7 +136,7 @@ def test_exercicio_apenas_2000_em_diante():
 def test_prompt_version_default_alinhado_ao_modulo():
     p = _build()
     assert p.prompt_version == PROMPT_VERSION
-    assert PROMPT_VERSION == "crlv-v1.0.0"
+    assert PROMPT_VERSION == "1.0.0"
 
 
 # ─────────────────────── Strict (extra='forbid') ───────────────────────────

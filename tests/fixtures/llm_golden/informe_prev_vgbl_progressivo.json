@@ -1,0 +1,28 @@
+{
+  "ano_base": 2024,
+  "tipo_informe": "previdencia_privada",
+  "fonte_pagadora_cnpj": "16404287000167",
+  "fonte_pagadora_nome": "BrasilPrev Seguros e Previdencia S.A.",
+  "titular_cpf_masked": "***.456.789-**",
+  "confidence": 0.92,
+  "prompt_version": "1.1.0",
+  "needs_review": false,
+  "notes": null,
+  "previdencia": {
+    "numero_certificado": "VG99887766",
+    "plano_tipo": "vgbl",
+    "regime_tributacao": "progressivo",
+    "data_adesao": "2018-06",
+    "contribuicoes_anuais": "30000.00",
+    "rendimentos_anuais": "850.00",
+    "rendimentos_brutos_anuais": null,
+    "rendimentos_liquidos_anuais": null,
+    "saldo_01_01": "72000.00",
+    "saldo_31_12_ano_anterior": "72000.00",
+    "saldo_31_12": "85420.00",
+    "resgates_anuais": "0",
+    "ir_retido_anual": "0",
+    "ir_retido_natureza": null,
+    "notas": "VGBL em regime progressivo — raro mas legitimo"
+  }
+}

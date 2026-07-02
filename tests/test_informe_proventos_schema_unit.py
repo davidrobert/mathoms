@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import json
 import sys
 from decimal import Decimal
@@ -53,7 +55,7 @@ def _build_base(**overrides) -> InformeRendimentosBase:
         "fonte_pagadora_nome": "XP Investimentos CCTVM S.A.",
         "titular_cpf_masked": None,
         "confidence": 0.92,
-        "prompt_version": "informe-proventos-v1.0.0",
+        "prompt_version": "1.0.0",
         "proventos": _build_payload(),
     }
     base.update(overrides)
@@ -320,6 +322,6 @@ def test_json_schema_base_enum_inclui_proventos_acoes():
 def test_prompt_version_bumpado():
     from pipeline.llm.prompts.informe_proventos import PROMPT_VERSION
 
-    assert PROMPT_VERSION.startswith("informe-proventos-v")
-    tail = PROMPT_VERSION.replace("informe-proventos-v", "")
+    assert re.fullmatch(r"\d+\.\d+\.\d+", PROMPT_VERSION)
+    tail = PROMPT_VERSION
     assert all(part.isdigit() for part in tail.split("."))

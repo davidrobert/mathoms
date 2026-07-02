@@ -1,7 +1,8 @@
 """Prompt LLM dedicado para CRLV-e (Certificado de Registro e Licenciamento de Veículo) — A18 L1 (ADR-239)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
-PROMPT_VERSION = "crlv-v1.0.0"
+# Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "crlv-v1.0.0".
+PROMPT_VERSION = "1.0.0"
 
 
 SYSTEM_PROMPT = """\
@@ -47,7 +48,7 @@ REGRAS DE EXTRAÇÃO:
 
 16. **`notas`**: observações relevantes (ex.: "documento parcialmente legível na metade inferior"; "CRLV digital sem QR code visível"). Max 500 chars. Não inclua dados sensíveis (CPF, RG, endereço completo do proprietário).
 
-17. **`prompt_version`**: sempre `"crlv-v1.0.0"`.
+17. **`prompt_version`**: sempre `"1.0.0"`.
 
 NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou marque `needs_review=true` quando obrigatório está ausente.
 
@@ -78,6 +79,6 @@ Popule o output `CRLVPayload` com:
 - data_emissao (ISO 8601 ou null)
 - confidence (0-1)
 - needs_review (false default; true se inconsistência interna)
-- prompt_version = "crlv-v1.0.0"
+- prompt_version = "1.0.0"
 - notas (max 500 chars; sem PII)
 """

@@ -35,7 +35,7 @@
   "sinistro_indenizacao_recebida_brl": null,
   "confidence": 0.92,
   "needs_review": false,
-  "prompt_version": "apolice-v1.1.1",
+  "prompt_version": "1.1.1",
   "cascade_triggered": false,
   "notas": "Placeholder V2 acidentes pessoais — schema antecipa para evitar migration breaking."
 }

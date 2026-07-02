@@ -17,7 +17,8 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_valida
 # ``type=is_instance_of``). Incidente prod 2026-05-22: ~28 validation errors por apólice
 # combinada multi-bem (1 erro por campo Decimal/date). Fix: BeforeValidator por campo
 # coage tipos antes do strict check; strip continua atacando aspas spurious do Haiku.
-PROMPT_VERSION = "apolice-v1.1.1"
+# Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
+PROMPT_VERSION = "1.1.1"
 
 
 def _strip_spurious_quotes(value):

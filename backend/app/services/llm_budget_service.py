@@ -106,6 +106,10 @@ class LLMBudgetService:
     def _call_log_row(self, result: "LLMCallResult", stage, prompt_version):
         from backend.app.models.llm_call_log import LLMCallLog
 
+        # ADR-260 (A20.l12): qualidade por chamada quando o output declara —
+        # schemas de extração carregam confidence/needs_review; demais ficam NULL.
+        output = getattr(result, "output", None)
+        confidence = getattr(output, "confidence", None)
         return LLMCallLog(
             workspace_id=self._workspace_id,
             stage=stage or "unknown",
@@ -115,6 +119,8 @@ class LLMBudgetService:
             tokens_out=result.tokens_out,
             cost_usd=Decimal(str(result.cost_estimate_usd)),
             cost_known=result.cost_known,
+            confidence=float(confidence) if confidence is not None else None,
+            needs_review=bool(getattr(output, "needs_review", False)),
             duration_ms=result.duration_ms,
             pipeline_run_id=self._pipeline_run_id,
         )
