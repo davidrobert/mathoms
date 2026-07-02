@@ -135,7 +135,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–518 LOC, mediana ~40) que
 
 **Mantém em Python:**
 - `pipeline/` inteiro (38.348 LOC) — invocado via `python -m pipeline.orchestrator run-stage <name> --workspace <path>`
-- **Pré-requisitos:** (1) A3.store ✅ ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md), #721+#723) — o executor injeta `DBArtifactStore` via `DATABASE_URL`, mecânica que o CLI herda; (2) A3.cli — entry-point CLI no orchestrator (**não existe hoje**, `_run_stage` só é chamável programaticamente); track pronto em [docs/plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md](../plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md). Ordem e detalhes na emenda 2026-07-02 da [ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md)
+- **Pré-requisitos:** (1) A3.store ✅ ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md), #721+#723); (2) A3.cli ✅ (PR #737) — entry-point `python -m pipeline.orchestrator run-stage` em [pipeline/cli_run_stage.py](../../pipeline/cli_run_stage.py), injeção de store via [backend/app/services/artifact_session_factory.py](../../backend/app/services/artifact_session_factory.py) com `MATHOMS_DATABASE_URL`; falta A3.cli.otel (Fase 2 do track) e A3.cli.benchmark. Ordem e detalhes na emenda 2026-07-02 da [ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md)
 
 **Substitui:**
 - `_run_stage` por `exec.Command("python", "-m", "pipeline.orchestrator", ...)` → captura stdout/stderr → parse JSON
@@ -201,7 +201,7 @@ Ordem recomendada de prep pré-port (referência da conversa que originou este d
 | **A2** | Baseline de footprint ✓ ([PERFORMANCE_BASELINE.md](PERFORMANCE_BASELINE.md), 2026-04-27) | feito | A3 |
 | **A3** | **ADR de estratégia de port** ✓ ([ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md), Roadmap — Caminho 1 default, deferido) | feito | tudo abaixo |
 | **A3.store** | **Boundary de artefatos do executor remoto pós-ADR-212** ✓ ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) `Decidido` + fix do modo HTTP + teste de integração + suíte no CI — #721+#723) | feito (2026-07-02) | — |
-| B3 | CLI entry-point em `pipeline.orchestrator` (`python -m pipeline.orchestrator run-stage …`) — inclui injeção de `DBArtifactStore` via `DATABASE_URL` (= **A3.cli** da ADR-150; OTel = Fase 2 do mesmo track; benchmark = track seguinte) | 1-2 sessões | **próximo da fila** — track pronto: [docs/plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md](../plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md) |
+| B3 | CLI entry-point em `pipeline.orchestrator` (= **A3.cli** da ADR-150) ✓ **Fase 1 entregue** (PR #737, 2026-07-02): `run-stage` + injeção de `DBArtifactStore` via `MATHOMS_DATABASE_URL` ([artifact_session_factory](../../backend/app/services/artifact_session_factory.py)) | Fase 1 feita | **próximo:** Fase 2 (OTel/`TRACEPARENT`) do track [a3cli-orchestrator-cli](../plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md); depois [a3cli-benchmark](../plan/GO_SHELL/tracks/a3cli-benchmark.md) |
 | B1 | Codegen Go via `oapi-codegen` consumindo o OpenAPI (= A3.codegen) | 3-4h | porta de `contracts/` — ancorado ao 1º PR Go produtivo (sem track hoje) |
 | B2 | Contract tests (Schemathesis) contra o pipeline-service atual | 4-6h | confiança no port |
 | B4 | Sample anonimizado de tráfego real → golden tests | 3-4h | validação do port |

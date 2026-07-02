@@ -16,6 +16,16 @@ tags:
 
 # Track A3.cli — `a3cli-orchestrator-cli`
 
+> **Status 2026-07-02 — Fase 1 ✅ entregue (PR #737):** `pipeline/cli_run_stage.py`
+> + `backend/app/services/artifact_session_factory.py` (a sessão vive no backend —
+> hook ADR-256 proíbe `Session` própria em `pipeline/**`; o plano original de
+> abrir sessão no CLI era inviável). Precisões descobertas na execução: o env é
+> **`MATHOMS_DATABASE_URL`** (prefixo canônico do backend, formato async
+> `sqlite+aiosqlite://`/`postgresql+asyncpg://`), a assinatura ganhou
+> **`--workspace-id`** obrigatório (tenancy do store, ADR-303 D3), e o CLI faz
+> swap stdout→stderr durante a execução (echo do engine com `MATHOMS_DEBUG`
+> poluía o stdout). **Resta a Fase 2 (OTel).**
+>
 > Executa os pré-requisitos **A3.cli + A3.cli.otel** do Caminho 1 ([[ADR-150]] §4).
 > **Sem ADR nova** — a ADR-150 declara A3.cli "slice próprio, sem ADR" (interface
 > aditiva, retro-compatível com `_run_stage` programático); a mecânica de store é
@@ -114,12 +124,13 @@ Passos (1 commit coeso por passo):
 
 ## Critério de aceite (concluído = 2 PRs mergeados em `main`, CI verde)
 
-- [ ] F1: os 5 testes da Fase 1 passam; `pytest tests -q` e `pytest backend/tests -q`
-      verdes; suíte `pipeline-service/tests` **não regride** ([[ADR-303]] D5).
-- [ ] F1: `python -m pipeline.orchestrator run-stage --help` funciona **sem**
-      `DATABASE_URL`/backend no env.
+- [x] F1: os testes da Fase 1 passam (7 em `tests/test_cli_run_stage.py`, PR #737);
+      `pytest tests -q` e `pytest backend/tests -q` verdes; suíte
+      `pipeline-service/tests` **não regride** ([[ADR-303]] D5).
+- [x] F1: `python -m pipeline.orchestrator run-stage --help` funciona **sem**
+      `MATHOMS_DATABASE_URL`/backend no env.
 - [ ] F2: testes de trace passam; gate `dev/check_pipeline_boundaries.py` verde.
-- [ ] ADR-150 §4: marcar A3.cli e A3.cli.otel ✅ no PR de cada fase (padrão A3.store)
+- [ ] ADR-150 §4: A3.cli ✅ feito em #737; marcar A3.cli.otel ✅ no PR da Fase 2
       + atualizar F0 do [_README do plano](../_README.md) e `GO_PORT_DEPS.md` §6.
 
 ## Fora de escopo

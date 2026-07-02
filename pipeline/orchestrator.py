@@ -363,3 +363,11 @@ def run_from(
         return result
 
     return run_stages(ctx, stages, skip_llm=skip_llm, stop_on_error=stop_on_error)
+
+
+if (
+    __name__ == "__main__"
+):  # pragma: no cover — exercitado por subprocess em tests/test_cli_run_stage.py
+    from pipeline.cli_run_stage import main as _cli_main
+
+    raise SystemExit(_cli_main())
