@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 265
-- **Proposto**: 24
+- **Decidido**: 266
+- **Proposto**: 23
 - **Roadmap**: 4
 
 ## Fundação
@@ -399,12 +399,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## llm
 
-### Decidido (16)
+### Decidido (17)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
 - [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
 - [[ADR-169]] — Modo incremental estendido aos stages globais E1
+- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal · phase W3-T01
 - [[ADR-199]] — Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-200]] — Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-202]] — Output schema + invariantes do parecer — `parecer_planejador.schema.json` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
@@ -418,9 +419,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-296]] — Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha · phase A26.l9 · parecer reliability
 - [[ADR-300]] — Red lines do parecer: 4ª camada de validação determinística (conselho defensável) · phase A22.l2 · F3 launch-trust
 
-### Proposto (3)
+### Proposto (2)
 
-- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability
 
