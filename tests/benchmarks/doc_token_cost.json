@@ -35,53 +35,53 @@
   "description": "Custo em tokens de queries-benchmark sobre docs/ (ADR-182). tokens = ceil(chars/4).",
   "latest": {
     "Q1": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 453
     },
     "Q10": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 730
     },
     "Q2": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 453
     },
     "Q3": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 351
     },
     "Q4": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 351
     },
     "Q5": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 804
     },
     "Q6": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
-      "tokens": 674
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "tokens": 759
     },
     "Q7": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 685
     },
     "Q8": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 677
     },
     "Q9": {
-      "measured_at": "2026-07-01",
-      "phase": "vault-audit-2026-07-01",
+      "measured_at": "2026-07-02",
+      "phase": "PLAN-go-shell registrado (prep A3.cli)",
       "tokens": 686
     }
   },

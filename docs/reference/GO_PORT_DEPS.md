@@ -1,6 +1,6 @@
 # GO_PORT_DEPS — Inventário de dependências do `pipeline-service` para migração Go
 
-> **Status:** referência (não-plano) · **Data inicial:** 2026-04-27 · **Última atualização:** 2026-07-02 (revisão de consistência da emenda ADR-150 — números re-medidos, `DiskArtifactStore` deletado por ADR-212, `STAGE_REGISTRY` 16→18) · **Origem:** A1 do tópico "preparar contexto para Go rewrite" (proposto na conversa com CTO)
+> **Status:** referência (não-plano) · **Data inicial:** 2026-04-27 · **Última atualização:** 2026-07-02 pós-A3.store (ADR-303 entregue em #721+#723 — `DBArtifactStore` injetado no modo HTTP via `artifact_session.py`, suíte no CI; shell 565→714 LOC) · **Origem:** A1 do tópico "preparar contexto para Go rewrite" (proposto na conversa com CTO)
 >
 > **Escopo:** dimensionar exatamente o que o shell HTTP em [pipeline-service/](../../pipeline-service/) importa do core Python em [pipeline/](../../pipeline/), para que o ADR de estratégia de port (Caminho 1/2/3) seja escrito com dados, não especulação.
 >
@@ -10,18 +10,18 @@
 
 ## TL;DR
 
-| Métrica | 2026-04-27 | **2026-07-02** |
+| Métrica | 2026-04-27 | **2026-07-02 (pós-A3.store)** |
 | --- | --- | --- |
-| **Shell HTTP** (pipeline-service) | 532 LOC / 14 arquivos | **565 LOC / 15 arquivos** |
+| **Shell HTTP** (pipeline-service) | 532 LOC / 14 arquivos | **714 LOC / 16 arquivos** (novo: `artifact_session.py`, ADR-303) |
 | **Símbolos importados de `pipeline.*`** pelo shell | 5 distintos | **5 distintos (inalterado)** — `context`, `orchestrator`, `stage_spec` |
-| **Imports de `backend.*`** pelo shell | 1 (opcional, `setup_logging`) | **1 (inalterado)** — mas ver §5.6: A3.store opção (a) adiciona `DBArtifactStore` |
+| **Imports de `backend.*`** pelo shell | 1 (opcional, `setup_logging`) | **2** — `setup_logging` (opcional) + `DBArtifactStore`/`SyncSessionLocal` (**hard**, [ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) D1, lazy em `artifact_session.py`) |
 | **Core Python que o shell aciona** | 108 arquivos · 17.823 LOC | **218 arquivos · 38.348 LOC** (~2,2×) |
 | **Domain services** (`pipeline/domain/`) | 61 arquivos · 13.077 LOC | **135 arquivos · 26.446 LOC** (~2×) |
 | **Stage runners** (`pipeline/stages/`) | 16 arquivos · 1.561 LOC | **18 stages · 3.082 LOC** (thin wrappers que delegam para `domain/services/` ou `scripts/`) |
 
 **Conclusão operacional:** o shell HTTP segue portável em ~600 LOC Go — a fronteira fina **sobreviveu 2 meses de crescimento 2× do domínio** sem ganhar import novo. O domínio agora tem ~38 mil LOC: a estimativa de Caminho 3 da ADR-150 (3-5 meses para 17,8k LOC) está subdimensionada — proporcionalmente, **6-10 meses** — o que reforça Caminho 1 como default.
 
-**Acoplamento novo pós-ADR-212 (não existia no inventário original):** artefatos são DB-only (`pipeline_artifacts` via `DBArtifactStore`); qualquer executor fora do processo Celery precisa de injeção de store — ver §5.6 e emenda 2026-07-02 da [ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md) (pré-requisito A3.store).
+**Acoplamento novo pós-ADR-212 (não existia no inventário original):** artefatos são DB-only (`pipeline_artifacts` via `DBArtifactStore`); qualquer executor fora do processo Celery precisa de injeção de store — ver §5.6. **Resolvido em A3.store** ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) `Decidido`, PRs #721+#723): o modo HTTP injeta `DBArtifactStore` por-stage via `pipeline-service/app/services/artifact_session.py` e a suíte `pipeline-service/tests` roda no CI. Próximo pré-requisito da fila: **A3.cli** (tracks em [docs/plan/GO_SHELL/](../plan/GO_SHELL/_README.md)).
 
 ---
 
@@ -45,8 +45,9 @@ grep -rn "from pipeline\.\|import pipeline\." pipeline-service/app/ --include="*
 | # | Símbolo | Origem | Consumidor | Papel |
 | - | --- | --- | --- | --- |
 | B1 | `setup_logging` | `backend.app.core.logging` | [main.py:60](../../pipeline-service/app/main.py:60) | Wire JSON logs ([ADR-110](../DECISIONS.md#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3)). **Opcional** — fallback para `logging.basicConfig` se backend não importável. |
+| B2 | `DBArtifactStore` + `SyncSessionLocal` | `backend.app.services.db_artifact_store` + `backend.app.core.database` | [artifact_session.py](../../pipeline-service/app/services/artifact_session.py) (lazy, dentro de função) | Sessão + store por-stage ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) D1). **Hard** — sem ele nenhum stage lê/grava artefato pós-ADR-212. Fail-fast estruturado se backend/DB ausente (D4). |
 
-**`B1` é o único acoplamento ao `backend/` em código hoje.** Já tem fallback. Em Go vira `slog` direto — eliminado naturalmente. **Caveat 2026-07-02:** a resolução do A3.store (ver §5.6) adiciona um segundo acoplamento — `DBArtifactStore` — que é **hard** (sem ele nenhum stage lê/grava artefato pós-ADR-212).
+**Acoplamentos ao `backend/` hoje: B1 (opcional) + B2 (hard, desde A3.store / #723).** Em Go, B1 vira `slog` direto — eliminado naturalmente; B2 **permanece no lado Python do subprocess** (Caminho 1): é o CLI de A3.cli quem injeta o store, herdando a mecânica de [ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) D1/D4 — o binário Go nunca fala com `pipeline_artifacts` diretamente.
 
 ---
 
@@ -57,7 +58,7 @@ grep -rn "from pipeline\.\|import pipeline\." pipeline-service/app/ --include="*
 `pipeline/context.py` (252 LOC) é dataclass puro:
 - campos `Path` derivados de `root` (sem I/O, só path arithmetic)
 - `load_config(name) -> dict` — lê JSON do disco
-- `get_artifact_store()` — **pós-ADR-212 PR3b, raise `RuntimeError` se `artifact_store` não foi injetado** (o lazy-default de `DiskArtifactStore` foi deletado). Backend Celery injeta `DBArtifactStore` por-stage ([pipeline_task.py](../../backend/app/tasks/pipeline_task.py), `_open_artifact_session`); o modo HTTP do pipeline-service **não injeta** — está latentemente quebrado (ver ADR-150 emenda 2026-07-02, item 3)
+- `get_artifact_store()` — **pós-ADR-212 PR3b, raise `RuntimeError` se `artifact_store` não foi injetado** (o lazy-default de `DiskArtifactStore` foi deletado). Backend Celery injeta `DBArtifactStore` por-stage ([pipeline_task.py](../../backend/app/tasks/pipeline_task.py), `_open_artifact_session`); o modo HTTP do pipeline-service injeta desde A3.store ([artifact_session.py](../../pipeline-service/app/services/artifact_session.py), ADR-303 D1 — #723)
 - `for_tenant(...)` — factory (não injeta store)
 
 **Dependências externas:** `json`, `pathlib`, `dataclasses`. Zero deps de domínio.
@@ -134,7 +135,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–518 LOC, mediana ~40) que
 
 **Mantém em Python:**
 - `pipeline/` inteiro (38.348 LOC) — invocado via `python -m pipeline.orchestrator run-stage <name> --workspace <path>`
-- **Pré-requisitos ausentes:** (1) A3.store — o subprocess precisa injetar `DBArtifactStore` via `DATABASE_URL` (artefatos são DB-only pós-ADR-212); (2) A3.cli — entry-point CLI no orchestrator (não existe hoje, `_run_stage` só é chamável programaticamente). Ordem e detalhes na emenda 2026-07-02 da [ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md)
+- **Pré-requisitos:** (1) A3.store ✅ ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md), #721+#723) — o executor injeta `DBArtifactStore` via `DATABASE_URL`, mecânica que o CLI herda; (2) A3.cli — entry-point CLI no orchestrator (**não existe hoje**, `_run_stage` só é chamável programaticamente); track pronto em [docs/plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md](../plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md). Ordem e detalhes na emenda 2026-07-02 da [ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md)
 
 **Substitui:**
 - `_run_stage` por `exec.Command("python", "-m", "pipeline.orchestrator", ...)` → captura stdout/stderr → parse JSON
@@ -168,7 +169,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–518 LOC, mediana ~40) que
 
 | Símbolo | Risco no port | Mitigação |
 | --- | --- | --- |
-| `WorkspaceContext.get_artifact_store` | **Raise `RuntimeError` sem injeção (ADR-212 PR3b)** — executor remoto sem store quebra no primeiro stage que lê/grava artefato (19 call-sites). O modo HTTP do pipeline-service sofre disso hoje | A3.store (ADR-150 emenda 2026-07-02): injetar `DBArtifactStore` do backend, sessão-por-stage + teste de integração exercitando stage real via HTTP |
+| `WorkspaceContext.get_artifact_store` | **Raise `RuntimeError` sem injeção (ADR-212 PR3b)** — executor remoto sem store quebra no primeiro stage que lê/grava artefato (19 call-sites) | ✅ Resolvido em A3.store ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md), #723): `DBArtifactStore` do backend, sessão-por-stage + teste de integração de stage real via HTTP no CI. O CLI de A3.cli herda a mecânica (D1/D4) |
 | `WorkspaceContext.load_config` | Lê JSON do disco — se a config schema mudar, Go fica drift | Validar contra `config/schemas/*.schema.json` (já existem) |
 | `_run_stage` captura stdout/stderr | Scripts legados em `scripts/eN_*.py` ainda usam `print()` para erros | Caminho 1: parse stderr capturado pelo subprocess. Caminho 3: errors tipados ([CLAUDE.md §Code style › Go](../../CLAUDE.md)) |
 | `LLM_STAGES` em runtime | Mudança em `STAGE_REGISTRY` propaga para shell — codegen ajuda | Snapshot test de `STAGE_REGISTRY` (já existe via OpenAPI snapshot transitivamente) |
@@ -186,7 +187,7 @@ Coisas que o shell Go vai precisar replicar **mesmo no Caminho 1**:
 3. **Channel naming** — `pipeline:{run_id}` em [event_publisher.py:72](../../pipeline-service/app/services/event_publisher.py:72). Hardcoded; tem que ser idêntico.
 4. **OpenAPI contract** — [docs/reference/api/v1/pipeline-service.openapi.json](api/v1/pipeline-service.openapi.json) é fonte de verdade; codegen Go via `oapi-codegen` recomendado ([ADR-113](../DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) §Escopo deferido).
 5. **OTel span naming** — `pipeline.{stage}` no `_TRACER.start_as_current_span` de [pipeline/orchestrator.py](../../pipeline/orchestrator.py). Em Go, `otel.Tracer("mathoms.pipeline").Start(ctx, "pipeline."+stage)`.
-6. **Artefatos DB-only (ADR-212, adicionado 2026-07-02)** — `pipeline_artifacts` (Postgres) via `DBArtifactStore` é o único caminho de leitura/escrita de artefatos; `DiskArtifactStore` foi deletado. O executor remoto precisa de `DATABASE_URL` + injeção de store por-stage (A3.store), reusando a classe `backend.app.services.db_artifact_store.DBArtifactStore` — reimplementar perderia o hook de validação `SCHEMA_BY_STAGE` + crypto no `write()`. **Isso muda a narrativa do §1:** se A3.store adotar a opção recomendada, `setup_logging` (B1) deixa de ser o único acoplamento ao `backend/` — `DBArtifactStore` vira o segundo, e este é hard (não-opcional). Unicidade de escrita: constraint `uq_pipeline_artifacts_run_stage_key` (`pipeline_run_id, stage, artifact_key`). Fallbacks de leitura workspace-scoped (ADR-241) e run-pinado (ADR-291) exigem acesso direto ao DB — inviabilizam transportar artefatos pelo contrato HTTP.
+6. **Artefatos DB-only (ADR-212; resolvido por A3.store em 2026-07-02)** — `pipeline_artifacts` (Postgres) via `DBArtifactStore` é o único caminho de leitura/escrita de artefatos; `DiskArtifactStore` foi deletado. O executor remoto precisa de `DATABASE_URL` + injeção de store por-stage, reusando a classe `backend.app.services.db_artifact_store.DBArtifactStore` — reimplementar perderia o hook de validação `SCHEMA_BY_STAGE` + crypto no `write()`. **Entregue:** [ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) D1 (opção (a) confirmada), implementado em [artifact_session.py](../../pipeline-service/app/services/artifact_session.py) (#723) — `DBArtifactStore` é o segundo acoplamento ao `backend/` (B2 do §1), hard (não-opcional). O CLI de A3.cli herda a mesma mecânica; o binário Go do Caminho 1 **não** toca o DB. Unicidade de escrita: constraint `uq_pipeline_artifacts_run_stage_key` (`pipeline_run_id, stage, artifact_key`). Fallbacks de leitura workspace-scoped (ADR-241) e run-pinado (ADR-291) exigem acesso direto ao DB — inviabilizam transportar artefatos pelo contrato HTTP (ADR-303 rejeita as opções (b)/(c)).
 
 ---
 
@@ -199,13 +200,13 @@ Ordem recomendada de prep pré-port (referência da conversa que originou este d
 | **A1** | **Este documento** ✓ | feito (refresh 2026-07-02) | A3 |
 | **A2** | Baseline de footprint ✓ ([PERFORMANCE_BASELINE.md](PERFORMANCE_BASELINE.md), 2026-04-27) | feito | A3 |
 | **A3** | **ADR de estratégia de port** ✓ ([ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md), Roadmap — Caminho 1 default, deferido) | feito | tudo abaixo |
-| **A3.store** | **Boundary de artefatos do executor remoto pós-ADR-212** (ADR `Proposto` própria + fix do modo HTTP + teste de integração) | 1 sessão | **primeiro pré-requisito do Caminho 1** (emenda 2026-07-02) |
-| B1 | Codegen Go via `oapi-codegen` consumindo o OpenAPI | 3-4h | porta de `contracts/` |
+| **A3.store** | **Boundary de artefatos do executor remoto pós-ADR-212** ✓ ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) `Decidido` + fix do modo HTTP + teste de integração + suíte no CI — #721+#723) | feito (2026-07-02) | — |
+| B3 | CLI entry-point em `pipeline.orchestrator` (`python -m pipeline.orchestrator run-stage …`) — inclui injeção de `DBArtifactStore` via `DATABASE_URL` (= **A3.cli** da ADR-150; OTel = Fase 2 do mesmo track; benchmark = track seguinte) | 1-2 sessões | **próximo da fila** — track pronto: [docs/plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md](../plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md) |
+| B1 | Codegen Go via `oapi-codegen` consumindo o OpenAPI (= A3.codegen) | 3-4h | porta de `contracts/` — ancorado ao 1º PR Go produtivo (sem track hoje) |
 | B2 | Contract tests (Schemathesis) contra o pipeline-service atual | 4-6h | confiança no port |
-| B3 | CLI entry-point em `pipeline.orchestrator` (`python -m pipeline.orchestrator run-stage …`) — inclui injeção de `DBArtifactStore` via `DATABASE_URL` | 3h | pré-requisito do Caminho 1 (= A3.cli da ADR-150) |
 | B4 | Sample anonimizado de tráfego real → golden tests | 3-4h | validação do port |
 
-**Nota:** nenhum gatilho da ADR-150 está ativo (2026-07-02) — A3.store/B1-B4 só arrancam quando um gatilho disparar ou na revisita agendada (2027-Q2 / 100 workspaces pagantes).
+**Nota:** nenhum gatilho da ADR-150 está ativo (2026-07-02); a revisita agendada permanece (2027-Q2 / 100 workspaces pagantes). O owner autorizou (2026-07-02) o **prep antecipado** de A3.cli/otel/benchmark como interface estável barata — plano host e tracks em [docs/plan/GO_SHELL/](../plan/GO_SHELL/_README.md). O primeiro PR Go produtivo continua condicionado aos gatilhos.
 
 ---
 
