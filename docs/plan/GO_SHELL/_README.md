@@ -43,7 +43,7 @@ Fora das sprints temáticas (A26/A27 = data-lineage): tracks vivem aqui, sem
 
 ## Fases
 
-### F0 — Pré-requisitos hard (ordem obrigatória da [[ADR-150]] §4) — 🚧 em curso
+### F0 — Pré-requisitos hard (ordem obrigatória da [[ADR-150]] §4) — ✅ concluída 2026-07-02 (exceto A3.codegen, ancorado a F1)
 
 | Pré-requisito | Estado | Referência |
 |---|---|---|
@@ -51,7 +51,7 @@ Fora das sprints temáticas (A26/A27 = data-lineage): tracks vivem aqui, sem
 | A2.fix — Dockerfile do pipeline-service | ✅ entregue (A20.L2/L3) | [[ADR-150]] emenda item 1 |
 | A3.cli — entry-point CLI `run-stage` no orchestrator (+ injeção `DBArtifactStore`) | ✅ entregue 2026-07-02 (PR #737) | [tracks/a3cli-orchestrator-cli.md](tracks/a3cli-orchestrator-cli.md) Fase 1 |
 | A3.cli.otel — `TRACEPARENT` → span filho contínuo | ✅ entregue 2026-07-02 (PR #738) | [tracks/a3cli-orchestrator-cli.md](tracks/a3cli-orchestrator-cli.md) Fase 2 |
-| A3.cli.benchmark — gate empírico de cold start (decide Caminho 2) | ⬜ ready — **próximo da fila** | [tracks/a3cli-benchmark.md](tracks/a3cli-benchmark.md) |
+| A3.cli.benchmark — gate empírico de cold start (decide Caminho 2) | ✅ **gate PASSA** 2026-07-02: mediana 413ms ≤ 500ms; acumulado 4,1–7,4s/run ([PERFORMANCE_BASELINE §11](../../reference/PERFORMANCE_BASELINE.md)) | [tracks/a3cli-benchmark.md](tracks/a3cli-benchmark.md) |
 | A3.codegen — `oapi-codegen` → `internal/contracts/` | ⏸ follow-up **sem track** — ancorado ao 1º PR Go produtivo ([[ADR-150]] §Escopo deferido) | — |
 
 ### F1 — Serviço Go (`services/pipeline-service-go/`) — ⏸ bloqueada
@@ -78,7 +78,7 @@ budget hooks) + enablement do container/compose smoke.
 | Track | Escopo | Status | Gate de pickup |
 |---|---|---|---|
 | [TRACK-a3cli-orchestrator-cli](tracks/a3cli-orchestrator-cli.md) | A3.cli (Fase 1) + A3.cli.otel (Fase 2) — 2 PRs | `consumed` ✅ (#737 + #738) | — |
-| [TRACK-a3cli-benchmark](tracks/a3cli-benchmark.md) | A3.cli.benchmark — medição + decisão Caminho 1 vs 2 | `ready` | nenhum — **próximo da fila** (gate das 2 fases cumprido) |
+| [TRACK-a3cli-benchmark](tracks/a3cli-benchmark.md) | A3.cli.benchmark — medição + decisão Caminho 1 vs 2 | `consumed` ✅ (gate PASSA: 413ms) | — |
 
 ## Critério de destrava de F1 (não recopiar — fonte única)
 

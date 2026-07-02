@@ -354,3 +354,46 @@ Atualizar este doc se: (a) shell ganhar dependência nova relevante (Pydantic, F
 | A2.1 | Estender A2 com smoke real — workspace tenant + um run E0→E5, medir RSS/CPU/duração por stage | Sem isso, gatilho "GIL" para Caminho 3 fica especulativo |
 | **A3** | ADR de estratégia de port (Caminho 1/2/3) com base em A1 + A2 (+ A2.1 se necessário) | Destrava primeiro PR Go produtivo |
 | A2.fix | Slice próprio para fixar [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) — pré-requisito para CI smoke do pipeline-service Python | Detectado em A2 §6 |
+
+---
+
+## 11. A3.cli.benchmark — cold start do `run-stage` via subprocess (2026-07-02)
+
+> Gate empírico da [ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md) §4
+> (track [a3cli-benchmark](../plan/GO_SHELL/tracks/a3cli-benchmark.md)): mede o
+> overhead real de fork+exec+imports que o Caminho 1 paga por stage — o que o A2
+> **não** mediu (o serviço importa lazy dentro do processo warm).
+
+**Método (reproduzível):** `python3 dev/benchmark_run_stage_cold_start.py --samples 20 --importtime`
+— executa `python -m pipeline.orchestrator run-stage reconcile_transactions` em
+subprocess N vezes (run-id novo por amostra), contra fixture sintética PII-zero e
+SQLite descartável. **Overhead = tempo de parede do subprocess − `duration_ms` do
+próprio `StageResult`** (isola boot+imports+store da computação do stage).
+**Baseline de comparação = caminho in-process atual** (`InProcessPipelineClient`/
+Celery), cujo overhead de fork+exec ≈ 0.
+
+**Máquina:** macOS 26.5.1 arm64 · Apple M4 · Python 3.12.13 · venv produtivo completo.
+
+| Métrica | Valor |
+| --- | --- |
+| Total subprocess (mediana · p95) | 610ms · 1179ms |
+| `duration_ms` do stage (mediana) | 203ms |
+| **COLD START / overhead (mediana · p95)** | **413ms · 830ms** |
+| Acumulado projetado por run — 10 stages determinísticos | ~4,1s |
+| Acumulado projetado por run — 18 stages (`FULL_ORDER`) | ~7,4s |
+
+Top imports (`-X importtime`, cumulativo): `backend.app.services.artifact_session_factory`
+442ms (cadeia SQLAlchemy + models) · `pipeline.domain.services` 248ms. O lazy
+re-export do `pipeline/__init__` (PR #737) tirou a árvore de domínio do boot do
+package; o custo dominante restante é o import do backend para o `DBArtifactStore`
+— inerente ao boundary DB-only (ADR-212/ADR-303), não otimizável sem worker warm.
+
+**Decisão (gate ADR-150 §4): mediana 413ms ≤ 500ms → Caminho 1 segue como default.**
+O p95 (830ms) reflete contenção de máquina em 2/20 amostras, não bimodalidade
+estrutural. O acumulado projetado (4,1–7,4s/run) cai dentro da estimativa da
+ADR-150 §Consequências (6–13s) e **abaixo do limite de risco de 10s** do track —
+tolerável para runs reais (stages LLM levam minutos; deterministic dogfood ganha
+~4s/run). Registrado como custo conhecido do Caminho 1; se o loop de dogfood
+iterativo vier a doer na prática, o Caminho 2 (worker pool warm) reabre por emenda
+— o número acima é a linha de base para refalsificar na revisita (2027-Q2 / 100
+workspaces pagantes).
