@@ -255,6 +255,7 @@ def _call_llm_for(tipo_informe, service, config, doc_name, text, ano_hint, conte
         output_schema=InformeRendimentosBase,
         max_tokens=max(config.max_tokens, _INFORME_MIN_COMPLETION_TOKENS),
         stage=f"extract_informes_anuais:{content_hash[:16]}:{prompt_mod.PROMPT_VERSION}",
+        prompt_version=prompt_mod.PROMPT_VERSION,
     )
     return result, prompt_mod.PROMPT_VERSION
 
@@ -419,7 +420,7 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
     docs = _find_informes(ctx)
     if not docs:
         return {"skipped": True, "reason": "No informes anuais found"}
-    llm_config = LLMConfig(**cfg)
+    llm_config = LLMConfig(**cfg, call_hooks=ctx.llm_call_hooks)
     return docs[:_MAX_DOCS_PER_RUN], LLMService(llm_config), llm_config
 
 

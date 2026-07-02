@@ -189,7 +189,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
     from pipeline.live_progress import emit_item_progress
 
-    config = LLMConfig(**llm_config_data)
+    config = LLMConfig(**llm_config_data, call_hooks=ctx.llm_call_hooks)
     service = LLMService(config)
     store = ctx.get_artifact_store()
 
@@ -236,6 +236,7 @@ def run(ctx: WorkspaceContext) -> dict:
             output_schema=BaselinePatrimonialOutput,
             max_tokens=max(config.max_tokens, _E15_MIN_COMPLETION_TOKENS),
             stage="E1.5",
+            prompt_version=PROMPT_VERSION,
         )
 
         emit_item_progress(

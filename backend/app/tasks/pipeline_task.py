@@ -672,6 +672,10 @@ def _setup_run_context(
     )
     ctx.incremental = incremental
     ctx.incremental_doc_paths = incremental_doc_paths or []
+    # ADR-173: budget hard-stop + LLMCallLog em toda chamada LLM do run.
+    from backend.app.services.llm_budget_service import LLMBudgetService
+
+    ctx.llm_call_hooks = LLMBudgetService(ws_id, pipeline_run_id=run_id)
     ctx.ensure_dirs()
     ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
 

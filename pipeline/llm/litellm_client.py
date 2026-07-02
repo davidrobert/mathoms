@@ -16,6 +16,7 @@ from typing import Any, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
+from pipeline.llm.call_hooks import LLMCallHooks
 from pipeline.llm.error_classification import (
     BACKOFF_DELAYS,
     BACKOFF_DELAYS_NETWORK,
@@ -135,6 +136,9 @@ class LLMConfig:
     model_name: str = default_model_for("anthropic")
     max_tokens: int = 4096
     temperature: float = 0.1
+    # ADR-173 — injetado pelo call-site com WorkspaceContext (nunca vem do
+    # JSON de config); ``dataclasses.replace`` de variantes de modelo preserva.
+    call_hooks: LLMCallHooks | None = field(default=None, repr=False, compare=False)
 
 
 _classify_error = classify_error  # compat: nome histórico deste módulo
@@ -158,6 +162,7 @@ class LLMService:
 
     def __init__(self, config: LLMConfig):
         self._config = config
+        self._hooks = config.call_hooks
         self._summary = LLMRunSummary()
         self._client = None
         self._raw_client = None
@@ -246,6 +251,7 @@ class LLMService:
         image_media_type: str = "image/jpeg",
         seed: int | None = None,
         timeout_s: float | None = None,
+        prompt_version: str | None = None,
     ) -> LLMCallResult:
         """Call an LLM with structured output enforcement.
 
@@ -263,12 +269,18 @@ class LLMService:
             seed: best-effort determinism (eval de lineage, ADR-281). ``None`` =
                 omitido do payload; provider sem suporte descarta (``drop_params``).
             timeout_s: timeout base da 1ª tentativa (default LLM_CALL_TIMEOUT_S) — ADR-270.
+            prompt_version: PROMPT_VERSION do prompt chamador — persistido no
+                ``LLMCallLog`` para drift tracking (ADR-173).
 
         Raises:
+            LLMBudgetExceededError: pre-call hard-stop a 110% do budget (ADR-173)
             LLMValidationError: if output fails validation after all retries
             LLMError: for non-retryable errors (auth, context_length)
         """
         import base64
+
+        if self._hooks is not None:
+            self._hooks.check_budget()
 
         self._ensure_client()
         model = self._get_model_string()
@@ -382,6 +394,19 @@ class LLMService:
                     retries_used=retries_used,
                 )
                 self._summary.calls.append(result)
+
+                if self._hooks is not None:
+                    # Falha de telemetria nunca derruba a call que já custou tokens.
+                    try:
+                        self._hooks.record_call(
+                            result, stage=stage, prompt_version=prompt_version
+                        )
+                    except Exception as record_exc:
+                        logger.warning(
+                            "%sLLMCallLog persist failed (call succeeded): %s",
+                            tag,
+                            record_exc,
+                        )
 
                 logger.info(
                     "%sLLM call OK: model=%s tokens=%d+%d cost=$%.4f duration=%dms attempt=%d/%d",

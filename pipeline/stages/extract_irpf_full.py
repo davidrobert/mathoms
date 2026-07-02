@@ -98,7 +98,7 @@ def _emit_phase(
 
 
 def _call_llm(service, config, doc_name: str, text: str):
-    from pipeline.llm.prompts.e16_irpf_full import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.prompts.e16_irpf_full import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
     user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=f"=== {doc_name} ===\n{text}")
@@ -108,6 +108,7 @@ def _call_llm(service, config, doc_name: str, text: str):
         output_schema=IRPFFullOutput,
         max_tokens=max(config.max_tokens, _E16_MIN_COMPLETION_TOKENS),
         stage="extract_irpf_full",
+        prompt_version=PROMPT_VERSION,
     )
 
 
@@ -292,7 +293,7 @@ def run(ctx: WorkspaceContext) -> dict:
     runnable = _select_runnable_docs(ctx)
     if isinstance(runnable, dict):
         return runnable
-    llm_config = LLMConfig(**cfg)
+    llm_config = LLMConfig(**cfg, call_hooks=ctx.llm_call_hooks)
     ws_id = getattr(ctx, "workspace_id", "unknown")
     estimated = ctx.stage_duration_estimates.get(
         "extract_irpf_full"
