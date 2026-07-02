@@ -82,6 +82,10 @@ SCHEMA_BY_STAGE: dict[str, str] = {
     # Stage → schema em config/schemas/. Aplicado em DBArtifactStore.write
     # (ADR-212 PR3). Cobre tanto nomes legados quanto descritivos durante
     # a janela F9.2 → F9.6.
+    # E1.5/E1.5a — extract per-IRPF + agregado (A20.l11; string decimal ADR-090)
+    "E1.5": "e15_baseline_extract.schema.json",
+    "E1.5a": "e15_baseline_extract.schema.json",
+    "extract_baseline": "e15_baseline_extract.schema.json",
     # E1.5c — baseline consolidado
     "E1.5c": "baseline_patrimonial.schema.json",
     "consolidate_baseline": "baseline_patrimonial.schema.json",

@@ -2,7 +2,9 @@
 
 # Bump quando SYSTEM_PROMPT ou USER_PROMPT_TEMPLATE mudar — gate CI valida (W2-T05, ADR-233).
 # 1.1.0: ADR-267 — emit CPF do contribuinte por item para identidade canônica.
-PROMPT_VERSION = "1.1.0"
+# 1.2.0: ADR-259 §1 / ADR-090 (A20.l11) — valores como string decimal
+#   ('150000.00'), nunca number JSON; validator converte para Decimal no boundary.
+PROMPT_VERSION = "1.2.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 
@@ -23,7 +25,7 @@ Para cada item patrimonial, extraia:
 - CPF do contribuinte da declaração (11 dígitos, com ou sem máscara — ex: "123.456.789-09" ou "12345678909")
 
 Regras:
-- Valores devem estar em formato numérico (ex: 150000.00, não "R$ 150.000,00")
+- Valores monetários como STRING decimal com ponto e 2 casas (ex: "150000.00", não "R$ 150.000,00" nem o número 150000.0) — o validator converte para Decimal no boundary
 - Some separadamente ativos (positivos) e passivos (dívidas, financiamentos)
 - Patrimônio líquido = ativos - passivos
 - Identifique TODOS os itens, incluindo bens de pouco valor

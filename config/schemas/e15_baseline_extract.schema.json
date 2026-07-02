@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e15_baseline_extract.schema.json",
+  "title": "E1.5/E1.5a Baseline Extract",
+  "description": "Contrato do artefato per-IRPF (E1.5a) e agregado (E1.5) emitido por _output_to_baseline_json/_aggregate_baselines em pipeline/stages/extract_baseline.py. payload_version 2 (A20.l11 / ADR-259 §1): valores monetários são string decimal com ponto e até 2 casas — nunca number JSON (ADR-090). O consolidador E1.5c (scripts/e15_consolidate.py) parseia via safe_float/Decimal; payloads v1 históricos (number) permanecem válidos apenas para read (re-validação → re-extração, ADR-261 Tier 3).",
+  "type": "object",
+  "required": ["itens", "resumo"],
+  "additionalProperties": false,
+  "$defs": {
+    "money_str": {
+      "type": "string",
+      "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+    }
+  },
+  "properties": {
+    "payload_version": {"type": "integer", "minimum": 2},
+    "prompt_version": {"type": "string"},
+    "itens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["codigo", "descricao", "categoria", "valor_brl", "membro", "ano"],
+        "additionalProperties": false,
+        "properties": {
+          "codigo": {"type": "string"},
+          "descricao": {"type": "string"},
+          "categoria": {"type": "string"},
+          "valor_brl": {"$ref": "#/$defs/money_str"},
+          "membro": {"type": "string", "minLength": 1},
+          "ano": {"type": "integer"},
+          "instituicao": {"type": "string"},
+          "cpf": {"type": "string"}
+        }
+      }
+    },
+    "resumo": {
+      "type": "object",
+      "required": ["total_ativos", "total_passivos", "patrimonio_liquido", "ano_referencia"],
+      "additionalProperties": false,
+      "properties": {
+        "total_ativos": {"$ref": "#/$defs/money_str"},
+        "total_passivos": {"$ref": "#/$defs/money_str"},
+        "patrimonio_liquido": {"$ref": "#/$defs/money_str"},
+        "ano_referencia": {"type": "integer"},
+        "membros": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "_meta": {
+      "type": "object",
+      "properties": {
+        "source": {"type": "string"},
+        "confidence": {"type": "number"},
+        "notes": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

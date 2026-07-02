@@ -124,7 +124,7 @@ class TestE15Stage:
 
         assert result["success"] is True
         assert result["items_extracted"] == 2
-        assert result["net_worth_brl"] == 550000.00
+        assert result["net_worth_brl"] == "550000.00"
         assert result["validation"]["valid"] is True
 
         # E1.5 escreve via store em ("E1.5", "baseline_patrimonial").
@@ -134,7 +134,7 @@ class TestE15Stage:
             "E1.5 deveria ter escrito via store ('E1.5', 'baseline_patrimonial'). "
             "Verificar que store.write foi chamado."
         )
-        assert data["resumo"]["patrimonio_liquido"] == 550000.00
+        assert data["resumo"]["patrimonio_liquido"] == "550000.00"
         assert len(data["itens"]) == 2
 
 
@@ -326,7 +326,7 @@ class TestA6aStructural:
         assert baseline is not None, "E1.5 deve escrever em store (E1.5, baseline_patrimonial)"
         # E1.5c NÃO escreve ainda (responsabilidade do consolidate_baseline)
         assert not ctx.artifact_store.exists("E1.5c", "baseline_patrimonial")
-        assert baseline["resumo"]["patrimonio_liquido"] == 550000.00
+        assert baseline["resumo"]["patrimonio_liquido"] == "550000.00"
 
     def test_e2_llm_writes_via_store(self, tmp_path):
         """E2-llm escreve via ``store.write("E2-llm", stem, payload)``."""

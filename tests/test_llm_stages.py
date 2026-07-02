@@ -360,7 +360,8 @@ class TestOutputConverters:
         result = _output_to_baseline_json(output)
 
         assert len(result["itens"]) == 2
-        assert result["resumo"]["patrimonio_liquido"] == 550000.00
+        # String decimal no artifact (A20.l11 / ADR-090).
+        assert result["resumo"]["patrimonio_liquido"] == "550000.00"
         assert result["_meta"]["source"] == "E1.5-llm"
         assert result["_meta"]["confidence"] == 0.90
 
