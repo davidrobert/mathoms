@@ -1,0 +1,27 @@
+{
+  "imobiliaria_cnpj": "56789012000134",
+  "imobiliaria_nome": "Imobiliaria Horizonte Ltda",
+  "ano_referencia": 2024,
+  "locador_cpf_present": true,
+  "membro_key": null,
+  "imoveis": [
+    {
+      "endereco": "Rua Harmonia, 855 - Sumarezinho, Sao Paulo - SP",
+      "iptu_municipal": "102.334.0778-2",
+      "locatario_cnpj": null,
+      "aluguel_bruto_anual": "36000.00",
+      "taxa_administracao_anual": "2880.00",
+      "ir_retido_anual": "0",
+      "iptu_anual_pago": null,
+      "condominio_anual_pago": null,
+      "aluguel_liquido_anual": "33120.00",
+      "meses_locado_no_periodo": 12,
+      "mes_inicial": null,
+      "indice_reajuste": "IGPM",
+      "data_ultimo_reajuste": "2024-05",
+      "notas": "Imovel em comunhao - informe emitido em nome de um dos conjuges (ADR-246: nao duplicar no baseline)"
+    }
+  ],
+  "confidence": 0.85,
+  "notes": "Locador casado em comunhao total; co-declarado no IRPF do conjuge"
+}

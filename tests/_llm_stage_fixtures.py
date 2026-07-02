@@ -59,7 +59,7 @@ def make_e1_output() -> MembersExtractOutput:
                 key="david",
                 full_name="David Ferreira Campos",
                 short_name="David",
-                cpf="12345678901",
+                cpf_present=True,
                 birth_date="1985-03-15",
                 role="titular",
                 accounts=[

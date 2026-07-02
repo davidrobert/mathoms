@@ -1309,6 +1309,16 @@ def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
     except Exception as exc:
         post_logger.warning("Failed to materialize parecer citation edges: %s", exc)
 
+    # ADR-259 §3 / A20.l15: CPF nunca sai do LLM — o valor é extraído do
+    # documento original e cifrado aqui (só preenche cpf_encrypted NULL).
+    try:
+        from backend.app.services.family_member_pii_service import backfill_member_cpfs
+
+        with SyncSessionLocal() as db:
+            backfill_member_cpfs(db, workspace_id=ws_id, tenant_root=tenant_root, dry_run=False)
+    except Exception as exc:
+        post_logger.warning("Failed to backfill member CPFs: %s", exc)
+
     # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
     # (se existirem no JSON de análise).
     try:

@@ -1,7 +1,9 @@
 """Prompt templates for E1 — member extraction from personal documents."""
 
 # Bump quando SYSTEM_PROMPT ou USER_PROMPT_TEMPLATE mudar — gate CI valida (W2-T05, ADR-233).
-PROMPT_VERSION = "1.0.0"
+# 2.0.0: ADR-259 §2 / A20.l15 (LGPD) — CPF nunca é emitido pelo LLM; schema
+#   troca `cpf` por `cpf_present: bool` (major — schema breaking).
+PROMPT_VERSION = "2.0.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 
@@ -18,7 +20,7 @@ Sua tarefa é extrair informações de membros de uma família a partir de docum
 Para cada pessoa encontrada, extraia:
 - Nome completo (como aparece nos documentos)
 - Nome curto (primeiro nome)
-- CPF (se disponível, apenas os 11 dígitos numéricos)
+- CPF: NUNCA transcreva o número. Apenas sinalize cpf_present=true quando o documento contém o CPF da pessoa. O mascaramento e a persistência são responsabilidade do sistema, não sua.
 - Data de nascimento (formato YYYY-MM-DD se disponível)
 - Papel na família (titular, cônjuge, filho, dependente)
 - Contas bancárias associadas (banco, tipo, agência, conta)

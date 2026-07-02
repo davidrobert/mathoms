@@ -1,0 +1,72 @@
+{
+  "members": [
+    {
+      "key": "ricardo",
+      "full_name": "Ricardo Alves Pereira",
+      "short_name": "Ricardo",
+      "cpf_present": true,
+      "birth_date": "1978-02-11",
+      "role": "titular",
+      "accounts": [
+        {
+          "institution_code": "itau",
+          "account_type": "extratoconta",
+          "agency": "0912",
+          "account_number": "33421"
+        },
+        {
+          "institution_code": "btgpactual",
+          "account_type": "investimento",
+          "agency": null,
+          "account_number": null
+        }
+      ]
+    },
+    {
+      "key": "claudia",
+      "full_name": "Claudia Souza Pereira",
+      "short_name": "Claudia",
+      "cpf_present": true,
+      "birth_date": "1980-09-03",
+      "role": "conjuge",
+      "accounts": [
+        {
+          "institution_code": "nubank",
+          "account_type": "cartao_credito",
+          "agency": null,
+          "account_number": null
+        }
+      ]
+    },
+    {
+      "key": "beatriz",
+      "full_name": "Beatriz Souza Pereira",
+      "short_name": "Beatriz",
+      "cpf_present": true,
+      "birth_date": "2006-12-20",
+      "role": "filho",
+      "accounts": []
+    },
+    {
+      "key": "gustavo",
+      "full_name": "Gustavo Souza Pereira",
+      "short_name": "Gustavo",
+      "cpf_present": false,
+      "birth_date": "2012-04-18",
+      "role": "filho",
+      "accounts": []
+    },
+    {
+      "key": "helena",
+      "full_name": "Helena Alves Pereira",
+      "short_name": "Helena",
+      "cpf_present": true,
+      "birth_date": "1949-07-30",
+      "role": "dependente",
+      "accounts": []
+    }
+  ],
+  "titular_key": "ricardo",
+  "confidence": 0.9,
+  "notes": "Dependente menor (gustavo) sem CPF no documento; avo (helena) declarada como dependente"
+}

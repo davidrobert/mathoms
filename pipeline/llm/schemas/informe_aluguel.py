@@ -9,7 +9,10 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-PROMPT_VERSION = "informe-aluguel-v1.2.0"
+# 2.0.0: ADR-259 §2 / A20.l15 (LGPD) — LLM não emite CPF (locador_cpf →
+#   locador_cpf_present; locatario_cpf_cnpj → locatario_cnpj, CNPJ é público);
+#   formato migra para semver puro (errata ADR-233 §Migration).
+PROMPT_VERSION = "2.0.0"
 
 _NON_DIGITS = re.compile(r"\D")
 
@@ -60,11 +63,14 @@ class InformeAluguelImovel(_SubModel):
         None,
         description="Número da inscrição imobiliária/IPTU municipal (identificador único quando disponível).",
     )
-    locatario_cpf_cnpj: Optional[str] = Field(
+    # ADR-259 §2 (A20.l15): CPF de locatário é PII de terceiro — nunca emitido.
+    # CNPJ é registro público (exceção ADR-259) e carrega o sinal fiscal
+    # relevante: pagador PJ tipicamente tem IR retido na fonte.
+    locatario_cnpj: Optional[str] = Field(
         None,
         description=(
-            "CPF ou CNPJ do locatário (anonimizar em logs — PII). "
-            "Quando CNPJ, pagador é PJ e tipicamente há IR retido."
+            "CNPJ do locatário quando o pagador é PJ (14 dígitos; máscara normalizada). "
+            "Se o locatário for PF, NÃO transcreva o CPF — deixe None."
         ),
     )
     aluguel_bruto_anual: Decimal = Field(
@@ -139,6 +145,11 @@ class InformeAluguelImovel(_SubModel):
     def _decimal_money(cls, v):
         return _coerce_decimal(v)
 
+    @field_validator("locatario_cnpj", mode="before")
+    @classmethod
+    def _normalize_locatario_cnpj(cls, v):
+        return _normalize_pii_digits(v, expected_len=14)
+
 
 class InformeAluguelExtract(_SubModel):
     """Top-level — informe anual da imobiliária para um locador no ano de referência."""
@@ -160,19 +171,20 @@ class InformeAluguelExtract(_SubModel):
         le=2100,
         description="Ano calendário coberto pelo informe (geralmente o ano-base do IRPF do contribuinte).",
     )
-    locador_cpf: Optional[str] = Field(
-        None,
-        pattern=r"^\d{11}$",
+    # ADR-259 §2 (A20.l15): o VALOR do CPF do locador nunca sai do LLM nem
+    # persiste no artifact. O matching com membro é determinístico: regex
+    # sobre o TEXTO do documento × CPFs (Fernet) do config de membros.
+    locador_cpf_present: bool = Field(
+        False,
         description=(
-            "CPF do locador (11 dígitos sem máscara). PII — usado pelo orquestrador para matching com "
-            "``member_key``, não persistido no payload final."
+            "True quando o informe contém o CPF do locador — NUNCA transcreva o número."
         ),
     )
     membro_key: Optional[str] = Field(
         None,
         description=(
             "Chave do membro da família a quem pertence o informe. "
-            "Populada pelo orquestrador a partir de ``locador_cpf``, não pelo LLM."
+            "Populada pelo matcher determinístico do stage (regex doc × config), não pelo LLM."
         ),
     )
     imoveis: list[InformeAluguelImovel] = Field(
@@ -201,8 +213,3 @@ class InformeAluguelExtract(_SubModel):
     @classmethod
     def _normalize_cnpj(cls, v):
         return _normalize_pii_digits(v, expected_len=14)
-
-    @field_validator("locador_cpf", mode="before")
-    @classmethod
-    def _normalize_cpf(cls, v):
-        return _normalize_pii_digits(v, expected_len=11)

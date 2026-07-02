@@ -1,0 +1,27 @@
+{
+  "imobiliaria_cnpj": "34567890000112",
+  "imobiliaria_nome": "Loft Gestao Imobiliaria",
+  "ano_referencia": 2024,
+  "locador_cpf_present": true,
+  "membro_key": null,
+  "imoveis": [
+    {
+      "endereco": "Rua Funchal, 500 cj 12 - Vila Olimpia, Sao Paulo - SP",
+      "iptu_municipal": "045.678.0123-1",
+      "locatario_cnpj": "45678901000123",
+      "aluguel_bruto_anual": "96000.00",
+      "taxa_administracao_anual": "7680.00",
+      "ir_retido_anual": "13056.00",
+      "iptu_anual_pago": null,
+      "condominio_anual_pago": null,
+      "aluguel_liquido_anual": "75264.00",
+      "meses_locado_no_periodo": 12,
+      "mes_inicial": null,
+      "indice_reajuste": "IGPM",
+      "data_ultimo_reajuste": "2024-05",
+      "notas": "Locatario PJ - IR retido na fonte pela pagadora"
+    }
+  ],
+  "confidence": 0.95,
+  "notes": null
+}

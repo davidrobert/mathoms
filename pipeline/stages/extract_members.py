@@ -35,8 +35,11 @@ def _find_personal_docs(ctx: WorkspaceContext) -> list[Path]:
 
 def _member_info(m) -> dict:
     info = {"nome_completo": m.full_name, "nome_curto": m.short_name, "papel": m.role}
-    if m.cpf:
-        info["cpf"] = m.cpf
+    # ADR-259 §2 (A20.l15): o artifact NUNCA carrega CPF cru — só o sinal.
+    # O valor é extraído do documento original e cifrado pelo backend
+    # (family_member_pii_service) no pós-run.
+    if getattr(m, "cpf_present", False):
+        info["cpf_present"] = True
     if m.birth_date:
         info["data_nascimento"] = m.birth_date
     return info

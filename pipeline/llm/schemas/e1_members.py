@@ -25,7 +25,12 @@ class ExtractedMember(BaseModel):
     )
     full_name: str = Field(..., description="Full legal name as it appears in documents")
     short_name: str = Field(..., description="Short display name (first name)")
-    cpf: Optional[str] = Field(None, description="CPF number (11 digits, no formatting)")
+    # ADR-259 §2 (A20.l15): o VALOR do CPF nunca sai do LLM — só o sinal de
+    # presença. O valor é extraído por regex do documento original pelo
+    # adapter backend (family_member_pii_service) e cifrado via Fernet.
+    cpf_present: bool = Field(
+        False, description="True when the document contains this member's CPF (NEVER the value)"
+    )
     birth_date: Optional[str] = Field(None, description="Birth date in YYYY-MM-DD format")
     role: str = Field("titular", description="Role: titular, conjuge, filho, dependente")
     accounts: list[ExtractedAccount] = Field(default_factory=list)

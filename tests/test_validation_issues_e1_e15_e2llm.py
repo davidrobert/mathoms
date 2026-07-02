@@ -41,7 +41,6 @@ E1_KNOWN_CODES: set[str] = {
     "e1.member.empty_full_name",
     "e1.member.empty_short_name",
     "e1.member.unexpected_role",
-    "e1.member.invalid_cpf",
     "e1.member.invalid_birth_date",
     "e1.account.missing_institution",
     "e1.account.non_standard_type",
@@ -89,7 +88,7 @@ def _e1_member(
     full_name: str = "David",
     short_name: str = "David",
     role: str = "titular",
-    cpf: str | None = None,
+    cpf_present: bool = False,
     birth_date: str | None = None,
     accounts: list[ExtractedAccount] | None = None,
 ) -> ExtractedMember:
@@ -98,7 +97,7 @@ def _e1_member(
         full_name=full_name,
         short_name=short_name,
         role=role,
-        cpf=cpf,
+        cpf_present=cpf_present,
         birth_date=birth_date,
         accounts=accounts or [],
     )
@@ -138,11 +137,6 @@ class TestE1Codes:
         r = validate_e1_output(out)
         assert any(i.code == "e1.member.duplicate_key" for i in r.issues)
 
-    def test_invalid_cpf(self):
-        out = _e1_output(members=[_e1_member(cpf="not-cpf")], titular_key="david")
-        r = validate_e1_output(out)
-        assert any(i.code == "e1.member.invalid_cpf" for i in r.issues)
-
     def test_titular_unknown(self):
         out = _e1_output(members=[_e1_member(key="david")], titular_key="unknown")
         r = validate_e1_output(out)
@@ -156,7 +150,7 @@ class TestE1Codes:
     def test_no_legacy_unmigrated_in_e1(self):
         out = _e1_output(
             members=[
-                _e1_member(key="Bad Key", full_name="", short_name="", role="ghost", cpf="123"),
+                _e1_member(key="Bad Key", full_name="", short_name="", role="ghost", cpf_present=True),
                 _e1_member(key="Bad Key"),
             ],
             titular_key="unknown",

@@ -47,7 +47,9 @@ class TestE1GoldenFile:
 
         assert "david" in fmj["membros"]
         assert "mariana" in fmj["membros"]
-        assert fmj["membros"]["david"]["cpf"] == "12345678901"
+        # ADR-259 §2 (A20.l15): artifact nunca carrega CPF cru — só o flag.
+        assert fmj["membros"]["david"]["cpf_present"] is True
+        assert "cpf" not in fmj["membros"]["david"]
         assert fmj["banco_membro"]["itau"] == "david"
         assert fmj["banco_membro"]["c6bank"] == "david"
         assert fmj["banco_membro"]["nubank"] == "mariana"
