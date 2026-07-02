@@ -33,6 +33,15 @@ _MONEY_RE = re.compile(
 # (ADR-296: prosa não deve conter R$; deve ser 0).
 _RANGE_RE = re.compile(r"R\$\s*[\d.,]+\s*(?:-|–|\ba\b|\baté\b)\s*(?:R\$\s*)?[\d.,]+")
 
+# Valor monetário SEM prefixo R$ ("720 mil reais", "720.000 reais", "3 milhões de
+# reais") — o LLM pode driblar o R$ (KR1, A27); mesmos grupos de _MONEY_RE para reuso
+# de _token_from_match (integer, decimals, mult).
+_REAIS_RE = re.compile(
+    r"(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?"
+    r"(?:\s*(milh(?:[õo]es|[ãa]o)|mil|mi))?\s*(?:de\s+)?reais\b",
+    re.IGNORECASE,
+)
+
 # ADR-296: pairing_mismatch substitui value_mismatch (este zerado por construção —
 # prosa não tem R$). Ordem preservada p/ telemetria; value_mismatch fica no histórico.
 _LAYERS = ("missing_path", "whitelist_miss", "resolve_null", "pairing_mismatch")
@@ -203,6 +212,7 @@ def _extract_money_tokens(prose_fields: list[Optional[str]]) -> list[MoneyToken]
         if not text:
             continue
         tokens.extend(_token_from_match(m) for m in _MONEY_RE.finditer(text))
+        tokens.extend(_token_from_match(m) for m in _REAIS_RE.finditer(text))
     return tokens
 
 

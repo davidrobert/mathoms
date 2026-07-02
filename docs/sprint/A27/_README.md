@@ -104,7 +104,9 @@ todo o edge depende do contrato:
 
 - **KR1** — `number_in_prose_violation` (contrato: o LLM nunca digita `R$` na prosa) **==
   0** sobre todas as gerações do holdout. Prova binária de que o contrato da [[ADR-296]]
-  foi adotado. (l9)
+  foi adotado. (l9) · **Status 2026-07-02 ([[ADR-304]]):** fix de prompt levou 61→7 (↓88%,
+  mediana 0, densidade↑) — resíduo estocástico de ~4%. `==0` estrito é **enforcement**
+  (espelha [[ADR-295]]), follow-up adiado p/ promoção da A27 + tráfego real.
 - **KR2** — `anchor_section_incoherence` per-parecer **UB IC95 < 5%** (ground-truth =
   catálogo l1, automatizável) **E** densidade de âncoras **não regride** vs. baseline
   [[A26.l6]] (anti-sub-citação — senão o LLM "ganha" o KR citando menos). Baseline:
