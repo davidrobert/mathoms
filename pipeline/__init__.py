@@ -22,15 +22,6 @@ Uso de stages individuais:
 
 __version__ = "0.2.0"
 
-from pipeline.context import WorkspaceContext
-from pipeline.orchestrator import (
-    PipelineResult,
-    StageResult,
-    run_from,
-    run_pipeline,
-    run_stages,
-)
-
 __all__ = [
     "WorkspaceContext",
     "PipelineResult",
@@ -39,3 +30,21 @@ __all__ = [
     "run_from",
     "run_stages",
 ]
+
+_ORCHESTRATOR_EXPORTS = frozenset(__all__) - {"WorkspaceContext"}
+
+
+def __getattr__(name: str):
+    # Lazy re-export (PEP 562): `python -m pipeline.orchestrator` (CLI A3.cli)
+    # exige que o package não pré-importe o módulo (double-import warning do
+    # runpy contamina o stderr estruturado) e o cold start do subprocess não
+    # deve pagar a árvore de domínio ao importar só o package.
+    if name == "WorkspaceContext":
+        from pipeline.context import WorkspaceContext
+
+        return WorkspaceContext
+    if name in _ORCHESTRATOR_EXPORTS:
+        import importlib
+
+        return getattr(importlib.import_module("pipeline.orchestrator"), name)
+    raise AttributeError(f"module 'pipeline' has no attribute {name!r}")
