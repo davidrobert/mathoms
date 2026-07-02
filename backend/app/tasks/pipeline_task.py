@@ -1216,6 +1216,45 @@ def _materialize_lineage_edges(ws_id: str, run_id: str) -> None:
         materialize_lineage_edges(db, workspace_id=ws_id, run_id=run_id)
 
 
+def _materialize_parecer_citation_edges(ws_id: str, run_id: str) -> None:
+    """Hook pós-run das citações do parecer (ADR-293 slice 2, A27.l1).
+
+    Só materializa parecer PUBLICADO (status "Gerado") — needs_review não vira
+    edge (itens podem não ser publicados). Âncora falhada nunca entra no grafo.
+    """
+    from sqlalchemy import select
+
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.services.crypto import read_artifact_content
+    from backend.app.services.lineage_edge_writer import (
+        e5_payload_for_run,
+        materialize_parecer_citation_edges,
+    )
+    from backend.app.services.parecer_citation_lineage import build_parecer_citation_edges
+
+    with SyncSessionLocal() as db:
+        row = db.execute(
+            select(PipelineArtifact.content_json).where(
+                PipelineArtifact.workspace_id == ws_id,
+                PipelineArtifact.pipeline_run_id == run_id,
+                PipelineArtifact.stage == "E6-parecer",
+                PipelineArtifact.artifact_key == "parecer_planejador",
+            )
+        ).first()
+        if row is None or row[0] is None:
+            return
+        parecer = read_artifact_content(row[0])
+        meta = parecer.get("_meta") or {}
+        if meta.get("status") != "Gerado":
+            return
+        entries = meta.get("evidencia_verification") or []
+        e5_data = e5_payload_for_run(db, ws_id, run_id)
+        if e5_data is None:
+            return
+        edges = build_parecer_citation_edges(e5_data, entries)
+        materialize_parecer_citation_edges(db, workspace_id=ws_id, run_id=run_id, edges=edges)
+
+
 def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
     """Passos pós-sucesso: sync documents, gerar report, persistir sugestões.
 
@@ -1256,6 +1295,13 @@ def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
         _materialize_lineage_edges(ws_id, run_id)
     except Exception as exc:
         post_logger.warning("Failed to materialize lineage edges: %s", exc)
+
+    # ADR-293 / A27.l1 slice 2: citação verificada do parecer vira edge de
+    # lineage (E6→E5) por chave natural. Mesmo regime best-effort acima.
+    try:
+        _materialize_parecer_citation_edges(ws_id, run_id)
+    except Exception as exc:
+        post_logger.warning("Failed to materialize parecer citation edges: %s", exc)
 
     # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
     # (se existirem no JSON de análise).

@@ -39,7 +39,7 @@ def _delete_producer_edges(session: Session, workspace_id: str, dst_stage: str) 
 
 def materialize_lineage_edges(session: Session, *, workspace_id: str, run_id: str) -> int:
     """Deriva e persiste as edges E5→doc do run; retorna o nº de edges inseridas."""
-    payload = _e5_payload(session, workspace_id, run_id)
+    payload = e5_payload_for_run(session, workspace_id, run_id)
     if payload is None:
         return 0
     edges = derive_lineage_edges(payload, consumed_sources=_consumed_sources(session, run_id))
@@ -58,7 +58,7 @@ def materialize_parecer_citation_edges(
     """Persiste as edges de citação do parecer (E6→E5, ADR-293 slice 3). Órfão-guard: só grava
     se houver E5 no run corrente (senão a citação apontaria para E5 de outro run); sem edges
     preserva o último run bom (espelha E5). DELETE-por-produtor não toca edges E5→doc."""
-    if _e5_payload(session, workspace_id, run_id) is None:
+    if e5_payload_for_run(session, workspace_id, run_id) is None:
         return 0
     if not edges:
         return 0
@@ -77,6 +77,63 @@ def aggregates_depending_on_source_document(
     """Query reversa F5 — "números que dependem da fonte X". Teto honesto run→doc: o ``_lineage`` inline para em E5, então a folha documental é coarse — a resposta é "agregados do run R que dependem dos documentos consumidos por R", não atribuição fina doc→campo."""
     rows = session.execute(_reverse_query_stmt(workspace_id, document_id))
     return [{"dst_stage": r[0], "dst_key": r[1], "dst_field": r[2], "run_id": r[3]} for r in rows]
+
+
+def parecer_citation_sources(session: Session, *, workspace_id: str) -> list[dict]:
+    """Drill N2 do parecer (ADR-293 slice 4) — "de onde veio este R$ do parecer?".
+
+    Mapa item do parecer (``dst_field``, ex. ``risco[2]``) → folha E5 citada
+    (``src_field`` = chave natural ou path escalar) + run que a verificou.
+    """
+    rows = session.execute(
+        select(
+            ArtifactLineageEdge.dst_field,
+            ArtifactLineageEdge.src_field,
+            ArtifactLineageEdge.run_id,
+        )
+        .where(
+            ArtifactLineageEdge.workspace_id == workspace_id,
+            ArtifactLineageEdge.dst_stage == PARECER_CITATION_DST_STAGE,
+        )
+        .distinct()
+        .order_by(ArtifactLineageEdge.dst_field, ArtifactLineageEdge.src_field)
+    )
+    return [{"item": r[0], "e5_source": r[1], "run_id": r[2]} for r in rows]
+
+
+def parecer_items_depending_on_source_document(
+    session: Session, *, workspace_id: str, document_id: str
+) -> list[dict]:
+    """Reverse-lineage cobre o parecer (ADR-293 slice 4): documento → itens do parecer.
+
+    2 hops coarse: as edges E5→doc dão os runs que consumiram o documento; as
+    citações ``parecer_citation`` desses runs são os itens do parecer que
+    dependem (transitivamente) da fonte. Mesmo teto honesto da query E5 —
+    granularidade run→doc, não atribuição fina campo→doc.
+    """
+    runs_consuming_doc = (
+        select(ArtifactLineageEdge.run_id)
+        .where(
+            ArtifactLineageEdge.workspace_id == workspace_id,
+            ArtifactLineageEdge.source_document_id == document_id,
+        )
+        .distinct()
+    )
+    rows = session.execute(
+        select(
+            ArtifactLineageEdge.dst_field,
+            ArtifactLineageEdge.src_field,
+            ArtifactLineageEdge.run_id,
+        )
+        .where(
+            ArtifactLineageEdge.workspace_id == workspace_id,
+            ArtifactLineageEdge.dst_stage == PARECER_CITATION_DST_STAGE,
+            ArtifactLineageEdge.run_id.in_(runs_consuming_doc),
+        )
+        .distinct()
+        .order_by(ArtifactLineageEdge.dst_field, ArtifactLineageEdge.src_field)
+    )
+    return [{"item": r[0], "e5_source": r[1], "run_id": r[2]} for r in rows]
 
 
 def _reverse_query_stmt(workspace_id: str, document_id: str):
@@ -100,7 +157,8 @@ def _reverse_query_stmt(workspace_id: str, document_id: str):
     )
 
 
-def _e5_payload(session: Session, workspace_id: str, run_id: str) -> dict | None:
+def e5_payload_for_run(session: Session, workspace_id: str, run_id: str) -> dict | None:
+    """Payload E5 do run (decriptado) — consumido pelos hooks de materialização."""
     row = session.execute(
         select(PipelineArtifact.content_json).where(
             PipelineArtifact.workspace_id == workspace_id,

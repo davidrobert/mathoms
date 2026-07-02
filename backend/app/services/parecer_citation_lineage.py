@@ -12,7 +12,10 @@ E5 (zero migration). Path escalar (sem ``[i]``) já é estável por path → ret
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
+
+if TYPE_CHECKING:
+    from pipeline.domain.services.lineage_edge_deriver import LineageEdge
 
 _SEGMENT_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)(?:\[(\d+)\])?")
 
@@ -61,4 +64,45 @@ def resolve_citation_natural_key(e5_data: Mapping[str, Any], path: str) -> str |
     return _natural_key_of(item) if item is not None else None
 
 
-__all__ = ["resolve_citation_natural_key"]
+def build_parecer_citation_edges(
+    e5_data: Mapping[str, Any], evidencia_entries: list[Mapping[str, Any]]
+) -> list["LineageEdge"]:
+    """Edges ``parecer_citation`` das âncoras VERIFICADAS (ADR-293 slice 2).
+
+    ``src_field`` = chave natural quando a folha é item de lista (estável
+    cross-run); path escalar fica como está (já estável). Âncora falhada ou
+    sem path nunca vira edge — o grafo só carrega citação verificada.
+    """
+    from backend.app.services.lineage_edge_writer import PARECER_CITATION_DST_STAGE
+    from pipeline.domain.services.lineage_edge_deriver import LineageEdge
+
+    edges: list[LineageEdge] = []
+    seen: set[tuple[str, str]] = set()
+    for entry in evidencia_entries:
+        path = entry.get("path")
+        if entry.get("outcome") != "verified" or not path:
+            continue
+        dst_field = f"{entry.get('item_type')}[{entry.get('item_index')}]"
+        src_field = resolve_citation_natural_key(e5_data, path) or path
+        if (src_field, dst_field) in seen:
+            continue
+        seen.add((src_field, dst_field))
+        edges.append(
+            LineageEdge(
+                src_stage="E5",
+                src_key="analise_financeira",
+                src_field=src_field,
+                dst_stage=PARECER_CITATION_DST_STAGE,
+                dst_key="parecer_planejador",
+                dst_field=dst_field,
+                edge_type="parecer_citation",
+                rule_ref="",
+                source_document_id=None,
+                data_source_id=None,
+                winner=True,
+            )
+        )
+    return edges
+
+
+__all__ = ["build_parecer_citation_edges", "resolve_citation_natural_key"]
