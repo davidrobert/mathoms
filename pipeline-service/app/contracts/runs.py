@@ -21,6 +21,14 @@ class RunStartRequest(BaseModel):
     stop_on_error: bool = True
     incremental: bool = False
     incremental_doc_paths: list[str] = Field(default_factory=list)
+    base_run_id: Optional[str] = Field(
+        default=None,
+        description="Run base para fallback run-pinado em from_stage (ADR-291/ADR-303)",
+    )
+    base_run_fallback_stages: list[str] = Field(
+        default_factory=list,
+        description="Stages upstream lidos do run base (ADR-291/ADR-303)",
+    )
 
 
 class RunSummaryResponse(BaseModel):

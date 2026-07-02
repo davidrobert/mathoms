@@ -133,6 +133,7 @@ jobs:
               - '.github/workflows/ci.yml'
             pipeline:
               - 'pipeline/**'
+              - 'pipeline-service/**'
               - 'scripts/**'
               - 'tests/**'
               # `config/**` era amplo demais — casava com config/*.md
@@ -323,6 +324,11 @@ jobs:
           # vazar como string literal fora das ilhas permitidas.
           MATHOMS_ENFORCE_STAGE_RENAME: "1"
         run: pytest tests/ -q --tb=short
+
+      - name: Run pipeline-service tests (ADR-303)
+        # Suíte não rodava em nenhum workflow — foi assim que o modo HTTP
+        # quebrou em silêncio pós-ADR-212 (ver ADR-303 D5).
+        run: pytest pipeline-service/tests -q --tb=short
 
       - name: Pipeline JSON schema strict (MATHOMS_PIPELINE_SCHEMA_MODE)
         env:

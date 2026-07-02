@@ -2,7 +2,8 @@
 id: ADR-303
 type: adr
 title: "Boundary de artefatos do executor remoto (A3.store): pipeline-service injeta DBArtifactStore do backend, sessão-por-stage"
-status: Proposto
+status: Decidido
+phase: "A3.store — fix do modo HTTP do pipeline-service"
 date: "2026-07-03"
 relates_to:
   - "[[ADR-112]]"
@@ -17,14 +18,14 @@ aliases:
 tags:
   - area/pipeline
   - area/architecture
-  - status/proposto
+  - status/decidido
   - type/adr
 size_lines: 128
 ---
 
 # ADR-303 — Boundary de artefatos do executor remoto (A3.store)
 
-**Status:** Proposto • **Data:** 2026-07-03
+**Status:** Decidido (A3.store — fix do modo HTTP) • **Data:** 2026-07-03
 
 ## Contexto
 

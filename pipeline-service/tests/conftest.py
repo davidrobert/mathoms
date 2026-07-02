@@ -36,3 +36,31 @@ def _reset_event_client():
     event_publisher.reset_client()
     yield
     event_publisher.reset_client()
+
+
+@pytest.fixture(autouse=True)
+def artifact_db_session_factory(monkeypatch):
+    """SQLite em memória por teste para o ``DBArtifactStore`` (ADR-303).
+
+    Autouse: sem isso, ``open_artifact_store`` abriria sessão contra o
+    engine default do backend (arquivo ``mathoms.db``) em qualquer teste
+    que execute stage. Engine local por teste — sem estado compartilhado.
+    """
+    from app.services import artifact_session
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+
+    import backend.app.models  # noqa: F401 — registra tabelas no metadata
+    from backend.app.core.database import Base
+
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(bind=engine, expire_on_commit=False)
+    monkeypatch.setattr(artifact_session, "_new_session", lambda: factory())
+    yield factory
+    engine.dispose()
