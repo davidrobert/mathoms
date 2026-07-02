@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 266
-- **Proposto**: 23
+- **Decidido**: 267
+- **Proposto**: 22
 - **Roadmap**: 4
 
 ## Fundação
@@ -30,15 +30,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Persistência
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-029]] — Alembic para migrations · phase F2
 - [[ADR-038]] — Docker volume para storage prod · phase F7
 - [[ADR-039]] — Dual DB: SQLite (dev) + PostgreSQL (prod) · phase F7
+- [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet · phase W3-T04
 
-### Proposto (2)
+### Proposto (1)
 
-- [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet
 - [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
 
 ## Pipeline
