@@ -28,9 +28,12 @@ _scratch/
 # Python
 __pycache__/
 *.pyc
+*.egg-info/
 
 # Database (dev)
 *.db
+*.db-shm
+*.db-wal
 
 # Per-tenant file storage (uploads, processed, reports)
 storage/
