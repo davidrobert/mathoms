@@ -69,9 +69,7 @@ _E5_PAYLOAD = {
 
 
 def _entries(*specs: tuple[str, int, str | None, str]) -> list[dict]:
-    return [
-        {"item_type": t, "item_index": i, "path": p, "outcome": o} for (t, i, p, o) in specs
-    ]
+    return [{"item_type": t, "item_index": i, "path": p, "outcome": o} for (t, i, p, o) in specs]
 
 
 # ---------------------------------------------------------------------------
@@ -102,14 +100,18 @@ def test_list_leaf_uses_natural_key_stable_across_reorder() -> None:
         **_E5_PAYLOAD,
         "investimentos": {
             "top_ativos": [
-                {"posicao": 0, "nome": "ITSA4", "membro": "Bruno", "instituicao": "Itau", "valor": 95},
+                {
+                    "posicao": 0,
+                    "nome": "ITSA4",
+                    "membro": "Bruno",
+                    "instituicao": "Itau",
+                    "valor": 95,
+                },
                 {"posicao": 1, "nome": "PETR4", "membro": "Ana", "instituicao": "XP", "valor": 90},
             ]
         },
     }
-    entry_r1 = _entries(
-        ("sugestoes_taticas", 0, "$.investimentos.top_ativos[1].valor", "verified")
-    )
+    entry_r1 = _entries(("sugestoes_taticas", 0, "$.investimentos.top_ativos[1].valor", "verified"))
     edges_run_r1 = build_parecer_citation_edges(reordered, entry_r1)
 
     key_r = edges_run_r[0].src_field.rsplit("|posicao=", 1)[0]
@@ -147,9 +149,7 @@ def test_duplicate_anchor_same_item_dedupes() -> None:
 
 def _seed_workspace(factory) -> str:
     with factory() as db:
-        user = User(
-            id=str(uuid.uuid4()), email="cite@test.com", hashed_password="x", full_name="C"
-        )
+        user = User(id=str(uuid.uuid4()), email="cite@test.com", hashed_password="x", full_name="C")
         db.add(user)
         db.flush()
         ws = Workspace(id=str(uuid.uuid4()), owner_id=user.id, name="Cite WS")
@@ -213,11 +213,7 @@ def _seed_run_with_parecer(
                 content_json={"transacoes": []},
             )
         )
-        db.add(
-            _parecer_artifact(
-                ws_id, run_id, status=status, entries=entries or default_entries
-            )
-        )
+        db.add(_parecer_artifact(ws_id, run_id, status=status, entries=entries or default_entries))
         db.commit()
     return run_id
 

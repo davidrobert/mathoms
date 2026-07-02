@@ -398,9 +398,7 @@ class LLMService:
                 if self._hooks is not None:
                     # Falha de telemetria nunca derruba a call que já custou tokens.
                     try:
-                        self._hooks.record_call(
-                            result, stage=stage, prompt_version=prompt_version
-                        )
+                        self._hooks.record_call(result, stage=stage, prompt_version=prompt_version)
                     except Exception as record_exc:
                         logger.warning(
                             "%sLLMCallLog persist failed (call succeeded): %s",

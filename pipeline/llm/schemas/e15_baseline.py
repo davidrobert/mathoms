@@ -40,9 +40,7 @@ class PatrimonialItem(BaseModel):
         description="Category: imovel, veiculo, investimento, conta_corrente, poupanca, previdencia, outros",
     )
     institution: Optional[str] = Field(None, description="Financial institution name or code")
-    value_brl: Decimal = Field(
-        ..., description="Value in BRL as decimal string (e.g. '150000.00')"
-    )
+    value_brl: Decimal = Field(..., description="Value in BRL as decimal string (e.g. '150000.00')")
     member_key: str = Field(..., description="Key of the family member who owns this item")
     year: int = Field(..., description="Reference tax year")
     # ADR-267: CPF do contribuinte (do campo 'CPF do Contribuinte' da declaração).

@@ -127,9 +127,7 @@ def test_rotate_column_reencrypts_old_key_rows(rotation_env) -> None:
     session = rotation_env()
     try:
         counts = _rotate_column(session, vault, FamilyMember, "cpf_encrypted", dry_run=False)
-        row = session.execute(
-            select(FamilyMember).where(FamilyMember.id == member_id)
-        ).scalar_one()
+        row = session.execute(select(FamilyMember).where(FamilyMember.id == member_id)).scalar_one()
         rotated_ct = row.cpf_encrypted
     finally:
         session.close()
@@ -156,9 +154,7 @@ def test_rotate_column_dry_run_does_not_write(rotation_env) -> None:
     session = rotation_env()
     try:
         counts = _rotate_column(session, vault, FamilyMember, "cpf_encrypted", dry_run=True)
-        row = session.execute(
-            select(FamilyMember).where(FamilyMember.id == member_id)
-        ).scalar_one()
+        row = session.execute(select(FamilyMember).where(FamilyMember.id == member_id)).scalar_one()
         assert VaultService(key=OLD_KEY).decrypt(row.cpf_encrypted) == "12345678909"
     finally:
         session.close()

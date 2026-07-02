@@ -134,9 +134,7 @@ def rotate_fernet_secrets(dry_run: bool = False) -> dict:
         for model, column in _COLUMN_TARGETS:
             key = f"{model.__tablename__}.{column}"
             report["targets"][key] = _rotate_column(session, vault, model, column, dry_run)
-        report["targets"]["pipeline_artifacts.content_json"] = _rotate_artifacts(
-            session, dry_run
-        )
+        report["targets"]["pipeline_artifacts.content_json"] = _rotate_artifacts(session, dry_run)
     finally:
         session.close()
     total_failed = sum(t["failed"] for t in report["targets"].values())

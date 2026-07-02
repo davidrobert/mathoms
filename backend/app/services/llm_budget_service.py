@@ -133,9 +133,7 @@ class LLMBudgetService:
         session = self._session_factory()
         try:
             value = session.execute(
-                select(Workspace.monthly_llm_budget_usd).where(
-                    Workspace.id == self._workspace_id
-                )
+                select(Workspace.monthly_llm_budget_usd).where(Workspace.id == self._workspace_id)
             ).scalar_one_or_none()
         finally:
             session.close()

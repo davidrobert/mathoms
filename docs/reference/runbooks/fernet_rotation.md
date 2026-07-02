@@ -1,13 +1,8 @@
----
-type: runbook
-title: "Rotação de chave Fernet (MultiFernet) — procedure operacional"
-tags:
-  - type/runbook
-  - area/security
-  - area/ops
----
-
 # Runbook — Rotação de chave Fernet (ADR-171 · W3-T04)
+
+> **ADR:** [[ADR-171]] (Decidido · W3-T04) — MultiFernet + re-encrypt batch.
+> **Owner:** Engenharia (operador com acesso ao env de deploy).
+> **Janela alvo:** ~30min ponta a ponta (staging drill).
 
 > **Quando usar:** rotação periódica trimestral (compliance LGPD/ISO 27001),
 > suspeita de comprometimento da `MATHOMS_FERNET_KEY`, ou offboarding de

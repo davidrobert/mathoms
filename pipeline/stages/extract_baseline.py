@@ -32,6 +32,7 @@ def _money_dec(v) -> Decimal:
         logger.warning("E1.5: valor monetário não-parseável %r — tratado como 0", v)
         return Decimal("0")
 
+
 # OP-009 / IRPF: baseline JSON is large; sub-16k completions truncate and break structured output.
 _E15_MIN_COMPLETION_TOKENS = 16_384
 

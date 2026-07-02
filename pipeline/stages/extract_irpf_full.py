@@ -98,7 +98,11 @@ def _emit_phase(
 
 
 def _call_llm(service, config, doc_name: str, text: str):
-    from pipeline.llm.prompts.e16_irpf_full import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.prompts.e16_irpf_full import (
+        PROMPT_VERSION,
+        SYSTEM_PROMPT,
+        USER_PROMPT_TEMPLATE,
+    )
     from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
     user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=f"=== {doc_name} ===\n{text}")
