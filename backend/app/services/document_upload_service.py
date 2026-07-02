@@ -319,6 +319,15 @@ async def _apply_fuzzy_dedupe(
         doc.needs_review = True
 
 
+def _upload_audit_details(doc: Document) -> dict:
+    return {
+        "filename": doc.original_name,
+        "size_bytes": doc.file_size_bytes,
+        "content_hash": doc.content_hash,
+        "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
+    }
+
+
 def build_upload_audit_event(
     doc: Document, workspace_id: str, actor_user_id: str, ip, ua
 ) -> AuditLogEvent:
@@ -335,10 +344,5 @@ def build_upload_audit_event(
         actor_user_id=actor_user_id,
         ip_address=ip,
         user_agent=ua,
-        details={
-            "filename": doc.original_name,
-            "size_bytes": doc.file_size_bytes,
-            "content_hash": doc.content_hash,
-            "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
-        },
+        details=_upload_audit_details(doc),
     )

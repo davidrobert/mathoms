@@ -171,19 +171,17 @@ def _seed_e1_artifact(session, ws_id: str, *, stage: str, membros: dict) -> None
     session.commit()
 
 
+_MEMBROS_COM_CPF = {
+    "ricardo": {"nome_completo": "Ricardo", "cpf": _CPF_DIGITS},
+    "claudia": {"nome_completo": "Claudia"},
+}
+
+
 def test_purge_remove_cpf_e_preserva_sinal(db_factory) -> None:
     ws_id, _ = _seed_member(db_factory)
     session = db_factory()
     try:
-        _seed_e1_artifact(
-            session,
-            ws_id,
-            stage="E1",
-            membros={
-                "ricardo": {"nome_completo": "Ricardo", "cpf": _CPF_DIGITS},
-                "claudia": {"nome_completo": "Claudia"},
-            },
-        )
+        _seed_e1_artifact(session, ws_id, stage="E1", membros=_MEMBROS_COM_CPF)
         counts = purge_cpf_from_e1_artifacts(session, workspace_id=ws_id, dry_run=False)
         payload = session.execute(select(PipelineArtifact.content_json)).scalar_one()
     finally:
