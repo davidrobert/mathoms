@@ -2,8 +2,8 @@
 id: ADR-295
 type: adr
 title: "Enforcement por-item da citação verificada no modo strict (parecer E6)"
-status: Proposto
-phase: "A26 · parecer reliability"
+status: Decidido
+phase: "A26 · parecer reliability (A26.l8)"
 date: "2026-06-17"
 relates_to:
   - "[[ADR-279]]"
@@ -15,7 +15,7 @@ superseded_by: []
 aliases: ["ADR 295", "enforcement por-item citação", "strict per-item parecer"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/llm
   - area/pipeline
   - phase/a26
@@ -23,7 +23,8 @@ tags:
 
 # ADR-295 — Enforcement por-item da citação verificada no modo strict
 
-**Status:** Proposto (A26 · parecer reliability) • **Data:** 2026-06-17 •
+**Status:** Decidido (A26.l8 — impl. em `parecer_strict_enforcement.py`, #666;
+validada empiricamente no eval 1.8.0→1.9.0) • **Data:** 2026-06-17 •
 **Relaciona** [[ADR-279]] (citação verificada E5→E6), [[ADR-292]] (coerção de
 path), [[ADR-081]] (regex→LLM→needs_review), [[ADR-202]] (schema do parecer).
 Co-design `prompt-engineer` + `senior-cto` 2026-06-17 (lane [[A26.l8]]).

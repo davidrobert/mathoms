@@ -4,7 +4,7 @@ type: lane
 title: "value_mismatch residual: enforcement per-item no strict (path válido, número errado)"
 sprint: A26
 plan: PLAN-data-lineage
-status: planned
+status: shipped
 priority: P1
 branch_slug: evidencia-value-mismatch
 adrs:
@@ -19,7 +19,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a26
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/data-lineage
   - area/llm
@@ -162,3 +162,13 @@ redefinido** (segurança ✅ + budget ~6%); a l9 rebaixa de "necessária p/ o fl
 Agente da lane; co-design `prompt-engineer` (eval + few-shot anti-derivação) +
 `senior-cto` (granularidade per-item / [[ADR-295]]) — feito 2026-06-17. Eval +
 classificação 2026-06-18.
+
+## Fechamento (2026-07-02 — sync de frontmatter)
+
+Implementação toda em `main` desde [#666](https://github.com/davidrobert/mathoms/pull/666)
+(`parecer_strict_enforcement.py` + `enforce_strict_per_item` em `_check_evidencia` +
+`items_dropped` no summary + prompt 1.9.0 "par número↔path é UMA escolha") com
+re-eval 1.9.0 batendo o gate redefinido (needs_review 6% ≤ budget 15%). [[ADR-295]]
+flippada `Decidido (A26.l8)` neste PR — era o único entregável pendente em repo.
+Resíduo determinístico de 6% eliminado por construção pela [[A26.l9]]
+(citação determinística, mergeada 2026-06-21).
