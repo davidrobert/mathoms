@@ -786,7 +786,7 @@
 | TRACK-a24-l7-schema-strict-flip | track | ready | A24 | Track A24.l7 — baseline → de-drift vocabulário E2 → flip strict per-schema | `sprint/A24/tracks/a24-l7-schema-strict-flip.md` |
 | TRACK-a25-suggestion-lifecycle | track | consumed | A25 | Track A25 — SUGGESTION_LIFECYCLE F1→F4: supersede-per-run, thesis_key, valores determinísticos, cap/ordering, backfill dogfood | `sprint/A25/tracks/a25-suggestion-lifecycle.md` |
 | TRACK-a3cli-benchmark | track | ready |  | Track A3.cli.benchmark — gate empírico de cold start do run-stage (decide se Caminho 2 reabre antes do 1º PR Go) | `plan/GO_SHELL/tracks/a3cli-benchmark.md` |
-| TRACK-a3cli-orchestrator-cli | track | ready |  | Track A3.cli — entry-point CLI run-stage no orchestrator + injeção DBArtifactStore (Fase 1) + OTel TRACEPARENT (Fase 2) | `plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md` |
+| TRACK-a3cli-orchestrator-cli | track | consumed |  | Track A3.cli — entry-point CLI run-stage no orchestrator + injeção DBArtifactStore (Fase 1) + OTel TRACEPARENT (Fase 2) | `plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |

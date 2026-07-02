@@ -3,20 +3,26 @@ id: TRACK-a3cli-orchestrator-cli
 type: track
 title: "Track A3.cli — entry-point CLI run-stage no orchestrator + injeção DBArtifactStore (Fase 1) + OTel TRACEPARENT (Fase 2)"
 plan: PLAN-go-shell
-status: ready
+status: consumed
 created_at: "2026-07-02"
+consumed_at: "2026-07-02"
 agent_role: senior-cto
 tags:
   - type/track
   - area/pipeline
   - area/observability
-  - status/ready
+  - status/consumed
   - priority/p2
 ---
 
 # Track A3.cli — `a3cli-orchestrator-cli`
 
-> **Status 2026-07-02 — Fase 1 ✅ entregue (PR #737):** `pipeline/cli_run_stage.py`
+> **Status 2026-07-02 — CONSUMED: Fase 1 ✅ (PR #737) + Fase 2 ✅ (PR #738).**
+> Fase 2: `TRACEPARENT` → span filho W3C; provider via `OTEL_EXPORTER_OTLP_ENDPOINT`
+> (`setup_otel` do backend, ADR-110); `_run_stage` emite os 6 attributes canônicos
+> em todo caminho. Próximo da fila: [a3cli-benchmark](a3cli-benchmark.md).
+>
+> **Fase 1 ✅ entregue (PR #737):** `pipeline/cli_run_stage.py`
 > + `backend/app/services/artifact_session_factory.py` (a sessão vive no backend —
 > hook ADR-256 proíbe `Session` própria em `pipeline/**`; o plano original de
 > abrir sessão no CLI era inviável). Precisões descobertas na execução: o env é
@@ -129,9 +135,10 @@ Passos (1 commit coeso por passo):
       `pipeline-service/tests` **não regride** ([[ADR-303]] D5).
 - [x] F1: `python -m pipeline.orchestrator run-stage --help` funciona **sem**
       `MATHOMS_DATABASE_URL`/backend no env.
-- [ ] F2: testes de trace passam; gate `dev/check_pipeline_boundaries.py` verde.
-- [ ] ADR-150 §4: A3.cli ✅ feito em #737; marcar A3.cli.otel ✅ no PR da Fase 2
-      + atualizar F0 do [_README do plano](../_README.md) e `GO_PORT_DEPS.md` §6.
+- [x] F2: testes de trace passam (3 em `tests/test_cli_run_stage_otel.py`, PR #738);
+      gate `dev/check_pipeline_boundaries.py` verde.
+- [x] ADR-150 §4: A3.cli ✅ em #737; A3.cli.otel ✅ em #738 + F0 do
+      [_README do plano](../_README.md) e `GO_PORT_DEPS.md` §6 atualizados.
 
 ## Fora de escopo
 

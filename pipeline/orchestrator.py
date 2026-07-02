@@ -250,19 +250,22 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 ok = True
                 if isinstance(detail, dict) and "success" in detail:
                     ok = bool(detail.get("success"))
-                if span is not None and not ok:
-                    span.set_attribute("pipeline.success", False)
+                # pipeline.success/exit_code em todo caminho — gate de paridade
+                # de trace do Caminho 1 (ADR-150 §Consequências, A3.cli.otel).
+                if span is not None:
+                    span.set_attribute("pipeline.success", ok)
+                    span.set_attribute("pipeline.exit_code", 0 if ok else 1)
                 return StageResult(stage=stage, success=ok, duration_ms=elapsed, detail=detail)
             except SystemExit as exc:
                 elapsed = (time.monotonic() - start) * 1000
                 code = exc.code if exc.code is not None else 0
+                if span is not None:
+                    span.set_attribute("pipeline.success", code == 0)
+                    span.set_attribute("pipeline.exit_code", code)
                 if code == 0:
                     return StageResult(
                         stage=stage, success=True, duration_ms=elapsed, detail={"exit_code": 0}
                     )
-                if span is not None:
-                    span.set_attribute("pipeline.success", False)
-                    span.set_attribute("pipeline.exit_code", code)
                 error_msg = _extract_error_message(
                     captured_stderr.getvalue(), captured_stdout.getvalue(), code
                 )
@@ -272,6 +275,7 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 if span is not None:
                     span.record_exception(exc)
                     span.set_attribute("pipeline.success", False)
+                    span.set_attribute("pipeline.exit_code", 1)
                 return StageResult(stage=stage, success=False, duration_ms=elapsed, error=str(exc))
     finally:
         sys.stderr = original_stderr
