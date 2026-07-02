@@ -149,6 +149,24 @@ Marque cada item. Ao final registre a decisão na §5.
 - [ ] **A8.4** Upload acima do limite (50MB) → HTTP 413 com mensagem clara
 - [ ] **A8.5** Multi-tab: dois browsers com diferentes usuários não interferem
 
+### 4.9 Override v2 flag-ON (6 call-sites — A26.l4 · ADR-282)
+
+> `override_natural_key_v2_enabled` é default **True** pós-flip (A26.l4). Estes checks
+> exercitam os 6 consumidores do `OverrideMatchIndex` sob v2 e alimentam o gate da M2
+> (A26.l5): `v1_fallback == 0` **com** `v2_match >= 1` por ≥1 sprint.
+
+- [ ] **A9.1** Criar override de categoria numa transação → persiste com `natural_key_hash`
+      preenchido (`create_override`, match v2 sem duplicar linha drifted)
+- [ ] **A9.2** Deletar o override → some da transação após reprocesso (`delete_override` casa via v2)
+- [ ] **A9.3** Preview de regra de categorização → transações-alvo corretas (`rule_preview_service`)
+- [ ] **A9.4** Promover override em regra (learning loop) → regra aplica no reprocesso
+      (`categorization_learning_loop` + `_apply_engine`)
+- [ ] **A9.5** Reprocessar E4 → aparece `AuditAction.override_v2_dualread_snapshot` no
+      `audit_log` com `v1_fallback_count=0` e `v2_match_count>=1`:
+      `sqlite3 mathoms.db "SELECT details FROM audit_log WHERE action='override.v2_dualread_snapshot' ORDER BY created_at DESC LIMIT 1;"`
+- [ ] **A9.6** Snapshot datado do gate (janela de observação ≥1 sprint): anotar
+      `v1_fallback/v2_match/divergence` desta rodada na seção 5 — evidência do gate da l5
+
 ---
 
 ## 5. Decisão Final

@@ -81,9 +81,14 @@ instrumentar a verificação.
   `AuditAction.override_v2_dualread_snapshot`) e
   [#713](https://github.com/davidrobert/mathoms/pull/713) (wire do dual-read nos
   consumidores E4).
-- **Resta:** flip do default na sequência anti-`_preflight` (backfill por workspace →
-  flip por workspace → `DEFAULTS` ao final) + atualização do `SMOKE_TEST_HUMAN.md` +
-  janela de observação ≥1 sprint com uso real (dogfood do owner).
+- **Flip do default mergeado (2026-07-02):** `DEFAULTS["override_natural_key_v2_enabled"]
+  = True` + testes explicitam a flag (helper pré-cutover no teste de backfill) +
+  `SMOKE_TEST_HUMAN.md` §4.9 (6 call-sites sob flag-ON + snapshot do gate). Seguro
+  porque o ambiente real tem 0 override legado pendente (12 = 5 reancorados + 7
+  órfãos quarentenados, dogfood ADR-282); a sequência anti-`_preflight` fica
+  documentada no comentário do DEFAULTS para ambientes com legado pendente.
+- **Resta:** janela de observação ≥1 sprint com uso real (dogfood do owner) —
+  `v1_fallback == 0` com `v2_match >= 1` via query no `audit_log` (§4.9 A9.5/A9.6).
 
 ## Critério de aceite
 
