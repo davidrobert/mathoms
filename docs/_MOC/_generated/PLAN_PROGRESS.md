@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-18 planos detectados em [`docs/plan/`](../../plan/).
+19 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -119,6 +119,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A11
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-183]], [[ADR-262]], [[ADR-263]], [[ADR-264]]
+
+### PLAN-go-shell — Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess
+
+- Status: `draft` · Sprint atual: —
+- Sprints envolvidas: —
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-150]], [[ADR-303]], [[ADR-112]], [[ADR-113]]
 
 ### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting
 

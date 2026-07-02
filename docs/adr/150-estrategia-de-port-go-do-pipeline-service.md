@@ -5,7 +5,7 @@ title: "Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via 
 status: Roadmap
 phase: "deferido em W6-T06, 2026-05-07"
 date: "2026-04-27"
-relates_to: ["[[ADR-112]]", "[[ADR-113]]", "[[ADR-102]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-109]]", "[[ADR-205]]", "[[ADR-212]]", "[[ADR-241]]", "[[ADR-291]]"]
+relates_to: ["[[ADR-112]]", "[[ADR-113]]", "[[ADR-102]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-109]]", "[[ADR-205]]", "[[ADR-212]]", "[[ADR-241]]", "[[ADR-291]]", "[[ADR-303]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 150"]
@@ -107,6 +107,8 @@ size_lines: 257
 >      duplicação do contrato de validação no cliente ou no servidor.
 >    `A3.store` **abre ADR `Proposto` própria** quando a lane arrancar
 >    (numerar na criação) — é decisão de boundary, não slice mecânico.
+>    *(Entregue em 2026-07-02: a ADR é a [[ADR-303]], `Decidido`, com a
+>    opção (a) confirmada — PRs #721+#723.)*
 > 3. **O modo HTTP do `pipeline-service` está latentemente quebrado
 >    pós-ADR-212**: `stage_executor.py` e `run_coordinator.py` constroem
 >    `WorkspaceContext.for_tenant(...)` **sem injetar** `artifact_store`,
@@ -119,7 +121,9 @@ size_lines: 257
 >    toca o store. **Primeiro entregável de A3.store:** consertar a
 >    injeção + teste de integração que exercita um stage real via HTTP
 >    (artefato persistido em `pipeline_artifacts`) — o path deixa de
->    poder quebrar em silêncio.
+>    poder quebrar em silêncio. *(Consertado no PR #723 —
+>    `pipeline-service/app/services/artifact_session.py` + suíte
+>    `pipeline-service/tests` no CI, [[ADR-303]] D5.)*
 > 4. **Invariantes de separação de responsabilidade** (valem para
 >    qualquer executor remoto, Python ou Go): materialização de lineage
 >    ([[ADR-279]]/[[ADR-293]]) e telemetria de run são do **orquestrador
@@ -187,11 +191,11 @@ Hoje, nenhum dos quatro está ativo.
 3. **Caminho 2 fica descartado por ora.** Complexidade operacional acima do retorno enquanto cargas estão muito abaixo do ponto de saturação. Se Caminho 1 entregar e fork+exec por stage virar gargalo medido (não suposto), reabrir em ADR própria.
 
 4. **Pré-requisitos do Caminho 1, ordem obrigatória:**
-   - **A3.store** *(adicionado na emenda 2026-07-02 — primeiro da fila)* — decidir e implementar o acesso do executor remoto a `pipeline_artifacts` pós-[[ADR-212]] (opções e recomendação na emenda, item 2). Abre ADR `Proposto` própria, conserta o modo HTTP do `pipeline-service` e adiciona teste de integração que exercita stage real via HTTP. Sem isso, qualquer executor fora do processo Celery — Python ou Go — falha com `RuntimeError` no primeiro `get_artifact_store()`.
+   - **A3.store** — ✅ **entregue** (2026-07-02, [[ADR-303]] `Decidido`, PRs #721+#723): executor remoto injeta `DBArtifactStore` do backend por-stage (opção (a) da emenda), modo HTTP do `pipeline-service` consertado, delta aditivo `base_run_id`/`base_run_fallback_stages` no contrato, teste de integração de stage real via HTTP + suíte `pipeline-service/tests` no CI.
    - **A2.fix** — ✅ **entregue** (A20.L2/L3): Dockerfile copia source antes do install, base pinada por digest, non-root.
-   - **A3.cli** — adicionar entry-point CLI no orchestrator: `python -m pipeline.orchestrator run-stage <stage> --workspace <path> --run-id <id> [--config-dir <path>] [--incremental] [--incremental-doc <path>...]`. Output JSON estruturado em stdout (mesmo shape de `StageResult`), erros estruturados em stderr. Sem CLI, Caminho 1 vira hack de import dinâmico, não interface estável. **Sub-requisito (emenda 2026-07-02, item 6):** o CLI lê `DATABASE_URL` do env e injeta `DBArtifactStore` por-stage.
-   - **A3.cli.otel** *(sub-pré-requisito hard)* — entry-point CLI lê `TRACEPARENT` do env e instancia span filho via OTel context propagation, mantendo o trace contínuo entre Go (parent) e Python (child). Sem isso, gate de paridade do §7 não cobre traces e regressão de latência em produção fica invisível.
-   - **A3.cli.benchmark** *(gate empírico)* — após A3.cli + A3.cli.otel, medir cold start real do `python -m pipeline.orchestrator run-stage` num venv com deps típicas (`pipeline.*`, `pipeline.llm.*`, fallback opcional `backend.app.core.logging`). **Se cold start mediano >500ms**, Caminho 2 (worker pool warm) volta à mesa **antes** do primeiro PR Go produtivo — não depois. Boot Python real não é o `python -c` vazio (~50ms); é o re-import da árvore de domínio, que A2 não mediu (pipeline-service local importa lazy dentro de funções).
+   - **A3.cli** — adicionar entry-point CLI no orchestrator: `python -m pipeline.orchestrator run-stage <stage> --workspace <path> --run-id <id> [--config-dir <path>] [--incremental] [--incremental-doc <path>...]`. Output JSON estruturado em stdout (mesmo shape de `StageResult`), erros estruturados em stderr. Sem CLI, Caminho 1 vira hack de import dinâmico, não interface estável. **Sub-requisito (emenda 2026-07-02, item 6):** o CLI lê `DATABASE_URL` do env e injeta `DBArtifactStore` por-stage — herda a mecânica de [[ADR-303]] D1/D4. **Track de execução pronto:** [docs/plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md](../plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md) (Fase 1).
+   - **A3.cli.otel** *(sub-pré-requisito hard)* — entry-point CLI lê `TRACEPARENT` do env e instancia span filho via OTel context propagation, mantendo o trace contínuo entre Go (parent) e Python (child). Sem isso, gate de paridade do §7 não cobre traces e regressão de latência em produção fica invisível. **Executa como Fase 2 do mesmo track de A3.cli** (mesmo perímetro de código — o entry-point).
+   - **A3.cli.benchmark** *(gate empírico)* — após A3.cli + A3.cli.otel, medir cold start real do `python -m pipeline.orchestrator run-stage` num venv com deps típicas (`pipeline.*`, `pipeline.llm.*`, fallback opcional `backend.app.core.logging`). **Se cold start mediano >500ms**, Caminho 2 (worker pool warm) volta à mesa **antes** do primeiro PR Go produtivo — não depois. Boot Python real não é o `python -c` vazio (~50ms); é o re-import da árvore de domínio, que A2 não mediu (pipeline-service local importa lazy dentro de funções). **Track de execução pronto** (não pegar antes do merge de A3.cli): [docs/plan/GO_SHELL/tracks/a3cli-benchmark.md](../plan/GO_SHELL/tracks/a3cli-benchmark.md).
    - **A3.codegen** — codegen Go via `oapi-codegen` consumindo [docs/reference/api/v1/pipeline-service.openapi.json](../reference/api/v1/pipeline-service.openapi.json) para `services/pipeline-service-go/internal/contracts/`. Snapshot test garante regen limpo.
 
 5. **Layout do serviço Go (quando criado):**
@@ -240,7 +244,7 @@ Hoje, nenhum dos quatro está ativo.
 
 **Escopo deferido (follow-ups explícitos):**
 
-- **A3.store** *(emenda 2026-07-02)* — boundary de artefatos do executor remoto pós-[[ADR-212]]. Abre ADR `Proposto` própria (co-design com `data-engineer`: segundo produtor de escritas em `pipeline_artifacts` + tenancy scoping). Primeiro entregável: fix do modo HTTP + teste de integração de stage real.
+- **A3.store** — ✅ entregue (2026-07-02, [[ADR-303]] `Decidido`, PRs #721+#723). ~~boundary de artefatos do executor remoto pós-[[ADR-212]]. Abre ADR `Proposto` própria (co-design com `data-engineer`: segundo produtor de escritas em `pipeline_artifacts` + tenancy scoping). Primeiro entregável: fix do modo HTTP + teste de integração de stage real.~~
 - **A2.1** — smoke real do `pipeline-service` Python: workspace tenant + run E0→E5 completo, medindo RSS/CPU/duração por stage. **Pré-requisito de Caminho 3** e validação de Caminho 1.
 - **A2.fix** — ✅ entregue (A20.L2/L3). ~~fix do bug de COPY ordering em [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile)~~.
 - **A3.cli** — entry-point `python -m pipeline.orchestrator run-stage` com output JSON estruturado. Slice próprio, sem ADR (interface adicional, retro-compatível com `_run_stage` programático).

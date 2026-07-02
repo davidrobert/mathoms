@@ -740,6 +740,7 @@
 | PLAN-cenarios-estresse | plan | done |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-data-lineage | plan | in_progress |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |
+| PLAN-go-shell | plan | draft |  | Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess | `plan/GO_SHELL/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |
 | PLAN-launch-trust | plan | in_progress |  | Launch Trust — três frentes que precisam estar verdes antes de produção | `plan/LAUNCH_TRUST/_README.md` |
@@ -784,6 +785,8 @@
 | TRACK-a20-l9-smoke-e2e | track | ready | A20 | Track A20.L9 — Smoke E2E em compose (gate de fechamento do sprint) | `sprint/A20/tracks/a20-l9-smoke-e2e.md` |
 | TRACK-a24-l7-schema-strict-flip | track | ready | A24 | Track A24.l7 — baseline → de-drift vocabulário E2 → flip strict per-schema | `sprint/A24/tracks/a24-l7-schema-strict-flip.md` |
 | TRACK-a25-suggestion-lifecycle | track | consumed | A25 | Track A25 — SUGGESTION_LIFECYCLE F1→F4: supersede-per-run, thesis_key, valores determinísticos, cap/ordering, backfill dogfood | `sprint/A25/tracks/a25-suggestion-lifecycle.md` |
+| TRACK-a3cli-benchmark | track | ready |  | Track A3.cli.benchmark — gate empírico de cold start do run-stage (decide se Caminho 2 reabre antes do 1º PR Go) | `plan/GO_SHELL/tracks/a3cli-benchmark.md` |
+| TRACK-a3cli-orchestrator-cli | track | ready |  | Track A3.cli — entry-point CLI run-stage no orchestrator + injeção DBArtifactStore (Fase 1) + OTel TRACEPARENT (Fase 2) | `plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |
