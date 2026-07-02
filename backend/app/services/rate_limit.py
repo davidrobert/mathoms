@@ -57,13 +57,21 @@ def resolve_policy(scope: str) -> RateLimitPolicy:
     return _DEFAULT_POLICIES[scope]
 
 
+def _denied(policy: RateLimitPolicy, client, redis_key: str) -> tuple[bool, int]:
+    ttl = client.ttl(redis_key)
+    retry_after = int(ttl) if ttl and ttl > 0 else policy.window_s
+    _rl_metrics.warning(
+        "rate limit exceeded",
+        extra={"scope": policy.scope, "result": "denied", "retry_after": retry_after},
+    )
+    return False, retry_after
+
+
 def check_rate_limit(policy: RateLimitPolicy, key: str) -> tuple[bool, int]:
     """(allowed, retry_after_s). Falha aberta quando Redis indisponível."""
     client = _get_redis_safe()
     if client is None:
-        _rl_metrics.info(
-            "rate limit fallback", extra={"scope": policy.scope, "result": "fallback"}
-        )
+        _rl_metrics.info("rate limit fallback", extra={"scope": policy.scope, "result": "fallback"})
         return True, 0
     redis_key = f"ratelimit:{policy.scope}:{key}"
     try:
@@ -72,13 +80,7 @@ def check_rate_limit(policy: RateLimitPolicy, key: str) -> tuple[bool, int]:
             client.expire(redis_key, policy.window_s)
         if count <= policy.limit:
             return True, 0
-        ttl = client.ttl(redis_key)
-        retry_after = int(ttl) if ttl and ttl > 0 else policy.window_s
-        _rl_metrics.warning(
-            "rate limit exceeded",
-            extra={"scope": policy.scope, "result": "denied", "retry_after": retry_after},
-        )
-        return False, retry_after
+        return _denied(policy, client, redis_key)
     except Exception as exc:
         logger.warning("rate limit redis error (%s): %s — fail-open", policy.scope, exc)
         return True, 0
@@ -98,9 +100,7 @@ def workspace_key(request: Request) -> str:
     return str(ws_id) if ws_id else client_ip_key(request)
 
 
-def rate_limited(
-    scope: str, key: Callable[[Request], str] = client_ip_key
-) -> Any:
+def rate_limited(scope: str, key: Callable[[Request], str] = client_ip_key) -> Any:
     """Dependency FastAPI — 429 + ``Retry-After`` quando o limite estoura."""
 
     async def _dependency(request: Request) -> None:

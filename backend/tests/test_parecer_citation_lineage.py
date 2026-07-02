@@ -4,28 +4,23 @@ from __future__ import annotations
 
 from backend.app.services.parecer_citation_lineage import resolve_citation_natural_key
 
+_ATIVO_DONOS = {"PETR4": ("Ana", "XP"), "ITSA4": ("Bruno", "Itau"), "MXRF11": ("Ana", "Rico")}
+
+
+def _ativo(i: int, nome: str) -> dict:
+    membro, instituicao = _ATIVO_DONOS[nome]
+    return {
+        "posicao": i,
+        "nome": nome,
+        "membro": membro,
+        "instituicao": instituicao,
+        "valor": 100 - i,
+    }
+
 
 def _e5_with_top_ativos(order: list[str]) -> dict:
     """E5 sintético: top_ativos na ordem dada (nome = elemento), posicao = índice."""
-    nomes = {
-        "PETR4": ("Ana", "XP"),
-        "ITSA4": ("Bruno", "Itau"),
-        "MXRF11": ("Ana", "Rico"),
-    }
-    return {
-        "investimentos": {
-            "top_ativos": [
-                {
-                    "posicao": i,
-                    "nome": n,
-                    "membro": nomes[n][0],
-                    "instituicao": nomes[n][1],
-                    "valor": 100 - i,
-                }
-                for i, n in enumerate(order)
-            ]
-        }
-    }
+    return {"investimentos": {"top_ativos": [_ativo(i, n) for i, n in enumerate(order)]}}
 
 
 def test_top_ativo_natural_key_is_content_based() -> None:

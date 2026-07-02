@@ -32,28 +32,30 @@ _COLUMNS = (
 )
 
 
-def snapshot(out_path: Path) -> int:
+def _legacy_rows(session) -> list:
     from sqlalchemy import or_, select
 
-    from backend.app.core.database import SyncSessionLocal
     from backend.app.models.llm_call_log import LLMCallLog
+
+    stmt = (
+        select(LLMCallLog)
+        .where(
+            or_(
+                LLMCallLog.prompt_version_legacy.is_not(None),
+                LLMCallLog.prompt_version.like("%-v%"),
+            )
+        )
+        .order_by(LLMCallLog.created_at)
+    )
+    return list(session.execute(stmt).scalars().all())
+
+
+def snapshot(out_path: Path) -> int:
+    from backend.app.core.database import SyncSessionLocal
 
     session = SyncSessionLocal()
     try:
-        rows = (
-            session.execute(
-                select(LLMCallLog)
-                .where(
-                    or_(
-                        LLMCallLog.prompt_version_legacy.is_not(None),
-                        LLMCallLog.prompt_version.like("%-v%"),
-                    )
-                )
-                .order_by(LLMCallLog.created_at)
-            )
-            .scalars()
-            .all()
-        )
+        rows = _legacy_rows(session)
         with out_path.open("w", newline="") as fh:
             writer = csv.writer(fh)
             writer.writerow(_COLUMNS)

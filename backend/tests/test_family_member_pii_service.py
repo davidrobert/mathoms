@@ -95,9 +95,7 @@ def test_backfill_preenche_cpf_encrypted(db_factory, tmp_path, monkeypatch) -> N
         counts = backfill_member_cpfs(
             session, workspace_id=ws_id, tenant_root=tmp_path, dry_run=False
         )
-        row = session.execute(
-            select(FamilyMember).where(FamilyMember.id == member_id)
-        ).scalar_one()
+        row = session.execute(select(FamilyMember).where(FamilyMember.id == member_id)).scalar_one()
         assert counts["filled"] == 1
         assert row.cpf_encrypted is not None
         assert get_vault().decrypt(row.cpf_encrypted) == _CPF_DIGITS
@@ -114,9 +112,7 @@ def test_backfill_dry_run_nao_escreve(db_factory, tmp_path) -> None:
         counts = backfill_member_cpfs(
             session, workspace_id=ws_id, tenant_root=tmp_path, dry_run=True
         )
-        row = session.execute(
-            select(FamilyMember).where(FamilyMember.id == member_id)
-        ).scalar_one()
+        row = session.execute(select(FamilyMember).where(FamilyMember.id == member_id)).scalar_one()
         assert counts["filled"] == 1
         assert row.cpf_encrypted is None
     finally:
@@ -159,29 +155,35 @@ def test_backfill_sem_docs_conta_unmatched(db_factory, tmp_path) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _seed_e1_artifact(session, ws_id: str, *, stage: str, membros: dict) -> None:
+    run = PipelineRun(workspace_id=ws_id)
+    session.add(run)
+    session.flush()
+    session.add(
+        PipelineArtifact(
+            workspace_id=ws_id,
+            pipeline_run_id=run.id,
+            stage=stage,
+            artifact_key="members",
+            content_json={"membros": membros},
+        )
+    )
+    session.commit()
+
+
 def test_purge_remove_cpf_e_preserva_sinal(db_factory) -> None:
     ws_id, _ = _seed_member(db_factory)
     session = db_factory()
     try:
-        run = PipelineRun(workspace_id=ws_id)
-        session.add(run)
-        session.flush()
-        session.add(
-            PipelineArtifact(
-                workspace_id=ws_id,
-                pipeline_run_id=run.id,
-                stage="E1",
-                artifact_key="members",
-                content_json={
-                    "membros": {
-                        "ricardo": {"nome_completo": "Ricardo", "cpf": _CPF_DIGITS},
-                        "claudia": {"nome_completo": "Claudia"},
-                    }
-                },
-            )
+        _seed_e1_artifact(
+            session,
+            ws_id,
+            stage="E1",
+            membros={
+                "ricardo": {"nome_completo": "Ricardo", "cpf": _CPF_DIGITS},
+                "claudia": {"nome_completo": "Claudia"},
+            },
         )
-        session.commit()
-
         counts = purge_cpf_from_e1_artifacts(session, workspace_id=ws_id, dry_run=False)
         payload = session.execute(select(PipelineArtifact.content_json)).scalar_one()
     finally:
@@ -197,20 +199,9 @@ def test_purge_dry_run_nao_escreve(db_factory) -> None:
     ws_id, _ = _seed_member(db_factory)
     session = db_factory()
     try:
-        run = PipelineRun(workspace_id=ws_id)
-        session.add(run)
-        session.flush()
-        session.add(
-            PipelineArtifact(
-                workspace_id=ws_id,
-                pipeline_run_id=run.id,
-                stage="extract_members",
-                artifact_key="members",
-                content_json={"membros": {"r": {"cpf": _CPF_DIGITS}}},
-            )
+        _seed_e1_artifact(
+            session, ws_id, stage="extract_members", membros={"r": {"cpf": _CPF_DIGITS}}
         )
-        session.commit()
-
         counts = purge_cpf_from_e1_artifacts(session, workspace_id=ws_id, dry_run=True)
         payload = session.execute(select(PipelineArtifact.content_json)).scalar_one()
     finally:

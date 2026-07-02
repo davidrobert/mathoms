@@ -51,8 +51,8 @@ def alembic_at_parent(monkeypatch):
     db_path.unlink(missing_ok=True)
 
 
-def _seed_call_log(conn, prompt_version: str) -> str:
-    user_id, ws_id, row_id = str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())
+def _seed_user_and_workspace(conn) -> str:
+    user_id, ws_id = str(uuid.uuid4()), str(uuid.uuid4())
     conn.execute(
         sa.text(
             "INSERT INTO users (id, email, hashed_password, full_name, is_active, created_at) "
@@ -67,6 +67,11 @@ def _seed_call_log(conn, prompt_version: str) -> str:
         ),
         {"id": ws_id, "owner": user_id},
     )
+    return ws_id
+
+
+def _seed_call_log(conn, prompt_version: str) -> str:
+    ws_id, row_id = _seed_user_and_workspace(conn), str(uuid.uuid4())
     conn.execute(
         sa.text(
             "INSERT INTO llm_call_log "
@@ -82,9 +87,7 @@ def _seed_call_log(conn, prompt_version: str) -> str:
 
 def _row(conn, row_id: str):
     return conn.execute(
-        sa.text(
-            "SELECT prompt_version, prompt_version_legacy FROM llm_call_log WHERE id = :id"
-        ),
+        sa.text("SELECT prompt_version, prompt_version_legacy FROM llm_call_log WHERE id = :id"),
         {"id": row_id},
     ).fetchone()
 

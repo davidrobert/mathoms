@@ -29,12 +29,7 @@ def extract_document_cpfs(text: str) -> set[str]:
 
 
 def resolve_member_key_by_cpf(text: str, members: Iterable[_MemberWithCpf]) -> Optional[str]:
-    """``member_key`` cujo CPF (config) aparece no documento; ``None`` se 0 ou >1 matches.
-
-    Ambiguidade (documento com CPF de 2+ membros — ex.: IRPF conjunta) degrada
-    para ``None`` em vez de escolher errado: atribuição incorreta de informe é
-    pior que ausente (needs_review cobre).
-    """
+    """``member_key`` cujo CPF (config) aparece no documento; ambíguo (0 ou 2+ matches, ex. IRPF conjunta) degrada para ``None`` — atribuição errada é pior que ausente."""
     doc_cpfs = extract_document_cpfs(text)
     if not doc_cpfs:
         return None

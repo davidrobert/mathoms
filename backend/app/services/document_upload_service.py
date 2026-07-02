@@ -26,6 +26,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
+from backend.app.events.domain import AuditLogEvent
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.repositories.document_repository import DocumentRepository
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
@@ -316,3 +317,28 @@ async def _apply_fuzzy_dedupe(
     if existing_id:
         doc.possible_duplicate_of_id = existing_id
         doc.needs_review = True
+
+
+def build_upload_audit_event(
+    doc: Document, workspace_id: str, actor_user_id: str, ip, ua
+) -> AuditLogEvent:
+    """Evento de audit por documento efetivamente armazenado (consumido pelo router)."""
+    from backend.app.services.audit import AuditAction
+
+    return AuditLogEvent(
+        aggregate_id=doc.id,
+        aggregate_type="document",
+        workspace_id=workspace_id,
+        action=AuditAction.document_upload.value,
+        resource_type="document",
+        resource_id=doc.id,
+        actor_user_id=actor_user_id,
+        ip_address=ip,
+        user_agent=ua,
+        details={
+            "filename": doc.original_name,
+            "size_bytes": doc.file_size_bytes,
+            "content_hash": doc.content_hash,
+            "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
+        },
+    )
