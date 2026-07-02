@@ -16,17 +16,21 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 **Promovida em 2026-06-16, sucedendo A25 (`done`).** 5ª janela do plano [[PLAN-data-lineage]]:
 **remove as redes de segurança** da frente (shims de identidade v1, modo `warn` do
-`evidencia_path`) após observação de produção. 9 lanes em 2 regimes: **Regime A** —
-[[A26.l1]] (fix de citação do `evidencia_path`, **única `open`, sem gate — ponto de
-entrada**) + **Regime B** — l2 flip strict · l3 drop shim dedup · l4 override v2 ON +
-instrumentação · l5 M2 override destrutiva (todas `blocked` por **volume de tráfego**:
-≥20 gerações de parecer; ≥1 sprint com flags v2 a 100% + `dualread.v1_fallback` zerado
-com uso real). Co-design 2026-06-16 (PM + IA + data-engineer + prompt-engineer +
-sre-devops). Sem ADR nova (ADR-279/287 cobrem; ADR-282 flippa `Decidido` quando a M2
-override fechar). **Insumos para destravar l2–l5:** `ANTHROPIC_API_KEY` + ~20 gerações
-de parecer + exercício do override v2 por ≥1 sprint + confirmar PITR do Postgres.
+`evidencia_path`) após observação de produção. Co-design 2026-06-16 (PM + IA +
+data-engineer + prompt-engineer + sre-devops); sem ADR nova (ADR-279/287 cobrem;
+ADR-282 flippa `Decidido` quando a M2 override fechar).
 
-- **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) (9 lanes) · **Plano:**
+**Estado 2026-07-02 — 6/10 lanes shipped, 1 in_progress:** Regime A todo entregue
+([[A26.l1]] #654 · [[A26.l6]] #660 · [[A26.l7]] #662 · [[A26.l8]] #666 · [[A26.l9]]
+#687) + [[A26.l3]] (drop shim dedup, gate cumprido, #709). [[A26.l4]] `in_progress`
+(instrumentação #711/#713; resta flip default + observação ≥1 sprint). Restam
+**blocked por tráfego**: [[A26.l2]] (flip strict — pré-condição de código ✅ via l8;
+falta ≥20 gerações reais p/ budget `needs_review` ≤15%) e [[A26.l5]] (M2 destrutiva —
+gate G1/G2/G3 + PITR + go/no-go). [[A26.l10]] (LGPD export, audit r4) `planned`, sem
+gate. **Insumos para destravar l2/l5:** ~20 gerações de parecer (dogfood do owner) +
+exercício do override v2 por ≥1 sprint + confirmar PITR do Postgres.
+
+- **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) (10 lanes) · **Plano:**
   [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 · **Prompt:**
   [agent_prompts/orchestrator_a26_consolidacao.md](../agent_prompts/orchestrator_a26_consolidacao.md).
 - **Precedência de corte:** Must l1+l2 · Should l3+l4 · Could/cortável l5 (→ A27).
@@ -62,12 +66,16 @@ flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
 
 ### A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer (`candidate` 2026-06-19)
 
-**Sucessora direta da A26.** 6ª e última janela do plano [[PLAN-data-lineage]]: fecha a
-raiz que a A26 contornou — o LLM para de autorar o número do parecer e o pipeline
-renderiza o valor da folha ([[ADR-296]], executada via [[A26.l9]]) — e materializa a
-citação verificada como **edge de lineage por chave natural** ([[ADR-293]], lane nativa
-[[A27.l1]]). Ordem: edge slices 1+3 ∥ l9 → slices 2+4 após o merge da l9 (acoplamento de
-contrato da âncora). Condicional: [[A26.l5]] `m2-override-drop` se não fechar na A26.
+**Sucessora direta da A26 — escopo Must já entregue antecipadamente (2026-07-02),
+executado durante a janela A26.** 6ª e última janela do plano [[PLAN-data-lineage]]:
+fechou a raiz que a A26 contornou — o LLM parou de autorar o número do parecer e o
+pipeline renderiza o valor da folha ([[ADR-296]] `Decidido`, executada via [[A26.l9]]
+✅ #687) — e materializou a citação verificada como **edge de lineage por chave
+natural** ([[ADR-293]] `Decidido (A27.l1)`, lane [[A27.l1]] ✅ #715/#716/#718; KR3
+provado por teste de reordenação de `top_ativos`). Follow-up do KR1: pureza monetária
+da prosa (persona 1.1.0, 61→7 violações) + doutrina [[ADR-304]] (#729 ✅). Resta a
+**promoção formal** (A26→`done` + A27→`current`→`done`) quando os gates de tráfego da
+A26 fecharem. Condicional: [[A26.l5]] `m2-override-drop` se não fechar na A26.
 
 - **Plano:** [sprint/A27/_README.md](../sprint/A27/_README.md) · **Dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 6.
 

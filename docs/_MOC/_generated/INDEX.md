@@ -540,11 +540,15 @@
 | CHG-2026-06-16-A25-L7-EVIDENCIA-STRICT-DECISION | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-16-A25-L7-EVIDENCIA-STRICT-DECISION.md` |
 | CHG-2026-06-18-A26-L1-EVIDENCIA-CATALOGO | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-18-A26-L1-EVIDENCIA-CATALOGO.md` |
 | CHG-2026-06-18-A26-L6-EVIDENCIA-COVERAGE-KPI | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-18-A26-L6-EVIDENCIA-COVERAGE-KPI.md` |
+| CHG-2026-06-18-A26-L8-EVIDENCIA-VALUE-MISMATCH | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-18-A26-L8-EVIDENCIA-VALUE-MISMATCH.md` |
 | CHG-2026-06-19-A26-L7-EVIDENCIA-CATALOG-LISTAS | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-19-A26-L7-EVIDENCIA-CATALOG-LISTAS.md` |
 | CHG-2026-06-21-A26-L9-CITACAO-DETERMINISTICA | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-06-21-A26-L9-CITACAO-DETERMINISTICA.md` |
 | CHG-2026-06-29-A22-L2-RED-LINES | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-06-29-A22-L2-RED-LINES.md` |
 | CHG-2026-06-29-A22-L5-DIVIDAS-DEDUP | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-06-29-A22-L5-DIVIDAS-DEDUP.md` |
 | CHG-2026-07-01-A22-L2-RED-LINES-CALIBRATION | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-07-01-A22-L2-RED-LINES-CALIBRATION.md` |
+| CHG-2026-07-01-A26-L3-DROP-DEDUP-V1-SHIM | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-07-01-A26-L3-DROP-DEDUP-V1-SHIM.md` |
+| CHG-2026-07-01-A26-L4-INSTRUMENTACAO-DUALREAD | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-07-01-A26-L4-INSTRUMENTACAO-DUALREAD.md` |
+| CHG-2026-07-02-A27-L1-EVIDENCIA-LINEAGE-EDGE | changelog-entry |  | A27 |  | `sprint/A27/changelog/CHG-2026-07-02-A27-L1-EVIDENCIA-LINEAGE-EDGE.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -645,7 +649,7 @@
 | A26.l10 | lane | planned | A26 | LGPD export — cobertura total das tabelas com dados pessoais (Art.18) | `sprint/A26/lanes/A26-l10-lgpd-export-cobertura.md` |
 | A26.l2 | lane | blocked | A26 | Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review) | `sprint/A26/lanes/A26-l2-evidencia-flip-strict.md` |
 | A26.l3 | lane | shipped | A26 | M2-A — drop do shim v1 do dedup (compute_transaction_hash) | `sprint/A26/lanes/A26-l3-drop-dedup-v1-shim.md` |
-| A26.l4 | lane | blocked | A26 | Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) | `sprint/A26/lanes/A26-l4-override-v2-on-instrumentacao.md` |
+| A26.l4 | lane | in_progress | A26 | Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) | `sprint/A26/lanes/A26-l4-override-v2-on-instrumentacao.md` |
 | A26.l5 | lane | blocked | A26 | M2-B — drop destrutivo do estado legado de identidade do override (Fase E) | `sprint/A26/lanes/A26-l5-m2-override-drop.md` |
 | A26.l6 | lane | shipped | A26 | Telemetria de citação: cobertura (missing_path) vs. correção (value_mismatch) + drift | `sprint/A26/lanes/A26-l6-evidencia-coverage-kpi.md` |
 | A26.l7 | lane | shipped | A26 | Catálogo de citação cobre folhas de LISTA (fonte única forward↔reverse) | `sprint/A26/lanes/A26-l7-evidencia-catalog-listas.md` |
