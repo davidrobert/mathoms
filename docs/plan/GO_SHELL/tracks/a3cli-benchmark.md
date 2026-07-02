@@ -3,22 +3,29 @@ id: TRACK-a3cli-benchmark
 type: track
 title: "Track A3.cli.benchmark — gate empírico de cold start do run-stage (decide se Caminho 2 reabre antes do 1º PR Go)"
 plan: PLAN-go-shell
-status: ready
+status: consumed
 created_at: "2026-07-02"
+consumed_at: "2026-07-02"
 agent_role: senior-cto
 tags:
   - type/track
   - area/pipeline
-  - status/ready
+  - status/consumed
   - priority/p2
 ---
 
 # Track A3.cli.benchmark — `a3cli-benchmark`
 
-> ⛔ **GATE DE PICKUP: não iniciar antes das 2 fases de
-> [TRACK-a3cli-orchestrator-cli](a3cli-orchestrator-cli.md) mergeadas em `main`**
-> (não há o que medir sem o entry-point). Track `ready` apenas para registro da
-> fila — verifique o merge antes de criar branch.
+> **Status 2026-07-02 — CONSUMED: gate PASSA.** Cold start mediana **413ms ≤ 500ms
+> → Caminho 1 segue**; p95 830ms; acumulado projetado 4,1s/run determinístico e
+> 7,4s/run full — dentro da estimativa da ADR-150 e abaixo do risco de 10s.
+> Números, método e breakdown de imports:
+> [PERFORMANCE_BASELINE §11](../../../reference/PERFORMANCE_BASELINE.md); script
+> `dev/benchmark_run_stage_cold_start.py`.
+>
+> ~~⛔ GATE DE PICKUP: não iniciar antes das 2 fases de
+> [TRACK-a3cli-orchestrator-cli](a3cli-orchestrator-cli.md) mergeadas em `main`~~
+> (cumprido: #737 + #738).
 >
 > **Tipo:** gate de **medição com critério de decisão** ([[ADR-150]] §4
 > A3.cli.benchmark), não feature. **Branch prefix:** `agent/a3cli-benchmark/*`.
@@ -65,15 +72,15 @@ Ambiente: venv produtivo completo (deps de `pipeline.*`, `pipeline.llm.*`,
 
 ## Entregáveis (docs-only + script; concluído = PR mergeado)
 
-- [ ] Seção nova "A3.cli.benchmark (2026-XX-XX)" no
+- [x] Seção "§11 A3.cli.benchmark (2026-07-02)" no
       [PERFORMANCE_BASELINE](../../../reference/PERFORMANCE_BASELINE.md):
-      mediana, p95, N, máquina/venv, import-time breakdown (se medido),
-      acumulado projetado por run vs baseline in-process, comando reproduzível.
-- [ ] Decisão binária documentada na mesma seção + marcação ✅ do
-      A3.cli.benchmark na [[ADR-150]] §4 (com o número) e no F0 do
-      [_README do plano](../_README.md); atualizar `GO_PORT_DEPS.md` §6.
-- [ ] Se >500ms: emenda na [[ADR-150]] reabrindo Caminho 2 (ver acima).
-- [ ] Script de medição em `dev/`.
+      mediana 413ms, p95 830ms, N=20, Apple M4/Python 3.12, breakdown
+      `-X importtime`, acumulado 4,1–7,4s/run vs baseline in-process ≈ 0.
+- [x] Decisão binária documentada (≤500ms → Caminho 1 segue) + ✅ na
+      [[ADR-150]] §4 (com o número) e no F0 do [_README do plano](../_README.md);
+      `GO_PORT_DEPS.md` §6 atualizado.
+- [x] ~~Se >500ms: emenda reabrindo Caminho 2~~ — não disparou (413 ≤ 500).
+- [x] Script de medição: `dev/benchmark_run_stage_cold_start.py`.
 
 ## Fora de escopo
 

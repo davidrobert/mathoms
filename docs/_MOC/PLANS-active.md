@@ -19,7 +19,7 @@ aliases: ["PLANS-active", "plans-active"]
 | [`PLAN-llm-prompts-hardening`](../plan/LLM_PROMPTS_HARDENING/_README.md) | LGPD/ADR-090/telemetria nos 9 prompts LLM — A17/A18/A20. |
 | [`PLAN-data-lineage`](../plan/DATA_LINEAGE/_README.md) | Lineage fim-a-fim (forward+reverso) legível por LLM + fonte plugável (`SourceAdapter`/`SourceRef`) + extração limpa. Gate F0 abre 4 ADR (278-281) + emenda ADR-146; nenhuma lane abre antes de B1–B8. **Sprints A23–A27; corrente A26** (Ondas 0–5 shipped). |
 | [`PLAN-suggestion-lifecycle`](../plan/SUGGESTION_LIFECYCLE/_README.md) | Inbox `/acao` com 158 sugestões acumuladas (dogfood): supersede-per-run + `thesis_key` + valores determinísticos no parecer + cap/ordering. Gate F0 abre ADR-290. **Origem A25 (`done`); F1–F4 shipped**, gate de estabilidade thesis_key pendente. |
-| [`PLAN-go-shell`](../plan/GO_SHELL/_README.md) | Caminho 1 do [[ADR-150]] (shell Go + Python subprocess). F0 pré-requisitos: A3.store ([[ADR-303]]) + A2.fix ✅; **A3.cli + otel + benchmark com tracks prontos** (prep antecipado autorizado 2026-07-02, fora das sprints temáticas). F1+ (PR Go) segue bloqueada pelos gatilhos da ADR-150. |
+| [`PLAN-go-shell`](../plan/GO_SHELL/_README.md) | Caminho 1 do [[ADR-150]] (shell Go + Python subprocess). **F0 pré-requisitos ✅ concluída 2026-07-02** (A3.store [[ADR-303]] · A3.cli #737 · otel #738 · benchmark gate PASSA 413ms≤500ms; resta só A3.codegen, ancorado a F1). F1+ (PR Go) segue bloqueada pelos gatilhos da ADR-150 (revisita 2027-Q2 / 100 workspaces). |
 
 ## Pausados relevantes
 
