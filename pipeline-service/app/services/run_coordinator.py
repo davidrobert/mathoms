@@ -11,6 +11,11 @@ from pathlib import Path
 
 from app.contracts.runs import RunStartRequest, RunSummaryResponse
 from app.contracts.stages import StageExecuteResponse
+from app.services.artifact_session import (
+    commit_and_close,
+    open_artifact_store,
+    rollback_and_close,
+)
 from app.services.event_publisher import publish
 
 
@@ -52,7 +57,22 @@ def run_sequence(req: RunStartRequest) -> RunSummaryResponse:
             continue
 
         publish(req.run_id, "stage_started", stage=stage, status="running", progress_pct=progress)
-        sr = _run_stage(ctx, stage)
+        # ADR-303 D1: sessão + store por stage (espelho do loop Celery —
+        # commit libera o write-lock entre stages).
+        session, store = open_artifact_store(
+            workspace_id=req.workspace_id,
+            run_id=req.run_id,
+            base_run_id=req.base_run_id,
+            base_run_fallback_stages=req.base_run_fallback_stages,
+        )
+        try:
+            ctx.artifact_store = store
+            sr = _run_stage(ctx, stage)
+        except BaseException:
+            rollback_and_close(session)
+            raise
+        else:
+            commit_and_close(session)
         completed = int(((idx + 1) / total) * 100)
 
         results.append(

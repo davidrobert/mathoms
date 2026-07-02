@@ -17,6 +17,26 @@
       "RunStartRequest": {
         "description": "Input to POST /api/v1/pipeline/runs \u2014 run a sequence of stages.",
         "properties": {
+          "base_run_fallback_stages": {
+            "description": "Stages upstream lidos do run base (ADR-291/ADR-303)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Base Run Fallback Stages",
+            "type": "array"
+          },
+          "base_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Run base para fallback run-pinado em from_stage (ADR-291/ADR-303)",
+            "title": "Base Run Id"
+          },
           "config_dir": {
             "anyOf": [
               {
@@ -159,6 +179,26 @@
       "StageExecuteRequest": {
         "description": "Input to POST /api/v1/pipeline/stages/{stage}/execute.\n\nBackend owns the workspace root on disk and passes it by path \u2014 the\npipeline-service runs the stage in-process using `pipeline.orchestrator`.\nArtifacts are written to/read from that root by the stage runners.",
         "properties": {
+          "base_run_fallback_stages": {
+            "description": "Stages upstream lidos do run base (ADR-291/ADR-303)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Base Run Fallback Stages",
+            "type": "array"
+          },
+          "base_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Run base para fallback run-pinado em from_stage (ADR-291/ADR-303)",
+            "title": "Base Run Id"
+          },
           "config_dir": {
             "anyOf": [
               {
@@ -308,7 +348,7 @@
   "paths": {
     "/api/v1/pipeline/runs": {
       "post": {
-        "description": "Execute the requested stage sequence synchronously.\n\nBackend caller is responsible for run_id generation and DB persistence;\nthis service is stateless and returns the aggregated result only.",
+        "description": "Execute the requested stage sequence synchronously.\n\nBackend caller is responsible for run_id generation and DB persistence;\nthis service is stateless and returns the aggregated result only.\nBoundary externo: aceita nomes legacy ou descritivos (ADR-093).",
         "operationId": "start_run_api_v1_pipeline_runs_post",
         "requestBody": {
           "content": {
@@ -350,7 +390,7 @@
     },
     "/api/v1/pipeline/stages/{stage}/execute": {
       "post": {
-        "description": "Execute a single pipeline stage and return the result.",
+        "description": "Execute a single pipeline stage and return the result.\n\nBoundary externo: aceita nome legacy (\"E3\") ou descritivo (ADR-093);\nexecuta e responde sempre com o descritivo can\u00f4nico.",
         "operationId": "execute_stage_api_v1_pipeline_stages__stage__execute_post",
         "parameters": [
           {

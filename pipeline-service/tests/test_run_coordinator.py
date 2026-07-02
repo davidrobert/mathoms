@@ -42,15 +42,18 @@ def test_run_sequences_stages_and_aggregates(client, tmp_path, monkeypatch):
     body = r.json()
     assert body["success"] is True
     assert body["failed_stage"] is None
-    assert [s["stage"] for s in body["stages"]] == ["E3", "E4", "E5"]
-    assert calls == ["E3", "E4", "E5"]
+    # Boundary resolve legacy → descritivo (ADR-093); executor e echo
+    # trabalham sempre com o nome canônico.
+    expected = ["reconcile_transactions", "categorize_transactions", "analyze_finances"]
+    assert [s["stage"] for s in body["stages"]] == expected
+    assert calls == expected
 
 
 def test_run_stops_on_error_by_default(client, tmp_path, monkeypatch):
     def fake_run_stage(ctx, stage):
         from pipeline.orchestrator import StageResult
 
-        ok = stage != "E4"
+        ok = stage != "categorize_transactions"
         return StageResult(stage=stage, success=ok, error=None if ok else "x")
 
     monkeypatch.setattr("pipeline.orchestrator._run_stage", fake_run_stage, raising=True)
@@ -61,14 +64,17 @@ def test_run_stops_on_error_by_default(client, tmp_path, monkeypatch):
             "run_id": "r1",
             "workspace_id": "ws1",
             "workspace_root": str(tmp_path),
-            "stages": ["E3", "E4", "E5"],
+            "stages": ["reconcile_transactions", "categorize_transactions", "analyze_finances"],
         },
     )
     body = r.json()
     assert body["success"] is False
-    assert body["failed_stage"] == "E4"
-    # stop_on_error=True (default) → E5 not attempted
-    assert [s["stage"] for s in body["stages"]] == ["E3", "E4"]
+    assert body["failed_stage"] == "categorize_transactions"
+    # stop_on_error=True (default) → analyze_finances not attempted
+    assert [s["stage"] for s in body["stages"]] == [
+        "reconcile_transactions",
+        "categorize_transactions",
+    ]
 
 
 def test_run_skips_llm_stages_when_requested(client, tmp_path, monkeypatch):
@@ -88,13 +94,13 @@ def test_run_skips_llm_stages_when_requested(client, tmp_path, monkeypatch):
             "run_id": "r1",
             "workspace_id": "ws1",
             "workspace_root": str(tmp_path),
-            "stages": ["E1", "E3"],  # E1 is LLM
+            "stages": ["extract_members", "reconcile_transactions"],  # extract_members is LLM
             "skip_llm": True,
         },
     )
     body = r.json()
     assert body["success"] is True
-    # E1 never reaches orchestrator
-    assert executed == ["E3"]
+    # LLM stage never reaches orchestrator
+    assert executed == ["reconcile_transactions"]
     stages_resp = {s["stage"]: s for s in body["stages"]}
-    assert stages_resp["E1"]["detail"]["skipped"] is True
+    assert stages_resp["extract_members"]["detail"]["skipped"] is True

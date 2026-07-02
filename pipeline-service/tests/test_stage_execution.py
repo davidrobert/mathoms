@@ -49,6 +49,7 @@ def test_stage_executor_delegates_to_orchestrator(client, tmp_path, monkeypatch)
 
     monkeypatch.setattr("pipeline.orchestrator._run_stage", fake_run_stage, raising=True)
 
+    # Nome legacy no path — boundary resolve para descritivo (ADR-093).
     r = client.post(
         "/api/v1/pipeline/stages/E3/execute",
         json={
@@ -62,14 +63,14 @@ def test_stage_executor_delegates_to_orchestrator(client, tmp_path, monkeypatch)
     assert r.status_code == 200
     body = r.json()
     assert body == {
-        "stage": "E3",
+        "stage": "reconcile_transactions",
         "success": True,
         "duration_ms": 42.0,
         "detail": {"processed": 3},
         "error": None,
         "attempts": 1,
     }
-    assert captured["stage"] == "E3"
+    assert captured["stage"] == "reconcile_transactions"
     assert Path(captured["root"]).resolve() == tmp_path.resolve()
     assert captured["run_id"] == "run-abc"
     assert captured["incremental"] is True
@@ -84,7 +85,7 @@ def test_stage_executor_propagates_failure(client, tmp_path, monkeypatch):
     monkeypatch.setattr("pipeline.orchestrator._run_stage", failing, raising=True)
 
     r = client.post(
-        "/api/v1/pipeline/stages/E4/execute",
+        "/api/v1/pipeline/stages/categorize_transactions/execute",
         json={
             "run_id": "r1",
             "workspace_id": "ws1",
