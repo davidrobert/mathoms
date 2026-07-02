@@ -27,6 +27,7 @@ from backend.app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
+from backend.app.services.rate_limit import client_ip_key, rate_limited
 from backend.app.services.refresh_rate_limit import check_refresh_rate
 from backend.app.services.refresh_token_service import (
     REFRESH_COOKIE_NAME,
@@ -103,7 +104,12 @@ async def register(
     return session
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    # W4-T04: per-IP — complementa o lockout per-conta do brute_force_lockout.
+    dependencies=[rate_limited("login", key=client_ip_key)],
+)
 async def login(
     body: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)
 ) -> TokenResponse:

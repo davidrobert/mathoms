@@ -67,6 +67,7 @@ from backend.app.services.document_upload_service import (
     UploadBatchError,
     upload_document_batch,
 )
+from backend.app.services.rate_limit import rate_limited, workspace_key
 from backend.app.services.storage import StorageService
 
 router = APIRouter(
@@ -87,7 +88,11 @@ def _get_document_repo(
     "/upload",
     response_model=DocumentUploadResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_write_role)],
+    dependencies=[
+        Depends(require_write_role),
+        # W4-T04: upload dispara storage + classify (LLM fallback) — caro.
+        rate_limited("upload", key=workspace_key),
+    ],
 )
 async def upload_documents(
     request: Request,

@@ -32,6 +32,7 @@ from backend.app.application.pipeline_run import (
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.workspace import Workspace
+from backend.app.services.rate_limit import rate_limited, workspace_key
 from backend.app.schemas.pipeline import (
     NewDocCountResponse,
     PipelineRunListResponse,
@@ -52,7 +53,11 @@ router = APIRouter(
     "/run",
     response_model=PipelineRunResponse,
     status_code=status.HTTP_202_ACCEPTED,
-    dependencies=[Depends(require_write_role)],
+    dependencies=[
+        Depends(require_write_role),
+        # W4-T04: run completo é o endpoint mais caro (LLM + CPU) da API.
+        rate_limited("pipeline_run", key=workspace_key),
+    ],
 )
 async def trigger_pipeline(
     body: PipelineRunRequest,
