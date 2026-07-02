@@ -60,14 +60,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Pausados (`paused`)
 
-### PLAN-cat-learning-loop — Categorization Learning Loop — promoção de override de transação para regra
-
-- Status: `paused` · Sprint atual: A12
-- Sprints envolvidas: A12
-- Lanes: 0 done · 1 in_progress · 0 open · 0 blocked
-- ADRs canônicas: [[ADR-186]], [[ADR-188]]
-- Pausado em: 2026-05-11 · Razão: impl V1 (P1-P4 + gate técnico) shipada; aguarda só o gate dogfood humano (CEO) — PASS → done, FAIL → reabrir
-
 ### PLAN-i18n — Internacionalização (i18n)
 
 - Status: `paused` · Sprint atual: —
@@ -90,6 +82,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Pausado em: 2026-05-06 · Razão: Substituído por PLAN-platform-review (revisão multi-agente 2026-05-06).
 
 ## Concluídos (`done`)
+
+### PLAN-cat-learning-loop — Categorization Learning Loop — promoção de override de transação para regra
+
+- Status: `done` · Sprint atual: A12
+- Sprints envolvidas: A12
+- Lanes: 0 done · 1 in_progress · 0 open · 0 blocked
+- ADRs canônicas: [[ADR-186]], [[ADR-188]]
 
 ### PLAN-cenarios-estresse — Cenários de Estresse — plano canônico
 
