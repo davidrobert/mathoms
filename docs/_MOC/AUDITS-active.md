@@ -57,7 +57,7 @@ Para que nenhum achado se perca entre auditorias:
 | F10 — ADR-027 mecânica de retry superada pela emenda ADR-270, sem cross-ref | DOC-DRIFT | procede | procede-fechado | banner de emenda + `relates_to` recíproco 027↔270 |
 | F11 — CAT_LEARNING_LOOP `sprint_atual: A12` preso (corrente A26) | DOC-DRIFT | procede | procede-fechado | `status: paused` + `paused_at: 2026-05-11` + pause_reason (gate dogfood) |
 | F12 — CAT gate dogfood vencido ~7 semanas sem prazo/escalonamento | DOC-DRIFT | procede | **procede-aberto (owner)** | decisão binária: PASS→done / FAIL→reabrir; plano agora `paused` com o gate como pause_reason |
-| F13 — chart_conclusions: `receita_bar`/`despesas_doughnut` nunca interpolam (call site S2 usa ids inexistentes `receita_fonte`/`despesas_categoria` → conclusion null) | DOC-DRIFT | procede | procede-aberto → **em execução** | branch `agent/s2-chart-conclusion-ids/20260702-1200` (ids + gate call-site↔mapa + teste) |
+| F13 — chart_conclusions: `receita_bar`/`despesas_doughnut` nunca interpolam (call site S2 usa ids inexistentes `receita_fonte`/`despesas_categoria` → conclusion null) | DOC-DRIFT | procede | procede-fechado | PR #725 (merge `27543bce`): ids canônicos no call site S2 + regra 4 no gate (call-site ∈ BUILDERS ∪ FALLBACKS) + teste de regressão |
 | F14 — ARCHITECTURE §4.1 cita `family_members.json` (path proibido, ADR-134) | DOC-DRIFT | procede | procede-fechado | glossário aponta config `family_members` via `DBConfigStore` (ADR-134) |
 | F15 — ARCHITECTURE §5 "20 routers" (real: 34) | DOC-DRIFT | procede | procede-fechado | 4 linhas "Contagem real" re-sincronizadas (models 48, routers 34, services 110, pages 32) |
 | F16 — ARCHITECTURE §7 identificadores legados (E3…) vs descritivos F9.2/F9.5 | DOC-DRIFT | procede | procede-fechado | FULL_ORDER/DET_ORDER/tabela/snippet migrados p/ descritivo; legado vira coluna de referência |
@@ -65,7 +65,7 @@ Para que nenhum achado se perca entre auditorias:
 | F18 — STATELESS_AUDIT §2 `INSTITUTION_CONTENT_PATTERNS` path migrou | DOC-DRIFT | procede | procede-fechado | `classification/institution_classifier.py:11` |
 | F19 — runbook f9_3 sem banner "concluído/histórico" (F9.3 executada 2026-05-05) | DOC-DRIFT | procede | procede-fechado | banner ✅ CONCLUÍDO/HISTÓRICO no topo |
 | F20-F25, F27-F28 — POLISH (size_lines body-only 208/108, paths ADR-068/208, CAT §P4 vs corte de escopo, dono do gate de tráfego A26, contagens ARCHITECTURE §10, linhas STATELESS §2) | DOC-POLISH | procede | procede-fechado | batch r4 executado 2026-07-02 junto com os DRIFT |
-| F26 — header chart_conclusions "8 builders ativos" (real: 6) | DOC-POLISH | procede | procede-aberto → **em execução** | mesma branch da F13 |
+| F26 — header chart_conclusions "8 builders ativos" (real: 6) | DOC-POLISH | procede | procede-fechado | PR #725: header cita os 2 builders sem call site vivo (score_gauge/impostos_pj) |
 | S4 arquivamento (follow-up r3-F01) | — | confirmado | não-acionável | deferimento segue correto; reavaliar quando ADR-216 → Decidido |
 
 **Zumbi r2-new-2 (LGPD export parcial) — 2ª rodada `procede-aberto`.** Cadência §4
@@ -77,8 +77,8 @@ com gatilho de reabertura no beta.
 
 **Lane P2 batch `vault-drift-batch-r4` — EXECUTADA 2026-07-02** (owner pediu
 "atacar todos os pontos" na mesma sessão): F04-F11 + F14-F19 + POLISH F20-F25/
-F27-F28 corrigidos em PR docs-only. F13/F26 correm na branch
-`agent/s2-chart-conclusion-ids/20260702-1200` (código). Restam abertos apenas
+F27-F28 corrigidos em PR docs-only. F13/F26 fechados em PR #725 (código:
+ids + gate regra 4 + teste, merge `27543bce`). Restam abertos apenas
 os 2 itens de decisão do owner: F12 (gate dogfood CAT) e r2-new-2 (LGPD export).
 Lateral de código (import morto `lru_cache` em `pipeline/domain/models/bank.py:29`)
 tratado em PR próprio.
