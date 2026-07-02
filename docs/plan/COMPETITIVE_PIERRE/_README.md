@@ -113,6 +113,29 @@ Lendo [docs.pierre.finance](https://docs.pierre.finance/) verbatim:
 
 Pierre e ChatGPT atacam **vetores diferentes** (consumer mass-market BR vs premium global generalista), mas as ações de resposta do Mathoms **convergem**: chat sobre relatório, financial memories como superfície UX, posicionamento metodológico explícito, MCP server soberano. **Por isso unificamos no mesmo plano** em vez de criar `COMPETITIVE_CHATGPT/` paralelo — fragmentação de plano teria duplicado entregáveis sem ganho.
 
+### 1.7 Terceira frente: Visor (PFM nacional) — [visorfinance.app](https://visorfinance.app/)
+
+> **Origem:** análise competitiva 2026-07-02. Visor é **Pierre-sem-CloudWalk-e-sem-MCP** — mesma categoria (PFM / budgeting copilot mass-market BR), sem o balance-sheet de distribuição nem a aposta de ecossistema AI. **Não abre frente nova; confirma a tese** (P1: coleta vira commodity; a categoria "app de finanças" é armadilha de preço). Registrado como terceiro data-point PFM, não como nova ADR de posicionamento — [[ADR-183]] segue válida, sem trigger de refresh (cônjuge / free tier wealth estruturado / parceria banco-gestor não dispararam).
+
+**Features confirmadas (site + App Store BR, jul/2026):** conexão Open Finance multi-banco (Nubank, Itaú, Bradesco, Santander, BTG, Inter, C6, Caixa, BB); categorização automática por IA + detecção de recorrências/assinaturas + tracking de parcelamento + regras/tags + alertas de limite; **chat de IA sobre os próprios dados** ("posso comprar X em setembro?"); projeção de saldo/orçamento mensal + score de "saúde financeira"; **app mobile nativo** (iOS 4.8★, 85 reviews) + desktop; Free / Pro R$ 34,90 (até 3 contas) / Premium R$ 59,90–69,90 (até 10 contas + suporte PJ); trial 7 d; programa de afiliados.
+
+**Onde Visor difere do Pierre (para o nosso enquadramento):**
+
+| Eixo | Leitura competitiva |
+|---|---|
+| Distribuição | Sem CloudWalk. Aquisição orgânica/afiliados — menos ameaça de escala súbita que Pierre (§P5). |
+| Ecossistema AI / MCP | Ausente. Não disputa o slot "Alexa das finanças" (§P2). |
+| Profundidade | Igual ou mais raso que Pierre — sem IRPF, sem cônjuge estruturado, sem IF projector, sem parecer metodológico, sem plano event-sourced. Mesmo moat nosso (§1.2). |
+| **Colisão real** | Estreita: **Visor Premium "suporte PJ" R$ 59–69 alcança o piso do ICP** (CLT/PJ alta renda multi-conta). Creep de *feature*, não de *depth* — mesmo vetor up-market já mapeado para Pierre (§1). |
+
+**Implicações (sem novo entregável de plano):**
+
+1. **Requisito de coleta de baixa fricção sobe de P2 → P1.** Visor é mais uma evidência de que "upload-only" tem prazo de validade. A decisão do agregador OFB segue fora deste plano (§"Não está em escopo") e vive em [[ADR-159]] (adiada até gatilhos); Visor não muda o veredito build-vs-buy, só a urgência.
+2. **Disciplina de categoria no pricing (Fase 4.C).** Teto PFM ≈ R$ 60/mês (Organizze/Mobills/Pierre/Visor). Ancorar sempre contra planejador CFP (R$ 1,5–5k/plano), nunca contra "app de finanças"; tier base R$ 99–149 + tier premium âncora superior; **sem free-forever** (§P4). Visor a R$ 35–69 **confirma** o pricing, não o rebaixa.
+3. **Não perseguir table-stakes PFM** (alertas de limite, projeção de saldo consumer, orçamento diário, score app-level) — esteira que o Mathoms perde e que dilui o posicionamento advisor. Paridade "boa o suficiente" onde já existe (categorização E4, score patrimonial 0-1000), nunca liderança.
+
+**Descartadas** (mesma lógica do §4-bis contra pilar "anti-ChatGPT"): abrir ADR/pilar "anti-Visor" (diluiria a mensagem — Visor é subconjunto de Pierre) e baixar preço para a faixa R$ 59–69 (auto-sabotagem de categoria).
+
 ---
 
 ## 2. Premissas que governam o plano
