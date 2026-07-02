@@ -11,6 +11,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases: ["ADR 188", "Learning loop P3 schema", "Soft-delete categorization rules"]
+size_lines: 229
 tags:
   - area/categorization
   - area/db

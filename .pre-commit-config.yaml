@@ -278,16 +278,17 @@ repos:
         files: '^(config/report_layout\.yaml|config/schemas/report_layout\.schema\.json|frontend/src/generated/report-layout\.ts|backend/app/generated/report_layout\.py)$'
 
       - id: chart-conclusion-parity
-        # audit-vault r3 (F12) · ADR-117/ADR-122 — YAML declarado
+        # audit-vault r3 (F12) + r4 (F13) · ADR-117/ADR-122 — YAML declarado
         # source-of-truth mas o consumidor real é conclusionUtils.ts (BUILDERS
         # + FALLBACKS inline). Trava divergência estrutural: chart_id órfão de
-        # um lado, ou template com placeholders sem builder e sem marca
-        # `# fallback-only`. Ver dev/check_chart_conclusion_parity.py.
+        # um lado, template com placeholders sem builder e sem marca
+        # `# fallback-only`, ou call site em sections/*.tsx com id fora de
+        # BUILDERS ∪ FALLBACKS. Ver dev/check_chart_conclusion_parity.py.
         name: "Chart conclusions YAML ↔ TS em paridade (ADR-122)"
         entry: python3 dev/check_chart_conclusion_parity.py
         language: system
         pass_filenames: false
-        files: '^(config/prompts/chart_conclusions\.yaml|frontend/src/components/report/utils/conclusionUtils\.ts|dev/check_chart_conclusion_parity\.py)$'
+        files: '^(config/prompts/chart_conclusions\.yaml|frontend/src/components/report/utils/conclusionUtils\.ts|frontend/src/components/report/sections/.*\.tsx|dev/check_chart_conclusion_parity\.py)$'
 
       - id: planner-manifest-coverage
         # ADR-200 §D3 (M1) + ADR-206 §6 (snapshot drift):

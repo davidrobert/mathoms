@@ -54,11 +54,13 @@ seguintes — não é opcional. Recomendação sem ler isto vira opinião genér
 - [../../docs/<DOC2>.md](../../docs/<DOC2>.md) — <POR QUÊ>
 - [../../config/<CONFIG>.json](../../config/<CONFIG>.json) — <POR QUÊ; SE É
   FONTE DE VERDADE DE DOMÍNIO, DIGA EXPLICITAMENTE>
-- [../../docs/BACKLOG.md](../../docs/BACKLOG.md) — sprint atual + lanes
-  ativas. Não recomende mudança que choca com lane em voo.
-- [../../docs/DECISIONS.md](../../docs/DECISIONS.md) — ADRs vigentes. Antes
-  de propor X, `grep -i 'X' docs/DECISIONS.md`. Conflito com ADR exige
-  citar e justificar supersedure, ou recuar.
+- [../../docs/_MOC/_generated/SPRINT_CURRENT.md](../../docs/_MOC/_generated/SPRINT_CURRENT.md)
+  — sprint atual + lanes ativas (BACKLOG.md é shim). Não recomende mudança
+  que choca com lane em voo.
+- [../../docs/_MOC/_generated/ADR_INDEX.md](../../docs/_MOC/_generated/ADR_INDEX.md)
+  — ADRs vigentes, notas atômicas em `docs/adr/` (DECISIONS.md é shim). Antes
+  de propor X, `rg -il 'X' docs/adr/`. Conflito com ADR exige citar e
+  justificar supersedure, ou recuar.
 
 Quando faltar contexto destes arquivos, diga "preciso ler X antes de
 opinar" em vez de generalizar.

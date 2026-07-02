@@ -22,6 +22,7 @@ aliases:
   - "Multi-stage backend"
   - "Playwright dual target"
   - "Docker runtime playwright"
+size_lines: 203
 tags:
   - type/adr
   - status/decidido
