@@ -88,20 +88,33 @@ def test_null_budget_is_unlimited(session_factory) -> None:
     LLMBudgetService(ws_id, session_factory=session_factory).check_budget()
 
 
-def test_under_warn_threshold_passes_silently(session_factory, caplog) -> None:
+class _RecordingBudgetLogger:
+    """Captura eventos do logger de métrica — imune a propagate=False do namespace
+    mathoms.* (setup de logging de outro teste da suíte deixa caplog vazio)."""
+
+    def __init__(self) -> None:
+        self.events: list[str] = []
+
+    def warning(self, msg: str, *args, **kwargs) -> None:
+        self.events.append(msg)
+
+
+def test_under_warn_threshold_passes_silently(session_factory, monkeypatch) -> None:
+    recorder = _RecordingBudgetLogger()
+    monkeypatch.setattr(budget_mod, "_budget_metrics", recorder)
     ws_id = _seed_workspace(session_factory, budget=Decimal("10.00"))
     _spend(session_factory, ws_id, "7.00")
-    with caplog.at_level("WARNING"):
-        LLMBudgetService(ws_id, session_factory=session_factory).check_budget()
-    assert "llm budget" not in caplog.text
+    LLMBudgetService(ws_id, session_factory=session_factory).check_budget()
+    assert recorder.events == []
 
 
-def test_warn_at_80_percent_does_not_block(session_factory, caplog) -> None:
+def test_warn_at_80_percent_does_not_block(session_factory, monkeypatch) -> None:
+    recorder = _RecordingBudgetLogger()
+    monkeypatch.setattr(budget_mod, "_budget_metrics", recorder)
     ws_id = _seed_workspace(session_factory, budget=Decimal("10.00"))
     _spend(session_factory, ws_id, "8.50")
-    with caplog.at_level("WARNING"):
-        LLMBudgetService(ws_id, session_factory=session_factory).check_budget()
-    assert "llm budget warn" in caplog.text
+    LLMBudgetService(ws_id, session_factory=session_factory).check_budget()
+    assert recorder.events == ["llm budget warn"]
 
 
 def test_hard_stop_at_110_percent(session_factory) -> None:
