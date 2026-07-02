@@ -15,14 +15,15 @@ from backend.app.models.planner_field_request import PlannerFieldRequest
 from backend.app.models.planner_review import PlannerReview
 from backend.app.services.crypto import read_artifact_content
 from backend.app.services.suggestion_supersede import persist_suggestions_for_run
+from pipeline.artifact_store import stage_aliases
 
 logger = logging.getLogger("mathoms.pipeline.planner_review_persistence")
 
 # Stage names + artifact keys — fonte de verdade local (espelha
 # pipeline.stages.parecer_planejador).
-_PARECER_STAGE = "E6-parecer"
+_PARECER_STAGE = "review_finances_holistic"
 _PARECER_KEY = "parecer_planejador"
-_E5_STAGE = "E5"
+_E5_STAGE = "analyze_finances"
 _E5_KEY = "analise_financeira"
 
 
@@ -40,7 +41,7 @@ def _find_artifact(
             select(PipelineArtifact).where(
                 PipelineArtifact.workspace_id == workspace_id,
                 PipelineArtifact.pipeline_run_id == run_id,
-                PipelineArtifact.stage == stage,
+                PipelineArtifact.stage.in_(stage_aliases(stage)),
                 PipelineArtifact.artifact_key == key,
             )
         )

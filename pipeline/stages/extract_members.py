@@ -186,7 +186,7 @@ def run(ctx: WorkspaceContext) -> dict:
         items_total=1,
         phase="persisting",
     )
-    store.write("E1", "members", family_json)
+    store.write("extract_members", "members", family_json)
     emit_item_progress(
         ctx.pipeline_run_id,
         "E1",

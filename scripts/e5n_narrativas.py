@@ -628,7 +628,7 @@ def _e5n_print_header(ctx, store) -> None:
 
 
 def _e5n_load_e5(store) -> dict | None:
-    e5_data = store.read("E5", "analise_financeira") or {}
+    e5_data = store.read("analyze_finances", "analise_financeira") or {}
     if not e5_data:
         print("✗ E5 artifact 'analise_financeira' não encontrado. Execute E5 primeiro.")
         return None
@@ -684,7 +684,7 @@ def _resolve_cambio_via_config_store(ctx) -> Decimal | None:
 
 def _e5n_persist(store, e5_data: dict, narrativas: dict) -> None:
     e5_data["narrativas"] = narrativas
-    store.write("E5", "analise_financeira", e5_data)
+    store.write("analyze_finances", "analise_financeira", e5_data)
     print("\n[E5.N.FINAL] Narrativas enriched!")
     print("  ✓ Stored: E5/analise_financeira (with narrativas)")
     print("=" * 80)
@@ -756,8 +756,8 @@ def _e5n_load_irpf(store) -> dict | None:
 def _e5n_load_baseline(store) -> dict | None:
     """Lê o baseline E1.5c consolidado (fonte canônica de valor-por-imóvel · ADR-246/274)."""
     try:
-        return store.read("E1.5c", "baseline_patrimonial") or store.read(
-            "E1.5", "baseline_patrimonial"
+        return store.read("consolidate_baseline", "baseline_patrimonial") or store.read(
+            "extract_baseline", "baseline_patrimonial"
         )
     except Exception:  # noqa: BLE001 — baseline ausente não bloqueia real_estate
         return None

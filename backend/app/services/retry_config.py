@@ -38,18 +38,21 @@ class StageRetryConfig:
         return self.retry_delay_seconds * (self.backoff_factor**attempt)
 
 
+# Keys descritivas (F9.2+): o orchestrator passa stage_name descritivo.
+# Keys legadas aqui nunca casariam — get_retry_config normaliza via
+# resolve_stage_name para aceitar ambos os formatos (W6-T03).
 STAGE_RETRY_CONFIGS: dict[str, StageRetryConfig] = {
-    "E1": StageRetryConfig(
+    "extract_members": StageRetryConfig(
         max_retries=2,
         retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
         retry_delay_seconds=10.0,
     ),
-    "E1.5": StageRetryConfig(
+    "extract_baseline": StageRetryConfig(
         max_retries=2,
         retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
         retry_delay_seconds=10.0,
     ),
-    "E2-llm": StageRetryConfig(
+    "extract_with_llm": StageRetryConfig(
         max_retries=2,
         retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
         retry_delay_seconds=10.0,
@@ -63,4 +66,6 @@ STAGE_RETRY_CONFIGS: dict[str, StageRetryConfig] = {
 
 
 def get_retry_config(stage_name: str) -> StageRetryConfig:
-    return STAGE_RETRY_CONFIGS.get(stage_name, StageRetryConfig())
+    from pipeline.stage_spec import resolve_stage_name
+
+    return STAGE_RETRY_CONFIGS.get(resolve_stage_name(stage_name), StageRetryConfig())

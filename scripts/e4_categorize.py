@@ -1149,7 +1149,7 @@ def _e4_persist_artifacts(store, ctx, result) -> List[str]:
     payloads = serialize_e4_artifacts(result)
     written_filenames: List[str] = []
     for key, payload in payloads.items():
-        store.write("E4", key, payload)
+        store.write("categorize_transactions", key, payload)
         written_filenames.append(filename_for(key))
 
     for filename in written_filenames:

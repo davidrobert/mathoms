@@ -7,7 +7,7 @@ ADR-082. Substitui artefatos em ``processed/*.json`` por registros no banco com 
 - Modo incremental determinístico via ``pipeline_last_run_at IS NULL``
 - Histórico auditável de artefatos por run
 
-Durante Fases 1-8, a coluna ``stage`` usa nomes legados (``"E2"``, ``"E3"``...).
+Durante Fases 1-8, a coluna ``stage`` usa nomes legados (``E2``, ``E3``...).
 A Fase 9 renomeia para identificadores descritivos (``"extract_statements"``,
 ``"reconcile_transactions"``...). Ver ``pipeline/stage_spec.py``.
 """
@@ -36,7 +36,7 @@ class PipelineArtifact(Base):
     """Artefato computacional produzido por um stage do pipeline.
 
     Campos-chave:
-        stage:        identificador do stage (``"E2"``, ``"E3"``... nas Fases 1-8;
+        stage:        identificador do stage (``E2``, ``E3``... nas Fases 1-8;
                       ``"extract_statements"``, ``"reconcile_transactions"`` pós-Fase 9).
         artifact_key: stem do documento (E2) ou nome canônico (E3+).
         document_id:  FK opcional — apenas para stages de extração (E2-*).

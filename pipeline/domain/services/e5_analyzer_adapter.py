@@ -491,11 +491,11 @@ class E5AnalyzerAdapter:
         ``FinancialScoreCalculator``) — zero placeholders.
         """
         # 1. Inputs do E4.
-        receitas = store.read("E4", _E4_RECEITAS_KEY) or {}
-        despesas = store.read("E4", _E4_DESPESAS_KEY) or {}
-        fluxo_mensal = store.read("E4", _E4_FLUXO_KEY) or {}
-        patrimonio_raw = store.read("E4", _E4_PATRIMONIO_KEY) or {}
-        investimentos_raw = store.read("E4", _E4_INVESTIMENTOS_KEY) or {}
+        receitas = store.read("categorize_transactions", _E4_RECEITAS_KEY) or {}
+        despesas = store.read("categorize_transactions", _E4_DESPESAS_KEY) or {}
+        fluxo_mensal = store.read("categorize_transactions", _E4_FLUXO_KEY) or {}
+        patrimonio_raw = store.read("categorize_transactions", _E4_PATRIMONIO_KEY) or {}
+        investimentos_raw = store.read("categorize_transactions", _E4_INVESTIMENTOS_KEY) or {}
 
         # 2. Resolve membros do baseline.
         members = self._member_resolver.resolve(patrimonio_raw)
@@ -801,11 +801,13 @@ class E5AnalyzerAdapter:
             else safe_float(self._taxas.get("cambio_eur_brl", 6.35), default=6.35)
         )
 
-        keys = list(store.list_keys("E3")) if hasattr(store, "list_keys") else []
+        keys = (
+            list(store.list_keys("reconcile_transactions")) if hasattr(store, "list_keys") else []
+        )
         latest_per_account: dict[tuple[str, str, str, str], tuple[str, dict]] = {}
 
         for key in keys:
-            data = store.read("E3", key) or {}
+            data = store.read("reconcile_transactions", key) or {}
             tipo_conta = (data.get("tipo_conta") or "").lower()
             banco = (data.get("banco") or "").lower()
             moeda = (data.get("moeda") or "BRL").upper()

@@ -16,6 +16,7 @@ from backend.app.services.crypto import (
     is_encrypted_payload,
     should_encrypt_writes,
 )
+from pipeline.artifact_store import stage_aliases
 
 _logger = logging.getLogger("mathoms.crypto")
 _artifact_logger = logging.getLogger("mathoms.pipeline.artifact")
@@ -246,14 +247,16 @@ class DBArtifactStore:
     def _get(self, stage: str, key: str) -> Optional[PipelineArtifact]:
         # Wrapped por _with_lock_telemetry — query dispara autoflush e pode
         # bater write-lock SQLite (ADR-256). Loga warning se >250ms ou OperationalError.
+        # stage.in_(aliases): runs pré-F9.2 gravaram nome legado ("E5"); código
+        # novo lê pelo descritivo. Um único ponto de compat (ADR-093, até F9.6).
         return _with_lock_telemetry(
             "get",
             lambda: (
                 self._session.query(PipelineArtifact)
-                .filter_by(
-                    pipeline_run_id=self._pipeline_run_id,
-                    stage=stage,
-                    artifact_key=key,
+                .filter(
+                    PipelineArtifact.pipeline_run_id == self._pipeline_run_id,
+                    PipelineArtifact.stage.in_(stage_aliases(stage)),
+                    PipelineArtifact.artifact_key == key,
                 )
                 .one_or_none()
             ),
@@ -266,10 +269,10 @@ class DBArtifactStore:
         # distinta de _get_latest_in_workspace, não fundir.
         return (
             self._session.query(PipelineArtifact)
-            .filter_by(
-                pipeline_run_id=self._base_run_id,
-                stage=stage,
-                artifact_key=key,
+            .filter(
+                PipelineArtifact.pipeline_run_id == self._base_run_id,
+                PipelineArtifact.stage.in_(stage_aliases(stage)),
+                PipelineArtifact.artifact_key == key,
             )
             .one_or_none()
         )
@@ -277,10 +280,10 @@ class DBArtifactStore:
     def _get_latest_in_workspace(self, stage: str, key: str) -> Optional[PipelineArtifact]:
         return (
             self._session.query(PipelineArtifact)
-            .filter_by(
-                workspace_id=self._workspace_id,
-                stage=stage,
-                artifact_key=key,
+            .filter(
+                PipelineArtifact.workspace_id == self._workspace_id,
+                PipelineArtifact.stage.in_(stage_aliases(stage)),
+                PipelineArtifact.artifact_key == key,
             )
             # id como tie-break: created_at (default datetime.now) pode empatar
             # no microssegundo entre writes do mesmo flush — "mais recente"
@@ -290,11 +293,12 @@ class DBArtifactStore:
         )
 
     def read(self, stage: str, key: str) -> Optional[dict]:
+        aliases = stage_aliases(stage)
         row = self._get(stage, key)
         if (
             row is None
             and self._base_run_id is not None
-            and stage in self._base_run_fallback_stages
+            and any(a in self._base_run_fallback_stages for a in aliases)
         ):
             row = self._get_in_base_run(stage, key)
             if row is not None:
@@ -308,7 +312,7 @@ class DBArtifactStore:
                         "base_run_id": self._base_run_id,
                     },
                 )
-        if row is None and stage in _WORKSPACE_SCOPED_STAGES:
+        if row is None and any(a in _WORKSPACE_SCOPED_STAGES for a in aliases):
             row = self._get_latest_in_workspace(stage, key)
             if row is not None:
                 # ADR-241 — sinaliza consumo via fallback workspace-scoped.
@@ -332,7 +336,10 @@ class DBArtifactStore:
     def list_keys(self, stage: str) -> list[str]:
         rows = (
             self._session.query(PipelineArtifact.artifact_key)
-            .filter_by(workspace_id=self._workspace_id, stage=stage)
+            .filter(
+                PipelineArtifact.workspace_id == self._workspace_id,
+                PipelineArtifact.stage.in_(stage_aliases(stage)),
+            )
             .distinct()
             .order_by(PipelineArtifact.artifact_key.asc())
             .all()
@@ -410,7 +417,10 @@ class DBArtifactStore:
     def delete_stage(self, stage: str) -> int:
         count = (
             self._session.query(PipelineArtifact)
-            .filter_by(pipeline_run_id=self._pipeline_run_id, stage=stage)
+            .filter(
+                PipelineArtifact.pipeline_run_id == self._pipeline_run_id,
+                PipelineArtifact.stage.in_(stage_aliases(stage)),
+            )
             .delete(synchronize_session=False)
         )
         return int(count or 0)

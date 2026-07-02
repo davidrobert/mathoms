@@ -35,6 +35,7 @@ from backend.app.core.database import SyncSessionLocal
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.models.report import Report
+from pipeline.artifact_store import stage_aliases
 from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY, E5_OUTPUT_STAGE
 
 _BRT = ZoneInfo("America/Sao_Paulo")
@@ -68,11 +69,11 @@ def _runs_without_report(session: Session, workspace_id: Optional[str]) -> Itera
 def _find_e5_artifact(session: Session, run: PipelineRun) -> Optional[PipelineArtifact]:
     return (
         session.query(PipelineArtifact)
-        .filter_by(
-            workspace_id=run.workspace_id,
-            pipeline_run_id=run.id,
-            stage=E5_OUTPUT_STAGE,
-            artifact_key=E5_ARTIFACT_KEY,
+        .filter(
+            PipelineArtifact.workspace_id == run.workspace_id,
+            PipelineArtifact.pipeline_run_id == run.id,
+            PipelineArtifact.stage.in_(stage_aliases(E5_OUTPUT_STAGE)),
+            PipelineArtifact.artifact_key == E5_ARTIFACT_KEY,
         )
         .one_or_none()
     )

@@ -329,9 +329,9 @@ def run(ctx: WorkspaceContext) -> dict:
     combined["prompt_version"] = PROMPT_VERSION
 
     # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
-    # Stage "E1.5" → E2_extracts/baseline_patrimonial-1.5_baseline.json
-    # E1.5c lê este artefato e produz baseline_patrimonial-1.5_consolidated.json.
-    store.write("E1.5", "baseline_patrimonial", combined)
+    # consolidate_baseline lê este artefato e produz o -1.5_consolidated.
+    # W6-T03/F9.2: write descritivo; reads legados resolvem via stage_aliases.
+    store.write("extract_baseline", "baseline_patrimonial", combined)
 
     # Sem net_worth no log — valor real é dado sensível (CLAUDE.md §Logging).
     logger.info(

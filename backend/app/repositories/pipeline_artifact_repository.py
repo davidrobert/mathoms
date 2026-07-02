@@ -6,9 +6,9 @@ ad-hoc e para expor operações cross-run (o store é escopado a um ``pipeline_r
 Uso:
 
     repo = PipelineArtifactRepository(session)
-    latest = repo.get_latest_for_workspace(workspace_id, stage="E5")
+    latest = repo.get_latest_for_workspace(workspace_id, stage="analyze_finances")
     by_doc = repo.get_by_document(document_id, stage="E2")
-    repo.delete_stage_for_run(run_id, stage="E3")
+    repo.delete_stage_for_run(run_id, stage="reconcile_transactions")
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
+from pipeline.artifact_store import stage_aliases
 
 
 class PipelineArtifactRepository:
@@ -37,7 +38,8 @@ class PipelineArtifactRepository:
             select(PipelineArtifact)
             .where(
                 PipelineArtifact.workspace_id == workspace_id,
-                PipelineArtifact.stage == stage,
+                # legado ↔ descritivo (ADR-093, janela F9)
+                PipelineArtifact.stage.in_(stage_aliases(stage)),
             )
             .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         )
@@ -51,7 +53,7 @@ class PipelineArtifactRepository:
             select(PipelineArtifact.artifact_key)
             .where(
                 PipelineArtifact.workspace_id == workspace_id,
-                PipelineArtifact.stage == stage,
+                PipelineArtifact.stage.in_(stage_aliases(stage)),
             )
             .distinct()
             .order_by(PipelineArtifact.artifact_key.asc())
@@ -64,14 +66,14 @@ class PipelineArtifactRepository:
         """Todos os artefatos ligados a um documento (E2-* tipicamente)."""
         q = select(PipelineArtifact).where(PipelineArtifact.document_id == document_id)
         if stage is not None:
-            q = q.where(PipelineArtifact.stage == stage)
+            q = q.where(PipelineArtifact.stage.in_(stage_aliases(stage)))
         return list(self._session.execute(q).scalars().all())
 
     def delete_stage_for_run(self, pipeline_run_id: str, *, stage: str) -> int:
         """Remove artefatos do stage na run. Retorna contagem removida."""
         stmt = delete(PipelineArtifact).where(
             PipelineArtifact.pipeline_run_id == pipeline_run_id,
-            PipelineArtifact.stage == stage,
+            PipelineArtifact.stage.in_(stage_aliases(stage)),
         )
         result = self._session.execute(stmt)
         self._session.flush()
@@ -81,9 +83,10 @@ class PipelineArtifactRepository:
         """Remove artefatos dos stages informados. Retorna total removido."""
         if not stages:
             return 0
+        expanded = sorted({a for s in stages for a in stage_aliases(s)})
         stmt = delete(PipelineArtifact).where(
             PipelineArtifact.pipeline_run_id == pipeline_run_id,
-            PipelineArtifact.stage.in_(stages),
+            PipelineArtifact.stage.in_(expanded),
         )
         result = self._session.execute(stmt)
         self._session.flush()

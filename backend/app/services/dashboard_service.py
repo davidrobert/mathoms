@@ -16,7 +16,7 @@ def load_e5_analysis(workspace_id: str, tenant_root: str) -> dict[str, Any] | No
     """Lê E5 analysis do DB (preferência) com fallback em disco."""
     return read_latest_artifact(
         workspace_id,
-        stage=resolve_stage_name("E5"),
+        stage=resolve_stage_name("analyze_finances"),
         key="analise_financeira",
         tenant_root=tenant_root,
     )

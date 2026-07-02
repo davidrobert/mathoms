@@ -111,7 +111,7 @@ def log_dedup(event: str, outcome: DedupOutcome, *, dropped_key: str) -> None:
     logger.info(
         event,
         extra={
-            "stage": "E1.5c",
+            "stage": "consolidate_baseline",
             "count_before": outcome.count_before,
             "count_after": outcome.count_after,
             dropped_key: list(outcome.dropped_ids),

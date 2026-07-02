@@ -270,7 +270,7 @@ def _process_one_e2_llm_document(
         # Validação JSON-schema é executada pelo hook pós-write em
         # DBArtifactStore.write (ADR-212 PR3 — SCHEMA_BY_STAGE inclui
         # "E2-llm" → "e2_extract.schema.json").
-        store.write("E2-llm", safe_stem, e2_json)
+        store.write("extract_with_llm", safe_stem, e2_json)
 
         out_filename = f"{safe_stem}-2_extract.json"
         processed = {

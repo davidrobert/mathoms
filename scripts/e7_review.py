@@ -497,7 +497,7 @@ def main_with_store(ctx, *, mode: str = "crossval") -> dict:
     print(f"[E7.0] Workspace root: {ctx.root}")
     print(f"[E7.0] Store impl:     {type(store).__name__}")
 
-    e5 = store.read("E5", "analise_financeira") or {}
+    e5 = store.read("analyze_finances", "analise_financeira") or {}
     if not e5:
         print("  [ERRO] E5 artifact 'analise_financeira' não encontrado.")
         return {"success": False, "reason": "e5_not_found"}

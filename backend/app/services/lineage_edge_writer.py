@@ -12,6 +12,7 @@ from backend.app.models.artifact_lineage_edge import ArtifactLineageEdge
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.services.crypto import read_artifact_content
 from backend.app.services.report_lineage import EXTRACTION_STAGES
+from pipeline.artifact_store import stage_aliases
 from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY, E5_OUTPUT_STAGE
 from pipeline.domain.services.lineage_edge_deriver import (
     ConsumedSource,
@@ -151,7 +152,8 @@ def e5_payload_for_run(session: Session, workspace_id: str, run_id: str) -> dict
         select(PipelineArtifact.content_json).where(
             PipelineArtifact.workspace_id == workspace_id,
             PipelineArtifact.pipeline_run_id == run_id,
-            PipelineArtifact.stage == E5_OUTPUT_STAGE,
+            # legado E5 ↔ descritivo analyze_finances (ADR-093, janela F9)
+            PipelineArtifact.stage.in_(stage_aliases(E5_OUTPUT_STAGE)),
             PipelineArtifact.artifact_key == E5_ARTIFACT_KEY,
         )
     ).first()
