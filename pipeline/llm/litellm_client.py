@@ -33,6 +33,10 @@ from pipeline.llm.models_catalog import SUPPORTED_PROVIDERS, default_model_for
 from pipeline.llm.pricing import MODEL_PRICING, estimate_cost_usd
 from pipeline.llm.prompts._sanitization import sanitize_and_wrap
 
+# Compat: LLMRunSummary morava neste módulo até A20.l11 estourar o teto de
+# 500 linhas (P2); call-sites continuam importando daqui.
+from pipeline.llm.run_summary import LLMRunSummary
+
 logger = logging.getLogger(__name__)
 
 # Telemetria de Layer 1 (ADR-175): emite ``pattern`` (enum fechado de categoria),
@@ -81,50 +85,6 @@ class LLMCallResult:
     # é 0.0 por convenção mas representa "desconhecido", não "grátis". Distingue
     # provedor sem custo (Ollama local) de pricing missing (modelo novo não-mapeado).
     cost_known: bool = True
-
-
-@dataclass
-class LLMRunSummary:
-    """Aggregated token usage for an entire pipeline run."""
-
-    calls: list[LLMCallResult] = field(default_factory=list)
-
-    @property
-    def total_tokens_in(self) -> int:
-        return sum(c.tokens_in for c in self.calls)
-
-    @property
-    def total_tokens_out(self) -> int:
-        return sum(c.tokens_out for c in self.calls)
-
-    @property
-    def total_cost_usd(self) -> float:
-        return sum(c.cost_estimate_usd for c in self.calls)
-
-    @property
-    def total_duration_ms(self) -> int:
-        return sum(c.duration_ms for c in self.calls)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "total_calls": len(self.calls),
-            "total_tokens_in": self.total_tokens_in,
-            "total_tokens_out": self.total_tokens_out,
-            "total_cost_estimate_usd": round(self.total_cost_usd, 6),
-            "total_duration_ms": self.total_duration_ms,
-            "calls": [
-                {
-                    "provider": c.provider,
-                    "model": c.model,
-                    "tokens_in": c.tokens_in,
-                    "tokens_out": c.tokens_out,
-                    "cost_usd": round(c.cost_estimate_usd, 6),
-                    "duration_ms": c.duration_ms,
-                    "retries": c.retries_used,
-                }
-                for c in self.calls
-            ],
-        }
 
 
 @dataclass

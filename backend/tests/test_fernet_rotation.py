@@ -91,20 +91,25 @@ def rotation_env(monkeypatch):
     engine.dispose()
 
 
+def _seed_user_ws(session) -> str:
+    user = User(email="rot@test.com", hashed_password=hash_password("p"), full_name="U")
+    session.add(user)
+    session.flush()
+    ws = Workspace(name="WS", owner_id=user.id)
+    session.add(ws)
+    session.flush()
+    return ws.id
+
+
 def _seed_member_with_old_cpf(factory) -> str:
     from backend.app.models import FamilyMember
 
     old_ct = VaultService(key=OLD_KEY).encrypt("12345678909")
     session = factory()
     try:
-        user = User(email="rot@test.com", hashed_password=hash_password("p"), full_name="U")
-        session.add(user)
-        session.flush()
-        ws = Workspace(name="WS", owner_id=user.id)
-        session.add(ws)
-        session.flush()
+        ws_id = _seed_user_ws(session)
         member = FamilyMember(
-            workspace_id=ws.id,
+            workspace_id=ws_id,
             key="titular",
             full_name="Titular",
             short_name="T",
@@ -117,96 +122,119 @@ def _seed_member_with_old_cpf(factory) -> str:
         session.close()
 
 
-def test_rotate_column_reencrypts_old_key_rows(rotation_env) -> None:
+def _run_cpf_rotation(factory, *, dry_run: bool) -> dict:
     from backend.app.models import FamilyMember
     from backend.app.tasks.rotate_fernet_secrets import _rotate_column
 
-    member_id = _seed_member_with_old_cpf(rotation_env)
     vault = VaultService(key=f"{NEW_KEY},{OLD_KEY}")
-
-    session = rotation_env()
+    session = factory()
     try:
-        counts = _rotate_column(session, vault, FamilyMember, "cpf_encrypted", dry_run=False)
-        row = session.execute(select(FamilyMember).where(FamilyMember.id == member_id)).scalar_one()
-        rotated_ct = row.cpf_encrypted
+        return _rotate_column(session, vault, FamilyMember, "cpf_encrypted", dry_run=dry_run)
     finally:
         session.close()
+
+
+def _load_member_ct(factory, member_id: str) -> str:
+    from backend.app.models import FamilyMember
+
+    session = factory()
+    try:
+        row = session.execute(select(FamilyMember).where(FamilyMember.id == member_id)).scalar_one()
+        return row.cpf_encrypted
+    finally:
+        session.close()
+
+
+def test_rotate_column_reencrypts_old_key_rows(rotation_env) -> None:
+    member_id = _seed_member_with_old_cpf(rotation_env)
+
+    counts = _run_cpf_rotation(rotation_env, dry_run=False)
 
     assert counts == {"rotated": 1, "skipped": 0, "failed": 0}
+    rotated_ct = _load_member_ct(rotation_env, member_id)
     assert VaultService(key=NEW_KEY).decrypt(rotated_ct) == "12345678909"
 
-    # Idempotência: segunda passada não reescreve nada.
-    session = rotation_env()
-    try:
-        counts2 = _rotate_column(session, vault, FamilyMember, "cpf_encrypted", dry_run=False)
-    finally:
-        session.close()
-    assert counts2 == {"rotated": 0, "skipped": 1, "failed": 0}
+
+def test_rotate_column_second_pass_is_idempotent(rotation_env) -> None:
+    _seed_member_with_old_cpf(rotation_env)
+    _run_cpf_rotation(rotation_env, dry_run=False)
+
+    counts = _run_cpf_rotation(rotation_env, dry_run=False)
+
+    assert counts == {"rotated": 0, "skipped": 1, "failed": 0}
 
 
 def test_rotate_column_dry_run_does_not_write(rotation_env) -> None:
-    from backend.app.models import FamilyMember
-    from backend.app.tasks.rotate_fernet_secrets import _rotate_column
-
     member_id = _seed_member_with_old_cpf(rotation_env)
-    vault = VaultService(key=f"{NEW_KEY},{OLD_KEY}")
 
-    session = rotation_env()
-    try:
-        counts = _rotate_column(session, vault, FamilyMember, "cpf_encrypted", dry_run=True)
-        row = session.execute(select(FamilyMember).where(FamilyMember.id == member_id)).scalar_one()
-        assert VaultService(key=OLD_KEY).decrypt(row.cpf_encrypted) == "12345678909"
-    finally:
-        session.close()
+    counts = _run_cpf_rotation(rotation_env, dry_run=True)
+
     assert counts["rotated"] == 1
+    ct = _load_member_ct(rotation_env, member_id)
+    assert VaultService(key=OLD_KEY).decrypt(ct) == "12345678909"
 
 
-def test_rotate_artifacts_reencrypts_stale_kid(rotation_env, monkeypatch) -> None:
+def _stale_kid() -> str:
     import hashlib
 
-    from backend.app.models import PipelineArtifact, PipelineRun
-    from backend.app.services.crypto import _key_id, is_encrypted_payload
-    from backend.app.tasks.rotate_fernet_secrets import _rotate_artifacts
+    return hashlib.sha256(OLD_KEY.encode()).hexdigest()[:8]
 
-    old_kid = hashlib.sha256(OLD_KEY.encode()).hexdigest()[:8]
+
+def _stale_artifact_row(ws_id: str, run_id: str):
+    from backend.app.models import PipelineArtifact
+
     old_ct = VaultService(key=OLD_KEY).encrypt('{"resumo": "dado"}')
-    stale_sentinel = {"_encrypted": True, "v": 1, "kid": old_kid, "ct": old_ct}
+    sentinel = {"_encrypted": True, "v": 1, "kid": _stale_kid(), "ct": old_ct}
+    return PipelineArtifact(
+        workspace_id=ws_id,
+        pipeline_run_id=run_id,
+        stage="E5",
+        artifact_key="analise_financeira",
+        content_json=sentinel,
+    )
 
-    session = rotation_env()
+
+def _seed_stale_artifact(factory) -> int:
+    """Run + artifact com sentinel cifrado na key ANTIGA (kid defasado)."""
+    from backend.app.models import PipelineRun
+
+    session = factory()
     try:
-        user = User(email="art@test.com", hashed_password=hash_password("p"), full_name="U")
-        session.add(user)
-        session.flush()
-        ws = Workspace(name="WS", owner_id=user.id)
-        session.add(ws)
-        session.flush()
-        run = PipelineRun(workspace_id=ws.id)
+        ws_id = _seed_user_ws(session)
+        run = PipelineRun(workspace_id=ws_id)
         session.add(run)
         session.flush()
-        artifact = PipelineArtifact(
-            workspace_id=ws.id,
-            pipeline_run_id=run.id,
-            stage="E5",
-            artifact_key="analise_financeira",
-            content_json=stale_sentinel,
-        )
+        artifact = _stale_artifact_row(ws_id, run.id)
         session.add(artifact)
         session.commit()
-        artifact_id = artifact.id
+        return artifact.id
     finally:
         session.close()
 
-    session = rotation_env()
+
+def _rotate_and_load_artifact(factory, artifact_id: int) -> tuple[dict, dict]:
+    from backend.app.models import PipelineArtifact
+    from backend.app.tasks.rotate_fernet_secrets import _rotate_artifacts
+
+    session = factory()
     try:
         counts = _rotate_artifacts(session, dry_run=False)
         row = session.execute(
             select(PipelineArtifact).where(PipelineArtifact.id == artifact_id)
         ).scalar_one()
-        payload = row.content_json
+        return counts, row.content_json
     finally:
         session.close()
 
+
+def test_rotate_artifacts_reencrypts_stale_kid(rotation_env) -> None:
+    from backend.app.services.crypto import _key_id, is_encrypted_payload
+
+    artifact_id = _seed_stale_artifact(rotation_env)
+
+    counts, payload = _rotate_and_load_artifact(rotation_env, artifact_id)
+
     assert counts == {"rotated": 1, "skipped": 0, "failed": 0}
     assert is_encrypted_payload(payload)
-    assert payload["kid"] == _key_id() != old_kid
+    assert payload["kid"] == _key_id() != _stale_kid()
     assert VaultService(key=NEW_KEY).decrypt(payload["ct"]) == '{"resumo": "dado"}'

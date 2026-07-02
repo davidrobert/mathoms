@@ -71,24 +71,10 @@ class LLMBudgetService:
             return
         spent = self._month_spend_cached()
         if spent >= budget * _HARD_STOP_RATIO:
-            _budget_metrics.warning(
-                "llm budget hard-stop",
-                extra={
-                    "workspace_id": self._workspace_id,
-                    "spent_usd": str(spent),
-                    "budget_usd": str(budget),
-                },
-            )
+            self._emit_budget_metric("llm budget hard-stop", spent, budget)
             raise LLMBudgetExceededError(self._workspace_id, spent, budget)
         if spent >= budget * _WARN_RATIO:
-            _budget_metrics.warning(
-                "llm budget warn",
-                extra={
-                    "workspace_id": self._workspace_id,
-                    "spent_usd": str(spent),
-                    "budget_usd": str(budget),
-                },
-            )
+            self._emit_budget_metric("llm budget warn", spent, budget)
 
     def record_call(
         self,
@@ -97,30 +83,41 @@ class LLMBudgetService:
         stage: Optional[str],
         prompt_version: Optional[str],
     ) -> None:
-        from backend.app.models.llm_call_log import LLMCallLog
-
         session = self._session_factory()
         try:
-            session.add(
-                LLMCallLog(
-                    workspace_id=self._workspace_id,
-                    stage=stage or "unknown",
-                    model_name=result.model,
-                    prompt_version=prompt_version,
-                    tokens_in=result.tokens_in,
-                    tokens_out=result.tokens_out,
-                    cost_usd=Decimal(str(result.cost_estimate_usd)),
-                    cost_known=result.cost_known,
-                    duration_ms=result.duration_ms,
-                    pipeline_run_id=self._pipeline_run_id,
-                )
-            )
+            session.add(self._call_log_row(result, stage, prompt_version))
             session.commit()
         finally:
             session.close()
         # Invalida o cache de gasto — o próximo check refaz o SUM já com esta call.
         _, month_key = _current_month_window()
         _redis_delete(spend_cache_key(self._workspace_id, month_key))
+
+    def _emit_budget_metric(self, event: str, spent: Decimal, budget: Decimal) -> None:
+        _budget_metrics.warning(
+            event,
+            extra={
+                "workspace_id": self._workspace_id,
+                "spent_usd": str(spent),
+                "budget_usd": str(budget),
+            },
+        )
+
+    def _call_log_row(self, result: "LLMCallResult", stage, prompt_version):
+        from backend.app.models.llm_call_log import LLMCallLog
+
+        return LLMCallLog(
+            workspace_id=self._workspace_id,
+            stage=stage or "unknown",
+            model_name=result.model,
+            prompt_version=prompt_version,
+            tokens_in=result.tokens_in,
+            tokens_out=result.tokens_out,
+            cost_usd=Decimal(str(result.cost_estimate_usd)),
+            cost_known=result.cost_known,
+            duration_ms=result.duration_ms,
+            pipeline_run_id=self._pipeline_run_id,
+        )
 
     # ------------------------------------------------------------------
     # Internals

@@ -90,32 +90,31 @@ def test_scalar_path_becomes_edge_with_path_src_field() -> None:
     assert edge.src_stage == "E5" and edge.src_key == "analise_financeira"
 
 
+# Rebaseline reordenou top_ativos: PETR4 caiu do [0] para o [1].
+_E5_REORDERED = {
+    **_E5_PAYLOAD,
+    "investimentos": {
+        "top_ativos": [
+            {"posicao": 0, "nome": "ITSA4", "membro": "Bruno", "instituicao": "Itau", "valor": 95},
+            {"posicao": 1, "nome": "PETR4", "membro": "Ana", "instituicao": "XP", "valor": 90},
+        ]
+    },
+}
+
+
+def _petr4_src_field(e5: dict, idx: int) -> str:
+    entry = _entries(
+        ("sugestoes_taticas", 0, f"$.investimentos.top_ativos[{idx}].valor", "verified")
+    )
+    (edge,) = build_parecer_citation_edges(e5, entry)
+    return edge.src_field.rsplit("|posicao=", 1)[0]
+
+
 def test_list_leaf_uses_natural_key_stable_across_reorder() -> None:
     """KR3: reordenado o top_ativos, o MESMO ativo produz o MESMO src_field (fora posicao);
     o endereçamento por índice apontaria para outro ativo."""
-    entry = _entries(("sugestoes_taticas", 0, "$.investimentos.top_ativos[0].valor", "verified"))
-    edges_run_r = build_parecer_citation_edges(_E5_PAYLOAD, entry)
-
-    reordered = {
-        **_E5_PAYLOAD,
-        "investimentos": {
-            "top_ativos": [
-                {
-                    "posicao": 0,
-                    "nome": "ITSA4",
-                    "membro": "Bruno",
-                    "instituicao": "Itau",
-                    "valor": 95,
-                },
-                {"posicao": 1, "nome": "PETR4", "membro": "Ana", "instituicao": "XP", "valor": 90},
-            ]
-        },
-    }
-    entry_r1 = _entries(("sugestoes_taticas", 0, "$.investimentos.top_ativos[1].valor", "verified"))
-    edges_run_r1 = build_parecer_citation_edges(reordered, entry_r1)
-
-    key_r = edges_run_r[0].src_field.rsplit("|posicao=", 1)[0]
-    key_r1 = edges_run_r1[0].src_field.rsplit("|posicao=", 1)[0]
+    key_r = _petr4_src_field(_E5_PAYLOAD, 0)
+    key_r1 = _petr4_src_field(_E5_REORDERED, 1)
     assert key_r == key_r1 == "membro=Ana|instituicao=XP|nome=PETR4"
 
 
@@ -183,37 +182,43 @@ def _parecer_artifact(ws_id: str, run_id: str, *, status: str, entries: list[dic
     )
 
 
+def _e5_artifact(ws_id: str, run_id: str) -> PipelineArtifact:
+    return PipelineArtifact(
+        workspace_id=ws_id,
+        pipeline_run_id=run_id,
+        stage="E5",
+        artifact_key="analise_financeira",
+        content_json=_E5_PAYLOAD,
+    )
+
+
+def _e2_artifact_with_doc(ws_id: str, run_id: str) -> PipelineArtifact:
+    return PipelineArtifact(
+        workspace_id=ws_id,
+        pipeline_run_id=run_id,
+        stage="E2-extratos",
+        artifact_key="itau_extratoconta_202601",
+        document_id=_DOC_ID,
+        content_json={"transacoes": []},
+    )
+
+
+_DEFAULT_ENTRIES = _entries(
+    ("risco", 2, "$.patrimonio.liquido", "verified"),
+    ("sugestoes_taticas", 0, "$.investimentos.top_ativos[0].valor", "verified"),
+    ("risco", 0, "$.patrimonio.liquido", "value_mismatch"),
+)
+
+
 def _seed_run_with_parecer(
     factory, ws_id: str, *, status: str = "Gerado", entries: list[dict] | None = None
 ) -> str:
     run_id = str(uuid.uuid4())
-    default_entries = _entries(
-        ("risco", 2, "$.patrimonio.liquido", "verified"),
-        ("sugestoes_taticas", 0, "$.investimentos.top_ativos[0].valor", "verified"),
-        ("risco", 0, "$.patrimonio.liquido", "value_mismatch"),
-    )
     with factory() as db:
         db.add(PipelineRun(id=run_id, workspace_id=ws_id, status=PipelineRunStatus.completed))
-        db.add(
-            PipelineArtifact(
-                workspace_id=ws_id,
-                pipeline_run_id=run_id,
-                stage="E5",
-                artifact_key="analise_financeira",
-                content_json=_E5_PAYLOAD,
-            )
-        )
-        db.add(
-            PipelineArtifact(
-                workspace_id=ws_id,
-                pipeline_run_id=run_id,
-                stage="E2-extratos",
-                artifact_key="itau_extratoconta_202601",
-                document_id=_DOC_ID,
-                content_json={"transacoes": []},
-            )
-        )
-        db.add(_parecer_artifact(ws_id, run_id, status=status, entries=entries or default_entries))
+        db.add(_e5_artifact(ws_id, run_id))
+        db.add(_e2_artifact_with_doc(ws_id, run_id))
+        db.add(_parecer_artifact(ws_id, run_id, status=status, entries=entries or _DEFAULT_ENTRIES))
         db.commit()
     return run_id
 

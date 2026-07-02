@@ -46,76 +46,87 @@ _COLUMN_TARGETS = (
 )
 
 
+def _iter_batches(session, stmt_for_last_pk):
+    """Gera batches paginados por PK; ``stmt_for_last_pk(last_pk)`` monta a query."""
+    last_pk = None
+    while True:
+        rows = session.execute(stmt_for_last_pk(last_pk)).scalars().all()
+        if not rows:
+            return
+        yield rows
+        last_pk = rows[-1].id
+
+
+def _rotate_row_value(row, column: str, vault, counts: dict, dry_run: bool) -> None:
+    ciphertext = getattr(row, column)
+    if not vault.needs_rotation(ciphertext):
+        counts["skipped"] += 1
+        return
+    plaintext = vault.decrypt(ciphertext)
+    if plaintext is None:
+        counts["failed"] += 1
+        logger.error(
+            "fernet rotation: undecryptable value",
+            extra={"table": type(row).__tablename__, "column": column, "pk": row.id},
+        )
+        return
+    if not dry_run:
+        setattr(row, column, vault.encrypt(plaintext))
+    counts["rotated"] += 1
+
+
 def _rotate_column(session, vault, model, column: str, dry_run: bool) -> dict:
     """Re-encripta 1 coluna em batches por PK. Retorna contagens."""
     counts = {"rotated": 0, "skipped": 0, "failed": 0}
     col = getattr(model, column)
-    last_pk = None
-    while True:
+
+    def _stmt(last_pk):
         stmt = select(model).where(col.is_not(None)).order_by(model.id).limit(_BATCH_SIZE)
-        if last_pk is not None:
-            stmt = stmt.where(model.id > last_pk)
-        rows = session.execute(stmt).scalars().all()
-        if not rows:
-            break
+        return stmt if last_pk is None else stmt.where(model.id > last_pk)
+
+    for rows in _iter_batches(session, _stmt):
         for row in rows:
-            last_pk = row.id
-            ciphertext = getattr(row, column)
-            if not vault.needs_rotation(ciphertext):
-                counts["skipped"] += 1
-                continue
-            plaintext = vault.decrypt(ciphertext)
-            if plaintext is None:
-                counts["failed"] += 1
-                logger.error(
-                    "fernet rotation: undecryptable value",
-                    extra={"table": model.__tablename__, "column": column, "pk": row.id},
-                )
-                continue
-            if not dry_run:
-                setattr(row, column, vault.encrypt(plaintext))
-            counts["rotated"] += 1
+            _rotate_row_value(row, column, vault, counts, dry_run)
         if not dry_run:
             session.commit()
     return counts
+
+
+def _rotate_artifact_row(row, current_kid: str, counts: dict, dry_run: bool) -> None:
+    payload = row.content_json
+    if not is_encrypted_payload(payload) or payload.get("kid") == current_kid:
+        counts["skipped"] += 1
+        return
+    try:
+        plaintext_payload = decrypt_artifact_payload(payload)
+    except Exception:
+        counts["failed"] += 1
+        logger.error(
+            "fernet rotation: artifact undecryptable",
+            extra={"artifact_id": row.id, "kid_stored": payload.get("kid")},
+        )
+        return
+    if not dry_run:
+        row.content_json = encrypt_artifact_payload(plaintext_payload)
+    counts["rotated"] += 1
 
 
 def _rotate_artifacts(session, dry_run: bool) -> dict:
     """Re-encripta sentinels ADR-231 cujo ``kid`` difere da key primária."""
     counts = {"rotated": 0, "skipped": 0, "failed": 0}
     current_kid = _key_id()
-    last_pk = 0
-    while True:
-        rows = (
-            session.execute(
-                select(PipelineArtifact)
-                .where(PipelineArtifact.id > last_pk)
-                .order_by(PipelineArtifact.id)
-                .limit(_BATCH_SIZE)
-            )
-            .scalars()
-            .all()
+
+    def _stmt(last_pk):
+        return (
+            select(PipelineArtifact)
+            .where(PipelineArtifact.id > (last_pk or 0))
+            .order_by(PipelineArtifact.id)
+            .limit(_BATCH_SIZE)
         )
-        if not rows:
-            break
+
+    for rows in _iter_batches(session, _stmt):
         for row in rows:
-            last_pk = row.id
-            payload = row.content_json
-            if not is_encrypted_payload(payload) or payload.get("kid") == current_kid:
-                counts["skipped"] += 1
-                continue
-            try:
-                plaintext_payload = decrypt_artifact_payload(payload)
-            except Exception:
-                counts["failed"] += 1
-                logger.error(
-                    "fernet rotation: artifact undecryptable",
-                    extra={"artifact_id": row.id, "kid_stored": payload.get("kid")},
-                )
-                continue
-            if not dry_run:
-                row.content_json = encrypt_artifact_payload(plaintext_payload)
-            counts["rotated"] += 1
+            _rotate_artifact_row(row, current_kid, counts, dry_run)
         if not dry_run:
             session.commit()
     return counts
@@ -123,10 +134,7 @@ def _rotate_artifacts(session, dry_run: bool) -> dict:
 
 @celery_app.task(name="rotate_fernet_secrets")
 def rotate_fernet_secrets(dry_run: bool = False) -> dict:
-    """Re-encripta todos os secrets com a key primária vigente (ADR-171).
-
-    ``dry_run=True`` só conta (nada é escrito) — passo de validação do runbook.
-    """
+    """Re-encripta secrets com a key primária (ADR-171); dry_run só conta (runbook §4)."""
     vault = get_vault()
     report: dict = {"dry_run": dry_run, "targets": {}}
     session = SyncSessionLocal()

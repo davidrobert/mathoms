@@ -1216,16 +1216,36 @@ def _materialize_lineage_edges(ws_id: str, run_id: str) -> None:
         materialize_lineage_edges(db, workspace_id=ws_id, run_id=run_id)
 
 
-def _materialize_parecer_citation_edges(ws_id: str, run_id: str) -> None:
-    """Hook pós-run das citações do parecer (ADR-293 slice 2, A27.l1).
-
-    Só materializa parecer PUBLICADO (status "Gerado") — needs_review não vira
-    edge (itens podem não ser publicados). Âncora falhada nunca entra no grafo.
-    """
+def _parecer_meta_for_run(db, ws_id: str, run_id: str) -> dict | None:
     from sqlalchemy import select
 
     from backend.app.models.pipeline_artifact import PipelineArtifact
     from backend.app.services.crypto import read_artifact_content
+
+    row = db.execute(
+        select(PipelineArtifact.content_json).where(
+            PipelineArtifact.workspace_id == ws_id,
+            PipelineArtifact.pipeline_run_id == run_id,
+            PipelineArtifact.stage == "E6-parecer",
+            PipelineArtifact.artifact_key == "parecer_planejador",
+        )
+    ).first()
+    if row is None or row[0] is None:
+        return None
+    return read_artifact_content(row[0]).get("_meta") or {}
+
+
+def _published_parecer_entries(db, ws_id: str, run_id: str) -> list | None:
+    """Âncoras verificadas do parecer PUBLICADO do run; None se ausente/needs_review."""
+    meta = _parecer_meta_for_run(db, ws_id, run_id)
+    if meta is None or meta.get("status") != "Gerado":
+        return None
+    return meta.get("evidencia_verification") or []
+
+
+def _materialize_parecer_citation_edges(ws_id: str, run_id: str) -> None:
+    """Hook pós-run das citações do parecer (ADR-293 slice 2, A27.l1) — só parecer
+    publicado vira edge; âncora falhada nunca entra no grafo."""
     from backend.app.services.lineage_edge_writer import (
         e5_payload_for_run,
         materialize_parecer_citation_edges,
@@ -1233,23 +1253,9 @@ def _materialize_parecer_citation_edges(ws_id: str, run_id: str) -> None:
     from backend.app.services.parecer_citation_lineage import build_parecer_citation_edges
 
     with SyncSessionLocal() as db:
-        row = db.execute(
-            select(PipelineArtifact.content_json).where(
-                PipelineArtifact.workspace_id == ws_id,
-                PipelineArtifact.pipeline_run_id == run_id,
-                PipelineArtifact.stage == "E6-parecer",
-                PipelineArtifact.artifact_key == "parecer_planejador",
-            )
-        ).first()
-        if row is None or row[0] is None:
-            return
-        parecer = read_artifact_content(row[0])
-        meta = parecer.get("_meta") or {}
-        if meta.get("status") != "Gerado":
-            return
-        entries = meta.get("evidencia_verification") or []
-        e5_data = e5_payload_for_run(db, ws_id, run_id)
-        if e5_data is None:
+        entries = _published_parecer_entries(db, ws_id, run_id)
+        e5_data = e5_payload_for_run(db, ws_id, run_id) if entries is not None else None
+        if entries is None or e5_data is None:
             return
         edges = build_parecer_citation_edges(e5_data, entries)
         materialize_parecer_citation_edges(db, workspace_id=ws_id, run_id=run_id, edges=edges)

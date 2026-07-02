@@ -23,11 +23,8 @@ from backend.app.core.config import settings
 
 
 def resolve_fernet_keys(explicit: str = "") -> list[str]:
-    """Chaves ativas em ordem: primeira = primária (encrypt), demais decrypt-only.
-
-    Precedência: ``explicit`` (testes) > ``FERNET_KEYS`` CSV (janela de
-    rotação, ADR-171) > ``FERNET_KEY`` single.
-    """
+    """Chaves ativas em ordem (1ª = primária/encrypt, demais decrypt-only); precedência
+    ``explicit`` (testes) > ``FERNET_KEYS`` CSV (rotação, ADR-171) > ``FERNET_KEY``."""
     raw = explicit or settings.FERNET_KEYS or settings.FERNET_KEY
     return [k.strip() for k in raw.split(",") if k.strip()] if raw else []
 

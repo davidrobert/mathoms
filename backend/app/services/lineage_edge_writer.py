@@ -79,13 +79,8 @@ def aggregates_depending_on_source_document(
     return [{"dst_stage": r[0], "dst_key": r[1], "dst_field": r[2], "run_id": r[3]} for r in rows]
 
 
-def parecer_citation_sources(session: Session, *, workspace_id: str) -> list[dict]:
-    """Drill N2 do parecer (ADR-293 slice 4) — "de onde veio este R$ do parecer?".
-
-    Mapa item do parecer (``dst_field``, ex. ``risco[2]``) → folha E5 citada
-    (``src_field`` = chave natural ou path escalar) + run que a verificou.
-    """
-    rows = session.execute(
+def _citation_rows_stmt(workspace_id: str, *extra_where):
+    return (
         select(
             ArtifactLineageEdge.dst_field,
             ArtifactLineageEdge.src_field,
@@ -94,23 +89,29 @@ def parecer_citation_sources(session: Session, *, workspace_id: str) -> list[dic
         .where(
             ArtifactLineageEdge.workspace_id == workspace_id,
             ArtifactLineageEdge.dst_stage == PARECER_CITATION_DST_STAGE,
+            *extra_where,
         )
         .distinct()
         .order_by(ArtifactLineageEdge.dst_field, ArtifactLineageEdge.src_field)
     )
+
+
+def _citation_dicts(rows) -> list[dict]:
     return [{"item": r[0], "e5_source": r[1], "run_id": r[2]} for r in rows]
+
+
+def parecer_citation_sources(session: Session, *, workspace_id: str) -> list[dict]:
+    """Drill N2 (ADR-293 slice 4): item do parecer (``risco[2]``) → folha E5 citada
+    (``src_field`` = chave natural ou path escalar) + run que a verificou."""
+    return _citation_dicts(session.execute(_citation_rows_stmt(workspace_id)))
 
 
 def parecer_items_depending_on_source_document(
     session: Session, *, workspace_id: str, document_id: str
 ) -> list[dict]:
-    """Reverse-lineage cobre o parecer (ADR-293 slice 4): documento → itens do parecer.
-
-    2 hops coarse: as edges E5→doc dão os runs que consumiram o documento; as
-    citações ``parecer_citation`` desses runs são os itens do parecer que
-    dependem (transitivamente) da fonte. Mesmo teto honesto da query E5 —
-    granularidade run→doc, não atribuição fina campo→doc.
-    """
+    """Reverse-lineage doc→parecer (ADR-293 slice 4), 2 hops coarse: runs cujo E5 consumiu
+    o documento → citações ``parecer_citation`` desses runs. Mesmo teto honesto da query
+    E5 — granularidade run→doc, não atribuição fina campo→doc."""
     runs_consuming_doc = (
         select(ArtifactLineageEdge.run_id)
         .where(
@@ -119,21 +120,8 @@ def parecer_items_depending_on_source_document(
         )
         .distinct()
     )
-    rows = session.execute(
-        select(
-            ArtifactLineageEdge.dst_field,
-            ArtifactLineageEdge.src_field,
-            ArtifactLineageEdge.run_id,
-        )
-        .where(
-            ArtifactLineageEdge.workspace_id == workspace_id,
-            ArtifactLineageEdge.dst_stage == PARECER_CITATION_DST_STAGE,
-            ArtifactLineageEdge.run_id.in_(runs_consuming_doc),
-        )
-        .distinct()
-        .order_by(ArtifactLineageEdge.dst_field, ArtifactLineageEdge.src_field)
-    )
-    return [{"item": r[0], "e5_source": r[1], "run_id": r[2]} for r in rows]
+    stmt = _citation_rows_stmt(workspace_id, ArtifactLineageEdge.run_id.in_(runs_consuming_doc))
+    return _citation_dicts(session.execute(stmt))
 
 
 def _reverse_query_stmt(workspace_id: str, document_id: str):

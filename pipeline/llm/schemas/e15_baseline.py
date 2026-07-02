@@ -9,12 +9,9 @@ from pydantic import BaseModel, Field, field_validator
 
 
 def _coerce_decimal(v):
-    """Boundary LLM monetário = ``Decimal`` (ADR-090 / ADR-259 §1).
-
-    Aceita ``int | str | float`` via ``Decimal(str(v))`` — o LLM emite string
-    decimal (prompt v1.2.0), mas number JSON de respostas antigas/reask não
-    pode brickar a extração; ``str()`` primeiro evita o ruído binário do float.
-    """
+    """Boundary LLM monetário = ``Decimal`` (ADR-090/ADR-259 §1): aceita ``int|str|float``
+    via ``Decimal(str(v))`` — o prompt v1.2.0 pede string decimal, mas number JSON de
+    respostas antigas/reask não pode brickar a extração."""
     if v is None:
         return None
     if isinstance(v, Decimal):

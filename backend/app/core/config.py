@@ -176,6 +176,10 @@ class Settings(BaseSettings):
             )
         if "sqlite" in (self.DATABASE_URL or "").lower():
             raise RuntimeError("DATABASE_URL must not use sqlite in production")
+        self._reject_insecure_fernet_keys()
+        return self
+
+    def _reject_insecure_fernet_keys(self) -> None:
         if self.FERNET_KEY in _INSECURE_FERNET_DEFAULTS:
             raise RuntimeError("FERNET_KEY must not use a development/CI default in production")
         for rotation_key in self.FERNET_KEYS.split(","):
@@ -183,7 +187,6 @@ class Settings(BaseSettings):
                 raise RuntimeError(
                     "FERNET_KEYS must not include a development/CI default in production"
                 )
-        return self
 
     @property
     def sync_database_url(self) -> str:
