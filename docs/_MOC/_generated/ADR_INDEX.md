@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-294 ADRs (ADR-001 a ADR-303) em [`docs/adr/`](../../adr/).
+295 ADRs (ADR-001 a ADR-304) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 270
+- **Decidido**: 271
 - **Proposto**: 20
 - **Roadmap**: 4
 
@@ -397,7 +397,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## llm
 
-### Decidido (18)
+### Decidido (19)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
@@ -417,6 +417,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability (A26.l8)
 - [[ADR-296]] — Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha · phase A26.l9 · parecer reliability
 - [[ADR-300]] — Red lines do parecer: 4ª camada de validação determinística (conselho defensável) · phase A22.l2 · F3 launch-trust
+- [[ADR-304]] — KR1 do parecer — pureza monetária da prosa: fix de prompt + doutrina de enforcement · phase A27
 
 ### Proposto (1)
 

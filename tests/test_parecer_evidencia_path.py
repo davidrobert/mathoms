@@ -278,6 +278,19 @@ class TestMoneyTokenExtraction:
         assert token.cents == 123_456
         assert token.half_step_cents == 0
 
+    def test_reais_without_prefix_is_caught(self):
+        """KR1 (A27): LLM pode driblar o R$ escrevendo 'N mil reais' — detector pega."""
+        from backend.app.services.parecer_evidencia import _extract_money_tokens
+
+        for prose in ("renda tributável de 720 mil reais", "720.000 reais", "3 milhões de reais"):
+            assert _extract_money_tokens([prose]), prose
+
+    def test_reais_word_alone_is_not_a_false_positive(self):
+        """'reais' sem número imediato (percentuais/prazos) não conta."""
+        from backend.app.services.parecer_evidencia import _extract_money_tokens
+
+        assert _extract_money_tokens(["ganhos reais de 6% a.a. em 12 meses"]) == []
+
 
 # -----------------------------------------------------------------------
 # Paridade dos regex JSONPath (drill-down / Pydantic / $defs do JSON Schema)
