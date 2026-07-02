@@ -747,7 +747,6 @@
 | PLAN-snapshot-changelog-v3 | plan | in_progress |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `plan/SNAPSHOT_CHANGELOG_V3/_README.md` |
 | PLAN-suggestion-lifecycle | plan | in_progress |  | Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos | `plan/SUGGESTION_LIFECYCLE/_README.md` |
 | PLAN-tributario-pj | plan | draft |  | Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto) | `plan/TRIBUTARIO_PJ/_README.md` |
-|  | runbook |  |  | Rotação de chave Fernet (MultiFernet) — procedure operacional | `reference/runbooks/fernet_rotation.md` |
 | runbook-python-dependencies | runbook | ativo |  | Runbook — Dependências Python (pip-tools lockfile com hashes) | `reference/runbooks/python_dependencies.md` |
 | TRACK-a11-w2-t04-stuck-runs-heartbeat | track | ready | A11 | W2-T04 — Stuck-runs detector + last_heartbeat_at | `sprint/A11/tracks/a11-w2-t04-stuck-runs-heartbeat.md` |
 | TRACK-a11-w2-t05-prompt-version-gate | track | ready | A11 | W2-T05 — extract_with_llm incremental + PROMPT_VERSION gate CI | `sprint/A11/tracks/a11-w2-t05-prompt-version-gate.md` |
