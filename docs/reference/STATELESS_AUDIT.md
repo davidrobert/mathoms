@@ -1,6 +1,6 @@
 # Stateless-readiness audit (A6f.6)
 
-**Data:** 2026-04-20 (snapshot inicial) · **Last verified:** 2026-05-14 (revalidado pós-[[ADR-212]]: ressalva §6 eliminada por construção)
+**Data:** 2026-04-20 (snapshot inicial) · **Last verified:** 2026-07-02 (audit-vault r4: §2 linhas re-sincronizadas; §4 atualizado com o rate limit Redis genérico do PR #720)
 **Escopo:** `backend/app/` + `backend/app/tasks/` + `pipeline/`
 **Objetivo:** avaliar se a stack atual sobrevive a `N` uvicorn workers + `M`
 Celery workers apontando para o mesmo Postgres + Redis — critério de aceite
@@ -40,8 +40,8 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 
 | Arquivo | Nome | Tipo | Veredito |
 |---|---|---|---|
-| `services/retry_config.py:41` | `STAGE_RETRY_CONFIGS` | `dict[str, StageRetryConfig]` frozen | ✅ imutável (criado uma vez, lido) |
-| `services/content_classifier.py:33` | `INSTITUTION_CONTENT_PATTERNS` | `list[tuple[re.Pattern, str]]` | ✅ regex compilado, nunca alterado |
+| `services/retry_config.py:44` | `STAGE_RETRY_CONFIGS` | `dict[str, StageRetryConfig]` frozen | ✅ imutável (criado uma vez, lido) |
+| `services/classification/institution_classifier.py:11` | `INSTITUTION_CONTENT_PATTERNS` | `list[tuple[re.Pattern, str]]` | ✅ regex compilado, nunca alterado (re-exportado por `content_classifier.py`) |
 | `services/content_classifier.py:457-467` | `_PERIOD_RANGE_RE`, `_YYYYMM_RE`, `_MONTH_YEAR_BR_RE`, `_MESES` | regex + mapping | ✅ imutável |
 | `services/tarefas_md_parser.py:20-146` | `_MD_TO_CATEGORY`, `_MONTH_PT`, `_STATUS_FROM_MD`, `_*_RE` | mapping + regex | ✅ imutável |
 | `services/feature_flags_service.py:32` | `DEFAULTS` | `dict[str, bool]` | ✅ imutável (defaults, nunca escritos) |
@@ -53,13 +53,14 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | `services/document_classification.py:20-30` | `_CONTENT_CONFIDENCE_THRESHOLD`, `_REVIEW_CONFIDENCE_THRESHOLD`, `_TRANSIENT_ERROR_NAMES`, `_PERMANENT_ERROR_NAMES` | thresholds + frozensets | ✅ imutável |
 | `services/pipeline_adapter.py:153` | `_GOAL_TYPE_MAP` | `dict` | ✅ imutável |
 | `services/task_attachment_service.py:29` | `_SUBDIR` | `str` | ✅ imutável |
-| `services/pdf_renderer.py:27` | `_PLAYWRIGHT_AVAILABLE` | `Optional[bool]` lazy | ⚠️ mutável mas **idempotente** — cada worker descobre o mesmo resultado independente |
+| `services/pdf_renderer.py:30` | `_PLAYWRIGHT_AVAILABLE` | `Optional[bool]` lazy | ⚠️ mutável mas **idempotente** — cada worker descobre o mesmo resultado independente |
+| `services/rate_limit.py:41` | `_DEFAULT_POLICIES` | `dict[str, RateLimitPolicy]` (frozen dataclasses) | ✅ categoria (a) — políticas imutáveis; o **contador** vive no Redis (`INCR`+`EXPIRE`, W4-T04 · #720), nunca em memória |
 | `services/pdf_renderer.py` (W1-T04 · 2026-05-06) | `_pdf_semaphore` | `asyncio.Semaphore \| None` lazy | ✅ categoria (b) — recurso **local** ao worker (concorrência intra-process), não estado de negócio. Cada worker cria seu Semaphore lendo `settings.MATHOMS_PDF_CONCURRENCY` (mesmo valor → mesmo cap). Não acumula entre requests; protege RAM do Chromium contra OOM em CX32 (8GB). |
-| `services/events.py:16` | `_redis_client` | Redis connection lazy singleton | ✅ pattern aceito — cada worker tem sua conexão para o Redis compartilhado |
-| `services/vault.py:48` | `_singleton` | `VaultService` lazy singleton | ✅ mesma lógica — cada worker inicializa o seu, interop zero necessário |
-| `core/database.py:11` | `engine` | `AsyncEngine` module-level | ✅ SQLAlchemy pool; cada worker tem seu pool para o DB compartilhado |
+| `services/events.py:22` | `_redis_client` | Redis connection lazy singleton | ✅ pattern aceito — cada worker tem sua conexão para o Redis compartilhado |
+| `services/vault.py:77` | `_singleton` | `VaultService` lazy singleton | ✅ mesma lógica — cada worker inicializa o seu, interop zero necessário |
+| `core/database.py:52` | `engine` | `AsyncEngine` module-level | ✅ SQLAlchemy pool; cada worker tem seu pool para o DB compartilhado |
 | ~~`pipeline/adapters/file_config_store.py`~~ | ~~`FileConfigStore._cache`~~ | ~~`dict[str, Any]` por instância~~ | ✅ **removido em Sprint A7.5** (commit `5d1cf7a` · ADR-134) — produto roda 100% DB-first via `DBConfigStore` |
-| `pipeline/domain/lineage_registry.py:16` | `LINEAGE_RULE_REFS` | `dict[str, dict[str, str]]` literal eager | ✅ categoria (a) — mapping de domínio imutável (ADR-281 B2, bridge nó-de-lineage → código); refactor-safe via `dev/check_lineage_refs.py` |
+| `pipeline/domain/lineage_registry.py:26` | `LINEAGE_RULE_REFS` | `dict[str, dict[str, str]]` literal eager | ✅ categoria (a) — mapping de domínio imutável (ADR-281 B2, bridge nó-de-lineage → código); refactor-safe via `dev/check_lineage_refs.py` |
 
 **Veredito:** ✅ **OK**. Todos os globais são (a) constantes imutáveis —
 safe; ou (b) singletons idempotentes inicializados lazy — cada worker
@@ -87,15 +88,20 @@ Nenhum dict global acumula estado entre requests.
 A decisão de sobrepor publisher (Celery) e subscriber (uvicorn) só pelo
 Redis é o padrão documentado em ADR-102 R19.
 
-### 4. Rate limiting — **DB-backed**
+### 4. Rate limiting — **DB-backed + Redis-backed**
 
-Único rate limit na base: `MAX_PENDING_PER_WORKSPACE = 10` convites
-pendentes por workspace (`services/invitation_service.py:50`). Check
-via `_count_pending(db, workspace_id, now)` — query Postgres direta,
-sem cache local, sem token bucket em memória.
+Dois mecanismos, ambos sem estado em memória:
 
-**Veredito:** ✅ **OK — DB é o único estado**. Multi-worker seguro por
-construção.
+- **Invitations (DB):** `MAX_PENDING_PER_WORKSPACE = 10` convites
+  pendentes por workspace (`services/invitation_service.py:50`). Check
+  via `_count_pending(db, workspace_id, now)` — query Postgres direta.
+- **Genérico (Redis, W4-T04 · #720, 2026-07-02):** `services/rate_limit.py`
+  — janela fixa via `INCR`+`EXPIRE` no Redis compartilhado, políticas por
+  scope (login/upload/pipeline_run) em `_DEFAULT_POLICIES` (imutável, §2).
+  Falha aberta se Redis indisponível; nenhum token bucket em memória.
+
+**Veredito:** ✅ **OK — Postgres/Redis são o único estado**. Multi-worker
+seguro por construção.
 
 ### 5. Background tasks — **zero `asyncio.create_task` / `BackgroundTasks`**
 
@@ -165,7 +171,7 @@ State de um run vive em:
 
 ### 10. Vault caching
 
-`services/vault.py:48` — `_singleton: VaultService | None = None` +
+`services/vault.py:77` — `_singleton: VaultService | None = None` +
 `get_vault()` lazy. Cada worker inicializa seu `VaultService` (que
 lê `settings.FERNET_KEY` — mesmo valor em todos os workers). Encrypt/
 decrypt é determinístico sobre a mesma key.

@@ -14,7 +14,7 @@ tags:
   - area/security
   - status/decidido
   - type/adr
-size_lines: 105
+size_lines: 112
 ---
 
 # ADR-108 — Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS

@@ -28,6 +28,8 @@ theme: "data-lineage"
 > uso real exercitado**) — pré-launch, fecham por **tráfego/dogfood**, não por calendário.
 > Insumos para destravar: `ANTHROPIC_API_KEY` no ambiente + ~20 gerações de parecer +
 > exercício do override v2 por ≥1 sprint + confirmar PITR do Postgres.
+> **Dono do gatilho:** owner (CEO) — é o dogfood dele que gera o tráfego;
+> re-avaliar o gate a cada rodada de audit-vault ([[ADR-302]]).
 
 ## Tese
 

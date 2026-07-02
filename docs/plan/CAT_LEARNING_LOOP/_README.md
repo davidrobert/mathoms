@@ -2,12 +2,14 @@
 id: PLAN-cat-learning-loop
 type: plan
 title: "Categorization Learning Loop — promoção de override de transação para regra"
-status: in_progress
+status: paused
 sprint_origem: A12
 sprint_atual: A12
 sprints_envolvidas: ["A12"]
 created_at: "2026-05-10"
-last_review: "2026-07-01"
+last_review: "2026-07-02"
+paused_at: "2026-05-11"
+pause_reason: "impl V1 (P1-P4 + gate técnico) shipada; aguarda só o gate dogfood humano (CEO) — PASS → done, FAIL → reabrir"
 adrs_canonical:
   - "[[ADR-186]]"
   - "[[ADR-188]]"
@@ -17,7 +19,7 @@ tags:
   - area/pipeline
   - area/methodology
   - sprint/a12
-  - status/in-progress
+  - status/paused
 ---
 
 # Plano canônico — Categorization Learning Loop
@@ -185,7 +187,8 @@ Entrega:
 
 **Hard limit MVP:** soft warning em UI ao chegar em **50 regras** por
 workspace; hard cap configurável em **200 regras** (default). Excede →
-endpoint POST retorna 409.
+endpoint POST retorna **422 Unprocessable Entity** ([[ADR-188]] §D7;
+409 foi considerado e rejeitado — a request é semanticamente válida).
 
 **Gate de saída:** snapshot OpenAPI atualizado ([[ADR-109]]), testes
 integration cobrindo preview + apply + revert + conflito + cap.
@@ -220,6 +223,11 @@ CEO:
 - "Não vou usar" subjetivo → kill switch antes de gastar 4d frontend.
 
 ### P4 — Frontend `/transactions` UX
+
+> **Nota (2026-07-02, audit r4):** P4 **shipou com escopo reduzido** (PR #203 —
+> toast + modal `CreateRuleDialog` + badge + heatmap). Desta spec, side-panel
+> 480px, highlight-to-extract e banner persistente foram **cortados para V2.A**;
+> o detalhamento abaixo permanece como spec de V2, não como pendência do MVP.
 
 **Track:** `cat-learning-loop-p4-frontend-edit.md` (criado quando P3
 mergear)

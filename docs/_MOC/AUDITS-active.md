@@ -51,20 +51,21 @@ Para que nenhum achado se perca entre auditorias:
 | F01 — MOC A26 tabela: l3 `blocked`/l8 `planned` mas lanes `shipped` | DOC-BLOCK | procede | procede-fechado | tabela corrigida (l3 ✅ 2026-07-01, l8 ✅ #666) neste PR |
 | F02 — MOC A26 narrativa: l8 tratada como bloqueador futuro de l2 | DOC-BLOCK | procede | procede-fechado | narrativa + §Gate reescritos: pré-condição de código da l2 ✅, resta gate de tráfego |
 | F03 — README/SETUP senha dev `admin123` ≠ seed `admin` | DOC-BLOCK | procede | procede-fechado | `admin` em README.md:88 + SETUP.md:239,339 (seed.py:22 é fonte) |
-| F04-F07 — ADR-188/248/228/270 sem `size_lines` (>150 linhas) | DOC-DRIFT | procede | procede-aberto → batch | lane P2 batch (abaixo) |
-| F08 — plano CAT_LEARNING_LOOP §P3 diz `409`; ADR-188 §D7 decidiu `422` | DOC-DRIFT | procede | procede-aberto → batch | lane P2 batch |
-| F09 — `_TEMPLATE.md` de agente aponta shims BACKLOG/DECISIONS | DOC-DRIFT | procede | procede-aberto → batch | apontar SPRINT_CURRENT + ADR_INDEX |
-| F10 — ADR-027 mecânica de retry superada pela emenda ADR-270, sem cross-ref | DOC-DRIFT | procede | procede-aberto → batch | banner/relates_to 027→270 |
-| F11 — CAT_LEARNING_LOOP `sprint_atual: A12` preso (corrente A26) | DOC-DRIFT | procede | procede-aberto → batch | ou `status: paused` + pause_reason |
-| F12 — CAT gate dogfood vencido ~7 semanas sem prazo/escalonamento | DOC-DRIFT | procede | **procede-aberto (owner)** | decisão binária: PASS→done / FAIL→reabrir; playbook de arquivamento já pronto no plano |
-| F13 — chart_conclusions: `receita_bar`/`despesas_doughnut` nunca interpolam (call site S2 usa ids inexistentes `receita_fonte`/`despesas_categoria` → conclusion null) | DOC-DRIFT | procede | procede-aberto → **task de código** | chip spawn: corrigir ids + estender gate de paridade p/ call-site↔mapa |
-| F14 — ARCHITECTURE §4.1 cita `family_members.json` (path proibido, ADR-134) | DOC-DRIFT | procede | procede-aberto → batch | lane P2 batch |
-| F15 — ARCHITECTURE §5 "20 routers" (real: 34) | DOC-DRIFT | procede | procede-aberto → batch | lane P2 batch |
-| F16 — ARCHITECTURE §7 identificadores legados (E3…) vs descritivos F9.2/F9.5 | DOC-DRIFT | procede | procede-aberto → batch | sequência/flags conferem; drift de vocabulário |
-| F17 — STATELESS_AUDIT §4 "único rate limit: invitations" falso pós-#720; `_DEFAULT_POLICIES` não registrado §2 | DOC-DRIFT | procede | procede-aberto → batch | impl é ADR-111-compliant; inventário stale |
-| F18 — STATELESS_AUDIT §2 `INSTITUTION_CONTENT_PATTERNS` path migrou | DOC-DRIFT | procede | procede-aberto → batch | `classification/institution_classifier.py:11` |
-| F19 — runbook f9_3 sem banner "concluído/histórico" (F9.3 executada 2026-05-05) | DOC-DRIFT | procede | procede-aberto → batch | lane P2 batch |
-| F20-F28 — 8 POLISH (size_lines body-only 208/108, paths ADR-068/208, CAT §P4 vs corte de escopo, dono do gate de tráfego A26, header chart_conclusions "8 ativos"→6, contagens ARCHITECTURE §10, linhas STATELESS §2) | DOC-POLISH | procede | aceito-wontfix | batch pré-beta; detalhes no bruto |
+| F04-F07 — ADR-188/248/228/270 sem `size_lines` (>150 linhas) | DOC-DRIFT | procede | procede-fechado | batch r4 executado 2026-07-02: `size_lines` body-only adicionado aos 4 |
+| F08 — plano CAT_LEARNING_LOOP §P3 diz `409`; ADR-188 §D7 decidiu `422` | DOC-DRIFT | procede | procede-fechado | corpo alinhado à ADR-188 §D7 (`422` + rationale) |
+| F09 — `_TEMPLATE.md` de agente aponta shims BACKLOG/DECISIONS | DOC-DRIFT | procede | procede-fechado | template aponta SPRINT_CURRENT + ADR_INDEX + `rg docs/adr/` |
+| F10 — ADR-027 mecânica de retry superada pela emenda ADR-270, sem cross-ref | DOC-DRIFT | procede | procede-fechado | banner de emenda + `relates_to` recíproco 027↔270 |
+| F11 — CAT_LEARNING_LOOP `sprint_atual: A12` preso (corrente A26) | DOC-DRIFT | procede | procede-fechado | `status: paused` + `paused_at: 2026-05-11` + pause_reason (gate dogfood) |
+| F12 — CAT gate dogfood vencido ~7 semanas sem prazo/escalonamento | DOC-DRIFT | procede | **procede-aberto (owner)** | decisão binária: PASS→done / FAIL→reabrir; plano agora `paused` com o gate como pause_reason |
+| F13 — chart_conclusions: `receita_bar`/`despesas_doughnut` nunca interpolam (call site S2 usa ids inexistentes `receita_fonte`/`despesas_categoria` → conclusion null) | DOC-DRIFT | procede | procede-aberto → **em execução** | branch `agent/s2-chart-conclusion-ids/20260702-1200` (ids + gate call-site↔mapa + teste) |
+| F14 — ARCHITECTURE §4.1 cita `family_members.json` (path proibido, ADR-134) | DOC-DRIFT | procede | procede-fechado | glossário aponta config `family_members` via `DBConfigStore` (ADR-134) |
+| F15 — ARCHITECTURE §5 "20 routers" (real: 34) | DOC-DRIFT | procede | procede-fechado | 4 linhas "Contagem real" re-sincronizadas (models 48, routers 34, services 110, pages 32) |
+| F16 — ARCHITECTURE §7 identificadores legados (E3…) vs descritivos F9.2/F9.5 | DOC-DRIFT | procede | procede-fechado | FULL_ORDER/DET_ORDER/tabela/snippet migrados p/ descritivo; legado vira coluna de referência |
+| F17 — STATELESS_AUDIT §4 "único rate limit: invitations" falso pós-#720; `_DEFAULT_POLICIES` não registrado §2 | DOC-DRIFT | procede | procede-fechado | §4 reescrito (DB + Redis `INCR`+`EXPIRE`); `_DEFAULT_POLICIES` registrado §2 cat. (a) |
+| F18 — STATELESS_AUDIT §2 `INSTITUTION_CONTENT_PATTERNS` path migrou | DOC-DRIFT | procede | procede-fechado | `classification/institution_classifier.py:11` |
+| F19 — runbook f9_3 sem banner "concluído/histórico" (F9.3 executada 2026-05-05) | DOC-DRIFT | procede | procede-fechado | banner ✅ CONCLUÍDO/HISTÓRICO no topo |
+| F20-F25, F27-F28 — POLISH (size_lines body-only 208/108, paths ADR-068/208, CAT §P4 vs corte de escopo, dono do gate de tráfego A26, contagens ARCHITECTURE §10, linhas STATELESS §2) | DOC-POLISH | procede | procede-fechado | batch r4 executado 2026-07-02 junto com os DRIFT |
+| F26 — header chart_conclusions "8 builders ativos" (real: 6) | DOC-POLISH | procede | procede-aberto → **em execução** | mesma branch da F13 |
 | S4 arquivamento (follow-up r3-F01) | — | confirmado | não-acionável | deferimento segue correto; reavaliar quando ADR-216 → Decidido |
 
 **Zumbi r2-new-2 (LGPD export parcial) — 2ª rodada `procede-aberto`.** Cadência §4
@@ -74,9 +75,13 @@ exclusão de Debt/PropertyIdentity/Vehicle/Protection/Risk/TransactionOverride d
 vira lane. Terceira rodada sem decisão = rebaixamento automático a `aceito-wontfix`
 com gatilho de reabertura no beta.
 
-**Lane P2 batch proposta (estilo W6-T04, não criada — pickup discipline):**
-`vault-drift-batch-r4` — 12 correções docs-only (F04-F11, F14-F19), ~1-2h, zero
-risco de runtime. Fica a critério do owner promover a track.
+**Lane P2 batch `vault-drift-batch-r4` — EXECUTADA 2026-07-02** (owner pediu
+"atacar todos os pontos" na mesma sessão): F04-F11 + F14-F19 + POLISH F20-F25/
+F27-F28 corrigidos em PR docs-only. F13/F26 correm na branch
+`agent/s2-chart-conclusion-ids/20260702-1200` (código). Restam abertos apenas
+os 2 itens de decisão do owner: F12 (gate dogfood CAT) e r2-new-2 (LGPD export).
+Lateral de código (import morto `lru_cache` em `pipeline/domain/models/bank.py:29`)
+tratado em PR próprio.
 
 **Falso-positivo evitado (repetido do r3):** ausência de `model`/`temperature` em
 `chart_conclusions.yaml` é por design (ADR-122).
