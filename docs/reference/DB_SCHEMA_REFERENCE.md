@@ -1706,7 +1706,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `family_surname` | `VARCHAR(255)` | yes | — | — |
 | `owner_id` | `VARCHAR(36)` | no | — | FK→users.id |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
-| `monthly_llm_budget_usd` | `NUMERIC(10, 2)` | no | server: `5.00` | — |
+| `monthly_llm_budget_usd` | `NUMERIC(10, 2)` | yes | server: `5.00` | — |
 | `deleted_at` | `DATETIME` | yes | — | INDEX |
 | `business_profile_json` | `JSON` | yes | — | — |
 | `rule_cap_override` | `INTEGER` | yes | — | — |
@@ -2904,7 +2904,7 @@ type Workspace struct {
 	FamilySurname *string `db:"family_surname" json:"family_surname"`
 	OwnerId string `db:"owner_id" json:"owner_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
-	MonthlyLlmBudgetUsd decimal.Decimal `db:"monthly_llm_budget_usd" json:"monthly_llm_budget_usd"`
+	MonthlyLlmBudgetUsd *decimal.Decimal `db:"monthly_llm_budget_usd" json:"monthly_llm_budget_usd"`
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 	BusinessProfileJson json.RawMessage `db:"business_profile_json" json:"business_profile_json"`
 	RuleCapOverride *int `db:"rule_cap_override" json:"rule_cap_override"`
