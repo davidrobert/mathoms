@@ -5,7 +5,7 @@ title: "Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via 
 status: Roadmap
 phase: "deferido em W6-T06, 2026-05-07"
 date: "2026-04-27"
-relates_to: ["[[ADR-112]]", "[[ADR-113]]", "[[ADR-102]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-109]]"]
+relates_to: ["[[ADR-112]]", "[[ADR-113]]", "[[ADR-102]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-109]]", "[[ADR-205]]", "[[ADR-212]]", "[[ADR-241]]", "[[ADR-291]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 150"]
@@ -15,7 +15,7 @@ tags:
   - area/pipeline
   - status/roadmap
   - type/adr
-size_lines: 159
+size_lines: 257
 ---
 
 # ADR-150 — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap
@@ -70,6 +70,83 @@ size_lines: 159
 > dispararia lane A6h em conflito direto com sprints ativos. **`Roadmap`
 > elimina o pior estado (`Proposto` indefinido) sem destruir a opção.**
 
+> **Emenda 2026-07-02 (revisão de consistência — decisão inalterada):**
+> auditoria contra o repo encontrou drift factual acumulado desde 2026-04
+> ([[ADR-212]]/[[ADR-213]] DB-only artifacts, A20.L2/L3, crescimento ~2×
+> do domínio). Status `Roadmap`, os 4 gatilhos e a revisita agendada
+> (2027-Q2 ou 100 workspaces pagantes) **permanecem inalterados**.
+> Correções e adições:
+>
+> 1. **A2.fix está entregue** (A20.L2/L3): o
+>    [Dockerfile](../../pipeline-service/Dockerfile) copia o source antes
+>    do install, base pinada por digest, non-root. Sai da fila de
+>    pendências.
+> 2. **Novo pré-requisito hard `A3.store`, ordenado ANTES de todos os
+>    demais** — decisão de boundary de artefatos pós-[[ADR-212]]. O §7
+>    original mandava o serviço Go falar `DiskArtifactStore`; a classe
+>    foi **deletada** em A12. O executor remoto (pipeline-service Python
+>    hoje; shell Go + subprocess Python no Caminho 1) precisa de acesso a
+>    `pipeline_artifacts`. Três opções registradas:
+>    - **(a) Executor injeta `DBArtifactStore` próprio** via
+>      `DATABASE_URL`, sessão-por-stage — espelha `_open_artifact_session`
+>      de [backend/app/tasks/pipeline_task.py](../../backend/app/tasks/pipeline_task.py),
+>      padrão já validado em produção pelo caminho Celery. **Recomendada.**
+>      Obrigatório **importar a classe do backend, não reimplementar** —
+>      o hook de validação `SCHEMA_BY_STAGE` + criptografia vivem no
+>      `write()`; uma reimplementação silenciosamente não valida.
+>      `pipeline-service/**` está fora do import-ban de
+>      `dev/check_pipeline_boundaries.py` (que cobre só `pipeline/**`).
+>    - (b) Contrato HTTP transporta artefatos (backend hidrata inputs no
+>      request, coleta outputs no response) — **rejeitada**: os fallbacks
+>      de leitura workspace-scoped ([[ADR-241]]) e run-pinado
+>      ([[ADR-291]]) tornam a pré-hidratação incomputável sem executar o
+>      stage; payloads chegam a MBs (E4/E5); engorda o boundary fino de
+>      [[ADR-112]].
+>    - (c) Store remoto via API do backend — **rejeitada**: dezenas de
+>      round-trips por run (E3 lê N extratos; E4 escreve 7 keys) +
+>      duplicação do contrato de validação no cliente ou no servidor.
+>    `A3.store` **abre ADR `Proposto` própria** quando a lane arrancar
+>    (numerar na criação) — é decisão de boundary, não slice mecânico.
+> 3. **O modo HTTP do `pipeline-service` está latentemente quebrado
+>    pós-ADR-212**: `stage_executor.py` e `run_coordinator.py` constroem
+>    `WorkspaceContext.for_tenant(...)` **sem injetar** `artifact_store`,
+>    e `get_artifact_store()` agora raise `RuntimeError` (19 call-sites
+>    em stages/domain/scripts). **Não é dívida de prod** — o serviço só
+>    sobe via overlay de smoke opt-in
+>    (`docker-compose.pipeline-service.yml`); produção é
+>    `InProcessPipelineClient`/Celery, que injeta o store por-stage.
+>    Passou despercebido porque o baseline A2 mediu só `/health`, que não
+>    toca o store. **Primeiro entregável de A3.store:** consertar a
+>    injeção + teste de integração que exercita um stage real via HTTP
+>    (artefato persistido em `pipeline_artifacts`) — o path deixa de
+>    poder quebrar em silêncio.
+> 4. **Invariantes de separação de responsabilidade** (valem para
+>    qualquer executor remoto, Python ou Go): materialização de lineage
+>    ([[ADR-279]]/[[ADR-293]]) e telemetria de run são do **orquestrador
+>    backend**, pós-execução — não migram para o executor; validação de
+>    schema + crypto permanecem no `write()` do `DBArtifactStore`;
+>    executor remoto com conexão própria carrega scoping de tenancy por
+>    `workspace_id` (sub-item de A3.store); unicidade de escrita
+>    garantida por `uq_pipeline_artifacts_run_stage_key`
+>    (`pipeline_run_id, stage, artifact_key`) + invariante "um `run_id`
+>    é executado por um único executor por vez" (RunCoordinator
+>    sequencia stages).
+> 5. **Delta aditivo de contrato**: `StageExecuteRequest` precisa ganhar
+>    `base_run_id` + `base_run_fallback_stages` (opcionais) — sem eles,
+>    from_stage ([[ADR-291]]) quebra no modo HTTP. Única mudança de
+>    contrato; aditiva, não-breaking ([[ADR-205]] D2 preservada).
+> 6. **A3.cli ganha sub-requisito**: o entry-point CLI lê `DATABASE_URL`
+>    do env e injeta `DBArtifactStore` por-stage — senão o CLI nasce com
+>    o mesmo bug do item 3.
+> 7. **Números re-medidos** (2026-07-02): `pipeline/` = 38.348 LOC em
+>    218 arquivos (era 17.823/108); `pipeline/domain/` = 26.446 LOC/135
+>    arquivos; `STAGE_REGISTRY` = 18 stages (era 16); shell = 565 LOC/15
+>    arquivos. A fronteira fina **sobreviveu** — mesmos 5 símbolos de
+>    `pipeline.*` importados + `setup_logging` opcional. Caminho 3
+>    re-estimado: ~50-70k LOC Go, **6-10 meses** (dobro do original) —
+>    reforça Caminho 1 como default. Inventário completo atualizado em
+>    [docs/reference/GO_PORT_DEPS.md](../reference/GO_PORT_DEPS.md).
+
 **Contexto:** [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) estabeleceu o `pipeline-service/` como FastAPI standalone com contrato HTTP versionado, justamente para que uma reescrita Go fosse possível sem retrabalho de fronteira. [ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) entregou `.golangci.yml`, CI workflow e skeleton `services/`. Falta a decisão estratégica: **se** e **como** disparar o port, e em que ordem.
 
 A2 (entregue em [docs/reference/PERFORMANCE_BASELINE.md](../reference/PERFORMANCE_BASELINE.md), 2026-04-27) e A1 (entregue em [docs/reference/GO_PORT_DEPS.md](../reference/GO_PORT_DEPS.md), 2026-04-27) deram a base empírica:
@@ -79,7 +156,7 @@ A2 (entregue em [docs/reference/PERFORMANCE_BASELINE.md](../reference/PERFORMANC
 3. **Footprint mensurado:** imagem Docker 283 MB (DISK), cold start ~500ms mediana, RSS idle 36-39 MB, `/health` p99 15ms (local) / 174ms (container macOS Docker Desktop), throughput `/health` 7100 req/s local / 2700 req/s container.
 4. **`/health` é proxy informativo, não hot path.** Stages reais (E3/E5) levam minutos; overhead HTTP serializa em ms. Uma melhora de 10× em `/health` some no ruído.
 5. **Stage execution real NÃO foi medida** — exigiria smoke tenant com dados (out-of-scope sem orquestração combinada). Sem isso, gatilho "GIL/CPU-bound" para Caminho 3 fica especulativo (ver A2.1 em §Próximos passos).
-6. **Bug pré-existente no Dockerfile** ([pipeline-service/Dockerfile](../../pipeline-service/Dockerfile)): `COPY pyproject.toml` antes de `app/` faz setuptools falhar com `package directory 'app' does not exist`. Imagem oficial não builda hoje. Pré-requisito de qualquer port que valide paridade via container.
+6. **Bug pré-existente no Dockerfile** ([pipeline-service/Dockerfile](../../pipeline-service/Dockerfile)): `COPY pyproject.toml` antes de `app/` faz setuptools falhar com `package directory 'app' does not exist`. Imagem oficial não builda hoje. Pré-requisito de qualquer port que valide paridade via container. *(Corrigido em A20.L2/L3 — ver emenda 2026-07-02, item 1.)*
 
 Três caminhos foram detalhados em A1 §3:
 
@@ -110,8 +187,9 @@ Hoje, nenhum dos quatro está ativo.
 3. **Caminho 2 fica descartado por ora.** Complexidade operacional acima do retorno enquanto cargas estão muito abaixo do ponto de saturação. Se Caminho 1 entregar e fork+exec por stage virar gargalo medido (não suposto), reabrir em ADR própria.
 
 4. **Pré-requisitos do Caminho 1, ordem obrigatória:**
-   - **A2.fix** — fixar [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) bug de COPY ordering. Sem isso, paridade Python↔Go não pode ser validada via container nem CI smoke.
-   - **A3.cli** — adicionar entry-point CLI no orchestrator: `python -m pipeline.orchestrator run-stage <stage> --workspace <path> --run-id <id> [--config-dir <path>] [--incremental] [--incremental-doc <path>...]`. Output JSON estruturado em stdout (mesmo shape de `StageResult`), erros estruturados em stderr. Sem CLI, Caminho 1 vira hack de import dinâmico, não interface estável.
+   - **A3.store** *(adicionado na emenda 2026-07-02 — primeiro da fila)* — decidir e implementar o acesso do executor remoto a `pipeline_artifacts` pós-[[ADR-212]] (opções e recomendação na emenda, item 2). Abre ADR `Proposto` própria, conserta o modo HTTP do `pipeline-service` e adiciona teste de integração que exercita stage real via HTTP. Sem isso, qualquer executor fora do processo Celery — Python ou Go — falha com `RuntimeError` no primeiro `get_artifact_store()`.
+   - **A2.fix** — ✅ **entregue** (A20.L2/L3): Dockerfile copia source antes do install, base pinada por digest, non-root.
+   - **A3.cli** — adicionar entry-point CLI no orchestrator: `python -m pipeline.orchestrator run-stage <stage> --workspace <path> --run-id <id> [--config-dir <path>] [--incremental] [--incremental-doc <path>...]`. Output JSON estruturado em stdout (mesmo shape de `StageResult`), erros estruturados em stderr. Sem CLI, Caminho 1 vira hack de import dinâmico, não interface estável. **Sub-requisito (emenda 2026-07-02, item 6):** o CLI lê `DATABASE_URL` do env e injeta `DBArtifactStore` por-stage.
    - **A3.cli.otel** *(sub-pré-requisito hard)* — entry-point CLI lê `TRACEPARENT` do env e instancia span filho via OTel context propagation, mantendo o trace contínuo entre Go (parent) e Python (child). Sem isso, gate de paridade do §7 não cobre traces e regressão de latência em produção fica invisível.
    - **A3.cli.benchmark** *(gate empírico)* — após A3.cli + A3.cli.otel, medir cold start real do `python -m pipeline.orchestrator run-stage` num venv com deps típicas (`pipeline.*`, `pipeline.llm.*`, fallback opcional `backend.app.core.logging`). **Se cold start mediano >500ms**, Caminho 2 (worker pool warm) volta à mesa **antes** do primeiro PR Go produtivo — não depois. Boot Python real não é o `python -c` vazio (~50ms); é o re-import da árvore de domínio, que A2 não mediu (pipeline-service local importa lazy dentro de funções).
    - **A3.codegen** — codegen Go via `oapi-codegen` consumindo [docs/reference/api/v1/pipeline-service.openapi.json](../reference/api/v1/pipeline-service.openapi.json) para `services/pipeline-service-go/internal/contracts/`. Snapshot test garante regen limpo.
@@ -135,13 +213,14 @@ Hoje, nenhum dos quatro está ativo.
    - **Layout de paths** — `WorkspaceContext.__post_init__` define `processed_dir`, `e2_dir`, etc. Convenção compartilhada com Python via subprocess; tem que bater byte-a-byte.
    - **Redis pub/sub envelope** — formato em [event_publisher.py:56](../../pipeline-service/app/services/event_publisher.py:56) (`event`, `run_id`, `timestamp`, `stage`, `status`, `progress_pct`, `error`, `detail`). Backend WebSocket consumer espera esse shape exato.
    - **Channel naming** — `pipeline:{run_id}` em [event_publisher.py:72](../../pipeline-service/app/services/event_publisher.py:72). Hardcoded; idêntico no Go.
-   - **OTel span naming** — `pipeline.{stage}` em [pipeline/orchestrator.py:237](../../pipeline/orchestrator.py:237). `otel.Tracer("mathoms.pipeline").Start(ctx, "pipeline."+stage)`.
+   - **OTel span naming** — `pipeline.{stage}` no `_TRACER.start_as_current_span` de [pipeline/orchestrator.py](../../pipeline/orchestrator.py). `otel.Tracer("mathoms.pipeline").Start(ctx, "pipeline."+stage)`.
+   - **Artefatos DB-only ([[ADR-212]], emenda 2026-07-02)** — não há filesystem de artefatos a replicar; o acoplamento é o acesso a `pipeline_artifacts` via `DBArtifactStore` (A3.store). O layout de paths do workspace permanece relevante apenas para `inbox/` e documentos de origem.
 
 7. **Cutover.** Um único toggle, sem flag de produto:
    - `MATHOMS_PIPELINE_SERVICE_URL` apontando para `pipeline-service-go` em staging primeiro, depois prod por workspace via reverse proxy ou env var por instância.
    - **Gate técnico:** 3 runs E0→E5 completos contra workspaces controlados, paridade byte-a-byte de artefatos finais, WS events e atributos de span OTel (com TRACEPARENT propagado — ver A3.cli.otel).
    - **Gate humano** *(obrigatório, não pulável)*: 1 workspace real, smoke humano completo seguindo o protocolo de [docs/reference/SMOKE_TEST_HUMAN.md](../reference/SMOKE_TEST_HUMAN.md) (precedente: A6b.5 / [ADR-103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human)) — validação visual do relatório final em `/reports/[id]` antes de flip prod. Sem isso, divergência semântica que escapa de paridade byte-a-byte (formatação de narrativa, copy de status) chega ao cliente.
-   - Backend permanece dono do `DBArtifactStore`; serviço Go fala `DiskArtifactStore` apenas — mantém fronteira fina ([ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1)).
+   - ~~Backend permanece dono do `DBArtifactStore`; serviço Go fala `DiskArtifactStore` apenas~~ **(reescrito na emenda 2026-07-02 — `DiskArtifactStore` deletado em A12, [[ADR-212]]):** o executor remoto instancia o **mesmo `DBArtifactStore`** do backend (import da classe, sessão própria por-stage via `DATABASE_URL`). Backend permanece dono do **contrato** — schema validation + crypto no `write()` — e da materialização de lineage/telemetria pós-run. Contrato HTTP segue só-comando, fronteira fina de [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) preservada.
 
 8. **Coexistência.** Python `pipeline-service/` permanece como fallback durante cutover. Decommission do `pipeline-service/` Python só após **≥2 semanas calendário** em prod com Go-shell sem rollback e sem regressão de paridade documentada (artefatos final ou WS events). Decommission é slice próprio com ADR de remoção, similar a [ADR-107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2) bridge removal.
 
@@ -150,19 +229,20 @@ Hoje, nenhum dos quatro está ativo.
 - ✅ **Decisão sobre Caminho 1 é não-ambígua.** Quando o gatilho disparar, primeiro PR Go produtivo já tem layout, pré-requisitos e cutover definidos. Revisão foca em domínio, não em estratégia.
 - ✅ **Linhas vermelhas explícitas.** Caminho 3 não acontece sem evidência empírica nova (A2.1+); Caminho 2 não acontece sem fork+exec medido como gargalo. Evita port "exploratório" sem trigger.
 - ✅ **Pré-requisitos numerados.** A2.fix (Dockerfile) e A3.cli (entry-point orchestrator) são pré-requisitos hard — não dá pra começar Caminho 1 sem eles. Lock contra "comecei Go e descobri que precisava antes…".
-- ✅ **Domain layer Python intacto.** Regras de domínio (ADR-090, ADR-097, ADR-145, ADR-146, ADR-147, etc.) continuam vivas em `pipeline/domain/services/` e `docs/methodology/` correspondente. Caminho 1 não toca esse perímetro.
+- ✅ **Domain layer Python intacto.** Regras de domínio (ADR-090, ADR-097, ADR-145, ADR-146, ADR-147, etc.) continuam vivas em `pipeline/domain/services/` como rules-as-code ([[ADR-143]]; índice em [docs/reference/ARCHITECTURE.md §4.1](../reference/ARCHITECTURE.md)). Caminho 1 não toca esse perímetro.
 - ✅ **Reversibilidade.** Se Caminho 1 entregar e algo falhar em produção, flip de `MATHOMS_PIPELINE_SERVICE_URL` reverte para Python em segundos. Sem migração de schema, sem mudança de DB, sem perda de dados.
 - ⚠️ **Caminho 1 não elimina Python.** Container final tem **Go binary + Python runtime + `pipeline/` source**. Footprint cai de 283 MB para ~80-150 MB (Go binary + python:3.12-slim + pipeline source), não para os ~15-30 MB de Caminho 3 puro. Se a meta é "imagem mínima Alpine", Caminho 1 não atinge.
 - ⚠️ **`fork+exec` Python por stage tem custo real maior que aparenta.** Boot Python vazio (`python -c pass`) é ~50ms; mas o entry-point do orchestrator re-importa `pipeline.*` (orchestrator + stage_spec + context + lazy import do runner correto + `pipeline.llm` se LLM stage), o que num venv produtivo é ~400-800ms cold. Em `/runs` que sequencia 16 stages, overhead acumulado é **6-13s** — observável e potencialmente intolerável em testes locais que rodam o pipeline iterativamente. Mitigação obrigatória: A3.cli.benchmark mede empírico antes do primeiro PR Go produtivo; se cold real >500ms, Caminho 2 (worker pool warm) reabre antes, não depois.
 - ⚠️ **Goldens de paridade exigem `pipeline-service-go` rodar contra workspace fixture com mesmo input que o Python.** A2.1 (smoke real) é pré-condição também para validação de Caminho 1 — não só para Caminho 3.
-- ⚠️ **OTel span attributes precisam ser bit-exact e o trace tem que ser contínuo.** [orchestrator.py:237-245](../../pipeline/orchestrator.py:237) emite `pipeline.stage`, `pipeline.workspace_root`, `pipeline.run_id`, `pipeline.is_llm`, `pipeline.success`, `pipeline.exit_code`. Subprocess Python emite spans filhos; Go emite span pai. Trace contínuo é **gate de paridade** (não opcional) — endereçado por A3.cli.otel acima.
+- ⚠️ **OTel span attributes precisam ser bit-exact e o trace tem que ser contínuo.** `_TRACER.start_as_current_span` em [pipeline/orchestrator.py](../../pipeline/orchestrator.py) (referência por símbolo — linha drifta) emite `pipeline.stage`, `pipeline.workspace_root`, `pipeline.run_id`, `pipeline.is_llm`, `pipeline.success`, `pipeline.exit_code`. Subprocess Python emite spans filhos; Go emite span pai. Trace contínuo é **gate de paridade** (não opcional) — endereçado por A3.cli.otel acima.
 - ❌ **Caminho 3 fica adiado indefinidamente.** Quem queria Go monolíngue puro fica frustrado. Aceito porque (a) custo é muito alto (3-5 meses), (b) gatilho empírico ainda não existe, (c) Caminho 1 desbloqueia 90% dos ganhos sem fechar a porta para Caminho 3 futuro (esta ADR pode ser superseded).
 - ❌ **Stack heterogênea por mais tempo.** Backend Python + pipeline Python + serviço Go shell. Custo cognitivo para devs novos. Aceito porque o shell Go é pequeno e não toca domínio.
 
 **Escopo deferido (follow-ups explícitos):**
 
+- **A3.store** *(emenda 2026-07-02)* — boundary de artefatos do executor remoto pós-[[ADR-212]]. Abre ADR `Proposto` própria (co-design com `data-engineer`: segundo produtor de escritas em `pipeline_artifacts` + tenancy scoping). Primeiro entregável: fix do modo HTTP + teste de integração de stage real.
 - **A2.1** — smoke real do `pipeline-service` Python: workspace tenant + run E0→E5 completo, medindo RSS/CPU/duração por stage. **Pré-requisito de Caminho 3** e validação de Caminho 1.
-- **A2.fix** — fix do bug de COPY ordering em [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile). Slice docs+código próprio, sem ADR (refactor mecânico).
+- **A2.fix** — ✅ entregue (A20.L2/L3). ~~fix do bug de COPY ordering em [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile)~~.
 - **A3.cli** — entry-point `python -m pipeline.orchestrator run-stage` com output JSON estruturado. Slice próprio, sem ADR (interface adicional, retro-compatível com `_run_stage` programático).
 - **A3.codegen** — `oapi-codegen` setup para `services/pipeline-service-go/internal/contracts/`. Slice próprio, parte do primeiro PR Go produtivo ou imediatamente antes ([ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) §Escopo deferido).
 - **ADR-151+ (hipotética)** — promoção de Caminho 1 para Caminho 3 se A2.1 mostrar gargalo CPU-bound nos stages. Esta ADR seria superseded.
