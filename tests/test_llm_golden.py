@@ -86,14 +86,17 @@ class TestE15GoldenFile:
         output = BaselinePatrimonialOutput(**golden_data)
         baseline = _output_to_baseline_json(output)
 
-        assert baseline["resumo"]["patrimonio_liquido"] == 897000.00
+        # Artifact serializa monetário como string decimal (A20.l11 / ADR-090).
+        assert baseline["resumo"]["patrimonio_liquido"] == "897000.00"
         assert len(baseline["itens"]) == 5
         assert baseline["_meta"]["source"] == "E1.5-llm"
         assert baseline["itens"][0]["categoria"] == "imovel"
 
     def test_items_sum_matches_total(self, golden_data):
-        total = sum(i["value_brl"] for i in golden_data["items"])
-        assert abs(total - golden_data["total_assets_brl"]) < 0.01
+        from decimal import Decimal
+
+        total = sum(Decimal(i["value_brl"]) for i in golden_data["items"])
+        assert total == Decimal(golden_data["total_assets_brl"])
 
 
 class TestE2LLMGoldenFile:

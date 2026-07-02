@@ -2,7 +2,8 @@
 id: ADR-171
 type: adr
 title: "Fernet rotation operacionalizada via MultiFernet"
-status: Proposto
+status: Decidido
+phase: W3-T04
 date: "2026-05-06"
 relates_to: ["[[ADR-007]]", "[[ADR-015]]", "[[ADR-060]]", "[[ADR-109]]"]
 supersedes: []
@@ -12,14 +13,14 @@ tags:
   - area/auth
   - area/ops
   - area/security
-  - status/proposto
+  - status/decidido
   - type/adr
 size_lines: 33
 ---
 
 # ADR-171 — Fernet rotation operacionalizada via MultiFernet
 
-**Status:** Proposto • **Data:** 2026-05-06 • **Relaciona** [ADR-007](#adr-007--fernet-app-level-para-criptografia), [ADR-015](#adr-015--vault-por-workspace), [ADR-060](#adr-060--fernet-dual-key-para-secret-rotation), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** SR-003 (W3-T04).
+**Status:** Decidido (W3-T04) • **Data:** 2026-05-06 • **Relaciona** [ADR-007](#adr-007--fernet-app-level-para-criptografia), [ADR-015](#adr-015--vault-por-workspace), [ADR-060](#adr-060--fernet-dual-key-para-secret-rotation), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** SR-003 (W3-T04).
 
 **Contexto:** ADR-060 declarou dual-key como capacidade roadmap, mas hoje `backend/app/services/vault.py` usa `Fernet(MATHOMS_FERNET_KEY)` single-key. Não há procedure para rotacionar — chave comprometida = re-encrypt manual de todo o workspace. Sem runbook, sem dry-run, sem teste. Falha de compliance LGPD (rotation periódica de chaves criptográficas é exigência implícita do ANPD em segredos sensíveis tratados).
 
@@ -45,6 +46,11 @@ size_lines: 33
 - ⚠️ Janela de duas chaves ativas requer disciplina — env mismatch entre workers = decrypt fail intermitente. Mitigação: deploy synchronous via Coolify (W4-T02).
 - ❌ Não cobre rotation automática agendada — operação manual com runbook é first iteration.
 
-**Implementação:** lane W3-T04. Vira `Decidido (W3-T04)` no merge.
+**Implementação:** lane W3-T04 (2026-07-02) — `MATHOMS_FERNET_KEYS` CSV em
+`config.py` (validação prod contra defaults inseguros), `MultiFernet` +
+`needs_rotation` em `vault.py`, `kid` de artifacts segue a key primária
+(`crypto._key_id`), task `rotate_fernet_secrets` (colunas + sentinels ADR-231,
+batches de 100, dry-run) e runbook
+[fernet_rotation.md](../reference/runbooks/fernet_rotation.md).
 
 **Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T04](../plan/PLATFORM_REVIEW/_README.md), finding SR-003.

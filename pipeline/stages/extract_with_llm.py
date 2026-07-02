@@ -132,6 +132,7 @@ def _llm_config_from_runtime(data: dict) -> Any:
         model_name=str(data.get("model_name") or default_model_for(provider)),
         max_tokens=int(data.get("max_tokens") or 4096),
         temperature=float(data["temperature"] if data.get("temperature") is not None else 0.1),
+        call_hooks=data.get("call_hooks"),
     )
 
 
@@ -242,6 +243,7 @@ def _process_one_e2_llm_document(
             stage=f"E2-llm:{doc.name}",
             image_bytes=image_bytes,
             image_media_type=image_media_type,
+            prompt_version=PROMPT_VERSION,
         )
         output: LLMExtractOutput = result.output
 
@@ -400,6 +402,7 @@ def run(ctx: WorkspaceContext) -> dict:
     llm_config_data = ctx.load_config("llm_config.json")
     if not llm_config_data or not llm_config_data.get("api_key"):
         return {"skipped": True, "reason": "No LLM config — free tier"}
+    llm_config_data["call_hooks"] = ctx.llm_call_hooks
 
     store = ctx.get_artifact_store()
     docs = _find_unprocessed_docs(ctx, store)

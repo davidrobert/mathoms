@@ -106,6 +106,11 @@ class Settings(BaseSettings):
     # Vault encryption (Fernet symmetric key). Generate via: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     FERNET_KEY: str = ""
 
+    # ADR-171 — janela de rotação: CSV "key_nova,key_antiga". Primeira =
+    # primária (encrypt); demais decrypt-only. Quando setada, tem precedência
+    # sobre FERNET_KEY. Fora de rotação, deixe vazia e use FERNET_KEY single.
+    FERNET_KEYS: str = ""
+
     # ADR-231 — encryption at-rest de PII em pipeline_artifacts.content_json.
     # Default True: writes via DBArtifactStore aplicam Fernet encrypt após
     # schema validation. Reads sempre decriptam sentinel detectado (compat
@@ -171,9 +176,17 @@ class Settings(BaseSettings):
             )
         if "sqlite" in (self.DATABASE_URL or "").lower():
             raise RuntimeError("DATABASE_URL must not use sqlite in production")
+        self._reject_insecure_fernet_keys()
+        return self
+
+    def _reject_insecure_fernet_keys(self) -> None:
         if self.FERNET_KEY in _INSECURE_FERNET_DEFAULTS:
             raise RuntimeError("FERNET_KEY must not use a development/CI default in production")
-        return self
+        for rotation_key in self.FERNET_KEYS.split(","):
+            if rotation_key.strip() in _INSECURE_FERNET_DEFAULTS:
+                raise RuntimeError(
+                    "FERNET_KEYS must not include a development/CI default in production"
+                )
 
     @property
     def sync_database_url(self) -> str:

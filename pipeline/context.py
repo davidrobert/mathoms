@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from pipeline.artifact_store import ArtifactStore
+    from pipeline.llm.call_hooks import LLMCallHooks
     from pipeline.ports import (
         ConfigStore,
         EconomicAssumptionsResolver,
@@ -107,6 +108,11 @@ class WorkspaceContext:
     #: workspaces/CLI sem injeção explícita. Backend popula com o valor real
     #: lido de ``workspaces.imoveis_no_if`` em ``_setup_run_context``.
     imoveis_no_if: bool = field(default=True)
+
+    #: ADR-173 — hooks de FinOps no choke-point LLM (budget hard-stop +
+    #: ``LLMCallLog``). Backend injeta ``LLMBudgetService`` em
+    #: ``_setup_run_context``; ``None`` em CLI/testes → sem cap, sem log.
+    llm_call_hooks: Optional["LLMCallHooks"] = field(default=None, repr=False)
 
     #: ADR-119 — mediana de duração (ms) por stage, calculada dos últimos runs
     #: bem-sucedidos do workspace. Populado pelo orchestrator (Celery task);

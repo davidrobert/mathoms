@@ -49,6 +49,8 @@ celery_app.conf.update(
         "backend.app.tasks.categorization_apply",
         # ADR-239 D5 (A18 L3 P1+P2) — FIPE refresh assíncrono via BrasilAPI.
         "backend.app.tasks.fipe_refresh",
+        # ADR-171 — re-encrypt batch durante janela de rotação Fernet (manual).
+        "backend.app.tasks.rotate_fernet_secrets",
     ],
     # F8.4 / ADR-074 — beat schedule para tarefas periódicas.
     # Start beat: celery -A backend.app.worker beat -l info

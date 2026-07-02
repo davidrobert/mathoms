@@ -2,8 +2,8 @@
 id: ADR-293
 type: adr
 title: "Citação de parecer (E6→E5) como edge de lineage por chave natural"
-status: Proposto
-phase: "A26 · Onda 6 (impl. A27)"
+status: Decidido
+phase: "A27 · Onda 6 (A27.l1)"
 date: "2026-06-17"
 relates_to:
   - "[[ADR-279]]"
@@ -13,7 +13,7 @@ superseded_by: []
 aliases: ["ADR 293", "parecer citation edge", "evidencia chave natural"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/data-lineage
   - area/llm
   - phase/a26
@@ -21,7 +21,7 @@ tags:
 
 # ADR-293 — Citação de parecer (E6→E5) como edge de lineage por chave natural
 
-**Status:** Proposto (A26 · Onda 6; implementação A27) • **Data:** 2026-06-17 •
+**Status:** Decidido (A27.l1) • **Data:** 2026-06-17 •
 **Relaciona** [[ADR-279]] (lineage field-level + índice reverso), [[ADR-292]]
 (coerção de `evidencia_path`).
 

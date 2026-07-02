@@ -168,9 +168,9 @@
 | ADR-168 | adr | Decidido |  | Remoção do Modo USA do relatório | `adr/168-remocao-do-modo-usa-do-relatorio.md` |
 | ADR-169 | adr | Decidido |  | Modo incremental estendido aos stages globais E1 | `adr/169-modo-incremental-estendido-aos-stages-globais-e1.md` |
 | ADR-170 | adr | Decidido |  | Refresh tokens com httpOnly cookie e family-based revocation | `adr/170-refresh-tokens-com-httponly-cookie-e-family.md` |
-| ADR-171 | adr | Proposto |  | Fernet rotation operacionalizada via MultiFernet | `adr/171-fernet-rotation-operacionalizada-via-multifernet.md` |
+| ADR-171 | adr | Decidido |  | Fernet rotation operacionalizada via MultiFernet | `adr/171-fernet-rotation-operacionalizada-via-multifernet.md` |
 | ADR-172 | adr | Decidido |  | Stuck-runs detector via heartbeat + Celery beat | `adr/172-stuck-runs-detector-via-heartbeat-celery-beat.md` |
-| ADR-173 | adr | Proposto |  | LLM budget hard-stop + LLMCallLog populada universal | `adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md` |
+| ADR-173 | adr | Decidido |  | LLM budget hard-stop + LLMCallLog populada universal | `adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md` |
 | ADR-174 | adr | Proposto |  | Off-site backup criptografado em Cloudflare R2 + restore drill | `adr/174-off-site-backup-criptografado-em-cloudflare-r2.md` |
 | ADR-175 | adr | Decidido |  | Prompt injection defense em camadas (sanitize + system clause + Pydantic strict) | `adr/175-prompt-injection-defense-em-camadas-sanitize.md` |
 | ADR-176 | adr | Decidido |  | Chave estável `cenarios_conjuge` no bloco de narrativas E5.N | `adr/176-chave-estavel-cenarios-conjuge-no-bloco-de.md` |
@@ -288,9 +288,9 @@
 | ADR-290 | adr | Decidido |  | Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion | `adr/290-supersede-per-run-thesis-key-suggestion.md` |
 | ADR-291 | adr | Decidido |  | from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) | `adr/291-from-stage-base-run-fallback.md` |
 | ADR-292 | adr | Decidido |  | evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) | `adr/292-evidencia-path-boundary-coercion.md` |
-| ADR-293 | adr | Proposto |  | Citação de parecer (E6→E5) como edge de lineage por chave natural | `adr/293-parecer-citation-edge-chave-natural.md` |
+| ADR-293 | adr | Decidido |  | Citação de parecer (E6→E5) como edge de lineage por chave natural | `adr/293-parecer-citation-edge-chave-natural.md` |
 | ADR-294 | adr | Decidido |  | Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) | `adr/294-parecer-boundary-coercion-prose-impacto.md` |
-| ADR-295 | adr | Proposto |  | Enforcement por-item da citação verificada no modo strict (parecer E6) | `adr/295-enforcement-por-item-citacao-strict.md` |
+| ADR-295 | adr | Decidido |  | Enforcement por-item da citação verificada no modo strict (parecer E6) | `adr/295-enforcement-por-item-citacao-strict.md` |
 | ADR-296 | adr | Decidido |  | Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha | `adr/296-citacao-deterministica-render-from-path.md` |
 | ADR-297 | adr | Decidido |  | Report idempotente sob redelivery do Celery — índice único parcial + guarda terminal | `adr/297-report-idempotente-redelivery.md` |
 | ADR-298 | adr | Decidido |  | Ratchet de estilo: metas decrescentes via save-baseline manual + correção da distribuição de dívida (resposta audit r2) | `adr/298-ratchet-metas-decrescentes-e-distribuicao-de-divida.md` |
@@ -646,9 +646,9 @@
 | A26.l5 | lane | blocked | A26 | M2-B — drop destrutivo do estado legado de identidade do override (Fase E) | `sprint/A26/lanes/A26-l5-m2-override-drop.md` |
 | A26.l6 | lane | shipped | A26 | Telemetria de citação: cobertura (missing_path) vs. correção (value_mismatch) + drift | `sprint/A26/lanes/A26-l6-evidencia-coverage-kpi.md` |
 | A26.l7 | lane | shipped | A26 | Catálogo de citação cobre folhas de LISTA (fonte única forward↔reverse) | `sprint/A26/lanes/A26-l7-evidencia-catalog-listas.md` |
-| A26.l8 | lane | planned | A26 | value_mismatch residual: enforcement per-item no strict (path válido, número errado) | `sprint/A26/lanes/A26-l8-evidencia-value-mismatch.md` |
+| A26.l8 | lane | shipped | A26 | value_mismatch residual: enforcement per-item no strict (path válido, número errado) | `sprint/A26/lanes/A26-l8-evidencia-value-mismatch.md` |
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
-| A27.l1 | lane | planned | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
+| A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

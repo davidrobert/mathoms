@@ -290,7 +290,7 @@ def test_baseline_incremental_aggregate_combines_store_existing_and_new(
     aggregated = ctx.get_artifact_store().read("E1.5", "baseline_patrimonial")
     descricoes = sorted(item["descricao"] for item in aggregated["itens"])
     assert descricoes == ["Imovel antigo", "Poupanca novo"]
-    assert aggregated["resumo"]["total_ativos"] == pytest.approx(250000.0)
+    assert aggregated["resumo"]["total_ativos"] == "250000.00"  # v1 float + v2 → str (A20.l11)
 
 
 # =============================================================================

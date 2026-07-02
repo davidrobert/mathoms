@@ -132,7 +132,7 @@ def run(ctx: WorkspaceContext) -> dict:
     # JSON/PDF podem conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
     user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=documents_text)
 
-    config = LLMConfig(**llm_config_data)
+    config = LLMConfig(**llm_config_data, call_hooks=ctx.llm_call_hooks)
     service = LLMService(config)
 
     emit_item_progress(
@@ -149,6 +149,7 @@ def run(ctx: WorkspaceContext) -> dict:
         output_schema=MembersExtractOutput,
         max_tokens=max(config.max_tokens, _E1_MIN_COMPLETION_TOKENS),
         stage="E1",
+        prompt_version=PROMPT_VERSION,
     )
 
     output: MembersExtractOutput = result.output

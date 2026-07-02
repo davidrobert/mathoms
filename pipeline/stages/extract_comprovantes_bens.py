@@ -141,6 +141,7 @@ def _call_llm_crlv(service, config, doc_name: str, text: str, content_hash: str)
         output_schema=CRLVPayload,
         max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
         stage=cache_key,
+        prompt_version=prompt_mod.PROMPT_VERSION,
     )
     return result, prompt_mod.PROMPT_VERSION
 
@@ -199,6 +200,7 @@ def _call_llm_apolice(service, config, doc_name, text, content_hash, model_label
         output_schema=ApolicePayload,
         max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
         stage=_apolice_cache_key(model_label, content_hash, prompt_mod.PROMPT_VERSION),
+        prompt_version=prompt_mod.PROMPT_VERSION,
     )
     return result, prompt_mod.PROMPT_VERSION
 
@@ -463,7 +465,7 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
     docs = _find_comprovantes(ctx)
     if not docs:
         return {"skipped": True, "reason": "No comprovantes de bem found"}
-    llm_config = LLMConfig(**cfg)
+    llm_config = LLMConfig(**cfg, call_hooks=ctx.llm_call_hooks)
     return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config), llm_config
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -179,7 +180,7 @@ def _e15_item(
     description: str = "Apto",
     category: str = "imovel",
     member_key: str = "david",
-    value_brl=500000.00,  # schema PatrimonialItem.value_brl é float (legado e15)
+    value_brl="500000.00",  # string decimal — Decimal no boundary (A20.l11 / ADR-090)
     year: int = 2024,
 ) -> PatrimonialItem:
     return PatrimonialItem(
@@ -195,14 +196,18 @@ def _e15_item(
 def _e15_minimal(items: list, **overrides) -> BaselinePatrimonialOutput:
     defaults: dict = {
         "items": items,
-        "total_assets_brl": 0.0,
-        "total_liabilities_brl": 0.0,
-        "net_worth_brl": 0.0,
+        "total_assets_brl": Decimal("0"),
+        "total_liabilities_brl": Decimal("0"),
+        "net_worth_brl": Decimal("0"),
         "reference_year": 2024,
         "members_found": [],
         "confidence": 1.0,
     }
+    # model_construct bypassa validação — coerce manual mantém o invariante
+    # Decimal do schema mesmo quando o teste passa float/str no override.
     defaults.update(overrides)
+    for money_field in ("total_assets_brl", "total_liabilities_brl", "net_worth_brl"):
+        defaults[money_field] = Decimal(str(defaults[money_field]))
     return BaselinePatrimonialOutput.model_construct(**defaults)
 
 
