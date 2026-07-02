@@ -2,14 +2,14 @@
 id: PLAN-cat-learning-loop
 type: plan
 title: "Categorization Learning Loop — promoção de override de transação para regra"
-status: paused
+status: done
 sprint_origem: A12
 sprint_atual: A12
 sprints_envolvidas: ["A12"]
 created_at: "2026-05-10"
 last_review: "2026-07-02"
-paused_at: "2026-05-11"
-pause_reason: "impl V1 (P1-P4 + gate técnico) shipada; aguarda só o gate dogfood humano (CEO) — PASS → done, FAIL → reabrir"
+paused_at: null
+pause_reason: null
 adrs_canonical:
   - "[[ADR-186]]"
   - "[[ADR-188]]"
@@ -19,7 +19,7 @@ tags:
   - area/pipeline
   - area/methodology
   - sprint/a12
-  - status/paused
+  - status/done
 ---
 
 # Plano canônico — Categorization Learning Loop
@@ -103,8 +103,7 @@ Track: [report-publication-impl](../../sprint/A11/tracks/report-publication-impl
 - **Housekeeping pós-P3** ✅ shipped 2026-05-11 (PR #199 lane status, #200 handoff PM, #201 purge script single-tenant)
 - **Gate técnico dogfood** ✅ shipped (PR #202, `db3002e`, 2026-05-11) — `scripts/dogfood_gate_a12.py` + fixture 2880tx/24m, verdict inicial **PASS 11/11** invariantes
 - **P4 Frontend (UI mínima)** ✅ shipped (PR #203, `ff7fbf2`, 2026-05-11) — toast + modal `CreateRuleDialog` + badge "Regra" + heatmap mês fechado + feature flag `learning_loop_enabled`. **Escopo reduzido**: sem side-panel/highlight-to-extract (V2)
-- **Gate dogfood humano** ⏳ próximo passo (CEO no `5@5.com`, 7d wall-clock — ver [docs/reference/RUNBOOK.md §9](../../reference/RUNBOOK.md))
-  - **Atualização 2026-07-01 (audit-vault r3):** impl V1 (P1-P4 + gate técnico) ✅ shipada desde 2026-05-11; o gate dogfood humano segue pendente/vencido. Aguarda decisão do owner: PASS → `status: done` + arquivar; FAIL → registrar ação e reabrir.
+- **Gate dogfood humano** ✅ **fechado por decisão do owner (PASS, 2026-07-02 — audit-vault r4)**: aceito com o gate técnico (11/11 invariantes, PR #202) como evidência; o dogfood real de 7d não foi executado como ritual formal e o owner decidiu não bloquear o done por ele. Se o uso real (tráfego A26+) revelar `revert_rate` alto ou não-adoção, reabrir via as ações de falha descritas em §Gate dogfood.
 - **V2.A/B/C** ⏳ pós-tração (fora MVP V1)
 
 ## Fases (MVP V1)
@@ -116,7 +115,7 @@ Track: [report-publication-impl](../../sprint/A11/tracks/report-publication-impl
 | **P3** | ✅ | Backend API: preview + commit + revert + telemetria mínima (4 contadores) | senior-cto | P2 ✅ | 3d eng |
 | **Gate técnico** | ✅ | `scripts/dogfood_gate_a12.py` (smoke E2E + 11 invariantes) | sre-devops + data-engineer | P3 ✅ | 0,5d |
 | **P4 (UI mínima)** | ✅ | Frontend `/transactions`: toast + modal + badge + heatmap (single-tenant) | frontend + product-designer | Gate técnico ✅ | 2d eng |
-| **Gate humano** | ⏳ | Dogfood real no workspace `5@5.com` — 5 regras / 7d / revert ≤30% | CEO + product-manager | P4 ✅ | 7d wall-clock |
+| **Gate humano** | ✅ (PASS por decisão, 2026-07-02) | Dogfood real dispensado pelo owner; gate técnico 11/11 aceito como evidência | CEO + product-manager | P4 ✅ | — |
 
 **Total estimado MVP V1:** ~11d eng + 7d wall-clock dogfood. UI cortada
 para 2d (de 4d originais) por escopo reduzido vs side-panel/highlight-to-extract.

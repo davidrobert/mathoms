@@ -56,7 +56,7 @@ Para que nenhum achado se perca entre auditorias:
 | F09 — `_TEMPLATE.md` de agente aponta shims BACKLOG/DECISIONS | DOC-DRIFT | procede | procede-fechado | template aponta SPRINT_CURRENT + ADR_INDEX + `rg docs/adr/` |
 | F10 — ADR-027 mecânica de retry superada pela emenda ADR-270, sem cross-ref | DOC-DRIFT | procede | procede-fechado | banner de emenda + `relates_to` recíproco 027↔270 |
 | F11 — CAT_LEARNING_LOOP `sprint_atual: A12` preso (corrente A26) | DOC-DRIFT | procede | procede-fechado | `status: paused` + `paused_at: 2026-05-11` + pause_reason (gate dogfood) |
-| F12 — CAT gate dogfood vencido ~7 semanas sem prazo/escalonamento | DOC-DRIFT | procede | **procede-aberto (owner)** | decisão binária: PASS→done / FAIL→reabrir; plano agora `paused` com o gate como pause_reason |
+| F12 — CAT gate dogfood vencido ~7 semanas sem prazo/escalonamento | DOC-DRIFT | procede | procede-fechado | **owner decidiu PASS (2026-07-02):** plano `done`; dogfood ritual dispensado, gate técnico 11/11 aceito como evidência; reabre se uso real mostrar revert alto/não-adoção |
 | F13 — chart_conclusions: `receita_bar`/`despesas_doughnut` nunca interpolam (call site S2 usa ids inexistentes `receita_fonte`/`despesas_categoria` → conclusion null) | DOC-DRIFT | procede | procede-fechado | PR #725 (merge `27543bce`): ids canônicos no call site S2 + regra 4 no gate (call-site ∈ BUILDERS ∪ FALLBACKS) + teste de regressão |
 | F14 — ARCHITECTURE §4.1 cita `family_members.json` (path proibido, ADR-134) | DOC-DRIFT | procede | procede-fechado | glossário aponta config `family_members` via `DBConfigStore` (ADR-134) |
 | F15 — ARCHITECTURE §5 "20 routers" (real: 34) | DOC-DRIFT | procede | procede-fechado | 4 linhas "Contagem real" re-sincronizadas (models 48, routers 34, services 110, pages 32) |
@@ -68,20 +68,20 @@ Para que nenhum achado se perca entre auditorias:
 | F26 — header chart_conclusions "8 builders ativos" (real: 6) | DOC-POLISH | procede | procede-fechado | PR #725: header cita os 2 builders sem call site vivo (score_gauge/impostos_pj) |
 | S4 arquivamento (follow-up r3-F01) | — | confirmado | não-acionável | deferimento segue correto; reavaliar quando ADR-216 → Decidido |
 
-**Zumbi r2-new-2 (LGPD export parcial) — 2ª rodada `procede-aberto`.** Cadência §4
-aplicada: re-priorizado **P2 com gatilho** — owner decide na próxima triagem se a
-exclusão de Debt/PropertyIdentity/Vehicle/Protection/Risk/TransactionOverride do
-`lgpd_export_service.py` é escolha consciente de Art.18 (→ `aceito-wontfix`) ou
-vira lane. Terceira rodada sem decisão = rebaixamento automático a `aceito-wontfix`
-com gatilho de reabertura no beta.
+**Zumbi r2-new-2 (LGPD export parcial) — RESOLVIDO na triagem r4 (2026-07-02).**
+Owner decidiu: **não** é escolha consciente de Art.18 — **virou lane P2**
+[[A26.l10]] (`lgpd-export-cobertura`): estender `lgpd_export_service.py` às 6
+famílias ausentes + teste de cobertura estrutural (todo model com FK p/
+workspace exportado ou em allowlist com rationale). Disposição passa a
+`procede-aberto → lane criada`; fecha quando o PR da lane mergear.
 
 **Lane P2 batch `vault-drift-batch-r4` — EXECUTADA 2026-07-02** (owner pediu
 "atacar todos os pontos" na mesma sessão): F04-F11 + F14-F19 + POLISH F20-F25/
-F27-F28 corrigidos em PR docs-only. F13/F26 fechados em PR #725 (código:
-ids + gate regra 4 + teste, merge `27543bce`). Restam abertos apenas
-os 2 itens de decisão do owner: F12 (gate dogfood CAT) e r2-new-2 (LGPD export).
-Lateral de código (import morto `lru_cache` em `pipeline/domain/models/bank.py:29`)
-tratado em PR próprio.
+F27-F28 corrigidos em PR docs-only #726. F13/F26 fechados em PR #725 (código:
+ids + gate regra 4 + teste, merge `27543bce`). Lateral de código (import morto
+`lru_cache` em `pipeline/domain/models/bank.py:29`) fechado em #727. Os 2 itens
+de decisão do owner foram triados em 2026-07-02: F12 → PASS/done; r2-new-2 →
+lane [[A26.l10]]. **Único remanescente aberto da r4: a execução da A26.l10.**
 
 **Falso-positivo evitado (repetido do r3):** ausência de `model`/`temperature` em
 `chart_conclusions.yaml` é por design (ADR-122).
