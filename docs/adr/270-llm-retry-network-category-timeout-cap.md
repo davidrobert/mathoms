@@ -6,6 +6,7 @@ status: Decidido
 phase: A17.llm-retry
 date: "2026-05-28"
 relates_to:
+  - "[[ADR-027]]"
   - "[[ADR-081]]"
   - "[[ADR-110]]"
 supersedes: []
@@ -13,6 +14,7 @@ superseded_by: []
 aliases:
   - "LLM network retry"
   - "Timeout cap LiteLLM"
+size_lines: 158
 tags:
   - area/pipeline
   - area/llm

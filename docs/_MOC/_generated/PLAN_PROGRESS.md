@@ -9,13 +9,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Em execução (`in_progress`)
 
-### PLAN-cat-learning-loop — Categorization Learning Loop — promoção de override de transação para regra
-
-- Status: `in_progress` · Sprint atual: A12
-- Sprints envolvidas: A12
-- Lanes: 0 done · 1 in_progress · 0 open · 0 blocked
-- ADRs canônicas: [[ADR-186]], [[ADR-188]]
-
 ### PLAN-data-lineage — Data Lineage fim-a-fim + Fonte plugável
 
 - Status: `in_progress` · Sprint atual: A26
@@ -66,6 +59,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - ADRs canônicas: [[ADR-290]]
 
 ## Pausados (`paused`)
+
+### PLAN-cat-learning-loop — Categorization Learning Loop — promoção de override de transação para regra
+
+- Status: `paused` · Sprint atual: A12
+- Sprints envolvidas: A12
+- Lanes: 0 done · 1 in_progress · 0 open · 0 blocked
+- ADRs canônicas: [[ADR-186]], [[ADR-188]]
+- Pausado em: 2026-05-11 · Razão: impl V1 (P1-P4 + gate técnico) shipada; aguarda só o gate dogfood humano (CEO) — PASS → done, FAIL → reabrir
 
 ### PLAN-i18n — Internacionalização (i18n)
 

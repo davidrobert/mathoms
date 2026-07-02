@@ -42,7 +42,7 @@ Para um produto fintech B2C cobrando assinatura, expor jargão de pipeline destr
 
 1. **API, WebSocket, banco, logs, telemetria → continuam usando códigos `E*`** (ex: `current_stage="E3"`).
 2. **UI, toasts, e-mails, push notifications → nunca exibem códigos `E*`.** Sempre passam por:
-   - `stageName(code)` (tradução 1:1) — `format.ts:STAGE_DISPLAY_NAMES`
+   - `stageName(code)` (tradução 1:1) — `stage-names.ts:STAGE_DISPLAY_NAMES` (re-exportado por `format.ts`)
    - `getPhase(stageOrPhaseId)` (agrupamento em 4 fases) — `pipelinePhases.ts:PIPELINE_PHASES`
 3. **Mapa de etapas é exaustivo:** toda etapa que aparece em `current_stage`/`failed_at_stage`/`paused_at_stage`/`stage_logs[].stage` DEVE ter entrada em `STAGE_DISPLAY_NAMES`. Adicionar nova etapa no backend = adicionar entrada no mapa (test `format.test.ts` enumera).
 4. **Disclosure progressivo:** etapas técnicas individuais ficam atrás de "Ver detalhes técnicos" (collapsed por default). Quando expandido, cada linha exibe um chip `[E3]` com tooltip "Código interno usado em logs e suporte" — preserva debug sem poluir.
@@ -69,7 +69,7 @@ Renderizado como **stepper horizontal de 4 nós** (`PhaseStepper.tsx`) com toolt
 - ⚠️ Para suporte interagir com o usuário, o chip `[E3]` no disclosure técnico precisa estar acessível — documentar em runbook
 
 **Aplicação imediata:**
-- `frontend/src/lib/format.ts` — `STAGE_DISPLAY_NAMES` agora exaustivo (19 entradas)
+- `frontend/src/lib/format.ts` — `STAGE_DISPLAY_NAMES` agora exaustivo (19 entradas; mapa extraído depois para `frontend/src/lib/stage-names.ts`, `format.ts` re-exporta)
 - `frontend/src/lib/pipelinePhases.ts` (novo) — 4 fases + helpers `getPhase`, `phaseOfStage`, `computePhaseStates`
 - `frontend/src/lib/pipelineErrorMessages.ts` (novo) — `buildUserFacingError(text, stage)`
 - `frontend/src/components/PhaseStepper.tsx` (novo) — stepper horizontal com tooltips

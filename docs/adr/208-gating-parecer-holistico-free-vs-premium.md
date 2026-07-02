@@ -16,7 +16,7 @@ superseded_by: []
 aliases:
   - "ADR 208"
   - "Gating freemium parecer"
-size_lines: 187
+size_lines: 160
 tags:
   - area/llm
   - area/business
@@ -170,8 +170,8 @@ Métricas de aceite para promover do beta para GA Premium:
   - `backend/app/api/planner_review.py` — endpoint com `tier_at_generation` lookup
   - `backend/app/services/planner_review_tier_filter.py` — `apply_tier_filter(tier)` (chamado em `api/planner_review.py`)
   - `backend/app/services/parecer_orchestrator.py` — `tier_at_generation` no `_meta`
-  - `frontend/src/components/report/sections/SParecer*.tsx` — handling do payload tier-aware
-  - `frontend/src/components/report/sections/SParecerTeaserUpgrade.tsx` — CTA específico
+  - `frontend/src/components/report/sections/SParecer/` — diretório de componentes decompostos (`SParecerSection.tsx`, `ParecerRisksTable.tsx`, …) com handling do payload tier-aware
+  - CTA de upgrade (teaser) vive dentro de `SParecer/`, não em arquivo `SParecerTeaserUpgrade.tsx` próprio
   - Métricas Prometheus + dashboards (`sre-devops` finaliza)
 - **Critério de aceite:**
   - E2E test com `tier=free` valida payload tem `riscos_sample` (1 item), teaser, `items_gated_count > 0`.

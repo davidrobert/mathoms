@@ -1,5 +1,10 @@
 # Runbook: F9.3 — Alembic stage rename migration (`q5r6s7t8u9v0`)
 
+> **✅ CONCLUÍDO/HISTÓRICO (2026-05-05, PR #53).** A migração F9.3 foi validada
+> e aplicada; F9.5 (hard-fail de literais legados, #720) pressupõe este estado.
+> Mantido como referência para restores de backup pré-F9.3 e para o padrão de
+> migração de rename em massa — **não é procedimento pendente**.
+
 **ADR:** ADR-093
 **Migration:** `backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py`
 **Afeta:** `pipeline_artifacts.stage`, `pipeline_stage_logs.stage`

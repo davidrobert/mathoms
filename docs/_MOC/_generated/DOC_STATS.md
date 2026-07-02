@@ -44,8 +44,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | moc | (sem status) | 20 |
 | plan | done | 3 |
 | plan | draft | 5 |
-| plan | in_progress | 8 |
-| plan | paused | 2 |
+| plan | in_progress | 7 |
+| plan | paused | 3 |
 | runbook | ativo | 1 |
 | track | consumed | 81 |
 | track | ready | 35 |
