@@ -68,12 +68,15 @@ Para que nenhum achado se perca entre auditorias:
 | F26 — header chart_conclusions "8 builders ativos" (real: 6) | DOC-POLISH | procede | procede-fechado | PR #725: header cita os 2 builders sem call site vivo (score_gauge/impostos_pj) |
 | S4 arquivamento (follow-up r3-F01) | — | confirmado | não-acionável | deferimento segue correto; reavaliar quando ADR-216 → Decidido |
 
-**Zumbi r2-new-2 (LGPD export parcial) — RESOLVIDO na triagem r4 (2026-07-02).**
-Owner decidiu: **não** é escolha consciente de Art.18 — **virou lane P2**
-[[A26.l10]] (`lgpd-export-cobertura`): estender `lgpd_export_service.py` às 6
-famílias ausentes + teste de cobertura estrutural (todo model com FK p/
-workspace exportado ou em allowlist com rationale). Disposição passa a
-`procede-aberto → lane criada`; fecha quando o PR da lane mergear.
+**Zumbi r2-new-2 (LGPD export parcial) — FECHADO (2026-07-02, PR #732).**
+Owner decidiu na triagem: **não** era escolha consciente de Art.18 — virou lane
+P2 [[A26.l10]] (`lgpd-export-cobertura`), executada no mesmo dia. PR #732
+estende `lgpd_export_service.py` às 6 famílias (Debt, PropertyIdentity,
+Vehicle, Protection, Risk, TransactionOverride) + satélites com dado do
+titular, e adiciona `test_lgpd_export_coverage.py`: todo model no fecho de FK
+até `workspaces` (mesmo perímetro do erasure ADR-275) deve estar no export ou
+em `EXPORT_EXCLUDED_TABLES` com rationale — model novo fora das listas falha o
+teste (anti-recorrência).
 
 **Lane P2 batch `vault-drift-batch-r4` — EXECUTADA 2026-07-02** (owner pediu
 "atacar todos os pontos" na mesma sessão): F04-F11 + F14-F19 + POLISH F20-F25/
@@ -81,7 +84,8 @@ F27-F28 corrigidos em PR docs-only #726. F13/F26 fechados em PR #725 (código:
 ids + gate regra 4 + teste, merge `27543bce`). Lateral de código (import morto
 `lru_cache` em `pipeline/domain/models/bank.py:29`) fechado em #727. Os 2 itens
 de decisão do owner foram triados em 2026-07-02: F12 → PASS/done; r2-new-2 →
-lane [[A26.l10]]. **Único remanescente aberto da r4: a execução da A26.l10.**
+lane [[A26.l10]], executada no mesmo dia (PR #732). **r4 sem remanescentes
+abertos.**
 
 **Falso-positivo evitado (repetido do r3):** ausência de `model`/`temperature` em
 `chart_conclusions.yaml` é por design (ADR-122).
@@ -154,7 +158,7 @@ atualização desses links quando conveniente.
 | **REL-02** (idempotência pós-run, reconstr.) | — | refutado | refutado · **reverificado** 2026-06-30 | sre-devops: guarda terminal ADR-297 ([`pipeline_task.py:757,527`](../../backend/app/tasks/pipeline_task.py)) cobre TODO o pós-processamento, não só Report; demais tasks idempotentes |
 | **REL-02b** (latente) — `TaskSuggestion.dedup_key` sem UC | P3 | procede | aceito-wontfix | sre-devops: inalcançável sob `reject_on_worker_lost`+`prefetch=1`; **gatilho:** reabrir P2 se `prefetch>1`/redelivery concorrente ([`task.py:242`](../../backend/app/models/task.py)) |
 | **r2-new-1** — ADR-095 status stale | P2 | procede | procede-fechado | data-engineer: 095 `Proposto` mas D1/D2→ADR-231, D3/D4→ADR-275 shipados; banner + `relates_to [[ADR-231]]` adicionado nesta rodada |
-| **r2-new-2** — LGPD export cobertura parcial | P2 | procede | **procede-aberto** (owner) | data-engineer: `lgpd_export_service.py` não exporta Debt/PropertyIdentity/Vehicle/Protection/Risk/TransactionOverride; **owner decide** se é escolha consciente de Art.18 → `aceito-wontfix`, senão P2 real |
+| **r2-new-2** — LGPD export cobertura parcial | P2 | procede | **procede-fechado** (2026-07-02) | lane [[A26.l10]] executada: PR #732 estende export às 6 famílias + satélites e adiciona gate estrutural (fecho de FK até `workspaces` ∈ export ∪ allowlist c/ rationale) |
 
 **⚠️ SEC-03 — lição de processo.** A validação manual de #671 colocou SEC-03 no
 balde "CVEs Python… refutados ou já endereçados (versões já patched)". Estava
