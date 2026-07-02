@@ -1,0 +1,436 @@
+<!--
+  Dossiê competitivo — Mathoms vs PFM/wealth-tech (Visor · Pierre · ChatGPT Finance)
+  ARTEFATO DERIVADO (ADR-247) — NÃO é fonte de verdade. Não editar à mão.
+  Fonte canônica: docs/plan/COMPETITIVE_PIERRE/_README.md (Markdown).
+  Gerado 2026-07-02 a partir da análise multi-agente (gtm-strategist,
+  financial-planner, build-vs-buy, product-manager). Regenerar do MD ao evoluir.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dossiê competitivo — Mathoms vs PFM/wealth-tech</title>
+<style>
+  :root {
+    --plane:      #f9f9f7;
+    --surface:    #fcfcfb;
+    --surface-2:  #f2f1ed;
+    --ink:        #0b0b0b;
+    --ink-2:      #52514e;
+    --muted:      #898781;
+    --hair:       #e1e0d9;
+    --ring:       rgba(11,11,11,0.10);
+    --good:       #0ca30c;
+    --warning:    #b8790a;
+    --absent:     #a7a59d;
+    --accent:     #2a78d6;
+    --accent-soft:#eaf2fc;
+    --depth:      #4a3aa7;
+    --depth-soft: #ecebf8;
+    --shadow:     0 1px 2px rgba(11,11,11,0.04), 0 4px 16px rgba(11,11,11,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --plane:      #0d0d0d;
+      --surface:    #1a1a19;
+      --surface-2:  #232320;
+      --ink:        #ffffff;
+      --ink-2:      #c3c2b7;
+      --muted:      #898781;
+      --hair:       #2c2c2a;
+      --ring:       rgba(255,255,255,0.10);
+      --good:       #0ca30c;
+      --warning:    #fab219;
+      --absent:     #6f6e68;
+      --accent:     #3987e5;
+      --accent-soft:#16283f;
+      --depth:      #9085e9;
+      --depth-soft: #201d33;
+      --shadow:     0 1px 2px rgba(0,0,0,0.4), 0 4px 20px rgba(0,0,0,0.5);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--plane); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55; font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px 96px; }
+  header.hero {
+    padding: 56px 20px 40px; max-width: 1120px; margin: 0 auto;
+  }
+  .kicker {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  h1 { font-size: clamp(28px, 4vw, 44px); line-height: 1.1; margin: 12px 0 8px; letter-spacing: -.02em; }
+  .sub { color: var(--ink-2); font-size: 18px; max-width: 60ch; margin: 0; }
+  .derived-note {
+    margin-top: 22px; font-size: 13px; color: var(--muted);
+    border-left: 3px solid var(--hair); padding: 6px 0 6px 14px;
+  }
+  .derived-note code { color: var(--ink-2); }
+  h2 {
+    font-size: 22px; letter-spacing: -.01em; margin: 56px 0 4px;
+    padding-top: 12px;
+  }
+  h2 .num { color: var(--accent); font-variant-numeric: tabular-nums; margin-right: 10px; }
+  h3 { font-size: 16px; margin: 28px 0 10px; }
+  .lead { color: var(--ink-2); margin: 6px 0 20px; max-width: 74ch; }
+  p { margin: 10px 0; }
+  a { color: var(--accent); }
+  strong { font-weight: 650; }
+
+  /* TL;DR callout */
+  .tldr {
+    background: var(--surface); border: 1px solid var(--ring); border-radius: 14px;
+    padding: 24px 26px; box-shadow: var(--shadow); margin-top: 8px;
+  }
+  .tldr h2 { margin: 0 0 8px; padding: 0; font-size: 15px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+  .tldr p { font-size: 17px; margin: 8px 0; }
+
+  /* competitor cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 20px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--ring); border-radius: 14px;
+    padding: 20px; box-shadow: var(--shadow);
+  }
+  .card h3 { margin: 0 0 2px; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+  .card .tag { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .card ul { margin: 12px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+  .card li { margin: 5px 0; }
+  .card.own { border-color: var(--accent); }
+  .card.own h3 { color: var(--accent); }
+
+  /* tables */
+  .scroll { overflow-x: auto; margin: 18px 0; border-radius: 12px; border: 1px solid var(--ring); background: var(--surface); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 640px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  thead th { position: sticky; top: 0; background: var(--surface-2); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); z-index: 1; }
+  tbody tr:last-child td { border-bottom: none; }
+  th.cap, td.cap { font-weight: 550; color: var(--ink); }
+  td.own-col { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+  th.own-col { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); color: var(--accent); }
+  .cell { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .yes  .dot { background: var(--good); }
+  .part .dot { background: var(--warning); }
+  .no   .dot { background: var(--absent); }
+  .yes  { color: var(--ink); }
+  .part { color: var(--ink-2); }
+  .no   { color: var(--muted); }
+  td .note { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; white-space: normal; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; color: var(--ink-2); margin: 6px 2px 0; }
+  .legend .cell { white-space: nowrap; }
+  .band-label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  tr.band td { background: var(--surface-2); padding-top: 14px; padding-bottom: 6px; border-bottom: none; }
+
+  /* pricing bars */
+  .price-fig { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 24px 26px; box-shadow: var(--shadow); margin: 18px 0; }
+  .prow { display: grid; grid-template-columns: 170px 1fr 118px; align-items: center; gap: 14px; margin: 9px 0; }
+  .prow .lbl { font-size: 13px; color: var(--ink-2); }
+  .prow .lbl b { color: var(--ink); font-weight: 600; }
+  .track { background: var(--surface-2); border-radius: 6px; height: 20px; position: relative; overflow: hidden; }
+  .bar { height: 100%; border-radius: 6px; }
+  .bar.pfm { background: var(--accent); }
+  .bar.mathoms { background: var(--depth); }
+  .bar.cfp { background: linear-gradient(90deg, var(--depth), color-mix(in srgb, var(--depth) 40%, var(--surface))); }
+  .prow .val { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; }
+  .ceiling { border-left: 2px dashed var(--muted); position: absolute; top: -8px; bottom: -8px; }
+  .pfig-note { font-size: 12px; color: var(--muted); margin-top: 14px; }
+
+  /* verdict grid */
+  .verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 16px; margin-top: 18px; }
+  .vbox { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .vbox h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .vbox ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--ink-2); }
+  .vbox li { margin: 7px 0; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-right: 6px; letter-spacing: .03em; }
+  .p0 { background: var(--depth-soft); color: var(--depth); }
+  .p1 { background: var(--accent-soft); color: var(--accent); }
+  .drop { background: color-mix(in srgb, var(--absent) 22%, transparent); color: var(--ink-2); }
+
+  /* roadmap */
+  .lanes { display: grid; gap: 12px; margin-top: 18px; }
+  .lane { display: grid; grid-template-columns: 92px 1fr; gap: 16px; background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .lane .when { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); padding-top: 2px; }
+  .lane .body b { display: block; margin-bottom: 3px; }
+  .lane .body { font-size: 14px; color: var(--ink-2); }
+  .lane .body code { background: var(--surface-2); padding: 1px 5px; border-radius: 5px; font-size: 12.5px; }
+
+  footer { margin-top: 64px; padding-top: 22px; border-top: 1px solid var(--hair); font-size: 13px; color: var(--muted); }
+  footer a { color: var(--ink-2); }
+  footer ul { padding-left: 18px; }
+
+  @media (max-width: 640px) {
+    .prow { grid-template-columns: 110px 1fr 84px; gap: 8px; }
+    .lane { grid-template-columns: 1fr; gap: 6px; }
+  }
+</style>
+
+<header class="hero">
+  <div class="kicker">Dossiê competitivo · 2026-07-02</div>
+  <h1>Mathoms na paisagem PFM / wealth-tech</h1>
+  <p class="sub">Onde Visor, Pierre e ChatGPT Finance colidem com o Mathoms — e por que a categoria, não a feature, decide o jogo.</p>
+  <div class="derived-note">
+    Artefato <strong>derivado</strong> (<a href="https://github.com/davidrobert/mathoms/blob/main/docs/adr/247-html-artefato-derivado.md">ADR-247</a>) — a fonte de verdade é
+    <code>docs/plan/COMPETITIVE_PIERRE/_README.md</code>. Síntese de análise multi-agente
+    (<code>gtm-strategist</code> · <code>financial-planner</code> · <code>build-vs-buy</code> · <code>product-manager</code>).
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="tldr">
+    <h2>Veredito em uma linha</h2>
+    <p><strong>Visor é Pierre-sem-CloudWalk-e-sem-MCP.</strong> Não abre frente nova — é o terceiro data-point da mesma categoria (PFM mass-market) e <strong>confirma</strong> a tese já registrada: coleta vira commodity; a categoria "app de finanças" é uma armadilha de preço.</p>
+    <p>Consenso dos quatro especialistas: <strong>não reposicionar, não virar app de gastos, não atrasar o launch por feature-parity.</strong> Extrair os <em>dados</em> que o PFM expõe (recorrência, parcela) e traduzi-los em linguagem patrimonial; tratar Open Finance como afluente do pipeline, nunca como o rio principal.</p>
+  </div>
+
+  <h2><span class="num">1</span>Os três concorrentes</h2>
+  <p class="lead">Vetores distintos, resposta convergente. Mathoms compete por <em>profundidade</em>; os três competem por <em>fricção-zero e conversa</em>.</p>
+  <div class="cards">
+    <div class="card">
+      <h3>Visor <span class="tag">· novo</span></h3>
+      <span class="tag">PFM nacional · mass-market</span>
+      <ul>
+        <li>Open Finance multi-banco (Nubank, Itaú, BTG, Inter, C6…)</li>
+        <li>Categorização IA + recorrências + parcelamento</li>
+        <li>Chat sobre os dados · projeção de saldo · score</li>
+        <li>App mobile 4.8★ · Free / R$34,90 / R$59,90–69,90</li>
+        <li>Sem CloudWalk, sem MCP — ameaça de escala menor</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Pierre</h3>
+      <span class="tag">CloudWalk · budgeting copilot</span>
+      <ul>
+        <li>OFB + 100+ FIs + WhatsApp · 165k usuários</li>
+        <li>Multi-agente (Albert / Marie / Galileu)</li>
+        <li>Pierre-as-MCP — "Alexa das finanças"</li>
+        <li>Distribuição Infinite Pay · Free + R$39</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>ChatGPT Finance</h3>
+      <span class="tag">OpenAI · assistente global</span>
+      <ul>
+        <li>Plaid 12k+ instituições (US-only hoje)</li>
+        <li>"Financial memories" persistentes</li>
+        <li>Reasoning GPT-5.5 sobre contexto real</li>
+        <li>Distribuição base ChatGPT · Pro US$200</li>
+      </ul>
+    </div>
+    <div class="card own">
+      <h3>Mathoms</h3>
+      <span class="tag">wealth advisor · HENRY BR</span>
+      <ul>
+        <li>Metodologia codificada (Perini/Cerbasi/AUVP)</li>
+        <li>IRPF · cônjuge · IF projector · proteção patrimonial</li>
+        <li>Parecer LLM tipo planejador · plano event-sourced</li>
+        <li>Relatório editorial entregável (PDF)</li>
+        <li>Coleta por upload · pré-launch (dogfood)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2><span class="num">2</span>Matriz de capacidades</h2>
+  <p class="lead">Duas bandas contam a história: em cima, <strong>amplitude PFM</strong> (onde os concorrentes ganham e o Mathoms só precisa de paridade "boa o suficiente"); embaixo, <strong>profundidade advisory</strong> (o moat — estruturalmente ausente nos outros).</p>
+  <div class="legend">
+    <span class="cell yes"><span class="dot"></span> Tem</span>
+    <span class="cell part"><span class="dot"></span> Parcial / planejado</span>
+    <span class="cell no"><span class="dot"></span> Não tem</span>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th class="cap">Capacidade</th><th class="own-col">Mathoms</th><th>Visor</th><th>Pierre</th><th>ChatGPT</th></tr>
+      </thead>
+      <tbody>
+        <tr class="band"><td colspan="5"><span class="band-label">Amplitude PFM — table stakes</span></td></tr>
+        <tr>
+          <td class="cap">Coleta automática (Open Finance)</td>
+          <td class="own-col"><span class="cell no"><span class="dot"></span>Não</span><span class="note">upload de PDF (posição em revisão)</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell part"><span class="dot"></span>US-only</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Categorização automática</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span><span class="note">E4 + learning loop</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Detecção de recorrência / parcelamento</td>
+          <td class="own-col"><span class="cell no"><span class="dot"></span>Não</span><span class="note">dado existe na fatura</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell part"><span class="dot"></span>Parcial</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Projeção de saldo curto prazo</td>
+          <td class="own-col"><span class="cell part"><span class="dot"></span>Média retro.</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Chat conversacional sobre os dados</td>
+          <td class="own-col"><span class="cell part"><span class="dot"></span>Planejado</span><span class="note">COMPETITIVE_PIERRE Fase 3</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+        </tr>
+        <tr>
+          <td class="cap">App mobile nativo</td>
+          <td class="own-col"><span class="cell no"><span class="dot"></span>Não</span><span class="note">web (PWA planejado)</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell part"><span class="dot"></span>WhatsApp</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Billing self-serve</td>
+          <td class="own-col"><span class="cell no"><span class="dot"></span>Não</span><span class="note">BYOK; Stripe no GA</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+        </tr>
+        <tr>
+          <td class="cap">MCP / presença ecossistema AI</td>
+          <td class="own-col"><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell yes"><span class="dot"></span>Sim</span></td>
+        </tr>
+
+        <tr class="band"><td colspan="5"><span class="band-label">Profundidade advisory — o moat</span></td></tr>
+        <tr>
+          <td class="cap">Metodologia codificada (Perini/Cerbasi/AUVP)</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span><span class="note">rules-as-code · ADR-143</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Fiscal brasileiro (IRPF / PGBL)</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Cônjuge / núcleo familiar estruturado</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Independência financeira (projeção longo prazo)</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell part"><span class="dot"></span>Raso</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Proteção patrimonial (seguros / sucessão)</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Ativos fora do OFB (fundo excl., exterior, holding)</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span><span class="note">parser é moat aqui</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Parecer LLM tipo planejador</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span><span class="note">4 camadas de validação</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell part"><span class="dot"></span>Genérico</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Plano de ação event-sourced</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+        </tr>
+        <tr>
+          <td class="cap">Relatório editorial entregável (PDF)</td>
+          <td class="own-col"><span class="cell yes"><span class="dot"></span>Sim</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+          <td><span class="cell no"><span class="dot"></span>Não</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2><span class="num">3</span>Pricing — a armadilha de categoria</h2>
+  <p class="lead">O risco real não é o Visor definir o quanto o mercado paga por wealth advisory. É o Mathoms <strong>herdar o teto da categoria PFM</strong> se for lido como "mais um app de finanças". A defesa é categoria, não preço.</p>
+  <div class="price-fig">
+    <div class="prow"><span class="lbl">Organizze / Mobills</span><div class="track"><div class="bar pfm" style="width:12%"></div></div><span class="val">R$ 10–30</span></div>
+    <div class="prow"><span class="lbl">Pierre</span><div class="track"><div class="bar pfm" style="width:16%"></div></div><span class="val">R$ 39</span></div>
+    <div class="prow"><span class="lbl"><b>Visor</b></span><div class="track"><div class="bar pfm" style="width:26%"></div><div class="ceiling" style="left:26%"></div></div><span class="val">R$ 35–69</span></div>
+    <div class="prow"><span class="lbl"><b>Mathoms</b> (proposto)</span><div class="track"><div class="bar mathoms" style="width:56%"></div></div><span class="val">R$ 99–149</span></div>
+    <div class="prow"><span class="lbl">Planejador CFP</span><div class="track"><div class="bar cfp" style="width:100%"></div></div><span class="val">R$ 417–5k</span></div>
+    <p class="pfig-note">A linha tracejada marca o <strong>teto PFM ≈ R$ 60/mês</strong>. Ancorar sempre contra o planejador CFP (fee-based / retainer), nunca contra "app de finanças" — a R$ 99–149 o Mathoms lê como ⅓ de um planejador, não como PFM caro. Tier premium âncora superior + <strong>sem free-forever</strong>. Visor a R$ 35–69 <strong>confirma</strong> o pricing, não o rebaixa.</p>
+  </div>
+
+  <h2><span class="num">4</span>Veredito estratégico</h2>
+  <div class="verdict">
+    <div class="vbox">
+      <h3>Incorporar (traduzido p/ patrimônio)</h3>
+      <ul>
+        <li><span class="pill p0">P0</span><strong>Análise de dívida</strong> — custo vs. retorno antes de recomendar aporte. Já enforced via <code>ADR-300 RL-2</code>; gap residual = extrair taxa numérica (track aberta).</li>
+        <li><span class="pill p1">P1</span><strong>Recorrências → run-rate de custo fixo</strong> (alimenta reserva-alvo e taxa de poupança).</li>
+        <li><span class="pill p1">P1</span><strong>Parcelamento futuro</strong> como passivo/compromisso de liquidez.</li>
+      </ul>
+    </div>
+    <div class="vbox">
+      <h3>Fast-follow (pós-launch)</h3>
+      <ul>
+        <li><strong>Chat sobre o relatório</strong> — gate de credibilidade, já desenhado (Fase 3). Repriorizar, não replanejar.</li>
+        <li><strong>Open Finance híbrido</strong> — sobe P2→P1; decidido em <code>ADR-159</code>/<code>ADR-278</code>, destrava no gatilho (≥5 pagantes ou ≥30 conexões).</li>
+        <li><strong>Pricing + billing</strong> — pricing decide, billing Stripe só no GA.</li>
+      </ul>
+    </div>
+    <div class="vbox">
+      <h3>Descartar p/ o ICP</h3>
+      <ul>
+        <li><span class="pill drop">✕</span>Projeção de saldo curto prazo / orçamento diário — dor de mass-market, exige cadência contínua.</li>
+        <li><span class="pill drop">✕</span>Alerta de gasto anômalo — FP crônico em alta renda; anti-Cerbasi.</li>
+        <li><span class="pill drop">✕</span>Score app-level (já temos patrimonial 0-1000) · app mobile nativo pré-PMF.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2><span class="num">5</span>Frentes de trabalho propostas</h2>
+  <p class="lead">Nada disto bloqueia o launch — o gate é <strong>LAUNCH_TRUST</strong>, não paridade com o Visor. Sequência lógica das ondas:</p>
+  <div class="lanes">
+    <div class="lane"><span class="when">Agora</span><div class="body"><b>Track — taxa numérica de dívida</b> <code>docs/sprint/A26/tracks/taxa-divida-numerica.md</code> · endurece RL-2 de best-effort para hard. <em>(aberta neste PR)</em></div></div>
+    <div class="lane"><span class="when">Docs</span><div class="body"><b>Visor no dossiê + snapshot OFB</b> · <code>COMPETITIVE_PIERRE §1.7</code> + refresh <code>ADR-159</code> (jul/2026). <em>(neste PR)</em></div></div>
+    <div class="lane"><span class="when">Onda 1</span><div class="body"><b>Chat sobre o relatório</b> · repriorizar COMPETITIVE_PIERRE Fase 3 pós-LAUNCH_TRUST. Sem plano novo.</div></div>
+    <div class="lane"><span class="when">Onda 2</span><div class="body"><b>Open Finance híbrido</b> · gate = ADR build-vs-buy do agregador (Pluggy) + substrato <code>SourceAdapter</code> já pronto. Destrava no gatilho comercial.</div></div>
+    <div class="lane"><span class="when">GA</span><div class="body"><b>Pricing + billing Stripe</b> · pricing (gtm) precede; billing só no GA. Módulo de dívida (E5/E6) pode virar plano próprio se crescer além da track.</div></div>
+  </div>
+
+  <footer>
+    <p><strong>Fontes.</strong> Análise multi-agente 2026-07-02 (gtm-strategist, financial-planner, build-vs-buy, product-manager) sobre pesquisa de:</p>
+    <ul>
+      <li><a href="https://visorfinance.app/">visorfinance.app</a> · <a href="https://apps.apple.com/br/app/visor/id6760676178">App Store BR</a> (features + pricing, jul/2026)</li>
+      <li><a href="https://www.pluggy.ai/pricing">Pluggy</a> · <a href="https://belvo.com/">Belvo</a> · agregadores OFB (snapshot ADR-159)</li>
+      <li>Repo Mathoms: <code>COMPETITIVE_PIERRE/_README.md</code>, ADR-159/183/278/300/301, PRODUCT.md</li>
+    </ul>
+    <p>Fonte de verdade deste dossiê: <code>docs/plan/COMPETITIVE_PIERRE/_README.md</code>. Este HTML é derivado (ADR-247) — se divergir do Markdown, o Markdown vence.</p>
+  </footer>
+
+</div>
