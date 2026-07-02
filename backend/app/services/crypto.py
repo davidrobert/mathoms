@@ -8,7 +8,7 @@ import logging
 from typing import Any
 
 from backend.app.core.config import settings
-from backend.app.services.vault import get_vault
+from backend.app.services.vault import get_vault, primary_fernet_key
 
 logger = logging.getLogger("mathoms.crypto")
 
@@ -21,12 +21,9 @@ class ArtifactDecryptError(RuntimeError):
 
 
 def _key_id() -> str:
-    key = (
-        settings.FERNET_KEY.encode()
-        if isinstance(settings.FERNET_KEY, str)
-        else settings.FERNET_KEY
-    )
-    return hashlib.sha256(key).hexdigest()[:8]
+    # ADR-171: kid sempre da key PRIMÁRIA — em janela de rotação (FERNET_KEYS),
+    # sentinel com kid antigo sinaliza re-encrypt pendente (rotate_fernet_secrets).
+    return hashlib.sha256(primary_fernet_key().encode()).hexdigest()[:8]
 
 
 def is_encrypted_payload(payload: Any) -> bool:
