@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-293 ADRs (ADR-001 a ADR-302) em [`docs/adr/`](../../adr/).
+294 ADRs (ADR-001 a ADR-303) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 269
-- **Proposto**: 20
+- **Proposto**: 21
 - **Roadmap**: 4
 
 ## Fundação
@@ -234,11 +234,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-212]] — Sunset `MATHOMS_USE_DB_ARTIFACTS` + `DiskArtifactStore` + CLI standalone do pipeline · phase A12.sunset-disk-artifact
 - [[ADR-275]] — Auditoria de acesso + política de retenção LGPD · phase A21 (l7 + l8)
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-092]] — Renomear scripts para nomes descritivos de domínio · phase execução na Fase 9 pós-Caminho B dos stages
 - [[ADR-095]] — Segurança de `content_json` (LGPD) · phase execução distribuída em Fases 1-4 do plano
 - [[ADR-096]] — Observabilidade de cutover · phase execução paralela à Fase 2
+- [[ADR-303]] — Boundary de artefatos do executor remoto (A3.store): pipeline-service injeta DBArtifactStore do backend, sessão-por-stage
 
 ## Internacionalização (F12)
 
