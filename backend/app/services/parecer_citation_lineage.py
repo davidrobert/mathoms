@@ -12,7 +12,10 @@ E5 (zero migration). Path escalar (sem ``[i]``) já é estável por path → ret
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
+
+if TYPE_CHECKING:
+    from pipeline.domain.services.lineage_edge_deriver import LineageEdge
 
 _SEGMENT_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)(?:\[(\d+)\])?")
 
@@ -61,4 +64,44 @@ def resolve_citation_natural_key(e5_data: Mapping[str, Any], path: str) -> str |
     return _natural_key_of(item) if item is not None else None
 
 
-__all__ = ["resolve_citation_natural_key"]
+def _citation_edge(src_field: str, dst_field: str) -> "LineageEdge":
+    from backend.app.services.lineage_edge_writer import PARECER_CITATION_DST_STAGE
+    from pipeline.domain.services.lineage_edge_deriver import LineageEdge
+
+    return LineageEdge(
+        src_stage="E5",
+        src_key="analise_financeira",
+        src_field=src_field,
+        dst_stage=PARECER_CITATION_DST_STAGE,
+        dst_key="parecer_planejador",
+        dst_field=dst_field,
+        edge_type="parecer_citation",
+        rule_ref="",
+        source_document_id=None,
+        data_source_id=None,
+        winner=True,
+    )
+
+
+def build_parecer_citation_edges(
+    e5_data: Mapping[str, Any], evidencia_entries: list[Mapping[str, Any]]
+) -> list["LineageEdge"]:
+    """Edges ``parecer_citation`` das âncoras VERIFICADAS (ADR-293 slice 2): ``src_field`` =
+    chave natural em folha de lista (estável cross-run) ou o próprio path escalar; âncora
+    falhada/sem path nunca vira edge — o grafo só carrega citação verificada."""
+    edges: list["LineageEdge"] = []
+    seen: set[tuple[str, str]] = set()
+    for entry in evidencia_entries:
+        path = entry.get("path")
+        if entry.get("outcome") != "verified" or not path:
+            continue
+        dst_field = f"{entry.get('item_type')}[{entry.get('item_index')}]"
+        src_field = resolve_citation_natural_key(e5_data, path) or path
+        if (src_field, dst_field) in seen:
+            continue
+        seen.add((src_field, dst_field))
+        edges.append(_citation_edge(src_field, dst_field))
+    return edges
+
+
+__all__ = ["build_parecer_citation_edges", "resolve_citation_natural_key"]

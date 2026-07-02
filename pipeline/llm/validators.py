@@ -478,7 +478,7 @@ def _validate_e15_item(i: int, item: Any, r: ValidationResult) -> None:
     _validate_e15_item_required(i, item, r)
 
 
-def _emit_e15_assets_mismatch(output: Any, computed: float, r: ValidationResult) -> None:
+def _emit_e15_assets_mismatch(output: Any, computed: "Decimal", r: ValidationResult) -> None:
     _emit_e15(
         r,
         "e15.totals.assets_mismatch",

@@ -202,6 +202,7 @@ def run(ctx: "WorkspaceContext") -> dict:
         tier=tier,
         api_key=api_key,
         model_id=os.environ.get("MATHOMS_PARECER_PLANEJADOR_MODEL", _DEFAULT_MODEL),
+        llm_hooks=ctx.llm_call_hooks,
     )
     result = gen_fn(e5_data=e5_data, config=config)
     if result.status == "needs_review":

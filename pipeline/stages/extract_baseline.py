@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -10,6 +11,27 @@ if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
 logger = logging.getLogger(__name__)
+
+_CENTS = Decimal("0.01")
+
+
+def _money_str(v) -> str:
+    """Serializa monetário no artifact como string decimal em centavos (ADR-090/A20.l11)."""
+    if not isinstance(v, Decimal):
+        v = Decimal(str(v or 0))
+    return str(v.quantize(_CENTS))
+
+
+def _money_dec(v) -> Decimal:
+    """Parse defensivo de valor vindo de artifact (str novo, number legado)."""
+    if isinstance(v, Decimal):
+        return v
+    try:
+        return Decimal(str(v if v is not None else 0))
+    except InvalidOperation:
+        logger.warning("E1.5: valor monetário não-parseável %r — tratado como 0", v)
+        return Decimal("0")
+
 
 # OP-009 / IRPF: baseline JSON is large; sub-16k completions truncate and break structured output.
 _E15_MIN_COMPLETION_TOKENS = 16_384
@@ -40,7 +62,7 @@ def _output_to_baseline_json(output) -> dict:
             "codigo": item.code,
             "descricao": item.description,
             "categoria": item.category,
-            "valor_brl": item.value_brl,
+            "valor_brl": _money_str(item.value_brl),
             "membro": item.member_key,
             "ano": item.year,
         }
@@ -53,11 +75,12 @@ def _output_to_baseline_json(output) -> dict:
         items.append(entry)
 
     return {
+        "payload_version": 2,
         "itens": items,
         "resumo": {
-            "total_ativos": output.total_assets_brl,
-            "total_passivos": output.total_liabilities_brl,
-            "patrimonio_liquido": output.net_worth_brl,
+            "total_ativos": _money_str(output.total_assets_brl),
+            "total_passivos": _money_str(output.total_liabilities_brl),
+            "patrimonio_liquido": _money_str(output.net_worth_brl),
             "ano_referencia": output.reference_year,
             "membros": output.members_found,
         },
@@ -97,8 +120,8 @@ def _artifact_key_for(doc: Path) -> str:
 def _aggregate_baselines(per_file: list[dict]) -> dict:
     """Combina N baselines per-arquivo num único baseline consolidado."""
     all_items: list[dict] = []
-    assets = 0.0
-    liabilities = 0.0
+    assets = Decimal("0")
+    liabilities = Decimal("0")
     members: list[str] = []
     notes_parts: list[str] = []
     confidences: list[float] = []
@@ -107,8 +130,8 @@ def _aggregate_baselines(per_file: list[dict]) -> dict:
     for baseline in per_file:
         all_items.extend(baseline.get("itens") or [])
         resumo = baseline.get("resumo") or {}
-        assets += float(resumo.get("total_ativos") or 0.0)
-        liabilities += float(resumo.get("total_passivos") or 0.0)
+        assets += _money_dec(resumo.get("total_ativos"))
+        liabilities += _money_dec(resumo.get("total_passivos"))
         ano = resumo.get("ano_referencia")
         if isinstance(ano, int):
             years.append(ano)
@@ -124,11 +147,12 @@ def _aggregate_baselines(per_file: list[dict]) -> dict:
             notes_parts.append(str(note))
 
     return {
+        "payload_version": 2,
         "itens": all_items,
         "resumo": {
-            "total_ativos": assets,
-            "total_passivos": liabilities,
-            "patrimonio_liquido": assets - liabilities,
+            "total_ativos": _money_str(assets),
+            "total_passivos": _money_str(liabilities),
+            "patrimonio_liquido": _money_str(assets - liabilities),
             "ano_referencia": max(years) if years else 0,
             "membros": members,
         },
@@ -189,7 +213,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
     from pipeline.live_progress import emit_item_progress
 
-    config = LLMConfig(**llm_config_data)
+    config = LLMConfig(**llm_config_data, call_hooks=ctx.llm_call_hooks)
     service = LLMService(config)
     store = ctx.get_artifact_store()
 
@@ -236,6 +260,7 @@ def run(ctx: WorkspaceContext) -> dict:
             output_schema=BaselinePatrimonialOutput,
             max_tokens=max(config.max_tokens, _E15_MIN_COMPLETION_TOKENS),
             stage="E1.5",
+            prompt_version=PROMPT_VERSION,
         )
 
         emit_item_progress(
@@ -308,11 +333,11 @@ def run(ctx: WorkspaceContext) -> dict:
     # E1.5c lê este artefato e produz baseline_patrimonial-1.5_consolidated.json.
     store.write("E1.5", "baseline_patrimonial", combined)
 
+    # Sem net_worth no log — valor real é dado sensível (CLAUDE.md §Logging).
     logger.info(
-        "E1.5: %d files, %d items, net_worth=%.2f",
+        "E1.5: %d files, %d items",
         len(per_file_baselines),
         len(combined["itens"]),
-        combined["resumo"]["patrimonio_liquido"],
     )
 
     return {

@@ -24,11 +24,11 @@ class Workspace(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    # FinOps (post-review fix 0.3): cap mensal de gasto LLM em USD para alarme.
-    # Default 5.0 (free tier conservador); Premium pode subir via UI admin.
-    # NÃO bloqueia chamadas — só dispara alerta no endpoint /v1/admin/llm-cost.
-    monthly_llm_budget_usd: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2), nullable=False, default=Decimal("5.00"), server_default="5.00"
+    # FinOps (ADR-173): cap mensal de gasto LLM em USD. Enforçado pré-call pelo
+    # LLMBudgetService — soft-warn a 80%, hard-stop a 110%. NULL = sem cap
+    # (dev/staging). Default 5.0 (free tier conservador); Premium sobe via admin.
+    monthly_llm_budget_usd: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(10, 2), nullable=True, default=Decimal("5.00"), server_default="5.00"
     )
 
     # Soft-delete (P1.2 · ADR-072). When not null, workspace is in "deleted"

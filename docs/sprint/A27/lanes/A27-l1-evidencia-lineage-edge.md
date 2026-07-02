@@ -4,7 +4,7 @@ type: lane
 title: "Citação do parecer (E6→E5) como edge de lineage por chave natural"
 sprint: A27
 plan: PLAN-data-lineage
-status: planned
+status: shipped
 priority: P2
 branch_slug: evidencia-lineage-edge
 adrs:
@@ -17,7 +17,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a27
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/data-lineage
   - area/llm
@@ -93,3 +93,15 @@ necessário → aditiva online (`ADD COLUMN NULL`, sem backfill — tabela rebui
 
 Agente da lane (A27); co-design `data-engineer` (contrato do edge, F0 da ADR-293) +
 `senior-cto` (estratégia de DELETE no slice 3).
+
+## Fechamento (2026-07-02)
+
+- Slices 1+3 mergeados em [#715](https://github.com/davidrobert/mathoms/pull/715) /
+  [#716](https://github.com/davidrobert/mathoms/pull/716) (resolver de chave natural +
+  DELETE-por-produtor por `dst_stage` + writer `materialize_parecer_citation_edges`).
+- Slices 2+4 neste PR: hook pós-run `_materialize_parecer_citation_edges` (só parecer
+  publicado; âncora falhada nunca vira edge) + queries `parecer_citation_sources` e
+  `parecer_items_depending_on_source_document` (2 hops coarse doc→parecer). KR3 provado
+  por teste de reordenação de `top_ativos` (chave natural estável cross-run). Zero
+  migration; sem endpoint novo (snapshot OpenAPI intacto). [[ADR-293]] flippada
+  `Decidido (A27.l1)`.

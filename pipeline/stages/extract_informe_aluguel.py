@@ -90,6 +90,7 @@ def extract_one_informe(
         output_schema=InformeAluguelExtract,
         max_tokens=max(config.max_tokens, _INFORME_MIN_COMPLETION_TOKENS),
         stage=f"extract_informe_aluguel:{doc_path.name}",
+        prompt_version=PROMPT_VERSION,
     )
 
     output: InformeAluguelExtract = result.output
@@ -159,6 +160,7 @@ def run(ctx: WorkspaceContext) -> dict[str, Any]:
             if llm_config_data.get("temperature") is not None
             else 0.1
         ),
+        call_hooks=ctx.llm_call_hooks,
     )
 
     store = ctx.get_artifact_store()

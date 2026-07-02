@@ -90,6 +90,8 @@ class ParecerOrchestratorConfig:
     # Geração mais longa do pipeline (16k max_tokens) estourou o cap global de
     # 120s pós-migração claude-sonnet-4-6 — emenda ADR-270 (2026-06-12).
     llm_timeout_s: float = 240.0
+    # ADR-173: hooks de budget/telemetria — stage wrapper injeta ctx.llm_call_hooks.
+    llm_hooks: Optional[Any] = None
 
 
 # ----------------------------------------------------------------------
@@ -161,6 +163,7 @@ def _build_llm_service(config: ParecerOrchestratorConfig):
             model_name=model_name,
             max_tokens=config.max_tokens,
             temperature=config.temperature,
+            call_hooks=config.llm_hooks,
         )
     )
 
@@ -339,6 +342,7 @@ def _call_llm_safe(
             stage="review_finances_holistic",
             max_tokens=config.max_tokens,
             timeout_s=config.llm_timeout_s,
+            prompt_version=PROMPT_VERSION,
         ).output, None
     except Exception as exc:  # noqa: BLE001 — todas exceções viram needs_review
         logger.warning(

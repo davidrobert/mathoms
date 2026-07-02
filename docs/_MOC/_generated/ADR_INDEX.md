@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 265
-- **Proposto**: 24
+- **Decidido**: 269
+- **Proposto**: 20
 - **Roadmap**: 4
 
 ## Fundação
@@ -30,15 +30,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Persistência
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-029]] — Alembic para migrations · phase F2
 - [[ADR-038]] — Docker volume para storage prod · phase F7
 - [[ADR-039]] — Dual DB: SQLite (dev) + PostgreSQL (prod) · phase F7
+- [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet · phase W3-T04
 
-### Proposto (2)
+### Proposto (1)
 
-- [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet
 - [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
 
 ## Pipeline
@@ -333,14 +333,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## data-lineage
 
-### Decidido (2)
+### Decidido (3)
 
 - [[ADR-282]] — Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) · phase A23 · pré-passo-2 B4
 - [[ADR-287]] — Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) · phase A25 · l2/l6B
-
-### Proposto (1)
-
-- [[ADR-293]] — Citação de parecer (E6→E5) como edge de lineage por chave natural · phase A26 · Onda 6 (impl. A27)
+- [[ADR-293]] — Citação de parecer (E6→E5) como edge de lineage por chave natural · phase A27 · Onda 6 (A27.l1)
 
 ## docs
 
@@ -399,12 +396,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## llm
 
-### Decidido (16)
+### Decidido (18)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
 - [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
 - [[ADR-169]] — Modo incremental estendido aos stages globais E1
+- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal · phase W3-T01
 - [[ADR-199]] — Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-200]] — Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-202]] — Output schema + invariantes do parecer — `parecer_planejador.schema.json` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
@@ -415,14 +413,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-208]] — Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-292]] — evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) · phase A26 · parecer reliability
 - [[ADR-294]] — Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) · phase A26 · parecer reliability
+- [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability (A26.l8)
 - [[ADR-296]] — Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha · phase A26.l9 · parecer reliability
 - [[ADR-300]] — Red lines do parecer: 4ª camada de validação determinística (conselho defensável) · phase A22.l2 · F3 launch-trust
 
-### Proposto (3)
+### Proposto (1)
 
-- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
-- [[ADR-295]] — Enforcement por-item da citação verificada no modo strict (parecer E6) · phase A26 · parecer reliability
 
 ## marketing
 

@@ -37,6 +37,8 @@ _EXPECTED_CALL_KWARGS = frozenset(
         # timeout base por call-site — emenda ADR-270 (2026-06-12); cascade
         # apolice não passa (usa default 120s).
         "timeout_s",
+        # PROMPT_VERSION persistido no LLMCallLog para drift tracking (ADR-173).
+        "prompt_version",
     }
 )
 

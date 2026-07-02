@@ -47,7 +47,9 @@ SUPPORTED_SECTION_IDS: tuple[str, ...] = (
 class _LiteLLMSectionSummaryClient:
     """Adapter ``SectionSummaryLLMClient`` sobre ``pipeline.llm.LLMService``."""
 
-    def __init__(self, *, api_key: str, model_name: str, max_tokens: int = 600) -> None:
+    def __init__(
+        self, *, api_key: str, model_name: str, max_tokens: int = 600, call_hooks=None
+    ) -> None:
         from pipeline.llm.litellm_client import LLMConfig, LLMService
 
         self._service = LLMService(
@@ -57,6 +59,7 @@ class _LiteLLMSectionSummaryClient:
                 model_name=model_name,
                 max_tokens=max_tokens,
                 temperature=0.0,
+                call_hooks=call_hooks,
             )
         )
 

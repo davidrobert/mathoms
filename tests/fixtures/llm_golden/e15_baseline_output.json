@@ -5,7 +5,7 @@
       "description": "Apartamento na Rua Augusta, São Paulo - SP, 85m²",
       "category": "imovel",
       "institution": null,
-      "value_brl": 650000.00,
+      "value_brl": "650000.00",
       "member_key": "david",
       "year": 2024
     },
@@ -14,7 +14,7 @@
       "description": "Veículo Honda Civic 2022",
       "category": "veiculo",
       "institution": null,
-      "value_brl": 120000.00,
+      "value_brl": "120000.00",
       "member_key": "david",
       "year": 2024
     },
@@ -23,7 +23,7 @@
       "description": "Conta Poupança Itaú Ag 1234 CC 56789",
       "category": "poupanca",
       "institution": "itau",
-      "value_brl": 35000.00,
+      "value_brl": "35000.00",
       "member_key": "david",
       "year": 2024
     },
@@ -32,7 +32,7 @@
       "description": "CDB BTG Pactual 100% CDI",
       "category": "investimento",
       "institution": "btgpactual",
-      "value_brl": 80000.00,
+      "value_brl": "80000.00",
       "member_key": "david",
       "year": 2024
     },
@@ -41,16 +41,19 @@
       "description": "Conta Digital Nubank",
       "category": "conta_corrente",
       "institution": "nubank",
-      "value_brl": 12000.00,
+      "value_brl": "12000.00",
       "member_key": "mariana",
       "year": 2024
     }
   ],
-  "total_assets_brl": 897000.00,
-  "total_liabilities_brl": 0.0,
-  "net_worth_brl": 897000.00,
+  "total_assets_brl": "897000.00",
+  "total_liabilities_brl": "0.00",
+  "net_worth_brl": "897000.00",
   "reference_year": 2024,
-  "members_found": ["david", "mariana"],
+  "members_found": [
+    "david",
+    "mariana"
+  ],
   "confidence": 0.92,
   "notes": "All items from IRPF 2024 Bens e Direitos section"
 }
