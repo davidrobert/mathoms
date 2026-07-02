@@ -205,8 +205,7 @@ def test_fatura_estorno_does_not_cross_match_debit_twin() -> None:
 
 async def _ws_with_flag(db, *, enabled: bool):
     ws = await factories.make_workspace(db)
-    if enabled:
-        await set_flag(ws.id, OVERRIDE_NATURAL_KEY_V2_FLAG, True, db=db)
+    await set_flag(ws.id, OVERRIDE_NATURAL_KEY_V2_FLAG, enabled, db=db)
     await db.commit()
     return ws
 

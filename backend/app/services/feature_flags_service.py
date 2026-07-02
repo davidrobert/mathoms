@@ -56,11 +56,13 @@ DEFAULTS: dict[str, bool] = {
     # (dogfood primeiro); flag off ⇒ relatório idêntico ao atual.
     "report_provenance_enabled": False,
     # ADR-282 — read-path do override casa no natural_key v2 (em vez do legado
-    # generate_transaction_hash). Default False: ativado por workspace só após o
-    # backfill (slice 3) cobrir 100% + dogfood de reancoragem verde. Enquanto off,
-    # os write-paths apenas populam natural_key_hash (dual-write); o match continua
-    # no transaction_hash legado.
-    "override_natural_key_v2_enabled": False,
+    # generate_transaction_hash). Default True pós-flip (A26.l4): backfill dogfood
+    # concluído (legados pendentes = 0; órfãos quarentenados) e instrumentação do
+    # gate mergeada (#711/#713). Rollback = flag off por workspace. ATENÇÃO (ordem
+    # do cutover, ADR-282 §Emenda): em ambiente com override legado ainda não
+    # reancorado, o backfill exige a flag OFF (_preflight cutover_already_active) —
+    # set_flag(ws, ..., False) → backfill → set_flag(ws, ..., True).
+    "override_natural_key_v2_enabled": True,
     # ADR-282 §Emenda · A26.l4 — shadow-compare do dual-read: quando o match resolve
     # via v2, também computa o v1 e conta divergências (override que migraria de linha
     # sob o flip). Default False: instrumentação de gate, ligada só na janela de
