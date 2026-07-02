@@ -150,7 +150,9 @@ class TestE1Codes:
     def test_no_legacy_unmigrated_in_e1(self):
         out = _e1_output(
             members=[
-                _e1_member(key="Bad Key", full_name="", short_name="", role="ghost", cpf_present=True),
+                _e1_member(
+                    key="Bad Key", full_name="", short_name="", role="ghost", cpf_present=True
+                ),
                 _e1_member(key="Bad Key"),
             ],
             titular_key="unknown",

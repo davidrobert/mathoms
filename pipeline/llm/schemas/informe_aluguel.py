@@ -176,9 +176,7 @@ class InformeAluguelExtract(_SubModel):
     # sobre o TEXTO do documento × CPFs (Fernet) do config de membros.
     locador_cpf_present: bool = Field(
         False,
-        description=(
-            "True quando o informe contém o CPF do locador — NUNCA transcreva o número."
-        ),
+        description=("True quando o informe contém o CPF do locador — NUNCA transcreva o número."),
     )
     membro_key: Optional[str] = Field(
         None,

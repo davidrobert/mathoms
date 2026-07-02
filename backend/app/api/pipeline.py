@@ -32,7 +32,6 @@ from backend.app.application.pipeline_run import (
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.workspace import Workspace
-from backend.app.services.rate_limit import rate_limited, workspace_key
 from backend.app.schemas.pipeline import (
     NewDocCountResponse,
     PipelineRunListResponse,
@@ -42,6 +41,7 @@ from backend.app.schemas.pipeline import (
     StageReviewActionRequest,
     StageReviewResponse,
 )
+from backend.app.services.rate_limit import rate_limited, workspace_key
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/pipeline",

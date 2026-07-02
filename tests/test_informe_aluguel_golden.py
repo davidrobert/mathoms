@@ -55,9 +55,7 @@ def test_aluguel_golden_pf_pj_tem_ir_retido() -> None:
 
 
 def test_aluguel_golden_vacancia_meses_parciais() -> None:
-    data = json.loads(
-        (GOLDEN_DIR / "informe_aluguel_multi_imovel_vacancia.json").read_text()
-    )
+    data = json.loads((GOLDEN_DIR / "informe_aluguel_multi_imovel_vacancia.json").read_text())
     ext = InformeAluguelExtract(**data)
     meses = sorted(i.meses_locado_no_periodo for i in ext.imoveis)
     assert meses == [6, 12]

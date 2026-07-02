@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-
 import sys
 from datetime import date
 from decimal import Decimal

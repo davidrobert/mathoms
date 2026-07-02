@@ -157,6 +157,19 @@ def _disable_register_rate_limit(monkeypatch):
     monkeypatch.setenv("MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR", "0")
 
 
+@pytest.fixture(autouse=True)
+def _rate_limit_fail_open(monkeypatch):
+    """Rate limit W4-T04 fail-open por default na suíte (SR-018).
+
+    No CI o serviço Redis é compartilhado por TODOS os tests e o testclient
+    tem 1 IP só — o limite de login (10/60s por IP) estouraria 429 cross-test.
+    ``test_rate_limit.py`` re-injeta fakeredis explicitamente por teste.
+    """
+    import backend.app.services.rate_limit as _rl
+
+    monkeypatch.setattr(_rl, "_get_redis_safe", lambda: None)
+
+
 @pytest_asyncio.fixture(autouse=True)
 async def setup_db():
     """Recreate schema before every test and drop after.

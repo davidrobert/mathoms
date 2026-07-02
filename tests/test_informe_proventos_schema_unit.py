@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import re
-
 import json
+import re
 import sys
 from decimal import Decimal
 from pathlib import Path
