@@ -4,7 +4,7 @@ type: lane
 title: "Citação do parecer (E6→E5) como edge de lineage por chave natural"
 sprint: A27
 plan: PLAN-data-lineage
-status: planned
+status: shipped
 priority: P2
 branch_slug: evidencia-lineage-edge
 adrs:
@@ -17,7 +17,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a27
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/data-lineage
   - area/llm

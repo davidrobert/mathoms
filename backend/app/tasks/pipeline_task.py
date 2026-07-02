@@ -1212,6 +1212,16 @@ def _materialize_lineage_edges(ws_id: str, run_id: str) -> None:
         materialize_lineage_edges(db, workspace_id=ws_id, run_id=run_id)
 
 
+def _materialize_parecer_citation_edges(ws_id: str, run_id: str) -> None:
+    """Hook pós-run da citação do parecer (ADR-293 · A27.l1) — edges E6→E5 por chave natural."""
+    from backend.app.services.lineage_edge_writer import (
+        materialize_parecer_citation_from_artifact,
+    )
+
+    with SyncSessionLocal() as db:
+        materialize_parecer_citation_from_artifact(db, workspace_id=ws_id, run_id=run_id)
+
+
 def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
     """Passos pós-sucesso: sync documents, gerar report, persistir sugestões.
 
@@ -1252,6 +1262,13 @@ def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
         _materialize_lineage_edges(ws_id, run_id)
     except Exception as exc:
         post_logger.warning("Failed to materialize lineage edges: %s", exc)
+
+    # ADR-293 / A27.l1: citação verificada do parecer (E6→E5) como edge por chave natural.
+    # Best-effort e independente do E5→doc (DELETE-por-produtor via dst_stage).
+    try:
+        _materialize_parecer_citation_edges(ws_id, run_id)
+    except Exception as exc:
+        post_logger.warning("Failed to materialize parecer citation edges: %s", exc)
 
     # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
     # (se existirem no JSON de análise).

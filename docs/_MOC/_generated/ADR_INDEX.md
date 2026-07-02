@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 265
-- **Proposto**: 24
+- **Decidido**: 266
+- **Proposto**: 23
 - **Roadmap**: 4
 
 ## Fundação
@@ -333,14 +333,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## data-lineage
 
-### Decidido (2)
+### Decidido (3)
 
 - [[ADR-282]] — Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) · phase A23 · pré-passo-2 B4
 - [[ADR-287]] — Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) · phase A25 · l2/l6B
-
-### Proposto (1)
-
-- [[ADR-293]] — Citação de parecer (E6→E5) como edge de lineage por chave natural · phase A26 · Onda 6 (impl. A27)
+- [[ADR-293]] — Citação de parecer (E6→E5) como edge de lineage por chave natural · phase A27 · Onda 6
 
 ## docs
 

@@ -11,6 +11,7 @@ from backend.app.core.logging import get_logger
 from backend.app.models.artifact_lineage_edge import ArtifactLineageEdge
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.services.crypto import read_artifact_content
+from backend.app.services.parecer_citation_lineage import resolve_citation_natural_key
 from backend.app.services.report_lineage import EXTRACTION_STAGES
 from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY, E5_OUTPUT_STAGE
 from pipeline.domain.services.lineage_edge_deriver import (
@@ -23,6 +24,8 @@ from pipeline.domain.services.lineage_edge_deriver import (
 # DELETE-por-produtor discrimina por dst_stage (1:1 por produtor, robusto a edge_type novo),
 # não por edge_type — que é data-driven/aberto no _lineage (ADR-293 §Emenda).
 PARECER_CITATION_DST_STAGE = "review_finances_holistic"
+PARECER_CITATION_ARTIFACT_KEY = "parecer_planejador"  # == parecer_planejador.ARTIFACT_KEY
+PARECER_CITATION_EDGE_TYPE = "parecer_citation"
 
 _logger = get_logger("lineage.edge_writer")
 
@@ -69,6 +72,76 @@ def materialize_parecer_citation_edges(
         "lineage edges materializadas", extra={"producer": "parecer_citation", "count": len(edges)}
     )
     return len(edges)
+
+
+def _parecer_verified_entries(session: Session, workspace_id: str, run_id: str) -> list[dict]:
+    """Citações verificadas (``outcome == "verified"``) do artefato do parecer do run."""
+    row = session.execute(
+        select(PipelineArtifact.content_json).where(
+            PipelineArtifact.workspace_id == workspace_id,
+            PipelineArtifact.pipeline_run_id == run_id,
+            PipelineArtifact.stage == PARECER_CITATION_DST_STAGE,
+            PipelineArtifact.artifact_key == PARECER_CITATION_ARTIFACT_KEY,
+        )
+    ).first()
+    if row is None or row[0] is None:
+        return []
+    meta = read_artifact_content(row[0]).get("_meta") or {}
+    entries = meta.get("evidencia_verification") or []
+    return [e for e in entries if e.get("outcome") == "verified" and e.get("path")]
+
+
+def _parecer_citation_edge(e5_data: dict, entry: dict) -> LineageEdge:
+    """Edge E6→E5: src = folha E5 por chave natural (slice 1, path se escalar); dst = item do parecer."""
+    src_field = resolve_citation_natural_key(e5_data, entry["path"]) or entry["path"]
+    return LineageEdge(
+        src_stage=E5_OUTPUT_STAGE,
+        src_key=E5_ARTIFACT_KEY,
+        src_field=src_field,
+        dst_stage=PARECER_CITATION_DST_STAGE,
+        dst_key=PARECER_CITATION_ARTIFACT_KEY,
+        dst_field=f"{entry['item_type']}[{entry['item_index']}]",
+        edge_type=PARECER_CITATION_EDGE_TYPE,
+        rule_ref="",
+        source_document_id=None,
+        data_source_id=None,
+        winner=True,
+    )
+
+
+def materialize_parecer_citation_from_artifact(
+    session: Session, *, workspace_id: str, run_id: str
+) -> int:
+    """Hook A27.l1 slice 2: lê a citação verificada do parecer + resolve chave natural (slice 1)
+    → edges parecer_citation (slice 3). Paridade com ``materialize_lineage_edges`` (E5→doc)."""
+    e5 = _e5_payload(session, workspace_id, run_id)
+    if e5 is None:
+        return 0
+    edges = [
+        _parecer_citation_edge(e5, entry)
+        for entry in _parecer_verified_entries(session, workspace_id, run_id)
+    ]
+    return materialize_parecer_citation_edges(
+        session, workspace_id=workspace_id, run_id=run_id, edges=edges
+    )
+
+
+def sources_of_parecer_citation(session: Session, *, workspace_id: str) -> list[dict]:
+    """Reverse-lineage A27.l1 slice 4: "de onde veio este R$ do parecer?" — item do parecer →
+    folha E5 por chave natural (edge parecer_citation, KR3)."""
+    rows = session.execute(
+        select(
+            ArtifactLineageEdge.dst_field,
+            ArtifactLineageEdge.src_field,
+            ArtifactLineageEdge.run_id,
+        )
+        .where(
+            ArtifactLineageEdge.workspace_id == workspace_id,
+            ArtifactLineageEdge.edge_type == PARECER_CITATION_EDGE_TYPE,
+        )
+        .order_by(ArtifactLineageEdge.dst_field)
+    )
+    return [{"parecer_item": r[0], "e5_source": r[1], "run_id": r[2]} for r in rows]
 
 
 def aggregates_depending_on_source_document(

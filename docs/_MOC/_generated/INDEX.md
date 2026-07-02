@@ -288,7 +288,7 @@
 | ADR-290 | adr | Decidido |  | Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion | `adr/290-supersede-per-run-thesis-key-suggestion.md` |
 | ADR-291 | adr | Decidido |  | from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) | `adr/291-from-stage-base-run-fallback.md` |
 | ADR-292 | adr | Decidido |  | evidencia_path/field_path inválido → None no boundary do LLM (anti reask storm do parecer) | `adr/292-evidencia-path-boundary-coercion.md` |
-| ADR-293 | adr | Proposto |  | Citação de parecer (E6→E5) como edge de lineage por chave natural | `adr/293-parecer-citation-edge-chave-natural.md` |
+| ADR-293 | adr | Decidido |  | Citação de parecer (E6→E5) como edge de lineage por chave natural | `adr/293-parecer-citation-edge-chave-natural.md` |
 | ADR-294 | adr | Decidido |  | Coerção no boundary dos reask triggers remanescentes do parecer (prosa truncável + impacto_estimado drop) | `adr/294-parecer-boundary-coercion-prose-impacto.md` |
 | ADR-295 | adr | Proposto |  | Enforcement por-item da citação verificada no modo strict (parecer E6) | `adr/295-enforcement-por-item-citacao-strict.md` |
 | ADR-296 | adr | Decidido |  | Citação determinística: LLM emite (claim, path, rótulo); pipeline renderiza o valor da folha | `adr/296-citacao-deterministica-render-from-path.md` |
@@ -648,7 +648,7 @@
 | A26.l7 | lane | shipped | A26 | Catálogo de citação cobre folhas de LISTA (fonte única forward↔reverse) | `sprint/A26/lanes/A26-l7-evidencia-catalog-listas.md` |
 | A26.l8 | lane | planned | A26 | value_mismatch residual: enforcement per-item no strict (path válido, número errado) | `sprint/A26/lanes/A26-l8-evidencia-value-mismatch.md` |
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
-| A27.l1 | lane | planned | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
+| A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
