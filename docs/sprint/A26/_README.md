@@ -22,7 +22,9 @@ theme: "data-lineage"
 > métrica dos gates seguintes. O resíduo `value_mismatch` migrou para **[[A26.l8]]**,
 > **shipada (#666)** — enforcement per-item entregue; a pré-condição de **código** do
 > flip strict da [[A26.l2]] está cumprida, resta só o gate de tráfego. [[A26.l3]]
-> também **shipada (2026-07-01)** (gate cumprido). As demais (l2, l4, l5) seguem
+> também **shipada (2026-07-01)** (gate cumprido). A [[A26.l4]] está **in_progress**:
+> instrumentação mergeada (#711 + #713); resta o flip do default + observação ≥1 sprint.
+> As demais (l2, l5) seguem
 > `blocked` por **gates de volume de produção** (≥20 gerações de
 > parecer; ≥1 sprint com flags v2 a 100% + counter `dualread.v1_fallback` zerado **com
 > uso real exercitado**) — pré-launch, fecham por **tráfego/dogfood**, não por calendário.
@@ -56,7 +58,7 @@ lane destrutiva tem um **gate verificável**, não um prazo.
 | [[A26.l1]] | `evidencia-prompt-catalogo` | A (sem gate) | ✅ shipped (#654) | — · ponto de entrada da sprint |
 | [[A26.l2]] | `evidencia-flip-strict` | B | blocked | gate redefinido (2026-06-19): segurança binária (0 errado publicado — ✅ via l8) + budget needs_review ≤15% sobre ≥20 ger |
 | [[A26.l3]] | `drop-dedup-v1-shim` | B (reversível) | ✅ shipped (2026-07-01) | gate cumprido: dedup v2 100% + counter zerado ≥1 sprint |
-| [[A26.l4]] | `override-v2-on-instrumentacao` | B (habilitador) | blocked | flip override flag→True + `v2_match_count` + query agendada `v1_fallback` |
+| [[A26.l4]] | `override-v2-on-instrumentacao` | B (habilitador) | in_progress (#711/#713) | instrumentação ✅; resta flip default (backfill→workspace→DEFAULTS) + observação ≥1 sprint |
 | [[A26.l5]] | `m2-override-drop` | B (IRREVERSÍVEL) | blocked | l4 + G1/G2/G3 + PITR + owner go/no-go |
 | [[A26.l6]] | `evidencia-coverage-kpi` | A (sem gate) | shipped (#660) | — · roda antes de l7 (baseline) |
 | [[A26.l7]] | `evidencia-catalog-listas` | A (sem gate) | shipped (#662) | l1 · recomendada antes do flip l2, não bloqueante |

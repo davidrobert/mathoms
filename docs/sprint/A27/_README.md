@@ -18,6 +18,13 @@ theme: "data-lineage"
 > número — e materializa a citação do parecer no **grafo de lineage**. Co-design
 > 2026-06-19: `product-manager` (priorização/ondas/KR/corte) + `information-architect`
 > (forma/frontmatter/MOC/wikilinks) + os 6 do co-design da [[ADR-296]].
+>
+> **Estado 2026-07-02 — escopo Must entregue antecipadamente** (executado durante a
+> janela A26, conforme o padrão "lane ancorada na origem, executada na janela"):
+> [[A26.l9]] ✅ #687 · [[A27.l1]] ✅ #715/#716/#718 · [[ADR-296]]/[[ADR-293]]
+> `Decidido` · doutrina KR1 [[ADR-304]] ✅ #729. Resta a **promoção formal**
+> (A26→`done` + A27→`current`) quando os gates de tráfego da A26 fecharem; o
+> condicional [[A26.l5]] herda o gate verbatim.
 
 ## Tese
 
@@ -38,7 +45,7 @@ veio este R$ do parecer?" — hoje a camada mais user-facing fica cega.
 
 | Lane | Slug | Status | Dep / Gate | ADR |
 |---|---|---|---|---|
-| [[A27.l1]] | `evidencia-lineage-edge` | planned | edge slices 1+3 ∥ [[A26.l9]]; slices 2+4 após o merge da l9 | [[ADR-293]] `Proposto` |
+| [[A27.l1]] | `evidencia-lineage-edge` | ✅ shipped (#715/#716/#718) | slices 1–4 entregues (1+3 ∥ l9; 2+4 pós-merge da l9, conforme planejado) | [[ADR-293]] `Decidido (A27.l1)` |
 
 ## Lanes executadas nesta janela (origem A26 — referência, sem migração de id)
 
@@ -48,13 +55,15 @@ veio este R$ do parecer?" — hoje a camada mais user-facing fica cega.
 > (MOC A26 + ADRs). O `status:` da lane reflete execução; o `sprint:`, a origem.
 
 - **Must (núcleo — nunca cortar):** [[A26.l9]] `citacao-deterministica` ([[ADR-296]]
-  `Proposto`) — decidida no co-design da A26, **executada A27/Onda 6**. É a única lane
-  que fecha a raiz do gate strict que a A26 contornou. **Slice 0 (pré-requisito não
-  opcional): ✅ entregue** ([#679](https://github.com/davidrobert/mathoms/pull/679)) —
-  harness de eval paralelo promovido ao committed em
-  [`dev/run_parecer_eval_parallel.py`](../../../dev/run_parecer_eval_parallel.py)
-  (6 workers, ~13 min). O eval sequencial (~1,7h) sofria kill; sem ele a l9 não fecha
-  seu critério de aceite (re-eval holdout). Resta só `ANTHROPIC_API_KEY` no ambiente.
+  `Decidido`) — decidida no co-design da A26, **executada A27/Onda 6 — ✅ shipped**
+  ([#687](https://github.com/davidrobert/mathoms/pull/687)). Fechou a raiz do gate
+  strict que a A26 contornou. Slice 0 (harness de eval paralelo,
+  [`dev/run_parecer_eval_parallel.py`](../../../dev/run_parecer_eval_parallel.py),
+  6 workers ~13 min) entrou antes em
+  [#679](https://github.com/davidrobert/mathoms/pull/679). Follow-up do KR1
+  (`number_in_prose_violation`): fix de pureza monetária da prosa (persona 1.1.0,
+  61→7 violações em 120 gerações) + doutrina [[ADR-304]] ("==0 estrito é enforcement,
+  não prompt") em [#729](https://github.com/davidrobert/mathoms/pull/729).
 - **Condicional (carry-over A26, só ativa se o gate de tráfego não fechar na janela
   A26):** [[A26.l5]] `m2-override-drop` ([[ADR-282]] `Proposto`, DESTRUTIVO
   IRREVERSÍVEL) — cortada da A26 sob gate apertado; executa A27 **somente** com G1/G2/G3
@@ -118,11 +127,10 @@ todo o edge depende do contrato:
 
 ## Decisões herdadas (sem ADR nova)
 
-- **[[ADR-296]]** `Proposto` (citação determinística, render value-from-path) — flippa
-  `Decidido (A27)` no merge da [[A26.l9]]; emenda [[ADR-279]] §E registrada lá.
-- **[[ADR-293]]** `Proposto` (citação como edge por chave natural) — flippa
-  `Decidido (A27)` no merge da [[A27.l1]]. Gate de discovery **já RESOLVIDO**
-  analiticamente — não recriar discovery.
+- **[[ADR-296]]** ✅ `Decidido` (citação determinística, render value-from-path) —
+  flippou no merge da [[A26.l9]] (#687); emenda [[ADR-279]] §E registrada lá.
+- **[[ADR-293]]** ✅ `Decidido (A27.l1)` (citação como edge por chave natural) —
+  flippou no merge da [[A27.l1]] (#718).
 - **[[ADR-295]]** `Decidido` (enforcement per-item) — **coexiste** com a l9 (máquina de
   decisão drop vs `needs_review`); a l9 só troca o sinal que a alimenta.
 - **[[ADR-282]]** `Proposto` — flippa `Decidido` no merge da [[A26.l5]], se executada.

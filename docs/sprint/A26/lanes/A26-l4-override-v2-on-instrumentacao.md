@@ -4,7 +4,7 @@ type: lane
 title: "Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada)"
 sprint: A26
 plan: PLAN-data-lineage
-status: blocked
+status: in_progress
 priority: P2
 branch_slug: override-v2-on-instrumentacao
 adrs:
@@ -14,7 +14,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a26
-  - status/blocked
+  - status/in-progress
   - priority/p2
   - area/data-lineage
   - area/observability
@@ -73,6 +73,17 @@ instrumentar a verificação.
   hit v2 sem consultar v1 → `v1_fallback` fica 0 com a correção no lugar errado). Só o
   `divergence_count` do shadow-compare prova que v2 casa a MESMA linha que v1 — pré-requisito
   do drop irreversível da [[A26.l5]] ([[ADR-282]] §Emenda item 3).
+
+## Progresso (2026-07-02)
+
+- **Instrumentação mergeada:** [#711](https://github.com/davidrobert/mathoms/pull/711)
+  (`v2_match_count` + shadow-compare `divergence_count` + snapshot em `AuditLog` via
+  `AuditAction.override_v2_dualread_snapshot`) e
+  [#713](https://github.com/davidrobert/mathoms/pull/713) (wire do dual-read nos
+  consumidores E4).
+- **Resta:** flip do default na sequência anti-`_preflight` (backfill por workspace →
+  flip por workspace → `DEFAULTS` ao final) + atualização do `SMOKE_TEST_HUMAN.md` +
+  janela de observação ≥1 sprint com uso real (dogfood do owner).
 
 ## Critério de aceite
 
