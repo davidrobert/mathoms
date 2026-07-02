@@ -138,7 +138,7 @@ class TestExtractIrpfFullRun:
 
         persisted = ctx.get_artifact_store().read("extract_irpf_full", "irpfdeclaracaodavid2024")
         _assert_models_equal(persisted, fixture)
-        assert persisted["prompt_version"] == "e16-v1.1.2"
+        assert persisted["prompt_version"] == "1.1.2"
         assert persisted["confidence"] == fixture["confidence"]
 
     @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")

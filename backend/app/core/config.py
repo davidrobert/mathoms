@@ -111,6 +111,12 @@ class Settings(BaseSettings):
     # sobre FERNET_KEY. Fora de rotação, deixe vazia e use FERNET_KEY single.
     FERNET_KEYS: str = ""
 
+    # W4-T04 / SR-018 — overrides de rate limit no formato "N/window_s"
+    # (ex.: "10/60"). Vazio = default de backend/app/services/rate_limit.py.
+    RATE_LIMIT_LOGIN: str = ""
+    RATE_LIMIT_UPLOAD: str = ""
+    RATE_LIMIT_PIPELINE_RUN: str = ""
+
     # ADR-231 — encryption at-rest de PII em pipeline_artifacts.content_json.
     # Default True: writes via DBArtifactStore aplicam Fernet encrypt após
     # schema validation. Reads sempre decriptam sentinel detectado (compat

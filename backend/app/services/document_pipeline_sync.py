@@ -33,7 +33,7 @@ _OPTIONAL_E2_EXTRACT_TYPE_VALUES = {"investment_report"}
 
 # Stages onde E2 grava per-doc no DB (espelho de scripts/e2_extract.run_with_store).
 # E2-llm é stub determinístico que registra arquivos delegados ao wrapper LLM.
-_E2_DB_STAGES = ("E2-extratos", "E2-faturas", "E2-llm")
+_E2_DB_STAGES = ("extract_statements", "extract_invoices", "extract_with_llm")
 
 
 def _e15a_json_name(source_filename: str) -> str:

@@ -2815,9 +2815,9 @@ def _e5_load_md_inputs() -> tuple[str, str | None, str | None]:
 
 def _e5_check_e4_inputs(store) -> tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
     """Sanity check dos inputs E4; raise ValueError se ausente."""
-    receitas = store.read("E4", "receitas") or {}
-    despesas = store.read("E4", "despesas") or {}
-    fluxo_mensal = store.read("E4", "fluxo_mensal_detalhado") or {}
+    receitas = store.read("categorize_transactions", "receitas") or {}
+    despesas = store.read("categorize_transactions", "despesas") or {}
+    fluxo_mensal = store.read("categorize_transactions", "fluxo_mensal_detalhado") or {}
     if not receitas:
         raise ValueError("E5: receitas-4_unified.json ausente ou vazio")
     if not despesas:
@@ -2825,7 +2825,7 @@ def _e5_check_e4_inputs(store) -> tuple[Dict[str, Any], Dict[str, Any], Dict[str
     if not fluxo_mensal:
         raise ValueError("E5: fluxo_mensal_detalhado-4_unified.json ausente ou vazio")
 
-    baseline_check = store.read("E1.5c", "baseline_patrimonial") or {}
+    baseline_check = store.read("consolidate_baseline", "baseline_patrimonial") or {}
     if not baseline_check:
         print("  [CRITICAL] Baseline patrimonial vazio — patrimônio será reportado como R$ 0!")
 
@@ -3088,6 +3088,7 @@ def _e5_compose_output(
     passive_income=None,
     monte_carlo_if=None,
     premissas_economicas: Dict[str, Any] | None = None,
+    proventos_por_ativo=None,
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
 
@@ -3119,6 +3120,7 @@ def _e5_compose_output(
         passive_income=passive_income,
         monte_carlo_if=monte_carlo_if,
         premissas_economicas=premissas_economicas,
+        proventos_por_ativo=proventos_por_ativo,
         exposicao_cambial=legacy.get("exposicao_cambial"),
         lineage=legacy.get("lineage"),
     )
@@ -3130,7 +3132,7 @@ def _e5_persist(store, ctx, output: Dict[str, Any]) -> None:
     ``DBArtifactStore.write`` (ADR-212 PR3a)."""
     from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
 
-    store.write("E5", E5_ARTIFACT_KEY, output)
+    store.write("analyze_finances", E5_ARTIFACT_KEY, output)
 
 
 def _e5_print_summary(legacy: Dict[str, Any]) -> None:
@@ -3187,7 +3189,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
     life_plan_content, tarefas_content, milhas_content = _e5_load_md_inputs()
     receitas, despesas, fluxo_mensal = _e5_check_e4_inputs(store)
 
-    existing_output = store.read("E5", E5_ARTIFACT_KEY) or {}
+    existing_output = store.read("analyze_finances", E5_ARTIFACT_KEY) or {}
     existing_narrativas = existing_output.get("narrativas")
 
     adapter = _e5_build_adapter(life_plan_content, ctx=ctx)
@@ -3212,6 +3214,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         passive_income=result.passive_income,
         monte_carlo_if=result.monte_carlo_if,
         premissas_economicas=premissas_economicas,
+        proventos_por_ativo=result.proventos_por_ativo,
     )
     _e5_persist(store, ctx, output)
     _e5_print_summary(legacy)

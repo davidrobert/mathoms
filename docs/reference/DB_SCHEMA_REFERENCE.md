@@ -639,10 +639,13 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `stage` | `VARCHAR(64)` | no | — | — |
 | `model_name` | `VARCHAR(120)` | no | — | — |
 | `prompt_version` | `VARCHAR(40)` | yes | — | — |
+| `prompt_version_legacy` | `TEXT` | yes | — | — |
 | `tokens_in` | `INTEGER` | no | `0` | — |
 | `tokens_out` | `INTEGER` | no | `0` | — |
 | `cost_usd` | `NUMERIC(12, 6)` | no | `Decimal('0.000000')` | — |
 | `cost_known` | `BOOLEAN` | no | `True` | — |
+| `confidence` | `FLOAT` | yes | — | — |
+| `needs_review` | `BOOLEAN` | no | server: `false` | — |
 | `duration_ms` | `INTEGER` | no | `0` | — |
 | `pipeline_run_id` | `VARCHAR(36)` | yes | — | INDEX |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | INDEX |
@@ -2197,10 +2200,13 @@ type LlmCallLog struct {
 	Stage string `db:"stage" json:"stage"`
 	ModelName string `db:"model_name" json:"model_name"`
 	PromptVersion *string `db:"prompt_version" json:"prompt_version"`
+	PromptVersionLegacy *string `db:"prompt_version_legacy" json:"prompt_version_legacy"`
 	TokensIn int `db:"tokens_in" json:"tokens_in"`
 	TokensOut int `db:"tokens_out" json:"tokens_out"`
 	CostUsd decimal.Decimal `db:"cost_usd" json:"cost_usd"`
 	CostKnown bool `db:"cost_known" json:"cost_known"`
+	Confidence *float64 `db:"confidence" json:"confidence"`
+	NeedsReview bool `db:"needs_review" json:"needs_review"`
 	DurationMs int `db:"duration_ms" json:"duration_ms"`
 	PipelineRunId *string `db:"pipeline_run_id" json:"pipeline_run_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`

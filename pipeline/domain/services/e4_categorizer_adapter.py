@@ -3,7 +3,7 @@
 Orquestra os domain services do E4 sobre um :class:`ArtifactStore`, preparando
 o terreno para o ``main_with_store`` do E4 (Sessão A4b). Escopo atual:
 
-- Lê extratos E3 (`list_keys("E3")`).
+- Lê extratos E3 (`list_keys("reconcile_transactions")`).
 - Classifica transações via :class:`TransactionClassifier` (A4a).
 - Agrega em ``ReceitasUnified``/``DespesasUnified``/``FluxoMensal`` via
   :class:`CashFlowBuilder` (A4a).
@@ -51,10 +51,10 @@ from pipeline.domain.services.transaction_classifier import (
 
 # Input stages para posições E2. No DiskArtifactStore, todos apontam para
 # ``E2_extracts/``; o adapter deduplica por key.
-_E2_INPUT_STAGES: tuple[str, ...] = ("E2-extratos", "E2-faturas", "E2-llm")
+_E2_INPUT_STAGES: tuple[str, ...] = ("extract_statements", "extract_invoices", "extract_with_llm")
 
 # Stage do baseline consolidado (E1.5c) — key convencionada.
-_BASELINE_STAGE = "E1.5c"
+_BASELINE_STAGE = "consolidate_baseline"
 _BASELINE_KEY = "baseline_patrimonial"
 
 # Tipos de extract E2 que representam posição de investimento (paridade com
@@ -158,8 +158,8 @@ class E4CategorizerAdapter:
 
     def load_reconciled_accounts(self, store: ArtifactStore) -> list[dict]:
         """Lê os extratos E3 do store; keys visíveis sem payload legível abortam alto (ADR-291)."""
-        keys = list(store.list_keys("E3"))
-        payloads = [store.read("E3", key) for key in keys]
+        keys = list(store.list_keys("reconcile_transactions"))
+        payloads = [store.read("reconcile_transactions", key) for key in keys]
         readable = [p for p in payloads if isinstance(p, dict)]
         if keys and not readable:
             # Sempre from_stage sem fallback de base_run ou workspace que

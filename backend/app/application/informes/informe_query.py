@@ -12,8 +12,8 @@ from backend.app.services.crypto import read_artifact_content
 
 logger = logging.getLogger("mathoms.informes.query")
 
+# Repo é alias-aware (stage_aliases, ADR-093): uma forma cobre legacy + descritivo.
 _STAGE_DESCRIPTIVE = "extract_informes_anuais"
-_STAGE_LEGACY = "E2-informe-anual"
 
 
 class InformeQuery:
@@ -54,11 +54,10 @@ class InformeQuery:
         return payload if isinstance(payload, dict) else None
 
     def _stage_keys(self, workspace_id: str) -> list[tuple[str, str]]:
-        """Lista flat de ``(stage, key)`` em ambas as formas (descritivo + legacy)."""
+        """Lista flat de ``(stage, key)`` — repo resolve legacy + descritivo."""
         return [
-            (stage, key)
-            for stage in (_STAGE_DESCRIPTIVE, _STAGE_LEGACY)
-            for key in self._repo.list_latest_keys(workspace_id, stage=stage)
+            (_STAGE_DESCRIPTIVE, key)
+            for key in self._repo.list_latest_keys(workspace_id, stage=_STAGE_DESCRIPTIVE)
         ]
 
     def _fetch_payloads(self, workspace_id: str) -> list[dict]:

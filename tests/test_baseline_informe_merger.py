@@ -49,7 +49,7 @@ def _informe(
         "fonte_pagadora_cnpj": cnpj_emissor,
         "fonte_pagadora_nome": "Banco X",
         "confidence": 0.95,
-        "prompt_version": "informe-pf-v1.0.0",
+        "prompt_version": "1.0.0",
         "financeiro_pf": {
             "cnpj_emissor": cnpj_emissor,
             "nome_emissor": "Banco X",

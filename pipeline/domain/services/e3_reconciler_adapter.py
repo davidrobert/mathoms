@@ -125,8 +125,8 @@ class E3ReconcilerAdapter:
         4. ``BankStatement.from_e2_dict`` (conversão final).
     """
 
-    INPUT_STAGES = ("E2-extratos", "E2-faturas", "E2-llm")
-    BASELINE_STAGE = "E1.5c"
+    INPUT_STAGES = ("extract_statements", "extract_invoices", "extract_with_llm")
+    BASELINE_STAGE = "consolidate_baseline"
     BASELINE_KEY = "baseline_patrimonial"
 
     def __init__(
@@ -285,7 +285,7 @@ class E3ReconcilerAdapter:
         self,
         store: ArtifactStore,
         *,
-        output_stage: str = "E3",
+        output_stage: str = "reconcile_transactions",
         input_stages: Iterable[str] | None = None,
         output_key_fn=None,
         serialize_fn=None,
@@ -295,7 +295,7 @@ class E3ReconcilerAdapter:
 
         Args:
             store: ``ArtifactStore`` para ler E2 e escrever E3.
-            output_stage: stage de destino (default ``"E3"``).
+            output_stage: stage de destino (default ``reconcile_transactions``).
             input_stages: stages de origem (default ``INPUT_STAGES``).
             output_key_fn: opcional ``(stmt: BankStatement) -> str`` —
                 substitui ``self.output_key`` (default produz

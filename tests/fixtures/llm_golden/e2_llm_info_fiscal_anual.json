@@ -1,0 +1,58 @@
+{
+  "source_file": "itau_informe_rendimentos_2024.pdf",
+  "institution": "btgpactual",
+  "document_type": "informe_rendimentos",
+  "period": "202412",
+  "member_key": "david",
+  "currency": "BRL",
+  "transactions": [
+    {
+      "date": "2024-12-31",
+      "description": "RENDIMENTOS CDB ANO 2024 (INFORME IR ACUMULADO)",
+      "amount": 4820.55,
+      "category_hint": "info_fiscal_anual",
+      "balance_after": null
+    },
+    {
+      "date": "2024-12-31",
+      "description": "SALDO EM 31/12/2024 CONTA CORRENTE",
+      "amount": 15230.1,
+      "category_hint": "info_fiscal_anual",
+      "balance_after": null
+    }
+  ],
+  "investments": [
+    {
+      "type": "cdb",
+      "institution": "btgpactual",
+      "description": "CDB DI BTG Pactual 100% CDI",
+      "value_brl": 25000.0,
+      "applied_date": "2024-06-15",
+      "maturity_date": "2025-06-15",
+      "rate": "100% CDI",
+      "member_key": "david"
+    },
+    {
+      "type": "lci",
+      "institution": "btgpactual",
+      "description": "LCI BTG Pactual 90% CDI",
+      "value_brl": 20000.0,
+      "applied_date": "2024-12-15",
+      "maturity_date": "2025-12-15",
+      "rate": "90% CDI",
+      "member_key": "david"
+    },
+    {
+      "type": "fundo",
+      "institution": "btgpactual",
+      "description": "BTG Pactual Tesouro Selic Simples",
+      "value_brl": 50000.0,
+      "applied_date": "2024-01-10",
+      "maturity_date": null,
+      "rate": null,
+      "member_key": "david"
+    }
+  ],
+  "confidence": 0.88,
+  "notes": "Linhas de informe IR acumulado — info_fiscal_anual NAO entra no fluxo mensal (anti double-count, ADR-242)"
+}

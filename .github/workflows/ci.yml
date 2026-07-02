@@ -318,6 +318,10 @@ jobs:
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run pipeline tests
+        env:
+          # W6-T03/F9.5 (ADR-093): hard-fail se identificador de stage legado
+          # vazar como string literal fora das ilhas permitidas.
+          MATHOMS_ENFORCE_STAGE_RENAME: "1"
         run: pytest tests/ -q --tb=short
 
       - name: Pipeline JSON schema strict (MATHOMS_PIPELINE_SCHEMA_MODE)

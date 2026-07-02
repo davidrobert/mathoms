@@ -7,7 +7,8 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, Numeric, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, Numeric, String, Text
+from sqlalchemy import false as sa_false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.app.core.database import Base
@@ -25,6 +26,9 @@ class LLMCallLog(Base):
     stage: Mapped[str] = mapped_column(String(64), nullable=False)
     model_name: Mapped[str] = mapped_column(String(120), nullable=False)
     prompt_version: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
+    # Errata ADR-233 §Migration (A20.l12): valor original ``<slug>-v<semver>``
+    # preservado quando a migration normalizou para semver puro.
+    prompt_version_legacy: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     tokens_in: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     cost_usd: Mapped[Decimal] = mapped_column(
@@ -33,6 +37,12 @@ class LLMCallLog(Base):
     # cost_known=False quando modelo não estava em MODEL_PRICING — distingue
     # "desconhecido" de "grátis" (Ollama local). Ver pipeline/llm/pricing.py.
     cost_known: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # ADR-260 (A20.l12): qualidade por chamada em SQL — análise por
+    # prompt_version sem depender do OTLP (A20.l13).
+    confidence: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    needs_review: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=sa_false()
+    )
     duration_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     pipeline_run_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(

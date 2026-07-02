@@ -25,6 +25,7 @@ from backend.app.services.lastro_resolver import (
     OverrideEntry,
     resolve_lastro_with_source,
 )
+from pipeline.artifact_store import stage_aliases
 
 THRESHOLD_VERDE_PCT = 10.0
 THRESHOLD_AMARELO_PCT = 5.0
@@ -88,7 +89,8 @@ async def _load_latest_e5_artifact(
         select(PipelineArtifact)
         .where(
             PipelineArtifact.workspace_id == workspace_id,
-            PipelineArtifact.stage == "analyze_finances",
+            # legado E5 ↔ descritivo (ADR-093, janela F9)
+            PipelineArtifact.stage.in_(stage_aliases("analyze_finances")),
         )
         .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         .limit(1)

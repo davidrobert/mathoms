@@ -9,7 +9,7 @@ Uso via Python (API programática):
 
     ctx = WorkspaceContext.default()
     result = run_pipeline(ctx)              # Pipeline determinístico completo
-    result = run_from(ctx, "E5")            # De E5 em diante
+    result = run_from(ctx, "analyze_finances")  # De E5 em diante
 
     # Para web (multi-tenant):
     ctx = WorkspaceContext.for_tenant(tenant_root, config_overrides)

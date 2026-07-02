@@ -35,6 +35,10 @@ MODELS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
         "backend/app/models/document.py",
         "classification_confidence",
     ): "confidence 0–1, não monetário",
+    (
+        "backend/app/models/llm_call_log.py",
+        "confidence",
+    ): "confidence 0–1 do output LLM (ADR-260 · A20.l12), não monetário",
 }
 # ``<nome>: Mapped[...] = mapped_column(`` ou ``<nome> = mapped_column(`` / ``Column(``.
 _MODEL_COLUMN = re.compile(

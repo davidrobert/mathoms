@@ -8,7 +8,8 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # Bump quando alterar prompt ``crlv`` de modo que afete output (ADR-144 cache).
-PROMPT_VERSION = "crlv-v1.0.0"
+# Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "crlv-v1.0.0".
+PROMPT_VERSION = "1.0.0"
 
 
 # Combustíveis canônicos do DETRAN — lista core. Outros aceitos via str

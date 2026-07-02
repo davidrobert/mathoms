@@ -27,8 +27,9 @@ PROMPT_VERSION_RE = re.compile(
     re.MULTILINE,
 )
 
-# Formato canônico (ADR-233): semver puro OU prefix-v<semver> legado.
-CANONICAL_VERSION_RE = re.compile(r"^(\d+\.\d+\.\d+|[\w-]+-v\d+\.\d+\.\d+)$")
+# Formato canônico (errata ADR-233 §Migration, A20.l12): semver puro ESTRITO.
+# A tolerância <slug>-v<semver> foi removida — todos os prompts migraram.
+CANONICAL_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 UPSTREAM_REF = os.environ.get("MATHOMS_PROMPT_VERSION_BASE", "origin/main")
 

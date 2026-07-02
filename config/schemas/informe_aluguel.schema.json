@@ -26,9 +26,9 @@
       "minimum": 2000,
       "maximum": 2100
     },
-    "locador_cpf": {
-      "type": ["string", "null"],
-      "pattern": "^\\d{11}$"
+    "locador_cpf_present": {
+      "type": "boolean",
+      "description": "ADR-259 §2 (A20.l15): o VALOR do CPF nunca persiste — só o sinal de presença."
     },
     "membro_key": {
       "type": ["string", "null"]
@@ -70,8 +70,10 @@
         "iptu_municipal": {
           "type": ["string", "null"]
         },
-        "locatario_cpf_cnpj": {
-          "type": ["string", "null"]
+        "locatario_cnpj": {
+          "type": ["string", "null"],
+          "pattern": "^\\d{14}$",
+          "description": "CNPJ (público) quando pagador PJ; CPF de locatário PF nunca persiste (ADR-259 §2)."
         },
         "aluguel_bruto_anual": { "$ref": "#/$defs/decimalString" },
         "taxa_administracao_anual": { "$ref": "#/$defs/decimalString" },

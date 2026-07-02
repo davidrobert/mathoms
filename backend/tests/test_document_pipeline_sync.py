@@ -126,7 +126,7 @@ def test_apply_pipeline_e2_sync_e2_uses_db_fallback_when_disk_missing(tmp_path: 
     assert doc.pipeline_e2_extract_ok is True
     assert doc.status == DocumentStatus.processed
     fake_repo.get_latest_for_workspace.assert_any_call(
-        "ws-1", stage="E2-extratos", artifact_key="c6bank_extratoconta_202604"
+        "ws-1", stage="extract_statements", artifact_key="c6bank_extratoconta_202604"
     )
 
 

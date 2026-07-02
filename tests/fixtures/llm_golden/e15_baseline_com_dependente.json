@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "code": "41",
+      "description": "Poupanca CEF conta 1234-5",
+      "category": "poupanca",
+      "institution": "caixa",
+      "value_brl": "25000.00",
+      "member_key": "ricardo",
+      "year": 2024
+    },
+    {
+      "code": "99",
+      "description": "Consorcio nao contemplado em nome do dependente",
+      "category": "outros",
+      "institution": null,
+      "value_brl": "18000.00",
+      "member_key": "beatriz",
+      "year": 2024
+    }
+  ],
+  "total_assets_brl": "43000.00",
+  "total_liabilities_brl": "0.00",
+  "net_worth_brl": "43000.00",
+  "reference_year": 2024,
+  "members_found": [
+    "ricardo",
+    "beatriz"
+  ],
+  "confidence": 0.9,
+  "notes": "Bem declarado em nome de dependente (beatriz)"
+}

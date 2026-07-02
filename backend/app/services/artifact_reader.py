@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def _stage_query_candidates(stage: str) -> list[str]:
     """Janela compat F9.2 → F9.6 (ADR-093): runners ainda escrevem nomes
-    legados ("E4"/"E5"...) mas callers podem chamar com forma descritiva.
+    legados (E4/E5...) mas callers podem chamar com forma descritiva.
     Retorna formas a tentar em ordem (input, descritivo, legado), sem
     duplicatas.
     """

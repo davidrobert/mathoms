@@ -98,7 +98,7 @@ async def reset_workspace_from_stage(
     """Reseta artefatos de pipeline do workspace a partir de stage.
 
     `from_stage` aceita nome descritivo (`"reconcile_transactions"`) ou
-    legacy (`"E3"`) — resolvido via `resolve_stage_name`. Cascade inclui
+    legacy (`E3`) — resolvido via `resolve_stage_name`. Cascade inclui
     `from_stage` em si + todos os stages subsequentes em `FULL_ORDER`.
 
     Args:

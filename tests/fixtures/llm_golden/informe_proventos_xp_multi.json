@@ -1,0 +1,60 @@
+{
+  "ano_base": 2024,
+  "tipo_informe": "proventos_acoes",
+  "fonte_pagadora_cnpj": "02332886000104",
+  "fonte_pagadora_nome": "XP Investimentos CCTVM S.A.",
+  "titular_cpf_masked": "***.456.789-**",
+  "confidence": 0.92,
+  "proventos": {
+    "cnpj_emissor": "02332886000104",
+    "nome_emissor": "XP Investimentos CCTVM S.A.",
+    "proventos": [
+      {
+        "ticker": "WEGE3",
+        "cnpj_pagador": "02332886000104",
+        "cnpj_fonte": "84429695000111",
+        "tipo": "dividendo",
+        "valor_brl": "312.40",
+        "data_pagamento": "2024-03-14",
+        "ir_retido_brl": "0"
+      },
+      {
+        "ticker": "WEGE3",
+        "cnpj_pagador": "02332886000104",
+        "cnpj_fonte": "84429695000111",
+        "tipo": "jcp",
+        "valor_brl": "180.00",
+        "data_pagamento": "2024-08-20",
+        "ir_retido_brl": "27.00"
+      },
+      {
+        "ticker": "MXRF11",
+        "cnpj_pagador": "02332886000104",
+        "cnpj_fonte": "97521225000125",
+        "tipo": "rend_fii",
+        "valor_brl": "96.00",
+        "data_pagamento": "2024-12-10",
+        "ir_retido_brl": "0"
+      },
+      {
+        "ticker": "ITSA4",
+        "cnpj_pagador": "02332886000104",
+        "cnpj_fonte": "61532644000115",
+        "tipo": "bonificacao",
+        "valor_brl": "250.00",
+        "data_pagamento": "2024-11-29",
+        "ir_retido_brl": "0",
+        "notas": "Bonificação 5% — ajuste de custo médio, não é renda."
+      }
+    ],
+    "posicao_31_12": [
+      {
+        "ticker": "ITSA4",
+        "quantidade": "420",
+        "custo_medio_brl": "8.90",
+        "valor_mercado_31_12": "4351.20"
+      }
+    ]
+  },
+  "prompt_version": "1.0.0"
+}

@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "code": "01",
+      "description": "Apartamento (declaracao truncada — pagina 2 ilegivel)",
+      "category": "imovel",
+      "institution": null,
+      "value_brl": "480000.00",
+      "member_key": "ricardo",
+      "year": 2024
+    }
+  ],
+  "total_assets_brl": "480000.00",
+  "total_liabilities_brl": "0.00",
+  "net_worth_brl": "480000.00",
+  "reference_year": 2024,
+  "members_found": [
+    "ricardo"
+  ],
+  "confidence": 0.55,
+  "notes": "PDF truncado apos a pagina 2 — bens 03+ ausentes; revisao humana necessaria"
+}

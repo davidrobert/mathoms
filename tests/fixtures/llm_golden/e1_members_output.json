@@ -4,7 +4,6 @@
       "key": "david",
       "full_name": "David Ferreira Campos",
       "short_name": "David",
-      "cpf": "12345678901",
       "birth_date": "1985-03-15",
       "role": "titular",
       "accounts": [
@@ -20,13 +19,13 @@
           "agency": null,
           "account_number": null
         }
-      ]
+      ],
+      "cpf_present": true
     },
     {
       "key": "mariana",
       "full_name": "Mariana Silva Campos",
       "short_name": "Mariana",
-      "cpf": "98765432100",
       "birth_date": "1987-07-22",
       "role": "conjuge",
       "accounts": [
@@ -36,7 +35,8 @@
           "agency": null,
           "account_number": null
         }
-      ]
+      ],
+      "cpf_present": true
     }
   ],
   "titular_key": "david",

@@ -64,6 +64,7 @@ def extract_one_informe(
     max_input_chars: int = 80_000,
     institution_hint: str | None = None,
     ano_referencia_hint: int | None = None,
+    members=None,
 ):
     """Extrai um informe via LLM e retorna (payload_dict, llm_run_summary) sem persistir."""
     from pipeline.llm.litellm_client import LLMService
@@ -96,6 +97,12 @@ def extract_one_informe(
     output: InformeAluguelExtract = result.output
     payload = output.model_dump(mode="json")
     payload["prompt_version"] = PROMPT_VERSION
+    # ADR-259 §2 (A20.l15): matching locador→membro fora do boundary LLM —
+    # regex sobre o texto do documento × CPFs do config (nunca no payload).
+    if members and not payload.get("membro_key"):
+        from pipeline.domain.services.informe_member_matcher import resolve_member_key_by_cpf
+
+        payload["membro_key"] = resolve_member_key_by_cpf(text, members)
     return payload, result
 
 
@@ -114,9 +121,20 @@ def _log_informe_telemetry(entry: dict[str, Any], result) -> None:
     )
 
 
-def _extract_and_persist(doc: Path, config: LLMConfig, store) -> dict[str, Any]:
+def _family_members_for_matching(ctx: WorkspaceContext):
+    """Membros (com CPF decriptado in-memory) para o matcher; [] sem config store."""
+    if ctx.config_store is None or not ctx.workspace_id:
+        return []
+    try:
+        fmc = ctx.config_store.get_family_members(ctx.workspace_id)
+    except Exception:
+        return []
+    return list(getattr(fmc, "members", None) or [])
+
+
+def _extract_and_persist(doc: Path, config: LLMConfig, store, members) -> dict[str, Any]:
     """Extrai 1 informe, persiste e loga telemetria — retorna entry de `processed`."""
-    payload, result = extract_one_informe(doc, config)
+    payload, result = extract_one_informe(doc, config, members=members)
     key = _artifact_key_for(doc)
     # Schema validation roda no hook pós-write de DBArtifactStore
     # (ADR-212 PR3 — SCHEMA_BY_STAGE['extract_informe_aluguel']).
@@ -129,7 +147,8 @@ def _extract_and_persist(doc: Path, config: LLMConfig, store) -> dict[str, Any]:
         # Flags de presença detectam drift de layout/extração de texto sem
         # logar o identificador em si (ADR-288 — PII fica fora dos logs).
         "imobiliaria_cnpj_present": payload.get("imobiliaria_cnpj") is not None,
-        "locador_cpf_present": payload.get("locador_cpf") is not None,
+        "locador_cpf_present": bool(payload.get("locador_cpf_present")),
+        "membro_key_resolved": payload.get("membro_key") is not None,
     }
     _log_informe_telemetry(entry, result)
     return entry
@@ -164,12 +183,13 @@ def run(ctx: WorkspaceContext) -> dict[str, Any]:
     )
 
     store = ctx.get_artifact_store()
+    members = _family_members_for_matching(ctx)
     processed: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
 
     for doc in docs:
         try:
-            processed.append(_extract_and_persist(doc, config, store))
+            processed.append(_extract_and_persist(doc, config, store, members))
         except Exception as exc:
             logger.error(
                 "extract_informe_aluguel failed for %s: %s", _redact_filename_pii(doc.name), exc

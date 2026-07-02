@@ -16,6 +16,6 @@
   "data_emissao": "2026-04-01",
   "confidence": 0.65,
   "needs_review": true,
-  "prompt_version": "crlv-v1.0.0",
+  "prompt_version": "1.0.0",
   "notas": "zero-km — sem FIPE code; needs_review por confidence baixo"
 }

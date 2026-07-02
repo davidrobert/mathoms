@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from datetime import date
 from decimal import Decimal
@@ -131,7 +132,7 @@ class TestSchemaSerialization:
             IRPFFullOutput.model_validate(d_bad)
 
     def test_prompt_version_constant(self):
-        assert PROMPT_VERSION.startswith("e16-")
+        assert re.fullmatch(r"\d+\.\d+\.\d+", PROMPT_VERSION)  # semver puro pós-A20.l12
 
     def test_contribuinte_endereco_optional_default_none(self):
         c = _build_contribuinte(ModeloDeclaracao.completo, 2024)
