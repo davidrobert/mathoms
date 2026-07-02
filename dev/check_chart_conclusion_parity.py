@@ -20,6 +20,12 @@ Escopo pragmático (regex, sem parser TS completo):
      não-triviais que NÃO tem builder deve estar marcado `# fallback-only`
      na linha da key — senão dá falsa impressão de interpolação ativa.
   3. Chart marcado `# fallback-only` não pode estar em BUILDERS (contradição).
+  4. Todo id literal passado a `deriveChartConclusion(...)`/`getConclusion(...)`
+     em frontend/src/components/report/sections/*.tsx existe em
+     BUILDERS ∪ FALLBACKS — call site com id desconhecido renderiza o chart
+     sem conclusão em runtime, silenciosamente (audit-vault r4: S2 usava
+     `receita_fonte`/`despesas_categoria` em vez de
+     `receita_bar`/`despesas_doughnut`).
 
 Uso:
     python3 dev/check_chart_conclusion_parity.py
@@ -42,6 +48,7 @@ _YAML_PATH = _REPO_ROOT / "config" / "prompts" / "chart_conclusions.yaml"
 _TS_PATH = (
     _REPO_ROOT / "frontend" / "src" / "components" / "report" / "utils" / "conclusionUtils.ts"
 )
+_SECTIONS_DIR = _REPO_ROOT / "frontend" / "src" / "components" / "report" / "sections"
 
 # Placeholder {campo|fmt} — só conta como "interpolação ativa" se referenciar
 # um campo real. Vazio ou puramente decorativo não conta.
@@ -136,6 +143,32 @@ def _interpolation_without_builder(
     ]
 
 
+# Só ids literais — id via variável/expressão fica fora do escopo do gate
+# (não há caso hoje; se surgir, o autor promove o literal ou estende o regex).
+_CALL_SITE_RE = re.compile(r'\b(?:deriveChartConclusion|getConclusion)\(\s*"([^"]+)"')
+
+
+def _section_call_sites() -> dict[str, set[str]]:
+    """Ids literais por arquivo em sections/*.tsx (regra 4)."""
+    out: dict[str, set[str]] = {}
+    for tsx in sorted(_SECTIONS_DIR.glob("*.tsx")):
+        ids = set(_CALL_SITE_RE.findall(tsx.read_text(encoding="utf-8")))
+        if ids:
+            out[tsx.name] = ids
+    return out
+
+
+def _call_site_unknown_id(builders: set[str], fallbacks: set[str]) -> list[str]:
+    """Regra 4 — call site em sections/*.tsx só usa id de BUILDERS ∪ FALLBACKS."""
+    known = builders | fallbacks
+    return [
+        f"chart `{cid}` chamado em sections/{fname} não existe em BUILDERS nem "
+        f"FALLBACKS de {_TS_PATH.name} (conclusão renderiza vazia em runtime)"
+        for fname, ids in _section_call_sites().items()
+        for cid in sorted(ids - known)
+    ]
+
+
 def _fallback_only_with_builder(fallback_only: set[str], builders: set[str]) -> list[str]:
     """Regra 3 — fallback-only não pode ter builder (contradição)."""
     return [
@@ -154,6 +187,7 @@ def collect_violations() -> list[str]:
         *_ts_refs_unknown_chart(yaml_ids, builders, fallbacks),
         *_interpolation_without_builder(charts, builders, fallback_only),
         *_fallback_only_with_builder(fallback_only, builders),
+        *_call_site_unknown_id(builders, fallbacks),
     ]
 
 

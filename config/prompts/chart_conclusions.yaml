@@ -21,11 +21,15 @@
 #
 # PARIDADE YAML ↔ TS (ADR-122): o consumidor real é
 # frontend/src/components/report/utils/conclusionUtils.ts (BUILDERS + FALLBACKS).
-# Só 8 charts têm builder ativo (interpolam placeholders): patrimonio_doughnut,
+# 8 charts têm builder (interpolam placeholders): patrimonio_doughnut,
 # score_gauge, fluxo_mensal, receita_bar, despesas_doughnut, impostos_pj,
-# alocacao_atual, alocacao_alvo. Os demais caem sempre no FALLBACK — estão
+# alocacao_atual, alocacao_alvo. Desses, 2 não têm call site vivo via
+# deriveChartConclusion (audit-vault r4): score_gauge (S1 lê
+# narrativas.score_gauge.conclusion direto) e impostos_pj (S8 substituiu o
+# chart por CascataFiscalCard). Os demais caem sempre no FALLBACK — estão
 # marcados abaixo com "# fallback-only (Fase 6 — sem builder)". Paridade
-# enforçada por dev/check_chart_conclusion_parity.py (pre-commit).
+# enforçada por dev/check_chart_conclusion_parity.py (pre-commit), incluindo
+# a regra 4: id literal em sections/*.tsx ∈ BUILDERS ∪ FALLBACKS.
 # ==============================================================================
 
 version: "1.1"
