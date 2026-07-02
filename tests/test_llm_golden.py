@@ -47,7 +47,9 @@ class TestE1GoldenFile:
 
         assert "david" in fmj["membros"]
         assert "mariana" in fmj["membros"]
-        assert fmj["membros"]["david"]["cpf"] == "12345678901"
+        # ADR-259 §2 (A20.l15): artifact nunca carrega CPF cru — só o flag.
+        assert fmj["membros"]["david"]["cpf_present"] is True
+        assert "cpf" not in fmj["membros"]["david"]
         assert fmj["banco_membro"]["itau"] == "david"
         assert fmj["banco_membro"]["c6bank"] == "david"
         assert fmj["banco_membro"]["nubank"] == "mariana"
@@ -185,7 +187,7 @@ class TestE16Goldens:
 
     @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
     def test_prompt_version_pinned(self, fixtures, fixture_name):
-        assert fixtures[fixture_name]["prompt_version"] == "e16-v1.1.0"
+        assert fixtures[fixture_name]["prompt_version"] == "1.1.0"
 
     @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
     def test_reconcile_ir_pago_within_tolerance(self, fixtures, fixture_name):

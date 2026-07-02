@@ -86,3 +86,16 @@ Sources: [pluggy.ai/en/pricing](https://www.pluggy.ai/en/pricing), [belvo.com/pl
 1. Criar ADR-XXX "Adoção de Pluggy via adapter Protocol" documentando implementação concreta + supersede parcial desta.
 2. Re-rodar comparativo de pricing (URLs acima) na data de ativação.
 3. Confirmar coverage atual Itaú/Nubank/BTG/XP via Pluggy connectors-coverage doc.
+
+**Atualização de snapshot (2026-07-02 — não reabre o veredito):**
+
+Revalidação de mercado motivada por análise competitiva do [visorfinance.app](https://visorfinance.app/) (PFM nacional que usa Open Finance). A ordem **Pluggy > Belvo > Klavi permanece intacta**; três deltas registrados para o próximo gatilho:
+
+- **Piso de custo do MVP caiu.** Surgiram revendedores/wrappers per-conexão que rodam Pluggy por trás a ~R$ 19,90/conta/mês (Banco MCP) e Tecnospeed (~R$ 1,5k entrada + R$ 540/mês) — quebram o piso de R$ 2.500/mês do pacote fechado. **Não recomendados para dado real de cliente:** adicionam sub-processador extra na cadeia LGPD (CPF + valores) e ponto de continuidade a mais. Aceitáveis só para spike sandbox. Para F1 de produção, negociar faixa dev de baixo volume direto com Pluggy antes de aceitar wrapper.
+- **Belvo levantou +US$ 15M** (Quona/Kaszek/YC, rodada recente) — atenua o risco de continuidade do corte de time BR 2023-24, mas o foco segue pay-by-bank/Pix (irrelevante para ingestão read-only). Mantém-se como plan B.
+- **Klavi entrou na trilha regulada pura** (APIs BACEN) — reforça o veredito "só com cliente PJ/regulado pesado" (gatilho #4).
+- **Pluggy segue 1ª escolha** pela cobertura de corretoras (BTG/XP/Rico/Genial), crítica para o segmento HENRY patrimonial.
+
+Fontes (2026-07-02): [pluggy.ai/pricing](https://www.pluggy.ai/pricing), [belvo — rodada US$15M](https://belvo.com/blog/belvo-secures-15-million-in-new-round-of-funding-open-finance-latin-america/), [klavi — open finance regulado](https://startups.com.br/negocios/fintech/klavi-agora-tem-a-chave-do-open-finance-regulado/), [tabnews — custo OFB (Pluggy/Belvo/Tecnospeed)](https://www.tabnews.com.br/GuilhermeVieira/estou-desenvolvendo-um-app-de-financas-pessoais-e-nao-consigo-pagar-o-open-finance-pluggy-r2-5k-mes-belvo-r6k-mes-tecnospeed-r1-5k-de-entrada-r540).
+
+> **Escopo confirmado (não vira pivô):** OFB, quando ativar, é **canal de ingestão adicional** que alimenta o pipeline via `SourceAdapter` ([[ADR-278]]) emitindo o contrato E2 — não substitui parsers ([[ADR-090]]/anti-pattern acima) nem transforma o produto em dashboard contínuo. O reframe de posicionamento ("não depende de OFB" → "OFB + profundidade que o OFB não vê: IRPF, holding, exterior") é matéria de `PRODUCT.md`/GTM, fora do escopo desta ADR.

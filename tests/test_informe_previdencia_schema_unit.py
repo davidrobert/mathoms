@@ -46,7 +46,7 @@ def _build_base(**overrides) -> InformeRendimentosBase:
         "titular_cpf_masked": "***.456.789-**",
         "confidence": 0.92,
         "source_artifact_id": "art_abc123",
-        "prompt_version": "informe-prev-v1.0.0",
+        "prompt_version": "1.0.0",
         "previdencia": _build_payload(),
     }
     base.update(overrides)
@@ -255,7 +255,7 @@ def test_base_lenient_top_level():
         fonte_pagadora_cnpj="16404287000167",
         fonte_pagadora_nome="BrasilPrev",
         confidence=0.9,
-        prompt_version="informe-prev-v1.0.0",
+        prompt_version="1.0.0",
         previdencia=_build_payload(),
         campo_futuro="ok",  # não rejeita
     )

@@ -1069,7 +1069,7 @@ def _e3_run_reconciliation(adapter, store, canon, pipeline_run_id: str | None = 
 
     return adapter.reconcile_via_store(
         store,
-        output_stage="E3",
+        output_stage="reconcile_transactions",
         output_key_fn=output_key_fn,
         serialize_fn=serialize_fn,
         pipeline_run_id=pipeline_run_id,
@@ -1083,7 +1083,7 @@ def _e3_validate_outputs(store, ctx) -> List[str]:
     ``DBArtifactStore.write`` (ADR-212 PR3a — universal por stage).
     """
     written_filenames: List[str] = []
-    for key in store.list_keys("E3"):
+    for key in store.list_keys("reconcile_transactions"):
         written_filenames.append(f"{key}-3_reconciled.json")
     return written_filenames
 

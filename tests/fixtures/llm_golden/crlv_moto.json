@@ -16,6 +16,6 @@
   "data_emissao": "2026-03-15",
   "confidence": 0.96,
   "needs_review": false,
-  "prompt_version": "crlv-v1.0.0",
+  "prompt_version": "1.0.0",
   "notas": null
 }

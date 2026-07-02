@@ -715,9 +715,9 @@ def main_with_store(ctx) -> dict:
 
     # 1. Carrega baseline — tenta E1.5c (re-run / já consolidado) e depois
     #    E1.5 bruto. Ambos ficam em E2_extracts/ (convenção aceita — ver CLAUDE.md).
-    baseline = store.read("E1.5c", "baseline_patrimonial")
+    baseline = store.read("consolidate_baseline", "baseline_patrimonial")
     if baseline is None:
-        baseline = store.read("E1.5", "baseline_patrimonial")
+        baseline = store.read("extract_baseline", "baseline_patrimonial")
 
     if baseline is None:
         return {
@@ -829,9 +829,9 @@ def main_with_store(ctx) -> dict:
     if ctx.workspace_id is not None:
         _apply_informe_pf_merge(consolidated, workspace_id=ctx.workspace_id)
 
-    # 5. Persiste via store (write-back no artefato E1.5c).
-    store.write("E1.5c", "baseline_patrimonial", consolidated)
-    print("\n  [OK] Baseline consolidado e salvo via ArtifactStore (stage=E1.5c)")
+    # 5. Persiste via store (write-back no artefato consolidado).
+    store.write("consolidate_baseline", "baseline_patrimonial", consolidated)
+    print("\n  [OK] Baseline consolidado e salvo via ArtifactStore (stage=consolidate_baseline)")
     print("=" * 60)
 
     return {

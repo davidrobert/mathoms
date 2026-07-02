@@ -265,3 +265,94 @@ def test_fiscal_analyzer_eh_alias_de_irpf_analyzer():
     from pipeline.domain.services.irpf_analyzer import FiscalAnalyzer, IRPFAnalyzer
 
     assert FiscalAnalyzer is IRPFAnalyzer
+
+
+# ─────────────────────── Proventos summaries (A17 L4) ────────────────────────
+
+
+def _make_informe_proventos(*, ano: int = 2024, proventos=None, posicao=None) -> dict:
+    return {
+        "tipo_informe": "proventos_acoes",
+        "ano_base": ano,
+        "proventos": {
+            "cnpj_emissor": "02332886000104",
+            "nome_emissor": "XP Investimentos CCTVM S.A.",
+            "proventos": proventos or [],
+            "posicao_31_12": posicao or [],
+        },
+    }
+
+
+def _evento(ticker: str, tipo: str, valor: str, ir: str = "0") -> dict:
+    return {
+        "ticker": ticker,
+        "cnpj_pagador": "02332886000104",
+        "tipo": tipo,
+        "valor_brl": valor,
+        "data_pagamento": "2024-06-15",
+        "ir_retido_brl": ir,
+    }
+
+
+def test_proventos_agrega_por_ticker_e_ano():
+    informe = _make_informe_proventos(
+        proventos=[
+            _evento("WEGE3", "dividendo", "100.00"),
+            _evento("WEGE3", "jcp", "50.00", ir="7.50"),
+            _evento("MXRF11", "rend_fii", "30.00"),
+        ]
+    )
+    summaries = FiscalSource.from_informes([informe]).proventos_summaries()
+    by_ticker = {s.ticker: s for s in summaries}
+    assert by_ticker["WEGE3"].total_proventos_brl == Decimal("150.00")
+    assert by_ticker["WEGE3"].ir_retido_brl == Decimal("7.50")
+    assert by_ticker["MXRF11"].total_proventos_brl == Decimal("30.00")
+    assert by_ticker["WEGE3"].ano_base == 2024
+
+
+def test_proventos_bonificacao_nao_vira_renda():
+    """Bonificação é ajuste de custo médio, não fluxo (critério de aceite A17.L4)."""
+    informe = _make_informe_proventos(
+        proventos=[
+            _evento("ITSA4", "dividendo", "80.00"),
+            _evento("ITSA4", "bonificacao", "500.00"),
+        ]
+    )
+    (s,) = FiscalSource.from_informes([informe]).proventos_summaries()
+    assert s.total_proventos_brl == Decimal("80.00")
+
+
+def test_proventos_yield_on_cost_com_posicao_31_12():
+    """quantidade × custo_medio → yield-on-cost 2 casas (Perini viver de renda)."""
+    informe = _make_informe_proventos(
+        proventos=[_evento("ITSA4", "dividendo", "60.00")],
+        posicao=[{"ticker": "ITSA4", "quantidade": "100", "custo_medio_brl": "10.00"}],
+    )
+    (s,) = FiscalSource.from_informes([informe]).proventos_summaries()
+    assert s.custo_total_brl == Decimal("1000.00")
+    assert s.yield_on_cost_pct == Decimal("6.00")
+
+
+def test_proventos_sem_custo_medio_yoc_none():
+    informe = _make_informe_proventos(
+        proventos=[_evento("PETR4", "dividendo", "10.00")],
+        posicao=[{"ticker": "PETR4", "quantidade": "50", "custo_medio_brl": None}],
+    )
+    (s,) = FiscalSource.from_informes([informe]).proventos_summaries()
+    assert s.custo_total_brl is None
+    assert s.yield_on_cost_pct is None
+
+
+def test_proventos_ticker_so_custodia_aparece_sem_renda():
+    informe = _make_informe_proventos(
+        posicao=[{"ticker": "BOVA11", "quantidade": "10", "custo_medio_brl": "120.00"}]
+    )
+    (s,) = FiscalSource.from_informes([informe]).proventos_summaries()
+    assert s.ticker == "BOVA11"
+    assert s.total_proventos_brl == Decimal("0")
+    assert s.yield_on_cost_pct == Decimal("0.00")
+
+
+def test_proventos_ignora_outros_tipos_de_informe():
+    informe = {"tipo_informe": "previdencia_privada", "ano_base": 2024, "previdencia": {}}
+    assert FiscalSource.from_informes([informe]).proventos_summaries() == []

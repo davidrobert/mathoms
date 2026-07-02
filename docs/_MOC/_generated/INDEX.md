@@ -858,6 +858,7 @@
 | TRACK-report-v2-t2-aportes | track | consumed | A11 | Track Report v2.4 — T2 Aportes seção real | `sprint/A11/tracks/report-v2-t2-aportes.md` |
 | TRACK-s9-riscos-expansion | track | consumed | A11 | Track S9 Riscos e Proteção — Expansão completa (Protection aggregate + ProtectionBundle + 5 blocos UI) | `sprint/A11/tracks/s9-riscos-expansion.md` |
 | TRACK-sunset-disk-artifact | track | ready | A12 | Track Sunset DiskArtifactStore — 5 PRs sequenciais (ADR-212) | `sprint/A12/tracks/sunset-disk-artifact.md` |
+| TRACK-taxa-divida-numerica | track | ready | A26 | Track — Extração de taxa numérica de dívida (endurece RL-2 de best-effort para hard) | `sprint/A26/tracks/taxa-divida-numerica.md` |
 | TRACK-w5t01-a11y | track | consumed | W5 | Track W5-T01 — A11y onda: scope=col + role=progressbar + aria-label charts + reduced-motion | `sprint/W5/tracks/w5t01-a11y.md` |
 | TRACK-w5t03-monetary-value | track | consumed | W5 | Track W5-T03 — `<MonetaryValue size="kpi">` migration | `sprint/W5/tracks/w5t03-monetary-value.md` |
 | TRACK-w5t04-adr161-enrichment | track | consumed | W5 | Track W5-T04 — FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | `sprint/W5/tracks/w5t04-adr161-enrichment.md` |

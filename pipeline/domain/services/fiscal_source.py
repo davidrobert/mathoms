@@ -73,6 +73,88 @@ class InformeFinanceiroPJSummary:
 
 
 @dataclass(frozen=True)
+class InformeProventosSummary:
+    """Agregado por (ticker, ano_base) — Perini yield-on-cost (ADR-238 D1 §L4)."""
+
+    ticker: str
+    ano_base: int
+    total_proventos_brl: Decimal  # dividendo + jcp + rend_fii; bonificação excluída
+    ir_retido_brl: Decimal
+    custo_total_brl: Optional[
+        Decimal
+    ]  # posicao_31_12: quantidade × custo_medio (None sem custódia)
+    yield_on_cost_pct: Optional[Decimal]  # total/custo × 100, 2 casas; None sem custo
+
+
+_YOC_QUANTUM = Decimal("0.01")
+
+
+def _proventos_payloads(informes: tuple[dict, ...]) -> list[tuple[int, dict]]:
+    out = []
+    for informe in informes:
+        if informe.get("tipo_informe") != "proventos_acoes":
+            continue
+        payload = informe.get("proventos") or {}
+        out.append((int(informe.get("ano_base", 0)), payload))
+    return out
+
+
+def _add_eventos(acc: dict, ano: int, payload: dict) -> None:
+    """Acumula [total, ir_retido] por (ticker, ano). Bonificação nunca vira renda (§L4)."""
+    for p in payload.get("proventos") or []:
+        if p.get("tipo") == "bonificacao":
+            continue
+        entry = acc.setdefault((p.get("ticker", ""), ano), [Decimal("0"), Decimal("0")])
+        entry[0] += _to_decimal(p.get("valor_brl"))
+        entry[1] += _to_decimal(p.get("ir_retido_brl"))
+
+
+def _acc_proventos(payloads: list[tuple[int, dict]]) -> dict[tuple[str, int], list[Decimal]]:
+    acc: dict[tuple[str, int], list[Decimal]] = {}
+    for ano, payload in payloads:
+        _add_eventos(acc, ano, payload)
+    return acc
+
+
+def _add_custos(custos: dict, ano: int, payload: dict) -> None:
+    for pos in payload.get("posicao_31_12") or []:
+        custo_medio = pos.get("custo_medio_brl")
+        if custo_medio is None:
+            continue
+        key = (pos.get("ticker", ""), ano)
+        custo = _to_decimal(pos.get("quantidade")) * _to_decimal(custo_medio)
+        custos[key] = custos.get(key, Decimal("0")) + custo
+
+
+def _acc_custos(payloads: list[tuple[int, dict]]) -> dict[tuple[str, int], Decimal]:
+    custos: dict[tuple[str, int], Decimal] = {}
+    for ano, payload in payloads:
+        _add_custos(custos, ano, payload)
+    return custos
+
+
+def _yield_on_cost(total: Decimal, custo: Optional[Decimal] = None) -> Optional[Decimal]:
+    if custo is None or custo <= 0:
+        return None
+    return (total / custo * Decimal("100")).quantize(_YOC_QUANTUM)
+
+
+def _build_proventos_summary(
+    ticker: str, ano: int, acc: dict, custos: dict
+) -> "InformeProventosSummary":
+    total, ir = acc.get((ticker, ano), (Decimal("0"), Decimal("0")))
+    custo = custos.get((ticker, ano))
+    return InformeProventosSummary(
+        ticker=ticker,
+        ano_base=ano,
+        total_proventos_brl=total,
+        ir_retido_brl=ir,
+        custo_total_brl=custo,
+        yield_on_cost_pct=_yield_on_cost(total, custo),
+    )
+
+
+@dataclass(frozen=True)
 class FiscalDivergencia:
     """Divergência efêmera entre informe e declaração — gerada em E5, não persiste (LGPD)."""
 
@@ -130,6 +212,17 @@ class FiscalSource:
     def financeiro_pj_summaries(self) -> list[InformeFinanceiroPJSummary]:
         """Lista de informes financeiro_pj sumarizados (ADR-236 cascata: alimenta receita_pj quando E4 ausente)."""
         return [s for s in (_build_pj_summary(i) for i in self.informes) if s is not None]
+
+    def proventos_summaries(self) -> list[InformeProventosSummary]:
+        """Yield-on-cost por (ticker, ano_base) dos informes proventos_acoes (A17 L4)."""
+        payloads = _proventos_payloads(self.informes)
+        acc = _acc_proventos(payloads)
+        custos = _acc_custos(payloads)
+        # Ticker só-custódia (sem evento no ano) também aparece — custo sem renda.
+        return [
+            _build_proventos_summary(ticker, ano, acc, custos)
+            for ticker, ano in sorted(set(acc) | set(custos))
+        ]
 
     def previdencia_summaries(self) -> list[InformePrevidenciaSummary]:
         """Lista de informes previdência sumarizados (PGBL + VGBL — VGBL filtra no consumer)."""

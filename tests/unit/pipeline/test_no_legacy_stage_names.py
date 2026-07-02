@@ -1,16 +1,17 @@
 """Guardrail: identificadores E* legados não escapam das ilhas permitidas.
 
-Durante a transição (Fases 1-8), alguns arquivos **precisam** mencionar nomes
-legados (``STAGE_REGISTRY``, ``STAGE_RENAME_MAP``, ``_STAGE_TO_DIR``...). Este
-teste garante que NOVAS menções em código não previsto viram falha de CI
-antes de chegarem a produção.
+Durante a janela de compat F9.2 → F9.6 (ADR-093), alguns arquivos **precisam**
+mencionar nomes legados (``STAGE_RENAME_MAP``, ``SCHEMA_BY_STAGE``, labels de
+lineage edge congelados...). Este teste garante que NOVAS menções em código
+não previsto viram falha de CI antes de chegarem a produção.
 
-**Escopo atual**: SOFT-FAIL durante Fases 1-8 — falhas são reportadas mas o
-teste passa. O switch para HARD-FAIL acontece ao final da Fase 9.5 junto
-com a remoção de ``LEGACY_NAMES`` como strings no código de produção.
+**Matching (W6-T03/F9.5):** apenas *string literals* (``"E5"`` / ``'E5'``) —
+identificadores de stage em código. Menções em prosa (comentários, docstrings,
+mensagens de log tipo ``"E5: extracted..."``) são vocabulário de domínio
+histórico e não vazam para a coluna ``pipeline_artifacts.stage``.
 
-Configuração via env var:
-    ``MATHOMS_ENFORCE_STAGE_RENAME=1`` → HARD-FAIL (usado na Fase 9.5+).
+**Enforcement:** CI roda com ``MATHOMS_ENFORCE_STAGE_RENAME=1`` → HARD-FAIL
+(ligado em W6-T03/F9.5). Sem a env var o teste skipa (dev local rápido).
 """
 
 from __future__ import annotations
@@ -31,18 +32,33 @@ from pipeline.stage_spec import STAGE_RENAME_MAP  # noqa: E402
 
 LEGACY_NAMES = sorted(STAGE_RENAME_MAP.keys())
 
-# Ilhas permitidas: contratos de transição, fontes de verdade e testes do map
+# Ilhas permitidas: contratos de transição, fontes de verdade e testes do map.
+# W6-T03/F9.5 estreitou de diretórios amplos para arquivos específicos onde o
+# literal legado é vocabulário congelado (schema const, edge label, mapa dual).
 ALLOWED_PREFIXES = (
-    "pipeline/stage_spec.py",
-    "pipeline/artifact_store.py",
-    "pipeline/stages/",  # wrappers que ainda usam nomes legados
+    # -- fontes de verdade do rename (ADR-093)
+    "pipeline/stage_spec.py",  # STAGE_RENAME_MAP
+    "pipeline/artifact_store.py",  # _STAGE_TO_SUFFIX + stage_aliases
     "pipeline/orchestrator.py",  # LEGACY_FROM_ALIASES
+    "pipeline/stages/",  # labels de progresso/telemetria legados (cutover em F9.6)
+    # -- vocabulário congelado de payload/lineage (não é a coluna stage)
+    "pipeline/domain/services/e3_reconciler_adapter.py",  # payload["pipeline_stage"] (schema)
+    "pipeline/domain/services/e5_serialization.py",  # E5_OUTPUT_STAGE (label de edge)
+    "pipeline/domain/services/lineage_fields.py",  # E5_STAGE (label de edge)
+    "pipeline/domain/services/lineage_debug_tools.py",  # default de CLI de debug
+    "backend/app/services/parecer_citation_lineage.py",  # src_stage="E5" (label de edge)
+    # -- compat plumbing dual legacy+descritivo (janela F9.2 → F9.6)
+    "backend/app/services/db_artifact_store.py",  # SCHEMA_BY_STAGE + _WORKSPACE_SCOPED_STAGES
+    "backend/app/services/report_lineage.py",  # EXTRACTION_STAGES
+    "backend/app/services/family_member_pii_service.py",  # query dual E1
+    "backend/app/services/tributario_input_builder.py",  # tuplas duais E3/E4
+    # -- migrations, ops e superfícies de teste
     "backend/alembic/versions/",  # migrations (STAGE_RENAME, imports, comentários)
     "backend/app/scripts/",  # backfill usa strings legadas
+    "backend/scripts/",  # ops scripts varrem rows legados no DB
     "backend/tests/",  # testes de migration, DBArtifactStore, etc.
-    "tests/unit/pipeline/",  # testes do registry/map
     "tests/",  # fixtures golden podem conter strings legadas
-    "scripts/",  # scripts legados E2/E3/E5
+    "scripts/",  # camada CLI legada (renomeia em F9.4)
     "_scratch/",  # scripts de auditoria
     "config/",  # schemas JSON mencionam nomes de stage
     "docs/",  # ADRs históricos
@@ -77,10 +93,10 @@ def _find_occurrences() -> dict[str, tuple[tuple[str, int, str], ...]]:
     Retorna tuplas (em vez de listas) para fechamento imutável compatível
     com `lru_cache`.
     """
-    patterns = {
-        name: re.compile(rf"(?<![A-Za-z0-9_\-\.]){re.escape(name)}(?![A-Za-z0-9_])")
-        for name in LEGACY_NAMES
-    }
+    # Literal de string exato: "E5" / 'E5'. Prosa (comentário, docstring sem
+    # aspas, log "E5: ...") não conta — só identificador em código vaza para
+    # a coluna ``stage`` (W6-T03/F9.5).
+    patterns = {name: re.compile(rf"""["']{re.escape(name)}["']""") for name in LEGACY_NAMES}
     out: dict[str, list[tuple[str, int, str]]] = {}
     for p in _iter_python_files():
         rel = p.relative_to(REPO_ROOT).as_posix()

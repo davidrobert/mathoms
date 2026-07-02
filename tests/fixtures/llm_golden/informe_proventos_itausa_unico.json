@@ -1,0 +1,34 @@
+{
+  "ano_base": 2024,
+  "tipo_informe": "proventos_acoes",
+  "fonte_pagadora_cnpj": "61532644000115",
+  "fonte_pagadora_nome": "Itaúsa S.A.",
+  "titular_cpf_masked": "***.456.789-**",
+  "confidence": 0.9,
+  "proventos": {
+    "cnpj_emissor": "61532644000115",
+    "nome_emissor": "Itaúsa S.A.",
+    "proventos": [
+      {
+        "ticker": "ITSA4",
+        "cnpj_pagador": "61532644000115",
+        "cnpj_fonte": "61532644000115",
+        "tipo": "dividendo",
+        "valor_brl": "88.20",
+        "data_pagamento": "2024-04-01",
+        "ir_retido_brl": "0"
+      },
+      {
+        "ticker": "ITSA4",
+        "cnpj_pagador": "61532644000115",
+        "cnpj_fonte": "61532644000115",
+        "tipo": "jcp",
+        "valor_brl": "140.00",
+        "data_pagamento": "2024-12-20",
+        "ir_retido_brl": "21.00"
+      }
+    ],
+    "posicao_31_12": []
+  },
+  "prompt_version": "1.0.0"
+}

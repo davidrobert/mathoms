@@ -13,10 +13,11 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.services.crypto import read_artifact_content
+from pipeline.artifact_store import stage_aliases
 from pipeline.domain.types.snapshot_changelog import AnalyzeFinancesSnapshot
 
 # ADR-093: F9 mapeou E5 → analyze_finances; janela de compat ainda aberta.
-_ANALYZE_STAGES: tuple[str, ...] = ("analyze_finances", "E5")
+_ANALYZE_STAGES: tuple[str, ...] = stage_aliases("analyze_finances")
 _ANALYZE_ARTIFACT_KEY: str = "analise_financeira"
 
 # Regex para extrair YYYYMM do final de `periodo_dados` (formato livre).

@@ -90,6 +90,16 @@ def stage_suffix(stage: str) -> str:
     return _STAGE_TO_SUFFIX[stage]
 
 
+def stage_aliases(stage: str) -> tuple[str, ...]:
+    """Par legacy↔descritivo (ADR-093): até F9.6, reads resolvem por ambos os nomes."""
+    from pipeline.stage_spec import DESCRIPTIVE_TO_LEGACY, LEGACY_TO_DESCRIPTIVE
+
+    alt = LEGACY_TO_DESCRIPTIVE.get(stage) or DESCRIPTIVE_TO_LEGACY.get(stage)
+    if alt is None or alt == stage:
+        return (stage,)
+    return (stage, alt)
+
+
 # =============================================================================
 # Protocols (Interface Segregation — R9)
 # =============================================================================
@@ -170,13 +180,18 @@ class InMemoryArtifactStore:
         self._document_ids: dict[tuple[str, str], Optional[str]] = {}
 
     def read(self, stage: str, key: str) -> Optional[dict]:
-        return self._data.get((stage, key))
+        for alias in stage_aliases(stage):
+            data = self._data.get((alias, key))
+            if data is not None:
+                return data
+        return None
 
     def list_keys(self, stage: str) -> list[str]:
-        return sorted(k for s, k in self._data if s == stage)
+        aliases = stage_aliases(stage)
+        return sorted({k for s, k in self._data if s in aliases})
 
     def exists(self, stage: str, key: str) -> bool:
-        return (stage, key) in self._data
+        return any((alias, key) in self._data for alias in stage_aliases(stage))
 
     def write(
         self,
@@ -190,11 +205,13 @@ class InMemoryArtifactStore:
         self._document_ids[(stage, key)] = document_id
 
     def delete(self, stage: str, key: str) -> None:
-        self._data.pop((stage, key), None)
-        self._document_ids.pop((stage, key), None)
+        for alias in stage_aliases(stage):
+            self._data.pop((alias, key), None)
+            self._document_ids.pop((alias, key), None)
 
     def delete_stage(self, stage: str) -> int:
-        to_delete = [k for k in self._data if k[0] == stage]
+        aliases = stage_aliases(stage)
+        to_delete = [k for k in self._data if k[0] in aliases]
         for k in to_delete:
             del self._data[k]
             self._document_ids.pop(k, None)
@@ -214,4 +231,7 @@ class InMemoryArtifactStore:
 
     def document_id_for(self, stage: str, key: str) -> Optional[str]:
         """Expõe ``document_id`` armazenado — útil para assertions em testes."""
-        return self._document_ids.get((stage, key))
+        for alias in stage_aliases(stage):
+            if (alias, key) in self._document_ids:
+                return self._document_ids[(alias, key)]
+        return None

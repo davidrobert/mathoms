@@ -37,7 +37,7 @@ def _flatten_e4_payload(data: dict | None, tx_type: str) -> list[dict]:
 
 
 def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionItem]:
-    _stage = resolve_stage_name("E4")
+    _stage = resolve_stage_name("categorize_transactions")
     receitas_payload = read_latest_artifact(
         workspace_id, stage=_stage, key="receitas", tenant_root=tenant_root
     )

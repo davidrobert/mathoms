@@ -391,7 +391,7 @@ def _suggestion_row_blocks(row, *, now, window_days):
 
 
 def _find_latest_analysis_artifact(ws_id: str, run_id: str):
-    """Localiza o artefato E5 (``stage='E5'``, ``artifact_key='analise_financeira'``)
+    """Localiza o artefato E5 (stage legado ou descritivo, key ``analise_financeira``)
     para o run especificado. ADR-131: substitui ``_find_latest_analysis_json``
     (filesystem-based) — o relatório passa a referenciar o artifact por FK.
 
@@ -400,6 +400,7 @@ def _find_latest_analysis_artifact(ws_id: str, run_id: str):
     abertura para que o caller possa usar ``row.id``.
     """
     from backend.app.models.pipeline_artifact import PipelineArtifact
+    from pipeline.artifact_store import stage_aliases
     from pipeline.domain.services.e5_serialization import (
         E5_ARTIFACT_KEY,
         E5_OUTPUT_STAGE,
@@ -408,11 +409,12 @@ def _find_latest_analysis_artifact(ws_id: str, run_id: str):
     with SyncSessionLocal() as db:
         row = (
             db.query(PipelineArtifact)
-            .filter_by(
-                workspace_id=ws_id,
-                pipeline_run_id=run_id,
-                stage=E5_OUTPUT_STAGE,
-                artifact_key=E5_ARTIFACT_KEY,
+            .filter(
+                PipelineArtifact.workspace_id == ws_id,
+                PipelineArtifact.pipeline_run_id == run_id,
+                # legado E5 ↔ descritivo analyze_finances (ADR-093, janela F9)
+                PipelineArtifact.stage.in_(stage_aliases(E5_OUTPUT_STAGE)),
+                PipelineArtifact.artifact_key == E5_ARTIFACT_KEY,
             )
             .one_or_none()
         )
@@ -1221,12 +1223,13 @@ def _parecer_meta_for_run(db, ws_id: str, run_id: str) -> dict | None:
 
     from backend.app.models.pipeline_artifact import PipelineArtifact
     from backend.app.services.crypto import read_artifact_content
+    from pipeline.artifact_store import stage_aliases
 
     row = db.execute(
         select(PipelineArtifact.content_json).where(
             PipelineArtifact.workspace_id == ws_id,
             PipelineArtifact.pipeline_run_id == run_id,
-            PipelineArtifact.stage == "E6-parecer",
+            PipelineArtifact.stage.in_(stage_aliases("review_finances_holistic")),
             PipelineArtifact.artifact_key == "parecer_planejador",
         )
     ).first()
@@ -1308,6 +1311,16 @@ def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
         _materialize_parecer_citation_edges(ws_id, run_id)
     except Exception as exc:
         post_logger.warning("Failed to materialize parecer citation edges: %s", exc)
+
+    # ADR-259 §3 / A20.l15: CPF nunca sai do LLM — o valor é extraído do
+    # documento original e cifrado aqui (só preenche cpf_encrypted NULL).
+    try:
+        from backend.app.services.family_member_pii_service import backfill_member_cpfs
+
+        with SyncSessionLocal() as db:
+            backfill_member_cpfs(db, workspace_id=ws_id, tenant_root=tenant_root, dry_run=False)
+    except Exception as exc:
+        post_logger.warning("Failed to backfill member CPFs: %s", exc)
 
     # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
     # (se existirem no JSON de análise).

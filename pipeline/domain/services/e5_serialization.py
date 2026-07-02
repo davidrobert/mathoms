@@ -244,6 +244,9 @@ class E5OutputInputs:
     # ADR-279 (A24.l5) — bloco ``_lineage`` field-level (patrimônio no
     # skeleton). None quando o adapter não produziu (testes legados).
     lineage: dict[str, Any] | None = None
+    # A17 L4 (ADR-238 §L4) — yield-on-cost por (ticker, ano_base) dos
+    # informes proventos_acoes. None/empty omite a chave no output.
+    proventos_por_ativo: tuple | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -310,6 +313,12 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     if inputs.irpf_kpis is not None:
         output["irpf_kpis"] = inputs.irpf_kpis
 
+    # A17 L4: yield-on-cost por ativo (S3 "viver de renda" — Perini).
+    if inputs.proventos_por_ativo:
+        output["proventos_por_ativo"] = [
+            _proventos_summary_to_dict(s) for s in inputs.proventos_por_ativo
+        ]
+
     # A8.3: top-level ``passive_income`` para UI ler status + 6 fontes
     # mesmo nos casos de empty state (status ``sem_irpf``/``gerador_zero``).
     if inputs.passive_income is not None:
@@ -362,6 +371,20 @@ def _enrich_goals_with_passive_income(
     enriched["ano_referencia_irpf"] = passive_income.ano_referencia_irpf
     enriched["defasagem_meses"] = passive_income.defasagem_meses
     return enriched
+
+
+def _proventos_summary_to_dict(s) -> _GoalsPayload:
+    """Wire JSON number (ADR-090 §consequências): Decimal → float só na borda."""
+    return {
+        "ticker": s.ticker,
+        "ano_base": s.ano_base,
+        "total_proventos_brl": float(s.total_proventos_brl),
+        "ir_retido_brl": float(s.ir_retido_brl),
+        "custo_total_brl": float(s.custo_total_brl) if s.custo_total_brl is not None else None,
+        "yield_on_cost_pct": (
+            float(s.yield_on_cost_pct) if s.yield_on_cost_pct is not None else None
+        ),
+    }
 
 
 def _passive_income_to_dict(pi: PassiveIncomeResult) -> _GoalsPayload:

@@ -26,7 +26,7 @@ def _build_imovel(**overrides) -> InformeAluguelImovel:
     base = {
         "endereco": "Rua Tasso da Silveira, 61 - Vila Madalena, São Paulo - SP",
         "iptu_municipal": "123.456.789-0",
-        "locatario_cpf_cnpj": "12345678900",
+        "locatario_cnpj": "12345678000190",
         "aluguel_bruto_anual": "25200.00",
         "taxa_administracao_anual": "2520.00",
         "ir_retido_anual": "0",
@@ -46,7 +46,7 @@ def _build_extract(**overrides) -> InformeAluguelExtract:
         "imobiliaria_cnpj": "12345678000190",
         "imobiliaria_nome": "QuintoAndar Servicos Imobiliarios",
         "ano_referencia": 2024,
-        "locador_cpf": "98765432100",
+        "locador_cpf_present": True,
         "imoveis": [_build_imovel()],
         "confidence": 0.95,
     }
@@ -177,12 +177,12 @@ def test_extract_aceita_payload_llm_com_numbers_regressao_prod_2026_05_18():
       "imobiliaria_cnpj": "12345678000190",
       "imobiliaria_nome": "QuintoAndar Servicos Imobiliarios",
       "ano_referencia": 2024,
-      "locador_cpf": "98765432100",
+      "locador_cpf_present": true,
       "imoveis": [
         {
           "endereco": "Rua Tasso da Silveira, 61 - Vila Madalena, SP",
           "iptu_municipal": "123.456.789-0",
-          "locatario_cpf_cnpj": "12345678900",
+          "locatario_cnpj": "12345678000190",
           "aluguel_bruto_anual": 7424.71,
           "taxa_administracao_anual": 742.47,
           "ir_retido_anual": 0,
@@ -235,20 +235,21 @@ def test_extract_cnpj_ilegivel_vira_none_regressao_prod_2026_06_11():
     assert ext.imobiliaria_cnpj is None
 
 
-def test_extract_normaliza_cpf_locador_com_mascara():
-    """CPF mascarado tinha o mesmo bug latente do CNPJ — normalização ADR-288."""
-    ext = _build_extract(locador_cpf="000.000.000-00")  # placeholder LGPD-safe
-    assert ext.locador_cpf == "00000000000"
+def test_extract_locador_cpf_present_flag_only():
+    """ADR-259 §2 (A20.l15): o VALOR do CPF nunca entra no schema — só o flag."""
+    ext = _build_extract()
+    assert ext.locador_cpf_present is True
+    assert not hasattr(ext, "locador_cpf")
 
 
-def test_extract_cpf_locador_ilegivel_vira_none():
-    ext = _build_extract(locador_cpf="<UNKNOWN>")
-    assert ext.locador_cpf is None
+def test_imovel_normaliza_locatario_cnpj_com_mascara():
+    imovel = _build_imovel(locatario_cnpj="12.345.678/0001-90")
+    assert imovel.locatario_cnpj == "12345678000190"
 
 
-def test_extract_aceita_locador_cpf_none():
-    ext = _build_extract(locador_cpf=None)
-    assert ext.locador_cpf is None
+def test_imovel_locatario_cnpj_ilegivel_vira_none():
+    imovel = _build_imovel(locatario_cnpj="<UNKNOWN>")
+    assert imovel.locatario_cnpj is None
 
 
 def test_extract_rejeita_ano_fora_da_faixa():
@@ -283,7 +284,8 @@ def test_extract_aceita_multiplos_imoveis():
 def test_extract_prompt_version_default_e_versionado():
     ext = _build_extract()
     assert ext.prompt_version == PROMPT_VERSION
-    assert PROMPT_VERSION.startswith("informe-aluguel-v")
+    # Semver puro pós-A20.l15 (errata ADR-233 §Migration).
+    assert re.fullmatch(r"\d+\.\d+\.\d+", PROMPT_VERSION)
 
 
 def test_extract_serializa_para_json_com_decimais_string():

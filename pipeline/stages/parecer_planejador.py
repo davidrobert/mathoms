@@ -60,11 +60,8 @@ def _resolve_api_key(ctx: "WorkspaceContext") -> str | None:
 
 
 def _read_e5_artifact(store) -> dict | None:
-    """Lê E5 com fallback de nome legado → descritivo."""
-    e5 = store.read("E5", "analise_financeira")
-    if e5 is None:
-        e5 = store.read("analyze_finances", "analise_financeira")
-    return e5
+    """Lê E5 — stores resolvem legado↔descritivo via stage_aliases (ADR-093)."""
+    return store.read("analyze_finances", "analise_financeira")
 
 
 def _build_artifact_json(result) -> dict:

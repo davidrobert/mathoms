@@ -234,11 +234,6 @@ _E1_RULES: dict[str, tuple[Severity, str, dict[str, Any]]] = {
         "$.members[].role",
         {"section": "members", "section_label": "Membros da família", "field": "role"},
     ),
-    "e1.member.invalid_cpf": (
-        "warning",
-        "$.members[].cpf",
-        {"section": "members", "section_label": "Membros da família", "field": "cpf"},
-    ),
     "e1.member.invalid_birth_date": (
         "warning",
         "$.members[].birth_date",
@@ -327,13 +322,8 @@ def _validate_e1_member_attrs(m: Any, r: ValidationResult) -> None:
             member_key=m.key,
             role=m.role,
         )
-    if m.cpf and (len(m.cpf) != 11 or not m.cpf.isdigit()):
-        _emit_e1(
-            r,
-            "e1.member.invalid_cpf",
-            f"E1: member '{m.key}' CPF should be 11 digits, got '{m.cpf}'",
-            member_key=m.key,
-        )
+    # ADR-259 §2 (A20.l15): schema não carrega mais o valor do CPF — o LLM
+    # emite só cpf_present; validação de formato acontece no adapter backend.
     if m.birth_date and not DATE_RE.match(m.birth_date):
         _emit_e1(
             r,

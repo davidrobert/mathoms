@@ -80,6 +80,7 @@ from pipeline.domain.services.financial_score_calculator import (
     FinancialScoreCalculator,
     FinancialScoreConfig,
 )
+from pipeline.domain.services.fiscal_source import FiscalSource, InformeProventosSummary
 from pipeline.domain.services.fluxo_caixa_enricher import (
     FluxoCaixaEnriched,
     FluxoCaixaEnricher,
@@ -232,6 +233,10 @@ class E5AnalysisResult:
     # reserva + despesa total + total investido), anexado ao output em
     # ``e5_serialization.build_e5_output``.
     lineage: dict[str, Any] | None = None
+    # A17 L4 (ADR-238 §L4): yield-on-cost por (ticker, ano_base) dos informes
+    # proventos_acoes lidos de ``extract_informes_anuais``. None quando o
+    # workspace não tem informes de proventos.
+    proventos_por_ativo: tuple[InformeProventosSummary, ...] | None = None
 
 
 # =============================================================================
@@ -491,11 +496,11 @@ class E5AnalyzerAdapter:
         ``FinancialScoreCalculator``) — zero placeholders.
         """
         # 1. Inputs do E4.
-        receitas = store.read("E4", _E4_RECEITAS_KEY) or {}
-        despesas = store.read("E4", _E4_DESPESAS_KEY) or {}
-        fluxo_mensal = store.read("E4", _E4_FLUXO_KEY) or {}
-        patrimonio_raw = store.read("E4", _E4_PATRIMONIO_KEY) or {}
-        investimentos_raw = store.read("E4", _E4_INVESTIMENTOS_KEY) or {}
+        receitas = store.read("categorize_transactions", _E4_RECEITAS_KEY) or {}
+        despesas = store.read("categorize_transactions", _E4_DESPESAS_KEY) or {}
+        fluxo_mensal = store.read("categorize_transactions", _E4_FLUXO_KEY) or {}
+        patrimonio_raw = store.read("categorize_transactions", _E4_PATRIMONIO_KEY) or {}
+        investimentos_raw = store.read("categorize_transactions", _E4_INVESTIMENTOS_KEY) or {}
 
         # 2. Resolve membros do baseline.
         members = self._member_resolver.resolve(patrimonio_raw)
@@ -692,6 +697,7 @@ class E5AnalyzerAdapter:
             pontos_urgentes=tuple(pontos_urgentes),
             passive_income=passive_income,
             monte_carlo_if=monte_carlo_if,
+            proventos_por_ativo=_try_load_proventos_summaries(store),
             exposicao_cambial=exposicao_cambial,
             lineage=build_e5_lineage(
                 patrimonio_report=patrimonio_full,
@@ -801,11 +807,13 @@ class E5AnalyzerAdapter:
             else safe_float(self._taxas.get("cambio_eur_brl", 6.35), default=6.35)
         )
 
-        keys = list(store.list_keys("E3")) if hasattr(store, "list_keys") else []
+        keys = (
+            list(store.list_keys("reconcile_transactions")) if hasattr(store, "list_keys") else []
+        )
         latest_per_account: dict[tuple[str, str, str, str], tuple[str, dict]] = {}
 
         for key in keys:
-            data = store.read("E3", key) or {}
+            data = store.read("reconcile_transactions", key) or {}
             tipo_conta = (data.get("tipo_conta") or "").lower()
             banco = (data.get("banco") or "").lower()
             moeda = (data.get("moeda") or "BRL").upper()
@@ -975,6 +983,21 @@ def _read_irpf_payloads_with_keys(
     for key, reason in skipped:
         _logger.warning("irpf_payload_skipped", extra={"artifact_key": key, "reason": reason})
     return payloads, payload_keys
+
+
+def _try_load_proventos_summaries(
+    store: ArtifactStore,
+) -> tuple[InformeProventosSummary, ...] | None:
+    """Yield-on-cost por ativo dos informes proventos_acoes (A17 L4; graceful sem informes)."""
+    if not hasattr(store, "list_keys"):
+        return None
+    try:
+        keys = list(store.list_keys("extract_informes_anuais"))
+        informes = [p for p in (store.read("extract_informes_anuais", k) for k in keys) if p]
+        summaries = FiscalSource.from_informes(informes).proventos_summaries()
+    except Exception:
+        return None
+    return tuple(summaries) or None
 
 
 def _try_load_irpf_analyzer(store: ArtifactStore) -> IRPFAnalyzer | None:

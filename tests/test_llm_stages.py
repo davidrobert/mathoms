@@ -114,18 +114,23 @@ class TestValidateE1Output:
         assert not result.valid
         assert any("titular_key" in e for e in result.errors)
 
-    def test_invalid_cpf_warns(self):
+    def test_cpf_present_flag_does_not_warn(self):
+        """ADR-259 §2 (A20.l15): schema só carrega o flag — nada de validação de formato."""
         output = MembersExtractOutput(
             members=[
                 ExtractedMember(
-                    key="david", full_name="David", short_name="David", role="titular", cpf="123"
+                    key="david",
+                    full_name="David",
+                    short_name="David",
+                    role="titular",
+                    cpf_present=True,
                 ),
             ],
             confidence=0.8,
         )
         result = validate_e1_output(output)
         assert result.valid
-        assert any("CPF" in w for w in result.warnings)
+        assert not any("CPF" in w for w in result.warnings)
 
     def test_no_titular_role_warns(self):
         output = MembersExtractOutput(
@@ -349,7 +354,9 @@ class TestOutputConverters:
 
         assert "david" in result["membros"]
         assert result["membros"]["david"]["nome_completo"] == "David Ferreira Campos"
-        assert result["membros"]["david"]["cpf"] == "12345678901"
+        # ADR-259 §2 (A20.l15): artifact carrega só o flag — nunca o CPF cru.
+        assert result["membros"]["david"]["cpf_present"] is True
+        assert "cpf" not in result["membros"]["david"]
         assert result["banco_membro"]["itau"] == "david"
         assert result["titular"] == "david"
 

@@ -310,3 +310,79 @@ class TestBuildOutput:
         out = build_e5_output(_inputs())
         assert any("Score financeiro" in a for a in out["alertas"])
         assert any("N/D" in a for a in out["alertas"])
+
+
+# =============================================================================
+# proventos_por_ativo (A17 L4)
+# =============================================================================
+
+
+def _itsa4_summary():
+    from decimal import Decimal
+
+    from pipeline.domain.services.fiscal_source import InformeProventosSummary
+
+    return InformeProventosSummary(
+        ticker="ITSA4",
+        ano_base=2024,
+        total_proventos_brl=Decimal("60.00"),
+        ir_retido_brl=Decimal("0"),
+        custo_total_brl=Decimal("1000.00"),
+        yield_on_cost_pct=Decimal("6.00"),
+    )
+
+
+def _informe_proventos_wege3() -> dict:
+    evento = {
+        "ticker": "WEGE3",
+        "cnpj_pagador": "02332886000104",
+        "tipo": "dividendo",
+        "valor_brl": "100.00",
+        "data_pagamento": "2024-06-15",
+        "ir_retido_brl": "0",
+    }
+    payload = {
+        "cnpj_emissor": "02332886000104",
+        "nome_emissor": "XP",
+        "proventos": [evento],
+        "posicao_31_12": [],
+    }
+    return {"tipo_informe": "proventos_acoes", "ano_base": 2024, "proventos": payload}
+
+
+class TestProventosPorAtivo:
+    def test_output_emite_proventos_por_ativo_como_float(self):
+        output = build_e5_output(_inputs(proventos_por_ativo=(_itsa4_summary(),)))
+        (row,) = output["proventos_por_ativo"]
+        assert row == {
+            "ticker": "ITSA4",
+            "ano_base": 2024,
+            "total_proventos_brl": 60.0,
+            "ir_retido_brl": 0.0,
+            "custo_total_brl": 1000.0,
+            "yield_on_cost_pct": 6.0,
+        }
+
+    def test_output_omite_chave_sem_informes(self):
+        output = build_e5_output(_inputs())
+        assert "proventos_por_ativo" not in output
+
+    def test_loader_le_informes_do_store(self):
+        from pipeline.artifact_store import InMemoryArtifactStore
+        from pipeline.domain.services.e5_analyzer_adapter import (
+            _try_load_proventos_summaries,
+        )
+
+        store = InMemoryArtifactStore().seed(
+            "extract_informes_anuais", "informe_xp_2024", _informe_proventos_wege3()
+        )
+        (summary,) = _try_load_proventos_summaries(store)
+        assert summary.ticker == "WEGE3"
+
+    def test_loader_none_sem_informes(self):
+        from pipeline.artifact_store import InMemoryArtifactStore
+        from pipeline.domain.services.e5_analyzer_adapter import (
+            _try_load_proventos_summaries,
+        )
+
+        assert _try_load_proventos_summaries(InMemoryArtifactStore()) is None

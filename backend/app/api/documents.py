@@ -65,8 +65,10 @@ from backend.app.services.document_retry_service import (
 )
 from backend.app.services.document_upload_service import (
     UploadBatchError,
+    build_upload_audit_event,
     upload_document_batch,
 )
+from backend.app.services.rate_limit import rate_limited, workspace_key
 from backend.app.services.storage import StorageService
 
 router = APIRouter(
@@ -76,9 +78,7 @@ router = APIRouter(
 _storage = StorageService()
 
 
-def _get_document_repo(
-    db: AsyncSession = Depends(get_db),
-) -> DocumentRepository:
+def _get_document_repo(db: AsyncSession = Depends(get_db)) -> DocumentRepository:
     """FastAPI dependency: DocumentRepository bound à sessão do request."""
     return DocumentRepository(db)
 
@@ -87,7 +87,11 @@ def _get_document_repo(
     "/upload",
     response_model=DocumentUploadResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_write_role)],
+    dependencies=[
+        Depends(require_write_role),
+        # W4-T04: upload dispara storage + classify (LLM fallback) — caro.
+        rate_limited("upload", key=workspace_key),
+    ],
 )
 async def upload_documents(
     request: Request,
@@ -97,11 +101,7 @@ async def upload_documents(
     db: AsyncSession = Depends(get_db),
     repo: DocumentRepository = Depends(_get_document_repo),
 ) -> DocumentUploadResponse:
-    """Upload N documentos. Composite (storage + classify + fuzzy dedup + savepoint).
-
-    Audit registrado por doc com ``stored_path`` não-nulo (ignora falhas
-    puras de validação para não poluir o log).
-    """
+    """Upload N documentos (storage + classify + fuzzy dedup + savepoint); audit só para doc com ``stored_path`` não-nulo (falha pura de validação não polui o log)."""
     try:
         result = await upload_document_batch(
             workspace.id, files, db=db, repo=repo, storage=_storage
@@ -113,24 +113,7 @@ async def upload_documents(
     for doc in result.created:
         if doc.stored_path:
             await dispatch_sync(
-                AuditLogEvent(
-                    aggregate_id=doc.id,
-                    aggregate_type="document",
-                    workspace_id=workspace.id,
-                    action=AuditAction.document_upload.value,
-                    resource_type="document",
-                    resource_id=doc.id,
-                    actor_user_id=current_user.id,
-                    ip_address=ip,
-                    user_agent=ua,
-                    details={
-                        "filename": doc.original_name,
-                        "size_bytes": doc.file_size_bytes,
-                        "content_hash": doc.content_hash,
-                        "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
-                    },
-                ),
-                {"db": db},
+                build_upload_audit_event(doc, workspace.id, current_user.id, ip, ua), {"db": db}
             )
 
     await db.commit()

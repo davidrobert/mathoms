@@ -117,6 +117,7 @@ class LLMBudgetService:
             cost_known=result.cost_known,
             duration_ms=result.duration_ms,
             pipeline_run_id=self._pipeline_run_id,
+            **_quality_fields(result),
         )
 
     # ------------------------------------------------------------------
@@ -211,3 +212,13 @@ def _get_redis_safe() -> Any:
         return _get_redis()
     except Exception:
         return None
+
+
+def _quality_fields(result) -> dict:
+    """ADR-260 (A20.l12): confidence/needs_review quando o output declara; demais NULL."""
+    output = getattr(result, "output", None)
+    confidence = getattr(output, "confidence", None)
+    return {
+        "confidence": float(confidence) if confidence is not None else None,
+        "needs_review": bool(getattr(output, "needs_review", False)),
+    }

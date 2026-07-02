@@ -29,6 +29,7 @@ from pipeline.artifact_store import (  # noqa: E402
     ArtifactStore,
     InMemoryArtifactStore,
     ReadableArtifactStore,
+    stage_aliases,
     stage_suffix,
 )
 from pipeline.stage_spec import STAGE_RENAME_MAP  # noqa: E402
@@ -181,3 +182,35 @@ class TestStageMappings:
         assert _STAGE_TO_SUFFIX["E7"] == "-7_crossval.json"
         assert _STAGE_TO_SUFFIX["E7-crossval"] == "-7_crossval.json"
         assert _STAGE_TO_SUFFIX["validate_cross"] == "-7_crossval.json"
+
+
+# =============================================================================
+# stage_aliases — reads cross-alias (ADR-093, janela F9.2 → F9.6)
+# =============================================================================
+
+
+class TestStageAliases:
+    def test_par_legado_descritivo(self):
+        assert stage_aliases("E5") == ("E5", "analyze_finances")
+        assert stage_aliases("analyze_finances") == ("analyze_finances", "E5")
+
+    def test_stage_sem_rename_retorna_singleton(self):
+        assert stage_aliases("E1.5a") == ("E1.5a",)
+        assert stage_aliases("stage_inexistente") == ("stage_inexistente",)
+
+    def test_read_descritivo_encontra_row_legada(self):
+        """Run antigo gravou "E4"; código F9.2+ lê "categorize_transactions"."""
+        store = InMemoryArtifactStore().seed("E4", "despesas", {"total": 1})
+        assert store.read("categorize_transactions", "despesas") == {"total": 1}
+        assert store.exists("categorize_transactions", "despesas")
+        assert store.list_keys("categorize_transactions") == ["despesas"]
+
+    def test_read_legado_encontra_row_descritiva(self):
+        """Compat reverso: consumidor legado lê row gravada com nome novo."""
+        store = InMemoryArtifactStore().seed("analyze_finances", "analise_financeira", {"ok": True})
+        assert store.read("E5", "analise_financeira") == {"ok": True}
+
+    def test_delete_stage_remove_ambas_as_formas(self):
+        store = InMemoryArtifactStore().seed("E3", "a", {}).seed("reconcile_transactions", "b", {})
+        assert store.delete_stage("reconcile_transactions") == 2
+        assert store.list_keys("E3") == []

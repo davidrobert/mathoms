@@ -21,7 +21,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | moc | 20 |
 | plan | 18 |
 | runbook | 1 |
-| track | 115 |
+| track | 116 |
 
 ## Por tipo e status
 
@@ -48,7 +48,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | plan | paused | 2 |
 | runbook | ativo | 1 |
 | track | consumed | 81 |
-| track | ready | 34 |
+| track | ready | 35 |
 
 ## Sprints
 

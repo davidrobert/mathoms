@@ -1,0 +1,27 @@
+{
+  "imobiliaria_cnpj": "67890123000145",
+  "imobiliaria_nome": "Apto Administradora",
+  "ano_referencia": 2024,
+  "locador_cpf_present": true,
+  "membro_key": null,
+  "imoveis": [
+    {
+      "endereco": "Al. dos Anapurus, 1300 ap 92 - Moema, Sao Paulo - SP",
+      "iptu_municipal": "045.678.0123-1",
+      "locatario_cnpj": null,
+      "aluguel_bruto_anual": "48000.00",
+      "taxa_administracao_anual": "3840.00",
+      "ir_retido_anual": "0",
+      "iptu_anual_pago": "5200.00",
+      "condominio_anual_pago": "10800.00",
+      "aluguel_liquido_anual": "28160.00",
+      "meses_locado_no_periodo": 12,
+      "mes_inicial": null,
+      "indice_reajuste": "IGPM",
+      "data_ultimo_reajuste": "2024-05",
+      "notas": "IPTU e condominio pagos pela administradora e abatidos do repasse"
+    }
+  ],
+  "confidence": 0.9,
+  "notes": null
+}

@@ -18812,7 +18812,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/documents/upload": {
       "post": {
-        "description": "Upload N documentos. Composite (storage + classify + fuzzy dedup + savepoint).\n\nAudit registrado por doc com ``stored_path`` n\u00e3o-nulo (ignora falhas\npuras de valida\u00e7\u00e3o para n\u00e3o poluir o log).",
+        "description": "Upload N documentos (storage + classify + fuzzy dedup + savepoint); audit s\u00f3 para doc com ``stored_path`` n\u00e3o-nulo (falha pura de valida\u00e7\u00e3o n\u00e3o polui o log).",
         "operationId": "upload_documents_api_v1_workspaces__workspace_id__documents_upload_post",
         "parameters": [
           {

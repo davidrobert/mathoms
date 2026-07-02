@@ -472,6 +472,17 @@ curl -X DELETE "$API/v1/workspaces/$WS/categorization/rules/<rule_id>" \
   se >70% dos preview com `requires_user_confirmation=true` confirmam
   em <2s, sinal-ruído errado — UI está pedindo confirmação demais.
 
+Os 3 critérios quantitativos são computados por
+[dev/dogfood_metrics_a12.py](../../dev/dogfood_metrics_a12.py) contra o
+workspace real (fim da janela de 7 dias):
+
+```bash
+.venv/bin/python3 dev/dogfood_metrics_a12.py --workspace <workspace_id> [--days 7] [--json]
+# Veredito: PASS | PARTIAL | FAIL (exit 0 só em PASS)
+```
+
+Entrevista qualitativa e tempo de dialog seguem manuais.
+
 ### 9.4 Caveats (financial-planner gate triple)
 
 - **PIX cônjuge / split de conta** — detector de transferência interna
