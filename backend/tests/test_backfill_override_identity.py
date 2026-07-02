@@ -18,6 +18,7 @@ from backend.app.models.transaction_override import (
     TransactionOverride,
 )
 from backend.app.schemas.transactions import TransactionItem
+from backend.app.services.feature_flags_service import set_flag
 from backend.app.services.internal_ops.backfill_override_identity import (
     backfill_override_identity,
     resolve_collision,
@@ -67,6 +68,13 @@ def _patch_e4(monkeypatch, items: list[TransactionItem]) -> None:
     monkeypatch.setattr(mod, "load_transactions", lambda *a, **k: items)
 
 
+async def _precutover_workspace(db):
+    """Workspace na janela pré-cutover: backfill exige a flag v2 OFF (_preflight)."""
+    ws = await factories.make_workspace(db)
+    await set_flag(ws.id, "override_natural_key_v2_enabled", False, db=db)
+    return ws
+
+
 async def _fetch_all(db, ws_id: str) -> list[TransactionOverride]:
     stmt = select(TransactionOverride).where(TransactionOverride.workspace_id == ws_id)
     return list((await db.execute(stmt)).scalars().all())
@@ -105,7 +113,7 @@ def test_resolve_collision_recent_then_id_breaks_tie() -> None:
 
 @pytest.mark.asyncio
 async def test_backfill_reanchors_legacy_override(db, monkeypatch):
-    ws = await factories.make_workspace(db)
+    ws = await _precutover_workspace(db)
     item = _item("v1hash")
     db.add(_override(ws.id, "v1hash"))
     await db.commit()
@@ -122,7 +130,7 @@ async def test_backfill_reanchors_legacy_override(db, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_backfill_orphans_when_v1_absent(db, monkeypatch):
-    ws = await factories.make_workspace(db)
+    ws = await _precutover_workspace(db)
     db.add(_override(ws.id, "missing_v1"))
     await db.commit()
     _patch_e4(monkeypatch, [_item("other_v1")])
@@ -137,7 +145,7 @@ async def test_backfill_orphans_when_v1_absent(db, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_backfill_quarantines_ambiguous_v1(db, monkeypatch):
-    ws = await factories.make_workspace(db)
+    ws = await _precutover_workspace(db)
     db.add(_override(ws.id, "shared_v1"))
     await db.commit()
     # mesmo v1, tipo_conta divergente → 2 natural_keys v2 → 1-velho→N-novo (ambíguo)
@@ -159,7 +167,7 @@ async def test_backfill_quarantines_ambiguous_v1(db, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_backfill_collision_precedence(db, monkeypatch):
-    ws = await factories.make_workspace(db)
+    ws = await _precutover_workspace(db)
     # 2 v1 distintos (drift PIX) → mesmo v2; manual vence rule
     plain, suffixed = _item("v1a"), _item("v1b", descricao="PAGAMENTO LOJA — TRANSF ENVIADA PIX")
     db.add(_override(ws.id, "v1a", source=OVERRIDE_SOURCE_RULE))
@@ -180,7 +188,7 @@ async def test_backfill_collision_precedence(db, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_backfill_aborts_when_run_active(db, monkeypatch):
-    ws = await factories.make_workspace(db)
+    ws = await _precutover_workspace(db)
     db.add(_override(ws.id, "v1hash"))
     db.add(PipelineRun(id=str(uuid.uuid4()), workspace_id=ws.id, status=PipelineRunStatus.running))
     await db.commit()
@@ -196,7 +204,7 @@ async def test_backfill_aborts_when_run_active(db, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_backfill_preview_is_read_only(db, monkeypatch):
-    ws = await factories.make_workspace(db)
+    ws = await _precutover_workspace(db)
     db.add(_override(ws.id, "v1hash"))
     await db.commit()
     _patch_e4(monkeypatch, [_item("v1hash")])
@@ -211,7 +219,7 @@ async def test_backfill_preview_is_read_only(db, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_backfill_idempotent_rerun(db, monkeypatch):
-    ws = await factories.make_workspace(db)
+    ws = await _precutover_workspace(db)
     db.add(_override(ws.id, "v1hash"))
     await db.commit()
     _patch_e4(monkeypatch, [_item("v1hash")])
