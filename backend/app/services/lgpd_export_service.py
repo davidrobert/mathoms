@@ -1,13 +1,15 @@
 """LGPD data-export packing — empacota dados do titular em NDJSON tar.gz (Art. 18, V)."""
 
 # Inclui: User (sem hashed_password), Workspaces de membership, e — para
-# cada workspace — documents, reports, tasks, decisions, goals, notes,
-# suggestions, family_members, categories, pipeline_runs, notifications,
-# password_vaults (sem ciphertext), audit_logs, bank_accounts (via
-# FamilyMember), workspace_invitations (invited_by ou email). manifest.json
-# lista cada `.ndjson` (1 row JSON por linha) com {table, rows, size_bytes}.
-# Sync session (worker Celery). Tar.gz é gerado em tmp e movido atômico
-# para output_path para evitar arquivos parciais.
+# cada workspace — todas as tabelas com dado fornecido pelo titular ou
+# ação do titular (ver _WORKSPACE_TABLES e _CHILD_TABLES). Tabelas
+# derivadas/técnicas ficam fora via EXPORT_EXCLUDED_TABLES (allowlist com
+# rationale); a cobertura total do fecho de FK até `workspaces` é
+# enforçada por backend/tests/test_lgpd_export_coverage.py (A26.l10).
+# manifest.json lista cada `.ndjson` (1 row JSON por linha) com
+# {table, rows, size_bytes}. Sync session (worker Celery). Tar.gz é
+# gerado em tmp e movido atômico para output_path para evitar arquivos
+# parciais.
 
 from __future__ import annotations
 
@@ -30,24 +32,49 @@ from backend.app.core.config import settings
 from backend.app.models import (
     AuditLog,
     BankAccount,
+    CategorizationRule,
     Category,
+    CategoryKeyword,
     DataExportRequest,
+    DataSource,
+    Debt,
     Decision,
+    DecisionEvent,
     Document,
     FamilyMember,
     Goal,
+    InstitutionConfig,
     Notification,
     PasswordVault,
+    PipelineConfig,
     PipelineRun,
+    PropertyIdentity,
+    PropertyMarketValue,
+    Protection,
     Report,
+    ReportLayout,
+    ReportPublication,
+    Risk,
+    StageReview,
     Suggestion,
     Task,
+    TaskAttachment,
+    TaskSuggestion,
+    TransactionOverride,
     User,
+    Vehicle,
     Workspace,
+    WorkspaceAssetOverride,
+    WorkspaceCategoryOverride,
+    WorkspaceEconomicAssumptionOverride,
     WorkspaceInvitation,
+    WorkspaceIrpfSuggestionDismissal,
     WorkspaceMember,
+    WorkspaceMemoryConfirmation,
     WorkspaceNotes,
+    WorkspacePropertyOverride,
 )
+from backend.app.models.config_blob import TransferConfig
 
 logger = logging.getLogger(__name__)
 
@@ -110,23 +137,67 @@ _WORKSPACE_TABLES: tuple[tuple[str, type], ...] = (
     ("notifications", Notification),
     ("password_vaults", PasswordVault),
     ("audit_logs", AuditLog),
+    # A26.l10 — aggregates do titular ausentes do export original (Art.18).
+    ("debt", Debt),
+    ("property_identity", PropertyIdentity),
+    ("workspace_property_overrides", WorkspacePropertyOverride),
+    ("property_market_value", PropertyMarketValue),
+    ("vehicles", Vehicle),
+    ("protections", Protection),
+    ("risks", Risk),
+    ("transaction_overrides", TransactionOverride),
+    ("categorization_rules", CategorizationRule),
+    ("task_suggestions", TaskSuggestion),
+    ("task_attachments", TaskAttachment),
+    ("workspace_memory_confirmations", WorkspaceMemoryConfirmation),
+    ("workspace_irpf_suggestion_dismissals", WorkspaceIrpfSuggestionDismissal),
+    ("data_source", DataSource),
+    ("report_publications", ReportPublication),
+    ("pipeline_configs", PipelineConfig),
+    ("institution_configs", InstitutionConfig),
+    ("report_layouts", ReportLayout),
+    ("transfer_configs", TransferConfig),
+    ("workspace_asset_overrides", WorkspaceAssetOverride),
+    ("workspace_economic_assumptions_override", WorkspaceEconomicAssumptionOverride),
+    ("workspace_category_overrides", WorkspaceCategoryOverride),
 )
 
+# Tabelas sem workspace_id direto — escopo via join de 1 hop no pai.
+_CHILD_TABLES: tuple[tuple[str, type, type, Any], ...] = (
+    ("bank_accounts", BankAccount, FamilyMember, BankAccount.member_id == FamilyMember.id),
+    ("category_keywords", CategoryKeyword, Category, CategoryKeyword.category_id == Category.id),
+    ("decision_events", DecisionEvent, Decision, DecisionEvent.decision_id == Decision.id),
+    ("stage_reviews", StageReview, PipelineRun, StageReview.pipeline_run_id == PipelineRun.id),
+)
 
-def _bank_accounts_for_user(db: Session, workspace_ids: list[str]) -> list[BankAccount]:
-    """BankAccount não tem workspace_id direto — junção via FamilyMember."""
-    if not workspace_ids:
-        return []
-    rows = (
-        db.execute(
-            select(BankAccount)
-            .join(FamilyMember, BankAccount.member_id == FamilyMember.id)
-            .where(FamilyMember.workspace_id.in_(workspace_ids))
-        )
-        .scalars()
-        .all()
-    )
-    return list(rows)
+# Tabelas no fecho de FK até `workspaces` que NÃO entram no export, com
+# rationale (LGPD Art.18 pede portabilidade do dado fornecido pelo titular;
+# derivados e telemetria técnica ficam fora). Enforçado por
+# backend/tests/test_lgpd_export_coverage.py — entrada nova aqui exige
+# rationale de 1 linha.
+EXPORT_EXCLUDED_TABLES: dict[str, str] = {
+    "pipeline_artifacts": "derivado do pipeline sobre documentos já exportados",
+    "artifact_lineage_edge": "lineage técnico entre artefatos derivados (ADR-278)",
+    "pipeline_stage_logs": "log técnico de execução de stage",
+    "pipeline_run_costs": "telemetria de custo LLM por run",
+    "llm_call_log": "telemetria de chamadas LLM (tokens/custo/latência), sem conteúdo do titular",
+    "llm_configs": "config técnica de provider LLM",
+    "feature_flags": "toggle técnico de feature por workspace",
+    "review_reasons": "derivado do pipeline (motivos de needs_review re-deriváveis)",
+    "planner_review_metadata": "metadata técnica do parecer; conteúdo vive em pipeline_artifacts (derivado)",
+    "planner_field_requests": "derivado do parecer (campos solicitados pelo LLM)",
+}
+
+EXPORTED_TABLES: frozenset[str] = frozenset(
+    {
+        User.__tablename__,
+        Workspace.__tablename__,
+        WorkspaceInvitation.__tablename__,
+        DataExportRequest.__tablename__,
+    }
+    | {model.__tablename__ for _, model in _WORKSPACE_TABLES}
+    | {model.__tablename__ for _, model, _, _ in _CHILD_TABLES}
+)
 
 
 def _build_manifest(files: list[dict[str, Any]]) -> dict[str, Any]:
@@ -208,7 +279,10 @@ def _pack_all_tables(
     metadata.append(_pack_export_history(db, tar, user.id))
     for table_name, model in _WORKSPACE_TABLES:
         metadata.append(_pack_workspace_scoped(db, tar, table_name, model, workspace_ids))
-    metadata.append(_pack_bank_accounts(db, tar, workspace_ids))
+    for table_name, model, parent, onclause in _CHILD_TABLES:
+        metadata.append(
+            _pack_child_scoped(db, tar, table_name, model, parent, onclause, workspace_ids)
+        )
     return metadata
 
 
@@ -271,11 +345,25 @@ def _pack_workspace_scoped(
     return _add_ndjson(tar, name=f"{table_name}.ndjson", rows=payloads)
 
 
-def _pack_bank_accounts(
-    db: Session, tar: tarfile.TarFile, workspace_ids: list[str]
+def _pack_child_scoped(
+    db: Session,
+    tar: tarfile.TarFile,
+    table_name: str,
+    model: type,
+    parent: type,
+    onclause: Any,
+    workspace_ids: list[str],
 ) -> dict[str, Any]:
-    rows = _bank_accounts_for_user(db, workspace_ids)
-    return _add_ndjson(tar, name="bank_accounts.ndjson", rows=[_row_to_dict(r) for r in rows])
+    rows = (
+        db.execute(
+            select(model).join(parent, onclause).where(parent.workspace_id.in_(workspace_ids))
+        )
+        .scalars()
+        .all()
+        if workspace_ids
+        else []
+    )
+    return _add_ndjson(tar, name=f"{table_name}.ndjson", rows=[_row_to_dict(r) for r in rows])
 
 
 def _add_manifest(tar: tarfile.TarFile, files_metadata: list[dict[str, Any]]) -> None:
