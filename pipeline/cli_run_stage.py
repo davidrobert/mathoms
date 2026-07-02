@@ -12,6 +12,12 @@ stdout: somente o JSON do ``StageResult`` (5 campos). stderr: erros
 estruturados em JSON. Exit codes: 0 = sucesso, 1 = falha de stage,
 2 = erro de invocação/ambiente.
 
+Trace contínuo (A3.cli.otel): com ``TRACEPARENT`` no env, o span
+``pipeline.<stage>`` nasce filho do trace do chamador (W3C context
+propagation); com ``OTEL_EXPORTER_OTLP_ENDPOINT``, o provider do backend
+(ADR-110) é inicializado para exportar. Ambos best-effort — ausência ou
+falha de tracing nunca derruba a execução.
+
 Injeção de ``DBArtifactStore`` por-stage herda a mecânica de ADR-303 D1/D4
 (espelho de ``_open_artifact_session`` do Celery), com ``MATHOMS_DATABASE_URL``
 obrigatório no env (prefixo canônico do backend). Imports de ``backend.*``
@@ -81,6 +87,44 @@ def _fail(exit_code: int, kind: str, message: str, **extra: object) -> int:
     payload = {"error": kind, "message": message, **extra}
     print(json.dumps(payload, ensure_ascii=False), file=sys.stderr)
     return exit_code
+
+
+def _maybe_bootstrap_otel() -> None:
+    """Provider OTel do backend (ADR-110) quando o export OTLP está ligado."""
+    # Best-effort: trace nunca derruba a execução do stage; sem endpoint,
+    # spans fluem para o provider já configurado no processo (ou no-op).
+    if not os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "").strip():
+        return
+    try:
+        from backend.app.core.otel import setup_otel
+
+        setup_otel(service_name="mathoms-pipeline-cli")
+    except Exception:  # noqa: BLE001 — tracing é opcional por contrato (track F2)
+        pass
+
+
+def _attach_traceparent():
+    """Restaura o contexto W3C de ``TRACEPARENT`` — span do stage nasce filho."""
+    traceparent = os.environ.get("TRACEPARENT")
+    if not traceparent:
+        return None
+    try:
+        from opentelemetry import context as otel_context
+        from opentelemetry.trace.propagation.tracecontext import (
+            TraceContextTextMapPropagator,
+        )
+    except ImportError:
+        return None
+    extracted = TraceContextTextMapPropagator().extract({"traceparent": traceparent})
+    return otel_context.attach(extracted)
+
+
+def _detach_traceparent(token) -> None:
+    if token is None:
+        return
+    from opentelemetry import context as otel_context
+
+    otel_context.detach(token)
 
 
 def _resolve_stage(raw: str) -> str:
@@ -194,7 +238,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         stage = _resolve_stage(args.stage)
     except ValueError as exc:
         return _fail(EXIT_USAGE, "unknown_stage", str(exc))
+    _maybe_bootstrap_otel()
+    token = _attach_traceparent()
     try:
         return _execute_run_stage(stage, args)
     except CliEnvironmentError as exc:
         return _fail(EXIT_USAGE, "environment", str(exc), adr="ADR-303 D4")
+    finally:
+        _detach_traceparent(token)
