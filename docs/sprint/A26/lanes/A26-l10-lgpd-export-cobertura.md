@@ -3,9 +3,10 @@ id: A26.l10
 type: lane
 title: "LGPD export — cobertura total das tabelas com dados pessoais (Art.18)"
 sprint: A26
-status: planned
+status: shipped
 priority: P2
 branch_slug: lgpd-export-cobertura
+ship_pr: 732
 adrs:
   - "[[ADR-275]]"
 depends_on: []
@@ -13,7 +14,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a26
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/lgpd
   - area/backend
