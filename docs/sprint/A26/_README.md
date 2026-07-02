@@ -19,9 +19,11 @@ theme: "data-lineage"
 > Prompt de orquestração: [agent_prompts/orchestrator_a26_consolidacao.md](../../agent_prompts/orchestrator_a26_consolidacao.md).
 >
 > **[[A26.l1]] shipada (#654)** (fix de prompt do `evidencia_path`) — destravou a
-> métrica dos gates seguintes. O resíduo `value_mismatch` migrou para **[[A26.l8]]**
-> (`planned`, sem gate de tráfego; bloqueia o flip strict da [[A26.l2]]). As
-> demais (l2–l5) seguem `blocked` por **gates de volume de produção** (≥20 gerações de
+> métrica dos gates seguintes. O resíduo `value_mismatch` migrou para **[[A26.l8]]**,
+> **shipada (#666)** — enforcement per-item entregue; a pré-condição de **código** do
+> flip strict da [[A26.l2]] está cumprida, resta só o gate de tráfego. [[A26.l3]]
+> também **shipada (2026-07-01)** (gate cumprido). As demais (l2, l4, l5) seguem
+> `blocked` por **gates de volume de produção** (≥20 gerações de
 > parecer; ≥1 sprint com flags v2 a 100% + counter `dualread.v1_fallback` zerado **com
 > uso real exercitado**) — pré-launch, fecham por **tráfego/dogfood**, não por calendário.
 > Insumos para destravar: `ANTHROPIC_API_KEY` no ambiente + ~20 gerações de parecer +
@@ -51,12 +53,12 @@ lane destrutiva tem um **gate verificável**, não um prazo.
 |---|---|---|---|---|
 | [[A26.l1]] | `evidencia-prompt-catalogo` | A (sem gate) | ✅ shipped (#654) | — · ponto de entrada da sprint |
 | [[A26.l2]] | `evidencia-flip-strict` | B | blocked | gate redefinido (2026-06-19): segurança binária (0 errado publicado — ✅ via l8) + budget needs_review ≤15% sobre ≥20 ger |
-| [[A26.l3]] | `drop-dedup-v1-shim` | B (reversível) | blocked | dedup v2 100% + counter zerado ≥1 sprint |
+| [[A26.l3]] | `drop-dedup-v1-shim` | B (reversível) | ✅ shipped (2026-07-01) | gate cumprido: dedup v2 100% + counter zerado ≥1 sprint |
 | [[A26.l4]] | `override-v2-on-instrumentacao` | B (habilitador) | blocked | flip override flag→True + `v2_match_count` + query agendada `v1_fallback` |
 | [[A26.l5]] | `m2-override-drop` | B (IRREVERSÍVEL) | blocked | l4 + G1/G2/G3 + PITR + owner go/no-go |
 | [[A26.l6]] | `evidencia-coverage-kpi` | A (sem gate) | shipped (#660) | — · roda antes de l7 (baseline) |
 | [[A26.l7]] | `evidencia-catalog-listas` | A (sem gate) | shipped (#662) | l1 · recomendada antes do flip l2, não bloqueante |
-| [[A26.l8]] | `evidencia-value-mismatch` | A (sem gate) | planned | l1 · resíduo `value_mismatch` (eval 1.7.0: UB 49,9%); bloqueia l2 |
+| [[A26.l8]] | `evidencia-value-mismatch` | A (sem gate) | ✅ shipped (#666) | l1 · resíduo `value_mismatch` (eval 1.7.0: UB 49,9%); pré-condição de código da l2 ✅ |
 | [[A26.l9]] | `citacao-deterministica` | A (sem gate) | shipped (#687) | l1 · render valor da folha server-side (value_mismatch→0); **A27/Onda 6, Could, NÃO bloqueia l2** ([[ADR-296]]) |
 
 **Ordem de execução (risco crescente):** l1 → l2 (flip precisa do prompt corrigido);
@@ -101,8 +103,8 @@ citação como edge no grafo de lineage) é **A27 / Onda 6**, atrás de [[ADR-29
   "`needs_review` per-parecer <5%" misturava **segurança** com **UX** e era inatingível
   (eval 1.8.0: 22%, pois ~87% das falhas é `wrong_pairing` em itens severidade alta).
   Separado em: **(1) segurança (binário, bloqueia):** zero citação incorreta publicada —
-  **a garantir pelo enforcement per-item** ([[A26.l8]] `planned` / [[ADR-295]]: item
-  dropado ou `needs_review`, nunca número errado no output — landa quando l8 shipar); **(2) budget de UX
+  **garantido pelo enforcement per-item** ([[A26.l8]] `shipped` #666 / [[ADR-295]]: item
+  dropado ou `needs_review`, nunca número errado no output); **(2) budget de UX
   (orçamento, não bloqueia):** `needs_review` per-parecer **≤15%** sobre ≥20 ger reais,
   re-ancorável no 1º tráfego — exceder prioriza [[A26.l9]] (A27), não reabre o flip.
   Reabre a decisão "per-parecer <5%" do orchestrator §5 com evidência empírica (mesma

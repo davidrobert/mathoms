@@ -85,7 +85,7 @@ make dev-logs        # tail -f (use SVC=api para um só)
 make dev-down        # mata tudo (preserva .env e mathoms.db)
 ```
 
-Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login após `make dev-bootstrap`: `admin@mathoms.ai` / `admin123`.
+Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login após `make dev-bootstrap`: `admin@mathoms.ai` / `admin`.
 
 Detalhes dos targets, `dev-pull`, `dev-restart-worker`, `dev-reset-env` e fallback manual de 4 terminais: **[docs/reference/SETUP.md §4](docs/reference/SETUP.md)**. Migrations Alembic, Playwright/PDF, troubleshooting: idem.
 

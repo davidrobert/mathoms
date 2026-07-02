@@ -236,7 +236,7 @@ python seed_db.py
 ```
 
 Isso cria:
-- Usuário dev: `admin@mathoms.ai` / `admin123`
+- Usuário dev: `admin@mathoms.ai` / `admin`
 - Workspace default para esse usuário
 
 ### Migrations (Alembic)
@@ -336,7 +336,7 @@ já configura automaticamente.
 ## 5. Primeiro login
 
 1. Abrir http://localhost:3000
-2. Login: `admin@mathoms.ai` / `admin123`
+2. Login: `admin@mathoms.ai` / `admin`
 3. Navegar para **Documentos** → arrastar PDFs/XLSX/CSVs
 4. Navegar para **Pipeline** → clicar **Processar documentos**
 5. Aguardar conclusão (~3-15min dependendo da quantidade de docs e se LLM está habilitado)
