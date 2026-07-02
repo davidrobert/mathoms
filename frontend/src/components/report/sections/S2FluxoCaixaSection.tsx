@@ -77,8 +77,8 @@ export function S2FluxoCaixaSection({
       <div className="md:col-span-2">
         <FluxoMensalChart fluxo={fluxo} conclusion={getConclusion("fluxo_mensal")} />
       </div>
-      <ReceitaBarChart fluxo={fluxo} conclusion={getConclusion("receita_fonte")} />
-      <DespesasDoughnutChart fluxo={fluxo} conclusion={getConclusion("despesas_categoria")} />
+      <ReceitaBarChart fluxo={fluxo} conclusion={getConclusion("receita_bar")} />
+      <DespesasDoughnutChart fluxo={fluxo} conclusion={getConclusion("despesas_doughnut")} />
       <div className="md:col-span-2">
         <ReceitaDespesaMensalChart fluxo={fluxo} />
       </div>
