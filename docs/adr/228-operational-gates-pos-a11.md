@@ -19,6 +19,7 @@ aliases:
   - "A11 closure"
   - "code-complete closure"
   - "operational gates"
+size_lines: 174
 tags:
   - area/ops
   - area/process

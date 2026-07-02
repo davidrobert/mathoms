@@ -103,7 +103,7 @@ Report layout (report_layout.yaml)
 
 ## 4. Modelo de dados
 
-> **Contagem real** (2026-04-24): `ls backend/app/models/*.py | grep -v __init__` → 21 arquivos. `DB_SCHEMA_REFERENCE.md` (auto-gerado) lista as tabelas expandidas incluindo associativas e partial indexes.
+> **Contagem real** (2026-07-02): `ls backend/app/models/*.py | grep -v __init__` → 48 arquivos. `DB_SCHEMA_REFERENCE.md` (auto-gerado) lista as tabelas expandidas incluindo associativas e partial indexes.
 
 ### Auth + Core
 
@@ -294,7 +294,7 @@ módulo enforcer.
 
 | Conceito | Source of truth (código) | ADR canônica |
 | --- | --- | --- |
-| Membros familiares (titular/cônjuge/dependente) | `backend/app/models/family_member.py::FamilyMember.role` + `family_members.json` workspace-specific | — |
+| Membros familiares (titular/cônjuge/dependente) | `backend/app/models/family_member.py::FamilyMember.role` + config `family_members` via `DBConfigStore` (ADR-134; o legado `family_members.json` é path proibido desde A7) | — |
 | Contas bancárias + override de tier de fonte | `backend/app/models/family_member.py::BankAccount.source_tier` | [ADR-146](../DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
 | Instituições financeiras (catálogo + workspace overrides) | `backend/app/models/institution_catalog.py` + resolver | [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
 | Categorias de receita/despesa (catálogo + workspace overrides) | `backend/app/models/category_template.py` (`CategoryTemplate` + `WorkspaceCategoryOverride`) + resolver | [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
@@ -326,7 +326,7 @@ bloqueia recriação acidental.
 
 ## 5. API Surface
 
-> **Contagem real** (2026-04-24): `ls backend/app/api/*.py | grep -v __init__` → 20 arquivos de router.
+> **Contagem real** (2026-07-02): `ls backend/app/api/*.py | grep -v __init__` → 34 arquivos de router (+ subdir `admin/`). Tabela abaixo é amostra do caminho principal — fonte de verdade é o filesystem.
 
 | Router | Endpoints-chave |
 | --- | --- |
@@ -352,7 +352,7 @@ bloqueia recriação acidental.
 
 ## 6. Services (+ `internal_ops/` submódulo)
 
-> **Contagem real** (2026-04-24): `ls backend/app/services/*.py | grep -v __init__` → 42. Tabela abaixo é **parcial** (originalmente "26") e precisa de rodada de sync — entradas conhecidas faltantes: `artifact_reader`, `canonical_routing`, `classification_telemetry`, `config_defaults`, `document_classification`, `document_duplicates`, `document_extract_json_service`, `document_pipeline_sync`, `document_reclassify_bulk_service`, `document_retry_service`, `document_upload_service`, `password_vault_reader`, `pipeline_client`, `premissas_snapshot`, `report_lineage`, `stage_duration_estimator`, mais `internal_ops/` submódulo (F7F-Local, ADR-116). Não duplicar lista — fonte de verdade é o filesystem.
+> **Contagem real** (2026-07-02): `ls backend/app/services/*.py | grep -v __init__` → 110. Tabela abaixo é **parcial** (originalmente "26") e precisa de rodada de sync — entradas conhecidas faltantes: `artifact_reader`, `canonical_routing`, `classification_telemetry`, `config_defaults`, `document_classification`, `document_duplicates`, `document_extract_json_service`, `document_pipeline_sync`, `document_reclassify_bulk_service`, `document_retry_service`, `document_upload_service`, `password_vault_reader`, `pipeline_client`, `premissas_snapshot`, `report_lineage`, `stage_duration_estimator`, mais `internal_ops/` submódulo (F7F-Local, ADR-116). Não duplicar lista — fonte de verdade é o filesystem.
 
 | Service | Responsabilidade |
 | --- | --- |
@@ -392,22 +392,26 @@ bloqueia recriação acidental.
 
 ### Ordem completa (`FULL_ORDER` — premium)
 
+> Identificadores **descritivos** pós-F9.2/F9.5 ([[ADR-093]]; hard-fail para
+> literal legado em código novo desde W6-T03). O código legado (`E3`…) aparece
+> na tabela abaixo só como referência histórica/DB.
+
 ```
-E0-unlock → E0-route
-→ E1 (LLM) → E1.5 (LLM) → E1.5c → E1.6 (LLM)
-→ E2-informe-aluguel (LLM) → E2-informe-anual (LLM) → E2-comprovante-bem (LLM)
-→ E2-faturas → E2-extratos → E2-llm (LLM)
-→ E3 → E4 → E5 → E5.N
-→ E7-crossval → E6-parecer (LLM)
+unlock_documents → route_documents
+→ extract_members (LLM) → extract_baseline (LLM) → consolidate_baseline → extract_irpf_full (LLM)
+→ extract_informe_aluguel (LLM) → extract_informes_anuais (LLM) → extract_comprovantes_bens (LLM)
+→ extract_invoices → extract_statements → extract_with_llm (LLM)
+→ reconcile_transactions → categorize_transactions → analyze_finances → generate_narratives
+→ validate_cross → review_finances_holistic (LLM)
 ```
 
 ### Ordem determinística (`DETERMINISTIC_ORDER` — free)
 
 ```
-E0-unlock → E0-route → E1.5c (skip se sem baseline)
-→ E2-faturas → E2-extratos
-→ E3 → E4 → E5 → E5.N
-→ E7-crossval
+unlock_documents → route_documents → consolidate_baseline (skip se sem baseline)
+→ extract_invoices → extract_statements
+→ reconcile_transactions → categorize_transactions → analyze_finances → generate_narratives
+→ validate_cross
 ```
 
 > **Nota:** stages `E6` e `E6-final` foram removidos em
@@ -417,26 +421,26 @@ E0-unlock → E0-route → E1.5c (skip se sem baseline)
 
 ### O que cada stage faz
 
-| Stage          | Tipo       | Responsabilidade                                                 |
-| -------------- | ---------- | ---------------------------------------------------------------- |
-| E0-unlock      | det.       | Desbloqueia PDFs/ZIPs protegidos usando vault                    |
-| E0-route       | det.       | Classifica docs por regex, move inbox/ → data/{dest_group}/      |
-| E1             | **LLM**    | Extrai dados pessoais (nome, CPF, role) de IRPFs/IDs             |
-| E1.5           | **LLM**    | Extrai baseline patrimonial (imóveis, veículos, investimentos)   |
-| E1.5c          | det.       | Consolida baseline (soma imóveis, deduplica)                     |
-| E1.6           | **LLM**    | IRPF completo — extração detalhada pós-baseline (ADR-157)        |
-| E2-informe-aluguel | **LLM** | Extrai informe de rendimentos de aluguel (ADR-216)              |
-| E2-informe-anual | **LLM**  | Extrai informes de rendimentos anuais avulsos (ADR-238)          |
-| E2-comprovante-bem | **LLM** | Extrai comprovantes de bens / apólices / CRLV (ADR-239)         |
-| E2-faturas     | det.       | Parse de faturas de cartão (11 parsers bancários)                |
-| E2-extratos    | det.       | Parse de extratos de conta (11 parsers bancários)                |
-| E2-llm         | **LLM**    | Extrai transações de docs sem parser determinístico              |
-| E3             | det.       | Reconciliação cross-banco, deduplicação, transferências internas |
-| E4             | det.       | Categorização por keywords (300+ em 16 categorias)               |
-| E5             | det.       | Análise: score, fluxo, patrimônio, goals, reserva emergência     |
-| E5.N           | det.       | Narrativas automáticas (contexto para cada seção)                |
-| E7-crossval    | det.       | 14 checks automáticos de qualidade                               |
-| E6-parecer     | **LLM**    | Parecer holístico do planejador (insights, riscos, sugestões — ADR-199) |
+| Stage (descritivo) | Legado | Tipo | Responsabilidade                                                 |
+| ------------------ | ------ | ---- | ---------------------------------------------------------------- |
+| unlock_documents   | E0-unlock | det. | Desbloqueia PDFs/ZIPs protegidos usando vault                    |
+| route_documents    | E0-route | det. | Classifica docs por regex, move inbox/ → data/{dest_group}/      |
+| extract_members    | E1     | **LLM** | Extrai dados pessoais (nome, CPF, role) de IRPFs/IDs             |
+| extract_baseline   | E1.5   | **LLM** | Extrai baseline patrimonial (imóveis, veículos, investimentos)   |
+| consolidate_baseline | E1.5c | det. | Consolida baseline (soma imóveis, deduplica)                     |
+| extract_irpf_full  | E1.6   | **LLM** | IRPF completo — extração detalhada pós-baseline (ADR-157)        |
+| extract_informe_aluguel | E2-informe-aluguel | **LLM** | Extrai informe de rendimentos de aluguel (ADR-216)              |
+| extract_informes_anuais | E2-informe-anual | **LLM** | Extrai informes de rendimentos anuais avulsos (ADR-238)          |
+| extract_comprovantes_bens | E2-comprovante-bem | **LLM** | Extrai comprovantes de bens / apólices / CRLV (ADR-239)         |
+| extract_invoices   | E2-faturas | det. | Parse de faturas de cartão (11 parsers bancários)                |
+| extract_statements | E2-extratos | det. | Parse de extratos de conta (11 parsers bancários)                |
+| extract_with_llm   | E2-llm | **LLM** | Extrai transações de docs sem parser determinístico              |
+| reconcile_transactions | E3 | det. | Reconciliação cross-banco, deduplicação, transferências internas |
+| categorize_transactions | E4 | det. | Categorização por keywords (300+ em 16 categorias)               |
+| analyze_finances   | E5     | det. | Análise: score, fluxo, patrimônio, goals, reserva emergência     |
+| generate_narratives | E5.N  | det. | Narrativas automáticas (contexto para cada seção)                |
+| validate_cross     | E7-crossval | det. | 14 checks automáticos de qualidade                               |
+| review_finances_holistic | E6-parecer | **LLM** | Parecer holístico do planejador (insights, riscos, sugestões — ADR-199) |
 
 > **Render do relatório:** O relatório é renderizado como rota React
 > nativa (`/reports/[id]`) consumindo `GET /reports/{id}/data`. O único
@@ -538,7 +542,7 @@ class StageSpec:
     is_llm: bool = False
     tier: str = "free" | "premium"
 
-STAGE_REGISTRY: dict[str, StageSpec] = { "E2-extratos": ..., "E3": ..., ... }
+STAGE_REGISTRY: dict[str, StageSpec] = { "extract_statements": ..., "reconcile_transactions": ..., ... }
 VIRTUAL_ARTIFACT_STAGES = frozenset()  # vazio após remoção de E5-revised (A12.X)
 FULL_ORDER = [...]  # decisão intencional
 ```
@@ -715,7 +719,7 @@ nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 
 ### Rotas (`page.tsx` — produto + playgrounds `_dev` + auth públicas)
 
-> **Contagem real** (2026-04-24): `find frontend/src/app -name page.tsx` → 25 arquivos. Produto: dashboard, documents, pipeline, transactions, reports (list+[id]), plano (home), plano/meta-if (+wizard), plano/aportes (+wizard), plano/dolarizacao (+wizard), plano/alocacao (+wizard), plano-de-acao (+sugestoes), vault, config. Playgrounds: reports/_dev/charts, reports/_dev/ui. Públicas: /, /login, /register, /invite/[token]. A tabela abaixo cobre o caminho principal — wizards de Aporte/Dolarização/Alocação e playgrounds `_dev` existem mas não estão enumerados.
+> **Contagem real** (2026-07-02): `find frontend/src/app -name page.tsx` → 32 arquivos. Produto: dashboard, documents, pipeline, transactions, reports (list+[id]), plano (home), plano/meta-if (+wizard), plano/aportes (+wizard), plano/dolarizacao (+wizard), plano/alocacao (+wizard), plano-de-acao (+sugestoes), vault, config. Playgrounds: reports/_dev/charts, reports/_dev/ui. Públicas: /, /login, /register, /invite/[token]. A tabela abaixo cobre o caminho principal — wizards de Aporte/Dolarização/Alocação e playgrounds `_dev` existem mas não estão enumerados.
 
 **Públicas:**
 | Rota | Página |
@@ -917,10 +921,11 @@ mathoms.ai/
 │   │   │       ├── dashboard/, documents/, pipeline/
 │   │   │       ├── transactions/, reports/, reports/[id]/
 │   │   │       ├── plano/, plano/meta-if/, plano/meta-if/wizard/
-│   │   │       ├── plano-de-acao/, plano-de-acao/sugestoes/
+│   │   │       ├── plano-de-acao/, plano-de-acao/sugestoes/, acao/
+│   │   │       ├── imoveis/, protecao/
 │   │   │       └── vault/, config/
 │   │   ├── components/
-│   │   │   ├── ui/            # 18 shadcn/base-ui primitives
+│   │   │   ├── ui/            # 23 shadcn/base-ui primitives
 │   │   │   ├── charts/        # 3 Recharts wrappers
 │   │   │   ├── tasks/         # 9 task components
 │   │   │   ├── report/        # Report Premium v1 (decomposto pós-Fase 10)
@@ -946,7 +951,7 @@ mathoms.ai/
 │   │       ├── WorkspaceProvider.tsx  # Context provider (useWorkspace hook)
 │   │       ├── useCurrentUser.ts, useCurrentWorkspace.ts, usePermissions.ts
 │   │       ├── usePipelineWS.ts
-│   │       └── utils.ts       # cn()
+│   │       └── cn.ts          # cn()
 │   └── package.json
 │
 ├── design-tokens/
@@ -958,7 +963,7 @@ mathoms.ai/
 │   ├── report_layout.yaml     # Codegen source → TS + Pydantic
 │   ├── scoring.json, cenarios.json, localization.json, i18n_glossary.yaml
 │   ├── methodology.md, report_spec.md, asset_catalog_seed_v1.yaml
-│   ├── schemas/               # 26 JSON schemas (stages, goals, informes, parecer, protecao, pipeline, report_layout)
+│   ├── schemas/               # 27 JSON schemas (stages, goals, informes, parecer, protecao, pipeline, report_layout)
 │   └── templates/             # 5 templates (definitions, methodology, report_spec, source_hierarchy, decisions)
 │
 ├── dev/                       # Dev tooling
