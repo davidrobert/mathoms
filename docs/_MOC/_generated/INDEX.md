@@ -642,6 +642,7 @@
 | A25.l6 | lane | shipped | A25 | KR2 6/6 — fluxo_liquido + endividamento.total_dividas + member_hashes reais | `sprint/A25/lanes/A25-l6-kr2-resto.md` |
 | A25.l7 | lane | shipped | A25 | Decisão do flip warn→strict do evidencia_path (requisito de done da A25) | `sprint/A25/lanes/A25-l7-evidencia-strict-decision.md` |
 | A26.l1 | lane | shipped | A26 | Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM | `sprint/A26/lanes/A26-l1-evidencia-prompt-catalogo.md` |
+| A26.l10 | lane | planned | A26 | LGPD export — cobertura total das tabelas com dados pessoais (Art.18) | `sprint/A26/lanes/A26-l10-lgpd-export-cobertura.md` |
 | A26.l2 | lane | blocked | A26 | Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review) | `sprint/A26/lanes/A26-l2-evidencia-flip-strict.md` |
 | A26.l3 | lane | shipped | A26 | M2-A — drop do shim v1 do dedup (compute_transaction_hash) | `sprint/A26/lanes/A26-l3-drop-dedup-v1-shim.md` |
 | A26.l4 | lane | blocked | A26 | Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) | `sprint/A26/lanes/A26-l4-override-v2-on-instrumentacao.md` |
@@ -731,7 +732,7 @@
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
 | MOC-sprint-a9 | moc |  |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
-| PLAN-cat-learning-loop | plan | paused |  | Categorization Learning Loop — promoção de override de transação para regra | `plan/CAT_LEARNING_LOOP/_README.md` |
+| PLAN-cat-learning-loop | plan | done |  | Categorization Learning Loop — promoção de override de transação para regra | `plan/CAT_LEARNING_LOOP/_README.md` |
 | PLAN-cenarios-estresse | plan | done |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-data-lineage | plan | in_progress |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |

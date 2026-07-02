@@ -15,6 +15,10 @@ Nenhuma lane prontidão atual.
 - [[A26.l4]] — Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) · priority P2 · branch `override-v2-on-instrumentacao`
 - [[A26.l5]] — M2-B — drop destrutivo do estado legado de identidade do override (Fase E) · priority P2 · branch `m2-override-drop`
 
+### planned (1)
+
+- [[A26.l10]] — LGPD export — cobertura total das tabelas com dados pessoais (Art.18) · priority P2 · branch `lgpd-export-cobertura`
+
 ### shipped (6)
 
 - [[A26.l1]] — Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM · priority P1 · branch `evidencia-prompt-catalogo`
