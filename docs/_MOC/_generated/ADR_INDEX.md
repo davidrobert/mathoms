@@ -9,9 +9,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 275
+- **Decidido**: 276
 - **Proposto**: 18
-- **Roadmap**: 4
+- **Roadmap**: 3
 
 ## Fundação
 
@@ -457,13 +457,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## multitenancy
 
-### Decidido (1)
+### Decidido (2)
 
+- [[ADR-150]] — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap · phase F1 GO_SHELL — gatilho 4 disparado pelo owner, 2026-07-03
 - [[ADR-166]] — Schema estável `cenarios_conjuge` no payload E5 · phase A8.4
 
-### Roadmap (2)
+### Roadmap (1)
 
-- [[ADR-150]] — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap · phase deferido em W6-T06, 2026-05-07
 - [[ADR-159]] — Aggregator banking BR (Open Finance) — adiar adoção até gatilhos materializarem
 
 ## ops

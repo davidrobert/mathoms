@@ -27,9 +27,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 | type | status | notas |
 | --- | --- | ---: |
-| adr | Decidido | 275 |
+| adr | Decidido | 276 |
 | adr | Proposto | 18 |
-| adr | Roadmap | 4 |
+| adr | Roadmap | 3 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 248 |
 | doc | (sem status) | 2 |
@@ -43,8 +43,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 21 |
 | plan | done | 4 |
-| plan | draft | 6 |
-| plan | in_progress | 8 |
+| plan | draft | 5 |
+| plan | in_progress | 9 |
 | plan | paused | 2 |
 | runbook | ativo | 1 |
 | track | consumed | 83 |
