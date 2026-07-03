@@ -190,13 +190,15 @@ class TestCoverageVsCorrectnessKpi:
 
 
 # -----------------------------------------------------------------------
-# Modo warn (default) — violação loga + telemetria, status normal
+# Modo warn (override explícito pós-flip A26.l2) — violação loga, status normal
 # -----------------------------------------------------------------------
 
 
-class TestWarnModeDefault:
+class TestWarnModeExplicit:
+    """Warn deixou de ser default no flip A26.l2 — comportamento preservado via env."""
+
     def test_violation_does_not_block_in_warn(self, monkeypatch):
-        monkeypatch.delenv("MATHOMS_PARECER_EVIDENCIA_MODE", raising=False)
+        monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "warn")
         result, store = _run([(None, "reserva_emergencia")])
         assert result["success"] is True
         agg = result["evidencia_verification"]
@@ -206,12 +208,29 @@ class TestWarnModeDefault:
         assert _risco_entries(store)[0]["outcome"] == "missing_path"
 
     def test_artifact_with_meta_block_validates_against_json_schema(self, monkeypatch):
-        monkeypatch.delenv("MATHOMS_PARECER_EVIDENCIA_MODE", raising=False)
+        monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "warn")
         _, store = _run([_RESERVA])
         artifact = store.read("E6-parecer", "parecer_planejador")
         jsonschema = pytest.importorskip("jsonschema")
         schema = json.loads(_OUTPUT_SCHEMA.read_text(encoding="utf-8"))
         jsonschema.validate(artifact, schema)
+
+
+class TestStrictIsManifestDefault:
+    """Flip A26.l2: sem env override, o manifest resolve para strict."""
+
+    def test_manifest_default_resolves_strict(self, monkeypatch):
+        monkeypatch.delenv("MATHOMS_PARECER_EVIDENCIA_MODE", raising=False)
+        import yaml
+
+        from backend.app.services.parecer_evidencia import resolve_evidencia_mode
+
+        manifest = yaml.safe_load(
+            (Path(__file__).parents[1] / "config/prompts/parecer_planejador.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        assert resolve_evidencia_mode(manifest["evidencia_verification_mode"]) == "strict"
 
 
 # -----------------------------------------------------------------------
