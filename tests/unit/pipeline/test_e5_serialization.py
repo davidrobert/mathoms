@@ -232,6 +232,28 @@ class TestAlertas:
         )
         assert not any("Rentabilidade" in a for a in alertas)
 
+    def test_alerta_trs_suspeita_quando_status_suspeito(self):
+        # A28.l2: guardrail nunca publica número aberrante silencioso.
+        alertas = build_alertas(
+            score={"valor": 5, "classificacao": "Regular"},
+            ratios={
+                "rentabilidade_pct": "22.63",
+                "rentabilidade": {"status": "suspeito", "valor_pct": 22.63},
+            },
+        )
+        assert any("22.63% a.a. acima do plausível" in a for a in alertas)
+        assert any("revisar composição" in a for a in alertas)
+
+    def test_sem_alerta_trs_quando_status_ok(self):
+        alertas = build_alertas(
+            score={"valor": 5, "classificacao": "Regular"},
+            ratios={
+                "rentabilidade_pct": "3.25",
+                "rentabilidade": {"status": "ok", "valor_pct": 3.25},
+            },
+        )
+        assert not any("plausível" in a for a in alertas)
+
 
 # =============================================================================
 # build_e5_output

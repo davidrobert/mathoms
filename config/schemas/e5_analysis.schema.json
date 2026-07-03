@@ -142,7 +142,7 @@
               ],
               "properties": {
                 "valor_pct": {
-                  "description": "TRS efetiva (% a.a.) — percentual absoluto (4.7 = 4,7% a.a., ADR-209). 'null' quando status indica indisponibilidade. Valores < 1 (ex.: 0.5) são válidos para rentabilidades reais baixas.",
+                  "description": "TRS efetiva (% a.a.) — percentual absoluto (4.7 = 4,7% a.a., ADR-209). 'null' quando status indica indisponibilidade. status 'suspeito' (guardrail A28.l2: TRS > threshold ~8% a.a.) mantém o valor calculado, mas sinaliza revisar composição — nunca publicar sem flag. Valores < 1 (ex.: 0.5) são válidos para rentabilidades reais baixas.",
                   "type": ["number", "null"]
                 },
                 "ano_base": {
@@ -158,12 +158,12 @@
                   "type": "number"
                 },
                 "cobertura_despesa_essencial_pct": {
-                  "description": "renda_passiva_mensal / custo_essencial_mensal × 100 — percentual absoluto (ADR-209). Valores > 100 são válidos e esperados (ex.: 350.0 = renda passiva cobre 3,5× a despesa). 'null' quando status != 'ok'.",
+                  "description": "renda_passiva_mensal / custo_essencial_mensal × 100 — percentual absoluto (ADR-209). Valores > 100 são válidos e esperados (ex.: 350.0 = renda passiva cobre 3,5× a despesa). 'null' quando status = 'sem_irpf' | 'gerador_zero' | 'sem_dados_essencial'.",
                   "type": ["number", "null"]
                 },
                 "status": {
                   "type": "string",
-                  "enum": ["ok", "sem_irpf", "gerador_zero", "sem_dados_essencial"]
+                  "enum": ["ok", "sem_irpf", "gerador_zero", "sem_dados_essencial", "suspeito"]
                 }
               }
             }

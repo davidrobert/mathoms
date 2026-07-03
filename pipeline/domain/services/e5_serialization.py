@@ -184,9 +184,25 @@ def build_alertas(
     alertas: list[str] = []
     if ratios.get("rentabilidade_pct") == "N/D":
         alertas.append("Rentabilidade: N/D")
+    suspeito_alerta = _alerta_trs_suspeita(ratios)
+    if suspeito_alerta:
+        alertas.append(suspeito_alerta)
     if investimentos_warnings:
         alertas.extend(investimentos_warnings)
     return alertas
+
+
+def _alerta_trs_suspeita(ratios: Mapping[str, Any]) -> str | None:
+    """Guardrail A28.l2 — TRS suspeita nunca publica silencioso (ADR-191)."""
+    nested = ratios.get("rentabilidade")
+    if not isinstance(nested, dict) or nested.get("status") != "suspeito":
+        return None
+    valor = nested.get("valor_pct")
+    prefixo = f"TRS efetiva {valor:.2f}% a.a." if isinstance(valor, (int, float)) else "TRS efetiva"
+    return (
+        f"{prefixo} acima do plausível para yield de carteira — revisar composição "
+        "das fontes de renda passiva e do patrimônio gerador antes de usar o número."
+    )
 
 
 # =============================================================================

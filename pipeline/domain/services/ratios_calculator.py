@@ -29,7 +29,7 @@ from pipeline.domain.services.passive_income_calculator import PassiveIncomeResu
 _FluxoPayload = Mapping[str, Any]
 _PatrimonioPayload = Mapping[str, Any]
 
-RentabilidadeStatus = Literal["ok", "sem_irpf", "gerador_zero", "sem_dados_essencial"]
+RentabilidadeStatus = Literal["ok", "sem_irpf", "gerador_zero", "sem_dados_essencial", "suspeito"]
 
 _ZERO = Decimal("0")
 _HUNDRED = Decimal("100")
@@ -76,6 +76,10 @@ class RentabilidadeConfig:
     """Parâmetros do card Rentabilidade ([[ADR-191]] §D3); ``meta_pct`` é 5% por padrão."""
 
     meta_pct: Decimal = Decimal("5.0")
+    # A28.l2 — guardrail de sanidade determinístico do E5 (fonte única; a
+    # A28.l11 apenas consome): TRS acima disso é implausível como yield de
+    # carteira → status "suspeito"; nunca publicar o número sem flag.
+    suspeito_threshold_pct: Decimal = Decimal("8.0")
 
 
 @dataclass(frozen=True)
@@ -311,7 +315,14 @@ def _build_rentabilidade(
     cobertura, status = _cobertura_essencial(
         passive_income.renda_passiva_mensal_brl, window.despesa_mensal_essencial_brl
     )
+    if _trs_suspeita(passive_income.trs_efetiva_pct, config):
+        status = "suspeito"
     return _rentabilidade_ok(passive_income, config, cobertura, status)
+
+
+def _trs_suspeita(trs_efetiva_pct: Decimal, config: RentabilidadeConfig) -> bool:
+    """Guardrail A28.l2: TRS acima do plausível — nunca publicar sem flag."""
+    return trs_efetiva_pct > config.suspeito_threshold_pct
 
 
 def _rentabilidade_ok(
