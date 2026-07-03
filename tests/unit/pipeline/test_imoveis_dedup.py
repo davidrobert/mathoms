@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.domain.services.imoveis_dedup import dedup_imoveis_consolidados
+from pipeline.domain.services.imoveis_dedup import (
+    dedup_imoveis_consolidados,
+    resolve_dedup_winner_by_property_id,
+)
 
 
 def _fuzzy_entry(proprietario, valor, codigo, canonical, descricao) -> dict:
@@ -370,3 +373,35 @@ class TestObservability:
         result = dedup_imoveis_consolidados(items)
         assert result.count_before == 3
         assert result.count_after == 2
+
+
+class TestResolveDedupWinnerByPropertyId:
+    """`resolve_dedup_winner_by_property_id` — pid→vencedor sem merge de payload (A28.l7)."""
+
+    def test_grupo_fuzzy_mapeia_orfaos_para_vencedor(self):
+        # 4 rows órfãs do mesmo imóvel (declarante×variação); só o vencedor tem valor.
+        entries = [
+            _fuzzy_entry("titular", 500000, "11", "rua sintetica alfa 100", "CASA ALFA 100"),
+            _fuzzy_entry("conjuge", 0, "11", "rua sintetica alfa 102", "CASA ALFA 102"),
+            _fuzzy_entry("titular", 0, "01", "rua sintetica alfa 100", "CASA ALFA 100"),
+            _fuzzy_entry("conjuge", 0, "", "rua sintetica alfa 103", "CASA ALFA 103"),
+        ]
+        for i, e in enumerate(entries):
+            e["property_id"] = f"pid-{i}"
+        winners = resolve_dedup_winner_by_property_id(entries)
+        assert winners == {f"pid-{i}": "pid-0" for i in range(4)}
+
+    def test_imoveis_distintos_sao_seus_proprios_vencedores(self):
+        a = _fuzzy_entry("titular", 100, "11", "rua sintetica alfa 100", "CASA ALFA")
+        b = _fuzzy_entry("titular", 200, "11", "avenida sintetica beta 900", "APTO BETA")
+        a["property_id"], b["property_id"] = "pid-a", "pid-b"
+        winners = resolve_dedup_winner_by_property_id([a, b])
+        assert winners == {"pid-a": "pid-a", "pid-b": "pid-b"}
+
+    def test_nao_muta_payload_nem_mescla(self):
+        a = _entry(proprietario="titular", valor_31_12=400000, property_id="pid-a")
+        b = _entry(proprietario="conjuge", valor_31_12=500000, property_id="pid-b")
+        a["endereco_canonical"] = b["endereco_canonical"] = "rua sintetica alfa 100"
+        snapshot = [dict(a), dict(b)]
+        resolve_dedup_winner_by_property_id([a, b])
+        assert [a, b] == snapshot

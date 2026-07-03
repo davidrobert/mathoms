@@ -57,6 +57,7 @@ def _seed_property(
     titular_key: str = "t1",
     endereco: str = "Apto SP",
     classification: str | None = None,
+    first_seen_year: int = 2024,
 ) -> None:
     db.add(
         PropertyIdentity(
@@ -65,7 +66,7 @@ def _seed_property(
             titular_key=titular_key,
             codigo_rfb=codigo_rfb,
             endereco_canonical=endereco,
-            first_seen_year=2024,
+            first_seen_year=first_seen_year,
             descricao_sample=endereco,
             low_confidence=False,
         )
@@ -301,6 +302,115 @@ def test_extract_irpf_full_shape_nao_zera_valor_regressao(db):
     assert payload is not None
     assert payload["imoveis"][0]["valor_imovel"] == pytest.approx(800000.0, abs=0.01)
     assert payload["cap_rate_liquido_pct"] is not None  # valor_total > 0 → cap_rate calcula
+
+
+# ───────────── Dedup da projeção de excluídos (ADR-246 · A28.l7) ──────────────
+
+
+def _seed_casa_co_declarada(db, workspace_id: str = "ws1") -> None:
+    """Mesmo imóvel em 4 rows órfãs: titular + cônjuge × 2 anos (variações de canonical)."""
+    casa = [
+        ("pid-win", "11", "titular", "rua sintetica alfa 100", 2024),
+        ("pid-org-1", "11", "conjuge", "rua sintetica alfa 102", 2024),
+        ("pid-org-2", "01", "titular", "rua sintetica alfa 100", 2023),
+        ("pid-org-3", "", "conjuge", "rua sintetica alfa 103", 2023),
+    ]
+    for pid, codigo, titular, endereco, ano in casa:
+        _seed_property(
+            db,
+            workspace_id,
+            pid,
+            codigo_rfb=codigo,
+            titular_key=titular,
+            endereco=endereco,
+            first_seen_year=ano,
+        )
+
+
+def test_excluded_colapsa_orfas_pre_dedup_em_uma_entrada(db):
+    """Regressão A28.l7: rows PropertyIdentity por declarante×variação (pré-dedup
+    ADR-246, nunca podadas do DB) apareciam N× na lista de pendências."""
+    _seed_market_rates(db)
+    _seed_casa_co_declarada(db)
+    payload = populate_real_estate(
+        workspace_id="ws1",
+        e5_data=_base_e5_data(),
+        irpf_payload=None,
+        baseline_payload=_baseline(("pid-win", "500000")),
+        db=db,
+    )
+    assert payload is not None
+    assert payload["imoveis"] == []
+    assert len(payload["excluded_properties"]) == 1
+
+
+def test_excluded_representante_e_o_vencedor_do_baseline(db):
+    """ADR-246 na projeção: maior valor vence — a entrada exibida é a do vencedor."""
+    _seed_market_rates(db)
+    _seed_casa_co_declarada(db)
+    payload = populate_real_estate(
+        workspace_id="ws1",
+        e5_data=_base_e5_data(),
+        irpf_payload=None,
+        baseline_payload=_baseline(("pid-win", "500000")),
+        db=db,
+    )
+    assert payload is not None
+    exc = payload["excluded_properties"][0]
+    assert exc["property_id"] == "pid-win"
+    assert exc["classification"] == "desconhecido"
+
+
+def test_excluded_omite_grupo_ja_coberto_por_imovel_incluido(db):
+    """Órfã do mesmo imóvel de um incluído não vira pendência fantasma."""
+    _seed_market_rates(db)
+    _seed_property(db, "ws1", "pid-win", endereco="rua sintetica alfa 100", classification="locado")
+    _seed_property(db, "ws1", "pid-org", endereco="rua sintetica alfa 102", titular_key="conjuge")
+    payload = populate_real_estate(
+        workspace_id="ws1",
+        e5_data=_base_e5_data(),
+        irpf_payload=None,
+        baseline_payload=_baseline(("pid-win", "500000")),
+        db=db,
+    )
+    assert payload is not None
+    assert [im["property_id"] for im in payload["imoveis"]] == ["pid-win"]
+    assert payload["excluded_properties"] == []
+
+
+def test_excluded_nao_colapsa_imoveis_distintos(db):
+    """Imóveis pendentes genuinamente distintos continuam 1 entrada cada."""
+    _seed_market_rates(db)
+    _seed_property(db, "ws1", "pA", endereco="rua sintetica alfa 100")
+    _seed_property(db, "ws1", "pB", endereco="avenida sintetica beta 900")
+    payload = populate_real_estate(
+        workspace_id="ws1",
+        e5_data=_base_e5_data(),
+        irpf_payload=None,
+        db=db,
+    )
+    assert payload is not None
+    assert {e["property_id"] for e in payload["excluded_properties"]} == {"pA", "pB"}
+
+
+def test_dedup_da_projecao_nao_muda_valores_monetarios(db):
+    """Zero delta monetário: agregados idênticos com e sem órfãs no DB (lista é CTA)."""
+    _seed_market_rates(db)
+    _seed_property(db, "ws1", "pw1", endereco="rua sintetica alfa 100", classification="locado")
+    _seed_property(db, "ws2", "pw2", endereco="rua sintetica alfa 100", classification="locado")
+    _seed_property(db, "ws2", "po2", endereco="rua sintetica alfa 102", titular_key="conjuge")
+    kwargs = dict(e5_data=_base_e5_data(), irpf_payload=None, db=db)
+    sem_orfa = populate_real_estate(
+        workspace_id="ws1", baseline_payload=_baseline(("pw1", "500000")), **kwargs
+    )
+    com_orfa = populate_real_estate(
+        workspace_id="ws2", baseline_payload=_baseline(("pw2", "500000")), **kwargs
+    )
+    assert sem_orfa is not None and com_orfa is not None
+    for campo in ("valor_total_imoveis", "concentracao_pct", "cap_rate_liquido_pct"):
+        assert com_orfa[campo] == sem_orfa[campo]
+    assert len(com_orfa["imoveis"]) == len(sem_orfa["imoveis"]) == 1
+    assert com_orfa["imoveis"][0]["valor_imovel"] == sem_orfa["imoveis"][0]["valor_imovel"]
 
 
 # Tests de cascade #1 (Informe) vivem em

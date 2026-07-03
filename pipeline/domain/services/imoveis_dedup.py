@@ -59,6 +59,19 @@ def dedup_imoveis_consolidados(
     return _to_result(outcome)
 
 
+def resolve_dedup_winner_by_property_id(
+    imoveis: list[dict] | None,
+    *,
+    titular_key: str | None = None,
+) -> dict[str, str]:
+    """Mapeia o property_id de cada entry ao vencedor ADR-246/265 do seu grupo —
+    não mescla payloads, só resolve pertencimento com a mesma policy do E1.5c
+    (consumido pela projeção de excluídos do `real_estate`, A28.l7)."""
+    recorder = _WinnerRecorder(_ImovelPolicy(titular_key))
+    run_entity_dedup(imoveis, recorder)
+    return recorder.winner_by_pid
+
+
 def _to_result(outcome: DedupOutcome) -> DedupResult:
     return DedupResult(
         imoveis=outcome.items,
@@ -99,6 +112,36 @@ class _ImovelPolicy:
         warnings = (warning,) if warning is not None else ()
         dropped = _dropped_pids(group, merged.get("property_id"))
         return [merged], warnings, dropped
+
+
+class _WinnerRecorder:
+    """Decorator de `_ImovelPolicy`: delega o dedup e registra pid→vencedor por grupo."""
+
+    def __init__(self, inner: _ImovelPolicy) -> None:
+        self._inner = inner
+        self.winner_by_pid: dict[str, str] = {}
+
+    def identity_key(self, entry: dict) -> tuple | None:
+        return self._inner.identity_key(entry)
+
+    def remap_groups(self, grouped: GroupedEntries) -> GroupedEntries:
+        return self._inner.remap_groups(grouped)
+
+    def emit_group(
+        self, group: list[dict]
+    ) -> tuple[list[dict], tuple[_CoreWarning, ...], tuple[str, ...]]:
+        emitted = self._inner.emit_group(group)
+        self._record_winner(group, emitted[0])
+        return emitted
+
+    def _record_winner(self, group: list[dict], entries: list[dict]) -> None:
+        winner = str(entries[0].get("property_id") or "") if entries else ""
+        if not winner:
+            return
+        for entry in group:
+            pid = entry.get("property_id")
+            if pid:
+                self.winner_by_pid[str(pid)] = winner
 
 
 def _dropped_pids(group: list[dict], winner_pid: object) -> tuple[str, ...]:
@@ -363,4 +406,5 @@ __all__ = [
     "DedupResult",
     "DedupWarning",
     "dedup_imoveis_consolidados",
+    "resolve_dedup_winner_by_property_id",
 ]
