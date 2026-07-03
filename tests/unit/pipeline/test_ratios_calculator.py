@@ -395,3 +395,58 @@ class TestRentabilidadeNestedRatio:
         d = r.to_legacy_dict()
         assert d["rentabilidade"] is None
         assert d["rentabilidade_pct"] == "N/D"
+
+
+# ---------------------------------------------------------------------------
+# A28.l2 — guardrail de sanidade determinístico (TRS > 8% a.a. → "suspeito")
+# ---------------------------------------------------------------------------
+
+
+class TestGuardrailTrsSuspeita:
+    """Nunca publicar TRS aberrante silenciosa ([[ADR-191]] · A28.l2)."""
+
+    def test_trs_acima_de_8_pct_flagra_suspeito(self):
+        # Cenário dogfood 72883bde: 22,63% a.a. é impossível como yield.
+        pi = make_passive_income(status="ok", trs_pct="22.63")
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.status == "suspeito"
+        # valor permanece exposto — flagado, nunca silencioso.
+        assert r.rentabilidade.valor_pct == Decimal("22.63")
+
+    def test_suspeito_vence_sem_dados_essencial(self):
+        pi = make_passive_income(status="ok", trs_pct="15.00")
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=0), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.status == "suspeito"
+
+    def test_trs_no_limiar_de_8_pct_permanece_ok(self):
+        pi = make_passive_income(status="ok", trs_pct="8.00")
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.status == "ok"
+
+    def test_threshold_customizavel_via_config(self):
+        pi = make_passive_income(status="ok", trs_pct="6.00")
+        calc = RatiosCalculator(RentabilidadeConfig(suspeito_threshold_pct=Decimal("5.0")))
+        r = calc.calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.status == "suspeito"
+
+    def test_flat_rentabilidade_pct_deriva_da_trs_corrigida(self):
+        # `rentabilidade_pct` continua alias da TRS ([[ADR-191]] §D2) — o
+        # numerador/denominador corrigidos chegam via passive_income.
+        pi = make_passive_income(status="ok", trs_pct="22.63")
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade_pct == Decimal("22.63")
+        assert r.to_legacy_dict()["rentabilidade"]["status"] == "suspeito"

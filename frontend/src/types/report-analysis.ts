@@ -113,7 +113,10 @@ export type RentabilidadeStatus =
   | "ok"
   | "sem_irpf"
   | "gerador_zero"
-  | "sem_dados_essencial";
+  | "sem_dados_essencial"
+  // A28.l2 — guardrail E5: TRS acima do plausível (> ~8% a.a.); valor
+  // presente mas exige "revisar composição" — nunca renderizar sem flag.
+  | "suspeito";
 
 // ──────────────────────────────────────────────────────────────────────
 // Real Estate (S4 · ADR-216 · Onda 2)

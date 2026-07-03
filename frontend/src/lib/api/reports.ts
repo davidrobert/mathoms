@@ -254,6 +254,9 @@ export interface PassiveIncomeData {
     ganho_capital: number;
     exterior: number;
     alugueis: number;
+    /** A28.l2 — distribuição de lucros da PJ do titular: linha rotulada FORA
+     * da TRS (não soma em renda_passiva_anual_brl). */
+    distribuicao_pj_titular?: number;
   };
   patrimonio_gerador_brl: number;
   trs_efetiva_pct: number;

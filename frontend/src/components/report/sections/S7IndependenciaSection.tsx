@@ -256,7 +256,15 @@ function PassiveIncomeOkBlock({
 function RendaPassivaStat({ data }: { data: PassiveIncomeData }) {
   return (
     <Stat
-      label="Renda passiva"
+      label={
+        <span className="inline-flex items-center gap-1">
+          Renda passiva observada
+          <InfoTooltip
+            ariaLabel="Sobre renda passiva observada"
+            content="Renda efetivamente recebida no ano-base do IRPF (dividendos de carteira, JCP, aplicações, aluguéis, exterior). Difere da renda passiva estimada pela regra de retirada exibida na projeção de IF."
+          />
+        </span>
+      }
       value={
         <span className="inline-flex items-baseline gap-1">
           <MonetaryValue value={data.renda_passiva_mensal_brl} compact />
@@ -266,6 +274,7 @@ function RendaPassivaStat({ data }: { data: PassiveIncomeData }) {
       sublabel={
         <span className="text-sm">
           {formatCurrency(data.renda_passiva_anual_brl)} / ano
+          {data.ano_referencia_irpf !== null && ` · IRPF ${data.ano_referencia_irpf}`}
         </span>
       }
     />

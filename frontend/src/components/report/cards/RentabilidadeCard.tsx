@@ -45,12 +45,14 @@ function RentabilidadeFallbackCard({ ratios }: { ratios: RatiosData }) {
 }
 
 function RentabilidadeFullCard({ ratio }: { ratio: RentabilidadeRatio }) {
-  const variant = pickVariant(ratio);
+  const isSuspeito = ratio.status === "suspeito";
+  const variant = isSuspeito ? "warn" : pickVariant(ratio);
   const valorPct = ratio.valor_pct ?? 0;
   const cobertura = ratio.cobertura_despesa_essencial_pct;
   const isDefasado = isDataDefasada(ratio.defasagem_meses);
   return (
     <ReportCard size="full" title="Renda passiva sobre patrimônio (TRS)" variant={variant}>
+      {isSuspeito && <TrsSuspeitaBanner />}
       <div className="grid gap-6 md:grid-cols-[1fr_1fr]">
         <RentabilidadeHeroBlock valorPct={valorPct} metaPct={ratio.meta_pct} />
         <RentabilidadeContextBlock
@@ -66,6 +68,19 @@ function RentabilidadeFullCard({ ratio }: { ratio: RentabilidadeRatio }) {
         gerador (carteira de renda). Não confundir com retorno total da carteira.
       </p>
     </ReportCard>
+  );
+}
+
+/** A28.l2 — guardrail E5: nunca exibir TRS aberrante sem flag. */
+function TrsSuspeitaBanner() {
+  return (
+    <p
+      role="alert"
+      className="mb-4 rounded-[var(--radius-card)] bg-[color-mix(in_srgb,var(--brand-warning)_14%,transparent)] px-3 py-2 text-sm text-[var(--brand-warning)]"
+    >
+      Valor acima do plausível para yield de carteira — revisar composição das
+      fontes de renda passiva e do patrimônio gerador antes de usar este número.
+    </p>
   );
 }
 

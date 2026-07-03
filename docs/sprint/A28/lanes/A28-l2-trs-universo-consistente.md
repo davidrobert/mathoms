@@ -4,7 +4,7 @@ type: lane
 title: "TRS efetiva com numerador/denominador do mesmo universo + guardrail de sanidade (ADR-191)"
 sprint: A28
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: trs-universo-consistente
 adrs:
@@ -15,7 +15,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/e5
 ---
