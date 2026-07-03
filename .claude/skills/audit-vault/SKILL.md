@@ -29,6 +29,17 @@ critérios, roteamento, severidade e armadilhas: [`references/checklist.md`](ref
   (`--scope reference --full` primeiro) para a triagem caber em <30min por fase.
   Sequência completa das 3 fases + gates de decisão:
   [`docs/reference/runbooks/vault_full_audit.md`](../../../docs/reference/runbooks/vault_full_audit.md).
+- `--scope all --full` = **sweep one-shot** (um comando audita TUDO — ~409
+  arquivos, ~7M tokens). Contrato de execução obrigatório: **fasear
+  internamente na mesma sessão** — Fase 1 `reference` → Fase 2
+  `plan`+`sprint`+`claude`+`prompt`+`root` → Fase 3 `adr` em 4-5 sub-lotes
+  (`Proposto`/`Roadmap` primeiro) — fechando **1 PR docs-only + 1 subseção rN
+  no AUDITS-active por fase ANTES de iniciar a seguinte**. Isso preserva
+  triagem <30min/pacote e dá checkpoint (interrupção retoma da fase seguinte,
+  não do zero). O gate de custo pré-Fase 3 do runbook vira **informativo**
+  (invocar one-shot = owner já decidiu pagar o sweep inteiro): registre a taxa
+  de findings das fases 1-2 na subseção da Fase 3 em vez de parar. **Nunca**
+  consolide tudo num relatório/PR único.
 
 `archive/` e sprint fechada ficam **sempre fora** do julgamento (gates ainda
 rodam via pre-commit) — auditar histórico congelado gera falso-drift.

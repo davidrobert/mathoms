@@ -616,7 +616,7 @@ backfill após DELETE volta a criar do baseline.
 
 - [runbooks/f9_3_alembic_upgrade.md](runbooks/f9_3_alembic_upgrade.md) — F9.3 stage rename migration (pré-check + backup + rollback)
 - [runbooks/schema_validation_strict_flip.md](runbooks/schema_validation_strict_flip.md) — flip warn→strict per-schema (gate por baseline 7d + rollback de 1 linha, ADR-284)
-- [runbooks/vault_full_audit.md](runbooks/vault_full_audit.md) — auditoria full (100%) do vault em 3 fases (`/audit-vault --full`, modo de evento, ADR-302)
+- [runbooks/vault_full_audit.md](runbooks/vault_full_audit.md) — auditoria full (100%) do vault: 3 fases ou one-shot `/audit-vault --scope all --full` (modo de evento, ADR-302)
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
 - [BACKLOG.md](../BACKLOG.md) — 7E (operational readiness) · F7F-Local
 - [SMOKE_TEST.md](SMOKE_TEST.md) — verificações manuais pré-release
