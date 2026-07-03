@@ -11,7 +11,13 @@ from app.services.run_coordinator import run_sequence
 router = APIRouter(prefix="/api/v1/pipeline/runs", tags=["runs"])
 
 
-@router.post("", response_model=RunSummaryResponse)
+_ERROR_RESPONSES = {
+    400: {"description": "Stage(s) desconhecido(s) na sequência (ADR-093)."},
+    503: {"description": "DBArtifactStore/hidratação indisponível (ADR-303 D4)."},
+}
+
+
+@router.post("", response_model=RunSummaryResponse, responses=_ERROR_RESPONSES)
 def start_run(req: RunStartRequest) -> RunSummaryResponse:
     """Execute the requested stage sequence synchronously.
 
