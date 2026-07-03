@@ -245,7 +245,9 @@ class ChartsNarrator:
                     f"Cada segmento representa uma fonte: aluguéis, dividendos e rendimentos financeiros."
                 ),
                 "conclusion": (
-                    f"Renda passiva atual de {fmt_currency(M['renda_passiva_4pct'])}/mês ({fmt_percent(M['pct_renda_passiva_meta'])} da meta). "
+                    # A28.l2: é ESTIMATIVA pela regra de retirada sobre o investível
+                    # — não a renda observada via IRPF (essa vive no bloco TRS do S7).
+                    f"Renda passiva estimada pela regra de retirada ({fmt_num(M['if_trs_pct'], 0)}% sobre o investível): {fmt_currency(M['renda_passiva_4pct'])}/mês ({fmt_percent(M['pct_renda_passiva_meta'])} da meta). "
                     f"Faltam {fmt_currency(M['if_renda_passiva_meta'] - M['renda_passiva_4pct'])}/mês — patrimônio de {fmt_currency(M['if_meta'])} (meta {M['if_ano']}) "
                     f"geraria {fmt_currency(M['if_renda_passiva_meta'])}/mês com TRS de {fmt_num(M['if_trs_pct'], 0)}%."
                 ),
