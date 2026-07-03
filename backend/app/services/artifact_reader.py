@@ -27,10 +27,10 @@ logger = logging.getLogger(__name__)
 
 
 def _stage_query_candidates(stage: str) -> list[str]:
-    """Janela compat F9.2 → F9.6 (ADR-093): runners ainda escrevem nomes
-    legados (E4/E5...) mas callers podem chamar com forma descritiva.
-    Retorna formas a tentar em ordem (input, descritivo, legado), sem
-    duplicatas.
+    """Janela compat F9.2 → F9.6 (ADR-093): writers novos gravam nomes
+    descritivos (só E2 ainda grava legado — ``E2-faturas``/``E2-extratos``)
+    e rows antigas persistem no formato legado. Retorna formas a tentar
+    em ordem (input, descritivo, legado), sem duplicatas.
     """
     descriptive = resolve_stage_name(stage)
     legacy = to_legacy_stage_name(descriptive)

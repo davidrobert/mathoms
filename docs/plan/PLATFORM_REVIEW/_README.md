@@ -193,7 +193,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** —
 - **severity:** P0
 - **effort:** XS (~30min)
-- **status:** ready
+- **status:** done (2026-05-06, PR #94)
 - **related_findings:** CTO-009, DE-005
 - **files_touched:**
   - `CLAUDE.md` (§Code style › Testes — atualizar referência)
@@ -245,7 +245,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** —
 - **severity:** P1
 - **effort:** S (~3-4h)
-- **status:** ready
+- **status:** done (2026-05-06, PR #94)
 - **related_findings:** CTO-004, CTO-013
 - **files_touched:**
   - `docs/DECISIONS.md` (6 ADRs novas: ADR-170 a ADR-175)

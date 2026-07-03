@@ -6,7 +6,7 @@
 > `track_report_a11y_finalize.md`.
 >
 > **Atualização (2026-04-29):** Modo Tático removido do relatório
-> ([ADR-151](../../DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces),
+> ([[ADR-151]],
 > Direção E · Onda 3). Especificações mobile abaixo que mencionam
 > T1-T6 são **registro histórico**. Spec mobile efetiva passa a cobrir
 > apenas Modos Estratégico + USA.
@@ -363,7 +363,7 @@ A lane `report-mobile-impl` pode dar como concluída quando:
 
 - Decisão fonte: D3 em `agent_prompts/track_report_a11y_finalize.md`
 - Backlog item: [batch2.13](../../BACKLOG.md)
-- Renderer único pós ADR-129: [DECISIONS.md ADR-129](../../DECISIONS.md)
+- Renderer único pós [[ADR-129]]
 - Plano-mãe: [plan/REPORT_PREMIUM/_README.md §17.10](_README.md)
 - Fallback Kanban v2.7 (base): `frontend/src/app/globals.css:178`
 - A11y checklist: [REPORT_A11Y_CHECKLIST.md](A11Y_CHECKLIST.md)
