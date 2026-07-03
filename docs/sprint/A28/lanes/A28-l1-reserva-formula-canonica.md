@@ -4,7 +4,7 @@ type: lane
 title: "reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil"
 sprint: A28
 plan: PLAN-report-trust
-status: planned
+status: in_progress
 priority: P0
 branch_slug: reserva-formula-canonica
 adrs: []
@@ -13,7 +13,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a28
-  - status/planned
+  - status/in-progress
   - priority/p0
   - area/e5
 ---

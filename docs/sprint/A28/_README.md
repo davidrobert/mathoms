@@ -43,19 +43,28 @@ abrir", a sprint fecha o gap entre o que o relatório *afirma* e o que os dados
 *sustentam* — corrigindo fórmulas, fechando o loop de dados e tornando a
 apresentação honesta sobre qualidade/completude.
 
+## Progresso
+
+> **2026-07-03:** Onda 0 = 3/4 shipped (l2 #754 · l3 #755 · l4 #756) + l10 #753
+> (Onda 2 paralela). l1 desbloqueada (l4 mergeada) e em execução
+> (`agent/a28-reserva-formula-canonica/*`). Onda 1 (l5-l8) interrompida por
+> créditos — trabalho protegido em worktrees/branches `agent/a28-*`; retomar
+> pelo pickup normal. Fonte de estado por lane: frontmatter em
+> `lanes/A28-l*.md` + [SPRINT_CURRENT](../../_MOC/_generated/SPRINT_CURRENT.md).
+
 ## Ondas e lanes (co-design 2026-07-03)
 
 | Lane | Slug | Onda | Corte | Status | Dep / Gate |
 |---|---|---|---|---|---|
-| [[A28.l4]] | `mensalizacao-base-unica` | 0 | **Must** | planned | ADR `Proposto` é T0 · **upstream de l1** (base do denominador da reserva) |
-| [[A28.l1]] | `reserva-formula-canonica` | 0 | **Must** | planned | [[A28.l4]] (base mensal decidida antes do re-snapshot) |
-| [[A28.l2]] | `trs-universo-consistente` | 0 | **Must** | planned | — · ∥ com l4→l1 e l3 |
-| [[A28.l3]] | `pgbl-ano-base-unico` | 0 | **Must** | planned | ADR `Proposto` é T0 · ∥ |
+| [[A28.l4]] | `mensalizacao-base-unica` | 0 | **Must** | ✅ shipped #756 | ADR `Proposto` é T0 · **upstream de l1** (base do denominador da reserva) |
+| [[A28.l1]] | `reserva-formula-canonica` | 0 | **Must** | in_progress | [[A28.l4]] ✅ (desbloqueada; branch `agent/a28-reserva-formula-canonica/*` ativa) |
+| [[A28.l2]] | `trs-universo-consistente` | 0 | **Must** | ✅ shipped #754 | — · ∥ com l4→l1 e l3 |
+| [[A28.l3]] | `pgbl-ano-base-unico` | 0 | **Must** | ✅ shipped #755 | ADR `Proposto` é T0 · ∥ |
 | [[A28.l5]] | `nao-identificado-learning-loop` | 1 | Should | planned | código fecha sozinho · KR2 avaliado pós-gate `G-owner-reclassify` |
 | [[A28.l6]] | `protecao-apolices-flow` | 1 | Should | planned | — · reescopo data-engineer: alvo é `compute_protecao` ([[ADR-240]]), não só o balde E4 |
 | [[A28.l7]] | `imoveis-excluidos-dedup` | 1 | Should (tático) | planned | dedup na projeção · re-medição pós-gate `G-owner-label` · poda estrutural = débito A29+ |
 | [[A28.l8]] | `higiene-ingestao-periodos` | 1 | Should | planned | — · períodos 1899/2100 não são sentinel oficial (`999999`) — risco de ano-base fantasma |
-| [[A28.l10]] | `ancoras-formatter-curadoria` | 2 | Should | planned | — · **∥ desde o dia 1** (independe dos valores da Onda 0) |
+| [[A28.l10]] | `ancoras-formatter-curadoria` | 2 | Should | ✅ shipped #753 | — · **∥ desde o dia 1** (independe dos valores da Onda 0) |
 | [[A28.l9]] | `report-data-quality-banner` | 2 | Should | planned | skeleton ∥ · **merge após Onda 0** (consome números que a Onda 0 corrige) |
 | [[A28.l11]] | `parecer-guardrails-pos-llm` | 2 | Should | planned | skeleton ∥ · merge após Onda 0 · guardrail TRS mora na l2 (l11 só consome o flag) |
 

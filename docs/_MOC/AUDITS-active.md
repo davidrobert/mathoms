@@ -36,6 +36,45 @@ Para que nenhum achado se perca entre auditorias:
 
 ---
 
+## r5 — `vault-2026-07-03-r5`
+
+> Skill audit-vault ([[ADR-302]]) · scope=all · mode=comprehensive. Gates 6/6
+> verdes (zero finding mecânico). Amostra determinística: os MESMOS 24 arquivos
+> de r3/r4 — ver meta-achado F17. Julgamento: senior-cto +
+> information-architect + product-manager + prompt-engineer em paralelo + loop
+> principal (reference/root doc↔código). Verify: 3/3 DOC-BLOCK confirmados com
+> citação dupla. Fixes do r4 reverificados no código — nenhum regrediu. Bruto em
+> `_scratch/audit-vault-2026-07-03.md` (efêmero).
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F01 — A28 `_README` tabela: 11 lanes `planned`, mas l2/l3/l4/l10 `shipped` (#753-756; PR #758 só atualizou `lanes/*.md`) | DOC-BLOCK | procede | procede-fechado | tabela reconciliada + seção §Progresso datada, neste PR |
+| F02 — A28.l1 `planned`/fora do SPRINT_CURRENT, mas desbloqueada (l4 ✅) e em execução (branch `a28-reserva-formula-canonica` de 2026-07-03) | DOC-BLOCK | procede | procede-fechado | frontmatter `in_progress` → SPRINT_CURRENT regenerado exibe a lane como tomada |
+| F03 — ADR-188 declara supersedure parcial de ADR-186 §D3/§D6 + "wikilink bidirecional preservado", mas ADR-186 tem 0 menções a 188 | DOC-BLOCK | procede | procede-fechado | banner datado em 186 + `[[ADR-188]]` no `relates_to` (precedente ADR-095/r2) |
+| F04 — ADR-208 D1 "lê `workspace.tier` (existing column)"; coluna não existe — tier é derivado BYOK (`_classify_llm_config`) | DOC-DRIFT | procede | procede-aberto | batch `vault-drift-batch-r5` (P2 proposto, owner: information-architect) |
+| F05 — ADR-046 decisão revertida in-place sem âncora datada; "PWA em F8" órfã (F8 passou) | DOC-DRIFT | procede | procede-aberto | idem batch r5 |
+| F06 — ADR-068 enumera stages mortos (`E0-audit`, `E7-review/apply`) como contrato atual; sem relates_to 093/199/213 | DOC-DRIFT | procede | procede-aberto | idem batch r5 |
+| F07 — ADR-228 `Proposto` estagnado: gatilho "7 dias pós-tráfego real" sem registro há ~6 semanas | DOC-DRIFT | procede | procede-aberto | idem batch r5 (nota datada ou re-avaliação) |
+| F08 — ADR-270 emenda 2026-06-12 (revisa §1/§3) sem sinal no frontmatter; `[[ADR-289]]` fora do relates_to | DOC-DRIFT | procede | procede-aberto | idem batch r5 (padrão bom: ADR-027) |
+| F09 — ADR-290 estende ADR-269 sem backlink 269→290 | DOC-DRIFT | procede | procede-aberto | idem batch r5 |
+| F10 — CAT_LEARNING_LOOP §"Status atual (2026-05-11)" contradiz §executivo (07-02, gate ✅); plano `done` não arquivado (§Conclusão prevê `git mv`) | DOC-DRIFT | procede | procede-aberto | idem batch r5 |
+| F11 — MOBILE_SPEC sem frontmatter; links via âncora GH a shims (BACKLOG/DECISIONS) em vez de `[[ADR-129]]`/`[[ADR-151]]`; lane `report-mobile-impl` fora do funil | DOC-DRIFT | procede | procede-aberto | idem batch r5 (forma) · priorização é decisão do owner |
+| F12-F16 — POLISH (contagens ARCHITECTURE §8 117→197; relates_to vazio/sub-representado ADR-108/148; size_lines fora de ordem ADR-188; ADR-248 sem H1) | DOC-POLISH | procede | aceito-wontfix | batch pré-beta, junto com POLISH remanescentes |
+| F17 — (meta/skill) amostra do coletor não-rotativa: r3/r4/r5 auditaram os MESMOS 24 arquivos (`clean[::STRIDE]`); 97% do vault nunca entra no julgamento | DOC-DRIFT | procede | procede-aberto | P2, owner: loop principal — offset da stride por run/data em `collect_candidates.py` (reproduzível dentro do run) |
+
+**Falso-positivo evitado (3ª vez):** ausência de `model`/`temperature` em
+`chart_conclusions.yaml` é design (ADR-122) — o gate de paridade rodou EXIT 0 e
+os 6 builders ativos batem palavra-a-palavra com `conclusionUtils.ts`.
+**Retirado no verify:** suposta supersedure unidirecional ADR-128↔199 (é
+bidirecional; grep truncado do próprio especialista).
+
+**Verificações que passaram:** README raiz (11 parsers 1:1, portas Docker,
+scripts), ARCHITECTURE §4.1 (17 paths do glossário existem) e §18, 14/15 ADRs
+com conteúdo técnico confirmado contra código, _TEMPLATE.md, forma/KRs do A28
+`_README` (exemplar), fixes r4 (banner f9_3 + STATELESS_AUDIT §2/§4) presentes.
+
+---
+
 ## r4 — `vault-2026-07-02-r4`
 
 > Skill audit-vault ([[ADR-302]]) · scope=all · mode=comprehensive. Gates 100%
