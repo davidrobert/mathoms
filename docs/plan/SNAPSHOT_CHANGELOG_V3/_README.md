@@ -71,7 +71,10 @@ quando todas as métricas da seção estão `stable`. **Atingido.**
 
 ### W2 — Direção semântica + threshold por métrica (D3 + D4)
 
-**Status:** pendente — pré-requisito de W3/W4.
+**Status:** ✅ entregue 2026-07-03 — `direction_positive` fim-a-fim
+(pipeline → DTO → UI com inversão de cor + `aria-label` de julgamento) e
+`ThresholdRule(pct, abs_brl)` dual (`stable` só se ambos abaixo; boundary
+`>=` sinaliza). Destrava W3/W4. ADR-190 já constava `Decidido (A11)`.
 
 Lanes:
 
