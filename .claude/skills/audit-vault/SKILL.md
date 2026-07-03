@@ -27,6 +27,8 @@ critérios, roteamento, severidade e armadilhas: [`references/checklist.md`](ref
   dogfood→beta ([[ADR-302]] §Gatilho) — nunca cadência recorrente. Custo ≈17k
   tokens de julgamento/arquivo (empírico r5); rode **1 bucket por sessão/PR**
   (`--scope reference --full` primeiro) para a triagem caber em <30min por fase.
+  Sequência completa das 3 fases + gates de decisão:
+  [`docs/reference/runbooks/vault_full_audit.md`](../../../docs/reference/runbooks/vault_full_audit.md).
 
 `archive/` e sprint fechada ficam **sempre fora** do julgamento (gates ainda
 rodam via pre-commit) — auditar histórico congelado gera falso-drift.
