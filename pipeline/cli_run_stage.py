@@ -171,15 +171,32 @@ def _open_artifact_store(args: argparse.Namespace):
         raise CliEnvironmentError(str(exc)) from exc
 
 
-def _build_context(args: argparse.Namespace):
-    from pipeline.context import WorkspaceContext
+def _hydration_kwargs(args: argparse.Namespace) -> dict:
+    return {
+        "ws_id": args.workspace_id,
+        "tenant_root": args.workspace,
+        "run_id": args.run_id,
+        "config_dir": args.config_dir,
+        "incremental": args.incremental,
+        "incremental_doc_paths": list(args.incremental_docs),
+        "materialize_tarefas": True,
+    }
 
-    ctx = WorkspaceContext.for_tenant(
-        args.workspace, config_dir=args.config_dir, pipeline_run_id=args.run_id
-    )
-    ctx.incremental = args.incremental
-    ctx.incremental_doc_paths = list(args.incremental_docs)
-    return ctx
+
+def _build_hydrated_context(args: argparse.Namespace):
+    """WorkspaceContext hidratado — paridade com Celery/HTTP (run_context_factory)."""
+    try:
+        from backend.app.services.run_context_factory import build_hydrated_context
+    except ImportError as exc:
+        raise CliEnvironmentError(
+            f"pacote 'backend' não importável — necessário para hidratar o contexto (ADR-303 D4): {exc}"
+        ) from exc
+    try:
+        return build_hydrated_context(**_hydration_kwargs(args))
+    except Exception as exc:
+        raise CliEnvironmentError(
+            f"falha ao hidratar o WorkspaceContext (ADR-303 D4): {exc}"
+        ) from exc
 
 
 def _commit_and_close(session) -> None:
@@ -213,6 +230,25 @@ def _run_with_store(ctx, stage: str, session):
     return result
 
 
+def _run_hydrated(stage: str, args: argparse.Namespace):
+    """Abre as duas sessões (artifact + config), executa e fecha na ordem certa.
+
+    Invariante ADR-256: a sessão de config é read-only enquanto o artifact
+    store detém o write-lock; fechamento artifact primeiro, config depois.
+    """
+    session, store = _open_artifact_store(args)
+    try:
+        hydrated = _build_hydrated_context(args)
+    except BaseException:
+        _rollback_and_close(session)
+        raise
+    try:
+        hydrated.ctx.artifact_store = store
+        return _run_with_store(hydrated.ctx, stage, session)
+    finally:
+        hydrated.close()
+
+
 def _execute_run_stage(stage: str, args: argparse.Namespace) -> int:
     """Executa o stage com store injetado e emite o ``StageResult`` em stdout."""
     # Swap stdout→stderr durante a execução: handlers de logging criados pelo
@@ -221,11 +257,7 @@ def _execute_run_stage(stage: str, args: argparse.Namespace) -> int:
     real_stdout = sys.stdout
     sys.stdout = sys.stderr
     try:
-        ctx = _build_context(args)
-        ctx.ensure_dirs()
-        session, store = _open_artifact_store(args)
-        ctx.artifact_store = store
-        result = _run_with_store(ctx, stage, session)
+        result = _run_hydrated(stage, args)
     finally:
         sys.stdout = real_stdout
     print(json.dumps(asdict(result), ensure_ascii=False, default=str))

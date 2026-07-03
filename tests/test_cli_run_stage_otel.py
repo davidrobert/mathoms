@@ -56,8 +56,28 @@ def in_memory_exporter(monkeypatch):
     trace._TRACER_PROVIDER = None  # type: ignore[attr-defined]
 
 
+def _ensure_test_fernet_key(monkeypatch) -> None:
+    # Hidratação exige o vault Fernet; settings pode ter sido instanciado sem key.
+    from backend.app.core.config import settings
+
+    test_key = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
+    monkeypatch.setenv("MATHOMS_FERNET_KEY", test_key)
+    if not settings.FERNET_KEY:
+        monkeypatch.setattr(settings, "FERNET_KEY", test_key)
+
+
+def _isolate_redis(monkeypatch) -> None:
+    # Caches da hidratação (catálogo/budget) não podem escrever no Redis dev:
+    # aponta o client para porta fechada (fail-open) e zera o singleton.
+    from backend.app.core.config import settings
+    from backend.app.services import events
+
+    monkeypatch.setattr(settings, "REDIS_URL", "redis://127.0.0.1:6390/0")
+    monkeypatch.setattr(events, "_redis_client", None)
+
+
 def _patch_in_memory_store(monkeypatch):
-    """Aponta a factory de sessão para SQLite em memória com schema criado."""
+    """Aponta as factories de sessão (artifact + config) para SQLite em memória."""
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
     from sqlalchemy.pool import StaticPool
@@ -65,6 +85,7 @@ def _patch_in_memory_store(monkeypatch):
     import backend.app.models  # noqa: F401 — registra tabelas no metadata
     from backend.app.core.database import Base
     from backend.app.services import artifact_session_factory as factory
+    from backend.app.services import run_context_factory
 
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
@@ -72,7 +93,10 @@ def _patch_in_memory_store(monkeypatch):
     Base.metadata.create_all(engine)
     session_factory = sessionmaker(bind=engine, expire_on_commit=False)
     monkeypatch.setattr(factory, "_new_session_or_raise", lambda: session_factory())
+    monkeypatch.setattr(run_context_factory, "_default_session_factory", lambda: session_factory())
     monkeypatch.setenv("MATHOMS_DATABASE_URL", "sqlite+aiosqlite://in-memory-via-fixture")
+    _ensure_test_fernet_key(monkeypatch)
+    _isolate_redis(monkeypatch)
     return engine
 
 

@@ -43,7 +43,6 @@ from backend.app.services.events import (
     publish_stage_started,
 )
 from backend.app.services.pipeline_adapter import (
-    build_tarefas_md_sync,
     build_tasks_payload_sync,
 )
 from backend.app.services.report_tasks_snapshot_service import (
@@ -56,37 +55,10 @@ logger = logging.getLogger(__name__)
 
 
 def _materialize_tarefas_md(ws_id: str, ctx) -> None:
-    """ADR-077 + ADR-180: materializa apenas ``tarefas.md`` no tenant config dir.
+    """ADR-077 + ADR-180: materializa ``tarefas.md`` — movido para o factory."""
+    from backend.app.services.run_context_factory import materialize_tarefas_md
 
-    ``GoalsBundle`` saiu da materialização em A10.6 e agora vem via
-    ``ctx.config_overrides`` populado por ``build_config_overrides_from_db``.
-    ``tarefas.md`` continua materializado (texto livre, fora do escopo do
-    bundle tipado).
-
-    Best-effort: exceções são logadas mas não interrompem o pipeline.
-    """
-    import logging
-
-    logger = logging.getLogger("pipeline_task.materialize")
-
-    try:
-        with SyncSessionLocal() as db:
-            md = build_tarefas_md_sync(ws_id, db=db)
-            if not md.strip():
-                logger.info("No tasks in DB — keeping original tarefas.md")
-                return
-            target_config_dir = ctx.config_dir
-            target_config_dir.mkdir(parents=True, exist_ok=True)
-            tarefas_out = target_config_dir / "tarefas.md"
-            tarefas_out.write_text(md, encoding="utf-8")
-            logger.info("Materialized tarefas.md → %s", tarefas_out)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning(
-            "Failed to materialize tarefas.md for ws=%s: %s. "
-            "Pipeline will use original tarefas.md (fallback).",
-            ws_id,
-            exc,
-        )
+    materialize_tarefas_md(ws_id, ctx)
 
 
 def _load_active_pending(db, ws_id: str):
@@ -599,18 +571,6 @@ def _bootstrap_pipeline_sys_path() -> None:
         sys.path.insert(0, _root)
 
 
-def _read_imoveis_no_if(ws_id: str, session) -> bool:
-    """ADR-222: lê toggle per-workspace. Default `True` se workspace ausente."""
-    from sqlalchemy import select
-
-    from backend.app.models import Workspace
-
-    row = session.execute(
-        select(Workspace.imoveis_no_if).where(Workspace.id == ws_id)
-    ).scalar_one_or_none()
-    return True if row is None else bool(row)
-
-
 def _setup_run_context(
     run_id: str,
     ws_id: str,
@@ -619,69 +579,29 @@ def _setup_run_context(
     incremental: bool,
     incremental_doc_paths: list[str] | None,
 ):
-    """Cria WorkspaceContext + injeta ``DBConfigStore`` (ADR-134, post-A7.5).
+    """Cria WorkspaceContext hidratado (delegado a ``run_context_factory``).
 
     Retorna ``(ctx, config_store_session)`` — a sessão long-lived que
     respaldou o ``DBConfigStore`` é devolvida ao caller para fechamento
-    ao fim do run. ADR-212 PR3a: ``DBArtifactStore`` é sempre o store
-    de produção (hard-wired via ``_open_artifact_session`` por-stage no
-    loop principal). Flag ``USE_DB_ARTIFACTS`` deixa de governar — fica
-    como redundante em settings até PR4 dropar.
+    ao fim do run. A hidratação canônica (config_store + overrides +
+    resolvers ADR-215/219/222 + imoveis_no_if + budget hooks ADR-173)
+    vive em ``backend/app/services/run_context_factory.py`` — fonte
+    única dos três executores (Celery, HTTP, CLI). ``stage_duration_estimates``
+    permanece Celery-only (só alimenta progresso WS).
     """
-    from backend.app.services.db_economic_assumptions_resolver import (
-        DBEconomicAssumptionsResolver,
-    )
-    from backend.app.services.db_property_identity_resolver import (
-        DBPropertyIdentityResolver,
-    )
-    from backend.app.services.db_property_overrides_resolver import (
-        DBPropertyOverridesResolver,
-    )
-    from backend.app.services.pipeline_adapter import (
-        build_config_overrides_from_db,
-        build_config_store,
-    )
-    from pipeline.context import WorkspaceContext
+    from backend.app.services.run_context_factory import build_hydrated_context
 
-    config_store_session = SyncSessionLocal()
-    config_store = build_config_store(db=config_store_session)
-    overrides = build_config_overrides_from_db(ws_id, db=config_store_session)
-    # ADR-215 P2: resolver compartilha a mesma session do config_store
-    # (long-lived; fechada ao fim do run via _close_config_store_session).
-    property_identity_resolver = DBPropertyIdentityResolver(session=config_store_session)
-    # ADR-219 wave 2: resolver de premissas econômicas para E5 snapshot.
-    economic_assumptions_resolver = DBEconomicAssumptionsResolver(session=config_store_session)
-    # ADR-215 P3 (fix de conexão): resolver de classificação user-driven —
-    # conecta `workspace_property_overrides` (gravado via P4/P5) ao split
-    # lazy em `PatrimonioCalculator`. Sem isso, override do usuário fica
-    # órfão e relatório continua zerando linha "Residência" silenciosamente.
-    property_overrides_resolver = DBPropertyOverridesResolver(session=config_store_session)
-    # ADR-222: per-workspace `imoveis_no_if` substitui `pipeline.json:14`
-    # global. Default `True` quando workspace ausente (CLI/testes).
-    imoveis_no_if = _read_imoveis_no_if(ws_id, config_store_session)
-
-    ctx = WorkspaceContext.for_tenant(
-        tenant_root,
-        config=overrides,
+    hydrated = build_hydrated_context(
+        ws_id=ws_id,
+        tenant_root=tenant_root,
+        run_id=run_id,
         config_dir=config_dir,
-        pipeline_run_id=run_id,
-        workspace_id=ws_id,
-        config_store=config_store,
-        property_identity_resolver=property_identity_resolver,
-        economic_assumptions_resolver=economic_assumptions_resolver,
-        property_overrides_resolver=property_overrides_resolver,
-        imoveis_no_if=imoveis_no_if,
+        incremental=incremental,
+        incremental_doc_paths=incremental_doc_paths,
     )
-    ctx.incremental = incremental
-    ctx.incremental_doc_paths = incremental_doc_paths or []
-    # ADR-173: budget hard-stop + LLMCallLog em toda chamada LLM do run.
-    from backend.app.services.llm_budget_service import LLMBudgetService
-
-    ctx.llm_call_hooks = LLMBudgetService(ws_id, pipeline_run_id=run_id)
-    ctx.ensure_dirs()
+    ctx = hydrated.ctx
     ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
-
-    return ctx, config_store_session
+    return ctx, hydrated.config_store_session
 
 
 def _close_config_store_session(session) -> None:

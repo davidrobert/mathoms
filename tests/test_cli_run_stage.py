@@ -82,10 +82,19 @@ def _seed_e2(db_url: str, run_id: str, monkeypatch, valor: float = 100.0) -> Non
         session.close()
 
 
+_TEST_FERNET_KEY = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
+
+
 def _cli_env(db_url: str | None) -> dict[str, str]:
     env = {
         **os.environ,
         "MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS": "false",
+        # Hidratação (run_context_factory) exige o vault Fernet (config_materializer).
+        "MATHOMS_FERNET_KEY": _TEST_FERNET_KEY,
+        # Porta fechada: caches Redis (catálogo, budget) viram no-op fail-open —
+        # sem isso a hidratação do subprocess escreveria no Redis dev (ex.:
+        # catálogo vazio por cima do real em institution_catalog:global).
+        "MATHOMS_REDIS_URL": "redis://127.0.0.1:6390/0",
         "PYTHONPATH": str(REPO_ROOT),
     }
     env.pop("MATHOMS_DATABASE_URL", None)
