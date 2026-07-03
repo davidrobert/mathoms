@@ -5,14 +5,17 @@ puro. Identifica 5-8 pontos fortes a partir de score/ratios/patrimônio/
 fluxo/reserva/goals.
 
 Checks (cada um pode gerar 0 ou 1 ponto):
-1. Score financeiro positivo (classificação Excelente/Bom).
-2. Taxa de poupança (forte >=min; disciplinada 15-min; abaixo disso sem ponto).
-3. Endividamento (mínimo <5%; controlado <max).
-4. Reserva de emergência (excelente >=12 meses; adequada >=6).
-5. Patrimônio diversificado (>=4 categorias com valor).
-6. Colchão patrimonial (robusto >=24 meses; sólido >=12).
-7. Progresso IF (>=20%).
-8. Patrimônio bruto >= R$1M.
+1. Taxa de poupança (forte >=min; disciplinada 15-min; abaixo disso sem ponto).
+2. Endividamento (mínimo <5%; controlado <max).
+3. Reserva de emergência (excelente >=12 meses; adequada >=6).
+4. Patrimônio diversificado (>=4 categorias com valor).
+5. Colchão patrimonial (robusto >=24 meses; sólido >=12) — suprimido quando a
+   reserva já gerou ponto (mesma família de cobertura em meses; A28.l10).
+6. Progresso IF (>=20%).
+7. Patrimônio bruto >= R$1M.
+
+Curadoria (A28.l10): o ponto "Score Financeiro Positivo" foi removido — era
+circular (referencia apenas o próprio score, já exibido no gauge S1).
 
 Fallback: "Análise em Andamento" quando nenhum dispara.
 
@@ -100,21 +103,10 @@ class PontosFortesAnalyzer:
     ) -> list[PontoForteItem]:
         cfg = self._config
         out: list[PontoForteItem] = []
-
-        # 1. Score
-        classificacao = (score or {}).get("classificacao", "")
-        score_val = _safe_float((score or {}).get("valor", 0))
-        if classificacao in ("Excelente", "Bom"):
-            out.append(
-                PontoForteItem(
-                    titulo="Score Financeiro Positivo",
-                    descricao=(
-                        f"Classificação «{classificacao}» ({score_val:.1f}/10) "
-                        "indica solidez financeira geral."
-                    ),
-                    icone="trophy",
-                )
-            )
+        # `score` fica na assinatura por compat de call-site, mas não gera ponto:
+        # "Score Financeiro Positivo" era circular (só referencia o próprio score,
+        # já exibido no gauge S1) — suprimido em A28.l10.
+        _ = score
 
         # 2. Poupança
         taxa_poup = _safe_float((ratios or {}).get("taxa_poupanca_recorrente_pct", 0))
@@ -169,6 +161,7 @@ class PontosFortesAnalyzer:
 
         # 4. Reserva
         cobertura = _safe_float((reserva or {}).get("cobertura_meses", 0))
+        reserva_emitida = cobertura >= 6
         if cobertura >= 12:
             out.append(
                 PontoForteItem(
@@ -204,8 +197,11 @@ class PontosFortesAnalyzer:
                 )
             )
 
-        # 6. Colchão patrimonial
-        cobertura_desp = _safe_float((ratios or {}).get("cobertura_despesas_meses", 0))
+        # 6. Colchão patrimonial — mesma família de cobertura em meses da reserva:
+        # emitir os dois é redundante (dedup semântico A28.l10); reserva vence.
+        cobertura_desp = 0.0
+        if not reserva_emitida:
+            cobertura_desp = _safe_float((ratios or {}).get("cobertura_despesas_meses", 0))
         if cobertura_desp >= 24:
             out.append(
                 PontoForteItem(

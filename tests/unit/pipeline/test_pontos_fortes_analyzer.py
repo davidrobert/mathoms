@@ -32,12 +32,13 @@ def _args(**overrides):
 
 
 class TestScoreFinanceiro:
-    def test_gera_quando_excelente(self):
+    def test_nao_gera_mesmo_quando_excelente(self):
+        """A28.l10: ponto de score é circular (referencia só o próprio score) — suprimido."""
         out = PontosFortesAnalyzer().analyze(
             **_args(score={"classificacao": "Excelente", "valor": 8.5})
         )
         titulos = {p.titulo for p in out}
-        assert "Score Financeiro Positivo" in titulos
+        assert "Score Financeiro Positivo" not in titulos
 
     def test_nao_gera_quando_regular(self):
         out = PontosFortesAnalyzer().analyze(
@@ -145,6 +146,30 @@ class TestColchaoPatrimonial:
         )
         titulos = {p.titulo for p in out}
         assert "Patrimônio Investível Sólido" in titulos
+
+    def test_suprimido_quando_reserva_ja_gerou_ponto(self):
+        """A28.l10: reserva e colchão são a mesma família de cobertura em meses —
+        emitir os dois é redundante; reserva vence."""
+        out = PontosFortesAnalyzer().analyze(
+            **_args(
+                reserva={"cobertura_meses": 18},
+                ratios={"cobertura_despesas_meses": 30, "taxa_endividamento_pct": 50},
+            )
+        )
+        titulos = {p.titulo for p in out}
+        assert "Reserva de Emergência Excelente" in titulos
+        assert "Colchão Patrimonial Robusto" not in titulos
+        assert "Patrimônio Investível Sólido" not in titulos
+
+    def test_emitido_quando_reserva_abaixo_de_6_meses(self):
+        out = PontosFortesAnalyzer().analyze(
+            **_args(
+                reserva={"cobertura_meses": 4},
+                ratios={"cobertura_despesas_meses": 30, "taxa_endividamento_pct": 50},
+            )
+        )
+        titulos = {p.titulo for p in out}
+        assert "Colchão Patrimonial Robusto" in titulos
 
 
 class TestProgressoIF:
