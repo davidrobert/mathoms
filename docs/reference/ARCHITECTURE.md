@@ -362,7 +362,7 @@ bloqueia recriação acidental.
 | **pipeline_artifact_repository** | Queries cross-run em `pipeline_artifacts` (ADR-082) |
 | **document_processor** | Upload pipeline: unlock → classify → dedupe → route |
 | **content_classifier** | Content-first classification (regex + LLM fallback) |
-| **config_materializer** | Materializa 5 configs editáveis (DB → disco per-tenant) |
+| **config_materializer** | Materializa apenas `pipeline.json` + `llm_config.json` (+ assets globais) por tenant (pós-A7.5; demais configs fluem via `DBConfigStore`) |
 | **goal_service** | Goal computation (IF via FV anuidade, Aporte, Dolar, Alocação) + CRUD versionado append-only (`create_goal_version` genérica, helpers tipados) |
 | **task_service** | Task CRUD + status transitions + dependencies + export MD |
 | **task_suggestion_service** | TaskSuggestion (legado LLM): create/approve/reject/merge — distinto de `Suggestion` (ADR-153) |
@@ -1020,8 +1020,8 @@ descontinuar o renderer HTML server-side; React em `/reports/[id]` é
 | Tasks (backlog de ações)                          | `tasks`, `task_suggestions`, `task_attachments` (DB)        | CRUD via `/tasks` endpoints                                     |
 | Feature flags                                     | `feature_flags` (DB) + defaults em código                   | `PUT /feature-flags/{flag}`                                     |
 | Config materializada por tenant (assets de produto) | `storage/{ws_id}/config/*`                                  | `config_materializer.prepare_pipeline_config_dir()` (apenas pipeline.json + llm_config.json + assets globais; A7.1 configs fluem via `WorkspaceContext.config_overrides` from DB) |
-| Artefatos intermediários (`-2_extract.json`, …)   | `storage/{ws_id}/processed/E2_extracts/` etc.               | Scripts E2–E5 executando dentro do tenant_root                  |
-| Análise final (`analise_financeira-5_analysis.json`) | `storage/{ws_id}/processed/E5_analysis/`                 | Stage E5                                                        |
+| Artefatos intermediários (E2–E4)                  | `pipeline_artifacts` (DB, colunas `stage` + `artifact_key` — [[ADR-212]]) | Stages escrevem via `DBArtifactStore.write` (validação JSON pós-write) |
+| Análise final (`analise_financeira`, stage E5)    | `pipeline_artifacts` (DB — [[ADR-212]])                     | Stage E5 via `DBArtifactStore`                                  |
 | Relatório (metadata)                              | row em `reports` (DB) — sem filesystem                      | Celery task registra `Report` após E5/E6-parecer; render é React on-demand |
 | Tasks snapshot no relatório                       | `reports.tasks_snapshot_json` (DB)                          | `build_snapshot_sync` na criação do Report                      |
 | Audit log                                         | `audit_logs` (DB)                                           | `audit_service.log()` dentro da transação                       |

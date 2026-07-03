@@ -87,7 +87,7 @@ tests/test_e0_route_edges.py tests/test_e7_edges.py tests/test_e5_e6_e5n_edges.p
 tests/fixtures/pdf_generator.py # 6.5F.12 — 14 códigos BankCode; registry com `_draw_*` (C6, Bradesco, BTG, … Quinto Andar)
 dev/check_pipeline_boundaries.py # P1 — imports proibidos em pipeline/
 pipeline/cli_run_stage.py     # CLI run-stage do orchestrator (A3.cli · ADR-150)
-tests/regressions/              # 6.5E.8 — 1 test por bug histórico (BUG-NNN)
+backend/tests/regressions/      # 6.5E.8 — 1 test por bug histórico (BUG-NNN)
 tests/test_design_tokens_build.py       # F9 — 20 tests (tokens build + parity)
 tests/test_report_layout_codegen.py     # F9 — 14 tests (codegen + schema)
 
@@ -229,8 +229,11 @@ só validamos comportamento do `E3ReconcilerAdapter` (Caminho B foundation).
   Default soft-fail; ativar `MATHOMS_ENFORCE_STAGE_RENAME=1` para hard-fail.
 - `tests/unit/pipeline/test_stage_spec.py` — garante `STAGE_RENAME_MAP`
   exaustivo e bijetivo.
-- `tests/unit/pipeline/test_materialization_bridge.py::TestMappingsComplete`
-  — `_STAGE_TO_DIR`/`_STAGE_TO_SUFFIX` cobrem todos os stages relevantes.
+- `tests/unit/pipeline/test_artifact_stores.py::test_legacy_descriptive_parity`
+  — todo par `(legacy, descritivo)` de `STAGE_RENAME_MAP` que produz artifact
+  tem ambas as keys em `_STAGE_TO_SUFFIX` com o mesmo sufixo (o antigo
+  `test_materialization_bridge.py::TestMappingsComplete` foi deletado com
+  `_STAGE_TO_DIR` em [[ADR-213]]).
 
 ### Frontend (Vitest)
 

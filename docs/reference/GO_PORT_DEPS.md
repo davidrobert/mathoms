@@ -21,7 +21,7 @@
 
 **Conclusão operacional:** o shell HTTP segue portável em ~600 LOC Go — a fronteira fina **sobreviveu 2 meses de crescimento 2× do domínio** sem ganhar import novo. O domínio agora tem ~38 mil LOC: a estimativa de Caminho 3 da ADR-150 (3-5 meses para 17,8k LOC) está subdimensionada — proporcionalmente, **6-10 meses** — o que reforça Caminho 1 como default.
 
-**Acoplamento novo pós-ADR-212 (não existia no inventário original):** artefatos são DB-only (`pipeline_artifacts` via `DBArtifactStore`); qualquer executor fora do processo Celery precisa de injeção de store — ver §5.6. **Resolvido em A3.store** ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) `Decidido`, PRs #721+#723): o modo HTTP injeta `DBArtifactStore` por-stage via `pipeline-service/app/services/artifact_session.py` e a suíte `pipeline-service/tests` roda no CI. Próximo pré-requisito da fila: **A3.cli** (tracks em [docs/plan/GO_SHELL/](../plan/GO_SHELL/_README.md)).
+**Acoplamento novo pós-ADR-212 (não existia no inventário original):** artefatos são DB-only (`pipeline_artifacts` via `DBArtifactStore`); qualquer executor fora do processo Celery precisa de injeção de store — ver §5.6. **Resolvido em A3.store** ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md) `Decidido`, PRs #721+#723): o modo HTTP injeta `DBArtifactStore` por-stage via `pipeline-service/app/services/artifact_session.py` e a suíte `pipeline-service/tests` roda no CI. A3.cli/A3.cli.otel/A3.cli.benchmark também entregues (PRs #737/#738, 2026-07-02 — ver §6 B3/B3.bench); próximo pré-requisito da fila: **A3.codegen**, ancorado ao 1º PR Go (F1 — tracks em [docs/plan/GO_SHELL/](../plan/GO_SHELL/_README.md)).
 
 ---
 
@@ -86,12 +86,12 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–518 LOC, mediana ~40) que
 | `route_documents` | | 38 | `scripts/e0_route.py` + `backend/app/services/document_classification.py` |
 | `extract_members` | ✓ | 206 | `pipeline/domain/services/member_analyzer.py` |
 | `extract_baseline` | ✓ | 359 | `pipeline/domain/services/patrimonio_*.py` |
-| `consolidate_baseline` | | 40 | `scripts/e1_consolidate.py` |
+| `consolidate_baseline` | | 40 | `scripts/e15_consolidate.py` |
 | `extract_irpf_full` | ✓ | 308 | E1.6 — IRPF completo (ADR-157) |
 | `extract_informe_aluguel` | ✓ | 185 | informes de imobiliária (ADR-216) |
 | `extract_informes_anuais` | ✓ | 451 | informes anuais PF/PJ/previdência (ADR-238) |
 | `extract_comprovantes_bens` | ✓ | 496 | apólices/CRLV (ADR-239) |
-| `extract_invoices` | | 19 | `scripts/e2_invoices/banks/*.py` |
+| `extract_invoices` | | 19 | `scripts/e2/banks/*.py` |
 | `extract_statements` | | 19 | `pipeline/domain/services/statement_preprocessor.py` + `scripts/e2_extract.py` |
 | `extract_with_llm` | ✓ | 518 | `pipeline/llm/litellm_client.py` (482) + LLM heavy |
 | `reconcile_transactions` | | 18 | `pipeline/domain/services/reconciliation_service.py` + validators + `source_tier.py` |
@@ -135,7 +135,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–518 LOC, mediana ~40) que
 
 **Mantém em Python:**
 - `pipeline/` inteiro (38.348 LOC) — invocado via `python -m pipeline.orchestrator run-stage <name> --workspace <path>`
-- **Pré-requisitos:** (1) A3.store ✅ ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md), #721+#723); (2) A3.cli ✅ (PR #737) — entry-point `python -m pipeline.orchestrator run-stage` em [pipeline/cli_run_stage.py](../../pipeline/cli_run_stage.py), injeção de store via [backend/app/services/artifact_session_factory.py](../../backend/app/services/artifact_session_factory.py) com `MATHOMS_DATABASE_URL`; falta A3.cli.otel (Fase 2 do track) e A3.cli.benchmark. Ordem e detalhes na emenda 2026-07-02 da [ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md)
+- **Pré-requisitos:** (1) A3.store ✅ ([ADR-303](../adr/303-boundary-artefatos-executor-remoto-a3store.md), #721+#723); (2) A3.cli ✅ (PR #737) — entry-point `python -m pipeline.orchestrator run-stage` em [pipeline/cli_run_stage.py](../../pipeline/cli_run_stage.py), injeção de store via [backend/app/services/artifact_session_factory.py](../../backend/app/services/artifact_session_factory.py) com `MATHOMS_DATABASE_URL`; (3) A3.cli.otel ✅ (PR #738) e A3.cli.benchmark ✅ (gate 413ms ≤ 500ms) — ver §6 B3/B3.bench; resta **A3.codegen** (ancorado ao 1º PR Go, F1). Ordem e detalhes na emenda 2026-07-02 da [ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md)
 
 **Substitui:**
 - `_run_stage` por `exec.Command("python", "-m", "pipeline.orchestrator", ...)` → captura stdout/stderr → parse JSON

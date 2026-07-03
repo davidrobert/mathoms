@@ -28,7 +28,7 @@
 | **10**  | Growth & Aquisição | ☐ Futuro (pós-GA) | Landing, SEO, billing, digest — ver § F10 |
 | **11**  | Confiança, transparência, excelência de relatório | ☐ Beta → GA | Origem dos dados, LLM/needs_review, premissas, hierarquia numérica, print/PDF consultoria, mental model plano × mês — ver § F11 |
 
-**Épicos transversais (não são fases numeradas):** [P2 classificação de documentos](../BACKLOG.md#p2--unificação-da-classificação-de-documentos) (motor); **P0/P1 motor canônico** (§ *Motor canônico e pipeline* abaixo) concluído; expansão incremental de goldens/PDF continua junto a **7D.1**.
+**Épicos transversais (não são fases numeradas):** [P2 classificação de documentos](../archive/BACKLOG-pre-shim-2026-05-07.md#p2--unificação-da-classificação-de-documentos) (motor); **P0/P1 motor canônico** (§ *Motor canônico e pipeline* abaixo) concluído; expansão incremental de goldens/PDF continua junto a **7D.1**.
 
 ---
 
@@ -48,7 +48,7 @@ Adiado conscientemente: são features de **aquisição / marketing** que não fa
 | P1 | Billing real (Stripe) | BYOK cobre Premium até GA |
 | P2 | Report comparison (side-by-side, deltas) | Requer histórico de relatórios no uso real |
 
-**Command palette / atalhos:** entregue em produto (**F11.8**): **⌘K** / Ctrl+K + modal **?** — ver [BACKLOG](../BACKLOG.md#f11-8--command-palette--atalhos).
+**Command palette / atalhos:** entregue em produto (**F11.8**): **⌘K** / Ctrl+K + modal **?** — ver [BACKLOG pré-shim (histórico)](../archive/BACKLOG-pre-shim-2026-05-07.md#f118--command-palette--atalhos).
 
 ---
 
@@ -67,13 +67,13 @@ Objetivo: **baixa fricção cognitiva**, **confiança em dados e em LLM**, e **e
 | F11.7 | **Número ↔ regra** | Tooltips ou painel “Como calculamos”: ligação do KPI ao motor (ex.: FV de anuidade na meta IF); glossário mínimo. | P1 |
 | F11.8 | **Command palette / atalhos** | `cmdk` (ou equivalente): busca de rotas, ações (novo upload, rodar pipeline); atalhos documentados e não conflitantes com o browser. | P2 |
 
-Detalhamento por task: **[BACKLOG.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga](../BACKLOG.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)**.
+Detalhamento por task (histórico): **[BACKLOG pré-shim §F11](../archive/BACKLOG-pre-shim-2026-05-07.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)**.
 
 **Sprint B (2026-04-17):** F11.5 (banner `needs_review`, notas LLM por etapa, sem códigos E* na linha de etapa; rótulo de toque E2 sem “E2” na UI), F11.4b–c (`ReportSourceStrip` + período/gerado em), fatia de F11.2 (eixos/tooltips do dashboard com `tabular-nums`).
 
 **Sprint C (2026-04-17):** F11.4a no nível do relatório — `pipeline_run_id` na API, link e deep link para Pipeline; F11.2a — `tabular-nums` / `font-mono` em Transactions (tabela + paginação) e hero do relatório nativo.
 
-**Sprint D (2026-04-17):** P2.5 (telemetria de classificação); conclusão F11.4a agregada (`source_document_ids` / `_report_lineage`); F11.2b; F11.7 + F11.6c; F11.3c checklist + F11.3a/b em progresso; F11.1 nav + empty states + [COPY_GUIDELINES](../BACKLOG.md); F11.8 cmdk. **Atualização:** F11.6b (snapshot de premissas no relatório) e leva inicial **7D.1 / 7D.2** (testes unitários de borda E0/E3/E4/E7 e E5/E5N/E6). Próximo: F11.6a (premissas nas metas na UI), linhagem por seção se necessário, golden F11.7c.
+**Sprint D (2026-04-17):** P2.5 (telemetria de classificação); conclusão F11.4a agregada (`source_document_ids` / `_report_lineage`); F11.2b; F11.7 + F11.6c; F11.3c checklist + F11.3a/b em progresso; F11.1 nav + empty states + [COPY_GUIDELINES](COPY_GUIDELINES.md); F11.8 cmdk. **Atualização:** F11.6b (snapshot de premissas no relatório) e leva inicial **7D.1 / 7D.2** (testes unitários de borda E0/E3/E4/E7 e E5/E5N/E6). Próximo: F11.6a (premissas nas metas na UI), linhagem por seção se necessário, golden F11.7c.
 
 **Ordem sugerida (histórico):** F11.5 → F11.4 → F11.2 → F11.7 → F11.6 → F11.3 → F11.1 → F11.8 — **Sprint D** executou o tail desta fila + P2.5.
 
@@ -129,9 +129,10 @@ Política de cobertura (Python backend + pipeline):
 **ADRs formalizadoras**: 097-111 em [DECISIONS.md](../DECISIONS.md) ·
 **Arquitetura alvo + motivação**: [ARCHITECTURE §17](ARCHITECTURE.md).
 
-**Fonte única de status, sessões pendentes, lanes abertas e diagrama de
-ondas paralelas**: [BACKLOG.md §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal).
-ROADMAP cobre apenas a visão de fases e timeline macro — não duplique
+**Status, sessões e diagrama de ondas paralelas do Sprint A6
+(histórico)**: [BACKLOG pré-shim §Sprint A6](../archive/BACKLOG-pre-shim-2026-05-07.md#sprint-a6--migração-infradomínio-plano-transversal);
+sprint corrente em [SPRINT_CURRENT.md](../_MOC/_generated/SPRINT_CURRENT.md).
+PHASES cobre apenas a visão de fases e timeline macro — não duplique
 status de sessão aqui (vira drift).
 
 **Sprint corrente — NÃO snapshot aqui (vira drift).** A sprint atual e as lanes
@@ -147,7 +148,7 @@ incorporados ao escopo de F7 (Produção + LGPD + Ops).
 
 ## DOCS-REVIEW — Saúde da documentação (pós-revisão multi-agente 2026-04-24)
 
-Revisão coordenada por 4 agentes (senior-cto, product-designer, financial-planner, general-purpose) em 2026-04-24 produziu ~20 achados priorizados. **Batch 1** (hotfix — ADR-078/079 duplicados → 125/126, ADR-119/120 registradas, ROADMAP+BACKLOG sincronizados, contagens ARCHITECTURE alinhadas) foi entregue em `af8dce7`. **Batches 2 e 3** ficam como trabalho futuro em [BACKLOG §DOCS-REVIEW](../BACKLOG.md#docs-review--followups-da-revisão-multi-agente-2026-04-24) — não bloqueiam F7, mas precisam acontecer antes de Beta fechado para saúde sustentável da doc.
+Revisão coordenada por 4 agentes (senior-cto, product-designer, financial-planner, general-purpose) em 2026-04-24 produziu ~20 achados priorizados. **Batch 1** (hotfix — ADR-078/079 duplicados → 125/126, ADR-119/120 registradas, ROADMAP+BACKLOG sincronizados, contagens ARCHITECTURE alinhadas) foi entregue em `af8dce7`. **Batches 2 e 3** ficam como trabalho futuro em [BACKLOG pré-shim §DOCS-REVIEW (histórico)](../archive/BACKLOG-pre-shim-2026-05-07.md#docs-review--followups-da-revisão-multi-agente-2026-04-24) — não bloqueiam F7, mas precisam acontecer antes de Beta fechado para saúde sustentável da doc.
 
 - **Batch 2 — reescrita** (15 itens): FORMULAS completo, COPY_GUIDELINES expandido, TOC em DECISIONS, shapes TS em REPORT_PREMIUM_GAPS, Quickstart LLM, Guia DDD, TESTING completo, design token governance, spec mobile, a11y checklist.
 - **Batch 3 — ADRs + correções de domínio** (12 itens): ADR-Processo formal, ADR-ScoringParams, ADR-MoneyDTOs (finaliza A6g.3b), ADR-AlocaçãoAlvo, fix Cerbasi `categorias_futuro`, reserva de emergência só líquidos, dívida boa×ruim, RebalancingAdvisor, YoC real, cobertura de seguros, auto-gen contagens ARCHITECTURE.
@@ -175,4 +176,4 @@ Revisão coordenada por 4 agentes (senior-cto, product-designer, financial-plann
 - **P1** — Importante. Sem isso funciona, mas falta qualidade/completude.
 - **P2** — Nice-to-have. Pode postergar para próxima fase ou sprint.
 
-Ver [BACKLOG.md](../BACKLOG.md) para priorização detalhada por task.
+Ver [SPRINT_CURRENT.md](../_MOC/_generated/SPRINT_CURRENT.md) + [SPRINTS-active.md](../_MOC/SPRINTS-active.md) para priorização detalhada por lane.

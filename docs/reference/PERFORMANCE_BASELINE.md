@@ -69,10 +69,10 @@ cd pipeline-service && uvicorn app.main:app --host 127.0.0.1 --port 18001
 
 **Setup container:**
 
-> Nota: o [Dockerfile oficial do pipeline-service](../../pipeline-service/Dockerfile) está com bug pré-existente — vide §6. Para esta medição usei um Dockerfile equivalente em `_scratch/` (gitignored) que apenas reordena `COPY` antes de `RUN pip install`. Wire-protocol e deps são idênticos.
+> Nota histórica: na medição original (2026-04-27) o Dockerfile oficial tinha bug de build — vide §6 — e usei um Dockerfile equivalente em `_scratch/` (gitignored). **Atualização (2026-07-03, audit r6):** o bug foi corrigido no [Dockerfile oficial](../../pipeline-service/Dockerfile) (copia o source antes do `pip install`, base SHA-pinada); use-o para novas medições. As métricas abaixo permanecem como snapshot de 2026-04-27.
 
 ```bash
-docker build -t mathoms-pipeline-service:baseline -f _scratch/Dockerfile.pipeline-service-fixed .
+docker build -t mathoms-pipeline-service:baseline -f pipeline-service/Dockerfile .
 docker run -d --name ps -p 18002:8001 mathoms-pipeline-service:baseline
 ```
 
@@ -219,7 +219,9 @@ Top consumidores:
 
 ## 6. Achado colateral — bug pré-existente no Dockerfile
 
-[pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) **não builda como está hoje** (testado em 2026-04-27, arm64).
+> **Atualização (2026-07-03, audit r6):** bug **corrigido** — o Dockerfile atual builda normalmente (copia o source de `pipeline-service/`, `pipeline/` e `backend/` **antes** do `pip install` do pacote — ver [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) linhas ~29-38 — além de base SHA-pinada e user non-root, A20.L2/L3). O workaround `_scratch/Dockerfile.pipeline-service-fixed` está **obsoleto**. O texto abaixo é registro histórico do estado em 2026-04-27.
+
+[pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) **não buildava como estava então** (testado em 2026-04-27, arm64).
 
 Causa: linha 14 copia só `pyproject.toml` antes do `pip install` na linha 15. Mas `pyproject.toml` declara `[tool.setuptools] packages = ["app", "app.api", ...]` — setuptools tenta encontrar o diretório `app/` durante o build do wheel e falha:
 
@@ -332,8 +334,8 @@ ps -o rss=,vsz=,pcpu= -p "$PID"
 # 5. Latência
 ab -n 5000 -c 50 -q http://127.0.0.1:18001/health
 
-# 6. Container (após fix do Dockerfile — ver §6)
-docker build -t mathoms-pipeline-service:baseline -f _scratch/Dockerfile.pipeline-service-fixed .
+# 6. Container (Dockerfile oficial — bug do §6 corrigido em 2026-07-03)
+docker build -t mathoms-pipeline-service:baseline -f pipeline-service/Dockerfile .
 docker images mathoms-pipeline-service:baseline
 docker run -d --name ps -p 18002:8001 mathoms-pipeline-service:baseline
 docker stats ps --no-stream --format "{{.MemUsage}}"
@@ -353,7 +355,7 @@ Atualizar este doc se: (a) shell ganhar dependência nova relevante (Pydantic, F
 | **A2** | Este documento · footprint baseline | ✅ feito (com limitação: stage execution real não medida) |
 | A2.1 | Estender A2 com smoke real — workspace tenant + um run E0→E5, medir RSS/CPU/duração por stage | ◐ **parcial** (2026-07-03, §12): harness entregue (`dev/profile_pipeline_stages.py`) + perfil determinístico E1.5c→E5 sintético; rerun com dados reais + LLM é owner-gated — só ele refalsifica o gatilho "GIL" |
 | **A3** | ADR de estratégia de port (Caminho 1/2/3) com base em A1 + A2 (+ A2.1 se necessário) | Destrava primeiro PR Go produtivo |
-| A2.fix | Slice próprio para fixar [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) — pré-requisito para CI smoke do pipeline-service Python | Detectado em A2 §6 |
+| A2.fix | ✅ **resolvido** — [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) corrigido (copia source antes do install, base SHA-pinada; ver §6) | Detectado em A2 §6; fechado até 2026-07-03 (audit r6) |
 
 ---
 

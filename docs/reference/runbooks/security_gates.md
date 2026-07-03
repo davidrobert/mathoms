@@ -15,7 +15,7 @@ Roda em todo PR contra `main` + schedule sábado 03:00 UTC + manual.
 | `changes` | Sempre (gating) | Sempre passa (faz only IO) | Outputs `python_deps`, `npm_deps`, `iac`, `any_code`, `force_all`. |
 | `trivy-fs` | `any_code` (qualquer código não-docs) | **Temporariamente não** — `continue-on-error` step-level até GHAS chegar (SARIF blocking) OU triagem dos findings restantes. Output em `table` no log. | Workflow logs. |
 | `trivy-config` | `iac` (Dockerfile, docker-compose, workflows) | **Temporariamente não** — `continue-on-error` step-level até triagem + fix dos 4 IaC misconfigs detectados no primeiro run. | Workflow logs. |
-| `pip-audit` | `python_deps` (`backend/requirements.txt`, raiz, `pipeline-service/requirements*.txt`) | **Sim** (HIGH+ via `--strict`). Sem ignore-vulns ativos pós-PR #357 (python-jose → PyJWT). | Workflow logs. |
+| `pip-audit` | `python_deps` (`backend/requirements.in`, `requirements.in`, `requirements.lock`, `pipeline-service/requirements*.txt`) | **Sim** (HIGH+ via `--strict`). Sem ignore-vulns ativos pós-PR #357 (python-jose → PyJWT). | Workflow logs. |
 | `npm-audit-prod` | `npm_deps` (`frontend/package*.json`) | **Sim** (HIGH+). Reativado pós-PRs #356 (next/next-intl) + #357 (python-jose). | Workflow logs. |
 | `npm-audit-dev` | `npm_deps` (mesmo gate de prod) | Não (informativo) | Workflow logs. |
 | `gitleaks` | `any_code` | Sim (qualquer match não-allowlisted) | Workflow logs. |

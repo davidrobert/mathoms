@@ -28,8 +28,9 @@ zero `asyncio.create_task` fora do Celery, zero file locks, zero
 
 ### 1. `@lru_cache` / `@functools.cache` / `cached_property`
 
-**Resultado:** zero uso em `backend/app/`. O único `from functools import
-partial` aparece em `api/documents.py:667` (uso local, não cache).
+**Resultado:** zero uso em `backend/app/`. Os únicos usos de
+`functools.partial` aparecem em `services/document_canonical_rename.py`
+e `services/document_reclassify_bulk_service.py` (uso local, não cache).
 
 **Veredito:** ✅ OK — nenhum cache mutável cross-request.
 
@@ -42,16 +43,15 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 |---|---|---|---|
 | `services/retry_config.py:44` | `STAGE_RETRY_CONFIGS` | `dict[str, StageRetryConfig]` frozen | ✅ imutável (criado uma vez, lido) |
 | `services/classification/institution_classifier.py:11` | `INSTITUTION_CONTENT_PATTERNS` | `list[tuple[re.Pattern, str]]` | ✅ regex compilado, nunca alterado (re-exportado por `content_classifier.py`) |
-| `services/content_classifier.py:457-467` | `_PERIOD_RANGE_RE`, `_YYYYMM_RE`, `_MONTH_YEAR_BR_RE`, `_MESES` | regex + mapping | ✅ imutável |
+| `services/classification/period_extractor.py:7-27` | `_PERIOD_RANGE_RE`, `_YYYYMM_RE`, `_MONTH_YEAR_BR_RE`, `_MESES` | regex + mapping | ✅ imutável |
 | `services/tarefas_md_parser.py:20-146` | `_MD_TO_CATEGORY`, `_MONTH_PT`, `_STATUS_FROM_MD`, `_*_RE` | mapping + regex | ✅ imutável |
 | `services/feature_flags_service.py:32` | `DEFAULTS` | `dict[str, bool]` | ✅ imutável (defaults, nunca escritos) |
 | `services/task_notification_service.py:25` | `_SOURCE` | `str` | ✅ imutável |
-| `services/goal_service.py:417` | `_GOAL_TYPE_CLASSES` | `dict[str, tuple[type, ...]]` | ✅ imutável |
 | `services/storage.py:27` | `_MAGIC_SIGNATURES` | `dict[str, tuple[bytes, ...]]` | ✅ imutável |
 | `services/canonical_routing.py:11` | `_MIME_TO_EXT` | `dict[str, str]` | ✅ imutável |
-| `services/task_progress_service.py:32-83` | `_DEFAULT_APORTE_KEYWORDS`, `_BRL_RE`, `_SHORT_BRL_RE` | list + regex | ✅ imutável |
+| `services/task_progress_service.py:57-61` | `_BRL_RE`, `_SHORT_BRL_RE` | regex | ✅ imutável |
 | `services/document_classification.py:20-30` | `_CONTENT_CONFIDENCE_THRESHOLD`, `_REVIEW_CONFIDENCE_THRESHOLD`, `_TRANSIENT_ERROR_NAMES`, `_PERMANENT_ERROR_NAMES` | thresholds + frozensets | ✅ imutável |
-| `services/pipeline_adapter.py:153` | `_GOAL_TYPE_MAP` | `dict` | ✅ imutável |
+| `services/pipeline_adapter.py:409` | `_GOAL_TYPE_MAP` | `dict` | ✅ imutável |
 | `services/task_attachment_service.py:29` | `_SUBDIR` | `str` | ✅ imutável |
 | `services/pdf_renderer.py:30` | `_PLAYWRIGHT_AVAILABLE` | `Optional[bool]` lazy | ⚠️ mutável mas **idempotente** — cada worker descobre o mesmo resultado independente |
 | `services/rate_limit.py:41` | `_DEFAULT_POLICIES` | `dict[str, RateLimitPolicy]` (frozen dataclasses) | ✅ categoria (a) — políticas imutáveis; o **contador** vive no Redis (`INCR`+`EXPIRE`, W4-T04 · #720), nunca em memória |
@@ -69,7 +69,9 @@ Nenhum dict global acumula estado entre requests.
 
 ### 3. WebSocket sessions — **Redis pub/sub nativo**
 
-`backend/app/api/ws.py` (99 linhas) **já está stateless-ready desde o P5**:
+`backend/app/api/ws.py` (31 linhas, router fino) delega para
+`application/realtime/pipeline_progress.py` (pub/sub em
+`stream_pipeline_progress`) — **já está stateless-ready desde o P5**:
 
 - Nenhuma `set[WebSocket]` ou `dict[run_id, list[WebSocket]]` local.
 - Cada conexão abre sua própria `redis.asyncio.Redis.from_url(...)` + `pubsub()`.
