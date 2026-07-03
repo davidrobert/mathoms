@@ -569,9 +569,14 @@ use `resolve_stage_name(name)` — aceita legacy (`"E3"`) ou descritivo,
 retorna sempre descritivo. Inverso em `to_legacy_stage_name()` para
 adapters que ainda gravam DB legado.
 
-`STAGE_RENAME_MAP` permanece como compat reverso. DB
-`pipeline_artifacts.stage` continua em formato legado até F9.3
-(Alembic). Janela de compat termina em F9.6.
+`STAGE_RENAME_MAP` permanece como compat reverso. Em
+`pipeline_artifacts.stage`, os writers já gravam nomes descritivos
+(`reconcile_transactions`, `categorize_transactions`, `analyze_finances`,
+`extract_*`, E1.x); a exceção é E2, que ainda grava legado
+(`E2-faturas`/`E2-extratos` em `scripts/e2_extract.py::_choose_stage`).
+O leitor aceita ambas as formas
+(`backend/app/services/artifact_reader.py::_stage_query_candidates`).
+Hardening final dos nomes legados: F9.6.
 
 ### Endpoint JSON exige `response_model` explícito (ADR-102 R18 · ADR-109)
 
@@ -1162,9 +1167,10 @@ não pôde ser determinado. Propaga de E0→E2→E3.
   artefatos"). Artifacts em produção vivem em `pipeline_artifacts` (DB).
 - `inbox_processed/` sem prefixo `_` — é parte do fluxo de upload (move
   arquivo de `inbox/` após classificação), não diretório auxiliar.
-- `config/schemas/` contém 26 schemas JSON usados por `validate_dict` (hook
+- `config/schemas/` contém 27 schemas JSON usados por `validate_dict` (hook
   pós-write em `DBArtifactStore.write`, ADR-212 PR3a): estágios canônicos
-  (`baseline_patrimonial`, `e16_irpf_full`, `e2_extract`, `e2_llm_artifact`,
+  (`baseline_patrimonial`, `e15_baseline_extract` (A20.l11), `e16_irpf_full`,
+  `e2_extract`, `e2_llm_artifact`,
   `e3_reconciled`, `e4_unified`, `e5_analysis`, `pipeline`) + `Goal`
   (alocacao_alvo v1/v2, aporte_mensal, dolarizacao, if v1/v2,
   reserva_emergencia) + informes (`informe_base`/`_pf`/`_pj`/`_aluguel`/

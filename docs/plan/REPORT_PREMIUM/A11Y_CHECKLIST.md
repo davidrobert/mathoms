@@ -1,7 +1,7 @@
 # Report a11y — Checklist WCAG 2.1 AA operacional
 
 > Lane `report-a11y-finalize` item 5 + absorve
-> [batch2.14](../../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes).
+> [batch2.14](../../archive/BACKLOG-pre-shim-2026-05-07.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes).
 >
 > **Para que serve:** mapa do que está protegido por gate automático
 > versus o que ainda depende de revisão humana, por seção do relatório
@@ -90,7 +90,7 @@ Legenda:
 | **APP_D** | ✅ | — | ✅ | ✅ | ✅ | — |
 | **APP_E** | ✅ | — | ✅ | ✅ | ✅ | — |
 
-### Modo Tático (T1–T6) — REMOVIDO em [ADR-151](../../DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)
+### Modo Tático (T1–T6) — REMOVIDO em [[ADR-151]]
 
 > **Histórico (2026-04-29):** Modo Tático removido do relatório
 > (Direção E · Onda 3). Conteúdo redistribuído: Kanban (T3) e Notas

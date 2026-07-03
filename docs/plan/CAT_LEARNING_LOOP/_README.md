@@ -373,16 +373,20 @@ revert_rate baixo e manual_override saudável.
   precisar de ajuste em casos extremos (ex.: cliente pede re-cálculo
   retroativo explícito).
 
-## Status atual (atualizado 2026-05-11)
+## Status atual (atualizado 2026-07-03)
 
 - [[ADR-186]] **Decidida (A12.P2)** — confirmada no merge do PR #194 (2026-05-11).
 - [[ADR-187]] **Decidida (A11.report-publication)** — mergeada em `main` via PR #185 (2026-05-10).
 - [[ADR-188]] **Decidida (A12.P3)** — schema evolution + soft-delete + partial unique + revert_count split, confirmada no merge do PR #198 (2026-05-11).
 - A11 lane: [[A11.report-publication]] ✅ entregue (PR #185).
-- A12 lane: [[A12.cat-learning-loop]] **in_progress** — P1/P2/P3/gate técnico/P4 mínima ✅; **gate dogfood humano** pendente (CEO 7d wall-clock).
+- A12 lane: [[A12.cat-learning-loop]] **concluída** — P1/P2/P3/gate técnico/P4 mínima ✅; **gate dogfood humano PASS** por decisão do owner (2026-07-02 — audit-vault r4; ver §Status executivo).
 - Tracks P1/P2/P3: consumidos (PRs #188/#194/#195-#198). P4 não tem track formal — shipped direto via PR #203 com escopo mínimo single-tenant.
 
 ## Conclusão / arquivamento
+
+> **Nota (2026-07-03):** V1 entregue e `status: done` no frontmatter; plano
+> mantido in-place em `docs/plan/` (não arquivado) até a decisão V2 pós-60d
+> steady-state — mesmo padrão do CENARIOS_ESTRESSE.
 
 Quando MVP V1 (P1-P4 + gate dogfood) mergear em `main` com gates verdes:
 
