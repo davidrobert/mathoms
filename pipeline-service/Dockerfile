@@ -15,14 +15,27 @@ RUN useradd --create-home --uid 1000 mathoms
 
 WORKDIR /repo
 
-# `pipeline/` is imported as a library. Docker-compose mounts o repo no dev,
-# então iterações não exigem rebuild; o COPY abaixo é o que vale em build/prod.
-# O source é copiado ANTES do install: o build do wheel valida o pacote `app/`
-# (setuptools falha com "package directory 'app' does not exist" se só o
-# pyproject estiver presente).
+# Deps do backend PRIMEIRO (camada cacheável — o lock muda raro): pós-ADR-303,
+# executar stages exige `backend.*` importável (DBArtifactStore + hidratação
+# via run_context_factory). Lock inteiro com hashes — paridade com CI/backend;
+# subconjunto curado seria um segundo manifesto a driftar. Imagem cresce e é
+# aceito: uso é smoke opt-in; produção segue InProcessPipelineClient.
+COPY requirements.lock /repo/requirements.lock
+RUN pip install --upgrade pip && pip install --require-hashes -r /repo/requirements.lock
+
+# `pipeline/` e `backend/` são importados como libraries. Docker-compose monta
+# o repo no dev (mounts :ro no overlay — manter em sync com os COPYs abaixo,
+# senão edit no host roda cópia stale); o COPY abaixo é o que vale em
+# build/prod. O source de pipeline-service é copiado ANTES do install: o build
+# do wheel valida o pacote `app/` (setuptools falha com "package directory
+# 'app' does not exist" se só o pyproject estiver presente).
 COPY pipeline-service /repo/pipeline-service
 COPY pipeline /repo/pipeline
-RUN pip install --upgrade pip && pip install /repo/pipeline-service[test]
+COPY backend /repo/backend
+# Stages delegam para scripts/eN_*.py e validam contra config/schemas/*.json.
+COPY scripts /repo/scripts
+COPY config /repo/config
+RUN pip install /repo/pipeline-service[test]
 RUN chown -R mathoms:mathoms /repo
 
 WORKDIR /repo/pipeline-service

@@ -24,6 +24,15 @@ services:
       REDIS_URL: redis://redis-smoke:6379/0
       MATHOMS_LOG_FORMAT: json
       MATHOMS_LOG_LEVEL: INFO
+      # ADR-303/ADR-212: stages leem/gravam pipeline_artifacts — o container
+      # compartilha o MESMO SQLite file do smoke stack local (make smoke-up).
+      # Restrição: SQLite multi-writer cross-boundary é só para smoke
+      # SEQUENCIAL (seed → execute); concorrência real exige Postgres (F2).
+      MATHOMS_DATABASE_URL: sqlite+aiosqlite:////repo/mathoms-smoke.db
+      MATHOMS_REDIS_URL: redis://redis-smoke:6379/0
+      # Mesma key do smoke stack (SMOKE_FERNET_KEY=$(cat _smoke_pids/fernet.key));
+      # o target `make smoke-pipeline-service` injeta automaticamente.
+      MATHOMS_FERNET_KEY: ${SMOKE_FERNET_KEY:-}
     depends_on:
       redis-smoke:
         condition: service_healthy
@@ -34,5 +43,12 @@ services:
       retries: 5
       start_period: 10s
     volumes:
+      # Manter em sync com os COPYs do Dockerfile — mount ausente = cópia stale.
       - ./pipeline:/repo/pipeline:ro
       - ./pipeline-service:/repo/pipeline-service:ro
+      - ./backend:/repo/backend:ro
+      - ./scripts:/repo/scripts:ro
+      - ./config:/repo/config:ro
+      # DB do smoke (criado por `make smoke-up`) + workspaces visíveis no container.
+      - ./mathoms-smoke.db:/repo/mathoms-smoke.db
+      - ./_smoke_storage:/repo/_smoke_storage
