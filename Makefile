@@ -187,7 +187,18 @@ version: info
 # Smoke test
 # ---------------------------------------------------------------------------
 
-.PHONY: smoke-up smoke-down smoke-reset smoke-seed smoke-logs smoke-dirs
+.PHONY: smoke-up smoke-down smoke-reset smoke-seed smoke-logs smoke-dirs smoke-pipeline-service smoke-pipeline-service-down
+
+## smoke-pipeline-service: builda+sobe o container e roda o gate ADR-303 (requer 'make smoke-up' antes)
+smoke-pipeline-service:
+	@test -f $(CURDIR)/$(SMOKE_DIR)/fernet.key || { echo "❌ $(SMOKE_DIR)/fernet.key ausente. Rode 'make smoke-up' antes."; exit 1; }
+	@SMOKE_FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)" \
+	 docker compose -f docker-compose.smoke.yml -f docker-compose.pipeline-service.yml up -d --build --wait pipeline-service
+	@$(VENV)/python dev/smoke_pipeline_service_container.py
+
+## smoke-pipeline-service-down: derruba só o container do pipeline-service
+smoke-pipeline-service-down:
+	@docker compose -f docker-compose.smoke.yml -f docker-compose.pipeline-service.yml rm -sf pipeline-service
 
 ## smoke-up: Sobe Redis + backend + Celery worker + frontend em background
 smoke-up: smoke-dirs
