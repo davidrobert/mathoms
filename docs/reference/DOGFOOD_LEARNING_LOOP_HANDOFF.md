@@ -1,5 +1,14 @@
 # Dogfood Learning Loop — guia do beta tester
 
+> ⚠️ **HISTÓRICO — gate fechado (PASS por decisão do owner, 2026-07-02,
+> audit-vault r4).** O ritual de 7 dias não foi executado; o gate técnico
+> (11/11 invariantes, PR #202) foi aceito como evidência e o plano
+> [CAT_LEARNING_LOOP](../plan/CAT_LEARNING_LOOP/_README.md) está `done`.
+> A premissa "interface só via API/curl" abaixo é da época: a UI mínima (P4)
+> shipou em 2026-05-11 (PR #203 — toast + `CreateRuleDialog` + badge "Regra").
+> Reutilizar este guia **apenas** se o gate for reaberto (revert_rate alto /
+> não-adoção em uso real).
+
 > Você está nos ajudando a validar uma feature do Mathoms antes do
 > lançamento. Estimativa: **30 min/dia × 7 dias**, mais 30 min de
 > conversa final no dia 7.

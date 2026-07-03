@@ -88,7 +88,7 @@ Cada trigger aparece quando uma condição quantitativa é satisfeita e mostra o
 | T1 | Otimização pró-labore × lucros | Base PGBL atual < 80% do limite potencial com pró-labore ajustado |
 | T2 | Fator-R próximo do break-even | Simples Anexo III/V com fator-R em zona de transição |
 | T3 | PGBL alíquota-dependente | Declaração completa + IR marginal estimado ≥ 22,5% |
-| T4 | Holding patrimonial — 3+ imóveis alugados | ≥ 3 imóveis locados E receita aluguel > R$ 60k/ano |
+| T4 | Holding patrimonial — 3+ imóveis alugados | ≥ 3 imóveis locados E receita aluguel ≥ R$ 90k/ano |
 | T5 | Sublimite estadual Simples | Receita PJ projetada > R$ 3M (80% do sublimite) |
 
 **Folclore que o Mathoms NÃO faz:**

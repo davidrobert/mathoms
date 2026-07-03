@@ -18,15 +18,16 @@
 | `e3_reconciled.schema.json` | `reconcile_transactions` / `E3` | `<banco>_<doctype>_<moeda>_<periodo>` |
 | `e4_unified.schema.json` | `categorize_transactions` / `E4` | `despesas` · `receitas` · `patrimonio` |
 | `e5_analysis.schema.json` | `analyze_finances` / `E5` | `analise_financeira` |
-| `baseline_patrimonial.schema.json` | `extract_baseline` / `E1.5` (+ `consolidate_baseline` / `E1.5c`) | `baseline_patrimonial` |
+| `e15_baseline_extract.schema.json` | `extract_baseline` / `E1.5` (+ `E1.5a` per-IRPF · A20.l11) | `baseline_patrimonial` · `irpfdeclaracao_<ano>` |
+| `baseline_patrimonial.schema.json` | `consolidate_baseline` / `E1.5c` | `baseline_patrimonial` |
 | `e16_irpf_full.schema.json` | `extract_irpf_full` / `E1.6` ([[ADR-157]]) | `irpfdeclaracao_<ano>` |
 | `parecer_planejador.schema.json` | `review_finances_holistic` / `E6-parecer` ([[ADR-199]]) | `parecer_planejador` |
 
 **Hook universal de validação:** `DBArtifactStore.write` chama `validate_dict`
 após persistir o `content_json`, resolvendo o schema via mapping
-`SCHEMA_BY_STAGE` em `pipeline/schema_validation.py`. Stages sem schema
-registrado passam sem validação (futuras adições só precisam estender o
-mapping).
+`SCHEMA_BY_STAGE` em `backend/app/services/db_artifact_store.py` (vive no
+backend, não em `pipeline/` — boundary ADR-212). Stages sem schema registrado
+passam sem validação (futuras adições só precisam estender o mapping).
 
 **Política:** modo default **warn** (`pipeline.json`); CI roda subset com
 `MATHOMS_PIPELINE_SCHEMA_MODE=strict` nos testes de `validate_artifact`. Stubs

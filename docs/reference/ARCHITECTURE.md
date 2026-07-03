@@ -466,11 +466,13 @@ O pipeline suporta execução **incremental**: processar apenas documentos novos
 
 ### Execução offline (dev)
 
-O mesmo orquestrador usado pelo worker pode rodar localmente sobre um tenant materializado:
+O mesmo orquestrador usado pelo worker pode rodar um stage individual
+localmente via CLI (A3.cli · ADR-150; artifacts em DB → requer
+`MATHOMS_DATABASE_URL`):
 
 ```bash
-python -m pipeline.run_dev --root /path/to/storage/<workspace_id>
-python -m pipeline.run_dev --root ./tenant --stages E3,E4,E5
+python -m pipeline.orchestrator run-stage <stage> \
+  --workspace <path> --run-id <id> --workspace-id <id>
 ```
 
 Fronteiras do pacote `pipeline/` (sem imports de FastAPI/Celery/SQLAlchemy) são verificadas por `python dev/check_pipeline_boundaries.py`. Artefatos JSON e schemas: [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md), [CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md).

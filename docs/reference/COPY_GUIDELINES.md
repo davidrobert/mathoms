@@ -57,9 +57,9 @@ remover por concisão.
 
 ## 2. Terminologia financeira canônica
 
-> Este glossário é a fonte de verdade. Quando `config/methodology.md`,
-> `config/report_layout.yaml` ou `docs/methodology/definitions.md` divergir,
-> abrir PR em **um** desses para alinhar — ver §11 Hierarquia.
+> Este glossário é a fonte de verdade. Quando `config/methodology.md` ou
+> `config/report_layout.yaml` divergir, abrir PR em **um** desses para
+> alinhar — ver §11 Hierarquia.
 >
 > Gera, em F12.6b, `config/i18n_glossary.yaml` com as traduções
 > normativas para os 9 demais locales (ver
@@ -423,8 +423,10 @@ Em ordem decrescente de autoridade quando dois docs divergirem:
    docstrings, ADRs) — **proibida em copy user-facing** (§13).
 4. **`config/report_layout.yaml`** — labels canônicos do relatório.
    Atualizar para alinhar com §2 quando divergir.
-5. **`docs/methodology/definitions.md`** — definições operacionais (categorias,
-   instituições, regras de roteamento). Atualizar idem.
+5. **Config em DB (`category_template` / `institution_catalog`, ADR-137)** —
+   definições operacionais (categorias, instituições, regras de roteamento)
+   vivem em DB desde o Sprint A7; `docs/methodology/` foi dissolvido em
+   rules-as-code (ADR-143) e é **path proibido** (`dev/check_forbidden_paths.py`).
 6. **Código** — último recurso; mudança de label sem atualizar §2
    é débito de copy.
 
