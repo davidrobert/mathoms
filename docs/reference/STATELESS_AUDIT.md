@@ -144,6 +144,15 @@ por request e solta no `finally`. Celery task idealmente chama
 `set_pipeline_run_id(run.id)` no início do `run()` — não foi
 formalizado ainda mas é recomendação da regra operacional no CLAUDE.md.
 
+**ADR-273 (pipeline):** `pipeline/observability/context.py` adiciona
+`_trace_id`, `_workspace_id`, `_run_id`, `_stage` (exceção ADR-111 §1.b,
+idêntica ao backend). Pattern obrigatório: `bind()` retorna `BindTokens`
+e a Celery task (`pipeline_task`) faz `reset(tokens)` em `finally` —
+sem o reset, o contextvar sobrevive à task no worker prefork e o run
+seguinte logaria workspace de outro tenant. `_stage` tem set/reset por
+stage no orchestrator (`set_stage`/`reset_stage`). Handler de log é
+singleton lazy idempotente (`_ensure_handler`, exceção §1.b).
+
 **Veredito:** ✅ **OK**.
 
 ### 8. `settings` — `pydantic-settings` singleton imutável

@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 274
-- **Proposto**: 19
+- **Decidido**: 275
+- **Proposto**: 18
 - **Roadmap**: 4
 
 ## Fundação
@@ -484,7 +484,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (32)
+### Decidido (33)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -507,6 +507,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-268]] — Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro · phase A17.member-identity
 - [[ADR-271]] — Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c · phase A20.invest-dedup
 - [[ADR-272]] — Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) · phase A20.failure-diagnostics
+- [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A26
 - [[ADR-274]] — Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício · phase A21.patrimonio-ano-base
 - [[ADR-276]] — EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c · phase A21.l3
 - [[ADR-277]] — Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo) · phase A21.l4
@@ -518,10 +519,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-291]] — from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) · phase A25 · dogfood
 - [[ADR-301]] — Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) · phase A22.l5 · F1-O3 launch-trust
 - [[ADR-305]] — PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) · phase A28
-
-### Proposto (1)
-
-- [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A20.failure-diagnostics
 
 ## quality
 

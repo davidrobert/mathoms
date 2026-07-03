@@ -1357,6 +1357,14 @@ def run_pipeline_task(
         tier,
     )
 
+    # ADR-273: propaga contexto do run aos logs estruturados do pipeline.
+    # Reset no finally é obrigatório — worker Celery reusa o processo e um
+    # contextvar vazado carregaria workspace de outro tenant no próximo run.
+    from backend.app.middleware.correlation import get_trace_id
+    from pipeline.observability.context import bind as obs_bind
+    from pipeline.observability.context import reset as obs_reset
+
+    obs_tokens = obs_bind(trace_id=get_trace_id(), workspace_id=ws_id, run_id=run_id)
     try:
         # ADR-077 + ADR-180: configs DB-first vêm via ``ctx.config_overrides``
         # (montado por ``build_config_overrides_from_db``); apenas ``tarefas.md``
@@ -1383,4 +1391,5 @@ def run_pipeline_task(
         _finalize_pipeline_outcome(run_id, ws_id, tenant_root, has_failure, paused_for_review)
         return {"status": "completed" if not has_failure else "failed", "run_id": run_id}
     finally:
+        obs_reset(obs_tokens)
         _close_config_store_session(config_store_session)

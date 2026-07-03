@@ -1,0 +1,16 @@
+{
+  "pipeline/domain/review_reason_projection.py": 1,
+  "pipeline/domain/services/entity_dedup.py": 1,
+  "pipeline/domain/services/patrimonio_types.py": 1,
+  "pipeline/domain/services/section_summary_generator.py": 2,
+  "pipeline/llm/lineage_debug.py": 2,
+  "pipeline/llm/litellm_client.py": 7,
+  "pipeline/llm/pricing.py": 1,
+  "pipeline/llm/text_extractor.py": 3,
+  "pipeline/stages/extract_baseline.py": 2,
+  "pipeline/stages/extract_comprovantes_bens.py": 3,
+  "pipeline/stages/extract_informe_aluguel.py": 1,
+  "pipeline/stages/extract_informes_anuais.py": 1,
+  "pipeline/stages/extract_members.py": 3,
+  "pipeline/stages/extract_with_llm.py": 9
+}
