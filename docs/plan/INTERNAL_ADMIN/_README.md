@@ -7,7 +7,7 @@ sprint_origem: F7
 sprint_atual: A11
 sprints_envolvidas: [F7, A11]
 created_at: "2026-04-22"
-last_review: "2026-05-07"
+last_review: "2026-07-03"
 paused_at: null
 pause_reason: null
 adrs_canonical: ["[[ADR-116]]"]
@@ -21,7 +21,7 @@ tags:
 
 > Interface administrativa para **quem opera o produto** (CEO, Operações, Atendimento, Financeiro, Legal/LGPD), distinta do app do cliente (`/config` do workspace).
 >
-> **Última atualização:** 2026-04-22 — fase dividida em **F7F-Local** (pré-produção, UI web em `127.0.0.1`, sem OAuth) e **F7F-Remote** (produção, OAuth staff em `ops.mathoms.ai`). IA-0 passa a ter **UI web como superfície principal**; CLI é atalho secundário/futuro.
+> **Última atualização:** 2026-07-03 — **IA-0 entregue** (ver §3). 2026-04-22 — fase dividida em **F7F-Local** (pré-produção, UI web em `127.0.0.1`, sem OAuth) e **F7F-Remote** (produção, OAuth staff em `ops.mathoms.ai`). IA-0 passa a ter **UI web como superfície principal**; CLI é atalho secundário/futuro.
 >
 > **Backlog executável:** [BACKLOG.md — F7F](../../BACKLOG.md#f7f--console-interno-operadores)
 
@@ -58,7 +58,14 @@ Oferecer uma superfície **separada do usuário final**, com **least privilege**
 
 A **primeira etapa executável** é **local** (máquina do operador com repo, `DATABASE_URL` e storage apontando para o mesmo ambiente que se deseja administrar — em geral **dev/staging**; produção só com runbook e flags explícitas). Entrega com **UI web como superfície principal**, consumindo uma **camada de serviço compartilhada**; **CLI** fica como atalho **secundário/futuro** para automação/batch. **Não** há deploy de console na internet nesta etapa.
 
-### IA-0 — Operações locais (primeira etapa — executável já)
+### IA-0 — Operações locais (primeira etapa — executável já) ✅ ENTREGUE 2026-07-03
+
+> **Status:** entregue. Camada de serviço (`backend/app/services/internal_ops/`, 20 módulos),
+> auth yaml+bcrypt+JWT (`internal_ops_auth.py`), rotas `/admin/*` sob flag, e `frontend-ops/`
+> (Next separada, `127.0.0.1:3100`) mergeados em `main`; build + lint + tsc verdes,
+> 114 tests (`backend/tests/internal_ops/` + `backend/tests/api/admin/`) passando;
+> operação documentada em [RUNBOOK.md §7](../../reference/RUNBOOK.md).
+> **Pendência não-bloqueante:** `7F.9` (CLI secundário) segue aberta — pós-IA-0 por design.
 
 **Meta:** com backend + DB + storage configurados localmente (ou túnel/VPN para staging), o operador executa tarefas de suporte e LGPD **sem depender** de um console **hospedado** na internet, pela **UI web em `127.0.0.1`**.
 

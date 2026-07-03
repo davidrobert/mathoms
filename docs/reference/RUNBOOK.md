@@ -246,6 +246,11 @@ Todas gravam linha em `logs/internal_ops_audit.log`:
 **Anonimização é default** — prefira sempre anonymize sobre hard delete. Hard
 delete é irreversível e quebra FKs de audit/pipeline.
 
+**Workspace órfão:** anonimizar o único owner deixa o workspace sem dono
+ativo (estado inativo, dados preservados). Transferir ownership para outro
+admin é operação **manual** (SQL/console) — não há automação em IA-0
+(ADR-116; automação fica para F7F-Remote IA-4).
+
 ### 7.4 Rotação de credenciais
 
 - **Senha do operador:** `python3 scripts/hash_ops_pw.py`, substituir hash no
@@ -263,8 +268,9 @@ delete é irreversível e quebra FKs de audit/pipeline.
 
 - Rotas `/admin/*` só montam se `MATHOMS_INTERNAL_OPS_UI_ENABLED=1` — senão
   retornam 404.
-- Backend refusa subir com `ENVIRONMENT=production` + UI habilitada sem a flag
-  `--i-accept-production-risk` (ADR-116).
+- Backend refusa subir com `ENVIRONMENT=production` + UI habilitada sem
+  `MATHOMS_INTERNAL_OPS_ACCEPT_PRODUCTION_RISK=1` explícito (ADR-116;
+  guard em [`backend/app/main.py`](../../backend/app/main.py)).
 - Bind **deve** ser `127.0.0.1`, nunca `0.0.0.0`. Para expor remotamente é
   outra lane (F7F-Remote com OAuth + RBAC).
 - YAML de operadores nunca commitado — bloqueado por `dev/check_forbidden_paths.py`.
