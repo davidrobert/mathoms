@@ -4,7 +4,7 @@ type: adr
 title: "Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem"
 status: Decidido
 date: "2026-04-27"
-relates_to: ["[[ADR-140]]", "[[ADR-143]]"]
+relates_to: ["[[ADR-140]]", "[[ADR-143]]", "[[ADR-222]]", "[[ADR-235]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 142"]
@@ -42,7 +42,7 @@ size_lines: 30
 
 **Update 2026-05-20 (ADR-235 invariante, A16):** `classification=nu_proprietario` (nu-propriedade com usufruto vitalício de terceiro) **nunca** entra em `investivel_efetivo`, **independente do toggle `imoveis_no_if`**. Conservadorismo Perini/Cerbasi: ativo ilíquido por contrato civil (usufruto vitalício) não pode ser convertido em renda passiva no horizonte do plano — não financia IF. Enforçado via `_CLASSIFICATIONS_GERADORAS` em [`pipeline/domain/services/patrimonio_imovel_classifier.py`](../../pipeline/domain/services/patrimonio_imovel_classifier.py); gate em [`tests/unit/pipeline/test_patrimonio_calculator.py::test_investivel_efetivo_exclui_nao_geradores_sempre`](../../tests/unit/pipeline/test_patrimonio_calculator.py).
 
-**Por que validar a invariante mas não automatizar:** o produto não calcula yield líquido por imóvel (depende de carnê-leão real, vacância histórica, despesas de manutenção). A escolha do toggle é decisão consultiva do planejador. Hoje vive em `pipeline.json` global; um futuro override por workspace exigiria coluna `Workspace.imoveis_no_if` (lane separada).
+**Por que validar a invariante mas não automatizar:** o produto não calcula yield líquido por imóvel (depende de carnê-leão real, vacância histórica, despesas de manutenção). A escolha do toggle é decisão consultiva do planejador. ~~Hoje vive em `pipeline.json` global; um futuro override por workspace exigiria coluna `Workspace.imoveis_no_if` (lane separada).~~ *(Superado — ver Update 2026-05-18/[[ADR-222]]: a coluna `workspaces.imoveis_no_if` existe e `pipeline.json:14` foi deletado.)*
 
 **Validação:** documentada em `definitions.md §FÓRMULAS PATRIMONIAIS:Validações`. `e5_analyze.py` deve emitir warning quando `imoveis_no_if=true` e `renda_passiva_atual_mensal_brl > sum(aluguéis_categorizados_como_renda_recorrente)` — sinaliza provável dupla contagem.
 
@@ -50,6 +50,6 @@ size_lines: 30
 
 - `progresso_if` continua `investivel_efetivo / if_meta_liquida × 100` (../reference/FORMULAS.md), mas com invariante respeitada o resultado é correto.
 - Famílias podem comparar dois cenários (toggle on/off) para entender impacto — útil pedagogicamente.
-- "Por workspace" do toggle é hoje **promessa de doc**, não realidade — fica catalogado como débito.
+- ~~"Por workspace" do toggle é hoje **promessa de doc**, não realidade — fica catalogado como débito.~~ *(Superado — débito quitado pelo Update 2026-05-18/[[ADR-222]].)*
 
 **Relaciona-se a:** [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) (motivação direta — `renda_passiva_atual_mensal_brl`), [FORMULAS.md §Patrimônio](../reference/FORMULAS.md). Documentação histórica de fórmulas patrimoniais foi dissolvida em [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76) (A7.6) — invariantes hoje vivem como docstrings em `pipeline/domain/services/` (composição) e em `docs/reference/ARCHITECTURE.md §Glossário` (definitions).

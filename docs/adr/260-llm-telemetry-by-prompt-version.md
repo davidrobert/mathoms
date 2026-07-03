@@ -27,6 +27,13 @@ tags:
 
 **Status:** Proposto • **Data:** 2026-05-22 • **Relaciona** [[ADR-081]] (threshold 0.7/0.8), [[ADR-110]] (logging estruturado + OTLP), [[ADR-233]] (formato semver puro).
 
+> **Nota de estado (audit r6, 2026-07-03):** camada 2 **implementada** —
+> colunas SQL `confidence`/`needs_review` em
+> `backend/app/models/llm_call_log.py:42-43` (A20.l12, PR #720). Camadas 1
+> (`LLMCallResult` em `pipeline/llm/litellm_client.py` segue sem
+> `confidence`/`needs_review`) e 3 (OTLP `mathoms.llm.confidence`)
+> **pendentes**; nenhum consumer popula `confidence` ainda.
+
 ## Contexto
 
 Padrão canônico do Mathoms é regex→LLM→`needs_review` ([[ADR-081]]): LLM com `confidence < 0.8` escala; `< 0.7` marca `needs_review=true`. **Thresholds são teoria sem dado empírico em produção** — não há telemetria que mede distribuição de confidence por prompt em dogfood.

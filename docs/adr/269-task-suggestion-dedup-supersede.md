@@ -11,6 +11,7 @@ relates_to:
   - "[[ADR-153]]"
   - "[[ADR-186]]"
   - "[[ADR-188]]"
+  - "[[ADR-290]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -28,6 +29,8 @@ tags:
 # ADR-269 — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado
 
 **Status:** Decidido · **Data:** 2026-05-23 · **Relaciona** [[ADR-074]] (TaskSuggestion queue), [[ADR-082]] (pipeline_artifacts versionado por run_id), [[ADR-153]] (Suggestion aggregate dedup), [[ADR-186]]/[[ADR-188]] (Categorization Learning Loop — padrão de override sticky).
+
+Estendida por [[ADR-290]] — supersede-per-run + `thesis_key` para `Suggestion` origin=llm (parecer).
 
 ## Contexto
 

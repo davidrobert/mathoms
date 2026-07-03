@@ -11,6 +11,8 @@ relates_to:
   - "[[ADR-212]]"
   - "[[ADR-186]]"
   - "[[ADR-228]]"
+  - "[[ADR-282]]"
+  - "[[ADR-287]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -84,6 +86,11 @@ Em `pipeline/domain/services/cash_flow_builder.py`:
   ```
 - Quando colisão: **mantém a primeira ocorrência** (estável por ordem do `list_keys` E3, que é alfabética por `artifact_key`). Tie-break **não** aleatório.
 - Helpers em `pipeline/domain/services/_tx_identity.py` (novo módulo): `normalize_banco`, `normalize_titular`, `normalize_tipo_conta`, `normalize_descricao`, `compute_transaction_hash(tx_or_dict)`. Reutilizáveis em E3 (geração futura) e E4 (consumo atual).
+  > **Nota (audit r6, 2026-07-03):** `compute_transaction_hash` (chave v1)
+  > foi substituído por `compute_identity_hash(..., natural_key_v2)` em
+  > `pipeline/domain/services/_tx_identity.py`, com as flags v2 ligadas
+  > (`dedup_natural_key_v2=True` em `e4_categorizer_adapter.py`) — ver
+  > [[ADR-282]] (natural key v2) e [[ADR-287]] (flip do dedup E4).
 
 ### Sufixos de roteamento PIX (iteração 2 — refinamento de Camada A)
 

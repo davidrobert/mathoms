@@ -32,6 +32,10 @@ tags:
 > dívida cross-stack **D6** registrada na lane [[A23.l3]]. Co-design `data-engineer` +
 > `senior-cto` registrado em 2026-06-08.
 
+> **Emenda (2026-07-01):** as Decisões 4/7/8 foram estendidas com
+> instrumentação da M2 e gate de corretude — ver §"Emenda — instrumentação
+> da M2 e gate de corretude" abaixo antes de citar a mecânica de cutover.
+
 ## Contexto
 
 Existem **três** funções de identidade de transação no sistema:

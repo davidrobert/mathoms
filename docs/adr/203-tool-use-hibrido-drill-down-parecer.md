@@ -75,7 +75,7 @@ Schema das tools em formato compatível LiteLLM/Anthropic. Descrições explíci
   - `$..*` (recursive descent) — **proibido**, derrota filtragem.
   - `$..[?(...)]` (filtros) — **proibido**, complexidade desnecessária.
   - Wildcards em paths não-folha (`$.arr[*]`, `$.obj.*`) — **proibido** exceto onde explicitamente whitelisted.
-- Whitelist gerada por script: `dev/build_planner_jsonpath_whitelist.py` cruza `e5_analysis.schema.json` (PR-1 fixou `additionalProperties: false`) e produz lista de paths válidos. Roda em pre-commit; mudança no E5 schema regenera whitelist.
+- ~~Whitelist gerada por script: `dev/build_planner_jsonpath_whitelist.py` cruza `e5_analysis.schema.json` (PR-1 fixou `additionalProperties: false`) e produz lista de paths válidos. Roda em pre-commit; mudança no E5 schema regenera whitelist.~~ *(Correção audit r6, 2026-07-03: o script + pre-commit nunca existiram. A whitelist real deriva do manifest em runtime — `manifest.tools_section_whitelist` → `backend/app/services/parecer_orchestrator.py:410` → `section_whitelist: frozenset` em `pipeline/llm/tools/planner_drill_down.py`. A proteção `path_not_whitelisted` está mantida.)*
 - Path fora da whitelist → tool retorna `{"found": false, "path": <path>, "reason": "path_not_whitelisted"}`, **sem** stack trace expondo schema interno.
 
 ### D4. Cache em sessão (memória local, ADR-111 categoria b — exceção idempotente)
@@ -161,9 +161,9 @@ Schema das tools em formato compatível LiteLLM/Anthropic. Descrições explíci
 
 - **Track(s) do plano:** T-15 (`planner-tools-drilldown`).
 - **Files touched (Ato 4):**
-  - `pipeline/llm/tools/planner_tools.py` — definição das 2 tools (schema + handler)
+  - `pipeline/llm/tools/planner_drill_down.py` — definição das tools (schema + handler; o nome `planner_tools.py` previsto originalmente não foi usado)
   - `pipeline/llm/value_formatter.py` — formatter compartilhado
-  - `dev/build_planner_jsonpath_whitelist.py` — geração do whitelist
+  - ~~`dev/build_planner_jsonpath_whitelist.py` — geração do whitelist~~ *(nunca existiu — ver correção em §D3)*
   - `backend/app/services/parecer_orchestrator.py` — cap + cache + audit wire-up
 - **Critério de aceite:**
   - Tools rejeitam paths fora do whitelist (teste unit).

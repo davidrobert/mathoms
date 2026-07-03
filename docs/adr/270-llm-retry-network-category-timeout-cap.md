@@ -9,6 +9,7 @@ relates_to:
   - "[[ADR-027]]"
   - "[[ADR-081]]"
   - "[[ADR-110]]"
+  - "[[ADR-289]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -26,6 +27,11 @@ tags:
 # ADR-270 — Retry de LLM calls: categoria `network` + cap de timeout
 
 **Status:** Decidido · **Data:** 2026-05-28 · **Relaciona** [[ADR-081]] (regex→LLM→needs_review), [[ADR-110]] (logging estruturado `mathoms.*`).
+
+> **Emenda (2026-06-12):** o cap fixo de 120s do §1 virou **timeout base
+> por call-site** com escalada em retry, e `validation` saiu do outer loop
+> (reask interno do Instructor = 2) após o incidente do parecer com
+> [[ADR-289]] — ver §"Emenda 2026-06-12" abaixo antes de citar §1/§3.
 
 ## Contexto
 

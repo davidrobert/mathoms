@@ -53,7 +53,7 @@ Adotar **Opção B+** com 4 mudanças mínimas: (D1) filtragem backend antes de 
 
 **Crítico:** filtragem **não pode** ser no frontend (cliente "vê e esconde com CSS"). Vazamento de payload completo via DevTools/network = vazamento de valor pago.
 
-- Endpoint `GET /workspaces/{id}/reports/{report_id}/planner-review` lê `workspace.tier` (existing column).
+- ~~Endpoint `GET /workspaces/{id}/reports/{report_id}/planner-review` lê `workspace.tier` (existing column).~~ *(Correção audit r6, 2026-07-03: não existe coluna `tier` em `workspaces` — o tier é **derivado** da config LLM/BYOK via `resolve_llm_tier_async`/`_classify_llm_config` em `backend/app/services/pipeline_service.py`.)*
 - A filtragem por tier `Literal["free", "premium"]` retorna shape diferente (implementada no cutover como `apply_tier_filter` em `backend/app/services/planner_review_tier_filter.py`, não como método de repository):
 
 **Free DTO:**

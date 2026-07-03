@@ -19,6 +19,10 @@ size_lines: 12
 
 **Status:** Decidido (F7)
 
+> **Nota de estado (audit r6, 2026-07-03):** a tabela `UsageMetric` **nunca
+> foi criada** (zero ocorrências em `backend/`). A metade "sem analytics
+> externo" segue vigente.
+
 **Decisão:** Tabela `UsageMetric` no DB próprio. Sem analytics externo (GA, Mixpanel, etc.).
 
 **Consequências:**

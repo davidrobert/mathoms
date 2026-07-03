@@ -8,6 +8,12 @@ date: "2026-05-11"
 relates_to:
   - "[[ADR-157]]"
   - "[[ADR-076]]"
+  - "[[ADR-195]]"
+  - "[[ADR-196]]"
+  - "[[ADR-197]]"
+  - "[[ADR-198]]"
+  - "[[ADR-266]]"
+  - "[[ADR-305]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -187,6 +193,10 @@ observação factual ("espaço fiscal bem utilizado") sem disclaimer.
 | `sem_renda_tributavel` | `neutral` |
 
 ## §4 — Copy canônica por estado
+
+> **Aviso (audit r6, 2026-07-03):** a copy do Estado 2 foi atualizada por
+> [[ADR-197]] e as variantes passaram a ser moduladas por
+> [[ADR-195]]/[[ADR-198]] — a copy abaixo é a **original** desta ADR.
 
 ### Estado 1 — `capacidade_disponivel` (variante `info`)
 
