@@ -112,11 +112,14 @@
     },
     "fluxo_caixa": {
       "type": "object",
-      "description": "A23.l2 (data-lineage): campos da invariante de conservação de fluxo declarados antes do flip→strict (W6-T01) — fluxo_liquido == receita_total − despesa_total.",
+      "description": "A23.l2 (data-lineage): campos da invariante de conservação de fluxo declarados antes do flip→strict (W6-T01) — fluxo_liquido == receita_total − despesa_total. ADR-306: rótulo de janela obrigatório (janela + janela_meses) — política de base temporal de mensalização.",
+      "required": ["janela", "janela_meses"],
       "properties": {
         "receita_total": {"type": "number"},
         "despesa_total": {"type": "number"},
-        "fluxo_liquido": {"type": "number"}
+        "fluxo_liquido": {"type": "number"},
+        "janela": {"type": "string", "enum": ["full", "12m"]},
+        "janela_meses": {"type": "integer", "minimum": 0}
       }
     },
     "ratios": {

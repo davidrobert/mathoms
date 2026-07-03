@@ -79,13 +79,13 @@ def _to_decimal(value: Any) -> Decimal:
     return _ZERO
 
 
-def _normalize_ticker(raw: str) -> str:
-    """Extrai ticker provável do nome da posição (uppercase, primeiro token)."""
+def _holding_tokens(raw: str) -> frozenset[str]:
+    """Tokens uppercase do nome da posição — descrições IRPF embutem o ticker
+    em qualquer posição ("1000 ACOES BOVA11 ..."), não só no primeiro token
+    (ADR-306: primeiro-token zerava ``acumuladores_pct_gerador`` no dogfood)."""
     if not raw:
-        return ""
-    cleaned = raw.strip().upper()
-    tokens = cleaned.split()
-    return tokens[0] if tokens else cleaned
+        return frozenset()
+    return frozenset(raw.strip().upper().split())
 
 
 @dataclass(frozen=True)
@@ -324,8 +324,7 @@ def _sum_holdings_matching_tickers(
     for holding in investimentos_atuais.get("dados", []) or []:
         if not isinstance(holding, dict):
             continue
-        ticker = _normalize_ticker(str(holding.get("nome", "")))
-        if ticker in tickers:
+        if _holding_tokens(str(holding.get("nome", ""))) & tickers:
             total += _to_decimal(holding.get("valor_atual", 0))
     return total
 

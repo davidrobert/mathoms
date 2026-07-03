@@ -2,7 +2,8 @@
 id: ADR-306
 type: adr
 title: "Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco"
-status: Proposto
+status: Decidido
+phase: A28
 date: "2026-07-03"
 relates_to:
   - "[[ADR-191]]"
@@ -11,14 +12,14 @@ relates_to:
 aliases: ["ADR 306", "base temporal E5", "janela 12m canônica"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/e5
   - sprint/a28
 ---
 
 # ADR-306 — Política de base temporal de mensalização no E5
 
-**Status:** Proposto (A28.l4) • **Data:** 2026-07-03 • Co-design
+**Status:** Decidido (A28) • **Data:** 2026-07-03 • Co-design
 `financial-planner` + `senior-cto` (2026-07-03). Relaciona [[ADR-191]]
 (custo essencial), [[ADR-090]] (money), [[ADR-161]] (suggestions Cerbasi/Perini).
 

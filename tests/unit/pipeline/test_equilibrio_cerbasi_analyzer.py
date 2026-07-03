@@ -165,6 +165,71 @@ class TestResult:
         assert d["futuro"] == "Independência Financeira"
 
 
+class TestJanelaCanonica:
+    """ADR-306 §D5 — Cerbasi sobre renda da janela 12m; poupança conta como futuro."""
+
+    @staticmethod
+    def _fluxo_12m(
+        despesas: dict, receita_recorrente: float, despesa_janela: float, n_meses: int = 12
+    ) -> dict:
+        return {
+            "despesas_por_categoria": {"moradia": 999_999},  # full-period NÃO deve ser usado
+            "janela_12m": {
+                "despesas_por_categoria": despesas,
+                "receita_recorrente": receita_recorrente,
+                "despesa_total": despesa_janela,
+                "n_meses": n_meses,
+            },
+        }
+
+    def test_poupanca_28pct_nao_classifica_gastador(self):
+        # Regressão dogfood 72883bde: 28% de poupança rotulado "Gastador".
+        r = EquilibrioCerbasiAnalyzer().analyze(
+            self._fluxo_12m({"moradia": 72_000}, receita_recorrente=100_000, despesa_janela=72_000)
+        )
+        assert r.pct_futuro == 28.0
+        assert r.pct_presente == 72.0
+        assert r.classificacao == "Equilibrado"
+        assert r.janela == "12m"
+        assert r.janela_meses == 12
+        assert r.componentes["poupanca"] == 28_000.0
+
+    def test_gasto_futuro_soma_com_poupanca(self):
+        # 20k aportes (despesa futuro) + 15k poupança sobre renda 100k → 35% futuro.
+        r = EquilibrioCerbasiAnalyzer().analyze(
+            self._fluxo_12m(
+                {"moradia": 65_000, "aportes": 20_000},
+                receita_recorrente=100_000,
+                despesa_janela=85_000,
+            )
+        )
+        assert r.pct_futuro == 35.0
+        assert r.classificacao == "Investidor"
+
+    def test_deficit_sem_poupanca_pcts_somam_100(self):
+        r = EquilibrioCerbasiAnalyzer().analyze(
+            self._fluxo_12m(
+                {"moradia": 120_000}, receita_recorrente=100_000, despesa_janela=120_000
+            )
+        )
+        assert r.componentes["poupanca"] == 0.0
+        assert r.pct_presente + r.pct_futuro == 100.0
+        assert r.classificacao == "Gastador"
+
+    def test_fallback_full_period_sem_janela(self):
+        r = EquilibrioCerbasiAnalyzer().analyze(_fluxo({"moradia": 100}))
+        assert r.janela == "full"
+
+    def test_legacy_dict_carrega_rotulo_e_componentes(self):
+        d = (
+            EquilibrioCerbasiAnalyzer()
+            .analyze(self._fluxo_12m({"moradia": 50}, receita_recorrente=100, despesa_janela=50))
+            .to_legacy_dict()
+        )
+        assert {"janela", "janela_meses", "componentes"}.issubset(d.keys())
+        assert d["componentes"]["base"] == 100.0
+
+
 class TestCustomClassificacao:
     def test_custom_faixas_selecionam_corretamente(self):
         cfg = EquilibrioCerbasiConfig(

@@ -26,6 +26,9 @@ class OrcamentoProspectivo:
     total: float
     media_mensal: float
     legenda: str
+    # ADR-306 — média full-period rotulada (migração para 12m é follow-up).
+    janela: str = "full"
+    janela_meses: int = 0
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -33,6 +36,8 @@ class OrcamentoProspectivo:
             "total": round(self.total, 2),
             "media_mensal": round(self.media_mensal, 2),
             "legenda": self.legenda,
+            "janela": self.janela,
+            "janela_meses": self.janela_meses,
         }
 
 
@@ -83,4 +88,5 @@ class OrcamentoProspectivoCalculator:
             total=total_mensal,
             media_mensal=total_mensal,
             legenda=legenda,
+            janela_meses=num_months,
         )
