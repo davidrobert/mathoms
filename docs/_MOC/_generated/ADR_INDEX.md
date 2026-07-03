@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-296 ADRs (ADR-001 a ADR-305) em [`docs/adr/`](../../adr/).
+297 ADRs (ADR-001 a ADR-306) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 272
-- **Proposto**: 20
+- **Proposto**: 21
 - **Roadmap**: 4
 
 ## Fundação
@@ -353,6 +353,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (1)
 
 - [[ADR-264]] — Goal type META_OBJETIVO — schema genérico para metas estruturadas (casa, educação, intercâmbio, aposentadoria do cônjuge) (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
+
+## e5
+
+### Proposto (1)
+
+- [[ADR-306]] — Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco
 
 ## frontend
 

@@ -25,11 +25,24 @@ fórmula ficar ambígua entre este doc, `methodology.md` e `scoring.json`,
 | Progresso IF (%) | `progresso_if_pct = investivel_efetivo / if_meta_liquida × 100` | E5 JSON · `goals.if_pct` · score |
 | Gap IF | `if_gap_brl = MAX(0, if_meta_liquida − investivel_efetivo)` | E5 JSON · `goals.if_gap` |
 
+## Política de base temporal (mensalização) — [[ADR-306]]
+
+| Família de métrica | Base canônica | Rótulo `janela` |
+| --- | --- | --- |
+| Ratios/KPIs, score, reserva, Perini (denominador), Cerbasi, folga | **Janela 12m** — últimos 12 meses **documentados** (gap de calendário nunca entra como zero) | `"12m"` |
+| Agregados históricos (fluxo top-level, orçamento prospectivo, charts) | Full-period, permitido **apenas com rótulo** | `"full"` |
+| Mensalizações fiscais (renda passiva, TRS) | Ano-base IRPF ÷ 12 | `"irpf_<ano>"` |
+| Valores mensais por natureza (`parcela_mensal`, `aporte_mensal`) | Não são mensalização de série | isentos |
+
+Todo bloco do payload E5 com campo mensalizado derivado de série temporal
+carrega `janela` (tipo conceitual) + `janela_meses` (meses documentados
+reais). Invariante testado em `tests/test_e5_janela_labels.py`.
+
 ## Reserva de emergência
 
 | Conceito | Fórmula | Onde no código |
 | --- | --- | --- |
-| Custo essencial mensal | Média **trimestral** das categorias `moradia, alimentacao, transporte, saude, seguros, servicos_domesticos, educacao, suporte_familiar, financiamentos` + impostos não-PJ (IPTU, IPVA, IRPF). Lista canônica em `scoring.json:reserva_emergencia._base_calculo`. | E5 JSON · `saude_financeira.reserva_emergencia.custo_essencial_mensal_brl` |
+| Custo essencial mensal | Média mensal sobre a **janela canônica de 12 meses documentados** ([[ADR-306]] — supersede a regra "média trimestral", nunca implementada; sazonais essenciais como IPTU/IPVA/educação são recorrentes reais) das categorias `moradia, alimentacao, transporte, saude, seguros, servicos_domesticos, educacao, suporte_familiar, financiamentos` + impostos não-PJ (IPTU, IPVA, IRPF). Lista canônica em `scoring.json:reserva_emergencia._base_calculo`. | E5 JSON · `saude_financeira.reserva_emergencia.custo_essencial_mensal_brl` |
 | Reserva-alvo | `reserva_alvo = custo_essencial_mensal × meses_alvo`. `meses_alvo` por composição de renda: CLT estável 6, mista 12, PJ-dominante 18 (ver `methodology.md` §RESERVA). | E5 JSON · `saude_financeira.reserva_emergencia.alvo_brl` |
 | Cobertura atual (meses) | `cobertura_meses = reserva_liquida_disponivel ÷ custo_essencial_mensal`. Alimenta o componente `cobertura_despesas` do score (peso 1.5). | E5 JSON · `score.componentes[]` |
 
