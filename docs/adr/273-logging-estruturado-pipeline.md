@@ -2,8 +2,8 @@
 id: ADR-273
 type: adr
 title: "Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded)"
-status: Proposto
-phase: A20.failure-diagnostics
+status: Decidido
+phase: A26
 date: "2026-05-30"
 relates_to:
   - "[[ADR-110]]"
@@ -18,13 +18,13 @@ aliases:
 tags:
   - area/pipeline
   - area/observability
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
 # ADR-273 — Logging estruturado do pipeline
 
-**Status:** Proposto (Sprint A20) • **Data:** 2026-05-30 • **Relaciona** [[ADR-110]] (logging estruturado do backend — `MathomsJsonFormatter`, correlação, reaproveitado), [[ADR-111]] (stateless rigoroso — contextvar é exceção registrada), [[ADR-093]] (nomes de stage descritivos), [[ADR-272]] (razão estruturada de `needs_review` — par desta ADR no mesmo pacote)
+**Status:** Decidido (A26 — PR1 entregue 2026-07-03; concebida na Sprint A20) • **Data:** 2026-05-30 • **Relaciona** [[ADR-110]] (logging estruturado do backend — `MathomsJsonFormatter`, correlação, reaproveitado), [[ADR-111]] (stateless rigoroso — contextvar é exceção registrada), [[ADR-093]] (nomes de stage descritivos), [[ADR-272]] (razão estruturada de `needs_review` — par desta ADR no mesmo pacote)
 
 > **Co-design.** Contrato de log / propagação de contexto / custo revisado por `sre-devops` antes do PR. Boundary do `bind()` backend→pipeline a revisar por `senior-cto` no PR de implementação.
 

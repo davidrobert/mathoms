@@ -185,6 +185,18 @@ repos:
         pass_filenames: true
         files: \.(py|ts|tsx)$
 
+      - id: pipeline-log-pii
+        # ADR-273: logger.* em pipeline/** só aceita message literal +
+        # extra={} (denylist compartilhada redige por chave). Interpolação
+        # (f-string, %-style, .format, concat) vaza PII no message livre.
+        # Ofensores pré-ADR-273 vivem no baseline ratchet
+        # (dev/pipeline_log_pii_baseline.json) — só regressão falha.
+        name: "Anti-PII em logs do pipeline (message literal + extra=, ADR-273)"
+        entry: python3 dev/check_pipeline_log_pii.py
+        language: system
+        pass_filenames: false
+        files: ^(pipeline/.*\.py|dev/check_pipeline_log_pii\.py|dev/pipeline_log_pii_baseline\.json)$
+
       - id: test-health
         # Detecta anti-padrões que custam tempo de CI sem dar sinal:
         # parametrize que recomputa scan caro, soft-fail s/ env de hard-fail
