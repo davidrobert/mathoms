@@ -40,6 +40,17 @@ critérios, roteamento, severidade e armadilhas: [`references/checklist.md`](ref
   (invocar one-shot = owner já decidiu pagar o sweep inteiro): registre a taxa
   de findings das fases 1-2 na subseção da Fase 3 em vez de parar. **Nunca**
   consolide tudo num relatório/PR único.
+- `--fix` = após a triagem de cada fase/run, **executa** o batch de DOC-DRIFT
+  em vez de só propor a lane P2 (precedente: batch r4, ordem do owner
+  2026-07-02). Três garantias invioláveis: (a) **item que exige decisão do
+  owner nunca é auto-resolvido** — status estagnado dependente de evento
+  externo, priorização/escopo de produto, arquivamento com cascade de links →
+  fica `procede-aberto` com a pergunta explícita na tabela rN; (b) todo DRIFT
+  só é editado com **citação dupla** (trecho do doc + trecho da
+  fonte-de-verdade), o mesmo verify que a camada 4 exige de DOC-BLOCK —
+  sem ambos, não edita; (c) DOC-POLISH continua wontfix (não entra no `--fix`).
+  Cada batch sai em **PR docs-only próprio**, separado do PR de síntese da
+  fase, para manter o diff revisável.
 
 `archive/` e sprint fechada ficam **sempre fora** do julgamento (gates ainda
 rodam via pre-commit) — auditar histórico congelado gera falso-drift.
@@ -126,6 +137,9 @@ Estrutura de finding e dedup por `(path, regra)`: checklist §4.
   lane XS se toca código.
 - **DOC-DRIFT** → **uma** lane P2 batch no BACKLOG (estilo W6-T04). A skill
   **propõe**; não cria `track_*.md` automático (furaria o pickup discipline).
+  Exceção: com `--fix` (ver §Parâmetros), o batch é executado no próprio run,
+  com as 3 garantias de lá (decisão-do-owner fica aberta; citação dupla
+  obrigatória; POLISH fora).
 - **DOC-POLISH** → lista no relatório; wontfix até pré-beta.
 
 ## Critério de aceite
