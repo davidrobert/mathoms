@@ -18,17 +18,21 @@ from pipeline.domain.types.snapshot_changelog import (
 )
 
 DeltaSignalRead = Literal["up", "down", "stable"]
+DirectionPositiveRead = Literal["up", "down"]
 
 
 class ComparisonItemRead(BaseModel):
     """Item de comparação seção-a-seção (v2.8). ``delta_pct=null`` em edges com zero."""
 
+    # direction_positive (W2 · ADR-190 D3): direção "boa pro usuário" — a UI
+    # inverte a cor quando delta_signal != direction_positive.
     section_id: str
     section_label: str
     before: MoneyBRL
     after: MoneyBRL
     delta_pct: Optional[MoneyBRL] = None
     delta_signal: DeltaSignalRead
+    direction_positive: DirectionPositiveRead = "up"
 
 
 class ChangelogEntryRead(BaseModel):
@@ -49,6 +53,7 @@ def comparison_item_to_read(item: ComparisonItem) -> ComparisonItemRead:
         after=item.after,
         delta_pct=item.delta_pct,
         delta_signal=item.delta_signal,
+        direction_positive=item.direction_positive,
     )
 
 
@@ -66,6 +71,7 @@ __all__ = [
     "ChangelogEntryRead",
     "ComparisonItemRead",
     "DeltaSignalRead",
+    "DirectionPositiveRead",
     "changelog_entry_to_read",
     "comparison_item_to_read",
 ]

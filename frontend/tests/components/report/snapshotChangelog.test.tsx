@@ -79,6 +79,103 @@ describe("<ComparisonItemsBlock />", () => {
     expect(deltaCell.style.color).toBe("var(--semantic-danger)");
   });
 
+  it("W2 (ADR-190 D3): dívida/despesa subindo pinta vermelho apesar de delta_signal=up", () => {
+    const items: ComparisonItemView[] = [
+      {
+        section_id: "T5",
+        section_label: "Despesas Totais",
+        before: 30_000,
+        after: 31_500,
+        delta_pct: 5.0,
+        delta_signal: "up",
+        direction_positive: "down",
+      },
+    ];
+    const { container } = render(<ComparisonItemsBlock items={items} />);
+    const deltaCell = container.querySelector('tr[data-delta-signal="up"] td:last-child') as HTMLElement;
+    expect(deltaCell.style.color).toBe("var(--semantic-danger)");
+    // Glifo continua apontando a direção REAL do movimento (▲), só a cor inverte.
+    expect(deltaCell.textContent).toContain("▲");
+  });
+
+  it("W2 (ADR-190 D3): asset subindo com direction_positive=up pinta verde", () => {
+    const items: ComparisonItemView[] = [
+      {
+        section_id: "S1",
+        section_label: "Patrimônio Líquido",
+        before: 1_000_000,
+        after: 1_050_000,
+        delta_pct: 5.0,
+        delta_signal: "up",
+        direction_positive: "up",
+      },
+    ];
+    const { container } = render(<ComparisonItemsBlock items={items} />);
+    const deltaCell = container.querySelector('tr[data-delta-signal="up"] td:last-child') as HTMLElement;
+    expect(deltaCell.style.color).toBe("var(--semantic-success)");
+  });
+
+  it("W2 (ADR-190 D3): despesa caindo (delta_signal=down, direction_positive=down) pinta verde", () => {
+    const items: ComparisonItemView[] = [
+      {
+        section_id: "T5",
+        section_label: "Despesas Totais",
+        before: 30_000,
+        after: 27_000,
+        delta_pct: -10.0,
+        delta_signal: "down",
+        direction_positive: "down",
+      },
+    ];
+    const { container } = render(<ComparisonItemsBlock items={items} />);
+    const deltaCell = container.querySelector('tr[data-delta-signal="down"] td:last-child') as HTMLElement;
+    expect(deltaCell.style.color).toBe("var(--semantic-success)");
+  });
+
+  it("W2 (WCAG 1.4.1): célula Δ verbaliza julgamento no aria-label", () => {
+    const items: ComparisonItemView[] = [
+      {
+        section_id: "T5",
+        section_label: "Despesas Totais",
+        before: 30_000,
+        after: 31_500,
+        delta_pct: 5.0,
+        delta_signal: "up",
+        direction_positive: "down",
+      },
+      {
+        section_id: "S1",
+        section_label: "Patrimônio Líquido",
+        before: 1_000_000,
+        after: 1_050_000,
+        delta_pct: 5.0,
+        delta_signal: "up",
+        direction_positive: "up",
+      },
+    ];
+    const { container } = render(<ComparisonItemsBlock items={items} />);
+    const t5Cell = container.querySelector('tr[data-section-id="T5"] td:last-child') as HTMLElement;
+    expect(t5Cell.getAttribute("aria-label")).toBe("Despesas Totais aumentaram 5,0%, desfavorável");
+    const s1Cell = container.querySelector('tr[data-section-id="S1"] td:last-child') as HTMLElement;
+    expect(s1Cell.getAttribute("aria-label")).toBe("Patrimônio Líquido aumentou 5,0%, favorável");
+  });
+
+  it("W2 compat: sem direction_positive no payload (backend pré-W2) preserva comportamento antigo", () => {
+    const items: ComparisonItemView[] = [
+      {
+        section_id: "S1",
+        section_label: "Patrimônio Líquido",
+        before: 100,
+        after: 110,
+        delta_pct: 10,
+        delta_signal: "up",
+      },
+    ];
+    const { container } = render(<ComparisonItemsBlock items={items} />);
+    const deltaCell = container.querySelector('tr[data-delta-signal="up"] td:last-child') as HTMLElement;
+    expect(deltaCell.style.color).toBe("var(--semantic-success)");
+  });
+
   it("renderiza tabela com 3 linhas e sinais corretos (up/down/stable)", () => {
     const items: ComparisonItemView[] = [
       {

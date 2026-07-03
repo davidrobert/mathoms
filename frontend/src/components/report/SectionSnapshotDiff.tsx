@@ -33,6 +33,7 @@ function toItemView(item: ComparisonItemRead): ComparisonItemView {
     after: item.after,
     delta_pct: item.delta_pct,
     delta_signal: item.delta_signal,
+    direction_positive: item.direction_positive ?? "up",
   };
 }
 

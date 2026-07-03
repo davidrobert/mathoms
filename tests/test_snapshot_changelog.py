@@ -12,9 +12,12 @@ from pipeline.domain.services.snapshot_changelog import (
     DEFAULT_SECTION_LABELS,
     build_comparison,
 )
+from pipeline.domain.services.snapshot_changelog.narratives import SECTION_POLARITY
 from pipeline.domain.types.snapshot_changelog import (
+    DEFAULT_DIRECTION_POSITIVE,
     AnalyzeFinancesSnapshot,
     SnapshotChangelogConfig,
+    ThresholdRule,
     UnknownSectionError,
 )
 
@@ -315,3 +318,115 @@ def test_summary_to_zero_plural_usa_zeraram():
     curr = _make_snapshot(period="202604", content=_aportes_only(0))
     result = build_comparison(prev, curr, SnapshotChangelogConfig(sections_to_compare=("T2",)))
     assert result.entries[0].summary == "Aportes zeraram neste relatório"
+
+
+# ---------- W2 (ADR-190 D3): direção semântica por seção ----------
+
+
+def _despesas_only(despesa: float) -> dict[str, Any]:
+    """`content_json` cobrindo só T5 (despesas), demais 0."""
+    return {
+        "patrimonio": {"liquido": 0, "bruto": 0},
+        "fluxo_caixa": {"receita_total": 0, "despesa_total": despesa, "investimentos_total": 0},
+    }
+
+
+def test_w2_t5_expense_carrega_direction_positive_down():
+    """T5 subindo mantém delta_signal=up, mas direction_positive=down (UI pinta vermelho)."""
+    prev = _make_snapshot(period="202603", content=_despesas_only(1000))
+    curr = _make_snapshot(period="202604", content=_despesas_only(1100))
+    result = build_comparison(prev, curr, SnapshotChangelogConfig(sections_to_compare=("T5",)))
+    item = result.items[0]
+    assert item.delta_signal == "up"
+    assert item.direction_positive == "down"
+
+
+def test_w2_asset_carrega_direction_positive_up():
+    """S1 (asset) carrega direction_positive=up — up continua favorável."""
+    prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=1000))
+    curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=1050))
+    result = build_comparison(prev, curr, SnapshotChangelogConfig(sections_to_compare=("S1",)))
+    assert result.items[0].direction_positive == "up"
+
+
+def test_w2_direction_positive_override_via_config():
+    """Override explícito em config vence o default D3."""
+    prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=1000))
+    curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=1050))
+    config = SnapshotChangelogConfig(
+        sections_to_compare=("S1",),
+        direction_positive={"S1": "down"},
+    )
+    result = build_comparison(prev, curr, config)
+    assert result.items[0].direction_positive == "down"
+
+
+def test_w2_default_direction_consistente_com_section_polarity():
+    """Trava consistência D3: asset↔up, expense↔down entre os dois mapas."""
+    assert set(DEFAULT_DIRECTION_POSITIVE) == set(SECTION_POLARITY)
+    for section_id, polarity in SECTION_POLARITY.items():
+        expected = "up" if polarity == "asset" else "down"
+        assert DEFAULT_DIRECTION_POSITIVE[section_id] == expected, (
+            f"section={section_id}: polarity={polarity!r} exige "
+            f"direction_positive={expected!r}, got {DEFAULT_DIRECTION_POSITIVE[section_id]!r}"
+        )
+
+
+# ---------- W2 (ADR-190 D4): threshold dual pct + R$ absoluto ----------
+
+
+def test_w2_dual_threshold_ambos_abaixo_e_stable():
+    """Critério W2: stable somente se pct E abs ficam abaixo dos limites."""
+    prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=1_000_000))
+    curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=1_010_000))
+    config = SnapshotChangelogConfig(
+        sections_to_compare=("S1",),
+        thresholds={"S1": ThresholdRule(pct=Decimal("2"), abs_brl=Decimal("20000"))},
+    )
+    # Δ = 1% (< 2%) e R$ 10k (< 20k) → ambos abaixo → stable.
+    result = build_comparison(prev, curr, config)
+    assert result.items[0].delta_signal == "stable"
+
+
+def test_w2_dual_threshold_abs_cruzado_sinaliza_mesmo_com_pct_abaixo():
+    """Portfólio grande: 1% de PL pode ser R$ 100k — abs cruza, sinaliza."""
+    prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=10_000_000))
+    curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=10_100_000))
+    config = SnapshotChangelogConfig(
+        sections_to_compare=("S1",),
+        thresholds={"S1": ThresholdRule(pct=Decimal("2"), abs_brl=Decimal("20000"))},
+    )
+    # Δ = 1% (< 2%) mas R$ 100k (>= 20k) → up.
+    result = build_comparison(prev, curr, config)
+    assert result.items[0].delta_signal == "up"
+
+
+def test_w2_dual_threshold_boundary_exato_sinaliza():
+    """Boundary: Δ exatamente no limite (>=) cruza — não é stable."""
+    prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=1000))
+    curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=1020))
+    config = SnapshotChangelogConfig(
+        sections_to_compare=("S1",),
+        thresholds={"S1": ThresholdRule(pct=Decimal("2"))},
+    )
+    # Δ = 2.00% == limite → cruza (mantém semântica pré-W2 de `<` para stable).
+    result = build_comparison(prev, curr, config)
+    assert result.items[0].delta_signal == "up"
+
+
+def test_w2_threshold_decimal_legado_segue_valendo():
+    """Override `Decimal` puro (pré-W2) vira regra pct-only — compat preservada."""
+    prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=1000))
+    curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=1008))
+    config = SnapshotChangelogConfig(
+        sections_to_compare=("S1",),
+        thresholds={"S1": Decimal("1")},
+    )
+    result = build_comparison(prev, curr, config)
+    assert result.items[0].delta_signal == "stable"
+
+
+def test_w2_threshold_rule_sem_limite_falha_cedo():
+    """ThresholdRule() sem pct nem abs_brl → ValueError no boundary (ADR-097)."""
+    with pytest.raises(ValueError, match="pct e/ou abs_brl"):
+        ThresholdRule()

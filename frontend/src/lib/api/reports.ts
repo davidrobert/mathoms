@@ -33,7 +33,11 @@ export interface ReportListResponse {
   total: number;
 }
 
-/** v2.8 (ADR-148) — Item de comparação seção-a-seção entre relatórios. */
+/** v2.8 (ADR-148) — Item de comparação seção-a-seção entre relatórios.
+ *
+ * `direction_positive` (W2 · ADR-190 D3): direção "boa pro usuário" — a cor
+ * da célula Δ inverte quando `delta_signal !== direction_positive`. Optional
+ * para tolerar payload de backend pré-W2 (default "up" preserva comportamento). */
 export interface ComparisonItemRead {
   section_id: string;
   section_label: string;
@@ -41,6 +45,7 @@ export interface ComparisonItemRead {
   after: number;
   delta_pct: number | null;
   delta_signal: "up" | "down" | "stable";
+  direction_positive?: "up" | "down";
 }
 
 /** v2.8 (ADR-148) — Entrada do changelog determinístico (uma por seção). */
