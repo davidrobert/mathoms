@@ -71,12 +71,12 @@ Quatro slices executados após a F0 (co-design `senior-cto` + `sre-devops` +
 
 **Gatilho 4 da [[ADR-150]] disparado pelo owner** (emenda 2026-07-03 — ADR
 flippou `Roadmap → Decidido`). Layout, convenções e invariantes: [[ADR-150]]
-§5-§6 + [[ADR-113]]. Fatiamento proposto (co-design pendente valida): PR1
-A3.codegen + skeleton (go.mod, contracts, CI ativa) · PR2 /health + router ·
-PR3 StageExecutor (exec do CLI A3.cli, TRACEPARENT + env passthrough) · PR4
-RunCoordinator + Redis events (envelope §6 bit-exact) · PR5 harness de
-paridade Python↔Go + smoke container. Tracks entram em `tracks/` após o
-co-design (`senior-cto` + `sre-devops` + PM/IA).
+§5-§6 + [[ADR-113]]. **Co-design concluído 2026-07-03** (`senior-cto` +
+`sre-devops` + `product-manager`): **4 PRs** (Fase 1 skeleton+codegen+router;
+Fase 2 StageExecutor — corte mínimo útil; Fase 3 RunCoordinator+eventos;
+Fase 4 paridade+imagem+smoke) com KRs numéricos (imagem ≤150MB, cold start
+shell <100ms, paridade monetária zero). Especificação executável e decisões
+fechadas: [tracks/f1-go-service.md](tracks/f1-go-service.md).
 
 ### F2 — Cutover — ⏸ bloqueada
 
@@ -97,6 +97,7 @@ budget hooks) + enablement do container/compose smoke.
 |---|---|---|---|
 | [TRACK-a3cli-orchestrator-cli](tracks/a3cli-orchestrator-cli.md) | A3.cli (Fase 1) + A3.cli.otel (Fase 2) — 2 PRs | `consumed` ✅ (#737 + #738) | — |
 | [TRACK-a3cli-benchmark](tracks/a3cli-benchmark.md) | A3.cli.benchmark — medição + decisão Caminho 1 vs 2 | `consumed` ✅ (gate PASSA: 413ms) | — |
+| [TRACK-f1-go-service](tracks/f1-go-service.md) | F1 — serviço Go em 4 fases/4 PRs + KRs | `ready` | nenhum — em execução |
 
 ## Critério de destrava de F1 (não recopiar — fonte única)
 

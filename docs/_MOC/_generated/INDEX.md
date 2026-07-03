@@ -839,6 +839,7 @@
 | TRACK-citacao-deterministica | track | ready | A27 | Track A26.l9 — citação determinística (LLM emite path+rótulo; pipeline renderiza valor) | `sprint/A27/tracks/citacao-deterministica.md` |
 | TRACK-competitor-pierre-poc | track | ready | A11 | Track Competitor POC — Pierre Finance API + MCP benchmark | `sprint/A11/tracks/competitor-pierre-poc.md` |
 | TRACK-decision-code-autogen | track | consumed | A12 | Track Decision.code server-generated — PR único cross-cutting | `sprint/A12/tracks/decision-code-autogen.md` |
+| TRACK-f1-go-service | track | ready |  | Track F1 — serviço Go pipeline-service-go (Caminho 1): 4 fases, 4 PRs | `plan/GO_SHELL/tracks/f1-go-service.md` |
 | TRACK-f7f-local | track | consumed | F7 | Track F7F-Local — Console interno pré-produção (IA-0) | `sprint/F7/tracks/f7f-local.md` |
 | TRACK-f9-0-audit | track | consumed | F9 | Track F9.0 — Auditoria de referências aos identificadores legados | `sprint/F9/tracks/f9-0-audit.md` |
 | TRACK-f9-1-pipeline-stages-rename | track | consumed | F9 | Track F9.1 — `git mv pipeline/stages/e*.py` → nomes descritivos | `sprint/F9/tracks/f9-1-pipeline-stages-rename.md` |
