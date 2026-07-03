@@ -89,7 +89,6 @@ function resolveFromMatch(
   if ((match.defasadoAnos ?? 0) >= DEFASADO_MIN_GAP) {
     return { mode: "default-defasado", anoBase: match.anoBase, defasadoAnos: match.defasadoAnos };
   }
-  if (match.anoBase !== irpfKpis.ano_base) return DEFAULT_STRATEGY;
   return {
     mode: MODE_BY_PGBL_STATUS[irpfKpis.pgbl_status],
     anoBase: match.anoBase,
@@ -102,7 +101,11 @@ export function getPgblCardStrategy(
   primaryYear: number | null,
 ): PgblCardStrategy {
   if (!irpfKpis || primaryYear === null) return DEFAULT_STRATEGY;
-  return resolveFromMatch(irpfKpis, matchIrpfToPeriod(irpfKpis.anos_disponiveis, primaryYear));
+  // ADR-305: o backend opina o ano-base fiscal único em `ano_base` (último
+  // completo; degradação vem anotada). O match avalia a defasagem DESSE ano —
+  // não do IRPF mais recente disponível, que pode ser um ano incompleto cujo
+  // pgbl_status não corresponde ao payload.
+  return resolveFromMatch(irpfKpis, matchIrpfToPeriod([irpfKpis.ano_base], primaryYear));
 }
 
 export function isInformativeMode(mode: PgblCardMode): boolean {

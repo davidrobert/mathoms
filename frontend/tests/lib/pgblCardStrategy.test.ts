@@ -146,16 +146,30 @@ describe("getPgblCardStrategy", () => {
     expect(s.mode).toBe("default");
   });
 
-  it("default quando matcher escolhe ano diferente do payload.ano_base (raro)", () => {
-    // Backend escolheu 2024, mas matcher elegeria 2023 dado primaryYear=2022.
-    // Defensivo: devolve default para evitar mostrar pgbl_status referente a 2024
-    // num modo informativo que se diz sobre 2023.
+  it("default quando ano_base do payload é futuro para o período (raro)", () => {
+    // ADR-305: o match usa o ano_base opinado pelo backend (2024); com
+    // primaryYear=2022 esse ano é inelegível (> N+1) → default.
     const kpis = withStatus("capacidade_disponivel", {
       ano_base: 2024,
       anos_disponiveis: [2023, 2024],
     });
     const s = getPgblCardStrategy(kpis, 2022);
     expect(s.mode).toBe("default");
+  });
+
+  it("regressão dogfood 72883bde: ano recente incompleto não quebra o modo informativo (ADR-305)", () => {
+    // Backend resolveu ano_base=2024 (último completo); 2025 existe mas é
+    // incompleto. O match deve avaliar 2024 (gap 1 → informative-no-teto),
+    // não 2025 — antes o mismatch derrubava para default e o relatório
+    // exibia duas leituras PGBL.
+    const kpis = withStatus("no_teto", {
+      ano_base: 2024,
+      anos_disponiveis: [2023, 2024, 2025],
+    });
+    const s = getPgblCardStrategy(kpis, 2025);
+    expect(s.mode).toBe("informative-no-teto");
+    expect(s.anoBase).toBe(2024);
+    expect(s.defasadoAnos).toBe(1);
   });
 });
 
