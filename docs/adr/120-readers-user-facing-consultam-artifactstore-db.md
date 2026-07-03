@@ -21,6 +21,13 @@ size_lines: 76
 
 **Status:** Decidido (A6) • **Data:** 2026-04-23
 
+> ⚠️ **Fallback disco superseded por [[ADR-212]] PR3b** (2026-05-14; banner
+> adicionado no audit r6, 2026-07-03): o "fallback limpo para
+> `DiskArtifactStore`" descrito abaixo **morreu** — readers consultam
+> apenas `pipeline_artifacts` (`backend/app/services/artifact_reader.py`:
+> "fallback disco morreu"). Permanece válido: readers user-facing leem via
+> ArtifactStore/DB, nunca parseiam disco.
+
 **Contexto:** Com ADR-118 o default de `MATHOMS_USE_DB_ARTIFACTS` virou
 `True`. Todos os writers do pipeline (`pipeline/stages/*.py`) já gravam via
 `ctx.get_artifact_store().write(...)` — em produção, só no DB

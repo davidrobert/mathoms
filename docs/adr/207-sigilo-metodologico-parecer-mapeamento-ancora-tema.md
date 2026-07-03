@@ -74,6 +74,16 @@ Mapeamento depende do **tema do conteúdo**, não só da âncora. Tabela de refe
 
 Mapping resolver: `frontend/src/lib/methodology_mapping.ts` (TypeScript) cruzado por `pipeline/llm/methodology_mapping.py` (Python, para validação em backend antes de serializar). **Single source of truth:** `config/methodology_mapping.yaml` (gerado para os dois lados via codegen — paridade [[ADR-076]] pattern). Bump exige `financial-planner` review.
 
+> ⚠️ **Emenda (audit r6, 2026-07-03) — a implementação divergiu de D2/D4/D6:**
+> o trio `methodology_mapping.{yaml,py,ts}` e o codegen **nunca foram
+> implementados** (0 hits no repo), e `tema_canonico` **não é derivado em
+> runtime no frontend** — é enum fechado (`TemaCanonico`) emitido pelo LLM
+> e **persistido** no artifact
+> (`pipeline/llm/schemas/parecer_planejador.py:237`). A defesa de sigilo
+> permanece válida por outra via: enum sem nomes de fonte +
+> `ancora_metodologica` nunca renderizada + gate `dev/check_sigilo_terms.py`.
+> A tabela de D2 segue útil como referência editorial âncora→tema.
+
 ### D3. Defesa em profundidade — 3 camadas
 
 **Camada 1 — Persona ([[ADR-201]]):**

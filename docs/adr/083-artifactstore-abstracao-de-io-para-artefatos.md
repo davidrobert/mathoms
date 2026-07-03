@@ -21,6 +21,14 @@ size_lines: 60
 
 **Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 1.2 / 2.1
 
+> ⚠️ **Parcialmente superseded por [[ADR-212]]** (2026-05-14; banner
+> adicionado no audit r6, 2026-07-03): `DiskArtifactStore`, o default disco
+> de `get_artifact_store()` e a flag `MATHOMS_USE_DB_ARTIFACTS` citados
+> abaixo **não existem mais** — pipeline é DB-only via `DBArtifactStore`.
+> Permanecem válidos: o protocol `ArtifactStore`, `InMemoryArtifactStore`
+> em testes e a boundary `pipeline/` ↔ DB. Detalhe: [[ADR-212]]
+> §"Supersedure parcial: ADR-083 §Contexto".
+
 **Contexto:** Com `pipeline_artifacts` como nova fonte de verdade (ADR-082),
 stages precisam de uma API comum que:
 - Funcione tanto em CLI dev (disco, sem DB) quanto em web (DB).
