@@ -139,13 +139,13 @@ class ConsumoConsciente:
     # expostos para o teste de reconciliação algébrica.
     janela: str = "full"
     janela_meses: int = 0
-    total_pontuais_janela: float = 0.0
+    pontuais_janela: float = 0.0
 
     def to_legacy_dict(self) -> dict:
         return {
             "itens": [i.to_dict() for i in self.itens],
             "total_pontuais": round(self.total_pontuais, 2),
-            "total_pontuais_janela": round(self.total_pontuais_janela, 2),
+            "total_pontuais_janela": round(self.pontuais_janela, 2),
             "equivalente_meses_aporte": self.equivalente_meses_aporte,
             "folga_mensal": round(self.folga_mensal, 2),
             "folga_pct": self.folga_pct,
@@ -185,10 +185,10 @@ class ConsumoConscienteCalculator:
 
         # ADR-306 §D6: pontuais da folga restritos à janela canônica —
         # misturar pontuais full-period com denominador 12m inflava a folga.
-        total_pontuais_janela = sum(
+        pontuais_janela = sum(
             c.valor for c in candidates if _dentro_da_janela(c.mes, window.mes_inicio)
         )
-        pontual_mensal = total_pontuais_janela / window.n_meses if window.n_meses > 0 else 0.0
+        pontual_mensal = pontuais_janela / window.n_meses if window.n_meses > 0 else 0.0
         despesas_recorrentes_mensal = window.despesa_mensal_media - pontual_mensal
         folga_mensal = window.receita_rec_mensal - despesas_recorrentes_mensal
         folga_pct = (
@@ -214,7 +214,7 @@ class ConsumoConscienteCalculator:
             analise=analise,
             janela=window.janela,
             janela_meses=int(window.n_meses),
-            total_pontuais_janela=total_pontuais_janela,
+            pontuais_janela=pontuais_janela,
         )
 
     # -- Helpers --

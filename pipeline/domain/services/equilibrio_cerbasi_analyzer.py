@@ -16,7 +16,18 @@ Função pura. Config tipada (R9/ISP) recebe categorias + escada de classificaç
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import Any
+
+# Payload de fluxo enriquecido é JSON dinâmico — alias único (padrão ratios_calculator).
+_FluxoPayload = dict[str, Any]
+
+_ZERO = Decimal("0")
+
+
+def _money(value: Any) -> Decimal:
+    """Dinheiro em memória é Decimal (ADR-090); parse defensivo de payload."""
+    return Decimal(str(_safe_float(value)))
 
 
 def _safe_float(val) -> float:
@@ -162,13 +173,13 @@ class EquilibrioCerbasiAnalyzer:
     def __init__(self, config: EquilibrioCerbasiConfig | None = None) -> None:
         self._config = config or EquilibrioCerbasiConfig()
 
-    def analyze(self, fluxo: dict[str, Any]) -> EquilibrioCerbasi:
+    def analyze(self, fluxo: _FluxoPayload) -> EquilibrioCerbasi:
         window = _resolve_cerbasi_window(fluxo)
         gasto_presente, gasto_futuro = self._split_gastos(window.despesas_por_categoria)
 
         # ADR-306 §D5: poupança realizada é alocação ao futuro. Residual
         # (fallback); aporte observado de primeira classe é follow-up.
-        poupanca = max(0.0, window.receita_recorrente - window.despesa_total)
+        poupanca = float(max(_ZERO, window.receita_recorrente - window.despesa_janela))
         base = gasto_presente + gasto_futuro + poupanca
 
         pct_presente = round(gasto_presente / base * 100, 1) if base > 0 else 0.0
@@ -188,7 +199,7 @@ class EquilibrioCerbasiAnalyzer:
             },
         )
 
-    def _split_gastos(self, despesas: dict[str, Any]) -> tuple[float, float]:
+    def _split_gastos(self, despesas: dict[str, float]) -> tuple[float, float]:
         """Retorna ``(presente, futuro)``; não-classificado soma no presente (legado)."""
         cfg = self._config
         presente = 0.0
@@ -214,29 +225,29 @@ class EquilibrioCerbasiAnalyzer:
 
 @dataclass(frozen=True)
 class _CerbasiWindow:
-    despesas_por_categoria: dict[str, Any]
-    receita_recorrente: float
-    despesa_total: float
+    despesas_por_categoria: dict[str, float]
+    receita_recorrente: Decimal
+    despesa_janela: Decimal
     janela: str
     janela_meses: int
 
 
-def _resolve_cerbasi_window(fluxo: dict[str, Any]) -> _CerbasiWindow:
+def _resolve_cerbasi_window(fluxo: _FluxoPayload) -> _CerbasiWindow:
     """Prefere ``janela_12m`` (ADR-306); degrada para o período completo."""
     src = fluxo if isinstance(fluxo, dict) else {}
     j12m = src.get("janela_12m") or {}
     if isinstance(j12m, dict) and j12m.get("despesas_por_categoria"):
         return _CerbasiWindow(
             despesas_por_categoria=j12m["despesas_por_categoria"] or {},
-            receita_recorrente=_safe_float(j12m.get("receita_recorrente", 0)),
-            despesa_total=_safe_float(j12m.get("despesa_total", 0)),
+            receita_recorrente=_money(j12m.get("receita_recorrente", 0)),
+            despesa_janela=_money(j12m.get("despesa_total", 0)),
             janela="12m",
             janela_meses=int(_safe_float(j12m.get("n_meses", 0))),
         )
     return _CerbasiWindow(
         despesas_por_categoria=src.get("despesas_por_categoria", {}) or {},
-        receita_recorrente=_safe_float(src.get("receita_recorrente", 0)),
-        despesa_total=_safe_float(src.get("despesa_total", 0)),
+        receita_recorrente=_money(src.get("receita_recorrente", 0)),
+        despesa_janela=_money(src.get("despesa_total", 0)),
         janela="full",
         janela_meses=int(_safe_float(src.get("janela_meses", 0))),
     )

@@ -82,14 +82,11 @@ class EmergencyReserveCalculator:
         self._config = config
 
     def calculate(self, *, fluxo: dict, patrimonio: dict) -> dict:
-        """Produz dict paridade com ``analyze_reserva_emergencia`` legado.
-
-        ADR-306 §D4: denominador usa a janela canônica 12m (``janela_12m``),
-        não a média full-period diluída. ``despesa_mensal_media`` é ponte
-        transitória — A28.l1 troca para ``despesa_mensal_essencial`` da
-        mesma janela.
-        """
+        """Produz dict paridade com ``analyze_reserva_emergencia`` legado."""
         identity = self._config.members
+        # ADR-306 §D4: denominador vem da janela canônica 12m, não da média
+        # full-period diluída; despesa_mensal_media é ponte até A28.l1
+        # (troca para despesa_mensal_essencial da mesma janela).
         despesa_mensal, janela, janela_meses = _resolve_base_mensal(fluxo)
 
         inv_titular = safe_float(patrimonio.get(identity.key_inv_titular, 0))

@@ -256,7 +256,7 @@ class TestJanela:
         )
         r = ConsumoConscienteCalculator(cfg).calculate(fluxo, despesas)
         assert r.total_pontuais == 8_400.0
-        assert r.total_pontuais_janela == 2_400.0
+        assert r.pontuais_janela == 2_400.0
         assert r.folga_mensal == pytest.approx(10_000 - (8_000 - 2_400 / 12))
         assert r.janela == "12m"
         assert r.janela_meses == 12
@@ -275,7 +275,7 @@ class TestJanela:
         r = ConsumoConscienteCalculator(cfg).calculate(
             fluxo, _despesas(lazer=[_txn("2025-12-10", "VIAGEM", 3_600)])
         )
-        esperado = 12_000 - 9_000 + r.total_pontuais_janela / 12
+        esperado = 12_000 - 9_000 + r.pontuais_janela / 12
         assert r.folga_mensal == pytest.approx(esperado)
 
     def test_fallback_ao_periodo_completo_sem_janela(self):

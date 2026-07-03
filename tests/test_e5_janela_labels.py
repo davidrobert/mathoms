@@ -51,14 +51,24 @@ def _mensal_fields(node: dict) -> set[str]:
     }
 
 
+def _children(node, path):
+    if isinstance(node, dict):
+        return [(f"{path}.{k}", v) for k, v in node.items()]
+    if isinstance(node, list):
+        return [(f"{path}[{i}]", v) for i, v in enumerate(node)]
+    return []
+
+
 def _walk(node, path=""):
     if isinstance(node, dict):
         yield path, node
-        for k, v in node.items():
-            yield from _walk(v, f"{path}.{k}")
-    elif isinstance(node, list):
-        for i, v in enumerate(node):
-            yield from _walk(v, f"{path}[{i}]")
+    for child_path, child in _children(node, path):
+        yield from _walk(child, child_path)
+
+
+def _walk_all(payloads):
+    for payload in payloads:
+        yield from _walk(payload)
 
 
 @pytest.fixture(scope="module")
@@ -84,35 +94,35 @@ def payloads(tmp_path_factory) -> list[dict]:
 
 
 def test_todo_campo_mensal_tem_rotulo_de_janela(payloads: list[dict]):
-    violations: list[str] = []
-    for payload in payloads:
-        for path, node in _walk(payload):
-            fields = _mensal_fields(node)
-            if fields and "janela" not in node:
-                violations.append(f"{path or '<root>'}: {sorted(fields)} sem chave 'janela'")
+    violations = [
+        f"{path or '<root>'}: {sorted(fields)} sem chave 'janela'"
+        for path, node in _walk_all(payloads)
+        if (fields := _mensal_fields(node)) and "janela" not in node
+    ]
     assert not violations, "campos mensalizados sem rótulo de janela (ADR-306):\n" + "\n".join(
         violations
     )
 
 
 def test_rotulo_de_janela_usa_vocabulario_fechado(payloads: list[dict]):
-    for payload in payloads:
-        for path, node in _walk(payload):
-            if "janela" in node and isinstance(node["janela"], str):
-                assert _JANELA_VOCAB.match(node["janela"]), (
-                    f"{path}: janela={node['janela']!r} fora do vocabulário ADR-306"
-                )
-                assert isinstance(node.get("janela_meses"), int), (
-                    f"{path}: bloco rotulado sem 'janela_meses' int"
-                )
+    rotulados = [
+        (path, node) for path, node in _walk_all(payloads) if isinstance(node.get("janela"), str)
+    ]
+    assert rotulados, "nenhum bloco rotulado encontrado — pipeline mudou shape?"
+    for path, node in rotulados:
+        assert _JANELA_VOCAB.match(
+            node["janela"]
+        ), f"{path}: janela={node['janela']!r} fora do vocabulário ADR-306"
+        assert isinstance(
+            node.get("janela_meses"), int
+        ), f"{path}: bloco rotulado sem 'janela_meses' int"
 
 
 def test_isencao_sem_orfaos(payloads: list[dict]):
     """Toda isenção deve existir em ≥1 payload — impede lixão de nomes mortos."""
     seen: set[str] = set()
-    for payload in payloads:
-        for _, node in _walk(payload):
-            seen.update(k for k in node if k in _EXEMPT_FIELDS)
+    for _, node in _walk_all(payloads):
+        seen.update(k for k in node if k in _EXEMPT_FIELDS)
     orfaos = _EXEMPT_FIELDS - seen
     # `renda_pj_mensal` só aparece em snapshots com goals de renda PJ —
     # tolerada como isenção documental (consumida em suggestion_rules).
