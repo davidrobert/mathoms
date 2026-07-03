@@ -281,13 +281,13 @@
     "futuro": "Independência Financeira",
     "janela": "12m",
     "janela_meses": 1,
-    "pct_futuro": 5000,
-    "pct_presente": 5000,
+    "pct_futuro": "50.000000",
+    "pct_presente": "50.000000",
     "presente": "Consolidação patrimonial"
   },
   "exposicao_cambial": {
     "detalhes": [],
-    "pct_investivel_financeiro": 0,
+    "pct_investivel_financeiro": "0.000000",
     "por_moeda": [],
     "tier": "empty",
     "total_brl": 0
@@ -419,7 +419,7 @@
         "instituicao": "",
         "membro": "Alex",
         "nome": "APARTAMENTO RUA FICTICIA 100",
-        "pct_carteira": 8824,
+        "pct_carteira": "88.240000",
         "posicao": 100,
         "tipo_origem": "imovel",
         "valor": 60000000
@@ -429,7 +429,7 @@
         "instituicao": "",
         "membro": "Alex",
         "nome": "Investimento",
-        "pct_carteira": 1176,
+        "pct_carteira": "11.760000",
         "posicao": 200,
         "tipo_origem": "investimento",
         "valor": 8000000
