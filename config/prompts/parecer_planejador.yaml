@@ -391,7 +391,9 @@ max_total_input_tokens: 50000
 max_exec_context_bytes: 5120  # ~5KB hard limit base (pré tool calls)
 # Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação sem bloquear;
 # strict marca needs_review. Override operacional: env MATHOMS_PARECER_EVIDENCIA_MODE.
-evidencia_verification_mode: "warn"
+# Flip warn→strict (A26.l2): segurança satisfeita por construção (per-item,
+# ADR-295); budget de UX ≤15% precisa de ≥20 gerações reais antes do merge.
+evidencia_verification_mode: "strict"
 
 # Catálogo de citação (A26.l1 · ADR-279 §E): injeta no exec context a lista
 # fechada das folhas monetárias não-nulas do E5 — o LLM cita de uma lista em vez
