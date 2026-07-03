@@ -85,6 +85,33 @@ deixa de ser uma parada e vira registro informativo — ao invocar, você já
 autorizou os ~5M tokens dos ADRs mesmo que as fases 1-2 venham limpas. Se
 quiser manter o controle de custo, use o modo faseado (§4-6).
 
+### 3.2 E as correções? — níveis de automação (`--fix`)
+
+Por default, a auditoria **corrige sozinha só os DOC-BLOCK** (mergeados no
+PR de cada fase). DOC-DRIFT viram *proposta* de batch (lane P2 no
+AUDITS-active) e DOC-POLISH ficam em wontfix — porque parte dos DRIFT exige
+decisão sua, não edição mecânica (ex.: ADR `Proposto` estagnada depende de
+saber se o evento externo ocorreu; spec fora do funil é priorização de
+produto).
+
+Para auditar **e** corrigir tudo que não depende de você, adicione `--fix`:
+
+```
+/audit-vault --scope all --full --fix
+```
+
+| Severidade | default | com `--fix` |
+|---|---|---|
+| DOC-BLOCK | corrigido no PR da fase | idem |
+| DOC-DRIFT | proposto como batch (você decide) | **executado** em PR docs-only próprio por fase |
+| DOC-POLISH | listado, wontfix | idem (fora do `--fix`) |
+| Item que exige decisão do owner | `procede-aberto` | `procede-aberto` — **nunca** auto-resolvido; a pergunta fica explícita na tabela rN |
+
+Salvaguarda do `--fix` (contrato no SKILL.md §Parâmetros): nenhum DRIFT é
+editado sem **citação dupla** (trecho do doc + trecho da fonte-de-verdade)
+— o mesmo verify exigido de DOC-BLOCK — para a taxa de falso-positivo não
+virar edição errada em doc canônico.
+
 ## 4. Fase 1 — `reference` (54 arquivos)
 
 Em uma **sessão nova**, execute:
