@@ -351,7 +351,7 @@ Atualizar este doc se: (a) shell ganhar dependência nova relevante (Pydantic, F
 | - | --- | --- |
 | **A1** | Inventário de deps · [GO_PORT_DEPS.md](GO_PORT_DEPS.md) | ✅ feito |
 | **A2** | Este documento · footprint baseline | ✅ feito (com limitação: stage execution real não medida) |
-| A2.1 | Estender A2 com smoke real — workspace tenant + um run E0→E5, medir RSS/CPU/duração por stage | Sem isso, gatilho "GIL" para Caminho 3 fica especulativo |
+| A2.1 | Estender A2 com smoke real — workspace tenant + um run E0→E5, medir RSS/CPU/duração por stage | ◐ **parcial** (2026-07-03, §12): harness entregue (`dev/profile_pipeline_stages.py`) + perfil determinístico E1.5c→E5 sintético; rerun com dados reais + LLM é owner-gated — só ele refalsifica o gatilho "GIL" |
 | **A3** | ADR de estratégia de port (Caminho 1/2/3) com base em A1 + A2 (+ A2.1 se necessário) | Destrava primeiro PR Go produtivo |
 | A2.fix | Slice próprio para fixar [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) — pré-requisito para CI smoke do pipeline-service Python | Detectado em A2 §6 |
 
@@ -397,3 +397,47 @@ tolerável para runs reais (stages LLM levam minutos; deterministic dogfood ganh
 iterativo vier a doer na prática, o Caminho 2 (worker pool warm) reabre por emenda
 — o número acima é a linha de base para refalsificar na revisita (2027-Q2 / 100
 workspaces pagantes).
+
+---
+
+## 12. A2.1 (parcial) — perfil RSS/CPU/duração por stage via subprocess (2026-07-03)
+
+> Harness do A2.1 ([ADR-150](../adr/150-estrategia-de-port-go-do-pipeline-service.md)
+> §Escopo deferido): `python3 dev/profile_pipeline_stages.py --runs 3` — sequência
+> determinística da fixture dogfood sintética PII-zero (E1.5c→E3→E4→E5, seeding
+> espelha `tests/pipeline_golden_substrate.py`), subprocess POR stage via CLI
+> `run-stage` (modelo de execução do Caminho 1), medição por filho via
+> `os.wait4`/rusage (`ru_maxrss` normalizado: bytes no macOS, KB no Linux).
+> Overhead usa a MESMA fórmula do §11 (wall − `duration_ms`). `schema_mode=warn`
+> explícito: o baseline bruto é input externo e não passa strict (mesma razão do
+> `InMemoryArtifactStore.seed` no substrate).
+
+**Máquina:** macOS 26.5.1 arm64 · Apple M4 · Python 3.12.13 · venv produtivo · 3 runs (mediana).
+
+| stage | wall | stage_ms | overhead | cpu_s | cpu/wall | peakRSS |
+| --- | --- | --- | --- | --- | --- | --- |
+| consolidate_baseline | 612ms | 43ms | 569ms | 0,61s | 0,99 | 112MB |
+| reconcile_transactions | 587ms | 36ms | 550ms | 0,58s | 0,99 | 111MB |
+| categorize_transactions | 595ms | 41ms | 555ms | 0,59s | 0,99 | 111MB |
+| analyze_finances | 574ms | 26ms | 544ms | 0,57s | 0,99 | 116MB |
+
+**Leituras (não deixe o número enganar):**
+
+1. **Overhead subiu vs §11 (413ms → ~550ms): é a hidratação.** O §11 mediu o CLI
+   pré-paridade; com `run_context_factory` (config overrides + resolvers + goals
+   bundle do DB) o boot paga ~140ms a mais. Acumulado projetado/run determinístico
+   (10 stages): ~5,6s — ainda dentro da estimativa 6-13s da ADR-150 e abaixo do
+   risco de 10s.
+2. **`cpu/wall≈0,99` NÃO refalsifica o gatilho GIL.** Com fixture minúscula, o
+   compute de domínio é 26-43ms — o CPU-bound medido é o **boot/imports** do
+   subprocess (exec de módulos é CPU), fiel ao custo do Caminho 1 mas mudo sobre
+   os stages em carga real. Refalsificar "GIL/CPU-bound → Caminho 3" exige rerun
+   com workspace real (E2 parsing pesado, E5 com centenas de transações).
+3. **peakRSS ~111-116MB/subprocess = interpretador + árvore de imports + stage** —
+   não é custo incremental do stage. Para capacity: N subprocesses simultâneos ≈
+   N×~115MB (o Caminho 1 roda stages sequenciais num run — 1 por vez).
+
+**Fora do perfil (rerun owner-gated):** E0→E2 com documentos reais (parsing
+PDF/OCR), stages LLM (`ANTHROPIC_API_KEY`) e E7 (`validate_cross` exige
+narrativas do E5.N). A fixture também não exercita ADR-246 (dedup por resolver
+DB) nem incremental (ADR-241) — ressalvas do README da fixture valem aqui.
