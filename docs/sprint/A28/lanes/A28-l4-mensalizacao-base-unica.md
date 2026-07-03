@@ -4,7 +4,9 @@ type: lane
 title: "base de mensalização única: política de janela temporal por família de métrica + Cerbasi coerente"
 sprint: A28
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 756
+ship_date: "2026-07-03"
 priority: P0
 branch_slug: mensalizacao-base-unica
 adrs:
@@ -16,7 +18,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/e5
 ---
