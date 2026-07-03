@@ -204,7 +204,7 @@ Ordem recomendada de prep pré-port (referência da conversa que originou este d
 | B3 | CLI entry-point em `pipeline.orchestrator` (= **A3.cli + A3.cli.otel** da ADR-150) ✓ **entregue** (PRs #737 + #738, 2026-07-02): `run-stage` + injeção de `DBArtifactStore` via `MATHOMS_DATABASE_URL` ([artifact_session_factory](../../backend/app/services/artifact_session_factory.py)) + `TRACEPARENT` → span filho W3C com 6 attributes canônicos | feito | — |
 | B3.bench | **A3.cli.benchmark** ✓ **gate PASSA** (2026-07-02): cold start mediana **413ms ≤ 500ms → Caminho 1 segue**; acumulado 4,1–7,4s/run ([PERFORMANCE_BASELINE §11](PERFORMANCE_BASELINE.md); `dev/benchmark_run_stage_cold_start.py`) | feito | F0 do [plano GO_SHELL](../plan/GO_SHELL/_README.md) concluída — resta A3.codegen (ancorado ao 1º PR Go, F1) |
 | B1 | Codegen Go via `oapi-codegen` consumindo o OpenAPI (= A3.codegen) | 3-4h | porta de `contracts/` — ancorado ao 1º PR Go produtivo (sem track hoje) |
-| B2 | Contract tests (Schemathesis) contra o pipeline-service atual | 4-6h | confiança no port |
+| B2 | Contract tests (Schemathesis) contra o pipeline-service atual ✓ **entregue** (PR #747, 2026-07-03): fuzz determinístico sobre o snapshot OpenAPI no CI + 404/400/503 documentados no contrato | feito | — |
 | B4 | Sample anonimizado de tráfego real → golden tests | 3-4h | validação do port |
 
 **Nota:** nenhum gatilho da ADR-150 está ativo (2026-07-02); a revisita agendada permanece (2027-Q2 / 100 workspaces pagantes). O owner autorizou (2026-07-02) o **prep antecipado** de A3.cli/otel/benchmark como interface estável barata — plano host e tracks em [docs/plan/GO_SHELL/](../plan/GO_SHELL/_README.md). O primeiro PR Go produtivo continua condicionado aos gatilhos.
