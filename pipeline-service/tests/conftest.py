@@ -7,6 +7,7 @@ Pipeline-service runs from its own directory in CI; tests here need:
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -16,6 +17,15 @@ for p in (_SERVICE_ROOT, _REPO_ROOT):
     sp = str(p)
     if sp not in sys.path:
         sys.path.insert(0, sp)
+
+# Hidratação de contexto (run_context_factory) exige o vault Fernet — mesma
+# key de teste do backend/tests/conftest.py, setada ANTES do 1º import de
+# backend.* (settings lê env no import).
+_TEST_FERNET_KEY = "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
+os.environ.setdefault("MATHOMS_FERNET_KEY", _TEST_FERNET_KEY)
+# Porta fechada: caches Redis do backend (catálogo/budget) viram no-op
+# fail-open — a hidratação nos testes não pode escrever no Redis dev.
+os.environ.setdefault("MATHOMS_REDIS_URL", "redis://127.0.0.1:6390/0")
 
 import pytest
 from app.main import create_app  # noqa: E402
@@ -62,5 +72,10 @@ def artifact_db_session_factory(monkeypatch):
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     monkeypatch.setattr(artifact_session, "_new_session", lambda: factory())
+    # A hidratação (run_context_factory) abre sessão de config própria —
+    # aponta para o mesmo engine in-memory; sem isso leria o mathoms.db dev.
+    from backend.app.services import run_context_factory
+
+    monkeypatch.setattr(run_context_factory, "_default_session_factory", lambda: factory())
     yield factory
     engine.dispose()
