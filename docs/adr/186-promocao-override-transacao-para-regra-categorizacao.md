@@ -14,6 +14,7 @@ relates_to:
   - "[[ADR-137]]"
   - "[[ADR-143]]"
   - "[[ADR-185]]"
+  - "[[ADR-188]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 186", "Category learning loop", "Override-to-rule promotion"]
@@ -31,6 +32,12 @@ tags:
 > `override_source` + agregado novo `CategorizationRule`), UX (`/transactions`
 > + `/config → Categorias`) e invariante temporal (mês fechado). Split
 > produziria peças órfãs sem o contrato cruzado.
+
+> **Supersedure parcial (2026-05-11, registrada 2026-07-03 · audit r5):**
+> [[ADR-188]] refina §D3 (schema — soft-delete, partial unique, provenance) e
+> substitui o `revert_count` único de §D6 (split `revert_transactions` /
+> `revert_rules`). Para o contrato vigente desses dois pontos, leia [[ADR-188]];
+> o restante desta ADR permanece canônico.
 
 ## Contexto
 
