@@ -483,6 +483,11 @@ async def test_get_report_data_comparisons_present_with_previous_snapshot(
     assert s1["delta_signal"] == "up"
     assert s1["delta_pct"] == pytest.approx(10.0, rel=1e-3)
 
+    # W2 (ADR-190 D3): direção semântica no wire — asset up, expense down.
+    assert s1["direction_positive"] == "up"
+    t5 = next(it for it in items if it["section_id"] == "T5")
+    assert t5["direction_positive"] == "down"
+
     # Changelog tem entry só para seções não-stable.
     entries = body["changelog"]
     assert isinstance(entries, list)
