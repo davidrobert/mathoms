@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
 from typing import Any, Literal, Mapping
@@ -48,6 +49,9 @@ class PassiveIncomeConfig:
     )
 
 
+# A28.l2 (ADR-191): anual/mensal/TRS medem yield de carteira — excluem
+# renda_passiva_por_fonte_brl["distribuicao_pj_titular"] (distribuição de
+# lucros da PJ operacional do titular ≈ remuneração de trabalho, não yield).
 @dataclass(frozen=True)
 class PassiveIncomeResult:
     """Output de :meth:`PassiveIncomeCalculator.calculate` — render UI do S7."""
@@ -98,9 +102,13 @@ class _RendaPassivaBuckets:
     ganho_capital: Decimal = _ZERO
     exterior: Decimal = _ZERO
     alugueis: Decimal = _ZERO
+    # A28.l2 — linha rotulada FORA da TRS: distribuição de lucros da PJ
+    # operacional do titular ≈ remuneração de trabalho, não yield (ADR-191).
+    distribuicao_pj_titular: Decimal = _ZERO
 
     @property
     def total(self) -> Decimal:
+        """Numerador da TRS — só yield de carteira (exclui distribuição PJ)."""
         return (
             self.dividendos
             + self.jcp
@@ -118,6 +126,7 @@ class _RendaPassivaBuckets:
             "ganho_capital": self.ganho_capital,
             "exterior": self.exterior,
             "alugueis": self.alugueis,
+            "distribuicao_pj_titular": self.distribuicao_pj_titular,
         }
 
 
@@ -181,20 +190,16 @@ class PassiveIncomeCalculator:
     def _renda_passiva_observada(self, *, irpf: IRPFAnalyzer, ano: int) -> _RendaPassivaBuckets:
         """Decompõe rendimentos passivos por código RFB (cod 09/10/12/06 + exterior)."""
         decls = irpf.declarations_for_year(ano)
-        explicit = _aggregate_explicit_buckets(decls)
+        participacoes = _collect_participacoes_societarias(decls)
+        explicit = _aggregate_explicit_buckets(decls, participacoes)
         # paridade com IRPFAnalyzer: bucket aluguel ainda em trabalho em main;
         # delta vs split_trabalho_vs_capital absorve quando PR-B mergear.
+        # capital_brl inclui todos os cod-09 — delta desconta também a
+        # distribuição PJ para não vazá-la no bucket aluguéis (A28.l2).
         capital_total = irpf.split_trabalho_vs_capital(ano).capital_brl
-        delta = capital_total - explicit.total
+        delta = capital_total - explicit.total - explicit.distribuicao_pj_titular
         alugueis = delta if delta > _ZERO else _ZERO
-        return _RendaPassivaBuckets(
-            dividendos=explicit.dividendos,
-            jcp=explicit.jcp,
-            aplicacoes=explicit.aplicacoes,
-            ganho_capital=explicit.ganho_capital,
-            exterior=explicit.exterior,
-            alugueis=alugueis,
-        )
+        return replace(explicit, alugueis=alugueis)
 
     def _patrimonio_gerador(
         self,
@@ -202,10 +207,8 @@ class PassiveIncomeCalculator:
         investimentos_atuais: HoldingsPayload | None,
         despesa_mensal_media_brl: Decimal,
     ) -> Decimal:
-        """Carteira de renda (D1): inv_titular+conjuge ± imóveis ± caixa-reserva − derivativos."""
-        gerador = self._sum_investimentos_membro(
-            patrimonio, "titular"
-        ) + self._sum_investimentos_membro(patrimonio, "conjuge")
+        """Carteira de renda (D1): investimentos ± imóveis ± caixa-reserva − derivativos."""
+        gerador = _sum_investimentos_keys(patrimonio)
         if self._config.incluir_imoveis_investimento:
             gerador += _to_decimal(patrimonio.get("imoveis_investimento", 0))
         gerador += self._caixa_excedente(patrimonio, despesa_mensal_media_brl)
@@ -220,16 +223,6 @@ class PassiveIncomeCalculator:
         reserva = despesa_mensal_media_brl * Decimal(self._config.reserva_emergencia_meses)
         excedente = caixa - reserva
         return excedente if excedente > _ZERO else _ZERO
-
-    @staticmethod
-    def _sum_investimentos_membro(
-        patrimonio: PatrimonioPayload, membro_role: Literal["titular", "conjuge"]
-    ) -> Decimal:
-        """Lê chave canônica ``investimentos_<role>`` ou fallback dinâmico."""
-        canonical = f"investimentos_{membro_role}"
-        if canonical in patrimonio:
-            return _to_decimal(patrimonio[canonical])
-        return _scan_dynamic_member_key(patrimonio, membro_role)
 
     def _pct_acumuladores(
         self,
@@ -280,14 +273,17 @@ class PassiveIncomeCalculator:
         )
 
 
-def _scan_dynamic_member_key(patrimonio: PatrimonioPayload, membro_role: str) -> Decimal:
-    """Fallback para chaves dinâmicas estilo ``investimentos_david``."""
+# PatrimonioCalculator emite chaves dinâmicas por nome de membro
+# (``investimentos_<titular_key>``) — filtrar por "titular"/"conjuge" zerava
+# o denominador em produção e a TRS saía sobre universo errado (dogfood
+# 22,63% a.a. — A28.l2, ADR-191).
+def _sum_investimentos_keys(patrimonio: PatrimonioPayload) -> Decimal:
+    """Soma toda chave ``investimentos_<membro>`` do payload de patrimônio."""
+    total = _ZERO
     for key, value in patrimonio.items():
-        if not isinstance(key, str) or not key.startswith("investimentos_"):
-            continue
-        if membro_role in key.lower():
-            return _to_decimal(value)
-    return _ZERO
+        if isinstance(key, str) and key.startswith("investimentos_"):
+            total += _to_decimal(value)
+    return total
 
 
 def _sum_derivativos(
@@ -329,17 +325,98 @@ def _sum_holdings_matching_tickers(
     return total
 
 
-def _aggregate_explicit_buckets(decls: list[IRPFFullOutput]) -> _RendaPassivaBuckets:
+# A28.l2 — detecção determinística de participação societária (quotas de
+# empresa operacional) em bens_direitos, para separar distribuição de lucros
+# da PJ do titular do yield de carteira (universo consistente, ADR-191).
+# Cod RFB 32 = quotas de sociedade não negociada (layout novo: grupo 03-02).
+_QUOTA_CODIGOS = frozenset({"32", "03-02", "03.02"})
+_QUOTA_KEYWORDS_RE = re.compile(
+    r"quotas?\b|participa[cç][aã]o\s+societ|capital\s+social", re.IGNORECASE
+)
+_CNPJ_TOKEN_RE = re.compile(r"[\d*]{2}\.?[\d*]{3}\.?[\d*]{3}/?[\d*]{4}-?[\d*]{2}")
+# Sufixos de personificação jurídica que ancoram o nome da empresa no texto.
+_LEGAL_SUFFIX_TOKENS = frozenset({"ltda", "sa", "eireli", "epp", "mei", "me"})
+_NAME_STOPWORDS = frozenset({"de", "da", "do", "das", "dos", "e"})
+
+
+def _normalize_company_text(text: str) -> str:
+    return re.sub(r"\s+", " ", (text or "").lower()).strip()
+
+
+def _extract_cnpjs(text: str) -> frozenset[str]:
+    """Tokens CNPJ (reais ou mascarados) normalizados para dígitos/asteriscos."""
+    return frozenset(re.sub(r"[^\d*]", "", m.group(0)) for m in _CNPJ_TOKEN_RE.finditer(text or ""))
+
+
+# "QUOTAS DA EMPRESA ACME SERVICOS LTDA" e "Distribuição de lucros ACME
+# SERVICOS LTDA" produzem ambas {"acme servicos"} — igualdade exata da chave
+# evita fuzzy matching (falso-positivo excluiria dividendo legítimo).
+def _company_name_keys(text: str) -> frozenset[str]:
+    """Chaves de nome ancoradas no sufixo legal: 2 tokens antes de LTDA/S.A./…"""
+    tokens = _normalize_company_text(text).replace(",", " ").split()
+    keys: set[str] = set()
+    for i, tok in enumerate(tokens):
+        if tok.replace(".", "") not in _LEGAL_SUFFIX_TOKENS:
+            continue
+        prev = [t for t in tokens[:i] if t not in _NAME_STOPWORDS][-2:]
+        if prev:
+            keys.add(" ".join(prev))
+    return frozenset(keys)
+
+
+@dataclass(frozen=True)
+class _ParticipacoesSocietarias:
+    """Identidade das PJs em que a família detém quotas (CNPJs + chaves de nome)."""
+
+    cnpjs: frozenset[str]
+    name_keys: frozenset[str]
+
+    def matches(self, texto_rendimento: str) -> bool:
+        """True se a fonte do rendimento é uma PJ com quotas declaradas."""
+        if not self.cnpjs and not self.name_keys:
+            return False
+        if self.cnpjs & _extract_cnpjs(texto_rendimento):
+            return True
+        return bool(self.name_keys & _company_name_keys(texto_rendimento))
+
+
+def _collect_participacoes_societarias(
+    decls: list[IRPFFullOutput],
+) -> _ParticipacoesSocietarias:
+    """Quotas de sociedade (cod RFB 32 / keywords) declaradas em bens_direitos."""
+    quotas = [
+        item
+        for d in decls
+        for item in d.bens_direitos
+        if _is_participacao_societaria(item.codigo, item.descricao)
+    ]
+    cnpjs = frozenset(c for item in quotas for c in _extract_cnpjs(item.descricao))
+    name_keys = frozenset(k for item in quotas for k in _company_name_keys(item.descricao))
+    return _ParticipacoesSocietarias(cnpjs, name_keys)
+
+
+def _is_participacao_societaria(codigo: str, descricao: str) -> bool:
+    if (codigo or "").strip() in _QUOTA_CODIGOS:
+        return True
+    return bool(_QUOTA_KEYWORDS_RE.search(descricao or ""))
+
+
+def _aggregate_explicit_buckets(
+    decls: list[IRPFFullOutput], participacoes: _ParticipacoesSocietarias
+) -> _RendaPassivaBuckets:
     """Agrega buckets RFB explícitos (cod 09/10/12/06) ao longo de declarações."""
     acc = _RendaPassivaBuckets()
     for d in decls:
-        acc = _add_decl_to_buckets(acc, d)
+        acc = _add_decl_to_buckets(acc, d, participacoes)
     return acc
 
 
-def _add_decl_to_buckets(acc: _RendaPassivaBuckets, d: IRPFFullOutput) -> _RendaPassivaBuckets:
+def _add_decl_to_buckets(
+    acc: _RendaPassivaBuckets, d: IRPFFullOutput, participacoes: _ParticipacoesSocietarias
+) -> _RendaPassivaBuckets:
+    dividendos_carteira, distribuicao_pj = _split_dividendos(d, participacoes)
     return _RendaPassivaBuckets(
-        dividendos=acc.dividendos + _sum_isentos(d, CodigoRendimentoIsento.lucros_dividendos.value),
+        dividendos=acc.dividendos + dividendos_carteira,
         jcp=acc.jcp + _sum_exclusiva(d, CodigoRendimentoTribExclusiva.jcp.value),
         aplicacoes=acc.aplicacoes
         + _sum_isentos(d, "12")
@@ -347,7 +424,24 @@ def _add_decl_to_buckets(acc: _RendaPassivaBuckets, d: IRPFFullOutput) -> _Renda
         ganho_capital=acc.ganho_capital
         + _sum_exclusiva(d, CodigoRendimentoTribExclusiva.ganho_capital.value),
         exterior=acc.exterior + _sum_exterior(d),
+        distribuicao_pj_titular=acc.distribuicao_pj_titular + distribuicao_pj,
     )
+
+
+def _split_dividendos(
+    d: IRPFFullOutput, participacoes: _ParticipacoesSocietarias
+) -> tuple[Decimal, Decimal]:
+    """Separa cod-09 em yield de carteira vs distribuição da PJ do titular."""
+    carteira = _ZERO
+    distribuicao = _ZERO
+    for r in d.rendimentos_isentos:
+        if r.codigo_rfb.value != CodigoRendimentoIsento.lucros_dividendos.value:
+            continue
+        if participacoes.matches(f"{r.fonte or ''} {r.descricao}"):
+            distribuicao += r.valor_brl
+        else:
+            carteira += r.valor_brl
+    return carteira, distribuicao
 
 
 def _sum_isentos(d: IRPFFullOutput, codigo: str) -> Decimal:

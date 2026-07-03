@@ -20,6 +20,7 @@ from pipeline.llm.schemas.e16_irpf_full import (  # noqa: E402
     IRPFFullOutput,
     ModeloDeclaracao,
     NaturezaContribuinte,
+    PatrimonialItem,
     RendimentoExterior,
     RendimentoIsento,
     RendimentoTribExclusiva,
@@ -46,11 +47,36 @@ def imposto(ir_pago: str = "0") -> ImpostoApurado:
     )
 
 
-def isento(codigo: CodigoRendimentoIsento, valor: str) -> RendimentoIsento:
+def isento(
+    codigo: CodigoRendimentoIsento,
+    valor: str,
+    *,
+    descricao: str | None = None,
+    fonte: str | None = None,
+) -> RendimentoIsento:
     return RendimentoIsento(
         codigo_rfb=codigo,
-        descricao=f"isento {codigo.value}",
+        descricao=descricao or f"isento {codigo.value}",
         valor_brl=valor,
+        fonte=fonte,
+    )
+
+
+def bem(
+    *,
+    codigo: str = "32",
+    descricao: str,
+    ano: int = 2024,
+    valor: str = "100000.00",
+    categoria: str = "investimento",
+) -> PatrimonialItem:
+    return PatrimonialItem(
+        codigo=codigo,
+        descricao=descricao,
+        categoria=categoria,
+        valor_brl=valor,
+        membro_key="titular",
+        ano=ano,
     )
 
 
@@ -80,12 +106,14 @@ def decl(
     isentos: list | None = None,
     exclusiva_list: list | None = None,
     exterior: list | None = None,
+    bens: list | None = None,
 ) -> IRPFFullOutput:
     return IRPFFullOutput(
         contribuinte=contribuinte(ano_base=ano_base),
         rendimentos_isentos=isentos or [],
         rendimentos_tributacao_exclusiva=exclusiva_list or [],
         rendimentos_exterior=exterior or [],
+        bens_direitos=bens or [],
         imposto_apurado=imposto(),
         confidence=0.95,
     )

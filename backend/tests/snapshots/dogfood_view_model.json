@@ -458,6 +458,7 @@
     "renda_passiva_por_fonte_brl": {
       "alugueis": 0,
       "aplicacoes": 0,
+      "distribuicao_pj_titular": 0,
       "dividendos": 0,
       "exterior": 0,
       "ganho_capital": 0,

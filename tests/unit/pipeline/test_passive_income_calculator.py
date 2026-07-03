@@ -17,6 +17,7 @@ from pipeline.llm.schemas.e16_irpf_full import (
     CodigoRendimentoTribExclusiva,
 )
 from tests.unit.pipeline._passive_income_builders import (
+    bem,
     calc,
     decl,
     exclusiva,
@@ -114,6 +115,146 @@ class TestRendaPassivaPorFonte:
             despesa_mensal_media_brl=_NO_DESPESA,
         )
         assert result.renda_passiva_por_fonte_brl["alugueis"] == Decimal("0")
+
+
+# ---------------------------------------------------------------------------
+# A28.l2 — universo consistente (ADR-191): distribuição PJ do titular ≠ yield
+# ---------------------------------------------------------------------------
+
+
+_QUOTA_BEM = "QUOTAS DA EMPRESA ACME SERVICOS LTDA CNPJ 12.345.678/0001-90"
+
+
+def _calc_with(decl_, **patrimonio_kwargs):
+    return calc().calculate(
+        irpf=IRPFAnalyzer([decl_]),
+        patrimonio=patrimonio(**patrimonio_kwargs),
+        investimentos_atuais=None,
+        reference_date=_REF_DATE,
+        despesa_mensal_media_brl=_NO_DESPESA,
+    )
+
+
+def _decl_dogfood():
+    return decl(
+        isentos=[
+            isento(
+                CodigoRendimentoIsento.lucros_dividendos,
+                "284000.00",
+                fonte="12.345.678/0001-90 ACME SERVICOS LTDA",
+            ),
+            isento(CodigoRendimentoIsento.lucros_dividendos, "12000.00"),
+        ],
+        exclusiva_list=[exclusiva(CodigoRendimentoTribExclusiva.jcp, "30000.00")],
+        bens=[bem(descricao=_QUOTA_BEM)],
+    )
+
+
+class TestDistribuicaoPjTitular:
+    def test_dividendo_da_pj_do_titular_sai_da_trs_por_cnpj(self):
+        d = decl(
+            isentos=[
+                isento(
+                    CodigoRendimentoIsento.lucros_dividendos,
+                    "284000.00",
+                    fonte="12.345.678/0001-90 ACME SERVICOS LTDA",
+                    descricao="Lucros e dividendos recebidos",
+                )
+            ],
+            bens=[bem(descricao=_QUOTA_BEM)],
+        )
+        result = _calc_with(d, investimentos_titular=500_000.0)
+        assert result.renda_passiva_por_fonte_brl["distribuicao_pj_titular"] == Decimal("284000.00")
+        assert result.renda_passiva_por_fonte_brl["dividendos"] == Decimal("0")
+        assert result.renda_passiva_anual_brl == Decimal("0")
+        assert result.trs_efetiva_pct == Decimal("0.00")
+
+    def test_dividendo_da_pj_do_titular_sai_da_trs_por_nome(self):
+        d = decl(
+            isentos=[
+                isento(
+                    CodigoRendimentoIsento.lucros_dividendos,
+                    "50000.00",
+                    descricao="Distribuição de lucros ACME SERVICOS LTDA",
+                )
+            ],
+            bens=[bem(codigo="99", descricao=_QUOTA_BEM)],
+        )
+        result = _calc_with(d, investimentos_titular=500_000.0)
+        assert result.renda_passiva_por_fonte_brl["distribuicao_pj_titular"] == Decimal("50000.00")
+        assert result.renda_passiva_anual_brl == Decimal("0")
+
+    def test_dividendo_de_posicao_de_carteira_permanece_na_trs(self):
+        # Ação listada em bens (cod 31) NÃO é participação societária — o
+        # dividendo dela é yield de carteira e conta na TRS.
+        d = decl(
+            isentos=[
+                isento(
+                    CodigoRendimentoIsento.lucros_dividendos,
+                    "10000.00",
+                    fonte="61.532.644/0001-15 ITAUSA S.A.",
+                )
+            ],
+            bens=[
+                bem(codigo="31", descricao="ACOES ITSA4 ITAUSA S.A."),
+                bem(descricao=_QUOTA_BEM),
+            ],
+        )
+        result = _calc_with(d, investimentos_titular=500_000.0)
+        assert result.renda_passiva_por_fonte_brl["dividendos"] == Decimal("10000.00")
+        assert result.renda_passiva_por_fonte_brl["distribuicao_pj_titular"] == Decimal("0")
+        assert result.renda_passiva_anual_brl == Decimal("10000.00")
+
+    def test_distribuicao_pj_nao_vaza_para_bucket_alugueis(self):
+        # split_trabalho_vs_capital inclui todo cod-09 no capital; o delta
+        # residual (aluguéis) precisa descontar também a distribuição PJ.
+        d = decl(
+            isentos=[
+                isento(
+                    CodigoRendimentoIsento.lucros_dividendos,
+                    "284000.00",
+                    fonte="12.345.678/0001-90 ACME SERVICOS LTDA",
+                )
+            ],
+            bens=[bem(descricao=_QUOTA_BEM)],
+        )
+        result = _calc_with(d, investimentos_titular=500_000.0)
+        assert result.renda_passiva_por_fonte_brl["alugueis"] == Decimal("0")
+
+    def test_cenario_dogfood_trs_volta_a_plausivel(self):
+        # Regressão do dogfood 72883bde: R$ 284k de distribuição PJ sobre
+        # denominador de R$ 1,44M inflava TRS a 22,63%. Com o split, só o
+        # yield de carteira (R$ 42k) sobre o universo casado entra.
+        result = _calc_with(
+            _decl_dogfood(), investimentos_titular=1_000_000.0, imoveis_investimento=1_440_000.0
+        )
+        assert result.renda_passiva_anual_brl == Decimal("42000.00")
+        # 42k / 2,44M = 1,72% — plausível (< 8%)
+        assert result.trs_efetiva_pct < Decimal("8.0")
+        fontes = result.renda_passiva_por_fonte_brl
+        assert fontes["distribuicao_pj_titular"] == Decimal("284000.00")
+
+
+class TestUniversoConsistente:
+    def test_denominador_soma_chaves_dinamicas_por_membro(self):
+        # Regressão dogfood: PatrimonioCalculator emite ``investimentos_<nome>``
+        # (ex.: investimentos_ana) — o denominador precisa incluí-las, senão a
+        # TRS sai sobre "só imóveis geradores" enquanto o numerador tem
+        # dividendos/JCP de carteira (universos diferentes, ADR-191).
+        d = decl(isentos=[isento(CodigoRendimentoIsento.lucros_dividendos, "10000.00")])
+        result = calc().calculate(
+            irpf=IRPFAnalyzer([d]),
+            patrimonio={
+                "investimentos_ana": 400_000.0,
+                "investimentos_bruno": 100_000.0,
+                "imoveis_investimento": 500_000.0,
+            },
+            investimentos_atuais=None,
+            reference_date=_REF_DATE,
+            despesa_mensal_media_brl=_NO_DESPESA,
+        )
+        assert result.patrimonio_gerador_brl == Decimal("1000000.0")
+        assert result.trs_efetiva_pct == Decimal("1.00")
 
 
 # ---------------------------------------------------------------------------
