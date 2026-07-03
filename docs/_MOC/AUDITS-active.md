@@ -99,6 +99,48 @@ Para que nenhum achado se perca entre auditorias:
 | F36 — A28 `_README` tabela: l5-l8 `planned` vs frontmatter `open` (recorrência da classe r5-F01) | DOC-DRIFT | procede | procede-fechado | idem batch F2 |
 | F37 — POLISH agrupado (GAPS :272 instrução pré-ADR-182 sob banner histórico; âncora `batch2.13` em A11Y/VISUAL_SNAPSHOTS; MOBILE_SPEC sem frontmatter — padrão da pasta; checkboxes de tasks done no PLATFORM_REVIEW; dupla numeração v2.9/1.1 no section_summaries; CLAUDE.md literais e5n/e4/108KB; CAT nota de retenção in-place) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
 
+> Fase 2 fechada: síntese em PR #768, batch em PR #769 — ambos mergeados
+> 2026-07-03. Taxa da fase: 2 BLOCK + 7 DRIFT + ~10 POLISH em 58 arquivos
+> (README e 3/4 prompts 100% limpos).
+
+### Fase 3 — adr (297/297 julgados, 5 sub-lotes)
+
+> Sub-lotes: A = 18 Proposto + 3 Roadmap (senior-cto) · B-E = 276 Decidido
+> em 4 faixas (loop principal). Verify: 3/3 DOC-BLOCK confirmados com
+> citação dupla. Gate informativo do runbook (taxa fases 1-2): ~45% dos
+> arquivos de reference com finding; ~19% na Fase 2 — owner já havia
+> decidido pagar o sweep inteiro (one-shot). Taxa da Fase 3: 3 BLOCK +
+> ~20 DRIFT + ~25 POLISH em 297 (≈16% com finding; range recente muito
+> mais limpo que o F2-F7). Padrões dominantes: (a) ciclo ADR-212/303
+> atualizou algumas ADRs da era A6 mas não todas; (b) cluster do parecer
+> (Ato 1, escrito pré-implementação) divergiu da implementação sem emendas;
+> (c) emenda-datada-no-corpo-sem-sinal-no-frontmatter é o gap sistêmico do
+> range recente (7 ocorrências).
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F38 — ADR-083 (canônica do `ArtifactStore`) descreve `DiskArtifactStore`/default disco/flag como vigentes — o oposto do invariante DB-only ([[ADR-212]]); supersedure parcial só documentada no lado do 212 | DOC-BLOCK | procede | procede-fechado | banner de supersedure parcial neste PR (convenção do corpo, [[ADR-212]] §Supersedure parcial) |
+| F39 — ADR-120 ensina "fallback limpo para `DiskArtifactStore`" nos readers; `artifact_reader.py` diz "fallback disco morreu" (ADR-212 PR3b); 106/118 ganharam `superseded_by`, 120 ficou órfã | DOC-BLOCK | procede | procede-fechado | banner neste PR |
+| F40 — ADR-207 D2/D4/D6: trio `methodology_mapping.{yaml,py,ts}` + codegen nunca implementados; `tema_canonico` é emitido pelo LLM e persistido (não derivado em runtime); schema JSON repete o YAML fantasma | DOC-BLOCK | procede | procede-fechado | emenda datada na ADR + descriptions do schema corrigidas neste PR |
+| F41 — ADR-259/ADR-260 `Proposto` com decisões-núcleo implementadas de facto (PR #720, A18/A20) sem nota de estado (259: rules 1-3 shipped, rule 4 pendente; 260: camada SQL shipped, camadas 1/3 pendentes) | DOC-DRIFT | procede | procede-fechado (nota de estado) | batch `vault-drift-batch-r6-f3`; **DECISÃO-OWNER aberta:** flip para `Decidido` parcial vs manter `Proposto` com nota |
+| F42 — ADR-046 revisão in-place sem data + "PWA adiada para F8" órfã (zumbi r5-F05) | DOC-DRIFT | procede | procede-fechado | batch F3 |
+| F43 — ADR-068 enumera stages mortos (`E0-audit`, `E7-review/apply`) como contrato vigente, `relates_to: []` (zumbi r5-F06); ADR-028 é a irmã com o mesmo defeito | DOC-DRIFT | procede | procede-fechado | batch F3 (banner + relates_to em 068 e 028) |
+| F44-F48 — Decidido F2-F7 com claim vigente falso: 051 Geist↔076 sem supersedure bidirecional; 055 "CI gate ≥95%" inexistente; 059 "gate 0 CVEs" é check informativo (image scan diferido W4-T02); 061 tabela `UsageMetric` nunca criada; 094 single-active revertida de facto (1 Report/run, REL-03) | DOC-DRIFT | procede | procede-fechado | batch F3 (notas de estado/banners/frontmatter) |
+| F49-F52 — ciclo ADR-212/303 incompleto: 105 sem supersedure bidirecional c/ 127/128; 112 boundary disco invertido por [[ADR-303]] sem banner; 142 autocontraditória pós-emendas (parágrafos pré-ADR-222 não podados; relates_to sem 222/235) | DOC-DRIFT | procede | procede-fechado | batch F3 |
+| F53-F59 — cluster parecer + extensões sem fan-out: 189 hub de 6 extensões sem backlink (copy §4 não é mais canônica pós-197); 201 gates de persona (schema/hook/auto-hash) não implementados + semver; 202 validadores raise/reask viraram coerce (ADR-292/294) sem sinal; 203 whitelist vive no manifest em runtime (script de pre-commit fantasma); 208 `workspace.tier` não existe — tier é derivado BYOK (zumbi r5-F04); 216 D8 cita enum de classification que nunca existiu; 220 regra IF é soft check no Pydantic (script fantasma; manifest é ADR-200) | DOC-DRIFT | procede | procede-fechado | batch F3 |
+| F60-F63 — range recente: 255 identidade v1 superseded por natural_key v2 (282/287) sem forward ref; 270 emenda sem sinal + [[ADR-289]] fora do relates_to (zumbi r5-F08); 269 sem backlink ←290 (zumbi r5-F09); 282 emenda 2026-07-01 substitui mecanismo sem sinal | DOC-DRIFT | procede | procede-fechado | batch F3 |
+| F64 — POLISH agrupado (~25: supersedure só-no-corpo da era pré-atomização 013/014/030/062; backlinks 060/136/148/194/199/303; paths envelhecidos 002/021/070/080/092/108/139; título 121; alias errado 229/269; emendas sem sinal 238/254/287/293/300/302; 217 wikilink alvo errado) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
+| F65 — ADR-228 `Proposto` estagnado (zumbi r5-F07) — re-verificado: bloqueado legitimamente por go-live que não ocorreu; nota A21.l9 já documenta cobertura em CI | DOC-DRIFT | reavaliado | **não-acionável** | rebaixado do procede-aberto do r5 (cadência §4); reavaliar no go-live |
+
+> **r6 fechado.** Cobertura 100% do universo auditável (410/410; 3 fases,
+> 6 PRs). Critério de aceite da skill: 15 DOC-BLOCK mergeados em `main` ✓;
+> falso-positivo no verify = 0/15 rebaixados ✓; zero finding recriando
+> gate de pre-commit ✓; triagem faseada <30min/pacote ✓. Zumbis r5
+> F04-F11: 6 executados (F42/F43/F57=F53-cluster/F61/F62 + F30/F33 na
+> Fase 2), 1 refutado parcial (F11→lane spec-only ancorada), 1 rebaixado
+> (F07→não-acionável). Follow-ups fora de doc: task chip `section_summary`
+> cache key + decisão de flip 259/260 (owner).
+
 ---
 
 ## r5 — `vault-2026-07-03-r5`

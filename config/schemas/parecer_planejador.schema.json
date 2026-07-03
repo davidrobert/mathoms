@@ -255,7 +255,7 @@
     "ancora_metodologica": {
       "type": "string",
       "enum": ["perini", "cerbasi", "auvp", "convergencia"],
-      "description": "Enum interno (4 valores) — LLM emite. NUNCA aparece em UI (ADR-207 sigilo §13). Frontend mapeia para tema_canonico via methodology_mapping."
+      "description": "Enum interno (4 valores) — LLM emite. NUNCA aparece em UI (ADR-207 sigilo §13; emenda r6: tema_canonico é emitido pelo LLM e persistido, sem mapping em runtime)."
     },
 
     "tema_canonico": {
@@ -271,7 +271,7 @@
         "Equilíbrio presente-futuro",
         "Convergência metodológica"
       ],
-      "description": "Enum user-facing (9 valores fechados — ADR-207 §D1). É derivado do par (ancora_metodologica, contexto) via mapping config/methodology_mapping.yaml. LLM pode emitir já resolvido (orchestrator valida coerência com mapping)."
+      "description": "Enum user-facing (9 valores fechados — ADR-207 §D1). Emitido diretamente pelo LLM e persistido no artifact (ADR-207 emenda r6 2026-07-03 — o mapping config/methodology_mapping.yaml de D2 nunca foi implementado)."
     },
 
     "frequencia_revisao": {
