@@ -12,6 +12,7 @@
 import { MonetaryValue } from "../MonetaryValue";
 
 export type DeltaSignal = "up" | "down" | "stable";
+export type DirectionPositive = "up" | "down";
 
 export interface ComparisonItemView {
   readonly section_id: string;
@@ -20,19 +21,44 @@ export interface ComparisonItemView {
   readonly after: number;
   readonly delta_pct: number | null;
   readonly delta_signal: DeltaSignal;
+  /** W2 (ADR-190 D3) — direção "boa pro usuário"; default "up" (pré-W2). */
+  readonly direction_positive?: DirectionPositive;
 }
 
-const SIGNAL_COLOR: Record<DeltaSignal, string> = {
-  up: "var(--semantic-success)",
-  down: "var(--semantic-danger)",
-  stable: "var(--surface-muted-foreground)",
-};
-
+// Glifo comunica a direção REAL do movimento; a cor comunica o julgamento
+// (favorável/desfavorável) — independentes por decisão de UX da W2
+// (dívida ↑ = seta ▲ vermelha, nunca seta invertida).
 const SIGNAL_GLYPH: Record<DeltaSignal, string> = {
   up: "▲",
   down: "▼",
   stable: "•",
 };
+
+function deltaColor(item: ComparisonItemView): string {
+  if (item.delta_signal === "stable") return "var(--surface-muted-foreground)";
+  const positive = item.delta_signal === (item.direction_positive ?? "up");
+  return positive ? "var(--semantic-success)" : "var(--semantic-danger)";
+}
+
+// WCAG 1.4.1: a cor passa a carregar julgamento independente da seta, então a
+// célula Δ verbaliza o julgamento para leitores de tela.
+function deltaAriaLabel(item: ComparisonItemView): string {
+  if (item.delta_signal === "stable") {
+    return `${item.section_label} sem variação relevante`;
+  }
+  // Heurística de plural pt-BR idêntica à de narratives.py (última palavra em "s").
+  const plural = /s$/i.test(item.section_label.trim().split(" ").pop() ?? "");
+  const movement =
+    item.delta_signal === "up"
+      ? plural ? "aumentaram" : "aumentou"
+      : plural ? "diminuíram" : "diminuiu";
+  const pct = item.delta_pct !== null && isFinite(item.delta_pct)
+    ? `${Math.abs(item.delta_pct).toFixed(1).replace(".", ",")}%`
+    : "";
+  const positive = item.delta_signal === (item.direction_positive ?? "up");
+  const judgment = positive ? "favorável" : "desfavorável";
+  return `${[item.section_label, movement, pct].filter(Boolean).join(" ")}, ${judgment}`;
+}
 
 const DEFAULT_TITLE = "Variação vs. relatório anterior";
 const DEFAULT_CAPTION =
@@ -129,10 +155,11 @@ export function ComparisonItemsBlock({
                 <MonetaryValue value={item.after} />
               </td>
               <td
+                aria-label={deltaAriaLabel(item)}
                 style={{
                   padding: "8px",
                   textAlign: "right",
-                  color: SIGNAL_COLOR[item.delta_signal],
+                  color: deltaColor(item),
                   fontWeight: 600,
                 }}
               >
