@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v7
 
       - name: Install dependencies (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'

@@ -11,7 +11,13 @@ from app.services.stage_executor import run_stage_by_name
 router = APIRouter(prefix="/api/v1/pipeline/stages", tags=["stages"])
 
 
-@router.post("/{stage}/execute", response_model=StageExecuteResponse)
+_ERROR_RESPONSES = {
+    404: {"description": "Stage desconhecido (aceita legacy ou descritivo, ADR-093)."},
+    503: {"description": "DBArtifactStore/hidratação indisponível (ADR-303 D4)."},
+}
+
+
+@router.post("/{stage}/execute", response_model=StageExecuteResponse, responses=_ERROR_RESPONSES)
 def execute_stage(stage: str, req: StageExecuteRequest) -> StageExecuteResponse:
     """Execute a single pipeline stage and return the result.
 

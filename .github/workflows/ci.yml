@@ -290,7 +290,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v7
 
       - name: Install dependencies (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
@@ -300,7 +300,7 @@ jobs:
           [ -d .venv ] || uv venv .venv
           uv pip install --require-hashes -r requirements.lock
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
-          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis "schemathesis<4"
 
       - name: Garante test-deps no venv (sempre — cache pode não tê-los)
         # O venv cache (key v5) é compartilhado entre pipeline-tests,
@@ -313,7 +313,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis "schemathesis<4"
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -401,7 +401,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v7
 
       - name: Install dependencies (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
@@ -411,7 +411,7 @@ jobs:
           [ -d .venv ] || uv venv .venv
           uv pip install --require-hashes -r requirements.lock
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
-          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis "schemathesis<4"
 
       - name: Garante test-deps no venv (sempre — cache pode não tê-los)
         # Ver pipeline-tests: cache HIT pula o install acima; venv populado
@@ -420,7 +420,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis "schemathesis<4"
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"

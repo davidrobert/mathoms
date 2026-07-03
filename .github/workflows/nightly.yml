@@ -113,7 +113,7 @@ jobs:
           path: .venv
           # Mesma key dos jobs de ci.yml — reusa cache populado pelo
           # último PR mergeado. Hit típico em main-smoke noturno.
-          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v7
 
       - name: Install Python deps (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
@@ -134,7 +134,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis "schemathesis<4"
 
       - name: Install system lint tools (sempre — não vão no venv cache)
         # pre-commit/ruff/jsonschema/pyyaml instalam no system python via
@@ -678,7 +678,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v6
+          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v7
 
       - name: Install Python deps (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
