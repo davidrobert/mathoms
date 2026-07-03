@@ -1,5 +1,13 @@
 # Smoke Test — Runbook Humano (A6b.5 · ADR-103)
 
+> ⚠️ **HISTÓRICO — gate executado e aprovado (A6b→A6c concluídas).** Não
+> seguir como runbook vigente: a §4.7 audita a coexistência disco↔DB que
+> [[ADR-212]] removeu — `DiskArtifactStore`, a flag
+> `use_db_artifacts_override`, o campo `artifact_store_mode` no `/health` e
+> `dev/compare_disk_vs_db.py` **não existem mais**. Para smoke atual, use
+> [SMOKE_TEST.md](SMOKE_TEST.md). Arquivamento em `docs/archive/` pendente de
+> decisão do owner (linkado por CLAUDE.md e RUNBOOK).
+
 > **Quem executa:** David Robert (owner do projeto)
 > **Objetivo:** Validar end-to-end o sistema antes da remoção do bridge (A6c).
 > **Bloqueante para:** A6c (deletar `MaterializationBridge` + `stage_runner_compat`).

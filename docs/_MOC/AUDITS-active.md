@@ -36,6 +36,44 @@ Para que nenhum achado se perca entre auditorias:
 
 ---
 
+## r6 — `vault-2026-07-03-r6` (sweep one-shot `--scope all --full --fix`)
+
+> Skill audit-vault ([[ADR-302]]) · **sweep 100% one-shot** em 3 fases
+> (runbook `vault_full_audit`, contrato do one-shot na SKILL). Gates 6/6
+> verdes (zero finding mecânico). Coletor rotativo com `--full` (stride 1):
+> universo 410 arquivos — reference 55 · plan 29 · sprint 12 · claude 12 ·
+> prompt 4 · root 1 · adr 297. Com `--fix`, os batches de DRIFT são
+> executados no próprio run (PR próprio por fase). **Cadência anti-zumbi:**
+> os `procede-aberto` do r5 (F04-F09 ADRs · F10-F11 plans, batch
+> `vault-drift-batch-r5` nunca executado) são absorvidos pelos batches das
+> Fases 3 e 2 deste run, respectivamente.
+
+### Fase 1 — reference (55/55 julgados)
+
+> Julgamento: financial-planner + sre-devops + 2× loop principal em
+> paralelo. Verify: 10/10 DOC-BLOCK confirmados com citação dupla, 0
+> rebaixados. Bruto em `_scratch/audit-vault-2026-07-03-r6.md` (efêmero).
+> Fixes r4/r5 verificados: sem regressão (exceto entradas do §2 do
+> STATELESS_AUDIT que moveram pós-r4 — F22).
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F01 — rule-concentracao-imobiliaria: alerta doc >50% via `patrimonio_calculator`; real >40% (`RealEstateConfig` + aggregator, `concentracao_alta`); constante 50 é só narrativa E5.N | DOC-BLOCK | procede | procede-fechado | conceito/enforcers reescritos (2 thresholds, papéis distintos) neste PR |
+| F02 — FAQ_cascata_fiscal_pj T4: "> R$ 60k/ano" vs `T4_RECEITA_ALUGUEL_MIN_ANUAL=90000` | DOC-BLOCK | procede | procede-fechado | ≥ R$ 90k/ano neste PR |
+| F03 — SMOKE_TEST_HUMAN §4.7 audita coexistência disco↔DB removida (ADR-212): script, flag e campo `/health` deletados | DOC-BLOCK | procede | procede-fechado | banner HISTÓRICO neste PR; **arquivamento = decisão do owner** (linkado por CLAUDE.md/RUNBOOK) — procede-aberto só nesse sub-item |
+| F04 — PHASES F7 "☐ Planejada" vs 5/6 lanes `shipped` em `docs/sprint/F7/lanes/` | DOC-BLOCK | procede | procede-fechado | "🔶 Em curso (5/6; falta F7-c)" neste PR |
+| F05 — COPY_GUIDELINES §2/§11 mandam editar `docs/methodology/definitions.md` (inexistente + path proibido ADR-143) | DOC-BLOCK | procede | procede-fechado | aponta config DB (ADR-137) + rules-as-code neste PR |
+| F06 — DOGFOOD_LEARNING_LOOP_HANDOFF conduz gate fechado (PASS 2026-07-02) como pendente; "sem UI" contradiz P4 shipped (#203) | DOC-BLOCK | procede | procede-fechado | banner HISTÓRICO neste PR |
+| F07 — DOGFOOD_PM_CHECKLIST: roteiro do gate como a-executar; pós-gate prescrito já superado | DOC-BLOCK | procede | procede-fechado | banner HISTÓRICO neste PR |
+| F08 — PIPELINE_ARTIFACTS: `SCHEMA_BY_STAGE` citado em `pipeline/schema_validation.py` (inexistente; real: `db_artifact_store.py:82`) | DOC-BLOCK | procede | procede-fechado | path correto + nota de boundary neste PR |
+| F09 — PIPELINE_ARTIFACTS tabela: E1.5→`baseline_patrimonial.schema`; real `e15_baseline_extract` (A20.l11), só E1.5c usa baseline_patrimonial | DOC-BLOCK | procede | procede-fechado | linha desdobrada neste PR |
+| F10 — TESTING + ARCHITECTURE: `python -m pipeline.run_dev` (deletado, ADR-212 PR3a) como comando canônico | DOC-BLOCK | procede | procede-fechado | `python -m pipeline.orchestrator run-stage` (A3.cli · ADR-150) neste PR |
+| F11-F25 — DRIFT (15): paths populator vs adapter (itcmd/us-person); FAQ T5 R$3M vs 2,88M; PERFORMANCE_BASELINE §6 bug já corrigido; pipeline_rollback freeze SQL incompatível com schema + `/health/celery`; docker_images SHA-pin "futuro"; security_gates paths pip-audit; PHASES âncoras shim; IconBadge "planejado"; REPORT_PUBLICATION learning loop "(futuro)"; CANONICAL_ENGINE ids/omissões de stages; GO_PORT_DEPS paths + A3.cli contradição interna; STATELESS §1/§2/§3 refs movidas; TESTING dir/guardrail deletados; ARCHITECTURE §11/§6 pré-ADR-212/A7.5; tenancy prefixo duplo | DOC-DRIFT | procede | procede-fechado | batch `vault-drift-batch-r6-f1` executado neste run (`--fix`), PR docs-only próprio |
+| F26 — POLISH agrupado (9 itens: line-drifts, contagens, links a stub, data de revisão) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
+| F27 — (meta/skill) `collect_candidates.py --help` crasha: `%` sem escape no help de `--full` | DOC-DRIFT | procede | procede-fechado | fix 1-linha (lateral) no PR do batch F1 |
+
+---
+
 ## r5 — `vault-2026-07-03-r5`
 
 > Skill audit-vault ([[ADR-302]]) · scope=all · mode=comprehensive. Gates 6/6

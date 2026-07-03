@@ -1,5 +1,12 @@
 # Dogfood Learning Loop — checklist do PM
 
+> ⚠️ **HISTÓRICO — gate fechado (PASS por decisão do owner, 2026-07-02,
+> audit-vault r4).** Não executar este roteiro: o dogfood ritual foi
+> dispensado, o gate técnico (11/11) foi aceito como evidência e o pós-gate
+> prescrito abaixo já foi superado (P4 shipou sem track em 2026-05-11,
+> PR #203). Reutilizar **apenas** se o gate for reaberto (revert_rate alto /
+> não-adoção em uso real).
+
 > Roteiro operacional do PM para conduzir o gate dogfood do
 > [A12.cat-learning-loop](../plan/CAT_LEARNING_LOOP/_README.md).
 > Pareia com o guia entregue ao tester:

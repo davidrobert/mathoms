@@ -15,9 +15,10 @@ MATHOMS_FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" pytest backend
 # Pipeline (pytest)
 MATHOMS_FERNET_KEY="NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" pytest tests/ -q
 
-# Pipeline offline (mesmo orquestrador do worker) — tenant com config/ materializado
-python -m pipeline.run_dev --root /path/to/storage/<workspace_id>
-python -m pipeline.run_dev --root ./tenant --stages E3,E4
+# Pipeline offline (mesmo orquestrador do worker) — stage individual via CLI
+# (A3.cli · ADR-150; artifacts em DB → requer MATHOMS_DATABASE_URL)
+python -m pipeline.orchestrator run-stage <stage> \
+  --workspace <path> --run-id <id> --workspace-id <id>
 
 # Fronteiras do pacote pipeline/ (sem FastAPI/Celery/SQLAlchemy)
 python dev/check_pipeline_boundaries.py --verbose
@@ -85,7 +86,7 @@ tests/test_e2_synthetic_pdf_parsers.py  # registry E2 × PDF; todos os bancos co
 tests/test_e0_route_edges.py tests/test_e7_edges.py tests/test_e5_e6_e5n_edges.py  # 7D.1/7D.2 — helpers de borda (E0/E7/E5/E6/E5.N)
 tests/fixtures/pdf_generator.py # 6.5F.12 — 14 códigos BankCode; registry com `_draw_*` (C6, Bradesco, BTG, … Quinto Andar)
 dev/check_pipeline_boundaries.py # P1 — imports proibidos em pipeline/
-pipeline/run_dev.py           # P1 — CLI offline (orchestrator)
+pipeline/cli_run_stage.py     # CLI run-stage do orchestrator (A3.cli · ADR-150)
 tests/regressions/              # 6.5E.8 — 1 test por bug histórico (BUG-NNN)
 tests/test_design_tokens_build.py       # F9 — 20 tests (tokens build + parity)
 tests/test_report_layout_codegen.py     # F9 — 14 tests (codegen + schema)
