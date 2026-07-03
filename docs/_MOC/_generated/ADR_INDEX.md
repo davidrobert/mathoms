@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 273
-- **Proposto**: 20
+- **Decidido**: 274
+- **Proposto**: 19
 - **Roadmap**: 4
 
 ## Fundação
@@ -356,9 +356,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## e5
 
-### Proposto (1)
+### Decidido (1)
 
-- [[ADR-306]] — Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco
+- [[ADR-306]] — Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco · phase A28
 
 ## frontend
 
