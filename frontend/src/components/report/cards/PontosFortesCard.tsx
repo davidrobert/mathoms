@@ -1,5 +1,6 @@
 import { CheckCircle } from "lucide-react";
 import { ReportCard } from "../ReportCard";
+import { dedupeBySemanticKey } from "../utils/curadoriaDestaques";
 
 interface PontoForte {
   titulo?: string;
@@ -11,13 +12,15 @@ interface PontoForte {
  * Disambig de `ui/PontoForteItem::PontosFortesList` — aquele é o
  * primitivo `<ul>` que recebe children; este aqui consome a lista de
  * `PontoForte` do DTO e a renderiza dentro de um `ReportCard variant="success"`.
+ * Curadoria defensiva (A28.l10): dedup semântico + supressão de item circular
+ * de score — a curadoria canônica vive no E5 (`pontos_fortes_analyzer`).
  */
 export function PontosFortesCard({
   pontos,
 }: {
   pontos: PontoForte[] | unknown[] | undefined;
 }) {
-  const items = (pontos ?? []) as PontoForte[];
+  const items = dedupeBySemanticKey((pontos ?? []) as PontoForte[]);
 
   return (
     <ReportCard variant="success" size="half" title="Pontos Fortes">

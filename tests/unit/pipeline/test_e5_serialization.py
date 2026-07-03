@@ -209,12 +209,14 @@ class TestTarefasFallback:
 
 
 class TestAlertas:
-    def test_alerta_score_sempre_presente(self):
+    def test_alerta_score_circular_nao_emitido(self):
+        """A28.l10: "Score financeiro: X/10" era circular (alerta que não alerta);
+        lista vazia é empty state honesto."""
         alertas = build_alertas(
             score={"valor": 7.5, "classificacao": "Bom"},
             ratios={},
         )
-        assert "Score financeiro: 7.5/10 (Bom)" in alertas
+        assert alertas == []
 
     def test_alerta_rentabilidade_quando_nd(self):
         alertas = build_alertas(
@@ -306,9 +308,9 @@ class TestBuildOutput:
         out = build_e5_output(inp)
         assert out["programa_milhas"] == {}
 
-    def test_alertas_inclui_score_e_nd(self):
+    def test_alertas_sem_score_circular_e_com_nd(self):
         out = build_e5_output(_inputs())
-        assert any("Score financeiro" in a for a in out["alertas"])
+        assert not any("Score financeiro" in a for a in out["alertas"])  # A28.l10
         assert any("N/D" in a for a in out["alertas"])
 
 

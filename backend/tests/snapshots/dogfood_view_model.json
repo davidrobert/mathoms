@@ -197,7 +197,6 @@
     ]
   },
   "alertas": [
-    "Score financeiro: 6.4/10 (Bom)",
     "Rentabilidade: N/D"
   ],
   "cenarios_conjuge": {
@@ -554,11 +553,6 @@
   "periodo_dados": "2026-01 a 2026-01",
   "pontos_fortes": [
     {
-      "descricao": "Classificação «Bom» (6.4/10) indica solidez financeira geral.",
-      "icone": "trophy",
-      "titulo": "Score Financeiro Positivo"
-    },
-    {
       "descricao": "Poupança recorrente de 50.0% da renda — acima da referência de 30%.",
       "icone": "savings",
       "titulo": "Taxa de Poupança Elevada"
@@ -567,11 +561,6 @@
       "descricao": "Cobertura de 87 meses de despesas — acima dos 12 meses recomendados.",
       "icone": "emergency",
       "titulo": "Reserva de Emergência Excelente"
-    },
-    {
-      "descricao": "Patrimônio investível cobre 87 meses de despesas — margem de segurança ampla.",
-      "icone": "patrimony",
-      "titulo": "Colchão Patrimonial Robusto"
     }
   ],
   "pontos_urgentes": [

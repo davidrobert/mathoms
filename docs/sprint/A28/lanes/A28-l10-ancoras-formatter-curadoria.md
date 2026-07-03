@@ -4,7 +4,7 @@ type: lane
 title: "âncoras do parecer formatadas por tipo (não tudo é R$) + curadoria defensiva de pontos fortes/alertas"
 sprint: A28
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: ancoras-formatter-curadoria
 adrs:
@@ -15,7 +15,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/frontend
   - area/llm

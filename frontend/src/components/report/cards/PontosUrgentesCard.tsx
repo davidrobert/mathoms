@@ -1,5 +1,6 @@
 import { AlertOctagon } from "lucide-react";
 import { ReportCard } from "../ReportCard";
+import { dedupeBySemanticKey } from "../utils/curadoriaDestaques";
 
 interface PontoUrgente {
   prioridade?: string;
@@ -11,13 +12,15 @@ interface PontoUrgente {
  *
  * Sibling de `PontosFortesCard` com `variant="critical"`; recebe a
  * lista de `PontoUrgente` do DTO e a renderiza dentro de um `ReportCard`.
+ * Curadoria defensiva (A28.l10): alerta circular de score não é exibido —
+ * "Nenhum ponto urgente" honesto > alerta que não alerta.
  */
 export function PontosUrgentesCard({
   pontos,
 }: {
   pontos: PontoUrgente[] | unknown[] | undefined;
 }) {
-  const items = (pontos ?? []) as PontoUrgente[];
+  const items = dedupeBySemanticKey((pontos ?? []) as PontoUrgente[]);
 
   return (
     <ReportCard variant="critical" size="half" title="Pontos Urgentes">

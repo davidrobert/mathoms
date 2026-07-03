@@ -5,10 +5,12 @@ from __future__ import annotations
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any, Literal
 
-FormatHint = Literal["raw", "brl", "pct", "percent2", "int", "string", "iso_date"]
+FormatHint = Literal[
+    "raw", "brl", "pct", "percent2", "int", "string", "iso_date", "prob_pct", "anos", "meses"
+]
 
 _VALID_FORMATS: frozenset[str] = frozenset(
-    {"raw", "brl", "pct", "percent2", "int", "string", "iso_date"}
+    {"raw", "brl", "pct", "percent2", "int", "string", "iso_date", "prob_pct", "anos", "meses"}
 )
 
 
@@ -85,6 +87,22 @@ def _format_int(value: Any) -> str:
     return str(int(round(n)))
 
 
+def _format_prob_pct(value: Any) -> str:
+    """Probabilidade em fração 0-1 → percentual inteiro ("0.31" → "31%"). O tipo
+    vem do catálogo de citação (A28.l10), não de heurística sobre o valor."""
+    n = _coerce_number(value)
+    if n is None:
+        return str(value)
+    return f"{n * 100:.0f}%"
+
+
+def _format_unit(value: Any, *, unit: str) -> str:
+    n = _coerce_number(value)
+    if n is None:
+        return str(value)
+    return f"{int(round(n))} {unit}"
+
+
 _DISPATCH = {
     "brl": _format_brl,
     "pct": lambda v: _format_pct(v, decimals=1),
@@ -92,4 +110,7 @@ _DISPATCH = {
     "int": _format_int,
     "string": str,
     "iso_date": str,
+    "prob_pct": _format_prob_pct,
+    "anos": lambda v: _format_unit(v, unit="anos"),
+    "meses": lambda v: _format_unit(v, unit="meses"),
 }

@@ -175,9 +175,13 @@ def build_alertas(
     ratios: dict[str, Any],
     investimentos_warnings: list[str] | None = None,
 ) -> list[str]:
-    """Monta lista de alertas para o template JS (paridade linha 2548-2550)
-    + warnings de classificação de ativos (ADR-193 — `OutrosExcessivoWarning`)."""
-    alertas = [f"Score financeiro: {score.get('valor', 0)}/10 ({score.get('classificacao', '')})"]
+    """Monta lista de alertas para o template JS + warnings de classificação de
+    ativos (ADR-193). Curadoria A28.l10: o alerta "Score financeiro: X/10" era
+    circular (só referencia o próprio score, já exibido no gauge) — não é mais
+    emitido; lista vazia é empty state honesto."""
+    # `score` fica na assinatura por compat de call-site (A28.l10).
+    _ = score
+    alertas: list[str] = []
     if ratios.get("rentabilidade_pct") == "N/D":
         alertas.append("Rentabilidade: N/D")
     if investimentos_warnings:

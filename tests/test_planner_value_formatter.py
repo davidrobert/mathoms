@@ -90,6 +90,45 @@ class TestFormatValueString:
         assert format_value(None, "string") == "—"
 
 
+class TestFormatValueProbPct:
+    """A28.l10 — probabilidade em fração 0-1 → percentual inteiro."""
+
+    def test_prob_fraction_to_percent(self):
+        assert format_value(0.31, "prob_pct") == "31%"
+
+    def test_prob_one_is_100(self):
+        assert format_value(1.0, "prob_pct") == "100%"
+
+    def test_prob_none(self):
+        assert format_value(None, "prob_pct") == "—"
+
+    def test_prob_non_numeric_passthrough(self):
+        assert format_value("N/D", "prob_pct") == "N/D"
+
+
+class TestFormatValueAnos:
+    """A28.l10 — idade → inteiro com unidade."""
+
+    def test_anos_int(self):
+        assert format_value(53, "anos") == "53 anos"
+
+    def test_anos_float_rounds(self):
+        assert format_value(52.6, "anos") == "53 anos"
+
+    def test_anos_none(self):
+        assert format_value(None, "anos") == "—"
+
+
+class TestFormatValueMeses:
+    """A28.l10 — contagem de meses → inteiro com unidade."""
+
+    def test_meses_float_rounds(self):
+        assert format_value(32.4, "meses") == "32 meses"
+
+    def test_meses_none(self):
+        assert format_value(None, "meses") == "—"
+
+
 class TestFormatValueValidation:
     def test_unknown_format_raises(self):
         with pytest.raises(ValueError, match="unknown format hint"):
