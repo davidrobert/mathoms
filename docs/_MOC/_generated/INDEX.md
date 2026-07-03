@@ -300,6 +300,7 @@
 | ADR-302 | adr | Decidido |  | Skill audit-vault — auditoria recorrente de vault como procedimento do loop principal | `adr/302-audit-vault-skill.md` |
 | ADR-303 | adr | Decidido |  | Boundary de artefatos do executor remoto (A3.store): pipeline-service injeta DBArtifactStore do backend, sessão-por-stage | `adr/303-boundary-artefatos-executor-remoto-a3store.md` |
 | ADR-304 | adr | Decidido |  | KR1 do parecer — pureza monetária da prosa: fix de prompt + doutrina de enforcement | `adr/304-kr1-pureza-monetaria-prosa-parecer.md` |
+| ADR-305 | adr | Proposto |  | PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) | `adr/305-pgbl-ano-base-fiscal-unico.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
