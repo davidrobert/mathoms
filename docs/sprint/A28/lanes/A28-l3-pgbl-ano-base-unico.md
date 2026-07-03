@@ -4,17 +4,18 @@ type: lane
 title: "PGBL: regra de ano-base único — uma recomendação por relatório"
 sprint: A28
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: pgbl-ano-base-unico
-adrs: []
+adrs:
+  - "[[ADR-305]]"
 parallel_with:
   - "[[A28.l4]]"
   - "[[A28.l2]]"
 tags:
   - type/lane
   - sprint/a28
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/e5
 ---

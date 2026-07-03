@@ -2,7 +2,8 @@
 id: ADR-305
 type: adr
 title: "PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266)"
-status: Proposto
+status: Decidido
+phase: A28
 date: "2026-07-03"
 relates_to:
   - "[[ADR-189]]"
@@ -16,7 +17,7 @@ aliases:
   - "Ano-base fiscal único"
 tags:
   - area/pipeline
-  - status/proposto
+  - status/decidido
   - type/adr
   - methodology/cerbasi
   - sprint/a28
@@ -24,7 +25,7 @@ tags:
 
 # ADR-305 — PGBL: ano-base fiscal único por relatório
 
-**Status:** Proposto • **Data:** 2026-07-03 • **Lane:** [[A28.l3]] `pgbl-ano-base-unico` • **Relaciona** [[ADR-266]] (completude tri-state + `pick_default_year`), [[ADR-277]] (previdência ancora no IRPF), [[ADR-189]] (4 estados PGBL), [[ADR-236]] (base PGBL = renda tributável PF)
+**Status:** Decidido (A28) • **Data:** 2026-07-03 • **Lane:** [[A28.l3]] `pgbl-ano-base-unico` • **Relaciona** [[ADR-266]] (completude tri-state + `pick_default_year`), [[ADR-277]] (previdência ancora no IRPF), [[ADR-189]] (4 estados PGBL), [[ADR-236]] (base PGBL = renda tributável PF)
 
 ## Contexto
 
