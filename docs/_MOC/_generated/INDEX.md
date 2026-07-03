@@ -656,6 +656,17 @@
 | A26.l8 | lane | shipped | A26 | value_mismatch residual: enforcement per-item no strict (path válido, número errado) | `sprint/A26/lanes/A26-l8-evidencia-value-mismatch.md` |
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
 | A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
+| A28.l1 | lane | planned | A28 | reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil | `sprint/A28/lanes/A28-l1-reserva-formula-canonica.md` |
+| A28.l10 | lane | open | A28 | âncoras do parecer formatadas por tipo (não tudo é R$) + curadoria defensiva de pontos fortes/alertas | `sprint/A28/lanes/A28-l10-ancoras-formatter-curadoria.md` |
+| A28.l11 | lane | planned | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
+| A28.l2 | lane | open | A28 | TRS efetiva com numerador/denominador do mesmo universo + guardrail de sanidade (ADR-191) | `sprint/A28/lanes/A28-l2-trs-universo-consistente.md` |
+| A28.l3 | lane | open | A28 | PGBL: regra de ano-base único — uma recomendação por relatório | `sprint/A28/lanes/A28-l3-pgbl-ano-base-unico.md` |
+| A28.l4 | lane | open | A28 | base de mensalização única: política de janela temporal por família de métrica + Cerbasi coerente | `sprint/A28/lanes/A28-l4-mensalizacao-base-unica.md` |
+| A28.l5 | lane | open | A28 | nao_identificado 23% → <5%: regras via Learning Loop + gate de reclassificação do owner | `sprint/A28/lanes/A28-l5-nao-identificado-learning-loop.md` |
+| A28.l6 | lane | open | A28 | proteção patrimonial ativada: apólices extraídas fluem para compute_protecao + pontos_urgentes condicional | `sprint/A28/lanes/A28-l6-protecao-apolices-flow.md` |
+| A28.l7 | lane | open | A28 | imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner | `sprint/A28/lanes/A28-l7-imoveis-excluidos-dedup.md` |
+| A28.l8 | lane | open | A28 | higiene de ingestão: períodos implausíveis (1899/2100) e banco vazio viram needs_review, não artefato silencioso | `sprint/A28/lanes/A28-l8-higiene-ingestao-periodos.md` |
+| A28.l9 | lane | planned | A28 | banner agregado de qualidade de dados no relatório + ressalva de fallback no Monte Carlo | `sprint/A28/lanes/A28-l9-report-data-quality-banner.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -732,6 +743,7 @@
 | MOC-sprint-a25 | moc |  |  | Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM | `sprint/A25/_README.md` |
 | MOC-sprint-a26 | moc |  |  | Sprint A26 — Data Lineage: consolidação | `sprint/A26/_README.md` |
 | MOC-sprint-a27 | moc |  |  | Sprint A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer, ponta a ponta | `sprint/A27/_README.md` |
+| MOC-sprint-a28 | moc |  |  | Sprint A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam | `sprint/A28/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
@@ -750,6 +762,7 @@
 | PLAN-planner-review | plan | done |  | Parecer do Planejador (E6) — substituição de review_finances + aterrissagem operacional | `plan/PLANNER_REVIEW/_README.md` |
 | PLAN-platform-review | plan | in_progress |  | Platform Review Plan — 2026-05-06 | `plan/PLATFORM_REVIEW/_README.md` |
 | PLAN-report-premium | plan | in_progress |  | Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html` | `plan/REPORT_PREMIUM/_README.md` |
+| PLAN-report-trust | plan | in_progress |  | Report Trust — o relatório não pode afirmar precisão que os dados não sustentam | `plan/REPORT_TRUST/_README.md` |
 | PLAN-residencia-e-uso | plan | draft |  | Residência e uso econômico de imóveis — override DB substitui keyword | `plan/RESIDENCIA_E_USO/_README.md` |
 | PLAN-s4-real-estate-enrichment | plan | done |  | S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel) | `plan/S4_REAL_ESTATE_ENRICHMENT/_README.md` |
 | PLAN-snapshot-changelog-v3 | plan | in_progress |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `plan/SNAPSHOT_CHANGELOG_V3/_README.md` |
