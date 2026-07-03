@@ -166,6 +166,41 @@ def test_avaliacao_custom_bands(identity: MemberIdentity):
     assert result["avaliacao_liquidity"] == "Supra"
 
 
+def test_prefere_janela_12m_sobre_media_full_period(config: ReservaEmergenciaConfig):
+    """ADR-306 §D4 — reserva dimensiona pela janela canônica, não pela média diluída."""
+    calc = EmergencyReserveCalculator(config)
+    result = calc.calculate(
+        fluxo={
+            "despesa_mensal_media": 1_000,  # full-period diluída — NÃO deve ser usada
+            "janela_12m": {"despesa_mensal_media": 2_000, "n_meses": 12},
+        },
+        patrimonio={
+            "investimentos_david": 24_000,
+            "investimentos_mariana": 0,
+            "caixa_moeda_estrangeira": 0,
+        },
+    )
+    assert result["despesas_mensais"] == 2_000.0
+    assert result["cobertura_meses"] == 12.0
+    assert result["janela"] == "12m"
+    assert result["janela_meses"] == 12
+
+
+def test_fallback_full_period_sem_janela(config: ReservaEmergenciaConfig):
+    calc = EmergencyReserveCalculator(config)
+    result = calc.calculate(
+        fluxo={"despesa_mensal_media": 1_000, "janela_meses": 40},
+        patrimonio={
+            "investimentos_david": 6_000,
+            "investimentos_mariana": 0,
+            "caixa_moeda_estrangeira": 0,
+        },
+    )
+    assert result["despesas_mensais"] == 1_000.0
+    assert result["janela"] == "full"
+    assert result["janela_meses"] == 40
+
+
 def test_output_shape(config: ReservaEmergenciaConfig):
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
@@ -178,6 +213,8 @@ def test_output_shape(config: ReservaEmergenciaConfig):
     )
     assert set(result.keys()) == {
         "despesas_mensais",
+        "janela",
+        "janela_meses",
         "nivel_6_meses",
         "nivel_12_meses",
         "composicao_liquida",

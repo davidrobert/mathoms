@@ -240,6 +240,44 @@ class TestFolgaETeto:
 
 
 class TestJanela:
+    def test_pontuais_fora_da_janela_nao_entram_na_folga(self):
+        """ADR-306 §D6 — pontuais full-period diluídos no denominador 12m inflavam a folga."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        fluxo = {
+            "janela_12m": {
+                "receita_recorrente_mensal": 10_000,
+                "despesa_mensal_media": 8_000,
+                "n_meses": 12,
+                "periodo": "2025-07 a 2026-06",
+            }
+        }
+        despesas = _despesas(
+            lazer=[_txn("2024-01-05", "ANTIGO", 6_000), _txn("2026-01-05", "RECENTE", 2_400)]
+        )
+        r = ConsumoConscienteCalculator(cfg).calculate(fluxo, despesas)
+        assert r.total_pontuais == 8_400.0
+        assert r.pontuais_janela == 2_400.0
+        assert r.folga_mensal == pytest.approx(10_000 - (8_000 - 2_400 / 12))
+        assert r.janela == "12m"
+        assert r.janela_meses == 12
+
+    def test_folga_reconciliavel_com_base_canonica(self):
+        """folga == receita_rec_mensal − despesa_mensal_media + pontuais_janela/n."""
+        cfg = ConsumoConscienteConfig(consumo_min=1000)
+        fluxo = {
+            "janela_12m": {
+                "receita_recorrente_mensal": 12_000,
+                "despesa_mensal_media": 9_000,
+                "n_meses": 12,
+                "periodo": "2025-07 a 2026-06",
+            }
+        }
+        r = ConsumoConscienteCalculator(cfg).calculate(
+            fluxo, _despesas(lazer=[_txn("2025-12-10", "VIAGEM", 3_600)])
+        )
+        esperado = 12_000 - 9_000 + r.pontuais_janela / 12
+        assert r.folga_mensal == pytest.approx(esperado)
+
     def test_fallback_ao_periodo_completo_sem_janela(self):
         cfg = ConsumoConscienteConfig(consumo_min=1000)
         fluxo = {

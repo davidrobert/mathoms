@@ -55,7 +55,7 @@ _NON_MONETARY_SUFFIXES = (
     "_aa",
     "_count",
 )
-_NON_MONETARY_PREFIXES = ("idade_", "anos_", "ano_", "nivel_", "prazo_", "prazos_")
+_NON_MONETARY_PREFIXES = ("idade_", "anos_", "ano_", "nivel_", "prazo_", "prazos_", "pct_")
 
 ClassifyFn = Callable[[str], bool]
 

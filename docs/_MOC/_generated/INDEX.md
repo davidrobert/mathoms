@@ -301,7 +301,7 @@
 | ADR-303 | adr | Decidido |  | Boundary de artefatos do executor remoto (A3.store): pipeline-service injeta DBArtifactStore do backend, sessão-por-stage | `adr/303-boundary-artefatos-executor-remoto-a3store.md` |
 | ADR-304 | adr | Decidido |  | KR1 do parecer — pureza monetária da prosa: fix de prompt + doutrina de enforcement | `adr/304-kr1-pureza-monetaria-prosa-parecer.md` |
 | ADR-305 | adr | Decidido |  | PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) | `adr/305-pgbl-ano-base-fiscal-unico.md` |
-| ADR-306 | adr | Proposto |  | Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco | `adr/306-politica-de-base-temporal-de-mensalizacao-no-e5.md` |
+| ADR-306 | adr | Decidido |  | Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco | `adr/306-politica-de-base-temporal-de-mensalizacao-no-e5.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -663,7 +663,7 @@
 | A28.l11 | lane | planned | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
 | A28.l2 | lane | open | A28 | TRS efetiva com numerador/denominador do mesmo universo + guardrail de sanidade (ADR-191) | `sprint/A28/lanes/A28-l2-trs-universo-consistente.md` |
 | A28.l3 | lane | in_progress | A28 | PGBL: regra de ano-base único — uma recomendação por relatório | `sprint/A28/lanes/A28-l3-pgbl-ano-base-unico.md` |
-| A28.l4 | lane | open | A28 | base de mensalização única: política de janela temporal por família de métrica + Cerbasi coerente | `sprint/A28/lanes/A28-l4-mensalizacao-base-unica.md` |
+| A28.l4 | lane | in_progress | A28 | base de mensalização única: política de janela temporal por família de métrica + Cerbasi coerente | `sprint/A28/lanes/A28-l4-mensalizacao-base-unica.md` |
 | A28.l5 | lane | open | A28 | nao_identificado 23% → <5%: regras via Learning Loop + gate de reclassificação do owner | `sprint/A28/lanes/A28-l5-nao-identificado-learning-loop.md` |
 | A28.l6 | lane | open | A28 | proteção patrimonial ativada: apólices extraídas fluem para compute_protecao + pontos_urgentes condicional | `sprint/A28/lanes/A28-l6-protecao-apolices-flow.md` |
 | A28.l7 | lane | open | A28 | imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner | `sprint/A28/lanes/A28-l7-imoveis-excluidos-dedup.md` |

@@ -123,6 +123,17 @@ def _extract_essential_categories(scoring: dict | None) -> Iterable[str]:
 # =============================================================================
 
 
+_JANELA_ROUND_FIELDS = (
+    "receita_total receita_recorrente receita_one_time receita_recorrente_mensal "
+    "despesa_total despesa_mensal_media fluxo_liquido "
+    "taxa_poupanca_recorrente taxa_poupanca_total"
+).split()
+
+
+def _essencial_as_float(essencial: Decimal) -> float:
+    return float(essencial.quantize(Decimal("0.01")))
+
+
 @dataclass(frozen=True)
 class Janela12m:
     periodo: str
@@ -141,24 +152,17 @@ class Janela12m:
     # em código novo); serializado como float no ``to_dict`` por paridade
     # com os demais campos legados desta dataclass.
     despesa_mensal_essencial: Decimal = field(default_factory=lambda: Decimal("0"))
+    despesas_por_categoria: dict[str, float] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {
-            "periodo": self.periodo,
-            "n_meses": self.n_meses,
-            "receita_total": round(self.receita_total, 2),
-            "receita_recorrente": round(self.receita_recorrente, 2),
-            "receita_one_time": round(self.receita_one_time, 2),
-            "receita_recorrente_mensal": round(self.receita_recorrente_mensal, 2),
-            "despesa_total": round(self.despesa_total, 2),
-            "despesa_mensal_media": round(self.despesa_mensal_media, 2),
-            "fluxo_liquido": round(self.fluxo_liquido, 2),
-            "taxa_poupanca_recorrente": round(self.taxa_poupanca_recorrente, 2),
-            "taxa_poupanca_total": round(self.taxa_poupanca_total, 2),
-            "despesa_mensal_essencial": float(
-                self.despesa_mensal_essencial.quantize(Decimal("0.01"))
-            ),
+        out = {"periodo": self.periodo, "n_meses": self.n_meses}
+        out.update({"janela": "12m", "janela_meses": self.n_meses})
+        out.update({f: round(getattr(self, f), 2) for f in _JANELA_ROUND_FIELDS})
+        out["despesa_mensal_essencial"] = _essencial_as_float(self.despesa_mensal_essencial)
+        out["despesas_por_categoria"] = {
+            k: round(v, 2) for k, v in self.despesas_por_categoria.items()
         }
+        return out
 
 
 @dataclass(frozen=True)
@@ -184,18 +188,19 @@ class FluxoCaixaEnriched:
     # completo. Decimal (ADR-090); serializado em float no legacy_dict
     # por paridade com os demais campos desta dataclass.
     despesa_mensal_essencial: Decimal = field(default_factory=lambda: Decimal("0"))
+    num_months: int = 0
 
     def to_legacy_dict(self) -> dict:
         return {
+            "janela": "full",
+            "janela_meses": self.num_months,
             "receita_total": round(self.receita_total, 2),
             "receita_recorrente": round(self.receita_recorrente, 2),
             "receita_one_time": round(self.receita_one_time, 2),
             "receita_recorrente_mensal": round(self.receita_recorrente_mensal, 2),
             "despesa_total": round(self.despesa_total, 2),
             "despesa_mensal_media": round(self.despesa_mensal_media, 2),
-            "despesa_mensal_essencial": float(
-                self.despesa_mensal_essencial.quantize(Decimal("0.01"))
-            ),
+            "despesa_mensal_essencial": _essencial_as_float(self.despesa_mensal_essencial),
             "fluxo_liquido": round(self.fluxo_liquido, 2),
             "por_fonte": {k: round(v, 2) for k, v in self.por_fonte.items()},
             "por_fonte_detalhado": {k: round(v, 2) for k, v in self.por_fonte_detalhado.items()},
@@ -310,6 +315,7 @@ class FluxoCaixaEnricher:
             chart_totais_despesa=chart_data["totais_despesa"],
             janela_12m=janela_12m,
             despesa_mensal_essencial=despesa_mensal_essencial,
+            num_months=len(meses),
         )
 
     # -- Helpers --
@@ -425,6 +431,7 @@ class FluxoCaixaEnricher:
             taxa_poupanca_recorrente=_ratio_pct(rec_recorrente - desp_bruto, rec_recorrente),
             taxa_poupanca_total=_ratio_pct(rec_bruto - desp_bruto, rec_bruto),
             despesa_mensal_essencial=despesa_mensal_essencial,
+            despesas_por_categoria=desp_por_cat,
         )
 
     def _accumulate_receita(

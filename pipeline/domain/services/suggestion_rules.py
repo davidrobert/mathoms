@@ -583,12 +583,13 @@ def rule_renda_passiva_real_baixa(
     renda_passiva = _as_float(fluxo.get("renda_passiva_mensal_atual"))
     if renda_passiva is None:
         renda_passiva = _as_float(goals.get("renda_passiva_mensal_observada_brl"))
-    # `despesa_mensal_media` está no top-level do fluxo enriquecido. Em snapshots
-    # antigos pode estar em `fluxo.janela_12m.despesa_mensal_media`.
-    custo_vida = _as_float(fluxo.get("despesa_mensal_media"))
+    # ADR-306: janela canônica 12m primeiro — o top-level é média full-period
+    # diluída (mesma raiz do bug da reserva). Fallback para top-level cobre
+    # snapshots antigos sem `janela_12m`.
+    janela = _as_dict(fluxo.get("janela_12m"))
+    custo_vida = _as_float(janela.get("despesa_mensal_media"))
     if custo_vida is None:
-        janela = _as_dict(fluxo.get("janela_12m"))
-        custo_vida = _as_float(janela.get("despesa_mensal_media"))
+        custo_vida = _as_float(fluxo.get("despesa_mensal_media"))
     if progresso is None or renda_passiva is None or custo_vida is None:
         return None
     if custo_vida <= 0 or progresso < cfg.renda_passiva_min_progresso_if_pct:

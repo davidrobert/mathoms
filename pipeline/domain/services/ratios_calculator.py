@@ -114,6 +114,7 @@ class FinancialRatios:
     aliquota_efetiva_ir_pct: Decimal | None = None
     janela_referencia: str = "N/D"
     janela_n_meses: int = 0
+    janela: str = "full"
     rentabilidade: RentabilidadeRatio | None = None
 
     def to_legacy_dict(self) -> dict:
@@ -126,6 +127,8 @@ class FinancialRatios:
             "aliquota_efetiva_ir_pct": _format_pct_or_nd(self.aliquota_efetiva_ir_pct),
             "janela_referencia": self.janela_referencia,
             "janela_n_meses": self.janela_n_meses,
+            "janela": self.janela,
+            "janela_meses": self.janela_n_meses,
             "rentabilidade": (
                 self.rentabilidade.to_dict() if self.rentabilidade is not None else None
             ),
@@ -183,6 +186,7 @@ class RatiosCalculator:
             aliquota_efetiva_ir_pct=_resolve_aliquota_ir(irpf, passive_income),
             janela_referencia=window.referencia,
             janela_n_meses=window.n_meses,
+            janela=window.janela,
             rentabilidade=_build_rentabilidade(passive_income, window, self._rentabilidade_config),
         )
 
@@ -203,6 +207,7 @@ class _Window:
     despesa_mensal_essencial_brl: Decimal
     referencia: str
     n_meses: int
+    janela: str
 
 
 @dataclass(frozen=True)
@@ -226,6 +231,7 @@ def _resolve_window(fluxo: _FluxoPayload) -> _Window:
         ),
         referencia=referencia,
         n_meses=n_meses,
+        janela="12m" if j12m else "full",
     )
 
 

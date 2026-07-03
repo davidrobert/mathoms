@@ -221,6 +221,25 @@ class TestDecimalEverywhere:
         for value in result.renda_passiva_por_fonte_brl.values():
             assert isinstance(value, Decimal)
 
+    def test_acumuladores_matching_por_token_nao_inicial(self):
+        """ADR-306 — descrição IRPF embute ticker no meio ("1000 ACOES BOVA11...");
+        matching primeiro-token zerava ``acumuladores_pct_gerador`` no dogfood."""
+        d = decl(isentos=[isento(CodigoRendimentoIsento.lucros_dividendos, "10000.00")])
+        inv = {
+            "dados": [
+                {"nome": "1000 ACOES DE BOVA11 - ISHARES IBOVESPA", "valor_atual": 100_000},
+            ]
+        }
+        result = calc().calculate(
+            irpf=IRPFAnalyzer([d]),
+            patrimonio=patrimonio(investimentos_titular=500_000.0),
+            investimentos_atuais=inv,
+            reference_date=_REF_DATE,
+            despesa_mensal_media_brl=_NO_DESPESA,
+        )
+        # 100k / 500k = 20% do gerador em acumuladores.
+        assert result.acumuladores_pct_gerador == Decimal("20.00")
+
     def test_mensal_eh_anual_dividido_por_12(self):
         d = decl(isentos=[isento(CodigoRendimentoIsento.lucros_dividendos, "12000.00")])
         result = calc().calculate(
