@@ -22,8 +22,12 @@
 #     muda no user_prompt.
 #
 # Mudança de contrato: nenhuma. Apenas conteúdo de prompt.
-# Cache: bump força invalidação natural (snapshot_hash idêntico, mas chaves
-# de prompt diferentes produzem texto diferente → ver §4 abaixo).
+# Cache: bump de `version` NÃO invalida o cache — a chave é
+#   {workspace_id}:{snapshot_hash}:{section_id}
+#   (section_summary_generator._cache_key) e não inclui a version. Após um
+#   bump, texto da versão anterior pode ser servido até o TTL (24h) expirar
+#   ou o payload da seção mudar (snapshot_hash novo). Se invalidação
+#   imediata importar, incluir a version na cache key (follow-up).
 # ==============================================================================
 
 version: "1.1"
