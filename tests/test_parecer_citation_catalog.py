@@ -123,3 +123,26 @@ def test_list_cap_top_k_por_valor_com_indice_original(whitelist):
     idxs = sorted(int(e.path.split("[")[1].split("]")[0]) for e in entries)
     assert len(idxs) == _MAX_LIST_ITEMS
     assert idxs == [35, 36, 37, 38, 39], "top-K deve ser por maior valor, com índice original"
+
+
+# -----------------------------------------------------------------------
+# A28.l10 — tipo de folha por nome de campo (fonte do dispatch do finalize)
+# -----------------------------------------------------------------------
+
+
+def test_ancora_format_hint_por_tipo_de_folha():
+    """Dogfood 72883bde: prob/idade viravam R$ — o hint vem do nome do campo
+    (a folha conhece seu campo), nunca de heurística sobre o valor."""
+    from backend.app.services.parecer_citation_catalog import ancora_format_hint
+
+    assert ancora_format_hint("$.if_monte_carlo.prob_if_ate_idade_meta") == "prob_pct"
+    assert ancora_format_hint("$.if_monte_carlo.idade_meta_usada") == "anos"
+    assert ancora_format_hint("$.ratios.taxa_poupanca_recorrente_pct") == "pct"
+    assert ancora_format_hint("$.reserva_emergencia.cobertura_meses") == "meses"
+    assert ancora_format_hint("$.irpf_kpis.dependentes_count") == "int"
+    assert ancora_format_hint("$.investimentos.n_imoveis_total") == "int"
+    assert ancora_format_hint("$.reserva_emergencia.total_liquida") == "brl"
+    assert ancora_format_hint("$.reserva_emergencia.nivel_6_meses") == "brl"
+    assert ancora_format_hint("$.investimentos.tabela_classes[2].valor") == "brl"
+    # fallback: folha sem tipo conhecido nunca ganha prefixo R$
+    assert ancora_format_hint("$.goals.p50_ano_if") == "string"

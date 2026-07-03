@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from typing import Any, Iterator, Mapping
 
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
-from pipeline.llm.value_formatter import format_value
+from pipeline.llm.value_formatter import FormatHint, format_value
 
 # Folhas cujo nome indica valor monetário (R$). O verificador só checa tokens R$;
 # contagens/percentuais/anos não são citáveis e só inflam o budget.
@@ -90,6 +90,39 @@ def _is_money_key(key: str) -> bool:
     if any(marker in low for marker in _NON_MONEY_MARKERS):
         return False
     return any(token in low for token in _MONEY_KEY_TOKENS)
+
+
+# --- Tipo de folha por nome de campo (A28.l10) ---------------------------------
+# A folha conhece seu campo: o dispatch de formatação do finalize (ADR-296) vem
+# DAQUI — nunca de heurística sobre o valor. Ordem importa: "prob_if_ate_idade_meta"
+# contém o token monetário "meta" e só é percentual porque "prob" vence primeiro.
+_PCT_KEY_MARKERS = ("pct", "percent", "percentual")
+_COUNT_KEY_MARKERS = ("count", "qtd", "quantidade")
+
+
+def _ancora_leaf_key(path: str) -> str:
+    """Último segmento do JSONPath, sem índice de lista: ``$.a.b[2]`` → ``b``."""
+    return path.rsplit(".", 1)[-1].split("[", 1)[0]
+
+
+def ancora_format_hint(path: str) -> FormatHint:
+    """Format hint da folha citada, derivado do nome do campo no path (A28.l10) —
+    fecha o dogfood 72883bde: ``prob_if_ate_idade_meta=0.31`` → "31%" (não
+    "R$ 0,31"); ``idade_meta_usada=53`` → "53 anos" (não "R$ 53,00")."""
+    key = _ancora_leaf_key(path).lower()
+    if "prob" in key:
+        return "prob_pct"
+    if "idade" in key:
+        return "anos"
+    if any(m in key for m in _PCT_KEY_MARKERS):
+        return "pct"
+    if "meses" in key and "nivel" not in key:
+        return "meses"  # nivel_N_meses é nível de reserva em R$ (cai no _is_money_key)
+    if key.startswith("n_") or any(m in key for m in _COUNT_KEY_MARKERS):
+        return "int"
+    if _is_money_key(key):
+        return "brl"
+    return "string"
 
 
 def _is_money_leaf(key: str, value: Any) -> bool:
@@ -200,4 +233,9 @@ def render_citation_catalog(entries: list[CatalogEntry], *, max_bytes: int) -> s
     return _render_grouped(selected)
 
 
-__all__ = ["CatalogEntry", "build_citation_catalog", "render_citation_catalog"]
+__all__ = [
+    "CatalogEntry",
+    "ancora_format_hint",
+    "build_citation_catalog",
+    "render_citation_catalog",
+]

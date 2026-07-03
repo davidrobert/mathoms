@@ -7,6 +7,7 @@ import re
 from datetime import datetime, timezone
 from typing import Optional
 
+from backend.app.services.parecer_citation_catalog import ancora_format_hint
 from pipeline.llm.schemas.parecer_planejador import (
     Ancora,
     Metadata,
@@ -170,13 +171,17 @@ def _stamped_metadata(
 
 
 def _resolve_ancora(ancora: Ancora, drill: PlannerDrillDown) -> Ancora:
-    """Resolve path→valor_renderizado via format_value (fonte única = catálogo, ADR-296)."""
+    """Resolve path→valor_renderizado com dispatch por tipo de folha (ADR-296 · A28.l10):
+    o hint vem de ``ancora_format_hint`` (catálogo de citação — a folha conhece seu
+    campo), não de heurística sobre o valor. Prob → "31%", idade → "53 anos",
+    moeda → "R$ …" (ADR-090)."""
     if ancora.path is None:
         return ancora
     result = drill.get_e5_jsonpath(ancora.path)
     if not result.found:
         return ancora
-    return ancora.model_copy(update={"valor_renderizado": format_value(result.value, "brl")})
+    rendered = format_value(result.value, ancora_format_hint(ancora.path))
+    return ancora.model_copy(update={"valor_renderizado": rendered})
 
 
 def _stamp_item(item: Risco | Sugestao, drill: PlannerDrillDown) -> Risco | Sugestao:
