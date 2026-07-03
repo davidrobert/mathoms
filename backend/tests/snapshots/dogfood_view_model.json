@@ -243,8 +243,11 @@
     "folga_mensal": 150000,
     "folga_pct": "50.000000",
     "itens": [],
+    "janela": "12m",
+    "janela_meses": 1,
     "teto_sugerido": 172500,
-    "total_pontuais": 0
+    "total_pontuais": 0,
+    "total_pontuais_janela": 0
   },
   "data_analise": "<volatile>",
   "diagnostico_comportamental": [
@@ -268,10 +271,18 @@
     "total_dividas": 15000000
   },
   "equilibrio_cerbasi": {
-    "classificacao": "Gastador",
+    "classificacao": "Investidor",
+    "componentes": {
+      "base": 300000,
+      "gasto_futuro": 0,
+      "gasto_presente": 150000,
+      "poupanca": 150000
+    },
     "futuro": "Independência Financeira",
-    "pct_futuro": 0,
-    "pct_presente": 10000,
+    "janela": "12m",
+    "janela_meses": 1,
+    "pct_futuro": 5000,
+    "pct_presente": 5000,
     "presente": "Consolidação patrimonial"
   },
   "exposicao_cambial": {
@@ -289,11 +300,17 @@
       "nao_identificado": 150000
     },
     "fluxo_liquido": 150000,
+    "janela": "full",
     "janela_12m": {
       "despesa_mensal_essencial": 0,
       "despesa_mensal_media": 150000,
       "despesa_total": 150000,
+      "despesas_por_categoria": {
+        "nao_identificado": 150000
+      },
       "fluxo_liquido": 150000,
+      "janela": "12m",
+      "janela_meses": 1,
       "n_meses": 1,
       "periodo": "2026-01 a 2026-01",
       "receita_one_time": 0,
@@ -303,6 +320,7 @@
       "taxa_poupanca_recorrente": "50.000000",
       "taxa_poupanca_total": "50.000000"
     },
+    "janela_meses": 1,
     "por_fonte": {
       "renda": 300000
     },
@@ -423,6 +441,8 @@
     "categorias": {
       "nao_identificado": 150000
     },
+    "janela": "full",
+    "janela_meses": 1,
     "legenda": "Orçamento prospectivo baseado na média dos últimos 1 meses. Recomenda-se revisar mensalmente e ajustar projeções.",
     "media_mensal": 150000,
     "total": 150000
@@ -431,6 +451,8 @@
     "acumuladores_pct_gerador": "0.000000",
     "ano_referencia_irpf": null,
     "defasagem_meses": null,
+    "janela": "irpf",
+    "janela_meses": 12,
     "patrimonio_gerador_brl": 0,
     "renda_passiva_anual_brl": 0,
     "renda_passiva_mensal_brl": 0,
@@ -588,6 +610,8 @@
   "ratios": {
     "aliquota_efetiva_ir_pct": "N/D",
     "cobertura_despesas_meses": "86.670000",
+    "janela": "12m",
+    "janela_meses": 1,
     "janela_n_meses": 1,
     "janela_referencia": "2026-01 a 2026-01",
     "rentabilidade": {
@@ -614,6 +638,8 @@
       "total_liquido": 13000000
     },
     "despesas_mensais": 150000,
+    "janela": "12m",
+    "janela_meses": 1,
     "niveis": [
       "3 meses",
       "6 meses",

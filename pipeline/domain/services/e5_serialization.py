@@ -370,6 +370,8 @@ def _enrich_goals_with_passive_income(
     enriched["acumuladores_pct_gerador"] = float(passive_income.acumuladores_pct_gerador)
     enriched["ano_referencia_irpf"] = passive_income.ano_referencia_irpf
     enriched["defasagem_meses"] = passive_income.defasagem_meses
+    enriched["janela"] = _janela_irpf(passive_income.ano_referencia_irpf)
+    enriched["janela_meses"] = 12
     return enriched
 
 
@@ -387,6 +389,11 @@ def _proventos_summary_to_dict(s) -> _GoalsPayload:
     }
 
 
+def _janela_irpf(ano_referencia: int | None) -> str:
+    """Rótulo de janela para mensalizações fiscais (ADR-306 §D1 família iii)."""
+    return f"irpf_{ano_referencia}" if ano_referencia is not None else "irpf"
+
+
 def _passive_income_to_dict(pi: PassiveIncomeResult) -> _GoalsPayload:
     """Serializa ``PassiveIncomeResult`` para o JSON top-level (UI consome)."""
     return {
@@ -399,6 +406,8 @@ def _passive_income_to_dict(pi: PassiveIncomeResult) -> _GoalsPayload:
         "ano_referencia_irpf": pi.ano_referencia_irpf,
         "defasagem_meses": pi.defasagem_meses,
         "acumuladores_pct_gerador": float(pi.acumuladores_pct_gerador),
+        "janela": _janela_irpf(pi.ano_referencia_irpf),
+        "janela_meses": 12,
     }
 
 

@@ -42,7 +42,7 @@ _E5_BUILD_DEFAULTS = {
     "data_analise": "2026-04-19",
     "patrimonio": {"bruto": 1_500_000, "liquido": 1_200_000},
     "goals": {"if_meta": 5_000_000},
-    "fluxo": {"receita_total": 100_000},
+    "fluxo": {"receita_total": 100_000, "janela": "full", "janela_meses": 12},
     "ratios": {"taxa_poupanca_recorrente_pct": 30},
     "score": {"valor": 7.0, "classificacao": "Bom"},
     "orcamento": {"total": 5000},
@@ -159,7 +159,7 @@ def _e5_with_top_ativos(*items):
     return {
         "score": {"valor": 6.8, "classificacao": "Bom"},
         "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-        "fluxo_caixa": {"receita_total": 80000},
+        "fluxo_caixa": {"receita_total": 80000, "janela": "full", "janela_meses": 0},
         "investimentos": {
             "tabela_classes": [{"categoria": "Renda Fixa", "valor": 800000, "pct": 80.0}],
             "total": 1000000,
@@ -172,7 +172,7 @@ def _e5_with_instituicoes(por_membro, n_imoveis=0):
     return {
         "score": {"valor": 6.8, "classificacao": "Bom"},
         "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-        "fluxo_caixa": {},
+        "fluxo_caixa": {"janela": "full", "janela_meses": 0},
         "investimentos": {
             "instituicoes_por_membro": por_membro,
             "n_imoveis_total": n_imoveis,
@@ -301,7 +301,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {"receita_total": 80000},
+            "fluxo_caixa": {"receita_total": 80000, "janela": "full", "janela_meses": 0},
         }
         path = tmp_path / "test.json"
         path.write_text(json.dumps(data))
@@ -340,7 +340,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {},
+            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
             "cenarios_conjuge": _CENARIOS_CONJUGE_VALID,
         }
         path = tmp_path / "e5.json"
@@ -352,7 +352,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {},
+            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
             "cenarios_conjuge": {},
         }
         path = tmp_path / "e5.json"
@@ -365,7 +365,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {},
+            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
             "cenarios_conjuge": "not_an_object",
         }
         path = tmp_path / "e5.json"
@@ -382,7 +382,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {},
+            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
             "cenarios_conjuge": bad_cenario,
         }
         path = tmp_path / "e5.json"
@@ -401,7 +401,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {},
+            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
             "cenarios_conjuge": bad_cenario,
         }
         path = tmp_path / "e5.json"
@@ -414,7 +414,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 1_000_000, "liquido": 800_000},
-            "fluxo_caixa": {},
+            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
             "cenarios_conjuge": _cenarios_conjuge_with_titular("alice"),
         }
         path = tmp_path / "e5.json"

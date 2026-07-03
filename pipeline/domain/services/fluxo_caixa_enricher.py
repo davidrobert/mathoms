@@ -141,11 +141,15 @@ class Janela12m:
     # em código novo); serializado como float no ``to_dict`` por paridade
     # com os demais campos legados desta dataclass.
     despesa_mensal_essencial: Decimal = field(default_factory=lambda: Decimal("0"))
+    # ADR-306 — total por categoria dentro da janela (base do Cerbasi 12m).
+    despesas_por_categoria: dict[str, float] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
             "periodo": self.periodo,
             "n_meses": self.n_meses,
+            "janela": "12m",
+            "janela_meses": self.n_meses,
             "receita_total": round(self.receita_total, 2),
             "receita_recorrente": round(self.receita_recorrente, 2),
             "receita_one_time": round(self.receita_one_time, 2),
@@ -158,6 +162,9 @@ class Janela12m:
             "despesa_mensal_essencial": float(
                 self.despesa_mensal_essencial.quantize(Decimal("0.01"))
             ),
+            "despesas_por_categoria": {
+                k: round(v, 2) for k, v in self.despesas_por_categoria.items()
+            },
         }
 
 
@@ -184,9 +191,13 @@ class FluxoCaixaEnriched:
     # completo. Decimal (ADR-090); serializado em float no legacy_dict
     # por paridade com os demais campos desta dataclass.
     despesa_mensal_essencial: Decimal = field(default_factory=lambda: Decimal("0"))
+    # ADR-306 — meses documentados do período completo (rótulo de janela).
+    num_months: int = 0
 
     def to_legacy_dict(self) -> dict:
         return {
+            "janela": "full",
+            "janela_meses": self.num_months,
             "receita_total": round(self.receita_total, 2),
             "receita_recorrente": round(self.receita_recorrente, 2),
             "receita_one_time": round(self.receita_one_time, 2),
@@ -310,6 +321,7 @@ class FluxoCaixaEnricher:
             chart_totais_despesa=chart_data["totais_despesa"],
             janela_12m=janela_12m,
             despesa_mensal_essencial=despesa_mensal_essencial,
+            num_months=len(meses),
         )
 
     # -- Helpers --
@@ -425,6 +437,7 @@ class FluxoCaixaEnricher:
             taxa_poupanca_recorrente=_ratio_pct(rec_recorrente - desp_bruto, rec_recorrente),
             taxa_poupanca_total=_ratio_pct(rec_bruto - desp_bruto, rec_bruto),
             despesa_mensal_essencial=despesa_mensal_essencial,
+            despesas_por_categoria=desp_por_cat,
         )
 
     def _accumulate_receita(

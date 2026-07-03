@@ -1,10 +1,14 @@
-"""EquilibrioCerbasiAnalyzer — equilíbrio presente vs futuro (Sessão A5c).
+"""EquilibrioCerbasiAnalyzer — equilíbrio presente vs futuro (Sessão A5c · ADR-306).
 
 Extrai ``analyze_equilibrio_cerbasi`` (e5_analyze.py:2351) em domain service
-puro. Calcula % de gastos em categorias "presente" vs "futuro" e classifica
-o perfil (Investidor / Equilibrado / Endividado consciente / Gastador).
+puro. Classifica o perfil (Investidor / Equilibrado / Endividado consciente /
+Gastador) sobre a **renda** da janela canônica 12m (ADR-306 §D5): poupança
+realizada (``max(0, receita_recorrente − despesa_total)``) conta como "futuro";
+base = gasto_presente + gasto_futuro + poupança (== renda no superávit,
+== despesa total no déficit — pcts somam 100).
 
 Categorias não-classificadas somam no "presente" (paridade com legado).
+Sem ``janela_12m`` no fluxo, degrada para o período completo (rótulo ``full``).
 
 Função pura. Config tipada (R9/ISP) recebe categorias + escada de classificação.
 """
@@ -130,6 +134,9 @@ class EquilibrioCerbasi:
     classificacao: str
     presente: str = "Consolidação patrimonial"
     futuro: str = "Independência Financeira"
+    janela: str = "full"
+    janela_meses: int = 0
+    componentes: dict[str, float] = field(default_factory=dict)
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -138,6 +145,9 @@ class EquilibrioCerbasi:
             "classificacao": self.classificacao,
             "presente": self.presente,
             "futuro": self.futuro,
+            "janela": self.janela,
+            "janela_meses": self.janela_meses,
+            "componentes": {k: round(v, 2) for k, v in self.componentes.items()},
         }
 
 
@@ -153,36 +163,43 @@ class EquilibrioCerbasiAnalyzer:
         self._config = config or EquilibrioCerbasiConfig()
 
     def analyze(self, fluxo: dict[str, Any]) -> EquilibrioCerbasi:
-        cfg = self._config
-        despesas = (fluxo or {}).get("despesas_por_categoria", {}) or {}
+        window = _resolve_cerbasi_window(fluxo)
+        gasto_presente, gasto_futuro = self._split_gastos(window.despesas_por_categoria)
 
-        gasto_presente = 0.0
-        gasto_futuro = 0.0
-        gasto_nao_classificado = 0.0
+        # ADR-306 §D5: poupança realizada é alocação ao futuro. Residual
+        # (fallback); aporte observado de primeira classe é follow-up.
+        poupanca = max(0.0, window.receita_recorrente - window.despesa_total)
+        base = gasto_presente + gasto_futuro + poupanca
 
-        for cat, valor in despesas.items():
-            v = _safe_float(valor)
-            if cat in cfg.categorias_presente:
-                gasto_presente += v
-            elif cat in cfg.categorias_futuro:
-                gasto_futuro += v
-            else:
-                gasto_nao_classificado += v
-
-        # Paridade com legado: não-classificado soma no presente.
-        gasto_presente += gasto_nao_classificado
-        gasto_total = gasto_presente + gasto_futuro
-
-        pct_presente = round(gasto_presente / gasto_total * 100, 1) if gasto_total > 0 else 0.0
-        pct_futuro = round(gasto_futuro / gasto_total * 100, 1) if gasto_total > 0 else 0.0
-
-        classificacao = self._classify(pct_futuro)
+        pct_presente = round(gasto_presente / base * 100, 1) if base > 0 else 0.0
+        pct_futuro = round((gasto_futuro + poupanca) / base * 100, 1) if base > 0 else 0.0
 
         return EquilibrioCerbasi(
             pct_presente=pct_presente,
             pct_futuro=pct_futuro,
-            classificacao=classificacao,
+            classificacao=self._classify(pct_futuro),
+            janela=window.janela,
+            janela_meses=window.janela_meses,
+            componentes={
+                "gasto_presente": gasto_presente,
+                "gasto_futuro": gasto_futuro,
+                "poupanca": poupanca,
+                "base": base,
+            },
         )
+
+    def _split_gastos(self, despesas: dict[str, Any]) -> tuple[float, float]:
+        """Retorna ``(presente, futuro)``; não-classificado soma no presente (legado)."""
+        cfg = self._config
+        presente = 0.0
+        futuro = 0.0
+        for cat, valor in despesas.items():
+            v = _safe_float(valor)
+            if cat in cfg.categorias_futuro:
+                futuro += v
+            else:
+                presente += v
+        return presente, futuro
 
     def _classify(self, pct_futuro: float) -> str:
         for faixa in sorted(
@@ -193,3 +210,33 @@ class EquilibrioCerbasiAnalyzer:
             if pct_futuro >= faixa.minimo_futuro_pct:
                 return faixa.label
         return "Gastador"
+
+
+@dataclass(frozen=True)
+class _CerbasiWindow:
+    despesas_por_categoria: dict[str, Any]
+    receita_recorrente: float
+    despesa_total: float
+    janela: str
+    janela_meses: int
+
+
+def _resolve_cerbasi_window(fluxo: dict[str, Any]) -> _CerbasiWindow:
+    """Prefere ``janela_12m`` (ADR-306); degrada para o período completo."""
+    src = fluxo if isinstance(fluxo, dict) else {}
+    j12m = src.get("janela_12m") or {}
+    if isinstance(j12m, dict) and j12m.get("despesas_por_categoria"):
+        return _CerbasiWindow(
+            despesas_por_categoria=j12m["despesas_por_categoria"] or {},
+            receita_recorrente=_safe_float(j12m.get("receita_recorrente", 0)),
+            despesa_total=_safe_float(j12m.get("despesa_total", 0)),
+            janela="12m",
+            janela_meses=int(_safe_float(j12m.get("n_meses", 0))),
+        )
+    return _CerbasiWindow(
+        despesas_por_categoria=src.get("despesas_por_categoria", {}) or {},
+        receita_recorrente=_safe_float(src.get("receita_recorrente", 0)),
+        despesa_total=_safe_float(src.get("despesa_total", 0)),
+        janela="full",
+        janela_meses=int(_safe_float(src.get("janela_meses", 0))),
+    )

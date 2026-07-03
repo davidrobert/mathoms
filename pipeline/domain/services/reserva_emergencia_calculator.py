@@ -82,9 +82,15 @@ class EmergencyReserveCalculator:
         self._config = config
 
     def calculate(self, *, fluxo: dict, patrimonio: dict) -> dict:
-        """Produz dict paridade com ``analyze_reserva_emergencia`` legado."""
+        """Produz dict paridade com ``analyze_reserva_emergencia`` legado.
+
+        ADR-306 §D4: denominador usa a janela canônica 12m (``janela_12m``),
+        não a média full-period diluída. ``despesa_mensal_media`` é ponte
+        transitória — A28.l1 troca para ``despesa_mensal_essencial`` da
+        mesma janela.
+        """
         identity = self._config.members
-        despesa_mensal = safe_float(fluxo.get("despesa_mensal_media", 0))
+        despesa_mensal, janela, janela_meses = _resolve_base_mensal(fluxo)
 
         inv_titular = safe_float(patrimonio.get(identity.key_inv_titular, 0))
         inv_conjuge = (
@@ -110,6 +116,8 @@ class EmergencyReserveCalculator:
 
         return {
             "despesas_mensais": round(despesa_mensal, 2),
+            "janela": janela,
+            "janela_meses": janela_meses,
             "nivel_6_meses": round(niveis_calc.get(6, despesa_mensal * 6), 2),
             "nivel_12_meses": round(niveis_calc.get(12, despesa_mensal * 12), 2),
             "composicao_liquida": {k: round(v, 2) for k, v in composicao_liquida.items()},
@@ -134,3 +142,19 @@ class EmergencyReserveCalculator:
             if cobertura_meses >= faixa.minimo_meses:
                 return faixa.label
         return "Insuficiente"
+
+
+def _resolve_base_mensal(fluxo: dict) -> tuple[float, str, int]:
+    """Retorna ``(despesa_mensal, janela, janela_meses)`` — janela 12m canônica (ADR-306)."""
+    j12m = (fluxo or {}).get("janela_12m") or {}
+    if isinstance(j12m, dict) and j12m.get("despesa_mensal_media") is not None:
+        return (
+            safe_float(j12m.get("despesa_mensal_media", 0)),
+            "12m",
+            int(safe_float(j12m.get("n_meses", 0))),
+        )
+    return (
+        safe_float((fluxo or {}).get("despesa_mensal_media", 0)),
+        "full",
+        int(safe_float((fluxo or {}).get("janela_meses", 0))),
+    )

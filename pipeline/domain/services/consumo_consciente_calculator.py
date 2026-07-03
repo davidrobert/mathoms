@@ -33,6 +33,28 @@ def _safe_float(val) -> float:
 # =============================================================================
 
 
+@dataclass(frozen=True)
+class _ConsumoWindow:
+    receita_rec_mensal: float
+    despesa_mensal_media: float
+    n_meses: float
+    janela: str
+    mes_inicio: str
+
+
+def _periodo_inicio(periodo: str) -> str:
+    """Extrai o mês inicial de ``"YYYY-MM a YYYY-MM"`` (vazio se malformado)."""
+    inicio = periodo.split(" a ")[0].strip()
+    return inicio if len(inicio) == 7 else ""
+
+
+def _dentro_da_janela(mes: str, mes_inicio: str) -> bool:
+    """Sem ``mes_inicio`` (janela full) tudo entra; compara ``YYYY-MM`` lexicográfico."""
+    if not mes_inicio:
+        return True
+    return bool(mes) and mes >= mes_inicio
+
+
 _DEFAULT_RECURRENT = frozenset(
     {
         "moradia",
@@ -113,16 +135,24 @@ class ConsumoConsciente:
     folga_pct: float
     teto_sugerido: float
     analise: str
+    # ADR-306 §D6 — folga derivada da janela canônica; pontuais da janela
+    # expostos para o teste de reconciliação algébrica.
+    janela: str = "full"
+    janela_meses: int = 0
+    total_pontuais_janela: float = 0.0
 
     def to_legacy_dict(self) -> dict:
         return {
             "itens": [i.to_dict() for i in self.itens],
             "total_pontuais": round(self.total_pontuais, 2),
+            "total_pontuais_janela": round(self.total_pontuais_janela, 2),
             "equivalente_meses_aporte": self.equivalente_meses_aporte,
             "folga_mensal": round(self.folga_mensal, 2),
             "folga_pct": self.folga_pct,
             "teto_sugerido": round(self.teto_sugerido, 2),
             "analise": self.analise,
+            "janela": self.janela,
+            "janela_meses": self.janela_meses,
         }
 
 
@@ -151,13 +181,20 @@ class ConsumoConscienteCalculator:
 
         equivalente = round(total_pontuais / cfg.aporte_mensal, 1) if cfg.aporte_mensal > 0 else 0.0
 
-        receita_rec_mensal, despesa_mensal_media, n_meses = self._resolve_janela(fluxo)
+        window = self._resolve_janela(fluxo)
 
-        pontual_mensal = total_pontuais / n_meses if n_meses > 0 else 0.0
-        despesas_recorrentes_mensal = despesa_mensal_media - pontual_mensal
-        folga_mensal = receita_rec_mensal - despesas_recorrentes_mensal
+        # ADR-306 §D6: pontuais da folga restritos à janela canônica —
+        # misturar pontuais full-period com denominador 12m inflava a folga.
+        total_pontuais_janela = sum(
+            c.valor for c in candidates if _dentro_da_janela(c.mes, window.mes_inicio)
+        )
+        pontual_mensal = total_pontuais_janela / window.n_meses if window.n_meses > 0 else 0.0
+        despesas_recorrentes_mensal = window.despesa_mensal_media - pontual_mensal
+        folga_mensal = window.receita_rec_mensal - despesas_recorrentes_mensal
         folga_pct = (
-            round((folga_mensal / receita_rec_mensal * 100), 1) if receita_rec_mensal > 0 else 0.0
+            round((folga_mensal / window.receita_rec_mensal * 100), 1)
+            if window.receita_rec_mensal > 0
+            else 0.0
         )
         teto_sugerido = despesas_recorrentes_mensal * cfg.teto_multiplier
 
@@ -175,6 +212,9 @@ class ConsumoConscienteCalculator:
             folga_pct=folga_pct,
             teto_sugerido=teto_sugerido,
             analise=analise,
+            janela=window.janela,
+            janela_meses=int(window.n_meses),
+            total_pontuais_janela=total_pontuais_janela,
         )
 
     # -- Helpers --
@@ -209,18 +249,22 @@ class ConsumoConscienteCalculator:
                 )
         return out
 
-    def _resolve_janela(self, fluxo: dict[str, Any]) -> tuple[float, float, float]:
+    def _resolve_janela(self, fluxo: dict[str, Any]) -> "_ConsumoWindow":
         j12m = fluxo.get("janela_12m") if isinstance(fluxo, dict) else None
         if j12m:
-            return (
-                _safe_float(j12m.get("receita_recorrente_mensal", 0)),
-                _safe_float(j12m.get("despesa_mensal_media", 0)),
-                _safe_float(j12m.get("n_meses", 12)) or 12.0,
+            return _ConsumoWindow(
+                receita_rec_mensal=_safe_float(j12m.get("receita_recorrente_mensal", 0)),
+                despesa_mensal_media=_safe_float(j12m.get("despesa_mensal_media", 0)),
+                n_meses=_safe_float(j12m.get("n_meses", 12)) or 12.0,
+                janela="12m",
+                mes_inicio=_periodo_inicio(str(j12m.get("periodo", ""))),
             )
-        return (
-            _safe_float((fluxo or {}).get("receita_recorrente_mensal", 0)),
-            _safe_float((fluxo or {}).get("despesa_mensal_media", 0)),
-            _safe_float((fluxo or {}).get("num_months", 12)) or 12.0,
+        return _ConsumoWindow(
+            receita_rec_mensal=_safe_float((fluxo or {}).get("receita_recorrente_mensal", 0)),
+            despesa_mensal_media=_safe_float((fluxo or {}).get("despesa_mensal_media", 0)),
+            n_meses=_safe_float((fluxo or {}).get("num_months", 12)) or 12.0,
+            janela="full",
+            mes_inicio="",
         )
 
     def _build_analise(
