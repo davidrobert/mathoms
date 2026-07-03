@@ -65,7 +65,7 @@ closed = await is_month_closed(workspace_id, "202601", db=db)
 | Caller | Uso |
 |---|---|
 | ADR-187 V1 | Banner UI no relatório (`MonthClosedBanner`) e API. |
-| Learning loop (futuro, A12) | Pré-condição para re-categorizar transação retroativa via promoção de regra. |
+| Learning loop | Pré-condição para re-categorizar transação retroativa via promoção de regra — consome `is_month_closed_sync` no apply engine (`backend/app/application/categorization/_apply_engine.py`). |
 | Decision aggregate (futuro) | Bloquear edição de Decision após mês fechado. |
 | IRPF declarado (futuro) | Congelar dedução fiscal na publicação. |
 

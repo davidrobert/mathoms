@@ -114,12 +114,17 @@ ORDER BY random() LIMIT 100;
 ### 2.4. Healthcheck do worker
 
 ```bash
-# /health do backend e endpoint Celery
-curl -sf https://api.mathoms.ai/health/celery | jq '.celery_workers, .queue_depth'
+# Health do backend (único endpoint existente — não há /health/celery;
+# ver backend/app/main.py)
+curl -sf https://api.mathoms.ai/health
+
+# Workers e profundidade da fila Celery — direto no worker/broker
+celery -A backend.app.worker inspect ping
+redis-cli -h "$REDIS_HOST" llen celery
 ```
 
-**Critério de acionamento:** `celery_workers == 0` por >2min, **OU**
-`queue_depth > 1000` por >5min com workers ativos.
+**Critério de acionamento:** nenhum worker responde ao `inspect ping`
+por >2min, **OU** fila (`llen celery`) > 1000 por >5min com workers ativos.
 
 ---
 
@@ -281,10 +286,13 @@ Quando o diagnóstico não é claro mas a regressão é grave, freeze imediato
 do pipeline reduz blast radius enquanto investiga:
 
 ```bash
-# Opção A — Pausa via flag de produto (canónica)
-psql -c "UPDATE feature_flags SET enabled = false WHERE key = 'pipeline.enabled'"
+# Opção A — Freeze global via feature flag: AINDA NÃO EXISTE (TBD).
+# O schema real de feature_flags é 1 linha por workspace com blob JSON
+# de flags (backend/app/services/feature_flags_service.py) e não há
+# flag "pipeline.enabled" em DEFAULTS — a flag deve ser criada em
+# DEFAULTS quando a topologia de produção existir.
 
-# Opção B — Desliga workers (mais agressivo, queue acumula)
+# Opção B — única disponível hoje: desliga workers (queue acumula)
 kubectl scale deployment/mathoms-worker --replicas=0
 ```
 
@@ -310,8 +318,8 @@ psql -c "SELECT count(*) FROM pipeline_artifacts" -t
 diff /tmp/pre-deploy-artifact-count.txt <(psql -c "SELECT count(*) FROM pipeline_artifacts" -t)
 # Diff esperado: zero ou positivo (não negativo).
 
-# 4. Unfreeze
-psql -c "UPDATE feature_flags SET enabled = true WHERE key = 'pipeline.enabled'"
+# 4. Unfreeze — reverta o mecanismo usado no §5 (hoje: religar workers)
+kubectl scale deployment/mathoms-worker --replicas=2
 
 # 5. Observação contínua por 1h após unfreeze
 ```

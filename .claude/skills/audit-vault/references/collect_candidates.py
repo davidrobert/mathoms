@@ -220,7 +220,7 @@ def main() -> int:
     ap.add_argument(
         "--full",
         action="store_true",
-        help="atalho p/ --stride 1: sweep 100% (modo de evento, não recorrente)",
+        help="atalho p/ --stride 1: sweep 100%% (modo de evento, não recorrente)",
     )
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--out", default=None, help="grava JSON no path (default: stdout)")

@@ -16,11 +16,11 @@ tags:
 
 **Por quê.** Sucessão sem planejamento expõe a família a ITCMD pago em dinheiro vivo dentro de 60-180 dias (depende da UF) **antes** da partilha — força venda forçada de ativos ilíquidos. Estimativa serve para o cliente dimensionar a reserva sucessória ou avaliar instrumentos (seguro de vida específico para ITCMD, holding familiar, doações em vida com reserva de usufruto). Calculator **não** recomenda instrumentos — sinaliza valor estimado e dispara `RiskInferred` para o cliente discutir com planejador habilitado.
 
-**Doutrina canônica.** Decidida em [ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3 (Sprint A11.W5, S9-T03). Calculator puro (ADR-097 D3 / ADR-111). Tabela de alíquotas é **injetada** pelo adapter — ADR-192 §"Atualizações pós-revisão" exige que thresholds fiscais venham de `fiscal_parameters` (ADR-135) por `effective_date`, **não hardcoded**. Tabela default no adapter (`_ITCMD_ALIQUOTAS_DEFAULT_PCT`) é débito documentado para migração à coluna `fiscal_parameters.itcmd_aliquota_por_uf`.
+**Doutrina canônica.** Decidida em [ADR-192](../../adr/192-protection-aggregate-protectionbundle-secao-9.md) §D3 (Sprint A11.W5, S9-T03). Calculator puro (ADR-097 D3 / ADR-111). Tabela de alíquotas é **injetada** pelo adapter — ADR-192 §"Atualizações pós-revisão" exige que thresholds fiscais venham de `fiscal_parameters` (ADR-135) por `effective_date`, **não hardcoded**. Tabela default no populator (`_ITCMD_ALIQUOTAS_DEFAULT_PCT`) é débito documentado para migração à coluna `fiscal_parameters.itcmd_aliquota_por_uf`.
 
 **Enforcer.**
 - [`pipeline/domain/services/protection/itcmd_estimator.py`](../../../pipeline/domain/services/protection/itcmd_estimator.py) — `itcmd_estimated(ITCMDInputs) -> ITCMDEstimate`. UF case-insensitive (normaliza para upper); UF não-mapeada degrada graciosamente para 0 com warning textual no rationale. Emite `RiskInferred("sucessorio_itcmd_estimado")` quando ITCMD > R$ 10k.
-- Adapter app-layer: [`backend/app/services/protection_bundle_adapter.py`](../../../backend/app/services/protection_bundle_adapter.py) injeta `_ITCMD_ALIQUOTAS_DEFAULT_PCT` (todos os 27 estados + DF) na vigência atual.
+- Populator app-layer: [`backend/app/services/protection_bundle_populator.py`](../../../backend/app/services/protection_bundle_populator.py) injeta `_ITCMD_ALIQUOTAS_DEFAULT_PCT` (26 estados + DF — 27 UFs) na vigência atual.
 
 **Disclaimer fiduciário.** "Estimativa metodológica baseada em Tabela ITCMD `<UF>` (fiscal_parameters); não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para `<effective_date>`."
 

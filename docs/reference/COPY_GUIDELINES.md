@@ -373,7 +373,7 @@ Botão de confirmação repete o verbo: "Apagar relatório", não "OK".
 
 | ❌ Proibido | Por quê | ✅ Substituir por |
 | --- | --- | --- |
-| **Emoji em label de KPI / título de card / categoria** | Quebra a11y (screen reader lê "carinha sorrindo"); reduz autoridade do produto fintech | Ícone Lucide ou SVG dedicado com `aria-label` (componente `<IconBadge>` planejado em REPORT_PREMIUM_PLAN Fase 3 — quando entrar, vira primitivo canônico). |
+| **Emoji em label de KPI / título de card / categoria** | Quebra a11y (screen reader lê "carinha sorrindo"); reduz autoridade do produto fintech | Ícone Lucide ou SVG dedicado com `aria-label` — use o primitivo canônico `<IconBadge>` (`frontend/src/components/report/ui/IconBadge.tsx`, entregue no plano [REPORT_PREMIUM](../plan/REPORT_PREMIUM/_README.md)). |
 | **Emoji em copy de produto sério** | Idem | Texto + ícone semântico |
 | **Exclamação em copy de produto** ("Pronto!", "Uau!", "Ótimo!") | Tom infantil; produto financeiro fala calmo | Frase declarativa: "Análise atualizada." |
 | **"Ops!"**, **"Putz"**, **"Eita"** em erro | Coloquial demais para fintech | "Não conseguimos..." + ação |

@@ -31,14 +31,14 @@
 - Cadeia atual de stages (ver `pipeline.stage_spec.STAGE_REGISTRY` para a fonte de verdade — nomes descritivos pós-F9.2, ADR-093):
   - **E0** `route_documents` + `unlock_documents` (classificação + unlock PDF)
   - **E1** `extract_members` (membros da família · ADR-127)
-  - **E1.5** `extract_baseline` → `consolidate_baseline` (baseline patrimonial; `extract_informe_aluguel` cobre informe de imobiliária — ADR-216 Onda 0.5)
-  - **E1.5a** `extract_irpf` (IRPF pré-baseline)
+  - **E1.5** `extract_baseline` → `consolidate_baseline` (baseline patrimonial; `E1.5a` é key de artifact/schema do extract per-IRPF pré-baseline, **não** stage executável do `STAGE_REGISTRY`)
   - **E1.6** `extract_irpf_full` (IRPF completo · [ADR-157](../adr/157-schema-irpf-completo-stage-extract-irpf-full.md))
+  - **E2 (informes/comprovantes)** `extract_informe_aluguel` (informe de imobiliária · ADR-216 Onda 0.5b) · `extract_informes_anuais` (informes anuais polimórficos · ADR-238) · `extract_comprovantes_bens` (comprovantes de bem · ADR-239)
   - **E2** `extract_statements` / `extract_invoices` / `extract_with_llm` (parsers bancários + fallback LLM)
   - **E3** `reconcile_transactions`
   - **E4** `categorize_transactions`
   - **E5** `analyze_finances` + `generate_narratives` (E5.N)
-  - **E6** `parecer_planejador` ([ADR-199](../adr/199-parecer-planejador-supersede-review-finances.md), Sprint A11/A12) — **substituiu** o renderer HTML standalone que foi descontinuado em [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)
+  - **E6** `review_finances_holistic` (E6-parecer; artifact `parecer_planejador` · [ADR-199](../adr/199-parecer-planejador-supersede-review-finances.md), Sprint A11/A12) — **substituiu** o renderer HTML standalone que foi descontinuado em [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)
   - **E7** `validate_cross` (cross-validation read-only sobre E5; sem write em `pipeline_artifacts`)
 - Dados de política em `config/` (ex.: `pipeline.json`, schemas em `config/schemas/`). Configs operacionais por workspace via `ConfigStore` (DB-first, ADR-134).
 

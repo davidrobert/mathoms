@@ -123,9 +123,10 @@ runtime + worker/beat sem Chromium (~956MB economizados em 2 dos 3 containers).
 
 ## 6. SHA pin (L2) e slimming (follow-up)
 
-- **SHA pin:** o `Dockerfile` usa `ARG PYTHON_BASE=python:3.12-slim` (tag).
-  [[A20.l2]] troca o default por `python:3.12-slim@sha256:<digest>` + Dependabot
-  Docker — num **único ponto**, sem reescrever os 3 `FROM`.
+- **SHA pin:** [[A20.l2]] trocou o default de `ARG PYTHON_BASE` por
+  `python:3.12-slim@sha256:<digest>` + Dependabot Docker — num **único
+  ponto**, sem reescrever os 3 `FROM`. Default hoje é SHA-pinado
+  (`Dockerfile:17`).
 - **`chromium-headless-shell` (~110MB vs ~956MB):** alavanca de slimming do
   target `playwright`. Exige `channel="chromium-headless-shell"` no
   `pdf_renderer.py` — muda comportamento de render, então é **track de
