@@ -2997,43 +2997,44 @@ def _e5_read_irpf_payloads(store) -> tuple[list[dict], list[str]] | None:
     return (payloads, payload_keys) if payloads else None
 
 
-def _e5_kpis_from_analyzer(analyzer, ultimo: int) -> Dict[str, Any]:
+def _e5_kpis_from_analyzer(analyzer, resolved) -> Dict[str, Any]:
+    ano = resolved.ano
     return {
-        **_e5_kpis_basicos(analyzer, ultimo),
-        **_e5_kpis_pgbl(analyzer, ultimo),
+        **_e5_kpis_basicos(analyzer, resolved),
+        **_e5_kpis_pgbl(analyzer, ano),
         # ADR-194 — KPIs para cards reativados em S_IRPF_OTIMIZACAO
-        "dependentes": analyzer.dependentes_count(ultimo),
-        "dedutiveis_aplicados": analyzer.dedutiveis_aplicados(ultimo),
+        "dependentes": analyzer.dependentes_count(ano),
+        "dedutiveis_aplicados": analyzer.dedutiveis_aplicados(ano),
     }
 
 
-def _e5_kpis_basicos(analyzer, ultimo: int) -> Dict[str, Any]:
-    ali = analyzer.aliquotas(ultimo)
-    sp = analyzer.split_trabalho_vs_capital(ultimo)
+def _e5_kpis_basicos(analyzer, resolved) -> Dict[str, Any]:
+    ano = resolved.ano
+    ali = analyzer.aliquotas(ano)
+    sp = analyzer.split_trabalho_vs_capital(ano)
     return {
-        "ano_base": ultimo,
+        "ano_base": ano,
         "anos_disponiveis": analyzer.anos_base_disponiveis(),
-        "renda_anual_familiar_brl": str(analyzer.renda_anual_familiar(ultimo)),
-        "renda_liquida_familiar_brl": str(analyzer.renda_liquida_familiar(ultimo)),
-        "ir_pago_total_brl": str(analyzer.ir_pago_total(ultimo)),
+        "renda_anual_familiar_brl": str(analyzer.renda_anual_familiar(ano)),
+        "renda_liquida_familiar_brl": str(analyzer.renda_liquida_familiar(ano)),
+        "ir_pago_total_brl": str(analyzer.ir_pago_total(ano)),
         "aliquota_sobre_tributavel_pct": str(round(ali.sobre_tributavel_pct, 2)),
         "aliquota_sobre_total_pct": str(round(ali.sobre_total_pct, 2)),
         "split_trabalho_brl": str(sp.trabalho_brl),
         "split_capital_brl": str(sp.capital_brl),
         "evolucao_renda_anos": {str(k): str(v) for k, v in analyzer.evolucao_renda_anos().items()},
-        **_e5_kpis_completude(analyzer, ultimo),
+        **_e5_kpis_completude(analyzer, resolved),
     }
 
 
-def _e5_kpis_completude(analyzer, ano: int) -> Dict[str, Any]:
-    """ADR-266: tri-state de completude do ano-base + default opinado."""
-    completude, motivo = analyzer.completude_ano(ano)
-    default = analyzer.ano_base_default()
+def _e5_kpis_completude(analyzer, resolved) -> Dict[str, Any]:
+    """ADR-266/305: ano_base == ano_base_default por construção (fonte única)."""
     completude_por_ano = analyzer.anos_completude_por_ano()
     return {
-        "ano_base_default": default if default is not None else ano,
-        "ano_base_completude": completude.value,
-        "completude_motivo": motivo,
+        "ano_base_default": resolved.ano,
+        "ano_base_completude": resolved.completude.value,
+        "completude_motivo": resolved.motivo,
+        "ano_base_nota_degradacao": resolved.nota_degradacao,
         "anos_completude_por_ano": {str(k): v.value for k, v in completude_por_ano.items()},
     }
 
@@ -3057,10 +3058,14 @@ def _e5_load_irpf_kpis(store) -> Dict[str, Any] | None:
     from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
 
     analyzer = IRPFAnalyzer.from_payloads(payloads, tie_break_keys=tie_break_keys)
-    anos = analyzer.anos_base_disponiveis()
-    if not anos:
+    # ADR-305: ano-base fiscal único — mesmo ano que _build_capacidade_pgbl
+    # (previdencia_pgbl); antes usava anos[-1] e divergia com ano incompleto.
+    from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
+
+    resolved = resolve_ano_base_fiscal(analyzer.estados_completude())
+    if resolved is None:
         return None
-    return _e5_kpis_from_analyzer(analyzer, anos[-1])
+    return _e5_kpis_from_analyzer(analyzer, resolved)
 
 
 def _e5_build_premissas_economicas(ctx) -> Dict[str, Any] | None:

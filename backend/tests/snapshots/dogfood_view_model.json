@@ -574,11 +574,13 @@
   ],
   "previdencia_pgbl": {
     "aliquota_marginal": "0.000000",
+    "ano_base": null,
     "aporte_mensal": 0,
     "economia_ir_anual": 0,
     "fonte_recomendacao": "proxy_receita_pj",
     "limite_pgbl_anual": 0,
     "nota": "Sem receita PJ identificada para cálculo de PGBL.",
+    "nota_degradacao": null,
     "renda_tributavel_anual": 0,
     "status": "N/D"
   },

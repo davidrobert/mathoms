@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import datetime as _dt
+from dataclasses import dataclass
 from enum import Enum
 
 from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
@@ -103,3 +104,45 @@ def pick_default_year(
         if anos:
             return max(anos)
     return None
+
+
+@dataclass(frozen=True)
+class AnoBaseFiscal:
+    """ADR-305: ano-base fiscal único do relatório — fonte de irpf_kpis e previdencia_pgbl."""
+
+    ano: int
+    completude: CompletudeAno
+    motivo: str | None
+    nota_degradacao: str | None
+
+
+def build_nota_degradacao(
+    ano_escolhido: int,
+    completude_por_ano: dict[int, CompletudeAno],
+    motivo_recente: str | None,
+) -> str | None:
+    """ADR-305 D3: nota explícita quando existe ano-base mais recente que o escolhido."""
+    recentes = [y for y in completude_por_ano if y > ano_escolhido]
+    if not recentes:
+        return None
+    recente = max(recentes)
+    estado = completude_por_ano[recente].value
+    base = f"Cálculo sobre o ano-base {ano_escolhido}; {recente} {estado}"
+    return f"{base} — {motivo_recente}" if motivo_recente else f"{base}."
+
+
+def resolve_ano_base_fiscal(
+    estados_por_ano: dict[int, tuple[CompletudeAno, str | None]],
+) -> AnoBaseFiscal | None:
+    """ADR-305 D1/D2: ano-base fiscal único do relatório — irpf_kpis e
+    previdencia_pgbl derivam deste mesmo ano; degradação vem com nota
+    explícita, nunca silenciosa. Input: ``IRPFAnalyzer.estados_completude()``."""
+    completude_por_ano = {y: estado for y, (estado, _) in estados_por_ano.items()}
+    ano = pick_default_year(completude_por_ano)
+    if ano is None:
+        return None
+    recente = max(estados_por_ano)
+    motivo_recente = estados_por_ano[recente][1] if recente > ano else None
+    completude, motivo = estados_por_ano[ano]
+    nota = build_nota_degradacao(ano, completude_por_ano, motivo_recente)
+    return AnoBaseFiscal(ano=ano, completude=completude, motivo=motivo, nota_degradacao=nota)
