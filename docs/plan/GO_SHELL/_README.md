@@ -54,6 +54,19 @@ Fora das sprints temáticas (A26/A27 = data-lineage): tracks vivem aqui, sem
 | A3.cli.benchmark — gate empírico de cold start (decide Caminho 2) | ✅ **gate PASSA** 2026-07-02: mediana 413ms ≤ 500ms; acumulado 4,1–7,4s/run ([PERFORMANCE_BASELINE §11](../../reference/PERFORMANCE_BASELINE.md)) | [tracks/a3cli-benchmark.md](tracks/a3cli-benchmark.md) |
 | A3.codegen — `oapi-codegen` → `internal/contracts/` | ⏸ follow-up **sem track** — ancorado ao 1º PR Go produtivo ([[ADR-150]] §Escopo deferido) | — |
 
+### F0.5 — Follow-ups pós-F0 — ✅ concluída 2026-07-03
+
+Quatro slices executados após a F0 (co-design `senior-cto` + `sre-devops` +
+`data-engineer`), fechando o §Escopo deferido da [[ADR-303]] e o B2 do
+[GO_PORT_DEPS §6](../../reference/GO_PORT_DEPS.md):
+
+| Slice | PR | Entrega |
+|---|---|---|
+| Paridade de hidratação HTTP/CLI | #742 | `run_context_factory` = fonte única dos 3 executores (config store, resolvers, budget ADR-173, tarefas.md) |
+| Container/compose smoke | #743 | Imagem executa stages; gate `make smoke-pipeline-service` (runbook próprio; restrição SQLite WAL host↔container documentada) |
+| Contract tests (B2) | #747 | Schemathesis no CI congela o contrato (404/400/503 agora documentados no OpenAPI) |
+| Profiler A2.1 (parcial) | #749 | `dev/profile_pipeline_stages.py` + [PERFORMANCE_BASELINE §12](../../reference/PERFORMANCE_BASELINE.md); gatilho GIL segue owner-gated (rerun real) |
+
 ### F1 — Serviço Go (`services/pipeline-service-go/`) — ⏸ bloqueada
 
 Só abre quando **um gatilho da [[ADR-150]] disparar** (ou na revisita agendada).

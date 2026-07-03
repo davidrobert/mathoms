@@ -105,17 +105,20 @@ ADR — nunca `RuntimeError` opaco no meio do stage.
 integração canônico exercita um stage real (`reconcile_transactions`) via
 HTTP com store SQLite, assertando persistência em `pipeline_artifacts`.
 
-## Escopo deferido
+## Escopo deferido — ✅ fechado em 2026-07-03
 
-- **Enablement do container/compose smoke** — a imagem não copia `backend/`
-  nem instala SQLAlchemy; o overlay não compartilha DB com o backend-smoke.
-  Fica para a lane do port ([[ADR-150]] §cutover), junto do smoke E0→E5
-  com paridade byte-a-byte. Com D4, o container falha com mensagem clara.
-- **Paridade de hidratação de contexto** — o Celery hidrata
-  `WorkspaceContext` com `DBConfigStore`, resolvers (ADR-215/219/222) e
-  budget hooks (ADR-173) que o modo HTTP não constrói; sem eles o stage
-  roda com config de disco (degradação semântica, não crash). Registrado
-  como pré-condição do gate de paridade da ADR-150 §7 — não deste fix.
+- **Enablement do container/compose smoke** — ✅ **entregue (PR #743)**: a
+  imagem instala `requirements.lock` (`--require-hashes`) + copia
+  `backend/scripts/config`; overlay compartilha o SQLite do smoke +
+  fernet key; gate `make smoke-pipeline-service` executa stage real via
+  HTTP e prova persistência (runbook:
+  [pipeline_service_container_smoke](../reference/runbooks/pipeline_service_container_smoke.md)
+  — inclui a restrição SQLite WAL host↔container descoberta na entrega).
+- **Paridade de hidratação de contexto** — ✅ **entregue (PR #742)**:
+  `backend/app/services/run_context_factory.py` é a fonte única dos três
+  executores (Celery/HTTP/CLI) — `DBConfigStore` + overrides, resolvers
+  (ADR-215/219/222), budget hooks (ADR-173) e `tarefas.md`. A
+  pré-condição do gate de paridade da [[ADR-150]] §7 está satisfeita.
 
 ## Consequências
 
