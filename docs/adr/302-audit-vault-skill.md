@@ -2,7 +2,7 @@
 id: ADR-302
 type: adr
 title: "Skill audit-vault — auditoria recorrente de vault como procedimento do loop principal"
-status: Proposto
+status: Decidido
 phase: A26
 date: "2026-07-01"
 relates_to:
@@ -17,7 +17,7 @@ aliases:
   - "auditoria de vault"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/docs
   - area/tooling
   - phase/a26
@@ -134,6 +134,12 @@ Critério de aceite da skill (prova de valor, não teatro):
   (`collect_candidates.py --self-test`).
 - Modo default não chama LLM em arquivo que passou gates e está inalterado.
 - < 30% dos findings recriam o que o pre-commit já pega.
+
+**Evidência do flip (2026-07-03):** critérios satisfeitos pelas execuções
+`vault-2026-07-01-r3` (18 findings triados, DOC-BLOCKs com 0 falso-positivo,
+correções mergeadas em `main`) e `vault-2026-07-02-r4` (gates 100% verdes,
+3/3 DOC-BLOCKs reverificados, zero regressão r3→r4) registradas em
+[AUDITS-active](../_MOC/AUDITS-active.md).
 
 ## Migração
 
