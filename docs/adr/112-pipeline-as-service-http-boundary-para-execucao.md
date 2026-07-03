@@ -58,6 +58,13 @@ do `DBArtifactStore`; pipeline-service opera com o `DiskArtifactStore`
 que vê em disco, sem consultar DB. Isso mantém a fronteira fina e torna
 trivial rodar múltiplas instâncias do pipeline-service atrás de um LB.
 
+> **⚠️ Invertido por [[ADR-303]]** (2026-07-02; banner adicionado no audit
+> r6, 2026-07-03): `DiskArtifactStore` foi deletado ([[ADR-212]]) e o
+> pipeline-service passou a injetar `DBArtifactStore` com sessão-por-stage
+> (`pipeline-service/app/services/artifact_session.py`). O "opera com
+> `DiskArtifactStore` em disco, sem consultar DB" acima **não vale mais**;
+> o contrato HTTP (rotas, WS, `PipelineServiceClient`) permanece.
+
 Não é migração para Go ainda. ADR-112 define o **contrato**; a
 substituição da implementação Python por Go é uma A6f seguinte, sem
 mudança de wire format.

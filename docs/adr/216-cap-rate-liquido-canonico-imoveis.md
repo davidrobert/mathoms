@@ -183,12 +183,19 @@ Decisão alinhada com framework de gating estabelecido para o parecer
 - **0 imóveis de investimento** → seção S4 inteira ocultada via
   `enabled` condicional no codegen ([[ADR-076]]); não polui relatório.
 - **Apenas residência principal** → tratada como 0. [[ADR-215]] estabelece
-  enum `classification` por imóvel (`residencia_principal`,
-  `imovel_uso_familiar`, `investimento_locado`, `investimento_vago`,
-  `terreno_improdutivo`). S4 filtra **apenas** `classification ∈
-  {investimento_locado, investimento_vago}` — residência e uso familiar
-  não entram. Sem essa classificação ([[ADR-215]] em produção), fallback
-  conservador: considerar todos `cat_2` (`patrimonio_calculator.py::_split_imoveis`).
+  enum `classification` por imóvel — valores canônicos:
+  `residencia_principal | uso_pessoal | locado | comercial | especulacao |
+  nu_proprietario | desconhecido`
+  (`pipeline/domain/services/patrimonio_imovel_classifier.py`; check
+  constraint em `backend/app/models/property_identity.py`). S4 filtra
+  **apenas** `classification ∈ INVESTMENT_CLASSIFICATIONS =
+  ("locado", "comercial", "especulacao")`
+  (`pipeline/domain/services/real_estate_metrics.py`) — residência e uso
+  pessoal não entram. *(Bullet alinhado no audit r6, 2026-07-03: a
+  enumeração original citava valores que nunca existiram no código; o
+  Update 2026-05-20 abaixo já usava os corretos.)* Sem essa classificação
+  ([[ADR-215]] em produção), fallback conservador: considerar todos
+  `cat_2` (`patrimonio_calculator.py::_split_imoveis`).
 - **1 imóvel investimento** → Hero + concentração + ação; tabela suprimida.
 
 **Update 2026-05-20 (ADR-235 invariante, A16):** `classification=nu_proprietario` (nu-propriedade com usufruto vitalício de terceiro) está **fora** do denominador de cap rate — cap rate **indefinido**, não zero. Não puxa média do portfolio pra baixo. `INVESTMENT_CLASSIFICATIONS` em [`pipeline/domain/services/real_estate_metrics.py`](../../pipeline/domain/services/real_estate_metrics.py) permanece `("locado", "comercial", "especulacao")`. Gate em [`tests/test_real_estate_metrics.py::test_nu_proprietario_nao_entra_em_investment_classifications`](../../tests/test_real_estate_metrics.py).

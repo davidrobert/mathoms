@@ -30,6 +30,16 @@ tags:
 
 **Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
 
+> **Nota de estado (audit r6, 2026-07-03):** os 3 gates de D2/D3 —
+> `docs/_schemas/persona.schema.json`, hook `dev/check_persona_version.py`
+> e auto-compute do `persona_hash` no `dev/build_doc_index.py` — **não
+> foram implementados** (o frontmatter da persona ainda carrega
+> `persona_hash: "PENDING_AUTO_GENERATE"`); o hash é computado em
+> **runtime** (`backend/app/services/parecer_orchestrator.py` /
+> `planner_review_persistence.py`). O frontmatter real de
+> `config/agents/planner_persona.md` usa `type: agent_persona` (não
+> `type: persona`) e `version` semver (`"1.1.0"`), não int.
+
 ## Contexto
 
 - O parecer LLM precisa de **postura fiduciária explícita**: metodologias de referência (Perini/Cerbasi/AUVP), tom (orientativo, não prescritivo), restrições (sigilo §13 — não citar nomes de metodologistas em output), ordenação de prioridades (P0 com cap, confiança declarada). Sem persona codificada, cada execução LLM produz drift de tom; cada provider/modelo novo exige re-tuning manual.

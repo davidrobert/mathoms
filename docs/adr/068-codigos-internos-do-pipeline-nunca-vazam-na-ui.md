@@ -4,7 +4,11 @@ type: adr
 title: "Códigos internos do pipeline nunca vazam na UI"
 status: Decidido
 date: "2026-04-15"
-relates_to: []
+relates_to:
+  - "[[ADR-093]]"
+  - "[[ADR-129]]"
+  - "[[ADR-199]]"
+  - "[[ADR-213]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 068"]
@@ -20,6 +24,14 @@ size_lines: 60
 # ADR-068 — Códigos internos do pipeline nunca vazam na UI
 
 **Status:** Decidido • **Data:** 2026-04-15
+
+> **Nota (audit r6, 2026-07-03):** a tabela "4 fases narrativas" abaixo
+> enumera stages que não existem mais — `E0-audit` (deletado, [[ADR-213]]),
+> `E6`/`E6-final` (renderer HTML removido, [[ADR-129]]) e
+> `E7-review`/`E7-apply` (E7 hoje é read-only; o review LLM foi supersedido
+> pelo Parecer do Planejador, [[ADR-199]]). A **regra** da ADR — códigos
+> internos nunca vazam na UI; identificadores descritivos pós-[[ADR-093]] —
+> permanece vigente; o inventário de stages é histórico.
 
 **Contexto:** O pipeline interno opera em 14+ etapas técnicas (`E0-audit`, `E1.5c`, `E2-llm`, `E3`, `E5.N`, `E7-crossval`, `E7-review`, `E7-apply`, `E6-final`...). Esses códigos faziam sentido para engenharia e operação manual, mas começaram a vazar para a UI:
 

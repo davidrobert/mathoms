@@ -16,6 +16,8 @@ relates_to:
   - "[[ADR-206]]"
   - "[[ADR-207]]"
   - "[[ADR-208]]"
+  - "[[ADR-292]]"
+  - "[[ADR-294]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -34,6 +36,15 @@ tags:
 # ADR-202 — Output schema + invariantes do parecer — `parecer_planejador.schema.json`
 
 **Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+
+> **Banner (audit r6, 2026-07-03):** os validadores descritos abaixo como
+> raise/reask em D3/D6/D9 viraram **coerce no boundary**
+> ([[ADR-292]]/[[ADR-294]], após o incidente reask storm de 243s) — em
+> `pipeline/llm/schemas/parecer_planejador.py`: confiança normalizada sem
+> acento (`_normalize_confianca` → `alta|media|baixa`),
+> `evidencia_path`/`rotulo` inválidos são dropados→`None`
+> (`_coerce_jsonpath_or_none`/`_coerce_rotulo_or_none`) e
+> `impacto_estimado` sem `confianca="alta"` é dropado, não re-perguntado.
 
 ## Contexto
 

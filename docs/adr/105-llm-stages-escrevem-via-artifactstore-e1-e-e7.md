@@ -5,7 +5,9 @@ title: "LLM stages escrevem via ArtifactStore; E1 e E7-review LLM não migram (A
 status: Decidido
 phase: "A6a"
 date: "2026-04-19"
-relates_to: []
+relates_to:
+  - "[[ADR-127]]"
+  - "[[ADR-128]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 105"]
@@ -46,6 +48,10 @@ E7-apply; já persiste no path correto via disco).
 4. **E7-review LLM não migra**: o reviewer externo (humano ou automação)
    escreve o arquivo de review; E7-apply já lê via path convencional. Não é
    stage de produção contínua — é input ad-hoc fora do loop determinístico.
+   > **⚠️ Superseded (2026-04-24) — ver [[ADR-128]]:** E7-review-llm passou
+   > a ler/escrever via `ArtifactStore` (revertendo este item); os stages
+   > `review_finances`/`apply_review` foram depois removidos em 2026-05-14,
+   > supersedidos pelo Parecer do Planejador ([[ADR-199]]).
 
 **Consequencias:**
 - ✅ `MATHOMS_USE_DB_ARTIFACTS=true` pode ser ativado sem quebrar E3→E7.

@@ -51,8 +51,9 @@ Risco de produto sério em fintech wealth:
 `ParecerMovimentoCard.tsx` exibe o `valor_estimado_brl` como hero do
 card de sugestão, sem rótulo semântico distinguindo fluxo de estoque.
 
-[[ADR-202]] (manifest declarativo do parecer) define o mapping `tema_canonico
-↔ ancora`, mas não tipa o impacto. Esta ADR estende ADR-202 com tipagem
+[[ADR-202]] (output schema do parecer; o manifest declarativo é
+[[ADR-200]]) define o mapping `tema_canonico ↔ ancora`, mas não tipa o
+impacto. Esta ADR estende ADR-202 com tipagem
 canônica de impacto + regra de obrigatoriedade para sugestões IF.
 
 ## Decisão
@@ -116,11 +117,17 @@ Validação em duas camadas claras:
   ausente. Hook `validate_dict` ([[ADR-212]]) em modo `warn` indefinidamente.
   Justificativa: parecer LLM é probabilístico — schema strict-rejeita
   pareceres pontualmente errados = produção frágil.
-- **Manifest check** (`dev/check_parecer_manifest_in_sync.py`):
+- ~~**Manifest check** (`dev/check_parecer_manifest_in_sync.py`):
   rigoroso. Regra adicionada: "**toda sugestão com `tema_canonico` em
   {`if`, `independencia_financeira`} deve ter ≥1 sugestão associada com
   `impacto_estimado.tipo == 'patrimonio_alvo'`**". Falha CI = falha
-  governance, não falha persistência.
+  governance, não falha persistência.~~ *(Correção audit r6, 2026-07-03:
+  o script `dev/check_parecer_manifest_in_sync.py` nunca existiu. A regra
+  IF vive como **soft check** no validator Pydantic —
+  `pipeline/llm/schemas/parecer_planejador.py`, comentário "ADR-220 soft
+  check". O gate real de manifest é
+  `dev/check_planner_manifest_coverage.py`, que **não** contém a regra
+  IF.)*
 
 Pattern já existe no projeto ([[ADR-200]]/[[ADR-202]] manifest check
 para temas canônicos). Esta ADR adiciona uma regra a esse mesmo gate.
@@ -236,8 +243,8 @@ PR único, escopo:
   de par patrimonio_alvo + fluxo_anual para tema IF.
 - `pipeline/domain/services/parecer_parser.py` (ou similar) — Pydantic
   `Literal` para `ImpactoTipo` + fallback `"outro"` + needs_review.
-- `dev/check_parecer_manifest_in_sync.py` — adicionar regra de
-  obrigatoriedade tema IF.
+- ~~`dev/check_parecer_manifest_in_sync.py` — adicionar regra de
+  obrigatoriedade tema IF.~~ *(script nunca existiu — ver correção em §D2)*
 - `frontend/src/components/report/sections/SParecer/ParecerMovimentoCard.tsx`
   — label semântico + accordion de sugestões irmãs.
 - Golden novo em `tests/test_e6_golden_execution.py` (sugestão IF tipada
@@ -250,7 +257,7 @@ PR único, escopo:
   alimenta um dos `valor_brl` calculáveis) e **[[ADR-219]]** (cálculo de
   `patrimonio_alvo` IF usa retorno esperado por classe da tabela
   versionada). Ordem: 219 → 218 → 217 → **220**.
-- [[ADR-202]] (manifest declarativo) — esta ADR estende o check existente.
+- [[ADR-202]] (output schema; manifest é [[ADR-200]]) — esta ADR estende o check existente.
 - [[ADR-208]] (gating free vs premium) — não afeta. Sugestão IF tipada é
   conteúdo, não gating.
 

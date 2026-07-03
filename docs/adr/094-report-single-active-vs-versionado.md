@@ -22,6 +22,14 @@ size_lines: 40
 
 **Status:** Decidido (single-active para F9; evolução planejada) • **Data:** 2026-04-19 • **Plano:** §4.5
 
+> **Nota (audit r6, 2026-07-03):** a decisão single-active foi **revertida
+> de facto** — cada run cria um `Report` novo
+> (`backend/app/tasks/pipeline_task.py:431`) e o índice único parcial
+> REL-03 `(workspace_id, pipeline_run_id)` garante 1 report **por run**,
+> não por workspace; workspaces acumulam N reports ([[ADR-148]] assume
+> 100+). A "evolução planejada" (`ReportVersion`) não aconteceu — o
+> versionamento emergiu como N rows em `reports`.
+
 **Contexto:** Com artefatos migrando para `pipeline_artifacts` (ADR-082),
 a coluna `Report.analysis_json_path` (string apontando para arquivo) passa
 a ser `Report.artifact_id` (FK opcional para o E5 da run). Re-run do pipeline
