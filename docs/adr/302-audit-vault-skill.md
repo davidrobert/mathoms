@@ -21,7 +21,12 @@ tags:
   - area/docs
   - area/tooling
   - phase/a26
+size_lines: 164
 ---
+
+> ADR >150 linhas: procedimento de 5 camadas + emenda datada da amostra
+> rotativa (2026-07-03) — 1 conceito, densidade legítima; split produziria
+> peças órfãs.
 
 ## Contexto
 
@@ -69,6 +74,18 @@ Arquitetura em camadas (fronteiras sem sobreposição):
 2. **Coleta determinística** (`references/collect_candidates.py`): candidatos a
    julgamento = `gate-fail ∪ git-diff ∪ amostra estratificada`. Não manda os
    ~956 markdown ao LLM; só o residual.
+
+   > **Emenda 2026-07-03 (achado F17 do run r5):** a amostra original
+   > (`clean[::20]`, offset fixo) fazia r3/r4/r5 julgarem os **mesmos** 24
+   > arquivos — 97% do universo nunca entrava na camada 3. A amostra agora é
+   > **rotativa**: classe permanente `sha1(path) % stride` + `--run N` (o rN do
+   > AUDITS-active) rotacionando a classe-alvo — 100% do bucket coberto a cada
+   > `stride` runs, imune a inserções no vault. Stride por bucket
+   > (reference/plan/sprint/root: 5 · adr/claude/prompt: 20) pondera risco de
+   > rot. `--full`/`--stride 1` habilita sweep 100% como **modo de evento**
+   > (baseline, pós-refactor, gate dogfood→beta — nunca recorrente). O contrato
+   > de determinismo passa a ser "mesmo `--run` → mesmo conjunto"; o
+   > `--self-test` também prova a cobertura completa da rotação.
 3. **Julgamento LLM** só nos candidatos, roteado por **`type:` do frontmatter**
    (não por path) ao especialista do §Subagentes. Ataca só os 4 gaps que gate
    não pega: precisão factual (doc↔código), consistência semântica cross-doc,

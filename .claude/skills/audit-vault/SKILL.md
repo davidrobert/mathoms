@@ -22,6 +22,11 @@ critérios, roteamento, severidade e armadilhas: [`references/checklist.md`](ref
   `prompt` · `sprint` · `root`.
 - `--mode` = `comprehensive` (default: todos os buckets vivos, 5 dimensões) ·
   `focused` (só o `--scope` dado, dimensão dominante).
+- `--full` = sweep 100% do universo do `--scope` (repassa `--full` ao coletor).
+  **Modo de evento** — baseline inicial, pós-refactor estrutural, gate
+  dogfood→beta ([[ADR-302]] §Gatilho) — nunca cadência recorrente. Custo ≈17k
+  tokens de julgamento/arquivo (empírico r5); rode **1 bucket por sessão/PR**
+  (`--scope reference --full` primeiro) para a triagem caber em <30min por fase.
 
 `archive/` e sprint fechada ficam **sempre fora** do julgamento (gates ainda
 rodam via pre-commit) — auditar histórico congelado gera falso-drift.
@@ -57,11 +62,18 @@ O julgamento (camada 3) **nunca** re-verifica o que um gate cobre
 
 ```bash
 python3 .claude/skills/audit-vault/references/collect_candidates.py \
-  --scope all --since origin/main --out _scratch/audit-candidates.json
+  --scope all --since origin/main --run <N> --out _scratch/audit-candidates.json
 ```
 
-Candidatos = `gate-fail ∪ git-diff ∪ amostra estratificada`. Reproduzível:
-`--self-test` prova que 2 runs sem mudança dão o mesmo conjunto.
+`<N>` = número deste run (o `rN` da seção que este run criará no
+AUDITS-active = última seção + 1). Candidatos = `gate-fail ∪ git-diff ∪ amostra
+rotativa`: cada arquivo tem classe permanente `sha1(path) % stride` e o `--run`
+rotaciona a classe-alvo — 100% do bucket é julgado a cada `stride` runs
+(reference/plan/sprint/root: 5 · adr/claude/prompt: 20). Sem `--run`, a amostra
+repete a classe 0 (o bug F17/r5). Reproduzível: `--self-test` prova que o mesmo
+`--run` dá o mesmo conjunto E que a rotação cobre o universo. Para sweep 100%,
+repasse `--full` (ver §Parâmetros); o JSON de saída traz `buckets` com
+`universe/sampled/stride` — cite essa cobertura no relatório.
 
 ### Camada 3 — Julgamento delegado (só nos candidatos)
 

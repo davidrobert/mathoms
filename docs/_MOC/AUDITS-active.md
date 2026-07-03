@@ -60,7 +60,7 @@ Para que nenhum achado se perca entre auditorias:
 | F10 — CAT_LEARNING_LOOP §"Status atual (2026-05-11)" contradiz §executivo (07-02, gate ✅); plano `done` não arquivado (§Conclusão prevê `git mv`) | DOC-DRIFT | procede | procede-aberto | idem batch r5 |
 | F11 — MOBILE_SPEC sem frontmatter; links via âncora GH a shims (BACKLOG/DECISIONS) em vez de `[[ADR-129]]`/`[[ADR-151]]`; lane `report-mobile-impl` fora do funil | DOC-DRIFT | procede | procede-aberto | idem batch r5 (forma) · priorização é decisão do owner |
 | F12-F16 — POLISH (contagens ARCHITECTURE §8 117→197; relates_to vazio/sub-representado ADR-108/148; size_lines fora de ordem ADR-188; ADR-248 sem H1) | DOC-POLISH | procede | aceito-wontfix | batch pré-beta, junto com POLISH remanescentes |
-| F17 — (meta/skill) amostra do coletor não-rotativa: r3/r4/r5 auditaram os MESMOS 24 arquivos (`clean[::STRIDE]`); 97% do vault nunca entra no julgamento | DOC-DRIFT | procede | procede-aberto | P2, owner: loop principal — offset da stride por run/data em `collect_candidates.py` (reproduzível dentro do run) |
+| F17 — (meta/skill) amostra do coletor não-rotativa: r3/r4/r5 auditaram os MESMOS 24 arquivos (`clean[::STRIDE]`); 97% do vault nunca entra no julgamento | DOC-DRIFT | procede | procede-fechado | fechado 2026-07-03 (follow-up r5): amostra rotativa `sha1(path) % stride` + `--run N`, stride por bucket (ref/plan/sprint/root 5 · adr/claude/prompt 20), `--stride`/`--full` p/ sweep 100% (modo de evento), self-test prova determinismo + cobertura; emenda datada na [[ADR-302]] |
 
 **Falso-positivo evitado (3ª vez):** ausência de `model`/`temperature` em
 `chart_conclusions.yaml` é design (ADR-122) — o gate de paridade rodou EXIT 0 e
