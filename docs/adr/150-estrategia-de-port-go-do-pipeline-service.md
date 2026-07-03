@@ -2,8 +2,8 @@
 id: ADR-150
 type: adr
 title: "Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap"
-status: Roadmap
-phase: "deferido em W6-T06, 2026-05-07"
+status: Decidido
+phase: "F1 GO_SHELL — gatilho 4 disparado pelo owner, 2026-07-03"
 date: "2026-04-27"
 relates_to: ["[[ADR-112]]", "[[ADR-113]]", "[[ADR-102]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-109]]", "[[ADR-205]]", "[[ADR-212]]", "[[ADR-241]]", "[[ADR-291]]", "[[ADR-303]]"]
 supersedes: []
@@ -13,14 +13,14 @@ tags:
   - area/multitenancy
   - area/observability
   - area/pipeline
-  - status/roadmap
+  - status/decidido
   - type/adr
 size_lines: 257
 ---
 
 # ADR-150 — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap
 
-**Status:** Roadmap (deferido em W6-T06, 2026-05-07) • **Data:** 2026-04-27 (proposta) → 2026-05-07 (Roadmap) • **Relaciona** [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1), [ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-093](#adr-093--rename-completo-de-identificadores-de-stage-opção-a), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a).
+**Status:** Decidido (F1 GO_SHELL — gatilho 4, 2026-07-03) • **Data:** 2026-04-27 (proposta) → 2026-05-07 (Roadmap) → 2026-07-03 (Decidido) • **Relaciona** [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1), [ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-093](#adr-093--rename-completo-de-identificadores-de-stage-opção-a), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a).
 
 > **Decisão W6-T06 (2026-05-07):** Caminho 1 **continua sendo o default escolhido**
 > quando algum gatilho disparar — a estratégia de port (layout, pré-requisitos,
@@ -69,6 +69,17 @@ size_lines: 257
 > arquitetural duas vezes. Diferença em relação a `Decidido`: aceitar
 > dispararia lane A6h em conflito direto com sprints ativos. **`Roadmap`
 > elimina o pior estado (`Proposto` indefinido) sem destruir a opção.**
+
+> **Emenda 2026-07-03 — DESTRAVAMENTO (Roadmap → Decidido):** o owner
+> disparou o **gatilho 4** ("sprint dedicado com orçamento explícito")
+> autorizando a F1 do plano [[PLAN-go-shell]] — construção do serviço Go
+> (Caminho 1). Pré-condições todas satisfeitas: F0 ✅ (A3.store [[ADR-303]],
+> A3.cli #737, otel #738, benchmark 413ms ≤ 500ms) e F0.5 ✅ (hidratação
+> #742, container smoke #743, contract tests #747, perfil A2.1 #749).
+> A estratégia abaixo (layout §5, acoplamentos §6, cutover §7,
+> coexistência §8) permanece autoritativa e passa a ser executável.
+> Execução fatiada em tracks no plano; Caminhos 2 e 3 seguem descartado
+> e deferido respectivamente.
 
 > **Emenda 2026-07-02 (revisão de consistência — decisão inalterada):**
 > auditoria contra o repo encontrou drift factual acumulado desde 2026-04

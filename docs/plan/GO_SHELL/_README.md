@@ -2,7 +2,7 @@
 id: PLAN-go-shell
 type: plan
 title: "Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess"
-status: draft
+status: in_progress
 sprint_origem: null
 sprint_atual: null
 sprints_envolvidas: []
@@ -17,7 +17,7 @@ tags:
   - type/plan
   - area/pipeline
   - area/observability
-  - status/draft
+  - status/in-progress
 ---
 
 # PLAN-go-shell — Go shell (Caminho 1 da ADR-150)
@@ -67,11 +67,16 @@ Quatro slices executados após a F0 (co-design `senior-cto` + `sre-devops` +
 | Contract tests (B2) | #747 | Schemathesis no CI congela o contrato (404/400/503 agora documentados no OpenAPI) |
 | Profiler A2.1 (parcial) | #749 | `dev/profile_pipeline_stages.py` + [PERFORMANCE_BASELINE §12](../../reference/PERFORMANCE_BASELINE.md); gatilho GIL segue owner-gated (rerun real) |
 
-### F1 — Serviço Go (`services/pipeline-service-go/`) — ⏸ bloqueada
+### F1 — Serviço Go (`services/pipeline-service-go/`) — 🚧 DESTRAVADA 2026-07-03
 
-Só abre quando **um gatilho da [[ADR-150]] disparar** (ou na revisita agendada).
-Layout, convenções e invariantes: [[ADR-150]] §5-§6 + [[ADR-113]]. Inclui
-A3.codegen como primeiro slice.
+**Gatilho 4 da [[ADR-150]] disparado pelo owner** (emenda 2026-07-03 — ADR
+flippou `Roadmap → Decidido`). Layout, convenções e invariantes: [[ADR-150]]
+§5-§6 + [[ADR-113]]. Fatiamento proposto (co-design pendente valida): PR1
+A3.codegen + skeleton (go.mod, contracts, CI ativa) · PR2 /health + router ·
+PR3 StageExecutor (exec do CLI A3.cli, TRACEPARENT + env passthrough) · PR4
+RunCoordinator + Redis events (envelope §6 bit-exact) · PR5 harness de
+paridade Python↔Go + smoke container. Tracks entram em `tracks/` após o
+co-design (`senior-cto` + `sre-devops` + PM/IA).
 
 ### F2 — Cutover — ⏸ bloqueada
 
