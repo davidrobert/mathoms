@@ -3,14 +3,22 @@ id: MOC-sprint-a26
 type: moc
 title: "Sprint A26 — Data Lineage: consolidação"
 aliases: ["A26", "Sprint A26"]
-sprint_status: current
+sprint_status: paused
 date: "2026-06-16"
 theme: "data-lineage"
 ---
 
 # Sprint A26 — Data Lineage: consolidação
 
-> **Status:** `current` (promovida 2026-06-16) — sucede [[MOC-sprint-a25]] (`done`).
+> **Status:** `paused` (2026-07-03) — suspensa em favor de [[MOC-sprint-a28]]
+> (Report Trust), re-priorização do owner (transição `current → paused`,
+> [[ADR-234]]). As lanes restantes (l2/l5) estão `blocked` por **tráfego que só
+> o dogfood gera** — e a A28 é a máquina que produz esse tráfego: cada iteração
+> re-gera o parecer E6 (≥20 gerações p/ [[A26.l2]]) e exercita o override v2
+> ([[A26.l4]]). **Retomada:** flip `paused → current` quando os gates de
+> tráfego fecharem (reavaliar ao fim da A28).
+>
+> Histórico: `current` (promovida 2026-06-16) — sucede [[MOC-sprint-a25]] (`done`).
 > 5ª janela do plano [[PLAN-data-lineage]]: **remove as redes de segurança** criadas
 > na A23–A25 (shims de identidade v1, modo `warn` permissivo do `evidencia_path`)
 > depois que a observação em produção confirma que é seguro. Co-design 2026-06-16:

@@ -12,28 +12,31 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A26 — Data Lineage: consolidação (`current` 2026-06-16)
+### A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam (`current` 2026-07-03)
 
-**Promovida em 2026-06-16, sucedendo A25 (`done`).** 5ª janela do plano [[PLAN-data-lineage]]:
-**remove as redes de segurança** da frente (shims de identidade v1, modo `warn` do
-`evidencia_path`) após observação de produção. Co-design 2026-06-16 (PM + IA +
-data-engineer + prompt-engineer + sre-devops); sem ADR nova (ADR-279/287 cobrem;
-ADR-282 flippa `Decidido` quando a M2 override fechar).
+**Promovida em 2026-07-03; A26 → `paused` ([[ADR-234]]).** 1ª janela do plano
+[[PLAN-report-trust]], nascida da revisão completa do relatório dogfood `72883bde`:
+três recomendações do relatório atual **pioram** a situação do cliente (TRS fictícia
+22,63% a.a. → desacelerar aporte; reserva "Excessiva" de 31,6 meses com numerador =
+todo o investível → desmobilizar carteira; Cerbasi "Gastador" sobre R$ 401k de despesa
+opaca → cortar gasto errado). Duas são violação de contrato escrito (FORMULAS.md
+§Reserva · [[ADR-191]]). Co-design 2026-07-03 (PM + IA + data-engineer +
+prompt-engineer; financial-planner + product-designer no parecer de origem).
 
-**Estado 2026-07-02 — 6/10 lanes shipped, 1 in_progress:** Regime A todo entregue
-([[A26.l1]] #654 · [[A26.l6]] #660 · [[A26.l7]] #662 · [[A26.l8]] #666 · [[A26.l9]]
-#687) + [[A26.l3]] (drop shim dedup, gate cumprido, #709). [[A26.l4]] `in_progress`
-(instrumentação #711/#713; resta flip default + observação ≥1 sprint). Restam
-**blocked por tráfego**: [[A26.l2]] (flip strict — pré-condição de código ✅ via l8;
-falta ≥20 gerações reais p/ budget `needs_review` ≤15%) e [[A26.l5]] (M2 destrutiva —
-gate G1/G2/G3 + PITR + go/no-go). [[A26.l10]] (LGPD export, audit r4) `planned`, sem
-gate. **Insumos para destravar l2/l5:** ~20 gerações de parecer (dogfood do owner) +
-exercício do override v2 por ≥1 sprint + confirmar PITR do Postgres.
+**11 lanes em 3 ondas:** Onda 0 (fórmula, Must, `[l4→l1] ∥ l2 ∥ l3` — ADRs `Proposto`
+em l3/l4) → Onda 1 (loop de dados: categorização [[A28.l5]], proteção/apólices
+[[A28.l6]], dedup de imóveis excluídos [[A28.l7]], higiene de períodos [[A28.l8]]) ∥
+Onda 2 (apresentação honesta: banner de qualidade [[A28.l9]], formatter de âncoras
+[[A28.l10]], guardrails pós-LLM [[A28.l11]] — l10 livre; l9/l11 mergem pós-Onda 0).
+Gates de owner: `G-owner-reclassify` + `G-owner-label`.
 
-- **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) (10 lanes) · **Plano:**
-  [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 · **Prompt:**
-  [agent_prompts/orchestrator_a26_consolidacao.md](../agent_prompts/orchestrator_a26_consolidacao.md).
-- **Precedência de corte:** Must l1+l2 · Should l3+l4 · Could/cortável l5 (→ A27).
+- **Sprint:** [sprint/A28/_README.md](../sprint/A28/_README.md) (11 lanes) · **Plano:**
+  [plan/REPORT_TRUST/_README.md](../plan/REPORT_TRUST/_README.md) · **Prompt:**
+  [agent_prompts/orchestrator_a28_report_trust.md](../agent_prompts/orchestrator_a28_report_trust.md).
+- **Precedência de corte:** Must l1+l2+l3+l4 (nunca cortar l1/l2) · Should
+  l5+l6+l7+l8+l9+l10+l11 · Could re-medição pós-gate da l7.
+- **Sinergia A26:** cada iteração re-gera o parecer → acumula as ≥20 gerações que
+  destravam [[A26.l2]]/[[A26.l4]]. Reavaliar retomada da A26 ao fim da janela.
 
 ## Sprint recém-fechada
 
@@ -74,8 +77,9 @@ pipeline renderiza o valor da folha ([[ADR-296]] `Decidido`, executada via [[A26
 natural** ([[ADR-293]] `Decidido (A27.l1)`, lane [[A27.l1]] ✅ #715/#716/#718; KR3
 provado por teste de reordenação de `top_ativos`). Follow-up do KR1: pureza monetária
 da prosa (persona 1.1.0, 61→7 violações) + doutrina [[ADR-304]] (#729 ✅). Resta a
-**promoção formal** (A26→`done` + A27→`current`→`done`) quando os gates de tráfego da
-A26 fecharem. Condicional: [[A26.l5]] `m2-override-drop` se não fechar na A26.
+**promoção formal** (A26 retoma de `paused`, fecha gates de tráfego → `done`; então
+A27→`current`→`done`) — a A28 (`current`) é quem gera esse tráfego. Condicional:
+[[A26.l5]] `m2-override-drop` se não fechar na A26.
 
 - **Plano:** [sprint/A27/_README.md](../sprint/A27/_README.md) · **Dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 6.
 
@@ -94,6 +98,26 @@ A26 fecharem. Condicional: [[A26.l5]] `m2-override-drop` se não fechar na A26.
 ## Sprints pausadas
 
 Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.
+
+### A26 — Data Lineage: consolidação (`paused` 2026-07-03)
+
+**Suspensa em 2026-07-03 em favor de A28 (Report Trust)** — re-priorização do owner
+(transição `current → paused`, [[ADR-234]]). Estado ao pausar: **6/10 lanes shipped**
+(Regime A todo entregue: [[A26.l1]] #654 · [[A26.l6]] #660 · [[A26.l7]] #662 ·
+[[A26.l8]] #666 · [[A26.l9]] #687 · [[A26.l3]] #709) + [[A26.l10]] #732; [[A26.l4]]
+`in_progress` (flip default #735 ✅; resta observação ≥1 sprint). Restam **blocked por
+tráfego**: [[A26.l2]] (flip strict — falta ≥20 gerações reais p/ budget `needs_review`
+≤15%) e [[A26.l5]] (M2 destrutiva — G1/G2/G3 + PITR + go/no-go).
+
+**A pausa não atrasa a A26 — acelera:** as lanes restantes esperam tráfego que só o
+dogfood do owner gera, e a A28 é a máquina desse tráfego (cada iteração re-gera o
+parecer E6 e exercita o override v2).
+
+- **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 ·
+  **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) ·
+  **Prompt:** [agent_prompts/orchestrator_a26_consolidacao.md](../agent_prompts/orchestrator_a26_consolidacao.md).
+- **Retomada:** flip `paused → current` quando as gerações qualificadas ≥20 (reavaliar
+  ao fim da A28) + observação da l4 completar 1 sprint.
 
 ### A22 — Launch Trust: Parecer defensável (F3) (`paused` 2026-06-02)
 

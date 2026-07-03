@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-869 notas indexadas pelo frontmatter em `docs/`.
+882 notas indexadas pelo frontmatter em `docs/`.
 
 ## Por tipo
 
@@ -16,10 +16,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | changelog-entry | 248 |
 | doc | 2 |
 | domain-rule | 11 |
-| lane | 153 |
+| lane | 164 |
 | marketing-draft | 1 |
-| moc | 20 |
-| plan | 19 |
+| moc | 21 |
+| plan | 20 |
 | runbook | 1 |
 | track | 118 |
 
@@ -37,14 +37,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | lane | blocked | 11 |
 | lane | cancelled | 1 |
 | lane | in_progress | 8 |
-| lane | open | 8 |
-| lane | planned | 8 |
+| lane | open | 16 |
+| lane | planned | 11 |
 | lane | shipped | 117 |
 | marketing-draft | draft | 1 |
-| moc | (sem status) | 20 |
+| moc | (sem status) | 21 |
 | plan | done | 4 |
 | plan | draft | 6 |
-| plan | in_progress | 7 |
+| plan | in_progress | 8 |
 | plan | paused | 2 |
 | runbook | ativo | 1 |
 | track | consumed | 83 |
@@ -68,8 +68,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | A23 | done |
 | A24 | done |
 | A25 | done |
-| A26 | current |
+| A26 | paused |
 | A27 | candidate |
+| A28 | current |
 | A6 | done |
 | A7 | done |
 | A8 | done |
