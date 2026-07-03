@@ -83,6 +83,8 @@ export interface IrpfKpis {
   completude_motivo?: string | null;
   /** ADR-266 — estado de completude por ano (consumido pelo chart). */
   anos_completude_por_ano?: Record<string, CompletudeAno>;
+  /** ADR-305 — nota quando existe ano-base mais recente que o escolhido. */
+  ano_base_nota_degradacao?: string | null;
 }
 
 const STRING_FIELDS: ReadonlyArray<keyof IrpfKpis> = [

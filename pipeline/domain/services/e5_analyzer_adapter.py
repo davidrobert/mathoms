@@ -105,6 +105,7 @@ from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
 )
 from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer, partition_irpf_payloads
+from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
 from pipeline.domain.services.orcamento_calculator import (
     OrcamentoProspectivo,
     OrcamentoProspectivoCalculator,
@@ -1018,18 +1019,19 @@ def _try_load_irpf_analyzer(store: ArtifactStore) -> IRPFAnalyzer | None:
 
 
 def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | None:
-    """Capacidade PGBL restante do ano-base default (ADR-266/277). ``None`` quando
+    """Capacidade PGBL do ano-base fiscal único (ADR-266/277/305). ``None`` quando
     não há IRPF ou ano-base resolvível → analyzer usa o proxy de receita PJ."""
     if irpf is None:
         return None
-    ano = irpf.ano_base_default()
-    if ano is None:
+    resolved = resolve_ano_base_fiscal(irpf.estados_completude())
+    if resolved is None:
         return None
     return CapacidadePgblIRPF(
-        restante_anual=irpf.pgbl_capacidade_dedutivel(ano),
-        renda_tributavel_anual=irpf.rendimentos_tributaveis(ano),
-        ano_base=ano,
+        restante_anual=irpf.pgbl_capacidade_dedutivel(resolved.ano),
+        renda_tributavel_anual=irpf.rendimentos_tributaveis(resolved.ano),
+        ano_base=resolved.ano,
         fonte="irpf_pgbl_capacidade",
+        nota_degradacao=resolved.nota_degradacao,
     )
 
 

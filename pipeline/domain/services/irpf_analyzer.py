@@ -11,7 +11,6 @@ from typing import Iterable
 from pipeline.domain.services.irpf_completude import (
     CompletudeAno,
     compute_completude,
-    pick_default_year,
 )
 from pipeline.domain.services.irpf_declaration_deduplicator import (
     DeduplicatedIRPFSet,
@@ -221,14 +220,19 @@ class IRPFAnalyzer:
         decls_by_year = {y: self._by_year(y) for y in self.anos_base_disponiveis()}
         return compute_completude(decls_by_year, ano, today or _dt.date.today())
 
-    def ano_base_default(self, today: _dt.date | None = None) -> int | None:
-        """ADR-266: último ano completo; fallback provisório; fallback incompleto."""
-        return pick_default_year(self.anos_completude_por_ano(today))
+    # ano_base_default (ADR-266) foi absorvido por resolve_ano_base_fiscal
+    # (irpf_completude, ADR-305) — consuma via estados_completude().
 
     def anos_completude_por_ano(self, today: _dt.date | None = None) -> dict[int, CompletudeAno]:
         """ADR-266: state da completude por ano (consumido pelo chart)."""
+        return {y: estado for y, (estado, _) in self.estados_completude(today).items()}
+
+    def estados_completude(
+        self, today: _dt.date | None = None
+    ) -> dict[int, tuple[CompletudeAno, str | None]]:
+        """ADR-305: input de ``resolve_ano_base_fiscal`` (irpf_completude)."""
         ref = today or _dt.date.today()
-        return {y: self.completude_ano(y, ref)[0] for y in self.anos_base_disponiveis()}
+        return {y: self.completude_ano(y, ref) for y in self.anos_base_disponiveis()}
 
     def renda_anual_familiar(self, ano: int) -> Decimal:
         """Soma rendimentos brutos da família (titular + cônjuge) no ano-base."""
