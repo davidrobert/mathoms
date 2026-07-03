@@ -70,7 +70,34 @@ Para que nenhum achado se perca entre auditorias:
 | F10 — TESTING + ARCHITECTURE: `python -m pipeline.run_dev` (deletado, ADR-212 PR3a) como comando canônico | DOC-BLOCK | procede | procede-fechado | `python -m pipeline.orchestrator run-stage` (A3.cli · ADR-150) neste PR |
 | F11-F25 — DRIFT (15): paths populator vs adapter (itcmd/us-person); FAQ T5 R$3M vs 2,88M; PERFORMANCE_BASELINE §6 bug já corrigido; pipeline_rollback freeze SQL incompatível com schema + `/health/celery`; docker_images SHA-pin "futuro"; security_gates paths pip-audit; PHASES âncoras shim; IconBadge "planejado"; REPORT_PUBLICATION learning loop "(futuro)"; CANONICAL_ENGINE ids/omissões de stages; GO_PORT_DEPS paths + A3.cli contradição interna; STATELESS §1/§2/§3 refs movidas; TESTING dir/guardrail deletados; ARCHITECTURE §11/§6 pré-ADR-212/A7.5; tenancy prefixo duplo | DOC-DRIFT | procede | procede-fechado | batch `vault-drift-batch-r6-f1` executado neste run (`--fix`), PR docs-only próprio |
 | F26 — POLISH agrupado (9 itens: line-drifts, contagens, links a stub, data de revisão) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
-| F27 — (meta/skill) `collect_candidates.py --help` crasha: `%` sem escape no help de `--full` | DOC-DRIFT | procede | procede-fechado | fix 1-linha (lateral) no PR do batch F1 |
+| F27 — (meta/skill) `collect_candidates.py --help` crasha: `%` sem escape no help de `--full` | DOC-DRIFT | procede | procede-fechado | fix 1-linha (lateral) no PR do batch F1 (#767) |
+
+> Fase 1 fechada: síntese em PR #766, batch DRIFT em PR #767 — ambos
+> mergeados 2026-07-03. Taxa da fase: 10 BLOCK + 16 DRIFT + 9 POLISH em 55
+> arquivos (~45% com finding; concentrado em docs pré-ADR-212/A7).
+
+### Fase 2 — plan + sprint + claude + prompt + root (58/58 julgados)
+
+> Julgamento: product-manager (20 plans + A28) + information-architect
+> (sub-docs + 12 agentes) + prompt-engineer (4 YAMLs) + loop principal
+> (CLAUDE.md + README) em paralelo. Verify: 2/2 DOC-BLOCK confirmados com
+> citação dupla. README 100% limpo; 3/4 prompts limpos (gates de paridade
+> rodados). Zumbis r5 re-verificados: F10 → resíduo na linha 382 (F30);
+> F11 → parcialmente **refutado** (lane `report-mobile-impl` está ancorada
+> no plano-pai §17.10 como spec-only; sobra forma → F33).
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F28 — TRIBUTARIO_PJ `draft`/"P1-P6 não iniciados"/"ADR-236 pendente write" vs ADR-236 `Decidido` (2026-05-21) + P1-P6 shipped (#390-#398, código em `tributario/` + card + telemetria + FAQ) | DOC-BLOCK | procede | procede-fechado | frontmatter `done` + §Status executivo reescrito com nota datada, neste PR |
+| F29 — section_summaries.yaml header: "bump força invalidação natural" do cache; `_cache_key` não inclui `version` → bump serve texto stale até 24h | DOC-BLOCK | procede | procede-fechado | comentário corrigido (honesto: TTL/snapshot só) neste PR; follow-up de código (version na key) virou task chip |
+| F30 — CAT_LEARNING_LOOP §"Status atual (2026-05-11)" :382 ainda diz lane `in_progress`/gate pendente (contradiz §executivo PASS 2026-07-02) — resíduo do zumbi r5-F10 | DOC-DRIFT | procede | procede-fechado | batch `vault-drift-batch-r6-f2` (`--fix`, PR próprio) |
+| F31 — PLATFORM_REVIEW: corpos W1-T03/W1-T06 `status: ready` vs Index/NEXT UP `done` (PR #94) | DOC-DRIFT | procede | procede-fechado | idem batch F2 |
+| F32 — 4 agentes (senior-cto, data-engineer, sre-devops, build-vs-buy; product-designer menor) tratam DECISIONS/BACKLOG como fontes vivas: receita `grep ^## ADR-` retorna vazio, teto "ADR-139" (~164 atrás), ~35 âncoras bare `#adr-NNN` que não resolvem no shim | DOC-DRIFT | procede | procede-fechado | idem batch F2 (padrão do _TEMPLATE, já conforme desde r4) |
+| F33 — REPORT_PREMIUM sub-docs (MOBILE_SPEC, A11Y_CHECKLIST, GAPS) linkam ADR via âncora GH ao shim em vez de wikilink (resíduo de forma do r5-F11) | DOC-DRIFT | procede | procede-fechado | idem batch F2 |
+| F34 — CLAUDE.md "26 schemas" (real: 27; enumeração omite `e15_baseline_extract`, A20.l11) | DOC-DRIFT | procede | procede-fechado | idem batch F2 |
+| F35 — CLAUDE.md :573 "DB `pipeline_artifacts.stage` continua em formato legado até F9.3" — falso: E3/E5/E1.x/extract_* já gravam descritivo (só E2 legado); docstring `artifact_reader.py:30` com o mesmo drift (lateral) | DOC-DRIFT | procede | procede-fechado | idem batch F2 |
+| F36 — A28 `_README` tabela: l5-l8 `planned` vs frontmatter `open` (recorrência da classe r5-F01) | DOC-DRIFT | procede | procede-fechado | idem batch F2 |
+| F37 — POLISH agrupado (GAPS :272 instrução pré-ADR-182 sob banner histórico; âncora `batch2.13` em A11Y/VISUAL_SNAPSHOTS; MOBILE_SPEC sem frontmatter — padrão da pasta; checkboxes de tasks done no PLATFORM_REVIEW; dupla numeração v2.9/1.1 no section_summaries; CLAUDE.md literais e5n/e4/108KB; CAT nota de retenção in-place) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
 
 ---
 

@@ -2,12 +2,12 @@
 id: PLAN-tributario-pj
 type: plan
 title: "Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto)"
-status: draft
+status: done
 sprint_origem: A16
 sprint_atual: A16
 sprints_envolvidas: [A16]
 created_at: "2026-05-20"
-last_review: "2026-05-20"
+last_review: "2026-07-03"
 paused_at: null
 pause_reason: null
 adrs_canonical:
@@ -97,11 +97,20 @@ Após este plano, o card S8 "Tributário PJ — Cascata Fiscal" do relatório pr
 
 ## Status executivo
 
-- **Co-design `financial-planner`** ✅ 2026-05-20 (síntese das 5 perguntas em [[ADR-236]])
-- **ADR-236 Proposto** ⏳ pendente write
-- **Plano draft** 🚧 este documento
+> Atualizado 2026-07-03 (audit-vault r6) — o bloco anterior estava congelado
+> em 2026-05-20 e declarava o plano como não-iniciado.
 
-P1-P6 ainda não iniciados. Sprint A16 `current` (promovida 2026-05-20 via PR #386) — lane L2 deste plano roda em paralelo com L1 (`nu_proprietario` flip · [[ADR-235]]). Track operacional: [[TRACK-a16-adr236-tributario-pj-cascata]].
+- **Co-design `financial-planner`** ✅ 2026-05-20 (síntese das 5 perguntas em [[ADR-236]])
+- **ADR-236** ✅ `Decidido` (2026-05-21)
+- **P1-P6** ✅ **entregues na Sprint A16.L2** (PRs #390-#398, 2026-05-21):
+  modelo de domínio + calculator + serialização + triggers em
+  `pipeline/domain/services/tributario/`, `CascataFiscalCard` no relatório,
+  telemetria `mathoms.tributario.*` e FAQ do produto
+  ([FAQ_cascata_fiscal_pj](../../reference/FAQ_cascata_fiscal_pj.md)).
+
+Track operacional consumido: [[TRACK-a16-adr236-tributario-pj-cascata]].
+Pendências V2 (Lucro Real, reforma tributária/PEC dividendos) seguem em
+§Fora de escopo — abrir ADR de schema evolution quando o gatilho chegar.
 
 ## Decisões arquiteturais (resumo executivo)
 
