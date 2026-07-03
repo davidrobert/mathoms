@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 271
-- **Proposto**: 20
+- **Decidido**: 272
+- **Proposto**: 19
 - **Roadmap**: 4
 
 ## Fundação
@@ -43,7 +43,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Pipeline
 
-### Decidido (12)
+### Decidido (13)
 
 - [[ADR-014]] — Threading para execução background · phase F2
 - [[ADR-015]] — Vault por workspace · phase F2
@@ -57,9 +57,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-079]] — Content-first classification no upload web
 - [[ADR-080]] — Pipeline incremental: extrair só docs novos, consolidar full · phase F7
 - [[ADR-081]] — Classificação de documentos unificada (P2)
-
-### Proposto (1)
-
 - [[ADR-302]] — Skill audit-vault — auditoria recorrente de vault como procedimento do loop principal · phase A26
 
 ## Config (materialização legada)
