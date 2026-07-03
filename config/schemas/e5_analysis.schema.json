@@ -174,7 +174,10 @@
     "orcamento_prospectivo": {"type": "object"},
     "reserva_emergencia": {"type": "object"},
     "endividamento": {"type": "object"},
-    "previdencia_pgbl": {"type": "object"},
+    "previdencia_pgbl": {
+      "type": "object",
+      "description": "Recomendação PGBL (ADR-277/305). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null no caminho proxy_receita_pj. nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao."
+    },
     "pontos_fortes": {"type": "array"},
     "pontos_urgentes": {"type": "array"},
     "equilibrio_cerbasi": {"type": "object"},
@@ -201,6 +204,10 @@
         "completude_motivo": {
           "type": ["string", "null"],
           "description": "ADR-266: explicação textual quando ano_base_completude != completo (ex.: 'Falta declaração de CPF ***-XX (presente em ano-base anterior).')."
+        },
+        "ano_base_nota_degradacao": {
+          "type": ["string", "null"],
+          "description": "ADR-305 D3: nota explícita quando existe ano-base mais recente que o escolhido (ex.: 'Cálculo sobre o ano-base 2024; 2025 incompleto — Falta declaração de CPF ***-XX.'). null quando o ano escolhido é o mais recente disponível."
         },
         "anos_completude_por_ano": {
           "type": "object",
