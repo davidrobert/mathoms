@@ -8,7 +8,6 @@ Cache por contexto para evitar re-leituras desnecessárias.
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
@@ -71,7 +70,12 @@ def _load_from_disk(path: Path, *, required: bool = False) -> dict:
     except (json.JSONDecodeError, OSError) as exc:
         if required:
             raise
-        print(f"  [WARN] Erro ao carregar {path.name}: {exc}", file=sys.stderr)
+        from pipeline.observability import get_logger
+
+        get_logger("config_loader").warning(
+            "config load failed",
+            extra={"file": path.name, "error": str(exc)},
+        )
         return {}
 
 

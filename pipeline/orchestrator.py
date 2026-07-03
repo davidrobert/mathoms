@@ -206,13 +206,22 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
     Documentação: ``docs/reference/ARCHITECTURE.md`` (seção *Padrões arquiteturais*).
     """
     import io
+    import logging
     import sys
     import time
     from contextlib import nullcontext
 
+    from pipeline.observability import StageLogTail, get_logger
+    from pipeline.observability.context import reset_stage, set_stage
+
     runner = _get_stage_runner(stage)
     if runner is None:
         return StageResult(stage=stage, success=False, error=f"No runner found for {stage}")
+
+    obs_logger = get_logger("orchestrator")
+    stage_token = set_stage(resolve_stage_name(stage))
+    tail = StageLogTail()
+    logging.getLogger("mathoms.pipeline").addHandler(tail)
 
     # OTel span por stage (ADR-110). No-op quando provider não configurado —
     # zero overhead em CLI e testes de pipeline sem backend.
@@ -239,6 +248,15 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
     sys.stderr = captured_stderr
     sys.stdout = captured_stdout
 
+    def _with_tail(detail):
+        """Anexa tail estruturado ≤8KB ao detail (vira ``output_summary`` no DB)."""
+        if not tail.has_events():
+            return detail
+        merged = dict(detail) if isinstance(detail, dict) else {}
+        merged["log_tail"] = tail.as_summary()
+        return merged
+
+    obs_logger.info("stage_start", extra={"event": "stage_start"})
     start = time.monotonic()
     try:
         with span_cm as span:
@@ -255,7 +273,13 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 if span is not None:
                     span.set_attribute("pipeline.success", ok)
                     span.set_attribute("pipeline.exit_code", 0 if ok else 1)
-                return StageResult(stage=stage, success=ok, duration_ms=elapsed, detail=detail)
+                obs_logger.info(
+                    "stage_end",
+                    extra={"event": "stage_end", "duration_ms": round(elapsed), "success": ok},
+                )
+                return StageResult(
+                    stage=stage, success=ok, duration_ms=elapsed, detail=_with_tail(detail)
+                )
             except SystemExit as exc:
                 elapsed = (time.monotonic() - start) * 1000
                 code = exc.code if exc.code is not None else 0
@@ -263,23 +287,63 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                     span.set_attribute("pipeline.success", code == 0)
                     span.set_attribute("pipeline.exit_code", code)
                 if code == 0:
+                    obs_logger.info(
+                        "stage_end",
+                        extra={
+                            "event": "stage_end",
+                            "duration_ms": round(elapsed),
+                            "success": True,
+                        },
+                    )
                     return StageResult(
                         stage=stage, success=True, duration_ms=elapsed, detail={"exit_code": 0}
                     )
-                error_msg = _extract_error_message(
+                # Stage migrado (logger estruturado): primeiro ERROR do tail é a
+                # causa raiz; stderr.last_line vira fallback p/ stages em print.
+                error_msg = tail.first_error_message or _extract_error_message(
                     captured_stderr.getvalue(), captured_stdout.getvalue(), code
                 )
-                return StageResult(stage=stage, success=False, duration_ms=elapsed, error=error_msg)
+                obs_logger.error(
+                    "stage_error",
+                    extra={
+                        "event": "stage_error",
+                        "duration_ms": round(elapsed),
+                        "exit_code": code,
+                    },
+                )
+                return StageResult(
+                    stage=stage,
+                    success=False,
+                    duration_ms=elapsed,
+                    detail=_with_tail(None),
+                    error=error_msg,
+                )
             except Exception as exc:
                 elapsed = (time.monotonic() - start) * 1000
                 if span is not None:
                     span.record_exception(exc)
                     span.set_attribute("pipeline.success", False)
                     span.set_attribute("pipeline.exit_code", 1)
-                return StageResult(stage=stage, success=False, duration_ms=elapsed, error=str(exc))
+                obs_logger.error(
+                    "stage_error",
+                    extra={
+                        "event": "stage_error",
+                        "duration_ms": round(elapsed),
+                        "error_type": type(exc).__name__,
+                    },
+                )
+                return StageResult(
+                    stage=stage,
+                    success=False,
+                    duration_ms=elapsed,
+                    detail=_with_tail(None),
+                    error=str(exc),
+                )
     finally:
         sys.stderr = original_stderr
         sys.stdout = original_stdout
+        logging.getLogger("mathoms.pipeline").removeHandler(tail)
+        reset_stage(stage_token)
 
 
 def _extract_error_message(stderr: str, stdout: str, exit_code: int) -> str:

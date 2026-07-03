@@ -32,7 +32,13 @@ def _age(dob_str: str | None, today: _date) -> str:
         dob = _date(int(parts[0]), int(parts[1]), int(parts[2]))
         return str(today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day)))
     except (ValueError, IndexError, TypeError) as e:
-        print(f"  [WARN] Erro ao calcular idade de '{dob_str}': {e}")
+        from pipeline.observability import get_logger
+
+        # dob é PII — loga só a classe do erro, nunca a data crua.
+        get_logger("narrativas.perfil_familia").warning(
+            "idade nao calculada",
+            extra={"error": str(e)},
+        )
         return "?"
 
 
