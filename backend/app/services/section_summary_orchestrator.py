@@ -19,6 +19,7 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGenerator,
     SectionSummaryGeneratorConfig,
     load_prompt_templates_from_yaml,
+    load_prompt_version_from_yaml,
 )
 from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
 
@@ -157,14 +158,19 @@ def build_default_generator(
     config: Optional[SectionSummaryGeneratorConfig] = None,
 ) -> SectionSummaryGenerator:
     """Construtor padrão — wire LiteLLM + Redis + fallback determinístico."""
-    resolved_templates = templates or load_prompt_templates_from_yaml(_resolve_yaml_path())
+    yaml_path = _resolve_yaml_path()
+    resolved_templates = templates or load_prompt_templates_from_yaml(yaml_path)
     llm_client = _build_llm_client() or _NoLLMRaisingClient()
     return SectionSummaryGenerator(
         llm_client=llm_client,
         cache=_build_cache(),
         fallback=_default_fallback,
         templates=resolved_templates,
-        config=config or SectionSummaryGeneratorConfig(model=_resolve_model()),
+        config=config
+        or SectionSummaryGeneratorConfig(
+            model=_resolve_model(),
+            prompt_version=load_prompt_version_from_yaml(yaml_path),
+        ),
     )
 
 

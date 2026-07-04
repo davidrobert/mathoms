@@ -44,6 +44,9 @@ class SectionSummaryGeneratorConfig:
     temperature: float = 0.0
     request_timeout_s: float = 8.0
     cache_ttl_s: int = 24 * 60 * 60  # 24h — ADR-144 §2
+    # Entra na cache key: bump de prompt-version invalida o cache na hora
+    # (sem isso, texto da versão anterior era servido até o TTL expirar).
+    prompt_version: str = "0"
 
     # Custo unitário em USD/1M tokens (Haiku 4.5 default — ADR-144 §5).
     cost_per_million_input_usd: Decimal = Decimal("1.00")
@@ -175,7 +178,8 @@ class SectionSummaryGenerator:
         )
 
     def _cache_key(self, workspace_id: int, snapshot_hash: str, section_id: str) -> str:
-        return f"mathoms:llm:section_summary:{workspace_id}:{snapshot_hash}:{section_id}"
+        version = self._config.prompt_version
+        return f"mathoms:llm:section_summary:v{version}:{workspace_id}:{snapshot_hash}:{section_id}"
 
     def _check_cache(self, cache_key: str) -> Optional[str]:
         try:
@@ -376,6 +380,15 @@ def load_prompt_templates_from_yaml(yaml_path: str) -> dict[str, PromptTemplate]
     system = str(raw.get("system_prompt", "")).strip()
     sections = raw.get("sections", {}) or {}
     return _build_template_map(system, sections)
+
+
+def load_prompt_version_from_yaml(yaml_path: str) -> str:
+    """Lê a ``version:`` do YAML de prompts (entra na cache key)."""
+    import yaml
+
+    with open(yaml_path, encoding="utf-8") as f:
+        raw = yaml.safe_load(f) or {}
+    return str(raw.get("version", "0")).strip() or "0"
 
 
 def _build_template_map(system: str, sections: Mapping[str, Any]) -> dict[str, PromptTemplate]:
