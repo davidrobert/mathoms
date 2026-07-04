@@ -64,10 +64,10 @@ sempre os mesmos, sempre nos mesmos pesos:
 | `endividamento` | 25% | `analise_financeira.endividamento.percentual_patrimonio` | ≥30% → 0; 10–30% → 0–80; <10% → 80–100 |
 | `diversificacao_auvp` | 20% | `goals.alocacao_alvo` vs. `investimentos.tabela_classes` | desvio máx por classe: 0pp → 100; >30pp → 0 |
 | `taxa_poupanca` | 15% | `ratios.taxa_poupanca_recorrente_pct` | <10% → 0; 10–30% → 30–80; ≥30% → 80–100 |
-| `cobertura_seguros` | 10% | (futuro) `seguros.gap_cobertura_pct` ([[ADR-220]] · S9) | 100% gap → 0; 0% gap → 100 |
+| `cobertura_seguros` | 10% | (futuro) `seguros.gap_cobertura_pct` ([[ADR-192]]/[[ADR-240]] · S9) | 100% gap → 0; 0% gap → 100 |
 
 **Pesos congelados** no código (`frozen dataclass`
-`pipeline/domain/services/score_calculator.py`), não em DB. Mudança de
+`pipeline/domain/services/financial_score_calculator.py`), não em DB. Mudança de
 peso exige ADR sucessora — operador não muda fórmula via console.
 Justificativa: comparabilidade longitudinal (workspace acompanhando ao
 longo de 12 ciclos) é inegociável.
@@ -117,7 +117,7 @@ versão; comparação multi-ciclo fica explícita). Versionamento da fórmula
 é o gate de evolução sem breaking — sem ele, qualquer ajuste de peso
 contamina histórico retroativamente.
 
-### D4 — Service puro de domínio em `pipeline/domain/services/score_calculator.py`
+### D4 — Service puro de domínio em `pipeline/domain/services/financial_score_calculator.py`
 
 Service novo, puro (sem I/O), recebe inputs já tipados:
 
@@ -207,7 +207,7 @@ determinístico para artifacts antigos.
 
 PR único, escopo:
 
-- `pipeline/domain/services/score_calculator.py` (novo) — service puro
+- `pipeline/domain/services/financial_score_calculator.py` (novo) — service puro
   + dataclasses tipadas + testes por valor de referência (3 cenários:
   completo, sem seguros, sem investimentos).
 - `config/schemas/e5_analysis.schema.json` — adicionar `score?:`.

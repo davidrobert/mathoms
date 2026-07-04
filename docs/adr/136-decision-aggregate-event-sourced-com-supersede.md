@@ -5,7 +5,7 @@ title: "`Decision` aggregate event-sourced com supersede chain"
 status: Decidido
 phase: "Sprint A7"
 date: "2026-04-26"
-relates_to: ["[[ADR-090]]"]
+relates_to: ["[[ADR-090]]", "[[ADR-179]]", "[[ADR-214]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 136"]

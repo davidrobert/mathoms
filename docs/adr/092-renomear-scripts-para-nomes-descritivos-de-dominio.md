@@ -31,7 +31,7 @@ refactor.
 
 | Antes | Depois |
 |---|---|
-| `scripts/e0_audit.py` | `scripts/document_auditor.py` |
+| ~~`scripts/e0_audit.py`~~ | ~~`scripts/document_auditor.py`~~ — script deletado ([[ADR-213]]) |
 | `scripts/e0_route.py` | `scripts/document_router.py` |
 | `scripts/e0_unlock.py` | `scripts/document_unlocker.py` |
 | `scripts/e15_consolidate.py` | `scripts/baseline_consolidator.py` |
@@ -40,7 +40,7 @@ refactor.
 | `scripts/e4_categorize.py` | `scripts/transaction_categorizer.py` |
 | `scripts/e5_analyze.py` | `scripts/financial_analyzer.py` |
 | `scripts/e5n_narrativas.py` | `scripts/narrative_generator.py` |
-| `scripts/e6_render.py` | `scripts/report_renderer.py` |
+| ~~`scripts/e6_render.py`~~ | ~~`scripts/report_renderer.py`~~ — script deletado ([[ADR-129]]) |
 | `scripts/e7_review.py` | `scripts/quality_reviewer.py` |
 
 Wrappers em `pipeline/stages/` também são renomeados (ver ADR-093).

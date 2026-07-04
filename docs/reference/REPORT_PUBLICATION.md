@@ -60,7 +60,10 @@ from backend.app.services.report_publication import is_month_closed
 closed = await is_month_closed(workspace_id, "202601", db=db)
 ```
 
-**Único** ponto de leitura da invariante. Callers atuais e planejados:
+**Único** ponto de leitura da invariante — junto com a variante síncrona
+`is_month_closed_sync` (`backend/app/services/report_publication.py:75`,
+usada em contexto sync como o pipeline E4 e o apply engine do learning
+loop). Callers atuais e planejados:
 
 | Caller | Uso |
 |---|---|

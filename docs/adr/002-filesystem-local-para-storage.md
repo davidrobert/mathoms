@@ -19,6 +19,10 @@ size_lines: 15
 
 **Status:** Decidido (F2) • **Data:** 2026-04-13
 
+> **Nota (2026-07-04):** outputs do pipeline migraram para o DB
+> ([[ADR-082]]/[[ADR-212]] — `pipeline_artifacts`). A decisão vale hoje
+> apenas para uploads/inbox.
+
 **Contexto:** Onde armazenar documentos uploaded e outputs do pipeline?
 
 **Decisão:** Filesystem local por tenant. S3/MinIO só na F7 se necessário.

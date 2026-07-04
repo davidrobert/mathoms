@@ -73,7 +73,7 @@ frontend/playwright.config.ts
 
 tests/fixtures/                 # PDFs sintéticos (gerador determinístico)
 tests/fixtures/pipeline_golden/ # P1 — JSON mínimos vs schemas E2/E3/E4
-tests/fixtures/llm_golden/      # JSONs saída LLM (E1, E1.5, E2-LLM, E7) vs `pipeline/llm/schemas`
+tests/fixtures/llm_golden/      # JSONs saída LLM (E1, E1.5, E1.6, E2-LLM, informes anuais, CRLV/apólices) vs `pipeline/llm/schemas`
 tests/test_llm_golden.py        # parse + validators + conversores dos JSONs acima
 tests/fixtures/e2_real_pdf_anon/  # Fase 2 opcional — PDFs reais redigidos + README
 tests/test_e2_real_pdf_regression.py  # `route_to_parser` em cada `*.pdf` da pasta (vazia = no-op)

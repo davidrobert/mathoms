@@ -269,7 +269,7 @@ Lista original preservada abaixo para auditoria:
 
 ## 8. Próximo passo
 
-Humano responde §7 (Open Questions) — registra decisões em `docs/DECISIONS.md` como ADR nova conforme necessário — e sinaliza para iniciar a Fase 1.
+Humano responde §7 (Open Questions) — registra decisões como ADR nova em `docs/adr/` conforme necessário (`docs/DECISIONS.md` é shim) — e sinaliza para iniciar a Fase 1.
 
 Fases 1/3/5 ficam unlocked com §7.1–2, 5, 7, 10, 13 respondidas.
 Fase 6 precisa de §7.2, 6, 11.

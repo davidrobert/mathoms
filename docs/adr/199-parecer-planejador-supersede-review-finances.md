@@ -27,6 +27,8 @@ relates_to:
   - "[[ADR-206]]"
   - "[[ADR-207]]"
   - "[[ADR-208]]"
+  - "[[ADR-270]]"
+  - "[[ADR-289]]"
 supersedes:
   - "[[ADR-128]]"
 superseded_by: []

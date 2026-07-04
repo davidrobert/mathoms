@@ -79,7 +79,8 @@ agentes simultâneos em worktrees isoladas).
   Recharts dentro de `/reports/**`. Migração pode virar **v2.E.9**
   futura se produto pedir paridade.
 - Recharts permanece em `frontend/src/components/charts/Mathom*.tsx` e
-  `frontend/src/app/(app)/dashboard/_components/` — ADR-037 com escopo
+  `frontend/src/app/(app)/plano/_components/_dashboard/` (caminho atual
+  do antigo `dashboard/_components/`) — ADR-037 com escopo
   restringido.
 
 **Coordenação multi-agente empiricamente validada:** segunda leva da

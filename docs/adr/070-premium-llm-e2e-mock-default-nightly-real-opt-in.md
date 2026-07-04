@@ -21,6 +21,11 @@ size_lines: 32
 
 **Status:** Decidido • **Data:** 2026-04-15 • **Contexto da task:** F6.5F.11
 
+> **Nota de estado (2026-07-04):** `nightly-e2e-real-llm.yml` nunca foi
+> criado. O mock-default em PR foi implementado; a validação real-LLM
+> vive hoje em `llm-cross-provider-smoke.yml` + `planner-golden-monthly.yml`
+> (`.github/workflows/`).
+
 **Contexto:** Pipeline premium tier chama LiteLLM → Anthropic/OpenAI/etc. Em CI, duas estratégias:
 
 1. **Mock LiteLLM:** interceptar chamadas, retornar fixtures pré-computadas. Custo zero, reproduzível.

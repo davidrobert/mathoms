@@ -11,6 +11,7 @@ relates_to:
   - "[[ADR-076]]"
   - "[[ADR-090]]"
   - "[[ADR-197]]"
+  - "[[ADR-198]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -435,6 +436,9 @@ relevante de que poderiam ter reduzido IR).
 implica gap acionável para reduzir IR — em simplificado é igualmente
 falso. Tratar em ADR separada (variante condicional do chip por
 `pgbl_status`); não bloqueia este amend.
+
+**Update (2026-07-04):** débito encerrado por [[ADR-198]] (chip "Espaço"
+condicional a `pgbl_status`).
 
 **G0 sign-off (`financial-planner` · 2026-05-12 · amend):** APROVADO.
 Posição AUVP/Cerbasi preservada — corrige afirmação factual incorreta

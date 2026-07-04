@@ -46,7 +46,7 @@
 - User controla provedor/modelo
 - Token tracking + cost estimation por call
 
-Billing próprio (Stripe) está adiado para pós-launch. Ver [ROADMAP.md](../_MOC/_generated/ROADMAP.md).
+Billing próprio (Stripe) está adiado para pós-launch. Ver [PHASES.md](PHASES.md).
 
 ---
 
@@ -80,7 +80,7 @@ Billing próprio (Stripe) está adiado para pós-launch. Ver [ROADMAP.md](../_MO
 | Accuracy de categorização       | >90% transações corretas          |
 | Uptime produção                 | >99.5%                            |
 
-Métricas de engenharia (coverage, CI gates, etc.) estão em [ROADMAP.md](../_MOC/_generated/ROADMAP.md).
+Métricas de engenharia (coverage, CI gates, etc.) estão em [PHASES.md](PHASES.md).
 
 ---
 

@@ -28,6 +28,9 @@ size_lines: 164
 > rotativa (2026-07-03) — 1 conceito, densidade legítima; split produziria
 > peças órfãs.
 
+> **Emenda (2026-07-03, achado F17 do run r5):** amostra estratificada da
+> camada 2 passou a ser rotativa (`--run N`) — ver blockquote na camada 2 de §Decisão.
+
 ## Contexto
 
 Auditar o vault de documentação (MD/HTML/YAML/JSON/TOML/TXT) quanto a

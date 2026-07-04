@@ -47,7 +47,7 @@ staging, dev). Alternativas consideradas:
    | Landing marketing | `mathoms.ai` (apex) | `staging.mathoms.ai` | — |
    | Produto (Next.js) | `app.mathoms.ai` | `app.staging.mathoms.ai` | `localhost:3000` |
    | API (FastAPI + WS) | `api.mathoms.ai` | `api.staging.mathoms.ai` | `localhost:8000` |
-   | Console interno | `ops.mathoms.ai` | `ops.staging.mathoms.ai` | `localhost:3000/ops` |
+   | Console interno | `ops.mathoms.ai` | `ops.staging.mathoms.ai` | `127.0.0.1:3100` (app separada `frontend-ops/`, [[ADR-116]]) |
    | Docs do produto | `docs.mathoms.ai` | — | — |
    | Status page | `status.mathoms.ai` | — | — |
    | Sharing público (F10+) | `share.mathoms.ai` (reservado) | — | — |

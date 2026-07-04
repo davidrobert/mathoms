@@ -22,7 +22,7 @@ size_lines: 24
 **Status:** Decidido (F0) • **Data:** 2026-04-12
 
 > **Nota (2026-04-15):** parcialmente superseded por
-> [ADR-072](#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família) — F8 formaliza
+> [[ADR-075]] — F8 formaliza
 > migração eventual dos wraps em adapters DB (configs de usuário saem do
 > repo). O padrão "wrap" continua válido para scripts que não migram (E0
 > route, E2 parsers).

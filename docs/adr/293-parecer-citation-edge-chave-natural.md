@@ -25,6 +25,9 @@ tags:
 **Relaciona** [[ADR-279]] (lineage field-level + índice reverso), [[ADR-292]]
 (coerção de `evidencia_path`).
 
+> **Refinamento (2026-07-01, co-design `senior-cto`):** DELETE por produtor
+> discrimina por `dst_stage`, não por `edge_type` — ver §"Decisão (proposta)" item 3.
+
 > **Não reabre [[ADR-279]] no contrato de citação** ([[A26.l7]] cobre listas
 > conformando o v1). Reabre **só** o item que a §E deferiu explicitamente —
 > "índice reverso por `rule_ref` deferido até F7": esta ADR materializa a

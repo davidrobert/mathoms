@@ -206,7 +206,7 @@ mistura doc + código, a regra normal volta a valer.
 
 - Funções: **4-20 linhas**. Passou, extraia. Vale para Python, TypeScript e Go.
 - Arquivos: **≤500 linhas**. Divida por responsabilidade
-  (`bank_parser.py`, não `extractors.py` gigante). O `e5_analyze.py` de 108KB
+  (`bank_parser.py`, não `extractors.py` gigante). O `e5_analyze.py` de ~127KB
   é o anti-exemplo; a decomposição em `pipeline/domain/services/` é o padrão.
 - **Uma coisa por função, uma responsabilidade por módulo** (SRP).
 - Early returns > ifs aninhados. Máximo **2 níveis de indentação** em lógica;
@@ -1113,7 +1113,7 @@ Pós-[[ADR-212]] + [[ADR-213]], artifacts vivem em `pipeline_artifacts` (DB)
 produção**. Os sufixos preservam 3 usos atuais:
 
 1. **Rastreabilidade em E3** — [`e3_reconciler_adapter.py:239`](pipeline/domain/services/e3_reconciler_adapter.py) concatena `key + stage_suffix(stage)` no `stmt.source_document` (mostra qual input deu origem à linha).
-2. **`_source` em itens E4** — [`e4_categorizer_adapter.py:220`](pipeline/domain/services/e4_categorizer_adapter.py) anexa origem a posição patrimonial / investimento.
+2. **`_source` em itens E4** — [`e4_categorizer_adapter.py:217`](pipeline/domain/services/e4_categorizer_adapter.py) anexa origem a posição patrimonial / investimento.
 3. **Campo `arquivo` no payload E3** — [`e3_serialization.generate_legacy_filename`](pipeline/domain/services/e3_serialization.py) gera `{banco}_{tipo_conta}_{MOEDA}_{YYYYMM}_{YYYYMM}-3_reconciled.json` para logs / UI.
 
 Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py) em `pipeline/artifact_store.py`. `_STAGE_TO_DIR` + `stage_dir_name()` foram deletados em [[ADR-213]] (dead code pós-sunset do stage `audit_documents`). **Paridade legacy ↔ descritivo (W2-T06, Sprint A11):** todo par `(legacy, descritivo)` de [`STAGE_RENAME_MAP`](pipeline/stage_spec.py) que produz artifact tem ambas as keys em `_STAGE_TO_SUFFIX` apontando para o mesmo sufixo — `stage_suffix("reconcile_transactions")` e `stage_suffix("E3")` retornam ambos `-3_reconciled.json`. Exceção: `E1.6` legacy (ADR-157 nasceu descritivo); somente `extract_irpf_full` está em `_STAGE_TO_SUFFIX`. Invariante enforçado por `tests/unit/pipeline/test_artifact_stores.py::test_legacy_descriptive_parity`.
@@ -1138,7 +1138,7 @@ Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py)
 **Sufixos `-5n_narrativas` (`E5.N`) e `-7_crossval` (`E7`) permanecem em
 `_STAGE_TO_SUFFIX`, mas são dead code de write em produção:**
 
-- `generate_narratives` ([`scripts/e5n_narrativas.py:687`](scripts/e5n_narrativas.py)) faz `store.write("E5", "analise_financeira", ...)` — **merge** das narrativas no payload E5 existente (não há row com stage="E5.N" em `pipeline_artifacts`).
+- `generate_narratives` ([`scripts/e5n_narrativas.py:687`](scripts/e5n_narrativas.py)) faz `store.write("analyze_finances", "analise_financeira", ...)` — **merge** das narrativas no payload E5 existente (não há row com stage="E5.N" em `pipeline_artifacts`).
 - `validate_cross` ([`scripts/e7_review.py:480`](scripts/e7_review.py)) é puro read-only sobre E5; **não chama `store.write`** (sem row com stage="E7").
 
 Nomes de banco seguem o código canônico de `institution_catalog`

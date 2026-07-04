@@ -5,7 +5,7 @@ title: "Fernet dual-key para secret rotation"
 status: Decidido
 phase: "F7"
 date: "2026-04-15"
-relates_to: []
+relates_to: ["[[ADR-171]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 060"]
@@ -23,7 +23,7 @@ size_lines: 15
 
 **Decisão:** Dual-key rotation:
 1. Gerar nova key
-2. Configurar `FERNET_KEYS=new,old` (Fernet aceita lista)
+2. Configurar `MATHOMS_FERNET_KEYS=new,old` (Fernet aceita lista)
 3. Re-encrypt dados em background (Celery task)
 4. Remover key antiga
 

@@ -38,6 +38,9 @@ tags:
   - phase/a17
 ---
 
+> **Correção (2026-05-29):** `data_adesao` deixou de ser hard-fail em regime
+> regressivo — ver §"Correção — `data_adesao` não é hard-fail em regressivo".
+
 ## Contexto
 
 ICP wealth-tech BR coleciona, todo ano, um **conjunto heterogêneo de Informes de Rendimentos anuais** emitidos por cada instituição financeira (banco PF, banco/adquirente PJ, corretora, seguradora de previdência privada, holding pagadora de dividendos, imobiliária). Esses informes alimentam a declaração IRPF, mas têm valor próprio: são **fontes primárias granulares** (por produto, por ticker, por plano) que a declaração agrega ou arredonda; são entregues entre janeiro e março, antes da declaração ser fechada; e existem para o ano corrente mesmo quando a declaração do ano-base anterior ainda é a única disponível.

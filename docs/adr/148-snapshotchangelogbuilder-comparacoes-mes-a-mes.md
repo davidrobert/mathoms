@@ -5,7 +5,7 @@ title: "`SnapshotChangelogBuilder`: comparações mês-a-mês de relatório"
 status: Decidido
 phase: "Onda v2.D · v2.D.1"
 date: "2026-04-27"
-relates_to: ["[[ADR-082]]"]
+relates_to: ["[[ADR-082]]", "[[ADR-190]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 148"]
@@ -37,6 +37,8 @@ size_lines: 248
 (`Report.analysis_artifact_id`),
 [ADR-132](#adr-132--lifecycle-scoping-de-pipeline_artifacts-workspace-vs-run)
 (workspace-scoped vs. run-scoped artefatos).
+
+> **Nota:** estendida por [[ADR-190]] (snapshot changelog v3).
 
 **Contexto:** [ADR-117](#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml)
 deferiu para v2 dois blocos visuais que o template

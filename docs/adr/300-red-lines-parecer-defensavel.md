@@ -32,6 +32,10 @@ tags:
 `financial-planner` + `prompt-engineer` (mecânica) 2026-06-26. Implementação na
 lane [[A22.l2]] (= F3-O1 de [[PLAN-launch-trust]]).
 
+> **Calibrações (2026-06-30):** `RED_LINES_VERSION` 1.0→1.4 após 3 rodadas de
+> dogfood — ver §"Calibração pós-dogfood" (1.1), §"Calibração 1.2 — RL1
+> rebalanceamento ≠ deploy" e §"Resolução de RL3 e RL7" (1.4).
+
 ## Contexto
 
 O Parecer do Planejador (E6, `review_finances_holistic`) gera **conselho

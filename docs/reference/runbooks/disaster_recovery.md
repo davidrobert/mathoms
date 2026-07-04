@@ -61,7 +61,8 @@ perda total disfarçada de sucesso.
   aceita = 1 dia de transações.
 - **RTO de DR ≤ 4h** — pull de R2 + `pg_restore` + smoke + religar app.
 
-Backup off-site real (`dev/backup_postgres.sh` → R2) e replicação do
+Backup off-site real (`dev/backup_postgres.sh` → R2; nome indicativo —
+o script ainda não existe, confirmar ao materializar, [[ADR-228]] G2) e replicação do
 BlobStore são **diferidos** ([[ADR-228]] G2): exigem billing R2 + prod
 pública. O que existe hoje é a **prova do mecanismo de restore** em CI.
 

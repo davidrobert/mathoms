@@ -6,7 +6,7 @@ status: Decidido
 phase: "F5"
 date: "2026-04-15"
 relates_to: []
-supersedes: []
+supersedes: ["[[ADR-014]]"]
 superseded_by: []
 aliases: ["ADR 029-TQ"]
 tags:

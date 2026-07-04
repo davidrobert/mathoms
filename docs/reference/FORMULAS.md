@@ -163,7 +163,7 @@ de explicação no card.
 | `aluguel_anual_bruto` | Informe imobiliária → IRPF carnê-leão → E4 receitas categorizadas → pro-rata pelo valor_irpf | — (sem aluguel = `cap_rate = 0%`) |
 | `taxa_administracao_anual` | Informe imobiliária (único) | — (omitir do líquido; degradar tooltip) |
 | `ir_retido_anual` | Informe imobiliária (PJ pagador retém) | `0` (PF→PF residencial não retém) |
-| `ir_carne_leao_anual` | IRPF analyzer (alíquota **marginal** aplicável ao bucket aluguel, [`pipeline/domain/services/irpf_analyzer.py:286`](../../pipeline/domain/services/irpf_analyzer.py); **não** a média do contribuinte) | Fallback default 27,5% — viés conservador para o ICP HENRY/UHNW (tipicamente no topo da tabela); cap rate líquido pessimista é mais seguro que otimista |
+| `ir_carne_leao_anual` | IRPF analyzer (alíquota **marginal** aplicável ao bucket aluguel, [`pipeline/domain/services/irpf_analyzer.py`](../../pipeline/domain/services/irpf_analyzer.py); **não** a média do contribuinte) | Fallback default 27,5% — viés conservador para o ICP HENRY/UHNW (tipicamente no topo da tabela); cap rate líquido pessimista é mais seguro que otimista |
 | `iptu_anual` | Informe imobiliária (quando administra) → E4 despesas categorizadas | Estimar 1% × valor_irpf (regra de bolso BR) |
 | `condominio_anual` | Informe (raro) → E4 despesas categorizadas | `0` (não declarado) |
 | `manutencao_anual` | (nenhuma fonte primária) | Default **1% × valor_irpf** (regra de bolso BR; gradação por idade/tipo do imóvel — ver §Defaults). Inclui **CAPEX recorrente** (pintura, reforma estrutural), não só zelador |
