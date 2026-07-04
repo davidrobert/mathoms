@@ -165,3 +165,14 @@ bootstrap), invariantes não-negociáveis enumerados antes da execução.
 [#378](https://github.com/davidrobert/mathoms/pull/378) FE inline +
 nudge · [#379](https://github.com/davidrobert/mathoms/pull/379) FE
 drill-down + flip Decidido.
+
+## SMOKE_TEST_HUMAN_A6B_GATE-2026-07-03.md
+
+Conteúdo específico do gate A6b.5→A6c ([[ADR-103]]) extraído de
+`docs/reference/SMOKE_TEST_HUMAN.md`: §4.7 (cutover disco↔DB, mecanismos
+removidos por [[ADR-212]]), formato de decisão A6c e troubleshooting do
+`compare_disk_vs_db`. Gate executado e aprovado em 2026-04/05.
+
+**Arquivado em:** 2026-07-03 (audit-vault r6 F03, decisão do owner).
+**Substituído por:** [docs/reference/SMOKE_TEST_HUMAN.md](../reference/SMOKE_TEST_HUMAN.md)
+— runbook vivo (checks gerais + §4.9 + registro de snapshots).
