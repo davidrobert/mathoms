@@ -5,6 +5,7 @@ title: "Parecer do planejador (E6) supersede review_finances — aggregate Plann
 status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
+amended_at: ["2026-06-12"]
 relates_to:
   - "[[ADR-024]]"
   - "[[ADR-026]]"

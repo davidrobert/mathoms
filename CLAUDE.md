@@ -479,6 +479,9 @@ Convenções:
 - **Supersedure bidirecional:** ADR-Y supersede ADR-X → declare
   `supersedes: ["[[ADR-X]]"]` em Y E `superseded_by: ["[[ADR-Y]]"]`
   em X (frontmatter).
+- **Emenda datada:** emendar ADR (`## Emenda/Correção/Calibração ... YYYY-MM-DD`)
+  exige `amended_at: ["YYYY-MM-DD"]` no frontmatter + blockquote de sinal
+  no topo (padrão ADR-027). Gate: `dev/check_adr_amendment_signal.py`.
 - **Tamanho:** `size_lines` no frontmatter (auto-gerado). ADR > 150
   linhas → justificativa explícita ou split.
 - **ÍNDICE:** [`docs/_MOC/_generated/ADR_INDEX.md`](docs/_MOC/_generated/ADR_INDEX.md)
@@ -492,6 +495,7 @@ python3 dev/validate_frontmatter.py     # frontmatter contra schemas
 python3 dev/check_doc_filename_id.py    # filename ↔ id
 python3 dev/check_doc_links.py          # wikilinks resolvem
 python3 dev/check_adr_anchors.py        # anchors históricos + slug
+python3 dev/check_adr_amendment_signal.py  # emenda datada exige amended_at
 python3 dev/build_doc_index.py --check  # _generated/ sincronizado
 python3 dev/validate_adr_format.py      # formato Status/Data (legado, mantido)
 ```

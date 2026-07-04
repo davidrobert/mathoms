@@ -5,6 +5,7 @@ title: "Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 
 status: Decidido
 phase: "A23 · pré-passo-2 B4"
 date: "2026-06-08"
+amended_at: ["2026-07-01"]
 relates_to:
   - "[[ADR-278]]"
   - "[[ADR-255]]"

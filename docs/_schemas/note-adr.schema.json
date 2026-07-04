@@ -77,6 +77,11 @@
       "type": "integer",
       "minimum": 0,
       "description": "Auto-gerado por dev/build_doc_index.py. Alerta se >150 (ADR muito longa, considerar split)."
+    },
+    "amended_at": {
+      "type": "array",
+      "items": {"type": "string", "format": "date"},
+      "description": "Datas ISO das emendas datadas no corpo (padrão ADR-027: blockquote no topo + seção de emenda). Editorial — autor preenche ao emendar; NÃO é auto-gerado. Enforçado por dev/check_adr_amendment_signal.py (audit r6)."
     }
   }
 }

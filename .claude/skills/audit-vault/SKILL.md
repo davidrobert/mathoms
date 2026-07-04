@@ -73,6 +73,7 @@ Rode e capture:
 python3 dev/validate_frontmatter.py
 python3 dev/check_doc_links.py
 python3 dev/check_adr_anchors.py
+python3 dev/check_adr_amendment_signal.py
 python3 dev/check_doc_filename_id.py
 python3 dev/validate_adr_format.py
 python3 dev/build_doc_index.py --check
