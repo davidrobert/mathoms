@@ -5,6 +5,7 @@ title: "Postgres driver — drop psycopg2 → psycopg v3 (sync) — Sprint A20"
 status: Decidido
 phase: A20.l8
 date: "2026-05-22"
+amended_at: ["2026-05-29"]
 relates_to:
   - "[[ADR-111]]"
   - "[[ADR-248]]"

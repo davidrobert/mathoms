@@ -5,6 +5,7 @@ title: "Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump"
 status: Decidido
 phase: A11.W2
 date: "2026-05-20"
+amended_at: ["2026-05-22"]
 relates_to:
   - "[[ADR-093]]"
   - "[[ADR-157]]"
