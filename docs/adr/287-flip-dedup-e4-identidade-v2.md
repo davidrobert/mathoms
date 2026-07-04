@@ -26,6 +26,9 @@ tags:
 **Status:** Decidido (A25 · l2/l6B) • **Data:** 2026-06-10 • **Relaciona** [[ADR-278]]
 (B3/B4), [[ADR-282]] (§7 gate), [[ADR-255]], [[ADR-090]], [[ADR-279]] (member_hashes).
 
+> **Cutover (2026-06-13):** flip fechado em 3 commits sob flag por workspace
+> (A25.l2/l6B) — ver §"Cutover (Decidido — A25.l2/l6B, 2026-06-13)".
+
 > Executa o **passo 2 da estratégia B4** ([[ADR-278]]): E4 passa a consumir a
 > identidade v2. A [[ADR-282]] §7 cravou o *sequenciamento* (cutover de override
 > antes do flip); esta ADR crava o **desenho do flip** — algoritmo, rollout e

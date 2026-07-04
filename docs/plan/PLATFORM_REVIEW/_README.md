@@ -198,9 +198,9 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **files_touched:**
   - `CLAUDE.md` (§Code style › Testes — atualizar referência)
 - **acceptance_criteria:**
-  - [ ] Linha 121 não cita `tests/test_e3_main_with_store_parity.py` (deletado em A6c.3).
-  - [ ] Cita pattern atual: `tests/test_e3_golden_execution.py` + nota explicando que goldens com baseline-snapshot foram descontinuados em A6c.3.
-  - [ ] Adiciona ponteiro para DE-005 (este plano, W6-T01) — recriação de baselines snapshot é débito explícito.
+  - [x] Linha 121 não cita `tests/test_e3_main_with_store_parity.py` (deletado em A6c.3).
+  - [x] Cita pattern atual: `tests/test_e3_golden_execution.py` + nota explicando que goldens com baseline-snapshot foram descontinuados em A6c.3.
+  - [x] Adiciona ponteiro para DE-005 (este plano, W6-T01) — recriação de baselines snapshot é débito explícito.
 
 ### [W1-T04] PDF concurrency semaphore
 
@@ -216,9 +216,9 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
   - `backend/app/core/config.py` (setting novo `MATHOMS_PDF_CONCURRENCY=2`)
   - `backend/tests/test_pdf_renderer.py` (regression: 5 simultaneous → 2 ativos)
 - **acceptance_criteria:**
-  - [ ] `MATHOMS_PDF_CONCURRENCY` configurável (default 2).
-  - [ ] Teste valida que 5 chamadas simultâneas a `render_pdf` resultam em max 2 ativos via Semaphore.
-  - [ ] Comentário em pdf_renderer.py linha 14-16 atualizado para refletir implementação.
+  - [x] `MATHOMS_PDF_CONCURRENCY` configurável (default 2).
+  - [x] Teste valida que 5 chamadas simultâneas a `render_pdf` resultam em max 2 ativos via Semaphore.
+  - [x] Comentário em pdf_renderer.py linha 14-16 atualizado para refletir implementação.
 
 ### [W1-T05] SECRET_KEY fail-fast em prod
 
@@ -233,10 +233,10 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
   - `backend/app/core/config.py` (`@model_validator(mode="after")`)
   - `backend/tests/test_config_prod_gates.py` (NOVO — testa que prod rejeita defaults)
 - **acceptance_criteria:**
-  - [ ] `Settings(ENVIRONMENT="production", SECRET_KEY="dev-secret-key-change-in-production")` levanta `RuntimeError`.
-  - [ ] `Settings(ENVIRONMENT="production", SECRET_KEY="x"*16)` levanta `RuntimeError` (< 32 chars).
-  - [ ] `Settings(ENVIRONMENT="production", DATABASE_URL="sqlite+aiosqlite:///mathoms.db")` levanta `RuntimeError`.
-  - [ ] Dev defaults continuam funcionando.
+  - [x] `Settings(ENVIRONMENT="production", SECRET_KEY="dev-secret-key-change-in-production")` levanta `RuntimeError`.
+  - [x] `Settings(ENVIRONMENT="production", SECRET_KEY="x"*16)` levanta `RuntimeError` (< 32 chars).
+  - [x] `Settings(ENVIRONMENT="production", DATABASE_URL="sqlite+aiosqlite:///mathoms.db")` levanta `RuntimeError`.
+  - [x] Dev defaults continuam funcionando.
 
 ### [W1-T06] ADR backfill (6 ADRs proposed)
 
@@ -250,16 +250,16 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **files_touched:**
   - `docs/DECISIONS.md` (6 ADRs novas: ADR-170 a ADR-175)
 - **acceptance_criteria:**
-  - [ ] **ADR-170** Refresh tokens (HS256 + httpOnly cookie + family revocation) — para fechar SR-002.
-  - [ ] **ADR-171** Fernet rotation operacionalização (MultiFernet) — para fechar SR-003.
-  - [ ] **ADR-172** Stuck-runs detector + last_heartbeat_at — para fechar SR-007.
-  - [ ] **ADR-173** LLM budget enforce + LLMCallLog populada — para fechar SR-006/DE-013.
-  - [ ] **ADR-174** Off-site backup com R2 + restore drill — para fechar SR-004/BB-007.
-  - [ ] **ADR-175** Prompt injection defense camadas — para fechar SR-009.
-  - [ ] Cada ADR status `Proposto` com link para finding original.
-  - [ ] CLAUDE.md §"ADRs → docs/DECISIONS.md" recebe parágrafo explicando "ADR Proposto antes de PR de implementação P0/P1".
-  - [ ] `python3 dev/build_adr_toc.py --inline` regenerado.
-  - [ ] `python3 dev/check_adr_anchors.py` + `validate_adr_format.py` verdes.
+  - [x] **ADR-170** Refresh tokens (HS256 + httpOnly cookie + family revocation) — para fechar SR-002.
+  - [x] **ADR-171** Fernet rotation operacionalização (MultiFernet) — para fechar SR-003.
+  - [x] **ADR-172** Stuck-runs detector + last_heartbeat_at — para fechar SR-007.
+  - [x] **ADR-173** LLM budget enforce + LLMCallLog populada — para fechar SR-006/DE-013.
+  - [x] **ADR-174** Off-site backup com R2 + restore drill — para fechar SR-004/BB-007.
+  - [x] **ADR-175** Prompt injection defense camadas — para fechar SR-009.
+  - [x] Cada ADR status `Proposto` com link para finding original.
+  - [x] CLAUDE.md §"ADRs → docs/DECISIONS.md" recebe parágrafo explicando "ADR Proposto antes de PR de implementação P0/P1".
+  - [x] `python3 dev/build_adr_toc.py --inline` regenerado.
+  - [x] `python3 dev/check_adr_anchors.py` + `validate_adr_format.py` verdes.
 
 ### [W1-T07] Endividamento `retorno_esperado_pct_aa`
 
@@ -292,9 +292,9 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
   - `config/schemas/e5_analysis.schema.json` (declarar `cenarios_conjuge`, outros blocos top-level)
   - `tests/test_schema_validation.py` (test positivo + test negativo)
 - **acceptance_criteria:**
-  - [ ] `e5_analysis.schema.json` declara `cenarios_conjuge` formal (matching ADR-166 + Pydantic em `cenarios_conjuge_analyzer.py`).
-  - [ ] Schema valida payload real produzido por `build_e5_output`.
-  - [ ] Test negativo: payload sem `cenarios_conjuge` quando esperado → falha validation em `strict` mode.
+  - [x] `e5_analysis.schema.json` declara `cenarios_conjuge` formal (matching ADR-166 + Pydantic em `cenarios_conjuge_analyzer.py`).
+  - [x] Schema valida payload real produzido por `build_e5_output`.
+  - [x] Test negativo: payload sem `cenarios_conjuge` quando esperado → falha validation em `strict` mode.
 
 ---
 

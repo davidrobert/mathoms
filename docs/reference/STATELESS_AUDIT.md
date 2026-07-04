@@ -170,7 +170,7 @@ app lifespan, para compat com runs sem env.
 
 ### 9. Celery globals — **nenhum dict de estado por run**
 
-`backend/app/worker.py` (69 linhas) e `backend/app/tasks/pipeline_task.py`
+`backend/app/worker.py` (102 linhas) e `backend/app/tasks/pipeline_task.py`
 (auditado via grep) não declaram `dict`/`list` globais que acumulem estado.
 State de um run vive em:
 

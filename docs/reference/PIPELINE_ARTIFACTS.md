@@ -36,7 +36,7 @@ E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ru�
 ## Fixtures golden
 
 - JSON de pipeline (E2/E3/E4): [tests/fixtures/pipeline_golden/README.md](../../tests/fixtures/pipeline_golden/README.md).
-- JSON de **saída LLM** (schemas Pydantic E1 / E1.5 / E2-LLM / E6-parecer): [tests/fixtures/llm_golden/README.md](../../tests/fixtures/llm_golden/README.md) + `tests/test_llm_golden.py`.
+- JSON de **saída LLM** (schemas Pydantic E1 / E1.5 / E1.6 / E2-LLM / informes anuais / CRLV+apólices): [tests/fixtures/llm_golden/README.md](../../tests/fixtures/llm_golden/README.md) + `tests/test_llm_golden.py`. O golden do parecer (E6) não usa JSON em `llm_golden/` — é output canned em `tests/test_parecer_planejador_golden.py`.
 - **PDF real anonimizado (Fase 2, opcional):** [tests/fixtures/e2_real_pdf_anon/README.md](../../tests/fixtures/e2_real_pdf_anon/README.md) + `tests/test_e2_real_pdf_regression.py` (pasta pode ficar vazia; cada `*.pdf` adicionado roda `route_to_parser`).
 
 ## Artefatos auxiliares (sem JSON schema)

@@ -5,7 +5,7 @@ title: "Backend hardening em sub-fase 6.5E"
 status: Decidido
 date: "2026-04-15"
 relates_to: []
-supersedes: []
+supersedes: ["[[ADR-062]]"]
 superseded_by: []
 aliases: ["ADR 064"]
 tags:

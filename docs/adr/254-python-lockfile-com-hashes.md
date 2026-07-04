@@ -27,6 +27,9 @@ tags:
   - phase/a20
 ---
 
+> **Emenda (2026-06-18):** jobs de teste do CI também passaram a instalar do
+> lock — ver §"Emenda 2026-06-18 — CI-tests também instala do lock".
+
 ## Contexto
 
 Review independente do `sre-devops` (2026-05-22) identificou que **SHA pin de

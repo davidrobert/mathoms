@@ -118,7 +118,7 @@
 | ADR-118 | adr | Decidido |  | Flip do default `MATHOMS_USE_DB_ARTIFACTS` para `True` | `adr/118-flip-do-default-mathoms-use-db-artifacts-para-true.md` |
 | ADR-119 | adr | Decidido |  | Contrato `LiveStep` para progresso de etapas do pipeline | `adr/119-contrato-livestep-para-progresso-de-etapas-do.md` |
 | ADR-120 | adr | Decidido |  | Readers user-facing consultam `ArtifactStore` (DB-first) com fallback disco | `adr/120-readers-user-facing-consultam-artifactstore-db.md` |
-| ADR-121 | adr | Decidido |  | Typography base 13px com override configurável | `adr/121-typography-base-13px-com-override-configuravel.md` |
+| ADR-121 | adr | Decidido |  | Typography base 13px com override configurável (emendado 2026-04-26: default 16px) | `adr/121-typography-base-13px-com-override-configuravel.md` |
 | ADR-122 | adr | Decidido |  | `chart_conclusions` e `section_summaries` em modo híbrido (template + LLM) | `adr/122-chart-conclusions-e-section-summaries-em-modo.md` |
 | ADR-123 | adr | Decidido |  | Notas (T6) e Kanban (T3) persistidos no backend | `adr/123-notas-t6-e-kanban-t3-persistidos-no-backend.md` |
 | ADR-124 | adr | Decidido |  | `scripts/e6_render.py` aposentado em favor de SSR standalone do Next | `adr/124-scriptse6-renderpy-aposentado-em-favor-de-ssr.md` |

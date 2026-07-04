@@ -180,7 +180,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-076]] — Design Tokens Unificados Site ↔ Relatório · phase F9
 - [[ADR-078]] — Render Nativo React + E6 como Exportador Standalone · phase F9
-- [[ADR-121]] — Typography base 13px com override configurável · phase Fase 0
+- [[ADR-121]] — Typography base 13px com override configurável (emendado 2026-04-26: default 16px) · phase Fase 0
 - [[ADR-122]] — `chart_conclusions` e `section_summaries` em modo híbrido (template + LLM) · phase Fase 0
 - [[ADR-123]] — Notas (T6) e Kanban (T3) persistidos no backend · phase Fase 0
 - [[ADR-124]] — `scripts/e6_render.py` aposentado em favor de SSR standalone do Next · phase Fase 0

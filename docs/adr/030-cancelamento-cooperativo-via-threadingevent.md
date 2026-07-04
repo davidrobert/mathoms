@@ -7,7 +7,7 @@ phase: "F2"
 date: "2026-04-15"
 relates_to: []
 supersedes: []
-superseded_by: []
+superseded_by: ["[[ADR-032]]"]
 aliases: ["ADR 030"]
 tags:
   - area/pipeline

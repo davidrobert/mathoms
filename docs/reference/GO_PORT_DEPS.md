@@ -34,11 +34,11 @@ grep -rn "from pipeline\.\|import pipeline\." pipeline-service/app/ --include="*
 
 | # | Símbolo | Origem | Consumidor (arquivo:linha) | Papel |
 | - | --- | --- | --- | --- |
-| D1 | `WorkspaceContext` (dataclass, 200 LOC) | `pipeline.context` | [run_coordinator.py:19](../../pipeline-service/app/services/run_coordinator.py:19), [stage_executor.py:37](../../pipeline-service/app/services/stage_executor.py:37) | Container de paths + config + run_id. Construído por request, descartado depois. |
-| D2 | `_run_stage(ctx, stage) -> StageResult` | `pipeline.orchestrator` | [run_coordinator.py:20](../../pipeline-service/app/services/run_coordinator.py:20), [stage_executor.py:18](../../pipeline-service/app/services/stage_executor.py:18) | **Hot path.** Wrapper que captura stdout/stderr, OTel span, exit codes, e dispatcha pro runner correto via `_get_stage_runner`. |
-| D3 | `LLM_STAGES` (set) | `pipeline.orchestrator` | [run_coordinator.py:20](../../pipeline-service/app/services/run_coordinator.py:20) | Set de nomes de stage que envolvem LLM — usado para honrar `skip_llm` na request. |
+| D1 | `WorkspaceContext` (dataclass, 200 LOC) | `pipeline.context` | indireto — hidratado por `run_context_factory` ([stage_executor.py:69](../../pipeline-service/app/services/stage_executor.py:69), lazy; sem import direto de `pipeline.context` no shell) | Container de paths + config + run_id. Construído por request, descartado depois. |
+| D2 | `_run_stage(ctx, stage) -> StageResult` | `pipeline.orchestrator` | [run_coordinator.py:84](../../pipeline-service/app/services/run_coordinator.py:84), [stage_executor.py:34](../../pipeline-service/app/services/stage_executor.py:34) | **Hot path.** Wrapper que captura stdout/stderr, OTel span, exit codes, e dispatcha pro runner correto via `_get_stage_runner`. |
+| D3 | `LLM_STAGES` (set) | `pipeline.orchestrator` | [run_coordinator.py:122](../../pipeline-service/app/services/run_coordinator.py:122) | Set de nomes de stage que envolvem LLM — usado para honrar `skip_llm` na request. |
 | D4 | `StageResult` (dataclass) | `pipeline.orchestrator` | testes (`test_stage_execution.py`, `test_run_coordinator.py`) | DTO retornado por `_run_stage`. Apenas testes importam diretamente; produção recebe via `_run_stage`. |
-| D5 | `STAGE_REGISTRY` (dict) | `pipeline.stage_spec` ([ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)) | [api/stages.py:16](../../pipeline-service/app/api/stages.py:16), [api/runs.py:20](../../pipeline-service/app/api/runs.py:20) | Dict de `StageSpec` — usado para validar que `stage` recebido na request existe. |
+| D5 | `STAGE_REGISTRY` (dict) | `pipeline.stage_spec` ([ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)) | [api/stages.py:27](../../pipeline-service/app/api/stages.py:27), [api/runs.py:28](../../pipeline-service/app/api/runs.py:28) | Dict de `StageSpec` — usado para validar que `stage` recebido na request existe. |
 
 **Bonus (`backend/`):**
 
@@ -66,7 +66,7 @@ grep -rn "from pipeline\.\|import pipeline\." pipeline-service/app/ --include="*
 
 ### D2 · `_run_stage` (o ponto difícil)
 
-`pipeline/orchestrator.py` (365 LOC) chama em runtime, via `_get_stage_runner`:
+`pipeline/orchestrator.py` (441 LOC, 2026-07-04) chama em runtime, via `_get_stage_runner`:
 
 ```python
 # orchestrator.py — switch sobre o nome do stage em _get_stage_runner

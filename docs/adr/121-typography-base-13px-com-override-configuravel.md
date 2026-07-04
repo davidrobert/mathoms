@@ -1,7 +1,7 @@
 ---
 id: ADR-121
 type: adr
-title: "Typography base 13px com override configurável"
+title: "Typography base 13px com override configurável (emendado 2026-04-26: default 16px)"
 status: Decidido
 phase: "Fase 0"
 date: "2026-04-23"
@@ -18,9 +18,12 @@ tags:
 size_lines: 63
 ---
 
-# ADR-121 — Typography base 13px com override configurável
+# ADR-121 — Typography base 13px com override configurável (emendado 2026-04-26: default 16px)
 
 **Status:** Decidido (Fase 0) • **Data:** 2026-04-23
+
+> **Emenda (2026-04-26):** default passou de 13px ("compact") para 16px
+> ("normal") — ver §Refinamento UX (2026-04-26) abaixo.
 
 **Contexto:** Exemplo usa `font-base: 13px` (denso, próprio para relatório
 financeiro com muita tabela). Tokens atuais partem de 16px (`rem` default

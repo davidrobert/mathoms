@@ -352,7 +352,7 @@ bloqueia recriação acidental.
 
 ## 6. Services (+ `internal_ops/` submódulo)
 
-> **Contagem real** (2026-07-02): `ls backend/app/services/*.py | grep -v __init__` → 110. Tabela abaixo é **parcial** (originalmente "26") e precisa de rodada de sync — entradas conhecidas faltantes: `artifact_reader`, `canonical_routing`, `classification_telemetry`, `config_defaults`, `document_classification`, `document_duplicates`, `document_extract_json_service`, `document_pipeline_sync`, `document_reclassify_bulk_service`, `document_retry_service`, `document_upload_service`, `password_vault_reader`, `pipeline_client`, `premissas_snapshot`, `report_lineage`, `stage_duration_estimator`, mais `internal_ops/` submódulo (F7F-Local, ADR-116). Não duplicar lista — fonte de verdade é o filesystem.
+> **Contagem real** (2026-07-04): `ls backend/app/services/*.py | grep -v __init__` → 112. Tabela abaixo é **parcial** (originalmente "26") e precisa de rodada de sync — entradas conhecidas faltantes: `artifact_reader`, `canonical_routing`, `classification_telemetry`, `config_defaults`, `document_classification`, `document_duplicates`, `document_extract_json_service`, `document_pipeline_sync`, `document_reclassify_bulk_service`, `document_retry_service`, `document_upload_service`, `password_vault_reader`, `pipeline_client`, `premissas_snapshot`, `report_lineage`, `stage_duration_estimator`, mais `internal_ops/` submódulo (F7F-Local, ADR-116). Não duplicar lista — fonte de verdade é o filesystem.
 
 | Service | Responsabilidade |
 | --- | --- |
@@ -1366,7 +1366,8 @@ com R16 (ADR-101).
 **Implementação (A6e.5, 2026-04-22):** em dev e enquanto o reverse proxy
 de F7A não separa host de path, a app expõe:
 
-- **Canônico:** `/api/v1/*` — único registrado no OpenAPI (88 paths,
+- **Canônico:** `/api/v1/*` — único registrado no OpenAPI (167 paths na
+  contagem de 2026-07-04 — fonte: `docs/reference/api/v1/openapi.json`;
   `info.version = "1.0.0"`, `servers: [{url: "/api/v1"}]`).
 - **Alias deprecated:** `/api/*` — mesmos handlers, `include_in_schema=False`.
   Cada response carrega `Deprecation: true` + `Sunset: TBD F7A` +

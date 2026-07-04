@@ -10,6 +10,7 @@ relates_to:
   - "[[ADR-212]]"
   - "[[ADR-089]]"
   - "[[ADR-097]]"
+  - "[[ADR-303]]"
 supersedes: []
 superseded_by: []
 aliases:

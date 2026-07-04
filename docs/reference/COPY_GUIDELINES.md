@@ -9,7 +9,7 @@
 > CHANGELOG, READMEs de pacote), logs estruturados (`mathoms.*`) e
 > comentários de código — esses ficam fora do escopo.
 >
-> **Última revisão:** 2026-04-27.
+> **Última revisão:** 2026-07-04.
 
 ---
 

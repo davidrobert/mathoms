@@ -15,7 +15,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 266"
+  - "ADR 269"
   - "Task suggestion dedup"
   - "Supersede e5n_llm"
 tags:

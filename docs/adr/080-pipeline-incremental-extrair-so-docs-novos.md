@@ -43,4 +43,4 @@ size_lines: 29
 - ✅ Botão "Processar todos" mantido como fallback explícito.
 - ⚠️ Se parser E2 for corrigido, extracts antigos ficam desatualizados — mitigado por "Processar todos".
 - ⚠️ Stem matching entre stored_path e filename no filesystem pode falhar se renaming E0 for complexo — na prática, uploads web não passam por E0-route.
-- ❌ E0 stages (unlock/audit/route) não são filtrados — operam em inbox (CLI flow). No web flow, inbox está vazio e eles fazem no-op naturalmente.
+- ❌ E0 stages (unlock/audit/route) não são filtrados — operam em inbox (CLI flow). No web flow, inbox está vazio e eles fazem no-op naturalmente. (Nota: o stage `audit` foi deletado — [[ADR-213]].)

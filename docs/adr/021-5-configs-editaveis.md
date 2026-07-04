@@ -5,7 +5,7 @@ title: "5 configs editáveis"
 status: Decidido
 phase: "F3"
 date: "2026-04-15"
-relates_to: []
+relates_to: ["[[ADR-134]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 021"]
@@ -19,4 +19,4 @@ size_lines: 7
 
 **Status:** Decidido (F3)
 
-**Decisão:** `family_members`, `categorization`, `pipeline`, `institutions`, `report_layout`. Templates HTML e schemas ficam estáticos.
+**Decisão:** `family_members`, `categorization`, `pipeline`, `institutions`, `report_layout`. ~~Templates HTML~~ (removidos, [[ADR-129]]) e schemas ficam estáticos.

@@ -1,6 +1,9 @@
 # ==============================================================================
 # Section summaries — prompts LLM (ADR-144 · v2.9 · revisado v2.9.1)
 # ==============================================================================
+# Numeração dupla: v2.9.x = revisão editorial do conteúdo (histórico abaixo);
+# a chave `version:` (1.1) é a prompt-version de máquina (cache/telemetria).
+#
 # Para cada section_id do `report_layout.yaml`, define system + user prompt
 # template para o `SectionSummaryGenerator` (LiteLLM + Instructor).
 #
