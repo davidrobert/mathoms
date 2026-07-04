@@ -2,7 +2,7 @@
 id: ADR-259
 type: adr
 title: "Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt)"
-status: Proposto
+status: Decidido
 phase: A18.W1α + A20.W1β
 date: "2026-05-22"
 relates_to:
@@ -22,21 +22,24 @@ tags:
   - area/pipeline
   - area/security
   - area/money
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
 # ADR-259 — Boundary LLM unificado: tipos monetários, PII e contratos de output
 
-**Status:** Proposto • **Data:** 2026-05-22 • **Relaciona** [[ADR-081]] (regex→LLM→needs_review), [[ADR-090]] (`Decimal` para dinheiro), [[ADR-097]] (services recebem value objects tipados), [[ADR-111]] (stateless rigoroso + Fernet vault singleton), [[ADR-246]] (dedup imóveis comunhão).
+**Status:** Decidido (A18/A20 · flip 2026-07-04) • **Data:** 2026-05-22 • **Relaciona** [[ADR-081]] (regex→LLM→needs_review), [[ADR-090]] (`Decimal` para dinheiro), [[ADR-097]] (services recebem value objects tipados), [[ADR-111]] (stateless rigoroso + Fernet vault singleton), [[ADR-246]] (dedup imóveis comunhão).
 
-> **Nota de estado (audit r6, 2026-07-03):** regras 1–3 **implementadas** em
-> A18/A20 (PRs #718 e #720) — Decimal no boundary
+> **Flip Proposto→Decidido (decisão do owner, 2026-07-04 — triagem audit
+> r6):** regras 1–3 **implementadas e vigentes em produção** desde A18/A20
+> (PRs #718 e #720) — Decimal no boundary
 > (`pipeline/llm/schemas/e15_baseline.py:40` + `_coerce_decimal`),
 > `cpf_present: bool` (`pipeline/llm/schemas/e1_members.py:31`, A20.l15) e
-> `backend/app/services/family_member_pii_service.py`. Regra 4 (UX decrypt
-> em `/reports/[id]` + audit `cpf_view_audit`) **não implementada**. Flip
-> Proposto→Decidido (parcial ou total) fica a decisão do owner.
+> `backend/app/services/family_member_pii_service.py`. **Débito explícito —
+> regra 4 pendente** (UX decrypt em `/reports/[id]` + audit
+> `cpf_view_audit`): candidata a lane XS; até lá, CPF permanece cifrado e
+> sem superfície de leitura na UI (fail-safe). [[ADR-260]] permanece
+> `Proposto` (só a camada de armazenamento shipou).
 
 ## Contexto
 
