@@ -25,12 +25,12 @@
 #     muda no user_prompt.
 #
 # Mudança de contrato: nenhuma. Apenas conteúdo de prompt.
-# Cache: bump de `version` NÃO invalida o cache — a chave é
-#   {workspace_id}:{snapshot_hash}:{section_id}
-#   (section_summary_generator._cache_key) e não inclui a version. Após um
-#   bump, texto da versão anterior pode ser servido até o TTL (24h) expirar
-#   ou o payload da seção mudar (snapshot_hash novo). Se invalidação
-#   imediata importar, incluir a version na cache key (follow-up).
+# Cache: bump de `version` INVALIDA o cache imediatamente — a chave é
+#   v{version}:{workspace_id}:{snapshot_hash}:{section_id}
+#   (section_summary_generator._cache_key; version lida deste arquivo via
+#   load_prompt_version_from_yaml no orchestrator). Fix do audit r6
+#   (2026-07-04); antes o texto da versão anterior era servido até o TTL
+#   (24h) expirar.
 # ==============================================================================
 
 version: "1.1"

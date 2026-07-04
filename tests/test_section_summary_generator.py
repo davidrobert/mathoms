@@ -70,7 +70,7 @@ def test_llm_success_returns_source_llm():
 
 def test_cache_hit_skips_llm_call():
     cache = InMemoryLLMCache()
-    cache_key = "mathoms:llm:section_summary:1:precachehash:S1"
+    cache_key = "mathoms:llm:section_summary:v0:1:precachehash:S1"
     cache.set(cache_key, "Texto cacheado prévio.", ttl_s=3600)
     fake = FakeLLMSuccess(text="Não deveria ser chamado.")
     gen = _make_generator_with_cache(llm=fake, cache=cache)
@@ -152,6 +152,38 @@ def test_cache_populated_after_llm_call():
     assert fake.calls == 1
 
 
+# ─── Cenário 7: bump de prompt_version invalida cache (regressão r6) ─
+
+
+def _make_generator_with_version(*, llm, cache, prompt_version):
+    return SectionSummaryGenerator(
+        llm_client=llm,
+        cache=cache,
+        fallback=make_fake_fallback("fallback"),
+        templates=_TEMPLATES,
+        config=SectionSummaryGeneratorConfig(prompt_version=prompt_version),
+    )
+
+
+def test_prompt_version_bump_invalidates_cache():
+    cache = InMemoryLLMCache()
+    fake = FakeLLMSuccess(text="texto da v1.1")
+    kwargs = {"section_id": "S1", "snapshot_hash": "h", "workspace_id": 1}
+    gen_v11 = _make_generator_with_version(llm=fake, cache=cache, prompt_version="1.1")
+    first = gen_v11.generate(snapshot_data={"x": 1}, **kwargs)
+    assert first.source == "llm"
+
+    fake_v12 = FakeLLMSuccess(text="texto da v1.2")
+    gen_v12 = _make_generator_with_version(llm=fake_v12, cache=cache, prompt_version="1.2")
+    bumped = gen_v12.generate(snapshot_data={"x": 1}, **kwargs)
+    assert bumped.source == "llm"  # key nova — não serve texto stale da v1.1
+    assert bumped.text == "texto da v1.2"
+
+    same_version_again = gen_v12.generate(snapshot_data={"x": 1}, **kwargs)
+    assert same_version_again.source == "cache"  # mesma version reusa cache
+    assert fake_v12.calls == 1
+
+
 # ─── Cenário extra: Template missing → fallback com reason ──────────
 
 
@@ -200,7 +232,7 @@ def test_cache_key_format_matches_adr_144():
         workspace_id=42,
         snapshot_data={"x": 1},
     )
-    expected_key = "mathoms:llm:section_summary:42:abc123:S1"
+    expected_key = "mathoms:llm:section_summary:v0:42:abc123:S1"
     assert cache.get(expected_key) is not None
 
 
