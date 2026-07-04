@@ -254,7 +254,7 @@
 | ADR-254 | adr | Decidido |  | Python lockfile com hashes — pip-tools vs uv — Sprint A20 | `adr/254-python-lockfile-com-hashes.md` |
 | ADR-255 | adr | Decidido |  | Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) | `adr/255-dedup-transacoes-cross-document.md` |
 | ADR-256 | adr | Decidido |  | Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` | `adr/256-uow-stages-pipeline-store-session.md` |
-| ADR-259 | adr | Proposto |  | Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) | `adr/259-boundary-llm-unified.md` |
+| ADR-259 | adr | Decidido |  | Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) | `adr/259-boundary-llm-unified.md` |
 | ADR-260 | adr | Proposto |  | Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP | `adr/260-llm-telemetry-by-prompt-version.md` |
 | ADR-261 | adr | Proposto |  | Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale | `adr/261-llm-cache-invalidation-policy.md` |
 | ADR-262 | adr | Decidido |  | Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req) | `adr/262-memory-confirmation-tracking.md` |
