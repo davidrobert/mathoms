@@ -5,6 +5,7 @@ title: "Retry de LLM calls — categoria network + cap de timeout"
 status: Decidido
 phase: A17.llm-retry
 date: "2026-05-28"
+amended_at: ["2026-06-12"]
 relates_to:
   - "[[ADR-027]]"
   - "[[ADR-081]]"

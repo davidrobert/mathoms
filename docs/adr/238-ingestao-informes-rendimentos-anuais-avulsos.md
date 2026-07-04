@@ -5,6 +5,7 @@ title: "Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financei
 status: Decidido
 phase: A17.informes-avulsos
 date: "2026-05-21"
+amended_at: ["2026-05-29"]
 relates_to:
   - "[[ADR-157]]"
   - "[[ADR-216]]"

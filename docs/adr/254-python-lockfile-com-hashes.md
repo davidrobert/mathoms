@@ -5,6 +5,7 @@ title: "Python lockfile com hashes — pip-tools vs uv — Sprint A20"
 status: Decidido
 phase: A20.l10
 date: "2026-05-22"
+amended_at: ["2026-06-18"]
 relates_to:
   - "[[ADR-228]]"
   - "[[ADR-230]]"

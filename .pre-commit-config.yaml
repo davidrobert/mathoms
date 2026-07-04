@@ -376,6 +376,12 @@ repos:
         files: ^docs/DECISIONS\.md$
         pass_filenames: false
 
+      - id: adr-amendment-signal
+        name: "docs/adr/: emenda datada exige amended_at no frontmatter (audit r6)"
+        entry: python3 dev/check_adr_amendment_signal.py
+        language: system
+        files: ^docs/adr/.*\.md$
+
       # adr-toc removido em F2.F (DOC_REORG / ADR-182): ToC inline em
       # DECISIONS.md foi substituído por _MOC/_generated/ADR_INDEX.md
       # gerado por dev/build_doc_index.py (gate doc-index, mais acima).

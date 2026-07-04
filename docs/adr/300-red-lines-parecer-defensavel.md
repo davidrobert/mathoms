@@ -5,6 +5,7 @@ title: "Red lines do parecer: 4ª camada de validação determinística (conselh
 status: Decidido
 phase: "A22.l2 · F3 launch-trust"
 date: "2026-06-26"
+amended_at: ["2026-06-30"]
 relates_to:
   - "[[ADR-202]]"
   - "[[ADR-279]]"
