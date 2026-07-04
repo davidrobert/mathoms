@@ -1,17 +1,18 @@
-# Smoke Test — Runbook Humano (A6b.5 · ADR-103)
-
-> ⚠️ **HISTÓRICO — gate executado e aprovado (A6b→A6c concluídas).** Não
-> seguir como runbook vigente: a §4.7 audita a coexistência disco↔DB que
-> [[ADR-212]] removeu — `DiskArtifactStore`, a flag
-> `use_db_artifacts_override`, o campo `artifact_store_mode` no `/health` e
-> `dev/compare_disk_vs_db.py` **não existem mais**. Para smoke atual, use
-> [SMOKE_TEST.md](SMOKE_TEST.md). Arquivamento em `docs/archive/` pendente de
-> decisão do owner (linkado por CLAUDE.md e RUNBOOK).
+# Smoke Test — Runbook Humano
 
 > **Quem executa:** David Robert (owner do projeto)
-> **Objetivo:** Validar end-to-end o sistema antes da remoção do bridge (A6c).
-> **Bloqueante para:** A6c (deletar `MaterializationBridge` + `stage_runner_compat`).
-> **Resultado esperado:** Todos os checks passam → decisão explícita: "Aprovado para A6c" ou "Bloqueado — bug #X".
+> **Objetivo:** validação humana end-to-end do produto num workspace real de
+> smoke. Protocolo reutilizado por gates que exigem sinal humano — snapshots
+> de dogfood (§4.9, gate A26.l5 · [[ADR-282]]/[[ADR-287]]), G-f do
+> DATA_LINEAGE e o gate humano do port Go ([[ADR-150]] §Gate humano).
+> Checklist automatizado equivalente: [SMOKE_TEST.md](SMOKE_TEST.md).
+>
+> **Origem:** nasceu como gate A6b.5→A6c ([[ADR-103]]), executado e aprovado
+> em 2026-04/05. O conteúdo específico daquele gate (§4.7 cutover disco↔DB,
+> decisão A6c) foi arquivado em
+> [docs/archive/SMOKE_TEST_HUMAN_A6B_GATE-2026-07-03.md](../archive/SMOKE_TEST_HUMAN_A6B_GATE-2026-07-03.md)
+> (audit r6, decisão do owner 2026-07-03). A numeração das seções foi
+> preservada — docs externos citam §4.9.
 
 ---
 
@@ -82,7 +83,7 @@ o checklist completo:
 
 ## 4. Checklist de Smoke Test
 
-Marque cada item. Ao final registre a decisão na §5.
+Marque cada item. Ao final registre a execução (e snapshots de gate) na §5.
 
 ### 4.1 Auth + Acesso (5 checks)
 
@@ -138,16 +139,12 @@ Marque cada item. Ao final registre a decisão na §5.
 - [ ] **A6.4** `life_plan_goals.md` do fixture é reconhecido no workspace
 - [ ] **A6.5** Editar/excluir meta funciona
 
-### 4.7 Cutover DB — Opt-in por Workspace (5 checks — core A6b)
+### 4.7 — arquivado (gate A6b: cutover disco↔DB)
 
-- [ ] **A7.1** `GET /health` retorna `artifact_store_mode: "disk"` por padrão
-- [ ] **A7.2** Ativar `use_db_artifacts_override = TRUE` para o workspace smoke:
-  ```bash
-  sqlite3 mathoms-smoke.db "UPDATE workspaces SET use_db_artifacts_override=1 WHERE name='Smoke Premium';"
-  ```
-- [ ] **A7.3** Re-rodar pipeline → `GET /health` mostra `artifact_store_mode: "db"` para este workspace
-- [ ] **A7.4** Tabela `pipeline_artifacts` no DB tem entradas para o run
-- [ ] **A7.5** `python dev/compare_disk_vs_db.py <ws_id> --strict` retorna ≥99% paridade
+> Checks do gate A6b removidos — a coexistência disco↔DB não existe mais
+> ([[ADR-212]]). Conteúdo preservado em
+> [docs/archive/SMOKE_TEST_HUMAN_A6B_GATE-2026-07-03.md](../archive/SMOKE_TEST_HUMAN_A6B_GATE-2026-07-03.md).
+> Número de seção mantido para não quebrar citações externas.
 
 ### 4.8 Edge Cases (5 checks)
 
@@ -177,25 +174,18 @@ Marque cada item. Ao final registre a decisão na §5.
 
 ---
 
-## 5. Decisão Final
+## 5. Registro de execuções e snapshots de gate
 
-**Data do teste:** _______________
+Toda rodada (completa ou parcial) registra uma linha. Snapshots de gate
+(ex.: A9.6 — `v1_fallback/v2_match/divergence` do gate A26.l5) entram na
+coluna de evidência. **Sem PII** — contagens e IDs de run apenas.
 
-**Executado por:** _______________
+| Data | Escopo (seções) | Checks OK | Evidência / snapshot | Bugs (ID + severidade) | Decisão |
+|------|-----------------|-----------|----------------------|------------------------|---------|
+|      |                 |           |                      |                        |         |
 
-**Checks aprovados:** _____ / 46
-
-**Bugs encontrados:**
-| ID | Severidade | Descrição | Stack/evidência |
-|----|-----------|-----------|-----------------|
-|    |           |           |                 |
-
-**Decisão:**
-
-- [ ] ✅ **APROVADO para A6c** — todos os checks P0 passaram, bugs encontrados são P1/P2
-- [ ] ❌ **BLOQUEADO** — bug(s) P0 impedem A6c: _______________
-
-**Assinatura (David):** _______________
+> Formato original de decisão do gate A6c preservado no
+> [archive](../archive/SMOKE_TEST_HUMAN_A6B_GATE-2026-07-03.md).
 
 ---
 
@@ -261,31 +251,6 @@ make smoke-reset   # Apaga tudo
 make smoke-up && make smoke-seed   # Reinicia do zero
 ```
 
-### compare_disk_vs_db reporta divergência
-
-Divergências **esperadas** (não são bugs):
-- `_meta.confidence` / `_meta.notes` em artefatos E2-llm
-- `created_at` / `updated_at` (timestamp de escrita diferente entre DB e disco)
-- Ordem de listas JSON (transações, investimentos) — E3-E7 são order-insensitive
-
-Divergências **que são bugs**:
-- Key presente em disco mas ausente no DB (stage não escreveu via store)
-- Conteúdo divergente em campos monetários ou de transações
-
----
-
-## 7. Após aprovação — A6c
-
-Quando o sinal humano for dado (checkbox §5 marcado ✅), executar:
-
-```bash
-# A6c — Remove bridge (somente após aprovação)
-python dev/commit.py -m "refactor: remove MaterializationBridge + stage_runner_compat (A6c)"
-```
-
-Arquivos a deletar (A6c):
-- `pipeline/stage_runner_compat.py`
-- `pipeline/materialization_bridge.py`
-- `main(root_dir)` legado dos 7 scripts determinísticos
-
-Atualizar docs: ARCHITECTURE §17.3, CHANGELOG, CLAUDE.md.
+> Troubleshooting do gate A6b (`compare_disk_vs_db`) e o passo pós-aprovação
+> A6c foram arquivados junto com a §4.7 — ver
+> [archive](../archive/SMOKE_TEST_HUMAN_A6B_GATE-2026-07-03.md).
