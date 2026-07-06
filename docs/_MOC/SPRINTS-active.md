@@ -12,13 +12,24 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-**Nenhuma sprint `current` desde 2026-07-06** (A28 fechada). Próxima: decisão do
-owner — retomar [[MOC-sprint-a26]] (`paused → current`) quando as ≥20 gerações
-qualificadas de parecer acumularem (as re-gerações pós-A28 contam), ou promover a
-A27 (`candidate`). Fila do owner pós-A28: re-gerar parecer com dados corrigidos ·
-`G-owner-reclassify` (fila `/transactions?category=nao_identificado&sort=valor_desc`;
-48,5% do balde é 1 transação) · `G-owner-label` (~7-8 imóveis em Configurações) ·
-re-eval golden do parecer (owner-gated, US$12).
+### A29 — Review UX: conferência de pipeline centrada em documentos (`current` 2026-07-06)
+
+Origem: dogfood do owner 2026-07-06 — run E3 pausou em `needs_review` com 18
+strings duplicadas sem documento + JSON 29KB; owner aprovou às cegas. 3 lanes
+sequenciais ([[MOC-sprint-a29]]): l1 tela de review v1.5 (agrupamento +
+consequência explícita + telemetria `review_action`) · l2 cobertura
+`ReviewReason` completa em E3 + projeção `validation_issues` (fecha ADR-272
+crit. 6) · l3 inbox de pendências em `/documents` + banner de análise pausada.
+ADR canônica: [[ADR-308]] (Proposto). Gate F0 de medição overridden pelo owner
+("atuar em tudo", 2026-07-06); baseline KR2 registrado na l1.
+
+Fila do owner pós-A28 (segue válida em paralelo): re-gerar parecer com dados
+corrigidos · `G-owner-reclassify` (fila
+`/transactions?category=nao_identificado&sort=valor_desc`; 48,5% do balde é 1
+transação) · `G-owner-label` (~7-8 imóveis em Configurações) · re-eval golden
+do parecer (owner-gated, US$12). Depois da A29: retomar [[MOC-sprint-a26]]
+(`paused → current`) quando as ≥20 gerações qualificadas acumularem, ou
+promover a A27 (`candidate`).
 
 ## Sprint recém-fechada
 

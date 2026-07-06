@@ -303,6 +303,7 @@
 | ADR-305 | adr | Decidido |  | PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) | `adr/305-pgbl-ano-base-fiscal-unico.md` |
 | ADR-306 | adr | Decidido |  | Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco | `adr/306-politica-de-base-temporal-de-mensalizacao-no-e5.md` |
 | ADR-307 | adr | Decidido |  | Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift | `adr/307-cache-de-resposta-llm-no-choke-point.md` |
+| ADR-308 | adr | Proposto |  | Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração | `adr/308-remediacao-needs-review-na-fila-de-documentos.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -670,6 +671,9 @@
 | A28.l7 | lane | shipped | A28 | imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner | `sprint/A28/lanes/A28-l7-imoveis-excluidos-dedup.md` |
 | A28.l8 | lane | shipped | A28 | higiene de ingestão: períodos implausíveis (1899/2100) e banco vazio viram needs_review, não artefato silencioso | `sprint/A28/lanes/A28-l8-higiene-ingestao-periodos.md` |
 | A28.l9 | lane | shipped | A28 | banner agregado de qualidade de dados no relatório + ressalva de fallback no Monte Carlo | `sprint/A28/lanes/A28-l9-report-data-quality-banner.md` |
+| A29.l1 | lane | in_progress | A29 | tela de review v1.5: agrupamento, consequência explícita e telemetria review_action | `sprint/A29/lanes/A29-l1-review-screen-v15.md` |
+| A29.l2 | lane | open | A29 | cobertura ReviewReason completa em E3 + document_id real + projeção validation_issues (ADR-272 crit. 6) | `sprint/A29/lanes/A29-l2-reviewreason-cobertura-projecao.md` |
+| A29.l3 | lane | open | A29 | inbox de pendências em /documents: fila agrupada, banner de análise pausada, retomada explícita | `sprint/A29/lanes/A29-l3-inbox-pendencias-documents.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -747,6 +751,7 @@
 | MOC-sprint-a26 | moc |  |  | Sprint A26 — Data Lineage: consolidação | `sprint/A26/_README.md` |
 | MOC-sprint-a27 | moc |  |  | Sprint A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer, ponta a ponta | `sprint/A27/_README.md` |
 | MOC-sprint-a28 | moc |  |  | Sprint A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam | `sprint/A28/_README.md` |
+| MOC-sprint-a29 | moc |  |  | Sprint A29 — Review UX: conferência de pipeline centrada em documentos | `sprint/A29/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
