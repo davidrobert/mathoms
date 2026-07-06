@@ -27,14 +27,20 @@ type StageRunner interface {
 	RunStage(ctx context.Context, stage string, req contracts.StageExecuteRequest) (contracts.StageExecuteResponse, error)
 }
 
+// RunCoordinator executa a sequência completa de um run (Fase 3).
+type RunCoordinator interface {
+	Run(ctx context.Context, req contracts.RunStartRequest) (contracts.RunSummaryResponse, error)
+}
+
 // Server implementa contracts.ServerInterface.
 type Server struct {
 	runner StageRunner
+	runs   RunCoordinator
 }
 
-// NewServer cria o servidor; runner nil responde 503 até a Fase 2.
-func NewServer(runner StageRunner) *Server {
-	return &Server{runner: runner}
+// NewServer cria o servidor; dependência nil responde 503.
+func NewServer(runner StageRunner, runs RunCoordinator) *Server {
+	return &Server{runner: runner, runs: runs}
 }
 
 // HealthHealthGet espelha o payload do Python: status/service/version.
@@ -92,8 +98,17 @@ func (s *Server) StartRunApiV1PipelineRunsPost(w http.ResponseWriter, r *http.Re
 		writeDetail(w, http.StatusBadRequest, fmt.Sprintf("unknown stage(s): %s", pyList(unknown)))
 		return
 	}
-	writeDetail(w, http.StatusServiceUnavailable,
-		"RunCoordinator não implementado (F1 Fase 3) — ADR-303 D4")
+	if s.runs == nil {
+		writeDetail(w, http.StatusServiceUnavailable,
+			"RunCoordinator não configurado — ADR-303 D4")
+		return
+	}
+	resp, err := s.runs.Run(r.Context(), req)
+	if err != nil {
+		writeDetail(w, http.StatusServiceUnavailable, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {

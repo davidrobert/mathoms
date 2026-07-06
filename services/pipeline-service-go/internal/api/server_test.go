@@ -15,7 +15,7 @@ import (
 func newTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 	router := chi.NewRouter()
-	contracts.HandlerFromMux(NewServer(nil), router)
+	contracts.HandlerFromMux(NewServer(nil, nil), router)
 	return router
 }
 

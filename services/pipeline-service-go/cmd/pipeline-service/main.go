@@ -11,7 +11,9 @@ import (
 
 	"mathoms.ai/pipeline-service/internal/api"
 	"mathoms.ai/pipeline-service/internal/contracts"
+	"mathoms.ai/pipeline-service/internal/events"
 	"mathoms.ai/pipeline-service/internal/observability"
+	"mathoms.ai/pipeline-service/internal/runs"
 	"mathoms.ai/pipeline-service/internal/stages"
 )
 
@@ -21,7 +23,9 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Use(observability.ExtractTraceContext)
-	contracts.HandlerFromMux(api.NewServer(stages.NewExecutorFromEnv()), router)
+	executor := stages.NewExecutorFromEnv()
+	coordinator := &runs.Coordinator{Runner: executor, Publisher: events.NewPublisher()}
+	contracts.HandlerFromMux(api.NewServer(executor, coordinator), router)
 
 	addr := envOr("PIPELINE_SERVICE_HOST", "0.0.0.0") + ":" + envOr("PIPELINE_SERVICE_PORT", "8001")
 	slog.Info("pipeline-service-go up", "addr", addr)
