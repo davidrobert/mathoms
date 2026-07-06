@@ -141,8 +141,9 @@ tags:
 3. Testes: unit (miniredis ou fake) assertando envelope campo-a-campo vs
    goldens capturados do Python (mesmas chaves, omissões, tipos; timestamp
    normalizado); 400 de sequence; `run_failed` sem `progress_pct`.
-- [ ] Gate F1.3: envelope 0 divergências de shape; `RunSummaryResponse` com
-      cardinalidade certa (skips inclusos).
+- [x] Gate F1.3 ✅ (PR da Fase 3): envelope validado campo-a-campo via miniredis
+      (omissões, sem nulls, run_failed sem progress_pct, skip com evento+entry);
+      singleton registrado no STATELESS_AUDIT.
 
 ## Fase 4 — paridade + imagem + smoke (PR 4)
 
