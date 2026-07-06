@@ -61,10 +61,10 @@ describe("Bootstrap smoke", () => {
       expect(u2.id).toBe("user-2"); // counter independente do override
     });
 
-    it("makeMember inclui account default e CPF placeholder LGPD-safe", () => {
+    it("makeMember inclui account default e CPF mascarado placeholder", () => {
       resetCounters();
       const m = makeMember();
-      expect(m.cpf).toBe("000.000.000-00"); // placeholder, não CPF real
+      expect(m.cpf_masked).toBe("***.***.000-00"); // placeholder, não CPF real
       expect(m.accounts).toHaveLength(1);
       expect(m.accounts[0].institution_code).toBe("c6bank");
     });

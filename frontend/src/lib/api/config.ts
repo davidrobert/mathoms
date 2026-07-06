@@ -25,12 +25,18 @@ export interface FamilyMemberConfig {
   short_name: string;
   /** Nome civil anterior / de nascimento (contas antigas); opcional */
   birth_name?: string | null;
-  cpf?: string | null;
+  /** CPF mascarado (``***.***.789-00``, ADR-259 §4) — nunca pleno nesta resposta. */
+  cpf_masked?: string | null;
   birth_date?: string | null;
   role: string;
   order: number;
   extra?: Record<string, unknown> | null;
   accounts: BankAccountConfig[];
+}
+
+/** CPF pleno é campo de escrita apenas — nunca chega na resposta (ver `cpf_masked`). */
+interface CpfWriteInput {
+  cpf?: string | null;
 }
 
 export interface CategoryConfig {
@@ -92,16 +98,21 @@ export async function listMembers(workspaceId: string): Promise<{ members: Famil
 export type CreateMemberPayload = Omit<
   FamilyMemberConfig,
   "id" | "accounts" | "key"
-> & {
-  /** Se omitido, o backend gera um identificador único a partir do nome completo */
-  key?: string;
-};
+> &
+  CpfWriteInput & {
+    /** Se omitido, o backend gera um identificador único a partir do nome completo */
+    key?: string;
+  };
 
 export async function createMember(workspaceId: string, data: CreateMemberPayload): Promise<FamilyMemberConfig> {
   return apiFetch(`/workspaces/${workspaceId}/config/members`, { method: "POST", body: JSON.stringify(data) });
 }
 
-export async function updateMember(workspaceId: string, id: string, data: Partial<FamilyMemberConfig>): Promise<FamilyMemberConfig> {
+export async function updateMember(
+  workspaceId: string,
+  id: string,
+  data: Partial<FamilyMemberConfig> & CpfWriteInput,
+): Promise<FamilyMemberConfig> {
   return apiFetch(`/workspaces/${workspaceId}/config/members/${id}`, { method: "PUT", body: JSON.stringify(data) });
 }
 

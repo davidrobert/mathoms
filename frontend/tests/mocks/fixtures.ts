@@ -109,7 +109,7 @@ const members: FamilyMemberConfig[] = [
     key: "founder",
     full_name: "Founder Teste",
     short_name: "Founder",
-    cpf: "000.000.000-00", // placeholder — gerador real em 6.5D.7
+    cpf_masked: "***.***.000-00", // placeholder mascarado (ADR-259 §4)
     birth_date: "1985-03-10",
     role: "responsavel",
     order: 1,

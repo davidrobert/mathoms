@@ -100,7 +100,7 @@ export function makeMember(
     key: `member_${n}`,
     full_name: `Member ${n}`,
     short_name: `M${n}`,
-    cpf: "000.000.000-00", // placeholder — gerador real em 6.5D.7
+    cpf_masked: "***.***.000-00", // placeholder mascarado (ADR-259 §4)
     birth_date: "1990-01-01",
     role: "responsavel",
     order: n,
