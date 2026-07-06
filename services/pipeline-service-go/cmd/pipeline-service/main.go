@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,23 +11,24 @@ import (
 
 	"mathoms.ai/pipeline-service/internal/api"
 	"mathoms.ai/pipeline-service/internal/contracts"
+	"mathoms.ai/pipeline-service/internal/observability"
+	"mathoms.ai/pipeline-service/internal/stages"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	shutdown := observability.Setup(context.Background())
 
-	host := envOr("PIPELINE_SERVICE_HOST", "0.0.0.0")
-	port := envOr("PIPELINE_SERVICE_PORT", "8001")
 	router := chi.NewRouter()
-	contracts.HandlerFromMux(api.NewServer(nil), router)
+	router.Use(observability.ExtractTraceContext)
+	contracts.HandlerFromMux(api.NewServer(stages.NewExecutorFromEnv()), router)
 
-	addr := host + ":" + port
+	addr := envOr("PIPELINE_SERVICE_HOST", "0.0.0.0") + ":" + envOr("PIPELINE_SERVICE_PORT", "8001")
 	slog.Info("pipeline-service-go up", "addr", addr)
-	if err := http.ListenAndServe(addr, router); err != nil {
-		slog.Error("server exited", "error", err)
-		os.Exit(1)
-	}
+	err := http.ListenAndServe(addr, router)
+	slog.Error("server exited", "error", err)
+	_ = shutdown(context.Background())
+	os.Exit(1)
 }
 
 func envOr(key, fallback string) string {
