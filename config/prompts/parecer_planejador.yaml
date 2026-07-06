@@ -31,7 +31,9 @@
 # independencia_financeira); bump invalida cache Redis (prompt novo).
 # 1.6 — KR1 (A27): pureza monetária da prosa — persona R22 + reconciliação R17 +
 # diagnostico_geral sem R$ inline (fecha number_in_prose; conforma ADR-296).
-version: "1.6"
+# 1.7 — A28.l6 (ADR-240): projeta $.protecao_patrimonial em riscos_protecao +
+# seção no drill-down; apólices deixam de aparecer em campos_faltantes.
+version: "1.7"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -260,9 +262,18 @@ context_sections:
         label: "Alertas estruturais (array)"
         value_format: "raw"
         on_null: "skip"
+      # A28.l6 (ADR-240 D8): apólices reais de extract_comprovantes_bens —
+      # prêmio anual, % renda (Cerbasi), gaps qualitativos (vida/saúde) e
+      # resumos LGPD-safe das apólices por vigência.
+      - format: "scalar"
+        path: "$.protecao_patrimonial"
+        label: "Proteção patrimonial (apólices vigentes, prêmio anual, % renda, gaps vida/saúde)"
+        value_format: "raw"
+        on_null: "skip"
     narrative_hints:
       - "Não prescreva apólice ou seguradora — descreva o gap."
       - "Sem linguagem alarmista. Severidade comunica o peso."
+      - "gap_qualitativo com flag=true (vida/saúde) é sinal de AUSÊNCIA de evidência de cobertura — não afirme que o cliente 'não tem' seguro; afirme que não há evidência nos documentos."
 
   # --------------------------------------------------------------------------
   # 9) Síntese determinística (S10) + comportamento — leitura de conjunto
@@ -369,6 +380,7 @@ tools:
           - "if_monte_carlo"
           - "cenarios_conjuge"
           - "investimentos"
+          - "protecao_patrimonial"
     cache_in_session: true
 
   - name: "get_e5_jsonpath"

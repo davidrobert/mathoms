@@ -585,6 +585,10 @@
         }
       },
       "additionalProperties": false
+    },
+    "protecao_patrimonial": {
+      "type": "object",
+      "description": "Proteção patrimonial (ADR-240 D8 · A28.l6): apólices de extract_comprovantes_bens → compute_protecao. Sempre presente pós-wiring (workspace sem apólice = KPIs zerados + gap_qualitativo, cenário G6-b). Contrato completo em protecao_patrimonial.schema.json (validado no hook pós-write)."
     }
   },
   "additionalProperties": true

@@ -37,6 +37,26 @@ _FIXED_NOW = datetime(2026, 4, 19, 10, 0, 0, tzinfo=timezone(timedelta(hours=-3)
 _FIXED_DATE = date(2026, 4, 19)
 
 
+def _apolice_sintetica() -> dict:
+    """Apólice PII-zero (placa/CNPJ sintéticos NÃO podem vazar no resumo)."""
+    return {
+        "apolice_numero": "AUTO-1",
+        "seguradora": "tokiomarine",
+        "vigencia_inicio": "2026-03-01",
+        "vigencia_fim": "2027-03-01",
+        "premio_total_brl": "1500.00",
+        "corretor": {"cpf_or_cnpj": "12345678000199"},
+        "bens_segurados": [{"tipo": "veiculo", "placa": "ABC1D23", "coberturas": []}],
+    }
+
+
+def _e4_unified_schema() -> dict:
+    import json
+
+    path = Path(__file__).resolve().parents[3] / "config" / "schemas" / "e4_unified.schema.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def _conta_com_despesa_duplicada() -> dict:
     """Payload E3 com 2 despesas idênticas (colapsam no dedup K4) + 1 receita."""
     mercado = {"data": "2026-01-10", "descricao": "MERCADO", "valor": -100, "tipo": "debito"}
@@ -301,6 +321,32 @@ class TestSerializeE4Artifacts:
 
         assert payloads["seguros"] == {"dados": []}
         assert payloads["pontos_milhas"] == {"dados": []}
+
+    def test_seguros_v2_com_apolices_resumidas(self):
+        """A28.l6: apólices de ``extract_comprovantes_bens`` populam o balde
+        ``seguros`` (contrato v2) com resumos LGPD-safe — sem CPF/placa."""
+        result = _adapter().categorize_via_store(InMemoryArtifactStore())
+
+        payloads = serialize_e4_artifacts(result, apolices=[_apolice_sintetica()])
+
+        seguros = payloads["seguros"]
+        assert seguros["schema_version"] == "2"
+        assert len(seguros["apolices"]) == 1
+        assert seguros["apolices"][0]["apolice_numero"] == "AUTO-1"
+        assert seguros["apolices"][0]["premio_total_brl"] == "1500.00"
+        blob = str(seguros)
+        assert "ABC1D23" not in blob
+        assert "12345678000199" not in blob
+
+    def test_seguros_v2_valida_contra_schema_e4_unified(self):
+        """Branch ``seguros`` explícito no e4_unified.schema.json (A28.l6)."""
+        jsonschema = pytest.importorskip("jsonschema")
+        result = _adapter().categorize_via_store(InMemoryArtifactStore())
+
+        payloads = serialize_e4_artifacts(result, apolices=[_apolice_sintetica()])
+
+        jsonschema.validate(payloads["seguros"], _e4_unified_schema())
+        jsonschema.validate(empty_placeholder(), _e4_unified_schema())
 
 
 # =============================================================================

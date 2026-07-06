@@ -316,6 +316,16 @@ class TestBuildOutput:
         # Garantir que o campo configurável foi removido do dataclass.
         assert not hasattr(inp, "cenarios_conjuge_key")
 
+    def test_protecao_patrimonial_incluida_quando_presente(self):
+        """A28.l6 (ADR-240 D8): bloco protecao_patrimonial entra no payload E5."""
+        inp = _inputs(protecao_patrimonial={"apolices_vigentes": [], "gap_qualitativo": []})
+        out = build_e5_output(inp)
+        assert out["protecao_patrimonial"] == {"apolices_vigentes": [], "gap_qualitativo": []}
+
+    def test_protecao_patrimonial_omitida_em_caller_legado(self):
+        out = build_e5_output(_inputs())
+        assert "protecao_patrimonial" not in out
+
     def test_narrativas_preservada_quando_existing(self):
         inp = _inputs(existing_narrativas={"resumo": "texto antigo"})
         out = build_e5_output(inp)
