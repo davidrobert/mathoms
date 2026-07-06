@@ -1,5 +1,7 @@
 """Tests for Phase 4D: tier detection, needs_review workflow, resume, stage reviews."""
 
+import logging
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import pytest
@@ -217,6 +219,64 @@ async def test_edit_review_requires_output_json(client: AsyncClient, db: AsyncSe
     )
     assert resp.status_code == 422
     assert "edited_output_json" in resp.json()["detail"]
+
+
+@contextmanager
+def _capture_review_logger():
+    """Isola de pollution de ordering: alembic fileConfig (test_alembic_guardrails)
+    roda com disable_existing_loggers=True e cala loggers já criados."""
+    target = logging.getLogger("mathoms.pipeline.review")
+    prev = (target.level, target.propagate, target.disabled)
+    target.setLevel(logging.INFO)
+    target.propagate = True
+    target.disabled = False
+    try:
+        yield
+    finally:
+        target.setLevel(prev[0])
+        target.propagate = prev[1]
+        target.disabled = prev[2]
+
+
+@pytest.mark.asyncio
+async def test_review_action_telemetry_approve_with_errors(
+    client: AsyncClient, db: AsyncSession, caplog: pytest.LogCaptureFixture
+):
+    """KR1 (A29.l1): aprovar com erros pendentes loga review_action=approve_with_errors."""
+    ws_id, token = await _setup_workspace_with_llm(db, client)
+    run_id, review_id = await _create_needs_review_run(db, ws_id)
+
+    with _capture_review_logger(), caplog.at_level("INFO", logger="mathoms.pipeline.review"):
+        resp = await client.post(
+            f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
+            json={"action": "approve"},
+        )
+    assert resp.status_code == 200
+    records = [r for r in caplog.records if r.getMessage() == "review_action"]
+    assert len(records) == 1
+    rec = records[0]
+    assert rec.review_action == "approve_with_errors"
+    assert rec.error_count == 1  # "test error" (1 linha legacy)
+    assert rec.stage == "E1"
+    assert rec.review_id == review_id
+
+
+@pytest.mark.asyncio
+async def test_review_action_telemetry_edit(
+    client: AsyncClient, db: AsyncSession, caplog: pytest.LogCaptureFixture
+):
+    ws_id, token = await _setup_workspace_with_llm(db, client)
+    run_id, review_id = await _create_needs_review_run(db, ws_id)
+
+    with _capture_review_logger(), caplog.at_level("INFO", logger="mathoms.pipeline.review"):
+        resp = await client.post(
+            f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
+            json={"action": "edit", "edited_output_json": {"ok": True}},
+        )
+    assert resp.status_code == 200
+    records = [r for r in caplog.records if r.getMessage() == "review_action"]
+    assert len(records) == 1
+    assert records[0].review_action == "edit"
 
 
 @pytest.mark.asyncio
