@@ -85,6 +85,18 @@ class FamilyMemberListResponse(BaseModel):
     total: int
 
 
+class CpfMaskedResponse(BaseModel):
+    """``GET /members/{id}/cpf`` — máscara canônica, visível a qualquer role (ADR-259 §4)."""
+
+    cpf_masked: str = Field(..., max_length=20, examples=["***.***.789-00"])
+
+
+class CpfFullResponse(BaseModel):
+    """``GET /members/{id}/cpf/full`` — CPF completo, owner-only + auditado (ADR-259 §4)."""
+
+    cpf_full: str = Field(..., max_length=14)
+
+
 class IrpfSuggestionItem(BaseModel):
     """Item de sugestão de conta extraída de IRPF (ADR-229 §4)."""
 

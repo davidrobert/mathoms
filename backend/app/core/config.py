@@ -116,6 +116,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_LOGIN: str = ""
     RATE_LIMIT_UPLOAD: str = ""
     RATE_LIMIT_PIPELINE_RUN: str = ""
+    RATE_LIMIT_CPF_VIEW_FULL: str = ""
 
     # ADR-231 — encryption at-rest de PII em pipeline_artifacts.content_json.
     # Default True: writes via DBArtifactStore aplicam Fernet encrypt após

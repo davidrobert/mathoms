@@ -38,10 +38,12 @@ class RateLimitPolicy:
 # Defaults de produção (override por env MATHOMS_RATE_LIMIT_<SCOPE>="N/seg").
 # login: per-IP — complementa o lockout per-conta (brute_force_lockout).
 # upload/pipeline: per-workspace — endpoints que disparam custo LLM/CPU.
+# cpf_view_full: per-workspace — freia scraping do "ver completo" (ADR-259 §4).
 _DEFAULT_POLICIES: dict[str, RateLimitPolicy] = {
     "login": RateLimitPolicy("login", limit=10, window_s=60),
     "upload": RateLimitPolicy("upload", limit=30, window_s=300),
     "pipeline_run": RateLimitPolicy("pipeline_run", limit=5, window_s=600),
+    "cpf_view_full": RateLimitPolicy("cpf_view_full", limit=10, window_s=60),
 }
 
 

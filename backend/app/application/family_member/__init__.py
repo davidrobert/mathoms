@@ -29,6 +29,10 @@ from backend.app.application.family_member.get_irpf_suggestions import (
     IrpfArtifactSourceProtocol,
     get_irpf_suggestions,
 )
+from backend.app.application.family_member.get_member_cpf import (
+    get_member_cpf_full,
+    get_member_cpf_masked,
+)
 from backend.app.application.family_member.list_bank_accounts import (
     list_bank_accounts,
 )
@@ -49,6 +53,8 @@ __all__ = [
     "delete_family_member",
     "dismiss_irpf_suggestion",
     "get_irpf_suggestions",
+    "get_member_cpf_full",
+    "get_member_cpf_masked",
     "IrpfArtifactPayload",
     "IrpfArtifactSourceProtocol",
     "InstitutionLabelResolverProtocol",
