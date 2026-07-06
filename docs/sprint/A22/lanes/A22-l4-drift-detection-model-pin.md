@@ -4,7 +4,7 @@ type: lane
 title: "Drift detection (3 sinais) + pin de model-snapshot"
 sprint: A22
 plan: PLAN-launch-trust
-status: planned
+status: shipped
 priority: P1
 branch_slug: a22-l4-drift-detection-model-pin
 depends_on:
@@ -13,7 +13,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a22
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/llm
 ---
@@ -48,3 +48,17 @@ model (não `latest`), usando a telemetria de prompt já em `main`.
 - Owner: `prompt-engineer`.
 - Estende telemetria existente (ADR-110 / ADR-233); sem ADR nova.
 - Federa F3-O4 do plano dono. Escorrega para A23 sem bloquear o fechamento.
+
+## Entrega (2026-07-06)
+
+Shipped via `backend/app/services/parecer_drift_monitor.py` + hook fail-open
+em `planner_review_persistence._safe_persist` (pós-commit). **5 sinais** (3 da
+lane + 2 do co-design `prompt-engineer`): confidence Δ e needs_review Δ com
+banda `max(floor, 2·SE)` e piso N=8 (honesto com N pequeno), tokens/custo Δ
+±30%, duration p95 Δ ±40% (proxy de reask storm ADR-292/294), model swap sob
+mesma prompt_version (warn N=1). Janela por `(prompt_version, model_name)`;
+baseline relativo `prev_version` com skip de baseline ruidoso; contrato aberto
+p/ `baseline_kind="golden"` quando [[A22.l1]] destravar. Pin: PARECER_MODEL já
+era literal — travado por `tests/unit/pipeline/test_parecer_model_pin.py`.
+Temp permanece 0.1 (ADR-202; o 0.3 da spec original não foi aplicado — mudança
+de temperatura é decisão de prompt fora do escopo de observabilidade).

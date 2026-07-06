@@ -321,11 +321,15 @@ def _safe_persist(db: Session, *, workspace_id: str, run_id: str, detail: dict) 
             db, workspace_id=workspace_id, run_id=run_id, detail=detail
         )
         db.commit()
-        return review_id
     except Exception:  # noqa: BLE001 — log e segue; artifact já está commitado
         db.rollback()
         logger.exception("planner_review_persistence_failed", extra={"run_id": run_id})
         return None
+    # A22.l4 — drift observability pós-commit; fail-open próprio (não desfaz o review).
+    from backend.app.services.parecer_drift_monitor import emit_parecer_drift
+
+    emit_parecer_drift(db, workspace_id)
+    return review_id
 
 
 def persist_after_stage_success(db: Session, *, run_id: str, detail: dict) -> Optional[str]:

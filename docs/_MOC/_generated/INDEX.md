@@ -625,7 +625,7 @@
 | A22.l1 | lane | shipped | A22 | 24 golden fixtures do Parecer + métrica de eval em CI | `sprint/A22/lanes/A22-l1-parecer-golden-eval.md` |
 | A22.l2 | lane | shipped | A22 | Validação em 3 camadas (schema → invariante → 7 red lines hard-block) | `sprint/A22/lanes/A22-l2-validacao-3-camadas-red-lines.md` |
 | A22.l3 | lane | shipped | A22 | Fallback needs_review atômico (LLM down → relatório não quebra) | `sprint/A22/lanes/A22-l3-fallback-needs-review-atomico.md` |
-| A22.l4 | lane | planned | A22 | Drift detection (3 sinais) + pin de model-snapshot | `sprint/A22/lanes/A22-l4-drift-detection-model-pin.md` |
+| A22.l4 | lane | shipped | A22 | Drift detection (3 sinais) + pin de model-snapshot | `sprint/A22/lanes/A22-l4-drift-detection-model-pin.md` |
 | A22.l5 | lane | shipped | A22 | Dedup de dívida cross-year (max(ano) + warning) + schema formal de dividas | `sprint/A22/lanes/A22-l5-dedup-divida-cross-year.md` |
 | A23.l1 | lane | shipped | A23 | Data Lineage F0 — fechar 4 ADR Proposto + emenda ADR-146 (B1–B8) | `sprint/A23/lanes/A23-l1-data-lineage-f0-adr-gate.md` |
 | A23.l2 | lane | shipped | A23 | Data Lineage F1 — substrato de golden (diff tool + view-model snapshot + invariantes) | `sprint/A23/lanes/A23-l2-golden-substrate.md` |
