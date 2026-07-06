@@ -110,6 +110,7 @@ jobs:
       any_code: ${{ steps.filter.outputs.any_code_any_changed }}
       report: ${{ steps.filter.outputs.report_any_changed }}
       migration: ${{ steps.filter.outputs.migration_any_changed }}
+      go: ${{ steps.filter.outputs.go_any_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -145,6 +146,18 @@ jobs:
               - 'config/schemas/**'
               - 'requirements.in'
               - 'requirements.lock'
+              - '.github/workflows/ci.yml'
+            go:
+              - '**.go'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'services/**'
+              - '.golangci.yml'
+              # Fontes dos codegens Go — mudanças exigem re-check de sync.
+              - 'pipeline/stage_spec.py'
+              - 'docs/reference/api/v1/pipeline-service.openapi.json'
+              - 'dev/codegen_stage_registry_go.py'
+              - 'dev/convert_openapi_31_to_30.py'
               - '.github/workflows/ci.yml'
             any_code:
               - '**'
@@ -850,6 +863,60 @@ jobs:
             frontend/tests/e2e/reports/__snapshots__/
           retention-days: 30
 
+  go-lint:
+    name: Go lint (golangci v2 + gofmt + vet)
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: services/pipeline-service-go/go.sum
+      - name: gofmt check
+        run: |
+          unformatted=$(gofmt -s -l services/ 2>/dev/null || true)
+          if [ -n "$unformatted" ]; then echo "✗ gofmt:"; echo "$unformatted"; exit 1; fi
+      - name: go vet
+        working-directory: services/pipeline-service-go
+        run: go vet ./...
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
+          working-directory: services/pipeline-service-go
+          args: --timeout=3m
+
+  go-test:
+    name: Go test -race + codegen sync
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: services/pipeline-service-go/go.sum
+      - name: "Codegen sync — stage registry (fonte: pipeline/stage_spec.py)"
+        run: python3 dev/codegen_stage_registry_go.py --check
+      - name: Codegen sync — OpenAPI 3.0 derivado
+        run: python3 dev/convert_openapi_31_to_30.py --check
+      - name: Contracts regen limpo (oapi-codegen)
+        working-directory: services/pipeline-service-go
+        run: |
+          go tool oapi-codegen --config codegen.yaml ../../docs/reference/api/v1/pipeline-service.openapi.3_0.json
+          git diff --exit-code internal/contracts/ || { echo "✗ contracts_gen.go dessincronizado"; exit 1; }
+      - name: Tests with race detector
+        working-directory: services/pipeline-service-go
+        run: go test ./... -race -count=1 -timeout=5m
+      - name: Build
+        working-directory: services/pipeline-service-go
+        run: go build ./...
+
   all-green:
     # Meta-job: aceita success OU skipped (paths-filter pula jobs por área).
     # Falha apenas se algum job upstream falhou ou foi cancelado.
@@ -865,17 +932,21 @@ jobs:
       - pipeline-tests
       - backend-tests
       - frontend-checks
+      - go-lint
+      - go-test
     if: always()
     steps:
       - name: Verify all required jobs passed or were skipped
         run: |
           fail=0
-          for job in lint-all pipeline-tests backend-tests frontend-checks; do
+          for job in lint-all pipeline-tests backend-tests frontend-checks go-lint go-test; do
             case "$job" in
               lint-all) result="${{ needs.lint-all.result }}" ;;
               pipeline-tests) result="${{ needs.pipeline-tests.result }}" ;;
               backend-tests) result="${{ needs.backend-tests.result }}" ;;
               frontend-checks) result="${{ needs.frontend-checks.result }}" ;;
+              go-lint) result="${{ needs.go-lint.result }}" ;;
+              go-test) result="${{ needs.go-test.result }}" ;;
             esac
             if [[ "$result" != "success" && "$result" != "skipped" ]]; then
               echo "✗ $job: $result"
