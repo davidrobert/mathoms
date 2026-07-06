@@ -21,11 +21,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models.llm_call_log import LLMCallLog
+from pipeline.artifact_store import stage_aliases
 
 logger = logging.getLogger("mathoms.llm.parecer_drift")
 
-#: Rows legadas gravaram "E6-parecer"; pós-F9.6 o stage é descritivo.
-PARECER_STAGES = ("review_finances_holistic", "E6-parecer")
+#: Ambas as formas do stage do parecer (rows legadas + descritivo pós-F9.6).
+PARECER_STAGES = stage_aliases("review_finances_holistic")
 
 #: Piso de amostra por janela — abaixo disso proporção não distingue ruído.
 MIN_WINDOW_N = 8
