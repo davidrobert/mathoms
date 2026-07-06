@@ -17,6 +17,8 @@ from backend.app.schemas.dto.family_member.mapper import (
 )
 from backend.app.schemas.dto.family_member.response import (
     BankAccountResponse,
+    CpfFullResponse,
+    CpfMaskedResponse,
     FamilyMemberListResponse,
     FamilyMemberResponse,
     IrpfSuggestionItem,
@@ -27,6 +29,8 @@ __all__ = [
     "BankAccountCreateCommand",
     "BankAccountResponse",
     "BankAccountUpdateCommand",
+    "CpfFullResponse",
+    "CpfMaskedResponse",
     "FamilyMemberCreateCommand",
     "FamilyMemberListResponse",
     "FamilyMemberResponse",

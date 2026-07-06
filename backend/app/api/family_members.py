@@ -21,6 +21,8 @@ from backend.app.application.family_member import (
     delete_family_member,
     dismiss_irpf_suggestion,
     get_irpf_suggestions,
+    get_member_cpf_full,
+    get_member_cpf_masked,
     list_bank_accounts,
     list_family_members,
     update_bank_account,
@@ -28,7 +30,7 @@ from backend.app.application.family_member import (
 )
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
-from backend.app.core.tenancy import get_current_workspace
+from backend.app.core.tenancy import get_current_workspace, require_owner_role
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.family_member_repository import FamilyMemberRepository
@@ -36,6 +38,8 @@ from backend.app.schemas.dto.family_member import (
     BankAccountCreateCommand,
     BankAccountResponse,
     BankAccountUpdateCommand,
+    CpfFullResponse,
+    CpfMaskedResponse,
     FamilyMemberCreateCommand,
     FamilyMemberListResponse,
     FamilyMemberResponse,
@@ -51,6 +55,7 @@ from backend.app.services.irpf_suggestion_adapters import (
     find_dismissal_for_account,
     normalize_account_digits,
 )
+from backend.app.services.rate_limit import rate_limited, workspace_key
 from backend.app.services.vault import get_vault
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
@@ -118,6 +123,50 @@ async def delete_member(
     repo: FamilyMemberRepository = Depends(_get_repo),
 ) -> None:
     await delete_family_member(member_id, workspace_id=workspace.id, repo=repo)
+
+
+@router.get(
+    "/members/{member_id}/cpf",
+    response_model=CpfMaskedResponse,
+    dependencies=[
+        Depends(
+            record_access_audit(
+                AuditAction.family_member_read, "family_member", resource_id_param="member_id"
+            )
+        )
+    ],
+)
+async def get_member_cpf_masked_endpoint(
+    member_id: str,
+    workspace: Workspace = Depends(get_current_workspace),
+    repo: FamilyMemberRepository = Depends(_get_repo),
+) -> CpfMaskedResponse:
+    """CPF mascarado (``***.***.789-00``) — visível a qualquer role (ADR-259 §4)."""
+    return await get_member_cpf_masked(
+        member_id, workspace_id=workspace.id, repo=repo, vault=_vault
+    )
+
+
+@router.get(
+    "/members/{member_id}/cpf/full",
+    response_model=CpfFullResponse,
+    dependencies=[
+        Depends(require_owner_role),
+        rate_limited("cpf_view_full", key=workspace_key),
+        Depends(
+            record_access_audit(
+                AuditAction.cpf_view_full, "family_member", resource_id_param="member_id"
+            )
+        ),
+    ],
+)
+async def get_member_cpf_full_endpoint(
+    member_id: str,
+    workspace: Workspace = Depends(get_current_workspace),
+    repo: FamilyMemberRepository = Depends(_get_repo),
+) -> CpfFullResponse:
+    """CPF completo — owner-only, rate limited, auditado (ADR-259 §4)."""
+    return await get_member_cpf_full(member_id, workspace_id=workspace.id, repo=repo, vault=_vault)
 
 
 @router.get(

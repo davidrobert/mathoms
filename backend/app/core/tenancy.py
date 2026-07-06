@@ -146,6 +146,9 @@ def require_role(
 # Dependencies prontas — use-as direto em `Depends(...)`
 require_write_role = require_role(WRITE_ROLES)
 require_member_admin_role = require_role(MEMBER_ADMIN_ROLES)
+# Owner-only explícito (ADR-259 §4) — desacoplado de MEMBER_ADMIN_ROLES para
+# não herdar mudança futura de escopo de "quem administra membros".
+require_owner_role = require_role(frozenset({"owner"}))
 
 
 async def require_workspace_role(

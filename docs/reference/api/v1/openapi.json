@@ -2281,6 +2281,39 @@
         "title": "ConsumoPontuaisResponse",
         "type": "object"
       },
+      "CpfFullResponse": {
+        "description": "``GET /members/{id}/cpf/full`` \u2014 CPF completo, owner-only + auditado (ADR-259 \u00a74).",
+        "properties": {
+          "cpf_full": {
+            "maxLength": 14,
+            "title": "Cpf Full",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cpf_full"
+        ],
+        "title": "CpfFullResponse",
+        "type": "object"
+      },
+      "CpfMaskedResponse": {
+        "description": "``GET /members/{id}/cpf`` \u2014 m\u00e1scara can\u00f4nica, vis\u00edvel a qualquer role (ADR-259 \u00a74).",
+        "properties": {
+          "cpf_masked": {
+            "examples": [
+              "***.***.789-00"
+            ],
+            "maxLength": 20,
+            "title": "Cpf Masked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cpf_masked"
+        ],
+        "title": "CpfMaskedResponse",
+        "type": "object"
+      },
       "DashboardAlert": {
         "properties": {
           "message": {
@@ -17519,6 +17552,120 @@
           }
         ],
         "summary": "Update Account",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/members/{member_id}/cpf": {
+      "get": {
+        "description": "CPF mascarado (``***.***.789-00``) \u2014 vis\u00edvel a qualquer role (ADR-259 \u00a74).",
+        "operationId": "get_member_cpf_masked_endpoint_api_v1_workspaces__workspace_id__config_members__member_id__cpf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "title": "Member Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CpfMaskedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Member Cpf Masked Endpoint",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/members/{member_id}/cpf/full": {
+      "get": {
+        "description": "CPF completo \u2014 owner-only, rate limited, auditado (ADR-259 \u00a74).",
+        "operationId": "get_member_cpf_full_endpoint_api_v1_workspaces__workspace_id__config_members__member_id__cpf_full_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "title": "Member Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CpfFullResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Member Cpf Full Endpoint",
         "tags": [
           "config"
         ]

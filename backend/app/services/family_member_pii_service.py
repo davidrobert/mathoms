@@ -76,6 +76,14 @@ def _match_cpf_in_documents(docs: list[Path], full_name: str, extractor) -> Opti
     return None
 
 
+def mask_cpf_last_digits(cpf_plain: str) -> str:
+    """Máscara canônica ``***.***.789-00`` (ADR-259 §4) — 3 dígitos do corpo + verificadores."""
+    digits = "".join(c for c in cpf_plain if c.isdigit())
+    if len(digits) != 11:
+        raise ValueError(f"CPF deve ter 11 dígitos, recebido {len(digits)}: {cpf_plain!r}")
+    return f"***.***.{digits[6:9]}-{digits[9:11]}"
+
+
 def _members_without_cpf(db: Session, workspace_id: str) -> list[FamilyMember]:
     stmt = select(FamilyMember).where(
         FamilyMember.workspace_id == workspace_id,

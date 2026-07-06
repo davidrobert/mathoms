@@ -18,6 +18,7 @@ from backend.app.models import FamilyMember, PipelineArtifact, PipelineRun, User
 from backend.app.services.family_member_pii_service import (
     backfill_member_cpfs,
     cpf_near_name,
+    mask_cpf_last_digits,
     purge_cpf_from_e1_artifacts,
 )
 from backend.app.services.vault import get_vault
@@ -60,6 +61,24 @@ def _write_irpf_doc(tenant_root, text: str) -> None:
     d = tenant_root / "data" / "income_tax_br"
     d.mkdir(parents=True)
     (d / "irpfdeclaracao_2024.txt").write_text(text)
+
+
+# ---------------------------------------------------------------------------
+# mask_cpf_last_digits (ADR-259 §4)
+# ---------------------------------------------------------------------------
+
+
+def test_mask_cpf_last_digits_canonical_format() -> None:
+    assert mask_cpf_last_digits(_CPF) == "***.***.789-09"
+
+
+def test_mask_cpf_last_digits_accepts_plain_digits() -> None:
+    assert mask_cpf_last_digits(_CPF_DIGITS) == "***.***.789-09"
+
+
+def test_mask_cpf_last_digits_rejects_wrong_length() -> None:
+    with pytest.raises(ValueError):
+        mask_cpf_last_digits("123.456.789")
 
 
 # ---------------------------------------------------------------------------

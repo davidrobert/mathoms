@@ -80,6 +80,7 @@ class AuditAction(str, enum.Enum):
     family_member_read = "family_member.read"
     document_read = "document.read"
     document_download = "document.download"
+    cpf_view_full = "cpf.view_full"
 
     # Meta — purge de retenção de audit de leitura (ADR-275 D5; retido, não purgado)
     audit_purge = "audit.purge"
@@ -101,6 +102,7 @@ READ_ACCESS_ACTIONS: frozenset[str] = frozenset(
         AuditAction.family_member_read.value,
         AuditAction.document_read.value,
         AuditAction.document_download.value,
+        AuditAction.cpf_view_full.value,
     }
 )
 
