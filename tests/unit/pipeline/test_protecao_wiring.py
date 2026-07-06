@@ -152,11 +152,14 @@ class TestResolveRendaAnualLiquida:
         assert resolve_renda_anual_liquida(None, {}) == Decimal("0")
 
     def test_irpf_first_quando_disponivel(self):
+        from pipeline.domain.services.irpf_completude import CompletudeAno
+
         class FakeIRPF:
-            def ano_base_default(self):
-                return 2025
+            def estados_completude(self):
+                return {2025: (CompletudeAno.completo, None)}
 
             def renda_liquida_familiar(self, ano):
+                assert ano == 2025
                 return Decimal("300000")
 
         renda = resolve_renda_anual_liquida(

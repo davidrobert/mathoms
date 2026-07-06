@@ -19,6 +19,7 @@ from decimal import Decimal
 from typing import Any, Optional
 
 from pipeline.artifact_store import ArtifactStore
+from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
 from pipeline.domain.services.protecao_analyzer import (
     FamilyMemberSnapshot,
     FiscalSnapshot,
@@ -106,8 +107,19 @@ def resolve_renda_anual_liquida(irpf_analyzer, fluxo_legacy: dict) -> Decimal:
     return Decimal(str(mensal)) * 12
 
 
+def _ano_base_fiscal(irpf_analyzer) -> Optional[int]:
+    """Ano-base fiscal único (ADR-305) — mesmo ano de irpf_kpis/previdencia_pgbl."""
+    if irpf_analyzer is None:
+        return None
+    try:
+        resolved = resolve_ano_base_fiscal(irpf_analyzer.estados_completude())
+    except Exception:
+        return None
+    return resolved.ano if resolved is not None else None
+
+
 def _renda_liquida_irpf(irpf_analyzer) -> Optional[Decimal]:
-    ano = irpf_analyzer.ano_base_default() if irpf_analyzer is not None else None
+    ano = _ano_base_fiscal(irpf_analyzer)
     if ano is None:
         return None
     try:
@@ -149,9 +161,7 @@ def _as_positive(valor: Any) -> bool:
 
 
 def _has_deducao_saude_irpf(irpf_analyzer) -> bool:
-    if irpf_analyzer is None:
-        return False
-    ano = irpf_analyzer.ano_base_default()
+    ano = _ano_base_fiscal(irpf_analyzer)
     if ano is None:
         return False
     try:
