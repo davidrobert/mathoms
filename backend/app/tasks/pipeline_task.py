@@ -1074,7 +1074,11 @@ def _execute_stages_loop(
                 break
             continue
 
-        if result.success and is_llm and _has_validation_errors(result):
+        # A28.l8: needs_review deixa de ser exclusivo de stage LLM — E3
+        # determinístico emite validation.valid=False para período implausível
+        # / banco vazio (review_reasons ADR-272). Stages sem bloco validation
+        # seguem intocados (_has_validation_errors default valid=True).
+        if result.success and _has_validation_errors(result):
             # needs_review: commit artefatos coletados antes de pausar.
             try:
                 _commit_and_close_artifact_session(stage_session)

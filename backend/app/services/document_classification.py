@@ -130,6 +130,24 @@ def _map_fatura(code: str) -> DocumentType:
     return DocumentType.other if code.startswith("faturaaluguel") else DocumentType.credit_card_bill
 
 
+# Códigos que vivem em .other POR DESIGN (consumidores próprios): aluguel
+# (ADR-216, stage extract_informe_aluguel) — não confundir com código sem
+# pipeline nenhum.
+_INTENTIONAL_OTHER_PREFIXES = ("faturaaluguel", "informerendimentosaluguel")
+
+
+def maps_to_other_without_pipeline(e0_doc_type: str | None) -> bool:
+    """A28.l8: código E0 que cai em ``DocumentType.other`` sem stage consumidor
+    (ex.: Binance CSV, informe Stone PJ) — deve virar needs_review, nunca sair
+    do pipeline em silêncio."""
+    if not e0_doc_type:
+        return False
+    code = e0_doc_type.lower()
+    if any(code.startswith(p) for p in _INTENTIONAL_OTHER_PREFIXES):
+        return False
+    return map_e0_doc_type_to_document_type(code) is DocumentType.other
+
+
 def map_e0_doc_type_to_document_type(e0_doc_type: str) -> DocumentType:
     """Map E0-route doc_type string to :class:`DocumentType`."""
     if not e0_doc_type:
@@ -265,6 +283,13 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
     if _requires_institution(best_type) and not best_institution:
         needs_review = True
         meta["needs_review_reason"] = "missing_institution_for_bank_statement"
+    if maps_to_other_without_pipeline(best_type):
+        # A28.l8 — Binance CSV / informe Stone PJ caíam em .other sem flag.
+        needs_review = True
+        meta["needs_review_reason"] = (
+            f"doc_type_sem_pipeline:{best_type} — sem parser/stage consumidor; "
+            "revisar tipo do documento ou aguardar suporte (candidato A29+)"
+        )
     meta["confidence"] = confidence
     meta["needs_review"] = needs_review
 

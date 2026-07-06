@@ -11,12 +11,10 @@ Extrai duas responsabilidades de ``scripts/e3_reconcile.py::load_and_group_e2_ex
        (``data_vencimento`` → tx dates) e ajusta ``inicio`` para o min de
        ``transacoes[].data`` se anterior ao sintetizado.
 
-- ``AnachronicTransactionDropper``: remove transações com ``data >`` N dias
-  antes de ``periodo.inicio`` (default 180). Equivalente ao guard #4 do legado
-  (e3_reconcile.py:772-795) que descarta registros pré-período (tipicamente
-  posições de investimento mal-classificadas como extratos).
+- ``AnachronicTransactionDropper`` (guard #4 do legado) vive em
+  ``pipeline/domain/services/anachronic_guard.py`` desde A28.l8 (P2 ≤500).
 
-Ambos operam sobre o **dict** legado E2 (não ``BankStatement``) porque a
+O normalizer opera sobre o **dict** legado E2 (não ``BankStatement``) porque a
 sintese de período é pré-requisito para ``BankStatement.from_e2_dict``
 (que exige ``periodo_inicio``/``periodo_fim`` ou ``periodo``). O caller faz a
 conversão depois de normalizar.
@@ -29,9 +27,25 @@ from __future__ import annotations
 
 import copy
 from calendar import monthrange
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+
+# Re-export de back-compat — consumidores históricos importam o guard daqui.
+from pipeline.domain.services.anachronic_guard import (
+    AnachronicFilterResult as AnachronicFilterResult,
+)
+from pipeline.domain.services.anachronic_guard import (
+    AnachronicGuardConfig as AnachronicGuardConfig,
+)
+from pipeline.domain.services.anachronic_guard import (
+    AnachronicTransactionDropper as AnachronicTransactionDropper,
+)
+from pipeline.domain.services.anachronic_guard import (
+    AnachronicTransactionWarning as AnachronicTransactionWarning,
+)
 
 # =============================================================================
 # Reasons (enum-like — mantém warnings type-safe)
@@ -45,6 +59,7 @@ class PeriodDerivationReason:
     PERIODO_STRING_DATE = "periodo_string_date"
     PERIODO_STRING_INVALID = "periodo_string_invalid"
     PERIODO_UNEXPECTED_TYPE = "periodo_unexpected_type"
+    PERIODO_YEAR_IMPLAUSIBLE = "periodo_year_implausible"
     FATURA_DERIVED_FROM_DATA_VENCIMENTO = "fatura_derived_from_data_vencimento"
     FATURA_INICIO_ADJUSTED_TO_TX = "fatura_inicio_adjusted_to_tx"
     FATURA_DERIVED_FROM_TX_DATES = "fatura_derived_from_tx_dates"
@@ -52,19 +67,49 @@ class PeriodDerivationReason:
 
 
 # =============================================================================
-# Config
+# Plausibilidade de período (A28.l8)
 # =============================================================================
 
+# Sentinel oficial de "período desconhecido" — propaga E0→E2→E3 e é tratado
+# downstream; nunca deve ser confundido com ano-fantasma (1899/2100 vindos de
+# clamp de ``safe_date`` ou string bruta de parser).
+PERIOD_SENTINEL = "999999"
+PLAUSIBLE_YEAR_MIN = 2015
+PLAUSIBLE_YEAR_MAX = 2035
 
-@dataclass(frozen=True)
-class AnachronicGuardConfig:
-    """Janela máxima entre ``periodo.inicio`` e ``transacoes[].data`` antes que
-    a transação seja considerada anachronic e descartada.
 
-    Default 180 dias (6 meses), idêntico ao legado.
-    """
+def _year_implausible(value: str | None) -> bool:
+    """True se os 4 primeiros dígitos formam ano fora de [2015, 2035]."""
+    if not value:
+        return False
+    head = str(value).strip()[:4]
+    if len(head) < 4 or not head.isdigit():
+        return False
+    return not (PLAUSIBLE_YEAR_MIN <= int(head) <= PLAUSIBLE_YEAR_MAX)
 
-    max_days_before_periodo_inicio: int = 180
+
+def _implausible_periodo_value(*values: str | None) -> str | None:
+    """Primeiro valor de período com ano-fantasma; sentinel oficial é passthrough."""
+    for v in values:
+        if v and str(v).strip().startswith(PERIOD_SENTINEL):
+            continue
+        if _year_implausible(v):
+            return str(v)
+    return None
+
+
+def _implausible_warning(offending: str, source: str | None) -> "PeriodDerivationWarning":
+    return _string_warning(
+        PeriodDerivationReason.PERIODO_YEAR_IMPLAUSIBLE, offending, "", "", source
+    )
+
+
+def _string_warning(
+    reason: str, raw: str, inicio: str, fim: str, source: str | None
+) -> "PeriodDerivationWarning":
+    return PeriodDerivationWarning(
+        source=source, reason=reason, derived_inicio=inicio, derived_fim=fim, raw_value=raw
+    )
 
 
 # =============================================================================
@@ -92,23 +137,23 @@ class PeriodDerivationWarning:
             parts.append(f"raw={self.raw_value!r}")
         return " ".join(parts)
 
-
-@dataclass(frozen=True)
-class AnachronicTransactionWarning:
-    """Notifica transações descartadas por estarem >N dias antes do período."""
-
-    source: str | None
-    periodo_inicio: str
-    cutoff: str
-    dropped_count: int
-    sample_dates: tuple[str, ...] = field(default_factory=tuple)
-
-    def format(self) -> str:
-        sample = ",".join(self.sample_dates[:3])
-        return (
-            f"anachronic-drop src={self.source or '?'} "
-            f"periodo_inicio={self.periodo_inicio} cutoff={self.cutoff} "
-            f"dropped={self.dropped_count} sample=[{sample}]"
+    def to_review_reason(
+        self, *, stage: str, artifact_key: str, document_id: str | None
+    ) -> ReviewReason | None:
+        """Projeta (ADR-272) para ReviewReason; só período implausível vira reason."""
+        if self.reason != PeriodDerivationReason.PERIODO_YEAR_IMPLAUSIBLE:
+            return None
+        return ReviewReason(
+            code=ReviewReasonCode.dedup_sentinel_period,
+            stage=stage,
+            artifact_key=artifact_key,
+            document_id=document_id,
+            offending_value=self.raw_value or f"{self.derived_inicio}..{self.derived_fim}",
+            expected=(
+                f"ano de periodo em [{PLAUSIBLE_YEAR_MIN}, {PLAUSIBLE_YEAR_MAX}] "
+                f"ou sentinel {PERIOD_SENTINEL}"
+            ),
+            message="periodo implausivel na normalizacao E3; documento requer revisao",
         )
 
 
@@ -132,18 +177,6 @@ class NormalizationResult:
     data: dict[str, Any]
     skip: bool
     warnings: tuple[PeriodDerivationWarning, ...]
-
-
-@dataclass(frozen=True)
-class AnachronicFilterResult:
-    """Saída de ``AnachronicTransactionDropper.filter``.
-
-    - ``data``: cópia do dict com ``transacoes`` filtradas.
-    - ``warning``: ``None`` se nada foi descartado.
-    """
-
-    data: dict[str, Any]
-    warning: AnachronicTransactionWarning | None
 
 
 # =============================================================================
@@ -186,12 +219,18 @@ class StatementPeriodNormalizer:
         # planos do JSON Schema E2). Quando ambos estão presentes, o dict já
         # está pronto para ``BankStatement.from_e2_dict`` — nada a fazer.
         if out.get("periodo_inicio") and out.get("periodo_fim"):
+            offending = _implausible_periodo_value(out["periodo_inicio"], out["periodo_fim"])
+            if offending is not None:
+                return self._implausible_result(out, offending, source_name, warnings)
             return NormalizationResult(out, skip=False, warnings=())
 
         periodo = out.get("periodo")
 
         # Caso 1: periodo já é dict → propaga para campos planos se ausentes.
         if isinstance(periodo, dict):
+            offending = _implausible_periodo_value(periodo.get("inicio"), periodo.get("fim"))
+            if offending is not None:
+                return self._implausible_result(out, offending, source_name, warnings)
             self._propagate_to_flat_fields(out, periodo)
             return NormalizationResult(out, skip=False, warnings=())
 
@@ -200,6 +239,12 @@ class StatementPeriodNormalizer:
             warning, expanded = self._expand_periodo_string(periodo, source_name)
             if warning is not None:
                 warnings.append(warning)
+            implausible = (
+                warning is not None
+                and warning.reason == PeriodDerivationReason.PERIODO_YEAR_IMPLAUSIBLE
+            )
+            if implausible:
+                return NormalizationResult(out, skip=True, warnings=tuple(warnings))
             out["periodo"] = expanded
             self._propagate_to_flat_fields(out, expanded)
             return NormalizationResult(out, skip=False, warnings=tuple(warnings))
@@ -220,6 +265,14 @@ class StatementPeriodNormalizer:
 
         if synth_skip:
             return NormalizationResult(out, skip=True, warnings=tuple(warnings))
+
+        # Guardrail A28.l8: síntese herda datas clampadas por ``safe_date``
+        # (ex.: c6bank faturacarbon → 2100-xx via FATURA_DERIVED_FROM_TX_DATES).
+        offending = _implausible_periodo_value(
+            synth_periodo.get("inicio"), synth_periodo.get("fim")
+        )
+        if offending is not None:
+            return self._implausible_result(out, offending, source_name, warnings)
 
         out["periodo"] = synth_periodo
         self._propagate_to_flat_fields(out, synth_periodo)
@@ -245,54 +298,58 @@ class StatementPeriodNormalizer:
 
     # -- helpers --
 
+    def _implausible_result(
+        self,
+        out: dict[str, Any],
+        offending: str,
+        source: str | None,
+        warnings: list[PeriodDerivationWarning],
+    ) -> NormalizationResult:
+        """Período com ano-fantasma nunca vira artefato silencioso (A28.l8)."""
+        warnings.append(_implausible_warning(offending, source))
+        return NormalizationResult(out, skip=True, warnings=tuple(warnings))
+
     def _expand_periodo_string(
         self, raw: str, source: str | None
     ) -> tuple[PeriodDerivationWarning | None, dict[str, str]]:
         s = raw.strip()
         if len(s) == 6 and s.isdigit():
-            y, m = int(s[:4]), int(s[4:6])
-            if 1 <= m <= 12:
-                last = monthrange(y, m)[1]
-                expanded = {
-                    "inicio": f"{y}-{m:02d}-01",
-                    "fim": f"{y}-{m:02d}-{last:02d}",
-                }
-                return (
-                    PeriodDerivationWarning(
-                        source=source,
-                        reason=PeriodDerivationReason.PERIODO_STRING_YYYYMM,
-                        derived_inicio=expanded["inicio"],
-                        derived_fim=expanded["fim"],
-                        raw_value=raw,
-                    ),
-                    expanded,
-                )
+            yyyymm = self._expand_yyyymm(raw, s, source)
+            if yyyymm is not None:
+                return yyyymm
 
         if len(s) >= 10 and s[4] == "-" and s[7] == "-":
-            d = s[:10]
-            expanded = {"inicio": d, "fim": d}
-            return (
-                PeriodDerivationWarning(
-                    source=source,
-                    reason=PeriodDerivationReason.PERIODO_STRING_DATE,
-                    derived_inicio=d,
-                    derived_fim=d,
-                    raw_value=raw,
-                ),
-                expanded,
-            )
+            return self._expand_iso_date(raw, s, source)
 
-        empty = {"inicio": "", "fim": ""}
-        return (
-            PeriodDerivationWarning(
-                source=source,
-                reason=PeriodDerivationReason.PERIODO_STRING_INVALID,
-                derived_inicio="",
-                derived_fim="",
-                raw_value=raw,
-            ),
-            empty,
+        invalid = _string_warning(
+            PeriodDerivationReason.PERIODO_STRING_INVALID, raw, "", "", source
         )
+        return invalid, {"inicio": "", "fim": ""}
+
+    @staticmethod
+    def _expand_yyyymm(
+        raw: str, s: str, source: str | None
+    ) -> tuple[PeriodDerivationWarning, dict[str, str]] | None:
+        """Expande YYYYMM; None se mês inválido (sentinel 999999 cai em INVALID)."""
+        y, m = int(s[:4]), int(s[4:6])
+        if not (1 <= m <= 12):
+            return None
+        if not (PLAUSIBLE_YEAR_MIN <= y <= PLAUSIBLE_YEAR_MAX):
+            return _implausible_warning(raw, source), {"inicio": "", "fim": ""}
+        last = monthrange(y, m)[1]
+        expanded = {"inicio": f"{y}-{m:02d}-01", "fim": f"{y}-{m:02d}-{last:02d}"}
+        reason = PeriodDerivationReason.PERIODO_STRING_YYYYMM
+        return _string_warning(reason, raw, expanded["inicio"], expanded["fim"], source), expanded
+
+    @staticmethod
+    def _expand_iso_date(
+        raw: str, s: str, source: str | None
+    ) -> tuple[PeriodDerivationWarning, dict[str, str]]:
+        d = s[:10]
+        if _year_implausible(d):
+            return _implausible_warning(raw, source), {"inicio": "", "fim": ""}
+        warning = _string_warning(PeriodDerivationReason.PERIODO_STRING_DATE, raw, d, d, source)
+        return warning, {"inicio": d, "fim": d}
 
     def _synthesize_fatura_periodo(
         self,
@@ -386,69 +443,3 @@ class StatementPeriodNormalizer:
             synth_inicio = tx_dates[0]
 
         return warnings, {"inicio": synth_inicio, "fim": synth_fim}, False
-
-
-# =============================================================================
-# AnachronicTransactionDropper
-# =============================================================================
-
-
-class AnachronicTransactionDropper:
-    """Remove transações com ``data <`` ``periodo.inicio - max_days_before``.
-
-    O legado loga e descarta esses registros (e3_reconcile.py:772-795). Aqui
-    fazemos o mesmo, mas retornando warning estruturado e sem mutar o input.
-
-    Não opera se ``periodo.inicio`` está vazio/ausente — nesse caso, retorna
-    o dict inalterado e nenhum warning.
-    """
-
-    def __init__(self, config: AnachronicGuardConfig | None = None) -> None:
-        self._config = config or AnachronicGuardConfig()
-
-    def filter(
-        self,
-        data: dict[str, Any],
-        source_name: str | None = None,
-    ) -> AnachronicFilterResult:
-        out = copy.deepcopy(data)
-        # Aceita formato dict (`periodo: {inicio, fim}`) usado pelo legado
-        # ``e3_reconcile`` E formato plano (`periodo_inicio`) do schema E2.
-        periodo_inicio = (out.get("periodo") or {}).get("inicio") or out.get("periodo_inicio") or ""
-        periodo_inicio = str(periodo_inicio)[:10]
-        if not periodo_inicio:
-            return AnachronicFilterResult(out, warning=None)
-
-        try:
-            dt_inicio = datetime.strptime(periodo_inicio, "%Y-%m-%d")
-        except ValueError:
-            return AnachronicFilterResult(out, warning=None)
-
-        cutoff = dt_inicio - timedelta(days=self._config.max_days_before_periodo_inicio)
-        cutoff_str = cutoff.strftime("%Y-%m-%d")
-
-        txns = out.get("transacoes") or []
-        if not txns:
-            return AnachronicFilterResult(out, warning=None)
-
-        kept: list[dict[str, Any]] = []
-        dropped: list[str] = []
-        for tx in txns:
-            tx_date = str(tx.get("data") or "")[:10]
-            if tx_date and tx_date < cutoff_str:
-                dropped.append(tx_date)
-            else:
-                kept.append(tx)
-
-        if not dropped:
-            return AnachronicFilterResult(out, warning=None)
-
-        out["transacoes"] = kept
-        warning = AnachronicTransactionWarning(
-            source=source_name,
-            periodo_inicio=periodo_inicio,
-            cutoff=cutoff_str,
-            dropped_count=len(dropped),
-            sample_dates=tuple(sorted(set(dropped))[:3]),
-        )
-        return AnachronicFilterResult(out, warning=warning)

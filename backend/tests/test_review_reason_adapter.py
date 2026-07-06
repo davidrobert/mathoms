@@ -220,3 +220,18 @@ async def test_record_stage_needs_review_persists_reasons(sync_db) -> None:
     assert rows[0].code == "extract.missing_required_field"
     assert rows[0].occurrence_count == 3
     assert run.status == PipelineRunStatus.needs_review
+
+
+def test_has_validation_errors_covers_deterministic_e3_shape() -> None:
+    """A28.l8: gate needs_review deixou de exigir is_llm — o contrato passa a ser
+    só o bloco validation do detail (E3 emite valid=False p/ período implausível
+    / banco vazio; stage sem bloco validation nunca pausa)."""
+    from backend.app.tasks.pipeline_task import _has_validation_errors
+
+    e3_detail = {
+        "files_created": [],
+        "validation": {"valid": False, "errors": ["periodo implausivel"], "review_reasons": []},
+    }
+    assert _has_validation_errors(_FakeStageResult(detail=e3_detail)) is True
+    assert _has_validation_errors(_FakeStageResult(detail={"files_created": []})) is False
+    assert _has_validation_errors(_FakeStageResult(detail={"validation": {"valid": True}})) is False

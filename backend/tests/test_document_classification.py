@@ -297,3 +297,54 @@ def test_classification_result_roundtrip_dict():
     assert d["doc_type"] == DocumentType.bank_statement
     assert d["e0_doc_type"] == "extratocontabrl"
     assert d["confidence"] == 0.95
+
+
+def _patch_classify_file(monkeypatch, *, doc_type: str, institution: str) -> None:
+    from backend.app.services import content_classifier
+    from backend.app.services.content_classifier import ContentClassification
+
+    def _fake_classify_file(filepath, _preview):
+        return ContentClassification(
+            doc_type=doc_type,
+            dest_group=None,
+            institution=institution,
+            period="202606",
+            confidence=0.95,
+            source="content_regex",
+        )
+
+    monkeypatch.setattr(content_classifier, "classify_file", _fake_classify_file)
+
+
+class TestOtherWithoutPipelineGate:
+    """A28.l8 — código E0 que mapeia para ``DocumentType.other`` sem stage
+    consumidor (dogfood: Binance CSV, informe Stone PJ) vira needs_review com
+    motivo acionável, nunca sai do pipeline em silêncio."""
+
+    def test_unmapped_code_maps_to_other_without_pipeline(self):
+        assert dc.maps_to_other_without_pipeline("extratocripto") is True
+        assert dc.maps_to_other_without_pipeline("informe_stone_pj") is True
+
+    def test_intentional_other_codes_are_not_flagged(self):
+        # ADR-216: aluguel vive em .other por design (stage próprio).
+        assert dc.maps_to_other_without_pipeline("faturaaluguel") is False
+        assert dc.maps_to_other_without_pipeline("informerendimentosaluguel2024") is False
+
+    def test_mapped_codes_are_not_flagged(self):
+        assert dc.maps_to_other_without_pipeline("extratocontabrl") is False
+        assert dc.maps_to_other_without_pipeline("irpfdeclaracao") is False
+        assert dc.maps_to_other_without_pipeline(None) is False
+
+    def test_classify_document_flags_other_without_pipeline(self, tmp_path, monkeypatch):
+        # Ex.: Binance CSV — regex de conteúdo reconhece com confidence alta,
+        # mas o código não tem parser/stage (cai em .other).
+        _patch_classify_file(monkeypatch, doc_type="extratocripto", institution="binance")
+        f = tmp_path / "binance.csv"
+        f.write_text("data,valor\n")
+
+        result = dc.classify_document(f, tmp_path, use_llm=False)
+
+        assert result["doc_type"] == DocumentType.other
+        assert result["needs_review"] is True
+        reason = result["classification_meta"]["needs_review_reason"]
+        assert reason.startswith("doc_type_sem_pipeline:extratocripto")

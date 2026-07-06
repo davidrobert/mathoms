@@ -422,3 +422,53 @@ class TestOrchestratorLLMStages:
         e2_ext_idx = FULL_ORDER.index("extract_statements")
         # E2 determinístico antes do extract_with_llm — só o que falhar no parser vai à IA.
         assert e1_idx < e15_idx < e15c_idx < e2_fat_idx < e2_ext_idx < e2_llm_idx
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# A28.l8 — HIGIENE DE INGESTÃO E2-llm (banco vazio → needs_review)
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class TestE2LLMIngestHygiene:
+    def test_output_to_e2_json_emits_banco(self):
+        # from_e2_dict lê `banco` (não `instituicao`); sem ele a key E3
+        # degradava para "_extrato_..." (dogfood 72883bde).
+        from pipeline.stages.extract_with_llm import _output_to_e2_json
+
+        e2 = _output_to_e2_json(make_e2_llm_output())
+
+        assert e2["banco"] == "btgpactual"
+        assert e2["instituicao"] == "btgpactual"
+
+    def test_needs_review_entry_carries_review_reason(self):
+        from pipeline.stages.extract_with_llm import _needs_review_entry
+
+        output = make_e2_llm_output()
+        entry = _needs_review_entry("doc_sem_banco.pdf", output)
+
+        assert entry["needs_review"] is True
+        assert entry["output"] is None
+        assert entry["review_reason"]["code"] == "extract.missing_required_field"
+        assert entry["review_reason"]["stage"] == "E2-llm"
+
+    def test_validation_block_flags_only_needs_review_docs(self):
+        from pipeline.stages.extract_with_llm import (
+            _e2llm_validation_block,
+            _needs_review_entry,
+        )
+
+        ok = {"file": "ok.pdf", "output": "ok-2_extract.json"}
+        flagged = _needs_review_entry("sem_banco.pdf", make_e2_llm_output())
+
+        block = _e2llm_validation_block([ok, flagged])
+
+        assert block["valid"] is False
+        assert len(block["review_reasons"]) == 1
+        assert "sem_banco.pdf" in block["errors"][0]
+
+    def test_validation_block_valid_when_all_ok(self):
+        from pipeline.stages.extract_with_llm import _e2llm_validation_block
+
+        block = _e2llm_validation_block([{"file": "ok.pdf", "output": "x"}])
+
+        assert block == {"valid": True, "errors": [], "review_reasons": []}
