@@ -4,7 +4,9 @@ type: lane
 title: "banner agregado de qualidade de dados no relatório + ressalva de fallback no Monte Carlo"
 sprint: A28
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 790
+ship_date: "2026-07-06"
 priority: P1
 branch_slug: report-data-quality-banner
 adrs: []
@@ -16,7 +18,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/frontend
 ---

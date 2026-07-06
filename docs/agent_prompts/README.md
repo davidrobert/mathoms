@@ -44,7 +44,7 @@ Prompts reusáveis para sessões em que **um agente orquestrador** coordena espe
 | [`archive/orchestrator_a24_f2f3-2026-06-10.md`](archive/orchestrator_a24_f2f3-2026-06-10.md) | A24 Data Lineage · F2 (de-leak da extração) + F3 (walking skeleton) + F4 (evidencia_path ∥) — fase de risco; pré-revisado (F2-B/F2-DB) | arquivado (sprint done 2026-06-10) |
 | [`orchestrator_a25_f5f6f7.md`](orchestrator_a25_f5f6f7.md) | A25 Data Lineage · F5 (reverso) + F6 (produto N1/N2) + F7 (debug LLM) + herdados (cutover K4→E4, decisão flip strict) — pré-revisado (product-manager + senior-cto) | ativo (2026-06-10) |
 | [`orchestrator_a26_consolidacao.md`](orchestrator_a26_consolidacao.md) | A26 Data Lineage · consolidação (flip strict + drops M2) — sprint `paused` 2026-07-03, retoma pós-gates de tráfego | ativo (2026-06-16) |
-| [`orchestrator_a28_report_trust.md`](orchestrator_a28_report_trust.md) | A28 Report Trust · 11 lanes em 3 ondas (fórmulas E5 + loop de dados + apresentação honesta) — pré-revisado (PM + IA + data-engineer + prompt-engineer) | ativo (2026-07-03) |
+| [`orchestrator_a28_report_trust-2026-07-06.md`](archive/orchestrator_a28_report_trust-2026-07-06.md) | A28 Report Trust · 11 lanes em 3 ondas (fórmulas E5 + loop de dados + apresentação honesta) — 11/11 shipped, sprint `done` | arquivado (2026-07-06) |
 
 **Convenção:** instâncias do template viram `orchestrator_<scope>.md` em `docs/agent_prompts/`. Quando o escopo é entregue (todas as ADRs flippadas `Decidido`), arquivar em [`archive/`](archive/) com data: `git mv orchestrator_<scope>.md archive/orchestrator_<scope>-YYYY-MM-DD.md`.
 
