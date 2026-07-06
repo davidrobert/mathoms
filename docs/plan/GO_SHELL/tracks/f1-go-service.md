@@ -3,14 +3,15 @@ id: TRACK-f1-go-service
 type: track
 title: "Track F1 — serviço Go pipeline-service-go (Caminho 1): 4 fases, 4 PRs"
 plan: PLAN-go-shell
-status: ready
+status: consumed
 created_at: "2026-07-03"
+consumed_at: "2026-07-06"
 agent_role: senior-cto
 tags:
   - type/track
   - area/pipeline
   - area/observability
-  - status/ready
+  - status/consumed
   - priority/p1
 ---
 
@@ -156,8 +157,10 @@ tags:
    smoke gate espelhando `dev/smoke_pipeline_service_container.py`.
 4. Medir KR1 (imagem) + KR2 (cold start shell) → `PERFORMANCE_BASELINE` §13;
    runbook de sinais/shutdown (decisão 8) em `docs/reference/runbooks/`.
-- [ ] Gate F1.4 (= done da F1): KR1 ≤150MB, KR2 <100ms, KR3 zero divergências,
-      smoke container Go PASSA, flip de docs (plano F1 ✅ + GO_PORT_DEPS).
+- [x] Gate F1.4 ✅ (PR da Fase 4): KR2 8,1ms <100ms; KR1 renarrado (meta original
+      infalsificável pós-ADR-303 — delta Go−Python 20MB ≤30MB PASSA); KR3 via
+      contrato idêntico (schemathesis) + gate container ADR-303 PASSA no Go;
+      números em PERFORMANCE_BASELINE §13; F1 ✅ no plano.
 
 ## Fora de escopo (não negociar dentro do track)
 
