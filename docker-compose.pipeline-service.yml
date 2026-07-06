@@ -52,3 +52,33 @@ services:
       # DB do smoke (criado por `make smoke-up`) + workspaces visíveis no container.
       - ./mathoms-smoke.db:/repo/mathoms-smoke.db
       - ./_smoke_storage:/repo/_smoke_storage
+
+  # Shell Go (F1 Fase 4, track f1-go-service) — convive com o Python (:8001)
+  # até o decommission (F3). Porta 8002 no host p/ smoke side-by-side.
+  pipeline-service-go:
+    build:
+      context: .
+      dockerfile: services/pipeline-service-go/Dockerfile
+    container_name: mathoms-pipeline-service-go
+    init: true
+    stop_grace_period: 45s
+    ports:
+      - "8002:8001"
+    environment:
+      PIPELINE_SERVICE_PORT: 8001
+      REDIS_URL: redis://redis-smoke:6379/0
+      MATHOMS_LOG_FORMAT: json
+      MATHOMS_DATABASE_URL: sqlite+aiosqlite:////repo/mathoms-smoke.db
+      MATHOMS_REDIS_URL: redis://redis-smoke:6379/0
+      MATHOMS_FERNET_KEY: ${SMOKE_FERNET_KEY:-}
+    depends_on:
+      redis-smoke:
+        condition: service_healthy
+    volumes:
+      # Em sync com os COPYs do Dockerfile Go (mount ausente = cópia stale).
+      - ./pipeline:/repo/pipeline:ro
+      - ./backend:/repo/backend:ro
+      - ./scripts:/repo/scripts:ro
+      - ./config:/repo/config:ro
+      - ./mathoms-smoke.db:/repo/mathoms-smoke.db
+      - ./_smoke_storage:/repo/_smoke_storage

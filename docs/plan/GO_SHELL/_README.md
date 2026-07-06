@@ -67,7 +67,7 @@ Quatro slices executados após a F0 (co-design `senior-cto` + `sre-devops` +
 | Contract tests (B2) | #747 | Schemathesis no CI congela o contrato (404/400/503 agora documentados no OpenAPI) |
 | Profiler A2.1 (parcial) | #749 | `dev/profile_pipeline_stages.py` + [PERFORMANCE_BASELINE §12](../../reference/PERFORMANCE_BASELINE.md); gatilho GIL segue owner-gated (rerun real) |
 
-### F1 — Serviço Go (`services/pipeline-service-go/`) — 🚧 DESTRAVADA 2026-07-03
+### F1 — Serviço Go (`services/pipeline-service-go/`) — ✅ CONCLUÍDA 2026-07-06 (4 fases: #780/#789/#791/+Fase 4)
 
 **Gatilho 4 da [[ADR-150]] disparado pelo owner** (emenda 2026-07-03 — ADR
 flippou `Roadmap → Decidido`). Layout, convenções e invariantes: [[ADR-150]]
@@ -97,7 +97,7 @@ budget hooks) + enablement do container/compose smoke.
 |---|---|---|---|
 | [TRACK-a3cli-orchestrator-cli](tracks/a3cli-orchestrator-cli.md) | A3.cli (Fase 1) + A3.cli.otel (Fase 2) — 2 PRs | `consumed` ✅ (#737 + #738) | — |
 | [TRACK-a3cli-benchmark](tracks/a3cli-benchmark.md) | A3.cli.benchmark — medição + decisão Caminho 1 vs 2 | `consumed` ✅ (gate PASSA: 413ms) | — |
-| [TRACK-f1-go-service](tracks/f1-go-service.md) | F1 — serviço Go em 4 fases/4 PRs + KRs | `ready` | nenhum — em execução |
+| [TRACK-f1-go-service](tracks/f1-go-service.md) | F1 — serviço Go em 4 fases/4 PRs + KRs | `consumed` ✅ (#780/#789/#791/Fase 4) | — |
 
 ## Critério de destrava de F1 (não recopiar — fonte única)
 
