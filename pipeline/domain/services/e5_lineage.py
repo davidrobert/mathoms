@@ -56,22 +56,34 @@ def build_e5_lineage(
     return lineage_block(fields)
 
 
-def reserva_total_liquida_field(reserva: ReservaReport, identity: MemberIdentity) -> LineageField:
-    """Topologia honesta: a aritmética consumiu os campos do dict ``patrimonio``."""
-    refs = [
-        e5_input_ref(f"patrimonio.{identity.key_inv_titular}"),
-        e5_input_ref("patrimonio.caixa_moeda_estrangeira"),
-    ]
+def _reserva_input_refs(reserva: ReservaReport, identity: MemberIdentity) -> list[dict[str, str]]:
+    """A28.l1 — numerador é o subset líquido (Caixa + Renda Fixa) por membro;
+    a ref de caixa só aparece quando algum componente de caixa entrou."""
+    refs = [e5_input_ref(f"patrimonio.{identity.key_inv_titular}")]
     if identity.conjuge_key:
         refs.append(e5_input_ref(f"patrimonio.{identity.key_inv_conjuge}"))
+    composicao = reserva.get("composicao_liquida") or {}
+    caixa_incluido = float(composicao.get("caixa") or 0) + float(
+        composicao.get("caixa_moeda_estrangeira") or 0
+    )
+    if caixa_incluido > 0:
+        refs.append(e5_input_ref("patrimonio.caixa_moeda_estrangeira"))
+    return refs
+
+
+def reserva_total_liquida_field(reserva: ReservaReport, identity: MemberIdentity) -> LineageField:
+    """Topologia honesta: a aritmética consumiu os campos do dict ``patrimonio``."""
     return {
         "value": money_str(reserva["total_liquida"]),
         "label": "Reserva de emergência — total líquido",
-        "transform": "investimentos líquidos por membro + caixa em moeda estrangeira",
+        "transform": (
+            "ativos líquidos de baixo risco por membro (buckets Caixa + Renda Fixa) "
+            "+ caixa BRL; caixa ME apenas com finalidade explícita = reserva"
+        ),
         "rule_ref": dict(LINEAGE_RULE_REFS["reserva_emergencia.total_liquida"]),
         "edge_type": "aggregation",
         "member_hashes": [],
-        "inputs": sorted_inputs(refs),
+        "inputs": sorted_inputs(_reserva_input_refs(reserva, identity)),
     }
 
 
