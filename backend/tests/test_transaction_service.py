@@ -63,3 +63,57 @@ def test_row_id_counter_independent_across_categories(fake_artifacts):
 
     assert len(txs) == 2
     assert len({t.row_id for t in txs}) == 2
+
+
+# ─── paginate_transactions: sort por impacto (A28.l5) ────────────────────
+
+
+def _load(fake_artifacts, items: list[dict]):
+    fake_artifacts[("categorize_transactions", "despesas")] = _payload(items)
+    return load_transactions("ws-1", "/tmp/tenant")
+
+
+def test_paginate_default_sorts_by_date_desc(fake_artifacts):
+    from backend.app.services.transaction_service import paginate_transactions
+
+    txs = _load(
+        fake_artifacts,
+        [
+            _tx("Latte", "-12.50", data="2026-04-15"),
+            _tx("Uber", "-22.00", data="2026-04-17"),
+            _tx("Mercado", "-180.00", data="2026-04-16"),
+        ],
+    )
+
+    page, summary = paginate_transactions(txs, 1, 50)
+
+    assert [t.data for t in page] == ["2026-04-17", "2026-04-16", "2026-04-15"]
+    assert summary.count == 3
+
+
+def test_paginate_valor_desc_sorts_by_absolute_impact(fake_artifacts):
+    from backend.app.services.transaction_service import paginate_transactions
+
+    txs = _load(
+        fake_artifacts,
+        [
+            _tx("Latte", "-12.50", data="2026-04-17"),
+            _tx("Uber", "-22.00", data="2026-04-16"),
+            _tx("Mercado", "-180.00", data="2026-04-15"),
+        ],
+    )
+
+    page, _ = paginate_transactions(txs, 1, 50, sort="valor_desc")
+
+    assert [t.descricao for t in page] == ["Mercado", "Uber", "Latte"]
+
+
+def test_paginate_valor_desc_does_not_change_summary(fake_artifacts):
+    from backend.app.services.transaction_service import paginate_transactions
+
+    txs = _load(fake_artifacts, [_tx("Latte", "-12.50"), _tx("Uber", "-22.00")])
+
+    _, by_date = paginate_transactions(txs, 1, 50)
+    _, by_impact = paginate_transactions(txs, 1, 50, sort="valor_desc")
+
+    assert by_impact == by_date

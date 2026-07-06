@@ -664,7 +664,7 @@
 | A28.l2 | lane | shipped | A28 | TRS efetiva com numerador/denominador do mesmo universo + guardrail de sanidade (ADR-191) | `sprint/A28/lanes/A28-l2-trs-universo-consistente.md` |
 | A28.l3 | lane | shipped | A28 | PGBL: regra de ano-base único — uma recomendação por relatório | `sprint/A28/lanes/A28-l3-pgbl-ano-base-unico.md` |
 | A28.l4 | lane | shipped | A28 | base de mensalização única: política de janela temporal por família de métrica + Cerbasi coerente | `sprint/A28/lanes/A28-l4-mensalizacao-base-unica.md` |
-| A28.l5 | lane | open | A28 | nao_identificado 23% → <5%: regras via Learning Loop + gate de reclassificação do owner | `sprint/A28/lanes/A28-l5-nao-identificado-learning-loop.md` |
+| A28.l5 | lane | in_progress | A28 | nao_identificado 23% → <5%: regras via Learning Loop + gate de reclassificação do owner | `sprint/A28/lanes/A28-l5-nao-identificado-learning-loop.md` |
 | A28.l6 | lane | in_progress | A28 | proteção patrimonial ativada: apólices extraídas fluem para compute_protecao + pontos_urgentes condicional | `sprint/A28/lanes/A28-l6-protecao-apolices-flow.md` |
 | A28.l7 | lane | in_progress | A28 | imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner | `sprint/A28/lanes/A28-l7-imoveis-excluidos-dedup.md` |
 | A28.l8 | lane | in_progress | A28 | higiene de ingestão: períodos implausíveis (1899/2100) e banco vazio viram needs_review, não artefato silencioso | `sprint/A28/lanes/A28-l8-higiene-ingestao-periodos.md` |

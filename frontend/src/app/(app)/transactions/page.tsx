@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { TransactionListResponse } from "@/lib/api";
 import {
+  ArrowDownWideNarrow,
   ChevronDown,
   ChevronUp,
   FileDown,
@@ -28,7 +29,10 @@ import { SummaryBar } from "./_components/SummaryBar";
 import { TransactionsTable } from "./_components/TransactionsTable";
 import { Pagination } from "./_components/Pagination";
 import { exportTransactions } from "./_components/exportTransactions";
-import { useTransactionsFetch } from "./_components/useTransactionsFetch";
+import {
+  useTransactionsFetch,
+  type TransactionSort,
+} from "./_components/useTransactionsFetch";
 import { useCategoriesAndMembers } from "./_components/useCategoriesAndMembers";
 import {
   useCategoryOverride,
@@ -75,6 +79,10 @@ export default function TransactionsPage() {
   );
 }
 
+function readInitialSort(searchParams: URLSearchParams): TransactionSort {
+  return searchParams.get("sort") === "valor_desc" ? "valor_desc" : "data_desc";
+}
+
 function readInitialFilters(searchParams: URLSearchParams): FilterState {
   return {
     bank: searchParams.get("bank") ?? "",
@@ -104,6 +112,7 @@ function buildUrlParams(
   search: string,
   filters: FilterState,
   page: number,
+  sort: TransactionSort,
   overrides: Record<string, string | number | undefined>,
 ): URLSearchParams {
   const params = new URLSearchParams();
@@ -116,6 +125,7 @@ function buildUrlParams(
     date_to: filters.dateTo,
     value_min: filters.valueMin,
     value_max: filters.valueMax,
+    sort: sort === "data_desc" ? "" : sort,
     page,
     ...overrides,
   };
@@ -177,18 +187,42 @@ function SearchBar({
   );
 }
 
+function SortToggle({
+  sort,
+  onToggle,
+}: {
+  sort: TransactionSort;
+  onToggle: () => void;
+}) {
+  const byImpact = sort === "valor_desc";
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={onToggle}
+      className={cn("ml-auto", byImpact && "border-primary text-primary")}
+      title="Alternar ordenação entre data e valor (impacto)"
+    >
+      <ArrowDownWideNarrow className="mr-1.5 h-3.5 w-3.5" />
+      {byImpact ? "Maior impacto" : "Mais recentes"}
+    </Button>
+  );
+}
+
 function FilterToggleBar({
   filters,
   hasActiveFilters,
   filtersOpen,
   onToggle,
   onClear,
+  trailing,
 }: {
   filters: FilterState;
   hasActiveFilters: boolean;
   filtersOpen: boolean;
   onToggle: () => void;
   onClear: () => void;
+  trailing?: React.ReactNode;
 }) {
   const active = [
     filters.bank,
@@ -226,6 +260,7 @@ function FilterToggleBar({
           Limpar filtros
         </Button>
       )}
+      {trailing}
     </div>
   );
 }
@@ -263,6 +298,7 @@ function TransactionsContent() {
   const initial = readInitialFilters(searchParams);
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [page, setPage] = useState(Number(searchParams.get("page") ?? "1"));
+  const [sort, setSort] = useState<TransactionSort>(readInitialSort(searchParams));
   const [filters, setFilters] = useState<FilterState>(initial);
   const [filtersOpen, setFiltersOpen] = useState(hasAnyFilter(initial, ""));
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -274,6 +310,7 @@ function TransactionsContent() {
     filters,
     page,
     pageSize: PAGE_SIZE,
+    sort,
   });
 
   // A12 P4 — feature gating; sem flag, fluxo segue normal sem toast/modal/badge.
@@ -310,10 +347,10 @@ function TransactionsContent() {
 
   const pushParams = useCallback(
     (overrides: Record<string, string | number | undefined>) => {
-      const qs = buildUrlParams(search, filters, page, overrides).toString();
+      const qs = buildUrlParams(search, filters, page, sort, overrides).toString();
       router.replace(`/transactions${qs ? `?${qs}` : ""}`, { scroll: false });
     },
-    [search, filters, page, router],
+    [search, filters, page, sort, router],
   );
 
   function handleSearchChange(value: string) {
@@ -336,7 +373,15 @@ function TransactionsContent() {
     setSearch("");
     setFilters(EMPTY_FILTERS);
     setPage(1);
+    setSort("data_desc");
     router.replace("/transactions", { scroll: false });
+  }
+
+  function toggleSort() {
+    const next: TransactionSort = sort === "valor_desc" ? "data_desc" : "valor_desc";
+    setSort(next);
+    setPage(1);
+    pushParams({ sort: next === "data_desc" ? "" : next, page: 1 });
   }
 
   function goPage(p: number) {
@@ -374,6 +419,7 @@ function TransactionsContent() {
         filtersOpen={filtersOpen}
         onToggle={() => setFiltersOpen(!filtersOpen)}
         onClear={clearAllFilters}
+        trailing={<SortToggle sort={sort} onToggle={toggleSort} />}
       />
       {filtersOpen && (
         <FiltersPanel
@@ -387,13 +433,18 @@ function TransactionsContent() {
       {error && (
         <div className="mb-4 rounded-lg bg-loss/10 p-3 text-sm text-loss">
           {error}
-          <button onClick={() => setError("")} className="ml-2 font-medium underline">
+          <button
+            onClick={() => setError("")}
+            className="ml-2 font-medium underline"
+          >
             fechar
           </button>
         </div>
       )}
 
-      {summary && data && data.transactions.length > 0 && <SummaryBar summary={summary} />}
+      {summary && data && data.transactions.length > 0 && (
+        <SummaryBar summary={summary} />
+      )}
 
       {loading ? (
         <div className="flex justify-center py-12">
