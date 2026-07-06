@@ -54,5 +54,8 @@ export type { Effort } from "./badges/EffortBadge";
 export { ChangelogList } from "./ChangelogList";
 export type { ChangelogEntry } from "./ChangelogList";
 
+export { CpfField } from "./CpfField";
+export type { CpfFieldProps } from "./CpfField";
+
 // Re-export existing ReportCard for symmetry
 export { ReportCard } from "../ReportCard";
