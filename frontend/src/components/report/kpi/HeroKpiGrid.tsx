@@ -183,11 +183,31 @@ function ReservaKpi({ reserva }: { reserva: ReservaEmergenciaData | undefined })
       value={meses != null ? `${meses.toFixed(1).replace(".", ",")} meses` : "—"}
       sub={
         meses != null
-          ? `Meta 6–12m · ${reservaLabel(meses)}`
+          ? `${reservaMetaLabel(reserva)} · ${reservaQuality(reserva, meses)}`
           : "Sem dados"
       }
     />
   );
+}
+
+/** A28.l9/l1 (PR 787) — alvo dinâmico por perfil de renda (CLT 6 · mista 12 ·
+ * PJ-dominante 18); payload antigo sem `meses_alvo` cai no range genérico. */
+function reservaMetaLabel(reserva: ReservaEmergenciaData | undefined): string {
+  const alvo = reserva?.meses_alvo;
+  if (alvo != null && alvo > 0) return `Meta ${alvo}m (perfil de renda)`;
+  return "Meta 6–12m";
+}
+
+/** Avaliação do payload E5 (fonte de verdade pós-A28.l1) com fallback local. */
+function reservaQuality(
+  reserva: ReservaEmergenciaData | undefined,
+  meses: number,
+): string {
+  const avaliacao = reserva?.avaliacao_liquidity;
+  if (typeof avaliacao === "string" && avaliacao.length > 0) {
+    return avaliacao.toLowerCase();
+  }
+  return reservaLabel(meses);
 }
 
 function reservaTone(meses: number | undefined): KpiTone {
