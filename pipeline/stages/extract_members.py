@@ -124,7 +124,7 @@ def run(ctx: WorkspaceContext) -> dict:
     item_label = f"{len(docs_text_parts)} documento(s) pessoais"
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E1",
+        "extract_members",
         current_item=item_label,
         items_done=0,
         items_total=1,
@@ -140,7 +140,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E1",
+        "extract_members",
         current_item=item_label,
         items_done=0,
         items_total=1,
@@ -151,7 +151,7 @@ def run(ctx: WorkspaceContext) -> dict:
         user_prompt=user_prompt,
         output_schema=MembersExtractOutput,
         max_tokens=max(config.max_tokens, _E1_MIN_COMPLETION_TOKENS),
-        stage="E1",
+        stage="extract_members",
         prompt_version=PROMPT_VERSION,
     )
 
@@ -161,7 +161,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E1",
+        "extract_members",
         current_item=item_label,
         items_done=0,
         items_total=1,
@@ -180,7 +180,7 @@ def run(ctx: WorkspaceContext) -> dict:
     store = ctx.get_artifact_store()
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E1",
+        "extract_members",
         current_item=item_label,
         items_done=0,
         items_total=1,
@@ -189,7 +189,7 @@ def run(ctx: WorkspaceContext) -> dict:
     store.write("extract_members", "members", family_json)
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E1",
+        "extract_members",
         current_item=None,
         items_done=1,
         items_total=1,

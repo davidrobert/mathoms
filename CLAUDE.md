@@ -574,13 +574,14 @@ retorna sempre descritivo. Inverso em `to_legacy_stage_name()` para
 adapters que ainda gravam DB legado.
 
 `STAGE_RENAME_MAP` permanece como compat reverso. Em
-`pipeline_artifacts.stage`, os writers já gravam nomes descritivos
-(`reconcile_transactions`, `categorize_transactions`, `analyze_finances`,
-`extract_*`, E1.x); a exceção é E2, que ainda grava legado
-(`E2-faturas`/`E2-extratos` em `scripts/e2_extract.py::_choose_stage`).
-O leitor aceita ambas as formas
-(`backend/app/services/artifact_reader.py::_stage_query_candidates`).
-Hardening final dos nomes legados: F9.6.
+`pipeline_artifacts.stage`, **todos** os writers gravam nomes descritivos
+desde F9.6/W6-T03 (2026-07-06) — os últimos legados (`E2-faturas`/
+`E2-extratos` em `scripts/e2_extract.py`, `E2-llm` em `extract_with_llm`,
+`E6-parecer` no parecer) e os labels de progresso foram cortados. O leitor
+aceita ambas as formas (`stage_aliases` /
+`backend/app/services/artifact_reader.py::_stage_query_candidates`) — rows
+antigos seguem legíveis. Gate: `tests/unit/pipeline/test_no_legacy_stage_names.py`
+hard-fail no CI; residual da F9: F9.4 (rename de `scripts/e*.py`).
 
 ### Endpoint JSON exige `response_model` explícito (ADR-102 R18 · ADR-109)
 

@@ -396,7 +396,7 @@ class TestOrchestratorLLMStages:
     def test_get_stage_runner_returns_callable_for_llm_stages(self):
         from pipeline.orchestrator import _get_stage_runner
 
-        for stage in ["E1", "E1.5", "E2-llm"]:
+        for stage in ["E1", "E1.5", "extract_with_llm"]:
             runner = _get_stage_runner(stage)
             assert runner is not None, f"No runner for {stage}"
             assert callable(runner)
@@ -449,7 +449,7 @@ class TestE2LLMIngestHygiene:
         assert entry["needs_review"] is True
         assert entry["output"] is None
         assert entry["review_reason"]["code"] == "extract.missing_required_field"
-        assert entry["review_reason"]["stage"] == "E2-llm"
+        assert entry["review_reason"]["stage"] == "extract_with_llm"
 
     def test_validation_block_flags_only_needs_review_docs(self):
         from pipeline.stages.extract_with_llm import (

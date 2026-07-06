@@ -1195,7 +1195,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E3",
+        "reconcile_transactions",
         current_item="Carregando extratos…",
         items_done=0,
         items_total=1,

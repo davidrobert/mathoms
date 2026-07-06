@@ -18,7 +18,7 @@ def run(ctx: "WorkspaceContext") -> dict:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E5",
+        "analyze_finances",
         current_item="Análise financeira",
         items_done=0,
         items_total=1,
@@ -29,7 +29,7 @@ def run(ctx: "WorkspaceContext") -> dict:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E5",
+        "analyze_finances",
         current_item=None,
         items_done=1,
         items_total=1,

@@ -1,9 +1,10 @@
 """Guardrail: identificadores E* legados não escapam das ilhas permitidas.
 
-Durante a janela de compat F9.2 → F9.6 (ADR-093), alguns arquivos **precisam**
-mencionar nomes legados (``STAGE_RENAME_MAP``, ``SCHEMA_BY_STAGE``, labels de
-lineage edge congelados...). Este teste garante que NOVAS menções em código
-não previsto viram falha de CI antes de chegarem a produção.
+Pós-F9.6 (W6-T03, 2026-07-06) **nenhum writer/label de produção emite nome
+legado** — as ilhas restantes são vocabulário congelado (``STAGE_RENAME_MAP``,
+``SCHEMA_BY_STAGE``, labels de lineage edge, migrations, fixtures). Este teste
+garante que NOVAS menções em código não previsto viram falha de CI antes de
+chegarem a produção.
 
 **Matching (W6-T03/F9.5):** apenas *string literals* (``"E5"`` / ``'E5'``) —
 identificadores de stage em código. Menções em prosa (comentários, docstrings,
@@ -40,7 +41,6 @@ ALLOWED_PREFIXES = (
     "pipeline/stage_spec.py",  # STAGE_RENAME_MAP
     "pipeline/artifact_store.py",  # _STAGE_TO_SUFFIX + stage_aliases
     "pipeline/orchestrator.py",  # LEGACY_FROM_ALIASES
-    "pipeline/stages/",  # labels de progresso/telemetria legados (cutover em F9.6)
     # -- vocabulário congelado de payload/lineage (não é a coluna stage)
     "pipeline/domain/services/e3_reconciler_adapter.py",  # payload["pipeline_stage"] (schema)
     "pipeline/domain/services/e5_serialization.py",  # E5_OUTPUT_STAGE (label de edge)
@@ -58,7 +58,6 @@ ALLOWED_PREFIXES = (
     "backend/scripts/",  # ops scripts varrem rows legados no DB
     "backend/tests/",  # testes de migration, DBArtifactStore, etc.
     "tests/",  # fixtures golden podem conter strings legadas
-    "scripts/",  # camada CLI legada (renomeia em F9.4)
     "_scratch/",  # scripts de auditoria
     "config/",  # schemas JSON mencionam nomes de stage
     "docs/",  # ADRs históricos

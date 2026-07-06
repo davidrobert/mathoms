@@ -212,13 +212,13 @@ def _target_stage_for_file(file_path: Path, *, extratos_only: bool, faturas_only
     - ``E2-llm``: fallback quando não há parser determinístico (set externamente)
     """
     if faturas_only:
-        return "E2-faturas"
+        return "extract_invoices"
     if extratos_only:
-        return "E2-extratos"
+        return "extract_statements"
     # Modo unificado (CLI legacy): decide por filename.
     if _is_fatura_file(file_path.name):
-        return "E2-faturas"
-    return "E2-extratos"
+        return "extract_invoices"
+    return "extract_statements"
 
 
 def _artifact_key_for_file(file_path: Path) -> str:
@@ -250,7 +250,7 @@ def run_with_store(
     Args:
         store: ``ArtifactStore`` alvo (Disk ou DB).
         target_stage: quando não-None, todos os outputs vão para este stage
-            (``"E2-extratos"``, ``"E2-faturas"``, ``"E2-llm"``). Quando ``None``,
+            (``"extract_statements"``, ``"extract_invoices"``, ``"extract_with_llm"``). Quando ``None``,
             o stage é decidido por arquivo (``_target_stage_for_file``).
         extratos_only / faturas_only: filtra ``find_all_files``.
         incremental_allowed_stems: se informado, processa apenas arquivos cujo
@@ -297,7 +297,7 @@ def run_with_store(
             is_llm = bool(result.get("requires_llm_fallback"))
             if is_llm:
                 stats["llm_fallback"] += 1
-                stage = "E2-llm"
+                stage = "extract_with_llm"
                 log(LOG_UNIFIED, "WARN", f"  → Requer LLM fallback: {file_path.name}")
                 # E2-llm costuma ser tratado pelo wrapper LLM separado; aqui só
                 # registramos o stub para rastreabilidade quando target_stage=None.

@@ -48,9 +48,9 @@ def run(
 
     # Determina target_stage pelo modo do wrapper (sempre conhecido aqui).
     if faturas_only:
-        target_stage = "E2-faturas"
+        target_stage = "extract_invoices"
     elif extratos_only:
-        target_stage = "E2-extratos"
+        target_stage = "extract_statements"
     else:
         target_stage = None  # modo unificado (CLI) — stage decidido por arquivo
 
