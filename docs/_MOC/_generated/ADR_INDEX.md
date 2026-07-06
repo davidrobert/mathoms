@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-297 ADRs (ADR-001 a ADR-306) em [`docs/adr/`](../../adr/).
+298 ADRs (ADR-001 a ADR-307) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 277
-- **Proposto**: 17
+- **Proposto**: 18
 - **Roadmap**: 3
 
 ## Fundação
@@ -419,9 +419,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-300]] — Red lines do parecer: 4ª camada de validação determinística (conselho defensável) · phase A22.l2 · F3 launch-trust
 - [[ADR-304]] — KR1 do parecer — pureza monetária da prosa: fix de prompt + doutrina de enforcement · phase A27
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
+- [[ADR-307]] — Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift · phase W6-T02
 
 ## marketing
 
