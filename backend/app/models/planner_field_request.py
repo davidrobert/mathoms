@@ -20,8 +20,18 @@ from backend.app.core.database import Base
 
 # Reasons aceitos quando origem é tool_trace `found:false` (ADR-203 §D7).
 # None = origem fonte primária (LLM declarou em ``campos_faltantes_pediria_se_iterasse[]``).
+# field_request_spurious / field_request_wrong_path (A28.l11): entradas removidas
+# pelo filtro 3-vias pós-LLM (path resolve não-nulo / alias conhecido não-nulo) —
+# persistidas para telemetria; wrong_path alimenta expansão do manifest.
 VALID_FIELD_REQUEST_REASONS: frozenset[str] = frozenset(
-    {"path_not_whitelisted", "value_null", "value_absent", "llm_declared"}
+    {
+        "path_not_whitelisted",
+        "value_null",
+        "value_absent",
+        "llm_declared",
+        "field_request_spurious",
+        "field_request_wrong_path",
+    }
 )
 
 

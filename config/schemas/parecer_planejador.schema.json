@@ -228,6 +228,35 @@
               }
             }
           }
+        },
+        "field_request_audit": {
+          "type": "array",
+          "description": "A28.l11: entradas de campos_faltantes_pediria_se_iterasse removidas pelo filtro 3-vias pós-LLM (path resolve não-nulo → spurious; alias conhecido não-nulo → wrong_path). field_path é estrutural (JSONPath), sem valor cliente; motivo é o texto do LLM (reanotado no wrong_path). Persistência grava PlannerFieldRequest com o reason correspondente (ADR-206).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["field_path", "motivo", "reason"],
+            "properties": {
+              "field_path": {"type": "string"},
+              "motivo": {"type": "string"},
+              "reason": {
+                "type": "string",
+                "enum": ["field_request_spurious", "field_request_wrong_path"]
+              },
+              "alias_path": {"type": "string"}
+            }
+          }
+        },
+        "pos_llm_guardrails": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "A28.l11: telemetria dos guardrails determinísticos pós-LLM (rebaixamento de confiança sob premissa fallback do Monte Carlo + filtro 3-vias de campos_faltantes). needs_review_triggered é false por construção — guardrail rebaixa/remove, nunca bloqueia.",
+          "properties": {
+            "confianca_rebaixada": {"type": "integer", "minimum": 0},
+            "field_requests_spurious": {"type": "integer", "minimum": 0},
+            "field_requests_wrong_path": {"type": "integer", "minimum": 0},
+            "needs_review_triggered": {"type": "boolean", "const": false}
+          }
         }
       }
     }

@@ -86,6 +86,12 @@ def _build_artifact_json(result) -> dict:
         # Detalhe por-path da citação verificada (ADR-279 §E · F4). Sem
         # timestamp/latência/valor monetário — preserva byte-identidade e PII.
         payload["_meta"]["evidencia_verification"] = result.evidencia_entries
+    if getattr(result, "field_request_audit", None):
+        # A28.l11 — entradas removidas pelo filtro 3-vias; persistência lê daqui
+        # para gravar PlannerFieldRequest com reason spurious/wrong_path.
+        payload["_meta"]["field_request_audit"] = result.field_request_audit
+    if getattr(result, "pos_llm_guardrails", None) is not None:
+        payload["_meta"]["pos_llm_guardrails"] = result.pos_llm_guardrails
     return payload
 
 
@@ -154,6 +160,8 @@ def _success_return(result, workspace_id: str) -> dict:
     }
     if result.evidencia_summary is not None:
         status["evidencia_verification"] = result.evidencia_summary
+    if getattr(result, "pos_llm_guardrails", None) is not None:
+        status["pos_llm_guardrails"] = result.pos_llm_guardrails
     return status
 
 

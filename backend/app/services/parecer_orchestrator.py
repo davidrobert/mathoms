@@ -30,6 +30,11 @@ from backend.app.services.parecer_finalization import (
     validate_anti_sigilo,
 )
 from backend.app.services.parecer_manifest import ManifestData, load_manifest, load_persona
+from backend.app.services.parecer_pos_llm_guardrails import (
+    downgrade_confianca_fallback,
+    filter_campos_faltantes,
+    guardrails_summary,
+)
 from backend.app.services.parecer_red_lines import RED_LINES_VERSION, check_red_lines
 from backend.app.services.parecer_strict_enforcement import enforce_strict_per_item
 from pipeline.llm.models_catalog import PARECER_MODEL
@@ -69,6 +74,10 @@ class ParecerGenerationResult:
     evidencia_summary: Optional[dict] = None
     evidencia_entries: Optional[list[dict]] = None
     red_lines_summary: Optional[dict] = None
+    # A28.l11 — guardrails pós-LLM: entradas removidas do campos_faltantes (audit
+    # p/ PlannerFieldRequest) + telemetria (rebaixamento de confiança, 3-vias).
+    field_request_audit: Optional[list[dict]] = None
+    pos_llm_guardrails: Optional[dict] = None
 
     def __post_init__(self) -> None:
         if self.tool_trace is None:
@@ -431,6 +440,17 @@ def _check_evidencia(
     return verification, None, decision.output, len(decision.dropped)
 
 
+def _apply_pos_llm_guardrails(
+    raw: ParecerPlanejadorOutput,
+    e5_data: Mapping[str, Any],
+    config: ParecerOrchestratorConfig,
+) -> tuple[ParecerPlanejadorOutput, list[dict], dict]:
+    """Guardrails determinísticos A28.l11 — rebaixam/removem, nunca needs_review."""
+    raw, downgraded = downgrade_confianca_fallback(raw, e5_data, config.workspace_id)
+    raw, audit = filter_campos_faltantes(raw, e5_data, config.workspace_id)
+    return raw, audit, guardrails_summary(confianca_rebaixada=downgraded, audit=audit)
+
+
 def _generate_with_llm(
     *,
     llm: Any,
@@ -500,6 +520,9 @@ def _generate_with_llm(
             evidencia_entries=evidencia.entries,
             red_lines_summary=red_lines_summary,
         )
+    # A28.l11 — pós-validação, pré-finalize: rebaixamento de confiança sob premissa
+    # fallback + filtro 3-vias de campos_faltantes. Coerce, nunca needs_review.
+    raw, field_request_audit, pos_llm_guardrails = _apply_pos_llm_guardrails(raw, e5_data, config)
     final = finalize_output(
         output=stamp_ancora_values(raw, tools),  # ADR-296: snapshot path→valor_renderizado
         workspace_id=config.workspace_id,
@@ -525,6 +548,8 @@ def _generate_with_llm(
         ),
         evidencia_entries=evidencia.entries,
         red_lines_summary=red_lines_summary,
+        field_request_audit=field_request_audit or None,
+        pos_llm_guardrails=pos_llm_guardrails,
     )
 
 
