@@ -4,7 +4,7 @@ type: lane
 title: "higiene de ingestão: períodos implausíveis (1899/2100) e banco vazio viram needs_review, não artefato silencioso"
 sprint: A28
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P2
 branch_slug: higiene-ingestao-periodos
 adrs: []
@@ -15,7 +15,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/open
+  - status/in-progress
   - priority/p2
   - area/pipeline
 ---
