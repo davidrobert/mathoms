@@ -60,6 +60,7 @@ export async function listTransactions(workspaceId: string, params?: {
   search?: string;
   page?: number;
   page_size?: number;
+  sort?: "data_desc" | "valor_desc";
 }): Promise<TransactionListResponse> {
   const qp = new URLSearchParams();
   if (params) {

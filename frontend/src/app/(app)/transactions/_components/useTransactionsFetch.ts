@@ -8,16 +8,19 @@ import {
 } from "@/lib/api";
 import type { FilterState } from "./FiltersPanel";
 
+export type TransactionSort = "data_desc" | "valor_desc";
+
 interface FetchArgs {
   workspaceId: string;
   search: string;
   filters: FilterState;
   page: number;
   pageSize: number;
+  sort: TransactionSort;
 }
 
 function toApiParams(args: FetchArgs) {
-  const { search, filters, page, pageSize } = args;
+  const { search, filters, page, pageSize, sort } = args;
   return {
     search: search || undefined,
     bank: filters.bank || undefined,
@@ -29,6 +32,7 @@ function toApiParams(args: FetchArgs) {
     value_max: filters.valueMax ? Number(filters.valueMax) : undefined,
     page,
     page_size: pageSize,
+    sort: sort === "data_desc" ? undefined : sort,
   };
 }
 
@@ -56,7 +60,7 @@ export function useTransactionsFetch(args: FetchArgs) {
       if (!controller.signal.aborted) setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [args.workspaceId, args.search, args.filters, args.page, args.pageSize]);
+  }, [args.workspaceId, args.search, args.filters, args.page, args.pageSize, args.sort]);
 
   useEffect(() => {
     fetchData();
