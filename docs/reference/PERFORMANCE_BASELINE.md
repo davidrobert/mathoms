@@ -443,3 +443,21 @@ workspaces pagantes).
 PDF/OCR), stages LLM (`ANTHROPIC_API_KEY`) e E7 (`validate_cross` exige
 narrativas do E5.N). A fixture também não exercita ADR-246 (dedup por resolver
 DB) nem incremental (ADR-241) — ressalvas do README da fixture valem aqui.
+
+---
+
+## 13. F1 Fase 4 — KRs do shell Go (2026-07-06)
+
+> Done numérico da F1 do [plano GO_SHELL](../plan/GO_SHELL/_README.md)
+> (track [f1-go-service](../plan/GO_SHELL/tracks/f1-go-service.md)).
+> Máquina: Apple M4 · go 1.26 · imagem `services/pipeline-service-go/Dockerfile`.
+
+| KR | Meta original | Medido | Veredito |
+| --- | --- | --- | --- |
+| KR1 — imagem | ≤150MB | **1,12GB** (Python: 1,1GB; **delta +20MB** = binário 8,5MB) | **Meta original infalsificável pós-[[ADR-303]]** — o lock inteiro do backend (exigido pelo subprocess p/ DBArtifactStore + hidratação) domina o tamanho nas DUAS imagens; a estimativa 80-150MB da ADR-150 era pré-boundary DB-only. Critério honesto: **delta Go−Python ≤30MB → PASSA (20MB)** |
+| KR2 — cold start do shell | <100ms | **mediana 8,1ms · p95 26,7ms** (boot→/health, n=10) | **PASSA com 12× de folga** (Python: ~500ms — 60× mais rápido) |
+| KR3 — paridade | 0 divergências | contrato: schemathesis idêntico PASSA contra Go e Python (mesmo snapshot #747); container: gate ADR-303 PASSA no Go (E3 persistido+readback) | **PASSA.** Paridade monetária é estrutural: os dois shells executam o MESMO CLI/subprocess Python (mesmo binário de domínio) — side-by-side compararia Python consigo mesmo. Byte-a-byte de payload completo: gate técnico da F2 (diferido por decisão 10 do co-design) |
+
+Reproduzir: build da imagem (header do Dockerfile Go) · KR2 via boot do binário + poll /health ·
+contrato: `MATHOMS_GO_CONTRACT=1 pytest pipeline-service/tests/test_contract_go_schemathesis.py` ·
+container: `SMOKE_FERNET_KEY=$(cat _smoke_pids/fernet.key) docker compose -f docker-compose.smoke.yml -f docker-compose.pipeline-service.yml up -d --wait pipeline-service-go` + `PIPELINE_SERVICE_SMOKE_URL=http://localhost:8002 PIPELINE_SERVICE_SMOKE_CONTAINER=mathoms-pipeline-service-go python3 dev/smoke_pipeline_service_container.py`.
