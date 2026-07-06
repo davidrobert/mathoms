@@ -907,3 +907,69 @@ clean-all: clean
 	@rm -rf $(SMOKE_DIR) $(SMOKE_STORAGE) $(DEV_DIR) _scratch
 	@rm -rf frontend/.next frontend-ops/.next
 	@echo "  ✅ Estado runtime local limpo (preservados: .venv, node_modules, .env, DB)."
+
+# ---------------------------------------------------------------------------
+# Dogfood com shell Go (F2 GO_SHELL — validação pré-cutover, ADR-150 §7)
+# ---------------------------------------------------------------------------
+
+.PHONY: dogfood-go dogfood-go-off
+
+## dogfood-go: Sobe o shell Go (:8002) e re-aponta o worker p/ ele (requer 'make smoke-up' antes)
+dogfood-go:
+	@test -f $(CURDIR)/$(SMOKE_DIR)/fernet.key || { echo "❌ Rode 'make smoke-up' antes (fernet key + DB + worker)."; exit 1; }
+	@echo "▶  Buildando o shell Go…"
+	@cd services/pipeline-service-go && go build -o $(CURDIR)/$(SMOKE_DIR)/pipeline-service-go ./cmd/pipeline-service
+	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(SMOKE_DIR)/go.pid)
+	@echo "▶  Subindo shell Go na :8002…"
+	@FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
+	 [ -n "$$ANTHROPIC_API_KEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente — stages LLM vão falhar (export antes, ou rode com skip de LLM)"; \
+	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
+	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
+	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
+	 MATHOMS_REPO_ROOT="$(CURDIR)" \
+	 MATHOMS_PYTHON="$(PYTHON)" \
+	 REDIS_URL="redis://localhost:6379/0" \
+	 PIPELINE_SERVICE_PORT=8002 \
+	 nohup $(CURDIR)/$(SMOKE_DIR)/pipeline-service-go \
+	   > $(CURDIR)/$(SMOKE_DIR)/go.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/go.pid
+	@sleep 1; curl -sf --max-time 5 http://localhost:8002/health > /dev/null \
+	  && echo "   ✓ shell Go saudável em http://localhost:8002" \
+	  || { echo "   ❌ /health falhou — veja $(SMOKE_DIR)/go.log"; exit 1; }
+	@echo "▶  Re-apontando o worker Celery para o shell Go…"
+	$(call kill_pid_safe,celery worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
+	$(call kill_celery_orphans)
+	@TS=$$(date +%s); \
+	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
+	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
+	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
+	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
+	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:8002" \
+	 nohup $(VENV)/celery -A backend.app.worker worker \
+	   --hostname="celery-smoke-go@%h-$$TS" \
+	   --max-tasks-per-child=200 \
+	   --loglevel=info --concurrency=2 \
+	   > $(CURDIR)/$(SMOKE_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/worker.pid
+	@echo ""
+	@echo "  ✅ Dogfood com Go LIGADO — cada stage agora executa via shell Go (:8002)."
+	@echo "     Rode o pipeline normal pela UI. Logs: $(SMOKE_DIR)/go.log + worker.log"
+	@echo "     Voltar ao Python: make dogfood-go-off"
+
+## dogfood-go-off: Desliga o shell Go e volta o worker para o executor Python in-process
+dogfood-go-off:
+	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(SMOKE_DIR)/go.pid)
+	$(call kill_pid_safe,celery worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
+	$(call kill_celery_orphans)
+	@TS=$$(date +%s); \
+	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
+	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
+	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
+	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
+	 nohup $(VENV)/celery -A backend.app.worker worker \
+	   --hostname="celery-smoke@%h-$$TS" \
+	   --max-tasks-per-child=200 \
+	   --loglevel=info --concurrency=2 \
+	   > $(CURDIR)/$(SMOKE_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/worker.pid
+	@echo "  ✅ Rollback completo — worker de volta ao executor Python in-process."
