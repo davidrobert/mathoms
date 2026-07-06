@@ -147,3 +147,19 @@ def classify_asset(
 def default_keywords() -> dict[str, tuple[str, ...]]:
     """Cópia imutável das keywords default (8 buckets financeiros)."""
     return {k: tuple(v) for k, v in _DEFAULT_KEYWORDS.items()}
+
+
+def merge_asset_keywords(scoring: dict | None) -> dict[str, tuple[str, ...]]:
+    """Defaults + overrides de ``scoring.json::asset_class_keywords`` por classe."""
+    acl = (scoring or {}).get("asset_class_keywords") or {}
+    merged: dict[str, tuple[str, ...]] = {}
+    for classe, ks in default_keywords().items():
+        override = acl.get(classe)
+        merged[classe] = tuple(str(k).lower() for k in override) if override else ks
+    # Forward-compat: classe nova em scoring.json não precisa estar em defaults.
+    for classe, override in acl.items():
+        if classe == "_comment" or classe in merged:
+            continue
+        if isinstance(override, list):
+            merged[classe] = tuple(str(k).lower() for k in override)
+    return merged

@@ -87,7 +87,15 @@ def _assemble_view_model(e5_payload: dict) -> dict:
 
 
 def _run_view_model(tmp_path: Path) -> dict:
-    write_e5_config(tmp_path, family=_FAMILY)
+    # A28.l1 — categorização mínima que exercita os caminhos canônicos da
+    # reserva: receita PJ-dominante (meses_alvo 18) + despesa essencial
+    # documentada (denominador custo_essencial da janela 12m, ADR-306 §D4).
+    write_e5_config(
+        tmp_path,
+        family=_FAMILY,
+        income_keywords={"receita_pj": ["PIX"]},
+        expense_keywords={"alimentacao": ["MERCADO"]},
+    )
     e5 = run_dogfood_pipeline(
         tmp_path,
         raw_baseline=load_fixture(_DOGFOOD / "baseline-1.5.json"),

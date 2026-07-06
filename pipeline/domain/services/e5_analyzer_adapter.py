@@ -586,16 +586,31 @@ class E5AnalyzerAdapter:
                 idade_meta_if=if_projection.idade_titular_if,
             )
 
-        # 8. Reserva emergência (paridade com ``analyze_reserva_emergencia``).
-        reserva = self._reserva.calculate(fluxo=fluxo_legacy, patrimonio=patrimonio_full)
+        # 8. Reserva emergência (FORMULAS.md §Reserva · A28.l1) — item-level
+        #    para o filtro de liquidez (posições atuais > IRPF bens).
+        reserva = self._reserva.calculate(
+            fluxo=fluxo_legacy,
+            patrimonio=patrimonio_full,
+            investimentos_atuais=investimentos_raw,
+            bens_por_membro={
+                self._identity.titular_key: members.titular_data,
+                **(
+                    {self._identity.conjuge_key: members.conjuge_data}
+                    if self._identity.conjuge_key
+                    else {}
+                ),
+            },
+        )
 
-        # 9. Score (paridade com ``calculate_score``).
+        # 9. Score (paridade com ``calculate_score``) — cobertura_despesas lê
+        #    a reserva canônica (FORMULAS.md §Reserva · A28.l1).
         score_goals = {"if_pct": if_projection.if_pct if if_projection else 0.0}
         score = self._score.calculate(
             ratios=ratios_dict,
             patrimonio=patrimonio_full,
             goals=score_goals,
             fluxo=fluxo_legacy,
+            reserva=reserva,
         )
 
         # 10. Orcamento prospectivo.

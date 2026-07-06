@@ -7,7 +7,7 @@ fluxo/reserva/goals.
 Checks (cada um pode gerar 0 ou 1 ponto):
 1. Taxa de poupança (forte >=min; disciplinada 15-min; abaixo disso sem ponto).
 2. Endividamento (mínimo <5%; controlado <max).
-3. Reserva de emergência (excelente >=12 meses; adequada >=6).
+3. Reserva de emergência (excelente >= alvo do perfil de renda; adequada >=6).
 4. Patrimônio diversificado (>=4 categorias com valor).
 5. Colchão patrimonial (robusto >=24 meses; sólido >=12) — suprimido quando a
    reserva já gerou ponto (mesma família de cobertura em meses; A28.l10).
@@ -159,16 +159,18 @@ class PontosFortesAnalyzer:
                     )
                 )
 
-        # 4. Reserva
+        # 4. Reserva — cobertura relativa ao alvo do perfil de renda
+        #    (CLT 6 · mista 12 · PJ-dominante 18; FORMULAS.md §Reserva-alvo, A28.l1).
         cobertura = _safe_float((reserva or {}).get("cobertura_meses", 0))
+        meses_alvo = _safe_float((reserva or {}).get("meses_alvo", 0)) or 12.0
         reserva_emitida = cobertura >= 6
-        if cobertura >= 12:
+        if cobertura >= meses_alvo:
             out.append(
                 PontoForteItem(
                     titulo="Reserva de Emergência Excelente",
                     descricao=(
-                        f"Cobertura de {cobertura:.0f} meses de despesas — "
-                        "acima dos 12 meses recomendados."
+                        f"Cobertura de {cobertura:.0f} meses de custo essencial — "
+                        f"no alvo de {meses_alvo:.0f} meses do perfil de renda."
                     ),
                     icone="emergency",
                 )
@@ -177,7 +179,10 @@ class PontosFortesAnalyzer:
             out.append(
                 PontoForteItem(
                     titulo="Reserva de Emergência Adequada",
-                    descricao=f"Cobertura de {cobertura:.0f} meses protege contra imprevistos.",
+                    descricao=(
+                        f"Cobertura de {cobertura:.0f} meses protege contra imprevistos "
+                        f"(alvo do perfil: {meses_alvo:.0f} meses)."
+                    ),
                     icone="emergency",
                 )
             )

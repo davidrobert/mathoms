@@ -197,14 +197,20 @@ class FinancialScoreCalculator:
         patrimonio: dict,
         goals: dict,
         fluxo: dict | None = None,  # kept for signature parity; not used
+        reserva: dict | None = None,
     ) -> dict:
         """Produz dict paridade com ``calculate_score`` legado.
 
         ``fluxo`` permanece na assinatura por compat com o legado mas não é
-        consumido — o score depende só de ``ratios`` + ``goals`` + ``patrimonio``.
+        consumido — o score depende só de ``ratios`` + ``goals`` + ``patrimonio``
+        + ``reserva``. ``cobertura_despesas`` (peso 1.5) lê ``reserva.cobertura_meses``
+        (reserva_liquida_disponivel ÷ custo_essencial_mensal — FORMULAS.md §Reserva,
+        A28.l1); fallback ``ratios.cobertura_despesas_meses`` quando reserva ausente.
         """
         del fluxo  # parity-only
-        componentes = self._build_componentes(ratios=ratios, patrimonio=patrimonio, goals=goals)
+        componentes = self._build_componentes(
+            ratios=ratios, patrimonio=patrimonio, goals=goals, reserva=reserva
+        )
         total_peso = sum(c["peso"] for c in componentes)
         valor_score = (
             sum(c["nota"] * c["peso"] for c in componentes) / total_peso if total_peso > 0 else 0.0
@@ -231,8 +237,12 @@ class FinancialScoreCalculator:
 
     # -------------------------------------------------------------------------
 
-    def _build_componentes(self, *, ratios: dict, patrimonio: dict, goals: dict) -> list[dict]:
-        observed = self._observed_values(ratios=ratios, patrimonio=patrimonio, goals=goals)
+    def _build_componentes(
+        self, *, ratios: dict, patrimonio: dict, goals: dict, reserva: dict | None = None
+    ) -> list[dict]:
+        observed = self._observed_values(
+            ratios=ratios, patrimonio=patrimonio, goals=goals, reserva=reserva
+        )
         cfg = self._config
         return [
             self._grade(cfg.taxa_poupanca, observed["taxa_poup"]),
@@ -243,11 +253,18 @@ class FinancialScoreCalculator:
         ]
 
     @staticmethod
-    def _observed_values(*, ratios: dict, patrimonio: dict, goals: dict) -> dict[str, float]:
+    def _observed_values(
+        *, ratios: dict, patrimonio: dict, goals: dict, reserva: dict | None = None
+    ) -> dict[str, float]:
         composicao = patrimonio.get("composicao", []) or []
+        cobertura = (
+            safe_float(reserva.get("cobertura_meses", 0))
+            if reserva
+            else safe_float(ratios.get("cobertura_despesas_meses", 0))
+        )
         return {
             "taxa_poup": safe_float(ratios.get("taxa_poupanca_recorrente_pct", 0)),
-            "cobertura": safe_float(ratios.get("cobertura_despesas_meses", 0)),
+            "cobertura": cobertura,
             "endiv": safe_float(ratios.get("taxa_endividamento_pct", 0)),
             "if_pct": safe_float(goals.get("if_pct", 0)),
             "num_cats": sum(1 for c in composicao if safe_float(c.get("valor", 0)) > 0),
