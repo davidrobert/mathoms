@@ -11,6 +11,7 @@ import { formatPeriodCoverPtBR } from "@/lib/format";
 import { useFeatureFlags } from "@/lib/useFeatureFlags";
 import { ExecutiveSummarySection } from "./ExecutiveSummarySection";
 import { ReportProvenanceProvider } from "./provenance/ReportProvenanceProvider";
+import { ReportDataQualityBanner } from "./ReportDataQualityBanner";
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
 import { ReportToc, type TocGroup } from "./ReportToc";
@@ -325,6 +326,15 @@ export function ReportShell({
                 * Paridade com EXEMPLO_DE_RELATORIO.html:1376 (id="kpis"). */}
               {mode === "estrategico" && (
                 <ExecutiveSummarySection data={dataState.data} />
+              )}
+
+              {/* A28.l9 — banner agregado de qualidade de dados (KR4),
+                * entre o Sumário Executivo e a primeira seção. */}
+              {mode === "estrategico" && (
+                <ReportDataQualityBanner
+                  data={dataState.data}
+                  workspaceId={workspaceId}
+                />
               )}
 
               {/* Perfil da Família — modo estratégico, acima das seções */}
