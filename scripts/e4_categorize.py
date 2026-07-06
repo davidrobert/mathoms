@@ -1145,8 +1145,11 @@ def _e4_persist_artifacts(store, ctx, result) -> List[str]:
     ``DBArtifactStore.write`` (ADR-212 PR3a — universal por stage).
     """
     from pipeline.domain.services.e4_serialization import filename_for, serialize_e4_artifacts
+    from pipeline.domain.services.protecao_wiring import load_apolices
 
-    payloads = serialize_e4_artifacts(result)
+    # A28.l6 — balde `seguros` deixa de ser placeholder: apólices extraídas
+    # em extract_comprovantes_bens viram substrato do exec-context do E6.
+    payloads = serialize_e4_artifacts(result, apolices=load_apolices(store))
     written_filenames: List[str] = []
     for key, payload in payloads.items():
         store.write("categorize_transactions", key, payload)

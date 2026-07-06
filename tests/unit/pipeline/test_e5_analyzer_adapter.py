@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -18,6 +18,23 @@ from pipeline.domain.services.e5_analyzer_adapter import (  # noqa: E402
 )
 
 _DAVID_DOB = date(1985, 6, 15)
+
+
+def _seed_apolice_auto_vigente(store: InMemoryArtifactStore) -> None:
+    """Apólice sintética PII-zero vigente hoje (A28.l6)."""
+    hoje = date.today()
+    store.seed(
+        "extract_comprovantes_bens",
+        "apolice_auto_2026",
+        {
+            "apolice_numero": "AUTO-1",
+            "seguradora": "seguradora-sintetica",
+            "vigencia_inicio": (hoje - timedelta(days=30)).isoformat(),
+            "vigencia_fim": (hoje + timedelta(days=300)).isoformat(),
+            "premio_total_brl": "1500.00",
+            "bens_segurados": [{"tipo": "veiculo", "coberturas": []}],
+        },
+    )
 
 
 def _seed_minimal(store: InMemoryArtifactStore) -> None:
@@ -258,6 +275,34 @@ class TestAnalyzeViaStore:
 
         acoes = {p.acao for p in result.pontos_urgentes}
         assert "Contratar seguro de vida e invalidez" in acoes
+
+    def test_protecao_patrimonial_sempre_presente(self):
+        """A28.l6 (ADR-240 D8): payload sempre presente — sem apólice = G6-b."""
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        adapter = E5AnalyzerAdapter()
+
+        result = adapter.analyze_via_store(store)
+
+        assert result.protecao_patrimonial is not None
+        assert result.protecao_patrimonial["apolices_vigentes"] == []
+
+    def test_apolice_vigente_flui_do_store_para_protecao(self):
+        """A28.l6: apólice de ``extract_comprovantes_bens`` chega ao E5 e
+        condiciona o item de seguro em pontos_urgentes (copy diferenciada)."""
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        _seed_apolice_auto_vigente(store)
+        adapter = E5AnalyzerAdapter()
+
+        result = adapter.analyze_via_store(store)
+
+        assert len(result.protecao_patrimonial["apolices_vigentes"]) == 1
+        seguro = [
+            p for p in result.pontos_urgentes if p.acao == "Contratar seguro de vida e invalidez"
+        ]
+        assert len(seguro) == 1
+        assert "nenhuma apólice identificada" not in seguro[0].impacto
 
     def test_equilibrio_cerbasi_computed(self):
         store = InMemoryArtifactStore()

@@ -6,7 +6,10 @@ ratios + reserva + patrimônio:
 
 - Reserva < mínimo_meses → "Reforçar reserva de emergência".
 - Endividamento > máximo_pct → "Reduzir endividamento".
-- Sem seguro (não há como inferir hoje — sempre adiciona).
+- Seguro de vida — condicional ao payload ``protecao_patrimonial`` (A28.l6):
+  omitido quando há apólice vigente com bem ``pessoa``; copy diferenciada
+  quando só há cobertura de bens (auto/residencial); copy legada ("nenhuma
+  apólice identificada") apenas quando não há apólice vigente alguma.
 - Rentabilidade "N/D" → "Consolidar dados de rentabilidade".
 
 Função pura. Config tipada (R9/ISP).
@@ -70,6 +73,44 @@ class PontoUrgenteItem:
 
 
 # =============================================================================
+# Seguro de vida — condicional a apólices vigentes (A28.l6 · ADR-240)
+# =============================================================================
+
+
+_ACAO_SEGURO_VIDA = "Contratar seguro de vida e invalidez"
+
+
+def _has_apolice_vida_vigente(vigentes: list[dict]) -> bool:
+    """Presença V1: apólice vigente com bem ``pessoa`` conta como cobertura de vida."""
+    return any("pessoa" in (a.get("tipos_bem") or []) for a in vigentes)
+
+
+def _seguro_vida_item(protecao: dict[str, Any] | None) -> PontoUrgenteItem | None:
+    """Item de seguro de vida condicional a ``protecao_patrimonial``; ``None``
+    no payload (caller legado sem wiring) preserva o item incondicional."""
+    if protecao is None:
+        return _item_seguro_vida("nenhuma apólice identificada")
+    vigentes = protecao.get("apolices_vigentes") or []
+    if _has_apolice_vida_vigente(vigentes):
+        return None
+    if vigentes:
+        return _item_seguro_vida(
+            f"{len(vigentes)} apólice(s) vigente(s) cobrem bens "
+            "(auto/residencial), sem cobertura de vida identificada"
+        )
+    return _item_seguro_vida("nenhuma apólice identificada")
+
+
+def _item_seguro_vida(detalhe: str) -> PontoUrgenteItem:
+    return PontoUrgenteItem(
+        prioridade="Alta",
+        acao=_ACAO_SEGURO_VIDA,
+        impacto=f"Proteção patrimonial da família — {detalhe}",
+        prazo="Imediato",
+    )
+
+
+# =============================================================================
 # Service
 # =============================================================================
 
@@ -85,6 +126,7 @@ class PontosUrgentesAnalyzer:
         ratios: dict[str, Any],
         reserva: dict[str, Any],
         patrimonio: dict[str, Any],
+        protecao: dict[str, Any] | None = None,
     ) -> list[PontoUrgenteItem]:
         cfg = self._config
         out: list[PontoUrgenteItem] = []
@@ -117,16 +159,9 @@ class PontosUrgentesAnalyzer:
                 )
             )
 
-        # Seguro — sempre adicionado (no legado há comentário "nenhuma apólice
-        # identificada"; há backlog para inferir via E2-llm no futuro).
-        out.append(
-            PontoUrgenteItem(
-                prioridade="Alta",
-                acao="Contratar seguro de vida e invalidez",
-                impacto=("Proteção patrimonial da família — " "nenhuma apólice identificada"),
-                prazo="Imediato",
-            )
-        )
+        seguro = _seguro_vida_item(protecao)
+        if seguro is not None:
+            out.append(seguro)
 
         # Rentabilidade não medida.
         if ratios and ratios.get("rentabilidade_pct") == "N/D":

@@ -267,6 +267,10 @@ class E5OutputInputs:
     # A17 L4 (ADR-238 §L4) — yield-on-cost por (ticker, ano_base) dos
     # informes proventos_acoes. None/empty omite a chave no output.
     proventos_por_ativo: tuple | None = None
+    # A28.l6 (ADR-240 D8) — payload de proteção patrimonial (apólices →
+    # compute_protecao). None só em callers legados sem wiring; adapter
+    # produz sempre (workspace sem apólice = KPIs zerados + gap qualitativo).
+    protecao_patrimonial: dict[str, Any] | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -314,6 +318,11 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     }
     if inputs.exposicao_cambial is not None:
         output["exposicao_cambial"] = inputs.exposicao_cambial
+
+    # A28.l6 (ADR-240 D8): bloco protecao_patrimonial — card S_PROTECAO +
+    # exec context do parecer leem daqui.
+    if inputs.protecao_patrimonial is not None:
+        output["protecao_patrimonial"] = inputs.protecao_patrimonial
 
     # ADR-279: lineage field-level inline — aditivo, declarado no schema E5.
     if inputs.lineage is not None:
