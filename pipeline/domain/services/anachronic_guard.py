@@ -15,6 +15,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+
 
 @dataclass(frozen=True)
 class AnachronicGuardConfig:
@@ -43,6 +45,23 @@ class AnachronicTransactionWarning:
             f"anachronic-drop src={self.source or '?'} "
             f"periodo_inicio={self.periodo_inicio} cutoff={self.cutoff} "
             f"dropped={self.dropped_count} sample=[{sample}]"
+        )
+
+    def to_review_reason(
+        self, *, stage: str, artifact_key: str, document_id: str | None
+    ) -> "ReviewReason | None":
+        """Projeta (ADR-272/ADR-308) — informativo, não bloqueia o run."""
+        return ReviewReason(
+            code=ReviewReasonCode.domain_anachronic_transaction,
+            stage=stage,
+            artifact_key=self.source or artifact_key,
+            document_id=document_id,
+            offending_value=(
+                f"{self.dropped_count} transacao(oes) anteriores a {self.cutoff} "
+                f"descartada(s) (periodo inicia {self.periodo_inicio})"
+            ),
+            expected=f"datas dentro da janela do periodo (>= {self.cutoff})",
+            message="transacoes fora da janela do periodo descartadas; conferir documento",
         )
 
 

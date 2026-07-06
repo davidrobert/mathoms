@@ -33,6 +33,12 @@ from pipeline.domain.services.baseline_validator import (
     BaselineDiffWarning,
     BaselineValidator,
 )
+from pipeline.domain.services.e3_review_reasons import (
+    project_e3_reasons as _project_reasons,
+)
+from pipeline.domain.services.e3_review_reasons import (
+    store_document_id as _document_id_for,
+)
 from pipeline.domain.services.reconciliation_service import (
     ReconciliationConfig,
     ReconciliationService,
@@ -77,21 +83,6 @@ class EmptyInstitutionWarning:
             expected="campo banco/institution nao-vazio no artefato E2",
             message="extrato sem banco determinavel; documento requer revisao",
         )
-
-
-_REVIEW_STAGE = "reconcile_transactions"
-
-
-def _project_reasons(warnings: Iterable[Any], artifact_key: str) -> list[ReviewReason]:
-    """Projeta warnings do load → ReviewReason (ADR-272); sem mapeamento → descartado."""
-    reasons: list[ReviewReason] = []
-    for w in warnings:
-        reason = w.to_review_reason(
-            stage=_REVIEW_STAGE, artifact_key=artifact_key, document_id=None
-        )
-        if reason is not None:
-            reasons.append(reason)
-    return reasons
 
 
 # =============================================================================
@@ -263,9 +254,10 @@ class E3ReconcilerAdapter:
                     continue
 
                 # Normaliza/sintetiza periodo (faturas, strings YYYYMM, etc.)
+                doc_id = _document_id_for(store, stage, key)
                 norm_result = self._period_normalizer.normalize(data, source_name=key)
                 outcome.period_warnings.extend(norm_result.warnings)
-                outcome.review_reasons.extend(_project_reasons(norm_result.warnings, key))
+                outcome.review_reasons.extend(_project_reasons(norm_result.warnings, key, doc_id))
                 if norm_result.skip:
                     outcome.skipped += 1
                     continue
@@ -275,6 +267,9 @@ class E3ReconcilerAdapter:
                 anach_result = self._anachronic_dropper.filter(normalized, source_name=key)
                 if anach_result.warning is not None:
                     outcome.anachronic_warnings.append(anach_result.warning)
+                    outcome.review_reasons.extend(
+                        _project_reasons([anach_result.warning], key, doc_id)
+                    )
                 normalized = anach_result.data
 
                 # Conversão final → BankStatement. Garante ``source_document``
@@ -290,7 +285,7 @@ class E3ReconcilerAdapter:
                 if not (stmt.institution or "").strip():
                     warning = EmptyInstitutionWarning(source=key)
                     outcome.institution_warnings.append(warning)
-                    outcome.review_reasons.extend(_project_reasons([warning], key))
+                    outcome.review_reasons.extend(_project_reasons([warning], key, doc_id))
                     outcome.skipped += 1
                     continue
                 if not stmt.source_document:
@@ -470,6 +465,12 @@ class E3ReconcilerAdapter:
                     self._baseline_validator.validate(merged_statements, baseline_accounts)
                 )
 
+        # ADR-308/A29.l2: warnings de reconciliação também projetam ReviewReason
+        # (informativos — BLOCKING_CODES decide o gate de needs_review).
+        cross_doc_reasons: list[ReviewReason] = []
+        for warning_group in (saldo_warnings, temporal_warnings, baseline_warnings):
+            cross_doc_reasons.extend(_project_reasons(warning_group, artifact_key=""))
+
         return ReconciliationStoreResult(
             statements_loaded=len(statements),
             statements_reconciled=len(reconciled),
@@ -481,5 +482,5 @@ class E3ReconcilerAdapter:
             temporal_warnings=temporal_warnings,
             baseline_warnings=baseline_warnings,
             institution_warnings=tuple(outcome.institution_warnings),
-            review_reasons=tuple(outcome.review_reasons),
+            review_reasons=tuple(outcome.review_reasons) + tuple(cross_doc_reasons),
         )

@@ -28,6 +28,7 @@ from typing import Iterable
 from pipeline.domain.models.bank import BankCanonicalizer
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.domain.services.reconciliation_validators import AccountKey
 
 # =============================================================================
@@ -180,6 +181,27 @@ class BaselineDiffWarning:
             f"extrato={self.statement_closing.to_float():.2f} "
             f"(diff={self.diff.to_float():.2f}, {pct_str}) "
             f"[membro: {self.baseline_member}]"
+        )
+
+    def to_review_reason(
+        self, *, stage: str, artifact_key: str, document_id: str | None
+    ) -> ReviewReason | None:
+        """Projeta (ADR-272/ADR-308) — informativo; ``offending_value`` só
+        carrega % relativo (saldo/diff absolutos são Money, sensível)."""
+        inst, member, currency = self.account_key
+        pct = self.percent_diff
+        pct_str = "inf" if pct.is_infinite() else f"{float(pct):.1f}%"
+        return ReviewReason(
+            code=ReviewReasonCode.domain_baseline_divergence,
+            stage=stage,
+            artifact_key=artifact_key or f"{inst}_{currency}_baseline_{self.reference_date.year}",
+            document_id=document_id,
+            offending_value=(
+                f"saldo do extrato difere {pct_str} do IRPF em "
+                f"{inst}/{member or '-'}/{currency} ({self.reference_date.isoformat()})"
+            ),
+            expected="closing_balance == saldo declarado no IRPF em 31/12",
+            message="saldo do extrato diverge do baseline IRPF; conferir documento",
         )
 
 
