@@ -89,3 +89,23 @@ Re-run dogfood completo sem: violação de fórmula canônica, contradição
 cross-seção, categoria dominante sem rótulo, dado extraído ausente do relatório,
 projeção precisa sobre premissa fallback sem ressalva — verificado por goldens
 + testes de invariante + teste de honestidade de UX (ver KRs da A28).
+
+### Gate de saída do dogfood (operacionalizado 2026-07-06)
+
+> Antecipa o follow-up "gate de abertura" (antes reservado a A29): "refinar até
+> perfeito" é insaturável (risco R6 de PHASES.md) — sem condição de parada
+> binária, a iteração não termina e o beta nunca abre. Revisão
+> `product-manager` 2026-07-06; precedente de forma: PHASES.md R9.
+
+O dogfood pode encerrar (abrindo caminho para beta) quando:
+
+- [ ] **2 re-runs completos consecutivos** (pipeline E0→E6 + parecer + revisão
+  do owner) com **zero** ocorrência nas 5 classes acima; *N=2 é default
+  proposto — owner pode recalibrar antes do primeiro re-run contar*.
+- [ ] Nenhum item novo P0/P1 aberto pela revisão do owner nesses 2 re-runs
+  (achados P2 viram backlog de A29+, não resetam o contador).
+- [ ] Gates de owner da A28 executados (`G-owner-reclassify` +
+  `G-owner-label`), para que os re-runs contem sobre dados curados.
+
+Resposta que este gate habilita: "posso abrir o beta?" vira sim/não
+verificável, não juízo de "está perfeito".
