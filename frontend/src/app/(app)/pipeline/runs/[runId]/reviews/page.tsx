@@ -42,7 +42,7 @@ function ReviewListContent({
         <ArrowLeft aria-hidden className="h-3 w-3" /> Voltar ao pipeline
       </Link>
       <PageHeader
-        title="Revisões pendentes"
+        title="Conferências pendentes"
         description={`Run ${runId.slice(0, 8)}…`}
       />
 
@@ -109,7 +109,7 @@ function ReadyToResumeCard({
   onResume: () => Promise<void>;
 }) {
   const reviewLabel =
-    reviewCount === 1 ? "1 revisão" : `${reviewCount} revisões`;
+    reviewCount === 1 ? "1 conferência" : `${reviewCount} conferências`;
 
   return (
     <Card aria-live="polite">
@@ -117,9 +117,9 @@ function ReadyToResumeCard({
         <div>
           <h2 className="text-lg font-semibold">Tudo pronto para continuar</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Você concluiu {reviewLabel}. O pipeline vai retomar de onde parou e
-            isso costuma levar alguns minutos. Você pode acompanhar o progresso
-            ou voltar quando estiver pronto.
+            Você concluiu {reviewLabel}. A análise continua de onde parou e isso
+            costuma levar alguns minutos. Você pode acompanhar o progresso ou
+            voltar quando estiver pronto.
           </p>
         </div>
         {resumeError && (
@@ -127,7 +127,7 @@ function ReadyToResumeCard({
             role="alert"
             className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
           >
-            Não foi possível retomar o pipeline: {resumeError}
+            Não foi possível retomar a análise: {resumeError}
           </p>
         )}
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -146,7 +146,7 @@ function ReadyToResumeCard({
             ) : resumeError ? (
               "Tentar novamente"
             ) : (
-              "Retomar pipeline"
+              "Retomar análise"
             )}
           </Button>
           <Button
@@ -188,7 +188,7 @@ function ReviewListEmpty() {
     <Card>
       <CardContent>
         <p className="mb-3 text-sm text-muted-foreground">
-          Nenhuma revisão pendente neste run.
+          Nenhuma conferência pendente nesta análise.
         </p>
         <Button
           size="sm"
@@ -205,7 +205,7 @@ function ReviewListEmpty() {
 
 function ReviewListSkeleton() {
   return (
-    <div aria-label="Carregando revisões" className="space-y-3">
+    <div aria-label="Carregando conferências" className="space-y-3">
       {[0, 1, 2].map((i) => (
         <Skeleton key={i} className="h-24 w-full rounded-lg" />
       ))}

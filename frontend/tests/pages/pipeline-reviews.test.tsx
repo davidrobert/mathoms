@@ -134,7 +134,7 @@ describe("ReviewListPage", () => {
       await screen.findByText(/Tudo pronto para continuar/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Retomar pipeline/i }),
+      screen.getByRole("button", { name: /Retomar análise/i }),
     ).toBeInTheDocument();
   });
 
@@ -177,7 +177,7 @@ describe("ReviewListPage", () => {
     paramsMock.mockReturnValue({ runId: "run-1" });
     const user = userEvent.setup();
     render(<ReviewListPage />);
-    const btn = await screen.findByRole("button", { name: /Retomar pipeline/i });
+    const btn = await screen.findByRole("button", { name: /Retomar análise/i });
     await user.click(btn);
     await waitFor(() => expect(resumeCalled).toBe(true));
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/pipeline"));
@@ -199,7 +199,7 @@ describe("ReviewListPage", () => {
     paramsMock.mockReturnValue({ runId: "run-1" });
     const user = userEvent.setup();
     render(<ReviewListPage />);
-    const btn = await screen.findByRole("button", { name: /Retomar pipeline/i });
+    const btn = await screen.findByRole("button", { name: /Retomar análise/i });
     await user.click(btn);
     expect(
       await screen.findByRole("alert"),
@@ -222,7 +222,7 @@ describe("ReviewListPage", () => {
     paramsMock.mockReturnValue({ runId: "run-1" });
     render(<ReviewListPage />);
     expect(
-      await screen.findByText(/Nenhuma revisão pendente/i),
+      await screen.findByText(/Nenhuma conferência pendente/i),
     ).toBeInTheDocument();
   });
 

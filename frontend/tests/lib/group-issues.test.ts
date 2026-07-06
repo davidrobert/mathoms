@@ -10,7 +10,7 @@ import {
   groupIssuesByCode,
   groupLegacyLines,
   normalizeLegacyMessage,
-} from "@/app/(app)/pipeline/runs/[runId]/reviews/_components/groupIssues";
+} from "@/lib/review-groups";
 import type { ValidationIssue } from "@/lib/api/pipeline";
 
 const LEGACY_18 = [

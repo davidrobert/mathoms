@@ -28,7 +28,7 @@ test.describe("Pipeline review screen @critical", () => {
     await page.goto("/pipeline/runs/00000000-0000-0000-0000-000000000000/reviews");
     // PageHeader sempre presente.
     await expect(
-      page.getByRole("heading", { name: /Revisões pendentes/i }),
+      page.getByRole("heading", { name: /Conferências pendentes/i }),
     ).toBeVisible({ timeout: 10_000 });
   });
 });
