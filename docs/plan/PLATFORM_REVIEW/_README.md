@@ -63,9 +63,16 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 
 **Próximos pickups ready agora:**
 
-- **W3** (5 P0 tasks) — auth + LLM ops + email; `wave_gate: w2_done` ✅ satisfeito.
-- **W5** (5 tasks, paralelo a W6) — frontend a11y + metodologia financeira.
-- **W6** (6 tasks) — tech debt cleanup; W6-T02 destravado parcialmente após W3-T02.
+- **W6-T02** (MLOps hooks) — destravado: dep W3-T01 entregue (PR #718).
+- **W5** — frontend/metodologia; statuses do Index preservados (evidência de entrega parcial via outras sprints não foi conclusiva — re-verificar no pickup).
+- **Owner-gated (não são pickup de agente):** W3-T02 (Resend EU), W4-T02 residual (token Coolify = A20 L4), W4-T01 residual (off-site R2, ADR-228 G2/G3).
+
+> **Reconciliação 2026-07-06** — auditoria factual pós-A28 (sprint `paused` desde
+> 2026-05-20; muito do escopo shipou via A20/A21/A24/A27): W3-T01, W3-T04, W4-T04,
+> W6-T04, W6-T06 fechados; W4-T01, W4-T02, W6-T01, W6-T03 parciais com residual
+> anotado; W6-T02 destravado. Statuses do Index abaixo refletem a evidência
+> (PR/ADR citados por linha). Residual real da sprint: 3 itens owner-gated +
+> W4-T03/W4-T05 (Sentry/status page) + W5 residual + W6-T02/T05/T07.
 
 ---
 
@@ -87,27 +94,27 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | done | sre-devops | P0 | S | W1-T06 (ADR-172) |
 | W2-T05 | DE-002 + DE-008 extract_with_llm incremental + PROMPT_VERSION | 2 | done | data-engineer | P1 | S | — |
 | W2-T06 | DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases | 2 | done | data-engineer | P1 | S | — |
-| W3-T01 | SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada | 3 | ready | data-engineer + sre-devops | P0 | M | W1-T06 (ADR-173) ✅, W2-T05 ✅ |
+| W3-T01 | SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada | 3 | done (2026-07-02, [PR #718](https://github.com/davidrobert/mathoms/pull/718)) | data-engineer + sre-devops | P0 | M | W1-T06 (ADR-173) ✅, W2-T05 ✅ |
 | W3-T02 | BB-001 + SR-008 Email Resend + verify + password reset | 3 | ready (owner-gated: aprovação Resend EU) | sre-devops | P0 | L | W1-T06 ✅ |
 | W3-T03 | SR-002 JWT 15min + refresh 7d + family revocation | 3 | done (2026-06-09, PR #584) | sre-devops + senior-cto | P0 | L | W1-T06 (ADR-170) ✅ |
-| W3-T04 | SR-003 Fernet rotation real (MultiFernet) | 3 | ready | sre-devops | P0 | M | W1-T06 (ADR-171) ✅ |
+| W3-T04 | SR-003 Fernet rotation real (MultiFernet) | 3 | done (2026-07-02, [PR #718](https://github.com/davidrobert/mathoms/pull/718)) | sre-devops | P0 | M | W1-T06 (ADR-171) ✅ |
 | W3-T05 | SR-009 Prompt injection defense (sanitize + adversarial fixtures) | 3 | shipped | sre-devops + data-engineer | P0 | M | W1-T06 (ADR-175) |
-| W4-T01 | SR-004 + BB-007 Off-site backup R2 + restore drill | 4 | blocked | sre-devops | P0 | M | — |
-| W4-T02 | SR-010 Coolify webhook + SHA-pinned images + dev.9 | 4 | blocked | sre-devops | P0 | M | W2-T03 |
+| W4-T01 | SR-004 + BB-007 Off-site backup R2 + restore drill | 4 | parcial — drill dump→restore em CI ✅ (A21.l9, [PR #538](https://github.com/davidrobert/mathoms/pull/538)); off-site R2 segue owner-gated ([[ADR-228]] G2/G3) | sre-devops | P0 | M | — |
+| W4-T02 | SR-010 Coolify webhook + SHA-pinned images + dev.9 | 4 | parcial — SHA pinning ✅ (A20.L2, [PR #510](https://github.com/davidrobert/mathoms/pull/510)); Coolify webhook = A20 L4, owner-gated (token) | sre-devops | P0 | M | W2-T03 |
 | W4-T03 | SR-011 + BB-015 Sentry SaaS EU + frontend hookup | 4 | blocked | sre-devops | P1 | S | — |
-| W4-T04 | SR-018 Rate limit endpoints LLM/upload/pipeline | 4 | blocked | sre-devops | P1 | M | — |
+| W4-T04 | SR-018 Rate limit endpoints LLM/upload/pipeline | 4 | done (2026-07-02, [PR #720](https://github.com/davidrobert/mathoms/pull/720) — `services/rate_limit.py` aplicado a upload + pipeline_run) | sre-devops | P1 | M | — |
 | W4-T05 | BB-002 + SR-017 + SR-028 Status page + alertas + drill | 4 | blocked | sre-devops | P1 | M | W4-T03 |
 | W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | scoped (track) | product-designer | P1 | S | W1-T01 |
 | W5-T02 | PD-004 + BB-011 Recharts → Chart.js residual em S1 | 5 | blocked | product-designer | P1 | M | W5-T01 |
 | W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | scoped (track) | product-designer | P1 | M | W1-T01 |
 | W5-T04 | FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | 5 | scoped (track) | financial-planner | P1 | L | W1-T07 |
 | W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | scoped (track) | financial-planner | P1 | L | — |
-| W6-T01 | DE schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire compliance) | 6 | scoped (track) | data-engineer | P1 | L | — |
-| W6-T02 | MLOps universal hooks (DE-001/004/008/019 — meta-ADR) | 6 | blocked | data-engineer | P1 | L | W3-T01 |
-| W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | ready | data-engineer | P2 | M | — |
-| W6-T04 | Doc hygiene (BACKLOG split + CHANGELOG retention + CLAUDE.md slim) | 6 | in_progress (PR #111) | senior-cto | P2 | M | W1-T03 |
+| W6-T01 | DE schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire compliance) | 6 | parcial — flip strict entregue via A24.l7 ([[ADR-284]] + runbook); sub-schemas E4 + wire compliance residual | data-engineer | P1 | L | — |
+| W6-T02 | MLOps universal hooks (DE-001/004/008/019 — meta-ADR) | 6 | ready (dep W3-T01 ✅ via PR #718) | data-engineer | P1 | L | W3-T01 ✅ |
+| W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | parcial — F9.5 ✅ ([PR #720](https://github.com/davidrobert/mathoms/pull/720)); F9.4/F9.6 abertos (`e2_extract.py::_choose_stage` ainda grava `E2-faturas`/`E2-extratos` legado) | data-engineer | P2 | M | — |
+| W6-T04 | Doc hygiene (BACKLOG split + CHANGELOG retention + CLAUDE.md slim) | 6 | done ([PR #111](https://github.com/davidrobert/mathoms/pull/111) mergeado) | senior-cto | P2 | M | W1-T03 |
 | W6-T05 | DE-017 + DE-010 Pipeline artifacts retention + cascade-on-delete | 6 | scoped (track) | data-engineer | P2 | M | — |
-| W6-T06 | CTO-001 ADR-150 decisão (Caminho 1 / rejeitada / adiada) | 6 | in_progress (PR #110, decidido Caminho 3 — Roadmap) | senior-cto | P1 | S decidir + L se Caminho 1 | — |
+| W6-T06 | CTO-001 ADR-150 decisão (Caminho 1 / rejeitada / adiada) | 6 | done — Caminho 3 via [PR #110](https://github.com/davidrobert/mathoms/pull/110); superado por evento: [[ADR-150]] flip `Decidido` 2026-07-03 (#759, gatilho 4) e F1 entregue (#780→#792) | senior-cto | P1 | S decidir + L se Caminho 1 | — |
 | W6-T07 | CTO-015 `services/` taxonomy — split por natureza (ADR-285) + drenagem boy-scout p/ `application/` | 6 | blocked (gate: ≤1 PR ativo tocando `services/`) | senior-cto | P3 | M | ADR-285 |
 
 ---

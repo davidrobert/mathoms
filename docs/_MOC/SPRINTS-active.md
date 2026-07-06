@@ -154,20 +154,19 @@ parecer E6 e exercita o override v2).
 
 ### A11 — Platform review execution (`paused` 2026-05-20)
 
-**Pausada com débito conhecido.** 6 ondas, 138 findings de revisão multi-agente. W1 ✅ + W2 ✅ entregues; W3-W6 abertas (~9 itens). Sub-lanes paralelas (competitive-pierre, report-publication) preservadas.
+**Pausada com débito conhecido.** 6 ondas, 138 findings de revisão multi-agente. W1 ✅ + W2 ✅ entregues. **Reconciliação factual 2026-07-06:** boa parte de W3-W6 shipou via outras sprints — W3-T01/W3-T04 (#718), W4-T04 (#720), W6-T04 (#111), W6-T06 (#110 + ADR-150 `Decidido`); W4-T01/W4-T02/W6-T01/W6-T03 parciais. Residual real: W3-T02 + W4-T01/T02 restos (owner-gated: Resend, token Coolify, off-site R2), W4-T03/T05 (Sentry, status page), W5 (re-verificar no pickup), W6-T02 (destravado)/T05/T07. Sub-lanes paralelas (competitive-pierre, report-publication) preservadas.
 
-- **Trabalho residual:** [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (W3-W6).
+- **Trabalho residual:** [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (Index reconciliado por task, com PR/ADR por linha).
 - **Sub-lanes preservadas:** A11.competitive-pierre (Fase 1 ready), A11.report-publication (ADR-187 Proposto), A11.cat-overrides-ux ✅ entregue 2026-05-10.
 - **DOC_REORG** ✅ entregue em 2026-05-07 (separado da pausa). Arquivado em [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md), ADR canônica [ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md).
 - **Retomada:** flip `paused → current` quando decidido retomar.
 
 ### A12 — Categorization learning loop + post-A11 follow-up (`paused` 2026-05-20)
 
-**Pausada com débito conhecido.** Cat-learning-loop in_progress: P1-P3 mergeadas (PRs #188, #194, #195-#198); gate dogfood + P4 condicional pendentes. FU-1 + FU-2 entregues, FU-3 absorvido e entregue como A15.
+**Escopo concluído (reconciliação 2026-07-06).** Cat-learning-loop MVP V1 completo: P1-P4 mergeadas (PRs #188, #194, #195-#198, #203); gate dogfood **PASS por decisão do owner 2026-07-02** (gate técnico 11/11 invariantes como evidência); sunset do CRUD legado `/config/categories` + drop do `monthly_cap` Float entregue (#573, ADR-283 §B). FU-1 + FU-2 entregues, FU-3 absorvido e entregue como A15. V2.A/B/C ficam pós-tração (backlog, não débito).
 
-- **Trabalho residual:** gate dogfood (CEO + PM, 0,5d setup + 7d wall-clock — ver [docs/reference/RUNBOOK.md §9](../reference/RUNBOOK.md)) + P4 condicional.
-- **Plano:** [plan/CAT_LEARNING_LOOP/_README.md](../plan/CAT_LEARNING_LOOP/_README.md). ADRs: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md) + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md).
-- **Retomada:** flip `paused → current` (ou `candidate`) quando decidido retomar.
+- **Trabalho residual:** nenhum — sprint é candidata a flip `paused → done` (decisão editorial do owner).
+- **Plano:** [plan/CAT_LEARNING_LOOP/_README.md](../plan/CAT_LEARNING_LOOP/_README.md) (`status: done`). ADRs: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md) + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md).
 
 
 ## Pickup — antes de pegar lane
