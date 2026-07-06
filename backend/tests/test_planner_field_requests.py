@@ -221,6 +221,52 @@ async def test_persist_field_requests_dedup_intra_batch(db, sync_session):
     assert rows[0].field_path == "$.alertas"
 
 
+_AUDIT_ENTRIES = [
+    {
+        "field_path": "$.patrimonio.bruto",
+        "motivo": "detalhar composição [removido: resolve não-nulo]",
+        "reason": "field_request_spurious",
+    },
+    {
+        "field_path": "$.composicao_familiar.dependentes",
+        "motivo": "quantos dependentes [reanotado: dado presente em $.irpf_kpis.dependentes]",
+        "reason": "field_request_wrong_path",
+        "alias_path": "$.irpf_kpis.dependentes",
+    },
+]
+
+
+def _assert_rows_match_3_vias(rows) -> None:
+    by_path = {r.field_path: r for r in rows}
+    assert len(rows) == 3
+    assert by_path["$.protecao_patrimonial.apolices"].reason == "llm_declared"
+    assert by_path["$.patrimonio.bruto"].reason == "field_request_spurious"
+    wrong = by_path["$.composicao_familiar.dependentes"]
+    assert wrong.reason == "field_request_wrong_path"
+    assert "$.irpf_kpis.dependentes" in wrong.motivo
+
+
+@pytest.mark.asyncio
+async def test_persist_field_requests_includes_3_vias_audit_from_meta(db, sync_session):
+    """A28.l11: entradas removidas pelo filtro 3-vias (em ``_meta.field_request_audit``)
+    persistem com reason spurious/wrong_path; a mantida persiste como llm_declared."""
+    workspace = await factories.make_workspace(db)
+    run = await factories.make_run(db, workspace=workspace)
+    campos = [{"field_path": "$.protecao_patrimonial.apolices", "motivo": "apólices vigentes"}]
+    _, parecer = await _make_artifacts(db, workspace, run, campos=campos)
+    parecer.content_json = {
+        **parecer.content_json,
+        "_meta": {"field_request_audit": list(_AUDIT_ENTRIES)},
+    }
+    await db.commit()
+
+    review_id = persist_planner_review(
+        sync_session, workspace_id=workspace.id, run_id=run.id, detail=_make_detail()
+    )
+    sync_session.commit()
+    _assert_rows_match_3_vias(_field_requests_for_review(sync_session, review_id))
+
+
 def _persist_twice(sync_session, workspace_id: str, run_id: str) -> tuple[str, str]:
     """Helper: invoca persist 2x e retorna (first_id, second_id)."""
     first_id = persist_planner_review(
