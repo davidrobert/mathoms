@@ -252,6 +252,15 @@ def _process_one_e2_llm_document(
         if not validation.valid:
             logger.warning("E2-llm: validation errors for %s: %s", doc.name, validation.errors)
 
+        # A28.l8: extrato sem banco determinável nunca vira artefato silencioso
+        # (key E3 degradaria para "_extrato_..."); documento vai a needs_review.
+        if not (output.institution or "").strip():
+            logger.warning(
+                "E2-llm: institution vazia — artefato não gravado (needs_review)",
+                extra={"file": doc.name},
+            )
+            return _needs_review_entry(doc.name, output), None, service.summary
+
         e2_json = _output_to_e2_json(output, member_resolver=member_resolver)
         # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
         e2_json["prompt_version"] = PROMPT_VERSION
@@ -294,6 +303,40 @@ def _process_one_e2_llm_document(
     except Exception as exc:
         logger.error("E2-llm: failed for %s: %s", doc.name, exc)
         return None, {"file": doc.name, "error": str(exc)[:300]}, service.summary
+
+
+def _needs_review_entry(filename: str, output: Any) -> dict[str, Any]:
+    """Entrada de `processed` para doc retido em needs_review (sem artefato gravado)."""
+    from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+
+    reason = ReviewReason(
+        code=ReviewReasonCode.extract_missing_required_field,
+        stage="E2-llm",
+        artifact_key=filename,
+        document_id=None,
+        offending_value="institution=''",
+        expected="institution nao-vazia no output LLM",
+        message="E2-llm sem institution determinavel; documento requer revisao",
+    )
+    return {
+        "file": filename,
+        "output": None,
+        "needs_review": True,
+        "review_reason": reason.to_dict(),
+        "transactions": len(output.transactions),
+        "investments": len(output.investments),
+        "confidence": output.confidence,
+    }
+
+
+def _e2llm_validation_block(processed: list[dict[str, Any]]) -> dict[str, Any]:
+    """A28.l8: review_reasons por-doc → bloco validation consumido pelo gate needs_review."""
+    flagged = [p for p in processed if p.get("review_reason")]
+    return {
+        "valid": not flagged,
+        "errors": [f"E2-llm: institution vazia — needs_review ({p['file']})" for p in flagged],
+        "review_reasons": [p["review_reason"] for p in flagged],
+    }
 
 
 def _merge_llm_run_summaries(parts: list[Any]) -> dict[str, Any]:
@@ -357,6 +400,9 @@ def _output_to_e2_json(output, *, member_resolver=None) -> dict:
     result = {
         "arquivo_origem": output.source_file,
         "instituicao": output.institution,
+        # A28.l8: from_e2_dict lê `banco` (não `instituicao`) — sem ele, o E3
+        # gerava key com banco vazio. `banco` também é required no schema E2.
+        "banco": output.institution,
         "tipo_documento": output.document_type,
         "moeda": output.currency,
         "extraido_por": "llm",
@@ -504,6 +550,7 @@ def run(ctx: WorkspaceContext) -> dict:
         "errors": errors,
         "total_processed": len(processed),
         "total_errors": len(errors),
+        "validation": _e2llm_validation_block(processed),
         "llm_usage": summary,
         "queued": {
             "total": len(docs),
