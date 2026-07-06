@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-298 ADRs (ADR-001 a ADR-307) em [`docs/adr/`](../../adr/).
+299 ADRs (ADR-001 a ADR-308) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 278
-- **Proposto**: 17
+- **Proposto**: 18
 - **Roadmap**: 3
 
 ## Fundação
@@ -517,6 +517,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-291]] — from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) · phase A25 · dogfood
 - [[ADR-301]] — Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) · phase A22.l5 · F1-O3 launch-trust
 - [[ADR-305]] — PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) · phase A28
+
+### Proposto (1)
+
+- [[ADR-308]] — Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração
 
 ## quality
 
