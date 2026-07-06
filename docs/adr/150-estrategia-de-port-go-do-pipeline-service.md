@@ -259,7 +259,7 @@ Hoje, nenhum dos quatro está ativo.
 - **A2.1** — ◐ **parcial** (2026-07-03): harness entregue (`dev/profile_pipeline_stages.py`, subprocess por stage + `os.wait4`/rusage) + perfil determinístico E1.5c→E5 sobre fixture sintética ([PERFORMANCE_BASELINE §12](../reference/PERFORMANCE_BASELINE.md)) — overhead ~550ms/stage (413ms do §11 + ~140ms de hidratação), `cpu/wall≈0,99` dominado por imports (mudo sobre domínio em carga real), RSS ~115MB/subprocess. **O que refalsifica o gatilho "GIL/Caminho 3" continua owner-gated:** rerun com workspace real (E2 parsing pesado, E5 denso) + stages LLM.
 - **A2.fix** — ✅ entregue (A20.L2/L3). ~~fix do bug de COPY ordering em [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile)~~.
 - **A3.cli** — ✅ entregue (2026-07-02, PR #737 — ver §4). ~~entry-point `python -m pipeline.orchestrator run-stage` com output JSON estruturado. Slice próprio, sem ADR (interface adicional, retro-compatível com `_run_stage` programático).~~
-- **A3.codegen** — `oapi-codegen` setup para `services/pipeline-service-go/internal/contracts/`. Slice próprio, parte do primeiro PR Go produtivo ou imediatamente antes ([ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) §Escopo deferido).
+- **A3.codegen** — ✅ entregue (2026-07-03, F1 Fase 1 do track [f1-go-service](../plan/GO_SHELL/tracks/f1-go-service.md)): `oapi-codegen` (`types+chi-server`) sobre snapshot 3.0 **derivado** do 3.1 (`dev/convert_openapi_31_to_30.py` — oapi-codegen não suporta 3.1, issue #373) + registry de stages via `dev/codegen_stage_registry_go.py`; checks de sync no job Go do CI.
 - **ADR-151+ (hipotética)** — promoção de Caminho 1 para Caminho 3 se A2.1 mostrar gargalo CPU-bound nos stages. Esta ADR seria superseded.
 - **ADR de decommission do Python `pipeline-service`** — quando Caminho 1 entregar e estabilizar em prod, slice próprio remove `pipeline-service/` Python (similar a [ADR-107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2)).
 
@@ -269,4 +269,4 @@ Hoje, nenhum dos quatro está ativo.
 - [docs/reference/PERFORMANCE_BASELINE.md](../reference/PERFORMANCE_BASELINE.md) — A2, baseline empírico.
 - [docs/reference/api/v1/pipeline-service.openapi.json](../reference/api/v1/pipeline-service.openapi.json) — contrato HTTP fonte de verdade.
 - [services/](../../services/) — skeleton Go ([ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7)).
-- [.golangci.yml](../../.golangci.yml), [.github/workflows/go.yml](../../.github/workflows/go.yml), [Makefile](../../Makefile) `go-*` targets — infra preventiva pronta.
+- [.golangci.yml](../../.golangci.yml) (v2 desde F1 Fase 1), jobs `go-lint`/`go-test` em [.github/workflows/ci.yml](../../.github/workflows/ci.yml) (dentro do agregador `All checks green`; o `go.yml` standalone foi absorvido — não era observado pelo gate), [Makefile](../../Makefile) `go-*` targets.

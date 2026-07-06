@@ -52,7 +52,7 @@ Fora das sprints temáticas (A26/A27 = data-lineage): tracks vivem aqui, sem
 | A3.cli — entry-point CLI `run-stage` no orchestrator (+ injeção `DBArtifactStore`) | ✅ entregue 2026-07-02 (PR #737) | [tracks/a3cli-orchestrator-cli.md](tracks/a3cli-orchestrator-cli.md) Fase 1 |
 | A3.cli.otel — `TRACEPARENT` → span filho contínuo | ✅ entregue 2026-07-02 (PR #738) | [tracks/a3cli-orchestrator-cli.md](tracks/a3cli-orchestrator-cli.md) Fase 2 |
 | A3.cli.benchmark — gate empírico de cold start (decide Caminho 2) | ✅ **gate PASSA** 2026-07-02: mediana 413ms ≤ 500ms; acumulado 4,1–7,4s/run ([PERFORMANCE_BASELINE §11](../../reference/PERFORMANCE_BASELINE.md)) | [tracks/a3cli-benchmark.md](tracks/a3cli-benchmark.md) |
-| A3.codegen — `oapi-codegen` → `internal/contracts/` | ⏸ follow-up **sem track** — ancorado ao 1º PR Go produtivo ([[ADR-150]] §Escopo deferido) | — |
+| A3.codegen — `oapi-codegen` → `internal/contracts/` | ✅ entregue 2026-07-03 (F1 Fase 1): `types+chi-server` sobre o 3.0 derivado (conversor `dev/convert_openapi_31_to_30.py` — oapi-codegen não lê 3.1) + registry de stages (`dev/codegen_stage_registry_go.py`), ambos com check de sync no CI | [tracks/f1-go-service.md](tracks/f1-go-service.md) |
 
 ### F0.5 — Follow-ups pós-F0 — ✅ concluída 2026-07-03
 
