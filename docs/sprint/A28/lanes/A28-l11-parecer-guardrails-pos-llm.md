@@ -4,7 +4,7 @@ type: lane
 title: "guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes"
 sprint: A28
 plan: PLAN-report-trust
-status: planned
+status: in_progress
 priority: P1
 branch_slug: parecer-guardrails-pos-llm
 adrs:
@@ -18,7 +18,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/planned
+  - status/in-progress
   - priority/p1
   - area/llm
 ---
