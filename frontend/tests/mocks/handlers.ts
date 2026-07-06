@@ -137,6 +137,18 @@ export const handlers = [
   http.delete(`${API}/vault/passwords/:id`, () => new HttpResponse(null, { status: 204 })),
 
   // ─── Pipeline ───
+  // Workspace-scoped (A29.l3 — PendingReviewQueue consulta runs+reviews a
+  // partir de /documents; default sem run pausado → fila oculta).
+  http.get(`${API}/workspaces/:workspaceId/pipeline/runs`, () =>
+    HttpResponse.json({ runs: [fixtures.pipelineRun], total: 1 }),
+  ),
+  http.get(`${API}/workspaces/:workspaceId/pipeline/runs/:id/reviews`, () =>
+    HttpResponse.json([]),
+  ),
+  http.post(
+    `${API}/workspaces/:workspaceId/pipeline/runs/:id/resume`,
+    () => new HttpResponse(null, { status: 204 }),
+  ),
   http.post(`${API}/pipeline/run`, () => HttpResponse.json(fixtures.pipelineRun)),
   http.get(`${API}/pipeline/runs`, () =>
     HttpResponse.json({ runs: [fixtures.pipelineRun], total: 1 }),

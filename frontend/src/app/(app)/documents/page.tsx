@@ -30,6 +30,7 @@ import { NeedsPasswordBanner } from "./_components/NeedsPasswordBanner";
 import { FilterReclassifyBar } from "./_components/FilterReclassifyBar";
 import { DocumentsTable } from "./_components/DocumentsTable";
 import { ExtractJsonModal } from "./_components/ExtractJsonModal";
+import { PendingReviewQueue } from "./_components/PendingReviewQueue";
 import { isClassificationUncertain } from "./_components/classificationHints";
 import { sortDocs } from "./_components/sortDocs";
 import type { SortDir, SortKey } from "./_components/SortableHead";
@@ -79,6 +80,12 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
   const [editTarget, setEditTarget] = useState<DocumentResponse | null>(null);
   const [reclassifying, setReclassifying] = useState(false);
   const [viewingId, setViewingId] = useState<string | null>(null);
+  // A29.l3 (ADR-308 §8): lote = sequencial "N de M", nunca valor único em massa.
+  // O EditDocumentDialog chama onClose logo após onSaved — o ref distingue
+  // avanço de fila de cancelamento do usuário.
+  const [fixQueue, setFixQueue] = useState<string[]>([]);
+  const advancingQueueRef = useRef(false);
+  const [queueRefresh, setQueueRefresh] = useState(0);
 
   const [sortKey, setSortKey] = useState<SortKey>("uploaded_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -292,6 +299,24 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
 
       <NeedsPasswordBanner count={needsPasswordDocs.length} onRetry={handleRetryUnlock} />
 
+      <PendingReviewQueue
+        workspaceId={workspace.id}
+        docs={docs}
+        refreshKey={queueRefresh}
+        onFixDocument={(documentId) => {
+          const doc = docs.find((d) => d.id === documentId);
+          if (doc) setEditTarget(doc);
+        }}
+        onFixSequence={(documentIds) => {
+          const [first, ...rest] = documentIds;
+          const doc = docs.find((d) => d.id === first);
+          if (doc) {
+            setFixQueue(rest);
+            setEditTarget(doc);
+          }
+        }}
+      />
+
       {!loading && docs.length > 0 && (
         <FilterReclassifyBar
           totalDocs={docs.length}
@@ -345,10 +370,30 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
         workspaceId={workspace.id}
         doc={editTarget}
         open={!!editTarget}
-        onClose={() => setEditTarget(null)}
+        onClose={() => {
+          if (advancingQueueRef.current) {
+            advancingQueueRef.current = false;
+            return;
+          }
+          setEditTarget(null);
+          if (fixQueue.length > 0) setFixQueue([]);
+        }}
         onSaved={(updated) => {
           setDocs((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
-          setSuccessMsg("Classificação atualizada.");
+          const [next, ...rest] = fixQueue;
+          const nextDoc = next ? docs.find((d) => d.id === next) : undefined;
+          if (nextDoc) {
+            advancingQueueRef.current = true;
+            setFixQueue(rest);
+            setEditTarget(nextDoc);
+            setSuccessMsg(
+              `Classificação atualizada. Próximo documento (faltam ${rest.length + 1}).`,
+            );
+          } else {
+            setFixQueue([]);
+            setSuccessMsg("Classificação atualizada.");
+            setQueueRefresh((k) => k + 1);
+          }
         }}
       />
 

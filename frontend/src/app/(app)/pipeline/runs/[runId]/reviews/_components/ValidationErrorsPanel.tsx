@@ -10,7 +10,7 @@ import {
   groupLegacyLines,
   type IssueGroup,
   type LegacyGroup,
-} from "./groupIssues";
+} from "@/lib/review-groups";
 
 const VISIBLE_OCCURRENCES = 5;
 

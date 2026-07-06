@@ -21,7 +21,7 @@ import { cn } from "@/lib/cn";
 import { ReviewActions } from "../_components/ReviewActions";
 import { ReviewDetailHeader } from "../_components/ReviewDetailHeader";
 import { JsonViewer } from "../_components/JsonViewer";
-import { countReviewItems } from "../_components/groupIssues";
+import { countReviewItems } from "@/lib/review-groups";
 import {
   extractErrorPaths,
   ValidationErrorsPanel,
