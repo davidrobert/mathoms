@@ -186,10 +186,11 @@ def _validate_targets(rules: tuple[CuratedRule, ...]) -> None:
 def _log_summary(results: list[PromotionResult], workspace_id: str) -> None:
     logger.info(
         "curated rules promotion finished",
+        # "created" é atributo reservado do LogRecord — prefixo evita KeyError.
         extra={
             "workspace_id": workspace_id,
-            "created": sum(1 for r in results if r.status == "created"),
-            "skipped": sum(1 for r in results if r.status == "skipped_exists"),
+            "rules_created": sum(1 for r in results if r.status == "created"),
+            "rules_skipped": sum(1 for r in results if r.status == "skipped_exists"),
         },
     )
 
