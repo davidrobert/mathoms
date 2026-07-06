@@ -69,10 +69,13 @@ async def list_transactions(
     filters: TransactionFilters = Depends(_filters),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=500),
+    sort: str = Query("data_desc", pattern=r"^(data_desc|valor_desc)$"),
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ) -> TransactionListResponse:
-    return await _list_transactions(workspace.id, filters, page=page, page_size=page_size, db=db)
+    return await _list_transactions(
+        workspace.id, filters, page=page, page_size=page_size, sort=sort, db=db
+    )
 
 
 @router.get(

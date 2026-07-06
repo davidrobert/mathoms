@@ -16,10 +16,11 @@ async def list_transactions(
     *,
     page: int,
     page_size: int,
+    sort: str = "data_desc",
     db: AsyncSession,
 ) -> TransactionListResponse:
     transactions = await load_filtered_transactions(workspace_id, filters, db=db)
-    page_items, summary = paginate_transactions(transactions, page, page_size)
+    page_items, summary = paginate_transactions(transactions, page, page_size, sort=sort)
     return TransactionListResponse(
         transactions=page_items,
         total=summary.count,

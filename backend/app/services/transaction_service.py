@@ -147,12 +147,21 @@ def filter_transactions(
     return filtered
 
 
+def _sort_key_for(sort: str):
+    """``valor_desc`` ordena por impacto (A28.l5 — fila de reclassificação)."""
+    if sort == "valor_desc":
+        return lambda t: (abs(t.valor), t.data)
+    return lambda t: t.data
+
+
 def paginate_transactions(
     transactions: list[TransactionItem],
     page: int,
     page_size: int,
+    *,
+    sort: str = "data_desc",
 ) -> tuple[list[TransactionItem], TransactionSummary]:
-    sorted_txs = sorted(transactions, key=lambda t: t.data, reverse=True)
+    sorted_txs = sorted(transactions, key=_sort_key_for(sort), reverse=True)
 
     zero = Decimal("0")
     receitas = sum((t.valor for t in sorted_txs if t.origem is not None), zero)

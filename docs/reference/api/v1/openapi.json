@@ -25452,6 +25452,17 @@
           },
           {
             "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "data_desc",
+              "pattern": "^(data_desc|valor_desc)$",
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
             "name": "member",
             "required": false,
             "schema": {
