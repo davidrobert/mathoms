@@ -1,9 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "E4 Unified",
-  "description": "Schema mínimo para artefatos E4 (receitas, despesas, fluxo, patrimonio, investimentos). Aceita qualquer dos 7 formatos de saída E4.",
+  "description": "Schema mínimo para artefatos E4 (receitas, despesas, fluxo, patrimonio, investimentos, seguros). Aceita qualquer dos 7 formatos de saída E4. Contrato seguros v2 (A28.l6): branch explícito com schema_version + apolices; placeholder {\"dados\": []} legado segue válido via branch genérico.",
   "type": "object",
   "oneOf": [
+    {
+      "description": "Seguros v2 — resumos LGPD-safe das apólices de extract_comprovantes_bens (A28.l6)",
+      "required": ["schema_version", "apolices"],
+      "properties": {
+        "schema_version": {"const": "2"},
+        "apolices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["apolice_numero", "seguradora", "premio_total_brl"],
+            "properties": {
+              "apolice_numero": {"type": "string"},
+              "seguradora": {"type": "string"},
+              "vigencia_inicio": {"type": "string"},
+              "vigencia_fim": {"type": "string"},
+              "premio_total_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+              "bens_count": {"type": "integer"},
+              "tipos_bem": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        }
+      }
+    },
     {
       "description": "Receitas ou Despesas unificadas",
       "required": ["periodo", "total_geral"],

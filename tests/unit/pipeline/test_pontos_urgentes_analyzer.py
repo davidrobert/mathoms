@@ -50,11 +50,45 @@ class TestEndividamento:
         assert "Reduzir endividamento" not in acoes
 
 
+def _protecao(vigentes: list[dict] | None = None) -> dict:
+    return {"apolices_vigentes": vigentes or []}
+
+
 class TestSeguro:
-    def test_sempre_adicionado(self):
+    def test_sempre_adicionado_sem_payload_protecao(self):
         out = PontosUrgentesAnalyzer().analyze(_ratios(), _reserva(), _pat())
         acoes = {i.acao for i in out}
         assert "Contratar seguro de vida e invalidez" in acoes
+
+    def test_copy_legada_quando_nenhuma_apolice_vigente(self):
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(), _reserva(), _pat(), protecao=_protecao([])
+        )
+        seguro = [i for i in out if i.acao == "Contratar seguro de vida e invalidez"]
+        assert len(seguro) == 1
+        assert "nenhuma apólice identificada" in seguro[0].impacto
+
+    def test_copy_diferenciada_quando_so_ha_cobertura_de_bens(self):
+        vigentes = [
+            {"apolice_numero": "AUTO-1", "tipos_bem": ["veiculo"]},
+            {"apolice_numero": "RES-1", "tipos_bem": ["imovel"]},
+        ]
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(), _reserva(), _pat(), protecao=_protecao(vigentes)
+        )
+        seguro = [i for i in out if i.acao == "Contratar seguro de vida e invalidez"]
+        assert len(seguro) == 1
+        assert "nenhuma apólice identificada" not in seguro[0].impacto
+        assert "2 apólice(s) vigente(s)" in seguro[0].impacto
+        assert "sem cobertura de vida" in seguro[0].impacto
+
+    def test_omitido_quando_ha_apolice_de_vida_vigente(self):
+        vigentes = [{"apolice_numero": "VIDA-1", "tipos_bem": ["pessoa"]}]
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(), _reserva(), _pat(), protecao=_protecao(vigentes)
+        )
+        acoes = {i.acao for i in out}
+        assert "Contratar seguro de vida e invalidez" not in acoes
 
 
 class TestRentabilidade:

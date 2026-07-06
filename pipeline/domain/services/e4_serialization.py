@@ -15,7 +15,8 @@ Os 7 artefatos:
   escrever só as chaves presentes; o ``read()`` do store resolve a ausência
   via fallback workspace-scoped para o E1.5c persistente do run anterior.
 - ``investimentos`` — output de ``InvestmentsConsolidator.consolidate``
-- ``seguros`` — placeholder ``{"dados": []}`` (legado sempre regenera)
+- ``seguros`` — resumos LGPD-safe das apólices de ``extract_comprovantes_bens``
+  (contrato v2, A28.l6); placeholder ``{"dados": []}`` quando não há apólice
 - ``pontos_milhas`` — placeholder ``{"dados": []}`` (legado sempre regenera)
 
 Funções puras, sem I/O. O caller escreve os payloads via ``ArtifactStore``.
@@ -27,6 +28,11 @@ from typing import Mapping
 
 from pipeline.domain.services.e4_categorizer_adapter import CategorizationResult
 from pipeline.domain.services.lineage_fields import LINEAGE_VERSION
+from pipeline.domain.services.protecao_analyzer import apolice_resumo
+
+# Contrato do balde ``seguros`` (A28.l6): "2" = apólices resumidas; ausência
+# do campo (placeholder ``{"dados": []}``) = contrato v1 legado.
+SEGUROS_SCHEMA_VERSION = "2"
 
 # Chaves de artifact aceitas pelo ``DiskArtifactStore`` para o stage ``E4``
 # (o store anexa ``-4_unified.json`` via ``stage_suffix``).
@@ -47,6 +53,16 @@ def empty_placeholder() -> dict:
     Paridade com ``e4_categorize.main`` linhas 1030-1033.
     """
     return {"dados": []}
+
+
+def build_seguros_artifact(apolices: list[dict] | None) -> dict:
+    """``seguros-4_unified.json``: v2 (resumos LGPD-safe) com apólices; placeholder v1 sem (A28.l6)."""
+    if not apolices:
+        return empty_placeholder()
+    return {
+        "schema_version": SEGUROS_SCHEMA_VERSION,
+        "apolices": [apolice_resumo(a) for a in apolices],
+    }
 
 
 def build_patrimonio_artifact(baseline) -> dict | None:
@@ -87,14 +103,12 @@ def _despesas_with_conferencia(result: CategorizationResult) -> dict:
     return despesas
 
 
-def serialize_e4_artifacts(result: CategorizationResult) -> dict[str, dict]:
-    """Produz os payloads E4 a partir de um :class:`CategorizationResult`.
-
-    A ordem das chaves no dict retornado segue ``ARTIFACT_KEYS`` quando
-    todos presentes; ``patrimonio`` é **omitido** se o baseline está vazio
-    (ADR-132 T2: preservar o artefato do run anterior é mais correto que
-    sobrescrever com placeholder).
-    """
+def serialize_e4_artifacts(
+    result: CategorizationResult, *, apolices: list[dict] | None = None
+) -> dict[str, dict]:
+    """Payloads E4 do :class:`CategorizationResult`; ordem segue ``ARTIFACT_KEYS``,
+    ``patrimonio`` omitido com baseline vazio (ADR-132 T2) e ``apolices`` popula
+    o balde ``seguros`` (A28.l6)."""
     patrimonio = build_patrimonio_artifact(result.baseline)
     payloads: dict[str, dict] = {
         "receitas": result.cash_flow.receitas.to_legacy_dict(),
@@ -104,7 +118,7 @@ def serialize_e4_artifacts(result: CategorizationResult) -> dict[str, dict]:
     if patrimonio is not None:
         payloads["patrimonio"] = patrimonio
     payloads["investimentos"] = result.investments.to_legacy_dict()
-    payloads["seguros"] = empty_placeholder()
+    payloads["seguros"] = build_seguros_artifact(apolices)
     payloads["pontos_milhas"] = empty_placeholder()
     return payloads
 

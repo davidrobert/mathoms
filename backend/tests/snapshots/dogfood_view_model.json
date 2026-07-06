@@ -607,6 +607,29 @@
     "status": "Calculado"
   },
   "programa_milhas": {},
+  "protecao_patrimonial": {
+    "apolices_vencendo": [],
+    "apolices_vencidas": [],
+    "apolices_vigentes": [],
+    "bens_com_gap_cobertura": [],
+    "corretoras_count": 0,
+    "gap_qualitativo": [
+      {
+        "categoria": "vida",
+        "flag": false,
+        "rationale": "sem gatilho"
+      },
+      {
+        "categoria": "saude",
+        "flag": true,
+        "rationale": "sem_evidencia_cobertura"
+      }
+    ],
+    "pct_renda_anual": "0.000000",
+    "premio_decomposicao": {},
+    "premio_total_anual_brl": "0.00",
+    "seguradoras_count": 0
+  },
   "ratios": {
     "aliquota_efetiva_ir_pct": "N/D",
     "cobertura_despesas_meses": "86.670000",

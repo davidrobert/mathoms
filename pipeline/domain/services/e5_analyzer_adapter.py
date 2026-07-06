@@ -139,6 +139,11 @@ from pipeline.domain.services.previdencia_analyzer import (
     PrevidenciaAnalyzer,
     PrevidenciaConfig,
 )
+from pipeline.domain.services.protecao_analyzer import FamilyMemberSnapshot
+from pipeline.domain.services.protecao_wiring import (
+    compute_protecao_via_store,
+    family_snapshots_from_config,
+)
 from pipeline.domain.services.ratios_calculator import (
     FinancialRatios,
     RatiosCalculator,
@@ -238,6 +243,11 @@ class E5AnalysisResult:
     # proventos_acoes lidos de ``extract_informes_anuais``. None quando o
     # workspace não tem informes de proventos.
     proventos_por_ativo: tuple[InformeProventosSummary, ...] | None = None
+    # A28.l6 (ADR-240 D8): payload ``protecao_patrimonial`` — apólices de
+    # ``extract_comprovantes_bens`` alimentam ``compute_protecao``. Sempre
+    # presente (workspace sem apólice = KPIs zerados + gap qualitativo,
+    # cenário G6-b).
+    protecao_patrimonial: dict[str, Any] | None = None
 
 
 # =============================================================================
@@ -287,6 +297,7 @@ class E5AnalyzerAdapter:
         pontos_fortes_analyzer: PontosFortesAnalyzer | None = None,
         pontos_urgentes_analyzer: PontosUrgentesAnalyzer | None = None,
         passive_income_calculator: PassiveIncomeCalculator | None = None,
+        family_snapshots: tuple[FamilyMemberSnapshot, ...] = (),
         reference_date: date | None = None,
     ) -> None:
         self._identity = member_identity or MemberIdentity(
@@ -334,6 +345,7 @@ class E5AnalyzerAdapter:
         self._passive_income = passive_income_calculator or PassiveIncomeCalculator(
             PassiveIncomeConfig()
         )
+        self._family_snapshots = family_snapshots
         self._reference_date = reference_date or date.today()
 
     # -- Factory --
@@ -482,6 +494,7 @@ class E5AnalyzerAdapter:
             passive_income_calculator=PassiveIncomeCalculator(
                 _passive_income_config_from_goals(goals)
             ),
+            family_snapshots=family_snapshots_from_config(family, reference_date or date.today()),
             reference_date=reference_date,
         )
 
@@ -671,7 +684,22 @@ class E5AnalyzerAdapter:
             reserva=reserva,
             goals=pontos_fortes_goals,
         )
-        pontos_urgentes = self._pontos_urgentes.analyze(ratios_dict, reserva, patrimonio_full)
+        # 18b. Proteção patrimonial (A28.l6 — ativa ADR-240): apólices do stage
+        #      ``extract_comprovantes_bens`` → ``compute_protecao``. O payload
+        #      condiciona o item de seguro em pontos_urgentes ("nenhuma apólice
+        #      identificada" só quando não há apólice vigente alguma).
+        protecao = compute_protecao_via_store(
+            store,
+            irpf_analyzer=irpf_analyzer,
+            patrimonio_full=patrimonio_full,
+            fluxo_legacy=fluxo_legacy,
+            fluxo_mensal_raw=fluxo_mensal,
+            family_snapshots=self._family_snapshots,
+            reference_date=self._reference_date,
+        )
+        pontos_urgentes = self._pontos_urgentes.analyze(
+            ratios_dict, reserva, patrimonio_full, protecao=protecao
+        )
 
         # Bloco G — exposição cambial: caixa em moeda estrangeira + ativos
         # com lastro internacional (ADR-193 bucket "Internacional"). Denominador
@@ -715,6 +743,7 @@ class E5AnalyzerAdapter:
             monte_carlo_if=monte_carlo_if,
             proventos_por_ativo=_try_load_proventos_summaries(store),
             exposicao_cambial=exposicao_cambial,
+            protecao_patrimonial=protecao,
             lineage=build_e5_lineage(
                 patrimonio_report=patrimonio_full,
                 reserva=reserva,
