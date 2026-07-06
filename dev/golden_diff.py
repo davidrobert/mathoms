@@ -42,6 +42,7 @@ _NON_MONETARY_EXACT = frozenset(
         "prob_if_ate_idade_meta",
         "taxa_poupanca_recorrente",
         "taxa_poupanca_total",
+        "meses_alvo",  # alvo da reserva em meses (A28.l1), não R$
     }
 )
 _NON_MONETARY_SUFFIXES = (
