@@ -231,3 +231,5 @@ Cenário 5 (fail-over) é manual — runbook em `docs/reference/RUNBOOK.md`.
 
 **ADR associado:** ADR-111 (próxima a ser registrada — gaps zero = ADR
 reflete o audit + formaliza o padrão para novos módulos).
+
+| `events.Publisher.client` (Go, `services/pipeline-service-go/internal/events/publisher.go`) | (b) singleton lazy idempotente | Client Redis do publisher de eventos — mesma key (REDIS_URL) produz mesmo client; best-effort, falha não derruba run (F1 Fase 3, decisão 11 do track f1-go-service) |
