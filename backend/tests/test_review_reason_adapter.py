@@ -235,3 +235,129 @@ def test_has_validation_errors_covers_deterministic_e3_shape() -> None:
     assert _has_validation_errors(_FakeStageResult(detail=e3_detail)) is True
     assert _has_validation_errors(_FakeStageResult(detail={"files_created": []})) is False
     assert _has_validation_errors(_FakeStageResult(detail={"validation": {"valid": True}})) is False
+
+
+# ── A29.l2 (ADR-308): projeção ReviewReason → validation_issues ────────────
+
+
+def _issues_helpers():
+    from backend.app.tasks.pipeline_task import (
+        _ISSUE_CAP_PER_CODE,
+        _issues_from_reasons,
+        _resolve_document_ids,
+    )
+
+    return _ISSUE_CAP_PER_CODE, _issues_from_reasons, _resolve_document_ids
+
+
+def test_issues_from_reasons_severity_and_order() -> None:
+    _, _issues_from_reasons, _ = _issues_helpers()
+    reasons = [
+        _reason("domain.balance_gap"),
+        _reason("domain.balance_gap"),
+        _reason("extract.missing_required_field"),
+    ]
+    issues = _issues_from_reasons(reasons, {})
+    # Blocking primeiro (error), depois domain.* (warning), maior grupo primeiro.
+    assert issues[0]["code"] == "extract.missing_required_field"
+    assert issues[0]["severity"] == "error"
+    assert issues[1]["code"] == "domain.balance_gap"
+    assert issues[1]["severity"] == "warning"
+    assert issues[0]["context"]["artifact_key"] == "irpfdeclaracao_2024"
+    assert issues[0]["legacy_message"] == "y"
+
+
+def test_issues_from_reasons_cap_with_sentinel() -> None:
+    cap, _issues_from_reasons, _ = _issues_helpers()
+    reasons = [_reason("dedup.sentinel_period") for _ in range(cap + 15)]
+    issues = _issues_from_reasons(reasons, {})
+    assert len(issues) == cap + 1
+    sentinel = issues[-1]
+    assert sentinel["context"] == {"truncated": True, "remaining": 15}
+    assert "15" in sentinel["legacy_message"]
+
+
+def _seed_document(db, ws_id: str, hash_prefix: str):
+    from backend.app.models.document import Document, DocumentStatus, DocumentType
+
+    doc = Document(
+        workspace_id=ws_id,
+        original_name="extrato.pdf",
+        stored_path="/tmp/x.pdf",
+        doc_type=DocumentType.bank_statement,
+        status=DocumentStatus.ready,
+        content_hash=hash_prefix + "0" * 52,
+    )
+    db.add(doc)
+    db.commit()
+    return doc
+
+
+@pytest.mark.asyncio
+async def test_resolve_document_ids_by_hash_prefix(sync_db) -> None:
+    _, _, _resolve_document_ids = _issues_helpers()
+    ws_id = str(uuid.uuid4())
+    doc = _seed_document(sync_db, ws_id, "f861374a39e9")
+    keys = {
+        "f861374a39e9_c6bank_extratoconta_202604_202604",
+        "sem_prefixo_hash",
+        "itau_BRL_baseline_2024",
+    }
+    resolved = _resolve_document_ids(sync_db, ws_id, keys)
+    assert resolved == {"f861374a39e9_c6bank_extratoconta_202604_202604": doc.id}
+
+
+def _fetch_review(db, run_id: str):
+    from backend.app.models.stage_review import StageReview
+
+    return db.execute(select(StageReview).where(StageReview.pipeline_run_id == run_id)).scalar_one()
+
+
+def _record(run_id: str, log_id: str, detail: dict, stage: str = "reconcile_transactions") -> None:
+    with patch("backend.app.tasks.pipeline_task.publish_needs_review"):
+        _record_stage_needs_review(
+            run_id, stage, log_id, _FakeStageResult(detail=detail), elapsed_ms=5
+        )
+
+
+def _e3_reasons_detail() -> dict:
+    return {
+        "validation": {
+            "valid": False,
+            "errors": ["extrato sem banco determinavel; documento requer revisao"],
+            "review_reasons": [
+                _reason(
+                    "extract.missing_required_field",
+                    artifact_key="abc123def456_itau_extratoconta_202601",
+                ),
+                _reason("domain.balance_gap", artifact_key="outro_sem_hash"),
+            ],
+        }
+    }
+
+
+@pytest.mark.asyncio
+async def test_record_stage_needs_review_projects_validation_issues(sync_db) -> None:
+    """ADR-272 crit. 6: sem validation.issues, StageReview.validation_issues
+    é projetado das mesmas review_reasons — com document_id resolvido por hash."""
+    ws_id, run_id, log_id = str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())
+    _seed_run(sync_db, run_id=run_id, ws_id=ws_id, log_id=log_id)
+    doc = _seed_document(sync_db, ws_id, "abc123def456")
+    _record(run_id, log_id, _e3_reasons_detail())
+    issues = _fetch_review(sync_db, run_id).validation_issues
+    assert issues is not None and len(issues) == 2
+    assert issues[0]["code"] == "extract.missing_required_field"
+    assert issues[0]["severity"] == "error"
+    assert issues[0]["context"]["document_id"] == doc.id
+    assert issues[1]["severity"] == "warning"
+    assert issues[1]["context"]["document_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_record_stage_keeps_native_issues_untouched(sync_db) -> None:
+    """Stage LLM que já emite validation.issues (ADR-165) não é sobrescrito."""
+    ws_id, run_id, log_id = str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())
+    _seed_run(sync_db, run_id=run_id, ws_id=ws_id, log_id=log_id)
+    _record(run_id, log_id, _needs_review_detail(), stage="extract_baseline")
+    issues = _fetch_review(sync_db, run_id).validation_issues
+    assert issues == [{"code": "e15.item.empty_code", "severity": "warning"}]

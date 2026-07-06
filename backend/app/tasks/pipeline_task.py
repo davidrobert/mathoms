@@ -11,6 +11,7 @@ The core logic is identical to the former _run_pipeline_thread but:
 from __future__ import annotations
 
 import logging
+import re
 import time
 import traceback
 import uuid
@@ -20,9 +21,11 @@ from zoneinfo import ZoneInfo
 _BRT = ZoneInfo("America/Sao_Paulo")
 from pathlib import Path
 
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
 from backend.app.core.database import SyncSessionLocal
+from backend.app.models.document import Document
 from backend.app.models.pipeline_run import (
     PipelineRun,
     PipelineRunStatus,
@@ -855,6 +858,78 @@ def _materialize_review_reasons(
     return inserted
 
 
+_ISSUE_CAP_PER_CODE = 20
+# Prefixo content-addressed dos filenames/keys de artefato (ADR-084): sha256[:12].
+_HASH_PREFIX_RE = re.compile(r"^[0-9a-f]{12}(?=_)")
+
+
+def _resolve_document_ids(db, workspace_id: str, artifact_keys: set[str]) -> dict[str, str]:
+    """artifact_key → documents.id via prefixo content_hash[:12] (ADR-308 §5);
+    E2 não grava a FK — quem conhece ``documents`` é este boundary."""
+    prefixes = {m.group(0) for k in artifact_keys if (m := _HASH_PREFIX_RE.match(k))}
+    if not prefixes:
+        return {}
+    rows = (
+        db.query(Document.id, Document.content_hash)
+        .filter(
+            Document.workspace_id == workspace_id,
+            or_(*[Document.content_hash.like(f"{p}%") for p in prefixes]),
+        )
+        .all()
+    )
+    by_prefix = {ch[:12]: doc_id for doc_id, ch in rows if ch}
+    return {
+        k: by_prefix[m.group(0)]
+        for k in artifact_keys
+        if (m := _HASH_PREFIX_RE.match(k)) and m.group(0) in by_prefix
+    }
+
+
+def _issue_from_reason(reason: dict, severity: str, doc_ids: dict[str, str]) -> dict:
+    key = reason.get("artifact_key") or ""
+    return {
+        "code": reason.get("code", ""),
+        "severity": severity,
+        "path": None,
+        "context": {
+            "artifact_key": key,
+            "document_id": reason.get("document_id") or doc_ids.get(key),
+            "offending_value": reason.get("offending_value"),
+            "expected": reason.get("expected"),
+        },
+        "legacy_message": reason.get("message", ""),
+    }
+
+
+def _sentinel_issue(code: str, severity: str, remaining: int) -> dict:
+    return {
+        "code": code,
+        "severity": severity,
+        "path": None,
+        "context": {"truncated": True, "remaining": remaining},
+        "legacy_message": f"e mais {remaining} ocorrencia(s) de {code}",
+    }
+
+
+def _issues_from_reasons(reasons: list[dict], doc_ids: dict[str, str]) -> list[dict]:
+    """Projeção ReviewReason → ValidationIssue (ADR-272 crit. 6 · ADR-308 §3):
+    cap top-N por code + sentinela ``truncated``; total exato vive na tabela."""
+    from pipeline.domain.review_reason import BLOCKING_CODES
+
+    blocking = {c.value for c in BLOCKING_CODES}
+    by_code: dict[str, list[dict]] = {}
+    for reason in reasons:
+        by_code.setdefault(reason.get("code", ""), []).append(reason)
+    ordered = sorted(by_code.items(), key=lambda i: (0 if i[0] in blocking else 1, -len(i[1])))
+    issues: list[dict] = []
+    for code, group in ordered:
+        severity = "error" if code in blocking else "warning"
+        issues.extend(_issue_from_reason(r, severity, doc_ids) for r in group[:_ISSUE_CAP_PER_CODE])
+        if len(group) > _ISSUE_CAP_PER_CODE:
+            issues.append(_sentinel_issue(code, severity, len(group) - _ISSUE_CAP_PER_CODE))
+    return issues
+
+
 def _record_stage_needs_review(
     run_id: str,
     stage_name: str,
@@ -868,6 +943,11 @@ def _record_stage_needs_review(
     review_reasons = validation.get("review_reasons") or []  # ADR-272 Fase 2
 
     with SyncSessionLocal() as db:
+        run = db.get(PipelineRun, run_id)
+        if not structured_issues and review_reasons:
+            keys = {r.get("artifact_key") or "" for r in review_reasons} - {""}
+            doc_ids = _resolve_document_ids(db, run.workspace_id, keys)
+            structured_issues = _issues_from_reasons(review_reasons, doc_ids)
         stage_log = db.get(PipelineStageLog, log_id)
         stage_log.status = PipelineStageStatus.needs_review
         stage_log.duration_ms = elapsed_ms
@@ -883,7 +963,6 @@ def _record_stage_needs_review(
                 validation_issues=structured_issues,
             )
         )
-        run = db.get(PipelineRun, run_id)
         run.status = PipelineRunStatus.needs_review
         run.paused_at_stage = stage_name
         run.current_stage = None

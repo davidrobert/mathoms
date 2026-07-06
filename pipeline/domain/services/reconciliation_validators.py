@@ -27,6 +27,7 @@ from typing import Iterable
 
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 
 # =============================================================================
 # Config dataclasses (R9 — cada service recebe seu value object de config)
@@ -114,6 +115,25 @@ class SaldoGapWarning:
             f"gap={self.gap.to_float():.2f}"
         )
 
+    def to_review_reason(
+        self, *, stage: str, artifact_key: str, document_id: str | None
+    ) -> ReviewReason | None:
+        """Projeta (ADR-272/ADR-308) — informativo; ``offending_value`` nunca
+        carrega o valor do gap (Money é sensível), só conta + documentos."""
+        inst, member, currency = self.account_key
+        return ReviewReason(
+            code=ReviewReasonCode.domain_balance_gap,
+            stage=stage,
+            artifact_key=self.next_source or artifact_key,
+            document_id=document_id,
+            offending_value=(
+                f"descontinuidade de saldo em {inst}/{member or '-'}/{currency} "
+                f"entre {self.previous_source or '?'} e {self.next_source or '?'}"
+            ),
+            expected="closing_balance(n) == opening_balance(n+1) na mesma conta",
+            message="saldo nao continua entre extratos consecutivos; conferir documento",
+        )
+
 
 @dataclass(frozen=True)
 class TemporalGapWarning:
@@ -133,6 +153,24 @@ class TemporalGapWarning:
             f"Temporal gap {who}: {self.days_gap} days "
             f"between {self.previous_source or '?'} (fim={self.previous_end}) and "
             f"{self.next_source or '?'} (inicio={self.next_start})"
+        )
+
+    def to_review_reason(
+        self, *, stage: str, artifact_key: str, document_id: str | None
+    ) -> ReviewReason | None:
+        """Projeta (ADR-272/ADR-308) — informativo, não bloqueia o run."""
+        inst, member, currency = self.account_key
+        return ReviewReason(
+            code=ReviewReasonCode.domain_temporal_gap,
+            stage=stage,
+            artifact_key=self.next_source or artifact_key,
+            document_id=document_id,
+            offending_value=(
+                f"{self.days_gap} dias sem extrato em {inst}/{member or '-'}/{currency} "
+                f"({self.previous_end} → {self.next_start})"
+            ),
+            expected="serie de extratos contigua por conta",
+            message="periodo sem extrato entre documentos consecutivos; possivel documento faltando",
         )
 
 

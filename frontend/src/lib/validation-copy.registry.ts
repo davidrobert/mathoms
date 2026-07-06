@@ -337,6 +337,71 @@ export const E2LLM_COPY: Record<string, ValidationCopy> = {
   },
 };
 
+/** Reasons de reconciliação (E3) projetadas de ReviewReason (ADR-272/ADR-308).
+ * Codes são `ReviewReasonCode` (família cross-stage), não `e3.*`. */
+export const REVIEW_REASON_COPY: Record<string, ValidationCopy> = {
+  "extract.missing_required_field": {
+    title: "Instituição não identificada",
+    cardSummary: "Documento sem banco ou corretora identificável",
+    description:
+      "Não foi possível dizer de qual banco ou corretora este documento veio. " +
+      "Sem essa informação, ele fica de fora da consolidação das suas contas.",
+    whyItMatters:
+      "Documentos sem instituição não entram no patrimônio nem no fluxo de caixa — os totais do relatório ficam menores do que a realidade.",
+    suggestedAction: "Indicar a instituição",
+  },
+  "dedup.sentinel_period": {
+    title: "Período do documento fora do esperado",
+    cardSummary: "Período lido não corresponde a datas plausíveis",
+    description:
+      "O período lido neste documento não bate com um intervalo de datas plausível. " +
+      "Costuma ser leitura errada da capa do extrato ou fatura — confira o mês de referência.",
+    whyItMatters:
+      "Com o período errado, as transações caem no mês errado e distorcem o fluxo de caixa.",
+    suggestedAction: "Conferir o período",
+  },
+  "domain.balance_gap": {
+    title: "Saldo não continua entre extratos",
+    cardSummary: "Saldo final de um extrato difere do inicial do seguinte",
+    description:
+      "O saldo final de um extrato não bate com o saldo inicial do extrato seguinte da mesma conta. " +
+      "Pode faltar um extrato no meio, ou um dos documentos foi lido com erro.",
+    whyItMatters:
+      "Descontinuidade de saldo indica movimentações não capturadas — o fluxo de caixa do período pode estar incompleto.",
+    suggestedAction: "Conferir a sequência de extratos",
+  },
+  "domain.temporal_gap": {
+    title: "Período sem extrato",
+    cardSummary: "Há dias sem cobertura entre dois extratos da mesma conta",
+    description:
+      "Existe um intervalo de dias sem nenhum extrato entre dois documentos da mesma conta. " +
+      "Provavelmente falta enviar o extrato desse período.",
+    whyItMatters:
+      "Meses sem extrato aparecem com movimentação zerada e puxam as médias do relatório para baixo.",
+    suggestedAction: "Enviar o extrato que falta",
+  },
+  "domain.anachronic_transaction": {
+    title: "Transações fora do período",
+    cardSummary: "Transações muito anteriores ao período foram descartadas",
+    description:
+      "Algumas transações deste documento têm datas muito anteriores ao período dele e foram " +
+      "descartadas por segurança. Costuma ser saldo anterior ou lançamento retroativo lido como transação.",
+    whyItMatters:
+      "Se as datas estiverem certas e o descarte for indevido, uma parte da movimentação fica de fora.",
+    suggestedAction: "Conferir as datas no documento",
+  },
+  "domain.baseline_divergence": {
+    title: "Saldo difere da declaração",
+    cardSummary: "Saldo do extrato em 31/12 difere do declarado no IRPF",
+    description:
+      "O saldo deste extrato em 31/12 não bate com o valor declarado no imposto de renda para a mesma conta. " +
+      "Um dos dois pode estar desatualizado ou ter sido lido com erro.",
+    whyItMatters:
+      "A declaração é a referência do patrimônio inicial — divergências propagam para a evolução patrimonial.",
+    suggestedAction: "Conferir extrato e declaração",
+  },
+};
+
 export const LEGACY_COPY: ValidationCopy = {
   title: "Item identificado pelo sistema",
   cardSummary: "Item para revisar nesta etapa",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mathoms.ai/schemas/review_reason/v1.0.json",
+  "$id": "https://mathoms.ai/schemas/review_reason/v1.1.json",
   "title": "ReviewReason — razão estruturada de needs_review (ADR-272)",
   "description": "Schema da projeção dict de pipeline.domain.review_reason.ReviewReason.to_dict(). Vocabulário de `code` é namespaced por origem (extract./dedup./domain.); code novo = membro no enum Python + entrada no array `enum` aqui (sem migration — a coluna DB é String, não Enum SQL). `offending_value` e `message` chegam JÁ redigidos (CPF mascarado, valor monetário truncado) — redação acontece no __post_init__ da dataclass, não no consumidor.",
   "type": "object",
@@ -25,7 +25,11 @@
         "extract.missing_required_field",
         "dedup.possible_duplicate",
         "dedup.sentinel_period",
-        "domain.validation_conflict"
+        "domain.validation_conflict",
+        "domain.balance_gap",
+        "domain.temporal_gap",
+        "domain.anachronic_transaction",
+        "domain.baseline_divergence"
       ]
     },
     "stage": {
@@ -39,7 +43,10 @@
       "description": "artifact_key do payload onde a razão surgiu (ADR-212/213)."
     },
     "document_id": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "FK opcional para documents.id quando a razão é rastreável a um documento."
     },
     "offending_value": {

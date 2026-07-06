@@ -1142,12 +1142,15 @@ def _e3_print_summary(result) -> None:
 
 
 def _e3_validation_block(result) -> Dict[str, Any]:
-    """A28.l8: período implausível / banco vazio → run pausa em needs_review
-    (``validation.valid=False`` é o gate que ``_record_stage_needs_review`` consome)."""
+    """Gate needs_review (A28.l8 + ADR-308/A29.l2): só BLOCKING_CODES flippam
+    ``valid`` e viram ``errors``; reasons ``domain.*`` são informativos."""
+    from pipeline.domain.review_reason import BLOCKING_CODES
+
     review_reasons = [r.to_dict() for r in result.review_reasons]
+    blocking = [r for r in result.review_reasons if r.code in BLOCKING_CODES]
     return {
-        "valid": not review_reasons,
-        "errors": [r["message"] for r in review_reasons],
+        "valid": not blocking,
+        "errors": [r.message for r in blocking],
         "review_reasons": review_reasons,
     }
 

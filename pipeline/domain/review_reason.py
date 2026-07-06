@@ -28,6 +28,22 @@ class ReviewReasonCode(str, enum.Enum):
     dedup_possible_duplicate = "dedup.possible_duplicate"
     dedup_sentinel_period = "dedup.sentinel_period"
     domain_validation_conflict = "domain.validation_conflict"
+    domain_balance_gap = "domain.balance_gap"
+    domain_temporal_gap = "domain.temporal_gap"
+    domain_anachronic_transaction = "domain.anachronic_transaction"
+    domain_baseline_divergence = "domain.baseline_divergence"
+
+
+# Codes que pausam o run em needs_review (gate A28.l8). Os demais são
+# informativos: aparecem na review/fila mas não bloqueiam o pipeline —
+# saldo gap em série histórica é o caso comum e não pode virar pausa
+# recorrente (ADR-308 §4).
+BLOCKING_CODES: frozenset[ReviewReasonCode] = frozenset(
+    {
+        ReviewReasonCode.extract_missing_required_field,
+        ReviewReasonCode.dedup_sentinel_period,
+    }
+)
 
 
 def redact_pii(text: str) -> str:
@@ -98,6 +114,7 @@ class ToReviewReason(Protocol):
 
 
 __all__ = [
+    "BLOCKING_CODES",
     "ReviewReason",
     "ReviewReasonCode",
     "ToReviewReason",

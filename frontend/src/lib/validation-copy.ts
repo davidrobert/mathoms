@@ -20,6 +20,7 @@ import {
   E15_COPY,
   E2LLM_COPY,
   LEGACY_COPY,
+  REVIEW_REASON_COPY,
   type ValidationCopy,
 } from "./validation-copy.registry";
 
@@ -68,6 +69,12 @@ export type ValidationCode =
   | "e16.confidence.out_of_range"
   | "e16.contribuinte.exercicio_anterior_a_ano_base"
   | "e16.contribuinte.exercicio_distante_de_ano_base"
+  | "extract.missing_required_field"
+  | "dedup.sentinel_period"
+  | "domain.balance_gap"
+  | "domain.temporal_gap"
+  | "domain.anachronic_transaction"
+  | "domain.baseline_divergence"
   | "legacy.unmigrated";
 
 export const VALIDATION_COPY: Record<ValidationCode, ValidationCopy> = {
@@ -75,6 +82,7 @@ export const VALIDATION_COPY: Record<ValidationCode, ValidationCopy> = {
   ...E15_COPY,
   ...E2LLM_COPY,
   ...E16_COPY,
+  ...REVIEW_REASON_COPY,
   "legacy.unmigrated": LEGACY_COPY,
 } as Record<ValidationCode, ValidationCopy>;
 
