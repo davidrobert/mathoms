@@ -244,24 +244,28 @@ describe("ReviewListPage", () => {
 });
 
 describe("ReviewDetailPage", () => {
-  it("carrega original_output_json no viewer", async () => {
+  it("h1 orientado a tarefa + JSON atrás de details (A29.l1)", async () => {
     server.use(
       http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId/reviews", () =>
         HttpResponse.json([REVIEW_PENDING]),
       ),
     );
     render(<ReviewDetailPage />);
-    await waitFor(() =>
-      expect(
-        screen.getByLabelText(/Output original do stage/i),
-      ).toBeInTheDocument(),
-    );
+    expect(
+      await screen.findByRole("heading", {
+        name: /Conferir 2 itens antes de continuar/i,
+      }),
+    ).toBeInTheDocument();
+    // JSON continua acessível, mas atrás do details "avançado".
+    expect(
+      screen.getByText(/Ver dados extraídos \(avançado\)/i),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Output original do stage/i)).toHaveTextContent(
       /campo_a/,
     );
   });
 
-  it("submit Aprovar chama POST com action:'approve'", async () => {
+  it("aprovar com erros: confirma consequência e chama POST action:'approve'", async () => {
     let body: unknown = null;
     server.use(
       http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId/reviews", () =>
@@ -277,10 +281,61 @@ describe("ReviewDetailPage", () => {
     );
     const user = userEvent.setup();
     render(<ReviewDetailPage />);
-    const btn = await screen.findByRole("button", { name: /Aprovar como está/i });
+    // Ação primária é editar; seguir sem corrigir é secundária com consequência.
+    const btn = await screen.findByRole("button", {
+      name: /Continuar sem corrigir \(2 pendências\)/i,
+    });
+    expect(btn).toHaveAttribute("aria-describedby", "review-approve-consequence");
     await user.click(btn);
+    // ConfirmDialog: erro pendente nunca é 1-clique.
+    await user.click(await screen.findByRole("button", { name: /Continuar assim/i }));
     await waitFor(() => expect(body).not.toBeNull());
     expect((body as { action: string }).action).toBe("approve");
+  });
+
+  it("18 linhas legacy duplicadas → 2 grupos com contador, sem texto repetido", async () => {
+    const lines = [
+      ...Array(7).fill(
+        "periodo implausivel na normalizacao E3; documento requer revisao",
+      ),
+      ...Array(11).fill(
+        "extrato sem banco determinavel; documento requer revisao",
+      ),
+    ].join("\n");
+    server.use(
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId/reviews", () =>
+        HttpResponse.json([
+          { ...REVIEW_PENDING, stage: "reconcile_transactions", validation_errors: lines },
+        ]),
+      ),
+    );
+    render(<ReviewDetailPage />);
+    expect(
+      await screen.findByRole("heading", {
+        name: /Conferir 18 itens antes de continuar/i,
+      }),
+    ).toBeInTheDocument();
+    // 2 grupos, cada mensagem aparece 1× (no summary), não 18 cards.
+    expect(
+      screen.getAllByText(/periodo implausivel na normalizacao E3/i),
+    ).toHaveLength(1);
+    expect(
+      screen.getAllByText(/extrato sem banco determinavel/i),
+    ).toHaveLength(1);
+    // Contadores acessíveis no summary do grupo.
+    expect(
+      screen.getByLabelText(/periodo implausivel.*7 ocorrências.*aviso/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/extrato sem banco.*11 ocorrências.*aviso/i),
+    ).toBeInTheDocument();
+    // Stage de ingestão: botão fala em documentos + consequência visível.
+    expect(
+      screen.getByRole("button", { name: /Continuar sem estes 18 documentos/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/ficam de fora do relatório/i),
+    ).toBeInTheDocument();
   });
 
   it("editor: JSON inválido bloqueia submit", async () => {
@@ -291,20 +346,20 @@ describe("ReviewDetailPage", () => {
     );
     const user = userEvent.setup();
     render(<ReviewDetailPage />);
-    const editBtn = await screen.findByRole("button", { name: /Editar e aprovar/i });
+    const editBtn = await screen.findByRole("button", { name: /Editar e continuar/i });
     await user.click(editBtn);
     const textarea = await screen.findByLabelText(/Editar output do stage/i);
     await user.clear(textarea);
     // user.type interpreta `{` como modifier — escapar com `{{`.
     await user.type(textarea, "{{ campo_a");
     const saveBtn = await screen.findByRole("button", {
-      name: /Salvar edição e aprovar/i,
+      name: /Salvar e continuar/i,
     });
     expect(saveBtn).toBeDisabled();
     expect(textarea).toHaveAttribute("aria-invalid", "true");
   });
 
-  it("409 em submit → estado atualizado (revisão vira approved), sem erro", async () => {
+  it("409 em submit → estado atualizado (conferência vira approved), sem erro", async () => {
     let firstCall = true;
     server.use(
       http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId/reviews", () => {
@@ -322,12 +377,15 @@ describe("ReviewDetailPage", () => {
     );
     const user = userEvent.setup();
     render(<ReviewDetailPage />);
-    const btn = await screen.findByRole("button", { name: /Aprovar como está/i });
+    const btn = await screen.findByRole("button", {
+      name: /Continuar sem corrigir/i,
+    });
     await user.click(btn);
+    await user.click(await screen.findByRole("button", { name: /Continuar assim/i }));
     // Após 409 + refetch, review aparece como approved — ações somem,
-    // mensagem de "já processada" toma o lugar.
+    // mensagem de "já concluída" toma o lugar.
     expect(
-      await screen.findByText(/já foi processada/i),
+      await screen.findByText(/já foi concluída/i),
     ).toBeInTheDocument();
   });
 });
