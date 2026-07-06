@@ -25,17 +25,32 @@ from pipeline.llm.error_classification import (
     LLM_TIMEOUT_MAX_ATTEMPTS,
     MAX_COMPLETION_TOKENS_CEILING,
     RETRYABLE_ERRORS,
+    LLMError,
     LLMErrorType,
+    LLMValidationError,
     classify_error,
     is_completion_truncated_max_tokens,
 )
+
+# Compat: LLMError/LLMValidationError moraram aqui até ADR-307 estourar o teto
+# de 500 linhas (P2, mesmo movimento do LLMRunSummary em A20.l11); call-sites
+# continuam importando deste módulo.
 from pipeline.llm.models_catalog import SUPPORTED_PROVIDERS, default_model_for
 from pipeline.llm.pricing import MODEL_PRICING, estimate_cost_usd
 from pipeline.llm.prompts._sanitization import sanitize_and_wrap
+from pipeline.llm.response_cache import (
+    LLM_RESPONSE_CACHE_TTL_S,
+    LLMResponseCache,
+    build_response_cache_key,
+    fetch_cached_output,
+    record_cache_event,
+)
 
 # Compat: LLMRunSummary morava neste módulo até A20.l11 estourar o teto de
-# 500 linhas (P2); call-sites continuam importando daqui.
+# 500 linhas (P2); call-sites continuam importando daqui. LLMConfig/
+# LLMCallResult idem (ADR-307).
 from pipeline.llm.run_summary import LLMRunSummary
+from pipeline.llm.service_config import LLMCallResult, LLMConfig
 
 logger = logging.getLogger(__name__)
 
@@ -44,61 +59,6 @@ logger = logging.getLogger(__name__)
 _sanitization_logger = logging.getLogger("mathoms.llm.input_sanitized")
 
 T = TypeVar("T", bound=BaseModel)
-
-
-class LLMError(Exception):
-    """Base error for LLM calls."""
-
-    def __init__(
-        self, message: str, error_type: LLMErrorType = LLMErrorType.unknown, retryable: bool = False
-    ):
-        super().__init__(message)
-        self.error_type = error_type
-        self.retryable = retryable
-
-
-class LLMValidationError(LLMError):
-    """Raised when LLM output fails schema validation after all retries."""
-
-    def __init__(
-        self, message: str, last_output: Any = None, validation_errors: list[str] | None = None
-    ):
-        super().__init__(message, LLMErrorType.validation, retryable=False)
-        self.last_output = last_output
-        self.validation_errors = validation_errors or []
-
-
-@dataclass
-class LLMCallResult:
-    """Result of a single LLM call with usage metrics."""
-
-    output: Any
-    provider: str
-    model: str
-    tokens_in: int = 0
-    tokens_out: int = 0
-    total_tokens: int = 0
-    cost_estimate_usd: float = 0.0
-    duration_ms: int = 0
-    retries_used: int = 0
-    # False quando o modelo não está em ``_MODEL_PRICING``: ``cost_estimate_usd``
-    # é 0.0 por convenção mas representa "desconhecido", não "grátis". Distingue
-    # provedor sem custo (Ollama local) de pricing missing (modelo novo não-mapeado).
-    cost_known: bool = True
-
-
-@dataclass
-class LLMConfig:
-    """Configuration for LLM calls (from DB or dict)."""
-
-    provider: str = "anthropic"
-    api_key: str = ""
-    model_name: str = default_model_for("anthropic")
-    max_tokens: int = 4096
-    temperature: float = 0.1
-    # ADR-173 — injetado pelo call-site com WorkspaceContext (nunca vem do
-    # JSON de config); ``dataclasses.replace`` de variantes de modelo preserva.
-    call_hooks: LLMCallHooks | None = field(default=None, repr=False, compare=False)
 
 
 _classify_error = classify_error  # compat: nome histórico deste módulo
@@ -123,6 +83,7 @@ class LLMService:
     def __init__(self, config: LLMConfig):
         self._config = config
         self._hooks = config.call_hooks
+        self._response_cache = config.response_cache
         self._summary = LLMRunSummary()
         self._client = None
         self._raw_client = None
@@ -212,6 +173,7 @@ class LLMService:
         seed: int | None = None,
         timeout_s: float | None = None,
         prompt_version: str | None = None,
+        use_cache: bool = False,
     ) -> LLMCallResult:
         """Call an LLM with structured output enforcement.
 
@@ -231,21 +193,28 @@ class LLMService:
             timeout_s: timeout base da 1ª tentativa (default LLM_CALL_TIMEOUT_S) — ADR-270.
             prompt_version: PROMPT_VERSION do prompt chamador — persistido no
                 ``LLMCallLog`` para drift tracking (ADR-173).
+            use_cache: opt-in do cache de resposta (ADR-307). Exige
+                ``temperature == 0.0`` (cache congela uma amostra; a temp>0
+                corromperia variância). Hit pula provider, budget e
+                ``LLMCallLog``; write só em retorno validado.
 
         Raises:
             LLMBudgetExceededError: pre-call hard-stop a 110% do budget (ADR-173)
             LLMValidationError: if output fails validation after all retries
             LLMError: for non-retryable errors (auth, context_length)
+            ValueError: ``use_cache=True`` com ``temperature > 0`` (ADR-307)
         """
         import base64
 
-        if self._hooks is not None:
-            self._hooks.check_budget()
-
-        self._ensure_client()
         model = self._get_model_string()
         effective_max_tokens = max_tokens or self._config.max_tokens
         effective_temperature = temperature if temperature is not None else self._config.temperature
+
+        if use_cache and effective_temperature > 0.0:
+            raise ValueError(
+                f"use_cache requires temperature=0.0, got {effective_temperature!r} "
+                f"(stage={stage!r}, ADR-307)"
+            )
 
         # Tag de stage para todos os logs desta chamada — formato "[stage] " para scan visual rápido.
         tag = f"[{stage}] " if stage else ""
@@ -264,6 +233,39 @@ class LLMService:
 
         prompt_chars = len(system_prompt) + len(user_prompt)
         schema_name = getattr(output_schema, "__name__", str(output_schema))
+
+        # ADR-307 — lookup de cache pós-sanitize (key reflete o que vai ao
+        # modelo). Hit pula provider + budget + LLMCallLog; miss segue o fluxo.
+        cache_key: str | None = None
+        if use_cache and self._response_cache is not None:
+            cache_key = build_response_cache_key(
+                model=model,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                schema_name=schema_name,
+                temperature=effective_temperature,
+                max_tokens=effective_max_tokens,
+                seed=seed,
+                image_bytes=image_bytes,
+                stage=stage,
+                prompt_version=prompt_version,
+            )
+            cached_output = fetch_cached_output(
+                self._response_cache, cache_key, output_schema, stage=stage
+            )
+            if cached_output is not None:
+                record_cache_event(hit=True, stage=stage, prompt_version=prompt_version)
+                return LLMCallResult(
+                    output=cached_output,
+                    provider=self._config.provider,
+                    model=self._config.model_name,
+                )
+            record_cache_event(hit=False, stage=stage, prompt_version=prompt_version)
+
+        if self._hooks is not None:
+            self._hooks.check_budget()
+
+        self._ensure_client()
 
         effective_timeout = timeout_s if timeout_s is not None else LLM_CALL_TIMEOUT_S
 
@@ -377,6 +379,19 @@ class LLMService:
                     attempt + 1,
                     max_retries + 1,
                 )
+
+                if cache_key is not None and self._response_cache is not None:
+                    # ADR-307 — write só em retorno validado; payload é o JSON
+                    # cru do schema (sem enriquecimento Python; nunca logado).
+                    try:
+                        self._response_cache.set(
+                            cache_key, response.model_dump_json(), ttl_s=LLM_RESPONSE_CACHE_TTL_S
+                        )
+                    except Exception as cache_exc:  # noqa: BLE001 — cache nunca derruba a call
+                        logger.warning(
+                            "LLM cache set failed",
+                            extra={"stage": stage or "unknown", "error": str(cache_exc)[:200]},
+                        )
 
                 return result
 

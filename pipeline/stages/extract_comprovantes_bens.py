@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import re
 from dataclasses import dataclass, replace
@@ -77,15 +76,6 @@ def _extract_titular_cpf_masked(text: str) -> str | None:
     return _mask_cpf("".join(m.groups()))
 
 
-def _content_hash(doc: Path) -> str:
-    """SHA-256 do PDF para cache key idempotente (ADR-144 padrão A17 L1 P2)."""
-    h = hashlib.sha256()
-    with doc.open("rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
 def _detect_tipo_comprovante(filename: str) -> str | None:
     lowered = filename.lower()
     for tipo, tokens in _TIPO_FILENAME_TOKENS.items():
@@ -130,18 +120,22 @@ def _build_user_prompt(doc_name: str, text: str) -> str:
     return prompt_mod.USER_PROMPT_TEMPLATE.format(filename=doc_name, document_text=text)
 
 
-def _call_llm_crlv(service, config, doc_name: str, text: str, content_hash: str):
+def _call_llm_crlv(service, config, doc_name: str, text: str):
     from pipeline.llm.prompts import crlv as prompt_mod
     from pipeline.llm.schemas.crlv import CRLVPayload
 
-    cache_key = f"extract_comprovantes_bens:{content_hash[:16]}:{prompt_mod.PROMPT_VERSION}"
+    # ADR-307: cache real no choke-point (key = content-hash do prompt) exige
+    # temp=0; ``stage`` volta a ser descritivo (ADR-093 — antes carregava uma
+    # pseudo-key que poluía a cardinalidade do LLMCallLog).
     result = service.call(
         system_prompt=prompt_mod.SYSTEM_PROMPT,
         user_prompt=_build_user_prompt(doc_name, text),
         output_schema=CRLVPayload,
         max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
-        stage=cache_key,
+        temperature=0.0,
+        stage="extract_comprovantes_bens",
         prompt_version=prompt_mod.PROMPT_VERSION,
+        use_cache=True,
     )
     return result, prompt_mod.PROMPT_VERSION
 
@@ -160,9 +154,8 @@ def _build_payload(output, prompt_version: str, doc_text: str, source_artifact_i
 
 
 def _extract_crlv(doc: Path, text: str, service, config) -> tuple[dict, Any, str]:
-    """Caminho CRLV — content_hash + LLM Haiku + payload com lineage."""
-    content_hash = _content_hash(doc)
-    result, prompt_version = _call_llm_crlv(service, config, doc.name, text, content_hash)
+    """Caminho CRLV — LLM Haiku (cache ADR-307) + payload com lineage."""
+    result, prompt_version = _call_llm_crlv(service, config, doc.name, text)
     source_artifact_id = _stem_for_filename(doc.name)
     payload = _build_payload(result.output, prompt_version, text, source_artifact_id)
     return payload, result, prompt_version
@@ -185,12 +178,8 @@ def _build_apolice_user_prompt(doc_name: str, text: str) -> str:
     return prompt_mod.USER_PROMPT_TEMPLATE.format(filename=doc_name, document_text=text)
 
 
-def _apolice_cache_key(model_label: str, content_hash: str, prompt_version: str) -> str:
-    return f"extract_comprovantes_bens:apolice:{model_label}:{content_hash[:16]}:{prompt_version}"
-
-
-def _call_llm_apolice(service, config, doc_name, text, content_hash, model_label):
-    """LLM call apólice — ``service`` pré-bound ao modelo; ``model_label`` entra na cache key ([[ADR-144]])."""
+def _call_llm_apolice(service, config, doc_name, text):
+    """LLM call apólice — ``service`` pré-bound ao modelo (Haiku/Sonnet); o modelo entra na cache key do choke-point (ADR-307)."""
     from pipeline.llm.prompts import apolice as prompt_mod
     from pipeline.llm.schemas.apolice import ApolicePayload
 
@@ -199,8 +188,10 @@ def _call_llm_apolice(service, config, doc_name, text, content_hash, model_label
         user_prompt=_build_apolice_user_prompt(doc_name, text),
         output_schema=ApolicePayload,
         max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
-        stage=_apolice_cache_key(model_label, content_hash, prompt_mod.PROMPT_VERSION),
+        temperature=0.0,
+        stage="extract_comprovantes_bens",
         prompt_version=prompt_mod.PROMPT_VERSION,
+        use_cache=True,
     )
     return result, prompt_mod.PROMPT_VERSION
 
@@ -241,17 +232,12 @@ def _extract_apolice(
     doc: Path, text: str, llm: _StageLLM, config: "LLMConfig"
 ) -> tuple[dict, Any, str]:
     """Apólice — Haiku primeiro; cascata Sonnet se gate triggered ([[ADR-239]] D6)."""
-    content_hash = _content_hash(doc)
-    h_result, prompt_version = _call_llm_apolice(
-        llm.apolice_haiku, config, doc.name, text, content_hash, model_label="haiku"
-    )
+    h_result, prompt_version = _call_llm_apolice(llm.apolice_haiku, config, doc.name, text)
     source_id = _stem_for_filename(doc.name)
     if not _cascade_needed(h_result.output.model_dump(mode="json"), text):
         payload = _build_apolice_payload(h_result.output, prompt_version, text, source_id, False)
         return payload, h_result, prompt_version
-    s_result, _ = _call_llm_apolice(
-        llm.apolice_sonnet, config, doc.name, text, content_hash, model_label="sonnet"
-    )
+    s_result, _ = _call_llm_apolice(llm.apolice_sonnet, config, doc.name, text)
     payload = _build_apolice_payload(s_result.output, prompt_version, text, source_id, True)
     return payload, s_result, prompt_version
 
@@ -465,7 +451,9 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
     docs = _find_comprovantes(ctx)
     if not docs:
         return {"skipped": True, "reason": "No comprovantes de bem found"}
-    llm_config = LLMConfig(**cfg, call_hooks=ctx.llm_call_hooks)
+    llm_config = LLMConfig(
+        **cfg, call_hooks=ctx.llm_call_hooks, response_cache=ctx.llm_response_cache
+    )
     return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config), llm_config
 
 

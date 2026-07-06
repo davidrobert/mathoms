@@ -119,6 +119,14 @@ def _attach_llm_budget_hooks(ctx, ws_id: str, run_id: str) -> None:
     ctx.llm_call_hooks = LLMBudgetService(ws_id, pipeline_run_id=run_id)
 
 
+def _attach_llm_response_cache(ctx) -> None:
+    # ADR-307: cache de resposta opt-in no choke-point. Redis se disponível,
+    # NoOp caso contrário (miss em tudo — degrada gracioso, ADR-111).
+    from backend.app.services.llm_cache import get_default_llm_cache
+
+    ctx.llm_response_cache = get_default_llm_cache()
+
+
 def materialize_tarefas_md(ws_id: str, ctx) -> None:
     """ADR-077/180: materializa ``tarefas.md`` (consumido pelo E5). Best-effort."""
     from backend.app.core.database import SyncSessionLocal
@@ -157,6 +165,7 @@ def build_hydrated_context(
     ctx = _build_ctx(ws_id, tenant_root, run_id, config_dir, session=session)
     ctx.incremental, ctx.incremental_doc_paths = incremental, list(incremental_doc_paths or [])
     _attach_llm_budget_hooks(ctx, ws_id, run_id)
+    _attach_llm_response_cache(ctx)
     ctx.ensure_dirs()
     if materialize_tarefas:
         materialize_tarefas_md(ws_id, ctx)

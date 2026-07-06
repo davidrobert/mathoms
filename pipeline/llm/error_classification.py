@@ -66,6 +66,29 @@ _MSG_RULES_POST_NETWORK: tuple[tuple[tuple[str, ...], LLMErrorType], ...] = (
 )
 
 
+class LLMError(Exception):
+    """Base error for LLM calls."""
+
+    def __init__(
+        self,
+        message: str,
+        error_type: LLMErrorType = LLMErrorType.unknown,
+        retryable: bool = False,
+    ):
+        super().__init__(message)
+        self.error_type = error_type
+        self.retryable = retryable
+
+
+class LLMValidationError(LLMError):
+    """Raised when LLM output fails schema validation after all retries."""
+
+    def __init__(self, message: str, last_output=None, validation_errors: list[str] | None = None):
+        super().__init__(message, LLMErrorType.validation, retryable=False)
+        self.last_output = last_output
+        self.validation_errors = validation_errors or []
+
+
 def classify_error(exc: Exception) -> LLMErrorType:
     """Classify an LLM exception; ``network`` precedes ``provider_error`` (SDK reembrulha DNS — ADR-270)."""
     msg = str(exc).lower()

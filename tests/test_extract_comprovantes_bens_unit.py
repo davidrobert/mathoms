@@ -12,7 +12,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pipeline.stages.extract_comprovantes_bens import (
     _artifact_key_for,
     _build_payload,
-    _content_hash,
     _detect_tipo_comprovante,
     _extract_one,
     _extract_titular_cpf_masked,
@@ -69,14 +68,6 @@ def test_extract_titular_cpf_masked_do_texto():
     # caller (stage runner) já valida placa válida + LLM marca needs_review se
     # confidence baixa.
     assert _extract_titular_cpf_masked("Placa ABC1D23 sem dados pessoais") is None
-
-
-def test_content_hash_determinista(tmp_path: Path):
-    f = tmp_path / "crlv.pdf"
-    f.write_bytes(b"%PDF-fake-crlv-content")
-    h1 = _content_hash(f)
-    h2 = _content_hash(f)
-    assert h1 == h2 and len(h1) == 64
 
 
 def test_extract_one_raises_not_implemented_para_outros_tipos():
