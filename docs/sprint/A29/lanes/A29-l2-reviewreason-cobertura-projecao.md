@@ -4,7 +4,9 @@ type: lane
 title: "cobertura ReviewReason completa em E3 + document_id real + projeção validation_issues (ADR-272 crit. 6)"
 sprint: A29
 plan: null
-status: open
+status: shipped
+ship_pr: 802
+ship_date: "2026-07-06"
 priority: P1
 branch_slug: review-ux-inbox
 adrs: ["[[ADR-308]]"]
@@ -12,7 +14,7 @@ depends_on: ["[[A29.l1]]"]
 tags:
   - type/lane
   - sprint/a29
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---

@@ -4,7 +4,9 @@ type: lane
 title: "tela de review v1.5: agrupamento, consequência explícita e telemetria review_action"
 sprint: A29
 plan: null
-status: in_progress
+status: shipped
+ship_pr: 800
+ship_date: "2026-07-06"
 priority: P0
 branch_slug: review-ux-inbox
 adrs: ["[[ADR-308]]"]
@@ -12,7 +14,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a29
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/ux
 ---

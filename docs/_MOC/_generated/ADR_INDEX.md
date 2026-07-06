@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 278
-- **Proposto**: 18
+- **Decidido**: 279
+- **Proposto**: 17
 - **Roadmap**: 3
 
 ## Fundação
@@ -482,7 +482,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (33)
+### Decidido (34)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -517,10 +517,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-291]] — from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) · phase A25 · dogfood
 - [[ADR-301]] — Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) · phase A22.l5 · F1-O3 launch-trust
 - [[ADR-305]] — PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) · phase A28
-
-### Proposto (1)
-
-- [[ADR-308]] — Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração
+- [[ADR-308]] — Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração · phase A29
 
 ## quality
 
