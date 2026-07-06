@@ -73,3 +73,20 @@ cache de build). Artefatos de smoke (`mathoms-smoke.db`, `_smoke_storage/`,
 `_smoke_pids/`) são gitignored; `make smoke-reset` zera tudo — rode antes de
 um novo ciclo se quiser gate limpo (DB stale = falso-positivo de "artefato
 apareceu" do run anterior).
+
+## 6. Dogfood com o shell Go (F2 — pré-cutover)
+
+O caminho mais simples para validar o executor Go com dados reais:
+
+```bash
+make smoke-up                          # stack normal (worker Python in-process)
+export ANTHROPIC_API_KEY=...           # stages LLM rodam no subprocess do Go
+make dogfood-go                        # builda + sobe shell Go :8002 + re-aponta o worker
+# ... rode o pipeline pela UI e valide o relatório (gate humano ADR-150 §7)
+make dogfood-go-off                    # rollback: worker volta ao executor Python
+```
+
+O Celery continua orquestrando (cancel, needs_review, lineage); só a
+execução de cada stage passa pelo shell Go via HTTP (binário no HOST —
+sem a restrição de WAL do container). Overhead esperado: ~550ms/stage de
+boot do subprocess. Logs: `_smoke_pids/go.log` + `worker.log`.
