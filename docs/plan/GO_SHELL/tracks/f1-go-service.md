@@ -127,8 +127,10 @@ tags:
    artefato em `pipeline_artifacts`, espelho de
    `test_artifact_store_integration.py`); trace-id contínuo Go↔Python
    (exporter in-memory); timeout mata o subprocess (sem zumbi).
-- [ ] Gate F1.2: os 4 blocos de teste acima verdes com `-race`; `attempts:1`
-      presente; suíte `pipeline-service/tests` Python intacta.
+- [x] Gate F1.2 ✅ (PR da Fase 2): unit hermético (3 exit codes, args, stdout),
+      integração com CLI REAL (E3 persistido; guarded `MATHOMS_GO_CLI_INTEGRATION`),
+      TRACEPARENT injetado, timeout mata subprocess — tudo `-race`; `attempts:1`;
+      suíte Python intacta (19 ✔).
 
 ## Fase 3 — RunCoordinator + eventos Redis (PR 3)
 

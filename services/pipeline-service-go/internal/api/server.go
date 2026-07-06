@@ -6,6 +6,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,13 +21,10 @@ const (
 	version     = "0.1.0"
 )
 
-// ErrExecutorUnavailable mapeia para HTTP 503 (ADR-303 D4).
-var ErrExecutorUnavailable = errors.New("stage executor unavailable")
-
-// StageRunner executa um stage já resolvido/validado. Implementado pela
-// Fase 2 (subprocess do CLI A3.cli); nil = stub 503 (Fase 1).
+// StageRunner executa um stage já resolvido/validado (Fase 2: subprocess
+// do CLI A3.cli); nil = stub 503.
 type StageRunner interface {
-	RunStage(stage string, req contracts.StageExecuteRequest) (contracts.StageExecuteResponse, error)
+	RunStage(ctx context.Context, stage string, req contracts.StageExecuteRequest) (contracts.StageExecuteResponse, error)
 }
 
 // Server implementa contracts.ServerInterface.
@@ -66,8 +64,12 @@ func (s *Server) ExecuteStageApiV1PipelineStagesStageExecutePost(w http.Response
 			"StageExecutor não implementado (F1 Fase 2) — ADR-303 D4")
 		return
 	}
-	resp, err := s.runner.RunStage(resolved, req)
+	resp, err := s.runner.RunStage(r.Context(), resolved, req)
 	if err != nil {
+		if errors.Is(err, stages.ErrUnknownStage) {
+			writeDetail(w, http.StatusNotFound, err.Error())
+			return
+		}
 		writeDetail(w, http.StatusServiceUnavailable, err.Error())
 		return
 	}
