@@ -1,14 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 
 import { ReportCard } from "../ReportCard";
+import { Alert } from "../ui/Alert";
 import { ChartDonut } from "./primitives/ChartDonut";
 import { useChartTheme } from "./primitives/useChartTheme";
 import { fmtBRL } from "./_shared";
 import { PeriodToggle, type Period } from "../ui/PeriodToggle";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { useIsPrint } from "../hooks/useIsPrint";
+import {
+  isNaoIdentificadoKey,
+  NAO_IDENTIFICADO_THRESHOLD_PCT,
+} from "../utils/dataQualitySignals";
 import type { FluxoCaixaSummary, ChartSeries } from "@/types/report-analysis";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -88,19 +94,23 @@ function buildFallbackConclusion(slices: readonly CategoryRow[], total: number):
   if (slices.length === 0 || total <= 0) return "";
   const top = slices[0];
   const topPct = (top.value / total) * 100;
-  const parts = [`${top.label} lidera com ${fmtBRL(top.value)} (${topPct.toFixed(1)}%).`];
-  const naoIdent = slices.find((s) => s.key === "nao_identificado");
-  const naoIdentPct = naoIdent ? (naoIdent.value / total) * 100 : 0;
-  if (naoIdent && naoIdentPct > 10) {
-    parts.push(
-      `Atenção: 'não identificado' representa ${naoIdentPct.toFixed(1)}% — priorize reclassificação.`,
-    );
-  }
-  return parts.join(" ");
+  return `${top.label} lidera com ${fmtBRL(top.value)} (${topPct.toFixed(1)}%).`;
 }
 
-/** Datalabel: `R$ Xk` se fatia ≥ 5% — paridade EXEMPLO_DE_RELATORIO.html:7966-7979. */
-function dataLabelFormatter(value: number, pct: number): string {
+/** A28.l9 — share da fatia "não identificado" na janela ativa (0..100). */
+function naoIdentificadoPct(slices: readonly CategoryRow[], total: number): number {
+  if (total <= 0) return 0;
+  const alvo = slices
+    .filter((s) => isNaoIdentificadoKey(s.key))
+    .reduce((acc, s) => acc + s.value, 0);
+  return (alvo / total) * 100;
+}
+
+/** Datalabel: `R$ Xk` se fatia ≥ 5% — paridade EXEMPLO_DE_RELATORIO.html:7966-7979.
+ * Exceção A28.l9: "não identificado" sempre exibe datalabel (sinal de
+ * qualidade não pode desaparecer quando a fatia é pequena). */
+function dataLabelFormatter(value: number, pct: number, label: string): string {
+  if (isNaoIdentificadoKey(label)) return `R$ ${(value / 1000).toFixed(0)}k`;
   return pct >= 5 ? `R$ ${(value / 1000).toFixed(0)}k` : "";
 }
 
@@ -149,21 +159,25 @@ export function DespesasDoughnutChart({
   const slices = useDespesaSlices(fluxo, window.start, window.end);
   const total = useMemo(() => slices.reduce((acc, s) => acc + s.value, 0), [slices]);
   const palette = theme.categorical;
-  const donutData = useMemo(
-    () =>
-      slices.map((s, i) => ({
-        label: s.label,
-        value: s.value,
-        color: palette[i % palette.length],
-      })),
-    [slices, palette],
-  );
+  // A28.l9 — "não identificado" sai da paleta categórica: cinza neutro
+  // (token muted) sinaliza "sem categoria", não uma categoria a mais.
+  const donutData = useMemo(() => {
+    let paletteIdx = 0;
+    return slices.map((s) => ({
+      label: s.label,
+      value: s.value,
+      color: isNaoIdentificadoKey(s.key)
+        ? theme.textMuted
+        : palette[paletteIdx++ % palette.length],
+    }));
+  }, [slices, palette, theme.textMuted]);
 
   if (slices.length === 0) return null;
 
   const finalConclusion = conclusion ?? buildFallbackConclusion(slices, total) ?? undefined;
   const hasDatasets =
     (fluxo?.receita_despesa_mensal_detalhado?.despesa_datasets?.length ?? 0) > 0;
+  const naoIdentPct = naoIdentificadoPct(slices, total);
 
   return (
     <ReportCard variant="neutral" title="Despesas por Categoria" conclusion={finalConclusion}>
@@ -184,6 +198,28 @@ export function DespesasDoughnutChart({
           ariaLabel="Despesas por categoria"
         />
       </div>
+      {naoIdentPct > NAO_IDENTIFICADO_THRESHOLD_PCT && (
+        <NaoIdentificadoAlert pct={naoIdentPct} />
+      )}
     </ReportCard>
+  );
+}
+
+/** A28.l9 — sinal persistente (não some na conclusão condicional) quando
+ * "não identificado" passa do limiar de 10% na janela ativa. */
+function NaoIdentificadoAlert({ pct }: { pct: number }) {
+  return (
+    <div className="mt-3" data-testid="despesas-nao-identificado-alert">
+      <Alert
+        severity="warning"
+        icon={<AlertTriangle className="h-4 w-4" aria-hidden="true" />}
+      >
+        <p>
+          Despesas não identificadas somam {pct.toFixed(1).replace(".", ",")}% do total
+          na janela — a distribuição acima subestima as demais categorias.
+          Reclassificar devolve precisão ao gráfico.
+        </p>
+      </Alert>
+    </div>
   );
 }

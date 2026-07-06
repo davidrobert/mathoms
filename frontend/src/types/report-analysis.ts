@@ -82,11 +82,23 @@ export interface ExposicaoCambialData {
 
 export interface ReservaEmergenciaData {
   despesas_mensais?: number;
+  /** ADR-306 (A28.l4) — rótulo da base de mensalização ("12m" | "full"). */
+  janela?: string;
+  /** ADR-306 (A28.l4) — meses documentados reais na janela. */
+  janela_meses?: number;
   nivel_6_meses?: number;
   nivel_12_meses?: number;
   total_liquida?: number;
   cobertura_meses?: number;
-  avaliacao_liquidity?: "Adequada" | "Baixa" | "Excelente" | string;
+  avaliacao_liquidity?: "Adequada" | "Baixa" | "Excelente" | "Excessiva" | string;
+  /** A28.l1 (PR 787) — alvo em meses por perfil de renda (CLT 6 · mista 12 · PJ 18). */
+  meses_alvo?: number;
+  /** A28.l1 (PR 787) — alvo em R$ (`despesa_essencial × meses_alvo`). */
+  alvo_brl?: number;
+  /** A28.l1 (PR 787) — gap até o alvo (0 quando reserva ≥ alvo). */
+  gap_brl?: number;
+  /** A28.l1 (PR 787) — perfil de renda que definiu o alvo (ex.: `pj_dominante`). */
+  perfil_renda?: string;
   composicao_liquida?: {
     investimentos_david?: number;
     investimentos_mariana?: number;

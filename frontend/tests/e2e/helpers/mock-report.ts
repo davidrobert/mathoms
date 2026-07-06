@@ -20,8 +20,16 @@ import type { ReportResponse } from "@/lib/api";
  * - `long-strings`   — nomes/descrições longas (Top 15 ativos, dívidas)
  * - `large-values`   — totais grandes (R$ XX.XXX.XXX) → overflow em cards
  * - `sparse-data`    — datasets curtos / cauda longa (period anchoring)
+ * - `degraded`       — A28.l9: todos os degrades de qualidade ativos
+ *                      (nao_identificado 23%, premissas 10/10 fallback,
+ *                      Monte Carlo sobre fallback, 7 imóveis pendentes)
  */
-export type FixtureName = "medium" | "long-strings" | "large-values" | "sparse-data";
+export type FixtureName =
+  | "medium"
+  | "long-strings"
+  | "large-values"
+  | "sparse-data"
+  | "degraded";
 
 const FIXTURES_DIR = join(__dirname, "..", "fixtures", "reports");
 
