@@ -247,8 +247,9 @@ _INPUT_REMOVED = (
     ),
     (
         "inr-02",
-        _remove_input(_RESERVA, "patrimonio.caixa_moeda_estrangeira"),
-        "A reserva de emergência não considera o caixa em moeda estrangeira.",
+        # A28.l1: input da reserva = componente NÃO-ZERO de composicao_liquida.
+        _remove_input(_RESERVA, "composicao_liquida.investimentos_david"),
+        "A reserva de emergência perdeu o rastro dos investimentos líquidos do titular.",
         _RESERVA,
         _RESERVA,
         _RESERVA,
@@ -450,7 +451,7 @@ _SEALED = (
     (
         "sel-membro-cpf",
         _compose(
-            _dup_input(_RESERVA, "patrimonio.investimentos_david"),
+            _dup_input(_RESERVA, "composicao_liquida.investimentos_david"),
             _set_aggregate(_RESERVA, 210000.0),
         ),
         "A identidade de membro é por slug-do-nome em vez de CPF: a mesma "

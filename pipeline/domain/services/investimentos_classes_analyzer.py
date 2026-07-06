@@ -10,7 +10,7 @@ from pipeline.domain.services.asset_classifier import (
     OUTROS_EXCESSIVO_THRESHOLD_PCT,
     OutrosExcessivoWarning,
     classify_asset,
-    default_keywords,
+    merge_asset_keywords,
 )
 
 
@@ -42,18 +42,7 @@ def _build_tabela(classes: dict[str, float], total: float) -> tuple["ClasseAtivo
 
 
 def _merge_keywords(scoring: dict | None) -> dict[str, tuple[str, ...]]:
-    acl = (scoring or {}).get("asset_class_keywords") or {}
-    merged: dict[str, tuple[str, ...]] = {}
-    for classe, ks in default_keywords().items():
-        override = acl.get(classe)
-        merged[classe] = tuple(str(k).lower() for k in override) if override else ks
-    # Forward-compat: classe nova em scoring.json não precisa estar em defaults.
-    for classe, override in acl.items():
-        if classe == "_comment" or classe in merged:
-            continue
-        if isinstance(override, list):
-            merged[classe] = tuple(str(k).lower() for k in override)
-    return merged
+    return merge_asset_keywords(scoring)
 
 
 @dataclass(frozen=True)

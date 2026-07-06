@@ -24,7 +24,7 @@
         "inputs": [
           {
             "artifact_key": "analise_financeira",
-            "field": "fluxo_caixa.despesas_por_categoria.nao_identificado",
+            "field": "fluxo_caixa.despesas_por_categoria.alimentacao",
             "stage": "E5"
           }
         ],
@@ -160,12 +160,22 @@
         "inputs": [
           {
             "artifact_key": "analise_financeira",
-            "field": "patrimonio.caixa_moeda_estrangeira",
+            "field": "reserva_emergencia.composicao_liquida.caixa",
             "stage": "E5"
           },
           {
             "artifact_key": "analise_financeira",
-            "field": "patrimonio.investimentos_alex",
+            "field": "reserva_emergencia.composicao_liquida.caixa_moeda_estrangeira",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "reserva_emergencia.composicao_liquida.investimentos_",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "reserva_emergencia.composicao_liquida.investimentos_alex",
             "stage": "E5"
           }
         ],
@@ -175,8 +185,8 @@
           "adr": "ADR-218",
           "ref": "pipeline.domain.services.reserva_emergencia_calculator:EmergencyReserveCalculator.calculate"
         },
-        "transform": "investimentos líquidos por membro + caixa em moeda estrangeira",
-        "value": "130000.00"
+        "transform": "ativos líquidos de baixo risco por membro (buckets Caixa + Renda Fixa) + caixa BRL; caixa ME apenas com finalidade explícita = reserva",
+        "value": "80000.00"
       }
     },
     "lineage_version": "1.0"
@@ -292,20 +302,20 @@
     "total_brl": 0
   },
   "fluxo_caixa": {
-    "despesa_mensal_essencial": 0,
+    "despesa_mensal_essencial": 150000,
     "despesa_mensal_media": 150000,
     "despesa_total": 150000,
     "despesas_por_categoria": {
-      "nao_identificado": 150000
+      "alimentacao": 150000
     },
     "fluxo_liquido": 150000,
     "janela": "full",
     "janela_12m": {
-      "despesa_mensal_essencial": 0,
+      "despesa_mensal_essencial": 150000,
       "despesa_mensal_media": 150000,
       "despesa_total": 150000,
       "despesas_por_categoria": {
-        "nao_identificado": 150000
+        "alimentacao": 150000
       },
       "fluxo_liquido": 150000,
       "janela": "12m",
@@ -321,10 +331,10 @@
     },
     "janela_meses": 1,
     "por_fonte": {
-      "renda": 300000
+      "receita_pj": 300000
     },
     "por_fonte_detalhado": {
-      "Outras Receitas": 300000
+      "Outras Receitas PJ": 300000
     },
     "receita_despesa_mensal_detalhado": {
       "despesa_datasets": [
@@ -332,7 +342,7 @@
           "data": [
             "1500.000000"
           ],
-          "label": "Nao Identificado"
+          "label": "Alimentacao"
         }
       ],
       "labels": [
@@ -343,7 +353,7 @@
           "data": [
             "3000.000000"
           ],
-          "label": "Outras Receitas"
+          "label": "Outras Receitas PJ"
         }
       ],
       "totais_despesa": [
@@ -359,7 +369,7 @@
     "receita_total": 300000,
     "tabela_receitas": [
       {
-        "categoria": "Renda",
+        "categoria": "Receita Pj",
         "pct": "100.000000",
         "valor": 300000
       }
@@ -438,7 +448,7 @@
   },
   "orcamento_prospectivo": {
     "categorias": {
-      "nao_identificado": 150000
+      "alimentacao": 150000
     },
     "janela": "full",
     "janela_meses": 1,
@@ -559,7 +569,7 @@
       "titulo": "Taxa de Poupança Elevada"
     },
     {
-      "descricao": "Cobertura de 87 meses de despesas — acima dos 12 meses recomendados.",
+      "descricao": "Cobertura de 53 meses de custo essencial — no alvo de 18 meses do perfil de renda.",
       "icone": "emergency",
       "titulo": "Reserva de Emergência Excelente"
     }
@@ -585,16 +595,16 @@
     }
   ],
   "previdencia_pgbl": {
-    "aliquota_marginal": "0.000000",
+    "aliquota_marginal": "7.500000",
     "ano_base": null,
-    "aporte_mensal": 0,
-    "economia_ir_anual": 0,
+    "aporte_mensal": 11520,
+    "economia_ir_anual": 10368,
     "fonte_recomendacao": "proxy_receita_pj",
-    "limite_pgbl_anual": 0,
-    "nota": "Sem receita PJ identificada para cálculo de PGBL.",
+    "limite_pgbl_anual": 138240,
+    "nota": "Base: receita PJ anualizada R$ 36,000, lucro presumido 32%.",
     "nota_degradacao": null,
-    "renda_tributavel_anual": 0,
-    "status": "N/D"
+    "renda_tributavel_anual": 1152000,
+    "status": "Calculado"
   },
   "programa_milhas": {},
   "protecao_patrimonial": {
@@ -641,18 +651,29 @@
     "taxa_poupanca_total_pct": "50.000000"
   },
   "reserva_emergencia": {
+    "alvo_brl": 2700000,
     "avaliacao_liquidity": "Excessiva",
-    "cobertura_meses": "86.700000",
+    "base_denominador": "custo_essencial",
+    "cobertura_meses": "53.300000",
     "composicao_liquida": {
-      "caixa_moeda_estrangeira": 5000000,
-      "cobertura_meses": "86.700000",
+      "caixa": 0,
+      "caixa_moeda_estrangeira": 0,
+      "cobertura_meses": "53.300000",
       "investimentos_": 0,
       "investimentos_alex": 8000000,
-      "total_liquido": 13000000
+      "total_liquido": 8000000
     },
+    "custo_essencial_mensal": 150000,
     "despesas_mensais": 150000,
+    "excluido_da_reserva": {
+      "caixa_moeda_estrangeira": 0,
+      "caixa_nao_classificado": 5000000,
+      "investimentos_nao_liquidos": 0
+    },
+    "gap_brl": 0,
     "janela": "12m",
     "janela_meses": 1,
+    "meses_alvo": 18,
     "niveis": [
       "3 meses",
       "6 meses",
@@ -661,7 +682,9 @@
     ],
     "nivel_12_meses": "18000.000000",
     "nivel_6_meses": "9000.000000",
-    "total_liquida": 13000000
+    "perfil_renda": "pj_dominante",
+    "receita_pj_pct": "100.000000",
+    "total_liquida": 8000000
   },
   "score": {
     "breakdown": [
@@ -717,7 +740,7 @@
         "nota": "10.000000",
         "peso": "1.500000",
         "status": "emitted",
-        "valor": 8667
+        "valor": 5330
       },
       {
         "code": "taxa_endividamento",

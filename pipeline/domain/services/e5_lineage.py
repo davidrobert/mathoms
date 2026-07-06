@@ -56,22 +56,33 @@ def build_e5_lineage(
     return lineage_block(fields)
 
 
-def reserva_total_liquida_field(reserva: ReservaReport, identity: MemberIdentity) -> LineageField:
-    """Topologia honesta: a aritmética consumiu os campos do dict ``patrimonio``."""
-    refs = [
-        e5_input_ref(f"patrimonio.{identity.key_inv_titular}"),
-        e5_input_ref("patrimonio.caixa_moeda_estrangeira"),
+def _reserva_input_refs(reserva: ReservaReport, identity: MemberIdentity) -> list[dict[str, str]]:
+    """A28.l1 — o numerador é o subset líquido (Caixa + Renda Fixa) dos
+    aggregates de patrimônio, então a soma verificável vive nos componentes
+    de ``composicao_liquida`` (mesmo padrão de ``patrimonio.bruto`` sobre a
+    própria composição)."""
+    del identity  # keys vêm da própria composição serializada
+    composicao = reserva.get("composicao_liquida") or {}
+    return [
+        e5_input_ref(f"reserva_emergencia.composicao_liquida.{key}")
+        for key in composicao
+        if key not in ("total_liquido", "cobertura_meses")
     ]
-    if identity.conjuge_key:
-        refs.append(e5_input_ref(f"patrimonio.{identity.key_inv_conjuge}"))
+
+
+def reserva_total_liquida_field(reserva: ReservaReport, identity: MemberIdentity) -> LineageField:
+    """Topologia honesta: soma dos componentes líquidos da própria composição."""
     return {
         "value": money_str(reserva["total_liquida"]),
         "label": "Reserva de emergência — total líquido",
-        "transform": "investimentos líquidos por membro + caixa em moeda estrangeira",
+        "transform": (
+            "ativos líquidos de baixo risco por membro (buckets Caixa + Renda Fixa) "
+            "+ caixa BRL; caixa ME apenas com finalidade explícita = reserva"
+        ),
         "rule_ref": dict(LINEAGE_RULE_REFS["reserva_emergencia.total_liquida"]),
         "edge_type": "aggregation",
         "member_hashes": [],
-        "inputs": sorted_inputs(refs),
+        "inputs": sorted_inputs(_reserva_input_refs(reserva, identity)),
     }
 
 

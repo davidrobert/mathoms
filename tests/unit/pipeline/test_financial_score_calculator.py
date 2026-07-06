@@ -107,6 +107,37 @@ def default_calc() -> FinancialScoreCalculator:
     return FinancialScoreCalculator(FinancialScoreConfig.default())
 
 
+def test_cobertura_vem_da_reserva_quando_presente(default_calc: FinancialScoreCalculator):
+    """A28.l1 / FORMULAS.md §Reserva: cobertura_despesas lê reserva.cobertura_meses
+    (reserva_liquida ÷ custo_essencial), não o ratio de patrimônio investível."""
+    result = default_calc.calculate(
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 31.6,
+            "taxa_endividamento_pct": 0,
+        },
+        patrimonio={"composicao": []},
+        goals={"if_pct": 0},
+        reserva={"cobertura_meses": 8.2},
+    )
+    comp = next(c for c in result["componentes"] if c["code"] == "cobertura_despesas")
+    assert comp["valor"] == 8.2
+
+
+def test_cobertura_fallback_ratios_sem_reserva(default_calc: FinancialScoreCalculator):
+    result = default_calc.calculate(
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 7.5,
+            "taxa_endividamento_pct": 0,
+        },
+        patrimonio={"composicao": []},
+        goals={"if_pct": 0},
+    )
+    comp = next(c for c in result["componentes"] if c["code"] == "cobertura_despesas")
+    assert comp["valor"] == 7.5
+
+
 def test_calculate_returns_all_5_components(default_calc: FinancialScoreCalculator):
     result = default_calc.calculate(
         ratios={
