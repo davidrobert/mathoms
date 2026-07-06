@@ -4,7 +4,9 @@ type: lane
 title: "imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner"
 sprint: A28
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 779
+ship_date: "2026-07-06"
 priority: P1
 branch_slug: imoveis-excluidos-dedup
 adrs:
@@ -16,7 +18,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---

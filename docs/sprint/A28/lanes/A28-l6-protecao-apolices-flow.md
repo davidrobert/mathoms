@@ -4,7 +4,9 @@ type: lane
 title: "proteção patrimonial ativada: apólices extraídas fluem para compute_protecao + pontos_urgentes condicional"
 sprint: A28
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 783
+ship_date: "2026-07-06"
 priority: P1
 branch_slug: protecao-apolices-flow
 adrs:
@@ -17,7 +19,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/pipeline
   - breaking/schema

@@ -4,7 +4,9 @@ type: lane
 title: "nao_identificado 23% → <5%: regras via Learning Loop + gate de reclassificação do owner"
 sprint: A28
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 782
+ship_date: "2026-07-06"
 priority: P1
 branch_slug: nao-identificado-learning-loop
 adrs:
@@ -17,7 +19,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a28
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---

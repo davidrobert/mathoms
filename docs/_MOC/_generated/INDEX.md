@@ -658,17 +658,17 @@
 | A26.l8 | lane | shipped | A26 | value_mismatch residual: enforcement per-item no strict (path válido, número errado) | `sprint/A26/lanes/A26-l8-evidencia-value-mismatch.md` |
 | A26.l9 | lane | shipped | A26 | citação determinística: renderizar valor R$ da folha (path) — value_mismatch → 0 estrutural | `sprint/A26/lanes/A26-l9-citacao-deterministica.md` |
 | A27.l1 | lane | shipped | A27 | Citação do parecer (E6→E5) como edge de lineage por chave natural | `sprint/A27/lanes/A27-l1-evidencia-lineage-edge.md` |
-| A28.l1 | lane | in_progress | A28 | reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil | `sprint/A28/lanes/A28-l1-reserva-formula-canonica.md` |
+| A28.l1 | lane | shipped | A28 | reserva de emergência conforme FORMULAS.md: custo essencial + liquidez estrita + meses_alvo por perfil | `sprint/A28/lanes/A28-l1-reserva-formula-canonica.md` |
 | A28.l10 | lane | shipped | A28 | âncoras do parecer formatadas por tipo (não tudo é R$) + curadoria defensiva de pontos fortes/alertas | `sprint/A28/lanes/A28-l10-ancoras-formatter-curadoria.md` |
-| A28.l11 | lane | in_progress | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
+| A28.l11 | lane | shipped | A28 | guardrails pós-LLM do parecer: confiança rebaixada sob premissa fallback + filtro 3-vias de campos_faltantes | `sprint/A28/lanes/A28-l11-parecer-guardrails-pos-llm.md` |
 | A28.l2 | lane | shipped | A28 | TRS efetiva com numerador/denominador do mesmo universo + guardrail de sanidade (ADR-191) | `sprint/A28/lanes/A28-l2-trs-universo-consistente.md` |
 | A28.l3 | lane | shipped | A28 | PGBL: regra de ano-base único — uma recomendação por relatório | `sprint/A28/lanes/A28-l3-pgbl-ano-base-unico.md` |
 | A28.l4 | lane | shipped | A28 | base de mensalização única: política de janela temporal por família de métrica + Cerbasi coerente | `sprint/A28/lanes/A28-l4-mensalizacao-base-unica.md` |
-| A28.l5 | lane | in_progress | A28 | nao_identificado 23% → <5%: regras via Learning Loop + gate de reclassificação do owner | `sprint/A28/lanes/A28-l5-nao-identificado-learning-loop.md` |
-| A28.l6 | lane | in_progress | A28 | proteção patrimonial ativada: apólices extraídas fluem para compute_protecao + pontos_urgentes condicional | `sprint/A28/lanes/A28-l6-protecao-apolices-flow.md` |
-| A28.l7 | lane | in_progress | A28 | imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner | `sprint/A28/lanes/A28-l7-imoveis-excluidos-dedup.md` |
-| A28.l8 | lane | in_progress | A28 | higiene de ingestão: períodos implausíveis (1899/2100) e banco vazio viram needs_review, não artefato silencioso | `sprint/A28/lanes/A28-l8-higiene-ingestao-periodos.md` |
-| A28.l9 | lane | in_progress | A28 | banner agregado de qualidade de dados no relatório + ressalva de fallback no Monte Carlo | `sprint/A28/lanes/A28-l9-report-data-quality-banner.md` |
+| A28.l5 | lane | shipped | A28 | nao_identificado 23% → <5%: regras via Learning Loop + gate de reclassificação do owner | `sprint/A28/lanes/A28-l5-nao-identificado-learning-loop.md` |
+| A28.l6 | lane | shipped | A28 | proteção patrimonial ativada: apólices extraídas fluem para compute_protecao + pontos_urgentes condicional | `sprint/A28/lanes/A28-l6-protecao-apolices-flow.md` |
+| A28.l7 | lane | shipped | A28 | imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner | `sprint/A28/lanes/A28-l7-imoveis-excluidos-dedup.md` |
+| A28.l8 | lane | shipped | A28 | higiene de ingestão: períodos implausíveis (1899/2100) e banco vazio viram needs_review, não artefato silencioso | `sprint/A28/lanes/A28-l8-higiene-ingestao-periodos.md` |
+| A28.l9 | lane | shipped | A28 | banner agregado de qualidade de dados no relatório + ressalva de fallback no Monte Carlo | `sprint/A28/lanes/A28-l9-report-data-quality-banner.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

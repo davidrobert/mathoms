@@ -12,7 +12,25 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam (`current` 2026-07-03)
+**Nenhuma sprint `current` desde 2026-07-06** (A28 fechada). Próxima: decisão do
+owner — retomar [[MOC-sprint-a26]] (`paused → current`) quando as ≥20 gerações
+qualificadas de parecer acumularem (as re-gerações pós-A28 contam), ou promover a
+A27 (`candidate`). Fila do owner pós-A28: re-gerar parecer com dados corrigidos ·
+`G-owner-reclassify` (fila `/transactions?category=nao_identificado&sort=valor_desc`;
+48,5% do balde é 1 transação) · `G-owner-label` (~7-8 imóveis em Configurações) ·
+re-eval golden do parecer (owner-gated, US$12).
+
+## Sprint recém-fechada
+
+### A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam (`done` 2026-07-06)
+
+**Encerrada em 2026-07-06 — 11/11 lanes shipped** (l2 #754 · l3 #755+ADR-305 ·
+l4 #756+ADR-306 · l10 #753 · l7 #779 · l5 #782 · l6 #783+manifest 1.7 · l8 #786 ·
+l9 #790 · l11 #788+manifest 1.8 · l1 #787). KR1/KR3 atendidos por teste de
+invariante; KR2 e re-medição da l7 aguardam gates de owner (por design); KR4
+entregue (banner + âncoras tipadas + ressalva de fallback). Reserva: 86,7 meses
+"Excessiva" → 53,3 vs alvo 18m (perfil PJ-dominante); TRS 22,63% → universo
+consistente + guardrail >8%; PGBL: 1 recomendação por relatório; ADR-240 ativada.
 
 **Promovida em 2026-07-03; A26 → `paused` ([[ADR-234]]).** 1ª janela do plano
 [[PLAN-report-trust]], nascida da revisão completa do relatório dogfood `72883bde`:
@@ -31,14 +49,14 @@ Onda 2 (apresentação honesta: banner de qualidade [[A28.l9]], formatter de ân
 Gates de owner: `G-owner-reclassify` + `G-owner-label`.
 
 - **Sprint:** [sprint/A28/_README.md](../sprint/A28/_README.md) (11 lanes) · **Plano:**
-  [plan/REPORT_TRUST/_README.md](../plan/REPORT_TRUST/_README.md) · **Prompt:**
-  [agent_prompts/orchestrator_a28_report_trust.md](../agent_prompts/orchestrator_a28_report_trust.md).
+  [plan/REPORT_TRUST/_README.md](../plan/REPORT_TRUST/_README.md) · **Prompt (arquivado):**
+  [agent_prompts/archive/orchestrator_a28_report_trust-2026-07-06.md](../agent_prompts/archive/orchestrator_a28_report_trust-2026-07-06.md).
 - **Precedência de corte:** Must l1+l2+l3+l4 (nunca cortar l1/l2) · Should
   l5+l6+l7+l8+l9+l10+l11 · Could re-medição pós-gate da l7.
 - **Sinergia A26:** cada iteração re-gera o parecer → acumula as ≥20 gerações que
   destravam [[A26.l2]]/[[A26.l4]]. Reavaliar retomada da A26 ao fim da janela.
 
-## Sprint recém-fechada
+## Sprint anterior
 
 ### A25 — Data Lineage: reverso + produto N1/N2 + debug LLM (`done` 2026-06-16)
 
@@ -53,17 +71,6 @@ flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
   `prompt-engineer`) + drop do shim v1 do dedup (M2, [[ADR-287]]).
 - **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) ·
   **Sprint:** [sprint/A25/_README.md](../sprint/A25/_README.md).
-
-## Sprint anterior
-
-### A24 — Data Lineage: extração limpa + walking skeleton (`done` 2026-06-10)
-
-**Fechada em 2026-06-10 — 6 lanes em `main` (#578/#580/#585/#586/#588/#590), G3 atingido, KR2 4/6, zero rebaseline de valor, G-f validado pelo owner.** Promovida em 2026-06-09, sucedendo A23 (`done` — Ondas 0–1 / contrato aditivo, 7 lanes em `main`). A **fase de RISCO** do plano [[PLAN-data-lineage]]: de-leak da extração ([[ADR-280]] — toca goldens E2/E3/E4 + dedup [[ADR-246]]/[[ADR-271]]) + walking skeleton do lineage ([[ADR-279]]) + `evidencia_path` E5→E6 (∥). Recortada em sprint própria (product-manager 2026-06-09) para isolar o perfil de risco da fundação aditiva já estável.
-
-- **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) (§"Blockers da F2 (gate G2)").
-- **Sprint:** [sprint/A24/_README.md](../sprint/A24/_README.md). **Prompt:** [agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md](../agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md).
-- **Sprint goal:** G3 / **KR2 1/6** — patrimônio líquido localizável por 1 comando CLI, `check_lineage_sum` verde.
-- **Revisão de risco (senior-cto + data-engineer, 2026-06-09):** de-leak é cirúrgico (`tipo_lancamento` dead-downstream; `numero_conta_norm` já re-normalizado). Risco real na rede de rebaseline → substrato endurecido (invariante por categoria, manifesto `reason`/`adr`, `check_golden_rebaseline_isolation`) ANTES do 1º rebaseline. Discovery é o 1º gate.
 
 ## Sprint candidate (próxima)
 

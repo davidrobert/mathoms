@@ -3,7 +3,7 @@ id: MOC-sprint-a28
 type: moc
 title: "Sprint A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam"
 aliases: ["A28", "Sprint A28"]
-sprint_status: current
+sprint_status: done
 date: "2026-07-03"
 theme: "report-trust"
 ---
@@ -18,7 +18,7 @@ theme: "report-trust"
 > transição de estado) + `data-engineer` (l6/l7/l8 — contratos e raízes) +
 > `prompt-engineer` (l11 — guardrails pós-LLM) + `financial-planner` e
 > `product-designer` (parecer de origem). Prompt de orquestração:
-> [agent_prompts/orchestrator_a28_report_trust.md](../../agent_prompts/orchestrator_a28_report_trust.md).
+> [agent_prompts/archive/orchestrator_a28_report_trust-2026-07-06.md](../../agent_prompts/archive/orchestrator_a28_report_trust-2026-07-06.md) (arquivado no fechamento).
 >
 > **Por que fura a fila da A27:** a A26 está `blocked` por gates de **tráfego
 > que só o dogfood do owner gera** (≥20 gerações de parecer) e a A27 tem o Must
