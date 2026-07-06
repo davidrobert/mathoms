@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 from typing import Any, Iterable, Sequence
@@ -15,6 +16,11 @@ from backend.app.services.real_estate_adapter import (
     E4ReceitaAluguelEntry,
     IRPFAluguelEntry,
     calculate_for_workspace,
+)
+from pipeline.domain.services.imoveis_dedup import resolve_dedup_winner_by_property_id
+from pipeline.domain.services.real_estate_metrics import (
+    ExcludedProperty,
+    RealEstateMetricsResult,
 )
 from pipeline.domain.services.real_estate_metrics_payload import result_to_payload
 
@@ -35,11 +41,10 @@ def populate_real_estate(
     identities = _load_identities(db, workspace_id)
     if not identities:
         return None
-    return result_to_payload(
-        _calculate(
-            db, identities, e5_data, irpf_payload, informe_payloads, as_of_date, baseline_payload
-        )
+    result = _calculate(
+        db, identities, e5_data, irpf_payload, informe_payloads, as_of_date, baseline_payload
     )
+    return result_to_payload(_dedup_excluded_projection(result, identities, baseline_payload))
 
 
 def _calculate(
@@ -80,17 +85,82 @@ def _load_overrides(db: Session, workspace_id: str) -> dict[str, WorkspaceProper
     return {o.property_id: o for o in db.execute(stmt).scalars().all()}
 
 
+def _dedup_excluded_projection(
+    result: RealEstateMetricsResult,
+    identities: list[PropertyIdentity],
+    baseline_payload: dict | None,
+) -> RealEstateMetricsResult:
+    """Colapsa PropertyIdentity órfãs pré-dedup na lista de excluídos (mesma
+    policy ADR-246/265 do E1.5c): o e15 step 3 persiste 1 row por
+    declarante×variação e o step 3b nunca poda o DB, então a projeção crua
+    repetia o mesmo imóvel N×; o vencedor representa o grupo, grupo já coberto
+    por `imoveis` sai, e nada aqui toca valor monetário (lista é CTA)."""
+    winner_by_pid = resolve_dedup_winner_by_property_id(
+        _dedup_entries(identities, baseline_payload)
+    )
+    included_groups = {winner_by_pid.get(p.property_id, p.property_id) for p in result.imoveis}
+    deduped = _collapse_excluded(result.excluded_properties, winner_by_pid, included_groups)
+    if len(deduped) == len(result.excluded_properties):
+        return result
+    return replace(result, excluded_properties=deduped)
+
+
+def _dedup_entries(identities: list[PropertyIdentity], baseline_payload: dict | None) -> list[dict]:
+    """Entries sintéticas para a policy ADR-246 (valor do baseline elege o vencedor)."""
+    valores = {
+        im.get("property_id"): im.get("valores_31_12") or {}
+        for im in (baseline_payload or {}).get("imoveis_consolidados") or []
+    }
+    return [
+        {
+            "property_id": ident.id,
+            "codigo_rfb": ident.codigo_rfb,
+            "endereco_canonical": ident.endereco_canonical,
+            "descricao": ident.descricao_sample,
+            "valores_31_12": valores.get(ident.id, {}),
+        }
+        for ident in identities
+    ]
+
+
+def _collapse_excluded(
+    excluded: list[ExcludedProperty],
+    winner_by_pid: dict[str, str],
+    included_groups: set[str],
+) -> list[ExcludedProperty]:
+    """1 entrada por grupo (a do vencedor, quando excluída); grupo já em `imoveis` sai."""
+    by_group: dict[str, ExcludedProperty] = {}
+    order: list[str] = []
+    for entry in excluded:
+        group = winner_by_pid.get(entry.property_id, entry.property_id)
+        if group not in included_groups:
+            _keep_group_representative(by_group, order, group, entry)
+    return [by_group[g] for g in order]
+
+
+def _keep_group_representative(
+    by_group: dict[str, ExcludedProperty],
+    order: list[str],
+    group: str,
+    entry: ExcludedProperty,
+) -> None:
+    """Primeira entry abre o grupo; a do vencedor (pid == grupo) substitui."""
+    if group not in by_group:
+        by_group[group] = entry
+        order.append(group)
+    elif entry.property_id == group:
+        by_group[group] = entry
+
+
 def _valor_by_property(
     identities: list[PropertyIdentity],
     baseline_payload: dict | None,
 ) -> dict[str, Decimal]:
-    """Valor-por-imóvel do baseline E1.5c consolidado (join por property_id estável).
-
-    Lê `imoveis_consolidados[].valores_31_12` — já deduplicado (ADR-246, sem
-    double-count de comunhão) e chaveado por ano-base (ADR-274). É a mesma fonte
-    que gerou os PropertyIdentity via property_identity_enricher, então o
-    `property_id` casa por construção — sem re-matching frágil por codigo_rfb/role.
-    """
+    """Valor-por-imóvel do baseline E1.5c (`imoveis_consolidados[].valores_31_12`,
+    já deduplicado ADR-246 e chaveado por ano-base ADR-274): o `property_id` casa
+    por construção para os vencedores do dedup — rows órfãs pré-dedup não casam,
+    ficam com valor 0 e só aparecem na projeção de excluídos, colapsada em
+    `_dedup_excluded_projection`."""
     by_property: dict[str, Decimal] = {ident.id: _ZERO for ident in identities}
     if not baseline_payload:
         return by_property
