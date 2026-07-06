@@ -338,7 +338,9 @@ def _flag_saude(inp: ProtecaoInput, apolices_vigentes: list[dict]) -> dict:
 # ===========================================================================
 
 
-def _apolice_resumo(a: dict) -> dict:
+def apolice_resumo(a: dict) -> dict:
+    """Resumo LGPD-safe de 1 apólice (sem CPF/endereço/placa) — consumido no
+    payload E5 e no balde E4 ``seguros`` (A28.l6)."""
     bens = a.get("bens_segurados") or []
     return {
         "apolice_numero": a.get("apolice_numero", ""),
@@ -422,9 +424,9 @@ def compute_protecao(inp: ProtecaoInput) -> dict:
         "pct_renda_anual": _format_pct_renda(pct),
         "bens_com_gap_cobertura": _bens_com_gap_cobertura(vigentes, inp.vehicles_by_id),
         "gap_qualitativo": [_flag_vida(inp, vigentes), _flag_saude(inp, vigentes)],
-        "apolices_vigentes": [_apolice_resumo(a) for a in vigentes],
-        "apolices_vencendo": [_apolice_resumo(a) for a in vencendo],
-        "apolices_vencidas": [_apolice_resumo(a) for a in vencidas],
+        "apolices_vigentes": [apolice_resumo(a) for a in vigentes],
+        "apolices_vencendo": [apolice_resumo(a) for a in vencendo],
+        "apolices_vencidas": [apolice_resumo(a) for a in vencidas],
         "corretoras_count": _corretoras_count(vigentes),
         "seguradoras_count": _seguradoras_count(vigentes),
     }

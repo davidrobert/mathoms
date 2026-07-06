@@ -3094,6 +3094,7 @@ def _e5_compose_output(
     monte_carlo_if=None,
     premissas_economicas: Dict[str, Any] | None = None,
     proventos_por_ativo=None,
+    protecao_patrimonial: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
 
@@ -3128,6 +3129,7 @@ def _e5_compose_output(
         proventos_por_ativo=proventos_por_ativo,
         exposicao_cambial=legacy.get("exposicao_cambial"),
         lineage=legacy.get("lineage"),
+        protecao_patrimonial=protecao_patrimonial,
     )
     return build_e5_output(output_inputs)
 
@@ -3220,6 +3222,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         monte_carlo_if=result.monte_carlo_if,
         premissas_economicas=premissas_economicas,
         proventos_por_ativo=result.proventos_por_ativo,
+        protecao_patrimonial=result.protecao_patrimonial,
     )
     _e5_persist(store, ctx, output)
     _e5_print_summary(legacy)
