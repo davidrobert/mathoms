@@ -885,7 +885,9 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.1
+          # Binário precisa ser buildado com go >= go.work (v2.1 era go1.24
+          # e falhou com "targeted Go version 1.26"); manter par com o local.
+          version: v2.12.2
           working-directory: services/pipeline-service-go
           args: --timeout=3m
 
