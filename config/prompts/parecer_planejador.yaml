@@ -33,7 +33,11 @@
 # diagnostico_geral sem R$ inline (fecha number_in_prose; conforma ADR-296).
 # 1.7 — A28.l6 (ADR-240): projeta $.protecao_patrimonial em riscos_protecao +
 # seção no drill-down; apólices deixam de aparecer em campos_faltantes.
-version: "1.7"
+# 1.8 — A28.l11: guardrails pós-LLM — projeta premissas_economicas.status
+# (confiança rebaixada sob premissa fallback do Monte Carlo) + dependentes
+# dedicado em previdencia_irpf (path canônico $.irpf_kpis.dependentes) + hint
+# TRS status='suspeito' (consome flag da A28.l2); bump invalida cache Redis.
+version: "1.8"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -200,6 +204,9 @@ context_sections:
         on_null: "error"
     narrative_hints:
       - "Se status='sem_irpf' ou 'gerador_zero', NÃO compare com meta — sinalize a indisponibilidade."
+      # A28.l11 (consome o flag de sanidade da TRS emitido pela A28.l2 em
+      # ratios_calculator — número fora do plausível nunca vira conselho).
+      - "Se rentabilidade.status='suspeito', o número da TRS falhou o teste de sanidade — NÃO construa recomendação sobre rentabilidade nem compare com meta; sinalize apenas a inconsistência do dado."
 
   # --------------------------------------------------------------------------
   # 6) Independência financeira (S7) — projeção + Monte Carlo + cenários cônjuge
@@ -223,8 +230,18 @@ context_sections:
         label: "Renda passiva projetada"
         value_format: "raw"
         on_null: "skip"
+      # A28.l11 — status das premissas do Monte Carlo (ADR-219 D5): 'parcial' =
+      # pelo menos uma classe sem premissa vigente (projeção corre sob fallback).
+      - format: "scalar"
+        path: "$.premissas_economicas.status"
+        label: "Status das premissas econômicas do Monte Carlo (completo | parcial=fallback)"
+        value_format: "string"
+        on_null: "skip"
     narrative_hints:
       - "Ao citar prazo, mencione que é projeção sob premissa de retorno real do payload — não invente a taxa."
+      # A28.l11 camada pré-LLM (higiene); a garantia determinística vive no
+      # orchestrator (parecer_pos_llm_guardrails — rebaixa, nunca bloqueia).
+      - "Premissas em fallback: se o status das premissas econômicas for 'parcial', NENHUM risco/sugestão ancorado em $.if_monte_carlo.* pode ter confianca 'alta' — use no máximo 'media' e mencione que a projeção corre sob premissa de fallback."
       - "Cenários cônjuge ausentes (objeto vazio) = workspace solteiro ou casal sem meta IF; não force narrativa."
       # ADR-290 F2 — valor determinístico (par do hint de saude_balanco).
       - "Ancore patrimônio-alvo/renda passiva via ancoras (NÃO escreva o R$ na prosa): path na folha ($.passive_income.*, $.if_monte_carlo.*), rotulo = a seção dona (passive_income / if_monte_carlo)."
@@ -246,8 +263,17 @@ context_sections:
         label: "KPIs IRPF (alíquota efetiva, deduções, dependentes)"
         value_format: "raw"
         on_null: "skip"
+      # A28.l11 — campo dedicado (não dump raw truncável): ataca a raiz do
+      # dogfood 72883bde, onde o LLM pediu $.composicao_familiar.dependentes
+      # com o dado presente aqui.
+      - format: "scalar"
+        path: "$.irpf_kpis.dependentes"
+        label: "Dependentes IRPF (count + por_relacao) — path canônico"
+        value_format: "raw"
+        on_null: "skip"
     narrative_hints:
       - "Não opine sobre qual regime tributário escolher — descreva o atual e o gap em relação ao desenho-alvo."
+      - "Dependentes: o path canônico é $.irpf_kpis.dependentes — não existe $.composicao_familiar no E5."
       - "Pendência regulatória (FBAR/8938 atrasada, contador sem definição) → risco severidade Alta."
 
   # --------------------------------------------------------------------------

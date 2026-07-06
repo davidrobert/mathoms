@@ -11,7 +11,10 @@ from sqlalchemy.orm import Session
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun
 from backend.app.models.pipeline_run_cost import PipelineRunCost
-from backend.app.models.planner_field_request import PlannerFieldRequest
+from backend.app.models.planner_field_request import (
+    VALID_FIELD_REQUEST_REASONS,
+    PlannerFieldRequest,
+)
 from backend.app.models.planner_review import PlannerReview
 from backend.app.services.crypto import read_artifact_content
 from backend.app.services.suggestion_supersede import persist_suggestions_for_run
@@ -174,29 +177,42 @@ def _find_existing_review(
     )
 
 
+def _field_request_entry(entry, default_reason: str) -> Optional[dict]:
+    """Normaliza entrada crua em ``{field_path, motivo, reason}``; inválida → None."""
+    if not isinstance(entry, dict):
+        return None
+    path, motivo = entry.get("field_path"), entry.get("motivo")
+    if not path or not motivo:
+        return None
+    reason = entry.get("reason")
+    if reason not in VALID_FIELD_REQUEST_REASONS:
+        reason = default_reason
+    return {"field_path": path, "motivo": motivo, "reason": reason}
+
+
 def _iter_field_requests(content_json: dict):
-    """Yields dicts ``{field_path, motivo}`` do array ``campos_faltantes_pediria_se_iterasse``."""
-    campos = content_json.get("campos_faltantes_pediria_se_iterasse")
-    if not campos:
-        return
-    for entry in campos:
-        if not isinstance(entry, dict):
-            continue
-        path = entry.get("field_path")
-        motivo = entry.get("motivo")
-        if not path or not motivo:
-            continue
-        yield {"field_path": path, "motivo": motivo}
+    """Yields ``{field_path, motivo, reason}`` — array ``campos_faltantes_pediria_se_
+    iterasse`` (mantidos pelo filtro 3-vias → llm_declared) + ``_meta.field_request_
+    audit`` (removidos — spurious/wrong_path, A28.l11)."""
+    for entry in content_json.get("campos_faltantes_pediria_se_iterasse") or []:
+        row = _field_request_entry(entry, "llm_declared")
+        if row:
+            yield row
+    audit = (content_json.get("_meta") or {}).get("field_request_audit") or []
+    for entry in audit:
+        row = _field_request_entry(entry, "llm_declared")
+        if row:
+            yield row
 
 
 def _build_field_request(*, workspace_id: str, review_id: str, entry: dict) -> PlannerFieldRequest:
-    """Constrói row de telemetria do parecer (ADR-206 §D2 fonte primária)."""
+    """Constrói row de telemetria do parecer (ADR-206 §D2 fonte primária + A28.l11)."""
     return PlannerFieldRequest(
         workspace_id=workspace_id,
         planner_review_id=review_id,
         field_path=entry["field_path"],
         motivo=entry["motivo"],
-        reason="llm_declared",
+        reason=entry.get("reason", "llm_declared"),
     )
 
 
