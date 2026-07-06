@@ -87,7 +87,7 @@ async def test_create_encrypts_cpf_via_vault():
     stored = await repo.get_by_id("ws-1", member_id)
     assert stored is not None
     assert stored.cpf_encrypted == "enc:12345678901"
-    assert resp.cpf == "12345678901"  # response decripta
+    assert resp.cpf_masked == "***.***.789-01"  # ADR-259 §4: response só a máscara
 
 
 @pytest.mark.asyncio

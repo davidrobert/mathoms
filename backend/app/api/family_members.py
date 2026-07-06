@@ -30,7 +30,7 @@ from backend.app.application.family_member import (
 )
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
-from backend.app.core.tenancy import get_current_workspace, require_owner_role
+from backend.app.core.tenancy import get_current_workspace, require_owner_role, require_write_role
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.family_member_repository import FamilyMemberRepository
@@ -86,6 +86,7 @@ async def list_members(
     "/members",
     response_model=FamilyMemberResponse,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_write_role)],
 )
 async def create_member(
     body: FamilyMemberCreateCommand,
@@ -104,7 +105,11 @@ async def create_member(
     )
 
 
-@router.put("/members/{member_id}", response_model=FamilyMemberResponse)
+@router.put(
+    "/members/{member_id}",
+    response_model=FamilyMemberResponse,
+    dependencies=[Depends(require_write_role)],
+)
 async def update_member(
     member_id: str,
     body: FamilyMemberUpdateCommand,
@@ -116,7 +121,11 @@ async def update_member(
     )
 
 
-@router.delete("/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/members/{member_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_write_role)],
+)
 async def delete_member(
     member_id: str,
     workspace: Workspace = Depends(get_current_workspace),
@@ -192,6 +201,7 @@ async def list_accounts(
     "/members/{member_id}/accounts",
     response_model=BankAccountResponse,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_write_role)],
 )
 async def create_account(
     member_id: str,
@@ -242,7 +252,11 @@ async def _emit_irpf_accepted_telemetry(
         )
 
 
-@router.put("/members/{member_id}/accounts/{account_id}", response_model=BankAccountResponse)
+@router.put(
+    "/members/{member_id}/accounts/{account_id}",
+    response_model=BankAccountResponse,
+    dependencies=[Depends(require_write_role)],
+)
 async def update_account(
     member_id: str,
     account_id: str,
@@ -258,6 +272,7 @@ async def update_account(
 @router.delete(
     "/members/{member_id}/accounts/{account_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_write_role)],
 )
 async def delete_account(
     member_id: str,
@@ -303,6 +318,7 @@ async def list_suggestions_from_irpf(
 @router.post(
     "/members/irpf-dismissals",
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_write_role)],
 )
 async def dismiss_suggestion(
     body: IrpfDismissCommand,

@@ -4678,18 +4678,18 @@
             "description": "Nome civil anterior / de nascimento (usado para reconciliar contas antigas). Persiste em ``extra.nome_nascimento``.",
             "title": "Birth Name"
           },
-          "cpf": {
+          "cpf_masked": {
             "anyOf": [
               {
-                "maxLength": 14,
+                "maxLength": 20,
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "CPF em plaintext (decriptado do vault ao responder).",
-            "title": "Cpf"
+            "description": "CPF mascarado (``***.***.789-00``, ADR-259 \u00a74). CPF completo \u00e9 owner-only e auditado \u2014 ver ``GET .../cpf/full``.",
+            "title": "Cpf Masked"
           },
           "extra": {
             "anyOf": [

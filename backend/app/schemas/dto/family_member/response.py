@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 
 class BankAccountResponse(BaseModel):
@@ -49,10 +49,13 @@ class FamilyMemberResponse(BaseModel):
             "antigas). Persiste em ``extra.nome_nascimento``."
         ),
     )
-    cpf: Optional[str] = Field(
+    cpf_masked: Optional[str] = Field(
         None,
-        max_length=14,
-        description="CPF em plaintext (decriptado do vault ao responder).",
+        max_length=20,
+        description=(
+            "CPF mascarado (``***.***.789-00``, ADR-259 §4). CPF completo é "
+            "owner-only e auditado — ver ``GET .../cpf/full``."
+        ),
     )
     birth_date: Optional[date] = None
     role: str = Field(..., pattern=r"^(titular|conjuge|filho|dependente)$")
@@ -66,16 +69,6 @@ class FamilyMemberResponse(BaseModel):
     accounts: list[BankAccountResponse] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
-
-    @field_validator("cpf")
-    @classmethod
-    def validate_cpf_format(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
-        digits = "".join(c for c in v if c.isdigit())
-        if len(digits) != 11:
-            raise ValueError("CPF deve conter exatamente 11 dígitos")
-        return v
 
 
 class FamilyMemberListResponse(BaseModel):

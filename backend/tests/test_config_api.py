@@ -40,7 +40,8 @@ class TestMembersAPI:
         data = resp.json()
         assert data["key"] == "david"
         assert data["full_name"] == "David Robert Camargo"
-        assert data["cpf"] == "910.428.398-01"  # noqa: PII-ok (gerado por tests/utils/cpf.py seed=42)
+        # ADR-259 §4: response nunca expõe CPF pleno — só a máscara canônica.
+        assert data["cpf_masked"] == "***.***.398-01"
         assert data["id"] is not None
 
     @pytest.mark.asyncio
