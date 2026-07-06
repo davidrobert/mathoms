@@ -19,7 +19,7 @@ import { ReportSectionStub } from "./ReportSectionStub";
 import { useReportMode } from "./ReportModeProvider";
 import { MigratedSection, MIGRATED_SECTIONS } from "./MigratedSection";
 import { SuggestionCalloutSummary } from "./sections/SuggestionCallout";
-import { PerfilFamiliaCard } from "./cards";
+import { PerfilFamiliaCard, TitularesCard } from "./cards";
 import {
   ReportActions,
   ReportCover,
@@ -333,6 +333,9 @@ export function ReportShell({
                   narrativas={dataState.data.narrativas as Record<string, unknown> | undefined}
                 />
               )}
+
+              {/* Titulares — CPF mascarado por default (ADR-259 §4) */}
+              {mode === "estrategico" && <TitularesCard workspaceId={workspaceId} />}
 
               {enabledSections.map((section) =>
                 MIGRATED_SECTIONS.has(section.id) ? (

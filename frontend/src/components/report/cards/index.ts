@@ -45,6 +45,7 @@ export type { PrevidenciaPgblData } from "./PrevidenciaPgblCard";
 export { ReceitasFonteCard } from "./ReceitasFonteCard";
 export { RentabilidadeCard } from "./RentabilidadeCard";
 export { ReservaEmergenciaCard } from "./ReservaEmergenciaCard";
+export { TitularesCard } from "./TitularesCard";
 export { IrpfRendaAnualCard } from "./IrpfRendaAnualCard";
 export { IrpfIrPagoCard } from "./IrpfIrPagoCard";
 export { IrpfSplitTrabalhoCapitalCard } from "./IrpfSplitTrabalhoCapitalCard";

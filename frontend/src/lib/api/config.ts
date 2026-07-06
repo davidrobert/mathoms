@@ -109,6 +109,32 @@ export async function deleteMember(workspaceId: string, id: string): Promise<voi
   return apiFetch(`/workspaces/${workspaceId}/config/members/${id}`, { method: "DELETE" });
 }
 
+// ─── Config: Members — CPF view (ADR-259 §4) ───
+
+export interface CpfMaskedResponse {
+  cpf_masked: string;
+}
+
+export interface CpfFullResponse {
+  cpf_full: string;
+}
+
+/** Máscara canônica (`***.***.789-00`) — pronta do servidor, qualquer role. */
+export async function getMemberCpfMasked(
+  workspaceId: string,
+  memberId: string,
+): Promise<CpfMaskedResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members/${memberId}/cpf`);
+}
+
+/** CPF completo — owner-only, rate-limited, gera 1 linha de auditoria no backend. */
+export async function getMemberCpfFull(
+  workspaceId: string,
+  memberId: string,
+): Promise<CpfFullResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members/${memberId}/cpf/full`);
+}
+
 // ─── Config: Bank Accounts ───
 
 export async function createBankAccount(workspaceId: string, memberId: string, data: Omit<BankAccountConfig, "id">): Promise<BankAccountConfig> {
