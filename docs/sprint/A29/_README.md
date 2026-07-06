@@ -3,15 +3,17 @@ id: MOC-sprint-a29
 type: moc
 title: "Sprint A29 — Review UX: conferência de pipeline centrada em documentos"
 aliases: ["A29", "Sprint A29"]
-sprint_status: current
+sprint_status: done
 date: "2026-07-06"
 theme: "review-ux-inbox"
 ---
 
 # Sprint A29 — Review UX: conferência de pipeline centrada em documentos
 
-> **Status:** `current` (promovida 2026-07-06) — sucede [[MOC-sprint-a28]]
-> (`done`). Origem: dogfood do owner em 2026-07-06 — run E3 pausou em
+> **Status:** `done` (encerrada 2026-07-06 — 3/3 lanes shipped no mesmo dia:
+> l1 #800 · l2 #802 · l3 #803; [[ADR-308]] flippada para Decidido). KR1 (≥70%
+> de resoluções construtivas) fica instrumentado aguardando uso do owner; KR2
+> baseline registrado no PR #800. Origem: dogfood do owner em 2026-07-06 — run E3 pausou em
 > `needs_review` e a tela mostrou 18 strings duplicadas sem documento + JSON
 > 29KB; owner aprovou às cegas. Co-design 2026-07-06: `product-manager`
 > (fases/gate/KR) + `senior-cto` (arquitetura da projeção, boundary de

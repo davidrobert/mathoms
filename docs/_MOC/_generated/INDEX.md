@@ -303,7 +303,7 @@
 | ADR-305 | adr | Decidido |  | PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) | `adr/305-pgbl-ano-base-fiscal-unico.md` |
 | ADR-306 | adr | Decidido |  | Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco | `adr/306-politica-de-base-temporal-de-mensalizacao-no-e5.md` |
 | ADR-307 | adr | Decidido |  | Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift | `adr/307-cache-de-resposta-llm-no-choke-point.md` |
-| ADR-308 | adr | Proposto |  | Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração | `adr/308-remediacao-needs-review-na-fila-de-documentos.md` |
+| ADR-308 | adr | Decidido |  | Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração | `adr/308-remediacao-needs-review-na-fila-de-documentos.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -553,6 +553,7 @@
 | CHG-2026-07-01-A26-L3-DROP-DEDUP-V1-SHIM | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-07-01-A26-L3-DROP-DEDUP-V1-SHIM.md` |
 | CHG-2026-07-01-A26-L4-INSTRUMENTACAO-DUALREAD | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-07-01-A26-L4-INSTRUMENTACAO-DUALREAD.md` |
 | CHG-2026-07-02-A27-L1-EVIDENCIA-LINEAGE-EDGE | changelog-entry |  | A27 |  | `sprint/A27/changelog/CHG-2026-07-02-A27-L1-EVIDENCIA-LINEAGE-EDGE.md` |
+| CHG-2026-07-06-A29-REVIEW-UX-SPRINT | changelog-entry |  | A29 |  | `sprint/A29/changelog/CHG-2026-07-06-A29-REVIEW-UX-SPRINT.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -671,9 +672,9 @@
 | A28.l7 | lane | shipped | A28 | imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner | `sprint/A28/lanes/A28-l7-imoveis-excluidos-dedup.md` |
 | A28.l8 | lane | shipped | A28 | higiene de ingestão: períodos implausíveis (1899/2100) e banco vazio viram needs_review, não artefato silencioso | `sprint/A28/lanes/A28-l8-higiene-ingestao-periodos.md` |
 | A28.l9 | lane | shipped | A28 | banner agregado de qualidade de dados no relatório + ressalva de fallback no Monte Carlo | `sprint/A28/lanes/A28-l9-report-data-quality-banner.md` |
-| A29.l1 | lane | in_progress | A29 | tela de review v1.5: agrupamento, consequência explícita e telemetria review_action | `sprint/A29/lanes/A29-l1-review-screen-v15.md` |
-| A29.l2 | lane | open | A29 | cobertura ReviewReason completa em E3 + document_id real + projeção validation_issues (ADR-272 crit. 6) | `sprint/A29/lanes/A29-l2-reviewreason-cobertura-projecao.md` |
-| A29.l3 | lane | open | A29 | inbox de pendências em /documents: fila agrupada, banner de análise pausada, retomada explícita | `sprint/A29/lanes/A29-l3-inbox-pendencias-documents.md` |
+| A29.l1 | lane | shipped | A29 | tela de review v1.5: agrupamento, consequência explícita e telemetria review_action | `sprint/A29/lanes/A29-l1-review-screen-v15.md` |
+| A29.l2 | lane | shipped | A29 | cobertura ReviewReason completa em E3 + document_id real + projeção validation_issues (ADR-272 crit. 6) | `sprint/A29/lanes/A29-l2-reviewreason-cobertura-projecao.md` |
+| A29.l3 | lane | shipped | A29 | inbox de pendências em /documents: fila agrupada, banner de análise pausada, retomada explícita | `sprint/A29/lanes/A29-l3-inbox-pendencias-documents.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

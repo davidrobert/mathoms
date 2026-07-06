@@ -2,7 +2,8 @@
 id: ADR-308
 type: adr
 title: "Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração"
-status: Proposto
+status: Decidido
+phase: A29
 date: "2026-07-06"
 relates_to:
   - "[[ADR-097]]"
@@ -15,14 +16,14 @@ superseded_by: []
 aliases: ["ADR 308", "review inbox", "remediação needs_review"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/ux
 ---
 
 # ADR-308 — Remediação de `needs_review` unificada na fila de documentos; `StageReview` como gate de orquestração
 
-**Status:** Proposto • **Data:** 2026-07-06 • **Sprint:** A29.
+**Status:** Decidido (A29) • **Data:** 2026-07-06 • **Sprint:** A29 (3/3 lanes shipped 2026-07-06: #800 · #802 · #803).
 Co-design: `product-manager` + `senior-cto` + `data-engineer` + `product-designer` (2026-07-06).
 
 ## Contexto

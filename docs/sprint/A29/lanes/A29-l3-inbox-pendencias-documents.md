@@ -4,7 +4,9 @@ type: lane
 title: "inbox de pendências em /documents: fila agrupada, banner de análise pausada, retomada explícita"
 sprint: A29
 plan: null
-status: open
+status: shipped
+ship_pr: 803
+ship_date: "2026-07-06"
 priority: P1
 branch_slug: review-ux-inbox
 adrs: ["[[ADR-308]]"]
@@ -12,7 +14,7 @@ depends_on: ["[[A29.l2]]"]
 tags:
   - type/lane
   - sprint/a29
-  - status/open
+  - status/shipped
   - priority/p1
   - area/ux
 ---
