@@ -834,7 +834,9 @@ go-lint:
 	@if [ ! -f go.work ] || [ -z "$(GO_FILES)" ]; then \
 	   echo "go-lint: sem go.work ou .go presentes (skip)"; \
 	 else \
-	   golangci-lint run --timeout=3m ./...; \
+	   for d in $$(go list -m -f '{{.Dir}}'); do \
+	     (cd $$d && golangci-lint run --timeout=3m ./...) || exit 1; \
+	   done; \
 	 fi
 
 ## go-test: go test ./... (no-op se não houver .go) — pass-through GO_TEST_ARGS
@@ -842,7 +844,9 @@ go-test:
 	@if [ ! -f go.work ] || [ -z "$(GO_FILES)" ]; then \
 	   echo "go-test: sem go.work ou .go presentes (skip)"; \
 	 else \
-	   go test ./... $(GO_TEST_ARGS); \
+	   for d in $$(go list -m -f '{{.Dir}}'); do \
+	     (cd $$d && go test ./... $(GO_TEST_ARGS)) || exit 1; \
+	   done; \
 	 fi
 
 ## go-all: fmt + lint + test Go

@@ -1,0 +1,5 @@
+package: contracts
+output: internal/contracts/contracts_gen.go
+generate:
+  models: true
+  chi-server: true
