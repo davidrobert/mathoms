@@ -219,11 +219,10 @@ Após este plano:
 
 ### W1α — P0 LGPD compliance (sprint A18, 3 PRs)
 
-> **Resto pendente da onda (2026-07-04):** rules 1-3 da [[ADR-259]]
-> shiparam (#718/#720; ADR flipada `Decidido` no audit r6). A peça que
-> falta da W1α é a **rule 4** (UX boundary CPF mascarado + "ver completo"
-> auditado) — track operacional pronto para pickup:
-> [[TRACK-adr259-rule4-cpf-view]].
+> **Onda fechada (2026-07-06):** as 4 rules da [[ADR-259]] shiparam.
+> Rules 1-3 em #718/#720 (audit r6); rule 4 (UX boundary CPF mascarado +
+> "ver completo" auditado) em #781/#784 — track
+> [[TRACK-adr259-rule4-cpf-view]] `consumed`.
 
 **Critério de aceite W1α** (falsifiável):
 - `grep -rn "cpf.*Optional\[str\]" pipeline/llm/schemas/` retorna 0 ocorrências.

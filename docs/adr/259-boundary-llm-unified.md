@@ -5,6 +5,7 @@ title: "Boundary LLM unificado — Decimal monetário + PII (cpf_present + Ferne
 status: Decidido
 phase: A18.W1α + A20.W1β
 date: "2026-05-22"
+amended_at: ["2026-07-06"]
 relates_to:
   - "[[ADR-081]]"
   - "[[ADR-090]]"
@@ -35,11 +36,9 @@ tags:
 > (PRs #718 e #720) — Decimal no boundary
 > (`pipeline/llm/schemas/e15_baseline.py:40` + `_coerce_decimal`),
 > `cpf_present: bool` (`pipeline/llm/schemas/e1_members.py:31`, A20.l15) e
-> `backend/app/services/family_member_pii_service.py`. **Débito explícito —
-> regra 4 pendente** (UX decrypt em `/reports/[id]` + audit
-> `cpf_view_audit`): candidata a lane XS; até lá, CPF permanece cifrado e
-> sem superfície de leitura na UI (fail-safe). [[ADR-260]] permanece
-> `Proposto` (só a camada de armazenamento shipou).
+> `backend/app/services/family_member_pii_service.py`. **Regra 4 entregue
+> em 2026-07-06** (PRs #781, #784 — ver emenda abaixo). [[ADR-260]]
+> permanece `Proposto` (só a camada de armazenamento shipou).
 
 ## Contexto
 
@@ -120,6 +119,36 @@ Nunca decriptografar em background job, em logs estruturados ou em export PDF ge
 **C. Decriptografar CPF em todos os call-sites server-side.** Rejeitado: viola princípio de least-privilege; PII só vai a UI sob request ativo do owner.
 
 **D. Manter `float` em `e15_baseline` e converter para `Decimal` no consumer.** Rejeitado pelo `financial-planner`: drift de 0,01 já entra no relatório antes da conversão. Perini IF e AUVP desvio são sensíveis.
+
+## Emenda 2026-07-06 — Regra 4 entregue (PRs #781, #784), débito encerrado
+
+Track [`adr259-rule4-cpf-view`](../plan/LLM_PROMPTS_HARDENING/tracks/adr259-rule4-cpf-view.md)
+fechou o débito explícito do flip de 2026-07-04 em 2 PRs pequenos:
+
+- **PR1 (#781, backend):** `mask_cpf_last_digits` (`family_member_pii_service.py`)
+  gera a máscara canônica `***.***.789-00`. `GET
+  /workspaces/{id}/config/members/{member_id}/cpf` retorna `{cpf_masked}` a
+  qualquer role (audita `family_member_read`, reuso). `GET
+  .../cpf/full` retorna `{cpf_full}` **só para `owner`** (dependency nova
+  `require_owner_role`, desacoplada de `MEMBER_ADMIN_ROLES`), rate-limited
+  (`cpf_view_full`, padrão Redis `INCR`+`EXPIRE`), audita `AuditAction.cpf_view_full`
+  — 1 row por reveal, sem PII em `details`. Decrypt via `get_vault()`
+  exclusivamente no boundary HTTP autenticado; plaintext nunca persiste fora
+  do escopo do request.
+- **PR2 (#784, frontend):** componente `CpfField`
+  (`frontend/src/components/report/ui/CpfField.tsx`, co-design
+  `product-designer`) — estados masked/loading/revelado/erro/sem-CPF,
+  clique direto sem dialog de confirmação (a auditoria já é garantida
+  server-side), "Ocultar" reversível sem nova chamada, sempre mascarado em
+  `@media print` (`useIsPrint()`). `TitularesCard` injeta o componente no
+  topo do relatório (`ReportShell`, após `PerfilFamiliaCard`).
+
+**Débito conhecido, fora de escopo deste track** (registrado, não corrigido):
+`GET /workspaces/{id}/config/members` (tela de config `MembersTab.tsx`) já
+expõe CPF **completo em plaintext** a qualquer role do workspace hoje — é a
+superfície de cadastro/edição do próprio CPF, distinta de `/reports/[id]` e
+anterior a esta ADR. Candidato a lane própria se o produto decidir aplicar
+a mesma política de mascarado+reveal ali.
 
 ## Referências
 

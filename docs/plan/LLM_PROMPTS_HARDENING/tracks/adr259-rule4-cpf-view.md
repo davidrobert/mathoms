@@ -3,14 +3,16 @@ id: TRACK-adr259-rule4-cpf-view
 type: track
 title: "ADR-259 rule 4 — UX decrypt de CPF em /reports/[id]: mascarado por default, 'ver completo' auditado"
 plan: PLAN-llm-prompts-hardening
-status: ready
+status: consumed
 created_at: "2026-07-04"
+consumed_at: "2026-07-06"
 agent_role: general
 tags:
   - type/track
   - area/security
   - area/backend
   - area/frontend
+  - status/consumed
 ---
 
 # Track — ADR-259 rule 4: CPF mascarado + "ver completo" auditado

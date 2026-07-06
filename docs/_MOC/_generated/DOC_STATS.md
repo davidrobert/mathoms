@@ -47,8 +47,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | plan | in_progress | 9 |
 | plan | paused | 2 |
 | runbook | ativo | 1 |
-| track | consumed | 83 |
-| track | ready | 37 |
+| track | consumed | 84 |
+| track | ready | 36 |
 
 ## Sprints
 
