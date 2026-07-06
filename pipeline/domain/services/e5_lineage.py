@@ -57,22 +57,21 @@ def build_e5_lineage(
 
 
 def _reserva_input_refs(reserva: ReservaReport, identity: MemberIdentity) -> list[dict[str, str]]:
-    """A28.l1 — numerador é o subset líquido (Caixa + Renda Fixa) por membro;
-    a ref de caixa só aparece quando algum componente de caixa entrou."""
-    refs = [e5_input_ref(f"patrimonio.{identity.key_inv_titular}")]
-    if identity.conjuge_key:
-        refs.append(e5_input_ref(f"patrimonio.{identity.key_inv_conjuge}"))
+    """A28.l1 — o numerador é o subset líquido (Caixa + Renda Fixa) dos
+    aggregates de patrimônio, então a soma verificável vive nos componentes
+    de ``composicao_liquida`` (mesmo padrão de ``patrimonio.bruto`` sobre a
+    própria composição)."""
+    del identity  # keys vêm da própria composição serializada
     composicao = reserva.get("composicao_liquida") or {}
-    caixa_incluido = float(composicao.get("caixa") or 0) + float(
-        composicao.get("caixa_moeda_estrangeira") or 0
-    )
-    if caixa_incluido > 0:
-        refs.append(e5_input_ref("patrimonio.caixa_moeda_estrangeira"))
-    return refs
+    return [
+        e5_input_ref(f"reserva_emergencia.composicao_liquida.{key}")
+        for key in composicao
+        if key not in ("total_liquido", "cobertura_meses")
+    ]
 
 
 def reserva_total_liquida_field(reserva: ReservaReport, identity: MemberIdentity) -> LineageField:
-    """Topologia honesta: a aritmética consumiu os campos do dict ``patrimonio``."""
+    """Topologia honesta: soma dos componentes líquidos da própria composição."""
     return {
         "value": money_str(reserva["total_liquida"]),
         "label": "Reserva de emergência — total líquido",

@@ -131,12 +131,19 @@ def test_isencao_sem_orfaos(payloads: list[dict]):
 
 
 def test_base_canonica_da_reserva_vem_da_janela_12m(payloads: list[dict]):
-    """UPSTREAM de A28.l1 — o denominador da reserva é a janela canônica."""
+    """A28.l1 — denominador da reserva é o custo essencial da janela canônica;
+    sem categoria essencial documentada, fallback rotulado à despesa total."""
     for payload in payloads:
         reserva = payload["reserva_emergencia"]
         j12m = payload["fluxo_caixa"]["janela_12m"]
         assert reserva["janela"] == "12m"
-        assert reserva["despesas_mensais"] == pytest.approx(j12m["despesa_mensal_media"])
+        essencial = j12m["despesa_mensal_essencial"]
+        if essencial > 0:
+            assert reserva["base_denominador"] == "custo_essencial"
+            assert reserva["despesas_mensais"] == pytest.approx(essencial)
+        else:
+            assert reserva["base_denominador"] == "despesa_total"
+            assert reserva["despesas_mensais"] == pytest.approx(j12m["despesa_mensal_media"])
 
 
 def test_folga_mensal_reconcilia_com_base_canonica(payloads: list[dict]):

@@ -21,10 +21,10 @@ def _dump(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 
-def _categorization(expense_keywords: dict | None) -> dict:
+def _categorization(expense_keywords: dict | None, income_keywords: dict | None = None) -> dict:
     return {
         "expense_keywords": expense_keywords or {},
-        "income_keywords": {"renda": ["PIX"]},
+        "income_keywords": income_keywords or {"renda": ["PIX"]},
         "internal_transfer_patterns": [],
         "pj_source_mapping": {},
         "clt_source_mapping": {},
@@ -43,11 +43,12 @@ def write_e5_config(
     family: dict | None = None,
     goals: dict | None = None,
     expense_keywords: dict | None = None,
+    income_keywords: dict | None = None,
 ) -> None:
     """Escreve config mínima de tenant para rodar E4/E5 isolado."""
     cfg = tmp_path / "config"
     cfg.mkdir(parents=True, exist_ok=True)
-    _dump(cfg / "categorization.json", _categorization(expense_keywords))
+    _dump(cfg / "categorization.json", _categorization(expense_keywords, income_keywords))
     _dump(cfg / "family_members.json", family or _DEFAULT_FAMILY)
     _dump(cfg / "goals.json", goals or _DEFAULT_GOALS)
     (cfg / "pipeline.json").write_text("{}", encoding="utf-8")

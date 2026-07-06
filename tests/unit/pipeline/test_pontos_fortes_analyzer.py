@@ -108,6 +108,22 @@ class TestReserva:
         titulos = {p.titulo for p in out}
         assert "Reserva de Emergência Adequada" in titulos
 
+    def test_excelente_relativo_ao_alvo_do_perfil(self):
+        """A28.l1: perfil PJ-dominante (alvo 18) com 13 meses NÃO é excelente."""
+        out = PontosFortesAnalyzer().analyze(
+            **_args(reserva={"cobertura_meses": 13, "meses_alvo": 18})
+        )
+        titulos = {p.titulo for p in out}
+        assert "Reserva de Emergência Excelente" not in titulos
+        assert "Reserva de Emergência Adequada" in titulos
+
+    def test_excelente_quando_atinge_alvo_do_perfil(self):
+        out = PontosFortesAnalyzer().analyze(
+            **_args(reserva={"cobertura_meses": 19, "meses_alvo": 18})
+        )
+        item = next(p for p in out if p.titulo == "Reserva de Emergência Excelente")
+        assert "18 meses" in item.descricao
+
 
 class TestDiversificacao:
     def test_gera_com_4_categorias_ou_mais(self):

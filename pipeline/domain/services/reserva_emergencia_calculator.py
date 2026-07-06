@@ -3,11 +3,10 @@
 Contrato (FORMULAS.md §Reserva de emergência + [[ADR-306]] §D4):
 
 - **Numerador** ``reserva_liquida_disponivel``: liquidez imediata de baixo
-  risco — buckets ``Caixa`` + ``Renda Fixa`` (ADR-193) dos itens de
-  investimento por membro + caixa BRL de E3. Ações/FII/exterior/cripto/
-  fundos/previdência ficam FORA. Caixa em moeda estrangeira só entra com
-  finalidade explícita = reserva (``incluir_caixa_me``, default False —
-  o parecer pede a finalidade ao cliente).
+  risco — filtro em :mod:`pipeline.domain.services.reserva_liquidez`
+  (buckets Caixa + Renda Fixa; caixa ME só com finalidade explícita =
+  reserva via ``incluir_caixa_me``, default False — o parecer pede a
+  finalidade ao cliente).
 - **Denominador** ``custo_essencial_mensal``: média mensal das 9 categorias
   canônicas (``scoring.json:reserva_emergencia._base_calculo``) na janela
   canônica de 12 meses documentados. Sem categoria essencial documentada,
@@ -23,28 +22,18 @@ com o shape legado do E5 (mesmo padrão de ``Janela12m``).
 
 from __future__ import annotations
 
-import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from pipeline.domain.services.asset_classifier import (
-    classify_asset,
-    merge_asset_keywords,
-)
-from pipeline.domain.services.patrimonio_types import (
-    MemberIdentity,
-    get_bens,
-    investimento_valor,
-    safe_float,
+from pipeline.domain.services.asset_classifier import merge_asset_keywords
+from pipeline.domain.services.patrimonio_types import MemberIdentity, safe_float
+from pipeline.domain.services.reserva_liquidez import (
+    ReservaLiquida,
+    build_reserva_liquida,
 )
 
 _ZERO = Decimal("0")
-
-# Buckets ADR-193 elegíveis como reserva (liquidez D+0/D+1, baixo risco).
-_LIQUID_BUCKETS = frozenset({"Caixa", "Renda Fixa"})
-# Renda fixa SEM liquidez diária (crédito securitizado / mercado secundário).
-_ILLIQUID_RF_RE = re.compile(r"debentur|\bcra\b|\bcri\b")
 
 # Thresholds de composição de renda (scoring.json §meses_alvo_por_perfil_renda,
 # campo ``criterio``): PJ ≥60% dominante; ≥30% relevante; ≥10% mista.
@@ -152,25 +141,6 @@ def _meses_alvo_from_scoring(reserva_cfg: dict) -> dict[str, int]:
 
 
 @dataclass(frozen=True)
-class _LiquidezMembro:
-    valor_liquido: Decimal
-    valor_excluido: Decimal
-    fonte: str  # "posicoes" | "irpf" | "agregado_sem_itens"
-
-
-@dataclass(frozen=True)
-class _ReservaLiquida:
-    por_membro: dict[str, _LiquidezMembro]
-    caixa_brl: Decimal
-    caixa_me: Decimal
-    caixa_nao_classificado: Decimal
-
-    def total(self, *, incluir_caixa_me: bool) -> Decimal:
-        membros = sum((m.valor_liquido for m in self.por_membro.values()), _ZERO)
-        return membros + self.caixa_brl + (self.caixa_me if incluir_caixa_me else _ZERO)
-
-
-@dataclass(frozen=True)
 class _BaseMensal:
     valor: Decimal
     custo_essencial: Decimal
@@ -214,70 +184,15 @@ class EmergencyReserveCalculator:
     ) -> dict:
         """Produz o bloco ``reserva_emergencia`` do payload E5."""
         base = _resolve_base_mensal(fluxo)
-        liquidez = self._build_liquidez(patrimonio, investimentos_atuais, bens_por_membro)
+        liquidez = build_reserva_liquida(
+            patrimonio,
+            investimentos_atuais,
+            bens_por_membro,
+            identity=self._config.members,
+            keywords=self._config.keywords_por_classe,
+        )
         perfil = self._resolve_perfil(fluxo)
         return self._build_payload(base, liquidez, perfil)
-
-    # -- Numerador ------------------------------------------------------------
-
-    def _build_liquidez(
-        self,
-        patrimonio: dict,
-        investimentos_atuais: dict | None,
-        bens_por_membro: Mapping[str, dict] | None,
-    ) -> _ReservaLiquida:
-        por_membro = {
-            member_key: self._liquidez_membro(
-                member_key,
-                aggregate=_dec(patrimonio.get(f"investimentos_{member_key}", 0)),
-                investimentos_atuais=investimentos_atuais,
-                bens=(bens_por_membro or {}).get(member_key),
-            )
-            for member_key in self._member_keys()
-        }
-        return _caixa_por_tipo(patrimonio, por_membro)
-
-    def _member_keys(self) -> list[str]:
-        identity = self._config.members
-        keys = [identity.titular_key]
-        if identity.conjuge_key:
-            keys.append(identity.conjuge_key)
-        return keys
-
-    def _liquidez_membro(
-        self,
-        member_key: str,
-        *,
-        aggregate: Decimal,
-        investimentos_atuais: dict | None,
-        bens: dict | None,
-    ) -> _LiquidezMembro:
-        items = _positions_for_member(member_key, self._config.members, investimentos_atuais)
-        fonte = "posicoes"
-        if not items and bens is not None:
-            items, fonte = _irpf_items(get_bens(bens)), "irpf"
-        if not items:
-            # Sem item-level data (fixtures antigas/aggregate puro): mantém o
-            # agregado com flag — melhor superestimar rotulado que zerar cego.
-            return _LiquidezMembro(aggregate, _ZERO, "agregado_sem_itens")
-        liquido, excluido = self._filter_liquid(items)
-        return _LiquidezMembro(liquido, excluido, fonte)
-
-    def _filter_liquid(self, items: list[dict]) -> tuple[Decimal, Decimal]:
-        liquido = _ZERO
-        excluido = _ZERO
-        keywords = (
-            dict(self._config.keywords_por_classe) if self._config.keywords_por_classe else None
-        )
-        for item in items:
-            valor = _item_valor(item)
-            if valor <= _ZERO:
-                continue
-            if _is_liquid_item(item, keywords):
-                liquido += valor
-            else:
-                excluido += valor
-        return liquido, excluido
 
     # -- Perfil de renda --------------------------------------------------------
 
@@ -301,13 +216,17 @@ class EmergencyReserveCalculator:
     # -- Payload ----------------------------------------------------------------
 
     def _build_payload(
-        self, base: _BaseMensal, liquidez: _ReservaLiquida, perfil: _PerfilRenda
+        self, base: _BaseMensal, liquidez: ReservaLiquida, perfil: _PerfilRenda
     ) -> dict:
-        total_liquida = liquidez.total(incluir_caixa_me=self._config.incluir_caixa_me)
+        componentes = liquidez.componentes(
+            incluir_caixa_me=self._config.incluir_caixa_me,
+            solo=not self._config.members.conjuge_key,
+        )
+        total_liquida = sum(componentes.values(), _ZERO)
         cobertura_meses = float(total_liquida / base.valor) if base.valor > 0 else 0.0
         return {
             **self._payload_base(base, perfil, total_liquida),
-            "composicao_liquida": self._build_composicao(liquidez, total_liquida, cobertura_meses),
+            "composicao_liquida": _composicao_dict(componentes, total_liquida, cobertura_meses),
             "excluido_da_reserva": self._build_excluidos(liquidez),
             "total_liquida": _legacy_number(total_liquida),
             "cobertura_meses": round(cobertura_meses, 1),
@@ -332,27 +251,10 @@ class EmergencyReserveCalculator:
             "nivel_12_meses": _legacy_number(base.valor * 12),
         }
 
-    def _build_composicao(
-        self, liquidez: _ReservaLiquida, total_liquida: Decimal, cobertura_meses: float
-    ) -> dict:
-        composicao: dict[str, float] = {
-            f"investimentos_{key}": _legacy_number(m.valor_liquido)
-            for key, m in liquidez.por_membro.items()
-        }
-        if not self._config.members.conjuge_key:
-            composicao.setdefault("investimentos_", 0.0)
-        caixa_me = liquidez.caixa_me if self._config.incluir_caixa_me else _ZERO
-        composicao["caixa"] = _legacy_number(liquidez.caixa_brl)
-        composicao["caixa_moeda_estrangeira"] = _legacy_number(caixa_me)
-        composicao["total_liquido"] = _legacy_number(total_liquida)
-        composicao["cobertura_meses"] = round(cobertura_meses, 1)
-        return composicao
-
-    def _build_excluidos(self, liquidez: _ReservaLiquida) -> dict:
-        nao_liquidos = sum((m.valor_excluido for m in liquidez.por_membro.values()), _ZERO)
+    def _build_excluidos(self, liquidez: ReservaLiquida) -> dict:
         caixa_me = _ZERO if self._config.incluir_caixa_me else liquidez.caixa_me
         return {
-            "investimentos_nao_liquidos": _legacy_number(nao_liquidos),
+            "investimentos_nao_liquidos": _legacy_number(liquidez.investimentos_nao_liquidos()),
             "caixa_moeda_estrangeira": _legacy_number(caixa_me),
             "caixa_nao_classificado": _legacy_number(liquidez.caixa_nao_classificado),
         }
@@ -424,76 +326,10 @@ def _perfil_por_pct(pj_pct: float) -> str:
     return "clt_unica_fonte"
 
 
-def _positions_for_member(
-    member_key: str, identity: MemberIdentity, investimentos_atuais: dict | None
-) -> list[dict]:
-    """Posições atuais do membro; sem membro atribuído → titular (convenção legado)."""
-    dados = (investimentos_atuais or {}).get("dados") or []
-    out: list[dict] = []
-    for pos in dados:
-        if not isinstance(pos, dict):
-            continue
-        membro = str(pos.get("membro") or "").lower()
-        if member_key and member_key in membro:
-            out.append(pos)
-        elif not membro and member_key == identity.titular_key:
-            out.append(pos)
-    return out
-
-
-def _irpf_items(bens: dict) -> list[dict]:
-    """Itens IRPF do membro: investimentos + contas bancárias (lista)."""
-    items = [inv for inv in (bens.get("investimentos") or []) if isinstance(inv, dict)]
-    contas = bens.get("contas_bancarias")
-    if isinstance(contas, list):
-        items.extend(c for c in contas if isinstance(c, dict))
-    elif contas is not None and safe_float(contas) > 0:
-        # Escalar consolidado (formato v1.5) — semanticamente Caixa.
-        items.append({"tipo": "conta corrente", "descricao": "contas bancárias", "valor": contas})
-    return items
-
-
-def _item_valor(item: dict) -> Decimal:
-    for key in ("valor_atual", "valor_total", "valor_brl"):
-        v = item.get(key)
-        if v is not None:
-            return _dec(v)
-    return _dec(investimento_valor(item))
-
-
-def _is_liquid_item(item: dict, keywords: dict[str, tuple[str, ...]] | None) -> bool:
-    tipo = str(item.get("tipo") or "")
-    descricao = str(item.get("descricao") or item.get("nome") or item.get("description") or "")
-    instituicao = str(item.get("instituicao") or "")
-    bucket = classify_asset(tipo, descricao, instituicao, keywords=keywords)
-    if bucket not in _LIQUID_BUCKETS:
-        return False
-    haystack = f"{tipo} {descricao} {instituicao}".lower()
-    return not _ILLIQUID_RF_RE.search(haystack)
-
-
-def _caixa_por_tipo(patrimonio: dict, por_membro: dict[str, _LiquidezMembro]) -> _ReservaLiquida:
-    """Monta o agregado de liquidez: membros + caixa E3 split por tipo + residual."""
-    caixa_brl, caixa_me = _split_caixa_detalhes(patrimonio.get("caixa_detalhes") or [])
-    nao_classificado = _dec(patrimonio.get("caixa_moeda_estrangeira", 0)) - caixa_brl - caixa_me
-    return _ReservaLiquida(
-        por_membro=por_membro,
-        caixa_brl=caixa_brl,
-        caixa_me=caixa_me,
-        caixa_nao_classificado=max(_ZERO, nao_classificado),
-    )
-
-
-def _split_caixa_detalhes(detalhes: list) -> tuple[Decimal, Decimal]:
-    """Separa saldos E3 por tipo: ``caixa`` (BRL) vs ``moeda_estrangeira``."""
-    caixa = _ZERO
-    moeda_estrangeira = _ZERO
-    for det in detalhes:
-        if not isinstance(det, dict):
-            continue
-        valor = _dec(det.get("valor_brl", 0))
-        if det.get("tipo") == "moeda_estrangeira":
-            moeda_estrangeira += valor
-        else:
-            caixa += valor
-    return caixa, moeda_estrangeira
+def _composicao_dict(
+    componentes: Mapping[str, Decimal], total_liquida: Decimal, cobertura_meses: float
+) -> dict:
+    composicao: dict[str, float] = {k: _legacy_number(v) for k, v in componentes.items()}
+    composicao["total_liquido"] = _legacy_number(total_liquida)
+    composicao["cobertura_meses"] = round(cobertura_meses, 1)
+    return composicao
