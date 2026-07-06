@@ -91,7 +91,7 @@ class TestMembersFallbackNeutral:
                 assert (
                     "Exemplo" in m["full_name"]
                 ), f"Esperava nome placeholder com 'Exemplo', got {m['full_name']!r}"
-                assert m["cpf"] is None, "CPF não pode ser exposto via fallback"
+                assert m["cpf_masked"] is None, "CPF não pode ser exposto via fallback"
                 assert m["birth_date"] is None, "data_nascimento não pode ser exposta via fallback"
 
 

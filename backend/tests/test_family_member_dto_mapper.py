@@ -1,7 +1,7 @@
 """Testes unitários do mapper DTO do agregado FamilyMember.
 
 Cobrem:
-- ``member_to_response`` decripta CPF via vault e monta accounts
+- ``member_to_response`` mascara CPF (ADR-259 §4) via vault e monta accounts
 - ``birth_name`` extraído de ``extra.nome_nascimento`` (+ variações legadas)
 - ``convert_global_defaults_to_responses`` neutraliza identidade
   (F6.5E.6 / BUG-004 regression gate)
@@ -71,19 +71,20 @@ class TestMemberToResponse:
 
         assert resp.id == "m-1"
         assert resp.key == "david"
-        assert resp.cpf is None
+        assert resp.cpf_masked is None
         assert resp.accounts == []
         assert resp.birth_name is None
         assert vault.calls == []  # sem CPF encriptado → não chama decrypt
 
-    def test_cpf_is_decrypted_via_vault(self):
+    def test_cpf_is_masked_never_plaintext(self):
+        """ADR-259 §4 — mapper nunca expõe CPF pleno; só a máscara canônica."""
         vault = _FakeVault(calls=[])
         member = _fake_member(cpf_encrypted="gAAAA...ciphered")
 
         resp = member_to_response(member, vault=vault)
 
-        # CPF plain veio do fake vault; ver _FakeVault.decrypt.
-        assert resp.cpf == "123.456.789-09"
+        # CPF plain (123.456.789-09) vem do fake vault; resposta só a máscara.
+        assert resp.cpf_masked == "***.***.789-09"
         assert vault.calls == ["gAAAA...ciphered"]
 
     def test_birth_name_extracted_from_extra(self):
@@ -152,7 +153,7 @@ class TestConvertGlobalDefaultsToResponses:
         # identidade neutralizada
         assert r.full_name == "Titular Exemplo"
         assert r.short_name == "Titular"
-        assert r.cpf is None
+        assert r.cpf_masked is None
         assert r.birth_date is None
 
     def test_order_is_preserved(self):

@@ -2,8 +2,9 @@
 
 Responsabilidades:
 
-1. Decriptar CPF via ``VaultService`` antes de expor no DTO (nunca retornar
-   o ciphertext bruto).
+1. Mascarar CPF via `mask_cpf_last_digits` (ADR-259 §4) — o CPF pleno nunca
+   sai deste mapper; leitura completa é owner-only e auditada, exclusiva
+   de `get_member_cpf_full` (`backend/app/api/family_members.py`).
 2. Extrair ``birth_name`` de ``extra.nome_nascimento`` (é campo de primeira
    classe no DTO mesmo sendo armazenado dentro de ``extra``).
 3. Converter defaults globais (``config/family_members.json``) em DTOs
@@ -23,6 +24,7 @@ from backend.app.schemas.dto.family_member.response import (
     BankAccountResponse,
     FamilyMemberResponse,
 )
+from backend.app.services.family_member_pii_service import mask_cpf_last_digits
 
 
 class _VaultLike(Protocol):
@@ -96,7 +98,7 @@ def member_to_response(
         full_name=member.full_name,
         short_name=member.short_name,
         birth_name=_birth_name_from_extra(member.extra),
-        cpf=cpf_plain,
+        cpf_masked=mask_cpf_last_digits(cpf_plain) if cpf_plain else None,
         birth_date=member.birth_date,
         role=member.role,
         order=member.order,
@@ -127,7 +129,7 @@ def convert_global_defaults_to_responses(
                 key=key,
                 full_name=full_default,
                 short_name=short_default,
-                cpf=None,
+                cpf_masked=None,
                 birth_date=None,
                 role=role,
                 order=order,

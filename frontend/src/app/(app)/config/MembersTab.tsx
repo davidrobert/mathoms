@@ -28,6 +28,9 @@ import type { UserWorkspace } from "@/lib/api";
 import { MarketValueSection } from "./MarketValueSection";
 import { ResidenciaSection } from "./ResidenciaSection";
 import { InlineField } from "./_InlineField";
+import { CpfMaskedField } from "./_CpfMaskedField";
+import { ChangeCpfButton } from "./_ChangeCpfButton";
+import { AddMemberForm } from "./_AddMemberForm";
 import { MemberIrpfSection } from "./_MemberIrpfSection";
 import { IrpfDiffModal } from "./_IrpfDiffModal";
 import { useIrpfSuggestions } from "./_useIrpfSuggestions";
@@ -46,6 +49,10 @@ export default function MembersTab() {
 }
 
 function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
+  // backend já bloqueia escrita de `viewer` com 403 (require_write_role);
+  // aqui só evita a UX de editar e depois falhar.
+  const canWrite = workspace.role === "owner" || workspace.role === "member";
+  const isOwner = workspace.role === "owner";
   const [members, setMembers] = useState<FamilyMemberConfig[]>([]);
   const [familySurname, setFamilySurname] = useState<string>("");
   const [familySurnameDirty, setFamilySurnameDirty] = useState(false);
@@ -260,10 +267,21 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{m.full_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {ROLES.find((r) => r.value === m.role)?.label ?? m.role}
-                    {m.cpf && ` · CPF: ***${m.cpf.slice(-4)}`}
-                    {m.birth_date && ` · Nasc: ${m.birth_date}`}
+                  <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                    <span>{ROLES.find((r) => r.value === m.role)?.label ?? m.role}</span>
+                    {m.id && (
+                      <>
+                        <span>· CPF:</span>
+                        <CpfMaskedField
+                          workspaceId={workspace.id}
+                          memberId={m.id}
+                          memberName={m.full_name}
+                          cpfMasked={m.cpf_masked ?? null}
+                          canReveal={isOwner}
+                        />
+                      </>
+                    )}
+                    {m.birth_date && <span>· Nasc: {m.birth_date}</span>}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:flex-nowrap">
@@ -275,7 +293,7 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
                   >
                     {isExpanded ? "Fechar" : "Editar"}
                   </Button>
-                  {m.id ? (
+                  {m.id && canWrite ? (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -304,27 +322,42 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
                     value={m.key}
                     onSave={(v) => handleUpdate(m, "key", v.trim())}
                     placeholder="ex: maria_silva"
+                    readOnly={!canWrite}
                   />
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <InlineField label="Nome completo (civil atual)" value={m.full_name} onSave={(v) => handleUpdate(m, "full_name", v)} />
-                    <InlineField label="Como prefere ser chamado(a)" value={m.short_name} onSave={(v) => handleUpdate(m, "short_name", v)} />
+                    <InlineField label="Nome completo (civil atual)" value={m.full_name} onSave={(v) => handleUpdate(m, "full_name", v)} readOnly={!canWrite} />
+                    <InlineField label="Como prefere ser chamado(a)" value={m.short_name} onSave={(v) => handleUpdate(m, "short_name", v)} readOnly={!canWrite} />
                     <div className="sm:col-span-2">
                       <InlineField
                         label="Nome civil anterior (opcional)"
                         value={m.birth_name ?? ""}
                         onSave={(v) => handleUpdate(m, "birth_name", v)}
                         placeholder="Ex.: nome em contas antigas ou antes de casar"
+                        readOnly={!canWrite}
                       />
                     </div>
-                    <InlineField label="CPF" value={m.cpf ?? ""} onSave={(v) => handleUpdate(m, "cpf", v)} placeholder="00000000000" />
-                    <InlineField label="Nascimento" value={m.birth_date ?? ""} onSave={(v) => handleUpdate(m, "birth_date", v)} type="date" />
+                    <div>
+                      <Label className="mb-1 text-xs text-muted-foreground">CPF</Label>
+                      <div className="flex items-center gap-2 px-2 py-1.5">
+                        <CpfMaskedField
+                          workspaceId={workspace.id}
+                          memberId={m.id!}
+                          memberName={m.full_name}
+                          cpfMasked={m.cpf_masked ?? null}
+                          canReveal={isOwner}
+                        />
+                        {canWrite && <ChangeCpfButton onSave={(v) => handleUpdate(m, "cpf", v)} />}
+                      </div>
+                    </div>
+                    <InlineField label="Nascimento" value={m.birth_date ?? ""} onSave={(v) => handleUpdate(m, "birth_date", v)} type="date" readOnly={!canWrite} />
                     <div>
                       <Label className="mb-1 text-xs text-muted-foreground">Papel</Label>
                       <select
                         value={m.role}
                         onChange={(e) => handleUpdate(m, "role", e.target.value)}
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        disabled={!canWrite}
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                       </select>
@@ -351,14 +384,16 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
                               {acc.agency && <span className="ml-2 text-muted-foreground">Ag: {acc.agency}</span>}
                               {acc.account_number && <span className="ml-1 text-muted-foreground">Cc: {acc.account_number}</span>}
                             </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground hover:text-destructive"
-                              onClick={() => setDeleteAccountTarget({ memberId: m.id!, acc })}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            {canWrite && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-destructive"
+                                onClick={() => setDeleteAccountTarget({ memberId: m.id!, acc })}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -372,6 +407,7 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
                         isBusy={irpf.busy}
                       />
                     )}
+                    {canWrite && (
                     <form onSubmit={(e) => handleAddAccount(m.id!, e)} className="space-y-2">
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
@@ -396,6 +432,7 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
                         Adicionar conta
                       </Button>
                     </form>
+                    )}
                   </div>
                     </>
                   )}
@@ -408,61 +445,13 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
       </div>
 
       {/* Add Member Form */}
-      {showAdd ? (
-        <form onSubmit={handleCreate} className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-4">
-          <div>
-            <h3 className="font-medium">Novo membro</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Não é preciso preencher um &quot;código&quot; técnico: o sistema cria um identificador interno a partir do nome.
-              Depois de salvar, o cartão abre para você vincular contas bancárias.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label className="mb-1 block text-xs text-muted-foreground">Nome completo (civil atual)</Label>
-              <Input name="full_name" placeholder="Como nos documentos oficiais" required />
-            </div>
-            <div>
-              <Label className="mb-1 block text-xs text-muted-foreground">Como prefere ser chamado(a)</Label>
-              <Input name="short_name" placeholder="Ex.: Maria, David" required />
-            </div>
-            <div className="sm:col-span-2">
-              <Label className="mb-1 block text-xs text-muted-foreground">Nome civil anterior (opcional)</Label>
-              <Input name="birth_name" placeholder="Se ainda aparece em extratos ou contratos antigos" />
-            </div>
-            <div>
-              <Label className="mb-1 block text-xs text-muted-foreground">CPF</Label>
-              <Input name="cpf" placeholder="11 dígitos" />
-            </div>
-            <div>
-              <Label className="mb-1 block text-xs text-muted-foreground">Nascimento</Label>
-              <Input name="birth_date" type="date" />
-            </div>
-            <div>
-              <Label className="mb-1 block text-xs text-muted-foreground">Papel</Label>
-              <select name="role" required className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-              </select>
-            </div>
-            <details className="sm:col-span-2 rounded-lg border border-border/60 bg-background/50 p-3 text-xs">
-              <summary className="cursor-pointer font-medium text-foreground">Identificador interno (opcional)</summary>
-              <p className="mt-2 text-muted-foreground">
-                Só altere se estiver importando dados que já usam uma chave fixa (ex.: <code className="rounded bg-muted px-1">david</code>).
-                Requisitos: letras minúsculas, números e underscore; único neste workspace.
-              </p>
-              <Input name="key" className="mt-2 font-mono text-sm" placeholder="ex.: maria_silva" />
-            </details>
-          </div>
-          <div className="flex gap-2">
-            <Button type="submit">Salvar e abrir edição</Button>
-            <Button type="button" variant="outline" onClick={() => setShowAdd(false)}>Cancelar</Button>
-          </div>
-        </form>
-      ) : (
-        <Button variant="outline" className="mt-4 w-full border-dashed" onClick={() => setShowAdd(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar membro
-        </Button>
+      {canWrite && (
+        <AddMemberForm
+          open={showAdd}
+          onOpen={() => setShowAdd(true)}
+          onCancel={() => setShowAdd(false)}
+          onSubmit={handleCreate}
+        />
       )}
 
       <ConfirmDialog

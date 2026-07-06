@@ -26,16 +26,13 @@ function mockMembersAndRole(members: unknown[], role: "owner" | "member" | "view
     http.get(`${API}/me/workspaces`, () =>
       HttpResponse.json({ workspaces: [{ id: WS, name: "WS", family_surname: null, role, joined_at: "2026-01-01T00:00:00Z" }], total: 1 }),
     ),
-    http.get(`${API}/workspaces/${WS}/config/members/:memberId/cpf`, () =>
-      HttpResponse.json({ cpf_masked: "***.***.789-09" }),
-    ),
   );
 }
 
 describe("TitularesCard", () => {
   it("renderiza nome + CpfField para membro com CPF cadastrado", async () => {
     mockMembersAndRole(
-      [{ id: "m1", key: "david", full_name: "David Robert", short_name: "David", cpf: "123.456.789-09", role: "titular", order: 0, accounts: [] }],
+      [{ id: "m1", key: "david", full_name: "David Robert", short_name: "David", cpf_masked: "***.***.789-09", role: "titular", order: 0, accounts: [] }],
       "owner",
     );
     render(<TitularesCard workspaceId={WS} />);
@@ -47,7 +44,7 @@ describe("TitularesCard", () => {
 
   it("member/viewer não tem o botão 'Ver completo'", async () => {
     mockMembersAndRole(
-      [{ id: "m1", key: "david", full_name: "David Robert", short_name: "David", cpf: "123.456.789-09", role: "titular", order: 0, accounts: [] }],
+      [{ id: "m1", key: "david", full_name: "David Robert", short_name: "David", cpf_masked: "***.***.789-09", role: "titular", order: 0, accounts: [] }],
       "viewer",
     );
     render(<TitularesCard workspaceId={WS} />);
@@ -58,7 +55,7 @@ describe("TitularesCard", () => {
 
   it("membro sem CPF não aparece na lista", async () => {
     mockMembersAndRole(
-      [{ id: "m1", key: "mariana", full_name: "Mariana Robert", short_name: "Mariana", cpf: null, role: "conjuge", order: 1, accounts: [] }],
+      [{ id: "m1", key: "mariana", full_name: "Mariana Robert", short_name: "Mariana", cpf_masked: null, role: "conjuge", order: 1, accounts: [] }],
       "owner",
     );
     const { container } = render(<TitularesCard workspaceId={WS} />);

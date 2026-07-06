@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  getMemberCpfMasked,
-  listMembers,
-  listMyWorkspaces,
-  type FamilyMemberConfig,
-} from "@/lib/api";
+import { listMembers, listMyWorkspaces, type FamilyMemberConfig } from "@/lib/api";
 import { ReportCard } from "../ReportCard";
 import { CpfField } from "../ui/CpfField";
 
@@ -23,16 +18,13 @@ async function resolveIsOwner(workspaceId: string): Promise<boolean> {
 }
 
 async function resolveMemberRows(workspaceId: string): Promise<MemberRow[]> {
+  // `cpf_masked` já vem pronto de `GET /config/members` (ADR-259 §4) — sem
+  // N+1 de fetch por membro.
   const { members } = await listMembers(workspaceId);
-  const withCpf = members.filter((m): m is FamilyMemberConfig & { id: string } =>
-    Boolean(m.id && m.cpf),
+  const withCpf = members.filter(
+    (m): m is FamilyMemberConfig & { id: string } => Boolean(m.id && m.cpf_masked),
   );
-  return Promise.all(
-    withCpf.map(async (m) => {
-      const masked = await getMemberCpfMasked(workspaceId, m.id).catch(() => null);
-      return { id: m.id, name: m.full_name, cpfMasked: masked?.cpf_masked ?? null };
-    }),
-  );
+  return withCpf.map((m) => ({ id: m.id, name: m.full_name, cpfMasked: m.cpf_masked ?? null }));
 }
 
 /** ADR-259 §4 — identificação dos titulares no topo do relatório: nome +

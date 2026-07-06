@@ -147,7 +147,7 @@ class TestBug004FallbackCPFLeak:
     global expunha CPFs reais do founder para tenants novos.
 
     # Fix
-    `cpf=None` no fallback (nunca expor CPF do JSON global).
+    `cpf_masked=None` no fallback (nunca expor CPF do JSON global).
 
     # Por que falharia se revertido
     Endpoint retornaria CPF do founder para qualquer workspace novo.
@@ -157,13 +157,14 @@ class TestBug004FallbackCPFLeak:
         # A6e: conversão de fallback global → DTOs migrou para
         # ``schemas/dto/family_member/mapper.py``
         # (``convert_global_defaults_to_responses``). A sentinela
-        # ``cpf=None`` agora mora lá.
+        # ``cpf_masked=None`` agora mora lá (ADR-259 §4 renomeou o campo
+        # de ``cpf`` plaintext para ``cpf_masked``).
         mapper_file = (
             PROJECT_ROOT / "backend" / "app" / "schemas" / "dto" / "family_member" / "mapper.py"
         )
         text = mapper_file.read_text(encoding="utf-8")
-        assert "cpf=None" in text, (
-            "BUG-004 REGRESSION: `cpf=None` removido do fallback de members "
+        assert "cpf_masked=None" in text, (
+            "BUG-004 REGRESSION: `cpf_masked=None` removido do fallback de members "
             "(schemas/dto/family_member/mapper.py). "
             "CPFs reais do founder vão vazar para tenants novos."
         )

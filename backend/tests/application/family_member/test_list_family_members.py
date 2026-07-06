@@ -44,7 +44,7 @@ async def test_list_falls_back_to_global_defaults_when_empty():
 
     assert resp.total == 2
     # F6.5E.6: fallback usa placeholders neutros.
-    assert all(m.cpf is None for m in resp.members)
+    assert all(m.cpf_masked is None for m in resp.members)
     assert all("Exemplo" in m.full_name for m in resp.members)
 
 

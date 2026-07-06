@@ -12,25 +12,33 @@ export function InlineField({
   onSave,
   placeholder,
   type = "text",
+  readOnly = false,
 }: {
   label: string;
   value: string;
   onSave: (v: string) => void;
   placeholder?: string;
   type?: string;
+  /** `viewer` (WRITE_ROLES exclui) — backend já bloqueia com 403; aqui só evita o clique. */
+  readOnly?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(value);
   if (!editing) {
+    const display = value || <span className="text-muted-foreground">{placeholder ?? "—"}</span>;
     return (
       <div>
         <Label className="mb-1 text-xs text-muted-foreground">{label}</Label>
-        <button
-          onClick={() => setEditing(true)}
-          className="w-full text-left rounded-lg border border-transparent px-2 py-1.5 text-sm hover:border-border hover:bg-accent"
-        >
-          {value || <span className="text-muted-foreground">{placeholder ?? "—"}</span>}
-        </button>
+        {readOnly ? (
+          <div className="w-full rounded-lg px-2 py-1.5 text-sm">{display}</div>
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="w-full text-left rounded-lg border border-transparent px-2 py-1.5 text-sm hover:border-border hover:bg-accent"
+          >
+            {display}
+          </button>
+        )}
       </div>
     );
   }
