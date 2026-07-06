@@ -301,7 +301,7 @@ def run(ctx: WorkspaceContext) -> dict:
     ws_id = getattr(ctx, "workspace_id", "unknown")
     estimated = ctx.stage_duration_estimates.get(
         "extract_irpf_full"
-    ) or ctx.stage_duration_estimates.get("E1.6")
+    ) or ctx.stage_duration_estimates.get("extract_irpf_full")
     loop_result = _process_loop(
         runnable, ctx, LLMService(llm_config), llm_config, PROMPT_VERSION, ws_id, estimated
     )

@@ -41,7 +41,7 @@ class _E2LLMProgress:
             done = self._done
         emit_item_progress(
             self.run_id,
-            "E2-llm",
+            "extract_with_llm",
             current_item=current_item,
             items_done=done,
             items_total=self.total,
@@ -69,7 +69,7 @@ def _find_unprocessed_docs(ctx: WorkspaceContext, store=None) -> list[Path]:
     """
     e2_existing: set[str] = set()
     if store is not None:
-        for stage_key in ("E2", "E2-extratos", "E2-faturas", "E2-llm"):
+        for stage_key in ("E2", "extract_statements", "extract_invoices", "extract_with_llm"):
             e2_existing.update(store.list_keys(stage_key))
     elif ctx.e2_dir.exists():
         for f in ctx.e2_dir.glob("*-2_extract.json"):
@@ -191,7 +191,7 @@ def _process_one_e2_llm_document(
 ) -> tuple[dict[str, Any] | None, dict[str, str] | None, Any]:
     """Extract + one LLM call for a single file. Returns (processed, error, run_summary).
 
-    A6a: escreve via ``store.write("E2-llm", safe_stem, e2_json)`` em vez de
+    A6a: escreve via ``store.write("extract_with_llm", safe_stem, e2_json)`` em vez de
     disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
     """
     from pipeline.llm.litellm_client import LLMRunSummary, LLMService
@@ -278,7 +278,7 @@ def _process_one_e2_llm_document(
         )
         # Validação JSON-schema é executada pelo hook pós-write em
         # DBArtifactStore.write (ADR-212 PR3 — SCHEMA_BY_STAGE inclui
-        # "E2-llm" → "e2_extract.schema.json").
+        # "extract_with_llm" → "e2_extract.schema.json").
         store.write("extract_with_llm", safe_stem, e2_json)
 
         out_filename = f"{safe_stem}-2_extract.json"
@@ -311,7 +311,7 @@ def _needs_review_entry(filename: str, output: Any) -> dict[str, Any]:
 
     reason = ReviewReason(
         code=ReviewReasonCode.extract_missing_required_field,
-        stage="E2-llm",
+        stage="extract_with_llm",
         artifact_key=filename,
         document_id=None,
         offending_value="institution=''",
@@ -535,7 +535,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E2-llm",
+        "extract_with_llm",
         current_item=None,
         items_done=len(docs),
         items_total=len(docs),

@@ -20,5 +20,5 @@ def run(ctx: "WorkspaceContext") -> dict:
     from scripts.e7_review import main_with_store
 
     result = main_with_store(ctx, mode="crossval")
-    result["stage"] = "E7-crossval"
+    result["stage"] = "validate_cross"
     return result

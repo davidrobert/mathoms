@@ -230,11 +230,11 @@ def run(ctx: WorkspaceContext) -> dict:
     review_reasons: list[dict] = []  # ADR-272 Fase 2: projeção consultável por-doc
     total = len(docs_with_text)
 
-    estimated = ctx.stage_duration_estimates.get("E1.5")
+    estimated = ctx.stage_duration_estimates.get("extract_baseline")
     for idx, (doc, text) in enumerate(docs_with_text):
         emit_item_progress(
             ctx.pipeline_run_id,
-            "E1.5",
+            "extract_baseline",
             current_item=doc.name,
             items_done=idx,
             items_total=total,
@@ -248,7 +248,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
         emit_item_progress(
             ctx.pipeline_run_id,
-            "E1.5",
+            "extract_baseline",
             current_item=doc.name,
             items_done=idx,
             items_total=total,
@@ -259,13 +259,13 @@ def run(ctx: WorkspaceContext) -> dict:
             user_prompt=user_prompt,
             output_schema=BaselinePatrimonialOutput,
             max_tokens=max(config.max_tokens, _E15_MIN_COMPLETION_TOKENS),
-            stage="E1.5",
+            stage="extract_baseline",
             prompt_version=PROMPT_VERSION,
         )
 
         emit_item_progress(
             ctx.pipeline_run_id,
-            "E1.5",
+            "extract_baseline",
             current_item=doc.name,
             items_done=idx,
             items_total=total,
@@ -281,7 +281,7 @@ def run(ctx: WorkspaceContext) -> dict:
             issues.extend(i.to_dict() for i in validation.issues)
             reasons = project_review_reasons(
                 list(validation.issues),
-                stage="E1.5",
+                stage="extract_baseline",
                 artifact_key=_artifact_key_for(doc),
                 document_id=None,
             )
@@ -289,7 +289,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
         emit_item_progress(
             ctx.pipeline_run_id,
-            "E1.5",
+            "extract_baseline",
             current_item=doc.name,
             items_done=idx,
             items_total=total,
@@ -307,7 +307,7 @@ def run(ctx: WorkspaceContext) -> dict:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E1.5",
+        "extract_baseline",
         current_item=None,
         items_done=total,
         items_total=total,

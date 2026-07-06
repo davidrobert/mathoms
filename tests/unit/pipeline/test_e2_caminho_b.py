@@ -116,8 +116,8 @@ class TestRunWithStoreNoFiles:
 
         assert stats["processados"] == 0
         assert stats["transacoes_total"] == 0
-        assert store.list_keys("E2-extratos") == []
-        assert store.list_keys("E2-faturas") == []
+        assert store.list_keys("extract_statements") == []
+        assert store.list_keys("extract_invoices") == []
 
 
 class TestArtifactKey:
@@ -139,13 +139,18 @@ class TestTargetStageSelection:
         from scripts.e2_extract import _target_stage_for_file
 
         p = Path("/x/c6bank_extratoconta_202601-0_original.pdf")
-        assert _target_stage_for_file(p, extratos_only=False, faturas_only=True) == "E2-faturas"
+        assert (
+            _target_stage_for_file(p, extratos_only=False, faturas_only=True) == "extract_invoices"
+        )
 
     def test_extratos_only_forces_e2_extratos(self):
         from scripts.e2_extract import _target_stage_for_file
 
         p = Path("/x/c6bank_fatura_202601-0_original.pdf")
-        assert _target_stage_for_file(p, extratos_only=True, faturas_only=False) == "E2-extratos"
+        assert (
+            _target_stage_for_file(p, extratos_only=True, faturas_only=False)
+            == "extract_statements"
+        )
 
     def test_unified_mode_decides_by_filename(self):
         from scripts.e2_extract import _target_stage_for_file
@@ -153,9 +158,10 @@ class TestTargetStageSelection:
         fatura = Path("/x/c6bank_fatura_202601-0_original.pdf")
         extrato = Path("/x/c6bank_extratoconta_202601-0_original.pdf")
         assert (
-            _target_stage_for_file(fatura, extratos_only=False, faturas_only=False) == "E2-faturas"
+            _target_stage_for_file(fatura, extratos_only=False, faturas_only=False)
+            == "extract_invoices"
         )
         assert (
             _target_stage_for_file(extrato, extratos_only=False, faturas_only=False)
-            == "E2-extratos"
+            == "extract_statements"
         )

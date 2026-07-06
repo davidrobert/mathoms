@@ -20,7 +20,7 @@ def run(ctx: "WorkspaceContext") -> dict:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E1.5c",
+        "consolidate_baseline",
         current_item="Patrimônio inicial",
         items_done=0,
         items_total=1,
@@ -31,7 +31,7 @@ def run(ctx: "WorkspaceContext") -> dict:
 
     emit_item_progress(
         ctx.pipeline_run_id,
-        "E1.5c",
+        "consolidate_baseline",
         current_item=None,
         items_done=1,
         items_total=1,

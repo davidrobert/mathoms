@@ -63,7 +63,7 @@ def test_stage_run_shape_and_read_only(tmp_path: Path) -> None:
     store.write_calls.clear()  # seed() delega a write(); só interessa o que o E7 fizer
     result = validate_cross.run(_seeded_ctx(tmp_path, store))
     assert result["success"] is True
-    assert result["stage"] == "E7-crossval"
+    assert result["stage"] == "validate_cross"
     assert result["mode"] == "crossval"
     assert result["checks_total"] == 6  # só os always-on; opcionais skipam sem dados
     assert result["checks_failed"] == 0
@@ -82,7 +82,7 @@ def test_stage_run_is_idempotent(tmp_path: Path) -> None:
 def test_stage_run_fails_cleanly_without_e5(tmp_path: Path) -> None:
     """E5 ausente → retorno estruturado (não raise), reason `e5_not_found`."""
     result = validate_cross.run(_seeded_ctx(tmp_path, InMemoryArtifactStore()))
-    assert result == {"success": False, "reason": "e5_not_found", "stage": "E7-crossval"}
+    assert result == {"success": False, "reason": "e5_not_found", "stage": "validate_cross"}
 
 
 def test_stage_run_fails_cleanly_without_narrativas(tmp_path: Path) -> None:
@@ -90,4 +90,4 @@ def test_stage_run_fails_cleanly_without_narrativas(tmp_path: Path) -> None:
     store = InMemoryArtifactStore()
     store.seed("analyze_finances", "analise_financeira", {"score": {"valor": 0}})
     result = validate_cross.run(_seeded_ctx(tmp_path, store))
-    assert result == {"success": False, "reason": "missing_narrativas", "stage": "E7-crossval"}
+    assert result == {"success": False, "reason": "missing_narrativas", "stage": "validate_cross"}

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("mathoms.pipeline.parecer_planejador")
 
 STAGE_NAME = "review_finances_holistic"
-ARTIFACT_STAGE = "E6-parecer"
+ARTIFACT_STAGE = "review_finances_holistic"
 ARTIFACT_KEY = "parecer_planejador"
 
 

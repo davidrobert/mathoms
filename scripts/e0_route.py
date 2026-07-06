@@ -970,7 +970,7 @@ def route_all(
     for idx, filepath in enumerate(files):
         emit_item_progress(
             pipeline_run_id,
-            "E0-route",
+            "route_documents",
             current_item=filepath.name,
             items_done=idx,
             items_total=total_files,
@@ -998,7 +998,7 @@ def route_all(
     if total_files > 0:
         emit_item_progress(
             pipeline_run_id,
-            "E0-route",
+            "route_documents",
             current_item=None,
             items_done=total_files,
             items_total=total_files,
