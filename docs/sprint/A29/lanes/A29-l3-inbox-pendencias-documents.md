@@ -17,7 +17,14 @@ tags:
   - area/ux
 ---
 
-# A29.l3 — `inbox-pendencias-documents` (backend endpoint + frontend fila)
+# A29.l3 — `inbox-pendencias-documents` (frontend fila; endpoint novo dispensado)
+
+> **Desvio de escopo registrado (execução):** o item 1 (endpoint novo) foi
+> dispensado — a fila compõe `GET /pipeline/runs` + `GET /runs/{id}/reviews`
+> existentes, com as amostras vindas de `validation_issues` (A29.l2). Endpoint
+> dedicado sobre `review_reasons` permanece follow-up da [[ADR-272]] para o
+> console interno, onde a agregação consolidada é o caso de uso real. Menos um
+> contrato duplicado (coerente com ADR-272 §Unificação).
 
 ## Problema
 
