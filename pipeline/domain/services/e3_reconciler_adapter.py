@@ -26,6 +26,7 @@ from typing import Any, Iterable
 from pipeline.artifact_store import ArtifactStore, stage_suffix
 from pipeline.domain.models.bank import BankCanonicalizer
 from pipeline.domain.models.document import BankStatement
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.domain.services.account_grouper import AccountGrouper
 from pipeline.domain.services.baseline_validator import (
     BaselineAccountSaldo,
@@ -50,6 +51,50 @@ from pipeline.domain.services.statement_preprocessor import (
 )
 
 # =============================================================================
+# Warnings estruturados do load (A28.l8)
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class EmptyInstitutionWarning:
+    """Extrato E2 sem banco determinável — pulado para não gerar key E3 ``_...``."""
+
+    source: str
+
+    def format(self) -> str:
+        return f"empty-institution src={self.source} skipped=1 (needs_review)"
+
+    def to_review_reason(
+        self, *, stage: str, artifact_key: str, document_id: str | None
+    ) -> ReviewReason | None:
+        """Projeta (ADR-272) para ReviewReason — banco vazio é campo obrigatório ausente."""
+        return ReviewReason(
+            code=ReviewReasonCode.extract_missing_required_field,
+            stage=stage,
+            artifact_key=artifact_key,
+            document_id=document_id,
+            offending_value="banco=''",
+            expected="campo banco/institution nao-vazio no artefato E2",
+            message="extrato sem banco determinavel; documento requer revisao",
+        )
+
+
+_REVIEW_STAGE = "reconcile_transactions"
+
+
+def _project_reasons(warnings: Iterable[Any], artifact_key: str) -> list[ReviewReason]:
+    """Projeta warnings do load → ReviewReason (ADR-272); sem mapeamento → descartado."""
+    reasons: list[ReviewReason] = []
+    for w in warnings:
+        reason = w.to_review_reason(
+            stage=_REVIEW_STAGE, artifact_key=artifact_key, document_id=None
+        )
+        if reason is not None:
+            reasons.append(reason)
+    return reasons
+
+
+# =============================================================================
 # Result container
 # =============================================================================
 
@@ -72,6 +117,8 @@ class ReconciliationStoreResult:
     saldo_warnings: tuple[SaldoGapWarning, ...] = ()
     temporal_warnings: tuple[TemporalGapWarning, ...] = ()
     baseline_warnings: tuple[BaselineDiffWarning, ...] = ()
+    institution_warnings: tuple[EmptyInstitutionWarning, ...] = ()
+    review_reasons: tuple[ReviewReason, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         """Forma plana — útil para asserts em testes e logs estruturados."""
@@ -85,6 +132,8 @@ class ReconciliationStoreResult:
             "saldo_warnings": [w.format() for w in self.saldo_warnings],
             "temporal_warnings": [w.format() for w in self.temporal_warnings],
             "baseline_warnings": [w.format() for w in self.baseline_warnings],
+            "institution_warnings": [w.format() for w in self.institution_warnings],
+            "review_reasons": [r.to_dict() for r in self.review_reasons],
         }
 
     # Acesso dict-like para retro-compat com os testes existentes que fazem
@@ -101,6 +150,8 @@ class _LoadOutcome:
     statements: list[BankStatement] = field(default_factory=list)
     period_warnings: list[PeriodDerivationWarning] = field(default_factory=list)
     anachronic_warnings: list[AnachronicTransactionWarning] = field(default_factory=list)
+    institution_warnings: list[EmptyInstitutionWarning] = field(default_factory=list)
+    review_reasons: list[ReviewReason] = field(default_factory=list)
     skipped: int = 0
 
 
@@ -214,6 +265,7 @@ class E3ReconcilerAdapter:
                 # Normaliza/sintetiza periodo (faturas, strings YYYYMM, etc.)
                 norm_result = self._period_normalizer.normalize(data, source_name=key)
                 outcome.period_warnings.extend(norm_result.warnings)
+                outcome.review_reasons.extend(_project_reasons(norm_result.warnings, key))
                 if norm_result.skip:
                     outcome.skipped += 1
                     continue
@@ -232,6 +284,13 @@ class E3ReconcilerAdapter:
                 try:
                     stmt = BankStatement.from_e2_dict(normalized)
                 except Exception:
+                    outcome.skipped += 1
+                    continue
+                # A28.l8: banco vazio nunca vira key E3 "_extrato_..." silenciosa.
+                if not (stmt.institution or "").strip():
+                    warning = EmptyInstitutionWarning(source=key)
+                    outcome.institution_warnings.append(warning)
+                    outcome.review_reasons.extend(_project_reasons([warning], key))
                     outcome.skipped += 1
                     continue
                 if not stmt.source_document:
@@ -421,4 +480,6 @@ class E3ReconcilerAdapter:
             saldo_warnings=saldo_warnings,
             temporal_warnings=temporal_warnings,
             baseline_warnings=baseline_warnings,
+            institution_warnings=tuple(outcome.institution_warnings),
+            review_reasons=tuple(outcome.review_reasons),
         )

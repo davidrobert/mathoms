@@ -580,3 +580,79 @@ class TestLoadBankStatementsWithWarnings:
         assert len(anach_warnings) == 1
         assert anach_warnings[0].dropped_count == 1
         assert skipped == 0
+
+
+def _reconcile_single_seed(stage: str, key: str, payload: dict) -> ReconciliationStoreResult:
+    store = InMemoryArtifactStore()
+    store.seed(stage, key, payload)
+    result = E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
+    if result.artifacts_written == 0:
+        assert store.list_keys("reconcile_transactions") == []
+    return result
+
+
+class TestIngestHygieneA28L8:
+    """A28.l8 — banco vazio e período implausível não viram artefato E3 silencioso."""
+
+    def test_empty_institution_is_skipped_with_review_reason(self):
+        from pipeline.domain.review_reason import ReviewReasonCode
+
+        result = _reconcile_single_seed(
+            "E2-llm",
+            "binance_extrato",
+            _e2_extract("", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "A", -100)]),
+        )
+
+        assert result.artifacts_written == 0
+        assert result.skipped_inputs == 1
+        assert result.institution_warnings[0].source == "binance_extrato"
+        assert [r.code for r in result.review_reasons] == [
+            ReviewReasonCode.extract_missing_required_field
+        ]
+
+    def test_implausible_period_is_skipped_with_review_reason(self):
+        from pipeline.domain.review_reason import ReviewReasonCode
+
+        payload = {
+            "pipeline_stage": "E2",
+            "banco": "c6bank",
+            "tipo": "faturacarbon",
+            "moeda": "BRL",
+            "periodo": "210001",
+            "transacoes": [],
+        }
+        result = _reconcile_single_seed("E2-faturas", "c6bank_faturacarbon_999999", payload)
+
+        assert result.artifacts_written == 0
+        assert result.skipped_inputs == 1
+        assert [r.code for r in result.review_reasons] == [ReviewReasonCode.dedup_sentinel_period]
+        reason = result.review_reasons[0]
+        assert reason.artifact_key == "c6bank_faturacarbon_999999"
+        assert reason.stage == "reconcile_transactions"
+
+    def test_result_to_dict_carries_review_reasons(self):
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E2-extratos",
+            "sem_banco",
+            _e2_extract("", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "A", -100)]),
+        )
+        result = E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
+
+        d = result.to_dict()
+
+        assert d["institution_warnings"]
+        assert d["review_reasons"][0]["code"] == "extract.missing_required_field"
+
+    def test_plausible_inputs_produce_no_review_reasons(self):
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E2-extratos",
+            "itau_ok",
+            _e2_extract("itau", "BRL", "2026-01-01", "2026-01-31", [_tx(5, "A", -100)]),
+        )
+        result = E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
+
+        assert result.artifacts_written == 1
+        assert result.review_reasons == ()
+        assert result.institution_warnings == ()

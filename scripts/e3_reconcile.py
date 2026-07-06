@@ -1120,6 +1120,8 @@ def _e3_log_warnings(result) -> None:
         log_progress("E3.1", w.format())
     for w in result.anachronic_warnings:
         log_progress("E3.1", f"WARNING: {w.format()}")
+    for w in result.institution_warnings:
+        log_progress("E3.1", f"WARNING: {w.format()}")
 
 
 def _e3_print_summary(result) -> None:
@@ -1139,6 +1141,17 @@ def _e3_print_summary(result) -> None:
     print("=" * 80)
 
 
+def _e3_validation_block(result) -> Dict[str, Any]:
+    """A28.l8: período implausível / banco vazio → run pausa em needs_review
+    (``validation.valid=False`` é o gate que ``_record_stage_needs_review`` consome)."""
+    review_reasons = [r.to_dict() for r in result.review_reasons]
+    return {
+        "valid": not review_reasons,
+        "errors": [r["message"] for r in review_reasons],
+        "review_reasons": review_reasons,
+    }
+
+
 def _e3_build_result_dict(written_filenames: List[str], result) -> Dict[str, Any]:
     return {
         "files_created": written_filenames,
@@ -1151,6 +1164,8 @@ def _e3_build_result_dict(written_filenames: List[str], result) -> Dict[str, Any
         "baseline_warnings": [w.format() for w in result.baseline_warnings],
         "period_warnings": [w.format() for w in result.period_warnings],
         "anachronic_warnings": [w.format() for w in result.anachronic_warnings],
+        "institution_warnings": [w.format() for w in result.institution_warnings],
+        "validation": _e3_validation_block(result),
     }
 
 
