@@ -2,7 +2,7 @@
 id: ADR-307
 type: adr
 title: "Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift"
-status: Proposto
+status: Decidido
 phase: W6-T02
 date: "2026-07-06"
 relates_to:
@@ -18,7 +18,7 @@ superseded_by: []
 aliases: ["ADR 307", "LLM response cache", "MLOps universal hooks"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/llm
   - area/pipeline
   - area/finops
@@ -26,7 +26,7 @@ tags:
 
 # ADR-307 — Cache de resposta LLM opt-in no choke-point + invariantes de drift
 
-**Status:** Proposto • **Data:** 2026-07-06 • **Lane:** W6-T02 (PLATFORM_REVIEW).
+**Status:** Decidido (W6-T02) • **Data:** 2026-07-06 • **Lane:** W6-T02 (PLATFORM_REVIEW).
 Co-design: `data-engineer` + `prompt-engineer` (2026-07-06).
 
 ## Contexto

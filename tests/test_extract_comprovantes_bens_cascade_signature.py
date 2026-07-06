@@ -39,6 +39,8 @@ _EXPECTED_CALL_KWARGS = frozenset(
         "timeout_s",
         # PROMPT_VERSION persistido no LLMCallLog para drift tracking (ADR-173).
         "prompt_version",
+        # Cache de resposta opt-in no choke-point (ADR-307).
+        "use_cache",
     }
 )
 
@@ -95,7 +97,12 @@ class FakeLLMService:
 
     def call(self, **kwargs) -> LLMCallResult:
         _REAL_CALL_SIG.bind(self, **kwargs)  # TypeError se kwarg desconhecida ou required ausente
-        self.calls.append({k: kwargs.get(k) for k in ("stage", "max_tokens", "output_schema")})
+        self.calls.append(
+            {
+                k: kwargs.get(k)
+                for k in ("stage", "max_tokens", "output_schema", "use_cache", "temperature")
+            }
+        )
         return LLMCallResult(
             output=_FakeApoliceOutput(self._payload),
             provider="anthropic",
@@ -150,16 +157,19 @@ def test_extract_apolice_cascades_to_sonnet_on_multi_bem(tmp_path: Path):
     assert payload["cascade_triggered"] is True
 
 
-def test_extract_apolice_cache_key_distingue_haiku_e_sonnet(tmp_path: Path):
-    """Cache key apolice inclui ``haiku``/``sonnet`` label ([[ADR-144]] idempotência por modelo)."""
+def test_extract_apolice_stage_descritivo_e_cache_opt_in(tmp_path: Path):
+    """Stage é descritivo (ADR-093 — pseudo-key saiu do LLMCallLog) e cache
+    opt-in a temp=0 (ADR-307); modelo distingue via key do choke-point."""
     pdf = tmp_path / "apolice_combinada.pdf"
     pdf.write_bytes(b"%PDF-1.4 combinada")
     llm, haiku, sonnet = _build_fake_stage_llm(_minimal_apolice_dict(bens=2))
 
     _extract_apolice(pdf, "combinada", llm, _Cfg())
 
-    assert "haiku" in haiku.calls[0]["stage"]
-    assert "sonnet" in sonnet.calls[0]["stage"]
+    for fake in (haiku, sonnet):
+        assert fake.calls[0]["stage"] == "extract_comprovantes_bens"
+        assert fake.calls[0]["use_cache"] is True
+        assert fake.calls[0]["temperature"] == 0.0
 
 
 # ─────────────────────── _build_stage_llm ────────────────────────────────
