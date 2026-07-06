@@ -1,18 +1,25 @@
 "use client";
 
-import { AlertCircle, AlertTriangle, ChevronDown } from "lucide-react";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 
-import { formatCopy, getCopy } from "@/lib/validation-copy";
+import { formatCopy, getCopy, summarizeIssues } from "@/lib/validation-copy";
 import type { ValidationIssue } from "@/lib/api/pipeline";
 
+import {
+  groupIssuesByCode,
+  groupLegacyLines,
+  type IssueGroup,
+  type LegacyGroup,
+} from "./groupIssues";
+
+const VISIBLE_OCCURRENCES = 5;
+
 /**
- * Renderiza issues estruturadas de StageReview (ADR-165 onda 3).
+ * Renderiza issues de StageReview agrupadas por tipo (A29.l1 · ADR-308).
  *
- * - Quando `issues` está populado, renderiza cards estruturados com title +
- *   description + whyItMatters + CTA, usando o copy table de
- *   `validation-copy.ts`.
- * - Quando `issues` é null (runs pré-cutover), faz fallback para a string
- *   legacy `errorsLegacy` quebrada por `\n` (compat com ADR-158).
+ * - `issues` populado (ADR-165/ADR-272): grupos por `code` com copy table.
+ * - `issues` null (fallback legacy, runs pré-projeção): grupos por mensagem
+ *   normalizada — 18 linhas duplicadas viram 2 grupos com contador.
  */
 export function ValidationErrorsPanel({
   issues,
@@ -24,148 +31,275 @@ export function ValidationErrorsPanel({
   onErrorClick?: (path: string) => void;
 }) {
   if (issues && issues.length > 0) {
-    return <StructuredIssuesList issues={issues} onErrorClick={onErrorClick} />;
+    return <GroupedIssuesList issues={issues} onErrorClick={onErrorClick} />;
   }
-  return <LegacyErrorsList errors={errorsLegacy} onErrorClick={onErrorClick} />;
+  return <GroupedLegacyList errors={errorsLegacy} onErrorClick={onErrorClick} />;
 }
 
-function StructuredIssuesList({
+function SeverityIcon({ severity }: { severity: "error" | "warning" }) {
+  const Icon = severity === "error" ? AlertCircle : AlertTriangle;
+  const cls = severity === "error" ? "text-loss" : "text-alert";
+  return <Icon aria-hidden className={`h-4 w-4 shrink-0 ${cls}`} />;
+}
+
+function CountPill({
+  count,
+  severity,
+}: {
+  count: number;
+  severity: "error" | "warning";
+}) {
+  const cls =
+    severity === "error" ? "bg-loss/10 text-loss" : "bg-alert/10 text-alert";
+  return (
+    <span
+      aria-hidden
+      className={`rounded-full px-2 py-0.5 text-[0.65rem] font-medium tabular-nums ${cls}`}
+    >
+      {count}
+    </span>
+  );
+}
+
+function GroupSummary({
+  title,
+  count,
+  severity,
+}: {
+  title: string;
+  count: number;
+  severity: "error" | "warning";
+}) {
+  const severityLabel = severity === "error" ? "erro" : "aviso";
+  const occurrences = count === 1 ? "1 ocorrência" : `${count} ocorrências`;
+  return (
+    <summary
+      className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80"
+      aria-label={`${title}, ${occurrences}, ${severityLabel}`}
+    >
+      <SeverityIcon severity={severity} />
+      <span className="min-w-0 flex-1">{title}</span>
+      <CountPill count={count} severity={severity} />
+    </summary>
+  );
+}
+
+function GroupedIssuesList({
   issues,
   onErrorClick,
 }: {
   issues: ValidationIssue[];
   onErrorClick?: (path: string) => void;
 }) {
-  // Errors antes de warnings — mantém ordem original dentro de cada grupo.
-  const sorted = [...issues].sort((a, b) => {
-    if (a.severity === b.severity) return 0;
-    return a.severity === "error" ? -1 : 1;
-  });
+  const groups = groupIssuesByCode(issues);
   return (
-    <ul aria-label="Issues de validação" className="space-y-3">
-      {sorted.map((issue, idx) => (
-        <li key={idx}>
-          <IssueCard issue={issue} onErrorClick={onErrorClick} />
-        </li>
-      ))}
-    </ul>
+    <div className="space-y-3">
+      {groups.length > 1 && (
+        <p className="text-sm text-muted-foreground">{summarizeIssues(issues)}</p>
+      )}
+      <ul aria-label="Itens agrupados para conferência" className="space-y-3">
+        {groups.map((group) => (
+          <li key={group.key}>
+            <IssueGroupCard
+              group={group}
+              defaultOpen={groups.length <= 2}
+              onErrorClick={onErrorClick}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
-function IssueCard({
+function IssueGroupCard({
+  group,
+  defaultOpen,
+  onErrorClick,
+}: {
+  group: IssueGroup;
+  defaultOpen: boolean;
+  onErrorClick?: (path: string) => void;
+}) {
+  const first = group.issues[0]!;
+  const copy = getCopy(first.code);
+  const title =
+    first.code === "legacy.unmigrated"
+      ? firstSentence(first.legacy_message)
+      : copy.title;
+  return (
+    <details
+      open={defaultOpen}
+      className="rounded-lg border border-border bg-card p-3"
+    >
+      <GroupSummary
+        title={title}
+        count={group.issues.length}
+        severity={group.severity}
+      />
+      <div className="mt-2 space-y-2 pl-6">
+        <p className="text-xs text-muted-foreground">
+          {formatCopy(copy.description, first.context)}
+        </p>
+        <OccurrenceList group={group} onErrorClick={onErrorClick} />
+        {copy.whyItMatters && (
+          <details className="text-xs text-muted-foreground">
+            <summary className="cursor-pointer font-medium hover:text-foreground">
+              Por que isso importa
+            </summary>
+            <p className="mt-1.5 leading-relaxed">{copy.whyItMatters}</p>
+          </details>
+        )}
+      </div>
+    </details>
+  );
+}
+
+function OccurrenceList({
+  group,
+  onErrorClick,
+}: {
+  group: IssueGroup;
+  onErrorClick?: (path: string) => void;
+}) {
+  const visible = group.issues.slice(0, VISIBLE_OCCURRENCES);
+  const rest = group.issues.slice(VISIBLE_OCCURRENCES);
+  return (
+    <div className="space-y-1">
+      <ul className="space-y-1">
+        {visible.map((issue, idx) => (
+          <OccurrenceLine key={idx} issue={issue} onErrorClick={onErrorClick} />
+        ))}
+      </ul>
+      {rest.length > 0 && (
+        <details className="text-xs text-muted-foreground">
+          <summary className="cursor-pointer hover:text-foreground">
+            e mais {rest.length}
+          </summary>
+          <ul className="mt-1 space-y-1">
+            {rest.map((issue, idx) => (
+              <OccurrenceLine
+                key={idx}
+                issue={issue}
+                onErrorClick={onErrorClick}
+              />
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
+function OccurrenceLine({
   issue,
   onErrorClick,
 }: {
   issue: ValidationIssue;
   onErrorClick?: (path: string) => void;
 }) {
-  const copy = getCopy(issue.code);
-  const Icon = issue.severity === "error" ? AlertCircle : AlertTriangle;
-  const iconClass = issue.severity === "error" ? "text-loss" : "text-alert";
-  const pillClass =
-    issue.severity === "error"
-      ? "bg-loss/10 text-loss"
-      : "bg-alert/10 text-alert";
-  const description = formatCopy(copy.description, issue.context);
+  const label = occurrenceLabel(issue);
   const canNavigate = issue.path !== null && onErrorClick !== undefined;
-
   return (
-    <article
-      className="rounded-lg border border-border bg-card p-3"
-      aria-labelledby={`issue-${issue.code}-${issue.severity}-title`}
-    >
-      <div className="flex items-start gap-2">
-        <Icon aria-hidden className={`mt-0.5 h-4 w-4 shrink-0 ${iconClass}`} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline justify-between gap-2">
-            <h3
-              id={`issue-${issue.code}-${issue.severity}-title`}
-              className="text-sm font-medium text-foreground"
-            >
-              {copy.title}
-            </h3>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[0.65rem] font-medium ${pillClass}`}
-            >
-              {issue.severity === "error" ? "Erro" : "Aviso"}
-            </span>
-          </div>
-          <p className="mt-1.5 text-xs text-muted-foreground">{description}</p>
-          {copy.whyItMatters && (
-            <details className="mt-2 text-xs text-muted-foreground">
-              <summary className="cursor-pointer font-medium hover:text-foreground">
-                Por que isso importa
-                <ChevronDown
-                  aria-hidden
-                  className="ml-1 inline-block h-3 w-3"
-                />
-              </summary>
-              <p className="mt-1.5 leading-relaxed">{copy.whyItMatters}</p>
-            </details>
-          )}
-          {canNavigate && (
-            <button
-              type="button"
-              onClick={() => onErrorClick(issue.path!)}
-              className="mt-2 text-xs text-primary hover:underline focus-visible:underline"
-            >
-              Ir para o campo →
-            </button>
-          )}
-        </div>
-      </div>
-    </article>
+    <li className="flex items-baseline gap-2 text-xs text-foreground">
+      <span className="min-w-0 flex-1 break-words font-mono">{label}</span>
+      {canNavigate && (
+        <button
+          type="button"
+          onClick={() => onErrorClick(issue.path!)}
+          className="shrink-0 text-primary hover:underline focus-visible:underline"
+        >
+          Ir para o campo →
+        </button>
+      )}
+    </li>
   );
 }
 
-function LegacyErrorsList({
+/** Linha compacta da ocorrência: valor ofensor + referência do documento
+ * quando presentes no context; senão a mensagem técnica original. */
+function occurrenceLabel(issue: ValidationIssue): string {
+  const ctx = issue.context;
+  const parts = [ctx["offending_value"], ctx["field"], ctx["artifact_key"]]
+    .filter((v) => v !== null && v !== undefined && String(v).length > 0)
+    .map(String);
+  return parts.length > 0 ? parts.join(" · ") : issue.legacy_message;
+}
+
+function firstSentence(message: string): string {
+  const cut = message.split(/[;.]/)[0] ?? message;
+  return cut.trim();
+}
+
+function GroupedLegacyList({
   errors,
   onErrorClick,
 }: {
   errors: string | null;
   onErrorClick?: (path: string) => void;
 }) {
-  if (!errors || errors.trim() === "") {
+  const groups = groupLegacyLines(errors);
+  if (groups.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Sem erros de validação registrados.
+        Sem pendências registradas.
       </p>
     );
   }
-  const lines = errors
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-
   return (
-    <ul aria-label="Erros de validação" className="space-y-2">
-      {lines.map((line, idx) => {
-        const path = extractPath(line);
-        const clickable = path !== null && onErrorClick !== undefined;
-        return (
-          <li
-            key={idx}
-            className="flex items-start gap-2 rounded-md border border-alert/40 bg-alert/5 p-2 text-xs text-foreground"
-          >
-            <AlertTriangle
-              aria-hidden
-              className="mt-0.5 h-3.5 w-3.5 shrink-0 text-alert"
-            />
-            {clickable ? (
-              <button
-                type="button"
-                onClick={() => onErrorClick(path)}
-                className="text-left hover:underline focus-visible:underline"
-              >
-                {line}
-              </button>
-            ) : (
-              <span>{line}</span>
-            )}
-          </li>
-        );
-      })}
+    <ul aria-label="Itens agrupados para conferência" className="space-y-3">
+      {groups.map((group) => (
+        <li key={group.key}>
+          <LegacyGroupCard
+            group={group}
+            defaultOpen={groups.length <= 2}
+            onErrorClick={onErrorClick}
+          />
+        </li>
+      ))}
     </ul>
+  );
+}
+
+function LegacyGroupCard({
+  group,
+  defaultOpen,
+  onErrorClick,
+}: {
+  group: LegacyGroup;
+  defaultOpen: boolean;
+  onErrorClick?: (path: string) => void;
+}) {
+  const path = extractPath(group.representative);
+  const distinct = [...new Set(group.lines)];
+  return (
+    <details
+      open={defaultOpen}
+      className="rounded-lg border border-alert/40 bg-alert/5 p-3"
+    >
+      <GroupSummary
+        title={firstSentence(group.representative)}
+        count={group.lines.length}
+        severity="warning"
+      />
+      <div className="mt-2 space-y-1 pl-6 text-xs text-foreground">
+        {distinct.length > 1 &&
+          distinct.map((line, idx) => (
+            <p key={idx} className="break-words font-mono">
+              {line}
+            </p>
+          ))}
+        {path !== null && onErrorClick !== undefined && (
+          <button
+            type="button"
+            onClick={() => onErrorClick(path)}
+            className="text-primary hover:underline focus-visible:underline"
+          >
+            Ir para o campo →
+          </button>
+        )}
+      </div>
+    </details>
   );
 }
 
