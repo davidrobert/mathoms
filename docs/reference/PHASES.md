@@ -105,7 +105,7 @@ Política de cobertura (Python backend + pipeline):
 | R1  | Refactoring quebra pipeline                    | Alto      | ~~Média~~ Baixa | ✅ Mitigado | 136 tests + `_init_config()` pattern                                                      |
 | R2  | LLM output inconsistente                       | Alto      | ~~Alta~~ Média  | ✅ Parcial  | Instructor + Pydantic + validators + needs_review workflow (F4)                            |
 | R3  | Custo de LLM por run inviável                  | Médio     | Baixa           | ✅ Mitigado | BYOK (F4). Token tracking + cost estimation                                               |
-| R4  | Dados sensíveis vazam                          | Crítico   | Baixa           | ⏳ F7       | Fernet at-rest (parcial). HTTPS + audit log + LGPD em F7                                  |
+| R4  | Dados sensíveis vazam                          | Crítico   | Baixa           | ⏳ F7       | Fernet at-rest (parcial). HTTPS + audit log + LGPD em F7. CPF em `/reports/[id]`: mascarado por default + reveal owner-only auditado, entregue 2026-07-06 ([[ADR-259]] §4) |
 | R5  | Parsers quebram com mudança de layout          | Alto      | Alta            | ⚠️ Ativo   | Testes golden files. Alertas de parsing error. LLM fallback (E2-llm) em F4                |
 | R6  | Escopo cresce demais                           | Alto      | Alta            | ⚠️ Ativo   | P0 por sprint. Cortar P2. Itens de F8 adiados explicitamente                              |
 | R7  | Complexidade E5/E6 dificulta refactoring       | Médio     | Alta            | ✅ Mitigado | "Wrap, Don't Rewrite" strategy. Lógica interna inalterada                                 |
