@@ -13,7 +13,12 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { S7IndependenciaSection, trsTone } from "@/components/report/sections/S7IndependenciaSection";
-import type { PassiveIncomeData, ReportAnalysisData } from "@/lib/api";
+import type {
+  IFMonteCarloData,
+  PassiveIncomeData,
+  PremissasEconomicasData,
+  ReportAnalysisData,
+} from "@/lib/api";
 
 function makePassiveIncome(overrides: Partial<PassiveIncomeData> = {}): PassiveIncomeData {
   return {
@@ -211,5 +216,93 @@ describe("<S7IndependenciaSection /> · acessibilidade (label + tooltip)", () =>
     expect(
       screen.getByRole("button", { name: /Sobre TRS efetiva/i }),
     ).toBeInTheDocument();
+  });
+});
+
+// ─── A28.l9 — ressalva de premissas fallback no Monte Carlo ───
+
+function makeMonteCarlo(overrides: Partial<IFMonteCarloData> = {}): IFMonteCarloData {
+  return {
+    p10_ano_if: 2044,
+    p50_ano_if: 2040,
+    p90_ano_if: 2036,
+    prob_if_ate_idade_meta: 0.31,
+    idade_meta_usada: 60,
+    sigma_usado: 0.15,
+    exibir_cone: true,
+    motivo_sem_cone: null,
+    caminho_p10: [[2026, 1_000_000]],
+    caminho_p50: [[2026, 1_000_000]],
+    caminho_p90: [[2026, 1_000_000]],
+    ...overrides,
+  };
+}
+
+function makePremissasEconomicas(
+  status: "completo" | "parcial",
+  classStatus: "emitted" | "indisponivel",
+): PremissasEconomicasData {
+  return {
+    status,
+    snapshot_at: "2026-07-01T00:00:00Z",
+    classes: [
+      {
+        classe_auvp: "renda_fixa",
+        status: classStatus,
+        retorno_real_esperado_pct_anual: classStatus === "emitted" ? "4.5" : null,
+        sigma_anual_pct: null,
+        fonte: null,
+        fonte_origem: null,
+        effective_from: null,
+        justificativa: null,
+        razao_indisponivel: classStatus === "indisponivel" ? "sem premissa" : null,
+      },
+    ],
+  };
+}
+
+describe("IFMonteCarloBlock · premissas fallback (A28.l9)", () => {
+  it("premissas parcial: Alert de ressalva acima do cone", () => {
+    const data = makeData({
+      if_monte_carlo: makeMonteCarlo(),
+      premissas_economicas: makePremissasEconomicas("parcial", "indisponivel"),
+    });
+    render(<S7IndependenciaSection data={data} />);
+    const alert = screen.getByTestId("s7-premissas-fallback-alert");
+    expect(alert.textContent).toMatch(/premissas de mercado padrão/);
+    expect(alert.textContent).toMatch(/referência, não como previsão/);
+  });
+
+  it("premissas completo: sem ressalva (cone renderiza limpo)", () => {
+    const data = makeData({
+      if_monte_carlo: makeMonteCarlo(),
+      premissas_economicas: makePremissasEconomicas("completo", "emitted"),
+    });
+    render(<S7IndependenciaSection data={data} />);
+    expect(
+      screen.queryByTestId("s7-premissas-fallback-alert"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("bloco de premissas ausente (run pré-ADR-219): sem ressalva", () => {
+    const data = makeData({ if_monte_carlo: makeMonteCarlo() });
+    render(<S7IndependenciaSection data={data} />);
+    expect(
+      screen.queryByTestId("s7-premissas-fallback-alert"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("motivo_sem_cone: role note + ícone, não só itálico (a11y A28.l9)", () => {
+    const data = makeData({
+      if_monte_carlo: makeMonteCarlo({
+        exibir_cone: false,
+        motivo_sem_cone: "Meta IF não configurada para este workspace.",
+      }),
+    });
+    render(<S7IndependenciaSection data={data} />);
+    const note = screen.getByRole("note", {
+      name: "Motivo da ausência do cone de probabilidade",
+    });
+    expect(note.textContent).toMatch(/Meta IF não configurada/);
   });
 });

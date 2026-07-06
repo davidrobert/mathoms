@@ -668,7 +668,7 @@
 | A28.l6 | lane | open | A28 | proteção patrimonial ativada: apólices extraídas fluem para compute_protecao + pontos_urgentes condicional | `sprint/A28/lanes/A28-l6-protecao-apolices-flow.md` |
 | A28.l7 | lane | in_progress | A28 | imóveis excluídos: dedup tático na projeção + gate de rotulagem do owner | `sprint/A28/lanes/A28-l7-imoveis-excluidos-dedup.md` |
 | A28.l8 | lane | open | A28 | higiene de ingestão: períodos implausíveis (1899/2100) e banco vazio viram needs_review, não artefato silencioso | `sprint/A28/lanes/A28-l8-higiene-ingestao-periodos.md` |
-| A28.l9 | lane | planned | A28 | banner agregado de qualidade de dados no relatório + ressalva de fallback no Monte Carlo | `sprint/A28/lanes/A28-l9-report-data-quality-banner.md` |
+| A28.l9 | lane | in_progress | A28 | banner agregado de qualidade de dados no relatório + ressalva de fallback no Monte Carlo | `sprint/A28/lanes/A28-l9-report-data-quality-banner.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

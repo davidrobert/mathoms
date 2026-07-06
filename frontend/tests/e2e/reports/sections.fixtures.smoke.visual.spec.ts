@@ -29,6 +29,7 @@ const FIXTURES: ReadonlyArray<FixtureName> = [
   "long-strings",
   "large-values",
   "sparse-data",
+  "degraded",
 ];
 
 const THEMES = ["light", "dark"] as const;
@@ -120,4 +121,53 @@ test.describe("Smoke — fixture variants (sem snapshot, só estrutural)", () =>
       });
     }
   }
+});
+
+// ─── A28.l9 — teste de honestidade da fixture degradada ───
+//
+// Critério da lane: leitor que vê só hero + banner responde "quão
+// confiável é este relatório?" sem abrir <details>. Verifica que os
+// sinais de degradação aparecem agregados no topo, que o Monte Carlo
+// carrega a ressalva de premissas fallback e que o doughnut sinaliza
+// o nao_identificado de forma persistente.
+test.describe("Honestidade — fixture degraded (A28.l9)", () => {
+  test("banner agregado + ressalva S7 + alerta do doughnut visíveis", async ({
+    page,
+  }) => {
+    await setupReport(page, "light", "degraded");
+
+    // Banner entre o sumário executivo e a primeira seção, com os 3
+    // sinais derivados do DTO (needs_review vem de /documents — mock
+    // catch-all devolve 0 aqui; coberto em unit test).
+    const banner = page.getByTestId("data-quality-banner");
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText("3 pendências afetam");
+    await expect(banner).toContainText("23,0% do total");
+    await expect(banner).toContainText("10/10 classes sem premissa vigente");
+    await expect(banner).toContainText("7 imóveis sem classificação");
+    await expect(
+      banner.getByRole("link", { name: "Reclassificar transações" }),
+    ).toBeVisible();
+
+    // Nunca probabilidade precisa sobre premissa em fallback sem Alert.
+    const s7Alert = page.getByTestId("s7-premissas-fallback-alert");
+    await expect(s7Alert).toBeAttached();
+    await expect(s7Alert).toContainText("premissas de mercado padrão");
+
+    // Doughnut: sinal persistente de nao_identificado > 10%.
+    await expect(
+      page.getByTestId("despesas-nao-identificado-alert"),
+    ).toBeAttached();
+
+    // Barra fina NÃO aparece quando há sinais.
+    await expect(page.getByTestId("data-quality-clean")).toHaveCount(0);
+  });
+
+  test("fixture limpa (medium): banner colapsa para barra fina", async ({
+    page,
+  }) => {
+    await setupReport(page, "light", "medium");
+    await expect(page.getByTestId("data-quality-clean")).toBeVisible();
+    await expect(page.getByTestId("data-quality-banner")).toHaveCount(0);
+  });
 });

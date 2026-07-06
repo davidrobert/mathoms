@@ -13,8 +13,15 @@ import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { formatCurrency } from "@/lib/format";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import { EmptyState } from "@/components/EmptyState";
-import { FileText, Wallet } from "lucide-react";
-import type { IFMonteCarloData, PassiveIncomeData, ReportAnalysisData } from "@/lib/api";
+import { AlertTriangle, FileText, Info, Wallet } from "lucide-react";
+import type {
+  IFMonteCarloData,
+  PassiveIncomeData,
+  PremissasEconomicasData,
+  ReportAnalysisData,
+} from "@/lib/api";
+import { Alert } from "../ui/Alert";
+import { computePremissasDegrade } from "../utils/dataQualitySignals";
 import { IFConeConeChart } from "../charts/IFConeConeChart";
 import { useIrpfKpis } from "../hooks/useIrpfKpis";
 import {
@@ -80,6 +87,7 @@ export function S7IndependenciaSection({
       <IFMonteCarloBlock
         monteCarloIF={monteCarloIF}
         metaIf={goals?.if_meta as number | undefined}
+        premissas={data.premissas_economicas}
       />
 
       <PassiveIncomeBlock
@@ -131,17 +139,24 @@ function Stat({
 function IFMonteCarloBlock({
   monteCarloIF,
   metaIf,
+  premissas,
 }: {
   monteCarloIF: IFMonteCarloData | undefined;
   metaIf: number | undefined;
+  premissas: PremissasEconomicasData | undefined;
 }) {
   if (!monteCarloIF) return null;
 
   if (!monteCarloIF.exibir_cone) {
     if (!monteCarloIF.motivo_sem_cone) return null;
     return (
-      <p className="text-xs text-[var(--surface-muted-foreground)] md:col-span-2 italic">
-        {monteCarloIF.motivo_sem_cone}
+      <p
+        role="note"
+        aria-label="Motivo da ausência do cone de probabilidade"
+        className="flex items-start gap-1.5 text-xs text-[var(--surface-muted-foreground)] md:col-span-2"
+      >
+        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <span>{monteCarloIF.motivo_sem_cone}</span>
       </p>
     );
   }
@@ -152,6 +167,7 @@ function IFMonteCarloBlock({
       size="full"
       title="Cone de probabilidade — IF (Monte Carlo)"
     >
+      <PremissasFallbackAlert premissas={premissas} />
       <p className="mb-3 text-xs text-[var(--surface-muted-foreground)]">
         Projeção estocástica com volatilidade de{" "}
         {(monteCarloIF.sigma_usado * 100).toFixed(0)}% a.a.
@@ -177,6 +193,33 @@ function IFMonteCarloBlock({
         data-testid="s7-if-cone-chart"
       />
     </ReportCard>
+  );
+}
+
+/** A28.l9 — ressalva obrigatória: nunca renderizar probabilidade precisa
+ * sobre premissas de mercado em fallback (`parcial`/`indisponivel`) sem
+ * `<Alert>` adjacente acima do cone. */
+function PremissasFallbackAlert({
+  premissas,
+}: {
+  premissas: PremissasEconomicasData | undefined;
+}) {
+  const degrade = computePremissasDegrade(premissas);
+  if (!degrade) return null;
+  return (
+    <div className="mb-3" data-testid="s7-premissas-fallback-alert">
+      <Alert
+        severity="warning"
+        icon={<AlertTriangle className="h-4 w-4" aria-hidden="true" />}
+      >
+        <p>
+          Projeção baseada em premissas de mercado padrão, não calibradas à sua
+          carteira ({degrade.classesIndisponiveis}/{degrade.classesTotal} classes sem
+          premissa vigente) — trate as probabilidades como referência, não como
+          previsão.
+        </p>
+      </Alert>
+    </div>
   );
 }
 

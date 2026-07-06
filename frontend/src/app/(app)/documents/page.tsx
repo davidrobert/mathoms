@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   listDocuments,
   uploadDocuments,
@@ -36,7 +37,13 @@ import type { SortDir, SortKey } from "./_components/SortableHead";
 export default function DocumentsPage() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
-  return <DocumentsPageContent workspace={workspace} />;
+  // Suspense exigido pelo useSearchParams (deep-link ?filter=needs_review,
+  // A28.l9 — CTA do ReportDataQualityBanner).
+  return (
+    <Suspense fallback={null}>
+      <DocumentsPageContent workspace={workspace} />
+    </Suspense>
+  );
 }
 
 function MessageBanner({
@@ -75,7 +82,11 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
 
   const [sortKey, setSortKey] = useState<SortKey>("uploaded_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [reviewFilter, setReviewFilter] = useState<"all" | "uncertain">("all");
+  // A28.l9 — deep-link do banner de qualidade de dados do relatório.
+  const searchParams = useSearchParams();
+  const [reviewFilter, setReviewFilter] = useState<"all" | "uncertain">(
+    searchParams.get("filter") === "needs_review" ? "uncertain" : "all",
+  );
   const [extractModal, setExtractModal] = useState<{
     doc: DocumentResponse;
     result: ExtractJsonResponse;

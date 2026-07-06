@@ -132,10 +132,65 @@ describe("<DespesasDoughnutChart />", () => {
 
   it("deriva conclusion default a partir do top da categoria", () => {
     render(<DespesasDoughnutChart fluxo={FLUXO_WITH_DATASETS} />);
-    // top: nao_identificado, 800/1400 = 57.1% → também acende alerta >10%
     const matches = screen.getAllByText(/Não identificado lidera com/);
     expect(matches.length).toBeGreaterThan(0);
-    expect(screen.getByText(/priorize reclassificação/)).toBeInTheDocument();
+  });
+
+  // A28.l9 — sinal persistente de "não identificado" >10% vira Alert inline
+  // (a frase condicional na conclusão sumia quando o LLM fornecia conclusion).
+  it("Alert persistente quando nao_identificado > 10%, mesmo com conclusion prop", () => {
+    render(
+      <DespesasDoughnutChart
+        fluxo={FLUXO_WITH_DATASETS}
+        conclusion="Conclusão LLM sem menção a reclassificação"
+      />,
+    );
+    // 800/1400 = 57,1%
+    const alert = screen.getByTestId("despesas-nao-identificado-alert");
+    expect(alert.textContent).toMatch(/57,1% do total/);
+    expect(alert.textContent).toMatch(/Reclassificar/);
+  });
+
+  it("sem Alert quando nao_identificado ≤ 10% ou ausente", () => {
+    const fluxo: FluxoCaixaSummary = {
+      receita_despesa_mensal_detalhado: {
+        labels: ["26/01", "26/02"],
+        despesa_datasets: [
+          { label: "moradia", data: [1000, 1000] },
+          { label: "nao_identificado", data: [50, 50] },
+        ],
+      },
+    };
+    render(<DespesasDoughnutChart fluxo={fluxo} />);
+    expect(
+      screen.queryByTestId("despesas-nao-identificado-alert"),
+    ).not.toBeInTheDocument();
+  });
+
+  // A28.l9 — fatia "não identificado" sai da paleta categórica (cinza muted);
+  // matching por chave normalizada cobre o label title-cased do backend.
+  it("fatia nao_identificado usa cinza neutro fora da paleta (label title-cased incluso)", () => {
+    const fluxo: FluxoCaixaSummary = {
+      receita_despesa_mensal_detalhado: {
+        labels: ["26/01", "26/02"],
+        despesa_datasets: [
+          { label: "moradia", data: [100, 100] },
+          // paridade wire: fluxo_caixa_enricher emite .title() → "Nao Identificado"
+          { label: "Nao Identificado", data: [500, 500] },
+        ],
+      },
+    };
+    render(<DespesasDoughnutChart fluxo={fluxo} />);
+    const chart = screen.getByTestId("chart-mock");
+    const bgColors: ReadonlyArray<string> = JSON.parse(
+      chart.getAttribute("data-bg-colors") ?? "[]",
+    );
+    // ordenado desc: "Nao Identificado" (1000) primeiro, cinza LIGHT_FALLBACK
+    expect(bgColors[0]).toBe("#64748B");
+    // demais fatias seguem a paleta categórica sem pular índice
+    expect(bgColors[1]).toBe("#1A3A5C");
+    // alerta também dispara (1000/1200 = 83,3%)
+    expect(screen.getByTestId("despesas-nao-identificado-alert")).toBeInTheDocument();
   });
 
   it("usa fallback `despesas_por_categoria` quando datasets ausentes", () => {
