@@ -68,7 +68,12 @@ export function ReservaEmergenciaCard({
   const alvo = resolveAlvo(reserva);
   const alvoRefBrl = alvo?.alvoBrl ?? nivel12;
   const pctRumoAlvo = alvoRefBrl > 0 ? Math.min(100, (total / alvoRefBrl) * 100) : 0;
-  const alvoLabel = alvo ? `alvo de ${alvo.mesesAlvo} meses` : "meta de 12 meses";
+  const progressAria = alvo
+    ? `Progresso rumo ao alvo de ${alvo.mesesAlvo} meses de reserva`
+    : "Progresso rumo à reserva de 12 meses";
+  const progressCaption = alvo
+    ? `do alvo de ${alvo.mesesAlvo} meses`
+    : "da meta de 12 meses";
 
   const computedVariant: CardVariant =
     cobertura < 3 ? "critical" : cobertura < 6 ? "warn" : "success";
@@ -125,7 +130,7 @@ export function ReservaEmergenciaCard({
             aria-valuenow={pctRumoAlvo}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`Progresso rumo ao ${alvoLabel} de reserva`}
+            aria-label={progressAria}
           >
             <div
               className="h-full rounded-full bg-[var(--semantic-gain)] transition-[width]"
@@ -133,7 +138,7 @@ export function ReservaEmergenciaCard({
             />
           </div>
           <p className="mt-1 text-xs text-[var(--surface-muted-foreground)]">
-            {pctRumoAlvo.toFixed(0)}% do {alvoLabel}
+            {pctRumoAlvo.toFixed(0)}% {progressCaption}
           </p>
         </div>
       </div>
