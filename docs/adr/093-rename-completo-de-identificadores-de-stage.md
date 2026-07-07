@@ -3,7 +3,7 @@ id: ADR-093
 type: adr
 title: "Rename completo de identificadores de stage (Opção A)"
 status: Decidido
-phase: "F9 · execução em andamento"
+phase: "F9 · sub-fases 9.0–9.6 entregues"
 date: "2026-04-19"
 relates_to: []
 supersedes: []
@@ -20,11 +20,13 @@ size_lines: 85
 
 # ADR-093 — Rename completo de identificadores de stage (Opção A)
 
-**Status:** Decidido (F9 · execução em andamento) — F9.0 ✅ (2026-04-24) · F9.1 ✅ (2026-04-25) ·
+**Status:** Decidido (F9 · sub-fases 9.0–9.6 entregues) — F9.0 ✅ (2026-04-24) · F9.1 ✅ (2026-04-25) ·
 **F9.2 T1 ✅ (2026-04-25)** — `STAGE_REGISTRY` keys descritivas +
 `resolve_stage_name`/`to_legacy_stage_name` helpers + compat reverso;
 T2-T5 (substituição de strings literais em call-sites) abertas como
-follow-ups incrementais · **F9.3 ✅ (2026-05-05)** — migration validada e testada
+follow-ups incrementais · **F9.3 ✅ (2026-05-05)** — migration validada e testada ·
+**F9.5 ✅** (#720) · **F9.6 ✅ (2026-07-06)** (#799 — writers descritivos + labels) ·
+**F9.4 ✅ (2026-07-06)** — `git mv scripts/e*.py` → nomes descritivos (W6-T03)
 **Data:** 2026-04-19 • **Plano:** Fase 9 inteira
 
 > **Nota (2026-05-05):** F9.3 fechada — `q5r6s7t8u9v0` sincronizado com `STAGE_RENAME_MAP`
@@ -58,8 +60,11 @@ exige coordenação entre código, DB, dev-ops e docs.
    `UPDATE pipeline_artifacts SET stage = <new> WHERE stage = <old>` +
    idem para `pipeline_stage_logs`. Upgrade+downgrade testados
    (`test_stage_rename_migration.py`, 5 testes).
-5. **9.4** — `git mv scripts/e*.py → *descriptive*.py` + `e_reset.py --from X`
-   alias de compat por 1 release.
+5. **9.4** ✅ (2026-07-06) — `git mv scripts/e*.py → *descriptive*.py`
+   (9 módulos; não-1:1: `e2_extract.py` → `extract_bank_documents.py`
+   cobre `extract_invoices`+`extract_statements`; pacote `scripts/e2/`
+   de parsers permanece). Alias `e_reset.py --from X` tornou-se N/A —
+   CLI standalone descontinuada em ADR-212.
 6. **9.5** — Guardrail: `tests/unit/pipeline/test_no_legacy_stage_names.py`
    (parametrizado por todos os legados) com soft-fail default + hard-fail
    via `MATHOMS_ENFORCE_STAGE_RENAME=1`.

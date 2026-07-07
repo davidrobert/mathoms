@@ -43,7 +43,7 @@ E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ru�
 
 | Artefato | Gerado por | Contrato nos testes |
 | --- | --- | --- |
-| `logs/qa_log.md` | `e4_categorize.generate_qa_log` | `tests/pipeline_golden_asserts.assert_qa_log_md` (cabeçalhos mínimos) |
+| `logs/qa_log.md` | `categorize_transactions.generate_qa_log` | `tests/pipeline_golden_asserts.assert_qa_log_md` (cabeçalhos mínimos) |
 
 **Próximo incremento sugerido**
 
@@ -61,15 +61,15 @@ E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ru�
 
 ## Golden de execução E3
 
-Implementado em `tests/test_e3_golden_execution.py`: tenant mínimo + `minimal-extrato-2_extract.json` (com saldos) → `e3_reconcile.main` → um `*-3_reconciled.json`, asserts + `jsonschema` + `validate_artifact`.
+Implementado em `tests/test_e3_golden_execution.py`: tenant mínimo + `minimal-extrato-2_extract.json` (com saldos) → `reconcile_transactions.main` → um `*-3_reconciled.json`, asserts + `jsonschema` + `validate_artifact`.
 
 ## Golden de execução E4
 
-Implementado em `tests/test_e4_golden_execution.py`: tenant mínimo (`categorization.json` com keyword `PIX` → categoria `renda`) + cópia de `tests/fixtures/pipeline_golden/e3/minimal-conta-3_reconciled.json` em `processed/E3_reconciled/` → `e4_categorize.main` → sete `*-4_unified.json` + `validate_artifact` em cada arquivo. Cenário **receita + despesa** (`test_e4_execution_mixed_receita_despesa`): fixture `e3/minimal-conta-com-despesa-3_reconciled.json` + keyword `CINEMA` → `lazer`. Cenário **com baseline E1.5** (`test_e4_execution_with_baseline_patrimonial`): `e2/minimal-baseline-1.5_consolidated.json` em `processed/E2_extracts/baseline_patrimonial-1.5_consolidated.json` — `patrimonio-4_unified.json` espelha o baseline; validação desse arquivo com `baseline_patrimonial.schema.json` (não com `e4_unified`, pois o conteúdo é o consolidado).
+Implementado em `tests/test_e4_golden_execution.py`: tenant mínimo (`categorization.json` com keyword `PIX` → categoria `renda`) + cópia de `tests/fixtures/pipeline_golden/e3/minimal-conta-3_reconciled.json` em `processed/E3_reconciled/` → `categorize_transactions.main` → sete `*-4_unified.json` + `validate_artifact` em cada arquivo. Cenário **receita + despesa** (`test_e4_execution_mixed_receita_despesa`): fixture `e3/minimal-conta-com-despesa-3_reconciled.json` + keyword `CINEMA` → `lazer`. Cenário **com baseline E1.5** (`test_e4_execution_with_baseline_patrimonial`): `e2/minimal-baseline-1.5_consolidated.json` em `processed/E2_extracts/baseline_patrimonial-1.5_consolidated.json` — `patrimonio-4_unified.json` espelha o baseline; validação desse arquivo com `baseline_patrimonial.schema.json` (não com `e4_unified`, pois o conteúdo é o consolidado).
 
 ## Golden de execução E5
 
-Implementado em `tests/test_e5_golden_execution.py`: mesmo fluxo de dados que o golden E4 (E3 fixture → `e4_categorize.main`) com `config/goals.json` mínimo (`if_meta`, `trs_pct`) e cópias de `scoring.json`, `parametros_fiscais.json`, `taxas.json` do repositório → `e5_analyze.main` → `processed/E5_analysis/analise_financeira-5_analysis.json` + `jsonschema` + `validate_artifact`. Cenário misto: `test_e5_execution_mixed_receita_despesa` (mesma fixture E3 com despesa). Cenário com baseline: `test_e5_execution_with_baseline_patrimonial` — totais de patrimônio batem com o fixture (`dividas[]` com `saldo_31_12` por ano, necessário para o E5 somar dívidas por membro).
+Implementado em `tests/test_e5_golden_execution.py`: mesmo fluxo de dados que o golden E4 (E3 fixture → `categorize_transactions.main`) com `config/goals.json` mínimo (`if_meta`, `trs_pct`) e cópias de `scoring.json`, `parametros_fiscais.json`, `taxas.json` do repositório → `analyze_finances.main` → `processed/E5_analysis/analise_financeira-5_analysis.json` + `jsonschema` + `validate_artifact`. Cenário misto: `test_e5_execution_mixed_receita_despesa` (mesma fixture E3 com despesa). Cenário com baseline: `test_e5_execution_with_baseline_patrimonial` — totais de patrimônio batem com o fixture (`dividas[]` com `saldo_31_12` por ano, necessário para o E5 somar dívidas por membro).
 
 ### Bloco `investimentos` no E5 JSON
 
@@ -77,7 +77,7 @@ Implementado em `tests/test_e5_golden_execution.py`: mesmo fluxo de dados que o 
 
 - `tabela_classes`: agregação por classe de ativo (saída de `InvestimentosClassesAnalyzer`).
 - `total`: soma da carteira.
-- `top_ativos`: ranking dos ≤15 maiores ativos individuais (saída de `TopAtivosAnalyzer`, companion de A5b). Cada item: `{posicao, nome, classe, membro, instituicao, valor, pct_carteira, tipo_origem}`. Item fechado por `additionalProperties:false` no schema; enums em `classe` (6 valores) e `tipo_origem` (`investimento`/`imovel`). Coerente com `tabela_classes` por consumir o mesmo `bens_por_membro` que o aggregator de classes. Consumido pelo card `Top15AtivosCard` em S3 (frontend) e por `_find_top_asset` em `e5n_narrativas.py` para narrativa do chart.
+- `top_ativos`: ranking dos ≤15 maiores ativos individuais (saída de `TopAtivosAnalyzer`, companion de A5b). Cada item: `{posicao, nome, classe, membro, instituicao, valor, pct_carteira, tipo_origem}`. Item fechado por `additionalProperties:false` no schema; enums em `classe` (6 valores) e `tipo_origem` (`investimento`/`imovel`). Coerente com `tabela_classes` por consumir o mesmo `bens_por_membro` que o aggregator de classes. Consumido pelo card `Top15AtivosCard` em S3 (frontend) e por `_find_top_asset` em `generate_narratives.py` para narrativa do chart.
 - `instituicoes_por_membro`: lista de `{membro, instituicoes[]}` com instituições de investimento agrupadas (saída de `InstituicoesPorMembroAnalyzer`). Capitalizadas e dedup; `additionalProperties:false` no item; `uniqueItems:true` na lista de instituições. Mesmo `bens_por_membro` das outras agregações.
 - `n_imoveis_total`: contagem total de imóveis em `bens_por_membro` (residência + investimento). Paridade com o legado `_extract_top_institutions`. Consumido por `summaries_narrator`, `charts_narrator` e `perfil_familia_narrator` via `M['n_imoveis']`.
 
@@ -111,7 +111,7 @@ cutover `strict` é W6-T01.
 
 ## Golden de execução E5.N
 
-Implementado em `tests/test_e5n_golden_execution.py`: mesmo cenário mínimo que o golden E5 (helper `_build_e5_workspace` — evita depender de `pytest_plugins` entre módulos) → `e4_categorize.main` → `e5_analyze.main` → `e5n_narrativas.main` → `analise_financeira-5_analysis.json` passa a incluir `narrativas` (`perfil_familia`, `summaries`, `charts`). O teste chama `validate_narrativas` **antes** do `finally` que repõe os globals do `e5n_narrativas` (o chart dinâmico `{cônjuge}_cenarios` depende de `family_members.json` do tenant). Segundo cenário: **`test_e5n_execution_narrativas_with_conjuge_chart`** — membro com `papel: conjuge` → presença de `ana_cenarios` em `narrativas.charts`.
+Implementado em `tests/test_e5n_golden_execution.py`: mesmo cenário mínimo que o golden E5 (helper `_build_e5_workspace` — evita depender de `pytest_plugins` entre módulos) → `categorize_transactions.main` → `analyze_finances.main` → `generate_narratives.main` → `analise_financeira-5_analysis.json` passa a incluir `narrativas` (`perfil_familia`, `summaries`, `charts`). O teste chama `validate_narrativas` **antes** do `finally` que repõe os globals do `generate_narratives` (o chart dinâmico `{cônjuge}_cenarios` depende de `family_members.json` do tenant). Segundo cenário: **`test_e5n_execution_narrativas_with_conjuge_chart`** — membro com `papel: conjuge` → presença de `ana_cenarios` em `narrativas.charts`.
 
 ## Produção do relatório (pós-[ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side))
 
