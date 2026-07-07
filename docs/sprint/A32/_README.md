@@ -56,8 +56,15 @@ antigos; a visibilidade é que é nova. Quatro causas raiz confirmadas:
 | `extract.missing_required_field` | 11 errors |
 | `dedup.sentinel_period` | 7 errors |
 | `domain.anachronic_transaction` | 1 warning |
-| `domain.balance_gap` | 21 warnings |
+| `domain.balance_gap` | 30 warnings |
 | `domain.temporal_gap` | 9 warnings |
+
+> **Verificação l1 contra o DB (2026-07-07):** contagens conferidas contra
+> `review_reasons.occurrence_count` da run `d1732edd`. `domain.balance_gap`
+> corrigido de 21 → 30: a tela exibiu 21 entradas por causa do cap de
+> exibição (`_ISSUE_CAP_PER_CODE = 20` em `backend/app/tasks/pipeline_task.py`
+> + sentinela "e mais 10 ocorrencia(s)"); o total exato vive em
+> `review_reasons`. Os demais codes batem 1:1 com a tela.
 
 ## Lanes
 
