@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-300 ADRs (ADR-001 a ADR-309) em [`docs/adr/`](../../adr/).
+302 ADRs (ADR-001 a ADR-311) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 280
-- **Proposto**: 17
+- **Proposto**: 19
 - **Roadmap**: 3
 
 ## Fundação
@@ -524,6 +524,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-301]] — Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) · phase A22.l5 · F1-O3 launch-trust
 - [[ADR-305]] — PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) · phase A28
 - [[ADR-308]] — Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração · phase A29
+
+### Proposto (2)
+
+- [[ADR-310]] — Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7) · phase A32.l4
+- [[ADR-311]] — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável · phase A32.l5
 
 ## quality
 
