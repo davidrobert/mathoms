@@ -2,20 +2,20 @@
 id: ADR-311
 type: adr
 title: "Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável"
-status: Proposto
+status: Decidido
 phase: A32.l5
 date: "2026-07-07"
 relates_to: ["[[ADR-278]]", "[[ADR-279]]", "[[ADR-281]]", "[[ADR-212]]", "[[ADR-080]]"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/db
 ---
 
 # ADR-311 — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável
 
-**Status:** Proposto (A32.l5) · **Data:** 2026-07-07
+**Status:** Decidido (A32.l5) · **Data:** 2026-07-07
 
 ## Contexto
 
