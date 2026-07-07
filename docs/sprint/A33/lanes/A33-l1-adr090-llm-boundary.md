@@ -4,9 +4,9 @@ type: lane
 title: "ADR-090 no boundary LLM: e2_llm_extract sem float monetário + gate cobrindo pipeline/llm/schemas (W1β)"
 sprint: A33
 plan: PLAN-llm-prompts-hardening
-status: open
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 827
+ship_date: "2026-07-07"
 priority: P0
 branch_slug: a33-l1-adr090-llm-boundary
 adrs: ["[[ADR-090]]"]
@@ -15,7 +15,7 @@ parallel_with: ["[[A33.l2]]"]
 tags:
   - type/lane
   - sprint/a33
-  - status/open
+  - status/shipped
   - priority/p0
   - area/llm
 ---
