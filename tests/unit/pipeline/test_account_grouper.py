@@ -131,6 +131,17 @@ class TestShouldSkip:
         # alias_tipo aponta para irpf que está em skip_types
         assert grouper.should_skip({"tipo": "alias_tipo"}) is True
 
+    def test_skips_llm_artifact_via_tipo_documento_fallback(self) -> None:
+        # Artifacts E2-llm antigos (pré-A32.l2) só têm `tipo_documento`.
+        grouper = AccountGrouper()
+        assert grouper.should_skip({"tipo_documento": "cdbdetalhes"}) is True
+        assert grouper.should_skip({"tipo_documento": "investimentosposicao"}) is True
+
+    def test_tipo_takes_precedence_over_tipo_documento(self) -> None:
+        grouper = AccountGrouper()
+        data = {"tipo": "extratoconta", "tipo_documento": "cdbdetalhes"}
+        assert grouper.should_skip(data) is False
+
 
 # =============================================================================
 # AccountGrouper.key
@@ -196,6 +207,15 @@ class TestKey:
         key = grouper.key(data)
 
         assert key == AccountKey("Bradesco", "extratoconta", "BRL")
+
+    def test_uses_tipo_documento_when_tipo_absent(self) -> None:
+        # Vocabulário do writer E2-llm antigo (pré-A32.l2).
+        grouper = AccountGrouper()
+        data = {"instituicao": "bancosintetico", "tipo_documento": "extrato", "moeda": "BRL"}
+
+        key = grouper.key(data)
+
+        assert key == AccountKey("bancosintetico", "extrato", "BRL")
 
     def test_currency_normalized_to_uppercase(self) -> None:
         grouper = AccountGrouper()
