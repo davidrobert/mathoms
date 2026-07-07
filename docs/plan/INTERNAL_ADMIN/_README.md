@@ -66,6 +66,10 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 > 114 tests (`backend/tests/internal_ops/` + `backend/tests/api/admin/`) passando;
 > operação documentada em [RUNBOOK.md §7](../../reference/RUNBOOK.md).
 > **Pendência não-bloqueante:** `7F.9` (CLI secundário) segue aberta — pós-IA-0 por design.
+> **Follow-up pós-IA-0 (2026-07-06):** editor de `monthly_llm_budget_usd` por
+> workspace no console (guardrail [[ADR-173]] hoje só editável via SQL) —
+> lane [[A30.l1]], P1, mesma família de business
+> logic de 7F.10–7F.14.
 
 **Meta:** com backend + DB + storage configurados localmente (ou túnel/VPN para staging), o operador executa tarefas de suporte e LGPD **sem depender** de um console **hospedado** na internet, pela **UI web em `127.0.0.1`**.
 
