@@ -3,12 +3,12 @@ id: MOC-sprint-a17
 type: moc
 title: "Sprint A17 — Ingestão de Informes de Rendimentos anuais avulsos (4 ondas)"
 aliases: ["A17", "Sprint A17"]
-sprint_status: paused
+sprint_status: done
 ---
 
 # Sprint A17 — Ingestão de Informes Anuais Avulsos
 
-> **Status:** `paused` (suspensa 2026-05-29 em favor de [[MOC-sprint-a20]] — priorização do owner; transição `current → paused` por [[ADR-234]]). L1 entregue (ADR canônica [[ADR-238]] flippada `Decidido (Sprint A17 L1)` em 2026-05-21, 5 PRs [#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)); **débito conhecido: L2-L4** abertas. Retomada: flip `paused → current` quando A20 fechar.
+> **Status:** `done` (2026-07-07). L1/L2/L5/L6 entregues na janela original (mai/2026); residual L3-L4 fechado pelas lanes [[A33.l2]] (financeiro PF: #833 P3/P5 + #835 P4 UI, pós-drift #472/#489/#494) e [[A33.l4]] (proventos→S3, #830) da sprint [[MOC-sprint-a33]]. Histórico: suspensa 2026-05-29 em favor de [[MOC-sprint-a20]] ([[ADR-234]]); ADR canônica [[ADR-238]] `Decidido (Sprint A17 L1)` em 2026-05-21 (5 PRs [#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)).
 
 ## Resumo
 
@@ -46,8 +46,8 @@ Entrega: sub-schema `informe_proventos.schema.json` (eventos por ativo: dividend
 
 - ✅ [[A17.l1]] (`shipped` 2026-05-21) — L1: previdência privada (PGBL/VGBL). Entregue em 5 PRs ([#402](https://github.com/davidrobert/mathoms/pull/402), [#403](https://github.com/davidrobert/mathoms/pull/403), [#404](https://github.com/davidrobert/mathoms/pull/404), [#406](https://github.com/davidrobert/mathoms/pull/406), [#407](https://github.com/davidrobert/mathoms/pull/407)). Padrão arquitetural validado.
 - ✅ [[A17.l2]] (`shipped` 2026-05-23) — L2: financeiro PJ. Entregue em 2 PRs ([#453](https://github.com/davidrobert/mathoms/pull/453) schema/prompt + [#454](https://github.com/davidrobert/mathoms/pull/454) classifier + InformeQuery cascata). Stone PJ real do dogfood classifica confidence 1.0.
-- [[A17.l3]] (`in_progress`) — L3: financeiro PF + Wise multi-moeda. P1+P2 entregues ([#458](https://github.com/davidrobert/mathoms/pull/458) schema/prompt + [#459](https://github.com/davidrobert/mathoms/pull/459) classifier); P3 (consolidate_baseline + PTAX), P4 (UI S4), P5 (validações Wise) pendentes.
-- [[A17.l4]] (`planned`) — L4: proventos ações + holding. Depende de L1.
+- ✅ [[A17.l3]] (`shipped` 2026-07-07 via [[A33.l2]]) — L3: financeiro PF + Wise multi-moeda. P1+P2 ([#458](https://github.com/davidrobert/mathoms/pull/458) schema/prompt + [#459](https://github.com/davidrobert/mathoms/pull/459) classifier); P3 merger+PTAX (#472), P5 fiscal flags (#489), P4 pipeline (#494); deltas de co-design P3/P5 (#833: PTAX compra 31/12 real + needs_review Wise + informe vence extrato D+1) e P4 UI S1 (#835).
+- ✅ [[A17.l4]] (`shipped` 2026-07-07 via [[A33.l4]]) — L4: proventos ações + holding. Schema/prompt/classifier (#474); integração proventos→S3 fim-a-fim (#830).
 - ✅ [[A17.l5]] (`shipped` 2026-05-22) — L5: seed expandido institution_catalog (18 entries alta renda PJ). Entregue em 1 PR ([#451](https://github.com/davidrobert/mathoms/pull/451)).
 - ✅ [[A17.l6]] (`shipped` 2026-05-24) — L6: hotfix off-theme `RECEBIMENTO DE TED` / `RECEBIMENTO TRANSFERENCIA` no seed `internal_transfer_patterns` engolia salário CLT recebido via TED (Einstein, etc.) silenciosamente. Entregue em 2 PRs ([#475](https://github.com/davidrobert/mathoms/pull/475) lane open + [#480](https://github.com/davidrobert/mathoms/pull/480) fix: seed limpo + migration `a17l6tedfix` + 8 testes de regressão).
 - ✅ **A17.canonical-fuzzy** (`shipped` 2026-05-23) — Fuzzy lookup PropertyIdentity por proximidade numérica ([[ADR-265]]). Resolve "Case C" da [[ADR-225]] §Follow-ups: variação numérica leve entre fontes (IRPF cod=11 traz torre/condomínio; comprovante de bem cod=01 traz prédio). Entregue em 1 PR ([#471](https://github.com/davidrobert/mathoms/pull/471)). Track: [[TRACK-a17-canonical-fuzzy-adr225]].
