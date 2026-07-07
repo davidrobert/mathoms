@@ -5,7 +5,8 @@ title: "Versionamento temporal de séries fiscais e câmbio"
 status: Decidido
 phase: "Sprint A7"
 date: "2026-04-26"
-relates_to: ["[[ADR-090]]"]
+amended_at: ["2026-07-07"]
+relates_to: ["[[ADR-090]]", "[[ADR-238]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 135"]
@@ -17,6 +18,9 @@ tags:
   - type/adr
 size_lines: 101
 ---
+
+> **Emenda (2026-07-07):** `rate` para pares `*/BRL` é PTAX de **compra** —
+> ver §"Emenda — lado da PTAX em pares */BRL (2026-07-07)".
 
 # ADR-135 — Versionamento temporal de séries fiscais e câmbio
 
@@ -117,3 +121,22 @@ Money continua [ADR-090](#adr-090--decimal-para-valores-monetários):
 - ❌ Reforma tributária mid-year exige duas rows de
   `fiscal_parameters` no mesmo ano + lógica do pipeline em decidir qual
   usar. Resolvido via `effective_from/to` exclusivo.
+
+## Emenda — lado da PTAX em pares */BRL (2026-07-07)
+
+Co-design `data-engineer` + `financial-planner` (A33.l2, [[ADR-238]] §D1):
+
+- **Invariante:** `market_rates.rate` para pares `*/BRL` é PTAX de
+  **compra** (boletim de fechamento) — mesma base que a RFB usa para
+  bens/direitos em ME e para o GCAP. Consumidores: `WisePtaxConverter`
+  (snapshot 31/12 dos informes financeiro PF).
+- **Lado venda exige schema evolution futura** (ex.: coluna `side` ou
+  source-discriminator) — **não** reinterprete rows existentes; `source`
+  é reforço de auditoria apenas, não é contrato parseável.
+- **Guard anti-bootstrap:** o seed A7.2b (`y3z4a5b6c7d8`) replicou a
+  cotação de 2026 em `observed_at=2024-01-01`; `get_latest_on_or_before`
+  cairia nessa row silenciosamente para lookups de 31/12. Consumidores
+  de snapshot anual só aceitam cotação observada em **dezembro do
+  ano-base** (senão degradam para `None` + warning). Cotações reais de
+  31/12 (2023-2025, USD/EUR/GBP) seedadas em `a33l2ptax3112` com fonte
+  BCB Olinda (boletim "Fechamento PTAX", cotação de compra).
