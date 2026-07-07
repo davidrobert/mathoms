@@ -12,15 +12,12 @@ from sqlalchemy.orm import Mapped, mapped_column
 from backend.app.core.database import Base
 
 
+# Sem FK de workspace por design: o drift-check avalia o contrato global do
+# prompt/provider, não dado de tenant. Custo e tenancy da chamada ficam no
+# llm_call_log (hooks ADR-173); esta tabela existe porque cache hit não grava
+# LLMCallLog (ADR-307 D5) e linha de custo prova chamada, não avaliação.
 class LLMDriftCheck(Base):
-    """1 row por fixture por execução do drift-check; pass/fail consultável.
-
-    Sem FK de workspace por design: o drift-check avalia o contrato global
-    do prompt/provider, não dado de tenant. Custo e tenancy da chamada ficam
-    no ``llm_call_log`` (hooks ADR-173); esta tabela existe porque cache hit
-    não grava ``LLMCallLog`` (ADR-307 D5) e linha de custo prova chamada,
-    não avaliação.
-    """
+    """1 row por fixture por execução do drift-check; pass/fail consultável."""
 
     __tablename__ = "llm_drift_check"
 

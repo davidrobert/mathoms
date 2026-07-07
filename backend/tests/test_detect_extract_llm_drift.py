@@ -6,6 +6,8 @@ CI de PR nunca chama Anthropic: todos os caminhos usam
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 from celery.schedules import crontab
 from sqlalchemy import create_engine, select
@@ -40,8 +42,9 @@ from tests.fakes.fake_llm_client import FakeSequenceLLMClient
 # ────────────────────────────── helpers ──────────────────────────────
 
 
-def _tx(date: str = "2026-03-05", amount: float = -100.0) -> ExtractedTransaction:
-    return ExtractedTransaction(date=date, description="TX SINTETICA", amount=amount)
+def _tx(date: str = "2026-03-05", amount: str = "-100.00") -> ExtractedTransaction:
+    # Boundary monetário E2-llm é Decimal (ADR-090, A33.l1) — string decimal no teste.
+    return ExtractedTransaction(date=date, description="TX SINTETICA", amount=Decimal(amount))
 
 
 def _inv(applied_date: str | None = "2025-01-10") -> ExtractedInvestment:
@@ -49,7 +52,7 @@ def _inv(applied_date: str | None = "2025-01-10") -> ExtractedInvestment:
         type="cdb",
         institution="btgpactual",
         description="CDB SINTETICO",
-        value_brl=25000.0,
+        value_brl=Decimal("25000.00"),
         applied_date=applied_date,
     )
 
@@ -172,8 +175,6 @@ def test_run_call_failure_is_recorded_and_batch_continues():
 
 
 def test_run_budget_hard_stop_short_circuits_remaining_fixtures():
-    from decimal import Decimal
-
     exc = LLMBudgetExceededError("ws-1", Decimal("22"), Decimal("20"))
     fake = FakeSequenceLLMClient(outputs=[exc])
     results = run_extract_llm_drift(fake)

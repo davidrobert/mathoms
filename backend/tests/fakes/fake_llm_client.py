@@ -38,14 +38,12 @@ class FakeLLMClient:
         self.chat = _Chat(completions=_Completions(error=raises, response=response))
 
 
+# Entradas podem ser Pydantic model (vira LLMCallResult.output) ou Exception
+# (levantada) — cobre o drift-check nightly (A33.l5), que faz 1 trial por
+# fixture em sequência. CI nunca chama Anthropic.
 @dataclass
 class FakeSequenceLLMClient:
-    """Stand-in para ``LLMService.call`` com 1 output programado por chamada.
-
-    Entradas podem ser Pydantic model (vira ``LLMCallResult.output``) ou
-    ``Exception`` (levantada) — cobre o drift-check nightly (A33.l5), que
-    faz 1 trial por fixture em sequência. CI nunca chama Anthropic.
-    """
+    """Stand-in para ``LLMService.call`` com 1 output programado por chamada."""
 
     outputs: list[Any] = field(default_factory=list)
     provider: str = "fake"
