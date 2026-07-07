@@ -40,30 +40,24 @@ _FEV = (date(2026, 2, 1), date(2026, 2, 28))
 _MAR = (date(2026, 3, 1), date(2026, 3, 31))
 
 
-def _stmt(
-    period: tuple[date, date],
-    opening: str | None = None,
-    closing: str | None = None,
-    *,
-    inst: str = "bradesco",
-    tipo: str | None = "extratoconta",
-    member: str | None = "titular",
-    currency: str = "BRL",
-    number: str | None = None,
-    src: str | None = None,
-) -> BankStatement:
+def _money_brl(value: str | None) -> Money | None:
+    return Money.of(value, "BRL") if value is not None else None
+
+
+def _stmt(period: tuple[date, date], opening=None, closing=None, **kw) -> BankStatement:
+    """Statement sintético BRL; kw: inst, tipo, member, number, src."""
     return BankStatement(
-        institution=inst,
-        member_key=member,
+        institution=kw.get("inst", "bradesco"),
+        member_key=kw.get("member", "titular"),
         period_start=period[0],
         period_end=period[1],
-        currency=currency,
+        currency="BRL",
         transactions=[],
-        opening_balance=Money.of(opening, currency) if opening is not None else None,
-        closing_balance=Money.of(closing, currency) if closing is not None else None,
-        source_document=src,
-        account_type=tipo,
-        account_number_norm=number,
+        opening_balance=_money_brl(opening),
+        closing_balance=_money_brl(closing),
+        source_document=kw.get("src"),
+        account_type=kw.get("tipo", "extratoconta"),
+        account_number_norm=kw.get("number"),
     )
 
 
