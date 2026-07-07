@@ -21,6 +21,28 @@ export interface PatrimonioCaixaDetalhe {
   saldo_original: number;
   valor_brl: number;
   tipo: "moeda_nacional" | "moeda_estrangeira" | string;
+  /** ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1. */
+  fonte?: "extrato" | "informe_31_12" | string;
+}
+
+/** A33.l2 P4 (co-design product-designer 2026-07-07) — row do card
+ * "Posição por instituição e moeda (31/12)" em S1. */
+export interface Posicao3112Row {
+  instituicao: string;
+  moeda: string;
+  /** Valor na moeda original — null para contas BRL (sem linha secundária). */
+  valor_original: number | null;
+  /** Valor convertido a BRL pela PTAX compra 31/12; null quando PTAX ausente. */
+  valor_brl: number | null;
+  fonte: "informe_31_12" | "extrato" | string;
+  /** Data ISO da cotação PTAX usada (footnote). */
+  ptax_data: string | null;
+  ptax_status: "applied" | "missing" | string | null;
+  /** Informe substituiu o saldo do extrato da virada de ano → nudge. */
+  informe_venceu_extrato: boolean;
+  divergencia_relevante: boolean;
+  ano_base: number | null;
+  tipo: string;
 }
 
 export interface PatrimonioCategoria {
@@ -54,6 +76,10 @@ export interface PatrimonioData {
   caixa_detalhes?: PatrimonioCaixaDetalhe[];
   composicao?: PatrimonioCategoria[];
   tabela_categorias?: PatrimonioCategoria[];
+  /** A33.l2 P4 — posição por instituição/moeda (informe 31/12 + extrato). */
+  posicao_31_12?: Posicao3112Row[];
+  /** A33.l2 P5.4 — ativos no exterior ≥ USD 1MM em 31/12 (Res. BCB 279/2022). */
+  cbe_obrigatorio?: boolean;
 }
 
 // Bloco G — Exposição cambial (plan/RESIDENCIA_E_USO, co-design 2026-05-18).

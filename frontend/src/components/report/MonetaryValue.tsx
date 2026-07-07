@@ -4,7 +4,9 @@ import { cn } from "@/lib/cn";
 import { ProvenancePopover } from "./provenance/ProvenancePopover";
 import { useProvenanceEntry } from "./provenance/ReportProvenanceProvider";
 
-export type Currency = "BRL" | "USD";
+// A33.l2 P4 (co-design product-designer 2026-07-07): EUR/GBP para contas
+// multi-moeda Wise — Intl.NumberFormat já formata os símbolos.
+export type Currency = "BRL" | "USD" | "EUR" | "GBP";
 
 /** Onda 10 #1 — tamanhos canônicos para valores monetários cross-rota.
  *
