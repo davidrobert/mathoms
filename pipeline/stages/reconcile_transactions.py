@@ -43,8 +43,14 @@ def _log_structured_aggregate(result: dict) -> None:
             "statements_reconciled": result.get("statements_reconciled", 0),
             "artifacts_written": result.get("total", 0),
             "skipped_inputs": result.get("skipped_inputs", 0),
+            # ADR-310 — sinal observável: faturas fora da cadeia de saldo.
+            "saldo_exclusions": len(result.get("saldo_exclusions") or []),
         },
     )
+    _log_warning_classes(logger, result)
+
+
+def _log_warning_classes(logger, result: dict) -> None:
     for warning_class in _WARNING_CLASSES:
         count = len(result.get(warning_class) or [])
         if count:

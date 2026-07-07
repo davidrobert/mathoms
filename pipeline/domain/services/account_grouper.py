@@ -17,8 +17,11 @@ testes pontuais.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass, field, replace
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pipeline.domain.models.document import BankStatement
 
 # =============================================================================
 # Defaults — alinhados ao legado (reconcile_transactions.py::_init_config)
@@ -189,6 +192,23 @@ class AccountGrouper:
             moeda = self._config.default_currency
 
         return AccountKey(bank=bank, account_type=tipo_normalized, currency=moeda.upper())
+
+    def key_for_statement(self, stmt: "BankStatement") -> AccountKey | None:
+        """Chave canônica derivada de um ``BankStatement`` (ADR-310) — mesma
+        definição de "mesma conta" de :meth:`key` (delega para ele); único
+        ajuste é ``bank`` lowercased, porque statements chegam de parsers
+        heterogêneos (paridade com o comportamento histórico case-insensitive
+        do ``SaldoContinuityValidator``)."""
+        key = self.key(
+            {
+                "banco": stmt.institution,
+                "tipo": stmt.account_type or "",
+                "moeda": stmt.currency,
+            }
+        )
+        if key is None:
+            return None
+        return replace(key, bank=key.bank.lower())
 
     # -- Convenience --
 

@@ -44,6 +44,7 @@ from pipeline.domain.services.reconciliation_service import (
     ReconciliationService,
 )
 from pipeline.domain.services.reconciliation_validators import (
+    FaturaExcludedFromSaldoChain,
     SaldoContinuityValidator,
     SaldoGapWarning,
     TemporalGapDetector,
@@ -106,6 +107,9 @@ class ReconciliationStoreResult:
     period_warnings: tuple[PeriodDerivationWarning, ...] = ()
     anachronic_warnings: tuple[AnachronicTransactionWarning, ...] = ()
     saldo_warnings: tuple[SaldoGapWarning, ...] = ()
+    # ADR-310 — sinal de auditoria: statements classificados como fatura que
+    # ficaram fora da cadeia de continuidade de saldo.
+    saldo_exclusions: tuple[FaturaExcludedFromSaldoChain, ...] = ()
     temporal_warnings: tuple[TemporalGapWarning, ...] = ()
     baseline_warnings: tuple[BaselineDiffWarning, ...] = ()
     institution_warnings: tuple[EmptyInstitutionWarning, ...] = ()
@@ -121,6 +125,7 @@ class ReconciliationStoreResult:
             "period_warnings": [w.format() for w in self.period_warnings],
             "anachronic_warnings": [w.format() for w in self.anachronic_warnings],
             "saldo_warnings": [w.format() for w in self.saldo_warnings],
+            "saldo_exclusions": [w.format() for w in self.saldo_exclusions],
             "temporal_warnings": [w.format() for w in self.temporal_warnings],
             "baseline_warnings": [w.format() for w in self.baseline_warnings],
             "institution_warnings": [w.format() for w in self.institution_warnings],
@@ -450,8 +455,11 @@ class E3ReconcilerAdapter:
         # Validações — sempre rodam sobre os statements originais (pré-merge)
         # para preservar fidelidade temporal entre arquivos.
         saldo_warnings: tuple[SaldoGapWarning, ...] = ()
+        saldo_exclusions: tuple[FaturaExcludedFromSaldoChain, ...] = ()
         if self._saldo_validator is not None:
-            saldo_warnings = tuple(self._saldo_validator.validate(statements))
+            saldo_result = self._saldo_validator.validate_with_exclusions(statements)
+            saldo_warnings = saldo_result.warnings
+            saldo_exclusions = saldo_result.excluded_faturas
 
         temporal_warnings: tuple[TemporalGapWarning, ...] = ()
         if self._temporal_detector is not None:
@@ -479,6 +487,7 @@ class E3ReconcilerAdapter:
             period_warnings=tuple(outcome.period_warnings),
             anachronic_warnings=tuple(outcome.anachronic_warnings),
             saldo_warnings=saldo_warnings,
+            saldo_exclusions=saldo_exclusions,
             temporal_warnings=temporal_warnings,
             baseline_warnings=baseline_warnings,
             institution_warnings=tuple(outcome.institution_warnings),

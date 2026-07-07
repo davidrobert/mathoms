@@ -164,7 +164,10 @@ from pipeline.domain.services.reconciliation_service import (
     ReconciliationService,
 )
 from pipeline.domain.services.reconciliation_validators import (
+    ContinuityAccountKey,
+    FaturaExcludedFromSaldoChain,
     SaldoContinuityConfig,
+    SaldoContinuityResult,
     SaldoContinuityValidator,
     SaldoGapWarning,
     TemporalGapConfig,
@@ -196,7 +199,10 @@ from pipeline.domain.services.transaction_classifier import (
 __all__ = [
     "ReconciliationConfig",
     "ReconciliationService",
+    "ContinuityAccountKey",
+    "FaturaExcludedFromSaldoChain",
     "SaldoContinuityConfig",
+    "SaldoContinuityResult",
     "SaldoContinuityValidator",
     "SaldoGapWarning",
     "TemporalGapConfig",
