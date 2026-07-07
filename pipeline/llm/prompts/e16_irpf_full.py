@@ -52,36 +52,20 @@ Ficha "Rendimentos Tributáveis Recebidos de PF/Exterior".
 
 # RENDIMENTOS ISENTOS E NÃO TRIBUTÁVEIS
 
-Mapeie pelo código RFB para o enum (fallback "99_outro" se for outro código):
-- "10": Aposentadoria/pensão de pessoa com 65+ anos
-- "11": Aposentadoria/pensão por moléstia grave/acidente
-- "12": Pensão alimentícia recebida
-- "13": Bolsa de estudo
-- "04": FGTS
-- "05": Indenizações por trabalho/rescisão
-- "09": Lucros e dividendos recebidos
-- "14": Transferências patrimoniais (heranças/doações)
+Mapeie pelo código RFB para o enum usando a tabela "Rendimentos isentos e não
+tributáveis" fornecida na mensagem do usuário (fallback "99_outro" se o código
+não estiver na tabela).
 
 # RENDIMENTOS SUJEITOS À TRIBUTAÇÃO EXCLUSIVA / DEFINITIVA
 
-Ficha "Rendimentos Sujeitos à Tributação Exclusiva":
-- "11": 13º salário
-- "10": JCP (Juros sobre Capital Próprio)
-- "06": Ganho de capital
-- "12": Rendimentos de aplicações financeiras
+Ficha "Rendimentos Sujeitos à Tributação Exclusiva". Mapeie pelo código RFB
+usando a tabela "Rendimentos sujeitos à tributação exclusiva/definitiva"
+fornecida na mensagem do usuário (fallback "99_outro").
 
 # PAGAMENTOS EFETUADOS (DEDUTÍVEIS)
 
-Códigos canônicos:
-- "10": Saúde (sem teto)
-- "11": Educação (teto R$3.561,50/dependente em 2024)
-- "30","31","33": Pensão alimentícia (judicial/acordo/escritura — sem teto)
-- "35": Previdência oficial (INSS/RPPS)
-- "36": PGBL (limite 12% rendimentos tributáveis)
-- "37": FUNPRESP/previdência complementar pública
-- "40": Doação a entidade filantrópica/cultural com benefício fiscal
-- "50": INSS empregado
-- "60": Livro-caixa
+Códigos canônicos e tetos por código: use a tabela "Pagamentos efetuados
+(dedutíveis)" fornecida na mensagem do usuário.
 
 Para cada pagamento: codigo_rfb, beneficiario_nome, valor_pago_brl, valor_dedutivel_brl.
 Se o valor_dedutivel_brl for menor que valor_pago_brl porque o teto cortou,
@@ -126,6 +110,10 @@ sinalizar discrepâncias ou seções truncadas no input.\
 
 
 USER_PROMPT_TEMPLATE = """\
+Tabelas de códigos RFB do ano-base (use para mapear codigo_rfb → enum):
+
+{codigos_rfb}
+
 Extraia o conteúdo financeiro completo da seguinte declaração IRPF.
 
 {documents_text}
@@ -134,7 +122,7 @@ Retorne JSON conforme o schema IRPFFullOutput. Lembre-se:
 - TODOS os valores monetários como string decimal ("1234.56"). Sem "R$", sem vírgula brasileira.
 - TODOS os CPFs mascarados como "***.***.***-XX".
 - Datas em ISO YYYY-MM-DD.
-- Mapeie códigos RFB para os enums; use "99_outro" como fallback.
+- Mapeie códigos RFB para os enums usando as tabelas acima; "99_outro" como fallback.
 - Para cada pagamento dedutível, indique se o teto foi aplicado.
 - NÃO calcule alíquotas — o sistema deriva-as a partir dos valores absolutos.\
 """

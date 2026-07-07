@@ -1,0 +1,46 @@
+# Códigos RFB do e16 (`extract_irpf_full`) — ano-base 2024 (exercício 2025).
+#
+# Fonte: Manual de Preenchimento DIRPF (Receita Federal) — sem API pública;
+# tabela muda anualmente. Atualização anual (fevereiro):
+# docs/reference/runbooks/atualizacao_codigos_rfb.md (A33.l8).
+#
+# Conteúdo injetado no user prompt do stage `extract_irpf_full` via
+# pipeline/llm/rfb_codes.py. Código fora destas tabelas mapeia para o
+# fallback "99_outro" dos enums em pipeline/llm/schemas/e16_irpf_full.py —
+# código novo relevante exige também crescer o enum (schema change →
+# PROMPT_VERSION bump).
+version: 1
+ano_base: 2024
+fonte: "Manual de Preenchimento DIRPF 2025 (ano-calendário 2024) — Receita Federal"
+
+# Ficha "Rendimentos Isentos e Não Tributáveis" (código → categoria).
+rendimentos_isentos:
+  "04": "FGTS"
+  "05": "Indenizações por trabalho/rescisão"
+  "09": "Lucros e dividendos recebidos"
+  "10": "Aposentadoria/pensão de pessoa com 65+ anos"
+  "11": "Aposentadoria/pensão por moléstia grave/acidente"
+  "12": "Pensão alimentícia recebida"
+  "13": "Bolsa de estudo"
+  "14": "Transferências patrimoniais (heranças/doações)"
+
+# Ficha "Rendimentos Sujeitos à Tributação Exclusiva/Definitiva".
+tributacao_exclusiva:
+  "06": "Ganho de capital"
+  "10": "JCP (Juros sobre Capital Próprio)"
+  "11": "13º salário"
+  "12": "Rendimentos de aplicações financeiras"
+
+# Ficha "Pagamentos Efetuados" (dedutíveis; tetos por código, quando houver).
+pagamentos_efetuados:
+  "10": "Saúde (sem teto)"
+  "11": "Educação (teto R$ 3.561,50/dependente no ano-base 2024)"
+  "30": "Pensão alimentícia judicial (sem teto)"
+  "31": "Pensão alimentícia por acordo extrajudicial (sem teto)"
+  "33": "Pensão alimentícia por escritura pública (sem teto)"
+  "35": "Previdência oficial (INSS/RPPS)"
+  "36": "PGBL (limite 12% dos rendimentos tributáveis)"
+  "37": "FUNPRESP/previdência complementar pública"
+  "40": "Doação a entidade filantrópica/cultural com benefício fiscal"
+  "50": "INSS empregado"
+  "60": "Livro-caixa"
