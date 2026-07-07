@@ -13,7 +13,7 @@ CLI:
     python dev/migrate_milhas_to_workspace_storage.py --workspace-id <id> --force
     python dev/migrate_milhas_to_workspace_storage.py --workspace-root /path/to/ws
 
-A7.5 (cleanup) removerá o bridge de leitura legado em scripts/e5_analyze.py.
+A7.5 (cleanup) removerá o bridge de leitura legado em scripts/analyze_finances.py.
 A8.1 (MileageProgram DB aggregate) torna esse arquivo obsoleto — migrar
 para DB rows e descontinuar markdown workspace-scoped.
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.e5_analyze import calculate_edad, is_one_time_income, linear_interpolate
+from scripts.analyze_finances import calculate_edad, is_one_time_income, linear_interpolate
 from scripts.e5n_narrativas import _safe_div, validate_narrativas
 
 

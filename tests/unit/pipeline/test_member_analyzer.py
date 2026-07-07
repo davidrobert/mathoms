@@ -1,6 +1,6 @@
 """Tests — ``MemberAnalyzer`` (Sessão A3c · Fase 8 foundation).
 
-Cobre paridade com helpers internos de ``scripts/e5_analyze.py:644-692``
+Cobre paridade com helpers internos de ``scripts/analyze_finances.py:644-692``
 (``_get_bens``, ``_imovel_valor``, ``_imovel_desc``, ``_veiculo_valor``,
 ``_investimento_valor``) + a fatia per-member de ``analyze_patrimonio``.
 """

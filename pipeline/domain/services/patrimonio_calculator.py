@@ -1,6 +1,6 @@
 """``PatrimonioCalculator`` — composição patrimonial completa (A6d.3.3 — ADR-100).
 
-Substitui ``scripts/e5_analyze.analyze_patrimonio`` por um serviço puro:
+Substitui ``scripts/analyze_finances.analyze_patrimonio`` por um serviço puro:
 - Zero globals; recebe :class:`PatrimonioConfig` com identidade + keyword.
 - Zero I/O; o adapter carrega baseline + investimentos_atuais + caixa E3 e
   monta :class:`PatrimonioInputs`.
@@ -8,7 +8,7 @@ Substitui ``scripts/e5_analyze.analyze_patrimonio`` por um serviço puro:
   exceto por prints debug que não fazem parte do contrato).
 
 Segue o **mesmo contrato de saída** do legado — o dict é consumido por:
-- ``scripts/e5_analyze.analyze_ratios`` (campos ``bruto``, ``investivel``,
+- ``scripts/analyze_finances.analyze_ratios`` (campos ``bruto``, ``investivel``,
   ``dividas``, ``residencia``, ``veiculos``).
 - ``config/report_layout.yaml`` via ``analise_financeira-5_analysis.json``.
 - ``scripts/e5n_narrativas.build_narrativas`` (campos ``composicao``,
@@ -46,7 +46,7 @@ invariantes do produto Mathoms (não dado cliente).
 6. **Caixa + Moeda Estrangeira** — saldo final reconciliado (E3) das
    contas correntes BRL + contas FX convertidas (USD/EUR via
    ``taxas.json``). Ver :meth:`PatrimonioCalculator._compute_caixa` e
-   ``scripts/e5_analyze._load_caixa_from_e3_saldos``.
+   ``scripts/analyze_finances._load_caixa_from_e3_saldos``.
 7. **Veículos** — soma de ``veiculos[]`` de todos os membros. Ver
    :meth:`PatrimonioCalculator._sum_veiculos`.
 
@@ -125,7 +125,7 @@ class PatrimonioCalculator:
         self._config = config
 
     def calculate(self, inputs: PatrimonioInputs) -> dict[str, Any]:
-        """Produz dict paridade com ``scripts/e5_analyze.analyze_patrimonio``."""
+        """Produz dict paridade com ``scripts/analyze_finances.analyze_patrimonio``."""
         identity = self._config.members
 
         titular_data, conjuge_data = resolve_members(inputs.baseline, identity)

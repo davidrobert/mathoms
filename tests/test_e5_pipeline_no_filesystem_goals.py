@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-import scripts.e5_analyze as e5_analyze
+import scripts.analyze_finances as analyze_finances
 import scripts.e5n_narrativas as e5n
 
 
@@ -36,12 +36,12 @@ def test_materialize_adapter_configs_removed() -> None:
     )
 
 
-def test_e5_analyze_does_not_define_load_goals() -> None:
-    """``e5_analyze`` nunca teve ``_load_goals``; defesa em profundidade."""
-    src = inspect.getsource(e5_analyze)
+def test_analyze_finances_does_not_define_load_goals() -> None:
+    """``analyze_finances`` nunca teve ``_load_goals``; defesa em profundidade."""
+    src = inspect.getsource(analyze_finances)
     assert (
         "def _load_goals(" not in src
-    ), "scripts/e5_analyze.py não pode definir _load_goals (ADR-180)"
+    ), "scripts/analyze_finances.py não pode definir _load_goals (ADR-180)"
 
 
 def test_load_metrics_from_e5_accepts_goals_cfg_kwarg() -> None:

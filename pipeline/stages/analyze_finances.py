@@ -1,6 +1,6 @@
 """Stage wrapper for E5 Analysis (ADR-097).
 
-Chama ``scripts.e5_analyze.main_with_store(ctx)`` que opera direto sobre
+Chama ``scripts.analyze_finances.main_with_store(ctx)`` que opera direto sobre
 ``ctx.get_artifact_store()``.
 """
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 def run(ctx: "WorkspaceContext") -> dict:
     from pipeline.live_progress import emit_item_progress
-    from scripts.e5_analyze import main_with_store
+    from scripts.analyze_finances import main_with_store
 
     emit_item_progress(
         ctx.pipeline_run_id,

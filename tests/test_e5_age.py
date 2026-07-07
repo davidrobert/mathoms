@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.e5_analyze import calculate_edad
+from scripts.analyze_finances import calculate_edad
 
 
 class TestCalculateEdad:

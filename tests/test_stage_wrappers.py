@@ -176,13 +176,13 @@ class TestInitConfig:
         (config_dir / "parametros_fiscais.json").write_text("{}")
         (config_dir / "categorization.json").write_text("{}")
 
-        from scripts.e5_analyze import _init_config
+        from scripts.analyze_finances import _init_config
 
         _init_config(tmp_path)
-        from scripts import e5_analyze
+        from scripts import analyze_finances
 
-        assert e5_analyze.PROJECT_DIR == tmp_path
-        assert e5_analyze.E5_ANALYSIS_DIR == tmp_path / "processed" / "E5_analysis"
+        assert analyze_finances.PROJECT_DIR == tmp_path
+        assert analyze_finances.E5_ANALYSIS_DIR == tmp_path / "processed" / "E5_analysis"
 
         # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 

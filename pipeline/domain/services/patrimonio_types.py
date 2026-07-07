@@ -120,7 +120,7 @@ class MemberIdentity:
 
     Substitui os globals ``_TITULAR_KEY``/``_CONJUGE_KEY``/``_TITULAR_NOME``/
     ``_CONJUGE_NOME``/``_KEY_INV_TITULAR``/``_KEY_INV_CONJUGE`` do script
-    legado ``scripts/e5_analyze.py``.
+    legado ``scripts/analyze_finances.py``.
     """
 
     titular_key: str

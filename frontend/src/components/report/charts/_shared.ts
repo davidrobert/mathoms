@@ -27,7 +27,7 @@ const MONTH_SHORT_PT_LOWER = [
   "jul", "ago", "set", "out", "nov", "dez",
 ] as const;
 
-/** Backend `e5_analyze.py:1311` emite labels de chart mensais no formato
+/** Backend `analyze_finances.py:1311` emite labels de chart mensais no formato
  * `"yy/mm"` (ex.: `"26/02"`). Esse formato confunde — facilmente lido como
  * `dd/MM`. Helper converte para pt-BR `"MMM/aa"` (ex.: `"fev/26"`).
  *

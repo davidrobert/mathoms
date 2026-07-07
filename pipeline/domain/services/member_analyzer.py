@@ -1,6 +1,6 @@
 """MemberAnalyzer — análise patrimonial por membro (Sessão A3c · Fase 8 foundation).
 
-Extrai a fatia "patrimônio por membro" de ``scripts/e5_analyze.py:781``
+Extrai a fatia "patrimônio por membro" de ``scripts/analyze_finances.py:781``
 (``analyze_patrimonio``) em um domain service puro. Escopo mínimo: cobre
 apenas a decomposição por membro (imóveis residência vs investimento,
 veículos, investimentos, contas bancárias). A consolidação cross-membro

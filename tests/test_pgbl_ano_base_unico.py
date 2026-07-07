@@ -29,7 +29,7 @@ from pipeline.llm.schemas.e16_irpf_full import (
     NaturezaContribuinte,
     PagamentoDedutivel,
 )
-from scripts.e5_analyze import _e5_kpis_from_analyzer
+from scripts.analyze_finances import _e5_kpis_from_analyzer
 
 _HOJE_POS_PRAZO = _dt.date(2026, 7, 1)  # 2025 fora da janela RFB (fechado em 1/jun)
 

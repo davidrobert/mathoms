@@ -19,7 +19,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS_TO_CHECK = [
     "scripts/reconcile_transactions.py",
     "scripts/categorize_transactions.py",
-    "scripts/e5_analyze.py",
+    "scripts/analyze_finances.py",
     "scripts/e5n_narrativas.py",
     "scripts/e7_review.py",
     "scripts/consolidate_baseline.py",
