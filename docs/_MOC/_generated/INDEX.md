@@ -684,9 +684,9 @@
 | A32.l1 | lane | shipped | A32 | purga de artifacts E2-llm órfãos + snapshot baseline da run dogfood d1732edd | `sprint/A32/lanes/A32-l1-purga-orfaos-baseline.md` |
 | A32.l2 | lane | shipped | A32 | contrato E2-LLM: tipo no writer + fallback tipo_documento nos readers + golden de paridade derivado + gate strict CI-only | `sprint/A32/lanes/A32-l2-contrato-e2-llm-paridade.md` |
 | A32.l3 | lane | shipped | A32 | parser de fatura: período do routing/DB, nunca re-derivado do filename inteiro | `sprint/A32/lanes/A32-l3-parser-fatura-periodo-filename.md` |
-| A32.l4 | lane | in_progress | A32 | chave canônica de conta na continuidade de saldo + ordenação determinística (ADR-310) | `sprint/A32/lanes/A32-l4-chave-canonica-continuidade-saldo.md` |
-| A32.l5 | lane | in_progress | A32 | lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável (ADR-311) | `sprint/A32/lanes/A32-l5-lifecycle-artifact-tombstone-versao.md` |
-| A32.l6 | lane | planned | A32 | review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | `sprint/A32/lanes/A32-l6-review-ux-identidade-natureza.md` |
+| A32.l4 | lane | shipped | A32 | chave canônica de conta na continuidade de saldo + ordenação determinística (ADR-310) | `sprint/A32/lanes/A32-l4-chave-canonica-continuidade-saldo.md` |
+| A32.l5 | lane | shipped | A32 | lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável (ADR-311) | `sprint/A32/lanes/A32-l5-lifecycle-artifact-tombstone-versao.md` |
+| A32.l6 | lane | in_progress | A32 | review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | `sprint/A32/lanes/A32-l6-review-ux-identidade-natureza.md` |
 | A32.l7 | lane | planned | A32 | gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | `sprint/A32/lanes/A32-l7-gate-rerun-dogfood.md` |
 | A33.l1 | lane | shipped | A33 | ADR-090 no boundary LLM: e2_llm_extract sem float monetário + gate cobrindo pipeline/llm/schemas (W1β) | `sprint/A33/lanes/A33-l1-adr090-llm-boundary.md` |
 | A33.l2 | lane | open | A33 | Fechar A17.l3: informes financeiro PF P3-P5 (consolidate_baseline + PTAX 31/12 + UI S4 + validações Wise) | `sprint/A33/lanes/A33-l2-a17l3-financeiro-pf-fechamento.md` |

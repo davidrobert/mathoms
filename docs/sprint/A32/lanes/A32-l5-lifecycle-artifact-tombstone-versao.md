@@ -4,9 +4,9 @@ type: lane
 title: "lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável (ADR-311)"
 sprint: A32
 plan: PLAN-data-lineage
-status: in_progress
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 837
+ship_date: "2026-07-07"
 priority: P1
 branch_slug: a32-l5-artifact-lifecycle-tombstone
 adrs: ["[[ADR-311]]", "[[ADR-278]]", "[[ADR-279]]", "[[ADR-281]]"]
@@ -15,7 +15,7 @@ parallel_with: ["[[A32.l4]]"]
 tags:
   - type/lane
   - sprint/a32
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/db
