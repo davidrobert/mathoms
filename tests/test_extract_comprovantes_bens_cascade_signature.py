@@ -39,6 +39,8 @@ _EXPECTED_CALL_KWARGS = frozenset(
         "timeout_s",
         # PROMPT_VERSION persistido no LLMCallLog para drift tracking (ADR-173).
         "prompt_version",
+        # Label de dimensão das métricas OTLP mathoms.llm.* (A33.l7, ADR-110).
+        "prompt_name",
         # Cache de resposta opt-in no choke-point (ADR-307).
         "use_cache",
     }
