@@ -1,6 +1,6 @@
 """Pre-processadores de extratos E2 (Fase 6 foundation · Sessão A1).
 
-Extrai duas responsabilidades de ``scripts/e3_reconcile.py::load_and_group_e2_extracts``
+Extrai duas responsabilidades de ``scripts/reconcile_transactions.py::load_and_group_e2_extracts``
 (linhas 655-795) em domain services puros, testáveis sem I/O:
 
 - ``StatementPeriodNormalizer``: garante que o campo ``periodo`` seja um dict
@@ -185,7 +185,7 @@ class NormalizationResult:
 
 
 # Conjunto de tipos de fatura aceitos para sintetizar período (mantém paridade
-# com ``e3_reconcile.should_skip_extract`` — outras "fatura*" são skip antes
+# com ``reconcile_transactions.should_skip_extract`` — outras "fatura*" são skip antes
 # de chegar ao normalizer).
 _DEFAULT_FATURA_PREFIX = "fatura"
 

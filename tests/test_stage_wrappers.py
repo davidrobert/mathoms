@@ -109,12 +109,12 @@ class TestInitConfig:
         (config_dir / "family_members.json").write_text("{}")
         (config_dir / "institutions.json").write_text("{}")
 
-        from scripts.e3_reconcile import _BASE_DIR, _init_config
+        from scripts.reconcile_transactions import _BASE_DIR, _init_config
 
         _init_config(tmp_path)
-        from scripts import e3_reconcile
+        from scripts import reconcile_transactions
 
-        assert e3_reconcile._BASE_DIR == tmp_path
+        assert reconcile_transactions._BASE_DIR == tmp_path
 
         # _init_config(_REPO_ROOT) removido em A7.5 — config/ legado não
         # tem mais categorization.json/family_members.json para o teardown.

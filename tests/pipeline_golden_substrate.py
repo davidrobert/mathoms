@@ -96,9 +96,9 @@ def run_dogfood_pipeline(
     """Roda E1.5c→E3→E4→E5 sobre baseline bruto + extratos E2 seeded; exercita dedup genuíno (ADR-271 em E1.5c, ADR-255 em E3); retorna ``analise_financeira``."""
     from pipeline.context import WorkspaceContext
     from scripts.consolidate_baseline import main_with_store as e15_mws
-    from scripts.e3_reconcile import main_with_store as e3_mws
     from scripts.e4_categorize import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
+    from scripts.reconcile_transactions import main_with_store as e3_mws
 
     ctx = WorkspaceContext(root=root, artifact_store=_seed_dogfood_store(raw_baseline, e2_extracts))
     for stage in (e15_mws, e3_mws, e4_mws, e5_mws):

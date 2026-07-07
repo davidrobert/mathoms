@@ -1,6 +1,6 @@
 """Stage wrapper for E3 Reconciliation (ADR-097).
 
-Chama ``scripts.e3_reconcile.main_with_store(ctx)`` que opera direto sobre
+Chama ``scripts.reconcile_transactions.main_with_store(ctx)`` que opera direto sobre
 ``ctx.get_artifact_store()`` (Disk em CLI, DB em Web).
 
 Piloto do logging estruturado (ADR-273): agregado final como INFO +
@@ -26,7 +26,7 @@ _WARNING_CLASSES = (
 
 
 def run(ctx: "WorkspaceContext") -> dict:
-    from scripts.e3_reconcile import main_with_store
+    from scripts.reconcile_transactions import main_with_store
 
     result = main_with_store(ctx)
     _log_structured_aggregate(result)

@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.e3_reconcile import (
+from scripts.reconcile_transactions import (
     _normalize_description_for_dedup,
     deduplicate_transactions,
     normalize_periodo_in_extract,

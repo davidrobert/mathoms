@@ -1,6 +1,6 @@
-"""Tests — `scripts/e3_reconcile.py` lazy init (Sessão A3b).
+"""Tests — `scripts/reconcile_transactions.py` lazy init (Sessão A3b).
 
-Garante que importar ``scripts.e3_reconcile`` não dispara I/O de configs no
+Garante que importar ``scripts.reconcile_transactions`` não dispara I/O de configs no
 disco. Defaults módulo-level são sensatos. ``_init_config(base_dir)`` continua
 disponível para popular do disco quando explicitamente chamado.
 """
@@ -27,7 +27,7 @@ class TestImportNoSideEffect:
         """
         import ast
 
-        src_path = Path(__file__).resolve().parents[3] / "scripts" / "e3_reconcile.py"
+        src_path = Path(__file__).resolve().parents[3] / "scripts" / "reconcile_transactions.py"
         tree = ast.parse(src_path.read_text(encoding="utf-8"))
 
         offending: list[int] = []
@@ -42,7 +42,7 @@ class TestImportNoSideEffect:
 
         assert offending == [], (
             f"_init_config(...) ainda é invocado no top-level em "
-            f"scripts/e3_reconcile.py (linhas {offending}) — Sessão A3b "
+            f"scripts/reconcile_transactions.py (linhas {offending}) — Sessão A3b "
             "deveria ter eliminado o side-effect no import."
         )
 
@@ -54,13 +54,13 @@ class TestImportNoSideEffect:
 
 class TestDefaults:
     def test_skip_types_has_irpf_and_investimentos(self):
-        from scripts.e3_reconcile import SKIP_TYPES
+        from scripts.reconcile_transactions import SKIP_TYPES
 
         assert "irpf" in SKIP_TYPES
         assert "investimentosposicao" in SKIP_TYPES
 
     def test_tipo_canonical_has_extratoconta(self):
-        from scripts.e3_reconcile import TIPO_CANONICAL
+        from scripts.reconcile_transactions import TIPO_CANONICAL
 
         assert TIPO_CANONICAL["extratoconta"] == "extratoconta"
         assert TIPO_CANONICAL["faturacarbon"] == "faturacarbon"
@@ -70,9 +70,9 @@ class TestDefaults:
         via config/family_members.json)."""
         # Re-importa limpo para evitar contaminação por outros testes que
         # rodaram _init_config(_DEFAULT_BASE_DIR).
-        if "scripts.e3_reconcile" in sys.modules:
-            del sys.modules["scripts.e3_reconcile"]
-        from scripts.e3_reconcile import ACCOUNT_TYPE_EQUIVALENCES
+        if "scripts.reconcile_transactions" in sys.modules:
+            del sys.modules["scripts.reconcile_transactions"]
+        from scripts.reconcile_transactions import ACCOUNT_TYPE_EQUIVALENCES
 
         # Nota: pode estar populado se _init_config foi chamado por outro
         # teste anterior (testes não são isolados). O importante é que
@@ -80,7 +80,7 @@ class TestDefaults:
         assert isinstance(ACCOUNT_TYPE_EQUIVALENCES, dict)
 
     def test_tolerances_have_sensible_defaults(self):
-        from scripts.e3_reconcile import (
+        from scripts.reconcile_transactions import (
             _TOLERANCE_BASELINE_DIFF,
             _TOLERANCE_GAP_DAYS,
             _TOLERANCE_SALDO_DIFF,
@@ -91,7 +91,7 @@ class TestDefaults:
         assert _TOLERANCE_BASELINE_DIFF == 1.0
 
     def test_base_dir_is_repo_root(self):
-        from scripts.e3_reconcile import _BASE_DIR, _DEFAULT_BASE_DIR
+        from scripts.reconcile_transactions import _BASE_DIR, _DEFAULT_BASE_DIR
 
         # Sem _init_config explícito, _BASE_DIR == _DEFAULT_BASE_DIR.
         assert isinstance(_BASE_DIR, Path)
@@ -123,14 +123,14 @@ class TestInitConfigStillWorks:
             encoding="utf-8",
         )
 
-        from scripts.e3_reconcile import (
+        from scripts.reconcile_transactions import (
             _DEFAULT_BASE_DIR,
             _init_config,
         )
 
         try:
             _init_config(tmp_path)
-            from scripts.e3_reconcile import (
+            from scripts.reconcile_transactions import (
                 _BANCO_DISPLAY_TO_CANONICAL,
                 _TOLERANCE_SALDO_DIFF,
                 ACCOUNT_TYPE_EQUIVALENCES,

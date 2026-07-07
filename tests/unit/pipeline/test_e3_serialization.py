@@ -1,6 +1,6 @@
 """Tests — ``e3_serialization`` (Fase 6 · Sessão A2).
 
-Cobre paridade com ``scripts/e3_reconcile.generate_output_filename`` (linha 932)
+Cobre paridade com ``scripts/reconcile_transactions.generate_output_filename`` (linha 932)
 e o schema E3 oficial (``config/schemas/e3_reconciled.schema.json``).
 """
 

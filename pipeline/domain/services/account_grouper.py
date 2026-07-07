@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 # =============================================================================
-# Defaults — alinhados ao legado (e3_reconcile.py::_init_config)
+# Defaults — alinhados ao legado (reconcile_transactions.py::_init_config)
 # =============================================================================
 
 
@@ -85,7 +85,7 @@ class AccountGrouperConfig:
     Sources no legado:
     - ``account_type_equivalences``: ``config/family_members.json``.
     - ``skip_types``: ``config/pipeline.json::reconciliation.skip_types``
-      (defaults hardcoded em ``e3_reconcile._init_config``).
+      (defaults hardcoded em ``reconcile_transactions._init_config``).
     - ``fatura_allowed``: hardcoded no legado em ``should_skip_extract``.
     - ``default_currency``: hardcoded ``"BRL"`` no legado.
     """
@@ -132,7 +132,7 @@ class AccountGrouper:
     # -- Skip --
 
     def should_skip(self, data: Any) -> bool:
-        """Replica ``e3_reconcile.should_skip_extract`` linha por linha.
+        """Replica ``reconcile_transactions.should_skip_extract`` linha por linha.
 
         Returns ``True`` para:
         - Não-dict.

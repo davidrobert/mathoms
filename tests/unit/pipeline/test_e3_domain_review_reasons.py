@@ -120,7 +120,7 @@ class TestBlockingGate:
         assert ReviewReasonCode.dedup_sentinel_period in BLOCKING_CODES
 
     def test_validation_block_only_blocks_on_blocking_codes(self) -> None:
-        from scripts.e3_reconcile import _e3_validation_block
+        from scripts.reconcile_transactions import _e3_validation_block
 
         class _Result:
             review_reasons = (
@@ -135,7 +135,7 @@ class TestBlockingGate:
 
     def test_validation_block_blocks_when_blocking_reason_present(self) -> None:
         from pipeline.domain.services.e3_reconciler_adapter import EmptyInstitutionWarning
-        from scripts.e3_reconcile import _e3_validation_block
+        from scripts.reconcile_transactions import _e3_validation_block
 
         class _Result:
             review_reasons = (

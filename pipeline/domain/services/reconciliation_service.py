@@ -3,7 +3,7 @@
 Recebe :class:`ReconciliationConfig` (não ``StageConfig``). Permite testes
 com fixture de 3 linhas em vez de mock completo de StageConfig.
 
-Responsabilidades (espelha ``scripts/e3_reconcile.py``):
+Responsabilidades (espelha ``scripts/reconcile_transactions.py``):
 - Agrupar ``BankStatement`` por (instituição, membro, moeda).
 - Remover duplicatas exatas e fuzzy (±``tolerance_days``, ±``tolerance_amount``).
 - Marcar transferências internas (crédito+débito mesmo valor, datas próximas).
