@@ -26,8 +26,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### PLAN-internal-admin — Console interno (operadores) — IA-0 a IA-4
 
 - Status: `in_progress` · Sprint atual: A11
-- Sprints envolvidas: A30, F7
-- Lanes: 2 done · 0 in_progress · 0 open · 0 blocked
+- Sprints envolvidas: A30, A31, F7
+- Lanes: 2 done · 0 in_progress · 2 open · 0 blocked
 - ADRs canônicas: [[ADR-116]]
 
 ### PLAN-launch-trust — Launch Trust — três frentes que precisam estar verdes antes de produção

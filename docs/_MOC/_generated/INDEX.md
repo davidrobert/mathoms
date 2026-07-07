@@ -304,6 +304,7 @@
 | ADR-306 | adr | Decidido |  | Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco | `adr/306-politica-de-base-temporal-de-mensalizacao-no-e5.md` |
 | ADR-307 | adr | Decidido |  | Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift | `adr/307-cache-de-resposta-llm-no-choke-point.md` |
 | ADR-308 | adr | Decidido |  | Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração | `adr/308-remediacao-needs-review-na-fila-de-documentos.md` |
+| ADR-309 | adr | Proposto |  | Audit do console interno persistido em tabela própria (7B.5) | `adr/309-audit-do-console-interno-persistido-em-tabela.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -676,6 +677,8 @@
 | A29.l2 | lane | shipped | A29 | cobertura ReviewReason completa em E3 + document_id real + projeção validation_issues (ADR-272 crit. 6) | `sprint/A29/lanes/A29-l2-reviewreason-cobertura-projecao.md` |
 | A29.l3 | lane | shipped | A29 | inbox de pendências em /documents: fila agrupada, banner de análise pausada, retomada explícita | `sprint/A29/lanes/A29-l3-inbox-pendencias-documents.md` |
 | A30.l1 | lane | shipped | A30 | editor de budget LLM por workspace no console interno (ops) | `sprint/A30/lanes/A30-l1-ops-llm-budget-editor.md` |
+| A31.l1 | lane | open | A31 | audit do console interno persistido em tabela internal_ops_audit (7B.5) | `sprint/A31/lanes/A31-l1-internal-ops-audit-db.md` |
+| A31.l2 | lane | open | A31 | calibrar MAX_SETTABLE_BUDGET_USD com unit economics (US$ 1.000 → US$ 300) | `sprint/A31/lanes/A31-l2-max-budget-calibracao.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -755,6 +758,7 @@
 | MOC-sprint-a28 | moc |  |  | Sprint A28 — Report Trust: o relatório para de afirmar precisão que os dados não sustentam | `sprint/A28/_README.md` |
 | MOC-sprint-a29 | moc |  |  | Sprint A29 — Review UX: conferência de pipeline centrada em documentos | `sprint/A29/_README.md` |
 | MOC-sprint-a30 | moc |  |  | Sprint A30 — Ops FinOps: budget LLM editável no console interno | `sprint/A30/_README.md` |
+| MOC-sprint-a31 | moc |  |  | Sprint A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado | `sprint/A31/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
