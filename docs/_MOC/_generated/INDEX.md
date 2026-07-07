@@ -305,7 +305,7 @@
 | ADR-307 | adr | Decidido |  | Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift | `adr/307-cache-de-resposta-llm-no-choke-point.md` |
 | ADR-308 | adr | Decidido |  | Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração | `adr/308-remediacao-needs-review-na-fila-de-documentos.md` |
 | ADR-309 | adr | Decidido |  | Audit do console interno persistido em tabela própria (7B.5) | `adr/309-audit-do-console-interno-persistido-em-tabela.md` |
-| ADR-310 | adr | Proposto |  | Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7) | `adr/310-chave-canonica-conta-continuidade-saldo.md` |
+| ADR-310 | adr | Decidido |  | Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7) | `adr/310-chave-canonica-conta-continuidade-saldo.md` |
 | ADR-311 | adr | Proposto |  | Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável | `adr/311-lifecycle-artifact-e2-tombstone-reclassificacao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |

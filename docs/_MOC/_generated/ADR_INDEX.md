@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 280
-- **Proposto**: 19
+- **Decidido**: 281
+- **Proposto**: 18
 - **Roadmap**: 3
 
 ## Fundação
@@ -488,7 +488,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (34)
+### Decidido (35)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -524,10 +524,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-301]] — Schema formal de dívidas + dedup cross-IRPF (EntityDedupPolicy) · phase A22.l5 · F1-O3 launch-trust
 - [[ADR-305]] — PGBL: ano-base fiscal único por relatório — irpf_kpis e previdencia_pgbl colapsam no ano-base default (ADR-266) · phase A28
 - [[ADR-308]] — Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração · phase A29
-
-### Proposto (2)
-
 - [[ADR-310]] — Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7) · phase A32.l4
+
+### Proposto (1)
+
 - [[ADR-311]] — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável · phase A32.l5
 
 ## quality
