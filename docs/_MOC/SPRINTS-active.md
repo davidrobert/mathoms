@@ -12,6 +12,28 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
+### A32 — Review de reconciliação confiável (`current`, aberta 2026-07-07)
+
+Origem: dogfood do owner 2026-07-07 — run `d1732edd` com 18 errors + 31
+warnings na tela de review; investigação em 2 frentes (código + dados
+reais do DB) confirmou que **100% dos 18 errors são defeito do produto**
+(vocabulário E2-LLM stale de mai/jun, regex de período casando o prefixo
+sha256 do filename, skip-list furada por `tipo`/`tipo_documento`, chave
+de continuidade sem `account_type` + ordenação por hash) apresentados na
+tela como problema do dado do usuário. 7 lanes em 5 ondas
+([[MOC-sprint-a32]]): l1 purga órfãos + baseline · l2 contrato E2-LLM +
+golden de paridade derivado + gate strict CI-only · l3 regex de período
+ancorada · l4 chave canônica de conta ([[ADR-310]] Proposto, interina de
+ADR-278 §B7) · l5 tombstone na reclassificação + versão de extração
+consultável ([[ADR-311]] Proposto) · l6 review UX (identidade legível,
+selo de natureza, agrupamento por documento) · l7 gate re-run dogfood
+instrumentado. KR1: 19 errors/warnings de causa-produto → 0 no re-run.
+Co-design: senior-cto + data-engineer + financial-planner +
+product-designer + prompt-engineer + product-manager; revisão de
+forma/priorização: product-manager + information-architect.
+
+## Sprint recém-fechada
+
 ### A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado (`done` 2026-07-07)
 
 Origem: os 2 débitos registrados na lane [[A30.l1]]. 2 lanes paralelas
@@ -28,8 +50,6 @@ medido por teste que enumera os paths.
 **Encerrada em 2026-07-07 — 2/2 lanes shipped no mesmo dia** (l2 #818 ·
 l1 #819; plano+ADR em #817). ADR-309 Decidido; 7B.5 fechado no plano
 INTERNAL_ADMIN (guardrail "troca só do sink" emendado).
-
-## Sprint recém-fechada
 
 ### A30 — Ops FinOps: budget LLM editável no console interno (`done` 2026-07-07)
 

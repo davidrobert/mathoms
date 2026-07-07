@@ -305,6 +305,8 @@
 | ADR-307 | adr | Decidido |  | Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift | `adr/307-cache-de-resposta-llm-no-choke-point.md` |
 | ADR-308 | adr | Decidido |  | Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração | `adr/308-remediacao-needs-review-na-fila-de-documentos.md` |
 | ADR-309 | adr | Decidido |  | Audit do console interno persistido em tabela própria (7B.5) | `adr/309-audit-do-console-interno-persistido-em-tabela.md` |
+| ADR-310 | adr | Proposto |  | Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7) | `adr/310-chave-canonica-conta-continuidade-saldo.md` |
+| ADR-311 | adr | Proposto |  | Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável | `adr/311-lifecycle-artifact-e2-tombstone-reclassificacao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -679,6 +681,13 @@
 | A30.l1 | lane | shipped | A30 | editor de budget LLM por workspace no console interno (ops) | `sprint/A30/lanes/A30-l1-ops-llm-budget-editor.md` |
 | A31.l1 | lane | shipped | A31 | audit do console interno persistido em tabela internal_ops_audit (7B.5) | `sprint/A31/lanes/A31-l1-internal-ops-audit-db.md` |
 | A31.l2 | lane | shipped | A31 | calibrar MAX_SETTABLE_BUDGET_USD com unit economics (US$ 1.000 → US$ 300) | `sprint/A31/lanes/A31-l2-max-budget-calibracao.md` |
+| A32.l1 | lane | open | A32 | purga de artifacts E2-llm órfãos + snapshot baseline da run dogfood d1732edd | `sprint/A32/lanes/A32-l1-purga-orfaos-baseline.md` |
+| A32.l2 | lane | open | A32 | contrato E2-LLM: tipo no writer + fallback tipo_documento nos readers + golden de paridade derivado + gate strict CI-only | `sprint/A32/lanes/A32-l2-contrato-e2-llm-paridade.md` |
+| A32.l3 | lane | open | A32 | parser de fatura: período do routing/DB, nunca re-derivado do filename inteiro | `sprint/A32/lanes/A32-l3-parser-fatura-periodo-filename.md` |
+| A32.l4 | lane | planned | A32 | chave canônica de conta na continuidade de saldo + ordenação determinística (ADR-310) | `sprint/A32/lanes/A32-l4-chave-canonica-continuidade-saldo.md` |
+| A32.l5 | lane | planned | A32 | lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável (ADR-311) | `sprint/A32/lanes/A32-l5-lifecycle-artifact-tombstone-versao.md` |
+| A32.l6 | lane | planned | A32 | review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | `sprint/A32/lanes/A32-l6-review-ux-identidade-natureza.md` |
+| A32.l7 | lane | planned | A32 | gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | `sprint/A32/lanes/A32-l7-gate-rerun-dogfood.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -759,6 +768,7 @@
 | MOC-sprint-a29 | moc |  |  | Sprint A29 — Review UX: conferência de pipeline centrada em documentos | `sprint/A29/_README.md` |
 | MOC-sprint-a30 | moc |  |  | Sprint A30 — Ops FinOps: budget LLM editável no console interno | `sprint/A30/_README.md` |
 | MOC-sprint-a31 | moc |  |  | Sprint A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado | `sprint/A31/_README.md` |
+| MOC-sprint-a32 | moc |  |  | Sprint A32 — Review de reconciliação confiável: falsos positivos zerados + lifecycle de artifact + a tela diz de quem é o erro | `sprint/A32/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
