@@ -206,6 +206,11 @@ smoke-up: smoke-dirs
 	$(call check_port_free,$(PORT_API))
 	$(call check_port_free,$(PORT_FRONTEND))
 	@echo "▶  Starting Redis (docker compose)…"
+	@if docker container inspect mathoms-smoke-redis >/dev/null 2>&1 && \
+	   [ "$$(docker container inspect -f '{{.State.Running}}' mathoms-smoke-redis)" = "false" ]; then \
+	   echo "   ⚠ removendo container stale mathoms-smoke-redis (parado, de projeto compose anterior)"; \
+	   docker rm mathoms-smoke-redis >/dev/null; \
+	 fi
 	@docker compose -f docker-compose.smoke.yml up -d --wait
 	@echo "▶  Aplicando migrations no smoke DB…"
 	@MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
