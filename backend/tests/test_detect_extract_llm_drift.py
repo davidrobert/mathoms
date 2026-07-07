@@ -1,12 +1,10 @@
 """A33.l5 (ADR-307 F2) — drift nightly do extract_with_llm.
 
 CI de PR nunca chama Anthropic: todos os caminhos usam
-``tests.fakes.llm.FakeSequenceLLMClient`` ou testam o skip sem key.
+``tests.fakes.fake_llm_client.FakeSequenceLLMClient`` ou testam o skip sem key.
 """
 
 from __future__ import annotations
-
-import logging
 
 import pytest
 from celery.schedules import crontab
@@ -225,40 +223,63 @@ def test_persist_drift_results_keeps_failure_messages(drift_session_factory):
 # ───────────────────────── corpo do task + telemetria ─────────────────────────
 
 
-def test_execute_drift_check_emits_error_metric_on_failure(drift_session_factory, caplog):
+class _RecordingDriftLogger:
+    """Recorder imune a ``disable_existing_loggers``/``propagate=False`` de outros
+    testes da suíte (padrão de ``test_llm_budget_service._RecordingBudgetLogger``)."""
+
+    def __init__(self) -> None:
+        self.errors: list[tuple[str, dict]] = []
+        self.infos: list[tuple[str, dict]] = []
+
+    def error(self, msg: str, *args, extra: dict | None = None, **kwargs) -> None:
+        self.errors.append((msg, extra or {}))
+
+    def info(self, msg: str, *args, extra: dict | None = None, **kwargs) -> None:
+        self.infos.append((msg, extra or {}))
+
+
+@pytest.fixture
+def drift_metrics_recorder(monkeypatch) -> _RecordingDriftLogger:
+    import backend.app.tasks.detect_extract_llm_drift as task_mod
+
+    recorder = _RecordingDriftLogger()
+    monkeypatch.setattr(task_mod, "_drift_metrics", recorder)
+    return recorder
+
+
+def test_execute_drift_check_emits_error_metric_on_failure(
+    drift_session_factory, drift_metrics_recorder
+):
     outputs = _conforming_outputs()
     outputs[2] = _output(institution="itau", transactions=[_tx()])  # informe com tx fantasma
     fake = FakeSequenceLLMClient(outputs=outputs)
 
-    with caplog.at_level(logging.INFO, logger="mathoms.llm.drift"):
-        summary = _execute_drift_check(
-            fake, model_name="fake-llm", session_factory=drift_session_factory
-        )
+    summary = _execute_drift_check(
+        fake, model_name="fake-llm", session_factory=drift_session_factory
+    )
 
     assert summary["fixtures"] == 4
     assert summary["failed"] == 1
-    errors = [r for r in caplog.records if r.levelno == logging.ERROR]
-    assert len(errors) == 1
-    assert errors[0].name == "mathoms.llm.drift"
-    assert errors[0].fixture_id == "informe_rendimentos_itau"
-    assert errors[0].failures == ["transactions: expected <= 0, got 1"]
-    completed = [r for r in caplog.records if "completed" in r.getMessage()]
-    assert completed and completed[0].batch_id == summary["batch_id"]
+    assert len(drift_metrics_recorder.errors) == 1
+    msg, extra = drift_metrics_recorder.errors[0]
+    assert msg == "extract llm drift detected"
+    assert extra["fixture_id"] == "informe_rendimentos_itau"
+    assert extra["failures"] == ["transactions: expected <= 0, got 1"]
+    completed = [e for m, e in drift_metrics_recorder.infos if "completed" in m]
+    assert completed and completed[0]["batch_id"] == summary["batch_id"]
 
 
-def test_execute_drift_check_all_pass_no_error_log(drift_session_factory, caplog):
+def test_execute_drift_check_all_pass_no_error_log(drift_session_factory, drift_metrics_recorder):
     fake = FakeSequenceLLMClient(outputs=list(_conforming_outputs()))
-    with caplog.at_level(logging.INFO, logger="mathoms.llm.drift"):
-        summary = _execute_drift_check(
-            fake, model_name="fake-llm", session_factory=drift_session_factory
-        )
+    summary = _execute_drift_check(
+        fake, model_name="fake-llm", session_factory=drift_session_factory
+    )
     assert summary["passed"] == 4
-    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+    assert drift_metrics_recorder.errors == []
 
 
-def test_task_skips_without_api_key(monkeypatch, caplog):
+def test_task_skips_without_api_key(monkeypatch, drift_metrics_recorder):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    with caplog.at_level(logging.ERROR, logger="mathoms.llm.drift"):
-        result = detect_extract_llm_drift.apply().get()
+    result = detect_extract_llm_drift.apply().get()
     assert result == {"skipped": True, "reason": "ANTHROPIC_API_KEY missing"}
-    assert any("ANTHROPIC_API_KEY missing" in r.getMessage() for r in caplog.records)
+    assert any("ANTHROPIC_API_KEY missing" in msg for msg, _ in drift_metrics_recorder.errors)
