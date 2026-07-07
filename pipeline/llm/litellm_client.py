@@ -284,16 +284,16 @@ class LLMService:
         )
 
         # Monta o conteúdo do user message: texto puro ou [imagem + texto] multimodal.
+        # Formato OpenAI (`image_url` com data URI) — a chamada passa por
+        # `litellm.completion`, cujo validator rejeita blocos Anthropic-nativos
+        # (`type: image`/`source`) mesmo quando o provider é anthropic; o litellm
+        # traduz `image_url` para o formato correto do provider internamente.
         if is_multimodal:
             b64 = base64.standard_b64encode(image_bytes).decode("ascii")
             user_content: str | list = [
                 {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": image_media_type,
-                        "data": b64,
-                    },
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{image_media_type};base64,{b64}"},
                 },
                 {"type": "text", "text": user_prompt},
             ]
