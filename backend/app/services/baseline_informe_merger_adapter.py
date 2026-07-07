@@ -21,5 +21,5 @@ def merge_baseline_with_informes_pf(
     if not informes:
         return BaselineMergeResult(baseline=consolidated)
     converter = WisePtaxConverter(MarketRateRepository(db))
-    merger = BaselineInformeMerger(ptax_getter=converter.get_rate_or_none)
+    merger = BaselineInformeMerger(ptax_getter=converter.get_quote_or_none)
     return merger.merge(consolidated, informes)
