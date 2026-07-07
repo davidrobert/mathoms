@@ -988,8 +988,10 @@ dogfood-go-dev:
 	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(DEV_DIR)/go.pid)
 	$(call check_port_free,8002)
 	@echo "▶  Subindo shell Go na :8002 com o env do .env…"
+	@# cli_run_stage.py fail-faila sem MATHOMS_DATABASE_URL explícita; dev usa o default do settings
 	@set -a; . $(CURDIR)/.env; set +a; \
 	 [ -n "$$ANTHROPIC_API_KEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente (.env/shell) — stages LLM vão falhar"; \
+	 export MATHOMS_DATABASE_URL="$${MATHOMS_DATABASE_URL:-sqlite+aiosqlite:///$(CURDIR)/mathoms.db}"; \
 	 MATHOMS_REPO_ROOT="$(CURDIR)" \
 	 MATHOMS_PYTHON="$(PYTHON)" \
 	 REDIS_URL="$${MATHOMS_REDIS_URL:-redis://localhost:6379/0}" \
