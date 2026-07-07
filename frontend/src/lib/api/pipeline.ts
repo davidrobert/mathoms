@@ -141,7 +141,12 @@ export async function resumePipelineRun(workspaceId: string, runId: string): Pro
 export type StageReviewStatus = "pending" | "approved" | "edited";
 
 /** Issue de validação estruturada (ADR-165) — espelha
- * `backend/app/schemas/pipeline.ValidationIssueDTO`. */
+ * `backend/app/schemas/pipeline.ValidationIssueDTO`.
+ *
+ * Issues projetadas de ReviewReason (ADR-272/ADR-308) carregam em `context`
+ * as chaves `artifact_key`/`document_id`/`offending_value`/`expected` e,
+ * quando o backend resolve o documento de origem (A32.l6), a identidade
+ * legível: `doc_bank_code`, `doc_type`, `doc_e0_type`, `doc_period`. */
 export interface ValidationIssue {
   code: string;
   severity: "error" | "warning";
