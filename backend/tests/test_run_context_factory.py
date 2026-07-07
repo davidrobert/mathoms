@@ -45,6 +45,7 @@ def test_context_fully_hydrated(tmp_path, session_factory):
         assert ctx.property_identity_resolver is not None
         assert ctx.economic_assumptions_resolver is not None
         assert ctx.property_overrides_resolver is not None
+        assert ctx.institution_catalog_provider is not None
         assert ctx.llm_call_hooks is not None
         assert ctx.imoveis_no_if is True, "default ADR-222 quando workspace ausente"
         assert ctx.workspace_id == "ws-factory"

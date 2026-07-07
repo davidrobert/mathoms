@@ -41,6 +41,9 @@ from backend.app.services.db_property_identity_resolver import (
 from backend.app.services.db_property_overrides_resolver import (
     DBPropertyOverridesResolver,
 )
+from backend.app.services.institution_catalog_provider import (
+    DBInstitutionCatalogProvider,
+)
 from backend.app.services.pipeline_adapter import (
     build_config_overrides_from_db,
     build_config_store,
@@ -85,6 +88,8 @@ def _db_resolvers(session: Session) -> dict:
         "property_identity_resolver": DBPropertyIdentityResolver(session=session),
         "economic_assumptions_resolver": DBEconomicAssumptionsResolver(session=session),
         "property_overrides_resolver": DBPropertyOverridesResolver(session=session),
+        # A33.l8 (ADR-137): catálogo de instituições p/ injection nos prompts LLM.
+        "institution_catalog_provider": DBInstitutionCatalogProvider(session=session),
     }
 
 
