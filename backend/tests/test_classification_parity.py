@@ -2,7 +2,7 @@
 
 import pytest
 
-from scripts.e0_route import build_final_name, classify_by_name
+from scripts.route_documents import build_final_name, classify_by_name
 
 
 @pytest.mark.parametrize(

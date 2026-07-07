@@ -20,7 +20,7 @@ import pytest
 from backend.app.services.canonical_routing import route_inbox_to_canonical_data
 
 
-# Minimal config layout that ``e0_route._init_config`` accepts. The
+# Minimal config layout that ``route_documents._init_config`` accepts. The
 # classifier cache only needs ``institutions.json`` / ``pipeline.json`` /
 # ``family_members.json`` to exist — contents are not exercised here.
 def _bootstrap_project_config(project_root: Path) -> None:

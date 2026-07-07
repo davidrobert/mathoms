@@ -16,7 +16,7 @@ def run(ctx: WorkspaceContext) -> dict:
       - ``unidentified > 0`` → success com warning (não interrompe pipeline)
       - caso contrário → success
     """
-    from scripts.e0_route import _init_config, route_all
+    from scripts.route_documents import _init_config, route_all
 
     _init_config(ctx.root)
     stats = route_all(

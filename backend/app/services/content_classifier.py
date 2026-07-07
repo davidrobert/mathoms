@@ -12,7 +12,7 @@ Pipeline:
        confidence = 1.0 if required + >=1 supporting, 0.7 if only required,
        0.5 if only supporting.
     4. Extract period from content (DD/MM/YYYY ranges, MM/YYYY, YYYY).
-    5. Return dict compatible with ``scripts.e0_route.classify_by_name``.
+    5. Return dict compatible with ``scripts.route_documents.classify_by_name``.
 
 The caller decides what to do with low-confidence results (LLM fallback,
 ``needs_review`` flag, etc.). This module has no LLM calls and no network.

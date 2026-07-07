@@ -134,9 +134,9 @@ class TestParserRegistry:
 @functools.lru_cache(maxsize=1)
 def _extrato_family_codes() -> frozenset[str]:
     """Códigos `extratoconta*` que o E0 pode emitir, das DUAS fontes divergentes
-    de doc-type: type_classifier (content-based, web) + e0_route (filename, CLI)."""
+    de doc-type: type_classifier (content-based, web) + route_documents (filename, CLI)."""
     from backend.app.services.classification.type_classifier import TYPE_RULES
-    from scripts.e0_route import DOC_TYPE_PATTERNS
+    from scripts.route_documents import DOC_TYPE_PATTERNS
 
     codes = {r.code for r in TYPE_RULES if r.code.startswith("extratoconta")}
     codes |= {code for _pat, code, _grp in DOC_TYPE_PATTERNS if code.startswith("extratoconta")}

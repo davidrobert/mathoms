@@ -152,9 +152,9 @@ class TestClassifyDocumentLLMSkipMeta:
         """LLM disponível mas devolve None (confidence baixa, JSON inválido,
         retry esgotado): o caminho silencioso vira ``no_result`` no meta."""
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
-        from scripts import e0_route
+        from scripts import route_documents
 
-        monkeypatch.setattr(e0_route, "classify_by_llm", lambda _path: None)
+        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _path: None)
 
         f = tmp_path / "doc.pdf"
         f.write_bytes(b"%PDF-1.4\n")
@@ -167,9 +167,9 @@ class TestClassifyDocumentLLMSkipMeta:
         self, tmp_path, monkeypatch, force_low_confidence_regex
     ):
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
-        from scripts import e0_route
+        from scripts import route_documents
 
-        monkeypatch.setattr(e0_route, "classify_by_llm", lambda _p: _FAKE_LLM_RESULT)
+        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _p: _FAKE_LLM_RESULT)
 
         f = tmp_path / "doc.pdf"
         f.write_bytes(b"%PDF-1.4\n")
@@ -184,12 +184,12 @@ class TestClassifyDocumentLLMSkipMeta:
         """Quando ``classify_by_llm`` lança exceção, ``llm_error`` é gravado e
         ``llm_skipped_reason`` NÃO entra em colisão (precedência da exceção)."""
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
-        from scripts import e0_route
+        from scripts import route_documents
 
         def _raise(_path):
             raise RuntimeError("boom")
 
-        monkeypatch.setattr(e0_route, "classify_by_llm", _raise)
+        monkeypatch.setattr(route_documents, "classify_by_llm", _raise)
 
         f = tmp_path / "doc.pdf"
         f.write_bytes(b"%PDF-1.4\n")
@@ -225,9 +225,9 @@ class TestExtratoMissingInstitutionGate:
 
     def _run(self, tmp_path, monkeypatch, llm_payload):
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
-        from scripts import e0_route
+        from scripts import route_documents
 
-        monkeypatch.setattr(e0_route, "classify_by_llm", lambda _p: llm_payload)
+        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _p: llm_payload)
         f = tmp_path / "doc.pdf"
         f.write_bytes(b"%PDF-1.4\n")
         return dc.classify_document(f, tmp_path, use_llm=True)

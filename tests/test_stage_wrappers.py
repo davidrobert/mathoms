@@ -208,20 +208,20 @@ class TestInitConfig:
     # test_e0_audit_init_config_custom_root removido em ADR-213
     # (sunset stage audit_documents + script e0_audit).
 
-    def test_e0_route_init_config_custom_root(self, tmp_path):
+    def test_route_documents_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         (config_dir / "institutions.json").write_text("{}")
         (config_dir / "pipeline.json").write_text("{}")
         (config_dir / "family_members.json").write_text("{}")
 
-        from scripts.e0_route import _init_config
+        from scripts.route_documents import _init_config
 
         _init_config(tmp_path)
-        from scripts import e0_route
+        from scripts import route_documents
 
-        assert e0_route.BASE == tmp_path
-        assert e0_route.INBOX == tmp_path / "inbox"
+        assert route_documents.BASE == tmp_path
+        assert route_documents.INBOX == tmp_path / "inbox"
 
         # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 

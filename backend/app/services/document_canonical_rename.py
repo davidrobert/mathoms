@@ -32,7 +32,7 @@ def resolve_e0_for_rename(doc: Document) -> tuple[str, str] | None:
     new_dt = _normalize_doc_type(doc.doc_type)
     if new_dt is None:
         return None
-    from scripts.e0_route import detect_doc_type as _detect_e0
+    from scripts.route_documents import detect_doc_type as _detect_e0
 
     fname = (doc.stored_path or "").rsplit("/", 1)[-1]
     if fname:

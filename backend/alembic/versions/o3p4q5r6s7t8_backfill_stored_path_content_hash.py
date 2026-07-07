@@ -33,7 +33,7 @@ def upgrade() -> None:
     """No-op: documents the content-addressed filename convention (ADR-084).
 
     Existing ``stored_path`` values are retained as-is. The application code
-    (``scripts.e0_route.build_final_name`` and
+    (``scripts.route_documents.build_final_name`` and
     ``backend.app.services.canonical_routing``) starts emitting hash-prefixed
     filenames on new uploads and on reclassify operations.
     """

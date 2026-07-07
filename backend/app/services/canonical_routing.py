@@ -1,4 +1,4 @@
-"""Canonical E0-style filenames for web uploads — aligns with ``scripts/e0_route.build_final_name``."""
+"""Canonical E0-style filenames for web uploads — aligns with ``scripts/route_documents.build_final_name``."""
 
 from __future__ import annotations
 
@@ -62,7 +62,7 @@ def build_classification_for_final_name(
     period: str | None,
     classification_meta: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    """Build the dict expected by ``e0_route.build_final_name``."""
+    """Build the dict expected by ``route_documents.build_final_name``."""
     meta = classification_meta or {}
     c: dict[str, Any] = {
         "dest_group": dest_group,
@@ -96,10 +96,10 @@ def _compute_canonical_dest_path(
 
     Retorna None se inputs inválidos (arquivo ausente, dest_group/type vazios).
     """
-    from scripts.e0_route import (
+    from scripts.route_documents import (
         _init_config as route_init_config,
     )
-    from scripts.e0_route import (
+    from scripts.route_documents import (
         build_final_name,
         dest_dir_for_group,
         file_hash,
@@ -161,7 +161,7 @@ def rename_to_canonical(
 
     Returns ``(absolute_path, path_relative_to_tenant)`` or ``None`` on error.
     """
-    from scripts.e0_route import resolve_collision
+    from scripts.route_documents import resolve_collision
 
     computed = _compute_canonical_dest_path(
         current_path,
@@ -215,9 +215,9 @@ def route_inbox_to_canonical_data(
     uploads). When not provided it is computed from the file on disk.
 
     Returns ``(absolute_path, path_relative_to_tenant)`` or ``None`` if inputs invalid.
-    Mirrors collision handling from ``e0_route.route_file``.
+    Mirrors collision handling from ``route_documents.route_file``.
     """
-    from scripts.e0_route import resolve_collision
+    from scripts.route_documents import resolve_collision
 
     computed = _compute_canonical_dest_path(
         inbox_path,

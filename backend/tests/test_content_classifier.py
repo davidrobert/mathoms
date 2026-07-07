@@ -279,9 +279,9 @@ class TestInstitutionDetection:
 
     def test_c6_pj_pdf_routes_to_dedicated_parser_via_filename(self):
         """Fluxo E2E: PDF C6 PJ detectado → filename `c6bank_*` → parse_c6bank ([[ADR-255]])."""
-        from scripts.e0_route import build_final_name
         from scripts.e2.banks.c6bank import parse_c6bank
         from scripts.e2.registry import route_to_parser
+        from scripts.route_documents import build_final_name
 
         assert detect_institution_by_content(C6_EXTRATO_PJ_PDF) == "c6bank"
         classification = {

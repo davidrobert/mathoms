@@ -33,7 +33,7 @@ instructor>=1.3.0
 pdfplumber>=0.11.0
 eval_type_backport>=0.2.0  # Required for instructor on Python 3.9
 
-# Spreadsheet parsing (used by _extract_file_preview in scripts/e0_route.py)
+# Spreadsheet parsing (used by _extract_file_preview in scripts/route_documents.py)
 openpyxl>=3.1.0   # .xlsx files
 xlrd>=2.0.1       # .xls files (OLE2/BIFF format — xlrd 2.x dropped xlsx support intentionally)
 

@@ -407,7 +407,7 @@ def test_user_prompt_lista_campos_imovel_obrigatorios():
 
 
 def test_filename_pattern_detecta_informe_quintoandar():
-    """Regex de detecção (espelhado de scripts/e0_route.py:112)."""
+    """Regex de detecção (espelhado de scripts/route_documents.py:112)."""
     pattern = re.compile(r"informe.*rendimento.*aluguel", re.I)
     assert pattern.search("quintoandar_informerendimentosaluguel_2024-0_original.pdf")
     assert pattern.search("loft_informeRendimentosAluguel_2024.pdf")

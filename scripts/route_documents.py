@@ -1029,7 +1029,7 @@ def _write_inbox_log(base: Path, today: str, stats: dict) -> None:
 
     by_dest = stats["by_dest"]
     entry = f"""
-## Ciclo {today} — {stats['total']} arquivos recebidos (e0_route.py)
+## Ciclo {today} — {stats['total']} arquivos recebidos (route_documents.py)
 
 ### Resumo
 
