@@ -148,6 +148,7 @@ func (e *Executor) interpret(stage, stdout, stderr string, exitCode int, runErr 
 	case 0, 1:
 		return parseStageResult(stage, stdout, stderr)
 	case 2:
+		logChildStderr(stage, stderr)
 		return contracts.StageExecuteResponse{}, classifyUsageError(stderr)
 	default:
 		logChildStderr(stage, stderr)
