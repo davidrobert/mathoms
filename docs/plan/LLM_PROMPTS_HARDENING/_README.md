@@ -4,10 +4,10 @@ type: plan
 title: "LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting"
 status: draft
 sprint_origem: A17
-sprint_atual: A17
-sprints_envolvidas: ["A17", "A18", "A20"]
+sprint_atual: A33
+sprints_envolvidas: ["A17", "A18", "A20", "A33"]
 created_at: "2026-05-22"
-last_review: "2026-05-22"
+last_review: "2026-07-07"
 adrs_canonical:
   - "[[ADR-081]]"
   - "[[ADR-090]]"
@@ -29,6 +29,7 @@ tags:
   - sprint/a17
   - sprint/a18
   - sprint/a20
+  - sprint/a33
   - status/draft
   - priority/p0
   - breaking/schema
@@ -50,6 +51,20 @@ tags:
 > (frontmatter + wikilinks + MOC). Todas as objeções incorporadas. Plano
 > aprovado para alocar lanes; pendente apenas reservar IDs ADR e abrir lanes
 > em `docs/sprint/A17/A18/A20/lanes/`.
+
+> **Reconciliação + re-alocação 2026-07-07** (revisão de kickoff da
+> [[MOC-sprint-a33]], `product-manager` + `data-engineer`): entre maio e
+> julho, boa parte das ondas shipou por outras lanes. Estado real:
+> **W1α** ✅ fechada 2026-07-06 (rules da [[ADR-259]], #718/#720/#781/#784)
+> · **W4-T00** ✅ fechada como [[A17.l5]] (#451) · **W1β** parcialmente
+> entregue — `e15_baseline` já é `Decimal` (#718); o residual
+> (`e2_llm_extract` + gate no pacote) está lotado como [[A33.l1]] ·
+> **W2** ✅ **inteira** — migration `a20l12semver` (A20.l12/l13), 9/9
+> prompts semver puro, `llm_call_log.confidence`/`prompt_version`,
+> goldens fiscais completos em `tests/fixtures/llm_golden/` (incl.
+> PGBL+VGBL mesmo CPF) · **W3** → [[A33.l7]] · **W4-T01/T02** →
+> [[A33.l8]]. A alocação em A20 da tabela abaixo é registro histórico do
+> planejamento original — a alocação efetiva é a desta nota.
 
 ## Origem
 
