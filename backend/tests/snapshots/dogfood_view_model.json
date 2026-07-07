@@ -482,6 +482,7 @@
     "caixa_detalhes": [],
     "caixa_me_detalhe": [],
     "caixa_moeda_estrangeira": 5000000,
+    "cbe_obrigatorio": false,
     "composicao": [
       {
         "categoria": "Imóveis de Renda",
@@ -525,6 +526,7 @@
     "investivel_efetivo": 13000000,
     "investivel_financeiro": 13000000,
     "liquido": 58000000,
+    "posicao_31_12": [],
     "residencia": 0,
     "tabela_categorias": [
       {

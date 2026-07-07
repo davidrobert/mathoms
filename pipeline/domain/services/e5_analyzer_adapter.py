@@ -98,6 +98,10 @@ from pipeline.domain.services.if_projector import (
     MonteCarloIFResult,
     run_monte_carlo_if,
 )
+from pipeline.domain.services.informe_extrato_override import (
+    ExtratoPosicao,
+    apply_informe_override,
+)
 from pipeline.domain.services.instituicoes_por_membro_analyzer import (
     InstituicoesPorMembroAnalyzer,
     InstituicoesPorMembroConfig,
@@ -892,7 +896,7 @@ class E5AnalyzerAdapter:
                 latest_per_account[account_key] = (tiebreak, data)
 
         total_brl = 0.0
-        detalhes: list[CaixaDetalhe] = []
+        posicoes: list[ExtratoPosicao] = []
         has_foreign_in_e3 = False
         for _, data in sorted(latest_per_account.values(), key=lambda x: x[0]):
             tipo_conta = (data.get("tipo_conta") or "").lower()
@@ -910,15 +914,28 @@ class E5AnalyzerAdapter:
 
             categoria = "moeda_estrangeira" if moeda != "BRL" else "caixa"
             total_brl += valor_brl
-            detalhes.append(
-                CaixaDetalhe(
-                    conta=f"{data.get('banco', '?')} ({tipo_conta})",
-                    moeda=moeda,
-                    saldo_original=saldo,
-                    valor_brl=valor_brl,
-                    tipo=categoria,
+            posicoes.append(
+                ExtratoPosicao(
+                    detalhe=CaixaDetalhe(
+                        conta=f"{data.get('banco', '?')} ({tipo_conta})",
+                        moeda=moeda,
+                        saldo_original=saldo,
+                        valor_brl=valor_brl,
+                        tipo=categoria,
+                    ),
+                    banco=(data.get("banco") or "").lower(),
+                    period_end=(data.get("periodo_cobertura") or {}).get("fim") or "",
                 )
             )
+
+        # ADR-238 D5 (A33.l2) — informe 31/12 vence extrato D+1: substitui o
+        # saldo do extrato da virada de ano pelo do informe (fonte fiscal
+        # certificada) e anota divergência relevante nos entries do baseline.
+        override = apply_informe_override(
+            posicoes, (baseline or {}).get("informe_pf_saldos_31_12") or []
+        )
+        detalhes = override.detalhes
+        total_brl += float(override.ajuste_total_brl)
 
         # ADR-245: fallback baseline IRPF para moeda estrangeira.
         if not has_foreign_in_e3 and baseline:

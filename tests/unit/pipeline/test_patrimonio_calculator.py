@@ -895,3 +895,104 @@ def test_caixa_me_detalhe_default_moeda_usd_quando_ausente(config: PatrimonioCon
         PatrimonioInputs(baseline=_baseline_with_wise(saldos))
     )
     assert result["caixa_me_detalhe"] == []  # defaultado pra BRL → não conta
+
+
+# =============================================================================
+# A33.l2 P4 — posicao_31_12 (card S1) + cbe_obrigatorio
+# =============================================================================
+
+
+_SALDOS_POSICAO: list[dict] = [
+    {
+        "moeda": "USD",
+        "descricao": "Wise USD",
+        "saldo_original": "1000.00",
+        "saldo_brl": "6191.70",
+        "ptax_data": "2024-12-31",
+        "ano_base": 2024,
+        "tipo": "conta_exterior",
+        "informe_venceu_extrato": True,
+    },
+    {
+        "moeda": "BRL",
+        "descricao": "CDB Banco Sintético",
+        "saldo_original": "5000.00",
+        "saldo_brl": "5000.00",
+        "ano_base": 2024,
+        "tipo": "cdb",
+    },
+]
+
+_CAIXA_DETALHES_POSICAO: list[CaixaDetalhe] = [
+    CaixaDetalhe(
+        conta="wise (contacorrente)",
+        moeda="USD",
+        saldo_original=1000.0,
+        valor_brl=6191.70,
+        tipo="moeda_estrangeira",
+        fonte="informe_31_12",  # overridada — não deve repetir
+    ),
+    CaixaDetalhe(
+        conta="itau (contacorrente)",
+        moeda="BRL",
+        saldo_original=2000.0,
+        valor_brl=2000.0,
+        tipo="caixa",
+    ),
+]
+
+
+def _calculate_posicao(config: PatrimonioConfig) -> list[dict]:
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(
+            baseline=_baseline_with_wise(_SALDOS_POSICAO),
+            investimentos_atuais={"dados": [{"valor": 1}], "total_por_membro": {}},
+            caixa_total_brl=8191.70,
+            caixa_detalhes=_CAIXA_DETALHES_POSICAO,
+        )
+    )
+    return result["posicao_31_12"]
+
+
+def test_posicao_31_12_une_informe_e_extrato_nao_coberto(config: PatrimonioConfig):
+    """Informe (BRL + ME) + extrato não-overridado entram; extrato overridado não repete."""
+    rows = _calculate_posicao(config)
+    assert len(rows) == 3  # 2 informe + 1 extrato não coberto (wise não repete)
+    fontes = {r["instituicao"]: r["fonte"] for r in rows}
+    assert fontes["Wise USD"] == "informe_31_12"
+    assert fontes["itau (contacorrente)"] == "extrato"
+
+
+def test_posicao_31_12_row_do_informe_carrega_ptax_e_nudge(config: PatrimonioConfig):
+    rows = _calculate_posicao(config)
+    wise_row = [r for r in rows if r["instituicao"] == "Wise USD"][0]
+    assert wise_row["valor_brl"] == 6191.70
+    assert wise_row["valor_original"] == 1000.00
+    assert wise_row["ptax_data"] == "2024-12-31"
+    assert wise_row["informe_venceu_extrato"] is True
+    brl_row = [r for r in rows if r["instituicao"] == "CDB Banco Sintético"][0]
+    assert brl_row["valor_original"] is None  # BRL: sem linha secundária (co-design P4)
+
+
+def test_posicao_31_12_vazio_sem_informe_nem_extrato(config: PatrimonioConfig):
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline={"members": {"david": {}, "mariana": {}}})
+    )
+    assert result["posicao_31_12"] == []
+    assert result["cbe_obrigatorio"] is False
+
+
+def test_cbe_obrigatorio_derivado_da_flag(config: PatrimonioConfig):
+    flags = [{"code": "CBE", "severity": "info", "title": "CBE", "descricao": "..."}]
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
+    )
+    assert result["cbe_obrigatorio"] is True
+
+
+def test_cbe_obrigatorio_false_com_outras_flags(config: PatrimonioConfig):
+    flags = [{"code": "GCAP", "severity": "atencao", "title": "GCAP", "descricao": "..."}]
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
+    )
+    assert result["cbe_obrigatorio"] is False

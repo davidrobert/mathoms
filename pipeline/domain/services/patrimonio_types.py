@@ -168,6 +168,8 @@ class CaixaDetalhe:
     saldo_original: float
     valor_brl: float
     tipo: str  # "caixa" | "moeda_estrangeira"
+    # ADR-238 D5 (A33.l2): "extrato" | "informe_31_12" — informe vence extrato D+1.
+    fonte: str = "extrato"
 
     def to_dict(self) -> dict:
         return {
@@ -176,6 +178,7 @@ class CaixaDetalhe:
             "saldo_original": round(self.saldo_original, 2),
             "valor_brl": round(self.valor_brl, 2),
             "tipo": self.tipo,
+            "fonte": self.fonte,
         }
 
 
