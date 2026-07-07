@@ -54,6 +54,7 @@ from backend.app.models.institution_catalog import InstitutionCatalog
 from backend.app.models.internal_ops_audit import InternalOpsAudit
 from backend.app.models.llm_call_log import LLMCallLog
 from backend.app.models.llm_config import LLMConfig
+from backend.app.models.llm_drift_check import LLMDriftCheck
 from backend.app.models.market_rate import MarketRate
 from backend.app.models.notification import Notification
 from backend.app.models.password_vault import PasswordVault
@@ -239,6 +240,7 @@ __all__ = [
     "VALID_DISMISS_REASONS",
     "LLMCallLog",
     "LLMConfig",
+    "LLMDriftCheck",
     "StageReview",
     "StageReviewStatus",
     "TransactionOverride",
