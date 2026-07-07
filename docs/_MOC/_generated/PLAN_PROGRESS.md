@@ -13,7 +13,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - Status: `in_progress` · Sprint atual: A26
 - Sprints envolvidas: A23, A24, A25, A26, A27, A32
-- Lanes: 28 done · 1 in_progress · 2 open · 2 blocked
+- Lanes: 28 done · 3 in_progress · 0 open · 2 blocked
 - ADRs canônicas: [[ADR-278]], [[ADR-279]], [[ADR-280]], [[ADR-281]]
 
 ### PLAN-go-shell — Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess
