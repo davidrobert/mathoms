@@ -40,6 +40,7 @@ async def hard_delete_user(db: AsyncSession, user_id: str, *, actor: str, reason
             target_id=user_id,
             result="ok",
             details={"email": email, "reason": reason.strip()},
-        )
+        ),
+        db,
     )
     return OpResult.success(user_id=user_id)

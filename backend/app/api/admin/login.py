@@ -20,7 +20,7 @@ from backend.app.schemas.admin import (
     AdminLogoutResponse,
     AdminPrincipalResponse,
 )
-from backend.app.services.internal_ops.audit import AuditRecord, append_audit
+from backend.app.services.internal_ops.audit import AuditRecord, append_audit_autonomous
 
 router = APIRouter()
 
@@ -48,7 +48,7 @@ async def login(payload: AdminLoginRequest, response: Response) -> AdminLoginRes
 
     op = operators.get(payload.username)
     if op is None or not verify_operator_password(op, payload.password):
-        append_audit(
+        append_audit_autonomous(
             AuditRecord(
                 action="ops.login_failed",
                 actor=f"ops:{payload.username}",
@@ -60,7 +60,7 @@ async def login(payload: AdminLoginRequest, response: Response) -> AdminLoginRes
     principal = InternalOpsPrincipal(username=op.username, role=op.role)
     token = create_session_token(principal)
     _set_session_cookie(response, token)
-    append_audit(AuditRecord(action="ops.login", actor=principal.actor, result="ok"))
+    append_audit_autonomous(AuditRecord(action="ops.login", actor=principal.actor, result="ok"))
     return AdminLoginResponse(
         username=principal.username,
         role=principal.role,
@@ -74,7 +74,7 @@ async def logout(
     principal: InternalOpsPrincipal = Depends(require_internal_operator),
 ) -> AdminLogoutResponse:
     response.delete_cookie(key=session_cookie_name(), path="/admin")
-    append_audit(AuditRecord(action="ops.logout", actor=principal.actor))
+    append_audit_autonomous(AuditRecord(action="ops.logout", actor=principal.actor))
     return AdminLogoutResponse(ok=True)
 
 

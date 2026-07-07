@@ -16,7 +16,7 @@ from backend.tests.factories import make_user, make_workspace
 
 
 @pytest.mark.asyncio
-async def test_anonymize_preserves_user_id_and_fks(db, audit_path: Path) -> None:
+async def test_anonymize_preserves_user_id_and_fks(db) -> None:
     user = await make_user(db, email="before@test.com", password="OldPw123!")
     ws = await make_workspace(db, owner=user)
     await db.commit()
@@ -41,14 +41,14 @@ async def test_anonymize_preserves_user_id_and_fks(db, audit_path: Path) -> None
 
 
 @pytest.mark.asyncio
-async def test_anonymize_writes_audit(db, audit_path: Path) -> None:
+async def test_anonymize_writes_audit(db) -> None:
     user = await make_user(db)
     await db.commit()
 
     await anonymize_user(db, user.id, actor="ops1")
     await db.commit()
 
-    entries = read_audit(path=audit_path)
+    entries = await read_audit(db)
     assert len(entries) == 1
     assert entries[0]["action"] == "user.anonymize"
     assert entries[0]["actor"] == "ops1"
@@ -56,15 +56,15 @@ async def test_anonymize_writes_audit(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_anonymize_missing_user(db, audit_path: Path) -> None:
+async def test_anonymize_missing_user(db) -> None:
     result = await anonymize_user(db, "00000000-0000-0000-0000-000000000000", actor="ops1")
     assert not result.ok
     assert result.error == "user_not_found"
-    assert read_audit(path=audit_path) == []
+    assert await read_audit(db) == []
 
 
 @pytest.mark.asyncio
-async def test_anonymize_idempotent(db, audit_path: Path) -> None:
+async def test_anonymize_idempotent(db) -> None:
     user = await make_user(db)
     await db.commit()
 
@@ -75,5 +75,5 @@ async def test_anonymize_idempotent(db, audit_path: Path) -> None:
 
     assert first.ok and second.ok
     assert first.details["anonymized_email"] == second.details["anonymized_email"]
-    entries = read_audit(path=audit_path)
+    entries = await read_audit(db)
     assert entries[1]["details"]["already_anonymized"] is True

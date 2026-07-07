@@ -1,7 +1,7 @@
 """Testes do CLI dev `run_workspace_pipeline` (make pipeline-run).
 
 Vive em internal_ops/ porque o fluxo --reset consome
-`reset_workspace_from_stage` e a fixture `audit_path` local.
+`reset_workspace_from_stage` (audit em tabela, ADR-309).
 O caminho de trigger (Celery dispatch) é coberto pelos testes de
 `application/pipeline_run` — aqui valida-se parsing, resolução de
 workspace e a orquestração do reset.
@@ -92,7 +92,7 @@ async def _remaining_stages(db, ws) -> set[str]:
 
 
 @pytest.mark.asyncio
-async def test_maybe_reset_assume_yes_deletes_cascade(db, audit_path: Path) -> None:
+async def test_maybe_reset_assume_yes_deletes_cascade(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     await _seed_artifacts(db, ws)
@@ -106,7 +106,7 @@ async def test_maybe_reset_assume_yes_deletes_cascade(db, audit_path: Path) -> N
 
 
 @pytest.mark.asyncio
-async def test_maybe_reset_declined_preserves_artifacts(db, audit_path: Path, monkeypatch) -> None:
+async def test_maybe_reset_declined_preserves_artifacts(db, monkeypatch) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     await _seed_artifacts(db, ws)

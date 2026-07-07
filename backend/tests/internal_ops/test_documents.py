@@ -25,9 +25,7 @@ from backend.tests.factories import (
 
 
 @pytest.mark.asyncio
-async def test_delete_document_removes_row_and_blob(
-    db, audit_path: Path, tmp_path: Path, monkeypatch
-) -> None:
+async def test_delete_document_removes_row_and_blob(db, tmp_path: Path, monkeypatch) -> None:
     from backend.app.core.config import settings
 
     monkeypatch.setattr(settings, "STORAGE_ROOT", tmp_path)
@@ -51,7 +49,7 @@ async def test_delete_document_removes_row_and_blob(
         await db.execute(select(Document).where(Document.id == doc.id))
     ).scalar_one_or_none() is None
 
-    entry = read_audit(path=audit_path)[0]
+    entry = (await read_audit(db))[0]
     assert entry["action"] == "document.delete"
     assert entry["details"]["content_hash"] == doc.content_hash
     assert entry["details"]["original_name"] == doc.original_name
@@ -59,13 +57,13 @@ async def test_delete_document_removes_row_and_blob(
 
 
 @pytest.mark.asyncio
-async def test_delete_document_missing(db, audit_path: Path) -> None:
+async def test_delete_document_missing(db) -> None:
     result = await delete_document(db, "nope", actor="ops1")
     assert not result.ok and result.error == "document_not_found"
 
 
 @pytest.mark.asyncio
-async def test_purge_preview_does_not_delete(db, audit_path: Path) -> None:
+async def test_purge_preview_does_not_delete(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     d1 = await make_document(db, workspace=ws)
@@ -83,7 +81,7 @@ async def test_purge_preview_does_not_delete(db, audit_path: Path) -> None:
     assert items == {(d1.id, d1.original_name), (d2.id, d2.original_name)}
     assert result.details["scope_context"]["owner_email"] == user.email
     assert result.details["scope_context"]["workspace_names"] == [ws.name]
-    assert read_audit(path=audit_path) == []
+    assert await read_audit(db) == []
 
 
 async def _setup_doc_with_artifact(db) -> object:
@@ -104,7 +102,7 @@ async def _setup_doc_with_artifact(db) -> object:
 
 
 @pytest.mark.asyncio
-async def test_purge_cascades_pipeline_runs_and_artifacts(db, audit_path: Path) -> None:
+async def test_purge_cascades_pipeline_runs_and_artifacts(db) -> None:
     """Purge de docs limpa pipeline_runs do escopo (cascade pega artefatos)."""
     ws = await _setup_doc_with_artifact(db)
     await db.commit()
@@ -127,7 +125,7 @@ async def test_purge_cascades_pipeline_runs_and_artifacts(db, audit_path: Path) 
 
 
 @pytest.mark.asyncio
-async def test_purge_confirm_by_user(db, audit_path: Path) -> None:
+async def test_purge_confirm_by_user(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     await make_document(db, workspace=ws)
@@ -145,20 +143,18 @@ async def test_purge_confirm_by_user(db, audit_path: Path) -> None:
     )
     assert remaining == []
 
-    entry = read_audit(path=audit_path)[0]
+    entry = (await read_audit(db))[0]
     assert entry["action"] == "document.purge"
 
 
 @pytest.mark.asyncio
-async def test_purge_requires_scope(db, audit_path: Path) -> None:
+async def test_purge_requires_scope(db) -> None:
     result = await purge_documents(db, scope=PurgeScope(), actor="ops1", preview=False)
     assert not result.ok and result.error == "scope_required"
 
 
 @pytest.mark.asyncio
-async def test_purge_rollback_on_blob_failure(
-    db, audit_path: Path, tmp_path: Path, monkeypatch
-) -> None:
+async def test_purge_rollback_on_blob_failure(db, tmp_path: Path, monkeypatch) -> None:
     """S3.c — se `unlink` lançar OSError, DB rollback mantém rows intactos."""
     from backend.app.core.config import settings
 

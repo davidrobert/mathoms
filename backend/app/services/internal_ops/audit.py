@@ -1,33 +1,38 @@
-"""Audit trail do console interno — sink em arquivo JSONL (ADR-116).
+"""Audit trail do console interno — persistido em ``internal_ops_audit`` (ADR-309).
 
-Sink trocável para tabela `audit_entries` quando 7B.5 fechar. Por enquanto,
-append em `logs/internal_ops_audit.log` (fora de git) — imutável por
-convenção, sem rotação interna (logrotate externo cuida).
+Dois caminhos de escrita, ambos hard-fail (A30.l1):
+
+- ``append_audit(record, db)`` — **default**: row na MESMA sessão da operação;
+  o commit único do endpoint fecha mutação + audit ("audit existe ⟺ ação
+  aconteceu"). Rollback da operação leva o audit junto — intencional (ADR-309
+  D2; a semântica commit-separado do arquivo era limitação, não decisão).
+- ``append_audit_autonomous(record)`` — exceção nomeada (ADR-309 D3) para
+  eventos session-less (``ops.login``/``ops.login_failed``/``ops.logout``):
+  transação própria curta; ``ops.login_failed`` precisa sobreviver ao 401.
 
 Regras:
-- Nunca persistir senha (nem mascarada).
+- Nunca persistir senha (nem mascarada) — ``_redact`` aplica blocklist.
 - Nunca persistir conteúdo monetário total (ADR-110 masking).
-- Timestamp UTC ISO-8601; uma linha por evento; JSON válido por linha.
+- Retenção indefinida; nenhum purge job toca esta tabela (ADR-309 D5).
 """
 
 from __future__ import annotations
 
-import json
-import threading
-from dataclasses import asdict, dataclass, field
+import logging
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
-from backend.app.core.config import settings
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.models.internal_ops_audit import InternalOpsAudit
 
 _FORBIDDEN_KEYS = frozenset(
     {"password", "new_password", "hashed_password", "token", "jwt", "secret"}
 )
 
-# Lock serializa writes no mesmo processo; entre processos, append-only
-# garante atomicidade por linha em tmpfs/ext4/apfs (<4KB).
-_write_lock = threading.Lock()
+_sink_log = logging.getLogger("mathoms.internal_ops.audit")
 
 
 @dataclass(frozen=True)
@@ -42,52 +47,61 @@ class AuditRecord:
     details: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_json(self) -> str:
-        payload = asdict(self)
-        payload["details"] = _redact(payload["details"])
-        return json.dumps(payload, ensure_ascii=False, sort_keys=True)
-
 
 def _redact(details: dict[str, Any]) -> dict[str, Any]:
     """Remove chaves sensíveis independentemente do caller."""
     return {k: v for k, v in details.items() if k.lower() not in _FORBIDDEN_KEYS}
 
 
-def audit_log_path() -> Path:
-    """Caminho do arquivo de audit (criado sob demanda em `append_audit`)."""
-    root = Path(settings.STORAGE_ROOT).parent
-    return root / "logs" / "internal_ops_audit.log"
+def _to_row(record: AuditRecord) -> InternalOpsAudit:
+    return InternalOpsAudit(
+        action=record.action,
+        actor=record.actor,
+        target_type=record.target_type,
+        target_id=record.target_id,
+        result=record.result,
+        details=_redact(record.details),
+        created_at=datetime.fromisoformat(record.timestamp),
+    )
 
 
-def append_audit(record: AuditRecord, *, path: Path | None = None) -> None:
-    """Appenda uma entrada no log. Thread-safe; idempotência é do caller."""
-    target = path or audit_log_path()
-    target.parent.mkdir(parents=True, exist_ok=True)
-    line = record.to_json() + "\n"
-    with _write_lock:
-        with target.open("a", encoding="utf-8") as fh:
-            fh.write(line)
+def append_audit(record: AuditRecord, db: AsyncSession) -> None:
+    """Adiciona o audit à sessão da operação — commit é do endpoint (ADR-309 D2)."""
+    db.add(_to_row(record))
 
 
-def read_audit(*, path: Path | None = None, limit: int | None = None) -> list[dict[str, Any]]:
-    """Lê o log como lista de dicts (mais recentes por último).
+def append_audit_autonomous(record: AuditRecord) -> None:
+    """Escrita autônoma para eventos session-less (ADR-309 D3). Hard-fail com CRITICAL."""
+    from backend.app.core.database import SyncSessionLocal
 
-    `limit` retorna as N últimas entradas. Uso: UI + testes.
-    """
-    target = path or audit_log_path()
-    if not target.exists():
-        return []
-    with target.open("r", encoding="utf-8") as fh:
-        lines = fh.readlines()
+    try:
+        with SyncSessionLocal() as session:
+            session.add(_to_row(record))
+            session.commit()
+    except Exception:
+        _sink_log.critical(
+            "internal_ops audit sink failure",
+            extra={"action": record.action, "actor": record.actor, "result": record.result},
+        )
+        raise
+
+
+def _entry_dict(row: InternalOpsAudit) -> dict[str, Any]:
+    return {
+        "action": row.action,
+        "actor": row.actor,
+        "target_type": row.target_type,
+        "target_id": row.target_id,
+        "result": row.result,
+        "details": dict(row.details or {}),
+        "timestamp": row.created_at.isoformat(),
+    }
+
+
+async def read_audit(db: AsyncSession, *, limit: int | None = None) -> list[dict[str, Any]]:
+    """Últimas ``limit`` entradas, mais recentes por último (paridade com o sink JSONL)."""
+    stmt = select(InternalOpsAudit).order_by(InternalOpsAudit.created_at.desc())
     if limit is not None:
-        lines = lines[-limit:]
-    out: list[dict[str, Any]] = []
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            out.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
-    return out
+        stmt = stmt.limit(limit)
+    rows = (await db.execute(stmt)).scalars().all()
+    return [_entry_dict(r) for r in reversed(rows)]

@@ -49,6 +49,7 @@ async def reset_password(
             target_type="user",
             target_id=user.id,
             details={"generated": new_password is None},
-        )
+        ),
+        db,
     )
     return OpResult.success(user_id=user.id, temp_password=issued)

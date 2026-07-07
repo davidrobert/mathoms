@@ -62,9 +62,10 @@ async def metrics(
 @router.get("/audit", response_model=AuditListResponse)
 async def audit(
     limit: int = Query(default=200, ge=1, le=2000),
+    db: AsyncSession = Depends(get_db),
     _: InternalOpsPrincipal = Depends(require_internal_operator),
 ) -> AuditListResponse:
-    entries = read_audit(limit=limit)
+    entries = await read_audit(db, limit=limit)
     return AuditListResponse(entries=[AuditEntryDTO(**e) for e in entries])
 
 

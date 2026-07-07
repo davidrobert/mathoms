@@ -180,7 +180,7 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](../DECISIONS.
 | Rotas | `/admin/*` (FastAPI · só monta se `MATHOMS_INTERNAL_OPS_UI_ENABLED=1`) |
 | Auth | `config/internal_operators.yaml` (bcrypt) + JWT cookie `ops_session` `httpOnly + SameSite=Strict + Path=/admin`, TTL 8h |
 | Segredo de sessão | `MATHOMS_INTERNAL_OPS_SESSION_SECRET` (**distinto** de `MATHOMS_SECRET_KEY` do cliente) |
-| Audit | `logs/internal_ops_audit.log` (JSONL, fora de git) |
+| Audit | tabela `internal_ops_audit` (ADR-309 · A31.l1) — mesma transação da operação; `GET /admin/audit` lê |
 
 ### 7.2 Subir o stack local
 
@@ -234,7 +234,9 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](../DECISIONS.
 
 ### 7.3 Operações disponíveis (UI)
 
-Todas gravam linha em `logs/internal_ops_audit.log`:
+Todas gravam registro na tabela `internal_ops_audit` (ADR-309 — audit na
+mesma transação da operação; rollback leva os dois; login/logout usam
+escrita autônoma):
 
 | Tela | Ações | Audit action |
 | --- | --- | --- |
@@ -279,6 +281,18 @@ admin é operação **manual** (SQL/console) — não há automação em IA-0
 - Bind **deve** ser `127.0.0.1`, nunca `0.0.0.0`. Para expor remotamente é
   outra lane (F7F-Remote com OAuth + RBAC).
 - YAML de operadores nunca commitado — bloqueado por `dev/check_forbidden_paths.py`.
+- **Audit imutável (ADR-309):** em Postgres, o deploy que aplica a migration
+  `a31l1opsaudit` deve rodar com `MATHOMS_DB_APP_ROLE=<role_da_app>` no env —
+  a migration executa `REVOKE UPDATE, DELETE` (grant INSERT+SELECT). Sem o
+  env, aplicar o REVOKE manualmente após o upgrade.
+- **Log CRITICAL `mathoms.internal_ops.audit` ("audit sink failure")** =
+  escrita autônoma de audit (login/logout) falhou e a operação abortou —
+  tratar como page: ou o DB caiu (console inteiro afetado) ou há bug no path
+  de audit bloqueando logins. O sink transacional não emite esse log — falha
+  vira 500 + rollback da operação.
+- Arquivo legado `logs/internal_ops_audit.log`: renomear para
+  `internal_ops_audit.log.pre-7b5` e manter ≥30 dias como arquivo-morto
+  (sem backfill — ADR-309 D6; linha `audit.migration` na tabela marca o corte).
 
 ### 7.6 Smoke manual
 
@@ -288,9 +302,9 @@ Depois de qualquer mudança em `backend/app/services/internal_ops/`,
 1. Seed user fixture: `python3 scripts/seed_internal_ops_smoke.py` (imprime
    user_id).
 2. Subir backend + frontend-ops (passos 7.2).
-3. Exercitar 1 fluxo por tela via UI; confirmar entrada no
-   `logs/internal_ops_audit.log`.
-4. Cleanup: `rm -f mathoms*.db config/internal_operators.yaml logs/internal_ops_audit.log`.
+3. Exercitar 1 fluxo por tela via UI; confirmar entrada em `GET /admin/audit`
+   (tabela `internal_ops_audit`).
+4. Cleanup: `rm -f mathoms*.db config/internal_operators.yaml`.
 
 Harness Playwright scaffolded em `frontend-ops/tests/e2e/internal-ops.spec.ts`
 (6 tests `@internal-ops`); execução em CI exige instalação do chromium +

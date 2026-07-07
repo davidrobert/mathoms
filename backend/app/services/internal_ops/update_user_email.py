@@ -48,6 +48,7 @@ async def update_user_email(
             target_type="user",
             target_id=user.id,
             details={"old": previous, "new": normalized},
-        )
+        ),
+        db,
     )
     return OpResult.success(user_id=user.id, changed=True, email=normalized)

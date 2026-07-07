@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 62
+**Total de tabelas:** 63
 
 ---
 
@@ -34,6 +34,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`goals`](#goals)
 - [`institution_catalog`](#institutioncatalog)
 - [`institution_configs`](#institutionconfigs)
+- [`internal_ops_audit`](#internalopsaudit)
 - [`llm_call_log`](#llmcalllog)
 - [`llm_configs`](#llmconfigs)
 - [`market_rates`](#marketrates)
@@ -629,6 +630,23 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - UNIQUE `ix_institution_configs_workspace_id` (workspace_id)
+
+### `internal_ops_audit`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `action` | `VARCHAR(64)` | no | — | — |
+| `actor` | `VARCHAR(100)` | no | — | — |
+| `target_type` | `VARCHAR(64)` | yes | — | — |
+| `target_id` | `VARCHAR(255)` | yes | — | — |
+| `result` | `VARCHAR(16)` | no | `'ok'` | — |
+| `details` | `JSON` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Indexes:**
+
+- `ix_internal_ops_audit_created` (created_at)
 
 ### `llm_call_log`
 
@@ -1770,6 +1788,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `goals.params_json`
 - `institution_catalog.metadata_json`
 - `institution_configs.config_json`
+- `internal_ops_audit.details`
 - `pipeline_artifacts.content_json`
 - `pipeline_configs.config_json`
 - `pipeline_runs.config_snapshot`
@@ -2188,6 +2207,21 @@ type InstitutionConfig struct {
 	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
 	ConfigJson json.RawMessage `db:"config_json" json:"config_json"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `internal_ops_audit` → `type InternalOpsAudit struct`
+
+```go
+type InternalOpsAudit struct {
+	Id string `db:"id" json:"id"`
+	Action string `db:"action" json:"action"`
+	Actor string `db:"actor" json:"actor"`
+	TargetType *string `db:"target_type" json:"target_type"`
+	TargetId *string `db:"target_id" json:"target_id"`
+	Result string `db:"result" json:"result"`
+	Details json.RawMessage `db:"details" json:"details"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
 

@@ -268,7 +268,7 @@ async def _execute(db: AsyncSession, workspace_id: str, actor: str) -> OpResult:
         return OpResult.failure("workspace_busy", workspace_id=workspace_id)
     report = await _plan(db, workspace_id)
     await _apply(db, report)
-    _audit(actor, report)
+    _audit(db, actor, report)
     return OpResult.success(preview=False, **report.counts())
 
 
@@ -285,7 +285,7 @@ async def backfill_override_identity(
     return await _execute(db, workspace_id, actor)
 
 
-def _audit(actor: str, report: BackfillReport) -> None:
+def _audit(db: AsyncSession, actor: str, report: BackfillReport) -> None:
     append_audit(
         AuditRecord(
             action="override.backfill_natural_key",
@@ -293,5 +293,6 @@ def _audit(actor: str, report: BackfillReport) -> None:
             target_type="workspace",
             target_id=report.workspace_id,
             details=report.counts(),
-        )
+        ),
+        db,
     )

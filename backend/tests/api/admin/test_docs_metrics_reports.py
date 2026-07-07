@@ -109,7 +109,7 @@ async def test_llm_cost_by_workspace_aggregates(
 
 @pytest.mark.asyncio
 async def test_audit_endpoint(
-    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, audit_path, client
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client
 ) -> None:
     # Login já grava 1 audit. Checar que a rota devolve a entrada.
     await _with_cookie(client, ops_session_token_superadmin)

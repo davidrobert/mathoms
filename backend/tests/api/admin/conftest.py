@@ -32,17 +32,8 @@ def ops_yaml(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return yaml_path
 
 
-@pytest.fixture
-def audit_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    from backend.app.services.internal_ops import audit as audit_mod
-
-    log_path = tmp_path / "internal_ops_audit.log"
-    monkeypatch.setattr(audit_mod, "audit_log_path", lambda: log_path)
-    return log_path
-
-
 @pytest_asyncio.fixture
-async def ops_session_token_superadmin(admin_ui_enabled, ops_yaml, audit_path, client):
+async def ops_session_token_superadmin(admin_ui_enabled, ops_yaml, client):
     """Autentica como superadmin e devolve o token de cookie."""
     resp = await client.post(
         "/admin/login", json={"username": "alice", "password": "AliceSuper!Pw1"}
@@ -54,7 +45,7 @@ async def ops_session_token_superadmin(admin_ui_enabled, ops_yaml, audit_path, c
 
 
 @pytest_asyncio.fixture
-async def ops_session_token_ops(admin_ui_enabled, ops_yaml, audit_path, client):
+async def ops_session_token_ops(admin_ui_enabled, ops_yaml, client):
     resp = await client.post("/admin/login", json={"username": "bob", "password": "BobOpsPw123!"})
     assert resp.status_code == 200, resp.text
     return resp.cookies.get("ops_session")

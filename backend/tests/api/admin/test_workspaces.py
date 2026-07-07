@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import pytest
 
+from backend.app.services.internal_ops.audit import read_audit
 from backend.tests.factories.builders import make_workspace
 
 _EMPTY_PROFILE = {
@@ -64,7 +65,7 @@ def _full_a16_payload() -> dict:
 
 @pytest.mark.asyncio
 async def test_admin_patch_persists_full_a16_payload(
-    ops_session_token_ops, admin_ui_enabled, ops_yaml, audit_path, client, db
+    ops_session_token_ops, admin_ui_enabled, ops_yaml, client, db
 ) -> None:
     """Operator (não-superadmin) preenche todos os 7 campos — round-trip + audit."""
     ws = await make_workspace(db)
@@ -77,14 +78,16 @@ async def test_admin_patch_persists_full_a16_payload(
     assert resp.json() == payload
     assert (await client.get(f"/admin/workspaces/{ws.id}/business-profile")).json() == payload
 
-    audit_text = audit_path.read_text(encoding="utf-8")
-    assert "workspace.update_business_profile" in audit_text
-    assert ws.id in audit_text
+    entries = await read_audit(db)
+    assert any(
+        e["action"] == "workspace.update_business_profile" and e["target_id"] == ws.id
+        for e in entries
+    )
 
 
 @pytest.mark.asyncio
 async def test_admin_patch_replaces_not_merges(
-    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, audit_path, client, db
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client, db
 ) -> None:
     """PATCH replace: 2ª chamada parcial limpa campos omitidos."""
     ws = await make_workspace(db)
@@ -103,7 +106,7 @@ async def test_admin_patch_replaces_not_merges(
 
 @pytest.mark.asyncio
 async def test_admin_patch_404_for_unknown_workspace(
-    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, audit_path, client
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client
 ) -> None:
     await _with_cookie(client, ops_session_token_superadmin)
     resp = await client.patch(
@@ -115,7 +118,7 @@ async def test_admin_patch_404_for_unknown_workspace(
 
 @pytest.mark.asyncio
 async def test_admin_patch_rejects_invalid_anexo_simples(
-    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, audit_path, client, db
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client, db
 ) -> None:
     ws = await make_workspace(db)
     await db.commit()
@@ -129,7 +132,7 @@ async def test_admin_patch_rejects_invalid_anexo_simples(
 
 @pytest.mark.asyncio
 async def test_admin_patch_rejects_iss_out_of_range(
-    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, audit_path, client, db
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client, db
 ) -> None:
     ws = await make_workspace(db)
     await db.commit()
@@ -143,7 +146,7 @@ async def test_admin_patch_rejects_iss_out_of_range(
 
 @pytest.mark.asyncio
 async def test_admin_patch_rejects_extra_field(
-    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, audit_path, client, db
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client, db
 ) -> None:
     ws = await make_workspace(db)
     await db.commit()

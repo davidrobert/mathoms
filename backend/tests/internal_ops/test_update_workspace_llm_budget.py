@@ -20,7 +20,7 @@ def _payload(**kwargs) -> WorkspaceLLMBudgetUpdate:
 
 
 @pytest.mark.asyncio
-async def test_set_cap_happy_path(db, audit_path: Path) -> None:
+async def test_set_cap_happy_path(db) -> None:
     ws = await make_workspace(db)
     result = await update_workspace_llm_budget(
         db, ws.id, actor="ops@test", payload=_payload(cap_usd="20")
@@ -33,7 +33,7 @@ async def test_set_cap_happy_path(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_remove_cap_explicit(db, audit_path: Path) -> None:
+async def test_remove_cap_explicit(db) -> None:
     ws = await make_workspace(db)
     result = await update_workspace_llm_budget(
         db, ws.id, actor="ops@test", payload=_payload(remove_cap=True)
@@ -45,22 +45,22 @@ async def test_remove_cap_explicit(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_workspace_not_found(db, audit_path: Path) -> None:
+async def test_workspace_not_found(db) -> None:
     result = await update_workspace_llm_budget(
         db, "nope", actor="ops@test", payload=_payload(cap_usd="10")
     )
     assert not result.ok
     assert result.error == "workspace_not_found"
-    assert read_audit(path=audit_path) == []
+    assert await read_audit(db) == []
 
 
 @pytest.mark.asyncio
-async def test_audit_written_with_literal_values(db, audit_path: Path) -> None:
+async def test_audit_written_with_literal_values(db) -> None:
     ws = await make_workspace(db)
     await update_workspace_llm_budget(
         db, ws.id, actor="ops@test", payload=_payload(cap_usd="12.50")
     )
-    entries = read_audit(path=audit_path)
+    entries = await read_audit(db)
     assert len(entries) == 1
     entry = entries[0]
     assert entry["action"] == "workspace.update_llm_budget"
@@ -72,7 +72,7 @@ async def test_audit_written_with_literal_values(db, audit_path: Path) -> None:
 async def test_audit_sink_failure_fails_operation(db, monkeypatch: pytest.MonkeyPatch) -> None:
     mod = importlib.import_module("backend.app.services.internal_ops.update_workspace_llm_budget")
 
-    def _boom(record) -> None:
+    def _boom(record, db) -> None:
         raise OSError("sink indisponível")
 
     monkeypatch.setattr(mod, "append_audit", _boom)
@@ -99,9 +99,7 @@ class _RecordingLogger:
 
 
 @pytest.mark.asyncio
-async def test_suspicious_jump_emits_warning(
-    db, audit_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_suspicious_jump_emits_warning(db, monkeypatch: pytest.MonkeyPatch) -> None:
     mod = importlib.import_module("backend.app.services.internal_ops.update_workspace_llm_budget")
 
     recorder = _RecordingLogger()
@@ -113,9 +111,7 @@ async def test_suspicious_jump_emits_warning(
 
 
 @pytest.mark.asyncio
-async def test_moderate_change_logs_info(
-    db, audit_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_moderate_change_logs_info(db, monkeypatch: pytest.MonkeyPatch) -> None:
     mod = importlib.import_module("backend.app.services.internal_ops.update_workspace_llm_budget")
 
     recorder = _RecordingLogger()

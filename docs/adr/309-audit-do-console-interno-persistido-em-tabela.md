@@ -2,19 +2,20 @@
 id: ADR-309
 type: adr
 title: "Audit do console interno persistido em tabela própria (7B.5)"
-status: Proposto
+status: Decidido
+phase: A31.l1
 date: "2026-07-07"
 relates_to: ["[[ADR-116]]", "[[ADR-275]]", "[[ADR-111]]"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/internal-ops
   - area/db
 ---
 
 # ADR-309 — Audit do console interno persistido em tabela própria (7B.5)
 
-**Status:** Proposto · **Data:** 2026-07-07
+**Status:** Decidido (A31.l1) · **Data:** 2026-07-07
 
 ## Contexto
 
