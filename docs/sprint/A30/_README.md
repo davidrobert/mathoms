@@ -3,14 +3,15 @@ id: MOC-sprint-a30
 type: moc
 title: "Sprint A30 — Ops FinOps: budget LLM editável no console interno"
 aliases: ["A30", "Sprint A30"]
-sprint_status: current
+sprint_status: done
 date: "2026-07-06"
 theme: "ops-finops"
 ---
 
 # Sprint A30 — Ops FinOps: budget LLM editável no console interno
 
-> **Status:** `current` (aberta 2026-07-06). 1 lane. Origem: dogfood do owner
+> **Status:** `done` (encerrada 2026-07-07 — 1/1 lane shipped no PR #815,
+> CI verde). 1 lane. Origem: dogfood do owner
 > em 2026-07-06 — run do pipeline (executor Go, F2 do ADR-150) abortou no
 > hard-stop de budget LLM ([[ADR-173]]: cap $5, gasto $5.57 = 111% ≥ 110%) e
 > o único unblock disponível foi `UPDATE` manual via SQL no DB. Co-design
@@ -23,7 +24,7 @@ theme: "ops-finops"
 
 | Lane | Título | Prioridade | Status |
 |---|---|---|---|
-| [[A30.l1]] | Editor de budget LLM por workspace no console ops | P1 | ready |
+| [[A30.l1]] | Editor de budget LLM por workspace no console ops | P1 | shipped (#815) |
 
 ## KR
 
