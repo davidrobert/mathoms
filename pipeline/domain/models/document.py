@@ -160,7 +160,9 @@ class BankStatement:
         )
         return cls(
             institution=d.get("banco") or d.get("institution") or "",
-            member_key=d.get("documento_titular") or d.get("member_key"),
+            # `membro` é o vocabulário do artifact E2-llm (e2_llm_artifact.schema);
+            # sem o fallback, membro extraído via LLM se perdia no BankStatement.
+            member_key=d.get("documento_titular") or d.get("member_key") or d.get("membro"),
             period_start=period_start,
             period_end=period_end,
             currency=currency,

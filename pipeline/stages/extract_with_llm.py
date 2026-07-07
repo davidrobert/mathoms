@@ -410,8 +410,6 @@ def _output_to_e2_json(output, *, member_resolver=None) -> dict:
         # A32.l2: readers E3 (should_skip/key/from_e2_dict) leem `tipo` — sem
         # ele, a skip-list nunca pulava cdbdetalhes/investimentosposicao.
         "tipo": output.document_type,
-        # A32.l2: readers E3 (should_skip/key/from_e2_dict) leem `tipo` — sem
-        # ele, a skip-list nunca pulava cdbdetalhes/investimentosposicao.
         "moeda": output.currency,
         "extraido_por": "llm",
         "_meta": {

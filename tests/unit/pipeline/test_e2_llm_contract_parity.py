@@ -179,9 +179,8 @@ def _reader_chains(func, param: str) -> set[frozenset[str]]:
 
 
 # Chains que o writer LLM contratualmente NÃO preenche: LLMExtractOutput não
-# modela saldos, número de conta nem notas top-level; membro é emitido como
-# `membro`, que from_e2_dict não lê (gap conhecido, fora do escopo A32.l2);
-# `conta` é fallback aninhado de moeda (writer sempre emite `moeda`).
+# modela saldos, número de conta nem notas top-level; `conta` é fallback
+# aninhado de moeda (writer sempre emite `moeda`).
 # Exemption stale (chain sumiu do reader OU writer passou a cobrir) FALHA o
 # teste — mesma disciplina de KNOWN_DRIFT_CASES do corpus strict (ADR-284).
 _LLM_WRITER_OPTIONAL_CHAINS: dict[str, set[frozenset[str]]] = {
@@ -190,7 +189,6 @@ _LLM_WRITER_OPTIONAL_CHAINS: dict[str, set[frozenset[str]]] = {
         frozenset({"saldo_final", "closing_balance"}),
         frozenset({"numero_conta", "account_number"}),
         frozenset({"numero_conta_norm"}),
-        frozenset({"documento_titular", "member_key"}),
         frozenset({"notas", "notes"}),
     },
     "should_skip": set(),
@@ -251,6 +249,25 @@ def test_parse_do_artifact_llm_nao_cai_em_fallback_vazio() -> None:
     assert stmt.account_type == "extrato"
     assert stmt.currency == "BRL"
     assert (stmt.period_start, stmt.period_end) == (date(2026, 4, 1), date(2026, 4, 30))
+
+
+def test_membro_extraido_via_llm_chega_ao_bank_statement() -> None:
+    """Regressão do gap A32.l2: writer emite `membro`, reader perdia a atribuição."""
+    artifact = _writer_artifact()
+    assert artifact["membro"] == "titular_sintetico"
+
+    normalized = StatementPeriodNormalizer().normalize(artifact, source_name="golden").data
+    stmt = BankStatement.from_e2_dict(normalized)
+    assert stmt.member_key == "titular_sintetico"
+
+
+def test_documento_titular_tem_precedencia_sobre_membro() -> None:
+    """E2 determinístico (documento_titular) vence o vocabulário LLM (membro)."""
+    artifact = _writer_artifact()
+    artifact["documento_titular"] = "titular_deterministico"
+
+    normalized = StatementPeriodNormalizer().normalize(artifact, source_name="golden").data
+    assert BankStatement.from_e2_dict(normalized).member_key == "titular_deterministico"
 
 
 # =============================================================================
