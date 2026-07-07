@@ -109,7 +109,7 @@ class TestRunWithStoreNoFiles:
 
         _e2_init(tmp_path)
 
-        from scripts.e2_extract import run_with_store
+        from scripts.extract_bank_documents import run_with_store
 
         store = InMemoryArtifactStore()
         stats = run_with_store(store=store, extratos_only=True)
@@ -122,13 +122,13 @@ class TestRunWithStoreNoFiles:
 
 class TestArtifactKey:
     def test_strips_0_original_suffix(self):
-        from scripts.e2_extract import _artifact_key_for_file
+        from scripts.extract_bank_documents import _artifact_key_for_file
 
         p = Path("/x/itau_extratoconta_202601_202602-0_original.pdf")
         assert _artifact_key_for_file(p) == "itau_extratoconta_202601_202602"
 
     def test_no_original_kept_as_is(self):
-        from scripts.e2_extract import _artifact_key_for_file
+        from scripts.extract_bank_documents import _artifact_key_for_file
 
         p = Path("/x/some_file.csv")
         assert _artifact_key_for_file(p) == "some_file"
@@ -136,7 +136,7 @@ class TestArtifactKey:
 
 class TestTargetStageSelection:
     def test_faturas_only_forces_e2_faturas(self):
-        from scripts.e2_extract import _target_stage_for_file
+        from scripts.extract_bank_documents import _target_stage_for_file
 
         p = Path("/x/c6bank_extratoconta_202601-0_original.pdf")
         assert (
@@ -144,7 +144,7 @@ class TestTargetStageSelection:
         )
 
     def test_extratos_only_forces_e2_extratos(self):
-        from scripts.e2_extract import _target_stage_for_file
+        from scripts.extract_bank_documents import _target_stage_for_file
 
         p = Path("/x/c6bank_fatura_202601-0_original.pdf")
         assert (
@@ -153,7 +153,7 @@ class TestTargetStageSelection:
         )
 
     def test_unified_mode_decides_by_filename(self):
-        from scripts.e2_extract import _target_stage_for_file
+        from scripts.extract_bank_documents import _target_stage_for_file
 
         fatura = Path("/x/c6bank_fatura_202601-0_original.pdf")
         extrato = Path("/x/c6bank_extratoconta_202601-0_original.pdf")

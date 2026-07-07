@@ -8,9 +8,9 @@ single entry point that routes all supported file types (extratos, faturas,
 CDB positions) through modular bank-specific parsers.
 
 Usage:
-    python scripts/e2_extract.py [--dry-run] [--file ARQUIVO] [--output-dir DIR] [--quiet]
-    python scripts/e2_extract.py --extratos-only
-    python scripts/e2_extract.py --faturas-only
+    python scripts/extract_bank_documents.py [--dry-run] [--file ARQUIVO] [--output-dir DIR] [--quiet]
+    python scripts/extract_bank_documents.py --extratos-only
+    python scripts/extract_bank_documents.py --faturas-only
 """
 
 import json

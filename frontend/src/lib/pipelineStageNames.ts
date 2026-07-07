@@ -5,7 +5,7 @@ import type { PipelineEvent, PipelineStageActivity } from "./api";
  *
  * Pós-rename F9.2, `current_stage`, `stage_logs[].stage` e a maior parte
  * dos eventos WS chegam em formato descritivo. Mas emissores de
- * `stage_activity` em `pipeline/stages/*.py` e `scripts/e2_extract.py`
+ * `stage_activity` em `pipeline/stages/*.py` e `scripts/extract_bank_documents.py`
  * ainda passam keys legadas (ex.: `"E2-extratos"`). Use
  * `resolveStageName()` em qualquer boundary que receba `stage` do WS para
  * normalizar.
