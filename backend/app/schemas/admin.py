@@ -8,9 +8,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
-# Clamp anti-typo de ordem de grandeza no editor de budget (sre-devops,
-# A30.l1). Calibrar com unit economics quando houver pricing.
-MAX_SETTABLE_BUDGET_USD = Decimal("1000.00")
+# Clamp anti-typo do editor de budget: ~50x o P99 de uso real (emenda
+# ADR-173 de 2026-07-07, A31.l2); com pricing, vira função do tier top.
+MAX_SETTABLE_BUDGET_USD = Decimal("300.00")
 
 
 class AdminLoginRequest(BaseModel):

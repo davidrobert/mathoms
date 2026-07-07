@@ -8,6 +8,7 @@ date: "2026-05-06"
 relates_to: ["[[ADR-024]]", "[[ADR-025]]", "[[ADR-061]]", "[[ADR-122]]"]
 supersedes: []
 superseded_by: []
+amended_at: ["2026-07-07"]
 aliases: ["ADR 173"]
 tags:
   - area/llm
@@ -19,6 +20,9 @@ size_lines: 35
 ---
 
 # ADR-173 — LLM budget hard-stop + LLMCallLog populada universal
+
+> **Emendada em 2026-07-07** — clamp `MAX_SETTABLE_BUDGET_USD` do editor
+> de budget calibrado para US$ 300 (ver §Emenda ao final).
 
 **Status:** Decidido (W3-T01) • **Data:** 2026-05-06 • **Relaciona** [ADR-024](#adr-024--litellm-como-proxy-universal), [ADR-025](#adr-025--byok-bring-your-own-key), [ADR-061](#adr-061--telemetria-privacy-first), [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm). **Origem:** SR-006 + DE-013 (W3-T01).
 
@@ -55,3 +59,22 @@ injetado em `_setup_run_context` + `ParecerOrchestratorConfig.llm_hooks`);
 `adr173budgetnull`.
 
 **Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T01](../plan/PLATFORM_REVIEW/_README.md), findings SR-006, DE-013.
+
+## Emenda — clamp do editor de budget calibrado (2026-07-07)
+
+A30.l1 (PR #815) criou o editor de `monthly_llm_budget_usd` no console
+interno com clamp anti-typo `MAX_SETTABLE_BUDGET_USD` (`backend/app/schemas/
+admin.py`), inicialmente US$ 1.000 (chute). Lane [[A31.l2]] calibra para
+**US$ 300/mês** com racional do `financial-planner` (2026-07-07):
+
+- ~50× o P99 de uso real observado (US$ 5,57/mês no workspace mais pesado,
+  32 calls) — nunca atrapalha operação legítima, multi-declarante incluso.
+- Corta o blast radius de typo em 70% vs US$ 1.000; ordem de grandeza acima
+  da faixa de COGS que um premium R$ 50-150 comporta (US$ 2-8/ws/mês a
+  20-30% da receita).
+- O clamp NÃO é o número de margem (esse é o default US$ 5 + hard-stop 110%
+  desta ADR); é a barreira de sanidade acima da faixa de negócio.
+
+**Gatilhos de recalibração:** (a) pricing definido → clamp vira função do
+tier top (ex.: 10× o budget do plano mais caro), não constante; (b) P99
+real > ~US$ 30/mês; (c) troca de modelo com pricing materialmente diferente.
