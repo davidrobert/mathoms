@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-302 ADRs (ADR-001 a ADR-311) em [`docs/adr/`](../../adr/).
+303 ADRs (ADR-001 a ADR-312) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 282
-- **Proposto**: 17
+- **Proposto**: 18
 - **Roadmap**: 3
 
 ## Fundação
@@ -526,6 +526,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-308]] — Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração · phase A29
 - [[ADR-310]] — Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7) · phase A32.l4
 - [[ADR-311]] — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável · phase A32.l5
+
+### Proposto (1)
+
+- [[ADR-312]] — Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers
 
 ## quality
 

@@ -9,8 +9,10 @@ relates_to:
   - "[[ADR-284]]"
   - "[[ADR-282]]"
   - "[[ADR-280]]"
+  - "[[ADR-312]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-07-07"]
 aliases: ["ADR 286", "e2 llm artifact schema", "vocabulario dual e2"]
 tags:
   - type/adr
@@ -20,6 +22,11 @@ tags:
 ---
 
 # ADR-286 — Contrato dedicado para o artefato E2-llm + banco aditivo em cdbresumo
+
+> **Emenda 2026-07-07:** a §Não-decisões (canonicalização do vocabulário
+> do writer LLM) foi fechada por [[ADR-312]] — a emissão aditiva de
+> `banco`/`tipo` aconteceu na A32.l2 (PR #826) e o cutover
+> canonical-only é decidido lá. Ver §Emenda ao final.
 
 **Status:** Decidido (A24.l7) • **Data:** 2026-06-10 • **Relaciona**
 [[ADR-284]] (flip strict per-schema — este é o de-drift do gate),
@@ -85,3 +92,14 @@ O corpus da [[ADR-284]] pinou 3 writers violando `required` do
   `additionalProperties` em `$.transacoes[].x` + sem WARN `unresolvable`).
 - `tests/test_e3_golden_execution.py` + `tests/test_llm_stages*.py` verdes sem
   rebaseline.
+
+## Emenda 2026-07-07
+
+A não-decisão adiada (§Não-decisões — canonicalizar o vocabulário do
+writer LLM) foi executada em duas etapas: a A32.l2 (PR #826) emitiu
+`banco`/`tipo` aditivamente e pagou o churn de identidade E3 com golden
+de paridade derivado; [[ADR-312]] decide o cutover canonical-only
+(writer para de emitir `instituicao`/`tipo_documento` top-level, schema
+flipa `required`, fallbacks nos readers viram permanentes). O contrato
+dedicado `e2_llm_artifact.schema.json` desta ADR permanece — muda apenas
+o `required` e a descrição.
