@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 63
+**Total de tabelas:** 64
 
 ---
 
@@ -37,6 +37,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`internal_ops_audit`](#internalopsaudit)
 - [`llm_call_log`](#llmcalllog)
 - [`llm_configs`](#llmconfigs)
+- [`llm_drift_check`](#llmdriftcheck)
 - [`market_rates`](#marketrates)
 - [`notifications`](#notifications)
 - [`password_vault`](#passwordvault)
@@ -701,6 +702,27 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - UNIQUE `ix_llm_configs_workspace_id` (workspace_id)
+
+### `llm_drift_check`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `batch_id` | `VARCHAR(36)` | no | — | INDEX |
+| `stage` | `VARCHAR(64)` | no | — | — |
+| `fixture_id` | `VARCHAR(80)` | no | — | — |
+| `prompt_version` | `VARCHAR(40)` | yes | — | — |
+| `model_name` | `VARCHAR(120)` | no | — | — |
+| `passed` | `BOOLEAN` | no | — | — |
+| `failures` | `JSON` | yes | — | — |
+| `duration_ms` | `INTEGER` | no | `0` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | INDEX |
+
+**Indexes:**
+
+- `ix_llm_drift_check_batch_id` (batch_id)
+- `ix_llm_drift_check_created_at` (created_at)
+- `ix_llm_drift_check_stage_created` (stage, created_at)
 
 ### `market_rates`
 
@@ -1789,6 +1811,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `institution_catalog.metadata_json`
 - `institution_configs.config_json`
 - `internal_ops_audit.details`
+- `llm_drift_check.failures`
 - `pipeline_artifacts.content_json`
 - `pipeline_configs.config_json`
 - `pipeline_runs.config_snapshot`
@@ -2260,6 +2283,23 @@ type LLMConfig struct {
 	Temperature float64 `db:"temperature" json:"temperature"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `llm_drift_check` → `type LlmDriftCheck struct`
+
+```go
+type LlmDriftCheck struct {
+	Id string `db:"id" json:"id"`
+	BatchId string `db:"batch_id" json:"batch_id"`
+	Stage string `db:"stage" json:"stage"`
+	FixtureId string `db:"fixture_id" json:"fixture_id"`
+	PromptVersion *string `db:"prompt_version" json:"prompt_version"`
+	ModelName string `db:"model_name" json:"model_name"`
+	Passed bool `db:"passed" json:"passed"`
+	Failures json.RawMessage `db:"failures" json:"failures"`
+	DurationMs int `db:"duration_ms" json:"duration_ms"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
 

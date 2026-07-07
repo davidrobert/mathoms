@@ -4,9 +4,9 @@ type: lane
 title: "Nightly drift do extract_with_llm: Celery beat + fixtures sintéticas + auto-alerta (ADR-307 F2)"
 sprint: A33
 plan: PLAN-platform-review
-status: planned
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 831
+ship_date: "2026-07-07"
 priority: P2
 branch_slug: a33-l5-nightly-drift-extractllm
 adrs: ["[[ADR-307]]"]
@@ -15,7 +15,7 @@ parallel_with: ["[[A33.l4]]", "[[A33.l6]]"]
 tags:
   - type/lane
   - sprint/a33
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/llm
   - area/observability

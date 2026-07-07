@@ -51,6 +51,8 @@ celery_app.conf.update(
         "backend.app.tasks.fipe_refresh",
         # ADR-171 — re-encrypt batch durante janela de rotação Fernet (manual).
         "backend.app.tasks.rotate_fernet_secrets",
+        # A33.l5 (ADR-307 F2) — drift nightly do extract_with_llm.
+        "backend.app.tasks.detect_extract_llm_drift",
     ],
     # F8.4 / ADR-074 — beat schedule para tarefas periódicas.
     # Start beat: celery -A backend.app.worker beat -l info
@@ -89,6 +91,13 @@ celery_app.conf.update(
         "fipe-refresh-annual": {
             "task": "fin.fipe.refresh_all_annual",
             "schedule": crontab(month_of_year=1, day_of_month=15, hour=3, minute=0),
+        },
+        # A33.l5 (ADR-307 F2) — drift estrutural nightly do extract_with_llm.
+        # 06:15 UTC = 03:15 BRT (fora de pico); ~US$0,07/execução no cap
+        # mês-calendário ADR-173 do workspace dogfood.
+        "detect-extract-llm-drift": {
+            "task": "fin.llm.detect_extract_llm_drift",
+            "schedule": crontab(hour=6, minute=15),
         },
     },
 )
