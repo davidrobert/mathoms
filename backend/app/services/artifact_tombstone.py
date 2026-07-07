@@ -25,8 +25,8 @@ from pipeline.artifact_store import stage_aliases
 _logger = logging.getLogger("mathoms.pipeline.artifact")
 
 # Stages de extração per-documento (família E2*). Rows antigas podem estar
-# na grafia legada ("E2-llm") — expandido via stage_aliases (ADR-093),
-# nunca literal único. "E2" plano cobre rows pré-F9.2 sem sufixo.
+# na grafia legada — expandido via stage_aliases (ADR-093), nunca literal
+# único. "E2" plano cobre rows pré-F9.2 sem sufixo.
 _E2_DESCRIPTIVE_STAGES: tuple[str, ...] = (
     "extract_statements",
     "extract_invoices",
