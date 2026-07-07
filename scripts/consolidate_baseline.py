@@ -16,8 +16,8 @@ Cada item consolidado inclui:
   - dados_completos (enriquecimento com XLSX quando disponível)
 
 Uso:
-  python scripts/e15_consolidate.py              # enriquece in-place
-  python scripts/e15_consolidate.py --dry-run    # mostra sem salvar
+  python scripts/consolidate_baseline.py              # enriquece in-place
+  python scripts/consolidate_baseline.py --dry-run    # mostra sem salvar
 """
 
 import json

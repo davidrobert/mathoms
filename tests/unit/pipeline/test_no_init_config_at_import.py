@@ -22,7 +22,7 @@ SCRIPTS_TO_CHECK = [
     "scripts/e5_analyze.py",
     "scripts/e5n_narrativas.py",
     "scripts/e7_review.py",
-    "scripts/e15_consolidate.py",
+    "scripts/consolidate_baseline.py",
 ]
 
 

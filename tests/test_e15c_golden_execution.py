@@ -95,7 +95,7 @@ def _canonical_baseline() -> dict:
 
 
 def _run(tmp_path: Path) -> dict:
-    from scripts.e15_consolidate import main_with_store
+    from scripts.consolidate_baseline import main_with_store
 
     (tmp_path / "config").mkdir(parents=True, exist_ok=True)
     (tmp_path / "config" / "pipeline.json").write_text("{}")

@@ -143,7 +143,7 @@
     },
     "dividas": {
       "type": "array",
-      "description": "Dívidas consolidadas cross-IRPF (ADR-301). Schema apertado de array-livre; valida em warn até dogfood limpo. Produtor: e15_consolidate; dedup: dividas_dedup.",
+      "description": "Dívidas consolidadas cross-IRPF (ADR-301). Schema apertado de array-livre; valida em warn até dogfood limpo. Produtor: consolidate_baseline (ex-e15_consolidate); dedup: dividas_dedup.",
       "items": {
         "type": "object",
         "required": ["descricao", "saldo_31_12"],

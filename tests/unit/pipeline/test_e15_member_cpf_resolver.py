@@ -11,7 +11,7 @@ from pipeline.domain.services.member_name_resolver import (  # noqa: E402
     MemberNameResolver,
     MemberRecord,
 )
-from scripts.e15_consolidate import (  # noqa: E402
+from scripts.consolidate_baseline import (  # noqa: E402
     _resolve_member,
     consolidate_from_itens,
 )

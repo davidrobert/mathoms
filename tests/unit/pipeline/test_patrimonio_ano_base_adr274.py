@@ -6,7 +6,7 @@ import logging
 
 import pytest
 
-import scripts.e15_consolidate as e15
+import scripts.consolidate_baseline as e15
 from pipeline.domain.services.e5_member_resolver import (
     E5MemberResolver,
     MemberResolverConfig,

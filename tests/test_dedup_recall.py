@@ -39,7 +39,7 @@ def _load_golden() -> dict:
 
 def _consolidate(tmp_path: Path, baseline: dict) -> dict:
     """Roda E1.5c (``main_with_store``) sobre o baseline e devolve o dict consolidado."""
-    from scripts.e15_consolidate import main_with_store
+    from scripts.consolidate_baseline import main_with_store
 
     (tmp_path / "config").mkdir(parents=True, exist_ok=True)
     (tmp_path / "config" / "pipeline.json").write_text("{}")

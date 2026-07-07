@@ -242,13 +242,13 @@ class TestInitConfig:
         (config_dir / "pipeline.json").write_text("{}")
         (config_dir / "family_members.json").write_text("{}")
 
-        from scripts.e15_consolidate import _init_config
+        from scripts.consolidate_baseline import _init_config
 
         _init_config(tmp_path)
-        from scripts import e15_consolidate
+        from scripts import consolidate_baseline
 
-        assert e15_consolidate.PROJECT_DIR == tmp_path
-        assert e15_consolidate.E2_DIR == tmp_path / "processed" / "E2_extracts"
+        assert consolidate_baseline.PROJECT_DIR == tmp_path
+        assert consolidate_baseline.E2_DIR == tmp_path / "processed" / "E2_extracts"
 
         # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
