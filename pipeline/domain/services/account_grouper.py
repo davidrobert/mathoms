@@ -138,11 +138,14 @@ class AccountGrouper:
         - Não-dict.
         - ``tipo`` em ``skip_types`` (direto ou via equivalence).
         - ``tipo`` que começa com ``"fatura"`` mas não está em ``fatura_allowed``.
+
+        ``tipo_documento`` é fallback para artifacts E2-llm antigos (A32.l2),
+        espelhando o par ``banco``/``instituicao`` de :meth:`key`.
         """
         if not isinstance(data, dict):
             return True
 
-        tipo = (data.get("tipo") or "").strip()
+        tipo = (data.get("tipo") or data.get("tipo_documento") or "").strip()
         if tipo in self._config.skip_types:
             return True
 
@@ -161,13 +164,14 @@ class AccountGrouper:
         """Retorna ``AccountKey`` ou ``None`` se inválido (sem banco/tipo).
 
         - Banco lido de ``banco`` ou ``instituicao``.
-        - Tipo normalizado via ``account_type_equivalences``.
+        - Tipo lido de ``tipo`` ou ``tipo_documento`` (E2-llm antigo, A32.l2),
+          normalizado via ``account_type_equivalences``.
         - Faturas: ``currency=None`` (não compõe a chave).
         - Contas: moeda lida de ``moeda`` ou ``conta.moeda``; default
           ``BRL`` quando ausente.
         """
         bank = (data.get("banco") or data.get("instituicao") or "").strip()
-        tipo = (data.get("tipo") or "").strip()
+        tipo = (data.get("tipo") or data.get("tipo_documento") or "").strip()
         if not bank or not tipo:
             return None
 

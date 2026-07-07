@@ -169,7 +169,7 @@ class BankStatement:
             closing_balance=Money.of(str(closing), currency) if closing is not None else None,
             source_document=d.get("arquivo_origem") or d.get("source_document"),
             notes=list(d.get("notas") or d.get("notes") or []),
-            account_type=d.get("tipo") or d.get("account_type"),
+            account_type=d.get("tipo") or d.get("account_type") or d.get("tipo_documento"),
             account_number_raw=account_number_raw,
             account_number_norm=account_number_norm,
         )
