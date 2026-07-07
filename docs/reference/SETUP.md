@@ -395,6 +395,15 @@ open htmlcov/index.html
 > (`backend/app/services/internal_ops/pipeline_reset.py`), consumido pelo
 > console interno.
 
+**`make pipeline-run` não é uma revival da CLI standalone.** É um atalho de
+debug/dogfood (`backend/app/scripts/run_workspace_pipeline.py`) que chama o
+mesmo use case `trigger_pipeline` do `POST /pipeline/run` — mesma validação
+de domínio, mesmo dispatch para o Celery worker — só sem HTTP/JWT. Reprocessa
+todos os documentos do workspace ou a partir de um stage (`FROM=<stage>`),
+com opção de `RESET=1` (deleta artifacts via `reset_workspace_from_stage`
+antes de rodar). `make dev-up` continua pré-requisito (worker precisa estar
+de pé).
+
 Em produção (API + Celery worker), paths vêm via `WorkspaceContext` por-run; testes injetam `InMemoryArtifactStore` explícito ([[ADR-212]] PR2 removeu `MATHOMS_WORKSPACE_ROOT setdefault` global).
 
 **Directórios na raiz do repo:** não é obrigatório existir `data/`, `inbox/`,
