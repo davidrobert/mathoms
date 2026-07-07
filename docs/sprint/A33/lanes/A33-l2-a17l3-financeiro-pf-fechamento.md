@@ -4,9 +4,9 @@ type: lane
 title: "Fechar A17.l3: informes financeiro PF P3-P5 (consolidate_baseline + PTAX 31/12 + UI S4 + validações Wise)"
 sprint: A33
 plan: null
-status: open
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 835
+ship_date: "2026-07-07"
 priority: P1
 branch_slug: a33-l2-a17l3-financeiro-pf
 adrs: ["[[ADR-238]]", "[[ADR-135]]"]
@@ -15,7 +15,7 @@ parallel_with: ["[[A33.l1]]"]
 tags:
   - type/lane
   - sprint/a33
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---
