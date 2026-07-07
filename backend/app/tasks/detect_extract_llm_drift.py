@@ -27,8 +27,8 @@ _drift_metrics = get_logger("llm.drift")
 _WORKSPACE_ENV = "MATHOMS_LLM_DRIFT_WORKSPACE_ID"
 
 # Custo por execução (medido na 1ª execução real, 2026-07-07): 4 fixtures ×
-# 1 trial em claude-sonnet (~2k tokens in / ~0,5k out por call) ≈ US$0,07/noite
-# → ≈ US$2,10/mês-calendário, somando ao dogfood no MESMO cap ADR-173
+# 1 trial em claude-sonnet-4-6 = 14.030 tokens in + 2.307 out = US$0,077/noite
+# → ≈ US$2,30/mês-calendário, somando ao dogfood no MESMO cap ADR-173
 # (default US$20/mês). O hard-stop pré-call (110%) curto-circuita o batch —
 # o job nunca é quem estoura o cap e silencia extração real.
 
