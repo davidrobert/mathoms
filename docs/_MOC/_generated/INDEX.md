@@ -688,6 +688,15 @@
 | A32.l5 | lane | planned | A32 | lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável (ADR-311) | `sprint/A32/lanes/A32-l5-lifecycle-artifact-tombstone-versao.md` |
 | A32.l6 | lane | planned | A32 | review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | `sprint/A32/lanes/A32-l6-review-ux-identidade-natureza.md` |
 | A32.l7 | lane | planned | A32 | gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | `sprint/A32/lanes/A32-l7-gate-rerun-dogfood.md` |
+| A33.l1 | lane | open | A33 | ADR-090 no boundary LLM: e15_baseline + e2_llm sem float monetário (W1β) | `sprint/A33/lanes/A33-l1-adr090-llm-boundary.md` |
+| A33.l2 | lane | open | A33 | Fechar A17.l3: informes financeiro PF P3-P5 (consolidate_baseline + PTAX 31/12 + UI S4 + validações Wise) | `sprint/A33/lanes/A33-l2-a17l3-financeiro-pf-fechamento.md` |
+| A33.l3 | lane | open | A33 | PROMPT_VERSION semver puro nos 5 prompts legados + confidence/prompt_version persistidos em llm_call_log (W2) | `sprint/A33/lanes/A33-l3-prompt-version-semver-telemetria.md` |
+| A33.l4 | lane | planned | A33 | Fechar A17.l4: informes de proventos de ações (XP Proventos + Itaúsa) → yield-on-cost em S3 | `sprint/A33/lanes/A33-l4-a17l4-proventos-acoes.md` |
+| A33.l5 | lane | planned | A33 | Nightly drift do extract_with_llm: Celery beat + fixtures sintéticas + auto-alerta (ADR-307 F2) | `sprint/A33/lanes/A33-l5-nightly-drift-extractllm.md` |
+| A33.l6 | lane | planned | A33 | Retenção de artifacts: retention_until + prune diário + teste de cascade (W6-T05) | `sprint/A33/lanes/A33-l6-artifacts-retention.md` |
+| A33.l7 | lane | planned | A33 | OTLP mathoms.llm.* por {prompt_name, prompt_version} + parecer.riscos_truncados (W3) | `sprint/A33/lanes/A33-l7-otlp-telemetria-llm.md` |
+| A33.l8 | lane | planned | A33 | InstitutionCatalogProvider (protocol) + códigos RFB do e16 em YAML anual versionado (W4-T01/T02) | `sprint/A33/lanes/A33-l8-catalogo-injection-rfb-yaml.md` |
+| A33.l9 | lane | planned | A33 | Services taxonomy: split de backend/app/services/ em subpacotes por natureza técnica (ADR-285, W6-T07) | `sprint/A33/lanes/A33-l9-services-taxonomy.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -769,6 +778,7 @@
 | MOC-sprint-a30 | moc |  |  | Sprint A30 — Ops FinOps: budget LLM editável no console interno | `sprint/A30/_README.md` |
 | MOC-sprint-a31 | moc |  |  | Sprint A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado | `sprint/A31/_README.md` |
 | MOC-sprint-a32 | moc |  |  | Sprint A32 — Review de reconciliação confiável: falsos positivos zerados + lifecycle de artifact + a tela diz de quem é o erro | `sprint/A32/_README.md` |
+| MOC-sprint-a33 | moc |  |  | Sprint A33 — Autonomia total: débito executável sem nenhuma ação do owner (LLM hardening + fechamento A17 + retenção) | `sprint/A33/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |

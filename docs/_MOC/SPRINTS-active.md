@@ -152,17 +152,24 @@ A27→`current`→`done`) — a A28 (`current`) é quem gera esse tráfego. Cond
 
 - **Plano:** [sprint/A27/_README.md](../sprint/A27/_README.md) · **Dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 6.
 
-### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
+### A33 — Autonomia total: débito executável sem ação do owner (`candidate` 2026-07-07)
 
-**Próxima na fila.** 3 lanes coordenadas que destravam ingestão de CRLV-e, apólices polimórficas (combinada multi-bem como caso V1), e refresh assíncrono de valor de mercado via BrasilAPI. ADR canônica [[ADR-239]] (`Proposto`). Diagnóstico dogfood 2026-05-21: 6 PDFs (3 CRLV + 3 apólices) todos em `.other` silencioso.
+**Zero ações do owner por construção** — pedido do owner 2026-07-07: sprint
+inteira executável por agentes (sem token, key nova, assinatura, decisão
+pendente ou tráfego de dogfood). 9 lanes em 3 ondas ([[MOC-sprint-a33]]):
+**Must** l1 ADR-090 nos schemas LLM (W1β do [[PLAN-llm-prompts-hardening]])
+∥ l2 fechamento [[A17.l3]] (financeiro PF + Wise/PTAX) ∥ l3 semver +
+telemetria SQL (W2) · **Should** l4 [[A17.l4]] proventos (fecha A17 →
+`done`) ∥ l5 nightly drift ([[ADR-307]] F2) ∥ l6 retenção de artifacts
+(W6-T05; sequencia pós-[[A32.l5]]) · **Could** l7 OTLP (W3) ∥ l8 catálogo
+via protocol + RFB YAML (W4) ∥ l9 services taxonomy ([[ADR-285]], gate ≤1
+PR em `services/`). KR1 anti-Goodhart: lane que descobrir gate de owner
+escondido flipa `blocked` nomeando o gate no mesmo dia. Onda A não colide
+com arquivos da A32 (verificado no kickoff).
 
-- **Plano:** [sprint/A18/_README.md](../sprint/A18/_README.md).
-
-### A19 — Card S_PROTECAO no relatório (`candidate`, downstream de A18)
-
-**Reservada pós-A18.** Card S_PROTECAO no relatório React como **4º pilar AUVP (Proteção Patrimonial)**, posicionado entre S2 (Reserva) e S4 (Patrimônio). 4 KPIs V1, 3 subgrupos, linguagem CRC. ADR canônica [[ADR-240]] (`Proposto`). Depende de A18 (apólices) para alimentar inputs reais.
-
-- **Plano:** [sprint/A19/_README.md](../sprint/A19/_README.md).
+- **Sprint:** [sprint/A33/_README.md](../sprint/A33/_README.md) ·
+  **Planos alimentados:** [[PLAN-llm-prompts-hardening]] +
+  [[PLAN-platform-review]] + fechamento da A17.
 
 ## Sprints pausadas
 
@@ -211,7 +218,7 @@ parecer E6 e exercita o override v2).
 **Suspensa em favor de A20** (priorização do owner; transição `current → paused` por [[ADR-234]]). L1 entregue (ADR canônica [[ADR-238]] `Decidido (Sprint A17 L1)`, 5 PRs [#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)).
 
 - **Trabalho residual:** L2-L4 abertas em [sprint/A17/_README.md](../sprint/A17/_README.md).
-- **Fila reservada pós-A17:** A18 (CRLV + apólices + FIPE, [[ADR-239]]) → A19 (S_PROTECAO 4º pilar AUVP, [[ADR-240]]).
+- **Fila reservada pós-A17 (atualização 2026-07-07):** A18 e A19 **já entregues** (`done` — ver tabela de encerradas); o residual L3-L4 da própria A17 está lotado como lanes [[A33.l2]]/[[A33.l4]] da sprint [[MOC-sprint-a33]] (`candidate`).
 - **Retomada:** flip `paused → current` quando o owner decidir retomar.
 
 ### A11 — Platform review execution (`paused` 2026-05-20)
@@ -250,6 +257,8 @@ parecer E6 e exercita o override v2).
 | A10 | done | `goals.json` cutover final ([ADR-090](../adr/090-decimal-money.md) supersedes parcial). |
 | A15 | done | FU-3 imóvel financiado ([ADR-227](../adr/227-imovel-financiado-debt-aggregate-valor-mercado.md)) — 8 PRs, 2 bugs silenciosos resolvidos. Plano arquivado em [archive/IMOVEL_FINANCIADO-2026-05-20.md](../archive/IMOVEL_FINANCIADO-2026-05-20.md). |
 | A16 | done | L1 ADR-235 `nu_proprietario` ([apps#388](https://github.com/davidrobert/mathoms/pull/388)) + L2 ADR-236 cascata fiscal PJ (PRs #390, #392, #393, #394, #395, #398) — ambas entregues 2026-05-21. |
+| A18 | done | Comprovantes de Bem (CRLV-e) + apólices polimórficas + FIPE refresh — 3/3 lanes shipped 2026-05-22 (#388–#436), [[ADR-239]] `Decidido`. Fechada `done` em 2026-07-01 (#707/#708; antiga l4 LGPD realocada — pertencia ao PLAN-llm-prompts-hardening, W1α fechada 2026-07-06). |
+| A19 | done | Card S_PROTECAO (4º pilar AUVP) — [[ADR-240]] `Decidido` via PR #436 (extensão E6-parecer + telemetria). Fechada `done` em 2026-07-01 (#707). |
 | A21 | done | Launch Trust F1 inteira (confiabilidade do número) — 9/9 lanes entregues (PRs #524–#538). Contrato `EntityDedup` (ADR-276), dedup imóveis/investimentos/previdência (ADR-277), backup/restore drill CI (ADR-275), goldens+métricas dedup. Gates F3/LGPD migram para A22; off-site/deploy permanecem owner-gated ([[ADR-228]] G2/G3). Encerrada 2026-05-31, sucedida por [[MOC-sprint-a22]]. |
 
 > Tracks por sprint disponíveis em [`docs/sprint/A6/tracks/`](../sprint/A6/tracks/), [`A7/tracks/`](../sprint/A7/tracks/), [`A8/tracks/`](../sprint/A8/tracks/), [`A11/tracks/`](../sprint/A11/tracks/), [`A12/tracks/`](../sprint/A12/tracks/), [`A16/tracks/`](../sprint/A16/tracks/), [`F7/tracks/`](../sprint/F7/tracks/), [`F9/tracks/`](../sprint/F9/tracks/), [`W5/tracks/`](../sprint/W5/tracks/), [`W6/tracks/`](../sprint/W6/tracks/). [BACKLOG](../BACKLOG.md) é apenas shim de navegação.

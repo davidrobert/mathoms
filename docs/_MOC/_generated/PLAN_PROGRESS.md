@@ -40,8 +40,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### PLAN-platform-review — Platform Review Plan — 2026-05-06
 
 - Status: `in_progress` · Sprint atual: A11
-- Sprints envolvidas: A11
-- Lanes: 2 done · 0 in_progress · 2 open · 2 blocked
+- Sprints envolvidas: A11, A33
+- Lanes: 2 done · 0 in_progress · 5 open · 2 blocked
 - ADRs canônicas: —
 
 ### PLAN-report-premium — Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html`
@@ -144,8 +144,8 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 ### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting
 
 - Status: `draft` · Sprint atual: A17
-- Sprints envolvidas: A17, A20
-- Lanes: 1 done · 0 in_progress · 5 open · 0 blocked
+- Sprints envolvidas: A17, A20, A33
+- Lanes: 1 done · 0 in_progress · 9 open · 0 blocked
 - ADRs canônicas: [[ADR-081]], [[ADR-090]], [[ADR-097]], [[ADR-110]], [[ADR-111]], [[ADR-137]], [[ADR-157]], [[ADR-191]], [[ADR-212]], [[ADR-233]], [[ADR-246]]
 
 ### PLAN-market-rates-ingestion — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto
