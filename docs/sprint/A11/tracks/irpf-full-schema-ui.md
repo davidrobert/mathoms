@@ -250,4 +250,4 @@ Plugar nas 2 sections novas via `ReportSection` (padrão estabelecido em S1, S2�
 - [ADR-139](../../../DECISIONS.md#adr-139--finalização-migração-rechartschartjs-em-reports) — Chart.js como engine canônica
 - [ADR-148](../../../DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório) — comparações mês-a-mês
 - Padrão de componentes: [frontend/src/components/report/](../../../../frontend/src/components/report)
-- KPIs em [pipeline/domain/services/irpf_analyzer.py](../../../../pipeline/domain/services/irpf_analyzer.py) + wire em [scripts/e5_analyze.py::_e5_load_irpf_kpis](../../../../scripts/e5_analyze.py)
+- KPIs em [pipeline/domain/services/irpf_analyzer.py](../../../../pipeline/domain/services/irpf_analyzer.py) + wire em [scripts/e5_analyze.py::_e5_load_irpf_kpis](../../../../scripts/analyze_finances.py)

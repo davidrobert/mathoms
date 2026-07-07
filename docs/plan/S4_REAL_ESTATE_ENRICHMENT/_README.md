@@ -133,7 +133,7 @@ povoar a fonte #1 da cascade D9 da [[ADR-216]].
 
 **Fundamentação:** o doc type já existe no produto —
 [`backend/app/services/classification/type_classifier.py:85`](../../../backend/app/services/classification/type_classifier.py)
-classifica; [`scripts/e0_route.py:112-113`](../../../scripts/e0_route.py)
+classifica; [`scripts/e0_route.py:112-113`](../../../scripts/route_documents.py)
 rotea via regex `informe.*rendimento.*aluguel`; legacy processou
 `quintoandar_informerendimentosaluguel_2025-0_original.pdf`
 ([`_archive/legacy_scripts/extract_baseline_patrimonial.py:354`](../../../_archive/legacy_scripts/extract_baseline_patrimonial.py)).

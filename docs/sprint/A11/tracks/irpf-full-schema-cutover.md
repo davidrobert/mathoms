@@ -222,5 +222,5 @@ Goldens: rodar `tests/test_e5_golden_execution.py` com workspace flag `True` e c
 - [ADR-111](../../../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) — stateless
 - Pattern de flag existente: `MATHOMS_USE_DB_ARTIFACTS` (ver [CLAUDE.md §Feature flag](../../../../CLAUDE.md)) e `workspaces.use_db_artifacts_override`
 - E1.5 baseline normalizer: [pipeline/domain/services/baseline_normalizer.py](../../../../pipeline/domain/services/baseline_normalizer.py)
-- E5 wire IRPF (lane irpf-full-schema): [scripts/e5_analyze.py::_e5_load_irpf_kpis](../../../../scripts/e5_analyze.py)
+- E5 wire IRPF (lane irpf-full-schema): [scripts/e5_analyze.py::_e5_load_irpf_kpis](../../../../scripts/analyze_finances.py)
 - Goldens existentes: [tests/test_e5_golden_execution.py](../../../../tests/test_e5_golden_execution.py)

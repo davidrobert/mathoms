@@ -31,7 +31,7 @@ Bug reportado em prod no relatório `/reports/<id>`, seção "Top 15 Ativos Fina
 
 Cadeia técnica:
 
-1. `scripts/e15_consolidate.py:consolidate_from_itens` ([linha 408-446](../../scripts/e15_consolidate.py)) itera `itens[]` (1 entrada por linha de IRPF unificado) e faz `imoveis_consolidados.append(entry)` **sem dedup por `(codigo_rfb, endereco_canonical)`**. Duas entradas distintas no baseline.
+1. `scripts/e15_consolidate.py:consolidate_from_itens` ([linha 408-446](../../scripts/consolidate_baseline.py)) itera `itens[]` (1 entrada por linha de IRPF unificado) e faz `imoveis_consolidados.append(entry)` **sem dedup por `(codigo_rfb, endereco_canonical)`**. Duas entradas distintas no baseline.
 
 2. `pipeline/domain/services/property_identity_enricher.py` anexa `property_id`. `DBPropertyIdentityResolver.match_or_create` ([backend/app/services/db_property_identity_resolver.py:31](../../backend/app/services/db_property_identity_resolver.py)) faz cascade `(codigo_rfb, endereco_canonical)` ignorando `titular_key` ([[ADR-225]]) — então ambas as entradas recebem o **mesmo `property_id`**. Mas a lista continua com 2 itens.
 

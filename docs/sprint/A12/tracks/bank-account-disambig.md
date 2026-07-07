@@ -218,7 +218,7 @@ pre-commit run --all-files
 
 **Consumidores ajustados:**
 
-- [scripts/e4_categorize.py](../../../../scripts/e4_categorize.py) — `BANCO_MEMBRO` global removido; resolver instanciado em construção via DI; lookup por `(banco, account_number)` da transação ([[ADR-111]] stateless rigoroso).
+- [scripts/e4_categorize.py](../../../../scripts/categorize_transactions.py) — `BANCO_MEMBRO` global removido; resolver instanciado em construção via DI; lookup por `(banco, account_number)` da transação ([[ADR-111]] stateless rigoroso).
 - [pipeline/domain/services/investments_consolidator.py](../../../../pipeline/domain/services/investments_consolidator.py) — fallback de membro usa resolver; `confidence in {"ambiguous", "unknown"}` ⇒ posição marcada `needs_review=true` + motivo legível (não chuta).
 - [pipeline/stages/extract_members.py](../../../../pipeline/stages/extract_members.py) — merge idempotente:
   - Existe `(workspace_id, institution_code, account_number_norm)` → skip + log INFO.

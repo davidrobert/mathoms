@@ -84,7 +84,7 @@ Especializações primeiro garantem que keywords genéricas (e.g. "fundo" em "Fu
 ## Migração
 
 - Code-only — sem migration DB. Schema E5 atualizado in-place. Goldens regerados.
-- `analyze_investimentos_classes` em [`scripts/e5_analyze.py:1761`](../../scripts/e5_analyze.py) é dead code (legacy duplicado pré-A5b extraction); **não removido neste PR** para limitar surface — cleanup separado.
+- `analyze_investimentos_classes` em [`scripts/e5_analyze.py:1761`](../../scripts/analyze_finances.py) é dead code (legacy duplicado pré-A5b extraction); **não removido neste PR** para limitar surface — cleanup separado.
 - Goal `alocacao_alvo` v1 (4 buckets) continua intacto — esta ADR não touch ADR-141 v2 adoption.
 
 ## Consequências

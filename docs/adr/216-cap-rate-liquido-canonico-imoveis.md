@@ -232,7 +232,7 @@ operacional — schema Pydantic dedicado em `pipeline/llm/schemas/`
 (padrão [[ADR-157]] / `e16_irpf_full.py`) + prompt LLM dedicado em
 `pipeline/llm/prompts/`. Hoje o doc é classificado e roteado
 ([`type_classifier.py:85`](../../backend/app/services/classification/type_classifier.py)
-+ [`e0_route.py:112-113`](../../scripts/e0_route.py)) mas extraído pelo
++ [`e0_route.py:112-113`](../../scripts/route_documents.py)) mas extraído pelo
 schema **genérico** de E2-LLM (lista de transações sem semântica de
 "aluguel do imóvel X, taxa adm Y, IR retido Z"). Falta semantizar a
 extração.

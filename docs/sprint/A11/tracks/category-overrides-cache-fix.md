@@ -67,7 +67,7 @@ pre-commit run --all-files
 
 ## Riscos
 
-- **R1** — invalidação write-through pode não cobrir todos os call-sites. E4 ([scripts/e4_categorize.py](../../../../scripts/e4_categorize.py)) lê resolver direto via `db_config_store.get_categorization()`; auditar que o cache é o único intermediário. Mitigação: teste end-to-end (`/config/category-overrides/{key}` PUT → resolver via Python sync session).
+- **R1** — invalidação write-through pode não cobrir todos os call-sites. E4 ([scripts/e4_categorize.py](../../../../scripts/categorize_transactions.py)) lê resolver direto via `db_config_store.get_categorization()`; auditar que o cache é o único intermediário. Mitigação: teste end-to-end (`/config/category-overrides/{key}` PUT → resolver via Python sync session).
 - **R2** — race entre commit e invalidação. Aceito staleness <100ms. SLA forte futura via versioned cache key (não escopo desta task).
 
 ## Ligações

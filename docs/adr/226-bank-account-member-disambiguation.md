@@ -54,7 +54,7 @@ for m in members:
 
 Cenário David + Mariana ambos no Itaú: `banco_membro["itau"]` fica com o **último** processado. Transações do outro são atribuídas ao membro errado em:
 
-- [scripts/e4_categorize.py:330](../../scripts/e4_categorize.py) — `BANCO_MEMBRO` lookup direto em transação.
+- [scripts/e4_categorize.py:330](../../scripts/categorize_transactions.py) — `BANCO_MEMBRO` lookup direto em transação.
 - [pipeline/domain/services/investments_consolidator.py:141](../../pipeline/domain/services/investments_consolidator.py) — fallback de membro em posição de investimento.
 
 Sintomas correlatos no mesmo eixo:
@@ -64,7 +64,7 @@ Sintomas correlatos no mesmo eixo:
 - Não há UNIQUE constraint em `bank_accounts` prevenindo `(workspace_id, institution_code, account_number)` duplicado.
 - Stage E1 ([extract_members](../../pipeline/stages/extract_members.py)) ao processar IRPF **reprocessa o JSON inteiro**, podendo sobrescrever cadastros manuais já feitos pelo usuário.
 - Não há teste cobrindo multi-membro+mesmo-banco — [tests/test_llm_golden.py:41](../../tests/test_llm_golden.py) é single-member por banco.
-- `BANCO_MEMBRO` (uppercase) em [e4_categorize.py:332](../../scripts/e4_categorize.py) é variável de módulo carregada de JSON em import — formalmente OK enquanto imutável, mas reforça o pattern global; refactor mata isso passando config via DI ([[ADR-111]]).
+- `BANCO_MEMBRO` (uppercase) em [e4_categorize.py:332](../../scripts/categorize_transactions.py) é variável de módulo carregada de JSON em import — formalmente OK enquanto imutável, mas reforça o pattern global; refactor mata isso passando config via DI ([[ADR-111]]).
 
 **Impacto patrimonial (review `financial-planner` 2026-05-19).** ICP brasileiro de alta renda multi-membro **frequentemente** tem múltiplos membros no mesmo banco (concentração regulatória: Itaú/Bradesco/Caixa/Nubank/Inter). Cerbasi (Equilíbrio Familiar) trata "quem ganha, quem gasta, quem investe" como **core**, não nice-to-have — atribuir errado vira feedback perigoso, pior que não dar feedback. Perini (Renda Passiva) depende de titularidade fiscal correta para JCP/dividendos isentos vs tributáveis — bug atual produz relatório **fiscalmente incorreto**. AUVP (Diagrama do Cerrado) tolera consolidação familiar, mas perfil individual de risco (cônjuges com horizontes diferentes) reativa o P0.
 
@@ -158,7 +158,7 @@ class AccountResolver:
         return AccountResolution(None, "unknown", None)
 ```
 
-Reusa em [e4_categorize.py:330](../../scripts/e4_categorize.py), [investments_consolidator.py:141](../../pipeline/domain/services/investments_consolidator.py) e — opcionalmente — em E1 quando merge idempotente.
+Reusa em [e4_categorize.py:330](../../scripts/categorize_transactions.py), [investments_consolidator.py:141](../../pipeline/domain/services/investments_consolidator.py) e — opcionalmente — em E1 quando merge idempotente.
 
 **Em `pipeline/domain/services/`** porque é regra de domínio pura ([[ADR-097]] D3). **Não importa SQLAlchemy**.
 
