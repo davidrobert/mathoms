@@ -356,3 +356,103 @@ def test_proventos_ticker_so_custodia_aparece_sem_renda():
 def test_proventos_ignora_outros_tipos_de_informe():
     informe = {"tipo_informe": "previdencia_privada", "ano_base": 2024, "previdencia": {}}
     assert FiscalSource.from_informes([informe]).proventos_summaries() == []
+
+
+# ──────────── Numerador líquido + yield sobre valor atual (A33.l4) ────────────
+# Co-design financial-planner 2026-07-07: numerador = valor_brl − ir_retido_brl
+# para TODOS os tipos (JCP bruto inflaria yield na parcela JCP); sem custo →
+# renda absoluta SEM yield; agrupamento por ticker soma N pagadores.
+
+
+def test_proventos_jcp_yield_usa_liquido_nao_bruto():
+    """Edge JCP: numerador = 180 − 27 (15% definitivo) = 153, nunca 180 bruto."""
+    informe = _make_informe_proventos(
+        proventos=[_evento("WEGE3", "jcp", "180.00", ir="27.00")],
+        posicao=[{"ticker": "WEGE3", "quantidade": "100", "custo_medio_brl": "30.00"}],
+    )
+    (s,) = FiscalSource.from_informes([informe]).proventos_summaries()
+    assert s.renda_liquida_brl == Decimal("153.00")
+    # 153 / 3000 × 100 = 5.10 (bruto daria 6.00 — PROIBIDO).
+    assert s.yield_on_cost_pct == Decimal("5.10")
+
+
+def test_proventos_fii_isento_liquida_igual_bruto():
+    """Edge FII: rendimento isento PF (ir=0) → líquida == bruto."""
+    informe = _make_informe_proventos(proventos=[_evento("MXRF11", "rend_fii", "96.00")])
+    (s,) = FiscalSource.from_informes([informe]).proventos_summaries()
+    assert s.renda_liquida_brl == Decimal("96.00")
+    assert s.renda_liquida_brl == s.total_proventos_brl
+
+
+def test_proventos_sem_custo_renda_absoluta_sem_yield():
+    """Edge sem custo: renda absoluta presente, NENHUM yield-on-cost (piso seguro)."""
+    informe = _make_informe_proventos(proventos=[_evento("PETR4", "dividendo", "500.00")])
+    (s,) = FiscalSource.from_informes([informe]).proventos_summaries()
+    assert s.renda_liquida_brl == Decimal("500.00")
+    assert s.custo_total_brl is None
+    assert s.yield_on_cost_pct is None
+    assert s.yield_on_market_pct is None
+
+
+def test_proventos_yield_sobre_valor_atual_31_12():
+    """Design 2026-07-07: yield secundário sobre valor_mercado_31_12 (total da posição)."""
+    informe = _make_informe_proventos(
+        proventos=[_evento("ITSA4", "dividendo", "60.00")],
+        posicao=[
+            {
+                "ticker": "ITSA4",
+                "quantidade": "100",
+                "custo_medio_brl": "10.00",
+                "valor_mercado_31_12": "1500.00",
+            }
+        ],
+    )
+    (s,) = FiscalSource.from_informes([informe]).proventos_summaries()
+    assert s.valor_mercado_brl == Decimal("1500.00")
+    assert s.yield_on_cost_pct == Decimal("6.00")
+    assert s.yield_on_market_pct == Decimal("4.00")
+
+
+def test_proventos_mesmo_ticker_dois_pagadores_soma_uma_linha():
+    """WEGE3 via XP e via BTG → 1 linha somada; cnpj_pagador nunca é chave."""
+    xp = _make_informe_proventos(proventos=[_evento("WEGE3", "dividendo", "312.40")])
+    btg = _make_informe_proventos(proventos=[_evento("WEGE3", "dividendo", "100.00")])
+    btg["proventos"]["cnpj_emissor"] = "30306294000145"
+    btg["proventos"]["nome_emissor"] = "BTG Pactual CTVM S.A."
+    summaries = FiscalSource.from_informes([xp, btg]).proventos_summaries()
+    assert len(summaries) == 1
+    assert summaries[0].ticker == "WEGE3"
+    assert summaries[0].renda_liquida_brl == Decimal("412.40")
+
+
+# ──────────── Renda anual p/ buckets do PassiveIncomeCalculator ───────────────
+
+
+def test_proventos_renda_por_ano_mapeia_buckets():
+    """dividendo + rend_fii → dividendos; jcp líquido → jcp; bonificação fora."""
+    informe = _make_informe_proventos(
+        proventos=[
+            _evento("WEGE3", "dividendo", "312.40"),
+            _evento("WEGE3", "jcp", "180.00", ir="27.00"),
+            _evento("MXRF11", "rend_fii", "96.00"),
+            _evento("ITSA4", "bonificacao", "250.00"),
+        ]
+    )
+    (renda,) = FiscalSource.from_informes([informe]).proventos_renda_por_ano()
+    assert renda.ano_base == 2024
+    assert renda.dividendos_liquido_brl == Decimal("408.40")  # 312.40 + 96.00
+    assert renda.jcp_liquido_brl == Decimal("153.00")  # 180 − 27
+
+
+def test_proventos_renda_por_ano_separa_anos():
+    i2023 = _make_informe_proventos(ano=2023, proventos=[_evento("ITSA4", "dividendo", "50.00")])
+    i2024 = _make_informe_proventos(ano=2024, proventos=[_evento("ITSA4", "dividendo", "88.20")])
+    rendas = FiscalSource.from_informes([i2023, i2024]).proventos_renda_por_ano()
+    assert [(r.ano_base, r.dividendos_liquido_brl) for r in rendas] == [
+        (2023, Decimal("50.00")),
+        (2024, Decimal("88.20")),
+    ]
+
+
+def test_proventos_renda_por_ano_vazio_sem_informes():
+    assert FiscalSource.from_informes([]).proventos_renda_por_ano() == ()

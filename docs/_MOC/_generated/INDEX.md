@@ -595,7 +595,7 @@
 | A17.l1 | lane | shipped | A17 | Informes anuais — L1 previdência privada (PGBL/VGBL, BrasilPrev e seguradoras) | `sprint/A17/lanes/A17-l1-previdencia.md` |
 | A17.l2 | lane | shipped | A17 | Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes) | `sprint/A17/lanes/A17-l2-financeiro-pj.md` |
 | A17.l3 | lane | in_progress | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
-| A17.l4 | lane | in_progress | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
+| A17.l4 | lane | shipped | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
 | A17.l5 | lane | shipped | A17 | LLM Hardening — W4-T00 seed expandido institution_catalog (alta renda PJ) | `sprint/A17/lanes/A17-l5-llm-institution-seed.md` |
 | A17.l6 | lane | shipped | A17 | Bugfix — RECEBIMENTO DE TED engole salário CLT (categorização) | `sprint/A17/lanes/A17-l6-bugfix-ted-receita-clt.md` |
 | A18.l1 | lane | shipped | A18 | Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo) | `sprint/A18/lanes/A18-l1-crlv.md` |
@@ -690,7 +690,7 @@
 | A32.l7 | lane | planned | A32 | gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | `sprint/A32/lanes/A32-l7-gate-rerun-dogfood.md` |
 | A33.l1 | lane | shipped | A33 | ADR-090 no boundary LLM: e2_llm_extract sem float monetário + gate cobrindo pipeline/llm/schemas (W1β) | `sprint/A33/lanes/A33-l1-adr090-llm-boundary.md` |
 | A33.l2 | lane | open | A33 | Fechar A17.l3: informes financeiro PF P3-P5 (consolidate_baseline + PTAX 31/12 + UI S4 + validações Wise) | `sprint/A33/lanes/A33-l2-a17l3-financeiro-pf-fechamento.md` |
-| A33.l4 | lane | planned | A33 | Fechar A17.l4: integrar proventos de ações (schema/prompt/classifier já existem) ao yield-on-cost em S3 | `sprint/A33/lanes/A33-l4-a17l4-proventos-acoes.md` |
+| A33.l4 | lane | shipped | A33 | Fechar A17.l4: integrar proventos de ações (schema/prompt/classifier já existem) ao yield-on-cost em S3 | `sprint/A33/lanes/A33-l4-a17l4-proventos-acoes.md` |
 | A33.l5 | lane | planned | A33 | Nightly drift do extract_with_llm: Celery beat + fixtures sintéticas + auto-alerta (ADR-307 F2) | `sprint/A33/lanes/A33-l5-nightly-drift-extractllm.md` |
 | A33.l6 | lane | planned | A33 | Retenção de artifacts: retention_until + prune diário + teste de cascade (W6-T05) | `sprint/A33/lanes/A33-l6-artifacts-retention.md` |
 | A33.l7 | lane | planned | A33 | OTLP mathoms.llm.* por {prompt_name, prompt_version} + parecer.riscos_truncados (W3) | `sprint/A33/lanes/A33-l7-otlp-telemetria-llm.md` |

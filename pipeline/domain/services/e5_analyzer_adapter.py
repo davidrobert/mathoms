@@ -80,7 +80,11 @@ from pipeline.domain.services.financial_score_calculator import (
     FinancialScoreCalculator,
     FinancialScoreConfig,
 )
-from pipeline.domain.services.fiscal_source import FiscalSource, InformeProventosSummary
+from pipeline.domain.services.fiscal_source import (
+    FiscalSource,
+    InformeProventosSummary,
+    ProventosRendaAnual,
+)
 from pipeline.domain.services.fluxo_caixa_enricher import (
     FluxoCaixaEnriched,
     FluxoCaixaEnricher,
@@ -540,9 +544,16 @@ class E5AnalyzerAdapter:
         )
 
         # 6a. IRPF + passive income (carteira de renda + TRS efetiva · A8.3).
+        # A33.l4: informes anuais carregados 1× — alimentam os buckets
+        # dividendos/jcp (D4 bucket-fill) e o per-ativo de S3.
         irpf_analyzer = _try_load_irpf_analyzer(store)
+        fiscal_informes = FiscalSource.from_informes(_try_load_informes(store))
         passive_income = self._compute_passive_income(
-            irpf_analyzer, patrimonio_full, investimentos_raw, fluxo_legacy
+            irpf_analyzer,
+            patrimonio_full,
+            investimentos_raw,
+            fluxo_legacy,
+            proventos=fiscal_informes.proventos_renda_por_ano(),
         )
 
         # 6b. Ratios (consome ``bruto``/``dividas``/``investivel`` do dict full).
@@ -741,7 +752,7 @@ class E5AnalyzerAdapter:
             pontos_urgentes=tuple(pontos_urgentes),
             passive_income=passive_income,
             monte_carlo_if=monte_carlo_if,
-            proventos_por_ativo=_try_load_proventos_summaries(store),
+            proventos_por_ativo=tuple(fiscal_informes.proventos_summaries()) or None,
             exposicao_cambial=exposicao_cambial,
             protecao_patrimonial=protecao,
             lineage=build_e5_lineage(
@@ -763,17 +774,18 @@ class E5AnalyzerAdapter:
         patrimonio_full: dict,
         investimentos_raw: dict,
         fluxo_legacy: dict,
+        *,
+        proventos: tuple[ProventosRendaAnual, ...] = (),
     ) -> PassiveIncomeResult:
         """Wraps ``PassiveIncomeCalculator.calculate`` extraindo despesa do fluxo."""
-        despesa_mensal_media = Decimal(
-            str(fluxo_legacy.get("janela_12m", {}).get("despesa_mensal_media") or 0)
-        )
+        despesa = Decimal(str(fluxo_legacy.get("janela_12m", {}).get("despesa_mensal_media") or 0))
         return self._passive_income.calculate(
             irpf=irpf_analyzer,
             patrimonio=patrimonio_full,
             investimentos_atuais=investimentos_raw,
             reference_date=self._reference_date,
-            despesa_mensal_media_brl=despesa_mensal_media,
+            despesa_mensal_media_brl=despesa,
+            proventos=proventos,
         )
 
     # -- Helpers de config --
@@ -1030,18 +1042,22 @@ def _read_irpf_payloads_with_keys(
     return payloads, payload_keys
 
 
+def _try_load_informes(store: ArtifactStore) -> tuple[dict, ...]:
+    """Payloads de ``extract_informes_anuais`` (graceful: store sem informes → ())."""
+    if not hasattr(store, "list_keys"):
+        return ()
+    try:
+        keys = list(store.list_keys("extract_informes_anuais"))
+        return tuple(p for p in (store.read("extract_informes_anuais", k) for k in keys) if p)
+    except Exception:
+        return ()
+
+
 def _try_load_proventos_summaries(
     store: ArtifactStore,
 ) -> tuple[InformeProventosSummary, ...] | None:
-    """Yield-on-cost por ativo dos informes proventos_acoes (A17 L4; graceful sem informes)."""
-    if not hasattr(store, "list_keys"):
-        return None
-    try:
-        keys = list(store.list_keys("extract_informes_anuais"))
-        informes = [p for p in (store.read("extract_informes_anuais", k) for k in keys) if p]
-        summaries = FiscalSource.from_informes(informes).proventos_summaries()
-    except Exception:
-        return None
+    """Yield por ativo dos informes proventos_acoes (A17 L4; graceful sem informes)."""
+    summaries = FiscalSource.from_informes(_try_load_informes(store)).proventos_summaries()
     return tuple(summaries) or None
 
 

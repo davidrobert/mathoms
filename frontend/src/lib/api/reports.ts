@@ -128,6 +128,9 @@ export interface ReportAnalysisData {
   /** Onda 2 · ADR-216 — cap rate líquido + tríade benchmarks + tabela por imóvel.
    *  Ausente quando workspace não tem property_identity (UI oculta S4). */
   real_estate?: import("@/types/report-analysis").RealEstateData | null;
+  /** A33.l4 (ADR-238 §L4) — renda de proventos por ativo (informes
+   *  proventos_acoes). Ausente quando workspace não tem informe (UI oculta o card). */
+  proventos_por_ativo?: readonly import("@/types/report-analysis").ProventosAtivoData[];
   /** N3 — Monte Carlo IF com cone P10/P50/P90. Presente quando workspace
    * tem meta IF configurada. ``exibir_cone`` controla se o chart aparece. */
   if_monte_carlo?: IFMonteCarloData;

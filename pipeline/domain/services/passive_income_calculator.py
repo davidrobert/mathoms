@@ -8,6 +8,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Literal, Mapping
 
+from pipeline.domain.services.fiscal_source import ProventosRendaAnual
 from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
 from pipeline.llm.schemas.e16_irpf_full import (
     CodigoRendimentoIsento,
@@ -139,6 +140,7 @@ class _OkContext:
     gerador: Decimal
     investimentos_atuais: HoldingsPayload | None
     reference_date: date
+    proventos: tuple[ProventosRendaAnual, ...] = ()
 
 
 class PassiveIncomeCalculator:
@@ -155,21 +157,22 @@ class PassiveIncomeCalculator:
         investimentos_atuais: HoldingsPayload | None,
         reference_date: date,
         despesa_mensal_media_brl: Decimal,
+        proventos: tuple[ProventosRendaAnual, ...] = (),
     ) -> PassiveIncomeResult:
         """Devolve KPIs + status enum (``ok`` | ``sem_irpf`` | ``gerador_zero``)."""
         ano_ref = self._resolve_ano_referencia(irpf)
         if irpf is None or ano_ref is None:
             return self._empty_result(status="sem_irpf", ano_ref=None)
-        gerador = self._patrimonio_gerador(
-            patrimonio, investimentos_atuais, _to_decimal(despesa_mensal_media_brl)
-        )
+        despesa = _to_decimal(despesa_mensal_media_brl)
+        gerador = self._patrimonio_gerador(patrimonio, investimentos_atuais, despesa)
         if gerador <= _ZERO:
             return self._empty_result(status="gerador_zero", ano_ref=ano_ref)
-        ctx = _OkContext(irpf, ano_ref, gerador, investimentos_atuais, reference_date)
+        ctx = _OkContext(irpf, ano_ref, gerador, investimentos_atuais, reference_date, proventos)
         return self._build_ok_result(ctx)
 
     def _build_ok_result(self, ctx: _OkContext) -> PassiveIncomeResult:
         buckets = self._renda_passiva_observada(irpf=ctx.irpf, ano=ctx.ano_ref)
+        buckets = _complement_with_informes(buckets, ctx.ano_ref, ctx.proventos)
         anual = buckets.total
         return PassiveIncomeResult(
             renda_passiva_anual_brl=anual,
@@ -425,6 +428,27 @@ def _add_decl_to_buckets(
         + _sum_exclusiva(d, CodigoRendimentoTribExclusiva.ganho_capital.value),
         exterior=acc.exterior + _sum_exterior(d),
         distribuicao_pj_titular=acc.distribuicao_pj_titular + distribuicao_pj,
+    )
+
+
+# A33.l4 (ADR-238 D4): declaração vence por bucket-ano — informe de proventos
+# só preenche bucket ZERADO (match evento-a-evento é inviável: cod-10 não tem
+# ``fonte``; double-count inflaria a TRS). Pós-delta de aluguéis, que não
+# inclui informes no capital_total.
+def _complement_with_informes(
+    buckets: _RendaPassivaBuckets,
+    ano_ref: int,
+    proventos: tuple[ProventosRendaAnual, ...],
+) -> _RendaPassivaBuckets:
+    renda = next((p for p in proventos if p.ano_base == ano_ref), None)
+    if renda is None:
+        return buckets
+    return replace(
+        buckets,
+        dividendos=(
+            buckets.dividendos if buckets.dividendos > _ZERO else renda.dividendos_liquido_brl
+        ),
+        jcp=buckets.jcp if buckets.jcp > _ZERO else renda.jcp_liquido_brl,
     )
 
 

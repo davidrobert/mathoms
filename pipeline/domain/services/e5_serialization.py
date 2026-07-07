@@ -411,9 +411,16 @@ def _proventos_summary_to_dict(s) -> _GoalsPayload:
         "ano_base": s.ano_base,
         "total_proventos_brl": float(s.total_proventos_brl),
         "ir_retido_brl": float(s.ir_retido_brl),
+        "renda_liquida_brl": float(s.renda_liquida_brl),
         "custo_total_brl": float(s.custo_total_brl) if s.custo_total_brl is not None else None,
+        "valor_mercado_brl": (
+            float(s.valor_mercado_brl) if s.valor_mercado_brl is not None else None
+        ),
         "yield_on_cost_pct": (
             float(s.yield_on_cost_pct) if s.yield_on_cost_pct is not None else None
+        ),
+        "yield_on_market_pct": (
+            float(s.yield_on_market_pct) if s.yield_on_market_pct is not None else None
         ),
     }
 

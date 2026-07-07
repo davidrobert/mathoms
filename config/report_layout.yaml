@@ -301,6 +301,13 @@ estrategico:
           enabled: true
           variant: "feature"
           size: "half"
+        # A33.l4 (ADR-238 §L4) — renda de proventos por ativo dos informes
+        # proventos_acoes: yield sobre custo (primário) + yield sobre valor
+        # atual 31/12 (secundário). Oculto quando o workspace não tem informe.
+        - id: "proventos_yield"
+          enabled: true
+          variant: "feature"
+          size: "full"
         - id: "estrategia_aporte"
           enabled: true
           variant: "highlight"

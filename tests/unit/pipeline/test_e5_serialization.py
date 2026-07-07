@@ -361,8 +361,11 @@ def _itsa4_summary():
         ano_base=2024,
         total_proventos_brl=Decimal("60.00"),
         ir_retido_brl=Decimal("0"),
+        renda_liquida_brl=Decimal("60.00"),
         custo_total_brl=Decimal("1000.00"),
+        valor_mercado_brl=Decimal("1200.00"),
         yield_on_cost_pct=Decimal("6.00"),
+        yield_on_market_pct=Decimal("5.00"),
     )
 
 
@@ -393,8 +396,11 @@ class TestProventosPorAtivo:
             "ano_base": 2024,
             "total_proventos_brl": 60.0,
             "ir_retido_brl": 0.0,
+            "renda_liquida_brl": 60.0,
             "custo_total_brl": 1000.0,
+            "valor_mercado_brl": 1200.0,
             "yield_on_cost_pct": 6.0,
+            "yield_on_market_pct": 5.0,
         }
 
     def test_output_omite_chave_sem_informes(self):

@@ -235,6 +235,21 @@ export interface RealEstateData {
   readonly alertas: readonly RealEstateAlerta[];
 }
 
+/** A33.l4 (ADR-238 §L4) — renda de proventos por (ticker, ano_base) do E5
+ * `proventos_por_ativo`. `renda_liquida_brl` = total − IR retido (numerador
+ * dos dois yields); yields `null` quando o denominador não veio no informe. */
+export interface ProventosAtivoData {
+  readonly ticker: string;
+  readonly ano_base: number;
+  readonly total_proventos_brl: number;
+  readonly ir_retido_brl: number;
+  readonly renda_liquida_brl: number;
+  readonly custo_total_brl: number | null;
+  readonly valor_mercado_brl: number | null;
+  readonly yield_on_cost_pct: number | null;
+  readonly yield_on_market_pct: number | null;
+}
+
 export interface RentabilidadeRatio {
   valor_pct: number | null;
   ano_base: number | null;

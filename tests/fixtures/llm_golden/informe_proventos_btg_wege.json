@@ -1,0 +1,25 @@
+{
+  "ano_base": 2024,
+  "tipo_informe": "proventos_acoes",
+  "fonte_pagadora_cnpj": "30306294000145",
+  "fonte_pagadora_nome": "BTG Pactual CTVM S.A.",
+  "titular_cpf_masked": "***.456.789-**",
+  "confidence": 0.91,
+  "proventos": {
+    "cnpj_emissor": "30306294000145",
+    "nome_emissor": "BTG Pactual CTVM S.A.",
+    "proventos": [
+      {
+        "ticker": "WEGE3",
+        "cnpj_pagador": "30306294000145",
+        "cnpj_fonte": "84429695000111",
+        "tipo": "dividendo",
+        "valor_brl": "100.00",
+        "data_pagamento": "2024-03-14",
+        "ir_retido_brl": "0"
+      }
+    ],
+    "posicao_31_12": []
+  },
+  "prompt_version": "1.0.0"
+}

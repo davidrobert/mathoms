@@ -3,7 +3,7 @@ id: A17.l4
 type: lane
 title: "Informes anuais — L4 proventos ações (XP Proventos, Itaúsa)"
 sprint: A17
-status: in_progress
+status: shipped
 priority: P2
 branch_slug: a17-l4-proventos
 depends_on:
@@ -16,7 +16,7 @@ prompt: "[[TRACK-a17-l4-proventos-acoes]]"
 tags:
   - type/lane
   - sprint/a17
-  - status/in-progress
+  - status/shipped
   - priority/p2
   - area/pipeline
   - area/methodology
