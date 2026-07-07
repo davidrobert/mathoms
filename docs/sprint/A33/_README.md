@@ -24,15 +24,23 @@ theme: "autonomous-debt"
 
 ## Composição (de onde vem cada lane)
 
-Três fontes de débito executável, verificadas 1 a 1 em 2026-07-07:
+Três fontes de débito executável, verificadas 1 a 1 em 2026-07-07 —
+**incluindo reconciliação contra o código** (revisão de kickoff por
+`product-manager` + `data-engineer`: o drift plano-de-maio ↔ código-de-
+julho era sistemático):
 
-1. **[[PLAN-llm-prompts-hardening]]** (draft aprovado 2026-05-22, ondas
-   nunca abertas como lanes): W1β (ADR-090 nos schemas LLM — P0), W2
-   (semver + telemetria SQL), W3 (OTLP), W4-T01/T02 (catálogo via
-   protocol + códigos RFB YAML). W1α (LGPD) fechou 2026-07-06; W4-T00
-   (seed) fechou como [[A17.l5]] (#451).
+1. **[[PLAN-llm-prompts-hardening]]** (draft aprovado 2026-05-22):
+   restam **W1β residual** (ADR-090 no `e2_llm_extract` — o
+   `e15_baseline` já migrou via #718), **W3** (OTLP) e **W4-T01/T02**
+   (catálogo via protocol + códigos RFB YAML). Já entregues por outras
+   sprints: W1α (LGPD, 2026-07-06), W4-T00 (seed, [[A17.l5]] #451) e
+   **W2 inteira** (semver + telemetria SQL + goldens fiscais — migration
+   `a20l12semver`, A20.l12/l13; a lane l3 desta sprint foi **cortada na
+   revisão de kickoff** por já estar entregue, evidência nos 35 goldens
+   de `tests/fixtures/llm_golden/` incluindo o caso PGBL+VGBL mesmo CPF).
 2. **Sprint A17** (`paused`, "Bloqueios externos: Nenhum"): residual
-   [[A17.l3]] P3-P5 (financeiro PF + Wise/PTAX) e [[A17.l4]] (proventos).
+   [[A17.l3]] P3-P5 (financeiro PF + Wise/PTAX) e [[A17.l4]]
+   (**só a integração com S3** — schema/prompt/classifier já existem).
    Fechar as duas flipa A17 → `done`.
 3. **[[PLAN-platform-review]]**: W6-T05 (retenção de artifacts, track
    `scoped`) e W6-T07 (taxonomy de services, [[ADR-285]], gate de
@@ -42,44 +50,61 @@ Três fontes de débito executável, verificadas 1 a 1 em 2026-07-07:
 
 | Onda | Lane | Título | Prioridade | Status |
 |---|---|---|---|---|
-| A | [[A33.l1]] | ADR-090 no boundary LLM: `e15_baseline` + `e2_llm` sem `float` monetário (W1β) | P0 | open |
+| A | [[A33.l1]] | ADR-090 no boundary LLM: `e2_llm_extract` sem `float` monetário + gate no pacote (W1β residual) | P0 | open |
 | A | [[A33.l2]] | Fechar [[A17.l3]]: financeiro PF P3-P5 (consolidate_baseline + PTAX + UI S4 + Wise) | P1 | open |
-| A | [[A33.l3]] | `PROMPT_VERSION` semver puro + telemetria `confidence`/`prompt_version` em SQL (W2) | P1 | open |
-| B | [[A33.l4]] | Fechar [[A17.l4]]: proventos de ações (XP + Itaúsa) → S3 | P1 | planned |
+| B | [[A33.l4]] | Fechar [[A17.l4]]: integrar proventos (schema/prompt/classifier prontos) ao S3 | P1 | planned |
 | B | [[A33.l5]] | Nightly drift do `extract_with_llm` (Celery beat, follow-up F2 da [[ADR-307]]) | P2 | planned |
 | B | [[A33.l6]] | Retenção de artifacts: `retention_until` + prune diário + cascade (W6-T05) | P2 | planned |
 | C | [[A33.l7]] | OTLP `mathoms.llm.*` por `{prompt_name, prompt_version}` (W3) | P2 | planned |
 | C | [[A33.l8]] | Catálogo via `InstitutionCatalogProvider` + códigos RFB em YAML anual (W4-T01/T02) | P2 | planned |
 | C | [[A33.l9]] | Services taxonomy: split em subpacotes ([[ADR-285]]) — gate ≤1 PR em voo em `services/` | P2 | planned |
 
+> **l3 (W2 semver + telemetria SQL) foi cortada na revisão de kickoff**
+> (`data-engineer`, 2026-07-07): escopo já entregue por A20.l12/l13
+> (migration `a20l12semver`, colunas em `llm_call_log`, 9/9 prompts em
+> semver puro, goldens fiscais completos). A numeração mantém o gap
+> como trilha de auditoria da revisão.
+
 Dependências: l4 independente (padrão validado em [[A17.l1]]) · l5
 independente ([[ADR-307]] F1 mergeada) · l6 sequencia **após**
-[[A32.l5]] mergear (mesma tabela `pipeline_artifacts`; ver lane) ·
-l7 ← l3 (persistência SQL precede OTLP) · l8 ← W4-T00 ✅ · l9 é cauda
-(gate de entrada só abre quando A32 parar de gerar PRs em `services/`).
+[[A32.l5]] mergear **e** [[ADR-311]] flipar `Decidido` (mesma tabela
+`pipeline_artifacts`; predicado de prune depende da decisão — ver lane)
+· l7 independente (persistência SQL já shipou via A20.l12/l13) ·
+l8 ← W4-T00 ✅ · l9 é cauda (gate de entrada só abre quando A32 parar
+de gerar PRs em `services/`).
 
-Precedência de corte: **Must** l1+l2+l3 (nunca cortar l1) · **Should**
+Precedência de corte: **Must** l1+l2 (nunca cortar l1) · **Should**
 l4+l5+l6 · **Could** l7+l8+l9.
+
+**Nota de carry-over (protege a leitura do KR1):** l6 e l9 dependem de
+a A32 desacelerar (l6 espera l5 dela mergear; l9 espera a árvore
+`services/` zerar). Se a A32 arrastar, l6/l9 viram carry-over — é
+dependência entre sprints de agente, **não** ação do owner; não conta
+contra o KR1.
 
 ## KR
 
-- **KR1 (meta da sprint):** 100% das lanes shipped **sem nenhuma ação do
-  owner**. Anti-Goodhart: lane que descobrir gate de owner escondido flipa
-  `blocked` com nota nomeando o gate no mesmo dia — descobrir gate não é
-  falha; esperar em silêncio é.
-- **KR2 (l1):** zero `float` monetário em `pipeline/llm/schemas/**`,
-  verificado por gate automatizado (extensão do scan de modelos ao pacote
-  LLM), não por leitura manual.
-- **KR3 (l3+l7):** 9/9 prompts com `PROMPT_VERSION` semver puro
-  ([[ADR-233]]) e `confidence` + `prompt_version` persistidos em
-  `llm_call_log` consultável por SQL.
-- **KR4 (l2+l4):** sprint A17 flipa `done` — informes financeiro PF
-  (incl. Wise multi-moeda com PTAX 31/12) e proventos integrados, medido
-  por goldens sintéticos PII-zero em CI (não depende de dogfood).
-- **KR5 (l5+l6):** prune diário de artifacts com teste de cascade verde +
-  job nightly de drift do extractLLM com 1ª execução registrada em
-  `llm_call_log` (roda em ambiente com key existente; CI de PR continua
-  sem chamada Anthropic real).
+- **KR1 (meta-guardrail da sprint — processo, não valor):** 100% das
+  lanes shipped **sem nenhuma ação do owner**. Anti-Goodhart: lane que
+  descobrir gate de owner escondido flipa `blocked` com nota nomeando o
+  gate no mesmo dia — descobrir gate não é falha; esperar em silêncio é.
+  No fechamento, o sucesso da sprint se mede por KR2-KR4 (valor); KR1 é
+  o gate satisfeito, não o troféu.
+- **KR2 (l1):** zero `float` monetário em `pipeline/llm/schemas/**`
+  (fora de exceção documentada com WHY), verificado por gate
+  automatizado (extensão do scan de [[ADR-283]] ao pacote LLM), não por
+  leitura manual.
+- **KR3 (l2+l4):** sprint A17 flipa `done` — informes financeiro PF
+  (incl. Wise multi-moeda com PTAX 31/12) e proventos integrados ao S3,
+  medido por goldens sintéticos PII-zero em CI (não depende de dogfood).
+- **KR4 (l5+l6):** prune diário de artifacts com teste de cascade +
+  predicado (versão corrente/tombstone sobrevivem) verde + job nightly
+  de drift do extractLLM com 1ª execução e **resultado do drift-check
+  registrado consultável** (roda em ambiente com key existente; CI de
+  PR continua sem chamada Anthropic real).
+- *(KR de semver/telemetria SQL, que seria da l3 cortada, foi
+  **satisfeito antes da sprint** — evidência: migration `a20l12semver` +
+  9/9 prompts semver + `llm_call_log.confidence`/`prompt_version`.)*
 
 ## Fora de escopo (nomeado, com motivo)
 
@@ -91,7 +116,12 @@ l4+l5+l6 · **Could** l7+l8+l9.
   page (W4-T03/T05)** — token/conta/aprovação externa do owner.
 - **LGPD G2/G3 ([[ADR-228]])** — triagem legal é do owner.
 - **Go F2 cutover ([[ADR-150]])** — decisão do owner.
+- **A22.l4 (monitor de drift do parecer)** — já shipou (#801,
+  2026-07-06; monitor de 5 sinais + pin test). O residual da A22 é só
+  prompt-side das red lines, owner-gated (re-eval LLM).
 - **W6-T03 (stage rename)** — já shipou (reconciliação 2026-07-06).
+- **W2 do [[PLAN-llm-prompts-hardening]]** — já shipou (A20.l12/l13);
+  ver nota do corte da l3 acima.
 - **Re-verificação factual da Wave 5 do [[PLAN-platform-review]]** —
   spike docs-only barato, fica como follow-up de fechamento da sprint
   (não é lane; cabe no PR de close).

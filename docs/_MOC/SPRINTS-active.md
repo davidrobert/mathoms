@@ -156,16 +156,20 @@ A27→`current`→`done`) — a A28 (`current`) é quem gera esse tráfego. Cond
 
 **Zero ações do owner por construção** — pedido do owner 2026-07-07: sprint
 inteira executável por agentes (sem token, key nova, assinatura, decisão
-pendente ou tráfego de dogfood). 9 lanes em 3 ondas ([[MOC-sprint-a33]]):
-**Must** l1 ADR-090 nos schemas LLM (W1β do [[PLAN-llm-prompts-hardening]])
-∥ l2 fechamento [[A17.l3]] (financeiro PF + Wise/PTAX) ∥ l3 semver +
-telemetria SQL (W2) · **Should** l4 [[A17.l4]] proventos (fecha A17 →
-`done`) ∥ l5 nightly drift ([[ADR-307]] F2) ∥ l6 retenção de artifacts
-(W6-T05; sequencia pós-[[A32.l5]]) · **Could** l7 OTLP (W3) ∥ l8 catálogo
-via protocol + RFB YAML (W4) ∥ l9 services taxonomy ([[ADR-285]], gate ≤1
-PR em `services/`). KR1 anti-Goodhart: lane que descobrir gate de owner
-escondido flipa `blocked` nomeando o gate no mesmo dia. Onda A não colide
-com arquivos da A32 (verificado no kickoff).
+pendente ou tráfego de dogfood). 8 lanes em 3 ondas ([[MOC-sprint-a33]]):
+**Must** l1 ADR-090 no `e2_llm_extract` + gate no pacote LLM (W1β residual
+do [[PLAN-llm-prompts-hardening]]) ∥ l2 fechamento [[A17.l3]] (financeiro
+PF + Wise/PTAX) · **Should** l4 [[A17.l4]] integração proventos→S3 (fecha
+A17 → `done`) ∥ l5 nightly drift ([[ADR-307]] F2) ∥ l6 retenção de
+artifacts (W6-T05; gate pós-[[A32.l5]] + [[ADR-311]] Decidido) · **Could**
+l7 OTLP (W3) ∥ l8 catálogo via protocol + RFB YAML (W4) ∥ l9 services
+taxonomy ([[ADR-285]], gate ≤1 PR em `services/`). A l3 original (W2
+semver+telemetria) foi **cortada na revisão de kickoff** — já entregue por
+A20.l12/l13 (`a20l12semver`). KR1 anti-Goodhart: lane que descobrir gate
+de owner escondido flipa `blocked` nomeando o gate no mesmo dia. Revisão
+de kickoff: `product-manager` + `information-architect` + `data-engineer`
+(drift plano-de-maio ↔ código reconciliado 1 a 1). Onda A não colide com
+arquivos da A32 (verificado no kickoff).
 
 - **Sprint:** [sprint/A33/_README.md](../sprint/A33/_README.md) ·
   **Planos alimentados:** [[PLAN-llm-prompts-hardening]] +

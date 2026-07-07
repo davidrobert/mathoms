@@ -5,6 +5,8 @@ title: "Retenção de artifacts: retention_until + prune diário + teste de casc
 sprint: A33
 plan: PLAN-platform-review
 status: planned
+ship_pr: null
+ship_date: null
 priority: P2
 branch_slug: a33-l6-artifacts-retention
 adrs: ["[[ADR-212]]"]
@@ -35,25 +37,44 @@ de 5 PRs; nunca virou lane.
 versão de extração consultável, [[ADR-311]]) mexe na **mesma tabela e na
 mesma semântica de lifecycle**. Retenção que prune rows sem conhecer
 tombstone/versão pode apagar exatamente o que a A32.l5 torna
-consultável. Esta lane **só abre após o merge da A32.l5**, e o desenho
-do prune deve respeitar tombstones e versões (não prunar a versão
-corrente nem o tombstone que explica uma reclassificação).
+consultável — e o tombstone destrutivo da ADR-311 pode correr
+concorrente com o prune por idade sobre as mesmas rows. Dois gates:
 
-## Escopo (5 PRs do track, revisados pós-A32.l5)
+- Esta lane **só abre após o merge da A32.l5 E o flip da [[ADR-311]]
+  para `Decidido`** — o predicado de prune depende de onde a versão
+  corrente e o tombstone moram, e isso só fica firme na decisão.
+- O **predicado de prune é parte do aceite**, não detalhe de
+  implementação: `WHERE NOT (row é a versão corrente por
+  (workspace, stage, artifact_key)) AND NOT (row é o tombstone mais
+  recente de um document_id)` — escrito contra o schema final da
+  ADR-311.
 
-1. Migration Alembic: `retention_until` + revisão de FK/cascade.
-2. Backfill de `schema_version`/`retention_until` para rows existentes.
-3. Write-path: `DBArtifactStore.write` popula `retention_until` por
+## Escopo (5 PRs do track, ordem revisada pelo data-engineer)
+
+1. Migration Alembic: `retention_until` **nullable** (o cascade de
+   entidade-pai já existe — `pipeline_artifact.py:59` tem
+   `ON DELETE CASCADE` de run/workspace e `SET NULL` de document; esta
+   lane adiciona prune **por idade em workspace vivo**, mecanismo
+   distinto — não criar FK nova).
+2. Write-path: `DBArtifactStore.write` popula `retention_until` por
    política (config tipada, não dict — [[ADR-089]]).
-4. Task diária `prune_artifacts` (Celery beat) com dry-run flag.
-5. Teste de cascade + teste de que tombstone/versão corrente nunca são
-   prunados.
+3. Backfill idempotente das rows antigas (`WHERE retention_until IS
+   NULL`) — **depois** do write-path, para não abrir janela de rows
+   novas sem política.
+4. Task diária `prune_artifacts` (Celery beat) com dry-run flag e o
+   predicado acima.
+5. Teste de cascade pré-existente sob prune + teste de que
+   tombstone/versão corrente nunca são prunados.
 
 ## Critérios de aceite
 
 1. Política de retenção documentada em config tipada com default
    conservador; co-design `data-engineer` na calibração.
-2. Prune roda em dry-run no primeiro deploy (log estruturado do que
-   *seria* apagado); flip para efetivo é PR separado da mesma lane.
-3. Teste de cascade verde (KR5); zero regressão nos goldens de execução.
+2. Prune roda em dry-run no primeiro deploy, logando **contagem +
+   byte_size por (workspace, stage)** do que *seria* apagado — é esse
+   dado que calibra a política; flip para efetivo é PR separado da
+   mesma lane.
+3. Teste de cascade verde + teste do predicado (versão corrente e
+   tombstone sobrevivem ao prune) (KR5); zero regressão nos goldens de
+   execução.
 4. PR(s) mergeado(s) em `main` (squash) com CI verde.

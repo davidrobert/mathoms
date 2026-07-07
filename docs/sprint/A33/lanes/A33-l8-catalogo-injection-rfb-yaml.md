@@ -5,6 +5,8 @@ title: "InstitutionCatalogProvider (protocol) + códigos RFB do e16 em YAML anua
 sprint: A33
 plan: PLAN-llm-prompts-hardening
 status: planned
+ship_pr: null
+ship_date: null
 priority: P2
 branch_slug: a33-l8-catalogo-injection-rfb
 adrs: ["[[ADR-137]]"]

@@ -5,10 +5,12 @@ title: "OTLP mathoms.llm.* por {prompt_name, prompt_version} + parecer.riscos_tr
 sprint: A33
 plan: PLAN-llm-prompts-hardening
 status: planned
+ship_pr: null
+ship_date: null
 priority: P2
 branch_slug: a33-l7-otlp-telemetria-llm
 adrs: ["[[ADR-110]]"]
-depends_on: ["[[A33.l3]]"]
+depends_on: []
 parallel_with: ["[[A33.l8]]"]
 tags:
   - type/lane
@@ -22,9 +24,11 @@ tags:
 
 ## Problema
 
-Com `confidence`/`prompt_version` persistidos em SQL ([[A33.l3]]), falta
-a camada OTLP ([[ADR-110]], opt-in via `OTEL_EXPORTER_OTLP_ENDPOINT`)
-para observar drift entre versões sem query manual:
+`confidence`/`prompt_version` já são persistidos em SQL
+(`llm_call_log`, entregue via A20.l12/l13 — migration `a20l12semver`);
+falta a camada OTLP ([[ADR-110]], opt-in via
+`OTEL_EXPORTER_OTLP_ENDPOINT`) para observar drift entre versões sem
+query manual:
 `confidence_p50/p95`, `needs_review_rate`, `cache_hit_rate` e
 `parecer.riscos_truncados` (métrica que calibra o cap ≤12 riscos do
 parecer — decisão "aprovado como está, telemetria mede" do plano).

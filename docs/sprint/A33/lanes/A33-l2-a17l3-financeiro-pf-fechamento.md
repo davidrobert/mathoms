@@ -5,11 +5,13 @@ title: "Fechar A17.l3: informes financeiro PF P3-P5 (consolidate_baseline + PTAX
 sprint: A33
 plan: null
 status: open
+ship_pr: null
+ship_date: null
 priority: P1
 branch_slug: a33-l2-a17l3-financeiro-pf
 adrs: ["[[ADR-238]]", "[[ADR-135]]"]
 depends_on: []
-parallel_with: ["[[A33.l1]]", "[[A33.l3]]"]
+parallel_with: ["[[A33.l1]]"]
 tags:
   - type/lane
   - sprint/a33
@@ -29,6 +31,13 @@ com "Bloqueios externos: Nenhum" — o residual é 100% executável.
 
 ## Escopo (P3-P5 conforme [[ADR-238]] §D1 e [[A17.l3]])
 
+0. **Passo 0 obrigatório — reconciliar contra o código atual antes de
+   estimar.** O texto herdado é de mai/2026 e o drift é comprovado nas
+   lanes irmãs (l1 e l4 tiveram escopo re-derivado na revisão de
+   kickoff); o golden `informe_pf_wise_multimoeda.json` **já existe** em
+   `tests/fixtures/llm_golden/` — partes de P3-P5 podem ter shipado por
+   outras lanes. `git log --oneline --since=2026-05-24 --
+   pipeline/llm/ scripts/consolidate_baseline*` + grep dirigido.
 1. **P3 — `consolidate_baseline` + PTAX:** snapshot 31/12 do informe
    alimenta E1.5c; conversão multi-moeda (Wise: USD/EUR/GBP) via ponteiro
    PTAX 31/12 em `market_rates` ([[ADR-135]]); regra "informe 31/12 vence

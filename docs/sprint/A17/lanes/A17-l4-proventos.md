@@ -26,6 +26,11 @@ tags:
 
 # A17.L4 — Proventos ações (XP Proventos, Itaúsa)
 
+> **Lote de fechamento como [[A33.l4]]** ([[MOC-sprint-a33]] `candidate`,
+> 2026-07-07) — fecha A17 → `done` junto com [[A33.l2]]. Reconciliação
+> 2026-07-07: schema/prompt/classifier de proventos **já existem** no
+> repo; o residual real é a integração com S3 (ver A33.l4).
+
 > **Onda 4 de 4** em [[MOC-sprint-a17]]. Onda final — yield-on-cost por ativo enriquece S3.
 
 ## Objetivo

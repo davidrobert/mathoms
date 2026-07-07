@@ -1,10 +1,12 @@
 ---
 id: A33.l4
 type: lane
-title: "Fechar A17.l4: informes de proventos de ações (XP Proventos + Itaúsa) → yield-on-cost em S3"
+title: "Fechar A17.l4: integrar proventos de ações (schema/prompt/classifier já existem) ao yield-on-cost em S3"
 sprint: A33
 plan: null
 status: planned
+ship_pr: null
+ship_date: null
 priority: P1
 branch_slug: a33-l4-a17l4-proventos-acoes
 adrs: ["[[ADR-238]]"]
@@ -20,25 +22,33 @@ tags:
 
 # A33.l4 — `a17l4-proventos-acoes` (fechamento da [[A17.l4]])
 
+> **Reconciliado contra o código em 2026-07-07** — diferente do texto
+> original da A17 (mai/2026), o grosso já existe:
+> `pipeline/llm/schemas/informe_proventos.py` (completo, `Decimal`),
+> `config/schemas/informe_proventos.schema.json`,
+> `pipeline/llm/prompts/informe_proventos.py` e o classifier
+> (`document_classification.py` reconhece `informe_proventos`). O
+> residual real é a **integração** — lane pequena.
+
 ## Problema
 
-[[A17.l4]] (`planned` desde 2026-05-21) é a última onda da A17: proventos
-por ativo (dividendo, JCP, rendimento FII, bonificação) enriquecem S3 com
-yield-on-cost (Perini "viver de renda"). O padrão arquitetural
-(classifier → sub-schema polimórfico → parser LLM → integração) foi
-validado 3× ([[A17.l1]], [[A17.l2]], P1-P2 da [[A17.l3]]) — não há risco
-de forma, só execução.
+[[A17.l4]] (`in_progress` desde 2026-05-21) construiu
+schema/prompt/classifier de proventos, mas o dado extraído **nunca chega
+a S3**: `pipeline/domain/services/passive_income_calculator.py` não tem
+nenhuma referência a proventos/informe_proventos — yield-on-cost por
+ativo (Perini "viver de renda") segue sem a fonte.
 
-## Escopo (conforme [[ADR-238]] e [[A17.l4]])
+## Escopo
 
-1. Sub-schema `informe_proventos.schema.json` — eventos por ativo;
-   cuidado documentado: CNPJ pagador ≠ CNPJ fonte.
-2. Classifier + parser LLM (layout XP Proventos + Itaúsa).
-3. Integração com
+1. Integração do payload de proventos com
    [`passive_income_calculator.py`](../../../../pipeline/domain/services/passive_income_calculator.py)
-   (yield-on-cost em S3).
-4. Catálogo: entry `itausa` (se ausente do seed da [[A17.l5]]).
-5. Goldens sintéticos PII-zero (happy + edge com JCP + FII).
+   (yield-on-cost em S3); cuidado documentado em [[ADR-238]]: CNPJ
+   pagador ≠ CNPJ fonte.
+2. Catálogo: entry `itausa` (se ausente do seed da [[A17.l5]]).
+3. Goldens sintéticos PII-zero fim-a-fim (informe → S3), happy + edge
+   com JCP + FII.
+4. Passo 0 obrigatório: reconciliar o que os PRs da A17 já integraram
+   antes de estimar — o texto herdado tem drift comprovado.
 
 ## Critérios de aceite
 
@@ -46,6 +56,4 @@ de forma, só execução.
 2. Frontmatter de [[A17.l4]] flipa `shipped`; **A17 flipa `done`** no
    mesmo PR (l2 + l4 fecham todo o residual — KR4 da sprint), com
    atualização do [[SPRINTS-active]].
-3. `PROMPT_VERSION` novo nasce semver puro ([[ADR-233]] — coerente com
-   [[A33.l3]]).
-4. PR(s) mergeado(s) em `main` (squash) com CI verde.
+3. PR(s) mergeado(s) em `main` (squash) com CI verde.

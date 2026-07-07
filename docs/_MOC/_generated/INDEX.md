@@ -688,10 +688,9 @@
 | A32.l5 | lane | planned | A32 | lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável (ADR-311) | `sprint/A32/lanes/A32-l5-lifecycle-artifact-tombstone-versao.md` |
 | A32.l6 | lane | planned | A32 | review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | `sprint/A32/lanes/A32-l6-review-ux-identidade-natureza.md` |
 | A32.l7 | lane | planned | A32 | gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | `sprint/A32/lanes/A32-l7-gate-rerun-dogfood.md` |
-| A33.l1 | lane | open | A33 | ADR-090 no boundary LLM: e15_baseline + e2_llm sem float monetário (W1β) | `sprint/A33/lanes/A33-l1-adr090-llm-boundary.md` |
+| A33.l1 | lane | open | A33 | ADR-090 no boundary LLM: e2_llm_extract sem float monetário + gate cobrindo pipeline/llm/schemas (W1β) | `sprint/A33/lanes/A33-l1-adr090-llm-boundary.md` |
 | A33.l2 | lane | open | A33 | Fechar A17.l3: informes financeiro PF P3-P5 (consolidate_baseline + PTAX 31/12 + UI S4 + validações Wise) | `sprint/A33/lanes/A33-l2-a17l3-financeiro-pf-fechamento.md` |
-| A33.l3 | lane | open | A33 | PROMPT_VERSION semver puro nos 5 prompts legados + confidence/prompt_version persistidos em llm_call_log (W2) | `sprint/A33/lanes/A33-l3-prompt-version-semver-telemetria.md` |
-| A33.l4 | lane | planned | A33 | Fechar A17.l4: informes de proventos de ações (XP Proventos + Itaúsa) → yield-on-cost em S3 | `sprint/A33/lanes/A33-l4-a17l4-proventos-acoes.md` |
+| A33.l4 | lane | planned | A33 | Fechar A17.l4: integrar proventos de ações (schema/prompt/classifier já existem) ao yield-on-cost em S3 | `sprint/A33/lanes/A33-l4-a17l4-proventos-acoes.md` |
 | A33.l5 | lane | planned | A33 | Nightly drift do extract_with_llm: Celery beat + fixtures sintéticas + auto-alerta (ADR-307 F2) | `sprint/A33/lanes/A33-l5-nightly-drift-extractllm.md` |
 | A33.l6 | lane | planned | A33 | Retenção de artifacts: retention_until + prune diário + teste de cascade (W6-T05) | `sprint/A33/lanes/A33-l6-artifacts-retention.md` |
 | A33.l7 | lane | planned | A33 | OTLP mathoms.llm.* por {prompt_name, prompt_version} + parecer.riscos_truncados (W3) | `sprint/A33/lanes/A33-l7-otlp-telemetria-llm.md` |

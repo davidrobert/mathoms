@@ -25,6 +25,10 @@ tags:
 
 # A17.L3 — Financeiro PF (bancos + XP Investimentos + Wise)
 
+> **Residual (P3-P5) lotado como [[A33.l2]]** ([[MOC-sprint-a33]]
+> `candidate`, 2026-07-07) — esta lane flipa `shipped` no PR final da
+> A33.l2.
+
 > **Onda 3 de 4** em [[MOC-sprint-a17]]. Maior volume de PDFs (8 dos 15 do batch). **Inclui Wise (multi-moeda, conta no exterior)** com schema estendido para `moeda` e regras fiscais específicas de conta no exterior.
 
 ## Objetivo

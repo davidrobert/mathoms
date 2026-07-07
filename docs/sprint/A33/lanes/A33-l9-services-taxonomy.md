@@ -5,6 +5,8 @@ title: "Services taxonomy: split de backend/app/services/ em subpacotes por natu
 sprint: A33
 plan: PLAN-platform-review
 status: planned
+ship_pr: null
+ship_date: null
 priority: P2
 branch_slug: a33-l9-services-taxonomy
 adrs: ["[[ADR-285]]"]
