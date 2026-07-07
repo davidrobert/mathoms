@@ -48,6 +48,7 @@ from backend.app.schemas.dto.document import (
     document_to_response,
 )
 from backend.app.services.access_audit import record_access_audit
+from backend.app.services.artifact_tombstone import tombstone_e2_artifacts_for_document
 from backend.app.services.audit import AuditAction, client_meta
 from backend.app.services.document_canonical_rename import (
     maybe_rename_after_manual_override,
@@ -165,7 +166,7 @@ async def update_document_classification(
     """
     before = await _snapshot_classification_before(workspace.id, document_id, repo)
     response = await _apply_classification_update(
-        payload, workspace.id, document_id, current_user.id, repo
+        payload, workspace.id, document_id, current_user.id, repo, db
     )
     ip, ua = client_meta(request)
     await dispatch_sync(
@@ -206,6 +207,7 @@ async def _apply_classification_update(
     document_id: str,
     actor_user_id: str,
     repo: DocumentRepository,
+    db: AsyncSession,
 ) -> DocumentResponse:
     """Aplica fields + manual_override meta + invalida E2 quando necessário.
 
@@ -223,7 +225,7 @@ async def _apply_classification_update(
         raise HTTPException(status_code=404, detail="Documento não encontrado")
 
     _apply_classification_fields(doc, updates, actor_user_id)
-    _invalidate_e2_if_needed(doc, updates)
+    await _invalidate_e2_if_needed(doc, updates, db)
     await maybe_rename_after_manual_override(doc, updates, workspace_id, _storage)
     return document_to_response(doc)
 
@@ -246,12 +248,20 @@ def _apply_classification_fields(doc: Document, updates: dict, actor_user_id: st
     doc.needs_review = False
 
 
-def _invalidate_e2_if_needed(doc: Document, updates: dict) -> None:
+async def _invalidate_e2_if_needed(doc: Document, updates: dict, db: AsyncSession) -> None:
     """Se ``doc_type``/``bank_code`` mudou, extrato E2 antigo fica inválido —
-    recoloca doc na fila do pipeline incremental."""
+    tombstone dos artifacts E2* (ADR-311) + recoloca doc na fila do pipeline
+    incremental. Sem o tombstone a key antiga persistia em ``pipeline_artifacts``
+    e envenenava o E3 a cada run (``_find_unprocessed_docs`` pula key existente)."""
     extraction_affecting = {"doc_type", "bank_code"}
     if not (updates.keys() & extraction_affecting):
         return
+    await tombstone_e2_artifacts_for_document(
+        db,
+        workspace_id=doc.workspace_id,
+        document_id=doc.id,
+        content_hash=doc.content_hash,
+    )
     doc.pipeline_last_run_at = None
     doc.pipeline_e2_extract_ok = None
     if doc.status == DocumentStatus.processed:
@@ -448,6 +458,7 @@ async def reclassify_documents(
     """
     stats = await reclassify_workspace_documents(
         workspace.id,
+        db=db,
         repo=repo,
         storage=_storage,
         skip_manual_overrides=skip_manual_overrides,

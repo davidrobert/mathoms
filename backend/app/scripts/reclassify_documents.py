@@ -36,6 +36,7 @@ from sqlalchemy import select
 from backend.app.core.config import settings
 from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.document import Document, DocumentStatus, DocumentType
+from backend.app.services.artifact_tombstone import tombstone_e2_artifacts_for_document
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
 from backend.app.services.document_classification import classify_document
 from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
@@ -96,6 +97,25 @@ async def _reclassify_one(doc: Document, *, use_llm: bool) -> dict:
     }
 
 
+async def _apply_reclassification(db, doc: Document, info: dict, *, prior: str, new: str) -> None:
+    """Persiste a reclassificação; mudou doc_type/bank_code ⇒ tombstone E2* + re-queue incremental (ADR-311 D1), antes de mutar o doc."""
+    if (prior != new) or (doc.bank_code != info["bank_code"]):
+        await tombstone_e2_artifacts_for_document(
+            db,
+            workspace_id=doc.workspace_id,
+            document_id=doc.id,
+            content_hash=doc.content_hash,
+        )
+        doc.pipeline_last_run_at = None
+        doc.pipeline_e2_extract_ok = None
+    doc.doc_type = info["new"] or None
+    doc.bank_code = info["bank_code"]
+    doc.period = info["period"]
+    doc.classification_meta = info["meta"]
+    doc.classification_confidence = info["confidence"]
+    doc.needs_review = bool(info["needs_review"])
+
+
 async def reclassify(apply: bool, use_llm: bool, only_doc_type: str | None) -> int:
     if not use_llm:
         # Strongest opt-out: remove the key so classify_by_llm returns None.
@@ -141,12 +161,7 @@ async def reclassify(apply: bool, use_llm: bool, only_doc_type: str | None) -> i
                 preserved += 1
 
             if apply:
-                doc.doc_type = info["new"] or None
-                doc.bank_code = info["bank_code"]
-                doc.period = info["period"]
-                doc.classification_meta = info["meta"]
-                doc.classification_confidence = info["confidence"]
-                doc.needs_review = bool(info["needs_review"])
+                await _apply_reclassification(db, doc, info, prior=prior, new=new)
 
         if apply:
             # Rebuild fuzzy duplicate pointers across the refreshed classification

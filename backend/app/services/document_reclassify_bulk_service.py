@@ -15,9 +15,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import partial
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.app.core.config import settings
 from backend.app.models.document import Document, DocumentStatus
 from backend.app.repositories.document_repository import DocumentRepository
+from backend.app.services.artifact_tombstone import tombstone_e2_artifacts_for_document
 from backend.app.services.canonical_routing import rename_to_canonical
 from backend.app.services.classification_telemetry import emit_classification_outcome
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
@@ -44,6 +47,7 @@ class ReclassifyBulkStats:
 async def reclassify_workspace_documents(
     workspace_id: str,
     *,
+    db: AsyncSession,
     repo: DocumentRepository,
     storage: StorageService,
     skip_manual_overrides: bool = True,
@@ -70,6 +74,7 @@ async def reclassify_workspace_documents(
             storage=storage,
             loop=loop,
             counters=counters,
+            db=db,
         )
 
     dup_rows = await repo.list_non_error(workspace_id)
@@ -102,6 +107,7 @@ async def _reclassify_one(
     storage: StorageService,
     loop,
     counters: _Counters,
+    db: AsyncSession,
 ) -> None:
     if skip_manual_overrides and _has_manual_override(doc):
         counters.skipped += 1
@@ -118,11 +124,13 @@ async def _reclassify_one(
 
     try:
         prior_type = doc.doc_type
+        prior_extraction_identity = _extraction_identity(doc)
         if abs_path.suffix.lower() == ".json":
             updated = _reclassify_json_by_structure(
                 doc, abs_path, workspace_id=workspace_id, prior_type=prior_type
             )
             if updated:
+                await _tombstone_if_extraction_changed(doc, prior_extraction_identity, db)
                 counters.updated += 1
             else:
                 counters.skipped += 1
@@ -140,10 +148,35 @@ async def _reclassify_one(
         )
         _apply_classification(doc, clf)
         await _maybe_rename_canonical(doc, clf, abs_path, tenant_root=tenant_root, loop=loop)
+        await _tombstone_if_extraction_changed(doc, prior_extraction_identity, db)
         counters.updated += 1
     except Exception as exc:
         doc.error_message = f"Reclassify error: {str(exc)[:200]}"
         counters.errors += 1
+
+
+def _extraction_identity(doc: Document) -> tuple[str | None, str | None]:
+    """Par (doc_type, bank_code) normalizado — muda ⇒ extrato E2 antigo é inválido."""
+    doc_type = doc.doc_type.value if hasattr(doc.doc_type, "value") else doc.doc_type
+    return (doc_type, doc.bank_code)
+
+
+async def _tombstone_if_extraction_changed(
+    doc: Document, prior_identity: tuple[str | None, str | None], db: AsyncSession
+) -> None:
+    """ADR-311 D1 — reclassificação que muda ``doc_type``/``bank_code`` deleta
+    os artifacts E2* do documento e recoloca-o na fila incremental; sem isso a
+    key antiga persiste e envenena o E3 a cada run."""
+    if _extraction_identity(doc) == prior_identity:
+        return
+    await tombstone_e2_artifacts_for_document(
+        db,
+        workspace_id=doc.workspace_id,
+        document_id=doc.id,
+        content_hash=doc.content_hash,
+    )
+    doc.pipeline_last_run_at = None
+    doc.pipeline_e2_extract_ok = None
 
 
 def _has_manual_override(doc: Document) -> bool:
