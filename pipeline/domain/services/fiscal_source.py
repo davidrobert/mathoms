@@ -74,16 +74,35 @@ class InformeFinanceiroPJSummary:
 
 @dataclass(frozen=True)
 class InformeProventosSummary:
-    """Agregado por (ticker, ano_base) — Perini yield-on-cost (ADR-238 D1 §L4)."""
+    """Agregado por (ticker, ano_base) — Perini yield-on-cost (ADR-238 D1 §L4).
+
+    Numerador de yield é sempre a renda LÍQUIDA (``valor_brl − ir_retido_brl``,
+    co-design financial-planner 2026-07-07): dividendo/rend_fii são isentos PF
+    (líquido == bruto) e JCP tem 15% retido definitivo — usar bruto inflaria o
+    yield na parcela JCP. Bonificação nunca entra (ajuste de custo, não fluxo).
+    """
 
     ticker: str
     ano_base: int
-    total_proventos_brl: Decimal  # dividendo + jcp + rend_fii; bonificação excluída
+    total_proventos_brl: Decimal  # bruto: dividendo + jcp + rend_fii; bonificação excluída
     ir_retido_brl: Decimal
+    renda_liquida_brl: Decimal  # total − ir_retido; numerador dos dois yields
     custo_total_brl: Optional[
         Decimal
     ]  # posicao_31_12: quantidade × custo_medio (None sem custódia)
-    yield_on_cost_pct: Optional[Decimal]  # total/custo × 100, 2 casas; None sem custo
+    valor_mercado_brl: Optional[Decimal]  # posicao_31_12: valor_mercado_31_12 (total)
+    yield_on_cost_pct: Optional[Decimal]  # líquida/custo × 100, 2 casas; None sem custo
+    yield_on_market_pct: Optional[Decimal]  # líquida/mercado × 100; None sem valor 31/12
+
+
+@dataclass(frozen=True)
+class ProventosRendaAnual:
+    """Renda líquida de proventos por ano-base — complemento dos buckets de
+    ``PassiveIncomeCalculator`` (dividendos ← dividendo + rend_fii; jcp ← jcp)."""
+
+    ano_base: int
+    dividendos_liquido_brl: Decimal
+    jcp_liquido_brl: Decimal
 
 
 _YOC_QUANTUM = Decimal("0.01")
@@ -133,25 +152,68 @@ def _acc_custos(payloads: list[tuple[int, dict]]) -> dict[tuple[str, int], Decim
     return custos
 
 
-def _yield_on_cost(total: Decimal, custo: Optional[Decimal] = None) -> Optional[Decimal]:
-    if custo is None or custo <= 0:
+def _add_valores_mercado(valores: dict, ano: int, payload: dict) -> None:
+    # valor_mercado_31_12 já é total da posição (preço × quantidade), não unitário.
+    for pos in payload.get("posicao_31_12") or []:
+        valor = pos.get("valor_mercado_31_12")
+        if valor is None:
+            continue
+        key = (pos.get("ticker", ""), ano)
+        valores[key] = valores.get(key, Decimal("0")) + _to_decimal(valor)
+
+
+def _acc_valores_mercado(payloads: list[tuple[int, dict]]) -> dict[tuple[str, int], Decimal]:
+    valores: dict[tuple[str, int], Decimal] = {}
+    for ano, payload in payloads:
+        _add_valores_mercado(valores, ano, payload)
+    return valores
+
+
+def _yield_pct(renda_liquida: Decimal, denominador: Optional[Decimal] = None) -> Optional[Decimal]:
+    if denominador is None or denominador <= 0:
         return None
-    return (total / custo * Decimal("100")).quantize(_YOC_QUANTUM)
+    return (renda_liquida / denominador * Decimal("100")).quantize(_YOC_QUANTUM)
 
 
 def _build_proventos_summary(
-    ticker: str, ano: int, acc: dict, custos: dict
+    ticker: str, ano: int, acc: dict, custos: dict, valores_mercado: dict
 ) -> "InformeProventosSummary":
     total, ir = acc.get((ticker, ano), (Decimal("0"), Decimal("0")))
+    liquida = total - ir
     custo = custos.get((ticker, ano))
+    mercado = valores_mercado.get((ticker, ano))
     return InformeProventosSummary(
         ticker=ticker,
         ano_base=ano,
         total_proventos_brl=total,
         ir_retido_brl=ir,
+        renda_liquida_brl=liquida,
         custo_total_brl=custo,
-        yield_on_cost_pct=_yield_on_cost(total, custo),
+        valor_mercado_brl=mercado,
+        yield_on_cost_pct=_yield_pct(liquida, custo),
+        yield_on_market_pct=_yield_pct(liquida, mercado),
     )
+
+
+_TIPO_TO_RENDA_BUCKET = {"dividendo": "dividendos", "rend_fii": "dividendos", "jcp": "jcp"}
+
+
+def _add_renda_eventos(acc: dict, ano: int, payload: dict) -> None:
+    for p in payload.get("proventos") or []:
+        bucket = _TIPO_TO_RENDA_BUCKET.get(p.get("tipo", ""))
+        if bucket is None:
+            continue
+        liquida = _to_decimal(p.get("valor_brl")) - _to_decimal(p.get("ir_retido_brl"))
+        por_bucket = acc.setdefault(ano, {"dividendos": Decimal("0"), "jcp": Decimal("0")})
+        por_bucket[bucket] += liquida
+
+
+def _acc_renda_por_ano(payloads: list[tuple[int, dict]]) -> dict[int, dict[str, Decimal]]:
+    """Renda líquida por (ano, bucket) — bonificação e tipos desconhecidos fora."""
+    acc: dict[int, dict[str, Decimal]] = {}
+    for ano, payload in payloads:
+        _add_renda_eventos(acc, ano, payload)
+    return acc
 
 
 @dataclass(frozen=True)
@@ -214,15 +276,33 @@ class FiscalSource:
         return [s for s in (_build_pj_summary(i) for i in self.informes) if s is not None]
 
     def proventos_summaries(self) -> list[InformeProventosSummary]:
-        """Yield-on-cost por (ticker, ano_base) dos informes proventos_acoes (A17 L4)."""
+        """Yield por (ticker, ano_base) dos informes proventos_acoes (A17 L4/A33.l4).
+
+        Agrupamento por ticker soma o mesmo ativo recebido via N pagadores
+        (WEGE3 por XP e por BTG → 1 linha); ``cnpj_pagador`` nunca entra na
+        chave (agruparia ativos distintos numa linha "XP").
+        """
         payloads = _proventos_payloads(self.informes)
         acc = _acc_proventos(payloads)
         custos = _acc_custos(payloads)
+        valores_mercado = _acc_valores_mercado(payloads)
         # Ticker só-custódia (sem evento no ano) também aparece — custo sem renda.
         return [
-            _build_proventos_summary(ticker, ano, acc, custos)
-            for ticker, ano in sorted(set(acc) | set(custos))
+            _build_proventos_summary(ticker, ano, acc, custos, valores_mercado)
+            for ticker, ano in sorted(set(acc) | set(custos) | set(valores_mercado))
         ]
+
+    def proventos_renda_por_ano(self) -> tuple[ProventosRendaAnual, ...]:
+        """Renda líquida anual de proventos p/ os buckets do PassiveIncomeCalculator."""
+        acc = _acc_renda_por_ano(_proventos_payloads(self.informes))
+        return tuple(
+            ProventosRendaAnual(
+                ano_base=ano,
+                dividendos_liquido_brl=buckets["dividendos"],
+                jcp_liquido_brl=buckets["jcp"],
+            )
+            for ano, buckets in sorted(acc.items())
+        )
 
     def previdencia_summaries(self) -> list[InformePrevidenciaSummary]:
         """Lista de informes previdência sumarizados (PGBL + VGBL — VGBL filtra no consumer)."""

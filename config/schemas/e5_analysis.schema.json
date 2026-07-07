@@ -223,6 +223,25 @@
       }
     },
     "passive_income": {"type": "object"},
+    "proventos_por_ativo": {
+      "type": "array",
+      "description": "A17 L4 / A33.l4 (ADR-238 §L4) — renda de proventos por (ticker, ano_base) dos informes proventos_acoes. renda_liquida_brl = total − IR retido (numerador dos dois yields; JCP líquido do 15% definitivo). yield_on_cost_pct usa custo de aquisição; yield_on_market_pct usa valor de mercado 31/12; ambos null quando o denominador falta.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ticker": {"type": "string"},
+          "ano_base": {"type": "integer"},
+          "total_proventos_brl": {"type": "number"},
+          "ir_retido_brl": {"type": "number"},
+          "renda_liquida_brl": {"type": "number"},
+          "custo_total_brl": {"type": ["number", "null"]},
+          "valor_mercado_brl": {"type": ["number", "null"]},
+          "yield_on_cost_pct": {"type": ["number", "null"]},
+          "yield_on_market_pct": {"type": ["number", "null"]}
+        },
+        "required": ["ticker", "ano_base", "total_proventos_brl", "renda_liquida_brl"]
+      }
+    },
     "if_monte_carlo": {"type": "object"},
     "premissas_economicas": {
       "type": "object",

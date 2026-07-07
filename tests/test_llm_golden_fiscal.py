@@ -154,6 +154,102 @@ def test_proventos_golden_alimenta_fiscal_source() -> None:
     assert itsa.total_proventos_brl == Decimal("0")
 
 
+# ─────────────────── A33.l4 — goldens fim-a-fim informe → S3 ─────────────────
+
+
+def _fiscal_source_proventos(*fixture_names: str):
+    from pipeline.domain.services.fiscal_source import FiscalSource
+
+    return FiscalSource.from_informes([_load(n) for n in fixture_names])
+
+
+def test_proventos_golden_jcp_numerador_liquido() -> None:
+    """Edge JCP: yield usa líquido (valor − IR 15% definitivo), nunca bruto."""
+    summaries = _fiscal_source_proventos("informe_proventos_xp_multi.json").proventos_summaries()
+    wege = [s for s in summaries if s.ticker == "WEGE3"][0]
+    # dividendo 312.40 + JCP (180 − 27) = 465.40 líquido; bruto seria 492.40.
+    assert wege.total_proventos_brl == Decimal("492.40")
+    assert wege.renda_liquida_brl == Decimal("465.40")
+    # Sem posição de custódia p/ WEGE3 → renda absoluta SEM yield (piso seguro).
+    assert wege.yield_on_cost_pct is None
+    assert wege.yield_on_market_pct is None
+
+
+def test_proventos_golden_fii_isento() -> None:
+    """Edge FII: rendimento isento PF — líquida == bruto."""
+    summaries = _fiscal_source_proventos("informe_proventos_xp_multi.json").proventos_summaries()
+    mxrf = [s for s in summaries if s.ticker == "MXRF11"][0]
+    assert mxrf.renda_liquida_brl == Decimal("96.00")
+    assert mxrf.ir_retido_brl == Decimal("0")
+
+
+def test_proventos_golden_cross_payload_holding_e_corretora() -> None:
+    """ITSA4 via Itaúsa (eventos) + XP (custódia) → 1 linha com os dois yields."""
+    summaries = _fiscal_source_proventos(
+        "informe_proventos_xp_multi.json", "informe_proventos_itausa_unico.json"
+    ).proventos_summaries()
+    itsa = [s for s in summaries if s.ticker == "ITSA4"]
+    assert len(itsa) == 1
+    s = itsa[0]
+    # Itaúsa: dividendo 88.20 + JCP (140 − 21) = 207.20 líquido.
+    assert s.renda_liquida_brl == Decimal("207.20")
+    # XP custódia: 420 × 8.90 = 3738.00; mercado 31/12 = 4351.20.
+    assert s.custo_total_brl == Decimal("3738.00")
+    assert s.valor_mercado_brl == Decimal("4351.20")
+    assert s.yield_on_cost_pct == Decimal("5.54")  # 207.20/3738 × 100
+    assert s.yield_on_market_pct == Decimal("4.76")  # 207.20/4351.20 × 100
+
+
+def test_proventos_golden_mesmo_ticker_dois_pagadores() -> None:
+    """WEGE3 via XP e via BTG soma numa linha só (chave = ticker, nunca pagador)."""
+    summaries = _fiscal_source_proventos(
+        "informe_proventos_xp_multi.json", "informe_proventos_btg_wege.json"
+    ).proventos_summaries()
+    wege = [s for s in summaries if s.ticker == "WEGE3"]
+    assert len(wege) == 1
+    assert wege[0].renda_liquida_brl == Decimal("565.40")  # 465.40 XP + 100.00 BTG
+
+
+def _store_com_informes(*fixture_names: str):
+    from pipeline.artifact_store import InMemoryArtifactStore
+
+    store = InMemoryArtifactStore()
+    for name in fixture_names:
+        store = store.seed("extract_informes_anuais", name.removesuffix(".json"), _load(name))
+    return store
+
+
+def test_proventos_golden_ate_o_payload_e5() -> None:
+    """Fim-a-fim: informes no store → E5 output ``proventos_por_ativo`` (S3)."""
+    from pipeline.domain.services.e5_analyzer_adapter import _try_load_proventos_summaries
+    from pipeline.domain.services.e5_serialization import _proventos_summary_to_dict
+
+    store = _store_com_informes(
+        "informe_proventos_xp_multi.json", "informe_proventos_itausa_unico.json"
+    )
+    summaries = _try_load_proventos_summaries(store)
+    rows = {r["ticker"]: r for r in (_proventos_summary_to_dict(s) for s in summaries)}
+    assert rows["ITSA4"]["renda_liquida_brl"] == 207.20
+    assert rows["ITSA4"]["yield_on_cost_pct"] == 5.54
+    assert rows["ITSA4"]["yield_on_market_pct"] == 4.76
+    assert rows["WEGE3"]["renda_liquida_brl"] == 465.40
+    assert rows["WEGE3"]["yield_on_cost_pct"] is None
+
+
+def test_proventos_golden_renda_por_ano_para_buckets() -> None:
+    """Complemento D4: dividendos (div + FII) e JCP líquidos por ano-base."""
+    fs = _fiscal_source_proventos(
+        "informe_proventos_xp_multi.json",
+        "informe_proventos_itausa_unico.json",
+        "informe_proventos_btg_wege.json",
+    )
+    (renda,) = fs.proventos_renda_por_ano()
+    assert renda.ano_base == 2024
+    # 312.40 (WEGE3 XP) + 96.00 (MXRF11) + 88.20 (ITSA4) + 100.00 (WEGE3 BTG).
+    assert renda.dividendos_liquido_brl == Decimal("596.60")
+    assert renda.jcp_liquido_brl == Decimal("272.00")  # 153.00 XP + 119.00 Itaúsa
+
+
 def test_informe_pf_wise_multimoeda_golden() -> None:
     """Wise: código 62 conta exterior USD/EUR; juros ME em tributáveis cód 13 (A17 L3)."""
     base = InformeRendimentosBase(**_load("informe_pf_wise_multimoeda.json"))
