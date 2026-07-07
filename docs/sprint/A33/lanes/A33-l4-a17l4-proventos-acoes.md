@@ -4,9 +4,9 @@ type: lane
 title: "Fechar A17.l4: integrar proventos de ações (schema/prompt/classifier já existem) ao yield-on-cost em S3"
 sprint: A33
 plan: null
-status: planned
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 830
+ship_date: "2026-07-07"
 priority: P1
 branch_slug: a33-l4-a17l4-proventos-acoes
 adrs: ["[[ADR-238]]"]
@@ -15,7 +15,7 @@ parallel_with: ["[[A33.l5]]", "[[A33.l6]]"]
 tags:
   - type/lane
   - sprint/a33
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---
