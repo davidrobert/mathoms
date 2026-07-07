@@ -132,7 +132,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 ### E7 — Review & Refine (LLM — pós-relatório)
 - **Objetivo:** Revisão final do relatório usando a persona e abordagem desta methodology. Retroalimenta narrativas, summaries, chart descriptions, lista de tarefas e prioridades com base na visão completa do relatório renderizado.
-- **Comando:** `python scripts/e7_review.py` (cross-validation) → LLM review → `python scripts/e7_review.py --apply review.json`. O re-render é automático na próxima abertura de `/reports/[id]`.
+- **Comando:** `scripts/validate_cross.py` via stage `validate_cross` (cross-validation) → LLM review → apply. O re-render é automático na próxima abertura de `/reports/[id]`.
 - **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com narrativas), `methodology.md` (persona).
 - **Outputs:** E5 JSON atualizado com refinamentos + `review_metadata` + `strategic_insights`.
 - **Cross-validation:** 14 checks determinísticos verificam consistência entre score, patrimônio, fluxo, IF, endividamento, reserva, narrativas e tarefas.

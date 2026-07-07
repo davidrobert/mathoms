@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts import e7_review as e7
+from scripts import validate_cross as e7
 
 
 class TestScoreClassification:

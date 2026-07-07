@@ -21,7 +21,7 @@ SCRIPTS_TO_CHECK = [
     "scripts/categorize_transactions.py",
     "scripts/analyze_finances.py",
     "scripts/generate_narratives.py",
-    "scripts/e7_review.py",
+    "scripts/validate_cross.py",
     "scripts/consolidate_baseline.py",
 ]
 

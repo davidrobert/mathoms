@@ -158,12 +158,12 @@ class TestInitConfig:
         (config_dir / "scoring.json").write_text("{}")
         (config_dir / "pipeline.json").write_text("{}")
 
-        from scripts.e7_review import _init_config
+        from scripts.validate_cross import _init_config
 
         _init_config(tmp_path)
-        from scripts import e7_review
+        from scripts import validate_cross
 
-        assert e7_review.PROJECT_DIR == tmp_path
+        assert validate_cross.PROJECT_DIR == tmp_path
 
         # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 

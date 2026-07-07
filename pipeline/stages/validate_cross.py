@@ -1,9 +1,10 @@
 """Stage wrapper for cross-validation (E7-crossval).
 
 Roda 14 checks determinísticos CV1-CV14 sobre o output de ``analyze_finances``
-(E5). Chama ``scripts.e7_review.main_with_store(ctx, mode="crossval")``.
+(E5). Chama ``scripts.validate_cross.main_with_store(ctx, mode="crossval")``.
 
-Nota: ``scripts/e7_review.py`` ficou com nome legado por compat após a remoção
+Nota: ``scripts/e7_review.py`` ficou com nome legado até a F9.4 (→
+``scripts/validate_cross.py``) após a remoção
 de ``review_finances`` (superseded por ADR-199); a parte que sobrou é
 exclusivamente crossval.
 """
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 
 
 def run(ctx: "WorkspaceContext") -> dict:
-    from scripts.e7_review import main_with_store
+    from scripts.validate_cross import main_with_store
 
     result = main_with_store(ctx, mode="crossval")
     result["stage"] = "validate_cross"
