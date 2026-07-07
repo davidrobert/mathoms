@@ -103,8 +103,11 @@ make dogfood-go-dev                    # shell Go :8002 com env do .env + worker
 make dogfood-go-dev-off                # rollback: worker dev volta ao executor Python
 ```
 
-O target carrega o `.env` da raiz para o env do binário Go — o subprocess
-`python -m pipeline.orchestrator run-stage` herda dele `MATHOMS_DATABASE_URL`,
-`MATHOMS_FERNET_KEY`, `MATHOMS_REDIS_URL` e `ANTHROPIC_API_KEY` (aviso se
-ausente). O worker re-sobe com hostname `celery-dev-go@…` para distinguir
-nos logs. Logs: `_dev_pids/go.log` + `worker.log`.
+O subprocess `run-stage` lê o `.env` sozinho via pydantic-settings — o
+target NÃO sourceia o `.env` pelo shell (as aspas de valores JSON, ex.
+`CORS_ORIGINS`, seriam stripadas e o import do backend explodiria com
+`SettingsError`). Só vão explícitos no env do binário Go os valores lidos
+de `os.environ`: `MATHOMS_DATABASE_URL` (fail-fast ADR-303 D4, default =
+sqlite do settings), `ANTHROPIC_API_KEY` (SDK; aviso se ausente) e
+`MATHOMS_REDIS_URL` (publisher de eventos do shell). O worker re-sobe com
+hostname `celery-dev-go@…` para distinguir nos logs. Logs: `_dev_pids/go.log` + `worker.log`.

@@ -987,14 +987,23 @@ dogfood-go-dev:
 	@mkdir -p $(CURDIR)/$(DEV_DIR)
 	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(DEV_DIR)/go.pid)
 	$(call check_port_free,8002)
-	@echo "▶  Subindo shell Go na :8002 com o env do .env…"
-	@# cli_run_stage.py fail-faila sem MATHOMS_DATABASE_URL explícita; dev usa o default do settings
-	@set -a; . $(CURDIR)/.env; set +a; \
-	 [ -n "$$ANTHROPIC_API_KEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente (.env/shell) — stages LLM vão falhar"; \
-	 export MATHOMS_DATABASE_URL="$${MATHOMS_DATABASE_URL:-sqlite+aiosqlite:///$(CURDIR)/mathoms.db}"; \
+	@echo "▶  Subindo shell Go na :8002 (env mínimo — subprocess lê o .env sozinho)…"
+	@# NÃO sourcear o .env pelo shell: aspas de valores JSON (ex. CORS_ORIGINS)
+	@# são stripadas e o import do backend explode no subprocess (SettingsError).
+	@# O CLI lê o .env via pydantic-settings; só vai explícito o que é lido de
+	@# os.environ: DATABASE_URL (fail-fast ADR-303 D4), ANTHROPIC_API_KEY (SDK)
+	@# e REDIS_URL (publisher de eventos do próprio shell Go).
+	@getv() { sed -n "s/^$$1=//p" $(CURDIR)/.env | tail -1 | sed -e 's/^"//' -e 's/"$$//' -e "s/^'//" -e "s/'$$//"; }; \
+	 DBURL=$$(getv MATHOMS_DATABASE_URL); \
+	 AKEY=$$(getv ANTHROPIC_API_KEY); AKEY="$${AKEY:-$$ANTHROPIC_API_KEY}"; \
+	 RURL=$$(getv MATHOMS_REDIS_URL); RURL="$${RURL:-redis://localhost:6379/0}"; \
+	 [ -n "$$AKEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente (.env/shell) — stages LLM vão falhar"; \
+	 MATHOMS_DATABASE_URL="$${DBURL:-sqlite+aiosqlite:///$(CURDIR)/mathoms.db}" \
+	 ANTHROPIC_API_KEY="$$AKEY" \
+	 MATHOMS_REDIS_URL="$$RURL" \
+	 REDIS_URL="$$RURL" \
 	 MATHOMS_REPO_ROOT="$(CURDIR)" \
 	 MATHOMS_PYTHON="$(PYTHON)" \
-	 REDIS_URL="$${MATHOMS_REDIS_URL:-redis://localhost:6379/0}" \
 	 PIPELINE_SERVICE_PORT=8002 \
 	 nohup $(CURDIR)/$(DEV_DIR)/pipeline-service-go \
 	   > $(CURDIR)/$(DEV_DIR)/go.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/go.pid
