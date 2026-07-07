@@ -75,6 +75,11 @@ class PipelineArtifact(Base):
 
     content_json: Mapped[dict] = mapped_column(JSON, nullable=False)
     schema_version: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    # ADR-311: versão de extração consultável (PROMPT_VERSION do writer LLM),
+    # lift do payload em DBArtifactStore.write — NUNCA entra na artifact_key
+    # (quebraria o dedupe por documento, ADR-080). NULL ≡ versão desconhecida/0
+    # (rows pré-migration, sem backfill de conteúdo).
+    prompt_version: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     byte_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
