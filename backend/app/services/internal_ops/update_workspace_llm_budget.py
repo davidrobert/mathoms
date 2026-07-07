@@ -25,7 +25,13 @@ async def _load_workspace(db: AsyncSession, workspace_id: str) -> Workspace | No
 
 
 def _audit(
-    *, actor: str, ws_id: str, previous: str | None, current: str | None, remove_cap: bool
+    db: AsyncSession,
+    *,
+    actor: str,
+    ws_id: str,
+    previous: str | None,
+    current: str | None,
+    remove_cap: bool,
 ) -> None:
     # Hard-fail por contrato (A30.l1): falha do sink = falha da operação.
     append_audit(
@@ -35,7 +41,8 @@ def _audit(
             target_type="workspace",
             target_id=ws_id,
             details={"previous": previous, "current": current, "remove_cap": remove_cap},
-        )
+        ),
+        db,
     )
 
 
@@ -68,9 +75,15 @@ def _opt_str(value: Decimal | None) -> str | None:
 
 
 def _record_change(
-    actor: str, ws_id: str, previous: Decimal | None, current: Decimal | None, remove_cap: bool
+    db: AsyncSession,
+    actor: str,
+    ws_id: str,
+    previous: Decimal | None,
+    current: Decimal | None,
+    remove_cap: bool,
 ) -> None:
     _audit(
+        db,
         actor=actor,
         ws_id=ws_id,
         previous=_opt_str(previous),
@@ -113,5 +126,5 @@ async def update_workspace_llm_budget(
         return OpResult.failure("workspace_not_found", workspace_id=workspace_id)
     current = None if payload.remove_cap else payload.cap_usd
     previous = await _apply_cap(db, workspace, current)
-    _record_change(actor, workspace_id, previous, current, payload.remove_cap)
+    _record_change(db, actor, workspace_id, previous, current, payload.remove_cap)
     return _success(workspace_id, previous, current, payload.remove_cap)

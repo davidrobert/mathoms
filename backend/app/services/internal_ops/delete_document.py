@@ -57,6 +57,7 @@ async def delete_document(db: AsyncSession, document_id: str, *, actor: str) -> 
             target_type="document",
             target_id=document_id,
             details=details,
-        )
+        ),
+        db,
     )
     return OpResult.success(document_id=document_id, **details)

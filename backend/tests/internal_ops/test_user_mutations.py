@@ -16,7 +16,7 @@ from backend.tests.factories import make_user
 
 
 @pytest.mark.asyncio
-async def test_set_developer_flag_bumps_token_version(db, audit_path: Path) -> None:
+async def test_set_developer_flag_bumps_token_version(db) -> None:
     user = await make_user(db)
     prev_tv = user.token_version
     await db.commit()
@@ -31,16 +31,16 @@ async def test_set_developer_flag_bumps_token_version(db, audit_path: Path) -> N
 
 
 @pytest.mark.asyncio
-async def test_set_developer_flag_noop_when_same(db, audit_path: Path) -> None:
+async def test_set_developer_flag_noop_when_same(db) -> None:
     user = await make_user(db)
     await db.commit()
     result = await set_developer_flag(db, user.id, enabled=False, actor="ops1")
     assert result.details["changed"] is False
-    assert read_audit(path=audit_path) == []
+    assert await read_audit(db) == []
 
 
 @pytest.mark.asyncio
-async def test_update_email_bumps_token_version(db, audit_path: Path) -> None:
+async def test_update_email_bumps_token_version(db) -> None:
     user = await make_user(db, email="old@test.com")
     prev_tv = user.token_version
     await db.commit()
@@ -55,7 +55,7 @@ async def test_update_email_bumps_token_version(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_email_collision(db, audit_path: Path) -> None:
+async def test_update_email_collision(db) -> None:
     a = await make_user(db, email="a@test.com")
     b = await make_user(db, email="b@test.com")
     await db.commit()
@@ -69,7 +69,7 @@ async def test_update_email_collision(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_email_invalid(db, audit_path: Path) -> None:
+async def test_update_email_invalid(db) -> None:
     user = await make_user(db)
     await db.commit()
     result = await update_user_email(db, user.id, new_email="no-at-sign", actor="ops1")
@@ -77,7 +77,7 @@ async def test_update_email_invalid(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_email_idempotent(db, audit_path: Path) -> None:
+async def test_update_email_idempotent(db) -> None:
     user = await make_user(db, email="same@test.com")
     prev_tv = user.token_version
     await db.commit()
@@ -88,7 +88,7 @@ async def test_update_email_idempotent(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_profile_partial(db, audit_path: Path) -> None:
+async def test_update_profile_partial(db) -> None:
     user = await make_user(db, full_name="Old Name")
     await db.commit()
 
@@ -103,9 +103,9 @@ async def test_update_profile_partial(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_profile_no_fields(db, audit_path: Path) -> None:
+async def test_update_profile_no_fields(db) -> None:
     user = await make_user(db)
     await db.commit()
     result = await update_user_profile(db, user.id, actor="ops1")
     assert result.ok and result.details["changed"] is False
-    assert read_audit(path=audit_path) == []
+    assert await read_audit(db) == []

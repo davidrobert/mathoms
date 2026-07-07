@@ -44,7 +44,9 @@ def _build_summary(
     }
 
 
-def _audit_purge(actor: str, scope: PurgeScope, summary: dict, artifacts_removed: int) -> None:
+def _audit_purge(
+    db: AsyncSession, actor: str, scope: PurgeScope, summary: dict, artifacts_removed: int
+) -> None:
     append_audit(
         AuditRecord(
             action="report.purge",
@@ -56,7 +58,8 @@ def _audit_purge(actor: str, scope: PurgeScope, summary: dict, artifacts_removed
                 "artifacts_removed": artifacts_removed,
                 "scope": summary["scope"],
             },
-        )
+        ),
+        db,
     )
 
 
@@ -96,5 +99,5 @@ async def purge_reports(
     if preview:
         return OpResult.success(preview=True, **summary)
     artifacts_removed = await _execute_purge(db, reports, artifact_ids)
-    _audit_purge(actor, scope, summary, artifacts_removed)
+    _audit_purge(db, actor, scope, summary, artifacts_removed)
     return OpResult.success(preview=False, artifacts_removed=artifacts_removed, **summary)

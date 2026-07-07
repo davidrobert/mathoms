@@ -63,6 +63,7 @@ async def anonymize_user(db: AsyncSession, user_id: str, *, actor: str) -> OpRes
             target_id=user.id,
             result="ok",
             details={"anonymized_email": new_email, "already_anonymized": already},
-        )
+        ),
+        db,
     )
     return OpResult.success(user_id=user.id, anonymized_email=new_email)

@@ -82,7 +82,9 @@ def _apply_supersede(groups: dict[tuple[str, str], list[Suggestion]], now: datet
     return sum(_supersede_rows(members[1:], now) for members in groups.values())
 
 
-def _audit_backfill(actor: str, workspace_id: str, superseded: int, kept: int) -> None:
+def _audit_backfill(
+    db: AsyncSession, actor: str, workspace_id: str, superseded: int, kept: int
+) -> None:
     append_audit(
         AuditRecord(
             action="suggestions.backfill_supersede",
@@ -90,7 +92,8 @@ def _audit_backfill(actor: str, workspace_id: str, superseded: int, kept: int) -
             target_type="workspace",
             target_id=workspace_id,
             details={"superseded": superseded, "groups_kept": kept},
-        )
+        ),
+        db,
     )
 
 
@@ -111,7 +114,7 @@ async def _apply_and_audit(
 ) -> OpResult:
     superseded = _apply_supersede(groups, now)
     await db.flush()
-    _audit_backfill(actor, workspace_id, superseded, len(groups))
+    _audit_backfill(db, actor, workspace_id, superseded, len(groups))
     return OpResult.success(
         dry_run=False,
         workspace_id=workspace_id,
@@ -157,7 +160,7 @@ async def _run_latest_batch(
         return OpResult.success(dry_run=True, superseded_planned=len(to_supersede), **details)
     superseded = _supersede_rows(to_supersede, now)
     await db.flush()
-    _audit_backfill(actor, workspace_id, superseded, len(kept))
+    _audit_backfill(db, actor, workspace_id, superseded, len(kept))
     return OpResult.success(dry_run=False, superseded=superseded, **details)
 
 

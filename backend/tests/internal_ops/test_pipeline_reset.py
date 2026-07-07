@@ -51,7 +51,7 @@ async def _seed_pipeline_artifacts(db, ws) -> dict[str, int]:
 
 
 @pytest.mark.asyncio
-async def test_reset_preview_does_not_delete(db, audit_path: Path) -> None:
+async def test_reset_preview_does_not_delete(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     ids_by_stage = await _seed_pipeline_artifacts(db, ws)
@@ -83,11 +83,11 @@ async def test_reset_preview_does_not_delete(db, audit_path: Path) -> None:
     )
     assert len(remaining) == len(ids_by_stage)
     # Audit não registrado em preview
-    assert read_audit(path=audit_path) == []
+    assert await read_audit(db) == []
 
 
 @pytest.mark.asyncio
-async def test_reset_from_middle_deletes_only_cascade(db, audit_path: Path) -> None:
+async def test_reset_from_middle_deletes_only_cascade(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     ids_by_stage = await _seed_pipeline_artifacts(db, ws)
@@ -124,7 +124,7 @@ async def test_reset_from_middle_deletes_only_cascade(db, audit_path: Path) -> N
 
 
 @pytest.mark.asyncio
-async def test_reset_from_first_stage_deletes_all(db, audit_path: Path) -> None:
+async def test_reset_from_first_stage_deletes_all(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     await _seed_pipeline_artifacts(db, ws)
@@ -147,7 +147,7 @@ async def test_reset_from_first_stage_deletes_all(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_legacy_stage_name_resolves_to_descriptive(db, audit_path: Path) -> None:
+async def test_legacy_stage_name_resolves_to_descriptive(db) -> None:
     """Stage legacy "E3" deve resolver para "reconcile_transactions" via STAGE_RENAME_MAP."""
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
@@ -167,7 +167,7 @@ async def test_legacy_stage_name_resolves_to_descriptive(db, audit_path: Path) -
 
 
 @pytest.mark.asyncio
-async def test_reset_matches_legacy_stage_rows_in_db(db, audit_path: Path) -> None:
+async def test_reset_matches_legacy_stage_rows_in_db(db) -> None:
     """DB com row em formato legacy ("E3") é deletado quando cascade inclui."""
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
@@ -196,7 +196,7 @@ async def test_reset_matches_legacy_stage_rows_in_db(db, audit_path: Path) -> No
 
 
 @pytest.mark.asyncio
-async def test_workspace_not_found(db, audit_path: Path) -> None:
+async def test_workspace_not_found(db) -> None:
     result = await reset_workspace_from_stage(
         db,
         workspace_id="00000000-0000-0000-0000-000000000000",
@@ -208,7 +208,7 @@ async def test_workspace_not_found(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_unknown_stage(db, audit_path: Path) -> None:
+async def test_unknown_stage(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     await db.commit()
@@ -225,7 +225,7 @@ async def test_unknown_stage(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_empty_workspace_returns_zero(db, audit_path: Path) -> None:
+async def test_empty_workspace_returns_zero(db) -> None:
     """Workspace sem artefatos → artifacts_affected=0, sucesso."""
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
@@ -244,7 +244,7 @@ async def test_empty_workspace_returns_zero(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_audit_registered_when_not_preview(db, audit_path: Path) -> None:
+async def test_audit_registered_when_not_preview(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     await _seed_pipeline_artifacts(db, ws)
@@ -259,7 +259,7 @@ async def test_audit_registered_when_not_preview(db, audit_path: Path) -> None:
     )
     await db.commit()
 
-    entries = read_audit(path=audit_path)
+    entries = await read_audit(db)
     assert len(entries) == 1
     entry = entries[0]
     assert entry["action"] == "pipeline.reset_from_stage"

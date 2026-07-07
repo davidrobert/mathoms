@@ -36,6 +36,7 @@ async def set_developer_flag(
             target_type="user",
             target_id=user.id,
             details={"previous": previous, "current": enabled},
-        )
+        ),
+        db,
     )
     return OpResult.success(user_id=user.id, changed=True, is_developer=enabled)

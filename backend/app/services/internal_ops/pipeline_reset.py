@@ -66,25 +66,22 @@ async def _execute_delete(db: AsyncSession, workspace_id: str, stages: list[str]
 
 
 def _audit_reset(
+    db: AsyncSession,
     actor: str,
     workspace_id: str,
     canonical_stage: str,
     stages_affected: list[str],
     deleted: int,
 ) -> None:
-    append_audit(
-        AuditRecord(
-            action="pipeline.reset_from_stage",
-            actor=actor,
-            target_type="workspace",
-            target_id=workspace_id,
-            details={
-                "from_stage": canonical_stage,
-                "stages_affected": stages_affected,
-                "artifacts_deleted": deleted,
-            },
-        )
+    details = {
+        "from_stage": canonical_stage,
+        "stages_affected": stages_affected,
+        "artifacts_deleted": deleted,
+    }
+    record = AuditRecord(
+        "pipeline.reset_from_stage", actor, "workspace", workspace_id, details=details
     )
+    append_audit(record, db)
 
 
 async def reset_workspace_from_stage(
@@ -139,7 +136,7 @@ async def reset_workspace_from_stage(
         )
 
     deleted = await _execute_delete(db, workspace_id, stages_to_match)
-    _audit_reset(actor, workspace_id, canonical_stage, stages_descriptive, deleted)
+    _audit_reset(db, actor, workspace_id, canonical_stage, stages_descriptive, deleted)
     return OpResult.success(
         preview=False,
         workspace_id=workspace_id,

@@ -97,7 +97,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 - **Confirmação dupla** (`TYPE "delete"` ou similar) em mutações destrutivas; modo "prévia" como default em deletes de volume (ex.: purge de documentos por workspace).
 - **Bloqueio se `ENVIRONMENT=production`** salvo flag `--i-accept-production-risk` + variável de ambiente explícita — evita apagar dados reais por engano.
 - **Sessão isolada** — não reutilizar cookie/sessão do app do cliente; token de dev em `.env.local` não vaza para `app.mathoms.ai`.
-- **Trilha mínima** — append em `logs/internal_ops_audit.log` (JSON: operador, ação, alvo, timestamp, resultado) alinhada ao espírito de **7B.5** + masking de ADR-110; quando o audit persistido existir, a camada de serviço passa a gravar na tabela sem mudar UI/CLI (troca só do sink).
+- **Trilha persistida** — ✅ **7B.5 entregue (A31.l1, [[ADR-309]])**: audit grava na tabela `internal_ops_audit`, na **mesma transação da operação** (rollback leva os dois — a semântica "troca só do sink" original foi conscientemente emendada pela ADR-309 §Decisão 2; login/logout session-less usam escrita autônoma). Masking ADR-110 preservado; retenção indefinida, nenhum purge job toca a tabela.
 
 **Saída:** operador usa a **UI web local** como superfície principal, conforme documentação / runbook. CLI é entregue depois, quando houver demanda de automação. **7F.2–7F.4** não são obrigatórios para fechar IA-0: são a evolução para **auth staff + exposição controlada na rede** em F7F-Remote. Rotas sob prefixo interno **só em dev** (localhost) podem existir antes do pacote completo **7F.4** em produção.
 
@@ -107,7 +107,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 
 - Runbook de deploy/recuperação (**7C.7**).
 - **Structured logging** + correlação request/Celery (**7C.5**).
-- **Audit log** para writes sensíveis (**7B.5**) — obrigatório para mutações via CLI **e** via UI local; antes de expor o console na rede, reforçar política e testes (**7F.4**).
+- **Audit log** para writes sensíveis (**7B.5** ✅ entregue em A31.l1, [[ADR-309]]) — persistido em tabela; antes de expor o console na rede, reforçar política e testes (**7F.4**).
 - Decisão documentada: **sem impersonation** do cliente ou fluxo “break glass” com TTL, notificação e ADR (**7F.1** no backlog).
 
 **Saída:** operação remota sobrevive com documentação + logs; console web pode ainda não existir.
@@ -167,7 +167,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 | **7D.9** | Telemetria agregada privacy-first — evolução das métricas já calculadas em **IA-0** (7F.13). |
 | **7E.1** | Runs presos → widgets/listas no console. |
 | **7E.11–7E.12** | Custos LLM no contexto operacional. |
-| **7B.5** | Audit para ações internas; a camada de serviço (7F.L1) grava em `logs/internal_ops_audit.log` em IA-0 e passa a gravar em tabela quando 7B.5 persistir, sem mudar UI. |
+| **7B.5** | ✅ Entregue (A31.l1, [[ADR-309]]) — audit persistido em `internal_ops_audit`, mesma transação da operação; UI/CLI inalteradas. |
 | **7B.13** | Unlock manual → candidato a ação **IA-3**. |
 | **7B.18** | DSAR → **IA-4** (ou visão read-only antes). |
 | **7C.5 / 7C.4** | Correlação e erros sem UI nova pesada. |

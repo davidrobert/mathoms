@@ -18,7 +18,7 @@ from backend.tests.factories import make_user
 
 
 @pytest.mark.asyncio
-async def test_reset_generates_password(db, audit_path: Path) -> None:
+async def test_reset_generates_password(db) -> None:
     user = await make_user(db, password="OldPw!")
     prev_tv = user.token_version
     await db.commit()
@@ -35,13 +35,13 @@ async def test_reset_generates_password(db, audit_path: Path) -> None:
     assert not verify_password("OldPw!", refreshed.hashed_password)
     assert refreshed.token_version == prev_tv + 1
 
-    entry = read_audit(path=audit_path)[0]
+    entry = (await read_audit(db))[0]
     assert entry["action"] == "user.reset_password"
     assert "password" not in entry["details"]
 
 
 @pytest.mark.asyncio
-async def test_reset_invalidates_existing_jwt(db, audit_path: Path) -> None:
+async def test_reset_invalidates_existing_jwt(db) -> None:
     """Token emitido antes do reset deve falhar o check de `tv` em deps.get_current_user."""
     from fastapi import HTTPException
     from fastapi.security import HTTPAuthorizationCredentials
@@ -63,7 +63,7 @@ async def test_reset_invalidates_existing_jwt(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_reset_explicit_password(db, audit_path: Path) -> None:
+async def test_reset_explicit_password(db) -> None:
     user = await make_user(db)
     await db.commit()
 
@@ -76,7 +76,7 @@ async def test_reset_explicit_password(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_reset_missing_user(db, audit_path: Path) -> None:
+async def test_reset_missing_user(db) -> None:
     result = await reset_password(db, "nope", actor="ops1")
     assert not result.ok and result.error == "user_not_found"
 

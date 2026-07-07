@@ -51,6 +51,7 @@ from backend.app.models.feature_flag import FeatureFlag
 from backend.app.models.fiscal_parameter import FiscalParameter
 from backend.app.models.goal import VALID_GOAL_TYPES, Goal
 from backend.app.models.institution_catalog import InstitutionCatalog
+from backend.app.models.internal_ops_audit import InternalOpsAudit
 from backend.app.models.llm_call_log import LLMCallLog
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.market_rate import MarketRate
@@ -248,6 +249,7 @@ __all__ = [
     "Notification",
     "ArtifactLineageEdge",
     "AuditLog",
+    "InternalOpsAudit",
     "DataExportRequest",
     "DataExportRequestStatus",
     "VALID_DATA_EXPORT_STATUSES",

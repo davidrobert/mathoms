@@ -75,7 +75,9 @@ def _build_summary(
     }
 
 
-def _audit_purge(actor: str, scope: PurgeScope, details: dict, result: str = "ok") -> None:
+def _audit_purge(
+    db: AsyncSession, actor: str, scope: PurgeScope, details: dict, result: str = "ok"
+) -> None:
     append_audit(
         AuditRecord(
             action="document.purge",
@@ -84,20 +86,30 @@ def _audit_purge(actor: str, scope: PurgeScope, details: dict, result: str = "ok
             target_id=scope.workspace_id or scope.user_id,
             result=result,
             details=details,
-        )
+        ),
+        db,
     )
 
 
-def _partial_failure_result(
-    actor: str, scope: PurgeScope, summary: dict, blobs_removed: int, failed_blobs: list[str]
-) -> OpResult:
-    details = {
+def _partial_failure_details(summary: dict, blobs_removed: int, failed_blobs: list[str]) -> dict:
+    return {
         "count": summary["count"],
         "blobs_removed": blobs_removed,
         "failed_blobs": failed_blobs,
         "scope": summary["scope"],
     }
-    _audit_purge(actor, scope, details, result="partial_failure")
+
+
+def _partial_failure_result(
+    db: AsyncSession,
+    actor: str,
+    scope: PurgeScope,
+    summary: dict,
+    blobs_removed: int,
+    failed_blobs: list[str],
+) -> OpResult:
+    details = _partial_failure_details(summary, blobs_removed, failed_blobs)
+    _audit_purge(db, actor, scope, details, result="partial_failure")
     return OpResult.failure(
         "partial_failure",
         preview=False,
@@ -146,9 +158,10 @@ async def purge_documents(
     blobs_removed, failed = _unlink_blobs(docs)
     if failed:
         await db.rollback()
-        return _partial_failure_result(actor, scope, summary, blobs_removed, failed)
+        return _partial_failure_result(db, actor, scope, summary, blobs_removed, failed)
     await _do_purge(db, ws_ids, run_ids)
     _audit_purge(
+        db,
         actor,
         scope,
         {

@@ -14,7 +14,7 @@ from backend.tests.factories import make_user
 
 
 @pytest.mark.asyncio
-async def test_hard_delete_removes_row(db, audit_path: Path) -> None:
+async def test_hard_delete_removes_row(db) -> None:
     user = await make_user(db)
     await db.commit()
 
@@ -24,24 +24,24 @@ async def test_hard_delete_removes_row(db, audit_path: Path) -> None:
     assert result.ok
     assert (await db.execute(select(User).where(User.id == user.id))).scalar_one_or_none() is None
 
-    entry = read_audit(path=audit_path)[0]
+    entry = (await read_audit(db))[0]
     assert entry["action"] == "user.hard_delete"
     assert entry["details"]["reason"] == "LGPD request #42"
 
 
 @pytest.mark.asyncio
-async def test_hard_delete_requires_reason(db, audit_path: Path) -> None:
+async def test_hard_delete_requires_reason(db) -> None:
     user = await make_user(db)
     await db.commit()
 
     result = await hard_delete_user(db, user.id, actor="ops1", reason="  ")
     assert not result.ok
     assert result.error == "reason_required"
-    assert read_audit(path=audit_path) == []
+    assert await read_audit(db) == []
 
 
 @pytest.mark.asyncio
-async def test_hard_delete_missing_user(db, audit_path: Path) -> None:
+async def test_hard_delete_missing_user(db) -> None:
     result = await hard_delete_user(
         db, "00000000-0000-0000-0000-000000000000", actor="ops1", reason="test"
     )

@@ -304,7 +304,7 @@
 | ADR-306 | adr | Decidido |  | Política de base temporal de mensalização no E5 — janela canônica 12m + rótulo de janela por bloco | `adr/306-politica-de-base-temporal-de-mensalizacao-no-e5.md` |
 | ADR-307 | adr | Decidido |  | Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift | `adr/307-cache-de-resposta-llm-no-choke-point.md` |
 | ADR-308 | adr | Decidido |  | Remediação de needs_review unificada na fila de documentos; StageReview como gate de orquestração | `adr/308-remediacao-needs-review-na-fila-de-documentos.md` |
-| ADR-309 | adr | Proposto |  | Audit do console interno persistido em tabela própria (7B.5) | `adr/309-audit-do-console-interno-persistido-em-tabela.md` |
+| ADR-309 | adr | Decidido |  | Audit do console interno persistido em tabela própria (7B.5) | `adr/309-audit-do-console-interno-persistido-em-tabela.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

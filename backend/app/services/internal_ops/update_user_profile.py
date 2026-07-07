@@ -51,6 +51,7 @@ async def update_user_profile(
             target_type="user",
             target_id=user.id,
             details={k: {"previous": v[0], "current": v[1]} for k, v in changes.items()},
-        )
+        ),
+        db,
     )
     return OpResult.success(user_id=user.id, changed=True, fields=list(changes.keys()))

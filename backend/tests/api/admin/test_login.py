@@ -6,9 +6,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_login_success_sets_httponly_cookie(
-    admin_ui_enabled, ops_yaml, audit_path, client
-) -> None:
+async def test_login_success_sets_httponly_cookie(admin_ui_enabled, ops_yaml, client) -> None:
     resp = await client.post(
         "/admin/login", json={"username": "alice", "password": "AliceSuper!Pw1"}
     )
@@ -26,13 +24,13 @@ async def test_login_success_sets_httponly_cookie(
 
 
 @pytest.mark.asyncio
-async def test_login_wrong_password(admin_ui_enabled, ops_yaml, audit_path, client) -> None:
+async def test_login_wrong_password(admin_ui_enabled, ops_yaml, client) -> None:
     resp = await client.post("/admin/login", json={"username": "alice", "password": "wrong"})
     assert resp.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_login_unknown_user(admin_ui_enabled, ops_yaml, audit_path, client) -> None:
+async def test_login_unknown_user(admin_ui_enabled, ops_yaml, client) -> None:
     resp = await client.post("/admin/login", json={"username": "ghost", "password": "x"})
     assert resp.status_code == 401
 

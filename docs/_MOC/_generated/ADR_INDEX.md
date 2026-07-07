@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 279
-- **Proposto**: 18
+- **Decidido**: 280
+- **Proposto**: 17
 - **Roadmap**: 3
 
 ## Fundação
@@ -386,9 +386,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## internal-ops
 
-### Proposto (1)
+### Decidido (1)
 
-- [[ADR-309]] — Audit do console interno persistido em tabela própria (7B.5)
+- [[ADR-309]] — Audit do console interno persistido em tabela própria (7B.5) · phase A31.l1
 
 ## irpf
 

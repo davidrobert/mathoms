@@ -29,7 +29,7 @@ async def _make_artifact(db, *, run, stage: str, key: str) -> PipelineArtifact:
 
 
 @pytest.mark.asyncio
-async def test_purge_reports_preview_does_not_delete(db, audit_path: Path) -> None:
+async def test_purge_reports_preview_does_not_delete(db) -> None:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     run = await make_run(db, workspace=ws)
@@ -48,7 +48,7 @@ async def test_purge_reports_preview_does_not_delete(db, audit_path: Path) -> No
     assert set(result.details["ids"]) == {r1.id, r2.id}
     assert result.details["artifacts_to_remove"] == 1
     assert result.details["scope_context"]["owner_email"] == user.email
-    assert read_audit(path=audit_path) == []
+    assert await read_audit(db) == []
 
 
 async def _setup_full_report(db, owner=None) -> tuple[object, int, int]:
@@ -66,7 +66,7 @@ async def _scalars_all(db, stmt):
 
 
 @pytest.mark.asyncio
-async def test_purge_reports_by_workspace_deletes_rows_and_e5(db, audit_path: Path) -> None:
+async def test_purge_reports_by_workspace_deletes_rows_and_e5(db) -> None:
     ws, e5_id, e2_id = await _setup_full_report(db)
     await db.commit()
     result = await purge_reports(
@@ -79,7 +79,7 @@ async def test_purge_reports_by_workspace_deletes_rows_and_e5(db, audit_path: Pa
     e5 = await _scalars_all(db, select(PipelineArtifact).where(PipelineArtifact.id == e5_id))
     e2 = await _scalars_all(db, select(PipelineArtifact).where(PipelineArtifact.id == e2_id))
     assert e5 == [] and len(e2) == 1
-    assert read_audit(path=audit_path)[0]["action"] == "report.purge"
+    assert (await read_audit(db))[0]["action"] == "report.purge"
 
 
 async def _setup_two_users(db) -> tuple[object, object, object, object]:
@@ -93,7 +93,7 @@ async def _setup_two_users(db) -> tuple[object, object, object, object]:
 
 
 @pytest.mark.asyncio
-async def test_purge_reports_by_user_expands_to_owner_workspaces(db, audit_path: Path) -> None:
+async def test_purge_reports_by_user_expands_to_owner_workspaces(db) -> None:
     user, ws_a, ws_b, ws_other = await _setup_two_users(db)
     await db.commit()
     result = await purge_reports(db, scope=PurgeScope(user_id=user.id), actor="ops1", preview=False)
@@ -108,13 +108,13 @@ async def test_purge_reports_by_user_expands_to_owner_workspaces(db, audit_path:
 
 
 @pytest.mark.asyncio
-async def test_purge_reports_requires_scope(db, audit_path: Path) -> None:
+async def test_purge_reports_requires_scope(db) -> None:
     result = await purge_reports(db, scope=PurgeScope(), actor="ops1", preview=False)
     assert not result.ok and result.error == "scope_required"
 
 
 @pytest.mark.asyncio
-async def test_purge_reports_empty_scope_succeeds(db, audit_path: Path) -> None:
+async def test_purge_reports_empty_scope_succeeds(db) -> None:
     """Workspace sem reports → count=0, sucesso, audit registrado."""
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
@@ -126,5 +126,5 @@ async def test_purge_reports_empty_scope_succeeds(db, audit_path: Path) -> None:
     await db.commit()
 
     assert result.ok and result.details["count"] == 0
-    entry = read_audit(path=audit_path)[0]
+    entry = (await read_audit(db))[0]
     assert entry["action"] == "report.purge"

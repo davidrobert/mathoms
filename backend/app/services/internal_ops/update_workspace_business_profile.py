@@ -31,7 +31,7 @@ async def get_workspace_business_profile(
     )
 
 
-def _audit(*, actor: str, ws_id: str, previous: dict, current: dict) -> None:
+def _audit(db: AsyncSession, *, actor: str, ws_id: str, previous: dict, current: dict) -> None:
     append_audit(
         AuditRecord(
             action="workspace.update_business_profile",
@@ -39,7 +39,8 @@ def _audit(*, actor: str, ws_id: str, previous: dict, current: dict) -> None:
             target_type="workspace",
             target_id=ws_id,
             details={"previous": previous, "current": current},
-        )
+        ),
+        db,
     )
 
 
@@ -59,5 +60,5 @@ async def update_workspace_business_profile(
     new_value = payload.model_dump(exclude_none=False)
     workspace.business_profile_json = new_value
     await db.flush()
-    _audit(actor=actor, ws_id=workspace.id, previous=previous, current=new_value)
+    _audit(db, actor=actor, ws_id=workspace.id, previous=previous, current=new_value)
     return OpResult.success(workspace_id=workspace.id, profile=new_value)
