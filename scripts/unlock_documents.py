@@ -7,11 +7,11 @@ E0-unlock — Descriptografa PDFs protegidos por senha e descompacta ZIPs
 com senha no inbox.
 
 Usage:
-  python scripts/e0_unlock.py                    # Processa todos os PDFs e ZIPs do inbox
-  python scripts/e0_unlock.py --file X.pdf       # Processa um arquivo específico
-  python scripts/e0_unlock.py --file X.zip       # Descompacta ZIP específico com senha
-  python scripts/e0_unlock.py --dry-run          # Mostra quais estão protegidos, sem alterar
-  python scripts/e0_unlock.py --check-destinations  # Varre data/ e members/ por PDFs encriptados
+  python scripts/unlock_documents.py                    # Processa todos os PDFs e ZIPs do inbox
+  python scripts/unlock_documents.py --file X.pdf       # Processa um arquivo específico
+  python scripts/unlock_documents.py --file X.zip       # Descompacta ZIP específico com senha
+  python scripts/unlock_documents.py --dry-run          # Mostra quais estão protegidos, sem alterar
+  python scripts/unlock_documents.py --check-destinations  # Varre data/ e members/ por PDFs encriptados
                                                     # e desbloqueia in-place
 
 Tenta as senhas configuradas em config/passwords.txt (uma por linha).
@@ -516,7 +516,7 @@ def main(root_dir: Path = None):
         print("  Ação necessária:")
         print("    1. Obtenha a senha correta do banco/instituição")
         print("    2. Adicione a nova senha em config/passwords.txt")
-        print("    3. Rode novamente: python scripts/e0_unlock.py")
+        print("    3. Rode novamente: python scripts/unlock_documents.py")
         print()
         if pdf_failed_files:
             print("  PDFs protegidos NÃO serão processados pelo pipeline até")

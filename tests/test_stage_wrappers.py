@@ -225,14 +225,14 @@ class TestInitConfig:
 
         # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
-    def test_e0_unlock_init_config_custom_root(self, tmp_path):
-        from scripts.e0_unlock import _init_config
+    def test_unlock_documents_init_config_custom_root(self, tmp_path):
+        from scripts.unlock_documents import _init_config
 
         _init_config(tmp_path)
-        from scripts import e0_unlock
+        from scripts import unlock_documents
 
-        assert e0_unlock.BASE == tmp_path
-        assert e0_unlock.INBOX == tmp_path / "inbox"
+        assert unlock_documents.BASE == tmp_path
+        assert unlock_documents.INBOX == tmp_path / "inbox"
 
         # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
