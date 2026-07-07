@@ -12957,7 +12957,7 @@
         "type": "object"
       },
       "ValidationIssueDTO": {
-        "description": "ADR-165 onda 2: representa\u00e7\u00e3o API de `pipeline.llm.validators.ValidationIssue`.",
+        "description": "ADR-165 onda 2: representa\u00e7\u00e3o API de `pipeline.llm.validators.ValidationIssue`.\n\nIssues projetadas de ReviewReason (ADR-272/ADR-308) carregam em ``context``\nas chaves ``artifact_key``/``document_id``/``offending_value``/``expected``\ne, quando o documento de origem \u00e9 resolvido, a identidade leg\u00edvel (A32.l6):\n``doc_bank_code``, ``doc_type``, ``doc_e0_type``, ``doc_period``.",
         "properties": {
           "code": {
             "title": "Code",

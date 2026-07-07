@@ -18,11 +18,11 @@ from backend.app.schemas.dto.document.response import DocumentResponse
 def document_to_response(document: Document) -> DocumentResponse:
     """Converte ORM ``Document`` → DTO de resposta. Deriva ``e0_doc_type`` do meta."""
     response = DocumentResponse.model_validate(document)
-    response.e0_doc_type = _extract_e0_doc_type(document.classification_meta)
+    response.e0_doc_type = extract_e0_doc_type(document.classification_meta)
     return response
 
 
-def _extract_e0_doc_type(meta: dict | None) -> str | None:
+def extract_e0_doc_type(meta: dict | None) -> str | None:
     """Lê o subtipo (E0 code) do ``classification_meta``.
 
     Hierarquia: ``content.doc_type`` (regex) tem precedência sobre ``llm.doc_type``

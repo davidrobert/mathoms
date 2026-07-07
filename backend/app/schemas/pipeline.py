@@ -61,7 +61,11 @@ class PipelineStageLogResponse(BaseModel):
 
 
 class ValidationIssueDTO(BaseModel):
-    """ADR-165 onda 2: representação API de `pipeline.llm.validators.ValidationIssue`."""
+    """ADR-165 onda 2: representação API de `pipeline.llm.validators.ValidationIssue`.
+    Issues projetadas de ReviewReason (ADR-272/ADR-308) carregam em ``context`` as
+    chaves ``artifact_key``/``document_id``/``offending_value``/``expected`` e, quando
+    o documento de origem é resolvido, a identidade legível (A32.l6):
+    ``doc_bank_code``, ``doc_type``, ``doc_e0_type``, ``doc_period``."""
 
     code: str
     severity: Literal["error", "warning"]
