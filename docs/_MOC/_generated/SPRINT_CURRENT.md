@@ -5,12 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-2 in_progress.
+1 in_progress.
 
-## In progress (2)
+## In progress (1)
 
-- [[A32.l4]] — chave canônica de conta na continuidade de saldo + ordenação determinística (ADR-310) · priority P1 · branch `a32-l4-saldo-continuity-account-key`
-- [[A32.l5]] — lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável (ADR-311) · priority P1 · branch `a32-l5-artifact-lifecycle-tombstone`
+- [[A32.l6]] — review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento · priority P1 · branch `a32-l6-review-ux-provenance`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

@@ -4,7 +4,7 @@ type: lane
 title: "review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento"
 sprint: A32
 plan: null
-status: planned
+status: in_progress
 ship_pr: null
 ship_date: null
 priority: P1
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a32
-  - status/planned
+  - status/in-progress
   - priority/p1
   - area/frontend
   - area/ux
