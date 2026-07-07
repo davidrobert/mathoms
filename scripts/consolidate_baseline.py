@@ -659,18 +659,21 @@ def _invoke_informe_pf_merge(merge_fn, session_factory, workspace_id, consolidat
                 "informe_pf_saldos_31_12", []
             )
             consolidated["wise_fiscal_flags"] = result.baseline.get("wise_fiscal_flags", [])
-            print(
-                f"  [OK] Informe PF merge: {result.informes_processed} informes, "
-                f"{result.saldos_added} saldos anexados, {len(result.fiscal_flags)} fiscal flags."
-            )
-            # Warnings tipados com .format() (ADR-097 D1). Flags: só code+title no
-            # console — descrição carrega valores (regra "sem valores reais em stdout").
-            for w in result.warnings:
-                print(f"  [E1.5c warn] {w.format()}")
-            for f in result.fiscal_flags:
-                print(f"  [E1.5c flag] [{f.code}] {f.title}")
+            _print_informe_merge_telemetry(result)
     except Exception as exc:  # noqa: BLE001 — degradação graceful
         print(f"  [warn] informe_pf merge failed: {exc}")
+
+
+def _print_informe_merge_telemetry(result):
+    """Warnings tipados via .format() (ADR-097 D1); flags só code+title (sem valores)."""
+    print(
+        f"  [OK] Informe PF merge: {result.informes_processed} informes, "
+        f"{result.saldos_added} saldos anexados, {len(result.fiscal_flags)} fiscal flags."
+    )
+    for w in result.warnings:
+        print(f"  [E1.5c warn] {w.format()}")
+    for f in result.fiscal_flags:
+        print(f"  [E1.5c flag] [{f.code}] {f.title}")
 
 
 def _try_import_reconciliation_runner():
