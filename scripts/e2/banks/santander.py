@@ -30,8 +30,8 @@ from scripts.e2.common import (
     TITULAR,
     VENC_UNIQUE,
     detect_member_from_text,
+    infer_fatura_ref_from_filename,
     infer_periodo_from_filename,
-    infer_year_from_filename,
     log,
     make_result_template,
     parse_brl,
@@ -517,12 +517,10 @@ def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     }
 
     # Infer vencimento from filename: santander_faturaunique_YYYYMM-0_original.csv
-    ref_year = infer_year_from_filename(filename)
-    ref_month = None
-    m = re.search(r"(\d{4})(\d{2})", filename)
-    if m:
-        ref_year = int(m.group(1))
-        ref_month = int(m.group(2))
+    # Token ancorado ao fim do stem (documents.period via routing) — busca livre
+    # de 6 dígitos casava o prefixo sha256[:12] e gerava 2100/1899 (A32.l3).
+    ref_year, ref_month = infer_fatura_ref_from_filename(filename)
+    if ref_year and ref_month:
         result["data_vencimento"] = safe_date(ref_year, ref_month, VENC_UNIQUE)
 
     # Read CSV (handle BOM)
@@ -626,12 +624,9 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander Unique credit card invoice."""
     log(LOG_PREFIX_FATURA, "INFO", f"Parsing Santander Unique: {filename}")
 
-    ref_year = infer_year_from_filename(filename)
-    ref_month = None
-    m = re.search(r"(\d{4})(\d{2})", filename)
-    if m:
-        ref_year = int(m.group(1))
-        ref_month = int(m.group(2))
+    # Token ancorado ao fim do stem (documents.period via routing) — busca livre
+    # de 6 dígitos casava o prefixo sha256[:12] e gerava 2100/1899 (A32.l3).
+    ref_year, ref_month = infer_fatura_ref_from_filename(filename)
 
     result = {
         "banco": BANCO_SANTANDER,

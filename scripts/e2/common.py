@@ -224,6 +224,40 @@ def parse_usd(text: str) -> Optional[float]:
 # Date helpers
 # =============================================================================
 
+# Sentinel oficial de "período desconhecido" — propaga E0→E2→E3 (fatura sem
+# período determinável). Nunca vira data: helpers retornam None e o E3 deriva
+# o período das datas das transações.
+PERIOD_SENTINEL = "999999"
+
+# Token de período que o routing grava no fim do stem canônico
+# (`build_final_name`: `{institution}_{doc_type}_{period}-0_original{ext}`,
+# com prefixo `sha256[:12]_` opcional — ADR-084 — e sufixo de colisão `[a-z]`
+# opcional). Ancorado ao fim do stem: busca livre de 6 dígitos casava os
+# primeiros dígitos do prefixo de hash e produzia datas-fantasma 2100/1899
+# via clamp de `safe_date` (A32.l3).
+_CANONICAL_PERIOD_RE = re.compile(r"_(\d{6}|\d{8})[a-z]?(?:-0_original)?(?:\.[A-Za-z0-9]+)?$")
+
+
+def canonical_period_token(filename: str) -> Optional[str]:
+    """Período canônico (`documents.period`) propagado pelo routing no fim do stem."""
+    m = _CANONICAL_PERIOD_RE.search(filename)
+    return m.group(1) if m else None
+
+
+def infer_fatura_ref_from_filename(filename: str) -> Tuple[Optional[int], Optional[int]]:
+    """(ano, mês) de referência da fatura a partir do token canônico de período.
+
+    Sentinel 999999 e tokens implausíveis retornam (None, None) — o parser
+    deixa `data_vencimento` vazio e o E3 deriva o período das transações.
+    """
+    token = canonical_period_token(filename)
+    if token is None or token.startswith(PERIOD_SENTINEL):
+        return None, None
+    year, month = int(token[:4]), int(token[4:6])
+    if not _valid_ym(year, month):
+        return None, None
+    return year, month
+
 
 def safe_date(year: int, month: int, day: int) -> str:
     """Return valid ISO date string, adjusting day if necessary."""
@@ -268,14 +302,6 @@ def infer_periodo_from_filename(filename: str) -> Tuple[Optional[str], Optional[
         return inicio, fim
 
     return None, None
-
-
-def infer_year_from_filename(filename: str) -> Optional[int]:
-    """Extract year from filename like faturacarbon_202603."""
-    m = re.search(r"(\d{4})\d{2}", filename)
-    if m:
-        return int(m.group(1))
-    return None
 
 
 def resolve_year_from_period(dd: int, mm: int, periodo_inicio: str, periodo_fim: str) -> int:

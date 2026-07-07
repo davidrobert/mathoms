@@ -24,8 +24,8 @@ from scripts.e2.common import (
     detect_member_from_card_name,
     detect_member_from_text,
     extract_account_number,
+    infer_fatura_ref_from_filename,
     infer_periodo_from_filename,
-    infer_year_from_filename,
     log,
     make_result_template,
     parse_brl,
@@ -595,12 +595,10 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         "cartoes": [],
     }
 
-    ref_year = infer_year_from_filename(filename)
-    ref_month = None
-    m = re.search(r"(\d{4})(\d{2})", filename)
-    if m:
-        ref_year = int(m.group(1))
-        ref_month = int(m.group(2))
+    # Token ancorado ao fim do stem (documents.period via routing) — busca livre
+    # de 6 dígitos casava o prefixo sha256[:12] e gerava 2100/1899 (A32.l3).
+    ref_year, ref_month = infer_fatura_ref_from_filename(filename)
+    if ref_year and ref_month:
         result["data_vencimento"] = safe_date(ref_year, ref_month, VENC_CARBON)
 
     raw_text = csv_path.read_text(encoding="utf-8-sig")
@@ -731,12 +729,9 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
         "cartoes": [],
     }
 
-    ref_year = infer_year_from_filename(filename)
-    ref_month = None
-    m = re.search(r"(\d{4})(\d{2})", filename)
-    if m:
-        ref_year = int(m.group(1))
-        ref_month = int(m.group(2))
+    # Token ancorado ao fim do stem (documents.period via routing) — busca livre
+    # de 6 dígitos casava o prefixo sha256[:12] e gerava 2100/1899 (A32.l3).
+    ref_year, ref_month = infer_fatura_ref_from_filename(filename)
 
     try:
         with pdfplumber.open(pdf_path) as pdf:
