@@ -37,9 +37,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | lane | blocked | 11 |
 | lane | cancelled | 1 |
 | lane | in_progress | 8 |
-| lane | open | 10 |
+| lane | open | 8 |
 | lane | planned | 7 |
-| lane | shipped | 133 |
+| lane | shipped | 135 |
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 24 |
 | plan | done | 5 |
@@ -73,7 +73,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | A28 | done |
 | A29 | done |
 | A30 | done |
-| A31 | current |
+| A31 | done |
 | A6 | done |
 | A7 | done |
 | A8 | done |

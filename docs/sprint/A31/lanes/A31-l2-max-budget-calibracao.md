@@ -4,7 +4,9 @@ type: lane
 title: "calibrar MAX_SETTABLE_BUDGET_USD com unit economics (US$ 1.000 → US$ 300)"
 sprint: A31
 plan: PLAN-internal-admin
-status: open
+status: shipped
+ship_pr: 818
+ship_date: "2026-07-07"
 priority: P2
 branch_slug: a31-l2-max-budget-calibracao
 adrs: ["[[ADR-173]]"]
@@ -13,7 +15,7 @@ parallel_with: ["[[A31.l1]]"]
 tags:
   - type/lane
   - sprint/a31
-  - status/open
+  - status/shipped
   - priority/p2
   - area/internal-ops
 ---
