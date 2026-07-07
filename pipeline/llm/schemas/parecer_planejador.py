@@ -8,6 +8,7 @@ import unicodedata
 from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
+from pydantic.json_schema import SkipJsonSchema
 
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 
@@ -206,6 +207,17 @@ def _check_no_ticker_no_sigilo(text: str) -> str:
     return text
 
 
+#: Hard cap de riscos (ADR-202 §D5) — UX anti-overwhelm deliberado (Cerbasi).
+_RISCOS_CAP = 12
+_SEVERIDADE_RANK = {"Crítica": 0, "Alta": 1, "Média": 2, "Baixa": 3}
+
+
+def _severidade_rank(item) -> int:
+    """Rank de severidade tolerante a dict cru (Instructor) e a instância Risco."""
+    raw = item.get("severidade") if isinstance(item, dict) else getattr(item, "severidade", None)
+    return _SEVERIDADE_RANK.get(raw, 4)
+
+
 class Metadata(BaseModel):
     """Cabeçalho de auditoria do parecer (orchestrator preenche)."""
 
@@ -340,7 +352,7 @@ class ParecerPlanejadorOutput(BaseModel):
     metadata: Metadata
     diagnostico_geral: _prose(50, 750)
     pontos_fortes: list[PontoForte] = Field(..., min_length=3, max_length=6)
-    riscos: list[Risco] = Field(..., max_length=12)
+    riscos: list[Risco] = Field(..., max_length=_RISCOS_CAP)
     sugestoes_execucao: list[Sugestao] = Field(..., max_length=5)
     sugestoes_taticas: list[Sugestao] = Field(..., max_length=5)
     sugestoes_estrategicas: list[Sugestao] = Field(..., max_length=5)
@@ -349,11 +361,35 @@ class ParecerPlanejadorOutput(BaseModel):
     campos_faltantes_pediria_se_iterasse: Optional[list[CampoFaltante]] = Field(
         default=None, max_length=20
     )
+    # A33.l7 — riscos dropados no boundary (>cap 12). ``SkipJsonSchema`` esconde
+    # do contrato enviado ao LLM; ``exclude=True`` mantém fora do content_json
+    # persistido (schema canônico com additionalProperties:false intacto).
+    # Consumido pelo orchestrator → métrica ``mathoms.llm.parecer.riscos_truncados``.
+    riscos_truncados: SkipJsonSchema[int] = Field(default=0, exclude=True)
 
     @field_validator("diagnostico_geral")
     @classmethod
     def _ck_diagnostico(cls, v: str) -> str:
         return _check_no_ticker_no_sigilo(v)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _truncate_riscos_at_cap(cls, data):
+        """Boundary do LLM (padrão ADR-294, A33.l7): >12 riscos trunca mantendo os
+        mais severos (sort estável) em vez de hard-fail → reask. O drop alimenta
+        ``riscos_truncados`` — telemetria que calibra o cap ("aprovado como está,
+        telemetria mede", PLAN-llm-prompts-hardening §Não-objetivos)."""
+        if not isinstance(data, dict):
+            return data
+        riscos = data.get("riscos")
+        if not isinstance(riscos, list) or len(riscos) <= _RISCOS_CAP:
+            return data
+        logger.warning(
+            "parecer_riscos_truncados",
+            extra={"original_len": len(riscos), "cap": _RISCOS_CAP},
+        )
+        kept = sorted(riscos, key=_severidade_rank)[:_RISCOS_CAP]
+        return {**data, "riscos": kept, "riscos_truncados": len(riscos) - _RISCOS_CAP}
 
     @model_validator(mode="after")
     def _ck_p0_cap(self) -> "ParecerPlanejadorOutput":

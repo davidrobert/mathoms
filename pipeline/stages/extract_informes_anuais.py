@@ -246,6 +246,7 @@ def _build_user_prompt(doc_name: str, text: str, ano_hint: int | None) -> str:
 
 def _call_llm_for(tipo_informe, service, config, doc_name, text, ano_hint, content_hash):
     """Cache key idempotente: content_hash + PROMPT_VERSION (gate data-engineer Q4)."""
+    from pipeline.llm.metrics import prompt_name_of
     from pipeline.llm.schemas.informe_base import InformeRendimentosBase
 
     prompt_mod = _load_prompt_module(tipo_informe)
@@ -256,6 +257,7 @@ def _call_llm_for(tipo_informe, service, config, doc_name, text, ano_hint, conte
         max_tokens=max(config.max_tokens, _INFORME_MIN_COMPLETION_TOKENS),
         stage=f"extract_informes_anuais:{content_hash[:16]}:{prompt_mod.PROMPT_VERSION}",
         prompt_version=prompt_mod.PROMPT_VERSION,
+        prompt_name=prompt_name_of(prompt_mod),
     )
     return result, prompt_mod.PROMPT_VERSION
 
@@ -420,7 +422,9 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
     docs = _find_informes(ctx)
     if not docs:
         return {"skipped": True, "reason": "No informes anuais found"}
-    llm_config = LLMConfig(**cfg, call_hooks=ctx.llm_call_hooks)
+    llm_config = LLMConfig(
+        **cfg, call_hooks=ctx.llm_call_hooks, metrics_emitter=ctx.llm_metrics_emitter
+    )
     return docs[:_MAX_DOCS_PER_RUN], LLMService(llm_config), llm_config
 
 

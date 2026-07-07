@@ -113,6 +113,7 @@ def _call_llm(service, config, doc_name: str, text: str):
         max_tokens=max(config.max_tokens, _E16_MIN_COMPLETION_TOKENS),
         stage="extract_irpf_full",
         prompt_version=PROMPT_VERSION,
+        prompt_name="e16_irpf_full",
     )
 
 
@@ -286,9 +287,15 @@ def _select_runnable_docs(ctx: WorkspaceContext):
     return docs_with_text
 
 
+def _build_llm_config(ctx: WorkspaceContext, cfg: dict):
+    from pipeline.llm.litellm_client import LLMConfig
+
+    return LLMConfig(**cfg, call_hooks=ctx.llm_call_hooks, metrics_emitter=ctx.llm_metrics_emitter)
+
+
 def run(ctx: WorkspaceContext) -> dict:
     """Execute E1.6 IRPF full extraction via LLM, per-declaration (ADR-157)."""
-    from pipeline.llm.litellm_client import LLMConfig, LLMService
+    from pipeline.llm.litellm_client import LLMService
     from pipeline.llm.prompts.e16_irpf_full import PROMPT_VERSION
 
     cfg = ctx.load_config("llm_config.json")
@@ -297,7 +304,7 @@ def run(ctx: WorkspaceContext) -> dict:
     runnable = _select_runnable_docs(ctx)
     if isinstance(runnable, dict):
         return runnable
-    llm_config = LLMConfig(**cfg, call_hooks=ctx.llm_call_hooks)
+    llm_config = _build_llm_config(ctx, cfg)
     ws_id = getattr(ctx, "workspace_id", "unknown")
     estimated = ctx.stage_duration_estimates.get(
         "extract_irpf_full"

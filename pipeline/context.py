@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     from pipeline.artifact_store import ArtifactStore
     from pipeline.llm.call_hooks import LLMCallHooks
+    from pipeline.llm.metrics import LLMMetricsEmitter
     from pipeline.llm.response_cache import LLMResponseCache
     from pipeline.ports import (
         ConfigStore,
@@ -118,6 +119,11 @@ class WorkspaceContext:
     #: ADR-307 — cache de resposta LLM opt-in (Redis via backend); ``None``
     #: em CLI/testes → todo lookup é miss, sem write.
     llm_response_cache: Optional["LLMResponseCache"] = field(default=None, repr=False)
+
+    #: A33.l7 (ADR-110) — métricas OTLP ``mathoms.llm.*`` no choke-point.
+    #: Backend injeta ``OtelLLMMetrics`` apenas quando ``OTEL_EXPORTER_OTLP_ENDPOINT``
+    #: existe; ``None`` (CLI/testes/opt-out) → zero overhead.
+    llm_metrics_emitter: Optional["LLMMetricsEmitter"] = field(default=None, repr=False)
 
     #: ADR-119 — mediana de duração (ms) por stage, calculada dos últimos runs
     #: bem-sucedidos do workspace. Populado pelo orchestrator (Celery task);

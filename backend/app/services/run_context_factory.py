@@ -127,6 +127,14 @@ def _attach_llm_response_cache(ctx) -> None:
     ctx.llm_response_cache = get_default_llm_cache()
 
 
+def _attach_llm_metrics_emitter(ctx) -> None:
+    # A33.l7 (ADR-110): métricas OTLP no choke-point. ``None`` sem
+    # OTEL_EXPORTER_OTLP_ENDPOINT — opt-in preservado, zero overhead.
+    from backend.app.core.llm_metrics import get_llm_metrics_emitter
+
+    ctx.llm_metrics_emitter = get_llm_metrics_emitter()
+
+
 def materialize_tarefas_md(ws_id: str, ctx) -> None:
     """ADR-077/180: materializa ``tarefas.md`` (consumido pelo E5). Best-effort."""
     from backend.app.core.database import SyncSessionLocal
@@ -166,6 +174,7 @@ def build_hydrated_context(
     ctx.incremental, ctx.incremental_doc_paths = incremental, list(incremental_doc_paths or [])
     _attach_llm_budget_hooks(ctx, ws_id, run_id)
     _attach_llm_response_cache(ctx)
+    _attach_llm_metrics_emitter(ctx)
     ctx.ensure_dirs()
     if materialize_tarefas:
         materialize_tarefas_md(ws_id, ctx)

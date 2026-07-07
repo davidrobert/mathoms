@@ -4,9 +4,9 @@ type: lane
 title: "OTLP mathoms.llm.* por {prompt_name, prompt_version} + parecer.riscos_truncados (W3)"
 sprint: A33
 plan: PLAN-llm-prompts-hardening
-status: planned
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 834
+ship_date: "2026-07-07"
 priority: P2
 branch_slug: a33-l7-otlp-telemetria-llm
 adrs: ["[[ADR-110]]"]
@@ -15,7 +15,7 @@ parallel_with: ["[[A33.l8]]"]
 tags:
   - type/lane
   - sprint/a33
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/observability
 ---

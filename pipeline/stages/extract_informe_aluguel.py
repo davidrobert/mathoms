@@ -92,6 +92,7 @@ def extract_one_informe(
         max_tokens=max(config.max_tokens, _INFORME_MIN_COMPLETION_TOKENS),
         stage=f"extract_informe_aluguel:{doc_path.name}",
         prompt_version=PROMPT_VERSION,
+        prompt_name="informe_aluguel",
     )
 
     output: InformeAluguelExtract = result.output
@@ -180,6 +181,7 @@ def run(ctx: WorkspaceContext) -> dict[str, Any]:
             else 0.1
         ),
         call_hooks=ctx.llm_call_hooks,
+        metrics_emitter=ctx.llm_metrics_emitter,
     )
 
     store = ctx.get_artifact_store()
