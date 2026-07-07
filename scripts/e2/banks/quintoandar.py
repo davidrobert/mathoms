@@ -13,7 +13,7 @@ except ImportError:
 
 from scripts.e2.common import (
     BANCO_QUINTOANDAR,
-    infer_year_from_filename,
+    infer_fatura_ref_from_filename,
     log,
     parse_brl,
 )
@@ -29,12 +29,9 @@ def parse_quintoandar(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse QuintoAndar rental invoice."""
     log(LOG_PREFIX, "INFO", f"Parsing QuintoAndar: {filename}")
 
-    ref_year = infer_year_from_filename(filename)
-    ref_month = None
-    m = re.search(r"(\d{4})(\d{2})", filename)
-    if m:
-        ref_year = int(m.group(1))
-        ref_month = int(m.group(2))
+    # Token ancorado ao fim do stem (documents.period via routing) — busca livre
+    # de 6 dígitos casava o prefixo sha256[:12] e gerava 2100/1899 (A32.l3).
+    ref_year, ref_month = infer_fatura_ref_from_filename(filename)
 
     prop_m = re.search(r"faturaaluguel(\w+?)_\d{6}", filename)
     propriedade = prop_m.group(1) if prop_m else "desconhecida"
