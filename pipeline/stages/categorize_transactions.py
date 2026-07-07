@@ -1,6 +1,6 @@
 """Stage wrapper for E4 Categorization (ADR-097).
 
-Chama ``scripts.e4_categorize.main_with_store(ctx)`` que opera direto sobre
+Chama ``scripts.categorize_transactions.main_with_store(ctx)`` que opera direto sobre
 ``ctx.get_artifact_store()`` (Disk em CLI, DB em Web).
 """
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 def run(ctx: "WorkspaceContext") -> dict:
     from pipeline.live_progress import emit_item_progress
-    from scripts.e4_categorize import main_with_store
+    from scripts.categorize_transactions import main_with_store
 
     emit_item_progress(
         ctx.pipeline_run_id,

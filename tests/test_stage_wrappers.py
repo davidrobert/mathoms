@@ -11,7 +11,7 @@ from pipeline.context import WorkspaceContext
 
 
 def _seed_e4_minimal_config_files(tmp_path: Path) -> None:
-    """Cria configs mínimos para ``e4_categorize._init_config(tmp_path)`` carregar."""
+    """Cria configs mínimos para ``categorize_transactions._init_config(tmp_path)`` carregar."""
     cfg = tmp_path / "config"
     cfg.mkdir()
     (cfg / "categorization.json").write_text(
@@ -122,17 +122,17 @@ class TestInitConfig:
     def test_e4_init_config_custom_root(self, tmp_path):
         _seed_e4_minimal_config_files(tmp_path)
 
-        # A7.5: e4_categorize._init_config delega ao cache de pipeline_common
+        # A7.5: categorize_transactions._init_config delega ao cache de pipeline_common
         # (CONFIG_DIR global) — reset _pc para tmp_path antes.
         import scripts.pipeline_common as _pc
 
         _pc._init_config(tmp_path)
-        from scripts.e4_categorize import _init_config
+        from scripts.categorize_transactions import _init_config
 
         _init_config(tmp_path)
-        from scripts import e4_categorize
+        from scripts import categorize_transactions
 
-        assert e4_categorize._BASE_DIR == tmp_path
+        assert categorize_transactions._BASE_DIR == tmp_path
 
     def test_e2_common_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"

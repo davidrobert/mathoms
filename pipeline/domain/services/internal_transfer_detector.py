@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 
 def _normalize_text(text: str) -> str:
     """Uppercase + strip de acentos + colapsa whitespace (paridade com
-    ``e4_categorize.normalize_text``)."""
+    ``categorize_transactions.normalize_text``)."""
     if not text:
         return ""
     text = str(text).upper().strip()

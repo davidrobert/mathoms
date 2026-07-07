@@ -133,7 +133,7 @@ def e5_tenant_with_baseline(tmp_path: Path) -> Path:
 
 def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
     """Roda E4 e E5 em tenant isolado; restaura globals dos scripts."""
-    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.categorize_transactions import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
 
     ctx = _new_e5_ctx(e5_tenant_minimal, e3_fixture=_E3_FIXTURE)
@@ -165,7 +165,7 @@ def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
 
 def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
     """E5 com receitas e despesas não nulas no E4 (golden expandido)."""
-    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.categorize_transactions import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
 
     ctx = _new_e5_ctx(e5_tenant_mixed_cashflow, e3_fixture=_E3_MIXED)
@@ -189,7 +189,7 @@ def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
 
 def test_e5_execution_with_baseline_patrimonial(e5_tenant_with_baseline: Path):
     """E5 lê baseline consolidado: patrimônio bruto/líquido refletem totais do IRPF sintético."""
-    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.categorize_transactions import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
 
     ctx = _new_e5_ctx(e5_tenant_with_baseline, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_MIN)
@@ -216,7 +216,7 @@ def test_e5_divergent_baseline_imoveis_not_zeroed(e5_tenant_with_baseline: Path)
     chaveado em exercício (2025) não pode zerar imóveis. Antes do fix, o
     resolver buscava ``valores_31_12['2025']`` (miss) → ``valor_31_12_ano_base``
     = 0 → classe 'Imóveis Investimento' = 0 (sintoma do relatório)."""
-    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.categorize_transactions import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
 
     ctx = _new_e5_ctx(e5_tenant_with_baseline, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_DIVERGENT)

@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def assert_qa_log_md(tenant_root: Path) -> None:
-    """Contrato mínimo de `logs/qa_log.md` gerado por `e4_categorize.generate_qa_log`."""
+    """Contrato mínimo de `logs/qa_log.md` gerado por `categorize_transactions.generate_qa_log`."""
     log_path = tenant_root / "logs" / "qa_log.md"
     assert log_path.is_file(), f"expected {log_path}"
     text = log_path.read_text(encoding="utf-8")

@@ -98,8 +98,8 @@ def _new_e4_ctx(root: Path, *, e3_fixture: Path, baseline: Path | None = None):
 
 
 def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
-    """Roda e4_categorize.main em tenant isolado; restaura globals."""
-    from scripts.e4_categorize import main_with_store
+    """Roda categorize_transactions.main em tenant isolado; restaura globals."""
+    from scripts.categorize_transactions import main_with_store
 
     ctx = _new_e4_ctx(e4_tenant_minimal, e3_fixture=_E3_FIXTURE)
     main_with_store(ctx)
@@ -143,7 +143,7 @@ def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
 
 def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
     """Cenário com despesa categorizada (golden expandido)."""
-    from scripts.e4_categorize import main_with_store
+    from scripts.categorize_transactions import main_with_store
 
     ctx = _new_e4_ctx(e4_tenant_mixed_cashflow, e3_fixture=_E3_MIXED)
     main_with_store(ctx)
@@ -167,7 +167,7 @@ def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
 
 def test_e4_execution_with_baseline_patrimonial(e4_tenant_with_baseline: Path):
     """E4 com baseline: patrimonio espelha o consolidado (schema baseline, não e4_unified)."""
-    from scripts.e4_categorize import main_with_store
+    from scripts.categorize_transactions import main_with_store
 
     ctx = _new_e4_ctx(e4_tenant_with_baseline, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_MIN)
     main_with_store(ctx)

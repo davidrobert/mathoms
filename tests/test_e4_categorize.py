@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.e4_categorize import (
+from scripts.categorize_transactions import (
     categorize_expense,
     categorize_income,
     find_longest_matching_keyword,

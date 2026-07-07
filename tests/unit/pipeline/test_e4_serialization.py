@@ -264,7 +264,7 @@ class TestSerializeE4Artifacts:
     def test_patrimonio_omitted_when_no_baseline(self):
         """ADR-132 T2 (defesa em profundidade): sem baseline, ``patrimonio`` é
         **omitido** do payload — em vez de gravar ``{"dados": []}`` e
-        sobrescrever o E4 bom de runs anteriores. O caller (``e4_categorize.
+        sobrescrever o E4 bom de runs anteriores. O caller (``categorize_transactions.
         _e4_persist_artifacts``) só escreve as chaves presentes; o read()
         com fallback workspace-scoped (T1) resolve a ausência.
         """

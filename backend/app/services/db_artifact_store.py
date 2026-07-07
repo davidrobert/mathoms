@@ -240,7 +240,7 @@ class DBArtifactStore:
     @property
     def session(self) -> Session:
         """Expõe a `Session` injetada — call-sites que precisam compartilhar a
-        mesma transação (ex.: learning loop E4 em `scripts/e4_categorize.py`)
+        mesma transação (ex.: learning loop E4 em `scripts/categorize_transactions.py`)
         leem aqui em vez de `store._session` (ressalva senior-cto, A12.P2)."""
         return self._session
 
