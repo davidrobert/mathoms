@@ -377,7 +377,7 @@ dev-logs-docker:
 .PHONY: dev-bootstrap dev-pull dev-up dev-down dev-restart dev-restart-worker \
         dev-fresh dev-status dev-logs dev-reset-env dev-dirs dev-kill-stale \
         dev-redis-up dev-api-up dev-worker-up dev-frontend-up \
-        dev-ops-api-up dev-frontend-ops-up
+        dev-ops-api-up dev-frontend-ops-up pipeline-run
 
 dev-dirs:
 	@mkdir -p $(DEV_DIR)
@@ -694,6 +694,15 @@ dev-reset-env:
 	 else \
 	   echo "  · Abortado, .env preservado."; \
 	 fi
+
+## pipeline-run: Reprocessa o pipeline de um workspace (WS=<uuid> [FROM=<stage>] [SKIP_LLM=0] [RESET=1] [YES=1]; sem WS lista)
+pipeline-run:
+	@ARGS=""; \
+	 if [ -n "$(FROM)" ]; then ARGS="$$ARGS --from-stage $(FROM)"; fi; \
+	 if [ "$(SKIP_LLM)" = "0" ]; then ARGS="$$ARGS --with-llm"; fi; \
+	 if [ "$(RESET)" = "1" ]; then ARGS="$$ARGS --reset"; fi; \
+	 if [ "$(YES)" = "1" ]; then ARGS="$$ARGS --yes"; fi; \
+	 $(PYTHON) -m backend.app.scripts.run_workspace_pipeline $(WS) $$ARGS
 
 # ---------------------------------------------------------------------------
 # Tests, lint, format
