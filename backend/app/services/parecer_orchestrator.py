@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass, replace
 from typing import Any, Mapping, Optional
 
+from backend.app.core.llm_metrics import get_llm_metrics_emitter
 from backend.app.services.parecer_distiller import distill_exec_context
 from backend.app.services.parecer_evidencia import (
     EVIDENCIA_VERIFICATION_VERSION,
@@ -173,6 +174,7 @@ def _build_llm_service(config: ParecerOrchestratorConfig):
             max_tokens=config.max_tokens,
             temperature=config.temperature,
             call_hooks=config.llm_hooks,
+            metrics_emitter=get_llm_metrics_emitter(),
         )
     )
 
@@ -344,21 +346,47 @@ def _call_llm_safe(
 ) -> tuple[Optional[ParecerPlanejadorOutput], Optional[str]]:
     """Invoca LLM com Instructor (output validado pelo schema); exceção vira ``(None, error_msg)``."""
     try:
-        return llm.call(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            output_schema=ParecerPlanejadorOutput,
-            stage="review_finances_holistic",
-            max_tokens=config.max_tokens,
-            timeout_s=config.llm_timeout_s,
-            prompt_version=PROMPT_VERSION,
-        ).output, None
+        output = _invoke_parecer_llm(
+            llm=llm, system_prompt=system_prompt, user_prompt=user_prompt, config=config
+        )
+        _emit_riscos_truncados(output)
+        return output, None
     except Exception as exc:  # noqa: BLE001 — todas exceções viram needs_review
         logger.warning(
             "parecer_planejador_llm_call_failed",
             extra={"workspace_id": config.workspace_id, "error": str(exc)[:200]},
         )
         return None, f"LLM call failed: {exc}"
+
+
+def _invoke_parecer_llm(
+    *, llm: Any, system_prompt: str, user_prompt: str, config: ParecerOrchestratorConfig
+) -> ParecerPlanejadorOutput:
+    return llm.call(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        output_schema=ParecerPlanejadorOutput,
+        stage="review_finances_holistic",
+        max_tokens=config.max_tokens,
+        timeout_s=config.llm_timeout_s,
+        prompt_version=PROMPT_VERSION,
+        prompt_name="parecer_planejador",
+    ).output
+
+
+def _emit_riscos_truncados(output: ParecerPlanejadorOutput) -> None:
+    """A33.l7: counter OTLP que calibra o cap ≤12 riscos — best-effort, no-op sem OTLP."""
+    dropped = int(getattr(output, "riscos_truncados", 0) or 0)
+    if dropped <= 0:
+        return
+    try:
+        emitter = get_llm_metrics_emitter()
+        if emitter is not None:
+            emitter.record_riscos_truncados(
+                dropped=dropped, prompt_name="parecer_planejador", prompt_version=PROMPT_VERSION
+            )
+    except Exception as metrics_exc:  # noqa: BLE001 — telemetria nunca derruba o parecer
+        logger.warning("parecer_riscos_truncados_metric_failed: %s", metrics_exc)
 
 
 def _build_prompts(

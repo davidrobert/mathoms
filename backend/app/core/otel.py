@@ -46,12 +46,32 @@ def setup_otel(service_name: str = "mathoms-api") -> None:
                 "OTLP exporter init failed; traces will be in-memory only: %s",
                 exc,
             )
+        _setup_metrics_exporter(resource)
 
     trace.set_tracer_provider(provider)
 
     LoggingInstrumentor().instrument(set_logging_format=False)
 
     _INSTRUMENTED = True
+
+
+def _setup_metrics_exporter(resource: Any) -> None:
+    """OTLP metrics (A33.l7): ``MeterProvider`` só quando há endpoint — sem ele
+    a Metrics API fica no no-op default (zero overhead, mesmo opt-in dos traces)."""
+    try:
+        from opentelemetry import metrics
+        from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
+            OTLPMetricExporter,
+        )
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+
+        reader = PeriodicExportingMetricReader(OTLPMetricExporter())
+        metrics.set_meter_provider(MeterProvider(resource=resource, metric_readers=[reader]))
+    except Exception as exc:
+        logging.getLogger(__name__).warning(
+            "OTLP metric exporter init failed; metrics disabled: %s", exc
+        )
 
 
 def instrument_fastapi(app: Any) -> None:

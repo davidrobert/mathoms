@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from pipeline.llm.call_hooks import LLMCallHooks
+from pipeline.llm.metrics import LLMMetricsEmitter
 from pipeline.llm.models_catalog import default_model_for
 from pipeline.llm.response_cache import LLMResponseCache
 
@@ -46,3 +47,6 @@ class LLMConfig:
     call_hooks: LLMCallHooks | None = field(default=None, repr=False, compare=False)
     # ADR-307 — cache de resposta opt-in; injetado como os hooks, nunca do JSON.
     response_cache: LLMResponseCache | None = field(default=None, repr=False, compare=False)
+    # A33.l7 (ADR-110) — métricas OTLP ``mathoms.llm.*``; ``None`` = no-op
+    # (opt-in preservado: sem endpoint OTLP o backend nem injeta).
+    metrics_emitter: LLMMetricsEmitter | None = field(default=None, repr=False, compare=False)

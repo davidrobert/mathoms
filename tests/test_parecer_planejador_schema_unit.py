@@ -222,3 +222,87 @@ def test_sugestao_impacto_estimado_com_alta_preservado():
     }
     s = Sugestao(**payload)
     assert s.impacto_estimado is not None
+
+
+# -----------------------------------------------------------------------
+# A33.l7 — truncamento de riscos no boundary (padrão ADR-294): >12 riscos
+# trunca mantendo os mais severos e alimenta ``riscos_truncados`` (métrica
+# ``mathoms.llm.parecer.riscos_truncados`` que calibra o cap).
+# -----------------------------------------------------------------------
+
+
+def _metadata() -> dict:
+    return {
+        "persona_hash": "a" * 64,
+        "manifest_version": "1.0",
+        "model_id": "claude-test",
+        "tier_at_generation": "premium",
+        "generated_at": "2026-07-07T00:00:00+00:00",
+    }
+
+
+def _ponto_forte() -> dict:
+    return {
+        "titulo": "Ponto forte de teste",
+        "descricao": "Descricao curta sem ticker nem sigilo.",
+        "ancora_metodologica": "convergencia",
+    }
+
+
+def _output_payload(riscos: list[dict]) -> dict:
+    return {
+        "version": "2.0",
+        "metadata": _metadata(),
+        "diagnostico_geral": (
+            "Diagnostico geral de teste com texto suficiente para o piso do campo, "
+            "sem ticker e sem termos de sigilo."
+        ),
+        "pontos_fortes": [_ponto_forte(), _ponto_forte(), _ponto_forte()],
+        "riscos": riscos,
+        "sugestoes_execucao": [],
+        "sugestoes_taticas": [],
+        "sugestoes_estrategicas": [],
+        "metricas": [],
+        "notas_metodologicas": [],
+    }
+
+
+def test_riscos_acima_do_cap_trunca_mantendo_mais_severos():
+    """13 riscos não dá hard-fail (que viraria reask): trunca ≤12 preservando a
+    Crítica emitida por último (sort estável por severidade antes do corte)."""
+    from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
+
+    riscos = [_risco(severidade="Baixa", titulo=f"Risco baixa {i:02d}") for i in range(12)]
+    riscos.append(_risco(severidade="Crítica", titulo="Risco critico emitido por ultimo"))
+    out = ParecerPlanejadorOutput.model_validate(_output_payload(riscos))
+
+    assert len(out.riscos) == 12
+    assert out.riscos_truncados == 1
+    assert out.riscos[0].severidade == "Crítica"
+
+
+def test_riscos_no_cap_passa_sem_truncar_nem_reordenar():
+    from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
+
+    riscos = [_risco(titulo=f"Risco alta {i:02d}") for i in range(12)]
+    out = ParecerPlanejadorOutput.model_validate(_output_payload(riscos))
+
+    assert len(out.riscos) == 12
+    assert out.riscos_truncados == 0
+    assert [r.titulo for r in out.riscos] == [f"Risco alta {i:02d}" for i in range(12)]
+
+
+def test_riscos_truncados_fora_do_dump_e_do_contrato_llm():
+    """``exclude=True`` mantém o content_json persistido intacto
+    (additionalProperties:false no schema canônico); ``SkipJsonSchema`` esconde
+    o campo do contrato enviado ao LLM via Instructor."""
+    from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
+
+    riscos = [_risco() for _ in range(13)]
+    out = ParecerPlanejadorOutput.model_validate(_output_payload(riscos))
+
+    assert "riscos_truncados" not in out.model_dump()
+    assert "riscos_truncados" not in ParecerPlanejadorOutput.model_json_schema()["properties"]
+    # Round-trip do cache (ADR-199): payload persistido revalida limpo, drop zera.
+    revalidado = ParecerPlanejadorOutput.model_validate_json(out.model_dump_json())
+    assert revalidado.riscos_truncados == 0

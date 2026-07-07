@@ -35,6 +35,7 @@ from pipeline.llm.error_classification import (
 # Compat: LLMError/LLMValidationError moraram aqui até ADR-307 estourar o teto
 # de 500 linhas (P2, mesmo movimento do LLMRunSummary em A20.l11); call-sites
 # continuam importando deste módulo.
+from pipeline.llm.metrics import emit_cache_lookup, emit_call_quality
 from pipeline.llm.models_catalog import SUPPORTED_PROVIDERS, default_model_for
 from pipeline.llm.pricing import MODEL_PRICING, estimate_cost_usd
 from pipeline.llm.prompts._sanitization import sanitize_and_wrap
@@ -84,6 +85,7 @@ class LLMService:
         self._config = config
         self._hooks = config.call_hooks
         self._response_cache = config.response_cache
+        self._metrics = config.metrics_emitter
         self._summary = LLMRunSummary()
         self._client = None
         self._raw_client = None
@@ -122,41 +124,10 @@ class LLMService:
         self._client = instructor.from_litellm(litellm.completion)
 
     def test_connection(self) -> dict[str, Any]:
-        """Quick connectivity test — sends a minimal prompt and checks for a valid response."""
-        self._ensure_client()
-        model = self._get_model_string()
+        """Quick connectivity test — delegate de ``pipeline.llm.connection_check`` (P2 A33.l7)."""
+        from pipeline.llm.connection_check import run_connection_check
 
-        start = time.monotonic()
-        try:
-            response = self._raw_client.completion(
-                model=model,
-                messages=[{"role": "user", "content": "Reply with exactly: OK"}],
-                max_tokens=10,
-                temperature=0,
-                api_key=self._config.api_key,
-                timeout=LLM_CALL_TIMEOUT_S,
-                num_retries=0,
-            )
-            elapsed_ms = int((time.monotonic() - start) * 1000)
-            content = response.choices[0].message.content.strip() if response.choices else ""
-            return {
-                "success": True,
-                "provider": self._config.provider,
-                "model": self._config.model_name,
-                "response": content,
-                "duration_ms": elapsed_ms,
-            }
-        except Exception as exc:
-            elapsed_ms = int((time.monotonic() - start) * 1000)
-            error_type = classify_error(exc)
-            return {
-                "success": False,
-                "provider": self._config.provider,
-                "model": self._config.model_name,
-                "error": str(exc)[:500],
-                "error_type": error_type.value,
-                "duration_ms": elapsed_ms,
-            }
+        return run_connection_check(self)
 
     def call(
         self,
@@ -173,6 +144,7 @@ class LLMService:
         seed: int | None = None,
         timeout_s: float | None = None,
         prompt_version: str | None = None,
+        prompt_name: str | None = None,
         use_cache: bool = False,
     ) -> LLMCallResult:
         """Call an LLM with structured output enforcement.
@@ -193,6 +165,9 @@ class LLMService:
             timeout_s: timeout base da 1ª tentativa (default LLM_CALL_TIMEOUT_S) — ADR-270.
             prompt_version: PROMPT_VERSION do prompt chamador — persistido no
                 ``LLMCallLog`` para drift tracking (ADR-173).
+            prompt_name: nome canônico do prompt chamador (módulo em
+                ``pipeline/llm/prompts/``, ex. ``e15_baseline``) — label de
+                dimensão das métricas OTLP ``mathoms.llm.*`` (A33.l7, ADR-110).
             use_cache: opt-in do cache de resposta (ADR-307). Exige
                 ``temperature == 0.0`` (cache congela uma amostra; a temp>0
                 corromperia variância). Hit pula provider, budget e
@@ -253,14 +228,20 @@ class LLMService:
             cached_output = fetch_cached_output(
                 self._response_cache, cache_key, output_schema, stage=stage
             )
+            hit = cached_output is not None
+            record_cache_event(hit=hit, stage=stage, prompt_version=prompt_version)
+            emit_cache_lookup(
+                emitter=self._metrics,
+                hit=hit,
+                prompt_name=prompt_name,
+                prompt_version=prompt_version,
+            )
             if cached_output is not None:
-                record_cache_event(hit=True, stage=stage, prompt_version=prompt_version)
                 return LLMCallResult(
                     output=cached_output,
                     provider=self._config.provider,
                     model=self._config.model_name,
                 )
-            record_cache_event(hit=False, stage=stage, prompt_version=prompt_version)
 
         if self._hooks is not None:
             self._hooks.check_budget()
@@ -367,6 +348,14 @@ class LLMService:
                             tag,
                             record_exc,
                         )
+
+                emit_call_quality(
+                    response,
+                    emitter=self._metrics,
+                    prompt_name=prompt_name,
+                    prompt_version=prompt_version,
+                    model=self._config.model_name,
+                )
 
                 logger.info(
                     "%sLLM call OK: model=%s tokens=%d+%d cost=$%.4f duration=%dms attempt=%d/%d",

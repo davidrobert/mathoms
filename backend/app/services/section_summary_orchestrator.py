@@ -45,24 +45,37 @@ SUPPORTED_SECTION_IDS: tuple[str, ...] = (
 )
 
 
+def _build_summary_llm_service(api_key: str, model_name: str, max_tokens: int, call_hooks):
+    from backend.app.core.llm_metrics import get_llm_metrics_emitter
+    from pipeline.llm.litellm_client import LLMConfig, LLMService
+
+    return LLMService(
+        LLMConfig(
+            provider="anthropic",
+            api_key=api_key,
+            model_name=model_name,
+            max_tokens=max_tokens,
+            temperature=0.0,
+            call_hooks=call_hooks,
+            metrics_emitter=get_llm_metrics_emitter(),
+        )
+    )
+
+
 class _LiteLLMSectionSummaryClient:
     """Adapter ``SectionSummaryLLMClient`` sobre ``pipeline.llm.LLMService``."""
 
     def __init__(
-        self, *, api_key: str, model_name: str, max_tokens: int = 600, call_hooks=None
+        self,
+        *,
+        api_key: str,
+        model_name: str,
+        max_tokens: int = 600,
+        call_hooks=None,
+        prompt_version: Optional[str] = None,
     ) -> None:
-        from pipeline.llm.litellm_client import LLMConfig, LLMService
-
-        self._service = LLMService(
-            LLMConfig(
-                provider="anthropic",
-                api_key=api_key,
-                model_name=model_name,
-                max_tokens=max_tokens,
-                temperature=0.0,
-                call_hooks=call_hooks,
-            )
-        )
+        self._prompt_version = prompt_version
+        self._service = _build_summary_llm_service(api_key, model_name, max_tokens, call_hooks)
 
     def call(self, *, system_prompt: str, user_prompt: str, section_id: str) -> LLMRawResponse:
         result = self._service.call(
@@ -70,6 +83,8 @@ class _LiteLLMSectionSummaryClient:
             user_prompt=user_prompt,
             output_schema=SectionSummaryOutput,
             stage=f"section-summary[{section_id}]",
+            prompt_version=self._prompt_version,
+            prompt_name="section_summaries",
         )
         return LLMRawResponse(
             output=result.output,
@@ -137,7 +152,11 @@ def _build_llm_client():
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         return None
-    return _LiteLLMSectionSummaryClient(api_key=api_key, model_name=_resolve_model())
+    return _LiteLLMSectionSummaryClient(
+        api_key=api_key,
+        model_name=_resolve_model(),
+        prompt_version=load_prompt_version_from_yaml(_resolve_yaml_path()),
+    )
 
 
 def _build_cache():

@@ -121,6 +121,7 @@ def _build_user_prompt(doc_name: str, text: str) -> str:
 
 
 def _call_llm_crlv(service, config, doc_name: str, text: str):
+    from pipeline.llm.metrics import prompt_name_of
     from pipeline.llm.prompts import crlv as prompt_mod
     from pipeline.llm.schemas.crlv import CRLVPayload
 
@@ -135,6 +136,7 @@ def _call_llm_crlv(service, config, doc_name: str, text: str):
         temperature=0.0,
         stage="extract_comprovantes_bens",
         prompt_version=prompt_mod.PROMPT_VERSION,
+        prompt_name=prompt_name_of(prompt_mod),
         use_cache=True,
     )
     return result, prompt_mod.PROMPT_VERSION
@@ -180,6 +182,7 @@ def _build_apolice_user_prompt(doc_name: str, text: str) -> str:
 
 def _call_llm_apolice(service, config, doc_name, text):
     """LLM call apólice — ``service`` pré-bound ao modelo (Haiku/Sonnet); o modelo entra na cache key do choke-point (ADR-307)."""
+    from pipeline.llm.metrics import prompt_name_of
     from pipeline.llm.prompts import apolice as prompt_mod
     from pipeline.llm.schemas.apolice import ApolicePayload
 
@@ -191,6 +194,7 @@ def _call_llm_apolice(service, config, doc_name, text):
         temperature=0.0,
         stage="extract_comprovantes_bens",
         prompt_version=prompt_mod.PROMPT_VERSION,
+        prompt_name=prompt_name_of(prompt_mod),
         use_cache=True,
     )
     return result, prompt_mod.PROMPT_VERSION
@@ -452,7 +456,10 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
     if not docs:
         return {"skipped": True, "reason": "No comprovantes de bem found"}
     llm_config = LLMConfig(
-        **cfg, call_hooks=ctx.llm_call_hooks, response_cache=ctx.llm_response_cache
+        **cfg,
+        call_hooks=ctx.llm_call_hooks,
+        response_cache=ctx.llm_response_cache,
+        metrics_emitter=ctx.llm_metrics_emitter,
     )
     return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config), llm_config
 

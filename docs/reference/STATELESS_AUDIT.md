@@ -62,6 +62,7 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | ~~`pipeline/adapters/file_config_store.py`~~ | ~~`FileConfigStore._cache`~~ | ~~`dict[str, Any]` por instância~~ | ✅ **removido em Sprint A7.5** (commit `5d1cf7a` · ADR-134) — produto roda 100% DB-first via `DBConfigStore` |
 | `pipeline/domain/lineage_registry.py:26` | `LINEAGE_RULE_REFS` | `dict[str, dict[str, str]]` literal eager | ✅ categoria (a) — mapping de domínio imutável (ADR-281 B2, bridge nó-de-lineage → código); refactor-safe via `dev/check_lineage_refs.py` |
 | `pipeline/llm/response_cache.py` (ADR-307 · W6-T02) | cache de resposta LLM | Redis via `WorkspaceContext.llm_response_cache` | ✅ categoria (b) — estado vive no Redis compartilhado (`mathoms:llm:resp:*`, TTL 7d); o pipeline só carrega o Protocol injetado (mesmo padrão `llm_call_hooks`); `NoOpLLMCache` degrada em miss quando Redis cai |
+| `core/llm_metrics.py:107` (A33.l7 · ADR-110) | `_EMITTER_SINGLETON` | `OtelLLMMetrics` lazy singleton | ✅ categoria (b) — mesma env (`OTEL_EXPORTER_OTLP_ENDPOINT`) produz o mesmo emitter em qualquer worker; instrumentos OTel são thread-safe por contrato do SDK e o agregado vive no collector, não no processo. Sem endpoint → `None` (no-op, opt-in ADR-110) |
 
 **Veredito:** ✅ **OK**. Todos os globais são (a) constantes imutáveis —
 safe; ou (b) singletons idempotentes inicializados lazy — cada worker
