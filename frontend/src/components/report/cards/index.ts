@@ -42,6 +42,8 @@ export { PontosFortesCard } from "./PontosFortesCard";
 export { PontosUrgentesCard } from "./PontosUrgentesCard";
 export { PrevidenciaPgblCard } from "./PrevidenciaPgblCard";
 export type { PrevidenciaPgblData } from "./PrevidenciaPgblCard";
+// A33.l4 (ADR-238 §L4) — proventos por ativo em S3 (yield sobre custo + valor atual).
+export { ProventosYieldCard } from "./ProventosYieldCard";
 export { ReceitasFonteCard } from "./ReceitasFonteCard";
 export { RentabilidadeCard } from "./RentabilidadeCard";
 export { ReservaEmergenciaCard } from "./ReservaEmergenciaCard";

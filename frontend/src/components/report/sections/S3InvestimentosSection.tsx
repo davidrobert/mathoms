@@ -7,6 +7,7 @@ import {
   AlocacaoAtualVsAlvoCard,
   ContrafluxoCard,
   EstrategiaAporteCard,
+  ProventosYieldCard,
   RentabilidadeCard,
   Top15AtivosCard,
   type ContrafluxoData,
@@ -67,6 +68,11 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
 
       {/* Top 15 ativos — ranking estruturado (substitui NarrativeChartCard). */}
       <Top15AtivosCard data={inv} />
+
+      {/* A33.l4 (ADR-238 §L4) — proventos por ativo dos informes anuais.
+          Sem wrapper: o card já é size="full" e retorna null (célula nenhuma)
+          quando o workspace não tem informe de proventos. */}
+      <ProventosYieldCard data={data.proventos_por_ativo} />
       <NarrativeChartCard
         chartId="cenarios_conjuge"
         title="Cenários de Estresse — Sem renda do cônjuge"
