@@ -27,6 +27,24 @@ from scripts.pipeline_common import validate_dict
 
 pytest.importorskip("pdfplumber")
 
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture(autouse=True)
+def _pin_repo_config_dir():
+    """Gate anti-vacuidade (A32.l2): ``e0_route._init_config`` reponta
+    ``CONFIG_DIR`` global sem desfazer — sem o pin, ``pipeline.json``/schemas
+    somem e ``validate_dict`` degrada para no-op silencioso na suíte completa.
+    O reset de ``_schema_registry`` força rebuild do Registry contra o dir
+    pinado (cache global construído sob CONFIG_DIR poluído quebraria $ref).
+    """
+    import scripts.pipeline_common as pc
+
+    pc._init_config(_REPO_ROOT)
+    pc._schema_registry = None
+    yield
+
+
 _SAMPLE_TX = [
     {"date": "2026-04-05", "description": "Mercado Sintetico", "amount": -250.50},
     {"date": "2026-04-01", "description": "Pagto Folha", "amount": 12500.00},
@@ -330,11 +348,28 @@ def test_known_drift_pinado(case_key: str, tmp_path: Path, monkeypatch, caplog):
     assert validate_dict(result, "e2_extract.schema.json", source=f"corpus/{case_key}") is False
 
 
+def test_strict_gate_nao_e_noop(monkeypatch):
+    """Canário anti-vacuidade (A32.l2): strict rejeita doc vazio — se CONFIG_DIR
+    estivesse poluído, validate_dict retornaria True para qualquer input e o
+    corpus inteiro passaria vazio."""
+    monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+    assert validate_dict({}, "e2_extract.schema.json", source="corpus/canary") is False
+
+
 def test_llm_writer_valida_em_strict_no_contrato_dedicado(monkeypatch):
     """Writer E2-llm valida em strict contra e2_llm_artifact.schema.json (A24.l7) — o vocabulário instituicao/tipo_documento é contrato versionado próprio; canonicalização é follow-up DATA_LINEAGE."""
     monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
     e2_json = _synthetic_llm_extract_artifact()
     assert validate_dict(e2_json, "e2_llm_artifact.schema.json", source="corpus/e2-llm") is True
+
+
+def test_llm_writer_valida_em_strict_no_contrato_do_reader(monkeypatch):
+    """A32.l2: o artifact E2-llm entra no E3 pelo mesmo caminho dos parsers
+    determinísticos — satisfaz também e2_extract.schema.json (banco/tipo/moeda
+    required, o vocabulário que os readers leem), não só o contrato dedicado."""
+    monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+    e2_json = _synthetic_llm_extract_artifact()
+    assert validate_dict(e2_json, "e2_extract.schema.json", source="corpus/e2-llm") is True
 
 
 def test_llm_artifact_ref_compartilhado_resolve_e_fecha_transacao(monkeypatch, caplog):
