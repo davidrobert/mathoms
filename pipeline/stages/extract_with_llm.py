@@ -189,12 +189,14 @@ def _process_one_e2_llm_document(
     max_pages: int,
     progress: _E2LLMProgress,
     member_resolver: Any = None,
+    institution_catalog_block: str | None = None,
 ) -> tuple[dict[str, Any] | None, dict[str, str] | None, Any]:
     """Extract + one LLM call for a single file. Returns (processed, error, run_summary).
 
     A6a: escreve via ``store.write("extract_with_llm", safe_stem, e2_json)`` em vez de
     disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
     """
+    from pipeline.llm.institution_catalog import CATALOG_UNAVAILABLE_BLOCK
     from pipeline.llm.litellm_client import LLMRunSummary, LLMService
     from pipeline.llm.prompts.e2_llm import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
@@ -230,6 +232,7 @@ def _process_one_e2_llm_document(
             filename=doc.name,
             doc_type="unknown",
             institution="unknown",
+            institution_catalog=institution_catalog_block or CATALOG_UNAVAILABLE_BLOCK,
             document_text=text or "[imagem — conteúdo enviado como anexo visual]",
         )
 
@@ -516,6 +519,14 @@ def run(ctx: WorkspaceContext) -> dict:
 
     member_resolver = MemberNameResolver.from_family_config(ctx.load_config("family_members.json"))
 
+    # A33.l8 (ADR-137): bloco do catálogo é idêntico para todos os docs do
+    # run — renderiza uma vez e injeta em cada thread.
+    from pipeline.llm.institution_catalog import INSURANCE_CATEGORY, render_institution_catalog
+
+    institution_catalog_block = render_institution_catalog(
+        ctx.institution_catalog_provider, exclude_categories=(INSURANCE_CATEGORY,)
+    )
+
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = [
             pool.submit(
@@ -527,6 +538,7 @@ def run(ctx: WorkspaceContext) -> dict:
                 max_pages,
                 progress,
                 member_resolver,
+                institution_catalog_block,
             )
             for doc in docs
         ]

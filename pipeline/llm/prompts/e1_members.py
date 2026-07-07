@@ -3,7 +3,10 @@
 # Bump quando SYSTEM_PROMPT ou USER_PROMPT_TEMPLATE mudar — gate CI valida (W2-T05, ADR-233).
 # 2.0.0: ADR-259 §2 / A20.l15 (LGPD) — CPF nunca é emitido pelo LLM; schema
 #   troca `cpf` por `cpf_present: bool` (major — schema breaking).
-PROMPT_VERSION = "2.0.0"
+# 2.1.0: A33.l8 (ADR-137) — lista hardcoded de bancos sai do system prompt
+#   (driftava do `institution_catalog` em DB); user prompt ganha o placeholder
+#   `{institution_catalog}` injetado via `InstitutionCatalogProvider`.
+PROMPT_VERSION = "2.1.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 
@@ -28,11 +31,14 @@ Para cada pessoa encontrada, extraia:
 Regras:
 - Use nomes canônicos em lowercase para as keys dos membros (ex: "david", "mariana")
 - Identifique o titular principal da família
-- Para bancos, use códigos canônicos: itau, santander, bradesco, c6bank, btgpactual, rico, picpay, wise, bankofamerica, quintoandar, binance, nubank, inter
+- Para bancos, use SOMENTE os códigos canônicos do catálogo de instituições injetado na mensagem do usuário; instituição fora do catálogo: derive o código do nome (lowercase, sem acentos, sem espaços)
 - Para tipos de conta: extratoconta, cartao_credito, investimento, poupanca
 - Nível de confiança: 1.0 = todos os dados claramente legíveis, <0.7 = dados ambíguos ou parciais"""
 
 USER_PROMPT_TEMPLATE = """\
+Catálogo de instituições (código canônico — use exatamente estes códigos):
+{institution_catalog}
+
 Analise os seguintes documentos e extraia todas as informações de membros da família:
 
 {documents_text}

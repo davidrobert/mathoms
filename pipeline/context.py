@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     from pipeline.artifact_store import ArtifactStore
     from pipeline.llm.call_hooks import LLMCallHooks
+    from pipeline.llm.institution_catalog import InstitutionCatalogProvider
     from pipeline.llm.metrics import LLMMetricsEmitter
     from pipeline.llm.response_cache import LLMResponseCache
     from pipeline.ports import (
@@ -125,6 +126,14 @@ class WorkspaceContext:
     #: existe; ``None`` (CLI/testes/opt-out) → zero overhead.
     llm_metrics_emitter: Optional["LLMMetricsEmitter"] = field(default=None, repr=False)
 
+    #: A33.l8 (ADR-137) — catálogo de instituições para injection nos user
+    #: prompts LLM (``e1_members``, ``e2_llm``, ``apolice``). Backend injeta
+    #: ``DBInstitutionCatalogProvider`` em ``run_context_factory``; ``None``
+    #: em CLI/testes → bloco de fallback documentado (sem lista hardcoded).
+    institution_catalog_provider: Optional["InstitutionCatalogProvider"] = field(
+        default=None, repr=False
+    )
+
     #: ADR-119 — mediana de duração (ms) por stage, calculada dos últimos runs
     #: bem-sucedidos do workspace. Populado pelo orchestrator (Celery task);
     #: vazio em CLI/testes. Stages emitem via ``emit_item_progress(...,
@@ -231,6 +240,7 @@ class WorkspaceContext:
         economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = None,
         property_overrides_resolver: Optional["PropertyOverridesResolver"] = None,
         imoveis_no_if: bool = True,
+        institution_catalog_provider: Optional["InstitutionCatalogProvider"] = None,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -260,4 +270,5 @@ class WorkspaceContext:
             economic_assumptions_resolver=economic_assumptions_resolver,
             property_overrides_resolver=property_overrides_resolver,
             imoveis_no_if=imoveis_no_if,
+            institution_catalog_provider=institution_catalog_provider,
         )

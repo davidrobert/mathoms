@@ -8,6 +8,8 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from pipeline.llm import institution_catalog as _catalog
+
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
     from pipeline.llm.litellm_client import LLMConfig, LLMService
@@ -27,11 +29,12 @@ _APOLICE_SONNET_MODEL = "claude-sonnet-4-6"
 
 @dataclass(frozen=True)
 class _StageLLM:
-    """Trio de ``LLMService`` usado pelo stage — workspace default para CRLV, Haiku→Sonnet para apolice ([[ADR-239]] D6)."""
+    """Trio de ``LLMService`` usado pelo stage — workspace default para CRLV, Haiku→Sonnet para apolice ([[ADR-239]] D6) — + bloco do catálogo de seguradoras injetado no user prompt de apolice (A33.l8 · ADR-137)."""
 
     crlv: "LLMService"
     apolice_haiku: "LLMService"
     apolice_sonnet: "LLMService"
+    seguradoras_catalog: str = _catalog.CATALOG_UNAVAILABLE_BLOCK
 
 
 # CPF detection (LGPD ADR-231): Python mask pós-LLM, nunca confiar no LLM.
@@ -174,13 +177,15 @@ _CASCADE_TRIGGER_STRINGS = (
 )
 
 
-def _build_apolice_user_prompt(doc_name: str, text: str) -> str:
+def _build_apolice_user_prompt(doc_name: str, text: str, seguradoras_catalog: str) -> str:
     from pipeline.llm.prompts import apolice as prompt_mod
 
-    return prompt_mod.USER_PROMPT_TEMPLATE.format(filename=doc_name, document_text=text)
+    return prompt_mod.USER_PROMPT_TEMPLATE.format(
+        filename=doc_name, document_text=text, seguradoras_catalog=seguradoras_catalog
+    )
 
 
-def _call_llm_apolice(service, config, doc_name, text):
+def _call_llm_apolice(service, config, doc_name, text, seguradoras_catalog):
     """LLM call apólice — ``service`` pré-bound ao modelo (Haiku/Sonnet); o modelo entra na cache key do choke-point (ADR-307)."""
     from pipeline.llm.metrics import prompt_name_of
     from pipeline.llm.prompts import apolice as prompt_mod
@@ -188,7 +193,7 @@ def _call_llm_apolice(service, config, doc_name, text):
 
     result = service.call(
         system_prompt=prompt_mod.SYSTEM_PROMPT,
-        user_prompt=_build_apolice_user_prompt(doc_name, text),
+        user_prompt=_build_apolice_user_prompt(doc_name, text, seguradoras_catalog),
         output_schema=ApolicePayload,
         max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
         temperature=0.0,
@@ -236,12 +241,13 @@ def _extract_apolice(
     doc: Path, text: str, llm: _StageLLM, config: "LLMConfig"
 ) -> tuple[dict, Any, str]:
     """Apólice — Haiku primeiro; cascata Sonnet se gate triggered ([[ADR-239]] D6)."""
-    h_result, prompt_version = _call_llm_apolice(llm.apolice_haiku, config, doc.name, text)
+    call_args = (config, doc.name, text, llm.seguradoras_catalog)
+    h_result, prompt_version = _call_llm_apolice(llm.apolice_haiku, *call_args)
     source_id = _stem_for_filename(doc.name)
     if not _cascade_needed(h_result.output.model_dump(mode="json"), text):
         payload = _build_apolice_payload(h_result.output, prompt_version, text, source_id, False)
         return payload, h_result, prompt_version
-    s_result, _ = _call_llm_apolice(llm.apolice_sonnet, config, doc.name, text)
+    s_result, _ = _call_llm_apolice(llm.apolice_sonnet, *call_args)
     payload = _build_apolice_payload(s_result.output, prompt_version, text, source_id, True)
     return payload, s_result, prompt_version
 
@@ -428,7 +434,9 @@ def _process_one(
     return payload, result, tipo
 
 
-def _build_stage_llm(base_cfg: "LLMConfig") -> _StageLLM:
+def _build_stage_llm(
+    base_cfg: "LLMConfig", seguradoras_catalog: str = _catalog.CATALOG_UNAVAILABLE_BLOCK
+) -> _StageLLM:
     """Constrói trio de services. Anthropic → cascata real Haiku/Sonnet; outros providers → degrada para workspace default em ambos os slots de apolice ([[ADR-239]] D6)."""
     from pipeline.llm.litellm_client import LLMService
 
@@ -442,6 +450,7 @@ def _build_stage_llm(base_cfg: "LLMConfig") -> _StageLLM:
         crlv=crlv_service,
         apolice_haiku=LLMService(haiku_cfg),
         apolice_sonnet=LLMService(sonnet_cfg),
+        seguradoras_catalog=seguradoras_catalog,
     )
 
 
@@ -461,7 +470,11 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
         response_cache=ctx.llm_response_cache,
         metrics_emitter=ctx.llm_metrics_emitter,
     )
-    return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config), llm_config
+    # A33.l8 (ADR-137): catálogo de seguradoras (DB) no user prompt de apolice.
+    seguradoras = _catalog.render_institution_catalog(
+        ctx.institution_catalog_provider, include_categories=(_catalog.INSURANCE_CATEGORY,)
+    )
+    return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config, seguradoras), llm_config
 
 
 def _summarize(processed: list[dict], errors: list[dict]) -> dict[str, Any]:

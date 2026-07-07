@@ -12,7 +12,10 @@
 # 1.3.0 (A33.l1, ADR-090): valores monetários como string decimal ("1234.56"),
 # nunca number JSON float; o schema converte para Decimal no boundary
 # (padrão e15 v1.2.0).
-PROMPT_VERSION = "1.3.0"
+# 1.4.0 (A33.l8, ADR-137): lista hardcoded de bancos sai do system prompt
+# (driftava do `institution_catalog` em DB); user prompt ganha o placeholder
+# `{institution_catalog}` injetado via `InstitutionCatalogProvider`.
+PROMPT_VERSION = "1.4.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 
@@ -42,7 +45,7 @@ Para investimentos, extraia:
 Regras:
 - Valores monetários como STRING decimal com ponto (ex: "1234.56", não "1.234,56" nem o número 1234.56) — o schema converte para Decimal no boundary
 - Datas em formato YYYY-MM-DD
-- Use códigos canônicos para bancos: itau, santander, bradesco, c6bank, btgpactual, rico, nubank, inter
+- Use SOMENTE códigos canônicos de banco do catálogo de instituições injetado na mensagem do usuário; instituição fora do catálogo: derive o código do nome (lowercase, sem acentos, sem espaços)
 - Se não conseguir determinar o período, use null
 - Nível de confiança: 1.0 = dados estruturados e claros, <0.7 = dados ambíguos
 
@@ -98,6 +101,9 @@ Extraia todas as transações e/ou posições de investimentos do seguinte docum
 Arquivo: {filename}
 Tipo detectado: {doc_type}
 Banco/instituição detectado: {institution}
+
+Catálogo de instituições (código canônico — use exatamente estes códigos):
+{institution_catalog}
 
 Conteúdo do documento:
 {document_text}
