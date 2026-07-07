@@ -68,6 +68,14 @@ def _maybe_encrypt(payload: dict) -> dict:
     return encrypt_artifact_payload(payload)
 
 
+def _payload_prompt_version(data: dict) -> Optional[str]:
+    """ADR-311 — versão de extração consultável, lift do ``prompt_version`` top-level do payload (ADR-233) pré-encrypt; a coluna espelha o payload atual (inclusive overwrite) e nunca entra na ``artifact_key`` (quebraria o dedupe por documento)."""
+    pv = data.get("prompt_version")
+    if isinstance(pv, str) and pv:
+        return pv[:20]
+    return None
+
+
 def _maybe_decrypt(payload: Optional[dict] = None) -> Optional[dict]:
     if payload is None:
         return None
@@ -358,17 +366,24 @@ class DBArtifactStore:
         document_id: Optional[str] = None,
     ) -> None:
         self._validate_schema(stage, key, data)
+        prompt_version = _payload_prompt_version(data)
         payload = _maybe_encrypt(data)
         row = self._get(stage, key)
         if row is None:
-            self._insert(stage, key, payload, document_id)
+            self._insert(stage, key, payload, document_id, prompt_version)
             return
         row.content_json = payload
+        row.prompt_version = prompt_version
         if document_id is not None:
             row.document_id = document_id
 
     def _insert(
-        self, stage: str, key: str, payload: dict, document_id: Optional[str] = None
+        self,
+        stage: str,
+        key: str,
+        payload: dict,
+        document_id: Optional[str] = None,
+        prompt_version: Optional[str] = None,
     ) -> None:
         self._session.add(
             PipelineArtifact(
@@ -378,6 +393,7 @@ class DBArtifactStore:
                 artifact_key=key,
                 document_id=document_id,
                 content_json=payload,
+                prompt_version=prompt_version,
             )
         )
 

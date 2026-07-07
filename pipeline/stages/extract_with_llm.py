@@ -464,8 +464,9 @@ def run(ctx: WorkspaceContext) -> dict:
     # ADR-080 + W2-T05: em modo incremental, restringe ao allowlist
     # (`ctx.incremental_doc_paths`). Modo full mantém docs intacto.
     # Padrão alinhado com extract_baseline.py:163 — sem cache hash em DB.
-    # Invalidação por bump de PROMPT_VERSION exige re-delete manual de
-    # artifacts antigos (runbook), não auto-skip aqui.
+    # Invalidação por bump de PROMPT_VERSION é dirigida e ops-triggered:
+    # `dev/reextract_stale_e2_llm.py` (ADR-311) — nunca auto-skip aqui
+    # (re-extração automática em bump é decisão de custo do owner).
     if ctx.incremental:
         from pipeline.incremental import filter_to_incremental
 

@@ -896,3 +896,34 @@ async def test_e4_adapter_reads_e3_from_base_run_or_fails_loud(db: AsyncSession)
     accounts = await raw.run_sync(_do)
     assert len(accounts) == 1
     assert accounts[0]["transacoes"], "E3 do run base deve chegar ao E4 com transações"
+
+
+def _write_versions_and_read_columns(s, ws_id, run_id) -> dict:
+    store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_id)
+    store.write("E2-llm", "k1", {"banco": "x", "prompt_version": "1.3.0"})
+    store.write("E2-llm", "k2", {"banco": "x"})
+    s.commit()
+    store.write("E2-llm", "k1", {"banco": "x", "prompt_version": "1.4.0"})
+    s.commit()
+    rows = (
+        s.query(PipelineArtifact.artifact_key, PipelineArtifact.prompt_version)
+        .filter(PipelineArtifact.pipeline_run_id == run_id)
+        .all()
+    )
+    return {r[0]: r[1] for r in rows}
+
+
+@pytest.mark.asyncio
+async def test_write_lifts_prompt_version_from_payload(db: AsyncSession):
+    """ADR-311 — `prompt_version` do payload vira coluna consultável; overwrite espelha o payload atual; payload sem o campo → NULL (≡ versão 0)."""
+    ws_id, run_id = await _seed_ws_and_run(db, email="pv@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            return _write_versions_and_read_columns(s, ws_id, run_id)
+
+    raw = await db.connection()
+    versions = await raw.run_sync(_do)
+    assert versions == {"k1": "1.4.0", "k2": None}

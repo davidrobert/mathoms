@@ -797,6 +797,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `data_source_id` | `VARCHAR(36)` | yes | — | — |
 | `content_json` | `JSON` | no | — | — |
 | `schema_version` | `VARCHAR(20)` | yes | — | — |
+| `prompt_version` | `VARCHAR(20)` | yes | — | — |
 | `byte_size` | `INTEGER` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
@@ -2357,6 +2358,7 @@ type PipelineArtifact struct {
 	DataSourceId *string `db:"data_source_id" json:"data_source_id"`
 	ContentJson json.RawMessage `db:"content_json" json:"content_json"`
 	SchemaVersion *string `db:"schema_version" json:"schema_version"`
+	PromptVersion *string `db:"prompt_version" json:"prompt_version"`
 	ByteSize *int `db:"byte_size" json:"byte_size"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
