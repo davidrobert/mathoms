@@ -917,7 +917,7 @@ clean-all: clean
 # Dogfood com shell Go (F2 GO_SHELL — validação pré-cutover, ADR-150 §7)
 # ---------------------------------------------------------------------------
 
-.PHONY: dogfood-go dogfood-go-off
+.PHONY: dogfood-go dogfood-go-off dogfood-go-dev dogfood-go-dev-off
 
 ## dogfood-go: Sobe o shell Go (:8002) e re-aponta o worker p/ ele (requer 'make smoke-up' antes)
 dogfood-go:
@@ -978,3 +978,46 @@ dogfood-go-off:
 	   --loglevel=info --concurrency=2 \
 	   > $(CURDIR)/$(SMOKE_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/worker.pid
 	@echo "  ✅ Rollback completo — worker de volta ao executor Python in-process."
+
+## dogfood-go-dev: Shell Go (:8002) contra o SEU ambiente dev real (.env) + worker re-apontado
+dogfood-go-dev:
+	@test -f $(CURDIR)/.env || { echo "❌ .env ausente na raiz — o dev stack depende dele."; exit 1; }
+	@echo "▶  Buildando o shell Go…"
+	@cd services/pipeline-service-go && go build -o $(CURDIR)/$(DEV_DIR)/pipeline-service-go ./cmd/pipeline-service
+	@mkdir -p $(CURDIR)/$(DEV_DIR)
+	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(DEV_DIR)/go.pid)
+	$(call check_port_free,8002)
+	@echo "▶  Subindo shell Go na :8002 com o env do .env…"
+	@set -a; . $(CURDIR)/.env; set +a; \
+	 [ -n "$$ANTHROPIC_API_KEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente (.env/shell) — stages LLM vão falhar"; \
+	 MATHOMS_REPO_ROOT="$(CURDIR)" \
+	 MATHOMS_PYTHON="$(PYTHON)" \
+	 REDIS_URL="$${MATHOMS_REDIS_URL:-redis://localhost:6379/0}" \
+	 PIPELINE_SERVICE_PORT=8002 \
+	 nohup $(CURDIR)/$(DEV_DIR)/pipeline-service-go \
+	   > $(CURDIR)/$(DEV_DIR)/go.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/go.pid
+	@sleep 1; curl -sf --max-time 5 http://localhost:8002/health > /dev/null \
+	  && echo "   ✓ shell Go saudável em http://localhost:8002" \
+	  || { echo "   ❌ /health falhou — veja $(DEV_DIR)/go.log"; exit 1; }
+	@echo "▶  Re-apontando o worker dev para o shell Go…"
+	$(call kill_pid_safe,celery worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
+	$(call kill_celery_orphans)
+	@TS=$$(date +%s); \
+	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:8002" \
+	 nohup $(VENV)/celery -A backend.app.worker worker \
+	   --hostname="celery-dev-go@%h-$$TS" \
+	   --max-tasks-per-child=200 \
+	   --loglevel=info --concurrency=2 \
+	   > $(CURDIR)/$(DEV_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/worker.pid
+	@echo ""
+	@echo "  ✅ Dogfood-Go no DEV REAL ligado — stages executam via shell Go (:8002)."
+	@echo "     Use a UI normal (localhost:3000). Logs: $(DEV_DIR)/go.log + worker.log"
+	@echo "     Rollback: make dogfood-go-dev-off"
+
+## dogfood-go-dev-off: Desliga o shell Go e volta o worker dev ao executor Python
+dogfood-go-dev-off:
+	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(DEV_DIR)/go.pid)
+	$(call kill_pid_safe,celery worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
+	$(call kill_celery_orphans)
+	@$(MAKE) dev-worker-up
+	@echo "  ✅ Rollback completo — worker dev de volta ao executor Python in-process."

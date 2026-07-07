@@ -90,3 +90,21 @@ O Celery continua orquestrando (cancel, needs_review, lineage); só a
 execução de cada stage passa pelo shell Go via HTTP (binário no HOST —
 sem a restrição de WAL do container). Overhead esperado: ~550ms/stage de
 boot do subprocess. Logs: `_smoke_pids/go.log` + `worker.log`.
+
+### 6.1 Variante DEV — workspace real
+
+Para testar o Go contra o ambiente dev de verdade (mesmo `.env`, mesmo DB,
+mesmos documentos já uploadados — sem re-seed):
+
+```bash
+make dev-up                            # stack dev normal, se ainda não estiver de pé
+make dogfood-go-dev                    # shell Go :8002 com env do .env + worker dev re-apontado
+# ... rode o pipeline pela UI dev (localhost:3000) no seu workspace real
+make dogfood-go-dev-off                # rollback: worker dev volta ao executor Python
+```
+
+O target carrega o `.env` da raiz para o env do binário Go — o subprocess
+`python -m pipeline.orchestrator run-stage` herda dele `MATHOMS_DATABASE_URL`,
+`MATHOMS_FERNET_KEY`, `MATHOMS_REDIS_URL` e `ANTHROPIC_API_KEY` (aviso se
+ausente). O worker re-sobe com hostname `celery-dev-go@…` para distinguir
+nos logs. Logs: `_dev_pids/go.log` + `worker.log`.
