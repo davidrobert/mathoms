@@ -41,7 +41,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - Status: `in_progress` · Sprint atual: A11
 - Sprints envolvidas: A11, A33
-- Lanes: 2 done · 0 in_progress · 5 open · 2 blocked
+- Lanes: 3 done · 0 in_progress · 4 open · 2 blocked
 - ADRs canônicas: —
 
 ### PLAN-report-premium — Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html`

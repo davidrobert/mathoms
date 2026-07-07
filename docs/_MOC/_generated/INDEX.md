@@ -691,7 +691,7 @@
 | A33.l1 | lane | shipped | A33 | ADR-090 no boundary LLM: e2_llm_extract sem float monetário + gate cobrindo pipeline/llm/schemas (W1β) | `sprint/A33/lanes/A33-l1-adr090-llm-boundary.md` |
 | A33.l2 | lane | open | A33 | Fechar A17.l3: informes financeiro PF P3-P5 (consolidate_baseline + PTAX 31/12 + UI S4 + validações Wise) | `sprint/A33/lanes/A33-l2-a17l3-financeiro-pf-fechamento.md` |
 | A33.l4 | lane | shipped | A33 | Fechar A17.l4: integrar proventos de ações (schema/prompt/classifier já existem) ao yield-on-cost em S3 | `sprint/A33/lanes/A33-l4-a17l4-proventos-acoes.md` |
-| A33.l5 | lane | planned | A33 | Nightly drift do extract_with_llm: Celery beat + fixtures sintéticas + auto-alerta (ADR-307 F2) | `sprint/A33/lanes/A33-l5-nightly-drift-extractllm.md` |
+| A33.l5 | lane | shipped | A33 | Nightly drift do extract_with_llm: Celery beat + fixtures sintéticas + auto-alerta (ADR-307 F2) | `sprint/A33/lanes/A33-l5-nightly-drift-extractllm.md` |
 | A33.l6 | lane | planned | A33 | Retenção de artifacts: retention_until + prune diário + teste de cascade (W6-T05) | `sprint/A33/lanes/A33-l6-artifacts-retention.md` |
 | A33.l7 | lane | planned | A33 | OTLP mathoms.llm.* por {prompt_name, prompt_version} + parecer.riscos_truncados (W3) | `sprint/A33/lanes/A33-l7-otlp-telemetria-llm.md` |
 | A33.l8 | lane | planned | A33 | InstitutionCatalogProvider (protocol) + códigos RFB do e16 em YAML anual versionado (W4-T01/T02) | `sprint/A33/lanes/A33-l8-catalogo-injection-rfb-yaml.md` |
