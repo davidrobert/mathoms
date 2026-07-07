@@ -29,7 +29,10 @@ from pipeline.domain.models.bank import BankCanonicalizer
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
-from pipeline.domain.services.reconciliation_validators import AccountKey
+
+# Baseline IRPF não tem tipo de conta nem número — a chave aqui permanece
+# (instituição, membro, moeda), distinta da ContinuityAccountKey (ADR-310).
+BaselineAccountKey = tuple[str, str | None, str]
 
 # =============================================================================
 # Config
@@ -154,7 +157,7 @@ class BaselineAccountSaldo:
 class BaselineDiffWarning:
     """Discrepância entre baseline IRPF e extrato em ``reference_date``."""
 
-    account_key: AccountKey
+    account_key: BaselineAccountKey
     reference_date: date
     baseline_saldo: Money
     statement_closing: Money
@@ -280,11 +283,11 @@ class BaselineValidator:
         self,
         statements: Iterable[BankStatement],
         baseline_accounts: Iterable[BaselineAccountSaldo],
-    ) -> dict[AccountKey, list[BaselineDiffWarning]]:
-        """Mesma validação, agrupada por ``AccountKey`` — formato próximo do
+    ) -> dict[BaselineAccountKey, list[BaselineDiffWarning]]:
+        """Mesma validação, agrupada por ``BaselineAccountKey`` — formato próximo do
         legado ``validate_against_baseline() → dict[str, list[str]]``.
         """
-        grouped: dict[AccountKey, list[BaselineDiffWarning]] = defaultdict(list)
+        grouped: dict[BaselineAccountKey, list[BaselineDiffWarning]] = defaultdict(list)
         for w in self.validate(statements, baseline_accounts):
             grouped[w.account_key].append(w)
         return dict(grouped)

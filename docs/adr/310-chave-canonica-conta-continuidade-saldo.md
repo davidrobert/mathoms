@@ -2,20 +2,20 @@
 id: ADR-310
 type: adr
 title: "Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7)"
-status: Proposto
+status: Decidido
 phase: A32.l4
 date: "2026-07-07"
 relates_to: ["[[ADR-278]]", "[[ADR-090]]", "[[ADR-097]]"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/domain
 ---
 
 # ADR-310 — Chave canônica de conta na continuidade de saldo
 
-**Status:** Proposto (A32.l4) · **Data:** 2026-07-07
+**Status:** Decidido (A32.l4) · **Data:** 2026-07-07
 
 ## Contexto
 

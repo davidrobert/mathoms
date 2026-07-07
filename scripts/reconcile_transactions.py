@@ -1035,10 +1035,16 @@ def _e3_build_adapter(ctx):
     grouper = AccountGrouper(
         AccountGrouperConfig.from_pipeline_config(family=family, pipeline=pipeline_cfg)
     )
+    # ADR-310: validadores compartilham a chave canônica de conta do grouper
+    # (equivalences incluídas) — "mesma conta" tem uma única definição.
     saldo_validator = SaldoContinuityValidator(
-        SaldoContinuityConfig.from_pipeline_config(pipeline_cfg)
+        SaldoContinuityConfig.from_pipeline_config(pipeline_cfg),
+        grouper=grouper,
     )
-    temporal_detector = TemporalGapDetector(TemporalGapConfig.from_pipeline_config(pipeline_cfg))
+    temporal_detector = TemporalGapDetector(
+        TemporalGapConfig.from_pipeline_config(pipeline_cfg),
+        grouper=grouper,
+    )
     baseline_validator = BaselineValidator(
         BaselineValidatorConfig.from_pipeline_config(pipeline_cfg),
         canonicalizer=canon,
@@ -1111,9 +1117,11 @@ def _e3_write_sidecar_logs(ctx, written_filenames: List[str], result) -> None:
 
 def _e3_log_warnings(result) -> None:
     for w in result.saldo_warnings:
-        log_progress("E3.2", f"WARNING ({w.account_key[0]}): {w.format()}")
+        log_progress("E3.2", f"WARNING ({w.account_key.bank}): {w.format()}")
+    for w in result.saldo_exclusions:
+        log_progress("E3.2", f"INFO: {w.format()}")
     for w in result.temporal_warnings:
-        log_progress("E3.2", f"TEMPORAL ({w.account_key[0]}): {w.format()}")
+        log_progress("E3.2", f"TEMPORAL ({w.account_key.bank}): {w.format()}")
     for w in result.baseline_warnings:
         log_progress("E3.6", f"BASELINE WARNING: {w.format()}")
     for w in result.period_warnings:
@@ -1134,6 +1142,8 @@ def _e3_print_summary(result) -> None:
     print(f"Skipped inputs:             {result.skipped_inputs}")
     if result.saldo_warnings:
         print(f"Saldo gap warnings:         {len(result.saldo_warnings)}")
+    if result.saldo_exclusions:
+        print(f"Faturas fora da cadeia:     {len(result.saldo_exclusions)} (ADR-310)")
     if result.temporal_warnings:
         print(f"Temporal gap warnings:      {len(result.temporal_warnings)}")
     if result.baseline_warnings:
@@ -1163,6 +1173,7 @@ def _e3_build_result_dict(written_filenames: List[str], result) -> Dict[str, Any
         "statements_reconciled": result.statements_reconciled,
         "skipped_inputs": result.skipped_inputs,
         "saldo_warnings": [w.format() for w in result.saldo_warnings],
+        "saldo_exclusions": [w.format() for w in result.saldo_exclusions],
         "temporal_warnings": [w.format() for w in result.temporal_warnings],
         "baseline_warnings": [w.format() for w in result.baseline_warnings],
         "period_warnings": [w.format() for w in result.period_warnings],
@@ -1232,6 +1243,11 @@ def _write_reconciliation_summary(path: Path, *, written_filenames: List[str], r
         for w in result.saldo_warnings:
             lines.append(f"- {w.format()}")
         for w in result.temporal_warnings:
+            lines.append(f"- {w.format()}")
+        lines.append("")
+    if result.saldo_exclusions:
+        lines.append("## Faturas fora da cadeia de saldo (ADR-310)")
+        for w in result.saldo_exclusions:
             lines.append(f"- {w.format()}")
         lines.append("")
     if result.baseline_warnings:

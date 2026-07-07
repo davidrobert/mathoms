@@ -16,15 +16,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.models.transaction import Money
 from pipeline.domain.review_reason import BLOCKING_CODES, ReviewReasonCode
+from pipeline.domain.services.account_grouper import AccountKey
 from pipeline.domain.services.anachronic_guard import AnachronicTransactionWarning
 from pipeline.domain.services.baseline_validator import BaselineDiffWarning
 from pipeline.domain.services.reconciliation_validators import (
+    ContinuityAccountKey,
     SaldoGapWarning,
     TemporalGapWarning,
 )
 
 _KW = dict(stage="reconcile_transactions", artifact_key="fallback_key", document_id=None)
-_ACCOUNT = ("itau", "david", "BRL")
+# Chave da cadeia de continuidade (ADR-310) — deriva da AccountKey canônica.
+_ACCOUNT = ContinuityAccountKey(
+    account=AccountKey(bank="itau", account_type="extratoconta", currency="BRL"),
+    member="david",
+    account_number=None,
+)
+# Baseline IRPF mantém a chave tupla (instituição, membro, moeda).
+_BASELINE_ACCOUNT = ("itau", "david", "BRL")
 _MONETARY_RE = re.compile(r"\d+[.,]\d{2}\b")
 
 
@@ -41,7 +50,7 @@ def _saldo_warning() -> SaldoGapWarning:
 
 def _baseline_warning() -> BaselineDiffWarning:
     return BaselineDiffWarning(
-        account_key=_ACCOUNT,
+        account_key=_BASELINE_ACCOUNT,
         reference_date=date(2024, 12, 31),
         baseline_saldo=Money.of("10000.00", "BRL"),
         statement_closing=Money.of("8123.45", "BRL"),
