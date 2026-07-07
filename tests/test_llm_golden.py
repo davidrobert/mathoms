@@ -130,7 +130,7 @@ class TestE2LLMGoldenFile:
         e2 = _output_to_e2_json(output)
 
         assert e2["extraido_por"] == "llm"
-        assert e2["instituicao"] == "btgpactual"
+        assert e2["banco"] == "btgpactual"
         assert e2["periodo"] == {"inicio": "2024-12-01", "fim": "2024-12-31"}
         assert len(e2["transacoes"]) == 2
         assert len(e2["investimentos"]) == 3

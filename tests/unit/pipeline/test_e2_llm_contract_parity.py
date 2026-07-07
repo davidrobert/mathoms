@@ -88,6 +88,16 @@ def _writer_artifact(**kwargs) -> dict:
     return _output_to_e2_json(_llm_output(**kwargs))
 
 
+def _legacy_row(**kwargs) -> dict:
+    """Shape exato de uma row E2-llm antiga (pré-A32.l2) em pipeline_artifacts:
+    vocabulário legado `instituicao`/`tipo_documento`, sem `banco`/`tipo`
+    (ADR-312 — rows antigas nunca são migradas; fallback é permanente)."""
+    row = _writer_artifact(**kwargs)
+    row["instituicao"] = row.pop("banco")
+    row["tipo_documento"] = row.pop("tipo")
+    return row
+
+
 def _aplicacao_tx(tx_date: str, amount: float) -> ExtractedTransaction:
     return ExtractedTransaction(date=tx_date, description="APLICACAO CDB SINTETICO", amount=amount)
 
@@ -294,7 +304,8 @@ def test_artifact_llm_de_posicao_e_pulado_pela_reconciliacao(skip_type: str) -> 
 def test_artifact_llm_antigo_sem_tipo_e_pulado_via_fallback(skip_type: str) -> None:
     """Artifacts de mai/jun (pré-A32.l2) só têm tipo_documento — fallback dos readers cobre sem re-extração."""
     stale = _output_to_e2_json(_cdb_position_output(skip_type))
-    del stale["tipo"]
+    stale["instituicao"] = stale.pop("banco")
+    stale["tipo_documento"] = stale.pop("tipo")
     store = InMemoryArtifactStore()
     store.seed("extract_with_llm", f"bancosintetico_{skip_type}_202606", stale)
 
@@ -329,13 +340,99 @@ def test_p3_anachronic_nao_dispara_sobre_posicao_de_cdb() -> None:
 
 
 def test_artifact_llm_antigo_de_extrato_reconcilia_com_identidade_completa() -> None:
-    """Extrato antigo (sem `tipo`) ganha account_type via fallback tipo_documento."""
-    stale = _writer_artifact()
-    del stale["tipo"]
+    """Row antiga (só vocabulário legado) ganha identidade completa via fallbacks."""
+    stale = _legacy_row()
 
     grouper = AccountGrouper()
     assert grouper.should_skip(stale) is False
     assert grouper.key(stale) == AccountKey("bancosintetico", "extrato", "BRL")
 
     normalized = StatementPeriodNormalizer().normalize(stale, source_name="stale").data
-    assert BankStatement.from_e2_dict(normalized).account_type == "extrato"
+    stmt = BankStatement.from_e2_dict(normalized)
+    assert stmt.account_type == "extrato"
+    assert stmt.institution == "bancosintetico"
+
+
+# =============================================================================
+# ADR-312 — cutover canonical-only: ausência, K4 e consumidores E4/preprocessor
+# =============================================================================
+
+
+def test_writer_nao_emite_vocabulario_legado_top_level() -> None:
+    """Enforcement por ausência (padrão ADR-283): reintroduzir as cópias legadas quebra aqui."""
+    artifact = _writer_artifact(investments=[_cdb_position_output("extrato").investments[0]])
+    assert "instituicao" not in artifact
+    assert "tipo_documento" not in artifact
+    # Escopo é top-level: `investimentos[].instituicao` é vocabulário canônico
+    # do item (consumidores próprios), não duplicação — deve permanecer.
+    assert all("instituicao" in inv for inv in artifact["investimentos"])
+
+
+def test_natural_key_identica_entre_vocabulario_canonico_e_legado() -> None:
+    """Pin K4 (ADR-312): `_first` de e2_natural_key resolve canônico-primeiro; a
+    natural_key estampada não pode divergir entre write novo e row antiga."""
+    from pipeline.domain.services.e2_natural_key import stamp_natural_key
+
+    canonical = _writer_artifact()
+    legacy = _legacy_row()
+    stamp_natural_key(canonical)
+    stamp_natural_key(legacy)
+
+    canonical_keys = [t["natural_key"] for t in canonical["transacoes"]]
+    legacy_keys = [t["natural_key"] for t in legacy["transacoes"]]
+    assert canonical_keys == legacy_keys
+    assert all(k is not None for k in canonical_keys)
+
+
+def _e4_adapter():
+    from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter
+    from pipeline.domain.services.transaction_classifier import (
+        ClassifierConfig,
+        TransactionClassifier,
+    )
+
+    return E4CategorizerAdapter(
+        classifier=TransactionClassifier(
+            ClassifierConfig.from_configs(categorization={}, family={})
+        )
+    )
+
+
+def test_investment_report_canonico_entra_no_load_investment_positions() -> None:
+    """Regressão ADR-244 sob ADR-312: gate `is_investment_doc` lê tipo_documento
+    com fallback para `tipo` — artifact novo (canonical-only) não pode sumir do E5."""
+    output = _llm_output(
+        document_type="investment_report",
+        period="202606",
+        transactions=[],
+        investments=[_cdb_position_output("investment_report").investments[0]],
+    )
+    store = InMemoryArtifactStore()
+    store.seed(
+        "extract_with_llm", "bancosintetico_investment_report_2026", _output_to_e2_json(output)
+    )
+
+    positions = _e4_adapter().load_investment_positions(store)
+    assert len(positions) == 1
+
+
+def test_posicao_legada_entra_no_load_investment_positions_via_fallback() -> None:
+    """Row antiga (só tipo_documento=investimentosposicao) segue entrando no E4."""
+    legacy = _output_to_e2_json(_cdb_position_output("investimentosposicao"))
+    legacy["instituicao"] = legacy.pop("banco")
+    legacy["tipo_documento"] = legacy.pop("tipo")
+    store = InMemoryArtifactStore()
+    store.seed("extract_with_llm", "bancosintetico_investimentosposicao_202606", legacy)
+
+    positions = _e4_adapter().load_investment_positions(store)
+    assert len(positions) == 1
+
+
+def test_fatura_de_row_antiga_sem_periodo_sintetiza_em_vez_de_skipar() -> None:
+    """Gap pré-existente fechado pela ADR-312: o branch de síntese de fatura lia
+    só `tipo` — row antiga (só tipo_documento) skipava por vocabulário."""
+    legacy = _legacy_row(document_type="faturaunique", period=None)
+
+    result = StatementPeriodNormalizer().normalize(legacy, source_name="stale-fatura")
+    assert result.skip is False
+    assert result.data["periodo"] == {"inicio": "2026-04-05", "fim": "2026-04-05"}

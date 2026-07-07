@@ -2,21 +2,29 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "e2_llm_artifact.schema.json",
   "title": "E2 LLM Artifact",
-  "description": "Contrato do artefato do stage E2-llm (output de _output_to_e2_json em pipeline/stages/extract_with_llm.py). O writer LLM emite vocabulário próprio — instituicao/tipo_documento em vez de banco/tipo — resolvido por fallback na costura E3 (stamp_natural_key, from_e2_dict). ADR-284/A24.l7: este schema torna a dualidade explícita e versionada em vez de mascará-la sob e2_extract.schema.json (que mentia para este writer). Canonicalização do vocabulário (emitir banco/tipo de verdade) implica churn de identidade no E3 (AccountGrouper.key, BankStatement.from_e2_dict) e é follow-up rastreado no plano DATA_LINEAGE — não deste contrato. Sub-contrato de transação compartilhado com e2_extract via $ref ($defs/transacao).",
+  "description": "Contrato do artefato do stage E2-llm (output de _output_to_e2_json em pipeline/stages/extract_with_llm.py). Pós-ADR-312 o writer emite apenas o vocabulário canônico top-level (banco/tipo — o mesmo que os readers E3/E4 leem); as cópias legadas instituicao/tipo_documento permanecem como properties opcionais porque rows antigas (pré-A32.l2) em pipeline_artifacts as carregam e nunca são revalidadas (validação é on-write). Fallback nos readers é permanente (ADR-312 §Decisão 3). Sub-contrato de transação compartilhado com e2_extract via $ref ($defs/transacao). Histórico da dualidade: ADR-286.",
   "type": "object",
-  "required": ["instituicao", "tipo_documento", "moeda"],
+  "required": ["banco", "tipo", "moeda"],
   "properties": {
-    "instituicao": {
+    "banco": {
       "type": "string",
       "minLength": 1
     },
-    "tipo_documento": {
+    "tipo": {
       "type": "string",
       "minLength": 1
     },
     "moeda": {
       "type": "string",
       "enum": ["BRL", "USD", "EUR"]
+    },
+    "instituicao": {
+      "type": ["string", "null"],
+      "description": "Legado (rows pré-A32.l2); writer não emite pós-ADR-312"
+    },
+    "tipo_documento": {
+      "type": ["string", "null"],
+      "description": "Legado (rows pré-A32.l2); writer não emite pós-ADR-312"
     },
     "arquivo_origem": {"type": ["string", "null"]},
     "extraido_por": {"type": "string", "enum": ["llm"]},

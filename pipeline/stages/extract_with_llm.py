@@ -269,8 +269,8 @@ def _process_one_e2_llm_document(
 
         safe_stem = _e2_extract_stem(doc).replace(" ", "_")[:80]
         progress.emit(doc.name, "persisting")
-        # ADR-278 B4: estampa K4 natural_key + direction (vocabulário LLM:
-        # instituicao/membro/tipo_documento resolvido por fallback na costura).
+        # ADR-278 B4: estampa K4 natural_key + direction (vocabulário LLM
+        # pós-ADR-312: banco/membro/tipo, resolvido canônico-primeiro).
         nk_stats = stamp_natural_key(e2_json)
         logger.info(
             "E2-llm: natural_key %d/%d para %s",
@@ -279,8 +279,8 @@ def _process_one_e2_llm_document(
             doc.name,
         )
         # Validação JSON-schema é executada pelo hook pós-write em
-        # DBArtifactStore.write (ADR-212 PR3 — SCHEMA_BY_STAGE inclui
-        # "extract_with_llm" → "e2_extract.schema.json").
+        # DBArtifactStore.write (SCHEMA_BY_STAGE mapeia "extract_with_llm" →
+        # "e2_llm_artifact.schema.json", contrato dedicado da ADR-286).
         store.write("extract_with_llm", safe_stem, e2_json)
 
         out_filename = f"{safe_stem}-2_extract.json"
@@ -404,13 +404,11 @@ def _output_to_e2_json(output, *, member_resolver=None) -> dict:
 
     result = {
         "arquivo_origem": output.source_file,
-        "instituicao": output.institution,
-        # A28.l8: from_e2_dict lê `banco` (não `instituicao`) — sem ele, o E3
-        # gerava key com banco vazio. `banco` também é required no schema E2.
+        # ADR-312: vocabulário top-level canonical-only — `banco`/`tipo` é o
+        # que os readers E3/E4 leem. As cópias legadas `instituicao`/
+        # `tipo_documento` existem só em rows antigas (pré-A32.l2), cobertas
+        # por fallback permanente nos readers.
         "banco": output.institution,
-        "tipo_documento": output.document_type,
-        # A32.l2: readers E3 (should_skip/key/from_e2_dict) leem `tipo` — sem
-        # ele, a skip-list nunca pulava cdbdetalhes/investimentosposicao.
         "tipo": output.document_type,
         "moeda": output.currency,
         "extraido_por": "llm",

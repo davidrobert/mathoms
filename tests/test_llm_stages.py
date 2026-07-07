@@ -378,7 +378,7 @@ class TestOutputConverters:
         output = make_e2_llm_output()
         result = _output_to_e2_json(output)
 
-        assert result["instituicao"] == "btgpactual"
+        assert result["banco"] == "btgpactual"
         assert result["extraido_por"] == "llm"
         assert len(result["transacoes"]) == 1
         assert len(result["investimentos"]) == 1
@@ -432,13 +432,13 @@ class TestOrchestratorLLMStages:
 class TestE2LLMIngestHygiene:
     def test_output_to_e2_json_emits_banco(self):
         # from_e2_dict lê `banco` (não `instituicao`); sem ele a key E3
-        # degradava para "_extrato_..." (dogfood 72883bde).
+        # degradava para "_extrato_..." (dogfood 72883bde). Pós-ADR-312 o
+        # writer é canonical-only — `instituicao` não é mais emitido.
         from pipeline.stages.extract_with_llm import _output_to_e2_json
 
         e2 = _output_to_e2_json(make_e2_llm_output())
 
         assert e2["banco"] == "btgpactual"
-        assert e2["instituicao"] == "btgpactual"
 
     def test_needs_review_entry_carries_review_reason(self):
         from pipeline.stages.extract_with_llm import _needs_review_entry
