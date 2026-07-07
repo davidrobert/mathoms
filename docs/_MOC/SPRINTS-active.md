@@ -12,7 +12,7 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado (`current`, aberta 2026-07-07)
+### A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado (`done` 2026-07-07)
 
 Origem: os 2 débitos registrados na lane [[A30.l1]]. 2 lanes paralelas
 ([[MOC-sprint-a31]]): l1 (P1) audit do console interno → tabela
@@ -24,6 +24,10 @@ financial-planner: ~50× P99 real). Co-design: senior-cto + data-engineer +
 sre-devops + product-manager + financial-planner. KR1: 100% dos fluxos de
 mutação de operador (15 services + 3 eventos login) auditados em tabela,
 medido por teste que enumera os paths.
+
+**Encerrada em 2026-07-07 — 2/2 lanes shipped no mesmo dia** (l2 #818 ·
+l1 #819; plano+ADR em #817). ADR-309 Decidido; 7B.5 fechado no plano
+INTERNAL_ADMIN (guardrail "troca só do sink" emendado).
 
 ## Sprint recém-fechada
 

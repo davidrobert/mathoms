@@ -4,7 +4,9 @@ type: lane
 title: "audit do console interno persistido em tabela internal_ops_audit (7B.5)"
 sprint: A31
 plan: PLAN-internal-admin
-status: open
+status: shipped
+ship_pr: 819
+ship_date: "2026-07-07"
 priority: P1
 branch_slug: a31-l1-internal-ops-audit-db
 adrs: ["[[ADR-309]]", "[[ADR-116]]", "[[ADR-275]]"]
@@ -13,7 +15,7 @@ parallel_with: ["[[A31.l2]]"]
 tags:
   - type/lane
   - sprint/a31
-  - status/open
+  - status/shipped
   - priority/p1
   - area/internal-ops
   - area/db
