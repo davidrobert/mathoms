@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-299 ADRs (ADR-001 a ADR-308) em [`docs/adr/`](../../adr/).
+300 ADRs (ADR-001 a ADR-309) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 279
-- **Proposto**: 17
+- **Proposto**: 18
 - **Roadmap**: 3
 
 ## Fundação
@@ -383,6 +383,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-250]] — GHCR como registry de imagens + tagging strategy — Sprint A20 · phase A20.l4
 - [[ADR-251]] — Trivy image scan blocking + SBOM CycloneDX — Sprint A20 · phase A20.l5
+
+## internal-ops
+
+### Proposto (1)
+
+- [[ADR-309]] — Audit do console interno persistido em tabela própria (7B.5)
 
 ## irpf
 

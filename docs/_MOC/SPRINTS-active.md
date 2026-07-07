@@ -12,6 +12,21 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
+### A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado (`current`, aberta 2026-07-07)
+
+Origem: os 2 débitos registrados na lane [[A30.l1]]. 2 lanes paralelas
+([[MOC-sprint-a31]]): l1 (P1) audit do console interno → tabela
+`internal_ops_audit` na MESMA transação da operação ([[ADR-309]] Proposto —
+tabela nova sem FK, REVOKE UPDATE/DELETE em prod, sem dual-write/backfill,
+exceção autônoma p/ login session-less) · l2 (P2) clamp do editor de budget
+US$ 1.000 → US$ 300 com emenda datada na [[ADR-173]] (racional
+financial-planner: ~50× P99 real). Co-design: senior-cto + data-engineer +
+sre-devops + product-manager + financial-planner. KR1: 100% dos fluxos de
+mutação de operador (15 services + 3 eventos login) auditados em tabela,
+medido por teste que enumera os paths.
+
+## Sprint recém-fechada
+
 ### A30 — Ops FinOps: budget LLM editável no console interno (`done` 2026-07-07)
 
 Origem: dogfood do owner 2026-07-06 — run do pipeline (executor Go, F2 do
@@ -26,8 +41,6 @@ de budget via SQL após a lane. Co-design:
 Na fila do owner: retomar [[MOC-sprint-a26]] (`paused → current`) quando as
 ≥20 gerações qualificadas de parecer acumularem, ou promover a A27
 (`candidate`).
-
-## Sprint recém-fechada
 
 ### A29 — Review UX: conferência de pipeline centrada em documentos (`done` 2026-07-06)
 
