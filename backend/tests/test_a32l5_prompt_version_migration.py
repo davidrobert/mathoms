@@ -20,7 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = PROJECT_ROOT / "backend" / "alembic.ini"
 ALEMBIC_DIR = PROJECT_ROOT / "backend" / "alembic"
 
-PARENT_REVISION = "a31l1opsaudit"
+PARENT_REVISION = "a33l5driftchk"
 TARGET_REVISION = "a32l5promptver"
 
 

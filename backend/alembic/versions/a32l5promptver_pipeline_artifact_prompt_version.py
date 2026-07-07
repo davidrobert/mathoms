@@ -1,7 +1,7 @@
 """A32.l5 — coluna prompt_version em pipeline_artifacts (ADR-311).
 
 Revision ID: a32l5promptver
-Revises: a31l1opsaudit
+Revises: a33l5driftchk
 Create Date: 2026-07-07
 
 Versão de extração (PROMPT_VERSION do writer LLM, já presente no payload
@@ -19,7 +19,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "a32l5promptver"
-down_revision: Union[str, Sequence[str], None] = "a31l1opsaudit"
+down_revision: Union[str, Sequence[str], None] = "a33l5driftchk"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
