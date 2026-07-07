@@ -1,0 +1,73 @@
+{
+ "ano_base": 2024,
+ "tipo_informe": "financeiro_pf",
+ "fonte_pagadora_cnpj": "30897094000104",
+ "fonte_pagadora_nome": "Wise Brasil Corretora de Câmbio Ltda.",
+ "titular_cpf_masked": "***.456.789-**",
+ "confidence": 0.81,
+ "financeiro_pf": {
+  "cnpj_emissor": "30897094000104",
+  "nome_emissor": "Wise Brasil Corretora de Câmbio Ltda.",
+  "rendimentos_tributaveis": [],
+  "rendimentos_isentos": [
+   {
+    "codigo_rfb": "19",
+    "fonte_pagadora_cnpj": "30897094000104",
+    "fonte_pagadora_nome": "Wise Europe SA",
+    "valor": "820.33",
+    "moeda": "USD",
+    "ir_retido": "0",
+    "descricao": "Variação cambial sobre saldo USD"
+   },
+   {
+    "codigo_rfb": "13",
+    "fonte_pagadora_cnpj": "30897094000104",
+    "fonte_pagadora_nome": "Wise Europe SA",
+    "valor": "42.10",
+    "moeda": "USD",
+    "ir_retido": "0",
+    "descricao": "Juros sobre saldo USD (mal-alocado em isentos)"
+   }
+  ],
+  "rendimentos_exclusiva": [],
+  "bens_direitos": [
+   {
+    "codigo_rfb": "41",
+    "fonte_pagadora_cnpj": "30897094000104",
+    "fonte_pagadora_nome": "Wise Europe SA",
+    "valor": "5210.55",
+    "moeda": "USD",
+    "ir_retido": "0",
+    "descricao": "Conta multi-moeda Wise — saldo USD 31/12 (código doméstico incorreto)"
+   },
+   {
+    "codigo_rfb": "62",
+    "fonte_pagadora_cnpj": "30897094000104",
+    "fonte_pagadora_nome": "Wise Europe SA",
+    "valor": "830.00",
+    "moeda": "EUR",
+    "ir_retido": "0",
+    "descricao": "Conta multi-moeda Wise — saldo EUR 31/12"
+   }
+  ],
+  "saldos_31_12": [
+   {
+    "tipo": "conta_exterior",
+    "descricao": "Wise Multi-Currency Account — USD",
+    "codigo_rfb": "62",
+    "saldo": "5210.55",
+    "moeda": "USD",
+    "fonte_pagadora_cnpj": "30897094000104"
+   },
+   {
+    "tipo": "conta_exterior",
+    "descricao": "Wise Multi-Currency Account — EUR",
+    "codigo_rfb": "62",
+    "saldo": "830.00",
+    "moeda": "EUR",
+    "fonte_pagadora_cnpj": "30897094000104"
+   }
+  ]
+ },
+ "prompt_version": "1.0.0"
+}

@@ -2,15 +2,33 @@
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 
+from pipeline.domain.services.ptax_types import PtaxQuote
 from pipeline.domain.services.wise_fiscal_flags import (
     FiscalFlag,
     detect_all_wise_flags,
     detect_cbe_threshold,
     detect_gcap_cambial_exposure,
     detect_juros_me_carne_leao,
+    detect_juros_me_mal_alocado,
+    detect_rfb41_em_me,
+    detect_variacao_cambial_isentos,
 )
+
+
+def _ptax_fake(rates: dict[str, str]):
+    """PtaxGetter de teste: moeda → PtaxQuote em 31/12 do ano_base."""
+
+    def getter(moeda: str, ano_base: int):
+        rate = rates.get(moeda)
+        if rate is None:
+            return None
+        return PtaxQuote(rate=Decimal(rate), observed_at=date(ano_base, 12, 31))
+
+    return getter
+
 
 # ─────────────────────── factories ──────────────────────────────────────────
 
@@ -78,10 +96,39 @@ def test_cbe_abaixo_threshold_nao_emite_flag():
     assert detect_cbe_threshold(saldos) == []
 
 
-def test_cbe_ignora_eur_no_threshold():
-    """Threshold é em USD; EUR não soma para CBE neste detector simplificado V1."""
+def test_cbe_ignora_eur_sem_ptax():
+    """Sem PTAX injetado, degrada para soma nominal USD — EUR não soma (shipped P5)."""
     saldos = [_saldo_exterior(moeda="EUR", saldo="2000000.00")]
     assert detect_cbe_threshold(saldos) == []
+
+
+def test_cbe_converte_eur_para_usd_via_ptax():
+    # EUR 1MM × 6,4344 / 6,1917 ≈ USD 1,039k > USD 1MM → flag.
+    """P5.4 (co-design 2026-07-07): posição EUR convertida por PTAX cruza o threshold."""
+    saldos = [_saldo_exterior(moeda="EUR", saldo="1000000.00")]
+    ptax = _ptax_fake({"USD": "6.1917", "EUR": "6.4344"})
+    flags = detect_cbe_threshold(saldos, ptax, 2024)
+    assert len(flags) == 1
+    assert flags[0].code == "CBE"
+    assert flags[0].needs_review is False
+
+
+def test_cbe_multimoeda_soma_equivalente_usd():
+    """USD nominal + EUR convertido somam para o threshold."""
+    saldos = [
+        _saldo_exterior(moeda="USD", saldo="600000.00"),
+        _saldo_exterior(moeda="EUR", saldo="450000.00"),
+    ]
+    ptax = _ptax_fake({"USD": "6.00", "EUR": "6.60"})
+    # 600k + 450k×6,6/6,0 = 600k + 495k = USD 1.095k > 1MM
+    assert len(detect_cbe_threshold(saldos, ptax, 2024)) == 1
+
+
+def test_cbe_ptax_ausente_para_moeda_degrada_sem_flag():
+    """PTAX USD ok mas EUR ausente → EUR fica de fora (graceful, sem raise)."""
+    saldos = [_saldo_exterior(moeda="EUR", saldo="2000000.00")]
+    ptax = _ptax_fake({"USD": "6.00"})
+    assert detect_cbe_threshold(saldos, ptax, 2024) == []
 
 
 def test_cbe_ignora_cdb_domestico_em_usd():
@@ -97,13 +144,36 @@ def test_cbe_lista_vazia_retorna_vazio():
 # ─────────────────────── Carnê-leão ─────────────────────────────────────────
 
 
-def test_carne_leao_rfb_13_em_usd_emite_flag():
+def test_carne_leao_rfb_13_em_usd_emite_footnote_info():
+    """Bem alocado (código 13 em tributáveis) → footnote info sem needs_review
+    (co-design financial-planner 2026-07-07, A33.l2 P5.3)."""
     flags = detect_juros_me_carne_leao([_rendimento()])
     assert len(flags) == 1
     assert flags[0].code == "CARNELEAO"
-    assert flags[0].severity == "atencao"
+    assert flags[0].severity == "info"
+    assert flags[0].needs_review is False
     assert flags[0].codigo_rfb == "13"
     assert flags[0].moeda == "USD"
+
+
+def test_carne_leao_mal_alocado_em_isentos_needs_review():
+    """Código 13 + ME fora de tributáveis → needs_review (DARF mensal em risco)."""
+    flags = detect_juros_me_mal_alocado([_rendimento()], [])
+    assert len(flags) == 1
+    assert flags[0].code == "CARNELEAO"
+    assert flags[0].severity == "atencao"
+    assert flags[0].needs_review is True
+
+
+def test_carne_leao_mal_alocado_em_exclusiva_needs_review():
+    flags = detect_juros_me_mal_alocado([], [_rendimento(moeda="EUR")])
+    assert len(flags) == 1
+    assert flags[0].needs_review is True
+
+
+def test_carne_leao_mal_alocado_brl_nao_emite():
+    """Código 13 em BRL fora de tributáveis não é caso de carnê-leão exterior."""
+    assert detect_juros_me_mal_alocado([_rendimento(moeda="BRL")], []) == []
 
 
 def test_carne_leao_rfb_13_em_brl_nao_emite():
@@ -180,6 +250,78 @@ def test_gcap_agrega_moedas_no_descricao():
     assert flags[0].metadata["moedas_expostas"] == ["EUR", "USD"]
 
 
+# ─────────────────────── Variação cambial em isentos (P5.2) ─────────────────
+
+
+def test_variacao_cambial_em_isentos_needs_review():
+    isentos = [{"descricao": "Variação cambial sobre saldo USD", "valor": "350.00", "moeda": "USD"}]
+    flags = detect_variacao_cambial_isentos(isentos, has_exterior=True)
+    assert len(flags) == 1
+    assert flags[0].code == "GCAP_ISENTO"
+    assert flags[0].needs_review is True
+
+
+def test_variacao_cambial_acento_insensitive():
+    """Regex é acento-insensitive: "variação" e "variacao" casam igual."""
+    isentos = [{"descricao": "variacao cambial", "valor": "1.00", "moeda": "USD"}]
+    assert len(detect_variacao_cambial_isentos(isentos, has_exterior=True)) == 1
+
+
+def test_variacao_cambial_exchange_gain_e_fx():
+    isentos = [
+        {"descricao": "Exchange gain on balance", "valor": "1.00", "moeda": "USD"},
+        {"descricao": "FX adjustment", "valor": "2.00", "moeda": "EUR"},
+    ]
+    assert len(detect_variacao_cambial_isentos(isentos, has_exterior=True)) == 2
+
+
+def test_variacao_cambial_sem_conta_exterior_nao_flagra():
+    """Predicado exige has_conta_exterior — payload 100% doméstico não flagra."""
+    isentos = [{"descricao": "Variação cambial", "valor": "1.00", "moeda": "USD"}]
+    assert detect_variacao_cambial_isentos(isentos, has_exterior=False) == []
+
+
+def test_variacao_cambial_descricao_inocente_nao_flagra():
+    """ "Rendimento de poupança" não casa o regex — sem falso-positivo."""
+    isentos = [{"descricao": "Rendimento de poupança", "valor": "100.00", "moeda": "BRL"}]
+    assert detect_variacao_cambial_isentos(isentos, has_exterior=True) == []
+
+
+def test_variacao_cambial_fx_word_bounded():
+    """ "FX" só casa word-bounded — "prefixado" não dispara."""
+    isentos = [{"descricao": "CDB prefixado", "valor": "10.00", "moeda": "BRL"}]
+    assert detect_variacao_cambial_isentos(isentos, has_exterior=True) == []
+
+
+# ─────────────────────── Código 41 em ME (P5.1) ─────────────────────────────
+
+
+def test_rfb41_em_moeda_estrangeira_needs_review():
+    bens = [{"codigo_rfb": "41", "moeda": "USD", "valor": "5000.00", "descricao": "Conta Wise"}]
+    flags = detect_rfb41_em_me(bens, has_exterior=False)
+    assert len(flags) == 1
+    assert flags[0].code == "RFB41_ME"
+    assert flags[0].needs_review is True
+    assert "62" in flags[0].descricao
+
+
+def test_rfb41_brl_com_conta_exterior_no_payload_flagra():
+    """41 em BRL mas payload tem posição exterior → predicado do co-design dispara."""
+    bens = [{"codigo_rfb": "41", "moeda": "BRL", "valor": "1000.00", "descricao": "Conta"}]
+    assert len(detect_rfb41_em_me(bens, has_exterior=True)) == 1
+
+
+def test_rfb41_puro_brl_domestico_nao_flagra():
+    """Código 41 puro em BRL é legítimo — não flagar (predicado ESTREITO)."""
+    bens = [{"codigo_rfb": "41", "moeda": "BRL", "valor": "1000.00", "descricao": "Conta Itaú"}]
+    assert detect_rfb41_em_me(bens, has_exterior=False) == []
+
+
+def test_rfb41_codigo_62_correto_nao_flagra():
+    bens = [_bem_exterior()]
+    assert detect_rfb41_em_me(bens, has_exterior=True) == []
+
+
 # ─────────────────────── Aggregator ──────────────────────────────────────────
 
 
@@ -223,3 +365,35 @@ def test_fiscal_flag_e_frozen():
 
     with __import__("pytest").raises(dataclasses.FrozenInstanceError):
         flag.code = "GCAP"  # type: ignore[misc]
+
+
+def test_fiscal_flag_needs_review_default_false():
+    flag = FiscalFlag(code="CBE", severity="info", title="x", descricao="y")
+    assert flag.needs_review is False
+
+
+def test_fiscal_flag_format_inclui_code_e_title():
+    """Warnings tipados expõem .format() (ADR-097 D1)."""
+    flag = FiscalFlag(code="GCAP", severity="atencao", title="Título", descricao="Corpo")
+    assert flag.format() == "[GCAP] Título: Corpo"
+
+
+def test_detect_all_payload_3_cenarios_needs_review():
+    """Golden P5 (co-design 2026-07-07): 41-em-ME + cambial-isento + juros mal-alocado
+    → 3 pontos needs_review agregáveis."""
+    payload = {
+        "saldos_31_12": [_saldo_exterior(saldo="1000.00")],
+        "rendimentos_tributaveis": [],
+        "rendimentos_isentos": [
+            {"descricao": "Variação cambial sobre saldo", "valor": "10.00", "moeda": "USD"},
+            _rendimento(valor="42.10"),
+        ],
+        "rendimentos_exclusiva": [],
+        "bens_direitos": [
+            {"codigo_rfb": "41", "moeda": "USD", "valor": "1000.00", "descricao": "Conta Wise"}
+        ],
+    }
+    flags = detect_all_wise_flags(payload)
+    needs = [f for f in flags if f.needs_review]
+    assert {f.code for f in needs} == {"RFB41_ME", "GCAP_ISENTO", "CARNELEAO"}
+    assert len(needs) == 3

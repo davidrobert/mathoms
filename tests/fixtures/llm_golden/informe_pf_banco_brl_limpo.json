@@ -1,0 +1,74 @@
+{
+ "ano_base": 2024,
+ "tipo_informe": "financeiro_pf",
+ "fonte_pagadora_cnpj": "11222333000181",
+ "fonte_pagadora_nome": "Banco Sintético S.A.",
+ "titular_cpf_masked": "***.456.789-**",
+ "confidence": 0.92,
+ "financeiro_pf": {
+  "cnpj_emissor": "11222333000181",
+  "nome_emissor": "Banco Sintético S.A.",
+  "rendimentos_tributaveis": [],
+  "rendimentos_isentos": [
+   {
+    "codigo_rfb": "03",
+    "fonte_pagadora_cnpj": "11222333000181",
+    "fonte_pagadora_nome": "Banco Sintético S.A.",
+    "valor": "310.42",
+    "moeda": "BRL",
+    "ir_retido": "0",
+    "descricao": "Rendimentos de poupança"
+   }
+  ],
+  "rendimentos_exclusiva": [
+   {
+    "codigo_rfb": "06",
+    "fonte_pagadora_cnpj": "11222333000181",
+    "fonte_pagadora_nome": "Banco Sintético S.A.",
+    "valor": "1250.00",
+    "moeda": "BRL",
+    "ir_retido": "218.75",
+    "descricao": "CDB DI 100% — rendimento líquido, IR definitivo"
+   }
+  ],
+  "bens_direitos": [
+   {
+    "codigo_rfb": "41",
+    "fonte_pagadora_cnpj": "11222333000181",
+    "fonte_pagadora_nome": "Banco Sintético S.A.",
+    "valor": "8300.00",
+    "moeda": "BRL",
+    "ir_retido": "0",
+    "descricao": "Conta corrente — saldo 31/12"
+   },
+   {
+    "codigo_rfb": "70",
+    "fonte_pagadora_cnpj": "11222333000181",
+    "fonte_pagadora_nome": "Banco Sintético S.A.",
+    "valor": "25000.00",
+    "moeda": "BRL",
+    "ir_retido": "0",
+    "descricao": "CDB DI 100% — saldo 31/12"
+   }
+  ],
+  "saldos_31_12": [
+   {
+    "tipo": "conta_corrente",
+    "descricao": "Banco Sintético conta corrente",
+    "codigo_rfb": "41",
+    "saldo": "8300.00",
+    "moeda": "BRL",
+    "fonte_pagadora_cnpj": "11222333000181"
+   },
+   {
+    "tipo": "cdb",
+    "descricao": "CDB DI 100% Banco Sintético",
+    "codigo_rfb": "70",
+    "saldo": "25000.00",
+    "moeda": "BRL",
+    "fonte_pagadora_cnpj": "11222333000181"
+   }
+  ]
+ },
+ "prompt_version": "1.0.0"
+}
