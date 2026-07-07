@@ -5,13 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-3 open.
+2 in_progress.
 
-## Open (3)
+## In progress (2)
 
-- [[A32.l1]] — purga de artifacts E2-llm órfãos + snapshot baseline da run dogfood d1732edd · priority P0 · branch `a32-l1-purge-orphan-baseline`
-- [[A32.l2]] — contrato E2-LLM: tipo no writer + fallback tipo_documento nos readers + golden de paridade derivado + gate strict CI-only · priority P0 · branch `a32-l2-e2-llm-contract-parity`
-- [[A32.l3]] — parser de fatura: período do routing/DB, nunca re-derivado do filename inteiro · priority P0 · branch `a32-l3-fatura-period-regex`
+- [[A32.l4]] — chave canônica de conta na continuidade de saldo + ordenação determinística (ADR-310) · priority P1 · branch `a32-l4-saldo-continuity-account-key`
+- [[A32.l5]] — lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável (ADR-311) · priority P1 · branch `a32-l5-artifact-lifecycle-tombstone`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

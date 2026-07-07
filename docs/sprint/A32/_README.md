@@ -70,11 +70,11 @@ antigos; a visibilidade é que é nova. Quatro causas raiz confirmadas:
 
 | Onda | Lane | Título | Prioridade | Status |
 |---|---|---|---|---|
-| 0 | [[A32.l1]] | Purga de artifacts E2-llm órfãos + snapshot baseline da run dogfood | P0 | open |
-| 1 | [[A32.l2]] | Contrato E2-LLM: `tipo` no writer + fallback nos readers + golden de paridade derivado + gate strict CI-only | P0 | open |
-| 1 | [[A32.l3]] | Parser de fatura: período do routing/DB, nunca re-derivado do filename inteiro | P0 | open |
-| 2 | [[A32.l4]] | Chave canônica de conta na continuidade de saldo + ordenação determinística ([[ADR-310]]) | P1 | planned |
-| 2 | [[A32.l5]] | Lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável ([[ADR-311]]) | P1 | planned |
+| 0 | [[A32.l1]] | Purga de artifacts E2-llm órfãos + snapshot baseline da run dogfood | P0 | shipped (#825) |
+| 1 | [[A32.l2]] | Contrato E2-LLM: `tipo` no writer + fallback nos readers + golden de paridade derivado + gate strict CI-only | P0 | shipped (#826) |
+| 1 | [[A32.l3]] | Parser de fatura: período do routing/DB, nunca re-derivado do filename inteiro | P0 | shipped (#823) |
+| 2 | [[A32.l4]] | Chave canônica de conta na continuidade de saldo + ordenação determinística ([[ADR-310]]) | P1 | in_progress |
+| 2 | [[A32.l5]] | Lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável ([[ADR-311]]) | P1 | in_progress |
 | 3 | [[A32.l6]] | Review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | P1 | planned |
 | 4 | [[A32.l7]] | Gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | P0 | planned |
 

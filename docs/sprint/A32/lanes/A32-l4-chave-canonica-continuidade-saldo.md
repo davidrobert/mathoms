@@ -4,7 +4,7 @@ type: lane
 title: "chave canônica de conta na continuidade de saldo + ordenação determinística (ADR-310)"
 sprint: A32
 plan: PLAN-data-lineage
-status: planned
+status: in_progress
 ship_pr: null
 ship_date: null
 priority: P1
@@ -15,7 +15,7 @@ parallel_with: ["[[A32.l5]]"]
 tags:
   - type/lane
   - sprint/a32
-  - status/planned
+  - status/in-progress
   - priority/p1
   - area/pipeline
   - area/domain

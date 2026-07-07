@@ -4,9 +4,9 @@ type: lane
 title: "purga de artifacts E2-llm órfãos + snapshot baseline da run dogfood d1732edd"
 sprint: A32
 plan: null
-status: open
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 825
+ship_date: "2026-07-07"
 priority: P0
 branch_slug: a32-l1-purge-orphan-baseline
 adrs: []
@@ -15,7 +15,7 @@ parallel_with: ["[[A32.l2]]", "[[A32.l3]]"]
 tags:
   - type/lane
   - sprint/a32
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/db

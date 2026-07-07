@@ -4,9 +4,9 @@ type: lane
 title: "contrato E2-LLM: tipo no writer + fallback tipo_documento nos readers + golden de paridade derivado + gate strict CI-only"
 sprint: A32
 plan: null
-status: open
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 826
+ship_date: "2026-07-07"
 priority: P0
 branch_slug: a32-l2-e2-llm-contract-parity
 adrs: []
@@ -15,7 +15,7 @@ parallel_with: ["[[A32.l1]]", "[[A32.l3]]"]
 tags:
   - type/lane
   - sprint/a32
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/llm

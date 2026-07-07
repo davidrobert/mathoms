@@ -4,9 +4,9 @@ type: lane
 title: "parser de fatura: período do routing/DB, nunca re-derivado do filename inteiro"
 sprint: A32
 plan: null
-status: open
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 823
+ship_date: "2026-07-07"
 priority: P0
 branch_slug: a32-l3-fatura-period-regex
 adrs: []
@@ -15,7 +15,7 @@ parallel_with: ["[[A32.l1]]", "[[A32.l2]]"]
 tags:
   - type/lane
   - sprint/a32
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
 ---
