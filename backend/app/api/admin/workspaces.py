@@ -1,4 +1,4 @@
-"""Console interno — endpoint /admin/workspaces/{id}/business-profile (ADR-116 + ADR-236)."""
+"""Console interno — endpoints /admin/workspaces/{id}/* (ADR-116 + ADR-236 + A30.l1)."""
 
 from __future__ import annotations
 
@@ -10,6 +10,10 @@ from backend.app.core.internal_ops_auth import (
     InternalOpsPrincipal,
     require_internal_operator,
 )
+from backend.app.schemas.admin import (
+    WorkspaceLLMBudgetResponse,
+    WorkspaceLLMBudgetUpdate,
+)
 from backend.app.schemas.business_profile import (
     BusinessProfile,
     BusinessProfileResponse,
@@ -17,6 +21,7 @@ from backend.app.schemas.business_profile import (
 from backend.app.services.internal_ops import (
     get_workspace_business_profile,
     update_workspace_business_profile,
+    update_workspace_llm_budget,
 )
 
 router = APIRouter(prefix="/workspaces")
@@ -59,3 +64,20 @@ async def admin_update_business_profile(
         _raise_from(result)
     await db.commit()
     return BusinessProfileResponse(**result.details["profile"])
+
+
+@router.patch("/{workspace_id}/llm-budget", response_model=WorkspaceLLMBudgetResponse)
+async def admin_update_llm_budget(
+    workspace_id: str,
+    payload: WorkspaceLLMBudgetUpdate,
+    db: AsyncSession = Depends(get_db),
+    principal: InternalOpsPrincipal = Depends(require_internal_operator),
+) -> WorkspaceLLMBudgetResponse:
+    """Define ou remove o cap LLM mensal do workspace (A30.l1 · ADR-173)."""
+    result = await update_workspace_llm_budget(
+        db, workspace_id, actor=principal.actor, payload=payload
+    )
+    if not result.ok:
+        _raise_from(result)
+    await db.commit()
+    return WorkspaceLLMBudgetResponse(**result.details)

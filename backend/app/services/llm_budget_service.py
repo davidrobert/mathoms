@@ -31,6 +31,11 @@ _SPEND_CACHE_TTL_SECONDS = 60
 _WARN_RATIO = Decimal("0.80")
 _HARD_STOP_RATIO = Decimal("1.10")
 
+# Contrato público p/ consumidores que precisam de paridade com o hard-stop
+# (editor de budget do console interno, A30.l1) — mesmos ratios e janela.
+WARN_RATIO = _WARN_RATIO
+HARD_STOP_RATIO = _HARD_STOP_RATIO
+
 
 def spend_cache_key(workspace_id: str, month_key: str) -> str:
     return f"llm_spend:ws={workspace_id}:m={month_key}"
@@ -41,6 +46,9 @@ def _current_month_window(now: Optional[datetime] = None) -> tuple[datetime, str
     ref = now or datetime.now(timezone.utc)
     start = ref.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     return start, f"{ref.year:04d}{ref.month:02d}"
+
+
+current_month_window = _current_month_window
 
 
 class LLMBudgetService:
