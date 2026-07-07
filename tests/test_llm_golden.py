@@ -136,6 +136,35 @@ class TestE2LLMGoldenFile:
         assert len(e2["investimentos"]) == 3
         assert e2["investimentos"][0]["taxa"] == "100% CDI"
 
+    def test_money_bit_exact_through_decimal_boundary(self, golden_data):
+        """A33.l1 (ADR-090): Decimal no boundary; wire E2 number bit-exact com o input."""
+        from decimal import Decimal
+
+        from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
+        from pipeline.stages.extract_with_llm import _output_to_e2_json
+
+        output = LLMExtractOutput(**golden_data)
+        assert all(isinstance(t.amount, Decimal) for t in output.transactions)
+        assert all(isinstance(inv.value_brl, Decimal) for inv in output.investments)
+
+        e2 = _output_to_e2_json(output)
+        for got, src in zip(e2["transacoes"], golden_data["transactions"]):
+            assert isinstance(got["valor"], float)
+            assert got["valor"] == src["amount"]
+        for got, src in zip(e2["investimentos"], golden_data["investments"]):
+            assert isinstance(got["valor_brl"], float)
+            assert got["valor_brl"] == src["value_brl"]
+
+    def test_amount_accepts_decimal_string(self):
+        """Prompt 1.3.0 pede string decimal; coerção exata sem passar por float."""
+        from decimal import Decimal
+
+        from pipeline.llm.schemas.e2_llm_extract import ExtractedTransaction
+
+        tx = ExtractedTransaction(date="2024-01-15", description="PIX", amount="-150.10")
+        assert tx.amount == Decimal("-150.10")
+        assert tx.balance_after is None
+
     def test_transactions_have_valid_dates(self, golden_data):
         import re
 

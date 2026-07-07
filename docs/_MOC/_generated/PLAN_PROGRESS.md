@@ -145,7 +145,7 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 
 - Status: `draft` · Sprint atual: A33
 - Sprints envolvidas: A17, A20, A33
-- Lanes: 1 done · 0 in_progress · 8 open · 0 blocked
+- Lanes: 2 done · 0 in_progress · 7 open · 0 blocked
 - ADRs canônicas: [[ADR-081]], [[ADR-090]], [[ADR-097]], [[ADR-110]], [[ADR-111]], [[ADR-137]], [[ADR-157]], [[ADR-191]], [[ADR-212]], [[ADR-233]], [[ADR-246]]
 
 ### PLAN-market-rates-ingestion — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto

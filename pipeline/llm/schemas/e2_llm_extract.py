@@ -2,9 +2,29 @@
 
 from __future__ import annotations
 
+from decimal import Decimal, InvalidOperation
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+def _coerce_decimal(v):
+    """Boundary LLM monetário = ``Decimal`` (ADR-090, A33.l1): aceita ``int|str|float``
+    via ``Decimal(str(v))`` — o prompt v1.3.0 pede string decimal, mas number JSON de
+    respostas antigas/reask não pode brickar a extração."""
+    if v is None:
+        return None
+    if isinstance(v, Decimal):
+        return v
+    if isinstance(v, (int, float, str)):
+        try:
+            return Decimal(str(v))
+        except InvalidOperation as exc:
+            raise ValueError(
+                f"E2-llm: valor monetário inválido — esperado string decimal "
+                f"'1234.56', recebido {type(v).__name__}={v!r}"
+            ) from exc
+    raise TypeError(f"E2-llm: não consigo coerce {type(v).__name__}={v!r} para Decimal")
 
 
 class ExtractedTransaction(BaseModel):
@@ -12,8 +32,12 @@ class ExtractedTransaction(BaseModel):
 
     date: str = Field(..., description="Transaction date in YYYY-MM-DD format")
     description: str = Field(..., description="Transaction description/memo")
-    amount: float = Field(
-        ..., description="Transaction amount in BRL (positive = credit, negative = debit)"
+    amount: Decimal = Field(
+        ...,
+        description=(
+            "Transaction amount in BRL as decimal string (e.g. '-150.00'; "
+            "positive = credit, negative = debit)"
+        ),
     )
     category_hint: Optional[str] = Field(
         None,
@@ -30,9 +54,12 @@ class ExtractedTransaction(BaseModel):
             "anual (não evento mensal de caixa) — evita double-counting."
         ),
     )
-    balance_after: Optional[float] = Field(
-        None, description="Account balance after this transaction, if available"
+    balance_after: Optional[Decimal] = Field(
+        None,
+        description="Account balance after this transaction as decimal string, if available",
     )
+
+    _coerce_money = field_validator("amount", "balance_after", mode="before")(_coerce_decimal)
 
 
 class ExtractedInvestment(BaseModel):
@@ -44,7 +71,9 @@ class ExtractedInvestment(BaseModel):
     )
     institution: str = Field(..., description="Canonical bank code")
     description: str = Field(..., description="Investment description/name")
-    value_brl: float = Field(..., description="Current value in BRL")
+    value_brl: Decimal = Field(
+        ..., description="Current value in BRL as decimal string (e.g. '25000.00')"
+    )
     applied_date: Optional[str] = Field(
         None, description="Application date in YYYY-MM-DD, if available"
     )
@@ -53,6 +82,8 @@ class ExtractedInvestment(BaseModel):
     )
     rate: Optional[str] = Field(None, description="Rate description (e.g. '100% CDI', 'IPCA+5.5%')")
     member_key: Optional[str] = Field(None, description="Owning family member key")
+
+    _coerce_value = field_validator("value_brl", mode="before")(_coerce_decimal)
 
 
 class LLMExtractOutput(BaseModel):

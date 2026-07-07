@@ -247,9 +247,13 @@ class Risco(BaseModel):
 
 
 class ImpactoEstimado(BaseModel):
-    # WHY float (ADR-090): output do LLM via Instructor é float;
-    # orchestrator converte para cents antes de persistir Suggestion.amount_brl_cents.
-    valor_estimado_brl: float = Field(  # rate from LLM output (ADR-090: cents on persist)
+    # WHY float (ADR-090, co-design data-engineer 2026-07-07 · A33.l1): output do
+    # LLM via Instructor é float; orchestrator converte para cents antes de
+    # persistir Suggestion.amount_brl_cents — sem acúmulo float. Decimal aqui
+    # reabriria risco de reask storm (ADR-292/294) sem eval; reavaliar quando o
+    # schema churnar por outro motivo. Exceção nominal no gate
+    # dev/check_float_money.py --scan-schemas (LLM_SCHEMAS_FLOAT_ALLOWLIST).
+    valor_estimado_brl: float = Field(
         ..., description="Positivo = ganho; negativo = perda evitada."
     )
     unidade: UnidadeImpacto

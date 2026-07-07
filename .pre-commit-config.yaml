@@ -96,6 +96,17 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: float-money-llm-schemas
+        # A33.l1 (KR2, ADR-090): full-scan de campos float em schemas Pydantic
+        # do boundary LLM. Política invertida: todo campo float-bearing é
+        # ofensor, salvo nome não-monetário (confidence/rate/…) ou allowlist
+        # nominal com WHY (LLM_SCHEMAS_FLOAT_ALLOWLIST).
+        name: "Proíbe float monetário em pipeline/llm/schemas (ADR-090 · A33.l1)"
+        entry: python3 dev/check_float_money.py --scan-schemas pipeline/llm/schemas
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: forbidden-paths
         name: "Bloqueia paths sensíveis (storage/, .env, *.db, …)"
         entry: python dev/check_forbidden_paths.py

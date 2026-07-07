@@ -483,11 +483,14 @@ def _emit_e15_assets_mismatch(output: Any, computed: "Decimal", r: ValidationRes
 def _validate_e15_totals(output: Any, r: ValidationResult) -> None:
     if not output.items:
         return
+    # Tolerância histórica de R$ 1,00 (era literal float 1.0 sobre aritmética
+    # Decimal); Decimal explícito preserva a semântica — não apertar (goldens).
+    tolerance = Decimal("1.00")
     computed = sum(i.value_brl for i in output.items if i.value_brl > 0)
-    if abs(computed - output.total_assets_brl) > 1.0:
+    if abs(computed - output.total_assets_brl) > tolerance:
         _emit_e15_assets_mismatch(output, computed, r)
     nw_diff = abs(output.net_worth_brl - (output.total_assets_brl - output.total_liabilities_brl))
-    if output.net_worth_brl != 0 and nw_diff > 1.0:
+    if output.net_worth_brl != 0 and nw_diff > tolerance:
         _emit_e15(
             r,
             "e15.totals.net_worth_mismatch",

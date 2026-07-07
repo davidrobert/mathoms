@@ -6,11 +6,29 @@ int64 cents em Go; string decimal no wire.
 
 Detecção: linhas ADICIONADAS em `git diff --cached` que declaram um
 campo com nome contendo amount|valor|brl|saldo|money|total|price|cost
-e anotação `: float`. Legado (79 ofensores em A6g.1) fica fora — só
-blocamos código NOVO.
+e anotação float-bearing (`float`, `Optional[float]`, `float | None`,
+`list[float]`, `tuple[float, ...]`). Legado (79 ofensores em A6g.1)
+fica fora — só blocamos código NOVO.
 
-Skip explícito: docstring/comentário inline dizendo "percentage", "rate",
-"tolerance" ou "tolerância" desqualifica (não é money, é razão/threshold).
+Skip explícito: comentário inline dizendo "percentage", "rate",
+"tolerance" ou "tolerância" desqualifica (não é money, é razão/threshold)
+— exceto se o par (path, campo) tem entrada nominal em allowlist, que
+é a única via para campo genuinamente monetário documentado.
+
+Modos full-scan (independentes de diff):
+  --scan-models [dir]   colunas SQLAlchemy Float em backend/app/models
+                        (ADR-283, allowlist MODELS_FLOAT_ALLOWLIST).
+  --scan-schemas [dir]  campos float em schemas Pydantic do boundary LLM
+                        (A33.l1/KR2). Política INVERTIDA: todo campo
+                        float-bearing é ofensor, salvo NOME de campo
+                        não-monetário (confidence/rate/score/…) ou entrada
+                        nominal em LLM_SCHEMAS_FLOAT_ALLOWLIST com WHY.
+                        O skip é decidido pelo nome do campo, nunca por
+                        comentário na linha.
+
+Limitação conhecida (mesma postura do scan ADR-283): alias indireto como
+``Annotated[float, ...]`` ou type-alias não é detectado — heurística de
+linha, não AST.
 
 Chamado via pre-commit `pass_filenames: true`; exit 0 se não há staged
 ou nenhum viola. Exit 1 mostrando arquivo + linha ofensora.
@@ -49,16 +67,53 @@ _FLOAT_TYPE = re.compile(r"\b(?:sa\.)?Float\b")
 
 # Tokens monetários — case-insensitive match no nome do campo.
 MONEY_TOKENS = re.compile(
-    r"(amount|valor|brl|saldo|money|total|price|cost|despesa|receita|"
+    r"(amount|valor|brl|saldo|balance|money|total|price|cost|despesa|receita|"
     r"aporte|patrimonio|capital|dinheiro|preco)",
     re.IGNORECASE,
 )
-# Campo tipado com float puro (não list[float]/tuple[float,...]).
-FIELD_FLOAT = re.compile(r"^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*:\s*float\b(?!\s*\|)")
+# Anotação float-bearing: float puro, união com None, Optional[float] e
+# sequências (list/tuple de float — acúmulo em sequência é o pior caso
+# do ADR-090). Fechado pelo co-design data-engineer 2026-07-07 (A33.l1):
+# o lookahead antigo `float(?!\s*\|)` deixava `Optional[float]` e
+# `float | None` passarem — furo que atingia o próprio alvo da lane
+# (`balance_after: Optional[float]`).
+_FLOAT_BEARING_ANN = (
+    r"(?:Optional\[\s*float\s*\]"
+    r"|float(?:\s*\|\s*None)?"
+    r"|(?:list|List)\[\s*float\s*\]"
+    r"|(?:tuple|Tuple)\[\s*float\s*(?:,\s*(?:\.\.\.|float))*\s*\])"
+)
+FIELD_FLOAT = re.compile(rf"^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*:\s*{_FLOAT_BEARING_ANN}")
 # Exceções (tolerâncias, taxas, percentuais) — skip se linha contém esses tokens.
 SKIP_TOKENS = re.compile(
     r"(percentage|percentual|rate|taxa|tolerance|tolera|threshold|limite|" r"ratio|fator|factor)",
     re.IGNORECASE,
+)
+
+# ADR-090 · A33.l1 (KR2) — full-scan estrutural de ``pipeline/llm/schemas/**``.
+# Allowlist NOMINAL ``(path_rel, campo) -> motivo``, mesmo padrão do scan
+# ADR-283: campo monetário float só sobrevive com WHY explícito aqui —
+# comentário na linha NÃO perdoa (SKIP_TOKENS não se aplica neste scan).
+LLM_SCHEMAS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
+    ("pipeline/llm/schemas/parecer_planejador.py", "valor_estimado_brl"): (
+        "co-design data-engineer 2026-07-07 (A33.l1): Instructor emite float; "
+        "orchestrator converte para cents antes de persistir "
+        "Suggestion.amount_brl_cents (sem acúmulo float); Decimal no schema "
+        "reabriria risco de reask storm (ADR-292/294) sem eval — reavaliar "
+        "quando o schema churnar por outro motivo"
+    ),
+}
+# Campos não-monetários por NOME (confidence 0-1, rates, scores, pesos).
+# Bounds ge/le são consequência do nome (confidence), não critério próprio.
+NON_MONEY_FIELD = re.compile(
+    r"(confidence|confianca|score|temperature|ratio|percent|percentual|"
+    r"taxa|rate|fator|factor|peso|weight|prob)",
+    re.IGNORECASE,
+)
+# Campo de schema: anotação float-bearing seguida de `=` (Field/default)
+# ou fim de linha — filtra parâmetro de função (`c: float,` tem vírgula).
+_SCHEMA_FIELD_FLOAT = re.compile(
+    rf"^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*:\s*{_FLOAT_BEARING_ANN}\s*(?:=|$)"
 )
 
 
@@ -124,6 +179,8 @@ def check_file(file_path: str) -> list[tuple[int, str, str]]:
         if not m:
             continue
         field_name = m.group(1)
+        if (file_path, field_name) in LLM_SCHEMAS_FLOAT_ALLOWLIST:
+            continue
         if MONEY_TOKENS.search(field_name):
             offenders.append((line_no, field_name, content.rstrip()))
     return offenders
@@ -181,6 +238,51 @@ def _run_models_scan(models_dir: str) -> int:
     return 1
 
 
+def _schema_float_offenders(py: Path) -> list[tuple[str, int, str]]:
+    rel = _repo_rel(py)
+    out: list[tuple[str, int, str]] = []
+    for line_no, line in enumerate(py.read_text(encoding="utf-8").splitlines(), 1):
+        m = _SCHEMA_FIELD_FLOAT.match(line)
+        if not m:
+            continue
+        field_name = m.group(1)
+        if NON_MONEY_FIELD.search(field_name):
+            continue
+        if (rel, field_name) in LLM_SCHEMAS_FLOAT_ALLOWLIST:
+            continue
+        out.append((rel, line_no, field_name))
+    return out
+
+
+def scan_llm_schemas_float_fields(schemas_dir: str) -> list[tuple[str, int, str]]:
+    """Return [(path_rel, line_no, campo)] de campos float-bearing fora da allowlist."""
+    offenders: list[tuple[str, int, str]] = []
+    for py in sorted(Path(schemas_dir).rglob("*.py")):
+        offenders.extend(_schema_float_offenders(py))
+    return offenders
+
+
+def _run_schemas_scan(schemas_dir: str) -> int:
+    offenders = scan_llm_schemas_float_fields(schemas_dir)
+    if not offenders:
+        return 0
+    print(
+        "ERRO: campo float em schema Pydantic do boundary LLM — violação do ADR-090:",
+        file=sys.stderr,
+    )
+    for rel, line_no, field_name in offenders:
+        print(f"  {rel}:{line_no} — {field_name}", file=sys.stderr)
+    print(
+        "\nADR-090: dinheiro nunca é float no boundary LLM. Use `Decimal` com\n"
+        "`_coerce_decimal` (padrão e15_baseline/informe_pf). Se o campo NÃO é\n"
+        "monetário (confidence/rate/score), o NOME deve dizer isso; se é\n"
+        "monetário com exceção deliberada, adicione (path, campo) a\n"
+        "LLM_SCHEMAS_FLOAT_ALLOWLIST com o WHY — comentário na linha não perdoa.",
+        file=sys.stderr,
+    )
+    return 1
+
+
 def _collect_diff_offenders(argv: list[str]) -> list[tuple[str, int, str, str]]:
     out: list[tuple[str, int, str, str]] = []
     for arg in argv:
@@ -214,6 +316,9 @@ def main(argv: list[str]) -> int:
     if argv and argv[0] == "--scan-models":
         models_dir = argv[1] if len(argv) > 1 else "backend/app/models"
         return _run_models_scan(models_dir)
+    if argv and argv[0] == "--scan-schemas":
+        schemas_dir = argv[1] if len(argv) > 1 else "pipeline/llm/schemas"
+        return _run_schemas_scan(schemas_dir)
     return _report_diff_offenders(_collect_diff_offenders(argv))
 
 
