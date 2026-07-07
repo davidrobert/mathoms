@@ -4,9 +4,9 @@ type: lane
 title: "InstitutionCatalogProvider (protocol) + códigos RFB do e16 em YAML anual versionado (W4-T01/T02)"
 sprint: A33
 plan: PLAN-llm-prompts-hardening
-status: planned
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 836
+ship_date: "2026-07-07"
 priority: P2
 branch_slug: a33-l8-catalogo-injection-rfb
 adrs: ["[[ADR-137]]"]
@@ -15,7 +15,7 @@ parallel_with: ["[[A33.l7]]"]
 tags:
   - type/lane
   - sprint/a33
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/llm
   - area/pipeline
