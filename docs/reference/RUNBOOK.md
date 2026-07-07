@@ -240,11 +240,16 @@ Todas gravam linha em `logs/internal_ops_audit.log`:
 | --- | --- | --- |
 | Usuários | Anonimizar (default, FKs preservadas), Hard delete (superadmin + motivo), Reset senha (16 chars one-time), Editar nome/ativo, **Alterar email** (invalida JWTs), Toggle `is_developer` | `user.anonymize` · `user.hard_delete` · `user.reset_password` · `user.update_profile` · `user.email_changed` · `user.set_developer_flag` |
 | Documentos | Purge bulk (user\|workspace scope, preview paginada, rollback em OSError de blob), Delete individual | `document.purge` · `document.delete` |
-| Métricas | Dashboard com filtro 7d/30d/90d + export CSV | leitura — sem audit |
+| Métricas | Dashboard com filtro 7d/30d/90d + export CSV; **Custo LLM por workspace** (mês-calendário UTC, mesma janela do hard-stop ADR-173) com **Editar cap** (mostra status resultante antes de confirmar) e **Remover cap** (confirmação dupla; NULL = sem teto) | `workspace.update_llm_budget` (edição) · leitura sem audit |
 | Relatórios | Lista read-only paginada (offset/total) | leitura — sem audit |
 
 **Anonimização é default** — prefira sempre anonymize sobre hard delete. Hard
 delete é irreversível e quebra FKs de audit/pipeline.
+
+**Desbloquear budget LLM (hard-stop ADR-173):** Métricas → Custo LLM por
+workspace → Editar cap. O modal mostra gasto do mês + status resultante do
+novo cap (com gasto $5.57, cap $6 ainda fica em warn). Não use SQL direto —
+a edição via UI gera audit. A janela reseta na virada do mês-calendário UTC.
 
 **Workspace órfão:** anonimizar o único owner deixa o workspace sem dono
 ativo (estado inativo, dados preservados). Transferir ownership para outro

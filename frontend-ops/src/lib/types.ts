@@ -139,3 +139,30 @@ export interface AdminReportListResponse {
 export interface AdminErrorResponse {
   detail: string;
 }
+
+export interface WorkspaceLLMBudgetMonth {
+  workspace_id: string;
+  workspace_name: string | null;
+  cap_usd: string | null;
+  spent_month_usd: string;
+  pct_of_cap: number | null;
+  status: "ok" | "warn" | "hard_stop" | "uncapped";
+  call_count: number;
+  unknown_cost_calls: number;
+}
+
+export interface LLMBudgetMonthResponse {
+  month: string;
+  period_start: string;
+  period_end: string;
+  warn_ratio: number;
+  hard_stop_ratio: number;
+  items: WorkspaceLLMBudgetMonth[];
+}
+
+export interface WorkspaceLLMBudgetResponse {
+  workspace_id: string;
+  previous_budget_usd: string | null;
+  monthly_budget_usd: string | null;
+  remove_cap: boolean;
+}

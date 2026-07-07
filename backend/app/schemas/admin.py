@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+
+# Clamp anti-typo de ordem de grandeza no editor de budget (sre-devops,
+# A30.l1). Calibrar com unit economics quando houver pricing.
+MAX_SETTABLE_BUDGET_USD = Decimal("1000.00")
 
 
 class AdminLoginRequest(BaseModel):
@@ -234,6 +239,60 @@ class LLMSpendByWorkspaceResponse(BaseModel):
     period_start: str
     period_end: str
     items: list[WorkspaceLLMSpendDTO]
+
+
+class WorkspaceLLMBudgetUpdate(BaseModel):
+    """Edição do cap mensal (A30.l1). `NULL` só via `remove_cap` explícito."""
+
+    cap_usd: Decimal | None = Field(default=None, ge=0, allow_inf_nan=False)
+    remove_cap: bool = False
+
+    @model_validator(mode="after")
+    def _cap_xor_remove(self) -> "WorkspaceLLMBudgetUpdate":
+        if self.remove_cap:
+            if self.cap_usd is not None:
+                raise ValueError(
+                    f"remove_cap=true não aceita cap_usd (recebido cap_usd={self.cap_usd})"
+                )
+            return self
+        if self.cap_usd is None:
+            raise ValueError("cap_usd ausente — para remover o cap envie remove_cap=true explícito")
+        if self.cap_usd > MAX_SETTABLE_BUDGET_USD:
+            raise ValueError(
+                f"cap_usd={self.cap_usd} acima do teto de sanidade "
+                f"US$ {MAX_SETTABLE_BUDGET_USD} (anti-typo; ajuste a constante se intencional)"
+            )
+        self.cap_usd = self.cap_usd.quantize(Decimal("0.01"))
+        return self
+
+
+class WorkspaceLLMBudgetResponse(BaseModel):
+    workspace_id: str
+    previous_budget_usd: str | None  # Decimal serializado como string (wire ADR-090)
+    monthly_budget_usd: str | None  # None = sem cap
+    remove_cap: bool
+
+
+class WorkspaceLLMBudgetMonthDTO(BaseModel):
+    """Snapshot mês-calendário UTC — mesma janela do hard-stop (ADR-173)."""
+
+    workspace_id: str
+    workspace_name: str | None = None
+    cap_usd: str | None  # None = sem cap
+    spent_month_usd: str
+    pct_of_cap: float | None  # None quando sem cap
+    status: Literal["ok", "warn", "hard_stop", "uncapped"]
+    call_count: int
+    unknown_cost_calls: int
+
+
+class LLMBudgetMonthResponse(BaseModel):
+    month: str  # "YYYY-MM"
+    period_start: str
+    period_end: str
+    warn_ratio: float
+    hard_stop_ratio: float
+    items: list[WorkspaceLLMBudgetMonthDTO]
 
 
 class PlannerFieldRequestTopItem(BaseModel):

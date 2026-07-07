@@ -43,6 +43,9 @@ from backend.app.services.internal_ops.update_workspace_business_profile import 
     get_workspace_business_profile,
     update_workspace_business_profile,
 )
+from backend.app.services.internal_ops.update_workspace_llm_budget import (
+    update_workspace_llm_budget,
+)
 
 __all__ = [
     "AuditRecord",
@@ -71,4 +74,5 @@ __all__ = [
     "UserWorkspaceSummary",
     "get_workspace_business_profile",
     "update_workspace_business_profile",
+    "update_workspace_llm_budget",
 ]

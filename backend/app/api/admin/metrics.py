@@ -19,12 +19,19 @@ from backend.app.repositories.llm_call_log_repository import LLMCallLogRepositor
 from backend.app.schemas.admin import (
     AuditEntryDTO,
     AuditListResponse,
+    LLMBudgetMonthResponse,
     LLMSpendByWorkspaceResponse,
     MetricsResponse,
+    WorkspaceLLMBudgetMonthDTO,
     WorkspaceLLMSpendDTO,
 )
 from backend.app.services.internal_ops import get_metrics
 from backend.app.services.internal_ops.audit import read_audit
+from backend.app.services.llm_budget_service import (
+    HARD_STOP_RATIO,
+    WARN_RATIO,
+    current_month_window,
+)
 
 router = APIRouter()
 
@@ -89,6 +96,63 @@ def _summary_to_dto(summary, name_budget: dict) -> WorkspaceLLMSpendDTO:
         unknown_cost_calls=summary.unknown_cost_calls,
         pct_of_budget=pct,
         over_budget=pct >= 1.0,
+    )
+
+
+def _budget_status(spent: Decimal, cap: Decimal | None) -> tuple[str, float | None]:
+    """Classificação com os MESMOS ratios/janela do hard-stop (ADR-173)."""
+    if cap is None or cap <= 0:
+        return "uncapped", None
+    pct = float(spent / cap)
+    if spent >= cap * HARD_STOP_RATIO:
+        return "hard_stop", pct
+    if spent >= cap * WARN_RATIO:
+        return "warn", pct
+    return "ok", pct
+
+
+def _month_dto(ws_id: str, name: str | None, cap, summary) -> WorkspaceLLMBudgetMonthDTO:
+    cap_dec = None if cap is None else Decimal(cap)
+    spent = (summary.total_cost_usd if summary else Decimal("0")).quantize(Decimal("0.01"))
+    budget_status, pct = _budget_status(spent, cap_dec)
+    return WorkspaceLLMBudgetMonthDTO(
+        workspace_id=ws_id,
+        workspace_name=name,
+        cap_usd=None if cap_dec is None else str(cap_dec),
+        spent_month_usd=str(spent),
+        pct_of_cap=pct,
+        status=budget_status,
+        call_count=summary.call_count if summary else 0,
+        unknown_cost_calls=summary.unknown_cost_calls if summary else 0,
+    )
+
+
+async def _month_items(db: AsyncSession, month_start, now) -> list[WorkspaceLLMBudgetMonthDTO]:
+    summaries = await LLMCallLogRepository(db).by_workspace_summary(since=month_start, until=now)
+    by_ws = {s.workspace_id: s for s in summaries}
+    rows = (
+        await db.execute(select(Workspace.id, Workspace.name, Workspace.monthly_llm_budget_usd))
+    ).all()
+    items = [_month_dto(r[0], r[1], r[2], by_ws.get(r[0])) for r in rows]
+    items.sort(key=lambda i: (i.pct_of_cap is None, -(i.pct_of_cap or 0.0), i.workspace_id))
+    return items
+
+
+@router.get("/llm-budget-by-workspace", response_model=LLMBudgetMonthResponse)
+async def llm_budget_by_workspace(
+    db: AsyncSession = Depends(get_db),
+    _: InternalOpsPrincipal = Depends(require_internal_operator),
+) -> LLMBudgetMonthResponse:
+    """Cap + gasto do mês-calendário UTC por workspace — base do editor de budget (A30.l1)."""
+    month_start, _month_key = current_month_window()
+    now = datetime.now(timezone.utc)
+    return LLMBudgetMonthResponse(
+        month=month_start.strftime("%Y-%m"),
+        period_start=month_start.isoformat(),
+        period_end=now.isoformat(),
+        warn_ratio=float(WARN_RATIO),
+        hard_stop_ratio=float(HARD_STOP_RATIO),
+        items=await _month_items(db, month_start, now),
     )
 
 

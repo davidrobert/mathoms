@@ -6043,6 +6043,47 @@
         "title": "IrpfSuggestionItem",
         "type": "object"
       },
+      "LLMBudgetMonthResponse": {
+        "properties": {
+          "hard_stop_ratio": {
+            "title": "Hard Stop Ratio",
+            "type": "number"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceLLMBudgetMonthDTO"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "title": "Period Start",
+            "type": "string"
+          },
+          "warn_ratio": {
+            "title": "Warn Ratio",
+            "type": "number"
+          }
+        },
+        "required": [
+          "month",
+          "period_start",
+          "period_end",
+          "warn_ratio",
+          "hard_stop_ratio",
+          "items"
+        ],
+        "title": "LLMBudgetMonthResponse",
+        "type": "object"
+      },
       "LLMConfigCreateRequest": {
         "description": "Create or update LLM configuration for a workspace.",
         "properties": {
@@ -13065,6 +13106,151 @@
         "title": "WarningEntry",
         "type": "object"
       },
+      "WorkspaceLLMBudgetMonthDTO": {
+        "description": "Snapshot m\u00eas-calend\u00e1rio UTC \u2014 mesma janela do hard-stop (ADR-173).",
+        "properties": {
+          "call_count": {
+            "title": "Call Count",
+            "type": "integer"
+          },
+          "cap_usd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Usd"
+          },
+          "pct_of_cap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Of Cap"
+          },
+          "spent_month_usd": {
+            "title": "Spent Month Usd",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "warn",
+              "hard_stop",
+              "uncapped"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unknown_cost_calls": {
+            "title": "Unknown Cost Calls",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "workspace_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Name"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "cap_usd",
+          "spent_month_usd",
+          "pct_of_cap",
+          "status",
+          "call_count",
+          "unknown_cost_calls"
+        ],
+        "title": "WorkspaceLLMBudgetMonthDTO",
+        "type": "object"
+      },
+      "WorkspaceLLMBudgetResponse": {
+        "properties": {
+          "monthly_budget_usd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Budget Usd"
+          },
+          "previous_budget_usd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Budget Usd"
+          },
+          "remove_cap": {
+            "title": "Remove Cap",
+            "type": "boolean"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "previous_budget_usd",
+          "monthly_budget_usd",
+          "remove_cap"
+        ],
+        "title": "WorkspaceLLMBudgetResponse",
+        "type": "object"
+      },
+      "WorkspaceLLMBudgetUpdate": {
+        "description": "Edi\u00e7\u00e3o do cap mensal (A30.l1). `NULL` s\u00f3 via `remove_cap` expl\u00edcito.",
+        "properties": {
+          "cap_usd": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Usd"
+          },
+          "remove_cap": {
+            "default": false,
+            "title": "Remove Cap",
+            "type": "boolean"
+          }
+        },
+        "title": "WorkspaceLLMBudgetUpdate",
+        "type": "object"
+      },
       "WorkspaceLLMSpendDTO": {
         "description": "Spend snapshot de um workspace na janela consultada.",
         "properties": {
@@ -13581,6 +13767,72 @@
           }
         },
         "summary": "Delete One",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/llm-budget-by-workspace": {
+      "get": {
+        "description": "Cap + gasto do m\u00eas-calend\u00e1rio UTC por workspace \u2014 base do editor de budget (A30.l1).",
+        "operationId": "llm_budget_by_workspace_admin_llm_budget_by_workspace_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LLMBudgetMonthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Llm Budget By Workspace",
         "tags": [
           "admin"
         ]
@@ -15024,6 +15276,91 @@
           }
         },
         "summary": "Admin Update Business Profile",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/workspaces/{workspace_id}/llm-budget": {
+      "patch": {
+        "description": "Define ou remove o cap LLM mensal do workspace (A30.l1 \u00b7 ADR-173).",
+        "operationId": "admin_update_llm_budget_admin_workspaces__workspace_id__llm_budget_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceLLMBudgetUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceLLMBudgetResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Update Llm Budget",
         "tags": [
           "admin"
         ]

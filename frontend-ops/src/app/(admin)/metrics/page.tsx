@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui";
 import { api, AdminApiError } from "@/lib/api";
+import { LlmBudgetSection } from "./llm-budget-section";
 import type { MetricsResponse } from "@/lib/types";
 
 const PERIODS: ReadonlyArray<{ label: string; days: number }> = [
@@ -141,6 +142,8 @@ export default function MetricsPage() {
           />
         </div>
       )}
+
+      <LlmBudgetSection />
     </section>
   );
 }

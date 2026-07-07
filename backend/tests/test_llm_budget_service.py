@@ -153,3 +153,41 @@ def test_recorded_spend_feeds_next_check(session_factory) -> None:
 
     with pytest.raises(LLMBudgetExceededError):
         svc.check_budget()
+
+
+class _SpyRedis:
+    """Gasto stale fixo — o cap novo (lido fresh do DB) decide mesmo assim."""
+
+    def __init__(self, calls: list[str]) -> None:
+        self._calls = calls
+
+    def get(self, key):
+        self._calls.append(f"get:{key}")
+        return b"5.57"
+
+    def set(self, *args, **kwargs):
+        self._calls.append("set")
+
+
+def _set_cap(factory, ws_id: str, value: Decimal) -> None:
+    session = factory()
+    try:
+        session.get(Workspace, ws_id).monthly_llm_budget_usd = value
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_cap_update_effective_without_cache_invalidation(session_factory, monkeypatch) -> None:
+    """A30.l1: editar o cap (mesmo UPDATE do editor admin) vale no próximo
+    check_budget SEM invalidar o cache Redis de gasto."""
+    ws_id = _seed_workspace(session_factory, budget=Decimal("5.00"))
+    _spend(session_factory, ws_id, "5.57")
+    service = LLMBudgetService(ws_id, session_factory=session_factory)
+    with pytest.raises(LLMBudgetExceededError):
+        service.check_budget()
+    redis_calls: list[str] = []
+    monkeypatch.setattr(budget_mod, "_get_redis_safe", lambda: _SpyRedis(redis_calls))
+    _set_cap(session_factory, ws_id, Decimal("20.00"))
+    service.check_budget()
+    assert "set" not in redis_calls

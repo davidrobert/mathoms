@@ -11,6 +11,7 @@ import type {
   AnonymizeUserResponse,
   DeleteDocumentResponse,
   HardDeleteUserResponse,
+  LLMBudgetMonthResponse,
   MetricsResponse,
   PurgeDocumentsResponse,
   PurgeReportsResponse,
@@ -18,6 +19,7 @@ import type {
   SetDeveloperFlagResponse,
   UpdateUserEmailResponse,
   UpdateUserProfileResponse,
+  WorkspaceLLMBudgetResponse,
 } from "./types";
 
 export class AdminApiError extends Error {
@@ -153,6 +155,18 @@ export const api = {
 
   getMetrics: (periodDays = 30) =>
     request<MetricsResponse>(`/metrics?period_days=${periodDays}`),
+
+  getLlmBudgetByWorkspace: () =>
+    request<LLMBudgetMonthResponse>("/llm-budget-by-workspace"),
+
+  updateWorkspaceLlmBudget: (
+    workspaceId: string,
+    body: { cap_usd: string } | { remove_cap: true },
+  ) =>
+    request<WorkspaceLLMBudgetResponse>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/llm-budget`,
+      { method: "PATCH", body },
+    ),
 
   listReports: (
     query: {
