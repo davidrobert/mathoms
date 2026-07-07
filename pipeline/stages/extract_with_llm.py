@@ -366,17 +366,20 @@ def _output_to_e2_json(output, *, member_resolver=None) -> dict:
         # consolidador faz outro round defensive).
         return resolution.canonical_key or raw
 
+    # Wire E2 é JSON number (contrato e2_extract $defs/transacao); Decimal vive no
+    # boundary LLM e float() entra só nesta serialização, sem aritmética — ADR-090
+    # §wire (float(Decimal(str(x))) é bit-exact com o number original, A33.l1).
     transactions = []
     for t in output.transactions:
         entry = {
             "data": t.date,
             "descricao": t.description,
-            "valor": t.amount,
+            "valor": float(t.amount),
         }
         if t.category_hint:
             entry["categoria_sugerida"] = t.category_hint
         if t.balance_after is not None:
-            entry["saldo_apos"] = t.balance_after
+            entry["saldo_apos"] = float(t.balance_after)
         transactions.append(entry)
 
     investments = []
@@ -385,7 +388,7 @@ def _output_to_e2_json(output, *, member_resolver=None) -> dict:
             "tipo": inv.type,
             "instituicao": inv.institution,
             "descricao": inv.description,
-            "valor_brl": inv.value_brl,
+            "valor_brl": float(inv.value_brl),
         }
         if inv.applied_date:
             entry["data_aplicacao"] = inv.applied_date

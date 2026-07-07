@@ -9,7 +9,10 @@
 # fantasma de R$ 61k. Adiciona regra explícita: documentos com marcadores
 # "Ficha da Declaração" / "Informe de Rendimentos + Ano Calendário" devem
 # retornar `transacoes=[]` (não tentar extrair como extrato).
-PROMPT_VERSION = "1.2.0"
+# 1.3.0 (A33.l1, ADR-090): valores monetários como string decimal ("1234.56"),
+# nunca number JSON float; o schema converte para Decimal no boundary
+# (padrão e15 v1.2.0).
+PROMPT_VERSION = "1.3.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 
@@ -37,7 +40,7 @@ Para investimentos, extraia:
 - Taxa (ex: "100% CDI", "IPCA+5.5%")
 
 Regras:
-- Valores em formato numérico (1234.56, não "1.234,56")
+- Valores monetários como STRING decimal com ponto (ex: "1234.56", não "1.234,56" nem o número 1234.56) — o schema converte para Decimal no boundary
 - Datas em formato YYYY-MM-DD
 - Use códigos canônicos para bancos: itau, santander, bradesco, c6bank, btgpactual, rico, nubank, inter
 - Se não conseguir determinar o período, use null
