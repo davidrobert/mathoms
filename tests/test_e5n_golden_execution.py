@@ -111,12 +111,12 @@ def e5n_tenant_with_conjuge(tmp_path: Path) -> Path:
 
 
 def test_e5n_execution_injects_narrativas(e5_tenant_minimal: Path):
-    """Após E5, `e5n_narrativas.main` injeta `narrativas` válidas (spec E5.N)."""
+    """Após E5, `generate_narratives.main` injeta `narrativas` válidas (spec E5.N)."""
     from scripts.analyze_finances import main_with_store as e5_mws
     from scripts.categorize_transactions import main_with_store as e4_mws
-    from scripts.e5n_narrativas import _init_config as e5n_init
-    from scripts.e5n_narrativas import main_with_store as e5n_mws
-    from scripts.e5n_narrativas import validate_narrativas
+    from scripts.generate_narratives import _init_config as e5n_init
+    from scripts.generate_narratives import main_with_store as e5n_mws
+    from scripts.generate_narratives import validate_narrativas
 
     ctx = _new_e5n_ctx(e5_tenant_minimal)
     e4_mws(ctx)
@@ -141,9 +141,9 @@ def test_e5n_execution_narrativas_with_conjuge_chart(e5n_tenant_with_conjuge: Pa
     """ADR-176: workspace com cônjuge produz chart obrigatório ``cenarios_conjuge`` (chave universal, não mais ``<membro>_cenarios``)."""
     from scripts.analyze_finances import main_with_store as e5_mws
     from scripts.categorize_transactions import main_with_store as e4_mws
-    from scripts.e5n_narrativas import _init_config as e5n_init
-    from scripts.e5n_narrativas import main_with_store as e5n_mws
-    from scripts.e5n_narrativas import validate_narrativas
+    from scripts.generate_narratives import _init_config as e5n_init
+    from scripts.generate_narratives import main_with_store as e5n_mws
+    from scripts.generate_narratives import validate_narrativas
 
     ctx = _new_e5n_ctx(e5n_tenant_with_conjuge)
     e4_mws(ctx)

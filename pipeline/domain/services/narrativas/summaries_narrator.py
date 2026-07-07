@@ -1,6 +1,6 @@
 """SummariesNarrator — seção ``summaries.s1..s10`` (A6d.3.2).
 
-Extraído de ``scripts/e5n_narrativas.build_narrativas`` (linhas 823-886
+Extraído de ``scripts/generate_narratives.build_narrativas`` (linhas 823-886
 do legado). Produz 10 parágrafos curtos (um por dimensão: patrimônio,
 score, carteira, imóveis, EUA, cambial, IF, PJ, riscos, decisões).
 

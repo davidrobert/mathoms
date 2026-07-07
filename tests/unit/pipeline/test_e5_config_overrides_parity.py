@@ -71,7 +71,7 @@ def test_e5_init_config_falls_back_to_disk_when_no_ctx(tmp_path: Path) -> None:
 
 
 def test_e5n_init_config_prefers_overrides_over_disk(tmp_path: Path) -> None:
-    import scripts.e5n_narrativas as e5n
+    import scripts.generate_narratives as e5n
 
     _seed_disk_decoy(tmp_path, with_fiscal=True)
     e5n._init_config(tmp_path, ctx=_ctx_with_overrides(tmp_path))

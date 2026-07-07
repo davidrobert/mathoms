@@ -14,7 +14,7 @@ Cobertura:
 2. **Dynamic keys** — mudar nomes de membros em ``family_members.json``
    propaga em ``charts`` (key dinâmica do bloco de cenários do cônjuge)
    e ``summaries`` (mentions ``ctx.titular_nome``/``ctx.conjuge_nome``).
-3. **Delegação legado** — ``scripts.e5n_narrativas.build_narrativas``
+3. **Delegação legado** — ``scripts.generate_narratives.build_narrativas``
    delega ao builder (paridade bit-a-bit).
 
 Tolerância: estrutural + exato, sem tolerâncias numéricas (narrativas
@@ -399,10 +399,10 @@ def test_builder_charts_key_cenarios_uses_universal_key():
 
 
 def test_legacy_build_narrativas_delegates_to_builder(monkeypatch, tmp_path):
-    """``scripts.e5n_narrativas.build_narrativas`` deve produzir output
+    """``scripts.generate_narratives.build_narrativas`` deve produzir output
     bit-a-bit idêntico ao builder direto.
     """
-    import scripts.e5n_narrativas as e5n
+    import scripts.generate_narratives as e5n
     import scripts.pipeline_common as _pc
 
     # Re-inicializa para workspace limpo (evita globals de outra sessão).
@@ -441,8 +441,8 @@ def test_legacy_build_narrativas_delegates_to_builder(monkeypatch, tmp_path):
 
 
 def test_format_helpers_backwards_compat():
-    """Aliases em ``scripts.e5n_narrativas`` continuam funcionando."""
-    import scripts.e5n_narrativas as e5n
+    """Aliases em ``scripts.generate_narratives`` continuam funcionando."""
+    import scripts.generate_narratives as e5n
 
     assert e5n.fmt_currency(1_500_000) == "R$ 1,5M"
     assert e5n.fmt_percent(35) == "35%"

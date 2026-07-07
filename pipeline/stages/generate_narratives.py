@@ -1,6 +1,6 @@
 """Stage wrapper for E5.N Narrativas (ADR-097).
 
-Chama ``scripts.e5n_narrativas.main_with_store(ctx)`` direto.
+Chama ``scripts.generate_narratives.main_with_store(ctx)`` direto.
 """
 
 from __future__ import annotations
@@ -12,6 +12,6 @@ if TYPE_CHECKING:
 
 
 def run(ctx: "WorkspaceContext") -> dict:
-    from scripts.e5n_narrativas import main_with_store
+    from scripts.generate_narratives import main_with_store
 
     return main_with_store(ctx)

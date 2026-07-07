@@ -11,7 +11,7 @@ Segue o **mesmo contrato de saída** do legado — o dict é consumido por:
 - ``scripts/analyze_finances.analyze_ratios`` (campos ``bruto``, ``investivel``,
   ``dividas``, ``residencia``, ``veiculos``).
 - ``config/report_layout.yaml`` via ``analise_financeira-5_analysis.json``.
-- ``scripts/e5n_narrativas.build_narrativas`` (campos ``composicao``,
+- ``scripts/generate_narratives.build_narrativas`` (campos ``composicao``,
   ``caixa_detalhes``, ``fonte_investimentos``).
 
 Composição patrimonial — taxonomia canônica (rules-as-code, ADR-145)

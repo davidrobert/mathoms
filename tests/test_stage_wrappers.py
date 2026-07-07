@@ -192,14 +192,14 @@ class TestInitConfig:
         (config_dir / "family_members.json").write_text('{"titular":"test","membros":{}}')
         (config_dir / "categorization.json").write_text("{}")
 
-        from scripts.e5n_narrativas import _init_config
+        from scripts.generate_narratives import _init_config
 
         _init_config(tmp_path)
-        from scripts import e5n_narrativas
+        from scripts import generate_narratives
 
-        assert e5n_narrativas.PROJECT_DIR == tmp_path
+        assert generate_narratives.PROJECT_DIR == tmp_path
         assert (
-            e5n_narrativas.E5_JSON_PATH
+            generate_narratives.E5_JSON_PATH
             == tmp_path / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
         )
 

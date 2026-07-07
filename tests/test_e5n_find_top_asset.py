@@ -7,7 +7,7 @@ Garante coerência com ``patrimonio_investivel`` (mesmo ``bens_por_membro``).
 
 from __future__ import annotations
 
-from scripts.e5n_narrativas import _find_top_asset
+from scripts.generate_narratives import _find_top_asset
 
 _FIRST = {
     "posicao": 1,
@@ -43,7 +43,7 @@ def test_no_longer_reads_e4_disk_artifact(tmp_path, monkeypatch):
     # Garante que a função NÃO depende mais do arquivo
     # processed/E4_unified/investimentos-4_unified.json — leitura de disco
     # foi substituída por leitura do dict e5_data.
-    import scripts.e5n_narrativas as mod
+    import scripts.generate_narratives as mod
 
     monkeypatch.setattr(mod, "PROJECT_DIR", tmp_path)
     e5_data = {
