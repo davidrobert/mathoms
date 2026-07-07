@@ -2,7 +2,7 @@
 
 Value object ISP (R9/ADR-097) que concentra os 10+ ``_KEY_*`` strings
 derivados de ``family_members.json``, evitando que os narradores
-acessem globals de módulo em ``scripts/e5n_narrativas.py``.
+acessem globals de módulo em ``scripts/generate_narratives.py``.
 """
 
 from __future__ import annotations

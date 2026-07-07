@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "E3 Reconciled",
-  "description": "Saída de reconcile_account (*-3_reconciled.json). Campos obrigatórios alinhados a scripts/e3_reconcile.py; transações preservam chaves extras dos bancos.",
+  "description": "Saída de reconcile_account (*-3_reconciled.json). Campos obrigatórios alinhados a scripts/reconcile_transactions.py; transações preservam chaves extras dos bancos.",
   "type": "object",
   "required": [
     "banco",

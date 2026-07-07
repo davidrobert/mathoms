@@ -10,8 +10,8 @@ if TYPE_CHECKING:
 
 def run(ctx: WorkspaceContext) -> dict:
     """Executa E0 unlock com contexto injetado."""
-    from scripts.e0_unlock import main as e0_unlock_main
+    from scripts.unlock_documents import main as unlock_documents_main
 
-    e0_unlock_main(root_dir=ctx.root)
+    unlock_documents_main(root_dir=ctx.root)
 
     return {"success": True}

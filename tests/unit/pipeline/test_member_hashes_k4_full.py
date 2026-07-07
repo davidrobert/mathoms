@@ -44,7 +44,7 @@ _E3_K4 = {
 @pytest.fixture
 def despesas_e4_v2(monkeypatch, tmp_path):
     monkeypatch.setenv("MATHOMS_DEDUP_NATURAL_KEY_V2", "1")
-    from scripts.e4_categorize import main_with_store as e4
+    from scripts.categorize_transactions import main_with_store as e4
 
     store = InMemoryArtifactStore()
     store.seed("E3", "itau_extratoconta_202601", copy.deepcopy(_E3_K4))

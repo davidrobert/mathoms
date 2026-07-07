@@ -37,7 +37,7 @@ construído em [config_materializer.py:100](../../../../backend/app/services/con
 1:1 — quando dois membros têm conta no mesmo banco (cenário comum no
 ICP brasileiro: casal com Itaú/Bradesco/Nubank), o último sobrescreve
 o primeiro silenciosamente. Transações + posições de investimento são
-atribuídas ao membro errado em [e4_categorize.py:330](../../../../scripts/e4_categorize.py)
+atribuídas ao membro errado em [e4_categorize.py:330](../../../../scripts/categorize_transactions.py)
 e [investments_consolidator.py:141](../../../../pipeline/domain/services/investments_consolidator.py).
 
 `account_number` e `agency` são extraídos pelos parsers E2 mas **nunca

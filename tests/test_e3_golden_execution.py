@@ -41,7 +41,7 @@ def _e2_minimal_payload() -> dict:
 
 
 def test_e3_execution_produces_reconciled_json(e3_tenant_minimal: Path):
-    """Roda e3_reconcile.main_with_store em tenant isolado.
+    """Roda reconcile_transactions.main_with_store em tenant isolado.
 
     ADR-212 PR3b: ``WorkspaceContext`` requer ``artifact_store`` explícito.
     E3 ainda lê E2 de disco via ``load_and_group_e2_extracts`` (fixture
@@ -50,7 +50,7 @@ def test_e3_execution_produces_reconciled_json(e3_tenant_minimal: Path):
     """
     from pipeline.artifact_store import InMemoryArtifactStore
     from pipeline.context import WorkspaceContext
-    from scripts.e3_reconcile import main_with_store
+    from scripts.reconcile_transactions import main_with_store
 
     store = InMemoryArtifactStore()
     store.seed("E2-extratos", "golden-minimal", _e2_minimal_payload())

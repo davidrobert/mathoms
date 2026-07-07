@@ -1,4 +1,4 @@
-"""Testes unit\u00e1rios A6d.2 — parsers content-based de scripts/e5_analyze.py.
+"""Testes unit\u00e1rios A6d.2 — parsers content-based de scripts/analyze_finances.py.
 
 Objetivo: provar que ``parse_tarefas_md_content``, ``parse_milhas_md_content`` e
 ``extract_if_*`` s\u00e3o **puros** — rodam sem tocar em disco, sem fixture de
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from scripts.e5_analyze import (
+from scripts.analyze_finances import (
     extract_if_target_from_life_plan,
     extract_if_trs,
     extract_renda_passiva_from_life_plan,
@@ -263,7 +263,7 @@ def test_milhas_content_invalid_numeric_values_ignored():
 
 def test_extract_if_target_from_content(monkeypatch):
     # Garante que GOALS_CONFIG não tem if_meta — isola o path do MD.
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     monkeypatch.setattr(e5, "GOALS_CONFIG", {})
     content = """
@@ -276,7 +276,7 @@ TRS 4%.
 
 def test_extract_if_target_priority_goals_json_over_content(monkeypatch):
     """goals.json tem prioridade sobre life_plan_goals.md."""
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     monkeypatch.setattr(
         e5,
@@ -289,7 +289,7 @@ def test_extract_if_target_priority_goals_json_over_content(monkeypatch):
 
 
 def test_extract_if_target_no_goals_no_content_raises(monkeypatch):
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     monkeypatch.setattr(e5, "GOALS_CONFIG", {})
     # Passa explicitamente content="" — n\u00e3o cai para disco.
@@ -298,7 +298,7 @@ def test_extract_if_target_no_goals_no_content_raises(monkeypatch):
 
 
 def test_extract_if_trs_from_content(monkeypatch):
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     monkeypatch.setattr(e5, "GOALS_CONFIG", {})
     content = """
@@ -308,7 +308,7 @@ Retirada: TRS de 3,5% ao ano.
 
 
 def test_extract_if_trs_priority_goals_over_content(monkeypatch):
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     monkeypatch.setattr(
         e5,
@@ -320,7 +320,7 @@ def test_extract_if_trs_priority_goals_over_content(monkeypatch):
 
 
 def test_extract_if_trs_no_goals_no_content_raises(monkeypatch):
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     monkeypatch.setattr(e5, "GOALS_CONFIG", {})
     with pytest.raises(ValueError, match="TRS"):
@@ -351,7 +351,7 @@ def test_extract_renda_passiva_no_match_returns_zero():
 
 def test_parse_tarefas_md_shell_loader_returns_empty_when_file_missing(monkeypatch, tmp_path):
     """Shell loader tolera CONFIG_TAREFAS ausente — back-compat."""
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     monkeypatch.setattr(e5, "CONFIG_TAREFAS", tmp_path / "nonexistent.md")
     tarefas, status = e5.parse_tarefas_md()
@@ -360,7 +360,7 @@ def test_parse_tarefas_md_shell_loader_returns_empty_when_file_missing(monkeypat
 
 
 def test_parse_milhas_md_shell_loader_returns_empty_when_file_missing(monkeypatch, tmp_path):
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     monkeypatch.setattr(e5, "CONFIG_MILHAS", tmp_path / "nonexistent.md")
     monkeypatch.setattr(e5, "CONFIG_MILHAS_NEW", tmp_path / "nonexistent_new.md")
@@ -370,7 +370,7 @@ def test_parse_milhas_md_shell_loader_returns_empty_when_file_missing(monkeypatc
 
 def test_parse_milhas_md_prefers_new_path(monkeypatch, tmp_path):
     """ADR-147 (A7.6): bridge tenta path novo antes do legado."""
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     new_path = tmp_path / "notes" / "milhas.md"
     legacy_path = tmp_path / "docs" / "methodology" / "milhas.md"
@@ -394,7 +394,7 @@ def test_parse_milhas_md_falls_back_to_legacy_with_warning(monkeypatch, tmp_path
     DeprecationWarning. Bridge é removido em A7.5 cleanup."""
     import warnings
 
-    import scripts.e5_analyze as e5
+    import scripts.analyze_finances as e5
 
     new_path = tmp_path / "notes" / "milhas.md"  # não existe
     legacy_path = tmp_path / "docs" / "methodology" / "milhas.md"

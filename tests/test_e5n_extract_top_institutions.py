@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import scripts.e5n_narrativas as mod
-from scripts.e5n_narrativas import _extract_top_institutions
+import scripts.generate_narratives as mod
+from scripts.generate_narratives import _extract_top_institutions
 
 _FAMILY = {
     "titular": "david",

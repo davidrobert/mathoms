@@ -1,5 +1,5 @@
 {
-  "_comment": "Parâmetros de scoring financeiro — ranges, pesos, classificações. Fonte única consumida por e5_analyze.py. Documentação em methodology.md §SCORE FINANCEIRO. Não duplicar ranges/pesos em outros arquivos.",
+  "_comment": "Parâmetros de scoring financeiro — ranges, pesos, classificações. Fonte única consumida por scripts/analyze_finances.py. Documentação em methodology.md §SCORE FINANCEIRO. Não duplicar ranges/pesos em outros arquivos.",
   "_ultima_atualizacao": "2026-04-27",
 
   "_escala": {
@@ -137,7 +137,7 @@
     "categorias_futuro": [
       "educacao"
     ],
-    "_aporte_como_futuro": "O 'capital alocado para o futuro' canônico Cerbasi (aportes em RF/RV/FIIs/previdência) NÃO vive em despesas — vive em fluxo de aportes (`investimentos-4_unified.json`). e5_analyze.py soma `aporte_mensal_recorrente_brl` ao numerador de 'futuro' antes de classificar. Apenas 'educacao' é despesa que conta como futuro (educação dos filhos / cursos profissionalizantes que geram renda).",
+    "_aporte_como_futuro": "O 'capital alocado para o futuro' canônico Cerbasi (aportes em RF/RV/FIIs/previdência) NÃO vive em despesas — vive em fluxo de aportes (`investimentos-4_unified.json`). analyze_finances.py soma `aporte_mensal_recorrente_brl` ao numerador de 'futuro' antes de classificar. Apenas 'educacao' é despesa que conta como futuro (educação dos filhos / cursos profissionalizantes que geram renda).",
     "classificacao": [
       {"minimo_futuro_pct": 30, "label": "Investidor"},
       {"minimo_futuro_pct": 20, "label": "Equilibrado"},

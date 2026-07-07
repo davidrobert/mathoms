@@ -1,6 +1,6 @@
 """Format helpers para narrativas E5.N (A6d.3.2).
 
-Extraído de ``scripts/e5n_narrativas.py`` (fmt_currency, fmt_percent,
+Extraído de ``scripts/generate_narratives.py`` (fmt_currency, fmt_percent,
 fmt_num, fmt_usd, validate_narrativas). Funções puras — não dependem
 de globals.
 

@@ -1,6 +1,6 @@
 """Stage wrapper for E1.5c Consolidate — **Caminho B** (ADR-104, Sessão A5f).
 
-Chama ``scripts.e15_consolidate.main_with_store(ctx)`` direto, sem bridge.
+Chama ``scripts.consolidate_baseline.main_with_store(ctx)`` direto, sem bridge.
 Lê e escreve baseline patrimonial via ``ctx.get_artifact_store()``.
 
 ``main(root_dir)`` legado coexiste no script para CLI direto e testes legados.
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def run(ctx: "WorkspaceContext") -> dict:
     from pipeline.live_progress import emit_item_progress
-    from scripts.e15_consolidate import main_with_store
+    from scripts.consolidate_baseline import main_with_store
 
     emit_item_progress(
         ctx.pipeline_run_id,

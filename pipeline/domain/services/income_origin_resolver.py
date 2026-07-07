@@ -19,13 +19,13 @@ from dataclasses import dataclass, field
 from typing import Iterable
 
 # =============================================================================
-# Helper de normalização (paridade com `normalize_text` de e4_categorize)
+# Helper de normalização (paridade com `normalize_text` de categorize_transactions)
 # =============================================================================
 
 
 def _normalize_text(text: str) -> str:
     """Uppercase + strip de acentos + colapsa whitespace (paridade com
-    ``e4_categorize.normalize_text``).
+    ``categorize_transactions.normalize_text``).
     """
     if not text:
         return ""

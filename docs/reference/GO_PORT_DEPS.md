@@ -83,22 +83,22 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–518 LOC, mediana ~40) que
 | Stage | LLM | LOC wrapper | Núcleo onde mora a lógica |
 | --- | --- | --- | --- |
 | `unlock_documents` | | 17 | `pipeline/domain/services/document_unlocker.py` |
-| `route_documents` | | 38 | `scripts/e0_route.py` + `backend/app/services/document_classification.py` |
+| `route_documents` | | 38 | `scripts/route_documents.py` + `backend/app/services/document_classification.py` |
 | `extract_members` | ✓ | 206 | `pipeline/domain/services/member_analyzer.py` |
 | `extract_baseline` | ✓ | 359 | `pipeline/domain/services/patrimonio_*.py` |
-| `consolidate_baseline` | | 40 | `scripts/e15_consolidate.py` |
+| `consolidate_baseline` | | 40 | `scripts/consolidate_baseline.py` |
 | `extract_irpf_full` | ✓ | 308 | E1.6 — IRPF completo (ADR-157) |
 | `extract_informe_aluguel` | ✓ | 185 | informes de imobiliária (ADR-216) |
 | `extract_informes_anuais` | ✓ | 451 | informes anuais PF/PJ/previdência (ADR-238) |
 | `extract_comprovantes_bens` | ✓ | 496 | apólices/CRLV (ADR-239) |
 | `extract_invoices` | | 19 | `scripts/e2/banks/*.py` |
-| `extract_statements` | | 19 | `pipeline/domain/services/statement_preprocessor.py` + `scripts/e2_extract.py` |
+| `extract_statements` | | 19 | `pipeline/domain/services/statement_preprocessor.py` + `scripts/extract_bank_documents.py` |
 | `extract_with_llm` | ✓ | 518 | `pipeline/llm/litellm_client.py` (482) + LLM heavy |
 | `reconcile_transactions` | | 18 | `pipeline/domain/services/reconciliation_service.py` + validators + `source_tier.py` |
 | `categorize_transactions` | | 38 | `pipeline/domain/services/transaction_classifier.py` + `keyword_matcher.py` |
 | `analyze_finances` | | 38 | `pipeline/domain/services/{patrimonio,ratios,reserva_emergencia,orcamento}_*.py` |
 | `generate_narratives` | | 17 | `pipeline/domain/services/section_summary_generator.py` + LLM (opt) |
-| `validate_cross` | | 24 | `scripts/e7_review.py` (só crossval) |
+| `validate_cross` | | 24 | `scripts/validate_cross.py` (só crossval) |
 | `review_finances_holistic` | ✓ | 211 (`parecer_planejador.py`) | LLM-driven — parecer do planejador (ADR-199) |
 
 **Total domain layer transitivamente acionado:** 26.446 LOC em 135 arquivos (era 13.077/61 em 2026-04).

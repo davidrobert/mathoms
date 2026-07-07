@@ -25,7 +25,7 @@ _INVALID_E3 = {"not_a_valid_e3_shape": True}
 
 @pytest.fixture(autouse=True)
 def _repo_config(monkeypatch):
-    """Pinna pipeline_common no config/ real do repo — outros módulos (ex.: test_content_addressed_upload) chamam ``e0_route._init_config`` e repontam ``CONFIG_DIR`` para layout sem ``schema_validation``, o que desligaria a validação aqui."""
+    """Pinna pipeline_common no config/ real do repo — outros módulos (ex.: test_content_addressed_upload) chamam ``route_documents._init_config`` e repontam ``CONFIG_DIR`` para layout sem ``schema_validation``, o que desligaria a validação aqui."""
     from pathlib import Path
 
     import scripts.pipeline_common as pc

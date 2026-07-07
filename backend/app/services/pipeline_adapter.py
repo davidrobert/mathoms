@@ -699,7 +699,7 @@ def build_config_overrides_from_db(workspace_id: str, *, db: SyncSession) -> dic
 
 
 def _categorization_override(workspace_id: str, db: SyncSession) -> dict[str, Any] | None:
-    """Resolved categories + auxiliary metadata, no formato consumido por e4_categorize."""
+    """Resolved categories + auxiliary metadata, no formato consumido por categorize_transactions."""
     from backend.app.services.category_resolver import (
         get_categorization_metadata,
         resolve_categories,

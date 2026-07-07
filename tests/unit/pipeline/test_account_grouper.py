@@ -1,6 +1,6 @@
 """Tests — ``AccountGrouper`` (Fase 6 foundation · Sessão A1).
 
-Cobre paridade com ``scripts/e3_reconcile.py::should_skip_extract`` (linha 219)
+Cobre paridade com ``scripts/reconcile_transactions.py::should_skip_extract`` (linha 219)
 e ``get_account_key`` (linha 245).
 """
 

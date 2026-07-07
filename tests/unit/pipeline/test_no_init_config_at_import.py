@@ -17,12 +17,12 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 SCRIPTS_TO_CHECK = [
-    "scripts/e3_reconcile.py",
-    "scripts/e4_categorize.py",
-    "scripts/e5_analyze.py",
-    "scripts/e5n_narrativas.py",
-    "scripts/e7_review.py",
-    "scripts/e15_consolidate.py",
+    "scripts/reconcile_transactions.py",
+    "scripts/categorize_transactions.py",
+    "scripts/analyze_finances.py",
+    "scripts/generate_narratives.py",
+    "scripts/validate_cross.py",
+    "scripts/consolidate_baseline.py",
 ]
 
 

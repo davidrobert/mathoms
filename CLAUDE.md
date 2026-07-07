@@ -206,7 +206,7 @@ mistura doc + código, a regra normal volta a valer.
 
 - Funções: **4-20 linhas**. Passou, extraia. Vale para Python, TypeScript e Go.
 - Arquivos: **≤500 linhas**. Divida por responsabilidade
-  (`bank_parser.py`, não `extractors.py` gigante). O `e5_analyze.py` de ~127KB
+  (`bank_parser.py`, não `extractors.py` gigante). O `analyze_finances.py` (ex-`e5_analyze.py`) de ~127KB
   é o anti-exemplo; a decomposição em `pipeline/domain/services/` é o padrão.
 - **Uma coisa por função, uma responsabilidade por módulo** (SRP).
 - Early returns > ifs aninhados. Máximo **2 níveis de indentação** em lógica;
@@ -576,12 +576,13 @@ adapters que ainda gravam DB legado.
 `STAGE_RENAME_MAP` permanece como compat reverso. Em
 `pipeline_artifacts.stage`, **todos** os writers gravam nomes descritivos
 desde F9.6/W6-T03 (2026-07-06) — os últimos legados (`E2-faturas`/
-`E2-extratos` em `scripts/e2_extract.py`, `E2-llm` em `extract_with_llm`,
+`E2-extratos` em `scripts/e2_extract.py` (hoje `extract_bank_documents.py`), `E2-llm` em `extract_with_llm`,
 `E6-parecer` no parecer) e os labels de progresso foram cortados. O leitor
 aceita ambas as formas (`stage_aliases` /
 `backend/app/services/artifact_reader.py::_stage_query_candidates`) — rows
 antigos seguem legíveis. Gate: `tests/unit/pipeline/test_no_legacy_stage_names.py`
-hard-fail no CI; residual da F9: F9.4 (rename de `scripts/e*.py`).
+hard-fail no CI. F9.4 (rename de `scripts/e*.py` → nomes descritivos)
+entregue em 2026-07-06 — sub-fases da F9 concluídas.
 
 ### Endpoint JSON exige `response_model` explícito (ADR-102 R18 · ADR-109)
 
@@ -1041,11 +1042,11 @@ configs e docstrings antes de agir.
 **Classificação unificada (P2):** núcleo em
 `backend/app/services/document_classification.py` (`classify_document`,
 `ClassificationResult`). Upload web, `POST /documents/reclassify` e
-`e0_route.route_file` (quando o pacote `backend` é importável) usam o
+`route_documents.route_file` (quando o pacote `backend` é importável) usam o
 **mesmo** fluxo: regex sobre **conteúdo** extraído → LLM opcional
 (confidence < 0,8) → `needs_review` se confidence < 0,7.
 
-1. **E0-route (`scripts/e0_route.py`):** com backend disponível, chama
+1. **E0-route (`scripts/route_documents.py`):** com backend disponível, chama
    `classify_document` (content-first, nome ignorado). **Sem** backend
    (CLI isolado), fallback legado: regex no **nome do arquivo** + LLM.
 2. **Web (upload):** `document_processor.process_uploaded_document`
@@ -1094,9 +1095,13 @@ configs e docstrings antes de agir.
 
 ## Convenções de código do pipeline
 
-- Scripts em `scripts/` seguem `eN_nome.py` (e0, e2, e3…). Exceção:
-  `pipeline_common.py` (módulo compartilhado — paths, config, JSON I/O,
-  atomic writes, schema validation, structured logging).
+- Scripts de stage em `scripts/` usam **nomes descritivos** espelhando
+  `STAGE_RENAME_MAP` (`route_documents.py`, `reconcile_transactions.py`,
+  `analyze_finances.py`… — F9.4 · ADR-093). Caso não-1:1:
+  `extract_bank_documents.py` cobre `extract_invoices` +
+  `extract_statements`. Exceção: `pipeline_common.py` (módulo
+  compartilhado — paths, config, JSON I/O, atomic writes, schema
+  validation, structured logging).
 - Scripts E0 importam paths/config via
   `import scripts.pipeline_common as _pc`.
 - Parsers de E2 ficam em `scripts/e2/banks/<banco>.py` — um módulo por
@@ -1143,8 +1148,8 @@ Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py)
 **Sufixos `-5n_narrativas` (`E5.N`) e `-7_crossval` (`E7`) permanecem em
 `_STAGE_TO_SUFFIX`, mas são dead code de write em produção:**
 
-- `generate_narratives` ([`scripts/e5n_narrativas.py:687`](scripts/e5n_narrativas.py)) faz `store.write("analyze_finances", "analise_financeira", ...)` — **merge** das narrativas no payload E5 existente (não há row com stage="E5.N" em `pipeline_artifacts`).
-- `validate_cross` ([`scripts/e7_review.py:480`](scripts/e7_review.py)) é puro read-only sobre E5; **não chama `store.write`** (sem row com stage="E7").
+- `generate_narratives` ([`scripts/generate_narratives.py:687`](scripts/generate_narratives.py)) faz `store.write("analyze_finances", "analise_financeira", ...)` — **merge** das narrativas no payload E5 existente (não há row com stage="E5.N" em `pipeline_artifacts`).
+- `validate_cross` ([`scripts/validate_cross.py:480`](scripts/validate_cross.py)) é puro read-only sobre E5; **não chama `store.write`** (sem row com stage="E7").
 
 Nomes de banco seguem o código canônico de `institution_catalog`
 (DB, ADR-137; ex.: `bankofamerica`, `btgpactual`, `c6bank`, `itau` —

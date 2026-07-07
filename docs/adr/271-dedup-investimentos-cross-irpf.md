@@ -35,7 +35,7 @@ Quando o usuário sobe IRPFs de **anos diferentes** (ex.: 2023 + 2024) e/ou de *
 
 Cadeia técnica:
 
-1. `scripts/e15_consolidate.py` constrói `investimentos_consolidados` em duas funções: `consolidate` ([linha ~283](../../scripts/e15_consolidate.py)) e `consolidate_from_itens` ([linha ~499](../../scripts/e15_consolidate.py)). Ambas fazem `append(entry)` **sem dedup**.
+1. `scripts/e15_consolidate.py` constrói `investimentos_consolidados` em duas funções: `consolidate` ([linha ~283](../../scripts/consolidate_baseline.py)) e `consolidate_from_itens` ([linha ~499](../../scripts/consolidate_baseline.py)). Ambas fazem `append(entry)` **sem dedup**.
 2. Cada entry é `{descricao, tipo, proprietario, valores_31_12: {ano: valor}, instituicao?}`. **Não há identidade estável** — sem CNPJ, sem banco/agência/conta, sem código RFB. Só descrição textual + instituição opcional.
 3. Consumidores (`scripts/e4_categorize.py`, `scripts/e5_analyze.py`, `TopAtivosAnalyzer`) leem a lista duplicada e somam.
 

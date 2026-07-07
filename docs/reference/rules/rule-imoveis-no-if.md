@@ -26,7 +26,7 @@ tags:
 - [`pipeline/domain/services/patrimonio_calculator.py`](../../../pipeline/domain/services/patrimonio_calculator.py) — aplica `cat_2 if imoveis_no_if else 0` em `investivel_efetivo`.
 - [`pipeline/domain/services/passive_income_calculator.py`](../../../pipeline/domain/services/passive_income_calculator.py) — campo `renda_passiva_atual` deve respeitar a invariante (excluir aluguéis quando `imoveis_no_if=true`).
 
-**Validação.** `e5_analyze.py` deve emitir warning quando `imoveis_no_if=true` **e** `renda_passiva_atual_mensal_brl > sum(aluguéis_categorizados_como_renda_recorrente)` — sinaliza provável dupla contagem.
+**Validação.** `analyze_finances.py` deve emitir warning quando `imoveis_no_if=true` **e** `renda_passiva_atual_mensal_brl > sum(aluguéis_categorizados_como_renda_recorrente)` — sinaliza provável dupla contagem.
 
 **Fórmula.** Ver [FORMULAS.md §Patrimônio](../FORMULAS.md#patrimônio) — `investivel_efetivo = investivel_financeiro + (cat_2 if workspace.imoveis_no_if else 0)`.
 

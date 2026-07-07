@@ -1275,7 +1275,7 @@ Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgent
 
 ### Schema JSON: `tarefas[]` (chave #18)
 
-**Fonte:** E4 item 9 — geradas a partir de 12 critérios de gatilho (ver `e4_categorize.py`).
+**Fonte:** E4 item 9 — geradas a partir de 12 critérios de gatilho (ver `scripts/categorize_transactions.py`).
 
 ```json
 "tarefas": [

@@ -1,7 +1,7 @@
 """Tests — ``StatementPeriodNormalizer`` e ``AnachronicTransactionDropper``
 (Fase 6 foundation · Sessão A1).
 
-Cobre paridade comportamental com ``scripts/e3_reconcile.py:655-795``:
+Cobre paridade comportamental com ``scripts/reconcile_transactions.py:655-795``:
 - normalização de ``periodo`` string (YYYYMM, YYYY-MM-DD, inválido)
 - síntese de ``periodo`` para faturas (chain de fallbacks)
 - ajuste de ``inicio`` para min(tx_dates) — fix #4 do legado

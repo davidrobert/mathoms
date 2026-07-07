@@ -1,7 +1,7 @@
 """Serialização para o output E5 legado (Sessão A5d · Fase 8).
 
 Extrai helpers de montagem do output ``analise_financeira-5_analysis.json``
-de ``scripts/e5_analyze.main()`` (linhas 2525-2560). Funções puras que
+de ``scripts/analyze_finances.main()`` (linhas 2525-2560). Funções puras que
 consomem os dicts já produzidos pelos `analyze_*` do legado (ou por
 services extraídos equivalentes) e montam o JSON final.
 

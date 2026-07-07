@@ -13,8 +13,8 @@ junto com o stage ``review_finances`` em A12.X.
 Wrapper canônico: ``pipeline/stages/validate_cross.py::run``, que chama
 ``main_with_store(ctx, mode="crossval")`` aqui dentro.
 
-O nome do arquivo (``e7_review.py``) é mantido por compat histórica
-com import paths legados; o conteúdo é exclusivamente crossval.
+Renomeado de ``e7_review.py`` → ``validate_cross.py`` em F9.4 (ADR-093),
+espelhando E7-crossval → validate_cross; o conteúdo é exclusivamente crossval.
 """
 
 import json

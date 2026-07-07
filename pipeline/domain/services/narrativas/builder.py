@@ -3,7 +3,7 @@
 Compõe os três narradores por seção (:class:`PerfilFamiliaNarrator`,
 :class:`SummariesNarrator`, :class:`ChartsNarrator`) sobre um
 :class:`NarrativasContext` único. Substitui os 425 locs de
-``scripts/e5n_narrativas.build_narrativas`` por delegação limpa a
+``scripts/generate_narratives.build_narrativas`` por delegação limpa a
 serviços de domínio com injeção de contexto (ISP/R9/ADR-097).
 
 Uso típico::
@@ -12,7 +12,7 @@ Uso típico::
     narrativas = builder.build(metrics, family)
     # {"perfil_familia": {...}, "summaries": {...}, "charts": {...}}
 
-Paridade 100% com ``scripts.e5n_narrativas.build_narrativas`` legado
+Paridade 100% com ``scripts.generate_narratives.build_narrativas`` legado
 coberta por ``tests/test_e5n_main_with_store_parity.py``.
 """
 

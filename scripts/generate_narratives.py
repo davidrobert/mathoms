@@ -580,7 +580,7 @@ def load_metrics_from_e5(
 # ------------------------------------------------------------------------
 # A6d.3.2 — lógica movida para ``pipeline/domain/services/narrativas/``.
 # Mantemos aliases aqui para backward-compat com scripts/testes legados que
-# fazem ``from scripts.e5n_narrativas import fmt_currency``.
+# fazem ``from scripts.generate_narratives import fmt_currency``.
 from pipeline.domain.services.narrativas.format_helpers import (
     fmt_currency,
     fmt_num,

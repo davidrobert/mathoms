@@ -65,7 +65,7 @@ def _baseline(itens: list[dict], total_ativos=0.0) -> dict:
 
 def _consolidate(tmp_path: Path, itens: list[dict], total_ativos=0.0) -> dict:
     """Roda E1.5c (`main_with_store`) e devolve o dict consolidado."""
-    from scripts.e15_consolidate import main_with_store
+    from scripts.consolidate_baseline import main_with_store
 
     (tmp_path / "config").mkdir(parents=True, exist_ok=True)
     (tmp_path / "config" / "pipeline.json").write_text("{}")

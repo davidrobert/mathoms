@@ -69,7 +69,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 
 > **Reconciliação 2026-07-06** — auditoria factual pós-A28 (sprint `paused` desde
 > 2026-05-20; muito do escopo shipou via A20/A21/A24/A27): W3-T01, W3-T04, W4-T04,
-> W6-T04, W6-T06 fechados; W4-T01, W4-T02, W6-T01, W6-T03 parciais com residual
+> W6-T04, W6-T06 fechados; W6-T03 fechado 2026-07-06 (F9.4); W4-T01, W4-T02, W6-T01 parciais com residual
 > anotado; W6-T02 destravado. Statuses do Index abaixo refletem a evidência
 > (PR/ADR citados por linha). Residual real da sprint: 3 itens owner-gated +
 > W4-T03/W4-T05 (Sentry/status page) + W5 residual + W6-T02/T05/T07.
@@ -111,7 +111,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | scoped (track) | financial-planner | P1 | L | — |
 | W6-T01 | DE schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire compliance) | 6 | parcial — flip strict entregue via A24.l7 ([[ADR-284]] + runbook); sub-schemas E4 + wire compliance residual | data-engineer | P1 | L | — |
 | W6-T02 | MLOps universal hooks (DE-001/004/008/019 — meta-ADR) | 6 | done (2026-07-06, [[ADR-307]] `Decidido` — [PR #796](https://github.com/davidrobert/mathoms/pull/796) + [PR #797](https://github.com/davidrobert/mathoms/pull/797); nightly de extração LLM = follow-up F2 da ADR) | data-engineer | P1 | L | W3-T01 ✅ |
-| W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | parcial — F9.5 ✅ (#720); F9.6 código ✅ 2026-07-06 (writers E2/E2-llm/E6-parecer + labels de progresso cortados p/ descritivo; `ALLOWED_PREFIXES` sem `pipeline/stages/` e `scripts/`); resta F9.4 (rename `scripts/e*.py`) + limpeza eventual do `STAGE_RENAME_MAP` | data-engineer | P2 | M | — |
+| W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | ✅ — F9.5 ✅ (#720); F9.6 código ✅ 2026-07-06 (writers E2/E2-llm/E6-parecer + labels de progresso cortados p/ descritivo; `ALLOWED_PREFIXES` sem `pipeline/stages/` e `scripts/`); F9.4 ✅ 2026-07-06 (rename `scripts/e*.py` → nomes descritivos, 9 módulos; `e2_extract.py` → `extract_bank_documents.py` cobre invoices+statements). Residual fora de escopo: limpeza eventual do `STAGE_RENAME_MAP` (compat reverso CLI/HTTP/DB permanece por design) | data-engineer | P2 | M | — |
 | W6-T04 | Doc hygiene (BACKLOG split + CHANGELOG retention + CLAUDE.md slim) | 6 | done ([PR #111](https://github.com/davidrobert/mathoms/pull/111) mergeado) | senior-cto | P2 | M | W1-T03 |
 | W6-T05 | DE-017 + DE-010 Pipeline artifacts retention + cascade-on-delete | 6 | scoped (track) | data-engineer | P2 | M | — |
 | W6-T06 | CTO-001 ADR-150 decisão (Caminho 1 / rejeitada / adiada) | 6 | done — Caminho 3 via [PR #110](https://github.com/davidrobert/mathoms/pull/110); superado por evento: [[ADR-150]] flip `Decidido` 2026-07-03 (#759, gatilho 4) e F1 entregue (#780→#792) | senior-cto | P1 | S decidir + L se Caminho 1 | — |

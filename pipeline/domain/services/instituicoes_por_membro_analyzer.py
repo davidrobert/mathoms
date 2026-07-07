@@ -1,4 +1,4 @@
-"""InstituicoesPorMembroAnalyzer — agrega instituições de investimento por membro + conta imóveis (companion de TopAtivosAnalyzer; mesmo bens_por_membro; substitui leitura de processed/E4_unified/*-4_unified.json em scripts/e5n_narrativas.py::_extract_top_institutions)."""
+"""InstituicoesPorMembroAnalyzer — agrega instituições de investimento por membro + conta imóveis (companion de TopAtivosAnalyzer; mesmo bens_por_membro; substitui leitura de processed/E4_unified/*-4_unified.json em scripts/generate_narratives.py::_extract_top_institutions)."""
 
 from __future__ import annotations
 

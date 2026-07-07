@@ -1,7 +1,7 @@
 """Classificação unificada de documentos (P2).
 
 Única implementação usada por upload web, ``POST /documents/reclassify``,
-``scripts/e0_route.route_file`` (quando o backend está importável) e scripts
+``scripts/route_documents.route_file`` (quando o backend está importável) e scripts
 de manutenção. Ver ADR-081 em ``docs/DECISIONS.md``.
 
 Saída: ``doc_type`` (:class:`DocumentType`), códigos E0 em ``e0_doc_type``,
@@ -226,11 +226,11 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
     ``confidence``, ``needs_review``.
     """
     from backend.app.services.content_classifier import classify_file
-    from scripts.e0_route import (
+    from scripts.route_documents import (
         _extract_file_preview,
         classify_by_llm,
     )
-    from scripts.e0_route import (
+    from scripts.route_documents import (
         _init_config as route_init_config,
     )
 

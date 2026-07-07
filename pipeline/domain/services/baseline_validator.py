@@ -1,6 +1,6 @@
 """Validador de saldos de conta vs. baseline IRPF (Fase 6 foundation · ADR-089).
 
-Extrai ``validate_against_baseline()`` de ``scripts/e3_reconcile.py:551`` em
+Extrai ``validate_against_baseline()`` de ``scripts/reconcile_transactions.py:551`` em
 um domain service independente.
 
 Responsabilidade: para cada ``BankStatement`` cujo ``period_end`` coincide com

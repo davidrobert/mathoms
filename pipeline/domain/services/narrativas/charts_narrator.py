@@ -1,6 +1,6 @@
 """ChartsNarrator — seção ``charts`` (A6d.3.2).
 
-Extraído de ``scripts/e5n_narrativas.build_narrativas`` (linhas 887-1128
+Extraído de ``scripts/generate_narratives.build_narrativas`` (linhas 887-1128
 do legado). Produz narrativas de ``context`` + ``conclusion`` para 20
 charts do relatório — paridade 100% com legado.
 
@@ -210,7 +210,7 @@ class ChartsNarrator:
     # ── Grupo 3: Projeção IF + renda passiva + impostos (charts 9-14) ──
     # ADR-216 Onda 6: chart yield_imoveis descontinuado; bloco removido
     # (S4 agora renderiza RealEstateYieldCard via data.real_estate).
-    # Métrica yield_imoveis_pct continua populada em scripts/e5n_narrativas.py
+    # Métrica yield_imoveis_pct continua populada em scripts/generate_narratives.py
     # para back-compat de summaries_narrator (S4 SectionSummary).
     def _narrate_projecao_if(
         self,

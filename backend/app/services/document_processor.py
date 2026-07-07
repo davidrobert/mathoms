@@ -89,7 +89,7 @@ def try_unlock_pdf(file_path: Path, passwords: list[str]) -> tuple[bool, bool]:
 
 
 def resolve_classification_base(config_dir: Path, tenant_root: Path | None) -> Path:
-    """Directory whose ``config/`` subtree is used by ``scripts.e0_route._init_config``.
+    """Directory whose ``config/`` subtree is used by ``scripts.route_documents._init_config``.
 
     Prefer the tenant workspace when pipeline config has been materialized there
     (``tenant_root/config/institutions.json``), so LLM prompts and ``family_members``

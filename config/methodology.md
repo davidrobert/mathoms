@@ -83,7 +83,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 **E5.2 — Fluxo de Caixa e Orçamento (→ seção 2 do relatório)**
 - **Objetivo:** Receitas vs despesas, taxa de poupança, orçamento prospectivo com tetos, diagnóstico comportamental.
 - **Inputs:** `receitas-4_unified.json`, `despesas-4_unified.json`, `definitions.md` (categorias e tetos), `investimentos-4_unified.json` (para cruzamento de liquidez)
-- **Outputs:** Bloco `fluxo_de_caixa` no E5 JSON — Fluxo, projeção pós-quitação, 13 categorias vs tetos, consumo consciente, **diagnóstico comportamental** (`diagnostico_comportamental[]` no E5 JSON — array de padrões detectados com evidência e mudança sugerida; ver regras de detecção em `e5_analyze.py`).
+- **Outputs:** Bloco `fluxo_de_caixa` no E5 JSON — Fluxo, projeção pós-quitação, 13 categorias vs tetos, consumo consciente, **diagnóstico comportamental** (`diagnostico_comportamental[]` no E5 JSON — array de padrões detectados com evidência e mudança sugerida; ver regras de detecção em `scripts/analyze_finances.py`).
 - **Atenção:** NÃO confundir despesas PJ com pessoais. Incluir "reserva de desejos" R$3k/mês.
 - **Diagnóstico comportamental:** OBRIGATÓRIO em todo ciclo. Mesmo sem padrões detectados, gerar bloco com array vazio e nota positiva. Tom não-julgamental — foco em automatização de fluxo.
 
@@ -132,7 +132,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 ### E7 — Review & Refine (LLM — pós-relatório)
 - **Objetivo:** Revisão final do relatório usando a persona e abordagem desta methodology. Retroalimenta narrativas, summaries, chart descriptions, lista de tarefas e prioridades com base na visão completa do relatório renderizado.
-- **Comando:** `python scripts/e7_review.py` (cross-validation) → LLM review → `python scripts/e7_review.py --apply review.json`. O re-render é automático na próxima abertura de `/reports/[id]`.
+- **Comando:** `scripts/validate_cross.py` via stage `validate_cross` (cross-validation) → LLM review → apply. O re-render é automático na próxima abertura de `/reports/[id]`.
 - **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com narrativas), `methodology.md` (persona).
 - **Outputs:** E5 JSON atualizado com refinamentos + `review_metadata` + `strategic_insights`.
 - **Cross-validation:** 14 checks determinísticos verificam consistência entre score, patrimônio, fluxo, IF, endividamento, reserva, narrativas e tarefas.
@@ -143,7 +143,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 ## SCORE FINANCEIRO (v5.4)
 
 O score é uma média ponderada de 5 componentes em escala **0-10** com 1 decimal,
-**fonte única em `config/scoring.json`** (consumido por `e5_analyze.py`).
+**fonte única em `config/scoring.json`** (consumido por `scripts/analyze_finances.py`).
 
 Cada componente é interpolado linearmente entre `range_min` (nota 0) e `range_max`
 (nota 10); componentes marcados `invertido: true` invertem a escala. A justificativa
@@ -167,7 +167,7 @@ score = Σ(componente_i × peso_i) / Σ(peso_i)
 - Endividamento mede comprometimento mensal de renda com dívida onerosa,
   excluindo financiamento imobiliário em quitação programada.
 
-Detalhes de implementação: `pipeline/domain/services/financial_score_calculator.py` e `scripts/e5_analyze.py`.
+Detalhes de implementação: `pipeline/domain/services/financial_score_calculator.py` e `scripts/analyze_finances.py`.
 
 > Decisões 2026-04-27 que consolidaram o score:
 > (i) `scoring.json` é fonte única; `methodology.md` e `methodology_template.md` apenas referenciam.

@@ -7,15 +7,15 @@ from pathlib import Path
 
 import pytest
 
-import scripts.e5_analyze as e5_analyze
-import scripts.e5n_narrativas as e5n
+import scripts.analyze_finances as analyze_finances
+import scripts.generate_narratives as e5n
 
 
 def test_load_goals_helper_removed_from_e5n() -> None:
-    """ADR-180: ``_load_goals()`` deletado em ``scripts/e5n_narrativas``."""
+    """ADR-180: ``_load_goals()`` deletado em ``scripts/generate_narratives``."""
     assert not hasattr(
         e5n, "_load_goals"
-    ), "scripts.e5n_narrativas._load_goals deveria ter sido deletado em A10.6"
+    ), "scripts.generate_narratives._load_goals deveria ter sido deletado em A10.6"
 
 
 def test_select_chart_helpers_removed_from_e5n() -> None:
@@ -23,7 +23,7 @@ def test_select_chart_helpers_removed_from_e5n() -> None:
     for name in ("_select_decisoes_for_charts", "_select_riscos_for_charts"):
         assert not hasattr(
             e5n, name
-        ), f"scripts.e5n_narrativas.{name} deveria ter sido deletado em A10.6"
+        ), f"scripts.generate_narratives.{name} deveria ter sido deletado em A10.6"
 
 
 def test_materialize_adapter_configs_removed() -> None:
@@ -36,12 +36,12 @@ def test_materialize_adapter_configs_removed() -> None:
     )
 
 
-def test_e5_analyze_does_not_define_load_goals() -> None:
-    """``e5_analyze`` nunca teve ``_load_goals``; defesa em profundidade."""
-    src = inspect.getsource(e5_analyze)
+def test_analyze_finances_does_not_define_load_goals() -> None:
+    """``analyze_finances`` nunca teve ``_load_goals``; defesa em profundidade."""
+    src = inspect.getsource(analyze_finances)
     assert (
         "def _load_goals(" not in src
-    ), "scripts/e5_analyze.py não pode definir _load_goals (ADR-180)"
+    ), "scripts/analyze_finances.py não pode definir _load_goals (ADR-180)"
 
 
 def test_load_metrics_from_e5_accepts_goals_cfg_kwarg() -> None:

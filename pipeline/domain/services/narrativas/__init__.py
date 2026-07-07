@@ -1,6 +1,6 @@
 """Pacote ``narrativas`` — E5.N Caminho B puro (A6d.3.2).
 
-Decompõe ``scripts/e5n_narrativas.build_narrativas`` (425 linhas) em
+Decompõe ``scripts/generate_narratives.build_narrativas`` (425 linhas) em
 narradores por seção, orquestrados por :class:`E5NarrativasBuilder`.
 
 Entry points:
@@ -10,7 +10,7 @@ Entry points:
   :class:`ChartsNarrator` — narradores de seção.
 - :class:`E5NarrativasBuilder` — orquestrador que compõe os 3 narradores.
 
-Paridade 100% com ``scripts.e5n_narrativas.build_narrativas`` legado é
+Paridade 100% com ``scripts.generate_narratives.build_narrativas`` legado é
 garantida por ``tests/test_e5n_main_with_store_parity.py``.
 """
 

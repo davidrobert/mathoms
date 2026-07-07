@@ -1,6 +1,6 @@
 """Validadores de continuidade e gap temporal (Fase 6 foundation · ADR-089).
 
-Extrai ``validate_saldo_and_gaps()`` de ``scripts/e3_reconcile.py:478`` em
+Extrai ``validate_saldo_and_gaps()`` de ``scripts/reconcile_transactions.py:478`` em
 dois serviços independentes, cada um com config própria (R9/ISP).
 
 - ``SaldoContinuityValidator``: detecta descontinuidades entre

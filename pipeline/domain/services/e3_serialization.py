@@ -8,7 +8,7 @@ em disco/DB segue o schema histórico definido em
 
 Este módulo concentra essa conversão **fora** de ``BankStatement`` para manter
 o domain model limpo e independente do formato de saída legado. O
-``main_with_store`` em ``scripts/e3_reconcile.py`` consome estas funções.
+``main_with_store`` em ``scripts/reconcile_transactions.py`` consome estas funções.
 
 Funções puras, sem I/O — testáveis com fixtures de uma linha.
 """
@@ -34,7 +34,7 @@ def _canonicalize_bank(institution: str, canonicalizer: BankCanonicalizer | None
     - Com ``canonicalizer``: aplica ``canonicalize`` (lowercase, sem acentos,
       mapeado para o código de ``institutions.json`` quando houver match).
     - Sem ``canonicalizer``: fallback simples ``lower().replace(" ", "")``
-      (paridade com ``e3_reconcile.generate_output_filename``).
+      (paridade com ``reconcile_transactions.generate_output_filename``).
     """
     if canonicalizer is not None:
         return canonicalizer.canonicalize(institution)
@@ -124,7 +124,7 @@ def generate_legacy_filename(
 ) -> str:
     """Gera o nome de arquivo E3 legado para um ``BankStatement``.
 
-    Formato (paridade com ``e3_reconcile.generate_output_filename``):
+    Formato (paridade com ``reconcile_transactions.generate_output_filename``):
         - Faturas (``account_type.startswith("fatura")``):
           ``{banco}_{tipo_conta}_{YYYYMM}_{YYYYMM}-3_reconciled.json``
           (sem moeda)

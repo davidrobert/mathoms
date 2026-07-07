@@ -300,12 +300,12 @@ módulo enforcer.
 | Categorias de receita/despesa (catálogo + workspace overrides) | `backend/app/models/category_template.py` (`CategoryTemplate` + `WorkspaceCategoryOverride`) + resolver | [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
 | 7 categorias canonical da composição patrimonial | `pipeline/domain/services/patrimonio_calculator.py::PatrimonioCalculator` (módulo docstring) | [ADR-145](../DECISIONS.md#adr-145--7-categorias-canonical-da-composição-patrimonial) |
 | Hierarquia de fontes E3 + tie-breaking de reconciliação | `pipeline/domain/services/source_tier.py` + `reconciliation_service.py` (docstring) | [ADR-146](../DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
-| Programas de milhagem — método de valuation universal + storage workspace-scoped (`<workspace>/notes/milhas.md`, gitignored) | `scripts/e5_analyze.py::parse_milhas_md_content` (docstring) | [ADR-147](../DECISIONS.md#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped) |
+| Programas de milhagem — método de valuation universal + storage workspace-scoped (`<workspace>/notes/milhas.md`, gitignored) | `scripts/analyze_finances.py::parse_milhas_md_content` (docstring) | [ADR-147](../DECISIONS.md#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped) |
 | Decisões de planejamento patrimonial (event-sourced) | `backend/app/models/decision.py::Decision` + `DecisionEvent` | [ADR-136](../DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) |
 | Parâmetros fiscais (IRPF, lucro presumido, PGBL) versionados por ano | `backend/app/models/fiscal_parameter.py::FiscalParameter` | [ADR-135](../DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
 | IRPF completo (renda + imposto + dependentes + dedutíveis) — KPIs renda anual líquida, alíquota dual, capacidade PGBL, split trabalho×capital | `pipeline/llm/schemas/e16_irpf_full.py::IRPFFullOutput` + `pipeline/domain/services/irpf_analyzer.py::IRPFAnalyzer` | [ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) |
 | Câmbio + indexadores temporais | `backend/app/models/market_rate.py::MarketRate` | [ADR-135](../DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
-| Códigos de tipo de documento + roteamento E0 | `scripts/e0_route.py::DOC_TYPE_PATTERNS` | — |
+| Códigos de tipo de documento + roteamento E0 | `scripts/route_documents.py::DOC_TYPE_PATTERNS` | — |
 | Naming pattern de artefatos (`[entidade]_[tipo]_[periodo]-N_stage.ext`) | `CLAUDE.md §Convenções de naming de artefatos` | — |
 | Money policy (`Decimal` string · `int64` cents · nunca float) | `pipeline/domain/models/transaction.py::Money` | [ADR-090](../DECISIONS.md#adr-090--money-nunca-é-float) |
 | Cenário de estresse "cônjuge sem trabalhar" — chave de payload `cenarios_conjuge` (universal estável, ADR-166) | `pipeline/domain/services/cenarios_conjuge_analyzer.py::CenariosConjugeAnalyzer` + `pipeline/domain/services/e5_serialization.py::build_e5_output` | [ADR-166](../DECISIONS.md#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) |
@@ -656,7 +656,7 @@ pipeline/domain/
   etc.) vive em `e3_serialization.py` — o adapter aceita `serialize_fn` e
   `output_key_fn` injetáveis via DI para permitir esse formato sem acoplar
   o domínio ao schema legado.
-- **E3 Caminho B (ADR-097)** — `scripts/e3_reconcile.main_with_store(ctx)`
+- **E3 Caminho B (ADR-097)** — `scripts/reconcile_transactions.main_with_store(ctx)`
   orquestra o `E3ReconcilerAdapter` sobre `ctx.get_artifact_store()`.
   [pipeline/stages/reconcile_transactions.py](../../pipeline/stages/reconcile_transactions.py)
   é o único caller.
@@ -666,7 +666,7 @@ pipeline/domain/
   saldo entre extratos consecutivos da mesma conta), `TemporalGapDetector` (gaps
   em dias entre `period_end` e próximo `period_start`), `BaselineValidator`
   (saldo 31/12 do extrato vs. IRPF, via `BankCanonicalizer` para evitar falsos
-  positivos de substring). Foundation extraído de `scripts/e3_reconcile.py`
+  positivos de substring). Foundation extraído de `scripts/reconcile_transactions.py`
   para destravar o refactor completo (Caminho B) num sprint subsequente.
 
 ### Fronteira `pipeline/` ↔ framework
@@ -796,7 +796,7 @@ process_uploaded_document():
      c. If confidence < 0.8 → LLM fallback (anthropic SDK, classify_by_llm)
      d. If confidence < 0.7 → needs_review=true (e possivelmente ``other``)
      ⚠ Filename is NOT used — bank exports have wrong/arbitrary names
-     O mesmo módulo atende upload web, ``POST /documents/reclassify`` e ``e0_route.route_file`` (quando o backend está importável); o CLI sem backend cai em regex por nome + LLM.
+     O mesmo módulo atende upload web, ``POST /documents/reclassify`` e ``route_documents.route_file`` (quando o backend está importável); o CLI sem backend cai em regex por nome + LLM.
   4. Dedupe:
      a. Exact: SHA-256 hash → rejeita se (workspace_id, content_hash) existe
      b. Fuzzy: se (doc_type, bank_code, period) já existe → possible_duplicate_of_id
@@ -907,11 +907,11 @@ mathoms.ai/
 │   └── stages/                # Thin wrappers (4-20 linhas cada)
 │
 ├── scripts/                   # Pipeline scripts determinísticos (worker)
-│   ├── e0_route.py, e0_unlock.py
-│   ├── e15_consolidate.py, e2_extract.py
-│   ├── e3_reconcile.py, e4_categorize.py
-│   ├── e5_analyze.py, e5n_narrativas.py
-│   ├── e7_review.py           # reset destrutivo → backend/app/services/internal_ops/pipeline_reset.py (ADR-212/213)
+│   ├── route_documents.py, unlock_documents.py
+│   ├── consolidate_baseline.py, extract_bank_documents.py
+│   ├── reconcile_transactions.py, categorize_transactions.py
+│   ├── analyze_finances.py, generate_narratives.py
+│   ├── validate_cross.py      # reset destrutivo → backend/app/services/internal_ops/pipeline_reset.py (ADR-212/213)
 │   ├── e2/                    # Parsers por banco (registry, common, banks/)
 │   └── pipeline_common.py     # Paths, config, JSON I/O (atomic writes), schema validation, structured logging
 │

@@ -281,12 +281,12 @@ class TestOp001ParseArgsCelery:
     standalone descontinuada); rodam só via stage wrappers
     (``pipeline/stages/route_documents.py`` consome ``_init_config`` +
     ``route_all``; ``pipeline/stages/e2.py`` consome ``run_with_store``).
-    e0_unlock mantém ``main()`` como lib API para
+    unlock_documents (ex-e0_unlock, F9.4) mantém ``main()`` como lib API para
     ``pipeline/stages/unlock_documents.py``.
 
     # Escopo pós-ADR-213 (2026-05-15)
     e0_audit deletado (sunset stage audit_documents). Único parametrize
-    sobrevivente é e0_unlock.
+    sobrevivente é unlock_documents (ex-e0_unlock).
 
     # Por que falharia se revertido
     parse_args() puro lê sys.argv que dentro do Celery contém args do
@@ -296,7 +296,7 @@ class TestOp001ParseArgsCelery:
     @pytest.mark.parametrize(
         "script_name",
         [
-            "e0_unlock.py",
+            "unlock_documents.py",
         ],
     )
     def test_script_parse_args_accepts_explicit_argv(self, script_name):

@@ -40,7 +40,7 @@ size_lines: 132
 Consequência observada (workspace `Campos`, run `c36c4baf-…`):
 
 - [`InvestmentsConsolidator.consolidate`](../../pipeline/domain/services/investments_consolidator.py:124) faz dedup por `(instituicao, membro)` e calcula `total_por_membro`. As 4 posições do informe IR Itaú (R$ 290k CDB + outros) ficaram sob `"david_robert_camargo_de_campos"`; as 8 do Binance sob `"david_robert"`. Nenhum agrega no `titular_key` canônico.
-- [`analyze_patrimonio`](../../scripts/e5_analyze.py:989) em E5 lê `totais.get(_TITULAR_KEY, 0)` — recebe 0 quando totais tem chaves variantes. Card "Investimentos David Robert" mostrou R$ 317,24 (acidentalmente capturou o Binance sob algum match parcial) em vez de R$ 700k+ esperado.
+- [`analyze_patrimonio`](../../scripts/analyze_finances.py:989) em E5 lê `totais.get(_TITULAR_KEY, 0)` — recebe 0 quando totais tem chaves variantes. Card "Investimentos David Robert" mostrou R$ 317,24 (acidentalmente capturou o Binance sob algum match parcial) em vez de R$ 700k+ esperado.
 
 Já existe [[ADR-226]] `AccountResolver` que resolve `(banco, conta_numero) → member_key`. **Não cobre** o caso do informe IR, que traz **nome** mas não conta. Falta um resolver simétrico para nome.
 

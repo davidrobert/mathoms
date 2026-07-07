@@ -2,7 +2,7 @@
 `pipelineStageNames.ts` (frontend).
 
 Bug histórico (2026-04-25, F9.2): emissores de `stage_activity` em
-`pipeline/stages/*.py` e `scripts/e2_extract.py` ainda passam keys
+`pipeline/stages/*.py` e `scripts/extract_bank_documents.py` ainda passam keys
 legadas (`E2-extratos`, `E1.5`…), mas `stage_logs[].stage` na UI já
 chega em formato descritivo (`extract_statements`, `extract_baseline`…).
 Sem o mapping correto no frontend, o filtro

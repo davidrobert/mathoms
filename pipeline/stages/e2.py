@@ -42,7 +42,7 @@ def run(
 
     _e2_init(ctx.root)
 
-    from scripts.e2_extract import run_with_store
+    from scripts.extract_bank_documents import run_with_store
 
     store = ctx.get_artifact_store()
 

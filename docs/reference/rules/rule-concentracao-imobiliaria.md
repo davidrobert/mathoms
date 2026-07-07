@@ -25,7 +25,7 @@ tags:
   Default configurável com override por workspace (ADR-134).
 - **Referência narrativa (E5.N):** a constante imutável
   `IMOVEL_PCT_PATRIMONIO_IDEAL = 50` (Decimal) é exposta apenas ao narrador
-  LLM (`threshold_imovel_pct` em `scripts/e5n_narrativas.py`) como marco
+  LLM (`threshold_imovel_pct` em `scripts/generate_narratives.py`) como marco
   "ideal" das metodologias — **não dispara alerta**.
 
 Concentração imobiliária alta = passivo imobilizado dominante em vez de carteira diversificada.
@@ -37,7 +37,7 @@ Concentração imobiliária alta = passivo imobilizado dominante em vez de carte
 **Enforcer.**
 - [`pipeline/domain/services/real_estate_metrics.py`](../../../pipeline/domain/services/real_estate_metrics.py) — `RealEstateConfig.concentracao_alerta_pct: Decimal = Decimal("40.0")` (default do alerta).
 - [`pipeline/domain/services/real_estate_metrics_aggregator.py`](../../../pipeline/domain/services/real_estate_metrics_aggregator.py) — dispara `concentracao_alta` quando `concentracao_pct > config.concentracao_alerta_pct`.
-- [`pipeline/domain/services/methodology_constants.py`](../../../pipeline/domain/services/methodology_constants.py) — `IMOVEL_PCT_PATRIMONIO_IDEAL: Decimal = Decimal("50")`, consumida só por `scripts/e5n_narrativas.py` (contexto do narrador LLM).
+- [`pipeline/domain/services/methodology_constants.py`](../../../pipeline/domain/services/methodology_constants.py) — `IMOVEL_PCT_PATRIMONIO_IDEAL: Decimal = Decimal("50")`, consumida só por `scripts/generate_narratives.py` (contexto do narrador LLM).
 
 **Validação.** Test unitário afirma invariante da constante narrativa: `IMOVEL_PCT_PATRIMONIO_IDEAL == Decimal("50")` (`tests/test_methodology_constants.py`). Drift via JSON de config eliminado (zero `goals_cfg["thresholds"]["imovel_pct…"]` no codebase pós-A10.2).
 

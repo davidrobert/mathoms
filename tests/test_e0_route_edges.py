@@ -8,7 +8,12 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.e0_route import _validate_period, build_final_name, classify_by_llm, extract_period
+from scripts.route_documents import (
+    _validate_period,
+    build_final_name,
+    classify_by_llm,
+    extract_period,
+)
 
 
 class TestValidatePeriod:
@@ -31,7 +36,7 @@ class TestExtractPeriod:
             def today():
                 return real_date(2026, 4, 17)
 
-        monkeypatch.setattr("scripts.e0_route.date", _FixedDate)
+        monkeypatch.setattr("scripts.route_documents.date", _FixedDate)
         assert extract_period("no_period_here.pdf") == "20260417"
 
 

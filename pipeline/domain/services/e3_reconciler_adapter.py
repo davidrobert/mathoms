@@ -2,7 +2,7 @@
 
 Ponte entre o ``ArtifactStore`` e os domain services de reconciliação. Cobre o
 caminho feliz (extratos simples por conta) **e** integra os pre-processadores e
-validadores extraídos de ``scripts/e3_reconcile.py`` na Sessão A1:
+validadores extraídos de ``scripts/reconcile_transactions.py`` na Sessão A1:
 
 - :class:`StatementPeriodNormalizer` (faturas sem período)
 - :class:`AnachronicTransactionDropper` (>180d antes de ``periodo.inicio``)
@@ -14,7 +14,7 @@ validadores extraídos de ``scripts/e3_reconcile.py`` na Sessão A1:
   falsos positivos de substring)
 
 Lógica residual (``reconciliation.md`` summary, ``qa_log.md`` rewriting,
-``cleanup_e3_directory``) vive em ``scripts/e3_reconcile.main_with_store``.
+``cleanup_e3_directory``) vive em ``scripts/reconcile_transactions.main_with_store``.
 """
 
 from __future__ import annotations

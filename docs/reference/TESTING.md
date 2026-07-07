@@ -80,7 +80,7 @@ tests/test_e2_real_pdf_regression.py  # `route_to_parser` em cada `*.pdf` da pas
 tests/test_e3_golden_execution.py  # E2 fixture → E3 run → asserts
 tests/test_e4_golden_execution.py  # E3 → E4 (+ misto receita/despesa + baseline E1.5)
 tests/test_e5_golden_execution.py  # E3→E4→E5 run → analise_financeira + E5 schema (+ misto receita/despesa + baseline E1.5)
-tests/test_e5n_golden_execution.py  # E5 + e5n_narrativas → narrativas; + tenant com cônjuge (`ana_cenarios`)
+tests/test_e5n_golden_execution.py  # E5 + generate_narratives → narrativas; + tenant com cônjuge (`ana_cenarios`)
 tests/pipeline_golden_asserts.py  # asserções partilhadas (ex.: qa_log.md)
 tests/test_e2_synthetic_pdf_parsers.py  # registry E2 × PDF; todos os bancos com assert dedicado (C6, Bradesco, … Caixa; Quinto Andar fatura)
 tests/test_e0_route_edges.py tests/test_e7_edges.py tests/test_e5_e6_e5n_edges.py  # 7D.1/7D.2 — helpers de borda (E0/E7/E5/E6/E5.N)
@@ -219,7 +219,7 @@ Cada golden é um JSON autocontido com:
 Cenários atuais cobrem dedup cross-file em extratos sobrepostos, síntese
 de período em fatura sem `periodo` (`data_vencimento` → tx dates), e
 diff de saldo IRPF vs `closing_balance` em 31/12. Estes goldens **não** são
-paridade contra `scripts/e3_reconcile.py::main()` — esse golden vem na
+paridade contra `scripts/reconcile_transactions.py::main()` — esse golden vem na
 Sessão A2 quando `main_with_store(config, store)` for introduzido. Aqui
 só validamos comportamento do `E3ReconcilerAdapter` (Caminho B foundation).
 

@@ -60,7 +60,7 @@ def _make_ctx(
 
 
 def _run_consolidate(ctx: WorkspaceContext) -> list[dict]:
-    from scripts.e15_consolidate import main_with_store
+    from scripts.consolidate_baseline import main_with_store
 
     result = main_with_store(ctx)
     assert result["success"] is True

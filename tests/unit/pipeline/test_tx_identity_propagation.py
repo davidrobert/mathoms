@@ -118,21 +118,21 @@ class TestE2ProcessFilePopulatesArquivoOrigem:
     """Backfill de ``arquivo_origem`` no top-level do dict E2 (workspace 5@5.com, 2026-05)."""
 
     def _setup_mocks(self, monkeypatch, parser_result):
-        from scripts import e2_extract
+        from scripts import extract_bank_documents as e2_mod
 
-        monkeypatch.setattr(e2_extract, "route_to_parser", lambda fn: lambda fp, fn: parser_result)
+        monkeypatch.setattr(e2_mod, "route_to_parser", lambda fn: lambda fp, fn: parser_result)
         # validate_extrato_result lê o arquivo; vamos curto-circuitar para []
-        monkeypatch.setattr(e2_extract, "validate_extrato_result", lambda r, fp, is_csv: [])
+        monkeypatch.setattr(e2_mod, "validate_extrato_result", lambda r, fp, is_csv: [])
 
     def test_process_file_sets_arquivo_origem_when_parser_omits(self, tmp_path, monkeypatch):
         """Parser sem ``arquivo_origem`` no result — process_file adiciona."""
         parser_result = {"banco": "C6Bank", "tipo_conta": "corrente", "transacoes": []}
         self._setup_mocks(monkeypatch, parser_result)
-        from scripts import e2_extract
+        from scripts import extract_bank_documents as e2_mod
 
         fake_file = tmp_path / "abc123_c6bank_extratoconta_202604-0_original.pdf"
         fake_file.write_bytes(b"x")
-        result = e2_extract.process_file(fake_file)
+        result = e2_mod.process_file(fake_file)
         assert result is not None
         assert result["arquivo_origem"] == fake_file.name
 
@@ -144,11 +144,11 @@ class TestE2ProcessFilePopulatesArquivoOrigem:
             "arquivo_origem": "explicit-set-by-parser.pdf",
         }
         self._setup_mocks(monkeypatch, parser_result)
-        from scripts import e2_extract
+        from scripts import extract_bank_documents as e2_mod
 
         fake_file = tmp_path / "abc123_c6bank_extratoconta_202604-0_original.pdf"
         fake_file.write_bytes(b"x")
-        result = e2_extract.process_file(fake_file)
+        result = e2_mod.process_file(fake_file)
         assert result["arquivo_origem"] == "explicit-set-by-parser.pdf"
 
 

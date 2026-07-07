@@ -97,7 +97,7 @@ class AnachronicTransactionDropper:
     ) -> AnachronicFilterResult:
         out = copy.deepcopy(data)
         # Aceita formato dict (`periodo: {inicio, fim}`) usado pelo legado
-        # ``e3_reconcile`` E formato plano (`periodo_inicio`) do schema E2.
+        # ``reconcile_transactions`` E formato plano (`periodo_inicio`) do schema E2.
         periodo_inicio = (out.get("periodo") or {}).get("inicio") or out.get("periodo_inicio") or ""
         periodo_inicio = str(periodo_inicio)[:10]
         if not periodo_inicio:

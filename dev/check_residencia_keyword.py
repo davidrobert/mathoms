@@ -31,22 +31,38 @@ _ALLOWED_FILES = frozenset(
 )
 
 
-def _added_lines_contain_needle(path: str) -> bool:
-    """True se o diff contém adição (linha começando com `+`) com a needle."""
+def _staged_diff_lines() -> list[bytes]:
     proc = subprocess.run(
-        ["git", "diff", "--cached", "-U0", "--", path],
+        ["git", "diff", "--cached", "-U0", "-M", "--no-color"],
         capture_output=True,
         check=False,
     )
-    if proc.returncode != 0:
-        return False
-    for line in proc.stdout.splitlines():
-        if line.startswith(b"+") and not line.startswith(b"+++") and _NEEDLE in line:
-            return True
-    return False
+    return proc.stdout.splitlines() if proc.returncode == 0 else []
+
+
+def _is_added_needle_line(line: bytes) -> bool:
+    return line.startswith(b"+") and not line.startswith(b"+++") and _NEEDLE in line
+
+
+def _files_with_added_needle() -> set[str]:
+    """Paths (lado `b/`) cujo diff staged adiciona linha com a needle.
+
+    Diff único com `-M`: pathspec por arquivo quebraria o pareamento de
+    rename e faria `git mv` reportar o arquivo inteiro como adição (F9.4).
+    """
+    files: set[str] = set()
+    current: str | None = None
+    for line in _staged_diff_lines():
+        if line.startswith(b"+++ b/"):
+            current = line[6:].decode("utf-8", errors="replace")
+            continue
+        if current is not None and _is_added_needle_line(line):
+            files.add(current)
+    return files
 
 
 def main(argv: list[str]) -> int:
+    needle_files = _files_with_added_needle()
     violations: list[str] = []
     for raw in argv:
         path = raw.lstrip("./")
@@ -54,7 +70,7 @@ def main(argv: list[str]) -> int:
             continue
         if not path.endswith((".py", ".ts", ".tsx", ".js", ".json", ".md", ".yaml")):
             continue
-        if _added_lines_contain_needle(path):
+        if path in needle_files:
             violations.append(path)
 
     if violations:

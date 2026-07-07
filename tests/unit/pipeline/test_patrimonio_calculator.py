@@ -1,7 +1,7 @@
 """Testes unitários para :class:`PatrimonioCalculator` (A6d.3.3 — ADR-100).
 
 Foca em:
-- Paridade do dict de saída com ``scripts/e5_analyze.analyze_patrimonio``.
+- Paridade do dict de saída com ``scripts/analyze_finances.analyze_patrimonio``.
 - Separação residência vs imóveis_investimento via keyword.
 - Prioridade de ``investimentos_atuais`` (posições atuais) sobre IRPF fallback.
 - Largest-remainder method para percentuais (soma exata = 100%).

@@ -31,7 +31,7 @@ _IRPF_E15A_EXTRACT_TYPES = {"irpf"}
 # como "Sem extrato" enganosamente.
 _OPTIONAL_E2_EXTRACT_TYPE_VALUES = {"investment_report"}
 
-# Stages onde E2 grava per-doc no DB (espelho de scripts/e2_extract.run_with_store).
+# Stages onde E2 grava per-doc no DB (espelho de scripts/extract_bank_documents.run_with_store).
 # E2-llm é stub determinístico que registra arquivos delegados ao wrapper LLM.
 _E2_DB_STAGES = ("extract_statements", "extract_invoices", "extract_with_llm")
 
@@ -96,7 +96,7 @@ def has_e2_artifact_in_db(db: Session, workspace_id: str, source_filename: str) 
 
 
 def _e2_json_name(source_filename: str) -> str:
-    """Mirror ``scripts.e2_extract.make_output_name`` (avoid importing E2 stack)."""
+    """Mirror ``scripts.extract_bank_documents.make_output_name`` (avoid importing E2 stack)."""
     return re.sub(
         r"(-0_original)?\.(pdf|csv|xls|xlsx|jpg|jpeg|png)$",
         "-2_extract.json",

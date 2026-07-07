@@ -1,6 +1,6 @@
 """PerfilFamiliaNarrator — seção ``perfil_familia`` (A6d.3.2).
 
-Extraído de ``scripts/e5n_narrativas.build_narrativas`` (linhas 787-822
+Extraído de ``scripts/generate_narratives.build_narrativas`` (linhas 787-822
 do legado). Narra a apresentação da família em 2 colunas (left/right)
 com HTML simples (<p> apenas — validator rejeita <ul>, <li>, <table>).
 

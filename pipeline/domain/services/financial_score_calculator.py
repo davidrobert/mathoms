@@ -1,6 +1,6 @@
 """``FinancialScoreCalculator`` — score financeiro composto 0-10 (A6d.3.3 — ADR-100).
 
-Substitui ``scripts/e5_analyze.calculate_score`` por serviço puro.
+Substitui ``scripts/analyze_finances.calculate_score`` por serviço puro.
 
 **Componentes** (configuráveis via ``config/scoring.json`` → ``score_componentes``):
 

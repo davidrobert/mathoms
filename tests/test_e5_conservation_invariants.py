@@ -63,8 +63,8 @@ def test_fluxo_liquido_equals_receita_minus_despesa(e5_payload: dict):
 
 # F2-DB7 (A24.l1): decomposição POR CATEGORIA — Goodhart-safe. Mover tx entre
 # categorias mantém o total e passa nos testes acima; estes quebram. Identidade
-# sobre o payload serializado (round(v,2) por valor — e5_analyze.py:1444-1453);
-# vale exato em cents porque dados bancários são 2dp (e4_categorize round(Σ,2)).
+# sobre o payload serializado (round(v,2) por valor — analyze_finances.py:1444-1453);
+# vale exato em cents porque dados bancários são 2dp (categorize_transactions round(Σ,2)).
 
 
 def test_despesa_total_equals_sum_per_category(e5_payload: dict):

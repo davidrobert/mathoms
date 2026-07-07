@@ -10,7 +10,7 @@ pura reutilizável. Suporta:
 - Longest-match wins: se ``"MERCADO"`` e ``"MERCADO PAO"`` são keywords de
   categorias diferentes, a mais longa vence (reduz falsos positivos).
 
-Normalização consistente com ``e4_categorize.normalize_text`` (uppercase +
+Normalização consistente com ``categorize_transactions.normalize_text`` (uppercase +
 strip de acentos + colapsa whitespace).
 
 ``CategorizationService`` (extraído na A1) é mais simples — não faz wildcards
@@ -25,7 +25,7 @@ from typing import Mapping
 
 
 def _normalize_text(text: str) -> str:
-    """Paridade com ``e4_categorize.normalize_text``."""
+    """Paridade com ``categorize_transactions.normalize_text``."""
     if not text:
         return ""
     text = str(text).upper().strip()

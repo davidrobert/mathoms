@@ -128,7 +128,7 @@ def init_workspace_paths_from_env(*, strict: bool = True) -> None:
 
 
 # Fase 1.5.4: inicialização no import NUNCA é estrita. Scripts invocados
-# diretamente (``python scripts/e2_extract.py``) devem chamar
+# diretamente (``python scripts/extract_bank_documents.py``) devem chamar
 # ``init_workspace_paths_from_env(strict=True)`` no seu bloco
 # ``if __name__ == "__main__"`` para preservar a semântica fail-fast.
 # Wrappers de stage (``pipeline/stages/*.py``) reinicializam via

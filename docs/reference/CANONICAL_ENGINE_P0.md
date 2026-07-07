@@ -9,17 +9,17 @@
 
 | Área | Onde está hoje | Risco de drift | Ação recomendada |
 | --- | --- | --- | --- |
-| **Classificação no upload web** | `backend/app/services/content_classifier.py` (texto + metadados; LLM opcional no fluxo chamador) | Médio vs batch | Manter contrato de saída alinhado ao que o pipeline espera (`doc_type`, `bank_code`, `period`); renomeio físico via `canonical_routing` + `e0_route.build_final_name` |
-| **Classificação no pipeline (inbox / E0-route)** | `scripts/e0_route.py` — heurísticas por **nome de arquivo** e roteamento de pastas | Médio vs web | Núcleo unificado em `backend/app/services/document_classification.classify_document` (ADR-081 P2) consumido por upload web e por `e0_route.route_file` quando o pacote backend é importável; CLI isolado mantém fallback legado por nome |
+| **Classificação no upload web** | `backend/app/services/content_classifier.py` (texto + metadados; LLM opcional no fluxo chamador) | Médio vs batch | Manter contrato de saída alinhado ao que o pipeline espera (`doc_type`, `bank_code`, `period`); renomeio físico via `canonical_routing` + `route_documents.build_final_name` |
+| **Classificação no pipeline (inbox / E0-route)** | `scripts/route_documents.py` — heurísticas por **nome de arquivo** e roteamento de pastas | Médio vs web | Núcleo unificado em `backend/app/services/document_classification.classify_document` (ADR-081 P2) consumido por upload web e por `route_documents.route_file` quando o pacote backend é importável; CLI isolado mantém fallback legado por nome |
 | **Reclassificação manual / correção** | `documents.reclassify` + `canonical_routing.rename_to_canonical` | Baixo | Continua como adaptador sobre o mesmo modelo de classificação |
 | **Goals / tasks / membros no E5** | `pipeline_adapter.py` (DB → JSON) — fonte única após cutover [`config/goals.json`](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (Sprint A10, ✅ 2026-05-07) | Baixo | Checklist [ADR-077](../DECISIONS.md#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web) fechado; arquivos legado removidos |
-| **Validação JSON entre estágios** | Hook **universal** pós-write em `DBArtifactStore.write` via `SCHEMA_BY_STAGE` + `scripts/pipeline_common.validate_dict` (ADR-212 PR3a) | Baixo | Mapping em [backend/app/services/db_artifact_store.py](../../backend/app/services/db_artifact_store.py); validações locais legado (ex.: `e4_categorize.validate_baseline_schema`) coexistem por compat |
+| **Validação JSON entre estágios** | Hook **universal** pós-write em `DBArtifactStore.write` via `SCHEMA_BY_STAGE` + `scripts/pipeline_common.validate_dict` (ADR-212 PR3a) | Baixo | Mapping em [backend/app/services/db_artifact_store.py](../../backend/app/services/db_artifact_store.py); validações locais legado (ex.: `categorize_transactions.validate_baseline_schema`) coexistem por compat |
 | **Saídas LLM** | `pipeline/llm/validators.py` + Pydantic nos stages | Baixo | Fonte única por estágio; manter |
 | **Parsers bancários E2** | `scripts/e2/banks/*.py` + registry | Baixo | Único conjunto; novos bancos só aqui |
 | **Serialização config DB → disco** | `config_materializer.py` | Baixo | Já coberto por round-trip tests (F6.5E) |
 | **Artefatos de pipeline** | `pipeline_artifacts` (DB) via `DBArtifactStore` — caminho único pós-[ADR-212](../adr/212-sunset-mathoms-use-db-artifacts-disk-store-cli.md) | Baixo | `DiskArtifactStore` + flag `MATHOMS_USE_DB_ARTIFACTS` removidos em A12 (2026-05-14); testes injetam `InMemoryArtifactStore` |
 
-**Conclusão:** com ADR-212 + cutover de `config/goals.json` fechados, os dois maiores vetores históricos de drift (dual-store de artefatos e dual-source de config) estão resolvidos. O vetor residual é manter o contrato de saída da classificação alinhado entre `content_classifier` (web) e `e0_route` (CLI fallback).
+**Conclusão:** com ADR-212 + cutover de `config/goals.json` fechados, os dois maiores vetores históricos de drift (dual-store de artefatos e dual-source de config) estão resolvidos. O vetor residual é manter o contrato de saída da classificação alinhado entre `content_classifier` (web) e `route_documents` (CLI fallback).
 
 ---
 

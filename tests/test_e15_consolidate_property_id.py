@@ -64,7 +64,7 @@ def _make_ctx(
 def test_consolidate_enriches_imoveis_with_property_id(tmp_path):
     ctx, resolver = _make_ctx(tmp_path, with_resolver=True)
 
-    from scripts.e15_consolidate import main_with_store
+    from scripts.consolidate_baseline import main_with_store
 
     result = main_with_store(ctx)
     assert result["success"] is True
@@ -90,7 +90,7 @@ def test_consolidate_skips_enrichment_without_resolver(tmp_path):
     """CLI legado / testes sem DB: consolidador funciona sem resolver."""
     ctx, _ = _make_ctx(tmp_path, with_resolver=False)
 
-    from scripts.e15_consolidate import main_with_store
+    from scripts.consolidate_baseline import main_with_store
 
     result = main_with_store(ctx)
     assert result["success"] is True

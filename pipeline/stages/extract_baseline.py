@@ -98,7 +98,7 @@ _MAX_DOCS_PER_RUN = 10
 def _artifact_key_for(doc: Path) -> str:
     """Stem usado como artifact_key — casamento em disco via filename.
 
-    Paridade com `scripts.e2_extract._artifact_key_for_file`: strip de
+    Paridade com `scripts.extract_bank_documents._artifact_key_for_file`: strip de
     ``-0_original`` para que o artefato final seja ``{stem}-1.5a_extract.json``
     (e não ``{stem}-0_original-1.5a_extract.json``). `document_pipeline_sync`
     e `document_extract_json_service` localizam o arquivo por esse nome.

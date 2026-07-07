@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.e5n_narrativas import (
+from scripts.generate_narratives import (
     _MetricsProxy,
     fmt_currency,
     fmt_num,

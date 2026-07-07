@@ -1,7 +1,7 @@
 """Canonicalização de nomes de bancos (Fase 6 foundation · ADR-089).
 
 Substitui o dict módulo-global ``_BANCO_DISPLAY_TO_CANONICAL`` construído em
-``scripts/e3_reconcile.py::_init_config`` (e usado tanto em
+``scripts/reconcile_transactions.py::_init_config`` (e usado tanto em
 ``validate_against_baseline`` quanto em ``generate_output_filename``).
 
 A fonte de verdade é ``config/institutions.json`` → ``banco_canonical``:

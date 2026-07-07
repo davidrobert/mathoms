@@ -4,7 +4,7 @@
  * `pgbl_status`, `pgbl_aportado_brl`, `pgbl_teto_brl`.
  *
  * Tipos do shape `irpf_kpis` produzido por `IRPFAnalyzer` no E5
- * (scripts/e5_analyze.py::_e5_kpis_from_analyzer). Valores monetários e
+ * (scripts/analyze_finances.py::_e5_kpis_from_analyzer). Valores monetários e
  * percentuais chegam como Decimal-string para preservar precisão e devem
  * ser parseados no call-site (parseDecimalString abaixo).
  */
