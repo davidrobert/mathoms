@@ -72,15 +72,13 @@ class InformeFinanceiroPJSummary:
     retencoes_totais_anuais: Decimal  # IRRF + CSLL + PIS + COFINS + INSS + ISS
 
 
+# Numerador dos yields é sempre a renda LÍQUIDA (valor_brl − ir_retido_brl,
+# co-design financial-planner 2026-07-07): dividendo/rend_fii são isentos PF
+# (líquido == bruto) e JCP tem 15% retido definitivo — bruto inflaria o yield
+# na parcela JCP. Bonificação nunca entra (ajuste de custo, não fluxo).
 @dataclass(frozen=True)
 class InformeProventosSummary:
-    """Agregado por (ticker, ano_base) — Perini yield-on-cost (ADR-238 D1 §L4).
-
-    Numerador de yield é sempre a renda LÍQUIDA (``valor_brl − ir_retido_brl``,
-    co-design financial-planner 2026-07-07): dividendo/rend_fii são isentos PF
-    (líquido == bruto) e JCP tem 15% retido definitivo — usar bruto inflaria o
-    yield na parcela JCP. Bonificação nunca entra (ajuste de custo, não fluxo).
-    """
+    """Agregado por (ticker, ano_base) — Perini yield-on-cost (ADR-238 D1 §L4)."""
 
     ticker: str
     ano_base: int
@@ -275,13 +273,11 @@ class FiscalSource:
         """Lista de informes financeiro_pj sumarizados (ADR-236 cascata: alimenta receita_pj quando E4 ausente)."""
         return [s for s in (_build_pj_summary(i) for i in self.informes) if s is not None]
 
+    # Agrupamento por ticker soma o mesmo ativo recebido via N pagadores
+    # (WEGE3 por XP e por BTG → 1 linha); cnpj_pagador nunca entra na chave
+    # (agruparia ativos distintos numa linha "XP").
     def proventos_summaries(self) -> list[InformeProventosSummary]:
-        """Yield por (ticker, ano_base) dos informes proventos_acoes (A17 L4/A33.l4).
-
-        Agrupamento por ticker soma o mesmo ativo recebido via N pagadores
-        (WEGE3 por XP e por BTG → 1 linha); ``cnpj_pagador`` nunca entra na
-        chave (agruparia ativos distintos numa linha "XP").
-        """
+        """Yield por (ticker, ano_base) dos informes proventos_acoes (A17 L4/A33.l4)."""
         payloads = _proventos_payloads(self.informes)
         acc = _acc_proventos(payloads)
         custos = _acc_custos(payloads)
