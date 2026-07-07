@@ -4,7 +4,9 @@ type: lane
 title: "editor de budget LLM por workspace no console interno (ops)"
 sprint: A30
 plan: PLAN-internal-admin
-status: open
+status: shipped
+ship_pr: 815
+ship_date: "2026-07-07"
 priority: P1
 branch_slug: ops-llm-budget-editor
 adrs: ["[[ADR-116]]", "[[ADR-173]]"]
@@ -12,7 +14,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a30
-  - status/open
+  - status/shipped
   - priority/p1
   - area/internal-ops
 ---

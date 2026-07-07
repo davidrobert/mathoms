@@ -12,14 +12,15 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A30 — Ops FinOps: budget LLM editável no console interno (`current`, aberta 2026-07-06)
+### A30 — Ops FinOps: budget LLM editável no console interno (`done` 2026-07-07)
 
 Origem: dogfood do owner 2026-07-06 — run do pipeline (executor Go, F2 do
 ADR-150) abortou no hard-stop de budget LLM ([[ADR-173]]: cap $5, gasto
 $5.57) e o único unblock foi UPDATE manual via SQL. 1 lane P1
 ([[MOC-sprint-a30]]): editor de `monthly_llm_budget_usd` por workspace no
 console ops (service + PATCH + UI com contexto mês-calendário + audit
-hard-fail). KR1: 0 unblocks de budget via SQL após a lane. Co-design:
+hard-fail) — **shipped no PR #815 (2026-07-07, CI verde)**. KR1: 0 unblocks
+de budget via SQL após a lane. Co-design:
 `product-manager` + `sre-devops`; sem ADR nova ([[ADR-116]] + [[ADR-173]]).
 
 Na fila do owner: retomar [[MOC-sprint-a26]] (`paused → current`) quando as

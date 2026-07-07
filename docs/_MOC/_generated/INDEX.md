@@ -675,7 +675,7 @@
 | A29.l1 | lane | shipped | A29 | tela de review v1.5: agrupamento, consequência explícita e telemetria review_action | `sprint/A29/lanes/A29-l1-review-screen-v15.md` |
 | A29.l2 | lane | shipped | A29 | cobertura ReviewReason completa em E3 + document_id real + projeção validation_issues (ADR-272 crit. 6) | `sprint/A29/lanes/A29-l2-reviewreason-cobertura-projecao.md` |
 | A29.l3 | lane | shipped | A29 | inbox de pendências em /documents: fila agrupada, banner de análise pausada, retomada explícita | `sprint/A29/lanes/A29-l3-inbox-pendencias-documents.md` |
-| A30.l1 | lane | open | A30 | editor de budget LLM por workspace no console interno (ops) | `sprint/A30/lanes/A30-l1-ops-llm-budget-editor.md` |
+| A30.l1 | lane | shipped | A30 | editor de budget LLM por workspace no console interno (ops) | `sprint/A30/lanes/A30-l1-ops-llm-budget-editor.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

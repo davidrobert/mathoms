@@ -5,9 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 open.
+Nenhuma lane prontidão atual.
 
-## Open (1)
+## Todas as lanes da sprint (para inspeção)
+
+### shipped (1)
 
 - [[A30.l1]] — editor de budget LLM por workspace no console interno (ops) · priority P1 · branch `ops-llm-budget-editor`
 
