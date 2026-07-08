@@ -5,7 +5,7 @@ title: "Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise
 sprint: A17
 status: shipped
 ship_pr: 835
-ship_date: "2026-07-07"
+ship_date: "2026-07-08"
 priority: P2
 branch_slug: a17-l3-financeiro-pf
 depends_on:

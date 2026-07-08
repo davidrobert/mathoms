@@ -6,7 +6,7 @@ sprint: A33
 plan: null
 status: shipped
 ship_pr: 835
-ship_date: "2026-07-07"
+ship_date: "2026-07-08"
 priority: P1
 branch_slug: a33-l2-a17l3-financeiro-pf
 adrs: ["[[ADR-238]]", "[[ADR-135]]"]
