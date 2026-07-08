@@ -113,7 +113,9 @@ describe("PendingReviewQueue em /documents", () => {
       await screen.findByText(/Sua análise está pausada esperando você/i),
     ).toBeInTheDocument();
     // Copy amigável do code (A29.l2), não a string técnica.
-    expect(screen.getByText("Instituição não identificada")).toBeInTheDocument();
+    expect(
+      screen.getByText("Não lemos a instituição dentro do documento"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Saldo não continua entre extratos")).toBeInTheDocument();
     // Amostra com nome do documento resolvido por document_id.
     expect(screen.getByText("extrato_sem_banco.pdf")).toBeInTheDocument();

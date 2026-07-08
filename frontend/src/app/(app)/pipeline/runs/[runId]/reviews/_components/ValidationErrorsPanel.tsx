@@ -12,6 +12,10 @@ import {
   type LegacyGroup,
 } from "@/lib/review-groups";
 import { occurrenceIdentityLabel } from "@/lib/review-issue-identity";
+import { natureLabelForCode } from "@/lib/review-nature";
+import { translateOffendingValue } from "@/lib/review-offending-value";
+
+import { ReviewNatureBadge } from "./ReviewNatureBadge";
 
 const VISIBLE_OCCURRENCES = 5;
 
@@ -66,20 +70,27 @@ function GroupSummary({
   title,
   count,
   severity,
+  code,
 }: {
   title: string;
   count: number;
   severity: "error" | "warning";
+  code?: string;
 }) {
   const severityLabel = severity === "error" ? "erro" : "aviso";
   const occurrences = count === 1 ? "1 ocorrência" : `${count} ocorrências`;
+  const natureLabel = code ? natureLabelForCode(code) : null;
   return (
     <summary
-      className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80"
-      aria-label={`${title}, ${occurrences}, ${severityLabel}`}
+      className="flex cursor-pointer select-none flex-wrap items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80"
+      aria-label={
+        `${title}, ${occurrences}, ${severityLabel}` +
+        (natureLabel ? `, ${natureLabel}` : "")
+      }
     >
       <SeverityIcon severity={severity} />
       <span className="min-w-0 flex-1">{title}</span>
+      {code && <ReviewNatureBadge code={code} />}
       <CountPill count={count} severity={severity} />
     </summary>
   );
@@ -137,6 +148,7 @@ function IssueGroupCard({
         title={title}
         count={group.issues.length}
         severity={group.severity}
+        code={first.code}
       />
       <div className="mt-2 space-y-2 pl-6">
         <p className="text-xs text-muted-foreground">
@@ -200,6 +212,7 @@ function OccurrenceLine({
   onErrorClick?: (path: string) => void;
 }) {
   const label = occurrenceIdentityLabel(issue);
+  const translated = translateOffendingValue(issue.context["offending_value"]);
   const canNavigate = issue.path !== null && onErrorClick !== undefined;
   return (
     <li className="text-xs text-foreground">
@@ -215,6 +228,9 @@ function OccurrenceLine({
           </button>
         )}
       </div>
+      {translated && (
+        <p className="mt-0.5 break-words text-muted-foreground">{translated}</p>
+      )}
       <TechnicalDetails issue={issue} />
     </li>
   );

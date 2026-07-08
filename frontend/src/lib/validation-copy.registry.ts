@@ -338,37 +338,45 @@ export const E2LLM_COPY: Record<string, ValidationCopy> = {
 };
 
 /** Reasons de reconciliação (E3) projetadas de ReviewReason (ADR-272/ADR-308).
- * Codes são `ReviewReasonCode` (família cross-stage), não `e3.*`. */
+ * Codes são `ReviewReasonCode` (família cross-stage), não `e3.*`.
+ *
+ * Regras de copy (A32.l6 PR2): nunca afirmar desconhecer fato que o sistema
+ * tem no DB (o card mostra instituição/período resolvidos ao lado); quando o
+ * defeito provável é nosso, a copy assume ("nossa leitura"); natureza de
+ * cada code em `review-nature.ts`. */
 export const REVIEW_REASON_COPY: Record<string, ValidationCopy> = {
   "extract.missing_required_field": {
-    title: "Instituição não identificada",
-    cardSummary: "Documento sem banco ou corretora identificável",
+    title: "Não lemos a instituição dentro do documento",
+    cardSummary: "Nossa leitura não confirmou a instituição no conteúdo do documento",
     description:
-      "Não foi possível dizer de qual banco ou corretora este documento veio. " +
-      "Sem essa informação, ele fica de fora da consolidação das suas contas.",
+      "Nossa leitura não conseguiu extrair a instituição do conteúdo deste documento — " +
+      "provavelmente uma falha nossa, não do seu arquivo. Até essa confirmação, " +
+      "ele fica de fora da consolidação das suas contas.",
     whyItMatters:
-      "Documentos sem instituição não entram no patrimônio nem no fluxo de caixa — os totais do relatório ficam menores do que a realidade.",
-    suggestedAction: "Indicar a instituição",
+      "Documentos fora da consolidação não entram no patrimônio nem no fluxo de caixa — os totais do relatório ficam menores do que a realidade.",
+    suggestedAction: "Confirmar a instituição",
   },
   "dedup.sentinel_period": {
-    title: "Período do documento fora do esperado",
-    cardSummary: "Período lido não corresponde a datas plausíveis",
+    title: "Não conseguimos ler o período do documento",
+    cardSummary: "Nossa leitura produziu um período implausível para o documento",
     description:
-      "O período lido neste documento não bate com um intervalo de datas plausível. " +
-      "Costuma ser leitura errada da capa do extrato ou fatura — confira o mês de referência.",
+      "Nossa leitura produziu um período implausível para este documento — uma falha " +
+      "nossa ao interpretar a capa do extrato ou fatura, não um erro no seu arquivo. " +
+      "As transações só entram no fluxo de caixa depois que o período for confirmado.",
     whyItMatters:
       "Com o período errado, as transações caem no mês errado e distorcem o fluxo de caixa.",
-    suggestedAction: "Conferir o período",
+    suggestedAction: "Confirmar o período",
   },
   "domain.balance_gap": {
     title: "Saldo não continua entre extratos",
     cardSummary: "Saldo final de um extrato difere do inicial do seguinte",
     description:
-      "O saldo final de um extrato não bate com o saldo inicial do extrato seguinte da mesma conta. " +
-      "Pode faltar um extrato no meio, ou um dos documentos foi lido com erro.",
+      "O saldo final de um extrato não bate com o saldo inicial do extrato seguinte da " +
+      "mesma conta. Provavelmente falta um extrato entre os dois — ou um dos saldos " +
+      "foi lido com erro por nós.",
     whyItMatters:
       "Descontinuidade de saldo indica movimentações não capturadas — o fluxo de caixa do período pode estar incompleto.",
-    suggestedAction: "Conferir a sequência de extratos",
+    suggestedAction: "Enviar o extrato do período que falta",
   },
   "domain.temporal_gap": {
     title: "Período sem extrato",
@@ -381,21 +389,24 @@ export const REVIEW_REASON_COPY: Record<string, ValidationCopy> = {
     suggestedAction: "Enviar o extrato que falta",
   },
   "domain.anachronic_transaction": {
-    title: "Transações fora do período",
-    cardSummary: "Transações muito anteriores ao período foram descartadas",
+    title: "Transações fora do período foram descartadas",
+    cardSummary: "Lançamentos com data muito anterior ao período foram descartados",
     description:
-      "Algumas transações deste documento têm datas muito anteriores ao período dele e foram " +
-      "descartadas por segurança. Costuma ser saldo anterior ou lançamento retroativo lido como transação.",
+      "Algumas transações deste documento têm datas muito anteriores ao período dele e " +
+      "foram descartadas por segurança. Provavelmente a nossa leitura interpretou um " +
+      "saldo anterior ou lançamento retroativo como transação — se as datas do documento " +
+      "estiverem corretas, nada precisa ser feito.",
     whyItMatters:
       "Se as datas estiverem certas e o descarte for indevido, uma parte da movimentação fica de fora.",
-    suggestedAction: "Conferir as datas no documento",
+    suggestedAction: "Conferir as datas descartadas",
   },
   "domain.baseline_divergence": {
     title: "Saldo difere da declaração",
     cardSummary: "Saldo do extrato em 31/12 difere do declarado no IRPF",
     description:
-      "O saldo deste extrato em 31/12 não bate com o valor declarado no imposto de renda para a mesma conta. " +
-      "Um dos dois pode estar desatualizado ou ter sido lido com erro.",
+      "O saldo deste extrato em 31/12 não bate com o valor declarado no imposto de renda " +
+      "para a mesma conta. Vale conferir os dois documentos — a declaração pode estar " +
+      "desatualizada, ou um dos valores foi lido com erro por nós.",
     whyItMatters:
       "A declaração é a referência do patrimônio inicial — divergências propagam para a evolução patrimonial.",
     suggestedAction: "Conferir extrato e declaração",
