@@ -47,7 +47,7 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | `services/tarefas_md_parser.py:20-146` | `_MD_TO_CATEGORY`, `_MONTH_PT`, `_STATUS_FROM_MD`, `_*_RE` | mapping + regex | ✅ imutável |
 | `services/feature_flags_service.py:32` | `DEFAULTS` | `dict[str, bool]` | ✅ imutável (defaults, nunca escritos) |
 | `services/task_notification_service.py:25` | `_SOURCE` | `str` | ✅ imutável |
-| `services/storage.py:27` | `_MAGIC_SIGNATURES` | `dict[str, tuple[bytes, ...]]` | ✅ imutável |
+| `services/storage/__init__.py:27` | `_MAGIC_SIGNATURES` | `dict[str, tuple[bytes, ...]]` | ✅ imutável |
 | `services/canonical_routing.py:11` | `_MIME_TO_EXT` | `dict[str, str]` | ✅ imutável |
 | `services/task_progress_service.py:57-61` | `_BRL_RE`, `_SHORT_BRL_RE` | regex | ✅ imutável |
 | `services/document_classification.py:20-30` | `_CONTENT_CONFIDENCE_THRESHOLD`, `_REVIEW_CONFIDENCE_THRESHOLD`, `_TRANSIENT_ERROR_NAMES`, `_PERMANENT_ERROR_NAMES` | thresholds + frozensets | ✅ imutável |

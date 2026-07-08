@@ -48,7 +48,7 @@ ALLOWED_PREFIXES = (
     "pipeline/domain/services/lineage_debug_tools.py",  # default de CLI de debug
     "backend/app/services/parecer_citation_lineage.py",  # src_stage="E5" (label de edge)
     # -- compat plumbing dual legacy+descritivo (janela F9.2 → F9.6)
-    "backend/app/services/db_artifact_store.py",  # SCHEMA_BY_STAGE + _WORKSPACE_SCOPED_STAGES
+    "backend/app/services/storage/db_artifact_store.py",  # SCHEMA_BY_STAGE + _WORKSPACE_SCOPED_STAGES
     "backend/app/services/report_lineage.py",  # EXTRACTION_STAGES
     "backend/app/services/family_member_pii_service.py",  # query dual E1
     "backend/app/services/tributario_input_builder.py",  # tuplas duais E3/E4

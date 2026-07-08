@@ -60,7 +60,7 @@ abrimos a feature de UX de edição:
    `WorkspaceCategoryOverrideRepository.upsert/delete`
    ([backend/app/repositories/workspace_category_override_repository.py](../../backend/app/repositories/workspace_category_override_repository.py))
    **não invalida** `category_cache`
-   ([backend/app/services/category_cache.py](../../backend/app/services/category_cache.py))
+   ([backend/app/services/storage/category_cache.py](../../backend/app/services/storage/category_cache.py))
    após commit. TTL é 86400s (24h) — em prod, edição de override fica
    stale por até 24h no E4 sem invalidação ativa.
 4. **Audit mínimo.** Sem coluna de quem editou; padrão Decision A7.2a

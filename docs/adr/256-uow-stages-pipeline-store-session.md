@@ -41,7 +41,7 @@ Em 2026-05 dois incidentes prod tiveram a mesma causa-raiz: **um stage do pipeli
 **Mecanismo idêntico em ambos:**
 
 1. Stage chama `ctx.get_artifact_store().write(stage, key, payload)`.
-2. `DBArtifactStore.write` ([backend/app/services/db_artifact_store.py:248](../../backend/app/services/db_artifact_store.py)) faz `self._session.add(...)`. O `_get()` interno (consultado pela `write` para decidir insert vs. update) dispara **autoflush** — `stage_session` adquire o write-lock SQLite e o retém até `_commit_and_close_artifact_session` no fim do stage.
+2. `DBArtifactStore.write` ([backend/app/services/storage/db_artifact_store.py:248](../../backend/app/services/storage/db_artifact_store.py)) faz `self._session.add(...)`. O `_get()` interno (consultado pela `write` para decidir insert vs. update) dispara **autoflush** — `stage_session` adquire o write-lock SQLite e o retém até `_commit_and_close_artifact_session` no fim do stage.
 3. Stage chama `SyncSessionLocal()` paralela para outra tabela (vehicles, property_identity), abre nova conexão do pool, tenta `flush()+commit()`.
 4. SQLite (mesmo em WAL) serializa writes via lock global. Segunda conexão espera `busy_timeout=30s` e estoura `OperationalError: database is locked`.
 
