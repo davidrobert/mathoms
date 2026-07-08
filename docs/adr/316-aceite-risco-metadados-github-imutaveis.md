@@ -26,8 +26,9 @@ owner — não criar repo novo). A auditoria de 2026-07-08
 ([audit-2026-07-08.md](../plan/PUBLIC_RELEASE/audit-2026-07-08.md), §3)
 identificou **três camadas de contaminação**. O rewrite de histórico
 (Onda 3, `git-filter-repo`) resolve as camadas 1 (HEAD) e 2 (histórico de
-blobs/mensagens). A **camada 3 — metadados GitHub — é matematicamente
-inapagável por git**: são **~855 PRs/issues** (incl. "Security schedule
+blobs/mensagens). A **camada 3 — metadados GitHub — é inapagável por *git***
+(mas **parcialmente** eliminável via API/Suporte do GitHub — ver §"Mecânica da
+camada 3"): são **~855 PRs/issues** (incl. "Security schedule
 failure"), mais comentários e logs de CI (retention ~90d) contendo diagnósticos
 de dogfood com valores reais e discussão de estratégia competitiva
 ([[PLAN-competitive-pierre]]).
@@ -44,6 +45,41 @@ Co-design 2026-07-08 (5 especialistas em paralelo + síntese `senior-cto`).
 Duas objeções materiais à restrição in-place foram registradas (§Alternativas
 consideradas) — o owner está ciente e decide em §Decisão do owner.
 
+## Mecânica da camada 3 — o que a triagem alcança (e o que não)
+
+Refinamento pós-co-design (probing do owner 2026-07-08): a camada 3 **não é um
+bloco monolítico inapagável**. Divide-se em:
+
+- ✅ **Eliminável self-service (UI/API GitHub):** deletar **issues** (admin;
+  `gh api -X DELETE /repos/{repo}/issues/{n}` não existe — usar a mutação
+  GraphQL `deleteIssue` ou o botão "Delete issue"); editar/deletar **comentários**
+  de PR/issue/review; editar **título e corpo** de PR; deletar **runs e logs de
+  CI** (`gh api -X DELETE /repos/{repo}/actions/runs/{id}`). Cobre a maior parte
+  do T1/T2.
+- ❌ **NÃO self-service:** o **PR em si não é deletável** (GitHub só permite
+  *fechar* — diferente de issue). Sobrevivem a "casca" do PR, sua **timeline de
+  eventos** (incl. **mensagens de commit** exibidas) e os **commits referenciados
+  pelo PR**.
+- ⚠️ **Caveat que quebra a premissa ingênua "rewrite resolve":** o rewrite de
+  histórico da **Onda 3 NÃO purga os commits referenciados por PRs.** O GitHub
+  mantém esses commits em cache mesmo depois de órfãos — `/{repo}/pull/{n}/commits/{sha}`
+  continua servindo o **conteúdo pré-rewrite** (o PDF, a mensagem com patrimônio
+  nominal). Logo, W3 limpa `main`, mas **não** limpa o cache de PR: essa é a parte
+  dura da camada 3.
+- 🛟 **Rota GitHub Support (mitigação real sem deletar o repo):** após o rewrite,
+  abrir ticket pedindo remoção de "sensitive data cached in pull requests /
+  dangling commits". É processo documentado que o Support executa — **manual mas
+  dependente de terceiro** (timing não garantido; não é instantâneo nem sob seu
+  controle).
+- 🔒 **Zero-risco 100% sob controle próprio = deletar o repo** (i.e., **Opção 2**,
+  repo novo). É o único caminho que purga PRs/issues/logs/cache de commits num
+  golpe, sem depender do Support.
+
+Consequência para as opções: a **Opção 1** (in-place) atinge risco *baixo* —
+triagem self-service + ticket ao Support — mas **nunca "zero sob seu controle"**;
+a **Opção 2** (repo novo) é o único zero-risco imediato e próprio, ao custo
+detalhado em [[PLAN-public-release]] §"Objeções registradas".
+
 ## Decisão
 
 **Recomendação leading: triagem em tiers + aceite formal do risco residual,
@@ -58,9 +94,13 @@ lógica abaixo.
    - **T2 — logs de CI de dogfood:** runs de CI que imprimiram valores reais
      em diagnósticos de dogfood. **Expirar retention (~90d) ou deletar os
      runs** — não há reescrita, só remoção.
-   - **T3 — resíduo:** metadados de baixo sinal (mensagens de merge, títulos
-     de PR já saneados no rewrite, comentários operacionais sem PII).
-     **Aceite formal de risco residual** — rastreável para efeito de LGPD.
+   - **T3 — resíduo:** metadados de baixo sinal (títulos de PR já editados na
+     triagem T1, comentários operacionais sem PII). **Aceite formal de risco
+     residual** — rastreável para efeito de LGPD.
+   - **T4 — cache de commits de PR (pós-rewrite):** o rewrite W3 deixa os commits
+     referenciados por PRs acessíveis em cache (§Mecânica). Após o force-push,
+     **abrir ticket ao GitHub Support** pedindo purga de dangling/PR-cached
+     commits. Passo da [[A34.l21]]; não sob controle próprio (depende do Support).
 
 2. **CLÁUSULA CRÍTICA DE INCOMPATIBILIDADE LÓGICA (por que é gate G0):** se
    o owner exigir **zero-risco em metadados**, a restrição "flip in-place" é
