@@ -71,7 +71,7 @@ Cria a fundação DDD da expansão. **Aplicou ressalvas dos 3 reviewers** (ADR-1
 - [x] Endpoints `POST/GET/PATCH /protections` + `POST /cancel` + `POST/DELETE /risks` + `GET /protection-bundle` com `response_model` Pydantic explícito (ADR-102 R18).
 - [x] `DBConfigStore.get_protection_bundle(workspace_id) → ProtectionBundle` (delega adapter).
 - [x] `ProtectionBundle` TypedDict em [pipeline/domain/protection_bundle.py](../../../../pipeline/domain/protection_bundle.py) — sem import de SQLAlchemy.
-- [x] Adapter `_project_protection_bundle_sync/async` + `build_protection_bundle*` em [pipeline_adapter.py](../../../../backend/app/services/pipeline_adapter.py).
+- [x] Adapter `_project_protection_bundle_sync/async` + `build_protection_bundle*` em [pipeline_adapter.py](../../../../backend/app/services/pipeline/pipeline_adapter.py).
 - [x] PII helpers `backend/app/services/protection_pii.py` — Fernet vault + `mask_coverage_bucket` (índice 0-5).
 - [x] Logs ADR-110: `policy_ref`, `coverage_brl`, `premium_monthly_brl`, `holder_name` no `SENSITIVE_FIELD_SUBSTRINGS`; INFO emite `coverage_bucket: int (0-5)`.
 - [x] `insurer` allowlist regex (ASCII+acentos PT-BR, S/A aceito); URLs/paths rejeitados (defesa SSRF).

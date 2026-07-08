@@ -268,4 +268,4 @@ de 5-15min. Aplicar cache só se benchmark futuro mostrar regressão
 - [[ADR-109]] — Auth portability (não afetada).
 - PR #255 — `fix(planner): parecer lê api_key de llm_config.json + phases mapping descritivo` (2026-05-14, incidente que motivou esta ADR).
 - [backend/app/services/config_materializer.py](../../backend/app/services/config_materializer.py) — origem do disco-write a ser eliminado.
-- [backend/app/services/pipeline_adapter.py:552](../../backend/app/services/pipeline_adapter.py) — `build_config_overrides_from_db`, ponto de entrada da mudança.
+- [backend/app/services/pipeline_adapter.py:552](../../backend/app/services/pipeline/pipeline_adapter.py) — `build_config_overrides_from_db`, ponto de entrada da mudança.

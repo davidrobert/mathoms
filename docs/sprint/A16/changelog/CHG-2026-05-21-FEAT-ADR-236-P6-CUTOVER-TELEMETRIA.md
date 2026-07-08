@@ -35,7 +35,7 @@ tributário PJ, publica FAQ produto e flippa [[ADR-236]] para
     retorna `(is_complete, missing_fields)` — `simples` exige `anexo_simples`,
     todos exigem `tipo_declaracao_ir`.
 
-- [backend/app/services/pipeline_adapter.py](../../../../backend/app/services/pipeline_adapter.py) —
+- [backend/app/services/pipeline_adapter.py](../../../../backend/app/services/pipeline/pipeline_adapter.py) —
   `_build_tributario_section_sync/async` chamam novo helper
   `_emit_tributario_telemetry(bp, cascata_dict)` após `cascata_compute`,
   antes de montar a seção. Sem mudança de contrato em

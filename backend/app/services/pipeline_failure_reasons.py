@@ -1,8 +1,10 @@
-"""Vocabulário aberto de ``PipelineRun.failure_reason`` (ADR-172, W2-T04)."""
+"""Shim de import (ADR-285 · A33.l9): movido para ``app.services.pipeline.pipeline_failure_reasons``.
 
-from __future__ import annotations
+Removido no codemod final da lane — não adicione código aqui.
+"""
 
-#: Beat task ``fin.detect_stuck_runs`` flagou run com heartbeat estale.
-HEARTBEAT_TIMEOUT = "heartbeat_timeout"
+import sys
 
-ALL_REASONS: frozenset[str] = frozenset({HEARTBEAT_TIMEOUT})
+from .pipeline import pipeline_failure_reasons as _target
+
+sys.modules[__name__] = _target

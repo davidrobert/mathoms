@@ -54,7 +54,7 @@ size_lines: 51
 - Write-path: `_mark_run_started` + `_record_stage_running` em [backend/app/tasks/pipeline_task.py](../../backend/app/tasks/pipeline_task.py).
 - Beat task `fin.detect_stuck_runs` em [backend/app/tasks/periodic_tasks.py](../../backend/app/tasks/periodic_tasks.py) com UPDATE atômico (race-safe contra stage completion).
 - Threshold configurável via `MATHOMS_STUCK_RUN_THRESHOLD_MINUTES` (default 15min); beat freq 300s.
-- Vocabulário aberto de `failure_reason` em [backend/app/services/pipeline_failure_reasons.py](../../backend/app/services/pipeline_failure_reasons.py) — começa com `heartbeat_timeout`, sem ENUM SQL.
+- Vocabulário aberto de `failure_reason` em [backend/app/services/pipeline_failure_reasons.py](../../backend/app/services/pipeline/pipeline_failure_reasons.py) — começa com `heartbeat_timeout`, sem ENUM SQL.
 - Log estruturado `mathoms.pipeline.stuck_run_detected` (via `MathomsJsonFormatter`).
 
 **Referências:** [plan/PLATFORM_REVIEW/_README.md §W2-T04](../plan/PLATFORM_REVIEW/_README.md), finding SR-007.
