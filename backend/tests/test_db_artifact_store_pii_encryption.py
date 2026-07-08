@@ -15,8 +15,8 @@ from backend.app.models import (
     User,
     Workspace,
 )
-from backend.app.services.crypto import is_encrypted_payload
-from backend.app.services.db_artifact_store import DBArtifactStore
+from backend.app.services.security.crypto import is_encrypted_payload
+from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
 
 async def _seed(db: AsyncSession, *, email: str):

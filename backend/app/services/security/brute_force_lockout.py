@@ -332,7 +332,7 @@ def get_default_lockout_service() -> "BruteForceLockoutService | NoOpBruteForceL
 
 def _resolve_redis_client():  # noqa: ANN202 — redis client é dinâmico
     try:
-        from backend.app.services.events import _get_redis
+        from backend.app.services.pipeline.events import _get_redis
 
         return _get_redis()
     except Exception as exc:  # noqa: BLE001

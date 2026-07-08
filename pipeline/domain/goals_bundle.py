@@ -2,7 +2,7 @@
 
 # Substitui o `goals.json` materializado em filesystem (deletado em Sprint A10.6).
 # Boundary: este módulo importa apenas ``typing`` — nenhum ``sqlalchemy``/``fastapi``/
-# ``celery``. Adapter (``backend/app/services/pipeline_adapter.py``) faz a montagem
+# ``celery``. Adapter (``backend/app/services/pipeline/pipeline_adapter.py``) faz a montagem
 # DB→bundle; pipeline lê via ``ctx.load_config("goals.json")``.
 #
 # Convenção de nomes: as chaves preservam o **shape legado do `goals.json`** para

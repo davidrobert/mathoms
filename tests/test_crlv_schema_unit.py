@@ -174,12 +174,12 @@ def test_json_schema_arquivo_existe_e_parseia():
 
 
 def test_db_artifact_store_registra_schema():
-    from backend.app.services.db_artifact_store import SCHEMA_BY_STAGE
+    from backend.app.services.storage.db_artifact_store import SCHEMA_BY_STAGE
 
     assert SCHEMA_BY_STAGE["extract_comprovantes_bens"] == "crlv.schema.json"
 
 
 def test_db_artifact_store_workspace_scoped():
-    from backend.app.services.db_artifact_store import _WORKSPACE_SCOPED_STAGES
+    from backend.app.services.storage.db_artifact_store import _WORKSPACE_SCOPED_STAGES
 
     assert "extract_comprovantes_bens" in _WORKSPACE_SCOPED_STAGES

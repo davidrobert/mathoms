@@ -14,13 +14,13 @@ from pathlib import Path
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.document import Document, DocumentType
 from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
-from backend.app.services.crypto import read_artifact_content
-from backend.app.services.document_pipeline_sync import (
+from backend.app.services.pipeline.document_pipeline_sync import (
     _E2_DB_STAGES,
     _e15a_base_stem,
     _find_e2_extract,
     _find_e15a_extract,
 )
+from backend.app.services.security.crypto import read_artifact_content
 from backend.app.services.storage import StorageService
 
 

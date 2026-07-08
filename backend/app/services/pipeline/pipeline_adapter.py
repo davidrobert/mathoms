@@ -8,7 +8,7 @@ populados por ``build_config_overrides_from_db``). ADR-180 (Sprint A10.6):
 
 Uso típico (dentro do worker):
 
-    from backend.app.services.pipeline_adapter import (
+    from backend.app.services.pipeline.pipeline_adapter import (
         build_goals_payload_sync,
         build_tasks_payload_sync,
         build_tarefas_md_sync,

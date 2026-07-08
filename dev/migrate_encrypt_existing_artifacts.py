@@ -19,7 +19,10 @@ if str(REPO_ROOT) not in sys.path:
 
 from backend.app.core.database import SyncSessionLocal  # noqa: E402
 from backend.app.models.pipeline_artifact import PipelineArtifact  # noqa: E402
-from backend.app.services.crypto import encrypt_artifact_payload, is_encrypted_payload  # noqa: E402
+from backend.app.services.security.crypto import (  # noqa: E402
+    encrypt_artifact_payload,
+    is_encrypted_payload,
+)
 
 CURSOR_DIR = REPO_ROOT / "_scratch"
 

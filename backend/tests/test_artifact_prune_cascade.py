@@ -15,7 +15,7 @@ import pytest
 import sqlalchemy as sa
 
 from backend.app.models import PipelineArtifact, PipelineRun, PipelineRunStatus, User, Workspace
-from backend.app.services.artifact_prune import build_prune_report
+from backend.app.services.storage.artifact_prune import build_prune_report
 
 _PAST = datetime.now(timezone.utc) - timedelta(days=1)
 _FUTURE = datetime.now(timezone.utc) + timedelta(days=30)

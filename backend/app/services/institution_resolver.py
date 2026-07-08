@@ -122,7 +122,7 @@ def _redis_delete(key: str) -> None:
 
 def _get_redis_safe() -> Any:
     try:
-        from backend.app.services.events import _get_redis
+        from backend.app.services.pipeline.events import _get_redis
 
         return _get_redis()
     except Exception:

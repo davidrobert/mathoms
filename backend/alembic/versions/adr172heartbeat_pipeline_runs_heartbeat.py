@@ -7,7 +7,7 @@ Adiciona infraestrutura de stuck-runs detector:
   como ``failed`` com ``failure_reason='heartbeat_timeout'``.
 - ``failure_reason VARCHAR(50) NULL`` — taxonomia aberta de motivos de
   falha (vocabulário começa com ``heartbeat_timeout``; cresce sem
-  migration via ``backend/app/services/pipeline_failure_reasons.py``).
+  migration via ``backend/app/services/pipeline/pipeline_failure_reasons.py``).
 - Partial index ``ix_pipeline_runs_running_heartbeat`` — beat task scan
   só toca rows ``status='running'`` (cardinalidade baixa em prod).
 - Backfill ``last_heartbeat_at = started_at`` em runs ``running`` no

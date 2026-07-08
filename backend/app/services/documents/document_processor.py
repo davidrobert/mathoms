@@ -8,12 +8,12 @@ from typing import Optional
 
 from backend.app.core.config import settings
 from backend.app.models.document import DocumentStatus, DocumentType
-from backend.app.services.canonical_routing import (
+from backend.app.services.classification_telemetry import emit_classification_outcome
+from backend.app.services.documents.canonical_routing import (
     ensure_minus_zero_original_filename,
     route_inbox_to_canonical_data,
 )
-from backend.app.services.classification_telemetry import emit_classification_outcome
-from backend.app.services.document_classification import (
+from backend.app.services.documents.document_classification import (
     classification_can_route_to_data,
     classify_document,
 )

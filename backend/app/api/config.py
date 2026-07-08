@@ -77,7 +77,7 @@ from backend.app.services.config_defaults import (
     load_global_json,
     load_global_yaml,
 )
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
 

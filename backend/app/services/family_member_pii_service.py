@@ -19,7 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models.family_member import FamilyMember
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 from pipeline.domain.services.informe_member_matcher import extract_document_cpfs
 
 logger = logging.getLogger(__name__)
@@ -146,7 +146,7 @@ def _strip_cpf_from_membros(payload: dict) -> bool:
 
 
 def _purge_row(row, *, dry_run: bool) -> bool:
-    from backend.app.services.crypto import (
+    from backend.app.services.security.crypto import (
         encrypt_artifact_payload,
         is_encrypted_payload,
         read_artifact_content,

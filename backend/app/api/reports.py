@@ -41,9 +41,9 @@ from backend.app.schemas.report import (
     ReportResponse,
     ReportTasksResponse,
 )
-from backend.app.services.access_audit import record_access_audit
 from backend.app.services.audit import AuditAction
 from backend.app.services.config_defaults import ConfigDefaultsLoader
+from backend.app.services.security.access_audit import record_access_audit
 from backend.app.services.transfer_detector_resolver import (
     resolve_internal_transfer_detector,
 )

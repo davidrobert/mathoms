@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from backend.app.models.llm_config import LLMConfig
 from backend.app.schemas.llm import LLMConfigResponse
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 from pipeline.llm.models_catalog import DEPRECATED_MODELS
 
 

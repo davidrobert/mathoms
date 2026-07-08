@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models import Notification
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
-from backend.app.services.pipeline_failure_reasons import HEARTBEAT_TIMEOUT
+from backend.app.services.pipeline.pipeline_failure_reasons import HEARTBEAT_TIMEOUT
 from backend.app.tasks.periodic_tasks import detect_stuck_runs
 from backend.tests.factories.builders import make_user, make_workspace
 

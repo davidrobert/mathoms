@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 from pipeline.artifact_store import stage_aliases
 from pipeline.domain.types.snapshot_changelog import AnalyzeFinancesSnapshot
 

@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-import backend.app.services.register_rate_limit as rate_module
+import backend.app.services.security.register_rate_limit as rate_module
 
 
 class _FakeRedis:

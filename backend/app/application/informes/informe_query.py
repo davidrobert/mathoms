@@ -8,7 +8,7 @@ from typing import Iterable, Optional
 from sqlalchemy.orm import Session
 
 from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 
 logger = logging.getLogger("mathoms.informes.query")
 

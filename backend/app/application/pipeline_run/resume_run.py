@@ -10,7 +10,7 @@ from backend.app.application.pipeline_run._common import fetch_run
 from backend.app.models.pipeline_run import PipelineRunStatus
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.schemas.pipeline import RunActionResponse
-from backend.app.services.pipeline_service import resume_pipeline_run
+from backend.app.services.pipeline.pipeline_service import resume_pipeline_run
 
 
 async def resume_run(workspace_id: str, run_id: str, *, db: AsyncSession) -> RunActionResponse:

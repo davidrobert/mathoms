@@ -15,7 +15,7 @@ from typing import Any
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO_ROOT))
 
-from backend.app.services.crypto import (  # noqa: E402
+from backend.app.services.security.crypto import (  # noqa: E402
     decrypt_artifact_payload,
     is_encrypted_payload,
 )

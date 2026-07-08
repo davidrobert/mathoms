@@ -5,8 +5,8 @@ import sys
 import pytest
 
 from backend.app.models.document import DocumentType
-from backend.app.services import document_classification as dc
-from backend.app.services.document_classification import (
+from backend.app.services.documents import document_classification as dc
+from backend.app.services.documents.document_classification import (
     ClassificationResult,
     _llm_prerequisites_skip_reason,
     classification_can_route_to_data,
@@ -116,7 +116,7 @@ class TestClassifyDocumentLLMSkipMeta:
 
     @pytest.fixture
     def force_low_confidence_regex(self, monkeypatch):
-        from backend.app.services.content_classifier import ContentClassification
+        from backend.app.services.documents.content_classifier import ContentClassification
 
         def _fake_classify_file(filepath, _preview):
             return ContentClassification(
@@ -130,7 +130,7 @@ class TestClassifyDocumentLLMSkipMeta:
 
         monkeypatch.setattr(dc, "classify_file", _fake_classify_file, raising=False)
         # classify_file vem de import dentro da função; patcheamos no módulo origem.
-        from backend.app.services import content_classifier
+        from backend.app.services.documents import content_classifier
 
         monkeypatch.setattr(content_classifier, "classify_file", _fake_classify_file)
 
@@ -207,7 +207,7 @@ class TestExtratoMissingInstitutionGate:
 
     @pytest.fixture
     def force_low_confidence_regex(self, monkeypatch):
-        from backend.app.services.content_classifier import ContentClassification
+        from backend.app.services.documents.content_classifier import ContentClassification
 
         def _fake_classify_file(filepath, _preview):
             return ContentClassification(
@@ -219,7 +219,7 @@ class TestExtratoMissingInstitutionGate:
                 source="content_regex",
             )
 
-        from backend.app.services import content_classifier
+        from backend.app.services.documents import content_classifier
 
         monkeypatch.setattr(content_classifier, "classify_file", _fake_classify_file)
 
@@ -300,8 +300,8 @@ def test_classification_result_roundtrip_dict():
 
 
 def _patch_classify_file(monkeypatch, *, doc_type: str, institution: str) -> None:
-    from backend.app.services import content_classifier
-    from backend.app.services.content_classifier import ContentClassification
+    from backend.app.services.documents import content_classifier
+    from backend.app.services.documents.content_classifier import ContentClassification
 
     def _fake_classify_file(filepath, _preview):
         return ContentClassification(

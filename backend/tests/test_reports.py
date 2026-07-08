@@ -333,7 +333,7 @@ async def test_get_report_data_decrypts_encrypted_artifact_payload(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
     """Regressão ADR-231/PR #359 — artifact criptografado via ORM/SQL fora do DBArtifactStore deve devolver plaintext (não o envelope Fernet)."""
-    from backend.app.services.crypto import encrypt_artifact_payload
+    from backend.app.services.security.crypto import encrypt_artifact_payload
 
     plain = {
         "periodo_dados": "202601-202604",

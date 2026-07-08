@@ -146,7 +146,7 @@ def _require_backend_factory():
             "explícito evita escrita silenciosa no DB default de dev."
         )
     try:
-        from backend.app.services import artifact_session_factory as factory
+        from backend.app.services.storage import artifact_session_factory as factory
     except ImportError as exc:
         raise CliEnvironmentError(
             f"pacote 'backend' não importável — necessário para DBArtifactStore (ADR-303 D4): {exc}"
@@ -186,7 +186,7 @@ def _hydration_kwargs(args: argparse.Namespace) -> dict:
 def _build_hydrated_context(args: argparse.Namespace):
     """WorkspaceContext hidratado — paridade com Celery/HTTP (run_context_factory)."""
     try:
-        from backend.app.services.run_context_factory import build_hydrated_context
+        from backend.app.services.pipeline.run_context_factory import build_hydrated_context
     except ImportError as exc:
         raise CliEnvironmentError(
             f"pacote 'backend' não importável — necessário para hidratar o contexto (ADR-303 D4): {exc}"

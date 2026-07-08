@@ -9,12 +9,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.audit_log import AuditLog
-from backend.app.services.access_audit import (
+from backend.app.services.audit import READ_ACCESS_ACTIONS
+from backend.app.services.security.access_audit import (
     AccessAuditDetails,
     AccessAuditPIIError,
     assert_pii_free,
 )
-from backend.app.services.audit import READ_ACCESS_ACTIONS
 from backend.tests._app_routes import effective_routes
 
 # --- Superfície sensível e allowlist justificada -----------------------------

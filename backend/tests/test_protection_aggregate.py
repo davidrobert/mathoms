@@ -35,7 +35,7 @@ from backend.app.schemas.dto.protection import (
     ProtectionUpdateCommand,
 )
 from backend.app.schemas.dto.risk import RiskCreateCommand
-from backend.app.services.protection_pii import mask_coverage_bucket
+from backend.app.services.security.protection_pii import mask_coverage_bucket
 from backend.tests.factories.builders import make_workspace
 
 # ---------------------------------------------------------------------------

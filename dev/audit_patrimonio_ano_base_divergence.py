@@ -6,7 +6,7 @@ import argparse
 
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.pipeline_artifact import PipelineArtifact
-from backend.app.services.crypto import decrypt_artifact_payload
+from backend.app.services.security.crypto import decrypt_artifact_payload
 from pipeline.domain.services.patrimonio_types import _max_value_year
 
 _BASELINE_STAGES = ("E1.5c", "consolidate_baseline")

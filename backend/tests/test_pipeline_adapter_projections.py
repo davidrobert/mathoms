@@ -6,7 +6,7 @@ import pytest
 
 from backend.app.models.decision import Decision
 from backend.app.models.risk import Risk
-from backend.app.services.pipeline_adapter import (
+from backend.app.services.pipeline.pipeline_adapter import (
     _project_risks_bubble_async,
     _project_top5_decisions_async,
     build_goals_payload,

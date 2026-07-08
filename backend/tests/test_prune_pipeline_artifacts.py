@@ -14,13 +14,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.security import hash_password
 from backend.app.models import PipelineArtifact, PipelineRun, PipelineRunStatus, User, Workspace
-from backend.app.services.artifact_prune import (
+from backend.app.services.storage.artifact_prune import (
     build_prune_report,
     delete_expired_rows,
     mark_superseded_rows,
     run_artifact_prune,
 )
-from backend.app.services.artifact_retention import ArtifactRetentionPolicy
+from backend.app.services.storage.artifact_retention import ArtifactRetentionPolicy
 
 _DRY_RUN = ArtifactRetentionPolicy(superseded_days=30, prune_mode="dry_run")
 _DELETE = ArtifactRetentionPolicy(superseded_days=30, prune_mode="delete")

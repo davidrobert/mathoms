@@ -14,7 +14,7 @@ from sqlalchemy.pool import StaticPool
 
 import backend.app.models  # noqa: F401 — registra tabelas no metadata
 from backend.app.core.database import Base
-from backend.app.services.run_context_factory import build_hydrated_context
+from backend.app.services.pipeline.run_context_factory import build_hydrated_context
 
 
 @pytest.fixture

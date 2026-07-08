@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 
-_PROC = "backend.app.services.document_upload_service.process_uploaded_document"
+_PROC = "backend.app.services.documents.document_upload_service.process_uploaded_document"
 
 
 def _mock_process(

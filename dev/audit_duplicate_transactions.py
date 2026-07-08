@@ -16,7 +16,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 def _decrypt_payload(content_json):
     """Reusa lógica do DBArtifactStore para Fernet decrypt."""
-    from backend.app.services.db_artifact_store import _maybe_decrypt
+    from backend.app.services.storage.db_artifact_store import _maybe_decrypt
 
     payload = json.loads(content_json) if isinstance(content_json, str) else content_json
     return _maybe_decrypt(payload)

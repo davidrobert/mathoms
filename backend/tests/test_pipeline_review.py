@@ -16,7 +16,7 @@ from backend.app.models.llm_config import LLMConfig
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.models.workspace import Workspace
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 
 _vault = VaultService()
 _START = "backend.app.application.pipeline_run.trigger_pipeline.start_pipeline_run"

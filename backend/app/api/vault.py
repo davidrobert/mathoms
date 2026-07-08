@@ -22,7 +22,7 @@ from backend.app.schemas.vault import (
     VaultListResponse,
     VaultResponse,
 )
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/vault",

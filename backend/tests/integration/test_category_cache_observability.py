@@ -6,7 +6,7 @@ import logging
 
 import pytest
 
-from backend.app.services import category_cache
+from backend.app.services.storage import category_cache
 
 
 class _FakeRedis:

@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from backend.app.services.pipeline_client import (
+from backend.app.services.pipeline.pipeline_client import (
     HttpPipelineClient,
     InProcessPipelineClient,
     StageResult,

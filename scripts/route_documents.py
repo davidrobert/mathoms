@@ -743,7 +743,9 @@ def dest_dir_for_group(base: Path, group: str) -> Path:
 
 def _routing_dict_from_classify_document(clf: dict, filename: str) -> dict | None:
     """Map :func:`classify_document` output to ``build_final_name`` input, or None."""
-    from backend.app.services.document_classification import classification_can_route_to_data
+    from backend.app.services.documents.document_classification import (
+        classification_can_route_to_data,
+    )
 
     if not classification_can_route_to_data(clf):
         return None
@@ -801,7 +803,7 @@ def route_file(
     classification = None
     classify_document = None
     try:
-        from backend.app.services.document_classification import (
+        from backend.app.services.documents.document_classification import (
             classify_document as classify_document,
         )
     except ImportError:

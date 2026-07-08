@@ -8,7 +8,6 @@ from typing import Any
 
 import pytest
 
-from backend.app.services.llm_cache import InMemoryLLMCache
 from backend.app.services.parecer_orchestrator import (
     ParecerOrchestratorConfig,
     compute_cache_key,
@@ -20,6 +19,7 @@ from backend.app.services.parecer_orchestrator import (
     severity_from_prioridade,
     validate_anti_sigilo,
 )
+from backend.app.services.storage.llm_cache import InMemoryLLMCache
 from pipeline.llm.schemas.parecer_planejador import (
     Metadata,
     ParecerPlanejadorOutput,

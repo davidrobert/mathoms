@@ -163,7 +163,7 @@ async def test_get_returns_404_when_report_missing(auth_client):
 async def _seed_premium_llm_config(db, workspace_id):
     """Cria LLMConfig encriptada — marca workspace como premium."""
     from backend.app.models.llm_config import LLMConfig
-    from backend.app.services.vault import get_vault
+    from backend.app.services.security.vault import get_vault
 
     db.add(
         LLMConfig(

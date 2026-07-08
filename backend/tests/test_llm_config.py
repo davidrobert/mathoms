@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.workspace import Workspace
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 
 _vault = VaultService()
 

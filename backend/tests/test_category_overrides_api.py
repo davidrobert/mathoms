@@ -50,7 +50,7 @@ async def _auth(db, client) -> tuple[str, str]:
 
 @pytest.fixture(autouse=True)
 def _no_redis(monkeypatch):
-    from backend.app.services import category_cache
+    from backend.app.services.storage import category_cache
 
     monkeypatch.setattr(category_cache, "_get_redis_safe", lambda: None)
 

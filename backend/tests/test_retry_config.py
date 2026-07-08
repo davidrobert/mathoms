@@ -2,7 +2,7 @@
 
 import pytest
 
-from backend.app.services.retry_config import (
+from backend.app.services.pipeline.retry_config import (
     STAGE_RETRY_CONFIGS,
     StageRetryConfig,
     get_retry_config,

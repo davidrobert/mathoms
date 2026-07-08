@@ -184,7 +184,7 @@ class TestVaultService:
     def test_encrypt_decrypt_roundtrip(self):
         from cryptography.fernet import Fernet
 
-        from backend.app.services.vault import VaultService
+        from backend.app.services.security.vault import VaultService
 
         key = Fernet.generate_key().decode()
         svc = VaultService(key=key)
@@ -196,7 +196,7 @@ class TestVaultService:
     def test_decrypt_wrong_key_returns_none(self):
         from cryptography.fernet import Fernet
 
-        from backend.app.services.vault import VaultService
+        from backend.app.services.security.vault import VaultService
 
         svc1 = VaultService(key=Fernet.generate_key().decode())
         svc2 = VaultService(key=Fernet.generate_key().decode())
@@ -206,7 +206,7 @@ class TestVaultService:
     def test_decrypt_garbage_returns_none(self):
         from cryptography.fernet import Fernet
 
-        from backend.app.services.vault import VaultService
+        from backend.app.services.security.vault import VaultService
 
         svc = VaultService(key=Fernet.generate_key().decode())
         assert svc.decrypt("not-valid-ciphertext") is None

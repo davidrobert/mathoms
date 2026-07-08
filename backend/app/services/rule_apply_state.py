@@ -17,9 +17,9 @@ def _now_iso() -> str:
 
 
 def _get_redis():
-    """Lazy singleton Redis — paridade com ``backend.app.services.events``."""
+    """Lazy singleton Redis — paridade com ``backend.app.services.pipeline.events``."""
     # Reuso intencional: mesma URL, mesma policy; evita conexão extra.
-    from backend.app.services.events import _get_redis as _events_redis
+    from backend.app.services.pipeline.events import _get_redis as _events_redis
 
     return _events_redis()
 

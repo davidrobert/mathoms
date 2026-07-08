@@ -5,9 +5,9 @@ from __future__ import annotations
 import fakeredis
 import pytest
 
-import backend.app.services.rate_limit as rl
+import backend.app.services.security.rate_limit as rl
 from backend.app.core.config import settings
-from backend.app.services.rate_limit import (
+from backend.app.services.security.rate_limit import (
     RateLimitPolicy,
     check_rate_limit,
     client_ip_key,

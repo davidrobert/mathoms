@@ -21,7 +21,7 @@ from backend.app.services.family_member_pii_service import (
     mask_cpf_last_digits,
     purge_cpf_from_e1_artifacts,
 )
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 
 # Placeholder LGPD-safe (allowlist do lint_no_real_pii).
 _CPF = "123.456.789-09"

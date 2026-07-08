@@ -105,7 +105,7 @@ def get_default_llm_cache() -> LLMCacheBackend:
     # Não cacheado em variável de módulo: cada chamada re-resolve.
     # _get_redis em events.py já é singleton idempotente.
     try:
-        from backend.app.services.events import _get_redis
+        from backend.app.services.pipeline.events import _get_redis
 
         client = _get_redis()
     except Exception as exc:  # noqa: BLE001

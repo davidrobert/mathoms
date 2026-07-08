@@ -53,7 +53,7 @@ def _sum_dividas_for_member(baseline: dict, member_key: str) -> Decimal:
 def _read_latest_baseline(session, workspace_id: str) -> Optional[dict]:
     """Busca o artifact baseline mais recente do workspace (legacy ou descritivo)."""
     from backend.app.models import PipelineArtifact
-    from backend.app.services.db_artifact_store import _maybe_decrypt
+    from backend.app.services.storage.db_artifact_store import _maybe_decrypt
 
     row = (
         session.query(PipelineArtifact)

@@ -76,7 +76,7 @@ def _summary(result, *, workspace_id: str, run_id: str, written: list, dry_run: 
 
 def recompute(session, *, workspace_id: str, run_id: str, dry_run: bool) -> dict:
     """Roda E4CategorizerAdapter no run + regrava artefatos E4."""
-    from backend.app.services.db_artifact_store import DBArtifactStore
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
     from pipeline.domain.services.e4_serialization import serialize_e4_artifacts
 
     store = DBArtifactStore(session=session, workspace_id=workspace_id, pipeline_run_id=run_id)

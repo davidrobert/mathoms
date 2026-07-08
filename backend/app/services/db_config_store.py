@@ -12,7 +12,6 @@ from backend.app.repositories.fiscal_parameter_repository import (
     FiscalParameterRepository,
 )
 from backend.app.repositories.market_rate_repository import MarketRateRepository
-from backend.app.services import fiscal_cache
 from backend.app.services.config_materializer import (
     serialize_categorization,
     serialize_family_members,
@@ -20,6 +19,7 @@ from backend.app.services.config_materializer import (
     serialize_report_layout,
     serialize_transfer_config,
 )
+from backend.app.services.storage import fiscal_cache
 from pipeline.adapters.config_parsers import (
     parse_categorization,
     parse_family_members,
@@ -136,7 +136,7 @@ class DBConfigStore:
 
     def get_protection_bundle(self, workspace_id: str):
         """Bundle de proteção (ADR-192). Skeleton T02 — calculators T03."""
-        from backend.app.services.pipeline_adapter import build_protection_bundle_sync
+        from backend.app.services.pipeline.pipeline_adapter import build_protection_bundle_sync
 
         return build_protection_bundle_sync(workspace_id, db=self._session)
 

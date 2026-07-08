@@ -47,30 +47,30 @@ from backend.app.schemas.dto.document import (
     DocumentUploadResponse,
     document_to_response,
 )
-from backend.app.services.access_audit import record_access_audit
-from backend.app.services.artifact_tombstone import tombstone_e2_artifacts_for_document
 from backend.app.services.audit import AuditAction, client_meta
-from backend.app.services.document_canonical_rename import (
+from backend.app.services.documents.document_canonical_rename import (
     maybe_rename_after_manual_override,
 )
-from backend.app.services.document_extract_json_service import (
+from backend.app.services.documents.document_extract_json_service import (
     DocumentExtractError,
     read_document_extract_json,
 )
-from backend.app.services.document_reclassify_bulk_service import (
+from backend.app.services.documents.document_reclassify_bulk_service import (
     reclassify_workspace_documents,
 )
-from backend.app.services.document_retry_service import (
+from backend.app.services.documents.document_retry_service import (
     RetryUnlockError,
     retry_unlock_workspace_documents,
 )
-from backend.app.services.document_upload_service import (
+from backend.app.services.documents.document_upload_service import (
     UploadBatchError,
     build_upload_audit_event,
     upload_document_batch,
 )
-from backend.app.services.rate_limit import rate_limited, workspace_key
+from backend.app.services.security.access_audit import record_access_audit
+from backend.app.services.security.rate_limit import rate_limited, workspace_key
 from backend.app.services.storage import StorageService
+from backend.app.services.storage.artifact_tombstone import tombstone_e2_artifacts_for_document
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/documents",

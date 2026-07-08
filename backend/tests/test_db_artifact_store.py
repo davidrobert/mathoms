@@ -1,4 +1,4 @@
-"""Tests — ``backend.app.services.db_artifact_store.DBArtifactStore`` (Fase 2.1).
+"""Tests — ``backend.app.services.storage.db_artifact_store.DBArtifactStore`` (Fase 2.1).
 
 Valida:
 - Round-trip write/read preserva dados exatos.
@@ -25,7 +25,7 @@ from backend.app.models import (
     User,
     Workspace,
 )
-from backend.app.services.db_artifact_store import DBArtifactStore
+from backend.app.services.storage.db_artifact_store import DBArtifactStore
 from pipeline.artifact_store import ArtifactStore, ReadableArtifactStore
 
 

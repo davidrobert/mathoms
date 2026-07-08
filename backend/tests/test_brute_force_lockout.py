@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from backend.app.services.brute_force_lockout import (
+from backend.app.services.security.brute_force_lockout import (
     BruteForceLockoutService,
     InMemoryBruteForceLockoutBackend,
     LockoutState,

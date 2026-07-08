@@ -2,7 +2,7 @@
 
 Além do repo, expõe ``ClassificationServiceProtocol`` para isolar o
 side-effect de extração + LLM fallback (ver
-``backend.app.services.document_classification.classify_document`` —
+``backend.app.services.documents.document_classification.classify_document`` —
 mantido intacto; use case chama, nunca reimplementa). Fakes substituem
 em teste para evitar rodar LLM/filesystem.
 """

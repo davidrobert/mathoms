@@ -71,7 +71,7 @@ def _make_fake_result():
 
 
 def _make_store(session, ws_id):
-    from backend.app.services.db_artifact_store import DBArtifactStore
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
     return DBArtifactStore(session, workspace_id=ws_id, pipeline_run_id=str(uuid.uuid4()))
 

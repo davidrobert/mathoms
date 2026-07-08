@@ -18,13 +18,13 @@ from backend.app.schemas.dto.exposicao_cambial import (
     ExposicaoCambialPorMoedaDTO,
     ExposicaoCambialResponse,
 )
-from backend.app.services.crypto import read_artifact_content
 from backend.app.services.lastro_resolver import (
     AssetQuery,
     CatalogEntry,
     OverrideEntry,
     resolve_lastro_with_source,
 )
+from backend.app.services.security.crypto import read_artifact_content
 from pipeline.artifact_store import stage_aliases
 
 THRESHOLD_VERDE_PCT = 10.0

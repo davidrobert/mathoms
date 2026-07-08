@@ -1,4 +1,4 @@
-"""Tests — backend.app.services.crypto (ADR-231)."""
+"""Tests — backend.app.services.security.crypto (ADR-231)."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import pytest
 from cryptography.fernet import Fernet
 
 from backend.app.core.config import settings
-from backend.app.services import crypto
+from backend.app.services.security import crypto
 
 
 def test_encrypt_decrypt_roundtrip():
@@ -64,7 +64,7 @@ def test_decrypt_raises_when_ciphertext_wrong_key(monkeypatch):
 
     new_key = Fernet.generate_key().decode()
     monkeypatch.setattr(settings, "FERNET_KEY", new_key)
-    import backend.app.services.vault as vault_mod
+    import backend.app.services.security.vault as vault_mod
 
     monkeypatch.setattr(vault_mod, "_singleton", None)
 

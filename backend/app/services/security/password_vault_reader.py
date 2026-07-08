@@ -16,7 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.password_vault import PasswordVault
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 
 
 async def get_workspace_passwords(workspace_id: str, db: AsyncSession) -> list[str]:

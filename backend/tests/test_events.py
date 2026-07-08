@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.app.services.events import (
+from backend.app.services.pipeline.events import (
     publish_event,
     publish_item_progress,
     publish_needs_review,
@@ -31,7 +31,7 @@ def reset_redis():
 @pytest.fixture
 def fake_redis():
     publisher = FakeRedisPublisher()
-    with patch("backend.app.services.events._get_redis", return_value=publisher):
+    with patch("backend.app.services.pipeline.events._get_redis", return_value=publisher):
         yield publisher
 
 
@@ -50,12 +50,12 @@ class TestPublishEvent:
         assert "timestamp" in payload
 
     def test_publish_event_noops_when_redis_unavailable(self):
-        with patch("backend.app.services.events._get_redis", return_value=None):
+        with patch("backend.app.services.pipeline.events._get_redis", return_value=None):
             publish_event("run-1", "stage_started", stage="E3")
 
     def test_publish_event_swallows_redis_connection_error(self):
         publisher = FakeRedisPublisher(publish_error=ConnectionError("connection lost"))
-        with patch("backend.app.services.events._get_redis", return_value=publisher):
+        with patch("backend.app.services.pipeline.events._get_redis", return_value=publisher):
             publish_event("run-1", "stage_started", stage="E3")
 
     def test_publish_stage_started(self, fake_redis):

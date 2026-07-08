@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.password_vault import PasswordVault
 from backend.app.schemas.vault import VaultCreateRequest, VaultResponse
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 
 
 async def create_password(

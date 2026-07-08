@@ -153,7 +153,9 @@ class TestCancellation:
         db.add(run)
         await db.commit()
 
-        with patch("backend.app.services.pipeline_service.publish_run_cancelled") as mock_pub:
+        with patch(
+            "backend.app.services.pipeline.pipeline_service.publish_run_cancelled"
+        ) as mock_pub:
             resp = await client.post(f"/api/workspaces/{ws.id}/pipeline/runs/{run.id}/cancel")
             assert resp.status_code == 200
             assert "cancelamento" in resp.json()["detail"].lower()

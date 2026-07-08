@@ -86,7 +86,7 @@ def _store_in_cache(workspace_id: str, estimates: dict[str, int]) -> None:
 
 def _get_redis_safe():
     try:
-        from backend.app.services.events import _get_redis
+        from backend.app.services.pipeline.events import _get_redis
 
         return _get_redis()
     except Exception:

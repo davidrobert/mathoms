@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from backend.app.models.document import Document, DocumentStatus, DocumentType
-from backend.app.services.document_pipeline_sync import apply_pipeline_e2_sync_to_documents
+from backend.app.services.pipeline.document_pipeline_sync import apply_pipeline_e2_sync_to_documents
 
 
 def test_apply_pipeline_e2_sync_promotes_ready_to_processed(tmp_path: Path) -> None:
@@ -62,7 +62,7 @@ def test_apply_pipeline_e2_sync_irpf_uses_db_fallback_when_disk_missing(tmp_path
     fake_repo = MagicMock()
     fake_repo.get_latest_for_workspace.return_value = MagicMock()  # artifact exists
     with patch(
-        "backend.app.services.document_pipeline_sync.PipelineArtifactRepository",
+        "backend.app.services.pipeline.document_pipeline_sync.PipelineArtifactRepository",
         return_value=fake_repo,
     ):
         apply_pipeline_e2_sync_to_documents([doc], tmp_path, when, db=MagicMock())
@@ -90,7 +90,7 @@ def test_apply_pipeline_e2_sync_irpf_false_when_neither_disk_nor_db(tmp_path: Pa
     fake_repo = MagicMock()
     fake_repo.get_latest_for_workspace.return_value = None
     with patch(
-        "backend.app.services.document_pipeline_sync.PipelineArtifactRepository",
+        "backend.app.services.pipeline.document_pipeline_sync.PipelineArtifactRepository",
         return_value=fake_repo,
     ):
         apply_pipeline_e2_sync_to_documents([doc], tmp_path, when, db=MagicMock())
@@ -119,7 +119,7 @@ def test_apply_pipeline_e2_sync_e2_uses_db_fallback_when_disk_missing(tmp_path: 
     fake_repo = MagicMock()
     fake_repo.get_latest_for_workspace.side_effect = [MagicMock(), None, None]
     with patch(
-        "backend.app.services.document_pipeline_sync.PipelineArtifactRepository",
+        "backend.app.services.pipeline.document_pipeline_sync.PipelineArtifactRepository",
         return_value=fake_repo,
     ):
         apply_pipeline_e2_sync_to_documents([doc], tmp_path, when, db=MagicMock())
@@ -138,7 +138,7 @@ def test_apply_pipeline_e2_sync_e2_false_when_neither_disk_nor_db(tmp_path: Path
     fake_repo = MagicMock()
     fake_repo.get_latest_for_workspace.return_value = None
     with patch(
-        "backend.app.services.document_pipeline_sync.PipelineArtifactRepository",
+        "backend.app.services.pipeline.document_pipeline_sync.PipelineArtifactRepository",
         return_value=fake_repo,
     ):
         apply_pipeline_e2_sync_to_documents([doc], tmp_path, when, db=MagicMock())
@@ -193,7 +193,7 @@ def test_apply_pipeline_e2_sync_clears_needs_review_for_irpf_e15a(tmp_path: Path
     fake_repo = MagicMock()
     fake_repo.get_latest_for_workspace.return_value = MagicMock()
     with patch(
-        "backend.app.services.document_pipeline_sync.PipelineArtifactRepository",
+        "backend.app.services.pipeline.document_pipeline_sync.PipelineArtifactRepository",
         return_value=fake_repo,
     ):
         apply_pipeline_e2_sync_to_documents([doc], tmp_path, _WHEN, db=MagicMock())

@@ -13,13 +13,13 @@ from backend.app.core.config import settings
 from backend.app.core.security import create_access_token, verify_password
 from backend.app.models.user import User
 from backend.app.schemas.auth import LoginRequest, SessionTokens
-from backend.app.services.brute_force_lockout import (
+from backend.app.services.refresh_token_service import issue_refresh_family
+from backend.app.services.security.brute_force_lockout import (
     BruteForceLockoutService,
     LockoutState,
     NoOpBruteForceLockoutService,
     get_default_lockout_service,
 )
-from backend.app.services.refresh_token_service import issue_refresh_family
 
 LockoutService = Union[BruteForceLockoutService, NoOpBruteForceLockoutService]
 

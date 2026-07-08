@@ -24,7 +24,7 @@ import pytest
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
-from backend.app.services.db_artifact_store import DBArtifactStore
+from backend.app.services.storage.db_artifact_store import DBArtifactStore
 from backend.tests.factories import make_workspace
 from pipeline.domain.services.baseline_normalizer import BaselineNormalizer
 from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter

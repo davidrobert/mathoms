@@ -50,7 +50,7 @@ def _make_workspace(tmp: Path) -> Path:
 def _seed_e2(engine) -> None:
     from sqlalchemy.orm import sessionmaker
 
-    from backend.app.services.db_artifact_store import DBArtifactStore
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
     payload = json.loads(_E2_FIXTURE.read_text(encoding="utf-8"))
     payload.update(saldo_inicial=0.0, saldo_final=100.0)

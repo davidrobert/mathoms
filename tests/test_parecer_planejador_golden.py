@@ -14,7 +14,7 @@ import pytest
 
 os.environ["MATHOMS_ENABLE_PARECER_PLANEJADOR"] = "true"
 
-from backend.app.services.llm_cache import InMemoryLLMCache  # noqa: E402
+from backend.app.services.storage.llm_cache import InMemoryLLMCache  # noqa: E402
 from pipeline.artifact_store import InMemoryArtifactStore  # noqa: E402
 from pipeline.llm.schemas.parecer_planejador import (  # noqa: E402
     ImpactoEstimado,

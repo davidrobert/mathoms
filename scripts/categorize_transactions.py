@@ -1085,7 +1085,7 @@ def _e4_has_db_store(ctx, store) -> bool:
     if ctx.workspace_id is None:
         return False
     try:
-        from backend.app.services.db_artifact_store import DBArtifactStore
+        from backend.app.services.storage.db_artifact_store import DBArtifactStore
     except ImportError:
         return False
     return isinstance(store, DBArtifactStore)
@@ -1110,7 +1110,7 @@ def _e4_load_learned_rules(ctx, store):
         from backend.app.services.categorization_rules_adapter import (
             load_categorization_rules_v2,
         )
-        from backend.app.services.db_artifact_store import DBArtifactStore
+        from backend.app.services.storage.db_artifact_store import DBArtifactStore
     except ImportError:
         return None, None
     if not isinstance(store, DBArtifactStore):

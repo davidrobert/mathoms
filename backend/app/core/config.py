@@ -112,7 +112,7 @@ class Settings(BaseSettings):
     FERNET_KEYS: str = ""
 
     # W4-T04 / SR-018 — overrides de rate limit no formato "N/window_s"
-    # (ex.: "10/60"). Vazio = default de backend/app/services/rate_limit.py.
+    # (ex.: "10/60"). Vazio = default de backend/app/services/security/rate_limit.py.
     RATE_LIMIT_LOGIN: str = ""
     RATE_LIMIT_UPLOAD: str = ""
     RATE_LIMIT_PIPELINE_RUN: str = ""

@@ -47,7 +47,6 @@ from backend.app.schemas.dto.family_member import (
     IrpfDismissCommand,
     SuggestionsFromIrpfResponse,
 )
-from backend.app.services.access_audit import record_access_audit
 from backend.app.services.audit import AuditAction
 from backend.app.services.irpf_suggestion_adapters import (
     DBInstitutionLabelResolver,
@@ -55,8 +54,9 @@ from backend.app.services.irpf_suggestion_adapters import (
     find_dismissal_for_account,
     normalize_account_digits,
 )
-from backend.app.services.rate_limit import rate_limited, workspace_key
-from backend.app.services.vault import get_vault
+from backend.app.services.security.access_audit import record_access_audit
+from backend.app.services.security.rate_limit import rate_limited, workspace_key
+from backend.app.services.security.vault import get_vault
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
 _vault = get_vault()

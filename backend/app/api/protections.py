@@ -188,6 +188,6 @@ async def get_protection_bundle(
     db: AsyncSession = Depends(get_db),
 ) -> ProtectionBundleResponse:
     """Bundle agregado consumido pelo renderer S9 (ADR-192 §D2)."""
-    from backend.app.services.pipeline_adapter import build_protection_bundle
+    from backend.app.services.pipeline.pipeline_adapter import build_protection_bundle
 
     return await build_protection_bundle(workspace.id, db=db)

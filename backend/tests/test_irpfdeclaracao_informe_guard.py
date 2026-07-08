@@ -14,7 +14,7 @@ from __future__ import annotations
 import pytest
 
 from backend.app.services.classification.type_classifier import detect_type_by_content
-from backend.app.services.content_classifier import classify_text
+from backend.app.services.documents.content_classifier import classify_text
 
 # Trechos reais (PII redigida) dos docs que estavam mal-classificados em 5@5.com.
 _C6_INFORME_PJ = (

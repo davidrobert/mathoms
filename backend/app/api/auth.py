@@ -27,8 +27,6 @@ from backend.app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
-from backend.app.services.rate_limit import client_ip_key, rate_limited
-from backend.app.services.refresh_rate_limit import check_refresh_rate
 from backend.app.services.refresh_token_service import (
     REFRESH_COOKIE_NAME,
     parse_refresh_cookie,
@@ -36,7 +34,9 @@ from backend.app.services.refresh_token_service import (
     revoke_family_by_cookie,
     rotate_refresh_token,
 )
-from backend.app.services.register_rate_limit import check_register_rate
+from backend.app.services.security.rate_limit import client_ip_key, rate_limited
+from backend.app.services.security.refresh_rate_limit import check_refresh_rate
+from backend.app.services.security.register_rate_limit import check_register_rate
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

@@ -14,7 +14,7 @@ from sqlalchemy import func, select
 from backend.app.core.security import create_access_token
 from backend.app.models.audit_log import AuditLog
 from backend.app.models.workspace import Workspace
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 from backend.tests import factories
 
 # Placeholder LGPD-safe (allowlist de tests/utils/lint_no_real_pii.py).
@@ -185,7 +185,7 @@ async def test_cross_tenant_full_cpf_404(db, client):
 
 @pytest.mark.asyncio
 async def test_full_cpf_rate_limited(db, client, monkeypatch):
-    from backend.app.services import rate_limit as rl
+    from backend.app.services.security import rate_limit as rl
 
     owner_id, ws_id, member_id = await _workspace_with_cpf_member(db)
     client.headers["Authorization"] = f"Bearer {create_access_token(owner_id)}"

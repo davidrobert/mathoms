@@ -17,7 +17,7 @@ from backend.app.models import (
     User,
     Workspace,
 )
-from backend.app.services.db_artifact_store import DBArtifactStore
+from backend.app.services.storage.db_artifact_store import DBArtifactStore
 from backend.app.tasks.pipeline_task import _run_stage_with_retry
 
 _INVALID_E3 = {"not_a_valid_e3_shape": True}

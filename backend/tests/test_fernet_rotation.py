@@ -12,12 +12,12 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-import backend.app.services.vault as vault_mod
+import backend.app.services.security.vault as vault_mod
 from backend.app.core.config import settings
 from backend.app.core.database import Base
 from backend.app.core.security import hash_password
 from backend.app.models import User, Workspace
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 
 OLD_KEY = Fernet.generate_key().decode()
 NEW_KEY = Fernet.generate_key().decode()
@@ -228,7 +228,7 @@ def _rotate_and_load_artifact(factory, artifact_id: int) -> tuple[dict, dict]:
 
 
 def test_rotate_artifacts_reencrypts_stale_kid(rotation_env) -> None:
-    from backend.app.services.crypto import _key_id, is_encrypted_payload
+    from backend.app.services.security.crypto import _key_id, is_encrypted_payload
 
     artifact_id = _seed_stale_artifact(rotation_env)
 

@@ -8,7 +8,7 @@ from typing import Optional
 from backend.app.models.protection import Protection
 from backend.app.schemas.dto.protection.bundle import ProtectionItemResponse
 from backend.app.schemas.dto.protection.response import ProtectionResponse
-from backend.app.services.protection_pii import decrypt_policy_ref
+from backend.app.services.security.protection_pii import decrypt_policy_ref
 
 
 def cents_to_brl(cents: Optional[int] = None) -> Optional[Decimal]:

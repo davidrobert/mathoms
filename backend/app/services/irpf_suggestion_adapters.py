@@ -12,7 +12,7 @@ from backend.app.application.family_member import IrpfArtifactPayload
 from backend.app.models.family_member import WorkspaceIrpfSuggestionDismissal
 from backend.app.models.institution_catalog import InstitutionCatalog
 from backend.app.models.pipeline_artifact import PipelineArtifact
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 from pipeline.artifact_store import stage_aliases
 
 _DIGITS_RE = re.compile(r"\D")

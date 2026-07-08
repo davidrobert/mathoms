@@ -8,8 +8,8 @@ from pathlib import Path
 
 from backend.app.core.config import settings
 from backend.app.models.document import Document, DocumentType
-from backend.app.services.canonical_routing import rename_to_canonical
-from backend.app.services.document_classification import (
+from backend.app.services.documents.canonical_routing import rename_to_canonical
+from backend.app.services.documents.document_classification import (
     document_type_to_e0_dest,
     map_e0_doc_type_to_document_type,
 )

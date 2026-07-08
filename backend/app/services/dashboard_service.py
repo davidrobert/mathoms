@@ -6,7 +6,7 @@ import logging
 from typing import Any
 
 from backend.app.schemas.dashboard import DashboardAlert, DashboardChart, DashboardKPI
-from backend.app.services.artifact_reader import read_latest_artifact
+from backend.app.services.storage.artifact_reader import read_latest_artifact
 from pipeline.stage_spec import resolve_stage_name
 
 logger = logging.getLogger(__name__)

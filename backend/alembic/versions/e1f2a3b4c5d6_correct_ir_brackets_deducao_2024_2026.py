@@ -36,7 +36,7 @@
 # em ADR follow-up. Confirmar contra fonte autoritativa antes de habilitar
 # feature: https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/tabelas/tabela-progressiva-mensal
 #
-# Cache: backend/app/services/fiscal_cache.py mantém TTL=1h por ano fiscal.
+# Cache: backend/app/services/storage/fiscal_cache.py mantém TTL=1h por ano fiscal.
 # Após apply, invalidar fiscal:y=2024/2025/2026 no Redis de produção (ou
 # aguardar TTL natural). Cache não é gate de correctness, só de prontidão.
 

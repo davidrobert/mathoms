@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from backend.app.models.document import Document, DocumentType
-from backend.app.services.document_canonical_rename import (
+from backend.app.services.documents.document_canonical_rename import (
     resolve_e0_for_rename as _resolve_e0_for_rename,
 )
 

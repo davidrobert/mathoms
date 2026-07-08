@@ -86,7 +86,7 @@ def _seed_dogfood(db_url: str, run_id: str) -> None:
 
     import backend.app.models  # noqa: F401 — registra tabelas no metadata
     from backend.app.core.database import Base
-    from backend.app.services.db_artifact_store import DBArtifactStore
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
     engine = create_engine(db_url.replace("+aiosqlite", ""))
     Base.metadata.create_all(engine)

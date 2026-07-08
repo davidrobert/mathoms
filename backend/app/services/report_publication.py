@@ -23,7 +23,7 @@ from backend.app.models.report_publication import ReportPublication
 from backend.app.repositories.report_publication_repository import (
     ReportPublicationRepository,
 )
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 
 _PERIOD_RE = re.compile(r"^[0-9]{6}$")
 

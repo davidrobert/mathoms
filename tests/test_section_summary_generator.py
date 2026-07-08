@@ -9,7 +9,7 @@ from decimal import Decimal
 
 import pytest
 
-from backend.app.services.llm_cache import InMemoryLLMCache
+from backend.app.services.storage.llm_cache import InMemoryLLMCache
 from pipeline.domain.services.section_summary_generator import (
     PromptTemplate,
     SectionSummaryGenerator,

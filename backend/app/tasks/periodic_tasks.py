@@ -25,8 +25,8 @@ from backend.app.models import (
 from backend.app.models.audit_log import AuditLog
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.services.audit import READ_ACCESS_ACTIONS, AuditAction, audit_log_sync
-from backend.app.services.events import publish_run_failed
-from backend.app.services.pipeline_failure_reasons import HEARTBEAT_TIMEOUT
+from backend.app.services.pipeline.events import publish_run_failed
+from backend.app.services.pipeline.pipeline_failure_reasons import HEARTBEAT_TIMEOUT
 from backend.app.services.task_notification_service import (
     scan_and_create_notifications,
 )

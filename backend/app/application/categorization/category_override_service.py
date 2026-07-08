@@ -11,7 +11,7 @@ from backend.app.core.logging import get_logger
 from backend.app.repositories.workspace_category_override_repository import (
     WorkspaceCategoryOverrideRepository,
 )
-from backend.app.services import category_cache
+from backend.app.services.storage import category_cache
 
 logger = get_logger("categorization.override")
 

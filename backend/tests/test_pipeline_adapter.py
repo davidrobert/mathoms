@@ -13,7 +13,7 @@ from datetime import date
 
 import pytest
 
-from backend.app.services.pipeline_adapter import (
+from backend.app.services.pipeline.pipeline_adapter import (
     build_goals_payload,
     build_tarefas_md,
     build_tasks_payload,
@@ -173,7 +173,7 @@ async def test_tarefas_md_header_marks_adapter(db):
 def test_build_config_store_returns_db_adapter():
     """Sempre ``DBConfigStore`` ligado à sessão fornecida (post-A7.5)."""
     from backend.app.services.db_config_store import DBConfigStore
-    from backend.app.services.pipeline_adapter import build_config_store
+    from backend.app.services.pipeline.pipeline_adapter import build_config_store
 
     sentinel_session = object()
     store = build_config_store(db=sentinel_session)
@@ -183,7 +183,7 @@ def test_build_config_store_returns_db_adapter():
 
 def test_build_config_store_satisfies_protocol():
     """Adapter retornado implementa ``ConfigStore`` (runtime check)."""
-    from backend.app.services.pipeline_adapter import build_config_store
+    from backend.app.services.pipeline.pipeline_adapter import build_config_store
     from pipeline.ports import ConfigStore
 
     store = build_config_store(db=object())
@@ -199,7 +199,7 @@ def test_build_config_store_satisfies_protocol():
 async def test_build_config_overrides_includes_categorization(db):
     """Workspace com Category rows → categorization.json no overrides."""
     from backend.app.core.database import SyncSessionLocal
-    from backend.app.services.pipeline_adapter import build_config_overrides_from_db
+    from backend.app.services.pipeline.pipeline_adapter import build_config_overrides_from_db
 
     ws = await factories.make_workspace(db)
     await factories.make_category(
@@ -218,7 +218,7 @@ async def test_build_config_overrides_includes_categorization(db):
 async def test_build_config_overrides_skips_empty_workspace(db):
     """Workspace sem nenhum config row → overrides só com ``goals.json`` mínimo (ADR-180)."""
     from backend.app.core.database import SyncSessionLocal
-    from backend.app.services.pipeline_adapter import build_config_overrides_from_db
+    from backend.app.services.pipeline.pipeline_adapter import build_config_overrides_from_db
 
     ws = await factories.make_workspace(db)
     await db.commit()
@@ -234,7 +234,7 @@ async def test_build_config_overrides_skips_empty_workspace(db):
 async def test_build_config_overrides_includes_family_members(db):
     """Workspace com FamilyMember row → family_members.json no overrides."""
     from backend.app.core.database import SyncSessionLocal
-    from backend.app.services.pipeline_adapter import build_config_overrides_from_db
+    from backend.app.services.pipeline.pipeline_adapter import build_config_overrides_from_db
 
     ws = await factories.make_workspace(db)
     await factories.make_member(

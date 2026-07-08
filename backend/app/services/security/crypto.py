@@ -8,7 +8,7 @@ import logging
 from typing import Any
 
 from backend.app.core.config import settings
-from backend.app.services.vault import get_vault, primary_fernet_key
+from backend.app.services.security.vault import get_vault, primary_fernet_key
 
 logger = logging.getLogger("mathoms.crypto")
 
