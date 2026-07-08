@@ -136,9 +136,11 @@ class TestExtractIrpfFullRun:
         assert result["validation"]["valid"] is True
         assert fake.calls == 1
 
+        from pipeline.llm.schemas.e16_irpf_full import PROMPT_VERSION
+
         persisted = ctx.get_artifact_store().read("extract_irpf_full", "irpfdeclaracaodavid2024")
         _assert_models_equal(persisted, fixture)
-        assert persisted["prompt_version"] == "1.1.2"
+        assert persisted["prompt_version"] == PROMPT_VERSION
         assert persisted["confidence"] == fixture["confidence"]
 
     @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")

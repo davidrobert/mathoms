@@ -19,6 +19,7 @@ from backend.app.services.extract_llm_drift_fixtures import (
     StructuralExpectation,
 )
 from pipeline.llm.call_hooks import LLMBudgetExceededError
+from pipeline.llm.institution_catalog import CATALOG_UNAVAILABLE_BLOCK
 from pipeline.llm.prompts.e2_llm import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
 from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
 
@@ -143,6 +144,9 @@ def _call_one(llm_client: StructuredLLMClient, fixture: DriftFixture) -> Any:
         filename=fixture.filename,
         doc_type="unknown",
         institution="unknown",
+        # A33.l8: eval de drift é sintético/determinístico — usa o fallback
+        # documentado em vez do catálogo em DB (paridade entre runs).
+        institution_catalog=CATALOG_UNAVAILABLE_BLOCK,
         document_text=fixture.document_text,
     )
     return llm_client.call(

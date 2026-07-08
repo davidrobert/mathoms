@@ -9,6 +9,9 @@ from typing import Annotated, Literal, Optional, Union
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 
 # Bump quando alterar prompt ``apolice`` de modo que afete output (ADR-144 cache).
+# v1.2.0 — A33.l8 (ADR-137): bump pareado com o prompt (tabela de seguradoras
+# sai do system prompt; user prompt ganha `{seguradoras_catalog}` injetado).
+# Schema em si não mudou.
 # v1.1.1 — coerção explícita string→date/Decimal pós-strip. ``model_validator(mode="before")``
 # v1.1.0 quebra a coerção JSON-nativa do Pydantic strict mode (Instructor TOOLS path):
 # antes do v1.1.0, ``model_validate_json(strict=True)`` aceitava ``"2026-04-05"`` para
@@ -18,7 +21,7 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_valida
 # combinada multi-bem (1 erro por campo Decimal/date). Fix: BeforeValidator por campo
 # coage tipos antes do strict check; strip continua atacando aspas spurious do Haiku.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
-PROMPT_VERSION = "1.1.1"
+PROMPT_VERSION = "1.2.0"
 
 
 def _strip_spurious_quotes(value):

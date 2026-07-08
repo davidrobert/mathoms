@@ -97,15 +97,29 @@ def _emit_phase(
     )
 
 
-def _call_llm(service, config, doc_name: str, text: str):
-    from pipeline.llm.prompts.e16_irpf_full import (
-        PROMPT_VERSION,
-        SYSTEM_PROMPT,
-        USER_PROMPT_TEMPLATE,
+def _year_hint_from_name(doc_name: str) -> int | None:
+    """Ano no filename (ex.: ``irpfdeclaracao_2024``) — hint para a tabela RFB."""
+    m = re.search(r"(20\d{2})", doc_name)
+    return int(m.group(1)) if m else None
+
+
+def _build_e16_user_prompt(doc_name: str, text: str) -> str:
+    """A33.l8: tabelas RFB (YAML anual) no user prompt — ano do filename ou o mais recente."""
+    from pipeline.llm.prompts.e16_irpf_full import USER_PROMPT_TEMPLATE
+    from pipeline.llm.rfb_codes import render_rfb_codes_block, resolve_rfb_codes
+
+    codes = resolve_rfb_codes(_year_hint_from_name(doc_name))
+    return USER_PROMPT_TEMPLATE.format(
+        codigos_rfb=render_rfb_codes_block(codes),
+        documents_text=f"=== {doc_name} ===\n{text}",
     )
+
+
+def _call_llm(service, config, doc_name: str, text: str):
+    from pipeline.llm.prompts.e16_irpf_full import PROMPT_VERSION, SYSTEM_PROMPT
     from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
-    user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=f"=== {doc_name} ===\n{text}")
+    user_prompt = _build_e16_user_prompt(doc_name, text)
     return service.call(
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,

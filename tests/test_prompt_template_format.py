@@ -16,7 +16,7 @@ def test_e1_template_inserts_nested_json_verbatim():
     from pipeline.llm.prompts.e1_members import USER_PROMPT_TEMPLATE
 
     raw = '{"membro": {"nome": "a"}, "lista": [1, 2]}'
-    filled = USER_PROMPT_TEMPLATE.format(documents_text=raw)
+    filled = USER_PROMPT_TEMPLATE.format(documents_text=raw, institution_catalog="- x (X)")
     assert raw in filled
     assert "{{" not in filled
 
@@ -37,6 +37,7 @@ def test_e2_llm_template_inserts_document_text_verbatim():
         filename="x.pdf",
         doc_type="unknown",
         institution="unknown",
+        institution_catalog="- x (X)",
         document_text=blob,
     )
     assert blob in filled

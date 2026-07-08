@@ -83,6 +83,7 @@ def run(ctx: WorkspaceContext) -> dict:
     Reads personal documents, sends to LLM, saves members JSON.
     Requires llm_config.json in ctx.config_dir.
     """
+    from pipeline.llm.institution_catalog import INSURANCE_CATEGORY, render_institution_catalog
     from pipeline.llm.litellm_client import LLMConfig, LLMService
     from pipeline.llm.prompts.e1_members import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.e1_members import MembersExtractOutput
@@ -133,7 +134,14 @@ def run(ctx: WorkspaceContext) -> dict:
 
     documents_text = "\n\n".join(docs_text_parts)
     # JSON/PDF podem conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
-    user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=documents_text)
+    user_prompt = USER_PROMPT_TEMPLATE.format(
+        documents_text=documents_text,
+        # A33.l8 (ADR-137): catálogo em DB injetado no user prompt; sem
+        # provider (CLI isolado) degrada para bloco de fallback documentado.
+        institution_catalog=render_institution_catalog(
+            ctx.institution_catalog_provider, exclude_categories=(INSURANCE_CATEGORY,)
+        ),
+    )
 
     config = LLMConfig(
         **llm_config_data,

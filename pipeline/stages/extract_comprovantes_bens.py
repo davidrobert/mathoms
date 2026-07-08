@@ -8,15 +8,30 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from pipeline.llm import institution_catalog as _catalog
+
+# Camada LLM (calls + payload building + mask CPF) vive em módulo próprio;
+# nomes re-importados aqui preservam o import-path histórico dos testes.
+from pipeline.stages.comprovantes_bens_llm import (  # noqa: F401 — re-export compat
+    _CPF_FORMATTED_RE,
+    _CPF_RAW_RE,
+    _build_apolice_payload,
+    _build_payload,
+    _build_user_prompt,
+    _call_llm_apolice,
+    _call_llm_crlv,
+    _cascade_needed,
+    _extract_titular_cpf_masked,
+    _mask_cpf,
+)
+
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
     from pipeline.llm.litellm_client import LLMConfig, LLMService
 
 logger = logging.getLogger("mathoms.pipeline.comprovantes_bens")
 
-_LLM_MIN_TOKENS = 4_096
 _MAX_DOCS_PER_RUN = 20
-_NEEDS_REVIEW_CONFIDENCE_THRESHOLD = 0.7
 
 # ADR-239 D6 — cascata Haiku→Sonnet hardcoded para Anthropic. Para outros providers
 # (openai/groq/etc.) ambas as etapas degradam para o `model_name` da workspace,
@@ -27,16 +42,13 @@ _APOLICE_SONNET_MODEL = "claude-sonnet-4-6"
 
 @dataclass(frozen=True)
 class _StageLLM:
-    """Trio de ``LLMService`` usado pelo stage — workspace default para CRLV, Haiku→Sonnet para apolice ([[ADR-239]] D6)."""
+    """Trio de ``LLMService`` usado pelo stage — workspace default para CRLV, Haiku→Sonnet para apolice ([[ADR-239]] D6) — + bloco do catálogo de seguradoras injetado no user prompt de apolice (A33.l8 · ADR-137)."""
 
     crlv: "LLMService"
     apolice_haiku: "LLMService"
     apolice_sonnet: "LLMService"
+    seguradoras_catalog: str = _catalog.CATALOG_UNAVAILABLE_BLOCK
 
-
-# CPF detection (LGPD ADR-231): Python mask pós-LLM, nunca confiar no LLM.
-_CPF_RAW_RE = re.compile(r"(?<!\d)(\d{3})(\d{3})(\d{3})(\d{2})(?!\d)")
-_CPF_FORMATTED_RE = re.compile(r"(?<!\d)(\d{3})\.(\d{3})\.(\d{3})-(\d{2})(?!\d)")
 
 # Filename patterns por tipo_comprovante. L1 cobre crlv + apolice (L2);
 # V2 estende para imóveis (rgi/iptu) e outros bens.
@@ -59,21 +71,6 @@ def _redact_placa(placa: str) -> str:
     if not placa or len(placa) < 4:
         return "***"
     return f"{placa[:3]}***{placa[-1]}"
-
-
-def _mask_cpf(cpf: str) -> str:
-    digits = re.sub(r"\D", "", cpf)
-    if len(digits) != 11:
-        return ""
-    return f"***.{digits[3:6]}.{digits[6:9]}-**"
-
-
-def _extract_titular_cpf_masked(text: str) -> str | None:
-    """Extrai 1º CPF do texto e mascara em Python (LGPD ADR-231; nunca confiar no LLM)."""
-    m = _CPF_FORMATTED_RE.search(text) or _CPF_RAW_RE.search(text)
-    if m is None:
-        return None
-    return _mask_cpf("".join(m.groups()))
 
 
 def _detect_tipo_comprovante(filename: str) -> str | None:
@@ -114,47 +111,6 @@ def _stem_for_filename(name: str) -> str:
     return name
 
 
-def _build_user_prompt(doc_name: str, text: str) -> str:
-    from pipeline.llm.prompts import crlv as prompt_mod
-
-    return prompt_mod.USER_PROMPT_TEMPLATE.format(filename=doc_name, document_text=text)
-
-
-def _call_llm_crlv(service, config, doc_name: str, text: str):
-    from pipeline.llm.metrics import prompt_name_of
-    from pipeline.llm.prompts import crlv as prompt_mod
-    from pipeline.llm.schemas.crlv import CRLVPayload
-
-    # ADR-307: cache real no choke-point (key = content-hash do prompt) exige
-    # temp=0; ``stage`` volta a ser descritivo (ADR-093 — antes carregava uma
-    # pseudo-key que poluía a cardinalidade do LLMCallLog).
-    result = service.call(
-        system_prompt=prompt_mod.SYSTEM_PROMPT,
-        user_prompt=_build_user_prompt(doc_name, text),
-        output_schema=CRLVPayload,
-        max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
-        temperature=0.0,
-        stage="extract_comprovantes_bens",
-        prompt_version=prompt_mod.PROMPT_VERSION,
-        prompt_name=prompt_name_of(prompt_mod),
-        use_cache=True,
-    )
-    return result, prompt_mod.PROMPT_VERSION
-
-
-def _build_payload(output, prompt_version: str, doc_text: str, source_artifact_id: str) -> dict:
-    """Materializa payload + força prompt_version + mask CPF Python + source_artifact_id."""
-    payload = output.model_dump(mode="json")
-    payload["prompt_version"] = prompt_version
-    payload["source_artifact_id"] = source_artifact_id
-    # LGPD: NUNCA confiar no LLM para mascarar CPF.
-    payload["proprietario_cpf_masked"] = _extract_titular_cpf_masked(doc_text)
-    confidence = payload.get("confidence", 1.0)
-    if confidence < _NEEDS_REVIEW_CONFIDENCE_THRESHOLD:
-        payload["needs_review"] = True
-    return payload
-
-
 def _extract_crlv(doc: Path, text: str, service, config) -> tuple[dict, Any, str]:
     """Caminho CRLV — LLM Haiku (cache ADR-307) + payload com lineage."""
     result, prompt_version = _call_llm_crlv(service, config, doc.name, text)
@@ -163,85 +119,17 @@ def _extract_crlv(doc: Path, text: str, service, config) -> tuple[dict, Any, str
     return payload, result, prompt_version
 
 
-# Apólice — cascata Haiku → Sonnet (ADR-239 D6). Strings detectadas no texto do
-# PDF disparam Sonnet (caso V1 obrigatório: combinada Porto = Toro + residência).
-_CASCADE_TRIGGER_STRINGS = (
-    "combinada",
-    "proteção combinada",
-    "residencial+auto",
-    "residencial + auto",
-    "multi-bem",
-)
-
-
-def _build_apolice_user_prompt(doc_name: str, text: str) -> str:
-    from pipeline.llm.prompts import apolice as prompt_mod
-
-    return prompt_mod.USER_PROMPT_TEMPLATE.format(filename=doc_name, document_text=text)
-
-
-def _call_llm_apolice(service, config, doc_name, text):
-    """LLM call apólice — ``service`` pré-bound ao modelo (Haiku/Sonnet); o modelo entra na cache key do choke-point (ADR-307)."""
-    from pipeline.llm.metrics import prompt_name_of
-    from pipeline.llm.prompts import apolice as prompt_mod
-    from pipeline.llm.schemas.apolice import ApolicePayload
-
-    result = service.call(
-        system_prompt=prompt_mod.SYSTEM_PROMPT,
-        user_prompt=_build_apolice_user_prompt(doc_name, text),
-        output_schema=ApolicePayload,
-        max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
-        temperature=0.0,
-        stage="extract_comprovantes_bens",
-        prompt_version=prompt_mod.PROMPT_VERSION,
-        prompt_name=prompt_name_of(prompt_mod),
-        use_cache=True,
-    )
-    return result, prompt_mod.PROMPT_VERSION
-
-
-def _cascade_needed(payload: dict, text: str) -> bool:
-    """ADR-239 D6: cascata Sonnet quando combinada OU confidence baixo OU strings textuais."""
-    bens = payload.get("bens_segurados") or []
-    if len(bens) > 1:
-        return True
-    confidence = payload.get("confidence", 1.0)
-    if confidence < _NEEDS_REVIEW_CONFIDENCE_THRESHOLD:
-        return True
-    text_lower = text.lower()
-    return any(trigger in text_lower for trigger in _CASCADE_TRIGGER_STRINGS)
-
-
-def _build_apolice_payload(
-    output, prompt_version: str, doc_text: str, source_artifact_id: str, cascade_triggered: bool
-) -> dict:
-    """Payload apólice + mask CPFs (pagador + segurado) Python pós-LLM (LGPD ADR-231 D8)."""
-    payload = output.model_dump(mode="json")
-    payload["prompt_version"] = prompt_version
-    payload["source_artifact_id"] = source_artifact_id
-    payload["cascade_triggered"] = cascade_triggered
-    # LGPD: mascara CPF do texto livre (LLM SEMPRE retorna null nos campos cpf_masked).
-    cpf_first = _extract_titular_cpf_masked(doc_text)
-    payload["pagador_cpf_masked"] = cpf_first
-    payload["segurado_cpf_masked"] = cpf_first
-    # Placeholder V1 — sinistro só entra em V2 com ADR-238 integração.
-    payload["sinistro_indenizacao_recebida_brl"] = None
-    confidence = payload.get("confidence", 1.0)
-    if confidence < _NEEDS_REVIEW_CONFIDENCE_THRESHOLD:
-        payload["needs_review"] = True
-    return payload
-
-
 def _extract_apolice(
     doc: Path, text: str, llm: _StageLLM, config: "LLMConfig"
 ) -> tuple[dict, Any, str]:
     """Apólice — Haiku primeiro; cascata Sonnet se gate triggered ([[ADR-239]] D6)."""
-    h_result, prompt_version = _call_llm_apolice(llm.apolice_haiku, config, doc.name, text)
+    call_args = (config, doc.name, text, llm.seguradoras_catalog)
+    h_result, prompt_version = _call_llm_apolice(llm.apolice_haiku, *call_args)
     source_id = _stem_for_filename(doc.name)
     if not _cascade_needed(h_result.output.model_dump(mode="json"), text):
         payload = _build_apolice_payload(h_result.output, prompt_version, text, source_id, False)
         return payload, h_result, prompt_version
-    s_result, _ = _call_llm_apolice(llm.apolice_sonnet, config, doc.name, text)
+    s_result, _ = _call_llm_apolice(llm.apolice_sonnet, *call_args)
     payload = _build_apolice_payload(s_result.output, prompt_version, text, source_id, True)
     return payload, s_result, prompt_version
 
@@ -428,7 +316,9 @@ def _process_one(
     return payload, result, tipo
 
 
-def _build_stage_llm(base_cfg: "LLMConfig") -> _StageLLM:
+def _build_stage_llm(
+    base_cfg: "LLMConfig", seguradoras_catalog: str = _catalog.CATALOG_UNAVAILABLE_BLOCK
+) -> _StageLLM:
     """Constrói trio de services. Anthropic → cascata real Haiku/Sonnet; outros providers → degrada para workspace default em ambos os slots de apolice ([[ADR-239]] D6)."""
     from pipeline.llm.litellm_client import LLMService
 
@@ -442,6 +332,7 @@ def _build_stage_llm(base_cfg: "LLMConfig") -> _StageLLM:
         crlv=crlv_service,
         apolice_haiku=LLMService(haiku_cfg),
         apolice_sonnet=LLMService(sonnet_cfg),
+        seguradoras_catalog=seguradoras_catalog,
     )
 
 
@@ -461,7 +352,10 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
         response_cache=ctx.llm_response_cache,
         metrics_emitter=ctx.llm_metrics_emitter,
     )
-    return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config), llm_config
+    seguradoras = _catalog.render_institution_catalog(
+        ctx.institution_catalog_provider, include_categories=(_catalog.INSURANCE_CATEGORY,)
+    )
+    return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config, seguradoras), llm_config
 
 
 def _summarize(processed: list[dict], errors: list[dict]) -> dict[str, Any]:

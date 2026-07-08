@@ -17,7 +17,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 # v1.1.2 (ADR-268 rev): sufixo PJ vira sinal needs_review (guardrail pós-LLM
 #   ``detect_pj_suffix``), não validator de schema — raise brickava read de E5.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "e16-v1.1.2".
-PROMPT_VERSION = "1.1.2"
+# v1.2.0 (A33.l8): tabelas de códigos RFB saem do system prompt para YAML
+#   anual versionado (config/prompts/e16_codigos_rfb_<ano_base>.yaml);
+#   user prompt ganha o placeholder `{codigos_rfb}` (pipeline/llm/rfb_codes.py).
+#   Atualização anual do YAML NÃO exige bump aqui (só mudança de prompt/schema).
+PROMPT_VERSION = "1.2.0"
 
 # ADR-268 (rev) — detecção PF vs PJ no Contribuinte.nome. IRPF é declaração de
 # PF; nome com sufixo de personificação jurídica (LTDA, S.A., EIRELI, ME, EPP,
