@@ -39,10 +39,10 @@ brecha aberta e apostar na disciplina.
 
 Além disso, "docs em EN" pode ser lido erroneamente como **sinal de mercado**:
 que o Mathoms passou a mirar clientes lusófonos-globais ou anglófonos. Isso
-colide com [[ADR-130]], que decidiu i18n de **produto** (pt-BR + en + es no
-app) em estado `paused` com gate de demanda, e com a decisão GTM de
-2026-05-15 que descartou **pt-PT** (o produto é fiscal-BR; residente-fiscal-PT
-não é o ICP). A fronteira precisa separar explicitamente **idioma da
+colide com [[ADR-130]], que governa i18n de **produto** (locales do app) em
+estado `paused` com gate de demanda. **es e pt-PT não são necessários para
+executar este plano** — são matéria de produto, não de apresentação do repo.
+A fronteira precisa separar explicitamente **idioma da
 apresentação do repo** de **idioma/mercado do produto**.
 
 Co-design 2026-07-08 (`gtm-strategist` + `information-architect`, síntese
@@ -69,10 +69,10 @@ fronteira cai e o que ela NÃO sinaliza**.
    cláusula vive no PLAN-i18n, não no [[ADR-130]] atômico; ativá-la **não
    emenda ADR-130** (nenhuma decisão de produto-i18n muda). `relates_to`, não `amends`.
 
-4. **Produto-i18n permanece `paused`** com gate de demanda intacto: en/es no
-   **app** só destrava por sinal de mercado, não por este flip. Docs-EN de
-   **apresentação** não é reativação de produto-i18n nem sinal de intenção de
-   mercado. **pt-PT permanece FORA** (decisão GTM 2026-05-15).
+4. **Produto-i18n permanece `paused` e fora do escopo deste plano:** os locales
+   de app (governados pelo [[PLAN-i18n]]) só destravam por sinal de mercado, não
+   por este flip. **es e pt-PT não são necessários para executar o PUBLIC_RELEASE**;
+   docs-EN de **apresentação** não é reativação de produto-i18n nem sinal de mercado.
 
 5. **Fronteira mecanizável:** a Onda 7 ([[A34.l23]]) reconcilia a superfície
    EN com [[PLAN-i18n]] e cross-linka; qualquer arquivo EN novo fora da
