@@ -4,9 +4,9 @@ type: lane
 title: "review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento"
 sprint: A32
 plan: null
-status: in_progress
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 845
+ship_date: "2026-07-08"
 priority: P1
 branch_slug: a32-l6-review-ux-provenance
 adrs: []
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a32
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/frontend
   - area/ux

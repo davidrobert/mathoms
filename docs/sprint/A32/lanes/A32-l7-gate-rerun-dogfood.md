@@ -4,7 +4,7 @@ type: lane
 title: "gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner"
 sprint: A32
 plan: null
-status: planned
+status: open
 ship_pr: null
 ship_date: null
 priority: P0
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a32
-  - status/planned
+  - status/open
   - priority/p0
   - area/pipeline
   - area/dogfood
