@@ -31,7 +31,7 @@ import sqlalchemy as sa
 from alembic import context, op
 
 revision: str = "a33l2ptax3112"
-down_revision: Union[str, None] = "a32l5promptver"
+down_revision: Union[str, None] = "a33l6retention"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
