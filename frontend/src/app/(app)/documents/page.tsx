@@ -94,6 +94,10 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
   const [reviewFilter, setReviewFilter] = useState<"all" | "uncertain">(
     searchParams.get("filter") === "needs_review" ? "uncertain" : "all",
   );
+  // A32.l6 PR3 — deep-link "Ver documento" da tela de review (?doc=<id>):
+  // abre o EditDocumentDialog do documento assim que a lista carrega.
+  const deepLinkDocId = searchParams.get("doc");
+  const deepLinkHandledRef = useRef(false);
   const [extractModal, setExtractModal] = useState<{
     doc: DocumentResponse;
     result: ExtractJsonResponse;
@@ -138,6 +142,15 @@ function DocumentsPageContent({ workspace }: { workspace: UserWorkspace }) {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  useEffect(() => {
+    if (deepLinkHandledRef.current || !deepLinkDocId || docs.length === 0) return;
+    const doc = docs.find((d) => d.id === deepLinkDocId);
+    if (doc) {
+      deepLinkHandledRef.current = true;
+      setEditTarget(doc);
+    }
+  }, [deepLinkDocId, docs]);
 
   async function handleUpload(files: FileList | File[]) {
     const fileArray = Array.from(files);
