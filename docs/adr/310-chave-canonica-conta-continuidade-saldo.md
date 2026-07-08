@@ -5,7 +5,8 @@ title: "Chave canônica de conta na continuidade de saldo (implementação inter
 status: Decidido
 phase: A32.l4
 date: "2026-07-07"
-relates_to: ["[[ADR-278]]", "[[ADR-090]]", "[[ADR-097]]"]
+amended_at: ["2026-07-08"]
+relates_to: ["[[ADR-278]]", "[[ADR-090]]", "[[ADR-097]]", "[[ADR-226]]"]
 tags:
   - type/adr
   - status/decidido
@@ -16,6 +17,13 @@ tags:
 # ADR-310 — Chave canônica de conta na continuidade de saldo
 
 **Status:** Decidido (A32.l4) · **Data:** 2026-07-07
+
+> **Emenda 2026-07-08 (A35.l1):** a chave estrita introduzida aqui produz
+> um falso negativo quando `account_number_norm` não é extraído de um dos
+> extratos da mesma conta — o gap genuíno entre eles some. Ver §Emenda ao
+> fim: fallback de coalescência (só `not is_fatura`) + sinal auditável
+> `SaldoChainMemberInferred`. Continua interina, absorvida pelo
+> `SourceRef.kind` ([[ADR-278]] §B7).
 
 ## Contexto
 
@@ -80,3 +88,45 @@ concorrente. Co-design 2026-07-07: `senior-cto` + `data-engineer` +
 - **ADR nova "concorrente" redefinindo o B7:** rejeitado — fragmentaria a
   decisão; esta ADR se declara subset/interina (resolução do conflito
   data-engineer × senior-cto no co-design).
+
+## Emenda 2026-07-08 — coalescência de cadeia por número de conta ausente (A35.l1)
+
+**Contexto.** A chave estrita (`+ account_number_norm`) resolveu 30 falsos
+positivos de `balance_gap` no gate da A32, mas introduziu um falso
+negativo: `account_number_norm` vem da **extração** (`document.py:158`) e
+falha silenciosamente quando o parser não casa o número. Dois extratos da
+MESMA conta — um com número, outro sem — viram cadeias separadas e o gap
+genuíno entre eles não é sinalizado. Confirmado pelo owner na triagem KR3
+da A32 (issue #860): conta rico, buraco abr–jun/2026 invisível.
+
+**Decisão (escada de resolução — só `not is_fatura`).**
+
+1. **Tier 1 (forte, quando há cadastro):** identidade de cadeia derivada
+   do `AccountResolver` ([[ADR-226]]) — `fallback_bank` (banco com 1 conta
+   cadastrada → statement sem número herda), `ambiguous` (2+ → isola).
+2. **Tier 2 (sem cadastro):** dentro do grupo `(banco, membro, tipo,
+   moeda)`, se há **exatamente um** `account_number_norm` distinto
+   não-nulo, os sem-número coalescem naquela cadeia (sobrevivente
+   canônico = a chave numerada, fixo — determinismo ADR-111). `>= 2`
+   distintos → não coalesce (frágil a ruído de normalização; deferido ao
+   Tier 1 / `SourceRef.kind`). Todos `None` → agrupam entre si (inalterado).
+3. **Sinal `SaldoChainMemberInferred`** (dataclass, sem número cru) em
+   toda coalescência — nunca em silêncio. Motivo: número ausente tem duas
+   causas indistinguíveis (banco não emite × parser regrediu); o sinal
+   impede que o fallback mascare regressão de extração.
+
+**Aposta assimétrica (financial-planner):** no contexto de confiança da
+review, falso negativo (gap real invisível) é pior que falso positivo
+(warning dispensável) — falso positivo o usuário corrige em 1 clique;
+falso negativo ele nunca sabe que existe e decide sobre base incompleta
+(custo de vida subestimado → cobertura de reserva inflada, número da IF
+otimista). Por isso o viés é **coalescer-e-sinalizar**, restrito ao eixo
+`account_number` (os demais discriminadores seguem estritos — poupança
+nunca casa com CC).
+
+**Continua interina:** quando o `SourceRef.kind` ([[ADR-278]] §B7,
+DATA_LINEAGE) entregar, absorve tanto a chave quanto este fallback; a
+lógica de coalescência isolada em `_partition_chains` é fácil de deletar.
+Se o ramo `>= 2` (número ausente cercado por 2+ contas reais sem
+cadastro) virar recorrente, é gatilho para acelerar o B7, não para
+inflar a heurística.
