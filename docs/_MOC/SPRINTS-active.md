@@ -12,7 +12,11 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A32 — Review de reconciliação confiável (`current`, aberta 2026-07-07)
+_(nenhuma — próxima sprint a definir pelo owner)_
+
+## Sprint recém-fechada
+
+### A32 — Review de reconciliação confiável (`done` 2026-07-08)
 
 Origem: dogfood do owner 2026-07-07 — run `d1732edd` com 18 errors + 31
 warnings na tela de review; investigação em 2 frentes (código + dados
@@ -27,12 +31,20 @@ ancorada · l4 chave canônica de conta ([[ADR-310]] Proposto, interina de
 ADR-278 §B7) · l5 tombstone na reclassificação + versão de extração
 consultável ([[ADR-311]] Proposto) · l6 review UX (identidade legível,
 selo de natureza, agrupamento por documento) · l7 gate re-run dogfood
-instrumentado. KR1: 19 errors/warnings de causa-produto → 0 no re-run.
-Co-design: senior-cto + data-engineer + financial-planner +
-product-designer + prompt-engineer + product-manager; revisão de
-forma/priorização: product-manager + information-architect.
+instrumentado. Co-design: senior-cto + data-engineer +
+financial-planner + product-designer + prompt-engineer +
+product-manager; revisão de forma/priorização: product-manager +
+information-architect.
 
-## Sprint recém-fechada
+**Encerrada 2026-07-08 (~30h após abertura):** 7/7 lanes shipped em 12
+PRs (l1 #825 · l2 #826 · l3 #823 · l4 #829 [[ADR-310]] `Decidido` ·
+l5 #837 [[ADR-311]] `Decidido` · l6 #841/#843/#845 · gate #857 + docs
+#832/#838/#846). Gate medido na run real: baseline de 58 reasons → **0
+em dois re-runs consecutivos** (KR1/KR2/KR4 ✅); 39 warnings
+classificados 1-a-1 = zero gaps genuínos (4 famílias de falso
+positivo); triagem KR3 do owner aprovou os cards; ressalva rico
+(mesma conta, gap genuíno suprimido pela chave sem número) virou
+issue #860. Custo LLM do gate ~US$ 2,6 (julho US$ 14,20/20, ADR-173).
 
 ### A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado (`done` 2026-07-07)
 

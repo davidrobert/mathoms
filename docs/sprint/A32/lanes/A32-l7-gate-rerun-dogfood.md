@@ -4,9 +4,9 @@ type: lane
 title: "gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner"
 sprint: A32
 plan: null
-status: open
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 857
+ship_date: "2026-07-08"
 priority: P0
 branch_slug: a32-l7-gate-rerun-dogfood
 adrs: []
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a32
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/dogfood
