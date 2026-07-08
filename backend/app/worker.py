@@ -53,6 +53,8 @@ celery_app.conf.update(
         "backend.app.tasks.rotate_fernet_secrets",
         # A33.l5 (ADR-307 F2) — drift nightly do extract_with_llm.
         "backend.app.tasks.detect_extract_llm_drift",
+        # A33.l6 (W6-T05, ADR-212) — prune diário de pipeline_artifacts.
+        "backend.app.tasks.prune_artifacts",
     ],
     # F8.4 / ADR-074 — beat schedule para tarefas periódicas.
     # Start beat: celery -A backend.app.worker beat -l info
@@ -98,6 +100,15 @@ celery_app.conf.update(
         "detect-extract-llm-drift": {
             "task": "fin.llm.detect_extract_llm_drift",
             "schedule": crontab(hour=6, minute=15),
+        },
+        # A33.l6 (W6-T05, ADR-212) — retenção de pipeline_artifacts: backfill
+        # contínuo de rows superseded + relatório dry-run diário. 07:30 UTC =
+        # 04:30 BRT (fora de pico, após o drift check). DELETE efetivo só com
+        # prune_mode=delete (pipeline.json/env) — flip é PR separado gated no
+        # dry-run com gate zerado.
+        "prune-pipeline-artifacts-daily": {
+            "task": "fin.prune_pipeline_artifacts",
+            "schedule": crontab(hour=7, minute=30),
         },
     },
 )

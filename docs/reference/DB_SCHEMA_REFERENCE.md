@@ -799,6 +799,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `schema_version` | `VARCHAR(20)` | yes | — | — |
 | `prompt_version` | `VARCHAR(20)` | yes | — | — |
 | `byte_size` | `INTEGER` | yes | — | — |
+| `retention_until` | `DATETIME` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Constraints:**
@@ -813,6 +814,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_pipeline_artifacts_data_source_id` (data_source_id)
 - `ix_pipeline_artifacts_document_id` (document_id)
 - `ix_pipeline_artifacts_pipeline_run_id` (pipeline_run_id)
+- `ix_pipeline_artifacts_retention_until` (retention_until)
 - `ix_pipeline_artifacts_workspace_id` (workspace_id)
 - `ix_pipeline_artifacts_workspace_stage_key` (workspace_id, stage, artifact_key)
 - `ix_pipeline_artifacts_ws_stage_key_created` (workspace_id, stage, artifact_key, created_at)
@@ -2360,6 +2362,7 @@ type PipelineArtifact struct {
 	SchemaVersion *string `db:"schema_version" json:"schema_version"`
 	PromptVersion *string `db:"prompt_version" json:"prompt_version"`
 	ByteSize *int `db:"byte_size" json:"byte_size"`
+	RetentionUntil *time.Time `db:"retention_until" json:"retention_until"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```

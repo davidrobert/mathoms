@@ -4,12 +4,17 @@ from __future__ import annotations
 
 import logging
 import time
+from datetime import datetime, timezone
 from typing import Callable, Optional, TypeVar
 
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
+from backend.app.services.artifact_retention import (
+    ArtifactRetentionPolicy,
+    load_artifact_retention_policy,
+)
 from backend.app.services.crypto import (
     decrypt_artifact_payload,
     encrypt_artifact_payload,
@@ -227,6 +232,7 @@ class DBArtifactStore:
         pipeline_run_id: str,
         base_run_id: Optional[str] = None,
         base_run_fallback_stages: frozenset[str] = frozenset(),
+        retention_policy: Optional[ArtifactRetentionPolicy] = None,
     ) -> None:
         self._session = session
         self._workspace_id = workspace_id
@@ -236,6 +242,8 @@ class DBArtifactStore:
         # O set nunca contém stage agendado no run atual.
         self._base_run_id = base_run_id
         self._base_run_fallback_stages = base_run_fallback_stages
+        # A33.l6 — injetável em teste; default lazy (env > pipeline.json > 180d).
+        self._retention_policy = retention_policy
 
     @property
     def workspace_id(self) -> str:
@@ -371,11 +379,35 @@ class DBArtifactStore:
         row = self._get(stage, key)
         if row is None:
             self._insert(stage, key, payload, document_id, prompt_version)
+            self._mark_superseded_previous(stage, key)
             return
         row.content_json = payload
         row.prompt_version = prompt_version
         if document_id is not None:
             row.document_id = document_id
+
+    def _resolve_retention_policy(self) -> ArtifactRetentionPolicy:
+        if self._retention_policy is None:
+            self._retention_policy = load_artifact_retention_policy()
+        return self._retention_policy
+
+    def _mark_superseded_previous(self, stage: str, key: str) -> None:
+        """A33.l6 (W6-T05) — nova versão corrente inserida: rows anteriores do
+        grupo (workspace, stage-alias, artifact_key) viram superseded e ganham
+        ``retention_until``. NULL-only (nunca estende prazo já atribuído); a
+        row recém-inserida fica NULL — corrente ≡ fail-safe permanente."""
+        until = self._resolve_retention_policy().retention_until(now=datetime.now(timezone.utc))
+        (
+            self._session.query(PipelineArtifact)
+            .filter(
+                PipelineArtifact.workspace_id == self._workspace_id,
+                PipelineArtifact.stage.in_(stage_aliases(stage)),
+                PipelineArtifact.artifact_key == key,
+                PipelineArtifact.pipeline_run_id != self._pipeline_run_id,
+                PipelineArtifact.retention_until.is_(None),
+            )
+            .update({"retention_until": until}, synchronize_session=False)
+        )
 
     def _insert(
         self,
