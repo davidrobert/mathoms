@@ -18,7 +18,13 @@ services:
     image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
     container_name: mathoms-smoke-redis
     ports:
-      - "6379:6379"
+      # Host 6380 (não 6379): 6379 é a porta do redis NATIVO da stack dev, cujo
+      # `dev-redis-up` "reusa" qualquer listener em 6379. Isolar o smoke aqui
+      # impede que `smoke-down` derrube um redis que a nativa reusou e que o bind
+      # reverso (native 6379 → smoke-up) colida. A porta INTERNA do container
+      # continua 6379 — consumidores da rede compose (pipeline-service →
+      # redis-smoke:6379) não mudam. Override: MATHOMS_SMOKE_REDIS_PORT.
+      - "${MATHOMS_SMOKE_REDIS_PORT:-6380}:6379"
     command: >
       redis-server
       --save ""
