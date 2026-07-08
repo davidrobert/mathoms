@@ -25,7 +25,6 @@ fica no shell de reconciliação, não aqui.
 
 from __future__ import annotations
 
-from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Iterable
@@ -33,7 +32,17 @@ from typing import Iterable
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
-from pipeline.domain.services.account_grouper import AccountGrouper, AccountKey
+from pipeline.domain.services.account_grouper import AccountGrouper
+from pipeline.domain.services.continuity_chain import (
+    ChainPartition,  # noqa: F401 — re-export (retro-compat de import)
+    ContinuityAccountKey,
+    FaturaExcludedFromSaldoChain,
+    SaldoChainMemberInferred,
+    partition_chains,
+)
+from pipeline.domain.services.continuity_chain import (
+    sort_key as _sort_key,
+)
 
 # =============================================================================
 # Config dataclasses (R9 — cada service recebe seu value object de config)
@@ -83,66 +92,19 @@ class TemporalGapConfig:
 
 
 # =============================================================================
-# Chave de agregação por conta (ADR-310)
+# Ordenação estável de warnings entre cadeias (determinismo ADR-111)
 # =============================================================================
 
 
-@dataclass(frozen=True)
-class ContinuityAccountKey:
-    """Identidade de conta na cadeia de continuidade (ADR-310): ``account``
-    é a ``AccountKey`` canônica do ``AccountGrouper`` — "mesma conta" tem
-    uma única definição no domínio — e ``member``/``account_number``
-    (``account_number_norm``, ADR-226) são discriminadores adicionais que
-    a cadeia de saldo exige."""
-
-    account: AccountKey
-    member: str | None
-    account_number: str | None
-
-    @property
-    def bank(self) -> str:
-        return self.account.bank
-
-    @property
-    def account_type(self) -> str:
-        return self.account.account_type
-
-    @property
-    def currency(self) -> str | None:
-        return self.account.currency
-
-    @property
-    def is_fatura(self) -> bool:
-        return self.account.is_fatura
-
-    def describe(self) -> str:
-        """Identificação humana da conta — sem ``account_number`` (dado
-        sensível não vai para mensagem/ReviewReason; os source documents
-        já identificam o par ofensor)."""
-        tipo = self.account_type or "-"
-        return f"{self.bank}/{tipo}/{self.member or '-'}/{self.currency or '-'}"
+def _saldo_warning_sort_key(w: "SaldoGapWarning") -> tuple:
+    """Ordem estável entre cadeias (determinismo ADR-111): a coalescência muda
+    a ordem de iteração dos grupos, mas o conjunto+ordem de warnings não pode
+    depender da ordem de inserção dos statements."""
+    return (w.account_key.describe(), w.previous_source or "", w.next_source or "")
 
 
-def _chain_key(grouper: AccountGrouper, stmt: BankStatement) -> ContinuityAccountKey:
-    account = grouper.key_for_statement(stmt)
-    if account is None:
-        # Sem tipo/banco determinável — statement permanece na validação,
-        # agrupado por (banco, tipo vazio, moeda) como o legado fazia.
-        account = AccountKey(
-            bank=stmt.institution.lower(),
-            account_type=(stmt.account_type or "").strip(),
-            currency=stmt.currency.upper(),
-        )
-    return ContinuityAccountKey(
-        account=account,
-        member=stmt.member_key,
-        account_number=stmt.account_number_norm,
-    )
-
-
-def _sort_key(stmt: BankStatement) -> tuple:
-    """Ordenação determinística (ADR-310): nunca ordem de inserção/hash."""
-    return (stmt.period_start, stmt.period_end, stmt.source_document or "")
+def _temporal_warning_sort_key(w: "TemporalGapWarning") -> tuple:
+    return (w.account_key.describe(), w.previous_source or "", w.next_source or "")
 
 
 # =============================================================================
@@ -190,24 +152,6 @@ class SaldoGapWarning:
 
 
 @dataclass(frozen=True)
-class FaturaExcludedFromSaldoChain:
-    """Sinal tipado (ADR-310): statement classificado como fatura ficou fora
-    da cadeia de continuidade de saldo — toda exclusão é auditável; conta
-    legítima erroneamente classificada como fatura aparece aqui (com seu
-    ``source_document``), nunca some da validação em silêncio."""
-
-    source_document: str | None
-    bank: str
-    account_type: str
-
-    def format(self) -> str:
-        return (
-            f"saldo-continuity: fatura fora da cadeia {self.bank}/{self.account_type} "
-            f"src={self.source_document or '?'} (ADR-310)"
-        )
-
-
-@dataclass(frozen=True)
 class TemporalGapWarning:
     """Gap de dias entre ``period_end`` e o próximo ``period_start``."""
 
@@ -250,10 +194,11 @@ class TemporalGapWarning:
 
 @dataclass(frozen=True)
 class SaldoContinuityResult:
-    """Warnings + sinal de exclusão de faturas (ADR-310)."""
+    """Warnings + sinal de exclusão de faturas + sinal de coalescência (ADR-310)."""
 
     warnings: tuple[SaldoGapWarning, ...]
     excluded_faturas: tuple[FaturaExcludedFromSaldoChain, ...]
+    inferred_members: tuple[SaldoChainMemberInferred, ...] = ()
 
 
 class SaldoContinuityValidator:
@@ -288,29 +233,14 @@ class SaldoContinuityValidator:
     def validate_with_exclusions(
         self, statements: Iterable[BankStatement]
     ) -> SaldoContinuityResult:
-        groups, excluded = self._partition(statements)
+        partition = partition_chains(self._grouper, statements, exclude_faturas=True)
         warnings: list[SaldoGapWarning] = []
-        for key, group in groups.items():
+        for key, group in partition.chains.items():
             warnings.extend(self._validate_group(key, sorted(group, key=_sort_key)))
-        return SaldoContinuityResult(tuple(warnings), tuple(excluded))
-
-    def _partition(
-        self, statements: Iterable[BankStatement]
-    ) -> tuple[
-        dict[ContinuityAccountKey, list[BankStatement]],
-        list[FaturaExcludedFromSaldoChain],
-    ]:
-        groups: dict[ContinuityAccountKey, list[BankStatement]] = defaultdict(list)
-        excluded: list[FaturaExcludedFromSaldoChain] = []
-        for s in statements:
-            key = _chain_key(self._grouper, s)
-            if key.is_fatura:
-                excluded.append(
-                    FaturaExcludedFromSaldoChain(s.source_document, key.bank, key.account_type)
-                )
-            else:
-                groups[key].append(s)
-        return groups, excluded
+        warnings.sort(key=_saldo_warning_sort_key)
+        return SaldoContinuityResult(
+            tuple(warnings), partition.excluded_faturas, partition.inferred_members
+        )
 
     def _validate_group(
         self, key: ContinuityAccountKey, group: list[BankStatement]
@@ -344,6 +274,14 @@ class SaldoContinuityValidator:
 # =============================================================================
 
 
+@dataclass(frozen=True)
+class TemporalGapResult:
+    """Warnings + sinal de coalescência de cadeia (emenda ADR-310)."""
+
+    warnings: tuple[TemporalGapWarning, ...]
+    inferred_members: tuple[SaldoChainMemberInferred, ...] = ()
+
+
 class TemporalGapDetector:
     """Detecta gaps temporais entre períodos de extratos consecutivos.
 
@@ -367,14 +305,15 @@ class TemporalGapDetector:
         self._grouper = grouper or AccountGrouper()
 
     def detect(self, statements: Iterable[BankStatement]) -> list[TemporalGapWarning]:
-        groups: dict[ContinuityAccountKey, list[BankStatement]] = defaultdict(list)
-        for s in statements:
-            groups[_chain_key(self._grouper, s)].append(s)
+        return list(self.detect_with_inferences(statements).warnings)
 
+    def detect_with_inferences(self, statements: Iterable[BankStatement]) -> TemporalGapResult:
+        partition = partition_chains(self._grouper, statements, exclude_faturas=False)
         warnings: list[TemporalGapWarning] = []
-        for key, group in groups.items():
+        for key, group in partition.chains.items():
             warnings.extend(self._detect_group(key, sorted(group, key=_sort_key)))
-        return warnings
+        warnings.sort(key=_temporal_warning_sort_key)
+        return TemporalGapResult(tuple(warnings), partition.inferred_members)
 
     def _detect_group(
         self, key: ContinuityAccountKey, group: list[BankStatement]
