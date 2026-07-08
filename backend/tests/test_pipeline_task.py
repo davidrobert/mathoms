@@ -372,7 +372,7 @@ class TestPipelineService:
         )
         # Isolar de pollution de test ordering: força nível + propagação do logger
         # alvo, caplog propaga o handler na raiz.
-        target_logger = _logging.getLogger("backend.app.services.pipeline_service")
+        target_logger = _logging.getLogger("backend.app.services.pipeline.pipeline_service")
         prev_level, prev_prop, prev_disabled = (
             target_logger.level,
             target_logger.propagate,
@@ -405,7 +405,7 @@ class TestPipelineService:
         factory = FakeSyncSessionFactory(
             FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="stale-ciphertext"))
         )
-        target_logger = _logging.getLogger("backend.app.services.pipeline_service")
+        target_logger = _logging.getLogger("backend.app.services.pipeline.pipeline_service")
         prev_level, prev_prop, prev_disabled = (
             target_logger.level,
             target_logger.propagate,
