@@ -376,13 +376,13 @@ real da `SourcePrecedencePolicy` (desenhada no F0, exercida só com feed; thresh
 de materialidade pode passar por `financial-planner` na ativação) · MCP prod do
 debug substrate + índice reverso por `rule_ref`.
 
-**Follow-up herdado de A24.l7 ([[ADR-286]], candidato à onda 4):** canonicalizar
-o vocabulário do writer E2-llm (`instituicao`/`tipo_documento` → `banco`/`tipo`).
-Hoje é contrato dedicado `e2_llm_artifact.schema.json`; emitir o vocabulário
-canônico flipa `AccountGrouper.key()` (de `None` para `AccountKey` real) e
-`BankStatement.from_e2_dict` (`institution` ""→valor) para todo doc LLM — muda
-grouping/identidade de artefatos E3, exatamente o churn que este plano trata
-com golden substrate + rebaseline manifestado.
+**Follow-up herdado de A24.l7 ([[ADR-286]]) — ✅ fechado 2026-07-07 ([[ADR-312]]):**
+a canonicalização do vocabulário do writer E2-llm aconteceu em duas etapas. A
+emissão aditiva de `banco`/`tipo` (o churn de identidade E3 que este parágrafo
+previa) shipou na A32.l2 (#826), coberta pelo golden de paridade derivado por
+AST; o gap de `membro` fechou em #828. O cutover canonical-only — writer deixa
+de emitir `instituicao`/`tipo_documento` top-level, `required` do schema flipa,
+fallbacks nos readers viram permanentes (sem sunset) — é decidido em [[ADR-312]].
 
 ## KRs
 
