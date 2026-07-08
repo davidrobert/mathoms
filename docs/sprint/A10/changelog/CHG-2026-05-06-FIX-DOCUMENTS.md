@@ -28,7 +28,7 @@ tags:
     em [backend/app/api/documents.py](../../../../backend/app/api/documents.py) chama
     `rename_to_canonical` quando `doc_type`/`bank_code`/`period` mudam.
     Reverse mapping `document_type_to_e0_dest()` em
-    [backend/app/services/document_classification.py](../../../../backend/app/services/document_classification.py).
+    [backend/app/services/document_classification.py](../../../../backend/app/services/documents/document_classification.py).
     Preserva e0_doc_type existente quando ele ainda casa com o novo
     `DocumentType` (ex.: `informerendimentos*` continua válido para IRPF —
     sem churn de path desnecessário).
