@@ -3,14 +3,16 @@ id: MOC-sprint-a32
 type: moc
 title: "Sprint A32 — Review de reconciliação confiável: falsos positivos zerados + lifecycle de artifact + a tela diz de quem é o erro"
 aliases: ["A32", "Sprint A32"]
-sprint_status: current
+sprint_status: done
 date: "2026-07-07"
 theme: "review-trust"
 ---
 
 # Sprint A32 — Review de reconciliação confiável
 
-> **Status:** `current` (aberta 2026-07-07). Origem: dogfood do owner
+> **Status:** `done` (aberta 2026-07-07, encerrada 2026-07-08 — 7/7
+> lanes shipped, KR1–KR4 ✅, gate registrado em §Gate l7).
+> Origem: dogfood do owner
 > 2026-07-07 — a run `d1732edd` exibiu **18 errors + 31 warnings** na tela
 > de review e o owner reportou "não confiei em nada do que aparece" +
 > "interface muito ruim para o usuário final". Investigação em 2 frentes
@@ -76,7 +78,7 @@ antigos; a visibilidade é que é nova. Quatro causas raiz confirmadas:
 | 2 | [[A32.l4]] | Chave canônica de conta na continuidade de saldo + ordenação determinística ([[ADR-310]]) | P1 | shipped (#829) |
 | 2 | [[A32.l5]] | Lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável ([[ADR-311]]) | P1 | shipped (#837) |
 | 3 | [[A32.l6]] | Review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | P1 | shipped (#841/#843/#845) |
-| 4 | [[A32.l7]] | Gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | P0 | open |
+| 4 | [[A32.l7]] | Gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | P0 | shipped (#857) |
 
 Dependências: l4 ← l2+l3 · l5 ← l1 · l6 ← l2..l5 · l7 ← l1..l6.
 ADR-310 e ADR-311 abrem como Proposto **no kickoff** (docs-only), em
@@ -189,8 +191,15 @@ reasons** — confirmação independente dos fixes de leitura.
   ressalva nomeada (rico) encaminhada à triagem.
 - **KR4 ✅** — golden de paridade + teste de tombstone verdes em CI;
   segundo re-run consecutivo sem novos reasons de nenhum code coberto.
-- **KR3 ⏳** — triagem do owner na tela pós-l6 pendente (única pendência
-  da sprint).
+- **KR3 ✅** — triagem do owner em 2026-07-08 sobre a review do run
+  `d1732edd` (49 cards históricos renderizados com a UX da l6): cards
+  aprovados sem ressalva de compreensão ("os cards estão bons"); zero
+  cards reportados como confusos → zero issues de compreensão. Ressalva
+  do rico resolvida na mesma triagem: **mesma conta** confirmada pelo
+  owner → o gap abr–jun/2026 é genuíno e está suprimido pela separação
+  da chave → issue nomeada
+  [#860](https://github.com/davidrobert/mathoms/issues/860) (fallback
+  da chave quando o número de conta não extrai).
 
 ## Decisões do owner (2026-07-07)
 
