@@ -45,7 +45,7 @@ Prompts reusáveis para sessões em que **um agente orquestrador** coordena espe
 | [`orchestrator_a25_f5f6f7.md`](orchestrator_a25_f5f6f7.md) | A25 Data Lineage · F5 (reverso) + F6 (produto N1/N2) + F7 (debug LLM) + herdados (cutover K4→E4, decisão flip strict) — pré-revisado (product-manager + senior-cto) | ativo (2026-06-10) |
 | [`orchestrator_a26_consolidacao.md`](orchestrator_a26_consolidacao.md) | A26 Data Lineage · consolidação (flip strict + drops M2) — sprint `paused` 2026-07-03, retoma pós-gates de tráfego | ativo (2026-06-16) |
 | [`orchestrator_a28_report_trust-2026-07-06.md`](archive/orchestrator_a28_report_trust-2026-07-06.md) | A28 Report Trust · 11 lanes em 3 ondas (fórmulas E5 + loop de dados + apresentação honesta) — 11/11 shipped, sprint `done` | arquivado (2026-07-06) |
-| [`orchestrator_a33_autonoma.md`](orchestrator_a33_autonoma.md) | A33 autonomia total · 8 lanes zero-owner (ADR-090 boundary LLM + fechamento A17 + nightly drift + retenção + OTLP + catálogo + taxonomy) — pré-revisado no kickoff (PM + IA + DE, #822) | ativo (2026-07-07) |
+| [`orchestrator_a33_autonoma-2026-07-08.md`](archive/orchestrator_a33_autonoma-2026-07-08.md) | A33 autonomia total · 8 lanes zero-owner (ADR-090 boundary LLM + fechamento A17 + nightly drift + retenção + OTLP + catálogo + taxonomy) — 8/8 shipped em ~20h, zero ações do owner, sprint `done` | arquivado (2026-07-08) |
 
 **Convenção:** instâncias do template viram `orchestrator_<scope>.md` em `docs/agent_prompts/`. Quando o escopo é entregue (todas as ADRs flippadas `Decidido`), arquivar em [`archive/`](archive/) com data: `git mv orchestrator_<scope>.md archive/orchestrator_<scope>-YYYY-MM-DD.md`.
 

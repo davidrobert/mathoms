@@ -559,6 +559,7 @@
 | CHG-2026-07-02-A27-L1-EVIDENCIA-LINEAGE-EDGE | changelog-entry |  | A27 |  | `sprint/A27/changelog/CHG-2026-07-02-A27-L1-EVIDENCIA-LINEAGE-EDGE.md` |
 | CHG-2026-07-06-A29-REVIEW-UX-SPRINT | changelog-entry |  | A29 |  | `sprint/A29/changelog/CHG-2026-07-06-A29-REVIEW-UX-SPRINT.md` |
 | CHG-2026-07-08-A32-L2-VOCABULARIO-E2LLM-CUTOVER | changelog-entry |  | A32 |  | `sprint/A32/changelog/CHG-2026-07-08-A32-L2-VOCABULARIO-E2LLM-CUTOVER.md` |
+| CHG-2026-07-08-A33-SPRINT-CLOSE | changelog-entry |  | A33 |  | `sprint/A33/changelog/CHG-2026-07-08-A33-SPRINT-CLOSE.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
