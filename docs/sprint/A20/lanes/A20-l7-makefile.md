@@ -29,6 +29,15 @@ tags:
 > Foco em DX (developer experience): `make dev-up-docker` é o north star do
 > sprint.
 
+> **Nota (2026-07-08, #847):** os targets `dev-*-docker`/`dev-*` desta lane foram
+> renomeados para a taxonomia env-first — `dev-up-docker`→`docker-up`,
+> `dev-down-docker`→`docker-down`, `dev-reset-docker`→`docker-reset`,
+> `dev-shell-docker`→`docker-shell`, `dev-rebuild-docker`→`docker-build`,
+> `dev-logs-docker`→`docker-logs`; nativa `dev-up`→`native-up`,
+> `dev-down`→`native-down`. O corpo abaixo preserva o vocabulário de A20 (a
+> narrativa draft→`-docker` só faz sentido nos nomes originais); use os
+> canônicos ao rodar (ver [[ADR-252]] §Emenda).
+
 ## Status de entrega
 
 **Shipped 2026-05-29** — changelog [[CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING]].

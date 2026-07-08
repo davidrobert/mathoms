@@ -12,7 +12,7 @@ theme: "infra"
 
 > **Status:** `paused` — pausada pelo owner em 2026-05-29. O objetivo de DX
 > (Docker como caminho opt-in de dev local) está **entregue e em uso**:
-> `make dev-up-docker` sobe a stack completa numa banda de porta que coexiste
+> `make docker-up` sobe a stack completa numa banda de porta que coexiste
 > com a nativa, com docs atualizadas (SETUP/README/`make help`). As lanes
 > restantes **dependem de confirmação externa do owner** e ficam represadas até
 > a retomada. Promovida `candidate → current` em 2026-05-29 (priorização do
@@ -32,7 +32,7 @@ theme: "infra"
 
 Resolver os **5 blockers P0** de produção identificados em review independente do
 `sre-devops` e, no mesmo bundle, **eliminar o gap dev↔prod** transformando Docker
-em caminho opt-in viável para onboarding (`make dev-up-docker`). As mesmas imagens
+em caminho opt-in viável para onboarding (`make docker-up`). As mesmas imagens
 que sobem no dev local sobem em staging/prod, com hash determinístico, scan de
 vulnerabilidade blocking, e renderização de PDF funcionando end-to-end (hoje cai
 em fallback silencioso).
@@ -54,7 +54,7 @@ em fallback silencioso).
 ## Objetivo
 
 Materializar **paridade dev↔prod via Docker** com imagens determinísticas,
-auditáveis e enxutas. North star: novo dev clona repo + roda `make dev-up-docker`
+auditáveis e enxutas. North star: novo dev clona repo + roda `make docker-up`
 + tem stack completa healthy em **<120s wall-clock**, com a **mesma imagem**
 publicada no GHCR que vai subir em staging/prod.
 
@@ -71,7 +71,7 @@ publicada no GHCR que vai subir em staging/prod.
 
 ## Critérios de sucesso (mensuráveis)
 
-1. **`make dev-up-docker`** parte de `git clone` limpo e sobe API + worker + beat
+1. **`make docker-up`** parte de `git clone` limpo e sobe API + worker + beat
    + frontend + postgres + redis em **<120s wall-clock** numa máquina dev típica
    (≥8GB RAM, SSD). Comando único, sem editar `.env` manualmente além de uma vez.
 2. **Backend image build time** <3min (warm cache) / <7min (cold) em GH Actions.
@@ -95,7 +95,7 @@ publicada no GHCR que vai subir em staging/prod.
    non-root pipeline-service + P0.5 SHA pin), cada um com ADR `Decidido`.
    W4-T02 do PLATFORM_REVIEW flippado `blocked → shipped`.
 9. **KPI norte-mágico — TTFR (Time-To-First-Request)** para novo dev cai de
-   ~25min (baseline) para **<5min** (`make dev-up-docker && curl localhost:8000/health`).
+   ~25min (baseline) para **<5min** (`make docker-up && curl localhost:8000/health`).
 
 ## Non-goals (explícitos)
 
@@ -170,7 +170,7 @@ A11/ADRs 170-175) é "1 ADR por decisão técnica, sprint MOC coordena".
 - [[A20.l4]] (`ready`) — GHCR push + tagging strategy. **M** · P0. Onda B. [[ADR-250]].
 - [[A20.l5]] (`ready`) — Trivy blocking + SBOM CycloneDX. **M** · P0. Onda C. Depende de L4. [[ADR-251]].
 - [[A20.l6]] (`ready`) — `docker-compose.dev.yml` unificado + cleanup de composes legados. **M** · P1. Onda A. [[ADR-252]].
-- [[A20.l7]] (`ready`) — Makefile targets `dev-up-docker` + `SETUP.md` revisado. **S** · P1. Onda B. [[ADR-252]].
+- [[A20.l7]] (`ready`) — Makefile targets `docker-up` + `SETUP.md` revisado. **S** · P1. Onda B. [[ADR-252]].
 - [[A20.l8]] (`ready`) — Postgres driver consolidation (asyncpg-only). **S** · P1. Onda B. [[ADR-253]].
 - [[A20.l9]] (`blocked`) — Smoke E2E em compose (login + relatório + PDF). **S** · P0. Gate final. Bloqueia fechamento.
 - [[A20.l10]] (`ready`) — Python lockfile com hashes. **S** · P0. Onda A. [[ADR-254]].
@@ -214,7 +214,7 @@ Ver §Non-goals acima.
 
 | Métrica | Como medir | Baseline | Alvo |
 |---|---|---|---|
-| **TTFR** (novo dev) | `time make dev-up-docker && time curl --fail localhost:8000/health` (clone fresh) | ~25min | **<5min** |
+| **TTFR** (novo dev) | `time make docker-up && time curl --fail localhost:8000/health` (clone fresh) | ~25min | **<5min** |
 | Backend image size `runtime` | `docker image inspect ghcr.io/.../backend:runtime-<sha> --format '{{.Size}}'` | ~1.1GB | **<450MB** |
 | Backend image size `playwright` | idem | n/a | **<950MB** |
 | Build time `runtime` (cold/warm) | GH Actions job duration | n/a | <7min / <3min |
@@ -231,7 +231,7 @@ Ver §Non-goals acima.
 | Playwright + Chromium ultrapassa 950MB no target `playwright` | P1 | Pre-flight em L1 mede tamanho ANTES de mergear; se >950MB, [[ADR-248]] documenta novo target com justificativa |
 | Coolify quebra ao puxar de GHCR (auth/network) | P0 | L4 inclui smoke deploy em staging contra GHCR antes de cutover prod; runbook de rollback em `docs/reference/runbooks/coolify_ghcr_rollback.md` |
 | Trivy blocking trava merges legítimos (CVE sem fix em base) | P1 | [[ADR-251]] define escape hatch documentado: `.trivyignore` por CVE com justificativa + data de revisão + dono; revisado mensalmente |
-| Hot-reload em compose dev fica frágil (volumes NFS em macOS) | P1 | L6 testa em macOS + Linux explicitamente; fallback `cached`; alternativa final: rebuild rápido (`make dev-rebuild`) via cache de layers |
+| Hot-reload em compose dev fica frágil (volumes NFS em macOS) | P1 | L6 testa em macOS + Linux explicitamente; fallback `cached`; alternativa final: rebuild rápido (`make docker-build`) via cache de layers |
 | L8 (driver consolidation) quebra migration Alembic | P0 | [[ADR-253]] avalia pre-flight; se sinal de risco, mantém `psycopg[binary]` v3 como fallback estrito; L8 nunca é "deferred" — vira gate de Onda B |
 | Lockfile (L10) revela conflito transitivo escondido | P1 | Plano de execução em fases preserva install legado em paralelo até F3; conflito vira pin explícito em `.in` + regenerar |
 | Coolify cobrança/quota inesperada com 2 imagens/release | P2 | GHCR é gratuito até 50GB no plano pessoal; com retention de 30d em PR-SHA, uso esperado <10GB |
@@ -263,7 +263,7 @@ Antes de qualquer lane:
 - [ ] **Lanes L1, L2, L3, L4, L5, L6, L7, L9, L10 `shipped`**. L8 `shipped`
       (obrigatória).
 - [ ] **W4-T02** do PLATFORM_REVIEW flippado `blocked → shipped`.
-- [ ] **`make dev-up-docker`** documentado em [SETUP](../../reference/SETUP.md) como caminho
+- [ ] **`make docker-up`** documentado em [SETUP](../../reference/SETUP.md) como caminho
       recomendado; uvicorn local mantido como fallback.
 - [ ] **Métrica TTFR** medida pós-sprint por 1 dev real (PM ou CEO faz onboarding
       from-scratch e registra `time` em PR comment de L9).

@@ -60,4 +60,4 @@ Ver [[A20.l6]] §"Definition of Done". Resumo: PR em `main` CI verde; `docker-co
 ## Ligações
 
 - **Lane:** [[A20.l6]] · **ADR:** [[ADR-252]] · **Sprint MOC:** [[MOC-sprint-a20]]
-- **Paraleliza:** [[A20.l3]] (healthchecks) · **Downstream:** [[A20.l1]] (target playwright default), [[A20.l7]] (Makefile `dev-up-docker` aponta p/ este compose), [[A20.l9]] (smoke usa este compose).
+- **Paraleliza:** [[A20.l3]] (healthchecks) · **Downstream:** [[A20.l1]] (target playwright default), [[A20.l7]] (Makefile `docker-up` aponta p/ este compose), [[A20.l9]] (smoke usa este compose).
