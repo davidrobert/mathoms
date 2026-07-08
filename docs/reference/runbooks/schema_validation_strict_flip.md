@@ -52,6 +52,14 @@ resolvidos **ou aceitos por escrito** na linha do §7:
   runbook cobre **2 schemas E2 independentes** — `e2_extract.schema.json` e
   `e2_llm_artifact.schema.json` — cada um com baseline (§2) e flip (§3)
   próprios.
+  **Atualização 2026-07-08 ([[ADR-312]]):** o writer E2-llm passou a
+  canonical-only — não emite mais `instituicao`/`tipo_documento`
+  top-level. `required` de `e2_llm_artifact.schema.json` mudou de
+  `[instituicao, tipo_documento, moeda]` para `[banco, tipo, moeda]`;
+  os campos legados viraram properties opcionais (só presentes em rows
+  anteriores a 2026-07-08). **Se um baseline de 7 dias (§1.3) para este
+  schema foi coletado antes de 2026-07-08, descarte e recolha** — ele
+  mediria o vocabulário antigo, não o `required` real pós-cutover.
 - `INPUT_GAPS` (parsers sem input sintético): aceitável flipar se o baseline
   (§2) mostrar zero WARN nos tipos correspondentes na janela. ✅ **Esvaziado
   em 2026-06-10 (A24.l7 passo 3)** — corpus cobre **22/22 writers** em
