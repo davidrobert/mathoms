@@ -252,7 +252,10 @@ class StatementPeriodNormalizer:
         # Caso 3: periodo ausente.
         # Para extratos não-fatura, o legado pula (caller decide). Replicamos:
         # apenas faturas sintetizam.
-        tipo = (out.get("tipo") or "").strip()
+        # ADR-312: fallback tipo_documento — row E2-llm antiga (pré-A32.l2)
+        # não tem `tipo`; sem o fallback, fatura antiga sem periodo skipava
+        # por vocabulário em vez de tentar a síntese.
+        tipo = (out.get("tipo") or out.get("tipo_documento") or "").strip()
         if not tipo.startswith(_DEFAULT_FATURA_PREFIX):
             # Sem periodo e não é fatura → skip (caller logará).
             return NormalizationResult(out, skip=True, warnings=())

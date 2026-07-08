@@ -307,7 +307,7 @@
 | ADR-309 | adr | Decidido |  | Audit do console interno persistido em tabela própria (7B.5) | `adr/309-audit-do-console-interno-persistido-em-tabela.md` |
 | ADR-310 | adr | Decidido |  | Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7) | `adr/310-chave-canonica-conta-continuidade-saldo.md` |
 | ADR-311 | adr | Decidido |  | Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável | `adr/311-lifecycle-artifact-e2-tombstone-reclassificacao.md` |
-| ADR-312 | adr | Proposto |  | Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers | `adr/312-canonicalizacao-vocabulario-writer-e2-llm.md` |
+| ADR-312 | adr | Decidido |  | Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers | `adr/312-canonicalizacao-vocabulario-writer-e2-llm.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

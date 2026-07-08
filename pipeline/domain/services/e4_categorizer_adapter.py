@@ -196,8 +196,11 @@ class E4CategorizerAdapter:
                 data = store.read(stage, key)
                 if not isinstance(data, dict):
                     continue
-                tipo = str(data.get("tipo") or "").lower()
-                tipo_documento = str(data.get("tipo_documento") or "").lower()
+                # ADR-312: canônico-primeiro com fallback cruzado — rows
+                # antigas E2-llm só têm tipo_documento; writes novos só têm
+                # tipo (valores idênticos por construção do writer).
+                tipo = str(data.get("tipo") or data.get("tipo_documento") or "").lower()
+                tipo_documento = str(data.get("tipo_documento") or data.get("tipo") or "").lower()
                 # ADR-244: informes de rendimentos (snapshot 31/12 do banco)
                 # também contêm posições de investimento (ex.: CDB Itaú no
                 # informe IR, R$ 290k descartados antes desta lane). Sem isto,

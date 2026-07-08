@@ -2,7 +2,7 @@
 id: ADR-312
 type: adr
 title: "Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers"
-status: Proposto
+status: Decidido
 date: "2026-07-07"
 relates_to: ["[[ADR-286]]", "[[ADR-283]]", "[[ADR-244]]", "[[ADR-284]]", "[[ADR-278]]"]
 supersedes: []
@@ -10,14 +10,14 @@ superseded_by: []
 aliases: ["ADR 312", "cutover vocabulario e2 llm", "canonical only writer llm"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/data-lineage
 ---
 
 # ADR-312 — Canonicalização do vocabulário top-level do writer E2-llm
 
-**Status:** Proposto · **Data:** 2026-07-07 · Fecha a §Não-decisões de
+**Status:** Decidido · **Data:** 2026-07-07 · Fecha a §Não-decisões de
 [[ADR-286]]; reusa o enforcement-por-ausência de [[ADR-283]]; preserva o
 gate de informes de [[ADR-244]].
 
@@ -63,9 +63,11 @@ recriaria a alternativa C rejeitada.
    `_INVESTMENT_POSITION_TYPES` e de `tipo_documento` para o gate
    `is_investment_doc` de [[ADR-244]] — ambos passam a ler
    canônico-primeiro com fallback, cobrindo artifacts novos E rows
-   antigas) e `statement_preprocessor` (branch de síntese de período de
+   antigas), `statement_preprocessor` (branch de síntese de período de
    fatura lê só `tipo` — gap **pré-existente** de A32.l2, nomeado e
-   fechado aqui).
+   fechado aqui) e `BankStatement.from_e2_dict` (`institution` ganha
+   fallback `instituicao` — rows pré-A28.l8, sem `banco`, degradavam
+   para string vazia; gap exposto pelo teste de row antiga desta ADR).
 5. **Enforcement por ausência** (padrão [[ADR-283]]): o golden de
    paridade ganha teste de que o writer não emite `instituicao` nem
    `tipo_documento` top-level — assert sobre as keys emitidas pelo

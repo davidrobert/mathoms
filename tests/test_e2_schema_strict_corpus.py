@@ -357,7 +357,7 @@ def test_strict_gate_nao_e_noop(monkeypatch):
 
 
 def test_llm_writer_valida_em_strict_no_contrato_dedicado(monkeypatch):
-    """Writer E2-llm valida em strict contra e2_llm_artifact.schema.json (A24.l7) — o vocabulário instituicao/tipo_documento é contrato versionado próprio; canonicalização é follow-up DATA_LINEAGE."""
+    """Writer E2-llm valida em strict contra e2_llm_artifact.schema.json (A24.l7) — required canonical-only (banco/tipo/moeda) pós-ADR-312; legados são opcionais para rows antigas."""
     monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
     e2_json = _synthetic_llm_extract_artifact()
     assert validate_dict(e2_json, "e2_llm_artifact.schema.json", source="corpus/e2-llm") is True

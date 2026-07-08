@@ -159,7 +159,9 @@ class BankStatement:
             account_number_raw
         )
         return cls(
-            institution=d.get("banco") or d.get("institution") or "",
+            # `instituicao` cobre rows E2-llm pré-A28.l8 (sem `banco`) — fallback
+            # permanente da ADR-312; sem ele, institution degradava para "".
+            institution=d.get("banco") or d.get("institution") or d.get("instituicao") or "",
             # `membro` é o vocabulário do artifact E2-llm (e2_llm_artifact.schema);
             # sem o fallback, membro extraído via LLM se perdia no BankStatement.
             member_key=d.get("documento_titular") or d.get("member_key") or d.get("membro"),
