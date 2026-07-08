@@ -56,7 +56,7 @@ O que ficou de débito conservador:
    `if isinstance(store, DiskArtifactStore):`. Examples:
    - [backend/app/services/document_extract_json_service.py:58](../../backend/app/services/document_extract_json_service.py) — fallback DB para E1.5
    - [backend/app/services/document_pipeline_sync.py:78](../../backend/app/services/document_pipeline_sync.py) — fallback DB para E1.5a
-   - [backend/app/services/artifact_reader.py](../../backend/app/services/artifact_reader.py) — DB-first com fallback disco (ADR-120)
+   - [backend/app/services/storage/artifact_reader.py](../../backend/app/services/storage/artifact_reader.py) — DB-first com fallback disco (ADR-120)
    - [pipeline/stages/extract_with_llm.py:255](../../pipeline/stages/extract_with_llm.py) — validação JSON-schema condicional
    - `scripts/e3_reconcile.py`, `scripts/e4_categorize.py`,
      `scripts/e5_analyze.py` — `isinstance(store, DiskArtifactStore)`
@@ -227,7 +227,7 @@ procedure executado em staging.
       # ... persist
   ```
 - Deletar fallback de disco em
-  [backend/app/services/artifact_reader.py](../../backend/app/services/artifact_reader.py)
+  [backend/app/services/storage/artifact_reader.py](../../backend/app/services/storage/artifact_reader.py)
   (`read_latest_artifact`) — DB-only. Decisão de ADR-120 (DB-first com
   fallback) fica obsoleta no que diz respeito ao fallback;
   consideração DB-first preservada.

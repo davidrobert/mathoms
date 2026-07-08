@@ -27,7 +27,7 @@ tags:
 
 ## Briefing
 
-Bug latente: `WorkspaceCategoryOverrideRepository.upsert/delete` ([backend/app/repositories/workspace_category_override_repository.py](../../../../backend/app/repositories/workspace_category_override_repository.py)) **não invalida** `category_cache` ([backend/app/services/category_cache.py](../../../../backend/app/services/category_cache.py)). TTL é 300s — em prod, edição de override fica stale por até 5 min no E4.
+Bug latente: `WorkspaceCategoryOverrideRepository.upsert/delete` ([backend/app/repositories/workspace_category_override_repository.py](../../../../backend/app/repositories/workspace_category_override_repository.py)) **não invalida** `category_cache` ([backend/app/services/storage/category_cache.py](../../../../backend/app/services/storage/category_cache.py)). TTL é 300s — em prod, edição de override fica stale por até 5 min no E4.
 
 Solução: criar `CategoryOverrideService` (application layer, ADR-097-compliant) que orquestra repo + cache invalidation write-through pós-commit. Repo fica thin.
 
