@@ -1,7 +1,7 @@
 """seed market_rates — PTAX compra 31/12 real (2023-2025, USD/EUR/GBP)
 
 Revision ID: a33l2ptax3112
-Revises: a31l1opsaudit
+Revises: a32l5promptver
 Create Date: 2026-07-07
 
 A33.l2 (ADR-238 D5 · emenda ADR-135): o seed A7.2b (``y3z4a5b6c7d8``)
@@ -31,7 +31,7 @@ import sqlalchemy as sa
 from alembic import context, op
 
 revision: str = "a33l2ptax3112"
-down_revision: Union[str, None] = "a31l1opsaudit"
+down_revision: Union[str, None] = "a32l5promptver"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
