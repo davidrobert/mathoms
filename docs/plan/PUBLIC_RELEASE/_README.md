@@ -260,10 +260,14 @@ Decisões owner-gated migram para ADR; as demais são fechadas pela síntese sen
   — só texto de exemplo no corpo. Onde a PII é exemplo pedagógico (ADR-246/271), reescrever
   com `Titular`/`Cônjuge` sintéticos preservando a mecânica.
 
-**Decisões abertas do owner (bloqueiam G0):** [[ADR-313]] licença · [[ADR-314]] escopo
-público · [[ADR-316]] aceite de metadados (ou reabrir in-place) · [[ADR-317]] identidade
-mailmap · [[ADR-318]] confirmar que docs-EN não sinaliza mercado PT · confirmação
-operacional da rotação Fernet · aprovação da janela de FREEZE (W3→W8).
+**Decisões abertas do owner (bloqueiam G0 — 6 ADRs owner-gated):** [[ADR-313]] licença ·
+[[ADR-314]] escopo público (4 categorias) · [[ADR-315]] estratégia de rewrite + janela de
+FREEZE + bypass do Ruleset · [[ADR-316]] aceite de metadados (ou reabrir in-place) ·
+[[ADR-317]] identidade no mailmap + co-authors · [[ADR-318]] fronteira EN/PT-BR (+ confirmar
+que docs-EN não sinaliza mercado PT). **Confirmações operacionais** (assinadas dentro da
+[[ADR-315]]): backup off-site + tag `pre-public-flip-backup`, rotação Fernet em prod
+(`old_key_decryptable=0`), aprovação da janela de FREEZE (W3→W8). **[[ADR-319]] e [[ADR-320]]
+não entram aqui** — são técnicas, fechadas pela síntese do co-design (ratificação, não decisão).
 
 ---
 
