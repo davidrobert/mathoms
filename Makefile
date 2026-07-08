@@ -48,12 +48,23 @@ SMOKE_DB      := mathoms-smoke.db
 SMOKE_STORAGE := _smoke_storage
 DEV_DIR       := _dev_pids
 
-# Portas dev (stack uvicorn-local legada — para checks e kill-stale)
+# Token deste worktree/clone. Escopa os workers Celery a ESTE clone via
+# --hostname, para que um down/off/recover aqui não mate o worker de outro
+# worktree que compartilha o mesmo host (todos batem no mesmo broker e no
+# mesmo pgrep). Sanitizado para caber num hostname Celery.
+WT := $(shell basename "$(CURDIR)" | tr -c 'A-Za-z0-9' '-' | sed 's/-*$$//')
+
+# Portas da stack nativa (uvicorn-local) + overlay Go (:8002). UMA fonte única
+# consumida por check_port_free (launcher), recover (sweep) e status. Sem isso
+# a :8002 fica de fora de um dos três e vira beco sem saída (o bug em que o
+# erro de colisão manda rodar um sweep que não cobre a porta).
 PORT_API           := 8000
 PORT_OPS_API       := 8001
 PORT_FRONTEND      := 3000
 PORT_FRONTEND_OPS  := 3100
+PORT_GO            := 8002
 DEV_PORTS          := $(PORT_API) $(PORT_OPS_API) $(PORT_FRONTEND) $(PORT_FRONTEND_OPS)
+ALL_LOCAL_PORTS    := $(DEV_PORTS) $(PORT_GO)
 
 # Portas publicadas pela stack dev em Docker (docker-compose.dev.yml). Banda
 # DELIBERADAMENTE distinta da legada acima para as duas coexistirem sem colisão.
@@ -76,8 +87,8 @@ define check_port_free
 	   pid=$$(lsof -ti tcp:$(1) -sTCP:LISTEN 2>/dev/null | head -1); \
 	   cmd=$$(ps -p $$pid -o comm= 2>/dev/null | head -1 || echo "?"); \
 	   echo "   ❌ Porta $(1) já em uso (pid=$$pid, cmd=$$cmd)."; \
-	   echo "      Provavelmente uvicorn/npm órfão de sessão anterior."; \
-	   echo "      Resolva: make dev-kill-stale  ou  kill $$pid"; \
+	   echo "      Provavelmente uvicorn/npm/go órfão de sessão anterior (talvez de outro clone)."; \
+	   echo "      Resolva: make recover  (reset seguro deste clone)  ou  kill $$pid"; \
 	   exit 1; \
 	 fi
 endef
@@ -106,26 +117,57 @@ define kill_pid_safe
 	 fi
 endef
 
-# Mata QUALQUER celery worker de backend.app.worker que não saia via PID file.
-# Use antes de subir worker novo — pidfile cobre só o último master, mas
-# masters anteriores (sessão que crashou, terminal fechado sem make dev-down,
-# split-brain entre worktrees) ficam vivos no broker e processam tasks com
-# código antigo (issue #103). Sem porta para detectar via dev-kill-stale.
-define kill_celery_orphans
-	@orphans="$$(pgrep -f 'celery -A backend.app.worker worker' 2>/dev/null || true)"; \
-	 if [ -n "$$orphans" ]; then \
-	   echo "   ⚠ celery workers órfãos detectados (PIDs: $$(echo $$orphans | tr '\n' ' ')) — matando…"; \
-	   echo "$$orphans" | xargs kill 2>/dev/null || true; \
-	   for i in 1 2 3 4 5 6 7 8 9 10; do \
-	     pgrep -f 'celery -A backend.app.worker worker' >/dev/null 2>&1 || break; \
-	     sleep 0.2; \
-	   done; \
-	   stragglers="$$(pgrep -f 'celery -A backend.app.worker worker' 2>/dev/null || true)"; \
-	   if [ -n "$$stragglers" ]; then \
-	     echo "$$stragglers" | xargs kill -9 2>/dev/null || true; \
-	     echo "   ✓ órfãos forçados via SIGKILL"; \
+# Mata os celery workers DESTE worktree cujo --hostname casa o prefixo $(1),
+# com escalação SIGTERM→SIGKILL. Idempotente. Como todo worker é lançado com
+# --hostname="<role>-$(WT)@…", isto NÃO toca workers de outros worktrees/clones
+# que compartilham o host (o pgrep genérico antigo matava todos — split-brain).
+# Ex.: $(1)=celery-native-$(WT) (só o nativo) · celery-native.*-$(WT) (nativo +
+# overlay go) · celery-.*-$(WT) (tudo deste worktree).
+# Matar o master dispara o warm-shutdown dos filhos prefork do próprio Celery.
+define kill_celery_scoped
+	@pat='celery -A backend.app.worker worker.*--hostname=$(1)@'; \
+	 pids="$$(pgrep -f "$$pat" 2>/dev/null || true)"; \
+	 if [ -n "$$pids" ]; then \
+	   echo "   ⚠ celery [$(1)] — matando $$(echo $$pids | tr '\n' ' ')…"; \
+	   echo "$$pids" | xargs kill 2>/dev/null || true; \
+	   for i in 1 2 3 4 5 6 7 8 9 10; do pgrep -f "$$pat" >/dev/null 2>&1 || break; sleep 0.2; done; \
+	   strag="$$(pgrep -f "$$pat" 2>/dev/null || true)"; \
+	   [ -n "$$strag" ] && echo "$$strag" | xargs kill -9 2>/dev/null || true; \
+	   echo "   ✓ celery [$(1)] parado"; \
+	 fi
+endef
+
+# Variante HOST-WIDE explícita: mata TODO worker celery do host, inclusive de
+# outros worktrees. Só é chamada pelo recover com FORCE=host, e avisa alto.
+define kill_celery_hostwide
+	@pids="$$(pgrep -f 'celery -A backend.app.worker worker' 2>/dev/null || true)"; \
+	 if [ -n "$$pids" ]; then \
+	   echo "   ⚠ HOST-WIDE: matando TODOS os workers celery do host (inclui OUTROS worktrees): $$(echo $$pids | tr '\n' ' ')"; \
+	   echo "$$pids" | xargs kill 2>/dev/null || true; \
+	   for i in 1 2 3 4 5 6 7 8 9 10; do pgrep -f 'celery -A backend.app.worker worker' >/dev/null 2>&1 || break; sleep 0.2; done; \
+	   strag="$$(pgrep -f 'celery -A backend.app.worker worker' 2>/dev/null || true)"; \
+	   [ -n "$$strag" ] && echo "$$strag" | xargs kill -9 2>/dev/null || true; \
+	   echo "   ✓ celery host-wide parado"; \
+	 fi
+endef
+
+# Sweep de UMA porta $(1) — mata o listener SÓ se ele pertence a este clone
+# (cwd sob $(CURDIR)) ou se FORCE=host. Porta é recurso global do host: sem o
+# cwd-check, um recover num worktree derrubaria a stack de outro clone (ou do
+# repo principal). Preserva-e-avisa o que for de fora. Idempotente, nunca aborta.
+define sweep_port_clone
+	@pid="$$(lsof -ti tcp:$(1) -sTCP:LISTEN 2>/dev/null | head -1 || true)"; \
+	 if [ -n "$$pid" ]; then \
+	   cwd="$$(lsof -a -p $$pid -d cwd -Fn 2>/dev/null | awk '/^n/{print substr($$0,2); exit}')"; \
+	   cmd="$$(ps -p $$pid -o comm= 2>/dev/null | head -1 || echo '?')"; \
+	   case "$$cwd/" in "$(CURDIR)/"*) mine=1 ;; *) mine=0 ;; esac; \
+	   if [ "$$mine" = "1" ] || [ "$(FORCE)" = "host" ]; then \
+	     echo "   ✓ porta $(1) → kill $$pid ($$cmd)"; \
+	     kill $$pid 2>/dev/null || true; \
+	     for i in 1 2 3 4 5; do kill -0 $$pid 2>/dev/null || break; sleep 0.2; done; \
+	     kill -0 $$pid 2>/dev/null && kill -9 $$pid 2>/dev/null || true; \
 	   else \
-	     echo "   ✓ órfãos parados"; \
+	     echo "   · porta $(1) ocupada por pid $$pid ($$cmd) de OUTRO clone (cwd=$${cwd:-?}) — preservado. FORCE=host p/ matar."; \
 	   fi; \
 	 fi
 endef
@@ -184,10 +226,116 @@ info:
 version: info
 
 # ---------------------------------------------------------------------------
+# Atalhos e recuperação  ·  🆘 Travado? → make recover
+#
+# Atalhos de topo (sem prefixo) apontam para a stack nativa (o caminho padrão
+# de dev). `status` e `recover` valem para QUALQUER stack deste clone.
+# ---------------------------------------------------------------------------
+
+.PHONY: up down logs status recover _recover-celery-hostwide
+
+## up: Atalho → make native-up (sobe a stack nativa)
+up: native-up
+
+## down: Atalho → make native-down (para a stack nativa, inclui overlay Go :8002)
+down: native-down
+
+## logs: Atalho → make native-logs (SVC=<nome> para um só)
+logs: native-logs
+
+## status: 🔎 O que roda NESTE clone (read-only) — serviços nativos + overlay Go :8002 + smoke + órfãos de porta + celery
+status:
+	@printf "%-16s  %-7s  %-5s  %s\n" "Serviço" "PID" "Porta" "Status"
+	@printf "%-16s  %-7s  %-5s  %s\n" "────────────────" "───────" "─────" "──────────────────────"
+	@for row in "api:api:$(PORT_API):$(DEV_DIR)" "worker:worker::$(DEV_DIR)" "frontend:frontend:$(PORT_FRONTEND):$(DEV_DIR)" "ops-api:ops-api:$(PORT_OPS_API):$(DEV_DIR)" "frontend-ops:frontend-ops:$(PORT_FRONTEND_OPS):$(DEV_DIR)" "go-shell:go:$(PORT_GO):$(DEV_DIR)"; do \
+	   label=$${row%%:*}; r1=$${row#*:}; pn=$${r1%%:*}; r2=$${r1#*:}; port=$${r2%%:*}; dir=$${r2#*:}; \
+	   pidfile=$(CURDIR)/$$dir/$$pn.pid; \
+	   if [ -f $$pidfile ]; then \
+	     pid=$$(cat $$pidfile 2>/dev/null); \
+	     if [ -n "$$pid" ] && kill -0 $$pid 2>/dev/null; then \
+	       if [ -n "$$port" ]; then \
+	         if lsof -nP -iTCP:$$port -sTCP:LISTEN >/dev/null 2>&1; then st="✅ OK"; else st="⏳ subindo (porta não listening)"; fi; \
+	       else st="✅ OK (sem porta)"; fi; \
+	       printf "%-16s  %-7s  %-5s  %s\n" "$$label" "$$pid" "$${port:-—}" "$$st"; \
+	     else \
+	       printf "%-16s  %-7s  %-5s  %s\n" "$$label" "$$pid" "$${port:-—}" "❌ PID morto (stale — make recover)"; \
+	     fi; \
+	   else \
+	     printf "%-16s  %-7s  %-5s  %s\n" "$$label" "—" "$${port:-—}" "⚪ não subido"; \
+	   fi; \
+	 done
+	@if [ -d $(CURDIR)/$(SMOKE_DIR) ] && ls $(CURDIR)/$(SMOKE_DIR)/*.pid >/dev/null 2>&1; then \
+	   echo "  — smoke ($(SMOKE_DIR)):"; \
+	   for pn in api worker frontend go; do \
+	     pf=$(CURDIR)/$(SMOKE_DIR)/$$pn.pid; [ -f $$pf ] || continue; \
+	     pid=$$(cat $$pf 2>/dev/null); \
+	     if [ -n "$$pid" ] && kill -0 $$pid 2>/dev/null; then st="✅"; else st="❌ morto"; fi; \
+	     printf "     %-12s %-7s %s\n" "$$pn" "$${pid:-—}" "$$st"; \
+	   done; \
+	 fi
+	@echo "  — portas ($(ALL_LOCAL_PORTS)) · órfãos = listener sem pidfile deste clone:"; \
+	 found=0; \
+	 for p in $(ALL_LOCAL_PORTS); do \
+	   pid=$$(lsof -ti tcp:$$p -sTCP:LISTEN 2>/dev/null | head -1 || true); \
+	   [ -z "$$pid" ] && continue; \
+	   tracked=0; \
+	   for pf in $(CURDIR)/$(DEV_DIR)/*.pid $(CURDIR)/$(SMOKE_DIR)/*.pid; do \
+	     [ -f "$$pf" ] || continue; [ "$$(cat $$pf 2>/dev/null)" = "$$pid" ] && tracked=1; \
+	   done; \
+	   [ $$tracked -eq 1 ] && continue; \
+	   cwd=$$(lsof -a -p $$pid -d cwd -Fn 2>/dev/null | awk '/^n/{print substr($$0,2); exit}'); \
+	   cmd=$$(ps -p $$pid -o comm= 2>/dev/null | head -1 || echo '?'); \
+	   case "$$cwd/" in "$(CURDIR)/"*) echo "     ⚠ :$$p pid $$pid ($$cmd) órfão DESTE clone — make recover" ;; *) echo "     · :$$p pid $$pid ($$cmd) de OUTRO clone (cwd=$${cwd:-?})" ;; esac; \
+	   found=1; \
+	 done; \
+	 [ $$found -eq 0 ] && echo "     · nenhum órfão" || true
+	@mine=$$( { pgrep -f "celery -A backend.app.worker worker.*--hostname=celery-.*-$(WT)@" 2>/dev/null || true; } | tr '\n' ' '); \
+	 total=$$( { pgrep -f 'celery -A backend.app.worker worker' 2>/dev/null || true; } | wc -l | tr -d ' '); \
+	 echo "  — celery: deste worktree [$${mine:-nenhum}] · total no host: $$total"
+	@if redis-cli ping >/dev/null 2>&1; then echo "  — redis: ✅ OK (6379)"; else echo "  — redis: ❌ não responde (6379)"; fi
+
+## recover: 🆘 Destrava ESTE clone — para nativo+smoke+go, reap pids, varre portas, remove _*_pids. Idempotente, nunca crasha.
+##          Só toca processos deste clone (cwd sob a raiz). FORCE=host mata de QUALQUER clone/worktree.
+recover:
+	@echo "▶  recover — destravando o clone '$(WT)'…"
+	@[ "$(FORCE)" = "host" ] && echo "   ⚠ FORCE=host — vai matar processos de QUALQUER clone/worktree do host." || true
+	$(call kill_pid_safe,go(dev) :8002,$(CURDIR)/$(DEV_DIR)/go.pid)
+	$(call kill_pid_safe,go(smoke) :8002,$(CURDIR)/$(SMOKE_DIR)/go.pid)
+	$(call kill_pid_safe,api(dev),$(CURDIR)/$(DEV_DIR)/api.pid)
+	$(call kill_pid_safe,worker(dev),$(CURDIR)/$(DEV_DIR)/worker.pid)
+	$(call kill_pid_safe,frontend(dev),$(CURDIR)/$(DEV_DIR)/frontend.pid)
+	$(call kill_pid_safe,ops-api(dev),$(CURDIR)/$(DEV_DIR)/ops-api.pid)
+	$(call kill_pid_safe,frontend-ops(dev),$(CURDIR)/$(DEV_DIR)/frontend-ops.pid)
+	$(call kill_pid_safe,api(smoke),$(CURDIR)/$(SMOKE_DIR)/api.pid)
+	$(call kill_pid_safe,worker(smoke),$(CURDIR)/$(SMOKE_DIR)/worker.pid)
+	$(call kill_pid_safe,frontend(smoke),$(CURDIR)/$(SMOKE_DIR)/frontend.pid)
+	$(call kill_celery_scoped,celery-.*-$(WT))
+	@[ "$(FORCE)" = "host" ] && $(MAKE) -s _recover-celery-hostwide || true
+	$(call sweep_port_clone,$(PORT_API))
+	$(call sweep_port_clone,$(PORT_OPS_API))
+	$(call sweep_port_clone,$(PORT_GO))
+	$(call sweep_port_clone,$(PORT_FRONTEND))
+	$(call sweep_port_clone,$(PORT_FRONTEND_OPS))
+	@for d in frontend frontend-ops; do \
+	   lock=$(CURDIR)/$$d/.next/dev/lock; \
+	   if [ -f $$lock ]; then \
+	     pid=$$(python3 -c "import json;print(json.load(open('$$lock')).get('pid',''))" 2>/dev/null || true); \
+	     if [ -z "$$pid" ] || ! kill -0 $$pid 2>/dev/null; then rm -f $$lock && echo "   ✓ $$d/.next/dev/lock órfão removido" || true; fi; \
+	   fi; \
+	 done
+	@rm -rf $(CURDIR)/$(DEV_DIR) $(CURDIR)/$(SMOKE_DIR)
+	@echo "  ✅ recover completo — clone '$(WT)' limpo. 'make status' confirma."
+	@echo "     Redis e dados preservados. Subir de novo: make native-up  ·  make smoke-up"
+
+.PHONY: _recover-celery-hostwide
+_recover-celery-hostwide:
+	$(call kill_celery_hostwide)
+
+# ---------------------------------------------------------------------------
 # Smoke test
 # ---------------------------------------------------------------------------
 
-.PHONY: smoke-up smoke-down smoke-reset smoke-seed smoke-logs smoke-dirs smoke-pipeline-service smoke-pipeline-service-down
+.PHONY: smoke-up smoke-down smoke-restart smoke-status smoke-reset smoke-seed smoke-logs smoke-dirs smoke-pipeline-service smoke-pipeline-service-down
 
 ## smoke-pipeline-service: builda+sobe o container e roda o gate ADR-303 (requer 'make smoke-up' antes)
 smoke-pipeline-service:
@@ -226,7 +374,7 @@ smoke-up: smoke-dirs
 	   > $(CURDIR)/$(SMOKE_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/api.pid; \
 	 echo "$$FERNET_KEY" > $(CURDIR)/$(SMOKE_DIR)/fernet.key
 	@echo "▶  Starting Celery worker…"
-	$(call kill_celery_orphans)
+	$(call kill_celery_scoped,celery-smoke.*-$(WT))
 	@TS=$$(date +%s); \
 	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
@@ -234,7 +382,7 @@ smoke-up: smoke-dirs
 	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
-	   --hostname="celery-smoke@%h-$$TS" \
+	   --hostname="celery-smoke-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
 	   > $(CURDIR)/$(SMOKE_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/worker.pid
@@ -260,15 +408,23 @@ smoke-seed:
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 $(PYTHON) backend/app/scripts/seed_smoke.py
 
-## smoke-down: Para todos os processos locais + Redis (idempotente)
+## smoke-down: Para os processos do smoke + Redis do smoke (idempotente, inclui overlay Go :8002)
 smoke-down:
-	@echo "▶  Stopping local processes…"
+	@echo "▶  Stopping smoke processes…"
+	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(SMOKE_DIR)/go.pid)
 	$(call kill_pid_safe,api,$(CURDIR)/$(SMOKE_DIR)/api.pid)
 	$(call kill_pid_safe,worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
+	$(call kill_celery_scoped,celery-smoke.*-$(WT))
 	$(call kill_pid_safe,frontend,$(CURDIR)/$(SMOKE_DIR)/frontend.pid)
-	@echo "▶  Stopping Redis…"
-	@docker compose -f docker-compose.smoke.yml down
+	@echo "▶  Stopping Redis (smoke)…"
+	@docker compose -f docker-compose.smoke.yml down 2>/dev/null || echo "   · redis do smoke já parado / compose indisponível"
 	@echo "  ✅ Smoke stack stopped."
+
+## smoke-restart: smoke-down && smoke-up (reseed com make smoke-seed)
+smoke-restart: smoke-down smoke-up
+
+## smoke-status: Visão do que roda (alias de status — a visão unificada já cobre nativo + smoke + go)
+smoke-status: status
 
 ## smoke-reset: Para tudo, apaga DB + storage + pids, reinicia do zero
 smoke-reset: smoke-down
@@ -290,7 +446,7 @@ smoke-dirs:
 	@mkdir -p $(SMOKE_DIR) $(SMOKE_STORAGE)
 
 # ---------------------------------------------------------------------------
-# Dev stack (Docker — docker-compose.dev.yml · A20.L6/L7 · ADR-252)
+# Stack Docker (docker-compose.dev.yml · A20.L6/L7 · ADR-252)
 #
 # Caminho RECOMENDADO de onboarding: um comando sobe a stack inteira em
 # containers (postgres + 2 redis + api + worker + beat + frontend), com
@@ -304,11 +460,13 @@ smoke-dirs:
 
 COMPOSE_DEV := docker-compose.dev.yml
 
-.PHONY: dev-up-docker dev-down-docker dev-reset-docker dev-shell-docker \
+.PHONY: docker-up docker-down docker-restart docker-status docker-reset docker-shell \
+        docker-build docker-logs \
+        dev-up-docker dev-down-docker dev-reset-docker dev-shell-docker \
         dev-rebuild-docker dev-logs-docker
 
-## dev-up-docker: Sobe a stack dev em Docker (API 8010/Front 3010/PG 5433 — coexiste com a nativa). Onboarding em 1 comando.
-dev-up-docker:
+## docker-up: Sobe a stack dev em Docker (API 8010/Front 3010/PG 5433 — coexiste com a nativa). Onboarding em 1 comando.
+docker-up:
 	@echo "▶  Verificando portas publicadas ($(MATHOMS_DOCKER_API_PORT), $(MATHOMS_DOCKER_FRONTEND_PORT))…"
 	$(call check_port_free,$(MATHOMS_DOCKER_API_PORT))
 	$(call check_port_free,$(MATHOMS_DOCKER_FRONTEND_PORT))
@@ -318,34 +476,41 @@ dev-up-docker:
 	@echo "  ✅ Stack dev (Docker) subindo. Boot leva ~60s (build + migrate + seed):"
 	@echo "     API:      http://localhost:$(MATHOMS_DOCKER_API_PORT)/health"
 	@echo "     Frontend: http://localhost:$(MATHOMS_DOCKER_FRONTEND_PORT)"
-	@echo "     Postgres: 127.0.0.1:$(MATHOMS_DOCKER_POSTGRES_PORT)  (coexiste com a stack legada)"
-	@echo "     Logs:     make dev-logs-docker   (SVC=api para um só)"
-	@echo "     Shell:    make dev-shell-docker"
+	@echo "     Postgres: 127.0.0.1:$(MATHOMS_DOCKER_POSTGRES_PORT)  (coexiste com a stack nativa)"
+	@echo "     Logs:     make docker-logs   (SVC=api para um só)"
+	@echo "     Shell:    make docker-shell"
 
-## dev-down-docker: Para a stack Docker, PRESERVA volumes (DB/Redis/storage intactos)
-dev-down-docker:
+## docker-down: Para a stack Docker, PRESERVA volumes (DB/Redis/storage intactos)
+docker-down:
 	@echo "▶  Parando stack ($(COMPOSE_DEV)) — volumes preservados…"
 	@docker compose -f $(COMPOSE_DEV) down
-	@echo "  ✅ Stack parada. 'make dev-up-docker' para subir de novo (dados mantidos)."
+	@echo "  ✅ Stack parada. 'make docker-up' para subir de novo (dados mantidos)."
 
-## dev-reset-docker: DESTRUTIVO — para a stack e APAGA volumes (wipe DB/Redis/storage)
-dev-reset-docker:
+## docker-restart: docker-down && docker-up
+docker-restart: docker-down docker-up
+
+## docker-status: docker compose ps da stack Docker
+docker-status:
+	@docker compose -f $(COMPOSE_DEV) ps
+
+## docker-reset: DESTRUTIVO — para a stack e APAGA volumes (wipe DB/Redis/storage)
+docker-reset:
 	@echo "⚠️  DESTRUTIVO: vai apagar DB, Redis e storage da stack dev Docker."
 	@docker compose -f $(COMPOSE_DEV) down -v
-	@echo "  ✅ Volumes apagados. 'make dev-up-docker' reinicia do zero (re-seed)."
+	@echo "  ✅ Volumes apagados. 'make docker-up' reinicia do zero (re-seed)."
 
-## dev-shell-docker: Shell (bash) dentro do container api
-dev-shell-docker:
+## docker-shell: Shell (bash) dentro do container api
+docker-shell:
 	@docker compose -f $(COMPOSE_DEV) exec api bash
 
-## dev-rebuild-docker: Rebuild das imagens após mudança em deps/Dockerfile (sem subir)
-dev-rebuild-docker:
+## docker-build: Rebuild das imagens após mudança em deps/Dockerfile (sem subir)
+docker-build:
 	@echo "▶  Rebuild das imagens ($(COMPOSE_DEV))…"
 	@docker compose -f $(COMPOSE_DEV) build
-	@echo "  ✅ Imagens rebuildadas. 'make dev-up-docker' aplica."
+	@echo "  ✅ Imagens rebuildadas. 'make docker-up' aplica."
 
-## dev-logs-docker: tail -f dos logs da stack Docker (SVC=<nome> para um só)
-dev-logs-docker:
+## docker-logs: tail -f dos logs da stack Docker (SVC=<nome> para um só)
+docker-logs:
 	@if [ -n "$(SVC)" ]; then \
 	   docker compose -f $(COMPOSE_DEV) logs -f $(SVC); \
 	 else \
@@ -353,31 +518,37 @@ dev-logs-docker:
 	 fi
 
 # ---------------------------------------------------------------------------
-# Dev stack
+# Stack nativa (uvicorn-local)
 #
 # Sobe os 6 serviços de desenvolvimento local em background.
 # Diferente de `smoke-*`, este preserva `.env` e `mathoms.db` reais.
+# Verbo comum: native-<up|down|restart|status|logs>. Atalhos sem prefixo
+# (make up/down/logs/status) apontam para cá. Nomes antigos dev-* seguem como
+# aliases (ver seção "Aliases de compatibilidade" no fim do arquivo).
 # Targets:
-#   make dev-bootstrap       First-run: venv, deps, .env, codegen
-#   make dev-pull            git pull --ff-only + npm install
-#   make dev-up              Sobe redis + api(8000) + worker + frontend(3000)
-#                              + ops-api(8001) + frontend-ops(3100)
-#   make dev-down            Mata todos os processos
-#   make dev-restart         down && up
-#   make dev-restart-worker  Restart só do worker (após mudar pipeline/)
-#   make dev-fresh           Reset completo: kill-stale + pull + clean + up + status
-#   make dev-status          ✅/❌ por serviço (PID + porta listening)
-#   make dev-logs            tail -f de todos (SVC=api para um só)
-#   make dev-kill-stale      Mata órfãos em 8000/8001/3000/3100 + limpa pids
-#   make dev-reset-env       DESTRUTIVO: regenera .env (invalida Fernet)
+#   make dev-bootstrap        First-run: venv, deps, .env, codegen
+#   make dev-pull             git pull --ff-only + npm install
+#   make native-up            Sobe redis + api(8000) + worker + frontend(3000)
+#                               + ops-api(8001) + frontend-ops(3100)
+#   make native-down          Para todos os processos (inclui overlay Go :8002)
+#   make native-restart       down && up
+#   make native-restart-worker  Restart só do worker (após mudar pipeline/)
+#   make native-fresh         Reset completo: recover + pull + clean + up + status
+#   make status               ✅/❌ por serviço + órfãos de porta + celery (read-only)
+#   make native-logs          tail -f de todos (SVC=api para um só)
+#   make recover              🆘 destrava o clone (para tudo, reap pids, varre portas)
+#   make native-reset-env     DESTRUTIVO: regenera .env (invalida Fernet)
 #
 # PIDs em _dev_pids/<svc>.pid · logs em _dev_pids/<svc>.log (no .gitignore)
 # ---------------------------------------------------------------------------
 
-.PHONY: dev-bootstrap dev-pull dev-up dev-down dev-restart dev-restart-worker \
-        dev-fresh dev-status dev-logs dev-reset-env dev-dirs dev-kill-stale \
+.PHONY: dev-bootstrap dev-pull native-up native-down native-restart native-restart-worker \
+        native-fresh status recover native-logs native-reset-env dev-dirs \
         dev-redis-up dev-api-up dev-worker-up dev-frontend-up \
-        dev-ops-api-up dev-frontend-ops-up pipeline-run
+        dev-ops-api-up dev-frontend-ops-up pipeline-run \
+        up down logs panic reset-all dev-nuke kill-stale \
+        dev-up dev-down dev-restart dev-restart-worker dev-fresh dev-status \
+        dev-logs dev-reset-env dev-kill-stale
 
 dev-dirs:
 	@mkdir -p $(DEV_DIR)
@@ -414,7 +585,7 @@ dev-bootstrap:
 	   echo "      Detalhes: docs/reference/RUNBOOK.md §7.2."; \
 	 fi
 	@echo ""
-	@echo "  ✅ Bootstrap completo. 'make dev-up' para subir o stack."
+	@echo "  ✅ Bootstrap completo. 'make up' (ou 'make native-up') para subir a stack."
 
 ## dev-pull: git pull --ff-only + npm install em ambos os frontends
 dev-pull:
@@ -455,12 +626,12 @@ dev-pull:
 	@echo "▶  npm install (frontend + frontend-ops)…"
 	@npm --prefix frontend install --silent
 	@npm --prefix frontend-ops install --silent
-	@echo "  ✅ Pull completo. 'make dev-restart' para reiniciar serviços."
+	@echo "  ✅ Pull completo. 'make native-restart' para reiniciar serviços."
 
-## dev-up: Sobe os 6 serviços em background (migrate roda antes p/ evitar drift)
-dev-up: dev-dirs migrate dev-redis-up dev-api-up dev-worker-up dev-frontend-up dev-ops-api-up dev-frontend-ops-up
+## native-up: Sobe os 6 serviços nativos (uvicorn-local) em background — migrate roda antes p/ evitar drift
+native-up: dev-dirs migrate dev-redis-up dev-api-up dev-worker-up dev-frontend-up dev-ops-api-up dev-frontend-ops-up
 	@echo ""
-	@echo "  ✅ Dev stack subido (6 serviços):"
+	@echo "  ✅ Stack nativa subida (6 serviços):"
 	@echo "     Redis:        redis://localhost:6379/0"
 	@echo "     API:          http://localhost:$(PORT_API)"
 	@echo "     Worker:       celery (concurrency=2)"
@@ -468,7 +639,7 @@ dev-up: dev-dirs migrate dev-redis-up dev-api-up dev-worker-up dev-frontend-up d
 	@echo "     Ops API:      http://127.0.0.1:$(PORT_OPS_API)/admin/*"
 	@echo "     Frontend-ops: http://127.0.0.1:$(PORT_FRONTEND_OPS)/login"
 	@echo ""
-	@echo "  Logs em $(DEV_DIR)/<svc>.log · 'make dev-status' · 'make dev-logs'"
+	@echo "  Logs em $(DEV_DIR)/<svc>.log · 'make status' · 'make native-logs'"
 
 dev-redis-up: dev-dirs
 	@if redis-cli ping >/dev/null 2>&1; then \
@@ -492,11 +663,11 @@ dev-api-up: dev-dirs
 	   > $(CURDIR)/$(DEV_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/api.pid
 
 dev-worker-up: dev-dirs
-	@echo "▶  Subindo Celery worker (concurrency=2, max-tasks-per-child=200)…"
-	$(call kill_celery_orphans)
+	@echo "▶  Subindo Celery worker nativo (concurrency=2, max-tasks-per-child=200)…"
+	$(call kill_celery_scoped,celery-native.*-$(WT))
 	@TS=$$(date +%s); \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
-	   --hostname="celery-dev@%h-$$TS" \
+	   --hostname="celery-native-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
 	   > $(CURDIR)/$(DEV_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/worker.pid
@@ -529,52 +700,52 @@ dev-frontend-ops-up: dev-dirs
 	 nohup npm --prefix frontend-ops run dev \
 	   > $(CURDIR)/$(DEV_DIR)/frontend-ops.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/frontend-ops.pid
 
-## dev-down: Mata todos os processos via PID files (com escalação SIGTERM→SIGKILL)
-dev-down:
-	@echo "▶  Parando serviços de dev…"
+## native-down: Para a stack nativa via PID files (SIGTERM→SIGKILL) — inclui o overlay Go :8002 e redis próprio
+native-down:
+	@echo "▶  Parando a stack nativa ($(WT))…"
+	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(DEV_DIR)/go.pid)
 	$(call kill_pid_safe,api,$(CURDIR)/$(DEV_DIR)/api.pid)
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
-	$(call kill_celery_orphans)
+	$(call kill_celery_scoped,celery-native.*-$(WT))
 	$(call kill_pid_safe,frontend,$(CURDIR)/$(DEV_DIR)/frontend.pid)
 	$(call kill_pid_safe,ops-api,$(CURDIR)/$(DEV_DIR)/ops-api.pid)
 	$(call kill_pid_safe,frontend-ops,$(CURDIR)/$(DEV_DIR)/frontend-ops.pid)
 	@if [ -f $(CURDIR)/$(DEV_DIR)/redis.pid ]; then \
 	   $(MAKE) -s _kill_redis_pidfile; \
 	 else \
-	   echo "   · redis não foi subido por dev-up (preservado)"; \
+	   echo "   · redis não foi subido por native-up (preservado)"; \
 	 fi
-	@echo "  ✅ Stack parado."
+	@echo "  ✅ Stack nativa parada."
 
 # Privado: kill do redis nativo via pidfile, com a mesma escalação
 .PHONY: _kill_redis_pidfile
 _kill_redis_pidfile:
 	$(call kill_pid_safe,redis,$(CURDIR)/$(DEV_DIR)/redis.pid)
 
-## dev-restart: down && up
-dev-restart: dev-down dev-up
+## native-restart: native-down && native-up
+native-restart: native-down native-up
 
-## dev-restart-worker: Restart só do worker (após mudar pipeline/ ou tasks/)
-dev-restart-worker:
+## native-restart-worker: Restart só do worker nativo (após mudar pipeline/ ou tasks/)
+native-restart-worker:
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
-	$(call kill_celery_orphans)
+	$(call kill_celery_scoped,celery-native.*-$(WT))
 	@$(MAKE) -s dev-worker-up
-	@echo "  ✅ Worker reiniciado."
+	@echo "  ✅ Worker nativo reiniciado."
 
-## dev-fresh: Reset completo — kill-stale + pull + clean + up + status
-##            Workflow padrão: "fechar tudo, atualizar, limpar caches, subir limpo".
-##            Requer working tree limpo (validado em pre-flight antes de matar nada).
-dev-fresh: _dev-fresh-preflight dev-kill-stale dev-pull clean-all dev-up
-	@$(MAKE) -s dev-status
+## native-fresh: Reset completo — recover + pull + clean + up + status ("fecha tudo, atualiza, limpa, sobe limpo")
+##             Requer working tree limpo (validado em pre-flight antes de matar nada).
+native-fresh: _dev-fresh-preflight recover dev-pull clean-all native-up
+	@$(MAKE) -s status
 
-# Privado: valida working tree limpo ANTES de dev-kill-stale.
+# Privado: valida working tree limpo ANTES do recover.
 # Sem isso, tree sujo abortaria no dev-pull com a stack já morta.
 .PHONY: _dev-fresh-preflight
 _dev-fresh-preflight:
-	@echo "▶  Pre-flight (dev-fresh): working tree…"
+	@echo "▶  Pre-flight (native-fresh): working tree…"
 	@git update-index -q --refresh
 	@if ! git diff --quiet || ! git diff --cached --quiet; then \
-	   echo "   ❌ Working tree sujo. Commit ou stash antes de rodar dev-fresh."; \
-	   echo "      (sem isso, dev-kill-stale derrubaria a stack e dev-pull abortaria,"; \
+	   echo "   ❌ Working tree sujo. Commit ou stash antes de rodar native-fresh."; \
+	   echo "      (sem isso, recover derrubaria a stack e dev-pull abortaria,"; \
 	   echo "       deixando você sem nada rodando.)"; \
 	   exit 1; \
 	 fi
@@ -586,82 +757,12 @@ _dev-fresh-preflight:
 stale-check:
 	@python3 dev/check_post_merge_cleanup.py
 
-## dev-status: Health check de cada serviço (PID alive + porta listening)
-dev-status:
-	@printf "%-14s  %-6s  %-5s  %s\n" "Serviço" "PID" "Porta" "Status"
-	@printf "%-14s  %-6s  %-5s  %s\n" "──────────────" "──────" "─────" "──────────────────────"
-	@for svc in api worker frontend ops-api frontend-ops; do \
-	   case $$svc in \
-	     api)          port=$(PORT_API) ;; \
-	     ops-api)      port=$(PORT_OPS_API) ;; \
-	     frontend)     port=$(PORT_FRONTEND) ;; \
-	     frontend-ops) port=$(PORT_FRONTEND_OPS) ;; \
-	     *)            port="" ;; \
-	   esac; \
-	   pidfile=$(CURDIR)/$(DEV_DIR)/$$svc.pid; \
-	   if [ -f $$pidfile ]; then \
-	     pid=$$(cat $$pidfile); \
-	     if kill -0 $$pid 2>/dev/null; then \
-	       if [ -n "$$port" ]; then \
-	         if lsof -nP -iTCP:$$port -sTCP:LISTEN >/dev/null 2>&1; then \
-	           printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid $$port "✅ OK"; \
-	         else \
-	           printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid $$port "⏳ subindo (porta ainda não listening)"; \
-	         fi; \
-	       else \
-	         printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid "—" "✅ OK (sem porta)"; \
-	       fi; \
-	     else \
-	       printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid "$${port:-—}" "❌ PID morto (ver $(DEV_DIR)/$$svc.log)"; \
-	     fi; \
-	   else \
-	     printf "%-14s  %-6s  %-5s  %s\n" $$svc "—" "$${port:-—}" "⚪ não subido"; \
-	   fi; \
-	 done
-	@if redis-cli ping >/dev/null 2>&1; then \
-	   printf "%-14s  %-6s  %-5s  %s\n" redis "—" 6379 "✅ OK"; \
-	 else \
-	   printf "%-14s  %-6s  %-5s  %s\n" redis "—" 6379 "❌ não responde"; \
-	 fi
+# status e recover são definidos na seção "Atalhos e recuperação" no topo do
+# arquivo (para aparecerem cedo no `make help`). Os alvos native-* abaixo os
+# consomem via prerequisite/$(MAKE).
 
-## dev-kill-stale: Mata QUALQUER processo nas portas dev + limpa _dev_pids/
-##                 Use quando dev-up reclama de "Porta X já em uso".
-dev-kill-stale:
-	@echo "▶  Matando processos órfãos nas portas dev…"
-	@killed=0; \
-	 for port in $(DEV_PORTS); do \
-	   pids=$$(lsof -ti tcp:$$port -sTCP:LISTEN 2>/dev/null || true); \
-	   if [ -n "$$pids" ]; then \
-	     for pid in $$pids; do \
-	       cmd=$$(ps -p $$pid -o comm= 2>/dev/null | head -1 || echo "?"); \
-	       echo "   ✓ porta $$port → kill $$pid ($$cmd)"; \
-	       kill $$pid 2>/dev/null || true; \
-	       for i in 1 2 3 4 5; do kill -0 $$pid 2>/dev/null || break; sleep 0.2; done; \
-	       if kill -0 $$pid 2>/dev/null; then \
-	         echo "      · SIGTERM ignorado, escalando para SIGKILL"; \
-	         kill -9 $$pid 2>/dev/null || true; \
-	       fi; \
-	       killed=$$((killed+1)); \
-	     done; \
-	   fi; \
-	 done; \
-	 if [ $$killed -eq 0 ]; then echo "   · nenhum órfão encontrado"; fi
-	@for d in frontend frontend-ops; do \
-	   lock=$(CURDIR)/$$d/.next/dev/lock; \
-	   if [ -f $$lock ]; then \
-	     pid=$$(python3 -c "import json,sys; print(json.load(open('$$lock')).get('pid',''))" 2>/dev/null || true); \
-	     if [ -n "$$pid" ] && ! kill -0 $$pid 2>/dev/null; then \
-	       echo "   ✓ $$d/.next/dev/lock órfão (pid=$$pid morto) → removido"; \
-	       rm -f $$lock; \
-	     fi; \
-	   fi; \
-	 done
-	$(call kill_celery_orphans)
-	@rm -rf $(CURDIR)/$(DEV_DIR)
-	@echo "  ✅ Stale kill completo. 'make dev-up' para subir novamente."
-
-## dev-logs: tail -f de todos os logs (SVC=<nome> para um só)
-dev-logs:
+## native-logs: tail -f de todos os logs da stack nativa (SVC=<nome> para um só)
+native-logs:
 ifdef SVC
 	@if [ ! -f $(CURDIR)/$(DEV_DIR)/$(SVC).log ]; then \
 	   echo "❌ $(DEV_DIR)/$(SVC).log não existe. Disponíveis:"; \
@@ -672,14 +773,14 @@ ifdef SVC
 else
 	@logs=$$(ls $(CURDIR)/$(DEV_DIR)/*.log 2>/dev/null); \
 	 if [ -z "$$logs" ]; then \
-	   echo "Nenhum log encontrado em $(DEV_DIR)/. Rode 'make dev-up' primeiro."; \
+	   echo "Nenhum log encontrado em $(DEV_DIR)/. Rode 'make native-up' primeiro."; \
 	 else \
 	   tail -f $$logs; \
 	 fi
 endif
 
-## dev-reset-env: DESTRUTIVO — regenera .env (INVALIDA Fernet → API keys LLM e dados encriptados quebram)
-dev-reset-env:
+## native-reset-env: DESTRUTIVO — regenera .env (INVALIDA Fernet → API keys LLM e dados encriptados quebram)
+native-reset-env:
 	@echo "⚠️  ATENÇÃO: regenerar .env vai invalidar:"
 	@echo "    - API keys LLM salvas (precisará re-cadastrar)"
 	@echo "    - Senhas PDF criptografadas"
@@ -915,26 +1016,61 @@ clean-caches:
 	@rm -rf backend/.pytest_cache pipeline/.pytest_cache 2>/dev/null || true
 	@echo "  ✅ Caches Python removidos."
 
-## clean-all: clean + remove _smoke_pids/, _dev_pids/, _scratch/, frontend/.next/
-##            (NÃO toca em .venv, node_modules, .env, mathoms.db)
-clean-all: clean
-	@rm -rf $(SMOKE_DIR) $(SMOKE_STORAGE) $(DEV_DIR) _scratch
+## clean-all: recover (PARA os processos deste clone) + clean + remove storage smoke, _scratch e .next
+##            Seguro: para tudo ANTES de apagar pids — nunca orfana (era o bug do clean-all antigo).
+##            NÃO toca .venv, node_modules, .env, mathoms.db.
+clean-all: recover clean
+	@rm -rf $(SMOKE_STORAGE) _scratch
 	@rm -rf frontend/.next frontend-ops/.next
-	@echo "  ✅ Estado runtime local limpo (preservados: .venv, node_modules, .env, DB)."
+	@echo "  ✅ Estado runtime local limpo — processos parados (recover) + caches + storage smoke + .next."
+	@echo "     Preservados: .venv, node_modules, .env, mathoms.db."
 
 # ---------------------------------------------------------------------------
-# Dogfood com shell Go (F2 GO_SHELL — validação pré-cutover, ADR-150 §7)
+# Overlay Go (dogfood do shell Go :8002 — F2 GO_SHELL, validação pré-cutover, ADR-150 §7)
+#
+# O shell Go NÃO é uma stack própria: é um OVERLAY de executor sobre uma stack
+# já rodando (nativa OU smoke). Por isso a interface é go-on/go-off com ENV=
+# OBRIGATÓRIO — sem default. O ambiente (que era o eixo confuso dos antigos
+# dogfood-go vs dogfood-go-dev) fica explícito no call-site.
+#
+#   make go-on  ENV=smoke    (sobre a stack smoke — requer 'make smoke-up' antes)
+#   make go-on  ENV=native   (sobre a stack nativa real — requer .env)
+#   make go-off ENV=smoke | ENV=native
+#
+# Nota: :8002 é uma porta única compartilhada pelos dois ENV — rode o overlay
+# em UM ambiente por vez. 'make recover' reapea o :8002 em qualquer caso.
 # ---------------------------------------------------------------------------
 
-.PHONY: dogfood-go dogfood-go-off dogfood-go-dev dogfood-go-dev-off
+.PHONY: go-on go-off _go-on-smoke _go-on-native _go-off-smoke _go-off-native \
+        dogfood-go dogfood-go-off dogfood-go-dev dogfood-go-dev-off
 
-## dogfood-go: Sobe o shell Go (:8002) e re-aponta o worker p/ ele (requer 'make smoke-up' antes)
-dogfood-go:
-	@test -f $(CURDIR)/$(SMOKE_DIR)/fernet.key || { echo "❌ Rode 'make smoke-up' antes (fernet key + DB + worker)."; exit 1; }
+## go-on: Liga o overlay Go (:8002) sobre a stack ENV — ENV=native|smoke (obrigatório)
+go-on:
+	@case "$(ENV)" in \
+	   native) $(MAKE) -s _go-on-native ;; \
+	   smoke)  $(MAKE) -s _go-on-smoke ;; \
+	   "")     echo "❌ ENV= obrigatório. Uso: make go-on ENV=native  |  make go-on ENV=smoke"; exit 2 ;; \
+	   *)      echo "❌ ENV='$(ENV)' inválido — use native ou smoke"; exit 2 ;; \
+	 esac
+
+## go-off: Desliga o overlay Go e volta o worker ENV ao executor Python — ENV=native|smoke (obrigatório)
+##         Sem sessão/overlay ativo: diz "nada a desligar" e sai 0 (idempotente, nunca crasha).
+go-off:
+	@case "$(ENV)" in \
+	   native) if [ -f "$(CURDIR)/$(DEV_DIR)/go.pid" ]; then $(MAKE) -s _go-off-native; else echo "  · overlay Go não está ligado no nativo — nada a desligar."; fi ;; \
+	   smoke)  if [ -f "$(CURDIR)/$(SMOKE_DIR)/fernet.key" ]; then $(MAKE) -s _go-off-smoke; else echo "  · nenhuma sessão smoke ativa — nada a desligar."; fi ;; \
+	   "")     echo "❌ ENV= obrigatório. Uso: make go-off ENV=native  |  make go-off ENV=smoke"; exit 2 ;; \
+	   *)      echo "❌ ENV='$(ENV)' inválido — use native ou smoke"; exit 2 ;; \
+	 esac
+
+_go-on-smoke:
+	@test -f $(CURDIR)/$(SMOKE_DIR)/fernet.key || { echo "❌ Sessão smoke ausente. Rode 'make smoke-up' antes (fernet key + DB + worker)."; exit 1; }
 	@echo "▶  Buildando o shell Go…"
+	@mkdir -p $(CURDIR)/$(SMOKE_DIR)
 	@cd services/pipeline-service-go && go build -o $(CURDIR)/$(SMOKE_DIR)/pipeline-service-go ./cmd/pipeline-service
-	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(SMOKE_DIR)/go.pid)
-	@echo "▶  Subindo shell Go na :8002…"
+	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(SMOKE_DIR)/go.pid)
+	$(call check_port_free,$(PORT_GO))
+	@echo "▶  Subindo shell Go na :$(PORT_GO)…"
 	@FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 [ -n "$$ANTHROPIC_API_KEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente — stages LLM vão falhar (export antes, ou rode com skip de LLM)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
@@ -944,59 +1080,40 @@ dogfood-go:
 	 MATHOMS_REPO_ROOT="$(CURDIR)" \
 	 MATHOMS_PYTHON="$(PYTHON)" \
 	 REDIS_URL="redis://localhost:6379/0" \
-	 PIPELINE_SERVICE_PORT=8002 \
+	 PIPELINE_SERVICE_PORT=$(PORT_GO) \
 	 nohup $(CURDIR)/$(SMOKE_DIR)/pipeline-service-go \
 	   > $(CURDIR)/$(SMOKE_DIR)/go.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/go.pid
-	@sleep 1; curl -sf --max-time 5 http://localhost:8002/health > /dev/null \
-	  && echo "   ✓ shell Go saudável em http://localhost:8002" \
+	@sleep 1; curl -sf --max-time 5 http://localhost:$(PORT_GO)/health > /dev/null \
+	  && echo "   ✓ shell Go saudável em http://localhost:$(PORT_GO)" \
 	  || { echo "   ❌ /health falhou — veja $(SMOKE_DIR)/go.log"; exit 1; }
-	@echo "▶  Re-apontando o worker Celery para o shell Go…"
-	$(call kill_pid_safe,celery worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
-	$(call kill_celery_orphans)
+	@echo "▶  Re-apontando o worker Celery (smoke) para o shell Go…"
+	$(call kill_pid_safe,worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
+	$(call kill_celery_scoped,celery-smoke.*-$(WT))
 	@TS=$$(date +%s); \
 	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
 	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
-	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:8002" \
+	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:$(PORT_GO)" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
-	   --hostname="celery-smoke-go@%h-$$TS" \
+	   --hostname="celery-smoke-go-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
 	   > $(CURDIR)/$(SMOKE_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/worker.pid
 	@echo ""
-	@echo "  ✅ Dogfood com Go LIGADO — cada stage agora executa via shell Go (:8002)."
-	@echo "     Rode o pipeline normal pela UI. Logs: $(SMOKE_DIR)/go.log + worker.log"
-	@echo "     Voltar ao Python: make dogfood-go-off"
+	@echo "  ✅ Overlay Go LIGADO no SMOKE — cada stage executa via shell Go (:$(PORT_GO))."
+	@echo "     Rode o pipeline pela UI. Logs: $(SMOKE_DIR)/go.log + worker.log"
+	@echo "     Voltar ao Python: make go-off ENV=smoke"
 
-## dogfood-go-off: Desliga o shell Go e volta o worker para o executor Python in-process
-dogfood-go-off:
-	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(SMOKE_DIR)/go.pid)
-	$(call kill_pid_safe,celery worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
-	$(call kill_celery_orphans)
-	@TS=$$(date +%s); \
-	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
-	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
-	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
-	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
-	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
-	 nohup $(VENV)/celery -A backend.app.worker worker \
-	   --hostname="celery-smoke@%h-$$TS" \
-	   --max-tasks-per-child=200 \
-	   --loglevel=info --concurrency=2 \
-	   > $(CURDIR)/$(SMOKE_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/worker.pid
-	@echo "  ✅ Rollback completo — worker de volta ao executor Python in-process."
-
-## dogfood-go-dev: Shell Go (:8002) contra o SEU ambiente dev real (.env) + worker re-apontado
-dogfood-go-dev:
-	@test -f $(CURDIR)/.env || { echo "❌ .env ausente na raiz — o dev stack depende dele."; exit 1; }
+_go-on-native:
+	@test -f $(CURDIR)/.env || { echo "❌ .env ausente na raiz — a stack nativa depende dele."; exit 1; }
 	@echo "▶  Buildando o shell Go…"
-	@cd services/pipeline-service-go && go build -o $(CURDIR)/$(DEV_DIR)/pipeline-service-go ./cmd/pipeline-service
 	@mkdir -p $(CURDIR)/$(DEV_DIR)
-	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(DEV_DIR)/go.pid)
-	$(call check_port_free,8002)
-	@echo "▶  Subindo shell Go na :8002 (env mínimo — subprocess lê o .env sozinho)…"
+	@cd services/pipeline-service-go && go build -o $(CURDIR)/$(DEV_DIR)/pipeline-service-go ./cmd/pipeline-service
+	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(DEV_DIR)/go.pid)
+	$(call check_port_free,$(PORT_GO))
+	@echo "▶  Subindo shell Go na :$(PORT_GO) (env mínimo — subprocess lê o .env sozinho)…"
 	@# NÃO sourcear o .env pelo shell: aspas de valores JSON (ex. CORS_ORIGINS)
 	@# são stripadas e o import do backend explode no subprocess (SettingsError).
 	@# O CLI lê o .env via pydantic-settings; só vai explícito o que é lido de
@@ -1007,37 +1124,114 @@ dogfood-go-dev:
 	 AKEY=$$(getv ANTHROPIC_API_KEY); AKEY="$${AKEY:-$$ANTHROPIC_API_KEY}"; \
 	 RURL=$$(getv MATHOMS_REDIS_URL); RURL="$${RURL:-redis://localhost:6379/0}"; \
 	 [ -n "$$AKEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente (.env/shell) — stages LLM vão falhar"; \
+	 [ -n "$$DBURL" ] || echo "   ⚠ MATHOMS_DATABASE_URL ausente no .env — caindo para sqlite mathoms.db (pode DIFERIR do DB da stack nativa!)"; \
 	 MATHOMS_DATABASE_URL="$${DBURL:-sqlite+aiosqlite:///$(CURDIR)/mathoms.db}" \
 	 ANTHROPIC_API_KEY="$$AKEY" \
 	 MATHOMS_REDIS_URL="$$RURL" \
 	 REDIS_URL="$$RURL" \
 	 MATHOMS_REPO_ROOT="$(CURDIR)" \
 	 MATHOMS_PYTHON="$(PYTHON)" \
-	 PIPELINE_SERVICE_PORT=8002 \
+	 PIPELINE_SERVICE_PORT=$(PORT_GO) \
 	 nohup $(CURDIR)/$(DEV_DIR)/pipeline-service-go \
 	   > $(CURDIR)/$(DEV_DIR)/go.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/go.pid
-	@sleep 1; curl -sf --max-time 5 http://localhost:8002/health > /dev/null \
-	  && echo "   ✓ shell Go saudável em http://localhost:8002" \
+	@sleep 1; curl -sf --max-time 5 http://localhost:$(PORT_GO)/health > /dev/null \
+	  && echo "   ✓ shell Go saudável em http://localhost:$(PORT_GO)" \
 	  || { echo "   ❌ /health falhou — veja $(DEV_DIR)/go.log"; exit 1; }
-	@echo "▶  Re-apontando o worker dev para o shell Go…"
-	$(call kill_pid_safe,celery worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
-	$(call kill_celery_orphans)
+	@echo "▶  Re-apontando o worker nativo para o shell Go…"
+	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
+	$(call kill_celery_scoped,celery-native.*-$(WT))
 	@TS=$$(date +%s); \
-	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:8002" \
+	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:$(PORT_GO)" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
-	   --hostname="celery-dev-go@%h-$$TS" \
+	   --hostname="celery-native-go-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
 	   > $(CURDIR)/$(DEV_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/worker.pid
 	@echo ""
-	@echo "  ✅ Dogfood-Go no DEV REAL ligado — stages executam via shell Go (:8002)."
+	@echo "  ✅ Overlay Go LIGADO no NATIVO — stages executam via shell Go (:$(PORT_GO))."
 	@echo "     Use a UI normal (localhost:3000). Logs: $(DEV_DIR)/go.log + worker.log"
-	@echo "     Rollback: make dogfood-go-dev-off"
+	@echo "     Rollback: make go-off ENV=native"
 
-## dogfood-go-dev-off: Desliga o shell Go e volta o worker dev ao executor Python
+_go-off-smoke:
+	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(SMOKE_DIR)/go.pid)
+	$(call kill_pid_safe,worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
+	$(call kill_celery_scoped,celery-smoke.*-$(WT))
+	@TS=$$(date +%s); \
+	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
+	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
+	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
+	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
+	 nohup $(VENV)/celery -A backend.app.worker worker \
+	   --hostname="celery-smoke-$(WT)@%h-$$TS" \
+	   --max-tasks-per-child=200 \
+	   --loglevel=info --concurrency=2 \
+	   > $(CURDIR)/$(SMOKE_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/worker.pid
+	@echo "  ✅ Overlay Go desligado (smoke) — worker de volta ao executor Python in-process."
+
+_go-off-native:
+	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(DEV_DIR)/go.pid)
+	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
+	$(call kill_celery_scoped,celery-native.*-$(WT))
+	@$(MAKE) -s dev-worker-up
+	@echo "  ✅ Overlay Go desligado (nativo) — worker de volta ao executor Python in-process."
+
+# ---------------------------------------------------------------------------
+# Aliases de compatibilidade (nomes antigos → canônicos)
+#
+# Sem `##` → não poluem `make help`. Cada um delega ao alvo canônico e imprime
+# um aviso de renomeação, para migrar muscle-memory sem quebrar nada. Podem ser
+# aposentados numa sprint futura quando o help + os avisos já ensinaram o novo
+# vocabulário.
+# ---------------------------------------------------------------------------
+
+# Synonyms neutros do botão de pânico (não deprecados — use à vontade).
+panic reset-all kill-stale: recover
+
+# Stack nativa (antigo dev-*).
+dev-up: native-up
+	@echo "ℹ  'dev-up' → 'native-up' (alias mantido)"
+dev-down: native-down
+	@echo "ℹ  'dev-down' → 'native-down' (alias mantido)"
+dev-restart: native-restart
+	@echo "ℹ  'dev-restart' → 'native-restart' (alias mantido)"
+dev-restart-worker: native-restart-worker
+	@echo "ℹ  'dev-restart-worker' → 'native-restart-worker' (alias mantido)"
+dev-fresh: native-fresh
+	@echo "ℹ  'dev-fresh' → 'native-fresh' (alias mantido)"
+dev-status: status
+	@echo "ℹ  'dev-status' → 'status' (alias mantido)"
+dev-logs: native-logs
+	@echo "ℹ  'dev-logs' → 'native-logs' (alias mantido)"
+dev-reset-env: native-reset-env
+	@echo "ℹ  'dev-reset-env' → 'native-reset-env' (alias mantido)"
+dev-kill-stale dev-nuke: recover
+	@echo "ℹ  'dev-kill-stale'/'dev-nuke' → 'recover' (alias mantido)"
+
+# Stack Docker (antigo dev-*-docker).
+dev-up-docker: docker-up
+	@echo "ℹ  'dev-up-docker' → 'docker-up' (alias mantido)"
+dev-down-docker: docker-down
+	@echo "ℹ  'dev-down-docker' → 'docker-down' (alias mantido)"
+dev-reset-docker: docker-reset
+	@echo "ℹ  'dev-reset-docker' → 'docker-reset' (alias mantido)"
+dev-shell-docker: docker-shell
+	@echo "ℹ  'dev-shell-docker' → 'docker-shell' (alias mantido)"
+dev-rebuild-docker: docker-build
+	@echo "ℹ  'dev-rebuild-docker' → 'docker-build' (alias mantido)"
+dev-logs-docker: docker-logs
+	@echo "ℹ  'dev-logs-docker' → 'docker-logs' (alias mantido)"
+
+# Overlay Go (antigo dogfood-go*). Passam ENV= ao alvo canônico.
+dogfood-go:
+	@echo "ℹ  'dogfood-go' → 'make go-on ENV=smoke'"
+	@$(MAKE) go-on ENV=smoke
+dogfood-go-off:
+	@echo "ℹ  'dogfood-go-off' → 'make go-off ENV=smoke'"
+	@$(MAKE) go-off ENV=smoke
+dogfood-go-dev:
+	@echo "ℹ  'dogfood-go-dev' → 'make go-on ENV=native'"
+	@$(MAKE) go-on ENV=native
 dogfood-go-dev-off:
-	$(call kill_pid_safe,pipeline-service-go,$(CURDIR)/$(DEV_DIR)/go.pid)
-	$(call kill_pid_safe,celery worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
-	$(call kill_celery_orphans)
-	@$(MAKE) dev-worker-up
-	@echo "  ✅ Rollback completo — worker dev de volta ao executor Python in-process."
+	@echo "ℹ  'dogfood-go-dev-off' → 'make go-off ENV=native'"
+	@$(MAKE) go-off ENV=native
