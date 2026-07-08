@@ -257,3 +257,52 @@ class TestAdapterSurfacesExclusionSignal:
         assert len(result.saldo_exclusions) == 1
         assert result.saldo_exclusions[0].account_type == "faturacarbon"
         assert result.to_dict()["saldo_exclusions"] == [result.saldo_exclusions[0].format()]
+
+
+def _account_payload(*, key_period, opening, closing, number=None) -> dict:
+    inicio, fim = key_period
+    payload = {
+        "pipeline_stage": "E2",
+        "banco": "rico",
+        "tipo": "extratoconta",
+        "moeda": "BRL",
+        "periodo_inicio": inicio.isoformat(),
+        "periodo_fim": fim.isoformat(),
+        "saldo_inicial": opening,
+        "saldo_final": closing,
+        "transacoes": [],
+    }
+    if number is not None:
+        payload["numero_conta"] = number
+    return payload
+
+
+class TestAdapterSurfacesInferredChainMembers:
+    def test_reconcile_via_store_exposes_inferred_members(self):
+        """Emenda ADR-310 (A35.l1): extrato sem número coalesce na cadeia
+        numerada e o sinal atravessa o adapter."""
+        jul = (date(2026, 7, 1), date(2026, 7, 31))
+        store = InMemoryArtifactStore()
+        store.seed(
+            "extract_statements",
+            "rico_jan",
+            _account_payload(key_period=_JAN, opening=0.0, closing=5000.0, number="9988"),
+        )
+        store.seed(
+            "extract_statements",
+            "rico_jul",
+            _account_payload(key_period=jul, opening=9000.0, closing=9500.0),
+        )
+        adapter = E3ReconcilerAdapter(
+            ReconciliationConfig(),
+            saldo_validator=SaldoContinuityValidator(),
+            temporal_detector=TemporalGapDetector(),
+        )
+
+        result = adapter.reconcile_via_store(store)
+
+        assert len(result.inferred_chain_members) == 1
+        assert result.to_dict()["inferred_chain_members"] == [
+            result.inferred_chain_members[0].format()
+        ]
+        assert len(result.temporal_warnings) == 1

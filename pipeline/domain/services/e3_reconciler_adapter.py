@@ -45,6 +45,7 @@ from pipeline.domain.services.reconciliation_service import (
 )
 from pipeline.domain.services.reconciliation_validators import (
     FaturaExcludedFromSaldoChain,
+    SaldoChainMemberInferred,
     SaldoContinuityValidator,
     SaldoGapWarning,
     TemporalGapDetector,
@@ -110,6 +111,9 @@ class ReconciliationStoreResult:
     # ADR-310 — sinal de auditoria: statements classificados como fatura que
     # ficaram fora da cadeia de continuidade de saldo.
     saldo_exclusions: tuple[FaturaExcludedFromSaldoChain, ...] = ()
+    # Emenda ADR-310 (2026-07-08) — statements sem número coalescidos na cadeia
+    # numerada da mesma conta (Tier 2); número ausente jamais some em silêncio.
+    inferred_chain_members: tuple[SaldoChainMemberInferred, ...] = ()
     temporal_warnings: tuple[TemporalGapWarning, ...] = ()
     baseline_warnings: tuple[BaselineDiffWarning, ...] = ()
     institution_warnings: tuple[EmptyInstitutionWarning, ...] = ()
@@ -126,6 +130,7 @@ class ReconciliationStoreResult:
             "anachronic_warnings": [w.format() for w in self.anachronic_warnings],
             "saldo_warnings": [w.format() for w in self.saldo_warnings],
             "saldo_exclusions": [w.format() for w in self.saldo_exclusions],
+            "inferred_chain_members": [w.format() for w in self.inferred_chain_members],
             "temporal_warnings": [w.format() for w in self.temporal_warnings],
             "baseline_warnings": [w.format() for w in self.baseline_warnings],
             "institution_warnings": [w.format() for w in self.institution_warnings],
@@ -234,12 +239,8 @@ class E3ReconcilerAdapter:
         stages = tuple(input_stages) if input_stages else self.INPUT_STAGES
         outcome = _LoadOutcome()
 
-        # Dedup por key: ``DiskArtifactStore`` mapeia E2-extratos / E2-faturas
-        # / E2-llm para o mesmo diretório (`E2_extracts/`), então ``list_keys``
-        # retorna as mesmas keys em todos os 3 stages. Sem dedup, o mesmo
-        # arquivo seria carregado várias vezes. Para ``InMemoryArtifactStore``,
-        # keys são por (stage, key) e não há overlap natural — o set
-        # apenas evita duplicatas óbvias.
+        # Dedup por key: os 3 INPUT_STAGES podem expor a mesma key; sem o set,
+        # o mesmo artefato seria carregado várias vezes.
         seen_keys: set[str] = set()
         for stage in stages:
             for key in store.list_keys(stage):
@@ -351,23 +352,9 @@ class E3ReconcilerAdapter:
         pipeline_run_id: str | None = None,
     ) -> ReconciliationStoreResult:
         """Pipeline end-to-end: read → preprocess → reconcile → validate → write.
-
-        Args:
-            store: ``ArtifactStore`` para ler E2 e escrever E3.
-            output_stage: stage de destino (default ``reconcile_transactions``).
-            input_stages: stages de origem (default ``INPUT_STAGES``).
-            output_key_fn: opcional ``(stmt: BankStatement) -> str`` —
-                substitui ``self.output_key`` (default produz
-                ``{banco_canon}_{moeda}_{YYYYMM}_{YYYYMM}``). Use
-                ``generate_legacy_artifact_key`` para incluir ``tipo_conta``.
-            serialize_fn: opcional ``(stmt, sources, dup_count) -> dict`` —
-                substitui ``stmt.to_e2_dict()`` (default). Use
-                ``serialize_to_e3_legacy_format`` para output aderente a
-                ``e3_reconciled.schema.json``.
-
-        Retorna :class:`ReconciliationStoreResult` (frozen dataclass com
-        suporte a acesso ``result["chave"]`` para retro-compat).
-        """
+        ``output_key_fn``/``serialize_fn`` opcionais trocam key/payload pelo
+        formato legado (ver ``generate_legacy_artifact_key`` /
+        ``serialize_to_e3_legacy_format``). Retorna :class:`ReconciliationStoreResult`."""
         outcome = self._load_with_outcome(store, input_stages)
         statements = outcome.statements
         reconciled = self.reconcile(statements)
@@ -452,25 +439,34 @@ class E3ReconcilerAdapter:
                 phase="finalizing",
             )
 
-        # Validações — sempre rodam sobre os statements originais (pré-merge)
-        # para preservar fidelidade temporal entre arquivos.
+        # Validações — sempre sobre os statements originais (pré-merge) para
+        # preservar fidelidade temporal entre arquivos.
         saldo_warnings: tuple[SaldoGapWarning, ...] = ()
         saldo_exclusions: tuple[FaturaExcludedFromSaldoChain, ...] = ()
+        inferred_members: tuple[SaldoChainMemberInferred, ...] = ()
         if self._saldo_validator is not None:
-            saldo_result = self._saldo_validator.validate_with_exclusions(statements)
-            saldo_warnings = saldo_result.warnings
-            saldo_exclusions = saldo_result.excluded_faturas
+            saldo = self._saldo_validator.validate_with_exclusions(statements)
+            saldo_warnings, saldo_exclusions, inferred_members = (
+                saldo.warnings,
+                saldo.excluded_faturas,
+                saldo.inferred_members,
+            )
 
         temporal_warnings: tuple[TemporalGapWarning, ...] = ()
         if self._temporal_detector is not None:
-            temporal_warnings = tuple(self._temporal_detector.detect(statements))
+            # Coalescência (emenda ADR-310) só ocorre em non-fatura; ambos
+            # validators emitem o mesmo sinal — saldo tem precedência, temporal
+            # cobre quando o saldo não foi injetado.
+            temporal = self._temporal_detector.detect_with_inferences(statements)
+            temporal_warnings = temporal.warnings
+            inferred_members = inferred_members or temporal.inferred_members
 
         baseline_warnings: tuple[BaselineDiffWarning, ...] = ()
         if self._baseline_validator is not None:
-            baseline_accounts = self.load_baseline_accounts(store)
-            if baseline_accounts:
+            accounts = self.load_baseline_accounts(store)
+            if accounts:
                 baseline_warnings = tuple(
-                    self._baseline_validator.validate(merged_statements, baseline_accounts)
+                    self._baseline_validator.validate(merged_statements, accounts)
                 )
 
         # ADR-308/A29.l2: warnings de reconciliação também projetam ReviewReason
@@ -488,6 +484,7 @@ class E3ReconcilerAdapter:
             anachronic_warnings=tuple(outcome.anachronic_warnings),
             saldo_warnings=saldo_warnings,
             saldo_exclusions=saldo_exclusions,
+            inferred_chain_members=inferred_members,
             temporal_warnings=temporal_warnings,
             baseline_warnings=baseline_warnings,
             institution_warnings=tuple(outcome.institution_warnings),
