@@ -52,7 +52,7 @@ DEV_DIR       := _dev_pids
 # --hostname, para que um down/off/recover aqui não mate o worker de outro
 # worktree que compartilha o mesmo host (todos batem no mesmo broker e no
 # mesmo pgrep). Sanitizado para caber num hostname Celery.
-WT := $(shell basename "$(CURDIR)" | tr -c 'A-Za-z0-9' '-' | sed 's/-*$$//')
+WT := $(shell basename "$(CURDIR)" | tr -c 'A-Za-z0-9' '-' | sed 's/-*$$//')-$(shell echo "$(CURDIR)" | shasum | cut -c1-6)
 
 # Portas da stack nativa (uvicorn-local) + overlay Go (:8002). UMA fonte única
 # consumida por check_port_free (launcher), recover (sweep) e status. Sem isso
@@ -122,7 +122,7 @@ endef
 # --hostname="<role>-$(WT)@…", isto NÃO toca workers de outros worktrees/clones
 # que compartilham o host (o pgrep genérico antigo matava todos — split-brain).
 # Ex.: $(1)=celery-native-$(WT) (só o nativo) · celery-native.*-$(WT) (nativo +
-# overlay go) · celery-.*-$(WT) (tudo deste worktree).
+# overlay go) · celery-(native|smoke)(-go)?-$(WT) (tudo deste worktree).
 # Matar o master dispara o warm-shutdown dos filhos prefork do próprio Celery.
 define kill_celery_scoped
 	@pat='celery -A backend.app.worker worker.*--hostname=$(1)@'; \
@@ -289,7 +289,7 @@ status:
 	   found=1; \
 	 done; \
 	 [ $$found -eq 0 ] && echo "     · nenhum órfão" || true
-	@mine=$$( { pgrep -f "celery -A backend.app.worker worker.*--hostname=celery-.*-$(WT)@" 2>/dev/null || true; } | tr '\n' ' '); \
+	@mine=$$( { pgrep -f "celery -A backend.app.worker worker.*--hostname=celery-(native|smoke)(-go)?-$(WT)@" 2>/dev/null || true; } | tr '\n' ' '); \
 	 total=$$( { pgrep -f 'celery -A backend.app.worker worker' 2>/dev/null || true; } | wc -l | tr -d ' '); \
 	 echo "  — celery: deste worktree [$${mine:-nenhum}] · total no host: $$total"
 	@if redis-cli ping >/dev/null 2>&1; then echo "  — redis: ✅ OK (6379)"; else echo "  — redis: ❌ não responde (6379)"; fi
@@ -309,7 +309,7 @@ recover:
 	$(call kill_pid_safe,api(smoke),$(CURDIR)/$(SMOKE_DIR)/api.pid)
 	$(call kill_pid_safe,worker(smoke),$(CURDIR)/$(SMOKE_DIR)/worker.pid)
 	$(call kill_pid_safe,frontend(smoke),$(CURDIR)/$(SMOKE_DIR)/frontend.pid)
-	$(call kill_celery_scoped,celery-.*-$(WT))
+	$(call kill_celery_scoped,celery-(native|smoke)(-go)?-$(WT))
 	@[ "$(FORCE)" = "host" ] && $(MAKE) -s _recover-celery-hostwide || true
 	$(call sweep_port_clone,$(PORT_API))
 	$(call sweep_port_clone,$(PORT_OPS_API))
@@ -323,9 +323,11 @@ recover:
 	     if [ -z "$$pid" ] || ! kill -0 $$pid 2>/dev/null; then rm -f $$lock && echo "   ✓ $$d/.next/dev/lock órfão removido" || true; fi; \
 	   fi; \
 	 done
+	$(call kill_pid_safe,redis(dev),$(CURDIR)/$(DEV_DIR)/redis.pid)
 	@rm -rf $(CURDIR)/$(DEV_DIR) $(CURDIR)/$(SMOKE_DIR)
 	@echo "  ✅ recover completo — clone '$(WT)' limpo. 'make status' confirma."
-	@echo "     Redis e dados preservados. Subir de novo: make native-up  ·  make smoke-up"
+	@echo "     Redis próprio (subido por native-up) parado; redis externo/compartilhado preservado. Dados intactos."
+	@echo "     Subir de novo: make native-up  ·  make smoke-up"
 
 .PHONY: _recover-celery-hostwide
 _recover-celery-hostwide:
@@ -374,7 +376,7 @@ smoke-up: smoke-dirs
 	   > $(CURDIR)/$(SMOKE_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/api.pid; \
 	 echo "$$FERNET_KEY" > $(CURDIR)/$(SMOKE_DIR)/fernet.key
 	@echo "▶  Starting Celery worker…"
-	$(call kill_celery_scoped,celery-smoke.*-$(WT))
+	$(call kill_celery_scoped,celery-smoke(-go)?-$(WT))
 	@TS=$$(date +%s); \
 	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
@@ -414,7 +416,7 @@ smoke-down:
 	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(SMOKE_DIR)/go.pid)
 	$(call kill_pid_safe,api,$(CURDIR)/$(SMOKE_DIR)/api.pid)
 	$(call kill_pid_safe,worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
-	$(call kill_celery_scoped,celery-smoke.*-$(WT))
+	$(call kill_celery_scoped,celery-smoke(-go)?-$(WT))
 	$(call kill_pid_safe,frontend,$(CURDIR)/$(SMOKE_DIR)/frontend.pid)
 	@echo "▶  Stopping Redis (smoke)…"
 	@docker compose -f docker-compose.smoke.yml down 2>/dev/null || echo "   · redis do smoke já parado / compose indisponível"
@@ -664,7 +666,7 @@ dev-api-up: dev-dirs
 
 dev-worker-up: dev-dirs
 	@echo "▶  Subindo Celery worker nativo (concurrency=2, max-tasks-per-child=200)…"
-	$(call kill_celery_scoped,celery-native.*-$(WT))
+	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
 	@TS=$$(date +%s); \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-native-$(WT)@%h-$$TS" \
@@ -706,7 +708,7 @@ native-down:
 	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(DEV_DIR)/go.pid)
 	$(call kill_pid_safe,api,$(CURDIR)/$(DEV_DIR)/api.pid)
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
-	$(call kill_celery_scoped,celery-native.*-$(WT))
+	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
 	$(call kill_pid_safe,frontend,$(CURDIR)/$(DEV_DIR)/frontend.pid)
 	$(call kill_pid_safe,ops-api,$(CURDIR)/$(DEV_DIR)/ops-api.pid)
 	$(call kill_pid_safe,frontend-ops,$(CURDIR)/$(DEV_DIR)/frontend-ops.pid)
@@ -728,7 +730,7 @@ native-restart: native-down native-up
 ## native-restart-worker: Restart só do worker nativo (após mudar pipeline/ ou tasks/)
 native-restart-worker:
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
-	$(call kill_celery_scoped,celery-native.*-$(WT))
+	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
 	@$(MAKE) -s dev-worker-up
 	@echo "  ✅ Worker nativo reiniciado."
 
@@ -1058,7 +1060,7 @@ go-on:
 go-off:
 	@case "$(ENV)" in \
 	   native) if [ -f "$(CURDIR)/$(DEV_DIR)/go.pid" ]; then $(MAKE) -s _go-off-native; else echo "  · overlay Go não está ligado no nativo — nada a desligar."; fi ;; \
-	   smoke)  if [ -f "$(CURDIR)/$(SMOKE_DIR)/fernet.key" ]; then $(MAKE) -s _go-off-smoke; else echo "  · nenhuma sessão smoke ativa — nada a desligar."; fi ;; \
+	   smoke)  if [ -f "$(CURDIR)/$(SMOKE_DIR)/go.pid" ]; then $(MAKE) -s _go-off-smoke; else echo "  · overlay Go não está ligado no smoke — nada a desligar."; fi ;; \
 	   "")     echo "❌ ENV= obrigatório. Uso: make go-off ENV=native  |  make go-off ENV=smoke"; exit 2 ;; \
 	   *)      echo "❌ ENV='$(ENV)' inválido — use native ou smoke"; exit 2 ;; \
 	 esac
@@ -1072,7 +1074,7 @@ _go-on-smoke:
 	$(call check_port_free,$(PORT_GO))
 	@echo "▶  Subindo shell Go na :$(PORT_GO)…"
 	@FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
-	 [ -n "$$ANTHROPIC_API_KEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente — stages LLM vão falhar (export antes, ou rode com skip de LLM)"; \
+	 [ -n "$${ANTHROPIC_API_KEY:-}" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente — stages LLM vão falhar (export antes, ou rode com skip de LLM)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
 	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
@@ -1088,7 +1090,7 @@ _go-on-smoke:
 	  || { echo "   ❌ /health falhou — veja $(SMOKE_DIR)/go.log"; exit 1; }
 	@echo "▶  Re-apontando o worker Celery (smoke) para o shell Go…"
 	$(call kill_pid_safe,worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
-	$(call kill_celery_scoped,celery-smoke.*-$(WT))
+	$(call kill_celery_scoped,celery-smoke(-go)?-$(WT))
 	@TS=$$(date +%s); \
 	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
@@ -1121,7 +1123,7 @@ _go-on-native:
 	@# e REDIS_URL (publisher de eventos do próprio shell Go).
 	@getv() { sed -n "s/^$$1=//p" $(CURDIR)/.env | tail -1 | sed -e 's/^"//' -e 's/"$$//' -e "s/^'//" -e "s/'$$//"; }; \
 	 DBURL=$$(getv MATHOMS_DATABASE_URL); \
-	 AKEY=$$(getv ANTHROPIC_API_KEY); AKEY="$${AKEY:-$$ANTHROPIC_API_KEY}"; \
+	 AKEY=$$(getv ANTHROPIC_API_KEY); AKEY="$${AKEY:-$${ANTHROPIC_API_KEY:-}}"; \
 	 RURL=$$(getv MATHOMS_REDIS_URL); RURL="$${RURL:-redis://localhost:6379/0}"; \
 	 [ -n "$$AKEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente (.env/shell) — stages LLM vão falhar"; \
 	 [ -n "$$DBURL" ] || echo "   ⚠ MATHOMS_DATABASE_URL ausente no .env — caindo para sqlite mathoms.db (pode DIFERIR do DB da stack nativa!)"; \
@@ -1139,7 +1141,7 @@ _go-on-native:
 	  || { echo "   ❌ /health falhou — veja $(DEV_DIR)/go.log"; exit 1; }
 	@echo "▶  Re-apontando o worker nativo para o shell Go…"
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
-	$(call kill_celery_scoped,celery-native.*-$(WT))
+	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
 	@TS=$$(date +%s); \
 	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:$(PORT_GO)" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
@@ -1155,7 +1157,7 @@ _go-on-native:
 _go-off-smoke:
 	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(SMOKE_DIR)/go.pid)
 	$(call kill_pid_safe,worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
-	$(call kill_celery_scoped,celery-smoke.*-$(WT))
+	$(call kill_celery_scoped,celery-smoke(-go)?-$(WT))
 	@TS=$$(date +%s); \
 	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
@@ -1172,7 +1174,7 @@ _go-off-smoke:
 _go-off-native:
 	$(call kill_pid_safe,go-shell :8002,$(CURDIR)/$(DEV_DIR)/go.pid)
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
-	$(call kill_celery_scoped,celery-native.*-$(WT))
+	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
 	@$(MAKE) -s dev-worker-up
 	@echo "  ✅ Overlay Go desligado (nativo) — worker de volta ao executor Python in-process."
 
