@@ -8,6 +8,7 @@ import {
   EndividamentoCard,
   ExposicaoCambialCard,
   PatrimonioCategoriasCard,
+  PosicaoInformeCard,
   ReceitasFonteCard,
   ReservaEmergenciaCard,
 } from "../cards";
@@ -90,6 +91,12 @@ export function S1PatrimonioSection({ data }: S1Props) {
       <div className="md:col-span-2">
         <PatrimonioCategoriasCard patrimonio={patrimonio} />
       </div>
+      {/* A33.l2 P4 (ADR-238 D5) — posição 31/12 por instituição/moeda;
+          hide-when-empty (null sem posições de informe); span via size="full". */}
+      <PosicaoInformeCard
+        posicoes={patrimonio?.posicao_31_12}
+        cbeObrigatorio={patrimonio?.cbe_obrigatorio ?? false}
+      />
       <ExposicaoCambialCardWithContext data={exposicaoCambial} />
       <div className="md:col-span-2">
         <ReceitasFonteCard fluxo={fluxo} anchorDate={anchorDate} />

@@ -38,6 +38,7 @@ export type { Top15AtivosData, TopAtivo } from "./Top15AtivosCard";
 export { OrcamentoProspectivoCard } from "./OrcamentoProspectivoCard";
 export { PatrimonioCategoriasCard } from "./PatrimonioCategoriasCard";
 export { PerfilFamiliaCard } from "./PerfilFamiliaCard";
+export { PosicaoInformeCard } from "./PosicaoInformeCard";
 export { PontosFortesCard } from "./PontosFortesCard";
 export { PontosUrgentesCard } from "./PontosUrgentesCard";
 export { PrevidenciaPgblCard } from "./PrevidenciaPgblCard";

@@ -139,6 +139,13 @@ estrategico:
           enabled: true
           variant: "feature"
           size: "full"
+        # A33.l2 P4 (ADR-238 D5, co-design product-designer 2026-07-07):
+        # posição por instituição/moeda 31/12 (informes financeiro PF + extrato).
+        # Hide-when-empty: componente retorna null sem posições de informe.
+        - id: "posicao_informe_31_12"
+          enabled: true
+          variant: "feature"
+          size: "full"
         - id: "exposicao_cambial"  # Bloco G plan/RESIDENCIA_E_USO (co-design 2026-05-18)
           enabled: true
           variant: "feature"
