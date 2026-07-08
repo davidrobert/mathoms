@@ -13,8 +13,8 @@ from sqlalchemy.orm import sessionmaker
 from backend.app.core.database import Base
 from backend.app.models.fiscal_parameter import FiscalParameter
 from backend.app.models.market_rate import MarketRate
-from backend.app.services import fiscal_cache
 from backend.app.services.db_config_store import DBConfigStore
+from backend.app.services.storage import fiscal_cache
 from pipeline.domain.types.config import FiscalParameters, IRPFBracket
 
 

@@ -47,7 +47,7 @@ def test_http_stage_context_is_hydrated(client, tmp_path: Path, monkeypatch):
 
 
 def test_hydration_failure_maps_to_503(client, tmp_path: Path, monkeypatch):
-    from backend.app.services import run_context_factory
+    from backend.app.services.pipeline import run_context_factory
 
     def _boom(**kwargs):
         raise RuntimeError("config DB down")

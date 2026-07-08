@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from backend.app.services.artifact_retention import (
+from backend.app.services.storage.artifact_retention import (
     PRUNE_MODE_DELETE,
     PRUNE_MODE_DRY_RUN,
     ArtifactRetentionPolicy,

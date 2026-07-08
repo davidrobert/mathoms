@@ -16,8 +16,8 @@ from backend.app.application.categorization import (
 )
 from backend.app.core.security import create_access_token
 from backend.app.models.category_template import CategoryTemplate
-from backend.app.services import category_cache
 from backend.app.services.category_resolver import resolve_categories
+from backend.app.services.storage import category_cache
 from backend.tests import factories
 
 

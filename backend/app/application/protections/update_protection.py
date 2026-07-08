@@ -16,7 +16,7 @@ from backend.app.schemas.dto.protection import (
     brl_to_cents,
     protection_to_response,
 )
-from backend.app.services.protection_pii import encrypt_policy_ref
+from backend.app.services.security.protection_pii import encrypt_policy_ref
 
 _logger = logging.getLogger("mathoms.protection")
 

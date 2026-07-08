@@ -27,7 +27,7 @@ def _resolve_limit() -> int:
 def _resolve_client():
     """Reusa o singleton Redis do events.py — Pub/Sub já cuida de retry."""
     try:
-        from backend.app.services.events import _get_redis
+        from backend.app.services.pipeline.events import _get_redis
 
         return _get_redis()
     except Exception as exc:  # noqa: BLE001

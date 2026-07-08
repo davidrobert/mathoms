@@ -339,22 +339,23 @@ class TestPipelineService:
     """Test the updated pipeline_service functions."""
 
     def test_detect_tier_free(self):
-        from backend.app.services.pipeline_service import detect_tier
+        from backend.app.services.pipeline.pipeline_service import detect_tier
 
         factory = FakeSyncSessionFactory(FakeSyncDbSession(query_first=None))
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
+        with patch("backend.app.services.pipeline.pipeline_service.SyncSessionLocal", factory):
             assert detect_tier("ws-1") == "free"
 
     def test_detect_tier_premium(self):
-        from backend.app.services.pipeline_service import detect_tier
+        from backend.app.services.pipeline.pipeline_service import detect_tier
 
         factory = FakeSyncSessionFactory(
             FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="encrypted-key"))
         )
         with (
-            patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
+            patch("backend.app.services.pipeline.pipeline_service.SyncSessionLocal", factory),
             patch(
-                "backend.app.services.pipeline_service._vault.decrypt", return_value="sk-real-key"
+                "backend.app.services.pipeline.pipeline_service._vault.decrypt",
+                return_value="sk-real-key",
             ),
         ):
             assert detect_tier("ws-1") == "premium"
@@ -365,7 +366,7 @@ class TestPipelineService:
         """
         import logging as _logging
 
-        from backend.app.services.pipeline_service import detect_tier
+        from backend.app.services.pipeline.pipeline_service import detect_tier
 
         factory = FakeSyncSessionFactory(
             FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="stale-ciphertext"))
@@ -386,8 +387,11 @@ class TestPipelineService:
         target_logger.disabled = False
         try:
             with (
-                patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
-                patch("backend.app.services.pipeline_service._vault.decrypt", return_value=None),
+                patch("backend.app.services.pipeline.pipeline_service.SyncSessionLocal", factory),
+                patch(
+                    "backend.app.services.pipeline.pipeline_service._vault.decrypt",
+                    return_value=None,
+                ),
                 caplog.at_level(_logging.WARNING),
             ):
                 assert detect_tier("ws-1") == "free"
@@ -400,7 +404,7 @@ class TestPipelineService:
     def test_detect_tier_logs_warning_when_decrypt_raises(self, caplog):
         import logging as _logging
 
-        from backend.app.services.pipeline_service import detect_tier
+        from backend.app.services.pipeline.pipeline_service import detect_tier
 
         factory = FakeSyncSessionFactory(
             FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="stale-ciphertext"))
@@ -419,9 +423,9 @@ class TestPipelineService:
         target_logger.disabled = False
         try:
             with (
-                patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
+                patch("backend.app.services.pipeline.pipeline_service.SyncSessionLocal", factory),
                 patch(
-                    "backend.app.services.pipeline_service._vault.decrypt",
+                    "backend.app.services.pipeline.pipeline_service._vault.decrypt",
                     side_effect=RuntimeError("invalid token"),
                 ),
                 caplog.at_level(_logging.WARNING),
@@ -439,10 +443,12 @@ class TestPipelineService:
         factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
 
         with (
-            patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
-            patch("backend.app.services.pipeline_service.publish_run_cancelled") as mock_publish,
+            patch("backend.app.services.pipeline.pipeline_service.SyncSessionLocal", factory),
+            patch(
+                "backend.app.services.pipeline.pipeline_service.publish_run_cancelled"
+            ) as mock_publish,
         ):
-            from backend.app.services.pipeline_service import cancel_pipeline_run
+            from backend.app.services.pipeline.pipeline_service import cancel_pipeline_run
 
             result = cancel_pipeline_run("run-1")
 
@@ -451,24 +457,24 @@ class TestPipelineService:
 
     def test_cancel_nonexistent_run(self):
         factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=None))
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
-            from backend.app.services.pipeline_service import cancel_pipeline_run
+        with patch("backend.app.services.pipeline.pipeline_service.SyncSessionLocal", factory):
+            from backend.app.services.pipeline.pipeline_service import cancel_pipeline_run
 
             assert cancel_pipeline_run("nonexistent") is False
 
     def test_is_run_active_running(self):
         run_row = FakePipelineRunRow(status=PipelineRunStatus.running)
         factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
-            from backend.app.services.pipeline_service import is_run_active
+        with patch("backend.app.services.pipeline.pipeline_service.SyncSessionLocal", factory):
+            from backend.app.services.pipeline.pipeline_service import is_run_active
 
             assert is_run_active("run-1") is True
 
     def test_is_run_active_completed(self):
         run_row = FakePipelineRunRow(status=PipelineRunStatus.completed)
         factory = FakeSyncSessionFactory(FakeSyncDbSession(get_result=run_row))
-        with patch("backend.app.services.pipeline_service.SyncSessionLocal", factory):
-            from backend.app.services.pipeline_service import is_run_active
+        with patch("backend.app.services.pipeline.pipeline_service.SyncSessionLocal", factory):
+            from backend.app.services.pipeline.pipeline_service import is_run_active
 
             assert is_run_active("run-1") is False
 

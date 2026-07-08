@@ -38,8 +38,8 @@ from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.planner_review import PlannerReview
 from backend.app.models.report import Report
 from backend.app.models.report_publication import ReportPublication
-from backend.app.services.artifact_retention import ArtifactRetentionPolicy
-from backend.app.services.artifact_tombstone import e2_tombstone_stage_names
+from backend.app.services.storage.artifact_retention import ArtifactRetentionPolicy
+from backend.app.services.storage.artifact_tombstone import e2_tombstone_stage_names
 from pipeline.artifact_store import stage_aliases
 from pipeline.stage_spec import resolve_stage_name
 

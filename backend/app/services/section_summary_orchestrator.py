@@ -160,7 +160,7 @@ def _build_llm_client():
 
 
 def _build_cache():
-    from backend.app.services.llm_cache import get_default_llm_cache
+    from backend.app.services.storage.llm_cache import get_default_llm_cache
 
     return get_default_llm_cache()
 

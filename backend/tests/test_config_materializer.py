@@ -24,7 +24,7 @@ from backend.app.services.config_materializer import (
     serialize_pipeline_config,
     serialize_report_layout,
 )
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 
 sync_engine = create_engine("sqlite://", echo=False)
 SyncTestSession = sessionmaker(bind=sync_engine)

@@ -40,7 +40,7 @@ _SEED_SNIPPET = """
 import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.app.services.db_artifact_store import DBArtifactStore
+from backend.app.services.storage.db_artifact_store import DBArtifactStore
 payload = json.loads({payload_json!r})
 engine = create_engine("sqlite:////repo/mathoms-smoke.db")
 session = sessionmaker(bind=engine, expire_on_commit=False)()
@@ -55,7 +55,7 @@ _READBACK_SNIPPET = """
 import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.app.services.db_artifact_store import DBArtifactStore
+from backend.app.services.storage.db_artifact_store import DBArtifactStore
 engine = create_engine("sqlite:////repo/mathoms-smoke.db")
 session = sessionmaker(bind=engine, expire_on_commit=False)()
 store = DBArtifactStore(session, workspace_id="{ws}", pipeline_run_id="{run}")

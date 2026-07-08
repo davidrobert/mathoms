@@ -36,15 +36,15 @@ from sqlalchemy import select
 from backend.app.core.config import settings
 from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.document import Document, DocumentStatus, DocumentType
-from backend.app.services.artifact_tombstone import tombstone_e2_artifacts_for_document
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
-from backend.app.services.document_classification import classify_document
-from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
-from backend.app.services.document_processor import (
+from backend.app.services.documents.document_classification import classify_document
+from backend.app.services.documents.document_duplicates import rebuild_fuzzy_duplicate_pointers
+from backend.app.services.documents.document_processor import (
     _detect_json_type,
     resolve_classification_base,
 )
 from backend.app.services.storage import StorageService
+from backend.app.services.storage.artifact_tombstone import tombstone_e2_artifacts_for_document
 
 
 def _doc_type_value(v) -> str:

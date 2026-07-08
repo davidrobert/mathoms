@@ -18,7 +18,7 @@ from backend.app.models import (
     User,
     Workspace,
 )
-from backend.app.services.crypto import is_encrypted_payload
+from backend.app.services.security.crypto import is_encrypted_payload
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:

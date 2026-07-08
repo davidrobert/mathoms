@@ -28,7 +28,7 @@ def _resolve_limit(env_var: str, default: int) -> int:
 
 def _resolve_client():
     try:
-        from backend.app.services.events import _get_redis
+        from backend.app.services.pipeline.events import _get_redis
 
         return _get_redis()
     except Exception as exc:  # noqa: BLE001

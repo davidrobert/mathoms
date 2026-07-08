@@ -543,7 +543,7 @@ Para encontrar a regra de um conceito de domínio, comece pelo índice em
 `pipeline/**/*.py` **não pode importar** `fastapi`, `celery`, `sqlalchemy`.
 Enforçado por `dev/check_pipeline_boundaries.py`. Adaptadores DB vivem em
 `backend/app/services/` / `backend/app/repositories/`. `DBArtifactStore`
-mora em `backend/app/services/db_artifact_store.py` por esse motivo.
+mora em `backend/app/services/storage/db_artifact_store.py` por esse motivo.
 
 ### Dinheiro nunca é `float` (ADR-090)
 
@@ -579,7 +579,7 @@ desde F9.6/W6-T03 (2026-07-06) — os últimos legados (`E2-faturas`/
 `E2-extratos` em `scripts/e2_extract.py` (hoje `extract_bank_documents.py`), `E2-llm` em `extract_with_llm`,
 `E6-parecer` no parecer) e os labels de progresso foram cortados. O leitor
 aceita ambas as formas (`stage_aliases` /
-`backend/app/services/artifact_reader.py::_stage_query_candidates`) — rows
+`backend/app/services/storage/artifact_reader.py::_stage_query_candidates`) — rows
 antigos seguem legíveis. Gate: `tests/unit/pipeline/test_no_legacy_stage_names.py`
 hard-fail no CI. F9.4 (rename de `scripts/e*.py` → nomes descritivos)
 entregue em 2026-07-06 — sub-fases da F9 concluídas.
@@ -598,7 +598,7 @@ Enforçado por `backend/tests/test_openapi_response_models.py`.
 ### Auth portability (ADR-109 · A6f.5a)
 
 Mudanças em `backend/app/core/security.py` (payload JWT, algoritmo) ou
-`backend/app/services/vault.py` (Fernet) são **breaking** e exigem nova
+`backend/app/services/security/vault.py` (Fernet) são **breaking** e exigem nova
 ADR (A6f.5b ou A6f.5c). Parity enforçada por
 `backend/tests/test_auth_portability.py`.
 
@@ -1040,7 +1040,7 @@ configs e docstrings antes de agir.
 ## Classificação de documentos — duas vias (ADR-081)
 
 **Classificação unificada (P2):** núcleo em
-`backend/app/services/document_classification.py` (`classify_document`,
+`backend/app/services/documents/document_classification.py` (`classify_document`,
 `ClassificationResult`). Upload web, `POST /documents/reclassify` e
 `route_documents.route_file` (quando o pacote `backend` é importável) usam o
 **mesmo** fluxo: regex sobre **conteúdo** extraído → LLM opcional

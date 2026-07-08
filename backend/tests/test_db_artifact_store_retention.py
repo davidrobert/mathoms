@@ -13,8 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.security import hash_password
 from backend.app.models import PipelineArtifact, PipelineRun, PipelineRunStatus, User, Workspace
-from backend.app.services.artifact_retention import ArtifactRetentionPolicy
-from backend.app.services.db_artifact_store import DBArtifactStore
+from backend.app.services.storage.artifact_retention import ArtifactRetentionPolicy
+from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
 _POLICY = ArtifactRetentionPolicy(superseded_days=30)
 

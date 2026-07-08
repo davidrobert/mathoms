@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.application.base.errors import NotFoundError, ValidationError
 from backend.app.models.llm_config import LLMConfig
 from backend.app.schemas.llm import LLMConfigTestRequest, LLMConfigTestResponse
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 from pipeline.llm.models_catalog import default_model_for
 
 

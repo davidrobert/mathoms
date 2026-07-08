@@ -17,8 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.core.config import settings
 from backend.app.models.document import Document, DocumentStatus
 from backend.app.repositories.document_repository import DocumentRepository
-from backend.app.services.document_processor import process_uploaded_document
-from backend.app.services.password_vault_reader import get_workspace_passwords
+from backend.app.services.documents.document_processor import process_uploaded_document
+from backend.app.services.security.password_vault_reader import get_workspace_passwords
 from backend.app.services.storage import StorageService
 
 

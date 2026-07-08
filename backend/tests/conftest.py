@@ -100,14 +100,14 @@ TestSyncSession = sessionmaker(bind=_sync_test_engine, expire_on_commit=False)
 _database_module.SyncSessionLocal = TestSyncSession
 _database_module.sync_engine = _sync_test_engine
 
-from backend.app.services import artifact_reader as _artifact_reader_module  # noqa: E402
-from backend.app.services import (
+from backend.app.services.documents import (
     document_extract_json_service as _document_extract_json_service_module,  # noqa: E402
 )
-from backend.app.services import (
+from backend.app.services.pipeline import (
     document_pipeline_sync as _document_pipeline_sync_module,  # noqa: E402
 )
-from backend.app.services import pipeline_service as _pipeline_service_module  # noqa: E402
+from backend.app.services.pipeline import pipeline_service as _pipeline_service_module  # noqa: E402
+from backend.app.services.storage import artifact_reader as _artifact_reader_module  # noqa: E402
 from backend.app.tasks import lgpd_export as _lgpd_export_task_module  # noqa: E402
 from backend.app.tasks import periodic_tasks as _periodic_tasks_module  # noqa: E402
 from backend.app.tasks import pipeline_task as _pipeline_task_module  # noqa: E402
@@ -167,7 +167,7 @@ def _rate_limit_fail_open(monkeypatch):
     tem 1 IP só — o limite de login (10/60s por IP) estouraria 429 cross-test.
     ``test_rate_limit.py`` re-injeta fakeredis explicitamente por teste.
     """
-    import backend.app.services.rate_limit as _rl
+    import backend.app.services.security.rate_limit as _rl
 
     monkeypatch.setattr(_rl, "_get_redis_safe", lambda: None)
 

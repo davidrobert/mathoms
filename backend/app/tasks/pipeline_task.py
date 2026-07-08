@@ -36,7 +36,7 @@ from backend.app.models.report import Report
 from backend.app.models.review_reason import ReviewReason
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.schemas.dto.document.mapper import extract_e0_doc_type
-from backend.app.services.events import (
+from backend.app.services.pipeline.events import (
     publish_needs_review,
     publish_run_cancelled,
     publish_run_completed,
@@ -46,13 +46,13 @@ from backend.app.services.events import (
     publish_stage_skipped,
     publish_stage_started,
 )
-from backend.app.services.pipeline_adapter import (
+from backend.app.services.pipeline.pipeline_adapter import (
     build_tasks_payload_sync,
 )
+from backend.app.services.pipeline.retry_config import get_retry_config
 from backend.app.services.report_tasks_snapshot_service import (
     build_snapshot_sync,
 )
-from backend.app.services.retry_config import get_retry_config
 from backend.app.worker import celery_app
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 
 def _materialize_tarefas_md(ws_id: str, ctx) -> None:
     """ADR-077 + ADR-180: materializa ``tarefas.md`` — movido para o factory."""
-    from backend.app.services.run_context_factory import materialize_tarefas_md
+    from backend.app.services.pipeline.run_context_factory import materialize_tarefas_md
 
     materialize_tarefas_md(ws_id, ctx)
 
@@ -397,7 +397,7 @@ def _find_latest_analysis_artifact(ws_id: str, run_id: str):
         if row is None or not row.content_json:
             return None
         # Captura os campos antes de fechar a sessão (objeto detacha).
-        from backend.app.services.crypto import read_artifact_content
+        from backend.app.services.security.crypto import read_artifact_content
 
         return {"id": row.id, "content_json": read_artifact_content(row.content_json)}
 
@@ -589,11 +589,11 @@ def _setup_run_context(
     respaldou o ``DBConfigStore`` é devolvida ao caller para fechamento
     ao fim do run. A hidratação canônica (config_store + overrides +
     resolvers ADR-215/219/222 + imoveis_no_if + budget hooks ADR-173)
-    vive em ``backend/app/services/run_context_factory.py`` — fonte
+    vive em ``backend/app/services/pipeline/run_context_factory.py`` — fonte
     única dos três executores (Celery, HTTP, CLI). ``stage_duration_estimates``
     permanece Celery-only (só alimenta progresso WS).
     """
-    from backend.app.services.run_context_factory import build_hydrated_context
+    from backend.app.services.pipeline.run_context_factory import build_hydrated_context
 
     hydrated = build_hydrated_context(
         ws_id=ws_id,
@@ -620,7 +620,7 @@ def _close_config_store_session(session) -> None:
 
 def _load_stage_duration_estimates(ws_id: str) -> dict[str, int]:
     """Carrega medianas cacheadas (ADR-119 item 5). Falha aberta: dict vazio."""
-    from backend.app.services.stage_duration_estimator import get_cached_stage_estimates
+    from backend.app.services.pipeline.stage_duration_estimator import get_cached_stage_estimates
 
     session = SyncSessionLocal()
     try:
@@ -641,7 +641,7 @@ def _open_artifact_session(
     """Abre sessão nova + DBArtifactStore. Chamado por-stage pelo loop."""
     # base_run_id + base_run_fallback_stages ativam o fallback run-pinado para
     # runs com from_stage (ADR-291); defaults preservam full/incremental/resume.
-    from backend.app.services.db_artifact_store import DBArtifactStore
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
     session = SyncSessionLocal()
     store = DBArtifactStore(
@@ -1268,7 +1268,7 @@ def _parecer_meta_for_run(db, ws_id: str, run_id: str) -> dict | None:
     from sqlalchemy import select
 
     from backend.app.models.pipeline_artifact import PipelineArtifact
-    from backend.app.services.crypto import read_artifact_content
+    from backend.app.services.security.crypto import read_artifact_content
     from pipeline.artifact_store import stage_aliases
 
     row = db.execute(
@@ -1320,7 +1320,7 @@ def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
     post_logger = _logging.getLogger("pipeline_task.post")
 
     try:
-        from backend.app.services.document_pipeline_sync import (
+        from backend.app.services.pipeline.document_pipeline_sync import (
             sync_documents_pipeline_e2_status,
         )
 
@@ -1452,7 +1452,7 @@ def run_pipeline_task(
     # `_execute_stages_loop` keeps its shape; we derive llm_stages from
     # STAGE_REGISTRY and pass a closure binding workspace_id.
     _bootstrap_pipeline_sys_path()
-    from backend.app.services.pipeline_client import get_pipeline_client
+    from backend.app.services.pipeline.pipeline_client import get_pipeline_client
     from pipeline.stage_spec import STAGE_REGISTRY
 
     pipeline_client = get_pipeline_client()

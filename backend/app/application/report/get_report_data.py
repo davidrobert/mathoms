@@ -18,12 +18,12 @@ from backend.app.schemas.snapshot_changelog import (
     changelog_entry_to_read,
     comparison_item_to_read,
 )
-from backend.app.services.crypto import read_artifact_content
 from backend.app.services.report_lineage import (
     consumed_documents_for_run,
     lineage_payload,
     workspace_ready_documents_summary,
 )
+from backend.app.services.security.crypto import read_artifact_content
 from backend.app.services.snapshot_pair_loader import load_snapshot_pair
 from pipeline.domain.services.snapshot_changelog import build_comparison
 from pipeline.domain.types.snapshot_changelog import SnapshotChangelogConfig

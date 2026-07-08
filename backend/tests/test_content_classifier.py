@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.app.services.content_classifier import (
+from backend.app.services.documents.content_classifier import (
     classify_file,
     classify_text,
     detect_institution_by_content,

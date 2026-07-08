@@ -8,9 +8,9 @@ from decimal import Decimal
 from typing import Any, Optional
 
 from backend.app.schemas.transactions import TransactionItem, TransactionSummary
-from backend.app.services.artifact_reader import read_latest_artifact
 from backend.app.services.override_dual_read import OverrideMatchIndex
 from backend.app.services.override_identity import identity_from_transaction_item
+from backend.app.services.storage.artifact_reader import read_latest_artifact
 from pipeline.stage_spec import resolve_stage_name
 
 logger = logging.getLogger(__name__)

@@ -28,8 +28,8 @@ from backend.app.core.database import SyncSessionLocal
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.services.dashboard_service import load_e5_analysis
-from backend.app.services.document_extract_json_service import read_document_extract_json
-from backend.app.services.document_pipeline_sync import (
+from backend.app.services.documents.document_extract_json_service import read_document_extract_json
+from backend.app.services.pipeline.document_pipeline_sync import (
     has_e2_artifact_in_db,
     has_e15a_artifact_in_db,
 )

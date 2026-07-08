@@ -24,7 +24,7 @@ from backend.app.services._family_export_helpers import (
     export_bank_account,
     export_member_info,
 )
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 
 _vault = get_vault()
 

@@ -29,7 +29,7 @@ from backend.app.schemas.dto.property import (
     ResidenciaStatusCommand,
     ResidenciaStatusResponse,
 )
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 
 logger = logging.getLogger("mathoms.properties")
 

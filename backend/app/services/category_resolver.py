@@ -17,7 +17,7 @@ from backend.app.models.category_template import (
     CategoryTemplate,
     WorkspaceCategoryOverride,
 )
-from backend.app.services import category_cache
+from backend.app.services.storage import category_cache
 
 #: Categorization metadata key — auxiliary blocks (pj_source_mapping,
 #: internal_transfer_patterns, …) viajam pelo CategoryTemplate row com este

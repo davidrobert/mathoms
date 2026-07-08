@@ -11,8 +11,8 @@ import logging
 from datetime import datetime, timezone
 
 from backend.app.core.database import SyncSessionLocal
-from backend.app.services.artifact_prune import ArtifactPruneOutcome, run_artifact_prune
-from backend.app.services.artifact_retention import (
+from backend.app.services.storage.artifact_prune import ArtifactPruneOutcome, run_artifact_prune
+from backend.app.services.storage.artifact_retention import (
     ArtifactRetentionPolicy,
     load_artifact_retention_policy,
 )

@@ -88,7 +88,7 @@ def _artifact():
 
 def _vault_row():
     from backend.app.models.password_vault import PasswordVault
-    from backend.app.services.vault import get_vault
+    from backend.app.services.security.vault import get_vault
 
     return PasswordVault(
         workspace_id=_WS_ID,

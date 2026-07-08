@@ -75,7 +75,7 @@ class SectionSummaryLLMClient(Protocol):
 
 
 class SectionSummaryCache(Protocol):
-    """Boundary tipado para cache — paridade com ``backend.app.services.llm_cache``."""
+    """Boundary tipado para cache — paridade com ``backend.app.services.storage.llm_cache``."""
 
     def get(self, key: str) -> Optional[str]: ...
     def set(self, key: str, value: str, ttl_s: int = ...) -> None: ...

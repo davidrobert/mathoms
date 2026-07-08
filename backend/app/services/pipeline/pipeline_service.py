@@ -16,9 +16,9 @@ from backend.app.core.config import settings
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
-from backend.app.services.events import publish_run_cancelled
+from backend.app.services.pipeline.events import publish_run_cancelled
+from backend.app.services.security.vault import get_vault
 from backend.app.services.storage import StorageService
-from backend.app.services.vault import get_vault
 
 logger = logging.getLogger(__name__)
 _vault = get_vault()

@@ -59,7 +59,7 @@ def _open_store(db_url: str, run_id: str):
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
-    from backend.app.services.db_artifact_store import DBArtifactStore
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
     engine = create_engine(db_url.replace("+aiosqlite", ""))
     session = sessionmaker(bind=engine, expire_on_commit=False)()

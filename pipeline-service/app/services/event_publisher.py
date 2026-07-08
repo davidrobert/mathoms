@@ -1,6 +1,6 @@
 """Redis pub/sub publisher — emits events on `pipeline:{run_id}` channel.
 
-Mirrors the envelope shape of `backend.app.services.events` so backend and
+Mirrors the envelope shape of `backend.app.services.pipeline.events` so backend and
 pipeline-service are interchangeable wire-side. When Redis is unavailable
 (e.g. dev without redis), publish is a no-op.
 """

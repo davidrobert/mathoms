@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.application.llm_config._response import to_response
 from backend.app.models.llm_config import LLMConfig
 from backend.app.schemas.llm import LLMConfigResponse
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 
 
 async def get_llm_config(

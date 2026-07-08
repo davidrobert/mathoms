@@ -20,7 +20,7 @@ from typing import Any
 
 from backend.app.core.database import SyncSessionLocal
 from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 from pipeline.stage_spec import resolve_stage_name, to_legacy_stage_name
 
 logger = logging.getLogger(__name__)

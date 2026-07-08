@@ -44,7 +44,7 @@ from backend.app.services.db_property_overrides_resolver import (
 from backend.app.services.institution_catalog_provider import (
     DBInstitutionCatalogProvider,
 )
-from backend.app.services.pipeline_adapter import (
+from backend.app.services.pipeline.pipeline_adapter import (
     build_config_overrides_from_db,
     build_config_store,
 )
@@ -127,7 +127,7 @@ def _attach_llm_budget_hooks(ctx, ws_id: str, run_id: str) -> None:
 def _attach_llm_response_cache(ctx) -> None:
     # ADR-307: cache de resposta opt-in no choke-point. Redis se disponível,
     # NoOp caso contrário (miss em tudo — degrada gracioso, ADR-111).
-    from backend.app.services.llm_cache import get_default_llm_cache
+    from backend.app.services.storage.llm_cache import get_default_llm_cache
 
     ctx.llm_response_cache = get_default_llm_cache()
 
@@ -143,7 +143,7 @@ def _attach_llm_metrics_emitter(ctx) -> None:
 def materialize_tarefas_md(ws_id: str, ctx) -> None:
     """ADR-077/180: materializa ``tarefas.md`` (consumido pelo E5). Best-effort."""
     from backend.app.core.database import SyncSessionLocal
-    from backend.app.services.pipeline_adapter import build_tarefas_md_sync
+    from backend.app.services.pipeline.pipeline_adapter import build_tarefas_md_sync
 
     try:
         with SyncSessionLocal() as db:

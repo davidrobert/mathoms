@@ -10,11 +10,11 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.suggestion import Suggestion
-from backend.app.services.crypto import read_artifact_content
 from backend.app.services.parecer_finalization import (
     compute_suggestion_thesis_key,
     severity_from_prioridade,
 )
+from backend.app.services.security.crypto import read_artifact_content
 from pipeline.domain.services.suggestion_generator import DISMISS_RESPECT_WINDOW_DAYS
 
 _SUGGESTION_KIND = "parecer_planejador"

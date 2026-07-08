@@ -16,7 +16,7 @@ def test_artifact_key_strips_zero_original_suffix() -> None:
 
 
 def test_artifact_key_casa_nome_esperado_pelo_sync() -> None:
-    from backend.app.services.document_pipeline_sync import _e15a_json_name
+    from backend.app.services.pipeline.document_pipeline_sync import _e15a_json_name
 
     stored = "receitafederal_irpfdeclaracao_2024-0_original.pdf"
     key = _artifact_key_for(Path("/ws/data/income_tax_br") / stored)

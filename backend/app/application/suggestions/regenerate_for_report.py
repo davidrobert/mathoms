@@ -27,7 +27,7 @@ from backend.app.schemas.dto.suggestion import (
     SuggestionRegenerateResponse,
     suggestion_to_response,
 )
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 from pipeline.domain.services.suggestion_generator import (
     DISMISS_RESPECT_WINDOW_DAYS,
     SUGGESTION_CAP,

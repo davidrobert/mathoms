@@ -11,7 +11,7 @@ from backend.app.application.vault import (
     list_passwords,
 )
 from backend.app.schemas.vault import VaultCreateRequest
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 from backend.tests import factories
 
 

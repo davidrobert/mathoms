@@ -10,7 +10,7 @@ import importlib
 import pytest
 from httpx import AsyncClient
 
-from backend.app.services.brute_force_lockout import (
+from backend.app.services.security.brute_force_lockout import (
     BruteForceLockoutService,
     InMemoryBruteForceLockoutBackend,
 )

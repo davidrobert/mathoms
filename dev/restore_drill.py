@@ -81,7 +81,7 @@ def _fernet_roundtrip(conninfo: str) -> str | None:
             (DRILL_SECRET_LABEL,),
         )
         ciphertext = cur.fetchone()[0]
-    from backend.app.services.vault import get_vault
+    from backend.app.services.security.vault import get_vault
 
     return get_vault().decrypt(ciphertext)
 

@@ -8,12 +8,12 @@ import os
 
 import pytest
 
-from backend.app.services.llm_cache import InMemoryLLMCache
 from backend.app.services.section_summary_orchestrator import (
     SUPPORTED_SECTION_IDS,
     compute_snapshot_hash,
     generate_all_section_summaries,
 )
+from backend.app.services.storage.llm_cache import InMemoryLLMCache
 from pipeline.domain.services.section_summary_generator import (
     PromptTemplate,
     SectionSummaryGenerator,

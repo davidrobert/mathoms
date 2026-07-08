@@ -443,7 +443,7 @@ def test_redact_filename_pii_mascara_cpf_e_cnpj():
 
 def test_schema_by_stage_registra_informe_aluguel():
     """ADR-212: stage 'E2-informe-aluguel' deve mapear para schema JSON canônico."""
-    from backend.app.services.db_artifact_store import SCHEMA_BY_STAGE
+    from backend.app.services.storage.db_artifact_store import SCHEMA_BY_STAGE
 
     assert SCHEMA_BY_STAGE.get("E2-informe-aluguel") == "informe_aluguel.schema.json"
     assert SCHEMA_BY_STAGE.get("extract_informe_aluguel") == "informe_aluguel.schema.json"

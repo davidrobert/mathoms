@@ -8,7 +8,7 @@ mantendo a fronteira arquitetural de ``pipeline/`` (sem fastapi/celery/sqlalchem
   unitários de domain services e goldens de execução.
 
 A implementação de produção, ``DBArtifactStore``, vive em
-``backend/app/services/db_artifact_store.py`` porque depende de SQLAlchemy
+``backend/app/services/storage/db_artifact_store.py`` porque depende de SQLAlchemy
 (orm layer do app web) e é exclusiva do caminho Celery+DB.
 
 **ADR-212 PR3b:** ``DiskArtifactStore`` foi removido. Pipeline roda

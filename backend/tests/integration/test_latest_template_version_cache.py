@@ -10,11 +10,11 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.category_template import CategoryTemplate
-from backend.app.services import category_cache
 from backend.app.services.category_resolver import (
     ACTIVE_TEMPLATE_VERSION,
     get_latest_template_version,
 )
+from backend.app.services.storage import category_cache
 
 
 class _FakeRedis:

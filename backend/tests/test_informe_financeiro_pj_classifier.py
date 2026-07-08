@@ -10,7 +10,7 @@ from backend.app.services.classification.type_classifier import (
     compute_confidence,
     detect_type_by_content,
 )
-from backend.app.services.document_classification import map_e0_doc_type_to_document_type
+from backend.app.services.documents.document_classification import map_e0_doc_type_to_document_type
 
 
 def test_type_rule_informe_financeiro_pj_existe_com_prioridade_2():

@@ -17,7 +17,7 @@ from backend.app.services.config_materializer import (
     prepare_pipeline_config_dir,
     serialize_llm_config,
 )
-from backend.app.services.pipeline_adapter import build_config_overrides_from_db
+from backend.app.services.pipeline.pipeline_adapter import build_config_overrides_from_db
 
 
 @pytest.fixture

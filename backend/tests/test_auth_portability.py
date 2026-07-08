@@ -126,7 +126,7 @@ _FERNET_PLAINTEXT_CANONICAL = "mathoms-fernet-canonical-plaintext-2026-04-20"
 def test_fernet_roundtrip_via_vault_service() -> None:
     """VaultService encrypt→decrypt roundtrip — garante que o pipeline
     inteiro (settings → Fernet → base64) funciona."""
-    from backend.app.services.vault import VaultService
+    from backend.app.services.security.vault import VaultService
 
     vault = VaultService(key=_FERNET_KEY_CANONICAL)
     ciphertext = vault.encrypt(_FERNET_PLAINTEXT_CANONICAL)
@@ -147,7 +147,7 @@ def test_fernet_cross_lib_format_is_stable() -> None:
     """
     import base64
 
-    from backend.app.services.vault import VaultService
+    from backend.app.services.security.vault import VaultService
 
     vault = VaultService(key=_FERNET_KEY_CANONICAL)
     token = vault.encrypt(_FERNET_PLAINTEXT_CANONICAL)
@@ -166,7 +166,7 @@ def test_fernet_cross_lib_format_is_stable() -> None:
 
 def test_fernet_rejects_tampered_ciphertext() -> None:
     """HMAC protege integridade — flip de bit invalida o token."""
-    from backend.app.services.vault import VaultService
+    from backend.app.services.security.vault import VaultService
 
     vault = VaultService(key=_FERNET_KEY_CANONICAL)
     token = vault.encrypt(_FERNET_PLAINTEXT_CANONICAL)
@@ -194,7 +194,7 @@ def test_fernet_rejects_tampered_ciphertext() -> None:
 )
 def test_fernet_roundtrip_unicode_and_edge_cases(plaintext: str) -> None:
     """Qualquer lib Fernet-compatível deve preservar UTF-8 + edge cases."""
-    from backend.app.services.vault import VaultService
+    from backend.app.services.security.vault import VaultService
 
     vault = VaultService(key=_FERNET_KEY_CANONICAL)
     token = vault.encrypt(plaintext)

@@ -2,7 +2,7 @@
 
 Emite eventos de use cases em ``backend/app/application/``; handlers
 concretos escrevem audit logs, notificações ou enfileiram tarefas async.
-Não confundir com ``backend/app/services/events.py`` (Redis pub/sub de
+Não confundir com ``backend/app/services/pipeline/events.py`` (Redis pub/sub de
 progresso de stages do pipeline — escopo diferente).
 
 Ponto de entrada público:

@@ -64,7 +64,7 @@ from backend.app.services.config_materializer import (
     serialize_pipeline_config,
     serialize_report_layout,
 )
-from backend.app.services.vault import VaultService
+from backend.app.services.security.vault import VaultService
 
 _engine = create_engine("sqlite://", echo=False)
 _Session = sessionmaker(bind=_engine)

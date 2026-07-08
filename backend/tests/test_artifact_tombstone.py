@@ -17,12 +17,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models import Document, PipelineArtifact, PipelineRun, PipelineRunStatus
 from backend.app.models.document import DocumentType
-from backend.app.services.artifact_tombstone import (
+from backend.app.services.documents.document_reclassify_bulk_service import (
+    _tombstone_if_extraction_changed,
+)
+from backend.app.services.storage.artifact_tombstone import (
     e2_tombstone_stage_names,
     tombstone_e2_artifacts_for_document,
-)
-from backend.app.services.document_reclassify_bulk_service import (
-    _tombstone_if_extraction_changed,
 )
 from backend.tests.factories import make_document, make_workspace
 

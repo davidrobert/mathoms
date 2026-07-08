@@ -16,7 +16,7 @@ from backend.app.models.planner_field_request import (
     PlannerFieldRequest,
 )
 from backend.app.models.planner_review import PlannerReview
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 from backend.app.services.suggestion_supersede import persist_suggestions_for_run
 from pipeline.artifact_store import stage_aliases
 

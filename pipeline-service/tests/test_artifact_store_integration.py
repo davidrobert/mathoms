@@ -43,7 +43,7 @@ def _plaintext_artifacts(monkeypatch):
 
 
 def _seed_e2(factory, workspace_id: str, run_id: str) -> None:
-    from backend.app.services.db_artifact_store import DBArtifactStore
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
     payload = json.loads(_E2_FIXTURE.read_text(encoding="utf-8"))
     payload["saldo_inicial"] = 0.0
@@ -61,7 +61,7 @@ def _seed_e2(factory, workspace_id: str, run_id: str) -> None:
 def test_reconcile_via_http_persists_e3_artifact(
     client, tenant_minimal, artifact_db_session_factory, _plaintext_artifacts
 ):
-    from backend.app.services.db_artifact_store import DBArtifactStore
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
     _seed_e2(artifact_db_session_factory, "ws-int", "run-int")
 

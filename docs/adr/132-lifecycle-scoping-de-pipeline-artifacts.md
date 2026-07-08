@@ -26,7 +26,7 @@ size_lines: 204
 **Contexto:**
 
 `DBArtifactStore.read()`
-([backend/app/services/db_artifact_store.py:69-71](../../backend/app/services/db_artifact_store.py:69))
+([backend/app/services/db_artifact_store.py:69-71](../../backend/app/services/storage/db_artifact_store.py:69))
 filtra exclusivamente por `pipeline_run_id`. A premissa subjacente é
 que todo artefato é output **per-run** — derivado das rodadas de
 pipeline e descartável quando uma nova rodada começa.

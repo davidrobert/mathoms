@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.app.services.canonical_routing import route_inbox_to_canonical_data
+from backend.app.services.documents.canonical_routing import route_inbox_to_canonical_data
 
 
 # Minimal config layout that ``route_documents._init_config`` accepts. The

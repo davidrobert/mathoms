@@ -15,8 +15,9 @@ from backend.app.models.category_template import (
     WorkspaceCategoryOverride,
 )
 from backend.app.models.institution_catalog import InstitutionCatalog
-from backend.app.services import category_cache, institution_resolver
+from backend.app.services import institution_resolver
 from backend.app.services.db_config_store import DBConfigStore
+from backend.app.services.storage import category_cache
 from pipeline.domain.types.config import CategorizationConfig, InstitutionsCatalog
 
 

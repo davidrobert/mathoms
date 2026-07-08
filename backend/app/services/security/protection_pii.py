@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 
 # Faixas (cents):
 #   bucket 0  → < R$ 100k

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from backend.app.models.family_member import BankAccount, FamilyMember
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 from pipeline.domain.services.account_normalization import normalize_account_number
 
 

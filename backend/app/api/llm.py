@@ -34,7 +34,7 @@ from backend.app.schemas.llm import (
     LLMModelsResponse,
     LLMTierResponse,
 )
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/config",

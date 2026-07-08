@@ -42,8 +42,8 @@ from sqlalchemy import select
 from backend.app.core.security import create_access_token
 from backend.app.main import app
 from backend.app.models.workspace import Workspace
-from backend.app.services import events as events_module
 from backend.app.services.invitation_service import MAX_PENDING_PER_WORKSPACE
+from backend.app.services.pipeline import events as events_module
 from backend.tests import factories
 
 # ─── Fixtures — dois clients simulando dois uvicorn workers ─────────

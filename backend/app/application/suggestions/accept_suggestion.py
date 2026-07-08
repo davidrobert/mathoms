@@ -37,7 +37,7 @@ from backend.app.schemas.dto.suggestion import (
     SuggestionResponse,
     suggestion_to_response,
 )
-from backend.app.services.crypto import read_artifact_content
+from backend.app.services.security.crypto import read_artifact_content
 
 
 async def accept_suggestion(

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.llm_config import LLMConfig
 from backend.app.schemas.llm import LLMTierResponse
-from backend.app.services.pipeline_service import resolve_llm_tier_async
+from backend.app.services.pipeline.pipeline_service import resolve_llm_tier_async
 
 
 async def get_llm_tier(

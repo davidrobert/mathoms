@@ -225,7 +225,7 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
     ``dest_group``, ``e0_doc_type``, ``routed_path``, ``classification_meta``,
     ``confidence``, ``needs_review``.
     """
-    from backend.app.services.content_classifier import classify_file
+    from backend.app.services.documents.content_classifier import classify_file
     from scripts.route_documents import (
         _extract_file_preview,
         classify_by_llm,

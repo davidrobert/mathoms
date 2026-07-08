@@ -70,7 +70,7 @@ def _isolate_redis(monkeypatch) -> None:
     # Caches da hidratação (catálogo/budget) não podem escrever no Redis dev:
     # aponta o client para porta fechada (fail-open) e zera o singleton.
     from backend.app.core.config import settings
-    from backend.app.services import events
+    from backend.app.services.pipeline import events
 
     monkeypatch.setattr(settings, "REDIS_URL", "redis://127.0.0.1:6390/0")
     monkeypatch.setattr(events, "_redis_client", None)
@@ -84,8 +84,8 @@ def _patch_in_memory_store(monkeypatch):
 
     import backend.app.models  # noqa: F401 — registra tabelas no metadata
     from backend.app.core.database import Base
-    from backend.app.services import artifact_session_factory as factory
-    from backend.app.services import run_context_factory
+    from backend.app.services.pipeline import run_context_factory
+    from backend.app.services.storage import artifact_session_factory as factory
 
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool

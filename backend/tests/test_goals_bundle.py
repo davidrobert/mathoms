@@ -9,7 +9,7 @@ import pytest
 from backend.app.models.decision import Decision
 from backend.app.models.goal import VALID_GOAL_TYPES
 from backend.app.models.risk import Risk
-from backend.app.services.pipeline_adapter import (
+from backend.app.services.pipeline.pipeline_adapter import (
     build_config_overrides_from_db,
     build_goals_payload,
     build_goals_payload_sync,

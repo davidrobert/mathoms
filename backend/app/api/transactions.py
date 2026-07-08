@@ -29,8 +29,8 @@ from backend.app.schemas.transactions import (
     TransactionOverrideRequest,
     TransactionOverrideResponse,
 )
-from backend.app.services.access_audit import record_access_audit
 from backend.app.services.audit import AuditAction
+from backend.app.services.security.access_audit import record_access_audit
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/transactions",

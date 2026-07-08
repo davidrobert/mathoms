@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 # ADR-119: fases válidas do contrato LiveStep. Espelha `LiveStepPhase` em
-# backend/app/services/events.py — duplicada aqui para manter pipeline/
+# backend/app/services/pipeline/events.py — duplicada aqui para manter pipeline/
 # sem import obrigatório de backend/ (boundary check).
 LiveStepPhase = Literal["preparing", "awaiting_llm", "validating", "persisting", "finalizing"]
 
@@ -25,7 +25,7 @@ def emit_stage_activity(
     if not run_id:
         return
     try:
-        from backend.app.services.events import publish_stage_activity
+        from backend.app.services.pipeline.events import publish_stage_activity
 
         publish_stage_activity(
             run_id,
@@ -57,7 +57,7 @@ def emit_item_progress(
     if not run_id:
         return
     try:
-        from backend.app.services.events import publish_item_progress
+        from backend.app.services.pipeline.events import publish_item_progress
 
         publish_item_progress(
             run_id,

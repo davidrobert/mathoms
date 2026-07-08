@@ -30,7 +30,7 @@ from backend.app.events.domain import AuditLogEvent
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.repositories.document_repository import DocumentRepository
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
-from backend.app.services.document_processor import process_uploaded_document
+from backend.app.services.documents.document_processor import process_uploaded_document
 from backend.app.services.storage import StorageService, detect_actual_mime
 
 
@@ -101,7 +101,7 @@ def _check_workspace_quota(workspace_id: str, storage: StorageService) -> None:
 
 
 async def _load_passwords(workspace_id: str, db: AsyncSession) -> list[str]:
-    from backend.app.services.password_vault_reader import get_workspace_passwords
+    from backend.app.services.security.password_vault_reader import get_workspace_passwords
 
     return await get_workspace_passwords(workspace_id, db)
 

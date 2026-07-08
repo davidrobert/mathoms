@@ -11,7 +11,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from backend.app.services.llm_cache import InMemoryLLMCache
 from backend.app.services.parecer_orchestrator import (
     ParecerOrchestratorConfig,
     generate_parecer,
@@ -23,6 +22,7 @@ from backend.app.services.parecer_pos_llm_guardrails import (
     filter_campos_faltantes,
     guardrails_summary,
 )
+from backend.app.services.storage.llm_cache import InMemoryLLMCache
 from pipeline.llm.schemas.parecer_planejador import (
     Ancora,
     CampoFaltante,

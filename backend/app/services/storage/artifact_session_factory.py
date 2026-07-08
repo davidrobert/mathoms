@@ -13,7 +13,7 @@ from typing import Iterable, Tuple
 
 from sqlalchemy.orm import Session
 
-from backend.app.services.db_artifact_store import DBArtifactStore
+from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
 
 class ArtifactSessionUnavailable(RuntimeError):

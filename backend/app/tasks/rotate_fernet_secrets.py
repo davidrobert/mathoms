@@ -23,13 +23,13 @@ from backend.app.models import (
     PipelineArtifact,
     Protection,
 )
-from backend.app.services.crypto import (
+from backend.app.services.security.crypto import (
     _key_id,
     decrypt_artifact_payload,
     encrypt_artifact_payload,
     is_encrypted_payload,
 )
-from backend.app.services.vault import get_vault
+from backend.app.services.security.vault import get_vault
 from backend.app.worker import celery_app
 
 logger = logging.getLogger(__name__)

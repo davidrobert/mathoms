@@ -14,13 +14,13 @@ from backend.app.models.category_template import (
     CategoryTemplate,
     WorkspaceCategoryOverride,
 )
-from backend.app.services import category_cache
 from backend.app.services.category_resolver import (
     METADATA_TEMPLATE_KEY,
     ResolvedCategory,
     get_categorization_metadata,
     resolve_categories,
 )
+from backend.app.services.storage import category_cache
 
 
 @pytest.fixture

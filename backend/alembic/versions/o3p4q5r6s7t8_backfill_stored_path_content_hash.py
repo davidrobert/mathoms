@@ -34,7 +34,7 @@ def upgrade() -> None:
 
     Existing ``stored_path`` values are retained as-is. The application code
     (``scripts.route_documents.build_final_name`` and
-    ``backend.app.services.canonical_routing``) starts emitting hash-prefixed
+    ``backend.app.services.documents.canonical_routing``) starts emitting hash-prefixed
     filenames on new uploads and on reclassify operations.
     """
     pass

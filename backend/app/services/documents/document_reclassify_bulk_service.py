@@ -20,20 +20,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.core.config import settings
 from backend.app.models.document import Document, DocumentStatus
 from backend.app.repositories.document_repository import DocumentRepository
-from backend.app.services.artifact_tombstone import tombstone_e2_artifacts_for_document
-from backend.app.services.canonical_routing import rename_to_canonical
 from backend.app.services.classification_telemetry import emit_classification_outcome
 from backend.app.services.config_materializer import ensure_tenant_pipeline_config
-from backend.app.services.document_classification import (
+from backend.app.services.documents.canonical_routing import rename_to_canonical
+from backend.app.services.documents.document_classification import (
     classification_can_route_to_data,
     classify_document,
 )
-from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
-from backend.app.services.document_processor import (
+from backend.app.services.documents.document_duplicates import rebuild_fuzzy_duplicate_pointers
+from backend.app.services.documents.document_processor import (
     _detect_json_type,
     resolve_classification_base,
 )
 from backend.app.services.storage import StorageService
+from backend.app.services.storage.artifact_tombstone import tombstone_e2_artifacts_for_document
 
 
 @dataclass(frozen=True, slots=True)

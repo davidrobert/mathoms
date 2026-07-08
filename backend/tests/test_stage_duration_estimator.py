@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.app.services.events import reset_redis_client
-from backend.app.services.stage_duration_estimator import (
+from backend.app.services.pipeline.events import reset_redis_client
+from backend.app.services.pipeline.stage_duration_estimator import (
     _cache_key,
     get_cached_stage_estimates,
     invalidate_stage_estimates,
@@ -50,7 +50,7 @@ def reset_redis():
 @pytest.fixture
 def fake_redis():
     publisher = _FakeRedisWithGet()
-    with patch("backend.app.services.events._get_redis", return_value=publisher):
+    with patch("backend.app.services.pipeline.events._get_redis", return_value=publisher):
         yield publisher
 
 
@@ -67,7 +67,7 @@ def test_cache_hit_skips_db_query(fake_redis):
 
 def test_cache_miss_queries_and_populates(fake_redis):
     with patch(
-        "backend.app.services.stage_duration_estimator.PipelineStageLogRepository"
+        "backend.app.services.pipeline.stage_duration_estimator.PipelineStageLogRepository"
     ) as mock_repo_cls:
         mock_repo_cls.return_value.get_median_durations_for_workspace.return_value = {
             "E1.5": 20_000,
@@ -81,7 +81,7 @@ def test_cache_miss_queries_and_populates(fake_redis):
 
 def test_db_failure_returns_empty_and_caches_empty(fake_redis):
     with patch(
-        "backend.app.services.stage_duration_estimator.PipelineStageLogRepository"
+        "backend.app.services.pipeline.stage_duration_estimator.PipelineStageLogRepository"
     ) as mock_repo_cls:
         mock_repo_cls.return_value.get_median_durations_for_workspace.side_effect = RuntimeError(
             "db boom"
@@ -96,7 +96,7 @@ def test_db_failure_returns_empty_and_caches_empty(fake_redis):
 def test_cache_parse_failure_falls_through_to_query(fake_redis):
     fake_redis._store[_cache_key("ws-1")] = "{garbled json"
     with patch(
-        "backend.app.services.stage_duration_estimator.PipelineStageLogRepository"
+        "backend.app.services.pipeline.stage_duration_estimator.PipelineStageLogRepository"
     ) as mock_repo_cls:
         mock_repo_cls.return_value.get_median_durations_for_workspace.return_value = {"E1.5": 9999}
         result = get_cached_stage_estimates(object(), "ws-1")  # type: ignore[arg-type]

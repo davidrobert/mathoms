@@ -93,7 +93,7 @@ Novo campo `categorization_origin: str | None` em `ClassifiedTransaction`. Valor
 
 ## Alternativas consideradas
 
-- **(a) Forçar Pydantic `Literal[...]` no `category_hint`.** Rejeitada nesta lane: artifacts E2 antigos teriam `category_hint=null` e quebrariam `validate_dict` em [DBArtifactStore.write](../../backend/app/services/db_artifact_store.py:200) pós-update do schema. Migração de backfill ("set category_hint='outros' where null") seria extra trabalho sem ROI imediato. Follow-up registrado.
+- **(a) Forçar Pydantic `Literal[...]` no `category_hint`.** Rejeitada nesta lane: artifacts E2 antigos teriam `category_hint=null` e quebrariam `validate_dict` em [DBArtifactStore.write](../../backend/app/services/storage/db_artifact_store.py:200) pós-update do schema. Migração de backfill ("set category_hint='outros' where null") seria extra trabalho sem ROI imediato. Follow-up registrado.
 - **(b) Hint LLM vence regra determinística.** Rejeitada: quebra determinismo (golden tests viram frágeis); LLM pode "errar com confiança" sobre transações que regra resolveria deterministicamente.
 - **(c) Skip `info_fiscal_anual` upstream (no extractor).** Rejeitada: perde rastro auditável em E2/E3 (linha some sem registro). Skip no classifier preserva linha em E2/E3 (debugging/audit) e remove só do output E4.
 - **(d) Separar juros vs. amortização do financiamento em duas categorias canônicas (Cerbasi puro).** Aceita parcialmente: vocabulário tem `moradia_financiamento_juros` E `moradia_financiamento_amortizacao` separados, mas ambos mapeiam para `moradia` canônica nesta lane. Follow-up: KPI Cerbasi "custo de moradia/renda" pede separação real — sai em lane dedicada (não bloqueia esta).

@@ -16,7 +16,10 @@ from backend.app.models.goal import Goal
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.schemas.pipeline import PipelineRunRequest, PipelineRunResponse
-from backend.app.services.pipeline_service import resolve_llm_tier_async, start_pipeline_run
+from backend.app.services.pipeline.pipeline_service import (
+    resolve_llm_tier_async,
+    start_pipeline_run,
+)
 
 _logger = logging.getLogger("mathoms.pipeline.trigger")
 
