@@ -54,7 +54,7 @@ O que ficou de débito conservador:
 
 3. **30+ arquivos** com branches `if use_db_artifacts:` /
    `if isinstance(store, DiskArtifactStore):`. Examples:
-   - [backend/app/services/document_extract_json_service.py:58](../../backend/app/services/document_extract_json_service.py) — fallback DB para E1.5
+   - [backend/app/services/document_extract_json_service.py:58](../../backend/app/services/documents/document_extract_json_service.py) — fallback DB para E1.5
    - [backend/app/services/document_pipeline_sync.py:78](../../backend/app/services/pipeline/document_pipeline_sync.py) — fallback DB para E1.5a
    - [backend/app/services/storage/artifact_reader.py](../../backend/app/services/storage/artifact_reader.py) — DB-first com fallback disco (ADR-120)
    - [pipeline/stages/extract_with_llm.py:255](../../pipeline/stages/extract_with_llm.py) — validação JSON-schema condicional

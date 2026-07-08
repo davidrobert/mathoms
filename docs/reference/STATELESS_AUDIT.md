@@ -29,8 +29,8 @@ zero `asyncio.create_task` fora do Celery, zero file locks, zero
 ### 1. `@lru_cache` / `@functools.cache` / `cached_property`
 
 **Resultado:** zero uso em `backend/app/`. Os únicos usos de
-`functools.partial` aparecem em `services/document_canonical_rename.py`
-e `services/document_reclassify_bulk_service.py` (uso local, não cache).
+`functools.partial` aparecem em `services/documents/document_canonical_rename.py`
+e `services/documents/document_reclassify_bulk_service.py` (uso local, não cache).
 
 **Veredito:** ✅ OK — nenhum cache mutável cross-request.
 
@@ -42,15 +42,15 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | Arquivo | Nome | Tipo | Veredito |
 |---|---|---|---|
 | `services/pipeline/retry_config.py:44` | `STAGE_RETRY_CONFIGS` | `dict[str, StageRetryConfig]` frozen | ✅ imutável (criado uma vez, lido) |
-| `services/classification/institution_classifier.py:11` | `INSTITUTION_CONTENT_PATTERNS` | `list[tuple[re.Pattern, str]]` | ✅ regex compilado, nunca alterado (re-exportado por `content_classifier.py`) |
+| `services/classification/institution_classifier.py:11` | `INSTITUTION_CONTENT_PATTERNS` | `list[tuple[re.Pattern, str]]` | ✅ regex compilado, nunca alterado (re-exportado por `documents/content_classifier.py`) |
 | `services/classification/period_extractor.py:7-27` | `_PERIOD_RANGE_RE`, `_YYYYMM_RE`, `_MONTH_YEAR_BR_RE`, `_MESES` | regex + mapping | ✅ imutável |
 | `services/tarefas_md_parser.py:20-146` | `_MD_TO_CATEGORY`, `_MONTH_PT`, `_STATUS_FROM_MD`, `_*_RE` | mapping + regex | ✅ imutável |
 | `services/feature_flags_service.py:32` | `DEFAULTS` | `dict[str, bool]` | ✅ imutável (defaults, nunca escritos) |
 | `services/task_notification_service.py:25` | `_SOURCE` | `str` | ✅ imutável |
 | `services/storage/__init__.py:27` | `_MAGIC_SIGNATURES` | `dict[str, tuple[bytes, ...]]` | ✅ imutável |
-| `services/canonical_routing.py:11` | `_MIME_TO_EXT` | `dict[str, str]` | ✅ imutável |
+| `services/documents/canonical_routing.py:11` | `_MIME_TO_EXT` | `dict[str, str]` | ✅ imutável |
 | `services/task_progress_service.py:57-61` | `_BRL_RE`, `_SHORT_BRL_RE` | regex | ✅ imutável |
-| `services/document_classification.py:20-30` | `_CONTENT_CONFIDENCE_THRESHOLD`, `_REVIEW_CONFIDENCE_THRESHOLD`, `_TRANSIENT_ERROR_NAMES`, `_PERMANENT_ERROR_NAMES` | thresholds + frozensets | ✅ imutável |
+| `services/documents/document_classification.py:20-30` | `_CONTENT_CONFIDENCE_THRESHOLD`, `_REVIEW_CONFIDENCE_THRESHOLD`, `_TRANSIENT_ERROR_NAMES`, `_PERMANENT_ERROR_NAMES` | thresholds + frozensets | ✅ imutável |
 | `services/pipeline/pipeline_adapter.py:409` | `_GOAL_TYPE_MAP` | `dict` | ✅ imutável |
 | `services/task_attachment_service.py:29` | `_SUBDIR` | `str` | ✅ imutável |
 | `services/pdf_renderer.py:30` | `_PLAYWRIGHT_AVAILABLE` | `Optional[bool]` lazy | ⚠️ mutável mas **idempotente** — cada worker descobre o mesmo resultado independente |

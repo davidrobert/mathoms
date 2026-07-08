@@ -77,7 +77,7 @@ Sessão dogfood 2026-05-21 com 14 PDFs de Informes de Rendimentos: o informe Bra
 ### P3 — Classifier E0 + mapping E0→DocumentType (~1d)
 
 - [`backend/app/services/classification/type_classifier.py`](../../../../backend/app/services/classification/type_classifier.py) — adicionar `TypeRule` content-based para `informepgbl` / `informe_previdencia_privada` (regex robusto: "PGBL", "VGBL", "Previdência Privada", "Tabela Regressiva", + CNPJ seguradora).
-- [`backend/app/services/document_classification.py`](../../../../backend/app/services/document_classification.py) — adicionar enum `DocumentType.INFORME_RENDIMENTOS_ANUAIS`; `map_e0_doc_type_to_document_type` mapeia `informe_previdencia_privada` para esse enum (NÃO mais para `.irpf`).
+- [`backend/app/services/document_classification.py`](../../../../backend/app/services/documents/document_classification.py) — adicionar enum `DocumentType.INFORME_RENDIMENTOS_ANUAIS`; `map_e0_doc_type_to_document_type` mapeia `informe_previdencia_privada` para esse enum (NÃO mais para `.irpf`).
 - Adicionar `tipo_informe` no payload de classificação para roteamento downstream.
 
 **Gate P3:** BrasilPrev 2025 do batch classifica como `INFORME_RENDIMENTOS_ANUAIS` + `tipo_informe="previdencia_privada"` com `confidence ≥ 0.7`. 13 outros PDFs continuam em `.other` (não regridem).

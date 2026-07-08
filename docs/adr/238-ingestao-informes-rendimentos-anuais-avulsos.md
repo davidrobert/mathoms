@@ -50,7 +50,7 @@ Sessão de validação 2026-05-21 (workspace dogfood) com 15 PDFs reais — Bras
 
 1. **Cobertura quase nula.** O único informe anual modelado end-to-end hoje é o de aluguel QuintoAndar ([[ADR-216]] D9, sufixo `-2_informe_aluguel.json`). O classifier ([backend/app/services/classification/type_classifier.py](../../backend/app/services/classification/type_classifier.py)) tem regex genérico `informerendimentos` extremamente restrito (exige literal "Informe de Rendimentos Financeiros" ou "Informe Anual de Rendimentos"). Dos 15 PDFs do batch, ~13 caem em `.other` silencioso ou são mal-classificados.
 
-2. **Mapping semanticamente errado.** [`map_e0_doc_type_to_document_type`](../../backend/app/services/document_classification.py) traduz qualquer `informerendimento*` para `DocumentType.irpf`, rota que dispara o stage [[ADR-157]] `extract_irpf_full` (esperando declaração IRPF completa, não informe avulso). Falsos positivos quebram o pipeline silenciosamente.
+2. **Mapping semanticamente errado.** [`map_e0_doc_type_to_document_type`](../../backend/app/services/documents/document_classification.py) traduz qualquer `informerendimento*` para `DocumentType.irpf`, rota que dispara o stage [[ADR-157]] `extract_irpf_full` (esperando declaração IRPF completa, não informe avulso). Falsos positivos quebram o pipeline silenciosamente.
 
 3. **Gap de produto pré-IR.** S8 Previdência ([[ADR-189]]) só calcula `PgblStatus.capacidade_disponivel` quando E1.6 existe. ICP que adota Mathoms em janeiro-fevereiro (antes de declarar) fica sem o KPI mais valioso da seção, mesmo tendo o informe da seguradora em mãos. Mesmo problema afeta ADR-236 cascata fiscal PJ ([[ADR-236]] D2 leitor IRPF base PGBL) — depende exclusivamente de E1.6, sem fallback por informe PJ.
 
