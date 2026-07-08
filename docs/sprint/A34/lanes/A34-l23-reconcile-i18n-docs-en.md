@@ -60,8 +60,10 @@ daquela base.
 4. Nota editorial de gatilho open-source em [[PLAN-i18n]] §10 — registrar que a
    cláusula de docs-EN foi ativada pelo flip público, **sem nova ADR** e **sem
    reabrir** as fases F12.* de produto-i18n.
-5. Fora de escopo: pt-PT (descartado, decisão unânime do co-design); produto-i18n
-   (`paused`, não reabrir); tradução de qualquer arquivo dentro de `docs/**`.
+5. Fora de escopo: **es e pt-PT** — locales de **produto**, não necessários para
+   executar este plano; vivem no [[PLAN-i18n]] (`paused`), que fica intacto. A
+   única superfície de idioma que este plano adiciona é **EN de apresentação**.
+   Não reabrir produto-i18n (F12.*); não traduzir nada dentro de `docs/**`.
 
 ## Critério de aceite (verificável)
 
@@ -78,7 +80,8 @@ daquela base.
   frontmatter + wikilinks e são **independentes do idioma do corpo**; o README
   raiz não tem frontmatter, então nenhum gate de doc é acionado por ele.
   `check_sigilo_terms` (estendido em [[A34.l5]]) verde sobre os arquivos EN.
-- pt-PT ausente; nenhum diretório de produto-i18n (F12.*) criado ou modificado.
+- es e pt-PT ausentes; nenhum diretório de produto-i18n (F12.*) criado ou
+  modificado; a única superfície de idioma adicionada é EN de apresentação.
 
 ## Rollback
 

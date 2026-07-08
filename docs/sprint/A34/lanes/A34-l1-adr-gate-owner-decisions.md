@@ -55,7 +55,7 @@ até a decisão ser assinada). Recomendação leading já registrada no `_README
 5. **[[ADR-317]]** — Identidade de autoria no mailmap público (Gmail em 813 commits;
    tratamento de co-authors).
 6. **[[ADR-318]]** — Fronteira EN-apresentação vs. PT-BR-vault. Ativa a cláusula §11
-   (Pós-launch) já escrita em [[PLAN-i18n]] (sem emenda de [[ADR-130]]); confirma pt-PT fora.
+   (Pós-launch) já escrita em [[PLAN-i18n]] (sem emenda de [[ADR-130]]); es e pt-PT fora do escopo deste plano.
 7. **[[ADR-319]]** — Contrato de gates anti-regressão PII + sigilo (contrato negativo
    permanente + enforcement). Não owner-gated.
 8. **[[ADR-320]]** — Hardening CI/CD + paridade estrutural do `EXEMPLO` sintético

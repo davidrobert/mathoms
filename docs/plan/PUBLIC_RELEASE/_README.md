@@ -106,10 +106,13 @@ restrição. Duas objeções materiais foram levantadas por 4 dos 5 especialista
 - **Gates de PII/sigilo já existem, mas com cobertura incompleta:** `tests/utils/lint_no_real_pii.py`
   (só `tests/`, só CPF) e `dev/check_sigilo_terms.py` (só `frontend/` + `docs/_marketing/`).
   A Onda 2 os estende ao superset público — não cria do zero.
-- **[[PLAN-i18n]]** (ADR-130, `paused` com gate de demanda): arquitetura i18n de
-  **produto** já decidida (pt-BR + en + es; **pt-PT fora**). A Onda 7 NÃO reabre produto-i18n
-  — ativa apenas a cláusula já escrita em [[PLAN-i18n]] §11 (Pós-launch): "docs em EN se
-  open-source", para a camada de **apresentação**. Fronteira formalizada em [[ADR-318]].
+- **[[PLAN-i18n]]** (ADR-130, `paused` com gate de demanda): governa i18n de
+  **produto** (locales do app). **Este plano não toca produto-i18n.** O escopo de
+  idioma do PUBLIC_RELEASE é **exclusivamente EN de apresentação** (docs de repo);
+  a Onda 7 ativa apenas a cláusula já escrita em [[PLAN-i18n]] §11 (Pós-launch)
+  — "docs em EN se open-source". **es e pt-PT não são necessários para executar
+  este plano** (locales de produto — ficam no PLAN-i18n, `paused` e intacto).
+  Fronteira formalizada em [[ADR-318]].
 - **[[PLAN-launch-trust]]**: suas `adrs_canonical` incluem [[ADR-246]]/[[ADR-255]]/[[ADR-267]]/[[ADR-271]]
   — ADRs que a Onda 1 anonimiza. Anonimização é **in-body apenas**; `id`/filename/wikilink
   permanecem intactos (invariante `filename ≡ id ≡ wikilink-target`), então o grafo do
@@ -156,7 +159,7 @@ W0(G0 gate decisões) ──► W2(G2 gates) ──► W1(G1 saneia HEAD) ──
 | **W3 — Rewrite de histórico** (IRREVERSÍVEL, owner) | Reescrever git (blobs + mensagens + mailmap) via `git-filter-repo`. Penúltima operação, adjacente ao flip. | [[A34.l18]] runbook `git-filter-repo` (track) · [[A34.l19]] freeze de merges + deletar 85 branches `agent/*` · [[A34.l20]] bypass do Ruleset + atualizar hash-refs | P0 | **G3:** filter-repo em clone `--mirror` (paths→replace-text→replace-message→mailmap); validação DUPLA (gitleaks árvore+histórico = 0); 85 branches deletadas; hash-refs em ~10 ADRs atualizadas; Ruleset **reativado e verificado**; backup íntegro; FREEZE ativo até W8 |
 | **W4 — Metadados GitHub** (∥ W3, owner) | Mitigar parcialmente a camada-3. Aceite de risco em [[ADR-316]]. | [[A34.l21]] triagem T1 de PRs/issues/CI logs sensíveis | P0 | **G4-min:** itens T1 (PII direta/dogfood/competitivo) editados/deletados; logs de CI de dogfood expirados; risco residual T3 aceito em [[ADR-316]] |
 | **W8 — Flip + verificação** (owner) | Flip para público + critério de aceite global. Smoke de clone anônimo ANTES do flip. | [[A34.l22]] flip + verificação pós-flip (track) | P0 | **G8:** critério de aceite global (ver §Verificação) |
-| **W7 — i18n docs-EN** (should, pós-flip) | Reconciliar superfície EN com [[PLAN-i18n]] sem reabrir produto-i18n. | [[A34.l23]] docs EN de apresentação + cross-link PLAN-i18n | P2 | **G7:** README/CONTRIBUTING/COC/SECURITY em EN; vault permanece PT-BR ([[ADR-318]]); produto-i18n PAUSED intacto; pt-PT fora |
+| **W7 — i18n docs-EN** (should, pós-flip) | Só **EN de apresentação**; não toca produto-i18n. | [[A34.l23]] docs EN de apresentação + cross-link PLAN-i18n | P2 | **G7:** README/CONTRIBUTING/COC/SECURITY em EN; vault permanece PT-BR ([[ADR-318]]); produto-i18n PAUSED intacto; **es e pt-PT fora do escopo deste plano** |
 
 **Escopo A34 (caminho crítico → público-seguro):** W0→W2→W1/W5→W6-min→W3/W4→W8.
 **Should pós-flip (janela A35):** W6-polish ([[A34.l17]]), W7 ([[A34.l23]]), varredura
@@ -176,7 +179,7 @@ antes do push (sessão longa criando ADR pode colidir).
 | [[ADR-315]] | 🔒 | Estratégia de rewrite de histórico | `git-filter-repo` (rejeita BFG/squash-to-genesis/shallow); backup antes; validação dupla; bypass owner do Ruleset |
 | [[ADR-316]] | 🔒 | Aceite de risco de metadados GitHub imutáveis | Triagem em tiers T1/T2/T3 + **cláusula de incompatibilidade lógica** (zero-risco ⇒ reabrir in-place) |
 | [[ADR-317]] | 🔒 | Identidade de autoria no mailmap público | Owner decide identidade pública (Gmail 813 commits); tratamento de co-authors |
-| [[ADR-318]] | 🔒 | Fronteira EN-apresentação vs PT-BR-vault | Ativa cláusula §11 (Pós-launch) do [[PLAN-i18n]] (sem emenda de ADR-130); confirma pt-PT fora |
+| [[ADR-318]] | 🔒 | Fronteira EN-apresentação vs PT-BR-vault | Ativa cláusula §11 (Pós-launch) do [[PLAN-i18n]] (sem emenda de ADR-130); es e pt-PT fora do escopo deste plano |
 | [[ADR-319]] | — | Contrato de gates anti-regressão PII + sigilo | Contrato negativo permanente + enforcement (lint/sigilo/forbidden-paths/gitleaks) |
 | [[ADR-320]] | — | Hardening CI/CD + paridade estrutural do EXEMPLO sintético | permissions/SHA-pin/GHAS + invariante "zero seção removida, só dados sintéticos" |
 
@@ -215,9 +218,12 @@ Decisões owner-gated migram para ADR; as demais são fechadas pela síntese sen
   ([[ADR-319]]) + W1 ([[A34.l12]]).
 - **[licença/ADR-313]** BSL 1.1 leading (moat competitivo), AGPL-3.0 alternativa, MIT/Apache
   fallback de máxima adoção. Owner + gtm-strategist + legal.
-- **[pt-PT]** Descartado (unânime). "Referência global" = audiência-de-repo (EN resolve),
-  não audiência-de-produto (ICP nômade-BR, ADR-130). pt-PT confunde "internacional" com
-  "lusófono"; produto fiscal-BR não tem cliente residente-PT.
+- **[escopo de idioma deste plano]** O PUBLIC_RELEASE adiciona **só EN de apresentação**
+  (docs de repo). **es e pt-PT não são necessários para executar este plano** (simplificação
+  do owner, 2026-07-08): são locales de **produto** e ficam no [[PLAN-i18n]] (`paused`,
+  intacto) — não são dependência nem deliverable aqui. "Referência global" = audiência-de-repo,
+  que EN resolve; produto fiscal-BR não muda de mercado por causa do flip. Se o owner quiser
+  dropar es do roadmap de **produto**, é mudança separada no PLAN-i18n (não neste plano).
 - **[escopo git]** 1.862 commits (não 2.729 — diferença são refs de branches), 85 branches
   `agent/*`, 75 worktrees.
 - **[backup/Fernet]** Backup off-site + tag + confirmação de rotação Fernet são
