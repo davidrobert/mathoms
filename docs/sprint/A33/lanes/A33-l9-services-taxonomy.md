@@ -4,9 +4,9 @@ type: lane
 title: "Services taxonomy: split de backend/app/services/ em subpacotes por natureza técnica (ADR-285, W6-T07)"
 sprint: A33
 plan: PLAN-platform-review
-status: planned
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 855
+ship_date: "2026-07-08"
 priority: P2
 branch_slug: a33-l9-services-taxonomy
 adrs: ["[[ADR-285]]"]
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a33
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/backend
 ---

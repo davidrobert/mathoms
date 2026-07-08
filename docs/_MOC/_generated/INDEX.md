@@ -697,7 +697,7 @@
 | A33.l6 | lane | shipped | A33 | Retenção de artifacts: retention_until + prune diário + teste de cascade (W6-T05) | `sprint/A33/lanes/A33-l6-artifacts-retention.md` |
 | A33.l7 | lane | shipped | A33 | OTLP mathoms.llm.* por {prompt_name, prompt_version} + parecer.riscos_truncados (W3) | `sprint/A33/lanes/A33-l7-otlp-telemetria-llm.md` |
 | A33.l8 | lane | shipped | A33 | InstitutionCatalogProvider (protocol) + códigos RFB do e16 em YAML anual versionado (W4-T01/T02) | `sprint/A33/lanes/A33-l8-catalogo-injection-rfb-yaml.md` |
-| A33.l9 | lane | planned | A33 | Services taxonomy: split de backend/app/services/ em subpacotes por natureza técnica (ADR-285, W6-T07) | `sprint/A33/lanes/A33-l9-services-taxonomy.md` |
+| A33.l9 | lane | shipped | A33 | Services taxonomy: split de backend/app/services/ em subpacotes por natureza técnica (ADR-285, W6-T07) | `sprint/A33/lanes/A33-l9-services-taxonomy.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
