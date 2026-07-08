@@ -1120,6 +1120,8 @@ def _e3_log_warnings(result) -> None:
         log_progress("E3.2", f"WARNING ({w.account_key.bank}): {w.format()}")
     for w in result.saldo_exclusions:
         log_progress("E3.2", f"INFO: {w.format()}")
+    for w in result.inferred_chain_members:
+        log_progress("E3.2", f"INFO: {w.format()}")
     for w in result.temporal_warnings:
         log_progress("E3.2", f"TEMPORAL ({w.account_key.bank}): {w.format()}")
     for w in result.baseline_warnings:
@@ -1144,6 +1146,8 @@ def _e3_print_summary(result) -> None:
         print(f"Saldo gap warnings:         {len(result.saldo_warnings)}")
     if result.saldo_exclusions:
         print(f"Faturas fora da cadeia:     {len(result.saldo_exclusions)} (ADR-310)")
+    if result.inferred_chain_members:
+        print(f"Membros sem numero:         {len(result.inferred_chain_members)} (ADR-310 emenda)")
     if result.temporal_warnings:
         print(f"Temporal gap warnings:      {len(result.temporal_warnings)}")
     if result.baseline_warnings:
@@ -1174,6 +1178,7 @@ def _e3_build_result_dict(written_filenames: List[str], result) -> Dict[str, Any
         "skipped_inputs": result.skipped_inputs,
         "saldo_warnings": [w.format() for w in result.saldo_warnings],
         "saldo_exclusions": [w.format() for w in result.saldo_exclusions],
+        "inferred_chain_members": [w.format() for w in result.inferred_chain_members],
         "temporal_warnings": [w.format() for w in result.temporal_warnings],
         "baseline_warnings": [w.format() for w in result.baseline_warnings],
         "period_warnings": [w.format() for w in result.period_warnings],
