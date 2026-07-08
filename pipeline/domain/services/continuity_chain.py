@@ -215,9 +215,11 @@ def partition_chains(
     sem número coalescem na cadeia numerada quando o grupo `(banco, membro,
     tipo, moeda)` tem um único número distinto (Tier 2). Faturas: saem da
     cadeia com sinal na continuidade de saldo (``exclude_faturas=True``) ou
-    formam cadeia própria na detecção temporal (``False``) — coalescência é
-    no-op para elas (sempre ``account_number=None``). Função pura — mesma
-    entrada em qualquer ordem produz a mesma partição."""
+    formam cadeia própria na detecção temporal (``False``) — nunca coalescem
+    com um extrato numerado porque o ``account_type`` (``fatura*``) as isola
+    em grupo próprio de ``_collapse_group`` (e NÃO porque careçam de número:
+    ``from_e2_dict`` lê ``numero_conta`` de fatura igual ao de extrato).
+    Função pura — mesma entrada em qualquer ordem produz a mesma partição."""
     chains: dict[ContinuityAccountKey, list[BankStatement]] = defaultdict(list)
     excluded: list[FaturaExcludedFromSaldoChain] = []
     for s in statements:

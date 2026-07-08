@@ -158,6 +158,21 @@ class TestNonFusionGuards:
         assert result.inferred_members == ()
         assert len(result.excluded_faturas) == 1
 
+    def test_fatura_isolated_on_temporal_path(self):
+        """Trilha temporal (`exclude_faturas=False`): a fatura NÃO é excluída
+        da partição, mas o `account_type` (`fatura*`) a isola em grupo próprio
+        de `_collapse_group` — uma fatura sem número nunca é puxada para a
+        cadeia de um extrato numerado da mesma conta/banco. Complementa
+        `test_fatura_never_coalesces` (que cobre o caminho de saldo); aqui o
+        ramo `is_fatura` corre com `exclude_faturas=False`."""
+        stmts = [
+            _stmt(_JAN, "0", "5000", number="9988", tipo="extratoconta", src="conta.pdf"),
+            _stmt(_JUL, "800", "1200", tipo="faturacarbon", src="fat.pdf"),  # sem número
+        ]
+        result = TemporalGapDetector().detect_with_inferences(stmts)
+        assert result.inferred_members == ()
+        assert result.warnings == ()
+
 
 # =============================================================================
 # KR3 — sinal sempre (nenhuma inferência silenciosa)
