@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-20 planos detectados em [`docs/plan/`](../../plan/).
+21 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -154,6 +154,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A12
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-221]]
+
+### PLAN-public-release — PUBLIC_RELEASE — tornar o repo público in-place com segurança e qualidade de referência
+
+- Status: `draft` · Sprint atual: —
+- Sprints envolvidas: A34
+- Lanes: 0 done · 0 in_progress · 23 open · 0 blocked
+- ADRs canônicas: [[ADR-313]], [[ADR-314]], [[ADR-315]], [[ADR-316]], [[ADR-317]], [[ADR-318]], [[ADR-319]], [[ADR-320]]
 
 ### PLAN-residencia-e-uso — Residência e uso econômico de imóveis — override DB substitui keyword
 
