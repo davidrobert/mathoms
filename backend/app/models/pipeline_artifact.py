@@ -26,6 +26,7 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -82,6 +83,16 @@ class PipelineArtifact(Base):
     prompt_version: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     byte_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
+    # A33.l6 (W6-T05) — retenção por idade de row superseded. NULL ≡ fail-safe:
+    # nunca prunável. A versão corrente por (workspace, stage, artifact_key)
+    # fica NULL permanentemente; o write de uma nova corrente marca a anterior
+    # (DBArtifactStore._mark_superseded). Prune diário só deleta
+    # retention_until < now, com defesa em profundidade (nunca a corrente,
+    # nunca row referenciada por reports/planner_review/publications).
+    retention_until: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )
@@ -123,5 +134,14 @@ class PipelineArtifact(Base):
         Index(
             "ix_pipeline_artifacts_data_source_id",
             "data_source_id",
+        ),
+        # A33.l6 — índice parcial para o prune diário (WHERE retention_until
+        # IS NOT NULL AND retention_until < now). A maioria das rows é NULL
+        # (corrente/fail-safe); índice cheio seria desperdício.
+        Index(
+            "ix_pipeline_artifacts_retention_until",
+            "retention_until",
+            postgresql_where=text("retention_until IS NOT NULL"),
+            sqlite_where=text("retention_until IS NOT NULL"),
         ),
     )

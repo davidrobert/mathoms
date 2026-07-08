@@ -4,9 +4,9 @@ type: lane
 title: "Retenção de artifacts: retention_until + prune diário + teste de cascade (W6-T05)"
 sprint: A33
 plan: PLAN-platform-review
-status: planned
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 844
+ship_date: "2026-07-08"
 priority: P2
 branch_slug: a33-l6-artifacts-retention
 adrs: ["[[ADR-212]]"]
@@ -16,7 +16,7 @@ parallel_with: ["[[A33.l4]]", "[[A33.l5]]"]
 tags:
   - type/lane
   - sprint/a33
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/pipeline
   - area/db
@@ -65,6 +65,16 @@ concorrente com o prune por idade sobre as mesmas rows. Dois gates:
    predicado acima.
 5. Teste de cascade pré-existente sob prune + teste de que
    tombstone/versão corrente nunca são prunados.
+
+## Entrega (2026-07-08, PR #844)
+
+Aceite do predicado **ajustado na reconciliação com o schema real**: a
+ADR-311 D1 entregou invalidação **destrutiva** (DELETE em
+`artifact_tombstone.py`) — não existe tombstone-row; o predicado ficou de
+1 ramo (`retention_until` não-nulo + expirado + não-corrente, alias-aware).
+Dry-run sobre cópia do DB dev: 6.049/6.319 rows superseded (~110,8 MB),
+**gate zerado**, idempotente (2ª passada marca 0). Flip para
+`prune_mode=delete` segue **gated em PR separado** (decisão #5).
 
 ## Critérios de aceite
 

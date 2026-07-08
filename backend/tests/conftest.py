@@ -111,11 +111,13 @@ from backend.app.services import pipeline_service as _pipeline_service_module  #
 from backend.app.tasks import lgpd_export as _lgpd_export_task_module  # noqa: E402
 from backend.app.tasks import periodic_tasks as _periodic_tasks_module  # noqa: E402
 from backend.app.tasks import pipeline_task as _pipeline_task_module  # noqa: E402
+from backend.app.tasks import prune_artifacts as _prune_artifacts_task_module  # noqa: E402
 
 for _mod in (
     _pipeline_task_module,
     _periodic_tasks_module,
     _lgpd_export_task_module,
+    _prune_artifacts_task_module,
     _pipeline_service_module,
     _document_pipeline_sync_module,
     _document_extract_json_service_module,

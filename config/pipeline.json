@@ -10,6 +10,12 @@
     "mode_overrides": {}
   },
 
+  "artifact_retention": {
+    "_comment": "A33.l6 (W6-T05, ADR-212): retenção por idade de rows superseded em pipeline_artifacts. retention_until NULL = nunca pruna (fail-safe; versão corrente fica NULL permanente). prune_mode dry_run só loga o relatório; flip para delete é PR separado, condicionado ao dry-run com gate zerado. Env overrides: MATHOMS_ARTIFACT_RETENTION_SUPERSEDED_DAYS / MATHOMS_ARTIFACT_PRUNE_MODE.",
+    "superseded_days": 180,
+    "prune_mode": "dry_run"
+  },
+
   "llm": {
     "model": "claude-sonnet-4-6",
     "max_tokens": 500,
