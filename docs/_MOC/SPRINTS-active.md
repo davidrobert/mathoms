@@ -16,6 +16,26 @@ _(nenhuma — próxima sprint a definir pelo owner)_
 
 ## Sprint recém-fechada
 
+### A35 — Continuidade não some quando o número de conta não extrai (`done` 2026-07-08)
+
+Follow-up nomeado da A32 (issue #860, confirmada pelo owner na triagem
+KR3): a chave estrita da A32.l4 ([[ADR-310]]) suprimia um gap genuíno de
+continuidade quando `account_number_norm` não extrai de um dos extratos
+da mesma conta. Co-design (senior-cto + data-engineer + financial-planner):
+escada de resolução (Tier 1 `AccountResolver`/ADR-226 quando há cadastro;
+Tier 2 intra-run `count==1` — o dogfood tem 0 contas cadastradas, logo é
+o tier que conserta), sinal auditável `SaldoChainMemberInferred`
+obrigatório, só `not is_fatura`, `_chain_key` puro, `AccountGrouper`
+intocado. **Emenda datada na [[ADR-310]]** (não ADR nova — refina a
+decisão, herda a absorção pelo `SourceRef.kind`, [[ADR-278]] §B7).
+
+**Encerrada 2026-07-08 — 1/1 lane shipped** (impl #865 `08c535cf` +
+surfacing #868 `6e8fb369`; planejamento #864). Gate confirmado no dado
+real do dogfood: os 2 extratos rico coalescem em 1 cadeia e o gap
+**122 dias (abr–jun/2026)** volta à tela com selo `documento_faltando` e
+sinal auditável sem número cru; 14/14 testes de regressão verdes; zero
+falsos da A32 reabertos. Issue #860 fechada.
+
 ### A32 — Review de reconciliação confiável (`done` 2026-07-08)
 
 Origem: dogfood do owner 2026-07-07 — run `d1732edd` com 18 errors + 31

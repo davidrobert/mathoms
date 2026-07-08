@@ -3,14 +3,15 @@ id: MOC-sprint-a35
 type: moc
 title: "Sprint A35 — Continuidade não some quando o número de conta não extrai (follow-up A32, issue #860)"
 aliases: ["A35", "Sprint A35"]
-sprint_status: current
+sprint_status: done
 date: "2026-07-08"
 theme: "review-trust"
 ---
 
 # Sprint A35 — Gap genuíno de continuidade não some por número de conta ausente
 
-> **Status:** `current` (aberta 2026-07-08). Origem: ressalva nomeada do
+> **Status:** `done` (aberta e encerrada 2026-07-08 — 1/1 lane shipped,
+> KR1–KR3 ✅, gate confirmado no dado real do dogfood; ver §Gate). Origem: ressalva nomeada do
 > gate da [[MOC-sprint-a32|A32]] (§Gate l7, KR2 anti-Goodhart) +
 > confirmação do owner na triagem KR3 — issue
 > [#860](https://github.com/davidrobert/mathoms/issues/860). A A32.l4
@@ -78,7 +79,7 @@ degrada para `unknown` sem cadastro, então **não conserta o caso real do
 
 | Onda | Lane | Título | Prioridade | Status |
 |---|---|---|---|---|
-| 0 | [[A35.l1]] | Fallback da cadeia de continuidade quando número de conta não extrai + sinal auditável ([[ADR-310]] emenda) | P1 | open |
+| 0 | [[A35.l1]] | Fallback da cadeia de continuidade quando número de conta não extrai + sinal auditável ([[ADR-310]] emenda) | P1 | shipped (#865/#868) |
 
 ## KR
 
@@ -94,6 +95,49 @@ degrada para `unknown` sem cadastro, então **não conserta o caso real do
 - **KR3** — Nenhuma inferência silenciosa: cada coalescência emite
   `SaldoChainMemberInferred`; teste negativo garante que statement sem
   número nunca some da observabilidade.
+
+## Gate — resultado (2026-07-08)
+
+Entregue em **2 PRs** de impl: **#865** (`08c535cf`) helper
+`partition_chains` + `continuity_chain.py` + coalescência Tier 2
+`count==1` + sinal + emenda ADR-310; **#868** (`6e8fb369`) expõe
+`inferred_chain_members` no output do stage E3 para observabilidade.
+
+**Prova unitária (14/14 testes, `test_saldo_chain_accountless_coalescence.py`):**
+gap restaurado (temporal+balance) · guardas de não-fusão (2 números→não
+coalesce · poupança≠CC · membros distintos · fatura · todos-`None`
+agrupam) · sinal sempre emitido (sem número cru, nos dois validators) ·
+determinismo (mesmo resultado independente de ordem; sobrevivente = chave
+numerada).
+
+**Confirmação no dado real do dogfood** (validators in-process sobre os
+statements rico reais — as runs headless que completam sem pausar não
+persistem os warnings de continuidade em `review_reasons`, então a
+medição foi direta sobre os `BankStatement` carregados):
+
+- Os 2 extratos rico caem no **mesmo grupo** `(Rico, membro=None,
+  extratoconta, BRL)`; `da48e34d` com número, `95b3d36e` sem — o gatilho
+  exato do Tier 2.
+- `partition_chains` → **1 cadeia após coalescência** (antes: 2).
+- Sinal emitido: `SaldoChainMemberInferred` — *"membro sem numero
+  coalescido na cadeia rico/extratoconta/-/BRL src=95b3d36e… (ADR-310
+  emenda 2026-07-08)"* — **sem número cru**.
+- `TemporalGapDetector` → **1 gap**: *"Temporal gap rico/extratoconta/-/BRL:
+  122 days between …202603 (fim=2026-03-01) and …202607
+  (inicio=2026-07-01)"* — o buraco abr–jun/2026 **de volta à tela**
+  (natureza `documento_faltando`).
+
+**Regressão A32.l4 (KR2):** os guardas unit-testados garantem zero fusão
+cross-conta; a coalescência só dispara no eixo `account_number` sob
+`count==1` — os 39 falsos F1–F4 não reabrem (nenhuma fusão
+CC↔poupança↔fatura; `account_type` segue no núcleo da chave). Zero
+goldens de execução afetados (warnings de continuidade não persistem em
+artefato).
+
+**Status dos KRs:** KR1 ✅ (gap de 122d restaurado no dado real) · KR2 ✅
+(guardas verdes, zero falsos reabertos) · KR3 ✅ (sinal emitido, sem
+número cru). Issue [#860](https://github.com/davidrobert/mathoms/issues/860)
+fechada.
 
 ## Fora de escopo (Later, nomeado)
 
