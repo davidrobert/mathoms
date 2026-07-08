@@ -21,12 +21,24 @@ tags:
 
 ## Problema
 
-A **camada 3** de contaminação — títulos e corpos de PRs/issues + logs de CI
-— é **matematicamente inapagável por git**. O rewrite de histórico (W3,
-[[A34.l18]]) reescreve blobs e mensagens de commit, mas **não alcança** os
-metadados do GitHub: 855 PRs/issues são objetos do banco do GitHub, editáveis
-apenas via API individualmente ou deletáveis. Um clone anônimo pós-flip não vê
-esses metadados, mas a **interface web pública** os expõe integralmente.
+A **camada 3** de contaminação — títulos e corpos de PRs/issues + comentários +
+logs de CI — é **inapagável por git** (não *por completo* pelo GitHub — ver
+[[ADR-316]] §Mecânica). O rewrite de histórico (W3, [[A34.l18]]) reescreve blobs
+e mensagens de commit, mas **não alcança** os metadados do GitHub. Duas assimetrias
+mandam na triagem:
+
+- **Issue ≠ PR na deleção.** Issues **podem ser deletadas** (admin) — via mutação
+  GraphQL `deleteIssue` (NÃO há REST `DELETE /issues/{n}`; o REST só edita).
+  **PRs NÃO podem ser deletados** — o GitHub só permite *fechar*; sobram a casca,
+  a timeline e os commits do PR. Para PR, a triagem é **editar título/corpo +
+  deletar comentários**, nunca "deletar o PR".
+- **Rewrite ≠ purga do cache de commits de PR.** Mesmo após W3, o GitHub mantém os
+  commits referenciados por PRs em cache: `/{repo}/pull/{n}/commits/{sha}` continua
+  servindo conteúdo pré-rewrite. Só o **GitHub Support** purga isso (passo 5) — ou
+  a deleção do repo (Opção 2 de [[ADR-316]]).
+
+Um clone anônimo pós-flip não vê metadados, mas a **interface web pública** os
+expõe integralmente.
 
 O risco não está uniformemente distribuído nos 855 itens: concentra-se em
 **~15 itens T1** que carregam PII direta ou IP sensível. Exemplos de padrões
@@ -59,15 +71,29 @@ após o flip — anulando o saneamento das camadas 1 e 2.
    **lista priorizada** por tier (T1 alto risco · T2 médio · T3 residual aceito).
    A lista de saída mora em `_scratch/` (gitignored) — **nunca commitar** a lista
    com os valores reais.
-2. **Tratar 100% dos T1**:
-   - Editar título/corpo via `gh api -X PATCH /repos/davidrobert/mathoms/issues/<N>`
-     substituindo o dado real por placeholder sintético, **OU**
-   - Deletar o item quando não houver valor histórico e a edição for inviável
-     (incl. a issue automática "Security schedule failure").
-3. **Logs de CI**: para runs com diagnóstico de dogfood, reduzir retenção
-   (`retention→0-1d`) **ou** deletar via `gh api -X DELETE /repos/davidrobert/mathoms/actions/runs/<id>`.
+2. **Tratar 100% dos T1** (mecânica por tipo — ver assimetrias no Problema):
+   - **Editar** título/corpo (issue **ou** PR) via `gh api -X PATCH
+     /repos/davidrobert/mathoms/issues/<N>` (o endpoint `issues` serve para os
+     dois; PR é uma issue no REST) substituindo o dado real por placeholder.
+   - **Deletar comentários** sensíveis via `gh api -X DELETE
+     /repos/davidrobert/mathoms/issues/comments/<id>` (e `.../pulls/comments/<id>`
+     para review comments).
+   - **Deletar issue** (só issue, não PR) sem valor histórico via GraphQL
+     `deleteIssue` (`gh api graphql -f query='mutation{deleteIssue(input:{issueId:"..."}){clientMutationId}}'`)
+     — incl. a issue automática "Security schedule failure".
+   - **PR não é deletável**: se um T1 for PR sem edição viável, edite o corpo para
+     vazio+nota e apague os comentários; a casca fica (mitigada pelo passo 5).
+3. **Logs de CI**: para runs com diagnóstico de dogfood, deletar via
+   `gh api -X DELETE /repos/davidrobert/mathoms/actions/runs/<id>` **ou** só os
+   logs (`.../actions/runs/<id>/logs`); reduzir a retenção default em Settings.
 4. **Registrar o aceite de risco residual** (T3) em [[ADR-316]] — a triagem é
    mitigação parcial declarada, não eliminação total.
+5. **Ticket ao GitHub Support (T4 — cache de commits de PR):** após o force-push
+   de W3, abrir ticket pedindo remoção de "sensitive data cached in pull requests
+   / dangling commits". Anexar a lista de SHAs pré-rewrite (do runbook de
+   [[A34.l18]]). É o **único** caminho, mantendo o repo, para purgar o conteúdo
+   pré-rewrite ainda servido em `/pull/{n}/commits/{sha}`. Depende do Support
+   (timing não garantido) — registrar o protocolo do ticket no fechamento.
 
 ## Critério de aceite (verificável)
 
@@ -82,6 +108,12 @@ após o flip — anulando o saneamento das camadas 1 e 2.
   com valor real.
 - Risco residual **T3 explicitamente aceito** em [[ADR-316]] (cláusula de
   metadados imutáveis) — sem essa aceitação textual, G4-min não fecha.
+- **T4 — ticket ao GitHub Support aberto** (pós-rewrite W3) para purga de
+  cache de commits de PR, com a lista de SHAs pré-rewrite anexada; protocolo do
+  ticket registrado no fechamento. Verificação amostral: uma URL
+  `/pull/{n}/commits/{sha}` de PR contaminado **não serve mais** o conteúdo
+  pré-rewrite (após ação do Support) — OU fica documentada como pendente do
+  Support (não bloqueia o flip, mas o resíduo é nomeado).
 - **Nenhum artefato desta lane commita PII**: a lista priorizada fica em
   `_scratch/`; o PR (se houver) contém apenas o script de varredura mascarado
   e a nota de fechamento.

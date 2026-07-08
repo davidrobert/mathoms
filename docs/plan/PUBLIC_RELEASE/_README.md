@@ -81,19 +81,44 @@ restrição. Duas objeções materiais foram levantadas por 4 dos 5 especialista
 **devem ser lidas antes de aprovar G0**:
 
 1. **In-place é arquiteturalmente inferior a repo novo para a Camada 3.** Os metadados
-   GitHub (855 PRs/issues/logs de CI) são **matematicamente inapagáveis por git** — o
-   rewrite de histórico (Onda 3) não os alcança. Um repo público novo, com push do HEAD
-   já saneado, zeraria as **3 camadas de uma vez**, sem rewrite/bypass de Ruleset/triagem
-   de metadados. Como o repo privado nunca teve tráfego/stars externos, o custo-benefício
-   do in-place é fraco. **Se o owner exigir zero-risco em metadados, o flip in-place é
-   logicamente incompatível** (cláusula em [[ADR-316]]) e a restrição reabre para repo
-   novo. Vale ~30min do owner reconsiderar antes de G0.
+   GitHub (855 PRs/issues/logs de CI) são **inapagáveis por git** — o rewrite de histórico
+   (Onda 3) não os alcança **e não purga o cache de commits referenciados por PRs**
+   ([[ADR-316]] §Mecânica). São parcialmente elimináveis: issues/comentários/logs por
+   API, e o cache de PR por **ticket ao GitHub Support** — mas o único zero-risco 100% sob
+   controle próprio é deletar o repo. Um repo público novo, com push do HEAD já saneado,
+   zeraria as **3 camadas de uma vez**, sem rewrite/bypass de Ruleset/triagem/Support.
+   Como o repo privado nunca teve tráfego externo (0 fork, 1 star, 0 watcher), o
+   custo-benefício do in-place é fraco. **Se o owner exigir zero-risco em metadados, o flip
+   in-place é logicamente incompatível** (cláusula em [[ADR-316]]) e a restrição reabre para
+   repo novo. Vale ~30min do owner reconsiderar antes de G0 — pesando o quadro abaixo.
 2. **"Ser referência open-source" não é alavanca GTM validada para o ICP** (HENRY
    brasileiro que compra seriedade metodológica, não GitHub stars). Público que admira ≠
    público que paga. Antes do flip, articular **qual objetivo de negócio** o repo público
    serve (recrutamento? investidores? contribuidores?). Se o objetivo real é
    *transparência metodológica para confiança do cliente*, isso se resolve com um
    **whitepaper público**, não expondo o motor competitivo inteiro (ver [[ADR-314]]).
+
+### In-place × repo novo — quadro para a decisão do owner (G0)
+
+Se o owner considerar a **Opção 2** ([[ADR-316]], reabrir para repo novo), estas são
+**todas as desvantagens do repo novo**, com gravidade **para este repo** (privado,
+~3 meses, 0 fork / 1 star / 0 watcher):
+
+| Desvantagem do repo novo | Gravidade aqui | Nota |
+|---|---|---|
+| Recriar config: Ruleset `main-protection`, environment `production` + **secrets** (chaves LLM vivem aí), 30 labels, Projects, Actions/GHAS, e **re-autorizar o GitHub App de deploy** | 🔴 Alta | Errar ao re-apontar o deploy quebra produção no cutover — é o maior risco |
+| `(#NNN)` em ~863 commits vira ref morta; 863 PRs/issues + threads de review somem do público | 🟠 Média | Arqueologia fica no repo privado (se mantido); ADRs já capturam o "porquê" in-tree |
+| URLs antigas (`/pull/N`, `/commit/<sha>`, blobs) quebram; reusar o nome `mathoms` anula o auto-redirect | 🟡 Baixa-média | Você controla a maioria dos consumidores |
+| Manter **2 repos** (privado dev + público curado, com sync `main→public`) OU migrar tudo e exigir disciplina PII perfeita para sempre | 🟠 Média | Decisão de processo, não one-off |
+| Stars/forks/social resetam; repo "nascido ontem" com 300 ADRs pode ler como "dump" | 🟢 ~Zero | 0 fork, 1 star hoje; repo de 3 meses |
+| Contribution graph colapsa (se squash-to-genesis) | 🟢 Baixa | Filtered-history preserva datas |
+
+**O repo novo NÃO economiza** W0, W1 (sanear o HEAD — o conteúdo vai junto), W2 (gates),
+W5 (hardening — *piora*, recria tudo), W6, W8. Só **elimina W4** (triagem de metadados)
+e **W3** (rewrite) — e W3 só se for *squash-to-genesis*; com histórico filtrado, o mesmo
+`git-filter-repo` rigoroso volta. **Troca central:** repo novo troca o *risco irredutível
+de Camada 3* por *custo operacional alto e controlável* (recriar config + re-apontar
+deploy). Quadro operacional em [[ADR-316]] §Decisão do owner.
 
 ---
 

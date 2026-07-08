@@ -226,6 +226,16 @@ git -C /tmp/mathoms-rewrite.git grep -I -n -E \
 complementar de PII = vazio. Qualquer hit → voltar ao passo 3, ajustar
 replacements, **re-rodar do clone `.PRE`** (não empilhar rewrites sobre rewrites).
 
+> ⚠️ **Validação verde ≠ Camada 3 limpa.** Este gate prova que a **árvore + o
+> histórico do mirror** estão limpos — NÃO que o GitHub parou de servir o conteúdo
+> antigo. Após o force-push (passo 7), o GitHub **mantém em cache os commits
+> referenciados por PRs**: `/{repo}/pull/{n}/commits/{sha}` continua entregando o
+> blob/mensagem pré-rewrite mesmo com o SHA órfão. O rewrite **não** purga isso.
+> A remoção do cache é passo **T4 da [[A34.l21]]** (ticket ao GitHub Support com a
+> lista de SHAs pré-rewrite) ou a deleção do repo (Opção 2, [[ADR-316]]). Exporte
+> a lista de SHAs pré-rewrite agora (`git -C .PRE rev-list --all > /tmp/pre-rewrite-shas.txt`)
+> — a l21 anexa ao ticket.
+
 ---
 
 ## 5. Deletar as ~85 branches `origin/agent/*` (agente)
