@@ -152,29 +152,6 @@ A27→`current`→`done`) — a A28 (`current`) é quem gera esse tráfego. Cond
 
 - **Plano:** [sprint/A27/_README.md](../sprint/A27/_README.md) · **Dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 6.
 
-### A33 — Autonomia total: débito executável sem ação do owner (`candidate` 2026-07-07)
-
-**Zero ações do owner por construção** — pedido do owner 2026-07-07: sprint
-inteira executável por agentes (sem token, key nova, assinatura, decisão
-pendente ou tráfego de dogfood). 8 lanes em 3 ondas ([[MOC-sprint-a33]]):
-**Must** l1 ADR-090 no `e2_llm_extract` + gate no pacote LLM (W1β residual
-do [[PLAN-llm-prompts-hardening]]) ∥ l2 fechamento [[A17.l3]] (financeiro
-PF + Wise/PTAX) · **Should** l4 [[A17.l4]] integração proventos→S3 (fecha
-A17 → `done`) ∥ l5 nightly drift ([[ADR-307]] F2) ∥ l6 retenção de
-artifacts (W6-T05; gate pós-[[A32.l5]] + [[ADR-311]] Decidido) · **Could**
-l7 OTLP (W3) ∥ l8 catálogo via protocol + RFB YAML (W4) ∥ l9 services
-taxonomy ([[ADR-285]], gate ≤1 PR em `services/`). A l3 original (W2
-semver+telemetria) foi **cortada na revisão de kickoff** — já entregue por
-A20.l12/l13 (`a20l12semver`). KR1 anti-Goodhart: lane que descobrir gate
-de owner escondido flipa `blocked` nomeando o gate no mesmo dia. Revisão
-de kickoff: `product-manager` + `information-architect` + `data-engineer`
-(drift plano-de-maio ↔ código reconciliado 1 a 1). Onda A não colide com
-arquivos da A32 (verificado no kickoff).
-
-- **Sprint:** [sprint/A33/_README.md](../sprint/A33/_README.md) ·
-  **Planos alimentados:** [[PLAN-llm-prompts-hardening]] +
-  [[PLAN-platform-review]] + fechamento da A17.
-
 ## Sprints pausadas
 
 Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.
@@ -257,5 +234,6 @@ parecer E6 e exercita o override v2).
 | A18 | done | Comprovantes de Bem (CRLV-e) + apólices polimórficas + FIPE refresh — 3/3 lanes shipped 2026-05-22 (#388–#436), [[ADR-239]] `Decidido`. Fechada `done` em 2026-07-01 (#707/#708; antiga l4 LGPD realocada — pertencia ao PLAN-llm-prompts-hardening, W1α fechada 2026-07-06). |
 | A19 | done | Card S_PROTECAO (4º pilar AUVP) — [[ADR-240]] `Decidido` via PR #436 (extensão E6-parecer + telemetria). Fechada `done` em 2026-07-01 (#707). |
 | A21 | done | Launch Trust F1 inteira (confiabilidade do número) — 9/9 lanes entregues (PRs #524–#538). Contrato `EntityDedup` (ADR-276), dedup imóveis/investimentos/previdência (ADR-277), backup/restore drill CI (ADR-275), goldens+métricas dedup. Gates F3/LGPD migram para A22; off-site/deploy permanecem owner-gated ([[ADR-228]] G2/G3). Encerrada 2026-05-31, sucedida por [[MOC-sprint-a22]]. |
+| A33 | done | Autonomia total (zero ações do owner) — 8/8 lanes shipped em ~20h, executada **durante a janela da A32 `current`** (precedente A27; `candidate`→`done` direto): l1 ADR-090 boundary LLM + gate float (#827) · l2+l4 fecham [[MOC-sprint-a17]] `done` (#833/#835/#850 + #830) · l5 nightly drift 4/4 PASS (#831) · l6 retenção+prune dry-run (#844) · l7 OTLP (#834) · l8 catálogo+RFB YAML (#836) · l9 services taxonomy 5 PRs + [[ADR-285]] `Decidido` (#849–#855). KR1 anti-Goodhart: nenhum gate de owner escondido. Fechada `done` em 2026-07-08. |
 
 > Tracks por sprint disponíveis em [`docs/sprint/A6/tracks/`](../sprint/A6/tracks/), [`A7/tracks/`](../sprint/A7/tracks/), [`A8/tracks/`](../sprint/A8/tracks/), [`A11/tracks/`](../sprint/A11/tracks/), [`A12/tracks/`](../sprint/A12/tracks/), [`A16/tracks/`](../sprint/A16/tracks/), [`F7/tracks/`](../sprint/F7/tracks/), [`F9/tracks/`](../sprint/F9/tracks/), [`W5/tracks/`](../sprint/W5/tracks/), [`W6/tracks/`](../sprint/W6/tracks/). [BACKLOG](../BACKLOG.md) é apenas shim de navegação.

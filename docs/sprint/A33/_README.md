@@ -3,15 +3,18 @@ id: MOC-sprint-a33
 type: moc
 title: "Sprint A33 — Autonomia total: débito executável sem nenhuma ação do owner (LLM hardening + fechamento A17 + retenção)"
 aliases: ["A33", "Sprint A33"]
-sprint_status: candidate
+sprint_status: done
 date: "2026-07-07"
+closed: "2026-07-08"
 theme: "autonomous-debt"
 ---
 
 # Sprint A33 — Autonomia total: débito executável sem ação do owner
 
-> **Status:** `candidate` (aberta 2026-07-07; [[MOC-sprint-a32]] é a
-> `current`). Origem: pedido do owner 2026-07-07 — "sprint focada em
+> **Status:** `done` (fechada 2026-07-08 — 8/8 lanes shipped em ~20h de
+> execução, **zero ações do owner**; executada durante a janela da
+> [[MOC-sprint-a32]] `current`, precedente A27 — ver §Fechamento).
+> Origem: pedido do owner 2026-07-07 — "sprint focada em
 > elementos que não demandem ações minhas". Critério de inclusão único:
 > **zero ações do owner** — sem token, sem key nova, sem assinatura paga,
 > sem decisão pendente, sem tráfego de dogfood. Toda lane é executável por
@@ -136,3 +139,43 @@ A33 onda A mexe em `pipeline/llm/schemas/`, `consolidate_baseline`,
 prompts e telemetria) — se o owner quiser antecipar a onda A em paralelo
 à A32, o risco de merge é baixo e está declarado aqui. l6 e l9 têm gates
 de sequenciamento explícitos por causa da A32.
+
+## Fechamento (2026-07-08)
+
+Executada integralmente **durante a janela da A32 `current`** (precedente
+A27), aberta 2026-07-07 ~17h45 e fechada 2026-07-08 ~11h30. Nunca flipou
+`current` — foi de `candidate` direto a `done` com a A32 ainda ativa.
+
+**Lanes (8/8 shipped):** l1 #827 · l2 #833+#835+#850 · l4 #830 ·
+l5 #831 · l6 #844 · l7 #834 · l8 #836 · l9 #849+#852+#853+#854+#855.
+Os gates de sequenciamento funcionaram como desenhados: l6 abriu ~4h
+após o kickoff (merge da [[A32.l5]] #837 + [[ADR-311]] `Decidido`) e
+l9 abriu na manhã seguinte (tráfego em `services/` zerado) — **nenhum
+carry-over**.
+
+**KRs verificados:**
+
+- **KR1 ✅ (zero ações do owner):** nenhuma lane flipou `blocked`;
+  nenhum gate de owner escondido descoberto. A única incógnita
+  (ANTHROPIC_API_KEY para a 1ª execução real do nightly) existia no env
+  do backend dev.
+- **KR2 ✅:** gate `check_float_money.py --scan-schemas
+  pipeline/llm/schemas` em pre-commit (`always_run`), exit 0 — zero
+  float monetário fora de allowlist nominal documentada (única exceção:
+  `parecer_planejador.valor_estimado_brl`, WHY = cents no persist,
+  decisão co-design data-engineer).
+- **KR3 ✅:** [[MOC-sprint-a17]] flipou `done` (#850); goldens
+  sintéticos PII-zero (Wise multi-moeda + proventos JCP/FII) verdes em
+  CI, sem dependência de dogfood.
+- **KR4 ✅:** prune diário com predicado + cascade testados e dry-run
+  registrado no #844 (6.049 rows/~110,8 MB candidatos, gate "zero
+  correntes marcadas" = 0, idempotência confirmada; flip
+  `prune_mode=delete` fica gated no relatório dry-run de produção, por
+  design); nightly drift com 1ª execução real 4/4 PASS consultável em
+  `llm_drift_check` + custo US$0,077/execução (~US$2,30/mês vs cap
+  US$20 do [[ADR-173]], janela mês-calendário).
+
+**Bônus de escopo:** [[ADR-285]] flipou `Decidido` (l9); emenda datada
+na [[ADR-135]] (PTAX compra como invariante de `market_rates` + re-seed
+31/12 real); correção do bootstrap de câmbio que devolvia cotação de
+2026 para consultas de 2024 silenciosamente (achado do co-design).
