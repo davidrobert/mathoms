@@ -5,6 +5,7 @@ title: "Compose dev unificado + Makefile targets opt-in — Sprint A20"
 status: Decidido
 phase: A20.l3
 date: "2026-05-22"
+amended_at: ["2026-07-08"]
 relates_to:
   - "[[ADR-248]]"
   - "[[ADR-250]]"
@@ -24,6 +25,16 @@ tags:
   - phase/a20
 ---
 
+> **Emenda 2026-07-08 (#847):** os targets deste ADR foram renomeados para a
+> taxonomia env-first — Docker: `dev-up-docker`→`docker-up`,
+> `dev-down-docker`→`docker-down`, `dev-reset-docker`→`docker-reset`,
+> `dev-shell-docker`→`docker-shell`, `dev-rebuild-docker`→`docker-build`,
+> `dev-logs-docker`→`docker-logs`; stack nativa: `dev-up`→`native-up`
+> (atalho `make up`), `dev-down`→`native-down`. Os nomes antigos seguem como
+> aliases com aviso de deprecação. O corpo abaixo usa os nomes canônicos; a
+> escolha original do sufixo `-docker` (o que A20 decidiu) fica registrada em
+> D3 como contexto histórico.
+
 ## Contexto
 
 Review independente `sre-devops` (2026-05-22) identificou **P1.6**: dev
@@ -34,7 +45,7 @@ em staging.
 
 KPI norte-mágico do sprint A20: **TTFR (Time-To-First-Request)** para novo
 dev. Baseline ~25min (instalar Python + Postgres + Redis + Alembic + seed).
-Alvo: <5min (`make dev-up-docker && curl localhost:8000/health`).
+Alvo: <5min (`make docker-up && curl localhost:8000/health`).
 
 Gap adicional identificado pelo `senior-cto` review: **5 compose files** já
 existem (`docker-compose.yml`, `dev.yml`, `prod.yml`, `smoke.yml`,
@@ -78,18 +89,19 @@ Estado final pós-A20 (4 compose files):
 
 ### D3 — Makefile targets opt-in
 
-Targets novos no `Makefile` (entregue em [[A20.l7]] · todos com sufixo
-**`-docker`** para não colidir com a stack uvicorn-local legada
-`dev-up`/`dev-down`/`dev-logs`, que já existem):
+Targets novos no `Makefile` (entregue em [[A20.l7]]). O desenho original de A20
+usou o sufixo **`-docker`** para não colidir com a stack uvicorn-local
+(`dev-up`/`dev-down`/`dev-logs`); em #847 os targets migraram para o verbo
+**`docker-*`** (e a stack nativa para `native-*`). Nomes canônicos atuais:
 
-- `make dev-up-docker` — sobe stack completa (`up -d --build` + guard de porta)
-- `make dev-down-docker` — para tudo, preserva volumes
-- `make dev-reset-docker` — para + apaga volumes (`down -v`)
-- `make dev-shell-docker` — shell drop no container `api`
-- `make dev-rebuild-docker` — rebuild após mudança em deps
-- `make dev-logs-docker` — `logs -f` (`SVC=<nome>` filtra um service)
+- `make docker-up` — sobe stack completa (`up -d --build` + guard de porta)
+- `make docker-down` — para tudo, preserva volumes
+- `make docker-reset` — para + apaga volumes (`down -v`)
+- `make docker-shell` — shell drop no container `api`
+- `make docker-build` — rebuild após mudança em deps
+- `make docker-logs` — `logs -f` (`SVC=<nome>` filtra um service)
 
-`uvicorn` local continua suportado via `make dev-up` legado (sem `-docker`).
+`uvicorn` local continua suportado via `make native-up` (antigo `dev-up`).
 
 ### D4 — Healthcheck por service em compose
 
@@ -234,8 +246,8 @@ Portas de **container** intocadas (rede do compose) — só o mapeamento
 publicado muda. `BACKEND_INTERNAL_URL` permanece `http://api:8000`
 (container→container); `NEXT_PUBLIC_API_URL` (browser→host) passa a
 `http://localhost:${MATHOMS_DOCKER_API_PORT:-8010}` para casar com a porta
-publicada. `make dev-up-docker` faz `check_port_free` na banda nova (não na
-legada). Defaults idênticos no `Makefile` e no `docker-compose.dev.yml` —
+publicada. `make docker-up` faz `check_port_free` na banda nova (não na
+nativa). Defaults idênticos no `Makefile` e no `docker-compose.dev.yml` —
 invocar `docker compose` direto resolve as mesmas portas que via `make`.
 
 Validação empírica (2026-05-29): stack Docker `/health` 200 em `:8010`

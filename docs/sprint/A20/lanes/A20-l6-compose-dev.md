@@ -117,7 +117,7 @@ override file do `dev.yml`.
 1. **Performance de bind mount em macOS** — bind mount NFS sem
    `delegated`/`cached` é lento. Mitigação: `delegated` mount strategy
    documentado em [[ADR-252]]; fallback `cached`; alternativa final: rebuild
-   rápido (`make dev-rebuild` em <30s).
+   rápido (`make docker-build` em <30s).
 2. **Seed automático falha em re-run** — `entrypoint.dev.sh` precisa idempotent;
    se workspaces já existe, pula seed sem erro. Mitigação: `INSERT ... ON
    CONFLICT DO NOTHING` ou check upfront.

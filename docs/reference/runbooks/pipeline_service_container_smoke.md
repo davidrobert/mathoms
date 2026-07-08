@@ -81,9 +81,9 @@ O caminho mais simples para validar o executor Go com dados reais:
 ```bash
 make smoke-up                          # stack normal (worker Python in-process)
 export ANTHROPIC_API_KEY=...           # stages LLM rodam no subprocess do Go
-make dogfood-go                        # builda + sobe shell Go :8002 + re-aponta o worker
+make go-on ENV=smoke                   # builda + sobe shell Go :8002 + re-aponta o worker
 # ... rode o pipeline pela UI e valide o relatório (gate humano ADR-150 §7)
-make dogfood-go-off                    # rollback: worker volta ao executor Python
+make go-off ENV=smoke                  # rollback: worker volta ao executor Python
 ```
 
 O Celery continua orquestrando (cancel, needs_review, lineage); só a
@@ -97,10 +97,10 @@ Para testar o Go contra o ambiente dev de verdade (mesmo `.env`, mesmo DB,
 mesmos documentos já uploadados — sem re-seed):
 
 ```bash
-make dev-up                            # stack dev normal, se ainda não estiver de pé
-make dogfood-go-dev                    # shell Go :8002 com env do .env + worker dev re-apontado
+make native-up                         # stack dev normal, se ainda não estiver de pé
+make go-on ENV=native                  # shell Go :8002 com env do .env + worker dev re-apontado
 # ... rode o pipeline pela UI dev (localhost:3000) no seu workspace real
-make dogfood-go-dev-off                # rollback: worker dev volta ao executor Python
+make go-off ENV=native                 # rollback: worker dev volta ao executor Python
 ```
 
 O subprocess `run-stage` lê o `.env` sozinho via pydantic-settings — o

@@ -7,7 +7,7 @@
 Clone fresh → stack inteira rodando em **um comando**:
 
 ```bash
-make dev-up-docker
+make docker-up
 ```
 
 Sobe 7 containers (Postgres + 2 Redis + API + worker + beat + frontend) com
@@ -23,22 +23,22 @@ seed):
 Operação diária (todos os targets em `make help`):
 
 ```bash
-make dev-logs-docker          # tail -f dos logs (SVC=api para um só)
-make dev-shell-docker         # bash dentro do container api
-make dev-down-docker          # para tudo, PRESERVA volumes (DB/Redis/storage)
-make dev-reset-docker         # DESTRUTIVO: para + apaga volumes (wipe + re-seed)
-make dev-rebuild-docker       # rebuild das imagens após mudar deps/Dockerfile
+make docker-logs              # tail -f dos logs (SVC=api para um só)
+make docker-shell             # bash dentro do container api
+make docker-down              # para tudo, PRESERVA volumes (DB/Redis/storage)
+make docker-reset             # DESTRUTIVO: para + apaga volumes (wipe + re-seed)
+make docker-build             # rebuild das imagens após mudar deps/Dockerfile
 ```
 
 Passo a passo e troubleshooting no runbook
 [Dev environment em Docker](runbooks/dev_environment.md). Vars locais
 (LLM key real, secrets próprios) via override gitignored — ver §4 do runbook.
 
-> O setup nativo abaixo (uvicorn no host, targets `make dev-up`/`dev-down`
-> sem sufixo) segue suportado como **fallback** e publica na banda
+> O setup nativo abaixo (uvicorn no host, targets `make native-up`/`native-down`,
+> atalhos `make up`/`down`) segue suportado como **fallback** e publica na banda
 > 8000/8001/3000/3100. A stack Docker publica em 8010/3010/5433/3110, então
 > **as duas rodam ao mesmo tempo** sem colidir. Portas overridáveis via
-> `MATHOMS_DOCKER_*_PORT` (ex.: `make dev-up-docker MATHOMS_DOCKER_API_PORT=9000`).
+> `MATHOMS_DOCKER_*_PORT` (ex.: `make docker-up MATHOMS_DOCKER_API_PORT=9000`).
 
 ## URLs por ambiente (ADR-108)
 
@@ -143,7 +143,7 @@ Depois rode `pre-commit install --install-hooks` de novo.
 
 Agentes criam branches `agent/<slug>/<ts>` que viram squash-merge → branch
 remota auto-deletada → checkout local fica parado em ref morta. Sintoma:
-`make dev-fresh` quebra com `no such ref was fetched`.
+`make native-fresh` quebra com `no such ref was fetched`.
 
 **Configure uma vez, vale para sempre:**
 
@@ -167,7 +167,7 @@ git config --local alias.sweep '!git fetch -p && \
 git checkout main && git pull --ff-only && git sweep
 ```
 
-**Detecção proativa** (já wired no `make dev-fresh`):
+**Detecção proativa** (já wired no `make native-fresh`):
 
 ```bash
 make stale-check     # avisa se HEAD está em agent/* órfã + mostra one-liner
@@ -280,35 +280,35 @@ Relacionado: reset **só** de documentos e pastas de dados por tenant (preserva 
 
 ## 4. Rodar o stack local
 
-### Caminho rápido — `make dev-*`
+### Caminho rápido — `make native-*`
 
 Uma aba de terminal sobe os **6 serviços** (Redis, API 8000, Celery worker,
 frontend 3000, Ops API 8001, frontend-ops 3100) em background:
 
 ```bash
 make dev-bootstrap   # primeira vez: venv, deps, .env, codegen
-make dev-up          # sobe tudo
-make dev-status      # checa PIDs e portas (✅/❌)
-make dev-logs        # tail -f de todos os logs (SVC=api para um só)
-make dev-down        # mata tudo (preserva Redis se já estava rodando antes)
+make native-up       # sobe tudo (atalho: make up)
+make status          # checa PIDs e portas (✅/❌)
+make native-logs     # tail -f de todos os logs (SVC=api para um só; atalho: make logs)
+make native-down     # mata tudo (atalho: make down; preserva Redis se já estava rodando antes)
 ```
 
 | Target | O que faz |
 | --- | --- |
 | `make dev-bootstrap` | Cria `.venv`, instala deps Python e npm (frontend + frontend-ops), gera `.env` via `gen-secrets.sh --init-env` se ausente, gera `frontend-ops/.env.local`, roda codegen (design-tokens + report-layout). Avisa se `config/internal_operators.yaml` falta. |
 | `make dev-pull` | `git pull --ff-only` na raiz + `npm install` em ambos os frontends. Aborta se working tree sujo. |
-| `make dev-up` | Sobe os 6 serviços. **Não toca `.env` nem `mathoms.db`** (preserva Fernet e dados encriptados). |
-| `make dev-down` | Mata todos os processos via PID files. Só mata Redis se foi `dev-up` quem subiu. |
-| `make dev-restart` | `dev-down && dev-up`. |
-| `make dev-restart-worker` | Restart só do Celery worker — útil ao mexer em `pipeline/` ou `tasks/` (worker não tem hot reload). |
-| `make dev-status` | Tabela com PID + porta listening de cada serviço (via `lsof`). |
-| `make dev-logs` | `tail -f` de todos os logs em `_dev_pids/`. `SVC=api` para um só. |
-| `make dev-kill-stale` | Mata processos órfãos em 8000/8001/3000/3100 + limpa `_dev_pids/`. Use quando `dev-up` reclamar de "Porta X já em uso" (uvicorn/npm de sessão antiga). |
-| `make dev-reset-env` | **Destrutivo.** Regenera `.env` (apaga `MATHOMS_FERNET_KEY` → invalida API keys LLM, senhas PDF, CPFs encriptados). Pede confirmação. |
+| `make native-up` (atalho `make up`) | Sobe os 6 serviços. **Não toca `.env` nem `mathoms.db`** (preserva Fernet e dados encriptados). |
+| `make native-down` (atalho `make down`) | Mata todos os processos via PID files. Só mata Redis se foi `native-up` quem subiu. |
+| `make native-restart` | `native-down && native-up`. |
+| `make native-restart-worker` | Restart só do Celery worker — útil ao mexer em `pipeline/` ou `tasks/` (worker não tem hot reload). |
+| `make status` | Tabela com PID + porta listening de cada serviço (via `lsof`). |
+| `make native-logs` (atalho `make logs`) | `tail -f` de todos os logs em `_dev_pids/`. `SVC=api` para um só. |
+| `make recover` | Mata processos órfãos em 8000/8001/3000/3100 + limpa `_dev_pids/`. Use quando `native-up` reclamar de "Porta X já em uso" (uvicorn/npm de sessão antiga). |
+| `make native-reset-env` | **Destrutivo.** Regenera `.env` (apaga `MATHOMS_FERNET_KEY` → invalida API keys LLM, senhas PDF, CPFs encriptados). Pede confirmação. |
 
 PIDs e logs ficam em `_dev_pids/<svc>.{pid,log}` (no `.gitignore`).
 
-URLs após `make dev-up`:
+URLs após `make native-up`:
 - API: http://localhost:8000/docs · http://localhost:8000/health
 - Frontend: http://localhost:3000
 - Ops API: http://127.0.0.1:8001/admin/* (requer `config/internal_operators.yaml` — ver [RUNBOOK §7.2](RUNBOOK.md))
@@ -326,7 +326,7 @@ URLs após `make dev-up`:
 | Frontend | `cd frontend && npm run dev` |
 
 Para ops API (8001) e frontend-ops (3100), ver [RUNBOOK §7.2](RUNBOOK.md) —
-exige envs extras (`MATHOMS_INTERNAL_OPS_UI_ENABLED=1` etc.) que `make dev-up`
+exige envs extras (`MATHOMS_INTERNAL_OPS_UI_ENABLED=1` etc.) que `make native-up`
 já configura automaticamente.
 
 **Status page (opcional, 7E.6):** crie `frontend/.env.local` com `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://…` para exibir o link **Status e incidentes** no rodapé (login, cadastro, convite e área logada). Ver [RUNBOOK.md](RUNBOOK.md).
@@ -384,7 +384,7 @@ open htmlcov/index.html
 > `python scripts/e4_categorize.py`, `python scripts/e5_analyze.py`,
 > `python scripts/e7_review.py`, `python scripts/e_reset.py` **não existem
 > mais**. Pipeline roda exclusivamente via backend (Celery worker); use
-> `make dev-up` + `POST /pipeline/run` para debug local. Reset destrutivo
+> `make native-up` + `POST /pipeline/run` para debug local. Reset destrutivo
 > de pipeline virou service-layer (`backend/app/services/internal_ops/pipeline_reset.py`),
 > consumido pelo console interno.
 >
@@ -401,7 +401,7 @@ mesmo use case `trigger_pipeline` do `POST /pipeline/run` — mesma validação
 de domínio, mesmo dispatch para o Celery worker — só sem HTTP/JWT. Reprocessa
 todos os documentos do workspace ou a partir de um stage (`FROM=<stage>`),
 com opção de `RESET=1` (deleta artifacts via `reset_workspace_from_stage`
-antes de rodar). `make dev-up` continua pré-requisito (worker precisa estar
+antes de rodar). `make native-up` continua pré-requisito (worker precisa estar
 de pé).
 
 Em produção (API + Celery worker), paths vêm via `WorkspaceContext` por-run; testes injetam `InMemoryArtifactStore` explícito ([[ADR-212]] PR2 removeu `MATHOMS_WORKSPACE_ROOT setdefault` global).

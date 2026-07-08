@@ -19,6 +19,14 @@ tags:
 
 # A20.L7 — Makefile targets + onboarding revisado
 
+> **Nota (2026-07-08, #847):** os targets desta entrega foram renomeados para a
+> taxonomia env-first — `dev-up-docker`→`docker-up`, `dev-down-docker`→`docker-down`,
+> `dev-reset-docker`→`docker-reset`, `dev-shell-docker`→`docker-shell`,
+> `dev-rebuild-docker`→`docker-build`, `dev-logs-docker`→`docker-logs`; nativa
+> `dev-up`→`native-up`, `dev-down`→`native-down`. Os nomes abaixo são o que foi
+> entregue em 2026-05-29 e seguem como aliases com aviso; use os canônicos (ver
+> [[ADR-252]] §Emenda).
+
 - **6 targets `make` para a stack Docker** ([[ADR-252]] D3) sobre o
   `docker-compose.dev.yml` do [[A20.l6]]:
   - `dev-up-docker` — sobe a stack (`up -d --build`) com guard de porta
