@@ -4,7 +4,7 @@ type: plan
 title: Platform Review Plan — 2026-05-06
 status: in_progress
 created_at: 2026-05-06
-last_review: 2026-05-07
+last_review: 2026-07-08
 sprint_origem: A11
 sprint_atual: A11
 sprints_envolvidas: [A11]
@@ -64,7 +64,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 **Próximos pickups ready agora:**
 
 - **W6-T02** (MLOps hooks) — destravado: dep W3-T01 entregue (PR #718).
-- **W5** — frontend/metodologia; statuses do Index preservados (evidência de entrega parcial via outras sprints não foi conclusiva — re-verificar no pickup).
+- **W5** — frontend/metodologia; **re-verificação factual concluída 2026-07-08 (spike W5, pós-A33)**: W5-T01 parcial, W5-T02/T03 válidas como escritas, W5-T04 parcial (sub-PR #2 obsoleto — [[ADR-239]]/[[ADR-240]]), W5-T05 parcial (numerador `investivel_efetivo` ✅). Nenhuma task da onda zerou — W5 permanece pickup real, com escopo reduzido anotado por task (§Wave 5).
 - **Owner-gated (não são pickup de agente):** W3-T02 (Resend EU), W4-T02 residual (token Coolify = A20 L4), W4-T01 residual (off-site R2, ADR-228 G2/G3).
 
 > **Reconciliação 2026-07-06** — auditoria factual pós-A28 (sprint `paused` desde
@@ -104,11 +104,11 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W4-T03 | SR-011 + BB-015 Sentry SaaS EU + frontend hookup | 4 | blocked | sre-devops | P1 | S | — |
 | W4-T04 | SR-018 Rate limit endpoints LLM/upload/pipeline | 4 | done (2026-07-02, [PR #720](https://github.com/davidrobert/mathoms/pull/720) — `services/rate_limit.py` aplicado a upload + pipeline_run) | sre-devops | P1 | M | — |
 | W4-T05 | BB-002 + SR-017 + SR-028 Status page + alertas + drill | 4 | blocked | sre-devops | P1 | M | W4-T03 |
-| W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | scoped (track) | product-designer | P1 | S | W1-T01 |
-| W5-T02 | PD-004 + BB-011 Recharts → Chart.js residual em S1 | 5 | blocked | product-designer | P1 | M | W5-T01 |
-| W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | scoped (track) | product-designer | P1 | M | W1-T01 |
-| W5-T04 | FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | 5 | scoped (track) | financial-planner | P1 | L | W1-T07 |
-| W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | scoped (track) | financial-planner | P1 | L | — |
+| W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | parcial — aria-label de charts coberto p/ Chart.js (Onda v2.E/[[ADR-139]], `ChartCanvas` role="img"); resta scope=col (0/13), role="progressbar" (3 call-sites + primitivo), reduced-motion e gate axe moderate (re-verificado 2026-07-08, spike W5) | product-designer | P1 | S | W1-T01 |
+| W5-T02 | PD-004 + BB-011 Recharts → Chart.js residual em S1 | 5 | válida (pendente) — 2 charts seguem Recharts; primitives prontos desde ADR-117; ADR-139 pede emenda, não flip (re-verificado 2026-07-08, spike W5) | product-designer | P1 | M | W5-T01 |
+| W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | válida (pendente) — 18 call-sites do inventário seguem no código + novos fora dele (re-verificado 2026-07-08, spike W5) | product-designer | P1 | M | W1-T01 |
+| W5-T04 | FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | 5 | parcial — sub-PR #5 ✅ via W1-T02 (#98); #2 obsoleto (superseded [[ADR-239]]/[[ADR-240]]); #1/#3/#4 válidos (re-verificado 2026-07-08, spike W5) | financial-planner | P1 | L | W1-T07 |
+| W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | parcial — numerador `investivel_efetivo` + toggle `imoveis_no_if` per-workspace ✅ (#321/#331/#332, ADR-142/222/223); resta `if_meta_liquida` + emissão v2 ([[ADR-140]] segue Roadmap) (re-verificado 2026-07-08, spike W5) | financial-planner | P1 | L | — |
 | W6-T01 | DE schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire compliance) | 6 | parcial — flip strict entregue via A24.l7 ([[ADR-284]] + runbook); sub-schemas E4 + wire compliance residual | data-engineer | P1 | L | — |
 | W6-T02 | MLOps universal hooks (DE-001/004/008/019 — meta-ADR) | 6 | done (2026-07-06, [[ADR-307]] `Decidido` — [PR #796](https://github.com/davidrobert/mathoms/pull/796) + [PR #797](https://github.com/davidrobert/mathoms/pull/797); nightly de extração LLM = follow-up F2 da ADR) | data-engineer | P1 | L | W3-T01 ✅ |
 | W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | ✅ — F9.5 ✅ (#720); F9.6 código ✅ 2026-07-06 (writers E2/E2-llm/E6-parecer + labels de progresso cortados p/ descritivo; `ALLOWED_PREFIXES` sem `pipeline/stages/` e `scripts/`); F9.4 ✅ 2026-07-06 (rename `scripts/e*.py` → nomes descritivos, 9 módulos; `e2_extract.py` → `extract_bank_documents.py` cobre invoices+statements). Residual fora de escopo: limpeza eventual do `STAGE_RENAME_MAP` (compat reverso CLI/HTTP/DB permanece por design) | data-engineer | P2 | M | — |
@@ -511,12 +511,38 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **related_findings:** PD-007, PD-014, PD-015, PD-021
 - **acceptance_criteria:** axe-core sobe para `moderate` em a11y.@critical.spec.ts e mantém verde; primitivo `<ProgressBar/>` extraído.
 
+> **Re-verificação factual 2026-07-08 (spike W5, pós-A33): PARCIAL.**
+> Coberto por outras entregas: `aria-label` de charts entregue para os
+> migrados a Chart.js na Onda v2.E ([[ADR-139]] — primitivo `ChartCanvas`
+> emite `role="img"` + `aria-label`), fechando 3 dos 5 charts do inventário
+> (ReceitaDespesaMensal, ReceitaBar, DespesasDoughnut) + FluxoMensal;
+> `role="progressbar"` já existia em ReservaEmergenciaCard (lote A,
+> pré-plano); cards novos nascem com `scope="col"` (ProventosYieldCard,
+> CoberturaSegurosCard). Resta (verificado no código): `scope="col"` em
+> **0/13** arquivos do inventário do track; `role="progressbar"` ausente em
+> IFHeroCard/EquilibrioCerbasiCard/Kpi e primitivo `<ProgressBar/>`
+> inexistente; `prefers-reduced-motion` ausente em `globals.css`
+> (`.animate-indeterminate` sem media query); gate axe segue
+> `critical+serious` (decisão D1 em `tests/e2e/helpers/axe.ts`) — flip para
+> +`moderate` pendente; `aria-label` dos 2 Recharts residuais acopla com
+> W5-T02. Baselines visuais diferidas de W1-T01 (6 PNGs) seguem pendentes aqui.
+
 ### [W5-T02] PD-004 + BB-011 Recharts → Chart.js residual S1
 
 - **deps:** W5-T01
 - **severity:** P1 · **effort:** M · **owner:** product-designer
 - **files_touched:** `frontend/src/components/report/charts/{PatrimonioDoughnutChart,WaterfallIfChart}.tsx`
 - **acceptance_criteria:** ambos migram para `<ChartDonut>`/`<ChartWaterfall>` primitives Chart.js; aria-label declarados; baselines visuais atualizados; bundle size -150kb confirmado.
+
+> **Re-verificação factual 2026-07-08 (spike W5, pós-A33): VÁLIDA como escrita.**
+> `PatrimonioDoughnutChart.tsx` e `WaterfallIfChart.tsx` seguem importando
+> `recharts` (dep `recharts@^3.8` viva no `package.json`); primitives
+> `ChartDonut`/`ChartWaterfall` existem desde ADR-117 (pré-plano) — o custo
+> residual é só a migração dos 2 componentes de S1. **Correção factual vs
+> Trade-off 1:** [[ADR-139]] já flippou `Decidido (Onda v2.E concluída)` em
+> 2026-04-26 e lista estes 2 charts como fora de escopo intencional
+> ("pode virar v2.E.9") — o fechamento desta task deve entrar como **emenda
+> datada** na ADR-139, não como novo flip de status.
 
 ### [W5-T03] MonetaryValue migration
 
@@ -527,6 +553,16 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **related_findings:** PD-006, PD-010, PD-011, PD-012, PD-013
 - **acceptance_criteria:** todos consomem `<MonetaryValue size="kpi"/>`; sem `font-mono text-Xxl tabular-nums` redundante; sem `toLocaleString()` direto em strings monetárias; `formatCurrency()` usado quando precisa string.
 
+> **Re-verificação factual 2026-07-08 (spike W5, pós-A33): VÁLIDA como escrita.**
+> Os 18 call-sites do inventário do track (9 wrappers `font-mono …
+> tabular-nums` + 9 `toLocaleString` monetários) **seguem presentes** no
+> código (drift de linhas; `CategoriesTab.tsx` virou
+> `config/_categories/CategoryRow.tsx`). Nenhuma sprint recente cobriu o
+> escopo. Código novo já adota o alvo (`size="kpi"` em HeroGapProtecaoCard,
+> AlocacaoAtualVsAlvoCard) e surgiram **novos** call-sites monetários com
+> `toLocaleString` fora do inventário (ProtectionList, InferredRisksCard,
+> StressScenarioCard) — re-inventariar no pickup.
+
 ### [W5-T04] FP-004 ADR-161 enrichment (5 sub-PRs)
 
 - **deps:** W1-T07
@@ -535,6 +571,29 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **files_touched:** `pipeline/domain/services/{cash_flow_builder,instituicoes_por_membro_analyzer,fluxo_caixa_enricher}.py`, novo `WorkspaceInsurance` model + migration + endpoints, `MarketRate` IPCA reader
 - **acceptance_criteria:** 5 regras dormentes (`taxa_poupanca_caindo`, `seguros_insuficientes`, `concentracao_instituicao`, `lifestyle_creep`, `renda_passiva_real_baixa`) disparam em snapshot real; teste e2e em `tests/test_e5_to_suggestion_e2e.py`.
 
+> **Re-verificação factual 2026-07-08 (spike W5, pós-A33): PARCIAL** (1 de 5
+> regras ativa; sub-PR #2 com premissa obsoleta).
+>
+> - **Sub-PR #5 (`renda_passiva_real_baixa`) — essencial JÁ ENTREGUE** via
+>   W1-T02 ([PR #98](https://github.com/davidrobert/mathoms/pull/98)): regra
+>   dispara com snapshot real (`renda_passiva_mensal_observada_brl` emitido
+>   por `e5_serialization`; coberto em `tests/test_e5_to_suggestion_e2e.py`).
+>   Resta só o gate e2e full-pipeline (E1.6+E5) descrito no track.
+> - **Sub-PRs #1/#3/#4 — VÁLIDOS:** `taxa_poupanca_trimestral_historico`,
+>   `patrimonio.por_instituicao` (valores BRL; hoje só lista de nomes em
+>   `instituicoes_por_membro`) e `inflacao.acumulada_pct_no_periodo` + IPCA
+>   reader seguem ausentes do E5 (grep 2026-07-08: campos só aparecem em
+>   `suggestion_rules.py`); as 3 regras seguem dormentes.
+> - **Sub-PR #2 (WorkspaceInsurance) — OBSOLETO na premissa:** dados de
+>   seguro passaram a vir de apólices extraídas de documentos
+>   ([[ADR-239]]/[[ADR-240]] — card S_PROTECAO entregue em A19.l1, PRs
+>   #430–#436; ativação end-to-end em A28.l6,
+>   [PR #783](https://github.com/davidrobert/mathoms/pull/783)). O gap "alta
+>   renda sem cobertura vida" já é sinalizado no relatório pelo S_PROTECAO
+>   (KPI E/F). Re-scope se retomar: alimentar `snapshot.seguros.vida_invalidez`
+>   a partir do `protecao_analyzer`/apólices — **não** criar model novo. A
+>   suggestion `seguros_insuficientes` segue dormente.
+
 ### [W5-T05] FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais)
 
 - **deps:** —
@@ -542,6 +601,22 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **status:** scoped — track histórico `agent_prompts/track_w5t05_goal_if_v2.md`. Caminho recomendado: cutover agora (Trade-off 2 ratificado); override `imoveis_no_if` por workspace fica fora desta lane (débito ADR-142).
 - **files_touched:** `pipeline/domain/services/if_projector.py`, `pipeline/domain/services/passive_income_calculator.py`, `pipeline/domain/services/patrimonio_calculator.py`, `backend/app/services/goal_service.py`, frontend `useGoalIF.ts`
 - **acceptance_criteria:** PR-A IFProjector emite v1+v2 lado-a-lado (additive); PR-B Frontend lê v2 (v1 fallback); PR-C drop v1 (controlled breaking); `progresso_if` muda denominador para `if_meta_liquida`; toggle `imoveis_no_if` por workspace.
+
+> **Re-verificação factual 2026-07-08 (spike W5, pós-A33): PARCIAL.**
+>
+> - **JÁ ENTREGUE** (lanes ADR-142/[[ADR-222]]/[[ADR-223]], Sprint A12+):
+>   numerador v2 — `IFProjector.project(investivel=investivel_efetivo)` em
+>   produção ([PR #321](https://github.com/davidrobert/mathoms/pull/321)) —
+>   fecha FP-012; toggle `imoveis_no_if` virou **override por workspace** com
+>   UX de banner (PRs #331/#332; default `false` por ADR-223) — foi além do
+>   escopo do track, que consumia só o global de `pipeline.json`.
+> - **Resta** (verificado no código): denominador `if_meta_liquida` —
+>   zero hits no repo; `IFProjectorConfig` sem `renda_passiva_atual_mensal_brl`;
+>   `goal.if.v2.schema.json` segue **candidato sem consumidores**; [[ADR-140]]
+>   segue `Roadmap`; PR-A/B/C (additive → frontend v2 → drop v1) não
+>   iniciados. Nota: `useGoalIF.ts` (files_touched acima) nunca existiu no
+>   código — frontend lê `goals.if_pct` direto (HeroKpiGrid,
+>   S7IndependenciaSection); ajustar escopo no pickup.
 
 ---
 
@@ -633,6 +708,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **Decisão CTO:** Migrar (Posição A prevalece).
 - **Razão:** ADR-139 já é precedente para single-engine; a11y gap em S1 é P1 sem outra mitigação; bundle -150kb é benefício colateral.
 - **Implementação:** Lane W5-T02. ADR-139 status atualizada para "Decidido (executado em W5-T02)".
+- **Nota factual (2026-07-08, spike W5):** [[ADR-139]] já flippou `Decidido (Onda v2.E concluída)` em 2026-04-26, preservando os 2 charts como residual intencional ("v2.E.9"). W5-T02 deve registrar **emenda datada** na ADR-139 ao fechar — não um novo flip de status.
 
 ### Trade-off 2 — Goal IF v2: cutover agora vs adiar
 
@@ -787,3 +863,4 @@ Antes de pegar W2+, executar:
 - **2026-05-07** — orquestração Wave 5 + Wave 6 (8 tasks unblocked em paralelo). 6 tasks com track docs criados em `docs/agent_prompts/track_w{5,6}t*.md` (W5-T01/T03/T04/T05, W6-T01/T05). 2 tasks executadas: W6-T04 (PR #111 — subagent catalog auto-gen + branch-cleanup) e W6-T06 (PR #110 — ADR-150 → Roadmap, Caminho 3). 3 tasks permanecem bloqueadas (W5-T02 dep W5-T01, W6-T02 dep W3-T01, W6-T03 dep W2-T06).
 - **2026-06-09** — sync de status Wave 3 (stale desde w2_done ✅ 2026-05-20): W3-T01/T04 `blocked`→`ready`, W3-T02 `ready (owner-gated: Resend)`, **W3-T03 pickup → in_progress** (implementação ADR-170, co-design sre-devops: payload mantém `{sub, exp, tv}` com emenda na ADR, cookie path `/api/v1/auth`, teto absoluto 30d, grace window 60s anti-falso-positivo de reuse, CSRF via header custom). Registrado finding **CTO-015** (W6-T07): split de `services/` por natureza técnica (ADR-285 Proposto) + drenagem boy-scout para `application/`; recomendação "split por domínio" recusada.
 - **2026-06-09 (noite)** — **W3-T03 entregue** ([PR #584](https://github.com/davidrobert/mathoms/pull/584)): refresh tokens httpOnly com family revocation; [[ADR-170]] flippada `Decidido (Sprint A11.W3)` com emendas; supersedure bidirecional [[ADR-057]] ↔ [[ADR-170]]. Wave 3 restante: W3-T01/T04 `ready`, W3-T02 `ready (owner-gated)`.
+- **2026-07-08** — **spike docs-only de re-verificação factual da Wave 5** (follow-up nomeado no fechamento da A33): W5-T01 **parcial** (aria-label de charts coberto p/ Chart.js via Onda v2.E; scope=col 0/13, progressbar, reduced-motion e gate axe moderate pendentes), W5-T02 **válida** (2 charts seguem Recharts; ADR-139 exige emenda, não flip), W5-T03 **válida** (18 call-sites do inventário intactos + novos fora dele), W5-T04 **parcial** (sub-PR #5 ✅ via W1-T02 #98; #2 obsoleto por [[ADR-239]]/[[ADR-240]]; #1/#3/#4 válidos), W5-T05 **parcial** (`investivel_efetivo` + `imoveis_no_if` per-workspace ✅ #321/#331/#332; `if_meta_liquida`/emissão v2 pendentes, ADR-140 `Roadmap`). Saldo: **0 tasks da onda fecharam integralmente** — W5 segue viva com escopo reduzido anotado por task; não arquivar.
