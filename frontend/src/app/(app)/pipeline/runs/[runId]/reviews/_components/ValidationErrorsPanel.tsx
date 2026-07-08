@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, AlertTriangle } from "lucide-react";
+import { useState } from "react";
 
 import { formatCopy, getCopy, summarizeIssues } from "@/lib/validation-copy";
 import type { ValidationIssue } from "@/lib/api/pipeline";
@@ -11,18 +11,26 @@ import {
   type IssueGroup,
   type LegacyGroup,
 } from "@/lib/review-groups";
-import { occurrenceIdentityLabel } from "@/lib/review-issue-identity";
-import { natureLabelForCode } from "@/lib/review-nature";
-import { translateOffendingValue } from "@/lib/review-offending-value";
+import { issueDocumentId } from "@/lib/review-issue-identity";
+import { cn } from "@/lib/cn";
 
-import { ReviewNatureBadge } from "./ReviewNatureBadge";
+import { DocumentGroupedList } from "./DocumentGroupedList";
+import {
+  firstSentence,
+  GroupSummary,
+  OccurrenceLine,
+} from "./review-card-primitives";
 
 const VISIBLE_OCCURRENCES = 5;
 
+type ViewMode = "documento" | "tipo";
+
 /**
- * Renderiza issues de StageReview agrupadas por tipo (A29.l1 · ADR-308).
+ * Renderiza issues de StageReview (A29.l1 · ADR-308 · A32.l6).
  *
- * - `issues` populado (ADR-165/ADR-272): grupos por `code` com copy table.
+ * - `issues` com referência a documento: visão por documento é o default
+ *   (cascatas do mesmo doc colapsam em 1 card); por tipo vira toggle (PR3).
+ * - `issues` sem referência (stages E1/E1.5/E1.6): visão por code direta.
  * - `issues` null (fallback legacy, runs pré-projeção): grupos por mensagem
  *   normalizada — 18 linhas duplicadas viram 2 grupos com contador.
  */
@@ -30,69 +38,94 @@ export function ValidationErrorsPanel({
   issues,
   errorsLegacy,
   onErrorClick,
+  reviewId,
 }: {
   issues: ValidationIssue[] | null;
   errorsLegacy: string | null;
   onErrorClick?: (path: string) => void;
+  reviewId?: string;
 }) {
   if (issues && issues.length > 0) {
-    return <GroupedIssuesList issues={issues} onErrorClick={onErrorClick} />;
+    return (
+      <GroupedIssuesViews
+        issues={issues}
+        reviewId={reviewId}
+        onErrorClick={onErrorClick}
+      />
+    );
   }
   return <GroupedLegacyList errors={errorsLegacy} onErrorClick={onErrorClick} />;
 }
 
-function SeverityIcon({ severity }: { severity: "error" | "warning" }) {
-  const Icon = severity === "error" ? AlertCircle : AlertTriangle;
-  const cls = severity === "error" ? "text-loss" : "text-alert";
-  return <Icon aria-hidden className={`h-4 w-4 shrink-0 ${cls}`} />;
-}
-
-function CountPill({
-  count,
-  severity,
-}: {
-  count: number;
-  severity: "error" | "warning";
-}) {
-  const cls =
-    severity === "error" ? "bg-loss/10 text-loss" : "bg-alert/10 text-alert";
-  return (
-    <span
-      aria-hidden
-      className={`rounded-full px-2 py-0.5 text-[0.65rem] font-medium tabular-nums ${cls}`}
-    >
-      {count}
-    </span>
+function hasDocumentRefs(issues: ValidationIssue[]): boolean {
+  return issues.some(
+    (i) =>
+      issueDocumentId(i) !== null ||
+      (typeof i.context["artifact_key"] === "string" &&
+        i.context["artifact_key"].length > 0),
   );
 }
 
-function GroupSummary({
-  title,
-  count,
-  severity,
-  code,
+function GroupedIssuesViews({
+  issues,
+  reviewId,
+  onErrorClick,
 }: {
-  title: string;
-  count: number;
-  severity: "error" | "warning";
-  code?: string;
+  issues: ValidationIssue[];
+  reviewId?: string;
+  onErrorClick?: (path: string) => void;
 }) {
-  const severityLabel = severity === "error" ? "erro" : "aviso";
-  const occurrences = count === 1 ? "1 ocorrência" : `${count} ocorrências`;
-  const natureLabel = code ? natureLabelForCode(code) : null;
+  const groupable = hasDocumentRefs(issues);
+  const [mode, setMode] = useState<ViewMode>("documento");
+  if (!groupable) {
+    return <GroupedIssuesList issues={issues} onErrorClick={onErrorClick} />;
+  }
   return (
-    <summary
-      className="flex cursor-pointer select-none flex-wrap items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80"
-      aria-label={
-        `${title}, ${occurrences}, ${severityLabel}` +
-        (natureLabel ? `, ${natureLabel}` : "")
-      }
-    >
-      <SeverityIcon severity={severity} />
-      <span className="min-w-0 flex-1">{title}</span>
-      {code && <ReviewNatureBadge code={code} />}
-      <CountPill count={count} severity={severity} />
-    </summary>
+    <div className="space-y-3">
+      <ViewToggle mode={mode} onChange={setMode} />
+      {mode === "documento" ? (
+        <DocumentGroupedList
+          issues={issues}
+          reviewId={reviewId}
+          onErrorClick={onErrorClick}
+        />
+      ) : (
+        <GroupedIssuesList issues={issues} onErrorClick={onErrorClick} />
+      )}
+    </div>
+  );
+}
+
+function ViewToggle({
+  mode,
+  onChange,
+}: {
+  mode: ViewMode;
+  onChange: (mode: ViewMode) => void;
+}) {
+  const options: Array<{ value: ViewMode; label: string }> = [
+    { value: "documento", label: "Por documento" },
+    { value: "tipo", label: "Por tipo de item" },
+  ];
+  return (
+    <div role="group" aria-label="Modo de agrupamento" className="flex gap-1">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          aria-pressed={mode === opt.value}
+          onClick={() => onChange(opt.value)}
+          className={cn(
+            "rounded-md border px-2 py-1 text-xs font-medium transition-colors",
+            mode === opt.value
+              ? "border-border bg-secondary text-secondary-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -202,74 +235,6 @@ function OccurrenceList({
       )}
     </div>
   );
-}
-
-function OccurrenceLine({
-  issue,
-  onErrorClick,
-}: {
-  issue: ValidationIssue;
-  onErrorClick?: (path: string) => void;
-}) {
-  const label = occurrenceIdentityLabel(issue);
-  const translated = translateOffendingValue(issue.context["offending_value"]);
-  const canNavigate = issue.path !== null && onErrorClick !== undefined;
-  return (
-    <li className="text-xs text-foreground">
-      <div className="flex items-baseline gap-2">
-        <span className="min-w-0 flex-1 break-words">{label}</span>
-        {canNavigate && (
-          <button
-            type="button"
-            onClick={() => onErrorClick(issue.path!)}
-            className="shrink-0 text-primary hover:underline focus-visible:underline"
-          >
-            Ir para o campo →
-          </button>
-        )}
-      </div>
-      {translated && (
-        <p className="mt-0.5 break-words text-muted-foreground">{translated}</p>
-      )}
-      <TechnicalDetails issue={issue} />
-    </li>
-  );
-}
-
-/** Dados crus da ocorrência (artifact_key com hash, valor ofensor, esperado) —
- * só aqui, colapsados; nunca no corpo visível do card (A32.l6). */
-function TechnicalDetails({ issue }: { issue: ValidationIssue }) {
-  const ctx = issue.context;
-  const candidates: Array<[string, unknown]> = [
-    ["Referência", ctx["artifact_key"]],
-    ["Valor lido", ctx["offending_value"]],
-    ["Esperado", ctx["expected"]],
-  ];
-  const entries = candidates.filter(
-    (pair): pair is [string, string] =>
-      typeof pair[1] === "string" && pair[1].length > 0,
-  );
-  if (entries.length === 0) return null;
-  return (
-    <details className="mt-0.5 text-[0.65rem] text-muted-foreground">
-      <summary className="cursor-pointer hover:text-foreground">
-        Detalhes técnicos
-      </summary>
-      <dl className="mt-1 space-y-0.5">
-        {entries.map(([term, value]) => (
-          <div key={term} className="flex gap-1.5">
-            <dt className="shrink-0 font-medium">{term}:</dt>
-            <dd className="min-w-0 break-all font-mono">{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </details>
-  );
-}
-
-function firstSentence(message: string): string {
-  const cut = message.split(/[;.]/)[0] ?? message;
-  return cut.trim();
 }
 
 function GroupedLegacyList({

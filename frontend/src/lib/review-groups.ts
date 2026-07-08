@@ -1,4 +1,10 @@
 import type { ValidationIssue } from "@/lib/api/pipeline";
+import {
+  CROSS_DOC_LABEL,
+  issueDocumentId,
+  issueDocumentLabel,
+  occurrenceIdentityLabel,
+} from "@/lib/review-issue-identity";
 
 export interface IssueGroup {
   key: string;
@@ -88,4 +94,99 @@ export function countReviewItems(
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
   return { total: lines.length, errors: lines.length, warnings: 0 };
+}
+
+// ── Agrupamento por documento (A32.l6 PR3) ─────────────────────────────────
+//
+// Visão default da tela de review: cascatas do mesmo documento colapsam em
+// 1 card, 1 decisão. Render-side puro — granularidade de StageReview e o
+// contrato do backend não mudam. A visão por-code (acima) vira toggle.
+
+export type DocumentGroupKind = "document" | "cross_doc" | "truncated";
+
+export interface DocumentIssueGroup {
+  key: string;
+  /** Rótulo legível do card — identidade do documento, nunca hash cru. */
+  label: string;
+  documentId: string | null;
+  severity: "error" | "warning";
+  kind: DocumentGroupKind;
+  issues: ValidationIssue[];
+}
+
+function contextString(issue: ValidationIssue, key: string): string | null {
+  const value = issue.context[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+type DocumentGroupSeed = Pick<
+  DocumentIssueGroup,
+  "key" | "label" | "documentId" | "kind"
+>;
+
+function truncatedSeed(issue: ValidationIssue): DocumentGroupSeed {
+  return {
+    key: `truncated:${issue.code}`,
+    label: issue.legacy_message,
+    documentId: null,
+    kind: "truncated",
+  };
+}
+
+function documentSeed(issue: ValidationIssue, documentId: string): DocumentGroupSeed {
+  return {
+    key: `doc:${documentId}`,
+    label: issueDocumentLabel(issue) ?? occurrenceIdentityLabel(issue),
+    documentId,
+    kind: "document",
+  };
+}
+
+function artifactKeySeed(issue: ValidationIssue, artifactKey: string): DocumentGroupSeed {
+  return {
+    key: `key:${artifactKey}`,
+    label: occurrenceIdentityLabel(issue),
+    documentId: null,
+    kind: "document",
+  };
+}
+
+function documentGroupSeed(issue: ValidationIssue): DocumentGroupSeed {
+  if (issue.context["truncated"] === true) return truncatedSeed(issue);
+  const documentId = issueDocumentId(issue);
+  if (documentId) return documentSeed(issue, documentId);
+  const artifactKey = contextString(issue, "artifact_key");
+  if (artifactKey) return artifactKeySeed(issue, artifactKey);
+  return { key: "cross-doc", label: CROSS_DOC_LABEL, documentId: null, kind: "cross_doc" };
+}
+
+function compareDocumentGroups(a: DocumentIssueGroup, b: DocumentIssueGroup): number {
+  if (a.kind === "truncated" || b.kind === "truncated") {
+    return a.kind === b.kind ? 0 : a.kind === "truncated" ? 1 : -1;
+  }
+  if (a.severity !== b.severity) return a.severity === "error" ? -1 : 1;
+  if (a.issues.length !== b.issues.length) return b.issues.length - a.issues.length;
+  return a.label.localeCompare(b.label, "pt-BR");
+}
+
+/** Agrupa issues pelo documento de origem (document_id → artifact_key →
+ * balde cross-doc). Cascata de N codes do mesmo doc = 1 grupo. */
+export function groupIssuesByDocument(issues: ValidationIssue[]): DocumentIssueGroup[] {
+  const map = new Map<string, DocumentIssueGroup>();
+  for (const issue of issues) {
+    const seed = documentGroupSeed(issue);
+    const existing = map.get(seed.key);
+    if (existing) {
+      existing.issues.push(issue);
+      if (issue.severity === "error") existing.severity = "error";
+    } else {
+      map.set(seed.key, { ...seed, severity: issue.severity, issues: [issue] });
+    }
+  }
+  return [...map.values()].sort(compareDocumentGroups);
+}
+
+/** Sub-grupos por code dentro de um grupo-documento, erros primeiro. */
+export function codeSubgroups(group: DocumentIssueGroup): IssueGroup[] {
+  return groupIssuesByCode(group.issues);
 }

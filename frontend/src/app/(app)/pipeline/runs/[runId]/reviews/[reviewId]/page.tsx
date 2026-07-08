@@ -193,6 +193,7 @@ function ReviewDetailContent({
             issues={review.validation_issues}
             errorsLegacy={review.validation_errors}
             onErrorClick={scrollToField}
+            reviewId={review.id}
           />
         </section>
 
