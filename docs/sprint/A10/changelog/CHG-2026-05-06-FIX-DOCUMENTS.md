@@ -21,7 +21,7 @@ tags:
   mas mantinha o filename antigo, fazendo E2 rotear para `parse_itau_xls`
   (que falha por sheet `Lançamentos` ausente) em vez do E2-LLM.
   - **A — sync**: `_OPTIONAL_E2_EXTRACT_TYPE_VALUES = {"investment_report"}`
-    em [backend/app/services/document_pipeline_sync.py](../../../../backend/app/services/document_pipeline_sync.py) —
+    em [backend/app/services/document_pipeline_sync.py](../../../../backend/app/services/pipeline/document_pipeline_sync.py) —
     sem extract → `pipeline_e2_extract_ok=None` ("Processado"), em vez de
     `False` ("Sem extrato"). Com extract → `True` ("Extraído") como antes.
   - **B — rename canônico no PATCH**: `_maybe_rename_after_manual_override`

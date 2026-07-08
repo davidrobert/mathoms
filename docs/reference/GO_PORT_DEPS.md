@@ -183,7 +183,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–518 LOC, mediana ~40) que
 Coisas que o shell Go vai precisar replicar **mesmo no Caminho 1**:
 
 1. **Layout de paths** — `WorkspaceContext.__post_init__` define `processed_dir`, `e2_dir`, etc. Convenção compartilhada com Python; tem que ficar idêntica ou o Python via subprocess não acha os arquivos.
-2. **Redis pub/sub envelope** — formato em [event_publisher.py:56-70](../../pipeline-service/app/services/event_publisher.py:56) (`event`, `run_id`, `timestamp`, `stage`, `status`, `progress_pct`, `error`, `detail`). Backend WebSocket consumer ([backend/app/services/events.py](../../backend/app/services/events.py)) espera esse shape exato.
+2. **Redis pub/sub envelope** — formato em [event_publisher.py:56-70](../../pipeline-service/app/services/event_publisher.py:56) (`event`, `run_id`, `timestamp`, `stage`, `status`, `progress_pct`, `error`, `detail`). Backend WebSocket consumer ([backend/app/services/events.py](../../backend/app/services/pipeline/events.py)) espera esse shape exato.
 3. **Channel naming** — `pipeline:{run_id}` em [event_publisher.py:72](../../pipeline-service/app/services/event_publisher.py:72). Hardcoded; tem que ser idêntico.
 4. **OpenAPI contract** — [docs/reference/api/v1/pipeline-service.openapi.json](api/v1/pipeline-service.openapi.json) é fonte de verdade; codegen Go via `oapi-codegen` recomendado ([ADR-113](../DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) §Escopo deferido).
 5. **OTel span naming** — `pipeline.{stage}` no `_TRACER.start_as_current_span` de [pipeline/orchestrator.py](../../pipeline/orchestrator.py). Em Go, `otel.Tracer("mathoms.pipeline").Start(ctx, "pipeline."+stage)`.
