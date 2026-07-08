@@ -423,7 +423,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **owner:** sre-devops + senior-cto
 - **severity:** P0 · **effort:** L
 - **status:** done (2026-06-09, [PR #584](https://github.com/davidrobert/mathoms/pull/584)) — [[ADR-170]] `Decidido (Sprint A11.W3)` com seção de emendas (payload mantém `{sub, exp, tv}` — ADR-109; cookie path `/api/v1/auth`; teto absoluto 30d; grace window 60s; CSRF via header custom; `token_version_at_issue` faz tv bump revogar a família). Flag `MATHOMS_AUTH_REFRESH_FLOW` default off; access em memória ficou como débito registrado na ADR. Changelog: `docs/sprint/A11/changelog/CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS.md`.
-- **files_touched:** `backend/app/core/security.py` (intacto — payload preservado), `backend/app/api/auth.py`, `backend/app/models/refresh_token_family.py`, `backend/app/services/refresh_token_service.py` + `refresh_rate_limit.py`, `frontend/src/lib/api/core.ts` interceptor 401
+- **files_touched:** `backend/app/core/security.py` (intacto — payload preservado), `backend/app/api/auth.py`, `backend/app/models/refresh_token_family.py`, `backend/app/services/refresh_token_service.py` (hoje `backend/app/application/auth/refresh_session.py`, Frente 2 [[ADR-285]]) + `refresh_rate_limit.py`, `frontend/src/lib/api/core.ts` interceptor 401
 - **acceptance_criteria:** access 15min payload mínimo; refresh 7d httpOnly cookie + Secure + SameSite=Lax; family-based revocation; reuse detection invalida família; frontend interceptor 401 → refresh transparente; backward-compat por 1 release com flag.
 
 ### [W3-T04] SR-003 Fernet rotation real (MultiFernet)

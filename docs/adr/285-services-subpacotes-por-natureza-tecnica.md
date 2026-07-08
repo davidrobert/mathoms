@@ -5,6 +5,7 @@ title: "backend/app/services/: subpacotes por natureza técnica, nunca por domí
 status: Decidido
 phase: "A33.l9"
 date: "2026-06-09"
+amended_at: ["2026-07-08"]
 relates_to:
   - "[[ADR-101]]"
   - "[[ADR-089]]"
@@ -25,6 +26,11 @@ tags:
 **Status:** Decidido (A33.l9) • **Data:** 2026-06-09 • **Relaciona**
 [[ADR-101]] (R15 — Application layer por domínio), [[ADR-089]]/[[ADR-097]]
 (ISP em services de domínio), [[ADR-111]] (stateless — singletons lazy).
+
+> **Emenda (2026-07-08):** avaliação da §Decisão-2 executada —
+> `classification/` permanece subpacote autônomo; Frente 2 iniciada com o
+> move de `refresh_token_service` para `application/auth/` — ver
+> §"Emenda 2026-07-08".
 
 ## Contexto
 
@@ -97,3 +103,25 @@ débito registrado no
 [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md). Flip
 para `Decidido` no merge do primeiro PR de subpacote (`services/security/`,
 A33.l9).
+
+## Emenda 2026-07-08
+
+**(a) Avaliação da §Decisão-2 executada — `classification/` permanece
+subpacote autônomo**, reconhecido como 5º subpacote de natureza técnica
+(ao lado de `security/`, `storage/`, `pipeline/`, `documents/`). A
+consolidação em `documents/` foi **rejeitada**: o pacote tem coesão real
+(núcleo regex→LLM→needs_review de classificação, ADR-081) e a fusão
+custaria ~14 renames sem ganho estrutural. O `__init__.py` com re-exports
+de constantes imutáveis é **intencional** ([[ADR-111]] categoria-a —
+constantes, não singletons materializados no import) e é divergência
+deliberada dos 4 `__init__` vazios dos demais subpacotes.
+
+**(b) Frente 2 iniciada (co-design senior-cto 2026-07-08)** — primeiro
+item drenado: `backend/app/services/refresh_token_service.py` movido para
+`backend/app/application/auth/refresh_session.py`. O módulo é use-case de
+sessão (emite/rotaciona/revoga família de refresh token), não adapter
+técnico — use-case ≠ adapter; **não** foi para `services/security/`
+(mesma palavra "refresh", naturezas opostas: lá é infra cross-cutting).
+Logger namespace `mathoms.auth.refresh` preservado (métricas/alertas
+dependem dele); módulo **fora** do `__all__` de `application/auth/__init__.py`
+(consumers importam símbolos específicos direto do módulo).

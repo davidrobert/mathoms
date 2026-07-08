@@ -8,12 +8,12 @@ from typing import Optional, Union
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.application.auth.refresh_session import issue_refresh_family
 from backend.app.application.base import AccountLockedError, AuthenticationError
 from backend.app.core.config import settings
 from backend.app.core.security import create_access_token, verify_password
 from backend.app.models.user import User
 from backend.app.schemas.auth import LoginRequest, SessionTokens
-from backend.app.services.refresh_token_service import issue_refresh_family
 from backend.app.services.security.brute_force_lockout import (
     BruteForceLockoutService,
     LockoutState,
