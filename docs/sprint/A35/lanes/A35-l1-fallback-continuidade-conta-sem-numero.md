@@ -4,9 +4,9 @@ type: lane
 title: "fallback da cadeia de continuidade quando número de conta não extrai + sinal auditável (ADR-310 emenda)"
 sprint: A35
 plan: null
-status: open
-ship_pr: null
-ship_date: null
+status: shipped
+ship_pr: 865
+ship_date: "2026-07-08"
 priority: P1
 branch_slug: a35-l1-continuity-accountless-fallback
 adrs: ["[[ADR-310]]"]
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a35
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/domain

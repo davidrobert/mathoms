@@ -730,7 +730,7 @@
 | A34.l7 | lane | planned | A34 | Deletar _archive/ do HEAD (checar referências vivas) | `sprint/A34/lanes/A34-l7-delete-archive-dir.md` |
 | A34.l8 | lane | planned | A34 | Regenerar EXEMPLO_DE_RELATORIO.html sintético | `sprint/A34/lanes/A34-l8-regen-exemplo-relatorio-synthetic.md` |
 | A34.l9 | lane | planned | A34 | Anonimizar ~15 ADRs + docs de sprint (in-body apenas) | `sprint/A34/lanes/A34-l9-anonymize-adrs-sprint-docs.md` |
-| A35.l1 | lane | open | A35 | fallback da cadeia de continuidade quando número de conta não extrai + sinal auditável (ADR-310 emenda) | `sprint/A35/lanes/A35-l1-fallback-continuidade-conta-sem-numero.md` |
+| A35.l1 | lane | shipped | A35 | fallback da cadeia de continuidade quando número de conta não extrai + sinal auditável (ADR-310 emenda) | `sprint/A35/lanes/A35-l1-fallback-continuidade-conta-sem-numero.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
