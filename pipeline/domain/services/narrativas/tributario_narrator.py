@@ -13,7 +13,10 @@ class WiseFiscalFlagsNarrative(TypedDict):
 
     context: str
     conclusion: str
-    items: list[dict[str, str]]
+    items: list[dict[str, str | bool]]
+    # A33.l2 (anti-fadiga, co-design financial-planner 2026-07-07): needs_review
+    # agregados por informe num bloco único — "N pontos a revisar com contador".
+    pontos_revisao: int
 
 
 _PERFIL_PENDENTE: dict[str, str] = {
@@ -192,24 +195,31 @@ def narrate_wise_fiscal_flags(
 ) -> WiseFiscalFlagsNarrative:
     """Narrativa agregada para `wise_fiscal_flags[]` — fact-check fiscal Wise/exterior."""
     if not flags:
-        return WiseFiscalFlagsNarrative(context="", conclusion="", items=[])
+        return WiseFiscalFlagsNarrative(context="", conclusion="", items=[], pontos_revisao=0)
     items = [_render_flag_item(f) for f in flags]
-    summary = _summarize_flags(flags, ctx)
+    pontos_revisao = sum(1 for f in flags if f.get("needs_review"))
+    summary = _summarize_flags(flags, ctx, pontos_revisao)
     return WiseFiscalFlagsNarrative(
-        context=summary["context"], conclusion=summary["conclusion"], items=items
+        context=summary["context"],
+        conclusion=summary["conclusion"],
+        items=items,
+        pontos_revisao=pontos_revisao,
     )
 
 
-def _render_flag_item(flag: Mapping[str, Any]) -> dict[str, str]:
+def _render_flag_item(flag: Mapping[str, Any]) -> dict[str, str | bool]:
     return {
         "code": str(flag.get("code") or ""),
         "severity": str(flag.get("severity") or "info"),
         "title": str(flag.get("title") or ""),
         "descricao": str(flag.get("descricao") or ""),
+        "needs_review": bool(flag.get("needs_review")),
     }
 
 
-def _summarize_flags(flags: list[Mapping[str, Any]], ctx: NarrativasContext) -> dict[str, str]:
+def _summarize_flags(
+    flags: list[Mapping[str, Any]], ctx: NarrativasContext, pontos_revisao: int
+) -> dict[str, str]:
     codes = sorted({str(f.get("code") or "") for f in flags if f.get("code")})
     labels = ", ".join(_CODE_LABEL.get(c, c) for c in codes)
     return {
@@ -218,16 +228,26 @@ def _summarize_flags(flags: list[Mapping[str, Any]], ctx: NarrativasContext) -> 
             f"{ctx.titular_nome}: {labels}. Cada item abaixo é fact-check — "
             f"Mathoms não calcula, não recolhe, apenas alerta."
         ),
-        "conclusion": (
-            "Confirme com seu contador se as obrigações vigentes (CBE BACEN, "
-            "carnê-leão mensal, GCAP cambial em DARF) já foram cumpridas no "
-            "ano-base referenciado."
-        ),
+        "conclusion": _conclusion_flags(pontos_revisao),
     }
+
+
+def _conclusion_flags(pontos_revisao: int) -> str:
+    base = (
+        "Confirme com seu contador se as obrigações vigentes (CBE BACEN, "
+        "carnê-leão mensal, GCAP cambial em DARF) já foram cumpridas no "
+        "ano-base referenciado."
+    )
+    if pontos_revisao == 0:
+        return base
+    plural = "ponto" if pontos_revisao == 1 else "pontos"
+    return f"{pontos_revisao} {plural} a revisar com contador. {base}"
 
 
 _CODE_LABEL: dict[str, str] = {
     "CBE": "Capital Brasileiro no Exterior",
     "CARNELEAO": "Carnê-leão (juros do exterior)",
     "GCAP": "GCAP cambial",
+    "GCAP_ISENTO": "Variação cambial em isentos",
+    "RFB41_ME": "Conta em ME com código doméstico",
 }

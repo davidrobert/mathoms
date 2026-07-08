@@ -36,7 +36,25 @@ def _flag(**overrides) -> dict:
 
 def test_narrate_wise_flags_lista_vazia_retorna_estrutura_vazia():
     out = narrate_wise_fiscal_flags([], _ctx())
-    assert out == {"context": "", "conclusion": "", "items": []}
+    assert out == {"context": "", "conclusion": "", "items": [], "pontos_revisao": 0}
+
+
+def test_narrate_wise_flags_agrega_pontos_revisao():
+    """Anti-fadiga (A33.l2 P5.7): needs_review agregados num bloco único."""
+    flags = [
+        _flag(code="RFB41_ME", needs_review=True),
+        _flag(code="GCAP_ISENTO", needs_review=True),
+        _flag(code="CBE", needs_review=False),
+    ]
+    out = narrate_wise_fiscal_flags(flags, _ctx())
+    assert out["pontos_revisao"] == 2
+    assert "2 pontos a revisar com contador" in out["conclusion"]
+    assert [i["needs_review"] for i in out["items"]] == [True, True, False]
+
+
+def test_narrate_wise_flags_um_ponto_singular():
+    out = narrate_wise_fiscal_flags([_flag(needs_review=True)], _ctx())
+    assert "1 ponto a revisar com contador" in out["conclusion"]
 
 
 def test_narrate_wise_flags_none_retorna_estrutura_vazia():

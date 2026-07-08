@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Callable, Optional
+from typing import Optional
 
-#: Tipo da função opcional de cotação. `(moeda, ano_base) → Decimal | None`.
-PtaxGetter = Callable[[str, int], Optional[Decimal]]
+from pipeline.domain.services.ptax_types import PtaxGetter
 
 
 def _to_decimal(v) -> Decimal:
@@ -19,13 +18,29 @@ def _to_decimal(v) -> Decimal:
 
 
 @dataclass(frozen=True)
+class PtaxMissingWarning:
+    """PTAX 31/12 do ano-base indisponível — saldo_brl degradado para None (ADR-097 D1)."""
+
+    moeda: str
+    ano_base: int
+    descricao: str
+
+    def format(self) -> str:
+        return (
+            f"PTAX {self.moeda}/BRL ausente para 31/12/{self.ano_base} "
+            f"({self.descricao[:50]}). saldo_brl ficou None — workspace deve fornecer "
+            f"cotação ou aceitar saldo em moeda original."
+        )
+
+
+@dataclass(frozen=True)
 class BaselineMergeResult:
-    """Resultado do merge — baseline + telemetria; `fiscal_flags` é estruturado (ADR-238 D5+P5)."""
+    """Resultado do merge — baseline + telemetria; warnings/flags tipados (ADR-238 D5+P5)."""
 
     baseline: dict
     informes_processed: int = 0
     saldos_added: int = 0
-    warnings: list[str] = field(default_factory=list)
+    warnings: list[PtaxMissingWarning] = field(default_factory=list)
     fiscal_flags: list = field(default_factory=list)  # list[FiscalFlag]
 
 
@@ -39,7 +54,6 @@ class BaselineInformeMerger:
     def merge(self, baseline: dict, informes: list[dict]) -> BaselineMergeResult:
         """Anexa saldos_31_12 + fiscal_flags Wise (A17 L3 P5) ao baseline; preserva entries."""
         novas_entradas, warnings, fiscal_flags = self._collect(informes)
-        warnings.extend(f.descricao for f in fiscal_flags)
         baseline_out = {
             **baseline,
             "informe_pf_saldos_31_12": novas_entradas,
@@ -53,21 +67,24 @@ class BaselineInformeMerger:
             fiscal_flags=fiscal_flags,
         )
 
-    def _collect(self, informes: list[dict]) -> tuple[list[dict], list[str], list]:
+    def _collect(self, informes: list[dict]) -> tuple[list[dict], list[PtaxMissingWarning], list]:
         """Itera informes coletando (entradas, warnings, fiscal_flags) — separa loop de merge."""
         from pipeline.domain.services.wise_fiscal_flags import detect_all_wise_flags
 
         novas_entradas: list[dict] = []
-        warnings: list[str] = []
+        warnings: list[PtaxMissingWarning] = []
         fiscal_flags: list = []
         for informe in informes:
             entradas, ws = self._process_informe(informe)
             novas_entradas.extend(entradas)
             warnings.extend(ws)
-            fiscal_flags.extend(detect_all_wise_flags(informe.get("financeiro_pf") or {}))
+            ano_base = int(informe.get("ano_base", 0)) or None
+            fiscal_flags.extend(
+                detect_all_wise_flags(informe.get("financeiro_pf") or {}, self._ptax, ano_base)
+            )
         return novas_entradas, warnings, fiscal_flags
 
-    def _process_informe(self, informe: dict) -> tuple[list[dict], list[str]]:
+    def _process_informe(self, informe: dict) -> tuple[list[dict], list[PtaxMissingWarning]]:
         """Processa 1 informe — retorna (entradas, warnings de PTAX faltante)."""
         payload = informe.get("financeiro_pf") or {}
         ano_base = int(informe.get("ano_base", 0))
@@ -81,27 +98,42 @@ class BaselineInformeMerger:
 
     def _process_saldo(
         self, saldo: dict, ano_base: int, cnpj_emissor: str
-    ) -> tuple[dict, list[str]]:
+    ) -> tuple[dict, list[PtaxMissingWarning]]:
         """Constrói entry enriched com saldo_brl via PTAX (graceful se ausente)."""
         moeda = saldo.get("moeda", "BRL")
         valor = _to_decimal(saldo.get("saldo"))
-        saldo_brl, taxa, warnings = self._convert_to_brl(valor, moeda, ano_base, saldo)
-        entry = _build_entry(saldo, ano_base, cnpj_emissor, valor, saldo_brl, taxa)
+        conv, warnings = self._convert_to_brl(valor, moeda, ano_base, saldo)
+        entry = _build_entry(saldo, ano_base, cnpj_emissor, valor, conv)
         return entry, warnings
 
     def _convert_to_brl(
         self, valor: Decimal, moeda: str, ano_base: int, saldo: dict
-    ) -> tuple[Optional[Decimal], Optional[Decimal], list[str]]:
-        """Aplica PTAX 31/12 do ano_base. Graceful: PTAX ausente → (None, None, warning)."""
+    ) -> tuple["_Conversao", list[PtaxMissingWarning]]:
+        """Aplica PTAX compra 31/12 do ano_base. Graceful: PTAX ausente → warning."""
         if moeda == "BRL":
-            return valor, Decimal("1"), []
-        taxa = self._ptax(moeda, ano_base)
-        if taxa is None:
-            return None, None, [_ptax_missing_warning(moeda, ano_base, saldo)]
-        return valor * taxa, taxa, []
+            return _Conversao(saldo_brl=valor, taxa=Decimal("1"), ptax_data=None), []
+        quote = self._ptax(moeda, ano_base)
+        if quote is None:
+            warning = PtaxMissingWarning(moeda, ano_base, saldo.get("descricao", ""))
+            return _Conversao(saldo_brl=None, taxa=None, ptax_data=None), [warning]
+        conv = _Conversao(
+            saldo_brl=valor * quote.rate,
+            taxa=quote.rate,
+            ptax_data=quote.observed_at.isoformat(),
+        )
+        return conv, []
 
 
 # ─────────────────────── helpers (pure) ─────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class _Conversao:
+    """Resultado da conversão ME→BRL de 1 saldo (taxa + data da cotação usada)."""
+
+    saldo_brl: Optional[Decimal]
+    taxa: Optional[Decimal]
+    ptax_data: Optional[str]
 
 
 _TWO_PLACES = Decimal("0.01")
@@ -117,19 +149,20 @@ def _build_entry(
     ano_base: int,
     cnpj_emissor: str,
     valor: Decimal,
-    saldo_brl: Optional[Decimal] = None,
-    taxa: Optional[Decimal] = None,
+    conv: _Conversao,
 ) -> dict:
-    """Entry shape consumido por E5 narrativas / S4 UI (ADR-238 D5)."""
+    """Entry shape consumido por E5 narrativas / S1 UI (ADR-238 D5 + P4)."""
     fields_origem = {k: saldo.get(k, default) for k, default in _ENTRY_FIELDS_FROM_SALDO.items()}
     return {
         "ano_base": ano_base,
         "cnpj_emissor": cnpj_emissor,
         **fields_origem,
         "saldo_original": _money_str(valor),
-        "saldo_brl": _money_str(saldo_brl) if saldo_brl is not None else None,
-        "taxa_ptax_aplicada": str(taxa) if taxa is not None else None,
-        "ptax_status": "applied" if saldo_brl is not None else "missing",
+        "saldo_brl": _money_str(conv.saldo_brl) if conv.saldo_brl is not None else None,
+        "taxa_ptax_aplicada": str(conv.taxa) if conv.taxa is not None else None,
+        "ptax_data": conv.ptax_data,
+        "ptax_status": "applied" if conv.saldo_brl is not None else "missing",
+        "fonte": "informe_31_12",
     }
 
 
@@ -153,13 +186,6 @@ def _flag_to_dict(flag) -> dict:
         "valor_brl": str(flag.valor_brl) if flag.valor_brl is not None else None,
         "valor_original": str(flag.valor_original) if flag.valor_original is not None else None,
         "moeda": flag.moeda,
+        "needs_review": flag.needs_review,
         "metadata": dict(flag.metadata),
     }
-
-
-def _ptax_missing_warning(moeda: str, ano_base: int, saldo: dict) -> str:
-    desc = saldo.get("descricao", "")[:50]
-    return (
-        f"PTAX {moeda}/BRL ausente para 31/12/{ano_base} ({desc}). "
-        f"saldo_brl ficou None — workspace deve fornecer cotação ou aceitar saldo em moeda original."
-    )

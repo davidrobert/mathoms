@@ -14,7 +14,11 @@ from backend.app.core.database import Base
 
 
 class MarketRate(Base):
-    """Cotação observada de par de moedas (USD/BRL, EUR/BRL) — tabela global (ADR-135)."""
+    # Invariante (emenda ADR-135, 2026-07-07): `rate` para pares */BRL é PTAX
+    # de COMPRA (convenção RFB p/ bens/direitos e GCAP). Lado venda exige
+    # schema evolution futura — não reinterprete rows existentes; `source` é
+    # reforço de auditoria apenas.
+    """Cotação PTAX compra observada por par (USD/BRL, EUR/BRL, GBP/BRL) — tabela global (ADR-135)."""
 
     __tablename__ = "market_rates"
     __table_args__ = (

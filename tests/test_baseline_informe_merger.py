@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -9,7 +10,9 @@ import pytest
 from pipeline.domain.services.baseline_informe_merger import (
     BaselineInformeMerger,
     BaselineMergeResult,
+    PtaxMissingWarning,
 )
+from pipeline.domain.services.ptax_types import PtaxQuote
 
 # ─────────────────────── factories de informe ───────────────────────────────
 
@@ -59,10 +62,13 @@ def _informe(
 
 
 def _ptax_table(taxas: dict[tuple[str, int], Decimal]):
-    """Factory de ptax_getter — `taxas[(moeda, ano)] → Decimal` ou None se ausente."""
+    """Factory de ptax_getter — `taxas[(moeda, ano)] → PtaxQuote 31/12` ou None se ausente."""
 
     def _get(moeda: str, ano: int):
-        return taxas.get((moeda, ano))
+        rate = taxas.get((moeda, ano))
+        if rate is None:
+            return None
+        return PtaxQuote(rate=rate, observed_at=date(ano, 12, 31))
 
     return _get
 
@@ -104,6 +110,8 @@ def test_merge_brl_cdb_simples():
     assert entry["saldo_brl"] == "5000.00"
     assert entry["taxa_ptax_aplicada"] == "1"
     assert entry["ptax_status"] == "applied"
+    assert entry["ptax_data"] is None  # BRL não passa por PTAX
+    assert entry["fonte"] == "informe_31_12"
     assert entry["ano_base"] == 2024
     assert entry["tipo"] == "cdb"
     assert entry["codigo_rfb"] == "70"
@@ -137,9 +145,11 @@ def test_merge_wise_usd_com_ptax_disponivel():
     assert entry["saldo_brl"] == "5200.00"
     assert entry["taxa_ptax_aplicada"] == "5.20"
     assert entry["ptax_status"] == "applied"
+    assert entry["ptax_data"] == "2024-12-31"  # data da cotação usada (P4 footnote)
+    assert entry["fonte"] == "informe_31_12"
     assert entry["codigo_rfb"] == "62"
-    # PTAX aplicada com sucesso → sem warning de PTAX ausente (GCAP é separado, A17 L3 P5).
-    assert not any("PTAX" in w and "ausente" in w for w in r.warnings)
+    # PTAX aplicada com sucesso → sem warning de PTAX ausente (tipado, ADR-097 D1).
+    assert r.warnings == []
 
 
 def test_merge_wise_usd_sem_ptax_graceful_degradation():
@@ -150,10 +160,15 @@ def test_merge_wise_usd_sem_ptax_graceful_degradation():
     entry = r.baseline["informe_pf_saldos_31_12"][0]
     assert entry["saldo_brl"] is None
     assert entry["taxa_ptax_aplicada"] is None
+    assert entry["ptax_data"] is None
     assert entry["ptax_status"] == "missing"
-    ptax_warnings = [w for w in r.warnings if "PTAX USD/BRL ausente" in w]
-    assert len(ptax_warnings) == 1
-    assert "31/12/2024" in ptax_warnings[0]
+    # Warning tipado com .format() (ADR-097 D1) — não string solta.
+    assert len(r.warnings) == 1
+    warning = r.warnings[0]
+    assert isinstance(warning, PtaxMissingWarning)
+    assert warning.moeda == "USD" and warning.ano_base == 2024
+    assert "PTAX USD/BRL ausente" in warning.format()
+    assert "31/12/2024" in warning.format()
 
 
 def test_merge_wise_eur_via_ptax():
@@ -169,8 +184,8 @@ def test_merge_wise_eur_via_ptax():
 # ─────────────────────── CBE BACEN warning (> USD 1MM) ──────────────────────
 
 
-def test_merge_cbe_bacen_warning_quando_excede_1MM_usd():
-    """Total exterior > USD 1MM emite FiscalFlag CBE (P5) + warning compat."""
+def test_merge_cbe_bacen_flag_quando_excede_1MM_usd():
+    """Total exterior > USD 1MM emite FiscalFlag CBE (P5), warning-only."""
     ptax = _ptax_table({("USD", 2024): Decimal("5.20")})
     merger = BaselineInformeMerger(ptax_getter=ptax)
     saldos = [
@@ -183,11 +198,10 @@ def test_merge_cbe_bacen_warning_quando_excede_1MM_usd():
     assert len(cbe_flags) == 1
     assert cbe_flags[0].valor_original == Decimal("1100000")
     assert cbe_flags[0].moeda == "USD"
-    # Warnings agora derivam de FiscalFlag.descricao (P5) — busca tolerante a
-    # formato monetário (1.100.000 ou 1,100,000.00 dependendo da locale).
-    cbe_warnings = [w for w in r.warnings if "Total de ativos no exterior" in w]
-    assert len(cbe_warnings) == 1
-    assert any("1,100,000" in w or "1.100.000" in w for w in cbe_warnings)
+    assert cbe_flags[0].needs_review is False  # CBE nunca vira needs_review (P5.4)
+    assert any("1,100,000" in f.descricao or "1.100.000" in f.descricao for f in cbe_flags)
+    # r.warnings é só PTAX ausente (tipado) — flags não duplicam em warnings.
+    assert r.warnings == []
 
 
 def test_merge_cbe_nao_dispara_quando_abaixo_threshold():
@@ -313,7 +327,9 @@ def test_merge_baseline_serializa_flag_como_dict():
     assert flags_baseline
     for flag in flags_baseline:
         assert isinstance(flag, dict)
-        assert {"code", "severity", "title", "descricao", "moeda"}.issubset(flag.keys())
+        assert {"code", "severity", "title", "descricao", "moeda", "needs_review"}.issubset(
+            flag.keys()
+        )
 
 
 def test_merge_sem_flags_baseline_lista_vazia():
