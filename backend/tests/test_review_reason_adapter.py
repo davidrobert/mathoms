@@ -244,10 +244,10 @@ def _issues_helpers():
     from backend.app.tasks.pipeline_task import (
         _ISSUE_CAP_PER_CODE,
         _issues_from_reasons,
-        _resolve_document_ids,
+        _resolve_document_identities,
     )
 
-    return _ISSUE_CAP_PER_CODE, _issues_from_reasons, _resolve_document_ids
+    return _ISSUE_CAP_PER_CODE, _issues_from_reasons, _resolve_document_identities
 
 
 def test_issues_from_reasons_severity_and_order() -> None:
@@ -257,7 +257,7 @@ def test_issues_from_reasons_severity_and_order() -> None:
         _reason("domain.balance_gap"),
         _reason("extract.missing_required_field"),
     ]
-    issues = _issues_from_reasons(reasons, {})
+    issues = _issues_from_reasons(reasons, {}, {})
     # Blocking primeiro (error), depois domain.* (warning), maior grupo primeiro.
     assert issues[0]["code"] == "extract.missing_required_field"
     assert issues[0]["severity"] == "error"
@@ -270,7 +270,7 @@ def test_issues_from_reasons_severity_and_order() -> None:
 def test_issues_from_reasons_cap_with_sentinel() -> None:
     cap, _issues_from_reasons, _ = _issues_helpers()
     reasons = [_reason("dedup.sentinel_period") for _ in range(cap + 15)]
-    issues = _issues_from_reasons(reasons, {})
+    issues = _issues_from_reasons(reasons, {}, {})
     assert len(issues) == cap + 1
     sentinel = issues[-1]
     assert sentinel["context"] == {"truncated": True, "remaining": 15}
@@ -285,6 +285,9 @@ def _seed_document(db, ws_id: str, hash_prefix: str):
         original_name="extrato.pdf",
         stored_path="/tmp/x.pdf",
         doc_type=DocumentType.bank_statement,
+        bank_code="c6bank",
+        period="202604",
+        classification_meta={"content": {"doc_type": "extratoconta"}},
         status=DocumentStatus.ready,
         content_hash=hash_prefix + "0" * 52,
     )
@@ -293,18 +296,48 @@ def _seed_document(db, ws_id: str, hash_prefix: str):
     return doc
 
 
+_HASHED_KEY = "f861374a39e9_c6bank_extratoconta_202604_202604"
+
+
+def _expected_identity(doc) -> dict:
+    return {
+        "document_id": doc.id,
+        "doc_bank_code": "c6bank",
+        "doc_type": "bank_statement",
+        "doc_e0_type": "extratoconta",
+        "doc_period": "202604",
+    }
+
+
 @pytest.mark.asyncio
-async def test_resolve_document_ids_by_hash_prefix(sync_db) -> None:
-    _, _, _resolve_document_ids = _issues_helpers()
+async def test_resolve_document_identities_by_hash_prefix(sync_db) -> None:
+    """A32.l6: além da FK, a projeção carrega a identidade legível do documento."""
+    _, _, _resolve_document_identities = _issues_helpers()
     ws_id = str(uuid.uuid4())
     doc = _seed_document(sync_db, ws_id, "f861374a39e9")
-    keys = {
-        "f861374a39e9_c6bank_extratoconta_202604_202604",
-        "sem_prefixo_hash",
-        "itau_BRL_baseline_2024",
-    }
-    resolved = _resolve_document_ids(sync_db, ws_id, keys)
-    assert resolved == {"f861374a39e9_c6bank_extratoconta_202604_202604": doc.id}
+    reasons = [
+        _reason("dedup.sentinel_period", artifact_key=_HASHED_KEY),
+        _reason("dedup.sentinel_period", artifact_key="sem_prefixo_hash"),
+        _reason("domain.balance_gap", artifact_key="itau_BRL_baseline_2024"),
+    ]
+    by_key, by_id = _resolve_document_identities(sync_db, ws_id, reasons)
+    assert by_key == {_HASHED_KEY: _expected_identity(doc)}
+    assert by_id == {doc.id: _expected_identity(doc)}
+
+
+@pytest.mark.asyncio
+async def test_resolve_document_identities_by_explicit_fk(sync_db) -> None:
+    """Reason com document_id explícito (store expõe FK) resolve sem hash prefix."""
+    _, _issues_from_reasons, _resolve_document_identities = _issues_helpers()
+    ws_id = str(uuid.uuid4())
+    doc = _seed_document(sync_db, ws_id, "aaaabbbbcccc")
+    reasons = [_reason("domain.temporal_gap", artifact_key="", document_id=doc.id)]
+    by_key, by_id = _resolve_document_identities(sync_db, ws_id, reasons)
+    assert by_key == {}
+    assert doc.id in by_id
+    issues = _issues_from_reasons(reasons, by_key, by_id)
+    assert issues[0]["context"]["doc_bank_code"] == "c6bank"
+    assert issues[0]["context"]["document_id"] == doc.id
 
 
 def _fetch_review(db, run_id: str):
@@ -349,8 +382,13 @@ async def test_record_stage_needs_review_projects_validation_issues(sync_db) -> 
     assert issues[0]["code"] == "extract.missing_required_field"
     assert issues[0]["severity"] == "error"
     assert issues[0]["context"]["document_id"] == doc.id
+    # A32.l6: identidade legível acompanha a FK resolvida.
+    assert issues[0]["context"]["doc_bank_code"] == "c6bank"
+    assert issues[0]["context"]["doc_e0_type"] == "extratoconta"
+    assert issues[0]["context"]["doc_period"] == "202604"
     assert issues[1]["severity"] == "warning"
     assert issues[1]["context"]["document_id"] is None
+    assert "doc_bank_code" not in issues[1]["context"]
 
 
 @pytest.mark.asyncio

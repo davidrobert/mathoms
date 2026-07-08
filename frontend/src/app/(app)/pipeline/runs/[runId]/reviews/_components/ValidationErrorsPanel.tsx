@@ -11,6 +11,7 @@ import {
   type IssueGroup,
   type LegacyGroup,
 } from "@/lib/review-groups";
+import { occurrenceIdentityLabel } from "@/lib/review-issue-identity";
 
 const VISIBLE_OCCURRENCES = 5;
 
@@ -198,32 +199,56 @@ function OccurrenceLine({
   issue: ValidationIssue;
   onErrorClick?: (path: string) => void;
 }) {
-  const label = occurrenceLabel(issue);
+  const label = occurrenceIdentityLabel(issue);
   const canNavigate = issue.path !== null && onErrorClick !== undefined;
   return (
-    <li className="flex items-baseline gap-2 text-xs text-foreground">
-      <span className="min-w-0 flex-1 break-words font-mono">{label}</span>
-      {canNavigate && (
-        <button
-          type="button"
-          onClick={() => onErrorClick(issue.path!)}
-          className="shrink-0 text-primary hover:underline focus-visible:underline"
-        >
-          Ir para o campo →
-        </button>
-      )}
+    <li className="text-xs text-foreground">
+      <div className="flex items-baseline gap-2">
+        <span className="min-w-0 flex-1 break-words">{label}</span>
+        {canNavigate && (
+          <button
+            type="button"
+            onClick={() => onErrorClick(issue.path!)}
+            className="shrink-0 text-primary hover:underline focus-visible:underline"
+          >
+            Ir para o campo →
+          </button>
+        )}
+      </div>
+      <TechnicalDetails issue={issue} />
     </li>
   );
 }
 
-/** Linha compacta da ocorrência: valor ofensor + referência do documento
- * quando presentes no context; senão a mensagem técnica original. */
-function occurrenceLabel(issue: ValidationIssue): string {
+/** Dados crus da ocorrência (artifact_key com hash, valor ofensor, esperado) —
+ * só aqui, colapsados; nunca no corpo visível do card (A32.l6). */
+function TechnicalDetails({ issue }: { issue: ValidationIssue }) {
   const ctx = issue.context;
-  const parts = [ctx["offending_value"], ctx["field"], ctx["artifact_key"]]
-    .filter((v) => v !== null && v !== undefined && String(v).length > 0)
-    .map(String);
-  return parts.length > 0 ? parts.join(" · ") : issue.legacy_message;
+  const candidates: Array<[string, unknown]> = [
+    ["Referência", ctx["artifact_key"]],
+    ["Valor lido", ctx["offending_value"]],
+    ["Esperado", ctx["expected"]],
+  ];
+  const entries = candidates.filter(
+    (pair): pair is [string, string] =>
+      typeof pair[1] === "string" && pair[1].length > 0,
+  );
+  if (entries.length === 0) return null;
+  return (
+    <details className="mt-0.5 text-[0.65rem] text-muted-foreground">
+      <summary className="cursor-pointer hover:text-foreground">
+        Detalhes técnicos
+      </summary>
+      <dl className="mt-1 space-y-0.5">
+        {entries.map(([term, value]) => (
+          <div key={term} className="flex gap-1.5">
+            <dt className="shrink-0 font-medium">{term}:</dt>
+            <dd className="min-w-0 break-all font-mono">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  );
 }
 
 function firstSentence(message: string): string {

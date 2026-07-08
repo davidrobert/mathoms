@@ -22,7 +22,7 @@ import pytest
 
 from backend.app.models.document import DocumentStatus, DocumentType
 from backend.app.schemas.dto.document.command import DocumentUpdateCommand
-from backend.app.schemas.dto.document.mapper import _extract_e0_doc_type, document_to_response
+from backend.app.schemas.dto.document.mapper import document_to_response, extract_e0_doc_type
 
 
 def _fake_doc(**overrides) -> SimpleNamespace:
@@ -183,15 +183,15 @@ class TestDocumentToResponse:
 
 class TestExtractE0DocType:
     def test_returns_none_when_meta_missing(self):
-        assert _extract_e0_doc_type(None) is None
-        assert _extract_e0_doc_type({}) is None
+        assert extract_e0_doc_type(None) is None
+        assert extract_e0_doc_type({}) is None
 
     def test_prefers_content_over_llm(self):
         meta = {
             "content": {"doc_type": "informerendimentosaluguel"},
             "llm": {"doc_type": "outro"},
         }
-        assert _extract_e0_doc_type(meta) == "informerendimentosaluguel"
+        assert extract_e0_doc_type(meta) == "informerendimentosaluguel"
 
 
 class TestDocumentUpdateCommand:

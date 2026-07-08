@@ -25,7 +25,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
 from backend.app.core.database import SyncSessionLocal
-from backend.app.models.document import Document
+from backend.app.models.document import Document, DocumentType
 from backend.app.models.pipeline_run import (
     PipelineRun,
     PipelineRunStatus,
@@ -35,6 +35,7 @@ from backend.app.models.pipeline_run import (
 from backend.app.models.report import Report
 from backend.app.models.review_reason import ReviewReason
 from backend.app.models.stage_review import StageReview, StageReviewStatus
+from backend.app.schemas.dto.document.mapper import extract_e0_doc_type
 from backend.app.services.events import (
     publish_needs_review,
     publish_run_cancelled,
@@ -863,40 +864,75 @@ _ISSUE_CAP_PER_CODE = 20
 _HASH_PREFIX_RE = re.compile(r"^[0-9a-f]{12}(?=_)")
 
 
-def _resolve_document_ids(db, workspace_id: str, artifact_keys: set[str]) -> dict[str, str]:
-    """artifact_key → documents.id via prefixo content_hash[:12] (ADR-308 §5);
-    E2 não grava a FK — quem conhece ``documents`` é este boundary."""
-    prefixes = {m.group(0) for k in artifact_keys if (m := _HASH_PREFIX_RE.match(k))}
-    if not prefixes:
-        return {}
-    rows = (
-        db.query(Document.id, Document.content_hash)
+def _document_identity(doc: Document) -> dict:
+    """Campos que a UI de review precisa para rótulo legível
+    "Instituição · Tipo · Período" (A32.l6) — nunca o hash cru."""
+    doc_type = doc.doc_type
+    return {
+        "document_id": doc.id,
+        "doc_bank_code": doc.bank_code,
+        "doc_type": doc_type.value if isinstance(doc_type, DocumentType) else doc_type,
+        "doc_e0_type": extract_e0_doc_type(doc.classification_meta),
+        "doc_period": doc.period,
+    }
+
+
+def _identity_filters(prefixes: set[str], doc_ids: set[str]) -> list:
+    filters = [Document.content_hash.like(f"{p}%") for p in prefixes]
+    if doc_ids:
+        filters.append(Document.id.in_(doc_ids))
+    return filters
+
+
+def _resolve_document_identities(
+    db, workspace_id: str, reasons: list[dict]
+) -> tuple[dict[str, dict], dict[str, dict]]:
+    """(artifact_key → identity, document_id → identity) via prefixo content_hash[:12]
+    (ADR-308 §5) e FK explícita; quem conhece ``documents`` é este boundary."""
+    keys = {r.get("artifact_key") or "" for r in reasons} - {""}
+    explicit_ids = {r.get("document_id") for r in reasons if r.get("document_id")}
+    prefixes = {m.group(0) for k in keys if (m := _HASH_PREFIX_RE.match(k))}
+    if not prefixes and not explicit_ids:
+        return {}, {}
+    docs = (
+        db.query(Document)
         .filter(
             Document.workspace_id == workspace_id,
-            or_(*[Document.content_hash.like(f"{p}%") for p in prefixes]),
+            or_(*_identity_filters(prefixes, explicit_ids)),
         )
         .all()
     )
-    by_prefix = {ch[:12]: doc_id for doc_id, ch in rows if ch}
+    by_id = {d.id: _document_identity(d) for d in docs}
+    return _identities_by_key(docs, keys, by_id), by_id
+
+
+def _identities_by_key(docs: list, keys: set[str], by_id: dict[str, dict]) -> dict[str, dict]:
+    by_prefix = {d.content_hash[:12]: by_id[d.id] for d in docs if d.content_hash}
     return {
         k: by_prefix[m.group(0)]
-        for k in artifact_keys
+        for k in keys
         if (m := _HASH_PREFIX_RE.match(k)) and m.group(0) in by_prefix
     }
 
 
-def _issue_from_reason(reason: dict, severity: str, doc_ids: dict[str, str]) -> dict:
+def _issue_from_reason(
+    reason: dict, severity: str, by_key: dict[str, dict], by_id: dict[str, dict]
+) -> dict:
     key = reason.get("artifact_key") or ""
+    identity = by_id.get(reason.get("document_id") or "") or by_key.get(key)
+    context = {
+        "artifact_key": key,
+        "document_id": reason.get("document_id"),
+        "offending_value": reason.get("offending_value"),
+        "expected": reason.get("expected"),
+    }
+    if identity:
+        context.update(identity)
     return {
         "code": reason.get("code", ""),
         "severity": severity,
         "path": None,
-        "context": {
-            "artifact_key": key,
-            "document_id": reason.get("document_id") or doc_ids.get(key),
-            "offending_value": reason.get("offending_value"),
-            "expected": reason.get("expected"),
-        },
+        "context": context,
         "legacy_message": reason.get("message", ""),
     }
 
@@ -911,7 +947,17 @@ def _sentinel_issue(code: str, severity: str, remaining: int) -> dict:
     }
 
 
-def _issues_from_reasons(reasons: list[dict], doc_ids: dict[str, str]) -> list[dict]:
+def _issues_for_code(code, group, severity, by_key, by_id) -> list[dict]:
+    """Top-N do grupo + sentinela ``truncated`` quando estoura o cap."""
+    issues = [_issue_from_reason(r, severity, by_key, by_id) for r in group[:_ISSUE_CAP_PER_CODE]]
+    if len(group) > _ISSUE_CAP_PER_CODE:
+        issues.append(_sentinel_issue(code, severity, len(group) - _ISSUE_CAP_PER_CODE))
+    return issues
+
+
+def _issues_from_reasons(
+    reasons: list[dict], by_key: dict[str, dict], by_id: dict[str, dict]
+) -> list[dict]:
     """Projeção ReviewReason → ValidationIssue (ADR-272 crit. 6 · ADR-308 §3):
     cap top-N por code + sentinela ``truncated``; total exato vive na tabela."""
     from pipeline.domain.review_reason import BLOCKING_CODES
@@ -924,9 +970,7 @@ def _issues_from_reasons(reasons: list[dict], doc_ids: dict[str, str]) -> list[d
     issues: list[dict] = []
     for code, group in ordered:
         severity = "error" if code in blocking else "warning"
-        issues.extend(_issue_from_reason(r, severity, doc_ids) for r in group[:_ISSUE_CAP_PER_CODE])
-        if len(group) > _ISSUE_CAP_PER_CODE:
-            issues.append(_sentinel_issue(code, severity, len(group) - _ISSUE_CAP_PER_CODE))
+        issues.extend(_issues_for_code(code, group, severity, by_key, by_id))
     return issues
 
 
@@ -945,9 +989,8 @@ def _record_stage_needs_review(
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
         if not structured_issues and review_reasons:
-            keys = {r.get("artifact_key") or "" for r in review_reasons} - {""}
-            doc_ids = _resolve_document_ids(db, run.workspace_id, keys)
-            structured_issues = _issues_from_reasons(review_reasons, doc_ids)
+            by_key, by_id = _resolve_document_identities(db, run.workspace_id, review_reasons)
+            structured_issues = _issues_from_reasons(review_reasons, by_key, by_id)
         stage_log = db.get(PipelineStageLog, log_id)
         stage_log.status = PipelineStageStatus.needs_review
         stage_log.duration_ms = elapsed_ms
