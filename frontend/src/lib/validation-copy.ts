@@ -146,6 +146,16 @@ const PLURAL_OVERRIDES: Record<string, string> = {
   "Categoria de item incomum": "Categorias de item incomuns",
   "Item sem dono identificado": "Itens sem dono identificado",
   "Ano-base do item inválido": "Anos-base de itens inválidos",
+  // Reasons E3 (A32.l6 PR2) — títulos-frase não pluralizam com sufixo "s".
+  "Não lemos a instituição dentro do documento":
+    "Não lemos a instituição dentro dos documentos",
+  "Não conseguimos ler o período do documento":
+    "Não conseguimos ler o período dos documentos",
+  "Saldo não continua entre extratos": "Saldos não continuam entre extratos",
+  "Período sem extrato": "Períodos sem extrato",
+  "Transações fora do período foram descartadas":
+    "Transações fora do período foram descartadas",
+  "Saldo difere da declaração": "Saldos diferem da declaração",
 };
 
 const ptPlural = (count: number, singular: string): string =>
