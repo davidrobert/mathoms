@@ -74,7 +74,7 @@ def artifact_db_session_factory(monkeypatch):
     monkeypatch.setattr(artifact_session, "_new_session", lambda: factory())
     # A hidratação (run_context_factory) abre sessão de config própria —
     # aponta para o mesmo engine in-memory; sem isso leria o mathoms.db dev.
-    from backend.app.services import run_context_factory
+    from backend.app.services.pipeline import run_context_factory
 
     monkeypatch.setattr(run_context_factory, "_default_session_factory", lambda: factory())
     yield factory

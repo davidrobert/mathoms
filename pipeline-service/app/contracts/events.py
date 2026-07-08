@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 class StageEvent(BaseModel):
     """Wire format for events on channel `pipeline:{run_id}`.
 
-    Mirrors the shape produced by `backend.app.services.events` so both
+    Mirrors the shape produced by `backend.app.services.pipeline.events` so both
     backend (legacy pub/sub) and pipeline-service (HTTP pub/sub) emit the
     same envelope. WebSocket subscribers see the union of both streams.
     """

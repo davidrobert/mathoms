@@ -66,7 +66,7 @@ def _build_hydrated_context(req: StageExecuteRequest):
 
 def _import_build_hydrated():
     try:
-        from backend.app.services.run_context_factory import build_hydrated_context
+        from backend.app.services.pipeline.run_context_factory import build_hydrated_context
     except ImportError as exc:
         raise ArtifactStoreUnavailable(
             "pipeline-service requer o pacote 'backend' importável para hidratar "

@@ -30,7 +30,7 @@ def open_artifact_store(
 ):
     """Abre sessão nova + store para UM stage. Falha cedo e nomeada (D4)."""
     try:
-        from backend.app.services.db_artifact_store import DBArtifactStore
+        from backend.app.services.storage.db_artifact_store import DBArtifactStore
     except ImportError as exc:
         raise ArtifactStoreUnavailable(
             "pipeline-service requer o pacote 'backend' importável para executar "
