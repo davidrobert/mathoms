@@ -576,7 +576,7 @@ Itens explicitamente removidos. Revisitar pós-beta.
 - `pipeline/stages/review_finances.py` (a substituir)
 - `pipeline/llm/litellm_client.py` (LLMService — reusar)
 - `backend/app/services/section_summary_orchestrator.py` (pattern a espelhar)
-- `backend/app/services/llm_cache.py` (cache Redis — reusar)
+- `backend/app/services/storage/llm_cache.py` (cache Redis — reusar)
 - `backend/app/models/suggestion.py`, `task.py`, `decision.py` (aggregates a alimentar)
 - `frontend/src/components/report/sections/SuggestionCallout.tsx` (componente a reusar)
 - `frontend/src/components/report/sections/PlanoDeAcao/` (precedente de aterrissagem)

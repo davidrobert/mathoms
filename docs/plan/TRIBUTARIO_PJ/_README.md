@@ -51,7 +51,7 @@ Template em `pipeline/domain/services/narrativas/charts_narrator.py::impostos_pj
 
 ### N2 — Wiring (`tributario` nunca chega ao bundle)
 
-Sprint A10.7 ([[A10.7]] / migration `b1a2c3d4e5f7`) criou `Workspace.business_profile_json` com `{contador, regime, holding_prazo_meses}` e modelo Pydantic `BusinessProfile`. Mas `backend/app/services/pipeline_adapter.py::build_goals_payload_sync` (linhas 293-316) nunca lê esse campo nem injeta chave `"tributario"` no `GoalsBundle`.
+Sprint A10.7 ([[A10.7]] / migration `b1a2c3d4e5f7`) criou `Workspace.business_profile_json` com `{contador, regime, holding_prazo_meses}` e modelo Pydantic `BusinessProfile`. Mas `backend/app/services/pipeline/pipeline_adapter.py::build_goals_payload_sync` (linhas 293-316) nunca lê esse campo nem injeta chave `"tributario"` no `GoalsBundle`.
 
 Resultado: `trib_cfg = goals_cfg.get("tributario", {})` em `scripts/e5n_narrativas.py:338` sempre devolve `{}`, todos os campos caem no default `""`. **Dead-data wiring** — a migração A10.7 deixou a outra ponta nunca conectada.
 

@@ -107,7 +107,7 @@ direta dos schemas:
    é distinguível.
 3. **PII pós-extração reutiliza `FamilyMember.cpf_encrypted` existente**
    — não criar tabela `family_member_pii`. Adapter pós-LLM usa
-   `backend/app/services/vault.py` (Fernet singleton lazy idempotente,
+   `backend/app/services/security/vault.py` (Fernet singleton lazy idempotente,
    aderente [[ADR-111]]).
 4. **3 ADRs novas + 1 errata em [[ADR-233]]** — consolidado vs. 5 ADRs
    propostas inicialmente. Errata em ADR-233 cobre migration de prompts legados.
@@ -328,7 +328,7 @@ Após este plano:
   → `"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"` nos campos
   monetários + `additionalProperties: false` + `payload_version` no
   envelope para backfill incremental.
-- **Mapping `SCHEMA_BY_STAGE`** em `backend/app/services/db_artifact_store.py`:
+- **Mapping `SCHEMA_BY_STAGE`** em `backend/app/services/storage/db_artifact_store.py`:
   adicionar `E1.5` e `E1.5a` (gap atual permite payload sem validation
   no per-IRPF pré-consolidação).
 
@@ -426,7 +426,7 @@ plano [[PLAN-internal-admin]].
 - Helpers `_extract_confidence(output)` e `_extract_needs_review(output)`.
 - **Pipeline NÃO emite OTLP** ([CLAUDE.md] boundary). Pipeline retorna
   `LLMRunSummary` agregado por `prompt_version`. Emit OTLP fica em
-  **`backend/app/services/document_processor.py`** (ou no orchestrator
+  **`backend/app/services/documents/document_processor.py`** (ou no orchestrator
   stage runner) que consome o summary após cada chamada.
 - Métricas OTLP via `backend/app/core/otel.py` ([[ADR-110]]):
   - `mathoms.llm.confidence` (histogram, labels `prompt_name`, `prompt_version`,

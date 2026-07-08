@@ -36,7 +36,7 @@ Investigação em relatório real (workspace `Campos`, run `c36c4baf-…`, perí
 
 1. `DBArtifactStore.list_keys(stage)` retorna chaves workspace-wide (~80 E2 keys visíveis).
 2. `DBArtifactStore.read(stage, key)` filtra por `pipeline_run_id` atual; só os 2 E2 novos desta rodada retornam payload — todos os outros devolvem `None`.
-3. Fallback workspace-wide em [`_WORKSPACE_SCOPED_STAGES`](../../backend/app/services/db_artifact_store.py#L82) hoje cobre só E1.x (members, baseline, IRPF, informe_aluguel, informes_anuais). E2/E3/E4/E5 estão explicitamente fora, conforme [[ADR-132]] (decisão tomada antes de incremental ser fluxo principal).
+3. Fallback workspace-wide em [`_WORKSPACE_SCOPED_STAGES`](../../backend/app/services/storage/db_artifact_store.py#L82) hoje cobre só E1.x (members, baseline, IRPF, informe_aluguel, informes_anuais). E2/E3/E4/E5 estão explicitamente fora, conforme [[ADR-132]] (decisão tomada antes de incremental ser fluxo principal).
 4. E3 (reconcile) lê todos os E2 via `list_keys` mas só carrega os do run atual — 2 statements → 1 conta com 4 transações.
 5. E4, E5 propagam o universo subdimensionado; relatório fica errado em fluxo, categorias, taxa de poupança, investimentos atuais, caixa.
 
@@ -46,7 +46,7 @@ E3/E4/E5 são diferentes: têm invariantes **cross-account** (dedup de transaç�
 
 ## Decisão
 
-**Promover os 6 nomes de E2 a workspace-scoped em [`_WORKSPACE_SCOPED_STAGES`](../../backend/app/services/db_artifact_store.py#L82):**
+**Promover os 6 nomes de E2 a workspace-scoped em [`_WORKSPACE_SCOPED_STAGES`](../../backend/app/services/storage/db_artifact_store.py#L82):**
 
 ```python
 # Legado (F9.2 compat)
