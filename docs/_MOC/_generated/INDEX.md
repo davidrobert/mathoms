@@ -280,7 +280,7 @@
 | ADR-282 | adr | Decidido |  | Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) | `adr/282-override-identity-natural-key-v2.md` |
 | ADR-283 | adr | Decidido |  | Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items) | `adr/283-float-monetario-persistido-e-hardening-de-boundary.md` |
 | ADR-284 | adr | Decidido |  | Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift | `adr/284-schema-validation-mode-overrides-per-stage.md` |
-| ADR-285 | adr | Proposto |  | backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio | `adr/285-services-subpacotes-por-natureza-tecnica.md` |
+| ADR-285 | adr | Decidido |  | backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio | `adr/285-services-subpacotes-por-natureza-tecnica.md` |
 | ADR-286 | adr | Decidido |  | Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo | `adr/286-contrato-dedicado-artefato-e2-llm.md` |
 | ADR-287 | adr | Decidido |  | Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) | `adr/287-flip-dedup-e4-identidade-v2.md` |
 | ADR-288 | adr | Decidido |  | Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable | `adr/288-identificador-fiscal-ilegivel-degrada-para-none-no-boundary-llm.md` |

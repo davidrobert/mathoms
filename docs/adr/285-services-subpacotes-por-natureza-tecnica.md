@@ -2,8 +2,8 @@
 id: ADR-285
 type: adr
 title: "backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio"
-status: Proposto
-phase: "Débito técnico"
+status: Decidido
+phase: "A33.l9"
 date: "2026-06-09"
 relates_to:
   - "[[ADR-101]]"
@@ -15,14 +15,14 @@ superseded_by: []
 aliases: ["ADR 285", "services taxonomy", "services por natureza"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/backend
   - area/architecture
 ---
 
 # ADR-285 — `backend/app/services/`: subpacotes por natureza técnica, nunca por domínio de negócio
 
-**Status:** Proposto (Débito técnico) • **Data:** 2026-06-09 • **Relaciona**
+**Status:** Decidido (A33.l9) • **Data:** 2026-06-09 • **Relaciona**
 [[ADR-101]] (R15 — Application layer por domínio), [[ADR-089]]/[[ADR-097]]
 (ISP em services de domínio), [[ADR-111]] (stateless — singletons lazy).
 
@@ -91,7 +91,9 @@ rate limits…) e (b) lógica de use-case represada (`goal_service`,
   independente) — fora do escopo de qualquer codemod.
 - ⚠️ Discernimento por módulo na Frente 2 — não é codemod cego.
 
-**Implementação:** Frente 1 em lane futura (gate: `services/` sem PRs em voo);
-Frente 2 via débito registrado no
-[plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md). Esta ADR
-flippa para `Decidido` no merge do primeiro PR de subpacote da Frente 1.
+**Implementação:** Frente 1 executada na lane A33.l9 (gate de entrada
+verificado 2026-07-08: nenhum PR em voo tocando `services/`); Frente 2 via
+débito registrado no
+[plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md). Flip
+para `Decidido` no merge do primeiro PR de subpacote (`services/security/`,
+A33.l9).

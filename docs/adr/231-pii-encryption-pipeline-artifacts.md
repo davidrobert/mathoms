@@ -34,7 +34,7 @@ tags:
 
 Sprint A11 W2-T01 (`docs/plan/PLATFORM_REVIEW/_README.md` linhas 300-309) atribui prioridade P0 ao fechamento desse gap. Finding origem DE-003 (data-engineer 2026-05-06).
 
-Hoje a base Fernet já existe em produção via [`backend/app/services/vault.py`](../../backend/app/services/vault.py) — singleton com `MATHOMS_FERNET_KEY`, fail-fast se ausente, usado para PDF passwords + LLM keys + `workspaces.cpf_encrypted`. W3-T04 ([[ADR-171]]) propõe MultiFernet rotation cobrindo essa chave.
+Hoje a base Fernet já existe em produção via [`backend/app/services/vault.py`](../../backend/app/services/security/vault.py) — singleton com `MATHOMS_FERNET_KEY`, fail-fast se ausente, usado para PDF passwords + LLM keys + `workspaces.cpf_encrypted`. W3-T04 ([[ADR-171]]) propõe MultiFernet rotation cobrindo essa chave.
 
 ### Trade-offs
 

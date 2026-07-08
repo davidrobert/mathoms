@@ -64,7 +64,7 @@ gerou estas ressalvas, aplicadas neste PR de T02:
   adicionados ao `SENSITIVE_FIELD_SUBSTRINGS` em
   [`backend/app/core/logging.py`](../../backend/app/core/logging.py); logs em
   INFO emitem `coverage_bucket: int (0-5)` via
-  [`mask_coverage_bucket`](../../backend/app/services/protection_pii.py).
+  [`mask_coverage_bucket`](../../backend/app/services/security/protection_pii.py).
 - **`insurer` allowlist regex** ASCII+acentos PT-BR + separadores comuns
   (S/A aceito); URLs/paths rejeitados explicitamente (defesa SSRF).
 - **Disclaimer canônico T04** (texto canônico em §"Critério de aceite" abaixo):
