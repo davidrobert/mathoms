@@ -37,6 +37,9 @@ __pycache__/
 
 # Per-tenant file storage (uploads, processed, reports)
 storage/
+# Exceção: subpacote de código services/storage/ (ADR-285) — sem âncora, o
+# padrão acima engoliria o pacote e git add pularia arquivos silenciosamente
+!backend/app/services/storage/
 
 # Frontend
 frontend/node_modules/
