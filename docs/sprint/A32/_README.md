@@ -75,8 +75,8 @@ antigos; a visibilidade é que é nova. Quatro causas raiz confirmadas:
 | 1 | [[A32.l3]] | Parser de fatura: período do routing/DB, nunca re-derivado do filename inteiro | P0 | shipped (#823) |
 | 2 | [[A32.l4]] | Chave canônica de conta na continuidade de saldo + ordenação determinística ([[ADR-310]]) | P1 | shipped (#829) |
 | 2 | [[A32.l5]] | Lifecycle de artifact E2: tombstone na reclassificação + versão de extração consultável ([[ADR-311]]) | P1 | shipped (#837) |
-| 3 | [[A32.l6]] | Review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | P1 | in_progress |
-| 4 | [[A32.l7]] | Gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | P0 | planned |
+| 3 | [[A32.l6]] | Review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento | P1 | shipped (#841/#843/#845) |
+| 4 | [[A32.l7]] | Gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner | P0 | open |
 
 Dependências: l4 ← l2+l3 · l5 ← l1 · l6 ← l2..l5 · l7 ← l1..l6.
 ADR-310 e ADR-311 abrem como Proposto **no kickoff** (docs-only), em

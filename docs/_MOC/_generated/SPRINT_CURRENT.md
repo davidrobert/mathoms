@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 in_progress.
+1 open.
 
-## In progress (1)
+## Open (1)
 
-- [[A32.l6]] — review UX: identidade legível + selo de natureza + copy sem contradição + agrupamento por documento · priority P1 · branch `a32-l6-review-ux-provenance`
+- [[A32.l7]] — gate: re-run dogfood instrumentado + classificação genuíno-vs-falso + triagem do owner · priority P0 · branch `a32-l7-gate-rerun-dogfood`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
