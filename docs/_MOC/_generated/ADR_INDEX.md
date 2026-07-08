@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-303 ADRs (ADR-001 a ADR-312) em [`docs/adr/`](../../adr/).
+311 ADRs (ADR-001 a ADR-320) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 284
-- **Proposto**: 16
+- **Proposto**: 24
 - **Roadmap**: 3
 
 ## Fundação
@@ -55,6 +55,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-080]] — Pipeline incremental: extrair só docs novos, consolidar full · phase F7
 - [[ADR-081]] — Classificação de documentos unificada (P2)
 - [[ADR-302]] — Skill audit-vault — auditoria recorrente de vault como procedimento do loop principal · phase A26
+
+### Proposto (1)
+
+- [[ADR-318]] — Fronteira de idioma — apresentação pública EN vs vault canônico PT-BR
 
 ## Config (materialização legada)
 
@@ -326,6 +330,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-186]] — Promoção de override de transação para regra de categorização (learning loop) · phase A12.P2
 - [[ADR-188]] — Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) · phase A12.P3
 
+## ci
+
+### Proposto (1)
+
+- [[ADR-320]] — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético
+
 ## data-lineage
 
 ### Decidido (3)
@@ -368,6 +378,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-158]] — Pipeline review screen — UI dedicada para aprovar/editar `StageReview` · phase Sprint A8 · Lane pipeline-review-screen
 - [[ADR-168]] — Remoção do Modo USA do relatório · phase A8.4 PR4
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
+
+## gtm
+
+### Proposto (2)
+
+- [[ADR-313]] — Licença open-source do Mathoms — BSL 1.1 vs AGPL-3.0 vs Apache-2.0/MIT
+- [[ADR-314]] — Escopo público do repo — allowlist/blocklist de paths e IP excluído
 
 ## infra
 
@@ -557,6 +574,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11.W2
 - [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
 - [[ADR-299]] — SEC-03 procede: requirements.lock congelava 17 CVEs reais — bump aiohttp/starlette/python-multipart/cryptography (resposta audit r2) · phase audit-r2 · SEC-03
+
+## seguranca
+
+### Proposto (4)
+
+- [[ADR-315]] — Estratégia de rewrite de histórico git para release pública
+- [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs)
+- [[ADR-317]] — Identidade de autoria no mailmap público
+- [[ADR-319]] — Contrato de gates anti-regressão PII + sigilo metodológico pós-público
 
 ## Outras
 

@@ -1,7 +1,7 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# SPRINT_CURRENT — Lanes da sprint corrente — A33
+# SPRINT_CURRENT — Lanes da sprint corrente — A34
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
@@ -9,16 +9,31 @@ Nenhuma lane prontidão atual.
 
 ## Todas as lanes da sprint (para inspeção)
 
-### shipped (8)
+### planned (23)
 
-- [[A33.l1]] — ADR-090 no boundary LLM: e2_llm_extract sem float monetário + gate cobrindo pipeline/llm/schemas (W1β) · priority P0 · branch `a33-l1-adr090-llm-boundary`
-- [[A33.l2]] — Fechar A17.l3: informes financeiro PF P3-P5 (consolidate_baseline + PTAX 31/12 + UI S4 + validações Wise) · priority P1 · branch `a33-l2-a17l3-financeiro-pf`
-- [[A33.l4]] — Fechar A17.l4: integrar proventos de ações (schema/prompt/classifier já existem) ao yield-on-cost em S3 · priority P1 · branch `a33-l4-a17l4-proventos-acoes`
-- [[A33.l5]] — Nightly drift do extract_with_llm: Celery beat + fixtures sintéticas + auto-alerta (ADR-307 F2) · priority P2 · branch `a33-l5-nightly-drift-extractllm`
-- [[A33.l6]] — Retenção de artifacts: retention_until + prune diário + teste de cascade (W6-T05) · priority P2 · branch `a33-l6-artifacts-retention`
-- [[A33.l7]] — OTLP mathoms.llm.* por {prompt_name, prompt_version} + parecer.riscos_truncados (W3) · priority P2 · branch `a33-l7-otlp-telemetria-llm`
-- [[A33.l8]] — InstitutionCatalogProvider (protocol) + códigos RFB do e16 em YAML anual versionado (W4-T01/T02) · priority P2 · branch `a33-l8-catalogo-injection-rfb`
-- [[A33.l9]] — Services taxonomy: split de backend/app/services/ em subpacotes por natureza técnica (ADR-285, W6-T07) · priority P2 · branch `a33-l9-services-taxonomy`
+- [[A34.l1]] — ADRs Proposto do gate de decisões (ADR-313 a ADR-320) · priority P0 · branch `adr-gate-owner-decisions`
+- [[A34.l10]] — Purgar CPFs + neutralizar endereço residencial · priority P0 · branch `purge-cpf-addresses`
+- [[A34.l11]] — Neutralizar seed de produção + report_spec + paths · priority P0 · branch `sanitize-seed-migration-paths`
+- [[A34.l12]] — Redigir/split COMPETITIVE_PIERRE + prompts de produto + pricing · priority P0 · branch `redact-split-competitive-ip`
+- [[A34.l13]] — permissions read-all default + elevação por-job · priority P0 · branch `actions-permissions-readonly`
+- [[A34.l14]] — SHA-pin das 4 actions de terceiros por tag flutuante · priority P0 · branch `sha-pin-third-party-actions`
+- [[A34.l15]] — Habilitar GHAS + migrar Fernet dummy para secret · priority P1 · branch `enable-ghas-fernet-secret`
+- [[A34.l16]] — LICENSE + README EN com disclaimer e fronteira de idioma · priority P0 · branch `license-readme-disclaimer`
+- [[A34.l17]] — Polish de apresentação (should, pós-flip / A35) · priority P2 · branch `presentation-polish`
+- [[A34.l18]] — Runbook operacional: git-filter-repo rewrite (self-contained) · priority P0 · branch `history-rewrite-runbook`
+- [[A34.l19]] — Freeze de merges + deletar 85 branches agent/* · priority P0 · branch `freeze-merges-delete-agent-branches`
+- [[A34.l2]] — Backup bare mirror off-site + tag pre-public-flip-backup · priority P0 · branch `backup-mirror-offsite`
+- [[A34.l20]] — Bypass owner do Ruleset + atualizar hash-refs em ADRs · priority P0 · branch `ruleset-bypass-update-hash-refs`
+- [[A34.l21]] — Triagem T1 de PRs/issues/CI logs sensíveis · priority P0 · branch `triage-sensitive-metadata`
+- [[A34.l22]] — Flip para público + verificação pós-flip (track) · priority P0 · branch `flip-repo-public-and-verify`
+- [[A34.l23]] — Docs EN de apresentação + cross-link PLAN-i18n · priority P2 · branch `reconcile-i18n-docs-en`
+- [[A34.l3]] — Confirmação operacional: rotação Fernet executada em prod · priority P0 · branch `verify-fernet-rotation`
+- [[A34.l4]] — Estender lint_no_real_pii a docs/ + padrões de domínio · priority P0 · branch `extend-pii-lint-docs-domain`
+- [[A34.l5]] — Estender check_sigilo_terms ao superset público · priority P0 · branch `extend-sigilo-gate-superset`
+- [[A34.l6]] — Bloquear _archive/ em forbidden-paths + gitleaks bloqueante · priority P0 · branch `block-archive-gitleaks`
+- [[A34.l7]] — Deletar _archive/ do HEAD (checar referências vivas) · priority P0 · branch `delete-archive-dir`
+- [[A34.l8]] — Regenerar EXEMPLO_DE_RELATORIO.html sintético · priority P0 · branch `regen-exemplo-relatorio-synthetic`
+- [[A34.l9]] — Anonimizar ~15 ADRs + docs de sprint (in-body apenas) · priority P0 · branch `anonymize-adrs-sprint-docs`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
