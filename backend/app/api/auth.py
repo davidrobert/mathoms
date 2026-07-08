@@ -15,6 +15,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.auth import login_user, register_user
 from backend.app.application.auth.login_user import access_token_ttl
+from backend.app.application.auth.refresh_session import (
+    REFRESH_COOKIE_NAME,
+    parse_refresh_cookie,
+    revoke_family,
+    revoke_family_by_cookie,
+    rotate_refresh_token,
+)
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
@@ -26,13 +33,6 @@ from backend.app.schemas.auth import (
     SessionTokens,
     TokenResponse,
     UserResponse,
-)
-from backend.app.services.refresh_token_service import (
-    REFRESH_COOKIE_NAME,
-    parse_refresh_cookie,
-    revoke_family,
-    revoke_family_by_cookie,
-    rotate_refresh_token,
 )
 from backend.app.services.security.rate_limit import client_ip_key, rate_limited
 from backend.app.services.security.refresh_rate_limit import check_refresh_rate
