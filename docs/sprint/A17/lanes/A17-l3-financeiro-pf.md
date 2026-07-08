@@ -3,7 +3,9 @@ id: A17.l3
 type: lane
 title: "Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda)"
 sprint: A17
-status: in_progress
+status: shipped
+ship_pr: 835
+ship_date: "2026-07-08"
 priority: P2
 branch_slug: a17-l3-financeiro-pf
 depends_on:
@@ -16,7 +18,7 @@ prompt: "[[TRACK-a17-l3-financeiro-pf]]"
 tags:
   - type/lane
   - sprint/a17
-  - status/in-progress
+  - status/shipped
   - priority/p2
   - area/pipeline
   - area/methodology
@@ -25,9 +27,9 @@ tags:
 
 # A17.L3 — Financeiro PF (bancos + XP Investimentos + Wise)
 
-> **Residual (P3-P5) lotado como [[A33.l2]]** ([[MOC-sprint-a33]]
-> `candidate`, 2026-07-07) — esta lane flipa `shipped` no PR final da
-> A33.l2.
+> **Shipped 2026-07-07 via [[A33.l2]]** — P1+P2 em #458/#459 (A17);
+> P3 core #472, P5 core #489, P4 pipeline #494 (A17, pós-drift);
+> deltas de co-design P3/P5 em #833 e P4 UI (S1) em #835 (A33.l2).
 
 > **Onda 3 de 4** em [[MOC-sprint-a17]]. Maior volume de PDFs (8 dos 15 do batch). **Inclui Wise (multi-moeda, conta no exterior)** com schema estendido para `moeda` e regras fiscais específicas de conta no exterior.
 

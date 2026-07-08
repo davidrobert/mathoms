@@ -217,14 +217,6 @@ parecer E6 e exercita o override v2).
 - **Plano:** [sprint/A20/_README.md](../sprint/A20/_README.md).
 - **Retomada:** flip `paused → current` quando o owner liberar token/Coolify.
 
-### A17 — Ingestão de Informes Anuais Avulsos (`paused` 2026-05-29)
-
-**Suspensa em favor de A20** (priorização do owner; transição `current → paused` por [[ADR-234]]). L1 entregue (ADR canônica [[ADR-238]] `Decidido (Sprint A17 L1)`, 5 PRs [#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)).
-
-- **Trabalho residual:** L2-L4 abertas em [sprint/A17/_README.md](../sprint/A17/_README.md).
-- **Fila reservada pós-A17 (atualização 2026-07-07):** A18 e A19 **já entregues** (`done` — ver tabela de encerradas); o residual L3-L4 da própria A17 está lotado como lanes [[A33.l2]]/[[A33.l4]] da sprint [[MOC-sprint-a33]] (`candidate`).
-- **Retomada:** flip `paused → current` quando o owner decidir retomar.
-
 ### A11 — Platform review execution (`paused` 2026-05-20)
 
 **Pausada com débito conhecido.** 6 ondas, 138 findings de revisão multi-agente. W1 ✅ + W2 ✅ entregues. **Reconciliação factual 2026-07-06:** boa parte de W3-W6 shipou via outras sprints — W3-T01/W3-T04 (#718), W4-T04 (#720), W6-T04 (#111), W6-T06 (#110 + ADR-150 `Decidido`); W4-T01/W4-T02/W6-T01/W6-T03 parciais. Residual real: W3-T02 + W4-T01/T02 restos (owner-gated: Resend, token Coolify, off-site R2), W4-T03/T05 (Sentry, status page), W5 (re-verificar no pickup), W6-T02 (destravado)/T05/T07. Sub-lanes paralelas (competitive-pierre, report-publication) preservadas.
@@ -261,6 +253,7 @@ parecer E6 e exercita o override v2).
 | A10 | done | `goals.json` cutover final ([ADR-090](../adr/090-decimal-money.md) supersedes parcial). |
 | A15 | done | FU-3 imóvel financiado ([ADR-227](../adr/227-imovel-financiado-debt-aggregate-valor-mercado.md)) — 8 PRs, 2 bugs silenciosos resolvidos. Plano arquivado em [archive/IMOVEL_FINANCIADO-2026-05-20.md](../archive/IMOVEL_FINANCIADO-2026-05-20.md). |
 | A16 | done | L1 ADR-235 `nu_proprietario` ([apps#388](https://github.com/davidrobert/mathoms/pull/388)) + L2 ADR-236 cascata fiscal PJ (PRs #390, #392, #393, #394, #395, #398) — ambas entregues 2026-05-21. |
+| A17 | done | Informes anuais avulsos ([[ADR-238]], 4 ondas + 2 lanes extra). L1/L2/L5/L6 em mai/2026 (#402–#480); pausada 2026-05-29 ([[ADR-234]]); residual L3-L4 fechado via [[A33.l2]] (financeiro PF + Wise/PTAX — #833/#835, pós-drift #472/#489/#494) e [[A33.l4]] (proventos→S3 — #830). Fechada `done` em 2026-07-07. |
 | A18 | done | Comprovantes de Bem (CRLV-e) + apólices polimórficas + FIPE refresh — 3/3 lanes shipped 2026-05-22 (#388–#436), [[ADR-239]] `Decidido`. Fechada `done` em 2026-07-01 (#707/#708; antiga l4 LGPD realocada — pertencia ao PLAN-llm-prompts-hardening, W1α fechada 2026-07-06). |
 | A19 | done | Card S_PROTECAO (4º pilar AUVP) — [[ADR-240]] `Decidido` via PR #436 (extensão E6-parecer + telemetria). Fechada `done` em 2026-07-01 (#707). |
 | A21 | done | Launch Trust F1 inteira (confiabilidade do número) — 9/9 lanes entregues (PRs #524–#538). Contrato `EntityDedup` (ADR-276), dedup imóveis/investimentos/previdência (ADR-277), backup/restore drill CI (ADR-275), goldens+métricas dedup. Gates F3/LGPD migram para A22; off-site/deploy permanecem owner-gated ([[ADR-228]] G2/G3). Encerrada 2026-05-31, sucedida por [[MOC-sprint-a22]]. |
