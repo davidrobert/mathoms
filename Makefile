@@ -76,6 +76,18 @@ MATHOMS_DOCKER_POSTGRES_PORT ?= 5433
 MATHOMS_DOCKER_OPS_PORT      ?= 3110
 export MATHOMS_DOCKER_API_PORT MATHOMS_DOCKER_FRONTEND_PORT MATHOMS_DOCKER_POSTGRES_PORT MATHOMS_DOCKER_OPS_PORT
 
+# Porta HOST do redis do smoke (docker-compose.smoke.yml). DELIBERADAMENTE ≠ 6379:
+# 6379 é a porta do redis NATIVO da stack dev (dev-redis-up), e o smoke roda
+# backend/worker nativos que alcançam o broker por localhost. Isolar o smoke em
+# 6380 elimina a colisão nos dois sentidos — (a) `smoke-down` derrubando um redis
+# que a nativa "reusou"; (b) `smoke-up` falhando ao bindar 6379 quando a nativa já
+# o ocupa. A porta INTERNA do container continua 6379 (consumidores da rede
+# compose, ex. pipeline-service → redis-smoke:6379, não mudam). 6380 segue o
+# precedente do segundo redis no CI (ci.yml). Override: `make smoke-up
+# MATHOMS_SMOKE_REDIS_PORT=6399`.
+MATHOMS_SMOKE_REDIS_PORT ?= 6380
+export MATHOMS_SMOKE_REDIS_PORT
+
 # ---------------------------------------------------------------------------
 # Macros reutilizáveis
 # ---------------------------------------------------------------------------
@@ -361,7 +373,11 @@ smoke-up: smoke-dirs
 	   echo "   ⚠ removendo container stale mathoms-smoke-redis (parado, de projeto compose anterior)"; \
 	   docker rm mathoms-smoke-redis >/dev/null; \
 	 fi
-	@docker compose -f docker-compose.smoke.yml up -d --wait
+	@# --force-recreate garante que um container mathoms-smoke-redis pré-6380
+	@# (rodando com o binding host 6379 antigo) seja recriado com a porta nova —
+	@# sem isto o compose reusaria o container por nome e o fix não pegaria até
+	@# um smoke-down. Redis do smoke é efêmero (sem volume), recriar não perde nada.
+	@docker compose -f docker-compose.smoke.yml up -d --wait --force-recreate
 	@echo "▶  Aplicando migrations no smoke DB…"
 	@MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 $(ALEMBIC) upgrade head
@@ -369,7 +385,7 @@ smoke-up: smoke-dirs
 	@FERNET_KEY="$(ephemeral_fernet)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
-	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 nohup $(VENV)/uvicorn backend.app.main:app \
 	   --host 0.0.0.0 --port $(PORT_API) --reload \
@@ -381,7 +397,7 @@ smoke-up: smoke-dirs
 	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
-	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-smoke-$(WT)@%h-$$TS" \
@@ -396,6 +412,7 @@ smoke-up: smoke-dirs
 	@echo "     API:      http://localhost:$(PORT_API)"
 	@echo "     Frontend: http://localhost:$(PORT_FRONTEND)"
 	@echo "     Health:   http://localhost:$(PORT_API)/health"
+	@echo "     Redis:    redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0  (isolado da stack nativa em 6379)"
 	@echo ""
 	@echo "  Next: make smoke-seed"
 
@@ -418,9 +435,11 @@ smoke-down:
 	$(call kill_pid_safe,worker,$(CURDIR)/$(SMOKE_DIR)/worker.pid)
 	$(call kill_celery_scoped,celery-smoke(-go)?-$(WT))
 	$(call kill_pid_safe,frontend,$(CURDIR)/$(SMOKE_DIR)/frontend.pid)
-	@echo "▶  Stopping Redis (smoke)…"
+	@echo "▶  Stopping Redis (smoke, porta $(MATHOMS_SMOKE_REDIS_PORT))…"
 	@docker compose -f docker-compose.smoke.yml down 2>/dev/null || echo "   · redis do smoke já parado / compose indisponível"
 	@echo "  ✅ Smoke stack stopped."
+	@echo "     (Redis do smoke roda na porta $(MATHOMS_SMOKE_REDIS_PORT), isolada do redis"
+	@echo "      nativo da stack dev em 6379 — este 'smoke-down' não afeta uma 'dev-up'.)"
 
 ## smoke-restart: smoke-down && smoke-up (reseed com make smoke-seed)
 smoke-restart: smoke-down smoke-up
@@ -643,8 +662,20 @@ native-up: dev-dirs migrate dev-redis-up dev-api-up dev-worker-up dev-frontend-u
 	@echo ""
 	@echo "  Logs em $(DEV_DIR)/<svc>.log · 'make status' · 'make native-logs'"
 
+# Reusa qualquer redis já ouvindo em 6379 (idempotência do onboarding). O guard
+# abaixo é um detector TRANSITÓRIO: avisa se o 6379 for o container do smoke
+# pré-migração-6380 (que 'smoke-down' derrubaria, deixando o worker nativo sem
+# broker em silêncio). Pode ser removido após 1-2 ciclos, quando não houver mais
+# container smoke stale publicando 6379.
 dev-redis-up: dev-dirs
 	@if redis-cli ping >/dev/null 2>&1; then \
+	   if command -v docker >/dev/null 2>&1 && \
+	      [ -n "$$(docker ps --format '{{.Names}}' --filter name=mathoms-smoke-redis --filter publish=6379 2>/dev/null)" ]; then \
+	     echo "   ⚠ 6379 está sendo servido pelo container do smoke (mathoms-smoke-redis)."; \
+	     echo "     A stack nativa NÃO deve reusá-lo — 'make smoke-down' o derrubaria e o"; \
+	     echo "     worker nativo perderia o broker em silêncio. O smoke agora usa a porta"; \
+	     echo "     $(MATHOMS_SMOKE_REDIS_PORT); recrie-o com 'make smoke-down && make smoke-up'."; \
+	   fi; \
 	   echo "▶  Redis já rodando (reusando, não controlado por dev-down)"; \
 	 elif command -v redis-server >/dev/null 2>&1; then \
 	   redis-server --daemonize yes \
@@ -1077,11 +1108,11 @@ _go-on-smoke:
 	 [ -n "$${ANTHROPIC_API_KEY:-}" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente — stages LLM vão falhar (export antes, ou rode com skip de LLM)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
-	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 MATHOMS_REPO_ROOT="$(CURDIR)" \
 	 MATHOMS_PYTHON="$(PYTHON)" \
-	 REDIS_URL="redis://localhost:6379/0" \
+	 REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 PIPELINE_SERVICE_PORT=$(PORT_GO) \
 	 nohup $(CURDIR)/$(SMOKE_DIR)/pipeline-service-go \
 	   > $(CURDIR)/$(SMOKE_DIR)/go.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/go.pid
@@ -1095,7 +1126,7 @@ _go-on-smoke:
 	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
-	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:$(PORT_GO)" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
@@ -1162,7 +1193,7 @@ _go-off-smoke:
 	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
-	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
+	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-smoke-$(WT)@%h-$$TS" \
