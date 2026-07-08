@@ -106,6 +106,92 @@ antes de tudo.
   novos reasons dos codes cobertos por l2/l3/l4 (e por l5, se a lane
   entregar a versão consultável — ver cláusula de recuo na l5).
 
+## Gate l7 — resultado do re-run (2026-07-08)
+
+Procedimento executado após merge de l1–l6 (worker celery reiniciado no
+`main` atual; backup do DB em `_scratch/mathoms-pre-a32l7-gate.db`):
+
+1. `dev/reextract_stale_e2_llm.py --created-before 2026-07-06 --execute`
+   — 11 artifacts invalidados, 11 docs re-enfileirados, zero LLM.
+2. **Run gate `70551e68`** (full, `skip_llm=false`): 18 stages
+   completed; 10 docs re-extraídos sob contrato `1.4.0`
+   (`prompt_version` consultável, ADR-311); o 11º
+   (`c05bd7bd_bankofamerica`) passou a ser coberto pelo parser
+   determinístico — zero pendência LLM.
+3. **Run 2 `ebbba19c`** (KR4): zero re-extração E2-llm (idempotência
+   ADR-080 intacta), zero stage falho.
+4. Custo LLM total do gate ≈ US$ 2,6; julho fechou em US$ 14,20 do cap
+   US$ 20 (ADR-173).
+
+### Before/after por code
+
+| Code | Baseline `d1732edd` (07/07) | Gate `70551e68` (08/07) | Run 2 `ebbba19c` |
+|---|---|---|---|
+| `extract.missing_required_field` | 11 | **0** | **0** |
+| `dedup.sentinel_period` | 7 | **0** | **0** |
+| `domain.anachronic_transaction` | 1 | **0** | **0** |
+| `domain.balance_gap` | 30 | **0** | **0** |
+| `domain.temporal_gap` | 9 | **0** | **0** |
+
+Run independente do owner na manhã de 08/07 (`8df60139`, pré-gate,
+artifacts stale lidos via fallback l2) também fechou com **zero
+reasons** — confirmação independente dos fixes de leitura.
+
+### Classificação 1-a-1 dos 39 warnings removidos (KR2)
+
+**Zero gaps genuínos** — 39/39 falsos positivos, em 4 famílias:
+
+- **F1 — fatura na cadeia de saldo** (ADR-310 §2, 11 itens):
+  `balance_gap` santander `faturaunique` ×4 (202508/202509/202510/202604),
+  c6bank `faturacarbon` ×5 (séries 2023/2025), links fatura↔extrato
+  santander ×2 (`dfef4315`/`f41be9d6`).
+- **F2 — tipos de conta fundidos na chave** (ADR-310 §1, 7 itens):
+  bradesco poupança→CC (`351eda8d` balance + `cabaa2e6` temporal),
+  c6bank extratoconta pares ×4 (`397f158e`/`9f432f82`/`4e11dead`/
+  `87c77fc9`), c6bank temporal `4e11dead`.
+- **F3 — cascata de docs dropados** (l1/l2, 8 itens): itaú
+  extratoconta `balance_gap` ×4 + `temporal_gap` ×2 (buracos abertos
+  pelos docs itaú `cdbdetalhes`/`investimentosposicao` dropados no
+  baseline por mismatch de vocabulário); binance `2384a3c2` temporal.
+- **F4 — período corrompido 2100/1899** (l3, 3 itens): c6bank
+  `faturacarbon` `temporal_gap` ×3 — as faturas com `data_vencimento`
+  clampada em 2100 abriam buracos gigantes na própria série (a série de
+  faturas segue validada pelo `TemporalGapDetector` em cadeia própria).
+- **+10 `balance_gap` não-individualizáveis** — o baseline persistiu só
+  20/30 itens (cap `_ISSUE_CAP_PER_CODE=20`); os 10 truncados têm a
+  mesma assinatura de cadeia `banco/-/BRL` e foram verificados por
+  exaustão: o gate emite zero `balance_gap` em todas as cadeias.
+- **Ressalva nomeada (anti-Goodhart, para triagem KR3):** o
+  `temporal_gap` do rico (`95b3d36e`) era comparação entre dois
+  agrupamentos com identidade de conta distinta (um dos extratos não
+  tem número de conta extraído) — falso positivo sob a chave canônica.
+  **Se** o owner confirmar que são a mesma conta, existe buraco genuíno
+  abr–jun/2026 hoje não sinalizado (chave por número precisaria de
+  fallback quando o número não extrai) → abrir issue.
+
+### Conservação de sinal (manifesto)
+
+- Diffs `dev/golden_diff.py` valor-a-valor em `_scratch/` (valores
+  reais nunca commitados — padrão A28 `gf_dogfood_diff`):
+  `golden_diff_a32l7.md` (baseline→gate: deltas refletem as correções —
+  CDBs fora das transações, períodos de fatura corretos) e
+  `golden_diff_morning_vs_gate.md` (manhã→gate: 120/194 deltas são
+  `if_monte_carlo` — ruído de simulação; restante é recalibração da
+  re-extração v1.4.0).
+- **Contagens estruturais do E5 idênticas** manhã↔gate (15 posições
+  31/12, 8 classes, 4 imóveis, 3 apólices, 86 itens de consumo, 8
+  fontes de receita…) — nenhuma entidade financeira perdida ou criada.
+
+### Status dos KRs
+
+- **KR1 ✅** — 19 → 0 nos dois runs.
+- **KR2 ✅** — 39 warnings classificados 1-a-1; zero genuínos; 1
+  ressalva nomeada (rico) encaminhada à triagem.
+- **KR4 ✅** — golden de paridade + teste de tombstone verdes em CI;
+  segundo re-run consecutivo sem novos reasons de nenhum code coberto.
+- **KR3 ⏳** — triagem do owner na tela pós-l6 pendente (única pendência
+  da sprint).
+
 ## Decisões do owner (2026-07-07)
 
 - **Q1 — 11 artifacts stale:** híbrido. Re-run E3 determinístico (grátis)
