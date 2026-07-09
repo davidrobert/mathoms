@@ -601,9 +601,9 @@
 | A12.alocacao-v2 | lane | open | A12 | Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven) | `sprint/A12/lanes/A12-alocacao-v2-migration.md` |
 | A12.bank-account-disambig | lane | shipped | A12 | Desambiguação conta bancária → membro (multi-membro mesmo banco) | `sprint/A12/lanes/A12-bank-account-disambig-multi-member.md` |
 | A12.cat-learning-loop | lane | in_progress | A12 | Categorization Learning Loop — promoção de override em regra | `sprint/A12/lanes/A12-cat-learning-loop-override-to-rule.md` |
-| A12.decision-code-autogen | lane | in_progress | A12 | Decision.code server-generated (UX cleanup + race fix) | `sprint/A12/lanes/A12-decision-code-autogen-server-gen.md` |
-| A12.irpf-prefill-bank-accounts | lane | planned | A12 | Pre-fill UI a partir de IRPF — V1 contas bancárias (deferred → A13) | `sprint/A12/lanes/A12-irpf-prefill-bank-accounts-deferred-a13.md` |
-| A12.sunset-disk-artifact | lane | open | A12 | Sunset DiskArtifactStore + flag MATHOMS_USE_DB_ARTIFACTS + CLI standalone | `sprint/A12/lanes/A12-sunset-disk-artifact-cleanup.md` |
+| A12.decision-code-autogen | lane | shipped | A12 | Decision.code server-generated (UX cleanup + race fix) | `sprint/A12/lanes/A12-decision-code-autogen-server-gen.md` |
+| A12.irpf-prefill-bank-accounts | lane | shipped | A12 | Pre-fill UI a partir de IRPF — V1 contas bancárias (deferred → A13) | `sprint/A12/lanes/A12-irpf-prefill-bank-accounts-deferred-a13.md` |
+| A12.sunset-disk-artifact | lane | shipped | A12 | Sunset DiskArtifactStore + flag MATHOMS_USE_DB_ARTIFACTS + CLI standalone | `sprint/A12/lanes/A12-sunset-disk-artifact-cleanup.md` |
 | A17.l1 | lane | shipped | A17 | Informes anuais — L1 previdência privada (PGBL/VGBL, BrasilPrev e seguradoras) | `sprint/A17/lanes/A17-l1-previdencia.md` |
 | A17.l2 | lane | shipped | A17 | Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes) | `sprint/A17/lanes/A17-l2-financeiro-pj.md` |
 | A17.l3 | lane | shipped | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |

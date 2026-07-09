@@ -3,7 +3,7 @@ id: A12.irpf-prefill-bank-accounts
 type: lane
 title: "Pre-fill UI a partir de IRPF — V1 contas bancárias (deferred → A13)"
 sprint: A12
-status: planned
+status: shipped
 aliases: ["A13.irpf-prefill-bank-accounts"]
 priority: P2
 depends_on: ["[[ADR-226]]"]
@@ -13,7 +13,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a12
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/backend
   - area/frontend
@@ -73,13 +73,24 @@ Lista completa em [[ADR-229]] §Consequências §Riscos.
 
 ## Definition of Done
 
-- ☐ PR1 — Migration `workspace_irpf_suggestion_dismissals` + `bank_accounts.irpf_snapshots` + endpoint + use case + telemetria
-- ☐ PR2 — UI cards inline + diff modal + dismissals + a11y + dogfood 3 famílias
-- ☐ [[ADR-229]] flippada `Proposto` → `Decidido (A13.irpf-prefill-bank-accounts)` no PR2
-- ☐ Telemetria `mathoms.irpf_suggestions.*` emitindo (shown/accepted/dismissed/dismissed_then_re_added)
-- ☐ Métrica dogfood: tempo médio cadastro < 2min validado em 3 famílias
-- ☐ FAQ produto atualizada: "Como o Mathoms sugere contas a partir do IRPF" (parte de FAQ_bank_account_member.md ou novo)
+- ☑ PR1 — Migration + endpoint + use case + telemetria — [#345](https://github.com/davidrobert/mathoms/pull/345), commit `5e36be00`, 2026-05-20.
+- ☑ PR2 — UI cards inline + diff modal + dismissals + feature flag — [#347](https://github.com/davidrobert/mathoms/pull/347), commit `e0499967`, 2026-05-20.
+- ☑ [[ADR-229]] flippada `Proposto` → `Decidido (A13.irpf-prefill-bank-accounts)` no PR2.
+- ☑ Telemetria `mathoms.irpf_suggestions` — logger em `backend/app/api/family_members.py`.
+- ☐ Métrica dogfood: tempo médio cadastro < 2min validado em 3 famílias — sem registro de execução.
+- ☑ FAQ produto — seção "Como o Mathoms sugere contas a partir do IRPF" em `docs/reference/FAQ_bank_account_member.md`.
 
 ## Pré-requisito externo
 
-Sprint A13 deve estar `current` (A11 → done, A12 → current → done). Até lá, lane fica `status: planned`.
+~~Sprint A13 deve estar `current`.~~ **Superado pelos fatos:** a sprint A13
+nunca foi aberta (numeração pulou A12 → A15), e a lane foi entregue
+diretamente em 2026-05-20 (PRs #345/#347) sem cerimônia de sprint própria.
+
+## Status (reconciliação 2026-07-08)
+
+Lane **entregue em `main`** em 2026-05-20 (PRs #345/#347); [[ADR-229]]
+`Decidido (A13.irpf-prefill-bank-accounts)`. Frontmatter estava stale
+(`planned`) e a instrução "mover para `docs/sprint/A13/` quando A11 fechar"
+tornou-se inexecutável (A13 não existe como pasta de sprint) — a lane
+permanece em `docs/sprint/A12/lanes/` como registro histórico. Único item
+sem evidência: métrica de dogfood (3 famílias), nunca registrada.

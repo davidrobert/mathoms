@@ -3,7 +3,7 @@ id: A12.sunset-disk-artifact
 type: lane
 title: "Sunset DiskArtifactStore + flag MATHOMS_USE_DB_ARTIFACTS + CLI standalone"
 sprint: A12
-status: open
+status: shipped
 aliases: ["A12.sunset-disk", "A12.SUNSET_DISK_ARTIFACT"]
 priority: P1
 depends_on: []
@@ -13,7 +13,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a12
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
@@ -101,3 +101,15 @@ Lista completa em [[ADR-212]] §Consequências e §Riscos identificados.
 - ☑ [[ADR-083]] §Contexto bullet 1 marcada como obsoleta no corpo da ADR-212 (supersedure parcial documentada).
 - ☑ [[ADR-120]] fallback de disco removido (PR3b deletou `_read_from_disk`).
 - ☐ Canary 10%/72h em staging antes de roll-out 100% (sre-devops P0).
+
+## Status (reconciliação 2026-07-08)
+
+Lane **entregue em `main`** entre 2026-05-13 e 2026-05-15 (PRs #262-#268 +
+docs #264/#269/#270/#272); [[ADR-212]] `Decidido (A12.sunset-disk-artifact)`.
+`DiskArtifactStore` não existe mais no código — DB-only é invariante
+documentado em CLAUDE.md §"ArtifactStore é DB-only". Os 2 gates operacionais
+de staging (soak 7d, canary 10%/72h) nunca foram registrados como executados;
+o cutover está operante em produção desde então sem incidente registrado —
+gates considerados superados pelo tempo em produção, não bloqueiam o `shipped`
+(a própria DoD os marca como "não bloqueia merge"). Frontmatter estava stale
+(`open`) desde a pausa da sprint ([[ADR-234]]); reconciliado nesta data.
