@@ -3,28 +3,31 @@ id: MOC-sprint-a12
 type: moc
 title: Sprint A12 — Categorization learning loop + post-A11 follow-up
 aliases: ["A12", "Sprint A12"]
-sprint_status: paused
+sprint_status: current
 ---
 
 # Sprint A12 — Categorization learning loop + post-A11 follow-up (origem 2026-05-10)
 
-> **Status:** `paused` desde 2026-05-20 ([[ADR-234]]) — cedeu prioridade
-> para [[Sprint A15]] (FU-3 imóvel financiado, originalmente débito desta
+> **Status:** `current` desde 2026-07-08 (retomada). Histórico: `paused`
+> 2026-05-20 → 2026-07-08 ([[ADR-234]]) — cedeu prioridade para
+> [[Sprint A15]] (FU-3 imóvel financiado, originalmente débito desta
 > sprint via [[ADR-215]] §Follow-ups). P1-P4 (UI mínima) + gate técnico
-> shipped (PRs #188, #194, #195-#198); gate dogfood humano (7d
-> wall-clock) é o último bloqueio para fechar DoD. FU-1 + FU-2 entregues,
-> FU-3 absorvido como A15. Retomada: flip `paused → candidate` quando
-> A15 fechar.
+> shipped (PRs #188, #194, #195-#198). FU-1 + FU-2 entregues, FU-3
+> absorvido como A15.
 >
 > **Reconciliação 2026-07-08:** frontmatter das lanes estava stale desde a
 > pausa. Verificação código-contra-DoD confirmou **entregues em `main`**:
 > `sunset-disk-artifact` (PRs #262-#268, ADR-212 Decidido),
 > `decision-code-autogen` (PR #279, ADR-214 Decidido) e
 > `irpf-prefill-bank-accounts` (PRs #345/#347, ADR-229 Decidido — A13 nunca
-> abriu; entregue direto). Pendências reais para fechar a sprint:
-> (1) gate dogfood humano do cat-learning-loop (CEO, 7d wall-clock);
-> (2) destino da lane [[A12.alocacao-v2]] — único escopo de eng aberto,
-> decisão do owner (entregar dentro da A12 vs realocar como débito).
+> abriu; entregue direto).
+>
+> **Retomada 2026-07-08 (`paused → current`):** owner fechou as duas
+> pendências — (1) gate dogfood humano do cat-learning-loop confirmado
+> **PASS** (decisão de 2026-07-02 via audit-vault r4, ratificada
+> 2026-07-08; lane `shipped`, plano arquivado); (2) [[A12.alocacao-v2]]
+> **será entregue dentro da A12** (decisão owner 2026-07-08) — é a única
+> lane aberta e o último escopo antes do flip `done`.
 
 ## Resumo
 
@@ -35,7 +38,7 @@ sobrecarregada (138 findings de PLATFORM_REVIEW + COMPETITIVE_PIERRE +
 DOC_REORG); inserir feature de 19d em sprint de hardening dilui foco e
 atrasa P0 latentes (security pré-prod).
 
-**Plano canônico ancorado:** [docs/plan/CAT_LEARNING_LOOP/_README.md](../../plan/CAT_LEARNING_LOOP/_README.md).
+**Plano canônico ancorado:** [docs/archive/CAT_LEARNING_LOOP-2026-07-08.md](../../archive/CAT_LEARNING_LOOP-2026-07-08.md) (arquivado 2026-07-08).
 
 **ADRs Proposto:**
 
@@ -61,10 +64,12 @@ Lições críticas do co-design `financial-planner` + `product-designer`
 
 ## Lanes
 
-- **A12.cat-learning-loop** — promoção override → regra. 5 fases (P1-P4
-  + dogfood gate; P5/P6 são V2 pós-tração).
-  Plano: [CAT_LEARNING_LOOP](../../plan/CAT_LEARNING_LOOP/_README.md).
-  ADR: [[ADR-186]].
+- **A12.cat-learning-loop** ✅ **concluída 2026-07-08** — promoção
+  override → regra. P1-P4 + gate técnico shipped 2026-05-10/11 (PRs
+  #188/#194/#195-#198/#202/#203); gate dogfood humano PASS por decisão
+  do owner (2026-07-02, ratificada 2026-07-08). P5/P6 são V2 pós-tração.
+  Plano: [CAT_LEARNING_LOOP](../../archive/CAT_LEARNING_LOOP-2026-07-08.md)
+  (arquivado). ADRs: [[ADR-186]] + [[ADR-188]].
 - **A12.sunset-disk-artifact** ✅ **entregue 2026-05-15** — sunset
   `DiskArtifactStore` + flag `MATHOMS_USE_DB_ARTIFACTS` + coluna
   `use_db_artifacts_override` + CLI standalone do pipeline (PRs #262-#268
@@ -111,7 +116,8 @@ Lições críticas do co-design `financial-planner` + `product-designer`
   e o bucketMapper segue referenciado em 3 componentes do relatório
   (o próprio corpo da ADR-141 registra esse débito; o flip em lote
   Proposto→Decidido do PR #668 cobriu só a decisão de schema). ~5d eng,
-  P2. Destino (entregar aqui vs realocar como débito) é decisão do owner.
+  P2. **Decisão do owner (2026-07-08): entregar dentro da A12** — última
+  lane antes do flip `done`.
   Lane: [A12.alocacao-v2](lanes/A12-alocacao-v2-migration.md).
 
 Lanes adicionais entram aqui conforme A11 fecha trabalho que naturalmente
@@ -142,9 +148,15 @@ Esta sprint fecha quando:
 - ☑ [[ADR-188]] flippada para `Decidido (A12)` — confirmada PR #198 (2026-05-11).
 - ☑ P1-P4 (UI mínima) mergeados em `main` com gates verdes (PRs #188/#194/#195-#198/#203).
 - ☑ Gate técnico dogfood com verdict PASS (PR #202, 11/11 invariantes).
-- ☐ Gate dogfood humano passou (CEO 7d wall-clock no `5@5.com`).
+- ☑ Gate dogfood humano — **PASS por decisão do owner** (2026-07-02,
+  audit-vault r4; ratificada pelo owner em 2026-07-08). Gate técnico
+  11/11 (PR #202) aceito como evidência; ritual de 7d dispensado.
 - ☑ KPIs `mathoms.categorization.*` instrumentados na versão MVP (P3 backend).
-- ☐ Plano canônico arquivado em `docs/archive/CAT_LEARNING_LOOP-YYYY-MM-DD.md`.
+- ☑ Plano canônico arquivado em
+  [docs/archive/CAT_LEARNING_LOOP-2026-07-08.md](../../archive/CAT_LEARNING_LOOP-2026-07-08.md) (2026-07-08).
+- ☐ Lane [[A12.alocacao-v2]] entregue em `main` (adicionada ao DoD em
+  2026-07-08 por decisão do owner: entregar dentro da A12 em vez de
+  realocar como débito).
 
 V2 (P5 inbox de sugestões + P6 detector offline + alertas SRE +
 side-panel 480px + highlight-to-extract) entra em sprint posterior,

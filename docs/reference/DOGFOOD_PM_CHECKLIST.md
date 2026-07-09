@@ -8,7 +8,7 @@
 > não-adoção em uso real).
 
 > Roteiro operacional do PM para conduzir o gate dogfood do
-> [A12.cat-learning-loop](../plan/CAT_LEARNING_LOOP/_README.md).
+> [A12.cat-learning-loop](../archive/CAT_LEARNING_LOOP-2026-07-08.md).
 > Pareia com o guia entregue ao tester:
 > [docs/reference/DOGFOOD_LEARNING_LOOP_HANDOFF.md](DOGFOOD_LEARNING_LOOP_HANDOFF.md).
 > Detalhe técnico/curl/flags: [docs/reference/RUNBOOK.md §9](RUNBOOK.md).
@@ -206,7 +206,7 @@ relatório. O número não substitui leitura humana.
 - [ ] **Atualizar lane** [`docs/sprint/A12/lanes/cat-learning-loop.md`]
       (ou path equivalente) §Status com resultado e link para o relatório.
 - [ ] **Plano canônico**
-      [`docs/plan/CAT_LEARNING_LOOP/_README.md`](../plan/CAT_LEARNING_LOOP/_README.md):
+      [`docs/archive/CAT_LEARNING_LOOP-2026-07-08.md`](../archive/CAT_LEARNING_LOOP-2026-07-08.md):
       marca gate ✅ / ⚠️ / ❌ e data.
 - [ ] **CHANGELOG**: 1 entrada (`docs(a12): gate dogfood — PASS / PARTIAL
       / FAIL — YYYY-MM-DD`).

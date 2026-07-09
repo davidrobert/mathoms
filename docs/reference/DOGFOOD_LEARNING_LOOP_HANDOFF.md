@@ -3,7 +3,7 @@
 > ⚠️ **HISTÓRICO — gate fechado (PASS por decisão do owner, 2026-07-02,
 > audit-vault r4).** O ritual de 7 dias não foi executado; o gate técnico
 > (11/11 invariantes, PR #202) foi aceito como evidência e o plano
-> [CAT_LEARNING_LOOP](../plan/CAT_LEARNING_LOOP/_README.md) está `done`.
+> [CAT_LEARNING_LOOP](../archive/CAT_LEARNING_LOOP-2026-07-08.md) está `done`.
 > A premissa "interface só via API/curl" abaixo é da época: a UI mínima (P4)
 > shipou em 2026-05-11 (PR #203 — toast + `CreateRuleDialog` + badge "Regra").
 > Reutilizar este guia **apenas** se o gate for reaberto (revert_rate alto /
@@ -18,7 +18,7 @@
 > **Detalhe operacional/técnico (curl, flags, Celery):**
 > [docs/reference/RUNBOOK.md §9](RUNBOOK.md).
 > **Plano canônico da feature:**
-> [docs/plan/CAT_LEARNING_LOOP/_README.md](../plan/CAT_LEARNING_LOOP/_README.md).
+> [docs/archive/CAT_LEARNING_LOOP-2026-07-08.md](../archive/CAT_LEARNING_LOOP-2026-07-08.md).
 
 ---
 

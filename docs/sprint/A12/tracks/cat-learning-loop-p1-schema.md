@@ -19,7 +19,7 @@ tags:
 # Track Cat Learning Loop P1 — Schema base
 
 > **Lane:** [[A12.cat-learning-loop]] · **Plano canônico:**
-> [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md) §P1
+> [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md) §P1
 > · **ADR canônica:** [[ADR-186]] §D3
 > · **Branch prefix:** `agent/cat-learning-loop-p1-schema/*`
 > · **Pré-requisito externo:** [[ADR-187]] (mês fechado · A11.report-publication)
@@ -120,7 +120,7 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano: [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md) §P1
+- Plano: [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md) §P1
 - ADR canônica: [[ADR-186]] (Proposto) §D3
 - Pré-req: [[ADR-187]] shipped (PR #185, commit `182308a`)
 - Lane: [[A12.cat-learning-loop]]

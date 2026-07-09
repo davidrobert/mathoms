@@ -45,7 +45,7 @@ Hoje `../../../../frontend/src/app/(app)/config/CategoriesTab.tsx` consome `/con
 
 ## Coordenação cross-lane (PM, 2026-05-10)
 
-**Hook arquitetural reservado para futura V2.A do [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md) §V2.A.** Custo marginal: ≤30min.
+**Hook arquitetural reservado para futura V2.A do [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md) §V2.A.** Custo marginal: ≤30min.
 
 A sub-tab "Regras promovidas" (V2.A do learning loop, condicional a sinais de tração ≥30% adoção / revert_rate ≤15% / ≥10 workspaces em 60d) vai morar **na mesma `CategoriesTab.tsx`** que esta W4 está refatorando. Para não pagar refactor estrutural duas vezes:
 
@@ -104,7 +104,7 @@ Justificativa: PM review 2026-05-10 manteve A11.cat-overrides-ux e A12.cat-learn
 - [ ] Vitest novo: render workspace novo mostra 24 categorias; render com override mostra badge.
 - [ ] Playwright `@critical`: edit cap → save → reload → cap persistido.
 - [ ] `dev/check_css_var_references.py` verde (sem `var(--xxx)` fantasma).
-- [ ] Tabs/subnav em `CategoriesTab.tsx` renderizados a partir de **array configurável** de `{id, label, content}` (1 entrada em V1) — hook para V2.A do [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md). Verificado em code review do `product-designer`.
+- [ ] Tabs/subnav em `CategoriesTab.tsx` renderizados a partir de **array configurável** de `{id, label, content}` (1 entrada em V1) — hook para V2.A do [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md). Verificado em code review do `product-designer`.
 
 ## Arquivos esperados
 
