@@ -14,7 +14,7 @@ adrs_canonical:
   - "[[ADR-236]]"
 tags:
   - type/plan
-  - status/draft
+  - status/done
   - area/methodology
   - area/pipeline
   - area/persistence

@@ -301,7 +301,7 @@ global #4 deste plano.
 ## Tracks operacionais
 
 Lanes ficam em `docs/sprint/A11/lanes/snapshot-changelog-v3-{wave}.md`
-quando promovidas para sprint. Hoje só W1 entregue; W2-W4 estão
+quando promovidas para sprint. W1 + W2 entregues (W2 ✅ 2026-07-03, ver §W2 acima); W3-W4
 priorizadas mas ainda não datadas.
 
 ## Histórico
