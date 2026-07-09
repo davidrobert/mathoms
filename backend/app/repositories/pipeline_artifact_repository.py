@@ -60,6 +60,19 @@ class PipelineArtifactRepository:
         ).all()
         return [r[0] for r in rows]
 
+    def list_for_run(self, pipeline_run_id: str) -> list[PipelineArtifact]:
+        """Todos os artefatos de uma run (cross-stage), ordenados por
+        ``(stage, artifact_key)``. Consumido por leitores cross-run como o gate
+        de paridade Go↔Python (F2 GO_SHELL): parear dois runs pelo mesmo
+        ``(stage, artifact_key)`` exige listar por ``pipeline_run_id``, não por
+        ``latest`` de workspace."""
+        q = (
+            select(PipelineArtifact)
+            .where(PipelineArtifact.pipeline_run_id == pipeline_run_id)
+            .order_by(PipelineArtifact.stage.asc(), PipelineArtifact.artifact_key.asc())
+        )
+        return list(self._session.execute(q).scalars().all())
+
     def get_by_document(
         self, document_id: str, *, stage: Optional[str] = None
     ) -> list[PipelineArtifact]:
