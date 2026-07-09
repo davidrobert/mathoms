@@ -976,7 +976,6 @@ mathoms.ai/
 │   └── {workspace_id}/
 │       ├── inbox/, data/, processed/, output/, members/, config/
 │
-├── _archive/                  # Arquivos legados preservados
 ├── docs/                      # Documentação técnica
 ├── tests/                     # Pipeline tests (~270)
 ├── docker-compose.dev.yml     # Stack dev completa (7 services + hot-reload + seed · ADR-252)

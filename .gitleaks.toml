@@ -18,8 +18,8 @@
 #   hook dedicado "Anti-PII em fixtures", não do gitleaks.
 #
 # Allowlist policy:
-#   - Paths: dirs de teste/fixture/baseline, _archive/, docs (.md + archive),
-#     migrations Alembic. Libera qualquer match dentro deles.
+#   - Paths: dirs de teste/fixture/baseline, docs/archive/, migrations
+#     Alembic. Libera qualquer match dentro deles.
 #   - Regexes: dev keys documentadas (não-secret em prod real).
 #   - Commits: SHAs históricos com matches conhecidos (baseline).
 #
@@ -33,8 +33,10 @@ useDefault = true
 description = "Allowlist global do Mathoms (paths sintéticos + dev keys documentadas)"
 
 paths = [
-    '''^_archive/''',
-    '''^EXEMPLO_DE_RELATORIO\.html$''',
+    # `_archive/` foi deletado do HEAD na A34.l7 (entry removida junto —
+    # allowlistar recriação seria regressão). A entry raiz de
+    # EXEMPLO_DE_RELATORIO.html também saiu: o exemplo vive em
+    # docs/plan/REPORT_PREMIUM/ e vira sintético na A34.l8.
     # Dirs de teste inteiros (cobrem fixtures, goldens e tests inline com
     # segredos sintéticos). Eram cobertos pela entry de CPF via OR no formato
     # plural antigo; preservados aqui explicitamente.

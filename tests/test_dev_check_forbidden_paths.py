@@ -109,16 +109,17 @@ def test_blocks_archive_staged_addition(path: str) -> None:
 
 
 def test_blocks_archive_staged_modification() -> None:
-    """Modificação staged de legado _archive/ também é barrada."""
-    path = "_archive/manual_operacao_v6.1.md"
+    """Modificação staged sob _archive/ também é barrada."""
+    path = "_archive/doc_legado.md"
     assert cfp.check(path, staged_statuses={path: "M"}) is not None
 
 
-def test_archive_legacy_unstaged_has_grace() -> None:
-    """Legado tracked enumerado por `--all-files` (não staged) passa até a
-    A34.l7 deletar o diretório — grace explícito, ver ARCHIVE_GRACE_DIRS."""
-    assert cfp.check("_archive/manual_operacao_v6.1.md", staged_statuses={}) is None
-    assert cfp.check("_archive/manual_operacao_v6.1.md") is None
+def test_archive_blocked_even_unstaged() -> None:
+    """Pós-A34.l7 (diretório deletado), o bloqueio é incondicional — o grace
+    de legado tracked da A34.l6 saiu junto com a deleção."""
+    assert cfp.check("_archive/doc_legado.md", staged_statuses={}) is not None
+    assert cfp.check("_archive/qualquer.md") is not None
+    assert cfp.check("archive/novo.md") is not None
 
 
 def test_archive_staged_deletion_allowed() -> None:

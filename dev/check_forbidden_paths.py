@@ -32,19 +32,18 @@ FORBIDDEN_DIRS = (
     # recriação acidental — regras universais vivem em docstrings + ADRs;
     # dados cliente em DB ou <workspace>/notes/ (gitignored).
     "docs/methodology/",
-    # A34.l6 (ADR-319): `_archive/` concentra PII histórica (PDFs bancários
-    # reais) e será deletado na A34.l7; `archive/` bloqueia a variante de
+    # A34.l6 (ADR-319): `_archive/` concentrava PII histórica (PDFs bancários
+    # reais) e foi deletado na A34.l7; `archive/` bloqueia a variante de
     # recriação na raiz. `docs/archive/` NÃO casa (paths são raiz-relativos)
     # e permanece livre.
     "_archive/",
     "archive/",
 )
 
-# A34.l6: grace temporário até a A34.l7 deletar `_archive/`. Arquivo legado
-# já tracked (enumerado por `pre-commit run --all-files` sem estar staged)
-# passa; add/modify staged é bloqueado desde já. Remover este grace junto
-# com a deleção do diretório (A34.l7).
-ARCHIVE_GRACE_DIRS = (
+# A34.l7: o grace temporário da A34.l6 (arquivos legados tracked em
+# `_archive/`) saiu junto com a deleção do diretório — bloqueio agora é
+# incondicional; a tupla permanece só pela mensagem de erro dedicada.
+ARCHIVE_MESSAGE_DIRS = (
     "_archive/",
     "archive/",
 )
@@ -125,35 +124,31 @@ def _staged_status_by_path(repo_root: Path) -> dict[str, str]:
     return out
 
 
-def _forbidden_dir_reason(path: str, statuses: dict[str, str]) -> str | None:
+def _forbidden_dir_reason(path: str) -> str | None:
     for forbidden in FORBIDDEN_DIRS:
         if not path.startswith(forbidden):
             continue
-        if forbidden not in ARCHIVE_GRACE_DIRS:
-            return f"diretório proibido: {forbidden}"
-        if path not in statuses:
-            # Legado tracked ainda não deletado (A34.l7) — não staged,
-            # apenas enumerado por `pre-commit run --all-files`.
-            return None
-        return (
-            f"diretório proibido: {forbidden} (PII histórica; "
-            f"recriação bloqueada — ADR-319/A34.l6)"
-        )
+        if forbidden in ARCHIVE_MESSAGE_DIRS:
+            return (
+                f"diretório proibido: {forbidden} (PII histórica; "
+                f"recriação bloqueada — ADR-319/A34.l6)"
+            )
+        return f"diretório proibido: {forbidden}"
     return None
 
 
 def check(path: str, *, staged_statuses: dict[str, str] | None = None) -> str | None:
     """Retorna a razão da violação, ou None se passou.
 
-    `staged_statuses=None` significa "sem informação de staging" (ex.:
-    enumeração `--all-files`) — o grace de ARCHIVE_GRACE_DIRS se aplica.
+    `staged_statuses` mapeia paths staged ao status git ("A"/"M"/"D"…);
+    deleção staged é limpeza permitida.
     """
     statuses = staged_statuses or {}
     if statuses.get(path) == "D":
         # Remover path proibido do repositório é limpeza, não violação
         # (cleanup A7.6, deleção de _archive/ na A34.l7, remoção de .env).
         return None
-    dir_reason = _forbidden_dir_reason(path, statuses)
+    dir_reason = _forbidden_dir_reason(path)
     if dir_reason is not None:
         return dir_reason
     basename = path.rsplit("/", 1)[-1]
