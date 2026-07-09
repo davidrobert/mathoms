@@ -1,4 +1,4 @@
-# Methodology — Pipeline Ferreira Campos
+# Methodology — Pipeline Exemplo
 ## Versão: 5.3 — abr/2026
 
 > ⚠️ **LEGADO v5.3 — NÃO é fonte de verdade.** Documento do pipeline CLI/relatório-HTML
