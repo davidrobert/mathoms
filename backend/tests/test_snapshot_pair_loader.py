@@ -212,3 +212,53 @@ def test_extract_period_yyyymm_formatos_diversos():
     assert _extract_period_yyyymm({"periodo_dados": "202601 a 202604"}) == "202604"
     assert _extract_period_yyyymm({"periodo": "2026-04"}) == "202604"
     assert _extract_period_yyyymm({}) == ""
+
+
+_RERUN_CONTENT = {**_NEW_CONTENT, "patrimonio": {"liquido": 1050.0, "bruto": 1550.0}}
+
+
+def _seed_series(session: Session, ws_id: str, specs: list[tuple[dict, datetime]]) -> int:
+    """Insere N artifacts `analyze_finances`; retorna o id do último (atual)."""
+    last_id = 0
+    for content, created_at in specs:
+        last_id = _add_artifact(
+            session,
+            workspace_id=ws_id,
+            stage="analyze_finances",
+            content=content,
+            created_at=created_at,
+        )
+    return last_id
+
+
+def _pair_for_series(session: Session, ws_id: str, specs: list[tuple[dict, datetime]]) -> tuple:
+    curr_id = _seed_series(session, ws_id, specs)
+    return load_snapshot_pair(session, workspace_id=ws_id, current_artifact_id=curr_id)
+
+
+@pytest.mark.asyncio
+async def test_rerun_do_mesmo_periodo_nao_vira_prev(db: AsyncSession):
+    """ADR-190 §Emenda: prev por PERÍODO — re-run do mesmo mês é pulado."""
+    ws_id = await _seed_user_workspace(db, "Rerun")
+    specs = [
+        (_OLD_CONTENT, datetime(2026, 3, 31, 12, 0, tzinfo=timezone.utc)),
+        (_RERUN_CONTENT, datetime(2026, 4, 30, 11, 0, tzinfo=timezone.utc)),
+        (_NEW_CONTENT, datetime(2026, 4, 30, 11, 30, tzinfo=timezone.utc)),
+    ]
+    prev, curr = await db.run_sync(lambda s: _pair_for_series(s, ws_id, specs))
+    assert curr.period_yyyymm == "202604"
+    assert prev is not None
+    assert prev.period_yyyymm == "202603"
+    assert prev.content_json["patrimonio"]["liquido"] == 1000.0
+
+
+@pytest.mark.asyncio
+async def test_apenas_reruns_do_mesmo_periodo_sem_prev(db: AsyncSession):
+    """Só re-runs do mesmo período ⇒ prev=None — nunca run-vs-rerun."""
+    ws_id = await _seed_user_workspace(db, "SoRerun")
+    specs = [
+        (_RERUN_CONTENT, datetime(2026, 4, 30, 10, 0, tzinfo=timezone.utc)),
+        (_NEW_CONTENT, datetime(2026, 4, 30, 11, 0, tzinfo=timezone.utc)),
+    ]
+    prev, curr = await db.run_sync(lambda s: _pair_for_series(s, ws_id, specs))
+    assert prev is None

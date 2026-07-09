@@ -27,18 +27,62 @@ _PERIOD_END_PATTERNS: tuple[str, ...] = (
 )
 
 
+# Cap do scan de candidatos ao prev por período (≤100 reports/workspace hoje).
+_PREV_SCAN_LIMIT = 120
+
+
 def load_snapshot_pair(
     session: Session,
     *,
     workspace_id: str,
     current_artifact_id: int,
 ) -> tuple[AnalyzeFinancesSnapshot | None, AnalyzeFinancesSnapshot]:
-    """Carrega snapshot atual + anterior do mesmo workspace; prev=None se primeiro."""
+    """Carrega snapshot atual + anterior (por PERÍODO); prev=None se primeiro."""
+    # ADR-190 §Emenda: prev = snapshot mais recente de um período ANTERIOR —
+    # re-run do mesmo mês nunca vira prev (run-vs-rerun rendia tudo `stable`).
+    # Sem período extraível no atual, degrada para o legado por `created_at`.
     current_row = _fetch_current(session, current_artifact_id)
-    prev_row = _fetch_previous(session, workspace_id, current_row.created_at)
     current = _to_snapshot(current_row)
-    prev = _to_snapshot(prev_row) if prev_row is not None else None
+    if current.period_yyyymm:
+        prev = _fetch_previous_by_period(
+            session, workspace_id, current_row.created_at, current.period_yyyymm
+        )
+    else:
+        prev_row = _fetch_previous(session, workspace_id, current_row.created_at)
+        prev = _to_snapshot(prev_row) if prev_row is not None else None
     return prev, current
+
+
+def _fetch_previous_by_period(
+    session: Session,
+    workspace_id: str,
+    current_created_at: datetime,
+    current_period: str,
+) -> AnalyzeFinancesSnapshot | None:
+    """Latest artifact do período distinto mais recente anterior ao atual."""
+    # Scan em `created_at desc`: o primeiro row com período < atual já é o
+    # mais recente daquele período (colapso latest-por-período implícito);
+    # rows sem período extraível são ignorados no modo por-período.
+    stmt = _previous_candidates_stmt(workspace_id, current_created_at)
+    for row in session.execute(stmt).scalars():
+        snapshot = _to_snapshot(row)
+        if snapshot.period_yyyymm and snapshot.period_yyyymm < current_period:
+            return snapshot
+    return None
+
+
+def _previous_candidates_stmt(workspace_id: str, current_created_at: datetime):
+    return (
+        select(PipelineArtifact)
+        .where(
+            PipelineArtifact.workspace_id == workspace_id,
+            PipelineArtifact.stage.in_(_ANALYZE_STAGES),
+            PipelineArtifact.artifact_key == _ANALYZE_ARTIFACT_KEY,
+            PipelineArtifact.created_at < current_created_at,
+        )
+        .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
+        .limit(_PREV_SCAN_LIMIT)
+    )
 
 
 def _fetch_current(session: Session, artifact_id: int) -> PipelineArtifact:

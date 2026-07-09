@@ -19,6 +19,7 @@ from pipeline.domain.types.snapshot_changelog import (
 
 DeltaSignalRead = Literal["up", "down", "stable"]
 DirectionPositiveRead = Literal["up", "down"]
+MetricUnitRead = Literal["brl", "pp", "meses"]
 
 
 class ComparisonItemRead(BaseModel):
@@ -33,6 +34,9 @@ class ComparisonItemRead(BaseModel):
     delta_pct: Optional[MoneyBRL] = None
     delta_signal: DeltaSignalRead
     direction_positive: DirectionPositiveRead = "up"
+    # unit (v3 · ADR-190 §Emenda 2026-07-09): "pp"/"meses" exibem delta
+    # absoluto (after−before) formatado na unidade; "brl" mantém money.
+    unit: MetricUnitRead = "brl"
 
 
 class ChangelogEntryRead(BaseModel):
@@ -54,6 +58,7 @@ def comparison_item_to_read(item: ComparisonItem) -> ComparisonItemRead:
         delta_pct=item.delta_pct,
         delta_signal=item.delta_signal,
         direction_positive=item.direction_positive,
+        unit=item.unit,
     )
 
 
@@ -72,6 +77,7 @@ __all__ = [
     "ComparisonItemRead",
     "DeltaSignalRead",
     "DirectionPositiveRead",
+    "MetricUnitRead",
     "changelog_entry_to_read",
     "comparison_item_to_read",
 ]
