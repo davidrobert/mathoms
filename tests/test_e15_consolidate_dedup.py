@@ -13,7 +13,7 @@ from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.context import WorkspaceContext
 
 _DESC_LIVING_WISH = (
-    "APARTAMENTO LIVING WISH - AV JOAO DIAS 2192 TORRE 2 APT 163, SANTO AMARO SAO PAULO/SP"
+    "APARTAMENTO COND EXEMPLO B - AV EXEMPLO 2192 TORRE 2 APT 163, SANTO AMARO SAO PAULO/SP"
 )
 
 
@@ -69,8 +69,8 @@ def _run_consolidate(ctx: WorkspaceContext) -> list[dict]:
 
 
 @pytest.fixture
-def co_declared_living_wish(tmp_path: Path) -> list[dict]:
-    """Cenário real: David R$ 477.436,58 vs Mariana R$ 530.000 (LIVING WISH)."""
+def co_declared_cond_exemplo_b(tmp_path: Path) -> list[dict]:
+    """Cenário real: David R$ 477.436,58 vs Mariana R$ 530.000 (COND EXEMPLO B)."""
     baseline = _make_baseline(
         [
             _make_item(
@@ -136,27 +136,27 @@ def high_divergence_co_declared(tmp_path: Path) -> list[dict]:
     return _run_consolidate(ctx)
 
 
-def test_co_declared_collapses_to_single_entry(co_declared_living_wish):
-    assert len(co_declared_living_wish) == 1
+def test_co_declared_collapses_to_single_entry(co_declared_cond_exemplo_b):
+    assert len(co_declared_cond_exemplo_b) == 1
 
 
-def test_co_declared_uses_maior_valor(co_declared_living_wish):
-    assert co_declared_living_wish[0]["valores_31_12"]["2024"] == 530000.0
+def test_co_declared_uses_maior_valor(co_declared_cond_exemplo_b):
+    assert co_declared_cond_exemplo_b[0]["valores_31_12"]["2024"] == 530000.0
 
 
-def test_co_declared_marks_casal(co_declared_living_wish):
-    merged = co_declared_living_wish[0]
+def test_co_declared_marks_casal(co_declared_cond_exemplo_b):
+    merged = co_declared_cond_exemplo_b[0]
     assert merged["proprietario"] == "casal"
     assert set(merged["proprietarios"]) == {"david_robert", "mariana_xxx"}
 
 
-def test_co_declared_preserves_property_id(co_declared_living_wish):
-    assert co_declared_living_wish[0]["property_id"] is not None
+def test_co_declared_preserves_property_id(co_declared_cond_exemplo_b):
+    assert co_declared_cond_exemplo_b[0]["property_id"] is not None
 
 
-def test_co_declared_below_10pct_no_warning(co_declared_living_wish):
+def test_co_declared_below_10pct_no_warning(co_declared_cond_exemplo_b):
     # 477.436,58 vs 530.000 ≈ 9.92% — abaixo do limiar
-    assert "_dedup_warning" not in co_declared_living_wish[0]
+    assert "_dedup_warning" not in co_declared_cond_exemplo_b[0]
 
 
 def test_distinct_imoveis_preserved(distinct_imoveis):
@@ -180,8 +180,8 @@ def test_high_divergence_marks_warning(high_divergence_co_declared):
 @pytest.fixture
 def irpf_plus_comprovante_bem(tmp_path: Path) -> list[dict]:
     """Cenário do report fae3544d: imóvel em IRPF (cod=11) + comprovante (cod=01)."""
-    desc_irpf = "APARTAMENTO - EDIFICIO GISELE - APTO 12 - RUA MAJOR FREIRE 496, SAO PAULO/SP"
-    desc_comprovante = "Apartamento - Rua Major Freire, 496 - Ed Gisele Ap 12, São Paulo - SP"
+    desc_irpf = "APARTAMENTO - EDIFICIO EXEMPLO D - APTO 12 - RUA EXEMPLO 496, SAO PAULO/SP"
+    desc_comprovante = "Apartamento - Rua Exemplo, 496 - Ed Exemplo D Ap 12, São Paulo - SP"
     baseline = _make_baseline(
         [
             _make_item(
@@ -208,10 +208,10 @@ def test_irpf_e_comprovante_bem_funde_cross_codigo(irpf_plus_comprovante_bem):
 
 
 @pytest.fixture
-def benedito_calixto_torre_vs_predio(tmp_path: Path) -> list[dict]:
+def praca_exemplo_torre_vs_predio(tmp_path: Path) -> list[dict]:
     """ADR-265: report fae3544d — IRPF '190' (torre) vs comprovante '186' (prédio)."""
-    desc_irpf = "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34 - PRACA BENEDITO CALIXTO 190"
-    desc_comprovante = "Apartamento - Praça Benedito Calixto, 186 - Ap 34, São Paulo - SP"
+    desc_irpf = "APARTAMENTO - CONDOMINIO EXEMPLO C - APTO 34 - PRACA EXEMPLO 190"
+    desc_comprovante = "Apartamento - Praça Exemplo, 186 - Ap 34, São Paulo - SP"
     baseline = _make_baseline(
         [
             _make_item(codigo="11", descricao=desc_irpf, valor_brl=850000.0, membro="david_robert"),
@@ -224,12 +224,12 @@ def benedito_calixto_torre_vs_predio(tmp_path: Path) -> list[dict]:
     return _run_consolidate(ctx)
 
 
-def test_benedito_calixto_funde_via_fuzzy(benedito_calixto_torre_vs_predio):
+def test_praca_exemplo_funde_via_fuzzy(praca_exemplo_torre_vs_predio):
     """IRPF cod=11 '190' + comprovante cod=01 '186' (mesmo apto 34) → 1 entry."""
-    # Apesar dos canonicals divergirem ('benedito calixto 190' vs 'benedito calixto 186'),
+    # Apesar dos canonicals divergirem ('exemplo 190' vs 'exemplo 186'),
     # o pass 4 fuzzy funde porque mesma via + Δ=4 ≤ K + complemento (apto 34) idêntico.
-    assert len(benedito_calixto_torre_vs_predio) == 1
-    merged = benedito_calixto_torre_vs_predio[0]
+    assert len(praca_exemplo_torre_vs_predio) == 1
+    merged = praca_exemplo_torre_vs_predio[0]
     # Maior valor vence
     assert merged["valores_31_12"]["2024"] == 850000.0
 

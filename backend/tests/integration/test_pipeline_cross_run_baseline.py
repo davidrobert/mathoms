@@ -32,7 +32,7 @@ from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter
 _RICH_BASELINE = {
     "imoveis_consolidados": [
         {
-            "descricao": "APARTAMENTO RESIDÊNCIA RUA TASSO",
+            "descricao": "APARTAMENTO RESIDÊNCIA RUA EXEMPLO",
             "proprietario": "david",
             "valores_31_12": {"2024": 800000.0},
             "tipo": "imovel",

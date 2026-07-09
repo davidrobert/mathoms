@@ -28,7 +28,7 @@ class TestSplitImoveisWithOverrides:
     def test_residencia_via_override(self):
         titular = {
             "imoveis": [
-                _make_imovel("p-casa", 1_000_000.0, "Casa Tasso"),
+                _make_imovel("p-casa", 1_000_000.0, "Casa Exemplo"),
                 _make_imovel("p-apto1", 500_000.0, "Apto Paulista"),
             ]
         }
@@ -121,14 +121,14 @@ class TestSplitImoveisWithOverrides:
         """Caso real workspace 5@5.com: 1 casa código 12 + 4 apartamentos código 11."""
         titular = {
             "imoveis": [
-                _make_imovel("p-casa-tasso", 996_821.46, "CASA - RUA TASSO DA SILVEIRA, 61"),
-                _make_imovel("p-apto-paulista", 350_000.00, "APTO BARAO DE CAPANEMA 34"),
-                _make_imovel("p-apto-gisele", 212_706.24, "APTO EDIFICIO GISELE 12"),
-                _make_imovel("p-cyrela1", 270_000.00, "APTO LIVING CONCEPT"),
-                _make_imovel("p-cyrela2", 530_000.00, "APTO LIVING WISH"),
+                _make_imovel("p-casa-exemplo", 996_821.46, "CASA - RUA EXEMPLO, 100"),
+                _make_imovel("p-apto-paulista", 350_000.00, "APTO EXEMPLO C 34"),
+                _make_imovel("p-apto-exemplo-d", 212_706.24, "APTO EDIFICIO EXEMPLO D 12"),
+                _make_imovel("p-cyrela1", 270_000.00, "APTO COND EXEMPLO A"),
+                _make_imovel("p-cyrela2", 530_000.00, "APTO COND EXEMPLO B"),
             ]
         }
-        overrides = {"p-casa-tasso": CLASSIFICATION_RESIDENCIA_PRINCIPAL}
+        overrides = {"p-casa-exemplo": CLASSIFICATION_RESIDENCIA_PRINCIPAL}
         residencia, outros = split_imoveis_with_overrides(
             titular_bens=titular,
             conjuge_bens={},

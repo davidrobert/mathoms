@@ -613,7 +613,7 @@ RICO_EXTRATO_PDF = (
 # PDF de fatura do QuintoAndar: cabeçalho usa o plural "Faturas de aluguel".
 QUINTOANDAR_FATURA_PDF = (
     "Faturas de aluguel\n"
-    "Praça Benedito Calixto, 186\n"
+    "Praça Exemplo, 186\n"
     "Janeiro Fevereiro Março\n"
     "Total de\n"
     "R$ 1.500,00\n"

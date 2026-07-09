@@ -29,7 +29,7 @@ class TestEnricher:
         resolver = InMemoryPropertyIdentityResolver()
         imoveis = [
             {
-                "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - SP",
+                "descricao": "CASA - RUA EXEMPLO, 100 - SP",
                 "proprietario": "david_robert",
                 "codigo_rfb": "12",
                 "ano_referencia": 2024,
@@ -38,20 +38,20 @@ class TestEnricher:
         out = enrich_imoveis_with_property_ids(_build_consolidated(imoveis), resolver, WS_ID)
         entry = out["imoveis_consolidados"][0]
         assert entry["property_id"] is not None
-        assert entry["endereco_canonical"] == "tasso silveira 61"
+        assert entry["endereco_canonical"] == "exemplo 100"
         assert entry["low_confidence"] is False
 
     def test_same_imovel_across_years_returns_same_property_id(self):
         """Goldens de paridade — descrição varia entre anos, property_id estável."""
         resolver = InMemoryPropertyIdentityResolver()
         imovel_2023 = {
-            "descricao": "CASA - RUA TASSO DA SILVEIRA, 61",
+            "descricao": "CASA - RUA EXEMPLO, 100",
             "proprietario": "david_robert",
             "codigo_rfb": "12",
             "ano_referencia": 2023,
         }
         imovel_2024 = {
-            "descricao": "Casa - Rua Tasso da Silveira, 61 - São Paulo",
+            "descricao": "Casa - Rua Exemplo, 100 - São Paulo",
             "proprietario": "david_robert",
             "codigo_rfb": "12",
             "ano_referencia": 2024,
@@ -68,13 +68,13 @@ class TestEnricher:
         """ADR-215 fix-B2: casal em comunhão declara mesmo imóvel → 1 row."""
         resolver = InMemoryPropertyIdentityResolver()
         imovel_titular = {
-            "descricao": "Rua Tasso, 61",
+            "descricao": "Rua Exemplo, 100",
             "proprietario": "david_robert",
             "codigo_rfb": "12",
             "ano_referencia": 2024,
         }
         imovel_conjuge = {
-            "descricao": "Rua Tasso, 61",
+            "descricao": "Rua Exemplo, 100",
             "proprietario": "mariana",
             "codigo_rfb": "12",
             "ano_referencia": 2024,
@@ -110,7 +110,7 @@ class TestEnricher:
     def test_descricao_without_address_yields_low_confidence(self):
         resolver = InMemoryPropertyIdentityResolver()
         imovel = {
-            "descricao": "APARTAMENTO COND BARAO DE CAPANEMA APTO 34",
+            "descricao": "APARTAMENTO COND EXEMPLO C APTO 34",
             "proprietario": "david_robert",
             "codigo_rfb": "11",
             "ano_referencia": 2024,
@@ -180,10 +180,10 @@ class TestDBResolver:
         _SL, s, w = make_db_resolver_fixtures()
         resolver = DBPropertyIdentityResolver(session=s)
         lookup = PropertyLookupKey(
-            titular_key="david_robert", codigo_rfb="12", endereco_canonical="tasso silveira 61"
+            titular_key="david_robert", codigo_rfb="12", endereco_canonical="exemplo 100"
         )
-        r1 = resolver.match_or_create(w.id, lookup, 2024, "Casa Tasso 61")
-        r2 = resolver.match_or_create(w.id, lookup, 2024, "Casa Tasso 61")
+        r1 = resolver.match_or_create(w.id, lookup, 2024, "Casa Exemplo 100")
+        r2 = resolver.match_or_create(w.id, lookup, 2024, "Casa Exemplo 100")
         assert r1.property_id == r2.property_id
         s.close()
 
@@ -200,8 +200,8 @@ class TestDBResolver:
 
         SessionLocal, long_lived, w = make_db_resolver_fixtures()
         resolver = DBPropertyIdentityResolver(session=long_lived)
-        lookup = PropertyLookupKey("david_robert", "12", "tasso silveira 61")
-        record = resolver.match_or_create(w.id, lookup, 2024, "Casa Tasso 61")
+        lookup = PropertyLookupKey("david_robert", "12", "exemplo 100")
+        record = resolver.match_or_create(w.id, lookup, 2024, "Casa Exemplo 100")
         parallel = SessionLocal()
         stmt = select(PropertyIdentity).where(PropertyIdentity.workspace_id == w.id)
         rows = parallel.execute(stmt).scalars().all()

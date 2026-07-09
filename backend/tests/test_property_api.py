@@ -26,9 +26,9 @@ async def _seed_property(db, workspace_id: str, **overrides) -> PropertyIdentity
         workspace_id=workspace_id,
         titular_key="david_robert",
         codigo_rfb="12",
-        endereco_canonical="tasso silveira 61",
+        endereco_canonical="exemplo 100",
         first_seen_year=2024,
-        descricao_sample="CASA - RUA TASSO DA SILVEIRA, 61 - SP",
+        descricao_sample="CASA - RUA EXEMPLO, 100 - SP",
         low_confidence=False,
     )
     defaults.update(overrides)
@@ -106,9 +106,7 @@ async def test_list_properties_suggests_residencia_when_irpf_endereco_matches(
     auth_client: AsyncClient, db
 ):
     await _seed_property(db, auth_client.ws_id)
-    await _seed_irpf_artifact(
-        db, auth_client.ws_id, endereco="Rua Tasso da Silveira, 61, São Paulo-SP"
-    )
+    await _seed_irpf_artifact(db, auth_client.ws_id, endereco="Rua Exemplo, 100, São Paulo-SP")
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/properties")
     assert resp.status_code == 200
     data = resp.json()

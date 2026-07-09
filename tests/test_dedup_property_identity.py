@@ -68,15 +68,15 @@ def _seed_fuzzy_pair(factory, ws) -> tuple:
         factory,
         ws,
         codigo_rfb="11",
-        endereco_canonical="benedito calixto 190",
-        descricao="APTO 34 BENEDITO CALIXTO 190",
+        endereco_canonical="exemplo 190",
+        descricao="APTO 34 EXEMPLO 190",
     )
     b = _seed_property(
         factory,
         ws,
         codigo_rfb="01",
-        endereco_canonical="benedito calixto 186",
-        descricao="APTO 34 BENEDITO CALIXTO 186",
+        endereco_canonical="exemplo 186",
+        descricao="APTO 34 EXEMPLO 186",
     )
     return a, b
 
@@ -90,10 +90,10 @@ def _seed_5at5_scenario(factory, ws):
             codigo_rfb="12",
             endereco_canonical=None,
             low_confidence=True,
-            descricao="CASA Leonardo da Vinci 2707, QUADRA 33 - Matrícula 20462",
+            descricao="CASA Modelo 2707, QUADRA 33 - Matrícula 20462",
         )
     for code in ("11", "11", "01"):
-        _seed_property(factory, ws, codigo_rfb=code, endereco_canonical="alberto augusto alves 320")
+        _seed_property(factory, ws, codigo_rfb=code, endereco_canonical="exemplo 320")
 
 
 class TestPasse0Recanonicalize:
@@ -107,7 +107,7 @@ class TestPasse0Recanonicalize:
             codigo_rfb="12",
             endereco_canonical=None,
             descricao=(
-                "CASA - LEONARDO DA VINCI 2707, QUADRA 33 LOTE 27, "
+                "CASA - MODELO 2707, QUADRA 33 LOTE 27, "
                 "JABAQUARA, SAO PAULO/SP - Matrícula 20462"
             ),
             low_confidence=True,
@@ -180,8 +180,8 @@ class TestPasse3CrossCodigoRFB:
 
     def test_merges_generic_01_into_specific_11(self, sync_db):
         ws = _seed_workspace(sync_db)
-        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="joao dias 2192")
-        _seed_property(sync_db, ws, codigo_rfb="01", endereco_canonical="joao dias 2192")
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="exemplo 2192")
+        _seed_property(sync_db, ws, codigo_rfb="01", endereco_canonical="exemplo 2192")
         with sync_db() as session:
             report = _build_report(session, ws.id, dry_run=False)
             session.commit()

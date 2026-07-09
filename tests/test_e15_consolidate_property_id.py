@@ -18,7 +18,7 @@ def _build_baseline_with_imovel() -> dict:
         "itens": [
             {
                 "codigo": "12",
-                "descricao": "CASA - RUA TASSO DA SILVEIRA, 61 - SP",
+                "descricao": "CASA - RUA EXEMPLO, 100 - SP",
                 "categoria": "imovel",
                 "valor_brl": 996821.46,
                 "membro": "david_robert",
@@ -78,8 +78,8 @@ def test_consolidate_enriches_imoveis_with_property_id(tmp_path):
         assert "endereco_canonical" in e
         assert "low_confidence" in e
 
-    casa = next(e for e in imoveis if "TASSO" in e["descricao"].upper())
-    assert casa["endereco_canonical"] == "tasso silveira 61"
+    casa = next(e for e in imoveis if "EXEMPLO" in e["descricao"].upper())
+    assert casa["endereco_canonical"] == "exemplo 100"
     assert casa["low_confidence"] is False
 
     # 2 imóveis distintos = 2 rows em property_identity
