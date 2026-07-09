@@ -243,16 +243,18 @@ repos:
         files: '(^|/)Dockerfile(\.[^/]+)?$|(^|/)docker-compose[^/]*\.ya?ml$'
 
       - id: lint-no-real-pii
-        # F6.5D.7 — bloqueia CPF real em fixtures de teste. Aceita apenas
-        # placeholders (000.000.000-00, 123.456.789-09, 111.111.111-11) ou
-        # CPFs gerados via tests/utils/cpf.py (anotados com `# noqa: PII-ok`).
-        # Já roda no workflow CI; pre-commit local evita ciclo
-        # commit→push→CI-fail→fix descobrindo só remoto.
-        name: "Anti-PII em fixtures (CPF real bloqueado; placeholder ou gerador mod-11)"
+        # F6.5D.7, estendido em A34.l4 (ADR-319): superset público (docs/,
+        # código de produção, config/, raiz) + detectores de domínio — CPF
+        # com dígito verificador válido, endereço, placa, matrícula/contrato,
+        # path de máquina local. Hit novo fora do baseline burn-down
+        # (tests/utils/pii_lint_baseline.json — lanes W1 zeram) bloqueia.
+        # Prova G2 / modo estrito: `--no-baseline`. Mensagens exibem só
+        # path:linha+TIPO, nunca o valor casado.
+        name: "Anti-PII no superset público (CPF/endereço/placa/contrato/homedir — ADR-319)"
         entry: python3 tests/utils/lint_no_real_pii.py
         language: system
         pass_filenames: false
-        files: ^(backend/tests|tests|frontend/tests)/.*$
+        always_run: true
 
       - id: sigilo-terms
         # §13 sigilo metodológico (LEGAL/IP) — bloqueia atribuição pública de

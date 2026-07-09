@@ -1,0 +1,301 @@
+{
+  "_comment": "Baseline burn-down do lint anti-PII (A34.l4, ADR-319). Hits legados por (path, tipo) — as lanes W1 do PLAN-public-release zeram as entradas. NUNCA adicionar entrada nova sem lane de saneamento correspondente; hit fora do baseline é gate.",
+  "entries": [
+    {
+      "path": "backend/app/application/suggestions/accept_suggestion.py",
+      "type": "PLACA"
+    },
+    {
+      "path": "backend/tests/snapshots/dogfood_view_model.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "backend/tests/test_apolice_classifier.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "backend/tests/test_content_classifier.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "backend/tests/test_db_property_identity_resolver.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "backend/tests/test_extract_comprovantes_bens_session_reuse.py",
+      "type": "PLACA"
+    },
+    {
+      "path": "backend/tests/test_fipe_periodic.py",
+      "type": "PLACA"
+    },
+    {
+      "path": "backend/tests/test_property_api.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "backend/tests/test_property_identity_model.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "backend/tests/test_vehicle_model.py",
+      "type": "PLACA"
+    },
+    {
+      "path": "dev/check_planner_manifest_coverage.py",
+      "type": "PLACA"
+    },
+    {
+      "path": "dev/code_style_baseline.json",
+      "type": "HOMEDIR"
+    },
+    {
+      "path": "dev/dedup_property_identity.py",
+      "type": "HOMEDIR"
+    },
+    {
+      "path": "docs/adr/215-classificacao-imoveis-override-db-first.md",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/adr/225-property-identity-dedup-robusto.md",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/adr/239-comprovantes-bens-apolices-fipe.md",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/adr/239-comprovantes-bens-apolices-fipe.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/adr/246-dedup-imoveis-cross-irpf.md",
+      "type": "CONTRATO"
+    },
+    {
+      "path": "docs/adr/261-llm-cache-invalidation-policy.md",
+      "type": "CONTRATO"
+    },
+    {
+      "path": "docs/adr/265-fuzzy-canonical-property-identity.md",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/adr/299-sec03-deps-17-cves-procede.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/adr/319-contrato-gates-antiregressao-pii-sigilo.md",
+      "type": "HOMEDIR"
+    },
+    {
+      "path": "docs/agent_prompts/orchestrator_a17_a18_a19.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/archive/BACKLOG-pre-shim-2026-05-07.md",
+      "type": "CPF"
+    },
+    {
+      "path": "docs/plan/REPORT_PREMIUM/EXEMPLO_DE_RELATORIO.html",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/plan/REPORT_PREMIUM/EXEMPLO_DE_RELATORIO.html",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/plan/RESIDENCIA_E_USO/_README.md",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/sprint/A17/tracks/a17-canonical-fuzzy-adr225.md",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/sprint/A18/changelog/CHG-2026-05-21-DOCS-ADR-239-PROPOSTO.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/sprint/A18/lanes/A18-l1-crlv.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/sprint/A18/lanes/A18-l2-apolice.md",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/sprint/A18/lanes/A18-l2-apolice.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/sprint/A18/tracks/a18-l2-apolice-seguro.md",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "docs/sprint/A18/tracks/a18-l2-apolice-seguro.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/sprint/A20/lanes/A20-l5-trivy-sbom.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/sprint/A6/tracks/a6g3-backend-style-sweep.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/sprint/A6/tracks/a6g6-enforcement.md",
+      "type": "PLACA"
+    },
+    {
+      "path": "docs/sprint/_archive_pre_a6/_README.md",
+      "type": "CPF"
+    },
+    {
+      "path": "frontend/tests/components/RealEstateYieldCard.test.tsx",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "frontend/tests/e2e/fixtures/reports/degraded.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "frontend/tests/e2e/fixtures/reports/long-strings.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "frontend/tests/pages/residencia-section.test.tsx",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "pipeline/domain/services/_tx_identity.py",
+      "type": "PLACA"
+    },
+    {
+      "path": "pipeline/domain/services/endereco_canonicalizer.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "pipeline/llm/prompts/apolice.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "pipeline/llm/prompts/e16_irpf_full.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "pipeline/stages/extract_with_llm.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/fixtures/dedup/multi_year_baseline.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/fixtures/llm_golden/crlv_zero_km.json",
+      "type": "PLACA"
+    },
+    {
+      "path": "tests/fixtures/llm_golden/e16_irpf_full_completo.json",
+      "type": "PLACA"
+    },
+    {
+      "path": "tests/fixtures/llm_golden/e16_irpf_full_edge_cases.json",
+      "type": "PLACA"
+    },
+    {
+      "path": "tests/fixtures/llm_golden/e16_irpf_full_fail_gracefully.json",
+      "type": "PLACA"
+    },
+    {
+      "path": "tests/fixtures/llm_golden/e16_irpf_full_simplificado.json",
+      "type": "PLACA"
+    },
+    {
+      "path": "tests/fixtures/llm_golden/informe_aluguel_comunhao.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/fixtures/llm_golden/informe_aluguel_multi_imovel_vacancia.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/fixtures/llm_golden/informe_aluguel_pf_pj_ir_retido.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/fixtures/pipeline_golden/dogfood/baseline-1.5.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/pipeline/goldens/e4/cenario_baseline_investimentos.json",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/test_dedup_property_identity.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/test_doc_indexes_snapshot.py",
+      "type": "PLACA"
+    },
+    {
+      "path": "tests/test_e15_consolidate_dedup.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/test_e15_consolidate_property_id.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/test_e15c_golden_execution.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/test_informe_aluguel_schema_unit.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_baseline_normalizer.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_canonical_fuzzy_match.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_e15c_dedup_invariants.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_endereco_canonicalizer.py",
+      "type": "CONTRATO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_endereco_canonicalizer.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_patrimonio_types.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_property_identity_enricher.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_split_imoveis_with_overrides.py",
+      "type": "ENDERECO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_transaction_classifier.py",
+      "type": "CONTRATO"
+    },
+    {
+      "path": "tests/unit/pipeline/test_tx_identity.py",
+      "type": "PLACA"
+    }
+  ]
+}
