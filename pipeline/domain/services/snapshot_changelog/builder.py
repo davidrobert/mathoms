@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 from pipeline.domain.services.snapshot_changelog.narratives import format_summary
 from pipeline.domain.types.snapshot_changelog import (
+    DEFAULT_METRIC_UNITS,
     AnalyzeFinancesSnapshot,
     ChangelogEntry,
     ComparisonItem,
@@ -17,13 +18,19 @@ from pipeline.domain.types.snapshot_changelog import (
     UnknownSectionError,
 )
 
-# section_id → dotted path em `content_json` (default; expandir em v2.D.1.x).
+# section_id → dotted path em `content_json`. Métricas M_* (ADR-190 §Emenda
+# 2026-07-09) apontam para campos E5 REAIS — comparação funciona
+# retroativamente contra snapshots antigos, sem emit novo no E5.
 DEFAULT_SECTION_VALUE_PATHS: Mapping[str, str] = {
     "S1": "patrimonio.liquido",
     "S2": "fluxo_caixa.receita_total",
     "S3": "patrimonio.bruto",
     "T2": "fluxo_caixa.investimentos_total",
     "T5": "fluxo_caixa.despesa_total",
+    "M_PL": "patrimonio.liquido",
+    "M_TAXA_POUPANCA": "ratios.taxa_poupanca_recorrente_pct",
+    "M_RESERVA_MESES": "reserva.cobertura_meses",
+    "M_AUVP_DESVIO": "goals.alocacao_alvo.derived.desvio_max_pct",
 }
 
 DEFAULT_SECTION_LABELS: Mapping[str, str] = {
@@ -32,7 +39,16 @@ DEFAULT_SECTION_LABELS: Mapping[str, str] = {
     "S3": "Patrimônio Bruto",
     "T2": "Aportes",
     "T5": "Despesas Totais",
+    "M_PL": "Patrimônio Líquido",
+    "M_TAXA_POUPANCA": "Taxa de Poupança",
+    "M_RESERVA_MESES": "Reserva de Emergência",
+    "M_AUVP_DESVIO": "Desvio da Alocação Alvo",
 }
+
+# Métricas M_* com fonte ausente (path → None em qualquer lado) são
+# SUPRIMIDAS individualmente — nunca renderizadas como zero falso
+# (ADR-190 R4 + §Emenda item 3). Ids legados preservam coerção → 0.
+_SUPPRESS_WHEN_MISSING_PREFIX = "M_"
 
 
 def build_comparison(
@@ -43,10 +59,11 @@ def build_comparison(
     """Entry point: compara snapshots; `prev=None` ⇒ result vazio com `has_previous=False`."""
     if prev is None:
         return ComparisonResult(items=(), entries=(), has_previous=False)
-    items = tuple(
+    maybe_items = (
         _compare_section(section_id, prev, curr, config)
         for section_id in config.sections_to_compare
     )
+    items = tuple(item for item in maybe_items if item is not None)
     entries = tuple(_make_entry(item) for item in items if _crosses_threshold(item))
     return ComparisonResult(items=items, entries=entries, has_previous=True)
 
@@ -56,20 +73,50 @@ def _compare_section(
     prev: AnalyzeFinancesSnapshot,
     curr: AnalyzeFinancesSnapshot,
     config: SnapshotChangelogConfig,
-) -> ComparisonItem:
-    """Computa delta de uma seção; fail-fast se `section_id` desconhecido."""
+) -> ComparisonItem | None:
+    """Computa delta de uma seção; None = métrica suprimida (fonte ausente)."""
+    if _is_suppressed(section_id, prev, curr):
+        return None
     before = extract_section_value(prev.content_json, section_id)
     after = extract_section_value(curr.content_json, section_id)
-    label = _resolve_label(section_id, config)
+    return _build_item(section_id, before, after, config)
+
+
+def _build_item(
+    section_id: str,
+    before: Decimal,
+    after: Decimal,
+    config: SnapshotChangelogConfig,
+) -> ComparisonItem:
     delta_pct, signal = _compute_delta(before, after, config.threshold_rule_for(section_id))
     return ComparisonItem(
         section_id=section_id,
-        section_label=label,
+        section_label=_resolve_label(section_id, config),
         before=before,
         after=after,
         delta_pct=delta_pct,
         delta_signal=signal,
         direction_positive=config.direction_positive_for(section_id),
+        unit=DEFAULT_METRIC_UNITS.get(section_id, "brl"),
+    )
+
+
+def _is_suppressed(
+    section_id: str,
+    prev: AnalyzeFinancesSnapshot,
+    curr: AnalyzeFinancesSnapshot,
+) -> bool:
+    if not section_id.startswith(_SUPPRESS_WHEN_MISSING_PREFIX):
+        return False
+    if section_id not in DEFAULT_SECTION_VALUE_PATHS:
+        raise UnknownSectionError(
+            f"section_id={section_id!r} sem path mapeado "
+            f"(disponíveis={tuple(DEFAULT_SECTION_VALUE_PATHS.keys())!r})"
+        )
+    path = DEFAULT_SECTION_VALUE_PATHS[section_id]
+    return (
+        _navigate_dotted(prev.content_json, path) is None
+        or _navigate_dotted(curr.content_json, path) is None
     )
 
 

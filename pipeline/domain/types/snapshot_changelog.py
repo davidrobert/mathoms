@@ -11,6 +11,10 @@ DeltaSignal = Literal["up", "down", "stable"]
 
 DirectionPositive = Literal["up", "down"]
 
+# Unidade de exibição da métrica (ADR-190 §Emenda 2026-07-09): "brl" formata
+# monetário; "pp"/"meses" exibem delta absoluto (after−before), não delta_pct.
+MetricUnit = Literal["brl", "pp", "meses"]
+
 # Direção "positiva pro usuário" por seção (ADR-190 D3): asset → up é bom;
 # expense → down é bom. Espelha SECTION_POLARITY de narratives.py (asset↔up,
 # expense↔down) — consistência travada por teste.
@@ -20,6 +24,18 @@ DEFAULT_DIRECTION_POSITIVE: Mapping[str, DirectionPositive] = {
     "S3": "up",
     "T2": "up",
     "T5": "down",
+    "M_PL": "up",
+    "M_TAXA_POUPANCA": "up",
+    "M_RESERVA_MESES": "up",
+    "M_AUVP_DESVIO": "down",
+}
+
+# Unidade de exibição por métrica canônica (default "brl" para ids legados).
+DEFAULT_METRIC_UNITS: Mapping[str, MetricUnit] = {
+    "M_PL": "brl",
+    "M_TAXA_POUPANCA": "pp",
+    "M_RESERVA_MESES": "meses",
+    "M_AUVP_DESVIO": "pp",
 }
 
 
@@ -63,6 +79,7 @@ class ComparisonItem:
     delta_pct: Decimal | None
     delta_signal: DeltaSignal
     direction_positive: DirectionPositive = "up"
+    unit: MetricUnit = "brl"
 
 
 @dataclass(frozen=True)
@@ -88,19 +105,29 @@ class ComparisonResult:
 class SnapshotChangelogConfig:
     """Configuração tipada (ADR-097 D3 value object)."""
 
-    sections_to_compare: tuple[str, ...] = ("S1", "S2", "S3", "T2", "T5")
+    # Default v3 (ADR-190 §Emenda 2026-07-09): métricas canônicas sobre campos
+    # E5 reais, MoM uniforme. Ids legados (S1/S2/S3/T2/T5) seguem válidos via
+    # override explícito (retrocompat D1).
+    sections_to_compare: tuple[str, ...] = (
+        "M_PL",
+        "M_TAXA_POUPANCA",
+        "M_RESERVA_MESES",
+        "M_AUVP_DESVIO",
+    )
     minimum_delta_pct: Decimal = Decimal("0.5")
     thresholds: Mapping[str, Decimal | ThresholdRule] | None = None
     section_labels: Mapping[str, str] | None = None
     direction_positive: Mapping[str, DirectionPositive] | None = None
 
     def threshold_rule_for(self, section_id: str) -> ThresholdRule:
-        """Regra efetiva (override > default); `Decimal` legado vira regra pct-only."""
+        """Regra efetiva (override > default por métrica > pct global legado)."""
         if self.thresholds and section_id in self.thresholds:
             override = self.thresholds[section_id]
             if isinstance(override, ThresholdRule):
                 return override
             return ThresholdRule(pct=override)
+        if section_id in DEFAULT_METRIC_THRESHOLDS:
+            return DEFAULT_METRIC_THRESHOLDS[section_id]
         return ThresholdRule(pct=self.minimum_delta_pct)
 
     def direction_positive_for(self, section_id: str) -> DirectionPositive:
@@ -116,8 +143,22 @@ class SnapshotChangelogConfig:
         return section_id
 
 
+# Thresholds default por métrica canônica (ADR-190 D4 + §Emenda 2026-07-09).
+# `abs_brl` é o limite ABSOLUTO na unidade da própria métrica (R$ para brl,
+# pontos para pp, meses para meses) — nome preservado do W2 por compat.
+DEFAULT_METRIC_THRESHOLDS: Mapping[str, ThresholdRule] = {
+    "M_PL": ThresholdRule(pct=Decimal("2"), abs_brl=Decimal("20000")),
+    "M_TAXA_POUPANCA": ThresholdRule(abs_brl=Decimal("3")),
+    "M_RESERVA_MESES": ThresholdRule(abs_brl=Decimal("0.5")),
+    "M_AUVP_DESVIO": ThresholdRule(abs_brl=Decimal("2")),
+}
+
+
 __all__ = [
     "AnalyzeFinancesSnapshot",
+    "DEFAULT_METRIC_THRESHOLDS",
+    "DEFAULT_METRIC_UNITS",
+    "MetricUnit",
     "ChangelogEntry",
     "ComparisonItem",
     "ComparisonResult",

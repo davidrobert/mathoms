@@ -27,6 +27,10 @@ SECTION_POLARITY: dict[str, str] = {
     "S3": "asset",
     "T2": "asset",
     "T5": "expense",
+    "M_PL": "asset",
+    "M_TAXA_POUPANCA": "asset",
+    "M_RESERVA_MESES": "asset",
+    "M_AUVP_DESVIO": "expense",
 }
 
 # (template_key, polarity, number) → template string.
@@ -108,9 +112,20 @@ def format_summary(item: ComparisonItem) -> str:
     return template.format(
         section_label_inline=_to_sentence_case(item.section_label),
         pct_str=_format_pct(item.delta_pct),
-        after_brl=_format_brl(item.after),
-        delta_brl=_format_brl(abs(item.after - item.before)),
+        after_brl=_format_value(item.after, item.unit),
+        delta_brl=_format_value(abs(item.after - item.before), item.unit),
     )
+
+
+def _format_value(value: Decimal, unit: str) -> str:
+    """Formata pelo `unit` da métrica: brl → R$; pp/meses → absoluto pt-BR."""
+    if unit == "pp":
+        return f"{value.quantize(Decimal('0.1'))} pp".replace(".", ",")
+    if unit == "meses":
+        n = value.quantize(Decimal("0.1"))
+        suffix = "mês" if abs(n) == Decimal("1") else "meses"
+        return f"{n} {suffix}".replace(".", ",")
+    return _format_brl(value)
 
 
 def _select_template(item: ComparisonItem) -> str:
