@@ -114,6 +114,23 @@ instrumentar a verificação.
   (código `OverrideMatchIndex.snapshot()`), não `divergence_count` — queries do
   gate seguem o código (já refletido no runbook da Fase E, PR #873).
 
+## Medição 2026-07-09 — janela pós-#878 ainda sem exercício
+
+Query no `audit_logs` do dogfood (merge do #878 = `2026-07-09T02:42:50Z`):
+
+- **10 snapshots no total, todos pré-fix** (2026-07-03 → 2026-07-09 00:44 UTC),
+  todos `{v1_fallback: 4, v2_match: 0, divergence: 0}` — registro do
+  falso-vermelho diagnosticado acima; não contam para nenhum lado.
+- **0 snapshots com `created_at >= merge`.** O snapshot drena no fim do
+  reprocesso de E4; portanto a janela reiniciada ainda **não tem 1º ponto de
+  dado** — exige (a) backend do dogfood rodando build pós-#878 e (b) ≥1
+  reprocesso E4 do owner (mesma sessão de dogfood que alimenta a fila do
+  REPORT_TRUST e os gates do [[PLAN-suggestion-lifecycle]]).
+- **Condição de flip A26→`done` + A27→`current`→`done`:** ≥1 sprint de janela
+  a partir do 1º snapshot pós-fix com `v1_fallback == 0` **e** `v2_match >= 1`
+  em todos os snapshots da janela. PR editorial único de flip fica preparado
+  para quando a condição fechar.
+
 ## Critério de aceite
 
 - `override_natural_key_v2_enabled = True` em DEFAULTS; `test_feature_flags` atualizado.
