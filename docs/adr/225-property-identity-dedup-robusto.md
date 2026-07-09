@@ -53,8 +53,8 @@ distintas de duplicata observadas:
    E `codigo_rfb="01"` (grupo-pai genérico, LLM não inferiu subcódigo
    ou fonte XLSX/contrato). Match key requer codigo_rfb idêntico →
    2 identities para o mesmo imóvel.
-3. **Variação numérica entre fontes (1 par).** "Praça Benedito Calixto
-   190" (IRPF) vs "Praça Benedito Calixto 186" (QuintoAndar) — typo
+3. **Variação numérica entre fontes (1 par).** "Praça Exemplo
+   190" (IRPF) vs "Praça Exemplo 186" (QuintoAndar) — typo
    numa fonte; canonicalizer trata como endereços distintos.
 
 [[ADR-215]] §5 explicitamente rejeitou hash determinístico em favor de
@@ -92,8 +92,8 @@ via+numero falha.
 | 4 | IPTU / Inscrição municipal | `r"(?:iptu\|inscri[cç][aã]o\s*municipal)[:\s]+([\d.\-/]+)"`, exige ≥6 caracteres | `iptu:NNN` | Último recurso quando demais falham |
 
 **Por que via+numero precede matrícula** (revisão de design pós-co-design):
-preserva `endereco_canonical` de rows existentes (`tasso silveira 61`,
-`alberto augusto alves 320`…). Se matrícula viesse primeiro, novos IRPFs
+preserva `endereco_canonical` de rows existentes (`exemplo 100`,
+`exemplo 320`…). Se matrícula viesse primeiro, novos IRPFs
 gerariam canonical `mat:NNN` ≠ legacy → duplicatas adicionais ao deploy.
 Resolve Case A (low-confidence multi-ano sem via+numero extraível) via
 cascata fallback. Case C (typo 190 vs 186 com via+numero em ambos) **não

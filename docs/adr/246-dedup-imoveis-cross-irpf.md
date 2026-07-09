@@ -27,7 +27,7 @@ tags:
 
 ## Contexto
 
-Bug reportado em prod no relatório `/reports/<id>`, seção "Top 15 Ativos Financeiros": o mesmo apartamento (matrícula 453.527, COND. LIVING WISH) aparece duplicado — uma vez como pertencente ao titular (R$ 477.436,58), outra como pertencente ao cônjuge (R$ 530.000,00). É o mesmo imóvel físico, declarado nos dois IRPFs individuais (típico em comunhão parcial de bens — regime padrão BR).
+Bug reportado em prod no relatório `/reports/<id>`, seção "Top 15 Ativos Financeiros": o mesmo apartamento (matrícula 453.527, COND. EXEMPLO B) aparece duplicado — uma vez como pertencente ao titular (R$ 477.436,58), outra como pertencente ao cônjuge (R$ 530.000,00). É o mesmo imóvel físico, declarado nos dois IRPFs individuais (típico em comunhão parcial de bens — regime padrão BR).
 
 Cadeia técnica:
 

@@ -45,7 +45,7 @@ falhou:
 Output validation failed after 4 attempts: 13 validation errors
 - riscos.N.evidencia_path: String should match pattern '^\$\.[A-Za-z_]...'
   input_value="$.alocacao_por_classe[?(@.classe=='Caixa')].valor"
-  input_value="$.ativos[?(@.descricao=~'.*Gisele.*')].valor"
+  input_value="$.ativos[?(@.descricao=~'.*Exemplo.*')].valor"
 - diagnostico_geral: String should have at most 500 characters
 ```
 

@@ -31,7 +31,7 @@ tags:
 
 ## Por que esta lane
 
-A A7.4 (mergeada) moveu 4 arquivos de `config/` → `docs/methodology/` mas a movimentação preservou um vício do CLI mono-cliente: cada arquivo mistura **regras universais de produto** (as 7 categorias da composição patrimonial, hierarquia de fontes, método de valuation de milhas) com **instâncias cliente-específicas do workspace piloto** (David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG).
+A A7.4 (mergeada) moveu 4 arquivos de `config/` → `docs/methodology/` mas a movimentação preservou um vício do CLI mono-cliente: cada arquivo mistura **regras universais de produto** (as 7 categorias da composição patrimonial, hierarquia de fontes, método de valuation de milhas) com **instâncias cliente-específicas do workspace piloto** (David, Mariana, Rua Exemplo, Hashdex, valores BRL reais, contas Itaú/BTG).
 
 **Auditoria pós-A7.4** confirmou:
 
@@ -190,7 +190,7 @@ Após cada commit: rebase em `origin/main`, `pytest backend/tests` + `pytest tes
 - [ ] ADRs 139-142 status **Decidido** em `docs/DECISIONS.md`.
 - [ ] `find docs/methodology/ -type f` → empty (ou diretório deletado).
 - [ ] `dev/check_forbidden_paths.py` bloqueia `docs/methodology/**`.
-- [ ] `grep -rn "David\|Mariana\|Tasso\|Benedito\|Itaú Personnalité\|Hashdex" docs/` → zero hits (fora de git history).
+- [ ] `grep -rn "David\|Mariana\|Rua Exemplo\|Praça Exemplo\|Itaú Personnalité\|Hashdex" docs/` → zero hits (fora de git history).
 - [ ] `grep -rn "docs/methodology/" .` → zero hits (excluindo `_archive/`, git history, esta track file, e CHANGELOG retrospectivo).
 - [ ] `pytest tests -q` 1495+ passed (E3/E4/E5/E5.N goldens paridade preservada).
 - [ ] `pytest backend/tests -q` 1350+ passed.

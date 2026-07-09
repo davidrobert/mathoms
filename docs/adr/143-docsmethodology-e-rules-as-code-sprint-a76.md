@@ -25,7 +25,7 @@ size_lines: 40
 **Contexto:** A versão CLI mono-cliente do Mathoms usava 4 arquivos markdown editoriais em `config/` (`definitions.md`, `regras_composicao_patrimonial.md`, `source_hierarchy.md`, `milhas.md`) que misturam dois conteúdos:
 
 1. **Regras universais de produto** — invariantes que o Mathoms enforce em runtime (as 7 categorias da composição patrimonial, hierarquia de fontes para reconciliação E3, método de valuation de pontos de milhagem).
-2. **Instâncias cliente-específicas do workspace piloto** — David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG, programas de milhas com saldos.
+2. **Instâncias cliente-específicas do workspace piloto** — David, Mariana, Rua Exemplo, Hashdex, valores BRL reais, contas Itaú/BTG, programas de milhas com saldos.
 
 A7.4 tratou esses arquivos como "documentação metodológica universal" e fez `git mv` puro para `docs/methodology/`. Auditoria pós-merge (2026-04-27) revelou **102 hits cliente-específicos** distribuídos pelos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"), e expõe o anti-padrão estrutural: **regra de produto como markdown gera drift** (quando o código muda, o doc fica desatualizado), e mistura com dados cliente cria caminho duplo (markdown vs DB) para a mesma informação.
 

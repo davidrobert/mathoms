@@ -1449,7 +1449,7 @@ preparação para **F7 (Produção + LGPD + Ops)**.
   Branch `agent/a7-6-rules-as-code/20260427-1311`, 7 commits + baseline
   refresh, mergeados em `main`. Auditoria pós-A7.4 detectou que os 4
   markdowns movidos para `docs/methodology/` continham 102 hits
-  cliente-PII (David, Mariana, Tasso, Hashdex, valores BRL, contas
+  cliente-PII (David, Mariana, Rua Exemplo, Hashdex, valores BRL, contas
   Itaú/BTG/Santander) violando CLAUDE.md §Regras críticas. A7.6 dissolveu
   o diretório (rules-as-code, [ADR-143](DECISIONS.md#adr-143--docsmethodology-é-rules-as-code-sprint-a76)):
 
@@ -6604,7 +6604,7 @@ Frontend:
 - Worker beat `scan_all_deadlines` (Celery beat schedule, diário)
 
 **Backend — Seeds + Scripts:**
-- `seed_if_goal_ferreira_campos.py` (paridade 7.200.000)
+- `seed_if_goal_example.py` (paridade 7.200.000)
 - `seed_tasks_ferreira_campos.py` (43 tasks, dep #19→#18, status done #2/#12)
 - `seed_goals_full_ferreira_campos.py` (5 Goal types cobrindo 100% do goals.json)
 - `validate_adapter_parity.py` (diff recursivo com tolerância de metadata)

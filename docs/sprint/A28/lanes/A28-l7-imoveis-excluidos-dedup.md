@@ -29,7 +29,7 @@ tags:
 
 No dogfood `72883bde`, o módulo `real_estate` cobre só 4 imóveis (R$ 832k) de
 ~R$ 2,4M em imóveis — **11 entradas excluídas** por "Classificação pendente",
-com o **mesmo imóvel repetido 4×** na lista ("CASA - LEONARDO DA VINCI 2707").
+com o **mesmo imóvel repetido 4×** na lista ("CASA - MODELO 2707").
 A concentração imobiliária de 63,36% — que ancora o risco **Crítico** do
 parecer E6 — pode estar subestimada.
 
@@ -64,7 +64,7 @@ poda o DB. Payload E5 correto (1 imóvel); projeção de excluídos crua (4 rows
 
 ## Critério de aceite
 
-- Dogfood re-run: "CASA - LEONARDO DA VINCI 2707" aparece **1×** na lista de
+- Dogfood re-run: "CASA - MODELO 2707" aparece **1×** na lista de
   excluídos; contagem total de pendências = imóveis únicos pendentes.
 - **Zero mudança de valor monetário** (dedup só na projeção informativa) —
   goldens de valor intocados; `tests/test_real_estate_metrics_payload.py` e
