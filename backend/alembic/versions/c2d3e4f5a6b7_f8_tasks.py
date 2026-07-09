@@ -12,7 +12,7 @@ Cria 3 tabelas:
 - `task_attachments`: anexos (comprovantes) referenciando storage
 
 Migração one-shot do `config/tarefas.md` (43 tarefas + 2 concluídas)
-roda separadamente via `backend/app/scripts/seed_tasks_ferreira_campos.py`.
+roda separadamente via `backend/app/scripts/seed_tasks_example.py`.
 """
 
 from __future__ import annotations

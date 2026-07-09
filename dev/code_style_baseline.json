@@ -378,7 +378,7 @@
     {
       "allowlisted": false,
       "category": "P1_long_functions",
-      "file": "backend/app/scripts/seed_tasks_ferreira_campos.py",
+      "file": "backend/app/scripts/seed_tasks_example.py",
       "id": "P1-0026",
       "identifier": "seed",
       "length": 125,
@@ -18222,7 +18222,7 @@
     {
       "allowlisted": false,
       "category": "P9_deep_nesting",
-      "file": "backend/app/scripts/seed_tasks_ferreira_campos.py",
+      "file": "backend/app/scripts/seed_tasks_example.py",
       "id": "P9-0010",
       "identifier": "seed",
       "length": 3,

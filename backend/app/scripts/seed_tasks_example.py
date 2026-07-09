@@ -1,5 +1,5 @@
-"""Seed one-shot: importa `config/tarefas.md` para a workspace Ferreira
-Campos como entities `Task` no DB (ADR-074 §"Migração").
+"""Seed one-shot: importa `config/tarefas.md` para a workspace de exemplo
+como entities `Task` no DB (ADR-074 §"Migração").
 
 Preserva:
 - `#number` histórico (1..43 + 2, 12 concluídas)
@@ -10,8 +10,8 @@ Preserva:
 - dependências (segundo-passo: inferência de `parent_task_id`)
 
 Uso:
-    python -m backend.app.scripts.seed_tasks_ferreira_campos --dry-run
-    python -m backend.app.scripts.seed_tasks_ferreira_campos --apply
+    python -m backend.app.scripts.seed_tasks_example --dry-run
+    python -m backend.app.scripts.seed_tasks_example --apply
 
 Idempotente: se workspace já tem tasks, pula (unless --force-replace).
 """
@@ -33,9 +33,9 @@ from backend.app.services.tarefas_md_parser import parse_file
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 TAREFAS_MD_PATH = REPO_ROOT / "config" / "tarefas.md"
-FAMILY_SURNAME_MATCH = "Ferreira Campos"
+FAMILY_SURNAME_MATCH = "Example"
 
-logger = logging.getLogger("seed_tasks_fc")
+logger = logging.getLogger("seed_tasks_example")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
