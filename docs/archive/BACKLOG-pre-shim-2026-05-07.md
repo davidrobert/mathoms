@@ -502,7 +502,7 @@ Sexto bloco da reordenação CTO. Cobre todos os itens P0 de 6.5D e scaffolds pa
 
 **Achados não previstos do Bloco 4:**
 - axe-core detectou 2 **a11y violations REAIS** em produção (file input sem label + delete buttons sem aria-label). Corrigidos no source.
-- Lint anti-PII detectou 7 CPFs reais em tests backend (do founder, `287.766.948-36`) — substituídos por CPF gerado (mod-11 válido) + anotação `noqa: PII-ok`.
+- Lint anti-PII detectou 7 CPFs reais em tests backend (do founder, `123.456.789-09`) — substituídos por CPF gerado (mod-11 válido) + anotação `noqa: PII-ok`.
 - `config/` tem 8+ CPFs reais do founder (definitions.md + family_members.json) — **NÃO é fixture de teste**, é config dev-time real. Neutralização via API já coberta em 6.5E.6. Lint explicitamente exclui `config/`.
 - Template literal para aria-label dinâmico (`aria-label={\`Remover senha ${pw.label}\`}`) foi a ergonomia escolhida.
 

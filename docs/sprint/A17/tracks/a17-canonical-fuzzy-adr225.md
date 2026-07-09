@@ -21,7 +21,7 @@ tags:
 
 # Track A17 — Canonical fuzzy para números próximos (extensão ADR-225)
 
-> ✅ **Entregue em [PR #471](https://github.com/davidrobert/mathoms/pull/471) (2026-05-23).** ADR canônica [[ADR-265]] (Decidido). Co-design data-engineer + financial-planner ajustou K=10 do track para **K=4 default** + **K=8 com complemento string-equal** + **guard duro de complemento divergente**. 46 testes novos; 0 regressões. Caso real do workspace founder (Benedito Calixto 190 vs 186) consolidado.
+> ✅ **Entregue em [PR #471](https://github.com/davidrobert/mathoms/pull/471) (2026-05-23).** ADR canônica [[ADR-265]] (Decidido). Co-design data-engineer + financial-planner ajustou K=10 do track para **K=4 default** + **K=8 com complemento string-equal** + **guard duro de complemento divergente**. 46 testes novos; 0 regressões. Caso real do workspace founder (Praça Exemplo 190 vs 186) consolidado.
 
 **Branch sugerida:** `agent/canonical-fuzzy-adr225/<yyyyMMdd-HHmm>`
 **Relaciona:** [[ADR-225]] (property identity dedup), [[ADR-239]] (comprovantes de bem), [[ADR-246]] (dedup cross-IRPF de imóveis).
@@ -37,10 +37,10 @@ tags:
 
 | Fonte | Descrição | `canonical` produzido |
 |---|---|---|
-| IRPF (`codigo_rfb=11`) | `APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34 - PRACA BENEDITO CALIXTO 190` | `benedito calixto 190` |
-| Comprovante de bem (`codigo_rfb=01`) | `Apartamento - Praça Benedito Calixto, 186 - Ap 34, São Paulo - SP` | `benedito calixto 186` |
+| IRPF (`codigo_rfb=11`) | `APARTAMENTO - CONDOMINIO EXEMPLO C - APTO 34 - PRACA EXEMPLO 190` | `exemplo 190` |
+| Comprovante de bem (`codigo_rfb=01`) | `Apartamento - Praça Exemplo, 186 - Ap 34, São Paulo - SP` | `exemplo 186` |
 
-É o **mesmo imóvel** (Praça Benedito Calixto, mesmo prédio, mesmo apartamento 34). O número difere porque um documento traz o número da torre/bloco (190) e outro o número do prédio (186) — variação editorial típica entre escritura, IPTU e IRPF.
+É o **mesmo imóvel** (Praça Exemplo, mesmo prédio, mesmo apartamento 34). O número difere porque um documento traz o número da torre/bloco (190) e outro o número do prédio (186) — variação editorial típica entre escritura, IPTU e IRPF.
 
 Como o canonical é string-exato, [`DBPropertyIdentityResolver._find_by_canonical_loose`](../../../../backend/app/services/db_property_identity_resolver.py) não casa, [`dedup_imoveis_consolidados`](../../../../pipeline/domain/services/imoveis_dedup.py) não casa, e a duplicata sobrevive até o relatório.
 
@@ -87,7 +87,7 @@ Aprendizagem assistida por LLM: ao encontrar canonicals `X 190` e `X 186` com ma
 
 ## Tarefas
 
-1. **Abrir ADR Proposto** (próximo ID disponível na hora; reservar cedo via PR de doc-only para evitar colisão — ver memória `feedback_adr_id_collision_long_session`). Status `Proposto`, fase A17.canonical-fuzzy. Cite [[ADR-225]] como base e [[ADR-246]] como motivador. Inclua tabela de canonicals reais (Benedito Calixto 190 vs 186 etc.).
+1. **Abrir ADR Proposto** (próximo ID disponível na hora; reservar cedo via PR de doc-only para evitar colisão — ver memória `feedback_adr_id_collision_long_session`). Status `Proposto`, fase A17.canonical-fuzzy. Cite [[ADR-225]] como base e [[ADR-246]] como motivador. Inclua tabela de canonicals (Praça Exemplo 190 vs 186 etc.).
 2. **Novo helper puro** `pipeline/domain/services/canonical_fuzzy_match.py::matches_fuzzy(canonical_a: str, canonical_b: str, *, max_number_diff: int = 10) -> bool`. Lógica: extrai `<via, numero>` de ambos (regex `^(.+?)\s+(\d+)$`), casa se via idêntica e diff numérico ≤ K. Canonicals que não casam o regex (formato `mat:`, `qa:`, `iptu:`) só casam por igualdade exata — não usar fuzzy.
 3. **Resolver DB** ([db_property_identity_resolver.py](../../../../backend/app/services/db_property_identity_resolver.py)): adicionar `_find_by_canonical_fuzzy` como **3º nível** de cascata (estrito → loose → fuzzy → insert). Carrega candidatos da MESMA via via prefix LIKE e aplica `matches_fuzzy` em Python.
 4. **Helper de dedup** ([imoveis_dedup.py](../../../../pipeline/domain/services/imoveis_dedup.py)): novo pass 4 (após cross-codigo do PR #468) que agrupa por via comum e aplica fuzzy. Reusa as regras de "não conflito específico" do pass 3 — `cod=11` + `cod=12` no mesmo bairro com números próximos não funde.
@@ -98,7 +98,7 @@ Aprendizagem assistida por LLM: ao encontrar canonicals `X 190` e `X 186` com ma
 
 ## Critério de aceite
 
-- Workspace founder: re-roda E1.5c → `imoveis_consolidados` cai de **7 → 6** imóveis (Praça Benedito Calixto consolidado).
+- Workspace founder: re-roda E1.5c → `imoveis_consolidados` cai de **7 → 6** imóveis (Praça Exemplo consolidado).
 - Falso-positivo zero em amostra de validação (rodar contra ≥5 workspaces e auditar manualmente o diff).
 - Property_id continua único após match fuzzy (não duplica row).
 - `WorkspacePropertyOverride` (residência principal, classification) continua sticky pós-fuzzy-merge.

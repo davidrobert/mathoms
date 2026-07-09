@@ -91,7 +91,7 @@ _VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+(\.[0-9]+)?$")
 
 def _jsonpath_drift_category(v: str) -> str:
     """Categoria PII-safe do path inválido. NUNCA retorna o valor — um filtro como
-    ``$.ativos[?(@.descricao=~'.*Gisele.*')]`` carrega nome próprio (LGPD)."""
+    ``$.ativos[?(@.descricao=~'.*Exemplo.*')]`` carrega nome próprio (LGPD)."""
     if "[?" in v or "?(" in v:
         return "filter"
     if "=~" in v:

@@ -45,7 +45,7 @@ tags:
 Sessão dogfood 2026-05-21 com **6 PDFs reais** do owner expandiu o batch fiscal de 15 (Sprint A17 — ADR-238) para 21 documentos. Os 6 novos são:
 
 - **3 CRLV-e** (Certificados de Registro e Licenciamento de Veículo, exercício 2025): Yamaha NMAX 160 STH2C88 2024, Yamaha NMAX DAV0351 2018, Fiat Toro GDK6A27 4×4 2022.
-- **3 apólices de seguro**: Tokio Marine (NMAX STH2C88), Porto Moto (NMAX DAV0351), **Porto Proteção Combinada** (Toro GDK6A27 **+ residência R Tasso da Silveira 61**).
+- **3 apólices de seguro**: Tokio Marine (NMAX STH2C88), Porto Moto (NMAX DAV0351), **Porto Proteção Combinada** (Toro GDK6A27 **+ residência R Exemplo 100**).
 
 Hoje:
 

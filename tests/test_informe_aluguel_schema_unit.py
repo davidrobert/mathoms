@@ -24,7 +24,7 @@ from pipeline.llm.schemas.informe_aluguel import (
 
 def _build_imovel(**overrides) -> InformeAluguelImovel:
     base = {
-        "endereco": "Rua Tasso da Silveira, 61 - Vila Madalena, São Paulo - SP",
+        "endereco": "Rua Exemplo, 100 - Vila Madalena, São Paulo - SP",
         "iptu_municipal": "123.456.789-0",
         "locatario_cnpj": "12345678000190",
         "aluguel_bruto_anual": "25200.00",
@@ -180,7 +180,7 @@ def test_extract_aceita_payload_llm_com_numbers_regressao_prod_2026_05_18():
       "locador_cpf_present": true,
       "imoveis": [
         {
-          "endereco": "Rua Tasso da Silveira, 61 - Vila Madalena, SP",
+          "endereco": "Rua Exemplo, 100 - Vila Madalena, SP",
           "iptu_municipal": "123.456.789-0",
           "locatario_cnpj": "12345678000190",
           "aluguel_bruto_anual": 7424.71,

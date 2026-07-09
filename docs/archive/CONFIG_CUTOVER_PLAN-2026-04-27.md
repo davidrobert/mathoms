@@ -515,7 +515,7 @@ atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
 
 > **Retrospectiva A7.6 (2026-04-27):** A7.4 foi `git mv` puro preservando
 > o vício do CLI mono-cliente — cada arquivo misturava regras universais
-> com instâncias cliente PII (David, Mariana, Tasso, Hashdex, valores BRL).
+> com instâncias cliente PII (David, Mariana, Rua Exemplo, Hashdex, valores BRL).
 > Auditoria pós-merge confirmou 102 hits cliente-específicos. **A7.6
 > dissolveu o diretório** (rules-as-code, ADR-143): regras universais
 > migraram para docstrings + ADRs co-localizados; dados cliente migraram
@@ -589,7 +589,7 @@ atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
 
 **Objetivo:** eliminar o diretório `docs/methodology/` movendo regras universais de produto para docstrings + ADRs no código que enforce, e dados cliente-específicos para DB ou `storage/<workspace_id>/notes/` (gitignored).
 
-**Por que esta lane (retrospectiva A7.4):** A A7.4 fez `git mv` puro (`config/*.md` → `docs/methodology/*.md`) preservando o vício do CLI mono-cliente — cada arquivo mistura **regras universais de produto** (7 categorias, hierarquia de fontes, valuation de milhas) com **instâncias cliente-específicas do workspace piloto** (David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG). Auditoria pós-merge confirmou 102 hits cliente-específicos nos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"). A7.6 corrige a arquitetura: rules-as-code em vez de docs paralelos.
+**Por que esta lane (retrospectiva A7.4):** A A7.4 fez `git mv` puro (`config/*.md` → `docs/methodology/*.md`) preservando o vício do CLI mono-cliente — cada arquivo mistura **regras universais de produto** (7 categorias, hierarquia de fontes, valuation de milhas) com **instâncias cliente-específicas do workspace piloto** (David, Mariana, Rua Exemplo, Hashdex, valores BRL reais, contas Itaú/BTG). Auditoria pós-merge confirmou 102 hits cliente-específicos nos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"). A7.6 corrige a arquitetura: rules-as-code em vez de docs paralelos.
 
 **Princípio adotado:** product methodology IS the code. Documentar separadamente cria drift. Eliminar `docs/methodology/` força a referência única (código + ADR para o "porquê").
 
@@ -618,7 +618,7 @@ atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
 - ADRs 139-142 status Decidido em `docs/DECISIONS.md`.
 - `find docs/methodology/ -type f` → empty.
 - `dev/check_forbidden_paths.py` bloqueia `docs/methodology/**`.
-- `grep -rn "David\|Mariana\|Tasso\|Benedito\|Hashdex" docs/` → zero hits (fora git history e CHANGELOG retrospectivo).
+- `grep -rn "David\|Mariana\|Rua Exemplo\|Praça Exemplo\|Hashdex" docs/` → zero hits (fora git history e CHANGELOG retrospectivo).
 - `pytest tests -q` 1495+ passed (E3/E4/E5/E5.N goldens paridade preservada).
 - `pytest backend/tests -q` 1383+ passed.
 - `dev/check_pipeline_boundaries.py` verde.

@@ -91,7 +91,7 @@
   "sinistro_indenizacao_recebida_brl": null,
   "confidence": 0.82,
   "needs_review": false,
-  "prompt_version": "1.2.0",
+  "prompt_version": "1.2.1",
   "cascade_triggered": true,
   "notas": "Apolice combinada Porto Protecao: veiculo (Toro 4x4) + residencia. Cascata Sonnet disparada por multi-bem."
 }

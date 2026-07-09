@@ -38,8 +38,8 @@ tags:
 
 | Fonte | Descrição | `endereco_canonical` |
 |---|---|---|
-| IRPF (`codigo_rfb=11`) | `APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34 - PRACA BENEDITO CALIXTO 190` | `benedito calixto 190` |
-| Comprovante de bem (`codigo_rfb=01`, [[ADR-239]]) | `Apartamento - Praça Benedito Calixto, 186 - Ap 34, São Paulo - SP` | `benedito calixto 186` |
+| IRPF (`codigo_rfb=11`) | `APARTAMENTO - CONDOMINIO EXEMPLO C - APTO 34 - PRACA EXEMPLO 190` | `exemplo 190` |
+| Comprovante de bem (`codigo_rfb=01`, [[ADR-239]]) | `Apartamento - Praça Exemplo, 186 - Ap 34, São Paulo - SP` | `exemplo 186` |
 
 É o **mesmo imóvel físico** (mesmo prédio, mesmo apto 34) — uma fonte traz número do prédio (186), outra traz número da torre/condomínio (190). Divergência editorial típica entre escritura, IPTU e IRPF.
 
@@ -119,7 +119,7 @@ Backfill espelhando regra do helper. `--dry-run` default; output JSON com:
     {
       "canonical_id": "<winner-uuid>",
       "dupes_dropped": ["<loser-uuid>"],
-      "via": "benedito calixto",
+      "via": "exemplo",
       "numero_winner": "190",
       "numero_loser": "186",
       "match_distance": 4,
@@ -159,7 +159,7 @@ Idempotente; `--apply` exige auditoria humana 100% dos merges propostos antes (e
 
 **Positivas:**
 
-- ✅ Caso founder resolvido: 7 → 6 imóveis em `imoveis_consolidados` (Benedito Calixto consolidado).
+- ✅ Caso founder resolvido: 7 → 6 imóveis em `imoveis_consolidados` (Praça Exemplo consolidado).
 - ✅ Sem mudança de DDL nem coluna `endereco_canonical`; lookup é o único ponto tocado.
 - ✅ Determinismo preservado: mesmo input + K → mesmo output.
 - ✅ Aplicável retroativamente via Passe 4 do script com auditoria humana.
@@ -209,7 +209,7 @@ Idempotente; `--apply` exige auditoria humana 100% dos merges propostos antes (e
   - Canonical com `mat:`/`qa:`/`iptu:` (não casa, retorna False imediatamente)
   - Canonical malformado (sem número parseável, retorna False)
 - **Backend resolver test** em `backend/tests/test_db_property_identity_resolver.py`:
-  - Match fuzzy retorna row existente (`benedito calixto 190` + lookup `benedito calixto 186` → mesma identity).
+  - Match fuzzy retorna row existente (`exemplo 190` + lookup `exemplo 186` → mesma identity).
   - Fuzzy não cross-workspaces (tenancy preservado).
 - **Integration test** em `tests/test_e15_consolidate_dedup.py`:
   - Cenário founder (`190+cod=11` + `186+cod=01`) → 1 entry.

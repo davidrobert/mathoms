@@ -42,11 +42,11 @@ describe("ResidenciaSection — lista com sugestão fuzzy", () => {
           residencia_status: "undeclared",
           properties: [
             {
-              property_id: "p-tasso",
+              property_id: "p-exemplo",
               titular_key: "david_robert",
               codigo_rfb: "12",
-              descricao_sample: "CASA - RUA TASSO DA SILVEIRA, 61 - SP",
-              endereco_canonical: "tasso silveira 61",
+              descricao_sample: "CASA - RUA EXEMPLO, 100 - SP",
+              endereco_canonical: "exemplo 100",
               first_seen_year: 2024,
               low_confidence: false,
               classification: null,
@@ -59,7 +59,7 @@ describe("ResidenciaSection — lista com sugestão fuzzy", () => {
               property_id: "p-apto",
               titular_key: "david_robert",
               codigo_rfb: "11",
-              descricao_sample: "APTO COND BARAO DE CAPANEMA",
+              descricao_sample: "APTO COND EXEMPLO C",
               endereco_canonical: null,
               first_seen_year: 2024,
               low_confidence: true,
@@ -93,15 +93,15 @@ describe("ResidenciaSection — lista com sugestão fuzzy", () => {
     let putBody: unknown = null;
     server.use(
       http.put(
-        `${API}/workspaces/:wid/properties/p-tasso/classification`,
+        `${API}/workspaces/:wid/properties/p-exemplo/classification`,
         async ({ request }) => {
           putBody = await request.json();
           return HttpResponse.json({
-            property_id: "p-tasso",
+            property_id: "p-exemplo",
             titular_key: "david_robert",
             codigo_rfb: "12",
-            descricao_sample: "CASA - RUA TASSO DA SILVEIRA, 61 - SP",
-            endereco_canonical: "tasso silveira 61",
+            descricao_sample: "CASA - RUA EXEMPLO, 100 - SP",
+            endereco_canonical: "exemplo 100",
             first_seen_year: 2024,
             low_confidence: false,
             classification: "residencia_principal",
@@ -115,7 +115,7 @@ describe("ResidenciaSection — lista com sugestão fuzzy", () => {
     );
     const user = userEvent.setup();
     render(<ResidenciaSection workspaceId={WS_ID} />);
-    await screen.findByText(/CASA - RUA TASSO DA SILVEIRA/);
+    await screen.findByText(/CASA - RUA EXEMPLO/);
 
     const selects = screen.getAllByRole("combobox");
     await user.selectOptions(selects[0], "residencia_principal");
@@ -138,7 +138,7 @@ describe("ResidenciaSection — lista com sugestão fuzzy", () => {
     );
     const user = userEvent.setup();
     render(<ResidenciaSection workspaceId={WS_ID} />);
-    await screen.findByText(/CASA - RUA TASSO DA SILVEIRA/);
+    await screen.findByText(/CASA - RUA EXEMPLO/);
 
     await user.click(screen.getByRole("button", { name: /^moro alugado$/i }));
 

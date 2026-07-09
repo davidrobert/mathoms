@@ -10,7 +10,7 @@ from pipeline.domain.services.canonical_fuzzy_match import (
 
 class TestExactAndZeroDiff:
     def test_exact_equal_matches(self):
-        assert matches_fuzzy("benedito calixto 190", "benedito calixto 190") is True
+        assert matches_fuzzy("exemplo 190", "exemplo 190") is True
 
     def test_delta_zero_matches(self):
         # mesma via+numero string-equal
@@ -19,11 +19,11 @@ class TestExactAndZeroDiff:
 
 class TestNumberProximity:
     def test_caso_real_founder_delta_4_matches(self):
-        """Praça Benedito Calixto 190 (IRPF) vs 186 (comprovante) — Δ=4."""
-        assert matches_fuzzy("benedito calixto 190", "benedito calixto 186") is True
+        """Praça Exemplo 190 (IRPF) vs 186 (comprovante) — Δ=4."""
+        assert matches_fuzzy("exemplo 190", "exemplo 186") is True
 
     def test_delta_4_matches_default_k(self):
-        assert matches_fuzzy("tasso silveira 61", "tasso silveira 65") is True
+        assert matches_fuzzy("exemplo 100", "exemplo 104") is True
 
     def test_delta_5_does_not_match_without_complemento(self):
         # Δ=5 > K=4 default e sem complemento → rejeita
@@ -39,8 +39,8 @@ class TestComplementoGuards:
         # Δ=8 + complemento idêntico → casa
         assert (
             matches_fuzzy(
-                "benedito calixto 190",
-                "benedito calixto 198",
+                "exemplo 190",
+                "exemplo 198",
                 complemento_a="34",
                 complemento_b="34",
             )
@@ -51,8 +51,8 @@ class TestComplementoGuards:
         # Δ=12 mesmo com complemento idêntico → rejeita
         assert (
             matches_fuzzy(
-                "benedito calixto 190",
-                "benedito calixto 202",
+                "exemplo 190",
+                "exemplo 202",
                 complemento_a="34",
                 complemento_b="34",
             )
@@ -77,8 +77,8 @@ class TestComplementoGuards:
         # quando AMBOS estão presentes e divergem.
         assert (
             matches_fuzzy(
-                "benedito calixto 190",
-                "benedito calixto 186",
+                "exemplo 190",
+                "exemplo 186",
                 complemento_a="34",
                 complemento_b=None,
             )
@@ -92,13 +92,13 @@ class TestViaIsolation:
         assert matches_fuzzy("paulista 100", "berrini 100") is False
 
     def test_via_diferente_no_match_any_delta(self):
-        assert matches_fuzzy("benedito calixto 190", "leonardo da vinci 190") is False
+        assert matches_fuzzy("exemplo 190", "modelo 190") is False
 
 
 class TestStrongPrefixesReject:
     def test_canonical_mat_does_not_fuzzy_with_via_numero(self):
         # Canonical com prefixo `mat:` é identificador forte — só strict-equal
-        assert matches_fuzzy("mat:453527", "benedito calixto 190") is False
+        assert matches_fuzzy("mat:453527", "exemplo 190") is False
 
     def test_canonical_qa_does_not_fuzzy(self):
         assert matches_fuzzy("qa:894064293", "qa:894064294") is False
@@ -113,21 +113,21 @@ class TestStrongPrefixesReject:
 class TestMalformedCanonicalsReject:
     def test_canonical_without_number_no_match(self):
         # Canonical sem número no fim — formato inesperado
-        assert matches_fuzzy("benedito calixto", "benedito calixto 190") is False
+        assert matches_fuzzy("exemplo", "exemplo 190") is False
 
     def test_empty_string_no_match(self):
-        assert matches_fuzzy("", "benedito calixto 190") is False
-        assert matches_fuzzy("benedito calixto 190", "") is False
+        assert matches_fuzzy("", "exemplo 190") is False
+        assert matches_fuzzy("exemplo 190", "") is False
 
     def test_none_no_match(self):
-        assert matches_fuzzy(None, "benedito calixto 190") is False
-        assert matches_fuzzy("benedito calixto 190", None) is False
+        assert matches_fuzzy(None, "exemplo 190") is False
+        assert matches_fuzzy("exemplo 190", None) is False
         assert matches_fuzzy(None, None) is False
 
 
 class TestExtractComplemento:
     def test_extracts_apto(self):
-        assert extract_complemento("APARTAMENTO - APTO 34 - PRACA BENEDITO CALIXTO 190") == "34"
+        assert extract_complemento("APARTAMENTO - APTO 34 - PRACA EXEMPLO 190") == "34"
 
     def test_extracts_ap_abreviado(self):
         assert extract_complemento("Apartamento - Praça X, 186 - Ap 34, São Paulo - SP") == "34"
@@ -139,7 +139,7 @@ class TestExtractComplemento:
         assert extract_complemento("Bloco B - Apto X - Rua Y, 100") == "b"
 
     def test_extracts_torre(self):
-        assert extract_complemento("Torre 2 - Av Joao Dias 2192") == "2"
+        assert extract_complemento("Torre 2 - Av Exemplo 2192") == "2"
 
     def test_returns_none_when_no_complemento(self):
         assert extract_complemento("Casa - Rua X, 100") is None
@@ -152,8 +152,8 @@ class TestExtractComplemento:
 class TestSymmetry:
     def test_matches_is_symmetric(self):
         # matches_fuzzy(a, b) == matches_fuzzy(b, a) sempre
-        assert matches_fuzzy("benedito calixto 190", "benedito calixto 186") == matches_fuzzy(
-            "benedito calixto 186", "benedito calixto 190"
+        assert matches_fuzzy("exemplo 190", "exemplo 186") == matches_fuzzy(
+            "exemplo 186", "exemplo 190"
         )
         assert matches_fuzzy(
             "paulista 100", "paulista 102", complemento_a="51", complemento_b="34"
