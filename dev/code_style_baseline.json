@@ -342,7 +342,7 @@
     {
       "allowlisted": false,
       "category": "P1_long_functions",
-      "file": "backend/app/scripts/seed_if_goal_ferreira_campos.py",
+      "file": "backend/app/scripts/seed_if_goal_example.py",
       "id": "P1-0023",
       "identifier": "seed",
       "length": 103,
@@ -6846,7 +6846,7 @@
     {
       "allowlisted": false,
       "category": "P1_long_functions",
-      "file": "backend/app/scripts/seed_if_goal_ferreira_campos.py",
+      "file": "backend/app/scripts/seed_if_goal_example.py",
       "id": "P1-0395",
       "identifier": "main",
       "length": 24,
@@ -26176,7 +26176,7 @@
       "severity": "info"
     }
   ],
-  "repo_root": "/Users/davidrobert/Desktop/_dev/mathoms.ai/.claude/worktrees/agent-ad7c2888085a8c822",
+  "repo_root": ".",
   "summary": {
     "files_scanned": {
       "python": 1635,

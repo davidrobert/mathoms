@@ -104,7 +104,7 @@ def test_sugestao_normaliza_antes_de_checar_impacto_estimado_so_alta():
     "bad_path",
     [
         "$.alocacao_por_classe[?(@.classe=='Caixa')].valor",  # filtro — incidente real
-        "$.ativos[?(@.descricao=~'.*Gisele.*')].valor",  # filtro + regex match
+        "$.ativos[?(@.descricao=~'.*Exemplo.*')].valor",  # filtro + regex match
         "$..total_liquida",  # recursive descent
         "$.reserva emergencia.total",  # espaço (segmento inválido)
     ],

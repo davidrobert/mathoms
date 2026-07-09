@@ -45,7 +45,7 @@ _STOPWORDS = frozenset(
 )
 
 # Pattern para extrair (logradouro, número). Aceita endereços em formato livre
-# como "Rua Tasso da Silveira, 61", "AV ALBERTO AUGUSTO ALVES 320", "Av Paulista 1500 apt 42".
+# como "Rua Exemplo, 100", "AV EXEMPLO 320", "Av Exemplo 1500 apt 42".
 _VIA_NUMBER_PATTERN = re.compile(
     r"(?:rua|avenida|rodovia|estrada|travessa|alameda|praca)\s+"
     r"([\w\s]+?)\s*,?\s*"

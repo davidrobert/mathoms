@@ -48,9 +48,9 @@ async def _make_property(db: AsyncSession, ws: Workspace, **kwargs) -> PropertyI
         workspace_id=ws.id,
         titular_key="david_robert",
         codigo_rfb="12",
-        endereco_canonical="rua tasso da silveira 61",
+        endereco_canonical="rua exemplo 100",
         first_seen_year=2024,
-        descricao_sample="CASA - RUA TASSO DA SILVEIRA, 61",
+        descricao_sample="CASA - RUA EXEMPLO, 100",
         **kwargs,
     )
     db.add(p)

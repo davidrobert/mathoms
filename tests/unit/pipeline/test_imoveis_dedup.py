@@ -22,7 +22,7 @@ def _fuzzy_entry(proprietario, valor, codigo, canonical, descricao) -> dict:
 
 def _entry(*, proprietario: str, valor_31_12, ano: str = "2024", **kw) -> dict:
     e: dict = {
-        "descricao": kw.get("descricao", "APT LIVING WISH"),
+        "descricao": kw.get("descricao", "APT COND EXEMPLO B"),
         "proprietario": proprietario,
         "codigo_rfb": kw.get("codigo_rfb", "11"),
         "valores_31_12": {ano: valor_31_12},
@@ -114,13 +114,13 @@ class TestDedupByCanonicalFallback:
             proprietario="david",
             valor_31_12=400000,
             codigo_rfb="11",
-            endereco_canonical="av joao dias 2192",
+            endereco_canonical="av exemplo 2192",
         )
         b = _entry(
             proprietario="mariana",
             valor_31_12=500000,
             codigo_rfb="11",
-            endereco_canonical="av joao dias 2192",
+            endereco_canonical="av exemplo 2192",
         )
         result = dedup_imoveis_consolidados([a, b])
         assert result.count_after == 1
@@ -195,13 +195,13 @@ class TestCrossCodigoMerge:
             proprietario="david",
             valor_31_12=212000,
             codigo_rfb="11",
-            endereco_canonical="major freire 496",
+            endereco_canonical="exemplo 496",
         )
         b = _entry(
             proprietario="david_camargo",
             valor_31_12=0,
             codigo_rfb="01",
-            endereco_canonical="major freire 496",
+            endereco_canonical="exemplo 496",
         )
         result = dedup_imoveis_consolidados([a, b])
         assert result.count_after == 1
@@ -265,18 +265,18 @@ class TestFuzzyViaNum:
 
     def test_caso_real_founder_funde_190_vs_186(self):
         a = _entry(
-            descricao="APTO 34 BENEDITO CALIXTO 190",
+            descricao="APTO 34 EXEMPLO 190",
             proprietario="david",
             valor_31_12=800000,
             codigo_rfb="11",
-            endereco_canonical="benedito calixto 190",
+            endereco_canonical="exemplo 190",
         )
         b = _entry(
-            descricao="Ap 34 Benedito Calixto 186",
+            descricao="Ap 34 Exemplo 186",
             proprietario="david",
             valor_31_12=750000,
             codigo_rfb="01",
-            endereco_canonical="benedito calixto 186",
+            endereco_canonical="exemplo 186",
         )
         result = dedup_imoveis_consolidados([a, b])
         assert result.count_after == 1
@@ -344,12 +344,10 @@ class TestFuzzyViaNum:
 
     def test_cross_codigo_antes_fuzzy_3_fontes(self):
         # 3 fontes: cod=11 190 + cod=01 190 + cod=01 186 → cross-codigo + fuzzy = 1 grupo
-        desc_190 = "APTO 34 BENEDITO CALIXTO 190"
-        a = _fuzzy_entry("david", 800000, "11", "benedito calixto 190", desc_190)
-        b = _fuzzy_entry("alt1", 0, "01", "benedito calixto 190", desc_190)
-        c = _fuzzy_entry(
-            "alt2", 750000, "01", "benedito calixto 186", "APTO 34 BENEDITO CALIXTO 186"
-        )
+        desc_190 = "APTO 34 EXEMPLO 190"
+        a = _fuzzy_entry("david", 800000, "11", "exemplo 190", desc_190)
+        b = _fuzzy_entry("alt1", 0, "01", "exemplo 190", desc_190)
+        c = _fuzzy_entry("alt2", 750000, "01", "exemplo 186", "APTO 34 EXEMPLO 186")
         result = dedup_imoveis_consolidados([a, b, c])
         assert result.count_after == 1
         assert result.imoveis[0]["valores_31_12"]["2024"] == 800000

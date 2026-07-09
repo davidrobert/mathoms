@@ -26,7 +26,7 @@ tags:
 
 L1 estabeleceu padrão arquitetural completo (stage `extract_comprovantes_bens`, tabela canônica `vehicles`, classifier content-first, parser LLM Haiku, reconciliação assíncrona). **Esta lane estende o padrão** para `tipo_comprovante="apolice"` com schema polimórfico (Discriminated Union em `bens_segurados[]` E em `coberturas[]`).
 
-**Caso V1 obrigatório:** apólice combinada Porto Seguro (Toro GDK6A27 + residência R Tasso da Silveira 61) — multi-bem em 1 PDF. Cascata LLM Haiku→Sonnet dispara quando combinada detectada.
+**Caso V1 obrigatório:** apólice combinada Porto Seguro (Toro GDK6A27 + residência R Exemplo 100) — multi-bem em 1 PDF. Cascata LLM Haiku→Sonnet dispara quando combinada detectada.
 
 ## Decisões já fechadas (não reabrir)
 

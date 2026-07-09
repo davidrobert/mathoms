@@ -42,7 +42,7 @@ Modelar `tipo_comprovante="apolice"` ponta a ponta. Schema antecipa V2 (vida/sa�
 
 - Apólice Tokio Marine Moto (NMAX STH2C88) — auto simples
 - Apólice Porto Moto (NMAX DAV0351) — auto simples
-- **Apólice Porto Proteção Combinada** (Toro GDK6A27 + residência R Tasso da Silveira 61) — multi-bem ⭐
+- **Apólice Porto Proteção Combinada** (Toro GDK6A27 + residência R Exemplo 100) — multi-bem ⭐
 
 ## Critério de aceite
 

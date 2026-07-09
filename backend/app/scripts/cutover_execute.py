@@ -111,7 +111,7 @@ async def cutover(*, apply: bool) -> int:
         logger.error(
             "Resolva as pendências e tente novamente. "
             "Seeds disponíveis:\n"
-            "  python -m backend.app.scripts.seed_if_goal_ferreira_campos --apply\n"
+            "  python -m backend.app.scripts.seed_if_goal_example --apply\n"
             "  python -m backend.app.scripts.seed_tasks_ferreira_campos --apply\n"
             "  python -m backend.app.scripts.seed_goals_workspace "
             "--workspace-id <UUID> --demo --apply"

@@ -243,30 +243,34 @@ repos:
         files: '(^|/)Dockerfile(\.[^/]+)?$|(^|/)docker-compose[^/]*\.ya?ml$'
 
       - id: lint-no-real-pii
-        # F6.5D.7 — bloqueia CPF real em fixtures de teste. Aceita apenas
-        # placeholders (000.000.000-00, 123.456.789-09, 111.111.111-11) ou
-        # CPFs gerados via tests/utils/cpf.py (anotados com `# noqa: PII-ok`).
-        # Já roda no workflow CI; pre-commit local evita ciclo
-        # commit→push→CI-fail→fix descobrindo só remoto.
-        name: "Anti-PII em fixtures (CPF real bloqueado; placeholder ou gerador mod-11)"
+        # F6.5D.7, estendido em A34.l4 (ADR-319): superset público (docs/,
+        # código de produção, config/, raiz) + detectores de domínio — CPF
+        # com dígito verificador válido, endereço, placa, matrícula/contrato,
+        # path de máquina local. Hit novo fora do baseline burn-down
+        # (tests/utils/pii_lint_baseline.json — lanes W1 zeram) bloqueia.
+        # Prova G2 / modo estrito: `--no-baseline`. Mensagens exibem só
+        # path:linha+TIPO, nunca o valor casado.
+        name: "Anti-PII no superset público (CPF/endereço/placa/contrato/homedir — ADR-319)"
         entry: python3 tests/utils/lint_no_real_pii.py
         language: system
         pass_filenames: false
-        files: ^(backend/tests|tests|frontend/tests)/.*$
+        always_run: true
 
       - id: sigilo-terms
-        # §13 sigilo metodológico (LEGAL/IP) — bloqueia atribuição pública de
-        # Perini/Cerbasi/AUVP/etc. em superfície user-facing:
-        #   - frontend/src/(app|components)/**/*.{ts,tsx}  (UI cliente)
-        #   - docs/_marketing/**/*.md                       (drafts de copy)
+        # §13 sigilo metodológico (LEGAL/IP) — duas superfícies (A34.l5):
+        #   1. user-facing legada (frontend/src/(app|components), docs/_marketing):
+        #      case-sensitive + strip de comentários (§13.4 preservada);
+        #   2. superset público do flip (docs/**, config/prompts/**, README*,
+        #      migrations): case-INSENSITIVE, sem strip — hit legado vive no
+        #      baseline burn-down dev/sigilo_terms_baseline.json até a
+        #      A34.l12/ADR-314; hit NOVO bloqueia. Prova G2: --all --no-baseline.
         # Mathoms não tem licença das marcas; uso público viola direito de
-        # marca pessoal/curso. Atribuição interna (docstrings, types, ids,
-        # variant keys, dev playground, ADRs, planos) é PERMITIDA.
-        name: "Bloqueia menção pública de fontes metodológicas (§13 COPY_GUIDELINES)"
+        # marca pessoal/curso (ADR-319).
+        name: "Bloqueia menção pública de fontes metodológicas (§13 · ADR-319)"
         entry: python3 dev/check_sigilo_terms.py
         language: system
         pass_filenames: true
-        files: ^(frontend/src/(app|components)/.*\.(ts|tsx)|docs/_marketing/.*\.md)$
+        files: ^(frontend/src/(app|components)/.*\.(ts|tsx)|docs/.*\.md|config/prompts/.*\.ya?ml|backend/alembic/versions/.*\.py|(.*/)?README[^/]*)$
 
       - id: commit-msg-format
         name: "Valida prefixo de mensagem de commit"

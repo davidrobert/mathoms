@@ -26,7 +26,7 @@ tags:
 
 ## Origem
 
-Sessão 2026-05-15 — usuário (CEO, workspace dogfood `5@5.com`) abriu o relatório e identificou linha "Residência" zerada na "Composição Patrimonial", apesar do IRPF dele declarar 1 casa código 12 (RUA TASSO DA SILVEIRA, 61 — R$ 996.821) + 4 apartamentos código 11. Investigação revelou:
+Sessão 2026-05-15 — usuário (CEO, workspace dogfood `5@5.com`) abriu o relatório e identificou linha "Residência" zerada na "Composição Patrimonial", apesar do IRPF dele declarar 1 casa código 12 (RUA EXEMPLO, 100 — R$ 996.821) + 4 apartamentos código 11. Investigação revelou:
 
 1. **Sem UI** para `residencia_principal_keyword` — só Import/Export JSON ou SQL direto.
 2. **Acoplamento errado** — keyword fica em `family_members.<titular>.extra` mas residência é da família.
@@ -186,7 +186,7 @@ Entrega:
   - Pré-seleção do candidato fuzzy (score ≥80) com badge cinza "sugerida pelo seu endereço no IRPF".
   - Opção final "○ Moro de aluguel ou em imóvel de terceiros" (seteia `residencia_status='rented'`).
   - Botão "Decidir depois" → mantém `residencia_status='undeclared'` + badge "pendente" em MembersTab.
-- **Seção "Residência principal" em MembersTab.tsx**: editor permanente com estado atual (`Residência: Casa Tasso da Silveira` | `Aluguel` | `Não definida`) + botão trocar.
+- **Seção "Residência principal" em MembersTab.tsx**: editor permanente com estado atual (`Residência: Casa Exemplo` | `Aluguel` | `Não definida`) + botão trocar.
 - **Renderer do relatório:**
   - `residencia_status='rented'` → esconder linha "Residência" da Composição Patrimonial + footnote "Aluguel não compõe patrimônio (despesa em fluxo de caixa)".
   - `residencia_status='undeclared'` → mostrar linha com `—` + CTA "definir residência".

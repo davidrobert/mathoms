@@ -30,7 +30,7 @@ function makeImovel(overrides: Partial<RealEstateImovel> = {}): RealEstateImovel
     status_contrato: "atualizado",
     indice_reajuste: "IGPM",
     data_ultimo_reajuste: "2024-08-15",
-    endereco_canonical: "Rua Tasso da Silveira, 61 — Vila Madalena",
+    endereco_canonical: "Rua Exemplo, 100 — Vila Madalena",
     imobiliaria_cnpj: null,
     imobiliaria_nome: "QuintoAndar",
     origem_aluguel: "informe",

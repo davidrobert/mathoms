@@ -7,7 +7,7 @@ Orquestra persistência (``TaskAttachmentRepository``) + storage
 docs/vault do resto do produto).
 
 Uso típico:
-  - Comprovante de quitação (Task #1: financiamento Ed. Gisele)
+  - Comprovante de quitação (Task #1: financiamento Ed. Exemplo D)
   - Nota fiscal / DARF
   - Contrato de seguro assinado
   - Print de tela do banco

@@ -42,7 +42,7 @@ A regra que separa cat_1 de cat_2 hoje vive em `pipeline/domain/services/patrimo
 
 Três problemas observados em produção (workspace dogfood `5@5.com`, sessão 2026-05-15):
 
-1. **Sem UI.** O campo só é editável via Import/Export JSON ou SQL direto. Onboarding/MembersTab não captura. Usuário razoavelmente espera que upload de IRPF (com 5 imóveis, sendo 1 casa com endereço explícito "RUA TASSO DA SILVEIRA, 61 - SP") classifique sozinho — não acontece. R$ 996.821 de residência caiu em cat_2 silenciosamente.
+1. **Sem UI.** O campo só é editável via Import/Export JSON ou SQL direto. Onboarding/MembersTab não captura. Usuário razoavelmente espera que upload de IRPF (com 5 imóveis, sendo 1 casa com endereço explícito "RUA EXEMPLO, 100 - SP") classifique sozinho — não acontece. R$ 996.821 de residência caiu em cat_2 silenciosamente.
 2. **Acoplamento errado.** `residencia_principal_keyword` mora em `family_members.<titular>.extra` mas a residência é da **família**, não do titular. Casal em comunhão tem 1 residência declarada em 2 IRPFs distintos; o modelo não tem dedup nem owner correto.
 3. **Modelo binário insuficiente.** "Residência sim/não" não cobre casos reais que afetam o cálculo de IF: imóvel ocupado por familiar (filho/mãe) — não rende mas não é residência principal; terreno improdutivo declarado código 13 — não rende mas hoje cai em cat_2 e infla `investivel_efetivo` quando `imoveis_no_if=true` (violando o espírito de [[ADR-142]]); sala comercial vaga vs locada. Hoje tudo binário "residência ou investimento" corrompe o sinal econômico real.
 

@@ -86,10 +86,10 @@ def _apolice_combinada(placa: str, endereco_struct: dict) -> dict:
 
 def test_reconciliacao_combinada_preenche_ambos_ids(sync_db: Session, workspace_id: str):
     v = _add_vehicle(sync_db, workspace_id, placa="XYZ9A87")
-    p = _add_property(sync_db, workspace_id, endereco="rua tasso 61 rio rj")
+    p = _add_property(sync_db, workspace_id, endereco="rua exemplo 100 rio rj")
     payload = _apolice_combinada(
         "XYZ9A87",
-        {"logradouro": "Rua Tasso", "numero": "61", "cidade": "Rio", "uf": "RJ"},
+        {"logradouro": "Rua Exemplo", "numero": "100", "cidade": "Rio", "uf": "RJ"},
     )
     new_payload, summary = reconcile_apolice_with_db(workspace_id, payload, db=sync_db)
     assert summary.matched == 2

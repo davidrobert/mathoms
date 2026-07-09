@@ -182,11 +182,11 @@ def test_no_candidate_imovel_quando_endereco_diferente():
 def test_match_imovel_aceita_inclusao_inversa():
     """PropertyIdentity tem endereço completo, apólice declara parcial — token-set inversa."""
     properties = [
-        _property(id="p-1", endereco_canonical="rua tasso silveira 61 apto 42 rio de janeiro rj")
+        _property(id="p-1", endereco_canonical="rua exemplo 100 apto 42 rio de janeiro rj")
     ]
     endereco = {
-        "logradouro": "Rua Tasso Silveira",
-        "numero": "61",
+        "logradouro": "Rua Exemplo",
+        "numero": "100",
         "cidade": "Rio de Janeiro",
         "uf": "RJ",
     }
@@ -213,8 +213,8 @@ def _combinada_payload() -> dict:
             {
                 "tipo": "imovel",
                 "endereco": {
-                    "logradouro": "Rua Tasso",
-                    "numero": "61",
+                    "logradouro": "Rua Exemplo",
+                    "numero": "100",
                     "cidade": "Rio",
                     "uf": "RJ",
                 },
@@ -226,7 +226,7 @@ def _combinada_payload() -> dict:
 def test_combinada_reconcilia_veiculo_e_imovel():
     """Caso V1 obrigatório: apolice combinada Toro + residência."""
     vehicles = [_vehicle(id="v-toro", placa="XYZ9A87", marca="FIAT", modelo="TORO")]
-    properties = [_property(id="p-casa", endereco_canonical="rua tasso 61 rio rj")]
+    properties = [_property(id="p-casa", endereco_canonical="rua exemplo 100 rio rj")]
     new_payload, results = reconcile_apolice_bens(
         _combinada_payload(), vehicles, properties, "ws-1"
     )

@@ -14,8 +14,8 @@
           ]
         },
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
-        "endereco_canonical": "av joao dias 2192",
+        "descricao": "APT COND EXEMPLO B",
+        "endereco_canonical": "av exemplo 2192",
         "proprietario": "casal",
         "proprietarios": [
           "mariana",
@@ -55,8 +55,8 @@
           ]
         },
         "codigo_rfb": "11",
-        "descricao": "APTO 34 BENEDITO CALIXTO 190",
-        "endereco_canonical": "benedito calixto 190",
+        "descricao": "APTO 34 EXEMPLO 190",
+        "endereco_canonical": "exemplo 190",
         "proprietario": "casal",
         "proprietarios": [
           "david",
@@ -97,8 +97,8 @@
           ]
         },
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
-        "endereco_canonical": "major freire 496",
+        "descricao": "APT COND EXEMPLO B",
+        "endereco_canonical": "exemplo 496",
         "proprietario": "casal",
         "proprietarios": [
           "david",
@@ -129,7 +129,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "endereco_canonical": "av paulista 1500",
         "proprietario": "david",
         "tipo": "imovel",
@@ -139,7 +139,7 @@
       },
       {
         "codigo_rfb": "12",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "endereco_canonical": "av paulista 1500",
         "proprietario": "mariana",
         "tipo": "imovel",
@@ -165,7 +165,7 @@
           ]
         },
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-z",
         "proprietario": "casal",
         "proprietarios": [
@@ -197,7 +197,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-y",
         "proprietario": "casal",
         "proprietarios": [
@@ -219,7 +219,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "endereco_canonical": "rua y 200",
         "proprietario": "david",
         "tipo": "imovel",
@@ -229,7 +229,7 @@
       },
       {
         "codigo_rfb": "12",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "endereco_canonical": "rua y 200",
         "proprietario": "mariana",
         "tipo": "imovel",
@@ -247,7 +247,7 @@
     "items": [
       {
         "codigo_rfb": "",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "endereco_canonical": "rua x",
         "proprietario": "david",
         "tipo": "imovel",
@@ -257,7 +257,7 @@
       },
       {
         "codigo_rfb": "",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "endereco_canonical": "rua x",
         "proprietario": "mariana",
         "tipo": "imovel",
@@ -284,7 +284,7 @@
           ]
         },
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "endereco_canonical": "rua w 400",
         "proprietario": "casal",
         "proprietarios": [
@@ -374,8 +374,8 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APTO 34 BENEDITO CALIXTO 190",
-        "endereco_canonical": "benedito calixto 190",
+        "descricao": "APTO 34 EXEMPLO 190",
+        "endereco_canonical": "exemplo 190",
         "proprietario": "david",
         "proprietarios": [
           "david"
@@ -395,7 +395,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "proprietario": "david",
         "tipo": "imovel",
         "valores_31_12": {
@@ -404,7 +404,7 @@
       },
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "proprietario": "mariana",
         "tipo": "imovel",
         "valores_31_12": {
@@ -421,7 +421,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-ry",
         "proprietario": "casal",
         "proprietarios": [
@@ -443,7 +443,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-x",
         "proprietario": "casal",
         "proprietarios": [
@@ -465,7 +465,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-a",
         "proprietario": "david_robert",
         "tipo": "imovel",
@@ -492,7 +492,7 @@
           ]
         },
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-3",
         "proprietario": "casal",
         "proprietarios": [
@@ -526,7 +526,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-t",
         "proprietario": "casal",
         "proprietarios": [
@@ -548,7 +548,7 @@
     "items": [
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-a",
         "proprietario": "david",
         "tipo": "imovel",
@@ -558,7 +558,7 @@
       },
       {
         "codigo_rfb": "11",
-        "descricao": "APT LIVING WISH",
+        "descricao": "APT COND EXEMPLO B",
         "property_id": "uuid-b",
         "proprietario": "david",
         "tipo": "imovel",
