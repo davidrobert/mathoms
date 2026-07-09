@@ -1,28 +1,26 @@
 import type { RebalanceamentoModo } from "@/lib/api";
-import { REBALANCEAMENTO_MODO_LABELS } from "@/lib/goalPremissas";
+import {
+  ALOCACAO_CLASSES,
+  ALOCACAO_CLASS_KEYS,
+  type AlocacaoClassKey,
+} from "@/lib/alocacaoClasses";
 
-export interface Pcts {
-  rf_pos_pct: number;
-  rf_pre_pct: number;
-  rf_ipca_pct: number;
-  acoes_br_pct: number;
-  acoes_int_pct: number;
-  fiis_pct: number;
-  caixa_pct: number;
-}
+/** Percentuais das 7 classes v2 — chaves vêm da fonte única `alocacaoClasses`. */
+export type Pcts = Record<AlocacaoClassKey, number>;
 
-export const PCT_KEYS = [
-  "rf_pos_pct",
-  "rf_pre_pct",
-  "rf_ipca_pct",
-  "acoes_br_pct",
-  "acoes_int_pct",
-  "fiis_pct",
-  "caixa_pct",
-] as const satisfies readonly (keyof Pcts)[];
+export const PCT_KEYS: readonly AlocacaoClassKey[] = ALOCACAO_CLASS_KEYS;
 
 export function sumPcts(pcts: Pcts): number {
   return PCT_KEYS.reduce((acc, key) => acc + pcts[key], 0);
+}
+
+/** Joga o resíduo de `100 − Σ(outras)` em `caixa_pct` (ADR-141 emenda item 11). */
+export function completeWithCaixa(pcts: Pcts): Pcts {
+  const outras = PCT_KEYS.filter((k) => k !== "caixa_pct").reduce(
+    (acc, key) => acc + pcts[key],
+    0,
+  );
+  return { ...pcts, caixa_pct: Math.max(0, 100 - outras) };
 }
 
 // Totais por família preservados dos presets v1:
@@ -58,24 +56,66 @@ export const PRESETS: Record<string, Pcts> = {
   },
 };
 
-export const REBAL_OPTIONS: readonly {
-  value: RebalanceamentoModo;
-  label: string;
-}[] = (Object.keys(REBALANCEAMENTO_MODO_LABELS) as RebalanceamentoModo[]).map(
-  (value) => ({ value, label: REBALANCEAMENTO_MODO_LABELS[value] }),
-);
-
-/** Cores categóricas do design system (mesma sequência do MathomPieChart). */
+/** Legenda/barra — derivada da fonte única (`AlocacaoBar`, `AlocacaoSummary`). */
 export const CLASS_META: readonly {
-  key: keyof Pcts;
+  key: AlocacaoClassKey;
   label: string;
   color: string;
-}[] = [
-  { key: "rf_pos_pct", label: "RF · Pós", color: "var(--chart-1)" },
-  { key: "rf_pre_pct", label: "RF · Pré", color: "var(--chart-2)" },
-  { key: "rf_ipca_pct", label: "RF · IPCA+", color: "var(--chart-3)" },
-  { key: "acoes_br_pct", label: "Ações BR", color: "var(--chart-4)" },
-  { key: "acoes_int_pct", label: "Ações Int.", color: "var(--chart-5)" },
-  { key: "fiis_pct", label: "FIIs", color: "var(--chart-6)" },
-  { key: "caixa_pct", label: "Caixa", color: "var(--chart-7)" },
+}[] = ALOCACAO_CLASSES.map((c) => ({
+  key: c.id,
+  label: c.label,
+  color: c.colorVar,
+}));
+
+// ── Rebalanceamento: 3 escolhas agrupadas (ADR-141 emenda item 11) ──────
+// "No aporte" (default AUVP) · "Periódico" (trimestral/semestral/anual) ·
+// "Por gatilho" (5%/10%). Strings legadas mapeiam para o enum canônico.
+
+export type RebalGroupId = "por_aporte" | "periodico" | "gatilho";
+
+export interface RebalGroup {
+  id: RebalGroupId;
+  label: string;
+  recommended?: boolean;
+  /** Grupo de escolha única (por_aporte). */
+  value?: RebalanceamentoModo;
+  /** Grupo com sub-seleção (periódico, gatilho). */
+  options?: readonly { value: RebalanceamentoModo; label: string }[];
+  /** Modo assumido ao selecionar o grupo sem escolher a sub-opção. */
+  defaultValue?: RebalanceamentoModo;
+}
+
+export const REBAL_GROUPS: readonly RebalGroup[] = [
+  {
+    id: "por_aporte",
+    label: "No aporte",
+    recommended: true,
+    value: "por_aporte",
+  },
+  {
+    id: "periodico",
+    label: "Periódico",
+    options: [
+      { value: "trimestral", label: "Trimestral" },
+      { value: "semestral", label: "Semestral" },
+      { value: "anual", label: "Anual" },
+    ],
+    defaultValue: "trimestral",
+  },
+  {
+    id: "gatilho",
+    label: "Por gatilho",
+    options: [
+      { value: "trigger_5pct", label: "5%" },
+      { value: "trigger_10pct", label: "10%" },
+    ],
+    defaultValue: "trigger_5pct",
+  },
 ];
+
+/** Grupo ao qual um modo pertence — resolve o enum legado para a UI agrupada. */
+export function rebalGroupOf(modo: RebalanceamentoModo): RebalGroupId {
+  if (modo === "por_aporte") return "por_aporte";
+  if (modo === "trigger_5pct" || modo === "trigger_10pct") return "gatilho";
+  return "periodico";
+}

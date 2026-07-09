@@ -8,7 +8,7 @@ rebalanceamento; soma dos 7 fecha 100%. Conversão v1/órfão→v2 vive em
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal, NamedTuple, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -18,15 +18,31 @@ RebalanceamentoModo = Literal[
     "por_aporte", "anual", "semestral", "trimestral", "trigger_5pct", "trigger_10pct"
 ]
 
-ALOCACAO_V2_CLASS_FIELDS: tuple[str, ...] = (
-    "rf_pos_pct",
-    "rf_pre_pct",
-    "rf_ipca_pct",
-    "acoes_br_pct",
-    "acoes_int_pct",
-    "fiis_pct",
-    "caixa_pct",
+
+class AlocacaoV2Class(NamedTuple):
+    """Classe canônica da alocação-alvo v2 (rótulos + família)."""
+
+    id: str
+    label: str
+    label_full: str
+    family: str
+
+
+# Espelho backend da fonte única `frontend/src/lib/alocacaoClasses.ts`
+# (ADR-141 §Emenda item 11). Paridade dos `id` contra
+# `config/schemas/goal.alocacao_alvo.v2.schema.json` travada por
+# `test_alocacao_classes_parity.py`.
+ALOCACAO_V2_CLASSES: tuple[AlocacaoV2Class, ...] = (
+    AlocacaoV2Class("rf_pos_pct", "RF · Pós", "Renda fixa pós-fixada", "renda_fixa"),
+    AlocacaoV2Class("rf_pre_pct", "RF · Pré", "Renda fixa prefixada", "renda_fixa"),
+    AlocacaoV2Class("rf_ipca_pct", "RF · IPCA+", "Renda fixa atrelada à inflação", "renda_fixa"),
+    AlocacaoV2Class("acoes_br_pct", "Ações BR", "Ações e ETFs Brasil", "renda_variavel"),
+    AlocacaoV2Class("acoes_int_pct", "Ações Int.", "Ações e ETFs internacionais", "renda_variavel"),
+    AlocacaoV2Class("fiis_pct", "FIIs", "Fundos imobiliários (tijolo + papel)", "imobiliario"),
+    AlocacaoV2Class("caixa_pct", "Caixa", "Caixa e moeda estrangeira líquida", "liquidez"),
 )
+
+ALOCACAO_V2_CLASS_FIELDS: tuple[str, ...] = tuple(c.id for c in ALOCACAO_V2_CLASSES)
 
 
 class AlocacaoGoalInputs(BaseModel):
