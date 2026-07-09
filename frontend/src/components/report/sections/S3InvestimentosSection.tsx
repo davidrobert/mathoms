@@ -10,6 +10,7 @@ import {
   ProventosYieldCard,
   RentabilidadeCard,
   Top15AtivosCard,
+  type AlocacaoDerived,
   type ContrafluxoData,
   type EstrategiaAporteData,
   type InvestimentosClasseData,
@@ -17,7 +18,6 @@ import {
 } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
-import type { AlocacaoAlvoV1 } from "../utils/alocacaoBucketMapper";
 import type { ReportAnalysisData } from "@/lib/api";
 import type { RatiosData } from "@/types/report-analysis";
 
@@ -49,9 +49,11 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const ratios = data.ratios as unknown as RatiosData | undefined;
 
   const estrategiaAporte = inv?.estrategia_aporte;
-  const alocacaoAlvo = (goals?.alocacao_alvo ?? undefined) as
-    | AlocacaoAlvoV1
-    | undefined;
+  // ADR-141 §Emenda: o desvio é computado no backend (goals.alocacao_alvo.derived).
+  // Payload E5 antigo (sem derived) → card oculto; nunca recomputar client-side.
+  const alocacaoDerived = (goals?.alocacao_alvo as
+    | { derived?: AlocacaoDerived }
+    | undefined)?.derived;
   const alocacaoFooter = readNarrativeConclusion(charts, "alocacao_atual");
 
   return (
@@ -60,8 +62,7 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
 
       <div className="md:col-span-2">
         <AlocacaoAtualVsAlvoCard
-          investimentos={inv}
-          alocacaoAlvo={alocacaoAlvo}
+          derived={alocacaoDerived}
           llmFooter={alocacaoFooter}
         />
       </div>
