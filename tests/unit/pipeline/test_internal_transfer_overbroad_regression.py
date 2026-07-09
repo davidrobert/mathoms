@@ -93,7 +93,7 @@ def _make_account(descricao: str, *, credit: bool) -> dict:
     return {
         "banco": "Itau",
         "tipo_conta": "conta_corrente",
-        "titular": "Mariana",
+        "titular": "Cônjuge",
         "moeda": "BRL",
         "transacoes": [
             {
@@ -129,8 +129,13 @@ def test_generic_ted_credit_is_not_classified_as_transfer(
 def test_ted_with_explicit_clt_keyword_resolves_to_receita_clt(
     seed_classifier: TransactionClassifier,
 ) -> None:
-    """TED com keyword CLT literal (`SOCIEDADE BENEFICENTE ISRAELITA`) → receita_clt."""
-    descricao = "RECEBIMENTO DE TED 3221 SOCIEDADE BENEFICENTE ISRAELITA"
+    """TED com keyword CLT literal do seed (`EMPREGADOR EXEMPLO`) → receita_clt.
+
+    A34.l11 (ADR-319): o seed v1 foi neutralizado — empregador nominal virou
+    placeholder sintético; o invariante testado (keyword específica vence o
+    prefixo genérico de canal) permanece o mesmo.
+    """
+    descricao = "RECEBIMENTO DE TED 3221 EMPREGADOR EXEMPLO"
     [tx] = seed_classifier.classify_account(_make_account(descricao, credit=True))
     assert (
         tx.kind == "receita" and tx.categoria == "receita_clt"
