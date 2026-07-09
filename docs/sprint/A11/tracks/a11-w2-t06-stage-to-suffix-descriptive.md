@@ -32,7 +32,7 @@ tags:
 2. `docs/adr/093-*.md` — janela de compat F9.2 → F9.6 (legacy vs descritivo).
 3. `docs/adr/213-*.md` — `_STAGE_TO_DIR` deletado; `_STAGE_TO_SUFFIX` sobrevive como source-of-truth de 3 usos atuais (E3 `source_document`, E4 `_source`, E3 `generate_legacy_filename`).
 4. `docs/sprint/A11/_README.md` — DoD code-complete.
-5. `docs/plan/PLATFORM_REVIEW/_README.md` §[W2-T06] — AC: cobertura completa + teste de paridade contra `STAGE_RENAME_MAP`.
+5. `docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md` §[W2-T06] — AC: cobertura completa + teste de paridade contra `STAGE_RENAME_MAP`.
 6. Arquivos relevantes:
    - `pipeline/artifact_store.py` (onde vive `_STAGE_TO_SUFFIX`)
    - `pipeline/stage_spec.py` (onde vive `STAGE_RENAME_MAP` e `STAGE_REGISTRY`)

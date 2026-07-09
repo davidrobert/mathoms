@@ -92,7 +92,7 @@ E3/E4/E5 são diferentes: têm invariantes **cross-account** (dedup de transaç�
 
 ## Follow-ups (débito registrado, não bloqueia merge)
 
-1. **GC superseded E2** — política de retenção (manter N versões mais recentes por `(ws, stage, key)`; soft-delete ou hard-delete versões antigas com `created_at < threshold`). Implementação fora desta lane; rastreado em `docs/plan/PLATFORM_REVIEW/_README.md` §W6 (storage hygiene).
+1. **GC superseded E2** — política de retenção (manter N versões mais recentes por `(ws, stage, key)`; soft-delete ou hard-delete versões antigas com `created_at < threshold`). Implementação fora desta lane; rastreado em `docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md` §W6 (storage hygiene).
 2. **Backfill `schema_version`** — coluna existe mas está NULL em todas as rows. `DBArtifactStore.write` passa a popular sempre. Migration backfilla rows existentes com a versão atual de cada stage. Fora desta lane.
 3. **Celery `soft_time_limit` em incremental** — coordenar com sre-devops sobre chunking de E3 por conta (`pipeline.domain.services.e3_reconciler_adapter` já agrupa por `(banco, conta, moeda)`) e/ou aumento de timeout. Fora desta lane.
 4. **`extract_with_llm` enum estrito em `categoria_sugerida`** — ADR-242 (paralela) consome o campo; enum estrito vira follow-up quando o vocabulário consolidar (evita quebrar artifacts antigos com `categoria_sugerida=null|""`).

@@ -83,7 +83,7 @@ Lista completa em [[ADR-212]] §Consequências e §Riscos identificados.
 - Deletar `prepare_pipeline_config_dir` — [[ADR-211]] lane 3,
   desbloqueada por PR1 desta lane.
 - Política de retenção de `pipeline_artifacts` — débito em
-  [PLATFORM_REVIEW](../../../plan/PLATFORM_REVIEW/_README.md); trigger
+  [PLATFORM_REVIEW](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md); trigger
   10GB ou 1M rows.
 
 ## Definition of Done

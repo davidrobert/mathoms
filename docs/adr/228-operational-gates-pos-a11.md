@@ -247,7 +247,7 @@ Esta ADR continua `Proposto` até G1–G5 evidenciados (D3 inalterado).
   adversariais em CI).
 - [Sprint A11 MOC](../sprint/A11/_README.md) — Definition of Done
   ratificada por esta ADR.
-- [Plano PLATFORM_REVIEW](../plan/PLATFORM_REVIEW/_README.md) — origem
+- [Plano PLATFORM_REVIEW](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — origem
   das 5 tasks com gate operacional.
 - CLAUDE.md §"Concluído" — PR mergeado em `main` (squash) com CI verde
   é o marco; esta ADR formaliza o caso onde "feito" tem dois níveis.

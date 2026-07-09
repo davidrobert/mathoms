@@ -118,5 +118,5 @@ arquitetural (schema DB, migration, contrato canônico) — cobertas pelo gate F
 ## Dependência cross-plano
 
 `_lineage` precisa estar declarado em `e5_analysis.schema.json` **antes/junto** do
-flip→strict do PLATFORM_REVIEW W6-T01 ([[PLAN-platform-review]]) — coordenar para
+flip→strict do PLATFORM_REVIEW W6-T01 ([PLAN-platform-review](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)) — coordenar para
 dois agentes não colidirem no schema.

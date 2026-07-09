@@ -101,7 +101,7 @@ F2:   l9 (backup/restore CI)
 
 ## Federação (regra anti-drift)
 
-- **l5/l6** implementam fisicamente **W3-T05** do [[PLAN-platform-review]]
+- **l5/l6** implementam fisicamente **W3-T05** do [PLAN-platform-review](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)
   (F3-O3 do plano LAUNCH_TRUST federa essa task). No merge de l6, o checkbox
   W3-T05 em PLATFORM_REVIEW flippa `blocked → shipped` — **não** se
   re-implementa em A22. Owner real é `prompt-engineer` (Layers 2/4 são

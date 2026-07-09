@@ -85,7 +85,7 @@ Rejeitado: cria dead code permanente (flag desligada → caminho novo não testa
 Rejeitado: dobra superfície de teste e ninguém migra v1 → v2 sem deadline imposto.
 
 **E) Mudar default `sigma_anual` de 11% para 14%** (recomendação do `financial-planner` para carteira AUVP-style).
-Adiado: parametrização por perfil de risco depende de campo novo em `goals` e UX para escolher perfil — escopo separado. Esta ADR mantém `sigma_anual=0.11` como default; muda só o tratamento de PMT. Follow-up rastreado em [PLATFORM_REVIEW backlog](../plan/PLATFORM_REVIEW/_README.md).
+Adiado: parametrização por perfil de risco depende de campo novo em `goals` e UX para escolher perfil — escopo separado. Esta ADR mantém `sigma_anual=0.11` como default; muda só o tratamento de PMT. Follow-up rastreado em [PLATFORM_REVIEW backlog](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md).
 
 ## Consequências
 

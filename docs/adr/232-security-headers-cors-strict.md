@@ -276,7 +276,7 @@ follow-up se/quando necessário (Next.js já tem defaults aceitáveis).
 
 ## Referências
 
-- [SR-001 + SR-013](../plan/PLATFORM_REVIEW/_README.md#wave-2--pipeline--db-hardening-sprint-1-7-dias-dev) — findings origem.
+- [SR-001 + SR-013](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md#wave-2--pipeline--db-hardening-sprint-1-7-dias-dev) — findings origem.
 - [ADR-108](108-estrategia-de-subdominios-mathomsai-cloudflare-dns.md) — URLs prod `api.mathoms.ai` ↔ `app.mathoms.ai`.
 - [ADR-110](110-structured-json-logging-opentelemetry-bootstrap.md) — `CorrelationIdMiddleware` (referência de padrão).
 - [ADR-170](170-refresh-tokens-com-httponly-cookie-e-family.md) — JWT auth scheme (CSRF mitigation paralela).

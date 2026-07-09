@@ -32,7 +32,7 @@ tags:
 
 1. `CLAUDE.md` (raiz) — §"Concluído" · §"Pipeline não importa framework" · §"Cadência de commit defensiva" · §"Antes de pegar uma task do BACKLOG" · §"Stateless rigoroso".
 2. `docs/sprint/A11/_README.md` — DoD code-complete pós-[[ADR-228]].
-3. `docs/plan/PLATFORM_REVIEW/_README.md` §[W2-T05] — files_touched + acceptance_criteria + nota **escopo_alterado**.
+3. `docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md` §[W2-T05] — files_touched + acceptance_criteria + nota **escopo_alterado**.
 4. Arquivos relevantes:
    - `pipeline/stages/extract_with_llm.py` (stage que precisa respeitar `ctx.incremental`)
    - `pipeline/llm/schemas/e1_members.py`, `pipeline/llm/schemas/e15_baseline.py`, `pipeline/llm/schemas/e2_llm.py` — 3 dos 4 prompts a versionar

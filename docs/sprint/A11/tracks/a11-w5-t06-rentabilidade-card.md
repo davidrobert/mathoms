@@ -320,7 +320,7 @@ git checkout -b agent/a11-w5-t06-rentabilidade-card/$(date +%Y%m%d-%H%M) origin/
   [[ADR-161]] (regras canônicas de suggestion)
 - **Sprint:** [[MOC-sprint-a11]]
 - **Wave:** [docs/sprint/A11/lanes/A11-w5-frontend-methodology.md](../lanes/A11-w5-frontend-methodology.md)
-- **Plano canônico:** [docs/plan/PLATFORM_REVIEW/_README.md](../../../plan/PLATFORM_REVIEW/_README.md)
+- **Plano canônico:** [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)
 - **Code paths:**
   - Frontend: `frontend/src/components/report/sections/S3InvestimentosSection.tsx:91-100`
   - Domínio: `pipeline/domain/services/{ratios_calculator,passive_income_calculator,fluxo_caixa_enricher}.py`

@@ -58,7 +58,7 @@ injetado em `_setup_run_context` + `ParecerOrchestratorConfig.llm_hooks`);
 `monthly_llm_budget_usd` nullable (NULL = sem cap) na migration
 `adr173budgetnull`.
 
-**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T01](../plan/PLATFORM_REVIEW/_README.md), findings SR-006, DE-013.
+**Referências:** [archive/PLATFORM_REVIEW_PLAN-2026-07-08.md §W3-T01](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md), findings SR-006, DE-013.
 
 ## Emenda — clamp do editor de budget calibrado (2026-07-07)
 

@@ -17,7 +17,7 @@ tags:
 
 > **Lane ID:** `w6t05-artifacts-retention`
 > **Branch prefix:** `agent/w6t05-artifacts-retention/<NN>/<yyyyMMdd-HHmm>`
-> **Plano canônico:** [plan/PLATFORM_REVIEW/_README.md §W6-T05](../../../plan/PLATFORM_REVIEW/_README.md)
+> **Plano canônico:** [archive/PLATFORM_REVIEW_PLAN-2026-07-08.md §W6-T05](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)
 > **Onda:** Wave 6 (paraleliza com Wave 5)
 > **Severity:** P2 · **Effort:** M (5 PRs sequenciais)
 > **Owner:** data-engineer
