@@ -72,6 +72,10 @@ FORBIDDEN_DIRS = (
     # recriação acidental — regras universais vivem em docstrings + ADRs;
     # dados cliente em DB ou <workspace>/notes/ (gitignored).
     "docs/methodology/",
+    # A34.l6 (ADR-319): PII histórica — deleção na A34.l7; recriação proibida.
+    # `docs/archive/` NÃO casa (paths raiz-relativos) e permanece livre.
+    "_archive/",
+    "archive/",
 )
 
 # Arquivos individuais que nunca devem ir pro repo.
@@ -214,8 +218,10 @@ def check_forbidden_paths(status_output: str) -> list[tuple[str, str]]:
         path, idx, wt = parsed
         basename = path.rsplit("/", 1)[-1]
         is_deletion = idx == "D" or wt == "D"
-        # Remover arquivo proibido do repositório é desejável — não bloquear deletes.
-        if is_deletion and (path in FORBIDDEN_FILES or basename in FORBIDDEN_BASENAMES):
+        # Remover path proibido do repositório é desejável — não bloquear
+        # deletes (paridade com dev/check_forbidden_paths.py; viabiliza a
+        # deleção de `_archive/` na A34.l7).
+        if is_deletion:
             continue
         for forbidden in FORBIDDEN_DIRS:
             if path.startswith(forbidden):

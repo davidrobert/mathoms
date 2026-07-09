@@ -8,6 +8,8 @@
 # 5. frontend-e2e (Playwright + backend real) — opt-in via label `e2e`
 # 6. frontend-visual (Playwright snapshots) — opt-in via label `visual`
 #    ou workflow_dispatch; scan completo fica no nightly.
+# 7. gitleaks — secrets nos commits do PR (A34.l6 · ADR-319). Full-history
+#    semanal + Issue automática ficam em security.yml (schedule).
 #
 # Movido para nightly.yml (não bloqueia merge):
 # - frontend-lighthouse — perf/a11y/bp/seo é métrica, não correctness.
@@ -16,6 +18,7 @@
 # Gates de merge (all-green):
 # - lint-all green
 # - pipeline-tests + backend-tests + frontend-checks green
+# - gitleaks green (sempre roda — secret pode entrar por PR docs-only)
 # - E2E/visual green (quando rodam, opt-in)
 #
 # F7C estende para: Docker CVE scan, coverage ≥85%, deploy automático
@@ -919,6 +922,35 @@ jobs:
         working-directory: services/pipeline-service-go
         run: go build ./...
 
+  gitleaks:
+    # A34.l6 (ADR-319 · PLAN-public-release W2): gate de merge anti-secret.
+    # Sem path-gating: secret pode entrar por PR docs-only, então roda em
+    # TODO PR (~30s). Varre os commits do PR; a varredura full-history
+    # semanal + Issue automática permanecem em security.yml (schedule).
+    name: gitleaks (PR commits)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Só eventos de PR: em workflow_dispatch (runs manuais de e2e/visual) a
+    # action cairia em full-history scan — cobertura que pertence ao
+    # schedule de security.yml, não ao gate de merge.
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    # gitleaks-action lê PR commits via API — exige pull-requests: read.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks (.gitleaks.toml)
+        uses: gitleaks/gitleaks-action@v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+          # Pin explícito = paridade com o rev do pre-commit
+          # (.pre-commit-config.yaml) — ver ADR-230 §D3.
+          GITLEAKS_VERSION: "8.24.3"
+
   all-green:
     # Meta-job: aceita success OU skipped (paths-filter pula jobs por área).
     # Falha apenas se algum job upstream falhou ou foi cancelado.
@@ -936,12 +968,13 @@ jobs:
       - frontend-checks
       - go-lint
       - go-test
+      - gitleaks
     if: always()
     steps:
       - name: Verify all required jobs passed or were skipped
         run: |
           fail=0
-          for job in lint-all pipeline-tests backend-tests frontend-checks go-lint go-test; do
+          for job in lint-all pipeline-tests backend-tests frontend-checks go-lint go-test gitleaks; do
             case "$job" in
               lint-all) result="${{ needs.lint-all.result }}" ;;
               pipeline-tests) result="${{ needs.pipeline-tests.result }}" ;;
@@ -949,6 +982,7 @@ jobs:
               frontend-checks) result="${{ needs.frontend-checks.result }}" ;;
               go-lint) result="${{ needs.go-lint.result }}" ;;
               go-test) result="${{ needs.go-test.result }}" ;;
+              gitleaks) result="${{ needs.gitleaks.result }}" ;;
             esac
             if [[ "$result" != "success" && "$result" != "skipped" ]]; then
               echo "✗ $job: $result"
