@@ -12,8 +12,67 @@ const COMPACT_BRL = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 1,
 });
 
-export function formatCurrency(value: number, currency: "BRL" | "USD" = "BRL"): string {
-  return currency === "USD" ? USD.format(value) : BRL.format(value);
+export type CurrencyCode = "BRL" | "USD" | "EUR" | "GBP";
+
+const CURRENCY_FORMATTERS: Record<CurrencyCode, Intl.NumberFormat> = {
+  BRL,
+  USD,
+  EUR: new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }),
+  GBP: new Intl.NumberFormat("en-US", { style: "currency", currency: "GBP" }),
+};
+
+export interface CurrencyDigitOptions {
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+}
+
+export function formatCurrency(
+  value: number,
+  currency: CurrencyCode = "BRL",
+  digits?: CurrencyDigitOptions,
+): string {
+  if (!digits) return CURRENCY_FORMATTERS[currency].format(value);
+  const locale = currency === "BRL" ? "pt-BR" : "en-US";
+  return new Intl.NumberFormat(locale, { style: "currency", currency, ...digits }).format(value);
+}
+
+const BRL_NO_CENTS = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
+
+/** BRL arredondado sem centavos ("R$ 1.235"); null/undefined → "—". */
+export function formatBRLNoCents(value: number | null | undefined): string {
+  if (value == null) return "—";
+  return BRL_NO_CENTS.format(value);
+}
+
+/** Decimal-string da API (Pydantic Decimal) em BRL sem centavos; ausente ou não-numérico → "—". */
+export function formatBRLDecimalString(decimal: string | null | undefined): string {
+  if (!decimal) return "—";
+  const value = Number(decimal);
+  if (!Number.isFinite(value)) return "—";
+  return BRL_NO_CENTS.format(value);
+}
+
+const USD_PTBR = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 3,
+});
+
+/** USD com dígitos pt-BR ("US$ 50.000") — padrão das telas de dolarização. */
+export function formatUSDPtBR(value: number): string {
+  return USD_PTBR.format(value);
+}
+
+const DECIMAL_PTBR_MIN2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2 });
+
+/** Moeda fora de `CurrencyCode` ("CHF 5.210,55") — Intl currency lança RangeError para código não-ISO. */
+export function formatCurrencyWithCode(code: string, value: number): string {
+  return `${code} ${DECIMAL_PTBR_MIN2.format(value)}`;
 }
 
 // ADR-209: pct fields são absolutos (44.7 = 44,7%). Formatters NÃO multiplicam.

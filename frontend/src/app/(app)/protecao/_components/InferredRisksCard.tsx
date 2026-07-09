@@ -11,22 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAcceptInferredRisk } from "@/hooks/useAcceptInferredRisk";
 import type { RiskInferred } from "@/lib/api/protections";
+import { formatBRLDecimalString } from "@/lib/format";
 
 interface InferredRisksCardProps {
   workspaceId: string;
   inferred: RiskInferred[];
-}
-
-function formatBRLDecimalString(decimal: string | null): string {
-  if (!decimal) return "—";
-  const n = Number(decimal);
-  if (!Number.isFinite(n)) return decimal;
-  return n.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
 }
 
 export function InferredRisksCard({

@@ -13,6 +13,7 @@
 import { AlertTriangle, Info, Lightbulb } from "lucide-react";
 
 import type { CascataTrigger } from "@/lib/api";
+import { formatBRLDecimalString } from "@/lib/format";
 
 export interface SeverityStyle {
   borderClass: string;
@@ -50,17 +51,6 @@ export const TRIGGER_TITLE: Record<CascataTrigger["code"], string> = {
   T5: "Sinal de atenção: receita próxima do sublimite Simples",
 };
 
-function fmtBRL(decimalStr: string | undefined): string {
-  if (!decimalStr) return "—";
-  const value = Number(decimalStr);
-  if (!Number.isFinite(value)) return "—";
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
-}
-
 function fmtPct(decimalStr: string | undefined): string {
   if (!decimalStr) return "—";
   const value = Number(decimalStr);
@@ -69,10 +59,10 @@ function fmtPct(decimalStr: string | undefined): string {
 }
 
 function renderT1(p: Record<string, string>): string {
-  const delta = fmtBRL(p.delta_pro_labore_mensal_brl);
-  const aporte = fmtBRL(p.aporte_pgbl_extra_anual_brl);
-  const economia = fmtBRL(p.economia_ir_anual_brl);
-  const inss = fmtBRL(p.custo_inss_patronal_anual_brl);
+  const delta = formatBRLDecimalString(p.delta_pro_labore_mensal_brl);
+  const aporte = formatBRLDecimalString(p.aporte_pgbl_extra_anual_brl);
+  const economia = formatBRLDecimalString(p.economia_ir_anual_brl);
+  const inss = formatBRLDecimalString(p.custo_inss_patronal_anual_brl);
   const marginal = fmtPct(p.ir_marginal_potencial_pct);
   return (
     `Aumentar o pró-labore mensal em ${delta} expandiria a base PGBL em ${aporte}/ano, ` +
@@ -85,8 +75,8 @@ function renderT1(p: Record<string, string>): string {
 function renderT2(p: Record<string, string>): string {
   const atual = fmtPct(p.fator_r_pct);
   const limiar = fmtPct(p.fator_r_limiar_pct);
-  const deltaMensal = fmtBRL(p.delta_folha_mensal_brl);
-  const deltaAnual = fmtBRL(p.delta_folha_anual_brl);
+  const deltaMensal = formatBRLDecimalString(p.delta_folha_mensal_brl);
+  const deltaAnual = formatBRLDecimalString(p.delta_folha_anual_brl);
   return (
     `Fator-R móvel 12 meses em ${atual} (corte Anexo III × V em ${limiar}). ` +
     `Subir folha em ${deltaMensal}/mês (${deltaAnual}/ano) manteria o Anexo III. ` +
@@ -96,7 +86,7 @@ function renderT2(p: Record<string, string>): string {
 
 function renderT3(p: Record<string, string>): string {
   const marginal = fmtPct(p.ir_marginal_estimado_pct);
-  const limite = fmtBRL(p.pgbl_limite_anual_brl);
+  const limite = formatBRLDecimalString(p.pgbl_limite_anual_brl);
   return (
     `Alíquota IR marginal estimada em ${marginal}. PGBL é dedutível no modelo completo ` +
     `e oferece tabela regressiva (10% após 10 anos de cada aporte). ` +
@@ -106,7 +96,7 @@ function renderT3(p: Record<string, string>): string {
 
 function renderT4(p: Record<string, string>): string {
   const count = p.imoveis_alugados_count;
-  const receita = fmtBRL(p.receita_aluguel_anual_brl);
+  const receita = formatBRLDecimalString(p.receita_aluguel_anual_brl);
   return (
     `Workspace tem ${count} imóveis locados gerando ${receita}/ano. ` +
     `A diferença efetiva entre tributação PF (carnê-leão até 27,5%) e PJ-aluguel ` +
@@ -116,9 +106,9 @@ function renderT4(p: Record<string, string>): string {
 }
 
 function renderT5(p: Record<string, string>): string {
-  const receita = fmtBRL(p.receita_anual_brl);
-  const distancia = fmtBRL(p.distancia_brl);
-  const sublimite = fmtBRL(p.sublimite_brl);
+  const receita = formatBRLDecimalString(p.receita_anual_brl);
+  const distancia = formatBRLDecimalString(p.distancia_brl);
+  const sublimite = formatBRLDecimalString(p.sublimite_brl);
   return (
     `Receita bruta 12m em ${receita}, a ${distancia} do sublimite nacional de ${sublimite}. ` +
     `Acima do sublimite, o estado pode exigir ICMS/ISS fora do DAS. ` +

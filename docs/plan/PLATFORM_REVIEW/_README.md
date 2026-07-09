@@ -64,7 +64,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 **Próximos pickups ready agora:**
 
 - **W6-T01 residual** (sub-schemas E4 + wire ADR-090) — flip strict shipou via A24.l7 ([[ADR-284]]); split E4 + codegen + wire compliance seguem pickup (wire flip write-side exige ADR `Proposto` antes).
-- **W5** — frontend/metodologia; **re-verificação factual concluída 2026-07-08 (spike W5, pós-A33)**: W5-T01 residual entregue 2026-07-08 (scope=col + ProgressBar + reduced-motion; resta só o que acopla com W5-T02/W1-T01), **W5-T02 fechada 2026-07-08** (migração dos 2 charts residuais + emenda [[ADR-139]], [PR #883](https://github.com/davidrobert/mathoms/pull/883)), W5-T03 válida como escrita, W5-T04 parcial (sub-PR #2 obsoleto — [[ADR-239]]/[[ADR-240]]), W5-T05 parcial (numerador `investivel_efetivo` ✅). W5 permanece pickup real nas demais tasks, com escopo reduzido anotado por task (§Wave 5).
+- **W5** — frontend/metodologia; **re-verificação factual concluída 2026-07-08 (spike W5, pós-A33)**: W5-T01 residual entregue 2026-07-08 (scope=col + ProgressBar + reduced-motion; resta só o que acopla com W5-T02/W1-T01), **W5-T02 fechada 2026-07-08** (migração dos 2 charts residuais + emenda [[ADR-139]], [PR #883](https://github.com/davidrobert/mathoms/pull/883)), **W5-T03 fechada 2026-07-08** (14 call-sites monetários migrados p/ formatters canônicos, [PR #884](https://github.com/davidrobert/mathoms/pull/884)), W5-T04 parcial (sub-PR #2 obsoleto — [[ADR-239]]/[[ADR-240]]), W5-T05 parcial (numerador `investivel_efetivo` ✅). W5 permanece pickup real nas demais tasks, com escopo reduzido anotado por task (§Wave 5).
 - **Owner-gated (não são pickup de agente):** W3-T02 (Resend EU), W4-T02 residual (token Coolify = A20 L4), W4-T01 residual (off-site R2, ADR-228 G2/G3).
 
 > **Reconciliação 2026-07-06** — auditoria factual pós-A28 (sprint `paused` desde
@@ -118,7 +118,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W4-T05 | BB-002 + SR-017 + SR-028 Status page + alertas + drill | 4 | blocked | sre-devops | P1 | M | W4-T03 |
 | W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | residual entregue 2026-07-08 — scope=col em todos os `<th>` (default no primitivo TableHead + 23 arquivos literais), primitivo `<ProgressBar/>` + adoções (IFHero, ReservaEmergencia; EquilibrioCerbasi = role="img" por ser distribuição), reduced-motion global; ficam por design: gate axe critical+serious (D1), aria-label dos 2 Recharts (acopla W5-T02), baselines visuais (W1-T01) | product-designer | P1 | S | W1-T01 |
 | W5-T02 | PD-004 + BB-011 Recharts → Chart.js residual em S1 | 5 | done (2026-07-08, [PR #883](https://github.com/davidrobert/mathoms/pull/883) — 2 charts migrados p/ `ChartDonut`/`ChartWaterfall` + emenda datada na [[ADR-139]]; dep `recharts` permanece p/ consumidores fora de `/reports/**`) | product-designer | P1 | M | W5-T01 |
-| W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | válida (pendente) — 18 call-sites do inventário seguem no código + novos fora dele (re-verificado 2026-07-08, spike W5) | product-designer | P1 | M | W1-T01 |
+| W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | done (2026-07-08 — 14 call-sites `toLocaleString` monetários migrados p/ `formatCurrency`+options/`MonetaryValue`/helpers de `lib/format.ts`; 4 helpers locais duplicados deletados. Exceção documentada: wrappers `font-mono tabular-nums` restantes envolvem percentuais/contadores ou sites onde `MonetaryValue` não é drop-in sem mudança visual) | product-designer | P1 | M | W1-T01 |
 | W5-T04 | FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | 5 | parcial — sub-PR #5 ✅ via W1-T02 (#98); #2 obsoleto (superseded [[ADR-239]]/[[ADR-240]]); #1/#3/#4 válidos (re-verificado 2026-07-08, spike W5) | financial-planner | P1 | L | W1-T07 |
 | W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | parcial — numerador `investivel_efetivo` + toggle `imoveis_no_if` per-workspace ✅ (#321/#331/#332, ADR-142/222/223); resta `if_meta_liquida` + emissão v2 ([[ADR-140]] segue Roadmap) (re-verificado 2026-07-08, spike W5) | financial-planner | P1 | L | — |
 | W6-T01 | DE schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire compliance) | 6 | parcial — flip strict entregue via A24.l7 ([[ADR-284]] + runbook); sub-schemas E4 + wire compliance residual | data-engineer | P1 | L | — |
@@ -592,7 +592,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T01
 - **severity:** P1 · **effort:** M · **owner:** product-designer
-- **status:** scoped — track histórico `agent_prompts/track_w5t03_monetary_value.md`. Inventário concreto: 9 wrappers monetários + 9 toLocaleString = 18 call-sites (excede estimativa de 11).
+- **status:** done (2026-07-08) — track histórico `agent_prompts/track_w5t03_monetary_value.md`. Inventário original: 9 wrappers monetários + 9 toLocaleString = 18 call-sites (excede estimativa de 11).
 - **files_touched:** 11+ cards/components (Endividamento, Reserva, IRPF×4, EstrategiaAporte, SupportGoalsRow, KPICard etc.)
 - **related_findings:** PD-006, PD-010, PD-011, PD-012, PD-013
 - **acceptance_criteria:** todos consomem `<MonetaryValue size="kpi"/>`; sem `font-mono text-Xxl tabular-nums` redundante; sem `toLocaleString()` direto em strings monetárias; `formatCurrency()` usado quando precisa string.
@@ -606,6 +606,33 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 > AlocacaoAtualVsAlvoCard) e surgiram **novos** call-sites monetários com
 > `toLocaleString` fora do inventário (ProtectionList, InferredRisksCard,
 > StressScenarioCard) — re-inventariar no pickup.
+
+> **Entrega 2026-07-08 (residual A11 W5-T03): DONE.** Re-inventário no pickup
+> achou **14 call-sites monetários** com `toLocaleString` direto (13 do spike
+> + `goalPremissas.ts` no mesmo padrão) — todos migrados num único PR:
+>
+> - `formatCurrency` estendido com `CurrencyCode` (BRL|USD|EUR|GBP) +
+>   `CurrencyDigitOptions` tipadas (fraction digits byte-idênticos aos
+>   call-sites legados); `Currency` de `MonetaryValue` virou alias da união.
+> - Helpers canônicos novos em `lib/format.ts`: `formatBRLNoCents`,
+>   `formatBRLDecimalString` (Decimal-string da API), `formatUSDPtBR`
+>   (dolarização exibe USD com dígitos pt-BR por design) e
+>   `formatCurrencyWithCode` (moeda fora do enum — Intl currency lança
+>   `RangeError` p/ código não-ISO). 4 helpers locais duplicados deletados
+>   (`fmtBRL` ×2, `formatBRLDecimalString` ×2 + `fmt` inline do TotalsStrip).
+> - Arquivos: StressScenarioCard, CascataFiscalCard.triggers,
+>   ApendicesSections (valor de milhas → `<MonetaryValue/>`),
+>   EstrategiaAporteCard, PosicaoInformeCard, conclusionUtils (kind `brl`),
+>   CategoryRow, ProtectionList, InferredRisksCard, dolarizacao wizard,
+>   SupportGoalsRow, goalPremissas.
+> - **Exceções (por quê):** interpolações `R$ ${…}`/`US$ ${…}` trocam espaço
+>   ASCII por NBSP do Intl (mesmo glifo — normaliza com o restante do app);
+>   `toLocaleString` não-monetários ficam (contagens, paginação, kinds
+>   `int`/`num` do conclusionUtils, saldo de milhas = contagem); a conversão
+>   em massa dos ~162 wrappers `font-mono tabular-nums` p/
+>   `<MonetaryValue size="kpi"/>` segue fora do escopo — maioria envolve
+>   percentuais/contadores ou sites onde `MonetaryValue` não é drop-in sem
+>   mudança visual (ex.: null em cor default vs `text-muted-foreground`).
 
 ### [W5-T04] FP-004 ADR-161 enrichment (5 sub-PRs)
 

@@ -27,9 +27,12 @@ import {
   institutionLabel,
   pipelineE2TouchLabel,
   pipelineTouchTooltipExplanation,
+  formatBRLDecimalString,
+  formatBRLNoCents,
   formatBytes,
   formatCompact,
   formatCurrency,
+  formatCurrencyWithCode,
   formatDate,
   formatDateShort,
   formatDelta,
@@ -42,6 +45,7 @@ import {
   formatPeriod,
   formatPeriodCoverPtBR,
   formatRange,
+  formatUSDPtBR,
   runStatusLabel,
   stageName,
   stageStatusLabel,
@@ -92,6 +96,84 @@ describe("formatCurrency()", () => {
     const out = norm(formatCurrency(1.005));
     // Pode ser "R$ 1,00" ou "R$ 1,01" — só garantimos 2 decimais
     expect(out).toMatch(/R\$\s\d+,\d{2}$/);
+  });
+
+  it("EUR e GBP usam símbolo + separador en-US (paridade com MonetaryValue)", () => {
+    expect(formatCurrency(1234.5, "EUR")).toBe("€1,234.50");
+    expect(formatCurrency(1234.5, "GBP")).toBe("£1,234.50");
+  });
+
+  it("maximumFractionDigits: 0 arredonda sem centavos (mínimo colapsa junto)", () => {
+    expect(norm(formatCurrency(1234.56, "BRL", { maximumFractionDigits: 0 }))).toBe("R$ 1.235");
+    expect(formatCurrency(1234.56, "USD", { maximumFractionDigits: 0 })).toBe("$1,235");
+  });
+
+  it("min 0 / max 3 reproduz dígitos de toLocaleString('pt-BR') cru (W5-T03 byte-parity)", () => {
+    const digits = { minimumFractionDigits: 0, maximumFractionDigits: 3 };
+    expect(norm(formatCurrency(8000, "BRL", digits))).toBe("R$ 8.000");
+    expect(norm(formatCurrency(8000.5, "BRL", digits))).toBe("R$ 8.000,5");
+    expect(norm(formatCurrency(1500.55, "BRL", digits))).toBe("R$ 1.500,55");
+  });
+});
+
+// ─── formatBRLNoCents ────────────────────────────────────────────────
+
+describe("formatBRLNoCents()", () => {
+  it("null/undefined → em-dash", () => {
+    expect(formatBRLNoCents(null)).toBe("—");
+    expect(formatBRLNoCents(undefined)).toBe("—");
+  });
+
+  it("arredonda para inteiro em BRL", () => {
+    expect(norm(formatBRLNoCents(1234.56))).toBe("R$ 1.235");
+    expect(norm(formatBRLNoCents(0))).toBe("R$ 0");
+  });
+});
+
+// ─── formatBRLDecimalString ──────────────────────────────────────────
+
+describe("formatBRLDecimalString()", () => {
+  it("null/undefined/vazio → em-dash", () => {
+    expect(formatBRLDecimalString(null)).toBe("—");
+    expect(formatBRLDecimalString(undefined)).toBe("—");
+    expect(formatBRLDecimalString("")).toBe("—");
+  });
+
+  it("Decimal-string da API vira BRL sem centavos", () => {
+    expect(norm(formatBRLDecimalString("500000.00"))).toBe("R$ 500.000");
+    expect(norm(formatBRLDecimalString("79.9"))).toBe("R$ 80");
+    expect(norm(formatBRLDecimalString("0"))).toBe("R$ 0");
+  });
+
+  it("string não-numérica ('N/D') → em-dash, nunca NaN", () => {
+    expect(formatBRLDecimalString("N/D")).toBe("—");
+    expect(formatBRLDecimalString("abc")).toBe("—");
+  });
+});
+
+// ─── formatUSDPtBR ───────────────────────────────────────────────────
+
+describe("formatUSDPtBR()", () => {
+  it("USD com dígitos pt-BR e sem casas obrigatórias (telas de dolarização)", () => {
+    expect(norm(formatUSDPtBR(50000))).toBe("US$ 50.000");
+    expect(norm(formatUSDPtBR(1_000_000))).toBe("US$ 1.000.000");
+  });
+
+  it("preserva fração digitada até 3 casas (paridade com toLocaleString cru)", () => {
+    expect(norm(formatUSDPtBR(50000.5))).toBe("US$ 50.000,5");
+  });
+});
+
+// ─── formatCurrencyWithCode ──────────────────────────────────────────
+
+describe("formatCurrencyWithCode()", () => {
+  it("código ISO cru + dígitos pt-BR com mínimo de 2 casas (espaço ASCII)", () => {
+    expect(formatCurrencyWithCode("CHF", 5210.55)).toBe("CHF 5.210,55");
+    expect(formatCurrencyWithCode("JPY", 1000)).toBe("JPY 1.000,00");
+  });
+
+  it("não lança para código não-ISO (diferente de Intl currency)", () => {
+    expect(formatCurrencyWithCode("PONTOS", 12.3)).toBe("PONTOS 12,30");
   });
 });
 
