@@ -30,7 +30,7 @@ decision tree abaixo reduz tempo de diagnóstico em incidente real.
 ## 1. Pré-requisitos (gate de deploy, não negociável)
 
 Antes de **qualquer deploy** que toque o pipeline (`backend/app/tasks/pipeline_task.py`,
-`backend/app/services/db_artifact_store.py`, `pipeline/**`, ou migration que afete
+`backend/app/services/storage/db_artifact_store.py`, `pipeline/**`, ou migration que afete
 `pipeline_artifacts` / `workspaces` / `pipeline_runs` / `pipeline_stage_logs`):
 
 ```bash

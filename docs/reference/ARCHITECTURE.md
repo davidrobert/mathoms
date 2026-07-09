@@ -350,9 +350,9 @@ bloqueia recriação acidental.
 
 ---
 
-## 6. Services (+ `internal_ops/` submódulo)
+## 6. Services (+ subpacotes por natureza técnica · ADR-285)
 
-> **Contagem real** (2026-07-04): `ls backend/app/services/*.py | grep -v __init__` → 112. Tabela abaixo é **parcial** (originalmente "26") e precisa de rodada de sync — entradas conhecidas faltantes: `artifact_reader`, `canonical_routing`, `classification_telemetry`, `config_defaults`, `document_classification`, `document_duplicates`, `document_extract_json_service`, `document_pipeline_sync`, `document_reclassify_bulk_service`, `document_retry_service`, `document_upload_service`, `password_vault_reader`, `pipeline_client`, `premissas_snapshot`, `report_lineage`, `stage_duration_estimator`, mais `internal_ops/` submódulo (F7F-Local, ADR-116). Não duplicar lista — fonte de verdade é o filesystem.
+> **Contagem real** (2026-07-09): `ls backend/app/services/*.py | grep -v __init__` → ~81 módulos flat, **mais 6 subpacotes agrupados por natureza técnica ([[ADR-285]], A33.l9)**: `classification/`, `documents/`, `internal_ops/` (F7F-Local, ADR-116), `pipeline/`, `security/`, `storage/`. A tabela abaixo é **parcial** e não acompanha o filesystem — **fonte de verdade é o filesystem**, não esta lista.
 
 | Service | Responsabilidade |
 | --- | --- |
@@ -1025,7 +1025,7 @@ descontinuar o renderer HTML server-side; React em `/reports/[id]` é
 | Tasks snapshot no relatório                       | `reports.tasks_snapshot_json` (DB)                          | `build_snapshot_sync` na criação do Report                      |
 | Audit log                                         | `audit_logs` (DB)                                           | `audit_service.log()` dentro da transação                       |
 | Tasks queue state                                 | Redis (broker + result backend)                             | Celery                                                          |
-| Eventos WebSocket                                 | Redis Pub/Sub                                               | `services/events.py`                                            |
+| Eventos WebSocket                                 | Redis Pub/Sub                                               | `services/pipeline/events.py`                                   |
 
 ### O que **não** é persistido no git
 
@@ -1220,6 +1220,12 @@ trivial. Estado final: globals eliminados em 5 scripts (A6d.1), 1427 testes
 passando, zero regressão nos goldens.
 
 ### 17.2 Arquitetura alvo de processos e comunicação (pós-A6f)
+
+> **Atualização 2026-07-09 — parcialmente materializado.** O boundary HTTP deixou
+> de ser 100% futuro: o `pipeline-service/` Go tem skeleton entregue (F1 completa;
+> F2 cutover iniciada — [[ADR-150]]) e o executor HTTP roda com **auto-fallback
+> InProcess** ([[ADR-323]]). O diagrama abaixo permanece o alvo; status corrente das
+> fases em [SPRINTS-active](../_MOC/SPRINTS-active.md).
 
 ```
 ┌─────────────────────────────┐    HTTP/JSON     ┌──────────────────────────────┐
