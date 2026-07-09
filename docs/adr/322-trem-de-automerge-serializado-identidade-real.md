@@ -56,7 +56,8 @@ morre grátis em `action_required` — estouraria o budget de Actions.
   (executável localmente com `gh auth` próprio). Custo cai de O(merges×PRs)
   para O(merges).
 - **D2 — Identidade real.** Update-branch roda com secret `AUTOUPDATE_PAT`
-  (fine-grained PAT: Contents + Pull requests write, só este repo,
+  (fine-grained PAT: Contents + Pull requests + Issues write, Checks +
+  Commit statuses + Actions read, só este repo,
   expiração ≤90d). **Sem o secret o workflow não faz fallback para
   `GITHUB_TOKEN`** — loga warning e sai. Regressão ruidosa (trem
   visivelmente parado + issue do watchdog) > órfãos silenciosos. Alvo
