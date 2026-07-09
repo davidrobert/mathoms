@@ -207,12 +207,17 @@ trace-continuity é gate técnico lá); Sentry (owner-gated); dashboards de dura
 
 ## Follow-ups / fora de escopo
 
-- **Fragilidade crítica (follow-up, `senior-cto`):** `HttpPipelineClient.execute_stage`
-  faz `raise_for_status` sem auto-fallback → shell down = todo run hard-fail até
-  `go-off` manual. Auto-degrade a `InProcess` em `ConnectError`/5xx transformaria
-  hard-fail em degrade gracioso. **NÃO é requisito de F2** (mitigado por alerta de
-  health + rollback rápido), mas é a maior fragilidade do desenho — abrir slice
-  próprio com ADR-line.
+- **Fragilidade crítica (follow-up, `senior-cto`) — ENDEREÇADA por [[ADR-323]]
+  (dark launch, default OFF até pós-F3).** `HttpPipelineClient.execute_stage`
+  fazia `raise_for_status` sem auto-fallback → shell down = todo run hard-fail até
+  `go-off` manual. O `FallbackPipelineClient` ([[ADR-323]]) degrada a `InProcess`
+  em `ConnectError`/connect-timeout/5xx (circuit breaker sticky run-scoped via
+  `ctx.shell_degraded`), com telemetria LOUD (`event=pipeline_shell_fallback`).
+  Gated por `MATHOMS_PIPELINE_SHELL_FALLBACK` **default `0`**: fica desligado no
+  soak (não mascara o rollback trigger #2 — o Go tem que provar 14 dias sozinho);
+  o owner flippa `1` pós-F3. **Pré-condição do flip:** shell Go faz reap/kill do
+  subprocess antes de responder 5xx (rollback trigger #6). **NÃO era requisito de
+  F2** — código shipado como dark launch, ativação é decisão pós-soak.
 - **Dual-queue / worker canário per-workspace** — escalação pré-registrada para
   quando tenants ativos > ~5 antes da F3. Não construir em F2.
 - **F3 (decommission)** e port de domínio (Caminho 2/3) — fora deste track.
