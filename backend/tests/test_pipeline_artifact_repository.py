@@ -153,6 +153,44 @@ async def test_list_latest_keys(db: AsyncSession):
     assert keys == ["itau_BRL", "nubank_BRL"]
 
 
+def _add_artifacts(s, ws_id: str, rows) -> None:
+    """Insere artefatos ``(run_id, stage, key)`` com content vazio e commita."""
+    for run_id, stage, key in rows:
+        s.add(
+            PipelineArtifact(
+                workspace_id=ws_id,
+                pipeline_run_id=run_id,
+                stage=stage,
+                artifact_key=key,
+                content_json={},
+            )
+        )
+    s.commit()
+
+
+@pytest.mark.asyncio
+async def test_list_for_run(db: AsyncSession):
+    """Lista cross-stage de uma run, ordenada por (stage, key); só a run pedida."""
+    ws_id, r1, r2, _ = await _seed(db)
+    rows = [
+        (r1, "E5", "analise"),
+        (r1, "E3", "nubank_BRL"),
+        (r1, "E3", "itau_BRL"),
+        (r2, "E3", "itau_BRL"),
+    ]
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            _add_artifacts(s, ws_id, rows)
+            arts = PipelineArtifactRepository(s).list_for_run(r1)
+            return [(a.stage, a.artifact_key) for a in arts]
+
+    got = await (await db.connection()).run_sync(_do)
+    assert got == [("E3", "itau_BRL"), ("E3", "nubank_BRL"), ("E5", "analise")]
+
+
 @pytest.mark.asyncio
 async def test_get_by_document(db: AsyncSession):
     ws_id, r1, _, doc_id = await _seed(db)
