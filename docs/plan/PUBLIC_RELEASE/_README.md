@@ -323,6 +323,7 @@ não entram aqui** — são técnicas, fechadas pela síntese do co-design (rati
 ## Referências
 
 - Anexo de auditoria: [audit-2026-07-08.md](audit-2026-07-08.md).
+- Brief de decisão do gate G0 (pré-mortem, sessão do owner): [w0-decision-brief.md](w0-decision-brief.md).
 - ADRs canônicas: [[ADR-313]]–[[ADR-320]].
 - Reconciliação: [[PLAN-i18n]] ([[ADR-130]]) · [[PLAN-launch-trust]] · [[PLAN-report-premium]].
 - Formato exemplar: [[PLAN-data-lineage]].
