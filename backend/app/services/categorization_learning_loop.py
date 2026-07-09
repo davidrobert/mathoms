@@ -81,6 +81,7 @@ def _preload_override_index(
             .where(
                 TransactionOverride.workspace_id == workspace_id,
                 TransactionOverride.deleted_at.is_(None),
+                TransactionOverride.orphaned_at.is_(None),  # quarentena inerte (ADR-282 §5, A26.l4)
             )
             .order_by(TransactionOverride.created_at, TransactionOverride.id)
         )
