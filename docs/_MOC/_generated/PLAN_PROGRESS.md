@@ -111,6 +111,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-199]], [[ADR-200]], [[ADR-201]], [[ADR-202]], [[ADR-203]], [[ADR-204]], [[ADR-205]], [[ADR-206]], [[ADR-207]], [[ADR-208]]
 
+### PLAN-residencia-e-uso — Residência e uso econômico de imóveis — override DB substitui keyword
+
+- Status: `done` · Sprint atual: A12
+- Sprints envolvidas: A12
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-215]]
+
 ### PLAN-s4-real-estate-enrichment — S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel)
 
 - Status: `done` · Sprint atual: A12
@@ -147,13 +154,6 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A12
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-221]]
-
-### PLAN-residencia-e-uso — Residência e uso econômico de imóveis — override DB substitui keyword
-
-- Status: `draft` · Sprint atual: A12
-- Sprints envolvidas: A12
-- Lanes: _(sem lanes vinculadas por `plan:`)_
-- ADRs canônicas: [[ADR-215]]
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

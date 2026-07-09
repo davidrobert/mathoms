@@ -2,12 +2,12 @@
 id: PLAN-residencia-e-uso
 type: plan
 title: "Residência e uso econômico de imóveis — override DB substitui keyword"
-status: draft
+status: done
 sprint_origem: A12
 sprint_atual: A12
 sprints_envolvidas: ["A12"]
 created_at: "2026-05-15"
-last_review: "2026-05-15"
+last_review: "2026-07-09"
 adrs_canonical:
   - "[[ADR-215]]"
 tags:
@@ -17,7 +17,7 @@ tags:
   - area/persistence
   - area/report
   - sprint/a12
-  - status/draft
+  - status/done
 ---
 
 # Plano canônico — Residência e uso econômico de imóveis
@@ -72,7 +72,7 @@ Após este plano, ao subir IRPF novo (ou abrir MembersTab em workspace dogfood),
 - **P3-connection fix — `PropertyOverridesResolver` ligando DB ao calculator** ✅ shipped 2026-05-18 (#318)
 - **Sunset completo `residencia_principal_keyword`** ✅ shipped 2026-05-18 (#320) — 4 analyzers refatorados; gate encolhido; ADR-215 → Decidido.
 - **ADR-222 — `imoveis_no_if` per-workspace** ✅ shipped 2026-05-18 (#319) — coluna + audit + endpoint PUT.
-- **ADR-142 runtime — `investivel_efetivo`** 🚧 este PR — calculator emite `investivel_financeiro` + `investivel_efetivo` filtrado por classification (locado/comercial entram com toggle on; uso_pessoal/especulacao/desconhecido nunca); IFProjector/RatiosCalculator/CenariosConjugeAnalyzer consomem `_efetivo`; `config/pipeline.json:14` deletado. ADRs 142 + 222 → Decidido completo.
+- **ADR-142 runtime — `investivel_efetivo`** ✅ shipped — calculator emite `investivel_financeiro` + `investivel_efetivo` filtrado por classification (locado/comercial entram com toggle on; uso_pessoal/especulacao/desconhecido nunca); IFProjector/RatiosCalculator/CenariosConjugeAnalyzer consomem `_efetivo`; `config/pipeline.json:14` deletado. ADRs 142 + 222 → Decidido completo.
 - **Quick fix paralelo:** descartado pelo usuário em favor da solução completa.
 
 ### Status final do MVP V1 ✅
@@ -93,12 +93,12 @@ A correção introduz `PropertyOverridesResolver` (`pipeline/ports/`) + `DBPrope
 
 | Fase | Status | Entrega | Owner | Dependências | Esforço |
 |---|---|---|---|---|---|
-| **P1** | ⏳ | Schema E1.6 (`contribuinte.endereco`) + DB (tabelas `workspace_property_overrides` + `property_identity` + coluna `workspaces.residencia_status`) + migrations Alembic | data-engineer + senior-cto | ADR-215 ✅ | 3d eng |
-| **P2** | ⏳ | Consolidador E1.5c emite `property_id` estável + dedup endereço normalizado em casal/comunhão + low-confidence flag | data-engineer | P1 ✅ | 2d eng |
-| **P3** | ⏳ | `patrimonio_calculator.split_imoveis` puro/read-time + payload E5 com `property_id` + goldens E5 atualizados (paridade) + label cat_2 → "Imóveis de Renda" | senior-cto + data-engineer | P2 ✅ | 3d eng |
-| **P4** | ⏳ | Endpoints: `GET /workspaces/{ws}/properties` (lista classificável com sugestão fuzzy) + `PUT /workspaces/{ws}/properties/{id}/classification` + `PUT /workspaces/{ws}/residencia-status` + telemetria mínima | senior-cto | P3 ✅ | 2d eng |
-| **P5** | ⏳ | UX pós-upload do 1º IRPF (inline, não modal) + seção em MembersTab + tabela densa com radio + badge de sugestão + opção "Moro alugado" | frontend + product-designer | P4 ✅ | 3d eng |
-| **P6** | ⏳ | Migration de cutover: matching de `residencia_principal_keyword` legado → override DB; deprecation + delete do campo legado; pre-commit gate impedindo re-uso | data-engineer + sre-devops | P5 ✅ + 1 sprint deprecation | 1d eng + 7d wall-clock |
+| **P1** | ✅ | Schema E1.6 (`contribuinte.endereco`) + DB (tabelas `workspace_property_overrides` + `property_identity` + coluna `workspaces.residencia_status`) + migrations Alembic | data-engineer + senior-cto | ADR-215 ✅ | 3d eng |
+| **P2** | ✅ | Consolidador E1.5c emite `property_id` estável + dedup endereço normalizado em casal/comunhão + low-confidence flag | data-engineer | P1 ✅ | 2d eng |
+| **P3** | ✅ | `patrimonio_calculator.split_imoveis` puro/read-time + payload E5 com `property_id` + goldens E5 atualizados (paridade) + label cat_2 → "Imóveis de Renda" | senior-cto + data-engineer | P2 ✅ | 3d eng |
+| **P4** | ✅ | Endpoints: `GET /workspaces/{ws}/properties` (lista classificável com sugestão fuzzy) + `PUT /workspaces/{ws}/properties/{id}/classification` + `PUT /workspaces/{ws}/residencia-status` + telemetria mínima | senior-cto | P3 ✅ | 2d eng |
+| **P5** | ✅ | UX pós-upload do 1º IRPF (inline, não modal) + seção em MembersTab + tabela densa com radio + badge de sugestão + opção "Moro alugado" | frontend + product-designer | P4 ✅ | 3d eng |
+| **P6** | ✅ | Migration de cutover: matching de `residencia_principal_keyword` legado → override DB; deprecation + delete do campo legado; pre-commit gate impedindo re-uso | data-engineer + sre-devops | P5 ✅ + 1 sprint deprecation | 1d eng + 7d wall-clock |
 
 **Total estimado MVP V1:** ~14d eng + 7d wall-clock cutover. Workspace dogfood `5@5.com` usado para validar P5 antes de habilitar feature flag globalmente.
 

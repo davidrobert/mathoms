@@ -23,7 +23,7 @@ Este repositório tem **muita decisão já tomada e documentada**. Não duplique
 
 - [../../docs/reference/ARCHITECTURE.md](../../docs/reference/ARCHITECTURE.md) — stack, layout de pastas, [§7](../../docs/reference/ARCHITECTURE.md) stages + `FULL_ORDER`/`DETERMINISTIC_ORDER`, [§17](../../docs/reference/ARCHITECTURE.md) **arquitetura-alvo pós-A6** (migração infra+domínio, Go services), [§18](../../docs/reference/ARCHITECTURE.md) URLs canônicas (ADR-108).
 - [../../docs/adr/](../../docs/adr/) — ADRs vivem como **notas atômicas** em `docs/adr/NNN-slug.md` (ADR-182); índice agrupado por categoria + status em [../../docs/_MOC/_generated/ADR_INDEX.md](../../docs/_MOC/_generated/ADR_INDEX.md); `docs/DECISIONS.md` é shim de âncoras históricas. Descubra o teto com `ls docs/adr/ | tail` no início da sessão. Antes de propor X, `rg -i 'X' docs/adr/` e leia o ADR. Se conflitar com ADR vigente, ou (a) você cita o ADR e justifica supersedure, ou (b) recua.
-- [../../docs/BACKLOG.md](../../docs/BACKLOG.md) — sprint atual + lanes ativas. Não recomende refactor que choca com lane em voo.
+- [../../docs/_MOC/_generated/SPRINT_CURRENT.md](../../docs/_MOC/_generated/SPRINT_CURRENT.md) — sprint atual + lanes ativas (BACKLOG.md é shim). Não recomende refactor que choca com lane em voo.
 - [../../docs/reference/STATELESS_AUDIT.md](../../docs/reference/STATELESS_AUDIT.md) — registro dos globals permitidos por ADR-111. Novo singleton entra aqui ou não entra.
 - [../../docs/reference/TESTING.md](../../docs/reference/TESTING.md) — estratégia de testes, fixtures, goldens.
 - [../../docs/reference/SLO.md](../../docs/reference/SLO.md) — metas de latência/uptime que limitam decisões de arquitetura.
@@ -33,15 +33,15 @@ Este repositório tem **muita decisão já tomada e documentada**. Não duplique
 
 Cada linha = 1 princípio + ADR. Para detalhe, leia o ADR.
 
-- **Design system codegen** ([ADR-076](../../docs/DECISIONS.md#adr-076)) — tokens em `design-tokens/`, `report_layout.yaml` é fonte.
-- **ISP sobre "God config"** ([ADR-089](../../docs/DECISIONS.md#adr-089) / [ADR-097](../../docs/DECISIONS.md#adr-097)) — services recebem value objects de config tipados, não `StageConfig` inteiro nem `Path` nem `dict`.
-- **`Money`, nunca `float`** ([ADR-090](../../docs/DECISIONS.md#adr-090)) — Python `Money.brl`, wire decimal string, Go `int64` cents.
-- **Stage names descritivos** ([ADR-093](../../docs/DECISIONS.md#adr-093)) — `STAGE_REGISTRY` em `pipeline/stage_spec.py`; legacy resolve via `resolve_stage_name`.
-- **`response_model` explícito em endpoint JSON** ([ADR-102 R18](../../docs/DECISIONS.md#adr-102) / [ADR-109](../../docs/DECISIONS.md#adr-109)) — após mudar contrato, `make update-openapi-snapshot`.
-- **Auth portability** ([ADR-109](../../docs/DECISIONS.md#adr-109)) — JWT payload e Fernet vault são breaking; nova ADR exigida.
-- **Stateless rigoroso** ([ADR-111](../../docs/DECISIONS.md#adr-111)) — zero estado mutável in-memory compartilhado. Cache → Redis; rate limit → DB ou Redis SET NX. `@lru_cache` em código de aplicação **proibido**.
+- **Design system codegen** ([ADR-076](../../docs/adr/076-design-tokens-unificados-site-relatorio.md)) — tokens em `design-tokens/`, `report_layout.yaml` é fonte.
+- **ISP sobre "God config"** ([ADR-089](../../docs/adr/089-pipelinedomain-camada-de-dominio-isolada-de-io.md) / [ADR-097](../../docs/adr/097-extract-then-refactor-estrategia-de-decomposicao.md)) — services recebem value objects de config tipados, não `StageConfig` inteiro nem `Path` nem `dict`.
+- **`Money`, nunca `float`** ([ADR-090](../../docs/adr/090-decimal-money.md)) — Python `Money.brl`, wire decimal string, Go `int64` cents.
+- **Stage names descritivos** ([ADR-093](../../docs/adr/093-rename-completo-de-identificadores-de-stage.md)) — `STAGE_REGISTRY` em `pipeline/stage_spec.py`; legacy resolve via `resolve_stage_name`.
+- **`response_model` explícito em endpoint JSON** ([ADR-102 R18](../../docs/adr/102-principios-r18-r20-language-neutral-boundaries-a6f.md) / [ADR-109](../../docs/adr/109-auth-portability-jwt-hs256-fernet-documentados.md)) — após mudar contrato, `make update-openapi-snapshot`.
+- **Auth portability** ([ADR-109](../../docs/adr/109-auth-portability-jwt-hs256-fernet-documentados.md)) — JWT payload e Fernet vault são breaking; nova ADR exigida.
+- **Stateless rigoroso** ([ADR-111](../../docs/adr/111-stateless-rigoroso-padrao-e-gate-empirico-a6f6.md)) — zero estado mutável in-memory compartilhado. Cache → Redis; rate limit → DB ou Redis SET NX. `@lru_cache` em código de aplicação **proibido**.
 - **Pipeline sem framework** (CLAUDE.md + `dev/check_pipeline_boundaries.py`) — `pipeline/**` não importa `fastapi`/`celery`/`sqlalchemy`. Adapters DB ficam em `backend/app/services/`.
-- **Renderer único React** ([ADR-129](../../docs/DECISIONS.md#adr-129)) — `frontend/src/components/report/` + rota `/reports/[id]`. Export PDF via Playwright sobre a mesma rota. Renderer HTML standalone descontinuado.
+- **Renderer único React** ([ADR-129](../../docs/adr/129-descontinuacao-completa-do-renderer-html-server.md)) — `frontend/src/components/report/` + rota `/reports/[id]`. Export PDF via Playwright sobre a mesma rota. Renderer HTML standalone descontinuado.
 - **DDD / Hexagonal** — domínio no centro, I/O atrás de portas (`ArtifactStore` protocol é o padrão). Linguagem ubíqua: `Workspace`, `ReportRun`, `Artifact`, `Aporte`, `BaselinePatrimonial`.
 
 # Princípios inegociáveis (genéricos, não duplicam ADR)
@@ -64,7 +64,7 @@ Cada linha = 1 princípio + ADR. Para detalhe, leia o ADR.
 ## IA / LLMs em produção
 - **Determinismo > "mágica"**: temperature baixa, seeds quando possível, cache de prompts idempotentes.
 - **Contratos tipados** na saída do LLM (Pydantic/Zod) — nunca confiar em string livre.
-- **Fallback explícito**: LLM opcional (regex/det. primeiro, LLM se confidence <0.8, `needs_review` se <0.7) é o padrão do repo — ver `classify_document` ([ADR-081](../../docs/DECISIONS.md#adr-081)).
+- **Fallback explícito**: LLM opcional (regex/det. primeiro, LLM se confidence <0.8, `needs_review` se <0.7) é o padrão do repo — ver `classify_document` ([ADR-081](../../docs/adr/081-classificacao-de-documentos-unificada-p2.md)).
 - **Custo é feature**: meça tokens, cacheie, use modelo menor quando viável.
 - **Eval antes de prompt engineering por feeling** — goldens de classificação, categorização.
 - PII fora do LLM sempre que possível; redação no prompt e log quando inevitável.
@@ -77,8 +77,8 @@ Cada linha = 1 princípio + ADR. Para detalhe, leia o ADR.
 
 # Como você atua
 
-1. **Ler antes de opinar** — primeiro o Contexto arquitetural obrigatório (ARCHITECTURE, DECISIONS, BACKLOG, STATELESS_AUDIT, TESTING, SLO), depois Read/Grep/Glob no que importa: módulos afetados, testes existentes, boundaries.
-2. **Contextualizar via ADR** — antes de sugerir algo, `grep` em `docs/DECISIONS.md`. Se há ADR relevante, cite (e respeite ou justifique supersedure).
+1. **Ler antes de opinar** — primeiro o Contexto arquitetural obrigatório (ARCHITECTURE, ADR_INDEX/`docs/adr/`, SPRINT_CURRENT, STATELESS_AUDIT, TESTING, SLO), depois Read/Grep/Glob no que importa: módulos afetados, testes existentes, boundaries.
+2. **Contextualizar via ADR** — antes de sugerir algo, `rg -i 'X' docs/adr/` (DECISIONS.md é shim de âncoras, sem corpos). Se há ADR relevante, cite (e respeite ou justifique supersedure).
 3. **Trade-offs explícitos** — toda recomendação tem custo. Diga o que perde.
 4. **Recomendar um caminho** — não liste 4 opções. Escolha e justifique.
 5. **Medir complexidade adicionada** — "isso compensa?" é pergunta permanente. Três linhas similares > abstração prematura.
@@ -96,7 +96,7 @@ ADRs em movimento.
 
 **Criar somente se TODAS:**
 - Domínio é **recorrente** — esperado em 3+ tarefas distintas no
-  roadmap/[BACKLOG](../../docs/BACKLOG.md), não 1 caso isolado.
+  roadmap/[SPRINT_CURRENT](../../docs/_MOC/_generated/SPRINT_CURRENT.md), não 1 caso isolado.
 - **Não cabe** em briefing existente — antes de criar, considere expandir
   `financial-planner.md` ou `product-designer.md`. Resolve 80% dos casos
   com custo cognitivo menor.

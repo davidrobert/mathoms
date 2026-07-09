@@ -23,7 +23,7 @@ tags:
 >
 > **Última atualização:** 2026-07-03 — **IA-0 entregue** (ver §3). 2026-04-22 — fase dividida em **F7F-Local** (pré-produção, UI web em `127.0.0.1`, sem OAuth) e **F7F-Remote** (produção, OAuth staff em `ops.mathoms.ai`). IA-0 passa a ter **UI web como superfície principal**; CLI é atalho secundário/futuro.
 >
-> **Backlog executável:** [BACKLOG.md — F7F](../../BACKLOG.md#f7f--console-interno-operadores)
+> **Backlog executável:** tasks IA-0…IA-4 detalhadas neste plano (§ abaixo); pickup via [SPRINT_CURRENT](../../_MOC/_generated/SPRINT_CURRENT.md) — `BACKLOG.md` é shim pós-DOC_REORG (ADR-182), sem seção F7F.
 
 ---
 
@@ -160,7 +160,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 
 | Item | Papel |
 |------|--------|
-| **7F.L1 + 7F.L2 + 7F.10–7F.14** | Implementação da **IA-0** no [BACKLOG F7F-Local](../../BACKLOG.md#f7f-local--pré-produção-ia-0-sem-oauth): camada de serviço + UI web localhost (principal) + exclusão de conta, senha, purge, métricas, relatórios read-only. |
+| **7F.L1 + 7F.L2 + 7F.10–7F.14** | Implementação da **IA-0** (F7F-Local): camada de serviço + UI web localhost (principal) + exclusão de conta, senha, purge, métricas, relatórios read-only. |
 | **7F.9** | CLI interno **secundário**, entregue após UI estabilizada; reutiliza a camada de 7F.L1 sem duplicar regra. |
 | **F7F-Local (IA-0)** | **Pode anteceder** F7A/B/C inteiros e **7F.1–7F.4**. UI só em **localhost** até haver auth staff. Ao expor na rede, obedecer prefixo `/api/internal/`, RBAC **7F.3** e **7F.4**. |
 | **7E.7** | Núcleo visual da **IA-2** (dashboard de negócio) — reaproveita o layout de 7F.13 com telemetria mais rica. |
@@ -203,5 +203,5 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 ## 8. Governança do documento
 
 - **Escopo macro** e fases: este arquivo.
-- **Tasks estimáveis:** [BACKLOG.md — F7F](../../BACKLOG.md#f7f--console-interno-operadores) — **F7F-Local (IA-0):** `7F.L1` camada de serviço, `7F.L2` UI web localhost, `7F.10`–`7F.14` business logic (exclusão, senha, purge, métricas, relatórios), `7F.9` CLI secundário. **F7F-Remote (IA-1…IA-4):** `7F.1`–`7F.8`.
+- **Tasks estimáveis** (códigos F7F históricos do BACKLOG pré-shim): **F7F-Local (IA-0):** `7F.L1` camada de serviço, `7F.L2` UI web localhost, `7F.10`–`7F.14` business logic (exclusão, senha, purge, métricas, relatórios), `7F.9` CLI secundário. **F7F-Remote (IA-1…IA-4):** `7F.1`–`7F.8`.
 - **Decisões técnicas** (auth staff, break-glass): [DECISIONS.md](../../DECISIONS.md) quando implementadas.
