@@ -10,6 +10,7 @@ módulos internos, para manter o pacote como fronteira do agregado.
 
 from backend.app.schemas.dto.goal.alocacao import (
     ALOCACAO_V2_CLASS_FIELDS,
+    ALOCACAO_V2_CLASSES,
     AlocacaoGoalComputeRequest,
     AlocacaoGoalComputeResponse,
     AlocacaoGoalDerived,
@@ -67,6 +68,7 @@ from backend.app.schemas.dto.goal.reserva_emergencia import (
 
 __all__ = [
     "ALOCACAO_V2_CLASS_FIELDS",
+    "ALOCACAO_V2_CLASSES",
     "AlocacaoGoalComputeRequest",
     "AlocacaoGoalComputeResponse",
     "AlocacaoGoalDerived",

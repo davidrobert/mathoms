@@ -3,13 +3,14 @@
 /**
  * /plano/alocacao — formulario de edicao da alocacao-alvo.
  *
- * 7 classes AUVP (v2, ADR-141) com % + soma validada.
- * Barra visual de proporcao + instrumentos preferidos.
+ * 7 classes AUVP (v2, ADR-141) agrupadas por família com subtotal + soma
+ * validada. Compartilha os componentes de distribuição e rebalanceamento
+ * com o wizard (ADR-141 §Emenda item 11).
  */
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Save, XCircle } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -20,13 +21,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { useCurrentWorkspace } from "@/lib/useCurrentWorkspace";
 import { usePermissions } from "@/lib/usePermissions";
@@ -41,13 +35,15 @@ import {
 } from "@/lib/api";
 import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
+import { AlocacaoDistributionFields } from "./wizard/_components/AlocacaoDistributionFields";
+import { RebalanceamentoModeSelector } from "./wizard/_components/RebalanceamentoModeSelector";
+import type { AlocacaoProgressState } from "./wizard/_components/AlocacaoProgress";
 import {
-  CLASS_META,
+  completeWithCaixa,
   PRESETS,
-  REBAL_OPTIONS,
   sumPcts,
+  type Pcts,
 } from "./wizard/_components/constants";
-import { AlocacaoBar } from "./wizard/_components/AlocacaoBar";
 
 const DEFAULT_INPUTS: AlocacaoGoalInputs = {
   ...PRESETS.Moderado,
@@ -66,9 +62,16 @@ export default function AlocacaoEditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Vermelho só ao tentar salvar com Σ≠100 (ADR-141 emenda item 11).
+  const [attemptedSave, setAttemptedSave] = useState(false);
 
   const soma = sumPcts(inputs);
   const somaValida = soma === 100;
+  const progressState: AlocacaoProgressState = somaValida
+    ? "ok"
+    : attemptedSave
+      ? "danger"
+      : "warning";
 
   const alocacaoDerived: AlocacaoGoalDerived = { soma_percentuais: soma };
 
@@ -96,6 +99,15 @@ export default function AlocacaoEditPage() {
     };
   }, [workspace?.id, router]);
 
+  function updateInputs(next: Partial<AlocacaoGoalInputs>) {
+    setInputs((prev) => ({ ...prev, ...next }));
+    setAttemptedSave(false);
+  }
+
+  function setPcts(next: Pcts) {
+    updateInputs(next);
+  }
+
   function setInstrumento(key: "renda_fixa" | "renda_variavel", value: string) {
     setInputs((prev) => ({
       ...prev,
@@ -105,6 +117,10 @@ export default function AlocacaoEditPage() {
 
   async function handleSave() {
     if (!workspace) return;
+    if (!somaValida) {
+      setAttemptedSave(true);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -140,8 +156,8 @@ export default function AlocacaoEditPage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-8">
       <PageHeader
-        title="Alocacao-alvo"
-        description="Distribuicao ideal por classe de ativo"
+        title="Alocação-alvo"
+        description="Distribuição ideal por classe de ativo"
         actions={
           <Button
             variant="ghost"
@@ -161,7 +177,7 @@ export default function AlocacaoEditPage() {
 
       {goal && (goal.created_by_name || goal.updated_at) && (
         <p className="mb-3 text-xs text-muted-foreground">
-          Ultima edicao
+          Última edição
           {goal.created_by_name ? ` por ${goal.created_by_name}` : ""}
           {goal.updated_at
             ? ` em ${new Date(goal.updated_at).toLocaleDateString("pt-BR")}`
@@ -181,57 +197,13 @@ export default function AlocacaoEditPage() {
 
       <Card>
         <CardContent className="space-y-6 py-6">
-          {/* Percentage inputs — 7 classes v2 */}
-          <div className="grid grid-cols-2 gap-4">
-            {CLASS_META.map(({ key, label }) => (
-              <div key={key}>
-                <Label htmlFor={key}>{label} (%)</Label>
-                <Input
-                  id={key}
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={inputs[key]}
-                  onChange={(e) =>
-                    setInputs({ ...inputs, [key]: Number(e.target.value) })
-                  }
-                  className="mt-2 font-mono tabular-nums"
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Sum indicator */}
-          <div className="flex items-center gap-2 text-sm">
-            {somaValida ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            ) : (
-              <XCircle className="h-4 w-4 text-destructive" />
-            )}
-            <span
-              className={somaValida ? "text-emerald-600" : "text-destructive"}
-            >
-              Total: <span className="font-mono tabular-nums">{soma}%</span>
-              {!somaValida && " — deve somar 100%"}
-            </span>
-          </div>
-
-          {/* Visual bar */}
-          <AlocacaoBar pcts={inputs} />
-
-          {/* Legend */}
-          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-            {CLASS_META.map(({ key, label, color }) => (
-              <span key={key} className="flex items-center gap-1">
-                <span
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                {label}
-              </span>
-            ))}
-          </div>
+          <AlocacaoDistributionFields
+            pcts={inputs}
+            onChange={setPcts}
+            soma={soma}
+            progressState={progressState}
+            onCompleteWithCaixa={() => updateInputs(completeWithCaixa(inputs))}
+          />
 
           <Separator />
 
@@ -249,7 +221,7 @@ export default function AlocacaoEditPage() {
           </div>
 
           <div>
-            <Label htmlFor="rv-inst">Instrumentos de renda variavel</Label>
+            <Label htmlFor="rv-inst">Instrumentos de renda variável</Label>
             <Input
               id="rv-inst"
               type="text"
@@ -261,34 +233,22 @@ export default function AlocacaoEditPage() {
           </div>
 
           <div>
-            <Label htmlFor="rebal">Rebalanceamento</Label>
-            <Select
-              value={inputs.rebalanceamento_modo}
-              onValueChange={(v) =>
-                setInputs({
-                  ...inputs,
-                  rebalanceamento_modo: v as RebalanceamentoModo,
-                })
-              }
-            >
-              <SelectTrigger id="rebal" className="mt-2 w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {REBAL_OPTIONS.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Rebalanceamento</Label>
+            <div className="mt-2">
+              <RebalanceamentoModeSelector
+                value={inputs.rebalanceamento_modo}
+                onChange={(v: RebalanceamentoModo) =>
+                  updateInputs({ rebalanceamento_modo: v })
+                }
+              />
+            </div>
           </div>
 
           <div>
-            <Label htmlFor="notes">Motivo da mudanca (opcional)</Label>
+            <Label htmlFor="notes">Motivo da mudança (opcional)</Label>
             <Textarea
               id="notes"
-              placeholder="Ex: revisao de perfil de risco"
+              placeholder="Ex: revisão de perfil de risco"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="mt-2"
@@ -304,12 +264,12 @@ export default function AlocacaoEditPage() {
           <div className="flex items-center justify-end gap-3">
             {!canWrite && (
               <span className="text-xs text-muted-foreground">
-                Voce esta acompanhando — edicao indisponivel.
+                Você está acompanhando — edição indisponível.
               </span>
             )}
             <Button
               onClick={handleSave}
-              disabled={saving || !somaValida || !canWrite}
+              disabled={saving || !canWrite}
               title={
                 !canWrite
                   ? "Apenas owner/coadministrador pode editar"
@@ -318,7 +278,7 @@ export default function AlocacaoEditPage() {
                     : undefined
               }
             >
-              {saving ? "Salvando..." : "Salvar nova versao"}
+              {saving ? "Salvando..." : "Salvar nova versão"}
               <Save className="ml-2 h-4 w-4" />
             </Button>
           </div>

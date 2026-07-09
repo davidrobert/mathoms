@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { RebalanceamentoModo } from "@/lib/api";
 
 import { AlocacaoSummary } from "./AlocacaoSummary";
-import { REBAL_OPTIONS, type Pcts } from "./constants";
+import { RebalanceamentoModeSelector } from "./RebalanceamentoModeSelector";
+import { type Pcts } from "./constants";
 
 interface Step3RebalanceProps {
   rebalanceamento: RebalanceamentoModo;
@@ -26,21 +26,15 @@ export function Step3Rebalance({
     <div>
       <h2 className="text-lg font-semibold">Rebalanceamento</h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Com qual frequencia voce pretende rebalancear a carteira?
+        Como você pretende reequilibrar a carteira quando ela sair do alvo?
+        Rebalancear é direcionar os próximos aportes — não vender.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {REBAL_OPTIONS.map(({ value, label }) => (
-          <Button
-            key={value}
-            variant={rebalanceamento === value ? "default" : "outline"}
-            size="sm"
-            onClick={() => onChangeRebalanceamento(value)}
-            type="button"
-          >
-            {label}
-          </Button>
-        ))}
+      <div className="mt-4">
+        <RebalanceamentoModeSelector
+          value={rebalanceamento}
+          onChange={onChangeRebalanceamento}
+        />
       </div>
 
       <Separator className="my-4" />
