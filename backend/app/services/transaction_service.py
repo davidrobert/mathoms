@@ -36,6 +36,28 @@ def _flatten_e4_payload(data: dict | None, tx_type: str) -> list[dict]:
     return transactions
 
 
+def _item_from_raw(tx: dict) -> TransactionItem:
+    """Linha E4 crua → ``TransactionItem`` sem ``row_id`` (atribuído no loader)."""
+    return TransactionItem(
+        data=tx.get("data", ""),
+        descricao=tx.get("descricao", ""),
+        valor=Decimal(str(tx.get("valor", 0))),
+        banco=tx.get("banco", ""),
+        categoria=tx.get("categoria", ""),
+        origem=tx.get("origem"),
+        tipo_conta=tx.get("tipo_conta"),
+        titular=tx.get("titular"),
+        moeda=tx.get("moeda"),
+        # ADR-282: bucket E4 carrega a direction de domínio que o ``abs``
+        # da despesa destrói no payload — ``credito`` p/ receita, ``debito``
+        # p/ despesa. Único sinal autoritativo de tipo no read-path.
+        tipo="credito" if tx.get("_tx_type") == "receita" else "debito",
+        transaction_hash=generate_transaction_hash(tx),
+        row_id="",
+        is_overridden=False,
+    )
+
+
 def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionItem]:
     _stage = resolve_stage_name("categorize_transactions")
     receitas_payload = read_latest_artifact(
@@ -52,29 +74,14 @@ def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionIt
     occurrence_counter: dict[str, int] = {}
     items: list[TransactionItem] = []
     for tx in all_raw:
-        tx_hash = generate_transaction_hash(tx)
-        idx = occurrence_counter.get(tx_hash, 0)
-        occurrence_counter[tx_hash] = idx + 1
-        items.append(
-            TransactionItem(
-                data=tx.get("data", ""),
-                descricao=tx.get("descricao", ""),
-                valor=Decimal(str(tx.get("valor", 0))),
-                banco=tx.get("banco", ""),
-                categoria=tx.get("categoria", ""),
-                origem=tx.get("origem"),
-                tipo_conta=tx.get("tipo_conta"),
-                titular=tx.get("titular"),
-                moeda=tx.get("moeda"),
-                # ADR-282: bucket E4 carrega a direction de domínio que o ``abs``
-                # da despesa destrói no payload — ``credito`` p/ receita, ``debito``
-                # p/ despesa. Único sinal autoritativo de tipo no read-path.
-                tipo="credito" if tx.get("_tx_type") == "receita" else "debito",
-                transaction_hash=tx_hash,
-                row_id=f"{tx_hash}:{idx}",
-                is_overridden=False,
-            )
-        )
+        item = _item_from_raw(tx)
+        # Pré-trabalho Fase E (ADR-282): o row_id opaco do FE deriva da identidade
+        # v2 — sobrevive ao drop de transaction_hash (v1), que segue no wire só
+        # p/ o match legado do dual-read até a M2.
+        row_key = identity_from_transaction_item(item).natural_key_hash
+        idx = occurrence_counter.get(row_key, 0)
+        occurrence_counter[row_key] = idx + 1
+        items.append(item.model_copy(update={"row_id": f"{row_key}:{idx}"}))
     return items
 
 
