@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-314 ADRs (ADR-001 a ADR-323) em [`docs/adr/`](../../adr/).
+315 ADRs (ADR-001 a ADR-324) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 287
-- **Proposto**: 24
+- **Proposto**: 25
 - **Roadmap**: 3
 
 ## Fundação
@@ -344,6 +344,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-282]] — Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) · phase A23 · pré-passo-2 B4
 - [[ADR-287]] — Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) · phase A25 · l2/l6B
 - [[ADR-293]] — Citação de parecer (E6→E5) como edge de lineage por chave natural · phase A27 · Onda 6 (A27.l1)
+
+## db
+
+### Proposto (1)
+
+- [[ADR-324]] — Poda de PropertyIdentity órfãs por supersessão reconciliada (soft-delete + re-aponte de override)
 
 ## docs
 
