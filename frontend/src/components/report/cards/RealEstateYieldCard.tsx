@@ -164,11 +164,11 @@ function RealEstateImoveisTable({ imoveis }: { imoveis: readonly RealEstateImove
         </caption>
         <thead className="text-[var(--surface-muted-foreground)]">
           <tr className="text-left">
-            <th className="py-1 pr-2 font-normal">Imóvel</th>
-            <th className="py-1 pr-2 text-right font-normal">Valor IRPF</th>
-            <th className="py-1 pr-2 text-right font-normal">Aluguel/mês</th>
-            <th className="py-1 pr-2 text-right font-normal">Cap líq.</th>
-            <th className="py-1 font-normal">Status</th>
+            <th scope="col" className="py-1 pr-2 font-normal">Imóvel</th>
+            <th scope="col" className="py-1 pr-2 text-right font-normal">Valor IRPF</th>
+            <th scope="col" className="py-1 pr-2 text-right font-normal">Aluguel/mês</th>
+            <th scope="col" className="py-1 pr-2 text-right font-normal">Cap líq.</th>
+            <th scope="col" className="py-1 font-normal">Status</th>
           </tr>
         </thead>
         <tbody>

@@ -98,12 +98,12 @@ export function OrcamentoProspectivoCard({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--surface-border)] text-left">
-                  <th className="pb-2 font-display font-semibold">Categoria</th>
-                  <th className="pb-2 text-right font-display font-semibold">
+                  <th scope="col" className="pb-2 font-display font-semibold">Categoria</th>
+                  <th scope="col" className="pb-2 text-right font-display font-semibold">
                     Teto/mês
                   </th>
-                  <th className="pb-2 text-right font-display font-semibold">%</th>
-                  <th className="pb-2 text-right font-display font-semibold text-[var(--surface-muted-foreground)]">
+                  <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
+                  <th scope="col" className="pb-2 text-right font-display font-semibold text-[var(--surface-muted-foreground)]">
                     Acum.
                   </th>
                 </tr>

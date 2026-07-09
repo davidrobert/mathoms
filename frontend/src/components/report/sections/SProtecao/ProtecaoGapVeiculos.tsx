@@ -40,11 +40,11 @@ export function ProtecaoGapVeiculos({ bens }: { bens: BemGapCobertura[] }) {
       <table className="mt-3 w-full text-style-body">
         <thead>
           <tr className="border-b border-surface-divider">
-            <th className="text-left">Veículo</th>
-            <th className="text-right">LMI</th>
-            <th className="text-right">FIPE</th>
-            <th className="text-right">Gap</th>
-            <th className="text-left">Sinal</th>
+            <th scope="col" className="text-left">Veículo</th>
+            <th scope="col" className="text-right">LMI</th>
+            <th scope="col" className="text-right">FIPE</th>
+            <th scope="col" className="text-right">Gap</th>
+            <th scope="col" className="text-left">Sinal</th>
           </tr>
         </thead>
         <tbody>

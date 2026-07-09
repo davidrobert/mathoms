@@ -61,11 +61,11 @@ export function EstrategiaAporteCard({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                <th className="pb-2 font-semibold">Destino</th>
-                <th className="pb-2 text-right font-semibold">Valor/mês</th>
-                <th className="pb-2 text-right font-semibold">%</th>
-                <th className="hidden pb-2 font-semibold sm:table-cell">Objetivo</th>
-                <th className="hidden pb-2 font-semibold sm:table-cell">Liquidez</th>
+                <th scope="col" className="pb-2 font-semibold">Destino</th>
+                <th scope="col" className="pb-2 text-right font-semibold">Valor/mês</th>
+                <th scope="col" className="pb-2 text-right font-semibold">%</th>
+                <th scope="col" className="hidden pb-2 font-semibold sm:table-cell">Objetivo</th>
+                <th scope="col" className="hidden pb-2 font-semibold sm:table-cell">Liquidez</th>
               </tr>
             </thead>
             <tbody>
@@ -153,8 +153,8 @@ export function EstrategiaAporteCard({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--surface-border)] text-left">
-                  <th className="pb-2 font-display font-semibold">Cenário</th>
-                  <th className="pb-2 text-right font-display font-semibold">Aporte/mês</th>
+                  <th scope="col" className="pb-2 font-display font-semibold">Cenário</th>
+                  <th scope="col" className="pb-2 text-right font-display font-semibold">Aporte/mês</th>
                 </tr>
               </thead>
               <tbody>

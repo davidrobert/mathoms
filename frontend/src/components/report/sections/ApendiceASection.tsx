@@ -64,8 +64,8 @@ function DefinitionTable({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                <th className="pb-2 font-semibold" style={{ width: keyWidth }}>{header}</th>
-                <th className="pb-2 font-semibold">Definição</th>
+                <th scope="col" className="pb-2 font-semibold" style={{ width: keyWidth }}>{header}</th>
+                <th scope="col" className="pb-2 font-semibold">Definição</th>
               </tr>
             </thead>
             <tbody>

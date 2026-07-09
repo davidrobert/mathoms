@@ -80,10 +80,10 @@ function PosicaoTable({ rows }: { rows: readonly Posicao3112Row[] }) {
         </caption>
         <thead className="text-[var(--surface-muted-foreground)]">
           <tr className="border-b border-[var(--surface-border)] text-left">
-            <th className="py-1 pr-2 font-display font-semibold">Instituição</th>
-            <th className="py-1 pr-2 font-display font-semibold">Moeda</th>
-            <th className="py-1 pr-2 text-right font-display font-semibold">Valor em 31/12</th>
-            <th className="py-1 font-display font-semibold">Fonte</th>
+            <th scope="col" className="py-1 pr-2 font-display font-semibold">Instituição</th>
+            <th scope="col" className="py-1 pr-2 font-display font-semibold">Moeda</th>
+            <th scope="col" className="py-1 pr-2 text-right font-display font-semibold">Valor em 31/12</th>
+            <th scope="col" className="py-1 font-display font-semibold">Fonte</th>
           </tr>
         </thead>
         <tbody>

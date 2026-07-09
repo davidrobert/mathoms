@@ -31,7 +31,11 @@ export function EquilibrioCerbasiCard({
             <span>Presente ({pctPresente}%)</span>
             <span>Futuro ({pctFuturo}%)</span>
           </div>
-          <div className="mt-1 flex h-4 overflow-hidden rounded-full">
+          <div
+            className="mt-1 flex h-4 overflow-hidden rounded-full"
+            role="img"
+            aria-label={`Distribuição do fluxo: ${pctPresente}% para o presente, ${pctFuturo}% para o futuro`}
+          >
             <div
               className="bg-[var(--brand-primary)] transition-[width]"
               style={{ width: `${pctPresente}%` }}

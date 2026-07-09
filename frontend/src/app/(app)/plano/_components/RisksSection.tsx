@@ -134,11 +134,11 @@ export function RisksSection({ workspaceId }: RisksSectionProps) {
         <table className="min-w-full divide-y divide-border text-sm">
           <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-3 py-2 text-left">Nome</th>
-              <th className="px-3 py-2 text-left">Probabilidade</th>
-              <th className="px-3 py-2 text-left">Impacto</th>
-              <th className="px-3 py-2 text-left">Status</th>
-              <th className="px-3 py-2 text-right">Ações</th>
+              <th scope="col" className="px-3 py-2 text-left">Nome</th>
+              <th scope="col" className="px-3 py-2 text-left">Probabilidade</th>
+              <th scope="col" className="px-3 py-2 text-left">Impacto</th>
+              <th scope="col" className="px-3 py-2 text-left">Status</th>
+              <th scope="col" className="px-3 py-2 text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border bg-background">

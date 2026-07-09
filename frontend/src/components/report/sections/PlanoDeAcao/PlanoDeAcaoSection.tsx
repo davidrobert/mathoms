@@ -100,13 +100,13 @@ function DecisionTable({ rows }: DecisionTableProps) {
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-xs uppercase text-[var(--surface-muted-foreground)]">
-            <th className="py-2 pr-4">Code</th>
-            <th className="py-2 pr-4">Título</th>
-            <th className="py-2 pr-4">Valor</th>
-            <th className="py-2 pr-4">Status</th>
-            <th className="py-2 pr-4">Supersede</th>
-            <th className="py-2 pr-4">Decidida</th>
-            <th className="py-2 pr-4">Executada</th>
+            <th scope="col" className="py-2 pr-4">Code</th>
+            <th scope="col" className="py-2 pr-4">Título</th>
+            <th scope="col" className="py-2 pr-4">Valor</th>
+            <th scope="col" className="py-2 pr-4">Status</th>
+            <th scope="col" className="py-2 pr-4">Supersede</th>
+            <th scope="col" className="py-2 pr-4">Decidida</th>
+            <th scope="col" className="py-2 pr-4">Executada</th>
           </tr>
         </thead>
         <tbody>
