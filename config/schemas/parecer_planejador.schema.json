@@ -224,7 +224,7 @@
               "path": {"type": ["string", "null"]},
               "outcome": {
                 "type": "string",
-                "enum": ["verified", "missing_path", "whitelist_miss", "resolve_null", "value_mismatch"]
+                "enum": ["verified", "missing_path", "whitelist_miss", "resolve_null", "value_mismatch", "pairing_mismatch", "number_in_prose"]
               }
             }
           }

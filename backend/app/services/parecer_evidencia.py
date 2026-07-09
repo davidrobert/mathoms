@@ -19,7 +19,9 @@ logger = logging.getLogger("mathoms.llm.parecer_planejador")
 # "2" (ADR-292): coerção de evidencia_path inválido → None.
 # "3" (ADR-296): contrato ancoras[{path,rotulo,valor_renderizado}]; value_mismatch
 # (transcrição de número) substituído por pairing_mismatch (rotulo ↔ root do path).
-EVIDENCIA_VERIFICATION_VERSION = "3"
+# "4" (ADR-304): number_in_prose vira violação hard per-item (KR1 A27 — enforcement,
+# não prompt); cache pré-enforcement pode conter R$ na prosa.
+EVIDENCIA_VERIFICATION_VERSION = "4"
 
 _EVIDENCIA_MODE_ENV = "MATHOMS_PARECER_EVIDENCIA_MODE"
 _VALID_MODES = ("warn", "strict")
@@ -44,7 +46,9 @@ _REAIS_RE = re.compile(
 
 # ADR-296: pairing_mismatch substitui value_mismatch (este zerado por construção —
 # prosa não tem R$). Ordem preservada p/ telemetria; value_mismatch fica no histórico.
-_LAYERS = ("missing_path", "whitelist_miss", "resolve_null", "pairing_mismatch")
+# ADR-304: number_in_prose é violação de pureza monetária da prosa (per-item, KR1) —
+# nem cobertura nem correção de citação; não entra em coverage/correctness_failed.
+_LAYERS = ("missing_path", "whitelist_miss", "resolve_null", "pairing_mismatch", "number_in_prose")
 # ADR-292/A26.l6: cobertura (item sem âncora verificável) ≠ correção (âncora que
 # resolve errado / rotulo incoerente). Mesma partição que o gate do eval.
 _COVERAGE_LAYER = "missing_path"
@@ -64,6 +68,22 @@ class MoneyToken:
     half_step_cents: int  # 0 = match exato; >0 = intervalo [cents-h, cents+h)
 
 
+@dataclass(frozen=True)
+class NumberInProseWarning:
+    """Prosa de item com valor monetário digitado (ADR-304) — PII-safe: só contagem."""
+
+    item_type: str
+    item_index: int
+    token_count: int
+
+    def format(self) -> str:
+        return (
+            f"valor monetário digitado na prosa de {self.item_type}[{self.item_index}] "
+            f"({self.token_count} token(s)) — esperado ancoras[].valor_renderizado "
+            f"(ADR-296/ADR-304)"
+        )
+
+
 @dataclass
 class EvidenciaVerification:
     """Agregado + detalhe por-path da verificação (telemetria F4)."""
@@ -78,6 +98,8 @@ class EvidenciaVerification:
     money_tokens_total: int = 0
     range_in_scalar_count: int = 0
     ancoras_total: int = 0
+    # ADR-304: sinal auditável por item ofensor (padrão ADR-097 D1).
+    number_in_prose_warnings: list[NumberInProseWarning] = field(default_factory=list)
 
     @property
     def coverage_failed(self) -> int:
@@ -143,9 +165,16 @@ def verify_evidencia(
     for item_type, index, prose_fields, ancoras in _iter_items(output):
         # ADR-296: prosa NÃO deve conter R$. money_tokens_total vira telemetria de
         # number_in_prose (deve ser 0); range_in_scalar idem.
-        result.money_tokens_total += len(_extract_money_tokens(prose_fields))
+        money_tokens = _extract_money_tokens(prose_fields)
+        result.money_tokens_total += len(money_tokens)
         result.range_in_scalar_count += _count_ranges(prose_fields)
         result.ancoras_total += len(ancoras)
+        if money_tokens:
+            # ADR-304: pureza monetária é violação per-item — flui pela mesma
+            # máquina strict da citação (drop vs needs_review, ADR-295).
+            _record_number_in_prose(
+                result, item_type=item_type, index=index, token_count=len(money_tokens)
+            )
         for ancora in ancoras:
             layer = _check_anchor(drill, ancora)
             _record(result, item_type=item_type, index=index, path=ancora.path, layer=layer)
@@ -201,6 +230,22 @@ def _record(
     )
 
 
+def _record_number_in_prose(
+    result: EvidenciaVerification, *, item_type: str, index: int, token_count: int
+) -> None:
+    """Violação de pureza monetária da prosa (ADR-304) — per-item, camadas separadas
+    dos contadores de âncora (``verified``/``failed`` seguem contando só citações)."""
+    warning = NumberInProseWarning(item_type=item_type, item_index=index, token_count=token_count)
+    result.number_in_prose_warnings.append(warning)
+    result.failures_by_layer["number_in_prose"] += 1
+    result.violations.append(f"{item_type}:{index}:number_in_prose")
+    result.entries.append(
+        {"item_type": item_type, "item_index": index, "path": None, "outcome": "number_in_prose"}
+    )
+    # NUNCA logar o valor — só contagem + item (PII).
+    logger.warning("parecer_number_in_prose_violation", extra={"detail": warning.format()})
+
+
 # ----------------------------------------------------------------------
 # Extração de tokens monetários da prosa
 # ----------------------------------------------------------------------
@@ -241,6 +286,7 @@ __all__ = [
     "EVIDENCIA_VERIFICATION_VERSION",
     "EvidenciaVerification",
     "MoneyToken",
+    "NumberInProseWarning",
     "log_evidencia_kpi",
     "resolve_evidencia_mode",
     "verify_evidencia",

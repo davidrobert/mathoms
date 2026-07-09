@@ -143,6 +143,80 @@ class TestStrictPerItemEnforcement:
         assert _risco_entries(store)[0]["outcome"] == "missing_path"
 
 
+def _run_prose(descricao: str, severidade: str = "Baixa", workspace_id: str = "ws-kr1"):
+    """Risco com âncora VÁLIDA e prosa custom — isola a violação number_in_prose."""
+    risco = _risco([_RESERVA], severidade).model_copy(update={"descricao": descricao})
+    canned = make_canned_output().model_copy(update={"riscos": [risco]})
+    return make_run_stage_with_mocks(make_workspace_e5(), canned, workspace_id=workspace_id)
+
+
+# -----------------------------------------------------------------------
+# KR1 A27 (ADR-304) — pureza monetária da prosa: enforcement na máquina ADR-295
+# -----------------------------------------------------------------------
+
+
+class TestNumberInProseEnforcement:
+    @pytest.fixture(autouse=True)
+    def _strict(self, monkeypatch):
+        monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "strict")
+
+    def test_reais_digitado_baixa_severidade_item_cai(self):
+        result, store = _run_prose("Reserva cobre fração pequena do essencial: R$ 12.345,67.")
+        assert result["success"] is True  # parecer publicado, item ofensor removido
+        agg = result["evidencia_verification"]
+        assert agg["items_dropped"] == 1
+        assert agg["failures_by_layer"]["number_in_prose"] == 1
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert artifact.get("riscos", []) == []
+
+    def test_valor_sem_prefixo_reais_tambem_cai(self):
+        """Detector da ADR-304 pega '720 mil reais' — mesma definição do eval KR1."""
+        result, _ = _run_prose("Renda tributável de 720 mil reais concentra o risco fiscal.")
+        assert result["evidencia_verification"]["items_dropped"] == 1
+
+    def test_severidade_alta_vira_needs_review_com_motivo_proprio(self):
+        result, _ = _run_prose("Descoberto de R$ 9.876,00 nas despesas.", severidade="Alta")
+        assert result["status"] == "needs_review"
+        assert result["reason"] == "valor monetário na prosa (severidade alta): risco:0"
+
+    def test_entry_number_in_prose_auditavel_no_artifact(self):
+        _, store = _run_prose("Aporte atual de R$ 2.000,00 mensais é insuficiente.")
+        outcomes = [e["outcome"] for e in _risco_entries(store)]
+        assert "number_in_prose" in outcomes
+
+    def test_prosa_limpa_com_ancora_verificada_publica_intacto(self):
+        result, store = _run_prose("Reserva cobre fração pequena das despesas essenciais.")
+        assert result["success"] is True
+        agg = result["evidencia_verification"]
+        assert agg["failures_by_layer"]["number_in_prose"] == 0
+        assert agg["items_dropped"] == 0
+        # valor_renderizado da âncora (render do pipeline, ADR-296) NÃO é prosa.
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert artifact["riscos"][0]["ancoras"][0]["valor_renderizado"].startswith("R$ ")
+
+    def test_percentuais_e_prazos_permitidos_na_prosa(self):
+        """ADR-304 R22: taxas/percentuais/múltiplos seguem permitidos."""
+        result, _ = _run_prose("Cobertura de 2,1 meses e 44,7% da renda, meta 25× até 2030.")
+        assert result["evidencia_verification"]["failures_by_layer"]["number_in_prose"] == 0
+
+    def test_warn_explicito_so_telemetria(self, monkeypatch):
+        monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "warn")
+        result, store = _run_prose("Gasto essencial de R$ 4.321,00 sem cobertura.")
+        assert result["success"] is True
+        agg = result["evidencia_verification"]
+        assert agg["failures_by_layer"]["number_in_prose"] == 1
+        assert agg["items_dropped"] == 0
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert len(artifact["riscos"]) == 1  # warn não remove
+
+    def test_warning_dataclass_format_pii_safe(self):
+        from backend.app.services.parecer_evidencia import NumberInProseWarning
+
+        msg = NumberInProseWarning(item_type="risco", item_index=2, token_count=3).format()
+        assert "risco[2]" in msg and "3 token(s)" in msg
+        assert "R$ " not in msg  # nunca o valor — só contagem (PII)
+
+
 # -----------------------------------------------------------------------
 # A26.l6 — KPI cobertura (missing_path) vs. correção (pairing_mismatch + …)
 # -----------------------------------------------------------------------
@@ -357,6 +431,12 @@ class TestJsonPathRegexParity:
 
 
 class TestCacheKeyBump:
+    def test_verification_version_bumped_para_adr304(self):
+        """ "4": number_in_prose virou hard — cache pré-enforcement pode ter R$ na prosa."""
+        from backend.app.services.parecer_evidencia import EVIDENCIA_VERIFICATION_VERSION
+
+        assert EVIDENCIA_VERIFICATION_VERSION == "4"
+
     def test_post_bump_key_differs_from_pre_f4_key(self):
         from backend.app.services.parecer_orchestrator import compute_cache_key
 
