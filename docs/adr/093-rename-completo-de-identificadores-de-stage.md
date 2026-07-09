@@ -6,7 +6,7 @@ status: Decidido
 phase: "F9 · sub-fases 9.0–9.6 entregues"
 date: "2026-04-19"
 relates_to: []
-supersedes: []
+supersedes: ["[[ADR-092]]"]
 superseded_by: []
 aliases: ["ADR 093"]
 tags:

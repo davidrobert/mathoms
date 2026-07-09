@@ -5,9 +5,9 @@ title: "Renomear scripts para nomes descritivos de domínio"
 status: Proposto
 phase: "execução na Fase 9 pós-Caminho B dos stages"
 date: "2026-04-19"
-relates_to: []
+relates_to: ["[[ADR-093]]"]
 supersedes: []
-superseded_by: []
+superseded_by: ["[[ADR-093]]"]
 aliases: ["ADR 092"]
 tags:
   - area/pipeline
@@ -19,6 +19,13 @@ size_lines: 42
 # ADR-092 — Renomear scripts para nomes descritivos de domínio
 
 **Status:** Proposto (execução na Fase 9 pós-Caminho B dos stages) • **Data:** 2026-04-19 • **Plano:** Fase 9.4
+
+> **⚠️ Superseded por [[ADR-093]] (F9.4, entregue 2026-07-06).** A tabela de
+> rename abaixo (convenção **agente-substantivo**, ex.: `transaction_reconciler.py`)
+> é **histórica e NÃO foi a adotada**. A F9.4 renomeou `scripts/e*.py` com convenção
+> **verbo-objeto** — ex. reais: `reconcile_transactions.py`, `analyze_finances.py`,
+> `categorize_transactions.py`, `route_documents.py`. Fonte de verdade dos paths:
+> `ls scripts/` + [[ADR-093]] §F9.4. Não use a tabela abaixo como referência de path.
 
 **Contexto:** Scripts em `scripts/` usam o padrão `eN_nome.py` (ex: `e3_reconcile.py`,
 `e5_analyze.py`). O número implica posição na fila — responsabilidade do

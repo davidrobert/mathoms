@@ -122,6 +122,48 @@ Para que nenhum achado se perca entre auditorias:
 > + POLISH em 51 arquivos (~25% com finding; concentrado em status-drift de plano
 > + F32 residual). Sprint bucket vazio (nenhuma sprint `current`).
 
+### Fase 3 — adr (314; foco de risco: 27 Proposto/Roadmap + ~15 Decidido do delta)
+
+> Julgamento: senior-cto (Proposto/status stale) + information-architect
+> (supersedure/emenda forma) + data-engineer (data/pipeline/schema) em paralelo.
+> Verify: 1/1 DOC-BLOCK com citação dupla. **Cobertura:** os 288 Decidido foram
+> julgados 100% pelo r6 (2026-07-03, 6 dias antes); r7 focou o **risco** —
+> Proposto/Roadmap 100% (decisão-shipada-sem-flip) + os ~15 Decidido do delta
+> (emendados/refatorados: 285/310/246/212/141/150/228/259/260/261/308/312/323).
+> Padrão dominante: fallout residual do ADR-285/F9.4 (paths) + Proposto shipado
+> sem flip (owner-gated).
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F36 — `ADR-092` (Proposto): tabela de rename propõe nomes agente-substantivo (`transaction_reconciler.py`…) que nunca existiram; F9.4 (ADR-093 Decidido) renomeou com convenção verbo-objeto (`reconcile_transactions.py`…). Agente que use a tabela erra nos 9 paths | DOC-BLOCK | procede | procede-fechado | #929 (supersedure bidirecional 092↔093 + banner histórico; flip 092→Decidido owner-gated) |
+| F37-F42 — DRIFT (6): ADR-212 (`db_artifact_store`→`storage/`); ADR-246 ×3 (`e15_consolidate`→`consolidate_baseline`, `e4_categorize`→`categorize_transactions`); ADR-260 (nota r7: camada 3 OTLP shipou A33.l7 #834); ADR-323 (nota r7: FallbackPipelineClient dark-launch na F2); ADR-308 (supersedure parcial de ADR-158 só-no-corpo → frontmatter bidirecional); ADR-261:85 (runbook proposto escrevia em `_archive/` proibido → `_scratch/`) | DOC-DRIFT | procede | procede-fechado | batch `vault-drift-batch-r7-f3` #928 (`--fix`, citação dupla) |
+| F43 — POLISH: ADR-259:40 (`relates_to` sem ADR-260); ADR-320:8 (`relates_to` sem ADR-322, 322→320 unidirecional); ADR-261:46 (citação de comentário stale, código reescrito ~72 linhas) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
+| F44 — flip `Proposto→Decidido` de ADR-092/260/323 (decisões-núcleo shipadas, notas de estado adicionadas) | DOC-DRIFT | procede | **procede-aberto** | **DECISÃO-OWNER:** flip formal vs. manter Proposto com nota de estado (precedente r6-F41 ADR-259/260). P2, owner. |
+
+> **Não-findings (verificados):** 095/096 (supersedure/nota OK), 141 (schema v2
+> existe), 221/264 (Proposto fiel — serviços/tabelas não criados), 285 (6 subpacotes
+> conferem), 310/312 (implementados, schema bate), 218 (comentário futuro, não impl),
+> 140/159/160 (Roadmap legítimo, gatilho externo), 005/058/174/228/250/251
+> (owner-gated: go-live/GHCR/R2 — não-acionável), 6 ADRs emendados com sinal completo.
+> **Falso-positivo evitado:** `size_lines` ausente em 14/17 é campo opcional
+> pré-existente (não drift do delta).
+>
+> Fase 3: síntese #929 (1 BLOCK), batch #928 (6 DRIFT). Taxa: 1 BLOCK + 6 DRIFT
+> + 3 POLISH + 1 owner-gated no foco de risco (~40 ADRs julgados a fundo; range
+> Decidido estável carregado do r6).
+
+> **r7 fechado.** Sweep one-shot `--scope all --full --fix` em 3 fases, 6 PRs
+> (#924/#926 F1 · #927 F2 · #928/#929 F3). Cobertura: reference 58/58 + plan
+> 33 + claude 12 + prompt 5 + root 1 (100%) + adr foco-de-risco (Proposto/Roadmap
+> 100% + delta; Decidido estável carregado do r6). **Total: 9 DOC-BLOCK
+> mergeados** (5 F1 + 3 F2 + 1 F3), 0 rebaixados no verify · **~32 DOC-DRIFT**
+> corrigidos com citação dupla · POLISH wontfix · **2 owner-gated** (arquivamento
+> de planos concluídos F35; flip Proposto→Decidido F44). Critério de aceite:
+> ≥1 BLOCK em `main` ✓ (9) · falso-positivo BLOCK 0/9 ✓ · zero finding recriando
+> gate ✓ · faseado <30min/pacote ✓. **Lição recorrente:** o F32 do r6 (fix
+> parcial alegado como total) e o SEC-03 do r2 confirmam — verificar sempre que
+> o fix aterrissou no artefato, não só que foi anunciado.
+
 ---
 
 ## r6 — `vault-2026-07-03-r6` (sweep one-shot `--scope all --full --fix`)
