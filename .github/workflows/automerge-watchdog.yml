@@ -36,13 +36,17 @@ jobs:
     timeout-minutes: 10
     # contents: write (kick via Git Data API) + pull-requests: write
     # (re-enable auto-merge) + issues: write (issue de stall) + actions:
-    # read (runs por commit). Trabalho real usa AUTOUPDATE_PAT quando
-    # disponível; estas permissions limitam o GITHUB_TOKEN de fallback.
+    # read (runs por commit) + checks/statuses: read (statusCheckRollup —
+    # sem eles o gh pr list falha e o run fica vermelho a cada schedule).
+    # Trabalho real usa AUTOUPDATE_PAT quando disponível; estas
+    # permissions limitam o GITHUB_TOKEN de fallback.
     permissions:
       contents: write
       pull-requests: write
       issues: write
       actions: read
+      checks: read
+      statuses: read
     env:
       GH_TOKEN: ${{ secrets.AUTOUPDATE_PAT || github.token }}
       AUTOMERGE_KICK: ${{ secrets.AUTOUPDATE_PAT != '' && '1' || '0' }}
