@@ -58,12 +58,6 @@
     widows: 3;
   }
 
-  /* ────── Charts — SVG prints natively ────── */
-  .recharts-wrapper {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
   /* Chart.js (canvas) print fallback: troca canvas → PNG snapshot. */
   [data-chart-canvas] > canvas {
     display: none !important;
