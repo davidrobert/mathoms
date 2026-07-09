@@ -50,15 +50,24 @@ class DolarizacaoGoalSection(TypedDict, total=False):
 
 
 class AlocacaoGoalSection(TypedDict, total=False):
-    """``alocacao_alvo`` — sub-dict do bundle (vem do Goal ALOCACAO_ALVO)."""
+    """``alocacao_alvo`` v2 (7 classes AUVP, ADR-141 §Emenda); ``derived`` montado em run-time pelo E5."""
 
+    rf_pos_pct: Optional[float]
+    rf_pre_pct: Optional[float]
+    rf_ipca_pct: Optional[float]
+    acoes_br_pct: Optional[float]
+    acoes_int_pct: Optional[float]
+    fiis_pct: Optional[float]
+    caixa_pct: Optional[float]
+    rebalanceamento_modo: str
+    instrumentos: dict[str, str]
+    converted_from: Optional[str]
+    # Rollup 4-bucket para narrativa legada (RF/RV/FIIs/Caixa) — compat A12.alocacao-v2.
     renda_fixa_pct: Optional[float]
     acoes_pct: Optional[float]
     imoveis_reits_pct: Optional[float]
     liquidez_usd_pct: Optional[float]
-    instrumentos_rf: str
-    instrumentos_rv: str
-    rebalanceamento: str
+    derived: dict[str, Any]
     _source: str
 
 

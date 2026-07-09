@@ -264,18 +264,58 @@ def _serialize_dolarizacao_goal(goal: Goal) -> dict[str, Any]:
     }
 
 
-def _serialize_alocacao_goal(goal: Goal) -> dict[str, Any]:
-    inputs = goal.params_json.get("inputs", {})
+def _alocacao_rollup_4bucket(v2: dict[str, Any]) -> dict[str, Optional[float]]:
+    """Rollup v2 (7 classes) → 4 buckets legados p/ narrativa (ADR-141 §Emenda item 11)."""
+
+    def _s(*keys: str) -> float:
+        return sum(float(v2.get(k) or 0.0) for k in keys)
+
     return {
-        "renda_fixa_pct": inputs.get("renda_fixa_pct"),
-        "acoes_pct": inputs.get("acoes_pct"),
-        "imoveis_reits_pct": inputs.get("imoveis_reits_pct"),
-        "liquidez_usd_pct": inputs.get("liquidez_usd_pct"),
-        "instrumentos_rf": inputs.get("instrumentos_rf", ""),
-        "instrumentos_rv": inputs.get("instrumentos_rv", ""),
-        "rebalanceamento": inputs.get("rebalanceamento", "anual"),
+        "renda_fixa_pct": _s("rf_pos_pct", "rf_pre_pct", "rf_ipca_pct"),
+        "acoes_pct": _s("acoes_br_pct", "acoes_int_pct"),
+        "imoveis_reits_pct": _s("fiis_pct"),
+        "liquidez_usd_pct": _s("caixa_pct"),
+    }
+
+
+_ALOCACAO_V2_KEYS = (
+    "rf_pos_pct",
+    "rf_pre_pct",
+    "rf_ipca_pct",
+    "acoes_br_pct",
+    "acoes_int_pct",
+    "fiis_pct",
+    "caixa_pct",
+)
+
+
+def _alocacao_bundle_payload(
+    v2: dict[str, Any], converted_from: Optional[str] = None
+) -> dict[str, Any]:
+    instrumentos = v2.get("instrumentos") or {}
+    modo = v2.get("rebalanceamento_modo", "por_aporte")
+    return {
+        **{k: v2.get(k) for k in _ALOCACAO_V2_KEYS},
+        "rebalanceamento_modo": modo,
+        "instrumentos": instrumentos,
+        "converted_from": converted_from,
+        **_alocacao_rollup_4bucket(v2),
+        "instrumentos_rf": instrumentos.get("renda_fixa", ""),
+        "instrumentos_rv": instrumentos.get("renda_variavel", ""),
+        "rebalanceamento": modo,
         "_source": "db:goals",
     }
+
+
+def _serialize_alocacao_goal(goal: Goal) -> dict[str, Any]:
+    from backend.app.schemas.dto.goal.alocacao_shape_conversion import (
+        convert_alocacao_inputs_to_v2,
+    )
+
+    v2, converted_from = convert_alocacao_inputs_to_v2(goal.params_json.get("inputs", {}))
+    if v2 is None:
+        return {"_source": "db:goals"}  # shape irrecuperável — card degrada p/ "sem alvo"
+    return _alocacao_bundle_payload(v2, converted_from)
 
 
 # ═══════════════════════════════════════════════════════════════════════
