@@ -1,8 +1,9 @@
-"""DTOs do goal type ``ALOCACAO_ALVO``.
+"""DTOs do goal type ``ALOCACAO_ALVO`` — shapes v1 (4 buckets) e v2 (7 classes AUVP).
 
-Alocação-alvo de ativos em 4 classes (renda fixa, ações, imóveis/REITs,
-liquidez USD). A soma dos 4 percentuais tem que fechar 100% (validador
-de domínio no Inputs).
+v1: soma dos 4 percentuais fecha 100% (validador de domínio no Inputs).
+v2 (ADR-141 §Emenda 2026-07-08): 7 classes canônicas AUVP + enum de
+rebalanceamento; soma dos 7 fecha 100%. Conversão v1/órfão→v2 vive em
+``alocacao_migration.py``.
 """
 
 from __future__ import annotations
@@ -12,6 +13,20 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
 from backend.app.schemas.dto.goal.base import GoalResponseBase
+
+RebalanceamentoModo = Literal[
+    "por_aporte", "anual", "semestral", "trimestral", "trigger_5pct", "trigger_10pct"
+]
+
+ALOCACAO_V2_CLASS_FIELDS: tuple[str, ...] = (
+    "rf_pos_pct",
+    "rf_pre_pct",
+    "rf_ipca_pct",
+    "acoes_br_pct",
+    "acoes_int_pct",
+    "fiis_pct",
+    "caixa_pct",
+)
 
 
 class AlocacaoGoalInputs(BaseModel):
@@ -46,6 +61,46 @@ class AlocacaoGoalDerived(BaseModel):
     soma_percentuais: float = Field(
         ...,
         description="Soma dos 4 percentuais (deve ser 100).",
+    )
+
+
+class AlocacaoGoalInputsV2(BaseModel):
+    """Inputs v2 — 7 classes AUVP (ADR-141). Soma das 7 fecha 100%."""
+
+    rf_pos_pct: float = Field(..., ge=0, le=100)
+    rf_pre_pct: float = Field(..., ge=0, le=100)
+    rf_ipca_pct: float = Field(..., ge=0, le=100)
+    acoes_br_pct: float = Field(..., ge=0, le=100)
+    acoes_int_pct: float = Field(..., ge=0, le=100)
+    fiis_pct: float = Field(..., ge=0, le=100)
+    caixa_pct: float = Field(..., ge=0, le=100)
+    rebalanceamento_modo: RebalanceamentoModo = Field(
+        "por_aporte",
+        description="Default AUVP: aporta na classe mais defasada, sem vender.",
+    )
+    instrumentos: Optional[dict[str, str]] = Field(
+        None,
+        description="Texto livre por classe — instrumentos preferenciais.",
+    )
+
+    @model_validator(mode="after")
+    def _validar_soma_100(self):
+        soma = sum(getattr(self, campo) for campo in ALOCACAO_V2_CLASS_FIELDS)
+        if abs(soma - 100.0) > 0.01:
+            raise ValueError(f"Percentuais das 7 classes devem somar 100% (atual: {soma:.2f}%).")
+        return self
+
+
+class AlocacaoGoalDerivedV2(BaseModel):
+    """Derived write-time do goal v2 — magro (ADR-141 emenda item 4).
+
+    O bloco rico de comparação atual-vs-alvo depende do run E5 e vive no
+    bundle do relatório, não na row do goal.
+    """
+
+    soma_percentuais: float = Field(
+        ...,
+        description="Soma dos 7 percentuais (deve ser 100).",
     )
 
 
