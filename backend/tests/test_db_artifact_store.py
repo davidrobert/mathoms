@@ -91,6 +91,29 @@ async def test_write_is_upsert(db: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_cross_session_rewrite_is_idempotent(db: AsyncSession):
+    """ADR-323: cross-session re-write is read-then-update (one row, no uq violation)."""
+    ws_id, run_id = await _seed_ws_and_run(db)
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as sa:  # Go executor commits, then dies (5xx)
+            store_a = _store_on_sync_conn(sa, workspace_id=ws_id, pipeline_run_id=run_id)
+            store_a.write("E3", "k", {"v": 1})
+            sa.commit()
+        with Session(sync_conn) as sb:  # backend's fresh per-stage session (InProcess)
+            store_b = _store_on_sync_conn(sb, workspace_id=ws_id, pipeline_run_id=run_id)
+            store_b.write("E3", "k", {"v": 2})
+            sb.commit()
+            n = sb.query(PipelineArtifact).filter_by(artifact_key="k").count()
+            return n, store_b.read("E3", "k")
+
+    n, content = await (await db.connection()).run_sync(_do)
+    assert (n, content) == (1, {"v": 2})
+
+
+@pytest.mark.asyncio
 async def test_list_keys_and_exists(db: AsyncSession):
     ws_id, run_id = await _seed_ws_and_run(db)
 
