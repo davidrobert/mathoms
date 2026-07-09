@@ -594,10 +594,10 @@
 | A11.report-publication | lane | shipped | A11 | Report publication — mês fechado imutável | `sprint/A11/lanes/A11-report-publication-month-closed.md` |
 | A11.w1 | lane | shipped | A11 | Hot patches + ADR backfill (8 tasks) | `sprint/A11/lanes/A11-w1-hot-patches-adr-backfill.md` |
 | A11.w2 | lane | shipped | A11 | Pipeline + DB hardening (6 tasks) | `sprint/A11/lanes/A11-w2-pipeline-db-hardening.md` |
-| A11.w3 | lane | open | A11 | Auth + LLM ops + Email (5 tasks) | `sprint/A11/lanes/A11-w3-auth-llm-ops-email.md` |
+| A11.w3 | lane | blocked | A11 | Auth + LLM ops + Email (5 tasks) | `sprint/A11/lanes/A11-w3-auth-llm-ops-email.md` |
 | A11.w4 | lane | blocked | A11 | Production readiness (5 tasks) | `sprint/A11/lanes/A11-w4-production-readiness.md` |
 | A11.w5 | lane | open | A11 | Frontend + Methodology (5 tasks, paralelo W6) | `sprint/A11/lanes/A11-w5-frontend-methodology.md` |
-| A11.w6 | lane | blocked | A11 | Tech debt cleanup (6 tasks) | `sprint/A11/lanes/A11-w6-tech-debt-cleanup.md` |
+| A11.w6 | lane | open | A11 | Tech debt cleanup (6 tasks) | `sprint/A11/lanes/A11-w6-tech-debt-cleanup.md` |
 | A12.alocacao-v2 | lane | open | A12 | Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven) | `sprint/A12/lanes/A12-alocacao-v2-migration.md` |
 | A12.bank-account-disambig | lane | shipped | A12 | Desambiguação conta bancária → membro (multi-membro mesmo banco) | `sprint/A12/lanes/A12-bank-account-disambig-multi-member.md` |
 | A12.cat-learning-loop | lane | in_progress | A12 | Categorization Learning Loop — promoção de override em regra | `sprint/A12/lanes/A12-cat-learning-loop-override-to-rule.md` |
@@ -667,7 +667,7 @@
 | A25.l7 | lane | shipped | A25 | Decisão do flip warn→strict do evidencia_path (requisito de done da A25) | `sprint/A25/lanes/A25-l7-evidencia-strict-decision.md` |
 | A26.l1 | lane | shipped | A26 | Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM | `sprint/A26/lanes/A26-l1-evidencia-prompt-catalogo.md` |
 | A26.l10 | lane | shipped | A26 | LGPD export — cobertura total das tabelas com dados pessoais (Art.18) | `sprint/A26/lanes/A26-l10-lgpd-export-cobertura.md` |
-| A26.l2 | lane | blocked | A26 | Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review) | `sprint/A26/lanes/A26-l2-evidencia-flip-strict.md` |
+| A26.l2 | lane | in_progress | A26 | Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review) | `sprint/A26/lanes/A26-l2-evidencia-flip-strict.md` |
 | A26.l3 | lane | shipped | A26 | M2-A — drop do shim v1 do dedup (compute_transaction_hash) | `sprint/A26/lanes/A26-l3-drop-dedup-v1-shim.md` |
 | A26.l4 | lane | in_progress | A26 | Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) | `sprint/A26/lanes/A26-l4-override-v2-on-instrumentacao.md` |
 | A26.l5 | lane | blocked | A26 | M2-B — drop destrutivo do estado legado de identidade do override (Fase E) | `sprint/A26/lanes/A26-l5-m2-override-drop.md` |

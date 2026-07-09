@@ -9,11 +9,15 @@ sprint_status: paused
 # Sprint A11 — Platform review execution (origem 2026-05-06)
 
 > **Status:** `paused` desde 2026-05-20 ([[ADR-234]]) — cedeu prioridade
-> para [[Sprint A15]] (FU-3 imóvel financiado, 2 bugs silenciosos em
-> produção). Wave 1 ✅ + Wave 2 ✅ entregues; Waves 3–6 ☐ + sub-lanes
-> paralelas (competitive-pierre Fase 1 ready, report-publication
-> ADR-187 Proposto) preservadas. Retomada: flip `paused → current`
-> quando A15 fechar.
+> para [[Sprint A15]] (fechada há semanas; o gatilho original de retomada
+> expirou). **Reconciliação 2026-07-08:** W1 ✅ + W2 ✅ + a maior parte de
+> W3/W4/W6 shipou via outras sprints (A20/A21/A24/A27/A32/A33) — ver
+> [PLAN Index](../../plan/PLATFORM_REVIEW/_README.md#index). Residual:
+> 5 itens **owner-gated** (W3-T02 Resend · W4-T01 off-site R2 · W4-T02
+> Coolify · W4-T03 Sentry · W4-T05 status page) + **W5** (pickup real,
+> escopo reduzido) + **W6-T01 residual**. Sub-lane report-publication ✅
+> shipped 2026-05-10 ([[ADR-187]] `Decidido`); competitive-pierre Fase 1
+> segue ready. Retomada/closure: decisão do owner.
 
 ## Resumo
 
@@ -62,7 +66,8 @@ próprio na ADR-228 com prazo atrelado ao go-live de `app.mathoms.ai`.
 # 5. Plano arquivado:
 git mv docs/plan/PLATFORM_REVIEW/_README.md docs/archive/PLATFORM_REVIEW_PLAN-YYYY-MM-DD.md
 # 6. Esta seção marcada ✅ entregue + entrada em docs/archive/README.md +
-#    `sprint_status: shipped` no frontmatter.
+#    `sprint_status: done` no frontmatter (vocabulário validado pelo
+#    build_doc_index é current/candidate/paused/done — não "shipped").
 #
 # NÃO entra na DoD (rastreado pela ADR-228):
 # - G1 Email Resend chegando em prod sem spam (W3-T02)

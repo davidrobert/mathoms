@@ -25,9 +25,17 @@ tags:
 - **Depende de:** W1 ✅ (parcial)
 - **Plano:** [PLAN §W5](../../../plan/PLATFORM_REVIEW/_README.md#wave-5--frontend--methodology-sprint-4-10-dias-dev)
 
-## Status (legado)
+## Status
 
-☑ in_progress
+**Pickup real — 5 tasks com escopo reduzido** (re-verificação factual
+2026-07-08, spike W5 pós-A33 — detalhe por task em
+[PLAN §Wave 5](../../../plan/PLATFORM_REVIEW/_README.md#wave-5--frontend--methodology-sprint-4-10-dias-dev)):
+
+- W5-T01 (a11y) ◐ parcial — resta `scope="col"` (22 arquivos c/ `<th>`), `role="progressbar"` + primitivo `<ProgressBar/>`, `prefers-reduced-motion` global; gate axe (critical+serious) já roda em @critical
+- W5-T02 (Recharts → Chart.js residual S1) ☐ válida — 2 charts (`PatrimonioDoughnutChart`, `WaterfallIfChart`); primitivos prontos; fechamento = emenda datada na [[ADR-139]]
+- W5-T03 (MonetaryValue migration) ☐ válida — 13 call-sites monetários com `toLocaleString` direto + helpers locais duplicados
+- W5-T04 (ADR-161 enrichment) ◐ parcial — sub-PR #5 ✅ via W1-T02; #2 obsoleto ([[ADR-239]]/[[ADR-240]]); #1/#3/#4 válidos (produtores E5 ausentes; regras dormentes)
+- W5-T05 (Goal IF v2) ◐ parcial — numerador `investivel_efetivo` + toggle `imoveis_no_if` ✅; resta `if_meta_liquida` + emissão v2 ([[ADR-140]] `Roadmap`)
 
 ## Sub-tracks ativos
 

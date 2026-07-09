@@ -64,4 +64,7 @@ Mergeia em `main` com:
 
 ## Status
 
-☐ ready — aguarda pickup
+✅ **shipped 2026-05-10** — todos os itens do gate entregues (migration
+`report_publications`, `is_month_closed()`, endpoints publish/unpublish/list,
+snapshot OpenAPI, doc de referência, banner UI); [[ADR-187]] `Decidido (A11)`.
+Changelog: [CHG-2026-05-10-FEAT-REPORT-PUBLICATION](../changelog/CHG-2026-05-10-FEAT-REPORT-PUBLICATION.md).

@@ -90,6 +90,30 @@ instrumentar a verificação.
 - **Resta:** janela de observação ≥1 sprint com uso real (dogfood do owner) —
   `v1_fallback == 0` com `v2_match >= 1` via query no `audit_log` (§4.9 A9.5/A9.6).
 
+## Diagnóstico 2026-07-08 — gate estava VERMELHO por órfão no índice (corrigido)
+
+- **Sintoma:** 9 snapshots consecutivos (2026-07-03 → 2026-07-08) com
+  `{v1_fallback: 4, v2_match: 0}` — o oposto do gate.
+- **Causa-raiz (reproduzida in-vitro no dado real):** nenhum dos 4 índices de
+  match filtrava `orphaned_at`. Os 7 overrides **quarentenados** (dogfood
+  ADR-282) continuavam no `by_legacy_hash`; 4 deles casavam por hash v1 com as
+  transações da learned rule ativa — contando `v1_fallback` e **sticky-bloqueando
+  a rule** (1 caso). Quarentena é terminal e INERTE ([[ADR-282]] §5); sem o
+  filtro, o drop da Fase E ([[A26.l5]]) removeria esse comportamento
+  silenciosamente — o gate fez o trabalho dele.
+- **Fix ([#878](https://github.com/davidrobert/mathoms/pull/878)):** filtro `orphaned_at IS NULL` nos 4 caminhos (learning loop preload,
+  apply engine, read-path `load_override_index`, rule preview manual index) +
+  4 testes de regressão (`backend/tests/test_override_orphan_quarantine_inert.py`).
+  Validação in-vitro pós-fix: índice 12→5, `{v1_fallback: 0}`, learned rule
+  aplica nas 4 txs (criando overrides rule-source ancorados em v2 → o run
+  seguinte produz `v2_match ≥ 1` e satisfaz "exercício real" organicamente).
+- **Consequência para o gate:** a janela de observação **reinicia no merge do
+  fix** — filtrar a query por `created_at >= <merge>`; os 9 snapshots antigos
+  são o registro do falso-vermelho, não contam para nenhum lado.
+- **Nota de contrato:** a key persistida em `audit_logs.details` é `divergence`
+  (código `OverrideMatchIndex.snapshot()`), não `divergence_count` — queries do
+  gate seguem o código (já refletido no runbook da Fase E, PR #873).
+
 ## Critério de aceite
 
 - `override_natural_key_v2_enabled = True` em DEFAULTS; `test_feature_flags` atualizado.

@@ -202,6 +202,18 @@ tráfego**: [[A26.l2]] (flip strict — falta ≥20 gerações reais p/ budget `
 dogfood do owner gera, e a A28 é a máquina desse tráfego (cada iteração re-gera o
 parecer E6 e exercita o override v2).
 
+**Atualização 2026-07-08 (preparação do fechamento A26→A27):** [[A26.l2]] — o flip
+strict **já está em `main`** desde 2026-07-03 (#746); medição real em curso sob
+strict: 6/20 gerações, `needs_review = 0` (query na lane). [[A26.l4]] — gate estava
+falso-vermelho (`v1_fallback=4`): overrides **quarentenados** seguiam casando via
+hash v1 nos índices de match (violando [[ADR-282]] §5); fix + 4 testes de regressão
+no PR #878; janela de observação reinicia no merge. [[A26.l5]] — runbook
+"Fase E" + drafts de migration/sentinela G3 mergeados (#873). KR1 da A27
+(`number_in_prose` como enforcement, [[ADR-304]]) implementado no PR #875.
+Checklist do flip final (A26→`done` + A27→`current`→`done`): medição l2 n≥20 ·
+janela l4 ≥1 sprint verde · decisão l5 (executar com go/no-go do owner OU cortar) ·
+PR editorial único com os 3 flips de frontmatter + regeneração de índices.
+
 - **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 ·
   **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) ·
   **Prompt:** [agent_prompts/orchestrator_a26_consolidacao.md](../agent_prompts/orchestrator_a26_consolidacao.md).
@@ -219,10 +231,10 @@ parecer E6 e exercita o override v2).
 
 ### A11 — Platform review execution (`paused` 2026-05-20)
 
-**Pausada com débito conhecido.** 6 ondas, 138 findings de revisão multi-agente. W1 ✅ + W2 ✅ entregues. **Reconciliação factual 2026-07-06:** boa parte de W3-W6 shipou via outras sprints — W3-T01/W3-T04 (#718), W4-T04 (#720), W6-T04 (#111), W6-T06 (#110 + ADR-150 `Decidido`); W4-T01/W4-T02/W6-T01/W6-T03 parciais. Residual real: W3-T02 + W4-T01/T02 restos (owner-gated: Resend, token Coolify, off-site R2), W4-T03/T05 (Sentry, status page), W5 (re-verificar no pickup), W6-T02 (destravado)/T05/T07. Sub-lanes paralelas (competitive-pierre, report-publication) preservadas.
+**Pausada com débito conhecido.** 6 ondas, 138 findings de revisão multi-agente. W1 ✅ + W2 ✅ entregues. **Reconciliação factual 2026-07-06/08:** boa parte de W3-W6 shipou via outras sprints — W3-T01/W3-T04 (#718), W3-T03 (#584), W3-T05 (A21.l6), W4-T04 (#720), W6-T02 (ADR-307, #796/#797), W6-T03 (F9.4), W6-T04 (#111), W6-T05 (A32.l5 + A33.l6 #844), W6-T06 (#110 + ADR-150 `Decidido`), W6-T07 (A33.l9 #855); W4-T01/W4-T02/W6-T01 parciais. Spike W5 concluído 2026-07-08 (escopo reduzido anotado por task). **Residual real: 5 itens owner-gated** (W3-T02 Resend · W4-T01 off-site R2 · W4-T02 token Coolify · W4-T03 Sentry · W4-T05 status page) **+ W5 residual + W6-T01 residual**. ADRs do DoD: 170/171/172/173/175 `Decidido`; ADR-174 segue `Proposto` (off-site R2 não construído).
 
 - **Trabalho residual:** [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (Index reconciliado por task, com PR/ADR por linha).
-- **Sub-lanes preservadas:** A11.competitive-pierre (Fase 1 ready), A11.report-publication (ADR-187 Proposto), A11.cat-overrides-ux ✅ entregue 2026-05-10.
+- **Sub-lanes:** A11.report-publication ✅ shipped 2026-05-10 ([[ADR-187]] `Decidido`), A11.cat-overrides-ux ✅ entregue 2026-05-10, A11.competitive-pierre (Fase 1 ready).
 - **DOC_REORG** ✅ entregue em 2026-05-07 (separado da pausa). Arquivado em [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md), ADR canônica [ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md).
 - **Retomada:** flip `paused → current` quando decidido retomar.
 

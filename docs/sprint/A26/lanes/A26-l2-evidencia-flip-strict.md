@@ -4,7 +4,7 @@ type: lane
 title: "Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review)"
 sprint: A26
 plan: PLAN-data-lineage
-status: blocked
+status: in_progress
 priority: P1
 branch_slug: evidencia-flip-strict
 adrs:
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a26
-  - status/blocked
+  - status/in-progress
   - priority/p1
   - area/data-lineage
   - area/llm
@@ -103,6 +103,26 @@ strict passa**. **Ressalva:** é holdout **sintético**; o critério de aceite e
 a medição sobre **≥20 gerações reais** (Regime B / tráfego de produção) antes de cravar o
 flip. Este baseline remove o bloqueio do lado-eval; resta a confirmação em tráfego real.
 Relatório completo (efêmero, gitignored): `_scratch/parecer_eval_report_20260701.json`.
+
+## Estado 2026-07-08 — flip JÁ MERGEADO; resta completar a medição real
+
+- **O flip `warn → strict` está em `main` desde 2026-07-03** — PR
+  [#746](https://github.com/davidrobert/mathoms/pull/746) (`0eb76675`). O corpo
+  do PR pedia segurar o merge até a medição real; o merge ocorreu antes de ela
+  fechar. **Não reverter:** o gate de segurança (zero citação incorreta
+  publicada) é satisfeito por construção ([[ADR-295]]) e o budget de UX medido
+  no tráfego real ATÉ AGORA está em **0% de `needs_review`** — o flip virou a
+  própria medição em curso.
+- **Medição real parcial (query em `llm_call_log`): 6/20 gerações sob strict
+  (2026-07-03 → 2026-07-08, prompt 2.1.0), `sum(needs_review) = 0`.** Muito
+  abaixo do teto de 15%; consistente com o baseline sintético (UB IC95 3,10%).
+- **Query de medição** (fechar a lane quando n ≥ 20):
+  `SELECT count(*), sum(needs_review) FROM llm_call_log WHERE
+  stage='review_finances_holistic' AND created_at >= '2026-07-03';`
+- **Critério de fechamento restante:** n ≥ 20 gerações reais com taxa ≤ 15% →
+  registrar snapshot aqui + flippar `status: shipped`. Se exceder 15%, o flip
+  NÃO reabre (segurança garantida); registrar e seguir — a [[A26.l9]] (já
+  entregue, #687) era a mitigação prevista.
 
 ## Owner
 

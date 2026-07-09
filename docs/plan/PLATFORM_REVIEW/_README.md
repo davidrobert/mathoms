@@ -63,7 +63,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 
 **Próximos pickups ready agora:**
 
-- **W6-T02** (MLOps hooks) — destravado: dep W3-T01 entregue (PR #718).
+- **W6-T01 residual** (sub-schemas E4 + wire ADR-090) — flip strict shipou via A24.l7 ([[ADR-284]]); split E4 + codegen + wire compliance seguem pickup (wire flip write-side exige ADR `Proposto` antes).
 - **W5** — frontend/metodologia; **re-verificação factual concluída 2026-07-08 (spike W5, pós-A33)**: W5-T01 parcial, W5-T02/T03 válidas como escritas, W5-T04 parcial (sub-PR #2 obsoleto — [[ADR-239]]/[[ADR-240]]), W5-T05 parcial (numerador `investivel_efetivo` ✅). Nenhuma task da onda zerou — W5 permanece pickup real, com escopo reduzido anotado por task (§Wave 5).
 - **Owner-gated (não são pickup de agente):** W3-T02 (Resend EU), W4-T02 residual (token Coolify = A20 L4), W4-T01 residual (off-site R2, ADR-228 G2/G3).
 
@@ -73,6 +73,18 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 > anotado; W6-T02 destravado. Statuses do Index abaixo refletem a evidência
 > (PR/ADR citados por linha). Residual real da sprint: 3 itens owner-gated +
 > W4-T03/W4-T05 (Sentry/status page) + W5 residual + W6-T02/T05/T07.
+>
+> **Reconciliação 2026-07-08 (sessão de closure A11)** — W6-T02 done 2026-07-06
+> ([[ADR-307]], PRs #796/#797); W6-T05 done pós-A11 (A32.l5 tombstone [[ADR-311]] +
+> A33.l6 retention+prune [PR #844](https://github.com/davidrobert/mathoms/pull/844);
+> residual fora da task: flip `prune_mode=delete` em PR próprio, após dry-run em
+> prod); W6-T07 done pós-A11 (A33.l9 [PR #855](https://github.com/davidrobert/mathoms/pull/855),
+> [[ADR-285]] `Decidido (A33.l9)`; Frente 2 boy-scout é convenção contínua).
+> Residual real da sprint: **5 itens owner-gated** (W3-T02 Resend · W4-T01
+> off-site R2 · W4-T02 Coolify · W4-T03 Sentry · W4-T05 status page) +
+> **W5 residual** (escopo reduzido por task, ver §Wave 5) + **W6-T01 residual**
+> (sub-schemas E4 + wire ADR-090). ADRs do DoD: 170/171/172/173/175 `Decidido`;
+> ADR-174 segue `Proposto` (off-site R2 não construído — flip não merecido).
 
 ---
 
@@ -113,9 +125,9 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W6-T02 | MLOps universal hooks (DE-001/004/008/019 — meta-ADR) | 6 | done (2026-07-06, [[ADR-307]] `Decidido` — [PR #796](https://github.com/davidrobert/mathoms/pull/796) + [PR #797](https://github.com/davidrobert/mathoms/pull/797); nightly de extração LLM = follow-up F2 da ADR) | data-engineer | P1 | L | W3-T01 ✅ |
 | W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | ✅ — F9.5 ✅ (#720); F9.6 código ✅ 2026-07-06 (writers E2/E2-llm/E6-parecer + labels de progresso cortados p/ descritivo; `ALLOWED_PREFIXES` sem `pipeline/stages/` e `scripts/`); F9.4 ✅ 2026-07-06 (rename `scripts/e*.py` → nomes descritivos, 9 módulos; `e2_extract.py` → `extract_bank_documents.py` cobre invoices+statements). Residual fora de escopo: limpeza eventual do `STAGE_RENAME_MAP` (compat reverso CLI/HTTP/DB permanece por design) | data-engineer | P2 | M | — |
 | W6-T04 | Doc hygiene (BACKLOG split + CHANGELOG retention + CLAUDE.md slim) | 6 | done ([PR #111](https://github.com/davidrobert/mathoms/pull/111) mergeado) | senior-cto | P2 | M | W1-T03 |
-| W6-T05 | DE-017 + DE-010 Pipeline artifacts retention + cascade-on-delete | 6 | scoped (track) | data-engineer | P2 | M | — |
+| W6-T05 | DE-017 + DE-010 Pipeline artifacts retention + cascade-on-delete | 6 | done (pós-A11 — A32.l5 tombstone [[ADR-311]] + A33.l6 retention+prune [PR #844](https://github.com/davidrobert/mathoms/pull/844); cascade FK descartado por design; residual fora da task: flip `prune_mode=delete`) | data-engineer | P2 | M | — |
 | W6-T06 | CTO-001 ADR-150 decisão (Caminho 1 / rejeitada / adiada) | 6 | done — Caminho 3 via [PR #110](https://github.com/davidrobert/mathoms/pull/110); superado por evento: [[ADR-150]] flip `Decidido` 2026-07-03 (#759, gatilho 4) e F1 entregue (#780→#792) | senior-cto | P1 | S decidir + L se Caminho 1 | — |
-| W6-T07 | CTO-015 `services/` taxonomy — split por natureza (ADR-285) + drenagem boy-scout p/ `application/` | 6 | blocked (gate: ≤1 PR ativo tocando `services/`) | senior-cto | P3 | M | ADR-285 |
+| W6-T07 | CTO-015 `services/` taxonomy — split por natureza (ADR-285) + drenagem boy-scout p/ `application/` | 6 | done (pós-A11 — A33.l9 [PR #855](https://github.com/davidrobert/mathoms/pull/855); [[ADR-285]] `Decidido (A33.l9)` + emenda 2026-07-08; Frente 2 boy-scout segue como convenção contínua) | senior-cto | P3 | M | ADR-285 |
 
 ---
 
@@ -661,9 +673,19 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 ### [W6-T05] Pipeline artifacts retention + cascade
 
+> **✅ done (pós-A11, reconciliado 2026-07-08).** Entregue por A32.l5
+> (invalidação destrutiva/tombstone, [[ADR-311]]) + A33.l6
+> ([PR #844](https://github.com/davidrobert/mathoms/pull/844)): coluna
+> `retention_until` + índice parcial, beat diário `fin.prune_pipeline_artifacts`
+> (modo `dry_run` default), services `artifact_prune`/`artifact_retention`.
+> Cascade FK Document→pipeline_artifacts foi **descartado por design** na
+> A33.l6 (lifecycle coberto pelo tombstone ADR-311; FK segue `SET NULL`).
+> Residual fora da task: flip `prune_mode=delete` em PR próprio, gated por
+> relatório dry-run lido em prod (delete efetivo é irreversível).
+
 - **deps:** —
 - **severity:** P2 · **effort:** M · **owner:** data-engineer
-- **status:** scoped — track histórico `agent_prompts/track_w6t05_artifacts_retention.md`. 5 PRs sequenciais (estrutura → backfill schema_version → write path → prune task → cascade test). Hotspot `db_artifact_store.write` colide com W2-T01 (Fernet) — coordenar.
+- **status:** done — ver blockquote acima. Track histórico `docs/sprint/W6/tracks/w6t05-artifacts-retention.md` (consumed). Escopo original: 5 PRs sequenciais (estrutura → backfill schema_version → write path → prune task → cascade test).
 - **related_findings:** DE-010, DE-011, DE-017, DE-022
 - **files_touched:** Alembic migration adicionando `retention_until` + cascade FK, `backend/app/tasks/prune_artifacts.py` (NOVO), `backend/app/services/document_pipeline_sync.py` (delete_by_document_id cascade)
 - **acceptance_criteria:** retention configurável (90d run-scoped, NULL workspace-scoped); celery beat task daily; FK ON DELETE CASCADE para Document → pipeline_artifacts; schema_version bumpado em writes.
@@ -677,6 +699,14 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **acceptance_criteria:** sessão CTO + senior-cto + sre-devops decide Caminho 1 / rejeitada / adiada; ADR-150 atualizada; se Caminho 1: lane A6h aberta com 3 PRs; se rejeitada: skeleton Go deletado.
 
 ### [W6-T07] CTO-015 `services/` taxonomy — split por natureza + drenagem boy-scout
+
+> **✅ done (pós-A11, reconciliado 2026-07-08).** Frente 1 entregue na A33.l9
+> ([PR #855](https://github.com/davidrobert/mathoms/pull/855) — subpacotes
+> `security/`, `storage/`, `documents/`, `internal_ops/`); [[ADR-285]]
+> `Decidido (A33.l9)` com emenda 2026-07-08 (`classification/` autônomo +
+> Frente 2 iniciada com `refresh_token_service` → `application/auth/`).
+> Frente 2 (drenagem boy-scout) segue como convenção contínua, sem gate de
+> fechamento — não é pendência de sprint.
 
 - **deps:** [[ADR-285]] (Proposto 2026-06-09). **Gate de pickup (Frente 1):** ≤1 PR
   ativo tocando `backend/app/services/` — em 2026-06 há 5+ PRs em voo; abrir o
@@ -863,4 +893,5 @@ Antes de pegar W2+, executar:
 - **2026-05-07** — orquestração Wave 5 + Wave 6 (8 tasks unblocked em paralelo). 6 tasks com track docs criados em `docs/agent_prompts/track_w{5,6}t*.md` (W5-T01/T03/T04/T05, W6-T01/T05). 2 tasks executadas: W6-T04 (PR #111 — subagent catalog auto-gen + branch-cleanup) e W6-T06 (PR #110 — ADR-150 → Roadmap, Caminho 3). 3 tasks permanecem bloqueadas (W5-T02 dep W5-T01, W6-T02 dep W3-T01, W6-T03 dep W2-T06).
 - **2026-06-09** — sync de status Wave 3 (stale desde w2_done ✅ 2026-05-20): W3-T01/T04 `blocked`→`ready`, W3-T02 `ready (owner-gated: Resend)`, **W3-T03 pickup → in_progress** (implementação ADR-170, co-design sre-devops: payload mantém `{sub, exp, tv}` com emenda na ADR, cookie path `/api/v1/auth`, teto absoluto 30d, grace window 60s anti-falso-positivo de reuse, CSRF via header custom). Registrado finding **CTO-015** (W6-T07): split de `services/` por natureza técnica (ADR-285 Proposto) + drenagem boy-scout para `application/`; recomendação "split por domínio" recusada.
 - **2026-06-09 (noite)** — **W3-T03 entregue** ([PR #584](https://github.com/davidrobert/mathoms/pull/584)): refresh tokens httpOnly com family revocation; [[ADR-170]] flippada `Decidido (Sprint A11.W3)` com emendas; supersedure bidirecional [[ADR-057]] ↔ [[ADR-170]]. Wave 3 restante: W3-T01/T04 `ready`, W3-T02 `ready (owner-gated)`.
+- **2026-07-08 (noite, sessão de closure A11)** — reconciliação W6 contra entregas pós-A11: **W6-T05 done** (A32.l5 tombstone [[ADR-311]] + A33.l6 retention+prune #844; cascade descartado por design; residual fora da task = flip `prune_mode=delete` em PR próprio) e **W6-T07 done** (A33.l9 #855; ADR-285 `Decidido`). Lanes A11 (w3/w4/w5/w6/report-publication), `lanes.md` e SPRINTS-active §A11 sincronizadas com o Index. Residual consolidado da sprint: 5 owner-gated (W3-T02, W4-T01/T02 restos, W4-T03, W4-T05) + W5 residual + W6-T01 residual. ADR-174 é a única do DoD ainda `Proposto` (flip não merecido sem off-site R2 real).
 - **2026-07-08** — **spike docs-only de re-verificação factual da Wave 5** (follow-up nomeado no fechamento da A33): W5-T01 **parcial** (aria-label de charts coberto p/ Chart.js via Onda v2.E; scope=col 0/13, progressbar, reduced-motion e gate axe moderate pendentes), W5-T02 **válida** (2 charts seguem Recharts; ADR-139 exige emenda, não flip), W5-T03 **válida** (18 call-sites do inventário intactos + novos fora dele), W5-T04 **parcial** (sub-PR #5 ✅ via W1-T02 #98; #2 obsoleto por [[ADR-239]]/[[ADR-240]]; #1/#3/#4 válidos), W5-T05 **parcial** (`investivel_efetivo` + `imoveis_no_if` per-workspace ✅ #321/#331/#332; `if_meta_liquida`/emissão v2 pendentes, ADR-140 `Roadmap`). Saldo: **0 tasks da onda fecharam integralmente** — W5 segue viva com escopo reduzido anotado por task; não arquivar.
