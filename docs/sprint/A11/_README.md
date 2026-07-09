@@ -3,27 +3,30 @@ id: MOC-sprint-a11
 type: moc
 title: Sprint A11 — Platform review execution
 aliases: ["A11", "Sprint A11"]
-sprint_status: paused
+sprint_status: done
 ---
 
 # Sprint A11 — Platform review execution (origem 2026-05-06)
 
-> **Status:** `paused` desde 2026-05-20 ([[ADR-234]]) — cedeu prioridade
-> para [[Sprint A15]] (fechada há semanas; o gatilho original de retomada
-> expirou). **Reconciliação 2026-07-08:** W1 ✅ + W2 ✅ + a maior parte de
-> W3/W4/W6 shipou via outras sprints (A20/A21/A24/A27/A32/A33) — ver
-> [PLAN Index](../../plan/PLATFORM_REVIEW/_README.md#index). Residual:
-> 5 itens **owner-gated** (W3-T02 Resend · W4-T01 off-site R2 · W4-T02
-> Coolify · W4-T03 Sentry · W4-T05 status page) + **W5** (pickup real,
-> escopo reduzido) + **W6-T01 residual**. Sub-lane report-publication ✅
-> shipped 2026-05-10 ([[ADR-187]] `Decidido`); competitive-pierre Fase 1
-> segue ready. Retomada/closure: decisão do owner.
+> **Status:** ✅ **`done` 2026-07-08** — fechada em modo **code-complete
+> modificado**, ratificado pela emenda datada de [[ADR-228]] (decisão do
+> owner na sessão de closure). W1 ✅ + W2 ✅ na sprint; a maior parte de
+> W3/W4/W6 shipou via outras sprints (A20/A21/A24/A27/A32/A33); a sessão
+> de closure entregou o residual executável da W5 (#882 a11y · #883
+> charts/ADR-139 · #884 monetário) + reconciliação docs (#876/#881).
+> **Residual transferido, não é débito desta sprint:** 5 itens
+> owner-gated (W3-T02 Resend · W4-T01 off-site R2 · W4-T02 Coolify ·
+> W4-T03 Sentry · W4-T05 status page) agora possuídos por
+> [[PLAN-launch-trust]] §F2 + gates G1–G5 da ADR-228; backlog candidates
+> com tracks preservados: W5-T04 #1/#3/#4, W5-T05 ([[ADR-140]]), W6-T01
+> residual, flip `prune_mode=delete`. [[ADR-174]] segue `Proposto` até o
+> off-site R2 existir.
 
 ## Resumo
 
 Executar os 32 itens consolidados da revisão de plataforma 2026-05-06 — fechar P0 latentes em main (tokens fantasma, regras dormentes, PII em pipeline_artifacts), destravar produção pública (F7B/F7E security + email + backup), e quitar 3 grandes débitos arquiteturais (schemas E5 strict, MLOps universal hooks, F9 cleanup).
 
-**Plano canônico:** [docs/plan/PLATFORM_REVIEW/_README.md](../../plan/PLATFORM_REVIEW/_README.md) — 32 tasks em 6 ondas, 138 findings consolidados, 6 trade-offs CTO registrados, coverage matrix por stage.
+**Plano canônico:** [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — 32 tasks em 6 ondas, 138 findings consolidados, 6 trade-offs CTO registrados, coverage matrix por stage.
 
 **ADRs propostos pela revisão:** ADR-170 (refresh tokens) · ADR-171 (Fernet rotation MultiFernet) · ADR-172 (stuck-runs heartbeat) · ADR-173 (LLM budget hard-stop + LLMCallLog) · ADR-174 (off-site backup R2) · ADR-175 (prompt injection defense) — todos `Proposto` ([entregue em W1-T06](https://github.com/davidrobert/mathoms/pull/92)).
 
@@ -33,7 +36,7 @@ Executar os 32 itens consolidados da revisão de plataforma 2026-05-06 — fecha
 
 ## Por que esta sprint existe
 
-A revisão multi-agente 2026-05-06 ([PR #92](https://github.com/davidrobert/mathoms/pull/92)) levantou 138 findings que são complementares à Sprint A10 (`goals.json` cutover) — A10 fecha 1 frente específica, A11 ataca o resto da plataforma (security pré-prod, observabilidade, schema hardening, frontend a11y, metodologia financeira). Sem entrada índice no BACKLOG, agente futuro descobriria o trabalho só por arqueologia em `docs/plan/PLATFORM_REVIEW/_README.md`.
+A revisão multi-agente 2026-05-06 ([PR #92](https://github.com/davidrobert/mathoms/pull/92)) levantou 138 findings que são complementares à Sprint A10 (`goals.json` cutover) — A10 fecha 1 frente específica, A11 ataca o resto da plataforma (security pré-prod, observabilidade, schema hardening, frontend a11y, metodologia financeira). Sem entrada índice no BACKLOG, agente futuro descobriria o trabalho só por arqueologia em `docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md`.
 
 **ADR-077 checkbox** (rules-as-code completude) será fechado por Sprint A10, não A11. **A11 destrava após A10 fechar?** Não — sprints são paralelas, owners distintos, coordenação via hotspots compartilhados (DECISIONS.md, CHANGELOG.md, BACKLOG.md, Alembic migrations).
 
@@ -48,6 +51,13 @@ Mapa de dependências em [waves.md](waves.md) — 6 waves: W1 Hot patches (✅) 
 **Esforço total estimado:** ~56 dias trabalho ativo. Wall-clock ~8-10 sprints com 2-3 agentes paralelos por wave.
 
 ## Definition of Done
+
+> ✅ **Cumprida em 2026-07-08** conforme emenda datada da [[ADR-228]]
+> (modo code-complete modificado): tasks em `main` **ou explicitamente
+> transferidas** para [[PLAN-launch-trust]] §F2; ADRs 170/171/172/173/175
+> `Decidido` (ADR-174 flippa com o off-site R2, fora da sprint); coverage
+> gaps adiados por emenda para a revisão Q3 2026; plano arquivado em
+> `docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md`; `sprint_status: done`.
 
 Closure em modo **code-complete** ratificado por [[ADR-228]] (Proposto).
 Drills operacionais (G1-G5) ficam fora da DoD da sprint e seguem rastreio
@@ -64,7 +74,7 @@ próprio na ADR-228 com prazo atrelado ao go-live de `app.mathoms.ai`.
 # 4. Demais lanes A11 (cat-overrides-ux ✅, report-publication ✅,
 #    planner-review atos pertinentes) em `main`.
 # 5. Plano arquivado:
-git mv docs/plan/PLATFORM_REVIEW/_README.md docs/archive/PLATFORM_REVIEW_PLAN-YYYY-MM-DD.md
+git mv docs/plan/PLATFORM_REVIEW/_README.md docs/archive/PLATFORM_REVIEW_PLAN-YYYY-MM-DD.md  # executado 2026-07-08
 # 6. Esta seção marcada ✅ entregue + entrada em docs/archive/README.md +
 #    `sprint_status: done` no frontmatter (vocabulário validado pelo
 #    build_doc_index é current/candidate/paused/done — não "shipped").
@@ -80,6 +90,6 @@ git mv docs/plan/PLATFORM_REVIEW/_README.md docs/archive/PLATFORM_REVIEW_PLAN-YY
 ## Coordenação multi-agente A11
 
 - **Pickup checks idênticos** ao Sprint A6/A7/A10. Branches usam prefix `agent/platform-review-w<N>-t<NN>/<timestamp>` (ex.: `agent/platform-review-w2-t01/20260510-0930`).
-- **Hotspot principal:** [docs/plan/PLATFORM_REVIEW/_README.md](../../plan/PLATFORM_REVIEW/_README.md) — quando wave fecha, atualizar `frontmatter.ready_tasks` + status na tabela de cada wave + adicionar checkbox ✅ na seção da wave. Manter NEXT UP sincronizado.
+- **Hotspot principal:** [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — quando wave fecha, atualizar `frontmatter.ready_tasks` + status na tabela de cada wave + adicionar checkbox ✅ na seção da wave. Manter NEXT UP sincronizado.
 - **CTO supervision** segue padrão A7/A10 (4 gates). Wave boundary review obrigatório antes de destravar wave seguinte.
-- **Trade-offs registrados:** se discordar de uma decisão CTO em [§Trade-offs registrados do PLAN](../../plan/PLATFORM_REVIEW/_README.md#trade-offs-registrados-decisões-cto), abrir issue antes de implementar conflitando.
+- **Trade-offs registrados:** se discordar de uma decisão CTO em [§Trade-offs registrados do PLAN](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md#trade-offs-registrados-decisões-cto), abrir issue antes de implementar conflitando.

@@ -207,7 +207,7 @@ Se futuramente Snyk / Aikido / outro SaaS for adotado:
 
 - [[ADR-230]] — decisão canônica.
 - [[ADR-228]] — pattern de "failure mode é normal e esperado" para gates operacionais.
-- [`docs/plan/PLATFORM_REVIEW/_README.md`](../../plan/PLATFORM_REVIEW/_README.md) §W2-T03 — task origem.
+- [`docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md`](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) §W2-T03 — task origem.
 - [`.github/workflows/security.yml`](../../../.github/workflows/security.yml) — workflow.
 - [`.gitleaks.toml`](../../../.gitleaks.toml) — allowlist.
 - [`.pre-commit-config.yaml`](../../../.pre-commit-config.yaml) — hook gitleaks local.

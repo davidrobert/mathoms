@@ -24,7 +24,7 @@ tags:
 
 > **Lane:** S9-Expansion (escopada à onda W5 — Frontend + Methodology de [Sprint A11](../_README.md))
 > **ADR canônica:** [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9)
-> **Plano canônico:** [docs/plan/PLATFORM_REVIEW/_README.md](../../../plan/PLATFORM_REVIEW/_README.md) §W5
+> **Plano canônico:** [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) §W5
 > **Branch prefix:** `agent/s9-riscos-<sub-task>/<timestamp>` (ex.: `agent/s9-riscos-t01-hotfix/20260512-0900`)
 > **Depende de:** ADR-192 publicada e linkada em ADR-178 (✅ entregue junto deste track)
 > **Bloqueia:** próxima iteração do plano [REPORT_PREMIUM](../../../plan/REPORT_PREMIUM/_README.md) §S9 (paridade visual + densidade equivalente a S10)
@@ -291,6 +291,6 @@ python3 dev/codegen_report_layout.py                                            
 
 - ADR canônica: [[ADR-192]] · [docs/adr/192-protection-aggregate-protectionbundle-secao-9.md](../../../adr/192-protection-aggregate-protectionbundle-secao-9.md)
 - ADRs relacionadas (consumo): [[ADR-076]] (codegen layout) · [[ADR-090]] (Money decimal) · [[ADR-097]] (services ISP) · [[ADR-101]] (DDD/SOLID) · [[ADR-109]] (auth/vault) · [[ADR-110]] (logging estruturado) · [[ADR-111]] (stateless) · [[ADR-129]] (renderer React único) · [[ADR-134]] (ConfigStore) · [[ADR-143]] (rules-as-code) · [[ADR-178]] (Risk aggregate) · [[ADR-180]] (GoalsBundle)
-- Plano canônico: [PLAN-platform-review §W5](../../../plan/PLATFORM_REVIEW/_README.md)
+- Plano canônico: [PLAN-platform-review §W5](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)
 - Sprint MOC: [docs/sprint/A11/_README.md](../_README.md)
 - Revisão multi-agente origem: 2026-05-11 (`product-designer` + `financial-planner` + `senior-cto`)

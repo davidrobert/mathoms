@@ -191,3 +191,20 @@ humano PASS por decisão do owner (2026-07-02, audit-vault r4; confirmado
 `backend/app/services/categorization_learning_loop.py` (telemetria
 `mathoms.categorization.*`) + [[A12.cat-learning-loop]] (lane histórica).
 V2 (P5 inbox + P6 detector offline) aguarda sinais de tração.
+
+## PLATFORM_REVIEW_PLAN-2026-07-08.md
+
+Plano canônico da Sprint A11 (origem 2026-05-06): 138 findings de revisão
+multi-agente consolidados em 32 tasks / 6 waves (segurança, dados,
+produção, frontend, metodologia). W1+W2 na sprint; grande parte de
+W3/W4/W6 shipou via A20/A21/A24/A27/A32/A33; W5-T01/T02/T03 entregues na
+sessão de closure (#882/#883/#884). ADRs 170–175 (174 segue `Proposto`
+até o off-site R2) + ADR-228 (gates G1–G5).
+
+**Arquivado em:** 2026-07-08 (Sprint A11 `done` em modo code-complete
+modificado — emenda datada de [[ADR-228]], decisão do owner).
+**Substituído por:** [[PLAN-launch-trust]] §F2 (residual owner-gated:
+Resend, off-site R2, Coolify, Sentry, status page) + tracks preservados
+(`docs/sprint/W5/tracks/w5t05-goal-if-v2.md`,
+`docs/sprint/W6/tracks/w6t01-schema-hardening.md`) para os backlog
+candidates W5-T04/W5-T05/W6-T01.

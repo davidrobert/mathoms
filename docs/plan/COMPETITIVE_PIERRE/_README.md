@@ -430,7 +430,7 @@ Próxima revisão prevista: ao fechamento do dossiê da Fase 1 (estimado até 20
 ### Internas
 
 - [Análise CEO 2026-05-08 (origem deste plano)](../../sprint/A11/tracks/competitor-pierre-poc.md) — track Fase 1
-- [PLATFORM_REVIEW](../PLATFORM_REVIEW/_README.md) — sprint A11, ADR-173 LLM budget hard-stop é dependência da Fase 3
+- [PLATFORM_REVIEW](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — sprint A11, ADR-173 LLM budget hard-stop é dependência da Fase 3
 - [CLAUDE.md §"Política operacional — ADR Proposto antes de PR P0/P1"](../../../CLAUDE.md) — protocolo de ADR Proposto
 - [docs/reference/ARCHITECTURE.md](../../reference/ARCHITECTURE.md) — domain glossary, stages, layers
 - [ADR-090 Decimal Money](../../adr/090-decimal-money.md) — invariante de moeda

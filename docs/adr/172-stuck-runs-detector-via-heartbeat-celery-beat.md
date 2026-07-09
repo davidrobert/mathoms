@@ -57,4 +57,4 @@ size_lines: 51
 - Vocabulário aberto de `failure_reason` em [backend/app/services/pipeline_failure_reasons.py](../../backend/app/services/pipeline/pipeline_failure_reasons.py) — começa com `heartbeat_timeout`, sem ENUM SQL.
 - Log estruturado `mathoms.pipeline.stuck_run_detected` (via `MathomsJsonFormatter`).
 
-**Referências:** [plan/PLATFORM_REVIEW/_README.md §W2-T04](../plan/PLATFORM_REVIEW/_README.md), finding SR-007.
+**Referências:** [archive/PLATFORM_REVIEW_PLAN-2026-07-08.md §W2-T04](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md), finding SR-007.

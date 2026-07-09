@@ -27,7 +27,7 @@ tags:
 # A20.L4 — GHCR push + tagging strategy
 
 > **Onda B** em [[MOC-sprint-a20]] (paralela a [[A20.l1]], [[A20.l7]],
-> [[A20.l8]]). **Destrava W4-T02** do [PLATFORM_REVIEW](../../../plan/PLATFORM_REVIEW/_README.md) (`blocked`).
+> [[A20.l8]]). **Destrava W4-T02** do [PLATFORM_REVIEW](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) (`blocked`).
 > Resolve **P0.2**.
 
 ## Resumo
@@ -177,7 +177,7 @@ deploy.
 
 - [ ] PR mergeado em `main` com CI verde.
 - [ ] [[ADR-250]] promovida `Proposto → Decidido (A20.L4)`.
-- [ ] W4-T02 do [PLATFORM_REVIEW](../../../plan/PLATFORM_REVIEW/_README.md) flippado `blocked → shipped`.
+- [ ] W4-T02 do [PLATFORM_REVIEW](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) flippado `blocked → shipped`.
 - [ ] Runbook `coolify_ghcr_deploy.md` em `docs/reference/runbooks/`.
 - [ ] Staging deployed via GHCR pull (não build local).
 - [ ] Prod deployed via GHCR pull pelo menos 1× sem rollback.

@@ -45,7 +45,7 @@ julho era sistemático):
    [[A17.l3]] P3-P5 (financeiro PF + Wise/PTAX) e [[A17.l4]]
    (**só a integração com S3** — schema/prompt/classifier já existem).
    Fechar as duas flipa A17 → `done`.
-3. **[[PLAN-platform-review]]**: W6-T05 (retenção de artifacts, track
+3. **[PLAN-platform-review](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)**: W6-T05 (retenção de artifacts, track
    `scoped`) e W6-T07 (taxonomy de services, [[ADR-285]], gate de
    entrada explícito).
 
@@ -125,7 +125,7 @@ contra o KR1.
 - **W6-T03 (stage rename)** — já shipou (reconciliação 2026-07-06).
 - **W2 do [[PLAN-llm-prompts-hardening]]** — já shipou (A20.l12/l13);
   ver nota do corte da l3 acima.
-- **Re-verificação factual da Wave 5 do [[PLAN-platform-review]]** —
+- **Re-verificação factual da Wave 5 do [PLAN-platform-review](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)** —
   spike docs-only barato, fica como follow-up de fechamento da sprint
   (não é lane; cabe no PR de close).
 

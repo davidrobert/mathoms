@@ -12,8 +12,7 @@ aliases: ["PLANS-active", "plans-active"]
 
 | Plano | Por que importa agora |
 |---|---|
-| [`PLAN-launch-trust`](../plan/LAUNCH_TRUST/_README.md) | Três frentes launch-blocking: confiabilidade do número (F1), produção (F2→platform-review), Parecer defensável (F3→planner-review). |
-| [`PLAN-platform-review`](../plan/PLATFORM_REVIEW/_README.md) | Revisão A11: segurança, dados e produção. |
+| [`PLAN-launch-trust`](../plan/LAUNCH_TRUST/_README.md) | Três frentes launch-blocking: confiabilidade do número (F1), produção (F2 — **OWNED** desde o closure da A11, absorveu o residual owner-gated do platform-review), Parecer defensável (F3→planner-review). |
 | [`PLAN-report-premium`](../plan/REPORT_PREMIUM/_README.md) | Superfície principal de produto. |
 | [`PLAN-llm-prompts-hardening`](../plan/LLM_PROMPTS_HARDENING/_README.md) | LGPD/ADR-090/telemetria nos 9 prompts LLM — A17/A18/A20. |
 | [`PLAN-data-lineage`](../plan/DATA_LINEAGE/_README.md) | Lineage fim-a-fim (forward+reverso) legível por LLM + fonte plugável (`SourceAdapter`/`SourceRef`) + extração limpa. Gate F0 abre 4 ADR (278-281) + emenda ADR-146; nenhuma lane abre antes de B1–B8. **Sprints A23–A27; corrente A26** (Ondas 0–5 shipped). |
@@ -29,6 +28,7 @@ aliases: ["PLANS-active", "plans-active"]
 
 ## Encerrados
 
+- [`PLATFORM_REVIEW_PLAN-2026-07-08.md`](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — ✅ `done` 2026-07-08 (Sprint A11 fechada em modo code-complete modificado, emenda [[ADR-228]]; residual owner-gated transferido p/ [[PLAN-launch-trust]] §F2).
 - [`PLAN-cenarios-estresse`](../plan/CENARIOS_ESTRESSE/_README.md) — ✅ `done` 2026-06-29 (modo USA removido, [[ADR-168]]); mantido in-place (não arquivado — `id` linkado por lane A8-4).
 - [`PRODUCT_PLAN-2026-04-15.md`](../archive/PRODUCT_PLAN-2026-04-15.md).
 - [`CONFIG_CUTOVER_PLAN-2026-04-27.md`](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).

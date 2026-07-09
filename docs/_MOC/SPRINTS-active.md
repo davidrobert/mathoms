@@ -89,6 +89,28 @@ positivo); triagem KR3 do owner aprovou os cards; ressalva rico
 (mesma conta, gap genuíno suprimido pela chave sem número) virou
 issue #860. Custo LLM do gate ~US$ 2,6 (julho US$ 14,20/20, ADR-173).
 
+### A11 — Platform review execution (`done` 2026-07-08)
+
+**Fechada em modo code-complete modificado** (emenda datada de [[ADR-228]],
+decisão do owner na sessão de closure). 6 ondas, 138 findings, 32 tasks.
+W1 ✅ + W2 ✅ na sprint; boa parte de W3/W4/W6 shipou via outras sprints —
+W3-T01/W3-T04 (#718), W3-T03 (#584), W3-T05 (A21.l6), W4-T04 (#720),
+W6-T02 (ADR-307), W6-T03 (F9.4), W6-T04 (#111), W6-T05 (A32.l5 + A33.l6
+#844), W6-T06 (ADR-150), W6-T07 (A33.l9 #855). A sessão de closure
+entregou o residual executável da W5 — **W5-T01** a11y (#882), **W5-T02**
+charts + emenda ADR-139 (#883), **W5-T03** monetário (#884) — e a
+reconciliação docs (#876/#881). **Residual transferido (não é débito da
+A11):** 5 itens owner-gated (W3-T02 Resend · W4-T01 off-site R2 · W4-T02
+Coolify · W4-T03 Sentry · W4-T05 status page) agora possuídos por
+[[PLAN-launch-trust]] §F2 + gates G1–G5 da ADR-228; backlog candidates
+com tracks preservados: W5-T04 #1/#3/#4, W5-T05 ([[ADR-140]]), W6-T01
+residual, flip `prune_mode=delete`. [[ADR-174]] segue `Proposto` até o
+off-site R2 existir.
+
+- **Plano:** arquivado em [PLATFORM_REVIEW_PLAN-2026-07-08.md](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md).
+- **Sub-lanes:** report-publication ✅ 2026-05-10 ([[ADR-187]]), cat-overrides-ux ✅ 2026-05-10; competitive-pierre segue viva no plano [COMPETITIVE_PIERRE](../plan/COMPETITIVE_PIERRE/_README.md) (Fase 1 ready).
+- **DOC_REORG** ✅ 2026-05-07, arquivado em [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md) ([ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md)).
+
 ### A31 — Débitos da A30: audit persistido (7B.5) + teto de budget calibrado (`done` 2026-07-07)
 
 Origem: os 2 débitos registrados na lane [[A30.l1]]. 2 lanes paralelas
@@ -255,15 +277,6 @@ editorial único com os flips de frontmatter + regeneração de índices.
 - **Trabalho residual (requer confirmação externa do owner):** L4 (GHCR token + Coolify webhook), L5 (Trivy — depende de L4), L9 (smoke gate — depende de tudo).
 - **Plano:** [sprint/A20/_README.md](../sprint/A20/_README.md).
 - **Retomada:** flip `paused → current` quando o owner liberar token/Coolify.
-
-### A11 — Platform review execution (`paused` 2026-05-20)
-
-**Pausada com débito conhecido.** 6 ondas, 138 findings de revisão multi-agente. W1 ✅ + W2 ✅ entregues. **Reconciliação factual 2026-07-06/08:** boa parte de W3-W6 shipou via outras sprints — W3-T01/W3-T04 (#718), W3-T03 (#584), W3-T05 (A21.l6), W4-T04 (#720), W6-T02 (ADR-307, #796/#797), W6-T03 (F9.4), W6-T04 (#111), W6-T05 (A32.l5 + A33.l6 #844), W6-T06 (#110 + ADR-150 `Decidido`), W6-T07 (A33.l9 #855); W4-T01/W4-T02/W6-T01 parciais. Spike W5 concluído 2026-07-08 (escopo reduzido anotado por task). **Residual real: 5 itens owner-gated** (W3-T02 Resend · W4-T01 off-site R2 · W4-T02 token Coolify · W4-T03 Sentry · W4-T05 status page) **+ W5 residual + W6-T01 residual**. ADRs do DoD: 170/171/172/173/175 `Decidido`; ADR-174 segue `Proposto` (off-site R2 não construído).
-
-- **Trabalho residual:** [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (Index reconciliado por task, com PR/ADR por linha).
-- **Sub-lanes:** A11.report-publication ✅ shipped 2026-05-10 ([[ADR-187]] `Decidido`), A11.cat-overrides-ux ✅ entregue 2026-05-10, A11.competitive-pierre (Fase 1 ready).
-- **DOC_REORG** ✅ entregue em 2026-05-07 (separado da pausa). Arquivado em [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md), ADR canônica [ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md).
-- **Retomada:** flip `paused → current` quando decidido retomar.
 
 ## Pickup — antes de pegar lane
 

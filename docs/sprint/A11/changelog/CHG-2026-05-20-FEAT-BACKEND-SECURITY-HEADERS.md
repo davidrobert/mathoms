@@ -56,5 +56,5 @@ coletar violações reais ~30 dias antes de promover para `enforce` (W4-T04).
 ## Referências
 
 - ADR canônica: [[ADR-232]]
-- Plano: [PLATFORM_REVIEW §W2-T02](../../../plan/PLATFORM_REVIEW/_README.md#w2-t02-sr-001013-security-headers--cors-strict)
+- Plano: [PLATFORM_REVIEW §W2-T02](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md#w2-t02-sr-001013-security-headers--cors-strict)
 - Lane: [[A11.w2]]

@@ -22,7 +22,7 @@ tags:
 
 # A21.l5 — Decidir ADR-175 (defesa de injeção LLM)
 
-> **Plano:** [[PLAN-launch-trust]] §F3-O3 (federada → [[PLAN-platform-review]] W3-T05).
+> **Plano:** [[PLAN-launch-trust]] §F3-O3 (federada → [PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) W3-T05).
 > **Gate (b) de F3** — parte 1 de 2.
 
 ## Contexto
