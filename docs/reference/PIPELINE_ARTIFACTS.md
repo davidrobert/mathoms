@@ -25,8 +25,8 @@
 
 **Hook universal de validação:** `DBArtifactStore.write` chama `validate_dict`
 após persistir o `content_json`, resolvendo o schema via mapping
-`SCHEMA_BY_STAGE` em `backend/app/services/db_artifact_store.py` (vive no
-backend, não em `pipeline/` — boundary ADR-212). Stages sem schema registrado
+`SCHEMA_BY_STAGE` em `backend/app/services/storage/db_artifact_store.py` (vive no
+backend, não em `pipeline/` — boundary ADR-212; subpacote `storage/` pós-ADR-285). Stages sem schema registrado
 passam sem validação (futuras adições só precisam estender o mapping).
 
 **Política:** modo default **warn** (`pipeline.json`); CI roda subset com
@@ -121,7 +121,7 @@ de produção do relatório é:
 1. **E5** (e opcionalmente E5.N + E6-parecer) escreve
    `processed/E5_analysis/analise_financeira-5_analysis.json` —
    validado pelo `e5_analysis.schema.json`.
-2. `backend/app/services/pipeline_task._create_report_from_output`
+2. `backend/app/tasks/pipeline_task._create_report_from_output`
    cria o row `Report` no DB a partir desse JSON
    (`analysis_artifact_id` aponta via FK para `pipeline_artifacts.id` —
    ADR-131 substituiu o ponteiro de filesystem `analysis_json_path`).
