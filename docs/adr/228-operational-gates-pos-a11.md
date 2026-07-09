@@ -14,6 +14,7 @@ relates_to:
   - "[[ADR-175]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-07-08"]
 aliases:
   - "ADR 228"
   - "A11 closure"
@@ -29,6 +30,11 @@ tags:
 ---
 
 # ADR-228 — Operational gates pós-A11: closure code-complete + drills diferidos
+
+> ⚠️ **Emenda 2026-07-08** — o owner ratificou o closure da A11 como `done`
+> **com transferência do residual owner-gated** (código + drill das 5 tasks)
+> para [[PLAN-launch-trust]] §F2. O D1 original assumia código em `main`
+> dentro da sprint; ver §Emenda ao final.
 
 ## Contexto
 
@@ -182,6 +188,50 @@ de origem distorce o changelog. **Descartada:** tasks ficam em A11
   nas 5 tasks W3/W4 do PLAN-platform-review.
 - **Closure:** PR(s) que evidenciem G1-G5 atualizam esta ADR para
   `Decidido` + linkam evidence (screenshots, logs, runbook updates).
+
+## Emenda — closure da A11 com residual transferido (2026-07-08)
+
+Decisão do owner (sessão de closure A11, 2026-07-08): fechar a sprint
+`done` **sem aguardar** os 5 itens owner-gated. A emenda vai além do D1
+original: em 2026-05-20 assumia-se que a porção de **código** das 5 tasks
+entraria em `main` dentro da sprint; na prática, o código de W3-T02
+(email service), W4-T01 (`backup_postgres.sh` + `r2_adapter`), W4-T02
+(workflow GHCR/deploy), W4-T03 (SDK Sentry) e W4-T05 (status page)
+permaneceu bloqueado pela **mesma** dependência externa dos drills
+(aprovação Resend EU, bucket R2, token Coolify, DSN Sentry, signups).
+Aguardar reproduziria a alternativa (A), já descartada.
+
+**D1 emendado:**
+
+1. Tasks em `main` **ou explicitamente transferidas**: W3-T02, W4-T01
+   (residual off-site), W4-T02 (residual GHCR/Coolify — reusa lanes A20
+   L4/L5 pausadas), W4-T03 e W4-T05 saem do escopo da A11 (código +
+   drill) e passam à posse de [[PLAN-launch-trust]] §F2 (fases 2.0–2.3).
+   Gates G1–G5 desta ADR **inalterados**.
+2. Inalterado (demais lanes A11 em `main` ✅).
+3. ADRs 170/171/172/173/175 `Decidido` ✅; **[[ADR-174]] permanece
+   `Proposto`** e flippa no merge do off-site R2 (fora da sprint) — não é
+   débito de flip.
+4. Coverage gaps E0/E1.5c/E7-crossval/E7-apply: **adiados por esta emenda**
+   para a próxima revisão de plataforma (Q3 2026); E1.5c já foi coberto na
+   prática por [[PLAN-launch-trust]] F1 (A21, INV-1..9).
+5. Inalterado (arquivamento do plano).
+6. `sprint_status: done` — vocabulário validado pelo `build_doc_index` é
+   `current/candidate/paused/done`; o "shipped" do texto original falharia
+   no gate.
+
+**Residual técnico não-bloqueado** que sai da sprint como candidato de
+backlog (tracks preservados, não é débito da A11): W5-T04 sub-PRs #1/#3/#4
+(produtores E5 de 3 regras dormentes; co-design `financial-planner`),
+W5-T05 (`if_meta_liquida` + emissão Goal IF v2 — track
+`docs/sprint/W5/tracks/w5t05-goal-if-v2.md`; [[ADR-140]] flippa no PR),
+W6-T01 residual (split E4 + wire ADR-090 — track
+`docs/sprint/W6/tracks/w6t01-schema-hardening.md`; wire flip exige ADR
+`Proposto`) e o flip `prune_mode=delete` (sobra de W6-T05; exige dry-run
+lido em prod + ack do owner). W5-T01/T02/T03 foram executadas na própria
+sessão de closure (PRs abertos no momento desta emenda).
+
+Esta ADR continua `Proposto` até G1–G5 evidenciados (D3 inalterado).
 
 ## Referências
 
