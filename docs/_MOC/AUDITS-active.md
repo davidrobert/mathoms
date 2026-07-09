@@ -87,6 +87,41 @@ Para que nenhum achado se perca entre auditorias:
 > DRIFT + 2 POLISH em 58 arquivos (~33% com finding; concentrado no
 > fallout de paths do ADR-285).
 
+### Fase 2 — plan + claude/agents + prompt + root (51/51 julgados; sprint bucket vazio)
+
+> Julgamento: product-manager (33 plans) + information-architect (plans forma +
+> 11 agentes + CLAUDE.md forma) + prompt-engineer (5 YAMLs) + loop principal
+> (CLAUDE.md doc↔código + README). Verify: 3/3 DOC-BLOCK com citação dupla.
+> **Meta-achado:** o **F32 do r6 foi aplicado parcialmente** — o batch r6
+> (`b3f9e1e4`) tocou 1 de ~6 instâncias em `senior-cto.md` e nunca cobriu
+> `product-manager.md`, apesar do commit-msg alegar cobertura total. Fechado
+> agora (lição SEC-03: verificar que o fix aterrissou). Fase única (BLOCK+DRIFT
+> no mesmo PR) porque flips de status re-tocam `_generated` — 2 PRs garantiriam
+> conflito.
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F17 — `senior-cto.md:81`: recipe "`grep` em `docs/DECISIONS.md`" (shim de 221 linhas sem corpos de ADR) contradiz a linha 25 já migrada (r6) → agente grepa shim e decide errado | DOC-BLOCK | procede | procede-fechado | #927 (`rg docs/adr/` + 9 links bare→notas reais + BACKLOG/DECISIONS-live→SPRINT_CURRENT/ADR_INDEX) |
+| F18 — `INTERNAL_ADMIN/_README.md:26,163,206`: 3 âncoras mortas `BACKLOG.md#f7f-*` (shim não tem seção F7F) → pickup cai no topo do shim sem tasks | DOC-BLOCK | procede | procede-fechado | #927 (tasks in-plan + SPRINT_CURRENT) |
+| F19 — `RESIDENCIA_E_USO/_README.md`: `status: draft` + P1-P6 ⏳ contradiz §63-66 do próprio doc ("todos os blocos ✅ shipped 2026-05-15") + ADR-215 Decidido | DOC-BLOCK | procede | procede-fechado | #927 (`done` + P1-P6 ✅; arquivamento owner-gated → F22) |
+| F20-F33 — DRIFT (14): F32 residual (`senior-cto.md` 9 bare `#adr-NNN` + BACKLOG/DECISIONS-live; `product-manager.md` CHANGELOG-live; REPORT_PREMIUM 3 âncoras BACKLOG mortas) + status/tag de plano (LLM_PROMPTS_HARDENING draft→done; TRIBUTARIO_PJ tag status/draft→done; DATA_LINEAGE A26 `current`→`paused` + sprints_envolvidas +A27 + "Sprint corrente A25"→A26/A27; SNAPSHOT_CHANGELOG_V3 W1-only→W1+W2; GO_SHELL nota datada Go F1/F2; COMPETITIVE_PIERRE 3.E prep decidido ADR-262/263/264) | DOC-DRIFT | procede | procede-fechado | batch `vault-drift-batch-r7-f2` #927 (`--fix`, citação dupla) |
+| F34 — POLISH: anchor-to-shim que resolve (wikilink preferido) em REPORT_PREMIUM/_README, P1_STRUCTURAL, CLAUDE.md; S4 intro ADR-216 Proposto→Decidido; SUGGESTION_LIFECYCLE in_progress→done candidato; `sprint_atual` de vários planos aponta sprint já `done` | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
+| F35 — arquivamento de `PLANNER_REVIEW` + `RESIDENCIA_E_USO` (concluídos) — `git mv → docs/archive/` com cascade de wikilinks vivos (LAUNCH_TRUST §F3) | DOC-DRIFT | procede | **procede-aberto** | **DECISÃO-OWNER:** arquivar in-place-`done` (precedente CENARIOS_ESTRESSE) vs. `git mv` + reescrever inbound links. P2, owner. |
+
+> **Falso-positivo evitado:** `INTERNAL_ADMIN:141` linka `_generated/ROADMAP.md`
+> — **existe** (auto-gerado; allowlisted em `check_doc_markdown_links.py:42`);
+> a "ROADMAP.md deletada" do CLAUDE.md é a antiga `docs/ROADMAP.md`, não a gerada.
+>
+> **Verificações que passaram:** 5 prompts (`prompt-engineer`, 1:1 vs
+> schema/enum/consumidor; ADR-122 trap respeitada); CLAUDE.md (codemod ADR-285
+> #855 manteve os paths de `services/`; 27 schemas; F34/F35 do r6 seguros);
+> README.md (bandas de porta native 800x / Docker 801x consistentes, 11 parsers);
+> F32 nos outros 4 agentes (data-engineer/sre-devops/build-vs-buy/_TEMPLATE OK).
+>
+> Fase 2: PR único #927 (3 BLOCK + 14 DRIFT + AUDITS). Taxa: 3 BLOCK + 14 DRIFT
+> + POLISH em 51 arquivos (~25% com finding; concentrado em status-drift de plano
+> + F32 residual). Sprint bucket vazio (nenhuma sprint `current`).
+
 ---
 
 ## r6 — `vault-2026-07-03-r6` (sweep one-shot `--scope all --full --fix`)

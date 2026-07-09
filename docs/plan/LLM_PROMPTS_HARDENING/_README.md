@@ -2,7 +2,7 @@
 id: PLAN-llm-prompts-hardening
 type: plan
 title: "LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting"
-status: draft
+status: done
 sprint_origem: A17
 sprint_atual: A33
 sprints_envolvidas: ["A17", "A18", "A20", "A33"]
@@ -30,7 +30,7 @@ tags:
   - sprint/a18
   - sprint/a20
   - sprint/a33
-  - status/draft
+  - status/done
   - priority/p0
   - breaking/schema
 ---
@@ -606,7 +606,7 @@ IDs ADR a reservar quando lane abrir.
 
 Por recomendação PM, registrar agora vs. ficar implícito:
 
-- **`a21-llm-drift-nightly-real`** — workflow noturno chama Anthropic
+- **`a21-llm-drift-nightly-real`** ✅ shipped A33.l5 (#831) — workflow noturno chama Anthropic
   real com fixtures input e gera hash do output normalizado. Divergência
   hash{D} ≠ hash{D-1} → alert + PR de update de fixture. (W1.C original;
   follow-up A21).

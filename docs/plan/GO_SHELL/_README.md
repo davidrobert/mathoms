@@ -30,6 +30,11 @@ tags:
 
 ## Origem e escopo
 
+> **Atualização 2026-07-09:** o §Origem abaixo é o estado **à época** do plano.
+> Desde então ADR-150 flippou `Roadmap → Decidido`, o **gatilho 4 foi disparado
+> pelo owner** (emenda 2026-07-03), a **F1 concluiu 2026-07-06** e a F2 (cutover)
+> iniciou — ver §F1 e §F2 abaixo.
+
 A [[ADR-150]] está em `Roadmap`: **nenhum dos 4 gatilhos de destrava está ativo**
 (revisita 2027-Q2 ou 100 workspaces pagantes). Em 2026-07-02 o owner autorizou o
 **prep antecipado dos pré-requisitos** (A3.cli, A3.cli.otel, A3.cli.benchmark) —

@@ -104,12 +104,26 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Lanes: 1 done · 0 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-168]]
 
+### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting
+
+- Status: `done` · Sprint atual: A33
+- Sprints envolvidas: A17, A20, A33
+- Lanes: 4 done · 0 in_progress · 5 open · 0 blocked
+- ADRs canônicas: [[ADR-081]], [[ADR-090]], [[ADR-097]], [[ADR-110]], [[ADR-111]], [[ADR-137]], [[ADR-157]], [[ADR-191]], [[ADR-212]], [[ADR-233]], [[ADR-246]]
+
 ### PLAN-planner-review — Parecer do Planejador (E6) — substituição de review_finances + aterrissagem operacional
 
 - Status: `done` · Sprint atual: A12
 - Sprints envolvidas: A11, A12
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-199]], [[ADR-200]], [[ADR-201]], [[ADR-202]], [[ADR-203]], [[ADR-204]], [[ADR-205]], [[ADR-206]], [[ADR-207]], [[ADR-208]]
+
+### PLAN-residencia-e-uso — Residência e uso econômico de imóveis — override DB substitui keyword
+
+- Status: `done` · Sprint atual: A12
+- Sprints envolvidas: A12
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-215]]
 
 ### PLAN-s4-real-estate-enrichment — S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel)
 
@@ -134,26 +148,12 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-183]], [[ADR-262]], [[ADR-263]], [[ADR-264]]
 
-### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting
-
-- Status: `draft` · Sprint atual: A33
-- Sprints envolvidas: A17, A20, A33
-- Lanes: 4 done · 0 in_progress · 5 open · 0 blocked
-- ADRs canônicas: [[ADR-081]], [[ADR-090]], [[ADR-097]], [[ADR-110]], [[ADR-111]], [[ADR-137]], [[ADR-157]], [[ADR-191]], [[ADR-212]], [[ADR-233]], [[ADR-246]]
-
 ### PLAN-market-rates-ingestion — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto
 
 - Status: `draft` · Sprint atual: A12
 - Sprints envolvidas: A12
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-221]]
-
-### PLAN-residencia-e-uso — Residência e uso econômico de imóveis — override DB substitui keyword
-
-- Status: `draft` · Sprint atual: A12
-- Sprints envolvidas: A12
-- Lanes: _(sem lanes vinculadas por `plan:`)_
-- ADRs canônicas: [[ADR-215]]
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

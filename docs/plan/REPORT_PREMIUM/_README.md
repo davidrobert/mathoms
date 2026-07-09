@@ -26,7 +26,7 @@ tags:
 >   §10/§11/§12 abaixo permanecem só como **registro histórico** — não executar.
 > - **v2 (§17) — 🚧 em andamento.** Roadmap pós-v1 com 11 sub-lanes em 4 ondas.
 >   Ondas A/B/C/D parcial + Onda E ✅ 8/8 + Onda F ✅ 5/5 entregues. Lanes
->   abertas em [BACKLOG.md › Report Premium UI v2](../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
+>   detalhadas em [§17](#17-report-premium-ui-v2--roadmap-pós-v1-2026-04-25) deste plano; pickup via [SPRINT_CURRENT](../../_MOC/_generated/SPRINT_CURRENT.md) (BACKLOG.md é shim).
 > - **Direção E (2026-04-29) — ✅ COMPLETA (6/6 ondas em `main`).**
 >   Modo Tático removido do relatório
 >   ([ADR-151](../../DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)).
@@ -61,8 +61,7 @@ tags:
 > **Última revisão de status:** 2026-04-27.
 > **Status geral:** v1 ✅ 10/10 (Fases 0-10) · v2 🚧 em §17.
 > Detalhes de cada fase v1 na [tabela do §2](#2-roadmap-de-fases-visão-geral),
-> v2 em [§17](#17-report-premium-ui-v2--roadmap-pós-v1-2026-04-25) e em
-> [BACKLOG.md — Report Premium UI](../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
+> v2 em [§17](#17-report-premium-ui-v2--roadmap-pós-v1-2026-04-25).
 
 ---
 
@@ -750,8 +749,8 @@ Seguir `docs/reference/SMOKE_TEST_HUMAN.md` com adições:
 > ℹ️ Diagrama original; Fases 11/12/13 (e6, polish, rollout) foram **canceladas** por
 > [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 > O caminho crítico **executável** termina na Fase 10. Resíduos pós-10
-> (smoke, polish, rollout) seguem na lane `report-v1-polish` — ver
-> [BACKLOG.md](../../BACKLOG.md#lanes-abertas-agora--pickup-table).
+> (smoke, polish, rollout) seguem na lane `report-v1-polish` — pickup via
+> [SPRINT_CURRENT](../../_MOC/_generated/SPRINT_CURRENT.md) (BACKLOG.md é shim).
 
 ```
 Fase 0 (discovery)
