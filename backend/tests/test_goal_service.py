@@ -3,8 +3,8 @@
 Testes unitários da função pura (sem DB) e testes de integração do
 versionamento (com DB async).
 
-A paridade com o valor histórico de Ferreira Campos (R$ 7.200.000) é
-validada em `test_ferreira_campos_parity`.
+A paridade com o valor histórico de Andrade Silva (R$ 7.200.000) é
+validada em `test_andrade_silva_parity`.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ def _inputs(
     )
 
 
-def test_ferreira_campos_parity():
+def test_andrade_silva_parity():
     """Paridade bit-a-bit com valor histórico do goals.json legado:
     renda 30k, TRS 5% → if_meta 7.200.000.
     """

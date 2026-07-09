@@ -519,11 +519,11 @@ def test_pdf_filename_with_family_and_period():
     from backend.app.application.report._common import compose_pdf_filename
 
     name = compose_pdf_filename(
-        "Ferreira Campos",
+        "Andrade Silva",
         "2023-01 a 2026-04",
         datetime(2026, 4, 26, tzinfo=timezone.utc),
     )
-    assert name == "mathoms-planejamento-ferreira-campos-2026-04.pdf"
+    assert name == "mathoms-planejamento-andrade-silva-2026-04.pdf"
 
 
 def test_pdf_filename_without_family_uses_period_only():
@@ -563,7 +563,7 @@ def test_pdf_filename_slug_strips_accents_and_spaces():
         slugify_family,
     )
 
-    assert slugify_family("Ferreira Campos") == "ferreira-campos"
+    assert slugify_family("Andrade Silva") == "andrade-silva"
     assert slugify_family("Gonçalves d'Ávila") == "goncalves-d-avila"
     assert slugify_family("  ÁCEnts   ") == "acents"
 

@@ -198,7 +198,7 @@ class TestCrossCodigoMerge:
             endereco_canonical="exemplo 496",
         )
         b = _entry(
-            proprietario="david_camargo",
+            proprietario="david_martins",
             valor_31_12=0,
             codigo_rfb="01",
             endereco_canonical="exemplo 496",
@@ -207,7 +207,7 @@ class TestCrossCodigoMerge:
         assert result.count_after == 1
         merged = result.imoveis[0]
         assert merged["valores_31_12"]["2024"] == 212000
-        assert set(merged["proprietarios"]) == {"david", "david_camargo"}
+        assert set(merged["proprietarios"]) == {"david", "david_martins"}
 
     def test_codigo_vazio_e_especifico_merge(self):
         a = _entry(

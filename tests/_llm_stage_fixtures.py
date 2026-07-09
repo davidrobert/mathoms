@@ -57,7 +57,7 @@ def make_e1_output() -> MembersExtractOutput:
         members=[
             ExtractedMember(
                 key="david",
-                full_name="David Ferreira Campos",
+                full_name="David Andrade Silva",
                 short_name="David",
                 cpf_present=True,
                 birth_date="1985-03-15",
@@ -73,7 +73,7 @@ def make_e1_output() -> MembersExtractOutput:
             ),
             ExtractedMember(
                 key="mariana",
-                full_name="Mariana Ferreira Campos",
+                full_name="Mariana Andrade Silva",
                 short_name="Mariana",
                 role="conjuge",
                 accounts=[],

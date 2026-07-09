@@ -321,7 +321,7 @@ def test_inv9_contribuinte_pj_nao_e_pessoa(tmp_path: Path) -> None:
             descricao="PARTICIPACAO SOCIETARIA",
             instituicao="empresa",
             valor_brl=4000000.0,
-            membro="DAVID ROBERT CAMARGO DE CAMPOS LTDA",
+            membro="DAVID ROBERT MARTINS DE SILVA LTDA",
         ),
     ]
     # `total_ativos` do LLM somou o PJ (20k + 4M = 4.02M) — o agregado não pode

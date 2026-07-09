@@ -353,7 +353,7 @@ class TestOutputConverters:
         result = _output_to_family_members_json(output)
 
         assert "david" in result["membros"]
-        assert result["membros"]["david"]["nome_completo"] == "David Ferreira Campos"
+        assert result["membros"]["david"]["nome_completo"] == "David Andrade Silva"
         # ADR-259 §2 (A20.l15): artifact carrega só o flag — nunca o CPF cru.
         assert result["membros"]["david"]["cpf_present"] is True
         assert "cpf" not in result["membros"]["david"]

@@ -16,7 +16,7 @@ def _payload() -> dict:
         "patterns_pix": ["PIX TRANSF DAVID"],
         "patterns_global": ["TED D HBANK"],
         "patterns_bank_specific": {"c6bank": ["Pagamento"]},
-        "recipients": ["DAVID ROBERT", "MARIANA TEIXEIRA"],
+        "recipients": ["DAVID ROBERT", "MARIANA RIBEIRO"],
     }
 
 
@@ -35,7 +35,7 @@ async def test_put_transfer_config_persists(auth_client: AsyncClient):
     resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/transfer", json=body)
     assert resp.status_code == 200, resp.text
     saved = resp.json()
-    assert saved["recipients"] == ["DAVID ROBERT", "MARIANA TEIXEIRA"]
+    assert saved["recipients"] == ["DAVID ROBERT", "MARIANA RIBEIRO"]
     assert saved["patterns_bank_specific"] == {"c6bank": ["Pagamento"]}
 
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/transfer")

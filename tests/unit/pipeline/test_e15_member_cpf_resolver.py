@@ -25,16 +25,16 @@ def _resolver_campos() -> MemberNameResolver:
     return MemberNameResolver(
         [
             MemberRecord(
-                key="david_robert_camargo_ferreira_campos",
-                full_name="David Robert Camargo Ferreira Campos",
+                key="david_robert_martins_andrade_silva",
+                full_name="David Robert Martins Andrade Silva",
                 short_name="David Robert",
                 cpf=_CPF_DAVID,
             ),
             MemberRecord(
-                key="mariana_ferreira_campos",
-                full_name="Mariana Ferreira Campos",
+                key="mariana_andrade_silva",
+                full_name="Mariana Andrade Silva",
                 short_name="Mariana",
-                nome_nascimento="Mariana Teixeira Ferreira",
+                nome_nascimento="Mariana Ribeiro Andrade",
                 cpf=_CPF_MARIANA,
             ),
         ]
@@ -57,23 +57,23 @@ def _baseline(itens: list[dict]) -> dict:
 
 class TestResolveMemberHelper:
     def test_cpf_resolves_to_canonical_key(self):
-        item = {"membro": "MARIANA TEIXEIRA FERREIRA", "cpf": _CPF_MARIANA}
-        assert _resolve_member(item, _resolver_campos()) == "mariana_ferreira_campos"
+        item = {"membro": "MARIANA RIBEIRO ANDRADE", "cpf": _CPF_MARIANA}
+        assert _resolve_member(item, _resolver_campos()) == "mariana_andrade_silva"
 
     def test_no_cpf_falls_back_to_name_resolver(self):
-        item = {"membro": "MARIANA TEIXEIRA FERREIRA"}
+        item = {"membro": "MARIANA RIBEIRO ANDRADE"}
         # Sem CPF, resolver.resolve(nome) bate em nome_nascimento.
-        assert _resolve_member(item, _resolver_campos()) == "mariana_ferreira_campos"
+        assert _resolve_member(item, _resolver_campos()) == "mariana_andrade_silva"
 
     def test_no_resolver_returns_raw_lowercase(self):
-        item = {"membro": "MARIANA TEIXEIRA FERREIRA"}
+        item = {"membro": "MARIANA RIBEIRO ANDRADE"}
         # Backwards compat: sem resolver, retorna lowercase raw (comportamento legado).
-        assert _resolve_member(item, None) == "mariana teixeira ferreira"
+        assert _resolve_member(item, None) == "mariana ribeiro andrade"
 
     def test_cpf_invalid_falls_back_to_name(self):
         item = {"membro": "Mariana", "cpf": "999"}  # CPF inválido (<11 dígitos)
         # CPF inválido cai no name resolver; Mariana bate via short_name.
-        assert _resolve_member(item, _resolver_campos()) == "mariana_ferreira_campos"
+        assert _resolve_member(item, _resolver_campos()) == "mariana_andrade_silva"
 
 
 # Valores em centavos (int) para evitar P5_float_money — testes não dependem
@@ -104,15 +104,15 @@ def _proprietarios(result: dict) -> set[str]:
 
 # Datasets para tests de consolidação — fora dos test functions (P1 < 20 linhas).
 _ITENS_MARIANA_CROSS_SURNAME = [
-    _item("mariana_teixeira_ferreira", _CPF_MARIANA),
-    _item("mariana_ferreira_campos", _CPF_MARIANA),
+    _item("mariana_ribeiro_andrade", _CPF_MARIANA),
+    _item("mariana_andrade_silva", _CPF_MARIANA),
 ]
 _ITENS_DAVID_4_SLUGS = [
     _item("david_robert", _CPF_DAVID),
-    _item("david_robert_camargo_de_campos", _CPF_DAVID),
-    _item("david_robert_camargo_ferreira_campos", _CPF_DAVID),
+    _item("david_robert_martins_de_silva", _CPF_DAVID),
+    _item("david_robert_martins_andrade_silva", _CPF_DAVID),
 ]
-_ITENS_NO_CPF_LEGACY = [_item("mariana_teixeira_ferreira")]
+_ITENS_NO_CPF_LEGACY = [_item("mariana_ribeiro_andrade")]
 _ITENS_NAME_FALLBACK = [_item("David Robert")]
 
 
@@ -122,23 +122,23 @@ class TestConsolidateWithResolver:
         result = consolidate_from_itens(
             _baseline(_ITENS_MARIANA_CROSS_SURNAME), resolver=_resolver_campos()
         )
-        assert _proprietarios(result) == {"mariana_ferreira_campos"}
+        assert _proprietarios(result) == {"mariana_andrade_silva"}
 
     def test_david_4_slug_variations_collapse(self):
         """David com 4 variações de nome — mesmo CPF, 1 canonical key."""
         result = consolidate_from_itens(
             _baseline(_ITENS_DAVID_4_SLUGS), resolver=_resolver_campos()
         )
-        assert _proprietarios(result) == {"david_robert_camargo_ferreira_campos"}
+        assert _proprietarios(result) == {"david_robert_martins_andrade_silva"}
 
     def test_backwards_compat_without_resolver(self):
         """Sem resolver, string raw lowercase preservada (comportamento legado)."""
         result = consolidate_from_itens(_baseline(_ITENS_NO_CPF_LEGACY), resolver=None)
-        assert _proprietarios(result) == {"mariana_teixeira_ferreira"}
+        assert _proprietarios(result) == {"mariana_ribeiro_andrade"}
 
     def test_item_without_cpf_falls_back_to_name(self):
         """Item sem CPF — resolver tenta resolve(nome) automaticamente."""
         result = consolidate_from_itens(
             _baseline(_ITENS_NAME_FALLBACK), resolver=_resolver_campos()
         )
-        assert _proprietarios(result) == {"david_robert_camargo_ferreira_campos"}
+        assert _proprietarios(result) == {"david_robert_martins_andrade_silva"}

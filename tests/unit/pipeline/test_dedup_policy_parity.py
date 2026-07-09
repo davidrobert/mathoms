@@ -259,7 +259,7 @@ _CORPUS_IMOVEIS: list[tuple[str, list[dict], str | None]] = [
                 endereco_canonical="exemplo 496",
             ),
             _imo(
-                proprietario="david_camargo",
+                proprietario="david_martins",
                 valor=0,
                 codigo_rfb="01",
                 endereco_canonical="exemplo 496",

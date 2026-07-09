@@ -26,7 +26,7 @@ describe("<ReportCover />", () => {
     render(
       <ReportCover
         badge="Relatório"
-        title="Patrimônio Ferreira"
+        title="Patrimônio Exemplo"
         subtitle="Q1 2026"
         meta={[
           { label: "Período", value: "Jan-Mar" },
@@ -35,7 +35,7 @@ describe("<ReportCover />", () => {
       />,
     );
     expect(screen.getByText("Relatório")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Patrimônio Ferreira" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Patrimônio Exemplo" })).toBeInTheDocument();
     expect(screen.getByText("Q1 2026")).toBeInTheDocument();
     expect(screen.getByText("Jan-Mar")).toBeInTheDocument();
     expect(screen.getByText("42")).toBeInTheDocument();

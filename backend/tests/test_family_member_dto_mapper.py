@@ -49,7 +49,7 @@ def _fake_member(**overrides) -> SimpleNamespace:
     defaults = dict(
         id="m-1",
         key="david",
-        full_name="David Robert Camargo",
+        full_name="David Robert Martins",
         short_name="David",
         cpf_encrypted=None,
         birth_date=date(1981, 9, 5),
@@ -134,7 +134,7 @@ class TestConvertGlobalDefaultsToResponses:
         founder_config = {
             "membros": {
                 "david": {
-                    "nome_completo": "David Robert Camargo",
+                    "nome_completo": "David Robert Martins",
                     "nome_curto": "David",
                     "data_nascimento": "1981-09-05",
                     "cpf": "000.000.000-00",

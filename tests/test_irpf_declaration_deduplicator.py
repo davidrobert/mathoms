@@ -80,7 +80,7 @@ def _make_contribuinte(
 def _make_decl(
     *,
     cpf: str = "***.***.***-36",
-    nome: str = "DAVID ROBERT CAMARGO FERREIRA CAMPOS",
+    nome: str = "DAVID ROBERT MARTINS ANDRADE SILVA",
     ano: int = 2025,
     natureza: NaturezaContribuinte = NaturezaContribuinte.titular,
     pj: int = 0,
@@ -202,10 +202,10 @@ def test_name_divergence_emits_collision_warning():
 
 
 def test_small_name_variation_no_warning():
-    # Caso real: "DAVID ROBERT CAMARGO FERREIRA CAMPOS" vs "DAVID ROBERT
-    # CAMARGO DE CAMPOS" — diferença ~7/36 ≈ 0.19, abaixo do threshold 0.3.
-    a = _make_decl(nome="DAVID ROBERT CAMARGO FERREIRA CAMPOS", pj=1)
-    b = _make_decl(nome="DAVID ROBERT CAMARGO DE CAMPOS", pj=2)
+    # Caso real: "DAVID ROBERT MARTINS ANDRADE SILVA" vs "DAVID ROBERT
+    # MARTINS DE SILVA" — diferença ~7/36 ≈ 0.19, abaixo do threshold 0.3.
+    a = _make_decl(nome="DAVID ROBERT MARTINS ANDRADE SILVA", pj=1)
+    b = _make_decl(nome="DAVID ROBERT MARTINS DE SILVA", pj=2)
     result = deduplicate_irpf_declarations([_frag(a), _frag(b)])
     name_div = [c for c in result.collisions if c.kind == "name_divergence"]
     assert name_div == []

@@ -90,7 +90,7 @@ def _seed_5at5_scenario(factory, ws):
             codigo_rfb="12",
             endereco_canonical=None,
             low_confidence=True,
-            descricao="CASA Modelo 2707, QUADRA 33 - Matrícula 20462",
+            descricao="CASA Modelo 2707, QUADRA 33 - Matrícula 999.999",
         )
     for code in ("11", "11", "01"):
         _seed_property(factory, ws, codigo_rfb=code, endereco_canonical="exemplo 320")
@@ -108,7 +108,7 @@ class TestPasse0Recanonicalize:
             endereco_canonical=None,
             descricao=(
                 "CASA - MODELO 2707, QUADRA 33 LOTE 27, "
-                "JABAQUARA, SAO PAULO/SP - Matrícula 20462"
+                "BAIRRO EXEMPLO, SAO PAULO/SP - Matrícula 999.999"
             ),
             low_confidence=True,
         )
@@ -116,7 +116,7 @@ class TestPasse0Recanonicalize:
             report = _build_report(session, ws.id, dry_run=False)
             session.commit()
             assert len(report["pass_0_recanonicalized"]) == 1
-            assert report["pass_0_recanonicalized"][0]["new_canonical"] == "mat:20462"
+            assert report["pass_0_recanonicalized"][0]["new_canonical"] == "mat:999999"
 
     def test_dry_run_does_not_modify(self, sync_db):
         ws = _seed_workspace(sync_db)

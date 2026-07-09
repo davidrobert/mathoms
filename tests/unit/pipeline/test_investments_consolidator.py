@@ -93,7 +93,7 @@ class TestBasic:
         e = {
             "_source": "btg_portfolio.json",
             "instituicao": "btgpactual",
-            "membro": "mariana_teixeira_ferreira",
+            "membro": "mariana_ribeiro_andrade",
             "data_referencia": "2026-03-31",
             "tipo_documento": "investment_report",
             "investimentos": [
@@ -105,7 +105,7 @@ class TestBasic:
         out = c.consolidate([e])
 
         assert out.n_posicoes == 2
-        assert out.total_por_membro == {"mariana_teixeira_ferreira": 59795.99}
+        assert out.total_por_membro == {"mariana_ribeiro_andrade": 59795.99}
         assert out.dados[0]["nome"] == "CDB BTG Agibank"
         assert out.dados[0]["valor_atual"] == 29353.39
 

@@ -188,7 +188,7 @@ def irpf_plus_comprovante_bem(tmp_path: Path) -> list[dict]:
                 codigo="11", descricao=desc_irpf, valor_brl=212706.24, membro="david_robert"
             ),
             _make_item(
-                codigo="01", descricao=desc_comprovante, valor_brl=0.0, membro="david_camargo"
+                codigo="01", descricao=desc_comprovante, valor_brl=0.0, membro="david_martins"
             ),
         ]
     )
@@ -204,7 +204,7 @@ def test_irpf_e_comprovante_bem_funde_cross_codigo(irpf_plus_comprovante_bem):
     # Específico vence
     assert merged["valores_31_12"]["2024"] == 212706.24
     # Ambos proprietarios entram
-    assert set(merged["proprietarios"]) == {"david_robert", "david_camargo"}
+    assert set(merged["proprietarios"]) == {"david_robert", "david_martins"}
 
 
 @pytest.fixture
@@ -216,7 +216,7 @@ def praca_exemplo_torre_vs_predio(tmp_path: Path) -> list[dict]:
         [
             _make_item(codigo="11", descricao=desc_irpf, valor_brl=850000.0, membro="david_robert"),
             _make_item(
-                codigo="01", descricao=desc_comprovante, valor_brl=780000.0, membro="david_camargo"
+                codigo="01", descricao=desc_comprovante, valor_brl=780000.0, membro="david_martins"
             ),
         ]
     )

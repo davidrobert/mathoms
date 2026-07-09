@@ -392,8 +392,8 @@ def test_current_positions_substring_member_match(config: PatrimonioConfig):
         "dados": [{"valor": 1}],
         "total_por_membro": {
             "david": 300_000,
-            "mariana_teixeira_ferreira": 60_000,
-            "mariana_ferreira_campos": 25_000,
+            "mariana_ribeiro_andrade": 60_000,
+            "mariana_andrade_silva": 25_000,
         },
     }
     calc = PatrimonioCalculator(config)

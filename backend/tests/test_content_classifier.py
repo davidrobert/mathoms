@@ -145,7 +145,7 @@ SALDO TOTAL DISPONÍVEL DIA 5.500,00
 ITAU_EXTRATO_CONTA_XLS = (
     "Logotipo Itaú |  |  |  | \n"
     "Atualização: | 08/04/2026 às 14:04:47 |  |  | \n"
-    "Nome: | DAVID ROBERT CAMARGO DE CAMPOS |  |  | \n"
+    "Nome: | DAVID ROBERT MARTINS DE SILVA |  |  | \n"
     "Agência: | 9652.0 |  |  | \n"
     "Conta: | 04397-8 |  |  | \n"
     " |  |  |  | \n"
@@ -568,7 +568,7 @@ SANTANDER_FATURAUNIQUE_CSV = (
 # PDF de CDB do Santander (Internet Banking). "CDB DI SANTANDER" + "Central de Atendimento".
 SANTANDER_CDB_PDF = (
     "Internet Banking\n"
-    "DAVID ROBERT CAMARGO FERREIRA CAMPOS\n"
+    "DAVID ROBERT MARTINS ANDRADE SILVA\n"
     "CDB DI SANTANDER\n"
     "Operação : 00331652260006541929\n"
     "Data da contratação : 30/08/2024\n"
@@ -583,11 +583,11 @@ SANTANDER_CDB_PDF = (
 # A âncora primária é o formato de conta "NNNN-NN.NNNNNN.N".
 SANTANDER_EXTRATO_XLS = (
     "EXTRATO DE CONTA CORRENTE \n"
-    "DAVID ROBERT CAMARGO FERREIRA CAMPOS  |  | Conta: 1652-01.001341.6\n"
+    "DAVID ROBERT MARTINS ANDRADE SILVA  |  | Conta: 1652-01.001341.6\n"
     "Tipo de Lancamento: Todos | Extrato de 08/01/2026 a 08/04/2026\n"
     "Data  | Descrição  | Docto  | Situação  | Crédito (R$)  | Débito (R$)  | Saldo (R$)\n"
     "06/04/2026  | JUROS SALDO UTILIZ ATE LIMITE PERIODO: 03/03 A 02/04/26 | -31,67 | 506,98\n"
-    "06/04/2026  | PIX RECEBIDO DOUGLAS CAMARGO DE CAMPOS | 432371 | 100,00 | 538,65\n"
+    "06/04/2026  | PIX RECEBIDO DOUGLAS MARTINS DE SILVA | 432371 | 100,00 | 538,65\n"
 )
 
 # XLSX de resumo de CDB Santander: "CDB DI SANTANDER" + "CDB PROG SANTANDER".
@@ -604,7 +604,7 @@ RICO_EXTRATO_PDF = (
     "29/03/2026 08:36 RICO CORRETORA DE TITULOS E VALORES MOBILIARIOS S.A. | Extrato\n"
     "Extrato da conta\n"
     "Data da consulta: 29/03/2026 08:36\n"
-    "DAVID ROBERT CAMARGO DE CAMPOS  Conta: 6742394\n"
+    "DAVID ROBERT MARTINS DE SILVA  Conta: 6742394\n"
     "De: 30/09/2025  Até: 29/03/2026\n"
     "Saldo disponível: R$ 17.186,40\n"
     "Liq Mov Histórico Valor Saldo\n"

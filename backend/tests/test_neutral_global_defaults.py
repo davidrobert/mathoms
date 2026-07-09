@@ -34,10 +34,10 @@ from backend.tests.factories import make_user, make_workspace
 # Se algum desses aparecer em payload servido para tenant novo, é leak.
 _FOUNDER_LEAK_SIGNALS = {
     "David Robert",  # nome do founder no global
-    "David Robert Camargo Ferreira Campos",
-    "Mariana Ferreira Campos",
-    "Theo Ferreira Campos",
-    "Ferreira Campos",  # familia.sobrenome
+    "David Robert Martins Andrade Silva",
+    "Mariana Andrade Silva",
+    "Theo Andrade Silva",
+    "Andrade Silva",  # familia.sobrenome
     "1981-09-05",  # data_nascimento founder
     "1986-08-30",
     "2025-07-18",

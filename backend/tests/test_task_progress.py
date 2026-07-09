@@ -49,7 +49,7 @@ def test_parse_brl_target_returns_none_without_value():
 
 def test_parse_brl_target_treats_dot_thousand_correctly():
     """Bug guard: 'R$ 1.800' é formato BRL (ponto=milhar), deve ser 1800 e
-    não 1.8. Descoberto na validação contra tarefas reais da Ferreira Campos."""
+    não 1.8. Descoberto na validação contra tarefas reais da Andrade Silva."""
     assert _parse_brl_target("Iniciar aportes PGBL R$1.800/mês") == Decimal("1800")
     assert _parse_brl_target("PGBL R$ 1.800,00 mensal") == Decimal("1800")
 

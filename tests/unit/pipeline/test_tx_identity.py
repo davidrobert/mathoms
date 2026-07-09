@@ -201,7 +201,7 @@ class TestHashV1:
         h_with_placa = _hash_v1(
             **{
                 **self._base(),
-                "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS GRU ROD",
+                "descricao": "C6TAG ESTACIONAMENTO — ABC1D23-AEROPORTO DE GUARULHOS GRU ROD",
             }
         )
         h_plain = _hash_v1(**{**self._base(), "descricao": "C6TAG ESTACIONAMENTO"})

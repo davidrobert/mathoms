@@ -28,20 +28,20 @@ def _family_campos() -> dict:
     """Family config real do workspace observado no bug (ADR-241/242/243)."""
     return {
         "membros": {
-            "david_robert_camargo_ferreira_campos": {
-                "nome": "David Robert Camargo Ferreira Campos",
+            "david_robert_martins_andrade_silva": {
+                "nome": "David Robert Martins Andrade Silva",
                 "nome_curto": "David Robert",
-                "nome_nascimento": "David Robert Camargo de Campos",
+                "nome_nascimento": "David Robert Martins de Silva",
                 "papel": "titular",
             },
-            "mariana_ferreira_campos": {
-                "nome": "Mariana Ferreira Campos",
+            "mariana_andrade_silva": {
+                "nome": "Mariana Andrade Silva",
                 "nome_curto": "Mariana",
-                "nome_nascimento": "Mariana Teixeira Ferreira",
+                "nome_nascimento": "Mariana Ribeiro Andrade",
                 "papel": "conjuge",
             },
         },
-        "titular": "david_robert_camargo_ferreira_campos",
+        "titular": "david_robert_martins_andrade_silva",
     }
 
 
@@ -53,8 +53,8 @@ def _family_campos() -> dict:
 class TestExactMatch:
     def test_exact_key_canonical(self):
         resolver = MemberNameResolver.from_family_config(_family_campos())
-        result = resolver.resolve("david_robert_camargo_ferreira_campos")
-        assert result.canonical_key == "david_robert_camargo_ferreira_campos"
+        result = resolver.resolve("david_robert_martins_andrade_silva")
+        assert result.canonical_key == "david_robert_martins_andrade_silva"
         assert result.confidence == "exact"
         assert result.matched_via == "key"
 
@@ -63,8 +63,8 @@ class TestExactMatch:
 
         Para o titular, key e full_name slugificam para a mesma string
         (key foi gerada do full_name), então o match é via `key` (mais cedo
-        na ordem). Caso interessante: cônjuge tem key=mariana_ferreira_campos
-        mas full_name="Mariana Ferreira Campos" — slug bate em ambos via key.
+        na ordem). Caso interessante: cônjuge tem key=mariana_andrade_silva
+        mas full_name="Mariana Andrade Silva" — slug bate em ambos via key.
         Para forçar full_name match isolado, usamos um roster sintético.
         """
         resolver = MemberNameResolver(
@@ -84,15 +84,15 @@ class TestExactMatch:
     def test_exact_via_short_name(self):
         resolver = MemberNameResolver.from_family_config(_family_campos())
         result = resolver.resolve("Mariana")
-        assert result.canonical_key == "mariana_ferreira_campos"
+        assert result.canonical_key == "mariana_andrade_silva"
         assert result.confidence == "short_name"
 
     def test_exact_via_nome_nascimento(self):
-        """Caso real: LLM extrai do informe IR com 'David Robert Camargo de Campos'
-        (nome de nascimento), mas a chave canônica usa 'Ferreira Campos'."""
+        """Caso real: LLM extrai do informe IR com 'David Robert Martins de Silva'
+        (nome de nascimento), mas a chave canônica usa 'Andrade Silva'."""
         resolver = MemberNameResolver.from_family_config(_family_campos())
-        result = resolver.resolve("David Robert Camargo de Campos")
-        assert result.canonical_key == "david_robert_camargo_ferreira_campos"
+        result = resolver.resolve("David Robert Martins de Silva")
+        assert result.canonical_key == "david_robert_martins_andrade_silva"
         assert result.confidence == "nome_nascimento"
 
 
@@ -106,7 +106,7 @@ class TestSubstring:
         """LLM emitiu 'david_robert' → match exato via `short_name` ('David Robert')."""
         resolver = MemberNameResolver.from_family_config(_family_campos())
         result = resolver.resolve("david_robert")
-        assert result.canonical_key == "david_robert_camargo_ferreira_campos"
+        assert result.canonical_key == "david_robert_martins_andrade_silva"
         assert result.confidence == "short_name"
 
     def test_genuine_substring_match(self):
@@ -143,14 +143,14 @@ class TestSubstring:
 
 class TestAmbiguous:
     def test_ambiguous_substring_match(self):
-        """'campos' bate em ambos membros via full_name → ambiguous."""
+        """'andrade' bate em ambos membros via full_name → ambiguous."""
         resolver = MemberNameResolver.from_family_config(_family_campos())
-        result = resolver.resolve("campos")
-        # 'campos' tem 6 chars, > MIN_SUBSTRING_LEN, e é substring de ambos.
+        result = resolver.resolve("andrade")
+        # 'andrade' tem 7 chars, > MIN_SUBSTRING_LEN, e é substring de ambos.
         assert result.confidence == "ambiguous"
         assert result.canonical_key is None
-        assert "david_robert_camargo_ferreira_campos" in result.matched_via
-        assert "mariana_ferreira_campos" in result.matched_via
+        assert "david_robert_martins_andrade_silva" in result.matched_via
+        assert "mariana_andrade_silva" in result.matched_via
 
 
 class TestUnknown:
@@ -218,17 +218,17 @@ def test_resolver_emits_structured_log(caplog):
     rec = records[0]
     # 'david_robert' bate exato em short_name='David Robert' do titular.
     assert getattr(rec, "confidence", None) == "short_name"
-    assert getattr(rec, "canonical_key", None) == "david_robert_camargo_ferreira_campos"
+    assert getattr(rec, "canonical_key", None) == "david_robert_martins_andrade_silva"
 
 
 @pytest.mark.parametrize(
     "raw,expected_key",
     [
-        ("david_robert", "david_robert_camargo_ferreira_campos"),
-        ("David Robert", "david_robert_camargo_ferreira_campos"),
-        ("David Robert Camargo de Campos", "david_robert_camargo_ferreira_campos"),
-        ("Mariana Teixeira Ferreira", "mariana_ferreira_campos"),
-        ("MARIANA", "mariana_ferreira_campos"),
+        ("david_robert", "david_robert_martins_andrade_silva"),
+        ("David Robert", "david_robert_martins_andrade_silva"),
+        ("David Robert Martins de Silva", "david_robert_martins_andrade_silva"),
+        ("Mariana Ribeiro Andrade", "mariana_andrade_silva"),
+        ("MARIANA", "mariana_andrade_silva"),
     ],
 )
 def test_real_world_llm_variations(raw, expected_key):
@@ -255,21 +255,21 @@ def _family_campos_with_cpf() -> dict:
     """Family config com CPF — base para testes ADR-267 (CPFs sintéticos)."""
     return {
         "membros": {
-            "david_robert_camargo_ferreira_campos": {
-                "nome": "David Robert Camargo Ferreira Campos",
+            "david_robert_martins_andrade_silva": {
+                "nome": "David Robert Martins Andrade Silva",
                 "nome_curto": "David Robert",
                 "cpf": _CPF_DAVID,  # mascarado (cpf_formatted retorna com pontos)
                 "papel": "titular",
             },
-            "mariana_ferreira_campos": {
-                "nome": "Mariana Ferreira Campos",
+            "mariana_andrade_silva": {
+                "nome": "Mariana Andrade Silva",
                 "nome_curto": "Mariana",
-                "nome_nascimento": "Mariana Teixeira Ferreira",
+                "nome_nascimento": "Mariana Ribeiro Andrade",
                 "cpf": _CPF_MARIANA.replace(".", "").replace("-", ""),  # sem máscara
                 "papel": "conjuge",
             },
         },
-        "titular": "david_robert_camargo_ferreira_campos",
+        "titular": "david_robert_martins_andrade_silva",
     }
 
 
@@ -278,7 +278,7 @@ class TestResolveByCpf:
         """ADR-267 — CPF mascarado bate via normalização."""
         resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
         result = resolver.resolve_by_cpf(_CPF_DAVID)
-        assert result.canonical_key == "david_robert_camargo_ferreira_campos"
+        assert result.canonical_key == "david_robert_martins_andrade_silva"
         assert result.confidence == "cpf"
         assert result.matched_via == "cpf"
 
@@ -287,7 +287,7 @@ class TestResolveByCpf:
         resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
         unmasked = _CPF_DAVID.replace(".", "").replace("-", "")
         result = resolver.resolve_by_cpf(unmasked)
-        assert result.canonical_key == "david_robert_camargo_ferreira_campos"
+        assert result.canonical_key == "david_robert_martins_andrade_silva"
         assert result.confidence == "cpf"
 
     def test_cpf_match_cross_surname(self):
@@ -297,11 +297,11 @@ class TestResolveByCpf:
         """
         resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
         # IRPF antigo emite contribuinte.cpf=<CPF Mariana> mas
-        # contribuinte.nome="MARIANA TEIXEIRA FERREIRA" (solteira).
+        # contribuinte.nome="MARIANA RIBEIRO ANDRADE" (solteira).
         # Resolver por nome cairia em nome_nascimento (estratégia 4) por sorte,
         # mas resolver por CPF é determinístico e imutável.
         result = resolver.resolve_by_cpf(_CPF_MARIANA)
-        assert result.canonical_key == "mariana_ferreira_campos"
+        assert result.canonical_key == "mariana_andrade_silva"
         assert result.confidence == "cpf"
 
     def test_cpf_invalid_short(self):
@@ -345,7 +345,7 @@ class TestResolveByCpf:
         assert result.matched_via == "cpf:miss"
         # Mas resolve(nome) ainda funciona — fallback.
         assert (
-            resolver.resolve("David Robert").canonical_key == "david_robert_camargo_ferreira_campos"
+            resolver.resolve("David Robert").canonical_key == "david_robert_martins_andrade_silva"
         )
 
     def test_cpf_confidence_emits_telemetry(self, caplog):
@@ -383,12 +383,12 @@ class TestCpfStrategyPrioritization:
 
         # Item do IRPF tem CPF + nome — resolver tenta CPF primeiro.
         cpf = _CPF_MARIANA
-        nome = "MARIANA TEIXEIRA FERREIRA"
+        nome = "MARIANA RIBEIRO ANDRADE"
 
         resolution = resolver.resolve_by_cpf(cpf)
         if resolution.canonical_key is None:
             resolution = resolver.resolve(nome)
-        assert resolution.canonical_key == "mariana_ferreira_campos"
+        assert resolution.canonical_key == "mariana_andrade_silva"
         assert resolution.confidence == "cpf"  # CPF venceu, fallback não disparou.
 
     def test_caller_cascade_no_cpf_falls_to_name(self):
@@ -396,11 +396,11 @@ class TestCpfStrategyPrioritization:
         resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
 
         cpf = None
-        nome = "MARIANA TEIXEIRA FERREIRA"
+        nome = "MARIANA RIBEIRO ANDRADE"
 
         resolution = resolver.resolve_by_cpf(cpf) if cpf else None
         if not resolution or resolution.canonical_key is None:
             resolution = resolver.resolve(nome)
-        # nome_nascimento bate "Mariana Teixeira Ferreira" → canonical_key correto.
-        assert resolution.canonical_key == "mariana_ferreira_campos"
+        # nome_nascimento bate "Mariana Ribeiro Andrade" → canonical_key correto.
+        assert resolution.canonical_key == "mariana_andrade_silva"
         assert resolution.confidence == "nome_nascimento"  # fallback disparou.
