@@ -20,6 +20,7 @@ from dev.ci_automerge_watchdog import (  # noqa: E402
     aggregator_green,
     is_orphan_run_set,
     is_stalled,
+    stalled_without_runs,
     train_head,
 )
 
@@ -151,8 +152,16 @@ class TestWatchdogPredicates:
     def test_sem_runs_nao_e_orfao(self) -> None:
         assert not is_orphan_run_set([])
 
-    def test_stall_sem_runs(self) -> None:
-        assert is_stalled([], NOW)
+    def test_sem_runs_nao_decide_stall(self) -> None:
+        assert not is_stalled([], NOW)
+
+    def test_sem_runs_com_pr_fresco_fica_na_carencia(self) -> None:
+        pr = _pr(1, updatedAt="2026-07-09T11:58:00Z")
+        assert not stalled_without_runs(pr, NOW)
+
+    def test_sem_runs_com_pr_parado_ha_mais_de_60min_e_stall(self) -> None:
+        pr = _pr(1, updatedAt="2026-07-09T10:30:00Z")
+        assert stalled_without_runs(pr, NOW)
 
     def test_stall_runs_completados_ha_mais_de_60min(self) -> None:
         runs = [
