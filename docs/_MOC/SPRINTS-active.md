@@ -12,32 +12,31 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A12 — Categorization learning loop + post-A11 follow-up (`current`, retomada 2026-07-08)
-
-Retomada de `paused` (2026-05-20 → 2026-07-08, [[ADR-234]]) após o owner
-fechar as duas pendências: gate dogfood humano do cat-learning-loop
-ratificado **PASS** (decisão 2026-07-02 via audit-vault r4, confirmada
-2026-07-08; lane `shipped`) e decisão de **entregar [[A12.alocacao-v2]]
-dentro da A12** em vez de realocar como débito.
-
-**Cat-learning-loop concluída.** MVP V1 completo: P1-P4 mergeadas (PRs
-#188, #194, #195-#198, #203); gate técnico 11/11 invariantes (#202) aceito
-como evidência do gate humano. Sunset do CRUD legado `/config/categories` +
-drop do `monthly_cap` Float entregue (#573, ADR-283 §B). FU-1 + FU-2
-entregues, FU-3 absorvido e entregue como A15. V2.A/B/C ficam pós-tração
-(backlog, não débito).
-
-- **Trabalho residual (única lane aberta):** [[A12.alocacao-v2]] (P2,
-  ~5d eng) — a reconciliação de 2026-07-06 não a viu:
-  [ADR-141](../adr/141-goal-alocacao-alvo-schema-v2-7-classes-auvp.md)
-  consta `Decidido` pelo flip em lote #668, mas a migração runtime v1→v2
-  não shipou (`alocacaoBucketMapper` segue client-side). Flip `done`
-  quando a lane mergear.
-- **Plano:** [archive/CAT_LEARNING_LOOP-2026-07-08.md](../archive/CAT_LEARNING_LOOP-2026-07-08.md)
-  (arquivado 2026-07-08). ADRs: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md)
-  + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md).
+_(nenhuma — próxima sprint a definir pelo owner)_
 
 ## Sprint recém-fechada
+
+### A12 — Categorization learning loop + post-A11 follow-up (`done` 2026-07-09)
+
+Sprint retomada de `paused` em 2026-07-08 e **fechada em 2026-07-09**. Duas
+frentes:
+
+- **Cat-learning-loop** — MVP V1 completo (P1-P4 #188/#194/#195-#198/#203 +
+  gate técnico 11/11 #202); gate dogfood humano **PASS por decisão do
+  owner** (2026-07-02, ratificado 2026-07-08); plano arquivado.
+- **[[A12.alocacao-v2]]** — migração alocação-alvo v1→v2 (7 classes AUVP,
+  desvio backend-driven) em **9 PRs (#885-#910)**: calculator de domínio,
+  DTOs + conversão on-read, API v2, seed, serializer + E5 `derived` rico,
+  card do relatório consumindo `derived` e **`alocacaoBucketMapper`
+  client-side deletado** (débito que originou a lane), chart ids
+  consolidados. Co-design de 3 especialistas ([[ADR-141]] §Emenda).
+  Corrigiu o bug do shape órfão do seed + um bug de integração do derived.
+
+Também nesta sprint: sunset-disk-artifact ([[ADR-212]]),
+decision-code-autogen ([[ADR-214]]), bank-account-disambig ([[ADR-226]]),
+irpf-prefill ([[ADR-229]]). Débitos não-bloqueantes registrados: PR8
+(redesign visual do wizard de alocação — shim já funcional, backlog) e PR11
+(remoção do schema v1 + ativação de regra — owner-gated).
 
 ### A35 — Continuidade não some quando o número de conta não extrai (`done` 2026-07-08)
 

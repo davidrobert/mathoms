@@ -3,7 +3,7 @@ id: A12.alocacao-v2
 type: lane
 title: "Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven)"
 sprint: A12
-status: in_progress
+status: shipped
 aliases: ["A12.alocacao-v2-migration", "A12.ALOCACAO_V2", "A12 alocacao v2"]
 priority: P2
 depends_on: []
@@ -13,7 +13,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a12
-  - status/in-progress
+  - status/shipped
   - priority/p2
   - area/methodology
   - area/persistence
@@ -44,7 +44,7 @@ de goldens (fixture dogfood sem goal de alocação).
 
 ## Plano de execução (11 PRs, ordem do co-design)
 
-**Estado 2026-07-09: 9/11 PRs mergeados — migração funcionalmente completa e verificada end-to-end.** Restam PR8 (polish visual) e PR11 (owner-gated).
+**Estado 2026-07-09: LANE SHIPPED.** 9/11 PRs mergeados — migração alocação-alvo v1→v2 funcionalmente completa e verificada end-to-end (backend, API, seed, pipeline, E5, card do relatório, chart ids; débito do `alocacaoBucketMapper` removido; bug de integração do `derived` corrigido). Owner flipou a lane `shipped` e a A12 `done` em 2026-07-08/09 tratando PR8 (redesign visual do wizard — shim já funcional) como débito de polish no backlog e PR11 como cleanup owner-gated registrado. Ambos NÃO bloqueiam a correção.
 
 | PR | Escopo | Status |
 |---|---|---|
