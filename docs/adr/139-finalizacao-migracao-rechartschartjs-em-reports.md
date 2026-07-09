@@ -5,6 +5,7 @@ title: "Finalização migração Recharts→Chart.js em /reports/**"
 status: Decidido
 phase: "Onda v2.E concluída"
 date: "2026-04-26"
+amended_at: ["2026-07-08"]
 relates_to: []
 supersedes: []
 superseded_by: []
@@ -15,12 +16,17 @@ tags:
   - area/report
   - status/decidido
   - type/adr
-size_lines: 104
+size_lines: 139
 ---
 
 # ADR-139 — Finalização migração Recharts→Chart.js em /reports/**
 
 **Status:** Decidido (Onda v2.E concluída) • **Data:** 2026-04-26
+
+> **Emenda (2026-07-08):** o resíduo intencional (`WaterfallIfChart` +
+> `PatrimonioDoughnutChart` em Recharts) foi fechado pela task W5-T02
+> (Sprint A11 · PLATFORM_REVIEW) — zero Recharts em `/reports/**`. Ver
+> §"Emenda — fechamento do resíduo v2.E.9 (2026-07-08)".
 
 **Contexto:** ADR-117 (Fase 2) entregou primitives Chart.js
 (`frontend/src/components/report/charts/primitives/` —
@@ -121,3 +127,33 @@ local **ou** explicitar fallback quando `node_modules` indisponível.
 Relaciona-se a: ADR-037 (Recharts — escopo restringido), ADR-076
 (design tokens), ADR-117 (Report Premium UI baseline), ADR-122
 (`chart_conclusions` em modo híbrido template+LLM).
+
+## Emenda — fechamento do resíduo v2.E.9 (2026-07-08)
+
+W5-T02 (Sprint A11 · plano PLATFORM_REVIEW) executou a v2.E.9 que esta
+ADR deixou como opção futura — os 2 charts residuais de S1 migraram
+para os primitivos Chart.js:
+
+- **`PatrimonioDoughnutChart`** → `ChartDonut` (paleta categórica via
+  `useChartTheme`, legenda bottom, tooltip BRL — paridade com a versão
+  Recharts).
+- **`WaterfallIfChart`** → `ChartWaterfall`, com extensão aditiva
+  backwards-compat `formatAxisValue` no primitive (eixo compacto +
+  tooltip por extenso, como na versão Recharts). Divergência aceita:
+  vira waterfall de verdade ("Gap" como floating bar atual→meta, antes
+  eram 3 barras aterradas) e as cores seguem a semântica do primitive
+  (pilares primary, delta positivo accent) em vez do trio
+  primary/alert/gain.
+
+Limpeza acoplada: seletor `.recharts-wrapper` removido de
+`report-print.css` (Chart.js usa o fallback canvas→PNG) e helpers
+Recharts órfãos removidos de `charts/_shared.ts` (`CHART_COLORS`,
+`pickColorByIndex`, `TOOLTIP_STYLE`, `AXIS_TICK`, `LABEL_TICK`).
+
+A consequência "⚠️ divergência visual aceita até v2.E.9" acima fica
+**fechada**: zero `import ... from "recharts"` em
+`frontend/src/components/report/**`. A dependência `recharts` permanece
+no `package.json` — `Mathom{Area,Bar,Pie}Chart` e
+`plano/_components/_dashboard/{Pie,Bar}ChartCard` (ADR-037, escopo
+restringido) seguem consumindo; remoção total é escopo futuro fora
+desta emenda.

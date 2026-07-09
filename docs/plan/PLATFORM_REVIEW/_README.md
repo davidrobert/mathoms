@@ -64,7 +64,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 **Próximos pickups ready agora:**
 
 - **W6-T01 residual** (sub-schemas E4 + wire ADR-090) — flip strict shipou via A24.l7 ([[ADR-284]]); split E4 + codegen + wire compliance seguem pickup (wire flip write-side exige ADR `Proposto` antes).
-- **W5** — frontend/metodologia; **re-verificação factual concluída 2026-07-08 (spike W5, pós-A33)**: W5-T01 residual entregue 2026-07-08 (scope=col + ProgressBar + reduced-motion; resta só o que acopla com W5-T02/W1-T01), W5-T02/T03 válidas como escritas, W5-T04 parcial (sub-PR #2 obsoleto — [[ADR-239]]/[[ADR-240]]), W5-T05 parcial (numerador `investivel_efetivo` ✅). W5 permanece pickup real, com escopo reduzido anotado por task (§Wave 5).
+- **W5** — frontend/metodologia; **re-verificação factual concluída 2026-07-08 (spike W5, pós-A33)**: W5-T01 residual entregue 2026-07-08 (scope=col + ProgressBar + reduced-motion; resta só o que acopla com W5-T02/W1-T01), **W5-T02 fechada 2026-07-08** (migração dos 2 charts residuais + emenda [[ADR-139]], [PR #883](https://github.com/davidrobert/mathoms/pull/883)), W5-T03 válida como escrita, W5-T04 parcial (sub-PR #2 obsoleto — [[ADR-239]]/[[ADR-240]]), W5-T05 parcial (numerador `investivel_efetivo` ✅). W5 permanece pickup real nas demais tasks, com escopo reduzido anotado por task (§Wave 5).
 - **Owner-gated (não são pickup de agente):** W3-T02 (Resend EU), W4-T02 residual (token Coolify = A20 L4), W4-T01 residual (off-site R2, ADR-228 G2/G3).
 
 > **Reconciliação 2026-07-06** — auditoria factual pós-A28 (sprint `paused` desde
@@ -117,7 +117,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W4-T04 | SR-018 Rate limit endpoints LLM/upload/pipeline | 4 | done (2026-07-02, [PR #720](https://github.com/davidrobert/mathoms/pull/720) — `services/rate_limit.py` aplicado a upload + pipeline_run) | sre-devops | P1 | M | — |
 | W4-T05 | BB-002 + SR-017 + SR-028 Status page + alertas + drill | 4 | blocked | sre-devops | P1 | M | W4-T03 |
 | W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | residual entregue 2026-07-08 — scope=col em todos os `<th>` (default no primitivo TableHead + 23 arquivos literais), primitivo `<ProgressBar/>` + adoções (IFHero, ReservaEmergencia; EquilibrioCerbasi = role="img" por ser distribuição), reduced-motion global; ficam por design: gate axe critical+serious (D1), aria-label dos 2 Recharts (acopla W5-T02), baselines visuais (W1-T01) | product-designer | P1 | S | W1-T01 |
-| W5-T02 | PD-004 + BB-011 Recharts → Chart.js residual em S1 | 5 | válida (pendente) — 2 charts seguem Recharts; primitives prontos desde ADR-117; ADR-139 pede emenda, não flip (re-verificado 2026-07-08, spike W5) | product-designer | P1 | M | W5-T01 |
+| W5-T02 | PD-004 + BB-011 Recharts → Chart.js residual em S1 | 5 | done (2026-07-08, [PR #883](https://github.com/davidrobert/mathoms/pull/883) — 2 charts migrados p/ `ChartDonut`/`ChartWaterfall` + emenda datada na [[ADR-139]]; dep `recharts` permanece p/ consumidores fora de `/reports/**`) | product-designer | P1 | M | W5-T01 |
 | W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | válida (pendente) — 18 call-sites do inventário seguem no código + novos fora dele (re-verificado 2026-07-08, spike W5) | product-designer | P1 | M | W1-T01 |
 | W5-T04 | FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | 5 | parcial — sub-PR #5 ✅ via W1-T02 (#98); #2 obsoleto (superseded [[ADR-239]]/[[ADR-240]]); #1/#3/#4 válidos (re-verificado 2026-07-08, spike W5) | financial-planner | P1 | L | W1-T07 |
 | W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | parcial — numerador `investivel_efetivo` + toggle `imoveis_no_if` per-workspace ✅ (#321/#331/#332, ADR-142/222/223); resta `if_meta_liquida` + emissão v2 ([[ADR-140]] segue Roadmap) (re-verificado 2026-07-08, spike W5) | financial-planner | P1 | L | — |
@@ -574,6 +574,18 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 > ("pode virar v2.E.9") — o fechamento desta task deve entrar como **emenda
 > datada** na ADR-139, não como novo flip de status.
 
+> **FECHADA 2026-07-08 ([PR #883](https://github.com/davidrobert/mathoms/pull/883)).** Ambos os charts migraram para
+> `ChartDonut`/`ChartWaterfall` com `aria-label` descritivo (via
+> `ChartCanvas` `role="img"`); emenda datada registrada na [[ADR-139]]
+> (§"Emenda — fechamento do resíduo v2.E.9"); `.recharts-wrapper` removido
+> do `report-print.css` e helpers Recharts órfãos de `charts/_shared.ts`.
+> **Escopo ajustado vs acceptance original:** bundle -150kb NÃO se
+> materializa neste PR — `recharts` permanece no `package.json` para os 5
+> consumidores fora do relatório (`Mathom{Area,Bar,Pie}Chart` +
+> `plano/_dashboard/{Pie,Bar}ChartCard`, ADR-037); remoção da dep é escopo
+> futuro. Baselines visuais S1 regeneradas via workflow_dispatch no runner
+> Linux (procedimento TESTING.md §visual regression).
+
 ### [W5-T03] MonetaryValue migration
 
 - **deps:** W1-T01
@@ -757,6 +769,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **Razão:** ADR-139 já é precedente para single-engine; a11y gap em S1 é P1 sem outra mitigação; bundle -150kb é benefício colateral.
 - **Implementação:** Lane W5-T02. ADR-139 status atualizada para "Decidido (executado em W5-T02)".
 - **Nota factual (2026-07-08, spike W5):** [[ADR-139]] já flippou `Decidido (Onda v2.E concluída)` em 2026-04-26, preservando os 2 charts como residual intencional ("v2.E.9"). W5-T02 deve registrar **emenda datada** na ADR-139 ao fechar — não um novo flip de status.
+- **Executado (2026-07-08, [PR #883](https://github.com/davidrobert/mathoms/pull/883)):** emenda datada registrada na [[ADR-139]] (`amended_at: ["2026-07-08"]` + §"Emenda — fechamento do resíduo v2.E.9"); status permaneceu `Decidido`, sem flip — conforme a nota factual acima.
 
 ### Trade-off 2 — Goal IF v2: cutover agora vs adiar
 
