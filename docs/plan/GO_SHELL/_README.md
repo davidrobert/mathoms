@@ -7,7 +7,7 @@ sprint_origem: null
 sprint_atual: null
 sprints_envolvidas: []
 created_at: "2026-07-02"
-last_review: "2026-07-02"
+last_review: "2026-07-08"
 adrs_canonical:
   - "[[ADR-150]]"
   - "[[ADR-303]]"
@@ -78,14 +78,24 @@ Fase 4 paridade+imagem+smoke) com KRs numéricos (imagem ≤150MB, cold start
 shell <100ms, paridade monetária zero). Especificação executável e decisões
 fechadas: [tracks/f1-go-service.md](tracks/f1-go-service.md).
 
-### F2 — Cutover — ⏸ bloqueada
+### F2 — Cutover — 🚧 em execução (owner autorizou 2026-07-08)
 
 Toggle único `MATHOMS_PIPELINE_SERVICE_URL`; gate técnico (3 runs E0→E5,
 paridade byte-a-byte + WS events + spans com `TRACEPARENT`) + **gate humano
 obrigatório** (smoke [SMOKE_TEST_HUMAN](../../reference/SMOKE_TEST_HUMAN.md)).
-Detalhe: [[ADR-150]] §7. Pré-condição adicional registrada na [[ADR-303]]
-§Escopo deferido: paridade de hidratação de contexto (DBConfigStore, resolvers,
-budget hooks) + enablement do container/compose smoke.
+Detalhe: [[ADR-150]] §7 + emenda datada 2026-07-08 (critério do gate byte-a-byte
+vs. não-determinismo LLM + correção do fallback de prod). Design executável +
+runbook: [tracks/f2-cutover.md](tracks/f2-cutover.md) (co-design `senior-cto` +
+`sre-devops`, 2026-07-08).
+
+**A pré-condição registrada na [[ADR-303]] §Escopo deferido está FECHADA** (não
+mais pendente): paridade de hidratação de contexto (`run_context_factory.py`,
+PR #742) + enablement do smoke em container (PR #743). O que resta de F2 é gate +
+flip, não código de produto: (1) harness de paridade de **payload completo**
+(`dev/go_parity_gate.py`, F1 dec. 10 diferiu-o para cá) rodando sobre **Postgres**
+em staging; (2) gate humano do owner; (3) flip global em prod (backend+worker,
+**restart** — o singleton não re-lê em quente) com watch + soak ≥2 semanas antes
+de F3.
 
 ### F3 — Decommission do `pipeline-service/` Python — ⏸ bloqueada
 
@@ -98,6 +108,7 @@ budget hooks) + enablement do container/compose smoke.
 | [TRACK-a3cli-orchestrator-cli](tracks/a3cli-orchestrator-cli.md) | A3.cli (Fase 1) + A3.cli.otel (Fase 2) — 2 PRs | `consumed` ✅ (#737 + #738) | — |
 | [TRACK-a3cli-benchmark](tracks/a3cli-benchmark.md) | A3.cli.benchmark — medição + decisão Caminho 1 vs 2 | `consumed` ✅ (gate PASSA: 413ms) | — |
 | [TRACK-f1-go-service](tracks/f1-go-service.md) | F1 — serviço Go em 4 fases/4 PRs + KRs | `consumed` ✅ (#780/#789/#791/Fase 4) | — |
+| [TRACK-f2-cutover](tracks/f2-cutover.md) | F2 — gate técnico (Tier-1/Tier-2) + gate humano + flip prod + soak | `ready` 🚧 (owner autorizou 2026-07-08) | Postgres em staging + fixture 0-LLM no E2 |
 
 ## Critério de destrava de F1 (não recopiar — fonte única)
 
