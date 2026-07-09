@@ -287,18 +287,19 @@ def test_builder_perfil_familia_has_left_and_right():
         assert "<ul" not in pf[side].lower()
 
 
-def test_builder_charts_has_all_18_required_keys():
+def test_builder_charts_has_all_17_required_keys():
     """ADR-168 cleanup (Sprint A10.1): charts custos_f1f2 e cenarios_cambiais
     removidos. A17 L3 P5 adiciona `wise_fiscal_flags` (opt-in: context vazio
-    quando workspace não tem informe Wise — não exige conteúdo)."""
+    quando workspace não tem informe Wise — não exige conteúdo). A12
+    alocacao-v2 PR9: `alocacao_atual` + `alocacao_alvo` fundidos em
+    `alocacao_atual_vs_alvo` (Fase B, ADR-141)."""
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
     ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
     out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
     expected = {
         "score_gauge",
         "patrimonio_doughnut",
-        "alocacao_atual",
-        "alocacao_alvo",
+        "alocacao_atual_vs_alvo",
         "fluxo_mensal",
         "receita_bar",
         "receita_despesa_mensal",

@@ -54,7 +54,7 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const alocacaoDerived = (goals?.alocacao_alvo as
     | { derived?: AlocacaoDerived }
     | undefined)?.derived;
-  const alocacaoFooter = readNarrativeConclusion(charts, "alocacao_atual");
+  const alocacaoFooter = readNarrativeConclusion(charts, "alocacao_atual_vs_alvo");
 
   return (
     <ReportSection id="S3" title="Investimentos — Carteira Financeira">

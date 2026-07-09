@@ -128,24 +128,21 @@ class ChartsNarrator:
                     + f"Aportes mensais de {fmt_currency(M['meta_aporte_mensal'])} em ativos financeiros devem melhorar essa proporção."
                 ),
             },
-            "alocacao_atual": {
+            "alocacao_atual_vs_alvo": {
                 "context": (
-                    f"Atual distribuição dos ativos financeiros ({fmt_currency(M[ctx.key_inv_titular] + M[ctx.key_inv_conjuge])}) "
-                    "entre classes de investimento: renda fixa, ações, fundos multimercado e estruturados."
+                    f"Comparação entre a alocação atual dos ativos financeiros "
+                    f"({fmt_currency(M[ctx.key_inv_titular] + M[ctx.key_inv_conjuge])}) e a alocação "
+                    f"estratégica recomendada, considerando horizonte de {M['anos_para_if_calculo']} "
+                    "anos até IF e tolerância ao risco médio."
                 ),
                 "conclusion": (
-                    f"{ctx.titular_nome} diversificado em {M[ctx.key_inst_titular]}; {ctx.conjuge_nome} concentra em {M[ctx.key_inst_conjuge]}. "
-                    f"Recomendação: gradualmente adicionar alocação de ações ({M['aloc_instrumentos_rv']}) para atingir {M['equity_alvo_min']}-{M['equity_alvo_max']}% de equity."
-                ),
-            },
-            "alocacao_alvo": {
-                "context": (
-                    f"Alocação estratégica recomendada para os ativos financeiros, considerando horizonte de {M['anos_para_if_calculo']} anos até IF e tolerância ao risco médio."
-                ),
-                "conclusion": (
-                    f"Alvo: {M['aloc_rf_pct']}% Renda Fixa ({M['aloc_instrumentos_rf']}), {M['aloc_acoes_pct']}% Ações ({M['aloc_instrumentos_rv']}), "
+                    f"Atual: {ctx.titular_nome} diversificado em {M[ctx.key_inst_titular]}; "
+                    f"{ctx.conjuge_nome} concentra em {M[ctx.key_inst_conjuge]}. "
+                    f"Alvo: {M['aloc_rf_pct']}% Renda Fixa ({M['aloc_instrumentos_rf']}), "
+                    f"{M['aloc_acoes_pct']}% Ações ({M['aloc_instrumentos_rv']}), "
                     f"{M['aloc_imoveis_pct']}% Imóveis/REITs, {M['aloc_liquidez_pct']}% Liquidez/USD. "
-                    f"Aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês priorizarão renda fixa, com rebalanceamento {M['aloc_rebalanceamento']}."
+                    f"Aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês priorizarão renda fixa, "
+                    f"com rebalanceamento {M['aloc_rebalanceamento']}."
                 ),
             },
         }

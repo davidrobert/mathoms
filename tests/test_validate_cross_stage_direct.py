@@ -17,8 +17,7 @@ from pipeline.stages import validate_cross
 _REQUIRED_CHARTS = (
     "score_gauge",
     "patrimonio_doughnut",
-    "alocacao_atual",
-    "alocacao_alvo",
+    "alocacao_atual_vs_alvo",
     "fluxo_mensal",
     "receita_bar",
     "receita_despesa_mensal",
