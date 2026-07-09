@@ -41,6 +41,9 @@ from backend.app.services.db_property_identity_resolver import (
 from backend.app.services.db_property_overrides_resolver import (
     DBPropertyOverridesResolver,
 )
+from backend.app.services.db_property_supersession_writer import (
+    DBPropertySupersessionWriter,
+)
 from backend.app.services.institution_catalog_provider import (
     DBInstitutionCatalogProvider,
 )
@@ -86,6 +89,7 @@ def _read_imoveis_no_if(ws_id: str, session: Session) -> bool:
 def _db_resolvers(session: Session) -> dict:
     return {
         "property_identity_resolver": DBPropertyIdentityResolver(session=session),
+        "property_supersession_writer": DBPropertySupersessionWriter(session=session),
         "economic_assumptions_resolver": DBEconomicAssumptionsResolver(session=session),
         "property_overrides_resolver": DBPropertyOverridesResolver(session=session),
         # A33.l8 (ADR-137): catálogo de instituições p/ injection nos prompts LLM.

@@ -101,3 +101,23 @@ def test_consolidate_skips_enrichment_without_resolver(tmp_path):
     # mas property_id não — resolver não foi injetado.
     for e in imoveis:
         assert "property_id" not in e
+
+
+def test_consolidate_reconciles_supersession_when_writer_injected(tmp_path):
+    """ADR-324: step 3b passa o winner map da MESMA policy do dedup ao writer."""
+    from pipeline.adapters.in_memory_property_supersession_writer import (
+        InMemoryPropertySupersessionWriter,
+    )
+    from scripts.consolidate_baseline import main_with_store
+
+    ctx, resolver = _make_ctx(tmp_path, with_resolver=True)
+    writer = InMemoryPropertySupersessionWriter()
+    ctx.property_supersession_writer = writer
+
+    assert main_with_store(ctx)["success"] is True
+    assert len(writer.calls) == 1
+    workspace_id, winner_by_pid = writer.calls[0]
+    assert workspace_id == "test-ws-001"
+    pids = {r.property_id for r in resolver.all()}
+    assert set(winner_by_pid) == pids
+    assert all(winner_by_pid[pid] == pid for pid in pids)

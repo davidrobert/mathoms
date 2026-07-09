@@ -25,6 +25,7 @@ if TYPE_CHECKING:
         EconomicAssumptionsResolver,
         PropertyIdentityResolver,
         PropertyOverridesResolver,
+        PropertySupersessionWriter,
     )
 
 
@@ -83,6 +84,13 @@ class WorkspaceContext:
     #: consolidador E1.5c emitir `property_id` UUID estável cross-IRPFs.
     #: ``None`` → consolidador pula a etapa (compat com testes/CLI legados).
     property_identity_resolver: Optional["PropertyIdentityResolver"] = field(
+        default=None, repr=False
+    )
+
+    #: ``PropertySupersessionWriter`` injetável (ADR-324). Permite ao
+    #: consolidador E1.5c reconciliar no DB a supersessão das perdedoras do
+    #: dedup ADR-246/265. ``None`` → step 3b não poda (compat testes/CLI).
+    property_supersession_writer: Optional["PropertySupersessionWriter"] = field(
         default=None, repr=False
     )
 
@@ -244,6 +252,7 @@ class WorkspaceContext:
         workspace_id: Optional[str] = None,
         config_store: Optional["ConfigStore"] = None,
         property_identity_resolver: Optional["PropertyIdentityResolver"] = None,
+        property_supersession_writer: Optional["PropertySupersessionWriter"] = None,
         economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = None,
         property_overrides_resolver: Optional["PropertyOverridesResolver"] = None,
         imoveis_no_if: bool = True,
@@ -274,6 +283,7 @@ class WorkspaceContext:
             workspace_id=workspace_id,
             config_store=config_store,
             property_identity_resolver=property_identity_resolver,
+            property_supersession_writer=property_supersession_writer,
             economic_assumptions_resolver=economic_assumptions_resolver,
             property_overrides_resolver=property_overrides_resolver,
             imoveis_no_if=imoveis_no_if,
