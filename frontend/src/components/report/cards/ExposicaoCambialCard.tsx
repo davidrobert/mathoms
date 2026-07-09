@@ -173,9 +173,9 @@ function PorMoedaTableV1({
     <table className="w-full text-sm">
       <thead>
         <tr className="border-b border-[var(--surface-border)] text-left">
-          <th className="pb-2 font-display font-semibold">Moeda</th>
-          <th className="pb-2 text-right font-display font-semibold">Equiv. BRL</th>
-          <th className="pb-2 text-right font-display font-semibold">%</th>
+          <th scope="col" className="pb-2 font-display font-semibold">Moeda</th>
+          <th scope="col" className="pb-2 text-right font-display font-semibold">Equiv. BRL</th>
+          <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
         </tr>
       </thead>
       <tbody>
@@ -208,9 +208,9 @@ function PorMoedaTableV2({
     <table className="w-full text-sm">
       <thead>
         <tr className="border-b border-[var(--surface-border)] text-left">
-          <th className="pb-2 font-display font-semibold">Moeda</th>
-          <th className="pb-2 text-right font-display font-semibold">Equiv. BRL</th>
-          <th className="pb-2 text-right font-display font-semibold">%</th>
+          <th scope="col" className="pb-2 font-display font-semibold">Moeda</th>
+          <th scope="col" className="pb-2 text-right font-display font-semibold">Equiv. BRL</th>
+          <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
         </tr>
       </thead>
       <tbody>

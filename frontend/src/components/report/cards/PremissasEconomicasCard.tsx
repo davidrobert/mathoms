@@ -103,11 +103,11 @@ function PremissasTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-            <th className="pb-2 font-semibold">Classe de ativo</th>
-            <th className="pb-2 font-semibold">Retorno real esperado</th>
-            <th className="pb-2 font-semibold">Volatilidade anual</th>
-            <th className="pb-2 font-semibold">Fonte</th>
-            <th className="pb-2 font-semibold">Vigente desde</th>
+            <th scope="col" className="pb-2 font-semibold">Classe de ativo</th>
+            <th scope="col" className="pb-2 font-semibold">Retorno real esperado</th>
+            <th scope="col" className="pb-2 font-semibold">Volatilidade anual</th>
+            <th scope="col" className="pb-2 font-semibold">Fonte</th>
+            <th scope="col" className="pb-2 font-semibold">Vigente desde</th>
           </tr>
         </thead>
         <tbody>

@@ -60,10 +60,10 @@ export function ContrafluxoCard({ contrafluxo, cdi_anual }: ContrafluxoCardProps
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                <th className="pb-2 font-semibold">Cenário</th>
-                <th className="pb-2 text-right font-semibold">Selic</th>
-                <th className="pb-2 text-right font-semibold">CDI</th>
-                <th className="hidden pb-2 font-semibold sm:table-cell">Ação</th>
+                <th scope="col" className="pb-2 font-semibold">Cenário</th>
+                <th scope="col" className="pb-2 text-right font-semibold">Selic</th>
+                <th scope="col" className="pb-2 text-right font-semibold">CDI</th>
+                <th scope="col" className="hidden pb-2 font-semibold sm:table-cell">Ação</th>
               </tr>
             </thead>
             <tbody>

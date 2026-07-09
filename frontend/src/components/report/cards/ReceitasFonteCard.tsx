@@ -87,11 +87,11 @@ export function ReceitasFonteCard({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--surface-border)] text-left">
-                <th className="pb-2 font-display font-semibold">Fonte</th>
-                <th className="pb-2 text-right font-display font-semibold">
+                <th scope="col" className="pb-2 font-display font-semibold">Fonte</th>
+                <th scope="col" className="pb-2 text-right font-display font-semibold">
                   {isLiveData ? "Média/mês" : "Total"}
                 </th>
-                <th className="pb-2 text-right font-display font-semibold">%</th>
+                <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
               </tr>
             </thead>
             <tbody>

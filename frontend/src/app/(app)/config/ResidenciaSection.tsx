@@ -197,10 +197,10 @@ export function ResidenciaSection({ workspaceId }: { workspaceId: string }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">
-              <th className="py-2 pr-3 font-medium">Tipo</th>
-              <th className="py-2 pr-3 font-medium">Descrição</th>
-              <th className="py-2 pr-3 font-medium">Classificação</th>
-              <th className="py-2 text-right font-medium">Ação</th>
+              <th scope="col" className="py-2 pr-3 font-medium">Tipo</th>
+              <th scope="col" className="py-2 pr-3 font-medium">Descrição</th>
+              <th scope="col" className="py-2 pr-3 font-medium">Classificação</th>
+              <th scope="col" className="py-2 text-right font-medium">Ação</th>
             </tr>
           </thead>
           <tbody>

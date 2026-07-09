@@ -131,10 +131,10 @@ export function ComparisonItemsBlock({
       >
         <thead>
           <tr style={{ textAlign: "left", color: "var(--surface-muted-foreground)" }}>
-            <th style={{ padding: "6px 8px", fontWeight: 600 }}>Seção</th>
-            <th style={{ padding: "6px 8px", fontWeight: 600, textAlign: "right" }}>Antes</th>
-            <th style={{ padding: "6px 8px", fontWeight: 600, textAlign: "right" }}>Depois</th>
-            <th style={{ padding: "6px 8px", fontWeight: 600, textAlign: "right" }}>Δ</th>
+            <th scope="col" style={{ padding: "6px 8px", fontWeight: 600 }}>Seção</th>
+            <th scope="col" style={{ padding: "6px 8px", fontWeight: 600, textAlign: "right" }}>Antes</th>
+            <th scope="col" style={{ padding: "6px 8px", fontWeight: 600, textAlign: "right" }}>Depois</th>
+            <th scope="col" style={{ padding: "6px 8px", fontWeight: 600, textAlign: "right" }}>Δ</th>
           </tr>
         </thead>
         <tbody>

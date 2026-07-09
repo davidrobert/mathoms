@@ -54,12 +54,12 @@ export function ParecerMetricasTable({
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase text-[var(--surface-muted-foreground)]">
-                <th className="py-2 pr-4">Métrica</th>
-                <th className="py-2 pr-4">Valor atual</th>
-                <th className="py-2 pr-4">Alvo</th>
-                <th className="py-2 pr-4">Trilha</th>
-                <th className="py-2 pr-4">Revisão</th>
-                <th className="py-2 pr-4">§</th>
+                <th scope="col" className="py-2 pr-4">Métrica</th>
+                <th scope="col" className="py-2 pr-4">Valor atual</th>
+                <th scope="col" className="py-2 pr-4">Alvo</th>
+                <th scope="col" className="py-2 pr-4">Trilha</th>
+                <th scope="col" className="py-2 pr-4">Revisão</th>
+                <th scope="col" className="py-2 pr-4">§</th>
               </tr>
             </thead>
             <tbody>
