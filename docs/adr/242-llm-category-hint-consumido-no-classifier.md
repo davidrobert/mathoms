@@ -34,7 +34,7 @@ size_lines: 144
 
 O stage `extract_with_llm` ([pipeline/stages/extract_with_llm.py:302](../../pipeline/stages/extract_with_llm.py:302)) escreve `categoria_sugerida` por transação no payload E2-llm. O campo é **dead code**: o classifier ([pipeline/domain/services/transaction_classifier.py](../../pipeline/domain/services/transaction_classifier.py)) não lê. Toda transação que regra determinística não casa cai em `nao_identificado`/`outras_receitas`, mesmo quando o LLM (que viu o documento inteiro) emitiu hint confiável.
 
-Caso observado em relatório real (workspace `Campos`, run `c36c4baf-…`, dezembro/2025): informe de rendimentos Itaú extraído via LLM produziu 4 linhas:
+Caso observado em relatório real (workspace `Exemplo`, run `c36c4baf-…`, dezembro/2025): informe de rendimentos Itaú extraído via LLM produziu 4 linhas:
 
 - "Rendimento Bruto RDB/CDB" R$ 787,75 — `categoria_sugerida: "rendimento_investimento"` → caiu em `receita_investimento` (genérico)
 - "Rendimento Líquido RDB/CDB (valor a declarar)" R$ 610,85 — `categoria_sugerida: "rendimento_investimento"` → **double-counting**: bruto = líquido + IRRF; somar ambos infla receita em ~78%
@@ -110,7 +110,7 @@ Novo campo `categorization_origin: str | None` em `ClassifiedTransaction`. Valor
 ## Gates de regressão
 
 - **T1** — `tests/unit/pipeline/test_transaction_classifier.py::TestLLMCategoryHint` (já implementado): 7 testes cobrindo skip de `info_fiscal_anual`, fallback de hint, precedência regra > hint, hint inválido vira default, transferência via hint, audit origin.
-- **T2** — Manual/dogfood: regerar o relatório real (workspace `Campos`, run sobre dezembro/2025) e validar que `total_receita` e `total_despesa` saem coerentes com os extratos bancários reais (não dos 4 lançamentos do informe IR).
+- **T2** — Manual/dogfood: regerar o relatório real (workspace `Exemplo`, run sobre dezembro/2025) e validar que `total_receita` e `total_despesa` saem coerentes com os extratos bancários reais (não dos 4 lançamentos do informe IR).
 
 ## Follow-ups (débito registrado, não bloqueia merge)
 

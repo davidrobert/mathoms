@@ -60,7 +60,7 @@ Mais:
 | `imoveis_reits_pct` | `fiis_pct` |
 | `liquidez_usd_pct` | 70% `acoes_int_pct` + 30% `caixa_pct` |
 
-**Roadmap de adoção:** lane dedicada que migra `pipeline_adapter._serialize_alocacao_goal`, `seed_goals_full_ferreira_campos.py`, `frontend/src/app/(app)/plano/alocacao/page.tsx`, `Step1Distribution.tsx`, `AlocacaoBar.tsx` para o novo schema. Componente UI ganha 7 sliders (em vez de 4) e card "Próximo aporte sugerido: classe X (-Y%)" como derivado.
+**Roadmap de adoção:** lane dedicada que migra `pipeline_adapter._serialize_alocacao_goal`, `seed_goals_full_andrade_silva.py`, `frontend/src/app/(app)/plano/alocacao/page.tsx`, `Step1Distribution.tsx`, `AlocacaoBar.tsx` para o novo schema. Componente UI ganha 7 sliders (em vez de 4) e card "Próximo aporte sugerido: classe X (-Y%)" como derivado.
 
 **Consequências:**
 

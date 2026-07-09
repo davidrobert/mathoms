@@ -4,7 +4,7 @@ type: lane
 title: "Varredura da PII residual sub-contada pelo audit (código/testes/fixtures/schema)"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: in_progress
 priority: P1
 branch_slug: residual-pii-surface
 adrs: ["[[ADR-319]]"]
@@ -12,7 +12,7 @@ depends_on: ["[[A34.l9]]", "[[A34.l10]]", "[[A34.l11]]"]
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/in-progress
   - priority/p1
   - area/seguranca
 ---

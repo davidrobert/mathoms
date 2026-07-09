@@ -32,14 +32,14 @@ size_lines: 132
 
 `extract_with_llm` permite o LLM emitir `member_key` por transação/investimento no E2-llm. O modelo tende a inventar variações que não casam com a chave canônica do workspace (`family_members.key`):
 
-- Workspace `Campos` tem `titular_key = "david_robert_camargo_ferreira_campos"` (key derivada do `full_name`).
-- Informe IR Itaú extraído pelo LLM produziu `membro="david_robert_camargo_de_campos"` (slugificou o `nome_nascimento` — outro nome legal).
+- Workspace `Exemplo` tem `titular_key = "david_robert_martins_andrade_silva"` (key derivada do `full_name`).
+- Informe IR Itaú extraído pelo LLM produziu `membro="david_robert_martins_de_silva"` (slugificou o `nome_nascimento` — outro nome legal).
 - Extrato Binance extraído pelo LLM produziu `membro="david_robert"` (slug do `short_name`).
 - Nenhum dos dois bate em `titular_key`.
 
-Consequência observada (workspace `Campos`, run `c36c4baf-…`):
+Consequência observada (workspace `Exemplo`, run `c36c4baf-…`):
 
-- [`InvestmentsConsolidator.consolidate`](../../pipeline/domain/services/investments_consolidator.py:124) faz dedup por `(instituicao, membro)` e calcula `total_por_membro`. As 4 posições do informe IR Itaú (R$ 290k CDB + outros) ficaram sob `"david_robert_camargo_de_campos"`; as 8 do Binance sob `"david_robert"`. Nenhum agrega no `titular_key` canônico.
+- [`InvestmentsConsolidator.consolidate`](../../pipeline/domain/services/investments_consolidator.py:124) faz dedup por `(instituicao, membro)` e calcula `total_por_membro`. As 4 posições do informe IR Itaú (R$ 290k CDB + outros) ficaram sob `"david_robert_martins_de_silva"`; as 8 do Binance sob `"david_robert"`. Nenhum agrega no `titular_key` canônico.
 - [`analyze_patrimonio`](../../scripts/analyze_finances.py:989) em E5 lê `totais.get(_TITULAR_KEY, 0)` — recebe 0 quando totais tem chaves variantes. Card "Investimentos David Robert" mostrou R$ 317,24 (acidentalmente capturou o Binance sob algum match parcial) em vez de R$ 700k+ esperado.
 
 Já existe [[ADR-226]] `AccountResolver` que resolve `(banco, conta_numero) → member_key`. **Não cobre** o caso do informe IR, que traz **nome** mas não conta. Falta um resolver simétrico para nome.
@@ -86,7 +86,7 @@ Cada chamada emite log `mathoms.pipeline.member_name_resolver.resolved` com fiel
 
 ## Consequências
 
-- ✅ **Fix observado**: informe rendimento Itaú resolve `"david_robert_camargo_de_campos"` (via `nome_nascimento`) → `"david_robert_camargo_ferreira_campos"` canônica. Posições do CDB R$ 290k agregam corretamente em `total_por_membro["titular_key"]`.
+- ✅ **Fix observado**: informe rendimento Itaú resolve `"david_robert_martins_de_silva"` (via `nome_nascimento`) → `"david_robert_martins_andrade_silva"` canônica. Posições do CDB R$ 290k agregam corretamente em `total_por_membro["titular_key"]`.
 - ✅ **Atribuição por membro correta** em S2/S3/S5: cards "Investimentos David", "Cenários do cônjuge", split de receitas/despesas por pessoa, todos passam a usar a chave canônica.
 - ✅ **Defesa em camadas**: normaliza no E2-llm (fonte) E no InvestmentsConsolidator (consumer). Artifacts E2 carry-forwarded de runs antigas (pré-ADR-243) também são corrigidos no consume.
 - ✅ **Telemetria observável**: log estruturado mostra eficácia do resolver. Sem `unknown`/`ambiguous` em produção → vocabulário estável; alto → drift do LLM ou família sub-especificada.
@@ -96,7 +96,7 @@ Cada chamada emite log `mathoms.pipeline.member_name_resolver.resolved` com fiel
 ## Gates de regressão
 
 - **T1** — `tests/unit/pipeline/test_member_name_resolver.py` (19 testes): cobre as 7 confidences, ambiguidade, vocabulário real do LLM, telemetria estruturada, casos de borda.
-- **T2** — Manual/dogfood: regerar o relatório real (workspace `Campos`, run sobre dezembro/2025) e validar que `investimentos.total_por_membro` agrega corretamente sob `david_robert_camargo_ferreira_campos`.
+- **T2** — Manual/dogfood: regerar o relatório real (workspace `Exemplo`, run sobre dezembro/2025) e validar que `investimentos.total_por_membro` agrega corretamente sob `david_robert_martins_andrade_silva`.
 
 ## Follow-ups
 

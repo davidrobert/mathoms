@@ -32,7 +32,7 @@ size_lines: 168
 
 O produto promete suporte a **incremental** ([[ADR-080]]): usuário envia 1–N documentos novos e o pipeline reprocessa só o delta. Mas o usuário espera ver o **cumulativo correto** no relatório (todos os meses do período pedido, todos os bancos).
 
-Investigação em relatório real (workspace `Campos`, run `c36c4baf-…`, período 2025-12, 15 informes selecionados) expôs o gap: o relatório saiu com `total_receita: R$ 1.398,60` e `total_despesa: R$ 52.605,96` baseados em apenas **4 transações** de 1 informe IR — o universo real do workspace tem 70+ extratos bancários (Itaú, Santander, Bradesco, C6, Wise, BTG, BankOfAmerica, Rico, Picpay) acumulados em 6 rodadas anteriores. Causa direta:
+Investigação em relatório real (workspace `Exemplo`, run `c36c4baf-…`, período 2025-12, 15 informes selecionados) expôs o gap: o relatório saiu com `total_receita: R$ 1.398,60` e `total_despesa: R$ 52.605,96` baseados em apenas **4 transações** de 1 informe IR — o universo real do workspace tem 70+ extratos bancários (Itaú, Santander, Bradesco, C6, Wise, BTG, BankOfAmerica, Rico, Picpay) acumulados em 6 rodadas anteriores. Causa direta:
 
 1. `DBArtifactStore.list_keys(stage)` retorna chaves workspace-wide (~80 E2 keys visíveis).
 2. `DBArtifactStore.read(stage, key)` filtra por `pipeline_run_id` atual; só os 2 E2 novos desta rodada retornam payload — todos os outros devolvem `None`.
@@ -71,8 +71,8 @@ E3/E4/E5 são diferentes: têm invariantes **cross-account** (dedup de transaç�
 
 ## Consequências
 
-- ✅ **Fix imediato**: relatórios em incremental refletem cumulativo correto. Workspace `Campos` (caso observado) passa a enxergar os 70+ extratos.
-- ✅ **Sem mudança em E3/E4/E5**: invariantes cross-account preservados. Custo de recomputação aceitável (~30s para 80 E2 no workspace `Campos`).
+- ✅ **Fix imediato**: relatórios em incremental refletem cumulativo correto. Workspace `Exemplo` (caso observado) passa a enxergar os 70+ extratos.
+- ✅ **Sem mudança em E3/E4/E5**: invariantes cross-account preservados. Custo de recomputação aceitável (~30s para 80 E2 no workspace `Exemplo`).
 - ✅ **Sem migration estrutural**: índice composto é additive, sem alteração de schema.
 - ✅ **Telemetria detecta drift**: log no fallback expõe consumidores que dependem da feature, facilitando futura migration de scope.
 - ⚠️ **Crescimento da tabela**: `pipeline_artifacts` deixa de ter GC implícito ("artifacts de runs antigas eram inalcançáveis"). Em workspace ativo, todo E2 de toda run histórica fica vivo (mesmo doc → row nova a cada re-upload). Política de retenção/GC vira **débito explícito** — ver §Follow-ups.
