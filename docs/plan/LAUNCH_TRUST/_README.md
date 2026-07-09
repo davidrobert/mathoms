@@ -105,15 +105,16 @@ do cliente pagante.**
 | **KR7** | Golden eval do Parecer (24 fixtures) em CI, 7 red lines com hard-block | verde, 0 red-line violada | F3 |
 | **KR8** | Fallback `needs_review` atômico testado: LLM down → relatório não quebra | teste de regressão verde | F3 |
 
-> **Status 2026-06-29.** **F1 🟢** (A21 9/9 + dedup de dívida F1-O3 em
-> [#689](https://github.com/davidrobert/mathoms/pull/689), [[ADR-301]] `Decidido` —
-> fecha KR2/KR3). **F3 🟢 no núcleo:** KR7 entregue em
-> [#690](https://github.com/davidrobert/mathoms/pull/690) ([[ADR-300]] `Decidido` —
-> 7 red lines determinísticas + eval no PR gate); KR8 (fallback atômico) já existia
-> desde A23–A27. Prompt-side das red lines (REGRA 14 + `PROMPT_VERSION 2.1.0`)
-> **entregue 2026-07-01**; residual owner-gated = só o run 24×5 IC95 para cravar a
-> taxa emergente. **F2 🟡:** KR5 (deploy reproduzível) +
-> off-site permanecem owner-gated ([[ADR-228]] G2/G3).
+> **Status 2026-07-08 (A22 fechada `done`).** **F1 🟢** (A21 9/9 + dedup de
+> dívida F1-O3 em [#689](https://github.com/davidrobert/mathoms/pull/689),
+> [[ADR-301]] `Decidido` — fecha KR2/KR3). **F3 🟢:** F3-O0/O1/O2 (KR7+KR8) —
+> 7 red lines determinísticas + eval no PR gate ([#690](https://github.com/davidrobert/mathoms/pull/690),
+> [[ADR-300]] `Decidido`) + fallback atômico (A23–A27); prompt-side (REGRA 14 +
+> `PROMPT_VERSION 2.1.0`) entregue #700/#701; **F3-O4 drift detection (5 sinais)
+> + pin de model** entregue em [#801](https://github.com/davidrobert/mathoms/pull/801).
+> Residual owner-gated = só o run 24×5 IC95 (LLM-real nightly) para cravar a taxa
+> emergente. **F2 🟡:** KR5 (deploy reproduzível) + off-site permanecem
+> owner-gated ([[ADR-228]] G2/G3).
 
 ---
 

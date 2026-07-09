@@ -566,6 +566,7 @@
 | CHG-2026-07-01-A26-L4-INSTRUMENTACAO-DUALREAD | changelog-entry |  | A26 |  | `sprint/A26/changelog/CHG-2026-07-01-A26-L4-INSTRUMENTACAO-DUALREAD.md` |
 | CHG-2026-07-02-A27-L1-EVIDENCIA-LINEAGE-EDGE | changelog-entry |  | A27 |  | `sprint/A27/changelog/CHG-2026-07-02-A27-L1-EVIDENCIA-LINEAGE-EDGE.md` |
 | CHG-2026-07-06-A29-REVIEW-UX-SPRINT | changelog-entry |  | A29 |  | `sprint/A29/changelog/CHG-2026-07-06-A29-REVIEW-UX-SPRINT.md` |
+| CHG-2026-07-08-A22-CLOSURE | changelog-entry |  | A22 |  | `sprint/A22/changelog/CHG-2026-07-08-A22-CLOSURE.md` |
 | CHG-2026-07-08-A32-L2-VOCABULARIO-E2LLM-CUTOVER | changelog-entry |  | A32 |  | `sprint/A32/changelog/CHG-2026-07-08-A32-L2-VOCABULARIO-E2LLM-CUTOVER.md` |
 | CHG-2026-07-08-A33-SPRINT-CLOSE | changelog-entry |  | A33 |  | `sprint/A33/changelog/CHG-2026-07-08-A33-SPRINT-CLOSE.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
