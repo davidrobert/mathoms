@@ -583,8 +583,10 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 > materializa neste PR — `recharts` permanece no `package.json` para os 5
 > consumidores fora do relatório (`Mathom{Area,Bar,Pie}Chart` +
 > `plano/_dashboard/{Pie,Bar}ChartCard`, ADR-037); remoção da dep é escopo
-> futuro. Baselines visuais S1 regeneradas via workflow_dispatch no runner
-> Linux (procedimento TESTING.md §visual regression).
+> futuro. Baselines visuais S1: validadas SEM regen — workflow_dispatch
+> (run 28986420387, `--update-snapshots`, runner Linux) retornou S1
+> light/dark PASS com artefato byte-idêntico aos 48 PNGs commitados; a
+> troca SVG→canvas ficou dentro do `maxDiffPixelRatio` 2,5% do gate.
 
 ### [W5-T03] MonetaryValue migration
 
