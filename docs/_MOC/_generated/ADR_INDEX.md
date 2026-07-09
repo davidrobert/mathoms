@@ -274,7 +274,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### Decidido (4)
 
-- [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP) · phase A12
+- [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP) · phase A12.alocacao-v2
 - [[ADR-142]] — Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem
 - [[ADR-222]] — Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` · phase A12
 - [[ADR-223]] — Default conservador `imoveis_no_if=false` para workspaces novos + banner contextual · phase A12
