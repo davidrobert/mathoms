@@ -1,6 +1,7 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { formatJanelaTooltip } from "../utils/janelaLabel";
 import type { CardVariant } from "@/generated/report-layout";
 import type { ReservaEmergenciaData } from "@/types/report-analysis";
@@ -124,19 +125,11 @@ export function ReservaEmergenciaCard({
         </dl>
 
         <div>
-          <div
-            className="h-2 rounded-full bg-[var(--surface-muted)]"
-            role="progressbar"
-            aria-valuenow={pctRumoAlvo}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={progressAria}
-          >
-            <div
-              className="h-full rounded-full bg-[var(--semantic-gain)] transition-[width]"
-              style={{ width: `${pctRumoAlvo}%` }}
-            />
-          </div>
+          <ProgressBar
+            value={pctRumoAlvo}
+            ariaLabel={progressAria}
+            barClassName="bg-[var(--semantic-gain)]"
+          />
           <p className="mt-1 text-xs text-[var(--surface-muted-foreground)]">
             {pctRumoAlvo.toFixed(0)}% {progressCaption}
           </p>

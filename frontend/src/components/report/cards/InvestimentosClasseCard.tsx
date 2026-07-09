@@ -38,9 +38,9 @@ export function InvestimentosClasseCard({ investimentos }: InvestimentosClasseCa
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--surface-border)] text-left">
-              <th className="pb-2 font-display font-semibold">Classe</th>
-              <th className="pb-2 text-right font-display font-semibold">Valor</th>
-              <th className="pb-2 text-right font-display font-semibold">%</th>
+              <th scope="col" className="pb-2 font-display font-semibold">Classe</th>
+              <th scope="col" className="pb-2 text-right font-display font-semibold">Valor</th>
+              <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
             </tr>
           </thead>
           <tbody>

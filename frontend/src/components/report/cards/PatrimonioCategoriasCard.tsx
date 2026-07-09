@@ -39,11 +39,11 @@ export function PatrimonioCategoriasCard({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--surface-border)] text-left">
-              <th className="pb-2 font-display font-semibold">Categoria</th>
-              <th className="pb-2 text-right font-display font-semibold">
+              <th scope="col" className="pb-2 font-display font-semibold">Categoria</th>
+              <th scope="col" className="pb-2 text-right font-display font-semibold">
                 Valor
               </th>
-              <th className="pb-2 text-right font-display font-semibold">%</th>
+              <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
             </tr>
           </thead>
           <tbody>

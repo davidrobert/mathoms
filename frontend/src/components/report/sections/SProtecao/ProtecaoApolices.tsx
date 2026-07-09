@@ -54,12 +54,12 @@ export function ProtecaoApolices({ data }: { data: ProtecaoPatrimonialData }) {
       <table className="mt-3 w-full text-style-body">
         <thead>
           <tr className="border-b border-surface-divider">
-            <th className="text-left">Apólice</th>
-            <th className="text-left">Seguradora</th>
-            <th className="text-left">Status</th>
-            <th className="text-left">Vigência</th>
-            <th className="text-right">Prêmio anual</th>
-            <th className="text-left">Bens</th>
+            <th scope="col" className="text-left">Apólice</th>
+            <th scope="col" className="text-left">Seguradora</th>
+            <th scope="col" className="text-left">Status</th>
+            <th scope="col" className="text-left">Vigência</th>
+            <th scope="col" className="text-right">Prêmio anual</th>
+            <th scope="col" className="text-left">Bens</th>
           </tr>
         </thead>
         <tbody>

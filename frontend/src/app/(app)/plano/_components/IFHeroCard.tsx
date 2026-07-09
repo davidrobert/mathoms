@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { MonetaryValue } from "@/components/report/MonetaryValue";
 import {
   ifMonthlyContributionDisplay,
@@ -99,12 +100,12 @@ function IFHeroProgress({
           {progress.pct.toFixed(1)}%
         </p>
       </div>
-      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-[var(--brand-info)] to-[var(--brand-accent)] transition-all duration-700"
-          style={{ width: `${Math.min(progress.pct, 100)}%` }}
-        />
-      </div>
+      <ProgressBar
+        value={progress.pct}
+        ariaLabel={`Progresso rumo à meta de independência financeira: ${progress.pct.toFixed(1)}%`}
+        className="mt-3 bg-muted"
+        barClassName="bg-gradient-to-r from-[var(--brand-info)] to-[var(--brand-accent)] transition-all duration-700"
+      />
       <p className="mt-2 text-xs text-muted-foreground">
         Faltam <MonetaryValue value={progress.faltante} /> para a meta
       </p>

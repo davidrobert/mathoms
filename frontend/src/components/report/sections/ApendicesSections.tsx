@@ -67,7 +67,7 @@ function SimpleTable({
         <thead>
           <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
             {headers.map((h) => (
-              <th key={h} className="pb-2 font-semibold">
+              <th key={h} scope="col" className="pb-2 font-semibold">
                 {h}
               </th>
             ))}

@@ -211,6 +211,7 @@ function BreakdownTable({ breakdown, max }: BreakdownTableProps) {
             {["Dimensão", "Nota", "Peso", "Contrib."].map((h, i) => (
               <th
                 key={h}
+                scope="col"
                 style={{
                   textAlign: i === 0 ? "left" : "center",
                   fontWeight: 600,

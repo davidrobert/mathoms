@@ -189,14 +189,14 @@ function DesktopTable({ rows, hasAlvo }: TableProps): JSX.Element {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[var(--surface-border)] text-left text-[var(--surface-muted-foreground)]">
-            <th className="py-2 font-display font-semibold">Classe</th>
-            <th className="py-2 text-right font-display font-semibold">Valor</th>
-            <th className="py-2 text-right font-display font-semibold">Atual</th>
+            <th scope="col" className="py-2 font-display font-semibold">Classe</th>
+            <th scope="col" className="py-2 text-right font-display font-semibold">Valor</th>
+            <th scope="col" className="py-2 text-right font-display font-semibold">Atual</th>
             {hasAlvo && (
-              <th className="py-2 text-right font-display font-semibold">Alvo</th>
+              <th scope="col" className="py-2 text-right font-display font-semibold">Alvo</th>
             )}
             {hasAlvo && (
-              <th className="py-2 text-right font-display font-semibold">Desvio (pp)</th>
+              <th scope="col" className="py-2 text-right font-display font-semibold">Desvio (pp)</th>
             )}
           </tr>
         </thead>

@@ -64,7 +64,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 **Próximos pickups ready agora:**
 
 - **W6-T01 residual** (sub-schemas E4 + wire ADR-090) — flip strict shipou via A24.l7 ([[ADR-284]]); split E4 + codegen + wire compliance seguem pickup (wire flip write-side exige ADR `Proposto` antes).
-- **W5** — frontend/metodologia; **re-verificação factual concluída 2026-07-08 (spike W5, pós-A33)**: W5-T01 parcial, W5-T02/T03 válidas como escritas, W5-T04 parcial (sub-PR #2 obsoleto — [[ADR-239]]/[[ADR-240]]), W5-T05 parcial (numerador `investivel_efetivo` ✅). Nenhuma task da onda zerou — W5 permanece pickup real, com escopo reduzido anotado por task (§Wave 5).
+- **W5** — frontend/metodologia; **re-verificação factual concluída 2026-07-08 (spike W5, pós-A33)**: W5-T01 residual entregue 2026-07-08 (scope=col + ProgressBar + reduced-motion; resta só o que acopla com W5-T02/W1-T01), W5-T02/T03 válidas como escritas, W5-T04 parcial (sub-PR #2 obsoleto — [[ADR-239]]/[[ADR-240]]), W5-T05 parcial (numerador `investivel_efetivo` ✅). W5 permanece pickup real, com escopo reduzido anotado por task (§Wave 5).
 - **Owner-gated (não são pickup de agente):** W3-T02 (Resend EU), W4-T02 residual (token Coolify = A20 L4), W4-T01 residual (off-site R2, ADR-228 G2/G3).
 
 > **Reconciliação 2026-07-06** — auditoria factual pós-A28 (sprint `paused` desde
@@ -116,7 +116,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W4-T03 | SR-011 + BB-015 Sentry SaaS EU + frontend hookup | 4 | blocked | sre-devops | P1 | S | — |
 | W4-T04 | SR-018 Rate limit endpoints LLM/upload/pipeline | 4 | done (2026-07-02, [PR #720](https://github.com/davidrobert/mathoms/pull/720) — `services/rate_limit.py` aplicado a upload + pipeline_run) | sre-devops | P1 | M | — |
 | W4-T05 | BB-002 + SR-017 + SR-028 Status page + alertas + drill | 4 | blocked | sre-devops | P1 | M | W4-T03 |
-| W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | parcial — aria-label de charts coberto p/ Chart.js (Onda v2.E/[[ADR-139]], `ChartCanvas` role="img"); resta scope=col (0/13), role="progressbar" (3 call-sites + primitivo), reduced-motion e gate axe moderate (re-verificado 2026-07-08, spike W5) | product-designer | P1 | S | W1-T01 |
+| W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | residual entregue 2026-07-08 — scope=col em todos os `<th>` (default no primitivo TableHead + 23 arquivos literais), primitivo `<ProgressBar/>` + adoções (IFHero, ReservaEmergencia; EquilibrioCerbasi = role="img" por ser distribuição), reduced-motion global; ficam por design: gate axe critical+serious (D1), aria-label dos 2 Recharts (acopla W5-T02), baselines visuais (W1-T01) | product-designer | P1 | S | W1-T01 |
 | W5-T02 | PD-004 + BB-011 Recharts → Chart.js residual em S1 | 5 | válida (pendente) — 2 charts seguem Recharts; primitives prontos desde ADR-117; ADR-139 pede emenda, não flip (re-verificado 2026-07-08, spike W5) | product-designer | P1 | M | W5-T01 |
 | W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | válida (pendente) — 18 call-sites do inventário seguem no código + novos fora dele (re-verificado 2026-07-08, spike W5) | product-designer | P1 | M | W1-T01 |
 | W5-T04 | FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | 5 | parcial — sub-PR #5 ✅ via W1-T02 (#98); #2 obsoleto (superseded [[ADR-239]]/[[ADR-240]]); #1/#3/#4 válidos (re-verificado 2026-07-08, spike W5) | financial-planner | P1 | L | W1-T07 |
@@ -539,6 +539,24 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 > +`moderate` pendente; `aria-label` dos 2 Recharts residuais acopla com
 > W5-T02. Baselines visuais diferidas de W1-T01 (6 PNGs) seguem pendentes aqui.
 
+> **Residual entregue 2026-07-08 (sessão de closure A11).** `scope="col"`
+> em todos os cabeçalhos de coluna: default no primitivo `TableHead`
+> (`ui/table.tsx`, antes do spread — override possível) + 23 arquivos com
+> `<th>` literal; `scope="row"` pré-existente preservado
+> (CoberturaSegurosCard). Primitivo `<ProgressBar/>` criado em
+> `ui/ProgressBar.tsx` (role="progressbar", aria-valuenow/min/max com
+> clamp, `ariaLabel` obrigatório) e adotado em IFHeroCard +
+> ReservaEmergenciaCard (site do padrão de referência, dedupado);
+> EquilibrioCerbasiCard é distribuição empilhada presente/futuro — não
+> progresso rumo a alvo — então recebeu `role="img"` + aria-label
+> descritivo; microbars de `Kpi.tsx` mantidos `aria-hidden` (decorativos,
+> valor textual adjacente). `prefers-reduced-motion: reduce` global em
+> `globals.css` (0.01ms + 1 iteração — `animationend` dispara e skeleton/
+> indeterminate permanecem visíveis estáticos). **Segue pendente por
+> design:** gate axe mantido `critical+serious` (D1 não reaberta);
+> `aria-label` dos 2 Recharts residuais acopla com W5-T02; baselines
+> visuais (6 PNGs) seguem diferidas de W1-T01.
+
 ### [W5-T02] PD-004 + BB-011 Recharts → Chart.js residual S1
 
 - **deps:** W5-T01
@@ -895,3 +913,4 @@ Antes de pegar W2+, executar:
 - **2026-06-09 (noite)** — **W3-T03 entregue** ([PR #584](https://github.com/davidrobert/mathoms/pull/584)): refresh tokens httpOnly com family revocation; [[ADR-170]] flippada `Decidido (Sprint A11.W3)` com emendas; supersedure bidirecional [[ADR-057]] ↔ [[ADR-170]]. Wave 3 restante: W3-T01/T04 `ready`, W3-T02 `ready (owner-gated)`.
 - **2026-07-08 (noite, sessão de closure A11)** — reconciliação W6 contra entregas pós-A11: **W6-T05 done** (A32.l5 tombstone [[ADR-311]] + A33.l6 retention+prune #844; cascade descartado por design; residual fora da task = flip `prune_mode=delete` em PR próprio) e **W6-T07 done** (A33.l9 #855; ADR-285 `Decidido`). Lanes A11 (w3/w4/w5/w6/report-publication), `lanes.md` e SPRINTS-active §A11 sincronizadas com o Index. Residual consolidado da sprint: 5 owner-gated (W3-T02, W4-T01/T02 restos, W4-T03, W4-T05) + W5 residual + W6-T01 residual. ADR-174 é a única do DoD ainda `Proposto` (flip não merecido sem off-site R2 real).
 - **2026-07-08** — **spike docs-only de re-verificação factual da Wave 5** (follow-up nomeado no fechamento da A33): W5-T01 **parcial** (aria-label de charts coberto p/ Chart.js via Onda v2.E; scope=col 0/13, progressbar, reduced-motion e gate axe moderate pendentes), W5-T02 **válida** (2 charts seguem Recharts; ADR-139 exige emenda, não flip), W5-T03 **válida** (18 call-sites do inventário intactos + novos fora dele), W5-T04 **parcial** (sub-PR #5 ✅ via W1-T02 #98; #2 obsoleto por [[ADR-239]]/[[ADR-240]]; #1/#3/#4 válidos), W5-T05 **parcial** (`investivel_efetivo` + `imoveis_no_if` per-workspace ✅ #321/#331/#332; `if_meta_liquida`/emissão v2 pendentes, ADR-140 `Roadmap`). Saldo: **0 tasks da onda fecharam integralmente** — W5 segue viva com escopo reduzido anotado por task; não arquivar.
+- **2026-07-08 (noite)** — **W5-T01 residual entregue** (sessão de closure A11): `scope="col"` universal (primitivo `TableHead` + 23 arquivos com `<th>` literal), primitivo `<ProgressBar/>` em `ui/ProgressBar.tsx` com adoções (IFHeroCard, ReservaEmergenciaCard; EquilibrioCerbasiCard → `role="img"` por ser distribuição empilhada, Kpi microbars mantidos `aria-hidden`), `prefers-reduced-motion: reduce` global em `globals.css`. Ficam por design: gate axe `critical+serious` (D1), aria-label dos 2 Recharts (W5-T02), baselines visuais (W1-T01).

@@ -30,9 +30,9 @@ export function DiagnosticoComportamentalCard({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--surface-border)] text-left text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                  <th className="pb-2 font-semibold">Padrão</th>
-                  <th className="pb-2 font-semibold">Evidência</th>
-                  <th className="pb-2 font-semibold">Mudança Sugerida</th>
+                  <th scope="col" className="pb-2 font-semibold">Padrão</th>
+                  <th scope="col" className="pb-2 font-semibold">Evidência</th>
+                  <th scope="col" className="pb-2 font-semibold">Mudança Sugerida</th>
                 </tr>
               </thead>
               <tbody>
