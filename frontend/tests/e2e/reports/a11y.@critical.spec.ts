@@ -11,7 +11,9 @@ import { test } from "@playwright/test";
 import { expectNoA11yViolations } from "../helpers/axe";
 import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 
-const STRATEGIC_SECTIONS = ["S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10"];
+// V0 (SNAPSHOT_CHANGELOG_V3 W4/D6) — renderiza quando a fixture tem
+// `comparisons` (medium.json inclui o bloco desde a V0).
+const STRATEGIC_SECTIONS = ["V0", "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10"];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
 // ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA removido.
 

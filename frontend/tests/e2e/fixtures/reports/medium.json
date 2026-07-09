@@ -1,6 +1,52 @@
 {
   "periodo_dados": "2026-01 a 2026-04",
   "data_analise": "2026-04-25",
+  "comparisons": [
+    {
+      "section_id": "M_PL",
+      "section_label": "Patrimônio Líquido",
+      "before": 1150000.0,
+      "after": 1200000.0,
+      "delta_pct": 4.3,
+      "delta_signal": "up",
+      "direction_positive": "up",
+      "unit": "brl"
+    },
+    {
+      "section_id": "M_TAXA_POUPANCA",
+      "section_label": "Taxa de Poupança",
+      "before": 12.0,
+      "after": 15.0,
+      "delta_pct": 25.0,
+      "delta_signal": "up",
+      "direction_positive": "up",
+      "unit": "pp"
+    },
+    {
+      "section_id": "M_RESERVA_MESES",
+      "section_label": "Reserva de Emergência",
+      "before": 5.8,
+      "after": 6.0,
+      "delta_pct": 3.4,
+      "delta_signal": "stable",
+      "direction_positive": "up",
+      "unit": "meses"
+    },
+    {
+      "section_id": "M_AUVP_DESVIO",
+      "section_label": "Desvio da Alocação Alvo",
+      "before": 8.0,
+      "after": 5.0,
+      "delta_pct": -37.5,
+      "delta_signal": "down",
+      "direction_positive": "down",
+      "unit": "pp"
+    }
+  ],
+  "comparison_periods": {
+    "current": "202604",
+    "previous": "202603"
+  },
   "patrimonio": {
     "bruto": 1500000,
     "liquido": 1200000,

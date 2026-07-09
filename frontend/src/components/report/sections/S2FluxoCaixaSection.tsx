@@ -1,7 +1,6 @@
 "use client";
 
 import { ReportSection } from "../ReportSection";
-import { SectionSnapshotDiff } from "../SectionSnapshotDiff";
 import { SectionSummary } from "../SectionSummary";
 import { SuggestionCalloutInline } from "./SuggestionCallout";
 import {
@@ -92,9 +91,6 @@ export function S2FluxoCaixaSection({
       </div>
       <DiagnosticoComportamentalCard diagnostico={diagnostico} />
       <EquilibrioCerbasiCard equilibrio={equilibrio} />
-
-      {/* v2.8 (ADR-148) — comparisons + changelog vs relatório anterior. */}
-      <SectionSnapshotDiff sectionId="S2" data={data} />
     </ReportSection>
   );
 }

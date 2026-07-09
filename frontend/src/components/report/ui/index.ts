@@ -33,15 +33,6 @@ export { SplitCards, TwoColCards } from "./SplitCards";
 export { ComparisonBlock } from "./ComparisonBlock";
 export type { ComparisonSide } from "./ComparisonBlock";
 
-export { ComparisonItemsBlock } from "./ComparisonItemsBlock";
-export type { ComparisonItemView, DeltaSignal } from "./ComparisonItemsBlock";
-
-export { SnapshotChangelogList } from "./SnapshotChangelogList";
-export type {
-  SnapshotChangelogEntryView,
-  ChangelogDeltaSignal,
-} from "./SnapshotChangelogList";
-
 export { PriorityBadge } from "./badges/PriorityBadge";
 export type { PriorityLevel } from "./badges/PriorityBadge";
 

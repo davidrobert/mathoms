@@ -378,10 +378,10 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
  *
  * Seção forward-looking: roadmap e próximos passos, alimentada por
  * narrativas E5.N com fallback determinístico. Variação vs. relatório
- * anterior é responsabilidade dos diffs por seção (SectionSnapshotDiff)
- * e da futura seção V0 (ADR-190) — o card "Histórico de Ciclos" foi
- * removido em 2026-06-12 (TRACK-remove-historico-ciclos-app-e):
- * duplicava `data.changelog` single-pair com rótulo enganoso.
+ * anterior é responsabilidade da seção V0 (`VariacaoSection`, ADR-190
+ * §Emenda) — o card "Histórico de Ciclos" foi removido em 2026-06-12
+ * (TRACK-remove-historico-ciclos-app-e): duplicava `data.changelog`
+ * single-pair com rótulo enganoso.
  */
 export function ApendiceESection({ data }: { data: ReportAnalysisData }) {
   const narrativas = getNarrativas(data);

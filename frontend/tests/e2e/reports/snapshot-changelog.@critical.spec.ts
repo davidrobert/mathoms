@@ -1,184 +1,72 @@
 /**
- * v2.8 (ADR-148) — E2E @critical: 2º relatório carrega /reports/[id]
- * e mostra "Patrimônio Líquido cresceu X% desde o relatório anterior"
- * na seção S1 alimentado pelo SnapshotChangelogBuilder.
+ * V0 (SNAPSHOT_CHANGELOG_V3 W4/D6 · ADR-190 §Emenda) — E2E @critical:
+ * 2º relatório carrega /reports/[id] e mostra a seção "O que mudou desde o
+ * último relatório" (manchete neutra do M_PL + tabela de indicadores por
+ * unidade + rodapé de completude).
  *
- * Cenário: workspace com prev/curr snapshots. Mock backend injeta
- * `comparisons` + `changelog` no payload de /reports/[id]/data; UI
- * deve renderizar SectionSnapshotDiff em S1 com a tabela antes→depois
- * + a entry determinística do changelog.
+ * Usa `mockReportPage` (fixture `medium.json`, que traz as métricas
+ * canônicas v3 em `comparisons` + `comparison_periods`): o router bespoke
+ * antigo não cobria /suggestions|/decisions|/consumo-pontuais e derrubava o
+ * shell via ErrorBoundary (failure modes documentados em mock-report.ts).
+ *
+ * Valores esperados (medium.json):
+ * - M_PL 1.150.000 → 1.200.000 ⇒ manchete "+R$ 50.000,00"
+ * - M_TAXA_POUPANCA 12,0% → 15,0% (pp, up) ⇒ "+3,0 pp"
+ * - M_AUVP_DESVIO 8,0 → 5,0 (pp, down, direction_positive=down) ⇒ "-3,0 pp"
+ * - M_RESERVA_MESES stable ⇒ fora da tabela, rodapé de completude
  */
-import { expect, test, type Route } from "@playwright/test";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { expect, test } from "@playwright/test";
 
-import {
-  MOCK_REPORT_ID,
-  MOCK_WORKSPACE_ID,
-  waitForReportReady,
-} from "../helpers/mock-report";
+import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 
-const FIXTURES_DIR = join(__dirname, "..", "fixtures", "reports");
-
-test.describe("Report Premium · v2.8 comparisons + changelog @critical", () => {
-  // Unfrozen 2026-04-27: root cause em useConsumoPontuais.toState() +
-  // mock-report rota /reports/consumo-pontuais fixado em b47dd47 (Lane 4+2).
-  // ErrorBoundary parou de comer S1-S10 do DOM; spec @critical volta ao verde.
-  test("seção S1 mostra delta vs relatório anterior", async ({ page }) => {
-    const baseFixture = JSON.parse(
-      readFileSync(join(FIXTURES_DIR, "medium.json"), "utf-8"),
-    ) as Record<string, unknown>;
-
-    const fixtureWithDiff = {
-      ...baseFixture,
-      comparisons: [
-        {
-          section_id: "S1",
-          section_label: "Patrimônio Líquido",
-          before: 1_000_000,
-          after: 1_200_000,
-          delta_pct: 20.0,
-          delta_signal: "up",
-        },
-        {
-          section_id: "S2",
-          section_label: "Receita Total",
-          before: 240_000,
-          after: 240_000,
-          delta_pct: 0.0,
-          delta_signal: "stable",
-        },
-      ],
-      changelog: [
-        {
-          section_id: "S1",
-          summary:
-            "Patrimônio líquido cresceu R$ 200.000,00 desde o relatório anterior (+20,0%)",
-          delta_signal: "up",
-          delta_pct: 20.0,
-        },
-      ],
-    };
-
-    await page.addInitScript(() => {
-      localStorage.setItem("fin_token", "fixture-token");
-    });
-
-    const json = (route: Route, body: unknown, status = 200) =>
-      route.fulfill({
-        status,
-        contentType: "application/json",
-        body: JSON.stringify(body),
-      });
-
-    const workspaceId = MOCK_WORKSPACE_ID;
-    const reportId = MOCK_REPORT_ID;
-
-    await page.route("**/api/v1/**", async (route) => {
-      const url = new URL(route.request().url());
-      const path = url.pathname.replace(/^\/api\/v1/, "");
-
-      if (path === "/auth/me") {
-        return json(route, {
-          id: "user-fixture",
-          email: "fixture@test.com",
-          full_name: "Fixture User",
-          is_active: true,
-          is_superuser: false,
-          created_at: "2026-01-01T00:00:00Z",
-        });
-      }
-      if (path === "/me/workspaces") {
-        return json(route, {
-          workspaces: [
-            {
-              id: workspaceId,
-              name: "Workspace Fixture",
-              family_surname: "Sintético",
-              role: "owner",
-              joined_at: "2026-01-01T00:00:00Z",
-            },
-          ],
-          total: 1,
-        });
-      }
-      if (path === `/workspaces/${workspaceId}/reports/${reportId}`) {
-        return json(route, {
-          id: reportId,
-          workspace_id: workspaceId,
-          title: "Relatório com Diff",
-          period: "2026-04",
-          score: 82,
-          patrimonio_liquido: 1_200_000,
-          created_at: "2026-04-25T12:00:00Z",
-          pipeline_run_id: "run-fixture",
-          source_document_count: 3,
-          source_document_ids: ["doc-1", "doc-2", "doc-3"],
-          consumed_document_count: 3,
-          consumed_document_ids: ["doc-1", "doc-2", "doc-3"],
-          has_analysis_data: true,
-          premissas_snapshot: null,
-        });
-      }
-      if (path === `/workspaces/${workspaceId}/reports/${reportId}/data`) {
-        return json(route, fixtureWithDiff);
-      }
-      if (path === `/workspaces/${workspaceId}/reports/${reportId}/notes`) {
-        return json(route, {
-          id: "notes-1",
-          report_id: reportId,
-          content: "",
-          author_user_id: null,
-          updated_at: "2026-04-25T00:00:00Z",
-        });
-      }
-      if (path === `/workspaces/${workspaceId}/reports/${reportId}/kanban`) {
-        return json(route, { items: [] });
-      }
-      if (path.includes("/notifications")) {
-        return json(route, { notifications: [], total: 0, unread_count: 0 });
-      }
-      if (path.includes("/transactions")) {
-        return json(route, {
-          transactions: [],
-          total: 0,
-          page: 1,
-          page_size: 500,
-          summary: {
-            total_in: 0,
-            total_out: 0,
-            net: 0,
-            by_category: {},
-            by_member: {},
-          },
-        });
-      }
-      if (path.includes("/dashboard")) {
-        return json(route, {});
-      }
-      return json(route, {});
-    });
+test.describe("Report Premium · V0 o-que-mudou @critical", () => {
+  test("seção V0 mostra manchete do M_PL + indicadores vs relatório anterior", async ({
+    page,
+  }) => {
+    const { reportId } = await mockReportPage(page);
 
     await page.goto(`/reports/${reportId}`);
     await waitForReportReady(page);
 
-    // SectionSnapshotDiff em S1 deve renderizar com testid.
-    const diff = page.getByTestId("section-snapshot-diff-S1");
-    await expect(diff).toBeVisible();
+    // Seção V0 renderizada entre o Sumário Executivo e o banner de qualidade.
+    const section = page.locator("section#V0[data-report-section]");
+    await expect(section).toBeVisible();
+    await expect(
+      section.getByRole("heading", {
+        name: "O que mudou desde o último relatório",
+      }),
+    ).toBeVisible();
 
-    // Tabela do ComparisonItemsBlock — linha S1 com sinal "up".
-    const block = page.getByTestId("comparison-items-block").first();
-    await expect(block).toBeVisible();
-    await expect(block.locator("tr[data-section-id='S1']")).toHaveAttribute(
-      "data-delta-signal",
-      "up",
+    // Moldura temporal com os períodos reais do par.
+    await expect(page.getByTestId("v0-subtitle")).toHaveText(
+      "Este relatório (abril de 2026) comparado ao anterior (março de 2026). Listamos apenas variações relevantes.",
     );
 
-    // SnapshotChangelogList em S1 mostra a summary determinística.
+    // Manchete neutra: Δ do M_PL com sinal explícito, sem glifo ▲/▼.
+    const headline = page.getByTestId("v0-headline");
+    await expect(headline).toBeVisible();
+    await expect(headline).toContainText(/\+R\$\s*50\.000,00/);
+    await expect(headline).not.toContainText("▲");
+    await expect(page.getByTestId("v0-headline-caption")).toContainText(
+      "A separação entre aporte, rendimento e efeito de mercado ainda não está disponível.",
+    );
+
+    // Tabela de indicadores: formatação por unidade + julgamento W2.
+    const table = page.getByTestId("v0-indicators-table");
+    await expect(table).toBeVisible();
+    const taxaRow = table.locator('tr[data-section-id="M_TAXA_POUPANCA"]');
+    await expect(taxaRow).toHaveAttribute("data-delta-signal", "up");
+    await expect(taxaRow).toContainText("+3,0 pp");
+    const desvioRow = table.locator('tr[data-section-id="M_AUVP_DESVIO"]');
+    await expect(desvioRow).toHaveAttribute("data-delta-signal", "down");
+    await expect(desvioRow).toContainText("-3,0 pp");
+
+    // Stable some da lista e vai para o rodapé de completude.
     await expect(
-      diff.getByText(
-        /Patrimônio líquido cresceu R\$ 200\.000,00 desde o relatório anterior \(\+20,0%\)/,
-      ),
-    ).toBeVisible();
+      table.locator('tr[data-section-id="M_RESERVA_MESES"]'),
+    ).toHaveCount(0);
+    await expect(page.getByTestId("v0-stable-footer")).toHaveText(
+      "Outro indicador acompanhado permaneceu estável.",
+    );
   });
 });

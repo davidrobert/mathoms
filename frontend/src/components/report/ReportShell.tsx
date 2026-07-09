@@ -20,6 +20,7 @@ import { ReportSectionStub } from "./ReportSectionStub";
 import { useReportMode } from "./ReportModeProvider";
 import { MigratedSection, MIGRATED_SECTIONS } from "./MigratedSection";
 import { SuggestionCalloutSummary } from "./sections/SuggestionCallout";
+import { VariacaoSection } from "./VariacaoSection";
 import { PerfilFamiliaCard, TitularesCard } from "./cards";
 import {
   ReportActions,
@@ -79,9 +80,15 @@ function selectSections(_mode: "estrategico"): SectionSpec[] {
   return LAYOUT.estrategico.sections;
 }
 
+/** Seções renderizadas pelo shell fora de `layout.sections` (padrão Sumário
+ * Executivo). Títulos aqui alimentam nav/TOC quando o YAML só tem o anchor. */
+const SHELL_SECTION_TITLES: Record<string, string> = {
+  V0: "O que mudou",
+};
+
 /** Mapa section_id → title para lookup rápido (usado pelo buildNavGroups). */
 function buildTitleMap(): Record<string, string> {
-  const map: Record<string, string> = {};
+  const map: Record<string, string> = { ...SHELL_SECTION_TITLES };
   for (const s of LAYOUT.estrategico.sections) map[s.id] = s.title;
   for (const a of LAYOUT.estrategico.appendices ?? []) map[a.id] = a.title;
   return map;
@@ -326,6 +333,13 @@ export function ReportShell({
                 * Paridade com EXEMPLO_DE_RELATORIO.html:1376 (id="kpis"). */}
               {mode === "estrategico" && (
                 <ExecutiveSummarySection data={dataState.data} />
+              )}
+
+              {/* V0 (SNAPSHOT_CHANGELOG_V3 W4/D6 · ADR-190 §Emenda) — "O que
+                * mudou desde o último relatório". Hide-when-empty: retorna
+                * null no primeiro relatório (comparisons null). */}
+              {mode === "estrategico" && (
+                <VariacaoSection data={dataState.data} />
               )}
 
               {/* A28.l9 — banner agregado de qualidade de dados (KR4),

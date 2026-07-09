@@ -38,10 +38,6 @@ vi.mock("@/components/report/cards", () => ({
   EquilibrioCerbasiCard: () => null,
   OrcamentoProspectivoCard: () => null,
 }));
-vi.mock("@/components/report/SectionSnapshotDiff", () => ({
-  SectionSnapshotDiff: () => null,
-}));
-
 import { S2FluxoCaixaSection } from "@/components/report/sections/S2FluxoCaixaSection";
 import type { ReportAnalysisData } from "@/lib/api";
 
