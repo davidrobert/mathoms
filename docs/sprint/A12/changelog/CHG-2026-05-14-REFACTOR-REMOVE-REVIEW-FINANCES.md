@@ -26,7 +26,7 @@ adrs:
 Stage `review_finances` (E7-review) e seu dependente direto `apply_review`
 (E7-apply) foram supersedidos por `review_finances_holistic` (parecer
 planejador) nos Atos 1-6 do plano
-[`PLANNER_REVIEW`](../../../plan/PLANNER_REVIEW/_README.md) (PRs #242-#250).
+[`PLANNER_REVIEW`](../../../archive/PLANNER_REVIEW-2026-07-09.md) (PRs #242-#250).
 
 Output legacy era órfão — nenhum endpoint, componente React ou aggregate
 consumia `("E7-review", "review_llm")` nem `("E7-apply", "analyze_finances_revised")`.

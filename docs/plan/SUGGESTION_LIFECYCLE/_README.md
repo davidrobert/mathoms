@@ -26,7 +26,7 @@ tags:
 > incorporados em 2026-06-12).
 >
 > **Relação com planos existentes:** estende o aterrissado em
-> [[PLAN-planner-review]] (Atos 1-6 entregues); **não** reabre ADR-199..208 —
+> [PLANNER_REVIEW](../../archive/PLANNER_REVIEW-2026-07-09.md) (Atos 1-6 entregues); **não** reabre ADR-199..208 —
 > corrige dívida de ciclo de vida do aggregate `Suggestion` que [[ADR-269]]
 > resolveu apenas para `task_suggestions`.
 

@@ -42,7 +42,7 @@ theme: "parecer-defensavel"
 
 A21 entregou a frente F1 inteira (confiabilidade do número) e abriu os gates de
 F3 e LGPD. A22 ataca o que sobrou para o cutover: a **Frente 3 — Parecer
-defensável**. O Parecer existe e renderiza ([[PLAN-planner-review]], Atos 0-6);
+defensável**. O Parecer existe e renderiza ([PLANNER_REVIEW](../../archive/PLANNER_REVIEW-2026-07-09.md), Atos 0-6);
 falta provar que **não alucina conselho irresponsável** (eval + 7 red lines com
 hard-block) e que **degrada com graça** quando o LLM cai (fallback
 `needs_review` atômico). Em paralelo, uma lane barata de F1 fecha a
@@ -122,7 +122,7 @@ colisão de arquivo). Se houver um só agente de schema, sequencie `l5` depois d
 ## Federação (regra anti-drift)
 
 - **l1/l2/l3/l4** implementam o núcleo de F3 do [[PLAN-launch-trust]] (frente
-  FEDERADA → [[PLAN-planner-review]] done + [[PLAN-llm-prompts-hardening]]). Não
+  FEDERADA → [PLANNER_REVIEW](../../archive/PLANNER_REVIEW-2026-07-09.md) done + [[PLAN-llm-prompts-hardening]]). Não
   reabrem o stage do Parecer; adicionam a malha de eval/guardrails que falta. No
   merge, os checkboxes F3-O0/O1/O2/O4 do plano dono flippam — **não** se
   re-implementa em A23.
@@ -136,7 +136,7 @@ colisão de arquivo). Se houver um só agente de schema, sequencie `l5` depois d
 
 - [[MOC-sprint-a21]] `done` — F1-O0 (INV-1..9), F1-O1 (golden fn/fp), F1-O2
   (contrato `EntityDedup`), F3-O3 (injeção, [[ADR-175]]). ✅
-- [[PLAN-planner-review]] `done` — Parecer renderiza (Atos 0-6, ADR-199..208). ✅
+- [PLANNER_REVIEW](../../archive/PLANNER_REVIEW-2026-07-09.md) `done` — Parecer renderiza (Atos 0-6, ADR-199..208). ✅
 - Telemetria de prompt (`PROMPT_VERSION`, confidence) em `main`. ✅
 
 ## Não-objetivos / Gates owner-gated

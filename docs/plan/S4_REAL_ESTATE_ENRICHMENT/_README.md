@@ -43,7 +43,7 @@ tags:
 > antes de PR P0/P1" antes de qualquer PR de implementação.
 >
 > **Não bloqueia / não é bloqueado por:** parecer planejador
-> ([PLAN-planner-review](../PLANNER_REVIEW/_README.md), ✅ done). S4 é
+> ([PLANNER_REVIEW](../../archive/PLANNER_REVIEW-2026-07-09.md), ✅ done). S4 é
 > diagnóstico determinístico (P0); parecer é interpretação holística (E6
 > LLM). Mesma família, camadas distintas.
 
