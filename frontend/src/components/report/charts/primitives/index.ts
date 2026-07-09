@@ -4,7 +4,8 @@
  *   import { ChartBar, ChartDonut, ChartConclusion } from "@/components/report/charts/primitives";
  *
  * Para charts concretos (PatrimonioDoughnutChart, etc.) ver
- * frontend/src/components/report/charts/_registry.ts (Recharts legado, migração gradual).
+ * frontend/src/components/report/charts/_registry.ts (Chart.js puro desde
+ * W5-T02 / v2.E.9 — ADR-139, emenda 2026-07-08).
  */
 export { ChartCanvas } from "./ChartCanvas";
 export type { ChartCanvasProps } from "./ChartCanvas";

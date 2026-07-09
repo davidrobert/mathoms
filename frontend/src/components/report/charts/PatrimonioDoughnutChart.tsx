@@ -1,33 +1,16 @@
 "use client";
 
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-} from "recharts";
 import { ReportCard } from "../ReportCard";
+import { ChartDonut } from "./primitives/ChartDonut";
+import { fmtBRL } from "./_shared";
 import type { PatrimonioData } from "@/types/report-analysis";
 
-const CHART_COLORS = Array.from(
-  { length: 12 },
-  (_, i) => `var(--chart-${i + 1})`,
-);
-
-function fmtBRL(n: number): string {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-/** F9 · F2.A · S1 — Chart "Composição Patrimonial" (PieChart).
+/** W5-T02 (v2.E.9) · S1 — Chart "Composição Patrimonial" (Chart.js doughnut).
  *
- * Substitui o canvas Chart.js `chart-patrimonio-doughnut` no template E6.
- * SVG nativo via Recharts, pronto para print e dark mode via tokens.
+ * Migrado de Recharts → `ChartDonut` (primitives), fechando o resíduo
+ * intencional da Onda v2.E (ADR-139, emenda 2026-07-08). Paleta
+ * categórica (`--chart-1..12`) resolvida pelo `useChartTheme` dentro do
+ * primitive; legenda bottom + tooltip BRL preservam a versão Recharts.
  */
 export function PatrimonioDoughnutChart({
   patrimonio,
@@ -36,11 +19,10 @@ export function PatrimonioDoughnutChart({
   patrimonio: PatrimonioData | undefined;
   conclusion?: string;
 }) {
-  const rows =
-    patrimonio?.composicao ?? patrimonio?.tabela_categorias ?? [];
+  const rows = patrimonio?.composicao ?? patrimonio?.tabela_categorias ?? [];
   const data = rows
     .filter((r) => r.valor > 0)
-    .map((r) => ({ name: r.categoria, value: r.valor }));
+    .map((r) => ({ label: r.categoria, value: r.valor }));
 
   if (data.length === 0) {
     return (
@@ -55,47 +37,12 @@ export function PatrimonioDoughnutChart({
   return (
     <ReportCard variant="neutral" title="Composição Patrimonial" conclusion={conclusion}>
       <div className="w-full">
-        <ResponsiveContainer width="100%" height={288}>
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={55}
-              outerRadius={95}
-              paddingAngle={2}
-              stroke="var(--surface-card)"
-              strokeWidth={2}
-            >
-              {data.map((entry, idx) => (
-                <Cell
-                  key={`cell-${entry.name}-${idx}`}
-                  fill={CHART_COLORS[idx % CHART_COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                background: "var(--surface-card)",
-                border: "1px solid var(--surface-border)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--surface-foreground)",
-                fontFamily: "var(--font-body)",
-                fontSize: "0.875rem",
-              }}
-              formatter={(value) => fmtBRL(Number(value))}
-            />
-            <Legend
-              verticalAlign="bottom"
-              iconType="circle"
-              wrapperStyle={{
-                fontFamily: "var(--font-body)",
-                fontSize: "0.75rem",
-                color: "var(--surface-muted-foreground)",
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <ChartDonut
+          data={data}
+          formatValue={fmtBRL}
+          height={288}
+          ariaLabel="Composição patrimonial por categoria"
+        />
       </div>
     </ReportCard>
   );
