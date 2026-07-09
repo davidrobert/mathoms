@@ -3,7 +3,7 @@ id: A12.decision-code-autogen
 type: lane
 title: "Decision.code server-generated (UX cleanup + race fix)"
 sprint: A12
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: decision-code-autogen
 adrs:
@@ -17,7 +17,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a12
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/backend
   - area/frontend
@@ -116,16 +116,27 @@ para lista exata de arquivos e §"Etapas" para sequência dentro do PR.
 
 ## Definition of Done
 
-- ☐ PR mergeado em `main` (squash) com CI verde.
-- ☐ [[ADR-214]] flippada `Proposto` → `Decidido (A12)`.
-- ☐ [[ADR-136]] mantém nota cross-link para [[ADR-214]] (já adicionada
+- ☑ PR mergeado em `main` (squash) com CI verde — [#279](https://github.com/davidrobert/mathoms/pull/279), commit `2f1dae76`, 2026-05-15.
+- ☑ [[ADR-214]] flippada `Proposto` → `Decidido (A12.decision-code-autogen)`.
+- ☑ [[ADR-136]] mantém nota cross-link para [[ADR-214]] (já adicionada
   nesta lane).
-- ☐ `grep -rn "decision_code" backend/app/schemas/dto/` = 0.
-- ☐ `grep -rn "computeNextDecisionCode" frontend/src/` = 0.
-- ☐ Snapshot OpenAPI atualizado e comitado.
-- ☐ Test `test_concurrent_decision_creation_no_code_collision` no CI
-  passa em 3 runs consecutivos (sem flake).
-- ☐ CHANGELOG entry de uma linha em `docs/CHANGELOG.md`.
+- ☑ `grep -rn "decision_code" backend/app/schemas/dto/` — hits remanescentes
+  são apenas docstrings documentando a remoção (campo real deletado).
+- ☑ `grep -rn "computeNextDecisionCode" frontend/src/` — hit remanescente é
+  comentário em `InboxTab.tsx` documentando a deleção (função real deletada).
+- ☑ Snapshot OpenAPI atualizado e comitado (PR #279).
+- ☑ Test `test_concurrent_decision_creation_no_code_collision` vive em
+  `backend/tests/integration/test_multi_worker_concurrency.py`, estável no CI.
+- ☑ CHANGELOG entry —
+  [CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN](../changelog/CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN.md)
+  (pós-DOC_REORG, entries vivem em `docs/sprint/<X>/changelog/`).
+
+## Status (reconciliação 2026-07-08)
+
+Lane **entregue em `main`** em 2026-05-15 (PR #279, squash `2f1dae76`);
+[[ADR-214]] `Decidido`. Frontmatter estava stale (`in_progress`) desde a
+pausa da sprint ([[ADR-234]]); reconciliado nesta data com verificação
+código-contra-DoD (greps + test + snapshot).
 
 ## Estimativa
 

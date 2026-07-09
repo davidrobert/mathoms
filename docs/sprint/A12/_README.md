@@ -15,6 +15,16 @@ sprint_status: paused
 > wall-clock) é o último bloqueio para fechar DoD. FU-1 + FU-2 entregues,
 > FU-3 absorvido como A15. Retomada: flip `paused → candidate` quando
 > A15 fechar.
+>
+> **Reconciliação 2026-07-08:** frontmatter das lanes estava stale desde a
+> pausa. Verificação código-contra-DoD confirmou **entregues em `main`**:
+> `sunset-disk-artifact` (PRs #262-#268, ADR-212 Decidido),
+> `decision-code-autogen` (PR #279, ADR-214 Decidido) e
+> `irpf-prefill-bank-accounts` (PRs #345/#347, ADR-229 Decidido — A13 nunca
+> abriu; entregue direto). Pendências reais para fechar a sprint:
+> (1) gate dogfood humano do cat-learning-loop (CEO, 7d wall-clock);
+> (2) destino da lane [[A12.alocacao-v2]] — único escopo de eng aberto,
+> decisão do owner (entregar dentro da A12 vs realocar como débito).
 
 ## Resumo
 
@@ -55,19 +65,20 @@ Lições críticas do co-design `financial-planner` + `product-designer`
   + dogfood gate; P5/P6 são V2 pós-tração).
   Plano: [CAT_LEARNING_LOOP](../../plan/CAT_LEARNING_LOOP/_README.md).
   ADR: [[ADR-186]].
-- **A12.sunset-disk-artifact** — sunset `DiskArtifactStore` + flag
-  `MATHOMS_USE_DB_ARTIFACTS` + coluna `use_db_artifacts_override` + CLI
-  standalone do pipeline (5 PRs sequenciais, ~5d eng em ~3 sem
-  calendário). Cleanup pós-cutover desbloqueia [[ADR-211]] lane 3.
-  Plano = [[ADR-212]] (a ADR é o plano).
+- **A12.sunset-disk-artifact** ✅ **entregue 2026-05-15** — sunset
+  `DiskArtifactStore` + flag `MATHOMS_USE_DB_ARTIFACTS` + coluna
+  `use_db_artifacts_override` + CLI standalone do pipeline (PRs #262-#268
+  + docs). Cleanup pós-cutover desbloqueou [[ADR-211]] lane 3.
+  Plano = [[ADR-212]] (`Decidido (A12.sunset-disk-artifact)`).
   Lane: [A12.sunset-disk-artifact](lanes/A12-sunset-disk-artifact-cleanup.md).
   Track: [sunset-disk-artifact](tracks/sunset-disk-artifact.md).
-- **A12.decision-code-autogen** — `Decision.code` passa a ser
-  server-generated com `pg_advisory_xact_lock`; cliente perde input
-  "Código da decisão" em 3 modais; `SuggestionResponse` ganha
-  `accepted_decision_code`. PR único cross-cutting (~1-1.5d eng).
-  Fecha race condition real + cleanup UX validado por `product-designer`.
-  Plano = [[ADR-214]] (Proposto, estende [[ADR-136]]).
+- **A12.decision-code-autogen** ✅ **entregue 2026-05-15** — `Decision.code`
+  server-generated com `pg_advisory_xact_lock`; cliente perdeu input
+  "Código da decisão" em 3 modais; `SuggestionResponse` ganhou
+  `accepted_decision_code`. PR único cross-cutting
+  ([#279](https://github.com/davidrobert/mathoms/pull/279)).
+  Fechou race condition real + cleanup UX validado por `product-designer`.
+  Plano = [[ADR-214]] (`Decidido`, estende [[ADR-136]]).
   Lane: [A12.decision-code-autogen](lanes/A12-decision-code-autogen-server-gen.md).
   Track: [decision-code-autogen](tracks/decision-code-autogen.md).
 - **A12.bank-account-disambig** ✅ **entregue 2026-05-20** — desambiguação
@@ -82,17 +93,26 @@ Lições críticas do co-design `financial-planner` + `product-designer`
   [[ADR-226]] `Decidido (A12.bank-account-disambig)`.
   Lane: [A12.bank-account-disambig](lanes/A12-bank-account-disambig-multi-member.md).
   Track: [bank-account-disambig](tracks/bank-account-disambig.md).
-- **A12.irpf-prefill-bank-accounts** 🕐 **deferred → A13** — pre-fill UI
-  com sugestões de contas detectadas no IRPF via E1; remove fricção
-  do `/config` → Membros (~80% redução de tempo cadastro para ICP que
-  entrega IRPF). 2 PRs (~2d eng). Pattern arquitetural genérico
-  reutilizável em V2 (membros + imóveis + investimentos). Co-design
-  `product-designer` + `financial-planner` 2026-05-20. Lane mantida em
-  `docs/sprint/A12/` apenas por schema constraint (A13 ainda não existe);
-  move para `docs/sprint/A13/` quando A11 fechar.
-  Plano = [[ADR-229]] (Proposto).
+- **A12.irpf-prefill-bank-accounts** ✅ **entregue 2026-05-20** — pre-fill
+  UI com sugestões de contas detectadas no IRPF via E1; remove fricção
+  do `/config` → Membros. 2 PRs
+  ([#345](https://github.com/davidrobert/mathoms/pull/345) +
+  [#347](https://github.com/davidrobert/mathoms/pull/347)). Originalmente
+  deferred → A13, mas A13 nunca abriu (numeração pulou A12 → A15) e a lane
+  foi entregue direto; permanece nesta pasta como registro histórico.
+  Plano = [[ADR-229]] (`Decidido (A13.irpf-prefill-bank-accounts)`).
   Lane: [A12.irpf-prefill-bank-accounts](lanes/A12-irpf-prefill-bank-accounts-deferred-a13.md).
   Track: [irpf-prefill-bank-accounts](tracks/irpf-prefill-bank-accounts.md).
+- **A12.alocacao-v2** ⚠️ **aberta — único escopo de eng pendente** —
+  migração alocação-alvo schema v1→v2 (7 classes AUVP, `derived.desvio_*`
+  backend-driven, remove `alocacaoBucketMapper` client-side). O schema v2
+  existe (`config/schemas/goal.alocacao_alvo.v2.schema.json`, [[ADR-141]]),
+  mas a migração runtime **não shipou**: backend/wizard/seeds operam em v1
+  e o bucketMapper segue referenciado em 3 componentes do relatório
+  (o próprio corpo da ADR-141 registra esse débito; o flip em lote
+  Proposto→Decidido do PR #668 cobriu só a decisão de schema). ~5d eng,
+  P2. Destino (entregar aqui vs realocar como débito) é decisão do owner.
+  Lane: [A12.alocacao-v2](lanes/A12-alocacao-v2-migration.md).
 
 Lanes adicionais entram aqui conforme A11 fecha trabalho que naturalmente
 empurra continuação para A12.
