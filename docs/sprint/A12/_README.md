@@ -3,17 +3,24 @@ id: MOC-sprint-a12
 type: moc
 title: Sprint A12 — Categorization learning loop + post-A11 follow-up
 aliases: ["A12", "Sprint A12"]
-sprint_status: current
+sprint_status: done
 ---
 
 # Sprint A12 — Categorization learning loop + post-A11 follow-up (origem 2026-05-10)
 
-> **Status:** `current` desde 2026-07-08 (retomada). Histórico: `paused`
-> 2026-05-20 → 2026-07-08 ([[ADR-234]]) — cedeu prioridade para
-> [[Sprint A15]] (FU-3 imóvel financiado, originalmente débito desta
-> sprint via [[ADR-215]] §Follow-ups). P1-P4 (UI mínima) + gate técnico
-> shipped (PRs #188, #194, #195-#198). FU-1 + FU-2 entregues, FU-3
-> absorvido como A15.
+> **Status:** `done` desde 2026-07-09. Histórico: `current` 2026-07-08→09
+> (retomada) · `paused` 2026-05-20 → 2026-07-08 ([[ADR-234]]) — cedeu
+> prioridade para [[Sprint A15]] (FU-3 imóvel financiado). P1-P4 (UI
+> mínima) + gate técnico shipped (PRs #188, #194, #195-#198). FU-1 + FU-2
+> entregues, FU-3 absorvido como A15.
+>
+> **Fechamento 2026-07-09:** todas as lanes `shipped`. A última,
+> [[A12.alocacao-v2]], entregue em 9 PRs (#885-#910) — migração
+> alocação-alvo v1→v2 (7 classes AUVP, desvio backend-driven) completa e
+> verificada end-to-end; débito do `alocacaoBucketMapper` client-side
+> removido. Débitos remanescentes NÃO bloqueiam a A12: PR8 (redesign
+> visual do wizard — shim já funcional) vira backlog de polish; PR11
+> (remoção do schema v1 + ativação de regra) é owner-gated (snapshot DB).
 >
 > **Reconciliação 2026-07-08:** frontmatter das lanes estava stale desde a
 > pausa. Verificação código-contra-DoD confirmou **entregues em `main`**:
@@ -108,16 +115,19 @@ Lições críticas do co-design `financial-planner` + `product-designer`
   Plano = [[ADR-229]] (`Decidido (A13.irpf-prefill-bank-accounts)`).
   Lane: [A12.irpf-prefill-bank-accounts](lanes/A12-irpf-prefill-bank-accounts-deferred-a13.md).
   Track: [irpf-prefill-bank-accounts](tracks/irpf-prefill-bank-accounts.md).
-- **A12.alocacao-v2** ⚠️ **aberta — único escopo de eng pendente** —
+- **A12.alocacao-v2** ✅ **shipped 2026-07-09 (9 PRs, #885-#910)** —
   migração alocação-alvo schema v1→v2 (7 classes AUVP, `derived.desvio_*`
-  backend-driven, remove `alocacaoBucketMapper` client-side). O schema v2
-  existe (`config/schemas/goal.alocacao_alvo.v2.schema.json`, [[ADR-141]]),
-  mas a migração runtime **não shipou**: backend/wizard/seeds operam em v1
-  e o bucketMapper segue referenciado em 3 componentes do relatório
-  (o próprio corpo da ADR-141 registra esse débito; o flip em lote
-  Proposto→Decidido do PR #668 cobriu só a decisão de schema). ~5d eng,
-  P2. **Decisão do owner (2026-07-08): entregar dentro da A12** — última
-  lane antes do flip `done`.
+  backend-driven) completa e verificada end-to-end: calculator de domínio,
+  DTOs + conversão on-read (v1/órfão/v2 por fingerprint), API v2 +
+  `converted_from`, seed v2, serializer do bundle + E5 injetando o bloco
+  `derived` rico, card do relatório consumindo `derived` e **`alocacaoBucketMapper`
+  client-side deletado** (débito que originou a lane), chart ids
+  consolidados. Co-design `financial-planner` + `data-engineer` +
+  `product-designer` ([[ADR-141]] §Emenda 2026-07-08). Corrigiu de quebra o
+  bug do shape órfão do seed (GET 500) e um bug de integração do `derived`
+  (não disparava em produção). Débitos NÃO-bloqueantes: PR8 (redesign
+  visual do wizard — shim funcional) → backlog; PR11 (remove schema v1 +
+  ativa regra) → owner-gated.
   Lane: [A12.alocacao-v2](lanes/A12-alocacao-v2-migration.md).
 
 Lanes adicionais entram aqui conforme A11 fecha trabalho que naturalmente
@@ -154,9 +164,10 @@ Esta sprint fecha quando:
 - ☑ KPIs `mathoms.categorization.*` instrumentados na versão MVP (P3 backend).
 - ☑ Plano canônico arquivado em
   [docs/archive/CAT_LEARNING_LOOP-2026-07-08.md](../../archive/CAT_LEARNING_LOOP-2026-07-08.md) (2026-07-08).
-- ☐ Lane [[A12.alocacao-v2]] entregue em `main` (adicionada ao DoD em
-  2026-07-08 por decisão do owner: entregar dentro da A12 em vez de
-  realocar como débito).
+- ☑ Lane [[A12.alocacao-v2]] entregue em `main` — 9 PRs (#885-#910),
+  migração v1→v2 completa e verificada end-to-end (2026-07-09). Débitos
+  não-bloqueantes registrados: PR8 (polish do wizard → backlog) e PR11
+  (schema v1 cleanup → owner-gated).
 
 V2 (P5 inbox de sugestões + P6 detector offline + alertas SRE +
 side-panel 480px + highlight-to-extract) entra em sprint posterior,
