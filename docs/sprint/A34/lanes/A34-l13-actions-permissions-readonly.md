@@ -4,7 +4,7 @@ type: lane
 title: "permissions read-all default + elevação por-job"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: shipped
 priority: P0
 branch_slug: actions-permissions-readonly
 adrs: ["[[ADR-320]]"]
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/ci
   - area/seguranca

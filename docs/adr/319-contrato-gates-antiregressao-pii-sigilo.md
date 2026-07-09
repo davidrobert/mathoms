@@ -2,21 +2,22 @@
 id: ADR-319
 type: adr
 title: "Contrato de gates anti-regressão PII + sigilo metodológico pós-público"
-status: Proposto
+status: Decidido
+phase: A34
 date: "2026-07-08"
 relates_to: ["[[PLAN-public-release]]", "[[A34.l4]]", "[[A34.l5]]", "[[A34.l6]]", "[[ADR-183]]"]
 supersedes: []
 superseded_by: []
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/seguranca
   - area/ci
 ---
 
 # ADR-319 — Contrato de gates anti-regressão PII + sigilo metodológico pós-público
 
-**Status:** Proposto · **Data:** 2026-07-08 · Enforcement da Onda 2 de
+**Status:** Decidido (A34) · **Data:** 2026-07-08 · Enforcement da Onda 2 de
 [[PLAN-public-release]] ([[A34.l4]]/[[A34.l5]]/[[A34.l6]]); consome o
 vocabulário canônico de [[ADR-183]].
 

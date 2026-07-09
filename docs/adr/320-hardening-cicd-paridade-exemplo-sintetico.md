@@ -2,21 +2,22 @@
 id: ADR-320
 type: adr
 title: "Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético"
-status: Proposto
+status: Decidido
+phase: A34
 date: "2026-07-08"
 relates_to: ["[[PLAN-public-release]]", "[[A34.l13]]", "[[A34.l14]]", "[[A34.l15]]", "[[A34.l8]]"]
 supersedes: []
 superseded_by: []
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/ci
   - area/seguranca
 ---
 
 # ADR-320 — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético
 
-**Status:** Proposto · **Data:** 2026-07-08 · Uma das 8 ADRs do gate G0 de
+**Status:** Decidido (A34) · **Data:** 2026-07-08 · Uma das 8 ADRs do gate G0 de
 [[PLAN-public-release]]. Diferente das ADRs 313–318 (owner-gated), esta
 agrupa **duas decisões técnicas não-owner-gated** — a política é fechada
 pela síntese do co-design, não pelo owner.

@@ -37,6 +37,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Lanes: 14 done · 0 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-246]], [[ADR-255]], [[ADR-267]], [[ADR-268]], [[ADR-271]]
 
+### PLAN-public-release — PUBLIC_RELEASE — tornar o repo público in-place com segurança e qualidade de referência
+
+- Status: `in_progress` · Sprint atual: A34
+- Sprints envolvidas: A34
+- Lanes: 10 done · 0 in_progress · 14 open · 0 blocked
+- ADRs canônicas: [[ADR-313]], [[ADR-314]], [[ADR-315]], [[ADR-316]], [[ADR-317]], [[ADR-318]], [[ADR-319]], [[ADR-320]]
+
 ### PLAN-report-premium — Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html`
 
 - Status: `in_progress` · Sprint atual: —
@@ -140,13 +147,6 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A12
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-221]]
-
-### PLAN-public-release — PUBLIC_RELEASE — tornar o repo público in-place com segurança e qualidade de referência
-
-- Status: `draft` · Sprint atual: —
-- Sprints envolvidas: A34
-- Lanes: 0 done · 0 in_progress · 23 open · 0 blocked
-- ADRs canônicas: [[ADR-313]], [[ADR-314]], [[ADR-315]], [[ADR-316]], [[ADR-317]], [[ADR-318]], [[ADR-319]], [[ADR-320]]
 
 ### PLAN-residencia-e-uso — Residência e uso econômico de imóveis — override DB substitui keyword
 

@@ -4,7 +4,7 @@ type: lane
 title: "Regenerar EXEMPLO_DE_RELATORIO.html sintético"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: shipped
 priority: P0
 branch_slug: regen-exemplo-relatorio-synthetic
 adrs: ["[[ADR-320]]"]
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/report
 ---

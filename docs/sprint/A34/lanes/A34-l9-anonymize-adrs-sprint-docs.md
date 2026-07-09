@@ -4,7 +4,7 @@ type: lane
 title: "Anonimizar ~15 ADRs + docs de sprint (in-body apenas)"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: shipped
 priority: P0
 branch_slug: anonymize-adrs-sprint-docs
 adrs: []
@@ -12,7 +12,7 @@ depends_on: ["[[A34.l4]]"]
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/docs
 ---

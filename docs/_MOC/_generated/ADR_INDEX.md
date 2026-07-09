@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 285
-- **Proposto**: 25
+- **Decidido**: 287
+- **Proposto**: 23
 - **Roadmap**: 3
 
 ## Fundação
@@ -332,13 +332,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## ci
 
-### Decidido (1)
+### Decidido (2)
 
+- [[ADR-320]] — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético · phase A34
 - [[ADR-322]] — Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)
-
-### Proposto (1)
-
-- [[ADR-320]] — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético
 
 ## data-lineage
 
@@ -585,12 +582,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## seguranca
 
-### Proposto (4)
+### Decidido (1)
+
+- [[ADR-319]] — Contrato de gates anti-regressão PII + sigilo metodológico pós-público · phase A34
+
+### Proposto (3)
 
 - [[ADR-315]] — Estratégia de rewrite de histórico git para release pública
 - [[ADR-316]] — Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs)
 - [[ADR-317]] — Identidade de autoria no mailmap público
-- [[ADR-319]] — Contrato de gates anti-regressão PII + sigilo metodológico pós-público
 
 ## Outras
 
