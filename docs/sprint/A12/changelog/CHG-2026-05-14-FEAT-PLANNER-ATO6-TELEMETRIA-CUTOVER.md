@@ -24,7 +24,7 @@ adrs:
 
 # feat(planner): Ato 6 — telemetria + cutover + hardening
 
-Ato 6 (último) do plano [`PLANNER_REVIEW`](../../../plan/PLANNER_REVIEW/_README.md).
+Ato 6 (último) do plano [`PLANNER_REVIEW`](../../../archive/PLANNER_REVIEW-2026-07-09.md).
 Hardening operacional pós-shipping — não bloqueia uso, fecha lacunas
 de evolução de longo prazo da feature parecer planejador.
 

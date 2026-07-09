@@ -208,3 +208,31 @@ Resend, off-site R2, Coolify, Sentry, status page) + tracks preservados
 (`docs/sprint/W5/tracks/w5t05-goal-if-v2.md`,
 `docs/sprint/W6/tracks/w6t01-schema-hardening.md`) para os backlog
 candidates W5-T04/W5-T05/W6-T01.
+
+## PLANNER_REVIEW-2026-07-09.md
+
+Plano canônico do Parecer do Planejador (E6, Sprint A11/A12, origem
+2026-05-12): substituição de `review_finances` por stage LLM com persona
+de planejamento patrimonial consagrado. Atos 0-6 mergeados (PRs #242-#250); 10 ADRs
+([[ADR-199]]..[[ADR-208]], Decididas) — schemas + manifest declarativo,
+aggregate + endpoint, stage + orchestrator, renderer + UX + tier filter,
+telemetria + cross-provider + cutover + healthcheck.
+
+**Arquivado em:** 2026-07-09 (audit-vault r7 F35, decisão do owner — Opção B).
+**Substituído por:** stage `review_finances_holistic` em produção; a malha de
+eval + guardrails defensáveis sobre o Parecer segue viva em
+[[PLAN-launch-trust]] §F3 (federada).
+
+## RESIDENCIA_E_USO-2026-07-09.md
+
+Plano canônico de residência e uso econômico de imóveis (Sprint A12, origem
+2026-05-15): override DB substitui a keyword legada de residência.
+MVP V1 (P1-P6) shipped 2026-05-15/18 (#278–#320); ADRs [[ADR-215]] +
+[[ADR-142]] + [[ADR-222]], Decididas.
+
+**Arquivado em:** 2026-07-09 (audit-vault r7 F35 + F19, decisão do owner — Opção B;
+o frontmatter estava `draft` apesar do MVP entregue — corrigido para `done` antes
+do arquivamento).
+**Substituído por:** rules-as-code em
+`pipeline/domain/services/patrimonio_calculator.py` (`split_imoveis`) + override DB
+(`workspace_property_overrides` / `property_identity`).

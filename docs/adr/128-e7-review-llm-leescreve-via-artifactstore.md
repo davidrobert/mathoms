@@ -25,7 +25,7 @@ size_lines: 48
 `apply_review` (E7-apply) removidos do código. Superseded por
 [[ADR-199]] (`parecer_planejador` / `review_finances_holistic`).
 Decisão de produto após cutover dos Atos 1-6 do plano
-[`PLANNER_REVIEW`](../plan/PLANNER_REVIEW/_README.md). Artifacts
+[`PLANNER_REVIEW`](../archive/PLANNER_REVIEW-2026-07-09.md). Artifacts
 `("E7-review", "review_llm")` e `("E7-apply", "analyze_finances_revised")`
 permanecem em `pipeline_artifacts` para auditoria; não foram deletados
 (política de retenção / opção A — workspaces antigos preservam histórico).

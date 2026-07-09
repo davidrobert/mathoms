@@ -79,7 +79,7 @@ existentes. Cada frente declara explicitamente ownership:
 |---|---|---|---|
 | **F1** | **OWNED** | este plano | Território verde — nenhum plano cobre `consolidate_baseline` (E1.5c). [PLAN-platform-review](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) adiou explicitamente E1.5c para "Q3 2026" (§coverage gaps). F1 puxa para agora porque é launch-blocker. |
 | **F2** | **OWNED** (desde 2026-07-08) | este plano + [[ADR-228]] (G1-G5) | A11 fechou `done` com o residual W3-T02/W4-T01/W4-T02/W4-T03/W4-T05 (código + drill, owner-gated) **transferido para cá** (emenda [[ADR-228]] 2026-07-08). Histórico das tasks: [PLAN-platform-review](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) (arquivado). |
-| **F3** | **FEDERADA** | [[PLAN-planner-review]] (done) + [[PLAN-llm-prompts-hardening]] | Camada de **eval + guardrails defensáveis** sobre o Parecer já entregue. Não reabre o stage; adiciona a malha de segurança que falta para lançar. |
+| **F3** | **FEDERADA** | [PLANNER_REVIEW](../../archive/PLANNER_REVIEW-2026-07-09.md) (done) + [[PLAN-llm-prompts-hardening]] | Camada de **eval + guardrails defensáveis** sobre o Parecer já entregue. Não reabre o stage; adiciona a malha de segurança que falta para lançar. |
 
 **Regra anti-drift:** quando uma task F2/F3 referenciada mudar de status no
 plano dono, este plano **não** atualiza o detalhe — só o checkbox de
@@ -365,7 +365,7 @@ viram lanes deste plano:
 
 ## Frente 3 — Parecer defensável (FEDERADA)
 
-> **Dono canônico:** [[PLAN-planner-review]] (status `done` — Atos 0-6 mergeados,
+> **Dono canônico:** [PLANNER_REVIEW](../../archive/PLANNER_REVIEW-2026-07-09.md) (status `done` — Atos 0-6 mergeados,
 > ADR-199..208) + [[PLAN-llm-prompts-hardening]] (telemetria/LGPD/ADR-090 nos 9
 > prompts). Esta seção adiciona a **malha de eval + guardrails** que falta
 > para o Parecer ser defensável diante de um cliente pagante.
@@ -468,7 +468,7 @@ arquitetural):
 ## Cross-links
 
 - **F2 dono:** este plano (desde o closure da A11, 2026-07-08; histórico: [`PLAN-platform-review`](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)) — [[ADR-228]] G1-G5.
-- **F3 dono:** [`PLAN-planner-review`](../PLANNER_REVIEW/_README.md) — Atos 0-6, [[ADR-199]]..[[ADR-208]].
+- **F3 dono:** [`PLANNER_REVIEW`](../../archive/PLANNER_REVIEW-2026-07-09.md) (arquivado) — Atos 0-6, [[ADR-199]]..[[ADR-208]].
 - **F3 dono:** [`PLAN-llm-prompts-hardening`](../LLM_PROMPTS_HARDENING/_README.md) — telemetria/LGPD nos prompts.
 - **ADRs canônicas de F1:** [[ADR-246]] (imóveis), [[ADR-255]] (transações), [[ADR-267]] (membros por CPF), [[ADR-268]] (filtro PF×PJ — INV-9), [[ADR-271]] (investimentos).
 - **Invariantes relacionadas:** [[ADR-236]] (base PGBL = renda tributável PF), [[ADR-212]] (ArtifactStore DB-only, janela RTO rollback).
