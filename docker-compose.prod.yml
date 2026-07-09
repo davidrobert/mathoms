@@ -1,12 +1,14 @@
 # =============================================================================
 # Mathoms AI — docker-compose.prod.yml (lane 7A-dev · dev.5)
 # =============================================================================
-# Stack mínimo para `dev.mathoms.ai` (Hetzner CX32 + Coolify). Orquestra:
+# Stack mínimo para `dev.mathoms.ai` (VPS gerenciado + plataforma de
+# deploy self-hosted — A34.l11: topologia de produção não nomeia fornecedor).
+# Orquestra:
 #   postgres + redis + api + worker + beat + frontend
 #
 # Decisões aceitas (vide ADR-108 e contexto 7A-dev):
-#   - Sem Traefik aqui — Coolify roda Traefik externamente e injeta TLS.
-#     Portas expostas em 127.0.0.1 só para teste local (Coolify proxy
+#   - Sem Traefik aqui — a plataforma de deploy roda Traefik externamente e injeta TLS.
+#     Portas expostas em 127.0.0.1 só para teste local (o proxy da plataforma
 #     entra via rede do compose, não via host port).
 #   - 1 réplica de `api` (Alembic upgrade idempotente, mas race em
 #     multi-replica). `worker` e `beat` aguardam `api` healthy antes de
@@ -20,16 +22,16 @@
 #   - Healthcheck só no `api` (curl /health) e no `frontend` (curl /).
 #     Worker/beat não têm endpoint HTTP — `disable: true` evita ruído.
 #
-# Como rodar localmente (smoke do compose, sem Coolify):
+# Como rodar localmente (smoke do compose, sem a plataforma de deploy):
 #   1. cp .env.prod.example .env.prod.local
 #   2. ./dev/gen-secrets.sh >> .env.prod.local   # FERNET_KEY/SECRET_KEY/POSTGRES_PASSWORD
 #   3. docker compose --env-file .env.prod.local -f docker-compose.prod.yml up --build
 #
-# Como Coolify usa:
+# Como a plataforma de deploy usa:
 #   - Build context = repo root.
-#   - Env vars do `.env.prod.local` são importadas pela UI Coolify; valores
-#     `${VAR}` abaixo são resolvidos pelo Coolify no deploy.
-#   - Coolify substitui as portas 127.0.0.1:* pela rede interna dele —
+#   - Env vars do `.env.prod.local` são importadas pela UI da plataforma; valores
+#     `${VAR}` abaixo são resolvidos pela plataforma no deploy.
+#   - A plataforma substitui as portas 127.0.0.1:* pela rede interna dela —
 #     mantemos o bind local apenas para validação humana via SSH tunnel.
 #
 # Não substitui `docker-compose.dev.yml` (frontend-ops local) nem

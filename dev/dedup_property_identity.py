@@ -260,10 +260,10 @@ def _process(workspace_id: str, dry_run: bool) -> dict:
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
-    db_url = os.environ.get(
-        "MATHOMS_DATABASE_URL_SYNC",
-        "sqlite:////Users/davidrobert/Desktop/_dev/mathoms.ai/mathoms.db",
-    )
+    # A34.l11 (ADR-319): fallback relativo à raiz do repo — path absoluto de
+    # máquina local não vai para arquivo tracked.
+    default_db = Path(__file__).resolve().parent.parent / "mathoms.db"
+    db_url = os.environ.get("MATHOMS_DATABASE_URL_SYNC", f"sqlite:///{default_db}")
     Session = sessionmaker(bind=create_engine(db_url, future=True), future=True)
     with Session() as session:
         report = _build_report(session, workspace_id, dry_run)

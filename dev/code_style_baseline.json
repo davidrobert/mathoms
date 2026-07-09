@@ -26176,7 +26176,7 @@
       "severity": "info"
     }
   ],
-  "repo_root": "/Users/davidrobert/Desktop/_dev/mathoms.ai/.claude/worktrees/agent-ad7c2888085a8c822",
+  "repo_root": ".",
   "summary": {
     "files_scanned": {
       "python": 1635,

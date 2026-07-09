@@ -361,14 +361,15 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
         "NUTRA BODY",
         "MP *FARMAPOPULAR",
         "SCRIPTS PHARMACY",
-        "CAMILANAKAMURA",
+        # A34.l11: profissionais PF nomeados removidos (PII de terceiro);
+        # placeholder mantém o shape pedagógico da categoria.
+        "PROFISSIONAL SAUDE EXEMPLO",
         "POUPA MEDI",
         "EINSTEIN MORUMBI",
         "HOSPITAL ALBERT EINSTE",
         "CLINICA DERMATOLOGICA",
         "INSTITUTO DR BARAKAT",
         "PDV*BARA CLINICA",
-        "ABDO MOHAMED",
         "BRENTESINSTITUTO",
         "FISIOTERAPIA BEBE EIRE",
         "PELVIE FISIOTERAPIA",
@@ -384,7 +385,6 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
         "RDSAUDE ONLINE",
         "DPS SUPLEMENTOS",
         "RAIA",
-        "MARCONI BASSO",
         "DROGARIA X FARMACIA",
         "PG *LIVANCE",
         "ESPACO GIRAS",
@@ -392,8 +392,6 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
         "CVS/PHARMACY",
         "PT *ORL HLTH PYMT",
         "HT SARAGIOTTO SERVICOS MEDICOS",
-        "LUMMA ROBERTA",
-        "HELEN SASAKE TAKAGI",
         "FULL FACE MEDIC",
         "CONCAVO E CONVEXO",
         "PACEFIT",
@@ -667,12 +665,8 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
         "COBASI",
         "PETZ",
         "RAPPI*PET CENTER",
-        "ELAINE APARECIDA BUZZ",
         "RK2LAVARAPIDOE",
         "4MS",
-        "SAMUELABNERSANTOSMARC",
-        "MP *33798933SAMUELABN",
-        "ANA LUCIA SANTOS",
         "GUIA DE EMPREGADO DOMESTICO",
         "PAG*PETCENTERCOMERCIO",
     ],
@@ -723,22 +717,14 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
         "SECRETARIA DO TESOURO NACIONAL",
     ],
     "suporte_familiar": [
+        # A34.l11 (ADR-319): nomes reais de familiares substituídos por
+        # placeholders sintéticos — função (match por descrição de PIX/TED)
+        # preservada; workspace real re-treina via learning loop (ADR-186).
         "ALO BEBE",
         "ICA*ICASEI",
         "MAKOS LEMBRANCAS",
-        "RUBENS DE CAMPOS",
-        "PIX TRANSF RUBENS",
-        "NEUSA CIMAR TEIXEIRA",
-        "NEUSA CIMAR",
-        "DOUGLAS CAMARGO DE CAMPOS",
-        "ERIC VINICIUS",
-        "SHEILA APARECIDA DA ROCHA DE CAMARGO",
-        "JAIR DE SOUZA FERREIRA",
-        "MILTON AUGUSTO DE CAMARGO",
-        "SUELEN",
-        "HERMANN RONALDO WECKE",
-        "HERMANN",
-        "RAFAEL BARROSO DE CARVALHO",
+        "FAMILIAR EXEMPLO",
+        "PIX TRANSF FAMILIAR",
     ],
     "reserva_desejos": [
         "AMAZON MKTPLACE",
@@ -769,24 +755,17 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
 
 _INCOME_KEYWORDS: dict[str, list[str]] = {
     "receita_pj": [
-        "ARVO",
-        "BRANDLOVERS",
-        "BRAND LOVERS",
-        "BRANDLOVRS",
-        "ARBITRALIS",
-        "LEARNTOFLY",
-        "LEARN TO FLY",
-        "CNRY",
-        "CANARY",
-        "BARTE",
-        "LEARNTOEIV",
+        # A34.l11 (ADR-319): clientes/plataformas nominais do dogfood
+        # substituídos por placeholders sintéticos.
+        "CLIENTE PJ EXEMPLO",
+        "PLATAFORMA PAGAMENTO EXEMPLO",
     ],
     "receita_clt": [
-        "SOCIEDADE BENEFICENTE ISRAELITA",
-        "KIWIFY",
+        # A34.l11 (ADR-319): empregadores nominais substituídos por
+        # placeholder; padrões genéricos de descrição bancária preservados.
+        "EMPREGADOR EXEMPLO",
         "SALÁRIO DEPOSITO",
         "SALARIO DEPOSITO",
-        "*3221",
         "tr Sal p/poup",
     ],
     "receita_aluguel": [
@@ -905,26 +884,15 @@ _AUX_METADATA: dict[str, Any] = {
         "INT TED",
     ],
     "pj_source_mapping": {
-        "ARVO": "Arvo (David - PJ)",
-        "BRANDLOVERS": "BrandLovers (David - PJ)",
-        "BRAND LOVERS": "BrandLovers (David - PJ)",
-        "BRANDLOVRS": "BrandLovers (David - PJ)",
-        "ARBITRALIS": "Arbitralis (David - PJ)",
-        "LEARNTOFLY": "Learn To Fly (David - PJ)",
-        "LEARN TO FLY": "Learn To Fly (David - PJ)",
-        "CNRY": "CNRY (David - PJ)",
-        "CANARY": "CNRY (David - PJ)",
-        "BARTE": "Barte (David - PJ)",
-        "LEARNTOEIV": "LearnToEiv (David - PJ)",
+        # A34.l11 (ADR-319): mapping nominal (cliente ↔ membro) do dogfood
+        # substituído por par sintético — contrato do blob preservado.
+        "CLIENTE PJ EXEMPLO": "Cliente PJ Exemplo (Titular - PJ)",
     },
     "clt_source_mapping": {
-        "KIWIFY": "Kiwify (David - CLT)",
-        "SOCIEDADE BENEFICENTE ISRAELITA": "Einstein (Mariana - CLT)",
-        "3221": "Einstein (Mariana - CLT)",
-        "tr Sal p/poup": "Einstein (Mariana - CLT)",
+        "EMPREGADOR EXEMPLO": "Empregador Exemplo (Cônjuge - CLT)",
+        "tr Sal p/poup": "Empregador Exemplo (Cônjuge - CLT)",
     },
     "one_time_income_keywords": [
-        "kiwify",
         "fgts",
         "restituicao",
         "bolsa",

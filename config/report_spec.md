@@ -1,4 +1,4 @@
-# Report Spec — Pipeline Ferreira Campos
+# Report Spec — Pipeline (família de exemplo)
 ## Versão: 5.3 — abr/2026
 
 > ⚠️ **LEGADO v5.3 — NÃO é fonte de verdade.** Documento do pipeline CLI/relatório-HTML
@@ -326,7 +326,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
     {"codigo": "lazer_viagens", "emoji": "✈", "categoria": "Lazer e viagens", "media_real": 7136, "teto": 3750, "pct_renda": 4.8, "observacao": "Teto R$ 45k/ano = R$ 3.750/mês"},
     {"codigo": "vestuario", "emoji": "👕", "categoria": "Vestuário e compras", "media_real": 3881, "teto": 2000, "pct_renda": 2.5, "observacao": "Normalizado (excl. TV, iPhone, Vivara)"},
     {"codigo": "assinaturas", "emoji": "📱", "categoria": "Assinaturas", "media_real": 279, "teto": 300, "pct_renda": 0.4, "observacao": "Spotify + Prime + Globoplay + Gympass"},
-    {"codigo": "suporte_familiar", "emoji": "👨‍👩‍👦", "categoria": "Suporte familiar", "media_real": 3090, "teto": 5000, "pct_renda": 6.4, "observacao": "Rubens R$ 1.333 + Neusa R$ 1.500"},
+    {"codigo": "suporte_familiar", "emoji": "👨‍👩‍👦", "categoria": "Suporte familiar", "media_real": 3090, "teto": 5000, "pct_renda": 6.4, "observacao": "Familiar A R$ 1.300 + Familiar B R$ 1.500"},
     {"codigo": "financeiro", "emoji": "🏦", "categoria": "Financeiro pessoal", "media_real": 954, "teto": 200, "pct_renda": 0.3, "observacao": "Sem cheque especial = quase zero"},
     {"codigo": "melhoria_reforma", "emoji": "🔨", "categoria": "Melhoria/Reforma moradia", "media_real": null, "teto": 1500, "pct_renda": 1.9, "observacao": "NOVO: reparos, reformas, troca de móveis"},
     {"codigo": "reserva_desejos", "emoji": "🎁", "categoria": "Reserva de desejos", "media_real": null, "teto": 3000, "pct_renda": 3.8, "observacao": "NOVO: acumula para compras planejadas"},
@@ -928,7 +928,7 @@ As seções abaixo tinham apenas descrição de uma linha na tabela de seções.
 ```json
 "patrimonio": {
   "imoveis": [
-    {"num": 1, "descricao": "Apt. Barão de Jaceguai 71m²", "area_m2": 71, "titular": "David", "data_compra": "2014-03", "valor_irpf": 297000, "valor_estimado": 550000, "aluguel_mensal": 3200, "yield_anual_pct": 6.98, "status": "Alugado"},
+    {"num": 1, "descricao": "Apt. Rua Exemplo 71m²", "area_m2": 71, "titular": "Titular", "data_compra": "2014-03", "valor_irpf": 297000, "valor_estimado": 550000, "aluguel_mensal": 3200, "yield_anual_pct": 6.98, "status": "Alugado"},
     {"num": 2, "descricao": "Apt. Sabiá 51m²", "area_m2": 51, "titular": "Cônjuge", "data_compra": "2017-06", "valor_irpf": 230000, "valor_estimado": 400000, "aluguel_mensal": 2500, "yield_anual_pct": 7.50, "status": "Alugado"}
   ],
   "total_irpf": 1200000,
@@ -1144,7 +1144,7 @@ Card 2 — Metodologias: 3 sub-seções (Bruno Perini: número IF = despesa anua
   "renda_15a": 0,
   "renda_20a": 0,
   "status_portabilidade": "Pendente — avaliar fundos disponíveis",
-  "recomendacao": "Calcular renda tributável real (CLT Cônjuge + pro-labore David) e confirmar se aporte atual atinge o teto de 12%."
+  "recomendacao": "Calcular renda tributável real (CLT Cônjuge + pro-labore do Titular) e confirmar se aporte atual atinge o teto de 12%."
 }
 ```
 
@@ -1285,7 +1285,7 @@ Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgent
     "categoria": "tributario",
     "p": "alta",
     "prazo": "2026-04-15",
-    "responsavel": "David",
+    "responsavel": "Titular",
     "status": "pendente",
     "secao_ref": "S8",
     "gatilho": "DAS irregular detectado em E3"
@@ -1293,7 +1293,7 @@ Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgent
 ]
 ```
 
-**Campos obrigatórios:** `id` (int sequencial), `descricao` (string), `categoria` (uma de: `tributario`, `investimentos`, `seguros`, `fluxo_caixa`, `patrimonio`, `planejamento`, `documentos`, `emergencia`), `p` (prioridade: `alta`/`media`/`baixa`), `prazo` (ISO date ou `"imediato"`), `responsavel` (`"David"`, `"Cônjuge"`, `"Ambos"`), `status` (`"pendente"`, `"em_andamento"`, `"concluida"`), `secao_ref` (seção do relatório), `gatilho` (critério que gerou a tarefa).
+**Campos obrigatórios:** `id` (int sequencial), `descricao` (string), `categoria` (uma de: `tributario`, `investimentos`, `seguros`, `fluxo_caixa`, `patrimonio`, `planejamento`, `documentos`, `emergencia`), `p` (prioridade: `alta`/`media`/`baixa`), `prazo` (ISO date ou `"imediato"`), `responsavel` (`"Titular"`, `"Cônjuge"`, `"Ambos"`), `status` (`"pendente"`, `"em_andamento"`, `"concluida"`), `secao_ref` (seção do relatório), `gatilho` (critério que gerou a tarefa).
 
 ---
 
@@ -1333,7 +1333,7 @@ Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgent
     {
       "tipo": "vida",
       "seguradora": "Prudential",
-      "titular": "David",
+      "titular": "Titular",
       "premio_mensal": 350,
       "cobertura": 500000,
       "vencimento": "2026-12-01",
@@ -1342,7 +1342,7 @@ Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgent
     {
       "tipo": "residencial",
       "seguradora": "Porto Seguro",
-      "titular": "David",
+      "titular": "Titular",
       "premio_mensal": 120,
       "cobertura": 800000,
       "vencimento": "2026-08-15",
@@ -1704,7 +1704,7 @@ Os 2 `<button>` HTML (Export MD + Back to Top) ficam FORA do `<script>`. Visibil
 ## RODAPÉ
 
 ```
-Planejamento Financeiro Pessoal — Família Ferreira Campos
+Planejamento Financeiro Pessoal — Família Exemplo
 Gerado em: [DATA às HORA] (Brasília) | Período: Mai/2025–Mar/2026 | Versão Manual Operações: 3.2
 ⚠️ Caráter educacional/informativo. Não constitui consultoria financeira (CVM/CFP), jurídica ou tributária.
 ```
