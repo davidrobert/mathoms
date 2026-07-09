@@ -22,12 +22,14 @@ if str(REPO_ROOT) not in sys.path:
 from dev.ci_advance_automerge_train import (  # noqa: E402
     _gh,
     eligible_train,
-    required_check_failed,
+    required_workflow_failed,
+    required_workflows_green,
+    runs_for_commit,
 )
 
 WATCHDOG_PR_FIELDS = (
     "number,title,createdAt,updatedAt,isDraft,labels,mergeStateStatus,"
-    "autoMergeRequest,statusCheckRollup,headRefName,headRefOid"
+    "autoMergeRequest,headRefName,headRefOid"
 )
 STALL_MINUTES = 60
 MAX_KICKS_PER_RUN = 3
@@ -53,14 +55,6 @@ def list_watchdog_prs() -> list[dict[str, Any]]:
     return json.loads(_gh("pr", "list", "--state", "open", "--json", WATCHDOG_PR_FIELDS))
 
 
-def runs_for_commit(sha: str) -> list[dict[str, Any]]:
-    return json.loads(
-        _gh(
-            "run", "list", "--commit", sha, "--limit", "20", "--json", "status,conclusion,updatedAt"
-        )
-    )
-
-
 def is_orphan_run_set(runs: list[dict[str, Any]]) -> bool:
     """True se o head só tem runs action_required — CI nunca vai rodar (bot push)."""
     return bool(runs) and all(r.get("conclusion") == "action_required" for r in runs)
@@ -82,14 +76,6 @@ def stalled_without_runs(pr: dict[str, Any], now: datetime) -> bool:
     SHA recém-pushado fica na carência (CI demora a registrar runs)."""
     anchor = pr.get("updatedAt") or pr["createdAt"]
     return now - _parse_ts(anchor) > timedelta(minutes=STALL_MINUTES)
-
-
-def aggregator_green(pr: dict[str, Any]) -> bool:
-    for check in pr.get("statusCheckRollup") or []:
-        name = check.get("name") or check.get("context") or ""
-        if name == "All checks green":
-            return (check.get("conclusion") or check.get("state")) == "SUCCESS"
-    return False
 
 
 def last_automerge_event(number: int) -> str | None:
@@ -119,7 +105,9 @@ def reenable_stale_disabled(prs: list[dict[str, Any]], dry_run: bool) -> None:
         labels = {label.get("name", "").lower() for label in pr.get("labels") or []}
         if labels & {"wip", "do-not-merge", "blocked"}:
             continue
-        if not aggregator_green(pr) or pr.get("mergeStateStatus") == "DIRTY":
+        if pr.get("mergeStateStatus") == "DIRTY":
+            continue
+        if not required_workflows_green(runs_for_commit(pr["headRefOid"])):
             continue
         if last_automerge_event(pr["number"]) != "AutoMergeDisabledEvent":
             continue
@@ -171,10 +159,11 @@ def kick_orphans(prs: list[dict[str, Any]], dry_run: bool) -> None:
             kicked += 1
 
 
-def train_head(prs: list[dict[str, Any]]) -> dict[str, Any] | None:
+def train_head(prs: list[dict[str, Any]], runs_for=None) -> dict[str, Any] | None:
     """Cabeça efetiva do trem: primeiro elegível que não está fora (DIRTY/red)."""
+    fetch = runs_for or (lambda pr: runs_for_commit(pr["headRefOid"]))
     for pr in eligible_train(prs):
-        if pr.get("mergeStateStatus") == "DIRTY" or required_check_failed(pr):
+        if pr.get("mergeStateStatus") == "DIRTY" or required_workflow_failed(fetch(pr)):
             continue
         return pr
     return None

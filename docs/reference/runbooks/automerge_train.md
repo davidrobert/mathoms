@@ -50,10 +50,10 @@ gh run list --commit "$(gh pr view <N> --json headRefOid --jq .headRefOid)" \
 1. Criar fine-grained PAT em <https://github.com/settings/personal-access-tokens/new>:
    - **Repository access:** only `davidrobert/mathoms`
    - **Permissions:** Contents → Read and write · Pull requests → Read and write ·
-     Issues → Read and write (issue de stall) · Checks → Read-only
-     (`statusCheckRollup`) · Commit statuses → Read-only · Actions → Read-only
-     (runs por commit). Sem Checks:Read, `gh pr list --json statusCheckRollup`
-     falha e o trem aborta no primeiro passo.
+     Issues → Read and write (issue de stall) · Actions → Read-only (estado dos
+     required checks via `gh run list --commit`). Não use `statusCheckRollup`
+     em script novo: fine-grained PAT não acessa check-runs via GraphQL
+     (`Resource not accessible`; escopo Checks não existe mais para PATs).
    - **Expiration:** ≤90 dias
 2. `gh secret set AUTOUPDATE_PAT` (cola o token)
 3. Kick: `gh workflow run "Auto-update PR branches"`

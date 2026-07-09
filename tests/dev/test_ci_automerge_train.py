@@ -1,4 +1,4 @@
-"""Lógica pura do trem de auto-merge (ADR-322): seleção FIFO de 1 PR, skip de conflito/red, predicados de órfão e stall do watchdog. Sem rede — gh nunca é chamado."""
+"""Lógica pura do trem de auto-merge (ADR-322): seleção FIFO de 1 PR, skip de conflito/red via runs da API de Actions, predicados de órfão e stall do watchdog. Sem rede — gh nunca é chamado."""
 
 from __future__ import annotations
 
@@ -13,11 +13,12 @@ if str(REPO_ROOT) not in sys.path:
 
 from dev.ci_advance_automerge_train import (  # noqa: E402
     eligible_train,
-    required_check_failed,
+    latest_required_runs,
+    required_workflow_failed,
+    required_workflows_green,
     select_pr_to_update,
 )
 from dev.ci_automerge_watchdog import (  # noqa: E402
-    aggregator_green,
     is_orphan_run_set,
     is_stalled,
     stalled_without_runs,
@@ -25,6 +26,49 @@ from dev.ci_automerge_watchdog import (  # noqa: E402
 )
 
 NOW = datetime(2026, 7, 9, 12, 0, tzinfo=timezone.utc)
+
+RUN_CI_OK = {
+    "name": "CI",
+    "status": "completed",
+    "conclusion": "success",
+    "updatedAt": "2026-07-09T11:30:00Z",
+}
+RUN_CI_FAIL = {
+    "name": "CI",
+    "status": "completed",
+    "conclusion": "failure",
+    "updatedAt": "2026-07-09T11:30:00Z",
+}
+RUN_CI_CANCEL = {
+    "name": "CI",
+    "status": "completed",
+    "conclusion": "cancelled",
+    "updatedAt": "2026-07-09T11:30:00Z",
+}
+RUN_CI_LIVE = {
+    "name": "CI",
+    "status": "in_progress",
+    "conclusion": "",
+    "updatedAt": "2026-07-09T11:30:00Z",
+}
+RUN_PRQ_OK = {
+    "name": "PR Quality",
+    "status": "completed",
+    "conclusion": "success",
+    "updatedAt": "2026-07-09T11:30:00Z",
+}
+RUN_PRQ_FAIL = {
+    "name": "PR Quality",
+    "status": "completed",
+    "conclusion": "failure",
+    "updatedAt": "2026-07-09T11:30:00Z",
+}
+RUN_SECURITY_FAIL = {
+    "name": "Security",
+    "status": "completed",
+    "conclusion": "failure",
+    "updatedAt": "2026-07-09T11:30:00Z",
+}
 
 
 def _pr(number: int, **overrides: Any) -> dict[str, Any]:
@@ -36,12 +80,15 @@ def _pr(number: int, **overrides: Any) -> dict[str, Any]:
         "labels": [],
         "mergeStateStatus": "BEHIND",
         "autoMergeRequest": {"mergeMethod": "SQUASH"},
-        "statusCheckRollup": [],
         "headRefOid": f"{number:040d}",
         "headRefName": f"agent/x/{number}",
     }
     pr.update(overrides)
     return pr
+
+
+def _runs_fake(runs_by_number: dict[int, list[dict[str, Any]]]):
+    return lambda pr: runs_by_number.get(pr["number"], [])
 
 
 class TestEligibleTrain:
@@ -61,70 +108,50 @@ class TestEligibleTrain:
 
 class TestSelectPrToUpdate:
     def test_cabeca_behind_e_selecionada(self) -> None:
-        selected = select_pr_to_update([_pr(2), _pr(1)])
+        selected = select_pr_to_update([_pr(2), _pr(1)], _runs_fake({}))
         assert selected is not None and selected["number"] == 1
 
     def test_cabeca_pendente_segura_o_trem(self) -> None:
-        assert select_pr_to_update([_pr(1, mergeStateStatus="BLOCKED"), _pr(2)]) is None
+        prs = [_pr(1, mergeStateStatus="BLOCKED"), _pr(2)]
+        assert select_pr_to_update(prs, _runs_fake({})) is None
 
     def test_dirty_sai_do_trem_e_proximo_assume(self) -> None:
-        selected = select_pr_to_update([_pr(1, mergeStateStatus="DIRTY"), _pr(2)])
+        prs = [_pr(1, mergeStateStatus="DIRTY"), _pr(2)]
+        selected = select_pr_to_update(prs, _runs_fake({}))
         assert selected is not None and selected["number"] == 2
 
-    def test_required_check_failure_sai_do_trem(self) -> None:
-        red = _pr(1, statusCheckRollup=[{"name": "All checks green", "conclusion": "FAILURE"}])
-        selected = select_pr_to_update([red, _pr(2)])
+    def test_workflow_required_failure_sai_do_trem(self) -> None:
+        selected = select_pr_to_update([_pr(1), _pr(2)], _runs_fake({1: [RUN_CI_FAIL]}))
         assert selected is not None and selected["number"] == 2
 
-    def test_check_informativo_failure_nao_tira_do_trem(self) -> None:
-        pr = _pr(1, statusCheckRollup=[{"name": "Lighthouse", "conclusion": "FAILURE"}])
-        selected = select_pr_to_update([pr])
+    def test_workflow_nao_required_failure_nao_tira_do_trem(self) -> None:
+        selected = select_pr_to_update([_pr(1)], _runs_fake({1: [RUN_SECURITY_FAIL]}))
         assert selected is not None and selected["number"] == 1
 
     def test_fila_vazia_retorna_none(self) -> None:
-        assert select_pr_to_update([]) is None
+        assert select_pr_to_update([], _runs_fake({})) is None
 
 
-class TestRequiredCheckFailed:
-    def test_detecta_failure_em_required_context(self) -> None:
-        pr = _pr(
-            1, statusCheckRollup=[{"name": "Title (Conventional Commits)", "conclusion": "FAILURE"}]
-        )
-        assert required_check_failed(pr)
+class TestRequiredWorkflowPredicates:
+    def test_failure_genuino_e_red(self) -> None:
+        assert required_workflow_failed([RUN_CI_FAIL, RUN_PRQ_OK])
 
-    def test_ignora_success_e_pending(self) -> None:
-        pr = _pr(1, statusCheckRollup=[{"name": "All checks green", "conclusion": "SUCCESS"}])
-        assert not required_check_failed(pr)
+    def test_cancelled_e_supersede_nao_red(self) -> None:
+        assert not required_workflow_failed([RUN_CI_CANCEL, RUN_PRQ_OK])
 
-    def test_agregador_stale_com_sibling_cancelled_nao_e_red(self) -> None:
-        pr = _pr(
-            1,
-            statusCheckRollup=[
-                {"name": "All checks green", "conclusion": "FAILURE"},
-                {"name": "Backend tests (backend/tests/)", "conclusion": "CANCELLED"},
-            ],
-        )
-        assert not required_check_failed(pr)
+    def test_run_mais_novo_ganha_do_mais_velho(self) -> None:
+        assert not required_workflow_failed([RUN_CI_OK, RUN_CI_FAIL])
+        assert required_workflow_failed([RUN_CI_FAIL, RUN_CI_OK])
 
-    def test_agregador_failure_sem_cancelled_e_red_genuino(self) -> None:
-        pr = _pr(
-            1,
-            statusCheckRollup=[
-                {"name": "All checks green", "conclusion": "FAILURE"},
-                {"name": "Backend tests (backend/tests/)", "conclusion": "FAILURE"},
-            ],
-        )
-        assert required_check_failed(pr)
+    def test_latest_required_runs_ignora_nao_required(self) -> None:
+        assert latest_required_runs([RUN_SECURITY_FAIL]) == {}
 
-    def test_title_failure_e_red_mesmo_com_cancelled(self) -> None:
-        pr = _pr(
-            1,
-            statusCheckRollup=[
-                {"name": "Title (Conventional Commits)", "conclusion": "FAILURE"},
-                {"name": "Backend tests (backend/tests/)", "conclusion": "CANCELLED"},
-            ],
-        )
-        assert required_check_failed(pr)
+    def test_green_exige_todos_required_sucesso(self) -> None:
+        assert required_workflows_green([RUN_CI_OK, RUN_PRQ_OK])
+        assert not required_workflows_green([RUN_CI_OK])
+        assert not required_workflows_green([RUN_CI_OK, RUN_PRQ_FAIL])
+        assert not required_workflows_green([RUN_CI_LIVE, RUN_PRQ_OK])
+        assert not required_workflows_green([])
 
 
 class TestWatchdogPredicates:
@@ -179,16 +206,11 @@ class TestWatchdogPredicates:
         ]
         assert not is_stalled(runs, NOW)
 
-    def test_aggregator_green(self) -> None:
-        pr = _pr(1, statusCheckRollup=[{"name": "All checks green", "conclusion": "SUCCESS"}])
-        assert aggregator_green(pr)
-        assert not aggregator_green(_pr(2))
-
     def test_train_head_pula_dirty_e_red(self) -> None:
         prs = [
             _pr(1, mergeStateStatus="DIRTY"),
-            _pr(2, statusCheckRollup=[{"name": "All checks green", "conclusion": "FAILURE"}]),
+            _pr(2),
             _pr(3, mergeStateStatus="BLOCKED"),
         ]
-        head = train_head(prs)
+        head = train_head(prs, _runs_fake({2: [RUN_CI_FAIL]}))
         assert head is not None and head["number"] == 3
