@@ -3,7 +3,6 @@ id: A33.l9
 type: lane
 title: "Services taxonomy: split de backend/app/services/ em subpacotes por natureza técnica (ADR-285, W6-T07)"
 sprint: A33
-plan: PLAN-platform-review
 status: shipped
 ship_pr: 855
 ship_date: "2026-07-08"
@@ -20,7 +19,7 @@ tags:
   - area/backend
 ---
 
-# A33.l9 — `services-taxonomy` (W6-T07 do [[PLAN-platform-review]], cauda da sprint)
+# A33.l9 — `services-taxonomy` (W6-T07 do [PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md), cauda da sprint)
 
 ## Problema
 

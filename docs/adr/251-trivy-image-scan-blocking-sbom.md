@@ -33,7 +33,7 @@ em `.github/workflows/security.yml` cobrindo dependências Python e Node.
 Ainda em `continue-on-error: true` enquanto sem GHAS (GitHub Advanced
 Security).
 
-O gap explícito de [[ADR-230]] e do W4-T02 de [PLATFORM_REVIEW](../plan/PLATFORM_REVIEW/_README.md): **scan
+O gap explícito de [[ADR-230]] e do W4-T02 de [PLATFORM_REVIEW](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md): **scan
 de imagem Docker publicada**. Sem isso, qualquer CVE em base OS (kernel libs,
 glibc, libnss) ou em layer Chromium (Playwright em [[ADR-248]]) passa
 despercebido — `trivy fs` não vê o estado final da imagem.

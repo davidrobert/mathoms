@@ -53,4 +53,4 @@ size_lines: 33
 batches de 100, dry-run) e runbook
 [fernet_rotation.md](../reference/runbooks/fernet_rotation.md).
 
-**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T04](../plan/PLATFORM_REVIEW/_README.md), finding SR-003.
+**Referências:** [archive/PLATFORM_REVIEW_PLAN-2026-07-08.md §W3-T04](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md), finding SR-003.

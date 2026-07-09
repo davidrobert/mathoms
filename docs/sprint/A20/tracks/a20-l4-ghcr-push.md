@@ -22,7 +22,7 @@ tags:
 > **Lane canônica:** [[A20.l4]] (workflow `release-backend.yml` completo, matrix de tags, retention, runbook, critério de aceite).
 > · **ADR canônica:** [[ADR-250]] (`Proposto`, GHCR vs ECR/Hub/Harbor).
 > · **Branch prefix:** `agent/a20-l4-ghcr-push-tagging/*`
-> · **Onda B** — **destrava W4-T02** do [PLATFORM_REVIEW](../../../plan/PLATFORM_REVIEW/_README.md).
+> · **Onda B** — **destrava W4-T02** do [PLATFORM_REVIEW](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md).
 >
 > ⚠️ **BLOQUEADA POR CONFIRMAÇÃO EXTERNA DO OWNER** — não executável autonomamente. Requer: (1) `packages: write` no `GITHUB_TOKEN` + quota free tier GHCR (50GB) confirmada; (2) PAT do Coolify criado e armazenado em Coolify secrets; (3) Coolify webhook atualizado p/ puxar SHA-tag. Pickup só após o owner confirmar esses 3 pré-requisitos.
 

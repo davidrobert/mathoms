@@ -29,7 +29,7 @@ tags:
 
 ## Contexto
 
-Sprint A11 W2-T03 (`docs/plan/PLATFORM_REVIEW/_README.md` linhas 319-325) consolida findings SR-005 + SR-019 da revisão multi-agente 2026-05-06: hoje o CI do Mathoms **não tem qualquer gate de segurança automatizado**. Verificações de superfície:
+Sprint A11 W2-T03 (`docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md` linhas 319-325) consolida findings SR-005 + SR-019 da revisão multi-agente 2026-05-06: hoje o CI do Mathoms **não tem qualquer gate de segurança automatizado**. Verificações de superfície:
 
 - `grep -E 'trivy|gitleaks|pip-audit|npm.*audit|bandit|detect-secrets|safety'` em `.github/workflows/ci.yml` → zero matches.
 - Mesma busca em `.pre-commit-config.yaml` → zero matches.
@@ -164,7 +164,7 @@ Trivy + pip-audit + npm audit + gitleaks são open source, rodam em CI sob nosso
 
 ## Gates desta ADR
 
-- **PR de implementação:** cria `security.yml`, atualiza `.pre-commit-config.yaml`, cria `.gitleaks.toml`, cria `docs/reference/runbooks/security_gates.md`, atualiza shim `docs/DECISIONS.md` com anchor `<a id="adr-230-..."/>`, atualiza `docs/plan/PLATFORM_REVIEW/_README.md` marcando W2-T03 done (após merge).
+- **PR de implementação:** cria `security.yml`, atualiza `.pre-commit-config.yaml`, cria `.gitleaks.toml`, cria `docs/reference/runbooks/security_gates.md`, atualiza shim `docs/DECISIONS.md` com anchor `<a id="adr-230-..."/>`, atualiza `docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md` marcando W2-T03 done (após merge).
 - **Validação:** `pre-commit run --all-files` verde; `gitleaks detect --baseline-path .gitleaks-baseline.json` sem novos achados; workflow novo passa em PR.
 - **Closure:** ADR flippa para `Decidido (Sprint A11.W2)` no merge do PR de implementação.
 
@@ -196,6 +196,6 @@ Flippada para `Decidido (Sprint A11.W2)` em 2026-05-20 após merge de:
 - [[ADR-170]] / [[ADR-171]] — auth/Fernet security ADRs propostas em W1-T06; thread comum de "fechar gaps SR-*" da revisão 2026-05-06.
 - [[ADR-174]] — off-site backup R2 (W4-T01; resiliência complementar; gates de detecção (esta ADR) + gates de recovery (174) são ortogonais).
 - [[ADR-175]] — prompt injection defense (W3-T05; aplica a LLM input; gitleaks aplica a code/secrets — escopos distintos).
-- [`docs/plan/PLATFORM_REVIEW/_README.md`](../plan/PLATFORM_REVIEW/_README.md) §W2-T03 — task origem.
+- [`docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md`](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) §W2-T03 — task origem.
 - CLAUDE.md §"Política operacional — ADR Proposto antes de PR P0/P1" — esta ADR é cumprimento direto da política.
 - CVE-2025-30066 (tj-actions/changed-files compromise, mar/2025) — precedente que motiva SHA-pinning + supply chain hygiene.

@@ -3,7 +3,6 @@ id: A33.l6
 type: lane
 title: "Retenção de artifacts: retention_until + prune diário + teste de cascade (W6-T05)"
 sprint: A33
-plan: PLAN-platform-review
 status: shipped
 ship_pr: 844
 ship_date: "2026-07-08"
@@ -22,7 +21,7 @@ tags:
   - area/db
 ---
 
-# A33.l6 — `artifacts-retention` (W6-T05 do [[PLAN-platform-review]])
+# A33.l6 — `artifacts-retention` (W6-T05 do [PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md))
 
 ## Problema
 

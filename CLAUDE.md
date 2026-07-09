@@ -287,7 +287,7 @@ mistura doc + código, a regra normal volta a valer.
   em `tests/test_e{3,4,5}_golden_execution.py`. Goldens de paridade
   legado↔novo (Caminho A vs Caminho B) foram descontinuados em A6c.3 quando
   Caminho A foi removido. Re-construção de baselines snapshot (débito **DE-005**,
-  [docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md)
+  [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)
   §W6-T01) **fechado** pela lane A23.l2
   (`docs/sprint/A23/lanes/A23-l2-golden-substrate.md`): `dev/golden_diff.py`
   (diff valor-a-valor em cents int + manifesto de rebaseline),
@@ -511,7 +511,7 @@ flippa para `Decidido (Sprint XX.Y)` no merge.
 **Custo:** ~30min/feature de raciocínio arquitetural. **Ganho:**
 rastreabilidade, menos dead code shipping, gate de sanidade antes de
 escrever código (lição 2026-05 — ver
-[docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md) §Trade-off 5).
+[docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) §Trade-off 5).
 
 **Não aplica a:** bugs, hot-fixes, doc-only, refactor mecânico já
 coberto por ADR existente.
@@ -1234,7 +1234,7 @@ Conteúdo que **era** duplicado neste arquivo e agora vive em sua fonte
 | Política de disclosure de vulnerabilidades (LGPD)   | [SECURITY.md](SECURITY.md)                                                                  |
 | Plano canônico do shell Report Premium — v1 (10 fases ✅) + v2 §17 (🚧, ondas A-F paralelizadas), paridade React com EXEMPLO_DE_RELATORIO.html, único renderer pós-ADR-129 | [docs/plan/REPORT_PREMIUM/_README.md](docs/plan/REPORT_PREMIUM/_README.md)                      |
 | Cutover final `config/goals.json` (Sprint A10, ✅ entregue 2026-05-07) — 9 lanes em 4 ondas, 5 ADRs (ADR-177 a ADR-181), 22 chaves do legado migradas para destinos canônicos; fechou checkbox ADR-077 §"Contrato de cutover" após 7 meses | [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) |
-| Platform review canônico (Sprint A11, origem 2026-05-06) — 32 tasks em 6 ondas, 138 findings consolidados de revisão multi-agente (data-engineer + financial-planner + product-designer + sre-devops + build-vs-buy + senior-cto), 6 ADRs Proposto (ADR-170 a ADR-175), W1 ✅ entregue | [docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md) |
+| Platform review canônico (Sprint A11, origem 2026-05-06, ✅ fechada `done` 2026-07-08 e plano arquivado) — 32 tasks em 6 ondas, 138 findings de revisão multi-agente; residual owner-gated (Resend, off-site R2, Coolify, Sentry, status page) transferido para LAUNCH_TRUST §F2 via emenda ADR-228 | [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) |
 | Parecer do Planejador (E6) — substituição de `review_finances` por novo stage LLM com persona Perini/Cerbasi/AUVP (Sprint A11/A12, origem 2026-05-12). Atos 1-6 mergeados (PRs #242-#250): 10 ADRs Proposto (ADR-199 a ADR-208), schemas + manifest declarativo, aggregate + endpoint stub, stage + orchestrator + golden mockado, renderer + UX + tier filter, telemetria + cross-provider + cutover + healthcheck | [docs/plan/PLANNER_REVIEW/_README.md](docs/plan/PLANNER_REVIEW/_README.md) |
 | Categorization Learning Loop (Sprint A12, ✅ concluído 2026-07-08) — promoção de override de transação em regra persistida; MVP V1 completo (P1-P4 #188/#194/#195-#198/#203 + gate técnico 11/11 #202; gate humano PASS por decisão do owner 2026-07-02); modelo híbrido C-light + D-forte com invariantes (override manual sticky, mês fechado imutável, conflito determinístico). ADRs canônicas: ADR-186 + ADR-188, Decididas. V2 (P5/P6) pós-tração | [docs/archive/CAT_LEARNING_LOOP-2026-07-08.md](docs/archive/CAT_LEARNING_LOOP-2026-07-08.md) |
 | Resposta competitiva a Pierre Finance (CloudWalk) (Sprint A11, origem 2026-05-08) — quatro fases: recon POC, Mathoms-as-MCP, chat sobre relatório, reposicionamento brand. Tracks ready: `competitor-pierre-poc` (Fase 1) + `gtm-landing-copy-rewrite` (Fase 4.B skeleton). ADR-183 (landing positioning pillars) | [docs/plan/COMPETITIVE_PIERRE/_README.md](docs/plan/COMPETITIVE_PIERRE/_README.md) |

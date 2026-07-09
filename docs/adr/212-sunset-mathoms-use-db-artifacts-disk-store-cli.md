@@ -324,7 +324,7 @@ retorna 0. Migration up/down testadas via
    `DiskArtifactStore` como pressure valve, todo artefato vai pra
    Postgres `JSONB` (estimativa: 7.5MB/workspace/mês, 90GB/ano com 1k
    workspaces). **Fora de escopo desta ADR**, registrado como débito
-   em [docs/plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md)
+   em [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)
    §retention. Triggers para reabrir: tabela passa de 10GB ou 1M rows.
 
 7. **Índice `pipeline_artifacts` com `created_at`.** `read_latest_artifact`
@@ -408,7 +408,7 @@ explícito de PR3); janela de revert real fica em dia 1-2, não dia 14.
   em emergência.
 - ⚠️ **Débito explícito: política de retenção em `pipeline_artifacts`.**
   Sem `DiskArtifactStore`, crescimento é monotonic; estimativa 90GB/ano
-  com 1k workspaces. Rastreado em [docs/plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md);
+  com 1k workspaces. Rastreado em [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md);
   ADR follow-up dispara em 10GB ou 1M rows.
 
 **Riscos identificados:**

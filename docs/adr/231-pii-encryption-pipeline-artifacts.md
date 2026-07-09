@@ -32,7 +32,7 @@ tags:
 
 `pipeline_artifacts.content_json` (JSONB) hoje guarda **plaintext PII pesado** em vários stages: CPF, nome completo de family members (E1/E1.5/E1.5c), payload IRPF inteiro (E1.6), raw text extraído de PDFs/imagens (E2-llm), descrições de transações com PII de terceiros ("TED PARA FULANO CPF XXX" em E3/E4), agregados monetários (E5). Hoje a única proteção é controle de acesso via tenancy (workspace_id) — leak de DB ou backup vaza tudo em plaintext.
 
-Sprint A11 W2-T01 (`docs/plan/PLATFORM_REVIEW/_README.md` linhas 300-309) atribui prioridade P0 ao fechamento desse gap. Finding origem DE-003 (data-engineer 2026-05-06).
+Sprint A11 W2-T01 (`docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md` linhas 300-309) atribui prioridade P0 ao fechamento desse gap. Finding origem DE-003 (data-engineer 2026-05-06).
 
 Hoje a base Fernet já existe em produção via [`backend/app/services/vault.py`](../../backend/app/services/security/vault.py) — singleton com `MATHOMS_FERNET_KEY`, fail-fast se ausente, usado para PDF passwords + LLM keys + `workspaces.cpf_encrypted`. W3-T04 ([[ADR-171]]) propõe MultiFernet rotation cobrindo essa chave.
 
@@ -238,6 +238,6 @@ Flippada para `Decidido (Sprint A11.W2)` em 2026-05-20 após merge de:
 - [[ADR-111]] — Stateless rigoroso (`crypto.py` é singleton lazy idempotente — mesma classe que vault.py).
 - [[ADR-171]] — Fernet rotation MultiFernet (W3-T04; consome `kid` para progress tracking; hand-off de backfill prod via Celery task).
 - [[ADR-212]] — ArtifactStore DB-only (PR3 — schema validation hook é o precedente direto deste ADR).
-- [`docs/plan/PLATFORM_REVIEW/_README.md`](../plan/PLATFORM_REVIEW/_README.md) §W2-T01 — task origem.
+- [`docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md`](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) §W2-T01 — task origem.
 - Finding DE-003 (revisão multi-agente 2026-05-06).
 - CLAUDE.md §"Política operacional — ADR Proposto antes de PR P0/P1" — esta ADR é cumprimento direto da política.

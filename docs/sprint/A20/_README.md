@@ -19,7 +19,7 @@ theme: "infra"
 > owner; A17 movida a `paused`). Criada 2026-05-22 após review independente
 > `sre-devops` (maturidade Docker 2.5/5). Sprint de infra dedicada, **10 lanes em
 > 2 ondas + gate final**, **7 ADRs Proposto** (ADR-248 a ADR-254). **Subsume W4-T02**
-> do [PLATFORM_REVIEW](../../plan/PLATFORM_REVIEW/_README.md) (que estava `blocked`).
+> do [PLATFORM_REVIEW](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) (que estava `blocked`).
 >
 > **Entregue antes da pausa (2026-05-29):** Onda A (L10→L2, L3∥L6) → Gate A →
 > Onda B (L1, L7, L8), **mais** o ajuste de coexistência de porta da stack dev
@@ -60,7 +60,7 @@ publicada no GHCR que vai subir em staging/prod.
 
 ## Por que agora (não-óbvio)
 
-- W4-T02 do [PLATFORM_REVIEW](../../plan/PLATFORM_REVIEW/_README.md) está `blocked` há semanas (GHCR + SHA pin)
+- W4-T02 do [PLATFORM_REVIEW](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) está `blocked` há semanas (GHCR + SHA pin)
   e bloqueia indiretamente outras tasks `operational_gate`. A20 destrava.
 - Os 5 P0s se beneficiam de resolver juntos: L1 (Playwright multi-stage) e L2
   (SHA pin) compartilham `Dockerfile`; L4 (GHCR) só faz sentido com imagem
@@ -177,9 +177,9 @@ A11/ADRs 170-175) é "1 ADR por decisão técnica, sprint MOC coordena".
 
 ## Pré-requisitos
 
-- A17 ([PLATFORM_REVIEW](../../plan/PLATFORM_REVIEW/_README.md) sub-lanes) e A18 (CRLV/apólices) não bloqueiam
+- A17 ([PLATFORM_REVIEW](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) sub-lanes) e A18 (CRLV/apólices) não bloqueiam
   A20 — paralelizável.
-- W4-T02 do [PLATFORM_REVIEW](../../plan/PLATFORM_REVIEW/_README.md) flippa `blocked → shipped` ao fechar L4+L5.
+- W4-T02 do [PLATFORM_REVIEW](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) flippa `blocked → shipped` ao fechar L4+L5.
 - Conta GHCR (`ghcr.io/davidrobert`) já existe — confirmar quota e `packages:
   write` no `GITHUB_TOKEN` antes de L4.
 - Secret `MATHOMS_FERNET_KEY` em GH Actions já existe (usado em `ci.yml`).
@@ -239,7 +239,7 @@ Ver §Non-goals acima.
 ## Dependências externas
 
 - **W4-T02 (PLATFORM_REVIEW):** A20 **subsume**; ao fechar L4+L5, flippar
-  `blocked → shipped` em [PLATFORM_REVIEW](../../plan/PLATFORM_REVIEW/_README.md) + atualizar [[ADR-228]] §G3.
+  `blocked → shipped` em [PLATFORM_REVIEW](../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) + atualizar [[ADR-228]] §G3.
 - **GHCR (`ghcr.io/davidrobert`):** account já existe; confirmar `packages:
   write` no token e quota free tier (50GB).
 - **Coolify webhook:** atualização manual em L4; runbook obrigatório

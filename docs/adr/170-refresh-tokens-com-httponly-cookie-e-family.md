@@ -19,7 +19,7 @@ size_lines: 34
 
 # ADR-170 — Refresh tokens com httpOnly cookie e family-based revocation
 
-**Status:** Decidido (Sprint A11.W3) • **Data:** 2026-05-06 • **Relaciona** [ADR-003](#adr-003--jwt-custom-para-auth), [ADR-057](#adr-057--jwt-15min--refresh-7d), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** SR-002 em [docs/plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (Wave 1 backfill, implementação em W3-T03).
+**Status:** Decidido (Sprint A11.W3) • **Data:** 2026-05-06 • **Relaciona** [ADR-003](#adr-003--jwt-custom-para-auth), [ADR-057](#adr-057--jwt-15min--refresh-7d), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** SR-002 em [docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) (Wave 1 backfill, implementação em W3-T03).
 
 **Contexto:** ADR-057 estabeleceu access 15 min + refresh 7 dias, mas o backend hoje emite **só** access tokens com TTL longo via `core/security.py`. Não há refresh token em circulação, não há revocation, e tokens roubados continuam válidos até a expiração natural. Em fluxos `Bearer` o front salva o access em `localStorage` (XSS = takeover). ADR-109 documenta JWT HS256 como contrato portável; uma migração para refresh-flow é breaking — exige nova ADR antes do PR.
 
@@ -79,4 +79,4 @@ Desvios deliberados da §Decisão original, registrados no flip para `Decidido`:
 - **Remoção da flag `MATHOMS_AUTH_REFRESH_FLOW`:** 1 release estável após
   ativação em prod — flag órfã é débito.
 
-**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T03](../plan/PLATFORM_REVIEW/_README.md), finding SR-002.
+**Referências:** [archive/PLATFORM_REVIEW_PLAN-2026-07-08.md §W3-T03](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md), finding SR-002.
