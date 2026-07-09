@@ -54,7 +54,19 @@ _GOALS_MIN = {
     "independencia_financeira": {
         "if_meta": 1_000_000.0,
         "trs_pct": 4.0,
-    }
+    },
+    # A12.alocacao-v2 PR10: alvo v2 (7 classes AUVP) — exercita o bloco
+    # derived injetado pelo E5 (_enrich_alocacao_with_deviation, ADR-141).
+    "alocacao_alvo": {
+        "rf_pos_pct": 20,
+        "rf_pre_pct": 10,
+        "rf_ipca_pct": 10,
+        "acoes_br_pct": 25,
+        "acoes_int_pct": 15,
+        "fiis_pct": 10,
+        "caixa_pct": 10,
+        "rebalanceamento_modo": "por_aporte",
+    },
 }
 
 _FAMILY_E5 = {
@@ -149,6 +161,19 @@ def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
     assert "bruto" in payload["patrimonio"] and "liquido" in payload["patrimonio"]
     assert "fluxo_caixa" in payload
     assert payload["goals"]["if_meta"] == 1_000_000.0
+
+    # A12.alocacao-v2 PR10: E5 injeta o bloco derived de desvio atual-vs-alvo
+    # (ADR-141 §Emenda item 4) — fecha o gap de cobertura end-to-end.
+    alvo = payload["goals"]["alocacao_alvo"]
+    assert "derived" in alvo, "E5 deve injetar goals.alocacao_alvo.derived"
+    derived = alvo["derived"]
+    assert derived["rf_comparacao"] == "agregada"
+    assert derived["has_alvo"] is True
+    assert isinstance(derived["comparaveis"], list)
+    assert {"classe", "atual_pct", "alvo_pct", "desvio_pp", "severity"} <= set(
+        derived["comparaveis"][0]
+    )
+    assert "caixa" in derived and "sinal_excesso" in derived["caixa"]
 
     jsonschema = pytest.importorskip("jsonschema")
     schema = json.loads(
