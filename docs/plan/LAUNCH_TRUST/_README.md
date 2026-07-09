@@ -78,7 +78,7 @@ existentes. Cada frente declara explicitamente ownership:
 | Frente | Modo | Dono canônico | O que este plano faz |
 |---|---|---|---|
 | **F1** | **OWNED** | este plano | Território verde — nenhum plano cobre `consolidate_baseline` (E1.5c). [[PLAN-platform-review]] adiou explicitamente E1.5c para "Q3 2026" (§coverage gaps). F1 puxa para agora porque é launch-blocker. |
-| **F2** | **FEDERADA** | [[PLAN-platform-review]] (W3/W4) + [[ADR-228]] (G1-G5) | Declara o **subconjunto launch-blocking** de W3/W4 e os 3 gaps que nenhuma wave cobre. Não reescreve as tasks — referencia por link. |
+| **F2** | **OWNED** (desde 2026-07-08) | este plano + [[ADR-228]] (G1-G5) | A11 fechou `done` com o residual W3-T02/W4-T01/W4-T02/W4-T03/W4-T05 (código + drill, owner-gated) **transferido para cá** (emenda [[ADR-228]] 2026-07-08). Histórico das tasks: [[PLAN-platform-review]] (arquivado). |
 | **F3** | **FEDERADA** | [[PLAN-planner-review]] (done) + [[PLAN-llm-prompts-hardening]] | Camada de **eval + guardrails defensáveis** sobre o Parecer já entregue. Não reabre o stage; adiciona a malha de segurança que falta para lançar. |
 
 **Regra anti-drift:** quando uma task F2/F3 referenciada mudar de status no
@@ -298,9 +298,19 @@ preservar (viés FP/FN por força de âncora):
 
 ## Frente 2 — Caminho crítico de produção (FEDERADA)
 
-> **Dono canônico:** [[PLAN-platform-review]] (Waves 3-4) + [[ADR-228]] (gates
-> operacionais G1-G5). Esta seção declara **o que é launch-blocking** e os
-> **gaps que nenhuma wave cobre** — não reescreve as tasks.
+> **Dono canônico (desde o closure da A11, 2026-07-08): este plano.**
+> A Sprint A11 fechou `done` com o residual de W3/W4 transferido para cá
+> (emenda [[ADR-228]] 2026-07-08); gates operacionais seguem G1-G5 da
+> ADR-228, inalterados. Histórico/acceptance criteria das tasks:
+> [[PLAN-platform-review]] (arquivado em `docs/archive/`).
+>
+> **Estado do residual transferido (2026-07-08):** W3-T05 ✅ (A21.l6) ·
+> W3 auth/Fernet ✅ (#584/#718) · **W3-T02 email ☐** (owner-gated: aprovação
+> Resend EU + API key + SPF/DKIM/DMARC; zero código em main) · **W4-T01 ◐**
+> (drill CI ✅ #538; off-site R2 owner-gated: bucket/keys; [[ADR-174]]
+> `Proposto` flippa no merge) · **W4-T02 ◐** (SHA pin ✅ #510; GHCR/Coolify =
+> lanes A20 L4/L5, owner-gated: token) · **W4-T03 ☐** (Sentry: signup EU +
+> DSN) · **W4-T05 ☐** (dep W4-T03 + signups Instatus/UptimeRobot).
 
 **Realidade verificada (sre-devops, 2026-05-30):** a Sprint A20 entregou
 **higiene de imagem** (multi-stage Dockerfile, SHA pinning, non-root,
