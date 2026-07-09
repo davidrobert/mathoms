@@ -2,13 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import type { RebalanceamentoModo } from "@/lib/api";
 
 import { AlocacaoSummary } from "./AlocacaoSummary";
 import { REBAL_OPTIONS, type Pcts } from "./constants";
 
 interface Step3RebalanceProps {
-  rebalanceamento: string;
-  onChangeRebalanceamento: (v: string) => void;
+  rebalanceamento: RebalanceamentoModo;
+  onChangeRebalanceamento: (v: RebalanceamentoModo) => void;
   pcts: Pcts;
   instrumentosRf: string;
   instrumentosRv: string;
@@ -29,15 +30,15 @@ export function Step3Rebalance({
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {REBAL_OPTIONS.map((opt) => (
+        {REBAL_OPTIONS.map(({ value, label }) => (
           <Button
-            key={opt}
-            variant={rebalanceamento === opt ? "default" : "outline"}
+            key={value}
+            variant={rebalanceamento === value ? "default" : "outline"}
             size="sm"
-            onClick={() => onChangeRebalanceamento(opt)}
+            onClick={() => onChangeRebalanceamento(value)}
             type="button"
           >
-            {opt}
+            {label}
           </Button>
         ))}
       </div>

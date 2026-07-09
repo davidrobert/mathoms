@@ -21,10 +21,14 @@ from backend.app.models.decision import Decision
 from backend.app.models.goal import Goal
 from backend.app.repositories.goal_repository import GoalRepository
 from backend.app.schemas.dto.goal import (
-    AlocacaoGoalInputs,
+    AlocacaoGoalInputsV2,
     AporteGoalInputs,
     DolarGoalInputs,
     IFGoalInputs,
+)
+from backend.app.schemas.dto.goal.alocacao_shape_conversion import (
+    compute_alocacao_derived_v2,
+    convert_alocacao_inputs_to_v2,
 )
 from backend.app.services import goal_service
 
@@ -147,6 +151,12 @@ async def _apply_projection(
 def _patch_goal_inputs(current: Goal, goal_type: str, param_path: str, new_value: Any):
     """Aplica patch em inputs — devolve Pydantic model do tipo correto."""
     base_inputs = (current.params_json or {}).get("inputs") or {}
+    if goal_type == "ALOCACAO_ALVO":
+        # converter-antes-de-patchar: row vigente pode ser v1/órfã
+        # (ADR-141 emenda item 5); patch sempre opera no shape v2.
+        convertido, _ = convert_alocacao_inputs_to_v2(base_inputs)
+        patched = {**(convertido or {}), param_path: new_value}
+        return AlocacaoGoalInputsV2.model_validate(patched)
     patched = {**base_inputs, param_path: new_value}
     if goal_type == "INDEPENDENCIA_FINANCEIRA":
         return IFGoalInputs.model_validate(patched)
@@ -154,8 +164,6 @@ def _patch_goal_inputs(current: Goal, goal_type: str, param_path: str, new_value
         return AporteGoalInputs.model_validate(patched)
     if goal_type == "DOLARIZACAO":
         return DolarGoalInputs.model_validate(patched)
-    if goal_type == "ALOCACAO_ALVO":
-        return AlocacaoGoalInputs.model_validate(patched)
     raise ValidationError(
         f"goal_type={goal_type!r} não suporta projection",
         code="goal_type_not_projectable",
@@ -171,5 +179,5 @@ def _compute_derived(goal_type: str, inputs):
     if goal_type == "DOLARIZACAO":
         return goal_service.compute_dolar_derived(inputs)
     if goal_type == "ALOCACAO_ALVO":
-        return goal_service.compute_alocacao_derived(inputs)
+        return compute_alocacao_derived_v2(inputs)
     raise ValidationError(f"goal_type={goal_type!r} sem compute", code="no_compute")

@@ -52,6 +52,7 @@ from backend.app.schemas.dto.goal.mapper import (
     GOAL_TYPE_DTO_CLASSES,
     goal_to_if_response,
     goal_to_typed_response,
+    meta_version_for_type,
     meta_version_from_params,
 )
 from backend.app.schemas.dto.goal.reserva_emergencia import (
@@ -107,5 +108,6 @@ __all__ = [
     "ReservaEmergenciaGoalUpsertCommand",
     "goal_to_if_response",
     "goal_to_typed_response",
+    "meta_version_for_type",
     "meta_version_from_params",
 ]

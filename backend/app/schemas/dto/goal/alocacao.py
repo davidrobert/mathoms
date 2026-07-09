@@ -105,11 +105,11 @@ class AlocacaoGoalDerivedV2(BaseModel):
 
 
 class AlocacaoGoalComputeRequest(BaseModel):
-    inputs: AlocacaoGoalInputs
+    inputs: AlocacaoGoalInputsV2
 
 
 class AlocacaoGoalComputeResponse(BaseModel):
-    derived: AlocacaoGoalDerived
+    derived: AlocacaoGoalDerivedV2
     valido: bool = Field(
         ...,
         description="True se soma_percentuais == 100.",
@@ -117,16 +117,22 @@ class AlocacaoGoalComputeResponse(BaseModel):
 
 
 class AlocacaoGoalUpsertCommand(BaseModel):
-    """Comando para criar nova versão da alocação-alvo."""
+    """Comando para criar nova versão da alocação-alvo (v2 — 7 classes)."""
 
-    inputs: AlocacaoGoalInputs
+    inputs: AlocacaoGoalInputsV2
     notes: Optional[str] = Field(None, max_length=1000)
 
 
 class AlocacaoGoalResponse(GoalResponseBase):
+    """Response sempre v2 — rows v1/órfãs convertem on-read (ADR-141 emenda item 6)."""
+
     type: Literal["ALOCACAO_ALVO"] = "ALOCACAO_ALVO"
-    inputs: AlocacaoGoalInputs
-    derived: AlocacaoGoalDerived
+    inputs: AlocacaoGoalInputsV2
+    derived: AlocacaoGoalDerivedV2
+    converted_from: Optional[Literal["1", "orphan"]] = Field(
+        None,
+        description="Origem da conversão on-read; None = row já era v2.",
+    )
 
 
 class AlocacaoGoalHistoryResponse(BaseModel):

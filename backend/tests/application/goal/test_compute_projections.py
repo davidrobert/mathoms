@@ -10,7 +10,7 @@ from backend.app.application.goal import (
 )
 from backend.app.schemas.dto.goal import (
     AlocacaoGoalComputeRequest,
-    AlocacaoGoalInputs,
+    AlocacaoGoalInputsV2,
     AporteGoalComputeRequest,
     AporteGoalInputs,
     DolarGoalComputeRequest,
@@ -86,8 +86,14 @@ def test_compute_dolar_projection_respects_explicit_cambio():
 def test_compute_alocacao_projection_flags_sum_100_valid():
     resp = compute_alocacao_projection(
         AlocacaoGoalComputeRequest(
-            inputs=AlocacaoGoalInputs(
-                renda_fixa_pct=40, acoes_pct=30, imoveis_reits_pct=20, liquidez_usd_pct=10
+            inputs=AlocacaoGoalInputsV2(
+                rf_pos_pct=20,
+                rf_pre_pct=10,
+                rf_ipca_pct=10,
+                acoes_br_pct=25,
+                acoes_int_pct=15,
+                fiis_pct=10,
+                caixa_pct=10,
             )
         )
     )
@@ -96,7 +102,7 @@ def test_compute_alocacao_projection_flags_sum_100_valid():
     assert resp.derived.soma_percentuais == 100.0
 
 
-# Nota: soma ≠ 100 é bloqueada no validador do DTO ``AlocacaoGoalInputs``;
+# Nota: soma ≠ 100 é bloqueada no validador do DTO ``AlocacaoGoalInputsV2``;
 # o flag ``valido`` é defensivo caso alguém construa o modelo via
 # ``model_construct`` (bypass) ou evolução futura do validador — preservado
 # por paridade com router legado.

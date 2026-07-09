@@ -7,7 +7,38 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { AlocacaoBar } from "./AlocacaoBar";
-import { PRESETS, type Pcts } from "./constants";
+import { PCT_KEYS, PRESETS, type Pcts } from "./constants";
+
+interface FamilyGroup {
+  title: string;
+  fields: { key: keyof Pcts; label: string }[];
+}
+
+const FAMILY_GROUPS: FamilyGroup[] = [
+  {
+    title: "Renda fixa",
+    fields: [
+      { key: "rf_pos_pct", label: "RF · Pós (%)" },
+      { key: "rf_pre_pct", label: "RF · Pré (%)" },
+      { key: "rf_ipca_pct", label: "RF · IPCA+ (%)" },
+    ],
+  },
+  {
+    title: "Renda variável",
+    fields: [
+      { key: "acoes_br_pct", label: "Ações BR (%)" },
+      { key: "acoes_int_pct", label: "Ações Int. (%)" },
+    ],
+  },
+  {
+    title: "Imobiliário",
+    fields: [{ key: "fiis_pct", label: "FIIs (%)" }],
+  },
+  {
+    title: "Liquidez",
+    fields: [{ key: "caixa_pct", label: "Caixa (%)" }],
+  },
+];
 
 interface Step1DistributionProps {
   pcts: Pcts;
@@ -35,37 +66,52 @@ export function Step1Distribution({
 
       <PresetButtons pcts={pcts} onSelect={onChange} />
 
-      <div className="mt-6 grid grid-cols-2 gap-4">
-        <PctInput
-          id="rf"
-          label="Renda fixa (%)"
-          value={pcts.renda_fixa_pct}
-          onChange={(v) => setField("renda_fixa_pct", v)}
-        />
-        <PctInput
-          id="acoes"
-          label="Acoes (%)"
-          value={pcts.acoes_pct}
-          onChange={(v) => setField("acoes_pct", v)}
-        />
-        <PctInput
-          id="imoveis"
-          label="Imoveis/REITs (%)"
-          value={pcts.imoveis_reits_pct}
-          onChange={(v) => setField("imoveis_reits_pct", v)}
-        />
-        <PctInput
-          id="usd"
-          label="Liquidez USD (%)"
-          value={pcts.liquidez_usd_pct}
-          onChange={(v) => setField("liquidez_usd_pct", v)}
-        />
+      <div className="mt-6 space-y-4">
+        {FAMILY_GROUPS.map((group) => (
+          <FamilyFieldset
+            key={group.title}
+            group={group}
+            pcts={pcts}
+            onChangeField={setField}
+          />
+        ))}
       </div>
 
       <SumIndicator soma={soma} somaValida={somaValida} />
 
       <AlocacaoBar className="mt-3" pcts={pcts} />
     </div>
+  );
+}
+
+function FamilyFieldset({
+  group,
+  pcts,
+  onChangeField,
+}: {
+  group: FamilyGroup;
+  pcts: Pcts;
+  onChangeField: (key: keyof Pcts, value: number) => void;
+}) {
+  const subtotal = group.fields.reduce((acc, f) => acc + pcts[f.key], 0);
+  return (
+    <fieldset className="rounded-lg border p-3">
+      <legend className="px-1 text-xs font-medium text-muted-foreground">
+        {group.title} ·{" "}
+        <span className="font-mono tabular-nums">{subtotal}%</span>
+      </legend>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        {group.fields.map((field) => (
+          <PctInput
+            key={field.key}
+            id={field.key}
+            label={field.label}
+            value={pcts[field.key]}
+            onChange={(v) => onChangeField(field.key, v)}
+          />
+        ))}
+      </div>
+    </fieldset>
   );
 }
 
@@ -79,11 +125,7 @@ function PresetButtons({
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {Object.entries(PRESETS).map(([name, preset]) => {
-        const isActive =
-          pcts.renda_fixa_pct === preset.renda_fixa_pct &&
-          pcts.acoes_pct === preset.acoes_pct &&
-          pcts.imoveis_reits_pct === preset.imoveis_reits_pct &&
-          pcts.liquidez_usd_pct === preset.liquidez_usd_pct;
+        const isActive = PCT_KEYS.every((key) => pcts[key] === preset[key]);
         return (
           <Button
             key={name}
@@ -119,6 +161,7 @@ function PctInput({
         type="number"
         min={0}
         max={100}
+        step={1}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className="mt-2 font-mono tabular-nums"

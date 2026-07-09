@@ -8,12 +8,23 @@ import {
   upsertAlocacaoGoal,
   type AlocacaoGoalDerived,
   type AlocacaoGoalInputs,
+  type RebalanceamentoModo,
 } from "@/lib/api";
 
-import { PRESETS, type Pcts } from "./constants";
+import { PRESETS, sumPcts, type Pcts } from "./constants";
 
 interface UseAlocacaoWizardArgs {
   workspaceId: string | undefined;
+}
+
+function buildInstrumentos(
+  instrumentosRf: string,
+  instrumentosRv: string,
+): Record<string, string> | undefined {
+  const dict: Record<string, string> = {};
+  if (instrumentosRf.trim()) dict.renda_fixa = instrumentosRf.trim();
+  if (instrumentosRv.trim()) dict.renda_variavel = instrumentosRv.trim();
+  return Object.keys(dict).length > 0 ? dict : undefined;
 }
 
 export function useAlocacaoWizard({ workspaceId }: UseAlocacaoWizardArgs) {
@@ -23,30 +34,26 @@ export function useAlocacaoWizard({ workspaceId }: UseAlocacaoWizardArgs) {
   const [pcts, setPcts] = useState<Pcts>(PRESETS.Moderado);
   const [instrumentosRf, setInstrumentosRf] = useState("");
   const [instrumentosRv, setInstrumentosRv] = useState("");
-  const [rebalanceamento, setRebalanceamento] = useState("Anual");
+  const [rebalanceamento, setRebalanceamento] =
+    useState<RebalanceamentoModo>("por_aporte");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const soma =
-    pcts.renda_fixa_pct +
-    pcts.acoes_pct +
-    pcts.imoveis_reits_pct +
-    pcts.liquidez_usd_pct;
+  const soma = sumPcts(pcts);
   const somaValida = soma === 100;
 
   const draftAlocacaoInputs: AlocacaoGoalInputs = useMemo(
     () => ({
       ...pcts,
-      instrumentos_rf: instrumentosRf || undefined,
-      instrumentos_rv: instrumentosRv || undefined,
-      rebalanceamento: rebalanceamento || "Anual",
+      rebalanceamento_modo: rebalanceamento,
+      instrumentos: buildInstrumentos(instrumentosRf, instrumentosRv),
     }),
-    [pcts, instrumentosRf, instrumentosRv, rebalanceamento]
+    [pcts, instrumentosRf, instrumentosRv, rebalanceamento],
   );
 
   const alocacaoDraftDerived: AlocacaoGoalDerived = useMemo(
     () => ({ soma_percentuais: soma }),
-    [soma]
+    [soma],
   );
 
   const canAdvance = useMemo(() => {
@@ -54,8 +61,7 @@ export function useAlocacaoWizard({ workspaceId }: UseAlocacaoWizardArgs) {
     return true;
   }, [step, somaValida]);
 
-  const goToPreviousStep = () =>
-    setStep((s) => Math.max(1, s - 1));
+  const goToPreviousStep = () => setStep((s) => Math.max(1, s - 1));
   const goToNextStep = () => setStep((s) => s + 1);
 
   async function handleSave() {
@@ -63,18 +69,11 @@ export function useAlocacaoWizard({ workspaceId }: UseAlocacaoWizardArgs) {
     setSaving(true);
     setError(null);
 
-    const inputs: AlocacaoGoalInputs = {
-      ...pcts,
-      instrumentos_rf: instrumentosRf || undefined,
-      instrumentos_rv: instrumentosRv || undefined,
-      rebalanceamento: rebalanceamento || "Anual",
-    };
-
     try {
       await upsertAlocacaoGoal(
         workspaceId,
-        inputs,
-        "Configuracao inicial (wizard)"
+        draftAlocacaoInputs,
+        "Configuracao inicial (wizard)",
       );
       router.push("/plano");
     } catch (err) {

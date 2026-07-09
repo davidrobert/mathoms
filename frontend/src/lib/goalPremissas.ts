@@ -13,7 +13,21 @@ import type {
   DolarGoalDerived,
   IFGoalInputs,
   IFGoalDerived,
+  RebalanceamentoModo,
 } from "@/lib/api";
+
+export const REBALANCEAMENTO_MODO_LABELS: Record<RebalanceamentoModo, string> = {
+  por_aporte: "No aporte (recomendado)",
+  anual: "Anual",
+  semestral: "Semestral",
+  trimestral: "Trimestral",
+  trigger_5pct: "Gatilho 5%",
+  trigger_10pct: "Gatilho 10%",
+};
+
+export function rebalanceamentoModoLabel(value: string): string {
+  return REBALANCEAMENTO_MODO_LABELS[value as RebalanceamentoModo] ?? value;
+}
 
 export interface PremissaRow {
   label: string;
@@ -158,28 +172,35 @@ export function buildDolarPremissasRows(
   return rows;
 }
 
+const INSTRUMENTOS_LABELS: Record<string, string> = {
+  renda_fixa: "Instrumentos RF",
+  renda_variavel: "Instrumentos RV",
+};
+
 export function buildAlocacaoPremissasRows(
   inputs: AlocacaoGoalInputs,
   derived: AlocacaoGoalDerived | null
 ): PremissaRow[] {
+  const rf = inputs.rf_pos_pct + inputs.rf_pre_pct + inputs.rf_ipca_pct;
+  const rv = inputs.acoes_br_pct + inputs.acoes_int_pct;
   const rows: PremissaRow[] = [
-    { label: "Renda fixa", value: `${inputs.renda_fixa_pct}%` },
-    { label: "Ações", value: `${inputs.acoes_pct}%` },
-    { label: "Imóveis / REITs", value: `${inputs.imoveis_reits_pct}%` },
-    { label: "Liquidez USD", value: `${inputs.liquidez_usd_pct}%` },
+    { label: "Renda fixa", value: `${rf}%` },
+    { label: "Renda variável", value: `${rv}%` },
+    { label: "FIIs", value: `${inputs.fiis_pct}%` },
+    { label: "Caixa", value: `${inputs.caixa_pct}%` },
   ];
-  if (inputs.instrumentos_rf?.trim()) {
-    rows.push({ label: "Instrumentos RF", value: inputs.instrumentos_rf.trim() });
+  for (const [key, texto] of Object.entries(inputs.instrumentos ?? {})) {
+    if (texto?.trim()) {
+      rows.push({
+        label: INSTRUMENTOS_LABELS[key] ?? `Instrumentos (${key})`,
+        value: texto.trim(),
+      });
+    }
   }
-  if (inputs.instrumentos_rv?.trim()) {
-    rows.push({ label: "Instrumentos RV", value: inputs.instrumentos_rv.trim() });
-  }
-  if (inputs.rebalanceamento?.trim()) {
-    rows.push({
-      label: "Rebalanceamento",
-      value: inputs.rebalanceamento.trim(),
-    });
-  }
+  rows.push({
+    label: "Rebalanceamento",
+    value: rebalanceamentoModoLabel(inputs.rebalanceamento_modo),
+  });
   if (derived) {
     rows.push({
       label: "Soma dos percentuais",

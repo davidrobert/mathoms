@@ -68,20 +68,20 @@ function dolarCardProps(goal: DolarGoalResponse | null): GoalCardProps {
   };
 }
 
-function alocacaoCardProps(
-  goal: AlocacaoGoalResponse | null
-): GoalCardProps {
+function alocacaoCardProps(goal: AlocacaoGoalResponse | null): GoalCardProps {
+  const rf = goal
+    ? goal.inputs.rf_pos_pct + goal.inputs.rf_pre_pct + goal.inputs.rf_ipca_pct
+    : 0;
+  const rv = goal ? goal.inputs.acoes_br_pct + goal.inputs.acoes_int_pct : 0;
   return {
     icon: PieChart,
     title: "Alocação",
     density: "compact",
     configured: !!goal,
     href: goal ? "/plano/alocacao" : "/plano/alocacao/wizard",
-    value: goal
-      ? `RF ${goal.inputs.renda_fixa_pct}% · RV ${goal.inputs.acoes_pct}%`
-      : undefined,
+    value: goal ? `RF ${rf}% · RV ${rv}%` : undefined,
     subtitle: goal
-      ? `Imóv ${goal.inputs.imoveis_reits_pct}% · USD ${goal.inputs.liquidez_usd_pct}%`
+      ? `FIIs ${goal.inputs.fiis_pct}% · Caixa ${goal.inputs.caixa_pct}%`
       : undefined,
   };
 }

@@ -48,6 +48,7 @@ from backend.app.schemas.dto.goal import (
     ReservaEmergenciaGoalInputs,
     goal_to_if_response,
     goal_to_typed_response,
+    meta_version_for_type,
 )
 
 # ─── Compute services (puros) ─────────────────────────────────────────
@@ -419,8 +420,8 @@ async def create_goal_version(
         workspace_id,
         goal_type,
         params_json={
-            "inputs": inputs.model_dump(mode="json"),
-            "meta_version": 1,
+            "inputs": inputs.model_dump(mode="json", exclude_none=True),
+            "meta_version": meta_version_for_type(goal_type),
         },
         derived_json=derived.model_dump(mode="json", exclude_none=True),
         created_by=created_by,

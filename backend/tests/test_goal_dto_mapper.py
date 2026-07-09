@@ -59,6 +59,14 @@ IF_DERIVED = {
     "aporte_necessario_mensal_brl": 30000.0,
     "if_meta_conservadora_brl": 9000000.0,
 }
+ALOCACAO_V1_INPUTS = {
+    "renda_fixa_pct": 40,
+    "acoes_pct": 35,
+    "imoveis_reits_pct": 15,
+    "liquidez_usd_pct": 10,
+    "instrumentos_rf": "CDB",
+    "instrumentos_rv": "VT",
+}
 
 
 class TestGOAL_TYPE_DTO_CLASSES:
@@ -137,23 +145,63 @@ class TestGoalToTypedResponse:
         assert resp.type == "DOLARIZACAO"
         assert resp.inputs.meta_usd == 100000.0
 
-    def test_alocacao_goal(self):
-        inputs = {
-            "renda_fixa_pct": 40,
-            "acoes_pct": 35,
-            "imoveis_reits_pct": 15,
-            "liquidez_usd_pct": 10,
-            "instrumentos_rf": "CDB",
-            "instrumentos_rv": "VT",
-            "rebalanceamento": "anual",
-        }
-        derived = {"soma_percentuais": 100.0}
-        goal = _fake_goal("ALOCACAO_ALVO", inputs, derived)
+    def test_alocacao_goal_v1_converte_on_read(self):
+        # Row v1 → response SEMPRE v2 (ADR-141 emenda item 6): split RF
+        # 50/25/25, USD 70/30, converted_from="1", is_template força
+        # re-confirmação no wizard.
+        inputs = {**ALOCACAO_V1_INPUTS, "rebalanceamento": "anual"}
+        goal = _fake_goal("ALOCACAO_ALVO", inputs, {"soma_percentuais": 100.0})
 
         resp = goal_to_typed_response(goal)
 
         assert isinstance(resp, AlocacaoGoalResponse)
+        assert resp.converted_from == "1"
+        assert resp.is_template is True
+        assert resp.meta_version == 2
+        assert (resp.inputs.rf_pos_pct, resp.inputs.acoes_int_pct, resp.inputs.caixa_pct) == (
+            20,
+            7,
+            3,
+        )
+        assert resp.inputs.acoes_br_pct == 35
+        assert resp.inputs.rebalanceamento_modo == "anual"
+
+    def test_alocacao_goal_orfa_do_seed_converte(self):
+        # Bug vivo pré-PR4: shape órfão do seed quebrava o GET (required
+        # do DTO v1). Agora converte com converted_from="orphan".
+        goal = _fake_goal(
+            "ALOCACAO_ALVO",
+            {"rf_pct": 40, "rv_pct": 40, "alternativos_pct": 20},
+            {},
+        )
+
+        resp = goal_to_typed_response(goal)
+
+        assert isinstance(resp, AlocacaoGoalResponse)
+        assert resp.converted_from == "orphan"
+        assert resp.is_template is True
+        assert resp.inputs.acoes_br_pct == 28
         assert resp.derived.soma_percentuais == 100.0
+
+    def test_alocacao_goal_v2_passthrough_sem_template(self):
+        inputs = {
+            "rf_pos_pct": 20,
+            "rf_pre_pct": 10,
+            "rf_ipca_pct": 10,
+            "acoes_br_pct": 25,
+            "acoes_int_pct": 15,
+            "fiis_pct": 10,
+            "caixa_pct": 10,
+            "rebalanceamento_modo": "por_aporte",
+        }
+        goal = _fake_goal("ALOCACAO_ALVO", inputs, {"soma_percentuais": 100.0})
+
+        resp = goal_to_typed_response(goal)
+
+        assert isinstance(resp, AlocacaoGoalResponse)
+        assert resp.converted_from is None
+        assert resp.is_template is False
+        assert resp.inputs.rf_pos_pct == 20
 
     def test_unknown_type_raises_keyerror(self):
         goal = _fake_goal("UNKNOWN_TYPE", IF_INPUTS, IF_DERIVED)

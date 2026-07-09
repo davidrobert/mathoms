@@ -11,11 +11,21 @@ from backend.app.application.goal import (
     list_typed_goal_versions,
 )
 from backend.app.schemas.dto.goal import (
-    AlocacaoGoalInputs,
+    AlocacaoGoalInputsV2,
     AporteGoalInputs,
     DolarGoalInputs,
 )
 from backend.tests.fakes import FakeGoalRepository
+
+_ALOCACAO_V2 = AlocacaoGoalInputsV2(
+    rf_pos_pct=25,
+    rf_pre_pct=13,
+    rf_ipca_pct=12,
+    acoes_br_pct=25,
+    acoes_int_pct=10,
+    fiis_pct=10,
+    caixa_pct=5,
+)
 
 
 @pytest.mark.asyncio
@@ -56,9 +66,7 @@ async def test_create_alocacao_goal_uses_alocacao_compute():
 
     resp = await create_typed_goal_version(
         "ALOCACAO_ALVO",
-        AlocacaoGoalInputs(
-            renda_fixa_pct=50, acoes_pct=30, imoveis_reits_pct=15, liquidez_usd_pct=5
-        ),
+        _ALOCACAO_V2,
         notes=None,
         workspace_id="ws-1",
         created_by="user-1",

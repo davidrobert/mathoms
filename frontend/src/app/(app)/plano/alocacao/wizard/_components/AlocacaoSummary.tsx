@@ -3,9 +3,10 @@
 import { PieChart } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
+import { rebalanceamentoModoLabel } from "@/lib/goalPremissas";
 
 import { AlocacaoBar } from "./AlocacaoBar";
-import { COLORS, type Pcts } from "./constants";
+import { CLASS_META, type Pcts } from "./constants";
 
 interface AlocacaoSummaryProps {
   pcts: Pcts;
@@ -30,26 +31,14 @@ export function AlocacaoSummary({
       <AlocacaoBar className="mb-3" pcts={pcts} />
 
       <dl className="space-y-1">
-        <SummaryRow
-          colorClass={COLORS.renda_fixa}
-          label="Renda fixa"
-          value={`${pcts.renda_fixa_pct}%`}
-        />
-        <SummaryRow
-          colorClass={COLORS.acoes}
-          label="Acoes"
-          value={`${pcts.acoes_pct}%`}
-        />
-        <SummaryRow
-          colorClass={COLORS.imoveis}
-          label="Imoveis/REITs"
-          value={`${pcts.imoveis_reits_pct}%`}
-        />
-        <SummaryRow
-          colorClass={COLORS.usd}
-          label="Liquidez USD"
-          value={`${pcts.liquidez_usd_pct}%`}
-        />
+        {CLASS_META.map(({ key, label, color }) => (
+          <SummaryRow
+            key={key}
+            color={color}
+            label={label}
+            value={`${pcts[key]}%`}
+          />
+        ))}
         <Separator className="my-2" />
         {instrumentosRf && (
           <div className="flex justify-between text-xs">
@@ -65,7 +54,7 @@ export function AlocacaoSummary({
         )}
         <div className="flex justify-between text-xs">
           <dt className="text-muted-foreground">Rebalanceamento</dt>
-          <dd>{rebalanceamento}</dd>
+          <dd>{rebalanceamentoModoLabel(rebalanceamento)}</dd>
         </div>
       </dl>
     </div>
@@ -73,18 +62,21 @@ export function AlocacaoSummary({
 }
 
 function SummaryRow({
-  colorClass,
+  color,
   label,
   value,
 }: {
-  colorClass: string;
+  color: string;
   label: string;
   value: string;
 }) {
   return (
     <div className="flex justify-between">
       <dt className="flex items-center gap-1 text-muted-foreground">
-        <span className={`inline-block h-2 w-2 rounded-full ${colorClass}`} />
+        <span
+          className="inline-block h-2 w-2 rounded-full"
+          style={{ backgroundColor: color }}
+        />
         {label}
       </dt>
       <dd className="font-mono tabular-nums">{value}</dd>

@@ -13,14 +13,17 @@ from pydantic import BaseModel
 from backend.app.application.base.errors import ValidationError
 from backend.app.application.goal._protocols import GoalRepositoryProtocol
 from backend.app.schemas.dto.goal import (
-    AlocacaoGoalInputs,
+    AlocacaoGoalInputsV2,
     AporteGoalInputs,
     DolarGoalInputs,
     GoalResponseBase,
     goal_to_typed_response,
+    meta_version_for_type,
+)
+from backend.app.schemas.dto.goal.alocacao_shape_conversion import (
+    compute_alocacao_derived_v2,
 )
 from backend.app.services.goal_service import (
-    compute_alocacao_derived,
     compute_aporte_derived,
     compute_dolar_derived,
 )
@@ -31,8 +34,8 @@ def _derive_for_type(goal_type: str, inputs: BaseModel) -> BaseModel:
         return compute_aporte_derived(inputs)
     if goal_type == "DOLARIZACAO" and isinstance(inputs, DolarGoalInputs):
         return compute_dolar_derived(inputs)
-    if goal_type == "ALOCACAO_ALVO" and isinstance(inputs, AlocacaoGoalInputs):
-        return compute_alocacao_derived(inputs)
+    if goal_type == "ALOCACAO_ALVO" and isinstance(inputs, AlocacaoGoalInputsV2):
+        return compute_alocacao_derived_v2(inputs)
     raise ValidationError(
         f"Goal type '{goal_type}' incompatível com inputs {type(inputs).__name__}",
         code="goal_type_inputs_mismatch",
@@ -54,7 +57,10 @@ async def create_typed_goal_version(
     goal = await repo.create_new_version(
         workspace_id,
         goal_type,
-        params_json={"inputs": inputs.model_dump(mode="json"), "meta_version": 1},
+        params_json={
+            "inputs": inputs.model_dump(mode="json", exclude_none=True),
+            "meta_version": meta_version_for_type(goal_type),
+        },
         derived_json=derived.model_dump(mode="json", exclude_none=True),
         created_by=created_by,
         notes=notes,
