@@ -20,6 +20,12 @@ tags:
 **Status:** Proposto · **Data:** 2026-07-08 · Follow-up do co-design `senior-cto`
 de [[TRACK-f2-cutover]] §Follow-ups.
 
+> **Nota de estado (audit r7, 2026-07-09):** o código-núcleo
+> (`FallbackPipelineClient` + circuit breaker sticky + kill-switch + testes) foi
+> **shipado na F2 como dark launch** — `backend/app/services/pipeline/pipeline_client.py:192`,
+> env `MATHOMS_PIPELINE_SHELL_FALLBACK` **default OFF por design** (§6). Flip
+> Proposto→Decidido + habilitação do env são owner-gated (pós-F3).
+
 ## Contexto
 
 No cutover para o shell Go ([[ADR-150]]), o worker de prod executa cada stage
