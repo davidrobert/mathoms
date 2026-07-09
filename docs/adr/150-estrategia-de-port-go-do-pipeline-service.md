@@ -5,6 +5,7 @@ title: "Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via 
 status: Decidido
 phase: "F1 GO_SHELL — gatilho 4 disparado pelo owner, 2026-07-03"
 date: "2026-04-27"
+amended_at: ["2026-07-08"]
 relates_to: ["[[ADR-112]]", "[[ADR-113]]", "[[ADR-102]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-109]]", "[[ADR-205]]", "[[ADR-212]]", "[[ADR-241]]", "[[ADR-291]]", "[[ADR-303]]"]
 supersedes: []
 superseded_by: []
@@ -15,12 +16,23 @@ tags:
   - area/pipeline
   - status/decidido
   - type/adr
-size_lines: 257
+size_lines: 331
 ---
 
 # ADR-150 — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap
 
 **Status:** Decidido (F1 GO_SHELL — gatilho 4, 2026-07-03) • **Data:** 2026-04-27 (proposta) → 2026-05-07 (Roadmap) → 2026-07-03 (Decidido) • **Relaciona** [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1), [ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-093](#adr-093--rename-completo-de-identificadores-de-stage-opção-a), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a).
+
+> **Emenda 2026-07-08 (início da F2):** o §7 exige "paridade **byte-a-byte de
+> artefatos finais**" — fisicamente impossível para campos de stages LLM (E5
+> narrativas), não-determinísticos entre runs mesmo com código idêntico. Ver
+> §Emenda ao fim: o byte-exact E0→E5 é atingido **removendo** o LLM
+> (`skip_llm` → `DETERMINISTIC_ORDER`), não contornando-o; stages LLM recebem
+> paridade **estrutural + envelope WS + span** com backstop
+> `divergência(Go,Py) ⊆ divergência(Py,Py)`. Também corrige o mental model de
+> §8: o fallback de prod é `InProcessPipelineClient` (unset da env var), não o
+> `pipeline-service` Python HTTP. Design executável: [[PLAN-go-shell]]
+> `tracks/f2-cutover.md`.
 
 > **Decisão W6-T06 (2026-05-07):** Caminho 1 **continua sendo o default escolhido**
 > quando algum gatilho disparar — a estratégia de port (layout, pré-requisitos,
@@ -270,3 +282,50 @@ Hoje, nenhum dos quatro está ativo.
 - [docs/reference/api/v1/pipeline-service.openapi.json](../reference/api/v1/pipeline-service.openapi.json) — contrato HTTP fonte de verdade.
 - [services/](../../services/) — skeleton Go ([ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7)).
 - [.golangci.yml](../../.golangci.yml) (v2 desde F1 Fase 1), jobs `go-lint`/`go-test` em [.github/workflows/ci.yml](../../.github/workflows/ci.yml) (dentro do agregador `All checks green`; o `go.yml` standalone foi absorvido — não era observado pelo gate), [Makefile](../../Makefile) `go-*` targets.
+
+## Emenda 2026-07-08 — critério do gate técnico da F2 (byte-a-byte vs. não-determinismo LLM) + correção do fallback de prod
+
+Ao instanciar a F2 (cutover), o §7 acima ("paridade **byte-a-byte de artefatos
+finais**, WS events e atributos de span") revelou-se **literalmente inatingível
+para stages LLM**: como o shell Go só faz *subprocess do mesmo Python*, Go e
+Python rodam código de escrita idêntico — mas stages `is_llm` (narrativas E5.N,
+parecer E6) produzem output distinto entre execuções mesmo com temperatura 0
+(resíduo determinístico, [[ADR-296]]). "Byte-a-byte" mistura ruído de LLM com
+bug de executor. Co-design `senior-cto` + `sre-devops` (2026-07-08) fecha o
+critério; o desenho executável (harness, allowlist, tiers, runbook) vive em
+[[PLAN-go-shell]] `tracks/f2-cutover.md` — aqui fica só a reinterpretação do §7
+que precisa ser rastreável.
+
+1. **Critério diferencial.** O gate afirma `divergência(Go,Python) ⊆
+   divergência(Python,Python)`, não igualdade absoluta. Um **run de controle
+   Py↔Py pelo mesmo harness** mede empiricamente o piso de ruído; qualquer campo
+   que diverge Go↔Py **mas não** Py↔Py é bug de executor.
+2. **Tier-1 (determinístico) = o "byte-a-byte do §7", agora atingível.** Com
+   `skip_llm` → `DETERMINISTIC_ORDER` e fixture curada com **zero** fallback LLM
+   no E2 (`requires_llm`), o payload E0→E5 fica 100% determinístico → paridade
+   **value-exact/cents-exact de payload completo, tolerância zero** (3× Go vs 3×
+   Python; controle Py↔Py com 0 diff residual como guarda anti-mascaramento). O
+   LLM é **removido**, não mockado — mockar validaria um caminho que prod nunca
+   roda e esconderia justamente o bug de env-passthrough ao subprocess.
+3. **Tier-2 (full).** Com `FULL_ORDER` (narrativas incluídas): paridade de
+   **envelope WS** (shape + sequência, `timestamp`/`run_id` normalizados),
+   **span OTel** (attrs normalizados por identidade + continuidade de trace, não
+   `trace_id` byte-exact) e paridade **estrutural** dos subtrees LLM (chaves,
+   tipos, cardinalidade, proveniência), com backstop `⊆ divergência(Py,Py)`. A
+   validação semântica do produto é o **gate humano obrigatório** (§7,
+   não-pulável) sobre o run full real em `/reports/[id]`.
+4. **Correção do fallback de prod (§8).** O mental model de "o `pipeline-service`
+   Python permanece como fallback" está incompleto: **prod hoje executa stages
+   `InProcess`** (emenda item 3 de 2026-07-02), não via HTTP. O rollback
+   pragmático do cutover é **unset de `MATHOMS_PIPELINE_SERVICE_URL` → retorno ao
+   `InProcessPipelineClient`** (caminho batido em prod), não apontar para o
+   Python HTTP. Consequência para a F3: o decommission remove só o
+   `pipeline-service/` **Python HTTP** — a reversibilidade de prod vive em
+   `backend/` + `pipeline/` e **sobrevive à F3**. O flip **não é a quente**:
+   `get_pipeline_client()` memoiza o singleton por processo → exige **restart do
+   worker** (o que `make go-on`/`go-off` já fazem).
+
+**Não é ADR nova** — o cutover permanece decidido no §7; esta emenda só torna
+rastreável a reinterpretação do critério de paridade e a correção do fallback.
+Pré-condição de infra confirmada por ambos os especialistas: o gate byte-a-byte
+**exige Postgres** (o smoke SQLite tem incoerência WAL host↔container).
