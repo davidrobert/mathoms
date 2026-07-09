@@ -7,7 +7,7 @@ sprint_origem: A11
 sprint_atual: A11
 sprints_envolvidas: ["A11"]
 created_at: "2026-05-11"
-last_review: "2026-06-12"
+last_review: "2026-07-09"
 adrs_canonical:
   - "[[ADR-190]]"
   - "[[ADR-148]]"
@@ -109,7 +109,17 @@ ADR-190 transiciona Proposto → **Decidido (A11)** no merge de W2.
 
 ### W3 — Métricas expandidas + cadência (D1 + D2)
 
-**Status:** pendente — depende de W2.
+**Status:** ✅ entregue **em forma reduzida** na janela 2026-07-09 (ver
+§Emenda 2026-07-09 da [[ADR-190]]): builder compara os campos E5 **reais**
+(`taxa_poupanca_recorrente_pct` · `reserva.cobertura_meses` ·
+`goals.alocacao_alvo.derived.desvio_max_pct` · `patrimonio.liquido`) em
+**MoM uniforme** com par resolvido por período (colapso latest-por-período).
+**Cortado desta janela (defer explícito):** `load_snapshot_window`
+multi-cadência + `cadence_for` (reabrem com W5, mesmo pré-requisito);
+top-N filter (≤4 métricas por construção); `M_DIVIDA_PCT` (campo
+`pct_renda_comprometida` não existe no E5 — lane de enriquecimento);
+`M_SCORE`/`M_IF_ANOS`/`M_DESPESA_MM3` cortadas por anti-metodológicas em
+delta mensal. Texto original das lanes abaixo mantido como histórico.
 
 Lanes:
 
@@ -149,7 +159,14 @@ Critério de aceite W3:
 
 ### W4 — Decomposição patrimonial + seção cross-section (D5 + D6)
 
-**Status:** pendente — D5 pode separar para lane com pré-requisito.
+**Status:** **D6 ✅ entregue na janela 2026-07-09** (seção V0 após o
+sumário executivo, manchete Δ PL neutra + lista de comportamento,
+`SectionSnapshotDiff`/`SnapshotChangelogList` removidos). **D5 deferida
+para lane própria** conforme premissa 3 + R1: o cálculo pertence ao
+builder (não ao E5) e o modelo honesto é 3 baldes residuais — pré-requisito
+de agregação de `transferencias_internas` por classe ([[ADR-190]] §Emenda
+2026-07-09 itens 1 e 4). Texto original das lanes abaixo mantido como
+histórico; W4-T05 (product-designer) executada no co-design da janela.
 
 Lanes:
 
@@ -306,6 +323,14 @@ priorizadas mas ainda não datadas.
 
 ## Histórico
 
+- **2026-07-09:** janela de execução (co-design 4 especialistas:
+  `financial-planner` + `product-manager` + `data-engineer` +
+  `product-designer`; conflito PL-sem-decomposição resolvido em 1 rodada —
+  manchete neutra). W3 entregue em forma reduzida + W4/D6 entregue; D5 e
+  cadência multi-janela deferidas com gatilhos explícitos. Emenda datada na
+  [[ADR-190]]. Aceite da janela = smoke do owner no dogfood ("o que mudou
+  e por quê em <15s"); critério global #4 (3 usuários beta) reetiquetado
+  como gate de beta, permanece.
 - **2026-06-12:** card "Histórico de Ciclos" (Apêndice E) marcado para
   remoção fora de W4 via [[TRACK-remove-historico-ciclos-app-e]]
   (revisão `product-designer` + `financial-planner` +
