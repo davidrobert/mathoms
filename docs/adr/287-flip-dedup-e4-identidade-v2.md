@@ -13,6 +13,7 @@ relates_to:
   - "[[ADR-279]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-07-08"]
 aliases: ["ADR 287", "flip dedup v2", "passo 2 B4"]
 tags:
   - type/adr
@@ -22,6 +23,10 @@ tags:
 ---
 
 # ADR-287 — Flip do dedup E4 para identidade `natural_key` v2
+
+> **Correção 2026-07-08:** o registro do cutover atribuiu o `k4_coverage=partial`
+> da dogfood a "sem mapa de membros … por design PII-zero" — premissa falsa.
+> Ver §"Correção 2026-07-08" ao final; follow-up em [[ADR-321]].
 
 **Status:** Decidido (A25 · l2/l6B) • **Data:** 2026-06-10 • **Relaciona** [[ADR-278]]
 (B3/B4), [[ADR-282]] (§7 gate), [[ADR-255]], [[ADR-090]], [[ADR-279]] (member_hashes).
@@ -115,3 +120,16 @@ critério acima:
 - **Default flipado para `True`** após G-f aprovado. **Rollback = flag off por
   workspace** (E4 volta a v1). **Drop do shim v1 (M2) é carry-over ≥1 sprint** com
   counter de fallback zerado — não faz parte deste cutover.
+
+## Correção 2026-07-08 — "sem mapa de membros" era mis-diagnóstico
+
+O bullet de cutover acima ("a dogfood é classe-c — `titular` resolvido vazio sem
+mapa de membros → `k4_coverage=partial`, por design PII-zero") registrou premissa
+**falsa**: a dogfood tem 3 `FamilyMember` com CPF encriptado e roles no DB. O
+`titular` vazio vem de regressão de wiring, não de ausência de dado nem de design:
+`scripts/e2/common.py::_init_config` lê `family_members.json` de disco (arquivo
+que deixou de ser materializado pós-A7.5, [[ADR-134]]) e
+`BankStatement.from_e2_dict` nunca mapeou `titular` → `member_key`. Diagnóstico
+completo, impacto (lineage [[ADR-279]] a 8%, dedup sem discriminação por membro,
+overrides ancorados em hash com titular vazio) e fix em [[ADR-321]]. O
+"por design PII-zero" aplica-se à **fixture K4 sintética**, não à dogfood.

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-311 ADRs (ADR-001 a ADR-320) em [`docs/adr/`](../../adr/).
+312 ADRs (ADR-001 a ADR-321) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 284
-- **Proposto**: 24
+- **Proposto**: 25
 - **Roadmap**: 3
 
 ## Fundação
@@ -544,6 +544,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-310]] — Chave canônica de conta na continuidade de saldo (implementação interina de ADR-278 §B7) · phase A32.l4
 - [[ADR-311]] — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável · phase A32.l5
 - [[ADR-312]] — Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers
+
+### Proposto (1)
+
+- [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 
 ## quality
 
