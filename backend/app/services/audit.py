@@ -89,6 +89,10 @@ class AuditAction(str, enum.Enum):
     # Mutação-adjacente (evidência de gate): NÃO entra em READ_ACCESS_ACTIONS → sobrevive ao purge.
     override_v2_dualread_snapshot = "override.v2_dualread_snapshot"
 
+    # Supersessão de PropertyIdentity — merge de override com classificações
+    # divergentes (ADR-324). Mutação: sobrevive ao purge de leitura.
+    property_override_supersession_merge = "property_override.supersession_merge"
+
 
 # Ações de **leitura** (Art.37) — retenção 365d, purgadas por
 # ``purge_expired_audit_logs`` (ADR-275 D5). Audit de mutação NÃO entra aqui:

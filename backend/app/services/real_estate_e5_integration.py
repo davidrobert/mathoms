@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models.property_identity import PropertyIdentity, WorkspacePropertyOverride
+from backend.app.repositories.property_repository import live_property_identities_stmt
 from backend.app.services.real_estate_adapter import (
     CascadeSources,
     E4ReceitaAluguelEntry,
@@ -70,10 +71,8 @@ def _calculate(
 
 
 def _load_identities(db: Session, workspace_id: str) -> list[PropertyIdentity]:
-    stmt = (
-        select(PropertyIdentity)
-        .where(PropertyIdentity.workspace_id == workspace_id)
-        .order_by(PropertyIdentity.first_seen_year.desc(), PropertyIdentity.created_at.asc())
+    stmt = live_property_identities_stmt(workspace_id).order_by(
+        PropertyIdentity.first_seen_year.desc(), PropertyIdentity.created_at.asc()
     )
     return list(db.execute(stmt).scalars().all())
 

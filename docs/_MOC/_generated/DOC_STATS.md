@@ -27,8 +27,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 | type | status | notas |
 | --- | --- | ---: |
-| adr | Decidido | 287 |
-| adr | Proposto | 25 |
+| adr | Decidido | 288 |
+| adr | Proposto | 24 |
 | adr | Roadmap | 3 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 252 |

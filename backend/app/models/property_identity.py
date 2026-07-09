@@ -86,6 +86,17 @@ class PropertyIdentity(Base):
     low_confidence: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="0"
     )
+    # ADR-324: estado (predicado de read-path) e linhagem são colunas
+    # distintas — ON DELETE SET NULL no ponteiro não pode ressuscitar a
+    # perdedora (classe do bug de quarentena A26.l4).
+    superseded_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    superseded_by_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("property_identity.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session as SyncSession
 
 from backend.app.models.property_identity import PropertyIdentity
 from backend.app.models.vehicle import Vehicle
+from backend.app.repositories.property_repository import live_property_identities_stmt
 from pipeline.domain.services.apolice_reconciliation import (
     ApoliceReconciliationSummary,
     reconcile_apolice_bens,
@@ -54,11 +55,7 @@ def _query_active_vehicles(workspace_id: str, *, db: SyncSession) -> list[dict]:
 
 
 def _query_property_identities(workspace_id: str, *, db: SyncSession) -> list[dict]:
-    rows = (
-        db.execute(select(PropertyIdentity).where(PropertyIdentity.workspace_id == workspace_id))
-        .scalars()
-        .all()
-    )
+    rows = db.execute(live_property_identities_stmt(workspace_id)).scalars().all()
     return [_property_to_dict(p) for p in rows]
 
 

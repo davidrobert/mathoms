@@ -782,16 +782,36 @@ def main_with_store(ctx) -> dict:
             _titular_key = getattr(family_members, "titular_key", None)
     except Exception:
         _titular_key = None
-    _dedup = dedup_imoveis_consolidados(
-        consolidated.get("imoveis_consolidados", []),
-        titular_key=_titular_key,
-    )
+    _imoveis_pre_dedup = consolidated.get("imoveis_consolidados", [])
+    _dedup = dedup_imoveis_consolidados(_imoveis_pre_dedup, titular_key=_titular_key)
     consolidated["imoveis_consolidados"] = _dedup.imoveis
     if _dedup.count_after < _dedup.count_before:
         print(
             f"  [E1.5c] Imóveis dedup: {_dedup.count_before} → {_dedup.count_after} "
             f"(warnings={len(_dedup.warnings)})"
         )
+
+    # 3b-poda (ADR-324): reconcilia a supersessão no DB com a MESMA policy do
+    # dedup acima — perdedoras marcam superseded_*, ex-perdedoras reativam
+    # (flip-safe) e overrides migram para o vencedor.
+    if ctx.property_supersession_writer is not None and ctx.workspace_id is not None:
+        from pipeline.domain.services.imoveis_dedup import (
+            resolve_dedup_winner_by_property_id,
+        )
+
+        _winner_by_pid = resolve_dedup_winner_by_property_id(
+            _imoveis_pre_dedup, titular_key=_titular_key
+        )
+        _supersession = ctx.property_supersession_writer.reconcile_supersession(
+            ctx.workspace_id, _winner_by_pid
+        )
+        if _supersession.changed:
+            print(
+                f"  [E1.5c] Supersessão de imóveis: {_supersession.superseded} marcadas, "
+                f"{_supersession.cleared} reativadas, "
+                f"{_supersession.overrides_repointed + _supersession.overrides_merged} "
+                f"overrides migrados"
+            )
 
     # 3c. Dedup de investimentos cross-IRPF (ADR-271). Dois eixos: cross-year
     #     (mesmo proprietário, anos sucessivos → une `valores_31_12`) e

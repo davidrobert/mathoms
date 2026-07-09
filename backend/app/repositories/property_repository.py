@@ -16,6 +16,15 @@ from backend.app.models import (
 )
 
 
+def live_property_identities_stmt(workspace_id: str):
+    """Select das identities vivas (ADR-324) — predicado único de read-path;
+    LGPD export e scripts de remediação continuam vendo a tabela inteira."""
+    return select(PropertyIdentity).where(
+        PropertyIdentity.workspace_id == workspace_id,
+        PropertyIdentity.superseded_at.is_(None),
+    )
+
+
 class PropertyRepository:
     """Async repo para os 2 aggregates de imóvel (ADR-215)."""
 
@@ -25,18 +34,15 @@ class PropertyRepository:
     async def list_identities(self, workspace_id: str) -> list[PropertyIdentity]:
         """Lista todas as `property_identity` rows do workspace."""
         result = await self._db.execute(
-            select(PropertyIdentity)
-            .where(PropertyIdentity.workspace_id == workspace_id)
-            .order_by(PropertyIdentity.first_seen_year.desc(), PropertyIdentity.created_at.asc())
+            live_property_identities_stmt(workspace_id).order_by(
+                PropertyIdentity.first_seen_year.desc(), PropertyIdentity.created_at.asc()
+            )
         )
         return list(result.scalars().all())
 
     async def get_identity(self, workspace_id: str, property_id: str) -> Optional[PropertyIdentity]:
         result = await self._db.execute(
-            select(PropertyIdentity).where(
-                PropertyIdentity.id == property_id,
-                PropertyIdentity.workspace_id == workspace_id,
-            )
+            live_property_identities_stmt(workspace_id).where(PropertyIdentity.id == property_id)
         )
         return result.scalar_one_or_none()
 

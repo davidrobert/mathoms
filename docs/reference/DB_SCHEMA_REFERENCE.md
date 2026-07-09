@@ -1006,10 +1006,13 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `first_seen_year` | `INTEGER` | no | — | — |
 | `descricao_sample` | `TEXT` | yes | — | — |
 | `low_confidence` | `BOOLEAN` | no | server: `0` | — |
+| `superseded_at` | `DATETIME` | yes | — | — |
+| `superseded_by_id` | `VARCHAR(36)` | yes | — | FK→property_identity.id |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Constraints:**
 
+- FOREIGN KEY (superseded_by_id) REFERENCES property_identity.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 
 **Indexes:**
@@ -2494,6 +2497,8 @@ type PropertyIdentity struct {
 	FirstSeenYear int `db:"first_seen_year" json:"first_seen_year"`
 	DescricaoSample *string `db:"descricao_sample" json:"descricao_sample"`
 	LowConfidence bool `db:"low_confidence" json:"low_confidence"`
+	SupersededAt *time.Time `db:"superseded_at" json:"superseded_at"`
+	SupersededById *string `db:"superseded_by_id" json:"superseded_by_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
