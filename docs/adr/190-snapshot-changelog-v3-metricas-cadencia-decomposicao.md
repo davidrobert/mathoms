@@ -46,7 +46,8 @@ snapshots de `analyze_finances` e produz:
   (filtra `stable`).
 
 A UI renderiza ambos embutidos dentro de S1/S2/S3 do relatório via
-`SectionSnapshotDiff` ([frontend/src/components/report/SectionSnapshotDiff.tsx](../../frontend/src/components/report/SectionSnapshotDiff.tsx)).
+`SectionSnapshotDiff` (`frontend/src/components/report/SectionSnapshotDiff.tsx`,
+deletado na janela 2026-07-09 — ver D6/§Emenda).
 
 Em 2026-05-11 o produto-owner sinalizou que o card **não comunica**:
 "esse card não diz nada, fica difícil de entender. Antes e Depois do
