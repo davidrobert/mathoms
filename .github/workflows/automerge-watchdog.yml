@@ -1,0 +1,54 @@
+# Auto-merge watchdog (ADR-322)
+#
+# Remedia os 3 estados presos que exigiam intervenção manual do owner:
+#   (a) auto-merge desabilitado silenciosamente pelo GitHub quando o
+#       agregador "All checks green" de um run superseded falha → re-habilita
+#       se o head atual está verde (opt-out humano: label wip/do-not-merge/blocked)
+#   (b) runs órfãos `action_required` (push atribuído a bot) → empty commit
+#       via Git Data API re-dispara o CI — só com AUTOUPDATE_PAT (com
+#       GITHUB_TOKEN o kick geraria novo órfão)
+#   (c) cabeça do trem parada >60min → mantém issue de sinalização
+#       (fecha sozinha quando o trem anda)
+#
+# Roda com AUTOUPDATE_PAT quando disponível (merge/re-enable atribuídos ao
+# owner mantêm a cadeia push→trigger viva); degrada para GITHUB_TOKEN nas
+# funções que não dependem de atribuição (re-enable, issue).
+
+name: Auto-merge watchdog
+
+on:
+  schedule:
+    - cron: "5,35 * * * *"
+  workflow_dispatch: {}
+
+# A34.l13 (ADR-320): default de menor privilégio; escrita só no job.
+permissions:
+  contents: read
+
+concurrency:
+  group: automerge-watchdog
+  cancel-in-progress: false
+
+jobs:
+  watchdog:
+    name: Watchdog (re-enable + kick + stall signal)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # contents: write (kick via Git Data API) + pull-requests: write
+    # (re-enable auto-merge) + issues: write (issue de stall) + actions:
+    # read (runs por commit). Trabalho real usa AUTOUPDATE_PAT quando
+    # disponível; estas permissions limitam o GITHUB_TOKEN de fallback.
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ secrets.AUTOUPDATE_PAT || github.token }}
+      AUTOMERGE_KICK: ${{ secrets.AUTOUPDATE_PAT != '' && '1' || '0' }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run watchdog
+        run: python3 dev/ci_automerge_watchdog.py
