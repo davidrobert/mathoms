@@ -668,7 +668,7 @@
 | A25.l7 | lane | shipped | A25 | Decisão do flip warn→strict do evidencia_path (requisito de done da A25) | `sprint/A25/lanes/A25-l7-evidencia-strict-decision.md` |
 | A26.l1 | lane | shipped | A26 | Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM | `sprint/A26/lanes/A26-l1-evidencia-prompt-catalogo.md` |
 | A26.l10 | lane | shipped | A26 | LGPD export — cobertura total das tabelas com dados pessoais (Art.18) | `sprint/A26/lanes/A26-l10-lgpd-export-cobertura.md` |
-| A26.l2 | lane | in_progress | A26 | Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review) | `sprint/A26/lanes/A26-l2-evidencia-flip-strict.md` |
+| A26.l2 | lane | shipped | A26 | Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review) | `sprint/A26/lanes/A26-l2-evidencia-flip-strict.md` |
 | A26.l3 | lane | shipped | A26 | M2-A — drop do shim v1 do dedup (compute_transaction_hash) | `sprint/A26/lanes/A26-l3-drop-dedup-v1-shim.md` |
 | A26.l4 | lane | in_progress | A26 | Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) | `sprint/A26/lanes/A26-l4-override-v2-on-instrumentacao.md` |
 | A26.l5 | lane | blocked | A26 | M2-B — drop destrutivo do estado legado de identidade do override (Fase E) | `sprint/A26/lanes/A26-l5-m2-override-drop.md` |
