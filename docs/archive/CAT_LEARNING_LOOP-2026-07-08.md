@@ -7,7 +7,8 @@ sprint_origem: A12
 sprint_atual: A12
 sprints_envolvidas: ["A12"]
 created_at: "2026-05-10"
-last_review: "2026-07-02"
+last_review: "2026-07-08"
+archived_at: "2026-07-08"
 paused_at: null
 pause_reason: null
 adrs_canonical:
@@ -23,6 +24,11 @@ tags:
 ---
 
 # Plano canônico — Categorization Learning Loop
+
+> **📦 Arquivado em 2026-07-08** (era `docs/plan/CAT_LEARNING_LOOP/_README.md`).
+> MVP V1 completo: P1-P4 + gate técnico shipped 2026-05-10/11; gate dogfood
+> humano PASS por decisão do owner (2026-07-02, audit-vault r4; confirmado
+> 2026-07-08). V2 (P5/P6) entra em sprint futura condicional a tração.
 
 > Plano multi-fase para implementar a promoção de override de transação
 > em regra de categorização persistida. Decisão arquitetural em

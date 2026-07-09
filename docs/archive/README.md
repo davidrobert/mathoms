@@ -176,3 +176,18 @@ removidos por [[ADR-212]]), formato de decisão A6c e troubleshooting do
 **Arquivado em:** 2026-07-03 (audit-vault r6 F03, decisão do owner).
 **Substituído por:** [docs/reference/SMOKE_TEST_HUMAN.md](../reference/SMOKE_TEST_HUMAN.md)
 — runbook vivo (checks gerais + §4.9 + registro de snapshots).
+
+## CAT_LEARNING_LOOP-2026-07-08.md
+
+Plano canônico do Categorization Learning Loop (Sprint A12, origem
+2026-05-10): promoção de override de transação em regra persistida,
+modelo híbrido C-light + D-forte. MVP V1 (P1-P4 + gate técnico 11/11)
+shipped 2026-05-10/11 (PRs #188/#194/#195-#198/#202/#203); gate dogfood
+humano PASS por decisão do owner (2026-07-02, audit-vault r4; confirmado
+2026-07-08). ADRs: [[ADR-186]] + [[ADR-188]], ambas Decididas.
+
+**Arquivado em:** 2026-07-08 (fechamento do DoD da Sprint A12).
+**Substituído por:** rules-as-code em
+`backend/app/services/categorization_learning_loop.py` (telemetria
+`mathoms.categorization.*`) + [[A12.cat-learning-loop]] (lane histórica).
+V2 (P5 inbox + P6 detector offline) aguarda sinais de tração.

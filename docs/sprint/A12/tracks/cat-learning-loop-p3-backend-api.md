@@ -21,7 +21,7 @@ tags:
 # Track Cat Learning Loop P3 — Backend API + schema evolution
 
 > **Lane:** [[A12.cat-learning-loop]] · **Plano canônico:**
-> [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md) §P3
+> [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md) §P3
 > · **ADRs canônicas:** [[ADR-186]] (base, Decidida) + [[ADR-188]]
 > (schema evolution + telemetry semantics, Proposto — flippa para
 > Decidida no merge do PR estrutural).
@@ -434,7 +434,7 @@ make update-openapi-snapshot                                              # PR2
 
 ## Ligações
 
-- Plano: [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md) §P3
+- Plano: [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md) §P3
 - ADR base: [[ADR-186]] (Decidida, §D3 schema + §D6 telemetry parcialmente
   superseded por [[ADR-188]]).
 - ADR P3: [[ADR-188]] (Proposto, schema evolution + telemetry semantics +
