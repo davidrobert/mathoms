@@ -33,16 +33,34 @@ config rationale) é PERMITIDA — §13.4. Por isso este hook:
      "Visão Cerbasi" mas não `tone="cerbasi"` (variant key) nem
      `EquilibrioCerbasiCard` (identifier).
 
+**Superset público (A34.l5 · ADR-319):** além da surface user-facing acima,
+o flip público ([[PLAN-public-release]]) exige zero atribuição nominal em
+todo path que sobrevive ao repo público — `docs/**`, `config/prompts/**`,
+`README*`, migrations de seed. Nesses paths a regra é DIFERENTE da §13.4:
+
+  - match case-INSENSITIVE dos termos-núcleo (perini|cerbasi|auvp|
+    raul sena|viver de renda) — "atribuição interna" deixa de existir
+    quando o repo é público;
+  - SEM strip de comentários — docstring/comment também é publicado;
+  - hits legados (~200 arquivos) vivem no baseline burn-down
+    `dev/sigilo_terms_baseline.json` até a A34.l12 / ADR-314 redigir ou
+    mover o conteúdo. Hit NOVO fora do baseline → exit 1.
+  - allowlist permanente mínima: apenas os docs que DEFINEM a política
+    (ADR-183, COPY_GUIDELINES §13) — citam os termos por necessidade.
+
 Uso:
   python3 dev/check_sigilo_terms.py [<file> ...]   # checa arquivos passados
   python3 dev/check_sigilo_terms.py --all          # scan completo do repo
+  python3 dev/check_sigilo_terms.py --all --no-baseline   # prova G2 (estrito)
+  python3 dev/check_sigilo_terms.py --all --update-baseline
 
-Retorna exit 0 se zero hits user-facing; exit 1 se hits encontrados.
+Retorna exit 0 se zero hits fora de allowlist/baseline; exit 1 caso contrário.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -109,6 +127,60 @@ EXCLUDED_FILES = frozenset(
         "docs/_marketing/_README.md",
     }
 )
+
+# ---------------------------------------------------------------------------
+# Superset público (A34.l5 · ADR-319) — paths que sobrevivem ao flip.
+# ---------------------------------------------------------------------------
+FORBIDDEN_PUBLIC_RE = re.compile(r"(?i)\b(perini|cerbasi|auvp|raul\s+sena|viver\s+de\s+renda)\b")
+
+PUBLIC_SUPERSET_RULES = (
+    ("docs/", (".md",)),
+    ("config/prompts/", (".yaml", ".yml")),
+    # Migrations de seed inserem dados de exemplo que viram DB de produção
+    # E texto público no repo.
+    ("backend/alembic/versions/", (".py",)),
+)
+
+# Allowlist PERMANENTE mínima — somente docs que definem a política de
+# sigilo e portanto citam os termos por necessidade operacional. Qualquer
+# entrada nova exige justificativa inline (ADR-319).
+PUBLIC_ALLOWLIST = frozenset(
+    {
+        # Define os pilares narrativos + vocabulário substituto canônico.
+        "docs/adr/183-landing-positioning-pillars-2026.md",
+        # §13 é a política de sigilo em si (termos proibidos + substituições).
+        "docs/reference/COPY_GUIDELINES.md",
+    }
+)
+
+# Baseline burn-down: hits legados por path, pendentes de redação/split na
+# A34.l12 (ADR-314). NUNCA adicionar entrada sem lane de saneamento.
+PUBLIC_BASELINE_PATH = REPO_ROOT / "dev" / "sigilo_terms_baseline.json"
+
+# Dirs ignorados na varredura de README* repo-wide.
+_README_EXCLUDED_PARTS = {
+    "node_modules",
+    ".git",
+    ".venv",
+    "_archive",
+    "_scratch",
+    ".claude",
+    ".next",
+    "storage",
+    "__pycache__",
+}
+
+
+def is_public_superset(rel_path: str) -> bool:
+    """True se rel_path faz parte do superset público (A34.l5)."""
+    basename = rel_path.rsplit("/", 1)[-1]
+    if basename.startswith("README"):
+        return not any(part in _README_EXCLUDED_PARTS for part in rel_path.split("/"))
+    for prefix, suffixes in PUBLIC_SUPERSET_RULES:
+        if rel_path.startswith(prefix) and rel_path.endswith(suffixes):
+            return True
+    return False
+
 
 # ---------------------------------------------------------------------------
 # Comment stripping — atribuição em docstring é permitida (§13.4).
@@ -197,6 +269,45 @@ def check_file(path: Path) -> list[tuple[int, str, str]]:
     return _dedupe(raw_hits)
 
 
+def check_file_public(path: Path) -> list[tuple[int, str, str]]:
+    """Hits do superset público: case-insensitive, SEM strip de comentários.
+
+    No repo público não existe "atribuição interna" — docstring, comment e
+    prosa são publicados igualmente (A34.l5 · ADR-319).
+    """
+    try:
+        content = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return []
+    hits: list[tuple[int, str, str]] = []
+    for line_no, line in enumerate(content.splitlines(), 1):
+        for match in FORBIDDEN_PUBLIC_RE.finditer(line):
+            hits.append((line_no, match.group(1), line.rstrip()))
+    return _dedupe(hits)
+
+
+def _load_public_baseline() -> set[str]:
+    if not PUBLIC_BASELINE_PATH.exists():
+        return set()
+    data = json.loads(PUBLIC_BASELINE_PATH.read_text(encoding="utf-8"))
+    return set(data.get("paths", []))
+
+
+def _write_public_baseline(paths: set[str]) -> None:
+    payload = {
+        "_comment": (
+            "Baseline burn-down do gate de sigilo no superset público "
+            "(A34.l5, ADR-319). Paths legados com atribuição nominal, "
+            "pendentes de redação/split na A34.l12 (ADR-314). Hit fora "
+            "do baseline é gate; entrada nova exige lane de saneamento."
+        ),
+        "paths": sorted(paths),
+    }
+    PUBLIC_BASELINE_PATH.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+
+
 def _collect_all_user_facing() -> list[Path]:
     """rglob em cada (prefix, suffix) de USER_FACING_RULES."""
     candidates: list[Path] = []
@@ -209,10 +320,27 @@ def _collect_all_user_facing() -> list[Path]:
     return sorted(p for p in candidates if p.is_file())
 
 
+def _collect_all_public_superset() -> list[Path]:
+    """rglob do superset público: PUBLIC_SUPERSET_RULES + README* repo-wide."""
+    candidates: list[Path] = []
+    for prefix, suffixes in PUBLIC_SUPERSET_RULES:
+        base = REPO_ROOT / prefix
+        if not base.exists():
+            continue
+        for suffix in suffixes:
+            candidates.extend(base.rglob(f"*{suffix}"))
+    candidates.extend(
+        p
+        for p in REPO_ROOT.rglob("README*")
+        if not any(part in _README_EXCLUDED_PARTS for part in p.parts)
+    )
+    return sorted({p for p in candidates if p.is_file()})
+
+
 def collect_files(args_files: list[str], scan_all: bool) -> list[Path]:
     """Resolve lista de arquivos a checar."""
     if scan_all:
-        return _collect_all_user_facing()
+        return sorted({*_collect_all_user_facing(), *_collect_all_public_superset()})
     files: list[Path] = []
     for fname in args_files:
         p = Path(fname)
@@ -267,16 +395,63 @@ def _report_failures(failures: list[tuple[Path, list[tuple[int, str, str]]]]) ->
     _print_footer()
 
 
+def _public_failures(
+    candidates: list[Path], baseline: set[str]
+) -> tuple[list[tuple[Path, list[tuple[int, str, str]]]], int, set[str]]:
+    """(failures, n_baselined, all_hit_paths) do superset público."""
+    failures: list[tuple[Path, list[tuple[int, str, str]]]] = []
+    baselined = 0
+    all_hit_paths: set[str] = set()
+    for p in candidates:
+        rel = relpath(p)
+        if not is_public_superset(rel) or rel in PUBLIC_ALLOWLIST:
+            continue
+        hits = check_file_public(p)
+        if not hits:
+            continue
+        all_hit_paths.add(rel)
+        if rel in baseline:
+            baselined += 1
+        else:
+            failures.append((p, hits))
+    return failures, baselined, all_hit_paths
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("files", nargs="*", help="Arquivos a checar (default: argv).")
     parser.add_argument("--all", action="store_true", help="Scan completo da surface user-facing.")
+    parser.add_argument(
+        "--no-baseline",
+        action="store_true",
+        help="Modo estrito (prova G2): ignora o baseline do superset público.",
+    )
+    parser.add_argument(
+        "--update-baseline",
+        action="store_true",
+        help="Regenera dev/sigilo_terms_baseline.json (apenas em lane de saneamento).",
+    )
     args = parser.parse_args(argv)
 
-    candidates = collect_files(args.files, args.all)
+    candidates = collect_files(args.files, args.all or args.update_baseline)
     files_in_scope = [p for p in candidates if is_user_facing(relpath(p))]
     failures = [(p, hits) for p in files_in_scope if (hits := check_file(p))]
 
+    baseline = set() if args.no_baseline else _load_public_baseline()
+    public_failures, baselined, all_hit_paths = _public_failures(candidates, baseline)
+
+    if args.update_baseline:
+        _write_public_baseline(all_hit_paths)
+        print(f"Baseline de sigilo regenerado: {len(all_hit_paths)} paths.")
+        return 0
+
+    failures.extend(public_failures)
+    if baselined:
+        print(
+            f"ℹ {baselined} path(s) legados no baseline de sigilo "
+            f"(redação/split na A34.l12 · ADR-314).",
+            file=sys.stderr,
+        )
     if not failures:
         return 0
     _report_failures(failures)
