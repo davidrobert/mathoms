@@ -317,6 +317,7 @@
 | ADR-319 | adr | Proposto |  | Contrato de gates anti-regressão PII + sigilo metodológico pós-público | `adr/319-contrato-gates-antiregressao-pii-sigilo.md` |
 | ADR-320 | adr | Proposto |  | Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético | `adr/320-hardening-cicd-paridade-exemplo-sintetico.md` |
 | ADR-321 | adr | Proposto |  | Atribuição de membro no E3 — titular slug canônico como discriminante K4 | `adr/321-atribuicao-de-membro-no-e3-titular-slug-k4.md` |
+| ADR-322 | adr | Decidido |  | Trem de auto-merge serializado com identidade real (aposenta autoupdate-action) | `adr/322-trem-de-automerge-serializado-identidade-real.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
