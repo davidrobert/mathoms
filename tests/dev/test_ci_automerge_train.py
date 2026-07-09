@@ -95,6 +95,36 @@ class TestRequiredCheckFailed:
         pr = _pr(1, statusCheckRollup=[{"name": "All checks green", "conclusion": "SUCCESS"}])
         assert not required_check_failed(pr)
 
+    def test_agregador_stale_com_sibling_cancelled_nao_e_red(self) -> None:
+        pr = _pr(
+            1,
+            statusCheckRollup=[
+                {"name": "All checks green", "conclusion": "FAILURE"},
+                {"name": "Backend tests (backend/tests/)", "conclusion": "CANCELLED"},
+            ],
+        )
+        assert not required_check_failed(pr)
+
+    def test_agregador_failure_sem_cancelled_e_red_genuino(self) -> None:
+        pr = _pr(
+            1,
+            statusCheckRollup=[
+                {"name": "All checks green", "conclusion": "FAILURE"},
+                {"name": "Backend tests (backend/tests/)", "conclusion": "FAILURE"},
+            ],
+        )
+        assert required_check_failed(pr)
+
+    def test_title_failure_e_red_mesmo_com_cancelled(self) -> None:
+        pr = _pr(
+            1,
+            statusCheckRollup=[
+                {"name": "Title (Conventional Commits)", "conclusion": "FAILURE"},
+                {"name": "Backend tests (backend/tests/)", "conclusion": "CANCELLED"},
+            ],
+        )
+        assert required_check_failed(pr)
+
 
 class TestWatchdogPredicates:
     def test_orfao_todos_action_required(self) -> None:

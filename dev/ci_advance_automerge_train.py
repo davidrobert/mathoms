@@ -32,13 +32,21 @@ def _has_excluded_label(pr: dict[str, Any]) -> bool:
 
 
 def required_check_failed(pr: dict[str, Any]) -> bool:
-    """True se um required check do Ruleset está FAILURE no head atual do PR."""
+    """True se um required check do Ruleset está FAILURE genuíno no head atual —
+    agregador FAILURE com sibling CANCELLED é run superseded (stale aggregator),
+    não código vermelho: skipar causaria starvation (PR nunca ganha SHA novo
+    que limpe o rollup)."""
+    failed: set[str] = set()
+    any_cancelled = False
     for check in pr.get("statusCheckRollup") or []:
         name = check.get("name") or check.get("context") or ""
         conclusion = check.get("conclusion") or check.get("state") or ""
+        any_cancelled = any_cancelled or conclusion == "CANCELLED"
         if name in REQUIRED_CONTEXTS and conclusion == "FAILURE":
-            return True
-    return False
+            failed.add(name)
+    if "Title (Conventional Commits)" in failed:
+        return True
+    return "All checks green" in failed and not any_cancelled
 
 
 def eligible_train(prs: list[dict[str, Any]]) -> list[dict[str, Any]]:
