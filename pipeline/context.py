@@ -141,6 +141,13 @@ class WorkspaceContext:
     #: primeiro evento da stage.
     stage_duration_estimates: Dict[str, int] = field(default_factory=dict, repr=False)
 
+    #: ADR-323 — circuit-breaker run-scoped do executor HTTP (F2 cutover Go).
+    #: Vira ``True`` no primeiro stage que ``FallbackPipelineClient`` degrada
+    #: para InProcess (shell down / 5xx); os stages seguintes vão direto ao
+    #: InProcess sem re-sondar o Go. Estado por-run (nunca no singleton do
+    #: client) — preserva statelessness ADR-111 §1.b.
+    shell_degraded: bool = field(default=False, repr=False)
+
     def __post_init__(self):
         self.root = Path(self.root).resolve()
         if self._config_dir_override is not None:
