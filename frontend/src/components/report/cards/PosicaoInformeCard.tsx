@@ -1,6 +1,7 @@
 "use client";
 
 import type { Posicao3112Row } from "@/types/report-analysis";
+import { formatCurrencyWithCode } from "@/lib/format";
 import { MonetaryValue, type Currency } from "../MonetaryValue";
 import { ReportCard } from "../ReportCard";
 
@@ -136,11 +137,7 @@ function ValorOriginal({ moeda, valor }: { moeda: string; valor: number }) {
   if ((MOEDAS_SUPORTADAS as readonly string[]).includes(moeda)) {
     return <MonetaryValue value={valor} currency={moeda as Currency} />;
   }
-  return (
-    <>
-      {moeda} {valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-    </>
-  );
+  return <>{formatCurrencyWithCode(moeda, valor)}</>;
 }
 
 /** Chip de fonte com dot + texto — nunca só cor (a11y). */

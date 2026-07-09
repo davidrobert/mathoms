@@ -11,17 +11,12 @@
  * enquanto; Q11 prevê revisão após Fase 12.
  */
 import type { ReportAnalysisData } from "@/lib/api";
+import { formatBRLNoCents } from "@/lib/format";
 import {
   aggregateAlocacao,
   type AlocacaoAlvoV1,
   type ClasseAtivoRow,
 } from "./alocacaoBucketMapper";
-
-const BRL = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-  maximumFractionDigits: 0,
-});
 
 type Formatter = "brl" | "pct" | "int" | "num";
 
@@ -29,7 +24,7 @@ function format(value: unknown, kind: Formatter): string {
   if (typeof value !== "number" || !isFinite(value)) return String(value ?? "");
   switch (kind) {
     case "brl":
-      return BRL.format(value);
+      return formatBRLNoCents(value);
     // ADR-209: campos *_pct no contrato E5 são valores absolutos (44.7 = 44,7%).
     // Não aplique heurística value <= 1 ? * 100 — produz "50%" para rentabilidade
     // legítima de 0,5% a.a.

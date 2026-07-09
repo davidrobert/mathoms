@@ -3,7 +3,7 @@
  * Valores monetários: usar formatCurrency no componente.
  */
 
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatUSDPtBR } from "@/lib/format";
 import type {
   AlocacaoGoalInputs,
   AlocacaoGoalDerived,
@@ -132,7 +132,7 @@ export function buildDolarPremissasRows(
   const rows: PremissaRow[] = [
     {
       label: "Meta em USD",
-      value: `US$ ${inputs.meta_usd.toLocaleString("pt-BR")}`,
+      value: formatUSDPtBR(inputs.meta_usd),
     },
     {
       label: "Aporte mensal (BRL)",

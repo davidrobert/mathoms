@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CategoryChipDiff } from "@/components/categories/CategoryChipDiff";
 import { cn } from "@/lib/cn";
+import { formatCurrency } from "@/lib/format";
 import type { CategoryConfig } from "@/lib/api";
 
 export interface ResolvedRow {
@@ -104,7 +105,7 @@ export function CategoryRow({
             )}
             {cat.monthly_cap != null && (
               <span className="text-xs text-alert">
-                Teto: R$ {cat.monthly_cap.toLocaleString("pt-BR")}
+                Teto: {formatCurrency(cat.monthly_cap, "BRL", { minimumFractionDigits: 0, maximumFractionDigits: 3 })}
               </span>
             )}
           </div>

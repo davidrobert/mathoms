@@ -2,6 +2,7 @@
 
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
+import { MonetaryValue } from "../MonetaryValue";
 import { SectionSummary } from "../SectionSummary";
 import { PremissasEconomicasCard } from "../cards/PremissasEconomicasCard";
 import { StressScenarioCard } from "../cards/StressScenarioCard";
@@ -291,11 +292,7 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
                   Valor estimado
                 </dt>
                 <dd className="font-mono tabular-nums">
-                  {milhas.valor_estimado.toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                    maximumFractionDigits: 0,
-                  })}
+                  <MonetaryValue value={milhas.valor_estimado} fractionDigits={0} />
                 </dd>
               </div>
             )}
