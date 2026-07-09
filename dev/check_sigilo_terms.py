@@ -157,6 +157,14 @@ PUBLIC_ALLOWLIST = frozenset(
 # A34.l12 (ADR-314). NUNCA adicionar entrada sem lane de saneamento.
 PUBLIC_BASELINE_PATH = REPO_ROOT / "dev" / "sigilo_terms_baseline.json"
 
+# Artefatos DERIVADOS (auto-gerados por dev/build_doc_index.py) — nunca
+# editados à mão. Reagregam texto das notas-fonte, então gatear aqui é
+# redundante (a fonte já é coberta pelo superset) e frágil: cada regeneração
+# que toca lanes muda o conteúdo, reintroduzindo "hits" de fonte já
+# baselineada e quebrando o gate em PR sem relação. A neutralização em W1
+# propaga via regen. Excluídos do scan de sigilo (A34.l5).
+_DERIVED_PREFIXES = ("docs/_MOC/_generated/",)
+
 # Dirs ignorados na varredura de README* repo-wide.
 _README_EXCLUDED_PARTS = {
     "node_modules",
@@ -173,6 +181,8 @@ _README_EXCLUDED_PARTS = {
 
 def is_public_superset(rel_path: str) -> bool:
     """True se rel_path faz parte do superset público (A34.l5)."""
+    if any(rel_path.startswith(p) for p in _DERIVED_PREFIXES):
+        return False
     basename = rel_path.rsplit("/", 1)[-1]
     if basename.startswith("README"):
         return not any(part in _README_EXCLUDED_PARTS for part in rel_path.split("/"))

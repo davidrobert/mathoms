@@ -6,8 +6,6 @@
     "config/prompts/section_summaries.yaml",
     "docs/DECISIONS.md",
     "docs/_MOC/SPRINTS-active.md",
-    "docs/_MOC/_generated/ADR_INDEX.md",
-    "docs/_MOC/_generated/INDEX.md",
     "docs/adr/073-goals-como-entidade-versionada-nao-config-estatico.md",
     "docs/adr/130-internacionalizacao-com-next-intl-persistencia.md",
     "docs/adr/136-decision-aggregate-event-sourced-com-supersede.md",

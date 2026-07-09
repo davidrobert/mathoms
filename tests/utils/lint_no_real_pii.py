@@ -99,6 +99,10 @@ ALLOWED_TOKENS: set[str] = {
 
 # Diretórios nunca varridos (gitignored ou vendored).
 EXCLUDED_DIRS = {
+    # Artefato derivado (auto-gerado por dev/build_doc_index.py) — reagrega
+    # texto das notas-fonte; gatear aqui é redundante e frágil (regen a cada
+    # commit reintroduz "hits" de fonte já baselineada). A34.l4.
+    "_generated",
     "node_modules",
     ".venv",
     ".git",
