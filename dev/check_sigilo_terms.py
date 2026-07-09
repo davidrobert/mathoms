@@ -280,11 +280,7 @@ def check_file(path: Path) -> list[tuple[int, str, str]]:
 
 
 def check_file_public(path: Path) -> list[tuple[int, str, str]]:
-    """Hits do superset público: case-insensitive, SEM strip de comentários.
-
-    No repo público não existe "atribuição interna" — docstring, comment e
-    prosa são publicados igualmente (A34.l5 · ADR-319).
-    """
+    """Hits do superset público — case-insensitive, sem strip de comentários (repo público não tem "atribuição interna"; A34.l5 · ADR-319)."""
     try:
         content = path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
@@ -427,7 +423,7 @@ def _public_failures(
     return failures, baselined, all_hit_paths
 
 
-def main(argv: list[str] | None = None) -> int:
+def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("files", nargs="*", help="Arquivos a checar (default: argv).")
     parser.add_argument("--all", action="store_true", help="Scan completo da surface user-facing.")
@@ -441,12 +437,18 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Regenera dev/sigilo_terms_baseline.json (apenas em lane de saneamento).",
     )
-    args = parser.parse_args(argv)
+    return parser.parse_args(argv)
 
+
+def _user_facing_failures(candidates: list[Path]) -> list[tuple[Path, list[tuple[int, str, str]]]]:
+    """Hits na surface user-facing legada (§13.4: case-sensitive + strip de comentários)."""
+    files = [p for p in candidates if is_user_facing(relpath(p))]
+    return [(p, hits) for p in files if (hits := check_file(p))]
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parse_args(argv)
     candidates = collect_files(args.files, args.all or args.update_baseline)
-    files_in_scope = [p for p in candidates if is_user_facing(relpath(p))]
-    failures = [(p, hits) for p in files_in_scope if (hits := check_file(p))]
-
     baseline = set() if args.no_baseline else _load_public_baseline()
     public_failures, baselined, all_hit_paths = _public_failures(candidates, baseline)
 
@@ -455,13 +457,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Baseline de sigilo regenerado: {len(all_hit_paths)} paths.")
         return 0
 
-    failures.extend(public_failures)
+    failures = _user_facing_failures(candidates) + public_failures
     if baselined:
-        print(
-            f"ℹ {baselined} path(s) legados no baseline de sigilo "
-            f"(redação/split na A34.l12 · ADR-314).",
-            file=sys.stderr,
-        )
+        print(f"ℹ {baselined} path(s) legados no baseline sigilo (A34.l12).", file=sys.stderr)
     if not failures:
         return 0
     _report_failures(failures)

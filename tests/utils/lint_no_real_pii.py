@@ -300,34 +300,22 @@ def _report(
         )
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Lint anti-PII (superset público)")
-    parser.add_argument("--root", default=".", help="Raiz do projeto")
-    parser.add_argument("--verbose", "-v", action="store_true")
-    parser.add_argument(
-        "--targets",
-        nargs="+",
-        default=SCAN_TARGETS,
-        help="Diretórios a escanear (default: superset público)",
+def _build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description="Lint anti-PII (superset público)")
+    p.add_argument("--root", default=".", help="Raiz do projeto")
+    p.add_argument("--verbose", "-v", action="store_true")
+    p.add_argument("--targets", nargs="+", default=SCAN_TARGETS, help="Diretórios a escanear")
+    p.add_argument("--no-baseline", action="store_true", help="Modo estrito (prova G2)")
+    p.add_argument(
+        "--update-baseline", action="store_true", help="Regenera o baseline (saneamento)"
     )
-    parser.add_argument(
-        "--no-baseline",
-        action="store_true",
-        help="Modo estrito (prova G2): ignora o baseline burn-down",
-    )
-    parser.add_argument(
-        "--update-baseline",
-        action="store_true",
-        help="Regenera o baseline (apenas em lane de saneamento)",
-    )
-    args = parser.parse_args()
+    return p
 
-    root = Path(args.root).resolve()
-    files = _iter_files(root, args.targets)
-    if args.verbose:
-        print(f"Escaneando {len(files)} arquivos em {args.targets}...")
 
-    baseline = set() if args.no_baseline else _load_baseline()
+def _scan_all(
+    files: list[Path], root: Path, baseline: set[tuple[str, str]]
+) -> tuple[list[tuple[str, int, str]], int, set[tuple[str, str]]]:
+    """(violations, baselined, all_hits) — hit fora do baseline vira violation."""
     all_hits: set[tuple[str, str]] = set()
     violations: list[tuple[str, int, str]] = []
     baselined = 0
@@ -339,6 +327,18 @@ def main() -> int:
                 baselined += 1
             else:
                 violations.append((rel, lineno, tipo))
+    return violations, baselined, all_hits
+
+
+def main() -> int:
+    args = _build_parser().parse_args()
+    root = Path(args.root).resolve()
+    files = _iter_files(root, args.targets)
+    if args.verbose:
+        print(f"Escaneando {len(files)} arquivos em {args.targets}...")
+
+    baseline = set() if args.no_baseline else _load_baseline()
+    violations, baselined, all_hits = _scan_all(files, root, baseline)
 
     if args.update_baseline:
         _write_baseline(all_hits)
