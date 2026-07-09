@@ -3,33 +3,40 @@ id: MOC-sprint-a22
 type: moc
 title: "Sprint A22 — Launch Trust: Parecer defensável (F3)"
 aliases: ["A22", "Sprint A22"]
-sprint_status: paused
+sprint_status: done
 date: "2026-05-31"
 theme: "parecer-defensavel"
 ---
 
 # Sprint A22 — Launch Trust: Parecer defensável (F3)
 
-> **Status:** `paused` — suspensa em 2026-06-02 (transição `current → paused`,
-> [[ADR-234]]) em favor de [[MOC-sprint-a23]] (Data Lineage), por re-priorização
-> do owner. Segunda janela de execução do plano [[PLAN-launch-trust]].
+> **Status:** `done` — fechada em 2026-07-08. Suspensa em 2026-06-02 (transição
+> `current → paused`, [[ADR-234]]) em favor de [[MOC-sprint-a23]] (Data Lineage);
+> retomada e fechada retroativamente após reconciliação contra o código provar as
+> 5 lanes em `main`. Segunda janela de execução do plano [[PLAN-launch-trust]].
 >
-> **Atualização 2026-06-29 (núcleo de F3 entregue, sprint segue `paused`):** ao
-> retomar a F3, a reconciliação contra o código mostrou que `l1` (harness de eval)
-> e `l3` (fallback `needs_review` atômico) **já haviam sido entregues em A23–A27**.
-> As duas lanes de gap genuíno foram fechadas: **`l5` dedup de dívida + schema
-> ([#689](https://github.com/davidrobert/mathoms/pull/689), [[ADR-301]] `Decidido`)**
-> e **`l2` 7 red lines / KR7 ([#690](https://github.com/davidrobert/mathoms/pull/690),
-> [[ADR-300]] `Decidido`)**. Resta `l4` (drift como gate, Should) + o prompt-side
-> das red lines (REGRA 14 + bump `PROMPT_VERSION`), **owner-gated** (exige re-eval
-> LLM). KR7 + KR8 verdes; KR2/KR3 estendidos por `l5`.
+> **Fechamento 2026-07-08 (todas as 5 lanes em `main`, KRs verdes):** `l1`
+> (harness de eval) e `l3` (fallback `needs_review` atômico) já vieram de A23–A27;
+> **`l2`** 7 red lines / KR7 ([#690](https://github.com/davidrobert/mathoms/pull/690),
+> [[ADR-300]] `Decidido`) + calibração via dogfood (`RED_LINES_VERSION 1.4`,
+> #697–#702); **`l5`** dedup de dívida + schema formal
+> ([#689](https://github.com/davidrobert/mathoms/pull/689), [[ADR-301]] `Decidido`);
+> **`l4`** drift detection (5 sinais) + pin de model
+> ([#801](https://github.com/davidrobert/mathoms/pull/801)). O prompt-side das red
+> lines (REGRA 14 + `PROMPT_VERSION 2.1.0`) também foi entregue (#700/#701).
+> Verificação de fechamento: 337 testes Python + 5 React verdes (7 red lines,
+> 24 fixtures holdout, `additionalProperties:false`, fallback backend+React,
+> 20 INV-D de dívida, drift 5 sinais + model pin). **KR-a..KR-e todos batidos.**
 >
 > **Plano dono:** [[PLAN-launch-trust]] ([plan/LAUNCH_TRUST/_README.md](../../plan/LAUNCH_TRUST/_README.md)).
 > A21 abriu os dois gates de F3 (F1-O0 verde + defesa de injeção [[ADR-175]] em
-> `main`); A22 fecha o **núcleo de F3** — a malha de eval + guardrails que torna
+> `main`); A22 fechou o **núcleo de F3** — a malha de eval + guardrails que torna
 > o Parecer do Planejador defensável diante de um cliente pagante.
 >
-> **Retomada:** flip `paused → current` quando o owner decidir retomar F3.
+> **Residual owner-gated (fora do escopo desta janela, não bloqueou o fechamento):**
+> KR5 deploy reproduzível (GHCR/Coolify, [[ADR-228]] G3) · KR4 off-site R2
+> ([[ADR-228]] G2) · LLM-real nightly como gate (budget de provider) · F1-O5
+> dedup de veículo (Defer P2).
 
 ## Resumo
 
@@ -80,7 +87,7 @@ drift). `l3` e `l5` são independentes e arrancam no dia 1.
 | [[A22.l1]] | F3-O0 | ✅ pré-existente (A23–A27) | P0 | M | — | prompt-engineer |
 | [[A22.l2]] | F3-O1 | ✅ #690 | P0 | M | [[ADR-300]] `Decidido` | prompt-engineer + financial-planner |
 | [[A22.l3]] | F3-O2 | ✅ pré-existente (A23–A27) | P0 | S–M | — | senior-cto |
-| [[A22.l4]] | F3-O4 | ⬜ aberta (Should) | P1 | M | — | prompt-engineer |
+| [[A22.l4]] | F3-O4 | ✅ [#801](https://github.com/davidrobert/mathoms/pull/801) | P1 | M | — | prompt-engineer |
 | [[A22.l5]] | F1-O3 | ✅ #689 | P1 | S | [[ADR-301]] `Decidido` | data-engineer + financial-planner |
 
 > **Tier:** Must (gate de fechamento) = `l1`, `l2`, `l3`. Should = `l4`, `l5`.

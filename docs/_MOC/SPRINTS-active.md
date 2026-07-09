@@ -208,15 +208,6 @@ parecer E6 e exercita o override v2).
 - **Retomada:** flip `paused → current` quando as gerações qualificadas ≥20 (reavaliar
   ao fim da A28) + observação da l4 completar 1 sprint.
 
-### A22 — Launch Trust: Parecer defensável (F3) (`paused` 2026-06-02)
-
-**Suspensa em 2026-06-02 em favor de A23 (Data Lineage)** — re-priorização do owner (transição `current → paused`, [[ADR-234]]). Fecha o núcleo da Frente 3 (Parecer defensável): eval em CI + 7 red lines hard-block (KR7), validação em 3 camadas, fallback `needs_review` atômico (KR8).
-
-**Atualização 2026-06-29 — núcleo entregue (sprint segue `paused`):** ao retomar, a reconciliação contra o código mostrou `l1` (harness eval) e `l3` (fallback atômico) **já entregues em A23–A27**. As duas lanes de gap fecharam: **`l5`** dedup de dívida + schema ([#689](https://github.com/davidrobert/mathoms/pull/689), [[ADR-301]] `Decidido`) e **`l2`** 7 red lines / KR7 ([#690](https://github.com/davidrobert/mathoms/pull/690), [[ADR-300]] `Decidido`). KR7+KR8 verdes. Resta `l4` (drift, Should) + prompt-side das red lines (**owner-gated**, exige re-eval LLM).
-
-- **Plano dono:** [plan/LAUNCH_TRUST/_README.md](../plan/LAUNCH_TRUST/_README.md) · **Sprint:** [sprint/A22/_README.md](../sprint/A22/_README.md).
-- **Retomada:** flip `paused → current` quando o owner decidir retomar o residual de F3.
-
 ### A20 — Docker dev↔prod parity + P0 production gates (`paused` 2026-05-29)
 
 **Pausada pelo owner** após entregar o objetivo de DX: Docker como caminho opt-in de dev local (`make docker-up` sobe a stack completa numa banda de porta que coexiste com a nativa; docs SETUP/README/`make help` atualizadas). Sprint de infra dedicada, 10 lanes em 2 ondas + gate final, 7 ADRs `Proposto` (ADR-248 a ADR-254). Diagnóstico: review independente `sre-devops` 2026-05-22 (maturidade Docker 2.5/5; 5 blockers P0).
@@ -266,6 +257,7 @@ parecer E6 e exercita o override v2).
 | A18 | done | Comprovantes de Bem (CRLV-e) + apólices polimórficas + FIPE refresh — 3/3 lanes shipped 2026-05-22 (#388–#436), [[ADR-239]] `Decidido`. Fechada `done` em 2026-07-01 (#707/#708; antiga l4 LGPD realocada — pertencia ao PLAN-llm-prompts-hardening, W1α fechada 2026-07-06). |
 | A19 | done | Card S_PROTECAO (4º pilar AUVP) — [[ADR-240]] `Decidido` via PR #436 (extensão E6-parecer + telemetria). Fechada `done` em 2026-07-01 (#707). |
 | A21 | done | Launch Trust F1 inteira (confiabilidade do número) — 9/9 lanes entregues (PRs #524–#538). Contrato `EntityDedup` (ADR-276), dedup imóveis/investimentos/previdência (ADR-277), backup/restore drill CI (ADR-275), goldens+métricas dedup. Gates F3/LGPD migram para A22; off-site/deploy permanecem owner-gated ([[ADR-228]] G2/G3). Encerrada 2026-05-31, sucedida por [[MOC-sprint-a22]]. |
+| A22 | done | Launch Trust F3 (Parecer defensável) — 5/5 lanes em `main`. `l1`+`l3` de A23–A27; `l2` 7 red lines/KR7 ([[ADR-300]] `Decidido`, #690 + calibração #697–#702, `RED_LINES_VERSION 1.4`); `l5` dedup dívida + schema formal ([[ADR-301]] `Decidido`, #689); `l4` drift 5 sinais + model pin (#801); prompt-side REGRA 14 + `PROMPT_VERSION 2.1.0` (#700/#701). Pausada 2026-06-02 ([[ADR-234]]); fechada `done` retroativamente 2026-07-08 (337 testes Python + 5 React verdes; KR-a..KR-e batidos). Residual owner-gated: deploy/off-site ([[ADR-228]] G2/G3), LLM-real nightly, F1-O5 veículo (Defer). |
 | A33 | done | Autonomia total (zero ações do owner) — 8/8 lanes shipped em ~20h, executada **durante a janela da A32 `current`** (precedente A27; `candidate`→`done` direto): l1 ADR-090 boundary LLM + gate float (#827) · l2+l4 fecham [[MOC-sprint-a17]] `done` (#833/#835/#850 + #830) · l5 nightly drift 4/4 PASS (#831) · l6 retenção+prune dry-run (#844) · l7 OTLP (#834) · l8 catálogo+RFB YAML (#836) · l9 services taxonomy 5 PRs + [[ADR-285]] `Decidido` (#849–#855). KR1 anti-Goodhart: nenhum gate de owner escondido. Fechada `done` em 2026-07-08. |
 
 > Tracks por sprint disponíveis em [`docs/sprint/A6/tracks/`](../sprint/A6/tracks/), [`A7/tracks/`](../sprint/A7/tracks/), [`A8/tracks/`](../sprint/A8/tracks/), [`A11/tracks/`](../sprint/A11/tracks/), [`A12/tracks/`](../sprint/A12/tracks/), [`A16/tracks/`](../sprint/A16/tracks/), [`F7/tracks/`](../sprint/F7/tracks/), [`F9/tracks/`](../sprint/F9/tracks/), [`W5/tracks/`](../sprint/W5/tracks/), [`W6/tracks/`](../sprint/W6/tracks/). [BACKLOG](../BACKLOG.md) é apenas shim de navegação.
