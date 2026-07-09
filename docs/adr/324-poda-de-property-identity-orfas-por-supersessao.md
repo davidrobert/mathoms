@@ -2,19 +2,20 @@
 id: ADR-324
 type: adr
 title: "Poda de PropertyIdentity órfãs por supersessão reconciliada (soft-delete + re-aponte de override)"
-status: Proposto
+status: Decidido
+phase: follow-up A28.l7
 date: "2026-07-09"
 relates_to: ["[[ADR-215]]", "[[ADR-225]]", "[[ADR-246]]", "[[ADR-265]]", "[[ADR-276]]", "[[ADR-282]]"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/db
   - area/pipeline
 ---
 
 # ADR-324 — Poda de PropertyIdentity órfãs por supersessão reconciliada
 
-**Status:** Proposto · **Data:** 2026-07-09
+**Status:** Decidido (follow-up A28.l7) · **Data:** 2026-07-09
 
 ## Contexto
 

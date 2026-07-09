@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 287
-- **Proposto**: 25
+- **Decidido**: 288
+- **Proposto**: 24
 - **Roadmap**: 3
 
 ## Fundação
@@ -347,9 +347,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## db
 
-### Proposto (1)
+### Decidido (1)
 
-- [[ADR-324]] — Poda de PropertyIdentity órfãs por supersessão reconciliada (soft-delete + re-aponte de override)
+- [[ADR-324]] — Poda de PropertyIdentity órfãs por supersessão reconciliada (soft-delete + re-aponte de override) · phase follow-up A28.l7
 
 ## docs
 
