@@ -8,6 +8,7 @@ import argparse
 import json
 import subprocess
 import sys
+import time
 from typing import Any
 
 EXCLUDED_LABELS = {"wip", "do-not-merge", "blocked"}
@@ -18,16 +19,21 @@ PR_LIST_FIELDS = (
 
 
 def _gh(*args: str) -> str:
-    result = subprocess.run(["gh", *args], capture_output=True, text=True)
-    if result.returncode != 0:
+    """gh CLI com 1 retry (backoff 5s) — API do GitHub tem falha transiente."""
+    for attempt in (1, 2):
+        result = subprocess.run(["gh", *args], capture_output=True, text=True)
+        if result.returncode == 0:
+            return result.stdout
         print(
-            f"gh {args[0]} falhou (rc={result.returncode}): {result.stderr.strip()}",
+            f"gh {args[0]} falhou (rc={result.returncode}, tentativa {attempt}): "
+            f"{result.stderr.strip()}",
             file=sys.stderr,
         )
-        raise subprocess.CalledProcessError(
-            result.returncode, result.args, result.stdout, result.stderr
-        )
-    return result.stdout
+        if attempt == 1:
+            time.sleep(5)
+    raise subprocess.CalledProcessError(
+        result.returncode, result.args, result.stdout, result.stderr
+    )
 
 
 def list_open_prs() -> list[dict[str, Any]]:
