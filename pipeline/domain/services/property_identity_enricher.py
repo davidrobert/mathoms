@@ -21,8 +21,8 @@ def enrich_imoveis_with_property_ids(
 ) -> dict:
     """Anexa `property_id`, `endereco_canonical`, `low_confidence` (ADR-215 P2)."""
     # ADR-215 fix-B3: family_members opcional permite normalizar
-    # titular_key cross-IRPF (LLM extrai mariana_teixeira_ferreira vs
-    # mariana_ferreira_campos para a mesma pessoa). Quando ausente,
+    # titular_key cross-IRPF (LLM extrai mariana_ribeiro_andrade vs
+    # mariana_andrade_silva para a mesma pessoa). Quando ausente,
     # comportamento legado preservado.
     imoveis = consolidated.get("imoveis_consolidados", [])
     if not imoveis:

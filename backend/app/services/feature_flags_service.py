@@ -7,7 +7,7 @@ em DEFAULTS) — se a row não existe ou não tem a flag, cai para o default.
 Uso típico:
     enabled = await is_enabled(workspace_id, "tasks_v2_enabled", db=db)
 
-Para F8/F9+, flags permitem rollout controlado: Ferreira Campos tem
+Para F8/F9+, flags permitem rollout controlado: Andrade Silva tem
 `tasks_v2_enabled=True` por default (já consumimos em produção), novas
 workspaces recebem o default (atualmente True também — pode virar False
 em F8.4 se quisermos opt-in para beta testers).
@@ -32,7 +32,7 @@ from backend.app.models.feature_flag import FeatureFlag
 DEFAULTS: dict[str, bool] = {
     # F8.2 — backlog interativo de tarefas. Em F8.4 (cutover), vira default True
     # para todos. Por enquanto True porque a UI /plano-de-acao já está em produção
-    # para Ferreira Campos.
+    # para Andrade Silva.
     "tasks_v2_enabled": True,
     # F8.3 — anexos em tarefas. Pode ser False enquanto o quota de storage por
     # workspace não está configurado em produção.

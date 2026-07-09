@@ -1,13 +1,13 @@
 """Seed Goal types canônicos para um workspace específico (Sprint A10.7)."""
 
-# Refactor de seed_goals_full_ferreira_campos.py (A10.7):
+# Refactor de seed_goals_full_example.py (A10.7):
 # - Sem hardcode `family_surname`; `--workspace-id` obrigatório.
 # - Sem leitura de `_archive/.../goals.json`; fixtures declarativas inline.
 # - Cria 4 Goal types canônicos (APORTE_MENSAL, INDEPENDENCIA_FINANCEIRA,
 #   DOLARIZACAO, ALOCACAO_ALVO). PLANNING_CONTEXT não é mais populado —
 #   A10.6/ADR-180 deletará a bag via `GoalsBundle`.
 # - `--demo` carrega valores fictícios herdados do `goals.json` arquivado
-#   em F8.4 para reproduzir ambiente Ferreira-Campos histórico.
+#   em F8.4 para reproduzir ambiente de exemplo histórico.
 # Uso: python -m backend.app.scripts.seed_goals_workspace
 #      --workspace-id <UUID> [--dry-run|--apply] [--force-replace] [--demo]
 
@@ -77,7 +77,7 @@ _DEFAULT_ALOCACAO_PARAMS: dict = {
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Fixtures Ferreira-Campos (modo --demo) — valores fictícios herdados
+# Fixtures de exemplo (modo --demo) — valores fictícios herdados
 # do `goals.json` arquivado em F8.4 para reproduzir ambiente histórico.
 # CLAUDE.md §Dados sensíveis — nada de CPF/valor real.
 # ─────────────────────────────────────────────────────────────────────
@@ -254,7 +254,7 @@ async def seed(*, apply: bool, workspace_id: str, force_replace: bool, demo: boo
 
 
 _DEMO_HELP = (
-    "Usa fixtures Ferreira-Campos (valores históricos do goals.json "
+    "Usa fixtures de exemplo (valores históricos do goals.json "
     "arquivado em F8.4). Não usar em produção."
 )
 

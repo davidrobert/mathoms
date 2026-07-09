@@ -17,7 +17,7 @@ def _to_tokens(raw: str) -> frozenset[str]:
     if not raw:
         return frozenset()
     norm = _strip_accents(raw).lower()
-    # `raw` chega como "mariana_teixeira_ferreira" (LLM) ou full_name livre
+    # `raw` chega como "mariana_ribeiro_andrade" (LLM) ou full_name livre
     norm = norm.replace("_", " ").replace("-", " ")
     return frozenset(t for t in norm.split() if t)
 
