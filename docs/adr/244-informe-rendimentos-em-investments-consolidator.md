@@ -37,14 +37,14 @@ OR tipo_documento == "investment_report" AND data["investimentos"]
 
 Esse contrato cobre PDFs de **portfólio** (BTG, Rico) e parsers determinísticos legados. Não cobre **informe de rendimentos** (informe IR anual emitido pelo banco), que é uma **fonte fiscal certificada** de posição em 31/12 do ano-base.
 
-Caso real observado em PR #410 / workspace `Campos`, run `c36c4baf-…`:
+Caso real observado em PR #410 / workspace dogfood, run `c36c4baf-…`:
 
-- Documento "Informe Itaú 2025_David.pdf" classificado como `investment_report` → `extract_with_llm` extrai como `tipo_documento="informe_rendimentos"` (mapping `map_e0_doc_type_to_document_type`).
+- Documento "Informe Banco Exemplo 2025.pdf" classificado como `investment_report` → `extract_with_llm` extrai como `tipo_documento="informe_rendimentos"` (mapping `map_e0_doc_type_to_document_type`).
 - Payload E2-llm contém:
   - `transacoes`: 4 linhas (rendimento bruto/líquido, IRRF, parcela imobiliário)
-  - `investimentos`: 4 posições (CDB **R$ 290.000**, conta corrente R$ 0, dívida imobiliária -R$ 205k, dívida cc -R$ 10k)
+  - `investimentos`: 4 posições (CDB **R$ 300.000**, conta corrente R$ 0, dívida imobiliária -R$ 200k, dívida cc -R$ 10k)
 - Filter rejeita porque `tipo_documento != "investment_report"`.
-- Card "Investimentos David Robert" mostrou R$ 317,24 (Binance crypto only) em vez dos ~R$ 700k esperados — perda de R$ 290k de CDB na linha.
+- Card "Investimentos do Titular" mostrou R$ 300,00 (cripto apenas) em vez dos ~R$ 700k esperados — perda de R$ 300k de CDB na linha.
 
 ADR-243 (MemberNameResolver) corrigiu uma das duas causas (mismatch de membro). Esta ADR corrige a outra: o filter de aceitação.
 
@@ -73,16 +73,16 @@ Continua rejeitando `informe_rendimentos` **sem** campo `investimentos` (caso co
 
 ## Consequências
 
-- ✅ **Fix observado**: workspace `Campos` recebe R$ 290k do CDB Itaú em `total_por_membro["david_robert_camargo_ferreira_campos"]`.
-- ✅ **Aplica a qualquer banco BR** que emita informe IR com campo `Bens e Direitos` (Itaú, Santander, Caixa, Bradesco, Picpay, Nubank, BrasilPrev, XP). Workspace `Campos` tem 7 informes processados via `extract_irpf_full` + 1 via `extract_with_llm` — todos passam a contar.
+- ✅ **Fix observado**: workspace dogfood recebe R$ 300k do CDB do banco emissor em `total_por_membro["titular"]`.
+- ✅ **Aplica a qualquer banco BR** que emita informe IR com campo `Bens e Direitos` (Itaú, Santander, Caixa, Bradesco, Picpay, Nubank, BrasilPrev, XP). Workspace dogfood tem 7 informes processados via `extract_irpf_full` + 1 via `extract_with_llm` — todos passam a contar.
 - ✅ **Sem mudança de contrato externo**: schema E2 inalterado; só amplia a condição de aceitação no consumer.
 - ⚠️ **Risco de double-counting**: o mesmo CDB pode aparecer em (a) informe rendimentos do banco emissor E (b) extrato de posição (`investmentosposicao`) do mesmo CDB. Mitigado pelo dedup existente em `InvestmentsConsolidator.consolidate` por `(instituicao, membro)` — mantém o mais recente por `data_referencia`.
 
 ## Gates de regressão
 
-- **T1** — `tests/unit/pipeline/test_e4_categorizer_adapter.py::test_load_investment_positions_accepts_informe_rendimentos` (fixture com Itaú CDB R$ 290k real).
+- **T1** — `tests/unit/pipeline/test_e4_categorizer_adapter.py::test_load_investment_positions_accepts_informe_rendimentos` (fixture com CDB R$ 300k sintético).
 - **T2** — `test_load_investment_positions_skips_informe_rendimentos_without_investimentos` (sem `investimentos[]`, não é posição).
-- **T3** — Dogfood pós-merge: workspace `Campos`, regerar relatório dezembro/2025 e validar que `total_por_membro["david_robert_camargo_ferreira_campos"]` ≥ R$ 290.000 (vs. R$ 317 anterior).
+- **T3** — Dogfood pós-merge: workspace dogfood, regerar relatório dezembro/2025 e validar que `total_por_membro["titular"]` ≥ R$ 300.000 (vs. R$ 300 anterior).
 
 ## Follow-ups
 

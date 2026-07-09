@@ -29,15 +29,15 @@ tags:
 
 `E5AnalyzerAdapter._load_caixa_from_e3` ([pipeline/domain/services/e5_analyzer_adapter.py:743](../../pipeline/domain/services/e5_analyzer_adapter.py)) carrega o card "Caixa e Moeda Estrangeira" lendo **saldo_final** dos artifacts E3 reconciliados. Quando o workspace **não tem extrato bancário em USD/EUR reconciliado** mas tem **saldo declarado em informe IR**, o card fica zerado.
 
-Caso real (workspace `Campos`, run `c36c4baf-…`):
+Caso real (workspace dogfood, run `c36c4baf-…`):
 
 - Baseline IRPF 2024 (E1.5c) contém:
-  - `"DEPOSITO EM MOEDA NACIONAL DECORRENTE DE MOEDA ESTRANGEIRA - U$ 6.524,00"` → R$ 34.433,67
-  - `"DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN)"` → R$ 484,80
-- E3 nessa run incremental: 2 artifacts (BRL + USD) com `saldo_final=0` (vieram do informe rendimentos Itaú, não de extrato de conta) → nenhuma conta estrangeira reconciliada.
-- Card "Caixa e Moeda Estrangeira": **R$ 0,00** — perde R$ 34.918,47 visível no IRPF.
+  - `"DEPOSITO EM MOEDA NACIONAL DECORRENTE DE MOEDA ESTRANGEIRA - U$ 5.000,00"` → R$ 25.000,00
+  - `"DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: EXTERIOR)"` → R$ 500,00
+- E3 nessa run incremental: 2 artifacts (BRL + USD) com `saldo_final=0` (vieram do informe rendimentos do banco, não de extrato de conta) → nenhuma conta estrangeira reconciliada.
+- Card "Caixa e Moeda Estrangeira": **R$ 0,00** — perde R$ 25.500,00 visível no IRPF.
 
-Pós-[[ADR-241]] (E2 ws-scoped), runs futuras vão reconciliar extratos USD/EUR de C6 Global / Wise que o workspace tem. Mas:
+Pós-[[ADR-241]] (E2 ws-scoped), runs futuras vão reconciliar extratos USD/EUR de corretora internacional que o workspace tenha. Mas:
 
 1. Nem todo workspace tem extrato ME reconciliado.
 2. Mesmo com extrato, há cenários onde o saldo do informe (auditado) é mais confiável que o saldo bancário (período pode estar incompleto, fatura processando, etc.).
@@ -68,17 +68,17 @@ Caller (`analyze_via_store`) passa `patrimonio_raw` (lido de E4 patrimonio) como
 
 2. **Heurística de keyword pode pegar falso-positivo** (ex.: "FUNDO EURO X" como FII brasileiro). Mitigação: requer keyword genérica `"moeda estrangeira"` OU keyword específica de moeda — não basta só "euro" / "dolar" sozinho num nome de fundo. Conjunto observado em informes BR é restrito; ampliar se telemetria mostrar mais variações.
 
-3. **Inferência de moeda é aproximada** quando descrição diz só "MOEDA ESTRANGEIRA" sem citar USD/EUR. Default USD (mais comum em IRPF BR — Cayman, Bahamas, Wise). Item já está em BRL no IRPF, então o erro de moeda só afeta o label exibido, não o total.
+3. **Inferência de moeda é aproximada** quando descrição diz só "MOEDA ESTRANGEIRA" sem citar USD/EUR. Default USD (mais comum em IRPF BR — contas no exterior). Item já está em BRL no IRPF, então o erro de moeda só afeta o label exibido, não o total.
 
 ## Alternativas consideradas
 
-- **(a) Não fazer fallback — exigir extrato reconciliado.** Status quo. Rejeitada: deixa R$ 34k visíveis no IRPF mas invisíveis no card "Caixa". Confunde o usuário ("eu tenho USD declarado, por que não aparece?").
+- **(a) Não fazer fallback — exigir extrato reconciliado.** Status quo. Rejeitada: deixa R$ 25k visíveis no IRPF mas invisíveis no card "Caixa". Confunde o usuário ("eu tenho USD declarado, por que não aparece?").
 - **(b) Reclassificar ME em ``baseline_normalizer`` (origem)** — separar items ME do `investimentos_consolidados` para um campo `caixa_me_consolidado` dedicado. Mais limpo mas exige migration de schema do baseline E1.5c + revalidar todos consumers de `investimentos_consolidados`. Trabalho maior; aguarda lane dedicada.
 - **(c) Sempre somar baseline ME ao E3 ME** (sem condicional). Rejeitada: garantia de double-count quando ambas as fontes têm ME.
 
 ## Consequências
 
-- ✅ **Fix observado**: workspace `Campos` card "Caixa e Moeda Estrangeira" passa de R$ 0,00 para ~R$ 34.918 (= R$ 34.433,67 + R$ 484,80) quando E3 não tem extrato USD reconciliado.
+- ✅ **Fix observado**: workspace dogfood card "Caixa e Moeda Estrangeira" passa de R$ 0,00 para ~R$ 25.500 (= R$ 25.000,00 + R$ 500,00) quando E3 não tem extrato USD reconciliado.
 - ✅ **Aplica automaticamente** a qualquer workspace com informe IR contendo seção "Bens e Direitos" código 02 com depósito em ME.
 - ✅ **Sem mudança de contrato**: helper puro stateless; só amplia o output do `_load_caixa_from_e3` em caso específico.
 - ⚠️ **Trade-off conhecido** com `_investimentos_from_irpf` em cenário de fallback IRPF puro — registrado nesta ADR §Limitações.
@@ -86,14 +86,14 @@ Caller (`analyze_via_store`) passa `patrimonio_raw` (lido de E4 patrimonio) como
 ## Gates de regressão
 
 - **T1** — `tests/unit/pipeline/test_e5_analyzer_adapter.py::TestMoedaEstrangeiraFallback` (6 testes):
-  - `test_extract_me_caixa_picks_usd_deposit` — fixture com 2 items do workspace `Campos` real
+  - `test_extract_me_caixa_picks_usd_deposit` — fixture com 2 items sintéticos
   - `test_extract_me_caixa_handles_eur` — EUR também
   - `test_extract_me_caixa_skips_non_me_items` — não pega CDB/ações genéricas
   - `test_extract_me_caixa_skips_zero_values` — items zerados (vendidos)
   - `test_load_caixa_fallback_kicks_in_when_no_foreign_in_e3` — E3 BRL only + baseline ME = fallback fires
   - `test_load_caixa_no_fallback_when_e3_has_foreign` — E3 USD reconciliado → baseline ignorado
 
-- **T2** — Dogfood pós-merge: workspace `Campos` deve mostrar `caixa_moeda_estrangeira >= R$ 34.000` no card.
+- **T2** — Dogfood pós-merge: workspace dogfood deve mostrar `caixa_moeda_estrangeira >= R$ 25.000` no card.
 
 ## Follow-ups
 

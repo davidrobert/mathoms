@@ -36,22 +36,22 @@ tags:
 
 ## Objetivo
 
-Modelar `tipo_comprovante="apolice"` ponta a ponta. Schema antecipa V2 (vida/saúde/PJ) já em V1 para evitar migration breaking. **Apólice combinada Porto Seguro (Toro + residência) é caso V1 obrigatório** — multi-bem em 1 PDF dispara cascata LLM Haiku→Sonnet.
+Modelar `tipo_comprovante="apolice"` ponta a ponta. Schema antecipa V2 (vida/saúde/PJ) já em V1 para evitar migration breaking. **Apólice combinada Porto Seguro (carro + residência) é caso V1 obrigatório** — multi-bem em 1 PDF dispara cascata LLM Haiku→Sonnet.
 
 ## PDFs do batch destravados
 
-- Apólice Tokio Marine Moto (NMAX STH2C88) — auto simples
-- Apólice Porto Moto (NMAX DAV0351) — auto simples
-- **Apólice Porto Proteção Combinada** (Toro GDK6A27 + residência R Exemplo 100) — multi-bem ⭐
+- Apólice Tokio Marine Moto (moto ABC1D23) — auto simples
+- Apólice Porto Moto (moto XYZ9A87) — auto simples
+- **Apólice Porto Proteção Combinada** (carro ABC1234 + residência Rua Exemplo, 100) — multi-bem ⭐
 
 ## Critério de aceite
 
 - 3 apólices do batch classificam como `tipo_comprovante="apolice"` com `confidence ≥ 0.7`.
 - Apólice combinada Porto renderiza com `len(bens_segurados) == 2` (auto + imóvel).
 - Cascata LLM Haiku→Sonnet dispara quando: `len(bens_segurados) > 1` OU confidence < 0.7 OU detecção textual "combinada"/"residencial+auto".
-- `congenere_anterior` populado quando apólice declara renovação inter-seguradora (Tokio doc cita PORTO 8891272 classe bônus 2).
-- `pagador_cpf ≠ segurado_cpf` corretamente capturado (Tokio paga SONIA cônjuge, segurado é David).
-- FK opcional `veiculo_id` resolvida via reconciliação assíncrona — apólice Tokio NMAX STH2C88 vincula ao Vehicle correspondente quando CRLV L1 estiver presente.
+- `congenere_anterior` populado quando apólice declara renovação inter-seguradora (Tokio doc cita PORTO 9999999 classe bônus 2).
+- `pagador_cpf ≠ segurado_cpf` corretamente capturado (Tokio paga o Cônjuge, segurado é o Titular).
+- FK opcional `veiculo_id` resolvida via reconciliação assíncrona — apólice Tokio moto ABC1D23 vincula ao Vehicle correspondente quando CRLV L1 estiver presente.
 - Histórico de apólices imutável temporal — múltiplas rows em `pipeline_artifacts` (uma por apólice), query temporal por vigência.
 - Cobertura `lmi_modo: Literal["valor_fixo", "fipe_percentual", "primeiro_risco_absoluto"]` discriminada — não union de tipos no valor.
 - Catalog `institutions` ganha `insurance_carrier` (porto, tokiomarine) e `insurance_broker` (futuro — V1 mantém corretor inline em `CorretorRef`).

@@ -23,15 +23,15 @@ tags:
 
 ## Sintoma
 
-Workspace `ffde7f63-7e28-42ac-b2a3-9adc135a06ce` (David, em prod) reporta no card "Receitas por Fonte":
+Workspace `ffde7f63-7e28-42ac-b2a3-9adc135a06ce` (Titular, em prod) reporta no card "Receitas por Fonte":
 
 | Fonte | Média/mês 3M |
 |---|---|
-| Lucros distribuídos | R$ 92.597,95 |
-| Aluguéis | R$ 3.916,90 |
-| **CLT** | **R$ 3.806,13** |
+| Lucros distribuídos | R$ 90.000,00 |
+| Aluguéis | R$ 4.000,00 |
+| **CLT** | **R$ 3.800,00** |
 
-Esposa do usuário é CLT no Hospital Albert Einstein com salário > R$ 3k/mês. Sozinho, o salário dela já deveria superar R$ 3.806/mês — está claramente **subdimensionado**.
+Cônjuge do usuário é CLT em um empregador (Empregador Exemplo) com salário > R$ 3k/mês. Sozinho, o salário dela já deveria superar R$ 3.800/mês — está claramente **subdimensionado**.
 
 ## Root cause (confirmado experimentalmente)
 
@@ -42,7 +42,7 @@ RECEBIMENTO TRANSFERENCIA
 RECEBIMENTO DE TED
 ```
 
-`InternalTransferDetector.is_internal_transfer` faz **substring match case-insensitive sem acento** ([internal_transfer_detector.py:117-124](../../../../pipeline/domain/services/internal_transfer_detector.py)). Logo, **qualquer** TED entrante (que no Brasil é o mecanismo padrão de depósito de salário de empregadores grandes como Einstein) bate em `RECEBIMENTO DE TED` e é classificado como `transferencia` antes mesmo de chegar na resolução de receita ([transaction_classifier.py:363-374](../../../../pipeline/domain/services/transaction_classifier.py)).
+`InternalTransferDetector.is_internal_transfer` faz **substring match case-insensitive sem acento** ([internal_transfer_detector.py:117-124](../../../../pipeline/domain/services/internal_transfer_detector.py)). Logo, **qualquer** TED entrante (que no Brasil é o mecanismo padrão de depósito de salário de empregadores grandes) bate em `RECEBIMENTO DE TED` e é classificado como `transferencia` antes mesmo de chegar na resolução de receita ([transaction_classifier.py:363-374](../../../../pipeline/domain/services/transaction_classifier.py)).
 
 A própria docstring do detector ([linhas 6-13](../../../../pipeline/domain/services/internal_transfer_detector.py)) é categórica:
 
@@ -55,17 +55,17 @@ O seed contradiz o princípio.
 Script `_scratch/reproduce_ted_bug.py` constrói o `TransactionClassifier` com os seeds literais e roda 5 descrições típicas — 3/5 engolidas:
 
 ```
-❌ TRANSF (engolido) | cat=—           | 'RECEBIMENTO DE TED 3221 SOC BENEF ISRAELITA'
-❌ TRANSF (engolido) | cat=—           | 'RECEBIMENTO DE TED                  SOC BENEFICENTE ISRAELITA'
-❌ TRANSF (engolido) | cat=—           | 'RECEBIMENTO TRANSFERENCIA 3221 HOSPITAL ALBERT EINSTEIN'
-✅ RECEITA           | cat=receita_clt | 'SALARIO DEPOSITO SOC BENEFICENTE ISRAELITA'
-✅ RECEITA           | cat=receita_clt | 'TED-CRED SOCIEDADE BENEFICENTE ISRAELITA'
+❌ TRANSF (engolido) | cat=—           | 'RECEBIMENTO DE TED 3221 EMPREGADOR EXEMPLO'
+❌ TRANSF (engolido) | cat=—           | 'RECEBIMENTO DE TED                  EMPREGADOR EXEMPLO'
+❌ TRANSF (engolido) | cat=—           | 'RECEBIMENTO TRANSFERENCIA 3221 EMPREGADOR EXEMPLO'
+✅ RECEITA           | cat=receita_clt | 'SALARIO DEPOSITO EMPREGADOR EXEMPLO'
+✅ RECEITA           | cat=receita_clt | 'TED-CRED EMPREGADOR EXEMPLO'
 ```
 
 ## Impacto
 
 - **Toda receita CLT/PJ recebida via TED** com prefixo `RECEBIMENTO DE TED` ou `RECEBIMENTO TRANSFERENCIA` é silenciosamente removida do fluxo de caixa do usuário.
-- Distorce: card "Receitas por Fonte", taxa de poupança, parecer do planejador (E6), cascata fiscal PJ ([[ADR-236]]) — toda a renda CLT da esposa é fantasma no relatório.
+- Distorce: card "Receitas por Fonte", taxa de poupança, parecer do planejador (E6), cascata fiscal PJ ([[ADR-236]]) — toda a renda CLT do cônjuge é fantasma no relatório.
 - **Não há warning ao usuário.** Falha silenciosa em invariante de domínio crítico (receita ≠ transferência interna).
 - Afeta **todos os workspaces** que herdam o seed v1 — não só `ffde7f63-…`.
 
@@ -105,7 +105,7 @@ Antes do PR de fix, consultar em paralelo:
 - [ ] `_scratch/reproduce_ted_bug.py` reportar 0/5 engolidos após o fix.
 - [ ] Teste de regressão `test_no_overbroad_ted_patterns` falha sem o fix, passa com o fix.
 - [ ] Migration aplicada em todos os ambientes (dev/staging/prod).
-- [ ] Workspace `ffde7f63-…` reprocessado em E4 → card "Receitas por Fonte" mostra CLT > R$ 3.806/mês (validação humana com o dono do workspace).
+- [ ] Workspace `ffde7f63-…` reprocessado em E4 → card "Receitas por Fonte" mostra CLT > R$ 3.800/mês (validação humana com o dono do workspace).
 - [ ] Pre-commit + `pytest backend/tests tests -q` verdes.
 
 ## Riscos

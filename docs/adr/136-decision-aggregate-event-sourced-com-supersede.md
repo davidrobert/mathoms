@@ -46,7 +46,7 @@ size_lines: 119
 
 - Status que evolui no tempo (Pendente → Decidido → Executado).
 - Supersede chain (D15 substitui D06 quando TRS muda de 4% → 5%).
-- Valor envolvido em BRL (R$117.430 quitação financiamento, R$30k/mês
+- Valor envolvido em BRL (R$100.000 quitação financiamento, R$20k/mês
   meta IF, R$500/mês DCA crypto).
 - Data de decisão e prazo de execução.
 

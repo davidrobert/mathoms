@@ -29,7 +29,7 @@ tags:
 ## Problema
 
 `nao_identificado` é a **maior categoria de despesa** do dogfood `72883bde`:
-R$ 401.415,87 (~23% do total de R$ 1,77M). Isso invalida em cascata: orçamento
+R$ 400.000,00 (~23% do total de R$ 1,7M). Isso invalida em cascata: orçamento
 prospectivo, essencial vs supérfluo (denominador da reserva pós-[[A28.l1]]),
 equilíbrio Cerbasi e consumo consciente. Sob Cerbasi, "gastar bem" é
 inauditável sem saber onde o dinheiro vai — e o rótulo "Gastador" sobre despesa

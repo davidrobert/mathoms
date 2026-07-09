@@ -74,7 +74,7 @@ Sem este card, ingestão da Sprint A18 (CRLV + apólice + FIPE) fica invisível 
 - KPI F — chips "Vida: não identificada" / "Saúde: não identificada" quando flag dispara, com copy CRC inline.
 - KPI C — por veículo: badge gap (verde <10%, amarelo 10-25%, vermelho >25%) com tooltip explicativo.
 - Status vigência por apólice (vigente / vencendo / vencida com cor).
-- Multi-corretor metadata neutra ("3 corretoras: Bedoni, Mrr Miseg, Thiago Alcântara").
+- Multi-corretor metadata neutra ("3 corretoras: Corretora Exemplo 1, Corretora Exemplo 2, Corretor PF Exemplo").
 - Cross-link S8 textual no rodapé do card.
 - E2E `@critical` em `frontend/e2e/protecao.spec.ts` — 3 cenários ([[ADR-240]] G6).
 

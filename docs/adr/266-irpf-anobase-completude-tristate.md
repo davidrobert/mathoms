@@ -40,11 +40,11 @@ PR de dedup (`IrpfDeclarationDeduplicator`) acabou de resolver o caso de fragmen
    O produto **não pode inferir qual** sem confirmação humana.
 
 **Caso real (workspace `1b9f2cf5...`, 2026-05-23):** mesmo pós-dedup, o ano-base 2025 do casal tem:
-- 1 vencedor para DAVID -36 (pj=1, iso=2, ir_pago=0)
-- 1 shell para DAVID -87 (OCR-collision com -36)
-- **Mariana ausente** (presente em 2023 e 2024)
+- 1 vencedor para TITULAR -36 (pj=1, iso=2, ir_pago=0)
+- 1 shell para TITULAR -87 (OCR-collision com -36)
+- **Cônjuge ausente** (presente em 2023 e 2024)
 
-Renda bruta agregada do ano-base 2025 = R$ 5.469,95 — apresentar isso como "Renda Anual Familiar · 2025" no card é informação ativa errada, mesmo sendo o dado correto do que foi entregue.
+Renda bruta agregada do ano-base 2025 = R$ 5.000,00 — apresentar isso como "Renda Anual Familiar · 2025" no card é informação ativa errada, mesmo sendo o dado correto do que foi entregue.
 
 **Razão de abrir ADR** ([[ADR-188]] policy "ADR Proposto antes de PR P0/P1"): mudança em contrato observável de `irpf_kpis` (4 campos novos no payload E5), schema bump (`config/schemas/e5_analysis.schema.json`), e regra de domínio que vira teste regressivo. Sem ADR, vira lógica espalhada entre analyzer + serializer + card + chart.
 
@@ -139,5 +139,5 @@ PR2 da lane A16 L2 (irpf-dedup + completude):
 5. Snapshot OpenAPI atualizado
 6. Testes:
    - Pura: combinações de prazo × continuidade × shell
-   - Regressão workspace `1b9f2cf5...`: 2023=incompleto (Mariana sozinha), 2024=completo (casal), 2025=incompleto (Mariana ausente)
+   - Regressão workspace `1b9f2cf5...`: 2023=incompleto (Cônjuge sozinha), 2024=completo (casal), 2025=incompleto (Cônjuge ausente)
    - Edge: workspace sem nenhuma decl, com só 1 ano, com 5 anos mistos

@@ -109,8 +109,8 @@ Implementar o **roadmap A17 → A18 → A19** desenhado em 2026-05-21 — 3 spri
 
 Sessão dogfood do owner anexou **24 PDFs reais** que hoje caem em `.other` silencioso ou são mal-classificados:
 
-- **15 informes fiscais** anuais (Sprint A17 — `docs/adr/238-ingestao-informes-rendimentos-anuais-avulsos.md`): BrasilPrev PGBL, 7 bancos PF (Itaú, Santander, Caixa, Nubank, PicPay, C6 PF, XP Investimentos), Wise multi-moeda no exterior, C6 PJ + Stone PJ, XP Proventos, Itaúsa holding, Einstein, mais um informe genérico.
-- **3 CRLV-e + 3 apólices** (Sprint A18 — `docs/adr/239-comprovantes-bens-apolices-fipe.md`): Yamaha NMAX 160 STH2C88 2024, Yamaha NMAX DAV0351 2018, Fiat Toro GDK6A27 2022; apólice Tokio Marine Moto, Porto Moto, **Porto Proteção Combinada** (multi-bem: Toro + residência R Exemplo 100).
+- **15 informes fiscais** anuais (Sprint A17 — `docs/adr/238-ingestao-informes-rendimentos-anuais-avulsos.md`): previdência PGBL, 7 bancos PF, conta multi-moeda no exterior, 2 informes PJ, proventos de ações, holding, empregador, mais um informe genérico.
+- **3 CRLV-e + 3 apólices** (Sprint A18 — `docs/adr/239-comprovantes-bens-apolices-fipe.md`): moto Exemplo ABC1D23 2024, moto Exemplo XYZ9A87 2018, carro Exemplo ABC1234 2022; apólice Tokio Marine Moto, Porto Moto, **Porto Proteção Combinada** (multi-bem: carro + residência Rua Exemplo, 100).
 
 Co-design `data-engineer` + `financial-planner` rodou em 2026-05-21 — decisões fechadas em "Decisões já fechadas (não reabrir)" de cada track. **Não reabra.** Se encontrar ambigüidade, escale ao owner; não improvise.
 
@@ -161,7 +161,7 @@ Co-design `data-engineer` + `financial-planner` rodou em 2026-05-21 — decisõe
 - LMI via `lmi_modo` discriminator + valores separados (não union de tipos no valor).
 - FIPE lookup **sempre assíncrono** (Celery). Teste unitário deve travar regressão de sincronia.
 - LLM Haiku → Sonnet cascade com gate (multi-bem OU confidence<0.7 OU strings "combinada"/"residencial+auto").
-- Apólice combinada Porto (Toro + residência) é **caso V1 obrigatório**.
+- Apólice combinada Porto (carro + residência) é **caso V1 obrigatório**.
 - `pagador_cpf ≠ segurado_cpf` (cônjuge paga) — FK opcional `family_members` (ADR-127) em ambos.
 - Histórico de apólices imutável temporal (renovação = apólice nova, não update).
 

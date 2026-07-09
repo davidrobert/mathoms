@@ -57,7 +57,7 @@ Tool use híbrido com **2 tools fechadas**, **cap 6**, **whitelist JSONPath**, *
 
 # Tool 2: get_e5_jsonpath(path: str) -> Any
 # Retorna valor em path específico (paridade com manifest paths).
-# Use quando LLM quer campo único (ex.: "$.dependentes_irpf.tasso.idade").
+# Use quando LLM quer campo único (ex.: "$.dependentes_irpf.dependente.idade").
 ```
 
 Schema das tools em formato compatível LiteLLM/Anthropic. Descrições explícitas no JSON schema da tool ensinam LLM quando usar cada uma.
@@ -94,7 +94,7 @@ Schema das tools em formato compatível LiteLLM/Anthropic. Descrições explíci
       {
         "iter": 1,
         "tool": "get_e5_jsonpath",
-        "input": {"path": "$.dependentes_irpf.tasso.idade"},
+        "input": {"path": "$.dependentes_irpf.dependente.idade"},
         "result_summary": {"found": true, "type": "int"},
         "latency_ms": 1,
         "cache_hit": false

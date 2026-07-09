@@ -168,7 +168,7 @@ Não é KPI numérico — é estado de dados que afeta confiança no card.
 
 ### D6 — Multi-corretor neutro com nota (não warning)
 
-Mostrar lista de corretoras como **metadata** ("3 corretoras: Bedoni, Mrr Miseg, Thiago Alcântara"), **sem warning**. Multi-corretor pode ser bom (concorrência, melhores prêmios por especialidade) ou ruim (fragmenta poder de negociação) — depende do contexto.
+Mostrar lista de corretoras como **metadata** ("3 corretoras: Corretora Exemplo 1, Corretora Exemplo 2, Corretor PF Exemplo"), **sem warning**. Multi-corretor pode ser bom (concorrência, melhores prêmios por especialidade) ou ruim (fragmenta poder de negociação) — depende do contexto.
 
 V2 condicional: detectar **mesma seguradora em múltiplas corretoras** (perde bônus consolidado por CPF) → flag.
 

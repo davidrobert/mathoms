@@ -48,8 +48,8 @@ fiscal não existe.
   subutilização ([[ADR-198]] §3.2).
 
 **Caso patológico que motiva:** workspace em simplificado declarou
-R$ 2.100 em educação no E1.6 (colegial dos filhos) e optou pelo
-desconto fixo na declaração. Antes: chip "Espaço de R$ 1.461,50"
+R$ 2.000 em educação no E1.6 (educação de dependente) e optou pelo
+desconto fixo na declaração. Antes: chip "Espaço de R$ 1.400,00"
 sugeria oportunidade de redução fiscal inexistente. Agora: chip
 "Sem efeito neste regime" (neutral).
 

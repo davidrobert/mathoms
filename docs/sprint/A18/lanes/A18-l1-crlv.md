@@ -38,9 +38,9 @@ Modelar `tipo_comprovante="crlv"` ponta a ponta. Tabela `vehicles` materializa i
 
 ## PDFs do batch destravados
 
-- CRLV NMAX_DAV0351 (Yamaha NMAX 160 2018)
-- CRLV NMAX160_STH2C88 (Yamaha NMAX 160 Connected ABS 2024)
-- CRLV Toro_GDK6A27 (Fiat Toro Cabine Dupla Ultra 2.0 16V 4×4 2022)
+- CRLV moto XYZ9A87 (moto Exemplo 2018)
+- CRLV moto ABC1D23 (moto Exemplo Connected ABS 2024)
+- CRLV carro ABC1234 (carro Exemplo Cabine Dupla 4×4 2022)
 
 ## Critério de aceite
 
@@ -49,7 +49,7 @@ Modelar `tipo_comprovante="crlv"` ponta a ponta. Tabela `vehicles` materializa i
 - Identidade `(workspace_id, placa, renavam)` é **imutável** ([[ADR-225]]); colisão placa↔renavam diferente → `needs_review=true` sem merge automático.
 - Reconciliação assíncrona com IRPF G02 — fuzzy marca+modelo+ano confidence ≥ 0,85 = auto-merge; < 0,85 = `needs_review`.
 - `baseline_patrimonial.veiculos_consolidados[]` deixa de ser fonte (vira projection com FK `veiculo_id`).
-- Pegadinhas dos PDFs do batch (NMAX 2018 vs NMAX 2024 ABS Connected — modelos similares, FIPE codes distintos: 8271020 vs 827125-9) não geram falsos positivos de dedupe.
+- Pegadinhas dos PDFs do batch (moto 2018 vs moto 2024 ABS Connected — modelos similares, FIPE codes distintos: 8271020 vs 827125-9) não geram falsos positivos de dedupe.
 - 18 PDFs do batch fora desta lane (15 informes A17 + 3 apólices L2) continuam em seu fluxo sem regressão.
 - LLM Haiku (padrão simples de CRLV-e, custo otimizado).
 
