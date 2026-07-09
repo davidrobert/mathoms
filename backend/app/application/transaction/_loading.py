@@ -27,10 +27,14 @@ def _tenant_root(workspace_id: str) -> str:
 async def load_override_index(workspace_id: str, db: AsyncSession) -> OverrideMatchIndex:
     # ADR-188 §D1 — soft-delete preserva histórico; read-path ignora linhas
     # com ``deleted_at IS NOT NULL`` para manter paridade com o pipeline.
+    # orphaned_at: quarentena é terminal e INERTE (ADR-282 §5) — sem o filtro o
+    # órfão segue aplicando categoria via transaction_hash v1, comportamento que
+    # o drop da Fase E removeria silenciosamente.
     result = await db.execute(
         select(TransactionOverride).where(
             TransactionOverride.workspace_id == workspace_id,
             TransactionOverride.deleted_at.is_(None),
+            TransactionOverride.orphaned_at.is_(None),
         )
     )
     v2_enabled = await is_enabled(workspace_id, OVERRIDE_NATURAL_KEY_V2_FLAG, db=db)

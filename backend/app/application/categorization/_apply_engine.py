@@ -76,11 +76,14 @@ def _hash_scope(matching: list, v2_enabled: bool):
 
 def _active_overrides_query(workspace_id: str, matching: list, v2_enabled: bool):
     """Overrides ativos (``deleted_at IS NULL``) das txs candidatas, ordenados (perf R2/R3)."""
+    # orphaned_at: quarentena é terminal e INERTE (ADR-282 §5) — não participa
+    # de sticky nem de match.
     return (
         select(TransactionOverride)
         .where(
             TransactionOverride.workspace_id == workspace_id,
             TransactionOverride.deleted_at.is_(None),
+            TransactionOverride.orphaned_at.is_(None),
             _hash_scope(matching, v2_enabled),
         )
         .order_by(TransactionOverride.created_at, TransactionOverride.id)

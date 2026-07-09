@@ -75,12 +75,15 @@ def _preload_override_index(
     db: Session, workspace_id: str, *, v2_enabled: bool, shadow_compare: bool = False
 ) -> OverrideMatchIndex:
     """Overrides ATIVOS (``deleted_at IS NULL`` · ADR-188 §D1) — dual-read ADR-282."""
+    # orphaned_at: quarentena é terminal e INERTE (ADR-282 §5) — sem o filtro o
+    # órfão segue casando via transaction_hash v1 e polui o gate da M2 (A26.l4).
     rows = (
         db.execute(
             select(TransactionOverride)
             .where(
                 TransactionOverride.workspace_id == workspace_id,
                 TransactionOverride.deleted_at.is_(None),
+                TransactionOverride.orphaned_at.is_(None),
             )
             .order_by(TransactionOverride.created_at, TransactionOverride.id)
         )

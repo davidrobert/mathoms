@@ -100,6 +100,8 @@ def _load_active_manual_index(
                 TransactionOverride.workspace_id == workspace_id,
                 TransactionOverride.source == OVERRIDE_SOURCE_MANUAL,
                 TransactionOverride.deleted_at.is_(None),
+                # quarentena é terminal e inerte (ADR-282 §5)
+                TransactionOverride.orphaned_at.is_(None),
             )
             .order_by(TransactionOverride.created_at, TransactionOverride.id)
         )
