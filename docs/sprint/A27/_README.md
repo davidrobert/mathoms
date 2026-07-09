@@ -24,7 +24,9 @@ theme: "data-lineage"
 > [[A26.l9]] ✅ #687 · [[A27.l1]] ✅ #715/#716/#718 · [[ADR-296]]/[[ADR-293]]
 > `Decidido` · doutrina KR1 [[ADR-304]] ✅ #729. Resta a **promoção formal**
 > (A26→`done` + A27→`current`) quando os gates de tráfego da A26 fecharem; o
-> condicional [[A26.l5]] herda o gate verbatim.
+> condicional [[A26.l5]] herda o gate verbatim. **Resolvido 2026-07-09:** l5
+> CORTADA do fechamento (decisão do owner) — deferida owner-gated no plano
+> [[PLAN-data-lineage]], não entra na A27; pré-condições nomeadas na lane.
 
 ## Tese
 

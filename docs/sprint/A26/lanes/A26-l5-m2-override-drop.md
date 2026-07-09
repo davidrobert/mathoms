@@ -29,6 +29,30 @@ tags:
 > **Maior risco da sprint — cortável sem dó para A27** se a janela de tráfego for curta.
 > Nunca forçar sob gate apertado: perda irreversível de identidade de override.
 
+## Decisão 2026-07-09 — CORTADA do fechamento A26/A27; deferida owner-gated
+
+**Decisão do owner (2026-07-09), conforme precedência de corte da [[MOC-sprint-a27]]
+("cortável sem dó").** Esta lane **não bloqueia** A26→`done` nem A27→`done` — vira
+item deferido do plano [[PLAN-data-lineage]], **herdando este gate verbatim**
+(G1/G2/G2b/G3 + PITR + go/no-go). Racional: (a) o gate G2/G2b **reiniciou** com o
+fix dos órfãos no índice de match (PR #878) e exige ≥1 sprint de janela verde;
+(b) pré-trabalho de código obrigatório descoberto pelo runbook (#873): `row_id`
+do read-path ainda deriva de `generate_transaction_hash` (PR de migração em
+andamento), view `transaction_overrides_active` e índice parcial
+`uq_txov_active_rule` dependem da coluna; (c) PITR não confirmado (RUNBOOK §5
+trata DR como pendente); (d) custo de manter o dual-read (agora correto) ≈ zero.
+
+**Pré-condições nomeadas para agendar a execução** (todas, sem ordem):
+1. Janela G2/G2b ≥1 sprint verde **pós-#878** (`v1_fallback==0 AND v2_match>=1
+   AND divergence==0` via `audit_logs`).
+2. Pré-trabalho `row_id` → identidade v2 mergeado.
+3. PITR/backup confirmado pelo owner (pré-condições sre-devops abaixo).
+4. Decisão do owner sobre os 4 órfãos re-casáveis (recuperar exige emenda da
+   [[ADR-282]] §5; default: seguem inertes).
+
+Runbook pronto: [`docs/reference/runbooks/override_legacy_drop.md`](../../../reference/runbooks/override_legacy_drop.md)
+(#873, com drafts de migration + sentinela G3 em apêndice).
+
 ## Objetivo
 
 Remover o estado legado de identidade v1 do override, fechando a convergência para

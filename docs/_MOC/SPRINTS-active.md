@@ -237,7 +237,8 @@ Checklist do flip final (A26→`done` + A27→`current`→`done`): ~~medição l
 **l2 `shipped` 2026-07-09** (emenda na lane: fechamento por evidência combinada,
 contador ≥20 rebaixado a telemetria passiva — decisão do owner, sanidade PM+PE,
 precedente estreito + amarrações de drift registrados) · janela l4 ≥1 sprint
-verde pós-#878 · decisão l5 (executar com go/no-go do owner OU cortar) · PR
+verde pós-#878 · ~~decisão l5~~ **l5 CORTADA 2026-07-09** (deferida owner-gated
+no plano DATA_LINEAGE, gate herdado verbatim + 4 pré-condições nomeadas na lane) · PR
 editorial único com os flips de frontmatter + regeneração de índices.
 
 - **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 ·
