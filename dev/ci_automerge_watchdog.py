@@ -26,7 +26,7 @@ from dev.ci_advance_automerge_train import (  # noqa: E402
 )
 
 WATCHDOG_PR_FIELDS = (
-    "number,title,createdAt,isDraft,labels,mergeStateStatus,"
+    "number,title,createdAt,updatedAt,isDraft,labels,mergeStateStatus,"
     "autoMergeRequest,statusCheckRollup,headRefName,headRefOid"
 )
 STALL_MINUTES = 60
@@ -67,13 +67,21 @@ def is_orphan_run_set(runs: list[dict[str, Any]]) -> bool:
 
 
 def is_stalled(runs: list[dict[str, Any]], now: datetime) -> bool:
-    """True se nada roda nem rodou recentemente no head da cabeça do trem."""
+    """True se nada roda nem rodou recentemente no head da cabeça do trem;
+    lista vazia não decide aqui — ver stalled_without_runs (carência)."""
     if not runs:
-        return True
+        return False
     if any(r.get("status") != "completed" for r in runs):
         return False
     newest = max(_parse_ts(r["updatedAt"]) for r in runs)
     return now - newest > timedelta(minutes=STALL_MINUTES)
+
+
+def stalled_without_runs(pr: dict[str, Any], now: datetime) -> bool:
+    """Head sem nenhum run: stall só se o PR está parado há >STALL_MINUTES —
+    SHA recém-pushado fica na carência (CI demora a registrar runs)."""
+    anchor = pr.get("updatedAt") or pr["createdAt"]
+    return now - _parse_ts(anchor) > timedelta(minutes=STALL_MINUTES)
 
 
 def aggregator_green(pr: dict[str, Any]) -> bool:
@@ -220,7 +228,10 @@ def _close_stall_issue(issue: int, dry_run: bool) -> None:
 def signal_stall(prs: list[dict[str, Any]], dry_run: bool) -> None:
     head = train_head(prs)
     now = datetime.now(timezone.utc)
-    stalled = head is not None and is_stalled(runs_for_commit(head["headRefOid"]), now)
+    runs = runs_for_commit(head["headRefOid"]) if head is not None else []
+    stalled = head is not None and (
+        is_stalled(runs, now) if runs else stalled_without_runs(head, now)
+    )
     issue = _find_stall_issue()
     if stalled and head is not None:
         _upsert_stall_issue(head, issue, dry_run)
