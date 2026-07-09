@@ -31,7 +31,7 @@ Bug reportado em prod no relatório `/reports/<id>`, seção "Top 15 Ativos Fina
 
 Cadeia técnica:
 
-1. `scripts/e15_consolidate.py:consolidate_from_itens` ([linha 408-446](../../scripts/consolidate_baseline.py)) itera `itens[]` (1 entrada por linha de IRPF unificado) e faz `imoveis_consolidados.append(entry)` **sem dedup por `(codigo_rfb, endereco_canonical)`**. Duas entradas distintas no baseline.
+1. `scripts/consolidate_baseline.py:consolidate_from_itens` ([linha 408-446](../../scripts/consolidate_baseline.py)) itera `itens[]` (1 entrada por linha de IRPF unificado) e faz `imoveis_consolidados.append(entry)` **sem dedup por `(codigo_rfb, endereco_canonical)`**. Duas entradas distintas no baseline.
 
 2. `pipeline/domain/services/property_identity_enricher.py` anexa `property_id`. `DBPropertyIdentityResolver.match_or_create` ([backend/app/services/db_property_identity_resolver.py:31](../../backend/app/services/db_property_identity_resolver.py)) faz cascade `(codigo_rfb, endereco_canonical)` ignorando `titular_key` ([[ADR-225]]) — então ambas as entradas recebem o **mesmo `property_id`**. Mas a lista continua com 2 itens.
 
@@ -47,7 +47,7 @@ Cadeia técnica:
 
 ## Decisão
 
-Introduzir **dedup determinístico em `imoveis_consolidados`** no estágio E1.5c (`consolidate_from_itens` + função legada `consolidate`) e como defesa em `e4_categorize.py` (caminho onde E4 lê baseline antigo sem re-rodar E1.5c).
+Introduzir **dedup determinístico em `imoveis_consolidados`** no estágio E1.5c (`consolidate_from_itens` + função legada `consolidate`) e como defesa em `categorize_transactions.py` (caminho onde E4 lê baseline antigo sem re-rodar E1.5c).
 
 ### Regra de identidade
 
@@ -150,7 +150,7 @@ Caso real de cliente reclamar do agrupamento, abrir ADR sucessora introduzindo `
 
 ## Próximos passos
 
-- PR1 (este escopo): helper `pipeline/domain/services/imoveis_dedup.py` + aplicação em `scripts/e15_consolidate.py` × 2 funções + `scripts/e4_categorize.py` + schema bump + testes.
+- PR1 (este escopo): helper `pipeline/domain/services/imoveis_dedup.py` + aplicação em `scripts/consolidate_baseline.py` × 2 funções + `scripts/categorize_transactions.py` + schema bump + testes.
 - PR2 (defesa em profundidade): `TopAtivosAnalyzer` dedup por `property_id` em `_collect_candidates`.
 - PR3 (UX cosmético, paralelo): renomeação "Top 15 Ativos Financeiros" → "Top 15 Ativos da Carteira" com subtítulo/tooltip explicando exclusão de residência.
 - Follow-up tracked: dedup cross-IRPF de **investimentos** (conta conjunta declarada em ambos IRPFs) — escopo separado, exige chave `(codigo_rfb, banco, agência, conta)` que não existe no schema atual.

@@ -82,7 +82,7 @@ Bump major muda contrato semântico — schema de output muda, regras de extraç
 ```bash
 python3 dev/snapshot_llm_call_log_history.py \
     --prompt-name <prompt_name> \
-    --output _archive/llm_call_log_<prompt_name>_pre_bump_<date>.csv
+    --output _scratch/llm_call_log_<prompt_name>_pre_bump_<date>.csv
 ```
 
 Preserva grep histórico em `LLMCallLog` antes de migration coordenada (caso W2-T01 de [[PLAN-llm-prompts-hardening]]: `<slug>-v1.X.Y` → `1.X.Y`).

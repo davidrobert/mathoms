@@ -294,7 +294,7 @@ retorna 0. Migration up/down testadas via
 
 1. **Deletar `pipeline/artifact_store.py` por completo.** O `ArtifactStore`
    protocol, `InMemoryArtifactStore` (fake testável) e `DBArtifactStore`
-   (backend wrapper, em `backend/app/services/db_artifact_store.py`)
+   (backend wrapper, em `backend/app/services/storage/db_artifact_store.py`)
    permanecem — eles são a interface de domínio + adapters legítimos.
    Apenas a implementação `DiskArtifactStore` morre.
 
