@@ -9,6 +9,8 @@ from typing import Annotated, Literal, Optional, Union
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 
 # Bump quando alterar prompt ``apolice`` de modo que afete output (ADR-144 cache).
+# v1.2.1 — A34.l10: bump pareado com o prompt (endereco sintetico no exemplo
+# de `notas`; saneamento PII pre-release publica, sem mudanca de contrato).
 # v1.2.0 — A33.l8 (ADR-137): bump pareado com o prompt (tabela de seguradoras
 # sai do system prompt; user prompt ganha `{seguradoras_catalog}` injetado).
 # Schema em si não mudou.
@@ -21,7 +23,7 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_valida
 # combinada multi-bem (1 erro por campo Decimal/date). Fix: BeforeValidator por campo
 # coage tipos antes do strict check; strip continua atacando aspas spurious do Haiku.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
-PROMPT_VERSION = "1.2.0"
+PROMPT_VERSION = "1.2.1"
 
 
 def _strip_spurious_quotes(value):
