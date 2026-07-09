@@ -1,15 +1,8 @@
 "use client";
 
-import {
-  Bar,
-  BarChart,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { ReportCard } from "../ReportCard";
+import { ChartWaterfall } from "./primitives/ChartWaterfall";
+import { fmtBRL, fmtCompact } from "./_shared";
 import type { PatrimonioData } from "@/types/report-analysis";
 
 interface WaterfallIfChartProps {
@@ -21,37 +14,22 @@ interface WaterfallIfChartProps {
         if_gap?: number;
       }
     | undefined;
-}
-
-function fmtCompact(n: number): string {
-  return new Intl.NumberFormat("pt-BR", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(n);
-}
-
-function fmtFull(n: number): string {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-/** F9 · F2.A · S1 — Chart "Caminho para a Independência Financeira".
- *
- * Substitui o canvas `chart-waterfall-if`. Mostra 3 barras:
- * atual (investível), gap até a meta, meta total.
- */
-interface WaterfallIfChartPropsExt extends WaterfallIfChartProps {
   conclusion?: string;
 }
 
+/** W5-T02 (v2.E.9) · S1 — Chart "Caminho para a Independência Financeira".
+ *
+ * Migrado de Recharts (3 barras aterradas) → `ChartWaterfall` (primitives),
+ * fechando o resíduo intencional da Onda v2.E (ADR-139, emenda 2026-07-08).
+ * "Atual" e "Meta" viram pilares e "Gap" vira floating bar atual→meta —
+ * waterfall de verdade, alinhado ao nome do chart. Cores seguem a
+ * semântica do primitive (pilares primary, delta positivo accent).
+ */
 export function WaterfallIfChart({
   patrimonio,
   goals,
   conclusion,
-}: WaterfallIfChartPropsExt) {
+}: WaterfallIfChartProps) {
   // ADR-142 + ADR-215 §6: "Atual" deve casar com o denominador do if_pct.
   // investivel_efetivo == investivel_financeiro quando imoveis_no_if=false
   // (cat2_efetivo zera no calculator), então cobre ambos os casos sem branch.
@@ -71,12 +49,6 @@ export function WaterfallIfChart({
     );
   }
 
-  const data = [
-    { name: "Atual", value: atual, color: "var(--brand-primary)" },
-    { name: "Gap", value: gap, color: "var(--semantic-alert)" },
-    { name: "Meta", value: meta, color: "var(--semantic-gain)" },
-  ];
-
   return (
     <ReportCard variant="neutral" title="Caminho para Independência Financeira" conclusion={conclusion}>
       <p className="mb-3 text-sm text-[var(--surface-muted-foreground)]">
@@ -87,47 +59,17 @@ export function WaterfallIfChart({
         da meta.
       </p>
       <div className="w-full">
-        <ResponsiveContainer width="100%" height={224}>
-          <BarChart data={data} margin={{ top: 20, right: 8, left: -12, bottom: 0 }}>
-            <XAxis
-              dataKey="name"
-              tick={{
-                fontFamily: "var(--font-body)",
-                fontSize: 12,
-                fill: "var(--surface-muted-foreground)",
-              }}
-              tickLine={false}
-              axisLine={{ stroke: "var(--surface-border)" }}
-            />
-            <YAxis
-              tickFormatter={fmtCompact}
-              tick={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-                fill: "var(--surface-muted-foreground)",
-              }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              contentStyle={{
-                background: "var(--surface-card)",
-                border: "1px solid var(--surface-border)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--surface-foreground)",
-                fontFamily: "var(--font-body)",
-                fontSize: "0.875rem",
-              }}
-              formatter={(value) => fmtFull(Number(value))}
-              cursor={{ fill: "var(--surface-muted)" }}
-            />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-              {data.map((entry, idx) => (
-                <Cell key={`cell-${entry.name}-${idx}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <ChartWaterfall
+          steps={[
+            { label: "Atual", value: atual, kind: "start" },
+            { label: "Gap", value: gap, kind: "delta" },
+            { label: "Meta", value: meta, kind: "end" },
+          ]}
+          formatValue={fmtBRL}
+          formatAxisValue={fmtCompact}
+          height={224}
+          ariaLabel="Caminho para a independência financeira: patrimônio atual, gap e meta"
+        />
       </div>
     </ReportCard>
   );

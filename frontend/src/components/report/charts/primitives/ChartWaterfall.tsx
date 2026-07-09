@@ -16,6 +16,9 @@ export interface WaterfallStep {
 export interface ChartWaterfallProps extends ChartBaseProps {
   readonly steps: readonly WaterfallStep[];
   readonly formatValue?: (v: number) => string;
+  /** v2.E.9 — formatter dos ticks do eixo Y (default: `formatValue`).
+   *  Permite eixo compacto ("1,5 mi") mantendo tooltip por extenso. */
+  readonly formatAxisValue?: (v: number) => string;
 }
 
 const BRL = new Intl.NumberFormat("pt-BR", {
@@ -32,6 +35,7 @@ const BRL = new Intl.NumberFormat("pt-BR", {
 export function ChartWaterfall({
   steps,
   formatValue = (v) => BRL.format(v),
+  formatAxisValue = formatValue,
   height = "auto",
   ariaLabel,
   ...rest
@@ -94,11 +98,11 @@ export function ChartWaterfall({
         x: { grid: { display: false }, ticks: { color: theme.textMuted } },
         y: {
           grid: { color: theme.grid },
-          ticks: { color: theme.textMuted, callback: (v) => formatValue(Number(v)) },
+          ticks: { color: theme.textMuted, callback: (v) => formatAxisValue(Number(v)) },
         },
       },
     }),
-    [steps, theme, formatValue],
+    [steps, theme, formatValue, formatAxisValue],
   );
 
   return (
