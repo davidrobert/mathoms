@@ -11,7 +11,7 @@ relates_to:
   - "[[ADR-158]]"
   - "[[ADR-165]]"
   - "[[ADR-272]]"
-supersedes: []
+supersedes: ["[[ADR-158]]"]
 superseded_by: []
 aliases: ["ADR 308", "review inbox", "remediação needs_review"]
 tags:

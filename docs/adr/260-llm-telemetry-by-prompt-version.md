@@ -33,6 +33,12 @@ tags:
 > (`LLMCallResult` em `pipeline/llm/litellm_client.py` segue sem
 > `confidence`/`needs_review`) e 3 (OTLP `mathoms.llm.confidence`)
 > **pendentes**; nenhum consumer popula `confidence` ainda.
+>
+> **Atualização (audit r7, 2026-07-09):** camada 3 (OTLP `mathoms.llm.*`)
+> **shipou** — `mathoms.llm.confidence`/`needs_review` + labels
+> `prompt_name`/`prompt_version`/`model` em `backend/app/core/llm_metrics.py`
+> (A33.l7, #834). Resta só a camada 1 (`confidence` em `LLMCallResult`). Flip
+> Proposto→Decidido é decisão do owner.
 
 ## Contexto
 

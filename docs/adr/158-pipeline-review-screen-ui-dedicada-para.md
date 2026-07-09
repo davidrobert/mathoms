@@ -5,9 +5,9 @@ title: "Pipeline review screen — UI dedicada para aprovar/editar `StageReview`
 status: Decidido
 phase: "Sprint A8 · Lane pipeline-review-screen"
 date: "2026-05-02"
-relates_to: ["[[ADR-076]]", "[[ADR-097]]", "[[ADR-157]]"]
+relates_to: ["[[ADR-076]]", "[[ADR-097]]", "[[ADR-157]]", "[[ADR-308]]"]
 supersedes: []
-superseded_by: []
+superseded_by: ["[[ADR-308]]"]
 aliases: ["ADR 158"]
 tags:
   - area/frontend
