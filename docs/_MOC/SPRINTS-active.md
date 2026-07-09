@@ -202,6 +202,18 @@ tráfego**: [[A26.l2]] (flip strict — falta ≥20 gerações reais p/ budget `
 dogfood do owner gera, e a A28 é a máquina desse tráfego (cada iteração re-gera o
 parecer E6 e exercita o override v2).
 
+**Atualização 2026-07-08 (preparação do fechamento A26→A27):** [[A26.l2]] — o flip
+strict **já está em `main`** desde 2026-07-03 (#746); medição real em curso sob
+strict: 6/20 gerações, `needs_review = 0` (query na lane). [[A26.l4]] — gate estava
+falso-vermelho (`v1_fallback=4`): overrides **quarentenados** seguiam casando via
+hash v1 nos índices de match (violando [[ADR-282]] §5); fix + 4 testes de regressão
+no PR #878; janela de observação reinicia no merge. [[A26.l5]] — runbook
+"Fase E" + drafts de migration/sentinela G3 mergeados (#873). KR1 da A27
+(`number_in_prose` como enforcement, [[ADR-304]]) implementado no PR #875.
+Checklist do flip final (A26→`done` + A27→`current`→`done`): medição l2 n≥20 ·
+janela l4 ≥1 sprint verde · decisão l5 (executar com go/no-go do owner OU cortar) ·
+PR editorial único com os 3 flips de frontmatter + regeneração de índices.
+
 - **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 ·
   **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) ·
   **Prompt:** [agent_prompts/orchestrator_a26_consolidacao.md](../agent_prompts/orchestrator_a26_consolidacao.md).
