@@ -51,7 +51,8 @@ tags:
 > export server-side.
 >
 > **Audiência:** LLM executor (agente Claude em worktree próprio).
-> **Referência visual:** [`EXEMPLO_DE_RELATORIO.html`](EXEMPLO_DE_RELATORIO.html) (10 024 linhas, mockup HTML co-localizado neste plano).
+> **Referência visual:** [`EXEMPLO_DE_RELATORIO.html`](EXEMPLO_DE_RELATORIO.html) (10 106 linhas, mockup HTML co-localizado neste plano).
+> Desde A34.l8 ([[ADR-320]]) o exemplo é **100% sintético** (dados PII-zero, substituição determinística por hash; estrutura de seções/cards/charts/IDs preservada integralmente) e não representa cliente real — source-of-truth do renderer é `frontend/src/components/report/` ([[ADR-129]]).
 > **Referência atual (viva):** `frontend/src/components/report/**`,
 > `design-tokens/tokens.json`, `config/report_layout.yaml`.
 > **Referência histórica (removida na execução da ADR-129):**
