@@ -3,7 +3,7 @@
 /**
  * /plano/alocacao — formulario de edicao da alocacao-alvo.
  *
- * 4 classes de ativo com % + soma validada.
+ * 7 classes AUVP (v2, ADR-141) com % + soma validada.
  * Barra visual de proporcao + instrumentos preferidos.
  */
 
@@ -20,6 +20,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { useCurrentWorkspace } from "@/lib/useCurrentWorkspace";
 import { usePermissions } from "@/lib/usePermissions";
@@ -30,27 +37,23 @@ import {
   type AlocacaoGoalInputs,
   type AlocacaoGoalResponse,
   type AlocacaoGoalDerived,
+  type RebalanceamentoModo,
 } from "@/lib/api";
 import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
+import {
+  CLASS_META,
+  PRESETS,
+  REBAL_OPTIONS,
+  sumPcts,
+} from "./wizard/_components/constants";
+import { AlocacaoBar } from "./wizard/_components/AlocacaoBar";
 
 const DEFAULT_INPUTS: AlocacaoGoalInputs = {
-  renda_fixa_pct: 40,
-  acoes_pct: 30,
-  imoveis_reits_pct: 15,
-  liquidez_usd_pct: 15,
-  instrumentos_rf: "",
-  instrumentos_rv: "",
-  rebalanceamento: "Anual",
+  ...PRESETS.Moderado,
+  rebalanceamento_modo: "por_aporte",
+  instrumentos: undefined,
 };
-
-const COLORS = {
-  renda_fixa: "bg-blue-500",
-  acoes: "bg-emerald-500",
-  imoveis: "bg-amber-500",
-  usd: "bg-purple-500",
-};
-
 
 export default function AlocacaoEditPage() {
   const router = useRouter();
@@ -64,11 +67,7 @@ export default function AlocacaoEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const soma =
-    inputs.renda_fixa_pct +
-    inputs.acoes_pct +
-    inputs.imoveis_reits_pct +
-    inputs.liquidez_usd_pct;
+  const soma = sumPcts(inputs);
   const somaValida = soma === 100;
 
   const alocacaoDerived: AlocacaoGoalDerived = { soma_percentuais: soma };
@@ -96,6 +95,13 @@ export default function AlocacaoEditPage() {
       cancelled = true;
     };
   }, [workspace?.id, router]);
+
+  function setInstrumento(key: "renda_fixa" | "renda_variavel", value: string) {
+    setInputs((prev) => ({
+      ...prev,
+      instrumentos: { ...(prev.instrumentos ?? {}), [key]: value },
+    }));
+  }
 
   async function handleSave() {
     if (!workspace) return;
@@ -147,6 +153,12 @@ export default function AlocacaoEditPage() {
         }
       />
 
+      {goal?.converted_from != null && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          Alvo convertido automaticamente — revise e confirme.
+        </p>
+      )}
+
       {goal && (goal.created_by_name || goal.updated_at) && (
         <p className="mb-3 text-xs text-muted-foreground">
           Ultima edicao
@@ -169,76 +181,25 @@ export default function AlocacaoEditPage() {
 
       <Card>
         <CardContent className="space-y-6 py-6">
-          {/* Percentage inputs */}
+          {/* Percentage inputs — 7 classes v2 */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="rf">Renda fixa (%)</Label>
-              <Input
-                id="rf"
-                type="number"
-                min={0}
-                max={100}
-                value={inputs.renda_fixa_pct}
-                onChange={(e) =>
-                  setInputs({
-                    ...inputs,
-                    renda_fixa_pct: Number(e.target.value),
-                  })
-                }
-                className="mt-2 font-mono tabular-nums"
-              />
-            </div>
-            <div>
-              <Label htmlFor="acoes">Acoes (%)</Label>
-              <Input
-                id="acoes"
-                type="number"
-                min={0}
-                max={100}
-                value={inputs.acoes_pct}
-                onChange={(e) =>
-                  setInputs({
-                    ...inputs,
-                    acoes_pct: Number(e.target.value),
-                  })
-                }
-                className="mt-2 font-mono tabular-nums"
-              />
-            </div>
-            <div>
-              <Label htmlFor="imoveis">Imoveis/REITs (%)</Label>
-              <Input
-                id="imoveis"
-                type="number"
-                min={0}
-                max={100}
-                value={inputs.imoveis_reits_pct}
-                onChange={(e) =>
-                  setInputs({
-                    ...inputs,
-                    imoveis_reits_pct: Number(e.target.value),
-                  })
-                }
-                className="mt-2 font-mono tabular-nums"
-              />
-            </div>
-            <div>
-              <Label htmlFor="usd">Liquidez USD (%)</Label>
-              <Input
-                id="usd"
-                type="number"
-                min={0}
-                max={100}
-                value={inputs.liquidez_usd_pct}
-                onChange={(e) =>
-                  setInputs({
-                    ...inputs,
-                    liquidez_usd_pct: Number(e.target.value),
-                  })
-                }
-                className="mt-2 font-mono tabular-nums"
-              />
-            </div>
+            {CLASS_META.map(({ key, label }) => (
+              <div key={key}>
+                <Label htmlFor={key}>{label} (%)</Label>
+                <Input
+                  id={key}
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={inputs[key]}
+                  onChange={(e) =>
+                    setInputs({ ...inputs, [key]: Number(e.target.value) })
+                  }
+                  className="mt-2 font-mono tabular-nums"
+                />
+              </div>
+            ))}
           </div>
 
           {/* Sum indicator */}
@@ -257,57 +218,19 @@ export default function AlocacaoEditPage() {
           </div>
 
           {/* Visual bar */}
-          <div className="h-4 w-full overflow-hidden rounded-full bg-muted">
-            <div className="flex h-full">
-              {inputs.renda_fixa_pct > 0 && (
-                <div
-                  className={`${COLORS.renda_fixa} transition-all`}
-                  style={{ width: `${inputs.renda_fixa_pct}%` }}
-                  title={`Renda fixa: ${inputs.renda_fixa_pct}%`}
-                />
-              )}
-              {inputs.acoes_pct > 0 && (
-                <div
-                  className={`${COLORS.acoes} transition-all`}
-                  style={{ width: `${inputs.acoes_pct}%` }}
-                  title={`Acoes: ${inputs.acoes_pct}%`}
-                />
-              )}
-              {inputs.imoveis_reits_pct > 0 && (
-                <div
-                  className={`${COLORS.imoveis} transition-all`}
-                  style={{ width: `${inputs.imoveis_reits_pct}%` }}
-                  title={`Imoveis/REITs: ${inputs.imoveis_reits_pct}%`}
-                />
-              )}
-              {inputs.liquidez_usd_pct > 0 && (
-                <div
-                  className={`${COLORS.usd} transition-all`}
-                  style={{ width: `${inputs.liquidez_usd_pct}%` }}
-                  title={`Liquidez USD: ${inputs.liquidez_usd_pct}%`}
-                />
-              )}
-            </div>
-          </div>
+          <AlocacaoBar pcts={inputs} />
 
           {/* Legend */}
           <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <span className={`inline-block h-2 w-2 rounded-full ${COLORS.renda_fixa}`} />
-              Renda fixa
-            </span>
-            <span className="flex items-center gap-1">
-              <span className={`inline-block h-2 w-2 rounded-full ${COLORS.acoes}`} />
-              Acoes
-            </span>
-            <span className="flex items-center gap-1">
-              <span className={`inline-block h-2 w-2 rounded-full ${COLORS.imoveis}`} />
-              Imoveis/REITs
-            </span>
-            <span className="flex items-center gap-1">
-              <span className={`inline-block h-2 w-2 rounded-full ${COLORS.usd}`} />
-              Liquidez USD
-            </span>
+            {CLASS_META.map(({ key, label, color }) => (
+              <span key={key} className="flex items-center gap-1">
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                {label}
+              </span>
+            ))}
           </div>
 
           <Separator />
@@ -319,10 +242,8 @@ export default function AlocacaoEditPage() {
               id="rf-inst"
               type="text"
               placeholder="Ex: Tesouro IPCA+, CDB, LCI"
-              value={inputs.instrumentos_rf ?? ""}
-              onChange={(e) =>
-                setInputs({ ...inputs, instrumentos_rf: e.target.value })
-              }
+              value={inputs.instrumentos?.renda_fixa ?? ""}
+              onChange={(e) => setInstrumento("renda_fixa", e.target.value)}
               className="mt-2"
             />
           </div>
@@ -333,26 +254,34 @@ export default function AlocacaoEditPage() {
               id="rv-inst"
               type="text"
               placeholder="Ex: ETFs, FIIs, IVVB11"
-              value={inputs.instrumentos_rv ?? ""}
-              onChange={(e) =>
-                setInputs({ ...inputs, instrumentos_rv: e.target.value })
-              }
+              value={inputs.instrumentos?.renda_variavel ?? ""}
+              onChange={(e) => setInstrumento("renda_variavel", e.target.value)}
               className="mt-2"
             />
           </div>
 
           <div>
             <Label htmlFor="rebal">Rebalanceamento</Label>
-            <Input
-              id="rebal"
-              type="text"
-              placeholder="Anual"
-              value={inputs.rebalanceamento ?? "Anual"}
-              onChange={(e) =>
-                setInputs({ ...inputs, rebalanceamento: e.target.value })
+            <Select
+              value={inputs.rebalanceamento_modo}
+              onValueChange={(v) =>
+                setInputs({
+                  ...inputs,
+                  rebalanceamento_modo: v as RebalanceamentoModo,
+                })
               }
-              className="mt-2"
-            />
+            >
+              <SelectTrigger id="rebal" className="mt-2 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REBAL_OPTIONS.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

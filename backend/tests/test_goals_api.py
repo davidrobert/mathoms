@@ -226,3 +226,117 @@ async def test_history_is_workspace_scoped(db, client):
     hist = resp.json()
     assert hist["total"] == 1
     assert hist["goals"][0]["derived"]["if_meta_brl"] == 2_400_000.0
+
+
+# ─── /goals/alocacao — flip v2 (ADR-141 emenda, A12.alocacao-v2 PR4) ───
+
+ALOCACAO_V2_INPUTS = {
+    "rf_pos_pct": 20,
+    "rf_pre_pct": 10,
+    "rf_ipca_pct": 10,
+    "acoes_br_pct": 25,
+    "acoes_int_pct": 15,
+    "fiis_pct": 10,
+    "caixa_pct": 10,
+    "rebalanceamento_modo": "por_aporte",
+}
+ALOCACAO_V1_ROW = {
+    "renda_fixa_pct": 40,
+    "acoes_pct": 30,
+    "imoveis_reits_pct": 20,
+    "liquidez_usd_pct": 10,
+}
+ALOCACAO_ORPHAN_ROW = {"rf_pct": 40, "rv_pct": 40, "alternativos_pct": 20}
+
+
+async def _seed_alocacao_row(db, ws_id, inputs, derived):
+    """Grava row de alocação direto no repo (bypassa DTO) p/ testar conversão on-read."""
+    from backend.app.repositories.goal_repository import GoalRepository
+
+    await GoalRepository(db).create_new_version(
+        ws_id,
+        "ALOCACAO_ALVO",
+        params_json={"inputs": inputs, "meta_version": 1},
+        derived_json=derived,
+    )
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_put_alocacao_v2_roundtrip(db, client):
+    _, ws = await _make_auth(db, client)
+    resp = await client.put(
+        f"/api/v1/workspaces/{ws.id}/goals/alocacao", json={"inputs": ALOCACAO_V2_INPUTS}
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["meta_version"] == 2
+    assert body["converted_from"] is None
+    assert body["derived"]["soma_percentuais"] == 100
+    read = await client.get(f"/api/v1/workspaces/{ws.id}/goals/alocacao")
+    assert read.json()["inputs"]["caixa_pct"] == 10
+
+
+@pytest.mark.asyncio
+async def test_put_alocacao_payload_v1_rejeitado_422(db, client):
+    _, ws = await _make_auth(db, client)
+    resp = await client.put(
+        f"/api/v1/workspaces/{ws.id}/goals/alocacao", json={"inputs": ALOCACAO_V1_ROW}
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_put_alocacao_soma_diferente_de_100_rejeitada(db, client):
+    _, ws = await _make_auth(db, client)
+    quebrado = dict(ALOCACAO_V2_INPUTS, caixa_pct=50)
+    resp = await client.put(f"/api/v1/workspaces/{ws.id}/goals/alocacao", json={"inputs": quebrado})
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_get_alocacao_row_v1_converte_on_read(db, client):
+    # Row legada v1 → GET responde v2 com converted_from="1" e is_template=True.
+    _, ws = await _make_auth(db, client)
+    await _seed_alocacao_row(db, ws.id, ALOCACAO_V1_ROW, {"soma_percentuais": 100.0})
+    body = (await client.get(f"/api/v1/workspaces/{ws.id}/goals/alocacao")).json()
+    assert body["converted_from"] == "1"
+    assert body["is_template"] is True
+    assert body["inputs"]["rf_pos_pct"] == 20
+    assert body["inputs"]["acoes_int_pct"] == 7
+    assert body["inputs"]["caixa_pct"] == 3
+
+
+@pytest.mark.asyncio
+async def test_get_alocacao_row_orfa_do_seed_nao_quebra_mais(db, client):
+    # Regressão do bug vivo pré-PR4: shape órfão do seed quebrava o GET (500).
+    _, ws = await _make_auth(db, client)
+    await _seed_alocacao_row(db, ws.id, ALOCACAO_ORPHAN_ROW, {})
+    body = (await client.get(f"/api/v1/workspaces/{ws.id}/goals/alocacao")).json()
+    assert body["converted_from"] == "orphan"
+    assert body["derived"]["soma_percentuais"] == 100
+
+
+@pytest.mark.asyncio
+async def test_history_alocacao_mista_responde_tudo_v2(db, client):
+    # Conversão universal no history (ADR-141 emenda item 6): v1 + v2 → tudo v2.
+    _, ws = await _make_auth(db, client)
+    await _seed_alocacao_row(db, ws.id, ALOCACAO_V1_ROW, {"soma_percentuais": 100.0})
+    put = await client.put(
+        f"/api/v1/workspaces/{ws.id}/goals/alocacao", json={"inputs": ALOCACAO_V2_INPUTS}
+    )
+    assert put.status_code == 200
+    goals = (await client.get(f"/api/v1/workspaces/{ws.id}/goals/alocacao/history")).json()["goals"]
+    assert len(goals) == 2
+    assert {g["converted_from"] for g in goals} == {None, "1"}
+    assert all("rf_pos_pct" in g["inputs"] for g in goals)
+
+
+@pytest.mark.asyncio
+async def test_compute_alocacao_v2_dry_run(db, client):
+    _, ws = await _make_auth(db, client)
+    resp = await client.post(
+        f"/api/v1/workspaces/{ws.id}/goals/alocacao/compute", json={"inputs": ALOCACAO_V2_INPUTS}
+    )
+    assert resp.status_code == 200
+    assert resp.json()["valido"] is True

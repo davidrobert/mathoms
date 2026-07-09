@@ -251,14 +251,26 @@ export async function upsertDolarGoal(
 // Goals — Alocação-Alvo (F8.5)
 // ═══════════════════════════════════════════════════════════════════════
 
+export type RebalanceamentoModo =
+  | "por_aporte"
+  | "anual"
+  | "semestral"
+  | "trimestral"
+  | "trigger_5pct"
+  | "trigger_10pct";
+
+/** Shape v2 — 7 classes AUVP (ADR-141); soma dos 7 fecha 100. */
 export interface AlocacaoGoalInputs {
-  renda_fixa_pct: number;
-  acoes_pct: number;
-  imoveis_reits_pct: number;
-  liquidez_usd_pct: number;
-  instrumentos_rf?: string;
-  instrumentos_rv?: string;
-  rebalanceamento?: string;
+  rf_pos_pct: number;
+  rf_pre_pct: number;
+  rf_ipca_pct: number;
+  acoes_br_pct: number;
+  acoes_int_pct: number;
+  fiis_pct: number;
+  caixa_pct: number;
+  rebalanceamento_modo: RebalanceamentoModo;
+  /** Texto livre por classe — instrumentos preferenciais. */
+  instrumentos?: Record<string, string> | null;
 }
 
 export interface AlocacaoGoalDerived {
@@ -272,6 +284,8 @@ export interface AlocacaoGoalResponse {
   meta_version: number;
   inputs: AlocacaoGoalInputs;
   derived: AlocacaoGoalDerived;
+  /** Não-null quando a row v1/órfã foi convertida on-read (is_template=true). */
+  converted_from: "1" | "orphan" | null;
   effective_from: string;
   effective_to: string | null;
   is_template: boolean;

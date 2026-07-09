@@ -194,7 +194,7 @@
       "AlocacaoGoalComputeRequest": {
         "properties": {
           "inputs": {
-            "$ref": "#/components/schemas/AlocacaoGoalInputs"
+            "$ref": "#/components/schemas/AlocacaoGoalInputsV2"
           }
         },
         "required": [
@@ -206,7 +206,7 @@
       "AlocacaoGoalComputeResponse": {
         "properties": {
           "derived": {
-            "$ref": "#/components/schemas/AlocacaoGoalDerived"
+            "$ref": "#/components/schemas/AlocacaoGoalDerivedV2"
           },
           "valido": {
             "description": "True se soma_percentuais == 100.",
@@ -221,10 +221,11 @@
         "title": "AlocacaoGoalComputeResponse",
         "type": "object"
       },
-      "AlocacaoGoalDerived": {
+      "AlocacaoGoalDerivedV2": {
+        "description": "Derived write-time do goal v2 \u2014 magro (ADR-141 emenda item 4).\n\nO bloco rico de compara\u00e7\u00e3o atual-vs-alvo depende do run E5 e vive no\nbundle do relat\u00f3rio, n\u00e3o na row do goal.",
         "properties": {
           "soma_percentuais": {
-            "description": "Soma dos 4 percentuais (deve ser 100).",
+            "description": "Soma dos 7 percentuais (deve ser 100).",
             "title": "Soma Percentuais",
             "type": "number"
           }
@@ -232,7 +233,7 @@
         "required": [
           "soma_percentuais"
         ],
-        "title": "AlocacaoGoalDerived",
+        "title": "AlocacaoGoalDerivedV2",
         "type": "object"
       },
       "AlocacaoGoalHistoryResponse": {
@@ -256,63 +257,112 @@
         "title": "AlocacaoGoalHistoryResponse",
         "type": "object"
       },
-      "AlocacaoGoalInputs": {
-        "description": "Inputs do usu\u00e1rio para aloca\u00e7\u00e3o-alvo de ativos.",
+      "AlocacaoGoalInputsV2": {
+        "description": "Inputs v2 \u2014 7 classes AUVP (ADR-141). Soma das 7 fecha 100%.",
         "properties": {
-          "acoes_pct": {
+          "acoes_br_pct": {
             "maximum": 100.0,
             "minimum": 0.0,
-            "title": "Acoes Pct",
+            "title": "Acoes Br Pct",
             "type": "number"
           },
-          "imoveis_reits_pct": {
+          "acoes_int_pct": {
             "maximum": 100.0,
             "minimum": 0.0,
-            "title": "Imoveis Reits Pct",
+            "title": "Acoes Int Pct",
             "type": "number"
           },
-          "instrumentos_rf": {
-            "default": "",
-            "description": "Instrumentos de renda fixa preferidos.",
-            "title": "Instrumentos Rf",
-            "type": "string"
-          },
-          "instrumentos_rv": {
-            "default": "",
-            "description": "Instrumentos de renda vari\u00e1vel preferidos.",
-            "title": "Instrumentos Rv",
-            "type": "string"
-          },
-          "liquidez_usd_pct": {
+          "caixa_pct": {
             "maximum": 100.0,
             "minimum": 0.0,
-            "title": "Liquidez Usd Pct",
+            "title": "Caixa Pct",
             "type": "number"
           },
-          "rebalanceamento": {
-            "default": "anual",
-            "description": "Frequ\u00eancia de rebalanceamento.",
-            "title": "Rebalanceamento",
-            "type": "string"
-          },
-          "renda_fixa_pct": {
+          "fiis_pct": {
             "maximum": 100.0,
             "minimum": 0.0,
-            "title": "Renda Fixa Pct",
+            "title": "Fiis Pct",
+            "type": "number"
+          },
+          "instrumentos": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Texto livre por classe \u2014 instrumentos preferenciais.",
+            "title": "Instrumentos"
+          },
+          "rebalanceamento_modo": {
+            "default": "por_aporte",
+            "description": "Default AUVP: aporta na classe mais defasada, sem vender.",
+            "enum": [
+              "por_aporte",
+              "anual",
+              "semestral",
+              "trimestral",
+              "trigger_5pct",
+              "trigger_10pct"
+            ],
+            "title": "Rebalanceamento Modo",
+            "type": "string"
+          },
+          "rf_ipca_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Rf Ipca Pct",
+            "type": "number"
+          },
+          "rf_pos_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Rf Pos Pct",
+            "type": "number"
+          },
+          "rf_pre_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Rf Pre Pct",
             "type": "number"
           }
         },
         "required": [
-          "renda_fixa_pct",
-          "acoes_pct",
-          "imoveis_reits_pct",
-          "liquidez_usd_pct"
+          "rf_pos_pct",
+          "rf_pre_pct",
+          "rf_ipca_pct",
+          "acoes_br_pct",
+          "acoes_int_pct",
+          "fiis_pct",
+          "caixa_pct"
         ],
-        "title": "AlocacaoGoalInputs",
+        "title": "AlocacaoGoalInputsV2",
         "type": "object"
       },
       "AlocacaoGoalResponse": {
+        "description": "Response sempre v2 \u2014 rows v1/\u00f3rf\u00e3s convertem on-read (ADR-141 emenda item 6).",
         "properties": {
+          "converted_from": {
+            "anyOf": [
+              {
+                "enum": [
+                  "1",
+                  "orphan"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Origem da convers\u00e3o on-read; None = row j\u00e1 era v2.",
+            "title": "Converted From"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -342,7 +392,7 @@
             "title": "Created By Name"
           },
           "derived": {
-            "$ref": "#/components/schemas/AlocacaoGoalDerived"
+            "$ref": "#/components/schemas/AlocacaoGoalDerivedV2"
           },
           "effective_from": {
             "format": "date",
@@ -366,7 +416,7 @@
             "type": "string"
           },
           "inputs": {
-            "$ref": "#/components/schemas/AlocacaoGoalInputs"
+            "$ref": "#/components/schemas/AlocacaoGoalInputsV2"
           },
           "is_template": {
             "default": false,
@@ -419,10 +469,10 @@
         "type": "object"
       },
       "AlocacaoGoalUpsertCommand": {
-        "description": "Comando para criar nova vers\u00e3o da aloca\u00e7\u00e3o-alvo.",
+        "description": "Comando para criar nova vers\u00e3o da aloca\u00e7\u00e3o-alvo (v2 \u2014 7 classes).",
         "properties": {
           "inputs": {
-            "$ref": "#/components/schemas/AlocacaoGoalInputs"
+            "$ref": "#/components/schemas/AlocacaoGoalInputsV2"
           },
           "notes": {
             "anyOf": [
