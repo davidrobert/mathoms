@@ -3098,11 +3098,19 @@ def _e5_compose_output(
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
 
+    # A12.alocacao-v2: legacy["goals"] é o dict computado (if_meta, …) e não
+    # carrega o alvo de alocação; carrega a seção do bundle bruto p/ o E5
+    # injetar o derived de desvio (ADR-141 §Emenda item 4).
+    goals_out = legacy["goals"]
+    alvo_alocacao = (GOALS_CONFIG or {}).get("alocacao_alvo")
+    if alvo_alocacao and isinstance(goals_out, dict):
+        goals_out = {**goals_out, "alocacao_alvo": alvo_alocacao}
+
     output_inputs = E5OutputInputs(
         periodo_dados=periodo_dados,
         data_analise=TODAY.isoformat(),
         patrimonio=legacy["patrimonio"],
-        goals=legacy["goals"],
+        goals=goals_out,
         fluxo=legacy["fluxo"],
         ratios=legacy["ratios"],
         score=legacy["score"],

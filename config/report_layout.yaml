@@ -270,17 +270,6 @@ estrategico:
       summary: true
       divider_before: true
       charts:
-        # Tombstone (A11 · 2026-05-11): conteúdo migrado para card
-        # `alocacao_atual_vs_alvo`. Narrativas continuam emitidas no E5N
-        # (consumidas como footer do novo card). Remoção em Fase B com v2 AUVP (ADR-141).
-        - id: "alocacao_atual"
-          enabled: false
-          row: "alocacao"
-          conclusion: true
-        - id: "alocacao_alvo"
-          enabled: false
-          row: "alocacao"
-          conclusion: true
         - id: "top15_ativos"
           enabled: true
           conclusion: true
@@ -296,12 +285,6 @@ estrategico:
       cards:
         - id: "alocacao_atual_vs_alvo"
           enabled: true
-          variant: "feature"
-          size: "full"
-        # Tombstone (A11 · 2026-05-11): substituído por `alocacao_atual_vs_alvo`.
-        # Mantido como referência; remoção em Fase B (ADR-141).
-        - id: "investimentos_classe"
-          enabled: false
           variant: "feature"
           size: "full"
         - id: "kpi_rentabilidade"
@@ -609,7 +592,6 @@ estrategico:
 # diagnostico_comportamental  | build_diagnostico_comportamental_card() | S2
 # milhas                      | build_milhas_card()                     | S2
 # alocacao_atual_vs_alvo      | <React-only: AlocacaoAtualVsAlvoCard>   | S3 (A11)
-# investimentos_classe        | build_investimentos_classe_card()       | S3 (tombstone)
 # kpi_rentabilidade           | (inline HTML block)                     | S3
 # estrategia_aporte           | build_estrategia_aporte_card()          | S3
 # contrafluxo                 | (inline HTML block)                     | S3
@@ -621,7 +603,7 @@ estrategico:
 # CHARTS DISPONÍVEIS:
 # patrimonio_doughnut, waterfall_if, fluxo_mensal, receita_bar,
 # despesas_doughnut, receita_despesa_mensal, score_gauge,
-# alocacao_atual, alocacao_alvo, top15_ativos, cenarios_conjuge,
+# top15_ativos, cenarios_conjuge,
 # viagens, projecao_3cenarios, renda_passiva,
 # impostos_pj, bubble_riscos, top5_decisoes
 
@@ -662,8 +644,6 @@ chart_canvas_map:
   fluxo_mensal: "chart-fluxo-mensal"
   receita_despesa_mensal: "chart-receita-despesa-mensal"
   score_gauge: "chart-score-gauge"
-  alocacao_atual: "chart-alocacao-atual"
-  alocacao_alvo: "chart-alocacao-alvo"
   top15_ativos: "chart-top15-ativos"
   projecao_3cenarios: "chart-projecao-3cenarios"
   renda_passiva: "chart-renda-passiva"
@@ -686,8 +666,6 @@ chart_titles:
   fluxo_mensal: "Fluxo de Caixa Mensal"
   receita_despesa_mensal: "Receita vs Despesa — Mês a Mês"
   score_gauge: "Score Financeiro"
-  alocacao_atual: "Alocação Atual"
-  alocacao_alvo: "Alocação Alvo"
   top15_ativos: "Top 15 Ativos Financeiros"
   projecao_3cenarios: "Projeção Patrimonial — 3 Cenários"
   renda_passiva: "Renda Passiva — Progresso até a Meta"
@@ -705,7 +683,7 @@ chart_titles:
 section_charts:
   1: ["patrimonio_doughnut", "waterfall_if"]
   2: ["fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "score_gauge"]
-  3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "viagens"]
+  3: ["top15_ativos", "cenarios_conjuge", "viagens"]
   7: ["projecao_3cenarios", "renda_passiva"]
   8: ["impostos_pj"]
   9: ["bubble_riscos"]

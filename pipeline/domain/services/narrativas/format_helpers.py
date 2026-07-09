@@ -159,8 +159,7 @@ def validate_narrativas(
     required_charts = [
         "score_gauge",
         "patrimonio_doughnut",
-        "alocacao_atual",
-        "alocacao_alvo",
+        "alocacao_atual_vs_alvo",
         "fluxo_mensal",
         "receita_bar",
         "receita_despesa_mensal",

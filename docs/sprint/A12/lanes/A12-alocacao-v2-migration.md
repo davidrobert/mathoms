@@ -3,7 +3,7 @@ id: A12.alocacao-v2
 type: lane
 title: "Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven)"
 sprint: A12
-status: open
+status: in_progress
 aliases: ["A12.alocacao-v2-migration", "A12.ALOCACAO_V2", "A12 alocacao v2"]
 priority: P2
 depends_on: []
@@ -13,7 +13,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a12
-  - status/ready
+  - status/in-progress
   - priority/p2
   - area/methodology
   - area/persistence
@@ -44,19 +44,21 @@ de goldens (fixture dogfood sem goal de alocação).
 
 ## Plano de execução (11 PRs, ordem do co-design)
 
-| PR | Escopo | Depende de |
+**Estado 2026-07-09: 9/11 PRs mergeados — migração funcionalmente completa e verificada end-to-end.** Restam PR8 (polish visual) e PR11 (owner-gated).
+
+| PR | Escopo | Status |
 |---|---|---|
-| PR1 | docs-only: emenda ADR-141 + esta lane (decisões travadas) | — |
-| PR2 | service de desvio puro em `pipeline/domain/services/` (mapping 10→7, RF agregada, renormalização sem caixa, desvio assinado, next-aporte com tie-break, `Decimal` ADR-090) + unit tests exaustivos (herdam os casos do `alocacaoBucketMapper.test.ts`) | PR1 |
-| PR3 | DTOs v2 + conversão on-read única (fingerprint por key-set: v1 / órfão / v2) + writers com `META_VERSION_BY_TYPE` + `compute_alocacao_derived` v2 + fix `decision_goal_projection` (converter-antes-de-patchar) | PR2 |
-| PR4 | API: endpoints v2, history com conversão universal + `converted_from`, telemetria `shape_conversion`, `make update-openapi-snapshot` | PR3 |
-| PR5 | seed grava v2 canônico + teste de regressão do bug órfão | PR3 |
-| PR6 | schema `e5_analysis` (bloco `goals.alocacao_alvo.derived` rico) **antes** do emitter; serializer `_serialize_alocacao_goal` v2 + narrativas (M-mapping + template fundido); goldens E5N re-verificados | PR2, PR3 |
-| PR7 | card relatório consome `derived.*` + DELETE `alocacaoBucketMapper.ts` + `conclusionUtils` + fallback 3-shapes + counter `alocacao_fallback_v1_hit` + badge "Alvo estimado"/supressão CTA + rebaseline visual S3 | PR6 |
-| PR8 | wizard 7 classes (inputs inteiros em grupos, "Completar com Caixa", Step3 `rebalanceamento_modo` enum, `alocacaoClasses.ts` fonte única + dict py + teste de paridade) + `goalPremissas`/`SupportGoalsRow` rollup + E2E @critical | PR4 |
-| PR9 | rename chart ids → `alocacao_atual_vs_alvo` em lockstep (7+ pontos: `validate_cross`, `format_helpers`, `charts_narrator`, `generate_narratives`, testes, llmFooter, YAML+codegen, grep catálogo de citação) + fallback chain no reader | PR6 |
-| PR10 | golden isolado (gate G-c): fixture dogfood com goal v2 + snapshot view-model + `golden_diff` com `_pp`/`soma_percentuais` não-monetários + invariante de conservação (Σ valor classe == `total_investivel` em cents) | PR6 |
-| PR11 | cleanup condicional owner-gated: migração-por-append das rows vigentes (internal_ops), schema v1 demovido a histórico, remoção do fallback v1 quando counter flat-zero | PR4-PR10 |
+| PR1 | docs-only: emenda ADR-141 + esta lane (decisões travadas) | ✅ [#885](https://github.com/davidrobert/mathoms/pull/885) |
+| PR2 | service de desvio puro em `pipeline/domain/services/` (mapping 10→7, RF agregada, renormalização sem caixa, desvio assinado, next-aporte, `Decimal`) + 26 unit tests | ✅ [#889](https://github.com/davidrobert/mathoms/pull/889) |
+| PR3 | DTOs v2 + conversão on-read única (fingerprint v1/órfão/v2) + `compute_alocacao_derived_v2` | ✅ [#893](https://github.com/davidrobert/mathoms/pull/893) |
+| PR4 | API v2: mapper on-read + `converted_from` + `META_VERSION_BY_TYPE` + converter-antes-de-patchar + OpenAPI snapshot + **fix bug seed órfão (GET 500)** + shim frontend | ✅ [#902](https://github.com/davidrobert/mathoms/pull/902) |
+| PR5 | seed grava v2 canônico + teste de regressão do bug órfão | ✅ [#904](https://github.com/davidrobert/mathoms/pull/904) |
+| PR6 | serializer `_serialize_alocacao_goal` v2 + rollup 4-bucket + `AlocacaoGoalSection` v2 + E5 injeta `derived` rico | ✅ [#905](https://github.com/davidrobert/mathoms/pull/905) |
+| PR7 | card relatório consome `derived.*` + **DELETE `alocacaoBucketMapper.ts`** (o débito que originou a lane) + fallback gracioso | ✅ [#906](https://github.com/davidrobert/mathoms/pull/906) |
+| PR9 | consolida chart ids `alocacao_atual`/`alocacao_alvo` → `alocacao_atual_vs_alvo` (lockstep; chave de goal intacta) | ✅ [#909](https://github.com/davidrobert/mathoms/pull/909) |
+| PR10 | golden E5 cobre `derived` + **fix bug de integração do PR6** (E5 dropava `alocacao_alvo` → enrich não disparava em produção) | ✅ [#910](https://github.com/davidrobert/mathoms/pull/910) |
+| PR8 | 🔲 **polish** — wizard redesign completo (inputs em grupos, "Completar com Caixa", Step3 enum, `alocacaoClasses.ts` fonte única + teste de paridade). Shim do PR4 já é funcional (7 inputs); redesign é visual, exige rebaseline de snapshot → beneficia de review | pendente |
+| PR11 | 🔒 **owner-gated** — snapshot DB provando zero rows v1 vigentes → remove schema v1 + ativa `rule_alocacao_fora_alvo` (recalibra threshold + dogfood). Não executável sem owner | pendente |
 
 ## Pré-requisitos
 
