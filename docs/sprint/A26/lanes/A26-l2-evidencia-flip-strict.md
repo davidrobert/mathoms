@@ -4,7 +4,7 @@ type: lane
 title: "Flip evidencia_path warn→strict (gate de segurança binário + budget de needs_review)"
 sprint: A26
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: evidencia-flip-strict
 adrs:
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a26
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/data-lineage
   - area/llm
@@ -119,10 +119,53 @@ Relatório completo (efêmero, gitignored): `_scratch/parecer_eval_report_202607
 - **Query de medição** (fechar a lane quando n ≥ 20):
   `SELECT count(*), sum(needs_review) FROM llm_call_log WHERE
   stage='review_finances_holistic' AND created_at >= '2026-07-03';`
-- **Critério de fechamento restante:** n ≥ 20 gerações reais com taxa ≤ 15% →
-  registrar snapshot aqui + flippar `status: shipped`. Se exceder 15%, o flip
-  NÃO reabre (segurança garantida); registrar e seguir — a [[A26.l9]] (já
-  entregue, #687) era a mitigação prevista.
+- ~~**Critério de fechamento restante:** n ≥ 20 gerações reais com taxa ≤ 15%~~ —
+  superseded pela emenda 2026-07-09 abaixo.
+
+## Emenda 2026-07-09 — fechada por evidência combinada; contador ≥20 vira telemetria passiva
+
+**Decisão do owner (2026-07-09), sanidade `product-manager` + `prompt-engineer`
+(ambos aprovaram, condições incorporadas abaixo).** A medição de ≥20 gerações
+perdeu a função de decisão: o flip já está em produção (#746), a segurança é
+por construção ([[ADR-295]]), a mitigação de estouro ([[A26.l9]]) já shipou
+(#687) e o próprio texto desta lane diz que estourar o budget não reabre o
+flip. Manter o contador como bloqueio de sprint seria teatro de gate.
+Alternativa rejeitada: baixar o gate para n≥6 (0/6 → UB ~40% — estatisticamente
+oco contra o teto de 15%).
+
+**Leitura honesta da evidência (não afirmar "≤15% provado no real"):** o eval
+sintético (120 gerações, UB IC95 3,10%) limita **violação/conformidade de
+citação**, não a distribuição de documento real; o tráfego real (snapshot
+2026-07-09: **7 gerações, `needs_review = 0`**, 2026-07-03 → 2026-07-09) é
+**direcionalmente consistente porém subpotente** (0/7 → UB regra de três ~43%).
+São eixos distintos, não evidência aditiva.
+
+**Precedente estreito** — "evidência combinada" fecha lane somente quando as 4
+condições coexistem: (a) o gate residual é não-binário pelo próprio texto da
+lane; (b) a segurança é garantida por construção, independente da métrica;
+(c) a mitigação de estouro já está em `main`; (d) a telemetria continua viva.
+Fora disso, é eufemismo para pular gate.
+
+**Telemetria passiva com dono e prazo-soft (anti-TODO-órfão, ADR-210):** a
+query de medição acima continua válida; quem fechar o marco A27 registra o
+snapshot final aqui quando **n ≥ 20 chegar organicamente OU no fechamento da
+A27, o que vier antes**. A instrumentação do KR de qualidade de citação
+permanece intacta (o snapshot segue alimentando o número; com a l9 em `main`,
+nenhum KR downstream fica descoberto).
+
+**Amarrações de drift (condições `prompt-engineer`):**
+
+1. **Bump de `prompt_version` ou model ⇒ re-medição obrigatória no harness
+   sintético** (`dev/run_parecer_eval_parallel.py`, 120-gen, [[ADR-296]])
+   **antes** de manter `strict` — o `parecer_drift_monitor.py` compara janelas
+   por `(prompt_version, model_name)` mas exige `MIN_WINDOW_N` e, em workspace
+   de baixo volume, a versão nova fica em `insufficient_data` indefinidamente;
+   observação passiva NÃO cobre bump.
+2. **Follow-up registrado (pendente):** `needs_review_rate_delta = warn` do
+   drift monitor hoje é só log line (`mathoms.llm.parecer_drift`,
+   `logging.WARNING`) — precisa de hookup de alerta para a telemetria passiva
+   ser lida por alguém. Candidato natural: item do fechamento A27 ou lane de
+   observabilidade futura.
 
 ## Owner
 
