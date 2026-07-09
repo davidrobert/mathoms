@@ -36,6 +36,59 @@ Para que nenhum achado se perca entre auditorias:
 
 ---
 
+## r7 — `vault-2026-07-09-r7` (sweep one-shot `--scope all --full --fix`)
+
+> Skill audit-vault ([[ADR-302]]) · **sweep 100% one-shot** em 3 fases
+> (contrato do one-shot na SKILL). Gates 7/7 verdes (zero finding mecânico:
+> 314 ADRs, 930 notas, 0 wikilink broken, `_generated/` sincronizado).
+> Coletor rotativo `--full` (stride 1): universo **423 arquivos** — reference
+> 58 · adr 314 · plan 33 · claude 12 · prompt 5 · root 1. **Sprint bucket
+> vazio** — nenhuma sprint `sprint_status: current` (A26/A34 `paused`, A27
+> `candidate`). **Cadência anti-zumbi:** r6 (2026-07-03) fechou 100% dos
+> findings; sem `procede-aberto` remanescente para re-triar. **Contexto do
+> delta:** r6 foi há 6 dias, mas shipou uma semana de dev (A29-A35, Go
+> F1+F2, refactor ADR-285 de `backend/app/services/` em subpacotes, scrubs
+> PII A34) — superfície nova legítima, não re-run vazio.
+
+### Fase 1 — reference (58/58 julgados)
+
+> Julgamento: data-engineer + sre-devops + financial-planner + senior-cto em
+> paralelo + loop principal (6 docs cross-cutting). Verify: 5/5 DOC-BLOCK
+> confirmados pelo loop principal com citação dupla, 0 rebaixados.
+> **Cluster dominante:** paths stale pós-refactor **ADR-285** (`services/`
+> → subpacotes `storage/`/`documents/`/`security/`/`pipeline/`), confirmado
+> por 3 especialistas independentes. Bruto em `_scratch/audit-vault-2026-07-09.md`.
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F01 — `suggestion_backfill.md:29`: `from ...database import AsyncSessionLocal` (símbolo inexistente; base usa `async_session as AsyncSessionLocal`) → snippet copy-paste dá ImportError | DOC-BLOCK | procede | procede-fechado | #926 (`async_session as`) |
+| F02 — `RUNBOOK.md:105` §5.2: `from backend.app.services import category_cache` (services/__init__ vazio pós-ADR-285) → invalidação de cache do downgrade nunca roda (bug de 15min stale que a seção previne) | DOC-BLOCK | procede | procede-fechado | #926 (`.storage.category_cache`) |
+| F03 — `tenancy.md:13,99`: prefixo `/api/workspaces/...` (TL;DR + exemplo DO); routers reais usam relativo `/workspaces/...` com `/api/v1` no mount → cópia literal produz `/api/v1/api/...` quebrado | DOC-BLOCK | procede | procede-fechado | #926 (`documents.py:76` + `config.py:39`) |
+| F04 — `runbooks/dev_environment.md:33-35,51,121`: portas do stack Docker 8000/3000/5432; compose publica 8010/3010/5433 → operador curla porta errada, smoke falha com stack saudável | DOC-BLOCK | procede | procede-fechado | #926 (`docker-compose.dev.yml` + `Makefile:73-75`) |
+| F05 — `config/methodology.md:188`: reserva "média trimestral"; enforcer usa janela 12m (ADR-306 supersede "trimestral, nunca implementada", já vigente em FORMULAS.md + `fluxo_caixa_enricher.py:80`) → reserva-alvo/cobertura erradas | DOC-BLOCK | procede | procede-fechado | #926 (align 12m; +2 ponteiros `definitions.md`→config DB). Config-adjacente (docs-only; não runtime-read) |
+| F06-F15 — DRIFT (cluster ADR-285 + outros): PIPELINE_ARTIFACTS (SCHEMA_BY_STAGE→`storage/`; `_create_report_from_output`→`app/tasks/`); schema_validation_strict_flip + pipeline_rollback + GO_PORT_DEPS×2 (db_artifact_store→`storage/`); CANONICAL_ENGINE×2 (content_classifier + document_classification→`documents/`); disaster_recovery (vault→`security/`); ARCHITECTURE (events→`pipeline/`; §6 nota 112→~81+6 subpacotes; §17.2 nota datada Go F1/ADR-323); FORMULAS (`definitions.md`→docstring PatrimonioCalculator); rule-alocacao (status v2 candidato→produção, ADR-141); security_gates (`dev/gen-secrets.sh`→`scripts/`) | DOC-DRIFT | procede | procede-fechado | batch `vault-drift-batch-r7-f1` #924 (`--fix`, citação dupla) |
+| F16 — POLISH: `TESTING.md:573` checkbox órfão referenciando `_STAGE_TO_DIR` (deletado ADR-213); `PERFORMANCE_BASELINE.md:387` path importtime stale (snapshot datado pré-ADR-285) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
+
+> **Falsos-positivos evitados (loop principal):** COPY_GUIDELINES cita
+> `config/methodology.md` + `config/report_spec.md` — **ambos existem**
+> (`config/methodology.md` ≠ `docs/methodology/` proibido). REPORT_PUBLICATION
+> paths OK — `report_publication.py` **não** moveu no ADR-285;
+> `is_month_closed_sync` em :75 ✓. security_gates.md:18 lista
+> `pipeline-service/requirements*.txt` inexistente MAS espelha fielmente o
+> workflow — possível bug do `security.yml`, não drift de doc (fora de escopo).
+>
+> **Verificações que passaram:** 12 rule files (`financial-planner` número-a-número
+> contra enforcers: concentração 40%, cascata PJ T3/T4/T5, TRS 5%, seguros,
+> score weights 1:1 com scoring.json); README/SLO + 9 runbooks (`sre-devops`);
+> PHASES/PRODUCT/api-README (`senior-cto`, evergreen por design); 6 docs
+> cross-cutting + banners r6 F03/F06/F07 intactos (loop principal).
+>
+> Fase 1: síntese #926 (5 BLOCK), batch #924 (DRIFT). Taxa: 5 BLOCK + ~12
+> DRIFT + 2 POLISH em 58 arquivos (~33% com finding; concentrado no
+> fallout de paths do ADR-285).
+
+---
+
 ## r6 — `vault-2026-07-03-r6` (sweep one-shot `--scope all --full --fix`)
 
 > Skill audit-vault ([[ADR-302]]) · **sweep 100% one-shot** em 3 fases

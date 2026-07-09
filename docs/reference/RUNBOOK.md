@@ -102,7 +102,7 @@ explicitamente. Sem isso, cache Redis fica stale por até 15min (TTL) e a API
 responde com `latest_template_version` apontando para a versão revertida.
 
 ```python
-from backend.app.services import category_cache
+from backend.app.services.storage import category_cache
 
 def downgrade():
     op.execute("DELETE FROM category_templates WHERE template_version = N")

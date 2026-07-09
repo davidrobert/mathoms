@@ -69,7 +69,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 ### E4 — Enriquecimento e Unificação
 - **Objetivo:** Categorizar transações, consolidar por tipo, enriquecer com contexto do baseline patrimonial.
-- **Inputs:** Todos os `-3_reconciled.json` + `baseline_patrimonial-1.5_consolidated.json` + `dados_imoveis-2_extract.json` + `dados_veiculos-2_extract.json` (se houver) + `definitions.md`
+- **Inputs:** Todos os `-3_reconciled.json` + `baseline_patrimonial-1.5_consolidated.json` + `dados_imoveis-2_extract.json` + `dados_veiculos-2_extract.json` (se houver) + config de categorização (`category_template` DB · ADR-137; rules-as-code · ADR-143)
 - **Outputs:** `receitas-4_unified.json`, `despesas-4_unified.json`, `investimentos-4_unified.json`, `patrimonio-4_unified.json`, `seguros-4_unified.json`, `pontos_milhas-4_unified.json`
 - **Nota v5.0:** `patrimonio-4_unified.json` substitui `imoveis` e `veiculos` unificados — consolida TODOS os ativos (imóveis, veículos, investimentos, criptos, contas, empresas) com dados de compra do XLSX e valores declarados do IRPF.
 
@@ -82,7 +82,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 **E5.2 — Fluxo de Caixa e Orçamento (→ seção 2 do relatório)**
 - **Objetivo:** Receitas vs despesas, taxa de poupança, orçamento prospectivo com tetos, diagnóstico comportamental.
-- **Inputs:** `receitas-4_unified.json`, `despesas-4_unified.json`, `definitions.md` (categorias e tetos), `investimentos-4_unified.json` (para cruzamento de liquidez)
+- **Inputs:** `receitas-4_unified.json`, `despesas-4_unified.json`, config de categorização e tetos (`category_template` DB · ADR-137), `investimentos-4_unified.json` (para cruzamento de liquidez)
 - **Outputs:** Bloco `fluxo_de_caixa` no E5 JSON — Fluxo, projeção pós-quitação, 13 categorias vs tetos, consumo consciente, **diagnóstico comportamental** (`diagnostico_comportamental[]` no E5 JSON — array de padrões detectados com evidência e mudança sugerida; ver regras de detecção em `scripts/analyze_finances.py`).
 - **Atenção:** NÃO confundir despesas PJ com pessoais. Incluir "reserva de desejos" R$3k/mês.
 - **Diagnóstico comportamental:** OBRIGATÓRIO em todo ciclo. Mesmo sem padrões detectados, gerar bloco com array vazio e nota positiva. Tom não-julgamental — foco em automatização de fluxo.
@@ -185,9 +185,12 @@ reserva_alvo      = custo_essencial_mensal × meses_alvo
 cobertura_atual   = reserva_liquida_disponivel ÷ custo_essencial_mensal
 ```
 
-**Custo essencial mensal:** média trimestral das categorias `moradia,
-alimentacao, transporte, saude, seguros, servicos_domesticos, educacao,
-suporte_familiar, financiamentos`. Impostos não-PJ entram (IPTU, IPVA,
+**Custo essencial mensal:** média mensal sobre a janela canônica de 12
+meses documentados (ADR-306 — supersede a regra "média trimestral", nunca
+implementada; sazonais essenciais como IPTU/IPVA/educação são recorrentes
+reais) das categorias `moradia, alimentacao, transporte, saude, seguros,
+servicos_domesticos, educacao, suporte_familiar, financiamentos`. Impostos
+não-PJ entram (IPTU, IPVA,
 IRPF); impostos PJ saem (DAS, GPS INSS PJ — cessam se a operação cessar).
 Lista canônica em `scoring.json:reserva_emergencia._base_calculo`.
 
