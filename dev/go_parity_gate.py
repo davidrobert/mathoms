@@ -202,6 +202,13 @@ def collect_run_artifacts(pipeline_run_id: str) -> ArtifactSet:
 _VERDICT = {"tier1": tier1_verdict, "tier2": tier2_verdict}
 
 
+def _add_ws_args(p: argparse.ArgumentParser) -> None:
+    """Flags de eventos WS capturados (JSON do `dev/go_parity_capture.py`) — Tier-2."""
+    p.add_argument("--python-ws", default=None, help="JSON de eventos WS do run Python")
+    p.add_argument("--go-ws", default=None, help="JSON de eventos WS do run Go")
+    p.add_argument("--control-ws", default=None, help="JSON de eventos WS do run de controle")
+
+
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Gate de paridade de artefatos Go↔Python (F2 GO_SHELL)."
@@ -209,6 +216,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     p.add_argument("--python-run", required=True, help="pipeline_run_id do executor Python")
     p.add_argument("--go-run", required=True, help="pipeline_run_id do executor Go")
     p.add_argument("--control-run", default=None, help="2º run Python (piso de ruído Py↔Py)")
+    _add_ws_args(p)
     p.add_argument("--tier", choices=("tier1", "tier2"), default="tier1")
     p.add_argument("--ws-root", default=None, help="prefixo de path absoluto do workspace → <WS>")
     p.add_argument(
@@ -234,18 +242,41 @@ def _write_json(path: str, main: RunComparison, ok: bool, reason: str) -> None:
         json.dump(data, fh, ensure_ascii=False, indent=2)
 
 
+#: pseudo-artefato que carrega a sequência de eventos WS capturada — flui pela
+#: MESMA comparação/normalização/verdict dos artefatos de domínio (Tier-2).
+WS_ARTIFACT = ("_ws", "events")
+
+
+def _load_event_list(path: str | None) -> list | None:
+    if not path:
+        return None
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _with_ws(artifact_set: ArtifactSet, events: list | None) -> ArtifactSet:
+    """Dobra os eventos WS como pseudo-artefato ``("_ws","events")`` no set da run."""
+    if events is None:
+        return artifact_set
+    return {**artifact_set, WS_ARTIFACT: {"events": events}}
+
+
+def _build_run_set(run_id: str, ws_path: str | None) -> ArtifactSet:
+    """Artefatos DB da run + eventos WS capturados (se fornecidos)."""
+    return _with_ws(collect_run_artifacts(run_id), _load_event_list(ws_path))
+
+
 def _run_comparisons(
     args: argparse.Namespace, prefixes: tuple[str, ...]
 ) -> tuple[RunComparison, RunComparison | None]:
     """Coleta os runs, compara Go↔Py (+ controle Py↔Py se pedido) e imprime os reports."""
-    python_set = collect_run_artifacts(args.python_run)
-    main_cmp = compare_artifact_sets(
-        python_set, collect_run_artifacts(args.go_run), path_prefixes=prefixes
-    )
+    python_set = _build_run_set(args.python_run, args.python_ws)
+    go_set = _build_run_set(args.go_run, args.go_ws)
+    main_cmp = compare_artifact_sets(python_set, go_set, path_prefixes=prefixes)
     print(render_report(main_cmp, label="Go↔Python"))
     if not args.control_run:
         return main_cmp, None
-    control_set = collect_run_artifacts(args.control_run)
+    control_set = _build_run_set(args.control_run, args.control_ws)
     control_cmp = compare_artifact_sets(python_set, control_set, path_prefixes=prefixes)
     print(render_report(control_cmp, label="controle Python↔Python"))
     return main_cmp, control_cmp

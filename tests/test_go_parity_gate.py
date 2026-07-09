@@ -145,3 +145,44 @@ def test_tier2_requires_control_run():
 def test_render_report_clean_and_dirty():
     assert "0 divergências" in render_report(_clean(), label="x")
     assert "só no lado B" in render_report(_dirty(), label="x")
+
+
+# ─────────────────────────── eventos WS (Tier-2) ────────────────────────────
+
+
+def _ws_set(events):
+    from dev.go_parity_gate import WS_ARTIFACT  # noqa: E402
+
+    return {WS_ARTIFACT: {"events": events}}
+
+
+def test_ws_events_sequence_divergence_detected():
+    py = _ws_set(
+        [{"event": "stage_started", "stage": "E3"}, {"event": "stage_completed", "stage": "E3"}]
+    )
+    go = _ws_set(
+        [{"event": "stage_completed", "stage": "E3"}, {"event": "stage_started", "stage": "E3"}]
+    )
+    cmp = compare_artifact_sets(py, go)
+    assert cmp.is_clean is False
+
+
+def test_ws_events_identity_only_is_clean():
+    py = _ws_set([{"event": "run_started", "run_id": "a", "timestamp": "2026-07-08T00:00:00"}])
+    go = _ws_set([{"event": "run_started", "run_id": "b", "timestamp": "2026-07-08T09:59:59"}])
+    assert compare_artifact_sets(py, go).is_clean is True
+
+
+def test_ws_events_missing_event_detected():
+    py = _ws_set([{"event": "stage_started"}, {"event": "stage_completed"}])
+    go = _ws_set([{"event": "stage_started"}])
+    assert compare_artifact_sets(py, go).is_clean is False
+
+
+def test_with_ws_injects_and_none_is_noop():
+    from dev.go_parity_gate import WS_ARTIFACT, _with_ws  # noqa: E402
+
+    base = {("E3", "itau"): {"total": 1.0}}
+    injected = _with_ws(base, [{"event": "run_started"}])
+    assert injected[WS_ARTIFACT] == {"events": [{"event": "run_started"}]}
+    assert _with_ws(base, None) == base
