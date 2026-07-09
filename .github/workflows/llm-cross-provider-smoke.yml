@@ -38,11 +38,19 @@ concurrency:
   group: llm-cross-provider-${{ github.ref }}
   cancel-in-progress: false
 
+# A34.l13 (ADR-320): default read; o job eleva issues: write (Issue de drift).
+permissions:
+  contents: read
+
 jobs:
   smoke:
     name: Smoke ${{ matrix.provider }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # issues: write — abre Issue idempotente de drift cross-provider.
+    permissions:
+      contents: read
+      issues: write
     strategy:
       fail-fast: false
       matrix:

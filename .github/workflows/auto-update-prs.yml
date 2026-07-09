@@ -34,9 +34,10 @@ on:
     branches: [main]
   workflow_dispatch: {}
 
+# A34.l13 (ADR-320): default de menor privilégio no workflow; a escrita
+# vive só no job que a justifica (update-branch requer push).
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 # Garante que múltiplos pushes em main em sequência não acumulam runs
 # concorrentes (cada run já atualiza TODOS os PRs elegíveis).
@@ -49,11 +50,16 @@ jobs:
     name: Auto-update auto-merge PRs
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # contents: write + pull-requests: write — o update-branch faz merge de
+    # main na branch do PR (push) e lê/edita metadados do PR (A34.l13).
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Update branches of auto-merge PRs
-        # chinthakagodawita/autoupdate-action@v1.0.0
-        # TODO(onda-2): SHA-pin alinhado com tj-actions e setup-uv em ci.yml.
-        uses: docker://chinthakagodawita/autoupdate-action:v1
+        # Imagem pinada por digest (A34.l14, ADR-320) — tag docker é tão
+        # mutável quanto tag git; digest fecha o vetor de supply-chain.
+        uses: docker://chinthakagodawita/autoupdate-action:v1@sha256:53d7013ad4689b703d2715d4b17d4901bb0a385e495e0b481f37adbe9b3cc3fc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # `auto_merge`: só PRs com auto-merge habilitado entram. Esse é

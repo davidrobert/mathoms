@@ -15,15 +15,20 @@ on:
     - cron: "30 6 * * *"
   workflow_dispatch:
 
+# A34.l13 (ADR-320): default read; marcação/fechamento vive no job.
 permissions:
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
   stale:
     name: Mark/close stale PRs and issues
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # pull-requests/issues: write — marca e fecha PRs/issues stale.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
     steps:
       - uses: actions/stale@v9
         with:
