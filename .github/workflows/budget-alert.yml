@@ -35,9 +35,8 @@ on:
         type: string
         required: false
 
+# A34.l13 (ADR-320): default read; escrita de issue só no job de alerta.
 permissions:
-  issues: write
-  actions: read
   contents: read
 
 concurrency:
@@ -49,6 +48,11 @@ jobs:
     name: "Verifica consumo vs budget mensal"
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # issues: write — abre Issue de estouro de budget; actions: read — lê runs.
+    permissions:
+      contents: read
+      issues: write
+      actions: read
     steps:
       - uses: actions/checkout@v4
 

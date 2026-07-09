@@ -15,15 +15,19 @@ on:
     - cron: "0 6 1 * *"
   workflow_dispatch:
 
+# A34.l13 (ADR-320): default read; escrita de issue só no job que reporta.
 permissions:
   contents: read
-  issues: write
 
 jobs:
   list-stale-branches:
     name: List stale agent/* branches
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # issues: write — cria/comenta a Issue de relatório de branches stale.
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4

@@ -30,6 +30,11 @@ concurrency:
   group: planner-monthly-${{ github.ref }}
   cancel-in-progress: false
 
+# A34.l13 (ADR-320): default read; o job golden-monthly eleva contents+issues
+# write (commit de baseline + Issue de drift) — justificado inline abaixo.
+permissions:
+  contents: read
+
 jobs:
   golden-monthly:
     name: Golden monthly real-LLM

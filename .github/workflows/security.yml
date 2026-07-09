@@ -141,7 +141,7 @@ jobs:
         # quando (a) GHAS chegar (SARIF blocking) ou (b) todas as vulns
         # npm/python listadas no runbook §Diferimentos forem fixadas.
         continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -164,7 +164,7 @@ jobs:
         # após review/triagem dos 4 IaC misconfigs detectados no primeiro
         # run e fix em PR(s) dedicado(s).
         continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           scan-type: config
           scan-ref: .
@@ -201,7 +201,7 @@ jobs:
       # zero ambiguidade transitiva — o audit reporta CVE da árvore inteira que
       # de fato vai pra imagem, não só das ~40 deps diretas.
       - name: Run pip-audit on requirements.lock (combined, pinned)
-        uses: pypa/gh-action-pip-audit@v1.1.0
+        uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266  # v1.1.0
         with:
           inputs: requirements.lock
           ignore-vulns: "PYSEC-2025-183"
@@ -269,7 +269,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run gitleaks (full history + .gitleaks.toml)
-        uses: gitleaks/gitleaks-action@v2.3.9
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
