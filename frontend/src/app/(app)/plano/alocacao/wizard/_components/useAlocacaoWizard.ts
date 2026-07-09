@@ -11,7 +11,8 @@ import {
   type RebalanceamentoModo,
 } from "@/lib/api";
 
-import { PRESETS, sumPcts, type Pcts } from "./constants";
+import type { AlocacaoProgressState } from "./AlocacaoProgress";
+import { completeWithCaixa, PRESETS, sumPcts, type Pcts } from "./constants";
 
 interface UseAlocacaoWizardArgs {
   workspaceId: string | undefined;
@@ -31,16 +32,31 @@ export function useAlocacaoWizard({ workspaceId }: UseAlocacaoWizardArgs) {
   const router = useRouter();
 
   const [step, setStep] = useState(1);
-  const [pcts, setPcts] = useState<Pcts>(PRESETS.Moderado);
+  const [pcts, setPctsState] = useState<Pcts>(PRESETS.Moderado);
   const [instrumentosRf, setInstrumentosRf] = useState("");
   const [instrumentosRv, setInstrumentosRv] = useState("");
   const [rebalanceamento, setRebalanceamento] =
     useState<RebalanceamentoModo>("por_aporte");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Editar qualquer percentual limpa o estado de erro "danger" — o vermelho
+  // só aparece ao tentar avançar com Σ≠100 (ADR-141 emenda item 11).
+  const [attemptedAdvance, setAttemptedAdvance] = useState(false);
 
   const soma = sumPcts(pcts);
   const somaValida = soma === 100;
+
+  const setPcts = (next: Pcts) => {
+    setPctsState(next);
+    setAttemptedAdvance(false);
+  };
+  const completeCaixa = () => setPcts(completeWithCaixa(pcts));
+
+  const progressState: AlocacaoProgressState = somaValida
+    ? "ok"
+    : attemptedAdvance
+      ? "danger"
+      : "warning";
 
   const draftAlocacaoInputs: AlocacaoGoalInputs = useMemo(
     () => ({
@@ -56,13 +72,14 @@ export function useAlocacaoWizard({ workspaceId }: UseAlocacaoWizardArgs) {
     [soma],
   );
 
-  const canAdvance = useMemo(() => {
-    if (step === 1) return somaValida;
-    return true;
-  }, [step, somaValida]);
-
   const goToPreviousStep = () => setStep((s) => Math.max(1, s - 1));
-  const goToNextStep = () => setStep((s) => s + 1);
+  const goToNextStep = () => {
+    if (step === 1 && !somaValida) {
+      setAttemptedAdvance(true);
+      return;
+    }
+    setStep((s) => s + 1);
+  };
 
   async function handleSave() {
     if (!workspaceId) return;
@@ -100,7 +117,8 @@ export function useAlocacaoWizard({ workspaceId }: UseAlocacaoWizardArgs) {
     error,
     soma,
     somaValida,
-    canAdvance,
+    progressState,
+    completeCaixa,
     draftAlocacaoInputs,
     alocacaoDraftDerived,
     goToPreviousStep,

@@ -58,7 +58,8 @@ export default function AlocacaoWizardPage() {
     error,
     soma,
     somaValida,
-    canAdvance,
+    progressState,
+    completeCaixa,
     draftAlocacaoInputs,
     alocacaoDraftDerived,
     goToPreviousStep,
@@ -87,7 +88,8 @@ export default function AlocacaoWizardPage() {
               pcts={pcts}
               onChange={setPcts}
               soma={soma}
-              somaValida={somaValida}
+              progressState={progressState}
+              onCompleteWithCaixa={completeCaixa}
             />
           )}
           {step === 2 && (
@@ -108,16 +110,13 @@ export default function AlocacaoWizardPage() {
             />
           )}
 
-          {error && (
-            <p className="mt-4 text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
         </CardContent>
       </Card>
 
       <WizardNavigation
         step={step}
         saving={saving}
-        canAdvance={canAdvance}
         somaValida={somaValida}
         onBack={goToPreviousStep}
         onNext={goToNextStep}
@@ -146,7 +145,6 @@ function StepProgressBar({ step }: { step: number }) {
 function WizardNavigation({
   step,
   saving,
-  canAdvance,
   somaValida,
   onBack,
   onNext,
@@ -154,7 +152,6 @@ function WizardNavigation({
 }: {
   step: number;
   saving: boolean;
-  canAdvance: boolean;
   somaValida: boolean;
   onBack: () => void;
   onNext: () => void;
@@ -162,17 +159,13 @@ function WizardNavigation({
 }) {
   return (
     <div className="mt-6 flex items-center justify-between">
-      <Button
-        variant="ghost"
-        onClick={onBack}
-        disabled={step === 1 || saving}
-      >
+      <Button variant="ghost" onClick={onBack} disabled={step === 1 || saving}>
         <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
       </Button>
 
       {step < 3 ? (
-        <Button onClick={onNext} disabled={!canAdvance}>
-          Proximo <ArrowRight className="ml-2 h-4 w-4" />
+        <Button onClick={onNext}>
+          Próximo <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       ) : (
         <Button onClick={onSave} disabled={saving || !somaValida}>
