@@ -44,7 +44,7 @@ O risco principal: quebrar o pipeline durante a transição e perder capacidade 
 2. **Classificação dos artefatos de `config/`** em 3 grupos:
    - **Grupo A — Dados do usuário** (migram para DB): `goals.json`, `tarefas.md`, `family_members.json`, `cenarios.json`, `decisions.md`. Removidos do repo ao final de F8.4.
    - **Grupo B — Seeds/templates de produto** (permanecem no repo): `institutions.json` (padrões de banco), `categorization.json` (keywords default), `parametros_fiscais.json` (alíquotas), `localization.json`, `taxas.json`, `scoring.json`. Carregados como seed no primeiro acesso do workspace; usuário pode editar cópia via `config_blob`.
-   - **Grupo C — Documentação** (permanecem): `definitions.md`, `methodology.md`, `source_hierarchy.md`, `regras_composicao_patrimonial.md`, `report_layout.yaml`, `report_spec.md`. Nota: `manual_operacao.md` foi arquivado em `_archive/manual_operacao_v6.1.md` (versão agora em `pipeline.json::report_version`). `decisions.md` listado em Grupo A para migração ao DB.
+   - **Grupo C — Documentação** (permanecem): `definitions.md`, `methodology.md`, `source_hierarchy.md`, `regras_composicao_patrimonial.md`, `report_layout.yaml`, `report_spec.md`. Nota: `manual_operacao.md` foi arquivado à época em `_archive/` (diretório deletado do HEAD em A34.l7 por PII histórica; versão agora em `pipeline.json::report_version`). `decisions.md` listado em Grupo A para migração ao DB.
 3. **Ordem de migração** (escolhida para minimizar risco):
    - **F8.1**: `goals.json` (parcial — só `independencia_financeira`) + adapter para resto
    - **F8.2**: `tarefas.md` completo

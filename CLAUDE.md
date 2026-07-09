@@ -445,8 +445,9 @@ HTML como fonte primária em wikilinks de docs canônicos.
 - `<plano>.md` na raiz do repo — `dev/check_forbidden_paths.py` já
   bloqueia muitos paths; raiz é reservada a `README.md`, `CLAUDE.md`,
   `LICENSE`, configs.
-- `_archive/` — é manual histórico do pipeline (`manual_operacao_v6.1.md`),
-  não destino de planos.
+- `_archive/` e `archive/` na raiz — deletados do HEAD em A34.l7
+  ([[ADR-319]]; concentravam PII histórica). Recriação é bloqueada por
+  `dev/check_forbidden_paths.py`; arqueologia de docs vive em `docs/archive/`.
 - `docs/<X>.html` substituindo `.md` canônico — ver subseção
   "Formato: Markdown canônico" acima ([[ADR-247]]).
 
@@ -1029,11 +1030,11 @@ Consulte antes de inferir regras de domínio ou layout:
 | `category_template` + `workspace_category_overrides` + `institution_catalog` (DB) | Catalog global versionado + diff por workspace (ADR-137 · A7.3). Substituiu `categorization.json` + `institutions.json` legados. |
 | `Decision` aggregate (DB)         | Plano de Ação event-sourced (ADR-136 · A7.2a). Substituiu `decisions.md` editorial. |
 
-**Manual histórico (referência):** `_archive/manual_operacao_v6.1.md` —
-pipeline CLI legado.
-
 Em caso de dúvida sobre como o pipeline funciona, consulte scripts,
-configs e docstrings antes de agir.
+configs e docstrings antes de agir. O fluxo canônico de stages vive em
+[docs/reference/ARCHITECTURE.md §7](docs/reference/ARCHITECTURE.md) +
+`pipeline.stage_spec` (o manual CLI legado foi deletado com `_archive/`
+em A34.l7 — conteúdo superado por essas fontes).
 
 ---
 
