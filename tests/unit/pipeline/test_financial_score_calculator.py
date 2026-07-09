@@ -399,7 +399,8 @@ def test_breakdown_pesos_somam_um(default_calc: FinancialScoreCalculator):
 
 
 def test_context_e_conclusion_sao_strings(default_calc: FinancialScoreCalculator):
-    """v2.E.7 — paridade textual com EXEMPLO_DE_RELATORIO.html L1809-1811."""
+    """v2.E.7 — paridade textual com EXEMPLO_DE_RELATORIO.html, bloco do gauge
+    id="chart-score-gauge" (chart-context + chart-conclusion do Score)."""
     result = default_calc.calculate(
         ratios={
             "taxa_poupanca_recorrente_pct": 30,
