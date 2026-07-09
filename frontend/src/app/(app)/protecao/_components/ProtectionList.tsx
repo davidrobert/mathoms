@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { FamilyMemberConfig } from "@/lib/api";
+import { formatBRLDecimalString, formatBRLNoCents } from "@/lib/format";
 import {
   PROTECTION_CATEGORIES,
   PROTECTION_STATUSES,
@@ -52,18 +53,6 @@ function statusVariant(status: ProtectionStatus): "default" | "secondary" | "des
   if (status === "Ativa") return "default";
   if (status === "Cancelada" || status === "Vencida") return "destructive";
   return "secondary";
-}
-
-function formatBRLDecimalString(decimal: string | null): string {
-  if (!decimal) return "—";
-  const n = Number(decimal);
-  if (!Number.isFinite(n)) return decimal;
-  return n.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
 }
 
 function memberLabel(members: FamilyMemberConfig[], id: string | null): string {
@@ -280,14 +269,6 @@ function TotalsStrip({
   totalCoverage: number;
   totalPremium: number;
 }) {
-  const fmt = (n: number) =>
-    n.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-
   return (
     <div
       className="flex flex-wrap gap-6 rounded-md border bg-[var(--surface-muted)] p-4 text-sm"
@@ -299,11 +280,11 @@ function TotalsStrip({
       </span>
       <span>
         <span className="text-muted-foreground">Cobertura total:</span>{" "}
-        <strong className="font-mono tabular-nums">{fmt(totalCoverage)}</strong>
+        <strong className="font-mono tabular-nums">{formatBRLNoCents(totalCoverage)}</strong>
       </span>
       <span>
         <span className="text-muted-foreground">Prêmio mensal:</span>{" "}
-        <strong className="font-mono tabular-nums">{fmt(totalPremium)}</strong>
+        <strong className="font-mono tabular-nums">{formatBRLNoCents(totalPremium)}</strong>
       </span>
     </div>
   );

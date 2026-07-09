@@ -7,7 +7,7 @@ import type {
   AporteGoalResponse,
   DolarGoalResponse,
 } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatUSDPtBR } from "@/lib/format";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 import { GoalCard, type GoalCardProps } from "./GoalCard";
@@ -61,9 +61,7 @@ function dolarCardProps(goal: DolarGoalResponse | null): GoalCardProps {
     density: "compact",
     configured: !!goal,
     href: goal ? "/plano/dolarizacao" : "/plano/dolarizacao/wizard",
-    value: goal
-      ? `US$ ${goal.inputs.meta_usd.toLocaleString("pt-BR")}`
-      : undefined,
+    value: goal ? formatUSDPtBR(goal.inputs.meta_usd) : undefined,
     subtitle: goal
       ? `~${goal.derived.horizonte_estimado_meses} meses`
       : undefined,

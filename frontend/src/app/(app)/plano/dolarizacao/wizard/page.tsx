@@ -27,7 +27,7 @@ import {
   ApiError,
   type DolarGoalComputeResponse,
 } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatUSDPtBR } from "@/lib/format";
 import { GoalPremissasCard } from "@/components/plano/GoalPremissasCard";
 
 
@@ -174,7 +174,7 @@ export default function DolarizacaoWizardPage() {
                     onClick={() => setMetaUsd(preset)}
                     type="button"
                   >
-                    US$ {preset.toLocaleString("pt-BR")}
+                    {formatUSDPtBR(preset)}
                   </Button>
                 ))}
               </div>
@@ -225,7 +225,7 @@ export default function DolarizacaoWizardPage() {
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Meta USD</dt>
                   <dd className="font-mono tabular-nums font-semibold">
-                    US$ {metaUsd.toLocaleString("pt-BR")}
+                    {formatUSDPtBR(metaUsd)}
                   </dd>
                 </div>
                 <div className="flex justify-between">

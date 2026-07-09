@@ -6,6 +6,7 @@
  * cards comparativos com delta explícito (sinal+cor, a11y AA) e parágrafo
  * "Leitura:" justificando o stress test em tom não-alarmista.
  */
+import { formatBRLNoCents } from "@/lib/format";
 import { ReportCard } from "../ReportCard";
 
 type StressCenarios = {
@@ -17,15 +18,6 @@ type StressCenarios = {
 };
 
 type StressGoals = { if_prazo_anos?: number; if_ano?: number };
-
-function fmtBRL(v: number | null | undefined): string {
-  if (v == null) return "—";
-  return v.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
-}
 
 function fmtAnosMeses(prazo: number | null | undefined): string {
   if (prazo == null) return "—";
@@ -77,7 +69,7 @@ export function StressScenarioCard({
           <dl className="space-y-2">
             <div className="flex justify-between">
               <dt className="text-[var(--surface-muted-foreground)]">Aporte mensal</dt>
-              <dd className="font-mono tabular-nums">{fmtBRL(aporteBase)}</dd>
+              <dd className="font-mono tabular-nums">{formatBRLNoCents(aporteBase)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-[var(--surface-muted-foreground)]">Prazo até IF</dt>
@@ -97,7 +89,7 @@ export function StressScenarioCard({
             <div className="flex justify-between">
               <dt className="text-[var(--surface-muted-foreground)]">Aporte mensal</dt>
               <dd className="font-mono tabular-nums">
-                {fmtBRL(aporteEstresse)}
+                {formatBRLNoCents(aporteEstresse)}
                 <span
                   className={
                     deltaAportePct != null && deltaAportePct > 0
