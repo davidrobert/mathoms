@@ -9,11 +9,14 @@ módulos internos, para manter o pacote como fronteira do agregado.
 """
 
 from backend.app.schemas.dto.goal.alocacao import (
+    ALOCACAO_V2_CLASS_FIELDS,
     AlocacaoGoalComputeRequest,
     AlocacaoGoalComputeResponse,
     AlocacaoGoalDerived,
+    AlocacaoGoalDerivedV2,
     AlocacaoGoalHistoryResponse,
     AlocacaoGoalInputs,
+    AlocacaoGoalInputsV2,
     AlocacaoGoalResponse,
     AlocacaoGoalUpsertCommand,
 )
@@ -62,11 +65,14 @@ from backend.app.schemas.dto.goal.reserva_emergencia import (
 )
 
 __all__ = [
+    "ALOCACAO_V2_CLASS_FIELDS",
     "AlocacaoGoalComputeRequest",
     "AlocacaoGoalComputeResponse",
     "AlocacaoGoalDerived",
+    "AlocacaoGoalDerivedV2",
     "AlocacaoGoalHistoryResponse",
     "AlocacaoGoalInputs",
+    "AlocacaoGoalInputsV2",
     "AlocacaoGoalResponse",
     "AlocacaoGoalUpsertCommand",
     "AporteGoalComputeRequest",

@@ -44,8 +44,11 @@ paths = [
     '''^frontend/playwright-baselines/''',
     '''^dev/snapshots/''',
     '''^docs/archive/''',
-    # Documentação técnica que cita formato de tokens sem secret real
-    '''^docs/.*\.md$''',
+    # A entry ampla '''^docs/.*\.md$''' foi removida na A34.l6 (ADR-319):
+    # com gitleaks bloqueante de merge, allowlistar docs/ inteiro cegaria o
+    # gate para secret colado em doc. Verificado zero finding na árvore sem
+    # a entry (2026-07-08). Placeholder legítimo em doc entra como regex
+    # específico abaixo, com justificativa.
     # Migrações Alembic legadas (sem secret, mas regex de chave pode disparar)
     '''^backend/alembic/versions/.*\.py$''',
 ]

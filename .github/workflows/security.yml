@@ -7,6 +7,8 @@
 #   4. npm-audit-prod — CVE em deps JS de prod (bloqueia).
 #   5. npm-audit-dev  — CVE em deps JS dev (informativo, continue-on-error).
 #   6. gitleaks       — secrets em git history full (--log-opts="--all").
+#                       Só schedule/dispatch: o gate de PR vive em ci.yml
+#                       (job `gitleaks`, agregado em All checks green — A34.l6).
 #
 # Image scan (`trivy image`) é diferido para W4-T02 (GHCR + Coolify).
 # GH secret scanning é configurado fora do repo (gh api). Ver
@@ -250,11 +252,14 @@ jobs:
         run: npm audit --audit-level=high
 
   gitleaks:
+    # A34.l6 (ADR-319): o gate de PR migrou para ci.yml (job `gitleaks`,
+    # agregado em "All checks green" — bloqueante de merge). Aqui fica só a
+    # varredura full-history semanal/manual + Issue automática em falha.
     name: gitleaks (full git history)
     runs-on: ubuntu-latest
     timeout-minutes: 8
     needs: changes
-    if: needs.changes.outputs.any_code == 'true'
+    if: needs.changes.outputs.force_all == 'true'
     # gitleaks-action lê PR commits via API — exige pull-requests: read.
     permissions:
       contents: read

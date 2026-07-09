@@ -32,6 +32,21 @@ FORBIDDEN_DIRS = (
     # recriação acidental — regras universais vivem em docstrings + ADRs;
     # dados cliente em DB ou <workspace>/notes/ (gitignored).
     "docs/methodology/",
+    # A34.l6 (ADR-319): `_archive/` concentra PII histórica (PDFs bancários
+    # reais) e será deletado na A34.l7; `archive/` bloqueia a variante de
+    # recriação na raiz. `docs/archive/` NÃO casa (paths são raiz-relativos)
+    # e permanece livre.
+    "_archive/",
+    "archive/",
+)
+
+# A34.l6: grace temporário até a A34.l7 deletar `_archive/`. Arquivo legado
+# já tracked (enumerado por `pre-commit run --all-files` sem estar staged)
+# passa; add/modify staged é bloqueado desde já. Remover este grace junto
+# com a deleção do diretório (A34.l7).
+ARCHIVE_GRACE_DIRS = (
+    "_archive/",
+    "archive/",
 )
 
 FORBIDDEN_FILES = (
@@ -84,8 +99,12 @@ FORBIDDEN_SUFFIXES = (
 )
 
 
-def _staged_deletion_paths(repo_root: Path) -> set[str]:
-    """Paths com delete staged (`git diff --cached`) — remover `.env` do repo é OK."""
+def _staged_status_by_path(repo_root: Path) -> dict[str, str]:
+    """Status staged por path (`git diff --cached --name-status`).
+
+    Valores: primeira letra do status git ("A", "M", "D", "R", "C"…). Para
+    rename/copy (`R100\told\tnovo`), o path registrado é o destino.
+    """
     try:
         proc = subprocess.run(
             ["git", "-C", str(repo_root), "diff", "--cached", "--name-status"],
@@ -94,32 +113,54 @@ def _staged_deletion_paths(repo_root: Path) -> set[str]:
             check=False,
         )
     except (OSError, subprocess.SubprocessError):
-        return set()
+        return {}
     if proc.returncode != 0 or not proc.stdout:
-        return set()
-    out: set[str] = set()
+        return {}
+    out: dict[str, str] = {}
     for line in proc.stdout.splitlines():
         parts = line.split("\t")
         if len(parts) < 2:
             continue
-        status = parts[0]
-        if status == "D":
-            out.add(parts[1])
+        out[parts[-1]] = parts[0][:1]
     return out
 
 
-def check(path: str, *, staged_deletions: set[str] | None = None) -> str | None:
-    """Retorna a razão da violação, ou None se passou."""
-    is_deletion = staged_deletions is not None and path in staged_deletions
+def _forbidden_dir_reason(path: str, statuses: dict[str, str]) -> str | None:
     for forbidden in FORBIDDEN_DIRS:
-        if path.startswith(forbidden):
-            # Permite deletar (cleanup A7.6, ressincronização .gitignore, etc.).
-            return None if is_deletion else f"diretório proibido: {forbidden}"
+        if not path.startswith(forbidden):
+            continue
+        if forbidden not in ARCHIVE_GRACE_DIRS:
+            return f"diretório proibido: {forbidden}"
+        if path not in statuses:
+            # Legado tracked ainda não deletado (A34.l7) — não staged,
+            # apenas enumerado por `pre-commit run --all-files`.
+            return None
+        return (
+            f"diretório proibido: {forbidden} (PII histórica; "
+            f"recriação bloqueada — ADR-319/A34.l6)"
+        )
+    return None
+
+
+def check(path: str, *, staged_statuses: dict[str, str] | None = None) -> str | None:
+    """Retorna a razão da violação, ou None se passou.
+
+    `staged_statuses=None` significa "sem informação de staging" (ex.:
+    enumeração `--all-files`) — o grace de ARCHIVE_GRACE_DIRS se aplica.
+    """
+    statuses = staged_statuses or {}
+    if statuses.get(path) == "D":
+        # Remover path proibido do repositório é limpeza, não violação
+        # (cleanup A7.6, deleção de _archive/ na A34.l7, remoção de .env).
+        return None
+    dir_reason = _forbidden_dir_reason(path, statuses)
+    if dir_reason is not None:
+        return dir_reason
     basename = path.rsplit("/", 1)[-1]
     if basename in FORBIDDEN_BASENAMES:
-        return None if is_deletion else f"arquivo proibido: {basename} (em {path})"
+        return f"arquivo proibido: {basename} (em {path})"
     if path in FORBIDDEN_FILES:
-        return None if is_deletion else f"arquivo proibido: {path}"
+        return f"arquivo proibido: {path}"
     for suffix in FORBIDDEN_SUFFIXES:
         if path.endswith(suffix):
             return f"sufixo proibido: {suffix}"
@@ -128,10 +169,10 @@ def check(path: str, *, staged_deletions: set[str] | None = None) -> str | None:
 
 def main() -> int:
     repo_root = Path.cwd()
-    staged_del = _staged_deletion_paths(repo_root)
+    staged = _staged_status_by_path(repo_root)
     violations: list[tuple[str, str]] = []
     for path in sys.argv[1:]:
-        reason = check(path, staged_deletions=staged_del)
+        reason = check(path, staged_statuses=staged)
         if reason:
             violations.append((path, reason))
 
