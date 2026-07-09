@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-"""Avança o trem de auto-merge: update-branch em exatamente 1 PR por invocação (ADR-322).
-
-Uso local (usa a identidade do seu `gh auth`):
-    python3 dev/ci_advance_automerge_train.py [--dry-run]
-"""
+"""Avança o trem de auto-merge (ADR-322): update-branch em exatamente 1 PR por
+invocação. Uso local (identidade do `gh auth`): python3 dev/ci_advance_automerge_train.py [--dry-run]"""
 
 from __future__ import annotations
 
@@ -55,12 +52,10 @@ def eligible_train(prs: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def select_pr_to_update(prs: list[dict[str, Any]]) -> dict[str, Any] | None:
-    """Primeiro PR BEHIND da fila cujo turno chegou; None se o trem deve esperar.
-
-    DIRTY (conflito) e required-check FAILURE saem do trem (não mergeiam de
-    qualquer forma). PENDING nunca é pulado: atualizar o próximo enquanto a
-    cabeça roda CI desperdiça runs e pode livelock (ADR-322 §D1).
-    """
+    """Primeiro PR BEHIND da fila cujo turno chegou; None se o trem deve esperar —
+    DIRTY e required-check FAILURE saem do trem (não mergeiam de qualquer forma),
+    e PENDING nunca é pulado: atualizar o próximo enquanto a cabeça roda CI
+    desperdiça runs e pode livelock (ADR-322 §D1)."""
     for pr in eligible_train(prs):
         status = pr.get("mergeStateStatus")
         if status == "DIRTY":

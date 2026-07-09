@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
-"""Watchdog do trem de auto-merge (ADR-322).
-
-Três deveres: (a) re-habilita auto-merge derrubado por agregador stale,
-(b) re-dispara CI órfão em action_required via empty commit — só com token
-de identidade real (AUTOMERGE_KICK=1), (c) mantém issue de sinalização
-quando a cabeça do trem trava >60min.
-
-Uso local: python3 dev/ci_automerge_watchdog.py [--dry-run]
-"""
+"""Watchdog do trem de auto-merge (ADR-322): (a) re-habilita auto-merge derrubado
+por agregador stale, (b) re-dispara CI órfão action_required via empty commit —
+só com token de identidade real (AUTOMERGE_KICK=1), (c) mantém issue de
+sinalização quando a cabeça trava >60min. Uso local: python3 dev/ci_automerge_watchdog.py [--dry-run]"""
 
 from __future__ import annotations
 
@@ -107,11 +102,9 @@ def last_automerge_event(number: int) -> str | None:
 
 
 def reenable_stale_disabled(prs: list[dict[str, Any]], dry_run: bool) -> None:
-    """Re-liga auto-merge que o GitHub derrubou por agregador stale (run superseded).
-
-    Opt-out humano: label wip/do-not-merge/blocked (checada em eligible_train
-    do advance; aqui candidato não tem auto-merge, então checamos de novo).
-    """
+    """Re-liga auto-merge derrubado por agregador stale (run superseded); opt-out
+    humano via label wip/do-not-merge/blocked — re-checada aqui porque o
+    candidato não tem auto-merge e escapa de eligible_train."""
     for pr in prs:
         if pr.get("autoMergeRequest") or pr.get("isDraft"):
             continue
@@ -127,27 +120,26 @@ def reenable_stale_disabled(prs: list[dict[str, Any]], dry_run: bool) -> None:
             _gh("pr", "merge", str(pr["number"]), "--squash", "--auto")
 
 
+def _create_empty_commit(oid: str) -> str:
+    """Commit vazio sobre oid via Git Data API; retorna o novo SHA."""
+    tree = _gh("api", f"repos/{{owner}}/{{repo}}/git/commits/{oid}", "--jq", ".tree.sha").strip()
+    args = [
+        "api", "-X", "POST", "repos/{owner}/{repo}/git/commits",
+        "-f", "message=chore(ci): kick — re-dispara CI de runs action_required órfãos (ADR-322)",
+        "-f", f"tree={tree}",
+        "-f", f"parents[]={oid}",
+        "--jq", ".sha",
+    ]  # fmt: skip
+    return _gh(*args).strip()
+
+
 def kick_orphan(pr: dict[str, Any], dry_run: bool) -> None:
     """Empty commit via Git Data API — novo SHA re-dispara CI com a identidade do token."""
     oid, branch = pr["headRefOid"], pr["headRefName"]
     print(f"kick #{pr['number']}: runs órfãos action_required em {oid[:8]} ({branch})")
     if dry_run:
         return
-    tree = _gh("api", f"repos/{{owner}}/{{repo}}/git/commits/{oid}", "--jq", ".tree.sha").strip()
-    new_sha = _gh(
-        "api",
-        "-X",
-        "POST",
-        "repos/{owner}/{repo}/git/commits",
-        "-f",
-        "message=chore(ci): kick — re-dispara CI de runs action_required órfãos (ADR-322)",
-        "-f",
-        f"tree={tree}",
-        "-f",
-        f"parents[]={oid}",
-        "--jq",
-        ".sha",
-    ).strip()
+    new_sha = _create_empty_commit(oid)
     _gh(
         "api",
         "-X",
