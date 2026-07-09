@@ -2,7 +2,6 @@
 
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import { ReportSection } from "../ReportSection";
-import { SectionSnapshotDiff } from "../SectionSnapshotDiff";
 import { SectionSummary } from "../SectionSummary";
 import {
   EndividamentoCard,
@@ -103,9 +102,6 @@ export function S1PatrimonioSection({ data }: S1Props) {
       </div>
       <ReservaEmergenciaCard reserva={reserva} />
       <EndividamentoCard endividamento={endividamento} />
-
-      {/* v2.8 (ADR-148) — comparisons + changelog vs relatório anterior. */}
-      <SectionSnapshotDiff sectionId="S1" data={data} />
     </ReportSection>
   );
 }

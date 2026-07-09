@@ -443,58 +443,67 @@ async def test_get_report_data_comparisons_null_when_first_report(
 async def test_get_report_data_comparisons_present_with_previous_snapshot(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
-    """Segundo relatório com snapshot anterior ⇒ ``comparisons``/``changelog`` populados."""
-    prev_payload = {
-        "periodo_dados": "202601-202603",
-        "patrimonio": {"liquido": 1_000_000.0, "bruto": 1_200_000.0},
-        "fluxo_caixa": {
-            "receita_total": 50_000.0,
-            "despesa_total": 30_000.0,
-            "investimentos_total": 10_000.0,
-        },
-    }
-    curr_payload = {
-        "periodo_dados": "202602-202604",
-        "patrimonio": {"liquido": 1_100_000.0, "bruto": 1_300_000.0},
-        "fluxo_caixa": {
-            "receita_total": 55_000.0,
-            "despesa_total": 30_000.0,
-            "investimentos_total": 12_000.0,
-        },
-    }
+    """Segundo relatório ⇒ ``comparisons``/``changelog``/``comparison_periods``
+    populados com as métricas canônicas v3 (ADR-190 §Emenda 2026-07-09)."""
     # Seed prev primeiro (created_at < curr).
-    await _seed_report(auth_client, analysis_payload=prev_payload, tmp_path=tmp_path, db=db)
+    await _seed_report(auth_client, analysis_payload=_PREV_CANONICAL, tmp_path=tmp_path, db=db)
     rid_curr = await _seed_report(
-        auth_client, analysis_payload=curr_payload, tmp_path=tmp_path, db=db
+        auth_client, analysis_payload=_CURR_CANONICAL, tmp_path=tmp_path, db=db
     )
 
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid_curr}/data")
     assert resp.status_code == 200
     body = resp.json()
-    items = body["comparisons"]
+    _assert_canonical_comparisons(body["comparisons"])
+    # Moldura temporal real do par (copy da V0) + changelog só não-stable.
+    assert body["comparison_periods"] == {"current": "202604", "previous": "202603"}
+    assert len(body["changelog"]) >= 1
+    assert [e for e in body["changelog"] if e["section_id"] == "M_RESERVA_MESES"] == []
+
+
+_PREV_CANONICAL = {
+    "periodo_dados": "202601-202603",
+    "patrimonio": {"liquido": 1_000_000.0, "bruto": 1_200_000.0},
+    "ratios": {"taxa_poupanca_recorrente_pct": 20.0},
+    "reserva": {"cobertura_meses": 6.0},
+    "goals": {"alocacao_alvo": {"derived": {"desvio_max_pct": 4.0}}},
+}
+_CURR_CANONICAL = {
+    "periodo_dados": "202602-202604",
+    "patrimonio": {"liquido": 1_100_000.0, "bruto": 1_300_000.0},
+    "ratios": {"taxa_poupanca_recorrente_pct": 26.0},
+    "reserva": {"cobertura_meses": 6.2},
+    "goals": {"alocacao_alvo": {"derived": {"desvio_max_pct": 9.0}}},
+}
+
+
+def _assert_canonical_comparisons(items: list) -> None:
+    """Contrato v3 no wire: ids canônicos, unit por métrica, thresholds absolutos."""
     assert isinstance(items, list)
-    assert len(items) == 5  # S1, S2, S3, T2, T5
     section_ids = [it["section_id"] for it in items]
-    assert section_ids == ["S1", "S2", "S3", "T2", "T5"]
+    assert section_ids == ["M_PL", "M_TAXA_POUPANCA", "M_RESERVA_MESES", "M_AUVP_DESVIO"]
+    by_id = {it["section_id"]: it for it in items}
+    _assert_pl_item(by_id["M_PL"])
+    # W2 (ADR-190 D3) + thresholds absolutos na unidade própria.
+    expected = {
+        "M_AUVP_DESVIO": ("pp", "up", "down"),
+        "M_TAXA_POUPANCA": ("pp", "up", "up"),
+        "M_RESERVA_MESES": ("meses", "stable", "up"),
+    }
+    for sid, (unit, signal, direction) in expected.items():
+        item = by_id[sid]
+        assert (item["unit"], item["delta_signal"], item["direction_positive"]) == (
+            unit,
+            signal,
+            direction,
+        )
 
-    s1 = next(it for it in items if it["section_id"] == "S1")
-    assert s1["before"] == pytest.approx(1_000_000.0)
-    assert s1["after"] == pytest.approx(1_100_000.0)
-    assert s1["delta_signal"] == "up"
-    assert s1["delta_pct"] == pytest.approx(10.0, rel=1e-3)
 
-    # W2 (ADR-190 D3): direção semântica no wire — asset up, expense down.
-    assert s1["direction_positive"] == "up"
-    t5 = next(it for it in items if it["section_id"] == "T5")
-    assert t5["direction_positive"] == "down"
-
-    # Changelog tem entry só para seções não-stable.
-    entries = body["changelog"]
-    assert isinstance(entries, list)
-    assert len(entries) >= 1
-    # T5 (despesa estável: 30k → 30k) não deve aparecer.
-    t5_entries = [e for e in entries if e["section_id"] == "T5"]
-    assert t5_entries == []
+def _assert_pl_item(pl: dict) -> None:
+    assert pl["before"] == pytest.approx(1_000_000.0)
+    assert pl["after"] == pytest.approx(1_100_000.0)
+    assert (pl["delta_signal"], pl["unit"], pl["direction_positive"]) == ("up", "brl", "up")
+    assert pl["delta_pct"] == pytest.approx(10.0, rel=1e-3)
 
 
 # ─── ADR-129: sanitize helper segue em uso pelo download PDF ───────────

@@ -1,369 +1,243 @@
 /**
- * Report Premium UI v2.8 (ADR-148) — render dos componentes alimentados
- * pelo `SnapshotChangelogBuilder`: ComparisonItemsBlock + SnapshotChangelogList
- * + SectionSnapshotDiff (filtro por section_id).
+ * V0 "O que mudou desde o último relatório" (SNAPSHOT_CHANGELOG_V3 W4/D6 ·
+ * ADR-190 §Emenda 2026-07-09) — render do `VariacaoSection`: manchete neutra
+ * do M_PL + tabela de indicadores formatada por unidade + rodapé de
+ * completude. Substitui os testes de ComparisonItemsBlock/SnapshotChangelogList
+ * /SectionSnapshotDiff (deletados em W4-T07).
  */
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import {
-  ComparisonItemsBlock,
-  SnapshotChangelogList,
-  type ComparisonItemView,
-  type SnapshotChangelogEntryView,
-} from "@/components/report/ui";
-import { SectionSnapshotDiff } from "@/components/report/SectionSnapshotDiff";
+import { VariacaoSection } from "@/components/report/VariacaoSection";
+import type { ComparisonItemRead, ReportAnalysisData } from "@/lib/api";
 
-describe("<ComparisonItemsBlock />", () => {
-  it("não renderiza nada com items vazios", () => {
-    const { container } = render(<ComparisonItemsBlock items={[]} />);
-    expect(container.firstChild).toBeNull();
-  });
+function makeItem(overrides: Partial<ComparisonItemRead>): ComparisonItemRead {
+  return {
+    section_id: "M_PL",
+    section_label: "Patrimônio Líquido",
+    before: 1_150_000,
+    after: 1_200_000,
+    delta_pct: 4.3,
+    delta_signal: "up",
+    direction_positive: "up",
+    unit: "brl",
+    ...overrides,
+  };
+}
 
-  it("renderiza título e caption default quando há ao menos 1 item (pós-revisão UX 2026-05-11)", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "S1",
-        section_label: "Patrimônio Líquido",
-        before: 100,
-        after: 110,
-        delta_pct: 10,
-        delta_signal: "up",
-      },
-    ];
-    render(<ComparisonItemsBlock items={items} />);
+const FULL_DATA: ReportAnalysisData = {
+  comparisons: [
+    makeItem({}),
+    makeItem({
+      section_id: "M_TAXA_POUPANCA",
+      section_label: "Taxa de Poupança",
+      before: 12.0,
+      after: 15.0,
+      delta_pct: 25.0,
+      delta_signal: "up",
+      direction_positive: "up",
+      unit: "pp",
+    }),
+    makeItem({
+      section_id: "M_RESERVA_MESES",
+      section_label: "Reserva de Emergência",
+      before: 5.8,
+      after: 6.0,
+      delta_pct: 3.4,
+      delta_signal: "up",
+      direction_positive: "up",
+      unit: "meses",
+    }),
+    makeItem({
+      section_id: "M_AUVP_DESVIO",
+      section_label: "Desvio da Alocação Alvo",
+      before: 8.0,
+      after: 8.1,
+      delta_pct: 1.3,
+      delta_signal: "stable",
+      direction_positive: "down",
+      unit: "pp",
+    }),
+  ],
+  comparison_periods: { current: "202604", previous: "202603" },
+};
+
+describe("<VariacaoSection /> — V0 (ADR-190 §Emenda)", () => {
+  it("payload completo: manchete neutra + lista por unidade + rodapé de completude", () => {
+    const { container } = render(<VariacaoSection data={FULL_DATA} />);
+
     expect(
-      screen.getByRole("heading", { level: 4, name: /Variação vs\. relatório anterior/i }),
+      screen.getByRole("heading", {
+        level: 2,
+        name: "O que mudou desde o último relatório",
+      }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Comparando o último relatório publicado com o atual/i),
-    ).toBeInTheDocument();
-  });
 
-  it("aceita título e caption customizados via props", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "S1",
-        section_label: "Patrimônio Líquido",
-        before: 100,
-        after: 110,
-        delta_pct: 10,
-        delta_signal: "up",
-      },
-    ];
-    render(
-      <ComparisonItemsBlock
-        items={items}
-        title="O que mudou (abr/2026)"
-        caption="Comparando março/2026 → abril/2026."
-      />,
+    // Manchete M_PL: Δ = +R$ 50.000,00 com sinal explícito (Intl usa NBSP).
+    const headline = screen.getByTestId("v0-headline");
+    expect(headline.textContent).toMatch(/\+R\$\s*50\.000,00/);
+
+    // Neutra: sem cor semântica de gain/loss e sem glifo de direção.
+    const delta = screen.getByTestId("v0-headline-delta");
+    expect(delta.className).not.toMatch(/text-gain|text-loss/);
+    expect(headline.textContent).not.toMatch(/[▲▼]/);
+    expect(headline.querySelector(".sr-only")?.textContent).toBe(
+      "Patrimônio líquido variou R$\u00a050.000,00 a mais desde março de 2026",
     );
-    expect(screen.getByRole("heading", { name: /O que mudou \(abr\/2026\)/i })).toBeInTheDocument();
-    expect(screen.getByText(/Comparando março\/2026 → abril\/2026\./i)).toBeInTheDocument();
+
+    // Caption obrigatória logo abaixo da manchete.
+    expect(screen.getByTestId("v0-headline-caption").textContent).toBe(
+      "Mostramos a variação total do patrimônio no período. A separação entre aporte, rendimento e efeito de mercado ainda não está disponível.",
+    );
+
+    // Lista: M_PL fora, stable fora — só taxa (pp) e reserva (meses).
+    const rows = container.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(2);
+    expect(screen.queryByText("Desvio da Alocação Alvo")).toBeNull();
+
+    const taxaCells = container.querySelectorAll(
+      'tr[data-section-id="M_TAXA_POUPANCA"] td',
+    );
+    expect(taxaCells[1].textContent).toBe("12,0%");
+    expect(taxaCells[2].textContent).toBe("15,0%");
+    expect(taxaCells[3].textContent).toContain("+3,0 pp");
+    expect(taxaCells[3].textContent).toContain("▲");
+
+    const reservaCells = container.querySelectorAll(
+      'tr[data-section-id="M_RESERVA_MESES"] td',
+    );
+    expect(reservaCells[1].textContent).toBe("5,8 meses");
+    expect(reservaCells[2].textContent).toBe("6,0 meses");
+    expect(reservaCells[3].textContent).toContain("+0,2 mês");
+
+    // Rodapé de completude (1 stable entre os não-headline).
+    expect(screen.getByTestId("v0-stable-footer").textContent).toBe(
+      "Outro indicador acompanhado permaneceu estável.",
+    );
   });
 
-  it("aplica var(--semantic-danger) na célula Δ quando delta_signal=down (W1-T01)", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "S1",
-        section_label: "Patrimônio Líquido",
-        before: 100,
-        after: 80,
-        delta_pct: -20,
-        delta_signal: "down",
-      },
-    ];
-    const { container } = render(<ComparisonItemsBlock items={items} />);
-    const deltaCell = container.querySelector('tr[data-delta-signal="down"] td:last-child') as HTMLElement;
-    expect(deltaCell).toBeInTheDocument();
-    expect(deltaCell.style.color).toBe("var(--semantic-danger)");
+  it("rodapé plural: 2+ stables entre os não-headline usam o template canônico", () => {
+    const data: ReportAnalysisData = {
+      comparisons: [
+        makeItem({}),
+        makeItem({
+          section_id: "M_TAXA_POUPANCA",
+          section_label: "Taxa de Poupança",
+          delta_signal: "stable",
+          unit: "pp",
+        }),
+        makeItem({
+          section_id: "M_AUVP_DESVIO",
+          section_label: "Desvio da Alocação Alvo",
+          delta_signal: "stable",
+          direction_positive: "down",
+          unit: "pp",
+        }),
+      ],
+      comparison_periods: { current: "202604", previous: "202603" },
+    };
+    render(<VariacaoSection data={data} />);
+    expect(screen.getByTestId("v0-stable-footer").textContent).toBe(
+      "Outros 2 indicadores acompanhados permaneceram estáveis.",
+    );
+    // Lista vazia mas M_PL presente → só manchete + caption, sem tabela.
+    expect(screen.queryByTestId("v0-indicators-table")).toBeNull();
+    expect(screen.getByTestId("v0-headline")).toBeInTheDocument();
   });
 
-  it("W2 (ADR-190 D3): dívida/despesa subindo pinta vermelho apesar de delta_signal=up", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "T5",
-        section_label: "Despesas Totais",
-        before: 30_000,
-        after: 31_500,
-        delta_pct: 5.0,
-        delta_signal: "up",
-        direction_positive: "down",
-      },
-    ];
-    const { container } = render(<ComparisonItemsBlock items={items} />);
-    const deltaCell = container.querySelector('tr[data-delta-signal="up"] td:last-child') as HTMLElement;
+  it("sem M_PL: renderiza a lista direto, sem manchete", () => {
+    const data: ReportAnalysisData = {
+      comparisons: [
+        makeItem({
+          section_id: "M_TAXA_POUPANCA",
+          section_label: "Taxa de Poupança",
+          before: 12.0,
+          after: 15.0,
+          delta_signal: "up",
+          unit: "pp",
+        }),
+      ],
+      comparison_periods: { current: "202604", previous: "202603" },
+    };
+    render(<VariacaoSection data={data} />);
+    expect(screen.queryByTestId("v0-headline")).toBeNull();
+    expect(screen.queryByTestId("v0-headline-caption")).toBeNull();
+    expect(screen.getByTestId("v0-indicators-table")).toBeInTheDocument();
+    expect(screen.getByText("Taxa de Poupança")).toBeInTheDocument();
+  });
+
+  it("comparisons null (primeiro relatório) e vazio: seção não renderiza", () => {
+    const { container: c1 } = render(
+      <VariacaoSection data={{ comparisons: null, comparison_periods: null }} />,
+    );
+    expect(c1.firstChild).toBeNull();
+
+    const { container: c2 } = render(<VariacaoSection data={{ comparisons: [] }} />);
+    expect(c2.firstChild).toBeNull();
+  });
+
+  it("subtítulo com períodos reais formatados (yyyymm → mês por extenso)", () => {
+    render(<VariacaoSection data={FULL_DATA} />);
+    expect(screen.getByTestId("v0-subtitle").textContent).toBe(
+      "Este relatório (abril de 2026) comparado ao anterior (março de 2026). Listamos apenas variações relevantes.",
+    );
+  });
+
+  it("subtítulo genérico quando comparison_periods é null", () => {
+    const data: ReportAnalysisData = {
+      comparisons: [makeItem({})],
+      comparison_periods: null,
+    };
+    render(<VariacaoSection data={data} />);
+    expect(screen.getByTestId("v0-subtitle").textContent).toBe(
+      "Comparado ao relatório anterior. Listamos apenas variações relevantes.",
+    );
+    expect(
+      screen.getByTestId("v0-headline").querySelector(".sr-only")?.textContent,
+    ).toBe(
+      "Patrimônio líquido variou R$\u00a050.000,00 a mais desde o relatório anterior",
+    );
+  });
+
+  it("regressão W2 (ADR-190 D3): pp subindo com direction_positive=down pinta vermelho", () => {
+    const data: ReportAnalysisData = {
+      comparisons: [
+        makeItem({
+          section_id: "M_AUVP_DESVIO",
+          section_label: "Desvio da Alocação Alvo",
+          before: 5.0,
+          after: 8.0,
+          delta_pct: 60.0,
+          delta_signal: "up",
+          direction_positive: "down",
+          unit: "pp",
+        }),
+      ],
+      comparison_periods: { current: "202604", previous: "202603" },
+    };
+    const { container } = render(<VariacaoSection data={data} />);
+    const deltaCell = container.querySelector(
+      'tr[data-section-id="M_AUVP_DESVIO"] td:last-child',
+    ) as HTMLElement;
     expect(deltaCell.style.color).toBe("var(--semantic-danger)");
-    // Glifo continua apontando a direção REAL do movimento (▲), só a cor inverte.
+    // Glifo continua apontando a direção REAL do movimento (▲), só a cor julga.
     expect(deltaCell.textContent).toContain("▲");
-  });
-
-  it("W2 (ADR-190 D3): asset subindo com direction_positive=up pinta verde", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "S1",
-        section_label: "Patrimônio Líquido",
-        before: 1_000_000,
-        after: 1_050_000,
-        delta_pct: 5.0,
-        delta_signal: "up",
-        direction_positive: "up",
-      },
-    ];
-    const { container } = render(<ComparisonItemsBlock items={items} />);
-    const deltaCell = container.querySelector('tr[data-delta-signal="up"] td:last-child') as HTMLElement;
-    expect(deltaCell.style.color).toBe("var(--semantic-success)");
-  });
-
-  it("W2 (ADR-190 D3): despesa caindo (delta_signal=down, direction_positive=down) pinta verde", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "T5",
-        section_label: "Despesas Totais",
-        before: 30_000,
-        after: 27_000,
-        delta_pct: -10.0,
-        delta_signal: "down",
-        direction_positive: "down",
-      },
-    ];
-    const { container } = render(<ComparisonItemsBlock items={items} />);
-    const deltaCell = container.querySelector('tr[data-delta-signal="down"] td:last-child') as HTMLElement;
-    expect(deltaCell.style.color).toBe("var(--semantic-success)");
-  });
-
-  it("W2 (WCAG 1.4.1): célula Δ verbaliza julgamento no aria-label", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "T5",
-        section_label: "Despesas Totais",
-        before: 30_000,
-        after: 31_500,
-        delta_pct: 5.0,
-        delta_signal: "up",
-        direction_positive: "down",
-      },
-      {
-        section_id: "S1",
-        section_label: "Patrimônio Líquido",
-        before: 1_000_000,
-        after: 1_050_000,
-        delta_pct: 5.0,
-        delta_signal: "up",
-        direction_positive: "up",
-      },
-    ];
-    const { container } = render(<ComparisonItemsBlock items={items} />);
-    const t5Cell = container.querySelector('tr[data-section-id="T5"] td:last-child') as HTMLElement;
-    expect(t5Cell.getAttribute("aria-label")).toBe("Despesas Totais aumentaram 5,0%, desfavorável");
-    const s1Cell = container.querySelector('tr[data-section-id="S1"] td:last-child') as HTMLElement;
-    expect(s1Cell.getAttribute("aria-label")).toBe("Patrimônio Líquido aumentou 5,0%, favorável");
-  });
-
-  it("W2 compat: sem direction_positive no payload (backend pré-W2) preserva comportamento antigo", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "S1",
-        section_label: "Patrimônio Líquido",
-        before: 100,
-        after: 110,
-        delta_pct: 10,
-        delta_signal: "up",
-      },
-    ];
-    const { container } = render(<ComparisonItemsBlock items={items} />);
-    const deltaCell = container.querySelector('tr[data-delta-signal="up"] td:last-child') as HTMLElement;
-    expect(deltaCell.style.color).toBe("var(--semantic-success)");
-  });
-
-  it("renderiza tabela com 3 linhas e sinais corretos (up/down/stable)", () => {
-    const items: ComparisonItemView[] = [
-      {
-        section_id: "S1",
-        section_label: "Patrimônio Líquido",
-        before: 1_000_000,
-        after: 1_100_000,
-        delta_pct: 10.0,
-        delta_signal: "up",
-      },
-      {
-        section_id: "S2",
-        section_label: "Receita Total",
-        before: 50_000,
-        after: 45_000,
-        delta_pct: -10.0,
-        delta_signal: "down",
-      },
-      {
-        section_id: "T5",
-        section_label: "Despesas Totais",
-        before: 30_000,
-        after: 30_100,
-        delta_pct: 0.33,
-        delta_signal: "stable",
-      },
-    ];
-    const { container } = render(<ComparisonItemsBlock items={items} />);
-    const rows = container.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(3);
-    expect(rows[0].getAttribute("data-section-id")).toBe("S1");
-    expect(rows[0].getAttribute("data-delta-signal")).toBe("up");
-    expect(rows[1].getAttribute("data-delta-signal")).toBe("down");
-    expect(rows[2].getAttribute("data-delta-signal")).toBe("stable");
-    expect(screen.getByText("Patrimônio Líquido")).toBeInTheDocument();
-    expect(screen.getByText("Receita Total")).toBeInTheDocument();
-    expect(screen.getByText("Despesas Totais")).toBeInTheDocument();
-  });
-});
-
-describe("<SnapshotChangelogList />", () => {
-  it("não renderiza nada com entries vazias", () => {
-    const { container } = render(<SnapshotChangelogList entries={[]} />);
-    expect(container.firstChild).toBeNull();
-  });
-
-  it("renderiza <li> por entry com summary determinística", () => {
-    const entries: SnapshotChangelogEntryView[] = [
-      {
-        section_id: "S1",
-        summary:
-          "Patrimônio líquido cresceu R$ 100.000,00 desde o relatório anterior (+10,0%)",
-        delta_signal: "up",
-        delta_pct: 10.0,
-      },
-      {
-        section_id: "S2",
-        summary:
-          "Receita total recuou R$ 24.000,00 desde o relatório anterior (−10,0%)",
-        delta_signal: "down",
-        delta_pct: -10.0,
-      },
-    ];
-    render(<SnapshotChangelogList entries={entries} />);
-    const items = screen.getAllByRole("listitem");
-    expect(items.length).toBe(2);
-    expect(
-      screen.getByText(/Patrimônio líquido cresceu R\$ 100\.000,00/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Receita total recuou R\$ 24\.000,00/),
-    ).toBeInTheDocument();
-  });
-});
-
-describe("<SectionSnapshotDiff />", () => {
-  it("não renderiza nada quando comparisons/changelog são null", () => {
-    const { container } = render(
-      <SectionSnapshotDiff sectionId="S1" data={{ comparisons: null, changelog: null }} />,
+    expect(deltaCell.textContent).toContain("+3,0 pp");
+    expect(deltaCell.getAttribute("aria-label")).toBe(
+      "Desvio da Alocação Alvo subiu 3,0 pp — avaliação ruim",
     );
-    expect(container.firstChild).toBeNull();
   });
 
-  it("filtra items por sectionId e renderiza só os relevantes", () => {
-    const data = {
-      comparisons: [
-        {
-          section_id: "S1",
-          section_label: "Patrimônio Líquido",
-          before: 1_000_000,
-          after: 1_100_000,
-          delta_pct: 10.0,
-          delta_signal: "up" as const,
-        },
-        {
-          section_id: "S2",
-          section_label: "Receita Total",
-          before: 50_000,
-          after: 55_000,
-          delta_pct: 10.0,
-          delta_signal: "up" as const,
-        },
-      ],
-      changelog: [
-        {
-          section_id: "S1",
-          summary: "Patrimônio Líquido cresceu 10,0% desde o relatório anterior",
-          delta_signal: "up" as const,
-          delta_pct: 10.0,
-        },
-      ],
+  it("manchete com variação negativa: sinal do Intl, aria 'a menos'", () => {
+    const data: ReportAnalysisData = {
+      comparisons: [makeItem({ before: 1_200_000, after: 1_150_000, delta_signal: "down" })],
+      comparison_periods: { current: "202604", previous: "202603" },
     };
-    render(<SectionSnapshotDiff sectionId="S1" data={data} />);
-    expect(screen.getByTestId("section-snapshot-diff-S1")).toBeInTheDocument();
-    expect(screen.getByText("Patrimônio Líquido")).toBeInTheDocument();
-    // S2 não deve aparecer.
-    expect(screen.queryByText("Receita Total")).not.toBeInTheDocument();
-  });
-
-  it("renderiza nada quando seção não tem items nem entries (todas estáveis)", () => {
-    const data = {
-      comparisons: [
-        {
-          section_id: "T5",
-          section_label: "Despesas Totais",
-          before: 30_000,
-          after: 30_000,
-          delta_pct: 0.0,
-          delta_signal: "stable" as const,
-        },
-      ],
-      changelog: [],
-    };
-    const { container } = render(<SectionSnapshotDiff sectionId="S1" data={data} />);
-    // S1 não está em nenhum array; render nada.
-    expect(container.firstChild).toBeNull();
-  });
-
-  it("filtra items com delta_signal=stable da seção (pós-revisão UX 2026-05-11)", () => {
-    // S1 tem só 1 item stable; sem entries no changelog (builder já filtra
-    // stable do changelog). Card não deve renderizar — linha com Δ 0,0%
-    // num card "o que mudou" é signal/noise péssimo.
-    const data = {
-      comparisons: [
-        {
-          section_id: "S1",
-          section_label: "Patrimônio Líquido",
-          before: 4_009_056.02,
-          after: 4_009_056.02,
-          delta_pct: 0.0,
-          delta_signal: "stable" as const,
-        },
-      ],
-      changelog: [],
-    };
-    const { container } = render(<SectionSnapshotDiff sectionId="S1" data={data} />);
-    expect(container.firstChild).toBeNull();
-  });
-
-  it("renderiza só os items não-stable quando seção mistura stable + up/down", () => {
-    const data = {
-      comparisons: [
-        {
-          section_id: "S1",
-          section_label: "Patrimônio Líquido",
-          before: 100,
-          after: 100,
-          delta_pct: 0.0,
-          delta_signal: "stable" as const,
-        },
-        {
-          section_id: "S1",
-          section_label: "Aportes",
-          before: 1_000,
-          after: 1_500,
-          delta_pct: 50.0,
-          delta_signal: "up" as const,
-        },
-      ],
-      changelog: [],
-    };
-    const { container } = render(<SectionSnapshotDiff sectionId="S1" data={data} />);
-    expect(screen.getByTestId("section-snapshot-diff-S1")).toBeInTheDocument();
-    // Stable suprimido — só 1 linha visível.
-    const rows = container.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(1);
-    expect(rows[0].getAttribute("data-delta-signal")).toBe("up");
-    expect(screen.queryByText("Patrimônio Líquido")).not.toBeInTheDocument();
-    expect(screen.getByText("Aportes")).toBeInTheDocument();
+    render(<VariacaoSection data={data} />);
+    const headline = screen.getByTestId("v0-headline");
+    expect(headline.textContent).toMatch(/-R\$\s*50\.000,00/);
+    expect(headline.querySelector(".sr-only")?.textContent).toBe(
+      "Patrimônio líquido variou R$\u00a050.000,00 a menos desde março de 2026",
+    );
   });
 });

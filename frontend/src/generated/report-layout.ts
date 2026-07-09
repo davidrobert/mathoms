@@ -159,6 +159,9 @@ export const LAYOUT: ReportLayout = {
         "label": "Visão geral",
         "links": [
           {
+            "section_id": "V0"
+          },
+          {
             "section_id": "S1",
             "num": "1"
           },
@@ -318,18 +321,6 @@ export const LAYOUT: ReportLayout = {
             "variant": "feature",
             "size": "half"
           }
-        ],
-        "comparisons": [
-          {
-            "id": "comparisons_s1",
-            "enabled": true
-          }
-        ],
-        "changelog": [
-          {
-            "id": "changelog_s1",
-            "enabled": true
-          }
         ]
       },
       {
@@ -399,18 +390,6 @@ export const LAYOUT: ReportLayout = {
             "enabled": false,
             "variant": "feature",
             "size": "half"
-          }
-        ],
-        "comparisons": [
-          {
-            "id": "comparisons_s2",
-            "enabled": true
-          }
-        ],
-        "changelog": [
-          {
-            "id": "changelog_s2",
-            "enabled": true
           }
         ]
       },
@@ -507,18 +486,6 @@ export const LAYOUT: ReportLayout = {
             "enabled": true,
             "variant": "primary",
             "size": "half"
-          }
-        ],
-        "comparisons": [
-          {
-            "id": "comparisons_s3",
-            "enabled": true
-          }
-        ],
-        "changelog": [
-          {
-            "id": "changelog_s3",
-            "enabled": true
           }
         ]
       },

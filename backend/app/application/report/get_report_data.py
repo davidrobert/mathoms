@@ -57,11 +57,13 @@ async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession
             payload["goals"] = {"premissas_snapshot": snap}
 
     # v2.8 (ADR-148): injeta comparisons/changelog via SnapshotChangelogBuilder.
-    comparisons, changelog = await _build_snapshot_diff(
+    # v3 (ADR-190 §Emenda): + períodos reais do par para a moldura temporal da V0.
+    comparisons, changelog, periods = await _build_snapshot_diff(
         db, workspace_id=workspace_id, current_artifact_id=artifact.id
     )
     payload["comparisons"] = comparisons
     payload["changelog"] = changelog
+    payload["comparison_periods"] = periods
 
     return JSONResponse(content=payload)
 
@@ -71,8 +73,8 @@ async def _build_snapshot_diff(
     *,
     workspace_id: str,
     current_artifact_id: int,
-) -> tuple[list[dict] | None, list[dict] | None]:
-    """Carrega par de snapshots e retorna ``(comparisons, changelog)`` JSON-ready."""
+) -> tuple[list[dict] | None, list[dict] | None, dict[str, str] | None]:
+    """Retorna ``(comparisons, changelog, comparison_periods)`` JSON-ready."""
     config = SnapshotChangelogConfig()
 
     def _run(session) -> tuple:
@@ -81,11 +83,17 @@ async def _build_snapshot_diff(
             workspace_id=workspace_id,
             current_artifact_id=current_artifact_id,
         )
-        return build_comparison(prev, curr, config)
+        return build_comparison(prev, curr, config), prev, curr
 
-    result = await db.run_sync(_run)
+    result, prev, curr = await db.run_sync(_run)
     if not result.has_previous:
-        return None, None
+        return None, None, None
     items = [comparison_item_to_read(it).model_dump(mode="json") for it in result.items]
     entries = [changelog_entry_to_read(en).model_dump(mode="json") for en in result.entries]
-    return items, entries
+    return items, entries, _periods_payload(prev, curr)
+
+
+def _periods_payload(prev, curr) -> dict[str, str] | None:
+    if prev is None or not prev.period_yyyymm or not curr.period_yyyymm:
+        return None
+    return {"current": curr.period_yyyymm, "previous": prev.period_yyyymm}

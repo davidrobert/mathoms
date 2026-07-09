@@ -33,11 +33,16 @@ export interface ReportListResponse {
   total: number;
 }
 
+/** v3 (ADR-190 §Emenda 2026-07-09) — unidade de exibição da métrica:
+ * `pp`/`meses` formatam Δ absoluto (after−before); `brl` usa MonetaryValue. */
+export type ComparisonMetricUnit = "brl" | "pp" | "meses";
+
 /** v2.8 (ADR-148) — Item de comparação seção-a-seção entre relatórios.
  *
  * `direction_positive` (W2 · ADR-190 D3): direção "boa pro usuário" — a cor
  * da célula Δ inverte quando `delta_signal !== direction_positive`. Optional
- * para tolerar payload de backend pré-W2 (default "up" preserva comportamento). */
+ * para tolerar payload de backend pré-W2 (default "up" preserva comportamento).
+ * `unit` (v3): optional para tolerar payload pré-v3 (default "brl"). */
 export interface ComparisonItemRead {
   section_id: string;
   section_label: string;
@@ -46,6 +51,14 @@ export interface ComparisonItemRead {
   delta_pct: number | null;
   delta_signal: "up" | "down" | "stable";
   direction_positive?: "up" | "down";
+  unit?: ComparisonMetricUnit;
+}
+
+/** v3 (ADR-190 §Emenda) — períodos yyyymm do par comparado; `null` no
+ * primeiro relatório (moldura temporal da seção V0). */
+export interface ComparisonPeriodsRead {
+  current: string;
+  previous: string;
 }
 
 /** v2.8 (ADR-148) — Entrada do changelog determinístico (uma por seção). */
@@ -65,8 +78,11 @@ export interface ChangelogEntryRead {
 export interface ReportAnalysisData {
   /** v2.8 (ADR-148) — comparativos seção-a-seção. `null` no primeiro relatório. */
   comparisons?: ComparisonItemRead[] | null;
-  /** v2.8 (ADR-148) — changelog determinístico das seções que mudaram. `null` no primeiro relatório. */
+  /** v2.8 (ADR-148) — changelog determinístico. Permanece no wire, mas a UI
+   * não o consome desde a V0 (SNAPSHOT_CHANGELOG_V3 W4-T07). */
   changelog?: ChangelogEntryRead[] | null;
+  /** v3 (ADR-190 §Emenda) — períodos reais do par comparado. `null` no primeiro relatório. */
+  comparison_periods?: ComparisonPeriodsRead | null;
   /** F11.4a — injetado pelo GET /reports/{id}/data (não faz parte do E5 legado). */
   _report_lineage?: {
     pipeline_run_id: string | null;

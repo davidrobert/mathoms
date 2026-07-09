@@ -76,6 +76,11 @@ navigation:
   estrategico:
     - label: "Visão geral"
       links:
+        # V0 "O que mudou" (SNAPSHOT_CHANGELOG_V3 W4/D6 · ADR-190 §Emenda):
+        # seção shell-level (VariacaoSection, hide-when-empty no 1º relatório),
+        # não numerada — padrão do Sumário Executivo. Título vem de
+        # SHELL_SECTION_TITLES no ReportShell (não há section YAML p/ V0).
+        - {section_id: "V0"}
         - {section_id: "S1", num: "1"}
         - {section_id: "S2", num: "2"}
         # S_PROTECAO inserido pós-S2 (ordem AUVP, ADR-240 D1). Numeração 2.5
@@ -162,13 +167,8 @@ estrategico:
           enabled: true
           variant: "feature"
           size: "half"
-      # Report Premium UI v2.8 — comparisons + changelog ativos via SnapshotChangelogBuilder (ADR-148).
-      comparisons:
-        - id: "comparisons_s1"
-          enabled: true
-      changelog:
-        - id: "changelog_s1"
-          enabled: true
+      # comparisons/changelog por seção (v2.8, ADR-148) removidos em W4-T07
+      # (SNAPSHOT_CHANGELOG_V3): o diff vive na seção V0 do shell.
 
     # --------------------------------------------------------------------------
     # S2 — Fluxo de Caixa
@@ -219,13 +219,8 @@ estrategico:
           enabled: false
           variant: "feature"
           size: "half"
-      # Report Premium UI v2.8 — comparisons + changelog ativos via SnapshotChangelogBuilder (ADR-148).
-      comparisons:
-        - id: "comparisons_s2"
-          enabled: true
-      changelog:
-        - id: "changelog_s2"
-          enabled: true
+      # comparisons/changelog por seção (v2.8, ADR-148) removidos em W4-T07
+      # (SNAPSHOT_CHANGELOG_V3): o diff vive na seção V0 do shell.
 
     # --------------------------------------------------------------------------
     # S_PROTECAO — Proteção Patrimonial (4º pilar AUVP) — A19 L1 P2 · ADR-240
@@ -306,13 +301,8 @@ estrategico:
           enabled: true
           variant: "primary"
           size: "half"
-      # Report Premium UI v2.8 — comparisons + changelog ativos via SnapshotChangelogBuilder (ADR-148).
-      comparisons:
-        - id: "comparisons_s3"
-          enabled: true
-      changelog:
-        - id: "changelog_s3"
-          enabled: true
+      # comparisons/changelog por seção (v2.8, ADR-148) removidos em W4-T07
+      # (SNAPSHOT_CHANGELOG_V3): o diff vive na seção V0 do shell.
 
     # --------------------------------------------------------------------------
     # S4 — Real Estate

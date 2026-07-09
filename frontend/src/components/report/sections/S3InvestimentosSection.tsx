@@ -1,7 +1,6 @@
 "use client";
 
 import { ReportSection } from "../ReportSection";
-import { SectionSnapshotDiff } from "../SectionSnapshotDiff";
 import { SectionSummary } from "../SectionSummary";
 import {
   AlocacaoAtualVsAlvoCard,
@@ -98,9 +97,6 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
       {/* Track T06 · ADR-191 — card Rentabilidade rebrandeado (TRS efetiva
           full-width com cobertura essencial + ano-base + defasagem). */}
       <RentabilidadeCard ratios={ratios} />
-
-      {/* v2.8 (ADR-148) — comparisons + changelog vs relatório anterior. */}
-      <SectionSnapshotDiff sectionId="S3" data={data} />
     </ReportSection>
   );
 }

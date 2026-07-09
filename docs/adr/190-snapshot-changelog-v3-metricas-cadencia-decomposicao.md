@@ -5,8 +5,10 @@ title: "Snapshot changelog v3 — métricas, cadência, decomposição e direç�
 status: Decidido
 phase: A11
 date: "2026-05-11"
+amended_at: ["2026-07-09"]
 relates_to:
   - "[[ADR-148]]"
+  - "[[ADR-306]]"
   - "[[ADR-076]]"
   - "[[ADR-090]]"
   - "[[ADR-117]]"
@@ -24,6 +26,14 @@ tags:
   - type/adr
 ---
 
+> **Emenda 2026-07-09 (co-design `financial-planner` + `data-engineer` +
+> `product-designer` + `product-manager`):** D5 foi realocada e re-modelada
+> (o cálculo pertence ao **builder**, não ao E5; modelo honesto é **3 baldes
+> residuais**, não 4; lane futura gated por dado), D2 teve `mom_mm3`
+> obsoletado pela janela-12m da [[ADR-306]] e a primeira entrega é **MoM
+> uniforme**, e os paths da tabela D1 foram substituídos pelo mapeamento aos
+> campos E5 **reais**. Detalhe em §Emenda 2026-07-09 ao final.
+
 ## Contexto
 
 ADR-148 introduziu o `SnapshotChangelogBuilder` (v2.D.1) que compara dois
@@ -36,7 +46,8 @@ snapshots de `analyze_finances` e produz:
   (filtra `stable`).
 
 A UI renderiza ambos embutidos dentro de S1/S2/S3 do relatório via
-`SectionSnapshotDiff` ([frontend/src/components/report/SectionSnapshotDiff.tsx](../../frontend/src/components/report/SectionSnapshotDiff.tsx)).
+`SectionSnapshotDiff` (`frontend/src/components/report/SectionSnapshotDiff.tsx`,
+deletado na janela 2026-07-09 — ver D6/§Emenda).
 
 Em 2026-05-11 o produto-owner sinalizou que o card **não comunica**:
 "esse card não diz nada, fica difícil de entender. Antes e Depois do
@@ -264,3 +275,52 @@ garantem que ondas parciais não regridem v2.8.
    invariante).
 5. Smoke test humano: card V0 num relatório real entrega "consigo
    responder em <15s o que mudou desde o último relatório".
+
+## Emenda 2026-07-09 — corte da primeira janela + correções de contrato
+
+Co-design de execução (4 especialistas) constatou três divergências entre o
+texto original e a realidade do dado/arquitetura:
+
+1. **D5 realocada e re-modelada.** `variacao_decomposta` exige DOIS
+   snapshots; o E5 processa UM — o cálculo pertence ao
+   `SnapshotChangelogBuilder` (par resolvido por período), não ao emit do
+   E5. E sem NAV por posição, separar `rendimento` de `valuation` produz
+   resíduo-lixeira (câmbio USD, reavaliação de imóvel, previdência)
+   mascarado de "mercado". Modelo honesto quando a lane abrir: **3 baldes
+   residuais** — `Fluxo líquido (aporte−resgate)` | `Rendimento observado` |
+   `Variação de mercado (resíduo, rotulado como tal)` — computados no
+   builder, gated por agregação de `transferencias_internas` por classe.
+   O JSON de exemplo em D5 (strings decimais) também conflita com a
+   convenção vigente do E5 (JSON number) — seguir a convenção.
+2. **D2: `mom_mm3` obsoleto.** A [[ADR-306]] tornou a janela-12m a base
+   canônica dos ratios — a métrica já vem suavizada; MM3 por cima seria
+   dupla suavização. Primeira entrega usa **cadência MoM uniforme** (um
+   caption único honesto exige cadência única); YoY/YTD e
+   `load_snapshot_window` multi-janela ficam para a onda da série
+   temporal (W5), mesmo pré-requisito de dado.
+3. **D1: paths aspiracionais → mapeamento real.** 8 dos 10 paths propostos
+   não resolvem contra o E5 real. Primeira entrega compara os campos que
+   **já existem** (funciona retroativamente contra snapshots antigos):
+   `ratios.taxa_poupanca_recorrente_pct` (M_TAXA_POUPANCA, pp) ·
+   `reserva.cobertura_meses` (M_RESERVA_MESES, meses) ·
+   `goals.alocacao_alvo.derived.desvio_max_pct` (M_AUVP_DESVIO, pp) ·
+   `patrimonio.liquido` (M_PL, R$). `M_DIVIDA_PCT` suprimida até
+   `endividamento.pct_renda_comprometida` existir; `M_SCORE` e `M_IF_ANOS`
+   **cortadas** do card por anti-metodológicas em delta mensal (Goodhart /
+   projeção frágil — pertencem à série multi-ciclo W5); `M_DESPESA_MM3`
+   cortada (redundante com poupança sob janela-12m).
+4. **Tratamento do PL sem decomposição (resolução de conflito FP×PM×PD):**
+   manchete da seção V0 = Δ PL MoM **neutra** — valor com sinal, sem cor
+   semântica, sem glifo, aria sem julgamento ("variou R$ X a mais desde
+   <mês>") — com caption adjacente: *"Mostramos a variação total do
+   patrimônio no período. A separação entre aporte, rendimento e efeito de
+   mercado ainda não está disponível."* A cor por julgamento volta quando a
+   decomposição (3 baldes) existir. A lista de métricas de comportamento
+   (poupança/reserva/desvio) mantém cor+julgamento W2 normais.
+5. **D6 refinada:** par prev/curr resolvido por **período com colapso
+   latest-por-período** (corrige o bug do prev-por-`created_at`, em que
+   re-runs do mesmo mês viravam o "anterior" → tudo `stable`); copy
+   ancorada nos períodos reais ("jun/2026 vs mai/2026"), nunca "mês
+   anterior"; seção V0 renderizada hardcoded após `ExecutiveSummarySection`
+   (que não vive no YAML) e **antes** do banner de qualidade (A28); entrada
+   de navegação "O que mudou" no grupo Visão geral.

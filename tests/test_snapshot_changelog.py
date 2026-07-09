@@ -252,16 +252,15 @@ def test_unknown_section_id_levanta_erro():
 # ---------- Default sections + labels ----------
 
 
-def test_default_sections_compare_5_secoes():
-    """Default `sections_to_compare` = S1/S2/S3/T2/T5; labels resolvidos pelo default."""
+def test_legacy_sections_seguem_validas_via_override():
+    """Retrocompat D1: ids legados funcionam com `sections_to_compare` explícito."""
     prev = _make_snapshot(period="202603", content=_full_content(scale=1))
     curr = _make_snapshot(period="202604", content=_full_content(scale=2))
-    result = build_comparison(prev, curr, SnapshotChangelogConfig())
+    config = SnapshotChangelogConfig(sections_to_compare=("S1", "S2", "S3", "T2", "T5"))
+    result = build_comparison(prev, curr, config)
     section_ids = [item.section_id for item in result.items]
     assert section_ids == ["S1", "S2", "S3", "T2", "T5"]
-    labels = {item.section_id: item.section_label for item in result.items}
-    for sid in ("S1", "S2", "S3", "T2", "T5"):
-        assert labels[sid] == DEFAULT_SECTION_LABELS[sid]
+    assert all(item.unit == "brl" for item in result.items)
 
 
 def test_label_override_via_config():
