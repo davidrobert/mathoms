@@ -44,7 +44,7 @@ de goldens (fixture dogfood sem goal de alocação).
 
 ## Plano de execução (11 PRs, ordem do co-design)
 
-**Estado 2026-07-09: LANE SHIPPED.** 9/11 PRs mergeados — migração alocação-alvo v1→v2 funcionalmente completa e verificada end-to-end (backend, API, seed, pipeline, E5, card do relatório, chart ids; débito do `alocacaoBucketMapper` removido; bug de integração do `derived` corrigido). Owner flipou a lane `shipped` e a A12 `done` em 2026-07-08/09 tratando PR8 (redesign visual do wizard — shim já funcional) como débito de polish no backlog e PR11 como cleanup owner-gated registrado. Ambos NÃO bloqueiam a correção.
+**Estado 2026-07-09: LANE SHIPPED.** 9/11 PRs mergeados — migração alocação-alvo v1→v2 funcionalmente completa e verificada end-to-end (backend, API, seed, pipeline, E5, card do relatório, chart ids; débito do `alocacaoBucketMapper` removido; bug de integração do `derived` corrigido). Owner flipou a lane `shipped` e a A12 `done` em 2026-07-08/09 tratando PR8 (redesign visual do wizard — shim já funcional) como débito de polish no backlog e PR11 como cleanup owner-gated registrado. Ambos NÃO bloqueiam a correção. **PR8 (débito de polish) endereçado em [#915](https://github.com/davidrobert/mathoms/pull/915)** — sem reabertura da sprint; PR11 segue owner-gated.
 
 | PR | Escopo | Status |
 |---|---|---|
@@ -57,7 +57,7 @@ de goldens (fixture dogfood sem goal de alocação).
 | PR7 | card relatório consome `derived.*` + **DELETE `alocacaoBucketMapper.ts`** (o débito que originou a lane) + fallback gracioso | ✅ [#906](https://github.com/davidrobert/mathoms/pull/906) |
 | PR9 | consolida chart ids `alocacao_atual`/`alocacao_alvo` → `alocacao_atual_vs_alvo` (lockstep; chave de goal intacta) | ✅ [#909](https://github.com/davidrobert/mathoms/pull/909) |
 | PR10 | golden E5 cobre `derived` + **fix bug de integração do PR6** (E5 dropava `alocacao_alvo` → enrich não disparava em produção) | ✅ [#910](https://github.com/davidrobert/mathoms/pull/910) |
-| PR8 | 🔲 **polish** — wizard redesign completo (inputs em grupos, "Completar com Caixa", Step3 enum, `alocacaoClasses.ts` fonte única + teste de paridade). Shim do PR4 já é funcional (7 inputs); redesign é visual, exige rebaseline de snapshot → beneficia de review | pendente |
+| PR8 | **polish** — wizard redesign completo (inputs em grupos por família + subtotal, barra Σ→100 warning/danger, "Completar com Caixa", rebalanceamento agrupado, `alocacaoClasses.ts` fonte única + dict py + teste de paridade, E2E @critical). Sem rebaseline de snapshot: o card S3 do relatório não é tocado e não importa a fonte nova | ✅ [#915](https://github.com/davidrobert/mathoms/pull/915) |
 | PR11 | 🔒 **owner-gated** — snapshot DB provando zero rows v1 vigentes → remove schema v1 + ativa `rule_alocacao_fora_alvo` (recalibra threshold + dogfood). Não executável sem owner | pendente |
 
 ## Pré-requisitos
