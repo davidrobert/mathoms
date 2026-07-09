@@ -17,7 +17,10 @@
  * (2026-04-27) e em [REPORT_PREMIUM_PLAN.md §17.9](../../../../../docs/REPORT_PREMIUM_PLAN.md).
  */
 export { AlocacaoAtualVsAlvoCard } from "./AlocacaoAtualVsAlvoCard";
-export type { AlocacaoAtualVsAlvoCardProps } from "./AlocacaoAtualVsAlvoCard";
+export type {
+  AlocacaoAtualVsAlvoCardProps,
+  AlocacaoDerived,
+} from "./AlocacaoAtualVsAlvoCard";
 // Sprint A16 L2 P5 (ADR-236 §D5) — Tributário PJ Cascata Fiscal.
 export { CascataFiscalCard } from "./CascataFiscalCard";
 export { ConsumoConscienteCard } from "./ConsumoConscienteCard";
