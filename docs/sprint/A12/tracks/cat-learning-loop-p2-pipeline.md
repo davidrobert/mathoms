@@ -19,7 +19,7 @@ tags:
 # Track Cat Learning Loop P2 — Pipeline E4
 
 > **Lane:** [[A12.cat-learning-loop]] · **Plano canônico:**
-> [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md) §P2
+> [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md) §P2
 > · **ADR canônica:** [[ADR-186]] §D5 (+ ressalvas data-eng/financial-planner
 > consolidadas no review da P1)
 > · **Branch prefix:** `agent/cat-learning-loop-p2-pipeline/*`
@@ -201,7 +201,7 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano: [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md) §P2
+- Plano: [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md) §P2
 - ADR canônica: [[ADR-186]] §D5 (contrato `CategorizationRulesV2`) +
   §D4 (conflito determinístico) + §D6 (counters)
 - Pré-req schema: PR #188 (P1), commit `2a36388`

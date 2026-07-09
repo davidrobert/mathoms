@@ -3,8 +3,7 @@ id: A12.cat-learning-loop
 type: lane
 title: "Categorization Learning Loop — promoção de override em regra"
 sprint: A12
-plan: PLAN-cat-learning-loop
-status: in_progress
+status: shipped
 aliases: ["A12.CAT_LEARNING_LOOP", "A12 cat learning loop"]
 priority: P1
 depends_on: ["[[A11.report-publication]]"]
@@ -15,7 +14,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a12
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/categorization
   - area/methodology
@@ -24,7 +23,8 @@ tags:
 # A12.cat-learning-loop — Categorization Learning Loop
 
 > Lane multi-fase. Plano canônico:
-> [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md).
+> [PLAN-cat-learning-loop](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md)
+> (arquivado 2026-07-08).
 > Decisão arquitetural: [[ADR-186]].
 >
 > **Pré-requisito externo:** [[A11.report-publication]] ([[ADR-187]])
@@ -91,7 +91,7 @@ Cada fase mergeia em `main` com:
 - Snapshot OpenAPI atualizado (se tocou endpoint).
 - Goldens E4 inalterados (workspace sem regras promovidas) em P2+.
 - Review do especialista designado (ver tabela em
-  [PLAN §Handoffs](../../../plan/CAT_LEARNING_LOOP/_README.md#handoffs-e-revisão)).
+  [PLAN §Handoffs](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md#handoffs-e-revisão)).
 
 ## Status atual (atualizado 2026-05-11)
 
@@ -102,5 +102,5 @@ Cada fase mergeia em `main` com:
 ☑ Housekeeping pós-P3 — PR #199 (`6649ce7`), handoff dogfood + PM checklist PR #200 (`e754791`), purge script single-tenant PR #201 (`6a682c3`).
 ☑ **Gate técnico dogfood** shipped — PR #202, commit `db3002e`, 2026-05-11. Verdict inicial **PASS 11/11**. Idempotente (seed fixo), reproduzível em ~10s.
 ☑ **P4 Frontend UI mínima** shipped — PR #203, commit `ff7fbf2`, 2026-05-11. Toast + modal + badge + heatmap mês fechado + feature flag. Escopo cortado vs plano canônico (sem side-panel/highlight-to-extract — V2).
-☐ **Gate dogfood humano** — próximo passo. Owner: CEO + product-manager. 7d wall-clock no workspace `5@5.com`. Critérios em [docs/reference/RUNBOOK.md §9](../../../reference/RUNBOOK.md). Kill switch: `feature_flags_service.set_flag(ws, "learning_loop_enabled", False)`.
-☐ Arquivamento — após gate humano passar, instrumentar KPIs `mathoms.categorization.*` em produção e mover plano para `docs/archive/CAT_LEARNING_LOOP-YYYY-MM-DD.md`.
+☑ **Gate dogfood humano** — **PASS por decisão do owner** (2026-07-02, audit-vault r4; confirmado pelo owner em 2026-07-08). Gate técnico 11/11 invariantes (PR #202) aceito como evidência; dogfood ritual de 7d dispensado. Reabrir via ações de falha do plano se uso real revelar `revert_rate` alto.
+☑ Arquivamento — KPIs `mathoms.categorization.*` instrumentados (`backend/app/services/categorization_learning_loop.py`); plano movido para [docs/archive/CAT_LEARNING_LOOP-2026-07-08.md](../../../archive/CAT_LEARNING_LOOP-2026-07-08.md) em 2026-07-08. **Lane concluída.**

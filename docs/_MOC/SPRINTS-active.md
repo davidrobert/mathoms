@@ -12,7 +12,30 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-_(nenhuma — próxima sprint a definir pelo owner)_
+### A12 — Categorization learning loop + post-A11 follow-up (`current`, retomada 2026-07-08)
+
+Retomada de `paused` (2026-05-20 → 2026-07-08, [[ADR-234]]) após o owner
+fechar as duas pendências: gate dogfood humano do cat-learning-loop
+ratificado **PASS** (decisão 2026-07-02 via audit-vault r4, confirmada
+2026-07-08; lane `shipped`) e decisão de **entregar [[A12.alocacao-v2]]
+dentro da A12** em vez de realocar como débito.
+
+**Cat-learning-loop concluída.** MVP V1 completo: P1-P4 mergeadas (PRs
+#188, #194, #195-#198, #203); gate técnico 11/11 invariantes (#202) aceito
+como evidência do gate humano. Sunset do CRUD legado `/config/categories` +
+drop do `monthly_cap` Float entregue (#573, ADR-283 §B). FU-1 + FU-2
+entregues, FU-3 absorvido e entregue como A15. V2.A/B/C ficam pós-tração
+(backlog, não débito).
+
+- **Trabalho residual (única lane aberta):** [[A12.alocacao-v2]] (P2,
+  ~5d eng) — a reconciliação de 2026-07-06 não a viu:
+  [ADR-141](../adr/141-goal-alocacao-alvo-schema-v2-7-classes-auvp.md)
+  consta `Decidido` pelo flip em lote #668, mas a migração runtime v1→v2
+  não shipou (`alocacaoBucketMapper` segue client-side). Flip `done`
+  quando a lane mergear.
+- **Plano:** [archive/CAT_LEARNING_LOOP-2026-07-08.md](../archive/CAT_LEARNING_LOOP-2026-07-08.md)
+  (arquivado 2026-07-08). ADRs: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md)
+  + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md).
 
 ## Sprint recém-fechada
 
@@ -237,14 +260,6 @@ PR editorial único com os 3 flips de frontmatter + regeneração de índices.
 - **Sub-lanes:** A11.report-publication ✅ shipped 2026-05-10 ([[ADR-187]] `Decidido`), A11.cat-overrides-ux ✅ entregue 2026-05-10, A11.competitive-pierre (Fase 1 ready).
 - **DOC_REORG** ✅ entregue em 2026-05-07 (separado da pausa). Arquivado em [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md), ADR canônica [ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md).
 - **Retomada:** flip `paused → current` quando decidido retomar.
-
-### A12 — Categorization learning loop + post-A11 follow-up (`paused` 2026-05-20)
-
-**Escopo concluído (reconciliação 2026-07-06).** Cat-learning-loop MVP V1 completo: P1-P4 mergeadas (PRs #188, #194, #195-#198, #203); gate dogfood **PASS por decisão do owner 2026-07-02** (gate técnico 11/11 invariantes como evidência); sunset do CRUD legado `/config/categories` + drop do `monthly_cap` Float entregue (#573, ADR-283 §B). FU-1 + FU-2 entregues, FU-3 absorvido e entregue como A15. V2.A/B/C ficam pós-tração (backlog, não débito).
-
-- **Trabalho residual:** nenhum — sprint é candidata a flip `paused → done` (decisão editorial do owner).
-- **Plano:** [plan/CAT_LEARNING_LOOP/_README.md](../plan/CAT_LEARNING_LOOP/_README.md) (`status: done`). ADRs: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md) + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md).
-
 
 ## Pickup — antes de pegar lane
 

@@ -14,7 +14,6 @@ aliases: ["PLANS-active", "plans-active"]
 |---|---|
 | [`PLAN-launch-trust`](../plan/LAUNCH_TRUST/_README.md) | Três frentes launch-blocking: confiabilidade do número (F1), produção (F2→platform-review), Parecer defensável (F3→planner-review). |
 | [`PLAN-platform-review`](../plan/PLATFORM_REVIEW/_README.md) | Revisão A11: segurança, dados e produção. |
-| [`PLAN-cat-learning-loop`](../plan/CAT_LEARNING_LOOP/_README.md) | Categorização A12: pipeline, backend e UX. |
 | [`PLAN-report-premium`](../plan/REPORT_PREMIUM/_README.md) | Superfície principal de produto. |
 | [`PLAN-llm-prompts-hardening`](../plan/LLM_PROMPTS_HARDENING/_README.md) | LGPD/ADR-090/telemetria nos 9 prompts LLM — A17/A18/A20. |
 | [`PLAN-data-lineage`](../plan/DATA_LINEAGE/_README.md) | Lineage fim-a-fim (forward+reverso) legível por LLM + fonte plugável (`SourceAdapter`/`SourceRef`) + extração limpa. Gate F0 abre 4 ADR (278-281) + emenda ADR-146; nenhuma lane abre antes de B1–B8. **Sprints A23–A27; corrente A26** (Ondas 0–5 shipped). |
