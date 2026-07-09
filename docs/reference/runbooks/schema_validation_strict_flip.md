@@ -4,7 +4,7 @@
 > enforcement strict real; follow-up de [[ADR-283]] decisão D.
 > **Afeta:** `config/pipeline.json → schema_validation`, hook pós-write de
 > `DBArtifactStore.write` ([[ADR-212]]), todos os stages mapeados em
-> `SCHEMA_BY_STAGE` (`backend/app/services/db_artifact_store.py`).
+> `SCHEMA_BY_STAGE` (`backend/app/services/storage/db_artifact_store.py`).
 > **Owner:** operador on-call; mudanças de pré-condição revisam com `data-engineer`.
 > **Rollback:** revert de 1 linha em `mode_overrides` (deploy de config normal).
 

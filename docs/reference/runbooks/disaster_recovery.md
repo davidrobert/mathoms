@@ -42,7 +42,7 @@ perda total disfarçada de sucesso.
 ## 1. Custódia da chave Fernet (pré-requisito absoluto)
 
 `MATHOMS_FERNET_KEY` cifra todo dado sensível em repouso ([[ADR-231]],
-`backend/app/services/vault.py`). **Sem ela, o backup é lixo cifrado.**
+`backend/app/services/security/vault.py`). **Sem ela, o backup é lixo cifrado.**
 
 - A chave vive **fora do host** de produção — 1Password vault Mathoms,
   nunca no mesmo disco que o backup.

@@ -28,7 +28,7 @@ Schedule failure abre Issue label `security` (job `open-issue-on-schedule-failur
 
 | Vuln | Onde | Tipo | SLO | Issue |
 |---|---|---|---|---|
-| `PYSEC-2025-183` | `PyJWT` (weak encryption, **DISPUTADA** pelo PyPA — key length é responsabilidade da app, não bug de código) | `pip-audit ignore-vulns` inline | Permanente — mitigado em runtime: `MATHOMS_SECRET_KEY` (32 bytes) via `dev/gen-secrets.sh --init-env`; PyJWT 2.12.1+ emite `InsecureKeyLengthWarning` em runtime. Reavaliar se upstream publicar patch. | n/a (disputada) |
+| `PYSEC-2025-183` | `PyJWT` (weak encryption, **DISPUTADA** pelo PyPA — key length é responsabilidade da app, não bug de código) | `pip-audit ignore-vulns` inline | Permanente — mitigado em runtime: `MATHOMS_SECRET_KEY` (32 bytes) via `scripts/gen-secrets.sh --init-env`; PyJWT 2.12.1+ emite `InsecureKeyLengthWarning` em runtime. Reavaliar se upstream publicar patch. | n/a (disputada) |
 | `GHSA-qx2v-qp2m-jg93` | `postcss` XSS via stringify, nested em `node_modules/next/node_modules/postcss@8.4.31` | aceito como moderate — não trip `--audit-level=high`. `npm audit fix --force` exigiria downgrade de next para 9.3.3 (breaking inaceitável). | MEDIUM best-effort — aguarda upstream next bundling postcss>=8.5.10 | [#354](https://github.com/davidrobert/mathoms/issues/354) |
 
 Resolvidas em 2026-05-20 (PRs [#356](https://github.com/davidrobert/mathoms/pull/356) + [#357](https://github.com/davidrobert/mathoms/pull/357)):

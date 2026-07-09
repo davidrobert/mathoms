@@ -10,7 +10,7 @@ fórmula ficar ambígua entre este doc, `methodology.md` e `scoring.json`,
 
 | Conceito | Fórmula | Onde no código |
 | --- | --- | --- |
-| Patrimônio bruto | `bruto = cat_1 + cat_2 + cat_3 + cat_4 + cat_5 + cat_6 + cat_7` (categorias em `definitions.md` §FÓRMULAS PATRIMONIAIS) | E5 JSON · `patrimonio.bruto` |
+| Patrimônio bruto | `bruto = cat_1 + cat_2 + cat_3 + cat_4 + cat_5 + cat_6 + cat_7` (spec canônica das 7 categorias no docstring de `PatrimonioCalculator`, rules-as-code · ADR-143) | E5 JSON · `patrimonio.bruto` |
 | Patrimônio líquido | `liquido = bruto − dividas` | E5 JSON · `patrimonio.liquido` |
 | Patrimônio investível (financeiro) | `investivel_financeiro = cat_3 + cat_4 + cat_5 + cat_6` — apenas ativos financeiros líquidos. **Métrica Perini/AUVP correta para `progresso_if`.** | E5 JSON · `patrimonio.investivel_financeiro` |
 | Patrimônio investível (total) | `investivel_total = bruto − cat_1 − cat_7` (exclui residência principal e veículos). Métrica retro-compat. | E5 JSON · `patrimonio.investivel_total` |
