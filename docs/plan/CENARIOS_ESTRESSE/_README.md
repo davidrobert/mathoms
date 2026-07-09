@@ -182,7 +182,7 @@ Regra: `report_layout.yaml` mantém APP_C declarada com flag `optional: true`; c
 
 **Excluídas do escopo de remoção (ficam):**
 - `_archive/` — manual histórico
-- `tests/_llm_stage_fixtures.py:80-82` ("Mariana Ferreira Campos") — fixture de teste, não produto
+- `tests/_llm_stage_fixtures.py:80-82` ("Mariana Andrade Silva") — fixture de teste, não produto
 - Workspace `members.json` real do owner — é dado pessoal, não código
 - `tests/test_e5n_builder_decomposition.py:76-215` (referencias `Green Card holder`, `cm_renda_nclex_brl`) — **avaliar PR2/3:** se mock do E5.N, atualizar para fixtures genéricas; se golden, manter
 

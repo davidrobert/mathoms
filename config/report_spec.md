@@ -320,7 +320,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
     {"codigo": "moradia", "emoji": "🏠", "categoria": "Moradia (sem financiamento)", "media_real": 2405, "teto": 2500, "pct_renda": 3.2, "observacao": "SABESP + Enel + condos do imóvel"},
     {"codigo": "alimentacao", "emoji": "🍽", "categoria": "Alimentação", "media_real": 4254, "teto": 4500, "pct_renda": 5.7, "observacao": "Super + restaurantes + delivery + padarias"},
     {"codigo": "saude", "emoji": "🏥", "categoria": "Saúde", "media_real": 4818, "teto": 3000, "pct_renda": 3.8, "observacao": "Normalizado (excl. Awada R$14,9k pontual)"},
-    {"codigo": "servicos_domesticos", "emoji": "🧹", "categoria": "Serviços domésticos", "media_real": 3854, "teto": 4000, "pct_renda": 5.1, "observacao": "Suecia + Eliane + Nathalia"},
+    {"codigo": "servicos_domesticos", "emoji": "🧹", "categoria": "Serviços domésticos", "media_real": 3854, "teto": 4000, "pct_renda": 5.1, "observacao": "Lavanderia + diarista + serviços"},
     {"codigo": "educacao", "emoji": "🎓", "categoria": "Educação", "media_real": 1463, "teto": 2000, "pct_renda": 2.5, "observacao": "Belt Academy + margem para cursos"},
     {"codigo": "transporte", "emoji": "🚗", "categoria": "Transporte", "media_real": 1563, "teto": 1700, "pct_renda": 2.2, "observacao": "Combustível + pedágio + estacionamento"},
     {"codigo": "lazer_viagens", "emoji": "✈", "categoria": "Lazer e viagens", "media_real": 7136, "teto": 3750, "pct_renda": 4.8, "observacao": "Teto R$ 45k/ano = R$ 3.750/mês"},

@@ -57,12 +57,12 @@ tags:
 
 ## Contexto
 
-Workspace founder dogfood, run `f66b519e-…`: o extractor E1.6 (`extract_irpf_full`) extraiu 10 IRPFs, sendo **1 com `Contribuinte.nome = "DAVID ROBERT CAMARGO DE CAMPOS LTDA"`** (n_bens=4). Razão social com sufixo `LTDA` indica **Pessoa Jurídica**, não Pessoa Física — IRPF é declaração de PF.
+Workspace founder dogfood, run `f66b519e-…`: o extractor E1.6 (`extract_irpf_full`) extraiu 10 IRPFs, sendo **1 com `Contribuinte.nome = "DAVID ROBERT MARTINS DE SILVA LTDA"`** (n_bens=4). Razão social com sufixo `LTDA` indica **Pessoa Jurídica**, não Pessoa Física — IRPF é declaração de PF.
 
 Causa raiz: o documento upstream provavelmente NÃO era um IRPF (possivelmente um balancete, contrato social, IRPJ via Lucro Real, declaração de imposto da PJ) mas foi classificado em E0 como `receitafederal_irpfdeclaracao`. O LLM extrator E1.6 então aceitou e emitiu um `Contribuinte` com nome de empresa.
 
 Downstream:
-- `MemberNameResolver` ([[ADR-243]]) trata como pessoa nova (slug `david_robert_camargo_de_campos_ltda`).
+- `MemberNameResolver` ([[ADR-243]]) trata como pessoa nova (slug `david_robert_martins_de_silva_ltda`).
 - `MemberNameResolver.resolve_by_cpf` ([[ADR-267]]) não casa porque `Contribuinte.cpf_masked` em IRPF de PJ é inválido (PJs têm CNPJ, não CPF).
 - `consolidate_from_itens` agrupa 4 itens dessa "pessoa" no patrimônio — contamina KPIs.
 
@@ -175,7 +175,7 @@ Não há regex perfeito; whitelist conservadora cobre 99%+ dos casos reais.
 
 **Positivas:**
 
-- "DAVID ROBERT CAMARGO DE CAMPOS LTDA" e similares são bloqueados antes de chegar ao consolidador.
+- "DAVID ROBERT MARTINS DE SILVA LTDA" e similares são bloqueados antes de chegar ao consolidador.
 - Membro identity (ADR-267) opera sobre PFs apenas — sem contaminação PJ.
 - Telemetria identifica documentos PJ mal-classificados em E0 (sinal para tunar classificador).
 
@@ -206,8 +206,8 @@ Console interno (ADR-116) pode ganhar card "Documentos sinalizados como PJ" no d
 
 ## Critério de aceite
 
-1. **PJ detectada, sem raise** — `detect_pj_suffix("DAVID ROBERT CAMARGO DE CAMPOS LTDA")` retorna `"LTDA"`; construir/`model_validate` o `IRPFFullOutput` com esse nome **nunca** levanta (a desserialização do artifact persistido sobrevive).
-2. **PF não detectada** — `detect_pj_suffix("DAVID ROBERT CAMARGO FERREIRA CAMPOS")` retorna `None`.
+1. **PJ detectada, sem raise** — `detect_pj_suffix("DAVID ROBERT MARTINS DE SILVA LTDA")` retorna `"LTDA"`; construir/`model_validate` o `IRPFFullOutput` com esse nome **nunca** levanta (a desserialização do artifact persistido sobrevive).
+2. **PF não detectada** — `detect_pj_suffix("DAVID ROBERT MARTINS ANDRADE SILVA")` retorna `None`.
 3. **E1.6 sinaliza** — stage com IRPF-PJ persiste o artifact com `needs_review=True` e **1 chamada LLM** (sem retry storm).
 4. **E5 sobrevive a PJ** — `partition_irpf_payloads` exclui o payload PJ + os schema-inválidos e mantém os válidos; o analyzer roda sem abortar mesmo com 1 IRPF-PJ no conjunto.
 5. **Padrões cobertos** — LTDA, S.A., S A, SA, EIRELI, MEI, ME, EPP, SOCIEDADE, ASSOCIAÇÃO, FUNDAÇÃO, COOPERATIVA. Cada um com test unitário.

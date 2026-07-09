@@ -50,8 +50,8 @@ Pydantic + endpoint + UI:
 **18 chaves restantes** são empilhadas em
 `PLANNING_CONTEXT.params_json.inputs` como **bag tipada-em-runtime**
 (sem schema, sem DTO, sem UI), seguindo
-[backend/app/scripts/seed_goals_full_ferreira_campos.py](../backend/app/scripts/seed_goals_full_ferreira_campos.py)
-— único caminho de seed. Hardcoded para `family_surname == "Ferreira Campos"`
+[backend/app/scripts/seed_goals_full_andrade_silva.py](../backend/app/scripts/seed_goals_full_andrade_silva.py)
+— único caminho de seed. Hardcoded para `family_surname == "Andrade Silva"`
 (precondição de tenancy violada).
 
 A leitura em pipeline ainda passa por:
@@ -72,12 +72,12 @@ A leitura em pipeline ainda passa por:
 "Top 5 Decisões de Impacto" — texto vem de
 [charts_narrator.py:382-393](../pipeline/domain/services/narrativas/charts_narrator.py:382),
 template f-string que concatena `decisoes[1:5]` da bag PLANNING_CONTEXT
-(5 strings hardcoded Ferreira-Campos).
+(5 strings hardcoded Andrade-Silva).
 
 ### 1.3 Por que importa
 
 - **Tenancy quebrada:** mesmo após F8.4, qualquer workspace novo (não
-  Ferreira-Campos) recebe seed copiando dados pessoais alheios; ou
+  Andrade-Silva) recebe seed copiando dados pessoais alheios; ou
   fica sem `decisoes_prioritarias`/`riscos_prioritarios` e o
   relatório quebra silenciosamente em narrativas que assumem essas
   chaves preenchidas.
@@ -254,17 +254,17 @@ Bubble chart S9 lê `Risk` aggregate ordenado por (`impact_level`,
 
 ### 3.5 Seed refactor — `seed_goals_workspace.py`
 
-[`seed_goals_full_ferreira_campos.py`](../backend/app/scripts/seed_goals_full_ferreira_campos.py)
+[`seed_goals_full_andrade_silva.py`](../backend/app/scripts/seed_goals_full_andrade_silva.py)
 renomeado, perdendo:
 
-- Hardcode `family_surname == "Ferreira Campos"` → recebe `--workspace-id`
+- Hardcode `family_surname == "Andrade Silva"` → recebe `--workspace-id`
   obrigatório.
 - Leitura de `_archive/.../goals.json` → seed agora é **declarativo no
   código**, não consome arquivo.
 - Bag `PLANNING_CONTEXT` → tipo deletado (sem chaves residuais a
   empilhar após cleanup).
 
-Cliente Ferreira-Campos perde os dados do `goals.json` arquivado que
+Cliente Andrade-Silva perde os dados do `goals.json` arquivado que
 não couberam em aggregates novos. Aceito — esses dados eram
 demonstração interna; produção usa wizard de onboarding.
 
@@ -328,7 +328,7 @@ quando UI de orçamento entrar no roadmap.
 ╠════════════════════════════════════════════════════════════════════╣
 ║  A10.1  Dead-data deletion + ADR-168 narrativas órfãs              ║
 ║          (scripts/e5n_narrativas.py, narradores E5.N,              ║
-║           seed_goals_full_ferreira_campos.py — chaves H)           ║
+║           seed_goals_full_andrade_silva.py — chaves H)           ║
 ║  A10.2  Rules-as-code consolidation (ADR-177)                      ║
 ║          (constantes em módulos + docstrings + frontend estático)  ║
 ║                                                                    ║
@@ -397,7 +397,7 @@ Sprint A10 só fecha quando **todos** os itens abaixo são verde:
   `horizon`, `priority`. Migration aplicada.
 - [ ] `Risk` model criado, repo + 6 use cases + endpoints + UI lista
   básica.
-- [ ] `seed_goals_full_ferreira_campos.py` renomeado para
+- [ ] `seed_goals_full_andrade_silva.py` renomeado para
   `seed_goals_workspace.py`, sem hardcode de surname.
 - [ ] `PLANNING_CONTEXT` Goal type **deletado** do `VALID_GOAL_TYPES`
   (sem chaves residuais após cleanup).
@@ -446,7 +446,7 @@ Sprint A10 só fecha quando **todos** os itens abaixo são verde:
 ### 7.1 Paridade de goldens E5/E5.N (alto)
 
 A10.5 troca fonte do narrador S10 de string hardcoded para query do
-Decision aggregate. Para Ferreira-Campos, ordenação editorial
+Decision aggregate. Para Andrade-Silva, ordenação editorial
 (`decisoes_prioritarias` legado) pode não bater 1:1 com ordenação
 por `impact_score DESC` do aggregate.
 
@@ -454,7 +454,7 @@ por `impact_score DESC` do aggregate.
 
 1. Migrator do A10.3 popula `impact_1y_brl_cents` a partir de
    `amount_brl_cents` ou heurística (aporte mensal × 12; seguro = cobertura).
-2. Backfill manual de `impact_1y_brl_cents` para Ferreira-Campos
+2. Backfill manual de `impact_1y_brl_cents` para Andrade-Silva
    replicando os valores de `top5_decisoes` legado.
 3. Se ainda divergir após backfill, **PR de reset de goldens dedicado
    em A10.5** com diff humanamente revisado.
@@ -503,15 +503,15 @@ valida shape ao entrar/sair do DB; campo no Workspace, não aggregate
 separado. Se virar feature plena, promove a aggregate em sprint
 futura.
 
-### 7.6 Seed Ferreira-Campos perde dados (baixo)
+### 7.6 Seed Andrade-Silva perde dados (baixo)
 
 Ao deletar `_archive/.../goals.json` e refatorar seed, dados
-demonstração de Ferreira-Campos somem.
+demonstração de Andrade-Silva somem.
 
 **Mitigação:** `seed_goals_workspace.py` declara fixtures de
 demonstração inline (apenas para `--demo` flag); produção real usa
 wizard de onboarding. PR final A10.8 inclui `seed_demo_workspace.py`
-opcional para reproduzir Ferreira-Campos como demo.
+opcional para reproduzir Andrade-Silva como demo.
 
 ---
 

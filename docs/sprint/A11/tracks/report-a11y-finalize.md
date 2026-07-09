@@ -126,7 +126,7 @@ não engenharia; arrastar pra esta lane mistura preocupações.
 - **Sem `any` em TypeScript.** Vale também para fixtures Playwright e
   helpers axe.
 - **Fixtures sintéticas.** Zero dado real (CPF, valores, nomes da
-  família Ferreira Campos do dataset atual). Use fakes em
+  família Andrade Silva do dataset atual). Use fakes em
   `frontend/tests/e2e/fixtures/reports/{small,medium,large}.json` —
   o slug `small/medium/large` reflete densidade de dados, não tamanho
   de tela.

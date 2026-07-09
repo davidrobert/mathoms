@@ -187,8 +187,8 @@ class TestLowConfidenceInserts:
         lookup = _new_lookup(titular_key="x", codigo_rfb="12", endereco_canonical=None)
         with sync_db() as session:
             resolver = DBPropertyIdentityResolver(session=session)
-            r1 = resolver.match_or_create(ws.id, lookup, 2023, "CASA Jabaquara")
-            r2 = resolver.match_or_create(ws.id, lookup, 2024, "CASA Jabaquara")
+            r1 = resolver.match_or_create(ws.id, lookup, 2023, "CASA Bairro Exemplo")
+            r2 = resolver.match_or_create(ws.id, lookup, 2024, "CASA Bairro Exemplo")
             # 2 rows distintas — backfill script ADR-225 §3 cuida pós-cutover.
             assert r1.property_id != r2.property_id
             assert r1.low_confidence is True and r2.low_confidence is True

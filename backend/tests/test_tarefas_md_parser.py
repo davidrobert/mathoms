@@ -118,7 +118,7 @@ def test_parse_preserves_ref():
     assert parsed[18].ref is None  # "—" vira None
 
 
-# ─── Teste contra o MD real de Ferreira Campos ──────────────────────────
+# ─── Teste contra o MD real de Andrade Silva ──────────────────────────
 
 
 def test_parse_real_tarefas_md_expected_counts():
@@ -128,7 +128,7 @@ def test_parse_real_tarefas_md_expected_counts():
     - Importante: tarefa #12 está em Concluídas; #1..#14 exceto #2/#12 são ativas
     """
     if not TAREFAS_MD_PATH.exists():
-        # Tarefas.md só existe no ambiente Ferreira Campos (é dados de usuário)
+        # Tarefas.md só existe no ambiente Andrade Silva (é dados de usuário)
         # No CI genérico o arquivo pode estar ausente — skip gracefully.
         import pytest
 

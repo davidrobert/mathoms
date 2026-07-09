@@ -4,7 +4,7 @@
 working tree. Backup preservado em `_archive/pre-f8-cutover-YYYY-MM-DD/`.
 
 Pré-requisitos (checados automaticamente):
-1. Workspace de Ferreira Campos tem Goal IF vigente
+1. Workspace de Andrade Silva tem Goal IF vigente
 2. Workspace tem ≥1 Task no DB
 3. Validate adapter parity = exit 0
 
@@ -34,7 +34,7 @@ from backend.app.models.task import Task
 from backend.app.models.workspace import Workspace
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-FAMILY_SURNAME_MATCH = "Ferreira Campos"
+FAMILY_SURNAME_MATCH = "Andrade Silva"
 
 # Arquivos a remover (Grupo A do ADR-075)
 FILES_TO_ARCHIVE = [
@@ -54,7 +54,7 @@ async def _check_preconditions() -> list[str]:
         stmt = select(Workspace).where(Workspace.family_surname == FAMILY_SURNAME_MATCH)
         ws = (await db.execute(stmt)).scalar_one_or_none()
         if not ws:
-            failures.append("Workspace Ferreira Campos não encontrada")
+            failures.append("Workspace Andrade Silva não encontrada")
             return failures
 
         # Goal IF vigente?

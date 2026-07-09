@@ -56,7 +56,7 @@ Mata o sintoma feio sem aguardar a expansão completa. Cliente que abre relatór
 - [x] Renderer `S9RiscosSection` lê `data_state` e renderiza `<EmptyStateCard/>` (CTA "Cadastrar riscos no Console").
 - [x] Goldens E5 (verificado em T06 — sem drift; ver §S9-T06).
 
-**Gate de saída T01:** ✅ ciclo Ferreira-Campos + workspace vazio rodam sem regressão de narrativa.
+**Gate de saída T01:** ✅ ciclo Andrade-Silva + workspace vazio rodam sem regressão de narrativa.
 
 ### S9-T02 — `Protection` aggregate + `ProtectionBundle` skeleton ✅ (mergeado neste PR)
 
@@ -163,7 +163,7 @@ Sem UI de cadastro, cliente não tem como popular `Protection` — auto-inferên
 
 Fecha o ciclo. **Achado-chave:** **zero drift** em goldens E5 — auditoria rigorosa confirmou que o pipeline JSON não mudou de shape em T01-T05; a expansão S9 é puramente aditiva no eixo API + UI.
 
-- [x] Ciclo Ferreira-Campos completo executado: `pytest tests/test_e{3,4,5}_golden_execution.py tests/test_e5n_golden_execution.py -q` → 9 passed (1 E3 + 3 E4 + 3 E5 + 2 E5.N + auxiliares).
+- [x] Ciclo Andrade-Silva completo executado: `pytest tests/test_e{3,4,5}_golden_execution.py tests/test_e5n_golden_execution.py -q` → 9 passed (1 E3 + 3 E4 + 3 E5 + 2 E5.N + auxiliares).
 - [x] Goldens em `tests/fixtures/pipeline_golden/` **não precisaram update** — auditados arquivo a arquivo via `grep "bubble_riscos\|riscos_top3\|has_us_exposure\|seguro_vida"`: zero matches em fixtures pipeline. Empty-state path do `_narrate_bubble_riscos` produzido por workspaces minimal goldens é o mesmo de T01 (já validado em [#212](https://github.com/davidrobert/mathoms/pull/212)).
 - [x] PDF do relatório: regressão de não-S9 = zero (suíte full pipeline `pytest tests -q` → 2093 passed + suíte backend `pytest backend/tests -q` → 1910 passed, ambas sem golden update).
 - [x] Schema E5 (`config/schemas/e5_analysis.schema.json`) — `bubble_riscos` permanece como `narrativas.charts.bubble_riscos` (`additionalProperties: true`). **Nenhum campo do bundle precisa ser adicionado ao schema E5**: `ProtectionBundle` é projeção `API → React` lida via `GET /workspaces/{id}/protection-bundle` (ADR-192 §D2), **não** materializada em `analise_financeira-5_analysis.json`. Não há contrato JSON entre pipeline e ProtectionBundle.
@@ -285,7 +285,7 @@ python3 dev/codegen_report_layout.py                                            
 - **R4 — Paridade visual com EXEMPLO_DE_RELATORIO.html.** Exemplo é raso na S9 (1 chart). Mitigação: **substituir o trecho S9 do exemplo** no mesmo PR de T04 — exemplo HTML é referência viva, não imutável. Update commitado junto com codegen.
 - **R5 — Goldens E5 mudando em vários PRs.** Reset rigoroso no T06 evita drift acumulado. Mitigação: T01-T05 **não** reset goldens; T06 reset único com diff justificado. **Resultado observado:** zero drift — a expansão S9 ficou contida em API+UI (bundle) e empty-state narrativa (T01); pipeline E5 JSON shape estável. `golden_drift_expected` nunca foi necessário porque a suíte permaneceu verde a cada onda.
 - **R6 — Alembic heads collision** com migrations paralelas. Mitigação: T02 abre primeiro, seedando head; T05 (se mexer em schema) rebase explícito antes do push.
-- **R7 — Cliente piloto vê regressão estética** em PDF de relatório enquanto T04 não fecha. Mitigação: T01 entrega empty state digno; ciclo Ferreira-Campos durante onda 2 usa flag de feature `MATHOMS_S9_EXPANSION` para mostrar versão antiga até T04 mergear.
+- **R7 — Cliente piloto vê regressão estética** em PDF de relatório enquanto T04 não fecha. Mitigação: T01 entrega empty state digno; ciclo Andrade-Silva durante onda 2 usa flag de feature `MATHOMS_S9_EXPANSION` para mostrar versão antiga até T04 mergear.
 
 ## Ligações
 

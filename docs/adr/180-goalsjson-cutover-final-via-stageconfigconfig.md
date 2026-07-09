@@ -52,7 +52,7 @@ class GoalsBundle(TypedDict):
 
 **Trade-offs explícitos:**
 
-- **Ganho:** débito ADR-077 fechado; `goals.json` físico nunca mais escrito; pipeline lê tipado; `GoalsBundle` evolui via PR (vs. dict shape implícito); tenancy correta (sem materialização de Ferreira-Campos para outros workspaces).
+- **Ganho:** débito ADR-077 fechado; `goals.json` físico nunca mais escrito; pipeline lê tipado; `GoalsBundle` evolui via PR (vs. dict shape implícito); tenancy correta (sem materialização de Andrade-Silva para outros workspaces).
 - **Custo:** lane A10.6 estimada em 1.5d; goldens E5/E5.N podem regredir byte-a-byte se `pipeline_adapter.build_goals_payload_sync` mudar shape de algum subdict (mitigação: PR de paridade rigorosa; PR de reset dedicado se mudança for justificada).
 - **Risco:** ordem de cleanup importa — A10.6 deve mergear depois de A10.1+A10.2+A10.3+A10.4 para o bundle não ter chaves residuais ou ausentes.
 
@@ -65,7 +65,7 @@ class GoalsBundle(TypedDict):
 - [ ] `grep -r "goals.json" backend/app/tasks/` retorna zero hits.
 - [ ] `dev/check_pipeline_boundaries.py` verde (pipeline não importa `fastapi`/`celery`/`sqlalchemy`).
 - [ ] Novo gate empírico `tests/test_e5_pipeline_no_filesystem_goals.py` afirma que `e5_analyze` + `e5n_narrativas` rodam sem `goals.json` em filesystem.
-- [ ] Goldens E5/E5.N verdes byte-a-byte em ciclo Ferreira-Campos pós-cutover (PR de reset dedicado se diff justificado).
+- [ ] Goldens E5/E5.N verdes byte-a-byte em ciclo Andrade-Silva pós-cutover (PR de reset dedicado se diff justificado).
 - [ ] ADR-077 §"Contrato de cutover" — checkbox "100% dos campos lidos pelo E5/E5.N/E6" marcado ✅ quando ADR-180 vira `Decidido`.
 - [ ] **Cleanup de dados** — rows `Goal` órfãs (`type ∉ VALID_GOAL_TYPES`, ex.: `PLANNING_CONTEXT`) com `effective_to IS NULL` em workspaces seedados pré-A10.6 fechadas via migration `d2c3d4e5f6a7_adr180_close_orphan_goal_types` (follow-up de [commit 0053d15](https://github.com/davidrobert/mathoms/commit/0053d15)). Filtros defensivos em `premissas_snapshot.build_premissas_snapshot_sync` e `MetasVigentesCard` mitigam até a migration rodar em prod.
 

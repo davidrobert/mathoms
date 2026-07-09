@@ -168,7 +168,7 @@ class TestRoundTripFamilyMembers:
         - serializer NÃO inclui `familia` no dict (preserva o que estiver no
           arquivo global copiado)
         - quando workspace TEM members mas SEM surname, a chave `familia` NÃO
-          aparece no resultado (caso contrário, vazaria `"Ferreira Campos"` do
+          aparece no resultado (caso contrário, vazaria `"Andrade Silva"` do
           founder via fallback global).
         """
         # Workspace SEM family_surname (default)

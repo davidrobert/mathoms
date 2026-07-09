@@ -17,64 +17,62 @@ class TestNormalizeTitularKey:
     def test_exact_key_match_returns_canonical(self):
         config = _make_config(
             FamilyMemberRecord(
-                key="mariana_ferreira_campos",
-                full_name="Mariana Ferreira Campos",
+                key="mariana_andrade_silva",
+                full_name="Mariana Andrade Silva",
                 short_name="Mariana",
                 role="conjuge",
             )
         )
-        assert normalize_titular_key("mariana_ferreira_campos", config) == "mariana_ferreira_campos"
+        assert normalize_titular_key("mariana_andrade_silva", config) == "mariana_andrade_silva"
 
     def test_real_case_mariana_alias_with_birth_name_token(self):
-        """Caso real dogfood: LLM extraiu `mariana_teixeira_ferreira`
-        (nome de nascimento) em IRPF antigo, `mariana_ferreira_campos`
+        """Caso real dogfood: LLM extraiu `mariana_ribeiro_andrade`
+        (nome de nascimento) em IRPF antigo, `mariana_andrade_silva`
         (nome casada) em IRPF novo. Workspace canônico = nome casada."""
         config = _make_config(
             FamilyMemberRecord(
-                key="mariana_ferreira_campos",
-                full_name="Mariana Ferreira Campos",
+                key="mariana_andrade_silva",
+                full_name="Mariana Andrade Silva",
                 short_name="Mariana",
                 role="conjuge",
-                extra={"nome_nascimento": "Mariana Teixeira Ferreira"},
+                extra={"nome_nascimento": "Mariana Ribeiro Andrade"},
             )
         )
-        # `ferreira` é token comum entre raw e canonical
-        result = normalize_titular_key("mariana_teixeira_ferreira", config)
-        assert result == "mariana_ferreira_campos"
+        # `andrade` é token comum entre raw e canonical
+        result = normalize_titular_key("mariana_ribeiro_andrade", config)
+        assert result == "mariana_andrade_silva"
 
     def test_real_case_david_full_name_vs_short_key(self):
-        """Caso real dogfood: LLM extraiu `david_robert_camargo_de_campos`
+        """Caso real dogfood: LLM extraiu `david_robert_martins_de_silva`
         (nome completo) em IRPF antigo, `david_robert` em IRPF novo."""
         config = _make_config(
             FamilyMemberRecord(
-                key="david_robert_camargo_ferreira_campos",
-                full_name="David Robert Camargo Ferreira Campos",
+                key="david_robert_martins_andrade_silva",
+                full_name="David Robert Martins Andrade Silva",
                 short_name="David",
                 role="titular",
             )
         )
-        # 4 tokens em comum (david, robert, camargo, campos)
-        result = normalize_titular_key("david_robert_camargo_de_campos", config)
-        assert result == "david_robert_camargo_ferreira_campos"
+        # 4 tokens em comum (david, robert, martins, silva)
+        result = normalize_titular_key("david_robert_martins_de_silva", config)
+        assert result == "david_robert_martins_andrade_silva"
 
     def test_short_key_to_long_canonical(self):
         config = _make_config(
             FamilyMemberRecord(
-                key="david_robert_camargo_ferreira_campos",
-                full_name="David Robert Camargo Ferreira Campos",
+                key="david_robert_martins_andrade_silva",
+                full_name="David Robert Martins Andrade Silva",
                 short_name="David",
                 role="titular",
             )
         )
-        assert (
-            normalize_titular_key("david_robert", config) == "david_robert_camargo_ferreira_campos"
-        )
+        assert normalize_titular_key("david_robert", config) == "david_robert_martins_andrade_silva"
 
     def test_no_common_tokens_returns_raw(self):
         config = _make_config(
             FamilyMemberRecord(
-                key="mariana_ferreira",
-                full_name="Mariana Ferreira",
+                key="mariana_souza",
+                full_name="Mariana Souza",
                 short_name="Mariana",
                 role="conjuge",
             )
@@ -86,14 +84,14 @@ class TestNormalizeTitularKey:
         config = _make_config(
             FamilyMemberRecord(
                 key="mariana",
-                full_name="Mariana Ferreira",
+                full_name="Mariana Souza",
                 short_name="Mariana",
                 role="conjuge",
-                extra={"titular_key_aliases": ["mariana_teixeira"]},
+                extra={"titular_key_aliases": ["mariana_ribeiro"]},
             )
         )
         # Match via alias declarado
-        assert normalize_titular_key("mariana_teixeira", config) == "mariana"
+        assert normalize_titular_key("mariana_ribeiro", config) == "mariana"
 
     def test_picks_best_score_when_multiple_members_partial_match(self):
         config = _make_config(
@@ -104,16 +102,16 @@ class TestNormalizeTitularKey:
                 role="titular",
             ),
             FamilyMemberRecord(
-                key="mariana_ferreira",
-                full_name="Mariana Ferreira",
+                key="mariana_souza",
+                full_name="Mariana Souza",
                 short_name="Mariana",
                 role="conjuge",
             ),
         )
         # Apenas "david" casa
-        assert normalize_titular_key("david_camargo", config) == "david_robert"
-        # Apenas "ferreira" casa
-        assert normalize_titular_key("mariana_teixeira_ferreira", config) == "mariana_ferreira"
+        assert normalize_titular_key("david_martins", config) == "david_robert"
+        # Apenas "mariana" casa
+        assert normalize_titular_key("mariana_ribeiro_andrade", config) == "mariana_souza"
 
     def test_empty_raw_returns_empty(self):
         assert normalize_titular_key("", _make_config()) == ""

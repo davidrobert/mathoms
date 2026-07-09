@@ -68,7 +68,7 @@
   `(impact_level, probability)` ascendente espelhando `RiskRepository`
   (ADR-178). Filtros: `horizon=short_6_12m, status IN (Decidido,
   Pendente)` para top 5; nenhum filtro para riscos. Limites: 5 e 8.
-  Seed Ferreira-Campos para de despejar as 3 chaves legadas em
+  Seed Andrade-Silva para de despejar as 3 chaves legadas em
   `PLANNING_CONTEXT` (ficam na projeção via DB). Goldens E5/E5.N
   verdes byte-a-byte — fallback empty list preserva paridade quando
   workspace não tem aggregates. 14 testes novos em
@@ -78,12 +78,12 @@
 ### Sprint A10 (Wave 2)
 
 - **A10.7 ✅** Seed refactor + `Workspace.business_profile_json` (Sprint A10.7).
-  `seed_goals_full_ferreira_campos.py` → `seed_goals_workspace.py`
-  (renomeado via `git mv`; sem hardcode `family_surname == "Ferreira Campos"`;
+  `seed_goals_full_andrade_silva.py` → `seed_goals_workspace.py`
+  (renomeado via `git mv`; sem hardcode `family_surname == "Andrade Silva"`;
   `--workspace-id` obrigatório; sem leitura de `_archive/.../goals.json` —
   fixtures declarativas inline). Modo `--demo` opcional carrega valores
   fictícios herdados do `goals.json` arquivado para reproduzir ambiente
-  histórico Ferreira-Campos. `PLANNING_CONTEXT` continua em
+  histórico Andrade-Silva. `PLANNING_CONTEXT` continua em
   `VALID_GOAL_TYPES` até A10.6/ADR-180 deletar a bag inteira via
   `GoalsBundle` — esta lane apenas para de criar registros do tipo.
 
@@ -202,7 +202,7 @@
   Cleanup débito do ADR-168 (Modo USA removido em A8.4 PR4) cujas chaves
   continuavam sendo populadas pelo seed e consumidas pelas narrativas
   E5.N — código zumbi.
-  - **Seed (`backend/app/scripts/seed_goals_full_ferreira_campos.py`):**
+  - **Seed (`backend/app/scripts/seed_goals_full_andrade_silva.py`):**
     6 chaves H adicionadas a `_SKIP_SECTIONS` (filtradas do
     PLANNING_CONTEXT no cutover): `fase_f1f2`, `mariana_eua`,
     `nclex_roadmap`, `nclex_estimativa_meses`, `investimentos_blocos`,
@@ -1291,7 +1291,7 @@ Plano canônico: [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_J
     15 anchor links broken corrigidos (ToC: D18/D19/D30/D75/D29-TQ/D30-WS/D55;
     cross-refs internas: ADR-082, ADR-106 ×2, ADR-115 ×2, ADR-073, ADR-141).
   - **F2** [`d1d2531`](https://github.com/davidrobert/mathoms/commit/d1d2531):
-    drift de conteúdo. PII "Ferreira-Campos" removida em prosa (4 lugares;
+    drift de conteúdo. PII "Andrade-Silva" removida em prosa (4 lugares;
     3 mantidas em refs a paths reais de scripts). Path obsoleto
     `config/definitions.md` substituído por nota cruzada para ADR-143.
     Banner pós-ADR-129 em ADR-078.
@@ -6605,8 +6605,8 @@ Frontend:
 
 **Backend — Seeds + Scripts:**
 - `seed_if_goal_example.py` (paridade 7.200.000)
-- `seed_tasks_ferreira_campos.py` (43 tasks, dep #19→#18, status done #2/#12)
-- `seed_goals_full_ferreira_campos.py` (5 Goal types cobrindo 100% do goals.json)
+- `seed_tasks_andrade_silva.py` (43 tasks, dep #19→#18, status done #2/#12)
+- `seed_goals_full_andrade_silva.py` (5 Goal types cobrindo 100% do goals.json)
 - `validate_adapter_parity.py` (diff recursivo com tolerância de metadata)
 - `cutover_execute.py` (check pré-condições + backup _archive/ + remoção)
 

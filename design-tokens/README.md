@@ -1,4 +1,4 @@
-# Design Tokens — Ferreira Campos Editorial
+# Design Tokens — Mathoms Editorial
 
 Fonte única de tokens de design do produto Mathoms AI. Ver **ADR-076**, **ADR-117** (report premium) e **ADR-121** (typography configurável) em [../docs/DECISIONS.md](../docs/DECISIONS.md).
 

@@ -357,7 +357,7 @@ def _output_to_e2_json(output, *, member_resolver=None) -> dict:
     """Convert LLMExtractOutput to E2-compatible JSON format.
 
     ``member_resolver`` (ADR-243): se fornecido, normaliza ``member_key``
-    emitido pelo LLM (``"david_robert"``, ``"D R Camargo de Campos"``) para
+    emitido pelo LLM (``"david_robert"``, ``"D R Martins de Silva"``) para
     a chave canônica do workspace (``family_members.key``). Sem ele,
     membro fica como veio do LLM (back-compat para chamadas sem contexto
     de family).

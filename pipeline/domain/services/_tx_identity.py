@@ -21,10 +21,10 @@ _WHITESPACE_RE = re.compile(r"\s+")
 # após ` — ` (em-dash com espaços) ou ` - ` (hífen com espaços), preservando
 # descrições legítimas com em-dash no meio (ex.: "Aluguel apto 12").
 #
-# Iteração 3 (2026-05-24, ADR-255 it.3): observação em prod do report
-# b042c210 mostrou 3 novos padrões não-cobertos pela it.2:
-# (a) CPF/CNPJ + nome remetente em TED inbound (` — 27788253634-JAIR DE SOUZA`)
-# (b) Placa Mercosul/legacy + local em C6TAG (` — GDK6A27-AEROPORTO DE...`)
+# Iteração 3 (2026-05-24, ADR-255 it.3): observação em prod de report de
+# exemplo mostrou 3 novos padrões não-cobertos pela it.2:
+# (a) CPF/CNPJ + nome remetente em TED inbound (` — 12345678909-FULANO DE TAL`)
+# (b) Placa Mercosul/legacy + local em C6TAG (` — ABC1D23-AEROPORTO DE...`)
 # (c) Descritor cliente livre tipo `— Salários PJ` extendido (` — mentoria 4Valor unitário...`)
 # (a) e (b) têm pattern estável; (c) ficou fora (texto livre cliente é frágil).
 _ROUTING_SUFFIX_RE = re.compile(

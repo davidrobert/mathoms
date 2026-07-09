@@ -19,8 +19,8 @@ from typing import Iterable
 from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
 # Threshold padrão para divergência de nomes (Levenshtein normalizado).
-# 0.3 = ~30% dos caracteres diferentes. Ex.: "FERREIRA CAMPOS" vs "DE CAMPOS"
-# em "DAVID ROBERT CAMARGO {X} CAMPOS" → distance ~0.19, abaixo do threshold.
+# 0.3 = ~30% dos caracteres diferentes. Ex.: "ANDRADE SILVA" vs "DE CAMPOS"
+# em "DAVID ROBERT MARTINS {X} CAMPOS" → distance ~0.19, abaixo do threshold.
 _DEFAULT_NAME_DIVERGENCE_THRESHOLD = 0.3
 
 # Cap de bens no score: IRPF pré-preenchida traz bens herdados; sem cap,

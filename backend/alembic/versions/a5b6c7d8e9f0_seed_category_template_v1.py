@@ -421,7 +421,6 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
         "SONEDA PERFUMARIA",
         "ITRCCABELEIREIROS",
         "LOJA OFICIAL",
-        "TATIANA GIORDANO",
         "VIVARA",
         "CHILLI BEANS",
         "THENORTHFACE",
@@ -571,7 +570,6 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
         "DUFRITAL",
         "VE.LA. S.P.A",
         "ANTICO CAFFE",
-        "DANIEL MURANO",
         "TRATTORIA AL PANTHEON",
         "ARBOGEL SAS",
         "FABBRICA DI SAN PIE",
@@ -632,12 +630,9 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
         "DAISO BRASIL",
         "SILETRICA",
         "ELETTRICA",
-        "ELIAS PAIVA",
-        "REINALDO MARTINS",
-        "INACIO JOSE MACEDO",
-        "INACIO JOSE",
-        "MATEUS SOUZA ARCANJO",
-        "MANOEL MESSIAS",
+        # A34.l24 (ADR-319): prestadores PF nomeados removidos (PII de
+        # terceiro); learning loop re-treina o workspace real (ADR-186).
+        "PRESTADOR REFORMA EXEMPLO",
         "LEROY MERLIN",
         "VESALTEC",
     ],
@@ -657,8 +652,9 @@ _EXPENSE_KEYWORDS: dict[str, list[str]] = {
     ],
     "servicos_domesticos": [
         "SUECIA",
-        "ELIANE",
-        "ANDREA S LAVANDERIA",
+        # A34.l24 (ADR-319): prestador PF nomeado + micro-negócio pessoal
+        # removidos (PII de terceiro); learning loop re-treina (ADR-186).
+        "PRESTADOR DOMESTICO EXEMPLO",
         "PET DOGSTORE",
         "JIM COM* LAVARAPIDO",
         "JIM.COM* LAVARAPIDO",

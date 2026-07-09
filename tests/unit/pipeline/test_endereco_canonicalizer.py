@@ -91,11 +91,11 @@ class TestRegressionB1RealDescriptions:
     def test_casa_modelo_falls_back_to_matricula(self):
         """Pós ADR-225: descrição sem via+numero mas com matrícula → fallback cascade."""
         descricao = (
-            "CASA - MODELO 2707, QUADRA 33 LOTE 27, JABAQUARA, "
+            "CASA - MODELO 2707, QUADRA 33 LOTE 27, BAIRRO EXEMPLO, "
             "SAO PAULO/SP - Adquirido de CPF 000.000.000-00 em 12/01/2023 - "
-            "Valor R$ 80.000,00 - Matrícula 20462"
+            "Valor R$ 80.000,00 - Matrícula 999999"
         )
-        assert canonicalize(descricao) == "mat:20462"
+        assert canonicalize(descricao) == "mat:999999"
 
     def test_cond_exemplo_b_logradouro_after_currency_blob(self):
         """Descrição com R$ + Logradouro: explícito → canonical da via real."""
@@ -164,13 +164,13 @@ class TestExtractMatricula:
         assert _extract_matricula("Apartamento sem matrícula identificável") is None
 
     def test_real_case_5at5_jabaquara(self):
-        """Caso real 5@5.com: CASA - MODELO, Matrícula 20462."""
+        """Caso real 5@5.com: CASA - MODELO, Matrícula 999999."""
         descricao = (
-            "CASA - MODELO 2707, QUADRA 33 LOTE 27, JABAQUARA, "
+            "CASA - MODELO 2707, QUADRA 33 LOTE 27, BAIRRO EXEMPLO, "
             "SAO PAULO/SP - Adquirido de CPF 000.000.000-00 em 12/01/2023 - "
-            "Valor R$ 80.000,00 - Matrícula 20462"
+            "Valor R$ 80.000,00 - Matrícula 999999"
         )
-        assert _extract_matricula(descricao) == "20462"
+        assert _extract_matricula(descricao) == "999999"
 
     def test_case_insensitive(self):
         assert _extract_matricula("MATRICULA 12345") == "12345"
@@ -218,9 +218,10 @@ class TestCanonicalizeCascade:
     def test_matricula_fallback_when_no_via_numero(self):
         """CASE A do problema 5@5.com: descrição sem via+numero mas com matrícula."""
         descricao = (
-            "CASA - MODELO 2707, QUADRA 33 LOTE 27, JABAQUARA, " "SAO PAULO/SP - Matrícula 20462"
+            "CASA - MODELO 2707, QUADRA 33 LOTE 27, BAIRRO EXEMPLO, "
+            "SAO PAULO/SP - Matrícula 999999"
         )
-        assert canonicalize(descricao) == "mat:20462"
+        assert canonicalize(descricao) == "mat:999999"
 
     def test_matricula_plain(self):
         """Matrícula sem outras informações → namespace puro."""
@@ -245,9 +246,9 @@ class TestCanonicalizeCascade:
 
     def test_idempotent_across_years_matricula(self):
         """Mesmo imóvel descrito 2× em IRPFs distintos sem via+numero, com matrícula → mesmo canonical."""
-        a = canonicalize("CASA Jabaquara - SAO PAULO/SP - Matrícula 20462")
-        b = canonicalize("Casa - Modelo 2707, JABAQUARA, SP - Matrícula 20.462")
-        assert a == b == "mat:20462"
+        a = canonicalize("CASA Bairro Exemplo - SAO PAULO/SP - Matrícula 999999")
+        b = canonicalize("Casa - Modelo 2707, BAIRRO EXEMPLO, SP - Matrícula 999.999")
+        assert a == b == "mat:999999"
 
     def test_real_case_5at5_cond_exemplo_b_via_wins(self):
         """Quando descrição rica tem AVENIDA + matrícula + IPTU, via+numero vence."""

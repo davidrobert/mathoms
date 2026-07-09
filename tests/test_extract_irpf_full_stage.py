@@ -236,7 +236,7 @@ class TestExtractIrpfFullPjContribuinte:
         ctx = make_llm_ctx(tmp_path)
         _seed_irpf_pdf(tmp_path, "irpfdeclaracaopj2024.pdf")
         fixture = _load_fixture("completo")
-        fixture["contribuinte"]["nome"] = "David Robert Camargo de Campos LTDA"
+        fixture["contribuinte"]["nome"] = "David Robert Martins de Silva LTDA"
         fake = FakeStructuredLLMClient(output=IRPFFullOutput.model_validate(fixture))
         return ctx, fake
 

@@ -38,7 +38,7 @@
 ║          5 riscos universais (morte/invalidez/doença/desemprego/    ║
 ║          longevidade)                                              ║
 ║  A10.7  Seed refactor + Workspace.business_profile_json            ║
-║          seed_goals_workspace.py (sem Ferreira hardcode)           ║
+║          seed_goals_workspace.py (sem família hardcode)            ║
 ║          tributario → JSON em Workspace                            ║
 ║                                                                    ║
 ║  Hotspot: backend/alembic/versions/ — 3 migrations simultâneas     ║
@@ -80,7 +80,7 @@
 
 - **Pickup checks idênticos** ao Sprint A6/A7: `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`. Lane com prefix `a10-*` em uso = pegue outra.
 - **Cross-lane hotspots esperados:**
-  - **Onda 1**: `backend/app/scripts/seed_goals_full_ferreira_campos.py` (A10.1 deleta chaves H; A10.2 migra rules. Sequenciar: A10.1 mergeia primeiro, A10.2 rebase).
+  - **Onda 1**: `backend/app/scripts/seed_goals_full_andrade_silva.py` (A10.1 deleta chaves H; A10.2 migra rules. Sequenciar: A10.1 mergeia primeiro, A10.2 rebase).
   - **Onda 2**: 3 migrations Alembic simultâneas (A10.3 + A10.4 + A10.7). Solução: merge migration explícita no fim, ou serializar a ordem dentro da onda.
   - **Onda 3**: `pipeline/domain/services/narrativas/charts_narrator.py` (A10.5 reescreve narrador `top5_decisoes`; A10.6 troca leitura de goals_cfg → bundle). Sequenciar A10.5 → A10.6 dentro da onda 3.
 - **CTO supervision** segue padrão A7 (4 gates G1/G2/G3/G4).

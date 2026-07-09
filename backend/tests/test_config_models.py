@@ -52,7 +52,7 @@ class TestFamilyMemberModel:
         member = FamilyMember(
             workspace_id=workspace.id,
             key="david",
-            full_name="David Robert Camargo",
+            full_name="David Robert Martins",
             short_name="David",
             cpf_encrypted="encrypted_value_here",
             birth_date=date(1981, 9, 5),
@@ -65,7 +65,7 @@ class TestFamilyMemberModel:
 
         result = await db.execute(select(FamilyMember).where(FamilyMember.key == "david"))
         saved = result.scalar_one()
-        assert saved.full_name == "David Robert Camargo"
+        assert saved.full_name == "David Robert Martins"
         assert saved.role == "titular"
         assert saved.extra == {"profissao": "CTO"}
         assert saved.birth_date == date(1981, 9, 5)
@@ -75,7 +75,7 @@ class TestFamilyMemberModel:
         member = FamilyMember(
             workspace_id=workspace.id,
             key="mariana",
-            full_name="Mariana Ferreira Campos",
+            full_name="Mariana Andrade Silva",
             short_name="Mariana",
             role="conjuge",
         )

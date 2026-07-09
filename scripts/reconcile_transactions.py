@@ -385,7 +385,7 @@ _DEDUP_PIX_CONCAT_RE = re.compile(
 
 # v5.7.2: C6 Bank CSV concatenation — the CSV export sometimes merges the description
 # of the NEXT transaction onto the current one (no separator). Common patterns:
-#   "Pix enviado para RUBENS DE CAMPOS C6TAG ESTACIONAMENTO"
+#   "Pix enviado para FULANO DE TAL C6TAG ESTACIONAMENTO"
 #   "JUROS CHEQUE ESP C6TAG ESTACIONAMENTO"
 #   "C6TAG ESTACIONAMENTO C6TAG PEDAGIO"
 #   "Pix enviado para X Belt Academy"

@@ -58,10 +58,10 @@ describe("<TransferConfigEditor /> @ADR-133b", () => {
     expect(saveBtn).toBeDisabled();
 
     const input = screen.getByTestId("recipients-new-input");
-    await user.type(input, "MARIANA TEIXEIRA");
+    await user.type(input, "MARIANA RIBEIRO");
     await user.click(screen.getByTestId("recipients-add"));
 
-    expect(screen.getByDisplayValue("MARIANA TEIXEIRA")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("MARIANA RIBEIRO")).toBeInTheDocument();
     expect(saveBtn).toBeEnabled();
   });
 
@@ -112,7 +112,7 @@ describe("<TransferConfigEditor /> @ADR-133b", () => {
       http.get(`${API}/workspaces/:wsId/config/transfer`, () =>
         HttpResponse.json({
           ...baseConfig,
-          recipients: ["DAVID ROBERT", "MARIANA TEIXEIRA"],
+          recipients: ["DAVID ROBERT", "MARIANA RIBEIRO"],
         }),
       ),
     );
@@ -120,11 +120,11 @@ describe("<TransferConfigEditor /> @ADR-133b", () => {
     render(<TransferConfigEditor />);
 
     await screen.findByDisplayValue("DAVID ROBERT");
-    expect(screen.getByDisplayValue("MARIANA TEIXEIRA")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("MARIANA RIBEIRO")).toBeInTheDocument();
 
     await user.click(screen.getByTestId("recipients-remove-1"));
 
-    expect(screen.queryByDisplayValue("MARIANA TEIXEIRA")).not.toBeInTheDocument();
+    expect(screen.queryByDisplayValue("MARIANA RIBEIRO")).not.toBeInTheDocument();
     expect(screen.getByDisplayValue("DAVID ROBERT")).toBeInTheDocument();
   });
 

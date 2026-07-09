@@ -12,7 +12,7 @@ Cria a tabela `goals` com:
 - `effective_from` / `effective_to` (versionamento temporal; `to IS NULL` = vigente)
 - `is_template` (flag para seed de novos workspaces — força wizard)
 
-Não faz backfill automático. Seeds específicos (Ferreira Campos +
+Não faz backfill automático. Seeds específicos (Andrade Silva +
 template para novos workspaces) rodam por scripts em
 `backend/app/scripts/seed_*.py`.
 """

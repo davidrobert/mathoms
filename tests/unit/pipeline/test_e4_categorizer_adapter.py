@@ -113,7 +113,7 @@ class TestLoaders:
             {
                 "tipo_documento": "investment_report",
                 "instituicao": "btgpactual",
-                "membro": "mariana_teixeira_ferreira",
+                "membro": "mariana_ribeiro_andrade",
                 "investimentos": [
                     {
                         "tipo": "cdb",
@@ -147,7 +147,7 @@ class TestLoaders:
     def test_load_investment_positions_accepts_informe_rendimentos(self):
         """ADR-244 — informe de rendimentos (snapshot 31/12) também é posição.
 
-        Regressão real: workspace `Campos`, informe IR Itaú trouxe
+        Regressão real: workspace `Exemplo`, informe IR Itaú trouxe
         ``tipo_documento="informe_rendimentos"`` + R$ 290k de CDB no campo
         ``investimentos``. O filter anterior aceitava só ``investment_report``
         → posição descartada → card "Investimentos David Robert" zerado.
@@ -159,7 +159,7 @@ class TestLoaders:
             {
                 "tipo_documento": "informe_rendimentos",
                 "instituicao": "itau",
-                "membro": "david_robert_camargo_ferreira_campos",
+                "membro": "david_robert_martins_andrade_silva",
                 "investimentos": [
                     {
                         "tipo": "cdb",

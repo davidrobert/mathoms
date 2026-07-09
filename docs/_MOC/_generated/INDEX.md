@@ -727,7 +727,8 @@
 | A34.l21 | lane | planned | A34 | Triagem T1 de PRs/issues/CI logs sensíveis | `sprint/A34/lanes/A34-l21-triage-sensitive-metadata.md` |
 | A34.l22 | lane | planned | A34 | Flip para público + verificação pós-flip (track) | `sprint/A34/lanes/A34-l22-flip-repo-public-and-verify.md` |
 | A34.l23 | lane | planned | A34 | Docs EN de apresentação + cross-link PLAN-i18n | `sprint/A34/lanes/A34-l23-reconcile-i18n-docs-en.md` |
-| A34.l24 | lane | planned | A34 | Varredura da PII residual sub-contada pelo audit (código/testes/fixtures/schema) | `sprint/A34/lanes/A34-l24-residual-pii-surface.md` |
+| A34.l24 | lane | in_progress | A34 | Varredura da PII residual sub-contada pelo audit (código/testes/fixtures/schema) | `sprint/A34/lanes/A34-l24-residual-pii-surface.md` |
+| A34.l25 | lane | planned | A34 | Normalização repo-wide dos primeiros nomes de fixture (David/Mariana → sintéticos) | `sprint/A34/lanes/A34-l25-normalize-fixture-given-names.md` |
 | A34.l3 | lane | planned | A34 | Confirmação operacional: rotação Fernet executada em prod | `sprint/A34/lanes/A34-l3-verify-fernet-rotation.md` |
 | A34.l4 | lane | shipped | A34 | Estender lint_no_real_pii a docs/ + padrões de domínio | `sprint/A34/lanes/A34-l4-extend-pii-lint-docs-domain.md` |
 | A34.l5 | lane | shipped | A34 | Estender check_sigilo_terms ao superset público | `sprint/A34/lanes/A34-l5-extend-sigilo-gate-superset.md` |

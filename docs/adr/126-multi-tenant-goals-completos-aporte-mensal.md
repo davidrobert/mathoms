@@ -53,7 +53,7 @@ Após F8.1 (ADR-073), apenas `INDEPENDENCIA_FINANCEIRA` tinha API + UI; os outro
 - ✅ Fluxo end-to-end: UI → DB → adapter → `goals.json` materializado → E5/E6 → relatório
 - ⚠️ Câmbio hardcoded em DOLARIZACAO fica desatualizado — aceito; override manual + débito futuro
 - ⚠️ Validação de distribuição no APORTE é strict (soma == meta ±0.01) — usuário não pode salvar parcial
-- ❌ PLANNING_CONTEXT (23 seções legadas) ainda sem UI — goals restantes (fase_f1f2, seguros, etc.) são seedados só via `seed_goals_full_ferreira_campos.py` ou permanecem vazios
+- ❌ PLANNING_CONTEXT (23 seções legadas) ainda sem UI — goals restantes (fase_f1f2, seguros, etc.) são seedados só via `seed_goals_full_andrade_silva.py` ou permanecem vazios
 
 **Arquivos críticos:**
 - Backend: `backend/app/schemas/goal.py`, `backend/app/services/goal_service.py`, `backend/app/api/goals.py`

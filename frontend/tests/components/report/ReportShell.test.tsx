@@ -218,15 +218,15 @@ describe("ReportShell", () => {
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
-          familySurname="Ferreira Campos"
+          familySurname="Andrade Silva"
         />,
       ),
     );
     expect(
-      screen.getByText("Relatório · Família Ferreira Campos"),
+      screen.getByText("Relatório · Família Andrade Silva"),
     ).toBeInTheDocument();
     expect(screen.getByText("Família")).toBeInTheDocument();
-    expect(screen.getByText("Ferreira Campos")).toBeInTheDocument();
+    expect(screen.getByText("Andrade Silva")).toBeInTheDocument();
   });
 
   it("degradação graciosa sem familySurname: badge fallback + sem card 'Família'", () => {

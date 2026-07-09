@@ -10,5 +10,5 @@ leem ficheiros devem usar :meth:`backend.app.services.storage.StorageService.abs
 - ``cutover_execute`` — cutover ADR-077 (paridade
   ``validate_adapter_parity`` removida em Sprint A10.8 / ADR-181 após
   ``goals.json`` arquivado ser deletado)
-- ``seed_*`` — dados de exemplo Ferreira Campos
+- ``seed_*`` — dados de exemplo Andrade Silva
 """

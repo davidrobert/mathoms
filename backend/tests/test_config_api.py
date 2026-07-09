@@ -29,7 +29,7 @@ class TestMembersAPI:
             f"/api/workspaces/{auth_client.ws_id}/config/members",
             json={
                 "key": "david",
-                "full_name": "David Robert Camargo",
+                "full_name": "David Robert Martins",
                 "short_name": "David",
                 "cpf": "910.428.398-01",  # noqa: PII-ok
                 "birth_date": "1981-09-05",
@@ -39,7 +39,7 @@ class TestMembersAPI:
         assert resp.status_code == 201
         data = resp.json()
         assert data["key"] == "david"
-        assert data["full_name"] == "David Robert Camargo"
+        assert data["full_name"] == "David Robert Martins"
         # ADR-259 §4: response nunca expõe CPF pleno — só a máscara canônica.
         assert data["cpf_masked"] == "***.***.398-01"
         assert data["id"] is not None

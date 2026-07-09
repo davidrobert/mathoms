@@ -1194,7 +1194,7 @@ identificou 4 problemas no cover atual:
    violado. Subtítulo deveria qualificar o documento, não ecoar o
    título.
 3. **Família ausente** — relatório personalizado vende identidade,
-   não template; exemplo de referência tem `Família Ferreira Campos`
+   não template; exemplo de referência tem `Família Andrade Silva`
    no meta-card.
 4. **"Versão Manual Operações"** é jargão interno; usuário não sabe o
    que é.
@@ -1334,7 +1334,7 @@ slug). 4 testes novos cobrindo todos os caminhos; 24 passed em
 `test_reports.py`. Pre-commit verde.
 
 Exemplos reais:
-- `mathoms-planejamento-ferreira-campos-2026-04.pdf`
+- `mathoms-planejamento-andrade-silva-2026-04.pdf`
 - `mathoms-planejamento-2026-04.pdf` (sem família)
 - `mathoms-planejamento-silva-2026-04.pdf` (período ausente, fallback `generated_at`)
 

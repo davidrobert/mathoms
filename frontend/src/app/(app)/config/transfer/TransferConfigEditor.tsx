@@ -103,7 +103,7 @@ export default function TransferConfigEditor() {
       <StringListSection
         title="Recipients"
         description="Nomes ou identificadores de contas próprias. Transações cuja descrição contiver qualquer um destes nomes serão classificadas como transferência interna (não como gasto)."
-        placeholder="Ex: DAVID ROBERT CAMARGO"
+        placeholder="Ex: DAVID ROBERT MARTINS"
         items={draft.recipients}
         onChange={(next) => updateList("recipients", next)}
         addLabel="Adicionar recipient"

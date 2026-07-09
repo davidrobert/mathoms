@@ -446,7 +446,7 @@ class TestContribuintePfVsPjFilter:
 
     def test_real_world_david_ltda_detected(self):
         """Caso real do workspace founder dogfood — sinaliza PJ, não raise."""
-        assert detect_pj_suffix("David Robert Camargo de Campos LTDA") == "LTDA"
+        assert detect_pj_suffix("David Robert Martins de Silva LTDA") == "LTDA"
 
     def test_case_insensitive(self):
         assert detect_pj_suffix("exemplo ltda") is not None
@@ -465,7 +465,7 @@ class TestPartitionIrpfPayloads:
 
     def _pj_payload(self) -> dict:
         p = self._pf_payload()
-        p["contribuinte"]["nome"] = "David Robert Camargo de Campos LTDA"
+        p["contribuinte"]["nome"] = "David Robert Martins de Silva LTDA"
         return p
 
     def test_pj_payload_deserializes_without_raise(self):

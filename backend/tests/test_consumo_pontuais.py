@@ -92,7 +92,7 @@ async def _seed_transfer_config(db, workspace_id: str) -> None:
                 "patterns_pix": [],
                 "patterns_global": [],
                 "patterns_bank_specific": {},
-                "recipients": ["DAVID ROBERT CAMARGO", "MARIANA TEIXEIRA FERREIRA"],
+                "recipients": ["DAVID ROBERT MARTINS", "MARIANA RIBEIRO ANDRADE"],
             },
         )
     )
@@ -104,7 +104,7 @@ async def test_consumo_pontuais_excludes_internal_transfers_to_family(auth_clien
     """Bug fix: PIX para nome da família não pode aparecer como gasto pontual."""
     despesas = [
         _despesa(
-            "Pix enviado para DAVID ROBERT CAMARGO FERREIRA CAMPOS — TRANSF ENVIADA PIX C", 41000.0
+            "Pix enviado para DAVID ROBERT MARTINS ANDRADE SILVA — TRANSF ENVIADA PIX C", 41000.0
         ),
         _despesa("RESTAURANTE FASANO", 5000.0),
     ]
