@@ -24,6 +24,10 @@ from sqlalchemy import select
 from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.models.goal import Goal
 from backend.app.models.workspace import Workspace
+from backend.app.schemas.dto.goal import AlocacaoGoalInputsV2, meta_version_for_type
+from backend.app.schemas.dto.goal.alocacao_shape_conversion import (
+    compute_alocacao_derived_v2,
+)
 from backend.app.schemas.goal import IFGoalInputs
 from backend.app.services.goal_service import (
     create_if_goal_version,
@@ -59,10 +63,16 @@ _DEFAULT_DOLARIZACAO_PARAMS = {
 }
 
 _DEFAULT_ALOCACAO_PARAMS: dict = {
-    # Frame mínimo — consultor refina via UI /plano/alocacao.
-    "rf_pct": 40,
-    "rv_pct": 40,
-    "alternativos_pct": 20,
+    # Alvo v2 (7 classes AUVP, ADR-141). Preset "Moderado" — consultor
+    # refina via UI /plano/alocacao. Σ = 100.
+    "rf_pos_pct": 20,
+    "rf_pre_pct": 10,
+    "rf_ipca_pct": 10,
+    "acoes_br_pct": 20,
+    "acoes_int_pct": 10,
+    "fiis_pct": 15,
+    "caixa_pct": 15,
+    "rebalanceamento_modo": "por_aporte",
 }
 
 
@@ -97,9 +107,15 @@ _DEMO_DOLARIZACAO_PARAMS = {
 }
 
 _DEMO_ALOCACAO_PARAMS: dict = {
-    "rf_pct": 30,
-    "rv_pct": 50,
-    "alternativos_pct": 20,
+    # Alvo v2 (7 classes AUVP) — preset "Agressivo" (equity-heavy). Σ = 100.
+    "rf_pos_pct": 10,
+    "rf_pre_pct": 5,
+    "rf_ipca_pct": 10,
+    "acoes_br_pct": 30,
+    "acoes_int_pct": 15,
+    "fiis_pct": 15,
+    "caixa_pct": 15,
+    "rebalanceamento_modo": "por_aporte",
 }
 
 
@@ -115,12 +131,21 @@ def _build_goal(ws_id: str, goal_type: str, params: dict, notes: str) -> Goal:
     return Goal(
         workspace_id=ws_id,
         type=goal_type,
-        params_json={"inputs": params, "meta_version": 1},
-        derived_json={},
+        params_json={"inputs": params, "meta_version": meta_version_for_type(goal_type)},
+        derived_json=_seed_derived(goal_type, params),
         effective_from=date.today(),
         effective_to=None,
         notes=notes,
     )
+
+
+def _seed_derived(goal_type: str, params: dict) -> dict:
+    # Alocação v2 grava soma_percentuais no write-time (paridade com os
+    # writers da API); demais tipos derivam on-read/no service.
+    if goal_type == "ALOCACAO_ALVO":
+        inputs = AlocacaoGoalInputsV2(**params)
+        return compute_alocacao_derived_v2(inputs).model_dump(mode="json")
+    return {}
 
 
 async def _create_goal_if_missing(
