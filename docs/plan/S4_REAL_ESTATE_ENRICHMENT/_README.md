@@ -136,7 +136,7 @@ povoar a fonte #1 da cascade D9 da [[ADR-216]].
 classifica; [`scripts/e0_route.py:112-113`](../../../scripts/route_documents.py)
 rotea via regex `informe.*rendimento.*aluguel`; legacy processou
 `quintoandar_informerendimentosaluguel_2025-0_original.pdf`
-([`_archive/legacy_scripts/extract_baseline_patrimonial.py:354`](../../../_archive/legacy_scripts/extract_baseline_patrimonial.py)).
+(`extract_baseline_patrimonial.py:354` (`_archive/` removido em A34.l7)).
 Falta apenas a **camada semântica** — hoje o documento cai em
 [`pipeline/llm/schemas/e2_llm_extract.py`](../../../pipeline/llm/schemas/e2_llm_extract.py)
 que retorna lista plana de transações sem semântica de "aluguel do
@@ -213,7 +213,7 @@ Hipóteses H1-H4 ficam preservadas neste registro para retomada.
 
 **Achados pré-existentes que dispensam auditoria formal v1:**
 
-- Workspace dogfood **tem** Informe QuintoAndar (legacy processou `quintoandar_informerendimentosaluguel_2025-0_original.pdf` em [`_archive/legacy_scripts/extract_baseline_patrimonial.py:354`](../../../_archive/legacy_scripts/extract_baseline_patrimonial.py))
+- Workspace dogfood **tem** Informe QuintoAndar (legacy processou `quintoandar_informerendimentosaluguel_2025-0_original.pdf` em `extract_baseline_patrimonial.py:354` (`_archive/` removido em A34.l7))
 - Workspace **tem** R$ 3,1M em imóveis de investimento + yield bruto 1,7% confirmados pelo usuário
 - Schema ADR-215 (`property_identity` + `workspace_property_overrides`) **em produção** ([#281](https://github.com/davidrobert/mathoms/pull/281)) — enum `classification` disponível para filtro D8
 
