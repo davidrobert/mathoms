@@ -233,9 +233,12 @@ hash v1 nos índices de match (violando [[ADR-282]] §5); fix + 4 testes de regr
 no PR #878; janela de observação reinicia no merge. [[A26.l5]] — runbook
 "Fase E" + drafts de migration/sentinela G3 mergeados (#873). KR1 da A27
 (`number_in_prose` como enforcement, [[ADR-304]]) implementado no PR #875.
-Checklist do flip final (A26→`done` + A27→`current`→`done`): medição l2 n≥20 ·
-janela l4 ≥1 sprint verde · decisão l5 (executar com go/no-go do owner OU cortar) ·
-PR editorial único com os 3 flips de frontmatter + regeneração de índices.
+Checklist do flip final (A26→`done` + A27→`current`→`done`): ~~medição l2 n≥20~~
+**l2 `shipped` 2026-07-09** (emenda na lane: fechamento por evidência combinada,
+contador ≥20 rebaixado a telemetria passiva — decisão do owner, sanidade PM+PE,
+precedente estreito + amarrações de drift registrados) · janela l4 ≥1 sprint
+verde pós-#878 · decisão l5 (executar com go/no-go do owner OU cortar) · PR
+editorial único com os flips de frontmatter + regeneração de índices.
 
 - **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 ·
   **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) ·
