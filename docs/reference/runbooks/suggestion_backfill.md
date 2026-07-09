@@ -26,7 +26,7 @@ Caso de origem: dogfood com 158 pendentes em 12 runs.
 ```python
 # shell do backend (mesmo venv/env do worker):
 import asyncio
-from backend.app.core.database import AsyncSessionLocal
+from backend.app.core.database import async_session as AsyncSessionLocal
 from backend.app.services.internal_ops.suggestion_backfill import (
     backfill_supersede_pending_suggestions,
 )

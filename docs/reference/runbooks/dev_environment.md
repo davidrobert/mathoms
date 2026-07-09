@@ -30,11 +30,16 @@ Healthcheck do `api` tem `start_period: 60s` (cold build + migração + seed).
 
 | Serviço | Host | Notas |
 |---|---|---|
-| API | http://localhost:8000 | `/health` → 200 quando pronto |
-| Frontend | http://localhost:3000 | Next.js dev (HMR via `npm run dev`) |
-| Postgres | `127.0.0.1:5432` | user/db `mathoms`, senha `devpass` (dev-only) |
+| API | http://localhost:8010 | `/health` → 200 quando pronto |
+| Frontend | http://localhost:3010 | Next.js dev (HMR via `npm run dev`) |
+| Postgres | `127.0.0.1:5433` | user/db `mathoms`, senha `devpass` (dev-only) |
 | Redis broker | interno `6379` | `noeviction` (paridade prod) |
 | Redis cache | interno `6379` | `allkeys-lru` |
+
+> Portas publicadas em banda **801x/301x/543x** (padrões `MATHOMS_DOCKER_API_PORT=8010`,
+> `MATHOMS_DOCKER_FRONTEND_PORT=3010`, `MATHOMS_DOCKER_POSTGRES_PORT=5433` no `Makefile`),
+> deliberadamente distinta da banda nativa **800x/300x/543x** para o stack Docker coexistir
+> com `make native-up` sem colisão. Override: `make dev-up-docker MATHOMS_DOCKER_API_PORT=9000`.
 
 Console interno (`frontend-ops`, ADR-116) é opcional:
 
@@ -48,7 +53,7 @@ docker compose -f docker-compose.dev.yml --profile ops up -d
 
 ```bash
 # API saudável
-curl -fsS http://localhost:8000/health        # → {"api":"ok", "database":"ok", ...}
+curl -fsS http://localhost:8010/health        # → {"api":"ok", "database":"ok", ...}
 
 # DB seedado
 docker compose -f docker-compose.dev.yml exec postgres \
@@ -118,7 +123,7 @@ para um `api` no host.
 | Sintoma | Causa provável | Ação |
 |---|---|---|
 | `api` reinicia em loop | migração ou seed falhando | `docker compose -f docker-compose.dev.yml logs api` |
-| `bind: address already in use :8000` | `make native-up` (uvicorn host) já roda na 8000 | pare o uvicorn local (`make native-down`) **ou** mude a porta publicada via override |
+| `bind: address already in use :8010` | outra stack/processo já usa a porta publicada (8010) | mude a porta via `MATHOMS_DOCKER_API_PORT=9000` (a banda 801x já é separada da nativa 800x, então colisão com `make native-up` não ocorre por padrão) |
 | `/app/dev/entrypoint.dev.sh: No such file` | `dev/` não montado | confirme o bind mount `./dev:/app/dev:ro` no compose |
 | Seed não cria workspace | DB já tinha workspace (idempotência) | esperado — `down -v` para resetar |
 | Migração aborta em `DatatypeMismatchError` | default de tipo incompatível no Postgres | bug de paridade dev↔prod — corrigir a migration (literal por dialeto) |

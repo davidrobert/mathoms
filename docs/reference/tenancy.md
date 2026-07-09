@@ -10,7 +10,7 @@
 
 ## TL;DR
 
-1. Todo endpoint novo usa prefixo `/api/workspaces/{workspace_id}/...`.
+1. Todo endpoint novo declara prefixo **relativo** `/workspaces/{workspace_id}/...` no router; o `/api/v1` canônico (ADR-108) é prepended no mount via `include_router(prefix=settings.API_PREFIX)`. URL efetiva: `/api/v1/workspaces/{workspace_id}/...`.
 2. Todo endpoint novo depende de `get_current_workspace` (não de `get_current_user` + resolução implícita).
 3. Todo service recebe `workspace_id` como **primeiro argumento**.
 4. Toda query SQLAlchemy em service/API inclui `Model.workspace_id == workspace_id` em algum `.where(...)` da expressão.
@@ -96,7 +96,7 @@ from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.workspace import Workspace
 from backend.app.services import goal_service
 
-router = APIRouter(prefix="/api/workspaces/{workspace_id}")
+router = APIRouter(prefix="/workspaces/{workspace_id}")  # /api/v1 é prepended no mount (settings.API_PREFIX)
 
 
 @router.get("/goals/if")
