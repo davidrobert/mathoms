@@ -152,8 +152,8 @@ Para que nenhum achado se perca entre auditorias:
 > + 3 POLISH + 1 owner-gated no foco de risco (~40 ADRs julgados a fundo; range
 > Decidido estável carregado do r6).
 
-> **r7 fechado.** Sweep one-shot `--scope all --full --fix` em 3 fases, 6 PRs
-> (#924/#926 F1 · #927 F2 · #928/#929 F3). Cobertura: reference 58/58 + plan
+> **r7 fechado.** Sweep one-shot `--scope all --full --fix` em 3 fases, 5 PRs
+> (#924/#926 F1 · #927 F2 — PR único · #928/#929 F3). Cobertura: reference 58/58 + plan
 > 33 + claude 12 + prompt 5 + root 1 (100%) + adr foco-de-risco (Proposto/Roadmap
 > 100% + delta; Decidido estável carregado do r6). **Total: 9 DOC-BLOCK
 > mergeados** (5 F1 + 3 F2 + 1 F3), 0 rebaixados no verify · **~32 DOC-DRIFT**
