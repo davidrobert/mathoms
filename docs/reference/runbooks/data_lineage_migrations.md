@@ -47,6 +47,8 @@ migrations Postgres-only são **no-op** por design (o FK não existe lá — o m
 ## Fase A — `adr282_override_natural_key` (override K4 v2)
 
 Alinha o 3º hash (`TransactionOverride`) ao K4 v2 ([[ADR-282]]). Já em `main`.
+A **M2 destrutiva** (drop do `transaction_hash` legado — Fase E do [[ADR-282]],
+lane [[A26.l5]]) tem runbook próprio: [override_legacy_drop.md](override_legacy_drop.md).
 
 ### A.1 Pré-check
 - `alembic current` aponta para a revision anterior a `adr282overridenk`.
