@@ -1,37 +1,37 @@
-# Auto-update PR branches
+# Auto-update PR branches — trem serializado (ADR-322)
 #
-# Quando um PR mergeia em `main`, as branches dos demais PRs abertos ficam
-# desatualizadas — o Ruleset `main-protection` exige rebase antes do merge
-# (`strict_required_status_checks_policy: true`). Sem automação, alguém
-# precisa rebasar cada PR manualmente, o que vira gargalo em picos com
-# múltiplos PRs paralelos (cenário comum com agentes Claude trabalhando
-# em lanes diferentes).
+# O Ruleset `main-protection` exige branch up-to-date com main
+# (`strict_required_status_checks_policy: true`), então cada merge em main
+# invalida os demais PRs abertos. Este workflow avança o trem de auto-merge:
+# faz update-branch em EXATAMENTE 1 PR por run (o mais antigo elegível com
+# auto-merge), via `dev/ci_advance_automerge_train.py`.
 #
-# Este workflow substitui o Merge Queue (não disponível em repo private +
-# conta User pessoal; precisaria de Organization + Enterprise Cloud).
-# Faz `update-branch` via API GitHub (merge de main na branch da PR;
-# como o repo usa squash-only, o histórico final em main permanece linear).
+# Por que 1 por vez e não todos (comportamento antigo, autoupdate-action):
+# atualizar N PRs a cada merge custa O(N²) runs de CI por dia e só o
+# primeiro merge aproveita — os demais ficam BEHIND de novo. O strict do
+# Ruleset já serializa o merge final; atualizar em lote é puro desperdício.
 #
-# **Filtro inteligente:** atua APENAS em PRs com auto-merge habilitado
-# (`gh pr merge <N> --squash --auto`). Isso vira o gesto natural de intent:
-#  - PR pronto pra mergear → você habilita auto-merge → entra no fluxo
-#  - PR em draft / WIP → não tem auto-merge → ignorado (zero CI gasto)
-#  - PR bloqueado / aguardando review → não tem auto-merge → ignorado
+# Por que AUTOUPDATE_PAT e nunca GITHUB_TOKEN: push/update-branch feito com
+# GITHUB_TOKEN é atribuído a github-actions[bot] e os runs `pull_request`
+# resultantes nascem `action_required` (0 jobs) — o CI nunca roda e o PR
+# congela. Sem o secret, este workflow NÃO faz fallback: loga warning e sai
+# (regressão ruidosa > orfãos silenciosos). Criação/rotação do PAT:
+# docs/reference/runbooks/automerge_train.md.
 #
-# Não precisa label manual, não precisa marcar nada — basta usar
-# `gh pr merge --auto` quando achar que o PR está pronto.
-#
-# Trigger:
-#   - push em main → roda automaticamente após cada merge
-#   - workflow_dispatch → botão manual no Actions (forçar rodada;
-#     útil após habilitar auto-merge em PR pré-existente para incluir
-#     na próxima onda sem esperar próximo merge).
+# Triggers:
+#   - push em main → avança o trem após cada merge
+#   - schedule → rede de segurança quando o merge não gera push "humano"
+#     (merge executado por bot não dispara workflows) ou quando a cabeça
+#     destravou por outro caminho
+#   - workflow_dispatch → kick manual
 
 name: Auto-update PR branches
 
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "17,47 * * * *"
   workflow_dispatch: {}
 
 # A34.l13 (ADR-320): default de menor privilégio no workflow; a escrita
@@ -39,38 +39,33 @@ on:
 permissions:
   contents: read
 
-# Garante que múltiplos pushes em main em sequência não acumulam runs
-# concorrentes (cada run já atualiza TODOS os PRs elegíveis).
 concurrency:
   group: auto-update-prs
   cancel-in-progress: false
 
 jobs:
-  autoupdate:
-    name: Auto-update auto-merge PRs
+  advance:
+    name: Advance auto-merge train (1 PR/run)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     # contents: write + pull-requests: write — o update-branch faz merge de
-    # main na branch do PR (push) e lê/edita metadados do PR (A34.l13).
+    # main na branch do PR (push) e lê metadados do PR (A34.l13). O trabalho
+    # real usa AUTOUPDATE_PAT; estas permissions limitam o GITHUB_TOKEN.
     permissions:
       contents: write
       pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.AUTOUPDATE_PAT }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - name: Update branches of auto-merge PRs
-        # Imagem pinada por digest (A34.l14, ADR-320) — tag docker é tão
-        # mutável quanto tag git; digest fecha o vetor de supply-chain.
-        uses: docker://chinthakagodawita/autoupdate-action:v1@sha256:53d7013ad4689b703d2715d4b17d4901bb0a385e495e0b481f37adbe9b3cc3fc
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # `auto_merge`: só PRs com auto-merge habilitado entram. Esse é
-          # o sinal natural de "intent de mergear" — quem rodou
-          # `gh pr merge --auto` quer que a branch fique atualizada.
-          PR_FILTER: "auto_merge"
-          # Defesa em profundidade: se alguém habilitar auto-merge em
-          # PR ainda incompleto, basta adicionar uma destas labels para
-          # tirar do fluxo sem desligar auto-merge.
-          EXCLUDED_LABELS: "wip,do-not-merge,blocked"
-          # Em conflito de merge, falha o step (visível no Actions) em vez
-          # de tentar resolução automática (que daria merge errado).
-          MERGE_CONFLICT_ACTION: "fail"
-          DRY_RUN: "false"
+      - name: Guard — exige AUTOUPDATE_PAT (identidade real)
+        if: env.GH_TOKEN == ''
+        run: |
+          echo "::warning title=AUTOUPDATE_PAT ausente::Trem parado de propósito. Update-branch com GITHUB_TOKEN nasce action_required e congela o PR. Crie fine-grained PAT (Contents+Pull requests write, só este repo, expiração <=90d) e salve como secret AUTOUPDATE_PAT. Runbook: docs/reference/runbooks/automerge_train.md"
+
+      - uses: actions/checkout@v4
+        if: env.GH_TOKEN != ''
+
+      - name: Advance train
+        if: env.GH_TOKEN != ''
+        run: python3 dev/ci_advance_automerge_train.py

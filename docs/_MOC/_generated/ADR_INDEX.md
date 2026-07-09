@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-312 ADRs (ADR-001 a ADR-321) em [`docs/adr/`](../../adr/).
+313 ADRs (ADR-001 a ADR-322) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 284
+- **Decidido**: 285
 - **Proposto**: 25
 - **Roadmap**: 3
 
@@ -331,6 +331,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-188]] — Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) · phase A12.P3
 
 ## ci
+
+### Decidido (1)
+
+- [[ADR-322]] — Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)
 
 ### Proposto (1)
 
