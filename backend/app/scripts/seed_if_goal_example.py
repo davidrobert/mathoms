@@ -1,25 +1,25 @@
-"""Seed one-shot: cria Goal IF para a(s) workspace(s) da Ferreira Campos.
+"""Seed one-shot: cria Goal IF para workspace(s) selecionada(s) por family_surname.
 
-ADR-073 §"Migração do `goals.json` de Ferreira Campos".
+ADR-073 §"Migração do `goals.json`" (one-shot F8.1; inputs de exemplo sintéticos).
 
-Paridade com o valor histórico de `config/goals.json`:
-    independencia_financeira.if_meta = 7200000.0
+Paridade com os inputs de exemplo abaixo:
+    independencia_financeira.if_meta = 3000000.0
 
 Calculado a partir de:
-    renda_passiva_mensal_brl = 30000
-    trs_pct = 5.0
+    renda_passiva_mensal_brl = 10000
+    trs_pct = 4.0
     retorno_real_anual_pct = 6.0
     horizonte_anos = 15
 
 Execução:
     # Dry-run (mostra o que faria)
-    python -m backend.app.scripts.seed_if_goal_ferreira_campos --dry-run
+    python -m backend.app.scripts.seed_if_goal_example --dry-run
 
     # Aplicar
-    python -m backend.app.scripts.seed_if_goal_ferreira_campos --apply
+    python -m backend.app.scripts.seed_if_goal_example --apply
 
     # Escolher workspace específica
-    python -m backend.app.scripts.seed_if_goal_ferreira_campos --workspace-id <uuid> --apply
+    python -m backend.app.scripts.seed_if_goal_example --workspace-id <uuid> --apply
 
 Idempotente: se o workspace JÁ tem Goal IF vigente, pula (não duplica).
 Para recriar, use --force-replace (fecha o atual e cria novo).
@@ -44,20 +44,20 @@ from backend.app.services.goal_service import (
     get_current_goal,
 )
 
-logger = logging.getLogger("seed_if_ferreira_campos")
+logger = logging.getLogger("seed_if_goal_example")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
-# Valores canônicos derivados de config/goals.json (2026-04)
-FERREIRA_CAMPOS_INPUTS = IFGoalInputs(
-    renda_passiva_mensal_brl=30000,
-    trs_pct=5.0,
+# Inputs de exemplo sintéticos (números redondos; sem dado real de workspace)
+EXAMPLE_IF_INPUTS = IFGoalInputs(
+    renda_passiva_mensal_brl=10000,
+    trs_pct=4.0,
     retorno_real_anual_pct=6.0,
     horizonte_anos=15,
-    taxa_retirada_conservadora_pct=4.0,
+    taxa_retirada_conservadora_pct=3.0,
 )
-EXPECTED_IF_META_BRL = 7_200_000.0
-FAMILY_SURNAME_MATCH = "Ferreira Campos"
+EXPECTED_IF_META_BRL = 3_000_000.0
+FAMILY_SURNAME_MATCH = "Example"
 
 
 async def seed(
@@ -68,7 +68,7 @@ async def seed(
 ) -> int:
     """Retorna exit code (0 = ok, 1 = erro, 2 = nenhuma workspace encontrada)."""
     # Validação de paridade pré-execução
-    derived = compute_if_derived(FERREIRA_CAMPOS_INPUTS)
+    derived = compute_if_derived(EXAMPLE_IF_INPUTS)
     if derived.if_meta_brl != EXPECTED_IF_META_BRL:
         logger.error(
             "Paridade quebrada: if_meta_brl=%s, esperado=%s. "
@@ -132,7 +132,7 @@ async def seed(
 
             goal = await create_if_goal_version(
                 ws.id,
-                FERREIRA_CAMPOS_INPUTS,
+                EXAMPLE_IF_INPUTS,
                 db=db,
                 created_by=None,  # seed CLI, sem user humano
                 notes=(

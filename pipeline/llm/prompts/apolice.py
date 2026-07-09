@@ -1,6 +1,8 @@
 """Prompt LLM dedicado para apólice de seguro polimórfica — A18 L2 (ADR-239 D2)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
+# v1.2.1 — A34.l10: exemplo do campo `notas` troca endereço real por sintético
+# (saneamento PII pré-release pública; sem mudança de contrato).
 # v1.2.0 — A33.l8 (ADR-137): tabela hardcoded de seguradoras sai do system prompt
 # (driftava do `institution_catalog` em DB — os codes do seed ADR-239 divergiam
 # dos citados aqui); user prompt ganha o placeholder `{seguradoras_catalog}`
@@ -12,7 +14,7 @@
 # as aspas como parte do valor → Decimal parsing falhava determinístico em todas as
 # apólices). Schema agora também faz strip defensivo via model_validator.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
-PROMPT_VERSION = "1.2.0"
+PROMPT_VERSION = "1.2.1"
 
 
 SYSTEM_PROMPT = """\
@@ -95,9 +97,9 @@ REGRAS DE EXTRAÇÃO:
 
 19. **`cascade_triggered`**: marque `true` quando o sistema disparou cascata Sonnet (geralmente apólice combinada ou confidence baixo). Default `false` no payload Haiku; cascade dispara segunda chamada com `cascade_triggered: true` no resultado.
 
-20. **`notas`**: observações relevantes (ex.: "apólice combinada — Toro + residência R Tasso da Silveira"; "corretor PF; SUSEP individual"). Max 500 chars. Não inclua dados sensíveis (CPF, RG, endereço completo do proprietário em texto livre).
+20. **`notas`**: observações relevantes (ex.: "apólice combinada — auto + residência R Exemplo"; "corretor PF; SUSEP individual"). Max 500 chars. Não inclua dados sensíveis (CPF, RG, endereço completo do proprietário em texto livre).
 
-21. **`prompt_version`**: conteúdo da string: `1.2.0`.
+21. **`prompt_version`**: conteúdo da string: `1.2.1`.
 
 NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou marque `needs_review=true` quando obrigatório está ausente.
 
@@ -134,6 +136,6 @@ Popule o output `ApolicePayload`:
 - sinistro_indenizacao_recebida_brl = null (placeholder V1)
 - confidence (0-1) + needs_review (false default; true se inconsistência)
 - cascade_triggered = false (default Haiku)
-- prompt_version (conteúdo: 1.2.0)
+- prompt_version (conteúdo: 1.2.1)
 - notas (max 500 chars; sem PII)
 """
