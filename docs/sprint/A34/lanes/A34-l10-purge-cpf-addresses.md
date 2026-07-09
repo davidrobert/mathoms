@@ -4,7 +4,7 @@ type: lane
 title: "Purgar CPFs + neutralizar endereço residencial"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: shipped
 priority: P0
 branch_slug: purge-cpf-addresses
 adrs: []
@@ -12,7 +12,7 @@ depends_on: ["[[A34.l4]]"]
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/seguranca
 ---

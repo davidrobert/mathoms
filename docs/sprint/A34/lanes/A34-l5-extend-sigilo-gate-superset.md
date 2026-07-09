@@ -4,7 +4,7 @@ type: lane
 title: "Estender check_sigilo_terms ao superset público"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: shipped
 priority: P0
 branch_slug: extend-sigilo-gate-superset
 adrs: ["[[ADR-319]]", "[[ADR-183]]"]
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/seguranca
   - area/gtm

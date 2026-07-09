@@ -314,8 +314,8 @@
 | ADR-316 | adr | Proposto |  | Aceite de risco de metadados GitHub imutáveis (855 PRs/issues/CI logs) | `adr/316-aceite-risco-metadados-github-imutaveis.md` |
 | ADR-317 | adr | Proposto |  | Identidade de autoria no mailmap público | `adr/317-identidade-autoria-mailmap-publico.md` |
 | ADR-318 | adr | Proposto |  | Fronteira de idioma — apresentação pública EN vs vault canônico PT-BR | `adr/318-fronteira-idioma-en-apresentacao-ptbr-vault.md` |
-| ADR-319 | adr | Proposto |  | Contrato de gates anti-regressão PII + sigilo metodológico pós-público | `adr/319-contrato-gates-antiregressao-pii-sigilo.md` |
-| ADR-320 | adr | Proposto |  | Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético | `adr/320-hardening-cicd-paridade-exemplo-sintetico.md` |
+| ADR-319 | adr | Decidido |  | Contrato de gates anti-regressão PII + sigilo metodológico pós-público | `adr/319-contrato-gates-antiregressao-pii-sigilo.md` |
+| ADR-320 | adr | Decidido |  | Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético | `adr/320-hardening-cicd-paridade-exemplo-sintetico.md` |
 | ADR-321 | adr | Proposto |  | Atribuição de membro no E3 — titular slug canônico como discriminante K4 | `adr/321-atribuicao-de-membro-no-e3-titular-slug-k4.md` |
 | ADR-322 | adr | Decidido |  | Trem de auto-merge serializado com identidade real (aposenta autoupdate-action) | `adr/322-trem-de-automerge-serializado-identidade-real.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
@@ -711,11 +711,11 @@
 | A33.l8 | lane | shipped | A33 | InstitutionCatalogProvider (protocol) + códigos RFB do e16 em YAML anual versionado (W4-T01/T02) | `sprint/A33/lanes/A33-l8-catalogo-injection-rfb-yaml.md` |
 | A33.l9 | lane | shipped | A33 | Services taxonomy: split de backend/app/services/ em subpacotes por natureza técnica (ADR-285, W6-T07) | `sprint/A33/lanes/A33-l9-services-taxonomy.md` |
 | A34.l1 | lane | planned | A34 | ADRs Proposto do gate de decisões (ADR-313 a ADR-320) | `sprint/A34/lanes/A34-l1-adr-gate-owner-decisions.md` |
-| A34.l10 | lane | planned | A34 | Purgar CPFs + neutralizar endereço residencial | `sprint/A34/lanes/A34-l10-purge-cpf-addresses.md` |
-| A34.l11 | lane | planned | A34 | Neutralizar seed de produção + report_spec + paths | `sprint/A34/lanes/A34-l11-sanitize-seed-migration-paths.md` |
+| A34.l10 | lane | shipped | A34 | Purgar CPFs + neutralizar endereço residencial | `sprint/A34/lanes/A34-l10-purge-cpf-addresses.md` |
+| A34.l11 | lane | shipped | A34 | Neutralizar seed de produção + report_spec + paths | `sprint/A34/lanes/A34-l11-sanitize-seed-migration-paths.md` |
 | A34.l12 | lane | planned | A34 | Redigir/split COMPETITIVE_PIERRE + prompts de produto + pricing | `sprint/A34/lanes/A34-l12-redact-split-competitive-ip.md` |
-| A34.l13 | lane | planned | A34 | permissions read-all default + elevação por-job | `sprint/A34/lanes/A34-l13-actions-permissions-readonly.md` |
-| A34.l14 | lane | planned | A34 | SHA-pin das 4 actions de terceiros por tag flutuante | `sprint/A34/lanes/A34-l14-sha-pin-third-party-actions.md` |
+| A34.l13 | lane | shipped | A34 | permissions read-all default + elevação por-job | `sprint/A34/lanes/A34-l13-actions-permissions-readonly.md` |
+| A34.l14 | lane | shipped | A34 | SHA-pin das 4 actions de terceiros por tag flutuante | `sprint/A34/lanes/A34-l14-sha-pin-third-party-actions.md` |
 | A34.l15 | lane | planned | A34 | Habilitar GHAS + migrar Fernet dummy para secret | `sprint/A34/lanes/A34-l15-enable-ghas-fernet-secret.md` |
 | A34.l16 | lane | planned | A34 | LICENSE + README EN com disclaimer e fronteira de idioma | `sprint/A34/lanes/A34-l16-license-readme-disclaimer.md` |
 | A34.l17 | lane | planned | A34 | Polish de apresentação (should, pós-flip / A35) | `sprint/A34/lanes/A34-l17-presentation-polish.md` |
@@ -726,13 +726,14 @@
 | A34.l21 | lane | planned | A34 | Triagem T1 de PRs/issues/CI logs sensíveis | `sprint/A34/lanes/A34-l21-triage-sensitive-metadata.md` |
 | A34.l22 | lane | planned | A34 | Flip para público + verificação pós-flip (track) | `sprint/A34/lanes/A34-l22-flip-repo-public-and-verify.md` |
 | A34.l23 | lane | planned | A34 | Docs EN de apresentação + cross-link PLAN-i18n | `sprint/A34/lanes/A34-l23-reconcile-i18n-docs-en.md` |
+| A34.l24 | lane | planned | A34 | Varredura da PII residual sub-contada pelo audit (código/testes/fixtures/schema) | `sprint/A34/lanes/A34-l24-residual-pii-surface.md` |
 | A34.l3 | lane | planned | A34 | Confirmação operacional: rotação Fernet executada em prod | `sprint/A34/lanes/A34-l3-verify-fernet-rotation.md` |
-| A34.l4 | lane | planned | A34 | Estender lint_no_real_pii a docs/ + padrões de domínio | `sprint/A34/lanes/A34-l4-extend-pii-lint-docs-domain.md` |
-| A34.l5 | lane | planned | A34 | Estender check_sigilo_terms ao superset público | `sprint/A34/lanes/A34-l5-extend-sigilo-gate-superset.md` |
-| A34.l6 | lane | planned | A34 | Bloquear _archive/ em forbidden-paths + gitleaks bloqueante | `sprint/A34/lanes/A34-l6-block-archive-gitleaks.md` |
-| A34.l7 | lane | planned | A34 | Deletar _archive/ do HEAD (checar referências vivas) | `sprint/A34/lanes/A34-l7-delete-archive-dir.md` |
-| A34.l8 | lane | planned | A34 | Regenerar EXEMPLO_DE_RELATORIO.html sintético | `sprint/A34/lanes/A34-l8-regen-exemplo-relatorio-synthetic.md` |
-| A34.l9 | lane | planned | A34 | Anonimizar ~15 ADRs + docs de sprint (in-body apenas) | `sprint/A34/lanes/A34-l9-anonymize-adrs-sprint-docs.md` |
+| A34.l4 | lane | shipped | A34 | Estender lint_no_real_pii a docs/ + padrões de domínio | `sprint/A34/lanes/A34-l4-extend-pii-lint-docs-domain.md` |
+| A34.l5 | lane | shipped | A34 | Estender check_sigilo_terms ao superset público | `sprint/A34/lanes/A34-l5-extend-sigilo-gate-superset.md` |
+| A34.l6 | lane | shipped | A34 | Bloquear _archive/ em forbidden-paths + gitleaks bloqueante | `sprint/A34/lanes/A34-l6-block-archive-gitleaks.md` |
+| A34.l7 | lane | shipped | A34 | Deletar _archive/ do HEAD (checar referências vivas) | `sprint/A34/lanes/A34-l7-delete-archive-dir.md` |
+| A34.l8 | lane | shipped | A34 | Regenerar EXEMPLO_DE_RELATORIO.html sintético | `sprint/A34/lanes/A34-l8-regen-exemplo-relatorio-synthetic.md` |
+| A34.l9 | lane | shipped | A34 | Anonimizar ~15 ADRs + docs de sprint (in-body apenas) | `sprint/A34/lanes/A34-l9-anonymize-adrs-sprint-docs.md` |
 | A35.l1 | lane | shipped | A35 | fallback da cadeia de continuidade quando número de conta não extrai + sinal auditável (ADR-310 emenda) | `sprint/A35/lanes/A35-l1-fallback-continuidade-conta-sem-numero.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
@@ -833,7 +834,7 @@
 | PLAN-market-rates-ingestion | plan | draft |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `plan/MARKET_RATES_INGESTION/_README.md` |
 | PLAN-p1-structural | plan | paused |  | P1 — Plano estrutural (motor canônico + pipeline offline) | `plan/P1_STRUCTURAL/_README.md` |
 | PLAN-planner-review | plan | done |  | Parecer do Planejador (E6) — substituição de review_finances + aterrissagem operacional | `plan/PLANNER_REVIEW/_README.md` |
-| PLAN-public-release | plan | draft |  | PUBLIC_RELEASE — tornar o repo público in-place com segurança e qualidade de referência | `plan/PUBLIC_RELEASE/_README.md` |
+| PLAN-public-release | plan | in_progress |  | PUBLIC_RELEASE — tornar o repo público in-place com segurança e qualidade de referência | `plan/PUBLIC_RELEASE/_README.md` |
 | PLAN-report-premium | plan | in_progress |  | Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html` | `plan/REPORT_PREMIUM/_README.md` |
 | PLAN-report-trust | plan | in_progress |  | Report Trust — o relatório não pode afirmar precisão que os dados não sustentam | `plan/REPORT_TRUST/_README.md` |
 | PLAN-residencia-e-uso | plan | draft |  | Residência e uso econômico de imóveis — override DB substitui keyword | `plan/RESIDENCIA_E_USO/_README.md` |

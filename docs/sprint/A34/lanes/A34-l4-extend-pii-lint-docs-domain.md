@@ -4,7 +4,7 @@ type: lane
 title: "Estender lint_no_real_pii a docs/ + padrões de domínio"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: shipped
 priority: P0
 branch_slug: extend-pii-lint-docs-domain
 adrs: ["[[ADR-319]]"]
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/seguranca
 ---

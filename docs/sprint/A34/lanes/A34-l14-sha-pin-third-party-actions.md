@@ -4,7 +4,7 @@ type: lane
 title: "SHA-pin das 4 actions de terceiros por tag flutuante"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: shipped
 priority: P0
 branch_slug: sha-pin-third-party-actions
 adrs: ["[[ADR-320]]"]
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/ci
   - area/seguranca

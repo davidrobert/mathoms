@@ -2,12 +2,12 @@
 id: PLAN-public-release
 type: plan
 title: "PUBLIC_RELEASE — tornar o repo público in-place com segurança e qualidade de referência"
-status: draft
+status: in_progress
 sprint_origem: A34
-sprint_atual: null
+sprint_atual: A34
 sprints_envolvidas: [A34]
 created_at: 2026-07-08
-last_review: 2026-07-08
+last_review: 2026-07-09
 adrs_canonical:
   - "[[ADR-313]]"
   - "[[ADR-314]]"
@@ -19,7 +19,7 @@ adrs_canonical:
   - "[[ADR-320]]"
 tags:
   - type/plan
-  - status/draft
+  - status/in-progress
   - area/seguranca
   - area/ci
 ---
@@ -37,8 +37,18 @@ tags:
 > repo novo). Duas objeções foram registradas contra essa restrição (ver §"Objeções
 > registradas") — o owner está ciente e o plano trabalha dentro da restrição.
 >
-> **Status:** `draft` — nenhuma lane abre antes do **gate G0** (Onda 0, decisões
-> owner-gated em 8 ADRs `Proposto`). Este plano é o formato canônico multi-fase
+> **Status:** `in_progress` — as ondas **decisão-independentes** foram executadas
+> e mergeadas em `main` (2026-07-09), **sem depender de [[ADR-316]]** (in-place ×
+> repo-novo): **W2** gates ([[A34.l4]]/[[A34.l5]]/[[A34.l6]], [[ADR-319]]/[[ADR-320]]
+> `Decidido`) · **W1** saneamento do HEAD ([[A34.l7]]–[[A34.l11]] + [[A34.l9]]) ·
+> **W5** hardening ([[A34.l13]]/[[A34.l14]]). Detalhe + registro G2 em
+> [sprint/A34/_README.md](../../sprint/A34/_README.md) §"Progresso de execução".
+> Follow-up de burn-down: [[A34.l24]] (PII residual sub-contada, owner-visível).
+>
+> **Ainda owner-gated (não abre sem decisão):** W0 (decisões [[ADR-313]]–[[ADR-318]]
+> + backup + Fernet) · [[A34.l12]] ([[ADR-314]]) · [[A34.l15]] · [[A34.l16]]
+> ([[ADR-313]]) · W3 (rewrite) · W4 (metadados) · W8 (flip) — e a própria escolha
+> **in-place × repo-novo** ([[ADR-316]]). Este plano é o formato canônico multi-fase
 > ([[ADR-182]]); runbooks das operações destrutivas (rewrite de histórico, flip) são
 > tracks self-contained em `docs/agent_prompts/`.
 
