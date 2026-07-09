@@ -3,7 +3,6 @@ id: A33.l5
 type: lane
 title: "Nightly drift do extract_with_llm: Celery beat + fixtures sintéticas + auto-alerta (ADR-307 F2)"
 sprint: A33
-plan: PLAN-platform-review
 status: shipped
 ship_pr: 831
 ship_date: "2026-07-07"

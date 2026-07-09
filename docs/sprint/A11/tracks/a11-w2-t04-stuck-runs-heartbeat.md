@@ -34,7 +34,7 @@ Em ordem:
 1. `CLAUDE.md` (raiz) — atenção especial: §"Concluído" · §"Subagentes especializados" · §"Antes de pegar uma task do BACKLOG" · §"Cadência de commit defensiva" · §"Pipeline não importa framework" · §"ADRs → docs/adr/" · §"Política operacional — ADR Proposto antes de PR P0/P1" · §"Stateless rigoroso".
 2. `docs/adr/172-stuck-runs-detector.md` (ou slug equivalente — `rg "stuck-runs" docs/adr/`) — ADR-172 `Proposto`. **Esta ADR vira `Decidido (Sprint A11.W2)` no merge do seu PR.**
 3. `docs/sprint/A11/_README.md` — DoD code-complete pós-[[ADR-228]].
-4. `docs/plan/PLATFORM_REVIEW/_README.md` §[W2-T04] — files_touched + acceptance_criteria oficiais.
+4. `docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md` §[W2-T04] — files_touched + acceptance_criteria oficiais.
 5. Arquivos relevantes:
    - `backend/app/models/pipeline_run.py` (model + enum)
    - `backend/app/tasks/pipeline_task.py` (stage execution)
@@ -109,7 +109,7 @@ gh pr create --base main --title "..." --body "..."
 gh pr merge <N> --squash --auto
 ```
 
-No mesmo PR ou follow-up doc-only: flip ADR-172 `Proposto` → `Decidido (Sprint A11.W2)` + section "Closure" referenciando PR + marcar W2-T04 done no Index `docs/plan/PLATFORM_REVIEW/_README.md`.
+No mesmo PR ou follow-up doc-only: flip ADR-172 `Proposto` → `Decidido (Sprint A11.W2)` + section "Closure" referenciando PR + marcar W2-T04 done no Index `docs/archive/PLATFORM_REVIEW_PLAN-2026-07-08.md`.
 
 ## Anti-padrões a evitar
 

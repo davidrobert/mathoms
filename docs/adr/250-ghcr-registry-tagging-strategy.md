@@ -38,7 +38,7 @@ hoje **builda imagens no host CX32** a cada deploy. Implicações:
 - Drift entre dev e prod: `apt update` upstream pode quebrar prod
   silenciosamente.
 
-W4-T02 do [PLATFORM_REVIEW](../plan/PLATFORM_REVIEW/_README.md) reconhece o gap (`blocked` há semanas).
+W4-T02 do [PLATFORM_REVIEW](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) reconhece o gap (`blocked` há semanas).
 
 A decisão precisa endereçar: (a) registry escolhido com trade-off de custo/
 lock-in/integração; (b) política de tagging que garante imutabilidade e
@@ -110,7 +110,7 @@ regulatório exigir. Adiciona ponto de falha.
 
 - **P0.2 resolvido** — Coolify não builda mais no host CX32.
 - **Rollback em <60s** via `docker pull <sha-anterior>` + `docker-compose up`.
-- **W4-T02** do [PLATFORM_REVIEW](../plan/PLATFORM_REVIEW/_README.md) flippa `blocked → shipped`.
+- **W4-T02** do [PLATFORM_REVIEW](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) flippa `blocked → shipped`.
 - **Trivy image scan habilitado** ([[ADR-251]]).
 - **Auditabilidade:** cada release tem SHA + provenance + SBOM publicados.
 - **Build em runner CI** dedicado (não host de prod) — paraleliza com testes.

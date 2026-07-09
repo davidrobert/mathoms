@@ -23,13 +23,13 @@ tags:
 
 # A21.l6 — W3-T05 defesa de injeção LLM (implementação)
 
-> **Plano:** [[PLAN-launch-trust]] §F3-O3 (federada → [[PLAN-platform-review]] W3-T05).
+> **Plano:** [[PLAN-launch-trust]] §F3-O3 (federada → [PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) W3-T05).
 > **Gate (b) de F3** — parte 2 de 2.
 > **Owner real:** `prompt-engineer` + `data-engineer` (corrige `sre-devops` do plano dono — Layers 2/4 são LLM/prompt).
 
 ## Contexto
 
-Implementação física de **W3-T05** ([[PLAN-platform-review]], hoje `blocked`).
+Implementação física de **W3-T05** ([PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md), hoje `blocked`).
 Conteúdo de documento do usuário (extrato/IRPF) flui para prompts LLM em E5,
 parecer e tool surface — superfície de prompt injection. Hoje não há camada de
 sanitização: `pipeline/llm/prompts/_sanitization.py` **não existe**.
@@ -72,7 +72,7 @@ As 4 camadas de [[ADR-175]], **com escopo confirmado pelo co-design de l5**
 - Teste prova que **todo** call-site de `LLMService.call` passa pela sanitização
   (teste no choke-point, não por stage).
 - Grep de dados sensíveis em `tests/fixtures/pdf/adversarial/` com zero hits.
-- No merge: flippar checkbox **W3-T05** em [[PLAN-platform-review]]
+- No merge: flippar checkbox **W3-T05** em [PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)
   `blocked → shipped` (regra anti-drift — não re-implementar em A22).
 
 ## Achado de implementação (2026-05-30)

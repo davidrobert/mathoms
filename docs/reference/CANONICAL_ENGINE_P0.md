@@ -1,7 +1,7 @@
 # P0 — Motor canônico e pipeline (executado)
 
 > **Data:** 2026-05-15
-> **Objetivo:** Inventário de duplicação, fronteira motor × adaptadores, estado dos contratos entre estágios e da suíte golden — base para P1 estrutural (pausado / substituído por [PLATFORM_REVIEW](../plan/PLATFORM_REVIEW/_README.md) em 2026-05-06).
+> **Objetivo:** Inventário de duplicação, fronteira motor × adaptadores, estado dos contratos entre estágios e da suíte golden — base para P1 estrutural (pausado / substituído por [PLATFORM_REVIEW](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) em 2026-05-06).
 
 ---
 
@@ -76,7 +76,7 @@
 2. E3–E5: schema + validação pós-write + goldens de execução (`tests/test_e3_golden_execution.py`, `tests/test_e4_golden_execution.py`, `tests/test_e5_golden_execution.py`) — ver [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md).
 3. E6 `parecer_planejador`: schema `parecer_planejador.schema.json` ativo; golden mockado entregue nos Atos 1-3.
 
-**Próximo passo:** [PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) — P1 estrutural foi pausado em 2026-05-06 e substituído por este plano canônico multi-onda (32 tasks, 6 ondas, 138 findings de revisão multi-agente).
+**Próximo passo:** [PLATFORM_REVIEW/_README.md](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — P1 estrutural foi pausado em 2026-05-06 e substituído por este plano canônico multi-onda (32 tasks, 6 ondas, 138 findings de revisão multi-agente).
 
 ---
 
@@ -116,5 +116,5 @@
 - [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) — checklist de validação por artefato
 - [../_MOC/_generated/ADR_INDEX.md](../_MOC/_generated/ADR_INDEX.md) — índice canônico de ADRs (auto-gerado)
 - ADRs relevantes: [ADR-013](../DECISIONS.md#adr-013), [ADR-077](../DECISIONS.md#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web), [ADR-081](../DECISIONS.md#adr-081), [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side), [ADR-157](../adr/157-schema-irpf-completo-stage-extract-irpf-full.md), [ADR-199](../adr/199-parecer-planejador-supersede-review-finances.md), [ADR-212](../adr/212-sunset-mathoms-use-db-artifacts-disk-store-cli.md), [ADR-213](../adr/213-sunset-stage-audit-documents.md)
-- [../plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) — sucessor de P1 estrutural (revisão multi-agente Sprint A11)
+- [../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — sucessor de P1 estrutural (revisão multi-agente Sprint A11)
 - [../plan/P1_STRUCTURAL/_README.md](../plan/P1_STRUCTURAL/_README.md) — plano estrutural P1 (status: `paused` desde 2026-05-06)

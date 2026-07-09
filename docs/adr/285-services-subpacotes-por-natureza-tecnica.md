@@ -100,7 +100,7 @@ rate limits…) e (b) lógica de use-case represada (`goal_service`,
 **Implementação:** Frente 1 executada na lane A33.l9 (gate de entrada
 verificado 2026-07-08: nenhum PR em voo tocando `services/`); Frente 2 via
 débito registrado no
-[plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md). Flip
+[archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md). Flip
 para `Decidido` no merge do primeiro PR de subpacote (`services/security/`,
 A33.l9).
 

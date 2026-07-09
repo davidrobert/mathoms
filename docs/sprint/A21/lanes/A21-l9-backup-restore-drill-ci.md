@@ -19,7 +19,7 @@ tags:
 
 # A21.l9 — Backup/restore mechanism + drill CI-local
 
-> **Plano:** [[PLAN-launch-trust]] §F2-2.1 (subset de W4-T01 do [[PLAN-platform-review]]).
+> **Plano:** [[PLAN-launch-trust]] §F2-2.1 (subset de W4-T01 do [PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md)).
 
 ## Contexto
 

@@ -50,6 +50,6 @@ size_lines: 55
 - ⚠️ Cláusula PT-BR — comportamento pode variar Claude/GPT-4; eval cross-provider é gate de produção (nightly), não de merge.
 - ❌ Não substitui revisão humana de outputs sensíveis (`needs_review` já existe).
 
-**Implementação:** lane A21.l6 (W3-T05). No merge de l6, flippar checkbox W3-T05 em [[PLAN-platform-review]] `blocked → shipped`.
+**Implementação:** lane A21.l6 (W3-T05). No merge de l6, flippar checkbox W3-T05 em [PLAN-platform-review](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) `blocked → shipped`.
 
-**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T05](../plan/PLATFORM_REVIEW/_README.md), finding SR-009. Co-design A21.l5: `senior-cto` (superfície + choke-point + Layer 3 honesta + reconciliação ADR-203) + `prompt-engineer` (sandwich L2 + auto-neutralização de delimitador + 5 vetores + enum de telemetria).
+**Referências:** [archive/PLATFORM_REVIEW_PLAN-2026-07-08.md §W3-T05](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md), finding SR-009. Co-design A21.l5: `senior-cto` (superfície + choke-point + Layer 3 honesta + reconciliação ADR-203) + `prompt-engineer` (sandwich L2 + auto-neutralização de delimitador + 5 vetores + enum de telemetria).

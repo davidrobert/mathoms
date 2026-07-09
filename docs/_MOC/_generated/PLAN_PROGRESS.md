@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-20 planos detectados em [`docs/plan/`](../../plan/).
+19 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -36,13 +36,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Sprints envolvidas: A21, A22
 - Lanes: 14 done · 0 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-246]], [[ADR-255]], [[ADR-267]], [[ADR-268]], [[ADR-271]]
-
-### PLAN-platform-review — Platform Review Plan — 2026-05-06
-
-- Status: `in_progress` · Sprint atual: A11
-- Sprints envolvidas: A11, A33
-- Lanes: 5 done · 0 in_progress · 2 open · 2 blocked
-- ADRs canônicas: —
 
 ### PLAN-report-premium — Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html`
 

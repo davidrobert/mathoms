@@ -25,7 +25,7 @@ tags:
 
 > **Plano:** [[PLAN-data-lineage]] · Onda 1 · **abre só após o gate F0 ([[A23.l1]])**.
 > Primeira lane da Onda 1, **antes de qualquer rebaseline de golden** (F2). Fecha o
-> débito **DE-005** ([[PLAN-platform-review]] §W6-T01).
+> débito **DE-005** ([PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) §W6-T01).
 
 ## Objetivo
 
@@ -110,5 +110,5 @@ Co-design com `data-engineer` + `senior-cto` antes de codar. Entregáveis:
   lane — é F2 (`dl-f2-deleak-slice1`, G-c). A23.l2 entrega só o reader + formato
   do manifesto + gate de cobertura.
 
-**Fecha DE-005** ([[PLAN-platform-review]] §W6-T01); ponteiro atualizado em
+**Fecha DE-005** ([PLAN-platform-review](../../../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) §W6-T01); ponteiro atualizado em
 CLAUDE.md §Testes.
