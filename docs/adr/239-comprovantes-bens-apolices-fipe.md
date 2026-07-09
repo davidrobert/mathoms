@@ -42,10 +42,10 @@ tags:
 
 ## Contexto
 
-Sessão dogfood 2026-05-21 com **6 PDFs reais** do owner expandiu o batch fiscal de 15 (Sprint A17 — ADR-238) para 21 documentos. Os 6 novos são:
+Sessão dogfood 2026-05-21 com **6 PDFs de exemplo** expandiu o batch fiscal de 15 (Sprint A17 — ADR-238) para 21 documentos. Os 6 novos são:
 
-- **3 CRLV-e** (Certificados de Registro e Licenciamento de Veículo, exercício 2025): Yamaha NMAX 160 STH2C88 2024, Yamaha NMAX DAV0351 2018, Fiat Toro GDK6A27 4×4 2022.
-- **3 apólices de seguro**: Tokio Marine (NMAX STH2C88), Porto Moto (NMAX DAV0351), **Porto Proteção Combinada** (Toro GDK6A27 **+ residência R Exemplo 100**).
+- **3 CRLV-e** (Certificados de Registro e Licenciamento de Veículo, exercício 2025): moto Exemplo ABC1D23 2024, moto Exemplo XYZ9A87 2018, carro Exemplo ABC1234 4×4 2022.
+- **3 apólices de seguro**: Tokio Marine (moto ABC1D23), Porto Moto (moto XYZ9A87), **Porto Proteção Combinada** (carro ABC1234 **+ residência Rua Exemplo, 100**).
 
 Hoje:
 
@@ -58,9 +58,9 @@ Insights críticos extraídos da inspeção dos 3 PDFs reais:
 
 - **Apólice combinada (auto + residencial num único PDF)** é padrão Porto Seguro — caso V1, não edge case.
 - **FIPE code vem direto da apólice** (Tokio: 827125-9; Porto Moto: 8271020; Porto Combinada: 15253). Lookup BrasilAPI fica trivial — `GET /fipe/preco/v1/<code>` sem fuzzy matching.
-- **Renovação inter-seguradora ("congênere")** preserva classe de bônus — Tokio doc declara "Renovação Congênere PORTO 8891272 classe 2". Schema precisa de `congenere_anterior` para lineage.
-- **Pagador ≠ Segurado** — Tokio Marine paga pela SONIA (cônjuge) no cartão dela; segurado é David. FK opcional para `family_members` em ambos os campos.
-- **3 corretoras diferentes** (Bedoni SUSEP 202020138, Mrr Miseg SUSEP 202020150, Thiago Alcântara SUSEP 201008086) — fragmentação de mercado é cidadã V1.
+- **Renovação inter-seguradora ("congênere")** preserva classe de bônus — Tokio doc declara "Renovação Congênere PORTO 9999999 classe 2". Schema precisa de `congenere_anterior` para lineage.
+- **Pagador ≠ Segurado** — Tokio Marine paga pelo Cônjuge no cartão dele; segurado é o Titular. FK opcional para `family_members` em ambos os campos.
+- **3 corretoras diferentes** (Corretora Exemplo 1 SUSEP 000000001, Corretora Exemplo 2 SUSEP 000000002, Corretor PF Exemplo SUSEP 000000003) — fragmentação de mercado é cidadã V1.
 
 Co-design `data-engineer` + `financial-planner` em paralelo (2026-05-21) consolidou as decisões abaixo. ADR companheira [[ADR-240]] cobre o **card S_PROTECAO** no relatório (Sprint A19).
 
@@ -241,8 +241,8 @@ Apólices são **eventos temporais** (vigência início+fim). Modelo:
 
 Stage descritivo único ([[ADR-093]] F9.2) com sufixo `-2_comprovante_bem.json` em `_STAGE_TO_SUFFIX` ([[ADR-212]]). `artifact_key` codifica tipo + identificador:
 
-- CRLV: `crlv_<placa>_<ano_exercicio>` → `crlv_sth2c88_2025`
-- Apólice: `apolice_<numero_normalizado>` → `apolice_37837540`
+- CRLV: `crlv_<placa>_<ano_exercicio>` → `crlv_abc1d23_2025`
+- Apólice: `apolice_<numero_normalizado>` → `apolice_99999999`
 
 Despacho interno por `tipo_comprovante: Literal["crlv", "apolice"]` detectado em E0.
 
@@ -262,7 +262,7 @@ Migration Alembic ([[ADR-137]]):
 - **G4** — 6 PDFs do batch (3 CRLV + 3 apólices) classificam corretamente com `confidence ≥ 0.7` ao final de cada lane. 15 PDFs de informes ([[ADR-238]]) e demais documentos continuam em seu fluxo (não regridem).
 - **G5** — `pytest backend/tests tests -q` + `cd frontend && npm test -- --run` + `pre-commit run --all-files` verdes por PR.
 - **G6** — BrasilAPI lookup é **sempre assíncrono** (Celery) — teste unitário valida que stage não bloqueia em HTTP.
-- **G7** — Apólice combinada Porto (Toro + residência) renderiza com `len(bens_segurados) == 2` no golden — bug de "LMI atribuído ao bem errado" é regressão de prompt.
+- **G7** — Apólice combinada Porto (carro + residência) renderiza com `len(bens_segurados) == 2` no golden — bug de "LMI atribuído ao bem errado" é regressão de prompt.
 - **G8** — Goldens sintéticos em `tests/fixtures/comprovantes/` (CRLV + apolice simples + apolice combinada + 3 placeholders V2).
 
 ## Implementação

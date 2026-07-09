@@ -27,7 +27,7 @@ tags:
 
 ## Contexto
 
-Bug reportado em prod no relatório `/reports/<id>`, seção "Top 15 Ativos Financeiros": o mesmo apartamento (matrícula 453.527, COND. EXEMPLO B) aparece duplicado — uma vez como pertencente ao titular (R$ 477.436,58), outra como pertencente ao cônjuge (R$ 530.000,00). É o mesmo imóvel físico, declarado nos dois IRPFs individuais (típico em comunhão parcial de bens — regime padrão BR).
+Bug reportado em prod no relatório `/reports/<id>`, seção "Top 15 Ativos Financeiros": o mesmo apartamento (matrícula 999.999, COND. EXEMPLO B) aparece duplicado — uma vez como pertencente ao titular (R$ 450.000,00), outra como pertencente ao cônjuge (R$ 500.000,00). É o mesmo imóvel físico, declarado nos dois IRPFs individuais (típico em comunhão parcial de bens — regime padrão BR).
 
 Cadeia técnica:
 
@@ -41,7 +41,7 @@ Cadeia técnica:
 
 **Impactos:**
 - Top 15 mostra duplicata visível.
-- Patrimônio total **inflado** pelo `min(valor_david, valor_mariana)` (R$ 477k somado a R$ 530k = R$ 1.007k para o mesmo imóvel).
+- Patrimônio total **inflado** pelo `min(valor_titular, valor_conjuge)` (R$ 450k somado a R$ 500k = R$ 950k para o mesmo imóvel).
 - Alocação-alvo AUVP deslocada (denominador inflado → alvos imobiliários "ocupados" indevidamente, sistema recomenda **menos** imóvel).
 - `real_estate_e5_integration` ([backend/app/services/real_estate_e5_integration.py](../../backend/app/services/real_estate_e5_integration.py)) já agrega corretamente via `property_id` (single id, mesmo com duplicata na lista) — não é afetado.
 
@@ -124,14 +124,14 @@ Caso real de cliente reclamar do agrupamento, abrir ADR sucessora introduzindo `
     "count_before": 7,
     "count_after": 5,
     "dropped_property_ids": ["uuid-a", "uuid-b"],
-    "warnings": [{"property_id": "uuid-a", "type": "valor_divergente", "values": [477436.58, 530000.00], "diff_pct": 11.0}]
+    "warnings": [{"property_id": "uuid-a", "type": "valor_divergente", "values": [450000.00, 500000.00], "diff_pct": 11.1}]
   }
   ```
 - Entry com merge marca `_dedup_warning` quando divergência >10% — sobrevive como flag in-payload (consumível por audit dashboard).
 
 ## Critério de aceite
 
-1. Workspace David + Mariana → 1 row em `imoveis_consolidados` por imóvel co-declarado, `valor_31_12 = 530000` (maior), `proprietarios = ["david_robert", "mariana_xxx"]`, `proprietario = "casal"`.
+1. Workspace Titular + Cônjuge → 1 row em `imoveis_consolidados` por imóvel co-declarado, `valor_31_12 = 500000` (maior), `proprietarios = ["titular", "conjuge"]`, `proprietario = "casal"`.
 2. Top 15 mostra imóvel uma vez com `membro = "Casal"`.
 3. Workspace com 1 imóvel só do titular → continua aparecendo apenas no titular, `proprietario = titular_key` literal (não muda para "casal").
 4. PL consolidado snapshot pré/pós: `total_ativos` cai por `min(valor_co_declarados)`.

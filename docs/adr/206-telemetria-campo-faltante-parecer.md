@@ -117,8 +117,8 @@ Cada tier dispara workflow diferente:
 
 ### D5. Privacy — JSONPath é estrutural, não conteúdo
 
-- JSONPath identifica **localização** no E5 schema (ex.: `$.dependentes_irpf.tasso.idade`). Não persiste valor.
-- Mas: `field_path` pode conter **nome de família** se o E5 schema usa nomes como chave (ex.: `tasso` em `$.dependentes_irpf.tasso`). Aceito como semi-PII estrutural, retido com mesmas regras do `e5_analysis.json` (workspace-scoped, deleção em cascade via FK).
+- JSONPath identifica **localização** no E5 schema (ex.: `$.dependentes_irpf.dependente.idade`). Não persiste valor.
+- Mas: `field_path` pode conter **nome de família** se o E5 schema usa nomes como chave (ex.: `dependente` em `$.dependentes_irpf.dependente`). Aceito como semi-PII estrutural, retido com mesmas regras do `e5_analysis.json` (workspace-scoped, deleção em cascade via FK).
 - Logs ([[ADR-110]]) **não** persistem `field_path` com nome de família — só hash truncado (`mathoms.pipeline.parecer_planejador` logger com `field_path_hash` em vez de raw).
 
 ### D6. Integração com [[ADR-188]] pattern

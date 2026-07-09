@@ -26,7 +26,7 @@ tags:
 
 L1 estabeleceu padrão arquitetural completo (stage `extract_comprovantes_bens`, tabela canônica `vehicles`, classifier content-first, parser LLM Haiku, reconciliação assíncrona). **Esta lane estende o padrão** para `tipo_comprovante="apolice"` com schema polimórfico (Discriminated Union em `bens_segurados[]` E em `coberturas[]`).
 
-**Caso V1 obrigatório:** apólice combinada Porto Seguro (Toro GDK6A27 + residência R Exemplo 100) — multi-bem em 1 PDF. Cascata LLM Haiku→Sonnet dispara quando combinada detectada.
+**Caso V1 obrigatório:** apólice combinada Porto Seguro (carro ABC1234 + residência Rua Exemplo, 100) — multi-bem em 1 PDF. Cascata LLM Haiku→Sonnet dispara quando combinada detectada.
 
 ## Decisões já fechadas (não reabrir)
 
@@ -52,9 +52,9 @@ L1 estabeleceu padrão arquitetural completo (stage `extract_comprovantes_bens`,
 ## Pegadinhas (do co-design data-engineer)
 
 - **Cobertura discriminated já em V1** — vida tem `beneficiarios[]`, saúde tem `rede_credenciada`, acidentes tem `capital_segurado_morte`. Resolva em V1, não em V2.
-- **Corretor PF existente** — `cpf_or_cnpj: str` + validador (Thiago Alcântara Castro do batch é PF).
+- **Corretor PF existente** — `cpf_or_cnpj: str` + validador (Corretor PF Exemplo do batch é PF).
 - **Apólice combinada Porto = 2 seções "Valores do seu seguro"** (auto + residencial). LLM Haiku confunde em ~30% dos casos — gate de cascata é essencial.
-- **`pagador_cpf` cônjuge** — Sonia paga Tokio Marine; FK family_members captura.
+- **`pagador_cpf` cônjuge** — o Cônjuge paga Tokio Marine; FK family_members captura.
 - **Apólice expira, não é "superseded"** — modelo temporal por vigência, não chain de versões.
 
 ## Critério de aceite (lane completa)

@@ -33,25 +33,25 @@ tags:
 
 Bug em produção no workspace `1b9f2cf5-…` (report `ffde7f63-…`): o consolidador `baseline_patrimonial` (E1.5c) trata a **mesma pessoa** como membros distintos quando IRPFs ao longo do tempo trazem **nomes variantes**.
 
-**Caso Mariana** (CPF redacted — founder dogfood workspace):
+**Caso Cônjuge** (CPF redacted — workspace dogfood):
 
 | Ano | Slug em `itens[].membro` | n_bens | Total |
 |---|---|---|---|
-| 2023 | `mariana_teixeira_ferreira` (sobrenome solteira) | 11 | R$ 811.301,24 |
-| 2024 | `mariana_ferreira_campos` (sobrenome casada) | 19 | R$ 988.123,73 |
+| 2023 | `conjuge_sobrenome_solteira` (sobrenome solteira) | 11 | R$ 800.000,00 |
+| 2024 | `conjuge_sobrenome_casada` (sobrenome casada) | 19 | R$ 1.000.000,00 |
 
 Mesma pessoa, anos sucessivos — só 2024 deveria valer (most-recent-year-wins, paridade com [[ADR-246]]). Atualmente **são somados** porque slugs disjuntos não casam em nenhuma das 5 estratégias de `MemberNameResolver` ([ADR-243](243-membername-resolver-canonico.md)):
 
 - Estratégia 1-4 (exact slug em key/full_name/short_name/nome_nascimento): falham — slugs literalmente diferentes.
-- Estratégia 5 (substring ≥ 5 chars): `"mariana_teixeira_ferreira" ∉ "mariana_ferreira_campos"` e vice-versa.
+- Estratégia 5 (substring ≥ 5 chars): `"conjuge_sobrenome_solteira" ∉ "conjuge_sobrenome_casada"` e vice-versa.
 
-**Inflação medida:** R$ 811k no patrimônio do workspace.
+**Inflação medida:** R$ 800k no patrimônio do workspace.
 
-**Caso David** (CPF redacted — founder dogfood workspace): 6 IRPFs com nomes variantes:
-- `"DAVID ROBERT CAMARGO FERREIRA CAMPOS"` (IRPF 2025, completo)
-- `"DAVID ROBERT CAMARGO DE CAMPOS"` (IRPF 2026, abreviado)
-- `"DAVID ROBERT CAMARGO FERREIRA"` (IRPF 2026, variante)
-- `"DAVID ROBERT CAMARGO DE CAMPOS LTDA"` (IRPF 2026 — **é PJ!**, contaminação)
+**Caso Titular** (CPF redacted — workspace dogfood): 6 IRPFs com nomes variantes:
+- `"TITULAR EXEMPLO SOBRENOME COMPLETO"` (IRPF 2025, completo)
+- `"TITULAR EXEMPLO SOBRENOME"` (IRPF 2026, abreviado)
+- `"TITULAR EXEMPLO"` (IRPF 2026, variante)
+- `"TITULAR EXEMPLO SOBRENOME LTDA"` (IRPF 2026 — **é PJ!**, contaminação)
 
 Análogo: múltiplos membros emergem para mesma pessoa. (PF vs PJ filtragem é problema separado — escopo de ADR-267 futura.)
 
@@ -66,7 +66,7 @@ CPF está **disponível** no pipeline mas **ignorado** no momento da consolidaç
 
 ### Impacto
 
-- **Patrimônio inflado:** workspaces com múltiplos IRPFs do mesmo titular ao longo do tempo somam itens em vez de manter only-most-recent. R$ 811k inflado medido no workspace David.
+- **Patrimônio inflado:** workspaces com múltiplos IRPFs do mesmo titular ao longo do tempo somam itens em vez de manter only-most-recent. R$ 800k inflado medido no workspace dogfood.
 - **KPIs derivados:** total_ativos, patrimonio_liquido, distribuição alocação-alvo, score AUVP — todos inflados.
 - **Parecer LLM (E6):** raciocina sobre patrimônio fictício.
 - **Cascata fiscal PJ ([[ADR-236]]):** rendimento PJ pode estar associado a slug errado se nome PJ casa parcialmente com PF.
@@ -126,7 +126,7 @@ Aceita ambos `"123.456.789-09"` (mascarado) e `"12345678909"` (sem máscara). Re
 
 ### D6 — Out of scope desta ADR (mas relacionado)
 
-- **PF vs PJ filter no E1.5a** — quando IRPF emite `"DAVID ROBERT CAMARGO DE CAMPOS LTDA"`, o extractor deveria filtrar (sufixo `LTDA`, `S.A.`, `EIRELI`, `ME`, `EPP`, `MEI`, ou CNPJ no documento). **ADR-267 separada.**
+- **PF vs PJ filter no E1.5a** — quando IRPF emite `"TITULAR EXEMPLO SOBRENOME LTDA"`, o extractor deveria filtrar (sufixo `LTDA`, `S.A.`, `EIRELI`, `ME`, `EPP`, `MEI`, ou CNPJ no documento). **ADR-267 separada.**
 - **Self-healing enrichment** — quando IRPF traz CPF e `family_members.membros[key]` ainda não tem, escrever de volta. **Decisão diferida** — risco de associação errada em substring match; melhor manter explícito por enquanto.
 - **Dependente menor sem CPF** — co-design com `financial-planner` para edge cases (dependente menor declarado pelo titular, cônjuge estrangeiro). Fallback name resolver cobre quando CPF ausente.
 
@@ -134,8 +134,8 @@ Aceita ambos `"123.456.789-09"` (mascarado) e `"12345678909"` (sem máscara). Re
 
 **Positivas:**
 
-- Mariana solteira ↔ casada colapsam em 1 membro canonical. Patrimônio cai de R$ 4.078k → R$ 3.267k (Δ −R$ 811k) no workspace David.
-- David com 6 IRPFs colapsa em 1 membro (descontando ADR-267 que filtra o LTDA).
+- Cônjuge solteira ↔ casada colapsam em 1 membro canonical. Patrimônio cai de R$ 4.000k → R$ 3.200k (Δ −R$ 800k) no workspace dogfood.
+- Titular com 6 IRPFs colapsa em 1 membro (descontando ADR-267 que filtra o LTDA).
 - Identidade estável entre runs — slug-de-nome volátil deixa de ser sintoma.
 - Habilita features futuras: rastreabilidade por CPF entre stages, dedup cross-year robusto, audit "qual IRPF trouxe qual bem".
 - Paralelo metodológico com [[ADR-255]] it.2 e [[ADR-225]] — invariante imutável (CPF) vence string mutável (nome/slug).
@@ -157,14 +157,14 @@ Aceita ambos `"123.456.789-09"` (mascarado) e `"12345678909"` (sem máscara). Re
 
 ## Critério de aceite
 
-1. **Resolver API** — `MemberNameResolver.resolve_by_cpf("123.456.789-09")` retorna `canonical_key="mariana_ferreira_campos"` (ou equivalente) quando family_members tem `mariana_ferreira_campos.cpf == "12345678909"`.
+1. **Resolver API** — `MemberNameResolver.resolve_by_cpf("123.456.789-09")` retorna `canonical_key="conjuge_sobrenome_casada"` (ou equivalente) quando family_members tem `conjuge_sobrenome_casada.cpf == "12345678909"`.
 2. **Normalização CPF** — `normalize_cpf("123.456.789-09") == normalize_cpf("12345678909") == "12345678909"`.
 3. **Cascata** — quando CPF ausente, resolver volta para 5 estratégias name-based (compat com workspaces sem IRPF).
 4. **`Confidence` enum** — `"cpf"` é valor válido, no topo da hierarquia.
 5. **Telemetria** — log JSON com `matched_via="cpf"` emitido quando estratégia dispara.
 6. **Goldens** — `tests/unit/pipeline/test_member_name_resolver.py` ganha goldens cobrindo:
-   - Mariana solteira+casada via CPF → mesma canonical_key.
-   - David 6 IRPFs (5 PF, 1 PJ) via CPF → 1 canonical_key (LTDA ainda contamina até ADR-267, registrar como warning).
+   - Cônjuge solteira+casada via CPF → mesma canonical_key.
+   - Titular 6 IRPFs (5 PF, 1 PJ) via CPF → 1 canonical_key (LTDA ainda contamina até ADR-267, registrar como warning).
    - CPF ausente → cai no name resolver (regression preservada).
    - CPF mascarado vs não-mascarado → mesma resolução.
    - CNPJ 14-dígitos → rejeitado (retorna `unknown` se nome também não casa).
@@ -183,7 +183,7 @@ Aceita ambos `"123.456.789-09"` (mascarado) e `"12345678909"` (sem máscara). Re
 - Schema `baseline_patrimonial.schema.json` ganha campo `cpf?` em items (aditivo).
 - Extractor E1.5 (`pipeline/llm/schemas/e1_5_baseline.py` + prompt) emit `cpf` por item quando IRPF traz.
 - Goldens regen.
-- Critério #13 da ADR-255: análogo aqui — workspace David com Mariana colapsada em 1 membro, R$ 811k removidos.
+- Critério #13 da ADR-255: análogo aqui — workspace dogfood com Cônjuge colapsada em 1 membro, R$ 800k removidos.
 
 **PR3 (audit + backfill)**:
 - `dev/audit_member_identity_drift.py` — itera workspaces, agrupa itens por CPF, reporta colisões.
@@ -193,7 +193,7 @@ Aceita ambos `"123.456.789-09"` (mascarado) e `"12345678909"` (sem máscara). Re
 
 **PR4 (lane futura — ADR-267)**: filtro PF vs PJ no E1.5a.
 
-**Flip ADR-267 → Decidido** após PR2 confirmar critério no workspace David em produção.
+**Flip ADR-267 → Decidido** após PR2 confirmar critério no workspace dogfood em produção.
 
 ## Alternativas consideradas
 

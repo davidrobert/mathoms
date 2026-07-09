@@ -43,8 +43,8 @@ Reproduzido em produção (workspace dogfood `5@5.com`, 2026-05-19):
 quando o usuário tem **5–6 imóveis físicos reais**. Três classes
 distintas de duplicata observadas:
 
-1. **Low-confidence × IRPF multi-ano (3 rows).** "CASA - LEONARDO DA
-   VINCI 2707, QUADRA 33 LOTE 27, JABAQUARA" não casa o regex (sem
+1. **Low-confidence × IRPF multi-ano (3 rows).** "CASA - EXEMPLO 100,
+   QUADRA 1 LOTE 1, BAIRRO EXEMPLO" não casa o regex (sem
    prefixo de logradouro). Cada IRPF anual (2022, 2023, 2024) gera
    row separada — `dev/dedup_property_identity.py` atual pula
    `endereco_canonical IS NULL`.

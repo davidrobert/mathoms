@@ -24,7 +24,7 @@ PR docs-only que registra [[ADR-239]] como `Proposto` e reserva Sprint A18 com 3
 
 ## Origem
 
-Sessão dogfood 2026-05-21 com **6 PDFs reais**: 3 CRLV-e (NMAX DAV0351, NMAX STH2C88, Toro GDK6A27) + 3 apólices de seguro (Tokio Marine Moto, Porto Moto, Porto Proteção Combinada — multi-bem). Todos caem em `.other` silencioso hoje.
+Sessão dogfood 2026-05-21 com **6 PDFs de exemplo**: 3 CRLV-e (moto XYZ9A87, moto ABC1D23, carro ABC1234) + 3 apólices de seguro (Tokio Marine Moto, Porto Moto, Porto Proteção Combinada — multi-bem). Todos caem em `.other` silencioso hoje.
 
 Owner explicitamente questionou acoplamento `veiculo.apolice_id` — co-design `data-engineer` + `financial-planner` confirmou padrão **inverso**: `apolice.bens_segurados[]` polimórfico com FK opcional para entidade canônica. Escala para vida/saúde/PJ V2.
 

@@ -22,7 +22,7 @@ size_lines: 45
 
 **Status:** Decidido (A8.4 PR4) • **Data:** 2026-05-06 • **Supersedes parcialmente** [[ADR-117]], [[ADR-123]] • **Conclui agenda** [[ADR-151]].
 
-**Contexto:** O relatório premium tinha **3 modos** historicamente: Estratégico (universal), Tático (curto prazo, removido em ADR-151) e USA (mudança internacional + Green Card EB2-NIW + NCLEX RN — específico do cliente piloto). Modo USA tinha 4 seções (U1 Mudança EUA F1/F2 · U2 Green Card EB2-NIW · U3 NCLEX Roadmap · U4 Simulação Mariana Sem Trabalhar) acopladas a artefatos de prototipagem família-específica (cônjuge enfermeira, processo EB2-NIW, F1/F2). ADR-151 (2026-04-26) já estabeleceu doutrina ao remover Tático: **modos opcionais sem cliente real são lastro** — manter abstração de modo custa em superfície de teste, layout YAML, components React, branches de roteamento e visual snapshots, sem benefício enquanto não há segundo cliente que justifique generalização. Modo USA tem o mesmo perfil de risco e idade.
+**Contexto:** O relatório premium tinha **3 modos** historicamente: Estratégico (universal), Tático (curto prazo, removido em ADR-151) e USA (mudança internacional + Green Card EB2-NIW + NCLEX RN — específico do cliente piloto). Modo USA tinha 4 seções (U1 Mudança EUA F1/F2 · U2 Green Card EB2-NIW · U3 NCLEX Roadmap · U4 Simulação Cônjuge Sem Trabalhar) acopladas a artefatos de prototipagem família-específica (cônjuge, processo EB2-NIW, F1/F2). ADR-151 (2026-04-26) já estabeleceu doutrina ao remover Tático: **modos opcionais sem cliente real são lastro** — manter abstração de modo custa em superfície de teste, layout YAML, components React, branches de roteamento e visual snapshots, sem benefício enquanto não há segundo cliente que justifique generalização. Modo USA tem o mesmo perfil de risco e idade.
 
 A regra de domínio "cenário cônjuge sem trabalhar" sobrevive como **capability genérica** (ADR-166 + ADR-167) — chart `cenarios_conjuge` no S3 + bloco APP_C "Cenários de Estresse". Não há nada universal em U1-U4 que justifique manter Modo USA inteiro como abstração.
 
@@ -56,7 +56,7 @@ A regra de domínio "cenário cônjuge sem trabalhar" sobrevive como **capabilit
 2. Quando segundo cliente internacional aparecer, abrir nova ADR para "Modo Internacional" generalizado, com requisitos validados pelo cliente (não especulação).
 
 > **Nota (2026-05-06):** narrativas órfãs (`custo_fase_f1f2`, `f1f2_visto`,
-> `sobra_mensal_f1f2`, `mariana_eua`, `nclex_*`) ainda referenciadas em
+> `sobra_mensal_f1f2`, `conjuge_eua`, `nclex_*`) ainda referenciadas em
 > `summaries_narrator.py`, `charts_narrator.py`, `perfil_familia_narrator.py`,
 > `e5n_narrativas.py` serão limpas em **Sprint A10 lane A10.1** (cleanup
 > débito ADR-168). Plano canônico:
