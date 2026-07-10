@@ -17,21 +17,26 @@ atual pausa em narrativa/gráfico ausente (CV9/CV10, cosmético) e **não** nos
 checks de conservação numérica (CV2/CV3/CV6/CV7 são `warning`). A re-tag move
 os numéricos para dentro do gate e os de render para fora.
 
-Uso (sobre E5 exportados para JSON — um `analise_financeira` por arquivo):
+Uso:
+    # direto no DB da instância (dogfood/prod) — decripta o payload se preciso:
+    python3 dev/measure_conservation_gate.py --from-db
+
+    # ou sobre E5 exportados para JSON (um `analise_financeira` por arquivo):
     python3 dev/measure_conservation_gate.py --dir <dir-com-jsons>
     python3 dev/measure_conservation_gate.py --json <um-e5.json>
 
-Para medir sobre os runs reais (instância dogfood/prod), exporte cada E5 do DB
-e aponte o --dir. Query read-only na instância:
+`--from-db` importa o backend de forma lazy (SyncSessionLocal + crypto) — só
+esse caminho depende dele; `--dir`/`--json` e os testes rodam sem backend.
+Requer o env do backend (`DATABASE_URL`, `MATHOMS_FERNET_KEY`) e deve rodar na
+instância. Alternativa manual sem backend: exportar cada `content_json` (query
+read-only abaixo) como `<pipeline_run_id>.json` e usar `--dir`.
 
     SELECT pipeline_run_id, content_json FROM pipeline_artifacts
     WHERE artifact_key = 'analise_financeira'
       AND stage IN ('E5', 'analyze_finances');
 
-Grave cada `content_json` como `<pipeline_run_id>.json` num diretório e rode
-`--dir <diretório>`. O script usa os thresholds default de `validate_cross`
-(mesmos do código); para casar thresholds de uma instância com `qa_thresholds`
-customizado em `pipeline.json`, rode-o naquela instância.
+O script usa os thresholds default de `validate_cross` (mesmos do código); para
+casar `qa_thresholds` customizado de uma instância, rode-o naquela instância.
 """
 
 from __future__ import annotations
@@ -145,6 +150,36 @@ def load_e5_dir(path: Path) -> Iterator[tuple[str, dict]]:
         yield jf.stem, json.loads(jf.read_text(encoding="utf-8"))
 
 
+def _decrypt_if_needed(payload: dict) -> dict:
+    """Decripta o payload de um artifact se estiver encriptado (ADR-231; import lazy)."""
+    from backend.app.services.security.crypto import (
+        decrypt_artifact_payload,
+        is_encrypted_payload,
+    )
+
+    return decrypt_artifact_payload(payload) if is_encrypted_payload(payload) else payload
+
+
+def load_e5_from_db() -> list[tuple[str, dict]]:
+    """Lê os E5 (`analise_financeira`) do DB, um por run (import lazy; requer env backend)."""
+    from sqlalchemy import select
+
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+
+    stmt = (
+        select(PipelineArtifact)
+        .where(PipelineArtifact.artifact_key == "analise_financeira")
+        .where(PipelineArtifact.stage.in_(("E5", "analyze_finances")))
+        .order_by(PipelineArtifact.id)
+    )
+    latest_by_run: dict[str, dict] = {}
+    with SyncSessionLocal() as session:
+        for row in session.execute(stmt).scalars():
+            latest_by_run[row.pipeline_run_id] = _decrypt_if_needed(row.content_json)
+    return list(latest_by_run.items())
+
+
 def _summary_lines(report: ImpactReport) -> list[str]:
     """Cabeçalho + contagens agregadas do relatório (PII-safe)."""
     return [
@@ -177,11 +212,14 @@ def format_report(report: ImpactReport) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     src = parser.add_mutually_exclusive_group(required=True)
+    src.add_argument("--from-db", action="store_true", help="Lê E5 do DB da instância.")
     src.add_argument("--dir", type=Path, help="Diretório de E5 JSON (um por run).")
     src.add_argument("--json", type=Path, help="Um único E5 JSON.")
     args = parser.parse_args(argv)
 
-    if args.dir:
+    if args.from_db:
+        runs = load_e5_from_db()
+    elif args.dir:
         runs = list(load_e5_dir(args.dir))
     else:
         runs = [(args.json.stem, json.loads(args.json.read_text(encoding="utf-8")))]
