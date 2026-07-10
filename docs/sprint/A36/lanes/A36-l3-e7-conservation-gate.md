@@ -74,32 +74,33 @@ que não fecham" — porque são `warning`:
 ## Achado empírico — medição sobre 26 runs de dogfood (2026-07-10)
 
 Guarda pré-execução rodada (`dev/measure_conservation_gate.py --from-db`) sobre
-os 26 runs reais de dogfood. Resultado **muda o escopo** e valida a ordem
-"medir antes de flipar":
+os 26 runs reais de dogfood, seguida de investigação de causa-raiz (o count bruto
+super-alarmou; a investigação corrigiu):
 
 - **A conservação numérica real está saudável:** CV1, CV2, CV3, CV5, CV7, CV8
   **passam em 26/26**. Nenhum relatório saiu com números que não fecham.
-- **Dois checks estão obsoletos vs o schema atual do E5 e falham em 26/26 —
-  não por dado ruim, por drift do check:**
-  - **CV6** lê `patrimonio.investivel`, campo **inexistente** hoje (o E5 emite
-    `investivel_financeiro` / `investivel_efetivo`) → assume 0 → "0% de progresso
-    IF" → falha sempre. **Bug pré-existente do check.**
-  - **CV10** exige o gráfico `alocacao_atual_vs_alvo`, **não mais emitido** (os
-    outros 6 obrigatórios estão presentes/completos) → falha sempre. CV10 já é
-    `error`.
-  - *(CV4 falha em 23/24 — advisory, fora de gate; provável drift de fórmula.)*
-- **Consequência crítica:** o fix "só emitir o bloco `validation`" pausaria
-  **100% dos runs** no dia 1 (via CV10, que já é `error`) — over-firing
-  catastrófico. Por isso a ordem abaixo antepõe o conserto dos checks obsoletos.
+- **CV6 — bug real (falha 26/26, também em run fresco).** Lê `patrimonio.investivel`,
+  campo **inexistente**; o E5 emite `investivel_efetivo`/`investivel_financeiro`, e
+  o próprio `if_pct` que CV6 valida é computado de `investivel_efetivo`
+  (`analyze_finances.py:1197`). Fix determinado pelo código: ler `investivel_efetivo`.
+- **CV10 — NÃO é bug (artefato de dado antigo).** O gráfico foi renomeado para
+  `alocacao_atual_vs_alvo` em #909 (A12, mergeado 2026-07-09 05:03); narrator e
+  check usam o novo nome, sem filtro entre eles. Os 26 runs (2026-05-29 →
+  2026-07-08 22:17) são **todos pré-#909** — 0/26 têm o id novo, 26/26 têm os
+  antigos (`alocacao_atual`/`alocacao_alvo`). **Run fresco passa.** Sem ação.
+- *(CV4 falha 23/24 — advisory, fora de gate; provavelmente também dado antigo.)*
+- **Meta-achado (o mais importante):** os 26 runs são **schema pré-#909** — não
+  representam a saída do pipeline atual. O base-rate confiável exige **rodar 1 run
+  fresco** e medir sobre ele.
 
 ### Escopo corrigido pela medição (antecede o "Escopo" abaixo)
 
-0. **Consertar os dois checks obsoletos primeiro** (bugs independentes):
-   CV6 → apontar para `investivel_efetivo`/`investivel_financeiro`; CV10 →
-   remover/atualizar `alocacao_atual_vs_alvo` da lista de obrigatórios (ou
-   restaurar a emissão). Enquanto falharem em 100%, **não podem** estar em gate
-   de pausa. Só **CV2/CV3** estão prontos para promover hoje (passam 26/26);
-   **CV6 entra no gate só depois de consertado**.
+0. **Consertar CV6** (bug real, independente): `patrimonio.investivel` →
+   `investivel_efetivo` + teste de regressão. CV10 **não** precisa de conserto.
+   **Antes de decidir promover severidade, rodar 1 run fresco e re-medir** —
+   os 26 runs antigos não valem como base-rate do produto atual. CV2/CV3 passam
+   mesmo no schema antigo (bom sinal), mas confirmar no fresco; **CV6 só entra
+   no gate depois de consertado e re-medido**.
 
 ## Escopo
 
