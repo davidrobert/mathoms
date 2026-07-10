@@ -78,7 +78,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | A33 | done |
 | A34 | paused |
 | A35 | done |
-| A36 | paused |
+| A36 | candidate |
 | A6 | done |
 | A7 | done |
 | A8 | done |
