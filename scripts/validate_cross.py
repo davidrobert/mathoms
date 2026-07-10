@@ -309,15 +309,18 @@ _REQUIRED_CHARTS = [
 ]
 
 
+def _chart_incomplete(charts: dict, chart_id: str) -> bool:
+    cv = charts.get(chart_id)
+    return isinstance(cv, dict) and (not cv.get("context") or not cv.get("conclusion"))
+
+
 def _cv10_charts_completeness(e5: dict) -> CrossValidationResult:
     narr = e5.get("narrativas", {})
     charts = narr.get("charts", {})
     missing_charts = [c for c in _REQUIRED_CHARTS if c not in charts]
-    incomplete_charts = []
-    for ck, cv in charts.items():
-        if isinstance(cv, dict):
-            if not cv.get("context") or not cv.get("conclusion"):
-                incomplete_charts.append(ck)
+    # Completude só dos obrigatórios: charts opcionais (impostos_pj,
+    # wise_fiscal_flags…) são legitimamente vazios sem a seção (A36.l3 FU-1).
+    incomplete_charts = [c for c in _REQUIRED_CHARTS if _chart_incomplete(charts, c)]
     severity = "error" if missing_charts else ("warning" if incomplete_charts else "info")
     return CrossValidationResult(
         "CV10",
