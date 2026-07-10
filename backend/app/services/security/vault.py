@@ -57,19 +57,23 @@ class VaultService:
         """Encrypt a secret with the primary key. Returns base64-encoded ciphertext."""
         return self._fernet.encrypt(plaintext.encode()).decode()
 
-    def decrypt(self, ciphertext: str) -> str | None:
-        """Decrypt a secret (tries every active key). Returns None if decryption fails."""
+    def decrypt(self, ciphertext: str | None) -> str | None:
+        """Decrypt a secret. ``None`` in → ``None`` out; só engole ``InvalidToken`` (miss de rotação / token adulterado / base64 — o esperado). Qualquer outra exceção propaga: era mascarada por ``except Exception`` (QUAL-01 · A36.l5), escondendo bug real atrás de ``None`` silencioso."""
+        if ciphertext is None:
+            return None
         try:
             return self._fernet.decrypt(ciphertext.encode()).decode()
-        except (InvalidToken, Exception):
+        except InvalidToken:
             return None
 
-    def needs_rotation(self, ciphertext: str) -> bool:
+    def needs_rotation(self, ciphertext: str | None) -> bool:
         """True se o ciphertext só decifra com key secundária (re-encrypt pendente)."""
+        if ciphertext is None:
+            return False
         try:
             self._primary.decrypt(ciphertext.encode())
             return False
-        except (InvalidToken, Exception):
+        except InvalidToken:
             pass
         return self.decrypt(ciphertext) is not None
 
