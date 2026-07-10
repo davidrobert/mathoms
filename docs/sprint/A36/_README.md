@@ -133,9 +133,20 @@ B), auditar call-sites de `vault.decrypt` ([[A36.l5]] QUAL-01).
 - **DAT-03** (schema `warn`→`strict`) → PLATFORM_REVIEW W6-T01.
 - **TEST-03** (paridade Go↔Py) → [[PLAN-go-shell]] F2 cutover ([[ADR-323]]).
 
-## Débito de forma conhecido (não-bloqueante)
+## Follow-ups descobertos na execução (rever no fecho do sprint)
 
-- O `SPRINT_CURRENT` auto rotula A36 como "sprint corrente" via fallback
-  `max(dir)` quando nenhuma sprint é `current` — limitação do renderer
-  (`dev/_sprint_current_renderer.py`), não de A36. Follow-up opcional: filtrar
-  candidatos por `sprint_status ∉ {done, paused, cancelled}` antes de eleger o max.
+> **Ledger vivo.** Toda lane que descobrir um item fora do próprio escopo
+> registra aqui (origem + descrição + tier), em vez de silenciar ou inchar a
+> lane. **No fecho do A36**, revisar cada linha: promover a lane/backlog próprio,
+> resolver inline se trivial, ou descartar com justificativa. Nenhum some sem
+> decisão. `aberto` = pendente de decisão; `feito`/`descartado`/`promovido` = fechado.
+
+| # | Origem | Follow-up | Tier | Estado |
+|---|---|---|---|---|
+| FU-1 | [[A36.l3]] | **Render-gate dedicado.** Tirar CV9/CV10 do gate de pausa (já estão fora) e **calibrar CV10** para pular seções opcionais legitimamente vazias — medição no run fresco: `impostos_pj` e `wise_fiscal_flags` com `context`/`conclusion` vazios geram `warning` falso-positivo quando o workspace não tem PJ/Wise. | P2 | aberto |
+| FU-2 | [[A36.l3]] | **Backfill retroativo.** Script read-only que reconstrói os 14 checks sobre o E5 persistido (`analyze_finances/analise_financeira`) e lista runs `completed` que teriam pausado — o E7 nunca persistiu verdict, então é reconstrução, não leitura. Zero migration. | P2 | aberto |
+| FU-3 | [[A36.l3]] | **CV4 (taxa de poupança) falha em 25/28.** Advisory, fora do gate — provável drift de fórmula ou de campo. Investigar à parte; se for bug, entra como fix próprio. | P3 | aberto |
+| FU-4 | forma | **`SPRINT_CURRENT` fallback.** Elege A36 como "corrente" via `max(dir)` quando nenhuma sprint é `current` — limitação de `dev/_sprint_current_renderer.py`. Follow-up: filtrar `sprint_status ∉ {done, paused, cancelled}` antes de eleger o max. | P3 | aberto |
+
+_(Adicione novas linhas conforme as lanes rodam — L1a, L5, L4, L2 tendem a
+gerar itens de allowlist, calibração e cobertura.)_
