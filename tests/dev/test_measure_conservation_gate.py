@@ -36,7 +36,11 @@ def _clean_e5() -> dict:
     """E5 sintético consistente — passa todos os checks relevantes de gate."""
     return {
         "score": {"valor": 7.0, "classificacao": "x", "componentes": [{"nota": 7.0, "peso": 1.0}]},
-        "patrimonio": {"bruto": 1000.0, "investivel": 500.0, "composicao": [{"valor": 1000.0}]},
+        "patrimonio": {
+            "bruto": 1000.0,
+            "investivel_efetivo": 500.0,
+            "composicao": [{"valor": 1000.0}],
+        },
         "fluxo_caixa": {
             "receita_total": 1000.0,
             "despesa_total": 600.0,
