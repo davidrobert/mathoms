@@ -5,6 +5,7 @@ title: "Razão estruturada de needs_review (ReviewReason tipado + tabela review_
 status: Decidido
 phase: A20.failure-diagnostics
 date: "2026-05-30"
+amended_at: ["2026-07-10"]
 relates_to:
   - "[[ADR-097]]"
   - "[[ADR-110]]"
@@ -31,6 +32,10 @@ tags:
 > **Co-design (Fase 0 fechada 2026-05-30).** Forma de schema/persistência revisada por `data-engineer`; boundary `pipeline/domain` ↔ adapter e modelo de unificação revisados por `senior-cto`. Decisão de unificação **resolvida**: destino único (uma tabela, uma projeção) com produtores **desacoplados** via protocolo `ToReviewReason` (ver §"Unificação"). Plano operacional de implementação: [[TRACK-adr272-review-reasons]].
 
 > **Escopo: pipeline/extração apenas.** Esta ADR cobre os `needs_review` setados em `pipeline/**` (extração LLM, stages, services de domínio). O mundo de **document-upload/classificação** (`backend/app/services/document_classification.py`, `document_upload_service.py`, `document_duplicates.py`, modelos `Document`/`Debt`) tem UX de revisão própria e **fica fora** — assim a garantia de completude (todo `needs_review` tem `ReviewReason`) é honesta e auditável por um gate de superfície fechada.
+
+> **Emenda 2026-07-10 (A36.l3).** O mecanismo de pausa desta ADR passa a ser
+> consumido pelo E7 (`validate_cross`): um check de **conservação** violado emite
+> `validation.valid=False` e pausa o run como `needs_review`. Ver §Emenda ao final.
 
 ## Contexto
 
@@ -156,3 +161,13 @@ Plano operacional canônico em [[TRACK-adr272-review-reasons]]. Implementação 
 - **Fase 2 — seam de serialização:** `to_review_reason()` em `ValidationIssue` + warnings de domínio; `_record_stage_needs_review()` ([`pipeline_task.py`](../../backend/app/tasks/pipeline_task.py)) insere rows + popula `StageReview.validation_issues` da mesma fonte; teste de paridade.
 - **Fase 3 — completude:** back-fill dos pontos `needs_review=true` da superfície pipeline/extração + gate `dev/check_needs_review_has_reason.py`.
 - **PR follow-up:** endpoint interno `ops.mathoms.ai` ([[ADR-116]]) que devolve o bundle de diagnóstico consolidado por run (par com [[ADR-273]]).
+
+## Emenda 2026-07-10 — gate de conservação do E7 consome o mecanismo (A36.l3)
+
+**Contexto.** O E7 (`validate_cross`) rodava 14 checks de consistência sobre o E5 mas **sempre** retornava `success: True` sem emitir o bloco `validation` — então um plano com invariante de conservação violada era entregue ao cliente sem flag (achado DAT-01 da auditoria r4).
+
+**Decisão.** `validate_cross.main_with_store` passa a emitir `validation: {"valid": ..., "errors": [...]}`. `_has_validation_errors` (já existente) dispara e o run pausa como `needs_review` — reusando este mecanismo, sem código novo no consumidor. `success` permanece `True` (rodou sem crashar; `valid=False` roteia para `needs_review`, não `failed_at_stage`).
+
+**Gate por conjunto explícito, NÃO por `severity=="error"`.** O gate dispara em `_CONSERVATION_CHECKS = {CV1, CV2, CV3, CV6}` (checks numéricos), **não** na severidade genérica. Razão empírica (medição A36.l3 sobre 27 runs de dogfood): CV9/CV10 são `severity="error"` mas de **render** (narrativa/gráfico) e falham em run **incremental** ([[ADR-080]]) que reusa narrativa — gatilhar em `error` genérico pausaria 100% dos runs. Sob o conjunto de conservação a medição deu **0 pausas** (após o fix do CV6, que lia o campo morto `patrimonio.investivel` em vez de `investivel_efetivo`). CV9/CV10 e CV4 seguem **advisory** (fora do gate); render-gate dedicado fica como follow-up.
+
+**Escopo.** Só a disposição do resultado + o conjunto de gate; não altera a lógica interna dos 14 checks. Cobertura: `tests/test_e7_conservation_gate.py` (conservação pausa; render não pausa; fluxo por `main_with_store`).
