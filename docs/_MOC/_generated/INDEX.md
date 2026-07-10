@@ -741,7 +741,7 @@
 | A36.l1 | lane | planned | A36 | Boundary-lint proíbe `backend` + inverter escritas de domínio no pipeline | `sprint/A36/lanes/A36-l1-boundary-lint-backend.md` |
 | A36.l2 | lane | planned | A36 | Redação de PII no forward de stderr do subprocess Python no executor Go | `sprint/A36/lanes/A36-l2-stderr-pii-redaction.md` |
 | A36.l3 | lane | planned | A36 | E7: invariante de conservação (CV1-CV14) pausa o run em vez de ser advisory | `sprint/A36/lanes/A36-l3-e7-conservation-gate.md` |
-| A36.l4 | lane | planned | A36 | Bump toolchain Go 1.26.4 → 1.26.5 (fecha CVE alcançável GO-2026-5856) | `sprint/A36/lanes/A36-l4-go-toolchain-cve-bump.md` |
+| A36.l4 | lane | planned | A36 | Gate govulncheck no CI + toolchain floor go1.26.5 (SEC-07 / GO-2026-5856) | `sprint/A36/lanes/A36-l4-go-toolchain-cve-bump.md` |
 | A36.l5 | lane | planned | A36 | Estreitar `except` largos em cripto (vault) e validação financeira (baseline) | `sprint/A36/lanes/A36-l5-narrow-broad-excepts.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |

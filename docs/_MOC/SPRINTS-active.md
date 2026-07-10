@@ -228,6 +228,22 @@ A27→`current`→`done`) — a A28 (`current`) é quem gera esse tráfego. Cond
 
 - **Plano:** [sprint/A27/_README.md](../sprint/A27/_README.md) · **Dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 6.
 
+### A36 — Follow-up da auditoria r4 (`candidate` 2026-07-09, revisada 2026-07-10)
+
+**Contêiner de proveniência, não sprint coesa.** 5 lanes de mérito da auditoria
+externa r4 que não tinham rastreio (achado MAT-03); ~4-5 dias somados, sem
+dependência compartilhada, nenhuma gating. **Revisão do painel (2026-07-10)**
+verificou todas as âncoras `arquivo:linha` contra o código (verdadeiras), desfez
+o "tudo P1" e corrigiu dois erros de mérito: [[A36.l3]] protegia checks cosméticos
+(CV9/CV10) e não os de conservação (CV2/CV3/CV6 são `warning`, não `error`);
+[[A36.l5]] QUAL-02 cega o alarme de reconciliação E3, não "dropa do patrimônio".
+Tiers pós-revisão: **P0** [[A36.l3]] (conservação client-facing) · **P1**
+[[A36.l1]] Parte A (gate de fronteira) + [[A36.l5]] QUAL-02 · **P2** o resto
+([[A36.l1]] inversão, [[A36.l5]] QUAL-01, [[A36.l4]] gate govulncheck, [[A36.l2]]
+spike). Recomendação: promover o subconjunto de alto valor; o resto fica "later".
+
+- **Plano:** [sprint/A36/_README.md](../sprint/A36/_README.md) · **Origem:** auditoria r4 (confidencial, fora do repo).
+
 ## Sprints pausadas
 
 Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.
