@@ -71,6 +71,36 @@ que não fecham" — porque são `warning`:
 | CV9 / CV10 | summaries / charts presentes | `error` | **Render-gate — separar de "número errado"** |
 | CV11–CV14 | tarefas / diagnóstico / label / formato | `warning` | Advisory |
 
+## Achado empírico — medição sobre 26 runs de dogfood (2026-07-10)
+
+Guarda pré-execução rodada (`dev/measure_conservation_gate.py --from-db`) sobre
+os 26 runs reais de dogfood. Resultado **muda o escopo** e valida a ordem
+"medir antes de flipar":
+
+- **A conservação numérica real está saudável:** CV1, CV2, CV3, CV5, CV7, CV8
+  **passam em 26/26**. Nenhum relatório saiu com números que não fecham.
+- **Dois checks estão obsoletos vs o schema atual do E5 e falham em 26/26 —
+  não por dado ruim, por drift do check:**
+  - **CV6** lê `patrimonio.investivel`, campo **inexistente** hoje (o E5 emite
+    `investivel_financeiro` / `investivel_efetivo`) → assume 0 → "0% de progresso
+    IF" → falha sempre. **Bug pré-existente do check.**
+  - **CV10** exige o gráfico `alocacao_atual_vs_alvo`, **não mais emitido** (os
+    outros 6 obrigatórios estão presentes/completos) → falha sempre. CV10 já é
+    `error`.
+  - *(CV4 falha em 23/24 — advisory, fora de gate; provável drift de fórmula.)*
+- **Consequência crítica:** o fix "só emitir o bloco `validation`" pausaria
+  **100% dos runs** no dia 1 (via CV10, que já é `error`) — over-firing
+  catastrófico. Por isso a ordem abaixo antepõe o conserto dos checks obsoletos.
+
+### Escopo corrigido pela medição (antecede o "Escopo" abaixo)
+
+0. **Consertar os dois checks obsoletos primeiro** (bugs independentes):
+   CV6 → apontar para `investivel_efetivo`/`investivel_financeiro`; CV10 →
+   remover/atualizar `alocacao_atual_vs_alvo` da lista de obrigatórios (ou
+   restaurar a emissão). Enquanto falharem em 100%, **não podem** estar em gate
+   de pausa. Só **CV2/CV3** estão prontos para promover hoje (passam 26/26);
+   **CV6 entra no gate só depois de consertado**.
+
 ## Escopo
 
 1. **Re-tag de severidade (load-bearing):** promover **CV2, CV3, CV6** (e avaliar
