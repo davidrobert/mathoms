@@ -96,6 +96,24 @@ por valor:
   **valor de processo durável** — pegam a *classe* de achado por CI, não pela
   próxima auditoria externa (a resposta operacional ao MAT-03).
 
+## Guarda pré-execução (entry-gates)
+
+Fazer **antes de tocar código** — cada um decide *se/como* a lane prossegue.
+Correções em *tempo de implementação* (não são entry-gate) vivem nos
+`## Critérios de aceite` da lane, não aqui — para não duplicar/divergir.
+
+| Lane | Entry-gate (antes do PR de implementação) | Remove o risco |
+|---|---|---|
+| [[A36.l3]] | Script **read-only** que mede a taxa-base retroativa: quantos runs de dogfood pausariam com CV2/CV3/CV6/CV7 promovidos a `error`. Só flipar a severidade se a taxa for tolerável. | Over-firing (único risco **alto** do sprint) |
+| [[A36.l1]] | ADR `Proposto` mergeada (§ADR necessária) — política CLAUDE.md, não opcional. | Escopo arquitetural sem gate de sanidade |
+| [[A36.l4]] | Passo-0: confirmar o patch Go efetivo do CI (`go version` no job) antes de assumir vuln aberta. **Sequenciar após [[A36.l1]]** — ambos tocam `.github/workflows/ci.yml`. | Esforço em near-no-op + conflito de merge em `ci.yml` |
+| [[A36.l2]] | Spike de confirmação (~30min) decide o tier antes de qualquer fix. | Fix comprometido a vetor não-confirmado |
+
+**Correções em tempo de implementação (nos Critérios de aceite, não são
+entry-gate):** `InvalidOperation ⊄ ValueError` ([[A36.l5]] QUAL-02), preservar
+hooks de budget/telemetria [[ADR-173]] + session [[ADR-256]] ([[A36.l1]] Parte
+B), auditar call-sites de `vault.decrypt` ([[A36.l5]] QUAL-01).
+
 ## ADR necessária
 
 - [[A36.l1]] abre **ADR `Proposto`** (política CLAUDE.md — escopo arquitetural):
