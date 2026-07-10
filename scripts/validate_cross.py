@@ -225,7 +225,8 @@ def _cv6_if_progress(e5: dict) -> CrossValidationResult | None:
     pat = e5.get("patrimonio", {})
     if_meta = goals.get("if_meta", 0)
     if_pct = goals.get("if_pct", 0)
-    pat_investivel = pat.get("investivel", 0)
+    # casa o campo do if_pct (investivel_efetivo, analyze_finances.py:1197) — A36.l3
+    pat_investivel = pat.get("investivel_efetivo", 0)
     if if_meta <= 0:
         return None
     calculated_pct = (pat_investivel / if_meta) * 100
