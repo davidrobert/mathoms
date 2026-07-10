@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-315 ADRs (ADR-001 a ADR-324) em [`docs/adr/`](../../adr/).
+316 ADRs (ADR-001 a ADR-325) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 288
-- **Proposto**: 24
+- **Proposto**: 25
 - **Roadmap**: 3
 
 ## Fundação
@@ -552,10 +552,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-311]] — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável · phase A32.l5
 - [[ADR-312]] — Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
+- [[ADR-325]] — Fronteira pipeline↔backend enforçada por gate + allowlist declarativo · phase A36.l1a
 
 ## quality
 
