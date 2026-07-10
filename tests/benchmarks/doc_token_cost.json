@@ -35,53 +35,53 @@
   "description": "Custo em tokens de queries-benchmark sobre docs/ (ADR-182). tokens = ceil(chars/4).",
   "latest": {
     "Q1": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
       "tokens": 453
     },
     "Q10": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
       "tokens": 730
     },
     "Q2": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
       "tokens": 453
     },
     "Q3": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
       "tokens": 351
     },
     "Q4": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
       "tokens": 351
     },
     "Q5": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
       "tokens": 804
     },
     "Q6": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
-      "tokens": 759
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
+      "tokens": 790
     },
     "Q7": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
-      "tokens": 685
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
+      "tokens": 831
     },
     "Q8": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
       "tokens": 677
     },
     "Q9": {
-      "measured_at": "2026-07-02",
-      "phase": "PLAN-go-shell registrado (prep A3.cli)",
+      "measured_at": "2026-07-10",
+      "phase": "token-econ-lineage",
       "tokens": 686
     }
   },

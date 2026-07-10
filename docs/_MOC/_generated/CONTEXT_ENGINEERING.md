@@ -18,6 +18,7 @@ Use para tarefas que cruzam arquitetura, tests, CI, contratos ou varios buckets.
 - Arquitetura tecnica: [`ARCHITECTURE`](../../reference/ARCHITECTURE.md).
 - Setup/runbook/testes: [`SETUP`](../../reference/SETUP.md), [`RUNBOOK`](../../reference/RUNBOOK.md), [`TESTING`](../../reference/TESTING.md).
 - Pipeline/artifacts: [`PIPELINE_ARTIFACTS`](../../reference/PIPELINE_ARTIFACTS.md).
+- De onde vem um numero (arqueologia de valor): `python3 dev/explain_number.py --field <path> --format llm` (lineage ADR-281, ~80 tok vs ler stage inteiro).
 - Planos grandes: [`docs/plan`](../../plan/).
 - Lanes/tracks: [`docs/sprint`](../../sprint/).
 

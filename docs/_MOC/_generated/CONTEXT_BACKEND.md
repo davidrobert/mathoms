@@ -22,6 +22,15 @@ Use para FastAPI, pipeline, DB, migrations, artifacts, auth e jobs.
 - `pipeline/domain/services/` - regras puras de dominio.
 - `config/schemas/` - contratos JSON.
 
+## Investigar numero errado (lineage - nao abra o stage inteiro)
+
+- `python3 dev/explain_number.py --field <dot.path> --format llm` - trace
+  linearizado aponta formula, inputs e a **funcao a corrigir** (ex.: `patrimonio.liquido`
+  -> `PatrimonioCalculator.calculate`, ADR-145). ~80 tokens vs ~33k lendo `analyze_finances.py`.
+- Programatico: `LineageDebugTools` (`explain_number`/`trace_source`/`expand_node`) em
+  `pipeline/domain/services/lineage_debug_tools.py` (whitelist + cap 6 iteracoes, ADR-281).
+- Custo de investigacao e gateado: `python3 dev/check_lineage_eval_gate.py`.
+
 ## Checks comuns
 
 - Backend: `pytest backend/tests -q`.
