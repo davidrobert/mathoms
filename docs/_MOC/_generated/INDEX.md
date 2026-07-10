@@ -738,6 +738,11 @@
 | A34.l8 | lane | shipped | A34 | Regenerar EXEMPLO_DE_RELATORIO.html sintético | `sprint/A34/lanes/A34-l8-regen-exemplo-relatorio-synthetic.md` |
 | A34.l9 | lane | shipped | A34 | Anonimizar ~15 ADRs + docs de sprint (in-body apenas) | `sprint/A34/lanes/A34-l9-anonymize-adrs-sprint-docs.md` |
 | A35.l1 | lane | shipped | A35 | fallback da cadeia de continuidade quando número de conta não extrai + sinal auditável (ADR-310 emenda) | `sprint/A35/lanes/A35-l1-fallback-continuidade-conta-sem-numero.md` |
+| A36.l1 | lane | planned | A36 | Boundary-lint proíbe `backend` + inverter escritas de domínio no pipeline | `sprint/A36/lanes/A36-l1-boundary-lint-backend.md` |
+| A36.l2 | lane | planned | A36 | Redação de PII no forward de stderr do subprocess Python no executor Go | `sprint/A36/lanes/A36-l2-stderr-pii-redaction.md` |
+| A36.l3 | lane | planned | A36 | E7: invariante de conservação (CV1-CV14) pausa o run em vez de ser advisory | `sprint/A36/lanes/A36-l3-e7-conservation-gate.md` |
+| A36.l4 | lane | planned | A36 | Bump toolchain Go 1.26.4 → 1.26.5 (fecha CVE alcançável GO-2026-5856) | `sprint/A36/lanes/A36-l4-go-toolchain-cve-bump.md` |
+| A36.l5 | lane | planned | A36 | Estreitar `except` largos em cripto (vault) e validação financeira (baseline) | `sprint/A36/lanes/A36-l5-narrow-broad-excepts.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -822,6 +827,7 @@
 | MOC-sprint-a33 | moc |  |  | Sprint A33 — Autonomia total: débito executável sem nenhuma ação do owner (LLM hardening + fechamento A17 + retenção) | `sprint/A33/_README.md` |
 | MOC-sprint-a34 | moc |  |  | Sprint A34 — Public Release: tornar o repo público in-place com segurança e qualidade de referência | `sprint/A34/_README.md` |
 | MOC-sprint-a35 | moc |  |  | Sprint A35 — Continuidade não some quando o número de conta não extrai (follow-up A32, issue #860) | `sprint/A35/_README.md` |
+| MOC-sprint-a36 | moc |  |  | Sprint A36 — Follow-up da auditoria r4: itens de mérito sem rastreio | `sprint/A36/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
