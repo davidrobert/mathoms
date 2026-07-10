@@ -1036,6 +1036,17 @@ configs e docstrings antes de agir. O fluxo canônico de stages vive em
 `pipeline.stage_spec` (o manual CLI legado foi deletado com `_archive/`
 em A34.l7 — conteúdo superado por essas fontes).
 
+**Arqueologia de valor (economia de token · ADR-281).** Para descobrir de
+onde vem um número do relatório e **qual função o produz**, rode
+`python3 dev/explain_number.py --field <dot.path> --format llm` — trace
+linearizado que aponta fórmula + inputs + função + ADR (ex.:
+`patrimonio.liquido` → `PatrimonioCalculator.calculate`, ADR-145). Custa
+~80 tokens vs ~33k lendo `analyze_finances.py` inteiro (~400×). **Não abra
+o stage inteiro para caçar um número** — o substrato de lineage
+([`lineage_debug_tools.py`](pipeline/domain/services/lineage_debug_tools.py):
+`explain_number`/`trace_source`/`expand_node`, whitelist + cap) já resolve
+a árvore. Custo de investigação é gateado por `dev/check_lineage_eval_gate.py`.
+
 ---
 
 ## Classificação de documentos — duas vias (ADR-081)
