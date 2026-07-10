@@ -406,6 +406,23 @@ _CV_ALWAYS_CHECKS = (
     _cv14_monetary_format,
 )
 
+# Checks numéricos de conservação que PAUSAM o run como needs_review quando
+# falham (A36.l3). Gatilhar por check-id, NÃO por severity=="error": CV9/CV10
+# são `error` mas de render (narrativa/gráfico ausente) e falham em run
+# incremental que reusa narrativa — gatilhar neles pausaria 100% dos runs.
+# Medição sobre 27 runs de dogfood: 0 pausas neste conjunto. Ver ADR-272 §Emenda.
+_CONSERVATION_CHECKS: frozenset[str] = frozenset({"CV1", "CV2", "CV3", "CV6"})
+
+
+def _conservation_validation(cv_results: list[CrossValidationResult]) -> dict:
+    """Bloco ``validation`` lido por ``_has_validation_errors``: pausa o run se um
+    check de conservação falhou. Render (CV9/CV10) fica advisory, fora do gate."""
+    failures = [r for r in cv_results if not r.passed and r.check_id in _CONSERVATION_CHECKS]
+    return {
+        "valid": not failures,
+        "errors": [f"[{r.check_id}] {r.name}: {r.details}" for r in failures],
+    }
+
 
 def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     """Run all deterministic cross-validation checks on E5 data."""
@@ -536,5 +553,6 @@ def main_with_store(ctx, *, mode: str = "crossval") -> dict:
         "checks_failed": failed,
         "errors_count": len(errors_list),
         "warnings_count": len(warnings_list),
+        "validation": _conservation_validation(cv_results),
         "results": [r.to_dict() for r in cv_results],
     }
