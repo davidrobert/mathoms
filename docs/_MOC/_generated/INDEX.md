@@ -320,6 +320,7 @@
 | ADR-322 | adr | Decidido |  | Trem de auto-merge serializado com identidade real (aposenta autoupdate-action) | `adr/322-trem-de-automerge-serializado-identidade-real.md` |
 | ADR-323 | adr | Proposto |  | Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go) | `adr/323-auto-fallback-do-executor-http-para-inprocess.md` |
 | ADR-324 | adr | Decidido |  | Poda de PropertyIdentity órfãs por supersessão reconciliada (soft-delete + re-aponte de override) | `adr/324-poda-de-property-identity-orfas-por-supersessao.md` |
+| ADR-325 | adr | Proposto |  | Fronteira pipeline↔backend enforçada por gate + allowlist declarativo | `adr/325-fronteira-pipeline-backend-enforcada-gate-allowlist.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
