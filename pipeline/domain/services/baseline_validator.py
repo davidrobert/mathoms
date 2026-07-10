@@ -19,16 +19,19 @@ fix 4.4).
 
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Iterable
 
 from pipeline.domain.models.bank import BankCanonicalizer
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money
 from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
+
+_logger = logging.getLogger("mathoms.pipeline.baseline_validator")
 
 # Baseline IRPF não tem tipo de conta nem número — a chave aqui permanece
 # (instituição, membro, moeda), distinta da ContinuityAccountKey (ADR-310).
@@ -95,8 +98,9 @@ class BaselineAccountSaldo:
             - ``ano_base``
             - ``tipo`` (opcional)
 
-        Entradas inválidas (sem saldo ou sem banco) são silenciosamente
-        ignoradas — consistente com o legado.
+        Campos ausentes (sem saldo/banco/ano) são ignorados em silêncio —
+        registro incompleto esperado. Já um ``saldo`` presente que **não
+        parseia** é dado corrompido: dropado com log WARNING (A36.l5).
         """
         if not isinstance(baseline, dict):
             return []
@@ -137,9 +141,18 @@ class BaselineAccountSaldo:
                 except (TypeError, ValueError):
                     continue
                 # ``str(saldo_raw)`` preserva Decimal exato sem voltar para float.
+                # Saldo presente mas malformado (``Money.of`` levanta
+                # ``InvalidOperation``, que NÃO herda de ``ValueError``): a conta
+                # escapa da reconciliação E3 sem gerar ``BaselineDiffWarning``.
+                # Torna observável — banco+ano, nunca o valor nem o nome do
+                # membro (A36.l5 / §sigilo). Outra exceção propaga (bug real).
                 try:
                     saldo = Money.of(str(saldo_raw), "BRL")
-                except Exception:
+                except (InvalidOperation, ValueError):
+                    _logger.warning(
+                        "baseline_saldo_unparseable",
+                        extra={"bank": bank_raw, "year": year},
+                    )
                     continue
                 out.append(
                     cls(
