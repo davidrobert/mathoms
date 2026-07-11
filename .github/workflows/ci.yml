@@ -926,6 +926,12 @@ jobs:
       - name: Build
         working-directory: services/pipeline-service-go
         run: go build ./...
+      - name: govulncheck (CVE alcançável na stdlib/deps — A36.l4/SEC-07)
+        # Gate contínuo: pega a próxima vuln alcançável no CI, não na próxima
+        # auditoria manual. O piso `toolchain go1.26.5` (go.mod) garante que a
+        # análise use a stdlib corrigida (fecha GO-2026-5856). Scanner pinado.
+        working-directory: services/pipeline-service-go
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.6.0 ./...
 
   gitleaks:
     # A34.l6 (ADR-319 · PLAN-public-release W2): gate de merge anti-secret.
