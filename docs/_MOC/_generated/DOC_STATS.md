@@ -5,13 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-969 notas indexadas pelo frontmatter em `docs/`.
+974 notas indexadas pelo frontmatter em `docs/`.
 
 ## Por tipo
 
 | type | notas |
 | --- | ---: |
-| adr | 316 |
+| adr | 320 |
 | archive-index | 1 |
 | changelog-entry | 252 |
 | doc | 2 |
@@ -19,7 +19,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | lane | 216 |
 | marketing-draft | 1 |
 | moc | 29 |
-| plan | 17 |
+| plan | 18 |
 | runbook | 1 |
 | track | 123 |
 
@@ -28,7 +28,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | type | status | notas |
 | --- | --- | ---: |
 | adr | Decidido | 288 |
-| adr | Proposto | 25 |
+| adr | Proposto | 29 |
 | adr | Roadmap | 3 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 252 |
@@ -44,7 +44,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | moc | (sem status) | 29 |
 | plan | done | 4 |
 | plan | draft | 2 |
-| plan | in_progress | 9 |
+| plan | in_progress | 10 |
 | plan | paused | 2 |
 | runbook | ativo | 1 |
 | track | consumed | 85 |

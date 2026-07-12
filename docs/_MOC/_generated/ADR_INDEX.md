@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-316 ADRs (ADR-001 a ADR-325) em [`docs/adr/`](../../adr/).
+320 ADRs (ADR-001 a ADR-329) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 288
-- **Proposto**: 25
+- **Proposto**: 29
 - **Roadmap**: 3
 
 ## Fundação
@@ -318,9 +318,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-289]] — Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) · phase F1
 - [[ADR-290]] — Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion · phase A25
 
-### Proposto (1)
+### Proposto (3)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
+- [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
+- [[ADR-329]] — Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium
 
 ## categorization
 
@@ -552,11 +554,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-311]] — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável · phase A32.l5
 - [[ADR-312]] — Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers
 
-### Proposto (3)
+### Proposto (5)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
 - [[ADR-325]] — Fronteira pipeline↔backend enforçada por gate + allowlist declarativo · phase A36.l1a
+- [[ADR-327]] — Guarda de fidelidade narrativa↔E5: binding de token monetário a campo vivo + fail-closed no E5.N
+- [[ADR-328]] — score_version 2.0 — plateau da cobertura de reserva no alvo do perfil (não premiar over-provisioning)
 
 ## quality
 
