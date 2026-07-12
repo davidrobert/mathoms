@@ -321,6 +321,10 @@
 | ADR-323 | adr | Proposto |  | Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go) | `adr/323-auto-fallback-do-executor-http-para-inprocess.md` |
 | ADR-324 | adr | Decidido |  | Poda de PropertyIdentity órfãs por supersessão reconciliada (soft-delete + re-aponte de override) | `adr/324-poda-de-property-identity-orfas-por-supersessao.md` |
 | ADR-325 | adr | Proposto |  | Fronteira pipeline↔backend enforçada por gate + allowlist declarativo | `adr/325-fronteira-pipeline-backend-enforcada-gate-allowlist.md` |
+| ADR-326 | adr | Proposto |  | Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill) | `adr/326-colunas-denormalizadas-report-score-patrimonio.md` |
+| ADR-327 | adr | Proposto |  | Guarda de fidelidade narrativa↔E5: binding de token monetário a campo vivo + fail-closed no E5.N | `adr/327-guarda-fidelidade-narrativa-e5.md` |
+| ADR-328 | adr | Proposto |  | score_version 2.0 — plateau da cobertura de reserva no alvo do perfil (não premiar over-provisioning) | `adr/328-score-version-2-plateau-cobertura-reserva.md` |
+| ADR-329 | adr | Proposto |  | Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium | `adr/329-reclassificacao-retentavel-docs-parkados.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -836,6 +840,7 @@
 | PLAN-cenarios-estresse | plan | done |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-data-lineage | plan | in_progress |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |
+| PLAN-dogfood-report-fix | plan | in_progress |  | Correções de qualidade do relatório (dogfood 2026-07-11) | `plan/DOGFOOD_REPORT_FIX/_README.md` |
 | PLAN-go-shell | plan | in_progress |  | Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess | `plan/GO_SHELL/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |
