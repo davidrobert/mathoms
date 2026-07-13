@@ -571,9 +571,9 @@
       "titulo": "Taxa de Poupança Elevada"
     },
     {
-      "descricao": "Cobertura de 53 meses de custo essencial — no alvo de 18 meses do perfil de renda.",
+      "descricao": "Cobertura de 53 meses, acima do alvo de 18 meses do perfil — o excedente pode ser realocado para a classe mais defasada.",
       "icone": "emergency",
-      "titulo": "Reserva de Emergência Excelente"
+      "titulo": "Reserva de Emergência Robusta"
     }
   ],
   "pontos_urgentes": [
