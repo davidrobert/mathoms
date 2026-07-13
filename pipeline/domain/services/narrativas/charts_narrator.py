@@ -108,9 +108,12 @@ class ChartsNarrator:
                     f"Indicador geral de saúde financeira da família, com score de {fmt_num(M['score'])}/10 "
                     f"({M['score_label']}). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria."
                 ),
+                # C2.2: o E5.N não tem baseline (comparisons são injetados só na montagem
+                # do view-model) → proibido afirmar tendência ("melhora"/"redução") aqui.
+                # Conclusão descritiva, não-comparativa.
                 "conclusion": (
-                    f"A classificação '{M['score_label']}' reflete melhora na taxa de poupança "
-                    "recorrente e redução da razão endividamento/patrimônio."
+                    f"A classificação '{M['score_label']}' resume o equilíbrio entre os pilares "
+                    "avaliados: poupança, liquidez, endividamento, diversificação e progresso à independência."
                 ),
             },
             "patrimonio_doughnut": {
