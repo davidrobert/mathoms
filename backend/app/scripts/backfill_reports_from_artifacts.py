@@ -25,10 +25,11 @@ import json
 import sys
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import Iterable, Optional
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import SyncSessionLocal
@@ -80,17 +81,72 @@ def _find_e5_artifact(session: Session, run: PipelineRun) -> Optional[PipelineAr
 
 
 def _build_report(run: PipelineRun, artifact: PipelineArtifact) -> Report:
+    from backend.app.services.security.crypto import read_artifact_content
+
     title_ts = run.completed_at or datetime.now(_BRT)
     if title_ts.tzinfo is None:
         title_ts = title_ts.replace(tzinfo=_BRT)
     title = f"Relatório {title_ts.astimezone(_BRT).strftime('%Y-%m-%d %H:%M')}"
+    score, patrimonio_liquido = Report.denorm_from_analysis(
+        read_artifact_content(artifact.content_json)
+    )
     return Report(
         id=str(uuid.uuid4()),
         workspace_id=run.workspace_id,
         pipeline_run_id=run.id,
         title=title,
         analysis_artifact_id=artifact.id,
+        score=score,
+        patrimonio_liquido=patrimonio_liquido,
     )
+
+
+def _reports_missing_columns(session: Session, workspace_id: Optional[str] = None) -> list[Report]:
+    """Reports com artefato E5 mas ``score``/``patrimonio_liquido`` NULL (ADR-326)."""
+    q = select(Report).where(
+        Report.analysis_artifact_id.is_not(None),
+        or_(Report.score.is_(None), Report.patrimonio_liquido.is_(None)),
+    )
+    if workspace_id:
+        q = q.where(Report.workspace_id == workspace_id)
+    return list(session.execute(q).scalars().all())
+
+
+def _report_column_values(
+    session: Session, report: Report
+) -> tuple[str, float | None, Decimal | None]:
+    """Resolve (status, score, patrimonio_liquido) de um report; status: no_artifact|noop|ok. Sem mutação."""
+    from backend.app.services.security.crypto import read_artifact_content
+
+    artifact = session.get(PipelineArtifact, report.analysis_artifact_id)
+    if artifact is None or not artifact.content_json:
+        return "no_artifact", None, None
+    score, pl = Report.denorm_from_analysis(read_artifact_content(artifact.content_json))
+    if score is None and pl is None:
+        return "noop", None, None
+    return "ok", score, pl
+
+
+def backfill_columns(workspace_id: Optional[str] = None, *, apply: bool) -> dict:
+    """ADR-326: popula ``score``/``patrimonio_liquido`` em Reports legados (colunas NULL)."""
+    summary: dict = {"reports_inspected": 0, "updated": 0, "no_artifact": 0}
+    with _session_factory() as session:
+        for report in _reports_missing_columns(session, workspace_id):
+            summary["reports_inspected"] += 1
+            status, score, pl = _report_column_values(session, report)
+            if status != "ok":
+                if status == "no_artifact":
+                    summary["no_artifact"] += 1
+                continue
+            if apply:
+                report.score, report.patrimonio_liquido = score, pl
+            summary["updated"] += 1
+            sys.stderr.write(
+                f"[{'apply' if apply else 'dry-run'}] report={report.id} score={score} pl={pl}\n"
+            )
+        if apply:
+            session.commit()
+    return summary
 
 
 def backfill(workspace_id: Optional[str], *, apply: bool) -> dict:
@@ -118,21 +174,26 @@ def backfill(workspace_id: Optional[str], *, apply: bool) -> dict:
     return summary
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--dry-run", action="store_true", help="Lista o que seria criado")
     group.add_argument("--apply", action="store_true", help="Cria os reports")
     parser.add_argument(
-        "--workspace-id",
-        type=str,
-        default=None,
-        help="Restringe a um workspace específico (UUID)",
+        "--workspace-id", type=str, default=None, help="Restringe a um workspace específico (UUID)"
     )
-    args = parser.parse_args(argv)
+    parser.add_argument(
+        "--backfill-columns",
+        action="store_true",
+        help="Popula score/patrimonio_liquido em Reports existentes com coluna NULL (ADR-326)",
+    )
+    return parser
 
-    summary = backfill(args.workspace_id, apply=args.apply)
 
+def main(argv: Optional[list[str]] = None) -> int:
+    args = _build_parser().parse_args(argv)
+    runner = backfill_columns if args.backfill_columns else backfill
+    summary = runner(args.workspace_id, apply=args.apply)
     print(json.dumps(summary, indent=2, ensure_ascii=False))
     return 0
 

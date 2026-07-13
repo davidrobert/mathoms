@@ -31,6 +31,22 @@ async def test_patrimonio_liquido_persiste_decimal_exato(db):
     assert isinstance(stored, Decimal)
 
 
+def test_denorm_from_analysis_extrai_score_e_patrimonio():
+    score, pl = Report.denorm_from_analysis(
+        {"score": {"valor": 6.3}, "patrimonio": {"liquido": 3395285.46}}
+    )
+    assert score == 6.3
+    assert pl == Decimal("3395285.46")
+    assert isinstance(pl, Decimal)
+
+
+def test_denorm_from_analysis_campos_ausentes_ou_malformados():
+    assert Report.denorm_from_analysis({}) == (None, None)
+    assert Report.denorm_from_analysis({"patrimonio": {"bruto": 1.0}}) == (None, None)
+    assert Report.denorm_from_analysis({"score": {"valor": "x"}}) == (None, None)
+    assert Report.denorm_from_analysis(None) == (None, None)
+
+
 @pytest.mark.asyncio
 async def test_get_latest_patrimonio_liquido_retorna_decimal(db):
     ws = await factories.make_workspace(db)

@@ -432,6 +432,7 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             premissas_snapshot = None
         analysis_content = artifact.get("content_json") or {}
         period_value = analysis_content.get("periodo_dados") or analysis_content.get("data_analise")
+        score, patrimonio_liquido = Report.denorm_from_analysis(analysis_content)
         report = Report(
             id=str(uuid.uuid4()),
             workspace_id=ws_id,
@@ -441,6 +442,8 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             analysis_artifact_id=artifact["id"],
             tasks_snapshot_json=tasks_snapshot,
             premissas_snapshot_json=premissas_snapshot,
+            score=score,
+            patrimonio_liquido=patrimonio_liquido,
         )
         db.add(report)
         try:
