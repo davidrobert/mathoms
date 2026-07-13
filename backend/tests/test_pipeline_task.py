@@ -499,7 +499,7 @@ class TestCreateReportFromOutput:
         payload = {
             "score": {"valor": 7.5, "classificacao": "bom"},
             "ratios": {"taxa_poupanca_recorrente_pct": 22.5},
-            "patrimonio": {"bruto": 1000.0, "investivel": 800.0},
+            "patrimonio": {"bruto": 1000.0, "investivel": 800.0, "liquido": 850.0},
             "goals": {"if_meta": 5000.0, "if_pct": 16.0, "prazo_anos_realista": 10},
         }
         async with Session() as db:
@@ -522,6 +522,11 @@ class TestCreateReportFromOutput:
             assert len(reports) == 1
             assert reports[0].pipeline_run_id == run_id
             assert reports[0].analysis_artifact_id == artifact_id
+            # ADR-326: colunas denormalizadas populadas a partir do E5.
+            from decimal import Decimal as _Decimal
+
+            assert reports[0].score == 7.5
+            assert reports[0].patrimonio_liquido == _Decimal("850.00")
 
     @pytest.mark.asyncio
     async def test_no_artifact_no_report(self, workspace_with_run, tmp_path, caplog):

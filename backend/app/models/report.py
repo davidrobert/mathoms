@@ -37,7 +37,8 @@ class Report(Base):
     tasks_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # F11.6b — referência às premissas vigentes (metas + hash do goals.json) para comparar relatórios.
     premissas_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    # ``score`` é índice 0–100 (não monetário) → Float é legítimo.
+    # ``score`` é índice 0–10 (não monetário) → Float é legítimo. Populado a
+    # partir do artefato E5 (``score.valor``) na criação do Report (ADR-326).
     score: Mapped[float] = mapped_column(Float, nullable=True)
     # ADR-283 — agregado monetário (BRL consolidado). ``Numeric(18,2)`` honra
     # ADR-090 (dinheiro nunca é float); o read-path em goal_service já devolve
@@ -71,3 +72,18 @@ class Report(Base):
         foreign_keys=[analysis_artifact_id],
         lazy="joined",
     )
+
+    @staticmethod
+    def denorm_from_analysis(content: object) -> tuple[float | None, Decimal | None]:
+        """Deriva ``score`` (0–10) e ``patrimonio_liquido`` (Decimal) do artefato E5 decriptado; ausente/malformado ⇒ ``None`` (ADR-326)."""
+        if not isinstance(content, dict):
+            return None, None
+        score = None
+        score_block = content.get("score")
+        if isinstance(score_block, dict) and isinstance(score_block.get("valor"), (int, float)):
+            score = float(score_block["valor"])
+        patrimonio_liquido = None
+        pat_block = content.get("patrimonio")
+        if isinstance(pat_block, dict) and pat_block.get("liquido") is not None:
+            patrimonio_liquido = Decimal(str(pat_block["liquido"]))
+        return score, patrimonio_liquido
