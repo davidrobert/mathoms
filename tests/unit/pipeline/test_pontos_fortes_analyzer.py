@@ -124,6 +124,31 @@ class TestReserva:
         item = next(p for p in out if p.titulo == "Reserva de Emergência Excelente")
         assert "18 meses" in item.descricao
 
+    def test_robusta_quando_motor_marca_excessiva(self):
+        """C5-C1: reserva 'Excessiva' vira 'Robusta' (excedente realocável), não 'Excelente'."""
+        out = PontosFortesAnalyzer().analyze(
+            **_args(
+                reserva={
+                    "cobertura_meses": 26,
+                    "meses_alvo": 12,
+                    "avaliacao_liquidity": "Excessiva",
+                }
+            )
+        )
+        titulos = {p.titulo for p in out}
+        assert "Reserva de Emergência Robusta" in titulos
+        assert "Reserva de Emergência Excelente" not in titulos
+        item = next(p for p in out if p.titulo == "Reserva de Emergência Robusta")
+        assert "excedente" in item.descricao.lower()
+
+    def test_robusta_quando_2x_o_alvo_sem_flag(self):
+        out = PontosFortesAnalyzer().analyze(
+            **_args(reserva={"cobertura_meses": 25, "meses_alvo": 12})
+        )
+        titulos = {p.titulo for p in out}
+        assert "Reserva de Emergência Robusta" in titulos
+        assert "Reserva de Emergência Excelente" not in titulos
+
 
 class TestDiversificacao:
     def test_gera_com_4_categorias_ou_mais(self):

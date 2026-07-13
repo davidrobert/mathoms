@@ -163,8 +163,24 @@ class PontosFortesAnalyzer:
         #    (CLT 6 · mista 12 · PJ-dominante 18; FORMULAS.md §Reserva-alvo, A28.l1).
         cobertura = _safe_float((reserva or {}).get("cobertura_meses", 0))
         meses_alvo = _safe_float((reserva or {}).get("meses_alvo", 0)) or 12.0
+        avaliacao = str((reserva or {}).get("avaliacao_liquidity", "")).strip().lower()
         reserva_emitida = cobertura >= 6
-        if cobertura >= meses_alvo:
+        # C5-C1: reserva muito acima do alvo (motor marca "Excessiva", ou ≥2× o alvo) não
+        # é "no alvo" — reconhece a robustez mas sinaliza o excedente realocável em vez de
+        # celebrar over-provisioning (custo de oportunidade; UX-06/FIN-03).
+        excessiva = avaliacao == "excessiva" or (meses_alvo > 0 and cobertura >= meses_alvo * 2)
+        if excessiva:
+            out.append(
+                PontoForteItem(
+                    titulo="Reserva de Emergência Robusta",
+                    descricao=(
+                        f"Cobertura de {cobertura:.0f} meses, acima do alvo de {meses_alvo:.0f} "
+                        "meses do perfil — o excedente pode ser realocado para a classe mais defasada."
+                    ),
+                    icone="emergency",
+                )
+            )
+        elif cobertura >= meses_alvo:
             out.append(
                 PontoForteItem(
                     titulo="Reserva de Emergência Excelente",
