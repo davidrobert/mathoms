@@ -43,7 +43,7 @@ export function PatrimonioCategoriasCard({
               <th scope="col" className="pb-2 text-right font-display font-semibold">
                 Valor
               </th>
-              <th scope="col" className="pb-2 text-right font-display font-semibold">%</th>
+              <th scope="col" className="pb-2 text-right font-display font-semibold">% do bruto</th>
             </tr>
           </thead>
           <tbody>
