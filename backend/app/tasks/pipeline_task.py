@@ -466,6 +466,27 @@ def _is_cancelled(run_id: str) -> bool:
         return run is not None and run.status == PipelineRunStatus.cancelled
 
 
+def _retry_parked_documents(ws_id: str, tenant_root: Path) -> None:
+    """C8/ADR-329: re-classifica docs parkados por skip transitório no início de um run premium (best-effort — falha nunca aborta o run; sync/gevent-safe)."""
+    from backend.app.services.documents.document_reclassify_retry import (
+        retry_parked_documents_sync,
+    )
+    from backend.app.services.storage import StorageService
+
+    try:
+        with SyncSessionLocal() as db:
+            stats = retry_parked_documents_sync(
+                ws_id, db=db, storage=StorageService(), tenant_root=tenant_root
+            )
+            if stats["reclassified"]:
+                db.commit()
+    except Exception:  # noqa: BLE001 — best-effort; nunca impede o run
+        logger.warning("reclassify_retry_failed ws=%s", ws_id, exc_info=True)
+        return
+    if stats["scanned"]:
+        logger.info("reclassify_retry ws=%s %s", ws_id, stats)
+
+
 def _is_schema_validation_error(exc: Exception) -> bool:
     """Erro de contrato é determinístico — nunca retryable (ADR-284); sem a guarda, stages com ``retryable_errors`` casariam substring do texto e queimariam backoff."""
     import jsonschema
@@ -1485,6 +1506,14 @@ def run_pipeline_task(
         len(stages),
         tier,
     )
+
+    # C8/ADR-329: run premium com LLM disponível re-tenta docs parkados por skip
+    # transitório antes das stages, reincorporando-os ao corpus. Só em run completo
+    # (não incremental) — as stages leem data/ fresco; um doc roteado agora é lido.
+    import os as _os
+
+    if not incremental and not skip_llm and _os.environ.get("ANTHROPIC_API_KEY"):
+        _retry_parked_documents(ws_id, tenant_root)
 
     # ADR-273: propaga contexto do run aos logs estruturados do pipeline.
     # Reset no finally é obrigatório — worker Celery reusa o processo e um

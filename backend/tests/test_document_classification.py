@@ -11,6 +11,7 @@ from backend.app.services.documents.document_classification import (
     _llm_prerequisites_skip_reason,
     classification_can_route_to_data,
     document_type_to_e0_dest,
+    is_retriable_skip_reason,
     map_e0_doc_type_to_document_type,
 )
 
@@ -100,6 +101,26 @@ class TestLLMPrerequisitesSkipReason:
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
         monkeypatch.setitem(sys.modules, "anthropic", None)
         assert _llm_prerequisites_skip_reason() == "sdk_not_installed"
+
+
+class TestIsRetriableSkipReason:
+    """C8/ADR-329: só skip transitório (missing_api_key) é re-tentável."""
+
+    def test_missing_api_key_is_retriable(self):
+        assert is_retriable_skip_reason({"llm_skipped_reason": "missing_api_key"}) is True
+
+    def test_sdk_not_installed_not_retriable(self):
+        # Exige deploy — não é transitório.
+        assert is_retriable_skip_reason({"llm_skipped_reason": "sdk_not_installed"}) is False
+
+    def test_no_result_not_retriable(self):
+        assert is_retriable_skip_reason({"llm_skipped_reason": "no_result"}) is False
+
+    def test_no_skip_reason_not_retriable(self):
+        assert is_retriable_skip_reason({}) is False
+
+    def test_none_meta_not_retriable(self):
+        assert is_retriable_skip_reason(None) is False
 
 
 _FAKE_LLM_RESULT = {

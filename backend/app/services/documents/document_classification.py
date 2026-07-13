@@ -53,6 +53,19 @@ _PERMANENT_ERROR_NAMES = frozenset(
 )
 
 
+# C8 (ADR-329): skip reasons transitórios — a pré-condição volta (ex.: chave LLM
+# reprovisionada), então docs parkados por esses motivos são RE-TENTÁVEIS num run
+# premium posterior. ``sdk_not_installed`` fica de fora (exige deploy, não é transitório).
+RETRIABLE_SKIP_REASONS = frozenset({"missing_api_key"})
+
+
+def is_retriable_skip_reason(classification_meta: dict | None) -> bool:
+    """True se o doc foi parkado por skip transitório re-tentável (ADR-329)."""
+    if not isinstance(classification_meta, dict):
+        return False
+    return classification_meta.get("llm_skipped_reason") in RETRIABLE_SKIP_REASONS
+
+
 def _requires_institution(e0_doc_type: str | None) -> bool:
     """``extratoconta*`` e ``extratopoupanca*`` mapeiam para ``bank_statement`` (linha 139);
     sem ``bank_code`` produzem estado contraditório (confidence alta + banco vazio)
