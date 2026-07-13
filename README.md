@@ -48,6 +48,7 @@ Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas inst
 | --------- | --------- |
 | [docs/reference/TESTING.md](docs/reference/TESTING.md) | Como rodar testes, CI, mocks |
 | [CLAUDE.md](CLAUDE.md) | Instruções para assistentes de código / convenções do repo |
+| [docs/reference/SKILLS.md](docs/reference/SKILLS.md) | Skills de projeto (procedimentos recorrentes: audit-vault, pipeline-review) — o quê / quando usar |
 
 ---
 
