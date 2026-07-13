@@ -32,7 +32,7 @@ describe("deriveChartConclusion()", () => {
     } as unknown as ReportAnalysisData;
     // ICU usa NBSP em BRL — match com \s (cobre espaço normal e non-breaking).
     expect(deriveChartConclusion("patrimonio_doughnut", data)).toMatch(
-      /^Imóveis representa 50% do patrimônio líquido \(R\$\s*500\.000\)\.$/,
+      /^Imóveis representa 50% do patrimônio bruto \(R\$\s*500\.000\)\.$/,
     );
   });
 

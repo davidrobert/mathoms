@@ -49,6 +49,19 @@ describe("deriveChartConclusion — convenção ADR-209 (pct absoluto)", () => {
       // Builder usa o `top` (Caixa, 99.5%). Renderiza 100% por toFixed(0).
       expect(out).toContain("Caixa representa 100%");
     });
+
+    it("declara a base como patrimônio bruto, não líquido (C11-F1)", () => {
+      const data = makeData({
+        patrimonio: {
+          composicao: [
+            { categoria: "Imóveis de Renda", valor: 1_442_706, pct: 39.7 },
+          ],
+        } as ReportAnalysisData["patrimonio"],
+      });
+      const out = deriveChartConclusion("patrimonio_doughnut", data);
+      expect(out).toContain("do patrimônio bruto");
+      expect(out).not.toContain("líquido");
+    });
   });
 
   describe("receita_bar — topEntry retorna pct absoluto", () => {

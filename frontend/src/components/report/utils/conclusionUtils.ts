@@ -88,7 +88,8 @@ const BUILDERS: Record<string, Builder> = {
       | undefined;
     if (!composicao || composicao.length === 0) return null;
     const top = [...composicao].sort((a, b) => b.valor - a.valor)[0];
-    return `${top.categoria} representa ${format(top.pct, "pct")} do patrimônio líquido (${format(top.valor, "brl")}).`;
+    // C11-F1: composicao.pct é relativo ao patrimônio BRUTO (soma = "Total Bruto 100%"), não líquido.
+    return `${top.categoria} representa ${format(top.pct, "pct")} do patrimônio bruto (${format(top.valor, "brl")}).`;
   },
 
   score_gauge: ({ data }) => {
