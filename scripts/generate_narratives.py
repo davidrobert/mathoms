@@ -145,6 +145,21 @@ def _load_taxas():
     return {}
 
 
+def _abstract_asset_nome(nome: str, classe: str) -> str:
+    """Rótulo limpo do ativo p/ prosa — corta discriminação registral crua (CNPJ/IPTU/matrícula/endereço) antes de virar narrativa (C2.4)."""
+    import re
+
+    if not nome:
+        return classe or "ativo"
+    marker = re.search(
+        r"(CNPJ|IPTU|Matríc|Inscri|/MF|SOB O N|\bAV\b|\bRUA\b|\bAPT\b|TORRE|\bM2\b|\d{2}\.\d{3}\.\d{3})",
+        nome,
+        re.IGNORECASE,
+    )
+    label = (nome[: marker.start()] if marker else nome).strip(" .,-")
+    return (label or classe or "ativo")[:60]
+
+
 def _find_top_asset(e5_data: dict) -> dict:
     """Lê o maior ativo individual de ``e5_data["investimentos"]["top_ativos"][0]`` (fonte canônica TopAtivosAnalyzer; substituiu leitura legacy do E4 disk artifact)."""
     top_ativos = (e5_data.get("investimentos") or {}).get("top_ativos") or []
@@ -152,7 +167,7 @@ def _find_top_asset(e5_data: dict) -> dict:
         return {"nome": "", "valor": 0, "membro": "", "instituicao": ""}
     top = top_ativos[0]
     return {
-        "nome": top.get("nome", ""),
+        "nome": _abstract_asset_nome(top.get("nome", ""), top.get("classe", "")),
         "valor": top.get("valor", 0),
         "membro": top.get("membro", ""),
         "instituicao": top.get("instituicao", ""),
@@ -179,31 +194,25 @@ def _extract_top_institutions(e5_data: dict) -> dict:
 
 
 def _compute_usd_saldos_per_bank(e5_data: dict) -> dict:
-    """Compute USD/EUR saldos per bank from E3 reconciled files.
+    """Saldos USD por banco a partir de ``exposicao_cambial.detalhes`` (C2.1).
 
-    Returns dict: {'wise_usd': X, 'bofa_usd': Y, 'total_usd': Z, ...}
+    Substitui o glob morto sobre ``processed/E3_reconciled/*`` (artifacts são
+    DB-only pós-ADR-212 → glob vazio → USD zerado). Retorna ``{'wise_usd', 'bank_of_america_usd', 'total_usd'}``.
     """
-    import glob
-
-    saldos = {}
-    total_usd = 0.0
-    pattern = str(PROJECT_DIR / "processed" / "E3_reconciled" / "*-3_reconciled.json")
-    for fpath in glob.glob(pattern):
-        with open(fpath, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        moeda = data.get("moeda", "BRL")
-        banco = data.get("banco", "").lower().replace(" ", "_")
-        saldo = data.get("saldo_final", 0)
+    saldos: dict = {"total_usd": 0.0}
+    detalhes = (e5_data.get("exposicao_cambial") or {}).get("detalhes") or []
+    for item in detalhes:
+        if item.get("moeda") != "USD":
+            continue
+        saldo = item.get("saldo_original", 0)
         if not isinstance(saldo, (int, float)):
             continue
-        if moeda == "USD":
-            key = f"{banco}_usd"
-            saldos[key] = saldos.get(key, 0) + saldo
-            total_usd += saldo
-        elif moeda == "EUR":
-            key = f"{banco}_eur"
-            saldos[key] = saldos.get(key, 0) + saldo
-    saldos["total_usd"] = total_usd
+        fonte = (item.get("fonte") or "").lower()
+        if "wise" in fonte:
+            saldos["wise_usd"] = saldos.get("wise_usd", 0) + saldo
+        elif "america" in fonte:
+            saldos["bank_of_america_usd"] = saldos.get("bank_of_america_usd", 0) + saldo
+        saldos["total_usd"] += saldo
     return saldos
 
 
@@ -318,14 +327,18 @@ def load_metrics_from_e5(
     # --- Computed from E5 data ---
     receita_total = fluxo.get("receita_total", 0)
     receita_aluguel = por_fonte.get("receita_aluguel", 0)
-    receita_pj = por_fonte.get("receita_pj", 0)
+    # C2.1 (interim): a chave viva é ``lucros_distribuidos`` (não existe ``receita_pj``
+    # em por_fonte). A reclassificação ativa vs passiva desse valor é decidida em C3 (ADR-191).
+    receita_pj = por_fonte.get("lucros_distribuidos", 0)
     receita_clt = por_fonte.get("receita_clt", 0)
     despesa_total = fluxo.get("despesa_total", 0)
     n_meses_periodo = len(fluxo.get("receita_despesa_mensal_detalhado", {}).get("labels", [])) or 1
     receita_aluguel_anual = (receita_aluguel / n_meses_periodo) * 12 if n_meses_periodo else 0
 
     patrimonio_bruto = pat.get("bruto", 0)
-    patrimonio_investivel = pat.get("investivel", 0)
+    # C2.1: o campo vivo é ``investivel_efetivo`` (o mesmo que ``goals.if_pct`` usa como
+    # denominador); ``investivel`` é chave morta → default 0 → "R$ 0,00 investível" na prosa.
+    patrimonio_investivel = pat.get("investivel_efetivo", 0)
     investimentos_titular = pat.get(_KEY_INV_TITULAR, 0)
     investimentos_conjuge = pat.get(_KEY_INV_CONJUGE, 0)
 
