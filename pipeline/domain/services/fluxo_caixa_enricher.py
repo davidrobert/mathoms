@@ -25,6 +25,7 @@ from typing import Any
 from pipeline.domain.services.essential_expense_calculator import (
     compute_custo_essencial_mensal,
 )
+from pipeline.domain.services.receita_natureza import compute_receita_por_natureza
 
 
 def _safe_float(val) -> float:
@@ -203,6 +204,9 @@ class FluxoCaixaEnriched:
             "despesa_mensal_essencial": _essencial_as_float(self.despesa_mensal_essencial),
             "fluxo_liquido": round(self.fluxo_liquido, 2),
             "por_fonte": {k: round(v, 2) for k, v in self.por_fonte.items()},
+            "receita_por_natureza": compute_receita_por_natureza(
+                self.por_fonte, self.receita_total
+            ),
             "por_fonte_detalhado": {k: round(v, 2) for k, v in self.por_fonte_detalhado.items()},
             "despesas_por_categoria": {
                 k: round(v, 2) for k, v in self.despesas_por_categoria.items()

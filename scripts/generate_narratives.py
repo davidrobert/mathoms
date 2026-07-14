@@ -327,9 +327,9 @@ def load_metrics_from_e5(
     # --- Computed from E5 data ---
     receita_total = fluxo.get("receita_total", 0)
     receita_aluguel = por_fonte.get("receita_aluguel", 0)
-    # C2.1 (interim): a chave viva é ``lucros_distribuidos`` (não existe ``receita_pj``
-    # em por_fonte). A reclassificação ativa vs passiva desse valor é decidida em C3 (ADR-191).
-    receita_pj = por_fonte.get("lucros_distribuidos", 0)
+    # ADR-330: renda PJ vem do bloco canônico ``receita_por_natureza`` (pro_labore +
+    # lucros_distribuidos) — corrige a subcontagem de ``pro_labore`` do interino C2.1.
+    receita_pj = fluxo.get("receita_por_natureza", {}).get("receita_pj", 0)
     receita_clt = por_fonte.get("receita_clt", 0)
     despesa_total = fluxo.get("despesa_total", 0)
     n_meses_periodo = len(fluxo.get("receita_despesa_mensal_detalhado", {}).get("labels", [])) or 1

@@ -282,6 +282,7 @@ class TestResult:
             "despesa_mensal_media",
             "fluxo_liquido",
             "por_fonte",
+            "receita_por_natureza",
             "por_fonte_detalhado",
             "despesas_por_categoria",
             "tabela_receitas",
@@ -289,3 +290,55 @@ class TestResult:
             "janela_12m",
         }
         assert required.issubset(d.keys())
+
+
+class TestReceitaPorNatureza:
+    """ADR-330: bloco derivado ``receita_por_natureza`` (fora de ``por_fonte``)."""
+
+    def _enrich(self, por_categoria: dict) -> FluxoCaixaEnriched:
+        total = round(sum(por_categoria.values()), 2)
+        return FluxoCaixaEnricher().enrich(
+            _receitas(total=total, por_categoria=por_categoria),
+            _despesas(),
+            _fluxo_mensal(["2026-01"], {}, {}),
+        )
+
+    def test_receita_pj_soma_pro_labore_e_lucros(self):
+        nat = self._enrich(
+            {
+                "pro_labore": 3_000.0,
+                "lucros_distribuidos": 4_000.0,
+                "receita_clt": 3_000.0,
+                "receita_aluguel": 1_500.0,
+                "receita_investimento": 500.0,
+            }
+        ).to_legacy_dict()["receita_por_natureza"]
+        assert nat["receita_pj"] == 7_000.0  # pro_labore + lucros_distribuidos
+        assert nat["receita_clt"] == 3_000.0
+        assert nat["receita_aluguel"] == 1_500.0
+        assert nat["receita_outras"] == 500.0  # resíduo (receita_investimento)
+
+    def test_das_iss_folha_nao_entram_em_receita_pj(self):
+        # das_simples é DESPESA-PJ — se aparecer no bloco de receita, não conta como renda PJ.
+        nat = self._enrich(
+            {"pro_labore": 1_000.0, "das_simples": 500.0, "receita_clt": 1_000.0}
+        ).to_legacy_dict()["receita_por_natureza"]
+        assert nat["receita_pj"] == 1_000.0  # só pro_labore
+
+    def test_conservacao_soma_igual_receita_total_em_cents(self):
+        d = self._enrich(
+            {
+                "pro_labore": 1_234.56,
+                "lucros_distribuidos": 2_345.67,
+                "receita_clt": 3_456.78,
+                "receita_aluguel": 987.65,
+                "receita_resgate": 111.11,
+            }
+        ).to_legacy_dict()
+        nat = d["receita_por_natureza"]
+
+        def _c(v: float) -> int:
+            return round(v * 100)
+
+        assert sum(_c(v) for v in nat.values()) == _c(d["receita_total"])
+        assert nat["receita_outras"] >= 0
