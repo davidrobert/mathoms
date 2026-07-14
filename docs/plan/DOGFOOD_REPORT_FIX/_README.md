@@ -121,7 +121,7 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
 | C7-golden (re-review) | nova (Proposto) — fidelidade fixture↔E4 | [[ADR-331]] |
 | H1 (re-review) | nova (Proposto) — sanitização PII no parecer | [[ADR-332]] |
 | C1 (re-review) | nova (Proposto) — aporte transferência (irmã [[ADR-328]]) | [[ADR-333]] |
-| G (re-review) | nova (Proposto, reservada — gated por auditoria) | [[ADR-334]] |
+| G (re-review) | nova (Proposto) — dedup deriva chave inline | [[ADR-334]] |
 | E1 (re-review) | nova (Proposto) — autonomia financeira exclui imóvel ilíquido | [[ADR-335]] |
 | A (re-review) | emenda datada (E1–E4) | [[ADR-191]] |
 | D (re-review) | emenda datada | [[ADR-240]] |
@@ -146,7 +146,7 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
 | **C1** | Aporte contado como despesa deprime poupança/score | **P1** | [[ADR-333]] nova (irmã [[ADR-328]]) | score_version 2.0 | pronto |
 | **CV4** | CV4 recomputa janela errada (full vs 12m) → RED por ruído | **P1** | dobrado em [[ADR-333]] (check-espelho) | none | pronto (independe de FIN-01) |
 | **E1** | `cobertura_despesas_meses` (18,52) mistura imóvel ilíquido com reserva (25,6) sob 1 rótulo | **P1** | [[ADR-335]] nova | schema e5 | **destravado** (adjudicado por `financial-planner` 2026-07-14): renomear → `autonomia_financeira_meses`, numerador financeiro-only (sem cat_2 imóvel), toggle-independente; reserva 25,6 inalterada. Achou 2 bugs extras: contradição de veredicto vs risco de concentração + vazamento do toggle `imoveis_no_if` |
-| **G** | Dedup de imóvel (1 matrícula 4×; ativo+excluído simultâneos) | **P1** | [[ADR-334]] nova (reservada) | migration Alembic | **BLOQUEADO** — mecanismo `_extract_matricula` provavelmente não casa o fantasma; exige **auditoria empírica** da taxa de extração de matrícula nas rows do dogfood antes de fixar approach |
+| **G** | Dedup de imóvel (1 matrícula 4×; ativo+excluído simultâneos) | **P1** | [[ADR-334]] nova | none (talvez migration) | **destravado** (auditoria 2026-07-14): matrícula extraível 100%; 11 rows→6 chaves derivadas (= "6 imóveis"); bug real = coluna `endereco_canonical` fragmentada (9+2 NULL) e read-path lê a coluna, não a chave derivada. Fix: derivar inline / backfill, sem fallback de endereço |
 | **F1** | Narrativa `s9` "nenhum risco" contradiz `pontos_urgentes` Alta; `s6` soma não fecha | **P1** | expandir [[ADR-327]] in-place (4→6 predicados) | none | **BLOQUEADO-on-327** — CV15/módulo de predicados/guarda da ADR-327 ainda não existem; serializar F1 após a impl da 327 (metade de conteúdo `s9`/`s6` é landável antes) |
 
 **Correções cross-cutting da verificação adversarial (aplicar em toda a onda):**
@@ -166,12 +166,15 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
   `fluxo.get("por_fonte",{}).get(...)`), **não** scan de nomes de variável — senão não pega
   `previdencia_analyzer.py:215` nem `tributario_input_builder.py:151`.
 
-**Gate a fechar antes de destravar G** (E1 já resolvido → [[ADR-335]]):
+**Gates fechados — todos os P0/P1 destravados (2026-07-14):**
 
-- **G → auditoria empírica**: medir a taxa real de extração via `_extract_matricula` nas 11
-  rows vivas de `property_identity` do dogfood (em cópia do DB) e registrar o número na
-  [[ADR-334]] como evidência — nunca "assumir 100%". Prever 2ª chave estruturada (endereço
-  normalizado) para o fallback quando matrícula ausente.
+- **E1** → resolvido por `financial-planner` → [[ADR-335]] (renomear + numerador financeiro-only).
+- **G** → resolvido por auditoria empírica → [[ADR-334]] (matrícula 100% extraível; bug é
+  coluna persistida fragmentada, não extração; fix = derivar inline / backfill). A auditoria
+  **inverteu** a hipótese original — lição: medir antes de fixar approach.
+
+Resta apenas a **implementação** (nenhum gate de decisão aberto). Ordem recomendada:
+substrato Frente 2 ([[ADR-330]]/[[ADR-331]]) primeiro — sem o golden fiel o CI segue cego à classe B.
 
 ## As 4 qualidades como gates verificáveis
 

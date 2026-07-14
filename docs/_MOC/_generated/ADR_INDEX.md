@@ -565,7 +565,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-331]] — Fidelidade fixture↔E4 (por_fonte real) + golden red-before-green
 - [[ADR-332]] — Sanitização de PII no contexto do parecer + gate PII-scan
 - [[ADR-333]] — Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0)
-- [[ADR-334]] — Identidade estruturada de imóvel + dedup (gated por auditoria empírica)
+- [[ADR-334]] — Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida)
 - [[ADR-335]] — Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência
 
 ## quality
