@@ -325,6 +325,11 @@
 | ADR-327 | adr | Proposto |  | Guarda de fidelidade narrativa↔E5: binding de token monetário a campo vivo + fail-closed no E5.N | `adr/327-guarda-fidelidade-narrativa-e5.md` |
 | ADR-328 | adr | Proposto |  | score_version 2.0 — plateau da cobertura de reserva no alvo do perfil (não premiar over-provisioning) | `adr/328-score-version-2-plateau-cobertura-reserva.md` |
 | ADR-329 | adr | Proposto |  | Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium | `adr/329-reclassificacao-retentavel-docs-parkados.md` |
+| ADR-330 | adr | Proposto |  | Contrato canônico por_fonte: agregado receita_pj + bloco receita_por_natureza | `adr/330-contrato-por-fonte-receita-pj.md` |
+| ADR-331 | adr | Proposto |  | Fidelidade fixture↔E4 (por_fonte real) + golden red-before-green | `adr/331-fidelidade-fixture-e4-golden-red-before-green.md` |
+| ADR-332 | adr | Proposto |  | Sanitização de PII no contexto do parecer + gate PII-scan | `adr/332-sanitizacao-pii-contexto-parecer-gate-scan.md` |
+| ADR-333 | adr | Proposto |  | Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0) | `adr/333-aporte-transferencia-patrimonial-nao-consumo.md` |
+| ADR-334 | adr | Proposto |  | Identidade estruturada de imóvel + dedup (gated por auditoria empírica) | `adr/334-identidade-estruturada-imovel-dedup.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-320 ADRs (ADR-001 a ADR-329) em [`docs/adr/`](../../adr/).
+325 ADRs (ADR-001 a ADR-334) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 288
-- **Proposto**: 29
+- **Proposto**: 34
 - **Roadmap**: 3
 
 ## Fundação
@@ -554,13 +554,18 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-311]] — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável · phase A32.l5
 - [[ADR-312]] — Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers
 
-### Proposto (5)
+### Proposto (10)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
 - [[ADR-325]] — Fronteira pipeline↔backend enforçada por gate + allowlist declarativo · phase A36.l1a
 - [[ADR-327]] — Guarda de fidelidade narrativa↔E5: binding de token monetário a campo vivo + fail-closed no E5.N
 - [[ADR-328]] — score_version 2.0 — plateau da cobertura de reserva no alvo do perfil (não premiar over-provisioning)
+- [[ADR-330]] — Contrato canônico por_fonte: agregado receita_pj + bloco receita_por_natureza
+- [[ADR-331]] — Fidelidade fixture↔E4 (por_fonte real) + golden red-before-green
+- [[ADR-332]] — Sanitização de PII no contexto do parecer + gate PII-scan
+- [[ADR-333]] — Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0)
+- [[ADR-334]] — Identidade estruturada de imóvel + dedup (gated por auditoria empírica)
 
 ## quality
 
