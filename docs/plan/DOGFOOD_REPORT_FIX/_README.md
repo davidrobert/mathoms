@@ -122,6 +122,7 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
 | H1 (re-review) | nova (Proposto) — sanitização PII no parecer | [[ADR-332]] |
 | C1 (re-review) | nova (Proposto) — aporte transferência (irmã [[ADR-328]]) | [[ADR-333]] |
 | G (re-review) | nova (Proposto, reservada — gated por auditoria) | [[ADR-334]] |
+| E1 (re-review) | nova (Proposto) — autonomia financeira exclui imóvel ilíquido | [[ADR-335]] |
 | A (re-review) | emenda datada (E1–E4) | [[ADR-191]] |
 | D (re-review) | emenda datada | [[ADR-240]] |
 | F1 (re-review) | expansão in-place (4→6 predicados) | [[ADR-327]] |
@@ -131,7 +132,7 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
 > A re-review `pipeline-review` do run `98b2cd38` / report `6848eb61` **confirmou a
 > Onda 1 em `main`** e trouxe achados P0/P1 novos ou aprofundados. Cada cluster foi
 > **co-desenhado por especialista + refutado por verificador adversarial** (workflow
-> `dogfood-p0p1-codesign`, 2026-07-14). IDs de ADR novos = **330–334** (maior anterior
+> `dogfood-p0p1-codesign`, 2026-07-14). IDs de ADR novos = **330–335** (maior anterior
 > = 329). Nomenclatura de cluster desta onda segue a tabela priorizada do relatório
 > (`_scratch/pipeline-review-dogfood-2026-07-13.md`).
 
@@ -144,7 +145,7 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
 | **H1** | PII (CPF/CNPJ/matrícula) em `top_ativos[].nome` alcança o prompt do parecer | **P1** | [[ADR-332]] nova | none | pronto |
 | **C1** | Aporte contado como despesa deprime poupança/score | **P1** | [[ADR-333]] nova (irmã [[ADR-328]]) | score_version 2.0 | pronto |
 | **CV4** | CV4 recomputa janela errada (full vs 12m) → RED por ruído | **P1** | dobrado em [[ADR-333]] (check-espelho) | none | pronto (independe de FIN-01) |
-| **E1** | `cobertura_despesas_meses` (18,52) usa investível c/ imóvel ilíquido vs 25,6 | **P1** | ⚠️ **sem ADR ainda** | schema e5 | **BLOQUEADO** — `pontos_fortes_analyzer.py:224` é consumidor vivo (renderiza "Colchão Patrimonial"); é decisão de **produto** (renomear, não remover) → `financial-planner` |
+| **E1** | `cobertura_despesas_meses` (18,52) mistura imóvel ilíquido com reserva (25,6) sob 1 rótulo | **P1** | [[ADR-335]] nova | schema e5 | **destravado** (adjudicado por `financial-planner` 2026-07-14): renomear → `autonomia_financeira_meses`, numerador financeiro-only (sem cat_2 imóvel), toggle-independente; reserva 25,6 inalterada. Achou 2 bugs extras: contradição de veredicto vs risco de concentração + vazamento do toggle `imoveis_no_if` |
 | **G** | Dedup de imóvel (1 matrícula 4×; ativo+excluído simultâneos) | **P1** | [[ADR-334]] nova (reservada) | migration Alembic | **BLOQUEADO** — mecanismo `_extract_matricula` provavelmente não casa o fantasma; exige **auditoria empírica** da taxa de extração de matrícula nas rows do dogfood antes de fixar approach |
 | **F1** | Narrativa `s9` "nenhum risco" contradiz `pontos_urgentes` Alta; `s6` soma não fecha | **P1** | expandir [[ADR-327]] in-place (4→6 predicados) | none | **BLOQUEADO-on-327** — CV15/módulo de predicados/guarda da ADR-327 ainda não existem; serializar F1 após a impl da 327 (metade de conteúdo `s9`/`s6` é landável antes) |
 
@@ -165,11 +166,8 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
   `fluxo.get("por_fonte",{}).get(...)`), **não** scan de nomes de variável — senão não pega
   `previdencia_analyzer.py:215` nem `tributario_input_builder.py:151`.
 
-**Gates a fechar antes de destravar E1 e G:**
+**Gate a fechar antes de destravar G** (E1 já resolvido → [[ADR-335]]):
 
-- **E1 → `financial-planner`**: decidir se "Colchão Patrimonial" (autonomia patrimonial,
-  A28.l10) é **renomeado** (nome honesto p/ o conceito de colchão) ou mantido+relabelado — a
-  correção de consistência é desambiguar nomes de campo, **não deletar** um KPI renderizado.
 - **G → auditoria empírica**: medir a taxa real de extração via `_extract_matricula` nas 11
   rows vivas de `property_identity` do dogfood (em cópia do DB) e registrar o número na
   [[ADR-334]] como evidência — nunca "assumir 100%". Prever 2ª chave estruturada (endereço
