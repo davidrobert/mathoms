@@ -100,6 +100,7 @@ ou retrabalho caro.
 | Mudança proposta | Especialista |
 | --- | --- |
 | Dinheiro, fórmula, threshold de domínio, alocação, dívida, reserva, IF, metodologia (Perini/Cerbasi/AUVP) | `financial-planner` |
+| Relatório financeiro: mudança no que os números **mostram** ou em **como os dados são calculados / mensurados / agrupados / classificados** (o visual/componente do relatório fica em `product-designer`) | `financial-planner` |
 | Schema DB, migration Alembic não-trivial, contrato `config/schemas/*`, contrato entre stages (E0→E7), eval/retenção de LLM | `data-engineer` |
 | Componente novo no relatório, copy de produto, escolha de gráfico, hierarquia de informação, design token novo | `product-designer` |
 | ADR `Proposto` P0/P1, design de API, modelagem de domínio, refactor estrutural, boundary entre serviços | `senior-cto` |
