@@ -2,7 +2,8 @@
 id: ADR-331
 type: adr
 title: "Fidelidade fixture↔E4 (por_fonte real) + golden red-before-green"
-status: Proposto
+status: Decidido
+phase: dogfood Frente 2
 date: "2026-07-14"
 relates_to:
   - "[[ADR-330]]"
@@ -50,6 +51,7 @@ Golden fiel ao contrato > golden conveniente. Um golden que "passa sempre" é ru
 - **Rebaseline coordenado.** `dogfood_view_model.json` é golden **mutável e compartilhada**: os clusters C8/C11/C3/C5 também rebaselinam. Serializar via **um único manifesto** de `dev/golden_diff.py` (entradas `golden|path|old_cents|new_cents|adr|rationale|ref`) em ordem coordenada — nunca rebaseline paralelo (colisão de bytes).
 - **A troca TRS 4→5 é config de fixture, não regressão de código.** Se a decisão de domínio #1 do plano fixar TRS canônica em 5%, o novo valor de `dogfood_view_model.json:if_trs` vem de editar `_DEFAULT_GOALS["independencia_financeira"]["trs_pct"]` (`pipeline_golden_substrate.py:17`, hoje `4.0`) — mudança de **insumo**, **fora** do red-before-green. Registrar a entrada de manifesto como `rationale: config-fixture`.
 - **Bump:** nenhum. Não muda wire nem schema E5; só alinha fixture + goldens ao contrato da [[ADR-330]].
+- **Entregue (dogfood Frente 2):** D1 (fixture emite `lucros_distribuidos`, código E4 real) + D4 (golden `dogfood_view_model.json` rebaselinado; `perfil_renda` permanece `pj_dominante`, ganha bloco `receita_por_natureza`). **Follow-up:** D3 (guard automático anti-drift que falha se a fixture carregar chave de `por_fonte` ausente do contrato E4) fica para lane subsequente — a fidelidade está garantida agora; o guard previne regressão futura.
 
 ## Critério de aceite (4 lentes)
 

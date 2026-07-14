@@ -2,7 +2,8 @@
 id: ADR-330
 type: adr
 title: "Contrato por_fonte: bloco derivado receita_por_natureza (fora de por_fonte)"
-status: Proposto
+status: Decidido
+phase: dogfood Frente 2
 date: "2026-07-14"
 relates_to:
   - "[[ADR-236]]"
