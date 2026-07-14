@@ -390,6 +390,33 @@ def _cv14_monetary_format(e5: dict) -> CrossValidationResult:
     )
 
 
+def _cv16_receita_natureza(e5: dict) -> CrossValidationResult | None:
+    # ADR-330: baldes explícitos (pj/clt/aluguel) do bloco receita_por_natureza não podem
+    # exceder receita_total — resíduo negativo = dupla-contagem. Cents inteiros, tolerância
+    # zero. (CV15 reservado pela ADR-327.)
+    fluxo = e5.get("fluxo_caixa", {})
+    nat = fluxo.get("receita_por_natureza")
+    if not nat:
+        return None
+
+    def _c(v: object) -> int:
+        return int(round(float(v or 0) * 100))
+
+    explicit = (
+        _c(nat.get("receita_pj")) + _c(nat.get("receita_clt")) + _c(nat.get("receita_aluguel"))
+    )
+    total = _c(fluxo.get("receita_total"))
+    passed = explicit <= total
+    return CrossValidationResult(
+        "CV16",
+        "Conservação receita_por_natureza",
+        "info" if passed else "error",
+        passed,
+        f"pj+clt+aluguel ({explicit / 100:,.2f}) <= receita_total ({total / 100:,.2f})",
+        ["fluxo_caixa"],
+    )
+
+
 _CV_OPTIONAL_CHECKS = (
     _cv1_score_formula,
     _cv2_patrimonio_composicao,
@@ -399,6 +426,7 @@ _CV_OPTIONAL_CHECKS = (
     _cv6_if_progress,
     _cv7_endividamento,
     _cv8_reserva_cobertura,
+    _cv16_receita_natureza,
 )
 _CV_ALWAYS_CHECKS = (
     _cv9_summaries_completeness,
