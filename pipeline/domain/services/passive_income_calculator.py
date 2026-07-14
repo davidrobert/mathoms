@@ -94,6 +94,20 @@ def _holding_tokens(raw: str) -> frozenset[str]:
 
 
 @dataclass(frozen=True)
+class DistribuicaoPJSignal:
+    """ADR-336: 2º sinal determinístico (fluxo E4 ``lucros_distribuidos``) para elevar a
+    distribuição PJ do titular acima do match IRPF por-linha. Anualizado sobre a janela do fluxo."""
+
+    lucros_distribuidos_brl: Decimal = _ZERO
+    janela_meses: int = 12
+
+    def anualizado(self) -> Decimal:
+        if self.lucros_distribuidos_brl <= _ZERO or self.janela_meses <= 0:
+            return _ZERO
+        return self.lucros_distribuidos_brl * _TWELVE / Decimal(self.janela_meses)
+
+
+@dataclass(frozen=True)
 class _RendaPassivaBuckets:
     """Buckets internos da renda passiva observada por fonte RFB."""
 
@@ -109,15 +123,9 @@ class _RendaPassivaBuckets:
 
     @property
     def total(self) -> Decimal:
-        """Numerador da TRS — só yield de carteira (exclui distribuição PJ)."""
-        return (
-            self.dividendos
-            + self.jcp
-            + self.aplicacoes
-            + self.ganho_capital
-            + self.exterior
-            + self.alugueis
-        )
+        """Numerador da TRS — só yield RECORRENTE de carteira. Exclui distribuição PJ (renda
+        de trabalho) e ganho_capital (realização one-time, não yield — ADR-336)."""
+        return self.dividendos + self.jcp + self.aplicacoes + self.exterior + self.alugueis
 
     def to_dict(self) -> dict[str, Decimal]:
         return {
@@ -141,6 +149,7 @@ class _OkContext:
     investimentos_atuais: HoldingsPayload | None
     reference_date: date
     proventos: tuple[ProventosRendaAnual, ...] = ()
+    distribuicao_pj_signal: DistribuicaoPJSignal | None = None
 
 
 class PassiveIncomeCalculator:
@@ -158,6 +167,7 @@ class PassiveIncomeCalculator:
         reference_date: date,
         despesa_mensal_media_brl: Decimal,
         proventos: tuple[ProventosRendaAnual, ...] = (),
+        distribuicao_pj_signal: DistribuicaoPJSignal | None = None,
     ) -> PassiveIncomeResult:
         """Devolve KPIs + status enum (``ok`` | ``sem_irpf`` | ``gerador_zero``)."""
         ano_ref = self._resolve_ano_referencia(irpf)
@@ -167,12 +177,22 @@ class PassiveIncomeCalculator:
         gerador = self._patrimonio_gerador(patrimonio, investimentos_atuais, despesa)
         if gerador <= _ZERO:
             return self._empty_result(status="gerador_zero", ano_ref=ano_ref)
-        ctx = _OkContext(irpf, ano_ref, gerador, investimentos_atuais, reference_date, proventos)
+        ctx = _OkContext(
+            irpf,
+            ano_ref,
+            gerador,
+            investimentos_atuais,
+            reference_date,
+            proventos,
+            distribuicao_pj_signal,
+        )
         return self._build_ok_result(ctx)
 
     def _build_ok_result(self, ctx: _OkContext) -> PassiveIncomeResult:
         buckets = self._renda_passiva_observada(irpf=ctx.irpf, ano=ctx.ano_ref)
         buckets = _complement_with_informes(buckets, ctx.ano_ref, ctx.proventos)
+        # ADR-336: elevação PJ por ÚLTIMO (após complement — senão o informe re-injeta).
+        buckets = _elevate_distribuicao_pj(buckets, ctx.distribuicao_pj_signal)
         anual = buckets.total
         return PassiveIncomeResult(
             renda_passiva_anual_brl=anual,
@@ -200,7 +220,14 @@ class PassiveIncomeCalculator:
         # capital_brl inclui todos os cod-09 — delta desconta também a
         # distribuição PJ para não vazá-la no bucket aluguéis (A28.l2).
         capital_total = irpf.split_trabalho_vs_capital(ano).capital_brl
-        delta = capital_total - explicit.total - explicit.distribuicao_pj_titular
+        # ADR-336: ``.total`` não inclui mais ganho_capital nem distribuicao_pj_titular;
+        # subtrair ambos aqui evita que capital_total (cod-06 + todo cod-09) vaze para aluguéis.
+        delta = (
+            capital_total
+            - explicit.total
+            - explicit.distribuicao_pj_titular
+            - explicit.ganho_capital
+        )
         alugueis = delta if delta > _ZERO else _ZERO
         return replace(explicit, alugueis=alugueis)
 
@@ -452,6 +479,23 @@ def _complement_with_informes(
     )
 
 
+def _elevate_distribuicao_pj(
+    buckets: _RendaPassivaBuckets, signal: DistribuicaoPJSignal | None
+) -> _RendaPassivaBuckets:
+    # ADR-336: piso no match IRPF por-linha (só eleva); teto no cod-09 total observado
+    # (dividendos + distribuicao_pj_titular) — nunca fabrica além do declarado.
+    # Reclassificação conservation-safe: o pool cod-09 é invariante, só muda o rótulo.
+    if signal is None:
+        return buckets
+    cod09_total = buckets.dividendos + buckets.distribuicao_pj_titular
+    distribuicao = min(cod09_total, max(buckets.distribuicao_pj_titular, signal.anualizado()))
+    return replace(
+        buckets,
+        dividendos=cod09_total - distribuicao,
+        distribuicao_pj_titular=distribuicao,
+    )
+
+
 def _split_dividendos(
     d: IRPFFullOutput, participacoes: _ParticipacoesSocietarias
 ) -> tuple[Decimal, Decimal]:
@@ -492,6 +536,7 @@ def _sum_exterior(d: IRPFFullOutput) -> Decimal:
 
 
 __all__ = [
+    "DistribuicaoPJSignal",
     "PassiveIncomeCalculator",
     "PassiveIncomeConfig",
     "PassiveIncomeResult",

@@ -119,6 +119,7 @@ from pipeline.domain.services.orcamento_calculator import (
     OrcamentoProspectivoCalculator,
 )
 from pipeline.domain.services.passive_income_calculator import (
+    DistribuicaoPJSignal,
     PassiveIncomeCalculator,
     PassiveIncomeConfig,
     PassiveIncomeResult,
@@ -790,6 +791,7 @@ class E5AnalyzerAdapter:
             reference_date=self._reference_date,
             despesa_mensal_media_brl=despesa,
             proventos=proventos,
+            distribuicao_pj_signal=_distribuicao_pj_signal_from_fluxo(fluxo_legacy),
         )
 
     # -- Helpers de config --
@@ -969,6 +971,18 @@ _ME_KEYWORDS_GENERIC: tuple[str, ...] = (
     "deposito em moeda nacional decorrente de moeda",
     "moeda nacional decorrente",
 )
+
+
+def _distribuicao_pj_signal_from_fluxo(fluxo_legacy: dict) -> DistribuicaoPJSignal | None:
+    # ADR-336: usa por_fonte["lucros_distribuidos"] (categoria — isolado, NÃO o agregado
+    # receita_pj, que vazaria pró-labore) + janela_meses (janela cheia do fluxo).
+    lucros = (fluxo_legacy.get("por_fonte", {}) or {}).get("lucros_distribuidos")
+    if lucros is None:
+        return None
+    return DistribuicaoPJSignal(
+        lucros_distribuidos_brl=Decimal(str(lucros)),
+        janela_meses=int(fluxo_legacy.get("janela_meses") or 12),
+    )
 
 
 def _moeda_from_descricao(descricao_lower: str) -> str:
