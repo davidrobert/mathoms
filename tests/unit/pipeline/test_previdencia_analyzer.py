@@ -22,7 +22,8 @@ from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
 
 def _fluxo(pj: float = 0, num_months: int = 12) -> dict:
     return {
-        "por_fonte": {"receita_pj": pj},
+        # ADR-330: proxy PGBL lê o bloco canônico receita_por_natureza.
+        "receita_por_natureza": {"receita_pj": pj},
         "receita_despesa_mensal_detalhado": {
             "labels": [f"2026-{m:02d}" for m in range(1, num_months + 1)]
         },

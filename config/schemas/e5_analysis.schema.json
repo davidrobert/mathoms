@@ -119,7 +119,17 @@
         "despesa_total": {"type": "number"},
         "fluxo_liquido": {"type": "number"},
         "janela": {"type": "string", "enum": ["full", "12m"]},
-        "janela_meses": {"type": "integer", "minimum": 0}
+        "janela_meses": {"type": "integer", "minimum": 0},
+        "receita_por_natureza": {
+          "type": "object",
+          "description": "ADR-330: re-bucketização derivada de receita por natureza (fora de por_fonte). receita_pj = pró-labore + lucros distribuídos; receita_outras é resíduo; soma == receita_total (cents).",
+          "properties": {
+            "receita_pj": {"type": "number"},
+            "receita_clt": {"type": "number"},
+            "receita_aluguel": {"type": "number"},
+            "receita_outras": {"type": "number"}
+          }
+        }
       }
     },
     "ratios": {

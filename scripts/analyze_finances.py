@@ -1803,68 +1803,6 @@ def analyze_endividamento(patrimonio: Dict[str, Any], baseline: Dict[str, Any]) 
     }
 
 
-def analyze_previdencia_pgbl(fluxo: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyze PGBL optimization potential from PJ income."""
-    print("[E5.9] Analyzing PGBL...")
-
-    receita_pj = safe_float(fluxo.get("por_fonte", {}).get("receita_pj", 0))
-    num_months = len(fluxo.get("receita_despesa_mensal_detalhado", {}).get("labels", []))
-    if num_months == 0:
-        num_months = 12
-
-    receita_pj_anual = receita_pj * (12 / num_months) if num_months > 0 else 0
-
-    # Parâmetros fiscais carregados de config/parametros_fiscais.json
-    _lp_cfg = FISCAL_CONFIG.get("lucro_presumido", {})
-    _pgbl_cfg = FISCAL_CONFIG.get("pgbl", {})
-    _irpf_cfg = FISCAL_CONFIG.get("irpf_tabela_progressiva", {})
-
-    lucro_presumido_pct = safe_float(_lp_cfg.get("percentual_servicos_pct", 32.0)) / 100.0
-    pgbl_limite_pct = safe_float(_pgbl_cfg.get("limite_deducao_pct", 12.0)) / 100.0
-
-    renda_tributavel = receita_pj_anual * lucro_presumido_pct
-
-    if renda_tributavel <= 0:
-        return {
-            "status": "N/D",
-            "nota": "Sem receita PJ identificada para cálculo de PGBL.",
-            "renda_tributavel_anual": 0,
-            "limite_pgbl_anual": 0,
-            "aporte_mensal": 0,
-            "aliquota_marginal": 0,
-            "economia_ir_anual": 0,
-        }
-
-    limite_pgbl = renda_tributavel * pgbl_limite_pct
-
-    # Alíquota marginal IRPF (tabela progressiva de parametros_fiscais.json)
-    faixas_irpf = _irpf_cfg.get("faixas", [])
-    aliquota_marginal = 7.5  # fallback
-    if faixas_irpf:
-        # Faixas ordenadas por limite_anual ascending, última tem limite null
-        aliquota_marginal = safe_float(faixas_irpf[0].get("aliquota_pct", 7.5))
-        for faixa in faixas_irpf:
-            limite = faixa.get("limite_anual")
-            if limite is not None and renda_tributavel > safe_float(limite):
-                aliquota_marginal = safe_float(faixa.get("aliquota_pct", aliquota_marginal))
-            elif limite is None:
-                # Última faixa (sem teto)
-                aliquota_marginal = safe_float(faixa.get("aliquota_pct", aliquota_marginal))
-
-    economia_ir = limite_pgbl * (aliquota_marginal / 100)
-
-    lp_pct_display = int(lucro_presumido_pct * 100)
-    return {
-        "status": "Calculado",
-        "nota": f"Base: receita PJ anualizada R$ {receita_pj_anual:,.0f}, lucro presumido {lp_pct_display}%.",
-        "renda_tributavel_anual": round(renda_tributavel, 2),
-        "limite_pgbl_anual": round(limite_pgbl, 2),
-        "aporte_mensal": round(limite_pgbl / 12, 2),
-        "aliquota_marginal": aliquota_marginal,
-        "economia_ir_anual": round(economia_ir, 2),
-    }
-
-
 def analyze_pontos_fortes(
     score: Dict[str, Any],
     ratios: Dict[str, Any],

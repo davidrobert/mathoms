@@ -335,7 +335,13 @@ def test_perfil_renda_define_meses_alvo(
     result = calc.calculate(
         fluxo={
             "despesa_mensal_media": 1_000,
-            "por_fonte": {"receita_pj": pj, "receita_clt": clt},
+            # ADR-330: perfil lê o bloco derivado receita_por_natureza (não por_fonte).
+            "receita_por_natureza": {
+                "receita_pj": pj,
+                "receita_clt": clt,
+                "receita_aluguel": 0,
+                "receita_outras": 0,
+            },
         },
         patrimonio={"investimentos_david": 1_000, "investimentos_mariana": 0},
     )
@@ -343,12 +349,41 @@ def test_perfil_renda_define_meses_alvo(
     assert result["meses_alvo"] == meses
 
 
+def test_perfil_usa_receita_por_natureza_nao_por_fonte(config: ReservaEmergenciaConfig):
+    """ADR-330 (cluster B): sobre o SHAPE REAL do E4 — por_fonte tem pro_labore +
+    lucros_distribuidos, nunca a chave agregada receita_pj — o perfil deve vir do
+    bloco derivado receita_por_natureza. Guarda contra a regressão da chave morta
+    (por_fonte.receita_pj → 0 → clt_unica_fonte falso)."""
+    calc = EmergencyReserveCalculator(config)
+    result = calc.calculate(
+        fluxo={
+            "despesa_mensal_media": 1_000,
+            # shape real: sem 'receita_pj' agregado
+            "por_fonte": {"pro_labore": 3_000, "lucros_distribuidos": 4_000, "receita_clt": 3_000},
+            "receita_por_natureza": {
+                "receita_pj": 7_000,  # pro_labore + lucros_distribuidos
+                "receita_clt": 3_000,
+                "receita_aluguel": 0,
+                "receita_outras": 0,
+            },
+        },
+        patrimonio={"investimentos_david": 1_000, "investimentos_mariana": 0},
+    )
+    assert result["perfil_renda"] == "pj_dominante"  # 70% ≥ 60
+    assert result["receita_pj_pct"] == 70.0
+
+
 def test_alvo_e_gap_dimensionados_pelo_perfil(config: ReservaEmergenciaConfig):
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={
             "despesa_mensal_media": 10_000,
-            "por_fonte": {"receita_pj": 100_000, "receita_clt": 0},
+            "receita_por_natureza": {
+                "receita_pj": 100_000,
+                "receita_clt": 0,
+                "receita_aluguel": 0,
+                "receita_outras": 0,
+            },
         },
         patrimonio={"investimentos_david": 100_000, "investimentos_mariana": 0},
     )
@@ -383,7 +418,15 @@ def _calc_bands(identity: MemberIdentity, meses_alvo_pj: int = 18) -> EmergencyR
 def test_excessiva_quando_acima_do_alvo_do_perfil(identity: MemberIdentity):
     calc = _calc_bands(identity)
     result = calc.calculate(
-        fluxo={"despesa_mensal_media": 1_000, "por_fonte": {"receita_pj": 100, "receita_clt": 0}},
+        fluxo={
+            "despesa_mensal_media": 1_000,
+            "receita_por_natureza": {
+                "receita_pj": 100,
+                "receita_clt": 0,
+                "receita_aluguel": 0,
+                "receita_outras": 0,
+            },
+        },
         patrimonio={"investimentos_david": 30_000, "investimentos_mariana": 0},
     )
     assert result["cobertura_meses"] == 30.0
@@ -394,7 +437,15 @@ def test_excessiva_demovida_quando_cobertura_dentro_do_alvo(identity: MemberIden
     """Alvo do perfil ≥ faixa Excessiva → nunca rotular excedente dentro do alvo."""
     calc = _calc_bands(identity, meses_alvo_pj=30)
     result = calc.calculate(
-        fluxo={"despesa_mensal_media": 1_000, "por_fonte": {"receita_pj": 100, "receita_clt": 0}},
+        fluxo={
+            "despesa_mensal_media": 1_000,
+            "receita_por_natureza": {
+                "receita_pj": 100,
+                "receita_clt": 0,
+                "receita_aluguel": 0,
+                "receita_outras": 0,
+            },
+        },
         patrimonio={"investimentos_david": 25_000, "investimentos_mariana": 0},
     )
     assert result["cobertura_meses"] == 25.0

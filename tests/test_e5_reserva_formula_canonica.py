@@ -96,7 +96,8 @@ def payload(tmp_path_factory) -> dict:
         root,
         family=_FAMILY,
         expense_keywords={"alimentacao": ["SUPERMERCADO"]},
-        income_keywords={"receita_pj": ["PIX"]},
+        # ADR-330/331: código E4 real (lucros_distribuidos), não o agregado fantasma receita_pj.
+        income_keywords={"lucros_distribuidos": ["PIX"]},
     )
     return run_dogfood_pipeline(
         root,

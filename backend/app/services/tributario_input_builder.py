@@ -148,8 +148,9 @@ def _build_pj_totals(
         das_simples=_pos_dec(despesa_totals.get("das_simples")),
         iss=_pos_dec(despesa_totals.get("iss")),
         folha_pj=_pos_dec(despesa_totals.get("folha_pj")),
-        receita_pj=_pos_dec(receita_totals.get("receita_pj"))
-        + _pos_dec(receita_totals.get("pro_labore"))
+        # ADR-330: renda PJ = pró-labore + lucros distribuídos. O termo
+        # receita_totals["receita_pj"] era chave morta (+0) — o E4 nunca emite esse agregado.
+        receita_pj=_pos_dec(receita_totals.get("pro_labore"))
         + _pos_dec(receita_totals.get("lucros_distribuidos")),
         n_meses=n_meses,
     )

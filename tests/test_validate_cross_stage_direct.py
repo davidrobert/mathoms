@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import scripts.validate_cross as _scripts_validate_cross
 from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.context import WorkspaceContext
 from pipeline.stages import validate_cross
@@ -90,3 +91,36 @@ def test_stage_run_fails_cleanly_without_narrativas(tmp_path: Path) -> None:
     store.seed("analyze_finances", "analise_financeira", {"score": {"valor": 0}})
     result = validate_cross.run(_seeded_ctx(tmp_path, store))
     assert result == {"success": False, "reason": "missing_narrativas", "stage": "validate_cross"}
+
+
+def test_cv16_passa_quando_baldes_dentro_do_total() -> None:
+    """ADR-330: pj+clt+aluguel <= receita_total → conservação OK."""
+    e5 = {
+        "fluxo_caixa": {
+            "receita_total": 10000.0,
+            "receita_por_natureza": {
+                "receita_pj": 7000.0,
+                "receita_clt": 3000.0,
+                "receita_aluguel": 0.0,
+            },
+        }
+    }
+    r = _scripts_validate_cross._cv16_receita_natureza(e5)
+    assert r is not None and r.passed
+
+
+def test_cv16_detecta_dupla_contagem() -> None:
+    """Resíduo negativo (baldes > total) = dupla-contagem → error."""
+    e5 = {
+        "fluxo_caixa": {
+            "receita_total": 5000.0,
+            "receita_por_natureza": {"receita_pj": 7000.0, "receita_clt": 3000.0},
+        }
+    }
+    r = _scripts_validate_cross._cv16_receita_natureza(e5)
+    assert r is not None and not r.passed and r.severity == "error"
+
+
+def test_cv16_none_sem_bloco() -> None:
+    """Payload sem receita_por_natureza (legado) → skip (None)."""
+    assert _scripts_validate_cross._cv16_receita_natureza({"fluxo_caixa": {}}) is None

@@ -212,7 +212,9 @@ class PrevidenciaAnalyzer:
         )
 
     def _analyze_via_proxy(self, fluxo: dict) -> PrevidenciaAnalysis:
-        receita_pj = _safe_float(fluxo.get("por_fonte", {}).get("receita_pj", 0))
+        # ADR-330: renda PJ vem do bloco canônico receita_por_natureza (fallback proxy;
+        # o path canônico é _analyze_via_irpf com renda tributável).
+        receita_pj = _safe_float(fluxo.get("receita_por_natureza", {}).get("receita_pj", 0))
         num_months = len(
             (fluxo.get("receita_despesa_mensal_detalhado", {}) or {}).get("labels", []) or []
         )

@@ -176,6 +176,25 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
 Resta apenas a **implementação** (nenhum gate de decisão aberto). Ordem recomendada:
 substrato Frente 2 ([[ADR-330]]/[[ADR-331]]) primeiro — sem o golden fiel o CI segue cego à classe B.
 
+### Revisão final do `financial-planner` (2026-07-14) — GO condicional
+
+Revisão de domínio de todo o lote **antes** do código. **GO nos 5 clusters**; Frente 2 (B) recebeu
+**GO limpo**. Condições a incorporar **na pega de cada lane** (as de A/D antes de codar aqueles clusters):
+
+| # | Prio | Lane/ADR | Ajuste obrigatório |
+|---|:--:|---|---|
+| 1 | **P0** | A · emenda [[ADR-191]] | Base do estimador de 5% = `investivel_efetivo` (mesma do `if_pct`), **não** "s/ patrimônio financeiro" — senão 3ª base inconsistente (classe do erro E1). Liquidez-only já é `autonomia_financeira_meses` ([[ADR-335]]). |
+| 2 | **P0** | A · emenda [[ADR-191]] | Suprimir a TRS observada **na fronteira do prompt do parecer** (não só UI); ao suprimir, narrativa **preserva** a renda passiva recorrente documentada (aluguel/dividendos), não diz "não estimável". |
+| 3 | **abordagem** | A · emenda [[ADR-191]] | **Abordagem primária de A (endossada owner 2026-07-14): excluir `ganho_capital` do numerador da TRS** (realização one-time, não yield recorrente) — deve derrubar a TRS observada dos 14,08% para faixa crível (4-6%) e **possivelmente dispensar o gate de supressão** (vira fallback). Preserva a renda passiva recorrente real da família. Documentar override 5% (yield-meta BR) vs 4% (Trinity-depleção). |
+| 4 | **P1** | D · emenda [[ADR-240]] | MIP trata o **gatilho**, não só o sizing: gatilho só-dívida **não** recebe piso-Alta com status MIP desconhecido (degrada p/ pergunta/médio); piso-Alta ancora em dependentes/cônjuge-sem-renda. |
+| 5 | **P1** | B · [[ADR-330]] | "Excedente realocável" usa alvo **conservador** p/ perfil PJ-material (ou copy CRC de hedge). Proxy PGBL super-estima com `lucros_distribuidos` — nota já adicionada à ADR-330. |
+| 6 | **P1** | C1 · [[ADR-333]] | Aporte removido do consumo deve ter **mesmo escopo de recorrência** que a receita do numerador. |
+| 7 | **P2** | A/E1 · [[ADR-191]]/[[ADR-335]] | Relabelar `renda_passiva_estimada_4pct` (nome mente com taxa 5%). |
+
+Gates de aceite adicionados pela revisão: teste de **consistência de base** (renda passiva estimada e
+`if_pct` movem juntos no flip de `imoveis_no_if`); **não-vazamento ao LLM** (TRS suprimida ausente do
+payload do prompt); **proteção/MIP** (financiamento grande + sem dependentes ⇒ vida não crava Alta).
+
 ## As 4 qualidades como gates verificáveis
 
 - **Completude** → `rg` zero-hit de referência morta (`pat.get('investivel'`,

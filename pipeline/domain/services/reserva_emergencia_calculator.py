@@ -197,9 +197,11 @@ class EmergencyReserveCalculator:
     # -- Perfil de renda --------------------------------------------------------
 
     def _resolve_perfil(self, fluxo: dict) -> _PerfilRenda:
-        por_fonte = (fluxo or {}).get("por_fonte") or {}
-        pj = safe_float(por_fonte.get("receita_pj", 0))
-        clt = safe_float(por_fonte.get("receita_clt", 0))
+        # ADR-330: renda PJ vem do bloco canônico ``receita_por_natureza`` (agregado
+        # pro_labore + lucros_distribuidos); ``por_fonte`` nunca emite ``receita_pj``.
+        natureza = (fluxo or {}).get("receita_por_natureza") or {}
+        pj = safe_float(natureza.get("receita_pj", 0))
+        clt = safe_float(natureza.get("receita_clt", 0))
         base = pj + clt
         if base <= 0:
             return _PerfilRenda(
