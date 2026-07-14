@@ -4,7 +4,7 @@ type: plan
 title: "Correções de qualidade do relatório (dogfood 2026-07-11)"
 status: in_progress
 created_at: 2026-07-12
-last_review: 2026-07-12
+last_review: 2026-07-14
 adrs_canonical:
   - "[[ADR-326]]"
   - "[[ADR-327]]"
@@ -35,13 +35,29 @@ tags:
   (input de poupança) — ambos do cluster C1, **fora deste lote**. O bump de
   `score_version` deve batelá-los ([[ADR-328]]).
 
-### 3 decisões a travar antes de codar os itens de domínio (owner + financial-planner)
+### Decisões de domínio (owner + financial-planner)
 
-1. **TRS canônica:** 5% (meta IF) vs 4% (regra dos 300) — afeta C3 / emenda [[ADR-191]].
-2. **Base canônica de concentração imobiliária:** 63,4% (carteira) vs 67,2% (bruto) —
+> **Atualizado 2026-07-14** pela re-review `pipeline-review` do run `98b2cd38` /
+> report `6848eb61` (pós-Onda 1). O owner travou 3 decisões; 2 seguem abertas (P2).
+
+**Travadas 2026-07-14:**
+
+1. ✅ **TRS canônica = 5%** (meta IF atual). O owner **sobrepôs** a recomendação
+   FIN-005 (4% · regra dos 300) — afeta C3 + cluster A. A emenda [[ADR-191]] deve
+   registrar o override + rationale explicitamente (não silenciar a alternativa).
+2. ✅ **Lucro distribuído da PJ do titular = renda ativa de negócio** (não passiva).
+   Rotear `por_fonte.lucros_distribuidos` → `passive_income.distribuicao_pj_titular`,
+   fora de `passive_income.dividendos`. Gate do **cluster A (P0)**.
+3. ✅ **Aporte de investimento = transferência para balanço** (não consumo). Sai de
+   `desp_bruto`; conservação exige que o valor reapareça no balanço. Gate do
+   **cluster C1 (P1)**.
+
+**Ainda abertas (P2 — não bloqueiam o lote P0/P1):**
+
+4. **Base canônica de concentração imobiliária:** 63,4% (carteira) vs 67,2% (bruto) —
    afeta C11-Fase2 / emenda [[ADR-177]] + reconciliação com FIN-05.
-3. **Tendência do gauge (C2.2):** nasce no E5.N ou na camada `comparisons`?
-   (recomendação: `comparisons`, onde há baseline).
+5. **Tendência do gauge (C2.2):** nasce no E5.N ou na camada `comparisons`?
+   (recomendação: `comparisons`, onde há baseline; FIN-010: derivar de snapshots datados).
 
 ## Regra de ouro — 3 eixos de versão, 1 bump cada (anti-thrashing)
 
@@ -101,6 +117,63 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
 | C3 | emenda datada | [[ADR-191]] |
 | C4 | emenda datada | [[ADR-240]] |
 | C11 | emenda datada | [[ADR-177]] |
+| B (re-review) | nova (Proposto) — contrato `por_fonte` | [[ADR-330]] |
+| C7-golden (re-review) | nova (Proposto) — fidelidade fixture↔E4 | [[ADR-331]] |
+| H1 (re-review) | nova (Proposto) — sanitização PII no parecer | [[ADR-332]] |
+| C1 (re-review) | nova (Proposto) — aporte transferência (irmã [[ADR-328]]) | [[ADR-333]] |
+| G (re-review) | nova (Proposto, reservada — gated por auditoria) | [[ADR-334]] |
+| A (re-review) | emenda datada (E1–E4) | [[ADR-191]] |
+| D (re-review) | emenda datada | [[ADR-240]] |
+| F1 (re-review) | expansão in-place (4→6 predicados) | [[ADR-327]] |
+
+## Re-review 2026-07-13 — novos P0/P1 (pós-Onda 1)
+
+> A re-review `pipeline-review` do run `98b2cd38` / report `6848eb61` **confirmou a
+> Onda 1 em `main`** e trouxe achados P0/P1 novos ou aprofundados. Cada cluster foi
+> **co-desenhado por especialista + refutado por verificador adversarial** (workflow
+> `dogfood-p0p1-codesign`, 2026-07-14). IDs de ADR novos = **330–334** (maior anterior
+> = 329). Nomenclatura de cluster desta onda segue a tabela priorizada do relatório
+> (`_scratch/pipeline-review-dogfood-2026-07-13.md`).
+
+| Cluster | O quê | Prio | ADR | Bump | Estado / gate |
+|---|---|:--:|---|:--:|---|
+| **A** | Lucro PJ roteado p/ dividendo infla renda passiva/IF; gate "suspeito" **suprime** o observado e ancora IF a 5% s/ patrimônio financeiro | **P0** | emenda [[ADR-191]] (E1–E4) | manifest parecer 1.9 | pronto (core verificado; correções aplicadas) |
+| **C7-golden** | Golden diverge do E4 real (`receita_pj` agregado que o E4 não emite) → CI cego | **P0/P1** | [[ADR-331]] nova | none | pronto |
+| **B** | Chave morta `por_fonte.receita_pj` (3 consumidores caem a 0) → `perfil_renda` falso | **P1** | [[ADR-330]] nova (contrato `por_fonte`) | schema e5 | pronto (verificado; `meses_alvo` fica 12, não 18) |
+| **D** | Piso de severidade de proteção; reframe reposição de renda | **P1** | emenda [[ADR-240]] | manifest parecer 1.9 (batela com A) | pronto |
+| **H1** | PII (CPF/CNPJ/matrícula) em `top_ativos[].nome` alcança o prompt do parecer | **P1** | [[ADR-332]] nova | none | pronto |
+| **C1** | Aporte contado como despesa deprime poupança/score | **P1** | [[ADR-333]] nova (irmã [[ADR-328]]) | score_version 2.0 | pronto |
+| **CV4** | CV4 recomputa janela errada (full vs 12m) → RED por ruído | **P1** | dobrado em [[ADR-333]] (check-espelho) | none | pronto (independe de FIN-01) |
+| **E1** | `cobertura_despesas_meses` (18,52) usa investível c/ imóvel ilíquido vs 25,6 | **P1** | ⚠️ **sem ADR ainda** | schema e5 | **BLOQUEADO** — `pontos_fortes_analyzer.py:224` é consumidor vivo (renderiza "Colchão Patrimonial"); é decisão de **produto** (renomear, não remover) → `financial-planner` |
+| **G** | Dedup de imóvel (1 matrícula 4×; ativo+excluído simultâneos) | **P1** | [[ADR-334]] nova (reservada) | migration Alembic | **BLOQUEADO** — mecanismo `_extract_matricula` provavelmente não casa o fantasma; exige **auditoria empírica** da taxa de extração de matrícula nas rows do dogfood antes de fixar approach |
+| **F1** | Narrativa `s9` "nenhum risco" contradiz `pontos_urgentes` Alta; `s6` soma não fecha | **P1** | expandir [[ADR-327]] in-place (4→6 predicados) | none | **BLOQUEADO-on-327** — CV15/módulo de predicados/guarda da ADR-327 ainda não existem; serializar F1 após a impl da 327 (metade de conteúdo `s9`/`s6` é landável antes) |
+
+**Correções cross-cutting da verificação adversarial (aplicar em toda a onda):**
+
+- **CV15 já está reservado** pela [[ADR-327]] (linha "guarda espelhada como CV15"). CVs
+  novos desta onda entram em **CV16+** (`validate_cross.py` ~:390, registro em
+  `_CV_ALWAYS_CHECKS` :403).
+- **`ADR-272` foi mal-citado** como fonte da conservação em todo o material de origem —
+  ADR-272 é "needs_review razão estruturada". A invariante de conservação E5 vive em
+  `tests/test_e5_conservation_invariants.py` (A23.l2 guard-rail G-b). Usar a fonte certa
+  nas ADRs e testes.
+- **`backend/tests/snapshots/dogfood_view_model.json` é golden mutável compartilhada** por
+  vários clusters (C7-golden/B/C1 + C8/C11/C3/C5) — **serializar rebaseline** com manifesto
+  `dev/golden_diff.py` único e ordem coordenada, senão conflito de merge + baselines duplicadas.
+- **Gate de completude = visitor AST** chaveado no dict de origem (`por_fonte` /
+  `por_fonte_detalhado` / `receita_totals` / `despesa_totals` + acesso encadeado
+  `fluxo.get("por_fonte",{}).get(...)`), **não** scan de nomes de variável — senão não pega
+  `previdencia_analyzer.py:215` nem `tributario_input_builder.py:151`.
+
+**Gates a fechar antes de destravar E1 e G:**
+
+- **E1 → `financial-planner`**: decidir se "Colchão Patrimonial" (autonomia patrimonial,
+  A28.l10) é **renomeado** (nome honesto p/ o conceito de colchão) ou mantido+relabelado — a
+  correção de consistência é desambiguar nomes de campo, **não deletar** um KPI renderizado.
+- **G → auditoria empírica**: medir a taxa real de extração via `_extract_matricula` nas 11
+  rows vivas de `property_identity` do dogfood (em cópia do DB) e registrar o número na
+  [[ADR-334]] como evidência — nunca "assumir 100%". Prever 2ª chave estruturada (endereço
+  normalizado) para o fallback quando matrícula ausente.
 
 ## As 4 qualidades como gates verificáveis
 
@@ -127,7 +200,7 @@ ADRs (itens com ADR) e no design multi-agente de origem. Resumo por item:
 - **C2.3** — Compl: nenhuma cláusula com var vazia; dead-USA removido. Corr: campo ausente ⇒ omite. Consist: perfil só afirma o que o DB tem. Prec: teste "só-nome" sem "é ()".
 - **C2.4** — Compl: nenhum slot emite CNPJ/matrícula/IPTU/endereço. Corr: rótulo abstraído preservando valor. Consist: mesmo abstrator em toda superfície. Prec: teste sem regex de PII.
 - **C2.5/C2.6** — ver [[ADR-327]].
-- **C3** — Compl: flag suspeito gateia goals+passive+parecer+cobertura. Corr: TRS 14,08% ⇒ só estimativa 4% (R$ 5.985,94)+aviso. Consist: mesmo veredicto det↔parecer↔narrativa; `if_pct` inalterado. Prec: threshold 8% de `RentabilidadeConfig`.
+- **C3** — Compl: flag suspeito gateia goals+passive+parecer+cobertura. Corr: TRS observada 14,08% > threshold ⇒ só estimativa a **5%** (s/ patrimônio financeiro, sem lucro PJ) + aviso. Consist: mesmo veredicto det↔parecer↔narrativa; `if_pct` inalterado. Prec: threshold de `RentabilidadeConfig` (config, não hardcode). *(TRS travada 5% em 2026-07-14; R$ concreto recomputado no fix.)*
 - **C4** — Compl: 3 apólices sem truncar; risco+campos_faltantes+pontos_urgentes coerentes. Corr: "falta VIDA/invalidez", severidade ≥Alta. Consist: severidade parecer == `pontos_urgentes`. Prec: S9 scalar→table; alias de path.
 - **C5** — ver [[ADR-328]]; Camada1 (card+custo) sem ADR.
 - **C8** — ver [[ADR-329]].
