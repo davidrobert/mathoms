@@ -1,7 +1,7 @@
 ---
 id: ADR-330
 type: adr
-title: "Contrato canônico por_fonte: agregado receita_pj + bloco receita_por_natureza"
+title: "Contrato por_fonte: bloco derivado receita_por_natureza (fora de por_fonte)"
 status: Proposto
 date: "2026-07-14"
 relates_to:
@@ -15,48 +15,99 @@ tags:
   - area/backend
 ---
 
-> Fecha o item cluster B (P1) do [[PLAN-dogfood-report-fix]]: a chave `fluxo_caixa.por_fonte.receita_pj` é lida por 3 consumidores mas **nunca emitida** pelo enricher — renda PJ (~46,5% no perfil dogfood) some silenciosamente e o perfil de renda colapsa para CLT-única.
-> Achado verificado na revisão dogfood 2026-07-13: `receita_pj → 0` em reserva, previdência e input tributário.
+# ADR-330 — Contrato `por_fonte`: bloco `receita_por_natureza`
+
+> Cluster **B** (P1) do [[PLAN-dogfood-report-fix]]: a chave `fluxo_caixa.por_fonte.receita_pj`
+> é lida por 5 consumidores mas **nunca emitida** pelo enricher — renda PJ (~46,5% no perfil
+> dogfood) some silenciosamente e o perfil de renda colapsa para CLT-única.
+> Contrato travado por co-design `data-engineer` (2026-07-14), que corrigiu 2 riscos de
+> conservação do draft inicial.
 
 ## Contexto
 
-`FluxoCaixaEnricher.enrich` monta `por_fonte` a partir de `receitas.totais_por_categoria` (`pipeline/domain/services/fluxo_caixa_enricher.py:279`). As chaves resultantes são **categorias E4** (`receita_clt`, `receita_aluguel`, `lucros_distribuidos`…) — 8 chaves no run dogfood, **sem** `receita_pj`. Nenhum passo do pipeline agrega os códigos PJ do classifier num único `receita_pj`.
+`por_fonte = dict(receitas.totais_por_categoria)` (`fluxo_caixa_enricher.py:279`). As chaves
+são **categorias de receita E4** (`receita_clt`, `receita_aluguel`, `lucros_distribuidos`…) —
+8 no run dogfood, **sem** agregado `receita_pj`. Invariante travado:
+`test_e5_conservation_invariants.py:76-79` assere `_cents(receita_total) == Σ _cents(por_fonte.values())`.
 
-Três consumidores leem essa chave fantasma e recebem `0`:
+**Consumidores da chave fantasma `receita_pj` (5, não 3 — varredura completa):**
 
-- `pipeline/domain/services/reserva_emergencia_calculator.py:201` — `por_fonte.get("receita_pj", 0)` → perfil de renda vira CLT-única, `receita_pj_pct=0,0`.
-- `pipeline/domain/services/previdencia_analyzer.py:215` — `por_fonte.get("receita_pj", 0)` → renda PJ anual `0` → PGBL via proxy zera.
-- `backend/app/services/tributario_input_builder.py:151` — def inline soma `receita_totals.get("receita_pj")` (fantasma) `+ pro_labore + lucros_distribuidos`; sobrevive só porque re-soma os códigos crus.
+1. `reserva_emergencia_calculator.py:201` — `por_fonte.get("receita_pj")` → `perfil_renda` vira
+   CLT-única, `receita_pj_pct=0`. **Bug vivo.**
+2. `previdencia_analyzer.py:215` — idem → renda PJ anual `0` → PGBL via proxy zera. **Bug vivo.**
+3. `tributario_input_builder.py:151` — E4-scoped; já soma `+ pro_labore + lucros_distribuidos`,
+   então o valor **já está correto**; `+ receita_totals.get("receita_pj")` é **termo morto (+0)**.
+4. `scripts/analyze_finances.py:analyze_previdencia_pgbl` — **dead code** (0 callers; path vivo é
+   `previdencia_analyzer`).
+5. `generate_narratives.py:332` — lê só `por_fonte.get("lucros_distribuidos")` → **subconta**
+   (ignora `pro_labore`).
 
-Os códigos PJ são um set fechado em `pipeline/domain/services/transaction_classifier_pj.py:26` (`PJ_LABELS`): `pro_labore`, `lucros_distribuidos`, `das_simples`, `folha_pj`, `iss`.
+Das 5 `PJ_LABELS` (`transaction_classifier_pj.py`), **só `pro_labore` e `lucros_distribuidos`
+são receita**; `das_simples`/`iss`/`folha_pj` são **despesa** — não entram num agregado de renda.
 
 ## Decisão
 
-1. **Emitir `receita_pj` como agregado canônico** no `por_fonte` do enricher: `receita_pj = Σ round(code, 2)` sobre os códigos de `PJ_LABELS` presentes nos totais de receita. Soma sobre valores **já arredondados por-código** (não `round(Σ Decimal)`) para casar `sum(por_fonte)` em cents exatos, tolerância-zero ([[ADR-090]]).
-2. **Adicionar bloco `fluxo_caixa.receita_por_natureza`**: bucketização code→natureza via `NATUREZA_MAP` co-localizado com o enricher. `NATUREZA_MAP` inclui o código fantasma `"receita_pj" → receita_pj` além de `pro_labore`/`lucros_distribuidos`/`das_simples`/`folha_pj`/`iss`, garantindo paridade com a def inline de `tributario_input_builder.py:151-153` **antes de deletá-la**.
-3. **Publicar o contrato em `config/schemas/`**: declarar em `e5_analysis.schema.json` o enum de chaves válidas de `por_fonte` + o shape de `receita_por_natureza` — fonte de verdade do gate G2.
-4. **Corrigir os 3 consumidores** para ler o agregado canônico (não só a reserva — a previdência também lê `0` para PJ). `tributario_input_builder` passa a consumir `receita_por_natureza`; a def inline é removida.
+1. **Bloco derivado novo `fluxo_caixa.receita_por_natureza`** — **fora** de `por_fonte` (não
+   tocar `por_fonte`; a chave nova dentro dele dupla-contaria e quebraria o teste de conservação):
+   ```
+   receita_pj      = pro_labore + lucros_distribuidos     (só códigos RECEITA-PJ)
+   receita_clt     = por_fonte.receita_clt
+   receita_aluguel = por_fonte.receita_aluguel
+   receita_outras  = receita_total − pj − clt − aluguel   (RESÍDUO)
+   ```
+   `receita_outras` é **resíduo**, não soma explícita — absorve categorias futuras
+   (`receita_investimento`/`_restituicao`/`_resgate`/`_venda_*`/`outras_receitas`) sem quebra
+   silenciosa. `Σ receita_por_natureza == receita_total` é tautologia por construção.
+2. **Derivação em cents inteiros**: reagrupar os valores **já serializados** de `por_fonte`
+   (cada um `round(v,2)`) via `_cents` (Decimal, ROUND_HALF_UP — o mesmo de
+   `test_e5_conservation_invariants.py`); resíduo por subtração inteira → **zero off-by-1-cent**.
+3. **Migrar os consumidores** (tratamento por consumidor):
+   - `reserva_emergencia_calculator` → ler `receita_por_natureza[pj|clt]`; **manter** o
+     denominador `pj + clt` (mix de renda-trabalho, **não** `receita_total`); o fix é só o
+     numerador (agora inclui `pro_labore`).
+   - `previdencia_analyzer` → ler `receita_por_natureza["receita_pj"]`.
+   - `tributario_input_builder` → **não** migrar para E5 (é E4-scoped); só **remover o termo morto**.
+   - `analyze_previdencia_pgbl` → **deletar** (dead code).
+   - `generate_narratives:332` → ler `receita_por_natureza["receita_pj"]` (corrige subcontagem).
+4. **Schema**: declarar `receita_por_natureza` em `e5_analysis.schema.json` (**aditivo, sem bump**;
+   `additionalProperties` permissivo).
 
 ## Rationale
 
-`receita_pj` é o único agregado que cruza classificação (E4, [[ADR-236]]) e análise (E5) sem contrato. Publicá-lo no schema + gate de completude transforma "chave lida mas nunca escrita" (falha silenciosa que zerou renda ativa PJ) em erro de CI. Somar por-código já arredondado preserva a invariante de conservação em cents (mesma disciplina de `tests/test_e5_conservation_invariants.py`).
+Bloco separado, derivado, com `outras` residual: preserva o invariante de conservação de
+`por_fonte` (intocado) e mantém `Σ natureza == receita_total` robusto a categoria nova. Cents
+inteiros por reagrupamento (não `round` independente por balde) garante exatidão. `receita_pj`
+é renda de trabalho PJ (ativa) — distinta do bucket passivo do cluster A ([[ADR-191]]).
 
 ## Alternativas consideradas
 
-- **Renomear consumidores para `lucros_distribuidos`** (como `generate_narratives.py:332` faz interinamente): perde `pro_labore` e demais códigos PJ; subestima renda ativa PJ. Rejeitada.
-- **Manter def inline em cada consumidor**: 3 cópias divergentes da soma PJ, sem contrato — a origem exata do bug. Rejeitada.
-- **Gate por nome de variável** (`grep receita_pj`): não pega acesso encadeado `fluxo.get("por_fonte",{}).get(...)`. Substituída por G2 (visitor AST chaveado no dict de origem).
+- **`receita_pj` como chave dentro de `por_fonte`** (draft inicial): dupla-conta com
+  `pro_labore`/`lucros_distribuidos` e quebra `test_e5_conservation_invariants.py:76-79`. Rejeitada.
+- **`Σ PJ_LABELS`**: somaria `das_simples`/`iss`/`folha_pj` (despesa) em renda. Rejeitada.
+- **`receita_outras` como soma explícita**: perde categoria nova silenciosamente. Rejeitada em
+  favor de resíduo.
+- **CV como `Σ natureza == por_fonte`**: tautologia (derivado por reagrupamento). Substituída por
+  resíduo-não-negativo (sinal real de dupla-contagem).
 
 ## Consequências
 
-- Renda PJ passa a fluir para reserva (perfil de renda), previdência (PGBL) e tributário — impacto direto no relatório dogfood.
-- **Não dupla-contar**: `receita_pj` (renda de trabalho PJ, ativa) é distinto do bucket passivo — respeitar a decisão A travada (lucro PJ do titular = renda ativa). O agregado é fonte de renda, não patrimônio.
-- **Colisão de superfície**: `generate_narratives.py:332` pertence à lane C2.1 (Onda 1) — **não** abrir lane B sobre essa linha.
-- Bump de schema E5 **aditivo** (`additionalProperties` segue `true` em `fluxo_caixa` até o flip W6-T01) — landar no **último PR da onda** para evitar churn. Catálogo de códigos PJ ancorado em [[ADR-137]].
+- **`por_fonte` intocado** → `test_e5_conservation_invariants.py:76-79` segue verde.
+- **Duas semânticas de pct, não conflatar**: `perfil_renda.receita_pj_pct` = `pj/(pj+clt)`;
+  narrador `pct_receita_pj` = `pj/receita_total`.
+- `receita_resgate`/`receita_venda` (realização de patrimônio) ficam em `receita_outras` — não
+  excluir (quebraria `Σ == total`); recorrência é eixo ortogonal (`receita_recorrente` vs `one_time`).
+- **Follow-up (fora do escopo)**: `receitas_por_fonte` (plural) é dead-read em
+  `real_estate_e5_integration.py:206`.
+- Bump: **nenhum** (aditivo). Golden red-before-green e rebaseline coordenado em [[ADR-331]].
 
-## Critério de aceite
+## Critério de aceite (4 lentes)
 
-- **Completude** — Gate G2: visitor AST varre acessos `.get("KEY")` chaveados nos dicts de origem (`por_fonte`, `por_fonte_detalhado`, `receita_totals`, `despesa_totals`), incluindo acesso encadeado `fluxo.get("por_fonte",{}).get(...)`; falha se qualquer KEY consumida não estiver no enum declarado no schema. Zero consumidor lendo chave não-emitida.
-- **Corretude** — Golden: no perfil dogfood, `perfil_renda` migra `"clt_unica_fonte" → "pj_relevante"`, `receita_pj_pct` `0,0 → ~46,5`; `meses_alvo` permanece `12` (ambos os perfis mapeiam 12 na config atual — **não** 18). `por_fonte` mantém as 8 chaves reais + `receita_pj`.
-- **Consistência** — CV16 em `validate_cross.py` (perto de :390, registrada em `_CV_ALWAYS_CHECKS` :403; CV15 reservada por [[ADR-327]]): `Σ receita_por_natureza == Σ por_fonte` em cents exatos. `NATUREZA_MAP` em paridade com a def inline removida de `tributario_input_builder.py`.
-- **Precisão** — `receita_pj = Σ round(code, 2)` (não `round(Σ Decimal)`); tolerância-zero em cents, alinhado a `tests/test_e5_conservation_invariants.py` e [[ADR-090]].
+- **Completude** — `rg` zero-hit de `por_fonte…receita_pj` / `receita_totals.get("receita_pj")` em
+  código vivo pós-migração; `analyze_previdencia_pgbl` deletada; gate G2 (visitor AST) opcional.
+- **Corretude** — teste do reserva com `pro_labore>0` + `lucros_distribuidos>0` → `perfil="pj_dominante"`
+  (hoje daria "indefinido"/CLT); golden red-before-green ([[ADR-331]]).
+- **Consistência** — **CV16** em `validate_cross.py` (CV15 reservada por [[ADR-327]]):
+  `receita_pj + receita_clt + receita_aluguel <= receita_total` (cents), em `_CV_ALWAYS_CHECKS`.
+  `test_e5_conservation_invariants.py:76-79` intacto.
+- **Precisão** — derivação em cents inteiros (Decimal ROUND_HALF_UP); `Σ receita_por_natureza ==
+  receita_total` exato; `receita_outras >= 0` ([[ADR-090]]).
