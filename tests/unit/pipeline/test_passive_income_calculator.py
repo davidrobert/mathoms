@@ -9,6 +9,7 @@ import pytest
 
 from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
 from pipeline.domain.services.passive_income_calculator import (
+    DistribuicaoPJSignal,
     PassiveIncomeConfig,
     PassiveIncomeResult,
 )
@@ -233,6 +234,83 @@ class TestDistribuicaoPjTitular:
         assert result.trs_efetiva_pct < Decimal("8.0")
         fontes = result.renda_passiva_por_fonte_brl
         assert fontes["distribuicao_pj_titular"] == Decimal("284000.00")
+
+
+def _calc_signal(decl_, signal, **patrimonio_kwargs):
+    return calc().calculate(
+        irpf=IRPFAnalyzer([decl_]),
+        patrimonio=patrimonio(**patrimonio_kwargs),
+        investimentos_atuais=None,
+        reference_date=_REF_DATE,
+        despesa_mensal_media_brl=_NO_DESPESA,
+        distribuicao_pj_signal=signal,
+    )
+
+
+class TestElevacaoPorSinalDeFluxo:
+    """ADR-336: 2º sinal (fluxo lucros_distribuidos) eleva distribuição PJ quando o match IRPF falha."""
+
+    def test_eleva_distribuicao_quando_match_irpf_falha(self):
+        # cod-09 sem quota casável (matched=0) — o match por-linha não pega.
+        d = decl(isentos=[isento(CodigoRendimentoIsento.lucros_dividendos, "284000.00")])
+        result = _calc_signal(
+            d, DistribuicaoPJSignal(Decimal("308000.00"), 12), investimentos_titular=500_000.0
+        )
+        fontes = result.renda_passiva_por_fonte_brl
+        assert fontes["distribuicao_pj_titular"] == Decimal("284000.00")
+        assert fontes["dividendos"] == Decimal("0")
+        assert result.renda_passiva_anual_brl == Decimal("0")
+
+    def test_capa_no_cod09_declarado(self):
+        # sinal do fluxo > cod-09 → nunca fabrica distribuição além do declarado.
+        d = decl(isentos=[isento(CodigoRendimentoIsento.lucros_dividendos, "284000.00")])
+        result = _calc_signal(
+            d, DistribuicaoPJSignal(Decimal("500000.00"), 12), investimentos_titular=500_000.0
+        )
+        fontes = result.renda_passiva_por_fonte_brl
+        assert fontes["distribuicao_pj_titular"] == Decimal("284000.00")
+        assert fontes["dividendos"] == Decimal("0")
+
+    def test_respeita_piso_do_match_irpf(self):
+        # match IRPF já achou 284k; sinal BAIXO não reduz (só eleva).
+        d = decl(
+            isentos=[
+                isento(
+                    CodigoRendimentoIsento.lucros_dividendos,
+                    "284000.00",
+                    fonte="12.345.678/0001-90 ACME SERVICOS LTDA",
+                )
+            ],
+            bens=[bem(descricao=_QUOTA_BEM)],
+        )
+        result = _calc_signal(
+            d, DistribuicaoPJSignal(Decimal("100000.00"), 12), investimentos_titular=500_000.0
+        )
+        assert result.renda_passiva_por_fonte_brl["distribuicao_pj_titular"] == Decimal("284000.00")
+
+    def test_sinal_none_e_bit_identico(self):
+        # sem sinal → comportamento idêntico ao match por-linha (compat).
+        d = decl(isentos=[isento(CodigoRendimentoIsento.lucros_dividendos, "284000.00")])
+        com_none = _calc_signal(d, None, investimentos_titular=500_000.0)
+        sem_param = _calc_with(d, investimentos_titular=500_000.0)
+        assert com_none.renda_passiva_por_fonte_brl == sem_param.renda_passiva_por_fonte_brl
+
+
+class TestGanhoCapitalForaDaTRS:
+    """ADR-336: ganho_capital (realização one-time) sai do numerador da TRS, mas fica visível."""
+
+    def test_ganho_capital_visivel_mas_fora_do_numerador(self):
+        d = decl(
+            isentos=[isento(CodigoRendimentoIsento.lucros_dividendos, "10000.00")],
+            exclusiva_list=[exclusiva(CodigoRendimentoTribExclusiva.ganho_capital, "50000.00")],
+        )
+        result = _calc_with(d, investimentos_titular=500_000.0)
+        fontes = result.renda_passiva_por_fonte_brl
+        assert fontes["ganho_capital"] == Decimal("50000.00")  # visível (transparência)
+        assert fontes["alugueis"] == Decimal("0")  # não vaza p/ aluguéis (delta ajustado)
+        assert result.renda_passiva_anual_brl == Decimal(
+            "10000.00"
+        )  # só o dividendo, sem ganho_capital
 
 
 class TestUniversoConsistente:

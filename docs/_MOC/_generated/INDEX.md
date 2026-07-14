@@ -331,6 +331,7 @@
 | ADR-333 | adr | Proposto |  | Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0) | `adr/333-aporte-transferencia-patrimonial-nao-consumo.md` |
 | ADR-334 | adr | Proposto |  | Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida) | `adr/334-identidade-estruturada-imovel-dedup.md` |
 | ADR-335 | adr | Proposto |  | Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência | `adr/335-autonomia-financeira-exclui-imovel-iliquido.md` |
+| ADR-336 | adr | Proposto |  | Roteamento de lucro PJ mal-classificado como dividendo via segundo sinal de fluxo (TRS) | `adr/336-roteamento-lucro-pj-por-sinal-de-fluxo-na-trs.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

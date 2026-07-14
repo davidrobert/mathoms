@@ -138,7 +138,7 @@ Emendas C3/C4/C11 a abrir na pega da lane, após travar a decisão de domínio c
 
 | Cluster | O quê | Prio | ADR | Bump | Estado / gate |
 |---|---|:--:|---|:--:|---|
-| **A** | Lucro PJ roteado p/ dividendo infla renda passiva/IF; gate "suspeito" **suprime** o observado e ancora IF a 5% s/ patrimônio financeiro | **P0** | emenda [[ADR-191]] (E1–E4) | manifest parecer 1.9 | pronto (core verificado; correções aplicadas) |
+| **A** | Lucro PJ mal-classificado como `dividendos` (R$284k) infla TRS/IF; roteia p/ `distribuicao_pj_titular` via 2º sinal de fluxo | **P0** | [[ADR-336]] nova | none | ✅ **implementado** (PR cluster-A): TRS 14,08%→~2%; gate/estimador desacoplados (defense-in-depth/P1) |
 | **C7-golden** | Golden diverge do E4 real (`receita_pj` agregado que o E4 não emite) → CI cego | **P0/P1** | [[ADR-331]] nova | none | pronto |
 | **B** | Chave morta `por_fonte.receita_pj` (3 consumidores caem a 0) → `perfil_renda` falso | **P1** | [[ADR-330]] nova (contrato `por_fonte`) | schema e5 | pronto (verificado; `meses_alvo` fica 12, não 18) |
 | **D** | Piso de severidade de proteção; reframe reposição de renda | **P1** | emenda [[ADR-240]] | manifest parecer 1.9 (batela com A) | pronto |
@@ -185,7 +185,7 @@ Revisão de domínio de todo o lote **antes** do código. **GO nos 5 clusters**;
 |---|:--:|---|---|
 | 1 | **P0** | A · emenda [[ADR-191]] | Base do estimador de 5% = `investivel_efetivo` (mesma do `if_pct`), **não** "s/ patrimônio financeiro" — senão 3ª base inconsistente (classe do erro E1). Liquidez-only já é `autonomia_financeira_meses` ([[ADR-335]]). |
 | 2 | **P0** | A · emenda [[ADR-191]] | Suprimir a TRS observada **na fronteira do prompt do parecer** (não só UI); ao suprimir, narrativa **preserva** a renda passiva recorrente documentada (aluguel/dividendos), não diz "não estimável". |
-| 3 | **abordagem** | A · emenda [[ADR-191]] | **Abordagem primária de A (endossada owner 2026-07-14): excluir `ganho_capital` do numerador da TRS** (realização one-time, não yield recorrente) — deve derrubar a TRS observada dos 14,08% para faixa crível (4-6%) e **possivelmente dispensar o gate de supressão** (vira fallback). Preserva a renda passiva recorrente real da família. Documentar override 5% (yield-meta BR) vs 4% (Trinity-depleção). |
+| 3 | ✅ resolvido | A · [[ADR-336]] | **`ganho_capital` foi REFUTADO empiricamente** (=0 no dogfood; a hipótese da revisão final do FP não se sustentou). A inflação real são R$284k em `dividendos` = distribuição PJ mal-classificada; fix = **roteamento via 2º sinal de fluxo** (`lucros_distribuidos`, ADR-236/330), piso no match IRPF + teto no cod-09. `ganho_capital` sai do numerador como hardening separado. Follow-ups: `yield_ref` (proteção de dividendo genuíno, exige sleeve RV-BR); base do estimador `investivel_efetivo` + relabel `*_4pct` (P1 desacoplado). Lição: **verificar os buckets reais antes de codar** — o adversarial-check pegou a hipótese errada. |
 | 4 | **P1** | D · emenda [[ADR-240]] | MIP trata o **gatilho**, não só o sizing: gatilho só-dívida **não** recebe piso-Alta com status MIP desconhecido (degrada p/ pergunta/médio); piso-Alta ancora em dependentes/cônjuge-sem-renda. |
 | 5 | **P1** | B · [[ADR-330]] | "Excedente realocável" usa alvo **conservador** p/ perfil PJ-material (ou copy CRC de hedge). Proxy PGBL super-estima com `lucros_distribuidos` — nota já adicionada à ADR-330. |
 | 6 | **P1** | C1 · [[ADR-333]] | Aporte removido do consumo deve ter **mesmo escopo de recorrência** que a receita do numerador. |
