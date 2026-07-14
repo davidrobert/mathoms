@@ -329,7 +329,7 @@
 | ADR-331 | adr | Proposto |  | Fidelidade fixture↔E4 (por_fonte real) + golden red-before-green | `adr/331-fidelidade-fixture-e4-golden-red-before-green.md` |
 | ADR-332 | adr | Proposto |  | Sanitização de PII no contexto do parecer + gate PII-scan | `adr/332-sanitizacao-pii-contexto-parecer-gate-scan.md` |
 | ADR-333 | adr | Proposto |  | Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0) | `adr/333-aporte-transferencia-patrimonial-nao-consumo.md` |
-| ADR-334 | adr | Proposto |  | Identidade estruturada de imóvel + dedup (gated por auditoria empírica) | `adr/334-identidade-estruturada-imovel-dedup.md` |
+| ADR-334 | adr | Proposto |  | Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida) | `adr/334-identidade-estruturada-imovel-dedup.md` |
 | ADR-335 | adr | Proposto |  | Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência | `adr/335-autonomia-financeira-exclui-imovel-iliquido.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
