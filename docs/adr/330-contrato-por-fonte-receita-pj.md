@@ -98,6 +98,10 @@ inteiros por reagrupamento (não `round` independente por balde) garante exatid�
   excluir (quebraria `Σ == total`); recorrência é eixo ortogonal (`receita_recorrente` vs `one_time`).
 - **Follow-up (fora do escopo)**: `receitas_por_fonte` (plural) é dead-read em
   `real_estate_e5_integration.py:206`.
+- **Nota de domínio (financial-planner, 2026-07-14)**: `receita_pj` serve 2 consumidores; no
+  **proxy PGBL** (`previdencia_analyzer._analyze_via_proxy`), a parcela `lucros_distribuidos`
+  (distribuição isenta) **super-estima** levemente a capacidade PGBL — o proxy é fallback; o
+  path canônico (`_analyze_via_irpf`, renda tributável) não é afetado. Não bloqueia; documentar.
 - Bump: **nenhum** (aditivo). Golden red-before-green e rebaseline coordenado em [[ADR-331]].
 
 ## Critério de aceite (4 lentes)
