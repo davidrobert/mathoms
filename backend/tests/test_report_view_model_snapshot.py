@@ -87,13 +87,13 @@ def _assemble_view_model(e5_payload: dict) -> dict:
 
 
 def _run_view_model(tmp_path: Path) -> dict:
-    # A28.l1 — categorização mínima que exercita os caminhos canônicos da
-    # reserva: receita PJ-dominante (meses_alvo 18) + despesa essencial
-    # documentada (denominador custo_essencial da janela 12m, ADR-306 §D4).
+    # A28.l1 — categorização mínima que exercita os caminhos canônicos da reserva:
+    # receita PJ-dominante (meses_alvo 18) + despesa essencial documentada (ADR-306 §D4).
+    # ADR-330/331: código E4 REAL (lucros_distribuidos), não o agregado fantasma receita_pj.
     write_e5_config(
         tmp_path,
         family=_FAMILY,
-        income_keywords={"receita_pj": ["PIX"]},
+        income_keywords={"lucros_distribuidos": ["PIX"]},
         expense_keywords={"alimentacao": ["MERCADO"]},
     )
     e5 = run_dogfood_pipeline(

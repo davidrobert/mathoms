@@ -331,10 +331,10 @@
     },
     "janela_meses": 1,
     "por_fonte": {
-      "receita_pj": 300000
+      "lucros_distribuidos": 300000
     },
     "por_fonte_detalhado": {
-      "Outras Receitas PJ": 300000
+      "Outras Receitas": 300000
     },
     "receita_despesa_mensal_detalhado": {
       "despesa_datasets": [
@@ -353,7 +353,7 @@
           "data": [
             "3000.000000"
           ],
-          "label": "Outras Receitas PJ"
+          "label": "Outras Receitas"
         }
       ],
       "totais_despesa": [
@@ -364,12 +364,18 @@
       ]
     },
     "receita_one_time": 0,
+    "receita_por_natureza": {
+      "receita_aluguel": 0,
+      "receita_clt": 0,
+      "receita_outras": 0,
+      "receita_pj": 300000
+    },
     "receita_recorrente": 300000,
     "receita_recorrente_mensal": 300000,
     "receita_total": 300000,
     "tabela_receitas": [
       {
-        "categoria": "Receita Pj",
+        "categoria": "Lucros Distribuidos",
         "pct": "100.000000",
         "valor": 300000
       }
