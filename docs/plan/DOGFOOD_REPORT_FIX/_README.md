@@ -4,7 +4,7 @@ type: plan
 title: "Correções de qualidade do relatório (dogfood 2026-07-11)"
 status: in_progress
 created_at: 2026-07-12
-last_review: 2026-07-12
+last_review: 2026-07-14
 adrs_canonical:
   - "[[ADR-326]]"
   - "[[ADR-327]]"
@@ -35,13 +35,29 @@ tags:
   (input de poupança) — ambos do cluster C1, **fora deste lote**. O bump de
   `score_version` deve batelá-los ([[ADR-328]]).
 
-### 3 decisões a travar antes de codar os itens de domínio (owner + financial-planner)
+### Decisões de domínio (owner + financial-planner)
 
-1. **TRS canônica:** 5% (meta IF) vs 4% (regra dos 300) — afeta C3 / emenda [[ADR-191]].
-2. **Base canônica de concentração imobiliária:** 63,4% (carteira) vs 67,2% (bruto) —
+> **Atualizado 2026-07-14** pela re-review `pipeline-review` do run `98b2cd38` /
+> report `6848eb61` (pós-Onda 1). O owner travou 3 decisões; 2 seguem abertas (P2).
+
+**Travadas 2026-07-14:**
+
+1. ✅ **TRS canônica = 5%** (meta IF atual). O owner **sobrepôs** a recomendação
+   FIN-005 (4% · regra dos 300) — afeta C3 + cluster A. A emenda [[ADR-191]] deve
+   registrar o override + rationale explicitamente (não silenciar a alternativa).
+2. ✅ **Lucro distribuído da PJ do titular = renda ativa de negócio** (não passiva).
+   Rotear `por_fonte.lucros_distribuidos` → `passive_income.distribuicao_pj_titular`,
+   fora de `passive_income.dividendos`. Gate do **cluster A (P0)**.
+3. ✅ **Aporte de investimento = transferência para balanço** (não consumo). Sai de
+   `desp_bruto`; conservação exige que o valor reapareça no balanço. Gate do
+   **cluster C1 (P1)**.
+
+**Ainda abertas (P2 — não bloqueiam o lote P0/P1):**
+
+4. **Base canônica de concentração imobiliária:** 63,4% (carteira) vs 67,2% (bruto) —
    afeta C11-Fase2 / emenda [[ADR-177]] + reconciliação com FIN-05.
-3. **Tendência do gauge (C2.2):** nasce no E5.N ou na camada `comparisons`?
-   (recomendação: `comparisons`, onde há baseline).
+5. **Tendência do gauge (C2.2):** nasce no E5.N ou na camada `comparisons`?
+   (recomendação: `comparisons`, onde há baseline; FIN-010: derivar de snapshots datados).
 
 ## Regra de ouro — 3 eixos de versão, 1 bump cada (anti-thrashing)
 
@@ -127,7 +143,7 @@ ADRs (itens com ADR) e no design multi-agente de origem. Resumo por item:
 - **C2.3** — Compl: nenhuma cláusula com var vazia; dead-USA removido. Corr: campo ausente ⇒ omite. Consist: perfil só afirma o que o DB tem. Prec: teste "só-nome" sem "é ()".
 - **C2.4** — Compl: nenhum slot emite CNPJ/matrícula/IPTU/endereço. Corr: rótulo abstraído preservando valor. Consist: mesmo abstrator em toda superfície. Prec: teste sem regex de PII.
 - **C2.5/C2.6** — ver [[ADR-327]].
-- **C3** — Compl: flag suspeito gateia goals+passive+parecer+cobertura. Corr: TRS 14,08% ⇒ só estimativa 4% (R$ 5.985,94)+aviso. Consist: mesmo veredicto det↔parecer↔narrativa; `if_pct` inalterado. Prec: threshold 8% de `RentabilidadeConfig`.
+- **C3** — Compl: flag suspeito gateia goals+passive+parecer+cobertura. Corr: TRS observada 14,08% > threshold ⇒ só estimativa a **5%** (s/ patrimônio financeiro, sem lucro PJ) + aviso. Consist: mesmo veredicto det↔parecer↔narrativa; `if_pct` inalterado. Prec: threshold de `RentabilidadeConfig` (config, não hardcode). *(TRS travada 5% em 2026-07-14; R$ concreto recomputado no fix.)*
 - **C4** — Compl: 3 apólices sem truncar; risco+campos_faltantes+pontos_urgentes coerentes. Corr: "falta VIDA/invalidez", severidade ≥Alta. Consist: severidade parecer == `pontos_urgentes`. Prec: S9 scalar→table; alias de path.
 - **C5** — ver [[ADR-328]]; Camada1 (card+custo) sem ADR.
 - **C8** — ver [[ADR-329]].
