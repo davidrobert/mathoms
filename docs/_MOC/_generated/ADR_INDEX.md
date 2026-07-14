@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-325 ADRs (ADR-001 a ADR-334) em [`docs/adr/`](../../adr/).
+326 ADRs (ADR-001 a ADR-335) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 288
-- **Proposto**: 34
+- **Proposto**: 35
 - **Roadmap**: 3
 
 ## Fundação
@@ -554,7 +554,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-311]] — Lifecycle de artifact E2: tombstone por reclassificação + versão de extração consultável · phase A32.l5
 - [[ADR-312]] — Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers
 
-### Proposto (10)
+### Proposto (11)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -566,6 +566,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-332]] — Sanitização de PII no contexto do parecer + gate PII-scan
 - [[ADR-333]] — Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0)
 - [[ADR-334]] — Identidade estruturada de imóvel + dedup (gated por auditoria empírica)
+- [[ADR-335]] — Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência
 
 ## quality
 
