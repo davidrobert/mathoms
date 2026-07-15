@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-327 ADRs (ADR-001 a ADR-336) em [`docs/adr/`](../../adr/).
+330 ADRs (ADR-001 a ADR-339) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 292
-- **Proposto**: 32
+- **Proposto**: 35
 - **Roadmap**: 3
 
 ## Fundação
@@ -318,11 +318,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-289]] — Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) · phase F1
 - [[ADR-290]] — Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion · phase A25
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
 - [[ADR-329]] — Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium
+- [[ADR-339]] — Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata
 
 ## categorization
 
@@ -558,7 +559,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-333]] — Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança) · phase dogfood cluster C1
 - [[ADR-335]] — Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência
 
-### Proposto (8)
+### Proposto (10)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -568,6 +569,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-332]] — Sanitização de PII no contexto do parecer + gate PII-scan
 - [[ADR-334]] — Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida)
 - [[ADR-336]] — Roteamento de lucro PJ mal-classificado como dividendo via segundo sinal de fluxo (TRS) · phase dogfood cluster A
+- [[ADR-337]] — Rótulo de exibição sem PII para ativos — sanitização na fonte E5 (React + prompt)
+- [[ADR-338]] — Contrato role-keyed no view-model — nome do membro só em valores, nunca em chaves
 
 ## quality
 
