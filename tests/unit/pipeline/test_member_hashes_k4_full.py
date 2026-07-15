@@ -55,7 +55,8 @@ def despesas_e4_v2(monkeypatch, tmp_path):
 
 def test_coverage_is_full(despesas_e4_v2):
     _hashes, signals = despesa_member_hashes(despesas_e4_v2)
-    assert signals == {}  # dict vazio = full, sem inline_cap
+    # DE-02: full = sem k4_coverage/inline_cap, mas cobertura instrumentada em 100%.
+    assert signals == {"k4_coverage_pct": "100"}
 
 
 def test_member_hashes_non_empty_and_unique(despesas_e4_v2):

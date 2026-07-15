@@ -38,6 +38,7 @@
           "dedup_collapsed": "0",
           "dedup_review": "0",
           "k4_coverage": "partial",
+          "k4_coverage_pct": "0",
           "tx_total": "2"
         },
         "transform": "soma das despesas por categoria",
