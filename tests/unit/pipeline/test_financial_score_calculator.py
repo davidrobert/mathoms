@@ -125,6 +125,22 @@ def test_cobertura_vem_da_reserva_quando_presente(default_calc: FinancialScoreCa
 
 
 def test_cobertura_fallback_ratios_sem_reserva(default_calc: FinancialScoreCalculator):
+    # ADR-335: fallback lê `autonomia_financeira_meses` quando reserva ausente.
+    result = default_calc.calculate(
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "autonomia_financeira_meses": 7.5,
+            "taxa_endividamento_pct": 0,
+        },
+        patrimonio={"composicao": []},
+        goals={"if_pct": 0},
+    )
+    comp = next(c for c in result["componentes"] if c["code"] == "cobertura_despesas")
+    assert comp["valor"] == 7.5
+
+
+def test_cobertura_fallback_le_alias_deprecated(default_calc: FinancialScoreCalculator):
+    # Alias `cobertura_despesas_meses` ainda alimenta o fallback por 1 ciclo (ADR-335).
     result = default_calc.calculate(
         ratios={
             "taxa_poupanca_recorrente_pct": 0,

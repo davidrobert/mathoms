@@ -52,9 +52,19 @@ def _fluxo_with_janela(*, despesa_mensal_essencial: float = 0.0, **overrides) ->
 
 
 def _patrimonio(
-    bruto: float = 1_000_000, dividas: float = 200_000, investivel: float = 500_000
+    bruto: float = 1_000_000,
+    dividas: float = 200_000,
+    investivel: float = 500_000,
+    investivel_efetivo: float | None = None,
 ) -> dict:
-    return {"bruto": bruto, "dividas": dividas, "investivel_efetivo": investivel}
+    # `investivel` alimenta `investivel_financeiro` (numerador da autonomia, ADR-335);
+    # `investivel_efetivo` diverge só quando o teste quer provar toggle-independência.
+    return {
+        "bruto": bruto,
+        "dividas": dividas,
+        "investivel_financeiro": investivel,
+        "investivel_efetivo": investivel if investivel_efetivo is None else investivel_efetivo,
+    }
 
 
 class TestTaxaPoupanca:
@@ -101,20 +111,49 @@ class TestEndividamento:
         assert r.taxa_endividamento_pct == 0.0
 
 
-class TestCobertura:
-    def test_cobertura_meses(self):
+class TestAutonomiaFinanceira:
+    """ADR-335: autonomia financeira usa `investivel_financeiro` (sem imóvel ilíquido)."""
+
+    def test_autonomia_meses(self):
         r = RatiosCalculator().calculate(
             _fluxo_with_janela(despesa_mensal_media=5_000),
             _patrimonio(investivel=60_000),
         )
-        assert r.cobertura_despesas_meses == pytest.approx(12.0)
+        assert r.autonomia_financeira_meses == pytest.approx(12.0)
 
     def test_zero_when_despesa_zero(self):
         r = RatiosCalculator().calculate(
             _fluxo_with_janela(despesa_mensal_media=0),
             _patrimonio(),
         )
-        assert r.cobertura_despesas_meses == 0.0
+        assert r.autonomia_financeira_meses == 0.0
+
+    def test_toggle_independente_ignora_investivel_efetivo(self):
+        # Duas carteiras idênticas no financeiro, divergindo só no `investivel_efetivo`
+        # (proxy do flip `imoveis_no_if`): autonomia NÃO pode mudar (ADR-335 §Precisão).
+        toggle_off = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_media=5_000),
+            _patrimonio(investivel=60_000, investivel_efetivo=60_000),
+        )
+        toggle_on = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_media=5_000),
+            _patrimonio(investivel=60_000, investivel_efetivo=260_000),
+        )
+        assert toggle_on.autonomia_financeira_meses == toggle_off.autonomia_financeira_meses
+        assert toggle_on.autonomia_financeira_meses == pytest.approx(12.0)
+
+    def test_legacy_dict_mantem_alias_deprecated(self):
+        d = (
+            RatiosCalculator()
+            .calculate(
+                _fluxo_with_janela(despesa_mensal_media=5_000),
+                _patrimonio(investivel=60_000),
+            )
+            .to_legacy_dict()
+        )
+        assert d["autonomia_financeira_meses"] == pytest.approx(12.0)
+        # Alias deprecated por 1 ciclo — mesmo valor.
+        assert d["cobertura_despesas_meses"] == d["autonomia_financeira_meses"]
 
 
 class TestJanela:
@@ -165,6 +204,7 @@ class TestLegacyDict:
             "taxa_poupanca_recorrente_pct",
             "taxa_poupanca_total_pct",
             "taxa_endividamento_pct",
+            "autonomia_financeira_meses",
             "cobertura_despesas_meses",
             "rentabilidade_pct",
             "aliquota_efetiva_ir_pct",

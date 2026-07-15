@@ -640,6 +640,7 @@
   },
   "ratios": {
     "aliquota_efetiva_ir_pct": "N/D",
+    "autonomia_financeira_meses": "86.670000",
     "cobertura_despesas_meses": "86.670000",
     "janela": "12m",
     "janela_meses": 1,

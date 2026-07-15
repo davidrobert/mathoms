@@ -113,7 +113,10 @@ class FinancialRatios:
     taxa_poupanca_recorrente_pct: float
     taxa_poupanca_total_pct: float
     taxa_endividamento_pct: float
-    cobertura_despesas_meses: float
+    # ADR-335: renomeado de `cobertura_despesas_meses`; numerador financeiro-only
+    # (sem imóvel ilíquido). `to_legacy_dict` emite o nome antigo como alias
+    # deprecated por 1 ciclo.
+    autonomia_financeira_meses: float
     rentabilidade_pct: Decimal | None = None
     aliquota_efetiva_ir_pct: Decimal | None = None
     janela_referencia: str = "N/D"
@@ -126,7 +129,9 @@ class FinancialRatios:
             "taxa_poupanca_recorrente_pct": round(self.taxa_poupanca_recorrente_pct, 2),
             "taxa_poupanca_total_pct": round(self.taxa_poupanca_total_pct, 2),
             "taxa_endividamento_pct": round(self.taxa_endividamento_pct, 2),
-            "cobertura_despesas_meses": round(self.cobertura_despesas_meses, 2),
+            "autonomia_financeira_meses": round(self.autonomia_financeira_meses, 2),
+            # ADR-335: alias deprecated por 1 ciclo (view-model/consumidores antigos).
+            "cobertura_despesas_meses": round(self.autonomia_financeira_meses, 2),
             "rentabilidade_pct": _format_pct_or_nd(self.rentabilidade_pct),
             "aliquota_efetiva_ir_pct": _format_pct_or_nd(self.aliquota_efetiva_ir_pct),
             "janela_referencia": self.janela_referencia,
@@ -183,7 +188,7 @@ class RatiosCalculator:
             taxa_poupanca_recorrente_pct=poupanca.recorrente_pct_value,
             taxa_poupanca_total_pct=poupanca.geral_pct_value,
             taxa_endividamento_pct=_calc_endividamento(patrimonio),
-            cobertura_despesas_meses=_calc_cobertura(
+            autonomia_financeira_meses=_calc_autonomia_financeira(
                 patrimonio, float(window.despesa_mensal_media_brl)
             ),
             rentabilidade_pct=_resolve_rentabilidade(passive_income),
@@ -261,10 +266,14 @@ def _calc_endividamento(patrimonio: _PatrimonioPayload) -> float:
     return _ratio_pct(dividas, bruto)
 
 
-def _calc_cobertura(patrimonio: _PatrimonioPayload, despesa_mensal_media: float) -> float:
-    # ADR-142 + ADR-215 §6: cobertura usa `investivel_efetivo` (cat_3+4+5+6 +
-    # cat_2 geradores quando toggle on). Não usa `investivel` legado.
-    investivel = _safe_float(patrimonio.get("investivel_efetivo", 0))
+def _calc_autonomia_financeira(
+    patrimonio: _PatrimonioPayload, despesa_mensal_media: float
+) -> float:
+    # ADR-335: autonomia financeira (runway de liquidez) usa `investivel_financeiro`
+    # (cat_3+4+5+6, SEM cat_2 imóvel ilíquido) — numerador de horizonte de choque,
+    # toggle-independente. Distinto do `investivel_efetivo` da IF (ADR-142/215 §6),
+    # que legitimamente conta cat_2 quando `imoveis_no_if=true` (horizonte de décadas).
+    investivel = _safe_float(patrimonio.get("investivel_financeiro", 0))
     return investivel / despesa_mensal_media if despesa_mensal_media > 0 else 0.0
 
 

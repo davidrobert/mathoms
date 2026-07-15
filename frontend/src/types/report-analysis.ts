@@ -289,6 +289,8 @@ export interface RatiosData {
   taxa_poupanca_recorrente_pct?: number;
   taxa_poupanca_total_pct?: number;
   taxa_endividamento_pct?: number;
+  /** ADR-335: runway financeiro (sem imóvel ilíquido). `cobertura_despesas_meses` = alias deprecated por 1 ciclo. */
+  autonomia_financeira_meses?: number;
   cobertura_despesas_meses?: number;
   rentabilidade_pct?: number | string;
   aliquota_efetiva_ir_pct?: number | string;
