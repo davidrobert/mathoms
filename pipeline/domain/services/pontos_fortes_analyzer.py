@@ -218,28 +218,34 @@ class PontosFortesAnalyzer:
                 )
             )
 
-        # 6. Colchão patrimonial — mesma família de cobertura em meses da reserva:
+        # 6. Autonomia financeira (ADR-335) — runway do patrimônio financeiro
+        # (sem imóvel ilíquido). Mesma família de cobertura em meses da reserva:
         # emitir os dois é redundante (dedup semântico A28.l10); reserva vence.
-        cobertura_desp = 0.0
+        autonomia = 0.0
         if not reserva_emitida:
-            cobertura_desp = _safe_float((ratios or {}).get("cobertura_despesas_meses", 0))
-        if cobertura_desp >= 24:
+            autonomia = _safe_float(
+                (ratios or {}).get(
+                    "autonomia_financeira_meses",
+                    (ratios or {}).get("cobertura_despesas_meses", 0),
+                )
+            )
+        if autonomia >= 24:
             out.append(
                 PontoForteItem(
-                    titulo="Colchão Patrimonial Robusto",
+                    titulo="Autonomia Financeira Ampla",
                     descricao=(
-                        f"Patrimônio investível cobre {cobertura_desp:.0f} meses "
+                        f"Patrimônio financeiro cobre {autonomia:.0f} meses "
                         "de despesas — margem de segurança ampla."
                     ),
                     icone="patrimony",
                 )
             )
-        elif cobertura_desp >= 12:
+        elif autonomia >= 12:
             out.append(
                 PontoForteItem(
-                    titulo="Patrimônio Investível Sólido",
+                    titulo="Autonomia Financeira Sólida",
                     descricao=(
-                        f"Patrimônio investível cobre {cobertura_desp:.0f} meses "
+                        f"Patrimônio financeiro cobre {autonomia:.0f} meses "
                         "de despesas correntes."
                     ),
                     icone="patrimony",

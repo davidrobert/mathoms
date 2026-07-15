@@ -24,7 +24,7 @@ function makeRatios(rentabilidade: RentabilidadeRatio | null): RatiosData {
     taxa_poupanca_recorrente_pct: 30,
     taxa_poupanca_total_pct: 25,
     taxa_endividamento_pct: 12,
-    cobertura_despesas_meses: 8,
+    autonomia_financeira_meses: 8,
     rentabilidade_pct: rentabilidade?.valor_pct ?? "N/D",
     aliquota_efetiva_ir_pct: 15,
     janela_referencia: "2025-04 a 2026-03",

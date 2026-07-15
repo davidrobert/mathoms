@@ -2,15 +2,16 @@
 id: ADR-335
 type: adr
 title: "Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência"
-status: Proposto
+status: Decidido
 date: "2026-07-14"
 relates_to:
   - "[[ADR-142]]"
   - "[[ADR-215]]"
   - "[[ADR-090]]"
+  - "[[ADR-217]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
 ---
 
@@ -86,7 +87,15 @@ sinaliza. Renda de imóvel quitado é resiliência real, mas vive na **renda pas
   realinha o KPI à mensagem de concentração. O badge "robusto" pode parar de emitir para
   perfis concentrados — correto (não devem ganhar selo de robustez sobre base ilíquida).
 - Requer expor/derivar o **investível financeiro** (cat_3+4+5+6) se ainda não estiver no
-  payload de patrimônio.
+  payload de patrimônio. **Verificado no impl:** `patrimonio.investivel_financeiro` já
+  existe (`PatrimonioCalculator`), sem derivação nova.
+- **Score — sem bump de `score_version`.** O componente `cobertura_despesas` lê
+  `reserva.cobertura_meses` no caminho primário (**inalterado**); só o *fallback*
+  (reserva ausente) lê o ratio. O fallback hoje já é um proxy de runway patrimonial
+  (`investivel_efetivo/despesa`), então E1 apenas o torna financeiro-only — **refinamento
+  de input, não de fórmula/peso** ([[ADR-217]] §D3 exige bump só para fórmula/peso). O
+  score do dogfood é byte-idêntico (reserva presente domina). Fallback migra para
+  `autonomia_financeira_meses` com alias defensivo por 1 ciclo.
 - Bump: **schema e5 aditivo** (campo novo + alias deprecated) — batelar no PR de schema da
   onda. `Decimal` exato ([[ADR-090]]).
 

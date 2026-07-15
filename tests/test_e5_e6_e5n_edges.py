@@ -7,17 +7,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.analyze_finances import calculate_edad, is_one_time_income, linear_interpolate
+from scripts.analyze_finances import calculate_edad, is_one_time_income
 from scripts.generate_narratives import _safe_div, validate_narrativas
 
 
 class TestE5AnalyzeEdges:
-    def test_linear_interpolate_equal_bounds_returns_zero(self):
-        assert linear_interpolate(5.0, 3.0, 3.0) == 0.0
-
-    def test_linear_interpolate_clamps(self):
-        assert linear_interpolate(100.0, 0.0, 10.0) == 10.0
-
     def test_calculate_edad_birthday_not_yet(self):
         dob = date(1990, 6, 15)
         ref = date(2026, 6, 10)

@@ -173,36 +173,25 @@ class TestDiversificacao:
         assert "Patrimônio Diversificado" not in titulos
 
 
-class TestColchaoPatrimonial:
-    def test_robusto_acima_24(self):
+class TestAutonomiaFinanceira:
+    """ADR-335: ex-'Colchão Patrimonial'; lê `autonomia_financeira_meses`."""
+
+    def test_ampla_acima_24(self):
         out = PontosFortesAnalyzer().analyze(
-            **_args(ratios={"cobertura_despesas_meses": 30, "taxa_endividamento_pct": 50})
+            **_args(ratios={"autonomia_financeira_meses": 30, "taxa_endividamento_pct": 50})
         )
         titulos = {p.titulo for p in out}
-        assert "Colchão Patrimonial Robusto" in titulos
+        assert "Autonomia Financeira Ampla" in titulos
 
-    def test_solido_12_a_24(self):
+    def test_solida_12_a_24(self):
         out = PontosFortesAnalyzer().analyze(
-            **_args(ratios={"cobertura_despesas_meses": 18, "taxa_endividamento_pct": 50})
+            **_args(ratios={"autonomia_financeira_meses": 18, "taxa_endividamento_pct": 50})
         )
         titulos = {p.titulo for p in out}
-        assert "Patrimônio Investível Sólido" in titulos
+        assert "Autonomia Financeira Sólida" in titulos
 
-    def test_suprimido_quando_reserva_ja_gerou_ponto(self):
-        """A28.l10: reserva e colchão são a mesma família de cobertura em meses —
-        emitir os dois é redundante; reserva vence."""
-        out = PontosFortesAnalyzer().analyze(
-            **_args(
-                reserva={"cobertura_meses": 18},
-                ratios={"cobertura_despesas_meses": 30, "taxa_endividamento_pct": 50},
-            )
-        )
-        titulos = {p.titulo for p in out}
-        assert "Reserva de Emergência Excelente" in titulos
-        assert "Colchão Patrimonial Robusto" not in titulos
-        assert "Patrimônio Investível Sólido" not in titulos
-
-    def test_emitido_quando_reserva_abaixo_de_6_meses(self):
+    def test_le_alias_deprecated_cobertura(self):
+        # Consumidor antigo que só emite `cobertura_despesas_meses` ainda funciona (1 ciclo).
         out = PontosFortesAnalyzer().analyze(
             **_args(
                 reserva={"cobertura_meses": 4},
@@ -210,7 +199,31 @@ class TestColchaoPatrimonial:
             )
         )
         titulos = {p.titulo for p in out}
-        assert "Colchão Patrimonial Robusto" in titulos
+        assert "Autonomia Financeira Ampla" in titulos
+
+    def test_suprimido_quando_reserva_ja_gerou_ponto(self):
+        """A28.l10: reserva e autonomia são a mesma família de cobertura em meses —
+        emitir os dois é redundante; reserva vence."""
+        out = PontosFortesAnalyzer().analyze(
+            **_args(
+                reserva={"cobertura_meses": 18},
+                ratios={"autonomia_financeira_meses": 30, "taxa_endividamento_pct": 50},
+            )
+        )
+        titulos = {p.titulo for p in out}
+        assert "Reserva de Emergência Excelente" in titulos
+        assert "Autonomia Financeira Ampla" not in titulos
+        assert "Autonomia Financeira Sólida" not in titulos
+
+    def test_emitido_quando_reserva_abaixo_de_6_meses(self):
+        out = PontosFortesAnalyzer().analyze(
+            **_args(
+                reserva={"cobertura_meses": 4},
+                ratios={"autonomia_financeira_meses": 30, "taxa_endividamento_pct": 50},
+            )
+        )
+        titulos = {p.titulo for p in out}
+        assert "Autonomia Financeira Ampla" in titulos
 
 
 class TestProgressoIF:

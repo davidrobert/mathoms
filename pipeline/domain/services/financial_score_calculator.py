@@ -205,7 +205,8 @@ class FinancialScoreCalculator:
         consumido — o score depende só de ``ratios`` + ``goals`` + ``patrimonio``
         + ``reserva``. ``cobertura_despesas`` (peso 1.5) lê ``reserva.cobertura_meses``
         (reserva_liquida_disponivel ÷ custo_essencial_mensal — FORMULAS.md §Reserva,
-        A28.l1); fallback ``ratios.cobertura_despesas_meses`` quando reserva ausente.
+        A28.l1); fallback ``ratios.autonomia_financeira_meses`` (ADR-335; alias
+        deprecated ``cobertura_despesas_meses`` por 1 ciclo) quando reserva ausente.
         """
         del fluxo  # parity-only
         componentes = self._build_componentes(
@@ -260,7 +261,12 @@ class FinancialScoreCalculator:
         cobertura = (
             safe_float(reserva.get("cobertura_meses", 0))
             if reserva
-            else safe_float(ratios.get("cobertura_despesas_meses", 0))
+            else safe_float(
+                ratios.get(
+                    "autonomia_financeira_meses",
+                    ratios.get("cobertura_despesas_meses", 0),
+                )
+            )
         )
         return {
             "taxa_poup": safe_float(ratios.get("taxa_poupanca_recorrente_pct", 0)),

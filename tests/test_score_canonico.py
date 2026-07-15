@@ -17,7 +17,7 @@ def _sample_inputs() -> dict:
     return {
         "ratios": {
             "taxa_poupanca_recorrente_pct": 25.0,
-            "cobertura_despesas_meses": 6.0,
+            "autonomia_financeira_meses": 6.0,
             "taxa_endividamento_pct": 10.0,
         },
         "patrimonio": {"composicao": [{"valor": v} for v in (1_000_000, 800_000, 500_000)]},

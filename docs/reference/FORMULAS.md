@@ -15,6 +15,7 @@ fórmula ficar ambígua entre este doc, `methodology.md` e `scoring.json`,
 | Patrimônio investível (financeiro) | `investivel_financeiro = cat_3 + cat_4 + cat_5 + cat_6` — apenas ativos financeiros líquidos. **Métrica Perini/AUVP correta para `progresso_if`.** | E5 JSON · `patrimonio.investivel_financeiro` |
 | Patrimônio investível (total) | `investivel_total = bruto − cat_1 − cat_7` (exclui residência principal e veículos). Métrica retro-compat. | E5 JSON · `patrimonio.investivel_total` |
 | Patrimônio investível (efetivo) | `investivel_efetivo = investivel_financeiro + (cat_2 if workspace.imoveis_no_if else 0)` | E5 JSON · `patrimonio.investivel_efetivo` |
+| Autonomia financeira (meses) — [[ADR-335]] | `autonomia_financeira_meses = investivel_financeiro ÷ despesa_mensal_media` (janela 12m). Runway de liquidez — usa **`investivel_financeiro`** (sem cat_2 imóvel ilíquido), portanto **toggle-independente**. Distinto da reserva de emergência (§Reserva, denominador `custo_essencial`) e do `progresso_if` (numerador `investivel_efetivo`). Ex-`cobertura_despesas_meses`; alias deprecated por 1 ciclo. | E5 JSON · `ratios.autonomia_financeira_meses` |
 
 ## Independência Financeira
 
