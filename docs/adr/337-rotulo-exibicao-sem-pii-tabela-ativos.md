@@ -2,7 +2,7 @@
 id: ADR-337
 type: adr
 title: "Rótulo de exibição sem PII para ativos — sanitização na fonte E5 (React + prompt)"
-status: Proposto
+status: Decidido
 date: "2026-07-15"
 relates_to:
   - "[[ADR-332]]"
@@ -10,7 +10,7 @@ relates_to:
   - "[[ADR-216]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/backend
   - area/report

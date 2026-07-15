@@ -136,7 +136,8 @@ class TestImoveisInvestimento:
                 )
             )
         )
-        assert r.top_ativos[0].nome == "Sala comercial"
+        # ADR-337: rótulo classe-only na fonte (não lê a descrição cartorial).
+        assert r.top_ativos[0].nome == "Imóvel de investimento"
         assert r.top_ativos[0].classe == "Imóveis Investimento"
         assert r.top_ativos[0].tipo_origem == "imovel"
 
@@ -149,7 +150,23 @@ class TestImoveisInvestimento:
         ]
         r = TopAtivosAnalyzer(cfg).analyze(_entries(("david", _bens(imoveis=imoveis))))
         assert len(r.top_ativos) == 1
-        assert r.top_ativos[0].nome == "Sala"
+        assert r.top_ativos[0].nome == "Imóvel de investimento"
+
+    def test_imovel_nome_e_classe_only_sem_pii(self):
+        """ADR-337/PD-02/H1: a descrição cartorial (matrícula/IPTU/CNPJ/endereço)
+        NUNCA entra em top_ativos[].nome — vazaria à UI e ao prompt do parecer."""
+        # Fixture sintética (ADR-319): só palavras-marcador, sem PII real.
+        registral = (
+            "APARTAMENTO CONDOMINIO EXEMPLO. Matrícula sintética. IPTU informado. "
+            "CNPJ da incorporadora. AV das Amostras, sem numero."
+        )
+        r = TopAtivosAnalyzer().analyze(
+            _entries(("david", _bens(imoveis=[{"descricao": registral, "valor_irpf": 500_000}])))
+        )
+        nome = r.top_ativos[0].nome
+        assert nome == "Imóvel de investimento"
+        for marker in ("Matríc", "IPTU", "CNPJ", "AV ", "APARTAMENTO", "Amostras"):
+            assert marker not in nome, f"vazou marcador registral em top_ativos[].nome: {marker!r}"
 
 
 class TestExclusaoEscalares:
