@@ -81,10 +81,14 @@ def lineage_payload(
     consumed_document_ids: list[str] | None = None,
 ) -> dict:
     """Metadados incluídos no JSON de análise (GET /reports/{id}/data)."""
+    consumed = list(consumed_document_ids or [])
     return {
         "pipeline_run_id": pipeline_run_id,
         "source_document_count": source_document_count,
         "source_document_ids": source_document_ids,
+        # CTO-06: ids capados em id_limit (128) → truncamento explícito p/ o consumidor.
+        "source_document_ids_truncated": len(source_document_ids) < source_document_count,
         "consumed_document_count": consumed_document_count,
-        "consumed_document_ids": list(consumed_document_ids or []),
+        "consumed_document_ids": consumed,
+        "consumed_document_ids_truncated": len(consumed) < consumed_document_count,
     }

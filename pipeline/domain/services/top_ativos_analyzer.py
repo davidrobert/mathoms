@@ -161,10 +161,11 @@ class TopAtivosAnalyzer:
         descricao = str(inv.get("descricao") or inv.get("description") or "").strip()
         instituicao_raw = str(inv.get("instituicao") or "").strip()
         instituicao = instituicao_raw.capitalize() if instituicao_raw else ""
-        nome = str(inv.get("nome") or "").strip() or self._fallback_nome(tipo, instituicao)
+        classe = self._classify(tipo, descricao, instituicao_raw)
+        nome = str(inv.get("nome") or "").strip() or self._fallback_nome(tipo, classe, instituicao)
         return _Candidate(
             nome=nome,
-            classe=self._classify(tipo, descricao, instituicao_raw),
+            classe=classe,
             membro=member,
             instituicao=instituicao,
             valor=valor,
@@ -194,7 +195,7 @@ class TopAtivosAnalyzer:
         if isinstance(pid, str) and pid in residencia_property_ids:
             return None
         return _Candidate(
-            nome=self._imovel_nome(imovel),
+            nome=_imovel_display_label(),
             classe="Imóveis Investimento",
             membro=_membro_label(imovel, member),
             instituicao="",
@@ -214,25 +215,19 @@ class TopAtivosAnalyzer:
         )
 
     @staticmethod
-    def _fallback_nome(tipo: str, instituicao: str) -> str:
-        if not tipo:
-            return instituicao or "Investimento"
-        if instituicao:
-            return f"{tipo} ({instituicao})"
-        return tipo
+    def _fallback_nome(tipo: str, classe: str, instituicao: str) -> str:
+        # ADR-337: sem nome do produto, cai na classe (nunca "Investimento" pelado).
+        base = tipo or classe or "Investimento"
+        return f"{base} ({instituicao})" if instituicao else base
 
-    @staticmethod
-    def _imovel_nome(imovel: Mapping[str, Any]) -> str:
-        for key in ("description", "descricao", "endereco"):
-            v = imovel.get(key)
-            if v:
-                return str(v).strip()
-        dc = imovel.get("dados_completos")
-        if isinstance(dc, Mapping):
-            v = dc.get("imovel")
-            if v:
-                return str(v).strip()
-        return "Imóvel investimento"
+
+def _imovel_display_label() -> str:
+    """ADR-337: rótulo classe-only — a descrição cartorial (matrícula, IPTU, CPF de
+    terceiro, endereço) NUNCA entra em ``top_ativos[].nome``. Esse campo é lido pela
+    UI E pelo prompt do parecer (`$.investimentos.top_ativos[*]`, egresso a LLM de
+    terceiro), então PII de localização/documento fica fora da fonte E5. Granularidade
+    estrita ([[ADR-332]]); enriquecimento de display (bairro/cidade) só downstream."""
+    return "Imóvel de investimento"
 
 
 def _membro_label(imovel: Mapping[str, Any], member: str) -> str:
