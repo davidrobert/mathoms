@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 292
-- **Proposto**: 35
+- **Decidido**: 293
+- **Proposto**: 34
 - **Roadmap**: 3
 
 ## Fundação
@@ -515,7 +515,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (41)
+### Decidido (42)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -558,8 +558,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-331]] — Fidelidade fixture↔E4 (por_fonte real) + golden red-before-green · phase dogfood Frente 2
 - [[ADR-333]] — Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança) · phase dogfood cluster C1
 - [[ADR-335]] — Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência
+- [[ADR-338]] — Contrato role-keyed no view-model — nome do membro só em valores, nunca em chaves
 
-### Proposto (10)
+### Proposto (9)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -570,7 +571,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-334]] — Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida)
 - [[ADR-336]] — Roteamento de lucro PJ mal-classificado como dividendo via segundo sinal de fluxo (TRS) · phase dogfood cluster A
 - [[ADR-337]] — Rótulo de exibição sem PII para ativos — sanitização na fonte E5 (React + prompt)
-- [[ADR-338]] — Contrato role-keyed no view-model — nome do membro só em valores, nunca em chaves
 
 ## quality
 

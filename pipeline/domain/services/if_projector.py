@@ -177,15 +177,15 @@ class IFProjection:
             "if_pct": round(self.if_pct, 2),
             "if_gap": round(self.if_gap, 2),
             "prazo_anos_realista": round(self.prazo_anos_realista, 1),
-            f"idade_{self.titular_key}_if": self.idade_titular_if,
-            "david_idade_if": self.idade_titular_if,
+            # ADR-338: chave role-keyed (era idade_<nome>_if + alias morto "david_idade_if").
+            "idade_titular_if": self.idade_titular_if,
             "ano_if": self.ano_if,
             "renda_passiva_estimada_4pct": round(self.renda_passiva_estimada_4pct, 2),
             # FP-009: alinhamento com retorno ponderado da carteira fica para FP-004.
             "retorno_esperado_pct_aa": round(self.retorno_esperado_pct_aa, 2),
         }
         if self.idade_conjuge_if is not None and self.conjuge_key:
-            out[f"idade_{self.conjuge_key}_if"] = self.idade_conjuge_if
+            out["idade_conjuge_if"] = self.idade_conjuge_if
         return out
 
 

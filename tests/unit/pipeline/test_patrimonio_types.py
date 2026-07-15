@@ -74,23 +74,38 @@ def test_member_identity_is_frozen():
 
 
 def test_member_identity_key_inv_titular():
+    """Chave role-keyed fixa: nome do titular vive só em VALORES (ADR-338)."""
     m = MemberIdentity(
         titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana"
     )
-    assert m.key_inv_titular == "investimentos_david"
+    assert m.key_inv_titular == "investimentos_titular"
+    # Nome-independência: outro titular produz a MESMA chave (shape determinístico).
+    outro = MemberIdentity(
+        titular_key="xavier", conjuge_key="ana", titular_nome="Xavier", conjuge_nome="Ana"
+    )
+    assert outro.key_inv_titular == "investimentos_titular"
 
 
 def test_member_identity_key_inv_conjuge():
+    """Chave role-keyed fixa: nome do cônjuge vive só em VALORES (ADR-338)."""
     m = MemberIdentity(
         titular_key="david", conjuge_key="mariana", titular_nome="David", conjuge_nome="Mariana"
     )
-    assert m.key_inv_conjuge == "investimentos_mariana"
+    assert m.key_inv_conjuge == "investimentos_conjuge"
+    outro = MemberIdentity(
+        titular_key="xavier", conjuge_key="ana", titular_nome="Xavier", conjuge_nome="Ana"
+    )
+    assert outro.key_inv_conjuge == "investimentos_conjuge"
 
 
 def test_member_identity_empty_conjuge_key():
-    """Fluxo de titular solo (sem cônjuge)."""
+    """Titular solo: chave do cônjuge continua a role-key fixa (ADR-338).
+
+    Antes do contrato role-keyed a chave era ``investimentos_`` (sufixo vazio);
+    agora é ``investimentos_conjuge`` mesmo sem cônjuge — o key-set não varia.
+    """
     m = MemberIdentity(titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome="")
-    assert m.key_inv_conjuge == "investimentos_"
+    assert m.key_inv_conjuge == "investimentos_conjuge"
 
 
 # =============================================================================

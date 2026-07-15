@@ -128,13 +128,22 @@ class MemberIdentity:
     titular_nome: str
     conjuge_nome: str
 
+    # ADR-338: chaves de dict role-keyed (nunca derivadas do nome). O nome legal
+    # vive só em VALORES (titular_nome/conjuge_nome); `titular_key`/`conjuge_key`
+    # seguem como discriminadores internos de matching, nunca como chave emitida.
     @property
     def key_inv_titular(self) -> str:
-        return f"investimentos_{self.titular_key}"
+        return "investimentos_titular"
 
     @property
     def key_inv_conjuge(self) -> str:
-        return f"investimentos_{self.conjuge_key}"
+        return "investimentos_conjuge"
+
+    def role_of(self, member_key: str) -> str:
+        return "conjuge" if self.conjuge_key and member_key == self.conjuge_key else "titular"
+
+    def inv_key(self, member_key: str) -> str:
+        return f"investimentos_{self.role_of(member_key)}"
 
 
 @dataclass(frozen=True)

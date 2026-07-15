@@ -170,12 +170,12 @@
           },
           {
             "artifact_key": "analise_financeira",
-            "field": "reserva_emergencia.composicao_liquida.investimentos_",
+            "field": "reserva_emergencia.composicao_liquida.investimentos_conjuge",
             "stage": "E5"
           },
           {
             "artifact_key": "analise_financeira",
-            "field": "reserva_emergencia.composicao_liquida.investimentos_alex",
+            "field": "reserva_emergencia.composicao_liquida.investimentos_titular",
             "stage": "E5"
           }
         ],
@@ -220,13 +220,13 @@
       {
         "ano_if": 3025,
         "aporte_mensal": 0,
-        "idade_alex": 1040,
+        "idade_titular": 1040,
         "nome": "Sem renda do cônjuge",
         "prazo_if_anos": 999,
         "resumo": "Sem renda do cônjuge, aporte cai para R$ 0/mês (66% do base). IF em 999 anos (3025)."
       }
     ],
-    "idade_alex_if": [
+    "idade_titular_if": [
       1040
     ],
     "labels": [
@@ -241,7 +241,7 @@
       "investivel_atual": 13000000,
       "meta_if": 100000000,
       "retorno_real_anual_pct": "6.000000",
-      "salario__clt_brl": 0
+      "salario_conjuge_clt_brl": 0
     }
   },
   "changelog": null,
@@ -385,8 +385,7 @@
   },
   "goals": {
     "ano_if": 3025,
-    "david_idade_if": 1040,
-    "idade_alex_if": 1040,
+    "idade_titular_if": 1040,
     "if_gap": 87000000,
     "if_meta": 100000000,
     "if_pct": "13.000000",
@@ -529,8 +528,8 @@
     "imoveis_investimento": 60000000,
     "imoveis_nao_geradores": 60000000,
     "imoveis_no_if": true,
-    "investimentos_": 0,
-    "investimentos_alex": 8000000,
+    "investimentos_conjuge": 0,
+    "investimentos_titular": 8000000,
     "investivel_efetivo": 13000000,
     "investivel_financeiro": 13000000,
     "liquido": 58000000,
@@ -670,8 +669,8 @@
       "caixa": 0,
       "caixa_moeda_estrangeira": 0,
       "cobertura_meses": "53.300000",
-      "investimentos_": 0,
-      "investimentos_alex": 8000000,
+      "investimentos_conjuge": 0,
+      "investimentos_titular": 8000000,
       "total_liquido": 8000000
     },
     "custo_essencial_mensal": 150000,

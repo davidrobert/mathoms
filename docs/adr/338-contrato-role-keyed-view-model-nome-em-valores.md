@@ -2,7 +2,7 @@
 id: ADR-338
 type: adr
 title: "Contrato role-keyed no view-model — nome do membro só em valores, nunca em chaves"
-status: Proposto
+status: Decidido
 date: "2026-07-15"
 relates_to:
   - "[[ADR-176]]"
@@ -10,7 +10,7 @@ relates_to:
   - "[[ADR-143]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/backend
   - area/report

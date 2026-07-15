@@ -89,7 +89,7 @@ def _build_metrics() -> dict[str, Any]:
     """Metrics mínimos cobrindo todas as chaves usadas pelos 3 narradores."""
     return {
         # perfil_familia
-        "salario_bob": 15000,
+        "salario_conjuge": 15000,
         "f1f2_visto": "F-1",
         "f1f2_universidade": "NYU",
         "f1f2_green_card_via": "OPT/H-1B",
@@ -105,14 +105,14 @@ def _build_metrics() -> dict[str, Any]:
         "meta_aporte_mensal": 20_000,
         "if_retorno_real_pct": 5,
         "anos_para_if_calculo": 12,
-        "idade_alice_if": 53,
+        "idade_titular_if": 53,
         "if_ano": 2038,
         "patrimonio_bruto": 2_500_000,
         "n_imoveis": 3,
         "residencia": 800_000,
         "imoveis_investimento": 400_000,
-        "investimentos_alice": 900_000,
-        "investimentos_bob": 200_000,
+        "investimentos_titular": 900_000,
+        "investimentos_conjuge": 200_000,
         "taxa_endividamento": 8,
         # summaries (keys extras)
         "pct_investivel": 60,
@@ -127,8 +127,8 @@ def _build_metrics() -> dict[str, Any]:
         "pct_receita_clt": 30,
         "pct_receita_outras": 15,
         "diversificacao": 5,
-        "alice_instituicoes": "XP, BTG",
-        "bob_instituicoes": "Nubank, Itaú",
+        "titular_instituicoes": "XP, BTG",
+        "conjuge_instituicoes": "Nubank, Itaú",
         "receita_aluguel_anual": 60_000,
         "receita_aluguel": 50_000,
         "n_meses_periodo": 12,
@@ -378,8 +378,8 @@ def test_context_dynamic_keys_change_with_family():
     assert ctx.conjuge_key == "yolanda"
     assert ctx.titular_nome == "Xavier"
     assert ctx.conjuge_nome == "Yolanda"
-    assert ctx.key_inv_titular == "investimentos_xavier"
-    assert ctx.key_inv_conjuge == "investimentos_yolanda"
+    assert ctx.key_inv_titular == "investimentos_titular"
+    assert ctx.key_inv_conjuge == "investimentos_conjuge"
     # ADR-176: chave de cenários é universal, não derivada do cônjuge.
     assert ctx.key_cenarios_conjuge == "cenarios_conjuge"
 

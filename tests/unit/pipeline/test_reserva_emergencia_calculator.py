@@ -91,14 +91,14 @@ def test_acoes_fii_exterior_excluidos_do_numerador(config: ReservaEmergenciaConf
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 10_000},
-        patrimonio={"investimentos_david": 500_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 500_000, "investimentos_conjuge": 0},
         bens_por_membro={
             "david": _bens(investimentos=_CARTEIRA_MISTA),
             "mariana": _bens(investimentos=[]),
         },
     )
     assert result["total_liquida"] == 60_000.0
-    assert result["composicao_liquida"]["investimentos_david"] == 60_000.0
+    assert result["composicao_liquida"]["investimentos_titular"] == 60_000.0
     assert result["excluido_da_reserva"]["investimentos_nao_liquidos"] == 440_000.0
     assert result["cobertura_meses"] == 6.0
 
@@ -107,7 +107,7 @@ def test_conta_corrente_e_poupanca_entram_como_liquidez(config: ReservaEmergenci
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 5_000},
-        patrimonio={"investimentos_david": 30_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 30_000, "investimentos_conjuge": 0},
         bens_por_membro={
             "david": _bens(
                 investimentos=[{"descricao": "POUPANCA BANCO Y", "valor": 10_000}],
@@ -124,7 +124,7 @@ def test_rf_sem_liquidez_diaria_excluida(config: ReservaEmergenciaConfig):
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
-        patrimonio={"investimentos_david": 30_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 30_000, "investimentos_conjuge": 0},
         bens_por_membro={
             "david": _bens(
                 investimentos=[
@@ -144,8 +144,8 @@ def test_caixa_me_excluida_por_default(config: ReservaEmergenciaConfig):
     """Caixa ME só entra com finalidade explícita = reserva."""
     calc = EmergencyReserveCalculator(config)
     patrimonio = {
-        "investimentos_david": 0,
-        "investimentos_mariana": 0,
+        "investimentos_titular": 0,
+        "investimentos_conjuge": 0,
         "caixa_moeda_estrangeira": 60_000,
         "caixa_detalhes": [
             {"conta": "banco brl", "moeda": "BRL", "valor_brl": 10_000, "tipo": "caixa"},
@@ -168,8 +168,8 @@ def test_caixa_me_entra_com_finalidade_reserva(identity: MemberIdentity):
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
         patrimonio={
-            "investimentos_david": 0,
-            "investimentos_mariana": 0,
+            "investimentos_titular": 0,
+            "investimentos_conjuge": 0,
             "caixa_moeda_estrangeira": 50_000,
             "caixa_detalhes": [
                 {"conta": "wise", "moeda": "USD", "valor_brl": 50_000, "tipo": "moeda_estrangeira"}
@@ -187,8 +187,8 @@ def test_caixa_residual_sem_detalhes_fica_fora(config: ReservaEmergenciaConfig):
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
         patrimonio={
-            "investimentos_david": 0,
-            "investimentos_mariana": 0,
+            "investimentos_titular": 0,
+            "investimentos_conjuge": 0,
             "caixa_moeda_estrangeira": 50_000,
         },
         bens_por_membro={"david": _bens(investimentos=[]), "mariana": _bens(investimentos=[])},
@@ -201,7 +201,7 @@ def test_posicoes_atuais_tem_precedencia_sobre_irpf(config: ReservaEmergenciaCon
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
-        patrimonio={"investimentos_david": 99_999, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 99_999, "investimentos_conjuge": 0},
         investimentos_atuais={
             "dados": [
                 {"nome": "CDB LIQUIDEZ DIARIA", "membro": "david", "valor_atual": 12_000},
@@ -222,7 +222,7 @@ def test_sem_itens_cai_no_agregado_legado(config: ReservaEmergenciaConfig):
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 10_000},
-        patrimonio={"investimentos_david": 30_000, "investimentos_mariana": 20_000},
+        patrimonio={"investimentos_titular": 30_000, "investimentos_conjuge": 20_000},
     )
     assert result["total_liquida"] == 50_000.0
     assert result["cobertura_meses"] == 5.0
@@ -234,8 +234,8 @@ def test_total_liquido_soma_exata_dos_componentes(config: ReservaEmergenciaConfi
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
         patrimonio={
-            "investimentos_david": 1000.126,
-            "investimentos_mariana": 0.456,
+            "investimentos_titular": 1000.126,
+            "investimentos_conjuge": 0.456,
             "caixa_moeda_estrangeira": 10.128,
             "caixa_detalhes": [
                 {"conta": "b", "moeda": "BRL", "valor_brl": 10.128, "tipo": "caixa"}
@@ -263,7 +263,7 @@ def test_denominador_prefere_custo_essencial_da_janela(config: ReservaEmergencia
                 "n_meses": 12,
             },
         },
-        patrimonio={"investimentos_david": 300_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 300_000, "investimentos_conjuge": 0},
     )
     assert result["despesas_mensais"] == 25_000.0
     assert result["custo_essencial_mensal"] == 25_000.0
@@ -285,7 +285,7 @@ def test_denominador_fallback_despesa_total_rotulado(config: ReservaEmergenciaCo
                 "n_meses": 12,
             },
         },
-        patrimonio={"investimentos_david": 24_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 24_000, "investimentos_conjuge": 0},
     )
     assert result["despesas_mensais"] == 2_000.0
     assert result["custo_essencial_mensal"] == 0.0
@@ -297,7 +297,7 @@ def test_fallback_full_period_sem_janela(config: ReservaEmergenciaConfig):
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000, "janela_meses": 40},
-        patrimonio={"investimentos_david": 6_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 6_000, "investimentos_conjuge": 0},
     )
     assert result["despesas_mensais"] == 1_000.0
     assert result["janela"] == "full"
@@ -308,7 +308,7 @@ def test_cobertura_zero_despesa_returns_zero(config: ReservaEmergenciaConfig):
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 0},
-        patrimonio={"investimentos_david": 100, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 100, "investimentos_conjuge": 0},
     )
     assert result["cobertura_meses"] == 0.0
 
@@ -343,7 +343,7 @@ def test_perfil_renda_define_meses_alvo(
                 "receita_outras": 0,
             },
         },
-        patrimonio={"investimentos_david": 1_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 1_000, "investimentos_conjuge": 0},
     )
     assert result["perfil_renda"] == perfil
     assert result["meses_alvo"] == meses
@@ -367,7 +367,7 @@ def test_perfil_usa_receita_por_natureza_nao_por_fonte(config: ReservaEmergencia
                 "receita_outras": 0,
             },
         },
-        patrimonio={"investimentos_david": 1_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 1_000, "investimentos_conjuge": 0},
     )
     assert result["perfil_renda"] == "pj_dominante"  # 70% ≥ 60
     assert result["receita_pj_pct"] == 70.0
@@ -385,7 +385,7 @@ def test_alvo_e_gap_dimensionados_pelo_perfil(config: ReservaEmergenciaConfig):
                 "receita_outras": 0,
             },
         },
-        patrimonio={"investimentos_david": 100_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 100_000, "investimentos_conjuge": 0},
     )
     assert result["meses_alvo"] == 18
     assert result["alvo_brl"] == 180_000.0
@@ -427,7 +427,7 @@ def test_excessiva_quando_acima_do_alvo_do_perfil(identity: MemberIdentity):
                 "receita_outras": 0,
             },
         },
-        patrimonio={"investimentos_david": 30_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 30_000, "investimentos_conjuge": 0},
     )
     assert result["cobertura_meses"] == 30.0
     assert result["avaliacao_liquidity"] == "Excessiva"
@@ -446,7 +446,7 @@ def test_excessiva_demovida_quando_cobertura_dentro_do_alvo(identity: MemberIden
                 "receita_outras": 0,
             },
         },
-        patrimonio={"investimentos_david": 25_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 25_000, "investimentos_conjuge": 0},
     )
     assert result["cobertura_meses"] == 25.0
     assert result["avaliacao_liquidity"] == "Robusta"
@@ -456,7 +456,7 @@ def test_avaliacao_insuficiente_below_min(config: ReservaEmergenciaConfig):
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
-        patrimonio={"investimentos_david": 2_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 2_000, "investimentos_conjuge": 0},
     )
     assert result["avaliacao_liquidity"] == "Insuficiente"
 
@@ -472,7 +472,7 @@ def test_avaliacao_custom_bands(identity: MemberIdentity):
     calc = EmergencyReserveCalculator(cfg)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1_000},
-        patrimonio={"investimentos_david": 30_000, "investimentos_mariana": 0},
+        patrimonio={"investimentos_titular": 30_000, "investimentos_conjuge": 0},
     )
     assert result["avaliacao_liquidity"] == "Supra"
 
@@ -508,21 +508,23 @@ def test_output_shape(config: ReservaEmergenciaConfig):
     calc = EmergencyReserveCalculator(config)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1000},
-        patrimonio={"investimentos_david": 1000, "investimentos_mariana": 500},
+        patrimonio={"investimentos_titular": 1000, "investimentos_conjuge": 500},
     )
     assert set(result.keys()) == _EXPECTED_PAYLOAD_KEYS
     assert result["niveis"] == ["6 meses", "12 meses"]
 
 
-def test_composicao_liquida_keys_dynamic(identity: MemberIdentity):
-    """composicao_liquida usa identity dinâmica (solo preserva shape legado)."""
+def test_composicao_liquida_keys_role_keyed():
+    """composicao_liquida é role-keyed (ADR-338): investimentos_titular /
+    investimentos_conjuge, nunca derivada do nome. Solo preserva o shape com
+    a parcela do cônjuge zerada (setdefault)."""
     solo = MemberIdentity(titular_key="joao", conjuge_key="", titular_nome="João", conjuge_nome="")
     cfg = ReservaEmergenciaConfig(members=solo)
     calc = EmergencyReserveCalculator(cfg)
     result = calc.calculate(
         fluxo={"despesa_mensal_media": 1000},
-        patrimonio={"investimentos_joao": 5_000},
+        patrimonio={"investimentos_titular": 5_000},
     )
-    assert result["composicao_liquida"]["investimentos_joao"] == 5_000.0
-    assert result["composicao_liquida"]["investimentos_"] == 0.0
+    assert result["composicao_liquida"]["investimentos_titular"] == 5_000.0
+    assert result["composicao_liquida"]["investimentos_conjuge"] == 0.0
     assert result["total_liquida"] == 5_000.0

@@ -59,11 +59,11 @@ class ReservaLiquida:
         """Componentes quantizados a cents — ``total_liquido == Σ componentes``
         exato por construção (invariante check_lineage_sum, ADR-279)."""
         out = {
-            f"investimentos_{key}": m.valor_liquido.quantize(_CENT)
-            for key, m in self.por_membro.items()
+            f"investimentos_{role}": m.valor_liquido.quantize(_CENT)
+            for role, m in self.por_membro.items()
         }
         if solo:
-            out.setdefault("investimentos_", _ZERO)
+            out.setdefault("investimentos_conjuge", _ZERO)
         out["caixa"] = self.caixa_brl.quantize(_CENT)
         out["caixa_moeda_estrangeira"] = (
             self.caixa_me.quantize(_CENT) if incluir_caixa_me else _ZERO
@@ -97,11 +97,11 @@ def _liquidez_por_membro(
     keywords: Mapping[str, tuple[str, ...]] | None,
 ) -> dict[str, LiquidezMembro]:
     return {
-        member_key: _liquidez_membro(
+        identity.role_of(member_key): _liquidez_membro(
             member_key,
             identity=identity,
             keywords=keywords,
-            aggregate=_dec(patrimonio.get(f"investimentos_{member_key}", 0)),
+            aggregate=_dec(patrimonio.get(identity.inv_key(member_key), 0)),
             investimentos_atuais=investimentos_atuais,
             bens=(bens_por_membro or {}).get(member_key),
         )

@@ -502,8 +502,8 @@ class TestA6d33Wiring:
             "composicao",
             "tabela_categorias",
             "fonte_investimentos",
-            "investimentos_david",
-            "investimentos_mariana",
+            "investimentos_titular",
+            "investimentos_conjuge",
         }
         assert required.issubset(result.patrimonio_full.keys())
 

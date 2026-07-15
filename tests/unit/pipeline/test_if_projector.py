@@ -205,8 +205,7 @@ class TestLegacyDict:
             "if_pct",
             "if_gap",
             "prazo_anos_realista",
-            "idade_david_if",
-            "david_idade_if",
+            "idade_titular_if",
             "ano_if",
             "renda_passiva_estimada_4pct",
         }
@@ -218,13 +217,14 @@ class TestLegacyDict:
 
         d = p.to_legacy_dict()
 
-        assert "idade_mariana_if" in d
+        assert "idade_conjuge_if" in d
 
     def test_conjuge_field_absent_when_no_conjuge(self):
         p = IFProjector(_config()).project(investivel=500_000)
 
         d = p.to_legacy_dict()
 
-        assert not any(
-            k.startswith("idade_") and k.endswith("_if") and k != "idade_david_if" for k in d
-        )
+        # ADR-338: contrato role-keyed — idade_titular_if sempre presente;
+        # idade_conjuge_if só aparece quando há cônjuge.
+        assert "idade_titular_if" in d
+        assert "idade_conjuge_if" not in d
