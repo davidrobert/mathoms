@@ -300,6 +300,30 @@ def test_workspace_incompleto_simples_sem_anexo():
     assert out.motivo_nao_suportado == "anexo_simples_pendente"
 
 
+def test_perfil_incompleto_com_receita_emite_sinal():
+    """CTO-05 (emenda ADR-236): perfil incompleto + entradas PJ detectadas no
+    fluxo → sinal + valor detectado (sem derivar faturamento)."""
+    out = compute(CascataInput(regime=None, receita_pj_anual=Money.brl("1000000")))
+    assert out.motivo_nao_suportado == "perfil_incompleto"
+    assert out.signals == ("perfil_incompleto_com_receita",)
+    assert out.receita_pj_detectada_anual.amount == Money.brl("1000000").amount
+    # Invariante CTO-05: nenhum número tributário derivado (receita_bruta fica 0).
+    assert out.receita_bruta.amount == 0
+
+
+def test_perfil_incompleto_sem_receita_nao_emite_sinal():
+    out = compute(CascataInput(regime=None))
+    assert out.signals == ()
+    assert out.receita_pj_detectada_anual.amount == 0
+
+
+def test_lucro_real_fallback_nao_emite_sinal_perfil_incompleto():
+    """Sinal é exclusivo do fallback perfil_incompleto — não vaza para lucro_real."""
+    out = compute(CascataInput(regime="lucro_real", receita_pj_anual=Money.brl("5000000")))
+    assert out.signals == ()
+    assert out.receita_pj_detectada_anual.amount == 0
+
+
 def test_lucro_real_nao_suportado():
     out = compute(
         CascataInput(

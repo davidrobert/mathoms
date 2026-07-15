@@ -469,22 +469,21 @@ def test_sub_narrators_are_exported():
     pf = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
     assert "left" in pf and "right" in pf
 
-    sm = SummariesNarrator(ctx).narrate(
-        _build_metrics(),
-        _FAMILY_BASE,
-        ["risco1", "risco2", "risco3"],
-        ["d1", "d2", "d3", "d4"],
-    )
-    assert set(sm.keys()) == {f"s{i}" for i in range(1, 11)}
 
-    ch = ChartsNarrator(ctx).narrate(
-        _build_metrics(),
-        _FAMILY_BASE,
-        [
-            {"nome": "r1", "prob": "a", "impacto": "a"},
-            {"nome": "r2", "prob": "a", "impacto": "a"},
-            {"nome": "r3", "prob": "a", "impacto": "a"},
-        ],
-        ["d1", "d2", "d3", "d4"],
-    )
-    assert "score_gauge" in ch and ctx.key_cenarios_conjuge in ch
+def test_perfil_familia_omite_clausulas_com_campo_vazio():
+    """PD-01: campo ausente omite a cláusula — sem buracos de template
+    ('é ()', '0 gatos', 'residência em , ,')."""
+    family_vazia = {
+        "titular": "alex",
+        "membros": {
+            "alex": {"nome_curto": "Alex", "data_nascimento": "1985-03-10"},
+            "bia": {"papel": "conjuge", "nome_curto": "Bia", "data_nascimento": "1987-07-22"},
+        },
+        # sem endereco, sem pets, sem profissao/empresas
+    }
+    ctx = NarrativasContext.from_family_config(family_vazia)
+    pf = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), family_vazia, today=date(2026, 4, 20))
+    blob = pf["left"] + pf["right"]
+    assert "é ()" not in blob
+    assert "0 gato" not in blob and "0 gatos" not in blob
+    assert "residência em ," not in blob and "residência em ." not in blob

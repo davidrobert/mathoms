@@ -6,6 +6,7 @@ status: Decidido
 phase: A16.tributario-pj-cascata
 date: "2026-05-20"
 decided_at: "2026-05-21"
+amended_at: ["2026-07-15"]
 relates_to:
   - "[[ADR-143]]"
   - "[[ADR-157]]"
@@ -31,6 +32,20 @@ tags:
   - methodology/auvp
   - phase/a16
 ---
+
+> **Emenda 2026-07-15 (CTO-05):** ver [§ Emenda 2026-07-15](#emenda-2026-07-15-cto-05--cascata-pj-com-perfil-incompleto-e-receita-detectada). Perfil PJ incompleto (`regime=None`) com entradas PJ detectadas no fluxo **suprime** a cascata zerada e emite CTA citando o valor observado + sinal `perfil_incompleto_com_receita`. Não deriva faturamento (pró-labore ≠ receita bruta).
+
+## Emenda 2026-07-15 (CTO-05) — Cascata PJ com perfil incompleto e receita detectada
+
+**Contexto.** Dogfood 2026-07-15: a cascata renderizava `perfil_incompleto` com `receita_bruta = 0`, enquanto o bloco de fluxo mostrava ~R$ 1M de entradas PJ (pró-labore + lucros distribuídos, via `receita_por_natureza.receita_pj`, [[ADR-330]]). Duas superfícies do mesmo relatório se contradiziam: a seção fiscal negava o que o fluxo afirmava.
+
+**Decisão.** Quando `regime is None` (fallback `perfil_incompleto`) **e** o fluxo detectou entradas PJ > 0:
+
+1. **Suprimir** a cascata zerada (mantido — `_output_fallback` não emite números tributários). **Não derivar** `receita_bruta` do fluxo: pró-labore + lucros distribuídos ≠ faturamento bruto da PJ; derivar renderizaria um número tributário enganoso (a cascata precisa do regime para estimar a carga real).
+2. **CTA acionável** — a narrativa do card cita o valor PJ detectado (`~R$ X/ano`) e explicita que é a **entrada na conta PF, não o faturamento**, pedindo o preenchimento do perfil (regime, anexo, CNAE, modelo IRPF) para a cascata completa.
+3. **Sinal `perfil_incompleto_com_receita`** — emitido no objeto aberto `CascataOutput.signals` (tupla de strings; sem bump de schema — `tributario` não está no schema top-level `e5_analysis.schema.json`, flui via `GoalsBundle`). Serve de marcador de qualidade de dados (console interno / telemetria) para detectar workspaces com PJ ativa mas perfil não preenchido.
+
+**Onde.** `pipeline/domain/services/tributario/cascata_calculator.py` (`CascataOutput.receita_pj_detectada_anual` + `.signals`; `_output_fallback` captura `inp.receita_pj_anual`), `cascata_serialization.py` (passthrough automático via `asdict`), `pipeline/domain/services/narrativas/tributario_narrator.py` (`_narrate_perfil_pendente` ramifica com/sem valor detectado). Invariante mantido: nenhum número tributário derivado quando o regime é desconhecido.
 
 ## Contexto
 
