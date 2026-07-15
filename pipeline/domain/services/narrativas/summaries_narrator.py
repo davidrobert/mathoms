@@ -101,7 +101,7 @@ class SummariesNarrator:
                 f"Meta de independência financeira de {fmt_currency(M['if_meta'])} em {M['if_ano']}. "
                 f"Gap atual de {fmt_currency(M['if_gap'])} com prazo realista de {fmt_num(M['if_prazo_anos'])} anos "
                 f"à taxa de aporte {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. "
-                f"Renda passiva estimada ({fmt_num(M['if_trs_pct'], 0)}% TRS): {fmt_currency(M['renda_passiva_4pct'])}/mês."
+                f"Renda passiva estimada ({fmt_num(M['taxa_retirada_segura_pct'], 0)}% retirada segura): {fmt_currency(M['renda_passiva_4pct'])}/mês."
             ),
             "s8": (
                 f"{M['regime_obs']} (alíquota efetiva {fmt_percent(M['das_aliquota_pct'])}). "

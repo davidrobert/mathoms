@@ -86,6 +86,7 @@ def _build_minimal_metrics() -> dict[str, Any]:
         "salario_conjuge": 15000,
         "if_meta": 5_000_000,
         "if_trs_pct": 4,
+        "taxa_retirada_segura_pct": 4,  # ADR-191 emenda (FP-03): SWR live key
         "if_renda_passiva_meta": 16_667,
         "patrimonio_investivel": 1_500_000,
         "progresso_if": 30,

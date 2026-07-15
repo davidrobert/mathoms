@@ -532,7 +532,11 @@ def load_metrics_from_e5(
         "aporte_ivvb11": dist.get("ivvb11", 0),
         "aporte_wise_usd": dist.get("wise_usd", 0),
         # === config/goals.json: IF ===
+        # ADR-191 emenda 2026-07-15 (FP-03): `if_trs_pct` = yield-alvo/TRS (5%, do card +
+        # rendimento da meta patrimonial); `taxa_retirada_segura_pct` = SWR (4%, estimativa
+        # de renda passiva pela regra de retirada). Conceitos distintos, rotulados distinto.
         "if_trs_pct": if_cfg.get("trs_pct", 5.0),
+        "taxa_retirada_segura_pct": if_cfg.get("taxa_retirada_segura_pct", 4.0),
         "if_renda_passiva_meta": renda_passiva_meta,
         "if_retorno_real_pct": if_cfg.get("retorno_real_anual_pct", 6.0),
         # === config/goals.json: viagens (chart vivo — único campo F1/F2 preservado) ===
