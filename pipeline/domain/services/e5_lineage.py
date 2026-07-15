@@ -19,6 +19,7 @@ from pipeline.domain.services.patrimonio_lineage import (
     patrimonio_lineage_fields,
 )
 from pipeline.domain.services.patrimonio_types import MemberIdentity
+from pipeline.observability import get_logger
 
 # Teto de member_hashes inline (co-design l5/l6) — acima disso a saída
 # provável é a edge-table artifact_lineage_edge (F5), não decidir aqui.
@@ -184,15 +185,39 @@ def conferencia_signals_from_e4(despesas_e4: DespesasE4Payload) -> dict[str, str
 
 def despesa_member_hashes(despesas_e4: DespesasE4Payload) -> tuple[list[str], dict[str, str]]:
     """K4 sobreviventes pós-dedup (Q3/B8) — contrato all-or-nothing: hash
-    parcial não vale (soma furaria silenciosamente); teto inline ≤ 200."""
+    parcial não vale (soma furaria silenciosamente); teto inline ≤ 200.
+    DE-02 (emenda [[ADR-287]]): cobertura K4 (%) instrumentada em ``signals`` +
+    alerta ao detectar parcial — degradação graciosa mantém ``member_hashes=[]``."""
     txs = [tx for cat_txs in (despesas_e4.get("dados") or {}).values() for tx in cat_txs]
     keyed = [_k4_hash(tx) for tx in txs]
+    cov = _k4_coverage_signal(keyed)
     if any(h is None for h in keyed):
-        return [], {"k4_coverage": "partial"}
+        _alert_k4_partial(keyed)
+        return [], {"k4_coverage": "partial", **cov}
     hashes = sorted(set(keyed))
     if len(hashes) > _INLINE_HASH_CAP:
-        return [], {"k4_coverage": "full", "inline_cap": "exceeded"}
-    return hashes, {}
+        return [], {"k4_coverage": "full", "inline_cap": "exceeded", **cov}
+    return hashes, cov
+
+
+def _k4_coverage_signal(keyed: list[str | None]) -> dict[str, str]:
+    """``k4_coverage_pct`` (string int) da fração de txs com natural_key v2.
+    Vazio quando não há tx — cobertura de conjunto vazio não é informativa."""
+    total = len(keyed)
+    if total == 0:
+        return {}
+    n_keyed = sum(1 for h in keyed if h is not None)
+    return {"k4_coverage_pct": str(round(100 * n_keyed / total))}
+
+
+def _alert_k4_partial(keyed: list[str | None]) -> None:
+    """Log estruturado (só contagens/pct — zero PII, txs nunca logadas)."""
+    total = len(keyed)
+    n_keyed = sum(1 for h in keyed if h is not None)
+    get_logger("lineage.k4").warning(
+        "k4 coverage parcial no no de despesa",
+        extra={"keyed": n_keyed, "total": total, "coverage_pct": round(100 * n_keyed / total)},
+    )
 
 
 def _k4_hash(tx: TransacaoE4) -> str | None:

@@ -13,7 +13,7 @@ relates_to:
   - "[[ADR-279]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-07-08"]
+amended_at: ["2026-07-08", "2026-07-15"]
 aliases: ["ADR 287", "flip dedup v2", "passo 2 B4"]
 tags:
   - type/adr
@@ -27,6 +27,13 @@ tags:
 > **Correção 2026-07-08:** o registro do cutover atribuiu o `k4_coverage=partial`
 > da dogfood a "sem mapa de membros … por design PII-zero" — premissa falsa.
 > Ver §"Correção 2026-07-08" ao final; follow-up em [[ADR-321]].
+
+> **Emenda 2026-07-15 (DE-02):** o nó de despesa emitia `k4_coverage` só como
+> binário `partial`/`full` — descartava a **fração** real de cobertura, então
+> "partial" não distinguia 8% de 95%. Instrumentada a cobertura K4 (%) por run
+> em `signals.k4_coverage_pct` + alerta (log estruturado no ponto de detecção),
+> preservando o contrato all-or-nothing (`member_hashes=[]` em partial). Ver
+> §"Emenda 2026-07-15" ao final.
 
 **Status:** Decidido (A25 · l2/l6B) • **Data:** 2026-06-10 • **Relaciona** [[ADR-278]]
 (B3/B4), [[ADR-282]] (§7 gate), [[ADR-255]], [[ADR-090]], [[ADR-279]] (member_hashes).
@@ -133,3 +140,29 @@ que deixou de ser materializado pós-A7.5, [[ADR-134]]) e
 completo, impacto (lineage [[ADR-279]] a 8%, dedup sem discriminação por membro,
 overrides ancorados em hash com titular vazio) e fix em [[ADR-321]]. O
 "por design PII-zero" aplica-se à **fixture K4 sintética**, não à dogfood.
+
+## Emenda 2026-07-15 — instrumentação de cobertura K4 (%) + alerta (DE-02)
+
+**Contexto.** O nó `fluxo_caixa.despesa_total` emitia `signals.k4_coverage` apenas
+como binário: `"partial"` (≥1 tx sem `natural_key` v2) ou ausente/`"full"`. Isso
+descartava a **fração** real de cobertura — a dogfood a 8% ([[ADR-321]]) e um run
+a 95% ficavam ambos rotulados `"partial"`, indistinguíveis. Sem o número, não há
+como priorizar o gap de extração nem alertar quando a cobertura degrada.
+
+**Decisão.**
+
+1. **Cobertura K4 (%) por run** — `despesa_member_hashes` calcula `n_keyed/total`
+   e emite `signals.k4_coverage_pct` (string int, ex.: `"8"`, `"50"`, `"100"`)
+   sempre que há transações. Durável no artefato (`_lineage.fields[...].signals`),
+   queryável por run pelo console interno / telemetria.
+2. **Alerta** — log estruturado `WARNING` no ponto de detecção parcial (namespace
+   `mathoms.lineage.k4`, só contagens + pct, zero PII — as tx não são logadas).
+3. **Degradação graciosa preservada** — o contrato all-or-nothing de
+   `member_hashes` é intocado: cobertura parcial continua `member_hashes=[]` (hash
+   parcial furaria a soma silenciosamente) e a soma verifica pelos `inputs` por
+   categoria. `k4_coverage_pct` é observabilidade, não muda a topologia da soma.
+
+**Onde.** `pipeline/domain/services/e5_lineage.py::despesa_member_hashes`
+(cobertura + alerta) — sem bump de schema (`signals` é objeto aberto,
+`e5_analysis.schema.json:37`). Golden `dogfood_view_model.json` ganha
+`k4_coverage_pct` no nó de despesa (rebaseline documentado 1× na onda R2.3).

@@ -174,6 +174,9 @@ def test_despesa_k4_coverage_partial_contract(e5_payload: dict):
     signals = entry.get("signals") or {}
     if _cents(entry["value"]) > 0:
         assert signals.get("k4_coverage") == "partial"
+        # DE-02: fração real instrumentada (string int 0-100).
+        assert signals.get("k4_coverage_pct", "").isdigit()
+        assert 0 <= int(signals["k4_coverage_pct"]) <= 100
     else:
         assert "k4_coverage" not in signals
     for key in ("tx_total", "dedup_collapsed", "dedup_review"):
@@ -263,18 +266,27 @@ def test_despesa_member_hashes_full_coverage_emits_sorted_unique_k4():
     }
     hashes, signals = despesa_member_hashes(e4)
     assert hashes == ["a" * 16, "b" * 16]
-    assert signals == {}
+    # DE-02: cobertura K4 instrumentada mesmo no caminho full (100%).
+    assert signals == {"k4_coverage_pct": "100"}
 
 
 def test_despesa_member_hashes_partial_or_v1_only_empties_and_signals():
-    """transaction_hash v1 NÃO é K4 (ADR-278 B4); hash parcial não vale (all-or-nothing)."""
+    """transaction_hash v1 NÃO é K4 (ADR-278 B4); hash parcial não vale (all-or-nothing).
+    DE-02: signals carregam a fração real (0% sem key, 50% em 1-de-2)."""
     from pipeline.domain.services.e5_lineage import despesa_member_hashes
 
     sem_key = {"dados": {"lazer": [_tx(30.0, None)]}}
     parcial = {"dados": {"lazer": [_tx(30.0, "a" * 16), _tx(10.0, None)]}}
     v1 = {"dados": {"lazer": [_tx(30.0, "a" * 16, version=1)]}}
-    for e4 in (sem_key, parcial, v1):
-        assert despesa_member_hashes(e4) == ([], {"k4_coverage": "partial"})
+    assert despesa_member_hashes(sem_key) == (
+        [],
+        {"k4_coverage": "partial", "k4_coverage_pct": "0"},
+    )
+    assert despesa_member_hashes(parcial) == (
+        [],
+        {"k4_coverage": "partial", "k4_coverage_pct": "50"},
+    )
+    assert despesa_member_hashes(v1) == ([], {"k4_coverage": "partial", "k4_coverage_pct": "0"})
 
 
 def test_conferencia_signals_from_e4_propagates_only_valid_string_ints():
@@ -300,7 +312,10 @@ def test_despesa_member_hashes_inline_cap_exceeded_empties_and_signals():
     from pipeline.domain.services.e5_lineage import despesa_member_hashes
 
     e4 = {"dados": {"lazer": [_tx(1.0, f"{i:016x}") for i in range(201)]}}
-    assert despesa_member_hashes(e4) == ([], {"k4_coverage": "full", "inline_cap": "exceeded"})
+    assert despesa_member_hashes(e4) == (
+        [],
+        {"k4_coverage": "full", "inline_cap": "exceeded", "k4_coverage_pct": "100"},
+    )
 
 
 def test_despesa_member_hashes_sum_matches_total_when_full_coverage():
