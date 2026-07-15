@@ -4,7 +4,7 @@ type: plan
 title: "Correções de qualidade do relatório (dogfood 2026-07-11)"
 status: in_progress
 created_at: 2026-07-12
-last_review: 2026-07-14
+last_review: 2026-07-15
 adrs_canonical:
   - "[[ADR-326]]"
   - "[[ADR-327]]"
@@ -235,3 +235,109 @@ ADRs (itens com ADR) e no design multi-agente de origem. Resumo por item:
 5. **C2.1** (M, raiz) — R$0/PJ0%/US$0 → valores vivos; desbloqueia C2.5/C2.6.
 
 Pesados (cauda): **C3** (regra de domínio + eval) e **C11-Fase2** (emenda [[ADR-177]] + sign-off).
+
+---
+
+## Onda R2 — 12 achados curados (pipeline-review 2026-07-15)
+
+> Origem: `pipeline-review` do run `455b5da5` / report `91a682e8` (dogfood pós-A/B/C7/C1/E1).
+> Painel de 5 dimensões + verificação adversarial: **30 brutos → 21 verificados, 9 refutados**
+> (dashboard PII-scrubbed + relatório em `_scratch/pipeline-review-dogfood-2026-07-15.md`, gitignored).
+> Run **verde**, conservação 15/15 — o lote anterior segurou; os defeitos migraram para
+> **view-model → UI** e **inconsistências cross-superfície**. O owner curou **12** dos 21.
+> Co-desenho: workflow `codesign-review-wave` (6 especialistas → síntese senior-cto → red-team,
+> 2026-07-15). Touch-points verificados contra `main` (não contra worktree stale).
+
+### Correção de premissa do red-team (ler antes de abrir lanes)
+
+- **A fronteira de sanitização de PII é a FONTE E5, não a UI.** `top_ativos[].nome` carrega
+  descrição cartorial crua + **CPF de terceiro** e é lido por **duas** superfícies: o card
+  React (`Top15AtivosCard.tsx`) **e** o prompt do parecer (`parecer_planejador.yaml:147` →
+  **egresso a LLM de terceiro**, o vetor de maior risco pois sai do tenant). Sanitizar no E5
+  (`top_ativos_analyzer`/payload E5) é o **boundary único** que subsume PD-02 (React, [[ADR-337]])
+  **e** H1 (prompt, [[ADR-332]]). **Onda 1 fecha H1** — sem isso, não fecha o gate de PII de beta.
+- **Granularidade do rótulo:** na fonte E5, `imóvel → classe` **apenas** (padrão estrito
+  [[ADR-332]]); enriquecimento de display (bairro/cidade) fica **downstream** só no view-model/React,
+  **nunca** upstream do input do prompt (senão vaza mais PII de localização ao LLM).
+- **"Manifest do parecer não bumpa / zero eval" exige PROVA, não grep.** Como CTO-02 põe role-keys
+  no artefato E5 que o distiller consome, e PD-02 sanitiza no E5 (muda input do prompt): (a) teste
+  de whitelist provando que role-keys **não** entram no `exec_context` do distiller; (b) orçar 1
+  eval OU provar neutralidade do rótulo (texto estável no prompt). Coordenar com a lane paralela
+  de parecer (C3/C4, manifest 1.8→1.9) — se as janelas coincidem, **dividir 1 eval**.
+- **Emenda [[ADR-191]] colide com a lane de parecer** (C3 também emenda 191 na mesma data):
+  **uma única PR de emenda 2026-07-15** cobrindo os dois refinamentos (taxa canônica 5%/4% + supressão
+  da TRS observada no prompt), ou ordem explícita FP-03 → C3 relendo o frontmatter.
+- **`score_version 2.0` deve reconciliar [[ADR-218]] + [[ADR-328]]** numa só definição de 2.0
+  (`meses_cobertos_essencial` + plateau-em-alvo), OU deferir 218 para 3.0 — antes do PR de scoring.json.
+
+### Decisões travadas em você (owner) — gates de execução
+
+| # | Item | Decisão | Recomendação (co-design) |
+|---|---|---|---|
+| 1 | **FP-03** | TRS/meta-IF migra p/ 5% (×20), ou 4% (SWR/regra-dos-300, ×25) permanece taxa de retirada **distinta** do yield-alvo 5%? | **Manter os dois separados e rotulados:** 5% = yield-alvo/TRS (acumulação, card + estimativa de renda) · 4% = SWR/Trinity (decumulação, ×25). Colapsar em 5%/×20 superestima prontidão de IF ~20%. Registrar na emenda [[ADR-191]]. |
+| 2 | **PD-02/H1** | Confirmar que o CPF na Top-15 é de **terceiro** (não da família) + grau do rótulo de imóvel no display | Confirmar; sanitizar na **fonte E5** (classe-only) fechando React+prompt; display pode ter bairro/cidade (só view-model). |
+| 3 | **CTO-05** | Cascata PJ sem regime: **derivar** receita_bruta do fluxo ou **suprimir** a cascata zerada + CTA? | **Suprimir + CTA** citando o valor detectado (pro_labore ≠ faturamento PJ; derivar renderiza número enganoso). Emenda [[ADR-236]]. |
+| 4 | **DE-01** | Export LGPD pode ler custo de `llm_call_log` (por-call) em vez de `pipeline_run_costs` (por-stage)? | **Consolidar em `llm_call_log`** (SSOT — já grava os 8 stages) + drop two-phase de `pipeline_run_costs`; agregação read-side só se houver tela de breakdown. Emenda [[ADR-173]]. |
+| 5 | **FP-02** | Ratificar [[ADR-328]] (plateau-em-alvo + piso 3m) — pré-condição do bump `score_version 2.0` | Ratificar + reconciliar com [[ADR-218]] (ver premissa acima). |
+
+### Ondas de execução
+
+| Onda | Título | Itens | Gate de entrada |
+|---|---|---|---|
+| **R2.1** | **P0 — PII na fonte E5 (bloqueia beta)** | CTO-02, PD-02+H1, CTO-06 | [[ADR-337]]/[[ADR-338]] Proposto docs-first; owner+LGPD confirmam CPF de terceiro; **1** bump aditivo `schema_e5` (CTO-02 âncora, último a tocar o schema); gate PII-scan estendido ao **view-model E o contexto do LLM** (distiller/tool output); teste de contrato view-model↔card scaffolded; **1** manifesto de rebaseline `dev/golden_diff.py` |
+| **R2.2** | **P1 — consistência cross-superfície** | FP-03, CTO-04, PD-01, CTO-05 | decisão FP-03 na emenda [[ADR-191]] (serializada c/ lane de parecer) **antes** do PR de CTO-04; emenda [[ADR-236]] (CTO-05) com sign-off `financial-planner`; CTO-02 já em `main` (PD-01/CTO-04 ramificam depois); teste de contrato verde |
+| **R2.3** | **P2 — score + FinOps + lineage (débito, não-bloqueante)** | FP-02, FP-04, DE-01, DE-02 | `financial-planner` ratifica [[ADR-328]]+[[ADR-218]] → destrava `score_version 2.0`; owner confirma DE-01; cadeia alembic a **um head único** |
+| **R2.4** | **P3 — dedup de documentos co-declarados** | DE-03 | [[ADR-339]] Proposto; preferir derivar no rebuild (code-only) sem migration; se coluna, alembic **após** DE-01 |
+
+**Sequência crítica:** CTO-02 (redefine o contrato view-model que PD-01/CTO-04 herdam) lidera a R2.1;
+FP-03 (doc-only) trava a taxa e destrava CTO-04 na R2.2. Colisões de superfície narrativa
+(`context.py`/`if_projector.py`/`charts_narrator.py`/`summaries_narrator.py`) **serializadas**:
+FP-03 (taxa) → CTO-02 (role-keys) → CTO-04 (rótulo) → PD-01 (template).
+
+### Anti-thrashing — eixos de versão (1 bump/eixo)
+
+- **`schema_e5`** (aditivo, R2.1, **1×**): CTO-02 (role-keys, âncora) + PD-02 (campo `top_ativos[].nome`).
+  **CTO-05 e DE-02 NÃO bumpam** — emitem via `signals` (objeto aberto, `e5_analysis.schema.json:37` verificado).
+- **`score_version 1.0-legacy→2.0`** (R2.3, **1×**): FP-02 (carona na [[ADR-328]] ainda Proposto, não-shipada; reconciliar [[ADR-218]]). FP-04 pega o **mesmo PR** de `scoring.json` **sem** bump (label morto).
+- **`migration_alembic`**: DE-01 (drop two-phase `pipeline_run_costs`, R2.3) → DE-03 (só se coluna `declarante_ref`, R2.4, head após DE-01).
+- **`manifest parecer`**: **0 bump** condicional à prova de whitelist (role-keys fora do `exec_context`) + neutralidade/eval de PD-02 (ver premissa).
+
+### Colisões de arquivo (serializar — nunca paralelizar intra-onda)
+
+- `config/schemas/e5_analysis.schema.json` → CTO-02 (âncora) + PD-02 · **1** bump, último PR da R2.1.
+- `backend/tests/snapshots/dogfood_view_model.json` (golden compartilhada) → **1** manifesto `dev/golden_diff.py` por onda: R2.1={CTO-02,PD-02,CTO-06} · R2.2={PD-01,CTO-04,CTO-05} · R2.3={FP-02,DE-02}.
+- `config/scoring.json` + `financial_score_calculator.py` → FP-02+FP-04 no **mesmo** PR (R2.3); o `financial_score_calculator.py` batela no **mesmo** 2.0 de C5/FIN-05/FIN-01 (que **conformam** ao 2.0, não co-bumpam).
+- Superfície narrativa → serializar por dependência (acima).
+- `report_lineage.py` (CTO-06) × `e5_lineage.py` (DE-02) → **arquivos distintos** (API count vs domínio K4); só compartilham a golden → resolvido por separação de onda.
+
+### ADRs da onda
+
+| Item | Ação | ADR |
+|---|---|---|
+| PD-02 | nova Proposto — rótulo de exibição sem PII na fonte E5 (irmã de 332, React+prompt) | [[ADR-337]] |
+| CTO-02 | nova Proposto — contrato role-keyed no view-model (nome só em valores; fecha follow-up [[ADR-176]]) | [[ADR-338]] |
+| DE-03 | nova Proposto — dedup fuzzy de doc inclui declarante (HMAC/member_id, nunca CPF cru) | [[ADR-339]] |
+| FP-03 | emenda datada — override 5% (yield) × 4% (SWR ×25) distintos | [[ADR-191]] |
+| CTO-05 | emenda datada — suprimir cascata PJ zerada + CTA | [[ADR-236]] |
+| DE-01 | emenda datada — `llm_call_log` como SSOT de FinOps + deprecar `pipeline_run_costs` | [[ADR-173]] |
+| DE-02 | emenda datada — instrumentação de cobertura K4 + degradação graciosa | [[ADR-287]] |
+| FP-02 | conforma in-place (+ reconciliar 218) | [[ADR-328]] |
+| FP-04 | conforma (label `media_12m_documentados`) | [[ADR-306]] |
+| CTO-06 | conforma (`source_document_ids_truncated`) | [[ADR-281]] |
+| CTO-04 | conforma à emenda [[ADR-191]] de FP-03 | — |
+| PD-01 | sem ADR — bug de contrato left/right × context/conclusion | — |
+
+### Aceite por item (4 lentes — resumo)
+
+- **CTO-02** — Compl: `rg`/walk zero-hit de chave de dict com token de nome (3 blocos: patrimonio, reserva.composicao_liquida, goals/cenarios). Corr: role-keys presentes, valores em cents idênticos ao pré-fix. Consist: 2 conjuntos de nomes → key-set idêntico + TS declara essas keys. Prec: golden só rename de chave, 0 delta de cents.
+- **PD-02+H1** — Compl: nenhum slot/prompt emite CPF/CNPJ/matrícula/IPTU/endereço de terceiro (view-model **e** `exec_context` do LLM). Corr: rótulo classe-only na fonte, valor monetário preservado. Consist: mesmo abstrator em React e prompt. Prec: teste sem regex de PII em `top_ativos[].nome` e no contexto do distiller.
+- **CTO-06** — Compl/Prec: `source_document_ids_truncated` explícito; `make update-openapi-snapshot`.
+- **FP-03** — Compl: 5% e 4% rotulados distintos em toda superfície. Corr: meta-IF documenta ×20 vs ×25. Consist: card ↔ regra de sugestão não se contradizem. Prec: emenda [[ADR-191]] registra o override.
+- **CTO-04** — Corr/Consist: rótulo == taxa que gerou o valor; observada × estimada rotuladas.
+- **PD-01** — Compl: card renderiza; cláusulas condicionais (sem "é ()"/"0 gatos"). Corr: `<p>` parseado, sem `dangerouslySetInnerHTML`. Prec: conforma ao teste de contrato de shape.
+- **CTO-05** — Corr: sem número tributário enganoso; sinal `perfil_incompleto_com_receita` (signals aberto, sem bump). Consist: seção fiscal não contradiz R$1M de PJ.
+- **FP-02** — Corr: interpolação ancorada a `meses_alvo` do perfil. Consist: bump 2.0 reconcilia 218+328. Prec: `golden_diff` de score documentado 1×.
+- **FP-04** — Prec: label `media_12m_documentados`; `golden_diff`=0 cents (label morto).
+- **DE-01** — Compl: FinOps por (run,stage) reflete 100% do gasto (via `llm_call_log`). Consist: budget hard-stop inalterado. Prec: migration two-phase reversível; export LGPD repontado.
+- **DE-02** — Compl: cobertura K4 (%) por run instrumentada + alerta. Prec: degradação graciosa preserva all-or-nothing (`member_hashes=[]` em partial).
+- **DE-03** — Compl: informes de casal não flagam duplicata. Prec: discriminador HMAC/member_id, nunca CPF cru, nunca em `content_hash`.

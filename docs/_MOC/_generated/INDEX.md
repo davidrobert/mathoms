@@ -332,6 +332,9 @@
 | ADR-334 | adr | Proposto |  | Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida) | `adr/334-identidade-estruturada-imovel-dedup.md` |
 | ADR-335 | adr | Decidido |  | Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência | `adr/335-autonomia-financeira-exclui-imovel-iliquido.md` |
 | ADR-336 | adr | Proposto |  | Roteamento de lucro PJ mal-classificado como dividendo via segundo sinal de fluxo (TRS) | `adr/336-roteamento-lucro-pj-por-sinal-de-fluxo-na-trs.md` |
+| ADR-337 | adr | Proposto |  | Rótulo de exibição sem PII para ativos — sanitização na fonte E5 (React + prompt) | `adr/337-rotulo-exibicao-sem-pii-tabela-ativos.md` |
+| ADR-338 | adr | Proposto |  | Contrato role-keyed no view-model — nome do membro só em valores, nunca em chaves | `adr/338-contrato-role-keyed-view-model-nome-em-valores.md` |
+| ADR-339 | adr | Proposto |  | Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata | `adr/339-dedup-fuzzy-documento-inclui-declarante.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
