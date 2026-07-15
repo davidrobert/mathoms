@@ -212,6 +212,8 @@ class _Window:
     receita_recorrente_brl: Decimal
     receita_total_brl: Decimal
     despesa_total_brl: Decimal
+    # ADR-333: consumo = despesa_total − transferência patrimonial (aporte); denominador da poupança.
+    despesa_consumo_brl: Decimal
     despesa_mensal_media_brl: Decimal
     despesa_mensal_essencial_brl: Decimal
     referencia: str
@@ -234,6 +236,10 @@ def _resolve_window(fluxo: _FluxoPayload) -> _Window:
         receita_recorrente_brl=Decimal(str(_safe_float(src.get("receita_recorrente", 0)))),
         receita_total_brl=Decimal(str(_safe_float(src.get("receita_total", 0)))),
         despesa_total_brl=Decimal(str(_safe_float(src.get("despesa_total", 0)))),
+        # ADR-333: fallback p/ despesa_total em payload legado (pré-despesa_consumo).
+        despesa_consumo_brl=Decimal(
+            str(_safe_float(src.get("despesa_consumo", src.get("despesa_total", 0))))
+        ),
         despesa_mensal_media_brl=Decimal(str(_safe_float(src.get("despesa_mensal_media", 0)))),
         despesa_mensal_essencial_brl=Decimal(
             str(_safe_float(src.get("despesa_mensal_essencial", 0)))
@@ -245,12 +251,13 @@ def _resolve_window(fluxo: _FluxoPayload) -> _Window:
 
 
 def _calc_poupanca(window: _Window) -> _Poupanca:
+    # ADR-333: poupança = renda − CONSUMO (aporte é transferência, não consumo).
     recorrente = _ratio_pct(
-        float(window.receita_recorrente_brl - window.despesa_total_brl),
+        float(window.receita_recorrente_brl - window.despesa_consumo_brl),
         float(window.receita_recorrente_brl),
     )
     pct_total = _ratio_pct(
-        float(window.receita_total_brl - window.despesa_total_brl),
+        float(window.receita_total_brl - window.despesa_consumo_brl),
         float(window.receita_total_brl),
     )
     return _Poupanca(recorrente_pct_value=recorrente, geral_pct_value=pct_total)

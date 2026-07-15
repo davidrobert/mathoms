@@ -182,8 +182,11 @@ def _cv4_taxa_poupanca(e5: dict) -> CrossValidationResult | None:
     fluxo = e5.get("fluxo_caixa", {})
     ratios = e5.get("ratios", {})
     tp_pct = ratios.get("taxa_poupanca_recorrente_pct", None)
-    rec_recorrente = fluxo.get("receita_recorrente", 0)
-    despesa = fluxo.get("despesa_total", 0)
+    # ADR-333: espelhar EXATAMENTE a fórmula do motor (RatiosCalculator) — janela 12m +
+    # despesa_consumo (aporte fora). Antes usava despesa_total full-window → falso-negativo crônico.
+    src = fluxo.get("janela_12m") or fluxo
+    rec_recorrente = src.get("receita_recorrente", 0)
+    despesa = src.get("despesa_consumo", src.get("despesa_total", 0))
     if tp_pct is None or rec_recorrente <= 0:
         return None
     calculated_tp = ((rec_recorrente - despesa) / rec_recorrente) * 100
