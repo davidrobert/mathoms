@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 291
-- **Proposto**: 33
+- **Decidido**: 292
+- **Proposto**: 32
 - **Roadmap**: 3
 
 ## Fundação
@@ -514,7 +514,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (40)
+### Decidido (41)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -555,9 +555,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-312]] — Canonicalização do vocabulário top-level do writer E2-llm: banco/tipo canonical-only + fallback permanente nos readers
 - [[ADR-330]] — Contrato por_fonte: bloco derivado receita_por_natureza (fora de por_fonte) · phase dogfood Frente 2
 - [[ADR-331]] — Fidelidade fixture↔E4 (por_fonte real) + golden red-before-green · phase dogfood Frente 2
+- [[ADR-333]] — Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança) · phase dogfood cluster C1
 - [[ADR-335]] — Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência
 
-### Proposto (9)
+### Proposto (8)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -565,7 +566,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-327]] — Guarda de fidelidade narrativa↔E5: binding de token monetário a campo vivo + fail-closed no E5.N
 - [[ADR-328]] — score_version 2.0 — plateau da cobertura de reserva no alvo do perfil (não premiar over-provisioning)
 - [[ADR-332]] — Sanitização de PII no contexto do parecer + gate PII-scan
-- [[ADR-333]] — Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0)
 - [[ADR-334]] — Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida)
 - [[ADR-336]] — Roteamento de lucro PJ mal-classificado como dividendo via segundo sinal de fluxo (TRS) · phase dogfood cluster A
 

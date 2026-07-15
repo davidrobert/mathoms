@@ -328,7 +328,7 @@
 | ADR-330 | adr | Decidido |  | Contrato por_fonte: bloco derivado receita_por_natureza (fora de por_fonte) | `adr/330-contrato-por-fonte-receita-pj.md` |
 | ADR-331 | adr | Decidido |  | Fidelidade fixture↔E4 (por_fonte real) + golden red-before-green | `adr/331-fidelidade-fixture-e4-golden-red-before-green.md` |
 | ADR-332 | adr | Proposto |  | Sanitização de PII no contexto do parecer + gate PII-scan | `adr/332-sanitizacao-pii-contexto-parecer-gate-scan.md` |
-| ADR-333 | adr | Proposto |  | Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0) | `adr/333-aporte-transferencia-patrimonial-nao-consumo.md` |
+| ADR-333 | adr | Decidido |  | Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança) | `adr/333-aporte-transferencia-patrimonial-nao-consumo.md` |
 | ADR-334 | adr | Proposto |  | Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida) | `adr/334-identidade-estruturada-imovel-dedup.md` |
 | ADR-335 | adr | Decidido |  | Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência | `adr/335-autonomia-financeira-exclui-imovel-iliquido.md` |
 | ADR-336 | adr | Proposto |  | Roteamento de lucro PJ mal-classificado como dividendo via segundo sinal de fluxo (TRS) | `adr/336-roteamento-lucro-pj-por-sinal-de-fluxo-na-trs.md` |
