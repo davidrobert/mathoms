@@ -70,6 +70,9 @@ _DEFAULT_ONE_TIME_ORIGIN_NAMES = frozenset(
     }
 )
 
+# ADR-333: categorias de despesa que são TRANSFERÊNCIA patrimonial (poupança), não consumo.
+_DEFAULT_TRANSFER_CATEGORIES = frozenset({"aporte_investimento"})
+
 
 @dataclass(frozen=True)
 class FluxoEnricherConfig:
@@ -80,6 +83,9 @@ class FluxoEnricherConfig:
     one_time_origin_names: frozenset[str] = _DEFAULT_ONE_TIME_ORIGIN_NAMES
     janela_meses: int = 12
     essential_categories: frozenset[str] = frozenset()
+    # ADR-333: transferência patrimonial (aporte) sai do denominador da taxa de poupança
+    # (segue em despesa_total → fluxo_liquido preservado; conservação intacta).
+    transfer_categories: frozenset[str] = _DEFAULT_TRANSFER_CATEGORIES
 
     @classmethod
     def from_categorization(cls, categorization: dict | None = None) -> "FluxoEnricherConfig":
@@ -148,6 +154,11 @@ class Janela12m:
     fluxo_liquido: float
     taxa_poupanca_recorrente: float
     taxa_poupanca_total: float
+    # ADR-333: despesa_consumo = despesa_total − transferencia_patrimonial (aporte).
+    # Numerador da poupança usa despesa_consumo; despesa_total segue p/ fluxo_liquido.
+    # Decimal (ADR-090: money nunca float em código novo), serializado como float no to_dict.
+    despesa_consumo: Decimal = field(default_factory=lambda: Decimal("0"))
+    transferencia_patrimonial: Decimal = field(default_factory=lambda: Decimal("0"))
     # Track T06 / [[ADR-191]] §D4 — média mensal das despesas em
     # ``categorias_in`` essenciais. Decimal (ADR-090: money nunca é float
     # em código novo); serializado como float no ``to_dict`` por paridade
@@ -160,6 +171,8 @@ class Janela12m:
         out.update({"janela": "12m", "janela_meses": self.n_meses})
         out.update({f: round(getattr(self, f), 2) for f in _JANELA_ROUND_FIELDS})
         out["despesa_mensal_essencial"] = _essencial_as_float(self.despesa_mensal_essencial)
+        out["despesa_consumo"] = _essencial_as_float(self.despesa_consumo)
+        out["transferencia_patrimonial"] = _essencial_as_float(self.transferencia_patrimonial)
         out["despesas_por_categoria"] = {
             k: round(v, 2) for k, v in self.despesas_por_categoria.items()
         }
@@ -422,6 +435,9 @@ class FluxoCaixaEnricher:
         receita_rec_mensal = rec_recorrente / n_janela if n_janela > 0 else 0.0
         despesa_mensal_media = desp_bruto / n_janela if n_janela > 0 else 0.0
         despesa_mensal_essencial = self._compute_essencial_mensal(desp_por_cat, n_janela)
+        # ADR-333: aporte é transferência patrimonial (poupança), não consumo.
+        transferencia = Decimal(str(sum(desp_por_cat.get(c, 0.0) for c in cfg.transfer_categories)))
+        despesa_consumo = Decimal(str(desp_bruto)) - transferencia
         return Janela12m(
             periodo=f"{inicio} a {fim}",
             n_meses=n_janela,
@@ -432,8 +448,12 @@ class FluxoCaixaEnricher:
             despesa_total=desp_bruto,
             despesa_mensal_media=despesa_mensal_media,
             fluxo_liquido=rec_bruto - desp_bruto,
-            taxa_poupanca_recorrente=_ratio_pct(rec_recorrente - desp_bruto, rec_recorrente),
-            taxa_poupanca_total=_ratio_pct(rec_bruto - desp_bruto, rec_bruto),
+            despesa_consumo=despesa_consumo,
+            transferencia_patrimonial=transferencia,
+            taxa_poupanca_recorrente=_ratio_pct(
+                rec_recorrente - float(despesa_consumo), rec_recorrente
+            ),
+            taxa_poupanca_total=_ratio_pct(rec_bruto - float(despesa_consumo), rec_bruto),
             despesa_mensal_essencial=despesa_mensal_essencial,
             despesas_por_categoria=desp_por_cat,
         )

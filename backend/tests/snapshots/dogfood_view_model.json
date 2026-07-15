@@ -311,6 +311,7 @@
     "fluxo_liquido": 150000,
     "janela": "full",
     "janela_12m": {
+      "despesa_consumo": 150000,
       "despesa_mensal_essencial": 150000,
       "despesa_mensal_media": 150000,
       "despesa_total": 150000,
@@ -327,7 +328,8 @@
       "receita_recorrente_mensal": 300000,
       "receita_total": 300000,
       "taxa_poupanca_recorrente": "50.000000",
-      "taxa_poupanca_total": "50.000000"
+      "taxa_poupanca_total": "50.000000",
+      "transferencia_patrimonial": 0
     },
     "janela_meses": 1,
     "por_fonte": {

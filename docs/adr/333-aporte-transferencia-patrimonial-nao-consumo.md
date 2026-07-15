@@ -1,8 +1,9 @@
 ---
 id: ADR-333
 type: adr
-title: "Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança + score_version 2.0)"
-status: Proposto
+title: "Aporte de investimento é transferência patrimonial, não consumo (taxa de poupança)"
+status: Decidido
+phase: dogfood cluster C1
 date: "2026-07-14"
 relates_to:
   - "[[ADR-328]]"
@@ -18,9 +19,10 @@ tags:
 
 # ADR-333 — Aporte = transferência patrimonial, não consumo
 
-> Item **C1** do plano [[PLAN-dogfood-report-fix]] (achado FIN-01). Irmã de
-> [[ADR-328]] (mesmo bump `score_version 2.0`); co-batelada com FIN-05
-> (diversificação) e FIN-01 (input de poupança do score).
+> Item **C1** do plano [[PLAN-dogfood-report-fix]] (achado FIN-01). Implementado
+> 2026-07-14 (co-design FP + data-engineer). **Sem bump de `score_version`** — a taxa
+> é INPUT do score, não a fórmula (ver Decisão). A batelada `score_version 2.0` de
+> C5/FIN-05 ([[ADR-328]]) é mudança de fórmula, separada e futura.
 
 ## Contexto
 
@@ -68,16 +70,17 @@ continua saída-total).
   sem decisão nova — lê `ratios.taxa_poupanca_recorrente_pct`, que agora reflete
   consumo. Deixa de ser artefato → sobe de ~2,8/10.
 - `equilibrio_cerbasi.componentes.poupanca` (`equilibrio_cerbasi_analyzer.py:182`):
-  **muda** — o residual `max(0, receita_recorrente − despesa_janela)` passa a ler
-  `despesa_consumo`, e o `transfer_set` sai de `gasto_presente`
-  (`_split_gastos:202-213`). Efeito coordenado no mesmo bump: o aporte conta como
-  futuro **exatamente uma vez** (via residual), coerente com o comentário
-  canônico `scoring.json:140` ("aporte é futuro"). Sem coordenar, o
-  `equilibrio_cerbasi` contradiria a taxa de poupança.
+  **NÃO alterado neste PR** — usa o modelo 50-15-35 próprio do `equilibrio_cerbasi`
+  (`despesa_janela` + `_split_gastos`), independente de `janela_12m.despesa_consumo`;
+  permanece como está (sem regressão). **Follow-up:** coordenar o aporte como "futuro
+  exatamente uma vez" (residual vs `_split_gastos`) para o card de equilíbrio não
+  divergir da taxa de poupança.
 
-**Bump `score_version 1.0-legacy → 2.0`** (`financial_score_calculator.py:29`),
-batelado com [[ADR-328]]/FIN-05/FIN-01 — re-baselina os goldens de score **1×**
-(regra anti-thrashing do [[PLAN-dogfood-report-fix]]).
+**Sem bump de `score_version`.** A taxa de poupança é **INPUT** do componente do score,
+não a fórmula (pesos/composição). Por [[ADR-217]] §D3, o bump só ocorre quando a fórmula
+muda; aqui o valor do componente sobe (input melhor) e `score_version` segue `1.0-legacy`.
+Goldens de score re-baselinam só onde a fixture exercita `aporte_investimento` (sintéticas
+sem aporte não mudam).
 
 **CV4** (`validate_cross.py:181-189`): passa a ler `fluxo.janela_12m`
 (não full-period) — resolve o falso-negativo de janela **imediatamente** — e,
@@ -110,14 +113,12 @@ divergente das barras exibidas.
 
 - Taxa de poupança sobe ~14,19% → ~27–30%; componente do score deixa de ser
   subavaliado. Card/parecer passam a refletir aporte como poupança.
-- [[ADR-090]]: campos novos seguem o padrão `float + round(v,2)` do dataclass
-  (`Janela12m.to_dict`); o witness em cents é exato porque cada valor é
-  round-to-2 antes de virar cents, e `despesa_consumo` é subtração de dois
-  totais já arredondados. **Nenhuma nova violação de float em acumulação.**
-- Schema `e5_analysis` (permissivo, sem `version` explícito; `janela_12m` sem
-  `properties`) aceita os campos aditivos sem quebra; o gate real é o witness de
-  conservação (`mode=warn` default).
-- `score_version 2.0` re-baselina goldens de score 1× junto com [[ADR-328]].
+- [[ADR-090]]: campos novos são **Decimal** (padrão `despesa_mensal_essencial` na mesma
+  dataclass), serializados como float no `to_dict`; `despesa_consumo` = subtração de dois
+  totais já arredondados (exato em cents). Gate `check_float_money` passa (sem float-money novo).
+- Schema `e5_analysis` (permissivo; `janela_12m` sem `properties`) aceita os campos aditivos
+  sem quebra.
+- `score_version` **inalterado** (`1.0-legacy`); só o valor do componente de poupança sobe.
 
 ## Critério de aceite (4 lentes)
 
@@ -125,10 +126,9 @@ divergente das barras exibidas.
   card, ratio, score e `equilibrio_cerbasi` consomem `despesa_consumo`; CV4 lê `janela_12m`.
 - **Corretude:** taxa de poupança recomputada com `despesa_consumo` bate com a
   reportada (diff ≤ threshold); componente do score sobe de ~2,8/10.
-- **Consistência:** witnesses novos em `test_e5_conservation_invariants.py`
-  (cents, tolerância 0): `despesa_total == despesa_consumo +
-  transferencia_patrimonial` **e** `transferencia_patrimonial == Σ
-  despesas_por_categoria[transfer_set]`; witnesses existentes (`fluxo_liquido`,
-  `Σ por_categoria`) permanecem verdes.
-- **Precisão:** CV4 vira espelho de `ratios.taxa_poupanca_recorrente_pct`;
-  `score_version 2.0` bumpado; goldens re-baselinados 1×.
+- **Consistência:** testes do enricher (`test_fluxo_caixa_enricher.py::TestAporteTransferencia`)
+  travam `despesa_consumo == despesa_total − transferencia_patrimonial`,
+  `transferencia_patrimonial == Σ despesas_por_categoria[transfer_set]` e `fluxo_liquido`
+  inalterado. Witnesses de conservação existentes (`fluxo_liquido`, `Σ por_categoria`) verdes.
+- **Precisão:** CV4 vira espelho de `ratios.taxa_poupanca_recorrente_pct` (janela 12m +
+  despesa_consumo); `score_version` inalterado (mudança de input); campos novos em `Decimal`.

@@ -342,3 +342,33 @@ class TestReceitaPorNatureza:
 
         assert sum(_c(v) for v in nat.values()) == _c(d["receita_total"])
         assert nat["receita_outras"] >= 0
+
+
+class TestAporteTransferencia:
+    """ADR-333: aporte_investimento é transferência patrimonial (poupança), não consumo."""
+
+    def _janela(self, despesas_mes: dict) -> dict:
+        r = FluxoCaixaEnricher().enrich(
+            _receitas(total=10_000, por_categoria={"receita_clt": 10_000}),
+            _despesas(total=10_000),
+            _fluxo_mensal(
+                ["2026-01"],
+                {"2026-01": {"Salario": 10_000.0}},
+                {"2026-01": despesas_mes},
+            ),
+        )
+        return r.to_legacy_dict()["janela_12m"]
+
+    def test_aporte_sai_do_consumo_e_eleva_poupanca(self):
+        j = self._janela({"_total": 10_000.0, "aporte_investimento": 3_000.0, "mercado": 7_000.0})
+        assert j["despesa_total"] == 10_000.0  # conservação: total inalterado
+        assert j["transferencia_patrimonial"] == 3_000.0
+        assert j["despesa_consumo"] == 7_000.0  # total − aporte
+        assert j["fluxo_liquido"] == 0.0  # rec 10k − despesa_total 10k (conservação)
+        assert j["taxa_poupanca_recorrente"] == 30.0  # (10k − consumo 7k)/10k; NÃO 0%
+
+    def test_sem_aporte_consumo_igual_total(self):
+        j = self._janela({"_total": 8_000.0, "mercado": 8_000.0})
+        assert j["transferencia_patrimonial"] == 0.0
+        assert j["despesa_consumo"] == j["despesa_total"] == 8_000.0
+        assert j["taxa_poupanca_recorrente"] == 20.0  # (10k − 8k)/10k
