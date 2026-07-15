@@ -66,8 +66,8 @@ def test_output_has_all_required_keys(config: PatrimonioConfig):
         "imoveis_investimento",
         "imoveis_geradores",
         "imoveis_nao_geradores",
-        "investimentos_david",
-        "investimentos_mariana",
+        "investimentos_titular",
+        "investimentos_conjuge",
         "caixa_moeda_estrangeira",
         "caixa_detalhes",
         "caixa_me_detalhe",  # A17 L3 P4 — Wise breakdown
@@ -83,14 +83,17 @@ def test_output_has_all_required_keys(config: PatrimonioConfig):
     assert required_keys.issubset(result.keys())
 
 
-def test_output_uses_dynamic_inv_keys(identity_solo: MemberIdentity):
-    """key_inv_* usa identity dinâmica (``investimentos_<titular_key>``)."""
+def test_output_uses_role_keyed_inv_keys(identity_solo: MemberIdentity):
+    """ADR-338: key_inv_* é role-keyed fixo, nunca derivado do nome do membro."""
     cfg = PatrimonioConfig(members=identity_solo)
     calc = PatrimonioCalculator(cfg)
     result = calc.calculate(PatrimonioInputs(baseline={"members": {"joao": {}}}))
-    assert "investimentos_joao" in result
-    # conjuge_key vazia → chave "investimentos_" ainda aparece (comportamento fiel ao legado)
-    assert "investimentos_" in result
+    assert "investimentos_titular" in result
+    # conjuge_key vazia → chave role-keyed "investimentos_conjuge" ainda aparece
+    assert "investimentos_conjuge" in result
+    # ADR-338: chaves NUNCA derivam do nome/key do membro (era investimentos_joao / investimentos_)
+    assert "investimentos_joao" not in result
+    assert "investimentos_" not in result
 
 
 # =============================================================================
@@ -135,7 +138,7 @@ def test_irpf_only_basic_totals(config: PatrimonioConfig):
     assert result["residencia"] == 500_000.0
     assert result["imoveis_investimento"] == 300_000.0
     assert result["veiculos"] == 50_000.0
-    assert result["investimentos_david"] == 150_000.0  # 100k + 50k
+    assert result["investimentos_titular"] == 150_000.0  # 100k + 50k
     # caixa residual = 1.2M - 500k - 300k - 50k - 150k = 200k
     assert result["caixa_moeda_estrangeira"] == 200_000.0
 
@@ -225,7 +228,7 @@ def test_irpf_contas_bancarias_as_scalar(config: PatrimonioConfig):
     }
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline))
-    assert result["investimentos_david"] == 30_000.0
+    assert result["investimentos_titular"] == 30_000.0
 
 
 def test_irpf_titular_extras_summed(config: PatrimonioConfig):
@@ -248,7 +251,7 @@ def test_irpf_titular_extras_summed(config: PatrimonioConfig):
     }
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline))
-    assert result["investimentos_david"] == 600.0
+    assert result["investimentos_titular"] == 600.0
 
 
 def test_irpf_conjuge_only_outros_summed(config: PatrimonioConfig):
@@ -271,7 +274,7 @@ def test_irpf_conjuge_only_outros_summed(config: PatrimonioConfig):
     }
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline))
-    assert result["investimentos_mariana"] == 300.0
+    assert result["investimentos_conjuge"] == 300.0
 
 
 # =============================================================================
@@ -327,8 +330,8 @@ def test_current_positions_unattributed_goes_to_titular(config: PatrimonioConfig
     }
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
-    assert result["investimentos_david"] == 130.0  # 100 + 30 unattributed
-    assert result["investimentos_mariana"] == 50.0
+    assert result["investimentos_titular"] == 130.0  # 100 + 30 unattributed
+    assert result["investimentos_conjuge"] == 50.0
 
 
 def test_current_positions_caixa_from_adapter(config: PatrimonioConfig):
@@ -379,8 +382,8 @@ def test_current_positions_member_without_positions_falls_back_to_irpf(
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
 
-    assert result["investimentos_david"] == 300_000.0
-    assert result["investimentos_mariana"] == 250_000.0
+    assert result["investimentos_titular"] == 300_000.0
+    assert result["investimentos_conjuge"] == 250_000.0
     assert result["fonte_investimentos"] == "posicoes_atuais+irpf"
 
 
@@ -399,8 +402,8 @@ def test_current_positions_substring_member_match(config: PatrimonioConfig):
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
 
-    assert result["investimentos_david"] == 300_000.0
-    assert result["investimentos_mariana"] == 85_000.0
+    assert result["investimentos_titular"] == 300_000.0
+    assert result["investimentos_conjuge"] == 85_000.0
     assert result["fonte_investimentos"] == "posicoes_atuais"
 
 
@@ -421,8 +424,8 @@ def test_current_positions_no_fallback_when_both_have_positions(
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
 
-    assert result["investimentos_david"] == 100.0
-    assert result["investimentos_mariana"] == 50.0
+    assert result["investimentos_titular"] == 100.0
+    assert result["investimentos_conjuge"] == 50.0
     assert result["fonte_investimentos"] == "posicoes_atuais"
 
 
@@ -441,7 +444,7 @@ def test_current_positions_empty_dados_treated_as_irpf(config: PatrimonioConfig)
     calc = PatrimonioCalculator(config)
     result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
     assert result["fonte_investimentos"] == "irpf"
-    assert result["investimentos_david"] == 80.0
+    assert result["investimentos_titular"] == 80.0
 
 
 # =============================================================================
@@ -637,8 +640,8 @@ def test_solo_identity_no_conjuge_category(identity_solo: MemberIdentity):
     )
     # Categoria do cônjuge existe mas com valor 0 + nome vazio
     cats = {c["categoria"] for c in result["composicao"]}
-    assert "Investimentos " in cats  # nome vazio
-    assert result["investimentos_"] == 0.0  # conjuge_key vazia
+    assert "Investimentos " in cats  # label derivado do nome (vazio) — value, não key
+    assert result["investimentos_conjuge"] == 0.0  # ADR-338: bucket cônjuge role-keyed
 
 
 # =============================================================================
@@ -812,9 +815,9 @@ def test_adr145_solo_titular_conjuge_bucket_is_zero():
         }
     }
     result = PatrimonioCalculator(config_solo).calculate(PatrimonioInputs(baseline=baseline))
-    # Solo: chave dinâmica é investimentos_titular (sem conjuge_key, é só titular)
+    # ADR-338: chave role-keyed investimentos_titular (sem conjuge_key, é só titular)
     assert result["investimentos_titular"] == 100_000.0
-    assert result.get("investimentos_") == 0.0  # bucket cônjuge ausente == 0
+    assert result.get("investimentos_conjuge") == 0.0  # bucket cônjuge ausente == 0
 
 
 # =============================================================================

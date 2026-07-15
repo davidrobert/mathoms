@@ -314,7 +314,7 @@
         },
         "premissas": {
           "type": "object",
-          "description": "Premissas usadas no cálculo (meta_if, investivel_atual, retorno_real_anual_pct, aporte_base, fator_reduzido, salario_<conjuge_key>_clt_brl). Chave salario_*_clt_brl é dinâmica por workspace.",
+          "description": "Premissas usadas no cálculo (meta_if, investivel_atual, retorno_real_anual_pct, aporte_base, fator_reduzido, salario_conjuge_clt_brl). ADR-338: chave role-keyed salario_conjuge_clt_brl (era dinâmica por nome).",
           "properties": {
             "meta_if": {"type": "number"},
             "investivel_atual": {"type": "number"},
@@ -323,7 +323,8 @@
               "description": "Retorno real anual esperado em % — percentual absoluto (4.0 = 4,0% a.a., ADR-209)."
             },
             "aporte_base": {"type": "number"},
-            "fator_reduzido": {"type": "number"}
+            "fator_reduzido": {"type": "number"},
+            "salario_conjuge_clt_brl": {"type": "number", "minimum": 0}
           }
         },
         "cenarios": {
@@ -337,13 +338,11 @@
               "aporte_mensal": {"type": "number", "minimum": 0},
               "prazo_if_anos": {"type": "number", "minimum": 0},
               "ano_if": {"type": "integer"},
-              "resumo": {"type": "string", "minLength": 1}
-            },
-            "patternProperties": {
-              "^idade_[a-z_][a-z0-9_]*$": {
+              "resumo": {"type": "string", "minLength": 1},
+              "idade_titular": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "Idade do titular no ano IF projetado. Sem upper bound porque a sentinela legada prazo=999 (impossível de atingir IF) propaga para idade = age + 999, valores >120 sinalizam não-atingimento."
+                "description": "ADR-338: role-keyed (era idade_<nome>). Idade do titular no ano IF projetado; sem upper bound porque a sentinela legada prazo=999 propaga para idade = age + 999, valores >120 sinalizam não-atingimento."
               }
             }
           }
@@ -353,7 +352,7 @@
         "^idade_[a-z_][a-z0-9_]*_if$": {
           "type": "array",
           "items": {"type": "integer", "minimum": 0},
-          "description": "Idade do titular projetada por cenário; chave dinâmica idade_<titular_key>_if. Sem upper bound — sentinela prazo=999 propaga para valores >120."
+          "description": "ADR-338: role-keyed idade_titular_if (o pattern legado ainda casa; nome do membro nunca em chave). Idade do titular projetada por cenário; sem upper bound — sentinela prazo=999 propaga para valores >120."
         }
       }
     },

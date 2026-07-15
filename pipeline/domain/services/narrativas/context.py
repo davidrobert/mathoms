@@ -56,11 +56,12 @@ class NarrativasContext:
             conjuge_key=conjuge_key,
             titular_nome=titular_nome,
             conjuge_nome=conjuge_nome,
-            key_inv_titular=f"investimentos_{titular_key}",
-            key_inv_conjuge=f"investimentos_{conjuge_key}",
+            # ADR-338: chaves role-keyed (nunca derivadas do nome).
+            key_inv_titular="investimentos_titular",
+            key_inv_conjuge="investimentos_conjuge",
             key_cenarios_conjuge="cenarios_conjuge",  # ADR-166 + ADR-176: chave estável universal
-            key_idade_titular_if=f"idade_{titular_key}_if",
-            key_sal_conjuge=f"salario_{conjuge_key}",
-            key_inst_titular=f"{titular_key}_instituicoes",
-            key_inst_conjuge=f"{conjuge_key}_instituicoes",
+            key_idade_titular_if="idade_titular_if",
+            key_sal_conjuge="salario_conjuge",
+            key_inst_titular="titular_instituicoes",
+            key_inst_conjuge="conjuge_instituicoes",
         )

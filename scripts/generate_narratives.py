@@ -62,12 +62,13 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     _TITULAR_NOME = _MEMBROS.get(_TITULAR_KEY, {}).get("nome_curto", _TITULAR_KEY.title())
     _CONJUGE_NOME = _MEMBROS.get(_CONJUGE_KEY, {}).get("nome_curto", _CONJUGE_KEY.title())
 
-    _KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
-    _KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
-    _KEY_IDADE_TITULAR_IF = f"idade_{_TITULAR_KEY}_if"
-    _KEY_SAL_CONJUGE = f"salario_{_CONJUGE_KEY}"
-    _KEY_INST_TITULAR = f"{_TITULAR_KEY}_instituicoes"
-    _KEY_INST_CONJUGE = f"{_CONJUGE_KEY}_instituicoes"
+    # ADR-338: chaves role-keyed (nome do membro nunca em chave; só em valores).
+    _KEY_INV_TITULAR = "investimentos_titular"
+    _KEY_INV_CONJUGE = "investimentos_conjuge"
+    _KEY_IDADE_TITULAR_IF = "idade_titular_if"
+    _KEY_SAL_CONJUGE = "salario_conjuge"
+    _KEY_INST_TITULAR = "titular_instituicoes"
+    _KEY_INST_CONJUGE = "conjuge_instituicoes"
     # ADR-166 + ADR-176: chave universal estável; não mais derivada de _CONJUGE_KEY.
     _KEY_CENARIOS_SECTION = "cenarios_conjuge"
     # ADR-168 cleanup (Sprint A10.1): _KEY_F1F2_TITULAR, _KEY_F1F2_CONJUGE,
@@ -115,12 +116,12 @@ _MEMBROS: dict = {}
 _CONJUGE_KEY: str = ""
 _TITULAR_NOME: str = ""
 _CONJUGE_NOME: str = ""
-_KEY_INV_TITULAR: str = "investimentos_"
-_KEY_INV_CONJUGE: str = "investimentos_"
-_KEY_IDADE_TITULAR_IF: str = "idade__if"
-_KEY_SAL_CONJUGE: str = "salario_"
-_KEY_INST_TITULAR: str = "_instituicoes"
-_KEY_INST_CONJUGE: str = "_instituicoes"
+_KEY_INV_TITULAR: str = "investimentos_titular"
+_KEY_INV_CONJUGE: str = "investimentos_conjuge"
+_KEY_IDADE_TITULAR_IF: str = "idade_titular_if"
+_KEY_SAL_CONJUGE: str = "salario_conjuge"
+_KEY_INST_TITULAR: str = "titular_instituicoes"
+_KEY_INST_CONJUGE: str = "conjuge_instituicoes"
 _KEY_CENARIOS_SECTION: str = "cenarios_conjuge"
 
 
@@ -483,7 +484,7 @@ def load_metrics_from_e5(
         "if_gap": goals.get("if_gap", 0),
         "if_prazo_anos": prazo_anos,
         "if_ano": goals.get("ano_if", 0),
-        _KEY_IDADE_TITULAR_IF: goals.get(f"idade_{_TITULAR_KEY}_if", 0),
+        _KEY_IDADE_TITULAR_IF: goals.get("idade_titular_if", 0),
         "renda_passiva_4pct": renda_passiva_4pct,
         # === Computed percentages (Cat. A) ===
         "pct_investivel": pct_investivel,
@@ -576,10 +577,10 @@ def load_metrics_from_e5(
         "cm_aportes": cm.get("aportes", []),
         "cm_prazos": cm.get("prazos_if", []),
         "cm_anos_if": cm.get("anos_if", []),
-        f"cm_idade_{_TITULAR_KEY}": cm.get(f"idade_{_TITULAR_KEY}_if", []),
+        "cm_idade_titular": cm.get("idade_titular_if", []),
         "cm_cenarios": cm.get("cenarios", []),
         "cm_fator_reduzido": cm.get("premissas", {}).get("fator_reduzido", 0.66),
-        "cm_salario_clt_brl": cm.get("premissas", {}).get(f"salario_{_CONJUGE_KEY}_clt_brl", 0),
+        "cm_salario_clt_brl": cm.get("premissas", {}).get("salario_conjuge_clt_brl", 0),
         # ADR-168 cleanup (Sprint A10.1): cm_renda_nclex_*, cm_renda_gc_*,
         # cm_recovery_nclex_pct, cm_recovery_gc_pct removidos — premissas
         # NCLEX/Green Card do Modo USA descontinuado em A8.4 PR4 (ADR-167

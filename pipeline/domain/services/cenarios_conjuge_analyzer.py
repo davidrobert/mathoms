@@ -104,13 +104,13 @@ class CenarioItem:
     idade_titular: int
     resumo: str
 
-    def to_dict(self, titular_key: str = "david") -> dict:
+    def to_dict(self) -> dict:
         return {
             "nome": self.nome,
             "aporte_mensal": round(self.aporte_mensal, 2),
             "prazo_if_anos": self.prazo_if_anos,
             "ano_if": self.ano_if,
-            f"idade_{titular_key}": self.idade_titular,
+            "idade_titular": self.idade_titular,  # ADR-338: role-keyed
             "resumo": self.resumo,
         }
 
@@ -128,9 +128,9 @@ class CenariosConjugeResult:
             "aportes": [round(c.aporte_mensal, 2) for c in self.cenarios],
             "prazos_if": [c.prazo_if_anos for c in self.cenarios],
             "anos_if": [c.ano_if for c in self.cenarios],
-            f"idade_{self.titular_key}_if": [c.idade_titular for c in self.cenarios],
+            "idade_titular_if": [c.idade_titular for c in self.cenarios],  # ADR-338: role-keyed
             "premissas": dict(self.premissas),
-            "cenarios": [c.to_dict(self.titular_key) for c in self.cenarios],
+            "cenarios": [c.to_dict() for c in self.cenarios],
         }
 
 
@@ -183,7 +183,7 @@ class CenariosConjugeAnalyzer:
             "retorno_real_anual_pct": cfg.retorno_real_anual_pct,
             "aporte_base": cfg.aporte_base,
             "fator_reduzido": cfg.fator_reduzido,
-            f"salario_{cfg.conjuge_key}_clt_brl": salario_conjuge_brl,
+            "salario_conjuge_clt_brl": salario_conjuge_brl,  # ADR-338: role-keyed
         }
 
         return CenariosConjugeResult(

@@ -284,7 +284,9 @@ Pesados (cauda): **C3** (regra de domínio + eval) e **C11-Fase2** (emenda [[ADR
 
 | Onda | Título | Itens | Gate de entrada |
 |---|---|---|---|
-| **R2.1** | **P0 — PII na fonte E5 (bloqueia beta)** | CTO-02, PD-02+H1, CTO-06 | [[ADR-337]]/[[ADR-338]] Proposto docs-first; owner+LGPD confirmam CPF de terceiro; **1** bump aditivo `schema_e5` (CTO-02 âncora, último a tocar o schema); gate PII-scan estendido ao **view-model E o contexto do LLM** (distiller/tool output); teste de contrato view-model↔card scaffolded; **1** manifesto de rebaseline `dev/golden_diff.py` |
+| **R2.1** | **P0 — PII na fonte E5 (bloqueia beta)** | CTO-02 ✅, PD-02+H1, CTO-06 | [[ADR-337]]/[[ADR-338]] Proposto docs-first; owner+LGPD confirmam CPF de terceiro; **1** bump aditivo `schema_e5` (CTO-02 âncora, último a tocar o schema); gate PII-scan estendido ao **view-model E o contexto do LLM** (distiller/tool output); teste de contrato view-model↔card scaffolded; **1** manifesto de rebaseline `dev/golden_diff.py` |
+
+> **Estado R2.1 (2026-07-15):** **CTO-02 ✅ implementado** ([[ADR-338]] Decidido) — contrato role-keyed nos 5 emissores/readers de payload + `scripts/generate_narratives.py` (E5.N) + schema/TS/golden; teste de contrato `backend/tests/test_view_model_key_contract.py` verde (shape determinístico + zero chave com nome + role-keys presentes); ~114 testes migrados name→role. Restam **PD-02+H1** e **CTO-06** na onda.
 | **R2.2** | **P1 — consistência cross-superfície** | FP-03, CTO-04, PD-01, CTO-05 | decisão FP-03 na emenda [[ADR-191]] (serializada c/ lane de parecer) **antes** do PR de CTO-04; emenda [[ADR-236]] (CTO-05) com sign-off `financial-planner`; CTO-02 já em `main` (PD-01/CTO-04 ramificam depois); teste de contrato verde |
 | **R2.3** | **P2 — score + FinOps + lineage (débito, não-bloqueante)** | FP-02, FP-04, DE-01, DE-02 | `financial-planner` ratifica [[ADR-328]]+[[ADR-218]] → destrava `score_version 2.0`; owner confirma DE-01; cadeia alembic a **um head único** |
 | **R2.4** | **P3 — dedup de documentos co-declarados** | DE-03 | [[ADR-339]] Proposto; preferir derivar no rebuild (code-only) sem migration; se coluna, alembic **após** DE-01 |

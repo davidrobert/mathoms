@@ -69,8 +69,8 @@ export interface PatrimonioData {
   residencia?: number;
   imoveis_investimento?: number;
   veiculos?: number;
-  investimentos_david?: number;
-  investimentos_mariana?: number;
+  investimentos_titular?: number; // ADR-338: role-keyed (nome só em valores)
+  investimentos_conjuge?: number;
   caixa_moeda_estrangeira?: number;
   fonte_investimentos?: string;
   caixa_detalhes?: PatrimonioCaixaDetalhe[];
@@ -126,8 +126,8 @@ export interface ReservaEmergenciaData {
   /** A28.l1 (PR 787) — perfil de renda que definiu o alvo (ex.: `pj_dominante`). */
   perfil_renda?: string;
   composicao_liquida?: {
-    investimentos_david?: number;
-    investimentos_mariana?: number;
+    investimentos_titular?: number; // ADR-338: role-keyed
+    investimentos_conjuge?: number;
     caixa_moeda_estrangeira?: number;
     total_liquido?: number;
     cobertura_meses?: number;

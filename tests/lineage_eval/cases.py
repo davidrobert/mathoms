@@ -248,7 +248,8 @@ _INPUT_REMOVED = (
     (
         "inr-02",
         # A28.l1: input da reserva = componente NÃO-ZERO de composicao_liquida.
-        _remove_input(_RESERVA, "composicao_liquida.investimentos_david"),
+        # ADR-338: chave role-keyed (era investimentos_<nome-titular>).
+        _remove_input(_RESERVA, "composicao_liquida.investimentos_titular"),
         "A reserva de emergência perdeu o rastro dos investimentos líquidos do titular.",
         _RESERVA,
         _RESERVA,
@@ -348,7 +349,7 @@ _DEDUP_OVERCOLLAPSE = (
     (
         "ddc-04",
         _compose(
-            _remove_input(_RESERVA, "patrimonio.investimentos_david"),
+            _remove_input(_RESERVA, "patrimonio.investimentos_titular"),
             _set_aggregate(_RESERVA, 50000.0),
         ),
         "Os investimentos líquidos do titular sumiram do cálculo da reserva de "
@@ -451,7 +452,7 @@ _SEALED = (
     (
         "sel-membro-cpf",
         _compose(
-            _dup_input(_RESERVA, "composicao_liquida.investimentos_david"),
+            _dup_input(_RESERVA, "composicao_liquida.investimentos_titular"),
             _set_aggregate(_RESERVA, 210000.0),
         ),
         "A identidade de membro é por slug-do-nome em vez de CPF: a mesma "
