@@ -99,10 +99,44 @@ class PerfilFamiliaNarrator:
             else ""
         )
 
+        # PD-01: cláusulas condicionais — campo vazio omite a cláusula inteira
+        # (evita buracos de template: "é ()", "0 gatos", "residência na , ,").
+        _prof_tit = _tit.get("profissao", "")
+        _desc_emp = _tit.get("descricao_empresa", "")
+        _prof_clause = (
+            f"é {_prof_tit} ({_desc_emp}). "
+            if _prof_tit and _desc_emp
+            else f"é {_prof_tit}. "
+            if _prof_tit
+            else ""
+        )
+        _empresas_clause = (
+            f"Mais de {_anos_exp} anos em tecnologia, com passagens por {_empresas_str}. "
+            if _empresas_str and _anos_exp
+            else ""
+        )
+        _endereco_partes = [
+            p
+            for p in (
+                _endereco.get("rua", ""),
+                _endereco.get("bairro", ""),
+                _endereco.get("cidade", ""),
+            )
+            if p
+        ]
+        _pets_clause = (
+            f"<p>A família conta com {len(_pets)} {pluralize(len(_pets), 'gato', 'gatos')}"
+            + (f" — {_pets_str}" if _pets_str else "")
+            + (f" — na residência em {', '.join(_endereco_partes)}" if _endereco_partes else "")
+            + ".</p>"
+            if _pets or _endereco_partes
+            else ""
+        )
+
         left = (
             f"<p>{_tit.get('nome_completo', '')}, {_titular_age} anos, "
-            f"é {_tit.get('profissao', '')} ({_tit.get('descricao_empresa', '')}). "
-            f"Mais de {_anos_exp} anos em tecnologia, com passagens por {_empresas_str}. "
+            f"{_prof_clause}"
+            f"{_empresas_clause}"
             f"Formado em {_tit.get('formacao', '')}. "
             f"Opera como {_tit.get('regime', '')}.</p>\n"
             f"<p>{_conj.get('nome_completo', '')}, {_conjuge_age} anos, "
@@ -113,9 +147,7 @@ class PerfilFamiliaNarrator:
             f"<p>{_filho.get('nome_completo', '')} nasceu em "
             f"{_filho.get('local_nascimento', '')} e possui dupla cidadania {_cidadanias_str}. "
             "Primeiro filho do casal, é peça central no planejamento internacional da família.</p>\n"
-            f"<p>A família conta com {len(_pets)} {pluralize(len(_pets), 'gato', 'gatos')} — {_pets_str} — na residência da "
-            f"{_endereco.get('rua', '')}, {_endereco.get('bairro', '')}, "
-            f"{_endereco.get('cidade', '')}.</p>"
+            f"{_pets_clause}"
         )
 
         # ADR-168 cleanup (Sprint A10.1): primeiro parágrafo reescrito sem

@@ -36,10 +36,30 @@ def narrate_cascata(section: Mapping[str, Any] | None, ctx: NarrativasContext) -
     cascata = section.get("cascata") or {}
     regime = section.get("regime")
     if _is_perfil_pendente(section, cascata):
-        return _PERFIL_PENDENTE
+        return _narrate_perfil_pendente(cascata)
     if cascata.get("regime_nao_suportado"):
         return _narrate_regime_nao_suportado(cascata)
     return _dispatch_regime(regime, cascata, section.get("regime_label", ""), ctx)
+
+
+def _narrate_perfil_pendente(cascata: Mapping[str, Any]) -> dict[str, str]:
+    """CTO-05 (emenda [[ADR-236]]): cita entradas PJ detectadas quando o perfil
+    está incompleto — sem derivar faturamento (pró-labore ≠ receita bruta)."""
+    detectada = cascata.get("receita_pj_detectada_anual") or 0
+    if not (detectada and detectada > 0):
+        return _PERFIL_PENDENTE
+    return {
+        "context": (
+            f"Detectamos ~{fmt_currency(detectada)}/ano de entradas PJ "
+            f"(pró-labore + lucros) no seu fluxo, mas o perfil tributário está "
+            f"incompleto. Peça ao seu consultor preencher regime, anexo (Simples), "
+            f"CNAE e modelo de declaração IRPF para ver a cascata fiscal completa."
+        ),
+        "conclusion": (
+            "Esse valor é a entrada na sua conta PF — não o faturamento bruto da "
+            "PJ. A cascata precisa do regime para estimar a carga tributária real."
+        ),
+    }
 
 
 def _dispatch_regime(
