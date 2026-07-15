@@ -286,6 +286,9 @@ _EXPECTED_CASCATA_KEYS: set[str] = {
     "fator_r_faixa",
     "fator_r_break_even_mensal",
     "triggers",
+    # CTO-05 (emenda ADR-236) — entradas PJ detectadas + sinais de domínio.
+    "receita_pj_detectada_anual",
+    "signals",
     # ADR-238 plumbing E5 — snapshot informes previdência (None se ausente).
     "previdencia_snapshot",
     # ADR-238 A17 L2 P3 — snapshot informes financeiro_pj (None se ausente).

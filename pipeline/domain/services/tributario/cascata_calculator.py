@@ -154,6 +154,12 @@ class CascataOutput:
     fator_r_faixa: Optional[Literal["anexo_iii", "anexo_v"]] = None
     fator_r_break_even_mensal: Optional[Money] = None
     triggers: tuple[CascataTrigger, ...] = ()
+    # CTO-05 (emenda [[ADR-236]] 2026-07-15): entradas PJ (pró-labore + lucros)
+    # detectadas no fluxo quando o perfil está incompleto. NÃO é faturamento —
+    # alimenta o CTA sem derivar número tributário enganoso.
+    receita_pj_detectada_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
+    # CTO-05: objeto aberto de sinais de domínio (ex.: perfil_incompleto_com_receita).
+    signals: tuple[str, ...] = ()
     # ADR-238 (A17 L1 plumbing): passthrough do snapshot informes previdência.
     # None quando workspace não tem ``extract_informes_anuais`` processado.
     # UI consome via ``data.tributario.cascata.previdencia_snapshot``.
@@ -466,11 +472,20 @@ def _assemble_output(
 
 
 def _output_fallback(inp: CascataInput, motivo: str) -> CascataOutput:
+    # CTO-05 (emenda [[ADR-236]]): perfil incompleto mas o fluxo detectou entradas
+    # PJ → sinaliza a inconsistência e alimenta o CTA. NÃO deriva faturamento.
+    receita_detectada = Money.zero("BRL")
+    signals: tuple[str, ...] = ()
+    if motivo == "perfil_incompleto" and inp.receita_pj_anual.amount > 0:
+        receita_detectada = inp.receita_pj_anual
+        signals = ("perfil_incompleto_com_receita",)
     return CascataOutput(
         regime=inp.regime,
         regime_label=_regime_label(inp.regime, inp.anexo_simples),
         regime_nao_suportado=True,
         motivo_nao_suportado=motivo,
+        receita_pj_detectada_anual=receita_detectada,
+        signals=signals,
         previdencia_snapshot=inp.previdencia_snapshot,
         financeiro_pj_snapshot=inp.financeiro_pj_snapshot,
     )
