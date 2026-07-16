@@ -117,6 +117,9 @@ class FinancialRatios:
     # (sem imóvel ilíquido). `to_legacy_dict` emite o nome antigo como alias
     # deprecated por 1 ciclo.
     autonomia_financeira_meses: float
+    # C11-Fase2 / FIN-05 ([[ADR-340]]): SSOT da concentração imobiliária —
+    # cat_2 / carteira produtiva. Ver `_calc_concentracao_imobiliaria`.
+    concentracao_imobiliaria_pct: float = 0.0
     rentabilidade_pct: Decimal | None = None
     aliquota_efetiva_ir_pct: Decimal | None = None
     janela_referencia: str = "N/D"
@@ -132,6 +135,8 @@ class FinancialRatios:
             "autonomia_financeira_meses": round(self.autonomia_financeira_meses, 2),
             # ADR-335: alias deprecated por 1 ciclo (view-model/consumidores antigos).
             "cobertura_despesas_meses": round(self.autonomia_financeira_meses, 2),
+            # C11-Fase2 / FIN-05 ([[ADR-340]]): campo canônico de concentração imobiliária.
+            "concentracao_imobiliaria": round(self.concentracao_imobiliaria_pct, 2),
             "rentabilidade_pct": _format_pct_or_nd(self.rentabilidade_pct),
             "aliquota_efetiva_ir_pct": _format_pct_or_nd(self.aliquota_efetiva_ir_pct),
             "janela_referencia": self.janela_referencia,
@@ -191,6 +196,7 @@ class RatiosCalculator:
             autonomia_financeira_meses=_calc_autonomia_financeira(
                 patrimonio, float(window.despesa_mensal_media_brl)
             ),
+            concentracao_imobiliaria_pct=_calc_concentracao_imobiliaria(patrimonio),
             rentabilidade_pct=_resolve_rentabilidade(passive_income),
             aliquota_efetiva_ir_pct=_resolve_aliquota_ir(irpf, passive_income),
             janela_referencia=window.referencia,
@@ -282,6 +288,18 @@ def _calc_autonomia_financeira(
     # que legitimamente conta cat_2 quando `imoveis_no_if=true` (horizonte de décadas).
     investivel = _safe_float(patrimonio.get("investivel_financeiro", 0))
     return investivel / despesa_mensal_media if despesa_mensal_media > 0 else 0.0
+
+
+def _calc_concentracao_imobiliaria(patrimonio: _PatrimonioPayload) -> float:
+    # C11-Fase2 / FIN-05 ([[ADR-340]]): concentração = imóveis de renda (cat_2)
+    # sobre a CARTEIRA produtiva (investível financeiro + cat_2, FIXA — não usa
+    # `investivel_efetivo`, que é toggle-dependente e estouraria >100%). Mede
+    # quanto do capital produtivo está travado em imóvel ilíquido; residência e
+    # veículos ficam fora do denominador (não são carteira). Numerador cat_2
+    # completo (não só geradores) — imóvel vago/especulação é ainda mais ilíquido.
+    cat2 = _safe_float(patrimonio.get("imoveis_investimento", 0))
+    carteira = _safe_float(patrimonio.get("investivel_financeiro", 0)) + cat2
+    return _ratio_pct(cat2, carteira)
 
 
 def _resolve_rentabilidade(
