@@ -509,12 +509,14 @@ def load_metrics_from_e5(
         "top_asset_nome": top_asset["nome"],
         "top_asset_valor": top_asset["valor"],
         "top_asset_membro": top_asset["membro"],
+        # DE-01/PD-04: fallback honesto e simétrico — ausência de dado nunca vira
+        # alegação de diversificação ("múltiplas instituições") nem rótulo assimétrico.
         _KEY_INST_TITULAR: ", ".join(inst_data["titular_inst"])
         if inst_data["titular_inst"]
-        else "múltiplas instituições",
+        else "instituições não detalhadas neste período",
         _KEY_INST_CONJUGE: ", ".join(inst_data["conjuge_inst"])
         if inst_data["conjuge_inst"]
-        else "não identificadas",
+        else "instituições não detalhadas neste período",
         "n_imoveis": inst_data["n_imoveis"],
         # === Computed: USD/EUR saldos per bank ===
         "wise_usd": round(usd_saldos.get("wise_usd", 0), 2),

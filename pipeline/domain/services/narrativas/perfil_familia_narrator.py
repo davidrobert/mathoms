@@ -14,6 +14,7 @@ from typing import Any
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
+    clause,
     fmt_currency,
     fmt_num,
     fmt_percent,
@@ -133,22 +134,55 @@ class PerfilFamiliaNarrator:
             else ""
         )
 
-        left = (
-            f"<p>{_tit.get('nome_completo', '')}, {_titular_age} anos, "
-            f"{_prof_clause}"
-            f"{_empresas_clause}"
-            f"Formado em {_tit.get('formacao', '')}. "
-            f"Opera como {_tit.get('regime', '')}.</p>\n"
-            f"<p>{_conj.get('nome_completo', '')}, {_conjuge_age} anos, "
-            f"é {_conj.get('profissao', '')} desde {_conj.get('emprego_inicio', '')}. "
-            f"Especialista em {_mar_esp}, mestre em {_mar_mestrado}. "
-            f"CLT com salário-base de {fmt_currency(M[ctx.key_sal_conjuge])}/mês. "
-            f"{_mar_perfil_int}.</p>\n"
-            f"<p>{_filho.get('nome_completo', '')} nasceu em "
-            f"{_filho.get('local_nascimento', '')} e possui dupla cidadania {_cidadanias_str}. "
-            "Primeiro filho do casal, é peça central no planejamento internacional da família.</p>\n"
-            f"{_pets_clause}"
+        # PD-01: cada fragmento vira cláusula condicional — campo vazio omite a
+        # cláusula (sem "Formado em .", "é  desde .", "Especialista em , mestre em .").
+        _formacao_clause = clause("Formado em ", _tit.get("formacao", ""))
+        _regime_clause = clause("Opera como ", _tit.get("regime", ""))
+        _cprof = _conj.get("profissao", "")
+        _cinicio = _conj.get("emprego_inicio", "")
+        _conj_prof_clause = (
+            f"é {_cprof} desde {_cinicio}. " if _cprof and _cinicio else clause("é ", _cprof)
         )
+        _esp_clause = (
+            f"Especialista em {_mar_esp}, mestre em {_mar_mestrado}. "
+            if _mar_esp and _mar_mestrado
+            else clause("Especialista em ", _mar_esp) or clause("Mestre em ", _mar_mestrado)
+        )
+        _sal_conj = M.get(ctx.key_sal_conjuge, 0)
+        _sal_clause = (
+            clause("CLT com salário-base de ", f"{fmt_currency(_sal_conj)}/mês")
+            if _sal_conj
+            else ""
+        )
+        _perfil_int_clause = clause("", _mar_perfil_int)
+
+        _tit_desc = f"{_prof_clause}{_empresas_clause}{_formacao_clause}{_regime_clause}".rstrip()
+        _conj_desc = f"{_conj_prof_clause}{_esp_clause}{_sal_clause}{_perfil_int_clause}".rstrip()
+        _p_tit = (
+            f"<p>{_tit.get('nome_completo', '')}, {_titular_age} anos"
+            + (f", {_tit_desc}" if _tit_desc else ".")
+            + "</p>\n"
+        )
+        _p_conj = (
+            f"<p>{_conj.get('nome_completo', '')}, {_conjuge_age} anos"
+            + (f", {_conj_desc}" if _conj_desc else ".")
+            + "</p>\n"
+        )
+        _filho_nome = _filho.get("nome_completo", "")
+        _filho_local = _filho.get("local_nascimento", "")
+        _p_filho = ""
+        if _filho_nome:
+            _head = _filho_nome
+            if _filho_local:
+                _head += f" nasceu em {_filho_local}"
+            if _cidadanias_str:
+                _head += f" e possui dupla cidadania {_cidadanias_str}"
+            _p_filho = (
+                f"<p>{_head}. Primeiro filho do casal, é peça central "
+                "no planejamento internacional da família.</p>\n"
+            )
+
+        left = f"{_p_tit}{_p_conj}{_p_filho}{_pets_clause}"
 
         # ADR-168 cleanup (Sprint A10.1): primeiro parágrafo reescrito sem
         # EUA. Antes citava plano de mudança via visto F1/F2 + custo da
