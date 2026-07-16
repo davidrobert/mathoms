@@ -4,7 +4,7 @@ type: plan
 title: "Correções de qualidade do relatório (dogfood 2026-07-11)"
 status: in_progress
 created_at: 2026-07-12
-last_review: 2026-07-15
+last_review: 2026-07-16
 adrs_canonical:
   - "[[ADR-326]]"
   - "[[ADR-327]]"
@@ -351,3 +351,154 @@ FP-03 (taxa) → CTO-02 (role-keys) → CTO-04 (rótulo) → PD-01 (template).
 - **DE-01** — Compl: FinOps por (run,stage) reflete 100% do gasto (via `llm_call_log`). Consist: budget hard-stop inalterado. Prec: migration two-phase reversível; export LGPD repontado.
 - **DE-02** — Compl: cobertura K4 (%) por run instrumentada + alerta. Prec: degradação graciosa preserva all-or-nothing (`member_hashes=[]` em partial).
 - **DE-03** — Compl: informes de casal não flagam duplicata. Prec: discriminador HMAC/member_id, nunca CPF cru, nunca em `content_hash`.
+
+## Onda R3 — 17 achados confirmados (pipeline-review revisitado 2026-07-16)
+
+> Origem: `pipeline-review` do run `ed20dd18` / report `3bdcd3ba` (dogfood 5@5.com, tier
+> premium, código `29e8c13c` — pós-R2 + `score_version 2.1` C11/FIN-05). Painel de 5 lentes
+> + refutador cético por finding: **run VERDE, `CV_falhas=[]`**; a conservação fecha, nada
+> do que a R2/C11 shipou quebrou invariante. **17 confirmados / 8 refutados / 0 P0** (nada
+> bloqueia beta). Distribuição **P1×4 · P2×11 · P3×2**. Dashboard PII-scrubbed publicado +
+> findings brutos em `_scratch/` (gitignored). **IDs são do run revisitado — não confundir
+> com os homônimos da R2** (ex.: `CTO-02` aqui = `caixa_moeda_estrangeira` misnomer, ≠ o
+> `CTO-02` role-keys já shipado na R2.1).
+>
+> **8 refutados fecharam o loop dos fixes da R2:** FP-03 (TRS 5%/4% batem nos números),
+> PE-02 (nomes via `top_ativos` sanitizados — [[ADR-337]] aterrissou), CTO-05 (colisão de
+> rótulo "cobertura" já resolvida), PD-05/PD-07/FP-01/PE-06/DE-04 (plausível-mas-errado).
+
+### Achado-chave — gap na lane recém-shipada (C11/FIN-05 · [[ADR-340]])
+
+A concentração imobiliária tem **dois números** em superfícies determinísticas: o SSOT
+`ratios.concentracao_imobiliaria = 59,97%` (carteira) alimenta card + score + RL-7, mas o
+**parecer** cita **63,36%** (de `investimentos.tabela_classes[imóveis].pct`, base
+`investimentos.total` que **inclui** imóveis) e o publica como risco **"Crítica"**; e o
+**alerta do card** ainda diz "…do patrimônio" enquanto o KPI ao lado diz "…da carteira
+produtiva". A lane C11/FIN-05 criou o SSOT e o propagou a 4 superfícies, mas **não repontou
+a superfície do parecer nem a label do alerta**. É o cluster dominante da R3 e um resíduo
+honesto de consistência da própria lane — bem-escopado.
+
+### Reconciliação de premissa (ler antes de abrir lanes)
+
+- **PE-01 (truncação) é pré-requisito da correção de concentração no parecer.** O
+  exec_context injeta **`$.ratios` (bloco completo, `parecer_planejador.yaml:201`) E
+  `$.tabela_classes` (`:97`)** — os dois números estão lá. O `_short(limit=300)` do
+  distiller (`parecer_distiller.py:82-90`) **corta `ratios.concentracao_imobiliaria` do
+  bloco truncado**, então o LLM ancora no `tabela_classes.pct` (63,36) que sobra visível.
+  Consertar a truncação **e** apontar a âncora ao campo canônico entram na **mesma onda**.
+- **63,36% vs 59,97% são duas grandezas legítimas — não um bug de cálculo.** `tabela_classes`
+  é **composição** da carteira de investimentos (imóveis como uma classe entre RF/ações/FII,
+  base = total investido); `concentracao_imobiliaria` é **risco de iliquidez** (base carteira
+  produtiva, [[ADR-340]]). O fix é **rotular as duas distintas** + fazer a narrativa de
+  **risco** (parecer + alerta) citar sempre a de risco (59,97). Alinha ao co-design da base
+  (composição-doughnut = bruto/composição; métrica de risco = carteira).
+- **Severidade muda ao repontar.** No SSOT, `concentracao_alta` dispara em 50% e RL-7
+  hard-block em 75% ([[ADR-340]]); 59,97% cai na faixa **alerta/atenção, não "Crítica"**. O
+  parecer precisa refletir a severidade canônica **e** o alvo (hoje crava "≤40%", que não é
+  o threshold vigente). Adjudicação de domínio → `financial-planner`.
+- **ADR-332 já existe (`Proposto`)** — "Sanitização de PII no contexto do parecer + gate
+  PII-scan". CTO-03 é **implementar + flippar `Decidido`**, não criar ADR nova.
+- **ADR-335 (`Decidido`) corrigiu o *numerador* da autonomia** (investível ex-imóvel) mas
+  **não o denominador**. CTO-04 (denominador `despesa_mensal_media` inclui o aporte
+  `transferencia_patrimonial`) é gap real → **emenda datada [[ADR-335]]** reconciliando com
+  [[ADR-333]] (aporte = transferência, não consumo).
+- **Manifest do parecer = `1.8`** → R3.3 bumpa **1.8→1.9 uma única vez** (todas as mudanças
+  de prompt juntas) + **1 eval** (mudanças semânticas: fonte da concentração, PII role-keys,
+  truncação, âncoras, PGBL) — coordenar com qualquer lane de parecer concorrente; se as
+  janelas coincidem, **dividir 1 eval** (padrão A26.l9, ~US$12/run).
+
+### Decisões travadas em você (owner) — gates de execução
+
+| # | Item | Decisão | Recomendação (a ratificar no co-design) |
+|---|---|---|---|
+| 1 | **Concentração** (CTO-01/FP-02/PE-05/PD-03) | `tabela_classes` (63,36% composição) e `concentracao_imobiliaria` (59,97% risco) são grandezas distintas, ou unificar numa base? | **Duas grandezas, rotuladas distintas.** Parecer + alerta citam **risco (59,97%)**; composição (doughnut/tabela) mantém sua base. Severidade **alerta/atenção**, não "Crítica"; alvo alinhado a 50/75, não ≤40%. Emenda [[ADR-340]]. |
+| 2 | **CTO-04** (autonomia) | Denominador da autonomia usa `despesa_consumo` (ex-aporte, alinha [[ADR-333]]) ou `despesa_total`? | **`despesa_consumo` (ex-aporte).** Aporte é transferência patrimonial, não consumo; incluí-lo **subestima** a autonomia (9,93→~8,9m com número honesto). Emenda [[ADR-335]]. |
+| 3 | **CTO-02** (caixa) | Renomear `patrimonio.caixa_moeda_estrangeira` (que guarda o caixa **total**) para `caixa_total_brl`? | **Renomear** + migrar 4 consumidores + schema, com **alias defensivo por 1 ciclo** (padrão [[ADR-335]]); `caixa_moeda_estrangeira` volta a significar só ME (20.842). |
+| 4 | **Parecer eval** (R3.3) | Orçar 1 eval do parecer para o bump 1.8→1.9? | **Sim, 1 eval coordenado.** As mudanças alteram o input do LLM (fonte da concentração + PII + truncação + âncoras) → exige eval OU prova de neutralidade; concentração/severidade **não** é neutra. |
+
+### Ondas de execução
+
+| Onda | Título | Itens (run `ed20dd18`) | Gate de entrada |
+|---|---|---|---|
+| **R3.1** | **P1 — concentração: framing + display** | PD-03, CTO-01/FP-02 (lado determinístico) | `financial-planner` ratifica composição×risco + severidade (decisão #1) → **emenda [[ADR-340]]** docs-first; 1 golden (real_estate display + report snapshot) |
+| **R3.2** | **P1/P2 — narrativas honestas** | PD-01, PD-02, DE-01, PD-04, PD-06 | `data-engineer` diagnostica por que `instituicao` chega vazia no E5 (DE-01); demais são bug de template (padrão condicional já no arquivo); 1 golden narrativo |
+| **R3.3** | **P1/P2 — parecer coordenado** (1 bump 1.8→1.9 + 1 eval) | PE-01, CTO-01/FP-02/PE-05 (lado parecer), CTO-03, PE-03, PE-04, FP-04 | R3.1 travou o framing canônico que o parecer cita; `prompt-engineer` (lead) + `financial-planner` (severidade/PE-04/FP-04) + `senior-cto` ([[ADR-332]]); **1** manifest bump + **1** eval + 1 golden (`parecer.json`) |
+| **R3.4** | **P2 — contratos de dado** | CTO-02, DE-02, CTO-04 | `data-engineer` (CTO-02 rename + DE-02 schema/conservação) + `financial-planner` (CTO-04 → emenda [[ADR-335]]); **1** bump `schema_e5` (CTO-02 âncora); 1 golden |
+
+**Sequência crítica:** R3.1 **decide o framing** (emenda [[ADR-340]]: composição×risco + severidade 50/75) — é a SSOT-decisão que R3.3 **cita** ao conformar o parecer. Por isso o cluster de concentração **atravessa** R3.1 (display + decisão) e R3.3 (parecer conforma). R3.2 e R3.4 são independentes do cluster, mas **todas** as ondas compartilham a golden → serializar (1 manifesto por onda). R3.3 é o único ponto que toca o prompt do parecer — **todos** os 6 itens de prompt entram nela, nunca paralelizar intra-onda.
+
+### Anti-thrashing — eixos de versão (1 bump/eixo)
+
+- **`score_version`: 0 bumps.** Nenhum finding toca a fórmula — a componente já lê
+  `ratios.concentracao_imobiliaria=59,97` **correto**; o gap é 100% display/parecer.
+- **`schema_e5` (aditivo+rename, R3.4, 1×):** CTO-02 (rename `caixa_moeda_estrangeira`→
+  `caixa_total_brl`, **âncora**, último a tocar) + DE-02 (`properties` de `passive_income`,
+  aditivo). **Sem migration alembic** — o campo vive no artefato JSON de `pipeline_artifacts`,
+  não em coluna DB.
+- **`manifest parecer` 1.8→1.9 (R3.3, 1×) + 1 eval:** concentração-source + CTO-03 (role-keys)
+  + PE-01 (truncação) + PE-03/PE-04 (âncoras) + FP-04 (PGBL no exec_context) — **um** PR
+  coordenado do prompt.
+- **`golden` (1 manifesto/onda):** R3.1={PD-03, CTO-01 display} · R3.2={PD-01,PD-02,DE-01,PD-04,PD-06}
+  · R3.3={parecer.json} · R3.4={CTO-02,DE-02,CTO-04}. **CTO-04 tem delta real** (autonomia
+  9,93→~8,9) — rastrear valor-a-valor. Narrativas/label não mexem cents.
+
+### Colisões de arquivo (serializar — nunca paralelizar intra-onda)
+
+- `config/prompts/parecer_planejador.yaml` + `parecer_distiller.py` + `parecer_evidencia.py`
+  → **toda** mudança de parecer em **R3.3** (1 PR, 1 bump, 1 eval). PE-03 **não** reabre o
+  `value_mismatch` removido por [[ADR-296]] — ancora o **campo-fonte certo**, não re-valida %.
+- `scripts/generate_narratives.py` + `summaries_narrator.py` + `perfil_familia_narrator.py`
+  → **R3.2** (PD-01 estende o guard condicional das linhas 102-134 às 140-148; PD-02/DE-01/
+  PD-04/PD-06 no mesmo batch). Considerar helper `clause(prefixo, valor, sufixo)` compartilhado.
+- `config/schemas/e5_analysis.schema.json` → CTO-02 (âncora) + DE-02 · **1** bump, **R3.4**.
+- `real_estate_metrics_aggregator.py:147` (label "do patrimônio"→"da carteira produtiva") +
+  `RealEstateYieldCard.tsx:96-97/275` → **R3.1** (PD-03 + CTO-01 display).
+- `patrimonio_calculator.py:152/219/360-378` (CTO-02 caixa) × `ratios_calculator.py:285-293`
+  (CTO-04 autonomia) → arquivos distintos, mesma onda R3.4; só compartilham a golden.
+
+### ADRs da onda
+
+| Item | Ação | ADR |
+|---|---|---|
+| CTO-01/FP-02/PE-05/PD-03 | emenda datada — superfície do parecer + label do alerta repontadas ao SSOT; framing composição×risco; severidade 50/75 (não "Crítica" em 59,97) | [[ADR-340]] |
+| CTO-03 | **implementar + flippar `Decidido`** — sanitizer de PII no contexto do parecer (role-key os 3 paths: `por_fonte_detalhado` chaves, `top_ativos[*].membro`, `cenarios_conjuge`) + gate PII-scan em `tests/llm_golden/` | [[ADR-332]] |
+| CTO-04 | emenda datada — denominador da autonomia = `despesa_consumo` (ex-aporte), reconcilia [[ADR-333]] | [[ADR-335]] |
+| DE-02 | emenda datada — invariante de conservação de renda passiva (`renda_passiva_anual == Σ buckets de yield`) + `properties` no schema `passive_income` | [[ADR-287]] |
+| CTO-02 | sem ADR nova — rename de contrato (`caixa_total_brl`) com alias defensivo 1 ciclo (padrão [[ADR-335]]) | — |
+| PE-01/PE-03/PE-04 | conformam — distiller (render estruturado de dict, não `_short(300)`) + âncora ao campo-fonte real | [[ADR-296]] |
+| FP-04 | conforma — `previdencia_pgbl` no exec_context + dedup da sugestão contra resultado determinístico | — |
+| PD-01/PD-02/PD-04/PD-06 | sem ADR — bug de template (guard condicional / empty-state útil) | — |
+| DE-01 | sem ADR — fallback honesto e simétrico + diagnóstico de extração (`instituicao` vazia no E5) | — |
+
+### Aceite por item (4 lentes — resumo)
+
+- **CTO-01/FP-02/PE-05** — Compl: card, score, alerta e parecer citam **um** número de risco
+  (59,97%). Corr: parecer ancora `ratios.concentracao_imobiliaria`; severidade alerta (não
+  "Crítica"); truncação (PE-01) não corta o campo. Consist: composição (63,36%) e risco (59,97%)
+  rotuladas distintas, sem colisão. Prec: 1 eval + golden `parecer.json` 1×.
+- **PD-03** — Compl/Corr: alerta diz "da carteira produtiva" == KPI; % em pt-BR (vírgula).
+  Consist: `real_estate_metrics_aggregator.py:147` == `scoring.json:82` == `FORMULAS.md:216`.
+- **PD-01/PD-02** — Compl: card/summaries renderizam sem frases quebradas ("Formado em .",
+  "residência na ", " como contador"). Corr: guard condicional por cláusula. Prec: golden
+  narrativo sem cents delta.
+- **DE-01/PD-04** — Compl: instituição vazia → texto honesto **e simétrico** (nunca "múltiplas
+  instituições" de lista vazia). Corr: `data-engineer` documenta a origem da lacuna de extração.
+- **PD-06** — Compl: 0 viagens / faixa R$0–R$0 → empty-state útil, não intervalo degenerado.
+- **CTO-03** — Compl: nenhum nome de titular/cônjuge no `exec_context` efetivo do parecer
+  (3 paths role-keyed). Corr: gate PII-scan red→green. Consist: mesmo mapa nome→papel do
+  pós-[[ADR-338]]. Prec: [[ADR-332]] `Decidido`.
+- **PE-01** — Compl: campos que importam (ex.: `concentracao_imobiliaria`, `avaliacao_liquidity`)
+  visíveis ao LLM. Corr: dict `raw` renderizado estruturado, cap global governa. Prec: eval sem
+  falsa-ausência.
+- **PE-03/PE-04** — Corr: âncora aponta o campo-fonte do número citado; cobertura de renda
+  passiva com denominador único (essencial vs média explícito). Consist: prosa/métrica/âncora
+  concordam.
+- **FP-04** — Corr: parecer confirma/qualifica PGBL zerado por teto, não propõe "investigar do
+  zero". Prec: `previdencia_pgbl` no exec_context.
+- **CTO-02** — Corr: `caixa_total_brl` guarda o total; `caixa_moeda_estrangeira` só ME. Consist:
+  4 consumidores + schema migrados; alias 1 ciclo. Prec: golden só rename, cents idênticos.
+- **CTO-04** — Corr: autonomia ex-aporte (`despesa_consumo`), alinha [[ADR-333]]. Consist:
+  emenda [[ADR-335]] explícita. Prec: golden red→green (9,93→~8,9), delta documentado 1×.
+- **DE-02** — Compl: `passive_income` com `properties` no schema. Corr: invariante de
+  conservação (`renda_passiva_anual == Σ yield`, tolerância zero em cents) em
+  `test_e5_conservation_invariants.py`.
