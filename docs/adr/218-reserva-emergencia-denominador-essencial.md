@@ -16,6 +16,7 @@ relates_to:
   - "[[ADR-217]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-07-15"]
 aliases: ["ADR 218", "reserva-emergencia-essencial", "denominador-essencial"]
 tags:
   - area/report
@@ -29,6 +30,17 @@ tags:
   - breaking/schema-e5
   - type/adr
 ---
+
+> **Emenda 2026-07-15 (FP-02) — ratificação parcial `financial-planner`:** o
+> **denominador essencial** (núcleo desta ADR) está **vivo em produção** desde
+> A28.l1 (`financial_score_calculator.py` lê `reserva.cobertura_meses =
+> reserva_liquida ÷ custo_essencial_mensal`; `scoring.json` já expõe
+> `custo_essencial_mensal` + `meses_alvo_por_perfil_renda`). O `financial-planner`
+> ratificou essa decisão — deixá-la `Proposto` era gap de governança sobre código
+> em produção. O **restante do escopo** (D1/D2 card hero+bandas duplas, D3 tabela
+> `category_essentiality_template` + override, D4 rename two-phase, D5-D7
+> service/reader) **permanece deferido** à lane coordenada do `score_version 2.0`
+> (junto com [[ADR-328]]). Ver [§ Emenda](#emenda-2026-07-15-fp-02--ratificação-parcial-financial-planner) ao final.
 
 ## Contexto
 
@@ -320,3 +332,34 @@ PR (escopo amplo, single-shot):
       `total` com badge "Cálculo legado".
 - [ ] Golden no workspace 5@5.com: `meses_cobertos_essencial ≈ 6.0`
       (R$ 111k / R$ 18,5k).
+
+## Emenda 2026-07-15 (FP-02) — ratificação parcial `financial-planner`
+
+Co-design `financial-planner` (2026-07-15, item FP-02 da onda R2.3) **ratificou
+com ajuste (escopo dividido)**:
+
+**Ratificado + vivo (score-side).** O denominador essencial — reserva medida
+contra o **custo essencial mensal**, não a despesa total — já é comportamento de
+produção (A28.l1): `financial_score_calculator.py` computa
+`reserva.cobertura_meses = reserva_liquida ÷ custo_essencial_mensal`, e
+`config/scoring.json` define `custo_essencial_mensal.categorias_in/out` +
+`meses_alvo_por_perfil_renda` (6/12/18). Esta ADR é o **backing canônico** dessa
+regra; a ratificação fecha o gap de governança (regra em produção sob ADR
+`Proposto`).
+
+**Reconciliação obrigatória com [[ADR-328]].** Um único ponto: *qual* `meses_alvo`.
+O plateau do score (328) e o gatilho `success`/"excedente realocável" do card
+(D1/D2 desta ADR) DEVEM referenciar o **mesmo** `meses_alvo_por_perfil_renda`. As
+bandas 6m (Cerbasi) / 12m (Perini) ficam como marcadores visuais/educacionais,
+mas o veredicto de "consolidada" segue o alvo do perfil — senão card ↔ score ↔
+parecer se contradizem (a falha cross-superfície que o dogfood caça).
+
+**Deferido (não flipar como pronto).** D1/D2 (card hero + bandas duplas), D3
+(tabela `category_essentiality_template` + override por workspace), D4 (rename
+two-phase `nivel_6_meses → _total`), D5-D7 (service/reader) **não** estão
+implementados. Ficam na lane coordenada do `score_version 2.0` (com [[ADR-328]]),
+que flippa esta ADR para `Decidido` no merge. A tabela `category_essentiality_template`
+é refinamento **upstream** do denominador — o score lê `reserva.cobertura_meses` e
+herda mudanças transparentemente; **o bump 2.0 não espera a tabela**.
+
+Status permanece `Proposto` até essa lane aterrissar a implementação do card + tabela.
