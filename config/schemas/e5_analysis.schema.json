@@ -476,7 +476,7 @@
         },
         "concentracao_pct": {
           "type": "number",
-          "description": "% do patrimônio líquido em imóveis de investimento. Alerta `concentracao_alta` quando > 40 (FORMULAS.md §Defaults)."
+          "description": "% da carteira produtiva (investível financeiro + imóveis de investimento) em imóveis de renda ilíquidos; alias de `ratios.concentracao_imobiliaria` (SSOT). Alerta `concentracao_alta` quando > 50 (base carteira, ADR-340)."
         },
         "valor_total_imoveis": {
           "type": "number",

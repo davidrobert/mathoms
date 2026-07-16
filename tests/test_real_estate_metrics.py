@@ -344,6 +344,12 @@ def test_alerta_concentracao_alta_threshold_50():
     )
     codes = [a.code for a in result.alertas]
     assert "concentracao_alta" in codes
+    ctx = next(a.context for a in result.alertas if a.code == "concentracao_alta")
+    # PD-03: alerta cita a base canônica (carteira produtiva), não "do patrimônio";
+    # percentual em pt-BR (vírgula), coerente com o KPI do card e FORMULAS.md §216.
+    assert "da carteira produtiva" in ctx
+    assert "do patrimônio" not in ctx
+    assert "60,0%" in ctx and "60.0%" not in ctx
 
 
 def test_alerta_concentracao_nao_dispara_em_50_exato():
