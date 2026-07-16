@@ -2,16 +2,19 @@
 id: ADR-328
 type: adr
 title: "score_version 2.0 — plateau da cobertura de reserva no alvo do perfil (não premiar over-provisioning)"
-status: Proposto
+status: Decidido
+phase: dogfood-r2.3-fp02
 date: "2026-07-12"
+decided_at: "2026-07-15"
 amended_at: ["2026-07-15"]
 relates_to:
   - "[[ADR-217]]"
   - "[[ADR-090]]"
   - "[[ADR-218]]"
+  - "[[ADR-333]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/report
 ---
@@ -21,13 +24,17 @@ tags:
 > Item **C5** do plano [[PLAN-dogfood-report-fix]]. Achado FIN-03 da revisão dogfood.
 > Sucessora obrigatória da fórmula travada em [[ADR-217]] §D3 (bump de `SCORE_VERSION`).
 
-> **Emenda 2026-07-15 (FP-02) — ratificação `financial-planner`:** o plateau
-> ancora no **`meses_alvo_por_perfil_renda` (6/12/18), não em 12 fixo** — travar
-> em 12 sub-avalia o perfil pj_dominante (alvo 18). Piso 3m mantido. Sem
-> penalização acima do alvo (confirmado). Prova: a nota da cobertura **só sobe
-> ou fica flat** (nenhuma família perde ponto). Continua `Proposto` — a
-> implementação é a lane coordenada do bump 2.0 (plateau + FIN-05 + FIN-01 numa
-> só definição). Ver [§ Emenda](#emenda-2026-07-15-fp-02--ratificação-financial-planner).
+> **Decidido 2026-07-15 (FP-02) — implementado standalone.** Plateau ancora no
+> **`reserva.meses_alvo`** (perfil 6/12/18), não no teto fixo 24; piso 3m; sem
+> penalização. `SCORE_VERSION → "2.0"`. **FIN-01 já estava resolvido** (ADR-333,
+> input fix, sem bump) e **FIN-05 (diversificação) segue subespecificado** → o
+> bump 2.0 **não é o batch coordenado** que a emenda de ratificação previa: é só o
+> plateau (FIN-05 entra numa 2.x própria quando co-desenhado). Isso preserva a
+> invariante [[ADR-217]] §D3 (cada versão = uma fórmula completa) — 2 bumps
+> (2.0 plateau, 2.x FIN-05) em vez de 1, custo aceitável. Golden dogfood: **flat**
+> (a família over-provisioned de 25,6m já saturava em 10 no teto 24 e segue em 10
+> no plateau — o fix dela é a copy do card, não o número). Ver
+> [§ Emenda](#emenda-2026-07-15-fp-02--ratificação-financial-planner).
 
 ## Contexto
 
@@ -96,11 +103,25 @@ entram na definição de 2.0 antes de flipar para `Decidido`:
    maioria ganha (o teto 24 sub-creditava). A família over-provisioned (25,6m) segue
    clampada em 10 (o "fix" dela é a copy do card, não o número).
 
-**Escopo de implementação (deferido — lane coordenada 2.0).** Esta ADR fica
-`Proposto`: mudar o plateau **exige** o bump `SCORE_VERSION` ([[ADR-217]] §D3), que
-o plano define como **uma só definição** de 2.0 batelando C5 (este plateau) +
-FIN-05 (diversificação) + FIN-01 (poupança) + reconciliação [[ADR-218]] (card
-referencia o **mesmo** `meses_alvo` do score) + label FP-04 (`media_12m_documentados`).
-Bumpar 2.0 incrementalmente violaria a invariante "`score_version` = uma fórmula".
-A lane coordenada implementa tudo junto, com `golden_diff` per-família, e flippa
-esta ADR + [[ADR-218]] para `Decidido` no merge.
+**Escopo de implementação — resolvido standalone (2026-07-15).** A premissa da
+ratificação era batelar C5 + FIN-05 + FIN-01 numa só 2.0. Ao implementar, o
+batch se dissolveu: **FIN-01 já estava resolvido** (ADR-333, correção de *input*
+da taxa de poupança — sem bump, pois a taxa é input, não a fórmula) e **FIN-05
+(diversificação) segue subespecificado** (nenhuma spec do fix; co-design pendente
+— não inventar regra de domínio). Bloquear o plateau ratificado + provado numa
+espera indefinida por FIN-05 seria pior. Portanto:
+
+- **2.0 = só o plateau** (`financial_score_calculator._cobertura_component`:
+  `range_max = reserva.meses_alvo`, fallback `config.range_max=12`; `scoring.json`
+  `cobertura_despesas.range_max 24→12` + `_nota`). Label FP-04
+  (`custo_essencial_mensal.metodo → media_12m_documentados`, morto/0-cent) pega
+  carona no mesmo PR de `scoring.json`.
+- **FIN-05 → `score_version` 2.x própria**, quando co-desenhada. Cada versão
+  segue completa e travada ([[ADR-217]] §D3 preservado — 2 bumps, não 1; o "1 bump"
+  era otimização anti-thrashing, não invariante).
+- Reconciliação [[ADR-218]] (card referencia o mesmo `meses_alvo` do score) fica
+  com a lane do card D1/D2 (218 segue `Proposto`; o denominador score-side já é vivo).
+
+`golden_diff` per-família (dogfood): **flat, 0 delta** — só `score_version`
+`1.0-legacy→2.0` (cobertura já saturava). Testes: `tests/test_score_canonico.py`
+(plateau satura no alvo + prova nota ≥ 1.0-legacy ∀ cobertura).

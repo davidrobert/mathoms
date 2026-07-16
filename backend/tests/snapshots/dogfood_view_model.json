@@ -784,7 +784,7 @@
     "context": "Indicador geral de saúde financeira da família, com score de 6.4/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
     "formula": "Score = (Taxa Poupança Recorrente×2 + Cobertura Despesas (meses)×1.5 + Taxa Endividamento×1.5 + Progresso Independência Financeira×2 + Diversificação Patrimonial (origem)×1) / 8",
     "max": 10,
-    "score_version": "1.0-legacy",
+    "score_version": "2.0",
     "valor": 640
   },
   "tarefas": [

@@ -1,6 +1,6 @@
 {
   "_comment": "Parâmetros de scoring financeiro — ranges, pesos, classificações. Fonte única consumida por scripts/analyze_finances.py. Documentação em methodology.md §SCORE FINANCEIRO. Não duplicar ranges/pesos em outros arquivos.",
-  "_ultima_atualizacao": "2026-04-27",
+  "_ultima_atualizacao": "2026-07-15",
 
   "_escala": {
     "min": 0,
@@ -47,7 +47,8 @@
     "cobertura_despesas": {
       "nome_display": "Cobertura Despesas (meses)",
       "range_min": 3,
-      "range_max": 24,
+      "range_max": 12,
+      "_nota_range_max": "score_version 2.0 (ADR-328/FP-02): o plateau da nota ancora dinamicamente em reserva.meses_alvo (perfil 6/12/18) — nota satura no alvo, não premia over-provisioning. Este range_max (12) é só fallback quando o perfil não resolve.",
       "peso": 1.5,
       "invertido": false,
       "unidade": "meses de custo essencial",
@@ -94,7 +95,8 @@
     "_definicao": "Reserva-alvo = custo_essencial_mensal × meses_alvo. Cobertura atual = reserva_liquida_disponivel ÷ custo_essencial_mensal. Documentação completa em methodology.md §RESERVA DE EMERGÊNCIA e FORMULAS.md.",
     "_base_calculo": {
       "custo_essencial_mensal": {
-        "metodo": "media_trimestral",
+        "_nota_metodo": "FP-04 (ADR-306): label morto (zero leitor — o cálculo usa base_denominador/janela do ADR-306, não este campo); conformado à política real de base temporal (média 12m documentada).",
+        "metodo": "media_12m_documentados",
         "categorias_in": [
           "moradia", "alimentacao", "transporte", "saude", "seguros",
           "servicos_domesticos", "educacao", "suporte_familiar", "financiamentos"
