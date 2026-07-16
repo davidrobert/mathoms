@@ -4,9 +4,11 @@ type: adr
 title: "score_version 2.0 — plateau da cobertura de reserva no alvo do perfil (não premiar over-provisioning)"
 status: Proposto
 date: "2026-07-12"
+amended_at: ["2026-07-15"]
 relates_to:
   - "[[ADR-217]]"
   - "[[ADR-090]]"
+  - "[[ADR-218]]"
 tags:
   - type/adr
   - status/proposto
@@ -18,6 +20,14 @@ tags:
 
 > Item **C5** do plano [[PLAN-dogfood-report-fix]]. Achado FIN-03 da revisão dogfood.
 > Sucessora obrigatória da fórmula travada em [[ADR-217]] §D3 (bump de `SCORE_VERSION`).
+
+> **Emenda 2026-07-15 (FP-02) — ratificação `financial-planner`:** o plateau
+> ancora no **`meses_alvo_por_perfil_renda` (6/12/18), não em 12 fixo** — travar
+> em 12 sub-avalia o perfil pj_dominante (alvo 18). Piso 3m mantido. Sem
+> penalização acima do alvo (confirmado). Prova: a nota da cobertura **só sobe
+> ou fica flat** (nenhuma família perde ponto). Continua `Proposto` — a
+> implementação é a lane coordenada do bump 2.0 (plateau + FIN-05 + FIN-01 numa
+> só definição). Ver [§ Emenda](#emenda-2026-07-15-fp-02--ratificação-financial-planner).
 
 ## Contexto
 
@@ -63,6 +73,34 @@ custo essencial entre `fluxo_caixa` e `reserva_emergencia` (bug de consistência
 ## Critério de aceite (4 lentes)
 
 - **Completude:** card + score + métricas refletem "Excessiva/realocável"; custo essencial unificado.
-- **Corretude:** `nota(12) == nota(18) == nota(25,6)` (plateau paramétrico).
-- **Consistência:** `pontos_fortes ↔ avaliacao_liquidity ↔ parecer` concordam.
-- **Precisão:** plateau explícito em `scoring.json`; `score_version` bumpado; goldens re-baselinados 1×.
+- **Corretude:** `nota(meses_alvo) == nota(meses_alvo × k)` p/ todo `k>1` (plateau paramétrico **no perfil**, não em 12 fixo).
+- **Consistência:** `pontos_fortes ↔ avaliacao_liquidity ↔ parecer` concordam; card não declara "consolidada" antes do `meses_alvo` do perfil.
+- **Precisão:** plateau explícito em `scoring.json`; `score_version` bumpado; `dev/golden_diff.py` per-família documentado 1× — **zero** família cai >0,5 ponto sem causa rastreada.
+
+## Emenda 2026-07-15 (FP-02) — ratificação `financial-planner`
+
+Co-design `financial-planner` (2026-07-15) **ratificou com ajuste**. Ajustes que
+entram na definição de 2.0 antes de flipar para `Decidido`:
+
+1. **Âncora no perfil, não em 12.** O plateau satura em `meses_alvo_por_perfil_renda`
+   (`config/scoring.json` já expõe 6/12/18 por `perfil_renda`), com **default seguro
+   12** quando o perfil não resolve (caso dogfood class-c). O texto original ("12 no
+   perfil") travaria o pj_dominante (alvo correto 18) — sub-avaliaria o buffer de
+   renda volátil. A nota nova = `clamp((cobertura − 3) / (meses_alvo − 3) × 10, 0, 10)`.
+2. **Piso 3m mantido** (`range_min = 3`; `< 3m` = zona crítica).
+3. **Sem penalização acima do plateau** — confirmado. O sinal "excedente realocável"
+   pertence ao flag `avaliacao_liquidity='Excessiva'` + card + parecer, **não** ao
+   número do score (penalizar seria double-count com `progresso_if` + `taxa_poupanca`).
+4. **Direção provada:** para `range_min = 3` fixo e `meses_alvo ≤ 24`, `nota_nova ≥
+   nota_antiga` ∀ `cobertura ≥ 3` — **nenhuma família perde** ponto na cobertura; a
+   maioria ganha (o teto 24 sub-creditava). A família over-provisioned (25,6m) segue
+   clampada em 10 (o "fix" dela é a copy do card, não o número).
+
+**Escopo de implementação (deferido — lane coordenada 2.0).** Esta ADR fica
+`Proposto`: mudar o plateau **exige** o bump `SCORE_VERSION` ([[ADR-217]] §D3), que
+o plano define como **uma só definição** de 2.0 batelando C5 (este plateau) +
+FIN-05 (diversificação) + FIN-01 (poupança) + reconciliação [[ADR-218]] (card
+referencia o **mesmo** `meses_alvo` do score) + label FP-04 (`media_12m_documentados`).
+Bumpar 2.0 incrementalmente violaria a invariante "`score_version` = uma fórmula".
+A lane coordenada implementa tudo junto, com `golden_diff` per-família, e flippa
+esta ADR + [[ADR-218]] para `Decidido` no merge.
