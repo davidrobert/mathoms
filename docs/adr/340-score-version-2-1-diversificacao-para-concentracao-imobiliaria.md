@@ -6,6 +6,7 @@ status: Decidido
 phase: dogfood-c11-fin05
 date: "2026-07-15"
 decided_at: "2026-07-16"
+amended_at: ["2026-07-16"]
 relates_to:
   - "[[ADR-328]]"
   - "[[ADR-217]]"
@@ -20,6 +21,14 @@ tags:
 ---
 
 # ADR-340 — `score_version 2.1`: diversificação → concentração imobiliária invertida
+
+> **Emenda 2026-07-16 (Onda R3.1 · co-design `financial-planner`):** as superfícies de
+> **risco** (parecer + alerta do card) que ainda não citavam o SSOT foram repontadas —
+> ver [§Emenda](#emenda--superfícies-de-risco-repontadas-ao-ssot-2026-07-16). Severidade em
+> ~60% é **"Alta", não "Crítica"** (reservada a ≥75%, zona RL-7); meta **abaixo de 50% da
+> carteira produtiva** (não "≤40%"), direcional via aporte. `investimentos.tabela_classes`
+> é **composição** (base total investido), grandeza distinta do risco de iliquidez (base
+> carteira) — a narrativa de risco cita sempre `ratios.concentracao_imobiliaria`.
 
 > Item **FIN-05** (cluster C1 do dogfood). Sucessora de [[ADR-328]] (`score_version 2.0`,
 > plateau da cobertura). Co-design `financial-planner` + `data-engineer` (2026-07-15/16).
@@ -135,3 +144,38 @@ sign-off do C11-Fase2 travar a base; então flippa `Decidido` no PR de 2.1.
 - **Consistência:** base do denominador == a do C11-Fase2; flag `concentracao_alta` (40%)
   separada do piso da nota (60%).
 - **Precisão:** `golden_diff` per-família 1×; `score_version` bumpado 2.0→2.1.
+
+## Emenda — superfícies de risco repontadas ao SSOT (2026-07-16)
+
+A lane C11/FIN-05 criou o SSOT `ratios.concentracao_imobiliaria` (base carteira) e o
+propagou a card, score e RL-7, mas **duas superfícies de risco ficaram fora** (dogfood
+revisitado 2026-07-16, cluster CTO-01/FP-02/PE-05/PD-03):
+
+1. **Alerta do card** (`real_estate_metrics_aggregator.compute_alertas`) dizia "…% **do
+   patrimônio**" enquanto o KPI ao lado já dizia "…% da carteira produtiva" —
+   auto-contradição no mesmo card. **Corrigido (R3.1):** "da carteira produtiva" +
+   percentual em pt-BR (vírgula), alinhado a `scoring.json` e `FORMULAS.md §216`.
+2. **Parecer (LLM)** cita `investimentos.tabela_classes[imóveis].pct` (~63%, base **total
+   investido**, que inclui imóveis como uma classe) e o publica como risco "Crítica" com
+   meta "≤40%". **A repontar (R3.3):** o hint do prompt deve ancorar o risco em
+   `ratios.concentracao_imobiliaria` (SSOT); `tabela_classes` é **composição**, não risco.
+
+**Decisões de domínio travadas no co-design (`financial-planner`):**
+
+- **Severidade.** Em ~60% (entre alerta 50 e hard-block 75) a concentração é **"Alta"**,
+  não "Crítica" — "Crítica" fica reservada a ≥75% (zona RL-7). A linguagem do parecer não
+  pode descalar em relação aos tiers da máquina.
+- **Meta.** **Abaixo de 50% da carteira produtiva**, direcional via **aporte**
+  (rebalanceamento), sem exigir liquidação de imóvel. O "≤40%" era o limiar pré-ADR-340.
+- **`tabela_classes` × concentração de risco.** São computadas em substratos de agregação
+  distintos (`InvestimentosClassesAnalyzer` sobre `bens_por_membro` vs
+  `PatrimonioCalculator` cat_2) e podem divergir alguns pp. Para a Onda R3 a decisão é
+  **rotular as duas grandezas distintas** e fazer o **risco** citar o SSOT.
+
+**Débito documentado (follow-up):** unificar a **fonte de valuation** de cat_2 entre os dois
+substratos (para o row de imóveis de `tabela_classes` reconciliar ao SSOT ao centavo, não só
+por rótulo) exige co-design `data-engineer`/`senior-cto` — fica como follow-up de precisão,
+fora do escopo da R3.
+
+**Docs reconciliados:** `config/schemas/e5_analysis.schema.json` (`real_estate.concentracao_pct`
+description: base carteira, alerta >50). `FORMULAS.md §152/§182/§216` já estavam corretos.
