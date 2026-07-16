@@ -2,8 +2,10 @@
 id: ADR-340
 type: adr
 title: "score_version 2.1 — componente de diversificação vira concentração imobiliária invertida (FIN-05)"
-status: Proposto
+status: Decidido
+phase: dogfood-c11-fin05
 date: "2026-07-15"
+decided_at: "2026-07-16"
 relates_to:
   - "[[ADR-328]]"
   - "[[ADR-217]]"
@@ -11,7 +13,7 @@ relates_to:
   - "[[ADR-145]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/report
   - area/methodology
@@ -20,9 +22,25 @@ tags:
 # ADR-340 — `score_version 2.1`: diversificação → concentração imobiliária invertida
 
 > Item **FIN-05** (cluster C1 do dogfood). Sucessora de [[ADR-328]] (`score_version 2.0`,
-> plateau da cobertura). Co-design `financial-planner` (2026-07-15). **`Proposto`,
-> gated pelo C11-Fase2** — não implementar antes da base canônica de
-> `ratios.concentracao_imobiliaria` estar travada.
+> plateau da cobertura). Co-design `financial-planner` + `data-engineer` (2026-07-15/16).
+> **Decidido (`score_version 2.1`)** — este PR implementa C11-Fase2 (campo canônico
+> `ratios.concentracao_imobiliaria`) **e** FIN-05 (score) juntos, base carteira.
+>
+> **Decisões travadas no co-design da base (2026-07-16):** denominador = **carteira
+> produtiva** (`investivel_financeiro + cat_2`, FIXA — o `data-engineer` provou que
+> líquido é instável >100% e bruto reintroduz a perversão da residência); numerador =
+> **cat_2 completo** (imóvel vago/especulação é ainda mais ilíquido); thresholds
+> recalibrados (âncora real 5@5.com = **60%**): alerta 50, `spread_critico` co-threshold
+> 45, **RL-7 hard-block 75**, piso da nota **85**. Campo canônico em `ratios.` (sempre
+> presente; `real_estate.concentracao_pct` vira alias). SSOT de fórmula:
+> `compute_concentracao_imobiliaria_pct`.
+>
+> **Follow-up (débito documentado):** o fixture sintético do golden
+> (`tests/fixtures/pipeline_golden/dogfood/`) tem residência=veículos=0 → carteira≡bruto
+> nele (não distingue as bases). A exclusão residência/veículos é verificada pelo teste
+> do helper (`test_concentracao_imobiliaria::test_residencia_e_veiculos_fora_do_denominador`);
+> enriquecer o fixture com casa+carro (pra o `golden_diff` distinguir carteira de bruto)
+> fica como follow-up de representatividade.
 
 ## Contexto
 

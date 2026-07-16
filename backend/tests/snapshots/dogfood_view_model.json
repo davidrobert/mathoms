@@ -646,6 +646,7 @@
     "aliquota_efetiva_ir_pct": "N/D",
     "autonomia_financeira_meses": "86.670000",
     "cobertura_despesas_meses": "86.670000",
+    "concentracao_imobiliaria": 8219,
     "janela": "12m",
     "janela_meses": 1,
     "janela_n_meses": 1,
@@ -730,14 +731,14 @@
         "valor": 110
       },
       {
-        "contribuicao": 50,
-        "dimensao": "Diversificação Patrimonial (origem)",
+        "contribuicao": 4,
+        "dimensao": "Concentração Imobiliária",
         "max": 10,
         "peso": "0.125000",
-        "valor": 400
+        "valor": 30
       }
     ],
-    "classificacao": "Bom",
+    "classificacao": "Regular",
     "componentes": [
       {
         "code": "taxa_poupanca_recorrente",
@@ -772,20 +773,20 @@
         "valor": 1300
       },
       {
-        "code": "diversificacao",
-        "nome": "Diversificação Patrimonial (origem)",
-        "nota": "4.000000",
+        "code": "concentracao_imobiliaria",
+        "nome": "Concentração Imobiliária",
+        "nota": "0.300000",
         "peso": "1.000000",
         "status": "emitted",
-        "valor": 300
+        "valor": 8219
       }
     ],
-    "conclusion": "A classificação 'Bom' reflete melhora em Taxa Poupança Recorrente e Cobertura Despesas (meses).",
-    "context": "Indicador geral de saúde financeira da família, com score de 6.4/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
-    "formula": "Score = (Taxa Poupança Recorrente×2 + Cobertura Despesas (meses)×1.5 + Taxa Endividamento×1.5 + Progresso Independência Financeira×2 + Diversificação Patrimonial (origem)×1) / 8",
+    "conclusion": "A classificação 'Regular' reflete melhora em Taxa Poupança Recorrente e Cobertura Despesas (meses).",
+    "context": "Indicador geral de saúde financeira da família, com score de 5.9/10 (Regular). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
+    "formula": "Score = (Taxa Poupança Recorrente×2 + Cobertura Despesas (meses)×1.5 + Taxa Endividamento×1.5 + Progresso Independência Financeira×2 + Concentração Imobiliária×1) / 8",
     "max": 10,
-    "score_version": "2.0",
-    "valor": 640
+    "score_version": "2.1",
+    "valor": 590
   },
   "tarefas": [
     {
