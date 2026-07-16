@@ -36,9 +36,30 @@ mesmo `(doc_type, bank, period)` têm declarantes distintos, **não** sinalizar 
 - Discriminador = **token não-reversível** do CPF do titular (HMAC ou `member_id`), **nunca** CPF
   em plaintext.
 - **Nunca** entra no `content_hash` — que permanece SHA-256 do conteúdo (dedup exato inalterado).
-- Preferir **derivar no rebuild** (code-only, sem migration). Se exigir coluna persistida
-  (`declarante_ref`), migration alembic sequenciada a um head único **após** a de DE-01.
-- Fallback gracioso: docs sem declarante (extratos/faturas) mantêm o comportamento atual.
+- O discriminador entra na **chave de agrupamento** do `rebuild_fuzzy_duplicate_pointers`
+  (`backend/app/services/documents/document_duplicates.py`): `(workspace_id, doc_type, bank_code,
+  period, declarante_ref)`.
+- Fallback gracioso: docs sem declarante (extratos/faturas) usam `declarante_ref=None` → chave
+  idêntica à atual, comportamento preservado.
+
+## Viabilidade de implementação (verificado 2026-07-15)
+
+O `Document` **não carrega** o eixo de declarante hoje: nem coluna, nem em `classification_meta`
+(a classificação de conteúdo em `content_classifier.py` não extrai CPF). O único lugar onde o
+declarante aparece é `titular_ln_masked` no **artefato E2 extraído** (`extract_informes_anuais.py`),
+produzido **depois** do upload/reclassify — enquanto o `rebuild_fuzzy_duplicate_pointers` roda sobre
+`list[Document]` **antes/independente** da extração. **Logo, "derivar no rebuild code-only" NÃO é
+viável** (a premissa inicial estava errada). DE-03 exige uma **lane de write-path**:
+
+1. Na classificação/ingestão de informe, derivar `declarante_ref = HMAC(cpf_titular)` (chave Fernet
+   já disponível no vault; nunca persistir o CPF) e gravar em `classification_meta["declarante_ref"]`.
+2. `rebuild_fuzzy_duplicate_pointers` lê `classification_meta.declarante_ref` e o inclui na chave.
+3. Backfill dos docs existentes (rebuild uma vez) — sem migration se `declarante_ref` viver em
+   `classification_meta` (JSON já existente); coluna dedicada só se um índice por declarante virar
+   necessário (migration a head único após DE-01 Fase 2).
+
+Escopo = write-path (ingestão) + read-path (dedup) + backfill + teste de casal. É lane própria,
+não fix code-only. Design travado aqui; implementação quando priorizada.
 
 ## Rationale
 
@@ -55,7 +76,8 @@ superfície de documento. Token não-reversível respeita o invariante de nunca 
 ## Consequências
 
 - Informes de casal deixam de flagar duplicata (ruído de review resolve).
-- Sem migration se derivar no rebuild; senão 1 migration após DE-01 (head único).
+- Sem migration se `declarante_ref` viver em `classification_meta` (JSON existente); coluna
+  dedicada só se um índice por declarante virar necessário (migration a head único após DE-01).
 
 ## Critério de aceite (4 lentes)
 
