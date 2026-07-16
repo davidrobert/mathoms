@@ -46,9 +46,12 @@ class RealEstateConfig:
     vacancia_pct: Decimal = Decimal("0.15")
     manutencao_pct: Decimal = Decimal("0.01")
     ir_carne_leao_fallback_pct: Decimal = Decimal("0.275")
-    concentracao_alerta_pct: Decimal = Decimal("40.0")
+    # C11-Fase2 ([[ADR-340]]): thresholds recalibrados para a base CARTEIRA (leituras
+    # ~1,5-2× as da base líquido; âncora real 5@5.com = 60%). Alerta 40→50, spread
+    # 30→45. Provisórios (N=1), configuráveis via ConfigStore (ADR-134).
+    concentracao_alerta_pct: Decimal = Decimal("50.0")
     spread_critico_pct_do_benchmark: Decimal = Decimal("0.70")
-    spread_critico_concentracao_minima_pct: Decimal = Decimal("30.0")
+    spread_critico_concentracao_minima_pct: Decimal = Decimal("45.0")
     contrato_reajuste_pendente_meses: int = 12
 
 
@@ -408,11 +411,16 @@ def filter_investment_properties(
 
 def calculate_real_estate_metrics(
     properties: list[PropertyInput],
-    patrimonio_liquido: Decimal,
+    concentracao_imobiliaria_pct: Decimal,
     benchmarks: BenchmarkRates,
     config: RealEstateConfig | None = None,
 ) -> RealEstateMetricsResult:
-    """Calcula payload `real_estate` (ADR-216) sobre imóveis de investimento."""
+    """Calcula payload `real_estate` (ADR-216) sobre imóveis de investimento.
+
+    ``concentracao_imobiliaria_pct``: concentração canônica base carteira
+    (C11-Fase2 · [[ADR-340]]), computada 1× no SSOT (``RatiosCalculator`` /
+    ``compute_concentracao_imobiliaria_pct``) e injetada — não recomputada aqui.
+    """
     cfg = config or RealEstateConfig()
 
     from pipeline.domain.services.real_estate_metrics_aggregator import (
@@ -445,11 +453,7 @@ def calculate_real_estate_metrics(
         cap_rate_bruto_pct = _quantize_pct(_safe_div(aluguel_total, valor_total) * _HUNDRED)
         cap_rate_liquido_pct = _quantize_pct(_safe_div(liquido_anual, valor_total) * _HUNDRED)
 
-    concentracao_pct = (
-        _quantize_pct(_safe_div(valor_total, patrimonio_liquido) * _HUNDRED)
-        if patrimonio_liquido > _ZERO
-        else _ZERO
-    )
+    concentracao_pct = _quantize_pct(concentracao_imobiliaria_pct)
 
     spreads_pp: dict[str, Decimal] = {}
     spread_brl_anual: dict[str, Decimal] = {}

@@ -21,6 +21,9 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Literal, Mapping
 
+from pipeline.domain.services.concentracao_imobiliaria import (
+    compute_concentracao_imobiliaria_pct,
+)
 from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
 
@@ -291,15 +294,9 @@ def _calc_autonomia_financeira(
 
 
 def _calc_concentracao_imobiliaria(patrimonio: _PatrimonioPayload) -> float:
-    # C11-Fase2 / FIN-05 ([[ADR-340]]): concentração = imóveis de renda (cat_2)
-    # sobre a CARTEIRA produtiva (investível financeiro + cat_2, FIXA — não usa
-    # `investivel_efetivo`, que é toggle-dependente e estouraria >100%). Mede
-    # quanto do capital produtivo está travado em imóvel ilíquido; residência e
-    # veículos ficam fora do denominador (não são carteira). Numerador cat_2
-    # completo (não só geradores) — imóvel vago/especulação é ainda mais ilíquido.
-    cat2 = _safe_float(patrimonio.get("imoveis_investimento", 0))
-    carteira = _safe_float(patrimonio.get("investivel_financeiro", 0)) + cat2
-    return _ratio_pct(cat2, carteira)
+    # C11-Fase2 / FIN-05 ([[ADR-340]]): delega ao SSOT de fórmula (mesma função
+    # que a integração real_estate usa em E5.N → zero drift cross-superfície).
+    return compute_concentracao_imobiliaria_pct(patrimonio)
 
 
 def _resolve_rentabilidade(

@@ -18,6 +18,9 @@ from backend.app.services.real_estate_adapter import (
     IRPFAluguelEntry,
     calculate_for_workspace,
 )
+from pipeline.domain.services.concentracao_imobiliaria import (
+    compute_concentracao_imobiliaria_pct,
+)
 from pipeline.domain.services.imoveis_dedup import resolve_dedup_winner_by_property_id
 from pipeline.domain.services.real_estate_metrics import (
     ExcludedProperty,
@@ -59,13 +62,17 @@ def _calculate(
 ):
     """Resolve cascade D9 + chama service puro (boundary backend/ adapter)."""
     workspace_id = identities[0].workspace_id
+    # C11-Fase2 ([[ADR-340]]): concentração canônica base carteira — computada do
+    # mesmo dict `patrimonio` que o RatiosCalculator usa (SSOT de fórmula), então
+    # `real_estate.concentracao_pct` == `ratios.concentracao_imobiliaria`.
+    concentracao = compute_concentracao_imobiliaria_pct(e5_data.get("patrimonio", {}) or {})
     return calculate_for_workspace(
         db,
         identities=identities,
         overrides=_load_overrides(db, workspace_id),
         valor_by_property=_valor_by_property(identities, baseline_payload),
         sources=_build_cascade_sources(irpf_payload, e5_data, informe_payloads, identities),
-        patrimonio_liquido=_to_decimal(_get_path(e5_data, "patrimonio", "liquido")),
+        concentracao_imobiliaria_pct=_to_decimal(concentracao),
         as_of_date=as_of_date or date.today(),
     )
 

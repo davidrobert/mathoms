@@ -232,7 +232,7 @@ def calculate_for_workspace(
     overrides: Mapping[str, WorkspacePropertyOverride],
     valor_by_property: Mapping[str, Decimal],
     sources: CascadeSources,
-    patrimonio_liquido: Decimal,
+    concentracao_imobiliaria_pct: Decimal,
     as_of_date: date,
     config: RealEstateConfig | None = None,
     cdi_ir_efetivo_pct: Decimal | None = None,
@@ -249,7 +249,7 @@ def calculate_for_workspace(
     )
     return calculate_real_estate_metrics(
         properties=inputs,
-        patrimonio_liquido=patrimonio_liquido,
+        concentracao_imobiliaria_pct=concentracao_imobiliaria_pct,
         benchmarks=benchmarks,
         config=cfg,
     )

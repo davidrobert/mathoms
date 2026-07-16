@@ -27,9 +27,9 @@
       "fonte": "Perini — Viver de Renda",
       "racional": "Patrimônio investível ÷ meta IF. Operacionaliza a regra dos 300 / múltiplo de custo. 80% é zona de finalização, 5% é fase de partida."
     },
-    "diversificacao": {
-      "fonte": "Cerbasi — diversificação patrimonial por origem",
-      "racional": "Número de buckets de origem (residência, imóveis investimento, investimentos D, investimentos M, cripto, caixa+moeda, veículos) com ≥5% do bruto. Proxy simples para concentração de patrimônio. NÃO confundir com diversificação de carteira AUVP (RF pré/pós/IPCA, ações BR/INT, FIIs, caixa) — para essa, ver `goal.alocacao_alvo.v2.schema.json:derived.desvio_max_pct` (KPI canônico AUVP, peso futuro). Esta métrica é peso menor (1.0) porque para patrimônios <R$5M, concentração em 1-2 origens ainda é racional."
+    "concentracao_imobiliaria": {
+      "fonte": "concentração de classe ilíquida na carteira produtiva (ADR-340)",
+      "racional": "FIN-05 (ADR-340): substitui a antiga 'diversificacao' (contagem de buckets de origem — proxy invertido que premiava residência/veículos ilíquidos e double-contava carteira por CPF do casal). Agora = imóveis de renda (cat_2) sobre a carteira produtiva (investível financeiro + cat_2, FIXA), invertido — alta concentração em imóvel ilíquido = nota baixa. Mede quanto do capital produtivo está travado; residência/veículos ficam fora do denominador (não são carteira). Peso menor (1.0). Diversificação de carteira por classe (RF/ações/FIIs) fica para `goal.alocacao_alvo.v2:derived.desvio_max_pct` (futuro)."
     }
   },
 
@@ -72,14 +72,15 @@
       "unidade": "% da meta IF",
       "fonte": "Perini"
     },
-    "diversificacao": {
-      "nome_display": "Diversificação Patrimonial (origem)",
-      "range_min": 1,
-      "range_max": 6,
+    "concentracao_imobiliaria": {
+      "nome_display": "Concentração Imobiliária",
+      "range_min": 0,
+      "range_max": 85,
+      "_nota_range": "FIN-05 (ADR-340): substitui a antiga 'diversificacao' (contagem de buckets — proxy invertido que premiava residência/veículos ilíquidos). Agora = concentração cat_2/carteira invertida; range_max=85 é o PISO da nota (≥85% → 0), range_min=0 → 10. Provisório (N=1, âncora real 60%), recalibrar com N famílias.",
       "peso": 1.0,
-      "invertido": false,
-      "unidade": "buckets de origem com ≥5% do bruto",
-      "fonte": "Cerbasi (concentração patrimonial). Para diversificação de carteira AUVP, ver goal.alocacao_alvo.v2:derived.desvio_max_pct."
+      "invertido": true,
+      "unidade": "% da carteira produtiva em imóvel de renda ilíquido",
+      "fonte": "concentração de classe ilíquida na carteira produtiva (base carteira, ADR-340)."
     }
   },
 
