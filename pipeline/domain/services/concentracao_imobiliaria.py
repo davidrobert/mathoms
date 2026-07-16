@@ -1,15 +1,4 @@
-"""Concentração imobiliária canônica — base carteira (C11-Fase2 · [[ADR-340]]).
-
-Fórmula ÚNICA (SSOT de definição): imóveis de renda (cat_2) sobre a **carteira
-produtiva** (investível financeiro + cat_2, FIXA — toggle-independente). Mede
-quanto do capital produtivo está travado em imóvel ilíquido; residência e
-veículos ficam **fora** do denominador (não são carteira). Numerador cat_2
-completo — imóvel vago/especulação é ainda mais ilíquido, conta no risco.
-
-Chamada por ``RatiosCalculator`` (E5, emite ``ratios.concentracao_imobiliaria``)
-e pela integração real_estate (E5.N, alimenta ``concentracao_pct`` + alertas).
-Mesmos inputs (dict ``patrimonio``) → mesmo resultado; zero drift cross-superfície.
-"""
+"""Concentração imobiliária canônica base carteira (C11-Fase2 · [[ADR-340]]): fórmula ÚNICA (SSOT) = imóveis de renda (cat_2) sobre a carteira produtiva (investível financeiro + cat_2, FIXA/toggle-independente); residência/veículos fora do denominador (não são carteira); numerador cat_2 completo (vago/especulação é ainda mais ilíquido). Chamada por ``RatiosCalculator`` (E5) e pela integração real_estate (E5.N) com os mesmos inputs → zero drift cross-superfície."""
 
 from __future__ import annotations
 

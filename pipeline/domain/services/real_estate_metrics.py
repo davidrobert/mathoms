@@ -415,12 +415,7 @@ def calculate_real_estate_metrics(
     benchmarks: BenchmarkRates,
     config: RealEstateConfig | None = None,
 ) -> RealEstateMetricsResult:
-    """Calcula payload `real_estate` (ADR-216) sobre imóveis de investimento.
-
-    ``concentracao_imobiliaria_pct``: concentração canônica base carteira
-    (C11-Fase2 · [[ADR-340]]), computada 1× no SSOT (``RatiosCalculator`` /
-    ``compute_concentracao_imobiliaria_pct``) e injetada — não recomputada aqui.
-    """
+    """Calcula payload `real_estate` (ADR-216); ``concentracao_imobiliaria_pct`` é a concentração canônica base carteira (C11-Fase2 · [[ADR-340]]), computada 1× no SSOT e injetada — não recomputada aqui."""
     cfg = config or RealEstateConfig()
 
     from pipeline.domain.services.real_estate_metrics_aggregator import (
