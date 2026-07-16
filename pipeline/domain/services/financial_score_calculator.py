@@ -19,14 +19,16 @@ A média ponderada pelos pesos produz o score final (arredondado a 1 casa).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from pipeline.domain.services.patrimonio_types import safe_float
 
 # ADR-217 D3: score_version trava a fórmula no payload. Bump exige ADR sucessora.
 # "1.0-legacy" = composição A6d.3.3 / scoring.json (5 componentes Cerbasi/Perini).
-# Wave 1 (ADR-218 implementada) → "2.0" com reserva_emergencia.meses_cobertos_essencial.
-SCORE_VERSION = "1.0-legacy"
+# "2.0" (ADR-328 · FP-02): plateau da cobertura ancora em reserva.meses_alvo
+# (perfil 6/12/18), não no teto fixo 24 — nota satura no alvo, não premia
+# over-provisioning. FIN-05 (diversificação) entra numa 2.x futura, própria.
+SCORE_VERSION = "2.0"
 
 # =============================================================================
 # Utilities
@@ -80,7 +82,9 @@ _DEFAULT_COMPONENTS: tuple[ScoreComponent, ...] = (
     ScoreComponent(
         key="cobertura_despesas",
         range_min=3,
-        range_max=24,
+        # score_version 2.0: fallback do plateau quando reserva.meses_alvo ausente;
+        # o plateau real é dinâmico (reserva.meses_alvo, perfil 6/12/18 — ADR-328).
+        range_max=12,
         peso=1.5,
         nome_display="cobertura_despesas",
     ),
@@ -247,11 +251,20 @@ class FinancialScoreCalculator:
         cfg = self._config
         return [
             self._grade(cfg.taxa_poupanca, observed["taxa_poup"]),
-            self._grade(cfg.cobertura, observed["cobertura"]),
+            self._grade(self._cobertura_component(reserva), observed["cobertura"]),
             self._grade(cfg.endividamento, observed["endiv"]),
             self._grade(cfg.progresso_if, observed["if_pct"]),
             self._grade(cfg.diversificacao, observed["num_cats"]),
         ]
+
+    def _cobertura_component(self, reserva: dict | None) -> ScoreComponent:
+        """score_version 2.0 (ADR-328 · FP-02): plateau ancora em ``reserva.meses_alvo``
+        (perfil 6/12/18) — a nota satura no alvo. Piso ``range_min=3`` mantido;
+        ``range_max`` do config (12) é fallback quando o perfil não resolve."""
+        base = self._config.cobertura
+        alvo = safe_float(reserva.get("meses_alvo")) if reserva else 0.0
+        plateau = alvo if alvo > base.range_min else base.range_max
+        return replace(base, range_max=plateau)
 
     @staticmethod
     def _observed_values(

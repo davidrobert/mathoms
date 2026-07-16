@@ -30,6 +30,56 @@ def test_calculate_emite_score_version_canonico():
     assert result["score_version"] == SCORE_VERSION
 
 
+def _cobertura_nota(*, cobertura: float, meses_alvo: int | None) -> float:
+    reserva = {"cobertura_meses": cobertura}
+    if meses_alvo is not None:
+        reserva["meses_alvo"] = meses_alvo
+    inputs = {**_sample_inputs(), "reserva": reserva}
+    result = _calc().calculate(**inputs)
+    return next(c for c in result["componentes"] if c["code"] == "cobertura_despesas")["nota"]
+
+
+def test_cobertura_plateau_satura_no_meses_alvo():
+    """score_version 2.0 (ADR-328/FP-02): nota satura em 10 no alvo do perfil e
+    não sobe acima dele — não premia over-provisioning."""
+    for alvo in (6, 12, 18):
+        assert _cobertura_nota(cobertura=alvo, meses_alvo=alvo) == 10.0
+        assert _cobertura_nota(cobertura=alvo * 2, meses_alvo=alvo) == 10.0
+        assert _cobertura_nota(cobertura=alvo * 3, meses_alvo=alvo) == 10.0
+
+
+def test_cobertura_no_alvo_nao_e_penalizada():
+    """CLT no alvo de 6m tira nota alta (era ~1,4/10 no teto fixo 24 do 1.0-legacy)."""
+    assert _cobertura_nota(cobertura=6, meses_alvo=6) == 10.0
+
+
+def test_cobertura_interpola_entre_piso_e_alvo():
+    """Piso 3m mantido; interpola linear [3, meses_alvo] → [0, 10]."""
+    # meio do caminho entre 3 e 12 (=7,5) → 5,0
+    assert _cobertura_nota(cobertura=7.5, meses_alvo=12) == 5.0
+    # abaixo do piso → 0
+    assert _cobertura_nota(cobertura=3, meses_alvo=12) == 0.0
+
+
+def test_cobertura_fallback_sem_meses_alvo_usa_config():
+    """Sem ``reserva.meses_alvo`` (perfil não resolve) → plateau no fallback do
+    config (12); satura em 12."""
+    assert _cobertura_nota(cobertura=12, meses_alvo=None) == 10.0
+    assert _cobertura_nota(cobertura=24, meses_alvo=None) == 10.0
+
+
+def test_cobertura_nota_2_0_nunca_abaixo_do_1_0_legacy():
+    """Prova do financial-planner: para range_min=3 fixo e meses_alvo ≤ 24, a nota
+    da cobertura só sobe ou fica flat vs teto fixo 24 — nenhuma família perde ponto."""
+    from pipeline.domain.services.financial_score_calculator import linear_interpolate
+
+    for meses_alvo in (6, 12, 18):
+        for cobertura in (3, 5, 8, 12, 20, 30):
+            nova = _cobertura_nota(cobertura=cobertura, meses_alvo=meses_alvo)
+            antiga = linear_interpolate(cobertura, 3, 24)
+            assert nova >= antiga - 1e-9, (meses_alvo, cobertura, nova, antiga)
+
+
 def test_calculate_componentes_carregam_status_emitted():
     result = _calc().calculate(**_sample_inputs())
     assert all(c["status"] == "emitted" for c in result["componentes"])
