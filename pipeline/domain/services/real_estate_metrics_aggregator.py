@@ -138,13 +138,14 @@ def compute_alertas(
     alertas: list[Alerta] = []
 
     if concentracao_pct > config.concentracao_alerta_pct:
+        conc_br = f"{concentracao_pct:.1f}".replace(".", ",")
         alertas.append(
             Alerta(
                 code="concentracao_alta",
                 severity="warning",
                 context=(
-                    f"Concentração em imóveis ({concentracao_pct:.1f}%) acima de "
-                    f"{config.concentracao_alerta_pct:.0f}% do patrimônio — "
+                    f"Concentração em imóveis ({conc_br}%) acima de "
+                    f"{config.concentracao_alerta_pct:.0f}% da carteira produtiva — "
                     f"revisão de alocação recomendada."
                 ),
             )
@@ -162,10 +163,10 @@ def compute_alertas(
                 code="spread_critico",
                 severity="warning",
                 context=(
-                    f"Cap rate líquido ({cap_rate_liquido_pct:.2f}%) < "
+                    f"Cap rate líquido ({f'{cap_rate_liquido_pct:.2f}'.replace('.', ',')}%) < "
                     f"{int(config.spread_critico_pct_do_benchmark * 100)}% do CDI líquido "
-                    f"({benchmarks.cdi_liquido_pct:.2f}%) combinado com concentração imobiliária "
-                    f"acima de {config.spread_critico_concentracao_minima_pct:.0f}% — "
+                    f"({f'{benchmarks.cdi_liquido_pct:.2f}'.replace('.', ',')}%) combinado com concentração imobiliária "
+                    f"acima de {config.spread_critico_concentracao_minima_pct:.0f}% da carteira produtiva — "
                     f"considerar revisão estratégica."
                 ),
             )
