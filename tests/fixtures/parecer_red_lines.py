@@ -191,28 +191,29 @@ POISONED: tuple[RedLineFixture, ...] = (
         ),
         _e5(),
     ),
-    # RL7 — subdiagnóstico: concentração imobiliária do E5 sem risco Alto correspondente
+    # RL7 (C11-Fase2 · ADR-340): lê ratios.concentracao_imobiliaria (base carteira).
+    # >75 exige ALTA; 50-75 exige MEDIA_MAIS. Subdiagnóstico = parecer não cobre.
     RedLineFixture(
-        "rl7_real_estate_alertas",
+        "rl7_concentracao_alta_exige_alta",
         "RL7",
         "block",
         _output(riscos=[_risco("Baixa", "Custo tributário")]),
-        _e5(real_estate={"concentracao_pct": 10.0, "alertas": ["concentracao_alta"]}),
+        _e5(ratios={"taxa_endividamento_pct": 8.0, "concentracao_imobiliaria": 80.0}),
     ),
     RedLineFixture(
         "rl7_concentracao",
         "RL7",
         "block",
         _output(riscos=[]),
-        _e5(real_estate={"concentracao_pct": 65.0, "alertas": []}),
+        _e5(ratios={"taxa_endividamento_pct": 8.0, "concentracao_imobiliaria": 65.0}),
     ),
-    # RL7 1.4 — 40-60% com tema só em Baixa = subdiagnóstico (anti-FN do narrow graduado)
+    # RL7 1.4 — 50-75% com tema só em Baixa = subdiagnóstico (anti-FN do narrow graduado)
     RedLineFixture(
         "rl7_meia_concentracao_so_baixa",
         "RL7",
         "block",
         _output(riscos=[_risco("Baixa", "Alocação")]),
-        _e5(real_estate={"concentracao_pct": 52.0, "alertas": []}),
+        _e5(ratios={"taxa_endividamento_pct": 8.0, "concentracao_imobiliaria": 52.0}),
     ),
 )
 

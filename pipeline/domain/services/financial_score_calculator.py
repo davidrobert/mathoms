@@ -8,7 +8,8 @@ Substitui ``scripts/analyze_finances.calculate_score`` por serviço puro.
 2. ``cobertura_despesas`` — meses cobertos pela reserva líquida.
 3. ``taxa_endividamento`` — % dívidas/patrimônio (**invertido**: maior = pior).
 4. ``progresso_if`` — % da meta de independência financeira.
-5. ``diversificacao`` — número de categorias com valor > 0 na composição.
+5. ``concentracao_imobiliaria`` — % da carteira produtiva em imóvel de renda
+   ilíquido (invertido: mais concentração = nota menor · FIN-05 / ADR-340).
 
 Cada componente é interpolado linearmente em [range_min, range_max] → [0, 10].
 A média ponderada pelos pesos produz o score final (arredondado a 1 casa).
@@ -25,10 +26,11 @@ from pipeline.domain.services.patrimonio_types import safe_float
 
 # ADR-217 D3: score_version trava a fórmula no payload. Bump exige ADR sucessora.
 # "1.0-legacy" = composição A6d.3.3 / scoring.json (5 componentes Cerbasi/Perini).
-# "2.0" (ADR-328 · FP-02): plateau da cobertura ancora em reserva.meses_alvo
-# (perfil 6/12/18), não no teto fixo 24 — nota satura no alvo, não premia
-# over-provisioning. FIN-05 (diversificação) entra numa 2.x futura, própria.
-SCORE_VERSION = "2.0"
+# "2.0" (ADR-328 · FP-02): plateau da cobertura ancora em reserva.meses_alvo.
+# "2.1" (ADR-340 · FIN-05): componente `diversificacao` (contagem de buckets —
+# proxy invertido que premiava residência/veículos ilíquidos) → `concentracao_imobiliaria`
+# invertida (cat_2/carteira; alta concentração = nota baixa; piso 85%).
+SCORE_VERSION = "2.1"
 
 # =============================================================================
 # Utilities
@@ -104,11 +106,15 @@ _DEFAULT_COMPONENTS: tuple[ScoreComponent, ...] = (
         nome_display="progresso_if",
     ),
     ScoreComponent(
-        key="diversificacao",
-        range_min=1,
-        range_max=6,
+        # FIN-05 ([[ADR-340]]): concentração imobiliária invertida (base carteira).
+        # range_max=85 é o PISO da nota (concentração ≥85% → nota 0); range_min=0
+        # → nota 10. Provisório (N=1, âncora real 60%), configurável (scoring.json).
+        key="concentracao_imobiliaria",
+        range_min=0,
+        range_max=85,
         peso=1.0,
-        nome_display="diversificacao",
+        nome_display="concentracao_imobiliaria",
+        invertido=True,
     ),
 )
 
@@ -121,7 +127,7 @@ class FinancialScoreConfig:
     cobertura: ScoreComponent
     endividamento: ScoreComponent
     progresso_if: ScoreComponent
-    diversificacao: ScoreComponent
+    concentracao_imobiliaria: ScoreComponent
     classificacao: tuple[ScoreClassificacao, ...] = ()
 
     @classmethod
@@ -132,7 +138,7 @@ class FinancialScoreConfig:
             cobertura=_DEFAULT_COMPONENTS[1],
             endividamento=_DEFAULT_COMPONENTS[2],
             progresso_if=_DEFAULT_COMPONENTS[3],
-            diversificacao=_DEFAULT_COMPONENTS[4],
+            concentracao_imobiliaria=_DEFAULT_COMPONENTS[4],
             classificacao=(),
         )
 
@@ -171,7 +177,7 @@ class FinancialScoreConfig:
             cobertura=_component(_DEFAULT_COMPONENTS[1]),
             endividamento=_component(_DEFAULT_COMPONENTS[2]),
             progresso_if=_component(_DEFAULT_COMPONENTS[3]),
-            diversificacao=_component(_DEFAULT_COMPONENTS[4]),
+            concentracao_imobiliaria=_component(_DEFAULT_COMPONENTS[4]),
             classificacao=classif,
         )
 
@@ -254,7 +260,7 @@ class FinancialScoreCalculator:
             self._grade(self._cobertura_component(reserva), observed["cobertura"]),
             self._grade(cfg.endividamento, observed["endiv"]),
             self._grade(cfg.progresso_if, observed["if_pct"]),
-            self._grade(cfg.diversificacao, observed["num_cats"]),
+            self._grade(cfg.concentracao_imobiliaria, observed["concentracao_imobiliaria"]),
         ]
 
     def _cobertura_component(self, reserva: dict | None) -> ScoreComponent:
@@ -270,7 +276,6 @@ class FinancialScoreCalculator:
     def _observed_values(
         *, ratios: dict, patrimonio: dict, goals: dict, reserva: dict | None = None
     ) -> dict[str, float]:
-        composicao = patrimonio.get("composicao", []) or []
         cobertura = (
             safe_float(reserva.get("cobertura_meses", 0))
             if reserva
@@ -286,7 +291,9 @@ class FinancialScoreCalculator:
             "cobertura": cobertura,
             "endiv": safe_float(ratios.get("taxa_endividamento_pct", 0)),
             "if_pct": safe_float(goals.get("if_pct", 0)),
-            "num_cats": sum(1 for c in composicao if safe_float(c.get("valor", 0)) > 0),
+            # FIN-05 ([[ADR-340]]): lê o canônico SSOT (base carteira) em vez de
+            # contar buckets de origem (proxy invertido que premiava consumo ilíquido).
+            "concentracao_imobiliaria": safe_float(ratios.get("concentracao_imobiliaria", 0)),
         }
 
     def _grade(self, comp: ScoreComponent, observed: float) -> dict:
@@ -391,7 +398,7 @@ _DIMENSION_LABELS: dict[str, str] = {
     "cobertura_despesas": "cobertura de despesas pela reserva",
     "taxa_endividamento": "razão endividamento/patrimônio",
     "progresso_if": "progresso da meta IF",
-    "diversificacao": "diversificação patrimonial",
+    "concentracao_imobiliaria": "concentração em imóveis de renda",
 }
 
 

@@ -93,7 +93,7 @@ def test_calculate_componentes_carregam_code_canonico():
         "cobertura_despesas",
         "taxa_endividamento",
         "progresso_if",
-        "diversificacao",
+        "concentracao_imobiliaria",
     }
 
 

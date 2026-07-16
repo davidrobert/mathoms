@@ -63,7 +63,7 @@ def test_zero_imoveis_investimento_devolve_cap_rate_none():
     """Sem imóveis de investimento → cap rates None, payload coerente."""
     p = _property(classification="residencia_principal")
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     assert result.cap_rate_liquido_pct is None
     assert result.cap_rate_bruto_pct is None
@@ -73,7 +73,7 @@ def test_zero_imoveis_investimento_devolve_cap_rate_none():
 
 def test_lista_de_imoveis_vazia():
     result = calculate_real_estate_metrics(
-        [], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     assert result.cap_rate_liquido_pct is None
     assert result.imoveis == []
@@ -95,7 +95,7 @@ def test_componentes_carrega_origem_e_confidence():
         ir_carne_leao="6930",  # irpf
     )
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     componentes = result.componentes_calculo
     assert componentes["aluguel_anual_bruto"].origem == "informe"
@@ -114,7 +114,7 @@ def test_componentes_origem_dominante_por_valor_em_carteira_mista():
         property_id="p2", valor="500000", aluguel="10000", aluguel_origem="informe"
     )
     result = calculate_real_estate_metrics(
-        [p_irpf, p_informe], patrimonio_liquido=Decimal("10000000"), benchmarks=_benchmarks()
+        [p_irpf, p_informe], concentracao_imobiliaria_pct=Decimal("20"), benchmarks=_benchmarks()
     )
     assert result.componentes_calculo["aluguel_anual_bruto"].origem == "irpf"
 
@@ -126,7 +126,7 @@ def test_calculo_usa_decimal_em_todo_pipeline():
     """ADR-090: dinheiro em Decimal interno; serializer faz coerção para payload."""
     p = _property()
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     assert isinstance(result.cap_rate_liquido_pct, Decimal)
     assert isinstance(result.concentracao_pct, Decimal)
@@ -140,7 +140,7 @@ def test_result_to_payload_shape_top_level():
     """Payload top-level mandatory keys (data-engineer contract)."""
     p = _property()
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     payload = result_to_payload(result)
 
@@ -164,7 +164,7 @@ def test_result_to_payload_imovel_shape():
     """Cada item de `imoveis[]` carrega campos mínimos para card S4."""
     p = _property()
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     payload = result_to_payload(result)
     imovel = payload["imoveis"][0]
@@ -189,7 +189,7 @@ def test_result_to_payload_excluded_properties_com_motivo():
         _property(property_id="p2", classification="residencia_principal"),
     ]
     result = calculate_real_estate_metrics(
-        props, patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        props, concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     payload = result_to_payload(result)
     assert len(payload["excluded_properties"]) == 1
@@ -209,7 +209,7 @@ def test_imoveis_ordenados_por_valor_descendente():
     p_medio = _property(property_id="med", valor="800000")
     result = calculate_real_estate_metrics(
         [p_pequeno, p_grande, p_medio],
-        patrimonio_liquido=Decimal("10000000"),
+        concentracao_imobiliaria_pct=Decimal("20"),
         benchmarks=_benchmarks(),
     )
     assert [i.property_id for i in result.imoveis] == ["big", "med", "small"]
@@ -232,7 +232,7 @@ def test_payload_passa_no_e5_analysis_schema_canonico():
     ]
     result = calculate_real_estate_metrics(
         props,
-        patrimonio_liquido=Decimal("5000000"),
+        concentracao_imobiliaria_pct=Decimal("30"),
         benchmarks=_benchmarks(),
     )
     payload = result_to_payload(result)
@@ -268,7 +268,7 @@ def test_pipeline_boundaries_pipeline_sem_framework_imports():
 def test_benchmarks_propagados_para_payload():
     p = _property()
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     payload = result_to_payload(result)
     assert payload["benchmarks"]["cdi_liquido_pct"] == 8.7

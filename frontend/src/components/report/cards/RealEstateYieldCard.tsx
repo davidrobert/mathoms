@@ -93,8 +93,8 @@ function RealEstateHero({ data }: { data: RealEstateData }) {
           <span className="ml-2 text-xl text-[var(--surface-muted-foreground)]">a.a.</span>
         </p>
         <p className="text-sm text-[var(--surface-muted-foreground)]">
-          {(data.concentracao_pct ?? 0).toFixed(1).replace(".", ",")}% do patrimônio
-          líquido em imóveis · {data.imoveis.length}{" "}
+          {(data.concentracao_pct ?? 0).toFixed(1).replace(".", ",")}% da carteira
+          produtiva em imóveis de renda ilíquidos · {data.imoveis.length}{" "}
           {data.imoveis.length === 1 ? "imóvel" : "imóveis"} de investimento
         </p>
       </div>

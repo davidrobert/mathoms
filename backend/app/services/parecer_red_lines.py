@@ -326,14 +326,13 @@ def _rl6_mexer_reserva_protecao(out, e5) -> list[RedLineViolation]:
 
 
 def _severidade_exigida_concentracao(e5: Mapping[str, Any]) -> set[str] | None:
-    """Nível de severidade que o parecer precisa ter no tema de concentração, graduado
-    pelo nível (RL7 1.4). ``None`` = sem concentração relevante (RL7 não se aplica)."""
-    real_estate = e5.get("real_estate") or {}
-    conc = real_estate.get("concentracao_pct")
+    """Severidade que o parecer precisa ter no tema concentração, graduada (RL7 1.4); ``None`` = sem concentração relevante. C11-Fase2 ([[ADR-340]]): fonte = ``ratios.concentracao_imobiliaria`` (SSOT base carteira, sempre presente); thresholds ALTA 60→75, MEDIA_MAIS 40→50; o acoplamento largo a ``real_estate.alertas`` foi removido (senão `concentracao_alta` a 50% furaria a linha de hard-block ratificada em 75%)."""
+    ratios = e5.get("ratios") or {}
+    conc = ratios.get("concentracao_imobiliaria")
     conc = conc if isinstance(conc, (int, float)) else 0.0
-    if conc > 60.0 or real_estate.get("alertas"):
+    if conc > 75.0:
         return _SEVERIDADE_ALTA
-    if conc > 40.0:
+    if conc > 50.0:
         return _SEVERIDADE_MEDIA_MAIS
     return None
 

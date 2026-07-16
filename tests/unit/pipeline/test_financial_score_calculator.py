@@ -60,7 +60,7 @@ def test_config_default_all_5_components():
     assert cfg.cobertura.key == "cobertura_despesas"
     assert cfg.endividamento.key == "taxa_endividamento"
     assert cfg.progresso_if.key == "progresso_if"
-    assert cfg.diversificacao.key == "diversificacao"
+    assert cfg.concentracao_imobiliaria.key == "concentracao_imobiliaria"
 
 
 def test_config_from_scoring_json_empty_uses_defaults():
@@ -212,28 +212,22 @@ def test_componentes_have_nome_valor_peso_nota(default_calc: FinancialScoreCalcu
         assert set(comp.keys()) == {"code", "nome", "valor", "peso", "nota", "status"}
 
 
-def test_diversificacao_counts_positive_valor_only(default_calc: FinancialScoreCalculator):
-    """Apenas categorias com valor > 0 contam para diversificação."""
+def test_concentracao_le_ratios_canonico_invertido(default_calc: FinancialScoreCalculator):
+    """FIN-05 (ADR-340): componente lê ratios.concentracao_imobiliaria (base carteira),
+    invertida — alta concentração → nota baixa. conc=60% → nota ~2,9 (piso 85)."""
     result = default_calc.calculate(
         ratios={
             "taxa_poupanca_recorrente_pct": 0,
             "cobertura_despesas_meses": 0,
             "taxa_endividamento_pct": 0,
+            "concentracao_imobiliaria": 60.0,
         },
-        patrimonio={
-            "composicao": [
-                {"valor": 100},
-                {"valor": 50},
-                {"valor": 0},
-                {"valor": 0},
-                {"valor": 200},
-            ]
-        },
+        patrimonio={"composicao": []},
         goals={"if_pct": 0},
     )
-    # 3 categorias > 0
-    diversif_comp = next(c for c in result["componentes"] if c["nome"] == "diversificacao")
-    assert diversif_comp["valor"] == 3
+    comp = next(c for c in result["componentes"] if c["code"] == "concentracao_imobiliaria")
+    assert comp["valor"] == 60.0
+    assert comp["nota"] == 2.9
 
 
 def test_endividamento_invertido_high_value_low_score():
@@ -245,7 +239,9 @@ def test_endividamento_invertido_high_value_low_score():
             "taxa_endividamento", 5, 50, 1.5, "endividamento", invertido=True
         ),
         progresso_if=ScoreComponent("progresso_if", 5, 80, 2.0, "if"),
-        diversificacao=ScoreComponent("diversificacao", 1, 6, 1.0, "diversif"),
+        concentracao_imobiliaria=ScoreComponent(
+            "concentracao_imobiliaria", 0, 85, 1.0, "x", invertido=True
+        ),
     )
     calc = FinancialScoreCalculator(cfg)
     # Endivid = 50 (max) com invertido → nota = 0
@@ -281,12 +277,13 @@ def test_endividamento_nao_invertido_high_value_high_score():
 
 def test_weighted_average_computed(default_calc: FinancialScoreCalculator):
     """Média ponderada dos 5 componentes."""
-    # Todos em min (nota 0) → score 0
+    # Todos em min (nota 0) → score 0. concentracao=85 (piso) → nota 0 (invertida).
     result = default_calc.calculate(
         ratios={
             "taxa_poupanca_recorrente_pct": 0,
             "cobertura_despesas_meses": 3,
             "taxa_endividamento_pct": 5,
+            "concentracao_imobiliaria": 85,
         },
         patrimonio={"composicao": []},
         goals={"if_pct": 5},
@@ -362,7 +359,9 @@ def test_classify_custom_bands():
         cobertura=ScoreComponent("cobertura_despesas", 3, 24, 1.5, "x"),
         endividamento=ScoreComponent("taxa_endividamento", 5, 50, 1.5, "x"),
         progresso_if=ScoreComponent("progresso_if", 5, 80, 2.0, "x"),
-        diversificacao=ScoreComponent("diversificacao", 1, 6, 1.0, "x"),
+        concentracao_imobiliaria=ScoreComponent(
+            "concentracao_imobiliaria", 0, 85, 1.0, "x", invertido=True
+        ),
         classificacao=(
             ScoreClassificacao(min=0, max=5, label="Baixo"),
             ScoreClassificacao(min=5, max=10, label="Alto"),
@@ -454,7 +453,9 @@ def test_classify_custom_bands_edge_10():
         cobertura=ScoreComponent("cobertura_despesas", 3, 24, 1.5, "x"),
         endividamento=ScoreComponent("taxa_endividamento", 5, 50, 1.5, "x"),
         progresso_if=ScoreComponent("progresso_if", 5, 80, 2.0, "x"),
-        diversificacao=ScoreComponent("diversificacao", 1, 6, 1.0, "x"),
+        concentracao_imobiliaria=ScoreComponent(
+            "concentracao_imobiliaria", 0, 85, 1.0, "x", invertido=True
+        ),
         classificacao=(
             ScoreClassificacao(min=0, max=5, label="Baixo"),
             ScoreClassificacao(min=5, max=10, label="Alto"),
