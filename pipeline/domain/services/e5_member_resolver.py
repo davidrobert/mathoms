@@ -203,6 +203,8 @@ class E5MemberResolver:
                     "descricao": bem.get("descricao", ""),
                     "valor_31_12_ano_base": valor,
                 }
+                if bem.get("instituicao"):  # DE-01: preserva instituição estruturada
+                    entry["instituicao"] = bem["instituicao"]
                 if grupo == "01":
                     imoveis.append(entry)
                 elif grupo == "02":
@@ -417,6 +419,10 @@ class E5MemberResolver:
                     or ""
                 )
             entry: dict = {"descricao": descricao, "valor_31_12_ano_base": val}
+            # DE-01: preserva a instituição estruturada da fonte (IRPF/baseline);
+            # sem isso o top_ativos/instituicoes_por_membro chega vazio ao narrador.
+            if item.get("instituicao"):
+                entry["instituicao"] = item["instituicao"]
             if enrich_descricao:
                 entry["endereco"] = item.get("endereco", "")
                 entry["tipo"] = item.get("tipo", "")

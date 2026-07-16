@@ -234,3 +234,47 @@ class TestDefensivos:
         t, c = r.as_tuple()
         assert t["total_bens"] == 100
         assert c["total_bens"] == 50
+
+
+class TestDE01PreservaInstituicao:
+    """DE-01: a instituição estruturada da fonte não pode ser dropada no resolver
+    (senão top_ativos/instituicoes_por_membro chegam vazios e o narrador fabrica
+    'múltiplas instituições')."""
+
+    def test_lista_investimentos_consolidados_preserva_instituicao(self):
+        r = E5MemberResolver(_DAVID_MARIANA).resolve(
+            {
+                "investimentos_consolidados": [
+                    {
+                        "descricao": "CDB Banco X",
+                        "valor_31_12_ano_base": 100_000,
+                        "instituicao": "Banco X",
+                    },
+                ],
+            }
+        )
+        invs = r.titular_data["bens"]["investimentos"]
+        assert invs and invs[0].get("instituicao") == "Banco X"
+
+    def test_declarations_bem_preserva_instituicao(self):
+        bem = {
+            "grupo": "G04",
+            "descricao": "CDB",
+            "situacao_atual": 100_000,
+            "instituicao": "Banco Y",
+        }
+        decl = {"membro": "david", "ano_base": 2024, "bens_direitos": [bem], "total_bens": 100_000}
+        r = E5MemberResolver(_DAVID_MARIANA).resolve({"membros": ["david"], "declarations": [decl]})
+        invs = r.titular_data["bens"]["investimentos"]
+        assert invs and invs[0].get("instituicao") == "Banco Y"
+
+    def test_sem_instituicao_nao_injeta_chave(self):
+        r = E5MemberResolver(_DAVID_MARIANA).resolve(
+            {
+                "investimentos_consolidados": [
+                    {"descricao": "Tesouro", "valor_31_12_ano_base": 50_000},
+                ],
+            }
+        )
+        invs = r.titular_data["bens"]["investimentos"]
+        assert invs and "instituicao" not in invs[0]

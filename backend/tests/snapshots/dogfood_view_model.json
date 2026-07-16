@@ -415,7 +415,9 @@
   "investimentos": {
     "instituicoes_por_membro": [
       {
-        "instituicoes": [],
+        "instituicoes": [
+          "Bancoficticio"
+        ],
         "membro": "Alex"
       }
     ],
@@ -445,9 +447,9 @@
       },
       {
         "classe": "Renda Fixa",
-        "instituicao": "",
+        "instituicao": "Bancoficticio",
         "membro": "Alex",
-        "nome": "Renda Fixa",
+        "nome": "Renda Fixa (Bancoficticio)",
         "pct_carteira": "11.760000",
         "posicao": 200,
         "tipo_origem": "investimento",

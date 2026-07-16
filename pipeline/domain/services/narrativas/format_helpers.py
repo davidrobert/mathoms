@@ -74,6 +74,13 @@ def pluralize(n: int, singular: str, plural: str) -> str:
     return singular if n == 1 else plural
 
 
+def clause(prefixo: str, valor, sufixo: str = ". ") -> str:
+    """'' quando ``valor`` é vazio/falsy; senão ``prefixo+valor+sufixo`` (guard anti-buraco PD-01/PD-02)."""
+    if not valor:
+        return ""
+    return f"{prefixo}{valor}{sufixo}"
+
+
 def ensure_period(s: str) -> str:
     """Termina ``s`` com '.' sem duplicar; '.!?' (após rstrip) ficam; vazio→vazio."""
     stripped = s.rstrip()
