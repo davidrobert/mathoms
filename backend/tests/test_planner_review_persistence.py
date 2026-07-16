@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.pipeline_artifact import PipelineArtifact
-from backend.app.models.pipeline_run_cost import PipelineRunCost
 from backend.app.models.planner_review import PlannerReview
 from backend.app.models.suggestion import Suggestion
 from backend.app.services.planner_review_persistence import (
@@ -132,18 +131,6 @@ def _assert_review_row(sync_session, workspace_id: str) -> None:
     assert rows[0].persona_hash == PERSONA_HASH
 
 
-def _assert_cost_row(sync_session, run_id: str) -> None:
-    rows = (
-        sync_session.execute(
-            select(PipelineRunCost).where(PipelineRunCost.pipeline_run_id == run_id)
-        )
-        .scalars()
-        .all()
-    )
-    assert len(rows) == 1
-    assert rows[0].stage == "review_finances_holistic"
-
-
 def _assert_suggestion_row(sync_session, workspace_id: str) -> None:
     rows = (
         sync_session.execute(select(Suggestion).where(Suggestion.workspace_id == workspace_id))
@@ -160,8 +147,9 @@ def _assert_suggestion_row(sync_session, workspace_id: str) -> None:
 
 
 @pytest.mark.asyncio
-async def test_persist_creates_review_cost_and_suggestion(db, sync_session):
-    """Happy path — aggregate + cost + suggestion criados em uma transação."""
+async def test_persist_creates_review_and_suggestion(db, sync_session):
+    """Happy path — aggregate (com custo em review.cost_usd_cents) + suggestion
+    criados em uma transação. DE-01 Fase 1: sem row em pipeline_run_costs."""
     workspace = await factories.make_workspace(db)
     run = await factories.make_run(db, workspace=workspace)
     await make_artifacts(db, workspace, run)
@@ -173,7 +161,6 @@ async def test_persist_creates_review_cost_and_suggestion(db, sync_session):
     sync_session.commit()
     assert review_id is not None
     _assert_review_row(sync_session, workspace.id)
-    _assert_cost_row(sync_session, run.id)
     _assert_suggestion_row(sync_session, workspace.id)
 
 

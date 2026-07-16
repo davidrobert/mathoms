@@ -1,4 +1,4 @@
-"""Persistência atômica do PlannerReview pós-stage (ADR-199 / ADR-204 / ADR-208) — review + cost + suggestions(origin=llm) em transação única; falha → rollback + log."""
+"""Persistência atômica do PlannerReview pós-stage (ADR-199/204/208) — review + suggestions(origin=llm) em transação única; falha → rollback. DE-01 Fase 1 (emenda [[ADR-173]]): não escreve mais ``pipeline_run_costs`` (SSOT = ``llm_call_log``); custo do run segue em ``PlannerReview.cost_usd_cents``."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun
-from backend.app.models.pipeline_run_cost import PipelineRunCost
 from backend.app.models.planner_field_request import (
     VALID_FIELD_REQUEST_REASONS,
     PlannerFieldRequest,
@@ -112,20 +111,6 @@ def _sum_shown(content_json: dict) -> int:
             "metricas",
             "notas_metodologicas",
         )
-    )
-
-
-def _build_cost_row(*, workspace_id: str, run_id: str, detail: dict) -> PipelineRunCost:
-    return PipelineRunCost(
-        pipeline_run_id=run_id,
-        workspace_id=workspace_id,
-        stage="review_finances_holistic",
-        model_id=detail["model_id"],
-        tokens_in=detail.get("tokens", {}).get("in", 0),
-        tokens_out=detail.get("tokens", {}).get("out", 0),
-        cost_usd_cents=_usd_to_cents(detail.get("cost_usd", 0.0)),
-        latency_ms=detail.get("latency_ms", 0),
-        tool_iterations=detail.get("tool_iterations"),
     )
 
 
@@ -245,7 +230,7 @@ def _do_persist(
     e5_artifact: PipelineArtifact,
     detail: dict,
 ) -> str:
-    """Insere review + cost + suggestions + field_requests (assume idempotência já verificada)."""
+    """Insere review + suggestions + field_requests (idempotência já verificada); custo do run em ``review.cost_usd_cents`` (DE-01 Fase 1: sem ``pipeline_run_costs``)."""
     review = _build_review(
         workspace_id=workspace_id,
         run_id=run_id,
@@ -253,9 +238,7 @@ def _do_persist(
         e5_artifact=e5_artifact,
         detail=detail,
     )
-    cost_row = _build_cost_row(workspace_id=workspace_id, run_id=run_id, detail=detail)
     db.add(review)
-    db.add(cost_row)
     # Flush para garantir ``review.id`` disponível antes de FKs em field_requests.
     db.flush()
     suggestion_stats = persist_suggestions_for_run(
@@ -275,7 +258,7 @@ def _do_persist(
             "review_id": review.id,
             **suggestion_stats,
             "field_requests_created": field_requests_created,
-            "cost_usd_cents": cost_row.cost_usd_cents,
+            "cost_usd_cents": _usd_to_cents(detail.get("cost_usd", 0.0)),
         },
     )
     return review.id
@@ -284,7 +267,7 @@ def _do_persist(
 def persist_planner_review(
     db: Session, *, workspace_id: str, run_id: str, detail: dict
 ) -> Optional[str]:
-    """Persiste aggregate + cost + suggestions. Idempotente por (ws, run_id)."""
+    """Persiste aggregate (com custo) + suggestions. Idempotente por (ws, run_id)."""
     artifacts = _load_artifacts(db, workspace_id=workspace_id, run_id=run_id)
     if artifacts is None:
         return None
