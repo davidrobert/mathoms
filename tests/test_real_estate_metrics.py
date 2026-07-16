@@ -136,7 +136,7 @@ def test_cap_rate_bruto_calc_canonical():
     p = _property(valor="1200000", aluguel="25200", meses_locado=12)
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("5000000"),
+        concentracao_imobiliaria_pct=Decimal("30"),
         benchmarks=_benchmarks(),
     )
     # 25200 / 1200000 = 2.1%
@@ -161,7 +161,7 @@ def test_cap_rate_liquido_subtrai_todos_componentes():
     )
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("5000000"),
+        concentracao_imobiliaria_pct=Decimal("30"),
         benchmarks=_benchmarks(),
         config=config,
     )
@@ -183,7 +183,7 @@ def test_cap_rate_liquido_usa_irpf_quando_informado():
     config = RealEstateConfig(manutencao_pct=Decimal("0.0"), vacancia_pct=Decimal("0.0"))
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("5000000"),
+        concentracao_imobiliaria_pct=Decimal("30"),
         benchmarks=_benchmarks(),
         config=config,
     )
@@ -209,7 +209,7 @@ def test_vacancia_empirica_sobrescreve_default():
     )
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("5000000"),
+        concentracao_imobiliaria_pct=Decimal("30"),
         benchmarks=_benchmarks(),
         config=config,
     )
@@ -235,7 +235,7 @@ def test_vacancia_default_quando_meses_locado_none():
     )
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("5000000"),
+        concentracao_imobiliaria_pct=Decimal("30"),
         benchmarks=_benchmarks(),
         config=config,
     )
@@ -248,7 +248,7 @@ def test_imovel_sem_aluguel_marca_sem_renda():
     """`aluguel_bruto = None` ou 0 → status `sem_renda` + cap_rate None."""
     p = _property(aluguel=None)
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     imovel = result.imoveis[0]
     assert imovel.status_contrato == "sem_renda"
@@ -260,7 +260,7 @@ def test_status_contrato_reajuste_pendente():
     """Imóvel com contrato sem reajuste > 12 meses → status `reajuste_pendente`."""
     p = _property(meses_desde_reajuste=18)
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     assert result.imoveis[0].status_contrato == "reajuste_pendente"
 
@@ -268,40 +268,30 @@ def test_status_contrato_reajuste_pendente():
 # ────────────────────────── Concentração ───────────────────────────────────
 
 
-def test_concentracao_imobiliaria_calc():
-    """`concentracao = valor_imoveis_invest / patrimonio_liquido × 100`."""
+def test_concentracao_pct_passthrough_do_canonico():
+    """C11-Fase2 (ADR-340): o serviço não computa mais concentração — ecoa o
+    canônico injetado (SSOT = compute_concentracao_imobiliaria_pct em ratios).
+    A fórmula cat_2/carteira é testada em tests/test_concentracao_imobiliaria.py."""
     props = [
         _property(property_id="p1", valor="1200000"),
         _property(property_id="p2", valor="800000"),
     ]
     result = calculate_real_estate_metrics(
-        props, patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        props, concentracao_imobiliaria_pct=Decimal("60"), benchmarks=_benchmarks()
     )
-    # (1200k + 800k) / 5000k = 40%
-    assert result.concentracao_pct == Decimal("40.00")
+    assert result.concentracao_pct == Decimal("60.00")
 
 
-def test_concentracao_exclui_residencia_principal():
-    """Residência principal NÃO entra no numerador (D8)."""
+def test_residencia_principal_excluida_da_tabela_de_investimento():
+    """Residência principal NÃO entra na tabela de imóveis de investimento (D8)."""
     props = [
         _property(property_id="p1", valor="1000000", classification="locado"),
         _property(property_id="p2", valor="2000000", classification="residencia_principal"),
     ]
     result = calculate_real_estate_metrics(
-        props, patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        props, concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
-    # só p1 conta: 1000k / 5000k = 20%
-    assert result.concentracao_pct == Decimal("20.00")
     assert len(result.excluded_properties) == 1
-
-
-def test_concentracao_zero_se_patrimonio_negativo_ou_zero():
-    """Patrimônio líquido 0 não dispara DivisionByZero."""
-    p = _property()
-    result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("0"), benchmarks=_benchmarks()
-    )
-    assert result.concentracao_pct == Decimal("0")
 
 
 # ────────────────────────── Benchmarks + spreads ───────────────────────────
@@ -315,7 +305,7 @@ def test_spreads_pp_assinados_e_brl_anual():
     )
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("5000000"),
+        concentracao_imobiliaria_pct=Decimal("30"),
         benchmarks=_benchmarks(cdi="8.7", ntnb="5.5", ifix="9.2"),
         config=config,
     )
@@ -332,7 +322,7 @@ def test_spreads_pp_assinados_e_brl_anual():
 def test_benchmarks_propagados_para_payload():
     p = _property()
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     payload = result_to_payload(result)
     assert payload["benchmarks"]["cdi_liquido_pct"] == 8.7
@@ -344,31 +334,30 @@ def test_benchmarks_propagados_para_payload():
 # ────────────────────────── Alertas ────────────────────────────────────────
 
 
-def test_alerta_concentracao_alta_threshold_40():
-    """concentracao > 40% dispara alerta concentracao_alta."""
+def test_alerta_concentracao_alta_threshold_50():
+    """C11-Fase2 (ADR-340): concentração (base carteira) > 50% dispara concentracao_alta."""
     p = _property(valor="2100000")
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("5000000"),
+        concentracao_imobiliaria_pct=Decimal("60"),  # > 50
         benchmarks=_benchmarks(),
     )
-    # 2100/5000 = 42% > 40
     codes = [a.code for a in result.alertas]
     assert "concentracao_alta" in codes
 
 
-def test_alerta_concentracao_nao_dispara_em_40_exato():
-    """Threshold é estritamente maior (>), não >=. 40% não dispara."""
-    p = _property(valor="2000000")  # exatamente 40%
+def test_alerta_concentracao_nao_dispara_em_50_exato():
+    """Threshold é estritamente maior (>), não >=. 50% não dispara."""
+    p = _property(valor="2000000")
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("50"), benchmarks=_benchmarks()
     )
     codes = [a.code for a in result.alertas]
     assert "concentracao_alta" not in codes
 
 
 def test_alerta_spread_critico_combinado():
-    """cap_rate < 70% × CDI E concentracao > 30 → spread_critico."""
+    """cap_rate < 70% × CDI E concentracao > 45 (co-threshold ADR-340) → spread_critico."""
     # cap rate ~2%; CDI 8.7%; 70% × 8.7 = 6.09; 2 < 6.09 ✓
     p = _property(valor="2000000", aluguel="40000", taxa_adm="0", iptu="0", meses_locado=12)
     config = RealEstateConfig(
@@ -376,7 +365,7 @@ def test_alerta_spread_critico_combinado():
     )
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("5000000"),  # 40% concentração
+        concentracao_imobiliaria_pct=Decimal("50"),  # 50% > co-threshold 45
         benchmarks=_benchmarks(),
         config=config,
     )
@@ -385,14 +374,14 @@ def test_alerta_spread_critico_combinado():
 
 
 def test_alerta_spread_critico_nao_dispara_se_concentracao_baixa():
-    """spread baixo MAS concentração <=30 NÃO dispara spread_critico."""
+    """spread baixo MAS concentração < 45 (co-threshold ADR-340) NÃO dispara spread_critico."""
     p = _property(valor="1000000", aluguel="20000", taxa_adm="0", iptu="0", meses_locado=12)
     config = RealEstateConfig(
         manutencao_pct=Decimal("0.0"), ir_carne_leao_fallback_pct=Decimal("0.0")
     )
     result = calculate_real_estate_metrics(
         [p],
-        patrimonio_liquido=Decimal("10000000"),  # 10% concentração
+        concentracao_imobiliaria_pct=Decimal("30"),  # 30% < co-threshold spread 45 (ADR-340)
         benchmarks=_benchmarks(),
         config=config,
     )
@@ -404,7 +393,7 @@ def test_alerta_aluguel_sem_dado_quando_todos_origem_pro_rata():
     """Todos imóveis com `origem == 'pro_rata'` → alerta aluguel_sem_dado."""
     p = _property(aluguel_origem="pro_rata")
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     codes = [a.code for a in result.alertas]
     assert "aluguel_sem_dado" in codes
@@ -414,7 +403,7 @@ def test_alerta_contrato_reajuste_pendente_por_imovel():
     """Imóvel com >12 meses sem reajuste gera alerta info por imóvel."""
     p = _property(meses_desde_reajuste=18)
     result = calculate_real_estate_metrics(
-        [p], patrimonio_liquido=Decimal("5000000"), benchmarks=_benchmarks()
+        [p], concentracao_imobiliaria_pct=Decimal("30"), benchmarks=_benchmarks()
     )
     codes = [a.code for a in result.alertas]
     assert "contrato_reajuste_pendente" in codes
