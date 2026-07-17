@@ -502,3 +502,62 @@ honesto de consistência da própria lane — bem-escopado.
 - **DE-02** — Compl: `passive_income` com `properties` no schema. Corr: invariante de
   conservação (`renda_passiva_anual == Σ yield`, tolerância zero em cents) em
   `test_e5_conservation_invariants.py`.
+
+### Co-design R3 (2026-07-16) — rulings + correções ao plano
+
+Os 4 co-designs (`financial-planner`, `data-engineer`, `prompt-engineer`, `senior-cto`,
+2026-07-16) **corrigiram 4 premissas factuais** deste plano — registradas aqui para as ondas
+restantes executarem sobre o entendimento certo:
+
+1. **PE-01 NÃO é pré-requisito da concentração.** `prompt-engineer` mediu o exec_context:
+   `ratios.concentracao_imobiliaria` cai no **char 178** do bloco `$.ratios` (visível dentro
+   dos 300 do `_short`). A truncação **não** corta a concentração; o parecer cita 63,36%
+   porque (a) o **hint `:110`** manda "destaque concentração se `max(pct)>50%`" **sobre
+   `tabela_classes`** e (b) o **% da prosa é digitado pelo LLM** (o regex [[ADR-304]] só pega
+   `R$`, nenhum gate barra). **Concentração e PE-01 são fixes independentes** no mesmo bump.
+   O fix da concentração (R3.3) = reescrever o hint `:110` + projeção escalar saliente do
+   número de risco + `ancora_format_hint(concentracao_imobiliaria)→"pct"` (senão o chip
+   renderiza "59.97"). PE-01 (real) atinge `reserva_emergencia`/`previdencia_pgbl`/`irpf_kpis`.
+2. **FP-04: `previdencia_pgbl` JÁ está no exec_context** (manifest `:256-260`) — os zeros
+   estruturais são **truncados** (efeito PE-01), não ausentes. Fix = `key_value` render (não
+   `_short`) + **dedup da sugestão** contra `limite_pgbl_anual=0`.
+3. **DE-02 conforma a [[ADR-191]] + [[ADR-336]], NÃO [[ADR-287]]** (citação errada, carryover
+   do DE-02 da R2). Invariante: `renda_passiva_anual == dividendos+jcp+aplicacoes+exterior+alugueis
+   == Σ(por_fonte) − distribuicao_pj_titular − ganho_capital`. **Gate crítico:** as fixtures
+   atuais não semeiam `extract_irpf_full` → `status="sem_irpf"` → teste **vacuoso** (0==0);
+   exige fixture IRPF-bearing com `distribuicao_pj_titular>0`, senão é teatro.
+4. **Concentração é drift de substrato, não "duas grandezas legítimas".** `tabela_classes`
+   (composição, base total investido) e `ratios.concentracao_imobiliaria` (risco, base
+   carteira) divergem por agregação distinta. R3 **rotula as duas** + risco cita SSOT;
+   reconciliar a **fonte de valuation de cat_2** é follow-up (co-design `data-engineer`/`senior-cto`).
+
+**Rulings por onda:**
+
+- **R3.2 / DE-01** — bug de **agregação, não extração**: `instituicao` existe upstream
+  (`PatrimonialItem.instituicao` → `extract_baseline` → `consolidate_baseline`) e é **dropada**
+  em `e5_member_resolver.py` nos 3 entry-builders (`:419`, `:450-454`, `:202-205`). Fix = preservar
+  `item.get("instituicao")` nos 3; zero mudança de analyzer. **Gate:** medir a cobertura real de
+  `instituicao` no run `ed20dd18` **antes** de adicionar parse de `descricao` (fixture sintético
+  superestima). Imóvel com `instituicao=""` é correto por design.
+- **R3.4 / CTO-02** — renomear **só** `patrimonio.caixa_moeda_estrangeira`→`caixa_total_brl`
+  (alias=total 1 ciclo). Os campos ME da reserva (`reserva.composicao_liquida.caixa_moeda_estrangeira`
+  e `reserva.excluido_da_reserva.caixa_moeda_estrangeira`) guardam ME **real** — **não tocar**.
+  Expor o ME real sob **nome novo** (`caixa_me_brl`); **nunca flipar** a semântica do nome antigo.
+  4 consumidores: `patrimonio_calculator.py:219` (emissor), `passive_income_calculator.py:252` +
+  `reserva_liquidez.py:114` (readers, querem **total**), `report-analysis.ts:74`. Schema aditivo = âncora (último).
+- **R3.3 / CTO-03 ([[ADR-332]])** — a ADR descreve fix **obsoleto** (já feito na [[ADR-337]]):
+  **reescrever** Decisão/Consequências, não só flippar. Sanitizer no boundary `generate_parecer`
+  (**antes** de `compute_cache_key`), não no distiller (as tools são 2º egresso). Vetor real =
+  `top_ativos[*].membro` (`:149`, nome próprio no valor — a 337 sanitizou `.nome`, não `.membro`)
+  + chaves de `por_fonte_detalhado`. **`cenarios_conjuge` provavelmente já limpo pós-[[ADR-338]]**
+  — verificar `parecer.json` do run antes de escopar. Regex de PII = **novo** `pipeline/observability/pii_patterns.py`
+  (`redaction.py` é key-based, não tem regex de conteúdo). Mapa nome→papel = inverter o contrato
+  role-keyed da [[ADR-338]].
+- **R3.3 / eval** — 5 das 6 mudanças alteram o input do LLM materialmente → **1 eval completo**
+  com **casos-alvo** (workspace imóvel-pesado citando 59,97 + severidade Alta; PGBL no teto), não
+  só métrica agregada (senão passa sem aterrissar). Bump `1.8→1.9` **não** dispara o gate
+  ADR-200 (só checa root top-level; nenhum root novo).
+- **R3.4 / CTO-04** — denominador da autonomia = `despesa_consumo` (ex-aporte); emenda datada
+  [[ADR-335]] reconciliando [[ADR-333]]. **Só a parcela discricionária/interrompível** do aporte
+  sai; amortização de financiamento (essencial) permanece. Não bumpa `score_version` (autonomia
+  é só fallback do score). Verificar que nenhum ponto-forte "colchão robusto" reative.
