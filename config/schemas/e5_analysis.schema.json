@@ -96,6 +96,9 @@
         "bruto": {"type": "number"},
         "liquido": {"type": "number"},
         "dividas": {"type": "number"},
+        "caixa_total_brl": {"type": "number", "description": "CTO-02: caixa TOTAL (BRL + ME convertida). Renomeia o antigo caixa_moeda_estrangeira (misnomer que guardava o total)."},
+        "caixa_me_brl": {"type": "number", "description": "CTO-02: parcela do caixa em moeda estrangeira (subconjunto de caixa_total_brl)."},
+        "caixa_moeda_estrangeira": {"type": "number", "description": "@deprecated CTO-02: alias legado de caixa_total_brl; removido no próximo ciclo."},
         "composicao": {
           "type": "array",
           "description": "Decomposição patrimonial por balde (Σ valor == bruto). Cada item: categoria + valor + pct.",

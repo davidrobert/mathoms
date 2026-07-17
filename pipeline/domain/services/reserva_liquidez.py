@@ -111,7 +111,12 @@ def _liquidez_por_membro(
 
 def _com_caixa_por_tipo(patrimonio: dict, por_membro: dict[str, LiquidezMembro]) -> ReservaLiquida:
     caixa_brl, caixa_me = _split_caixa_detalhes(patrimonio.get("caixa_detalhes") or [])
-    nao_classificado = _dec(patrimonio.get("caixa_moeda_estrangeira", 0)) - caixa_brl - caixa_me
+    # CTO-02: caixa TOTAL menos as parcelas classificadas (BRL + ME) = resíduo
+    # não classificado. Lê `caixa_total_brl` com fallback ao alias legado.
+    caixa_total = _dec(
+        patrimonio.get("caixa_total_brl", patrimonio.get("caixa_moeda_estrangeira", 0))
+    )
+    nao_classificado = caixa_total - caixa_brl - caixa_me
     return ReservaLiquida(
         por_membro=por_membro,
         caixa_brl=caixa_brl,
