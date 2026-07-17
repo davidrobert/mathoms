@@ -114,6 +114,8 @@ def ancora_format_hint(path: str) -> FormatHint:
         return "prob_pct"
     if "idade" in key:
         return "anos"
+    if "concentracao" in key:  # SSOT risco ADR-340, sem _pct (R3.3)
+        return "percent2"
     if any(m in key for m in _PCT_KEY_MARKERS):
         return "pct"
     if "meses" in key and "nivel" not in key:

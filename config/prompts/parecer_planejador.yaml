@@ -37,7 +37,15 @@
 # (confiança rebaixada sob premissa fallback do Monte Carlo) + dependentes
 # dedicado em previdencia_irpf (path canônico $.irpf_kpis.dependentes) + hint
 # TRS status='suspeito' (consome flag da A28.l2); bump invalida cache Redis.
-version: "1.8"
+# 1.9 — R3.3 (dogfood): concentração imobiliária cita SSOT de risco
+# ($.ratios.concentracao_imobiliaria, base carteira produtiva, ADR-340), não a
+# composição da tabela de classes; severidade Alta (não Crítica) em ~60%, meta
+# <50%. PE-01: reserva/pgbl/irpf renderizados key_value (zeros estruturais não
+# truncados). PE-04: denominador único de cobertura de renda passiva (essencial
+# vs média explícito). FP-04: PGBL com limite=0 é confirmação, não "investigar
+# do zero". CTO-03 (ADR-332): sanitizer de PII no boundary do parecer (nome→papel)
+# antes do cache; bump invalida cache Redis.
+version: "1.9"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -107,7 +115,8 @@ context_sections:
         value_format: "brl"
         on_null: "skip"
     narrative_hints:
-      - "Destaque concentração se max(pct) > 50% em uma única classe."
+      - "Concentração imobiliária = RISCO: cite $.ratios.concentracao_imobiliaria (base carteira produtiva, SSOT ADR-340), NÃO o pct de tabela_classes[imóveis] (COMPOSIÇÃO, base total investido). Dois números legítimos; risco usa o de risco."
+      - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
       - "Diferencie residência (não gera renda) de imóveis de investimento — não comente residência como investimento."
       - "classification=nu_proprietario (ADR-235): nu-propriedade com usufruto vitalício — ativo ilíquido por contrato civil. Não recomende venda como liquidez; consolidação só com extinção do usufruto (não infira prazo)."
 
@@ -167,16 +176,20 @@ context_sections:
     title: "Saúde de Balanço — Reserva e Dívidas"
     aligned_with_layout: "S1"
     blocks:
-      - format: "scalar"
-        path: "$.reserva_emergencia"
-        label: "Bloco reserva_emergencia do E5"
-        value_format: "raw"
-        on_null: "placeholder"
-      - format: "scalar"
-        path: "$.endividamento"
-        label: "Bloco endividamento do E5"
-        value_format: "raw"
-        on_null: "placeholder"
+      # PE-01: key_value achata o dict folha-a-folha — reserva.total_liquida e os
+      # níveis não são mais cortados pelo _short(300) do dump raw.
+      - format: "key_value"
+        title: "Reserva de emergência (E5)"
+        fields:
+          - path: "$.reserva_emergencia"
+            label: "reserva_emergencia"
+            format: "raw"
+      - format: "key_value"
+        title: "Endividamento (E5)"
+        fields:
+          - path: "$.endividamento"
+            label: "endividamento"
+            format: "raw"
     narrative_hints:
       - "Reserva < 6 meses → risco severidade Alta no mínimo."
       - "Endividamento > 30% do bruto → risco severidade Crítica."
@@ -198,11 +211,18 @@ context_sections:
         value_format: "raw"
         on_null: "skip"
       - format: "scalar"
+        path: "$.ratios.concentracao_imobiliaria"
+        label: "Concentração imobiliária — RISCO (SSOT carteira produtiva, ADR-340)"
+        value_format: "percent2"
+        on_null: "skip"
+      - format: "scalar"
         path: "$.ratios"
         label: "Bloco ratios completo"
         value_format: "raw"
         on_null: "error"
     narrative_hints:
+      - "Ao comentar concentração imobiliária como risco, ancore em $.ratios.concentracao_imobiliaria (o número de risco acima) — nunca no pct de composição da tabela de classes."
+      - "Cobertura de renda passiva (PE-04): use a base ESSENCIAL (ratios.rentabilidade.cobertura_despesa_essencial_pct), não a despesa média. Rotule explicitamente 'da despesa essencial' — uma cobertura só, consistente."
       - "Se status='sem_irpf' ou 'gerador_zero', NÃO compare com meta — sinalize a indisponibilidade."
       # A28.l11 (consome o flag de sanidade da TRS emitido pela A28.l2 em
       # ratios_calculator — número fora do plausível nunca vira conselho).
@@ -253,16 +273,20 @@ context_sections:
     title: "Previdência e Eficiência Fiscal"
     aligned_with_layout: "S8"
     blocks:
-      - format: "scalar"
-        path: "$.previdencia_pgbl"
-        label: "Análise PGBL"
-        value_format: "raw"
-        on_null: "skip"
-      - format: "scalar"
-        path: "$.irpf_kpis"
-        label: "KPIs IRPF (alíquota efetiva, deduções, dependentes)"
-        value_format: "raw"
-        on_null: "skip"
+      # PE-01/FP-04: key_value achata — limite_pgbl_anual=0, status e nota do PGBL
+      # + os KPIs de IRPF no fim do bloco não são mais truncados pelo _short(300).
+      - format: "key_value"
+        title: "Análise PGBL"
+        fields:
+          - path: "$.previdencia_pgbl"
+            label: "previdencia_pgbl"
+            format: "raw"
+      - format: "key_value"
+        title: "KPIs IRPF (alíquota efetiva, deduções, dependentes)"
+        fields:
+          - path: "$.irpf_kpis"
+            label: "irpf_kpis"
+            format: "raw"
       # A28.l11 — campo dedicado (não dump raw truncável): ataca a raiz do
       # dogfood 72883bde, onde o LLM pediu $.composicao_familiar.dependentes
       # com o dado presente aqui.
@@ -273,6 +297,7 @@ context_sections:
         on_null: "skip"
     narrative_hints:
       - "Não opine sobre qual regime tributário escolher — descreva o atual e o gap em relação ao desenho-alvo."
+      - "PGBL (FP-04): se previdencia_pgbl.limite_pgbl_anual=0 (teto do regime já atingido ou renda tributável N/D), confirme/qualifique o status — NÃO proponha 'investigar PGBL do zero' nem aporte PGBL como oportunidade nova."
       - "Dependentes: o path canônico é $.irpf_kpis.dependentes — não existe $.composicao_familiar no E5."
       - "Pendência regulatória (FBAR/8938 atrasada, contador sem definição) → risco severidade Alta."
 

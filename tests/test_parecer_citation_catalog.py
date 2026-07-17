@@ -138,6 +138,9 @@ def test_ancora_format_hint_por_tipo_de_folha():
     assert ancora_format_hint("$.if_monte_carlo.prob_if_ate_idade_meta") == "prob_pct"
     assert ancora_format_hint("$.if_monte_carlo.idade_meta_usada") == "anos"
     assert ancora_format_hint("$.ratios.taxa_poupanca_recorrente_pct") == "pct"
+    # R3.3: concentracao_imobiliaria (SSOT risco, ADR-340) serializa sem sufixo _pct
+    # mas é percentual — percent2 casa com o card (59,97%), não "59.97" cru.
+    assert ancora_format_hint("$.ratios.concentracao_imobiliaria") == "percent2"
     assert ancora_format_hint("$.reserva_emergencia.cobertura_meses") == "meses"
     assert ancora_format_hint("$.irpf_kpis.dependentes_count") == "int"
     assert ancora_format_hint("$.investimentos.n_imoveis_total") == "int"

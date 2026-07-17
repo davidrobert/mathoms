@@ -95,8 +95,15 @@ def _add_divida_cara(e5: dict) -> dict:
 
 
 def _add_concentracao_imovel(e5: dict) -> dict:
-    """RL7: concentração imobiliária > 40% do patrimônio líquido."""
-    e5["real_estate"] = {"concentracao_pct": 52.0, "valor_total_imoveis": 2_600_000.0}
+    """RL7 + casos-alvo R3.3. Concentração alta: o SSOT de RISCO é
+    ratios.concentracao_imobiliaria (base carteira produtiva, ADR-340) — o parecer
+    cita este (severidade Alta em ~60%, não Crítica; meta <50%), não a composição.
+    PGBL no teto (FP-04): limite=0 é confirmação, não 'investigar do zero'."""
+    e5["real_estate"] = {"concentracao_pct": 59.97, "valor_total_imoveis": 2_600_000.0}
+    e5.setdefault("ratios", {})["concentracao_imobiliaria"] = 59.97
+    e5.setdefault("previdencia_pgbl", {}).update(
+        {"limite_pgbl_anual": 0.0, "pgbl_status": "teto_atingido"}
+    )
     return e5
 
 

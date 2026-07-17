@@ -10,10 +10,11 @@ import json
 import logging
 import os
 import time
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import Any, Mapping, Optional
 
 from backend.app.core.llm_metrics import get_llm_metrics_emitter
+from backend.app.services.parecer_context_sanitizer import sanitize_e5_for_parecer
 from backend.app.services.parecer_distiller import distill_exec_context
 from backend.app.services.parecer_evidencia import (
     EVIDENCIA_VERIFICATION_VERSION,
@@ -102,6 +103,9 @@ class ParecerOrchestratorConfig:
     llm_timeout_s: float = 240.0
     # ADR-173: hooks de budget/telemetria — stage wrapper injeta ctx.llm_call_hooks.
     llm_hooks: Optional[Any] = None
+    # CTO-03 (ADR-332): mapa (nome, papel) do family_members p/ o sanitizer de PII
+    # do contexto do parecer. repr=False: nunca ecoa nome próprio em log/exceção.
+    name_role_pairs: tuple[tuple[str, str], ...] = field(default=(), repr=False)
 
 
 # ----------------------------------------------------------------------
@@ -303,6 +307,9 @@ def generate_parecer(
     """Gera parecer end-to-end — orquestra cache, LLM, tools, validador, finalize."""
     start = time.monotonic()
     manifest, persona_body, persona_hash, llm, cache = _resolve_runtime(config, llm_service, cache)
+    # CTO-03 (ADR-332): sanitiza PII ANTES do cache-key → e5_hash reflete o E5 já
+    # sanitizado (um choke point cobre distiller + tools; re-gen única no deploy).
+    e5_data = sanitize_e5_for_parecer(e5_data, config.name_role_pairs)
     key = compute_cache_key(
         e5_data=e5_data,
         manifest_version=manifest.version,
