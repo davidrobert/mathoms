@@ -130,15 +130,20 @@ def _render_field(field: Mapping[str, Any], value: Any) -> list[str]:
 
 
 def _render_key_value(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> str:
-    title = block.get("title", "")
     on_null = block.get("on_null", "skip")
-    lines = [f"**{title}**:"] if title else []
+    field_lines: list[str] = []
     for f in block.get("fields", []):
         v = walk_path(e5_data, f["path"])
         if v is None and on_null == "skip":
             continue
-        lines.extend(_render_field(f, v))
-    return "\n".join(lines)
+        field_lines.extend(_render_field(f, v))
+    # Seção ausente (ex.: $.irpf_kpis num workspace sem IRPF, ADR-157) → NENHUM
+    # campo sobrevive: omite o bloco inteiro (preserva a semântica on_null:skip do
+    # scalar antigo; sem cabeçalho órfão prometendo dado inexistente).
+    if not field_lines:
+        return ""
+    title = block.get("title", "")
+    return "\n".join(([f"**{title}**:"] if title else []) + field_lines)
 
 
 def _render_row(row: Mapping[str, Any], cols: list[dict]) -> str:
