@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping
+from typing import Any, Iterator, Mapping
 
 from backend.app.services.parecer_citation_catalog import (
     build_citation_catalog,
@@ -107,6 +107,28 @@ def _render_scalar(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> str:
     return f"- **{label}**: {_short(formatted)}"
 
 
+def _flatten_leaves(value: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
+    """Achata dict/list em pares (chave_pontilhada, folha escalar). Cada folha é
+    curta e sobrevive ao ``_short(300)`` individualmente — evita a truncação do
+    dump raw que cortava os zeros estruturais no fim (PE-01)."""
+    if not isinstance(value, (Mapping, list)):
+        yield (prefix or "valor", value)
+        return
+    is_list = isinstance(value, list)
+    items = enumerate(value) if is_list else value.items()
+    for k, v in items:
+        child = f"{prefix}[{k}]" if is_list else (f"{prefix}.{k}" if prefix else str(k))
+        yield from _flatten_leaves(v, child)
+
+
+def _render_field(field: Mapping[str, Any], value: Any) -> list[str]:
+    """Uma linha por folha; dict/list é achatado (PE-01), escalar mantém o label."""
+    if isinstance(value, (Mapping, list)):
+        return [f"  - {leaf}: {_short(val)}" for leaf, val in _flatten_leaves(value)]
+    formatted = format_value(value, field.get("format", "raw"))
+    return [f"  - {field.get('label', field['path'])}: {_short(formatted)}"]
+
+
 def _render_key_value(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> str:
     title = block.get("title", "")
     on_null = block.get("on_null", "skip")
@@ -115,8 +137,7 @@ def _render_key_value(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> s
         v = walk_path(e5_data, f["path"])
         if v is None and on_null == "skip":
             continue
-        formatted = format_value(v, f.get("format", "raw"))
-        lines.append(f"  - {f.get('label', f['path'])}: {_short(formatted)}")
+        lines.extend(_render_field(f, v))
     return "\n".join(lines)
 
 
