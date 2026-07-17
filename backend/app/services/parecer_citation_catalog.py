@@ -114,11 +114,7 @@ def ancora_format_hint(path: str) -> FormatHint:
         return "prob_pct"
     if "idade" in key:
         return "anos"
-    # concentracao_imobiliaria (SSOT de risco, ADR-340) serializa sem sufixo _pct
-    # (ratios_calculator dropa o _pct), mas é percentual — sem isto o chip da âncora
-    # renderiza "59.97" cru. percent2 (2 casas) casa com o card do relatório, que
-    # exibe 59,97% (R3.3 CTO-01/PE-05).
-    if "concentracao" in key:
+    if "concentracao" in key:  # SSOT risco ADR-340, sem _pct (R3.3)
         return "percent2"
     if any(m in key for m in _PCT_KEY_MARKERS):
         return "pct"
