@@ -357,9 +357,47 @@ def test_current_positions_caixa_from_adapter(config: PatrimonioConfig):
         )
     )
     assert result["caixa_moeda_estrangeira"] == 58_000.0
+    # CTO-02: chave canônica caixa_total_brl (== alias legado); caixa_me_brl = ME real.
+    assert result["caixa_total_brl"] == 58_000.0
+    assert result["caixa_moeda_estrangeira"] == result["caixa_total_brl"]
+    assert result["caixa_me_brl"] == 58_000.0  # todo o caixa aqui é ME
     assert len(result["caixa_detalhes"]) == 1
     assert result["caixa_detalhes"][0]["conta"] == "bofa_usd"
     assert result["caixa_detalhes"][0]["valor_brl"] == 58_000.0
+
+
+def test_caixa_total_vs_me_split(config: PatrimonioConfig):
+    """CTO-02: caixa_total_brl = BRL + ME; caixa_me_brl = só a parcela ME."""
+    baseline = {"members": {"david": {}, "mariana": {}}}
+    inv_atuais = {"dados": [{"valor": 1}], "total_por_membro": {}}
+    caixa_detalhes = [
+        CaixaDetalhe(
+            conta="itau_brl",
+            moeda="BRL",
+            saldo_original=30_000.0,
+            valor_brl=30_000.0,
+            tipo="caixa",
+        ),
+        CaixaDetalhe(
+            conta="bofa_usd",
+            moeda="USD",
+            saldo_original=10_000.0,
+            valor_brl=58_000.0,
+            tipo="moeda_estrangeira",
+        ),
+    ]
+    calc = PatrimonioCalculator(config)
+    result = calc.calculate(
+        PatrimonioInputs(
+            baseline=baseline,
+            investimentos_atuais=inv_atuais,
+            caixa_total_brl=88_000.0,
+            caixa_detalhes=caixa_detalhes,
+        )
+    )
+    assert result["caixa_total_brl"] == 88_000.0
+    assert result["caixa_me_brl"] == 58_000.0
+    assert result["caixa_moeda_estrangeira"] == 88_000.0  # alias legado == total
 
 
 def test_current_positions_member_without_positions_falls_back_to_irpf(

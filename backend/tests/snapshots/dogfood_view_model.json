@@ -492,8 +492,10 @@
   "patrimonio": {
     "bruto": 73000000,
     "caixa_detalhes": [],
+    "caixa_me_brl": 0,
     "caixa_me_detalhe": [],
     "caixa_moeda_estrangeira": 5000000,
+    "caixa_total_brl": 5000000,
     "cbe_obrigatorio": false,
     "composicao": [
       {

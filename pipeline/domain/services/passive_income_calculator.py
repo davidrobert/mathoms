@@ -249,7 +249,11 @@ class PassiveIncomeCalculator:
     def _caixa_excedente(
         self, patrimonio: PatrimonioPayload, despesa_mensal_media_brl: Decimal
     ) -> Decimal:
-        caixa = _to_decimal(patrimonio.get("caixa_moeda_estrangeira", 0))
+        # CTO-02: caixa TOTAL (BRL + ME). Lê o nome canônico com fallback ao
+        # alias legado (`caixa_moeda_estrangeira`) p/ artefatos pré-rename.
+        caixa = _to_decimal(
+            patrimonio.get("caixa_total_brl", patrimonio.get("caixa_moeda_estrangeira", 0))
+        )
         reserva = despesa_mensal_media_brl * Decimal(self._config.reserva_emergencia_meses)
         excedente = caixa - reserva
         return excedente if excedente > _ZERO else _ZERO

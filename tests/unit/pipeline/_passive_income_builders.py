@@ -135,7 +135,7 @@ def patrimonio(
         "imoveis_investimento": imoveis_investimento,
         "residencia": residencia,
         "veiculos": veiculos,
-        "caixa_moeda_estrangeira": caixa,
+        "caixa_total_brl": caixa,  # CTO-02: chave canônica (era caixa_moeda_estrangeira)
         "derivativos": derivativos,
     }
 

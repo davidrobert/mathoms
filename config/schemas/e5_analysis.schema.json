@@ -96,6 +96,9 @@
         "bruto": {"type": "number"},
         "liquido": {"type": "number"},
         "dividas": {"type": "number"},
+        "caixa_total_brl": {"type": "number", "description": "CTO-02: caixa TOTAL (BRL + ME convertida). Renomeia o antigo caixa_moeda_estrangeira (misnomer que guardava o total)."},
+        "caixa_me_brl": {"type": "number", "description": "CTO-02: parcela do caixa em moeda estrangeira (subconjunto de caixa_total_brl)."},
+        "caixa_moeda_estrangeira": {"type": "number", "description": "@deprecated CTO-02: alias legado de caixa_total_brl; removido no próximo ciclo."},
         "composicao": {
           "type": "array",
           "description": "Decomposição patrimonial por balde (Σ valor == bruto). Cada item: categoria + valor + pct.",
@@ -232,7 +235,35 @@
         }
       }
     },
-    "passive_income": {"type": "object"},
+    "passive_income": {
+      "type": "object",
+      "description": "DE-02 (R3.4b): renda passiva observada via IRPF. Invariante de conservação (ADR-191 + ADR-336): renda_passiva_anual_brl == dividendos + jcp + aplicacoes + exterior + alugueis == Σ(por_fonte) − distribuicao_pj_titular − ganho_capital. distribuicao_pj_titular (renda de trabalho, ADR-191) e ganho_capital (realização one-time, ADR-336) ficam FORA do numerador da TRS.",
+      "properties": {
+        "status": {"type": "string"},
+        "renda_passiva_anual_brl": {"type": "number"},
+        "renda_passiva_mensal_brl": {"type": "number"},
+        "renda_passiva_por_fonte_brl": {
+          "type": "object",
+          "properties": {
+            "dividendos": {"type": "number"},
+            "jcp": {"type": "number"},
+            "aplicacoes": {"type": "number"},
+            "ganho_capital": {"type": "number"},
+            "exterior": {"type": "number"},
+            "alugueis": {"type": "number"},
+            "distribuicao_pj_titular": {"type": "number"}
+          },
+          "additionalProperties": false
+        },
+        "patrimonio_gerador_brl": {"type": "number"},
+        "trs_efetiva_pct": {"type": "number"},
+        "ano_referencia_irpf": {"type": ["integer", "null"]},
+        "defasagem_meses": {"type": ["integer", "null"]},
+        "acumuladores_pct_gerador": {"type": "number"},
+        "janela": {"type": "string"},
+        "janela_meses": {"type": "integer"}
+      }
+    },
     "proventos_por_ativo": {
       "type": "array",
       "description": "A17 L4 / A33.l4 (ADR-238 §L4) — renda de proventos por (ticker, ano_base) dos informes proventos_acoes. renda_liquida_brl = total − IR retido (numerador dos dois yields; JCP líquido do 15% definitivo). yield_on_cost_pct usa custo de aquisição; yield_on_market_pct usa valor de mercado 31/12; ambos null quando o denominador falta.",

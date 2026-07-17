@@ -200,6 +200,7 @@ class PatrimonioCalculator:
         )
 
         caixa_me_detalhe = build_caixa_me_detalhe(inputs.baseline)
+        caixa_me_brl = self._caixa_me_from_detalhes(caixa_detalhes)
         wise_fiscal_flags = inputs.baseline.get("wise_fiscal_flags") or []
         # A33.l2 (P4, co-design product-designer 2026-07-07) — card S1
         # "posição por instituição/moeda": informe 31/12 + extrato não coberto.
@@ -216,7 +217,13 @@ class PatrimonioCalculator:
             "imoveis_nao_geradores": round(imoveis_nao_geradores, 2),
             identity.key_inv_titular: round(investimentos_titular, 2),
             identity.key_inv_conjuge: round(investimentos_conjuge, 2),
+            "caixa_total_brl": round(caixa_moeda_estrangeira, 2),
+            # CTO-02: a chave `caixa_moeda_estrangeira` era misnomer — guardava o
+            # caixa TOTAL (BRL + ME), não só ME. Renomeada p/ `caixa_total_brl`;
+            # alias mantido por 1 ciclo p/ consumidores/artefatos em migração; o
+            # ME real fica em `caixa_me_brl`.
             "caixa_moeda_estrangeira": round(caixa_moeda_estrangeira, 2),
+            "caixa_me_brl": round(caixa_me_brl, 2),
             "caixa_detalhes": caixa_detalhes,
             "caixa_me_detalhe": caixa_me_detalhe,
             "wise_fiscal_flags": wise_fiscal_flags,
@@ -386,6 +393,15 @@ class PatrimonioCalculator:
             - investimentos_conjuge
         )
         return max(0.0, residual), []
+
+    @staticmethod
+    def _caixa_me_from_detalhes(detalhes: list) -> float:
+        """Soma só o caixa em moeda estrangeira (``tipo == 'moeda_estrangeira'``) do E3."""
+        return sum(
+            safe_float(d.get("valor_brl", 0))
+            for d in detalhes
+            if isinstance(d, dict) and d.get("tipo") == "moeda_estrangeira"
+        )
 
     @staticmethod
     def _compute_bruto(
