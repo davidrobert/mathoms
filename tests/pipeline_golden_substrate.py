@@ -55,7 +55,11 @@ def write_e5_config(
     _copy_legacy(cfg)
 
 
-def _seed_store(e3_payloads: dict[str, dict], baseline: dict | None):
+def _seed_store(
+    e3_payloads: dict[str, dict],
+    baseline: dict | None,
+    irpf_payloads: dict[str, dict] | None = None,
+):
     from pipeline.artifact_store import InMemoryArtifactStore
 
     store = InMemoryArtifactStore()
@@ -63,18 +67,25 @@ def _seed_store(e3_payloads: dict[str, dict], baseline: dict | None):
         store.seed("E3", key, payload)
     if baseline is not None:
         store.seed("E1.5c", "baseline_patrimonial", baseline)
+    for key, payload in (irpf_payloads or {}).items():
+        store.seed("extract_irpf_full", key, payload)
     return store
 
 
 def run_e3_e4_e5(
-    root: Path, *, e3_payloads: dict[str, dict], baseline: dict | None = None
+    root: Path,
+    *,
+    e3_payloads: dict[str, dict],
+    baseline: dict | None = None,
+    irpf_payloads: dict[str, dict] | None = None,
 ) -> dict[str, Any]:
-    """Roda E4→E5 sobre E3 seeded (``artifact_key → payload``); retorna ``analise_financeira``."""
+    """Roda E4→E5 sobre E3 seeded; ``irpf_payloads`` semeia extract_irpf_full (DE-02)."""
     from pipeline.context import WorkspaceContext
     from scripts.analyze_finances import main_with_store as e5_mws
     from scripts.categorize_transactions import main_with_store as e4_mws
 
-    ctx = WorkspaceContext(root=root, artifact_store=_seed_store(e3_payloads, baseline))
+    store = _seed_store(e3_payloads, baseline, irpf_payloads)
+    ctx = WorkspaceContext(root=root, artifact_store=store)
     e4_mws(ctx)
     e5_mws(ctx)
     return ctx.artifact_store.read("E5", "analise_financeira")

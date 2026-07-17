@@ -7,7 +7,18 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.llm.schemas.e16_irpf_full import (
+    CodigoRendimentoIsento,
+    CodigoRendimentoTribExclusiva,
+)
 from tests.pipeline_golden_substrate import load_fixture, run_e3_e4_e5, write_e5_config
+from tests.unit.pipeline._passive_income_builders import (
+    bem,
+    decl,
+    exclusiva,
+    exterior_rend,
+    isento,
+)
 
 _REPO = Path(__file__).resolve().parents[1]
 _FIX = _REPO / "tests" / "fixtures" / "pipeline_golden"
@@ -83,3 +94,55 @@ def test_receita_total_equals_recorrente_plus_one_time(e5_payload: dict):
     fc = e5_payload["fluxo_caixa"]
     split = _cents(fc["receita_recorrente"]) + _cents(fc["receita_one_time"])
     assert _cents(fc["receita_total"]) == split
+
+
+# DE-02 (R3.4b): conservação da renda passiva observada (ADR-191 + ADR-336). O
+# numerador da TRS (renda_passiva_anual) é só yield RECORRENTE — exclui a
+# distribuição de lucro PJ do titular (renda de trabalho, ADR-191) e o ganho de
+# capital (realização one-time, ADR-336). Exige fixture IRPF-bearing com
+# distribuicao_pj_titular>0 E ganho_capital>0, senão o teste é vacuoso (0==0).
+# CNPJ/empresa fictícios (ACME LTDA), PII-zero.
+_QUOTA_ACME = "QUOTAS DA EMPRESA ACME SERVICOS LTDA CNPJ 12.345.678/0001-90"
+_YIELD_BUCKETS = ("dividendos", "jcp", "aplicacoes", "exterior", "alugueis")
+
+
+def _irpf_bearing_payload() -> dict:
+    """IRPF sintético com os 6 buckets não-zero + distribuição PJ do titular."""
+    return decl(
+        isentos=[
+            isento(CodigoRendimentoIsento.lucros_dividendos, "12000.00"),
+            isento(
+                CodigoRendimentoIsento.lucros_dividendos,
+                "284000.00",
+                fonte="12.345.678/0001-90 ACME SERVICOS LTDA",
+                descricao="Lucros e dividendos recebidos",
+            ),
+        ],
+        exclusiva_list=[
+            exclusiva(CodigoRendimentoTribExclusiva.jcp, "30000.00"),
+            exclusiva(CodigoRendimentoTribExclusiva.rendimentos_aplicacoes_financeiras, "3000.00"),
+            exclusiva(CodigoRendimentoTribExclusiva.ganho_capital, "20000.00"),
+        ],
+        exterior=[exterior_rend("8000.00")],
+        bens=[bem(descricao=_QUOTA_ACME, valor="500000.00")],
+    ).model_dump(mode="json")
+
+
+def test_renda_passiva_conservation(tmp_path: Path):
+    write_e5_config(tmp_path)
+    e5 = run_e3_e4_e5(
+        tmp_path,
+        e3_payloads={_e3_key(_E3_MIN): load_fixture(_E3_MIN)},
+        baseline=load_fixture(_BASELINE),
+        irpf_payloads={"irpfdeclaracao_2024": _irpf_bearing_payload()},
+    )
+    pi = e5["passive_income"]
+    assert pi["status"] == "ok", "fixture vacuosa — passive_income precisa ser 'ok'"
+    fonte = pi["renda_passiva_por_fonte_brl"]
+    distribuicao = _cents(fonte["distribuicao_pj_titular"])
+    ganho = _cents(fonte["ganho_capital"])
+    assert distribuicao > 0 and ganho > 0, "guard anti-vacuidade (subtração seria 0)"
+    yield_rec = sum(_cents(fonte[k]) for k in _YIELD_BUCKETS)
+    soma = sum(_cents(v) for v in fonte.values())
+    anual = _cents(pi["renda_passiva_anual_brl"])
+    assert anual == yield_rec == soma - distribuicao - ganho
