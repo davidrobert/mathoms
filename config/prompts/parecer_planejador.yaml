@@ -37,7 +37,15 @@
 # (confiança rebaixada sob premissa fallback do Monte Carlo) + dependentes
 # dedicado em previdencia_irpf (path canônico $.irpf_kpis.dependentes) + hint
 # TRS status='suspeito' (consome flag da A28.l2); bump invalida cache Redis.
-version: "1.8"
+# 1.9 — R3.3 (dogfood): concentração imobiliária cita SSOT de risco
+# ($.ratios.concentracao_imobiliaria, base carteira produtiva, ADR-340), não a
+# composição da tabela de classes; severidade Alta (não Crítica) em ~60%, meta
+# <50%. PE-01: reserva/pgbl/irpf renderizados key_value (zeros estruturais não
+# truncados). PE-04: denominador único de cobertura de renda passiva (essencial
+# vs média explícito). FP-04: PGBL com limite=0 é confirmação, não "investigar
+# do zero". CTO-03 (ADR-332): sanitizer de PII no boundary do parecer (nome→papel)
+# antes do cache; bump invalida cache Redis.
+version: "1.9"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -107,7 +115,8 @@ context_sections:
         value_format: "brl"
         on_null: "skip"
     narrative_hints:
-      - "Destaque concentração se max(pct) > 50% em uma única classe."
+      - "Concentração imobiliária = RISCO: cite $.ratios.concentracao_imobiliaria (base carteira produtiva, SSOT ADR-340), NÃO o pct de tabela_classes[imóveis] (COMPOSIÇÃO, base total investido). Dois números legítimos; risco usa o de risco."
+      - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
       - "Diferencie residência (não gera renda) de imóveis de investimento — não comente residência como investimento."
       - "classification=nu_proprietario (ADR-235): nu-propriedade com usufruto vitalício — ativo ilíquido por contrato civil. Não recomende venda como liquidez; consolidação só com extinção do usufruto (não infira prazo)."
 
@@ -198,11 +207,17 @@ context_sections:
         value_format: "raw"
         on_null: "skip"
       - format: "scalar"
+        path: "$.ratios.concentracao_imobiliaria"
+        label: "Concentração imobiliária — RISCO (SSOT carteira produtiva, ADR-340)"
+        value_format: "percent2"
+        on_null: "skip"
+      - format: "scalar"
         path: "$.ratios"
         label: "Bloco ratios completo"
         value_format: "raw"
         on_null: "error"
     narrative_hints:
+      - "Ao comentar concentração imobiliária como risco, ancore em $.ratios.concentracao_imobiliaria (o número de risco acima) — nunca no pct de composição da tabela de classes."
       - "Se status='sem_irpf' ou 'gerador_zero', NÃO compare com meta — sinalize a indisponibilidade."
       # A28.l11 (consome o flag de sanidade da TRS emitido pela A28.l2 em
       # ratios_calculator — número fora do plausível nunca vira conselho).
