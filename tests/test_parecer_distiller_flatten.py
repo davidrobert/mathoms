@@ -39,6 +39,16 @@ def test_key_value_flattens_nested_dict_no_truncation():
     assert "composicao_liquida.caixa_moeda_estrangeira: 0.0" in out
 
 
+def test_key_value_secao_ausente_omite_bloco():
+    # Seção ausente (workspace sem IRPF, ADR-157) → bloco omitido, sem header órfão.
+    block = {
+        "format": "key_value",
+        "title": "KPIs IRPF",
+        "fields": [{"path": "$.irpf_kpis", "label": "irpf_kpis", "format": "raw"}],
+    }
+    assert render_block(block, {}) == ""
+
+
 def test_key_value_scalar_field_unchanged():
     e5 = {"score": {"valor": 6.5}}
     block = {

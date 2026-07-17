@@ -70,6 +70,15 @@ def test_sanitize_scrubs_dict_keys():
     assert fontes["PIX Titular"] == 3000.0
 
 
+def test_sanitize_nome_curto_2_chars_nao_vaza():
+    # Finding da revisão adversarial: nome <3 chars vazava. _MIN_NAME_LEN=2 pega "Zé".
+    fam = {"titular": "ze", "membros": {"ze": {"nome_curto": "Zé", "papel": "titular"}}}
+    pairs = build_name_role_pairs(fam)
+    e5 = {"investimentos": {"top_ativos": [{"membro": "Zé", "valor": 1.0}]}}
+    out = sanitize_e5_for_parecer(e5, pairs)
+    assert out["investimentos"]["top_ativos"][0]["membro"] == "Titular"
+
+
 def test_sanitize_redige_cpf_cnpj():
     e5 = {"nota": "titular CPF 123.456.789-00 e empresa 12.345.678/0001-90"}
     out = sanitize_e5_for_parecer(e5, ())

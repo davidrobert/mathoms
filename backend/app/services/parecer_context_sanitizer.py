@@ -23,7 +23,9 @@ from typing import Any, Mapping
 
 from pipeline.observability.pii_patterns import scrub_identifiers
 
-_MIN_NAME_LEN = 3
+# 2 pega nomes curtos reais (ex.: "Zé") sem vazá-los ao provider; 1 char é
+# patológico e over-redigiria demais (CTO-03, finding da revisão adversarial).
+_MIN_NAME_LEN = 2
 _ROLE_LABEL = {"titular": "Titular", "conjuge": "Cônjuge"}
 
 
