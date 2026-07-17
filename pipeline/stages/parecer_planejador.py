@@ -178,6 +178,15 @@ def _load_orchestrator():
         return None, exc
 
 
+def _name_role_pairs(ctx: "WorkspaceContext") -> tuple:
+    """Mapa (nome, papel) do family_members p/ o sanitizer de PII do parecer (CTO-03)."""
+    try:
+        from backend.app.services.parecer_context_sanitizer import build_name_role_pairs
+    except ImportError:
+        return ()
+    return build_name_role_pairs(ctx.load_config("family_members.json"))
+
+
 def run(ctx: "WorkspaceContext") -> dict:
     """Executa o stage e devolve dict de status (convenção do orchestrator)."""
     if not _is_enabled():
@@ -208,6 +217,7 @@ def run(ctx: "WorkspaceContext") -> dict:
         api_key=api_key,
         model_id=os.environ.get("MATHOMS_PARECER_PLANEJADOR_MODEL", _DEFAULT_MODEL),
         llm_hooks=ctx.llm_call_hooks,
+        name_role_pairs=_name_role_pairs(ctx),
     )
     result = gen_fn(e5_data=e5_data, config=config)
     if result.status == "needs_review":
