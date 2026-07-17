@@ -197,7 +197,7 @@ class RatiosCalculator:
             taxa_poupanca_total_pct=poupanca.geral_pct_value,
             taxa_endividamento_pct=_calc_endividamento(patrimonio),
             autonomia_financeira_meses=_calc_autonomia_financeira(
-                patrimonio, float(window.despesa_mensal_media_brl)
+                patrimonio, _despesa_consumo_mensal(window)
             ),
             concentracao_imobiliaria_pct=_calc_concentracao_imobiliaria(patrimonio),
             rentabilidade_pct=_resolve_rentabilidade(passive_income),
@@ -282,15 +282,22 @@ def _calc_endividamento(patrimonio: _PatrimonioPayload) -> float:
     return _ratio_pct(dividas, bruto)
 
 
+def _despesa_consumo_mensal(window: _Window) -> float:
+    """Consumo mensal ex-aporte (ADR-333): despesa_consumo total ÷ n_meses da janela."""
+    n = window.n_meses
+    return float(window.despesa_consumo_brl) / n if n > 0 else 0.0
+
+
 def _calc_autonomia_financeira(
-    patrimonio: _PatrimonioPayload, despesa_mensal_media: float
+    patrimonio: _PatrimonioPayload, despesa_consumo_mensal: float
 ) -> float:
-    # ADR-335: autonomia financeira (runway de liquidez) usa `investivel_financeiro`
-    # (cat_3+4+5+6, SEM cat_2 imóvel ilíquido) — numerador de horizonte de choque,
-    # toggle-independente. Distinto do `investivel_efetivo` da IF (ADR-142/215 §6),
-    # que legitimamente conta cat_2 quando `imoveis_no_if=true` (horizonte de décadas).
+    # ADR-335 §Emenda 2026-07-16 (ADR-333): denominador = consumo mensal EX-APORTE.
+    # Numerador `investivel_financeiro` (cat_3+4+5+6, sem cat_2 imóvel ilíquido). O
+    # aporte é transferência patrimonial que cessa no choque de renda (não é queima
+    # de subsistência); incluí-lo subestimava o runway. Financiamento (essencial)
+    # permanece no denominador (não é transferência discricionária).
     investivel = _safe_float(patrimonio.get("investivel_financeiro", 0))
-    return investivel / despesa_mensal_media if despesa_mensal_media > 0 else 0.0
+    return investivel / despesa_consumo_mensal if despesa_consumo_mensal > 0 else 0.0
 
 
 def _calc_concentracao_imobiliaria(patrimonio: _PatrimonioPayload) -> float:

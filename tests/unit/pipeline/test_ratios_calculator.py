@@ -123,10 +123,17 @@ class TestAutonomiaFinanceira:
 
     def test_zero_when_despesa_zero(self):
         r = RatiosCalculator().calculate(
-            _fluxo_with_janela(despesa_mensal_media=0),
+            _fluxo_with_janela(despesa_total=0, despesa_consumo=0),
             _patrimonio(),
         )
         assert r.autonomia_financeira_meses == 0.0
+
+    def test_denominador_exclui_aporte(self):  # CTO-04 (ADR-335 §Emenda / ADR-333)
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_total=120_000, despesa_consumo=60_000),
+            _patrimonio(investivel=60_000),
+        )
+        assert r.autonomia_financeira_meses == pytest.approx(12.0)  # ex-aporte: 12, não 6
 
     def test_toggle_independente_ignora_investivel_efetivo(self):
         # Duas carteiras idênticas no financeiro, divergindo só no `investivel_efetivo`

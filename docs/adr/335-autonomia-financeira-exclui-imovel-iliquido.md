@@ -4,11 +4,13 @@ type: adr
 title: "Autonomia financeira (ex-cobertura_despesas_meses) exclui imóvel ilíquido e separa da reserva de emergência"
 status: Decidido
 date: "2026-07-14"
+amended_at: ["2026-07-16"]
 relates_to:
   - "[[ADR-142]]"
   - "[[ADR-215]]"
   - "[[ADR-090]]"
   - "[[ADR-217]]"
+  - "[[ADR-333]]"
 tags:
   - type/adr
   - status/decidido
@@ -19,6 +21,12 @@ tags:
 
 > Cluster **E1** (P1) da re-review dogfood 2026-07-13 · [[PLAN-dogfood-report-fix]].
 > Decisão de domínio adjudicada pelo `financial-planner` (2026-07-14), endossada pelo owner.
+
+> **Emenda 2026-07-16 (Onda R3.4 · CTO-04 · co-design `financial-planner`):** o
+> **denominador** da autonomia passa a ser o **consumo mensal ex-aporte**
+> (`despesa_consumo`, [[ADR-333]]), não `despesa_mensal_media` (que incluía o aporte).
+> Ver [§Emenda](#emenda--denominador-ex-aporte-cto-04-2026-07-16). Esta ADR corrigiu o
+> *numerador* (investível ex-imóvel) em 2026-07-14 mas deixara o denominador bruto.
 
 ## Contexto
 
@@ -112,3 +120,27 @@ sinaliza. Renda de imóvel quitado é resiliência real, mas vive na **renda pas
 - **Precisão** — independência de toggle: flip de `imoveis_no_if` **não** altera
   `autonomia_financeira_meses` (teste liga/desliga assere igualdade). Sem dupla contagem de
   aluguel (numerador de autonomia × renda passiva).
+
+## Emenda — denominador ex-aporte (CTO-04, 2026-07-16)
+
+A decisão original (2026-07-14) trocou o **numerador** para `investivel_financeiro`
+(ex-imóvel), mas manteve o **denominador** em `despesa_mensal_media = despesa_total ÷ 12`,
+que **inclui o aporte** (`transferencia_patrimonial`). Autonomia mede runway de liquidez —
+"quantos meses o patrimônio financeiro sustenta a família se a renda parar". No choque de
+renda a família **para de aportar** (aporte é transferência patrimonial voluntária, não
+queima de subsistência — [[ADR-333]]); incluí-lo no denominador **subestimava** o runway.
+
+**Decisão (co-design `financial-planner`):** denominador = **consumo mensal ex-aporte**
+(`despesa_consumo ÷ n_meses`). `despesa_consumo` já exclui só a transferência
+**discricionária/interrompível**; **financiamento** (essencial, não-transferência)
+permanece no denominador. Payload legado sem `despesa_consumo` cai em `despesa_total`
+(back-compat, sem regressão).
+
+- **Sem bump de `score_version`:** autonomia entra no score apenas como **fallback**
+  (reserva ausente); trocar o denominador do fallback é refinamento de input, não de
+  fórmula/peso ([[ADR-217]] §D3). No dogfood a reserva domina → score inalterado.
+- **Escopo travado:** a hipótese "aporte cessa 100% no choque" vale enquanto o
+  `transfer_set` ([[ADR-333]]) contiver só aporte discricionário. Expandi-lo para item
+  semi-contratual (previdência contratada, consórcio) **reabre** a base do denominador.
+- **Golden:** `autonomia_financeira_meses` **sobe** (denominador menor); delta rastreado
+  no rebaseline isolado. Nenhum ponto-forte "colchão robusto" pode reativar indevidamente.
