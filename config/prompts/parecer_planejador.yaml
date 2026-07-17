@@ -221,7 +221,7 @@ context_sections:
         value_format: "raw"
         on_null: "error"
     narrative_hints:
-      - "Ao comentar concentração imobiliária como risco, ancore em $.ratios.concentracao_imobiliaria (o número de risco acima) — nunca no pct de composição da tabela de classes."
+      - "Concentração como risco: cite o número do bloco escalar acima ($.ratios.concentracao_imobiliaria), não o pct de composição. É percentual — escreva na prosa (ex.: '~60%'); não precisa âncora (catálogo é só monetário)."
       - "Cobertura de renda passiva (PE-04): use a base ESSENCIAL (ratios.rentabilidade.cobertura_despesa_essencial_pct), não a despesa média. Rotule explicitamente 'da despesa essencial' — uma cobertura só, consistente."
       - "Se status='sem_irpf' ou 'gerador_zero', NÃO compare com meta — sinalize a indisponibilidade."
       # A28.l11 (consome o flag de sanidade da TRS emitido pela A28.l2 em
@@ -451,7 +451,9 @@ tools:
 # ==============================================================================
 max_tool_iterations: 6
 max_total_input_tokens: 50000
-max_exec_context_bytes: 5120  # ~5KB hard limit base (pré tool calls)
+max_exec_context_bytes: 8192  # ~8KB hard limit base (pré tool calls). R3.3: subido de
+# 5120 — o body já excedia 5KB (truncava previdência/irpf/proteção) e o flatten key_value
+# do PE-01 + hints agravavam, cortando o próprio hint FP-04. 8KB cabe o conteúdo prioritário.
 # Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação sem bloquear;
 # strict marca needs_review. Override operacional: env MATHOMS_PARECER_EVIDENCIA_MODE.
 # Flip warn→strict (A26.l2): segurança satisfeita por construção (per-item,

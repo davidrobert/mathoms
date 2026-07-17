@@ -101,8 +101,15 @@ def _add_concentracao_imovel(e5: dict) -> dict:
     PGBL no teto (FP-04): limite=0 é confirmação, não 'investigar do zero'."""
     e5["real_estate"] = {"concentracao_pct": 59.97, "valor_total_imoveis": 2_600_000.0}
     e5.setdefault("ratios", {})["concentracao_imobiliaria"] = 59.97
+    # Alinha os campos de abate ao cenário de teto (abate_real == limite) p/ o bloco
+    # não afirmar "subaplicado" e "teto atingido" ao mesmo tempo — sinal limpo p/ FP-04.
     e5.setdefault("previdencia_pgbl", {}).update(
-        {"limite_pgbl_anual": 0.0, "pgbl_status": "teto_atingido"}
+        {
+            "limite_pgbl_anual": 0.0,
+            "pgbl_status": "teto_atingido",
+            "abate_real_pct": 12.0,
+            "contribuicao_anual": 86_400.0,
+        }
     )
     return e5
 
