@@ -19,7 +19,7 @@ tags:
 
 # ADR-335 — Autonomia financeira exclui imóvel ilíquido
 
-> Cluster **E1** (P1) da re-review dogfood 2026-07-13 · [[PLAN-dogfood-report-fix]].
+> Cluster **E1** (P1) da re-review dogfood 2026-07-13 · PLAN-dogfood-report-fix.
 > Decisão de domínio adjudicada pelo `financial-planner` (2026-07-14), endossada pelo owner.
 
 > **Emenda 2026-07-16 (Onda R3.4 · CTO-04 · co-design `financial-planner`):** o

@@ -16,7 +16,7 @@ tags:
 
 # ADR-326 — População de `reports.score`/`reports.patrimonio_liquido` a partir do E5
 
-> Item **C7** do plano [[PLAN-dogfood-report-fix]]. Achados DE-06/ARCH-04 da revisão dogfood 2026-07-11.
+> Item **C7** do plano PLAN-dogfood-report-fix. Achados DE-06/ARCH-04 da revisão dogfood 2026-07-11.
 
 ## Contexto
 

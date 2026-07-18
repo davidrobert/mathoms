@@ -19,7 +19,7 @@ tags:
 
 # ADR-333 — Aporte = transferência patrimonial, não consumo
 
-> Item **C1** do plano [[PLAN-dogfood-report-fix]] (achado FIN-01). Implementado
+> Item **C1** do plano PLAN-dogfood-report-fix (achado FIN-01). Implementado
 > 2026-07-14 (co-design FP + data-engineer). **Sem bump de `score_version`** — a taxa
 > é INPUT do score, não a fórmula (ver Decisão). A batelada `score_version 2.0` de
 > C5/FIN-05 ([[ADR-328]]) é mudança de fórmula, separada e futura.

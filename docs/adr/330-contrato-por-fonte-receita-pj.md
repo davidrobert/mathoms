@@ -18,7 +18,7 @@ tags:
 
 # ADR-330 — Contrato `por_fonte`: bloco `receita_por_natureza`
 
-> Cluster **B** (P1) do [[PLAN-dogfood-report-fix]]: a chave `fluxo_caixa.por_fonte.receita_pj`
+> Cluster **B** (P1) do PLAN-dogfood-report-fix: a chave `fluxo_caixa.por_fonte.receita_pj`
 > é lida por 5 consumidores mas **nunca emitida** pelo enricher — renda PJ (~46,5% no perfil
 > dogfood) some silenciosamente e o perfil de renda colapsa para CLT-única.
 > Contrato travado por co-design `data-engineer` (2026-07-14), que corrigiu 2 riscos de

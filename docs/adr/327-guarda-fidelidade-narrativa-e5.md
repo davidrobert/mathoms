@@ -16,7 +16,7 @@ tags:
 
 # ADR-327 — Guarda de fidelidade narrativa↔E5
 
-> Item **C2.5** do plano [[PLAN-dogfood-report-fix]]. Achados LLM-01/LLM-02/LLM-03/UX-03 da revisão dogfood.
+> Item **C2.5** do plano PLAN-dogfood-report-fix. Achados LLM-01/LLM-02/LLM-03/UX-03 da revisão dogfood.
 
 ## Contexto
 
@@ -28,7 +28,7 @@ registral crua (CNPJ/matrícula/endereço) na prosa, e caption de tendência diz
 CV9/CV10/CV14) só checam **presença/formato**, não **fidelidade ao E5**.
 `check_monetary_format` sequer pega `R$ 0,00`.
 
-A raiz de conteúdo é corrigida por C2.1–C2.4 (item [[PLAN-dogfood-report-fix]]);
+A raiz de conteúdo é corrigida por C2.1–C2.4 (item PLAN-dogfood-report-fix);
 esta ADR institui o **invariante de guarda** que impede a regressão.
 
 ## Decisão

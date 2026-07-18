@@ -2,9 +2,10 @@
 id: PLAN-dogfood-report-fix
 type: plan
 title: "Correções de qualidade do relatório (dogfood 2026-07-11)"
-status: in_progress
-created_at: 2026-07-12
-last_review: 2026-07-16
+status: done
+created_at: "2026-07-12"
+last_review: "2026-07-18"
+archived_at: "2026-07-18"
 adrs_canonical:
   - "[[ADR-326]]"
   - "[[ADR-327]]"
@@ -12,7 +13,7 @@ adrs_canonical:
   - "[[ADR-329]]"
 tags:
   - type/plan
-  - status/in-progress
+  - status/done
   - area/pipeline
   - area/backend
   - area/report
@@ -25,6 +26,34 @@ tags:
 > executa limpo; o **relatório** concentra os defeitos. Este plano cobre o subconjunto
 > priorizado pelo owner: **C2, C3, C4, C5, C7, C8, C11**. Findings brutos e dashboard da
 > revisão em `_scratch/dogfood-review-2026-07-11.md` (gitignored).
+
+## Fechamento — ✅ done (2026-07-18)
+
+Todas as ondas shipadas em `main`; plano arquivado. Resumo:
+
+- **Onda 1** (folhas): C7, C2.1–C2.4, C11-Fase1, C5-Camada1, C8.
+- **Onda R2** (12 curados): 11 shipados (#970–#979); DE-03 design travado (P3, write-path).
+- **Onda R3** (17 confirmados, revisit `ed20dd18`): R3.1 (#983) · R3.2 (#984) · R3.4-CTO04
+  (#985) · R3.4b CTO-02+DE-02 (#986) · R3.3 parecer coordenado, bump manifest 1.8→1.9 (#987).
+- **Fixups da revisão adversarial da R3.3** (#988): pós-#987, revisão multi-agente (3 lentes)
+  pegou 2 regressões [major] — `exec_context` estourava o cap (5120→8192, truncava FP-04/
+  previdência/proteção) e PII de nome <3 chars vazava (`_MIN_NAME_LEN` 3→2) — + header órfão,
+  hint de âncora conflitante, fixture PGBL contraditória. Todos corrigidos.
+
+**Deferidos com gate explícito (residuais, não bloqueiam o fechamento):**
+
+- **DE-01 Fase 2** — drop de `pipeline_run_costs` (SSOT = `llm_call_log`). Owner/ops-gated:
+  soak ≥1 mês + snapshot cold + auditoria verde em prod + migration atômica. Fase 1 já em main (#977).
+- **DE-03** ([[ADR-339]] `Proposto`) — dedup fuzzy de doc de casal inclui declarante. **P3**,
+  exige lane de write-path (HMAC do declarante na ingestão); não é code-only.
+- **FIN-05** — já shipado como `score_version 2.1` ([[ADR-340]] `Decidido`, C11-Fase2 + FIN-05
+  juntos, pré-R3).
+
+**Eval do parecer** (bump 1.8→1.9): a onda mergeou **sem** gate de eval (decisão do owner); o
+eval de validação post-hoc rodou depois sobre o `main` final (1ª tentativa travou em instabilidade
+da API Anthropic; re-rodado com API saudável).
+
+---
 
 ## Reconciliação de premissa (ler antes de abrir lanes)
 

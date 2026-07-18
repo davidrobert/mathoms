@@ -17,7 +17,7 @@ tags:
 
 # ADR-334 — Dedup de imóvel deriva a chave inline
 
-> Cluster **G** (P1) da re-review dogfood 2026-07-13 · [[PLAN-dogfood-report-fix]].
+> Cluster **G** (P1) da re-review dogfood 2026-07-13 · PLAN-dogfood-report-fix.
 > **Destravada** pela auditoria empírica de 2026-07-14 (ver §Evidência), que **inverteu**
 > a hipótese de causa-raiz.
 

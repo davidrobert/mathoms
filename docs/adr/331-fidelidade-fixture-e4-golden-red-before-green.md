@@ -17,7 +17,7 @@ tags:
 
 # ADR-331 — Fidelidade fixture↔E4 + golden red-before-green
 
-> Item **C7-golden** (P0/P1) do plano [[PLAN-dogfood-report-fix]] §"As 4 qualidades como gates verificáveis" → **Corretude** (golden red-antes-de-green).
+> Item **C7-golden** (P0/P1) do plano PLAN-dogfood-report-fix §"As 4 qualidades como gates verificáveis" → **Corretude** (golden red-antes-de-green).
 > Achado da revisão dogfood — razão-raiz **CTO-03**: o golden do view-model assume um agregado `por_fonte.receita_pj` que o E4 real nunca emite, deixando o CI cego à classe B (shape de `por_fonte` + derivadas de perfil de renda).
 
 ## Contexto
