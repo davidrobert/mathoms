@@ -21,7 +21,7 @@ tags:
 
 # ADR-328 — `score_version 2.0`: plateau da cobertura de reserva
 
-> Item **C5** do plano [[PLAN-dogfood-report-fix]]. Achado FIN-03 da revisão dogfood.
+> Item **C5** do plano PLAN-dogfood-report-fix. Achado FIN-03 da revisão dogfood.
 > Sucessora obrigatória da fórmula travada em [[ADR-217]] §D3 (bump de `SCORE_VERSION`).
 
 > **Decidido 2026-07-15 (FP-02) — implementado standalone.** Plateau ancora no
@@ -52,7 +52,7 @@ bump da fórmula.
 
 Bump `SCORE_VERSION` `1.0-legacy → 2.0`, batelando neste mesmo bump os itens de
 score correlatos que estão fora deste lote mas colidem na mesma fórmula
-(FIN-05 diversificação, FIN-01 input de poupança — coordenados pelo plano [[PLAN-dogfood-report-fix]]).
+(FIN-05 diversificação, FIN-01 input de poupança — coordenados pelo plano PLAN-dogfood-report-fix).
 A mudança desta ADR:
 
 - **Plateau da cobertura:** a nota de `cobertura_despesas` satura em `meses_alvo`
@@ -75,7 +75,7 @@ custo essencial entre `fluxo_caixa` e `reserva_emergencia` (bug de consistência
 - Score deixa de recompensar reserva 2× a meta; deixa de contradizer o flag
   "Excessiva".
 - Bump de `score_version` re-baselina os goldens de score **uma vez** (não por
-  item — [[PLAN-dogfood-report-fix]] §regra anti-thrashing).
+  item — PLAN-dogfood-report-fix §regra anti-thrashing).
 
 ## Critério de aceite (4 lentes)
 

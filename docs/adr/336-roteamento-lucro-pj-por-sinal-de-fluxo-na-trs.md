@@ -18,7 +18,7 @@ tags:
 
 # ADR-336 — Roteamento de lucro PJ via segundo sinal de fluxo
 
-> Cluster **A** (P0) da re-review dogfood 2026-07-13 · [[PLAN-dogfood-report-fix]].
+> Cluster **A** (P0) da re-review dogfood 2026-07-13 · PLAN-dogfood-report-fix.
 > Co-design `financial-planner` + `data-engineer` (2026-07-14) sobre evidência empírica.
 > Supersede parcial da [[ADR-191]] (A28.l2 tratava só o match por-linha do IRPF).
 

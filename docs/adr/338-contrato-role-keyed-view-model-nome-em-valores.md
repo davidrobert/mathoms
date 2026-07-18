@@ -18,7 +18,7 @@ tags:
 
 # ADR-338 — Contrato role-keyed no view-model
 
-> Cluster **CTO-02** (P0) da onda R2 do [[PLAN-dogfood-report-fix]]. Fecha o follow-up explícito
+> Cluster **CTO-02** (P0) da onda R2 do PLAN-dogfood-report-fix. Fecha o follow-up explícito
 > deixado em [[ADR-176]] §Consequências. Co-desenho `codesign-review-wave` (senior-cto + IA +
 > red-team, 2026-07-15).
 

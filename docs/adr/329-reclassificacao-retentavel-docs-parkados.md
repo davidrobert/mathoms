@@ -15,7 +15,7 @@ tags:
 
 # ADR-329 — Reclassificação re-tentável de docs parkados
 
-> Item **C8** do plano [[PLAN-dogfood-report-fix]]. Achado DE-05 da revisão dogfood.
+> Item **C8** do plano PLAN-dogfood-report-fix. Achado DE-05 da revisão dogfood.
 > Emenda semântica ao padrão de classificação [[ADR-081]].
 
 ## Contexto

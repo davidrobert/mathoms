@@ -16,7 +16,7 @@ tags:
 
 # ADR-339 — Dedup fuzzy de documento inclui o declarante
 
-> Cluster **DE-03** (P3) da onda R2 do [[PLAN-dogfood-report-fix]]. Co-desenho
+> Cluster **DE-03** (P3) da onda R2 do PLAN-dogfood-report-fix. Co-desenho
 > `codesign-review-wave` (data-engineer + red-team, 2026-07-15).
 
 ## Contexto

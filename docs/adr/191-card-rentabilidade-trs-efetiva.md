@@ -24,7 +24,7 @@ tags:
   - type/adr
 ---
 
-> **Emenda 2026-07-15 (cluster FP-03, onda R2 do [[PLAN-dogfood-report-fix]]):** distingue
+> **Emenda 2026-07-15 (cluster FP-03, onda R2 do PLAN-dogfood-report-fix):** distingue
 > explicitamente **yield-alvo/TRS (5%)** de **taxa de retirada segura/SWR (4%)** entre as
 > superfícies e corrige o rótulo da renda passiva estimada (era 5%, valor calculado a 4%).
 > Ver §Emenda 2026-07-15 ao final.
@@ -185,7 +185,7 @@ PR-B (rebrand UI) consome o shape novo.
 
 ## Emenda 2026-07-15 (FP-03) — yield-alvo (5%) × taxa de retirada segura (4%)
 
-> Cluster **FP-03** da onda R2 do [[PLAN-dogfood-report-fix]]. Decisão de domínio do
+> Cluster **FP-03** da onda R2 do PLAN-dogfood-report-fix. Decisão de domínio do
 > owner (2026-07-15), endossada após co-design `financial-planner`.
 
 **Contexto do achado.** A revisão dogfood 2026-07-15 encontrou o mesmo rótulo "TRS/taxa de

@@ -236,3 +236,16 @@ do arquivamento).
 **Substituído por:** rules-as-code em
 `pipeline/domain/services/patrimonio_calculator.py` (`split_imoveis`) + override DB
 (`workspace_property_overrides` / `property_identity`).
+
+## DOGFOOD_REPORT_FIX-2026-07-18.md
+
+Plano canônico de correções de qualidade do relatório (dogfood 5@5.com, origem
+2026-07-11): revisão profunda multi-agente + verificação adversarial dos runs
+`22fa587e`/`98b2cd38`/`ed20dd18`. Onda 1 + R2 (11/12) + R3 (17 confirmados)
+shipadas em `main` (#970–#988); R3.3 (parecer, bump manifest 1.8→1.9) ganhou
+follow-up de fixups (#988) após revisão adversarial pegar 2 regressões [major]
+(cap de exec_context + PII de nome curto). ADRs canônicas [[ADR-326]]–[[ADR-340]].
+
+**Arquivado em:** 2026-07-18 (todas as ondas em `main`, CI verde; decisão do owner).
+**Residuais deferidos com gate:** DE-01 Fase 2 (drop `pipeline_run_costs`, soak
+≥1 mês/owner) · DE-03 ([[ADR-339]] `Proposto`, dedup de doc de casal, P3 write-path).

@@ -18,7 +18,7 @@ tags:
 
 # ADR-337 — Rótulo de exibição sem PII para ativos
 
-> Cluster **PD-02** (P0, + subsume **H1**) da onda R2 do [[PLAN-dogfood-report-fix]].
+> Cluster **PD-02** (P0, + subsume **H1**) da onda R2 do PLAN-dogfood-report-fix.
 > Co-desenho `codesign-review-wave` (product-designer + senior-cto + red-team, 2026-07-15).
 
 ## Contexto
