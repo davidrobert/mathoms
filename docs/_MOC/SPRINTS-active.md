@@ -244,6 +244,24 @@ spike). Recomendação: promover o subconjunto de alto valor; o resto fica "late
 
 - **Plano:** [sprint/A36/_README.md](../sprint/A36/_README.md) · **Origem:** auditoria r4 (confidencial, fora do repo).
 
+### A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20 (`candidate` 2026-07-20)
+
+**Origem:** revisão profunda do run completo do dogfood (skill `pipeline-review`,
+2026-07-20 @ `c61c1c29` — primeiro run com a onda R3 ativa): 5 revisores
+especialistas + 5 verificadores adversariais; todos os achados sobreviveram com
+evidência re-derivada. 15 lanes em 4 ondas por dependência. **P0** [[A37.l1]]
+(parecer cego por dupla truncação do exec context + redação de identificadores —
+ADR `Proposto` antes do PR) · **P1** [[A37.l2]] narrativa síntese R$ 0,00 ·
+[[A37.l3]] self-heal de docs parkados · [[A37.l4]] sentinelas "N/D" · [[A37.l5]]
+exemplo sintético no prompt · [[A37.l6]] labels humanizadas · [[A37.l7]] CV17
+renda passiva (compõe com [[A36.l3]]) · **P2/W2** coerência de narrativas e
+bases canônicas (co-design `financial-planner`), apêndices, seguradora,
+resiliência, colunas mortas · **cauda W3** batch cosmético + débitos
+owner-gated. Exclusão deliberada: FIN-06. DoD: KR-A..E medidos re-rodando a
+skill em run fresco.
+
+- **Plano:** [sprint/A37/_README.md](../sprint/A37/_README.md) · **Origem:** pipeline-review dogfood 2026-07-20 (relatório em `_scratch/`, gitignored; lanes self-contained).
+
 ## Sprints pausadas
 
 Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.
