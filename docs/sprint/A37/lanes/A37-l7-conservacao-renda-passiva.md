@@ -7,7 +7,7 @@ status: planned
 priority: P1
 branch_slug: a37-l7-conservacao-renda-passiva
 adrs: []
-depends_on: []
+depends_on: ["[[A37.l1]]"]
 tags:
   - type/lane
   - sprint/a37
@@ -29,7 +29,7 @@ tags:
 1. **Sem CV runtime (CTO-01):** nenhum dos 15 CVs de
    `scripts/validate_cross.py` cobre `passive_income`; a conservação
    (`headline = Σ(fontes) − distribuição PJ − ganho de capital`, exclusões por
-   design ADR-191/ADR-336) existe só como teste golden sobre fixture sintética
+   design [[ADR-191]]/[[ADR-336]]) existe só como teste golden sobre fixture sintética
    (`tests/test_e5_conservation_invariants.py::test_renda_passiva_conservation`).
    Um drift real mudaria o headline em ~8× — a cobertura da despesa essencial
    saltaria de ~11% para ~88%, invertendo a tese central — **sem gate**.
@@ -40,16 +40,18 @@ tags:
    LLM do parecer** (bloco `$.passive_income` no manifest; a distribuição PJ
    sobrevive à truncação ao lado do headline) — risco real na superfície LLM.
 
-## Escopo
+## Escopo (2 PRs — não misturar feature aditiva com mudança de contrato)
 
-- **CV17**: `Σ(fontes que compõem o passivo) == renda_passiva_anual_brl`
+- **PR-1 — CV17** (aditivo, sai primeiro): `Σ(fontes que compõem o passivo) == renda_passiva_anual_brl`
   (cents, tolerância zero), com os componentes excluídos parametrizados
   conforme a ADR de referência — simétrico ao CV16.
-- **Shape**: mover `distribuicao_pj_titular` para campo irmão explícito (ex.:
-  `renda_ativa_pj_excluida_brl`) para o dict fechar com o headline —
+- **PR-2 — Shape** (contrato, breaking): mover **os dois** componentes excluídos
+  — `distribuicao_pj_titular` **e** `ganho_capital` ([[ADR-336]]; mover só um
+  deixa o aceite vermelho) — para campos irmãos explícitos (ex.:
+  `renda_ativa_pj_excluida_brl`, `ganho_capital_excluido_brl`) para o dict fechar com o headline —
   auto-conservativo é mais barato que gate. Atualizar schema E5 + consumidores
-  (grep: tipos do frontend, manifest do parecer — coordenar com [[A37.l1]] se
-  os bumps de manifest coincidirem).
+  (grep: tipos do frontend, manifest do parecer — o bump de manifest desta lane **sequencia depois** da [[A37.l1]] com versão
+  própria (2.x) — nunca commit cruzado entre lanes).
 - Golden de conservação atualizado para o novo shape.
 
 ## Critério de aceite

@@ -68,30 +68,50 @@ regressão de PII.**
    declarado no manifest — **não** aplicar flatten cru a `fluxo_caixa`/
    `consumo_consciente`, 15–17K chars), posição dos hints (fora do corpo
    capped, como o citation catalog), regra de recovery via `get_e5_section` no
-   system prompt, e redação de identificadores estruturais no sanitizer.
-2. **PR-2 (W1): implementação** — distiller + manifest bump 2.0 + sanitizer +
-   system prompt + re-baseline do eval golden do parecer. Incluir OBS-1:
-   clarificar semântica do contador de `tool_iterations` (trace registrou 8
-   com `max_tool_iterations: 6`; 3 eram cache_hit).
+   system prompt, redação de identificadores estruturais no sanitizer, **e
+   política de prioridade/eviction determinística por seção, declarada no
+   manifest** — subir o cap sozinho só move o penhasco quando o E5 crescer;
+   eviction no boundary de seção é o que fecha a causa-raiz.
+2. **PR-2a (W1): sanitizer/redação de identificadores** — independente e
+   shippável **primeiro** (defesa em profundidade vale antes do fix de budget).
+   Redação **por chave declarada** (`apolice_numero` e demais campos
+   identificadores do E5) ou por formato específico — **não** regex genérica de
+   "dígitos ≥7" sobre strings livres (over-redigiria CEP/referências/valores em
+   prosa sem que o eval flagre).
+3. **PR-2b (W1): distiller + manifest bump 2.0 + hints fora do corpo + regra de
+   recovery no system prompt + re-baseline do eval golden.** Pré-condição: o
+   vocabulário de sentinelas está coordenado com [[A37.l4]] (a seção restaurada
+   não pode renderizar `"N/D"` como dado — o distiller hoje só pula `None`).
+   Incluir OBS-1: clarificar semântica do contador de `tool_iterations` (trace
+   registrou 8 com `max_tool_iterations: 6`; 3 eram cache_hit).
 
 ## Critério de aceite (binário)
 
 - Distiller sobre o E5 do run `6659d62c` (ou run fresco) entrega **10/10
   seções**; probes `limite_pgbl`, `apolices_vigentes`, `gap_qualitativo`
   **presentes** no contexto final.
-- Nº de apólice e dígitos ≥7 sem máscara **ausentes** do contexto E das
-  respostas de `get_e5_section`/`get_e5_jsonpath` (teste de regressão no
-  sanitizer cobrindo o caminho das tools).
-- Eval golden re-baselinado sem value_mismatch novo; run real: parecer sem
+- Campos identificadores declarados (ex.: nº de apólice) **redigidos** no
+  contexto E nas respostas de `get_e5_section`/`get_e5_jsonpath` (regressão no
+  caminho das tools) — com guard de over-redação: prosa monetária/CEP intactos.
+- Probes de tool-behavior no run de aceite: distribuição de tool-calls e
+  `tokens_in` dentro dos caps (`max_tool_iterations`, `max_total_input_tokens`)
+  — a instrução de recovery não pode inflar chamadas.
+- Eval golden re-baselinado com **N≥3 execuções e banda explícita** (o resíduo
+  determinístico em temperatura baixa já foi medido como material — single-run
+  "sem mismatch" não é gate); run real: parecer sem
   sugestão de dedução de previdência com limite=0 e sem "ausência de dados de
   proteção" (KR-A).
 - Teste de regressão do distiller: corpo com N seções → todas presentes até o
   budget; truncação, se houver, é **por prioridade declarada**, nunca silenciosa
-  no meio de seção.
+  no meio de seção; probes **field-level** nos blocos densos re-formatados
+  (`fluxo_caixa`, `consumo_consciente`) — resumo curado é vetor novo de
+  truncação silenciosa; contagem de seção não basta.
 
 ## Risco / rollback
 
 Conteúdo do parecer muda por design (risco Médio) — mitigado pelo re-baseline
 golden na mesma lane. Rollback: revert do PR-2 restaura manifest 1.9 (o cap
 antigo volta). Custo/latência re-medidos no run de aceite (banda: parecer
-≤ ~180s, ≤ ~US$0,30).
+≤ ~180s, ≤ ~US$0,30). **Owner-gated:** o eval golden real depende de chave e
+orçamento habilitados pelo owner; fallback de aceite = golden mockado +
+medição in-process do distiller, com o eval real agendado na janela do owner.

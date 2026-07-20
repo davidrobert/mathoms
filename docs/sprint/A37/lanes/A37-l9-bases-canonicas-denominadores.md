@@ -7,20 +7,21 @@ status: planned
 priority: P2
 branch_slug: a37-l9-bases-canonicas-denominadores
 adrs: ["[[ADR-340]]"]
-depends_on: []
+depends_on: ["[[A37.l1]]"]
 tags:
   - type/lane
   - sprint/a37
   - status/planned
   - priority/p2
-  - area/dominio
+  - area/domain
   - area/pipeline
 ---
 
 # A37.l9 — `bases-canonicas-denominadores` (FIN-07+CTO-09 · CTO-04+PE-05)
 
-> **Co-design `financial-planner` (1 rodada) antes de codar** — a decisão é
-> qual base é canônica por métrica e como rotular as demais.
+> **Decisões de domínio já colhidas** (revisão do sprint por `financial-planner`,
+> 2026-07-20) — ver Escopo. Co-design remanescente: só a investigação do gap
+> tabela×patrimônio.
 
 ## Problema (evidência verificada 2026-07-20 @ c61c1c29)
 
@@ -45,12 +46,21 @@ tags:
 
 ## Escopo
 
-- Decidir com `financial-planner`: base canônica de "concentração imobiliária"
-  (manter ADR-340) e rótulos das demais ("% do total investido", "% do
-  patrimônio bruto"); separar ou rotular imóveis físicos na `tabela_classes`.
+- Concentração: manter a base da [[ADR-340]] (carteira produtiva) — **não
+  reabrir**; rotular as demais superfícies ("% do total investido" na
+  `tabela_classes`; "% do patrimônio bruto" no doughnut); separar ou rotular
+  imóveis físicos na `tabela_classes`.
+- **Pesos de classe de alocação** (internacional, RF, RV, FII) medem-se sobre
+  `investivel_financeiro` (rótulo "carteira financeira") — nunca sobre base que
+  inclui imóvel físico (subestima toda classe financeira sistematicamente).
+- **Internacional ≠ cambial** — dois conceitos, dois números: alocação
+  internacional (ativos internacionais ÷ investível financeiro) vs exposição
+  cambial (posições em moeda estrangeira, `pct_investivel_financeiro`).
+  Numerador E denominador diferem; não fundir num denominador único.
 - Investigar e fechar o gap de ~R$ 100–130k (ou rotular a diferença).
 - Padronizar "exposição internacional": termo + denominador; projetar
-  `exposicao_cambial` no manifest do parecer **via [[A37.l1]]** (mesmo bump).
+  `exposicao_cambial` no manifest do parecer em bump **próprio, sequenciado
+  depois** da [[A37.l1]] (nunca commit cruzado entre lanes).
 - Scalars do manifest ganham rótulo de base onde ambíguo (ex.: "efetiva
   (blended)" para alíquota — cobre o resíduo de PE-06/CTO-05).
 

@@ -767,8 +767,8 @@
 | A37.l14 | lane | planned | A37 | Batch cosmético de copy/labels + decisão de agrupamento do aporte no doughnut | `sprint/A37/lanes/A37-l14-batch-cosmetico-copy.md` |
 | A37.l15 | lane | planned | A37 | Débitos com gate: fonte de dados de milhas (decisão owner) + remoção do alias deprecated de caixa | `sprint/A37/lanes/A37-l15-debitos-owner-gated.md` |
 | A37.l2 | lane | open | A37 | Narrativa da síntese decompõe aporte em parcelas R$ 0,00 — guard de distribuição vazia + keys dinâmicas | `sprint/A37/lanes/A37-l2-narrativa-sintese-guard.md` |
-| A37.l3 | lane | planned | A37 | Docs parkados como `other` não se auto-corrigem: stored_path drift + gate de key env-only | `sprint/A37/lanes/A37-l3-docs-parkados-selfheal.md` |
-| A37.l4 | lane | planned | A37 | Sentinela "N/D" tratada como dado presente: guardrail suprime field_request legítimo + contrato sub-especificado | `sprint/A37/lanes/A37-l4-sentinelas-nd-contrato.md` |
+| A37.l3 | lane | open | A37 | Docs parkados como `other` não se auto-corrigem: stored_path drift + gate de key env-only | `sprint/A37/lanes/A37-l3-docs-parkados-selfheal.md` |
+| A37.l4 | lane | open | A37 | Sentinela "N/D" tratada como dado presente: guardrail suprime field_request legítimo + contrato sub-especificado | `sprint/A37/lanes/A37-l4-sentinelas-nd-contrato.md` |
 | A37.l5 | lane | open | A37 | Fragmento de apólice real do dogfood em prompt versionado — trocar por exemplo sintético | `sprint/A37/lanes/A37-l5-prompt-apolice-exemplo-sintetico.md` |
 | A37.l6 | lane | open | A37 | Labels de categoria snake_case cruas nas superfícies do relatório — mapa único + humanize fallback | `sprint/A37/lanes/A37-l6-labels-categoria-humanizadas.md` |
 | A37.l7 | lane | planned | A37 | Conservação de renda passiva sem gate runtime + dict de fontes não-conservativo | `sprint/A37/lanes/A37-l7-conservacao-renda-passiva.md` |

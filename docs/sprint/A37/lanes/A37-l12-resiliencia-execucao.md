@@ -38,12 +38,14 @@ tags:
 
 ## Escopo
 
-- Heartbeat **in-stage**: batida periódica dentro de stages longos (a cada N
-  docs processados ou timer no worker) OU threshold derivado do stage; guard
-  anti flip-flop (conclusão de stage não sobrescreve run já flipado sem
-  registrar reconciliação).
-- Idempotência de redelivery: antes de re-executar um stage, checar
-  artifact/telemetria já gravados para o `(run_id, stage)` e **pular** (ou
+- Heartbeat **in-stage** inline no loop de documentos (DB write a cada N docs)
+  — **sem** thread/timer no worker ([[ADR-111]] proíbe `threading`/`create_task`
+  fora do Celery). Guard anti flip-flop via **UPDATE condicional atômico**
+  (compare-and-set `... WHERE status=<esperado>`), nunca read-modify-write
+  cross-worker.
+- Idempotência de redelivery: antes de re-executar um stage, checar um
+  **marcador de conclusão de stage** para o `(run_id, stage)` — não só "artifact
+  existe", que não cobre redelivery mid-stage antes do write — e **pular** (ou
   reusar) em vez de re-chamar LLM; registrar `redelivered=true` na telemetria.
 
 ## Critério de aceite

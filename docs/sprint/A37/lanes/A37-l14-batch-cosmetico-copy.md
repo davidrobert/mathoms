@@ -4,7 +4,7 @@ type: lane
 title: "Batch cosmético de copy/labels + decisão de agrupamento do aporte no doughnut"
 sprint: A37
 status: planned
-priority: P2
+priority: P3
 branch_slug: a37-l14-batch-cosmetico-copy
 adrs: ["[[ADR-333]]"]
 depends_on: []
@@ -12,14 +12,13 @@ tags:
   - type/lane
   - sprint/a37
   - status/planned
-  - priority/p2
+  - priority/p3
   - area/frontend
   - area/pipeline
 ---
 
-# A37.l14 — `batch-cosmetico-copy` (PD-02/06/07/10/11/12) — prioridade operacional P3
+# A37.l14 — `batch-cosmetico-copy` (PD-02/06/07/10/11/12) — P3, cauda W3
 
-> Frontmatter marca P2 por limite do schema; tratar como **cauda** (W3).
 > Todos evidenciados na revisão de 2026-07-20 @ c61c1c29.
 
 ## Itens
@@ -35,8 +34,11 @@ tags:
 4. **PD-10 (decisão `financial-planner`):** aporte a investimento aparece como
    3ª maior fatia do doughnut de "Despesas por Categoria"
    (`despesa_datasets`) — semanticamente é poupança ([[ADR-333]]: aporte =
-   transferência). Decidir: excluir do doughnut ou fatia separada "Poupança/
-   Aporte"; **não** mexer em `despesa_total` (conservação intocada).
+   transferência). **Decisão colhida** (`financial-planner`, 2026-07-20):
+   **excluir** do doughnut de despesas — fatia "Poupança" dentro do mesmo
+   doughnut também rejeitada (vende poupança como consumo); a visibilidade da
+   poupança vai em superfície de fluxo/poupança. Registrar nota na [[ADR-333]].
+   **Não** mexer em `despesa_total` (conservação intocada).
 5. **PD-11:** `cenarios_conjuge[].resumo` com formato monetário US
    ("R$ 13,200") — corrigir o gerador ou remover o campo se morto (nenhum
    componente o lê hoje).

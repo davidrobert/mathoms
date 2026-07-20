@@ -3,7 +3,7 @@ id: A37.l3
 type: lane
 title: "Docs parkados como `other` não se auto-corrigem: stored_path drift + gate de key env-only"
 sprint: A37
-status: planned
+status: open
 priority: P1
 branch_slug: a37-l3-docs-parkados-selfheal
 adrs: ["[[ADR-329]]"]
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/open
   - priority/p1
   - area/dados
   - area/backend
@@ -45,7 +45,7 @@ Duas quebras estruturais:
 
 ## Escopo
 
-- Retry/bulk resolvem o path atual (fallback para `inbox_processed/**/<nome>`)
+- Retry/bulk resolvem o path atual (candidatos em `inbox_processed/**` validados por `documents.content_hash` — SHA-256 já existe pelo dedup; **nunca** relocar por basename, que re-linka o doc a conteúdo alheio em colisão de nome)
   **ou** o move de arquivo passa a atualizar `stored_path` — decidir com
   `data-engineer` na implementação (preferir corrigir o write no move +
   migração one-shot dos paths existentes).

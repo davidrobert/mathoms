@@ -37,8 +37,11 @@ por row qual schema validou, nem medir crescimento de storage por stage
   antigas é **opcional** (avaliar custo × valor com `data-engineer`; sem
   backfill, documentar a data de corte).
 - **Opção B:** dropar as colunas via migration + ADR curta assumindo a decisão.
-- A escolha exige parecer do `data-engineer` (retention/particionamento) — 1
-  rodada no PR de decisão.
+- Parecer do `data-engineer` **já colhido** (revisão do sprint, 2026-07-20):
+  **Opção A** — `byte_size` é sinal load-bearing de retention/FinOps num store
+  DB-only ([[ADR-212]]); ressalva: `schema_version` precisa ser **token real**
+  (hash do schema ou `$id`+versão — os schemas hoje não declaram versão), senão
+  vira constante sem valor de auditoria.
 
 ## Critério de aceite
 

@@ -4,7 +4,7 @@ type: lane
 title: "Débitos com gate: fonte de dados de milhas (decisão owner) + remoção do alias deprecated de caixa"
 sprint: A37
 status: planned
-priority: P2
+priority: P3
 branch_slug: a37-l15-debitos-owner-gated
 adrs: ["[[ADR-147]]"]
 depends_on: []
@@ -12,14 +12,13 @@ tags:
   - type/lane
   - sprint/a37
   - status/planned
-  - priority/p2
+  - priority/p3
   - area/pipeline
   - area/dados
 ---
 
-# A37.l15 — `debitos-owner-gated` (DE-05 + CTO-08) — prioridade operacional P3
+# A37.l15 — `debitos-owner-gated` (DE-05 + CTO-08) — P3, cauda W3
 
-> Frontmatter marca P2 por limite do schema; tratar como **cauda** (W3).
 > DE-05 é **owner-gated** (decisão de produto); CTO-08 tem janela própria.
 
 ## DE-05 — fonte de dados de milhas (evidência 2026-07-20 @ c61c1c29)
@@ -44,17 +43,21 @@ consumidor vivo lendo o significado errado (verificado: fallbacks usam
 semântica de total; frontend só tipa), mas a colisão semântica não deve
 sobreviver à janela.
 
-**Ação:** ciclo seguinte ao R3.4b → remover o alias do produtor + schema
-(`e5_analysis.schema.json:99-101`) + tipos do frontend; varrer consumidores;
-**não reusar** o nome com outro significado.
+**Ação:** ciclo seguinte ao R3.4b → remover o alias do **produtor** + schema
+(`e5_analysis.schema.json:99-101`) + tipos do frontend. **Preservar os readers
+de compat** (`get("caixa_total_brl", get("caixa_moeda_estrangeira"))` em
+`reserva_liquidez.py:117` e `passive_income_calculator.py:255`) — artefatos E5
+antigos são re-lidos por parecer/report sem re-rodar E5. **Não reusar** o nome
+com outro significado.
 
 ## Critério de aceite
 
 - DE-05: decisão do owner registrada (emenda ADR-147 ou nota) + implementação
   da opção escolhida com teste (card com dado renderiza / placeholder removido
   sem quebrar E4).
-- CTO-08: grep sem hits de `caixa_moeda_estrangeira` em `patrimonio.*`
-  (produtor, schema, tipos); payload golden atualizado; CVs verdes.
+- CTO-08: grep sem hits de `caixa_moeda_estrangeira` no **produtor** de
+  `patrimonio.*`, no schema e nos tipos (fallbacks de leitura permanecem);
+  payload golden atualizado; CVs verdes.
 
 ## Risco
 

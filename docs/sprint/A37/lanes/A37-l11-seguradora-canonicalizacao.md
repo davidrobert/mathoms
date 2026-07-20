@@ -39,7 +39,7 @@ diferentes) da **mesma seguradora**, uma com `seguradora: "porto"` e outra
 
 - Canonicalizar no boundary E2→domínio: resolver `seguradora` contra
   `institution_catalog` (match por code; fallback normalizado) antes de contar/
-  persistir; code desconhecido → `needs_review` do doc, não string livre.
+  persistir; code desconhecido → normalizar+persistir com **flag soft** de telemetria; `needs_review` só em ambiguidade real (o catálogo de seguradoras é esparso — over-fire degradaria a análise de proteção inteira).
 - Reforçar a instrução do prompt + validação de output (enum dos codes de
   `category=insurance`).
 - Display name no frontend via catálogo (nunca o code cru).
@@ -48,7 +48,7 @@ diferentes) da **mesma seguradora**, uma com `seguradora: "porto"` e outra
 
 - Teste de regressão: payload com `porto`+`portoseguro` → count 2 e um único
   display name (hoje: 3 e dois rótulos).
-- Unit do resolver: code fora do catálogo → flag de revisão.
+- Unit do resolver: code fora do catálogo → flag soft registrada (não `needs_review`).
 - Tabela de apólices renderiza display names capitalizados (snapshot).
 
 ## Risco

@@ -25,6 +25,18 @@ theme: "report-quality"
 > parecer) ficou **fora** por decisão do owner (2026-07-20). Refutados na
 > verificação (CTO-10, FIN-04-núcleo) não viraram lane.
 
+> **Revisão do sprint (painel de 6 — pm, ia, financial, prompt, data, cto,
+> 2026-07-20):** zero objeção de mérito aos achados; ~20 correções de mecanismo
+> incorporadas antes do merge — `depends_on` encodado (l7/l9→l1), l3/l4
+> promovidas a W0, PR-2 da l1 fatiado (sanitizer primeiro), redação por chave
+> (não regex genérica), eviction por seção como 6ª dimensão da ADR, eval golden
+> com N≥3 + banda, sentinelas coordenadas l1↔l4, content_hash na relocação
+> (l3), flag soft na l11, CAS + marcador de conclusão na l12, opção A na l13,
+> readers de compat preservados na l15, e decisões de domínio pré-colhidas
+> (pesos de classe sobre investível financeiro; internacional ≠ cambial;
+> aluguel recorrente atual com sinal de vacância; PD-10 = excluir aporte do
+> doughnut).
+
 ## North Star e KRs
 
 **North Star:** o relatório gerado pelo pipeline fica mensuravelmente mais
@@ -48,8 +60,10 @@ Medição: **re-rodar a skill `pipeline-review` no dogfood ao final da W2**
   verde em run real; dict de fontes passivas auto-conservativo.
 - **KR-D (completude de ingestão):** docs parkados re-tentáveis reclassificados;
   retry não retorna `no_file` para arquivo movido a `inbox_processed/`.
-- **KR-E (não-regressão):** re-run da skill sem achado novo Crítico/Alto;
-  CVs existentes 15/15 verdes.
+- **KR-E (não-regressão):** nenhum achado **endereçado nesta sprint** reaparece
+  no re-run da skill; CVs existentes 15/15 verdes. (Achados novos não
+  relacionados a A37 não reprovam o KR — discovery é ruído esperado; viram
+  backlog.)
 
 ## Lanes por onda
 
@@ -62,17 +76,17 @@ suas `depends_on` estão `shipped`.
 |---|---|---|---|
 | [[A37.l1]] (fase ADR) | A: PE-01+DE-02+PE-09+PE-08 · DE-06 · OBS-1 | P0 | **ADR Proposto** do contrato de contexto do parecer (budget, formato por bloco, hints, recovery, redação de identificadores) |
 | [[A37.l2]] | PD-01 | P1 | Narrativa da síntese: guard de distribuição vazia + keys dinâmicas |
+| [[A37.l3]] | DE-03 | P1 | Self-heal de docs parkados (stored_path via content_hash + gate de key) |
+| [[A37.l4]] | CTO-02 + DE-07 | P1 | Sentinelas "N/D": guardrail + contrato tipado (aterrissa antes/junto do PR-2b da l1) |
 | [[A37.l5]] | PII-01 | P1 | Exemplo sintético no prompt de apólice (higiene pré-repo-público) |
 | [[A37.l6]] | PD-03+PD-08 | P1 | Labels de categoria humanizadas (mapa único compartilhado) |
 
-### W1 — núcleo P0/P1 (depende da ADR da l1)
+### W1 — núcleo P0 (gated pela ADR/impl da l1)
 
 | Lane | Achados | Prio | Escopo |
 |---|---|---|---|
-| [[A37.l1]] (fase impl) | idem | P0 | Implementação do pacote: manifest 2.0 + distiller + sanitizer + re-baseline do eval golden |
-| [[A37.l3]] | DE-03 | P1 | Self-heal de docs parkados (stored_path drift + gate de key + reclassify) |
-| [[A37.l4]] | CTO-02 + DE-07 | P1 | Sentinelas "N/D": guardrail trata como ausência + contrato tipado |
-| [[A37.l7]] | CTO-01 + DE-04 | P1 | Conservação de renda passiva: CV17 runtime + shape do dict (compõe com [[A36.l3]]) |
+| [[A37.l1]] (fases impl: PR-2a sanitizer → PR-2b distiller/manifest) | idem | P0 | Implementação do pacote; sanitizer aterrissa **antes** do bump de budget |
+| [[A37.l7]] | CTO-01 + DE-04 | P1 | Conservação de renda passiva: CV17 (PR aditivo) + shape do dict (PR de contrato); `depends_on` l1 (compõe com [[A36.l3]]) |
 
 ### W2 — coerência e resiliência (P2)
 
@@ -85,7 +99,7 @@ suas `depends_on` estão `shipped`.
 | [[A37.l12]] | CTO-06 + EXEC-01 | P2 | Resiliência: heartbeat in-stage + idempotência de stage LLM em redelivery |
 | [[A37.l13]] | CTO-07 | P2 | `pipeline_artifacts.schema_version`/`byte_size`: popular ou dropar (ADR) |
 
-### W3 — cauda (P3 operacional; frontmatter P2 por limite do schema)
+### W3 — cauda (P3; owner-gated onde marcado — fora do gate de fechamento)
 
 | Lane | Achados | Prio | Escopo |
 |---|---|---|---|
@@ -101,8 +115,9 @@ suas `depends_on` estão `shipped`.
    número devem apontar para o **mesmo campo SSOT do E5** — se a lane cria um
    segundo produtor do número, ela está errada.
 3. **Completude:** critério de aceite de cada lane é **testável e binário**;
-   nenhuma lane fecha com "melhorou" sem medição. O sprint fecha só com KR-A..E
-   medidos em run fresco.
+   nenhuma lane fecha com "melhorou" sem medição. **O sprint fecha no gate da
+   W2** com KR-A..E medidos em run fresco; a W3 é cauda trailing (P3 +
+   owner-gated) fora do escopo dos KRs.
 4. **Precisão:** rótulo declara a base (ex.: "% da carteira produtiva" ≠
    "% da carteira financeira"); sentinelas de ausência viram `null`, não string.
 5. **Segurança de execução:** "concluído" = PR **squash-merged em `main` com CI
@@ -119,7 +134,9 @@ suas `depends_on` estão `shipped`.
 
 - **l1 muda o conteúdo do parecer por design** (mais contexto ⇒ texto diferente).
   Mitigação: re-baseline do eval golden na própria lane + KR-A medido em run real.
-- **l7/l9 tocam campos consumidos por parecer/manifest** — coordenar bump de
-  `manifest_version` com a l1 para evitar dois bumps concorrentes.
+- **l7/l9 tocam campos consumidos por parecer/manifest** — decisão registrada
+  (revisão PM/CTO 2026-07-20): a l1 é o único bump 2.0; l7/l9 declaram
+  `depends_on: [[A37.l1]]` e sequenciam bumps próprios (2.x). Nunca commit
+  cruzado entre lanes.
 - **Owner-gated:** l15 (decisão de fonte de milhas) e parte da l14 (decisão de
   agrupamento do aporte) não bloqueiam as demais.

@@ -3,7 +3,7 @@ id: A37.l4
 type: lane
 title: "Sentinela \"N/D\" tratada como dado presente: guardrail suprime field_request legítimo + contrato sub-especificado"
 sprint: A37
-status: planned
+status: open
 priority: P1
 branch_slug: a37-l4-sentinelas-nd-contrato
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/open
   - priority/p1
   - area/llm
   - area/dados
@@ -45,6 +45,8 @@ tags:
   (`EndividamentoCard.tsx` lê campo numérico).
 - Varredura curta por outras sentinelas string em campos numéricos do E5
   (grep `"N/D"` nos produtores) — corrigir na mesma janela ou registrar.
+
+**Coordenação com [[A37.l1]]:** a normalização de sentinelas no boundary deve aterrissar **antes** (ou junto) do PR que expande o contexto do parecer — senão a seção restaurada pela l1 renderiza `"N/D"` como dado presente (o distiller só pula `None`).
 
 ## Critério de aceite
 

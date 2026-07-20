@@ -14,7 +14,7 @@ tags:
   - status/planned
   - priority/p2
   - area/pipeline
-  - area/dominio
+  - area/domain
 ---
 
 # A37.l8 — `narrativas-coerentes` (FIN-03 + FIN-05 + FIN-08)
@@ -44,9 +44,14 @@ tags:
 
 ## Escopo
 
-- FIN-03: decidir fonte única da renda de aluguel (IRPF vs fluxo) e base única
-  do yield; guard de vacância (últimos N meses = 0 → narrativa sinaliza em vez
-  de anualizar média).
+- FIN-03 (decisão de domínio já colhida na revisão do sprint, 2026-07-20):
+  canônica = **aluguel recorrente atual** (janela recente estável), com sinal de
+  vacância explícito quando os últimos meses zeram, reconciliado ao valor anual
+  do IRPF como âncora — **nunca anualizar média que cruza vacância**. Yield:
+  escolher **uma** grandeza e rotular — eficiência de capital (todo o aluguel ÷
+  base total de imóveis de investimento) ou cap rate operacional (aluguel dos
+  locados ÷ valor dos locados); não misturar numerador de uma com denominador
+  da outra (estado atual do payload).
 - FIN-05: narrador consome a taxonomia v2 (7 classes) e a mesma base do card;
   aposentar as chaves do rollup v1 no texto.
 - FIN-08: linguagem probabilística ("cenário central <ano>; ~X% de chance até
