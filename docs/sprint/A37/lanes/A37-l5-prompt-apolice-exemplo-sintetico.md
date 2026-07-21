@@ -3,7 +3,7 @@ id: A37.l5
 type: lane
 title: "Fragmento de apólice real do dogfood em prompt versionado — trocar por exemplo sintético"
 sprint: A37
-status: open
+status: shipped
 priority: P1
 branch_slug: a37-l5-prompt-apolice-exemplo-sintetico
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/open
+  - status/shipped
   - priority/p1
   - area/llm
   - area/seguranca

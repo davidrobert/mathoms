@@ -3,7 +3,7 @@ id: A37.l4
 type: lane
 title: "Sentinela \"N/D\" tratada como dado presente: guardrail suprime field_request legítimo + contrato sub-especificado"
 sprint: A37
-status: open
+status: shipped
 priority: P1
 branch_slug: a37-l4-sentinelas-nd-contrato
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/open
+  - status/shipped
   - priority/p1
   - area/llm
   - area/dados

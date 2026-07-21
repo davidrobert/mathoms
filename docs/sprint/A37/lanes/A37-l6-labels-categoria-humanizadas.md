@@ -3,7 +3,7 @@ id: A37.l6
 type: lane
 title: "Labels de categoria snake_case cruas nas superfícies do relatório — mapa único + humanize fallback"
 sprint: A37
-status: open
+status: shipped
 priority: P1
 branch_slug: a37-l6-labels-categoria-humanizadas
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/open
+  - status/shipped
   - priority/p1
   - area/frontend
 ---
