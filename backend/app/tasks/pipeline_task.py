@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 _BRT = ZoneInfo("America/Sao_Paulo")
 from pathlib import Path
 
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 
 from backend.app.core.database import SyncSessionLocal
@@ -533,6 +533,75 @@ _TERMINAL_RUN_STATUSES = (
     PipelineRunStatus.partial_failure,
     PipelineRunStatus.cancelled,
 )
+
+# A37.l12 (EXEC-01) — marcador de conclusão de stage por (run_id, stage).
+# Redelivery (acks_late; crash/sleep do host) re-executa a task do zero; sem
+# o marcador, stage LLM já concluído re-paga a call e duplica stage_logs.
+# "Artifact existe" não serve de marcador: redelivery mid-stage (crash antes
+# do write) não tem artifact E precisa re-executar. O stage_log terminal é
+# gravado APÓS o commit dos artefatos — marker ⇒ artefatos persistidos.
+_STAGE_DONE_STATUSES = (
+    PipelineStageStatus.completed,
+    PipelineStageStatus.skipped,
+    PipelineStageStatus.skipped_free_tier,
+)
+
+
+def _find_stage_completion_marker(run_id: str, stage_name: str) -> dict | None:
+    """Retorna ``{log_id, status}`` do stage_log terminal para (run_id, stage)."""
+    with SyncSessionLocal() as db:
+        row = (
+            db.execute(
+                select(PipelineStageLog)
+                .where(
+                    PipelineStageLog.pipeline_run_id == run_id,
+                    PipelineStageLog.stage == stage_name,
+                    PipelineStageLog.status.in_(_STAGE_DONE_STATUSES),
+                )
+                .order_by(PipelineStageLog.started_at.desc())
+            )
+            .scalars()
+            .first()
+        )
+        if row is None:
+            return None
+        return {"log_id": row.id, "status": row.status}
+
+
+def _publish_redelivered_stage_event(
+    run_id: str, stage_name: str, status: PipelineStageStatus, completed_pct: int
+) -> None:
+    if status == PipelineStageStatus.completed:
+        publish_stage_completed(run_id, stage_name, completed_pct)
+        return
+    publish_stage_skipped(run_id, stage_name, "LLM stage skipped (redelivery)", completed_pct)
+
+
+def _log_stage_redelivered(run_id: str, stage_name: str, log_id: str) -> None:
+    logger.info(
+        "stage_redelivery_skip: stage já concluído neste run — reusa artefatos",
+        extra={
+            "event": "mathoms.pipeline.stage_redelivered",
+            "run_id": run_id,
+            "stage": stage_name,
+            "redelivered": True,
+            "reused_stage_log_id": log_id,
+        },
+    )
+
+
+def _record_stage_redelivery_skip(
+    run_id: str, stage_name: str, marker: dict, completed_pct: int
+) -> None:
+    """EXEC-01: ``redelivered=true`` na telemetria do stage_log reusado + evento WS."""
+    with SyncSessionLocal() as db:
+        stage_log = db.get(PipelineStageLog, marker["log_id"])
+        summary = dict(stage_log.output_summary or {})
+        summary["redelivered"] = True
+        stage_log.output_summary = summary
+        db.commit()
+    _log_stage_redelivered(run_id, stage_name, marker["log_id"])
+    _publish_redelivered_stage_event(run_id, stage_name, marker["status"], completed_pct)
 
 
 def _mark_running_stage_log_failed(db, run_id: str, stage: str, exc, now) -> None:
@@ -1170,6 +1239,15 @@ def _execute_stages_loop(
         if _is_cancelled(run_id):
             publish_run_cancelled(run_id)
             break
+
+        # A37.l12 (EXEC-01): redelivery com stage já concluído neste run →
+        # pula reusando os artefatos (zero call LLM nova, sem row duplicada).
+        marker = _find_stage_completion_marker(run_id, stage_name)
+        if marker is not None:
+            _record_stage_redelivery_skip(
+                run_id, stage_name, marker, int(((stage_idx + 1) / total_stages) * 100)
+            )
+            continue
 
         is_llm = stage_name in llm_stages
         should_skip_llm = skip_llm and is_llm
