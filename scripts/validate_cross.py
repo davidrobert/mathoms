@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 """
-E7 Cross-Validation — 14 checks determinísticos sobre o E5.
+E7 Cross-Validation — checks determinísticos (CV1–CV17; CV15 reservado) sobre o E5.
 
 Após ADR-199 (parecer planejador supersede review_finances), este script
 ficou só com a parte de cross-validation (`run_crossval`). As funções de
@@ -19,6 +19,7 @@ espelhando E7-crossval → validate_cross; o conteúdo é exclusivamente crossva
 
 import json
 import re
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 import scripts.pipeline_common as _pc
@@ -420,6 +421,44 @@ def _cv16_receita_natureza(e5: dict) -> CrossValidationResult | None:
     )
 
 
+# Fontes de renda_passiva_por_fonte_brl excluídas do headline por design:
+# distribuicao_pj_titular ≈ remuneração de trabalho, não yield (ADR-191);
+# ganho_capital = realização one-time, não yield recorrente (ADR-336).
+_CV17_FONTES_EXCLUIDAS_DO_HEADLINE: tuple[str, ...] = (
+    "distribuicao_pj_titular",
+    "ganho_capital",
+)
+
+
+def _cents(value: object) -> int:
+    # ADR-090: Decimal via str(v) no call-site — nunca float em comparação monetária.
+    return int((Decimal(str(value or 0)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+# A37.l7 (CTO-01): conservação da renda passiva observada — o headline
+# (renda_passiva_anual_brl) é só yield recorrente: Σ(fontes) menos as excluídas
+# por design (_CV17_FONTES_EXCLUIDAS_DO_HEADLINE). Cents inteiros via Decimal,
+# tolerância zero — simétrico ao CV16.
+def _cv17_renda_passiva_conservacao(e5: dict) -> CrossValidationResult | None:
+    pi = e5.get("passive_income")
+    fontes = (pi or {}).get("renda_passiva_por_fonte_brl")
+    if not fontes:
+        return None
+    excluidas = sum(_cents(fontes.get(k)) for k in _CV17_FONTES_EXCLUIDAS_DO_HEADLINE)
+    esperado = sum(_cents(v) for v in fontes.values()) - excluidas
+    headline = _cents(pi.get("renda_passiva_anual_brl"))
+    passed = esperado == headline
+    return CrossValidationResult(
+        "CV17",
+        "Conservação renda passiva",
+        "info" if passed else "error",
+        passed,
+        f"Σ(fontes) − excluídas ({esperado / 100:,.2f}) == "
+        f"renda_passiva_anual_brl ({headline / 100:,.2f})",
+        ["passive_income"],
+    )
+
+
 _CV_OPTIONAL_CHECKS = (
     _cv1_score_formula,
     _cv2_patrimonio_composicao,
@@ -430,6 +469,7 @@ _CV_OPTIONAL_CHECKS = (
     _cv7_endividamento,
     _cv8_reserva_cobertura,
     _cv16_receita_natureza,
+    _cv17_renda_passiva_conservacao,
 )
 _CV_ALWAYS_CHECKS = (
     _cv9_summaries_completeness,
@@ -529,7 +569,7 @@ def _check_narrativas_monetary_format(narr: dict) -> list[str]:
 
 
 def main_with_store(ctx, *, mode: str = "crossval") -> dict:
-    """Roda os 14 checks CV1-CV14 sobre o E5 do workspace.
+    """Roda os checks CV1–CV17 (CV15 reservado) sobre o E5 do workspace.
 
     O ``mode`` é mantido por compat de assinatura; só ``"crossval"`` é aceito
     (modos ``apply`` e ``review`` foram removidos junto com o stage

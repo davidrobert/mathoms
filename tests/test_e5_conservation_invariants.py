@@ -146,3 +146,23 @@ def test_renda_passiva_conservation(tmp_path: Path):
     soma = sum(_cents(v) for v in fonte.values())
     anual = _cents(pi["renda_passiva_anual_brl"])
     assert anual == yield_rec == soma - distribuicao - ganho
+
+
+def test_cv17_runtime_check_passes_on_golden(tmp_path: Path):
+    """CV17 (A37.l7 · CTO-01) é o gêmeo runtime de test_renda_passiva_conservation:
+    sobre o mesmo payload IRPF-bearing não-vacuoso, o check de `validate_cross`
+    tem que ficar verde — prova que o gate cobre o payload real, não só o golden."""
+    from scripts import validate_cross
+
+    write_e5_config(tmp_path)
+    e5 = run_e3_e4_e5(
+        tmp_path,
+        e3_payloads={_e3_key(_E3_MIN): load_fixture(_E3_MIN)},
+        baseline=load_fixture(_BASELINE),
+        irpf_payloads={"irpfdeclaracao_2024": _irpf_bearing_payload()},
+    )
+    fonte = e5["passive_income"]["renda_passiva_por_fonte_brl"]
+    assert _cents(fonte["distribuicao_pj_titular"]) > 0, "guard anti-vacuidade"
+    result = validate_cross._cv17_renda_passiva_conservacao(e5)
+    assert result is not None and result.passed
+    assert result.severity == "info"
