@@ -15,36 +15,13 @@ import {
   isNaoIdentificadoKey,
   NAO_IDENTIFICADO_THRESHOLD_PCT,
 } from "../utils/dataQualitySignals";
+import { humanizeCategoryLabel } from "@/lib/categoryLabels";
 import type { FluxoCaixaSummary, ChartSeries } from "@/types/report-analysis";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  assinaturas: "Assinaturas",
-  seguros: "Seguros",
-  financeiro: "Financeiro",
-  impostos: "Impostos",
-  nao_identificado: "Não identificado",
-  reserva_desejos: "Reserva de desejos",
-  transporte: "Transporte",
-  financiamentos: "Financiamentos",
-  moradia: "Moradia",
-  alimentacao: "Alimentação",
-  suporte_familiar: "Suporte familiar",
-  saude: "Saúde",
-  lazer_viagens: "Lazer e viagens",
-  vestuario: "Vestuário",
-  educacao: "Educação",
-  servicos_domesticos: "Serviços domésticos",
-  melhoria_reforma: "Melhoria e reforma",
-};
 
 interface CategoryRow {
   readonly key: string;
   readonly label: string;
   readonly value: number;
-}
-
-function humanize(key: string): string {
-  return CATEGORY_LABELS[key] ?? key.replace(/_/g, " ");
 }
 
 function sumWindow(data: readonly number[], start: number, end: number): number {
@@ -64,7 +41,7 @@ function buildSlices(
   return datasets
     .map((ds) => ({
       key: ds.label,
-      label: humanize(ds.label),
+      label: humanizeCategoryLabel(ds.label),
       value: sumWindow(ds.data, start, end),
     }))
     .filter((row) => row.value > 0)
@@ -79,7 +56,7 @@ function fallbackFromAggregate(
   if (!raw) return [];
   return Object.entries(raw)
     .filter(([, v]) => v > 0)
-    .map(([key, value]) => ({ key, label: humanize(key), value }))
+    .map(([key, value]) => ({ key, label: humanizeCategoryLabel(key), value }))
     .sort((a, b) => b.value - a.value);
 }
 

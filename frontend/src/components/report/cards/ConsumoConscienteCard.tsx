@@ -5,6 +5,7 @@ import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { PeriodToggle } from "../PeriodToggle";
 import { useConsumoPontuais } from "@/hooks/useConsumoPontuais";
+import { humanizeCategoryLabel } from "@/lib/categoryLabels";
 import type { Period } from "@/lib/periodUtils";
 import type { ConsumoConscienteData } from "@/types/report-analysis";
 
@@ -108,7 +109,8 @@ export function ConsumoConscienteCard({
                 <div className="min-w-0">
                   <p className="truncate">{t.descricao}</p>
                   <p className="text-xs text-[var(--surface-muted-foreground)]">
-                    {t.data} · {t.categoria ?? "sem categoria"}
+                    {t.data} ·{" "}
+                    {t.categoria ? humanizeCategoryLabel(t.categoria) : "sem categoria"}
                   </p>
                 </div>
                 <MonetaryValue value={t.valor} className="shrink-0 font-semibold" />
