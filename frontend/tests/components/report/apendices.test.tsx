@@ -149,7 +149,7 @@ describe("ApendiceCSection (ADR-167 · A8.4 PR3)", () => {
         anos_if: [2046],
         premissas: { aporte_base: 12000 },
       },
-      goals: { if_prazo_anos: 14.2, if_ano: 2040 },
+      goals: { prazo_anos_realista: 14.2, ano_if: 2040 },
     } as unknown as ReportAnalysisData;
     render(<ApendiceCSection data={data} />);
     expect(screen.getByText(/Apêndice C — Cenários de Estresse/)).toBeInTheDocument();
@@ -159,6 +159,40 @@ describe("ApendiceCSection (ADR-167 · A8.4 PR3)", () => {
     expect(screen.getByText(/Cenário base/)).toBeInTheDocument();
     expect(screen.getByText(/Cenário de estresse/)).toBeInTheDocument();
     expect(screen.getByText(/Leitura:/)).toBeInTheDocument();
+  });
+
+  it("A37.l10 PD-09 — coluna base exibe prazo/ano do payload real (prazo_anos_realista/ano_if)", () => {
+    const data = {
+      cenarios_conjuge: {
+        labels: ["Sem renda do cônjuge"],
+        aportes: [12000],
+        prazos_if: [19.5],
+        anos_if: [2046],
+        premissas: { aporte_base: 20000 },
+      },
+      goals: { prazo_anos_realista: 14.2, ano_if: 2040 },
+    } as unknown as ReportAnalysisData;
+    render(<ApendiceCSection data={data} />);
+    expect(screen.getByText("14a 2m")).toBeInTheDocument();
+    expect(screen.getByText("2040")).toBeInTheDocument();
+    const leitura = screen.getByText(/Leitura:/).closest("p");
+    expect(leitura?.textContent).not.toMatch(/Leitura:\s*\./);
+  });
+
+  it("A37.l10 PD-09 — sentinela 999 no goals degrada coluna base para '—'", () => {
+    const data = {
+      cenarios_conjuge: {
+        labels: ["Sem renda do cônjuge"],
+        aportes: [12000],
+        prazos_if: [19.5],
+        anos_if: [2046],
+        premissas: { aporte_base: 20000 },
+      },
+      goals: { prazo_anos_realista: 999, ano_if: 3025 },
+    } as unknown as ReportAnalysisData;
+    render(<ApendiceCSection data={data} />);
+    expect(screen.queryByText("999a")).toBeNull();
+    expect(screen.queryByText("3025")).toBeNull();
   });
 
   it("renderiza copy não-alarmista no subtítulo (CVM/Susep)", () => {
