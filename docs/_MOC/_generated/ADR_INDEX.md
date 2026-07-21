@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-331 ADRs (ADR-001 a ADR-340) em [`docs/adr/`](../../adr/).
+332 ADRs (ADR-001 a ADR-341) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 297
-- **Proposto**: 31
+- **Proposto**: 32
 - **Roadmap**: 3
 
 ## Fundação
@@ -453,9 +453,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-304]] — KR1 do parecer — pureza monetária da prosa: fix de prompt + doutrina de enforcement · phase A27
 - [[ADR-307]] — Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift · phase W6-T02
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
+- [[ADR-341]] — Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores
 
 ## marketing
 

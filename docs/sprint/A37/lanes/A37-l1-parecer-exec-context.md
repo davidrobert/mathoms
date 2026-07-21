@@ -6,7 +6,7 @@ sprint: A37
 status: open
 priority: P0
 branch_slug: a37-l1-parecer-exec-context
-adrs: []
+adrs: ["[[ADR-341]]"]
 depends_on: []
 tags:
   - type/lane
