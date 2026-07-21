@@ -27,13 +27,27 @@ _FAMILY = {
 _NAMES = ("Fulano", "Beltrano")
 
 
+# Sintético — identificador estrutural de apólice (ADR-341 D6, A37.l1 PR-2a).
+_APOLICE_NUMERO = "51.824.917 236"
+_APOLICE_VIGENTE = {
+    "apolice_numero": _APOLICE_NUMERO,
+    "seguradora": "portoseguro",
+    "vigencia_inicio": "2026-01-01",
+    "vigencia_fim": "2026-12-31",
+    "premio_total_brl": "1234.56",
+    "bens_count": 1,
+}
+
+
 def _seed_pii(e5: dict) -> dict:
-    """Injeta nome de membro + CPF em seções whitelistadas (tool devolve inteiras)."""
+    """Injeta nome de membro + CPF + nº de apólice em seções whitelistadas
+    (tool devolve inteiras)."""
     e5 = json.loads(json.dumps(e5))
     e5["investimentos"]["top_ativos"] = [
         {"membro": "Fulano", "obs": "titular CPF 123.456.789-00", "valor": 100000.0}
     ]
     e5["fluxo_caixa"]["por_fonte_detalhado"] = {"PIX Fulano": 3000.0, "Salario Beltrano": 8000.0}
+    e5["protecao_patrimonial"] = {"apolices_vigentes": [dict(_APOLICE_VIGENTE)]}
     return e5
 
 
@@ -57,8 +71,10 @@ def test_pii_scan_red_before_green():
     raw_ctx = _effective_context(seeded)
     assert any(n in raw_ctx for n in _NAMES), "pré-condição: nome deve vazar sem sanitize"
     assert contains_identifier(raw_ctx), "pré-condição: CPF deve vazar sem sanitize"
+    assert _APOLICE_NUMERO in raw_ctx, "pré-condição: nº de apólice deve vazar sem sanitize"
 
     clean_ctx = _effective_context(sanitize_e5_for_parecer(seeded, build_name_role_pairs(_FAMILY)))
     for name in _NAMES:
         assert name not in clean_ctx, f"nome '{name}' vazou no contexto efetivo do LLM"
     assert not contains_identifier(clean_ctx), "CPF/CNPJ vazou no contexto efetivo do LLM"
+    assert _APOLICE_NUMERO not in clean_ctx, "nº de apólice vazou no contexto efetivo do LLM"
