@@ -77,13 +77,15 @@ def _requires_institution(e0_doc_type: str | None) -> bool:
     return code.startswith("extratoconta") or code.startswith("extratopoupanca")
 
 
-def _llm_prerequisites_skip_reason() -> str | None:
-    """Pré-cheque silencioso: ``sdk_not_installed`` | ``missing_api_key`` | ``None``."""
+def _llm_prerequisites_skip_reason(api_key: str | None = None) -> str | None:
+    """Pré-cheque silencioso: ``sdk_not_installed`` | ``missing_api_key`` | ``None``;
+    ``api_key`` explícita (``llm_config`` DB-backed, A37.l3) tem precedência sobre
+    a env var — paridade com o resolver do parecer (ADR-199)."""
     try:
         import anthropic  # noqa: F401
     except ImportError:
         return "sdk_not_installed"
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    if not (api_key or os.environ.get("ANTHROPIC_API_KEY")):
         return "missing_api_key"
     return None
 
@@ -231,8 +233,13 @@ def classification_can_route_to_data(classification: dict) -> bool:
     return bool(classification.get("dest_group") and classification.get("e0_doc_type"))
 
 
-def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) -> dict:
+def classify_document(
+    file_path: Path, base_dir: Path, *, use_llm: bool = True, api_key: str | None = None
+) -> dict:
     """Classifica por conteúdo (regex → LLM opcional). **Não** usa nome do arquivo.
+
+    ``api_key`` explícita (``llm_config`` DB-backed, A37.l3) alimenta o LLM
+    fallback; sem ela, cai na env var ``ANTHROPIC_API_KEY``.
 
     Retorna dict com chaves legadas: ``doc_type``, ``bank_code``, ``period``,
     ``dest_group``, ``e0_doc_type``, ``routed_path``, ``classification_meta``,
@@ -262,13 +269,13 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
     confidence = content_result.confidence
 
     if use_llm and confidence < _CONTENT_CONFIDENCE_THRESHOLD:
-        skip_reason = _llm_prerequisites_skip_reason()
+        skip_reason = _llm_prerequisites_skip_reason(api_key)
         if skip_reason is not None:
             meta["llm_skipped_reason"] = skip_reason
         else:
             llm_result = None
             try:
-                llm_result = classify_by_llm(file_path)
+                llm_result = classify_by_llm(file_path, api_key=api_key)
             except Exception as exc:  # noqa: BLE001 — não derrubar upload
                 kind = _classify_llm_error(exc)
                 meta["llm_error"] = f"{type(exc).__name__}: {str(exc)[:200]}"

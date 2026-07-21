@@ -32,6 +32,7 @@ from backend.app.services.documents.document_processor import (
     _detect_json_type,
     resolve_classification_base,
 )
+from backend.app.services.documents.stored_path_selfheal import StoredPathSelfHealer
 from backend.app.services.storage import StorageService
 from backend.app.services.storage.artifact_tombstone import tombstone_e2_artifacts_for_document
 
@@ -63,6 +64,7 @@ async def reclassify_workspace_documents(
     total = len(docs)
     counters = _Counters()
     loop = asyncio.get_event_loop()
+    healer = StoredPathSelfHealer(tenant_root)
 
     for doc in docs:
         await _reclassify_one(
@@ -75,6 +77,7 @@ async def reclassify_workspace_documents(
             loop=loop,
             counters=counters,
             db=db,
+            healer=healer,
         )
 
     dup_rows = await repo.list_non_error(workspace_id)
@@ -108,17 +111,20 @@ async def _reclassify_one(
     loop,
     counters: _Counters,
     db: AsyncSession,
+    healer: StoredPathSelfHealer,
 ) -> None:
     if skip_manual_overrides and _has_manual_override(doc):
         counters.skipped += 1
         return
 
-    if not doc.stored_path:
-        counters.skipped += 1
-        return
-
-    abs_path = storage.abs_stored_file(doc.workspace_id, doc.stored_path)
+    abs_path = (
+        storage.abs_stored_file(doc.workspace_id, doc.stored_path) if doc.stored_path else None
+    )
     if abs_path is None or not abs_path.exists():
+        # A37.l3 — stored_path stale (arquivo movido p/ inbox_processed/) era
+        # skip silencioso; reloca por content_hash antes de desistir.
+        abs_path = await loop.run_in_executor(None, healer.relocate, doc)
+    if abs_path is None:
         counters.skipped += 1
         return
 

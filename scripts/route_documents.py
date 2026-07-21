@@ -480,11 +480,12 @@ def _build_llm_messages(filepath: Path, preview: str, prompt: str) -> list:
     return [{"role": "user", "content": prompt}]
 
 
-def classify_by_llm(filepath: Path) -> dict | None:
+def classify_by_llm(filepath: Path, api_key: str | None = None) -> dict | None:
     """Camada 2: Use Claude to classify an unrecognized file.
 
     Para PDFs sem camada de texto (somente-imagem), envia o PDF visualmente
-    via Anthropic vision API em vez de texto extraído vazio.
+    via Anthropic vision API em vez de texto extraído vazio. ``api_key``
+    explícita (``llm_config`` DB-backed, A37.l3) tem precedência sobre a env var.
 
     Returns dict compatible with classify_by_name output, or None if low confidence.
     """
@@ -494,7 +495,7 @@ def classify_by_llm(filepath: Path) -> dict | None:
         log("WARN", "anthropic SDK não instalado. LLM fallback desabilitado. pip install anthropic")
         return None
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         log("WARN", "ANTHROPIC_API_KEY não definida. LLM fallback desabilitado.")
         return None

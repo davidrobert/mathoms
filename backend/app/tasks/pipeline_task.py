@@ -467,7 +467,7 @@ def _is_cancelled(run_id: str) -> bool:
 
 
 def _retry_parked_documents(ws_id: str, tenant_root: Path) -> None:
-    """C8/ADR-329: re-classifica docs parkados por skip transitório no início de um run premium (best-effort — falha nunca aborta o run; sync/gevent-safe)."""
+    """C8/ADR-329 + A37.l3: re-classifica docs parkados por skip transitório no início de um run premium (best-effort — falha nunca aborta o run; sync/gevent-safe)."""
     from backend.app.services.documents.document_reclassify_retry import (
         retry_parked_documents_sync,
     )
@@ -478,12 +478,13 @@ def _retry_parked_documents(ws_id: str, tenant_root: Path) -> None:
             stats = retry_parked_documents_sync(
                 ws_id, db=db, storage=StorageService(), tenant_root=tenant_root
             )
-            if stats["reclassified"]:
+            if stats["reclassified"] or stats["relocated"]:
                 db.commit()
     except Exception:  # noqa: BLE001 — best-effort; nunca impede o run
         logger.warning("reclassify_retry_failed ws=%s", ws_id, exc_info=True)
         return
-    if stats["scanned"]:
+    # A37.l3 — contadores retried/no_file/skipped/relocated: gap não pode ser invisível.
+    if any(stats.values()):
         logger.info("reclassify_retry ws=%s %s", ws_id, stats)
 
 
@@ -1507,12 +1508,13 @@ def run_pipeline_task(
         tier,
     )
 
-    # C8/ADR-329: run premium com LLM disponível re-tenta docs parkados por skip
-    # transitório antes das stages, reincorporando-os ao corpus. Só em run completo
-    # (não incremental) — as stages leem data/ fresco; um doc roteado agora é lido.
-    import os as _os
-
-    if not incremental and not skip_llm and _os.environ.get("ANTHROPIC_API_KEY"):
+    # C8/ADR-329 + A37.l3: run premium re-tenta docs parkados por skip transitório
+    # antes das stages, reincorporando-os ao corpus. Só em run completo (não
+    # incremental) — as stages leem data/ fresco; um doc roteado agora é lido.
+    # A key do LLM é resolvida DENTRO do retry (llm_config DB-backed → env,
+    # paridade com o parecer) — o gate env-only parkava docs p/ sempre em worker
+    # sem a env var.
+    if not incremental and not skip_llm:
         _retry_parked_documents(ws_id, tenant_root)
 
     # ADR-273: propaga contexto do run aos logs estruturados do pipeline.
