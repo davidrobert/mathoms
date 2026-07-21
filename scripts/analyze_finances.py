@@ -1586,8 +1586,9 @@ def analyze_endividamento(patrimonio: Dict[str, Any], baseline: Dict[str, Any]) 
                 {
                     "descricao": f"Financiamento imobiliário ({nome})",
                     "saldo_devedor": round(divida_val, 2),
-                    "parcela_mensal": 0,
-                    "taxa_juros": "N/D",
+                    # ausência é null, nunca sentinela "N/D"/0 (A37.l4 · DE-07)
+                    "parcela_mensal": None,
+                    "taxa_juros": None,
                 }
             )
 

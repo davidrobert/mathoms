@@ -57,3 +57,39 @@ def test_key_value_scalar_field_unchanged():
         "fields": [{"path": "$.score.valor", "label": "valor", "format": "raw"}],
     }
     assert render_block(block, e5) == "**Score**:\n  - valor: 6.5"
+
+
+# A37.l4: dívida com parcela/taxa desconhecidas emitidas como null pelo produtor.
+_ENDIVIDAMENTO_COM_NULLS = {
+    "endividamento": {
+        "total_dividas": 500000.0,
+        "dividas": [
+            {
+                "descricao": "Financiamento imobiliário",
+                "saldo_devedor": 500000.0,
+                "parcela_mensal": None,
+                "taxa_juros": None,
+            }
+        ],
+    }
+}
+_ENDIVIDAMENTO_BLOCK = {
+    "format": "key_value",
+    "title": "Endividamento",
+    "fields": [{"path": "$.endividamento", "label": "endividamento", "format": "raw"}],
+}
+
+
+def test_key_value_flatten_skips_null_leaves():
+    """A37.l4: null é ausência — folha None não vira linha "None" no exec context
+    (paridade com on_null:skip dos blocos escalares)."""
+    out = render_block(_ENDIVIDAMENTO_BLOCK, _ENDIVIDAMENTO_COM_NULLS)
+    assert "total_dividas: 500000.0" in out
+    assert "taxa_juros" not in out
+    assert "parcela_mensal" not in out
+    assert "None" not in out
+
+
+def test_key_value_all_null_leaves_omits_block():
+    e5 = {"endividamento": {"total_dividas": None}}
+    assert render_block(_ENDIVIDAMENTO_BLOCK, e5) == ""

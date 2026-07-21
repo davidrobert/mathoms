@@ -47,6 +47,25 @@ E5_PARCIAL: dict[str, Any] = {
 
 E5_COMPLETO: dict[str, Any] = {**E5_PARCIAL, "premissas_economicas": {"status": "completo"}}
 
+# E5 com sentinelas de ausência remanescentes (A37.l4 · CTO-02): artefatos antigos
+# ainda carregam "N/D" string em campo numérico — defesa em profundidade pós-boundary.
+E5_COM_SENTINELAS: dict[str, Any] = {
+    **E5_PARCIAL,
+    "endividamento": {
+        "total_dividas": 500_000.0,
+        "dividas": [
+            {
+                "descricao": "Financiamento imobiliário",
+                "saldo_devedor": 500_000.0,
+                "parcela_mensal": None,
+                "taxa_juros": "N/D",
+            }
+        ],
+    },
+    "ratios": {"rentabilidade_pct": "N/D", "janela_referencia": ""},
+    "fluxo_caixa": {"origem_detalhe": "nan"},
+}
+
 
 def _metadata() -> Metadata:
     return Metadata(
@@ -282,6 +301,66 @@ class TestFilterCamposFaltantes3Vias:
             "field_requests_wrong_path": 1,
             "needs_review_triggered": False,
         }
+
+
+class TestSentinelasDeAusencia:
+    """A37.l4 (CTO-02): sentinela "N/D" resolvida pelo walk_path é AUSÊNCIA, não
+    dado presente — field_request legítimo não pode virar spurious."""
+
+    def _um_campo(self, path: str) -> list[CampoFaltante]:
+        return [CampoFaltante(field_path=path, motivo="dado ausente (sentinela) no E5")]
+
+    def test_nd_string_sentinel_is_kept_as_genuine(self):
+        """Regressão dogfood: taxa_juros "N/D" fazia o pedido legítimo ser removido."""
+        output = make_output(campos=self._um_campo("$.endividamento.dividas[0].taxa_juros"))
+        result, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
+        assert audit == []
+        kept = result.campos_faltantes_pediria_se_iterasse
+        assert [c.field_path for c in kept] == ["$.endividamento.dividas[0].taxa_juros"]
+
+    def test_nd_sentinel_not_counted_in_spurious_telemetry(self):
+        output = make_output(campos=self._um_campo("$.endividamento.dividas[0].taxa_juros"))
+        _, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
+        summary = guardrails_summary(confianca_rebaixada=0, audit=audit)
+        assert summary["field_requests_spurious"] == 0
+
+    def test_empty_and_nan_sentinels_kept(self):
+        """Vocabulário real do E5 espelha pipeline/llm/value_formatter: "", "N/D", "nan"."""
+        output = make_output(
+            campos=[
+                CampoFaltante(
+                    field_path="$.ratios.janela_referencia", motivo="janela de referência ausente"
+                ),
+                CampoFaltante(
+                    field_path="$.fluxo_caixa.origem_detalhe", motivo="origem do fluxo ausente"
+                ),
+            ]
+        )
+        result, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
+        assert audit == []
+        assert len(result.campos_faltantes_pediria_se_iterasse) == 2
+
+    def test_real_value_at_sibling_path_still_spurious(self):
+        """Sentinela não afrouxa a via 1: valor real presente continua espúrio."""
+        output = make_output(campos=self._um_campo("$.endividamento.total_dividas"))
+        result, audit = filter_campos_faltantes(output, E5_COM_SENTINELAS, WS)
+        assert [a["reason"] for a in audit] == [REASON_SPURIOUS]
+        assert result.campos_faltantes_pediria_se_iterasse == []
+
+    def test_alias_resolving_to_sentinel_keeps_entry(self):
+        """Alias conhecido cujo dado é sentinela → genuinamente faltante (não wrong_path)."""
+        e5 = {**E5_COM_SENTINELAS, "irpf_kpis": {"dependentes": "N/D"}}
+        output = make_output(
+            campos=[
+                CampoFaltante(
+                    field_path="$.composicao_familiar.dependentes",
+                    motivo="quantos dependentes a família possui",
+                )
+            ]
+        )
+        result, audit = filter_campos_faltantes(output, e5, WS)
+        assert audit == []
+        assert len(result.campos_faltantes_pediria_se_iterasse) == 1
 
 
 # -----------------------------------------------------------------------
