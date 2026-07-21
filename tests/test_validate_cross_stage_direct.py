@@ -124,3 +124,68 @@ def test_cv16_detecta_dupla_contagem() -> None:
 def test_cv16_none_sem_bloco() -> None:
     """Payload sem receita_por_natureza (legado) → skip (None)."""
     assert _scripts_validate_cross._cv16_receita_natureza({"fluxo_caixa": {}}) is None
+
+
+def _passive_income_conservativo() -> dict:
+    """Bloco passive_income sintético conservativo (shape de `_passive_income_to_dict`):
+    yield recorrente 53000 = 12000+30000+3000+8000+0; distribuicao_pj_titular (ADR-191)
+    e ganho_capital (ADR-336) excluídas do headline por design. Fictício, zero PII."""
+    return {
+        "status": "ok",
+        "renda_passiva_anual_brl": 53000.0,
+        "renda_passiva_por_fonte_brl": {
+            "dividendos": 12000.0,
+            "jcp": 30000.0,
+            "aplicacoes": 3000.0,
+            "ganho_capital": 20000.0,
+            "exterior": 8000.0,
+            "alugueis": 0.0,
+            "distribuicao_pj_titular": 284000.0,
+        },
+    }
+
+
+def test_cv17_passa_quando_headline_conserva() -> None:
+    """Σ(fontes) − excluídas == headline → conservação OK (severity info)."""
+    r = _scripts_validate_cross._cv17_renda_passiva_conservacao(
+        {"passive_income": _passive_income_conservativo()}
+    )
+    assert r is not None and r.passed and r.severity == "info"
+
+
+def test_cv17_detecta_fonte_vazando_no_headline() -> None:
+    """ganho_capital vazando pro headline (53000 → 73000) → error."""
+    pi = _passive_income_conservativo()
+    pi["renda_passiva_anual_brl"] = 73000.0
+    r = _scripts_validate_cross._cv17_renda_passiva_conservacao({"passive_income": pi})
+    assert r is not None and not r.passed and r.severity == "error"
+
+
+def test_cv17_detecta_distribuicao_pj_somada() -> None:
+    """distribuicao_pj_titular somada no headline (~7,84× — DE-04) → error."""
+    pi = _passive_income_conservativo()
+    pi["renda_passiva_anual_brl"] = 337000.0
+    r = _scripts_validate_cross._cv17_renda_passiva_conservacao({"passive_income": pi})
+    assert r is not None and not r.passed and r.severity == "error"
+
+
+def test_cv17_tolerancia_zero_um_centavo() -> None:
+    """Cents inteiros, tolerância ZERO: 1 centavo de drift já reprova (ADR-090)."""
+    pi = _passive_income_conservativo()
+    pi["renda_passiva_anual_brl"] = 53000.01
+    r = _scripts_validate_cross._cv17_renda_passiva_conservacao({"passive_income": pi})
+    assert r is not None and not r.passed
+
+
+def test_cv17_none_sem_bloco() -> None:
+    """Payload sem passive_income (legado) ou sem fontes → skip (None)."""
+    assert _scripts_validate_cross._cv17_renda_passiva_conservacao({}) is None
+    assert _scripts_validate_cross._cv17_renda_passiva_conservacao({"passive_income": {}}) is None
+
+
+def test_cv17_registrado_em_run_cross_validation() -> None:
+    """CV17 participa do run agregado quando o bloco está presente."""
+    e5 = _minimal_e5()
+    e5["passive_income"] = _passive_income_conservativo()
+    results = _scripts_validate_cross.run_cross_validation(e5)
+    assert "CV17" in {r.check_id for r in results}
