@@ -10,27 +10,8 @@ import {
   getPeriodMonths,
   type Period,
 } from "@/lib/periodUtils";
+import { humanizeCategoryLabel } from "@/lib/categoryLabels";
 import type { OrcamentoProspectivoData } from "@/types/report-analysis";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  assinaturas: "Assinaturas",
-  seguros: "Seguros",
-  financeiro: "Financeiro",
-  impostos: "Impostos",
-  nao_identificado: "Não identificado",
-  reserva_desejos: "Reserva de desejos",
-  transporte: "Transporte",
-  financiamentos: "Financiamentos",
-  moradia: "Moradia",
-  alimentacao: "Alimentação",
-  suporte_familiar: "Suporte familiar",
-  saude: "Saúde",
-  lazer_viagens: "Lazer e viagens",
-  vestuario: "Vestuário",
-  educacao: "Educação",
-  servicos_domesticos: "Serviços domésticos",
-  melhoria_reforma: "Melhoria e reforma",
-};
 
 /** F9 · F2.B · S2 — Card "Orçamento Prospectivo" com toggle de período.
  *
@@ -117,7 +98,7 @@ export function OrcamentoProspectivoCard({
                       key={key}
                       className="border-b border-[var(--surface-border)]/40 last:border-0"
                     >
-                      <td className="py-2">{CATEGORY_LABELS[key] ?? key}</td>
+                      <td className="py-2">{humanizeCategoryLabel(key)}</td>
                       <td className="py-2 text-right">
                         <MonetaryValue value={value} />
                       </td>
