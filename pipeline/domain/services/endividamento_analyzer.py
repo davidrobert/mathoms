@@ -36,16 +36,20 @@ def _safe_float(val) -> float:
 
 @dataclass(frozen=True)
 class DividaItem:
+    # Ausência é None, nunca sentinela ("N/D"/0.0) — contrato tipado no schema E5
+    # e guardrail do parecer tratam null como dado faltante (A37.l4 · DE-07).
     descricao: str
     saldo_devedor: float
-    parcela_mensal: float = 0.0
-    taxa_juros: str = "N/D"
+    parcela_mensal: float | None = None
+    taxa_juros: float | None = None
 
     def to_dict(self) -> dict:
         return {
             "descricao": self.descricao,
             "saldo_devedor": round(self.saldo_devedor, 2),
-            "parcela_mensal": round(self.parcela_mensal, 2),
+            "parcela_mensal": round(self.parcela_mensal, 2)
+            if self.parcela_mensal is not None
+            else None,
             "taxa_juros": self.taxa_juros,
         }
 

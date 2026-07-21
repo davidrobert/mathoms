@@ -189,7 +189,28 @@
     },
     "orcamento_prospectivo": {"type": "object"},
     "reserva_emergencia": {"type": "object"},
-    "endividamento": {"type": "object"},
+    "endividamento": {
+      "type": "object",
+      "description": "EndividamentoAnalyzer.to_legacy_dict (A37.l4 · DE-07): ausência de parcela/taxa é null, nunca sentinela 'N/D' string ou 0.0 em campo numérico. taxa_juros numérica é percentual absoluto (ADR-209).",
+      "properties": {
+        "total_dividas": {"type": "number"},
+        "percentual_patrimonio": {"type": "number"},
+        "detalhe": {"type": "string"},
+        "dividas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["descricao", "saldo_devedor"],
+            "properties": {
+              "descricao": {"type": "string"},
+              "saldo_devedor": {"type": "number"},
+              "parcela_mensal": {"type": ["number", "null"]},
+              "taxa_juros": {"type": ["number", "null"]}
+            }
+          }
+        }
+      }
+    },
     "previdencia_pgbl": {
       "type": "object",
       "description": "Recomendação PGBL (ADR-277/305). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null no caminho proxy_receita_pj. nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao."

@@ -122,9 +122,12 @@ def _flatten_leaves(value: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
 
 
 def _render_field(field: Mapping[str, Any], value: Any) -> list[str]:
-    """Uma linha por folha; dict/list é achatado (PE-01), escalar mantém o label."""
+    """Uma linha por folha; dict/list é achatado (PE-01), escalar mantém o label.
+    Folha None é ausência (A37.l4) — pulada, paridade com on_null:skip escalar."""
     if isinstance(value, (Mapping, list)):
-        return [f"  - {leaf}: {_short(val)}" for leaf, val in _flatten_leaves(value)]
+        return [
+            f"  - {leaf}: {_short(val)}" for leaf, val in _flatten_leaves(value) if val is not None
+        ]
     formatted = format_value(value, field.get("format", "raw"))
     return [f"  - {field.get('label', field['path'])}: {_short(formatted)}"]
 

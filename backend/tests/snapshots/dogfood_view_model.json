@@ -274,9 +274,9 @@
     "dividas": [
       {
         "descricao": "Financiamento imobiliário (Alex)",
-        "parcela_mensal": 0,
+        "parcela_mensal": null,
         "saldo_devedor": 15000000,
-        "taxa_juros": "N/D"
+        "taxa_juros": null
       }
     ],
     "percentual_patrimonio": "20.550000",

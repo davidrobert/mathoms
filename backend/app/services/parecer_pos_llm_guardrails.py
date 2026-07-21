@@ -39,6 +39,18 @@ FIELD_PATH_ALIASES: dict[str, str] = {
 REASON_SPURIOUS = "field_request_spurious"
 REASON_WRONG_PATH = "field_request_wrong_path"
 
+# Sentinelas de ausência do vocabulário real do E5 (A37.l4 · CTO-02). O boundary
+# normaliza produtores novos para null, mas artefatos antigos ainda carregam
+# "N/D" string em campo numérico — espelha pipeline/llm/value_formatter.
+_ABSENCE_SENTINELS = frozenset({"", "N/D", "nan"})
+
+
+def _resolves_to_data(value: Any) -> bool:
+    """False para ausência: None ou sentinela string ("N/D"/""/"nan")."""
+    if value is None:
+        return False
+    return not (isinstance(value, str) and value.strip() in _ABSENCE_SENTINELS)
+
 
 # ----------------------------------------------------------------------
 # (1) Confiança sob premissa fallback — camada pós-LLM (garantia)
@@ -116,10 +128,10 @@ def _classify_campo(
     """``(reason, alias_path)`` — reason ``None`` = genuinamente ausente (mantém)."""
     if campo.field_path is None:
         return None, None  # path coercido (ADR-292) — motivo carrega o sinal, mantém
-    if walk_path(e5_data, campo.field_path) is not None:
+    if _resolves_to_data(walk_path(e5_data, campo.field_path)):
         return REASON_SPURIOUS, None
     alias = FIELD_PATH_ALIASES.get(campo.field_path)
-    if alias is not None and walk_path(e5_data, alias) is not None:
+    if alias is not None and _resolves_to_data(walk_path(e5_data, alias)):
         return REASON_WRONG_PATH, alias
     return None, None
 

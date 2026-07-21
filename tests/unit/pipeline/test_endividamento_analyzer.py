@@ -96,12 +96,24 @@ class TestResult:
         r = EndividamentoAnalyzer().analyze({"bruto": 0, "dividas": 0}, [])
         assert isinstance(r, EndividamentoAnalysis)
 
-    def test_divida_item_to_dict(self):
+    def test_divida_item_to_dict_absent_fields_are_null(self):
+        """A37.l4 · DE-07: ausência é null, nunca sentinela "N/D"/0.0."""
         item = DividaItem(descricao="Fin imóvel", saldo_devedor=200_000.123)
         d = item.to_dict()
         assert d["saldo_devedor"] == 200_000.12
-        assert d["parcela_mensal"] == 0.0
-        assert d["taxa_juros"] == "N/D"
+        assert d["parcela_mensal"] is None
+        assert d["taxa_juros"] is None
+
+    def test_divida_item_to_dict_rounds_known_parcela(self):
+        item = DividaItem(
+            descricao="Fin imóvel",
+            saldo_devedor=200_000.0,
+            parcela_mensal=1_234.567,
+            taxa_juros=9.5,
+        )
+        d = item.to_dict()
+        assert d["parcela_mensal"] == 1_234.57
+        assert d["taxa_juros"] == 9.5
 
     def test_to_legacy_dict_has_all_fields(self):
         r = EndividamentoAnalyzer().analyze(
