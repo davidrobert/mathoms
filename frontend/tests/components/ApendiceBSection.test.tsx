@@ -91,7 +91,7 @@ describe("ApendiceBSection — premissas_economicas (ADR-219)", () => {
     expect(screen.getByText(/projeção parcial nesta classe/i)).toBeInTheDocument();
   });
 
-  it("mostra badge 'Override' em linhas com fonte_origem=workspace_override", () => {
+  it("mostra selo 'Ajuste' em linhas com fonte_origem=workspace_override (A37.l10)", () => {
     render(
       <ApendiceBSection
         data={makeData({
@@ -105,7 +105,8 @@ describe("ApendiceBSection — premissas_economicas (ADR-219)", () => {
         })}
       />,
     );
-    expect(screen.getByText(/^Override$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Ajuste$/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^Override$/i)).toBeNull();
   });
 
   it("resolve label editorial (snake_case code → nome amigável)", () => {

@@ -32,6 +32,29 @@ function deltaTexto(n: number | null, fmt: (v: number) => string): string {
   return ` (${sinal}${fmt(n)})`;
 }
 
+/** Frase do parágrafo "Leitura:", ou null quando não há fragmento (A37.l10).
+ *
+ * Em produção o cenário reduz a capacidade de aporte (fator < 1 no
+ * CenariosConjugeAnalyzer), então o delta negativo é o caminho principal.
+ */
+function leituraTexto(deltaAportePct: number | null, deltaPrazo: number | null): string | null {
+  const aporte =
+    deltaAportePct == null || deltaAportePct === 0
+      ? null
+      : deltaAportePct > 0
+        ? `a ausência da segunda renda exige aporte ${deltaAportePct.toFixed(0)}% maior`
+        : `a ausência da segunda renda reduz a capacidade de aporte em ${Math.abs(deltaAportePct).toFixed(0)}%`;
+  const prazo =
+    deltaPrazo != null && deltaPrazo > 0 ? `estende a IF em ${fmtAnosMeses(deltaPrazo)}` : null;
+  if (aporte != null && prazo != null) {
+    return deltaAportePct != null && deltaAportePct > 0
+      ? `${aporte} ou ${prazo}`
+      : `${aporte}, o que ${prazo}`;
+  }
+  if (prazo != null) return `o cenário ${prazo}`;
+  return aporte;
+}
+
 export function StressScenarioCard({
   cenarios,
   goals,
@@ -58,6 +81,7 @@ export function StressScenarioCard({
       : null;
   const deltaAno =
     anoBase != null && anoEstresse != null ? anoEstresse - anoBase : null;
+  const leitura = leituraTexto(deltaAportePct, deltaPrazo);
 
   return (
     <ReportCard variant="feature" title={`Premissa testada: ${label}`} size="full">
@@ -139,18 +163,11 @@ export function StressScenarioCard({
           </dl>
         </div>
       </div>
-      {(deltaAportePct != null || deltaPrazo != null) && (
+      {leitura != null && (
         <p className="mt-6 text-sm text-[var(--surface-foreground)]">
-          <strong>Leitura:</strong>{" "}
-          {deltaAportePct != null && deltaAportePct > 0 && (
-            <>a ausência da segunda renda exige aporte {deltaAportePct.toFixed(0)}% maior</>
-          )}
-          {deltaAportePct != null && deltaPrazo != null && deltaPrazo > 0 && " ou "}
-          {deltaPrazo != null && deltaPrazo > 0 && (
-            <>estende a IF em {fmtAnosMeses(deltaPrazo)}</>
-          )}
-          . Reforce a reserva de emergência e revise a alocação para mais conservadora se a
-          dependência de renda do cônjuge for material para o plano.
+          <strong>Leitura:</strong> {leitura}. Reforce a reserva de emergência e revise a
+          alocação para mais conservadora se a dependência de renda do cônjuge for material
+          para o plano.
         </p>
       )}
     </ReportCard>

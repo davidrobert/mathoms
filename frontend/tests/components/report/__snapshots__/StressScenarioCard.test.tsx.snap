@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`StressScenarioCard — Leitura (A37.l10 PD-09) > delta de aporte negativo emite frase própria (regressão: 'Leitura: .') 1`] = `"Leitura: a ausência da segunda renda reduz a capacidade de aporte em 40%, o que estende a IF em 5a 4m. Reforce a reserva de emergência e revise a alocação para mais conservadora se a dependência de renda do cônjuge for material para o plano."`;
