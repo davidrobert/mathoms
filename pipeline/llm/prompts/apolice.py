@@ -1,6 +1,8 @@
 """Prompt LLM dedicado para apólice de seguro polimórfica — A18 L2 (ADR-239 D2)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
+# v1.2.2 — A37.l5: exemplo de `congenere_anterior` troca sufixo numérico real por
+# sintético (saneamento PII pré-release pública; sem mudança de contrato).
 # v1.2.1 — A34.l10: exemplo do campo `notas` troca endereço real por sintético
 # (saneamento PII pré-release pública; sem mudança de contrato).
 # v1.2.0 — A33.l8 (ADR-137): tabela hardcoded de seguradoras sai do system prompt
@@ -14,7 +16,7 @@
 # as aspas como parte do valor → Decimal parsing falhava determinístico em todas as
 # apólices). Schema agora também faz strip defensivo via model_validator.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
-PROMPT_VERSION = "1.2.1"
+PROMPT_VERSION = "1.2.2"
 
 
 SYSTEM_PROMPT = """\
@@ -34,7 +36,7 @@ REGRAS DE EXTRAÇÃO:
 
 4. **`classe_bonus`**: inteiro 0-10 (classe de bônus auto/RCFV). `null` se ausente ou não aplicável.
 
-5. **`congenere_anterior`**: quando a apólice declara renovação inter-seguradora (string como "Renovação Congênere PORTO 8891272 classe 2"), preencher `{seguradora, apolice_numero}`. Caso contrário `null`.
+5. **`congenere_anterior`**: quando a apólice declara renovação inter-seguradora (string como "Renovação Congênere PORTO 2043615 classe 2"), preencher `{seguradora, apolice_numero}`. Caso contrário `null`.
 
 6. **`premio_total_brl`**: prêmio total anual em string decimal (ADR-090 — wire monetário NUNCA float). Conteúdo da string: `1500.00` (apenas os dígitos e o ponto decimal — o JSON adiciona as aspas externas). Soma do prêmio líquido + IOF + custo de emissão.
 
@@ -99,7 +101,7 @@ REGRAS DE EXTRAÇÃO:
 
 20. **`notas`**: observações relevantes (ex.: "apólice combinada — auto + residência R Exemplo"; "corretor PF; SUSEP individual"). Max 500 chars. Não inclua dados sensíveis (CPF, RG, endereço completo do proprietário em texto livre).
 
-21. **`prompt_version`**: conteúdo da string: `1.2.1`.
+21. **`prompt_version`**: conteúdo da string: `1.2.2`.
 
 NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou marque `needs_review=true` quando obrigatório está ausente.
 
@@ -136,6 +138,6 @@ Popule o output `ApolicePayload`:
 - sinistro_indenizacao_recebida_brl = null (placeholder V1)
 - confidence (0-1) + needs_review (false default; true se inconsistência)
 - cascade_triggered = false (default Haiku)
-- prompt_version (conteúdo: 1.2.1)
+- prompt_version (conteúdo: 1.2.2)
 - notas (max 500 chars; sem PII)
 """

@@ -6,7 +6,7 @@
   "classe_bonus": 2,
   "congenere_anterior": {
     "seguradora": "porto",
-    "apolice_numero": "PR-8891272-A"
+    "apolice_numero": "PR-2043615-A"
   },
   "premio_total_brl": "1480.50",
   "forma_pagamento": "cartao",
@@ -58,7 +58,7 @@
   "sinistro_indenizacao_recebida_brl": null,
   "confidence": 0.96,
   "needs_review": false,
-  "prompt_version": "1.2.1",
+  "prompt_version": "1.2.2",
   "cascade_triggered": false,
   "notas": "Apolice simples; renovacao congenere PORTO classe bonus 2."
 }
