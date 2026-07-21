@@ -181,7 +181,7 @@ def test_strict_dict_aceita_iso_e_decimal():
 
 def test_prompt_version_aligned():
     """Schema + prompt mod usam mesma versão (bump pareado, ADR-144)."""
-    assert PROMPT_VERSION == prompt_mod.PROMPT_VERSION == "1.2.1"
+    assert PROMPT_VERSION == prompt_mod.PROMPT_VERSION == "1.2.2"
 
 
 _EX_DECIMAL_QUOTED = re.compile(r"Ex\.:\s*`\"[\d\.]+\"`")
