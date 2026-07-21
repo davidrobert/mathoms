@@ -3,14 +3,14 @@ id: MOC-sprint-a37
 type: moc
 title: "Sprint A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20"
 aliases: ["A37", "Sprint A37"]
-sprint_status: candidate
+sprint_status: current
 date: "2026-07-20"
 theme: "report-quality"
 ---
 
 # Sprint A37 — Qualidade do relatório (pipeline-review 2026-07-20)
 
-> **Status:** `candidate` — pronto para execução; W0 tem lanes `open`.
+> **Status:** `current` (promovida pelo owner em 2026-07-20) — W0 tem lanes `open`.
 > **Origem:** revisão profunda do run completo `6659d62c` (workspace dogfood,
 > 2026-07-20, primeiro run com a onda R3 ativa) via skill `pipeline-review`:
 > 5 revisores especialistas + 5 verificadores adversariais. Todos os achados
