@@ -247,7 +247,16 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
         observacao?: string;
       }
     | undefined;
-  const goals = data.goals as { if_prazo_anos?: number; if_ano?: number } | undefined;
+  // A37.l10 PD-09 — o payload E5 (IFProjection.to_legacy_dict) expõe
+  // prazo_anos_realista/ano_if; sentinela 999 = "não atinge" (if_projector)
+  // degrada a coluna base para "—" em vez de exibir "999a".
+  const rawGoals = data.goals as
+    | { prazo_anos_realista?: number; ano_if?: number }
+    | undefined;
+  const goalsAtingeIF = rawGoals != null && rawGoals.prazo_anos_realista !== 999;
+  const goals = goalsAtingeIF
+    ? { if_prazo_anos: rawGoals.prazo_anos_realista, if_ano: rawGoals.ano_if }
+    : undefined;
 
   const hasCenarios = !!cenarios?.labels && cenarios.labels.length > 0;
   const hasMilhas =

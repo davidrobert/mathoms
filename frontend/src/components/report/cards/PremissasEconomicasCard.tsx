@@ -60,10 +60,25 @@ export function PremissasEconomicasCard({
       </ReportCard>
     );
   }
+  // A37.l10 PD-04 — todas as classes sem premissa vigente: 1 empty-state em
+  // vez de N linhas idênticas; o impacto já é sinalizado no banner de
+  // qualidade de dados (computePremissasDegrade → status "indisponivel").
+  const todasIndisponiveis =
+    premissas.classes.length > 0 &&
+    premissas.classes.every((c) => c.status === "indisponivel");
   return (
     <ReportCard variant="neutral" title="Premissas Econômicas" size="full">
       <PremissasHeader premissas={premissas} />
-      <PremissasTable classes={premissas.classes} />
+      {todasIndisponiveis ? (
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          Nenhuma premissa econômica vigente neste ciclo. As projeções usam
+          valores padrão, não calibrados à sua carteira. Premissas são
+          revisadas trimestralmente — o próximo relatório incorpora os valores
+          atualizados.
+        </p>
+      ) : (
+        <PremissasTable classes={premissas.classes} />
+      )}
     </ReportCard>
   );
 }
@@ -117,8 +132,9 @@ function PremissasTable({
         </tbody>
       </table>
       <p className="mt-3 text-xs text-[var(--surface-muted-foreground)]">
-        Premissas revisadas trimestralmente. Override por workspace requer
-        justificativa fiduciária explícita.
+        Premissas revisadas trimestralmente. Valores ajustados para o seu
+        plano aparecem com o selo &ldquo;Ajuste&rdquo;, com justificativa
+        registrada.
       </p>
     </div>
   );
@@ -148,9 +164,9 @@ function PremissaRow({ row }: { row: PremissasEconomicasClassRow }) {
         {row.fonte_origem === "workspace_override" && (
           <span
             className="ml-2 rounded bg-[color-mix(in_srgb,var(--brand-info)_15%,transparent)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--brand-info)]"
-            title={row.justificativa ?? "Override por workspace"}
+            title={row.justificativa ?? "Premissa ajustada para o seu plano"}
           >
-            Override
+            Ajuste
           </span>
         )}
       </td>
