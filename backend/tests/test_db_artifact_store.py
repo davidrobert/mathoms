@@ -950,3 +950,147 @@ async def test_write_lifts_prompt_version_from_payload(db: AsyncSession):
     raw = await db.connection()
     versions = await raw.run_sync(_do)
     assert versions == {"k1": "1.4.0", "k2": None}
+
+
+# =============================================================================
+# A37.l13 (CTO-07) — schema_version + byte_size populados no write path
+# =============================================================================
+#
+# Colunas nasceram na migration original (ADR-082) e ficaram NULL em 100% das
+# rows. Opção A (parecer data-engineer): popular no write — schema_version é
+# token real (hash curto sha256 do schema canônico resolvido via
+# SCHEMA_BY_STAGE; stage sem schema → NULL explícito) e byte_size é o tamanho
+# serializado do payload como persistido (pós-encrypt; sinal retention/FinOps).
+# Sem backfill de rows antigas — data de corte documentada no PR.
+
+
+@pytest.fixture
+def _pin_repo_schemas(monkeypatch):
+    """Pinna pipeline_common no config/ real do repo (outros testes repontam
+    CONFIG_DIR via route_documents._init_config) e garante modo warn."""
+    from pathlib import Path
+
+    import scripts.pipeline_common as pc
+
+    repo_config = Path(__file__).resolve().parents[2] / "config"
+    monkeypatch.setattr(pc, "CONFIG_DIR", repo_config)
+    monkeypatch.delenv("MATHOMS_PIPELINE_SCHEMA_MODE", raising=False)
+    monkeypatch.setitem(
+        pc._config_cache,
+        "pipeline.json",
+        {"schema_validation": {"enabled": True, "mode": "warn", "mode_overrides": {}}},
+    )
+
+
+def _expected_schema_token(schema_name: str) -> str:
+    """Recalcula o token independente da implementação: sha256[:12] do JSON canônico do schema."""
+    import hashlib
+    import json
+    from pathlib import Path
+
+    schema_path = Path(__file__).resolve().parents[2] / "config" / "schemas" / schema_name
+    doc = json.loads(schema_path.read_text(encoding="utf-8"))
+    canonical = json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:12]
+
+
+def _serialized_len(payload: dict) -> int:
+    import json
+
+    return len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+
+
+def _row_columns(s, run_id, stage, key):
+    row = (
+        s.query(PipelineArtifact)
+        .filter_by(pipeline_run_id=run_id, stage=stage, artifact_key=key)
+        .one()
+    )
+    return row.schema_version, row.byte_size, row.content_json
+
+
+def _write_e3_e5_and_read_columns(s, ws_id, run_id):
+    store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_id)
+    store.write("E3", "k_schema", {"transacoes": [{"v": 1}]})
+    store.write("E5", "analise_financeira", {"bruto": 1})
+    s.commit()
+    return (
+        _row_columns(s, run_id, "E3", "k_schema"),
+        _row_columns(s, run_id, "E5", "analise_financeira"),
+    )
+
+
+@pytest.mark.asyncio
+async def test_write_populates_schema_version_and_byte_size(db: AsyncSession, _pin_repo_schemas):
+    """Stage com schema em SCHEMA_BY_STAGE → row nova com token real + byte_size do payload persistido."""
+    ws_id, run_id = await _seed_ws_and_run(db, email="cols-a37l13@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            return _write_e3_e5_and_read_columns(s, ws_id, run_id)
+
+    raw = await db.connection()
+    (e3_sv, e3_bs, e3_payload), (e5_sv, e5_bs, _) = await raw.run_sync(_do)
+    assert e3_sv == _expected_schema_token("e3_reconciled.schema.json")
+    assert e5_sv == _expected_schema_token("e5_analysis.schema.json")
+    assert e3_sv != e5_sv, "token deve derivar do schema resolvido, não ser constante"
+    assert e3_bs == _serialized_len(e3_payload)
+    assert e5_bs is not None and e5_bs > 0
+
+
+@pytest.mark.asyncio
+async def test_write_stage_without_schema_leaves_schema_version_null(
+    db: AsyncSession, _pin_repo_schemas
+):
+    """Stage fora de SCHEMA_BY_STAGE (ex.: E1) → schema_version NULL explícito; byte_size preenchido."""
+    ws_id, run_id = await _seed_ws_and_run(db, email="cols-noschema@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_id)
+            store.write("E1", "members", {"membros": []})
+            s.commit()
+            return _row_columns(s, run_id, "E1", "members")
+
+    raw = await db.connection()
+    schema_version, byte_size, payload = await raw.run_sync(_do)
+    assert schema_version is None
+    assert byte_size == _serialized_len(payload)
+
+
+def _upsert_twice_and_read_columns(s, ws_id, run_id):
+    store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_id)
+    store.write("E3", "k_upd", {"transacoes": []})
+    s.commit()
+    first = _row_columns(s, run_id, "E3", "k_upd")
+    store.write("E3", "k_upd", {"transacoes": [{"v": i} for i in range(10)]})
+    s.commit()
+    second = _row_columns(s, run_id, "E3", "k_upd")
+    n = s.query(PipelineArtifact).filter_by(artifact_key="k_upd").count()
+    return first, second, n
+
+
+@pytest.mark.asyncio
+async def test_update_path_refreshes_schema_version_and_byte_size(
+    db: AsyncSession, _pin_repo_schemas
+):
+    """Upsert (UPDATE path) também popula as colunas — byte_size acompanha o payload atual."""
+    ws_id, run_id = await _seed_ws_and_run(db, email="cols-update@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            return _upsert_twice_and_read_columns(s, ws_id, run_id)
+
+    raw = await db.connection()
+    (sv1, bs1, p1), (sv2, bs2, p2), n = await raw.run_sync(_do)
+    assert n == 1, "upsert: mesma (run, stage, key) atualiza a row existente"
+    assert sv1 == sv2 == _expected_schema_token("e3_reconciled.schema.json")
+    assert bs1 == _serialized_len(p1)
+    assert bs2 == _serialized_len(p2)
+    assert bs2 > bs1, "payload maior deve refletir em byte_size maior no UPDATE"
