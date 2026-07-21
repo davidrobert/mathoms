@@ -28,6 +28,13 @@ from pipeline.observability.pii_patterns import scrub_identifiers
 _MIN_NAME_LEN = 2
 _ROLE_LABEL = {"titular": "Titular", "conjuge": "Cônjuge"}
 
+# ADR-341 D6 (A37.l1 PR-2a): identificadores ESTRUTURAIS do E5, redigidos por
+# chave declarada em qualquer profundidade — nunca regex genérica de dígitos
+# sobre strings livres (over-redigiria CEP/referências/valores em prosa sem
+# que o eval flagre). Extensão = adicionar a chave aqui + teste de regressão.
+_IDENTIFIER_KEYS = frozenset({"apolice_numero"})
+_IDENTIFIER_REDACTED = "[REDIGIDO]"
+
 
 def _papel(key: str, info: Mapping[str, Any], titular_key: str) -> str:
     return str(info.get("papel") or ("titular" if key == titular_key else "dependente_outro"))
@@ -73,9 +80,20 @@ def _scrub_text(text: str, name_subs: list[tuple[re.Pattern, str]]) -> str:
     return scrub_identifiers(text)
 
 
+def _scrub_value(key: str, value: Any, name_subs: list[tuple[re.Pattern, str]]) -> Any:
+    """Valor de chave identificadora declarada → token; None fica None (ausência
+    continua ausência). Demais valores seguem o scrub recursivo normal."""
+    if key in _IDENTIFIER_KEYS and value is not None:
+        return _IDENTIFIER_REDACTED
+    return _scrub_node(value, name_subs)
+
+
 def _scrub_node(node: Any, name_subs: list[tuple[re.Pattern, str]]) -> Any:
     if isinstance(node, Mapping):
-        return {_scrub_text(str(k), name_subs): _scrub_node(v, name_subs) for k, v in node.items()}
+        return {
+            _scrub_text(str(k), name_subs): _scrub_value(str(k), v, name_subs)
+            for k, v in node.items()
+        }
     if isinstance(node, list):
         return [_scrub_node(v, name_subs) for v in node]
     if isinstance(node, str):
@@ -86,6 +104,8 @@ def _scrub_node(node: Any, name_subs: list[tuple[re.Pattern, str]]) -> Any:
 def sanitize_e5_for_parecer(
     e5_data: Mapping[str, Any], name_role_pairs: tuple[tuple[str, str], ...]
 ) -> dict[str, Any]:
-    """Cópia de ``e5_data`` com nome de membro → papel + CPF/CNPJ redigidos; número
-    nunca tocado ([[ADR-090]]). Roda antes de ``compute_cache_key`` (re-gen única de cache)."""
+    """Cópia de ``e5_data`` com nome de membro → papel, CPF/CNPJ redigidos e
+    identificadores estruturais declarados (``_IDENTIFIER_KEYS``, [[ADR-341]] D6)
+    → ``[REDIGIDO]``; valor monetário nunca tocado ([[ADR-090]]). Roda antes de
+    ``compute_cache_key`` (re-gen única de cache)."""
     return _scrub_node(dict(e5_data), _compile_name_subs(name_role_pairs))
