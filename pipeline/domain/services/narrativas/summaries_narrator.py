@@ -13,7 +13,9 @@ from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
+    APORTE_SEM_DISTRIBUICAO,
     clause,
+    fmt_aporte_distribuicao,
     fmt_currency,
     fmt_num,
     fmt_percent,
@@ -70,11 +72,13 @@ class SummariesNarrator:
         _dec_label = pluralize(
             _n_dec, "decisão estratégica prioritária", "decisões estratégicas prioritárias"
         )
+        # A37.l2 (PD-01): mesma guard de distribuição do charts.top5_decisoes.
+        _parcelas = fmt_aporte_distribuicao(M.get("aporte_distribuicao"))
+        _divisao = f" ({_parcelas})" if _parcelas else f" {APORTE_SEM_DISTRIBUICAO}"
         s10 = (
             (
-                f"{_n_dec} {_dec_label}: iniciar aporte mensal de {fmt_currency(M['meta_aporte_mensal'])} "
-                f"({fmt_currency(M['aporte_cofrinhos'])} Cofrinhos, {fmt_currency(M['aporte_ipca_plus'])} IPCA+, "
-                f"{fmt_currency(M['aporte_ivvb11'])} IVVB11, {fmt_currency(M['aporte_wise_usd'])} Wise USD), "
+                f"{_n_dec} {_dec_label}: iniciar aporte mensal de "
+                f"{fmt_currency(M['meta_aporte_mensal'])}{_divisao}, "
                 + ", ".join(decisoes[1:4])
                 + "."
             )
