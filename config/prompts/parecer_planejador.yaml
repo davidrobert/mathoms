@@ -45,7 +45,17 @@
 # vs média explícito). FP-04: PGBL com limite=0 é confirmação, não "investigar
 # do zero". CTO-03 (ADR-332): sanitizer de PII no boundary do parecer (nome→papel)
 # antes do cache; bump invalida cache Redis.
-version: "1.9"
+# 2.0 — ADR-341 (A37.l1 PR-2b): contrato do exec context. Budget 16KB +
+# eviction determinística por seção (eviction_priority: 1 = mais importante;
+# excedeu budget → seção INTEIRA de maior número sai primeiro, com marcador
+# nomeando as removidas — nunca corte no meio de seção). Blocos densos
+# fluxo_caixa/consumo_consciente saem de dump scalar cru (15-17K chars
+# truncados em 300) para campos declarados key_value; protecao_patrimonial e
+# ratios completos viram flatten key_value (apolices_vigentes/gap_qualitativo
+# e caudas de ratios deixam de ser cortados). _short vira safety-net com
+# max_chars declarável por bloco. narrative_hints saem do corpo orçado
+# (anexados após o cap, padrão do citation catalog). Bump invalida cache Redis.
+version: "2.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -85,9 +95,14 @@ context_sections:
   # --------------------------------------------------------------------------
   # 1) Patrimônio (S1) — composição + saúde estrutural
   # --------------------------------------------------------------------------
+  # eviction_priority (ADR-341 D2): 1 = mais importante (última a sair do corpo
+  # orçado). Ranking de domínio: síntese/score > reserva+dívidas (red lines
+  # RL1/RL2) > fluxo > patrimônio > previdência/IRPF > proteção > ratios >
+  # IF > detalhe de carteira > plano de ação (referência).
   - id: "patrimonio"
     title: "Patrimônio e Composição"
     aligned_with_layout: "S1"
+    eviction_priority: 4
     blocks:
       - format: "key_value"
         title: "Visão geral"
@@ -123,23 +138,62 @@ context_sections:
   # --------------------------------------------------------------------------
   # 2) Fluxo de caixa (S2) — dinâmica do período
   # --------------------------------------------------------------------------
+  # ADR-341 D3: o dump scalar cru de $.fluxo_caixa (~15K chars) e
+  # $.consumo_consciente (~17K) truncava em 300 chars — quem decide o que o
+  # LLM vê é o manifest. Campos declarados abaixo; detalhe transacional
+  # (charts, tabela_receitas, itens de gasto pontual) fica no drill-down.
   - id: "fluxo_caixa"
     title: "Fluxo de Caixa"
     aligned_with_layout: "S2"
+    eviction_priority: 3
     blocks:
-      - format: "scalar"
-        path: "$.fluxo_caixa"
-        label: "Bloco fluxo_caixa do E5"
-        value_format: "raw"
-        on_null: "error"
-      - format: "scalar"
-        path: "$.consumo_consciente"
-        label: "Diagnóstico de consumo consciente"
-        value_format: "raw"
-        on_null: "skip"
+      - format: "key_value"
+        title: "Fluxo do período completo"
+        fields:
+          - {path: "$.fluxo_caixa.janela", label: "Janela", format: "string"}
+          - {path: "$.fluxo_caixa.janela_meses", label: "Meses na janela", format: "int"}
+          - {path: "$.fluxo_caixa.receita_total", label: "Receita total", format: "brl"}
+          - {path: "$.fluxo_caixa.receita_recorrente", label: "Receita recorrente", format: "brl"}
+          - {path: "$.fluxo_caixa.receita_one_time", label: "Receita one-time", format: "brl"}
+          - {path: "$.fluxo_caixa.receita_recorrente_mensal", label: "Receita recorrente mensal", format: "brl"}
+          - {path: "$.fluxo_caixa.despesa_total", label: "Despesa total", format: "brl"}
+          - {path: "$.fluxo_caixa.despesa_mensal_media", label: "Despesa mensal média", format: "brl"}
+          - {path: "$.fluxo_caixa.despesa_mensal_essencial", label: "Despesa mensal essencial", format: "brl"}
+          - {path: "$.fluxo_caixa.fluxo_liquido", label: "Fluxo líquido", format: "brl"}
+          - {path: "$.fluxo_caixa.receita_por_natureza", label: "Receita por natureza (PJ/CLT/aluguel/outras — ADR-330)", format: "raw"}
+      - format: "key_value"
+        title: "Janela 12m (base canônica de mensalização — ADR-306)"
+        fields:
+          - {path: "$.fluxo_caixa.janela_12m.periodo", label: "Período", format: "string"}
+          - {path: "$.fluxo_caixa.janela_12m.n_meses", label: "Meses", format: "int"}
+          - {path: "$.fluxo_caixa.janela_12m.receita_recorrente_mensal", label: "Receita recorrente mensal (12m)", format: "brl"}
+          - {path: "$.fluxo_caixa.janela_12m.despesa_mensal_media", label: "Despesa mensal média (12m)", format: "brl"}
+          - {path: "$.fluxo_caixa.janela_12m.despesa_mensal_essencial", label: "Despesa mensal essencial (12m)", format: "brl"}
+          - {path: "$.fluxo_caixa.janela_12m.despesa_consumo", label: "Despesa de consumo (12m, ex-aporte — ADR-333)", format: "brl"}
+          - {path: "$.fluxo_caixa.janela_12m.transferencia_patrimonial", label: "Transferência patrimonial/aporte (12m)", format: "brl"}
+          - {path: "$.fluxo_caixa.janela_12m.fluxo_liquido", label: "Fluxo líquido (12m)", format: "brl"}
+          - {path: "$.fluxo_caixa.janela_12m.taxa_poupanca_recorrente", label: "Taxa de poupança recorrente (12m, %)", format: "percent2"}
+          - {path: "$.fluxo_caixa.janela_12m.taxa_poupanca_total", label: "Taxa de poupança total (12m, %)", format: "percent2"}
+      - format: "key_value"
+        title: "Despesas por categoria (12m)"
+        fields:
+          - {path: "$.fluxo_caixa.janela_12m.despesas_por_categoria", label: "despesas_por_categoria", format: "raw"}
+      - format: "key_value"
+        title: "Consumo consciente (diagnóstico de gastos pontuais)"
+        fields:
+          - {path: "$.consumo_consciente.analise", label: "Análise", format: "string"}
+          - {path: "$.consumo_consciente.total_pontuais", label: "Total de gastos pontuais (período)", format: "brl"}
+          - {path: "$.consumo_consciente.total_pontuais_janela", label: "Total de gastos pontuais (janela)", format: "brl"}
+          - {path: "$.consumo_consciente.equivalente_meses_aporte", label: "Equivalente em meses de aporte", format: "raw"}
+          - {path: "$.consumo_consciente.folga_mensal", label: "Folga mensal", format: "brl"}
+          - {path: "$.consumo_consciente.folga_pct", label: "Folga (% da renda recorrente)", format: "percent2"}
+          - {path: "$.consumo_consciente.teto_sugerido", label: "Teto sugerido de consumo mensal", format: "brl"}
+          - {path: "$.consumo_consciente.janela", label: "Janela do diagnóstico", format: "string"}
+          - {path: "$.consumo_consciente.janela_meses", label: "Meses na janela do diagnóstico", format: "int"}
     narrative_hints:
       - "Ancore na taxa de poupança e no sinal comportamental dominante (consumo consciente)."
-      - "Se houver desvio relevante de categoria (despesa fora de teto), mencione qual."
+      - "Se houver desvio relevante de categoria (despesa fora de teto), mencione qual — despesas_por_categoria (12m) acima traz a base."
+      - "Itens individuais de gasto pontual e o detalhe mensal (charts) NÃO estão no contexto — get_e5_section('consumo_consciente') ou ('fluxo_caixa') traz o bloco completo se precisar."
 
   # --------------------------------------------------------------------------
   # 3) Investimentos (S3) — alocação atual + ranking
@@ -147,6 +201,7 @@ context_sections:
   - id: "investimentos"
     title: "Investimentos — Carteira Financeira"
     aligned_with_layout: "S3"
+    eviction_priority: 9
     blocks:
       - format: "table"
         title: "Top ativos (até 15)"
@@ -175,6 +230,7 @@ context_sections:
   - id: "saude_balanco"
     title: "Saúde de Balanço — Reserva e Dívidas"
     aligned_with_layout: "S1"
+    eviction_priority: 2
     blocks:
       # PE-01: key_value achata o dict folha-a-folha — reserva.total_liquida e os
       # níveis não são mais cortados pelo _short(300) do dump raw.
@@ -204,22 +260,27 @@ context_sections:
   - id: "ratios"
     title: "Indicadores e Rentabilidade"
     aligned_with_layout: "S3"
+    eviction_priority: 7
     blocks:
       - format: "scalar"
         path: "$.ratios.rentabilidade"
         label: "Rentabilidade (TRS efetiva + contexto — ADR-191)"
         value_format: "raw"
         on_null: "skip"
+        max_chars: 800
       - format: "scalar"
         path: "$.ratios.concentracao_imobiliaria"
         label: "Concentração imobiliária — RISCO (SSOT carteira produtiva, ADR-340)"
         value_format: "percent2"
         on_null: "skip"
-      - format: "scalar"
-        path: "$.ratios"
-        label: "Bloco ratios completo"
-        value_format: "raw"
-        on_null: "error"
+      # ADR-341 D3: flatten key_value — o dump raw truncado em 300 chars comia
+      # a cauda (aliquotas, janela). Folha "N/D" é ausência (A37.l4), pulada.
+      - format: "key_value"
+        title: "Bloco ratios completo"
+        fields:
+          - path: "$.ratios"
+            label: "ratios"
+            format: "raw"
     narrative_hints:
       - "Concentração como risco: cite o número do bloco escalar acima ($.ratios.concentracao_imobiliaria), não o pct de composição. É percentual — escreva na prosa (ex.: '~60%'); não precisa âncora (catálogo é só monetário)."
       - "Cobertura de renda passiva (PE-04): use a base ESSENCIAL (ratios.rentabilidade.cobertura_despesa_essencial_pct), não a despesa média. Rotule explicitamente 'da despesa essencial' — uma cobertura só, consistente."
@@ -234,6 +295,7 @@ context_sections:
   - id: "independencia_financeira"
     title: "Independência Financeira — Projeção"
     aligned_with_layout: "S7"
+    eviction_priority: 8
     blocks:
       - format: "scalar"
         path: "$.if_monte_carlo"
@@ -272,6 +334,7 @@ context_sections:
   - id: "previdencia_irpf"
     title: "Previdência e Eficiência Fiscal"
     aligned_with_layout: "S8"
+    eviction_priority: 5
     blocks:
       # PE-01/FP-04: key_value achata — limite_pgbl_anual=0, status e nota do PGBL
       # + os KPIs de IRPF no fim do bloco não são mais truncados pelo _short(300).
@@ -307,20 +370,26 @@ context_sections:
   - id: "riscos_protecao"
     title: "Riscos e Proteção"
     aligned_with_layout: "S9"
+    eviction_priority: 6
     blocks:
       - format: "scalar"
         path: "$.alertas"
         label: "Alertas estruturais (array)"
         value_format: "raw"
         on_null: "skip"
+        max_chars: 800
       # A28.l6 (ADR-240 D8): apólices reais de extract_comprovantes_bens —
       # prêmio anual, % renda (Cerbasi), gaps qualitativos (vida/saúde) e
       # resumos LGPD-safe das apólices por vigência.
-      - format: "scalar"
-        path: "$.protecao_patrimonial"
-        label: "Proteção patrimonial (apólices vigentes, prêmio anual, % renda, gaps vida/saúde)"
-        value_format: "raw"
-        on_null: "skip"
+      # ADR-341 D3: flatten key_value — o dump raw de ~1.050 chars truncado em
+      # 300 cortava apolices_vigentes (começava no char 322) e gap_qualitativo.
+      # Identificadores (apolice_numero) redigidos pelo sanitizer (D6, PR-2a).
+      - format: "key_value"
+        title: "Proteção patrimonial (apólices vigentes, prêmio anual, % renda, gaps vida/saúde)"
+        fields:
+          - path: "$.protecao_patrimonial"
+            label: "protecao_patrimonial"
+            format: "raw"
     narrative_hints:
       - "Não prescreva apólice ou seguradora — descreva o gap."
       - "Sem linguagem alarmista. Severidade comunica o peso."
@@ -332,6 +401,7 @@ context_sections:
   - id: "sintese"
     title: "Síntese e Comportamento"
     aligned_with_layout: "S10"
+    eviction_priority: 1
     blocks:
       - format: "key_value"
         title: "Score"
@@ -373,6 +443,7 @@ context_sections:
   - id: "plano_acao_atual"
     title: "Plano de Ação Atual"
     aligned_with_layout: "plano_de_acao"
+    eviction_priority: 10
     blocks:
       - format: "scalar"
         path: "$.tarefas"
@@ -451,9 +522,11 @@ tools:
 # ==============================================================================
 max_tool_iterations: 6
 max_total_input_tokens: 50000
-max_exec_context_bytes: 8192  # ~8KB hard limit base (pré tool calls). R3.3: subido de
-# 5120 — o body já excedia 5KB (truncava previdência/irpf/proteção) e o flatten key_value
-# do PE-01 + hints agravavam, cortando o próprio hint FP-04. 8KB cabe o conteúdo prioritário.
+max_exec_context_bytes: 16384  # ~16KB hard limit do CORPO (pré tool calls; hints e
+# catálogo de citação ficam fora, com orçamento próprio). ADR-341 D1: dimensionado
+# para o corpo medido do dogfood (15,6KB) com folga (~+US$0,01–0,02/parecer). O
+# budget NÃO é a garantia de completude — a garantia é a eviction por seção (D2):
+# excedeu → seções inteiras de menor prioridade saem, com marcador nomeando-as.
 # Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação sem bloquear;
 # strict marca needs_review. Override operacional: env MATHOMS_PARECER_EVIDENCIA_MODE.
 # Flip warn→strict (A26.l2): segurança satisfeita por construção (per-item,

@@ -57,6 +57,8 @@ def make_context_section(layout_id: str = "S1") -> dict:
         "id": "patrimonio",
         "title": "Patrimônio",
         "aligned_with_layout": layout_id,
+        # ADR-341 D2: obrigatório no schema — eviction determinística por seção.
+        "eviction_priority": 1,
         "blocks": [
             {
                 "format": "key_value",
