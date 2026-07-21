@@ -760,18 +760,18 @@
 | A36.l3 | lane | planned | A36 | E7: invariante de conservação (CV1-CV14) pausa o run em vez de ser advisory | `sprint/A36/lanes/A36-l3-e7-conservation-gate.md` |
 | A36.l4 | lane | planned | A36 | Gate govulncheck no CI + toolchain floor go1.26.5 (SEC-07 / GO-2026-5856) | `sprint/A36/lanes/A36-l4-go-toolchain-cve-bump.md` |
 | A36.l5 | lane | planned | A36 | Estreitar `except` largos em cripto (vault) e validação financeira (baseline) | `sprint/A36/lanes/A36-l5-narrow-broad-excepts.md` |
-| A37.l1 | lane | open | A37 | Parecer enxerga o relatório inteiro: contrato de exec context (dupla truncação) + redação de identificadores | `sprint/A37/lanes/A37-l1-parecer-exec-context.md` |
+| A37.l1 | lane | in_progress | A37 | Parecer enxerga o relatório inteiro: contrato de exec context (dupla truncação) + redação de identificadores | `sprint/A37/lanes/A37-l1-parecer-exec-context.md` |
 | A37.l10 | lane | planned | A37 | Apêndices: stress card com coluna base vazia + tabela de premissas 10× indisponível | `sprint/A37/lanes/A37-l10-apendices-ux.md` |
 | A37.l11 | lane | planned | A37 | Seguradora sem canonicalização: mesma cia com dois codes, count inflado e render cru | `sprint/A37/lanes/A37-l11-seguradora-canonicalizacao.md` |
 | A37.l12 | lane | planned | A37 | Resiliência de execução: heartbeat in-stage (watchdog 15min) + idempotência de stage LLM em redelivery | `sprint/A37/lanes/A37-l12-resiliencia-execucao.md` |
 | A37.l13 | lane | planned | A37 | pipeline_artifacts.schema_version e byte_size NULL em 100% das rows — popular ou dropar | `sprint/A37/lanes/A37-l13-artifacts-colunas-mortas.md` |
 | A37.l14 | lane | planned | A37 | Batch cosmético de copy/labels + decisão de agrupamento do aporte no doughnut | `sprint/A37/lanes/A37-l14-batch-cosmetico-copy.md` |
 | A37.l15 | lane | planned | A37 | Débitos com gate: fonte de dados de milhas (decisão owner) + remoção do alias deprecated de caixa | `sprint/A37/lanes/A37-l15-debitos-owner-gated.md` |
-| A37.l2 | lane | open | A37 | Narrativa da síntese decompõe aporte em parcelas R$ 0,00 — guard de distribuição vazia + keys dinâmicas | `sprint/A37/lanes/A37-l2-narrativa-sintese-guard.md` |
-| A37.l3 | lane | open | A37 | Docs parkados como `other` não se auto-corrigem: stored_path drift + gate de key env-only | `sprint/A37/lanes/A37-l3-docs-parkados-selfheal.md` |
-| A37.l4 | lane | open | A37 | Sentinela "N/D" tratada como dado presente: guardrail suprime field_request legítimo + contrato sub-especificado | `sprint/A37/lanes/A37-l4-sentinelas-nd-contrato.md` |
-| A37.l5 | lane | open | A37 | Fragmento de apólice real do dogfood em prompt versionado — trocar por exemplo sintético | `sprint/A37/lanes/A37-l5-prompt-apolice-exemplo-sintetico.md` |
-| A37.l6 | lane | open | A37 | Labels de categoria snake_case cruas nas superfícies do relatório — mapa único + humanize fallback | `sprint/A37/lanes/A37-l6-labels-categoria-humanizadas.md` |
+| A37.l2 | lane | shipped | A37 | Narrativa da síntese decompõe aporte em parcelas R$ 0,00 — guard de distribuição vazia + keys dinâmicas | `sprint/A37/lanes/A37-l2-narrativa-sintese-guard.md` |
+| A37.l3 | lane | shipped | A37 | Docs parkados como `other` não se auto-corrigem: stored_path drift + gate de key env-only | `sprint/A37/lanes/A37-l3-docs-parkados-selfheal.md` |
+| A37.l4 | lane | shipped | A37 | Sentinela "N/D" tratada como dado presente: guardrail suprime field_request legítimo + contrato sub-especificado | `sprint/A37/lanes/A37-l4-sentinelas-nd-contrato.md` |
+| A37.l5 | lane | shipped | A37 | Fragmento de apólice real do dogfood em prompt versionado — trocar por exemplo sintético | `sprint/A37/lanes/A37-l5-prompt-apolice-exemplo-sintetico.md` |
+| A37.l6 | lane | shipped | A37 | Labels de categoria snake_case cruas nas superfícies do relatório — mapa único + humanize fallback | `sprint/A37/lanes/A37-l6-labels-categoria-humanizadas.md` |
 | A37.l7 | lane | planned | A37 | Conservação de renda passiva sem gate runtime + dict de fontes não-conservativo | `sprint/A37/lanes/A37-l7-conservacao-renda-passiva.md` |
 | A37.l8 | lane | planned | A37 | Narrativas coerentes com os dados: renda de aluguel, alocação v2, IF probabilística | `sprint/A37/lanes/A37-l8-narrativas-coerentes.md` |
 | A37.l9 | lane | planned | A37 | Bases e denominadores canônicos: concentração imobiliária e exposição internacional | `sprint/A37/lanes/A37-l9-bases-canonicas-denominadores.md` |

@@ -3,7 +3,7 @@ id: A37.l2
 type: lane
 title: "Narrativa da síntese decompõe aporte em parcelas R$ 0,00 — guard de distribuição vazia + keys dinâmicas"
 sprint: A37
-status: open
+status: shipped
 priority: P1
 branch_slug: a37-l2-narrativa-sintese-guard
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---

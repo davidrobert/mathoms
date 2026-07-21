@@ -3,7 +3,7 @@ id: A37.l3
 type: lane
 title: "Docs parkados como `other` não se auto-corrigem: stored_path drift + gate de key env-only"
 sprint: A37
-status: open
+status: shipped
 priority: P1
 branch_slug: a37-l3-docs-parkados-selfheal
 adrs: ["[[ADR-329]]"]
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/open
+  - status/shipped
   - priority/p1
   - area/dados
   - area/backend
