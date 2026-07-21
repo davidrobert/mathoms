@@ -102,6 +102,11 @@ class TestLLMPrerequisitesSkipReason:
         monkeypatch.setitem(sys.modules, "anthropic", None)
         assert _llm_prerequisites_skip_reason() == "sdk_not_installed"
 
+    def test_explicit_api_key_passes_without_env(self, monkeypatch):
+        """A37.l3 — key de ``llm_config`` (DB-backed) satisfaz o gate sem env var."""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        assert _llm_prerequisites_skip_reason("sk-ant-db-key") is None
+
 
 class TestIsRetriableSkipReason:
     """C8/ADR-329: só skip transitório (missing_api_key) é re-tentável."""
@@ -175,7 +180,7 @@ class TestClassifyDocumentLLMSkipMeta:
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
         from scripts import route_documents
 
-        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _path: None)
+        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _path, **_kw: None)
 
         f = tmp_path / "doc.pdf"
         f.write_bytes(b"%PDF-1.4\n")
@@ -190,7 +195,7 @@ class TestClassifyDocumentLLMSkipMeta:
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
         from scripts import route_documents
 
-        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _p: _FAKE_LLM_RESULT)
+        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _p, **_kw: _FAKE_LLM_RESULT)
 
         f = tmp_path / "doc.pdf"
         f.write_bytes(b"%PDF-1.4\n")
@@ -198,6 +203,26 @@ class TestClassifyDocumentLLMSkipMeta:
         meta = result["classification_meta"]
         assert "llm_skipped_reason" not in meta
         assert meta.get("llm", {}).get("doc_type") == "extratoconta"
+
+    def test_explicit_api_key_reaches_llm_without_env(
+        self, tmp_path, monkeypatch, force_low_confidence_regex
+    ):
+        """A37.l3 — key explícita (llm_config DB-backed) roda o LLM fallback sem env var."""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        from scripts import route_documents
+
+        seen_keys: list = []
+
+        def _fake_llm(_p, api_key=None):
+            seen_keys.append(api_key)
+            return _FAKE_LLM_RESULT
+
+        monkeypatch.setattr(route_documents, "classify_by_llm", _fake_llm)
+        f = tmp_path / "doc.pdf"
+        f.write_bytes(b"%PDF-1.4\n")
+        result = dc.classify_document(f, tmp_path, use_llm=True, api_key="sk-ant-db-key")
+        assert "llm_skipped_reason" not in result["classification_meta"]
+        assert seen_keys == ["sk-ant-db-key"]
 
     def test_llm_error_takes_precedence_over_no_result(
         self, tmp_path, monkeypatch, force_low_confidence_regex
@@ -207,7 +232,7 @@ class TestClassifyDocumentLLMSkipMeta:
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
         from scripts import route_documents
 
-        def _raise(_path):
+        def _raise(_path, **_kw):
             raise RuntimeError("boom")
 
         monkeypatch.setattr(route_documents, "classify_by_llm", _raise)
@@ -248,7 +273,7 @@ class TestExtratoMissingInstitutionGate:
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
         from scripts import route_documents
 
-        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _p: llm_payload)
+        monkeypatch.setattr(route_documents, "classify_by_llm", lambda _p, **_kw: llm_payload)
         f = tmp_path / "doc.pdf"
         f.write_bytes(b"%PDF-1.4\n")
         return dc.classify_document(f, tmp_path, use_llm=True)
