@@ -24,9 +24,10 @@ _REPO = Path(__file__).resolve().parents[1]
 _OUTPUT_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
 
 # Baseline do SYSTEM_PROMPT_TEMPLATE (chars; aproximação tokens = len//4). Re-ancorado
-# em 2.1.0 (ADR-300 §Follow-ups): REGRA 14 preventiva (7 linhas invioláveis RL1..RL7)
-# adicionou ~2,5k chars — mudança intencional, não drift. (Antes: 8571 em 2.0.0.)
-_PROMPT_BASELINE_CHARS = 11071
+# em 2.2.0 (ADR-341 D5 · A37.l1 PR-2b): regra de recovery obrigatório via
+# get_e5_section antes de declarar ausência adicionou ~570 chars — mudança
+# intencional, não drift. (Antes: 11071 em 2.1.0; 8571 em 2.0.0.)
+_PROMPT_BASELINE_CHARS = 11639
 
 
 def _risco(ancoras: list[tuple[str | None, str | None]], severidade: str = "Alta") -> Risco:
@@ -470,4 +471,4 @@ class TestPromptTokenBudget:
         current_tokens = len(SYSTEM_PROMPT_TEMPLATE) // 4
         delta = abs(current_tokens - baseline_tokens) / baseline_tokens
         assert delta < 0.05, f"delta de tokens {delta:.2%} excede 5% (F4)"
-        assert PROMPT_VERSION == "2.1.0"
+        assert PROMPT_VERSION == "2.2.0"
