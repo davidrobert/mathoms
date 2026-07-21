@@ -160,7 +160,11 @@ context_sections:
           - {path: "$.fluxo_caixa.despesa_mensal_media", label: "Despesa mensal média", format: "brl"}
           - {path: "$.fluxo_caixa.despesa_mensal_essencial", label: "Despesa mensal essencial", format: "brl"}
           - {path: "$.fluxo_caixa.fluxo_liquido", label: "Fluxo líquido", format: "brl"}
-          - {path: "$.fluxo_caixa.receita_por_natureza", label: "Receita por natureza (PJ/CLT/aluguel/outras — ADR-330)", format: "raw"}
+          # Receita por natureza (ADR-330): re-bucketização derivada; soma == receita_total.
+          - {path: "$.fluxo_caixa.receita_por_natureza.receita_pj", label: "Receita PJ (pró-labore + lucros)", format: "brl"}
+          - {path: "$.fluxo_caixa.receita_por_natureza.receita_clt", label: "Receita CLT", format: "brl"}
+          - {path: "$.fluxo_caixa.receita_por_natureza.receita_aluguel", label: "Receita de aluguel", format: "brl"}
+          - {path: "$.fluxo_caixa.receita_por_natureza.receita_outras", label: "Receita outras (resíduo)", format: "brl"}
       - format: "key_value"
         title: "Janela 12m (base canônica de mensalização — ADR-306)"
         fields:
