@@ -91,6 +91,40 @@ def ensure_period(s: str) -> str:
     return stripped + "."
 
 
+# A37.l2 (PD-01): rótulos das 4 keys do legado preservados byte-a-byte;
+# key desconhecida cai no fallback genérico (acrônimo/dígito → UPPER).
+_APORTE_INSTRUMENTO_LABELS: dict[str, str] = {
+    "cofrinhos_itau": "Cofrinhos",
+    "tesouro_ipca_plus": "IPCA+",
+    "ivvb11": "IVVB11",
+    "wise_usd": "Wise USD",
+}
+
+_INSTRUMENTO_ACRONYMS = frozenset(
+    {"brl", "cdb", "cdi", "etf", "fii", "ipca", "lca", "lci", "pgbl", "usd", "vgbl"}
+)
+
+APORTE_SEM_DISTRIBUICAO = "a distribuir entre as classes sub-representadas"
+
+
+def humanize_instrumento(key: str) -> str:
+    """Rótulo humano para key técnica de instrumento (``cdb_liquidez`` → ``CDB Liquidez``)."""
+    known = _APORTE_INSTRUMENTO_LABELS.get(key)
+    if known:
+        return known
+    return " ".join(
+        w.upper() if w in _INSTRUMENTO_ACRONYMS or any(c.isdigit() for c in w) else w.capitalize()
+        for w in key.split("_")
+        if w
+    )
+
+
+def fmt_aporte_distribuicao(dist) -> str:
+    """Parcelas > 0 como ``'R$ 5k Cofrinhos, R$ 8k IPCA+'``; vazia/zerada → ``''``."""
+    entries = [(k, v) for k, v in (dist or {}).items() if isinstance(v, (int, float)) and v > 0]
+    return ", ".join(f"{fmt_currency(v)} {humanize_instrumento(k)}" for k, v in entries)
+
+
 def fmt_usd(value) -> str:
     """Format USD value: US$ X,Yk or US$ X. Returns 'N/D' for None."""
     if value is None:

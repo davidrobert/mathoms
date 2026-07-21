@@ -17,7 +17,9 @@ from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
+    APORTE_SEM_DISTRIBUICAO,
     ensure_period,
+    fmt_aporte_distribuicao,
     fmt_currency,
     fmt_num,
     fmt_percent,
@@ -405,15 +407,20 @@ def _narrate_bubble_riscos(
     }
 
 
+def _fmt_aporte_head(M: Mapping[str, Any]) -> str:
+    # A37.l2 (PD-01): distribuição vazia/zerada → sem parêntese de divisão
+    # (antes: 4 parcelas hardcoded viravam "R$ 0,00"). Keys dinâmicas.
+    aporte = fmt_currency(M["meta_aporte_mensal"])
+    parcelas = fmt_aporte_distribuicao(M.get("aporte_distribuicao"))
+    if not parcelas:
+        return f"Prioridade 1: Aporte mensal {aporte} {APORTE_SEM_DISTRIBUICAO}. "
+    return f"Prioridade 1: Aporte mensal {aporte} com divisão ({parcelas}). "
+
+
 def _narrate_top5_decisoes(M: Mapping[str, Any], decisoes: list[str]) -> dict[str, str]:
     context = (
         f"{len(decisoes)} {pluralize(len(decisoes), 'decisão estratégica', 'decisões estratégicas')} "
         "de curto prazo (6-12 meses) para otimizar a trajetória até IF."
     )
-    head = (
-        f"Prioridade 1: Aporte mensal {fmt_currency(M['meta_aporte_mensal'])} com divisão "
-        f"({fmt_currency(M['aporte_cofrinhos'])} Cofrinhos, {fmt_currency(M['aporte_ipca_plus'])} IPCA+, "
-        f"{fmt_currency(M['aporte_ivvb11'])} IVVB11, {fmt_currency(M['aporte_wise_usd'])} Wise USD). "
-    )
     tail = ". ".join(f"Prioridade {i + 2}: {d.rstrip('.')}" for i, d in enumerate(decisoes[1:5]))
-    return {"context": context, "conclusion": ensure_period(head + tail)}
+    return {"context": context, "conclusion": ensure_period(_fmt_aporte_head(M) + tail)}

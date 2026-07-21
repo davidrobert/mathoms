@@ -529,10 +529,10 @@ def load_metrics_from_e5(
         "cambio_usd_brl": cambio,
         # === config/goals.json: aportes ===
         "meta_aporte_mensal": meta_aporte_mensal,
-        "aporte_cofrinhos": dist.get("cofrinhos_itau", 0),
-        "aporte_ipca_plus": dist.get("tesouro_ipca_plus", 0),
-        "aporte_ivvb11": dist.get("ivvb11", 0),
-        "aporte_wise_usd": dist.get("wise_usd", 0),
+        # A37.l2 (PD-01): distribuição dinâmica — as 4 keys hardcoded do legado
+        # (aporte_cofrinhos/ipca_plus/ivvb11/wise_usd) zeravam instrumento fora
+        # da lista e viravam parcelas "R$ 0,00" quando `distribuicao` era vazia.
+        "aporte_distribuicao": dict(dist),
         # === config/goals.json: IF ===
         # ADR-191 emenda 2026-07-15 (FP-03): `if_trs_pct` = yield-alvo/TRS (5%, do card +
         # rendimento da meta patrimonial); `taxa_retirada_segura_pct` = SWR (4%, estimativa
