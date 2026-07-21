@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import time
 from datetime import datetime, timezone
@@ -79,6 +81,31 @@ def _payload_prompt_version(data: dict) -> Optional[str]:
     if isinstance(pv, str) and pv:
         return pv[:20]
     return None
+
+
+def _schema_version_token(stage: str) -> Optional[str]:
+    """A37.l13 (CTO-07) — token real de auditoria por row: sha256[:12] do JSON
+    canônico do schema resolvido via ``SCHEMA_BY_STAGE``. Muda quando o schema
+    muda (os schemas não declaram versão/$id universal — hash é a única fonte
+    estável). Stage sem schema mapeado (E1, E6-parecer…) → NULL explícito."""
+    schema_name = SCHEMA_BY_STAGE.get(stage)
+    if schema_name is None:
+        return None
+    import scripts.pipeline_common as pipeline_common
+
+    schema_path = pipeline_common.CONFIG_DIR / "schemas" / schema_name
+    try:
+        doc = json.loads(schema_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    canonical = json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:12]
+
+
+def _payload_byte_size(payload: dict) -> int:
+    """A37.l13 — tamanho serializado do payload **como persistido** (pós-encrypt):
+    mede footprint real de storage por stage (retention/FinOps, ADR-212)."""
+    return len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
 
 
 def _maybe_decrypt(payload: Optional[dict] = None) -> Optional[dict]:
@@ -375,14 +402,26 @@ class DBArtifactStore:
     ) -> None:
         self._validate_schema(stage, key, data)
         prompt_version = _payload_prompt_version(data)
+        schema_version = _schema_version_token(stage)
         payload = _maybe_encrypt(data)
+        byte_size = _payload_byte_size(payload)
         row = self._get(stage, key)
         if row is None:
-            self._insert(stage, key, payload, document_id, prompt_version)
+            self._insert(
+                stage,
+                key,
+                payload,
+                document_id,
+                prompt_version,
+                schema_version=schema_version,
+                byte_size=byte_size,
+            )
             self._mark_superseded_previous(stage, key)
             return
         row.content_json = payload
         row.prompt_version = prompt_version
+        row.schema_version = schema_version
+        row.byte_size = byte_size
         if document_id is not None:
             row.document_id = document_id
 
@@ -416,6 +455,9 @@ class DBArtifactStore:
         payload: dict,
         document_id: Optional[str] = None,
         prompt_version: Optional[str] = None,
+        *,
+        schema_version: Optional[str] = None,
+        byte_size: Optional[int] = None,
     ) -> None:
         self._session.add(
             PipelineArtifact(
@@ -426,6 +468,8 @@ class DBArtifactStore:
                 document_id=document_id,
                 content_json=payload,
                 prompt_version=prompt_version,
+                schema_version=schema_version,
+                byte_size=byte_size,
             )
         )
 
