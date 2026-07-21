@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
+# 2.2.0 (ADR-341 D5 · A37.l1 PR-2b): recovery obrigatório na regra 3 — marcador de
+#   eviction presente + conceito de seção removida → get_e5_section ANTES de declarar
+#   ausência (campos_faltantes/risco de "dado ausente"). Par do manifest 2.0 (eviction
+#   por seção + hints fora do corpo orçado).
 # 2.1.0 (ADR-300 §Follow-ups): REGRA 14 preventiva — 7 linhas invioláveis (RL1..RL7)
 #   espelham parecer_red_lines v1.4; prevenção reduz needs_review, validador segue defesa.
 #   Ao recalibrar parecer_red_lines, atualize a REGRA 14 no mesmo PR (simetria prompt↔validador).
 # 2.0.0 (ADR-296): citação determinística — prosa sem R$, contrato ancoras[{path,rotulo}].
-PROMPT_VERSION = "2.1.0"
+PROMPT_VERSION = "2.2.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -34,6 +38,14 @@ SYSTEM_PROMPT_TEMPLATE = """\
      o orchestrator não permite mais round-trips.
    - Quando tool retornar `{{"found": false, "reason": "path_not_whitelisted"}}`,
      considere registrar o path em `campos_faltantes_pediria_se_iterasse[]`.
+   - **Recovery obrigatório antes de declarar ausência (ADR-341):** se o exec
+     context contiver o marcador `…[exec context truncado em
+     max_exec_context_bytes — seções removidas por prioridade: ...]` e o
+     conceito de que você precisa pertencer a uma seção removida, chame
+     `get_e5_section` com a seção correspondente ANTES de registrar o campo em
+     `campos_faltantes_pediria_se_iterasse[]` ou de emitir risco/nota de "dado
+     ausente"/"ausência de dados" sobre aquele tema. Só declare ausência depois
+     de a tool retornar `{{"found": false}}`.
 
 4. **Determinístico nos limites:** sua resposta deve respeitar:
    - 3-6 pontos fortes; ≤12 riscos; ≤5 sugestões por horizonte (3 horizontes =

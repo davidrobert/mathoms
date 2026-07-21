@@ -68,6 +68,10 @@ class ParecerGenerationResult:
     # persistência converte para cents (BigInteger) em PlannerReview.cost_usd_cents.
     cost_usd: float = 0.0  # rate USD from LLM provider — converted to cents on persist (ADR-090)
     latency_ms: int = 0
+    # Telemetria de invocações do PlannerDrillDown — inclui cache hits e o
+    # stamping pós-LLM de âncoras (ADR-296), então pode exceder o cap
+    # max_tool_iterations. Semântica canônica: PlannerDrillDown.iterations_count
+    # (OBS-1 · A37.l1).
     tool_iterations: int = 0
     tool_trace: list[dict] = None  # type: ignore[assignment]
     cache_hit: bool = False

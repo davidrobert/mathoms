@@ -158,8 +158,14 @@ class PlannerDrillDown:
     # Audit accessors
     # ------------------------------------------------------------------
 
+    # OBS-1 (A37.l1 · ADR-341): telemetria, NÃO o cap. Conta cache hits
+    # (cache_in_session evita recomputar, não a contagem) e chamadas pós-LLM
+    # (stamp_ancora_values re-resolve âncoras via este provider, ADR-296) —
+    # por isso pode EXCEDER max_tool_iterations do manifest (ex.: trace com
+    # 8 calls sob cap 6, 3 cache_hit). Não é o número de round-trips LLM→tool.
     @property
     def iterations_count(self) -> int:
+        """Total de invocações de tool nesta instância (telemetria; ver comment acima)."""
         return self._iter
 
     def to_trace_dicts(self) -> list[dict]:

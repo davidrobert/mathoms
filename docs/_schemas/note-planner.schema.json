@@ -175,7 +175,8 @@
           "minItems": 1,
           "maxItems": 20,
           "items": {"$ref": "#/definitions/field_ref"}
-        }
+        },
+        "max_chars": {"$ref": "#/definitions/max_chars"}
       }
     },
 
@@ -228,8 +229,16 @@
         "path": {"$ref": "#/definitions/jsonpath_subset"},
         "label": {"type": "string", "minLength": 1, "maxLength": 80},
         "value_format": {"$ref": "#/definitions/format_hint"},
-        "on_null": {"$ref": "#/definitions/null_policy"}
+        "on_null": {"$ref": "#/definitions/null_policy"},
+        "max_chars": {"$ref": "#/definitions/max_chars"}
       }
+    },
+
+    "max_chars": {
+      "type": "integer",
+      "minimum": 50,
+      "maximum": 20000,
+      "description": "Limite do safety-net _short por linha do bloco (ADR-341 D3). Ausente = 300. O manifest decide o que o LLM vê; _short é só rede de segurança."
     },
 
     "block": {
@@ -243,7 +252,7 @@
     "context_section": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "blocks"],
+      "required": ["id", "title", "blocks", "eviction_priority"],
       "properties": {
         "id": {
           "type": "string",
@@ -251,6 +260,12 @@
           "minLength": 2,
           "maxLength": 64,
           "description": "Identificador interno do bloco no exec context (snake_case)."
+        },
+        "eviction_priority": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Prioridade de retenção da seção no corpo orçado (ADR-341 D2): 1 = mais importante (última a ser removida). Corpo excede max_exec_context_bytes → o distiller remove seções INTEIRAS de maior número primeiro; empate resolve pela ordem do documento (a mais abaixo sai primeiro)."
         },
         "title": {"type": "string", "minLength": 3, "maxLength": 120},
         "aligned_with_layout": {
