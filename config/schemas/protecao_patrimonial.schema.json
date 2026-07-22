@@ -97,6 +97,7 @@
       "properties": {
         "apolice_numero": {"type": "string"},
         "seguradora": {"type": "string"},
+        "seguradora_nome": {"type": "string", "description": "Display name via institution_catalog (A37.l11); fallback capitalizado do code. Opcional em artifacts pré-A37.l11."},
         "vigencia_inicio": {"type": "string", "format": "date"},
         "vigencia_fim": {"type": "string", "format": "date"},
         "premio_total_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},

@@ -64,3 +64,19 @@ def render_institution_catalog(
     if not entries:
         return CATALOG_UNAVAILABLE_BLOCK
     return "\n".join(f"- {e.code} ({e.name})" for e in sorted(entries, key=lambda e: e.code))
+
+
+def institution_code_map(
+    provider: Optional[InstitutionCatalogProvider] = None,
+    *,
+    include_categories: Optional[Sequence[str]] = None,
+) -> dict[str, str]:
+    """Mapping ``code → nome de exibição`` (mesmo filtro do render) — consumido
+    pela canonicalização de ``seguradora`` (A37.l11); ``{}`` sem provider."""
+    if provider is None:
+        return {}
+    return {
+        e.code: e.name
+        for e in provider.list_institutions()
+        if include_categories is None or e.category in include_categories
+    }

@@ -17,6 +17,15 @@ const STATUS_LABEL: Record<StatusVigencia, string> = {
   vencida: "Vencida",
 };
 
+/** Display name do catálogo (A37.l11); artifacts antigos degradam para o code capitalizado — nunca o code cru. */
+function seguradoraLabel(apolice: ApoliceResumo): string {
+  if (apolice.seguradora_nome) {
+    return apolice.seguradora_nome;
+  }
+  const code = apolice.seguradora || "";
+  return code ? code.charAt(0).toUpperCase() + code.slice(1) : "—";
+}
+
 function ApoliceRow({ apolice, status }: { apolice: ApoliceResumo; status: StatusVigencia }) {
   return (
     <tr
@@ -24,7 +33,7 @@ function ApoliceRow({ apolice, status }: { apolice: ApoliceResumo; status: Statu
       data-testid={`protecao-apolice-${apolice.apolice_numero}`}
     >
       <td>{apolice.apolice_numero}</td>
-      <td>{apolice.seguradora}</td>
+      <td>{seguradoraLabel(apolice)}</td>
       <td>
         <span className={`rounded px-2 py-0.5 text-style-caption ${STATUS_BADGE[status]}`}>
           {STATUS_LABEL[status]}

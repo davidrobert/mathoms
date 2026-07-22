@@ -353,3 +353,57 @@ def test_renda_zero_nao_divide_e_pct_zero():
     )
     out = compute_protecao(inp)
     assert out["pct_renda_anual"] == "0.000000"
+
+
+# ─────────────────────── A37.l11 — canonicalização de seguradora ──────────
+
+_CATALOGO_SEGURADORAS = {"porto": "Porto Seguro", "tokiomarine": "Tokio Marine"}
+
+
+def _inp_variantes_porto() -> ProtecaoInput:
+    """3 apólices vigentes: tokiomarine + 2 da mesma cia (`porto` e `portoseguro`)."""
+    variante = _apolice_combinada()
+    variante["apolice_numero"] = "COMB-2"
+    variante["seguradora"] = "portoseguro"
+    return ProtecaoInput(
+        apolices=[_apolice_auto_simples(), _apolice_combinada(), variante],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+        seguradoras_catalog=_CATALOGO_SEGURADORAS,
+    )
+
+
+def test_seguradoras_count_unifica_variantes_da_mesma_cia():
+    """Regressão A37.l11 (PD-05): LLM emitiu `porto` E `portoseguro` para a
+    mesma cia no mesmo run — count naive dava 3; canonicalizado contra o
+    catálogo (`portoseguro` casa "Porto Seguro" por nome normalizado) dá 2."""
+    out = compute_protecao(_inp_variantes_porto())
+    assert out["seguradoras_count"] == 2
+
+
+def test_apolice_resumo_display_name_unico_para_variantes():
+    """As duas variantes da mesma cia rendem UM display name via catálogo."""
+    out = compute_protecao(_inp_variantes_porto())
+    resumos = {r["apolice_numero"]: r for r in out["apolices_vigentes"]}
+    assert resumos["COMB-1"]["seguradora"] == "porto"
+    assert resumos["COMB-2"]["seguradora"] == "porto"
+    nomes = {resumos["COMB-1"]["seguradora_nome"], resumos["COMB-2"]["seguradora_nome"]}
+    assert nomes == {"Porto Seguro"}
+    assert resumos["AUTO-1"]["seguradora_nome"] == "Tokio Marine"
+
+
+def test_sem_catalogo_resumo_degrada_para_display_capitalizado():
+    """Caller sem catálogo (CLI isolado / artifacts antigos): count naive é
+    preservado e o display name degrada para o code capitalizado — nunca cru."""
+    inp = ProtecaoInput(
+        apolices=[_apolice_auto_simples(), _apolice_combinada()],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
+    out = compute_protecao(inp)
+    assert out["seguradoras_count"] == 2
+    resumos = {r["apolice_numero"]: r for r in out["apolices_vigentes"]}
+    assert resumos["AUTO-1"]["seguradora_nome"] == "Tokiomarine"
+    assert resumos["COMB-1"]["seguradora_nome"] == "Porto"

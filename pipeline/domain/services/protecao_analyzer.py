@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Literal, Mapping, Optional
+
+from pipeline.domain.services.seguradora_resolver import (
+    canonicalize_apolice_seguradora,
+    fallback_seguradora_display,
+)
 
 _logger = logging.getLogger("mathoms.relatorio.protecao")
 
@@ -83,6 +88,10 @@ class ProtecaoInput:
     family_members: tuple[FamilyMemberSnapshot, ...] = ()
     patrimonio: Optional[PatrimonioSnapshot] = None
     fiscal: FiscalSnapshot = FiscalSnapshot()
+
+    seguradoras_catalog: Mapping[str, str] = field(default_factory=dict)
+    """Codes ``category=insurance`` → nome de exibição (A37.l11). Vazio degrada
+    para normalização pura (sem unificação de variantes)."""
 
 
 # ===========================================================================
@@ -345,6 +354,10 @@ def apolice_resumo(a: dict) -> dict:
     return {
         "apolice_numero": a.get("apolice_numero", ""),
         "seguradora": a.get("seguradora", ""),
+        # A37.l11 — display via catálogo quando canonicalizado; fallback
+        # capitalizado para callers sem catálogo (E4 seguros / artifacts antigos).
+        "seguradora_nome": a.get("seguradora_nome")
+        or fallback_seguradora_display(a.get("seguradora", "")),
         "vigencia_inicio": str(_parse_date(a.get("vigencia_inicio")) or ""),
         "vigencia_fim": str(_parse_date(a.get("vigencia_fim")) or ""),
         "premio_total_brl": str(_to_decimal(a.get("premio_total_brl")).quantize(Decimal("0.01"))),
@@ -385,7 +398,7 @@ def _split_apolices_por_vigencia(apolices: list[dict], ref: date) -> tuple[list,
     return vigentes, vencendo, vencidas
 
 
-def _emit_telemetry(payload: dict) -> None:
+def _emit_telemetry(payload: dict, seguradoras_fora_catalogo: int = 0) -> None:
     """ADR-240 D8: telemetria sem PII (counts agregados + flags + has_apolice_vencida)."""
     _logger.info(
         "mathoms.relatorio.protecao_rendered",
@@ -400,6 +413,8 @@ def _emit_telemetry(payload: dict) -> None:
             "has_apolice_vencendo": len(payload.get("apolices_vencendo") or []) > 0,
             "corretoras_count": payload.get("corretoras_count", 0),
             "seguradoras_count": payload.get("seguradoras_count", 0),
+            # Flag SOFT A37.l11 — codes fora do institution_catalog (catálogo esparso).
+            "seguradoras_fora_catalogo": seguradoras_fora_catalogo,
         },
     )
 
@@ -412,13 +427,22 @@ def _flag_categoria(payload: dict, categoria: str) -> bool:
     )
 
 
-def compute_protecao(inp: ProtecaoInput) -> dict:
-    """Retorna payload `protecao_patrimonial` conforme schema ADR-240 D8."""
-    vigentes, vencendo, vencidas = _split_apolices_por_vigencia(inp.apolices, inp.data_referencia)
+def _canonical_apolices(inp: ProtecaoInput) -> list[dict]:
+    """A37.l11 — boundary E2→domínio: canonicaliza ``seguradora`` contra o
+    catálogo antes de contar/resumir (artifacts antigos não migram; re-run
+    recomputa aqui)."""
+    return [canonicalize_apolice_seguradora(a, inp.seguradoras_catalog) for a in inp.apolices]
+
+
+def _fora_catalogo_count(apolices: list[dict]) -> int:
+    return sum(1 for a in apolices if a.get("_seguradora_fora_catalogo"))
+
+
+def _protecao_payload(inp: ProtecaoInput, vigentes, vencendo, vencidas) -> dict:
     premio_total = _premio_total_anual(vigentes)
     pct = _pct_renda(premio_total, inp.renda_anual_liquida_brl)
     decomp = _premio_decomposicao(vigentes)
-    payload = {
+    return {
         "premio_total_anual_brl": str(premio_total.quantize(Decimal("0.01"))),
         "premio_decomposicao": {k: str(v.quantize(Decimal("0.01"))) for k, v in decomp.items()},
         "pct_renda_anual": _format_pct_renda(pct),
@@ -430,7 +454,14 @@ def compute_protecao(inp: ProtecaoInput) -> dict:
         "corretoras_count": _corretoras_count(vigentes),
         "seguradoras_count": _seguradoras_count(vigentes),
     }
-    _emit_telemetry(payload)
+
+
+def compute_protecao(inp: ProtecaoInput) -> dict:
+    """Retorna payload `protecao_patrimonial` conforme schema ADR-240 D8."""
+    apolices = _canonical_apolices(inp)
+    vigentes, vencendo, vencidas = _split_apolices_por_vigencia(apolices, inp.data_referencia)
+    payload = _protecao_payload(inp, vigentes, vencendo, vencidas)
+    _emit_telemetry(payload, seguradoras_fora_catalogo=_fora_catalogo_count(vigentes))
     return payload
 
 

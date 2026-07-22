@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Mapping
 
 from pipeline.llm import institution_catalog as _catalog
 
@@ -48,6 +48,9 @@ class _StageLLM:
     apolice_haiku: "LLMService"
     apolice_sonnet: "LLMService"
     seguradoras_catalog: str = _catalog.CATALOG_UNAVAILABLE_BLOCK
+    # A37.l11 — mesmo catálogo em forma estruturada (code → nome de exibição)
+    # para validação/canonicalização do output do LLM no persist.
+    seguradoras_by_code: Mapping[str, str] = field(default_factory=dict)
 
 
 # Filename patterns por tipo_comprovante. L1 cobre crlv + apolice (L2);
@@ -126,11 +129,16 @@ def _extract_apolice(
     call_args = (config, doc.name, text, llm.seguradoras_catalog)
     h_result, prompt_version = _call_llm_apolice(llm.apolice_haiku, *call_args)
     source_id = _stem_for_filename(doc.name)
+    codes = llm.seguradoras_by_code
     if not _cascade_needed(h_result.output.model_dump(mode="json"), text):
-        payload = _build_apolice_payload(h_result.output, prompt_version, text, source_id, False)
+        payload = _build_apolice_payload(
+            h_result.output, prompt_version, text, source_id, False, seguradoras_catalog=codes
+        )
         return payload, h_result, prompt_version
     s_result, _ = _call_llm_apolice(llm.apolice_sonnet, *call_args)
-    payload = _build_apolice_payload(s_result.output, prompt_version, text, source_id, True)
+    payload = _build_apolice_payload(
+        s_result.output, prompt_version, text, source_id, True, seguradoras_catalog=codes
+    )
     return payload, s_result, prompt_version
 
 
@@ -317,22 +325,24 @@ def _process_one(
 
 
 def _build_stage_llm(
-    base_cfg: "LLMConfig", seguradoras_catalog: str = _catalog.CATALOG_UNAVAILABLE_BLOCK
+    base_cfg: "LLMConfig",
+    seguradoras_catalog: str = _catalog.CATALOG_UNAVAILABLE_BLOCK,
+    seguradoras_by_code: Mapping[str, str] | None = None,
 ) -> _StageLLM:
     """Constrói trio de services. Anthropic → cascata real Haiku/Sonnet; outros providers → degrada para workspace default em ambos os slots de apolice ([[ADR-239]] D6)."""
     from pipeline.llm.litellm_client import LLMService
 
-    crlv_service = LLMService(base_cfg)
     if base_cfg.provider == "anthropic":
         haiku_cfg = replace(base_cfg, model_name=_APOLICE_HAIKU_MODEL)
         sonnet_cfg = replace(base_cfg, model_name=_APOLICE_SONNET_MODEL)
     else:
         haiku_cfg = sonnet_cfg = base_cfg
     return _StageLLM(
-        crlv=crlv_service,
+        crlv=LLMService(base_cfg),
         apolice_haiku=LLMService(haiku_cfg),
         apolice_sonnet=LLMService(sonnet_cfg),
         seguradoras_catalog=seguradoras_catalog,
+        seguradoras_by_code=seguradoras_by_code or {},
     )
 
 
@@ -352,10 +362,20 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
         response_cache=ctx.llm_response_cache,
         metrics_emitter=ctx.llm_metrics_emitter,
     )
-    seguradoras = _catalog.render_institution_catalog(
-        ctx.institution_catalog_provider, include_categories=(_catalog.INSURANCE_CATEGORY,)
+    seguradoras, seguradoras_by_code = _seguradoras_catalog_pair(ctx)
+    stage_llm = _build_stage_llm(llm_config, seguradoras, seguradoras_by_code)
+    return docs[:_MAX_DOCS_PER_RUN], stage_llm, llm_config
+
+
+def _seguradoras_catalog_pair(ctx: WorkspaceContext) -> tuple[str, dict[str, str]]:
+    """Catálogo insurance em 2 formas: bloco do user prompt + mapping estruturado
+    (code → nome) para validação/canonicalização do output (A37.l11)."""
+    provider = ctx.institution_catalog_provider
+    categories = (_catalog.INSURANCE_CATEGORY,)
+    return (
+        _catalog.render_institution_catalog(provider, include_categories=categories),
+        _catalog.institution_code_map(provider, include_categories=categories),
     )
-    return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config, seguradoras), llm_config
 
 
 def _summarize(processed: list[dict], errors: list[dict]) -> dict[str, Any]:

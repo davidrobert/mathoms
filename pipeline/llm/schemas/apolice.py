@@ -9,6 +9,9 @@ from typing import Annotated, Literal, Optional, Union
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 
 # Bump quando alterar prompt ``apolice`` de modo que afete output (ADR-144 cache).
+# v1.3.0 — A37.l11: bump pareado com o prompt (instrução de `seguradora` reforçada
+# — code EXATO do catálogo, variação derivada do nome é inválida). Schema em si
+# não mudou; canonicalização/validação Python acontece no boundary do stage.
 # v1.2.2 — A37.l5: bump pareado com o prompt (sufixo numerico sintetico no exemplo
 # de `congenere_anterior`; saneamento PII pre-release publica, sem mudanca de contrato).
 # v1.2.1 — A34.l10: bump pareado com o prompt (endereco sintetico no exemplo
@@ -25,7 +28,7 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_valida
 # combinada multi-bem (1 erro por campo Decimal/date). Fix: BeforeValidator por campo
 # coage tipos antes do strict check; strip continua atacando aspas spurious do Haiku.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
-PROMPT_VERSION = "1.2.2"
+PROMPT_VERSION = "1.3.0"
 
 
 def _strip_spurious_quotes(value):

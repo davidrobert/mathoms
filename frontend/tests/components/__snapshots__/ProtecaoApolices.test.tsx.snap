@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProtecaoApolices > snapshot — tabela com display names capitalizados 1`] = `
+[
+  {
+    "apolice": "AUTO-1",
+    "seguradora": "Tokio Marine",
+  },
+  {
+    "apolice": "COMB-1",
+    "seguradora": "Porto Seguro",
+  },
+]
+`;

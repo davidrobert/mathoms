@@ -1,6 +1,11 @@
 """Prompt LLM dedicado para apólice de seguro polimórfica — A18 L2 (ADR-239 D2)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
+# v1.3.0 — A37.l11: reforça a instrução de `seguradora` (usar EXATAMENTE um code
+# do catálogo injetado; variação derivada do nome é inválida) — evidência
+# 2026-07-20: mesma cia emitida com dois codes distintos no mesmo run. Boundary
+# Python passa a canonicalizar/validar o output contra o catálogo de qualquer
+# forma (defesa em profundidade).
 # v1.2.2 — A37.l5: exemplo de `congenere_anterior` troca sufixo numérico real por
 # sintético (saneamento PII pré-release pública; sem mudança de contrato).
 # v1.2.1 — A34.l10: exemplo do campo `notas` troca endereço real por sintético
@@ -16,7 +21,7 @@
 # as aspas como parte do valor → Decimal parsing falhava determinístico em todas as
 # apólices). Schema agora também faz strip defensivo via model_validator.
 # Semver puro pós-A20.l12 (errata ADR-233 §Migration) — era "apolice-v1.1.1".
-PROMPT_VERSION = "1.2.2"
+PROMPT_VERSION = "1.3.0"
 
 
 SYSTEM_PROMPT = """\
@@ -30,7 +35,7 @@ REGRAS DE EXTRAÇÃO:
 
 1. **`apolice_numero`**: número único da apólice (string livre, max 40 chars). Tal qual aparece.
 
-2. **`seguradora`**: code canônico em lowercase sem acentos, escolhido do catálogo de seguradoras injetado na mensagem do usuário. Inferir do CNPJ ou logo. Seguradora fora do catálogo: derive o code do nome (lowercase, sem acentos, sem espaços) e registre em `notas`.
+2. **`seguradora`**: code canônico em lowercase sem acentos, escolhido do catálogo de seguradoras injetado na mensagem do usuário. Quando a seguradora consta no catálogo, use EXATAMENTE o code listado — NUNCA derive variação do nome da cia (se o catálogo lista `porto`, emitir `portoseguro` é ERRADO). Inferir do CNPJ ou logo. Apenas quando a seguradora NÃO consta no catálogo: derive o code do nome (lowercase, sem acentos, sem espaços) e registre em `notas`.
 
 3. **`vigencia_inicio`** e **`vigencia_fim`**: datas ISO 8601 no formato `YYYY-MM-DD`. Converter de qualquer formato brasileiro.
 
@@ -101,7 +106,7 @@ REGRAS DE EXTRAÇÃO:
 
 20. **`notas`**: observações relevantes (ex.: "apólice combinada — auto + residência R Exemplo"; "corretor PF; SUSEP individual"). Max 500 chars. Não inclua dados sensíveis (CPF, RG, endereço completo do proprietário em texto livre).
 
-21. **`prompt_version`**: conteúdo da string: `1.2.2`.
+21. **`prompt_version`**: conteúdo da string: `1.3.0`.
 
 NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou marque `needs_review=true` quando obrigatório está ausente.
 
@@ -114,7 +119,7 @@ Sigilo metodológico: NÃO mencionar Perini/Cerbasi/AUVP no output.
 USER_PROMPT_TEMPLATE = """\
 Extraia a apólice de seguro a seguir.
 
-Catálogo de seguradoras (code canônico — use exatamente estes codes):
+Catálogo de seguradoras (code canônico — use exatamente estes codes; variação derivada do nome da cia é inválida quando ela consta no catálogo):
 {seguradoras_catalog}
 
 Arquivo: {filename}
@@ -138,6 +143,6 @@ Popule o output `ApolicePayload`:
 - sinistro_indenizacao_recebida_brl = null (placeholder V1)
 - confidence (0-1) + needs_review (false default; true se inconsistência)
 - cascade_triggered = false (default Haiku)
-- prompt_version (conteúdo: 1.2.2)
+- prompt_version (conteúdo: 1.3.0)
 - notas (max 500 chars; sem PII)
 """

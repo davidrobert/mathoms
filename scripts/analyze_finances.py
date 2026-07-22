@@ -2419,6 +2419,23 @@ def _e5_check_e4_inputs(store) -> tuple[Dict[str, Any], Dict[str, Any], Dict[str
     return receitas, despesas, fluxo_mensal
 
 
+def _load_seguradoras_catalog(ctx) -> dict[str, str]:
+    """Codes ``category=insurance`` → display name (A37.l11 canonicalização)."""
+    provider = getattr(ctx, "institution_catalog_provider", None) if ctx is not None else None
+    if provider is None:
+        return {}
+    from pipeline.llm.institution_catalog import INSURANCE_CATEGORY, institution_code_map
+
+    try:
+        return institution_code_map(provider, include_categories=(INSURANCE_CATEGORY,))
+    except Exception as exc:  # pragma: no cover — fallback transparente
+        print(
+            f"  [warn] institution_catalog_provider falhou ({exc}); "
+            "seguradora segue sem canonicalização"
+        )
+        return {}
+
+
 def _e5_build_adapter(life_plan_content: str | None, ctx=None):
     """Carrega configs auxiliares + monta E5AnalyzerAdapter.
 
@@ -2493,6 +2510,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         cambio_eur_brl=cambio_eur_brl,
         property_classification_overrides=property_classification_overrides,
         imoveis_no_if=imoveis_no_if,
+        seguradoras_catalog=_load_seguradoras_catalog(ctx),
     )
 
 
