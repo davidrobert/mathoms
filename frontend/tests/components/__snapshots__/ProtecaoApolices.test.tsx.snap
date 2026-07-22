@@ -1,0 +1,134 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProtecaoApolices > snapshot — tabela com display names capitalizados 1`] = `
+<div>
+  <div
+    class="report-card report-card--neutral"
+    data-testid="protecao-apolices"
+  >
+    <h3
+      class="text-style-subtitle"
+    >
+      Apólices ativas
+    </h3>
+    <table
+      class="mt-3 w-full text-style-body"
+    >
+      <thead>
+        <tr
+          class="border-b border-surface-divider"
+        >
+          <th
+            class="text-left"
+            scope="col"
+          >
+            Apólice
+          </th>
+          <th
+            class="text-left"
+            scope="col"
+          >
+            Seguradora
+          </th>
+          <th
+            class="text-left"
+            scope="col"
+          >
+            Status
+          </th>
+          <th
+            class="text-left"
+            scope="col"
+          >
+            Vigência
+          </th>
+          <th
+            class="text-right"
+            scope="col"
+          >
+            Prêmio anual
+          </th>
+          <th
+            class="text-left"
+            scope="col"
+          >
+            Bens
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="border-b border-surface-divider/50"
+          data-testid="protecao-apolice-AUTO-1"
+        >
+          <td>
+            AUTO-1
+          </td>
+          <td>
+            Tokio Marine
+          </td>
+          <td>
+            <span
+              class="rounded px-2 py-0.5 text-style-caption bg-semantic-success/20 text-semantic-success"
+            >
+              Vigente
+            </span>
+          </td>
+          <td>
+            2026-03-01
+             →
+            2027-03-01
+          </td>
+          <td
+            class="text-right"
+          >
+            <span
+              class="font-mono tabular-nums"
+            >
+              R$ 1.500,00
+            </span>
+          </td>
+          <td>
+            veiculo
+          </td>
+        </tr>
+        <tr
+          class="border-b border-surface-divider/50"
+          data-testid="protecao-apolice-COMB-1"
+        >
+          <td>
+            COMB-1
+          </td>
+          <td>
+            Porto Seguro
+          </td>
+          <td>
+            <span
+              class="rounded px-2 py-0.5 text-style-caption bg-semantic-success/20 text-semantic-success"
+            >
+              Vigente
+            </span>
+          </td>
+          <td>
+            2026-03-01
+             →
+            2027-03-01
+          </td>
+          <td
+            class="text-right"
+          >
+            <span
+              class="font-mono tabular-nums"
+            >
+              R$ 1.500,00
+            </span>
+          </td>
+          <td>
+            veiculo
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
