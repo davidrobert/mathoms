@@ -15,6 +15,9 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from pipeline.domain.services.narrativas.alocacao_narrator import (
+    narrate_alocacao_atual_vs_alvo,
+)
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
     APORTE_SEM_DISTRIBUICAO,
@@ -135,23 +138,9 @@ class ChartsNarrator:
                     + f"Aportes mensais de {fmt_currency(M['meta_aporte_mensal'])} em ativos financeiros devem melhorar essa proporção."
                 ),
             },
-            "alocacao_atual_vs_alvo": {
-                "context": (
-                    f"Comparação entre a alocação atual dos ativos financeiros "
-                    f"({fmt_currency(M[ctx.key_inv_titular] + M[ctx.key_inv_conjuge])}) e a alocação "
-                    f"estratégica recomendada, considerando horizonte de {M['anos_para_if_calculo']} "
-                    "anos até IF e tolerância ao risco médio."
-                ),
-                "conclusion": (
-                    f"Atual: {ctx.titular_nome} diversificado em {M[ctx.key_inst_titular]}; "
-                    f"{ctx.conjuge_nome} concentra em {M[ctx.key_inst_conjuge]}. "
-                    f"Alvo: {M['aloc_rf_pct']}% Renda Fixa ({M['aloc_instrumentos_rf']}), "
-                    f"{M['aloc_acoes_pct']}% Ações ({M['aloc_instrumentos_rv']}), "
-                    f"{M['aloc_imoveis_pct']}% Imóveis/REITs, {M['aloc_liquidez_pct']}% Liquidez/USD. "
-                    f"Aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês priorizarão renda fixa, "
-                    f"com rebalanceamento {M['aloc_rebalanceamento']}."
-                ),
-            },
+            # A37.l8 (FIN-05): consome a taxonomia v2 via `aloc_derived` (mesma
+            # base do card React); rollup v1 + frase de instituições aposentados.
+            "alocacao_atual_vs_alvo": narrate_alocacao_atual_vs_alvo(M),
         }
 
     # ── Grupo 2: Fluxo + receita + despesa (charts 5-8) ────────────────
@@ -214,8 +203,8 @@ class ChartsNarrator:
     # ── Grupo 3: Projeção IF + renda passiva + impostos (charts 9-14) ──
     # ADR-216 Onda 6: chart yield_imoveis descontinuado; bloco removido
     # (S4 agora renderiza RealEstateYieldCard via data.real_estate).
-    # Métrica yield_imoveis_pct continua populada em scripts/generate_narratives.py
-    # para back-compat de summaries_narrator (S4 SectionSummary).
+    # A37.l8 (FIN-03): métrica yield_imoveis_pct aposentada — o card é o
+    # único yield da S4; o s4 textual cita recorrente + âncora IRPF.
     def _narrate_projecao_if(
         self,
         M: dict[str, Any],
@@ -227,10 +216,9 @@ class ChartsNarrator:
                     f"Projeção do patrimônio investível até atingir a meta de {fmt_currency(M['if_meta'])}, "
                     f"considerando aportes mensais de {fmt_currency(M['meta_aporte_mensal'])} e retorno real anual de {fmt_num(M['if_retorno_real_pct'], 0)}%."
                 ),
-                "conclusion": (
-                    f"Meta será atingida em {M['if_ano']}, quando {ctx.titular_nome} terá {M[ctx.key_idade_titular_if]} anos. "
-                    f"Renda passiva estimada será {fmt_currency(M['renda_passiva_4pct'])}/mês ({fmt_percent(M['pct_renda_passiva_meta'])} da meta de {fmt_currency(M['if_renda_passiva_meta'])}/mês)."
-                ),
+                # A37.l8 (FIN-08): linguagem probabilística via if_monte_carlo —
+                # nunca "será atingida" determinístico.
+                "conclusion": _projecao_3cenarios_conclusion(M, ctx),
             },
             "waterfall_if": {
                 "context": (
@@ -410,6 +398,42 @@ def _narrate_bubble_riscos(
         ),
         "conclusion": f"{_format_priority_phrase(riscos_top3)}. {_pick_action_line(has_us, seguro_range)}",
     }
+
+
+# ── A37.l8 (FIN-08): projeção IF probabilística ─────────────────────────
+def _fmt_probabilidade(prob: float) -> str:
+    """Paridade com formatProbability do S7 (ADR-237): guards <1% / >99%."""
+    if prob <= 0:
+        return "0%"
+    if prob >= 1:
+        return "100%"
+    if prob < 0.01:
+        return "<1%"
+    if prob > 0.99:
+        return ">99%"
+    return f"{round(prob * 100)}%"
+
+
+def _projecao_3cenarios_conclusion(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
+    renda = (
+        f"Hoje, a renda passiva estimada pela regra de retirada é {fmt_currency(M['renda_passiva_4pct'])}/mês "
+        f"({fmt_percent(M['pct_renda_passiva_meta'])} da meta de {fmt_currency(M['if_renda_passiva_meta'])}/mês)."
+    )
+    p50 = M.get("mc_p50_ano_if")
+    prob = M.get("mc_prob_if_ate_idade_meta")
+    idade_meta = M.get("mc_idade_meta")
+    if p50 and prob is not None and idade_meta:
+        prob_txt = _fmt_probabilidade(prob)
+        aprox = "" if prob_txt[0] in "<>" else "~"
+        return (
+            f"Cenário central (P50): meta em {p50}; {aprox}{prob_txt} de chance de "
+            f"{ctx.titular_nome} alcançá-la já até os {idade_meta} anos. " + renda
+        )
+    return (
+        f"Em cenário sem variação de mercado, a trajetória projetada aponta a meta para "
+        f"{M['if_ano']}, quando {ctx.titular_nome} tiver {M[ctx.key_idade_titular_if]} anos. "
+        + renda
+    )
 
 
 def _fmt_aporte_head(M: Mapping[str, Any]) -> str:

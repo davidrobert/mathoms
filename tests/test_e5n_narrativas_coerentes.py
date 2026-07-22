@@ -288,7 +288,7 @@ def test_s4_vacancia_explicita_sem_anualizacao():
         "aluguel_mensal_recorrente": 3000.0,
         "aluguel_janela_meses": 6,
         "aluguel_meses_sem_entrada": 3,
-        "aluguel_anual_irpf": 36_000.0,
+        "aluguel_anual_irpf": 33_500.0,
         "aluguel_irpf_ano_ref": 2024,
     }
     s4 = _s4(m)
@@ -296,6 +296,7 @@ def test_s4_vacancia_explicita_sem_anualizacao():
     assert "vacância" in s4.lower()
     # Sem projeção anual do recorrente quando há vacância (só a âncora IRPF tem /ano).
     assert fmt_currency(3000.0 * 12) + "/ano" not in s4
+    assert fmt_currency(33_500.0) + "/ano" in s4
 
 
 def test_s4_um_zero_final_nao_sinaliza_vacancia():
