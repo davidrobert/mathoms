@@ -20,6 +20,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from pipeline.domain.services.narrativas.format_helpers import pluralize
+
 
 def _safe_float(val) -> float:
     if val is None:
@@ -94,8 +96,9 @@ def _seguro_vida_item(protecao: dict[str, Any] | None) -> PontoUrgenteItem | Non
     if _has_apolice_vida_vigente(vigentes):
         return None
     if vigentes:
+        n = len(vigentes)
         return _item_seguro_vida(
-            f"{len(vigentes)} apólice(s) vigente(s) cobrem bens "
+            f"{n} {pluralize(n, 'apólice vigente cobre', 'apólices vigentes cobrem')} bens "
             "(auto/residencial), sem cobertura de vida identificada"
         )
     return _item_seguro_vida("nenhuma apólice identificada")

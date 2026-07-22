@@ -79,8 +79,19 @@ class TestSeguro:
         seguro = [i for i in out if i.acao == "Contratar seguro de vida e invalidez"]
         assert len(seguro) == 1
         assert "nenhuma apólice identificada" not in seguro[0].impacto
-        assert "2 apólice(s) vigente(s)" in seguro[0].impacto
+        assert "2 apólices vigentes cobrem" in seguro[0].impacto
         assert "sem cobertura de vida" in seguro[0].impacto
+
+    def test_pluralizacao_singular_uma_apolice(self):
+        # A37.l14 (PD-06): "1 apólice(s) vigente(s)" era pluralização de sistema.
+        vigentes = [{"apolice_numero": "AUTO-1", "tipos_bem": ["veiculo"]}]
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(), _reserva(), _pat(), protecao=_protecao(vigentes)
+        )
+        seguro = [i for i in out if i.acao == "Contratar seguro de vida e invalidez"]
+        assert len(seguro) == 1
+        assert "1 apólice vigente cobre bens" in seguro[0].impacto
+        assert "(s)" not in seguro[0].impacto
 
     def test_omitido_quando_ha_apolice_de_vida_vigente(self):
         vigentes = [{"apolice_numero": "VIDA-1", "tipos_bem": ["pessoa"]}]
