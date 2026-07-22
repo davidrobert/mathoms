@@ -39,7 +39,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, Mapping
 
 from pipeline.artifact_store import ArtifactStore
 from pipeline.domain.services.cenarios_conjuge_analyzer import (
@@ -308,6 +308,7 @@ class E5AnalyzerAdapter:
         passive_income_calculator: PassiveIncomeCalculator | None = None,
         family_snapshots: tuple[FamilyMemberSnapshot, ...] = (),
         reference_date: date | None = None,
+        seguradoras_catalog: Mapping[str, str] | None = None,
     ) -> None:
         self._identity = member_identity or MemberIdentity(
             titular_key="david",
@@ -356,6 +357,8 @@ class E5AnalyzerAdapter:
         )
         self._family_snapshots = family_snapshots
         self._reference_date = reference_date or date.today()
+        # A37.l11 — canonicalização de seguradora no bloco de proteção.
+        self._seguradoras_catalog = dict(seguradoras_catalog or {})
 
     # -- Factory --
 
@@ -378,6 +381,7 @@ class E5AnalyzerAdapter:
         cambio_eur_brl: Decimal | float | None = None,
         property_classification_overrides: dict[str, str] | None = None,
         imoveis_no_if: bool = True,
+        seguradoras_catalog: Mapping[str, str] | None = None,
     ) -> "E5AnalyzerAdapter":
         """Constrói o adapter com todas as configs + services instanciados.
 
@@ -505,6 +509,7 @@ class E5AnalyzerAdapter:
             ),
             family_snapshots=family_snapshots_from_config(family, reference_date or date.today()),
             reference_date=reference_date,
+            seguradoras_catalog=seguradoras_catalog,
         )
 
     # -- API --
@@ -712,6 +717,7 @@ class E5AnalyzerAdapter:
             fluxo_mensal_raw=fluxo_mensal,
             family_snapshots=self._family_snapshots,
             reference_date=self._reference_date,
+            seguradoras_catalog=self._seguradoras_catalog,
         )
         pontos_urgentes = self._pontos_urgentes.analyze(
             ratios_dict, reserva, patrimonio_full, protecao=protecao

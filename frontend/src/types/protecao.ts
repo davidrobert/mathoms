@@ -27,6 +27,8 @@ export interface GapQualitativo {
 export interface ApoliceResumo {
   apolice_numero: string;
   seguradora: string;
+  /** Display name via institution_catalog (A37.l11); ausente em artifacts antigos. */
+  seguradora_nome?: string;
   vigencia_inicio: string;
   vigencia_fim: string;
   premio_total_brl: string;

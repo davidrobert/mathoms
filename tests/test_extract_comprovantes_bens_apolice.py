@@ -181,3 +181,72 @@ def test_extract_one_raises_para_outros_tipos():
         )
     assert "rgi_imovel" in str(exc.value)
     assert "V2" in str(exc.value)
+
+
+# ─────────────────────── A37.l11 — canonicalização de seguradora ──────────
+
+_CATALOGO_SEGURADORAS = {"porto": "Porto Seguro", "tokiomarine": "Tokio Marine"}
+
+
+def test_build_apolice_payload_canonicaliza_variante_do_catalogo():
+    """LLM violou a instrução (`portoseguro`) → persiste o code canônico `porto`."""
+    data = _minimal_apolice_dict()
+    data["seguradora"] = "portoseguro"
+    out = _FakeApoliceOutput(data)
+    payload = _build_apolice_payload(
+        out,
+        "1.3.0",
+        "x",
+        "s",
+        cascade_triggered=False,
+        seguradoras_catalog=_CATALOGO_SEGURADORAS,
+    )
+    assert payload["seguradora"] == "porto"
+    assert payload.get("needs_review", False) is False
+
+
+def test_build_apolice_payload_fora_catalogo_persiste_normalizado_sem_needs_review(caplog):
+    """Code desconhecido → normalizado + flag SOFT de telemetria (log), NÃO needs_review."""
+    data = _minimal_apolice_dict()
+    data["seguradora"] = "Segurex S.A."
+    out = _FakeApoliceOutput(data)
+    with caplog.at_level("INFO", logger="mathoms.pipeline.comprovantes_bens"):
+        payload = _build_apolice_payload(
+            out,
+            "1.3.0",
+            "x",
+            "s",
+            cascade_triggered=False,
+            seguradoras_catalog=_CATALOGO_SEGURADORAS,
+        )
+    assert payload["seguradora"] == "segurexsa"
+    assert payload.get("needs_review", False) is False
+    assert any(
+        "seguradora_fora_catalogo" in rec.message for rec in caplog.records
+    ), "flag soft de telemetria deve ser logada"
+
+
+def test_build_apolice_payload_needs_review_apenas_em_ambiguidade_real():
+    """2 entries com mesmo nome normalizado → needs_review=True (único gatilho)."""
+    data = _minimal_apolice_dict()
+    data["seguradora"] = "portoseguro"
+    out = _FakeApoliceOutput(data)
+    payload = _build_apolice_payload(
+        out,
+        "1.3.0",
+        "x",
+        "s",
+        cascade_triggered=False,
+        seguradoras_catalog={"porto": "Porto Seguro", "portoseg": "Porto-Seguro"},
+    )
+    assert payload["needs_review"] is True
+
+
+def test_build_apolice_payload_sem_catalogo_normaliza_e_nao_quebra():
+    """Compat: caller sem catálogo (CLI isolado) — normaliza, sem needs_review."""
+    data = _minimal_apolice_dict()
+    data["seguradora"] = "Porto-Seguro"
+    out = _FakeApoliceOutput(data)
+    payload = _build_apolice_payload(out, "1.3.0", "x", "s", cascade_triggered=False)
+    assert payload["seguradora"] == "portoseguro"
+    assert payload.get("needs_review", False) is False

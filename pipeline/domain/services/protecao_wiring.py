@@ -16,7 +16,7 @@ from __future__ import annotations
 import unicodedata
 from datetime import date
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
 
 from pipeline.artifact_store import ArtifactStore
 from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
@@ -208,12 +208,16 @@ def compute_protecao_via_store(
     fluxo_mensal_raw: dict,
     family_snapshots: tuple[FamilyMemberSnapshot, ...],
     reference_date: date,
+    seguradoras_catalog: Optional[Mapping[str, str]] = None,
 ) -> dict:
-    """Payload ``protecao_patrimonial`` (ADR-240 D8): sempre retorna — sem
-    apólice produz KPIs zerados + ``gap_qualitativo`` (cenário G6-b)."""
+    """Payload ``protecao_patrimonial`` (ADR-240 D8) — sempre retorna (cenário G6-b);
+    ``seguradoras_catalog`` (A37.l11) canonicaliza ``seguradora`` antes de contar."""
     renda = resolve_renda_anual_liquida(irpf_analyzer, fluxo_legacy)
     fiscal = build_fiscal_snapshot(irpf_analyzer, fluxo_mensal_raw)
-    inp = _protecao_input(store, reference_date, renda, family_snapshots, patrimonio_full, fiscal)
+    catalog = seguradoras_catalog or {}
+    inp = _protecao_input(
+        store, reference_date, renda, family_snapshots, patrimonio_full, fiscal, catalog
+    )
     return compute_protecao(inp)
 
 
@@ -224,6 +228,7 @@ def _protecao_input(
     family: tuple[FamilyMemberSnapshot, ...],
     patrimonio_full: dict,
     fiscal: FiscalSnapshot,
+    seguradoras_catalog: Mapping[str, str],
 ) -> ProtecaoInput:
     return ProtecaoInput(
         apolices=load_apolices(store),
@@ -233,4 +238,5 @@ def _protecao_input(
         family_members=family,
         patrimonio=build_patrimonio_snapshot(patrimonio_full),
         fiscal=fiscal,
+        seguradoras_catalog=seguradoras_catalog,
     )

@@ -3,7 +3,7 @@ id: A37.l10
 type: lane
 title: "Apêndices: stress card com coluna base vazia + tabela de premissas 10× indisponível"
 sprint: A37
-status: planned
+status: shipped
 priority: P2
 branch_slug: a37-l10-apendices-ux
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/frontend
 ---

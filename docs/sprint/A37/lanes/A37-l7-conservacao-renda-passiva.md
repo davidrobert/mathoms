@@ -3,7 +3,7 @@ id: A37.l7
 type: lane
 title: "Conservação de renda passiva sem gate runtime + dict de fontes não-conservativo"
 sprint: A37
-status: planned
+status: shipped
 priority: P1
 branch_slug: a37-l7-conservacao-renda-passiva
 adrs: []
@@ -11,7 +11,7 @@ depends_on: ["[[A37.l1]]"]
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados

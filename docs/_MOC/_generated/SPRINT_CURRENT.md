@@ -9,7 +9,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## In progress (1)
 
-- [[A37.l1]] — Parecer enxerga o relatório inteiro: contrato de exec context (dupla truncação) + redação de identificadores · priority P0 · branch `a37-l1-parecer-exec-context`
+- [[A37.l15]] — Débitos com gate: fonte de dados de milhas (decisão owner) + remoção do alias deprecated de caixa · priority P3 · branch `a37-l15-debitos-owner-gated`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

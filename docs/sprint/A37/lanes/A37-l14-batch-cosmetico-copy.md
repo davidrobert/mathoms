@@ -3,7 +3,7 @@ id: A37.l14
 type: lane
 title: "Batch cosmético de copy/labels + decisão de agrupamento do aporte no doughnut"
 sprint: A37
-status: planned
+status: shipped
 priority: P3
 branch_slug: a37-l14-batch-cosmetico-copy
 adrs: ["[[ADR-333]]"]
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/shipped
   - priority/p3
   - area/frontend
   - area/pipeline

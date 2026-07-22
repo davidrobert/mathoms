@@ -3,7 +3,7 @@ id: A37.l11
 type: lane
 title: "Seguradora sem canonicalização: mesma cia com dois codes, count inflado e render cru"
 sprint: A37
-status: planned
+status: shipped
 priority: P2
 branch_slug: a37-l11-seguradora-canonicalizacao
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/pipeline
   - area/dados
