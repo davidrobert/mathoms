@@ -7,8 +7,10 @@ Metrics are loaded dynamically from E5 JSON at runtime.
 
 import json
 import re
+import unicodedata
 from decimal import Decimal
 from pathlib import Path
+from statistics import median
 
 import scripts.pipeline_common as _pc
 
@@ -232,6 +234,53 @@ def _compute_usd_saldos_per_bank(e5_data: dict) -> dict:
     return {"total_usd": total, "por_banco": por_banco}
 
 
+def _serie_mensal_aluguel(fluxo: dict) -> list[float]:
+    """Série mensal de aluguéis do dataset "Aluguéis" (origem estática do income_origin_resolver)."""
+    rmd = fluxo.get("receita_despesa_mensal_detalhado", {}) or {}
+    for ds in rmd.get("receita_datasets", []) or []:
+        label = unicodedata.normalize("NFD", str(ds.get("label", ""))).upper()
+        if "ALUGU" in "".join(c for c in label if unicodedata.category(c) != "Mn"):
+            return [
+                float(v) if isinstance(v, (int, float)) else 0.0 for v in ds.get("data", []) or []
+            ]
+    return []
+
+
+def _ultima_sequencia_aluguel(serie: list[float]) -> tuple[list[float], int]:
+    """Sequência contígua > 0 mais recente + nº de meses sem entrada no fim da série."""
+    i = len(serie) - 1
+    sem_entrada = 0
+    while i >= 0 and serie[i] <= 0:
+        sem_entrada += 1
+        i -= 1
+    run: list[float] = []
+    while i >= 0 and serie[i] > 0:
+        run.append(serie[i])
+        i -= 1
+    run.reverse()
+    return run, sem_entrada
+
+
+def _aluguel_recorrente_stats(serie: list[float]) -> dict:
+    """FIN-03 (A37.l8): aluguel recorrente atual = mediana dos últimos ≤6 meses da
+    sequência contígua > 0 mais recente; zeros no fim viram ``aluguel_meses_sem_entrada``
+    (sinal de vacância no narrador quando ≥2). Nunca anualiza média que cruza vacância
+    (co-design financial-planner)."""
+    run, sem_entrada = _ultima_sequencia_aluguel(serie)
+    if not run:
+        return {
+            "aluguel_mensal_recorrente": 0.0,
+            "aluguel_janela_meses": 0,
+            "aluguel_meses_sem_entrada": 0,
+        }
+    janela = run[-6:]
+    return {
+        "aluguel_mensal_recorrente": round(float(median(janela)), 2),
+        "aluguel_janela_meses": len(janela),
+        "aluguel_meses_sem_entrada": sem_entrada,
+    }
+
+
 def _compute_salario_conjuge(e5_data: dict) -> float:
     """Compute conjuge CLT salary from fluxo mensal detalhado.
 
@@ -349,7 +398,20 @@ def load_metrics_from_e5(
     receita_clt = por_fonte.get("receita_clt", 0)
     despesa_total = fluxo.get("despesa_total", 0)
     n_meses_periodo = len(fluxo.get("receita_despesa_mensal_detalhado", {}).get("labels", [])) or 1
-    receita_aluguel_anual = (receita_aluguel / n_meses_periodo) * 12 if n_meses_periodo else 0
+
+    # A37.l8 (FIN-03): aluguel recorrente atual + âncora anual do IRPF via
+    # passive_income — substitui a média histórica anualizada (cruzava vacância)
+    # e o yield diluído sobre a base total (s4 não emite mais yield %).
+    aluguel_stats = _aluguel_recorrente_stats(_serie_mensal_aluguel(fluxo))
+    passive_income = e5_data.get("passive_income") or {}
+    aluguel_anual_irpf = (
+        float((passive_income.get("renda_passiva_por_fonte_brl") or {}).get("alugueis") or 0)
+        if passive_income.get("status") == "ok"
+        else 0.0
+    )
+
+    # A37.l8 (FIN-08): Monte Carlo IF já presente no payload E5 (N3).
+    mc_if = e5_data.get("if_monte_carlo") or {}
 
     patrimonio_bruto = pat.get("bruto", 0)
     # C2.1: o campo vivo é ``investivel_efetivo`` (o mesmo que ``goals.if_pct`` usa como
@@ -357,8 +419,6 @@ def load_metrics_from_e5(
     patrimonio_investivel = pat.get("investivel_efetivo", 0)
     investimentos_titular = pat.get(_KEY_INV_TITULAR, 0)
     investimentos_conjuge = pat.get(_KEY_INV_CONJUGE, 0)
-
-    yield_imoveis_pct = round(_safe_div(receita_aluguel_anual, imoveis_invest) * 100, 1)
 
     salario_conjuge = _compute_salario_conjuge(e5_data)
     receita_recorrente_mensal = fluxo.get("receita_recorrente_mensal", 0)
@@ -393,8 +453,6 @@ def load_metrics_from_e5(
         EQUITY_PCT_ALVO_DEFAULT_MAX,
         EQUITY_PCT_ALVO_DEFAULT_MIN,
         IMOVEL_PCT_PATRIMONIO_IDEAL,
-        YIELD_POTENCIAL_FII_BR_PCT_MAX,
-        YIELD_POTENCIAL_FII_BR_PCT_MIN,
     )
 
     # --- Cenários cônjuge (computed by E5) ---
@@ -513,8 +571,14 @@ def load_metrics_from_e5(
         "pct_renda_passiva_meta": pct_renda_passiva_meta,
         # === Computed from E5 data ===
         _KEY_SAL_CONJUGE: salario_conjuge,
-        "receita_aluguel_anual": round(receita_aluguel_anual, 2),
-        "yield_imoveis_pct": yield_imoveis_pct,
+        # A37.l8 (FIN-03): aluguel recorrente atual + âncora IRPF substituem a
+        # média histórica anualizada (`receita_aluguel_anual`) e o yield diluído
+        # (`yield_imoveis_pct`) — único yield da S4 é o RealEstateYieldCard.
+        **aluguel_stats,
+        "aluguel_anual_irpf": round(aluguel_anual_irpf, 2),
+        "aluguel_irpf_ano_ref": (
+            passive_income.get("ano_referencia_irpf") if aluguel_anual_irpf > 0 else None
+        ),
         "das_anual_estimado": round(das_anual, 2),
         "receita_pj_anual": round(receita_pj_anual, 2),
         "das_aliquota_pct": round(das_aliquota_pct * 100, 1),
@@ -578,20 +642,19 @@ def load_metrics_from_e5(
         "regime_obs": trib_cfg.get("regime_label") or trib_cfg.get("regime_obs", ""),
         "holding_prazo": _holding_prazo_legacy(trib_cfg),
         "tributario_section": trib_cfg,
-        # === imóveis (rules-as-code, ADR-177) ===
-        "yield_imoveis_potencial_pct_min": float(YIELD_POTENCIAL_FII_BR_PCT_MIN),
-        "yield_imoveis_potencial_pct_max": float(YIELD_POTENCIAL_FII_BR_PCT_MAX),
         # === thresholds (rules-as-code, ADR-177) & alocação ===
         "threshold_imovel_pct": float(IMOVEL_PCT_PATRIMONIO_IDEAL),
         "equity_alvo_min": float(EQUITY_PCT_ALVO_DEFAULT_MIN),
         "equity_alvo_max": float(EQUITY_PCT_ALVO_DEFAULT_MAX),
-        "aloc_rf_pct": aloc_alvo.get("renda_fixa_pct", 50),
-        "aloc_acoes_pct": aloc_alvo.get("acoes_pct", 25),
-        "aloc_imoveis_pct": aloc_alvo.get("imoveis_reits_pct", 15),
-        "aloc_liquidez_pct": aloc_alvo.get("liquidez_usd_pct", 10),
-        "aloc_instrumentos_rf": aloc_alvo.get("instrumentos_rf", ""),
-        "aloc_instrumentos_rv": aloc_alvo.get("instrumentos_rv", ""),
+        # A37.l8 (FIN-05): narrador de alocação consome a taxonomia v2 via
+        # `goals.alocacao_alvo.derived` (mesma base do card React); rollup v1
+        # (`aloc_rf_pct` e irmãs) + instrumentos aposentados do texto.
+        "aloc_derived": (goals.get("alocacao_alvo") or {}).get("derived") or {},
         "aloc_rebalanceamento": aloc_alvo.get("rebalanceamento", "anual"),
+        # === A37.l8 (FIN-08): Monte Carlo IF (N3) — projeção probabilística ===
+        "mc_p50_ano_if": mc_if.get("p50_ano_if"),
+        "mc_prob_if_ate_idade_meta": mc_if.get("prob_if_ate_idade_meta"),
+        "mc_idade_meta": mc_if.get("idade_meta_usada"),
         # === config/goals.json: riscos e decisões ===
         "riscos_prioritarios": riscos,
         "decisoes_prioritarias": decisoes,
@@ -764,7 +827,7 @@ def _e5n_log_real_estate_skip(reason: str) -> None:
 
 
 def _e5n_populate_real_estate(ctx, store, e5_data: dict) -> None:
-    """Onda 2 P-B — popula `e5_data['real_estate']` (legado yield_imoveis_pct preservado)."""
+    """Onda 2 P-B — popula `e5_data['real_estate']` (único yield da S4 pós-A37.l8)."""
     payload = _e5n_call_real_estate_adapter(ctx, store, e5_data)
     if payload is None:
         print("  [info] real_estate skipped (sem property_identity ou backend unavailable)")

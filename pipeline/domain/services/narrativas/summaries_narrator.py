@@ -119,11 +119,9 @@ class SummariesNarrator:
                 f"{ctx.titular_nome} mantém {fmt_currency(M[ctx.key_inv_titular])} distribuídos entre {M[ctx.key_inst_titular]}. "
                 f"{ctx.conjuge_nome} possui {fmt_currency(M[ctx.key_inv_conjuge])} concentrados em {M[ctx.key_inst_conjuge]}."
             ),
-            "s4": (
-                f"{M['n_imoveis']} {pluralize(M['n_imoveis'], 'imóvel', 'imóveis')} no portfólio: residência{_residencia_loc} ({fmt_currency(M['residencia'])}), "
-                f"apartamentos alugados com renda de {fmt_currency(M['receita_aluguel_anual'])}/ano ({fmt_currency(M['receita_aluguel'] / M['n_meses_periodo'] if M['n_meses_periodo'] else 0)}/mês). "
-                f"Yield bruto dos imóveis de investimento estimado em {fmt_num(M['yield_imoveis_pct'])}% (receita/valor total)."
-            ),
+            # A37.l8 (FIN-03): aluguel recorrente atual + âncora IRPF + sinal de
+            # vacância; sem yield % (único yield da S4 é o RealEstateYieldCard).
+            "s4": _summary_s4(M, _residencia_loc),
             # ADR-168 cleanup (Sprint A10.1): s5 reescrito sem EUA. Antes
             # citava custo fase F1/F2, sobra mensal e viagens-EUA — todas
             # chaves dead-data do Modo USA removido em A8.4 PR4. Refoca
@@ -158,6 +156,51 @@ class SummariesNarrator:
             "s9": _summary_s9(M, riscos_nomes),
             "s10": s10,
         }
+
+
+# A37.l8 (FIN-03): 1 zero no fim da série pode ser corte de extrato/recebimento
+# no mês seguinte — sinal de vacância exige ≥2 meses sem entrada (co-design
+# financial-planner 2026-07-22).
+_VACANCIA_MIN_MESES = 2
+
+
+def _summary_s4(M: Mapping[str, Any], residencia_loc: str) -> str:
+    """s4 — imóveis: aluguel recorrente atual (janela estável) + âncora IRPF, sem yield %."""
+    n = M["n_imoveis"]
+    base = (
+        f"{n} {pluralize(n, 'imóvel', 'imóveis')} no portfólio: residência{residencia_loc} "
+        f"({fmt_currency(M['residencia'])}), imóveis de investimento somando "
+        f"{fmt_currency(M['imoveis_investimento'])}. "
+    )
+    return base + _s4_aluguel_clause(M) + _s4_ancora_irpf(M)
+
+
+def _s4_aluguel_clause(M: Mapping[str, Any]) -> str:
+    recorrente = M.get("aluguel_mensal_recorrente") or 0
+    if recorrente <= 0:
+        total = M.get("receita_aluguel") or 0
+        if total > 0:
+            # Payload sem série mensal: cita o total do período, sem anualizar.
+            return f"Renda de aluguel de {fmt_currency(total)} acumulada no período analisado."
+        return "Sem renda de aluguel identificada nos extratos do período."
+    janela = M.get("aluguel_janela_meses") or 0
+    janela_txt = f"mediana dos últimos {janela} {pluralize(janela, 'mês', 'meses')} com recebimento"
+    sem_entrada = M.get("aluguel_meses_sem_entrada") or 0
+    if sem_entrada >= _VACANCIA_MIN_MESES:
+        return (
+            f"Último aluguel recorrente observado: {fmt_currency(recorrente)}/mês ({janela_txt}); "
+            f"sem entrada de aluguel nos últimos {sem_entrada} meses — possível vacância ou venda."
+        )
+    return f"Aluguel recorrente atual de {fmt_currency(recorrente)}/mês ({janela_txt})."
+
+
+def _s4_ancora_irpf(M: Mapping[str, Any]) -> str:
+    valor = M.get("aluguel_anual_irpf") or 0
+    if valor <= 0:
+        return ""
+    ano = M.get("aluguel_irpf_ano_ref")
+    rotulo = f"IRPF {ano}" if ano else "IRPF"
+    return f" Âncora {rotulo}: {fmt_currency(valor)}/ano recebidos de aluguéis."
 
 
 # ADR-192 T01 D4: empty state coerente — workspace sem Risk cadastrado não pode
