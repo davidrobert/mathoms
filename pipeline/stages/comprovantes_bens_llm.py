@@ -9,7 +9,13 @@ continuam no stage.
 
 from __future__ import annotations
 
+import logging
 import re
+from typing import Mapping
+
+from pipeline.domain.services.seguradora_resolver import resolve_seguradora
+
+logger = logging.getLogger("mathoms.pipeline.comprovantes_bens")
 
 _LLM_MIN_TOKENS = 4_096
 _NEEDS_REVIEW_CONFIDENCE_THRESHOLD = 0.7
@@ -127,20 +133,46 @@ def _cascade_needed(payload: dict, text: str) -> bool:
 
 
 def _build_apolice_payload(
-    output, prompt_version: str, doc_text: str, source_artifact_id: str, cascade_triggered: bool
+    output,
+    prompt_version: str,
+    doc_text: str,
+    source_artifact_id: str,
+    cascade_triggered: bool,
+    seguradoras_catalog: Mapping[str, str] | None = None,
 ) -> dict:
     """Payload apólice + mask CPFs (pagador + segurado) Python pós-LLM (LGPD ADR-231 D8)."""
     payload = output.model_dump(mode="json")
     payload["prompt_version"] = prompt_version
     payload["source_artifact_id"] = source_artifact_id
     payload["cascade_triggered"] = cascade_triggered
-    # LGPD: mascara CPF do texto livre (LLM SEMPRE retorna null nos campos cpf_masked).
-    cpf_first = _extract_titular_cpf_masked(doc_text)
-    payload["pagador_cpf_masked"] = cpf_first
-    payload["segurado_cpf_masked"] = cpf_first
-    # Placeholder V1 — sinistro só entra em V2 com ADR-238 integração.
-    payload["sinistro_indenizacao_recebida_brl"] = None
+    _apply_apolice_cpf_masks(payload, doc_text)
+    payload["sinistro_indenizacao_recebida_brl"] = None  # placeholder V1 (ADR-238 integra em V2)
+    _canonicalize_output_seguradora(payload, seguradoras_catalog or {})
     confidence = payload.get("confidence", 1.0)
     if confidence < _NEEDS_REVIEW_CONFIDENCE_THRESHOLD:
         payload["needs_review"] = True
     return payload
+
+
+def _apply_apolice_cpf_masks(payload: dict, doc_text: str) -> None:
+    """LGPD ADR-231 D8: mascara CPF do texto em Python (LLM SEMPRE retorna null)."""
+    cpf_first = _extract_titular_cpf_masked(doc_text)
+    payload["pagador_cpf_masked"] = cpf_first
+    payload["segurado_cpf_masked"] = cpf_first
+
+
+def _canonicalize_output_seguradora(payload: dict, seguradoras_catalog: Mapping[str, str]) -> None:
+    """Validação de output contra os codes ``category=insurance`` (A37.l11):
+    canonicaliza variante do nome; code fora do catálogo persiste normalizado
+    com flag SOFT de telemetria; ``needs_review`` só em ambiguidade real."""
+    res = resolve_seguradora(str(payload.get("seguradora") or ""), seguradoras_catalog)
+    if not res.code:
+        return
+    payload["seguradora"] = res.code
+    if res.ambiguous:
+        payload["needs_review"] = True
+    if not res.in_catalog:
+        logger.info(
+            "mathoms.comprovantes.seguradora_fora_catalogo",
+            extra={"seguradora_code": res.code, "ambiguous": res.ambiguous},
+        )

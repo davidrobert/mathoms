@@ -17,6 +17,7 @@
             "properties": {
               "apolice_numero": {"type": "string"},
               "seguradora": {"type": "string"},
+              "seguradora_nome": {"type": "string"},
               "vigencia_inicio": {"type": "string"},
               "vigencia_fim": {"type": "string"},
               "premio_total_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
