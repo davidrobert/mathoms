@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 297
-- **Proposto**: 32
+- **Decidido**: 298
+- **Proposto**: 31
 - **Roadmap**: 3
 
 ## Fundação
@@ -430,7 +430,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## llm
 
-### Decidido (20)
+### Decidido (21)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
@@ -452,11 +452,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-300]] — Red lines do parecer: 4ª camada de validação determinística (conselho defensável) · phase A22.l2 · F3 launch-trust
 - [[ADR-304]] — KR1 do parecer — pureza monetária da prosa: fix de prompt + doutrina de enforcement · phase A27
 - [[ADR-307]] — Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift · phase W6-T02
+- [[ADR-341]] — Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores · phase A37.l1
 
-### Proposto (2)
+### Proposto (1)
 
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
-- [[ADR-341]] — Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores
 
 ## marketing
 

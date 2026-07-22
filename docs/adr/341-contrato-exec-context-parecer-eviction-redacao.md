@@ -2,18 +2,19 @@
 id: ADR-341
 type: adr
 title: "Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores"
-status: Proposto
+status: Decidido
 date: "2026-07-20"
+phase: A37.l1
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/llm
   - area/pipeline
 ---
 
 # ADR-341 — Contrato do exec context do parecer (manifest 2.0)
 
-**Status:** Proposto · **Data:** 2026-07-20 · **Lane:** [[A37.l1]] (P0)
+**Status:** Decidido (A37.l1) · **Data:** 2026-07-20 · **Lane:** [[A37.l1]] (P0)
 
 ## Contexto
 

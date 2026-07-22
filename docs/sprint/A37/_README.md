@@ -3,14 +3,17 @@ id: MOC-sprint-a37
 type: moc
 title: "Sprint A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20"
 aliases: ["A37", "Sprint A37"]
-sprint_status: current
+sprint_status: done
 date: "2026-07-20"
 theme: "report-quality"
 ---
 
 # Sprint A37 — Qualidade do relatório (pipeline-review 2026-07-20)
 
-> **Status:** `current` (promovida pelo owner em 2026-07-20) — W0 tem lanes `open`.
+> **Status:** `done` (2026-07-22) — 15/15 lanes shipped em ~21 PRs (#993–#1015, incl. 1 hotfix
+> flagrado pelo próprio gate). KR-A..E medidos no run `ccbfd4a7` (21 min, 16 CVs verdes):
+> KR-A/B/C/D ✅; KR-E ✅ com 1 residual registrado na [[A37.l11]] (alias de seguradora no
+> catálogo do dado real). DE-05 segue owner-gated.
 > **Origem:** revisão profunda do run completo `6659d62c` (workspace dogfood,
 > 2026-07-20, primeiro run com a onda R3 ativa) via skill `pipeline-review`:
 > 5 revisores especialistas + 5 verificadores adversariais. Todos os achados
