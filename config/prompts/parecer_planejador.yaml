@@ -60,7 +60,16 @@
 # auto-conservativo (Σ == headline, só yield recorrente); os componentes
 # excluídos da TRS migram para irmãos explícitos renda_ativa_pj_excluida_brl
 # (ADR-191) e ganho_capital_excluido_brl (ADR-336). Bump invalida cache Redis.
-version: "2.0.1"
+# 2.0.2 — A37.l9 (FIN-07+CTO-09 · CTO-04+PE-05): bases e denominadores
+# canônicos rotulados. tabela_classes declara base "% do total investido" +
+# coluna "% da carteira financeira" (pct_carteira_financeira, ex-imóveis
+# físicos); projeta $.investimentos.total_financeiro/fonte. Projeta
+# $.exposicao_cambial (total_brl/pct_investivel_financeiro/tier) — conceito
+# DISTINTO de alocação internacional (dois números, duas bases; nunca fundir).
+# Hints: peso de classe financeira cita-se da carteira financeira, nunca de
+# base com imóvel físico; alíquota rotulada "efetiva (blended)". Bump invalida
+# cache Redis.
+version: "2.0.2"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -120,23 +129,38 @@ context_sections:
             label: "Líquido"
             format: "brl"
             on_null: "placeholder"
+      # A37.l9: base declarada por coluna — pct = % do TOTAL INVESTIDO
+      # (financeiro + imóveis de investimento; fonte IRPF 31/12);
+      # pct_carteira_financeira = % da CARTEIRA FINANCEIRA (ex-imóveis
+      # físicos; "—" na linha Imóveis Investimento, fora da base).
       - format: "table"
-        title: "Alocação por classe (investível)"
+        title: "Alocação por classe (base: total investido — inclui imóveis de investimento; fonte IRPF 31/12)"
         path: "$.investimentos.tabela_classes[*]"
         columns:
           - {path: "categoria", label: "Classe", format: "raw"}
           - {path: "valor", label: "Valor", format: "brl"}
-          - {path: "pct", label: "%", format: "percent2"}
+          - {path: "pct", label: "% do total investido", format: "percent2"}
+          - {path: "pct_carteira_financeira", label: "% da carteira financeira", format: "percent2"}
         max_rows: 10
-      - format: "scalar"
-        title: "Total investível"
-        path: "$.investimentos.total"
-        label: "Total"
-        value_format: "brl"
-        on_null: "skip"
+      - format: "key_value"
+        title: "Bases da tabela de classes (decomposição A37.l9)"
+        fields:
+          - {path: "$.investimentos.total", label: "Total investido (financeiro + imóveis de investimento)", format: "brl"}
+          - {path: "$.investimentos.total_financeiro", label: "Carteira financeira da tabela (ex-imóveis físicos)", format: "brl"}
+          - {path: "$.investimentos.total_imoveis_investimento", label: "Imóveis de investimento na tabela", format: "brl"}
+          - {path: "$.investimentos.fonte", label: "Fonte da tabela (irpf_bens = foto 31/12; difere do patrimonio)", format: "string"}
+      # A37.l9 (CTO-04/PE-05): exposição cambial ≠ alocação internacional.
+      - format: "key_value"
+        title: "Exposição cambial (posições em moeda estrangeira — caixa FX + ativos com lastro internacional)"
+        fields:
+          - {path: "$.exposicao_cambial.total_brl", label: "Exposição cambial total", format: "brl"}
+          - {path: "$.exposicao_cambial.pct_investivel_financeiro", label: "% do investível financeiro (posições atuais + caixa)", format: "percent2"}
+          - {path: "$.exposicao_cambial.tier", label: "Tier (verde >=10% / amarelo 5-10% / vermelho <5%)", format: "string"}
     narrative_hints:
       - "Concentração imobiliária = RISCO: cite $.ratios.concentracao_imobiliaria (base carteira produtiva, SSOT ADR-340), NÃO o pct de tabela_classes[imóveis] (COMPOSIÇÃO, base total investido). Dois números legítimos; risco usa o de risco."
       - "Severidade da concentração (ADR-340): ≥50% é ALTA/atenção; crítica só ≥75%. Em ~60% escreva 'Alta', nunca 'Crítica'. Meta: reduzir abaixo de 50% da carteira produtiva via aportes (não '≤40%')."
+      - "Rótulo de base obrigatório (A37.l9): todo percentual citado declara a base. Peso de classe financeira (Internacional/RF/Ações/FIIs) sai da coluna '% da carteira financeira' — nunca rotule 'carteira financeira' número de base com imóvel."
+      - "Internacional ≠ cambial (A37.l9): alocação internacional = classe Internacional ÷ carteira financeira; exposição cambial = posições em moeda estrangeira ÷ investível financeiro. Dois conceitos, duas bases — cite separados, nunca funda."
       - "Diferencie residência (não gera renda) de imóveis de investimento — não comente residência como investimento."
       - "classification=nu_proprietario (ADR-235): nu-propriedade com usufruto vitalício — ativo ilíquido por contrato civil. Não recomende venda como liquidez; consolidação só com extinção do usufruto (não infira prazo)."
 
@@ -292,6 +316,7 @@ context_sections:
             format: "raw"
     narrative_hints:
       - "Concentração como risco: cite o número do bloco escalar acima ($.ratios.concentracao_imobiliaria), não o pct de composição. É percentual — escreva na prosa (ex.: '~60%'); não precisa âncora (catálogo é só monetário)."
+      - "Alíquota com base (A37.l9): ratios.aliquota_efetiva_ir_pct é EFETIVA (blended) — IR total ÷ renda total (PF+PJ). Rotule 'efetiva (blended)' ao citar; não confunda com marginal nem com irpf_kpis.aliquota_sobre_tributavel/total_pct."
       - "Cobertura de renda passiva (PE-04): use a base ESSENCIAL (ratios.rentabilidade.cobertura_despesa_essencial_pct), não a despesa média. Rotule explicitamente 'da despesa essencial' — uma cobertura só, consistente."
       - "Se status='sem_irpf' ou 'gerador_zero', NÃO compare com meta — sinalize a indisponibilidade."
       # A28.l11 (consome o flag de sanidade da TRS emitido pela A28.l2 em
@@ -512,6 +537,7 @@ tools:
           - "cenarios_conjuge"
           - "investimentos"
           - "protecao_patrimonial"
+          - "exposicao_cambial"
     cache_in_session: true
 
   - name: "get_e5_jsonpath"

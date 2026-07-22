@@ -98,7 +98,8 @@ def test_list_element_leaves_are_catalogued(whitelist):
     )
     list_paths = [e.path for e in entries if "[" in e.path]
     assert list_paths, "nenhuma folha de lista catalogada (regressão A26.l7)"
-    assert all(p.endswith("].valor") for p in list_paths)
+    # A37.l9: exposicao_cambial.por_moeda[i].valor_brl também é folha citável.
+    assert all(p.endswith(("].valor", "].valor_brl")) for p in list_paths)
 
 
 def test_list_path_resolve_para_escalar_unico_nao_lista_inteira(whitelist):

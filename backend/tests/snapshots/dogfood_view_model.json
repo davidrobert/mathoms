@@ -413,6 +413,7 @@
     "sigma_usado": "0.110000"
   },
   "investimentos": {
+    "fonte": "irpf_bens",
     "instituicoes_por_membro": [
       {
         "instituicoes": [
@@ -426,11 +427,13 @@
       {
         "categoria": "Imóveis Investimento",
         "pct": "88.240000",
+        "pct_carteira_financeira": null,
         "valor": 60000000
       },
       {
         "categoria": "Renda Fixa",
         "pct": "11.760000",
+        "pct_carteira_financeira": "100.000000",
         "valor": 8000000
       }
     ],
@@ -456,7 +459,9 @@
         "valor": 8000000
       }
     ],
-    "total": 68000000
+    "total": 68000000,
+    "total_financeiro": 8000000,
+    "total_imoveis_investimento": 60000000
   },
   "orcamento_prospectivo": {
     "categorias": {
