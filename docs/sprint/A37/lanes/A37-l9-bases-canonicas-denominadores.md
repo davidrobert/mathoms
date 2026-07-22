@@ -3,7 +3,7 @@ id: A37.l9
 type: lane
 title: "Bases e denominadores canônicos: concentração imobiliária e exposição internacional"
 sprint: A37
-status: planned
+status: shipped
 priority: P2
 branch_slug: a37-l9-bases-canonicas-denominadores
 adrs: ["[[ADR-340]]"]
@@ -11,7 +11,7 @@ depends_on: ["[[A37.l1]]"]
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/domain
   - area/pipeline

@@ -3,7 +3,7 @@ id: A37.l1
 type: lane
 title: "Parecer enxerga o relatório inteiro: contrato de exec context (dupla truncação) + redação de identificadores"
 sprint: A37
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a37-l1-parecer-exec-context
 adrs: ["[[ADR-341]]"]
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/llm
   - area/pipeline

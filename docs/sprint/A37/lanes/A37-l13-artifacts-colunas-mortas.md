@@ -3,7 +3,7 @@ id: A37.l13
 type: lane
 title: "pipeline_artifacts.schema_version e byte_size NULL em 100% das rows — popular ou dropar"
 sprint: A37
-status: planned
+status: shipped
 priority: P2
 branch_slug: a37-l13-artifacts-colunas-mortas
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/dados
   - area/backend
