@@ -844,7 +844,7 @@ export const LAYOUT: ReportLayout = {
     "renda_passiva": "Renda Passiva — Progresso até a Meta",
     "impostos_pj": "Tributário PJ — Cascata Fiscal",
     "bubble_riscos": "Mapa de Riscos",
-    "top5_decisoes": "Top 5 Decisões de Impacto",
+    "top5_decisoes": "Decisões de Impacto",
     "cenarios_conjuge": "Cenários de Estresse — Sem renda do cônjuge",
     "viagens": "Orçamento de Viagens",
     "renda_evolucao_multi_anos": "Evolução da Renda — Multi-anos",
