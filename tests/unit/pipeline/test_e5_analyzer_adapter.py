@@ -325,7 +325,7 @@ class TestAnalyzeViaStore:
 
 
 class TestMoedaEstrangeiraFallback:
-    """ADR-245 — fallback baseline IRPF para `caixa_moeda_estrangeira`."""
+    """ADR-245 — fallback baseline IRPF para o caixa ME (alimenta `caixa_total_brl`)."""
 
     def test_extract_me_caixa_picks_usd_deposit(self):
         from pipeline.domain.services.e5_analyzer_adapter import _extract_me_caixa_from_baseline
@@ -494,7 +494,7 @@ class TestA6d33Wiring:
             "liquido",
             "residencia",
             "imoveis_investimento",
-            "caixa_moeda_estrangeira",
+            "caixa_total_brl",
             "caixa_detalhes",
             "investivel_financeiro",
             "investivel_efetivo",
