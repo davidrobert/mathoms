@@ -3,7 +3,7 @@ id: A37.l12
 type: lane
 title: "Resiliência de execução: heartbeat in-stage (watchdog 15min) + idempotência de stage LLM em redelivery"
 sprint: A37
-status: planned
+status: shipped
 priority: P2
 branch_slug: a37-l12-resiliencia-execucao
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/backend
   - area/infra

@@ -5,6 +5,7 @@ title: "Aporte de investimento é transferência patrimonial, não consumo (taxa
 status: Decidido
 phase: dogfood cluster C1
 date: "2026-07-14"
+amended_at: ["2026-07-21"]
 relates_to:
   - "[[ADR-328]]"
   - "[[ADR-090]]"
@@ -18,6 +19,8 @@ tags:
 ---
 
 # ADR-333 — Aporte = transferência patrimonial, não consumo
+
+> **Emenda 2026-07-21 (A37.l14 · PD-10):** ver §Emenda ao final — aporte também sai do doughnut de "Despesas por Categoria" (apresentação).
 
 > Item **C1** do plano PLAN-dogfood-report-fix (achado FIN-01). Implementado
 > 2026-07-14 (co-design FP + data-engineer). **Sem bump de `score_version`** — a taxa
@@ -132,3 +135,15 @@ divergente das barras exibidas.
   inalterado. Witnesses de conservação existentes (`fluxo_liquido`, `Σ por_categoria`) verdes.
 - **Precisão:** CV4 vira espelho de `ratios.taxa_poupanca_recorrente_pct` (janela 12m +
   despesa_consumo); `score_version` inalterado (mudança de input); campos novos em `Decimal`.
+
+## Emenda — exclusão do aporte no doughnut de despesas (2026-07-21)
+
+Decisão de apresentação derivada desta ADR (A37.l14 · achado PD-10 do
+pipeline-review 2026-07-20, decisão colhida com `financial-planner`): o aporte
+a investimento **não aparece** no doughnut de "Despesas por Categoria" —
+exibi-lo como fatia (mesmo rotulada "Poupança") enquadra poupança como consumo
+e distorce a leitura do padrão de gastos. Implementado como **filtro de
+apresentação** no frontend (PR #1008); `despesa_total` e a conservação de
+fluxo permanecem intocados (o aporte segue dentro de `despesa_total`, conforme
+o corpo desta ADR). A visibilidade da poupança pertence às superfícies de
+fluxo/poupança, não ao gráfico de gastos.

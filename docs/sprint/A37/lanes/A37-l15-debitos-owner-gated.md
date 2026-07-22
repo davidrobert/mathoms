@@ -3,7 +3,7 @@ id: A37.l15
 type: lane
 title: "Débitos com gate: fonte de dados de milhas (decisão owner) + remoção do alias deprecated de caixa"
 sprint: A37
-status: planned
+status: in_progress
 priority: P3
 branch_slug: a37-l15-debitos-owner-gated
 adrs: ["[[ADR-147]]"]
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/in-progress
   - priority/p3
   - area/pipeline
   - area/dados

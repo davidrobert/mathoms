@@ -3,7 +3,7 @@ id: A37.l8
 type: lane
 title: "Narrativas coerentes com os dados: renda de aluguel, alocação v2, IF probabilística"
 sprint: A37
-status: planned
+status: shipped
 priority: P2
 branch_slug: a37-l8-narrativas-coerentes
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a37
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/pipeline
   - area/domain
