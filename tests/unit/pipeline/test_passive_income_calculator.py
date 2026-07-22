@@ -92,7 +92,7 @@ class TestRendaPassivaPorFonte:
             reference_date=_REF_DATE,
             despesa_mensal_media_brl=_NO_DESPESA,
         )
-        assert result.renda_passiva_por_fonte_brl["ganho_capital"] == Decimal("20000.00")
+        assert result.ganho_capital_excluido_brl == Decimal("20000.00")
 
     def test_exterior(self):
         d = decl(exterior=[exterior_rend("8000.00")])
@@ -165,7 +165,8 @@ class TestDistribuicaoPjTitular:
             bens=[bem(descricao=_QUOTA_BEM)],
         )
         result = _calc_with(d, investimentos_titular=500_000.0)
-        assert result.renda_passiva_por_fonte_brl["distribuicao_pj_titular"] == Decimal("284000.00")
+        assert result.renda_ativa_pj_excluida_brl == Decimal("284000.00")
+        assert "distribuicao_pj_titular" not in result.renda_passiva_por_fonte_brl
         assert result.renda_passiva_por_fonte_brl["dividendos"] == Decimal("0")
         assert result.renda_passiva_anual_brl == Decimal("0")
         assert result.trs_efetiva_pct == Decimal("0.00")
@@ -182,7 +183,7 @@ class TestDistribuicaoPjTitular:
             bens=[bem(codigo="99", descricao=_QUOTA_BEM)],
         )
         result = _calc_with(d, investimentos_titular=500_000.0)
-        assert result.renda_passiva_por_fonte_brl["distribuicao_pj_titular"] == Decimal("50000.00")
+        assert result.renda_ativa_pj_excluida_brl == Decimal("50000.00")
         assert result.renda_passiva_anual_brl == Decimal("0")
 
     def test_dividendo_de_posicao_de_carteira_permanece_na_trs(self):
@@ -203,7 +204,7 @@ class TestDistribuicaoPjTitular:
         )
         result = _calc_with(d, investimentos_titular=500_000.0)
         assert result.renda_passiva_por_fonte_brl["dividendos"] == Decimal("10000.00")
-        assert result.renda_passiva_por_fonte_brl["distribuicao_pj_titular"] == Decimal("0")
+        assert result.renda_ativa_pj_excluida_brl == Decimal("0")
         assert result.renda_passiva_anual_brl == Decimal("10000.00")
 
     def test_distribuicao_pj_nao_vaza_para_bucket_alugueis(self):
@@ -232,8 +233,7 @@ class TestDistribuicaoPjTitular:
         assert result.renda_passiva_anual_brl == Decimal("42000.00")
         # 42k / 2,44M = 1,72% — plausível (< 8%)
         assert result.trs_efetiva_pct < Decimal("8.0")
-        fontes = result.renda_passiva_por_fonte_brl
-        assert fontes["distribuicao_pj_titular"] == Decimal("284000.00")
+        assert result.renda_ativa_pj_excluida_brl == Decimal("284000.00")
 
 
 def _calc_signal(decl_, signal, **patrimonio_kwargs):
@@ -256,9 +256,8 @@ class TestElevacaoPorSinalDeFluxo:
         result = _calc_signal(
             d, DistribuicaoPJSignal(Decimal("308000.00"), 12), investimentos_titular=500_000.0
         )
-        fontes = result.renda_passiva_por_fonte_brl
-        assert fontes["distribuicao_pj_titular"] == Decimal("284000.00")
-        assert fontes["dividendos"] == Decimal("0")
+        assert result.renda_ativa_pj_excluida_brl == Decimal("284000.00")
+        assert result.renda_passiva_por_fonte_brl["dividendos"] == Decimal("0")
         assert result.renda_passiva_anual_brl == Decimal("0")
 
     def test_capa_no_cod09_declarado(self):
@@ -267,9 +266,8 @@ class TestElevacaoPorSinalDeFluxo:
         result = _calc_signal(
             d, DistribuicaoPJSignal(Decimal("500000.00"), 12), investimentos_titular=500_000.0
         )
-        fontes = result.renda_passiva_por_fonte_brl
-        assert fontes["distribuicao_pj_titular"] == Decimal("284000.00")
-        assert fontes["dividendos"] == Decimal("0")
+        assert result.renda_ativa_pj_excluida_brl == Decimal("284000.00")
+        assert result.renda_passiva_por_fonte_brl["dividendos"] == Decimal("0")
 
     def test_respeita_piso_do_match_irpf(self):
         # match IRPF já achou 284k; sinal BAIXO não reduz (só eleva).
@@ -286,7 +284,7 @@ class TestElevacaoPorSinalDeFluxo:
         result = _calc_signal(
             d, DistribuicaoPJSignal(Decimal("100000.00"), 12), investimentos_titular=500_000.0
         )
-        assert result.renda_passiva_por_fonte_brl["distribuicao_pj_titular"] == Decimal("284000.00")
+        assert result.renda_ativa_pj_excluida_brl == Decimal("284000.00")
 
     def test_sinal_none_e_bit_identico(self):
         # sem sinal → comportamento idêntico ao match por-linha (compat).
@@ -294,6 +292,7 @@ class TestElevacaoPorSinalDeFluxo:
         com_none = _calc_signal(d, None, investimentos_titular=500_000.0)
         sem_param = _calc_with(d, investimentos_titular=500_000.0)
         assert com_none.renda_passiva_por_fonte_brl == sem_param.renda_passiva_por_fonte_brl
+        assert com_none.renda_ativa_pj_excluida_brl == sem_param.renda_ativa_pj_excluida_brl
 
 
 class TestGanhoCapitalForaDaTRS:
@@ -306,7 +305,8 @@ class TestGanhoCapitalForaDaTRS:
         )
         result = _calc_with(d, investimentos_titular=500_000.0)
         fontes = result.renda_passiva_por_fonte_brl
-        assert fontes["ganho_capital"] == Decimal("50000.00")  # visível (transparência)
+        assert result.ganho_capital_excluido_brl == Decimal("50000.00")  # visível (transparência)
+        assert "ganho_capital" not in fontes  # A37.l7 PR-2: fora do dict conservativo
         assert fontes["alugueis"] == Decimal("0")  # não vaza p/ aluguéis (delta ajustado)
         assert result.renda_passiva_anual_brl == Decimal(
             "10000.00"
@@ -432,13 +432,14 @@ class TestDecimalEverywhere:
         for v in (
             result.renda_passiva_anual_brl,
             result.renda_passiva_mensal_brl,
+            result.renda_ativa_pj_excluida_brl,
+            result.ganho_capital_excluido_brl,
             result.patrimonio_gerador_brl,
             result.trs_efetiva_pct,
             result.acumuladores_pct_gerador,
+            *result.renda_passiva_por_fonte_brl.values(),
         ):
             assert isinstance(v, Decimal)
-        for value in result.renda_passiva_por_fonte_brl.values():
-            assert isinstance(value, Decimal)
 
     def test_acumuladores_matching_por_token_nao_inicial(self):
         """ADR-306 — descrição IRPF embute ticker no meio ("1000 ACOES BOVA11...");
