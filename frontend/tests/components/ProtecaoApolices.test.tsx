@@ -78,16 +78,26 @@ describe("ProtecaoApolices", () => {
   });
 
   it("snapshot — tabela com display names capitalizados", () => {
-    const { container } = render(
+    // Snapshot estruturado (não DOM cru): o hook de trailing-whitespace do
+    // pre-commit reescreve .snap com texto JSX multi-linha e quebra o match.
+    render(
       <ProtecaoApolices
         data={data({
           apolices_vigentes: [
-            apolice({ apolice_numero: "AUTO-1", seguradora: "tokiomarine", seguradora_nome: "Tokio Marine" }),
+            apolice({
+              apolice_numero: "AUTO-1",
+              seguradora: "tokiomarine",
+              seguradora_nome: "Tokio Marine",
+            }),
             apolice({ apolice_numero: "COMB-1" }),
           ],
         })}
       />,
     );
-    expect(container).toMatchSnapshot();
+    const rows = screen.getAllByTestId(/^protecao-apolice-/).map((tr) => {
+      const cells = Array.from((tr as HTMLTableRowElement).cells);
+      return { apolice: cells[0]?.textContent, seguradora: cells[1]?.textContent };
+    });
+    expect(rows).toMatchSnapshot();
   });
 });
