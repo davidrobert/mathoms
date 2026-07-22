@@ -13,6 +13,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
@@ -86,7 +87,7 @@ async def test_long_stage_with_in_stage_beats_survives_watchdog(db: AsyncSession
     run = await _make_run(db, heartbeat_minutes_ago=20)
     before = datetime.now(timezone.utc)
 
-    _emit_doc_progress(run.id, items_done=3)
+    _emit_doc_progress(run.id, items_done=10)
 
     assert detect_stuck_runs.run()["detected"] == 0
     refreshed = await _reload(db, run.id)
@@ -157,10 +158,10 @@ async def test_heartbeat_cadence_invalid_env_falls_back_to_default(
         lambda run_id: beats.append(run_id) or True,
     )
 
-    for items_done in range(3):
+    for items_done in range(11):
         _emit_doc_progress("run-fallback", items_done=items_done)
 
-    assert len(beats) == 3  # default N=1: toda emissão bate
+    assert len(beats) == 2  # default N=10: bate em items_done 0 e 10
 
 
 @pytest.mark.asyncio
@@ -199,3 +200,65 @@ async def test_heartbeat_fires_even_if_ws_publish_fails(db: AsyncSession, monkey
 
     refreshed = await _reload(db, run.id)
     assert _as_utc(refreshed.last_heartbeat_at) >= before
+
+
+class _SqliteBind:
+    class dialect:  # noqa: N801 — shape mínimo do bind SQLAlchemy
+        name = "sqlite"
+
+
+class _FakeSessionBase:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def get_bind(self):
+        return _SqliteBind()
+
+
+class _LockedSession(_FakeSessionBase):
+    def execute(self, *args, **kwargs):
+        raise OperationalError("stmt", None, Exception("database is locked"))
+
+    def commit(self):
+        raise AssertionError("commit não deve rodar sob lock")
+
+
+class _SpySession(_FakeSessionBase):
+    def __init__(self, statements: list[str]):
+        self._statements = statements
+
+    def execute(self, stmt, *args, **kwargs):
+        self._statements.append(str(stmt))
+        return type("_Result", (), {"rowcount": 1})()
+
+    def commit(self):
+        self._statements.append("COMMIT")
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_lock_contention_returns_false_sem_propagar(monkeypatch) -> None:
+    """Regressão do gate A37 (run 866a1885): lock do DB em dev vira ``False``
+    best-effort — nunca propaga nem bloqueia o loop de documentos (as batidas
+    bloqueavam 30s cada e estouraram o hard time limit de 3600s)."""
+    monkeypatch.setattr(
+        "backend.app.services.pipeline.heartbeat.SyncSessionLocal",
+        lambda: _LockedSession(),
+    )
+    assert record_in_stage_heartbeat("run-locked") is False
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_sqlite_aplica_busy_timeout_curto(monkeypatch) -> None:
+    """Em SQLite a batida configura busy_timeout curto ANTES do UPDATE — é o
+    que garante o comportamento não-bloqueante sob write-lock da sessão do task."""
+    statements: list[str] = []
+    monkeypatch.setattr(
+        "backend.app.services.pipeline.heartbeat.SyncSessionLocal",
+        lambda: _SpySession(statements),
+    )
+    assert record_in_stage_heartbeat("run-spy") is True
+    assert "busy_timeout" in statements[0]
+    assert statements[-1] == "COMMIT"

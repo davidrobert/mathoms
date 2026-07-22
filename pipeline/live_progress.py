@@ -15,7 +15,9 @@ LiveStepPhase = Literal["preparing", "awaiting_llm", "validating", "persisting",
 
 # A37.l12 (CTO-06): cadência do heartbeat in-stage — DB write a cada N docs.
 _HEARTBEAT_EVERY_N_DOCS_ENV = "MATHOMS_HEARTBEAT_EVERY_N_DOCS"
-_DEFAULT_HEARTBEAT_EVERY_N_DOCS = 1
+# Cadência default 10: com watchdog de 15 min, qualquer stage que processe ≥1
+# doc/90s renova a tempo; batida por-doc multiplicava contenção de lock no dev.
+_DEFAULT_HEARTBEAT_EVERY_N_DOCS = 10
 
 
 def emit_stage_activity(
