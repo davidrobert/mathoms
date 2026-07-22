@@ -55,3 +55,5 @@ diferentes) da **mesma seguradora**, uma com `seguradora: "porto"` e outra
 
 Médio: normalização retroativa muda artifacts futuros (não migrar os antigos —
 re-run recomputa); coordenar com `data-engineer` se optar por migração.
+
+> **Residual pós-gate (2026-07-22):** no dado real, o artifact E2 cacheado ainda carrega o code `portoseguro` e o `institution_catalog` só tem `porto` — `seguradoras_count` segue 3 até adicionar o alias no catálogo (seed/ops) ou re-extrair sem cache. Fix de dado, não de código; o resolver e o prompt novos cobrem extrações futuras.

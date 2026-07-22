@@ -12,7 +12,11 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20 (`current` 2026-07-20)
+_(nenhuma — próxima sprint a definir pelo owner)_
+
+## Sprint recém-fechada
+
+### A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20 (`done` 2026-07-22)
 
 **Origem:** revisão profunda do run completo do dogfood (skill `pipeline-review`,
 2026-07-20 @ `c61c1c29` — primeiro run com a onda R3 ativa): 5 revisores
@@ -29,9 +33,6 @@ owner-gated. Exclusão deliberada: FIN-06. DoD: KR-A..E medidos re-rodando a
 skill em run fresco.
 
 - **Plano:** [sprint/A37/_README.md](../sprint/A37/_README.md) · **Origem:** pipeline-review dogfood 2026-07-20 (relatório em `_scratch/`, gitignored; lanes self-contained).
-
-
-## Sprint recém-fechada
 
 ### A12 — Categorization learning loop + post-A11 follow-up (`done` 2026-07-09)
 
