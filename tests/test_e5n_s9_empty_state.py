@@ -144,6 +144,28 @@ def test_summary_s9_empty_riscos_mentions_console_cta():
     assert "Cadastr" in s9 or "Mape" in s9
 
 
+# ── A37.l14 (PD-07) — linguagem de produto (sem rota interna nem jargão) ─
+
+
+def test_s9_e_bubble_empty_sem_rota_interna_nem_workspace():
+    """Copy user-facing não expõe "/plano" (rota interna) nem "workspace"
+    (jargão de sistema) — fala "tela Plano de Ação" e "relatório"."""
+    s9 = _narrate_summary_with(riscos_nomes=[])
+    bubble = _narrate_charts_with(riscos=[])["bubble_riscos"]
+    for texto in (s9, bubble["context"], bubble["conclusion"]):
+        assert "/plano" not in texto
+        assert "workspace" not in texto.lower()
+    assert "Plano de Ação" in s9
+    assert "Plano de Ação" in bubble["conclusion"]
+
+
+def test_cenarios_conjuge_empty_sem_workspace():
+    out = _narrate_charts_with(riscos=[], metrics_overrides={"cm_prazos": []})
+    cenarios = out["cenarios_conjuge"]
+    assert "workspace" not in cenarios["context"].lower()
+    assert "relatório" in cenarios["context"]
+
+
 def test_summary_s9_seguro_vida_zero_renders_a_definir():
     s9 = _narrate_summary_with(
         riscos_nomes=["r1", "r2"],

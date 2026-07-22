@@ -147,10 +147,11 @@ class SummariesNarrator:
 
 # ADR-192 T01 D4: empty state coerente — workspace sem Risk cadastrado não pode
 # render "0 riscos prioritários: . Cobertura recomendada: R$ 0-0M em seguro term."
+# A37.l14 (PD-07): linguagem de produto — sem rota interna "/plano" nem "workspace".
 _S9_EMPTY = (
-    "Nenhum risco prioritário cadastrado para este workspace. "
+    "Nenhum risco prioritário cadastrado neste relatório. "
     "Mapeie suas exposições críticas (seguros de vida, invalidez, sucessório, "
-    "compliance internacional) na tela /plano para destravar a análise de cobertura."
+    "compliance internacional) na tela Plano de Ação para destravar a análise de cobertura."
 )
 _S9_COBERTURA_FALLBACK = (
     "Cobertura recomendada: faixa a definir após mapeamento de dependentes e renda líquida. "

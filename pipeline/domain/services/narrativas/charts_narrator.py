@@ -278,8 +278,9 @@ class ChartsNarrator:
         # de USD/cambio. Quando metrics ainda não populadas (workspace solteiro
         # ou pré-PR2), retorna texto mínimo.
         if not _cm_prazos:
+            # A37.l14 (PD-07): "workspace" é jargão interno — copy fala "relatório".
             return {
-                "context": "Cenário de estresse não aplicável a este workspace.",
+                "context": "Cenário de estresse não aplicável a este relatório.",
                 "conclusion": "",
             }
         aporte = _cm_aportes[0] if _cm_aportes else 0
@@ -342,13 +343,15 @@ class ChartsNarrator:
 
 # ADR-192 T01: empty state coerente quando workspace não tem Risk cadastrado
 # (evita "Riscos prioritários: . Ação: CPA expatriado + seguro term R$ 0-0M.").
+# A37.l14 (PD-07): linguagem de produto — sem rota interna "/plano" nem o
+# termo "workspace" em copy user-facing.
 _BUBBLE_EMPTY_CONTEXT = (
-    "Nenhum risco crítico de compliance ou proteção mapeado para este workspace. "
-    "Cadastre as exposições no Console para destravar o mapa de riscos."
+    "Nenhum risco crítico de compliance ou proteção mapeado para este relatório. "
+    "Cadastre as exposições na tela Plano de Ação para destravar o mapa de riscos."
 )
 _BUBBLE_EMPTY_CONCLUSION = (
     "Sem riscos prioritários cadastrados. Próximo passo: registrar exposições "
-    "(seguro de vida, invalidez, sucessório, compliance) na tela /plano."
+    "(seguro de vida, invalidez, sucessório, compliance) na tela Plano de Ação."
 )
 # Templates de ação indexados por (has_us_exposure, has_seguro_range). ADR-192 T01 D4:
 # perfil USA só é assumido quando `has_us_exposure` for explicitamente True.
