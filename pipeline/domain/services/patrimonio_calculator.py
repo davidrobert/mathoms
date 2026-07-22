@@ -149,7 +149,7 @@ class PatrimonioCalculator:
             inputs, titular_bens, conjuge_bens
         )
 
-        caixa_moeda_estrangeira, caixa_detalhes = self._compute_caixa(
+        caixa_total_brl, caixa_detalhes = self._compute_caixa(
             inputs,
             total_bens_irpf=total_bens_irpf,
             residencia=residencia,
@@ -167,7 +167,7 @@ class PatrimonioCalculator:
             veiculos=veiculos,
             investimentos_titular=investimentos_titular,
             investimentos_conjuge=investimentos_conjuge,
-            caixa_moeda_estrangeira=caixa_moeda_estrangeira,
+            caixa=caixa_total_brl,
         )
 
         patrimonio_liquido = patrimonio_bruto - total_dividas
@@ -180,7 +180,7 @@ class PatrimonioCalculator:
         )
         investivel_financeiro = max(
             0.0,
-            investimentos_titular + investimentos_conjuge + caixa_moeda_estrangeira,
+            investimentos_titular + investimentos_conjuge + caixa_total_brl,
         )
         cat2_efetivo = self._compute_cat2_efetivo(
             titular_bens=titular_bens,
@@ -195,7 +195,7 @@ class PatrimonioCalculator:
             imoveis_investimento=imoveis_investimento,
             investimentos_titular=investimentos_titular,
             investimentos_conjuge=investimentos_conjuge,
-            caixa_moeda_estrangeira=caixa_moeda_estrangeira,
+            caixa=caixa_total_brl,
             veiculos=veiculos,
         )
 
@@ -217,12 +217,10 @@ class PatrimonioCalculator:
             "imoveis_nao_geradores": round(imoveis_nao_geradores, 2),
             identity.key_inv_titular: round(investimentos_titular, 2),
             identity.key_inv_conjuge: round(investimentos_conjuge, 2),
-            "caixa_total_brl": round(caixa_moeda_estrangeira, 2),
-            # CTO-02: a chave `caixa_moeda_estrangeira` era misnomer — guardava o
-            # caixa TOTAL (BRL + ME), não só ME. Renomeada p/ `caixa_total_brl`;
-            # alias mantido por 1 ciclo p/ consumidores/artefatos em migração; o
-            # ME real fica em `caixa_me_brl`.
-            "caixa_moeda_estrangeira": round(caixa_moeda_estrangeira, 2),
+            # CTO-02: `caixa_total_brl` guarda o caixa TOTAL (BRL + ME); o ME
+            # real fica em `caixa_me_brl`. Alias legado removido em CTO-08
+            # (A37.l15); leitores de artefatos antigos mantêm fallback próprio.
+            "caixa_total_brl": round(caixa_total_brl, 2),
             "caixa_me_brl": round(caixa_me_brl, 2),
             "caixa_detalhes": caixa_detalhes,
             "caixa_me_detalhe": caixa_me_detalhe,
@@ -413,7 +411,7 @@ class PatrimonioCalculator:
         veiculos: float,
         investimentos_titular: float,
         investimentos_conjuge: float,
-        caixa_moeda_estrangeira: float,
+        caixa: float,
     ) -> float:
         """Patrimônio bruto: recompõe de fontes mistas (posições atuais)
         ou pega direto do IRPF total (fallback)."""
@@ -424,7 +422,7 @@ class PatrimonioCalculator:
                 + veiculos
                 + investimentos_titular
                 + investimentos_conjuge
-                + caixa_moeda_estrangeira
+                + caixa
             )
         return total_bens_irpf
 
@@ -435,7 +433,7 @@ class PatrimonioCalculator:
         imoveis_investimento: float,
         investimentos_titular: float,
         investimentos_conjuge: float,
-        caixa_moeda_estrangeira: float,
+        caixa: float,
         veiculos: float,
     ) -> list[dict]:
         """Monta as 6 categorias visíveis + percentuais via largest-remainder
@@ -466,7 +464,7 @@ class PatrimonioCalculator:
                 "categoria": f"Investimentos {identity.conjuge_nome}",
                 "valor": investimentos_conjuge,
             },
-            {"categoria": "Caixa e Moeda Estrangeira", "valor": caixa_moeda_estrangeira},
+            {"categoria": "Caixa e Moeda Estrangeira", "valor": caixa},
             {"categoria": "Veículos", "valor": veiculos},
         ]
         self._apply_percentuals_largest_remainder(composicao)

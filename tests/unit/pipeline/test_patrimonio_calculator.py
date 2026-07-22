@@ -68,7 +68,7 @@ def test_output_has_all_required_keys(config: PatrimonioConfig):
         "imoveis_nao_geradores",
         "investimentos_titular",
         "investimentos_conjuge",
-        "caixa_moeda_estrangeira",
+        "caixa_total_brl",
         "caixa_detalhes",
         "caixa_me_detalhe",  # A17 L3 P4 — Wise breakdown
         "wise_fiscal_flags",  # A17 L3 P5 — fiscal flags passthrough
@@ -140,7 +140,7 @@ def test_irpf_only_basic_totals(config: PatrimonioConfig):
     assert result["veiculos"] == 50_000.0
     assert result["investimentos_titular"] == 150_000.0  # 100k + 50k
     # caixa residual = 1.2M - 500k - 300k - 50k - 150k = 200k
-    assert result["caixa_moeda_estrangeira"] == 200_000.0
+    assert result["caixa_total_brl"] == 200_000.0
 
 
 def test_irpf_only_residencia_without_keyword_match(config: PatrimonioConfig):
@@ -208,7 +208,7 @@ def test_irpf_only_caixa_floored_at_zero(config: PatrimonioConfig):
         }
     }
     result = PatrimonioCalculator(config).calculate(PatrimonioInputs(baseline=baseline))
-    assert result["caixa_moeda_estrangeira"] == 0.0
+    assert result["caixa_total_brl"] == 0.0
 
 
 def test_irpf_contas_bancarias_as_scalar(config: PatrimonioConfig):
@@ -356,11 +356,11 @@ def test_current_positions_caixa_from_adapter(config: PatrimonioConfig):
             caixa_detalhes=caixa_detalhes,
         )
     )
-    assert result["caixa_moeda_estrangeira"] == 58_000.0
-    # CTO-02: chave canônica caixa_total_brl (== alias legado); caixa_me_brl = ME real.
+    # CTO-02: chave canônica caixa_total_brl; caixa_me_brl = ME real.
     assert result["caixa_total_brl"] == 58_000.0
-    assert result["caixa_moeda_estrangeira"] == result["caixa_total_brl"]
     assert result["caixa_me_brl"] == 58_000.0  # todo o caixa aqui é ME
+    # CTO-08 (A37.l15): alias legado removido do produtor.
+    assert "caixa_moeda_estrangeira" not in result
     assert len(result["caixa_detalhes"]) == 1
     assert result["caixa_detalhes"][0]["conta"] == "bofa_usd"
     assert result["caixa_detalhes"][0]["valor_brl"] == 58_000.0
@@ -397,7 +397,7 @@ def test_caixa_total_vs_me_split(config: PatrimonioConfig):
     )
     assert result["caixa_total_brl"] == 88_000.0
     assert result["caixa_me_brl"] == 58_000.0
-    assert result["caixa_moeda_estrangeira"] == 88_000.0  # alias legado == total
+    assert "caixa_moeda_estrangeira" not in result  # CTO-08: alias removido
 
 
 def test_current_positions_member_without_positions_falls_back_to_irpf(

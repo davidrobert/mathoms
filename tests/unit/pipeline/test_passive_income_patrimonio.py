@@ -88,6 +88,23 @@ class TestPatrimonioGeradorExclusoes:
         )
         assert result.patrimonio_gerador_brl == Decimal("100000.0")
 
+    def test_caixa_le_alias_legado_em_artefato_e5_antigo(self):
+        """CTO-08 (A37.l15): produtor não emite mais o alias, mas artefatos E5
+        antigos re-lidos sem re-run trazem só `caixa_moeda_estrangeira` — o
+        fallback de leitura deve seguir funcionando."""
+        patrimonio_legado = patrimonio(investimentos_titular=100_000.0)
+        del patrimonio_legado["caixa_total_brl"]
+        patrimonio_legado["caixa_moeda_estrangeira"] = 80_000.0
+        result = calc().calculate(
+            irpf=IRPFAnalyzer([_decl_basico()]),
+            patrimonio=patrimonio_legado,
+            investimentos_atuais=None,
+            reference_date=_REF_DATE,
+            despesa_mensal_media_brl=Decimal("5000"),
+        )
+        # reserva 30k (5k × 6m) → excedente 50k entra no gerador.
+        assert result.patrimonio_gerador_brl == Decimal("150000.0")
+
     def test_derivativos_subtraidos_via_patrimonio_field(self):
         result = calc().calculate(
             irpf=IRPFAnalyzer([_decl_basico()]),

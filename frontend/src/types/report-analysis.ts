@@ -71,7 +71,7 @@ export interface PatrimonioData {
   veiculos?: number;
   investimentos_titular?: number; // ADR-338: role-keyed (nome só em valores)
   investimentos_conjuge?: number;
-  caixa_moeda_estrangeira?: number;
+  caixa_total_brl?: number; // CTO-02: caixa TOTAL (BRL+ME); alias legado removido (CTO-08)
   fonte_investimentos?: string;
   caixa_detalhes?: PatrimonioCaixaDetalhe[];
   composicao?: PatrimonioCategoria[];
