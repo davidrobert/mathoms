@@ -32,9 +32,11 @@ export function S10SinteseSection({ data }: { data: ReportAnalysisData }) {
       )}
 
       <div className="md:col-span-2">
+        {/* A37.l14 (PD-02): título neutro — "Top 5" hardcoded mentia quando
+            o workspace tinha menos decisões (a narrativa já traz a contagem). */}
         <NarrativeChartCard
           chartId="top5_decisoes"
-          title="Top 5 Decisões de Impacto"
+          title="Decisões de Impacto"
           narratives={charts}
           fallbackConclusion={deriveChartConclusion("top5_decisoes", data)}
         />

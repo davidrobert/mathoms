@@ -194,13 +194,31 @@ def _extract_top_institutions(e5_data: dict) -> dict:
     }
 
 
+_USD_BANK_PRETTY_LABELS = {"wise": "Wise", "america": "Bank of America"}
+
+
+def _usd_bank_label(fonte: str) -> str:
+    """Rótulo de banco a partir de ``fonte`` ("Bankofamerica (extratoconta)")."""
+    base = re.sub(r"\s*\(.*\)\s*$", "", fonte or "").strip()
+    lower = base.lower()
+    for needle, label in _USD_BANK_PRETTY_LABELS.items():
+        if needle in lower:
+            return label
+    return base.title() if base else "conta não identificada"
+
+
 def _compute_usd_saldos_per_bank(e5_data: dict) -> dict:
     """Saldos USD por banco a partir de ``exposicao_cambial.detalhes`` (C2.1).
 
     Substitui o glob morto sobre ``processed/E3_reconciled/*`` (artifacts são
-    DB-only pós-ADR-212 → glob vazio → USD zerado). Retorna ``{'wise_usd', 'bank_of_america_usd', 'total_usd'}``.
+    DB-only pós-ADR-212 → glob vazio → USD zerado).
+
+    A37.l14 (PD-12): enumeração dinâmica — antes só Wise/BofA hardcoded; uma
+    3ª conta USD entrava no total mas sumia da narrativa (soma não fechava).
+    Retorna ``{'total_usd': float, 'por_banco': {label: saldo}}``.
     """
-    saldos: dict = {"total_usd": 0.0}
+    total = 0.0
+    por_banco: dict[str, float] = {}
     detalhes = (e5_data.get("exposicao_cambial") or {}).get("detalhes") or []
     for item in detalhes:
         if item.get("moeda") != "USD":
@@ -208,13 +226,10 @@ def _compute_usd_saldos_per_bank(e5_data: dict) -> dict:
         saldo = item.get("saldo_original", 0)
         if not isinstance(saldo, (int, float)):
             continue
-        fonte = (item.get("fonte") or "").lower()
-        if "wise" in fonte:
-            saldos["wise_usd"] = saldos.get("wise_usd", 0) + saldo
-        elif "america" in fonte:
-            saldos["bank_of_america_usd"] = saldos.get("bank_of_america_usd", 0) + saldo
-        saldos["total_usd"] += saldo
-    return saldos
+        label = _usd_bank_label(item.get("fonte") or "")
+        por_banco[label] = por_banco.get(label, 0.0) + saldo
+        total += saldo
+    return {"total_usd": total, "por_banco": por_banco}
 
 
 def _compute_salario_conjuge(e5_data: dict) -> float:
@@ -519,8 +534,10 @@ def load_metrics_from_e5(
         else "instituições não detalhadas neste período",
         "n_imoveis": inst_data["n_imoveis"],
         # === Computed: USD/EUR saldos per bank ===
-        "wise_usd": round(usd_saldos.get("wise_usd", 0), 2),
-        "bofa_usd": round(usd_saldos.get("bank_of_america_usd", 0), 2),
+        # A37.l14 (PD-12): dict dinâmico substitui wise_usd/bofa_usd hardcoded.
+        "usd_saldos_por_banco": {
+            banco: round(saldo, 2) for banco, saldo in (usd_saldos.get("por_banco") or {}).items()
+        },
         "poupanca_cambial_actual_usd": round(poupanca_usd, 2),
         "poupanca_cambial_meta_usd": meta_usd,
         "poupanca_cambial_gap_usd": round(gap_usd, 2),

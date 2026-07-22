@@ -24,6 +24,19 @@ from pipeline.domain.services.narrativas.format_helpers import (
 )
 
 
+def _fmt_usd_por_banco(por_banco: Mapping[str, Any] | None) -> str:
+    """Enumera saldos USD por banco em ordem decrescente de valor (PD-12)."""
+    entries = [
+        (banco, valor)
+        for banco, valor in (por_banco or {}).items()
+        if isinstance(valor, (int, float)) and valor > 0
+    ]
+    if not entries:
+        return "nenhum saldo em moeda estrangeira identificado no período"
+    entries.sort(key=lambda kv: (-kv[1], kv[0]))
+    return ", ".join(f"{fmt_usd(valor)} em {banco}" for banco, valor in entries)
+
+
 class SummariesNarrator:
     """Narra ``summaries.s1..s10`` — parágrafos por dimensão financeira."""
 
@@ -120,11 +133,13 @@ class SummariesNarrator:
                 f"Receita recorrente de {fmt_currency(M['receita_recorrente_mensal'])}/mês cobre as despesas mensais médias "
                 f"de {fmt_currency(M['despesa_mensal_media'])}, gerando sobra para aportes e reserva de viagens."
             ),
+            # A37.l14 (PD-12): enumeração dinâmica de contas USD (antes Wise/BofA
+            # hardcoded — 3ª conta entrava no total mas sumia da lista).
             "s6": (
-                f"Exposição cambial: {fmt_usd(M['wise_usd'])} em Wise, {fmt_usd(M['bofa_usd'])} em Bank of America. "
+                f"Exposição cambial: {_fmt_usd_por_banco(M.get('usd_saldos_por_banco'))}. "
                 f"Total {fmt_usd(M['poupanca_cambial_actual_usd'])}. "
                 f"Meta pré-EUA de {fmt_usd(M['poupanca_cambial_meta_usd'])} com gap de {fmt_usd(M['poupanca_cambial_gap_usd'])} — "
-                f"ritmo de {fmt_currency(M['aporte_cambial_mensal'])}/mês na Wise alcança a meta em {M['meses_para_cambial']} meses."
+                f"ritmo de {fmt_currency(M['aporte_cambial_mensal'])}/mês alcança a meta em {M['meses_para_cambial']} meses."
             ),
             "s7": (
                 f"Meta de independência financeira de {fmt_currency(M['if_meta'])} em {M['if_ano']}. "
@@ -147,10 +162,11 @@ class SummariesNarrator:
 
 # ADR-192 T01 D4: empty state coerente — workspace sem Risk cadastrado não pode
 # render "0 riscos prioritários: . Cobertura recomendada: R$ 0-0M em seguro term."
+# A37.l14 (PD-07): linguagem de produto — sem rota interna "/plano" nem "workspace".
 _S9_EMPTY = (
-    "Nenhum risco prioritário cadastrado para este workspace. "
+    "Nenhum risco prioritário cadastrado neste relatório. "
     "Mapeie suas exposições críticas (seguros de vida, invalidez, sucessório, "
-    "compliance internacional) na tela /plano para destravar a análise de cobertura."
+    "compliance internacional) na tela Plano de Ação para destravar a análise de cobertura."
 )
 _S9_COBERTURA_FALLBACK = (
     "Cobertura recomendada: faixa a definir após mapeamento de dependentes e renda líquida. "

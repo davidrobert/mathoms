@@ -157,8 +157,7 @@ def _build_minimal_metrics() -> dict[str, Any]:
         "custo_viagem_maximo": 15_000,
         "receita_recorrente_mensal": 30_000,
         # Chaves cambiais ainda lidas por s6 (summary cambial — não-EUA).
-        "wise_usd": 5_000,
-        "bofa_usd": 3_000,
+        "usd_saldos_por_banco": {"Wise": 5_000, "Bank of America": 3_000},
         "poupanca_cambial_actual_usd": 8_000,
         "poupanca_cambial_meta_usd": 30_000,
         "poupanca_cambial_gap_usd": 22_000,

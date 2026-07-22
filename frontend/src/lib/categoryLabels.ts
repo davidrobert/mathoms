@@ -29,6 +29,25 @@ export const CATEGORY_LABELS: Record<string, string> = {
   vestuario: "Vestuário",
 };
 
+/** Reconhece a categoria de transferência patrimonial (aporte) em qualquer
+ * grafia do wire — chave crua `aporte_investimento` no agregado e label
+ * title-cased ("Aporte Investimento") em `despesa_datasets`.
+ *
+ * A37.l14 (PD-10, decisão financial-planner 2026-07-20 · ADR-333): aporte é
+ * poupança, não consumo — sai do doughnut "Despesas por Categoria". O
+ * `despesa_total` segue intacto (conservação preservada); a visibilidade da
+ * poupança vive nas superfícies de fluxo.
+ */
+export function isAporteInvestimentoKey(key: string): boolean {
+  const norm = key
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, "_");
+  return norm === "aporte_investimento";
+}
+
 /** Label humano para código de categoria; fallback nunca exibe `_` nem inicia com minúscula. */
 export function humanizeCategoryLabel(key: string): string {
   const mapped = CATEGORY_LABELS[key];
