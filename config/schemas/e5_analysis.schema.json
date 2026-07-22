@@ -258,7 +258,7 @@
     },
     "passive_income": {
       "type": "object",
-      "description": "DE-02 (R3.4b): renda passiva observada via IRPF. Invariante de conservação (ADR-191 + ADR-336): renda_passiva_anual_brl == dividendos + jcp + aplicacoes + exterior + alugueis == Σ(por_fonte) − distribuicao_pj_titular − ganho_capital. distribuicao_pj_titular (renda de trabalho, ADR-191) e ganho_capital (realização one-time, ADR-336) ficam FORA do numerador da TRS.",
+      "description": "DE-02 (R3.4b) + A37.l7 PR-2: renda passiva observada via IRPF. Invariante de conservação (ADR-191 + ADR-336): renda_passiva_anual_brl == Σ(renda_passiva_por_fonte_brl) — o dict é auto-conservativo, só yield recorrente. Os componentes excluídos do numerador da TRS por design vivem em irmãos explícitos: renda_ativa_pj_excluida_brl (distribuição de lucros da PJ do titular ≈ renda de trabalho, ADR-191) e ganho_capital_excluido_brl (realização one-time, ADR-336).",
       "properties": {
         "status": {"type": "string"},
         "renda_passiva_anual_brl": {"type": "number"},
@@ -269,13 +269,13 @@
             "dividendos": {"type": "number"},
             "jcp": {"type": "number"},
             "aplicacoes": {"type": "number"},
-            "ganho_capital": {"type": "number"},
             "exterior": {"type": "number"},
-            "alugueis": {"type": "number"},
-            "distribuicao_pj_titular": {"type": "number"}
+            "alugueis": {"type": "number"}
           },
           "additionalProperties": false
         },
+        "renda_ativa_pj_excluida_brl": {"type": "number"},
+        "ganho_capital_excluido_brl": {"type": "number"},
         "patrimonio_gerador_brl": {"type": "number"},
         "trs_efetiva_pct": {"type": "number"},
         "ano_referencia_irpf": {"type": ["integer", "null"]},

@@ -55,7 +55,12 @@
 # e caudas de ratios deixam de ser cortados). _short vira safety-net com
 # max_chars declarável por bloco. narrative_hints saem do corpo orçado
 # (anexados após o cap, padrão do citation catalog). Bump invalida cache Redis.
-version: "2.0"
+# 2.0.1 — A37.l7 PR-2 (DE-04): shape novo de $.passive_income projetado no
+# bloco "Renda passiva projetada" — o dict renda_passiva_por_fonte_brl vira
+# auto-conservativo (Σ == headline, só yield recorrente); os componentes
+# excluídos da TRS migram para irmãos explícitos renda_ativa_pj_excluida_brl
+# (ADR-191) e ganho_capital_excluido_brl (ADR-336). Bump invalida cache Redis.
+version: "2.0.1"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
