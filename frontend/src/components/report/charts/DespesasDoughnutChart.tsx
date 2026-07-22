@@ -15,7 +15,10 @@ import {
   isNaoIdentificadoKey,
   NAO_IDENTIFICADO_THRESHOLD_PCT,
 } from "../utils/dataQualitySignals";
-import { humanizeCategoryLabel } from "@/lib/categoryLabels";
+import {
+  humanizeCategoryLabel,
+  isAporteInvestimentoKey,
+} from "@/lib/categoryLabels";
 import type { FluxoCaixaSummary, ChartSeries } from "@/types/report-analysis";
 
 interface CategoryRow {
@@ -31,7 +34,9 @@ function sumWindow(data: readonly number[], start: number, end: number): number 
 }
 
 /** Soma cada `despesa_dataset[i].data[start..end)` em uma fatia. Categorias
- *  com soma > 0 são ordenadas desc; chave estável vem do `label` original. */
+ *  com soma > 0 são ordenadas desc; chave estável vem do `label` original.
+ *  A37.l14 (PD-10 · ADR-333): aporte é poupança, não consumo — fica fora
+ *  do doughnut (o `despesa_total` do payload segue intacto). */
 function buildSlices(
   datasets: readonly ChartSeries[] | undefined,
   start: number,
@@ -39,6 +44,7 @@ function buildSlices(
 ): readonly CategoryRow[] {
   if (!datasets || datasets.length === 0) return [];
   return datasets
+    .filter((ds) => !isAporteInvestimentoKey(ds.label))
     .map((ds) => ({
       key: ds.label,
       label: humanizeCategoryLabel(ds.label),
@@ -55,7 +61,7 @@ function fallbackFromAggregate(
 ): readonly CategoryRow[] {
   if (!raw) return [];
   return Object.entries(raw)
-    .filter(([, v]) => v > 0)
+    .filter(([key, v]) => v > 0 && !isAporteInvestimentoKey(key))
     .map(([key, value]) => ({ key, label: humanizeCategoryLabel(key), value }))
     .sort((a, b) => b.value - a.value);
 }

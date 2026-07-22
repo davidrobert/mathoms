@@ -221,6 +221,52 @@ describe("<DespesasDoughnutChart />", () => {
     });
   });
 
+  // A37.l14 (PD-10 · ADR-333, decisão financial-planner): aporte a investimento
+  // é transferência patrimonial (poupança), não consumo — sai do doughnut.
+  // `despesa_total` do payload segue intacto (conservação preservada).
+  it("exclui aporte_investimento das fatias (datasets, label title-cased do wire)", () => {
+    const fluxo: FluxoCaixaSummary = {
+      receita_despesa_mensal_detalhado: {
+        labels: ["26/01", "26/02"],
+        despesa_datasets: [
+          { label: "moradia", data: [100, 100] },
+          // paridade wire: fluxo_caixa_enricher emite .title() → "Aporte Investimento"
+          { label: "Aporte Investimento", data: [900, 900] },
+          { label: "aporte_investimento", data: [300, 300] },
+        ],
+      },
+    };
+    render(<DespesasDoughnutChart fluxo={fluxo} />);
+    const slices = getSlices();
+    expect(slices["Moradia"]).toBe(200);
+    expect(Object.keys(slices)).toHaveLength(1);
+    // O total exibido no contexto também exclui a transferência
+    // (\s cobre o NBSP do Intl.NumberFormat pt-BR).
+    const ctx = document.querySelector(".chart-context");
+    expect(ctx?.textContent).toMatch(/\(R\$\s200\)/);
+  });
+
+  it("exclui aporte_investimento no fallback agregado", () => {
+    const fluxo: FluxoCaixaSummary = {
+      despesas_por_categoria: {
+        moradia: 1000,
+        aporte_investimento: 5000,
+      },
+    };
+    render(<DespesasDoughnutChart fluxo={fluxo} />);
+    const slices = getSlices();
+    expect(slices["Moradia"]).toBe(1000);
+    expect(Object.keys(slices)).toHaveLength(1);
+  });
+
+  it("retorna null quando só existe aporte_investimento", () => {
+    const fluxo: FluxoCaixaSummary = {
+      despesas_por_categoria: { aporte_investimento: 5000 },
+    };
+    const { container } = render(<DespesasDoughnutChart fluxo={fluxo} />);
+    expect(container.firstChild).toBeNull();
+  });
+
   it("filtra categorias com value <= 0", () => {
     const fluxo: FluxoCaixaSummary = {
       receita_despesa_mensal_detalhado: {
