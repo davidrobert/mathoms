@@ -124,7 +124,9 @@ class ChartsNarrator:
                     "mostrando concentração em imóveis e peso relativo dos investimentos financeiros."
                 ),
                 "conclusion": (
-                    f"Imóveis respondem por {fmt_percent(M['pct_imoveis_bruto'])} do patrimônio"
+                    # A37.l9: rótulo de base explícito — pct_imoveis_bruto é
+                    # (imóveis investimento + residência) ÷ patrimônio BRUTO.
+                    f"Imóveis respondem por {fmt_percent(M['pct_imoveis_bruto'])} do patrimônio bruto"
                     + (
                         f" — acima do ideal de {fmt_percent(M['threshold_imovel_pct'])}. "
                         if _imovel_acima

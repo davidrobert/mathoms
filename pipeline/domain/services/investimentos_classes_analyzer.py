@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.services.asset_classifier import (
@@ -27,18 +28,45 @@ def _safe_float(val) -> float:
     return 0.0
 
 
+# Classe de imóveis físicos (ADR-193) — fora da base "carteira financeira" (A37.l9).
+_CLASSE_IMOVEIS_INVESTIMENTO = "Imóveis Investimento"
+
+
 # =============================================================================
 # Config
 # =============================================================================
 
 
-def _build_tabela(classes: dict[str, float], total: float) -> tuple["ClasseAtivo", ...]:
+def _build_tabela(
+    classes: dict[str, float], denominador_investido: float, denominador_financeiro: float
+) -> tuple["ClasseAtivo", ...]:
     out: list[ClasseAtivo] = []
-    for cat, valor in sorted(classes.items(), key=lambda x: x[1], reverse=True):
-        if valor > 0:
-            pct = (valor / total) * 100 if total > 0 else 0.0
-            out.append(ClasseAtivo(categoria=cat, valor=valor, pct=pct))
+    for cat, v in sorted(classes.items(), key=lambda x: x[1], reverse=True):
+        if v > 0:
+            pct = (v / denominador_investido) * 100 if denominador_investido > 0 else 0.0
+            out.append(
+                ClasseAtivo(
+                    categoria=cat,
+                    valor=v,
+                    pct=pct,
+                    pct_carteira_financeira=_pct_carteira_financeira(
+                        cat, v, denominador_financeiro
+                    ),
+                )
+            )
     return tuple(out)
+
+
+def _pct_carteira_financeira(
+    categoria: str, numerador: float, denominador_financeiro: float
+) -> float | None:
+    """Peso da classe sobre a carteira financeira (A37.l9): denominador exclui
+    imóveis físicos — peso de classe financeira nunca é medido sobre base que
+    inclui imóvel (subestimaria toda classe financeira sistematicamente).
+    ``None`` para a própria classe de imóveis (fora da base) e carteira vazia."""
+    if categoria == _CLASSE_IMOVEIS_INVESTIMENTO or denominador_financeiro <= 0:
+        return None
+    return (numerador / denominador_financeiro) * 100
 
 
 def _merge_keywords(scoring: dict | None) -> dict[str, tuple[str, ...]]:
@@ -74,13 +102,21 @@ class InvestimentosClassesConfig:
 class ClasseAtivo:
     categoria: str
     valor: float
+    # Base "total investido" (financeiro + imóveis de investimento) — ADR-209 absoluto.
     pct: float
+    # Base "carteira financeira" (total - imóveis físicos); None fora da base (A37.l9).
+    pct_carteira_financeira: float | None = None
 
     def to_dict(self) -> dict:
         return {
             "categoria": self.categoria,
             "valor": round(self.valor, 2),
             "pct": round(self.pct, 2),
+            "pct_carteira_financeira": (
+                round(self.pct_carteira_financeira, 2)
+                if self.pct_carteira_financeira is not None
+                else None
+            ),
         }
 
 
@@ -88,12 +124,18 @@ class ClasseAtivo:
 class InvestimentosClassesAnalysis:
     tabela_classes: tuple[ClasseAtivo, ...]
     total: float
+    # Decomposição por construção (A37.l9): total = financeiro + imóveis físicos.
+    # Decimal em memória (ADR-090); wire legado emite JSON number (float).
+    total_financeiro: Decimal = Decimal("0")
+    total_imoveis_investimento: Decimal = Decimal("0")
     warnings: tuple[OutrosExcessivoWarning, ...] = ()
 
     def to_legacy_dict(self) -> dict:
         return {
             "tabela_classes": [c.to_dict() for c in self.tabela_classes],
             "total": round(self.total, 2),
+            "total_financeiro": float(round(self.total_financeiro, 2)),
+            "total_imoveis_investimento": float(round(self.total_imoveis_investimento, 2)),
         }
 
 
@@ -120,9 +162,13 @@ class InvestimentosClassesAnalyzer:
             self._add_contas_bancarias_scalar(bens, classes)
             self._add_imoveis_investimento(bens, classes)
         total = sum(classes.values())
+        total_imoveis = classes.get(_CLASSE_IMOVEIS_INVESTIMENTO, 0.0)
+        total_financeiro = total - total_imoveis
         return InvestimentosClassesAnalysis(
-            tabela_classes=_build_tabela(classes, total),
+            tabela_classes=_build_tabela(classes, total, total_financeiro),
             total=total,
+            total_financeiro=Decimal(str(total_financeiro)),
+            total_imoveis_investimento=Decimal(str(total_imoveis)),
             warnings=self._build_warnings(classes, total),
         )
 
@@ -167,7 +213,7 @@ class InvestimentosClassesAnalyzer:
             pid = imovel.get("property_id")
             if isinstance(pid, str) and pid in residencia_ids:
                 continue
-            classes["Imóveis Investimento"] += valor
+            classes[_CLASSE_IMOVEIS_INVESTIMENTO] += valor
 
     def _build_warnings(
         self, classes: dict[str, float], total: float

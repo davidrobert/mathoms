@@ -290,6 +290,69 @@ class TestResult:
         assert d["tabela_classes"][0]["pct"] == 100.0
 
 
+class TestDecomposicaoCarteiraFinanceira:
+    """A37.l9 — decomposição total = financeiro + imóveis físicos + pct por base."""
+
+    def _mixed(self) -> InvestimentosClassesAnalysis:
+        return InvestimentosClassesAnalyzer().analyze(
+            [
+                _bens(
+                    investimentos=[
+                        {"tipo": "CDB", "valor": 60_000},
+                        {
+                            "tipo": "conta_bancaria",
+                            "descricao": "Conta em USD na Wise",
+                            "valor": 20_000,
+                        },
+                    ],
+                    imoveis=[{"valor_31_12_ano_base": 120_000}],
+                )
+            ]
+        )
+
+    def test_total_decomposto_por_construcao(self):
+        r = self._mixed()
+        assert r.total == pytest.approx(200_000.0)
+        assert r.total_financeiro == pytest.approx(80_000.0)
+        assert r.total_imoveis_investimento == pytest.approx(120_000.0)
+        assert r.total == pytest.approx(r.total_financeiro + r.total_imoveis_investimento)
+
+    def test_pct_carteira_financeira_exclui_imoveis_do_denominador(self):
+        r = self._mixed()
+        por_cat = {c.categoria: c for c in r.tabela_classes}
+        # Internacional: 20k/200k = 10% do total investido; 20k/80k = 25% da financeira.
+        assert por_cat["Internacional"].pct == pytest.approx(10.0)
+        assert por_cat["Internacional"].pct_carteira_financeira == pytest.approx(25.0)
+        assert por_cat["Renda Fixa"].pct_carteira_financeira == pytest.approx(75.0)
+
+    def test_imoveis_investimento_sem_pct_carteira_financeira(self):
+        r = self._mixed()
+        imoveis = next(c for c in r.tabela_classes if c.categoria == "Imóveis Investimento")
+        assert imoveis.pct_carteira_financeira is None
+        assert imoveis.to_dict()["pct_carteira_financeira"] is None
+
+    def test_legacy_dict_emite_decomposicao(self):
+        d = self._mixed().to_legacy_dict()
+        assert d["total_financeiro"] == pytest.approx(80_000.0)
+        assert d["total_imoveis_investimento"] == pytest.approx(120_000.0)
+        rf = next(c for c in d["tabela_classes"] if c["categoria"] == "Renda Fixa")
+        assert rf["pct_carteira_financeira"] == pytest.approx(75.0)
+
+    def test_empty_input_zera_decomposicao(self):
+        r = InvestimentosClassesAnalyzer().analyze([])
+        assert r.total_financeiro == 0.0
+        assert r.total_imoveis_investimento == 0.0
+
+    def test_carteira_100pct_imoveis_nao_divide_por_zero(self):
+        r = InvestimentosClassesAnalyzer().analyze(
+            [_bens(imoveis=[{"valor_31_12_ano_base": 100_000}])]
+        )
+        assert r.total_financeiro == 0.0
+        imoveis = r.tabela_classes[0]
+        assert imoveis.pct == pytest.approx(100.0)
+        assert imoveis.pct_carteira_financeira is None
+
+
 class TestOutrosExcessivoWarning:
     def test_warning_emitted_when_outros_above_threshold(self):
         # 90% em Outros (1 ativo classificado, 9 outros sem keyword) > 5% threshold.

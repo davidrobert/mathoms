@@ -223,6 +223,38 @@
     "consumo_consciente": {"type": "object"},
     "diagnostico_comportamental": {"type": "array"},
     "programa_milhas": {"type": "object"},
+    "exposicao_cambial": {
+      "type": "object",
+      "description": "Exposição cambial (Bloco G plan/RESIDENCIA_E_USO; produzido por exposicao_cambial_analyzer): caixa em moeda estrangeira + ativos com lastro internacional, em BRL. CONCEITO DISTINTO da alocação internacional (A37.l9): exposição cambial mede posições EM MOEDA ESTRANGEIRA sobre investivel_financeiro (posições atuais + caixa); alocação internacional mede a classe 'Internacional' da tabela sobre a carteira financeira da tabela. Numerador E denominador diferem — nunca fundir os dois números.",
+      "properties": {
+        "total_brl": {
+          "type": "number",
+          "description": "Soma em BRL das posições com lastro em moeda estrangeira (caixa FX + ativos Internacional)."
+        },
+        "pct_investivel_financeiro": {
+          "type": "number",
+          "description": "Percentual absoluto (ADR-209) da exposição cambial sobre patrimonio.investivel_financeiro (investimentos posições atuais + caixa). Rótulo de base obrigatório ao citar (A37.l9)."
+        },
+        "por_moeda": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "moeda": {"type": "string"},
+              "valor_brl": {"type": "number"},
+              "share_pct": {"type": "number"},
+              "pct_total_cambial": {"type": "number"}
+            }
+          }
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["verde", "amarelo", "vermelho", "empty"],
+          "description": "Tier canônico: verde >=10%, amarelo 5-10%, vermelho <5%, empty sem posições."
+        },
+        "detalhes": {"type": "array"}
+      }
+    },
     "narrativas": {"type": "object"},
     "irpf_kpis": {
       "type": "object",
@@ -435,12 +467,29 @@
               "valor": {"type": "number"},
               "pct": {
                 "type": "number",
-                "description": "Percentual absoluto da classe sobre o total investível (44.7 = 44,7%, ADR-209). Soma do array ~100."
+                "description": "Percentual absoluto da classe sobre o TOTAL INVESTIDO (financeiro + imóveis de investimento; 44.7 = 44,7%, ADR-209). Soma do array ~100. Rótulo de base obrigatório nos renderers: '% do total investido' (A37.l9)."
+              },
+              "pct_carteira_financeira": {
+                "type": ["number", "null"],
+                "description": "Percentual absoluto da classe sobre a CARTEIRA FINANCEIRA (total - imóveis físicos; A37.l9). null para 'Imóveis Investimento' (fora da base) e carteira financeira vazia. Peso de classe financeira (Internacional/RF/RV/FII) cita-se SEMPRE desta base, nunca da base com imóvel físico."
               }
             }
           }
         },
         "total": {"type": "number"},
+        "total_financeiro": {
+          "type": "number",
+          "description": "Subtotal financeiro da tabela (total - Imóveis Investimento) — denominador de pct_carteira_financeira. Decomposição por construção: total = total_financeiro + total_imoveis_investimento (A37.l9)."
+        },
+        "total_imoveis_investimento": {
+          "type": "number",
+          "description": "Subtotal de imóveis físicos (classe 'Imóveis Investimento') da tabela (A37.l9)."
+        },
+        "fonte": {
+          "type": "string",
+          "enum": ["irpf_bens"],
+          "description": "Fonte dos dados da tabela/top_ativos: bens IRPF do baseline (foto 31/12 do ano-base). Difere de patrimonio.fonte_investimentos (posições atuais quando disponíveis) — as duas superfícies medem fotos distintas e podem divergir legitimamente (A37.l9)."
+        },
         "top_ativos": {
           "type": "array",
           "maxItems": 15,

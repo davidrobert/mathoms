@@ -105,7 +105,7 @@ class SummariesNarrator:
         return {
             "s1": (
                 f"Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])} com {fmt_percent(M['pct_investivel'])} investível ({fmt_currency(M['patrimonio_investivel'])}). "
-                f"Imóveis representam {fmt_percent(M['pct_imoveis_bruto'])} do total, com residência própria de {fmt_currency(M['residencia'])} e imóveis de investimento somando "
+                f"Imóveis representam {fmt_percent(M['pct_imoveis_bruto'])} do patrimônio bruto, com residência própria de {fmt_currency(M['residencia'])} e imóveis de investimento somando "
                 f"{fmt_currency(M['imoveis_investimento'])}. Endividamento de {fmt_percent(M['taxa_endividamento'])} sobre o bruto."
             ),
             "s2": (
