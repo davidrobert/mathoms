@@ -266,17 +266,23 @@ export interface PassiveIncomeData {
   status: "ok" | "sem_irpf" | "gerador_zero";
   renda_passiva_anual_brl: number;
   renda_passiva_mensal_brl: number;
+  /** A37.l7 PR-2 — dict auto-conservativo: Σ(fontes) == renda_passiva_anual_brl.
+   * Payloads pré-PR-2 ainda carregam ganho_capital/distribuicao_pj_titular dentro
+   * do dict (ignorados pela UI). */
   renda_passiva_por_fonte_brl: {
     dividendos: number;
     jcp: number;
     aplicacoes: number;
-    ganho_capital: number;
     exterior: number;
     alugueis: number;
-    /** A28.l2 — distribuição de lucros da PJ do titular: linha rotulada FORA
-     * da TRS (não soma em renda_passiva_anual_brl). */
-    distribuicao_pj_titular?: number;
   };
+  /** A28.l2 (ADR-191) — distribuição de lucros da PJ do titular ≈ renda de
+   * trabalho: FORA da TRS (não soma em renda_passiva_anual_brl). Ausente em
+   * payloads pré-A37.l7 PR-2. */
+  renda_ativa_pj_excluida_brl?: number;
+  /** ADR-336 — ganho de capital (realização one-time, não yield recorrente):
+   * FORA da TRS. Ausente em payloads pré-A37.l7 PR-2. */
+  ganho_capital_excluido_brl?: number;
   patrimonio_gerador_brl: number;
   trs_efetiva_pct: number;
   ano_referencia_irpf: number | null;

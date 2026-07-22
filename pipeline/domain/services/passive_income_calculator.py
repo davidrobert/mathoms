@@ -50,9 +50,11 @@ class PassiveIncomeConfig:
     )
 
 
-# A28.l2 (ADR-191): anual/mensal/TRS medem yield de carteira — excluem
-# renda_passiva_por_fonte_brl["distribuicao_pj_titular"] (distribuição de
-# lucros da PJ operacional do titular ≈ remuneração de trabalho, não yield).
+# A28.l2 (ADR-191) + A37.l7 PR-2: anual/mensal/TRS medem yield de carteira.
+# O dict de fontes é auto-conservativo (Σ(por_fonte) == anual); os componentes
+# excluídos por design vivem em irmãos explícitos — renda_ativa_pj_excluida_brl
+# (distribuição de lucros da PJ do titular ≈ remuneração de trabalho, ADR-191)
+# e ganho_capital_excluido_brl (realização one-time, não yield — ADR-336).
 @dataclass(frozen=True)
 class PassiveIncomeResult:
     """Output de :meth:`PassiveIncomeCalculator.calculate` — render UI do S7."""
@@ -60,6 +62,8 @@ class PassiveIncomeResult:
     renda_passiva_anual_brl: Decimal
     renda_passiva_mensal_brl: Decimal
     renda_passiva_por_fonte_brl: dict[str, Decimal]
+    renda_ativa_pj_excluida_brl: Decimal
+    ganho_capital_excluido_brl: Decimal
     patrimonio_gerador_brl: Decimal
     trs_efetiva_pct: Decimal
     ano_referencia_irpf: int | None
@@ -128,14 +132,14 @@ class _RendaPassivaBuckets:
         return self.dividendos + self.jcp + self.aplicacoes + self.exterior + self.alugueis
 
     def to_dict(self) -> dict[str, Decimal]:
+        """Só as fontes que compõem o headline — Σ(to_dict) == total (A37.l7 PR-2).
+        ganho_capital e distribuicao_pj_titular saem como irmãos explícitos no result."""
         return {
             "dividendos": self.dividendos,
             "jcp": self.jcp,
             "aplicacoes": self.aplicacoes,
-            "ganho_capital": self.ganho_capital,
             "exterior": self.exterior,
             "alugueis": self.alugueis,
-            "distribuicao_pj_titular": self.distribuicao_pj_titular,
         }
 
 
@@ -198,6 +202,8 @@ class PassiveIncomeCalculator:
             renda_passiva_anual_brl=anual,
             renda_passiva_mensal_brl=(anual / _TWELVE) if anual > _ZERO else _ZERO,
             renda_passiva_por_fonte_brl=buckets.to_dict(),
+            renda_ativa_pj_excluida_brl=buckets.distribuicao_pj_titular,
+            ganho_capital_excluido_brl=buckets.ganho_capital,
             patrimonio_gerador_brl=ctx.gerador,
             trs_efetiva_pct=(anual / ctx.gerador * _HUNDRED).quantize(_PCT_QUANTUM),
             ano_referencia_irpf=ctx.ano_ref,
@@ -298,6 +304,8 @@ class PassiveIncomeCalculator:
             renda_passiva_anual_brl=_ZERO,
             renda_passiva_mensal_brl=_ZERO,
             renda_passiva_por_fonte_brl=_RendaPassivaBuckets().to_dict(),
+            renda_ativa_pj_excluida_brl=_ZERO,
+            ganho_capital_excluido_brl=_ZERO,
             patrimonio_gerador_brl=_ZERO,
             trs_efetiva_pct=_ZERO,
             ano_referencia_irpf=ano_ref,
