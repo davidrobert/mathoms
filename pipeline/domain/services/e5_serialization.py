@@ -453,6 +453,10 @@ def _passive_income_to_dict(pi: PassiveIncomeResult) -> _GoalsPayload:
         "renda_passiva_anual_brl": float(pi.renda_passiva_anual_brl),
         "renda_passiva_mensal_brl": float(pi.renda_passiva_mensal_brl),
         "renda_passiva_por_fonte_brl": _decimals_to_float(pi.renda_passiva_por_fonte_brl),
+        # A37.l7 PR-2: excluídos do headline por design (ADR-191/ADR-336) —
+        # irmãos explícitos, fora do dict conservativo.
+        "renda_ativa_pj_excluida_brl": float(pi.renda_ativa_pj_excluida_brl),
+        "ganho_capital_excluido_brl": float(pi.ganho_capital_excluido_brl),
         "patrimonio_gerador_brl": float(pi.patrimonio_gerador_brl),
         "trs_efetiva_pct": float(pi.trs_efetiva_pct),
         "ano_referencia_irpf": pi.ano_referencia_irpf,

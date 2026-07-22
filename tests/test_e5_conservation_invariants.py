@@ -96,11 +96,13 @@ def test_receita_total_equals_recorrente_plus_one_time(e5_payload: dict):
     assert _cents(fc["receita_total"]) == split
 
 
-# DE-02 (R3.4b): conservação da renda passiva observada (ADR-191 + ADR-336). O
-# numerador da TRS (renda_passiva_anual) é só yield RECORRENTE — exclui a
+# DE-02 (R3.4b) + A37.l7 PR-2: conservação da renda passiva observada (ADR-191 +
+# ADR-336). O numerador da TRS (renda_passiva_anual) é só yield RECORRENTE — a
 # distribuição de lucro PJ do titular (renda de trabalho, ADR-191) e o ganho de
-# capital (realização one-time, ADR-336). Exige fixture IRPF-bearing com
-# distribuicao_pj_titular>0 E ganho_capital>0, senão o teste é vacuoso (0==0).
+# capital (realização one-time, ADR-336) vivem em campos irmãos explícitos
+# (renda_ativa_pj_excluida_brl / ganho_capital_excluido_brl), FORA do dict de
+# fontes — o dict fecha com o headline (auto-conservativo). Exige fixture
+# IRPF-bearing com ambos excluídos >0, senão o teste é vacuoso (0==0).
 # CNPJ/empresa fictícios (ACME LTDA), PII-zero.
 _QUOTA_ACME = "QUOTAS DA EMPRESA ACME SERVICOS LTDA CNPJ 12.345.678/0001-90"
 _YIELD_BUCKETS = ("dividendos", "jcp", "aplicacoes", "exterior", "alugueis")
@@ -128,24 +130,40 @@ def _irpf_bearing_payload() -> dict:
     ).model_dump(mode="json")
 
 
-def test_renda_passiva_conservation(tmp_path: Path):
+def _run_irpf_bearing_e5(tmp_path: Path) -> dict:
     write_e5_config(tmp_path)
-    e5 = run_e3_e4_e5(
+    return run_e3_e4_e5(
         tmp_path,
         e3_payloads={_e3_key(_E3_MIN): load_fixture(_E3_MIN)},
         baseline=load_fixture(_BASELINE),
         irpf_payloads={"irpfdeclaracao_2024": _irpf_bearing_payload()},
     )
+
+
+def test_renda_passiva_conservation(tmp_path: Path):
+    e5 = _run_irpf_bearing_e5(tmp_path)
     pi = e5["passive_income"]
     assert pi["status"] == "ok", "fixture vacuosa — passive_income precisa ser 'ok'"
     fonte = pi["renda_passiva_por_fonte_brl"]
-    distribuicao = _cents(fonte["distribuicao_pj_titular"])
-    ganho = _cents(fonte["ganho_capital"])
-    assert distribuicao > 0 and ganho > 0, "guard anti-vacuidade (subtração seria 0)"
+    distribuicao = _cents(pi["renda_ativa_pj_excluida_brl"])
+    ganho = _cents(pi["ganho_capital_excluido_brl"])
+    assert distribuicao > 0 and ganho > 0, "guard anti-vacuidade (exclusão seria 0)"
     yield_rec = sum(_cents(fonte[k]) for k in _YIELD_BUCKETS)
-    soma = sum(_cents(v) for v in fonte.values())
     anual = _cents(pi["renda_passiva_anual_brl"])
-    assert anual == yield_rec == soma - distribuicao - ganho
+    assert anual == yield_rec == sum(_cents(v) for v in fonte.values())
+
+
+def test_renda_passiva_dict_nao_carrega_componentes_excluidos(tmp_path: Path):
+    """A37.l7 PR-2: contrato novo — consumidor que somava o dict antigo (com
+    distribuicao_pj_titular/ganho_capital dentro) falha explicitamente (KeyError),
+    não recebe silenciosamente um valor que quebra a conservação."""
+    e5 = _run_irpf_bearing_e5(tmp_path)
+    fonte = e5["passive_income"]["renda_passiva_por_fonte_brl"]
+    assert set(fonte) == set(_YIELD_BUCKETS)
+    with pytest.raises(KeyError):
+        fonte["distribuicao_pj_titular"]
+    with pytest.raises(KeyError):
+        fonte["ganho_capital"]
 
 
 def test_cv17_runtime_check_passes_on_golden(tmp_path: Path):
@@ -154,15 +172,8 @@ def test_cv17_runtime_check_passes_on_golden(tmp_path: Path):
     tem que ficar verde — prova que o gate cobre o payload real, não só o golden."""
     from scripts import validate_cross
 
-    write_e5_config(tmp_path)
-    e5 = run_e3_e4_e5(
-        tmp_path,
-        e3_payloads={_e3_key(_E3_MIN): load_fixture(_E3_MIN)},
-        baseline=load_fixture(_BASELINE),
-        irpf_payloads={"irpfdeclaracao_2024": _irpf_bearing_payload()},
-    )
-    fonte = e5["passive_income"]["renda_passiva_por_fonte_brl"]
-    assert _cents(fonte["distribuicao_pj_titular"]) > 0, "guard anti-vacuidade"
+    e5 = _run_irpf_bearing_e5(tmp_path)
+    assert _cents(e5["passive_income"]["renda_ativa_pj_excluida_brl"]) > 0, "guard anti-vacuidade"
     result = validate_cross._cv17_renda_passiva_conservacao(e5)
     assert result is not None and result.passed
     assert result.severity == "info"

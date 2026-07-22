@@ -227,12 +227,8 @@ class TestLegacyDict:
 
 
 _DEFAULT_FONTES = {
-    "dividendos": Decimal("10000"),
-    "jcp": Decimal("0"),
-    "aplicacoes": Decimal("0"),
-    "ganho_capital": Decimal("0"),
-    "exterior": Decimal("0"),
-    "alugueis": Decimal("0"),
+    k: Decimal("10000") if k == "dividendos" else Decimal("0")
+    for k in ("dividendos", "jcp", "aplicacoes", "exterior", "alugueis")
 }
 
 
@@ -243,6 +239,8 @@ def make_passive_income(
         renda_passiva_anual_brl=Decimal("10000"),
         renda_passiva_mensal_brl=Decimal("833.33"),
         renda_passiva_por_fonte_brl=dict(_DEFAULT_FONTES),
+        renda_ativa_pj_excluida_brl=Decimal("0"),
+        ganho_capital_excluido_brl=Decimal("0"),
         patrimonio_gerador_brl=Decimal("400000"),
         trs_efetiva_pct=Decimal(trs_pct),
         ano_referencia_irpf=ano,

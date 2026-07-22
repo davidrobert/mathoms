@@ -421,31 +421,23 @@ def _cv16_receita_natureza(e5: dict) -> CrossValidationResult | None:
     )
 
 
-# Fontes de renda_passiva_por_fonte_brl excluídas do headline por design:
-# distribuicao_pj_titular ≈ remuneração de trabalho, não yield (ADR-191);
-# ganho_capital = realização one-time, não yield recorrente (ADR-336).
-_CV17_FONTES_EXCLUIDAS_DO_HEADLINE: tuple[str, ...] = (
-    "distribuicao_pj_titular",
-    "ganho_capital",
-)
-
-
 def _cents(value: object) -> int:
     # ADR-090: Decimal via str(v) no call-site — nunca float em comparação monetária.
     return int((Decimal(str(value or 0)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
-# A37.l7 (CTO-01): conservação da renda passiva observada — o headline
-# (renda_passiva_anual_brl) é só yield recorrente: Σ(fontes) menos as excluídas
-# por design (_CV17_FONTES_EXCLUIDAS_DO_HEADLINE). Cents inteiros via Decimal,
+# A37.l7 (CTO-01 + PR-2): conservação da renda passiva observada — pós-shape
+# auto-conservativo o dict de fontes contém SÓ yield recorrente (excluídos por
+# design — ADR-191/ADR-336 — vivem em irmãos explícitos fora do dict), então
+# Σ(fontes) == headline sem subtração. Um componente excluído re-injetado no
+# dict (shape antigo) quebra a igualdade → error. Cents inteiros via Decimal,
 # tolerância zero — simétrico ao CV16.
 def _cv17_renda_passiva_conservacao(e5: dict) -> CrossValidationResult | None:
     pi = e5.get("passive_income")
     fontes = (pi or {}).get("renda_passiva_por_fonte_brl")
     if not fontes:
         return None
-    excluidas = sum(_cents(fontes.get(k)) for k in _CV17_FONTES_EXCLUIDAS_DO_HEADLINE)
-    esperado = sum(_cents(v) for v in fontes.values()) - excluidas
+    esperado = sum(_cents(v) for v in fontes.values())
     headline = _cents(pi.get("renda_passiva_anual_brl"))
     passed = esperado == headline
     return CrossValidationResult(
@@ -453,8 +445,7 @@ def _cv17_renda_passiva_conservacao(e5: dict) -> CrossValidationResult | None:
         "Conservação renda passiva",
         "info" if passed else "error",
         passed,
-        f"Σ(fontes) − excluídas ({esperado / 100:,.2f}) == "
-        f"renda_passiva_anual_brl ({headline / 100:,.2f})",
+        f"Σ(fontes) ({esperado / 100:,.2f}) == renda_passiva_anual_brl ({headline / 100:,.2f})",
         ["passive_income"],
     )
 

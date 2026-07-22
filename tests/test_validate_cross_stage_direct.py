@@ -127,9 +127,10 @@ def test_cv16_none_sem_bloco() -> None:
 
 
 def _passive_income_conservativo() -> dict:
-    """Bloco passive_income sintético conservativo (shape de `_passive_income_to_dict`):
-    yield recorrente 53000 = 12000+30000+3000+8000+0; distribuicao_pj_titular (ADR-191)
-    e ganho_capital (ADR-336) excluídas do headline por design. Fictício, zero PII."""
+    """Bloco passive_income sintético conservativo (shape de `_passive_income_to_dict`
+    pós-A37.l7 PR-2): o dict fecha com o headline (53000 = 12000+30000+3000+8000+0);
+    distribuicao PJ (ADR-191) e ganho de capital (ADR-336) vivem em campos irmãos
+    explícitos, fora do dict. Fictício, zero PII."""
     return {
         "status": "ok",
         "renda_passiva_anual_brl": 53000.0,
@@ -137,16 +138,16 @@ def _passive_income_conservativo() -> dict:
             "dividendos": 12000.0,
             "jcp": 30000.0,
             "aplicacoes": 3000.0,
-            "ganho_capital": 20000.0,
             "exterior": 8000.0,
             "alugueis": 0.0,
-            "distribuicao_pj_titular": 284000.0,
         },
+        "renda_ativa_pj_excluida_brl": 284000.0,
+        "ganho_capital_excluido_brl": 20000.0,
     }
 
 
 def test_cv17_passa_quando_headline_conserva() -> None:
-    """Σ(fontes) − excluídas == headline → conservação OK (severity info)."""
+    """Σ(fontes) == headline (dict auto-conservativo) → OK (severity info)."""
     r = _scripts_validate_cross._cv17_renda_passiva_conservacao(
         {"passive_income": _passive_income_conservativo()}
     )
@@ -154,17 +155,18 @@ def test_cv17_passa_quando_headline_conserva() -> None:
 
 
 def test_cv17_detecta_fonte_vazando_no_headline() -> None:
-    """ganho_capital vazando pro headline (53000 → 73000) → error."""
+    """Headline inflado sem contrapartida no dict (53000 → 73000) → error."""
     pi = _passive_income_conservativo()
     pi["renda_passiva_anual_brl"] = 73000.0
     r = _scripts_validate_cross._cv17_renda_passiva_conservacao({"passive_income": pi})
     assert r is not None and not r.passed and r.severity == "error"
 
 
-def test_cv17_detecta_distribuicao_pj_somada() -> None:
-    """distribuicao_pj_titular somada no headline (~7,84× — DE-04) → error."""
+def test_cv17_detecta_componente_excluido_de_volta_no_dict() -> None:
+    """Regressão DE-04: distribuicao_pj_titular re-injetada no dict (shape antigo,
+    ~7,84× o headline) quebra a conservação → error."""
     pi = _passive_income_conservativo()
-    pi["renda_passiva_anual_brl"] = 337000.0
+    pi["renda_passiva_por_fonte_brl"]["distribuicao_pj_titular"] = 284000.0
     r = _scripts_validate_cross._cv17_renda_passiva_conservacao({"passive_income": pi})
     assert r is not None and not r.passed and r.severity == "error"
 
