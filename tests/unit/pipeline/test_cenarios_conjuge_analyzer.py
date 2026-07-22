@@ -150,6 +150,18 @@ class TestAnalyzer:
         assert "green card" not in resumo
         assert "rn" not in resumo.split()
 
+    def test_resumo_formato_monetario_brasileiro(self):
+        """A37.l14 (PD-11): resumo exibia milhar US ("R$ 13,200/mês")."""
+        cfg = _cfg(aporte_base=22_000, fator_reduzido=0.6)
+        analyzer = CenariosConjugeAnalyzer(cfg)
+        result = analyzer.analyze(
+            patrimonio=_patrimonio(), goals=_goals(), fluxo=_fluxo_salario_conjuge()
+        )
+        resumo = result.cenarios[0].resumo
+        # 22_000 × 0.6 = 13_200 → "R$ 13,2k" (fmt_currency BR), nunca "R$ 13,200".
+        assert "R$ 13,200" not in resumo
+        assert "R$ 13,2k" in resumo
+
     def test_meta_atingida_retorna_prazo_zero(self):
         analyzer = CenariosConjugeAnalyzer(_cfg())
         result = analyzer.analyze(

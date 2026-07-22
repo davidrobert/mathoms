@@ -10,6 +10,7 @@ from typing import Any, Mapping
 from pipeline.domain.services.methodology_constants import (
     APORTE_REDUZIDO_FATOR_CONJUGE,
 )
+from pipeline.domain.services.narrativas.format_helpers import fmt_currency
 
 _TODAY_FALLBACK = date(2026, 4, 19)
 
@@ -221,9 +222,11 @@ class CenariosConjugeAnalyzer:
         return 999
 
     def _resumo(self, aporte: float, prazo: float, ano_if: int) -> str:
+        # A37.l14 (PD-11): f"{v:,.0f}" produzia milhar US ("R$ 13,200");
+        # fmt_currency é o formatador BR canônico das narrativas.
         cfg = self._config
         return (
-            f"Sem renda do cônjuge, aporte cai para R$ {aporte:,.0f}/mês "
+            f"Sem renda do cônjuge, aporte cai para {fmt_currency(aporte)}/mês "
             f"({cfg.fator_reduzido:.0%} do base). IF em {prazo:.0f} anos ({ano_if})."
         )
 
