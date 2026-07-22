@@ -226,7 +226,7 @@
         "idade_titular": 1040,
         "nome": "Sem renda do cônjuge",
         "prazo_if_anos": 999,
-        "resumo": "Sem renda do cônjuge, aporte cai para R$ 0/mês (66% do base). IF em 999 anos (3025)."
+        "resumo": "Sem renda do cônjuge, aporte cai para R$ 0,00/mês (66% do base). IF em 999 anos (3025)."
       }
     ],
     "idade_titular_if": [
