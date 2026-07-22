@@ -6,7 +6,7 @@ import json
 from dataclasses import asdict
 from datetime import datetime, timezone
 
-from dev._audit_cs_internals.models import REPO_ROOT, SEVERITY_RANK, Offender, Summary
+from dev._audit_cs_internals.models import SEVERITY_RANK, Offender, Summary
 
 
 def _now_iso() -> str:
@@ -19,7 +19,9 @@ def render_json(offenders: list[Offender], summary: Summary, commit: str) -> str
         "audit_version": "1.0",
         "generated_at": _now_iso(),
         "git_commit": commit,
-        "repo_root": str(REPO_ROOT),
+        # "." e não path absoluto: baseline é commitado e o hook anti-PII
+        # (lint-no-real-pii, ADR-319) bloqueia homedir no diff
+        "repo_root": ".",
         "summary": _summary_dict(summary),
         "offenders": [asdict(o) for o in offenders],
     }
