@@ -85,16 +85,61 @@ def make_workspace_e5(
             "percentual_patrimonio": 9.6,
         },
         "investimentos": {
-            "total": 2_400_000.0,
+            "total": 3_200_000.0,
+            # A37.l9 — decomposição por construção + pct por base declarada:
+            # pct = % do total investido (inclui imóveis físicos);
+            # pct_carteira_financeira = % ex-imóveis (None na linha de imóveis).
+            "total_financeiro": 2_400_000.0,
+            "total_imoveis_investimento": 800_000.0,
+            "fonte": "irpf_bens",
             "tabela_classes": [
-                {"categoria": "RF", "valor": 600_000.0, "pct": 25.0},
-                {"categoria": "RV BR", "valor": 900_000.0, "pct": 37.5},
-                {"categoria": "RV Intl", "valor": 400_000.0, "pct": 16.7},
-                {"categoria": "FIIs", "valor": 300_000.0, "pct": 12.5},
-                {"categoria": "Caixa", "valor": 200_000.0, "pct": 8.3},
+                {
+                    "categoria": "Imóveis Investimento",
+                    "valor": 800_000.0,
+                    "pct": 25.0,
+                    "pct_carteira_financeira": None,
+                },
+                {
+                    "categoria": "RF",
+                    "valor": 600_000.0,
+                    "pct": 18.7,
+                    "pct_carteira_financeira": 25.0,
+                },
+                {
+                    "categoria": "RV BR",
+                    "valor": 900_000.0,
+                    "pct": 28.1,
+                    "pct_carteira_financeira": 37.5,
+                },
+                {
+                    "categoria": "RV Intl",
+                    "valor": 400_000.0,
+                    "pct": 12.5,
+                    "pct_carteira_financeira": 16.7,
+                },
+                {
+                    "categoria": "FIIs",
+                    "valor": 300_000.0,
+                    "pct": 9.4,
+                    "pct_carteira_financeira": 12.5,
+                },
+                {
+                    "categoria": "Caixa",
+                    "valor": 200_000.0,
+                    "pct": 6.3,
+                    "pct_carteira_financeira": 8.3,
+                },
             ],
             "top_ativos": [],
             "n_imoveis_total": 4,
+        },
+        # A37.l9 (CTO-04/PE-05) — conceito distinto da alocação internacional.
+        "exposicao_cambial": {
+            "total_brl": 52_000.0,
+            "pct_investivel_financeiro": 2.16,
+            "por_moeda": [{"moeda": "USD", "valor_brl": 52_000.0, "share_pct": 100.0}],
+            "tier": "vermelho",
+            "detalhes": [],
         },
         "previdencia_pgbl": {
             "saldo": 500_000.0,

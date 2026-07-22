@@ -30,4 +30,41 @@ describe("<InvestimentosClasseCard />", () => {
       screen.getByText(/Sem posições de investimento detalhadas neste período\./),
     ).toBeInTheDocument();
   });
+
+  it("declara a base do percentual no header e decompõe total investido (A37.l9)", () => {
+    render(
+      <InvestimentosClasseCard
+        investimentos={{
+          total: 200_000,
+          total_financeiro: 80_000,
+          total_imoveis_investimento: 120_000,
+          tabela_classes: [
+            {
+              categoria: "Imóveis Investimento",
+              valor: 120_000,
+              pct: 60.0,
+              pct_carteira_financeira: null,
+            },
+            { categoria: "Renda Fixa", valor: 80_000, pct: 40.0, pct_carteira_financeira: 100.0 },
+          ],
+        }}
+      />,
+    );
+    expect(screen.getByText("% do total investido")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Base: total investido = carteira financeira/),
+    ).toBeInTheDocument();
+  });
+
+  it("omite a decomposição quando payload antigo não traz os subtotais", () => {
+    render(
+      <InvestimentosClasseCard
+        investimentos={{
+          total: 100_000,
+          tabela_classes: [{ categoria: "Renda Fixa", valor: 100_000, pct: 100.0 }],
+        }}
+      />,
+    );
+    expect(screen.queryByText(/Base: total investido/)).not.toBeInTheDocument();
+  });
 });

@@ -38,7 +38,10 @@ templates:
 
   # ---- S1 Patrimônio -----------------------------------------------------
   patrimonio_doughnut:
-    template: "{top_categoria} representa {top_pct|pct} do patrimônio líquido ({top_valor|brl})."
+    # A37.l9: base explícita — composicao.pct é relativo ao patrimônio BRUTO
+    # (soma das 6 categorias = 100% do bruto), não ao líquido. Paridade com o
+    # builder TS (conclusionUtils.ts, C11-F1).
+    template: "{top_categoria} representa {top_pct|pct} do patrimônio bruto ({top_valor|brl})."
     fallback: "Distribuição patrimonial por categoria."
     required_keys: ["patrimonio.composicao"]
 

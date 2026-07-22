@@ -2499,6 +2499,13 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
 def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
     """Converte sub-resultados tipados em dicts legacy-shaped."""
     investimentos_dict = result.investimentos_classes.to_legacy_dict()
+    # A37.l9 — rótulo de fonte: tabela_classes/top_ativos leem bens IRPF do
+    # baseline (foto 31/12 do ano-base), enquanto patrimonio.investimentos_*
+    # prefere posições atuais (patrimonio.fonte_investimentos). As duas
+    # superfícies medem fotos diferentes e podem divergir legitimamente;
+    # a decomposição total = total_financeiro + total_imoveis_investimento
+    # torna a base de cada percentual explícita.
+    investimentos_dict["fonte"] = "irpf_bens"
     if getattr(result, "top_ativos", None) is not None:
         investimentos_dict["top_ativos"] = [a.to_dict() for a in result.top_ativos.top_ativos]
     if getattr(result, "instituicoes_por_membro", None) is not None:

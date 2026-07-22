@@ -247,6 +247,51 @@ def test_sentinela_nd_nao_renderizada_como_dado():
 
 
 # ---------------------------------------------------------------------------
+# Bases e denominadores canônicos rotulados (A37.l9 — manifest 2.0.1)
+# ---------------------------------------------------------------------------
+
+
+def test_tabela_classes_declara_base_por_coluna():
+    """A37.l9: cada pct da tabela chega ao LLM com a base no rótulo — coluna
+    '% do total investido' (inclui imóveis físicos) vs '% da carteira
+    financeira' (ex-imóveis, '—' na linha de imóveis, fora da base)."""
+    ctx = distill_exec_context(load_manifest(), make_dogfood_like_e5())
+    assert "% do total investido=25,00%" in ctx  # Imóveis Investimento
+    assert "% da carteira financeira=—" in ctx  # imóveis fora da base financeira
+    assert "% do total investido=18,70%" in ctx  # RF
+    assert "% da carteira financeira=25,00%" in ctx  # RF ex-imóveis
+
+
+def test_decomposicao_das_bases_no_exec_context():
+    ctx = distill_exec_context(load_manifest(), make_dogfood_like_e5())
+    assert "Total investido (financeiro + imóveis de investimento): R$ 3.200.000,00" in ctx
+    assert "Carteira financeira da tabela (ex-imóveis físicos): R$ 2.400.000,00" in ctx
+    assert "Imóveis de investimento na tabela: R$ 800.000,00" in ctx
+    assert "Fonte da tabela (irpf_bens = foto 31/12; difere do patrimonio): irpf_bens" in ctx
+
+
+def test_exposicao_cambial_projetada_com_base_propria():
+    """CTO-04/PE-05: exposição cambial entra no exec context como conceito
+    próprio (posições em moeda estrangeira ÷ investível financeiro) — nunca
+    fundida com a alocação internacional da tabela."""
+    ctx = distill_exec_context(load_manifest(), make_dogfood_like_e5())
+    assert "Exposição cambial total: R$ 52.000,00" in ctx
+    assert "% do investível financeiro (posições atuais + caixa): 2,16%" in ctx
+    assert "Tier (verde >=10% / amarelo 5-10% / vermelho <5%): vermelho" in ctx
+
+
+def test_hints_de_base_presentes():
+    """Checagem determinística do eval golden (A37.l9): diretrizes de base
+    viajam nos hints — 'carteira financeira' nunca para base com imóvel,
+    internacional ≠ cambial, alíquota 'efetiva (blended)'."""
+    ctx = distill_exec_context(load_manifest(), make_dogfood_like_e5())
+    _body, tail = _split_parts(ctx)
+    assert "Rótulo de base obrigatório (A37.l9)" in tail
+    assert "Internacional ≠ cambial (A37.l9)" in tail
+    assert "efetiva (blended)" in tail
+
+
+# ---------------------------------------------------------------------------
 # Hints fora do corpo orçado (ADR-341 D4)
 # ---------------------------------------------------------------------------
 
