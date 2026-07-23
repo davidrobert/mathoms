@@ -5,6 +5,7 @@ title: "Gate anti-silêncio no E2: escalação de extração vazia/parcial com c
 status: Decidido
 date: "2026-07-22"
 phase: A38.l3
+amended_at: ["2026-07-23"]
 tags:
   - type/adr
   - status/decidido
@@ -15,6 +16,12 @@ tags:
 # ADR-342 — Gate anti-silêncio no E2 (escalação + read-path)
 
 **Status:** Decidido (A38.l3) · **Data:** 2026-07-22 · **Lane:** [[A38.l3]] (P0)
+
+> **Emenda 2026-07-23 ([[A38.l14]]):** a exceção de dormência do §Decisão item 1
+> ("nota explícita do parser") era substring-match em `notas` e uma nota parcial
+> de mês vazio a derrotava (silenciava extrato com conteúdo). Reescrita para
+> **observação estruturada + veredito no gate** (`raw_rows_detected`). Ver
+> §Emenda 2026-07-23.
 
 ## Contexto
 
@@ -90,6 +97,36 @@ key, e o dedup do E3 dá precedência a `extract_statements` — um artefato
   suprimir/badgear KPIs derivados no relatório em vez de renderizá-los com
   cara certificada. Sem isso, o artefato deixa de ser "ok" mas o relatório
   ainda renderiza derivados sobre base parcial.
+
+## Emenda 2026-07-23 ([[A38.l14]]) — dormência por observação, não por nota
+
+A certificação do workspace 5@5.com achou o buraco: a exceção de dormência do
+§Decisão item 1 era `"sem movimentação" in nota` (`validation.py`), e o
+`parse_c6bank` emitia essa string descrevendo **meses parciais vazios** de um
+extrato C6 Global com 56–199 linhas reais → o gate silenciava o extrato
+inteiro. O parser emitia uma **conclusão** e o gate acreditava — a mesma classe
+de erro que este gate existe para matar.
+
+**Correção (senior-cto decide; data-engineer + financial-planner):**
+
+- O §Decisão item 1 passa a ler: *"Exceção de dormência (não escala) só quando
+  0 tx **e** o parser observou 0 linhas-candidatas (`raw_rows_detected == 0`),
+  corroborada por saldo sem mudança onde `conservacao_verificavel`."*
+- Parser reporta `raw_rows_detected: int` — **observação** (linhas com data +
+  valor, excl. saldo) que o gate transforma em **veredito**, espelhando o
+  padrão `conservacao_verificavel` (§Decisão item 2). Rejeitadas: flag
+  `conta_dormant` (conclusão frágil, reabre o buraco na próxima variação) e
+  gate inferir por saldo (`saldo_ini==saldo_fim` falha em saldo derivado/Wise).
+- **Fail-safe:** parser que não reporta (`None`) ⇒ escala; `raw_rows_detected
+  > 0` com 0 tx ⇒ escala (viu linhas, converteu zero). Só `== 0` não escala.
+- O gate **para de ler `notas`** para decisão de dormência (grep-gate impede
+  regressão). A nota "N meses sem movimentação" sobrevive como telemetria.
+- **Saldo ≠ fluxo:** dormência é silêncio de *fluxo*, nunca suprime *posição* —
+  conta dormante genuína preserva `saldo_final` (bucket cambial + dolarização).
+- `raw_rows_detected` declarado no `e2_extract.schema.json` (drift-detection em
+  strict). Universo migrado = parsers line-based com dormência legítima
+  (c6bank, wise, bankofamerica, santander_conta); XLS/CSV sem reporte
+  over-escalam (direção segura) até wiring próprio.
 
 ## Alternativas rejeitadas
 

@@ -29,6 +29,7 @@ from scripts.e2.common import (
     SANTANDER_XLS_LAYOUT,
     TITULAR,
     VENC_UNIQUE,
+    count_candidate_rows,
     detect_member_from_text,
     infer_fatura_ref_from_filename,
     infer_periodo_from_filename,
@@ -378,6 +379,7 @@ def parse_santander_conta(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 text = page.extract_text() or ""
                 all_text += text + "\n"
 
+            result["raw_rows_detected"] = count_candidate_rows(all_text)
             result["titular"] = detect_member_from_text(all_text)
 
             # Account: "Agência e Conta: 1652 / 01001341-6"

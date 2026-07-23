@@ -193,6 +193,31 @@ def parse_brl(text: str) -> Optional[float]:
         return None
 
 
+# ADR-342 §Emenda A38.l14 — observação estruturada de dormência. Conta linhas
+# que parecem transação (data + valor monetário) EXCLUINDO linhas de saldo. O
+# parser reporta em ``result["raw_rows_detected"]`` e o gate decide dormência a
+# partir disso, não de substring em ``notas``. ``raw_rows_detected > 0`` com 0
+# tx = parser viu linhas e converteu zero (falha silenciosa), não dormência.
+_CANDIDATE_ROW_DATE_RE = re.compile(r"\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b")
+_CANDIDATE_ROW_MONEY_RE = re.compile(r"-?\d[\d.]*[.,]\d{2}(?!\d)")
+_SALDO_ROW_RE = re.compile(r"saldo", re.I)
+
+
+def count_candidate_rows(text: str) -> int:
+    """Linhas com data + valor monetário, excluindo linhas de saldo — proxy das
+    transações que o parser deveria ter convertido (observação para o gate
+    anti-silêncio; ADR-342 §Emenda A38.l14)."""
+    if not text:
+        return 0
+    count = 0
+    for line in text.split("\n"):
+        if _SALDO_ROW_RE.search(line):
+            continue
+        if _CANDIDATE_ROW_DATE_RE.search(line) and _CANDIDATE_ROW_MONEY_RE.search(line):
+            count += 1
+    return count
+
+
 def parse_usd(text: str) -> Optional[float]:
     """Parse US currency string to float. '2,605.00' → 2605.0"""
     if not text:
