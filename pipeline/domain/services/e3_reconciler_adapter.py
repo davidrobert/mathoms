@@ -246,13 +246,16 @@ class E3ReconcilerAdapter:
             for key in store.list_keys(stage):
                 if key in seen_keys:
                     continue
-                seen_keys.add(key)
                 data = store.read(stage, key)
                 if not data:
                     continue
                 if data.get("requires_llm_fallback"):
+                    # ADR-342: stub de escalação NÃO reivindica a key — senão o
+                    # stub em extract_statements bloquearia o artefato full do
+                    # extract_with_llm no dedup por prioridade de stage.
                     outcome.skipped += 1
                     continue
+                seen_keys.add(key)
 
                 # Skip de tipos não-reconciliáveis (IRPF, posições, etc.)
                 if self._grouper.should_skip(data):
