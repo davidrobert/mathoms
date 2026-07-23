@@ -6,7 +6,7 @@ sprint: A38
 status: open
 priority: P0
 branch_slug: a38-l3-gate-anti-silencio-e2
-adrs: []
+adrs: ["[[ADR-342]]"]
 depends_on: []
 parallel_with: ["[[A38.l2]]"]
 tags:
