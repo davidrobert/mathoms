@@ -12,32 +12,29 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-### A38 — Ingestão confiável: certificação de parse dos layouts 2026 (`current` desde 2026-07-22)
-
-**Origem:** certificação empírica do caminho E0→E2 sobre corpus local de 13
-PDFs reais do owner (Wise, Santander, Itaú — layouts 2026), 2026-07-22. Achado
-central: `parse_itau` captura **~50% das transações** do layout 2026 sem
-nenhum flag (34/74, 32/65, 12/23; conservação de saldo falha) — perda
-silenciosa de dados. 11 lanes em 3 ondas: **W0/P0** [[A38.l1]] harness local
-de certificação (gate manual de regressão de parser) · [[A38.l2]] `parse_itau`
-layout 2026 (dispatch por layout) · [[A38.l3]] gate anti-silêncio no E2 (0 tx/
-conservação quebrada ⇒ escalação; **ADR `Proposto` antes da implementação**) ·
-**W1/P1** [[A38.l6]] Wise moeda por conteúdo + período por extenso (1º P1 —
-erro invisível ao gate e direcionalmente enganoso) · [[A38.l4]] colisão de
-instituição `0800 726` (caixa×santander) · [[A38.l5]] TypeRule `cdbdetalhes`
-required fraco · [[A38.l7]] fatura Santander Unique layout 2026 (TypeRule +
-total/vencimento no mesmo PR) · **W2/P2** [[A38.l8]] consolidado inteligente
-Santander (`depends_on` l4; dívida pré-beta) ·
-[[A38.l9]] parser fatura Itaú Visa · [[A38.l10]] DOTALL nas TypeRules de
-fatura · [[A38.l11]] fuzzy-dupe discrimina moeda. North Star: **nenhum
-documento suportado perde transação em silêncio** — extração completa
-(conservação em cents) ou escalação explícita. Corpus real fica fora do git
-(política de PII); lanes carregam métricas mascaradas e fixtures são
-sintéticas.
-
-- **Plano:** [sprint/A38/_README.md](../sprint/A38/_README.md) · **Origem:** certificação de parse 2026-07-22 (memória de sessão do agente; corpus local do owner).
+_(nenhuma — próxima sprint a definir pelo owner)_
 
 ## Sprint recém-fechada
+
+### A38 — Ingestão confiável: certificação de parse dos layouts 2026 (`done` 2026-07-23)
+
+**Origem:** três certificações empíricas do caminho E0→E2 (2026-07-22/23) sobre
+corpora locais reais do owner (16 docs pessoais + 6 de investimento + 129 do
+workspace 5@5.com). Achado-título: `parse_itau` perdia ~50% das transações do
+layout 2026 e o C6 Global (USD/EUR) sumia inteiro (0 tx), ambos silenciosos.
+**Ondas P0+P1 entregues (10 lanes, PRs #1018–#1031)**, revisadas por 3 painéis
+de especialistas: **P0** [[A38.l1]] harness de certificação · [[A38.l2]]
+`parse_itau` layout 2026 (34→74 tx) · [[A38.l3]] gate anti-silêncio E2
+([[ADR-342]]) · [[A38.l14]] gate por observação `raw_rows_detected` (fecha o
+buraco do C6 Global). **P1** [[A38.l6]] Wise moeda por conteúdo · [[A38.l4]]
+colisão `0800 726` · [[A38.l5]] cdbdetalhes required forte · [[A38.l7]] fatura
+Unique 2026 · [[A38.l15]] parser C6 Global USD/EUR (0→199/179/56 tx) · [[A38.l12]]
+CDB PDF determinístico + checksum. KR-A..E medidos verdes no harness. North
+Star atingido: **nenhum documento suportado perde transação em silêncio** —
+extração completa ou escalação honesta. **Cauda P2 trailing** (follow-up/A39):
+[[A38.l8]] · [[A38.l9]] · [[A38.l10]] · [[A38.l11]] · [[A38.l13]] (abre ADR nova).
+
+- **Plano:** [sprint/A38/_README.md](../sprint/A38/_README.md) · **Origem:** certificações de parse 2026-07-22/23 (memória de sessão do agente; corpora locais do owner, fora do git).
 
 ### A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20 (`done` 2026-07-22)
 

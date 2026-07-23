@@ -3,7 +3,9 @@ id: A38.l2
 type: lane
 title: "parse_itau perde ~50% das transações do layout 2026 do extrato PDF"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1020
 priority: P0
 branch_slug: a38-l2-parse-itau-layout-2026
 adrs: []
@@ -11,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/dados

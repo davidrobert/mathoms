@@ -3,7 +3,9 @@ id: A38.l12
 type: lane
 title: "CDB em PDF (extrato mensal Itaú + detalhes Santander): 100% E2-llm sem parser determinístico"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1031
 priority: P1
 branch_slug: a38-l12-cdb-pdf-deterministico
 adrs: []
@@ -11,7 +13,7 @@ depends_on: ["[[A38.l1]]", "[[A38.l3]]", "[[A38.l5]]"]
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados

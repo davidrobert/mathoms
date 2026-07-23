@@ -3,7 +3,7 @@ id: A38.l9
 type: lane
 title: "Fatura Itaú Visa/Itaucard sem parser determinístico (100% E2-llm; 1 PDF com texto sem espaços)"
 sprint: A38
-status: open
+status: planned
 priority: P2
 branch_slug: a38-l9-fatura-itau-visa-parser
 adrs: []
@@ -12,7 +12,7 @@ parallel_with: ["[[A38.l10]]"]
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/planned
   - priority/p2
   - area/pipeline
   - area/dados

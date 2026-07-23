@@ -3,7 +3,9 @@ id: A38.l15
 type: lane
 title: "parse_c6bank não extrai o layout C6 Global (USD/EUR internacional): 0 tx com 56–199 linhas"
 sprint: A38
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1030
 priority: P1
 branch_slug: a38-l15-c6-global-parser
 adrs: []
@@ -11,7 +13,7 @@ depends_on: ["[[A38.l14]]"]
 tags:
   - type/lane
   - sprint/a38
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados

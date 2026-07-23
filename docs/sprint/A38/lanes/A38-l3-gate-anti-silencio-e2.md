@@ -3,7 +3,9 @@ id: A38.l3
 type: lane
 title: "Gate anti-silêncio no E2: 0 tx ou conservação quebrada nunca vira artefato 'ok' (ADR Proposto)"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1025
 priority: P0
 branch_slug: a38-l3-gate-anti-silencio-e2
 adrs: ["[[ADR-342]]"]
@@ -12,7 +14,7 @@ parallel_with: ["[[A38.l2]]"]
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/dados

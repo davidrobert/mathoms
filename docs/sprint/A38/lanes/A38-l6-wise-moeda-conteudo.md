@@ -3,7 +3,9 @@ id: A38.l6
 type: lane
 title: "Wise: moeda decidida por filename (USD vira BRL sem LLM) + período range por extenso"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1022
 priority: P1
 branch_slug: a38-l6-wise-moeda-conteudo
 adrs: []
@@ -11,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados

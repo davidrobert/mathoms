@@ -3,7 +3,7 @@ id: A38.l11
 type: lane
 title: "Fuzzy-dupe cruza-flagga extratos de moedas distintas do mesmo período (Wise USD × BRL)"
 sprint: A38
-status: open
+status: planned
 priority: P2
 branch_slug: a38-l11-fuzzy-dupe-moeda
 adrs: []
@@ -11,7 +11,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/planned
   - priority/p2
   - area/backend
 ---
