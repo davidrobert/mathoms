@@ -241,9 +241,13 @@ def _run_compare(records: list[dict], baseline_path: Path) -> int:
 
 
 def _init_pipeline_config() -> None:
+    import scripts.pipeline_common as _pc
     from scripts.route_documents import _init_config
 
-    _init_config(Path(__file__).resolve().parent.parent)
+    # PROJECT_DIR do pacote (não __file__): o harness funciona mesmo copiado
+    # para fora do repo — root errado zera MESES_BR_INT e o parse Wise degrada
+    # para 0 tx em silêncio.
+    _init_config(Path(_pc.PROJECT_DIR))
 
 
 def _parse_args() -> argparse.Namespace:
