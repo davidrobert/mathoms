@@ -194,6 +194,9 @@ def _santander_cdb_xlsx_builder(tmp_path: Path, filename: str) -> Path:
     sh.append(
         ["CDB DI SANTANDER", "Valor Total: R$101.000,00", "Disponível para Resgate: R$101.000,00"]
     )
+    # Linha de posição (op 15+ dígitos): Σ posições == total ⇒ checksum fecha
+    # (ADR-342 §Emenda 2026-07-23). Sem ela, 0 posições + total ⇒ escala.
+    sh.append(["000000000000001", "R$101.000,00", "R$101.000,00"])
     path = tmp_path / filename
     wb.save(path)
     return path

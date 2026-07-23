@@ -78,6 +78,15 @@
       "type": "integer",
       "minimum": 0,
       "description": "ADR-342 §Emenda A38.l14 — linhas-candidatas (data+valor, excl. saldo) que o parser observou. Com 0 tx: >0 ⇒ falha silenciosa (gate escala); ==0 ⇒ dormência (não escala); ausente ⇒ fail-safe escala. Declarado p/ drift-detection em modo strict."
+    },
+    "total_lancamentos_conferivel": {
+      "type": "object",
+      "description": "ADR-342 §Emenda 2026-07-23 (checksums E2) — opt-in do parser de fatura: subtotal de lançamentos declarado no doc (total_compras), em cents, cujo escopo casa com o subconjunto de transacoes emitido. Presente ⇒ gate confere Σ(tx do escopo) == valor_cents (int cents, tol-zero) e WARN/escala em divergência; ausente ⇒ sem checksum. NUNCA saldo_atual (Total desta fatura).",
+      "required": ["valor_cents", "escopo"],
+      "properties": {
+        "valor_cents": {"type": "integer"},
+        "escopo": {"type": "string"}
+      }
     }
   },
   "additionalProperties": true

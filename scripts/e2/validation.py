@@ -61,6 +61,40 @@ def _is_dormant_by_observation(result: Dict[str, Any]) -> bool:
     return result.get("raw_rows_detected") == 0
 
 
+# `total_declarado` deve ter ESCOPO IGUAL ao das linhas (bruto vs bruto); total de
+# conta agregado (saldos não itemizados) não entra aqui. Soma em int cents por
+# posição (ADR-090) — float acumulado dispara falso-fire com muitas posições.
+_CDB_EMPTY_MSG = "0 posições de CDB extraídas — escalado (ADR-342)"
+_CDB_MISMATCH_MSG = "Σ posições ≠ total declarado (cents) — escalado (ADR-342 §Emenda l12)"
+_FATURA_MISMATCH_MSG = "Σ lançamentos ≠ total_compras (cents) — WARN (flip HARD por parser)"
+
+
+def _apply_fatura_checksum(result: Dict[str, Any], issues: List[str]) -> None:
+    """WARN (não escala) se Σ lançamentos ≠ total_compras declarado. Opt-in por
+    parser via `total_lancamentos_conferivel` (escopo casado); flip HARD por parser
+    após corpus limpo (ADR-342 §Emenda 2026-07-23). NUNCA compara com `saldo_atual`."""
+    signal = result.get("total_lancamentos_conferivel")
+    if not isinstance(signal, dict) or signal.get("valor_cents") is None:
+        return
+    soma_cents = sum(round((t.get("valor") or 0) * 100) for t in result.get("transacoes") or [])
+    if soma_cents != signal["valor_cents"]:
+        issues.append("WARN: Σ lançamentos ≠ total_compras declarado (checksum de fatura)")
+        _warn_reason(result, ReviewReasonCode.extract_fatura_total_mismatch, _FATURA_MISMATCH_MSG)
+
+
+def apply_cdb_checksum(result: Dict[str, Any], total_declarado: Optional[float] = None) -> None:
+    """Escala (ADR-342 §Emenda l12) se 0 posições, ou Σ posições ≠ total declarado."""
+    posicoes = result.get("posicoes") or []
+    if not posicoes:
+        escalate_result(result, ReviewReasonCode.extract_empty_result, _CDB_EMPTY_MSG)
+        return
+    if total_declarado is None:
+        return
+    soma_cents = sum(round((p.get("valor_atual") or 0) * 100) for p in posicoes)
+    if soma_cents != round(total_declarado * 100):
+        escalate_result(result, ReviewReasonCode.extract_investment_sum_mismatch, _CDB_MISMATCH_MSG)
+
+
 def validate_extrato_result(
     result: Dict[str, Any], file_path: Path, is_csv: bool = False
 ) -> List[str]:
@@ -206,4 +240,5 @@ def validate_fatura_result(result: Dict[str, Any], filename: str) -> Dict[str, A
     if none_vals > 0:
         issues.append(f"WARN: {none_vals} transações com valor None ({filename})")
 
+    _apply_fatura_checksum(result, issues)
     return result
