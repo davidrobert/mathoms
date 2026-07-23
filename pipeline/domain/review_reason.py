@@ -25,6 +25,8 @@ class ReviewReasonCode(str, enum.Enum):
     extract_low_confidence = "extract.low_confidence"
     extract_llm_fallback = "extract.llm_fallback"
     extract_missing_required_field = "extract.missing_required_field"
+    extract_incomplete_conservation = "extract.incomplete_conservation"
+    extract_empty_result = "extract.empty_result"
     dedup_possible_duplicate = "dedup.possible_duplicate"
     dedup_sentinel_period = "dedup.sentinel_period"
     domain_validation_conflict = "domain.validation_conflict"

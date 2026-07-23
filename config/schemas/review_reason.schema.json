@@ -23,6 +23,8 @@
         "extract.low_confidence",
         "extract.llm_fallback",
         "extract.missing_required_field",
+        "extract.incomplete_conservation",
+        "extract.empty_result",
         "dedup.possible_duplicate",
         "dedup.sentinel_period",
         "domain.validation_conflict",

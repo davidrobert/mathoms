@@ -70,7 +70,15 @@ def _find_unprocessed_docs(ctx: WorkspaceContext, store=None) -> list[Path]:
     e2_existing: set[str] = set()
     if store is not None:
         for stage_key in ("E2", "extract_statements", "extract_invoices", "extract_with_llm"):
-            e2_existing.update(store.list_keys(stage_key))
+            for key in store.list_keys(stage_key):
+                if key in e2_existing:
+                    continue
+                data = store.read(stage_key, key)
+                # ADR-342: key cujo único artefato vivo é stub de escalação
+                # (`requires_llm_fallback`) conta como NÃO-processada — a mera
+                # existência de key deixava o doc escalado morrer sem E2-llm.
+                if data and not data.get("requires_llm_fallback"):
+                    e2_existing.add(key)
     elif ctx.e2_dir.exists():
         for f in ctx.e2_dir.glob("*-2_extract.json"):
             stem = f.stem.replace("-2_extract", "")
@@ -270,7 +278,10 @@ def _process_one_e2_llm_document(
         # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
         e2_json["prompt_version"] = PROMPT_VERSION
 
-        safe_stem = _e2_extract_stem(doc).replace(" ", "_")[:80]
+        # ADR-342: key idêntica à do writer determinístico
+        # (`_artifact_key_for_file` / `_normalize_stem_for_incremental`) —
+        # sanitização divergente (espaço→_, cap 80) duplicava a key no E3.
+        safe_stem = _e2_extract_stem(doc)
         progress.emit(doc.name, "persisting")
         # ADR-278 B4: estampa K4 natural_key + direction (vocabulário LLM
         # pós-ADR-312: banco/membro/tipo, resolvido canônico-primeiro).

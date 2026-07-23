@@ -9,14 +9,46 @@ validate_parse_result() from e2_extract_faturas.py.
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 try:
     import pdfplumber
 except ImportError:
     pdfplumber = None
 
+from pipeline.domain.review_reason import ReviewReasonCode
 from scripts.e2.common import MIN_CSV_BYTES, MIN_XLS_BYTES
+
+# ADR-342: o gate HARD de conservação é opt-in POR PARSER — o parser declara
+# `conservacao_verificavel=True` no result quando a semântica de saldo é
+# observada e verificada (hoje: Itaú layout 2026). Refinamento do "allowlist
+# por banco" da ADR: o layout antigo do Itaú tem saldo_inicial com semântica
+# de fechamento do 1º dia (conservação global nunca fechou lá) e Wise/Rico
+# derivam saldo_inicial de saldo_final−Σtx (check tautológico) — todos ficam
+# em WARN (telemetria) até o parser correspondente verificar a semântica.
+
+
+def conservation_gap_cents(result: Dict[str, Any]) -> Optional[int]:
+    """Gap da conservação global em cents; None quando não verificável."""
+    saldo_ini = result.get("saldo_inicial")
+    saldo_fim = result.get("saldo_final")
+    txs = result.get("transacoes") or []
+    if saldo_ini is None or saldo_fim is None or not txs:
+        return None
+    soma = sum(t.get("valor") or 0 for t in txs)
+    return round(abs((saldo_ini + soma) - saldo_fim) * 100)
+
+
+def escalate_result(result: Dict[str, Any], code: ReviewReasonCode, message: str) -> None:
+    """Escalação anti-silêncio (ADR-342): flippa o contrato existente
+    `requires_llm_fallback` (E2-llm one-shot; depois `needs_review`) e registra
+    razão estruturada top-level — sem mudança no schema `e2_extract`."""
+    result["requires_llm_fallback"] = True
+    result["escalation_reason"] = {"code": code.value, "message": message}
+
+
+def _warn_reason(result: Dict[str, Any], code: ReviewReasonCode, message: str) -> None:
+    result.setdefault("warn_reasons", []).append({"code": code.value, "message": message})
 
 
 def validate_extrato_result(
@@ -52,6 +84,11 @@ def validate_extrato_result(
                     f"ERROR: 0 transações extraídas de {'XLS' if is_xls else 'CSV'} com {total_chars} bytes "
                     f"— provável falha de parsing"
                 )
+                escalate_result(
+                    result,
+                    ReviewReasonCode.extract_empty_result,
+                    "0 transações com conteúdo substancial — escalado (ADR-342)",
+                )
     else:
         if pdfplumber is None:
             total_chars = 0
@@ -73,6 +110,11 @@ def validate_extrato_result(
                     f"ERROR: 0 transações extraídas de PDF com {total_chars} chars / "
                     f"{n_pages} páginas — provável falha de parsing"
                 )
+                escalate_result(
+                    result,
+                    ReviewReasonCode.extract_empty_result,
+                    "0 transações com conteúdo substancial — escalado (ADR-342)",
+                )
 
     none_vals = sum(1 for t in result.get("transacoes", []) if t.get("valor") is None)
     if none_vals > 0:
@@ -88,7 +130,25 @@ def validate_extrato_result(
     if dupes > 0:
         issues.append(f"INFO: {dupes} possíveis duplicatas intra-arquivo")
 
+    _apply_conservation_gate(result, issues)
+
     return issues
+
+
+def _apply_conservation_gate(result: Dict[str, Any], issues: List[str]) -> None:
+    """Conservação global em cents, tolerância zero (ADR-342). HARD (escala)
+    só quando o parser declarou `conservacao_verificavel`; demais em WARN
+    (telemetria). Sem mensagem com valores — só o fato e o código."""
+    gap = conservation_gap_cents(result)
+    if gap is None or gap == 0:
+        return
+    code = ReviewReasonCode.extract_incomplete_conservation
+    if result.get("conservacao_verificavel"):
+        issues.append("ERROR: conservação global não fecha (saldo_inicial + Σtx ≠ saldo_final)")
+        escalate_result(result, code, "conservação global não fecha em cents — escalado (ADR-342)")
+        return
+    issues.append("WARN: conservação global não fecha (parser sem semântica verificada)")
+    _warn_reason(result, code, "conservação não fecha (WARN — gate HARD é opt-in do parser)")
 
 
 def validate_fatura_result(result: Dict[str, Any], filename: str) -> Dict[str, Any]:
@@ -107,10 +167,20 @@ def validate_fatura_result(result: Dict[str, Any], filename: str) -> Dict[str, A
         issues.append(
             f"ERROR: fatura vazia — saldo=0, transacoes=0, sem data_vencimento ({filename})"
         )
+        escalate_result(
+            result,
+            ReviewReasonCode.extract_empty_result,
+            "fatura vazia — escalado (ADR-342, contrato único extrato+fatura)",
+        )
     elif saldo > 0 and txns == 0 and itens == 0:
         result["parse_quality"] = "missing_transactions"
         issues.append(
             f"ERROR: fatura com saldo {saldo} mas 0 transações/itens — provável falha de parsing ({filename})"
+        )
+        escalate_result(
+            result,
+            ReviewReasonCode.extract_empty_result,
+            "fatura com saldo e 0 lançamentos — escalado (ADR-342)",
         )
     else:
         result["parse_quality"] = "ok"

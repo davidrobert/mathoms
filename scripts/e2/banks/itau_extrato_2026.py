@@ -95,6 +95,11 @@ def fill_result_layout_2026(pdf: Any, first_page_text: str, result: Dict) -> Dic
     if saldo_inicial is not None:
         result["saldo_inicial"] = saldo_inicial
         result["saldo_final"] = saldo_final
+        # ADR-342: opt-in do gate HARD de conservação. Este layout tem saldo
+        # observado (âncoras `SALDO DO DIA`) e semântica verificada — se a
+        # conservação global não fechar, é row-drop real, escala (não é o
+        # falso-positivo tautológico dos parsers de saldo derivado).
+        result["conservacao_verificavel"] = True
     return result
 
 

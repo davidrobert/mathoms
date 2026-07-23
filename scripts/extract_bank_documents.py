@@ -299,12 +299,14 @@ def run_with_store(
                 stats["llm_fallback"] += 1
                 stage = "extract_with_llm"
                 log(LOG_UNIFIED, "WARN", f"  → Requer LLM fallback: {file_path.name}")
-                # E2-llm costuma ser tratado pelo wrapper LLM separado; aqui só
-                # registramos o stub para rastreabilidade quando target_stage=None.
                 if target_stage is not None and not dry_run:
-                    # Se o chamador forçou um stage determinístico e o arquivo
-                    # precisa de LLM, não salvamos — esse arquivo será pego pelo
-                    # E2-llm wrapper.
+                    # ADR-342: grava o stub de escalação NO stage determinístico —
+                    # supersede parcial de run anterior (senão o fallback
+                    # workspace-scoped do store ressuscita o parcial e a
+                    # escalação vira no-op). E3 pula stubs; o pickup do E2-llm
+                    # trata key-só-stub como não-processada.
+                    store.write(target_stage, key, result)
+                    log(LOG_UNIFIED, "WARN", f"  → stub de escalação: {target_stage}/{key}")
                     continue
             else:
                 stage = target_stage or _target_stage_for_file(
