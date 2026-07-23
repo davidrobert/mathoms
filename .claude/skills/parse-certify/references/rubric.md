@@ -101,8 +101,10 @@ semântica de cents** ao julgar — um gap de 1 centavo é `WARN` na produção,
 - **No escopo v1:** `financial_statements` (extratos, faturas, investimentos —
   o caminho E0→E2 que o harness exercita).
 - **Fora do escopo v1** (cobertos por **outros** stages; rodá-los no harness E2
-  os mislabela como falso `não-coberto`): `income_tax_br` (IRPF →
+  os mislabela como falso `não-coberto`): `income_tax_br`/`income_tax_us` (IRPF →
   `extract_baseline`/`extract_irpf_full`), `real_estate`/`vehicles`
-  (comprovantes/informes → `extract_comprovantes_bens`). Declarar explicitamente
-  como follow-up com harness próprio (checksums de baseline patrimonial / total
-  de informe / Σ bens). Nunca certificar o que não se exercita.
+  (comprovantes/informes → `extract_comprovantes_bens`). O resolvedor lista os 5
+  grupos com `in_scope_v1` (só `financial_statements` é `true`) — os demais
+  aparecem para dar visão de cobertura, não para rodar no harness E2. Declarar
+  explicitamente como follow-up com harness próprio (checksums de baseline
+  patrimonial / total de informe / Σ bens). Nunca certificar o que não se exercita.
