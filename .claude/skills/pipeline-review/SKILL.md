@@ -21,6 +21,10 @@ especialistas do §Subagentes do CLAUDE.md, com verificação adversarial.
 diagnóstico + plano de ataque priorizado. Deriva do processo testado que fechou
 o plano [[PLAN-dogfood-report-fix]].
 
+**Fronteira vs [[parse-certify]]:** aqui é o pipeline **inteiro** + o **relatório
+final E5→E7**. Certificar a **ingestão E0→E2 documento-a-documento** (cada arquivo
+virou artefato correto? a ingestão perdeu dado?) é a skill `parse-certify`.
+
 Classe canônica (skill vs. subagente vs. prompt): [[ADR-302]]. Catálogo humano das
 skills do repo: `docs/reference/SKILLS.md`.
 
