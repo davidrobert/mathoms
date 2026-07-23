@@ -1,7 +1,7 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# SPRINT_CURRENT — Lanes da sprint corrente — A38
+# SPRINT_CURRENT — Lanes da sprint corrente — A39
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
@@ -9,26 +9,20 @@ Nenhuma lane prontidão atual.
 
 ## Todas as lanes da sprint (para inspeção)
 
-### planned (5)
+### planned (12)
 
-- [[A38.l10]] — TypeRules genéricas de fatura nunca cruzam linha (gaps `.{0,N}` sem re.DOTALL) · priority P2 · branch `a38-l10-typerule-fatura-dotall`
-- [[A38.l11]] — Fuzzy-dupe cruza-flagga extratos de moedas distintas do mesmo período (Wise USD × BRL) · priority P2 · branch `a38-l11-fuzzy-dupe-moeda`
-- [[A38.l13]] — Posição de renda variável: custódia e carteira consolidada não classificam; dupla contagem latente · priority P2 · branch `a38-l13-posicao-renda-variavel`
-- [[A38.l8]] — Extrato Consolidado Inteligente Santander: parse_santander_conta extrai 0 transações · priority P2 · branch `a38-l8-santander-consolidado`
-- [[A38.l9]] — Fatura Itaú Visa/Itaucard sem parser determinístico (100% E2-llm; 1 PDF com texto sem espaços) · priority P2 · branch `a38-l9-fatura-itau-visa-parser`
-
-### shipped (10)
-
-- [[A38.l1]] — Harness local de certificação de parse (classify→route→parse, métricas mascaradas) · priority P0 · branch `a38-l1-certify-parse-harness`
-- [[A38.l12]] — CDB em PDF (extrato mensal Itaú + detalhes Santander): 100% E2-llm sem parser determinístico · priority P1 · branch `a38-l12-cdb-pdf-deterministico`
-- [[A38.l14]] — Buraco no gate anti-silêncio: nota parcial 'sem movimentação' silencia extrato com conteúdo · priority P0 · branch `a38-l14-gate-dormancia-observavel`
-- [[A38.l15]] — parse_c6bank não extrai o layout C6 Global (USD/EUR internacional): 0 tx com 56–199 linhas · priority P1 · branch `a38-l15-c6-global-parser`
-- [[A38.l2]] — parse_itau perde ~50% das transações do layout 2026 do extrato PDF · priority P0 · branch `a38-l2-parse-itau-layout-2026`
-- [[A38.l3]] — Gate anti-silêncio no E2: 0 tx ou conservação quebrada nunca vira artefato 'ok' (ADR Proposto) · priority P0 · branch `a38-l3-gate-anti-silencio-e2`
-- [[A38.l4]] — Colisão de instituição: pattern caixa `0800 726` casa SAC Santander com conf 1.0 · priority P1 · branch `a38-l4-colisao-instituicao-0800726`
-- [[A38.l5]] — TypeRule cdbdetalhes rouba extrato de conta com `\bCDB\b` na descrição de transação · priority P1 · branch `a38-l5-typerule-cdbdetalhes`
-- [[A38.l6]] — Wise: moeda decidida por filename (USD vira BRL sem LLM) + período range por extenso · priority P1 · branch `a38-l6-wise-moeda-conteudo`
-- [[A38.l7]] — Fatura Santander Unique layout 2026: classificação conf 0.0 + parser sem total/vencimento · priority P1 · branch `a38-l7-faturaunique-layout-2026`
+- [[A39.l1]] — Harness como instrumento de medição: emitir campos de veredito + conservação em cents + congelar baseline · priority P1 · branch `a39-l1-harness-instrumento-baseline`
+- [[A39.l10]] — Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) · priority P2 · branch `a39-l10-piso-materialidade`
+- [[A39.l11]] — Determinismo da classificação LLM: temperature=0 na via compartilhada + golden sintético + telemetria · priority P2 · branch `a39-l11-classificacao-llm-determinismo`
+- [[A39.l12]] — Resíduo não-coberto: verificar escalação honesta do Binance CSV + investigar extração de preview .xlsx (rico) · priority P2 · branch `a39-l12-binance-rico-residuo`
+- [[A39.l2]] — C6 Bank CSV: declarar conservacao_verificavel (semântica de saldo já correta) → escala perda silenciosa · priority P0 · branch `a39-l2-c6-csv-optin-verificabilidade`
+- [[A39.l3]] — Checksum de fechamento de fatura: total_fatura + identidade de domínio (ADR-343 nova, corrige ADR-342 item 1) · priority P0 · branch `a39-l3-checksum-fechamento-fatura`
+- [[A39.l4]] — C6 Bank PDF: corrigir semântica de saldo_inicial (ajuste do 1º dia) e então declarar verificabilidade · priority P1 · branch `a39-l4-c6-pdf-saldo-semantica`
+- [[A39.l5]] — Bradesco: diagnosticar saldo R$1/R$1 (raiz não confirmada) + teste de independência antes de flipar · priority P1 · branch `a39-l5-bradesco-saldo-diagnostico`
+- [[A39.l6]] — Checksum de CDB observável: traço checksum_ok/skipped_no_total + WARN posições-sem-total; estender Santander xlsx · priority P1 · branch `a39-l6-cdb-checksum-observavel`
+- [[A39.l7]] — Sweep de verificabilidade: itau_xls + santander_xls declaram conservacao_verificavel (wise/rico cortados) · priority P1 · branch `a39-l7-verificabilidade-sweep`
+- [[A39.l8]] — Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto) · priority P1 · branch `a39-l8-fatura-itau-visa`
+- [[A39.l9]] — Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) · priority P1 · branch `a39-l9-posicao-renda-variavel`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
