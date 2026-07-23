@@ -118,6 +118,22 @@ Ondas por **dependência**. Lane abre quando suas `depends_on` estão `shipped`.
 > docs RV em conf 0.0). Achado de domínio: mesmos papéis+quantidade em
 > custódia Itaú **e** carteira XLSX → dupla contagem latente ([[A38.l13]]).
 
+### W2 — certificação do workspace dogfood inteiro (5@5.com, 2026-07-23)
+
+| Lane | Achado | Prio | Escopo |
+|---|---|---|---|
+| [[A38.l14]] | gate-hole | P0 | Nota parcial "sem movimentação" derrota o gate da [[ADR-342]] via substring → dormência vira **observação** (`raw_rows_detected`) + veredito no gate; emenda ADR-342 |
+| [[A38.l15]] | C6-global | P1 | `parse_c6bank` não extrai C6 Global USD/EUR (0 tx com 56–199 linhas) + fix de locale numérico; `depends_on` [[A38.l14]] |
+
+> **Certificação do workspace inteiro (160 docs, 129 financial_statements):**
+> 114/123 ok, 0 erros duros. Achado P0 novo — **pior que o do Itaú**:
+> `parse_c6bank` retorna 0 tx no layout C6 Global internacional (USD/EUR) com
+> 56–199 linhas reais **e** emite nota falsa que **derrota o gate
+> anti-silêncio** ([[A38.l14]] fecha o buraco genérico; [[A38.l15]] recupera a
+> cobertura). Demais achados já cobertos: CDB→LLM ([[A38.l12]], c6bank/bradesco/
+> btg fora de escopo), faturas ([[A38.l7]]/[[A38.l9]]/[[A38.l10]]), binance
+> (.other/A28). Conservação WARN mista bradesco/c6bank BRL → follow-up.
+
 ## Regras de execução (completude · corretude · consistência · precisão)
 
 1. **Corretude:** bug → **teste de regressão antes do fix**, com fixture
@@ -250,3 +266,35 @@ resolvido por território.
   categoria **proventos** fora da base de poupança; TRS segue IRPF-derived.
   Correção: o gate da [[A38.l3]] **não cobre docs de posição** (sem
   transações) — l12/l13 carregam predicado anti-silêncio próprio (emenda).
+
+### 3ª rodada — certificação do workspace inteiro (2026-07-23 — senior-cto, data-engineer, financial-planner)
+
+Painel sobre o achado P0 da certificação do workspace 5@5.com → lanes
+[[A38.l14]]/[[A38.l15]]. senior-cto decidiu a arquitetura do contrato.
+
+- **senior-cto (decide):** **rejeitada a flag `conta_dormant`** — é uma
+  *conclusão* que o gate confiaria (mesma classe do incidente: o parser
+  concluiu "sem movimentação" e o gate acreditou); troca substring frágil
+  por booleano frágil. Rejeitado também **gate inferir sozinho**
+  (`saldo_ini==saldo_fim ∧ n_tx==0` falha em saldo derivado — Wise). Decisão:
+  **observação estruturada `raw_rows_detected` + veredito no gate**, espelhando
+  `conservacao_verificavel` (parser atesta observação, gate detém política).
+  `tx==0 ∧ raw_rows>0 ⇒ escala`; dormência só `tx==0 ∧ raw_rows==0`; parser
+  sem reporte ⇒ fail-safe escala. **2 lanes:** l14 gate (P0, defusa o C6
+  Global sem tocar o parser) + l15 parser (P1). Emenda datada à ADR-342 (não
+  ADR nova — §Decisão item 1 mal-especificado). Universo real = **3 parsers**,
+  não ~11.
+- **data-engineer:** confirmou o universo (4 arquivos, 3 já sob guarda
+  `not transacoes`; só C6 é o bug); `raw_rows_detected` declarado no schema
+  (1 linha, drift-detection em strict); reuso `extract.empty_result` no
+  caminho normal; reprocessamento cobre os ~10 artefatos 0-tx via recência do
+  read-path (sem backfill); grep-gate contra `notas` como predicado de
+  controle.
+- **financial-planner:** **saldo ≠ fluxo** — dormência nunca suprime posição;
+  conta dormante preserva `saldo_final` (bucket cambial + meta dolarização).
+  **Landmine de locale** na l15: parse de saldo do C6 usa convenção BR; C6
+  Global em formato US inverte o valor ~100× (classe do bug Wise) → conservação
+  em **moeda original** como gate. Materialidade P0: sleeve internacional
+  sumido lê dolarização ~0% → recomenda aportar USD que já existe (conselho
+  ativamente errado). Dupla contagem baseline↔extrato (IRPF 31/12 × extrato) →
+  follow-up: verificar `has_current_positions` antes de dedup novo.
