@@ -5,13 +5,14 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-10 open.
+11 open.
 
-## Open (10)
+## Open (11)
 
 - [[A38.l1]] — Harness local de certificação de parse (classify→route→parse, métricas mascaradas) · priority P0 · branch `a38-l1-certify-parse-harness`
 - [[A38.l10]] — TypeRules genéricas de fatura nunca cruzam linha (gaps `.{0,N}` sem re.DOTALL) · priority P2 · branch `a38-l10-typerule-fatura-dotall`
 - [[A38.l11]] — Fuzzy-dupe cruza-flagga extratos de moedas distintas do mesmo período (Wise USD × BRL) · priority P2 · branch `a38-l11-fuzzy-dupe-moeda`
+- [[A38.l12]] — CDB em PDF (extrato mensal Itaú + detalhes Santander): 100% E2-llm sem parser determinístico · priority P1 · branch `a38-l12-cdb-pdf-deterministico`
 - [[A38.l2]] — parse_itau perde ~50% das transações do layout 2026 do extrato PDF · priority P0 · branch `a38-l2-parse-itau-layout-2026`
 - [[A38.l3]] — Gate anti-silêncio no E2: 0 tx ou conservação quebrada nunca vira artefato 'ok' (ADR Proposto) · priority P0 · branch `a38-l3-gate-anti-silencio-e2`
 - [[A38.l4]] — Colisão de instituição: pattern caixa `0800 726` casa SAC Santander com conf 1.0 · priority P1 · branch `a38-l4-colisao-instituicao-0800726`
