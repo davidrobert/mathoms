@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """Certificação local de parse: classify→route→parse sobre um diretório de PDFs reais.
 
-Gate manual de KR-E da Sprint A38 ([[A38.l1]]): roda o caminho real de produção
-E0→E2 (classify_file → build_final_name → route_to_parser → process_file) sobre
-um corpus local que NUNCA entra no git, e imprime somente métricas mascaradas
-(contagens, booleans, códigos — sem valores monetários, CPF ou números longos).
+Gate manual de KR-E da Sprint A38 ([[A38.l1]]) + núcleo determinístico da skill
+`parse-certify`: roda o caminho real de produção E0→E2 (classify_file →
+build_final_name → route_to_parser → process_file) sobre um corpus local que
+NUNCA entra no git, e imprime somente métricas mascaradas (contagens, booleans,
+códigos — sem valores monetários, CPF, nomes ou números longos).
 
 Uso:
     python3 dev/certify_parse_local.py --dir <pasta-local-de-documentos>
     python3 dev/certify_parse_local.py --dir <pasta> --baseline _scratch/a38_base.json
     python3 dev/certify_parse_local.py --dir <pasta> --compare _scratch/a38_base.json
 
-`--compare` retorna exit != 0 se qualquer doc regredir vs o baseline:
-n_tx menor, conservação passa→falha, ou parser determinístico perdido.
+`--compare` retorna exit != 0 se qualquer doc regredir vs o baseline: n_tx menor,
+conservação passa→falha, parser determinístico perdido, escalação honesta trocada
+por conservação quebrada, ou queda no piso de cobertura determinística.
 """
 
 from __future__ import annotations
@@ -44,10 +46,18 @@ def mask_text(value: Any) -> str:
     return _LONGNUM_RE.sub("<NUM>", text)
 
 
-def masked_key(filename: str) -> str:
-    """Nome mascarado + hash curto do nome real: sem PII e único por arquivo."""
-    digest = hashlib.sha256(filename.encode("utf-8")).hexdigest()[:4]
-    return f"{mask_text(filename)}#{digest}"
+def file_digest(filename: str) -> str:
+    """Id estável PII-safe do arquivo (sha do nome — sem nome de pessoa no output)."""
+    return hashlib.sha256(filename.encode("utf-8")).hexdigest()[:12]
+
+
+def doc_label(
+    doc_type: Optional[str] = None,
+    institution: Optional[str] = None,
+    period: Optional[str] = None,
+) -> str:
+    """Rótulo legível e PII-safe: só códigos de tipo/instituição/período."""
+    return f"{doc_type or '?'}|{institution or '?'}|{period or '?'}"
 
 
 def _strip_hash_prefix(final_name: str) -> str:
@@ -55,14 +65,12 @@ def _strip_hash_prefix(final_name: str) -> str:
 
 
 def conservation_status(result: dict) -> Optional[bool]:
-    """True/False quando saldos presentes; None quando não verificável."""
-    saldo_ini = result.get("saldo_inicial")
-    saldo_fim = result.get("saldo_final")
-    txs = result.get("transacoes") or []
-    if saldo_ini is None or saldo_fim is None or not txs:
-        return None
-    soma = sum(t.get("valor") or 0 for t in txs)
-    return abs((saldo_ini + soma) - saldo_fim) < 0.011
+    """True/False quando saldos presentes; None quando não verificável. Reusa a
+    semântica de produção (cents, tolerância zero) — não o float leniente."""
+    from scripts.e2.validation import conservation_gap_cents
+
+    gap = conservation_gap_cents(result)
+    return None if gap is None else gap == 0
 
 
 def _classify(path: Path) -> dict:
@@ -107,13 +115,17 @@ def _parse_staged(src: Path, final_name: str, staging: Path) -> Optional[dict]:
 
 
 def _classified_record(src: Path) -> tuple[dict, Optional[str]]:
-    record: dict[str, Any] = {"file": masked_key(src.name)}
     classification = _classify(src)
-    record.update(
-        doc_type=classification["doc_type"],
-        institution=classification["institution"],
-        confidence=classification["confidence"],
-    )
+    record: dict[str, Any] = {
+        "file": file_digest(src.name),
+        "label": doc_label(
+            classification["doc_type"], classification["institution"], classification["period"]
+        ),
+        "doc_type": classification["doc_type"],
+        "institution": classification["institution"],
+        "period": classification["period"],
+        "confidence": classification["confidence"],
+    }
     return record, _final_name(classification, src.suffix.lower())
 
 
@@ -136,19 +148,35 @@ def certify_file(src: Path, staging: Path) -> dict:
 
 
 def _fill_parse_metrics(record: dict, result: dict) -> dict:
-    txs = result.get("transacoes") or []
-    record.update(
-        n_tx=len(txs),
-        moeda=result.get("moeda"),
-        banco=result.get("banco"),
-        escalated=bool(result.get("requires_llm_fallback")),
-        conservacao=conservation_status(result),
-        total_fatura_set=result.get("total_fatura") is not None,
-        vencimento_set=result.get("vencimento") is not None,
-        notas=[mask_text(n)[:160] for n in (result.get("notas") or [])[:6]],
-        status="ok",
-    )
+    record.update(_count_metrics(result))
+    record.update(_quality_metrics(result))
+    record["status"] = "ok"
     return record
+
+
+def _count_metrics(result: dict) -> dict:
+    return {
+        "tipo": result.get("tipo"),
+        "n_tx": len(result.get("transacoes") or []),
+        "n_itens": len(result.get("itens") or []),
+        "n_posicoes": len(result.get("posicoes") or []),
+        "raw_rows_detected": result.get("raw_rows_detected"),
+        "moeda": result.get("moeda"),
+        "banco": result.get("banco"),
+    }
+
+
+def _quality_metrics(result: dict) -> dict:
+    escalation = result.get("escalation_reason") or {}
+    return {
+        "escalated": bool(result.get("requires_llm_fallback")),
+        "escalation_code": escalation.get("code"),
+        "conservacao": conservation_status(result),
+        "conservacao_verificavel": bool(result.get("conservacao_verificavel")),
+        "total_set": result.get("saldo_atual") is not None,
+        "vencimento_set": result.get("data_vencimento") is not None,
+        "notas": [mask_text(n)[:160] for n in (result.get("notas") or [])[:6]],
+    }
 
 
 def run_dir(corpus_dir: Path) -> list[dict]:
@@ -163,12 +191,20 @@ def run_dir(corpus_dir: Path) -> list[dict]:
             try:
                 records.append(certify_file(f, Path(staging)))
             except Exception as exc:  # noqa: BLE001 — 1 doc ruim não derruba o run
-                records.append({"file": masked_key(f.name), "status": f"erro:{type(exc).__name__}"})
+                records.append(
+                    {
+                        "file": file_digest(f.name),
+                        "label": doc_label(None, None, None),
+                        "status": f"erro:{type(exc).__name__}",
+                    }
+                )
     return records
 
 
 def compare_records(current: list[dict], baseline: list[dict]) -> tuple[list[str], list[str]]:
-    """Retorna (regressões que falham o gate, mudanças informativas)."""
+    """Retorna (regressões que falham o gate, mudanças informativas). Ratchet
+    por-documento sobre o subconjunto estável (docs em ambos) — não piso de %
+    agregado, que dá falso-fail quando o corpus cresce com docs LLM legítimos."""
     base_by_file = {r["file"]: r for r in baseline}
     regressions: list[str] = []
     changes: list[str] = []
@@ -190,6 +226,8 @@ def _regressions_for(rec: dict, base: dict) -> list[str]:
         out.append(f"{rec['file']}: conservação passa -> falha (REGRESSÃO)")
     if base.get("parser") and not rec.get("parser"):
         out.append(f"{rec['file']}: parser {base['parser']} -> nenhum (REGRESSÃO)")
+    if base.get("escalated") and not rec.get("escalated") and rec.get("conservacao") is False:
+        out.append(f"{rec['file']}: escalação honesta -> conservação quebrada (SILÊNCIO)")
     return out
 
 
@@ -204,10 +242,12 @@ def _changes_for(rec: dict, base: dict) -> list[str]:
 def _print_report(records: list[dict]) -> None:
     for rec in records:
         line = (
-            f"{rec.get('file')}: type={rec.get('doc_type')} inst={rec.get('institution')} "
-            f"conf={rec.get('confidence')} parser={rec.get('parser')} n_tx={rec.get('n_tx')} "
-            f"moeda={rec.get('moeda')} conserv={rec.get('conservacao')} "
-            f"escala={rec.get('escalated')} status={rec.get('status')}"
+            f"{rec.get('label')} [{rec.get('file')}]: type={rec.get('doc_type')} "
+            f"parser={rec.get('parser')} n_tx={rec.get('n_tx')} n_itens={rec.get('n_itens')} "
+            f"n_pos={rec.get('n_posicoes')} raw={rec.get('raw_rows_detected')} "
+            f"moeda={rec.get('moeda')} conserv={rec.get('conservacao')}"
+            f"(verif={rec.get('conservacao_verificavel')}) escala={rec.get('escalated')}"
+            f"({rec.get('escalation_code')}) status={rec.get('status')}"
         )
         print(mask_text(line))
 
@@ -227,6 +267,9 @@ def main() -> int:
 
 
 def _run_compare(records: list[dict], baseline_path: Path) -> int:
+    if not baseline_path.exists():
+        print(f"baseline não encontrado: {baseline_path} — rode com --baseline primeiro")
+        return 2
     baseline = json.loads(baseline_path.read_text())
     regressions, changes = compare_records(records, baseline)
     for c in changes:
