@@ -179,6 +179,7 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         required=(
             _c(
                 r"SANTANDER\s*UNIQUE|Cart[ãa]o\s*Santander\s*Unique"
+                r"|SANTANDER[\s\S]{0,80}UNIQUE\s+MASTERCARD"  # layout 2026 (A38.l7)
                 r"|^\ufeff?data,lan[çc]amento,valor\s*$"  # CSV header (Santander Unique app, com/sem BOM)
             ),
         ),
