@@ -36,6 +36,7 @@ from scripts.e2.common import (
     resolve_date_ddmm,
     safe_date,
 )
+from scripts.e2.validation import apply_cdb_checksum
 
 LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
@@ -563,6 +564,9 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
     n_pos = len(result["posicoes"])
     saldo = result.get("saldo_atual", 0) or 0
     log(LOG_PREFIX_EXTRATO, "INFO", f"  → {n_pos} posições CDB, saldo R$ {saldo:,.2f}")
+    # Escopo bruto: Σ valor_atual (cells[6]) casa com saldo_bruto_final, NUNCA
+    # com SALDO FINAL líquido (saldo_atual) — ADR-342 §Emenda 2026-07-23.
+    apply_cdb_checksum(result, (result.get("resumo") or {}).get("saldo_bruto_final"))
     return result
 
 

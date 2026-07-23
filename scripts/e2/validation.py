@@ -61,6 +61,26 @@ def _is_dormant_by_observation(result: Dict[str, Any]) -> bool:
     return result.get("raw_rows_detected") == 0
 
 
+# `total_declarado` deve ter ESCOPO IGUAL ao das linhas (bruto vs bruto); total de
+# conta agregado (saldos não itemizados) não entra aqui. Soma em int cents por
+# posição (ADR-090) — float acumulado dispara falso-fire com muitas posições.
+_CDB_EMPTY_MSG = "0 posições de CDB extraídas — escalado (ADR-342)"
+_CDB_MISMATCH_MSG = "Σ posições ≠ total declarado (cents) — escalado (ADR-342 §Emenda l12)"
+
+
+def apply_cdb_checksum(result: Dict[str, Any], total_declarado: Optional[float] = None) -> None:
+    """Escala (ADR-342 §Emenda l12) se 0 posições, ou Σ posições ≠ total declarado."""
+    posicoes = result.get("posicoes") or []
+    if not posicoes:
+        escalate_result(result, ReviewReasonCode.extract_empty_result, _CDB_EMPTY_MSG)
+        return
+    if total_declarado is None:
+        return
+    soma_cents = sum(round((p.get("valor_atual") or 0) * 100) for p in posicoes)
+    if soma_cents != round(total_declarado * 100):
+        escalate_result(result, ReviewReasonCode.extract_investment_sum_mismatch, _CDB_MISMATCH_MSG)
+
+
 def validate_extrato_result(
     result: Dict[str, Any], file_path: Path, is_csv: bool = False
 ) -> List[str]:

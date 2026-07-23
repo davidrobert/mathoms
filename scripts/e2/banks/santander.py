@@ -41,6 +41,7 @@ from scripts.e2.common import (
     resolve_date_ddmm,
     safe_date,
 )
+from scripts.e2.validation import apply_cdb_checksum
 
 LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
@@ -358,6 +359,7 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
     n_pos = len(result["posicoes"])
     saldo = result.get("saldo_atual", 0) or 0
     log(LOG_PREFIX_EXTRATO, "INFO", f"  → {n_pos} posições CDB Santander, total R$ {saldo:,.2f}")
+    apply_cdb_checksum(result, result.get("saldo_atual"))
     return result
 
 
@@ -863,25 +865,6 @@ def parse_santander_cdb_pdf(pdf_path: Path, filename: str) -> Dict[str, Any]:
     result["posicoes"] = _santander_cdb_posicoes(full_text)
     total_m = _SANT_CDB_TOTAL_RE.search(full_text)
     total_declarado = parse_brl(total_m.group(1)) if total_m else None
-    _apply_cdb_checksum(result, total_declarado)
+    apply_cdb_checksum(result, total_declarado)
     log(LOG_PREFIX_EXTRATO, "INFO", f"  → {len(result['posicoes'])} posições de CDB")
     return result
-
-
-def _apply_cdb_checksum(result: Dict[str, Any], total_declarado: Optional[float] = None) -> None:
-    """Escala (ADR-342) se 0 posições, ou Σ posições ≠ total declarado (cents)."""
-    posicoes = result.get("posicoes") or []
-    if not posicoes:
-        result["requires_llm_fallback"] = True
-        result["escalation_reason"] = {
-            "code": "extract.empty_result",
-            "message": "0 posições de CDB extraídas — escalado (ADR-342)",
-        }
-        return
-    soma = sum(p.get("valor_atual") or 0 for p in posicoes)
-    if total_declarado is not None and round(abs(soma - total_declarado) * 100) != 0:
-        result["requires_llm_fallback"] = True
-        result["escalation_reason"] = {
-            "code": "extract.investment_sum_mismatch",
-            "message": "Σ posições ≠ total declarado (cents) — escalado (ADR-342 §Emenda l12)",
-        }
