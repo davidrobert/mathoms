@@ -29,14 +29,28 @@ PARSERS = [
 ]
 
 
+_MOEDA_HEADER_RE = re.compile(r"Extrato\s+em\s+(USD|BRL|EUR)", re.I)
+_MOEDA_SALDO_RE = re.compile(r"\b(USD|BRL|EUR)\s+em\b")
+
+
+def _detect_moeda(all_text: str, filename: str) -> str | None:
+    """Moeda pelo CONTEÚDO ("Extrato em X" ou linha de saldo "X em ...");
+    filename é só fallback — decidir por filename tratava conta USD como BRL
+    quando a classificação não emitia subtipo (A38.l6), corrompendo câmbio."""
+    match = _MOEDA_HEADER_RE.search(all_text) or _MOEDA_SALDO_RE.search(all_text)
+    if match:
+        return match.group(1).upper()
+    lower = filename.lower()
+    for moeda in ("usd", "eur", "brl"):
+        if moeda in lower:
+            return moeda.upper()
+    return None
+
+
 def parse_wise(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Wise bank statement."""
-    is_usd = "usd" in filename.lower()
-    moeda = "USD" if is_usd else "BRL"
-    tipo = f"extratoconta{moeda.lower()}"
-
-    log(LOG_PREFIX, "INFO", f"Parsing Wise ({moeda}): {filename}")
-    result = make_result_template(BANCO_WISE, tipo, moeda)
+    log(LOG_PREFIX, "INFO", f"Parsing Wise: {filename}")
+    result = make_result_template(BANCO_WISE, "extratoconta", "BRL")
     result["tipo_conta"] = "corrente"
 
     periodo_inicio, periodo_fim = infer_periodo_from_filename(filename)
@@ -49,6 +63,16 @@ def parse_wise(pdf_path: Path, filename: str) -> Dict[str, Any]:
             for page in pdf.pages:
                 text = page.extract_text() or ""
                 all_text += text + "\n"
+
+            moeda = _detect_moeda(all_text, filename)
+            if moeda is None:
+                # Moeda indeterminada escala (ADR-342) — nunca default BRL.
+                result["requires_llm_fallback"] = True
+                result["notas"].append("Moeda indeterminada (sem 'Extrato em <MOEDA>') — escalado")
+                return result
+            result["moeda"] = moeda
+            result["tipo"] = f"extratoconta{moeda.lower()}"
+            log(LOG_PREFIX, "INFO", f"  moeda detectada por conteúdo: {moeda}")
 
             result["titular"] = detect_member_from_text(all_text)
 
@@ -76,7 +100,9 @@ def parse_wise(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     result["periodo"]["inicio"] = safe_date(y1, m1, d1)
                     result["periodo"]["fim"] = safe_date(y2, m2, d2)
 
-            bal_match = re.search(r"(?:USD|BRL)\s+em\s+.*?\s+([\d.,]+)\s+(?:USD|BRL)", all_text)
+            bal_match = re.search(
+                r"(?:USD|BRL|EUR)\s+em\s+.*?\s+([\d.,]+)\s+(?:USD|BRL|EUR)", all_text
+            )
             if bal_match:
                 result["saldo_final"] = parse_brl(bal_match.group(1))
 

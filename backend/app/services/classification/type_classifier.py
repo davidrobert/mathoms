@@ -328,6 +328,30 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         supporting=(_c(r"Saldo|Balance"),),
         priority=25,
     ),
+    # Wise-style: "Extrato em <MOEDA>" no cabeçalho (layout PT multi-moeda).
+    # Sem subtipo determinístico o nome canônico sai sem a moeda e o parser
+    # trata conta USD como BRL — corrupção de câmbio/patrimônio (A38.l6/KR-D).
+    TypeRule(
+        code="extratocontausd",
+        dest_group="financial_statements",
+        required=(_c(r"Extrato\s+em\s+USD|Extrato\s+em\s+d[óo]lar"),),
+        supporting=(_c(r"\bWise\b|TransferWise"), _c(r"Saldo|Descri[çc][ãa]o|USD")),
+        priority=26,
+    ),
+    TypeRule(
+        code="extratocontaeur",
+        dest_group="financial_statements",
+        required=(_c(r"Extrato\s+em\s+EUR|Extrato\s+em\s+euro"),),
+        supporting=(_c(r"\bWise\b|TransferWise"), _c(r"Saldo|Descri[çc][ãa]o|EUR")),
+        priority=26,
+    ),
+    TypeRule(
+        code="extratocontabrl",
+        dest_group="financial_statements",
+        required=(_c(r"Extrato\s+em\s+BRL"),),
+        supporting=(_c(r"\bWise\b|TransferWise"), _c(r"Saldo|Descri[çc][ãa]o|BRL")),
+        priority=26,
+    ),
     # Bank of America style statement (English)
     TypeRule(
         code="extratocontausd",

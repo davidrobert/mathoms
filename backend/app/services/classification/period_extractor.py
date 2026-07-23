@@ -30,6 +30,13 @@ _MONTH_YEAR_BR_RE = re.compile(
     r"[\s/\-]+(20\d{2})",
     re.I,
 )
+# Range por extenso ("22 de julho de 2025 [GMT-03:00] - 22 de julho de 2026")
+# — layout Wise (A38.l6). Gap de até 40 chars cobre o timezone entre as datas.
+_EXTENSO_RANGE_RE = re.compile(
+    r"(\d{1,2})\s+de\s+(\w+)\s+de\s+(20\d{2}).{0,40}?[-–a]\s*"
+    r"(\d{1,2})\s+de\s+(\w+)\s+de\s+(20\d{2})",
+    re.I | re.DOTALL,
+)
 
 
 def _mm(month_name: str) -> int:
@@ -50,6 +57,12 @@ def extract_period_from_content(text: str) -> str | None:
     if m:
         y, mn = m.groups()
         return f"{int(y):04d}{int(mn):02d}"
+    m = _EXTENSO_RANGE_RE.search(text)
+    if m:
+        _, name1, y1, _, name2, y2 = m.groups()
+        m1, m2 = _mm(name1), _mm(name2)
+        if m1 and m2:
+            return f"{int(y1):04d}{m1:02d}_{int(y2):04d}{m2:02d}"
     m = _MONTH_YEAR_BR_RE.search(text)
     if m:
         name, year = m.groups()
