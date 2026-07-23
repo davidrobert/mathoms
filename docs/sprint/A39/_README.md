@@ -58,6 +58,25 @@ Certificação de 123 docs `financial_statements`, veredito fail-closed:
 > CORRIGIDA** ([[A38.l14]]/[[A38.l15]]): o layout Global agora extrai 56/63/199/179
 > tx; o único C6 Global 0-tx restante é dormência genuína (`raw_rows_detected=0`).
 
+### Entregue durante a autoria (#1035/#1036/#1037 — reconciliação com `main`)
+
+Enquanto este sprint era autorado (co-design de 6 especialistas), 3 PRs mergearam
+em `main` implementando parte do escopo — **convergindo com o design do painel**:
+
+- **#1035** (`a3188b7a`) → **[[A39.l1]] SHIPPED** (harness: campos por-tipo,
+  conservação em cents, `--compare` seguro, baseline PII-safe).
+- **#1036** (`a63ec80f`) → **gate** de checksum de fatura (opt-in
+  `total_lancamentos_conferivel` contra `total_compras` escopado, WARN-first,
+  int cents, emenda [[ADR-342]]) + checksum de investimento (CDB XLSX/Itaú). O
+  gate/contrato de [[A39.l3]] e a cobertura de [[A39.l6]] estão em `main`; **resta
+  o lado do parser** (l3: emitir o sinal + flip WARN→HARD) e a **observabilidade**
+  (l6: traço `checksum_ok`). **ADR-343 descartada** (a emenda superou a proposta).
+- **#1037** (`f7320b33`) → skill `parse-certify` (§Extensões + rubric) reflete os
+  checksums entregues.
+
+Efeito nas ondas: **l1 nasce `shipped`**; **l3/l6 encolhem para residual**; as 9
+lanes restantes seguem válidas (nenhuma shipou).
+
 ### Rastreabilidade KR-A — os 4 `perda/corrupção silenciosa` → lane
 
 | Doc (#hash) | Parser | GAP conservação (verificado) | Lane que zera |
@@ -116,9 +135,9 @@ baseline sobre `origin/main` antes de qualquer mutação**.
 
 | Lane | Achado | Prio | ADR | Escopo em 1 linha |
 |---|---|---|---|---|
-| [[A39.l1]] | (transversal) | P1 | — | Harness como instrumento: emite `conservacao_verificavel`/`n_posicoes`/`raw_rows_detected`, conservação em **cents**, `--compare` forte; **congela baseline** |
+| [[A39.l1]] ✅ | (transversal) | P1 | — | **SHIPPED #1035** — harness emite campos por-tipo, conservação em cents, `--compare` seguro, baseline PII-safe |
 | [[A39.l2]] | PC-02 | P0 | [[ADR-342]] | Flip `conservacao_verificavel` em `parse_c6bank_csv` (semântica já ancorada) → escala #637b/#5a21; `depends_on` [[A39.l1]] |
-| [[A39.l3]] | PC-01 | P0 | **ADR-343** (nova) | Checksum de fechamento de fatura (`total_fatura` em Santander/quintoandar; identidade de domínio) + emenda-ponteiro ADR-342 item 1; `depends_on` [[A39.l1]] |
+| [[A39.l3]] | PC-01 | P0 | [[ADR-342]] | **Gate shipped #1036** — parsers (Santander/quintoandar) emitem `total_lancamentos_conferivel` (`total_compras` escopado) + flip WARN→HARD; `depends_on` [[A39.l1]] |
 | [[A39.l4]] | PC-03 | P1 | [[ADR-342]] | `parse_c6bank` PDF: ajuste `summarize_saldos` do 1º dia (`c6bank.py:598`), validar, **depois** flipar → zera #2570, faz #786e/#c5c6 cosméticos passarem; `depends_on` [[A39.l2]] (hotspot `c6bank.py`) |
 
 ### W1 — verificabilidade + cobertura determinística (P1)
@@ -126,7 +145,7 @@ baseline sobre `origin/main` antes de qualquer mutação**.
 | Lane | Achado | Prio | ADR | Escopo |
 |---|---|---|---|---|
 | [[A39.l5]] | PC-04 | P1 | [[ADR-342]] | Bradesco saldo `R$1/R$1`: **diagnosticar** raiz (miss de extração vs default — não confirmado no código) + teste de independência, então flipar; `depends_on` [[A39.l1]] |
-| [[A39.l6]] | PC-05 | P1 | [[ADR-342]] | Observabilidade do checksum CDB: traço `checksum_ok`/`skipped_no_total` + WARN posições-sem-total; checksum só onde há total independente (**Santander xlsx**; Itaú CDB PDF → `skipped_no_total` honesto); `depends_on` [[A39.l1]] |
+| [[A39.l6]] | PC-05 | P1 | [[ADR-342]] | **Cobertura shipped #1036** (CDB XLSX/Itaú, int cents) — residual = traço positivo `checksum_ok`/`skipped_no_total`; `depends_on` [[A39.l1]] |
 | [[A39.l7]] | PC-06 | P1 | [[ADR-342]] | Sweep de verificabilidade: **`itau_xls` + `santander_xls`** declaram `conservacao_verificavel=True` (**wise/rico cortados** — saldo derivado tautológico); `depends_on` [[A39.l1]] |
 | [[A39.l8]] | PC-07 / A38.l9 | P1 | **ADR-343** | Fatura Itaú Visa: TypeRule (regex, conteúdo) + parser determinístico (via `words`) + checksum ADR-343 → cobre 3 `não-coberto`; **adota [[A38.l9]]**; `depends_on` [[A39.l3]] |
 | [[A39.l9]] | A38.l13 | P1 | **ADR nova (RV)** | Posição RV (custódia + carteira): TypeRule + parser + identidade `ticker+proprietário` + `null-não-soma` no consolidador → cobre 2 `não-coberto`; **adota [[A38.l13]]**; `depends_on` [[A39.l1]] |
@@ -178,11 +197,12 @@ baseline sobre `origin/main` antes de qualquer mutação**.
    `content_classifier.py` ([[A39.l8]]/[[A39.l9]]/[[A39.l11]]) — sequenciar ou
    rebase incremental; nunca commit cruzado.
 7. **ADR `Proposto` antes do PR de impl** (P0/P1 + escopo arquitetural):
-   ADR-343 ([[A39.l3]]), ADR-344 ([[A39.l10]]), ADR nova de RV ([[A39.l9]]), ADR
-   nova de temp=0 ([[A39.l11]]). Emendas datadas à [[ADR-342]] (protocolo
-   ADR-027: `## Emenda YYYY-MM-DD` + `amended_at` + blockquote) em commit
-   **separado** do código. **Reservar ID de ADR cedo** (re-checar `ls docs/adr`
-   antes do push — colisão em sessão longa).
+   ADR-344 ([[A39.l10]] piso), ADR nova de RV ([[A39.l9]]), ADR nova de temp=0
+   ([[A39.l11]]). **ADR-343 descartada** — o checksum de fatura shipou como
+   emenda [[ADR-342]] (#1036, identidade `total_compras` escopada), não como ADR
+   nova. Emendas datadas à [[ADR-342]] (protocolo ADR-027: `## Emenda YYYY-MM-DD`
+   + `amended_at` + blockquote) em commit **separado** do código. **Reservar ID
+   de ADR cedo** (re-checar `ls docs/adr` antes do push — colisão em sessão longa).
 8. **Segurança:** "concluído" = PR squash-merged em `main` com CI verde. Diff
    >300 linhas → PRs sequenciais. Gate de sigilo de metodologia (ADR-319) +
    PII-lint em docs novos.

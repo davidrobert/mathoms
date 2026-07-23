@@ -791,12 +791,12 @@
 | A38.l7 | lane | shipped | A38 | Fatura Santander Unique layout 2026: classificação conf 0.0 + parser sem total/vencimento | `sprint/A38/lanes/A38-l7-faturaunique-layout-2026.md` |
 | A38.l8 | lane | planned | A38 | Extrato Consolidado Inteligente Santander: parse_santander_conta extrai 0 transações | `sprint/A38/lanes/A38-l8-santander-consolidado-inteligente.md` |
 | A38.l9 | lane | planned | A38 | Fatura Itaú Visa/Itaucard sem parser determinístico (100% E2-llm; 1 PDF com texto sem espaços) | `sprint/A38/lanes/A38-l9-fatura-itau-visa-parser.md` |
-| A39.l1 | lane | planned | A39 | Harness como instrumento de medição: emitir campos de veredito + conservação em cents + congelar baseline | `sprint/A39/lanes/A39-l1-harness-instrumento-baseline.md` |
+| A39.l1 | lane | shipped | A39 | Harness como instrumento de medição: emitir campos de veredito + conservação em cents + congelar baseline | `sprint/A39/lanes/A39-l1-harness-instrumento-baseline.md` |
 | A39.l10 | lane | planned | A39 | Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) | `sprint/A39/lanes/A39-l10-piso-materialidade.md` |
 | A39.l11 | lane | planned | A39 | Determinismo da classificação LLM: temperature=0 na via compartilhada + golden sintético + telemetria | `sprint/A39/lanes/A39-l11-classificacao-llm-determinismo.md` |
 | A39.l12 | lane | planned | A39 | Resíduo não-coberto: verificar escalação honesta do Binance CSV + investigar extração de preview .xlsx (rico) | `sprint/A39/lanes/A39-l12-binance-rico-residuo.md` |
 | A39.l2 | lane | planned | A39 | C6 Bank CSV: declarar conservacao_verificavel (semântica de saldo já correta) → escala perda silenciosa | `sprint/A39/lanes/A39-l2-c6-csv-optin-verificabilidade.md` |
-| A39.l3 | lane | planned | A39 | Checksum de fechamento de fatura: total_fatura + identidade de domínio (ADR-343 nova, corrige ADR-342 item 1) | `sprint/A39/lanes/A39-l3-checksum-fechamento-fatura.md` |
+| A39.l3 | lane | planned | A39 | Fatura closure: parsers emitem total_lancamentos_conferivel (gate #1036 pronto) + flip WARN→HARD | `sprint/A39/lanes/A39-l3-checksum-fechamento-fatura.md` |
 | A39.l4 | lane | planned | A39 | C6 Bank PDF: corrigir semântica de saldo_inicial (ajuste do 1º dia) e então declarar verificabilidade | `sprint/A39/lanes/A39-l4-c6-pdf-saldo-semantica.md` |
 | A39.l5 | lane | planned | A39 | Bradesco: diagnosticar saldo R$1/R$1 (raiz não confirmada) + teste de independência antes de flipar | `sprint/A39/lanes/A39-l5-bradesco-saldo-diagnostico.md` |
 | A39.l6 | lane | planned | A39 | Checksum de CDB observável: traço checksum_ok/skipped_no_total + WARN posições-sem-total; estender Santander xlsx | `sprint/A39/lanes/A39-l6-cdb-checksum-observavel.md` |

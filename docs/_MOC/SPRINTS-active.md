@@ -262,16 +262,18 @@ flipar o flag, não construir gate) **e faturas ganham checksum de fechamento**
 [[ADR-342]] item 1). Baseline: 3 `completo` / 99 `coberto-sem-verificação` / 11
 `escalado-honesto` / **4 `perda-silenciosa`** / 6 `não-coberto`. **12 lanes** em
 4 ondas (DoD = W0+W1 P0/P1; W2 P2 trailing), revisadas por painel de 6
-especialistas: **W0** [[A39.l1]] harness-instrumento + baseline · [[A39.l2]] C6
-CSV opt-in · [[A39.l3]] checksum de fatura (ADR-343) · [[A39.l4]] semântica de
-saldo C6 PDF. **W1** [[A39.l5]] saldo bradesco · [[A39.l6]] checksum CDB
-observável · [[A39.l7]] sweep de verificabilidade · [[A39.l8]] fatura Itaú Visa
-(adota [[A38.l9]]) · [[A39.l9]] posição RV (adota [[A38.l13]]). **W2 trailing**
-[[A39.l10]] piso de materialidade (ADR-344) · [[A39.l11]] determinismo da
-classificação LLM · [[A39.l12]] resíduo Binance/rico. 3 ADRs novas
-(343/344/RV) + emendas datadas à [[ADR-342]]. **Deferidos:** propagação E2→E5 +
-selo de qualidade → REPORT_TRUST (ADR-345); reconciliação de órfãos + cauda
-[[A38.l8]]/[[A38.l11]] → A40.
+especialistas: **W0** [[A39.l1]] harness-instrumento (✅ **shipped #1035**) ·
+[[A39.l2]] C6 CSV opt-in · [[A39.l3]] fatura opt-in dos parsers (gate shipped
+#1036) · [[A39.l4]] semântica de saldo C6 PDF. **W1** [[A39.l5]] saldo bradesco ·
+[[A39.l6]] observabilidade checksum CDB (cobertura shipped #1036) · [[A39.l7]]
+sweep de verificabilidade · [[A39.l8]] fatura Itaú Visa (adota [[A38.l9]]) ·
+[[A39.l9]] posição RV (adota [[A38.l13]]). **W2 trailing** [[A39.l10]] piso de
+materialidade (ADR-344) · [[A39.l11]] determinismo da classificação LLM ·
+[[A39.l12]] resíduo Binance/rico. **Reconciliação:** #1035/#1036/#1037 shiparam
+~1.5 lanes durante a autoria (convergindo com o painel); l1 nasce shipped, l3/l6
+residuais, ADR-343 descartada (emenda [[ADR-342]] superou). ADRs novas restantes:
+344 (piso) + RV + temp=0. **Deferidos:** propagação E2→E5 + selo → REPORT_TRUST
+(ADR-345); órfãos + cauda [[A38.l8]]/[[A38.l11]] → A40.
 
 - **Plano:** [sprint/A39/_README.md](../sprint/A39/_README.md) · **Origem:** skill `parse-certify` no workspace `5@5.com` 2026-07-23 (corpus fora do git).
 

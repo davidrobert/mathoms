@@ -3,7 +3,9 @@ id: A39.l1
 type: lane
 title: "Harness como instrumento de medição: emitir campos de veredito + conservação em cents + congelar baseline"
 sprint: A39
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1035
 priority: P1
 branch_slug: a39-l1-harness-instrumento-baseline
 adrs: []
@@ -11,13 +13,19 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dx
 ---
 
 # A39.l1 — `harness-instrumento-baseline` (transversal)
+
+> **SHIPPED por #1035** (`a3188b7a`, 2026-07-23) — entregue **durante a autoria
+> deste sprint**. O harness `dev/certify_parse_local.py` passou a emitir campos
+> por-tipo, conservação em cents, `--compare` seguro e baseline PII-safe. O
+> escopo abaixo é o que foi entregue; a lane nasce `shipped` (reconciliação com
+> `main` — ver §Entregue durante a autoria no [[MOC-sprint-a39]]).
 
 ## Problema (certificação 2026-07-23)
 

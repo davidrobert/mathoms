@@ -17,42 +17,42 @@ tags:
   - area/dados
 ---
 
-# A39.l6 — `cdb-checksum-observavel` (achado PC-05)
+# A39.l6 — `cdb-checksum-observavel` (achado PC-05 · reconciliado com #1036)
 
-## Problema (certificação 2026-07-23)
+> **Reconciliação com `main`:** a **cobertura** do checksum de CDB foi **entregue
+> por #1036** (`a63ec80f`) **durante a autoria** — `apply_cdb_checksum` estende-se
+> a CDB XLSX (Santander, total = "Valor Total" bruto) e HTML-XLS (Itaú, total =
+> `resumo.saldo_bruto_final`), soma em **int cents** (ADR-090), escopo bruto×bruto;
+> posição única Itaú PDF permanece **sem** sum-checksum (degenerada, já coberta
+> pelo gate de 0-posição). **Resta só a observabilidade do traço.**
 
-`_apply_cdb_checksum` (`santander.py:871`, introduzido pela emenda [[A38.l12]] na
-[[ADR-342]]) é um **no-op silencioso** quando `total_declarado is None` (o regex
-de total erra) e **não deixa traço no pass** → a certificação não distingue
-"checksum passou" de "checksum pulou". É o mesmo anti-padrão de silêncio que a
-[[A38.l14]] matou para dormência.
+## Problema (certificação 2026-07-23, pós-#1036)
 
-## Escopo
+`apply_cdb_checksum` (`validation.py`, emenda [[ADR-342]] l12 + #1036) **não deixa
+traço positivo** quando o checksum passa, e faz `return` silencioso quando
+`total_declarado is None` — a certificação não distingue "checksum passou" de
+"checksum pulou por falta de total". É o mesmo anti-padrão de silêncio que a
+[[A38.l14]] matou para dormência, no lado positivo do pass.
 
-- **Emenda datada à [[ADR-342]]** (protocolo ADR-027, commit separado):
-  observabilidade do checksum de posição — emitir `checksum_ok: bool` /
-  `checksum_skipped_no_total` como sinais **distintos**; WARN quando há
-  `posicoes` mas `total_declarado is None`.
-- Estender a cobertura **só onde há total agregado independente**
-  (data-engineer): **`parse_santander_cdb_xlsx`** lê `"Valor Total:"` no header
-  (`santander.py:277`) → passar como `total_declarado` → checksum legítimo.
-- **`parse_itau_cdb_pdf`** emite **posição única** sem total agregado
-  (`itau.py:942`) → resultado correto é `skipped_no_total` (honesto), **não** um
-  checksum — não força cobertura falsa.
-- Contrato cents idêntico (`round(abs(soma−total)*100) != 0`) — extensão
-  mecânica, contract-safe.
+## Escopo (residual — observabilidade)
+
+- Emitir `checksum_ok: bool` no result quando o checksum **passa** (traço
+  positivo) e `checksum_skipped_no_total` quando `total_declarado is None` mas há
+  `posicoes` — sinais **distintos** no artefato (não só o WARN de mismatch, que
+  já existe).
+- WARN quando há `posicoes` mas total ausente (hoje `return` mudo).
+- Sem ADR nova (o contrato/cobertura já está em `main`); no máximo emenda fina de
+  observabilidade se o schema exigir declarar os campos.
 
 ## Critério de aceite
 
-- `total_declarado is None` emite `checksum_skipped_no_total` (traço no pass) +
-  WARN quando há posições — teste.
-- Santander xlsx com total → `checksum_ok=True` (cents); com mismatch → escala
-  (`extract.investment_sum_mismatch`).
-- Itaú CDB PDF → `skipped_no_total` (não checksum) — assert.
+- `total_declarado is None` com posições → `checksum_skipped_no_total` (traço) +
+  WARN — teste.
+- Checksum que passa → `checksum_ok=True` no artefato — teste.
 - KR-C/KR-D contam `checksum_ok` **separado** de `skipped_no_total` (no-op não
   infla cobertura).
 
 ## Risco
 
-Baixo — observabilidade + extensão mecânica de um contrato cents já decidido.
-Emenda de calibração, sem ADR nova.
+Baixo — só observabilidade sobre um contrato cents já entregue (#1036). Escopo
+encolhido pela reconciliação com `main`.
