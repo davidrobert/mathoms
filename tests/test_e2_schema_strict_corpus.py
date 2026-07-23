@@ -105,6 +105,42 @@ def _text_builder(content: str) -> Callable[[Path, str], Path]:
     return _build
 
 
+def _lines_pdf_builder(lines: list) -> Callable[[Path, str], Path]:
+    """PDF sintético a partir de linhas fixas (A38.l12 — CDB PDF)."""
+
+    def _build(tmp_path: Path, filename: str) -> Path:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.units import cm
+        from reportlab.pdfgen import canvas
+
+        path = tmp_path / filename
+        c = canvas.Canvas(str(path), pagesize=A4)
+        _, height = A4
+        y = height - 2 * cm
+        c.setFont("Helvetica", 9)
+        for line in lines:
+            c.drawString(2 * cm, y, line)
+            y -= 0.5 * cm
+        c.save()
+        return path
+
+    return _build
+
+
+_ITAU_CDB_PDF_LINES = [
+    "Extrato de movimentação mensal - CDB-DI",
+    "Período: 01/07/2026 à 22/07/2026",
+    "30/06/2026 SALDO ANTERIOR 100.000,00",
+    "22/07/2026 SALDO FINAL 124.940,17",
+]
+_SANT_CDB_PDF_LINES = [
+    "DETALHES DO INVESTIMENTO",
+    "CDB Valor total (R$) : 143.248,51 Valores Referentes a : 22/07/2026",
+    "CDB DI SANTANDER Valor Total : R$ 143.248,51 Disponível para Resgate : R$ 138.304,04",
+    "Você possui 1 contrato neste investimento",
+]
+
+
 _C6_EXTRATO_PJ_CSV = """EXTRATO DE CONTA CORRENTE C6 BANK
 
 Agência: 1 / Conta: 12345678
@@ -207,6 +243,15 @@ PASS_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path]]] = {
     "santander.parse_santander_cdb_xlsx": (
         "santander_cdbresumo_202604.xlsx",
         _santander_cdb_xlsx_builder,
+    ),
+    # CDB posição em PDF (A38.l12) — mesmo shape cdbresumo dos parsers xls/xlsx.
+    "itau.parse_itau_cdb_pdf": (
+        "itau_cdbresumo_202604.pdf",
+        _lines_pdf_builder(_ITAU_CDB_PDF_LINES),
+    ),
+    "santander.parse_santander_cdb_pdf": (
+        "santander_cdbresumo_202604.pdf",
+        _lines_pdf_builder(_SANT_CDB_PDF_LINES),
     ),
     # Faturas PDF com layout sintético dedicado (A24.l7 passo 3 — ex-INPUT_GAPS).
     "c6bank.parse_c6_carbon": (
