@@ -50,17 +50,42 @@ def _substantial_csv(tmp_path: Path) -> Path:
 # ---------------------------------------------------------------------------
 
 
-def test_extrato_0tx_com_texto_substancial_escala(tmp_path: Path) -> None:
+def test_extrato_0tx_sem_observacao_escala_failsafe(tmp_path: Path) -> None:
+    """Parser não reporta raw_rows_detected (None) ⇒ fail-safe: escala (ADR-342 §Emenda l14)."""
     result = _extrato_result(n_tx=0)
     validate_extrato_result(result, _substantial_csv(tmp_path), is_csv=True)
     assert result["requires_llm_fallback"] is True
     assert result["escalation_reason"]["code"] == "extract.empty_result"
 
 
-def test_extrato_sem_movimentacao_nao_escala(tmp_path: Path) -> None:
-    result = _extrato_result(n_tx=0, notas=["Conta sem movimentação no período (saldo estável)"])
+def test_extrato_dormante_observado_nao_escala(tmp_path: Path) -> None:
+    """0 tx + raw_rows_detected==0 (parser viu 0 candidatas) ⇒ dormência, não escala."""
+    result = _extrato_result(n_tx=0, raw_rows_detected=0)
     validate_extrato_result(result, _substantial_csv(tmp_path), is_csv=True)
     assert "requires_llm_fallback" not in result
+
+
+def test_extrato_0tx_com_linhas_candidatas_escala(tmp_path: Path) -> None:
+    """Fingerprint C6 Global: parser viu linhas (raw_rows_detected>0) e converteu
+    zero ⇒ escala MESMO com nota parcial de mês vazio (o incidente A38.l14)."""
+    result = _extrato_result(
+        n_tx=0,
+        raw_rows_detected=57,
+        notas=["Sem lançamentos no período (2 mês(es) sem movimentação)"],
+    )
+    validate_extrato_result(result, _substantial_csv(tmp_path), is_csv=True)
+    assert result["requires_llm_fallback"] is True
+    assert result["escalation_reason"]["code"] == "extract.empty_result"
+
+
+def test_nota_parcial_nao_e_mais_predicado_de_dormencia(tmp_path: Path) -> None:
+    """A nota "sem movimentação" sozinha (sem raw_rows_detected==0) não silencia:
+    o gate parou de fazer substring-match em notas."""
+    result = _extrato_result(
+        n_tx=0, notas=["Sem lançamentos no período (3 mês(es) sem movimentação)"]
+    )
+    validate_extrato_result(result, _substantial_csv(tmp_path), is_csv=True)
+    assert result["requires_llm_fallback"] is True
 
 
 # ---------------------------------------------------------------------------
@@ -189,3 +214,33 @@ def test_key_unificada_entre_writers_deterministico_e_llm() -> None:
     ):
         path = Path(name)
         assert _e2_extract_stem(path) == _artifact_key_for_file(path)
+
+
+# ---------------------------------------------------------------------------
+# count_candidate_rows (observação de dormência) + grep-gate
+# ---------------------------------------------------------------------------
+
+
+def test_count_candidate_rows_conta_linhas_de_tx_excluindo_saldo() -> None:
+    from scripts.e2.common import count_candidate_rows
+
+    texto = (
+        "05/02/2026 SABESP -60,00\n"
+        "03/01 Compra US$ 1,234.56\n"  # formato US também conta
+        "Saldo do dia 22/07/26 1.500,00\n"  # linha de saldo NÃO conta
+        "cabeçalho sem data nem valor\n"
+    )
+    assert count_candidate_rows(texto) == 2
+    assert count_candidate_rows("") == 0
+
+
+def test_grep_gate_validation_nao_usa_nota_como_predicado_de_dormencia() -> None:
+    """Regressão do buraco A38.l14: nenhuma leitura de 'sem movimentação'/'sem
+    lançamentos' como controle de fluxo em validation.py."""
+    from pathlib import Path as _P
+
+    import scripts.e2.validation as _v
+
+    src = _P(_v.__file__).read_text(encoding="utf-8")
+    assert "sem movimenta" not in src.lower()
+    assert "sem lançament" not in src.lower() and "sem lancament" not in src.lower()

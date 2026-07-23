@@ -51,6 +51,16 @@ def _warn_reason(result: Dict[str, Any], code: ReviewReasonCode, message: str) -
     result.setdefault("warn_reasons", []).append({"code": code.value, "message": message})
 
 
+def _is_dormant_by_observation(result: Dict[str, Any]) -> bool:
+    """Dormância (0 tx que NÃO escala) só quando o parser observou **0 linhas
+    candidatas** (`raw_rows_detected == 0`). Parser que não reporta (`None`) ⇒
+    fail-safe: não é dormante ⇒ escala. `raw_rows_detected > 0` ⇒ viu linhas e
+    converteu zero (falha silenciosa) ⇒ escala. Substitui o substring-match em
+    `notas`, que uma nota parcial de mês vazio derrotava (ADR-342 §Emenda
+    A38.l14 — dormência é observação do parser, não conclusão em texto livre)."""
+    return result.get("raw_rows_detected") == 0
+
+
 def validate_extrato_result(
     result: Dict[str, Any], file_path: Path, is_csv: bool = False
 ) -> List[str]:
@@ -74,21 +84,16 @@ def validate_extrato_result(
         is_xls = str(file_path).endswith(".xls")
         size_threshold = MIN_XLS_BYTES if is_xls else MIN_CSV_BYTES
 
-        if n_tx == 0 and total_chars > size_threshold:
-            notas_lower = [n.lower() for n in result.get("notas", [])]
-            is_empty_period = any(
-                "sem lançamentos" in n or "sem movimentação" in n for n in notas_lower
+        if n_tx == 0 and total_chars > size_threshold and not _is_dormant_by_observation(result):
+            issues.append(
+                f"ERROR: 0 transações extraídas de {'XLS' if is_xls else 'CSV'} com {total_chars} bytes "
+                f"— provável falha de parsing"
             )
-            if not is_empty_period:
-                issues.append(
-                    f"ERROR: 0 transações extraídas de {'XLS' if is_xls else 'CSV'} com {total_chars} bytes "
-                    f"— provável falha de parsing"
-                )
-                escalate_result(
-                    result,
-                    ReviewReasonCode.extract_empty_result,
-                    "0 transações com conteúdo substancial — escalado (ADR-342)",
-                )
+            escalate_result(
+                result,
+                ReviewReasonCode.extract_empty_result,
+                "0 transações com conteúdo substancial — escalado (ADR-342)",
+            )
     else:
         if pdfplumber is None:
             total_chars = 0
@@ -102,19 +107,21 @@ def validate_extrato_result(
                 total_chars = 0
                 n_pages = 0
 
-        if n_tx == 0 and total_chars > 500 and n_pages > 0:
-            notas_lower = [n.lower() for n in result.get("notas", [])]
-            is_dormant = any("sem movimentação" in n or "sem lançamentos" in n for n in notas_lower)
-            if not is_dormant:
-                issues.append(
-                    f"ERROR: 0 transações extraídas de PDF com {total_chars} chars / "
-                    f"{n_pages} páginas — provável falha de parsing"
-                )
-                escalate_result(
-                    result,
-                    ReviewReasonCode.extract_empty_result,
-                    "0 transações com conteúdo substancial — escalado (ADR-342)",
-                )
+        if (
+            n_tx == 0
+            and total_chars > 500
+            and n_pages > 0
+            and not _is_dormant_by_observation(result)
+        ):
+            issues.append(
+                f"ERROR: 0 transações extraídas de PDF com {total_chars} chars / "
+                f"{n_pages} páginas — provável falha de parsing"
+            )
+            escalate_result(
+                result,
+                ReviewReasonCode.extract_empty_result,
+                "0 transações com conteúdo substancial — escalado (ADR-342)",
+            )
 
     none_vals = sum(1 for t in result.get("transacoes", []) if t.get("valor") is None)
     if none_vals > 0:

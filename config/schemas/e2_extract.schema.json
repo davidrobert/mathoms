@@ -73,7 +73,12 @@
       "type": ["string", "null"],
       "enum": ["corrente", "poupanca", "pj", "investimento", null]
     },
-    "documento_titular": {"type": ["string", "null"]}
+    "documento_titular": {"type": ["string", "null"]},
+    "raw_rows_detected": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "ADR-342 §Emenda A38.l14 — linhas-candidatas (data+valor, excl. saldo) que o parser observou. Com 0 tx: >0 ⇒ falha silenciosa (gate escala); ==0 ⇒ dormência (não escala); ausente ⇒ fail-safe escala. Declarado p/ drift-detection em modo strict."
+    }
   },
   "additionalProperties": true
 }

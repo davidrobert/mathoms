@@ -21,6 +21,7 @@ from scripts.e2.common import (
     MESES_BR_STR,
     TITULAR,
     VENC_CARBON,
+    count_candidate_rows,
     detect_member_from_card_name,
     detect_member_from_text,
     extract_account_number,
@@ -508,6 +509,10 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
             saldo_header = re.search(r"Saldo do dia.*?[•\s]+(R\$|US\$|EUR)\s*([\d.,]+)", first_text)
 
             full_text = "\n".join((p.extract_text() or "") for p in pdf.pages)
+            # ADR-342 §Emenda A38.l14: observação p/ o gate anti-silêncio. No
+            # layout Global (USD/EUR) não suportado, isto vem > 0 com 0 tx →
+            # o gate escala em vez de acreditar na nota parcial de mês vazio.
+            result["raw_rows_detected"] = count_candidate_rows(full_text)
             if "Sem lançamentos no mês" in full_text or "sem lançamentos" in full_text.lower():
                 empty_months = full_text.lower().count("sem lançamentos")
                 result["notas"].append(
