@@ -446,6 +446,40 @@ def _parse_c6_extrato_text(
     return transacoes, saldos
 
 
+# Linha do extrato C6 Global (USD/EUR). Dois formatos coexistem (A38.l15):
+#   - débito de cartão: `dd/mm <descrição> -US$ <valor> dd/mm` (data de compra
+#     no fim);
+#   - entrada/saída/transferência: `dd/mm <descrição> [-]US$ <valor>` (sem data
+#     final) — ex.: "Entrada Outros", "Saída Transf. Internacional".
+# A data final é OPCIONAL senão os créditos/transferências (as "Entradas" do
+# resumo) somem. Locale numérico é BR mesmo em moeda estrangeira.
+_C6_GLOBAL_TX_RE = re.compile(
+    r"^(\d{2}/\d{2})\s+(.+?)\s+(-?)\s*(?:US\$|EUR|€)\s*([\d.,]+)(?:\s+\d{2}/\d{2})?\s*$"
+)
+
+
+def _parse_c6_global_text(
+    full_text: str, periodo_inicio: str, periodo_fim: str
+) -> List[Dict[str, Any]]:
+    """Transações do extrato C6 Global (USD/EUR); saldo por dia não existe
+    neste layout, então a completude é gateada pela contagem (l14)."""
+    transacoes: List[Dict[str, Any]] = []
+    for raw in full_text.split("\n"):
+        m = _C6_GLOBAL_TX_RE.match(raw.strip())
+        if not m:
+            continue
+        d1, descricao, sign, valor_str = m.groups()
+        valor = parse_brl(f"{sign}{valor_str}")
+        if valor is None:
+            continue
+        dd, mm = int(d1[:2]), int(d1[3:5])
+        ano = resolve_year_from_period(dd, mm, periodo_inicio, periodo_fim)
+        transacoes.append(
+            {"data": safe_date(ano, mm, dd), "descricao": descricao.strip(), "valor": valor}
+        )
+    return transacoes
+
+
 def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse C6 Bank statement (conta, contapj, contaglobal)."""
     is_global_usd = "extratocontaglobalusd" in filename
@@ -531,25 +565,38 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     except ValueError:
                         pass
 
-            # Parser line-based sobre `extract_text()` — substitui o uso anterior
-            # de `extract_tables()`, que perdia o valor de transações sempre que
-            # duas linhas adjacentes do PDF compartilhavam a mesma `data1` em
-            # col0 (pdfplumber colapsava a célula da segunda row em None).
-            # Sintoma em produção: ~20% das txs do PDF perdiam o valor e a
-            # descrição da row seguinte era concatenada à anterior, gerando
-            # categorização errada (ex.: R$ 194.886,65 de Pagamento Itaú
-            # virava "Serviços Domésticos" porque a descrição do PIX para
-            # Eliane Costa Goncalves era colada na linha do Itaú).
-            txs_from_text, saldo_values = _parse_c6_extrato_text(
-                full_text,
-                periodo_inicio=result["periodo"]["inicio"] or "",
-                periodo_fim=result["periodo"]["fim"] or "",
-            )
-            result["transacoes"].extend(txs_from_text)
-
-            if saldo_values:
-                result["saldo_inicial"] = saldo_values[0][1]
-                result["saldo_final"] = saldo_values[-1][1]
+            if is_global_usd or is_global_eur:
+                # Layout internacional (A38.l15): linha `data1 descrição
+                # -US$/€ valor data2` — formato distinto do BRL (que tem duas
+                # datas líderes). `_parse_c6_extrato_text` (BRL) retornava 0 tx
+                # e o extrato do sleeve internacional sumia. Locale numérico é
+                # BR mesmo em USD (`US$ 7.196,37` = 7196.37), então `parse_brl`
+                # serve; sem `Saldo do dia` intra-período, não há conservação
+                # por saldo (não seta `conservacao_verificavel`); a completude
+                # é gateada pela contagem via `raw_rows_detected` (l14).
+                result["transacoes"].extend(
+                    _parse_c6_global_text(
+                        full_text,
+                        result["periodo"]["inicio"] or "",
+                        result["periodo"]["fim"] or "",
+                    )
+                )
+            else:
+                # Parser line-based sobre `extract_text()` — substitui o uso
+                # anterior de `extract_tables()`, que perdia o valor de
+                # transações sempre que duas linhas adjacentes do PDF
+                # compartilhavam a mesma `data1` em col0 (pdfplumber colapsava
+                # a célula da segunda row em None). Sintoma: ~20% das txs
+                # perdiam valor e a descrição colava na linha anterior.
+                txs_from_text, saldo_values = _parse_c6_extrato_text(
+                    full_text,
+                    periodo_inicio=result["periodo"]["inicio"] or "",
+                    periodo_fim=result["periodo"]["fim"] or "",
+                )
+                result["transacoes"].extend(txs_from_text)
+                if saldo_values:
+                    result["saldo_inicial"] = saldo_values[0][1]
+                    result["saldo_final"] = saldo_values[-1][1]
 
     except Exception as e:
         log(LOG_PREFIX_EXTRATO, "ERROR", f"  Falha ao processar {filename}: {e}")
