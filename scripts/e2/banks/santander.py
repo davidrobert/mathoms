@@ -217,6 +217,16 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
                 "Conta sem movimentação no período (apenas saldo anterior registrado)"
             )
 
+        # A39.l7 · ADR-342: saldo_inicial (SALDO ANTERIOR) e saldo_final vêm de
+        # células independentes (não derivados) → declara verificabilidade p/ o
+        # gate HARD graduar conservação. Wise/Rico ficam fora (saldo derivado).
+        if (
+            result.get("saldo_inicial") is not None
+            and result.get("saldo_final") is not None
+            and result["transacoes"]
+        ):
+            result["conservacao_verificavel"] = True
+
     except Exception as e:
         log(LOG_PREFIX_EXTRATO, "ERROR", f"  Falha ao processar Santander XLS {filename}: {e}")
         result["notas"].append(f"Erro no parsing XLS: {e}")
