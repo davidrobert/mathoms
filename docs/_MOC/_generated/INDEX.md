@@ -781,6 +781,8 @@
 | A38.l11 | lane | open | A38 | Fuzzy-dupe cruza-flagga extratos de moedas distintas do mesmo período (Wise USD × BRL) | `sprint/A38/lanes/A38-l11-fuzzy-dupe-moeda.md` |
 | A38.l12 | lane | open | A38 | CDB em PDF (extrato mensal Itaú + detalhes Santander): 100% E2-llm sem parser determinístico | `sprint/A38/lanes/A38-l12-cdb-pdf-deterministico.md` |
 | A38.l13 | lane | planned | A38 | Posição de renda variável: custódia e carteira consolidada não classificam; dupla contagem latente | `sprint/A38/lanes/A38-l13-posicao-renda-variavel.md` |
+| A38.l14 | lane | open | A38 | Buraco no gate anti-silêncio: nota parcial 'sem movimentação' silencia extrato com conteúdo | `sprint/A38/lanes/A38-l14-c6-global-gate-hole.md` |
+| A38.l15 | lane | planned | A38 | parse_c6bank não extrai o layout C6 Global (USD/EUR internacional): 0 tx com 56–199 linhas | `sprint/A38/lanes/A38-l15-c6-global-parser.md` |
 | A38.l2 | lane | open | A38 | parse_itau perde ~50% das transações do layout 2026 do extrato PDF | `sprint/A38/lanes/A38-l2-parse-itau-layout-2026.md` |
 | A38.l3 | lane | open | A38 | Gate anti-silêncio no E2: 0 tx ou conservação quebrada nunca vira artefato 'ok' (ADR Proposto) | `sprint/A38/lanes/A38-l3-gate-anti-silencio-e2.md` |
 | A38.l4 | lane | open | A38 | Colisão de instituição: pattern caixa `0800 726` casa SAC Santander com conf 1.0 | `sprint/A38/lanes/A38-l4-colisao-instituicao-0800726.md` |
