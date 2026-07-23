@@ -292,6 +292,18 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         code="cdbdetalhes",
         dest_group="financial_statements",
         required=(_c(r"\bCDB\b|Certificado\s*de\s*Dep[oó]sito\s*Banc[aá]rio"),),
+        # A38.l5: `\bCDB\b` sozinho roubava extrato de conta com a linha de
+        # transação "APLICACAO CDB COFRINHOS". Veta quando marcadores exclusivos
+        # de extrato de conta corrente estão presentes — `SALDO DO DIA` (saldo
+        # diário) e o cabeçalho do layout Itaú conta 2026 não aparecem em
+        # posição/movimentação de CDB (que usa `SALDO ANTERIOR`/`SALDO FINAL`).
+        exclude=(
+            _c(
+                r"SALDO\s+DO\s+DIA"
+                r"|extrato\s*conta\s*/\s*lan[çc]amentos"
+                r"|data\s+lan[çc]amentos\s+valor\s*\(R\$\)\s+saldo"
+            ),
+        ),
         supporting=(
             _c(r"Dispon[ií]vel\s*para\s*Resgate"),
             _c(r"Rentabilidade"),
