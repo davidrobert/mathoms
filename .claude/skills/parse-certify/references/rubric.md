@@ -31,8 +31,8 @@ indistinguível de um completo **no artefato final**.
 | Tipo | Chave E2 | Checksum que autoriza `completo` | Estado do checksum hoje |
 |---|---|---|---|
 | Extrato | `transacoes` | `conservacao_verificavel=True` **e** `conservation_gap_cents == 0` | ✅ onde o parser declara `conservacao_verificavel` |
-| Fatura | `itens` | Σ lançamentos == `total_fatura` (cents) | ⚠️ **não existe** (`validate_fatura_result` só trata 0-lançamentos) |
-| Investimento | `posicoes` + `tipo="cdbresumo"` | Σ `valor_atual` == total declarado (cents) | ⚠️ **só Santander CDB PDF** (`_apply_cdb_checksum`) |
+| Fatura | `transacoes` | Σ lançamentos == **`total_compras`** (cents), **nunca** `saldo_atual` | ⚠️ gate WARN existe (`apply_fatura_checksum`), **dormente** até parser setar `total_lancamentos_conferivel` |
+| Investimento | `posicoes` + `tipo="cdbresumo"` | Σ `valor_atual` == total de escopo igual às linhas (cents) | ✅ Santander CDB PDF+XLSX, Itaú HTML-XLS (`apply_cdb_checksum`, int cents) |
 
 Onde o checksum **não existe**, a completude é genuinamente **não-verificável no
 E2** → veredito máximo `coberto-sem-verificação-de-soma`. Isso não é pessimismo:
