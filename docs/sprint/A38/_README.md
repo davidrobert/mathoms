@@ -104,6 +104,20 @@ Ondas por **dependência**. Lane abre quando suas `depends_on` estão `shipped`.
 | [[A38.l10]] | #9 | P2 | TypeRules genéricas de fatura: `re.DOTALL` nos gaps `.{0,N}` (hoje nunca cruzam linha) + corpus de classificação |
 | [[A38.l11]] | #10a | P2 | Fuzzy-dupe: não cruzar-flagar subtipos de moeda distintos do mesmo período (Wise USD × BRL) |
 
+### W2 — posição de investimento (2º corpus, 2026-07-22)
+
+| Lane | Achado | Prio | Escopo |
+|---|---|---|---|
+| [[A38.l12]] | CDB-PDF | P1 | CDB em PDF (extrato mensal Itaú + detalhes Santander) determinístico com `tipo=cdbresumo` + checksums (emenda [[ADR-342]]) — hoje 100% E2-llm; `depends_on` [[A38.l1]]/[[A38.l3]]/[[A38.l5]] |
+| [[A38.l13]] | RV-dupla | P2 | Posição de renda variável: TypeRules (custódia + carteira XLSX), null-não-soma no consolidador, chave de identidade `ticker+proprietário` (ADR `Proposto`), anti-dupla-contagem cross-fonte — co-design `financial-planner` |
+
+> **Segundo corpus (posição de investimento):** 6 docs certificados pelo
+> harness [[A38.l1]]. Rico (extrato conta corretora) **já extrai 15/15 +
+> conservação** — entra como **controle verde** do baseline, sem lane. Os 5
+> restantes destravados por l12 (3 CDBs PDF que caíam em E2-llm) e l13 (2
+> docs RV em conf 0.0). Achado de domínio: mesmos papéis+quantidade em
+> custódia Itaú **e** carteira XLSX → dupla contagem latente ([[A38.l13]]).
+
 ## Regras de execução (completude · corretude · consistência · precisão)
 
 1. **Corretude:** bug → **teste de regressão antes do fix**, com fixture
@@ -203,3 +217,36 @@ Zero objeção de mérito aos 10 achados; zero impasse (nenhuma escalação a
   rendimento — medir taxa de poupança e renda passiva pré/pós); l7 nunca
   shippa classificação sem total+cross-check no mesmo PR; propagação E2→E5
   sinalizada como follow-up.
+
+### 2ª rodada — corpus de investimento (2026-07-22 — pm, data-engineer, financial-planner)
+
+Painel sobre o 2º corpus (6 docs de posição de investimento) → lanes
+[[A38.l12]]/[[A38.l13]]. Zero impasse de mérito; 1 dissenso de prioridade
+resolvido por território.
+
+- **pm:** 2 lanes, split por **perfil de risco** — l12 (P1, parsers CDB PDF,
+  sem ADR, checksum de valor **e de contagem**) vs l13 (P2, RV, ADR
+  obrigatória). l12 **P1** porque no **Free tier** (determinístico) os CDBs
+  produzem **zero patrimônio hoje** — gap silencioso de classe North-Star,
+  não só custo de LLM. l13 só **detecta e escala** dupla contagem; a
+  auto-resolução vai como follow-up **A39** na ADR (padrão [[ADR-271]]
+  PR1→PR2/PR3). Rico pinado no baseline como controle verde de regressão.
+- **data-engineer:** corrigiu 2 premissas com evidência — (a) o E4 seleciona
+  por `tipo`, e `cdbdetalhes` **não** está em `_INVESTMENT_POSITION_TYPES`:
+  parser novo emite **`tipo="cdbresumo"`** (via key `posicoes`), senão o
+  artefato some no E4 em silêncio; (b) o consolidador soma **null→0** — a
+  semântica **null-não-soma** dissolve o risco monetário de dupla contagem
+  de graça (custódia qty-only não soma; carteira valorada soma) — sem chave
+  ticker de dedup monetário (over-engineering; PR2/PR3 futuro). Checksums de
+  posição via **emenda à [[ADR-342]]** (contrato único, cents), não gate
+  paralelo com tolerância R$ 1. Instituição vazia da XLSX cai em key órfã —
+  resolver é requisito do parser. Adicionar `$defs/posicao_investimento`.
+- **financial-planner:** chave de identidade RV = **`ticker+proprietário`**
+  (eixo novo; [[ADR-271]] segue p/ RF/genérico); resolução tabelada
+  (1 valorada + qty-only → colapsa; 2 valoradas iguais → `needs_review`;
+  qtd diferente → nunca funde); calibração "não funde → escala". Posição
+  sem preço **não soma e não bloqueia** (flag + ressalva no card). Rendimento
+  de CDB = **passthrough sem KPI** em V1 (accrual ≠ receita); JCP/dividendo →
+  categoria **proventos** fora da base de poupança; TRS segue IRPF-derived.
+  Correção: o gate da [[A38.l3]] **não cobre docs de posição** (sem
+  transações) — l12/l13 carregam predicado anti-silêncio próprio (emenda).
