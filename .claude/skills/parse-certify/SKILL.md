@@ -153,26 +153,34 @@ Achados priorizados (silêncio primeiro), colunas:
 `ID · Achado · Severidade · Prioridade (P0–P3) · Dificuldade (S/M/L) · Risco
 regr. · Fix recomendado · Candidata a lane`
 
-## Extensões do harness (candidatas a lane — o backlog que a skill produz)
+## Extensões do harness (o backlog que a skill produz)
 
-O harness atual não emite tudo que o veredito de 5 estados exige; onde falta, a
-skill degrada honestamente para `coberto-sem-verificação`. Cada gap é uma lane:
+**Entregues (harness ext, 2026-07-23):**
 
-1. **Emitir por tipo:** `tipo`, `n_itens`, `n_posicoes`, `raw_rows_detected`,
-   `escalation_reason.code`, `conservacao_verificavel` (hoje só `transacoes` e
-   `conservacao` float).
-2. **Checksum de fatura** Σ itens × `total_fatura` em `validate_fatura_result`
-   (hoje só trata 0-lançamentos).
-3. **Checksum de investimento** `_apply_cdb_checksum` em CDB XLSX/HTML-XLS Itaú
-   (hoje só Santander CDB PDF).
-4. **Conservação em cents** — reusar `conservation_gap_cents` (tol-zero) em vez
-   do float `<0.011`, para o veredito bater com o gate de produção.
-5. **`--compare` mais forte:** falhar em `escalated True→False` sem checksum-pass
-   (silêncio reintroduzido — a pior regressão), checksum pass→fail, e queda do
-   piso de cobertura determinística.
-6. **Chave de baseline PII-safe** `doc_type|institution|period|sha256[:8]`
-   (dropa o filename legível) + `--compare` que erra limpo sem baseline (hoje
-   crasha exit 1 se o arquivo sumiu).
+1. ✅ **Emite por tipo:** `tipo`, `n_itens`, `n_posicoes`, `raw_rows_detected`,
+   `escalation_code`, `conservacao_verificavel` — e `total_set`/`vencimento_set`
+   agora leem os campos reais (`saldo_atual`/`data_vencimento`), não os
+   inexistentes `total_fatura`/`vencimento` (bug latente do harness inicial).
+4. ✅ **Conservação em cents** — reusa `conservation_gap_cents` (tol-zero); o
+   veredito bate com o gate de produção (gap de 1 centavo já não passa).
+5. ✅ **`--compare` mais forte (subset seguro):** falha em `escalated True→False`
+   com conservação quebrada (silêncio reintroduzido). Ratchet por-documento sobre
+   o subconjunto estável — **não** piso de % agregado (dá falso-fail quando o
+   corpus cresce com docs LLM legítimos). O ratchet completo por predicado-positivo
+   (`total_lancamentos_conferivel`) entra junto com o item 2.
+6. ✅ **Chave de baseline PII-safe** (`file` = sha do nome; `label` legível só com
+   códigos tipo/instituição/período) + `--compare` erra limpo (exit 2) sem baseline.
+
+**Pendentes (validação E2 de produção — co-design data-engineer + financial-planner):**
+
+2. **Checksum de fatura** — Σ transações (com sinal) == **`total_compras`**
+   ("Lançamentos atuais"), **nunca** == `saldo_atual` ("Total desta fatura", que
+   inclui saldo anterior + encargos − pagamentos e diverge por design). Opt-in
+   por parser (flag análoga a `conservacao_verificavel`); WARN→HARD por banco.
+3. **Checksum de investimento** — estender `_apply_cdb_checksum` a CDB XLSX/HTML-XLS
+   Itaú, **só contra subtotal de escopo igual ao das linhas** (nunca total de conta
+   agregado, que é WARN). Posição única Itaú PDF (valor=SALDO FINAL) fica sem
+   checksum (degenerada).
 
 ## Critério de aceite da skill
 
