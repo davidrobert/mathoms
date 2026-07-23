@@ -2,19 +2,19 @@
 id: ADR-342
 type: adr
 title: "Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path"
-status: Proposto
+status: Decidido
 date: "2026-07-22"
 phase: A38.l3
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/dados
 ---
 
 # ADR-342 — Gate anti-silêncio no E2 (escalação + read-path)
 
-**Status:** Proposto · **Data:** 2026-07-22 · **Lane:** [[A38.l3]] (P0)
+**Status:** Decidido (A38.l3) · **Data:** 2026-07-22 · **Lane:** [[A38.l3]] (P0)
 
 ## Contexto
 
