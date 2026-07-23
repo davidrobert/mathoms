@@ -45,7 +45,10 @@ fricção de review para o usuário e risco de dismissal errado. Com a
 
 - Units acima verdes; suíte de documents existente verde (KR-E).
 - Fluxo real validado no harness/upload local: subir os 2 extratos Wise não
-  gera `possible_duplicate_of_id` cruzado (KR-B de UX).
+  gera `possible_duplicate_of_id` cruzado (KR-B de UX). **Nota do painel/pm:**
+  o código shipa independente, mas este aceite de corpus só é verificável
+  **pós-[[A38.l6]]** (é ela que faz o subtipo `usd`/`brl` existir) — antes
+  disso a lane degrada ao comportamento atual, sem dead code novo.
 
 ## Risco
 

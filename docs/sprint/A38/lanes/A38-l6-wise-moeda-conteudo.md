@@ -19,6 +19,13 @@ tags:
 
 # A38.l6 — `wise-moeda-conteudo` (achados #6 + #10b)
 
+> **Primeiro P1 da W1 (decisão do painel/financial):** o erro USD→BRL é
+> invisível ao gate de conservação da [[A38.l3]] (a conservação fecha na
+> unidade errada; Wise deriva `saldo_inicial`, então o gate é no-op) e infla
+> dolarização/patrimônio numa direção que **lisonjeia** o usuário — gera
+> recomendação de alocação ativamente errada. Não sequenciar atrás de
+> [[A38.l4]]/[[A38.l5]].
+
 ## Problema (evidência verificada 2026-07-22)
 
 1. **Moeda por filename:** `scripts/e2/banks/wise.py::parse_wise` decide a
@@ -38,7 +45,9 @@ tags:
 
 - **Parser**: `parse_wise` detecta a moeda pelo **conteúdo** ("Extrato em
   USD" / "Extrato em BRL", presente na 1ª página) com filename como mero
-  fallback; `moeda`/`tipo` do resultado refletem o conteúdo.
+  fallback; `moeda`/`tipo` do resultado refletem o conteúdo. **Moeda
+  indeterminada escala** (contrato [[A38.l3]]) — nunca default BRL
+  silencioso.
 - **TypeRule determinística**: nova regra (priority < genérica) para
   "Extrato em USD/BRL" estilo Wise emitindo `extratocontausd`/
   `extratocontabrl` — os anchors de roteamento E2 são subtipo-agnósticos

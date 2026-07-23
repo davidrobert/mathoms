@@ -4,7 +4,7 @@ type: lane
 title: "Extrato Consolidado Inteligente Santander: parse_santander_conta extrai 0 transações"
 sprint: A38
 status: planned
-priority: P1
+priority: P2
 branch_slug: a38-l8-santander-consolidado
 adrs: []
 depends_on: ["[[A38.l4]]"]
@@ -12,12 +12,19 @@ tags:
   - type/lane
   - sprint/a38
   - status/planned
-  - priority/p1
+  - priority/p2
   - area/pipeline
   - area/dados
 ---
 
 # A38.l8 — `santander-consolidado-inteligente` (achado #4)
+
+> **P2 por decisão do painel/pm:** com [[A38.l3]] shipped, a perda silenciosa
+> deste layout já está fechada (escala); o valor incremental desta lane é
+> parse determinístico em vez de escalação. **Dívida de produto pré-beta:**
+> a escalação + "suba o extrato simples" é aceitável em dogfood, mas cliente
+> que só tem o consolidado fica com buraco permanente de dados — reavaliar
+> prioridade antes do beta.
 
 ## Problema (evidência verificada 2026-07-22)
 

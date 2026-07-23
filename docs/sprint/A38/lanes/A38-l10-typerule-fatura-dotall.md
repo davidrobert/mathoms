@@ -41,13 +41,15 @@ extraído isso quase nunca acontece: **as 6 faturas do corpus (3 Santander +
   mais — garantir que não roubam docs de regras específicas (informes,
   extratos) usando o corpus de classification existente como oráculo.
 - Teste de regressão antes do fix: previews sintéticos multi-linha de fatura
-  (âncora e marcador em linhas distintas) → conf ≥ 0.7.
+  (âncora e marcador em linhas distintas) → conf ≥ 0.8.
 
 ## Critério de aceite
 
 - Corpus local (harness [[A38.l1]]): 6 faturas saem de conf 0.0 para
-  classificação determinística ≥ 0.7 com o tipo correto (KR-B) — Santander
-  via [[A38.l7]] (específica), Itaú via genérica `fatura`.
+  classificação determinística **≥ 0.8** com o tipo correto (KR-B; decisão do
+  painel/pm: 0.7–0.79 ainda aciona o LLM fallback — o limiar que satisfaz
+  "sem LLM" é 0.8) — Santander via [[A38.l7]] (específica), Itaú via genérica
+  `fatura`.
 - Corpus de classification existente: **zero mudança de tipo** em qualquer
   doc hoje bem-classificado (KR-E); tempo de classify sem regressão
   perceptível (mesma ordem de grandeza).

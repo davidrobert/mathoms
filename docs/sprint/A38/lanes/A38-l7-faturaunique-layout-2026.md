@@ -45,6 +45,12 @@ tem como cross-checar Σtx.
   total) para o layout novo — alinhar semântica (total inclui saldo
   anterior/pagamentos? documentar no teste com fixture).
 - Fixture sintética PII-zero do layout 2026 + teste de regressão antes do fix.
+- **Sequência obrigatória (decisão do painel/financial):** TypeRule e
+  total/vencimento+cross-check saem **no mesmo PR** — shippar só a
+  classificação rotearia fatura de parse parcial para o relatório com cara
+  certificada, recriando o erro silencioso que o sprint mata. O total é o
+  análogo do gate anti-silêncio no cartão ([[A38.l3]] cobre fatura no
+  contrato).
 
 ## Critério de aceite
 

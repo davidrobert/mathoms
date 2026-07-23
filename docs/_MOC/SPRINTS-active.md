@@ -22,10 +22,12 @@ silenciosa de dados. 11 lanes em 3 ondas: **W0/P0** [[A38.l1]] harness local
 de certificação (gate manual de regressão de parser) · [[A38.l2]] `parse_itau`
 layout 2026 (dispatch por layout) · [[A38.l3]] gate anti-silêncio no E2 (0 tx/
 conservação quebrada ⇒ escalação; **ADR `Proposto` antes da implementação**) ·
-**W1/P1** [[A38.l4]] colisão de instituição `0800 726` (caixa×santander) ·
-[[A38.l5]] TypeRule `cdbdetalhes` required fraco · [[A38.l6]] Wise moeda por
-conteúdo + período por extenso · [[A38.l7]] fatura Santander Unique layout
-2026 · **W2** [[A38.l8]] consolidado inteligente Santander (`depends_on` l4) ·
+**W1/P1** [[A38.l6]] Wise moeda por conteúdo + período por extenso (1º P1 —
+erro invisível ao gate e direcionalmente enganoso) · [[A38.l4]] colisão de
+instituição `0800 726` (caixa×santander) · [[A38.l5]] TypeRule `cdbdetalhes`
+required fraco · [[A38.l7]] fatura Santander Unique layout 2026 (TypeRule +
+total/vencimento no mesmo PR) · **W2/P2** [[A38.l8]] consolidado inteligente
+Santander (`depends_on` l4; dívida pré-beta) ·
 [[A38.l9]] parser fatura Itaú Visa · [[A38.l10]] DOTALL nas TypeRules de
 fatura · [[A38.l11]] fuzzy-dupe discrimina moeda. North Star: **nenhum
 documento suportado perde transação em silêncio** — extração completa

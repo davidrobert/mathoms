@@ -14,7 +14,7 @@ tags:
   - status/open
   - priority/p0
   - area/pipeline
-  - area/dev-tooling
+  - area/dx
 ---
 
 # A38.l1 — `certify-parse-harness` (transversal)
@@ -41,6 +41,10 @@ podem entrar em fixtures (política de PII).
 - `--baseline <json>` grava snapshot e `--compare <json>` falha (exit≠0) se
   qualquer doc regredir (`n_tx` menor, conservação passa→falha, moeda/banco
   correto→errado) — é o gate manual de KR-E sobre o corpus local.
+- **Sequência load-bearing (painel/pm):** o snapshot de baseline é congelado
+  com o código de `origin/main` **antes** de qualquer lane de parser
+  (l2/l4/l5/l6/…) mutar comportamento — sem isso KR-E perde a referência
+  sobre documentos reais.
 - Baseline e relatórios vão para path indicado pelo operador (default
   `_scratch/`, gitignored). O corpus real do owner fica **fora do git**; o
   harness não conhece paths hardcoded.

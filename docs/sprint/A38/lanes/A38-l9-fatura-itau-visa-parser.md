@@ -42,9 +42,9 @@ separação.
   teste de regressão antes do fix; cross-check Σtx × total no
   `validate_fatura_result`.
 - Se o sub-layout sem espaços se provar inviável deterministicamente, aceite
-  alternativo explícito: esse sub-layout permanece no E2-llm **com validação
-  de total** (LLM extrai, validador confere Σ×total) — decisão registrada na
-  lane.
+  alternativo explícito (decisão do painel/pm): esse sub-layout permanece no
+  E2-llm **amarrado ao cross-check** — LLM extrai **e** Σ×total confere,
+  senão `needs_review` ([[A38.l3]]). Nunca confiar no LLM cru sem checksum.
 
 ## Critério de aceite
 
