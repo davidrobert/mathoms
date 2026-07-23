@@ -775,6 +775,17 @@
 | A37.l7 | lane | shipped | A37 | Conservação de renda passiva sem gate runtime + dict de fontes não-conservativo | `sprint/A37/lanes/A37-l7-conservacao-renda-passiva.md` |
 | A37.l8 | lane | shipped | A37 | Narrativas coerentes com os dados: renda de aluguel, alocação v2, IF probabilística | `sprint/A37/lanes/A37-l8-narrativas-coerentes.md` |
 | A37.l9 | lane | shipped | A37 | Bases e denominadores canônicos: concentração imobiliária e exposição internacional | `sprint/A37/lanes/A37-l9-bases-canonicas-denominadores.md` |
+| A38.l1 | lane | open | A38 | Harness local de certificação de parse (classify→route→parse, métricas mascaradas) | `sprint/A38/lanes/A38-l1-certify-parse-harness.md` |
+| A38.l10 | lane | open | A38 | TypeRules genéricas de fatura nunca cruzam linha (gaps `.{0,N}` sem re.DOTALL) | `sprint/A38/lanes/A38-l10-typerule-fatura-dotall.md` |
+| A38.l11 | lane | open | A38 | Fuzzy-dupe cruza-flagga extratos de moedas distintas do mesmo período (Wise USD × BRL) | `sprint/A38/lanes/A38-l11-fuzzy-dupe-moeda.md` |
+| A38.l2 | lane | open | A38 | parse_itau perde ~50% das transações do layout 2026 do extrato PDF | `sprint/A38/lanes/A38-l2-parse-itau-layout-2026.md` |
+| A38.l3 | lane | open | A38 | Gate anti-silêncio no E2: 0 tx ou conservação quebrada nunca vira artefato 'ok' (ADR Proposto) | `sprint/A38/lanes/A38-l3-gate-anti-silencio-e2.md` |
+| A38.l4 | lane | open | A38 | Colisão de instituição: pattern caixa `0800 726` casa SAC Santander com conf 1.0 | `sprint/A38/lanes/A38-l4-colisao-instituicao-0800726.md` |
+| A38.l5 | lane | open | A38 | TypeRule cdbdetalhes rouba extrato de conta com `\bCDB\b` na descrição de transação | `sprint/A38/lanes/A38-l5-typerule-cdbdetalhes-required-forte.md` |
+| A38.l6 | lane | open | A38 | Wise: moeda decidida por filename (USD vira BRL sem LLM) + período range por extenso | `sprint/A38/lanes/A38-l6-wise-moeda-conteudo.md` |
+| A38.l7 | lane | open | A38 | Fatura Santander Unique layout 2026: classificação conf 0.0 + parser sem total/vencimento | `sprint/A38/lanes/A38-l7-faturaunique-layout-2026.md` |
+| A38.l8 | lane | planned | A38 | Extrato Consolidado Inteligente Santander: parse_santander_conta extrai 0 transações | `sprint/A38/lanes/A38-l8-santander-consolidado-inteligente.md` |
+| A38.l9 | lane | open | A38 | Fatura Itaú Visa/Itaucard sem parser determinístico (100% E2-llm; 1 PDF com texto sem espaços) | `sprint/A38/lanes/A38-l9-fatura-itau-visa-parser.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -861,6 +872,7 @@
 | MOC-sprint-a35 | moc |  |  | Sprint A35 — Continuidade não some quando o número de conta não extrai (follow-up A32, issue #860) | `sprint/A35/_README.md` |
 | MOC-sprint-a36 | moc |  |  | Sprint A36 — Follow-up da auditoria r4: itens de mérito sem rastreio | `sprint/A36/_README.md` |
 | MOC-sprint-a37 | moc |  |  | Sprint A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20 | `sprint/A37/_README.md` |
+| MOC-sprint-a38 | moc |  |  | Sprint A38 — Ingestão confiável: certificação de parse dos layouts 2026 (Wise/Santander/Itaú) | `sprint/A38/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
