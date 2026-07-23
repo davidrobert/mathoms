@@ -76,6 +76,8 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
             r"|Seguro\s+do\s+limite\s+da\s+conta"  # XLS rodapé
             r"|Conta:\s*\d{4}-0[01]\.\d{4,8}\.\d"  # conta Santander: 1234-01.001234.5
             r"|JUROS\s+SALDO\s+UTILIZ\s+ATE\s+LIMITE"  # Limite Facilitado
+            r"|santander\.com\.br"  # URLs institucionais (consolidado inteligente)
+            r"|Extrato_PF_A4_Inteligente"  # template code do consolidado (A38.l4)
             r"|^\ufeff?data,lan[çc]amento,valor\s*$",  # CSV Santander Unique (com/sem BOM)
             re.I | re.MULTILINE,
         ),
@@ -124,12 +126,14 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"Quinto\s*Andar|QuintoAndar", re.I), "quintoandar"),
     # Caixa Econômica Federal — razão social, CNPJ 00.360.305, marca CEF.
     # "Alô CAIXA" / "SAC CAIXA" são rodapés de serviço presentes em extratos.
-    # "0800 726" cobre os dois ramais canônicos da CEF (0101 e 0104).
+    # Ramais restritos a 0101/0104: o SAC Libras do Santander é 0800 726 0322
+    # e o prefixo solto classificava consolidado Santander como caixa com
+    # conf 1.0 — o que impede o LLM fallback de corrigir (A38.l4).
     (
         re.compile(
             r"CAIXA\s*ECON[ÔO]MICA\s*FEDERAL|CEF\b|00\.?360\.?305"
             r"|Al[oô]\s*CAIXA|SAC\s*CAIXA"
-            r"|0800\s*726",
+            r"|0800\s*726\s*01(?:01|04)",
             re.I,
         ),
         "caixa",
