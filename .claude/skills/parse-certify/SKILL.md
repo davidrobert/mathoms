@@ -192,3 +192,8 @@ verificação adversarial.
   `financial_statements` no v1.
 - **Cripto em repouso** — parse sobre bytes encriptados = falso-silêncio.
   Confirme originais legíveis antes de concluir.
+- **Checkout errado** — o DB default e o `STORAGE_ROOT` seguem o `_PROJECT_ROOT`
+  do pacote `backend` de **onde o script roda** (sys.path). Rodar a cópia de um
+  worktree resolve para o `mathoms.db`/`storage/` **vazios** do worktree (DB sem
+  tabelas ou 0 files) — sintoma: `no such table` ou `n_files=0` em tudo. Rode do
+  **checkout principal** (verificado: resolve `5@5.com` → 160 docs).
