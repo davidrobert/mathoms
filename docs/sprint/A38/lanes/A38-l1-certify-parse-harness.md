@@ -3,7 +3,9 @@ id: A38.l1
 type: lane
 title: "Harness local de certificação de parse (classify→route→parse, métricas mascaradas)"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1018
 priority: P0
 branch_slug: a38-l1-certify-parse-harness
 adrs: []
@@ -11,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/dx

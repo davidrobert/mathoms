@@ -3,7 +3,9 @@ id: A38.l14
 type: lane
 title: "Buraco no gate anti-silêncio: nota parcial 'sem movimentação' silencia extrato com conteúdo"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1027
 priority: P0
 branch_slug: a38-l14-gate-dormancia-observavel
 adrs: ["[[ADR-342]]"]
@@ -11,7 +13,7 @@ depends_on: ["[[A38.l1]]", "[[A38.l3]]"]
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/dados

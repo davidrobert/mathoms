@@ -3,12 +3,27 @@ id: MOC-sprint-a38
 type: moc
 title: "Sprint A38 — Ingestão confiável: certificação de parse dos layouts 2026 (Wise/Santander/Itaú)"
 aliases: ["A38", "Sprint A38"]
-sprint_status: current
+sprint_status: done
 date: "2026-07-22"
 theme: "ingest-trust"
 ---
 
 # Sprint A38 — Ingestão confiável (certificação de parse 2026-07-22)
+
+> **Status:** `done` (2026-07-23) — ondas **P0 + P1 completas** (10 lanes em
+> `main`, PRs #1018–#1031). KR-A..E medidos re-rodando o harness [[A38.l1]] nos
+> 3 corpora (16 docs pessoais + 6 de investimento + 129 do workspace 5@5.com)
+> no commit consolidado de `main`:
+> **KR-A** Itaú 74/65/23 tx, conservação zero ✓ · **KR-B** faturas Unique conf
+> 1.0 + subtipos de moeda determinísticos ✓ · **KR-C** 0 perda silenciosa (o
+> que não tem parser escala honesto: 11 docs → needs_review no workspace) ✓ ·
+> **KR-D** Wise USD/BRL + C6 Global USD/EUR corretos ✓ · **KR-E** 5098 testes
+> verdes, parsers intocados (bradesco/btg/picpay/rico) idênticos ✓.
+> Achado-título recuperado: **sleeve internacional C6 Global** 0→199/179/56 tx.
+> **Cauda P2 trailing** (fora do gate de KR, padrão A37): [[A38.l8]] consolidado
+> Santander · [[A38.l9]] fatura Itaú Visa · [[A38.l10]] DOTALL TypeRules ·
+> [[A38.l11]] fuzzy-dupe moeda · [[A38.l13]] posição RV (abre ADR nova) —
+> candidatas a follow-up/A39.
 
 > **Origem:** certificação empírica de 2026-07-22 — o caminho real de produção
 > E0→E2 (classify → nome canônico → roteamento → parse → validação) foi

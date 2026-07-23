@@ -3,7 +3,9 @@ id: A38.l7
 type: lane
 title: "Fatura Santander Unique layout 2026: classificação conf 0.0 + parser sem total/vencimento"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1029
 priority: P1
 branch_slug: a38-l7-faturaunique-layout-2026
 adrs: []
@@ -11,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline

@@ -3,7 +3,7 @@ id: A38.l10
 type: lane
 title: "TypeRules genéricas de fatura nunca cruzam linha (gaps `.{0,N}` sem re.DOTALL)"
 sprint: A38
-status: open
+status: planned
 priority: P2
 branch_slug: a38-l10-typerule-fatura-dotall
 adrs: []
@@ -12,7 +12,7 @@ parallel_with: ["[[A38.l9]]"]
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/planned
   - priority/p2
   - area/backend
   - area/pipeline

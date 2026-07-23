@@ -3,7 +3,9 @@ id: A38.l5
 type: lane
 title: "TypeRule cdbdetalhes rouba extrato de conta com `\\bCDB\\b` na descrição de transação"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1028
 priority: P1
 branch_slug: a38-l5-typerule-cdbdetalhes
 adrs: []
@@ -11,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline

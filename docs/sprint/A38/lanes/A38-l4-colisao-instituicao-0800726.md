@@ -3,7 +3,9 @@ id: A38.l4
 type: lane
 title: "Colisão de instituição: pattern caixa `0800 726` casa SAC Santander com conf 1.0"
 sprint: A38
-status: open
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1023
 priority: P1
 branch_slug: a38-l4-colisao-instituicao-0800726
 adrs: []
@@ -11,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a38
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
