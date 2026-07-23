@@ -233,6 +233,12 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
     else:
         result["saldo_inicial"] = saldo_first
 
+    # A39.l2 · ADR-342: saldo_inicial é a âncora do CSV − 1ª tx (semântica
+    # ancorada, não tautológica como Wise/Rico) → declara verificabilidade p/ o
+    # gate HARD escalar perda parcial de conservação, não só WARN silencioso.
+    if saldo_first is not None and result.get("saldo_final") is not None and result["transacoes"]:
+        result["conservacao_verificavel"] = True
+
     n_tx = len(result["transacoes"])
     log(LOG_PREFIX_EXTRATO, "INFO", f"  Extraídas {n_tx} transações do CSV")
     if n_tx == 0:
