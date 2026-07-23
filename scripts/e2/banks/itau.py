@@ -11,6 +11,10 @@ try:
 except ImportError:
     pdfplumber = None
 
+from scripts.e2.banks.itau_extrato_2026 import (
+    fill_result_layout_2026,
+    is_itau_layout_2026,
+)
 from scripts.e2.common import (
     BANCO_ITAU,
     CARTAO_PDA,
@@ -308,6 +312,17 @@ def parse_itau(pdf_path: Path, filename: str) -> Dict[str, Any]:
             ag_m = re.search(r"Ag[êe]ncia[:\s]+(\d+)", first_text)
             if ag_m:
                 result["agencia"] = ag_m.group(1)
+
+            if is_itau_layout_2026(first_text):
+                # extract_tables() fragmenta este layout e perdia ~50% das
+                # linhas (A38.l2) — caminho line-based dedicado.
+                fill_result_layout_2026(pdf, first_text, result)
+                log(
+                    LOG_PREFIX_EXTRATO,
+                    "INFO",
+                    f"  → {len(result['transacoes'])} transações extraídas (layout 2026)",
+                )
+                return result
 
             pm = re.search(
                 r"Per[ií]odo[:\s]+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})", first_text
