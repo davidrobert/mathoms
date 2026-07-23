@@ -26,6 +26,13 @@ tags:
 > **Emenda 2026-07-23 ([[A38.l12]]):** o contrato de escalação cobre também
 > **posição de investimento** (CDB) — Σ posições ≠ total declarado escala
 > (`extract.investment_sum_mismatch`). Ver §Emenda 2026-07-23 (A38.l12).
+>
+> **Emenda 2026-07-23 (checksums E2 — fatura + escopo de investimento):**
+> especifica o checksum de **fatura** (Σ transações do escopo == `total_compras`,
+> **nunca** `saldo_atual`) como opt-in por parser (`total_lancamentos_conferivel`),
+> WARN-first; e estende o checksum de investimento a CDB XLSX/HTML-XLS com o total
+> **de escopo igual** ao das linhas (soma em int cents, ADR-090). Ver §Emenda
+> 2026-07-23 (checksums E2).
 
 ## Contexto
 
@@ -147,6 +154,47 @@ transações. Os parsers determinísticos de CDB em PDF ([[A38.l12]]:
 É o análogo do gate de conservação (§Decisão item 2) para posição: o documento
 declara um total (Santander "CDB Valor total"; Itaú "SALDO FINAL") e a soma das
 posições extraídas tem de fechar com ele, senão houve perda parcial silenciosa.
+
+## Emenda 2026-07-23 (checksums E2) — fatura por `total_compras` + escopo de investimento
+
+Refina o contrato de escalação por divergência (§Decisão item 1, "`total_fatura`
+divergente do Σ lançamentos") que estava subespecificado. O co-design
+(data-engineer + financial-planner) provou que a implementação ingênua fura em
+duas direções — falso-fire em fatura correta e falso-pass em total derivado.
+
+**Fatura — checksum contra `total_compras`, nunca `saldo_atual`.** "Total desta
+fatura"/`saldo_atual` = `saldo_anterior − pagamentos + Σcompras + encargos/IOF/
+anuidade`; para uma fatura **corretamente** parseada `Σtx ≠ saldo_atual` é o
+**esperado** (rollover e encargos não são linhas de transação). Comparar contra
+`saldo_atual` escalaria quase toda fatura correta. O alvo verdadeiro é o
+**subtotal de lançamentos-do-período declarado no doc** ("Lançamentos atuais" /
+"Total Despesas no Brasil" = `total_compras`), reconciliado contra a **Σ do
+subconjunto de tx de mesmo escopo** (mesma moeda, mesma inclusão de encargos).
+
+- **Opt-in por parser** (análogo a `conservacao_verificavel`): o parser declara
+  `total_lancamentos_conferivel = {valor_cents: int, escopo: str}` **só** quando
+  leu um subtotal do doc cujo escopo casa exatamente com o subconjunto de tx que
+  emite. Sem o sinal ⇒ sem checksum (não é falha).
+- **Gate:** `Σ(tx do escopo) == valor_cents` em **int cents, tolerância zero**.
+  Divergência ⇒ `extract.fatura_total_mismatch` (código novo no enum
+  `ReviewReasonCode` + `review_reason.schema.json`).
+- **WARN-first:** o gate emite `warn_reasons` (telemetria), **não** escala, até o
+  corpus dogfood provar zero falso-fire por parser; flip HARD por parser
+  (§Consequências, rollout por banco). Caminhos que derivam `total_compras` de
+  Σtx (tautológicos) **não** setam o sinal.
+- **Proibido** comparar contra `saldo_atual`/"Total desta fatura" — documentado
+  como armadilha no gate.
+
+**Investimento — escopo do total importa; soma em int cents.** O checksum de
+posição (Emenda l12) estende-se a CDB XLSX (`parse_santander_cdb`, total = "Valor
+Total" bruto) e HTML-XLS (`parse_itau_cdb_html_xls`, total =
+`resumo.saldo_bruto_final`, **não** o SALDO FINAL líquido). O total tem de ter
+**escopo igual** ao das linhas (bruto vs bruto); total de conta agregado (inclui
+saldos não itemizados) fica em WARN, não HARD. A soma passa a acumular **int
+cents por posição** (`Σ round(valor*100)`), não float (ADR-090 — evita drift que
+dispara falso-fire com muitas posições). Posição única Itaú PDF (valor = SALDO
+FINAL = o próprio total) permanece **sem** sum-checksum (degenerada; já tem o
+gate de 0-posição).
 
 ## Alternativas rejeitadas
 
