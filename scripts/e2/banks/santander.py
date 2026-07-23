@@ -35,7 +35,9 @@ from scripts.e2.common import (
     infer_periodo_from_filename,
     log,
     make_result_template,
+    new_cdb_position_result,
     parse_brl,
+    read_pdf_text,
     resolve_date_ddmm,
     safe_date,
 )
@@ -51,6 +53,8 @@ PARSERS = [
     (r"^santander_extratoconta", "parse_santander_conta"),
     (r"^santander_cdbresumo_.*\.xlsx$", "parse_santander_cdb_xlsx"),
     (r"^santander_cdbdetalhes_.*\.xlsx$", "parse_santander_cdb_xlsx"),
+    (r"^santander_cdbresumo_.*\.pdf$", "parse_santander_cdb_pdf"),
+    (r"^santander_cdbdetalhes_.*\.pdf$", "parse_santander_cdb_pdf"),
     (r"santander_faturaunique.*\.csv$", "parse_santander_fatura_csv"),
     (r"santander_faturaunique", "parse_santander_unique"),
 ]
@@ -819,3 +823,65 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
         return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# CDB — posição em PDF ("Detalhes do Investimento") — A38.l12
+# ---------------------------------------------------------------------------
+
+# "CDB DI SANTANDER Valor Total : R$ 143.248,51 Disponível para Resgate : R$\n138.304,04"
+# O valor de resgate pode quebrar para a linha seguinte (DOTALL).
+_SANT_CDB_PRODUTO_RE = re.compile(
+    r"([A-Z][A-Za-zÀ-Ú0-9 ]+?)\s+Valor\s+Total\s*:\s*R\$\s*([\d.,]+)"
+    r"\s+Dispon[íi]vel\s+para\s+Resgate\s*:\s*R\$\s*([\d.,]+)",
+    re.IGNORECASE | re.DOTALL,
+)
+_SANT_CDB_TOTAL_RE = re.compile(r"CDB\s+Valor\s+total\s*\(R\$\)\s*:\s*([\d.,]+)", re.IGNORECASE)
+
+
+def _santander_cdb_posicoes(full_text: str) -> List[Dict[str, Any]]:
+    return [
+        {
+            "nome": re.sub(r"\s+", " ", m.group(1)).strip(),
+            "valor_atual": parse_brl(m.group(2)),
+            "valor_resgate_disponivel": parse_brl(m.group(3)),
+        }
+        for m in _SANT_CDB_PRODUTO_RE.finditer(full_text)
+    ]
+
+
+def parse_santander_cdb_pdf(pdf_path: Path, filename: str) -> Dict[str, Any]:
+    """Posição de CDB Santander em PDF; emite cdbresumo + posicoes, checksum Σ==total (ADR-342)."""
+    log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Santander CDB PDF: {filename}")
+    result = new_cdb_position_result(BANCO_SANTANDER)
+    full_text = read_pdf_text(pdf_path)
+    if not full_text:
+        result["requires_llm_fallback"] = True
+        return result
+
+    result["titular"] = detect_member_from_text(full_text)
+    result["posicoes"] = _santander_cdb_posicoes(full_text)
+    total_m = _SANT_CDB_TOTAL_RE.search(full_text)
+    total_declarado = parse_brl(total_m.group(1)) if total_m else None
+    _apply_cdb_checksum(result, total_declarado)
+    log(LOG_PREFIX_EXTRATO, "INFO", f"  → {len(result['posicoes'])} posições de CDB")
+    return result
+
+
+def _apply_cdb_checksum(result: Dict[str, Any], total_declarado: Optional[float] = None) -> None:
+    """Escala (ADR-342) se 0 posições, ou Σ posições ≠ total declarado (cents)."""
+    posicoes = result.get("posicoes") or []
+    if not posicoes:
+        result["requires_llm_fallback"] = True
+        result["escalation_reason"] = {
+            "code": "extract.empty_result",
+            "message": "0 posições de CDB extraídas — escalado (ADR-342)",
+        }
+        return
+    soma = sum(p.get("valor_atual") or 0 for p in posicoes)
+    if total_declarado is not None and round(abs(soma - total_declarado) * 100) != 0:
+        result["requires_llm_fallback"] = True
+        result["escalation_reason"] = {
+            "code": "extract.investment_sum_mismatch",
+            "message": "Σ posições ≠ total declarado (cents) — escalado (ADR-342 §Emenda l12)",
+        }

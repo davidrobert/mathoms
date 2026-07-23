@@ -203,6 +203,33 @@ _CANDIDATE_ROW_MONEY_RE = re.compile(r"-?\d[\d.]*[.,]\d{2}(?!\d)")
 _SALDO_ROW_RE = re.compile(r"saldo", re.I)
 
 
+def read_pdf_text(pdf_path: Path) -> Optional[str]:
+    """Texto concatenado de todas as páginas do PDF; None em falha ou sem pdfplumber."""
+    try:
+        import pdfplumber
+    except ImportError:
+        return None
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            return "\n".join((page.extract_text() or "") for page in pdf.pages)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def new_cdb_position_result(banco: str) -> Dict[str, Any]:
+    """Template de resultado E2 para posição de CDB (``tipo="cdbresumo"``)."""
+    return {
+        "banco": banco,
+        "instituicao": banco,
+        "tipo": "cdbresumo",
+        "tipo_conta": "investimento",
+        "moeda": "BRL",
+        "titular": None,
+        "posicoes": [],
+        "notas": [],
+    }
+
+
 def count_candidate_rows(text: str) -> int:
     """Linhas com data + valor monetário, excluindo linhas de saldo — proxy das
     transações que o parser deveria ter convertido (observação para o gate

@@ -67,6 +67,13 @@ def validate_extrato_result(
     """Validate extraction result for extratos. Returns list of warnings/errors."""
     issues = []
 
+    # A38.l12: artefato de POSIÇÃO (CDB/investimento) não tem transações por
+    # design — a completude dele é o checksum Σ posições == total, feito no
+    # próprio parser. O gate de completude de transação (0 tx ⇒ escala) não se
+    # aplica; sem esta guarda, todo CDB (0 `transacoes`) escalaria em falso.
+    if result.get("tipo") == "cdbresumo" or result.get("posicoes"):
+        return issues
+
     n_tx = len(result.get("transacoes", []))
     periodo = result.get("periodo", {})
 

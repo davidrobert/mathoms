@@ -22,6 +22,10 @@ tags:
 > de mês vazio a derrotava (silenciava extrato com conteúdo). Reescrita para
 > **observação estruturada + veredito no gate** (`raw_rows_detected`). Ver
 > §Emenda 2026-07-23.
+>
+> **Emenda 2026-07-23 ([[A38.l12]]):** o contrato de escalação cobre também
+> **posição de investimento** (CDB) — Σ posições ≠ total declarado escala
+> (`extract.investment_sum_mismatch`). Ver §Emenda 2026-07-23 (A38.l12).
 
 ## Contexto
 
@@ -127,6 +131,22 @@ de erro que este gate existe para matar.
   strict). Universo migrado = parsers line-based com dormência legítima
   (c6bank, wise, bankofamerica, santander_conta); XLS/CSV sem reporte
   over-escalam (direção segura) até wiring próprio.
+
+## Emenda 2026-07-23 ([[A38.l12]]) — checksum de posição de investimento
+
+O contrato de escalação passa a cobrir **posição de investimento** (CDB), não só
+transações. Os parsers determinísticos de CDB em PDF ([[A38.l12]]:
+`parse_itau_cdb_pdf`, `parse_santander_cdb_pdf`) emitem `posicoes` +
+`tipo="cdbresumo"` e escalam (`requires_llm_fallback`) quando:
+
+- **0 posições** com conteúdo ⇒ `extract.empty_result`;
+- **Σ `posicoes.valor_atual` ≠ total declarado** no documento (cents, tolerância
+  zero) ⇒ `extract.investment_sum_mismatch` (código novo no enum
+  `ReviewReasonCode` + `review_reason.schema.json`).
+
+É o análogo do gate de conservação (§Decisão item 2) para posição: o documento
+declara um total (Santander "CDB Valor total"; Itaú "SALDO FINAL") e a soma das
+posições extraídas tem de fechar com ele, senão houve perda parcial silenciosa.
 
 ## Alternativas rejeitadas
 

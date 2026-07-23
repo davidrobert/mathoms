@@ -30,7 +30,9 @@ from scripts.e2.common import (
     infer_periodo_from_filename,
     log,
     make_result_template,
+    new_cdb_position_result,
     parse_brl,
+    read_pdf_text,
     resolve_date_ddmm,
     safe_date,
 )
@@ -49,6 +51,8 @@ PARSERS = [
     (r"^itau_extratoconta", "parse_itau"),
     (r"^itau_cdbresumo_.*\.xls$", "parse_itau_cdb_html_xls"),
     (r"^itau_cdbdetalhes_.*\.xls$", "parse_itau_cdb_html_xls"),
+    (r"^itau_cdbresumo_.*\.pdf$", "parse_itau_cdb_pdf"),
+    (r"^itau_cdbdetalhes_.*\.pdf$", "parse_itau_cdb_pdf"),
     (r"itau_faturapaoacucar.*\.csv$", "parse_itau_paoacucar_csv"),
     (r"itau_faturapaoacucar", "parse_itau_paoacucar"),
 ]
@@ -891,4 +895,66 @@ def parse_itau_paoacucar_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
 
     log(LOG_PREFIX_FATURA, "INFO", f"  → {len(result['transacoes'])} transações extraídas do CSV")
+    return result
+
+
+# ---------------------------------------------------------------------------
+# CDB — posição/movimentação em PDF ("Extrato de movimentação mensal") — A38.l12
+# ---------------------------------------------------------------------------
+
+_ITAU_CDB_PRODUTO_RE = re.compile(
+    r"Extrato\s+de\s+movimenta[çc][ãa]o\s+mensal\s*-\s*(.+)", re.IGNORECASE
+)
+_ITAU_CDB_SALDO_FINAL_RE = re.compile(r"SALDO\s+FINAL\s+([\d.,]+)", re.IGNORECASE)
+# Linha da "Posição em": <n_op> <venc> <aplic> <valor_aplic> <remun%> <valor_ant> <valor_atual> <rentab%>
+_ITAU_CDB_POSICAO_RE = re.compile(
+    r"^\d{6,}\s+(\d{2}/\d{2}/\d{4})\s+(\d{2}/\d{2}/\d{4})\s+[\d.,]+\s+[\d.,]+\s+[\d.,]+\s+([\d.,]+)"
+)
+
+
+def _iso_br(d: str) -> str:
+    p = d.split("/")
+    return f"{p[2]}-{p[1]}-{p[0]}" if len(p) == 3 else d
+
+
+def _cdb_empty_reason() -> Dict[str, str]:
+    return {"code": "extract.empty_result", "message": "CDB sem SALDO FINAL — escalado (ADR-342)"}
+
+
+def _itau_cdb_posicao(full_text: str) -> Optional[Dict[str, Any]]:
+    """Posição única do CDB (valor = SALDO FINAL); None se não há saldo final."""
+    saldo_m = _ITAU_CDB_SALDO_FINAL_RE.search(full_text)
+    saldo_final = parse_brl(saldo_m.group(1)) if saldo_m else None
+    if saldo_final is None:
+        return None
+    prod_m = _ITAU_CDB_PRODUTO_RE.search(full_text)
+    posicao: Dict[str, Any] = {
+        "nome": re.sub(r"\s+", " ", prod_m.group(1)).strip() if prod_m else "CDB",
+        "valor_atual": saldo_final,
+    }
+    pos_m = _ITAU_CDB_POSICAO_RE.search(full_text)
+    if pos_m:
+        posicao["data_vencimento"] = _iso_br(pos_m.group(1))
+        posicao["data_aplicacao"] = _iso_br(pos_m.group(2))
+    return posicao
+
+
+def parse_itau_cdb_pdf(pdf_path: Path, filename: str) -> Dict[str, Any]:
+    """Posição de CDB Itaú em PDF (movimentação mensal); emite cdbresumo + posicoes (ADR-342)."""
+    log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Itaú CDB PDF: {filename}")
+    result = new_cdb_position_result(BANCO_ITAU)
+    full_text = read_pdf_text(pdf_path)
+    if not full_text:
+        result["requires_llm_fallback"] = True
+        return result
+
+    result["titular"] = detect_member_from_text(full_text)
+    posicao = _itau_cdb_posicao(full_text)
+    if posicao is None:
+        result["requires_llm_fallback"] = True
+        result["escalation_reason"] = _cdb_empty_reason()
+    else:
+        result["posicoes"].append(posicao)
+
+    log(LOG_PREFIX_EXTRATO, "INFO", f"  → {len(result['posicoes'])} posição(ões) de CDB")
     return result
