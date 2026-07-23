@@ -171,16 +171,18 @@ regr. · Fix recomendado · Candidata a lane`
 6. ✅ **Chave de baseline PII-safe** (`file` = sha do nome; `label` legível só com
    códigos tipo/instituição/período) + `--compare` erra limpo (exit 2) sem baseline.
 
-**Pendentes (validação E2 de produção — co-design data-engineer + financial-planner):**
+**Entregues (validação E2 de produção, 2026-07-23 · emenda ADR-342 · #1036):**
 
-2. **Checksum de fatura** — Σ transações (com sinal) == **`total_compras`**
-   ("Lançamentos atuais"), **nunca** == `saldo_atual` ("Total desta fatura", que
-   inclui saldo anterior + encargos − pagamentos e diverge por design). Opt-in
-   por parser (flag análoga a `conservacao_verificavel`); WARN→HARD por banco.
-3. **Checksum de investimento** — estender `_apply_cdb_checksum` a CDB XLSX/HTML-XLS
-   Itaú, **só contra subtotal de escopo igual ao das linhas** (nunca total de conta
-   agregado, que é WARN). Posição única Itaú PDF (valor=SALDO FINAL) fica sem
-   checksum (degenerada).
+3. ✅ **Checksum de investimento (HARD)** — `apply_cdb_checksum` (movido p/
+   `scripts/e2/validation.py`) estendido a CDB XLSX Santander ("Valor Total") e
+   HTML-XLS Itaú (`saldo_bruto_final`, escopo bruto, **não** SALDO FINAL líquido);
+   soma em int cents (ADR-090). Posição única Itaú PDF fica sem checksum (degenerada).
+2. ✅ **Checksum de fatura (WARN-first)** — gate em `validate_fatura_result`: Σ
+   transações == `total_compras` (**nunca** `saldo_atual`), opt-in por parser via
+   `total_lancamentos_conferivel {valor_cents, escopo}`, code
+   `extract.fatura_total_mismatch`. **Dormente** até um parser setar o sinal com
+   escopo casado (wiring do parser gated na verificação de corpus zero-falso-fire).
+   O ratchet `--compare` por predicado-positivo (item 5) ativa quando o sinal existir.
 
 ## Critério de aceite da skill
 
