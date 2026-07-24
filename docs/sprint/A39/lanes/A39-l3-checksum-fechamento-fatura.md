@@ -115,3 +115,14 @@ do match + IOF→despesa_brasil + seção pelo header literal. Os 3 PDFs Santand
 fecham a cent (R$ 39,96 / 543,68 / 3.566,08), zero falso-fire. `is_payment`
 morto removido. WARN-first mantido (flip HARD após ≥1 sprint verde). Golden
 sintético em `test_fatura_parser_checksum.py`.
+
+## Nota de execução (2026-07-24) — c3: exterior verificado (iteração 2)
+
+Follow-up da própria lane: o gate `_apply_fatura_checksum` passou a aceitar
+`total_lancamentos_conferivel` como **lista** (um signal por balde) além do
+objeto único; `parse_santander_unique` emite despesa_brasil **+** exterior. O
+balde exterior deixa de ser só tagueado — os 3 PDFs Santander fecham AMBOS os
+baldes a cent no corpus real. Documentada também a exclusão de
+`parse_santander_fatura_csv` (total = Σ das linhas → tautológico, sem opt-in) e
+o deferimento de `quintoandar` (fatura de aluguel, eixo de checksum próprio).
+Schema `total_lancamentos_conferivel` → oneOf(objeto | array), retrocompat.
