@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-333 ADRs (ADR-001 a ADR-342) em [`docs/adr/`](../../adr/).
+334 ADRs (ADR-001 a ADR-343) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 299
-- **Proposto**: 31
+- **Proposto**: 32
 - **Roadmap**: 3
 
 ## Fundação
@@ -360,6 +360,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-234]] — Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) · phase A15
 - [[ADR-247]] — Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero · phase A11
+
+### Proposto (1)
+
+- [[ADR-343]] — Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico
 
 ## domain
 
