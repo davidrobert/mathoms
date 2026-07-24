@@ -6,7 +6,7 @@ sprint: A39
 status: planned
 priority: P1
 branch_slug: a39-l9-posicao-renda-variavel
-adrs: ["[[ADR-342]]"]
+adrs: ["[[ADR-342]]", "[[ADR-346]]"]
 depends_on: ["[[A39.l1]]"]
 tags:
   - type/lane
@@ -64,3 +64,30 @@ Ordem interna obrigatória (herdada de [[A38.l13]]):
 Médio-alto (contrato E2→E4 + invariante de domínio novo). Mitigação: ordem
 interna obrigatória, ADR-gated, calibração "não funde → escala". **Reservar ID da
 ADR cedo.** Supersede [[A38.l13]] (marcar cancelled no A38 ao aterrissar).
+
+## Nota de execução (2026-07-24) — co-design + [[ADR-346]] `Proposto` (gate aberto)
+
+ID da ADR reservado: **[[ADR-346]]** (`Proposto`). O co-design (data-engineer +
+financial-planner) **reformulou o design travado da [[A38.l13]]** — achado
+central: o número do patrimônio vem de um **source-switch em E5**
+(`analyze_finances.py:980-1035`) e `total_por_membro` é **source-level** (Σ
+`total_fonte`), não Σ posições. Logo:
+
+- "Colapsa na valorada" é **no-op sobre o PL** (corrige listagem, não o número).
+- A deflação real é o **membro misto** (carteira valorada + ação só na custódia):
+  o fallback IRPF não dispara e a ação some do PL sem sinal → `posicao_sem_marcacao`
+  **nasce morta** se o E5 não a lê. **Propagação E2→E5 vira critério de aceite
+  bloqueante** (não follow-up).
+- `null-não-soma` = **Leitura A** (source-level intacto; opera sobre checksum +
+  partição de contagem; forward-only, sem rebaseline [[ADR-287]]).
+- Buraco `instituicao=""` no dedup source-level **descarta fonte valorada
+  inteira em silêncio** → corrigir extração de instituição ANTES; inst-vazia
+  nunca é chave que descarta.
+- `$defs/posicao_investimento` **não existe** (será criado, não estendido).
+
+**Ordem dos PRs de implementação** (herda a ordem-contrato da ADR): PR1 = fix
+instituição + dedup source-level sem descarte silencioso + criar
+`$defs/posicao_investimento`; PR2 = `null-não-soma` + partição de contagem +
+propagação do badge para E5 (invariante bloqueante); PR3 = TypeRules
+(Posição Acionária / carteira) + parsers (XLSX valorada, custódia qty-only) +
+resolução RV (a/b/c) + checksums; valoração emprestada = follow-up V2.
