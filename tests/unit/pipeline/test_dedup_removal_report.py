@@ -156,3 +156,21 @@ def test_artifact_ledger_balances_count_tol_zero():
     assert p["tx_carregadas"] == 3
     assert rem["intra_statement_dedup"]["count"] == 1 and rem["undated_drop"]["count"] == 1
     assert p["tx_carregadas"] == len(p["transacoes"]) + sum(r["count"] for r in rem.values())
+
+
+def test_exclusions_ledger_conta_tx_de_statement_pulado():
+    # ADR-347 PR2 — statement inteiro pulado (banco vazio) tem suas tx contadas no
+    # ledger run-level de exclusões (conservação workspace), não somem em silêncio.
+    payload = _e2_payload(
+        arquivo="e.csv",
+        txns=[
+            {"data": "2026-01-05", "descricao": "A", "valor": -1.0},
+            {"data": "2026-01-06", "descricao": "B", "valor": -2.0},
+        ],
+    )
+    payload["banco"] = ""  # força o canal empty_institution
+    store = InMemoryArtifactStore()
+    store.seed("extract_statements", "sem_banco", payload)
+    result = E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
+    excl = {e.canal: e.count for e in result.exclusions}
+    assert excl.get("empty_institution") == 2

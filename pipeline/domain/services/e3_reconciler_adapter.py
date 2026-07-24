@@ -37,6 +37,7 @@ from pipeline.domain.services.e3_load_report import (
     EmptyInstitutionWarning,
     LoadOutcome,
     LoadStat,
+    StatementExclusion,
     build_artifact_ledger,
 )
 from pipeline.domain.services.e3_review_reasons import (
@@ -98,6 +99,8 @@ class ReconciliationStoreResult:
     review_reasons: tuple[ReviewReason, ...] = ()
     # ADR-347 PR1 — remoções de dedup por canal (ledger de conservação de contagem).
     removals: tuple[DedupRemoval, ...] = ()
+    # ADR-347 PR2 — statements excluídos no load (tx count por canal), ledger run-level.
+    exclusions: tuple[StatementExclusion, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         """Forma plana — útil para asserts em testes e logs estruturados."""
@@ -115,6 +118,7 @@ class ReconciliationStoreResult:
             "baseline_warnings": [w.format() for w in self.baseline_warnings],
             "institution_warnings": [w.format() for w in self.institution_warnings],
             "review_reasons": [r.to_dict() for r in self.review_reasons],
+            "exclusions": [{"canal": e.canal, "count": e.count} for e in self.exclusions],
         }
 
     # Acesso dict-like para retro-compat com os testes existentes que fazem
@@ -221,13 +225,13 @@ class E3ReconcilerAdapter:
                     # ADR-342: stub de escalação NÃO reivindica a key — senão o
                     # stub em extract_statements bloquearia o artefato full do
                     # extract_with_llm no dedup por prioridade de stage.
-                    outcome.skipped += 1
+                    outcome.exclude("llm_stub", len(data.get("transacoes") or []))
                     continue
                 seen_keys.add(key)
 
                 # Skip de tipos não-reconciliáveis (IRPF, posições, etc.)
                 if self._grouper.should_skip(data):
-                    outcome.skipped += 1
+                    outcome.exclude("non_tx_type", len(data.get("transacoes") or []))
                     continue
 
                 # Normaliza/sintetiza periodo (faturas, strings YYYYMM, etc.)
@@ -236,7 +240,7 @@ class E3ReconcilerAdapter:
                 outcome.period_warnings.extend(norm_result.warnings)
                 outcome.review_reasons.extend(_project_reasons(norm_result.warnings, key, doc_id))
                 if norm_result.skip:
-                    outcome.skipped += 1
+                    outcome.exclude("period_skip", len(data.get("transacoes") or []))
                     continue
                 normalized = norm_result.data
                 # ADR-347 PR1b — âncora de contagem: pós-period-norm, PRÉ-anachronic/undated.
@@ -258,14 +262,14 @@ class E3ReconcilerAdapter:
                 try:
                     stmt = BankStatement.from_e2_dict(normalized)
                 except Exception:
-                    outcome.skipped += 1
+                    outcome.exclude("parse_error", len(normalized.get("transacoes") or []))
                     continue
                 # A28.l8: banco vazio nunca vira key E3 "_extrato_..." silenciosa.
                 if not (stmt.institution or "").strip():
                     warning = EmptyInstitutionWarning(source=key)
                     outcome.institution_warnings.append(warning)
                     outcome.review_reasons.extend(_project_reasons([warning], key, doc_id))
-                    outcome.skipped += 1
+                    outcome.exclude("empty_institution", len(stmt.transactions))
                     continue
                 if not stmt.source_document:
                     try:
@@ -474,4 +478,5 @@ class E3ReconcilerAdapter:
             institution_warnings=tuple(outcome.institution_warnings),
             review_reasons=tuple(outcome.review_reasons) + tuple(cross_doc_reasons),
             removals=tuple(removals),
+            exclusions=tuple(outcome.exclusions),
         )
