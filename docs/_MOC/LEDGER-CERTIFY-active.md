@@ -97,3 +97,38 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 | LC03 — E3→E4: `Σ transacoes_total(E3)` excede `tx_total(_lineage)` de `despesas` em 1 (1 tx classificada a menos) | categorização/conservação | Médio | P2 | needs-verification | procede-aberto | localizar o drop entre `TransactionClassifier` e `CashFlowBuilder` |
 | LC04 — natural_key ausente em ~88% das tx classificadas (cobertura 11,8%) — join sticky-override degradado | consistência | Médio | P2 | procede | procede-aberto | [[ADR-287]] (gate classe-c, titular ausente) |
 | LC05 — 20 grupos E3 persistidos com keying legado não reproduzido (banco-prefixo vazio `_extrato_*`, períodos sentinela `189912`/`210001`) | saúde-execução | Baixo | P3 | não-acionável | não-acionável | drift benigno — a re-derivação atual não reproduz o keying antigo (já corrigido) |
+
+> **Revisado em r2 (abaixo).** r1 era o baseline mecânico do harness; r2 completa o
+> julgamento diferido (data-engineer + financial-planner + verificação adversarial):
+> **r1·LC01 refinado** (5 das 6 "colisões" eram falso-positivo do detector; o
+> defeito real é membro-vazio, não a chave `tipo\|inst\|desc`) → r2·LC01+LC06.
+> **r1·LC02 mecanismo resolvido** (o gap NÃO são os 4 skipped — carregam 0 tx — e
+> sim 2 canais de remoção não-declarados) → r2·LC02. **r1·LC03/LC04 mantidos e
+> re-escopados** → r2·LC03/LC04. **r1·LC05 confirmado não-acionável** → r2·LC08.
+
+---
+
+## r2 — ws-1b9f2cf5-2026-07-24
+
+> Skill ledger-certify ([[ADR-302]]) · run 57cd4618. Re-derivação in-process E3+E4
+> sobre E2 persistido — **zero write no DB provado** (`pipeline_artifacts`
+> 10870→10870, `transaction_overrides` 12→12). Grupos E3: 82/109 `conservado`, 27
+> `coberto-sem-verificação`. Baldes E4: 2/7 `conservado` (`despesas` 3586 tx,
+> `receitas` 766 tx, ambos fecham cents tol-0), `investimentos` flag,
+> 4 fora-do-grão. Transferências internas netadas: 791 (sem vazamento p/
+> receita/despesa). natural_key: **11,8%** (677/5723). **Julgamento:** data-engineer
+> + financial-planner em paralelo + verificação adversarial (**1/6 colisões de
+> investimento confirmadas; 5 refutadas** como falso-positivo do detector). Esta
+> seção **completa o julgamento que r1 diferiu**. Cru + instância (PII) em
+> `storage/<uuid>/ledger_certify/` (off-git).
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| LC01 — dedup de investimento escapa por **membro-vazio**: a chave de produção `(inst, membro)` (`investments_consolidator.py:241`) trata `membro=""` e `membro=<resolvido>` da mesma instituição como chaves distintas → snapshot stale cross-período soma ao `total_geral` (inflação de patrimônio). [[ADR-346]] (Proposto) só fecha inst-vazia; vetor simétrico membro-vazio ABERTO (invariante 3 exige mesmo `(inst,membro)` → nem pega) | dedup/transferência | Alto | P1 | procede | procede-aberto | fold A39.l9 · emendar [[ADR-346]] (+invariantes); fix upstream ([[ADR-243]]/[[ADR-226]]) + rede defensiva no consolidador; **não** colapsar cego por inst |
+| LC02 — E2→E3: **214 de 356 remoções de tx não-declaradas** por 2 canais silenciosos — dedup intra-statement (`reconciliation_service.py:127`,`:145-155`; count reportado em lugar nenhum) + merge cross-file (`e3_serialization.py:115`; só declara com `len(stmts)>1`). Sem ledger de conservação de contagem no workspace → conservação **não-provável a partir do artefato** (gap NÃO são os 4 skipped: 0 tx) | conservação/reconciliação | Alto | P1 | procede | procede-aberto | bloqueia beta amplo até auditável; construir ledger `transacoes_removidas={intra_statement_dedup,cross_file_dedup,anachronic}` (count+Σvalor cents, estende [[ADR-342]]); `needs_review` p/ remoção não-provadamente-dup; resíduo sem par → P0 |
+| LC03 — E3→E4: 1 tx dropada (`Σtransacoes_total`=5724 vs `tx_total(_lineage)`=5723) sem declaração | categorização/conservação | Baixo | P3 | procede | procede-aberto | localizar entre `TransactionClassifier`/`CashFlowBuilder` + teste de regressão tol-zero |
+| LC04 — natural_key ausente em ~88% (cobertura 11,8%) → join sticky-override degradado | consistência | Médio | P1 se Learning Loop no caminho crítico do beta; senão P2 | procede | procede-aberto | **gate do feature-flag do Learning Loop** (piso ≥90% s/ tx categorizáveis, telemetria), NÃO KR bloqueante do pipeline; fix titular no E3 ([[ADR-287]], nunca CPF no hash) |
+| LC05 — `membro` é slug de **nome pessoal** usado como componente de identidade/dedup de investimento (e vazio quando o parse não atribui → causa raiz de LC01) | consistência | Médio | P2 | procede | procede-aberto | identidade por CPF/id estável ([[ADR-287]]); nome-como-chave é smell |
+| LC06 — **[skill]** detector `investment_double_count` usa chave `(tipo\|inst\|descricao_norm)`; com descrição vazia agrupa produtos distintos do mesmo tipo/instituição → falso-positivo (5/6 colisões neste run) | consistência (skill) | Médio | P3 | procede | procede-aberto | detector deve exigir identidade real (valor+source-ref+vencimento), nunca `(tipo\|inst)`; hardening da skill |
+| LC07 — **[skill]** verdict E2→E3 rotula sub-declaração de dedup como `perda-silenciosa` (P0) em vez de `coberto-sem-verificação`: o check `count_out<count_in` precede o cover-de-dedup; denominador inclui tx de `investment_report` não-reconciliável (10) | saúde-execução (skill) | Médio | P1 | procede | procede-aberto | rebaixar p/ coberto quando fontes presentes + Δvalor consistente; excluir tipos não-reconciliáveis do denominador; hardening da skill |
+| LC08 — drift: 20 grupos só-persistidos com keying banco-vazio (`_extrato_*`) — a re-derivação re-chaveia com o guard empty-institution (A28.l8) | saúde-execução | Baixo | P3 | não-acionável | não-acionável | drift benigno (código melhorou); confirma r1·LC05 |
