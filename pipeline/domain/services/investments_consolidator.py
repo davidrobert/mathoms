@@ -194,6 +194,51 @@ def _resolve_rv_collapse(positions: list[dict], sem_por_membro: dict[str, list[s
     return kept, new_sem, avisos
 
 
+def _merge_into_sibling(best_by_key: dict, empty_key: tuple, sib_key: tuple, avisos: list) -> None:
+    """Colapsa a fonte membro-vazio no irmão resolvido (most-recent data_ref vence);
+    atribui a posição ao membro resolvido. Muta ``best_by_key``."""
+    empty, sib = best_by_key[empty_key], best_by_key[sib_key]
+    keep, drop = (empty, sib) if str(empty["data_ref"]) > str(sib["data_ref"]) else (sib, empty)
+    keep["membro"] = sib_key[1]
+    best_by_key[sib_key] = keep
+    del best_by_key[empty_key]
+    avisos.append(
+        f"[WARN] membro-vazio colapsado em {sib_key[1]!r}@{sib_key[0]}: mantida data_ref "
+        f"{keep['data_ref']!r} ({keep['_source']!r}), descartada {drop['data_ref']!r} "
+        f"({drop['_source']!r}) (ADR-346 §4b)"
+    )
+
+
+def _resolved_siblings(best_by_key: dict, inst: str) -> list:
+    """Chaves ``(inst, membro)`` com membro resolvido (não vazio, não needs_review)."""
+    return [k for k in best_by_key if k[0] == inst and k[1] and k[1] != "needs_review"]
+
+
+def _mark_needs_review(cand: dict, inst: str, n: int, avisos: list) -> None:
+    cand["membro"] = "needs_review"
+    avisos.append(
+        f"[WARN] membro-vazio em {inst!r} com {n} membros resolvidos — "
+        "needs_review, não colapsado (ADR-346 §4b)"
+    )
+
+
+def _resolve_one_empty(best_by_key: dict, key: tuple, avisos: list) -> None:
+    """Resolve UMA chave membro-vazio: colapsa se há 1 irmão resolvido; ≥2 → needs_review."""
+    siblings = _resolved_siblings(best_by_key, key[0])
+    if len(siblings) == 1:
+        _merge_into_sibling(best_by_key, key, siblings[0], avisos)
+    elif len(siblings) >= 2:
+        _mark_needs_review(best_by_key[key], key[0], len(siblings), avisos)
+
+
+def _collapse_empty_member(best_by_key: dict, avisos: list) -> None:
+    """ADR-346 §4b — membro-vazio cross-período: colapsa no ÚNICO irmão resolvido do
+    mesmo inst (evita dupla-contagem de snapshots temporais); 0 irmãos = mantém (fonte
+    única, sem inflação); ≥2 = ``needs_review`` (não atribui às cegas). Muta best_by_key."""
+    for key in [k for k in best_by_key if not k[1]]:
+        _resolve_one_empty(best_by_key, key, avisos)
+
+
 # =============================================================================
 # Service
 # =============================================================================
@@ -340,6 +385,10 @@ class InvestmentsConsolidator:
                 f"mantida data_ref {keep['data_ref']!r} ({keep['_source']!r}), "
                 f"descartada {drop['data_ref']!r} ({drop['_source']!r})"
             )
+
+        # Phase 2b (ADR-346 §4b) — membro-vazio cross-período: colapsa no único
+        # irmão resolvido do mesmo inst; 0/≥2 → needs_review (nunca chuta).
+        _collapse_empty_member(best_by_key, dedup_avisos)
 
         # Phase 3: construir posições + totais.
         all_positions: list[dict] = []
