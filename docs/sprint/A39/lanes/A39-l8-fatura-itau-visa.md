@@ -3,7 +3,9 @@ id: A39.l8
 type: lane
 title: "Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto)"
 sprint: A39
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1047
 priority: P1
 branch_slug: a39-l8-fatura-itau-visa
 adrs: ["[[ADR-342]]"]
@@ -11,7 +13,7 @@ depends_on: ["[[A39.l3]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados
