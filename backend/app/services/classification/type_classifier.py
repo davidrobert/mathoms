@@ -242,6 +242,25 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         ),
         priority=11,
     ),
+    # Itaú cartão de crédito (não Pão de Açúcar): marcadores em linhas separadas
+    # ("Resumo da fatura em R$" + "Total desta fatura") que o padrão genérico com
+    # gaps `.{0,N}` não cruza (não-DOTALL, A38.l10). `\s*` cobre os DOIS sub-layouts
+    # do Itaú — com espaços e o sub-layout sem-espaços (`Totaldestafatura`, A38.l9).
+    # Marcadores independentes classificam determinístico (A39.l8) — tira do E2-llm.
+    TypeRule(
+        code="fatura",
+        dest_group="financial_statements",
+        required=(
+            _c(r"Resumo\s*da\s*fatura"),
+            _c(r"Total\s*desta\s*fatura"),
+        ),
+        supporting=(
+            _c(r"Lan[çc]amentos\s*atuais"),
+            _c(r"Vencimento"),
+            _c(r"Limite\s*total\s*de\s*cr[eé]dito"),
+        ),
+        priority=12,
+    ),
     # Generic fatura de cartão — um único padrão OR (evita exigir \bFATURA\b + linha
     # financeira ao mesmo tempo, o que falhava em muitos PDFs reais).
     TypeRule(
