@@ -3,7 +3,7 @@ id: A39.l9
 type: lane
 title: "Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto)"
 sprint: A39
-status: planned
+status: shipped
 priority: P1
 branch_slug: a39-l9-posicao-renda-variavel
 adrs: ["[[ADR-342]]", "[[ADR-346]]"]
@@ -11,7 +11,7 @@ depends_on: ["[[A39.l1]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados
@@ -157,3 +157,38 @@ proventos JCP fora do PL) + TypeRules ("Posição Acionária" / "Sua carteira") 
 registrar no registry + lift do discovery gate (`is_investment_type` inclui
 `investimentosposicao`/`carteirarendafixa`) + `$defs/posicao_investimento` wired
 strict + checksums (Rico por classe; Itaú n_papéis) + verificação no corpus real.
+
+## Nota de execução (2026-07-24) — PR3b shipado (lane FECHADA)
+
+PR3b entregue — **l9 completa** ([[ADR-346]] → `Decidido`). Três eixos:
+
+1. **Classificação** (`type_classifier` + `content_classifier`): a TypeRule
+   `investimentosposicao` cobre os 3 layouts reais (Posição Consolidada/de
+   Carteira/**Acionária** + dashboard "Este é o seu patrimônio"/"Total investido")
+   + supporting (custódia, alocação, ticker B3) → **conf 1.0**. Fallback de
+   instituição por filename (content-first, token-based): o dashboard Rico XLSX
+   não tem "rico" em NENHUMA célula (creator="Unknown", sheet genérica) — sem o
+   fallback, inst-vazia descartaria a fonte no consolidador (invariante 2). Lift
+   do discovery gate: `investimentosposicao`/`carteirarendafixa` em
+   `_INVESTMENT_PATTERNS` (antes caíam em `NON_STATEMENT_TYPES` → drop silencioso).
+   Corpus de classificação **inalterado** (KR-E: 110 testes verdes).
+2. **Parsers** (`itau.parse_itau_investimentosposicao` + `rico.parse_rico_carteira`):
+   Itaú custódia acionária (PDF, extract_words, só-quantidade — Total é o int
+   antes do ticker; `Preferencial778` cola Tipo+Livres); Rico carteira (XLSX,
+   openpyxl, valorada por classe). Checksums: Itaú de **contagem** (n_papéis
+   observado == emitidas); Rico **Σ-por-classe** == subtotal (int cents). Ambos
+   ESCALAM em vez de perder posição. Proventos/JCP fora do PL com nota.
+3. **Schema** `$defs/posicao_investimento` (e2_extract + e2_llm): valida TIPOS +
+   identidade (`anyOf` nome/ticker) — não fechamento de campos (2 famílias de
+   parser; CDB agrega campos próprios). `valor_atual` ausente = só-quantidade,
+   NÃO zero.
+
+**Corpus real** (ws certificação): Itaú 2 posições (BRKM5 300, ITSA4 778;
+checksum contagem OK); Rico 9 posições (Ações Σ=84.958,96 / Fundos Σ=130.476,74
+fecham) + 4 JCP fora do PL; **qtds casam** (ITSA4 778↔778, BRKM5 300↔300) → o
+colapso de identidade do PR3a dispara → PL = valores Rico, **sem ressalva falsa**.
+Ambos saem de `não-coberto` (conf 0.0) → conf 1.0, instituição resolvida.
+
+Critério de aceite fechado. Débitos V2 (follow-up): valoração emprestada
+(custódia qty-only × preço médio), contrato dedicado de proventos, ISIN como
+eixo de identidade (hoje ticker_norm B3).

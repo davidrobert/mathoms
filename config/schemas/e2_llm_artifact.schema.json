@@ -34,6 +34,10 @@
       "type": "array",
       "items": {"$ref": "e2_extract.schema.json#/$defs/transacao"}
     },
+    "posicoes": {
+      "type": "array",
+      "items": {"$ref": "e2_extract.schema.json#/$defs/posicao_investimento"}
+    },
     "investimentos": {"type": "array"},
     "_meta": {"type": "object"}
   },

@@ -339,7 +339,7 @@
 | ADR-341 | adr | Decidido |  | Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores | `adr/341-contrato-exec-context-parecer-eviction-redacao.md` |
 | ADR-342 | adr | Decidido |  | Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path | `adr/342-gate-anti-silencio-e2-read-path.md` |
 | ADR-343 | adr | Decidido |  | Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico | `adr/343-estado-duravel-pipeline-review.md` |
-| ADR-346 | adr | Proposto |  | Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador | `adr/346-identidade-posicao-renda-variavel.md` |
+| ADR-346 | adr | Decidido |  | Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador | `adr/346-identidade-posicao-renda-variavel.md` |
 | ADR-347 | adr | Proposto |  | Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão) | `adr/347-ledger-conservacao-contagem-e3.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
@@ -805,7 +805,7 @@
 | A39.l6 | lane | shipped | A39 | Checksum de CDB observável: traço checksum_ok/skipped_no_total + WARN posições-sem-total; estender Santander xlsx | `sprint/A39/lanes/A39-l6-cdb-checksum-observavel.md` |
 | A39.l7 | lane | shipped | A39 | Sweep de verificabilidade: itau_xls + santander_xls declaram conservacao_verificavel (wise/rico cortados) | `sprint/A39/lanes/A39-l7-verificabilidade-sweep.md` |
 | A39.l8 | lane | shipped | A39 | Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto) | `sprint/A39/lanes/A39-l8-fatura-itau-visa.md` |
-| A39.l9 | lane | planned | A39 | Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) | `sprint/A39/lanes/A39-l9-posicao-renda-variavel.md` |
+| A39.l9 | lane | shipped | A39 | Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) | `sprint/A39/lanes/A39-l9-posicao-renda-variavel.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

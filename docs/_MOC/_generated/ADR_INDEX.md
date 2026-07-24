@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 300
-- **Proposto**: 33
+- **Decidido**: 301
+- **Proposto**: 32
 - **Roadmap**: 3
 
 ## Fundação
@@ -517,7 +517,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (47)
+### Decidido (48)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -566,8 +566,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-338]] — Contrato role-keyed no view-model — nome do membro só em valores, nunca em chaves
 - [[ADR-340]] — score_version 2.1 — componente de diversificação vira concentração imobiliária invertida (FIN-05) · phase dogfood-c11-fin05
 - [[ADR-342]] — Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path · phase A38.l3
+- [[ADR-346]] — Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador · phase A39.l9
 
-### Proposto (8)
+### Proposto (7)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -575,7 +576,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-327]] — Guarda de fidelidade narrativa↔E5: binding de token monetário a campo vivo + fail-closed no E5.N
 - [[ADR-334]] — Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida)
 - [[ADR-336]] — Roteamento de lucro PJ mal-classificado como dividendo via segundo sinal de fluxo (TRS) · phase dogfood cluster A
-- [[ADR-346]] — Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador · phase A39.l9
 - [[ADR-347]] — Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão) · phase A39
 
 ## quality

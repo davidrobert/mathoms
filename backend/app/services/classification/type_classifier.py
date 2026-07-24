@@ -294,10 +294,23 @@ TYPE_RULES: tuple[TypeRule, ...] = (
     TypeRule(
         code="investimentosposicao",
         dest_group="financial_statements",
-        required=(_c(r"Posi[çc][ãa]o\s*(Consolidada|de\s*Investimentos|de\s*Carteira)"),),
+        # Cobre 3 layouts reais (A39.l9): (a) "Posição Consolidada/de Carteira"
+        # das corretoras; (b) "Posição Acionária" da custódia escritural (Itaú
+        # investfone); (c) dashboard de carteira sem a palavra "Posição" no header
+        # ("Este é o seu patrimônio" + "Total investido", export Rico/XP XLSX).
+        required=(
+            _c(
+                r"Posi[çc][ãa]o\s*(Consolidada|de\s*Investimentos|de\s*Carteira|Acion[áa]ria)"
+                r"|Este\s+[ée]\s+o\s+seu\s+patrim[ôo]nio"
+                r"|Total\s+investido"
+            ),
+        ),
         supporting=(
             _c(r"Renda\s*Fixa|Renda\s*Vari[aá]vel|Fundos\s*de\s*Investimento"),
-            _c(r"Saldo\s*(Total|Consolidado)"),
+            _c(r"Saldo\s*(Total|Consolidado|Dispon[íi]vel|projetado)"),
+            _c(r"%\s*Aloca[çc][ãa]o|Aloca[çc][ãa]o\s+da\s+carteira"),
+            _c(r"Cust[óo]dia|C[óo]digo\s*(do\s*)?papel"),
+            _c(r"\b[A-Z]{4}\d{1,2}\b"),  # ticker B3 (PETR4, ITSA4)
         ),
         priority=15,
     ),

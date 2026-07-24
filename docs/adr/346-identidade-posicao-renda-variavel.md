@@ -2,7 +2,7 @@
 id: ADR-346
 type: adr
 title: "Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador"
-status: Proposto
+status: Decidido
 phase: A39.l9
 date: "2026-07-24"
 relates_to:
@@ -12,7 +12,7 @@ relates_to:
   - "[[ADR-246]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/dados
   - methodology/patrimonio
