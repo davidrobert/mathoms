@@ -62,3 +62,20 @@ evitar merge-hell) e a fatia de classificação de [[A38.l10]].
 
 Médio — layout de fatura é o mais denso. Mitigação: fixtures dos 2 sub-layouts +
 checksum obrigatório. Supersede [[A38.l9]] (marcar cancelled no A38 ao aterrissar).
+
+## Nota de execução (2026-07-24) — parser determinístico shipado (fecha a lane)
+
+`parse_itau_fatura` **entregue** (a classificação já havia shipado em #1047).
+Extração via `extract_words()` + filtro de coluna por `x0 < 360` — o único
+caminho robusto no sub-layout sem espaços (#1eef: frases inteiras num só token).
+Máquina de estado por seção (nacional/internacional/future/stop) captura tx
+datadas + "Repasse de IOF" (sem data, na seção internacional). Roteia por
+`^itau_fatura_` (disjunto de `faturapaoacucar`).
+
+**Correção sobre o escopo desta lane:** a "identidade ADR-343" citada acima foi
+**descartada** ([[A39.l3]]) — o checksum usa a identidade **por seção** da emenda
+[[ADR-342]] (2026-07-24). Itaú imprime um total único combinado → o balde é
+`lancamentos_atuais` (nacional + internacional + IOF) vs "Total dos lançamentos
+atuais". Os 3 PDFs fecham a cent (R$ 59,00 / 59,00 / 154,53), zero falso-fire,
+pelo caminho **determinístico** (não precisou do fallback LLM). Corpus sintético
+dos 2 sub-layouts no gate strict + golden em `test_fatura_parser_checksum.py`.

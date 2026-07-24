@@ -5,7 +5,7 @@ title: "Gate anti-silêncio no E2: escalação de extração vazia/parcial com c
 status: Decidido
 date: "2026-07-22"
 phase: A38.l3
-amended_at: ["2026-07-23"]
+amended_at: ["2026-07-23", "2026-07-24"]
 tags:
   - type/adr
   - status/decidido
@@ -33,6 +33,13 @@ tags:
 > WARN-first; e estende o checksum de investimento a CDB XLSX/HTML-XLS com o total
 > **de escopo igual** ao das linhas (soma em int cents, ADR-090). Ver §Emenda
 > 2026-07-23 (checksums E2).
+>
+> **Emenda 2026-07-24 (opt-in dos parsers de fatura — Santander Unique + Itaú, [[A39.l3]]/[[A39.l8]]):**
+> a identidade de completude é **por seção** (`escopo` declarado em
+> `$defs/transacao`: `despesa_brasil`/`exterior`/`pagamento`/`lancamentos_atuais`);
+> `parse_santander_unique` e o novo `parse_itau_fatura` opt-in com o corpus real
+> fechando a cent (0 falso-fire). O WARN passa a nomear o balde. Ver §Emenda
+> 2026-07-24 (opt-in fatura).
 
 ## Contexto
 
@@ -195,6 +202,39 @@ cents por posição** (`Σ round(valor*100)`), não float (ADR-090 — evita dri
 dispara falso-fire com muitas posições). Posição única Itaú PDF (valor = SALDO
 FINAL = o próprio total) permanece **sem** sum-checksum (degenerada; já tem o
 gate de 0-posição).
+
+## Emenda 2026-07-24 (opt-in fatura) — identidade por seção + Santander Unique + Itaú
+
+A Emenda 2026-07-23 deixou o checksum de fatura como contrato genérico
+(WARN-first, sem parser opt-in). Esta emenda ancora a **identidade concreta** e
+liga os dois primeiros parsers, com o co-design (financial-planner) provando que
+o alvo não são só compras itemizadas.
+
+**Identidade = subtotal POR SEÇÃO.** `Σ_cents(tx da seção) == subtotal impresso
+da seção`. O escopo de cada tx é declarado em `$defs/transacao.escopo` (enum
+fechado `despesa_brasil | exterior | pagamento | lancamentos_atuais`), e o gate
+soma só o balde do `signal.escopo`. O escopo alargado inclui anuidade, encargos,
+IOF, tarifas e seguros embutidos — não só compras.
+
+- **Santander Unique** (`parse_santander_unique`): dois subtotais separados no
+  doc → checksum contra "Total Despesas/Débitos no Brasil" (`escopo=despesa_brasil`).
+  Sinal por **seção + coluna US$**, nunca por `valor<0` (o `is_payment` morto foi
+  removido). O `IOF DESPESA NO EXTERIOR` entra em `despesa_brasil` (o emissor o
+  conta no total Brasil — verificado a cent). `pagamento` sai com `tipo=pagamento`
+  (E3/E4 = transferência interna). Corrige corrupção de valor no layout
+  lado-a-lado: a poluição da coluna Resumo, fundida na linha pelo pdfplumber, era
+  capturada pelo `$`-âncora (o pagamento −119,21 virava +119,21) — estripe da
+  poluição **antes** do match.
+- **Itaú cartão** (`parse_itau_fatura`, parser novo): total único combinado →
+  checksum contra "Total dos lançamentos atuais" (`escopo=lancamentos_atuais` =
+  nacional + internacional + "Repasse de IOF"). Extração via `extract_words` +
+  filtro de coluna por `x0` (o único caminho robusto no sub-layout sem espaços).
+
+**Verificação (corpus real, PII-zero no repo):** 3 faturas Santander (R$ 39,96 /
+543,68 / 3.566,08) e 3 Itaú (R$ 59,00 / 59,00 / 154,53) fecham em cents, zero
+falso-fire; golden sintético (`test_fatura_parser_checksum.py`) prova o fechamento
+e a quebra-ao-perder-linha nomeando o balde. **WARN-first mantido** — flip HARD
+por parser só após ≥1 sprint de corpus verde (rollout por banco, §Consequências).
 
 ## Alternativas rejeitadas
 
