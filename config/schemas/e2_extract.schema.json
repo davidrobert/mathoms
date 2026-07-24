@@ -22,6 +22,11 @@
         "parcela": {"type": ["string", "null"]},
         "nr_doc": {"type": ["string", "null"]},
         "cartao": {"type": ["string", "null"]},
+        "escopo": {
+          "type": ["string", "null"],
+          "enum": ["despesa_brasil", "exterior", "pagamento", "lancamentos_atuais", null],
+          "description": "ADR-342 §Emenda 2026-07-23 (checksums E2) — balde de completude da transação de fatura, casado ao subtotal impresso que ela reconcilia. `despesa_brasil`/`exterior` (Santander: seções separadas), `pagamento` (débito da fatura anterior; E3/E4 = transferência interna), `lancamentos_atuais` (Itaú: total único nacional+internacional+IOF). Consumido por total_lancamentos_conferivel (gate soma só o balde do signal). Ausente em extratos."
+        },
         "forex": {
           "type": ["object", "null"],
           "required": ["moeda_original", "valor_original"],
