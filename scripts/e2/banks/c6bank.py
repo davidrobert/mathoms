@@ -87,6 +87,29 @@ def _parse_fatura_csv_number(text: str) -> Optional[float]:
         return parse_brl(text)
 
 
+def _c6_anchor_date_to_iso(anchor_date: str) -> Optional[str]:
+    """Âncora 'Saldo do dia' usa DD/MM/YY; converte p/ ISO (casa t['data'])."""
+    try:
+        dd, mm, yy = anchor_date.split("/")
+        return f"20{yy}-{mm}-{dd}"
+    except (ValueError, AttributeError):
+        return None
+
+
+def _c6_summarize_saldos(
+    txs: List[Dict[str, Any]], saldo_values: List[Tuple[str, float]]
+) -> Tuple[Optional[float], Optional[float]]:
+    """saldo_inicial = 1ª âncora 'Saldo do dia' − Σ tx do 1º dia (a âncora é o
+    fechamento do dia, já inclui as tx); saldo_final = última âncora. Semântica
+    do Itaú 2026, não-tautológica (usa a âncora observada, não saldo_final−Σtx)."""
+    if not saldo_values:
+        return None, None
+    first_anchor_date, first_saldo = saldo_values[0]
+    first_iso = _c6_anchor_date_to_iso(first_anchor_date)
+    first_day_sum = sum(t["valor"] for t in txs if t.get("data") == first_iso and t.get("valor"))
+    return round(first_saldo - first_day_sum, 2), saldo_values[-1][1]
+
+
 # =============================================================================
 # Parser: C6 Bank extrato conta CSV
 # =============================================================================
@@ -601,8 +624,15 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 )
                 result["transacoes"].extend(txs_from_text)
                 if saldo_values:
-                    result["saldo_inicial"] = saldo_values[0][1]
-                    result["saldo_final"] = saldo_values[-1][1]
+                    saldo_ini, saldo_fim = _c6_summarize_saldos(txs_from_text, saldo_values)
+                    result["saldo_inicial"] = saldo_ini
+                    result["saldo_final"] = saldo_fim
+                    # A39.l4 · ADR-342: saldo observado (âncoras Saldo do dia),
+                    # semântica verificada após ajuste do 1º dia → opt-in do gate
+                    # HARD. Offset de abertura (cosmético) deixa de false-quebrar
+                    # a conservação; row-drop real escala.
+                    if result["transacoes"]:
+                        result["conservacao_verificavel"] = True
 
     except Exception as e:
         log(LOG_PREFIX_EXTRATO, "ERROR", f"  Falha ao processar {filename}: {e}")
