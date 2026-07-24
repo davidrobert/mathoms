@@ -3,7 +3,9 @@ id: A39.l3
 type: lane
 title: "Fatura closure: parsers emitem total_lancamentos_conferivel (gate #1036 pronto) + flip WARN→HARD"
 sprint: A39
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1045
 priority: P0
 branch_slug: a39-l3-fatura-optin-parsers
 adrs: ["[[ADR-342]]"]
@@ -11,7 +13,7 @@ depends_on: ["[[A39.l1]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/dados
