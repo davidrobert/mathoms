@@ -4,7 +4,7 @@ type: plan
 title: "Data Lineage fim-a-fim + Fonte plugável"
 status: in_progress
 created_at: 2026-06-02
-last_review: 2026-06-10
+last_review: 2026-07-24
 sprint_origem: A23
 sprint_atual: A26
 sprints_envolvidas: [A23, A24, A25, A26, A27]
@@ -363,6 +363,7 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
 | **4 — Fast-follow** | **A25** ✅ (done 2026-06-16, 7/7 lanes shipped) | [[A25.l3]] `dl-f5-reverso` (hook pós-run, teto run→doc) · [[A25.l5]] `dl-f6-produto-n1n2` (∥, independe da edge table) · [[A25.l4]] `dl-f7-debug-llm` (eval nightly) · [[A25.l1]] cutover override v2 (slice 4 da [[A23.l4]]; **M2 → carry-over pós-l2**, gate `v1_fallback`=0 por ≥1 sprint) → [[A25.l2]] flip dedup E4→v2 (**ADR Proposto antes de codar**; destrava `member_hashes` reais) → [[A25.l6]] KR2 6/6 (stretch) · [[A25.l7]] **decisão** flip `warn→strict` do `evidencia_path` (requisito de done; gate <5% sobre ≥20 gerações; amostra insuficiente → carry-over A26 documentado — decisão owner 2026-06-10) | P0/P1 | pós-G3 ✅ |
 | **5 — Consolidação** | **A26** (`paused` 2026-07-03; remove redes de segurança após observação de produção) | [[A26.l1]] `evidencia-prompt-catalogo` (Regime A — fix de citação, sem gate, elegível fora da sprint) → [[A26.l2]] `evidencia-flip-strict` (gate **per-parecer** <5% sobre ≥20 ger) · [[A26.l3]] `drop-dedup-v1-shim` (M2-A reversível, canário) · [[A26.l4]] `override-v2-on-instrumentacao` (flip flag + `v2_match_count` + query agendada — habilita gate da l5) → [[A26.l5]] `m2-override-drop` (M2-B IRREVERSÍVEL + runbook Fase E + owner go/no-go; **DEFERIDA owner-gated 2026-07-09** — cortada do fechamento A26/A27, gate herdado verbatim, pré-condições na lane) | P1/P2 | **G5:** gates de tráfego fechados (≥20 ger <5% per-parecer; `dualread.v1_fallback`=0 com `v2_match`≥1 por ≥1 sprint); drops com snapshot/PITR + sign-off do owner |
 | **6 — Cobertura de citação E5→E6** (camada E→D; origem: incidente parecer [[ADR-292]]) | **A26** (l6/l7) + **A27** (edge/chave) | [[A26.l6]] `evidencia-coverage-kpi` (Regime A — KPI cobertura `missing_path` vs. correção `value_mismatch` + drift; instrumenta gate de l2; baseline) → [[A26.l7]] `evidencia-catalog-listas` (Regime A — catálogo cobre folhas de lista via `[idx].subkey`, fonte única forward↔reverse; fecha raiz comportamental; conforma [[ADR-279]] §E/[[ADR-292]], sem ADR) · **A27:** `evidencia-lineage-edge` (citação de parecer como edge `artifact_lineage_edge` por **chave natural**; **uma** lane = chave estável + edge; atrás de [[ADR-293]] `Proposto`; gate de discovery: medir reordenação de `top_ativos` antes de codar) | P1/P2 | **G6:** round-trip catálogo↔verificador verde (todo path emitido resolve); `[idx].valor` = 1 folha (sem falso-verde); eval reduz `whitelist_miss`+`missing_path` vs. baseline l6; edge (A27) reproduzível cross-run + coexiste com DELETE N=1 |
+| **7 — Identidade de razão E3/E4** (LC-04 + LC-05; origem: certificação `ledger-certify` r2, [[LEDGER-CERTIFY-active]]) | **pendente-agenda** (P2 pós-beta) | **LC-04** `titular→natural_key` (E3 popula titular; muda `_hash_v1`+`_hash_v2`; migração hash-changing com **re-âncora ANTES** do novo hash chegar ao read-path, reusa `orphaned_at` da [[ADR-282]]; resolve colisão `uq_override_ws_hash` — merge/keep-latest/needs_review, decidir na abertura; gate flag Learning Loop ≥90% nat_key) · **LC-05** membro estável por id ([[ADR-287]], não slug de nome); **PR disjunto** (consolidador, sem override) — raiz do LC-02 | P2 | **G7:** re-âncora testada vs `TransactionOverride` real (SQLite in-mem) incl. colisão, 0 reversão silenciosa; nat_key ≥90% por telemetria dogfood; `total_por_membro` estável sob mudança de nome |
 
 **Walking skeleton (G3, critério de "pronto" da 1ª janela):** equipe localiza a
 origem do **patrimônio líquido** *sem abrir um único arquivo de stage*, via 1
@@ -383,6 +384,31 @@ previa) shipou na A32.l2 (#826), coberta pelo golden de paridade derivado por
 AST; o gap de `membro` fechou em #828. O cutover canonical-only — writer deixa
 de emitir `instituicao`/`tipo_documento` top-level, `required` do schema flipa,
 fallbacks nos readers viram permanentes (sem sunset) — é decidido em [[ADR-312]].
+
+## Onda 7 — Identidade de razão (LC-04 + LC-05) · pendente-agenda
+
+Origem: certificação `ledger-certify` r2 ([[LEDGER-CERTIFY-active]]), roteada aqui pelo
+painel (data-engineer + product-manager) — reusa a máquina de identidade/re-âncora de
+override já construída ([[ADR-282]] + cutover override v2 A25/A26). **P2, pós-beta.**
+
+**Call de produto (Learning Loop):** o Categorization Learning Loop fica **fora do caminho
+crítico do beta** (ausente do PRODUCT.md §5; V2 pós-tração; atrás de flag). `learning_loop_enabled`
+permanece **OFF no beta** até `natural_key` ≥90% sobre tx categorizáveis; LC-04 é a
+**condição de destravar o flag**, não beta-blocker → P2. Owner confirma em `PRODUCT.md §5`.
+
+**LC-04 — titular→natural_key (migração hash-changing):** titular ausente no E3 domina o
+~88% de `natural_key` null (`_tx_identity.py`: `_has_discriminants` exige banco+titular+
+tipo_conta). Popular titular no E3 (**nunca CPF no hash**) muda `_hash_v1`+`_hash_v2` de
+**toda tx com input alterado** (não só as null) → **re-ancorar overrides ANTES** de o novo
+hash chegar ao read-path (reusa `orphaned_at`: recomputa → casa item E4? update in-place :
+orfaniza). **Bloqueante:** resolver a colisão `uq_override_ws_hash` (dois overrides distintos
+colapsam no mesmo hash) — merge / keep-latest / needs_review, decidir na abertura. Testar
+vs `TransactionOverride` **real** (SQLite in-mem), nunca mock.
+
+**LC-05 — membro estável (PR disjunto):** `membro` no consolidador de investimentos é slug
+de nome pessoal; migrar para id estável do `family_member` ([[ADR-287]]). **Caminho de
+código disjunto** do `natural_key` de tx → PR separado, **não toca overrides**. É a raiz do
+LC-02 (membro-vazio); "LC-05 antes de LC-04" **não** é a dependência real.
 
 ## KRs
 
