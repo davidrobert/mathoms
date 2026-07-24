@@ -221,19 +221,45 @@ class InvestmentsConsolidator:
                 }
             )
 
-        # Phase 2: dedup por (inst, membro) — mantém o mais recente.
+        # Phase 2: dedup por (inst, membro) — mantém o mais recente por data_ref.
+        # ADR-346 (A39.l9): instituição vazia NÃO pode ser chave que descarta —
+        # duas fontes valoradas inst-vazia do mesmo membro colidiriam em
+        # ("", membro) e uma sumiria em silêncio (perda de patrimônio). Fallback
+        # à identidade de fonte estável (_source/artifact_key). `data_ref` é
+        # tie-break, NUNCA componente de chave: adicioná-lo à chave somaria
+        # snapshots temporais do mesmo broker (PL 2×). Todo descarte é registrado
+        # em `avisos` (invariante 2: nenhum descarte silencioso).
         best_by_key: dict[tuple[str, str], dict[str, Any]] = {}
+        dedup_avisos: list[str] = []
         for cand in valid:
-            key = ((cand["instituicao"] or "").lower().strip(), cand["membro"])
+            inst_key = (cand["instituicao"] or "").lower().strip()
+            if not inst_key:
+                dedup_avisos.append(
+                    f"[WARN] instituição não resolvida para {cand['_source']!r} — usando "
+                    "identidade de fonte no dedup (resolver no parser; ADR-346 passo 4/PR3)"
+                )
+            key = (inst_key or f"_src:{cand['_source']}", cand["membro"])
             existing = best_by_key.get(key)
-            if existing is None or str(cand["data_ref"]) > str(existing["data_ref"]):
+            if existing is None:
                 best_by_key[key] = cand
+                continue
+            keep, drop = (
+                (cand, existing)
+                if str(cand["data_ref"]) > str(existing["data_ref"])
+                else (existing, cand)
+            )
+            best_by_key[key] = keep
+            dedup_avisos.append(
+                f"[WARN] dedup posição ({cand['membro']}, {inst_key or cand['_source']}): "
+                f"mantida data_ref {keep['data_ref']!r} ({keep['_source']!r}), "
+                f"descartada {drop['data_ref']!r} ({drop['_source']!r})"
+            )
 
         # Phase 3: construir posições + totais.
         all_positions: list[dict] = []
         sources: list[str] = []
         totals_by_member: dict[str, float] = {}
-        avisos: list[str] = []
+        avisos: list[str] = list(dedup_avisos)
 
         for cand in best_by_key.values():
             posicoes = cand["_posicoes"]
