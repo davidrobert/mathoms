@@ -123,17 +123,42 @@ leads errados na revisão original (ex.: custo de run subcontado).
 - **Evidência sempre:** `arquivo:linha` / `campo.dot.path` / número. Nada de "parece errado".
 - **Verifique antes de reportar:** hipótese não confirmada não vira bug.
 
-## Passo 5 — Entregável
+## Passo 5 — Entregável (três destinos · [[ADR-343]])
 
-Salve o relatório em `_scratch/pipeline-review-<slug>-<data>.md` e resuma no chat.
-Estrutura: **premissas → o que rodou (evidência do run) → achados por dimensão
-(severidade + evidência) → TABELA PRIORIZADA → próximos passos**, com critério de aceite.
+O achado da revisão é de **duas naturezas** e cada uma tem um destino durável
+distinto — a bifurcação que mantém o vault PII-free por construção:
 
-Tabela priorizada (ordenar por prioridade), colunas:
-`ID · Achado · Dimensão · Severidade · Prioridade (P0–P3) · Dificuldade (S/M/L) · Risco regr. · Fix recomendado · Quem flagou`
+- **Sistêmico / defeito** — afirmação sobre o **pipeline** (código, contrato de
+  stage, schema, render, prompt, metodologia). Recorre entre runs, PII-free.
+- **Instância / dado** — afirmação sobre os números **deste workspace neste
+  run**. Não recorre, carrega PII.
 
-Se o volume justificar, gere também um dashboard navegável como Artifact
-(clusters de causa-raiz + a matriz priorizada), sempre PII-scrubbed.
+Escreva nos três destinos, nesta ordem:
+
+1. **Working** → `_scratch/pipeline-review-<slug>-<data>.md` — o relatório
+   completo (todas as naturezas, todas as evidências). Efêmero.
+   Estrutura: **premissas → o que rodou (evidência do run) → achados por dimensão
+   (severidade + evidência) → TABELA PRIORIZADA → próximos passos**, com critério
+   de aceite.
+   Tabela priorizada (ordenar por prioridade), colunas:
+   `ID · Achado · Dimensão · Severidade · Prioridade (P0–P3) · Dificuldade (S/M/L) · Risco regr. · Fix recomendado · Quem flagou`
+2. **Cru durável (off-git)** → `storage/<uuid>/reviews/<ts>-<run8>/synthesis.md`
+   — cópia da síntese crua **inclusive achados de instância/dado + PII**. Path
+   proibido no git (mesma zona de confiança do DB/artifacts/`certify/`);
+   sobrevive entre sessões. (O `--compare`/baseline durável mora no mesmo dir —
+   ver §Parâmetros.)
+3. **Curado canônico (git)** → **append** de uma seção `## rN — ws-<uuid8>-<data>`
+   em [`docs/_MOC/PIPELINE-REVIEWS-active.md`](../../../docs/_MOC/PIPELINE-REVIEWS-active.md)
+   com **só os achados sistêmicos/defeito**, deduplicados por `(dimensão,
+   evidência-âncora, regra)`. **Commit-safe:** zero literal monetário, zero nome
+   próprio; âncora = `campo.dot.path` ou `arquivo:linha`, nunca um valor; o
+   **título** tem de ser um defeito, não um dado. Siga a convenção timeless do
+   próprio arquivo (cobertura 100%, disposição, cadência anti-zumbi). Ao abrir run
+   novo, re-triar o `procede-aberto` da seção anterior.
+
+Resuma no chat (PII-scrubbed). Se o volume justificar, gere também um dashboard
+navegável como Artifact (clusters de causa-raiz + a matriz priorizada), sempre
+PII-scrubbed.
 
 ## Critério de aceite da skill
 
@@ -149,3 +174,7 @@ verificação adversarial.
   `llm_call_log`) e nem toda stage LLM é instrumentada — não conclua custo por uma só.
 - Falha de CI que parece de teste mas o step é `cancelled` costuma ser incidente
   de infra do GitHub Actions (fail-fast), não seu código.
+- **Nunca** aterrisse achado de **instância/dado** no
+  `PIPELINE-REVIEWS-active.md` (git) — é PII. Só defeito sistêmico entra lá;
+  dado do workspace fica em `storage/<uuid>/reviews/` ([[ADR-343]]). Título de
+  achado com valor monetário ou nome próprio é smell — reescreva como defeito.
