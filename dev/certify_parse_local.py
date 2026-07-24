@@ -70,6 +70,15 @@ def _strip_hash_prefix(final_name: str) -> str:
     return re.sub(r"^[a-f0-9]{12}_", "", final_name)
 
 
+def stored_prefix(name: str) -> Optional[str]:
+    """Prefixo ``{content_hash[:12]}`` do nome do arquivo em ``storage/data/``
+    (ADR-084). É a **identidade ingerida** do doc — join robusto com
+    ``documents.content_hash`` mesmo quando o byte-conteúdo do arquivo em disco
+    divergiu do original (re-parse reescreveu o storage). ``None`` sem o prefixo."""
+    match = re.match(r"^([a-f0-9]{12})_", name)
+    return match.group(1) if match else None
+
+
 def conservation_status(result: dict) -> Optional[bool]:
     """True/False quando saldos presentes; None quando não verificável. Reusa a
     semântica de produção (cents, tolerância zero) — não o float leniente."""
@@ -125,6 +134,7 @@ def _classified_record(src: Path) -> tuple[dict, Optional[str]]:
     record: dict[str, Any] = {
         "file": file_digest(src.name),
         "content_hash": content_digest(src),
+        "stored_prefix": stored_prefix(src.name),
         "label": doc_label(
             classification["doc_type"], classification["institution"], classification["period"]
         ),

@@ -102,12 +102,25 @@ A perda silenciosa mora na divergência. Reconcilie:
   `escalado-honesto`, não "vazio". Invariante: **≤1 vivo não-fallback por
   `(ws, stage, key)`** (um parcial de run anterior ressuscitado = falso-verde).
 
-**Mecanização** (tira a reconciliação da mão): o harness emite `content_hash` por
-doc (SHA-256 do conteúdo, chave de join com `documents.content_hash`) e
-`dev/harness_db_reconcile.reconcile(harness_records, db_hashes, live_artifacts)`
-computa `ingested`/`deduped`/`not_ingested` (P0) + violações do invariante. Alimente
-`db_hashes` (SELECT content_hash de `documents` do ws) e `live_artifacts` (pares
-`(stage, key)` vivos não-fallback de `pipeline_artifacts`).
+**Mecanizado** (uma linha, tira a reconciliação da mão) — `reconcile_harness_db.py`
+é a cola de leitura do DB que alimenta `dev.harness_db_reconcile.reconcile`:
+
+```bash
+# a partir de um snapshot do Passo 2 (--baseline):
+.venv/bin/python .claude/skills/parse-certify/scripts/reconcile_harness_db.py \
+    <workspace> --records <baseline.json>
+# ou rodando o harness inline sobre a pasta do grupo:
+.venv/bin/python .claude/skills/parse-certify/scripts/reconcile_harness_db.py \
+    <workspace> --dir <groups[*].dir>
+```
+
+Ele lê `db_hashes` (SELECT `content_hash` de `documents` do ws) e `live_artifacts`
+(pares `(stage, key)` vivos não-fallback — mais recente por `(stage canônico, key)`,
+payload não-stub via `is_stub`; **≤1 por chave**, logo o invariante nunca dispara
+falso sobre os ~30 rows/chave que o workspace acumula entre runs). Emite
+`ingested`/`deduped`/`not_ingested` (P0) + violações do invariante; **exit ≠ 0** se
+não limpo. O `content_hash` por doc (SHA-256, chave de join com
+`documents.content_hash`) já vem do harness do Passo 2.
 
 ### Passo 4 — Atribuir veredito + delegar aos especialistas
 
