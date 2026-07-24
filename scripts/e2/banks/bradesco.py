@@ -404,6 +404,18 @@ def parse_bradesco(pdf_path: Path, filename: str) -> Dict[str, Any]:
             if total_match:
                 result["saldo_final"] = parse_brl(total_match.group(3))
 
+            # A39.l5 · ADR-342: saldo_inicial (SALDO ANTERIOR) e saldo_final
+            # (linha Total) são observados no doc → declara verificabilidade. O
+            # gate HARD escala conservação que não fecha (ex.: sweep Invest Fácil
+            # cujas tx não reconciliam) em vez de WARN silencioso. A captura
+            # correta do sweep é follow-up; aqui o doc deixa de silenciar.
+            if (
+                result.get("saldo_inicial") is not None
+                and result.get("saldo_final") is not None
+                and result["transacoes"]
+            ):
+                result["conservacao_verificavel"] = True
+
     except Exception as e:
         log(LOG_PREFIX, "ERROR", f"  Falha ao processar {filename}: {e}")
         result["notas"].append(f"Erro no parsing: {e}")
