@@ -87,6 +87,14 @@
         "valor_cents": {"type": "integer"},
         "escopo": {"type": "string"}
       }
+    },
+    "checksum_ok": {
+      "type": "boolean",
+      "description": "ADR-342 §Emenda A39.l6 — traço positivo: checksum de posição (Σ posições == total declarado, cents) passou. Distingue 'passou' de 'pulou por falta de total' (checksum_skipped_no_total). Declarado p/ drift-detection em modo strict."
+    },
+    "checksum_skipped_no_total": {
+      "type": "boolean",
+      "description": "ADR-342 §Emenda A39.l6 — há posições mas o total agregado independente não foi lido (ex.: Itaú CDB PDF de posição única) → checksum pulado com traço, não no-op silencioso."
     }
   },
   "additionalProperties": true

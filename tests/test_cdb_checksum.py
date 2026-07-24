@@ -40,3 +40,20 @@ def test_int_cents_accumulation_no_float_drift() -> None:
     r = _result([{"valor_atual": 0.1}, {"valor_atual": 0.2}])
     apply_cdb_checksum(r, 0.30)
     assert not r.get("requires_llm_fallback")
+
+
+def test_sum_matches_sets_checksum_ok() -> None:
+    # A39.l6: pass deixa traço positivo (distingue "passou" de "pulou")
+    r = _result([{"valor_atual": 100.0}, {"valor_atual": 50.0}])
+    apply_cdb_checksum(r, 150.0)
+    assert r.get("checksum_ok") is True
+    assert not r.get("requires_llm_fallback")
+
+
+def test_total_none_sets_skipped_trace() -> None:
+    # A39.l6: total agregado ausente → traço skipped (não no-op silencioso), sem escalar
+    r = _result([{"valor_atual": 100.0}])
+    apply_cdb_checksum(r, None)
+    assert r.get("checksum_skipped_no_total") is True
+    assert not r.get("checksum_ok")
+    assert not r.get("requires_llm_fallback")
