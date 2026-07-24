@@ -89,10 +89,16 @@ def apply_cdb_checksum(result: Dict[str, Any], total_declarado: Optional[float] 
         escalate_result(result, ReviewReasonCode.extract_empty_result, _CDB_EMPTY_MSG)
         return
     if total_declarado is None:
+        # A39.l6: total agregado ausente (ex.: Itaú CDB PDF de posição única) →
+        # checksum pulado com traço, não no-op silencioso. A certificação passa a
+        # distinguir "passou" de "pulou por falta de total".
+        result["checksum_skipped_no_total"] = True
         return
     soma_cents = sum(round((p.get("valor_atual") or 0) * 100) for p in posicoes)
     if soma_cents != round(total_declarado * 100):
         escalate_result(result, ReviewReasonCode.extract_investment_sum_mismatch, _CDB_MISMATCH_MSG)
+        return
+    result["checksum_ok"] = True  # A39.l6: traço positivo do pass
 
 
 def validate_extrato_result(
