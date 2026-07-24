@@ -5,6 +5,7 @@ title: "Identidade de posição de renda variável (ticker+proprietário) + null
 status: Decidido
 phase: A39.l9
 date: "2026-07-24"
+amended_at: ["2026-07-24"]
 relates_to:
   - "[[ADR-271]]"
   - "[[ADR-287]]"
@@ -32,6 +33,11 @@ tags:
 > (membro ≥3). Este documento incorpora as correções bloqueantes. Flippa para
 > `Decidido (A39.l9)` no merge da implementação. Tamanho >150 linhas justificado:
 > contrato multi-stage (E2→E4→E5) com invariantes testáveis por vetor de perda.
+
+> **Emenda 2026-07-24 (§4b — membro-vazia)** — a certificação `ledger-certify` (LC-02)
+> achou o vetor **simétrico** ao passo 4: o step 4 fecha instituição-vazia, mas
+> membro-vazio cross-período ainda dobra o PL. Adiciona o passo 4b + invariante 11.
+> Ver `## Emenda — vetor membro-vazia` ao fim.
 
 ## Contexto
 
@@ -255,3 +261,26 @@ proventos-extrato × renda-passiva-IRPF · auto-resolução entre 2 fontes valor
 idênticas · projeção multi-membro (>casal) no PL + fusão 50/50 de posição conjunta
 ([[ADR-246]]) · identidade RV internacional/offshore (BDR↔subjacente) · split/
 bonificação como reconciliação de qtd · FII/ETF/unit no ticker "11" no bucketing.
+
+## Emenda — vetor membro-vazia (2026-07-24)
+
+A certificação `ledger-certify` (LC-02) achou o **vetor simétrico** ao passo 4: o step 4
+resolve **instituição-vazia** (chave `("", membro)`), mas **membro-vazio** cross-período
+segue aberto. Um snapshot sem membro atribuído e um resolvido, no mesmo broker, formam
+chaves `(inst, "")` e `(inst, <membro>)` **distintas** → ambos sobrevivem → o snapshot
+stale soma ao PL atual (dupla-contagem). A invariante 3 (mesmo `(inst,membro)`) não pega.
+
+**Passo 4b — colapso, NÃO key-widening.** Ao contrário do step 4 (que **alarga** a chave
+via `_src:` para preservar fontes distintas), membro-vazio precisa **colapsar** no irmão
+resolvido — são snapshots temporais do mesmo membro. Pós-`best_by_key`, para cada chave
+`(inst, "")`: **1** irmão `(inst, <resolvido>)` → colapsa (most-recent `data_ref` vence,
+atribui ao membro resolvido, log em `avisos`); **0** → mantém (fonte única, sem inflação);
+**≥2** → `needs_review` (não atribui às cegas). `data_ref` **nunca** entra na chave (mesma
+proibição do step 4). Fix primário upstream: `AccountResolver` cobrir a instituição / parser
+emitir `membro`; o colapso é a **rede defensiva** (o `MemberNameResolver` é no-op quando
+`membro` chega vazio).
+
+**Invariante 11 (nova):** membro-vazio com **1** irmão resolvido no mesmo inst colapsa
+(`total_por_membro` pré/pós = zero **exceto** o stale removido); **0** → preserva; **≥2** →
+`needs_review`. Impl: [`investments_consolidator._collapse_empty_member`](../../pipeline/domain/services/investments_consolidator.py);
+testes em `tests/unit/pipeline/test_investments_membro_vazio.py`.
