@@ -53,6 +53,15 @@ class LoadStat:
     tx_loaded: int
 
 
+@dataclass(frozen=True)
+class StatementExclusion:
+    """Statement inteiro excluído no load (ADR-347), por canal. O tx count entra no
+    ledger de conservação **run-level** (workspace), não num artefato E3 (não há)."""
+
+    canal: str
+    count: int
+
+
 @dataclass
 class LoadOutcome:
     """Estado interno acumulado durante ``_load_with_outcome``."""
@@ -65,6 +74,13 @@ class LoadOutcome:
     skipped: int = 0
     # ADR-347 PR1b — fatos de carga por source, base do ledger de conservação.
     load_stats: dict[str, LoadStat] = field(default_factory=dict)
+    # ADR-347 PR2 — statements excluídos no load (tx count por canal), ledger run-level.
+    exclusions: list[StatementExclusion] = field(default_factory=list)
+
+    def exclude(self, canal: str, count: int) -> None:
+        """Registra exclusão de statement inteiro: incrementa ``skipped`` + ledger."""
+        self.skipped += 1
+        self.exclusions.append(StatementExclusion(canal, count))
 
 
 def _remocoes(undated: int, anachronic: int, intra: int, cross: int, cross_cents: int) -> dict:
