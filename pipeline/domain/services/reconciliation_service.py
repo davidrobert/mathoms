@@ -39,11 +39,51 @@ ver ADR-146.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Iterable
 
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money, Transaction
+
+
+def _tx_cents(tx: Transaction) -> int:
+    """Cents (int) de uma tx — ``amount`` já é Decimal quantizado (ADR-090)."""
+    return int((tx.amount.amount * 100).to_integral_value(rounding=ROUND_HALF_UP))
+
+
+def _cross_source(a: Transaction, b: Transaction) -> bool:
+    """True se as duas tx vêm de ``source_document`` distintos (não-vazios)."""
+    sa, sb = (a.source_document or ""), (b.source_document or "")
+    return bool(sa) and bool(sb) and sa != sb
+
+
+def _reconciled_copy(stmt: BankStatement, transactions: list[Transaction]) -> BankStatement:
+    """Cópia de ``stmt`` com a lista de transações dedup-ada (não muta o original)."""
+    return BankStatement(
+        institution=stmt.institution,
+        member_key=stmt.member_key,
+        period_start=stmt.period_start,
+        period_end=stmt.period_end,
+        currency=stmt.currency,
+        transactions=transactions,
+        opening_balance=stmt.opening_balance,
+        closing_balance=stmt.closing_balance,
+        source_document=stmt.source_document,
+        notes=list(stmt.notes),
+        account_type=stmt.account_type,
+    )
+
+
+@dataclass(frozen=True)
+class DedupRemoval:
+    """Remoção de tx declarada por canal (ADR-347). PR1 captura fatos (count, valor
+    cents, cross_source_count = removidos com par-sobrevivente de fonte distinta); a
+    política de needs_review para remoção não-provada é PR2 (measure-then-emit)."""
+
+    canal: str  # "intra_statement_dedup" | "cross_file_dedup"
+    count: int
+    valor_cents: int
+    cross_source_count: int
 
 
 @dataclass(frozen=True)
@@ -78,15 +118,26 @@ class ReconciliationService:
         Não muta os extratos de entrada — cria novos ``BankStatement`` quando
         há alteração.
         """
+        return self.reconcile_with_report(statements)[0]
+
+    def reconcile_with_report(
+        self, statements: Iterable[BankStatement]
+    ) -> tuple[list[BankStatement], list[DedupRemoval]]:
+        """Como :meth:`reconcile`, mais as remoções de dedup **intra-statement**
+        declaradas por canal (ADR-347). O caller (adapter) soma a partição
+        ``cross_file_dedup`` do merge."""
         groups: dict[tuple[str, str | None, str], list[BankStatement]] = {}
         for stmt in statements:
             key = (stmt.institution, stmt.member_key, stmt.currency)
             groups.setdefault(key, []).append(stmt)
 
         out: list[BankStatement] = []
+        removals: list[DedupRemoval] = []
         for bundle in groups.values():
-            out.extend(self._reconcile_group(bundle))
-        return out
+            reconciled, group_removals = self._reconcile_group_report(bundle)
+            out.extend(reconciled)
+            removals.extend(group_removals)
+        return out, removals
 
     def find_duplicates(self, transactions: list[Transaction]) -> list[tuple[int, int]]:
         """Pares de índices ``(i, j)`` considerados duplicatas (i < j)."""
@@ -122,34 +173,44 @@ class ReconciliationService:
     # -- Implementação --
 
     def _reconcile_group(self, stmts: list[BankStatement]) -> list[BankStatement]:
+        return self._reconcile_group_report(stmts)[0]
+
+    def _reconcile_group_report(
+        self, stmts: list[BankStatement]
+    ) -> tuple[list[BankStatement], list[DedupRemoval]]:
         reconciled: list[BankStatement] = []
+        removals: list[DedupRemoval] = []
         for stmt in stmts:
-            transactions = self._dedup(stmt.transactions)
-            reconciled.append(
-                BankStatement(
-                    institution=stmt.institution,
-                    member_key=stmt.member_key,
-                    period_start=stmt.period_start,
-                    period_end=stmt.period_end,
-                    currency=stmt.currency,
-                    transactions=transactions,
-                    opening_balance=stmt.opening_balance,
-                    closing_balance=stmt.closing_balance,
-                    source_document=stmt.source_document,
-                    notes=list(stmt.notes),
-                    account_type=stmt.account_type,
-                )
-            )
-        return reconciled
+            kept, count, valor_cents, cross = self.dedup_report(stmt.transactions)
+            reconciled.append(_reconciled_copy(stmt, kept))
+            if count:
+                removals.append(DedupRemoval("intra_statement_dedup", count, valor_cents, cross))
+        return reconciled, removals
 
     def _dedup(self, transactions: list[Transaction]) -> list[Transaction]:
-        seen_indexes: set[int] = set()
+        return self.dedup_report(transactions)[0]
+
+    def _duplicate_indices(
+        self, transactions: list[Transaction]
+    ) -> tuple[set[int], dict[int, int]]:
+        """Índices removidos + o índice do sobrevivente que casou cada um."""
+        survivor: dict[int, int] = {}
+        dropped: set[int] = set()
         for i in range(len(transactions)):
-            if i in seen_indexes:
+            if i in dropped:
                 continue
             for j in range(i + 1, len(transactions)):
-                if j in seen_indexes:
-                    continue
-                if self.is_duplicate(transactions[i], transactions[j]):
-                    seen_indexes.add(j)
-        return [t for i, t in enumerate(transactions) if i not in seen_indexes]
+                if j not in dropped and self.is_duplicate(transactions[i], transactions[j]):
+                    dropped.add(j)
+                    survivor[j] = i
+        return dropped, survivor
+
+    def dedup_report(
+        self, transactions: list[Transaction]
+    ) -> tuple[list[Transaction], int, int, int]:
+        """Dedup + fatos por canal (ADR-347): ``(kept, count, valor_cents, cross_source_count)``."""
+        dropped, survivor = self._duplicate_indices(transactions)
+        kept = [t for i, t in enumerate(transactions) if i not in dropped]
+        valor_cents = sum(_tx_cents(transactions[j]) for j in dropped)
+        cross = sum(1 for j in dropped if _cross_source(transactions[j], transactions[survivor[j]]))
+        return kept, len(dropped), valor_cents, cross
