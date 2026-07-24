@@ -66,7 +66,6 @@ def _is_dormant_by_observation(result: Dict[str, Any]) -> bool:
 # posição (ADR-090) — float acumulado dispara falso-fire com muitas posições.
 _CDB_EMPTY_MSG = "0 posições de CDB extraídas — escalado (ADR-342)"
 _CDB_MISMATCH_MSG = "Σ posições ≠ total declarado (cents) — escalado (ADR-342 §Emenda l12)"
-_FATURA_MISMATCH_MSG = "Σ lançamentos ≠ total_compras (cents) — WARN (flip HARD por parser)"
 
 
 def _apply_fatura_checksum(result: Dict[str, Any], issues: List[str]) -> None:
@@ -86,8 +85,13 @@ def _apply_fatura_checksum(result: Dict[str, Any], issues: List[str]) -> None:
         if t.get("escopo") == escopo
     )
     if soma_cents != signal["valor_cents"]:
-        issues.append("WARN: Σ lançamentos ≠ total_compras declarado (checksum de fatura)")
-        _warn_reason(result, ReviewReasonCode.extract_fatura_total_mismatch, _FATURA_MISMATCH_MSG)
+        _fatura_mismatch_warn(result, issues, escopo)
+
+
+def _fatura_mismatch_warn(result: Dict[str, Any], issues: List[str], escopo) -> None:
+    msg = f"Σ lançamentos ≠ total declarado no escopo '{escopo}' (checksum de fatura)"
+    issues.append(f"WARN: {msg}")
+    _warn_reason(result, ReviewReasonCode.extract_fatura_total_mismatch, msg)
 
 
 def apply_cdb_checksum(result: Dict[str, Any], total_declarado: Optional[float] = None) -> None:
