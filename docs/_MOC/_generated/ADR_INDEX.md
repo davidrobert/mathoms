@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-336 ADRs (ADR-001 a ADR-347) em [`docs/adr/`](../../adr/).
+338 ADRs (ADR-001 a ADR-349) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 301
-- **Proposto**: 32
+- **Decidido**: 302
+- **Proposto**: 33
 - **Roadmap**: 3
 
 ## Fundação
@@ -131,10 +131,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-210]] — Saúde do test suite do CI — gates, telemetria e ciclo de vida · phase Sprint A12 (test health · CI cost)
 - [[ADR-284]] — Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift · phase Débito técnico (A24)
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-058]] — VPS CX32 para sizing · phase F7
 - [[ADR-260]] — Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP · phase A20.W2 + A20.W3
+- [[ADR-349]] — Rotear classify_by_llm pelo choke-point LLMService (instrumentação: budget, cache, telemetria, enum) · phase A39
 
 ## Testing
 
@@ -517,7 +518,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (48)
+### Decidido (49)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -567,6 +568,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-340]] — score_version 2.1 — componente de diversificação vira concentração imobiliária invertida (FIN-05) · phase dogfood-c11-fin05
 - [[ADR-342]] — Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path · phase A38.l3
 - [[ADR-346]] — Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador · phase A39.l9
+- [[ADR-348]] — Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group · phase A39.l11
 
 ### Proposto (7)
 

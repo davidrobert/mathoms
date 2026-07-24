@@ -203,6 +203,7 @@ baseline sobre `origin/main` antes de qualquer mutação**.
 | [[A39.l10]] | PC-08 | P2 | **ADR-344** (nova) | Piso de materialidade como **roteamento sobre o caminho não-certificado** (transitório; north-star = certificar; telemetria de dependência) + emenda-ponteiro ADR-342 item 2; `depends_on` [[A39.l2]]/[[A39.l4]]/[[A39.l5]]/[[A39.l7]] |
 | [[A39.l11]] | PC-07 (LLM) | P2 | **ADR nova (temp=0)** | Determinismo da classificação LLM: `temperature=0` na via compartilhada + golden sintético N=3 + telemetria `mathoms.llm.classification.*`; co-design senior-cto (muda runtime de todo upload) |
 | [[A39.l12]] | PC-07 (resíduo) | P2 | — | Verificar que `classify_document` roteia o resíduo real (binance csv) a escalação honesta; investigar extração de preview `.xlsx` (rico); binance consumer stage = **fora de escopo** (nota); `depends_on` [[A39.l1]] |
+| [[A39.l13]] | PC-07 (LLM) | P1 | **[[ADR-349]]** (nova) | Spin-off do co-design da [[A39.l11]]: re-route de `classify_by_llm` pelo choke-point `LLMService` (budget/cache/telemetria/enum de graça). Fecha a doença de fundo que a l11 cirúrgica deixou; faseada (PDF-imagem = risco); priorização `product-manager` (pode ir p/ A40) |
 
 ## Deferidos (fora de A39 — decisão explícita do painel)
 
