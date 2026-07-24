@@ -3,7 +3,9 @@ id: A39.l5
 type: lane
 title: "Bradesco: diagnosticar saldo R$1/R$1 (raiz não confirmada) + teste de independência antes de flipar"
 sprint: A39
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1042
 priority: P1
 branch_slug: a39-l5-bradesco-saldo-diagnostico
 adrs: ["[[ADR-342]]"]
@@ -11,7 +13,7 @@ depends_on: ["[[A39.l1]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados

@@ -275,6 +275,16 @@ residuais, ADR-343 descartada (emenda [[ADR-342]] superou). ADRs novas restantes
 344 (piso) + RV + temp=0. **Deferidos:** propagação E2→E5 + selo → REPORT_TRUST
 (ADR-345); órfãos + cauda [[A38.l8]]/[[A38.l11]] → A40.
 
+**Execução 2026-07-23:** onda de flips + observabilidade + classificação
+**entregue** — l1 (#1035) · l2 (#1039) · l4 (#1041) · l5 (#1042) · l6 (#1043) ·
+l7 (#1040) em `main`; l3 (#1045, gate escopo-aware — opt-in deferido) e l8 (#1047,
+classificação fatura Itaú — parser deferido) parciais. **KR-A completo** (os 4
+perda-silenciosa escalam). **Fase pesada deferida** (blocker real, não cram):
+[[A39.l9]] parser RV+ADR · [[A39.l10]] piso (ADR-344 + valor de materialidade =
+decisão de domínio) · [[A39.l11]] temp=0 (eval owner-gated) · opt-in/parser de
+fatura ([[A39.l3]]/[[A39.l8]]) bloqueados na **identidade do checksum de fatura**
+(o que "Total Despesas" inclui — 0/3 fecham). Detalhe: [sprint/A39/_README.md](../sprint/A39/_README.md) §Estado de execução.
+
 - **Plano:** [sprint/A39/_README.md](../sprint/A39/_README.md) · **Origem:** skill `parse-certify` no workspace `5@5.com` 2026-07-23 (corpus fora do git).
 
 ### A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer (`candidate` 2026-06-19)

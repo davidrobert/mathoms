@@ -3,7 +3,9 @@ id: A39.l7
 type: lane
 title: "Sweep de verificabilidade: itau_xls + santander_xls declaram conservacao_verificavel (wise/rico cortados)"
 sprint: A39
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1040
 priority: P1
 branch_slug: a39-l7-verificabilidade-sweep
 adrs: ["[[ADR-342]]"]
@@ -11,7 +13,7 @@ depends_on: ["[[A39.l1]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados

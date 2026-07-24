@@ -796,13 +796,13 @@
 | A39.l10 | lane | planned | A39 | Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) | `sprint/A39/lanes/A39-l10-piso-materialidade.md` |
 | A39.l11 | lane | planned | A39 | Determinismo da classificação LLM: temperature=0 na via compartilhada + golden sintético + telemetria | `sprint/A39/lanes/A39-l11-classificacao-llm-determinismo.md` |
 | A39.l12 | lane | planned | A39 | Resíduo não-coberto: verificar escalação honesta do Binance CSV + investigar extração de preview .xlsx (rico) | `sprint/A39/lanes/A39-l12-binance-rico-residuo.md` |
-| A39.l2 | lane | planned | A39 | C6 Bank CSV: declarar conservacao_verificavel (semântica de saldo já correta) → escala perda silenciosa | `sprint/A39/lanes/A39-l2-c6-csv-optin-verificabilidade.md` |
-| A39.l3 | lane | planned | A39 | Fatura closure: parsers emitem total_lancamentos_conferivel (gate #1036 pronto) + flip WARN→HARD | `sprint/A39/lanes/A39-l3-checksum-fechamento-fatura.md` |
-| A39.l4 | lane | planned | A39 | C6 Bank PDF: corrigir semântica de saldo_inicial (ajuste do 1º dia) e então declarar verificabilidade | `sprint/A39/lanes/A39-l4-c6-pdf-saldo-semantica.md` |
-| A39.l5 | lane | planned | A39 | Bradesco: diagnosticar saldo R$1/R$1 (raiz não confirmada) + teste de independência antes de flipar | `sprint/A39/lanes/A39-l5-bradesco-saldo-diagnostico.md` |
-| A39.l6 | lane | planned | A39 | Checksum de CDB observável: traço checksum_ok/skipped_no_total + WARN posições-sem-total; estender Santander xlsx | `sprint/A39/lanes/A39-l6-cdb-checksum-observavel.md` |
-| A39.l7 | lane | planned | A39 | Sweep de verificabilidade: itau_xls + santander_xls declaram conservacao_verificavel (wise/rico cortados) | `sprint/A39/lanes/A39-l7-verificabilidade-sweep.md` |
-| A39.l8 | lane | planned | A39 | Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto) | `sprint/A39/lanes/A39-l8-fatura-itau-visa.md` |
+| A39.l2 | lane | shipped | A39 | C6 Bank CSV: declarar conservacao_verificavel (semântica de saldo já correta) → escala perda silenciosa | `sprint/A39/lanes/A39-l2-c6-csv-optin-verificabilidade.md` |
+| A39.l3 | lane | shipped | A39 | Fatura closure: parsers emitem total_lancamentos_conferivel (gate #1036 pronto) + flip WARN→HARD | `sprint/A39/lanes/A39-l3-checksum-fechamento-fatura.md` |
+| A39.l4 | lane | shipped | A39 | C6 Bank PDF: corrigir semântica de saldo_inicial (ajuste do 1º dia) e então declarar verificabilidade | `sprint/A39/lanes/A39-l4-c6-pdf-saldo-semantica.md` |
+| A39.l5 | lane | shipped | A39 | Bradesco: diagnosticar saldo R$1/R$1 (raiz não confirmada) + teste de independência antes de flipar | `sprint/A39/lanes/A39-l5-bradesco-saldo-diagnostico.md` |
+| A39.l6 | lane | shipped | A39 | Checksum de CDB observável: traço checksum_ok/skipped_no_total + WARN posições-sem-total; estender Santander xlsx | `sprint/A39/lanes/A39-l6-cdb-checksum-observavel.md` |
+| A39.l7 | lane | shipped | A39 | Sweep de verificabilidade: itau_xls + santander_xls declaram conservacao_verificavel (wise/rico cortados) | `sprint/A39/lanes/A39-l7-verificabilidade-sweep.md` |
+| A39.l8 | lane | shipped | A39 | Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto) | `sprint/A39/lanes/A39-l8-fatura-itau-visa.md` |
 | A39.l9 | lane | planned | A39 | Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) | `sprint/A39/lanes/A39-l9-posicao-renda-variavel.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |

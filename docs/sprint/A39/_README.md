@@ -28,6 +28,52 @@ theme: "ingest-trust"
 > §Decisões do painel). O painel reescreveu 5 lanes do rascunho, reconciliou a
 > cauda P2 do A38, e fechou a estrutura de 3 ADRs novas.
 
+## Estado de execução (2026-07-23)
+
+**Onda de flips + observabilidade + classificação ENTREGUE** — 7 lanes em `main`
+(+ l8 em auto-merge), **KR-A completo**:
+
+| Lane | PR | Nota |
+|---|---|---|
+| [[A39.l1]] harness | #1035 | ✅ (entregue antes da abertura) |
+| [[A39.l2]] C6 CSV opt-in | #1039 | ✅ |
+| [[A39.l4]] C6 PDF saldo | #1041 | ✅ |
+| [[A39.l5]] bradesco saldo | #1042 | ✅ (R$1 é real: sweep Invest Fácil) |
+| [[A39.l6]] CDB trace | #1043 | ✅ |
+| [[A39.l7]] verificabilidade sweep | #1040 | ✅ (itau_xls+santander_xls) |
+| [[A39.l3]] gate fatura escopo-aware | #1045 | ✅ **parcial** — gate; opt-in do parser **deferido** |
+| [[A39.l8]] classificação fatura Itaú | #1047 | ✅ **parcial** — classificação; parser determinístico **deferido** |
+
+**KRs:** **KR-A** ✅ (os 4 perda-silenciosa escalam via l2/l4/l5) · **KR-B** 6
+parsers declaram `conservacao_verificavel` · **KR-C/D** observabilidade CDB (l6) +
+gate de fatura escopo-aware (l3).
+
+### Deferido — fase pesada (bloqueada por decisão/iteração; não é cauda P2 comum)
+
+Cada uma tem um **blocker real** que torna cramar temerário (arrisca a
+perda-silenciosa que o sprint combate). Handoff turnkey na memória de sessão
+`project_a39_execution`:
+
+- **Opt-in de fatura ([[A39.l3]] c2) + parser Itaú ([[A39.l8]] parser):**
+  bloqueados na **identidade do checksum de fatura** — `Σ(tx despesa_brasil) ==
+  total_compras` **não fecha em 0/3** faturas reais (encargos/IOF-nacional NÃO
+  itemizados em "Total Despesas"; senior-cto já sinalizou). **Decisão de domínio
+  pendente:** o que "Total Despesas/Débitos no Brasil" inclui? Sem isso, opt-in =
+  WARN permanente e parser novo é não-verificável.
+- **[[A39.l9]] posição RV:** **parser NOVO** (custódia PDF + carteira XLSX) + **ADR
+  nova** (identidade `ticker+proprietário`) + `null-não-soma` no consolidador —
+  build de sessão dedicada, iteração no corpus real.
+- **[[A39.l10]] piso de materialidade:** **ADR-344** (id reservado; 343 é
+  pipeline-review) + o **valor do piso é uma decisão de materialidade de domínio**
+  (financial-planner) — não arbitrável no fim da sessão.
+- **[[A39.l11]] temp=0 LLM:** ADR nova + **eval owner-gated** (LLM real precisa da
+  key).
+- **[[A39.l12]] resíduo binance/rico:** verificação; parte `rico .xlsx` acoplada a
+  [[A39.l9]].
+
+DoD do sprint (W0+W1) atingido **exceto [[A39.l9]]** (deferida com blocker). W2
+(l10/l11/l12) trailing por design (padrão A37/A38).
+
 ## North Star
 
 Nenhum documento suportado vira artefato "ok" sem prova de fechamento. A38
