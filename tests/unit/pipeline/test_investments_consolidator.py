@@ -62,6 +62,16 @@ def _valued(
     )
 
 
+def _rv_valued(source: str, inst: str, ticker: str, qtd: int, valor) -> dict:
+    pos = {"nome": ticker, "ticker": ticker, "quantidade": qtd, "valor_total": valor}
+    return _extract(source=source, instituicao=inst, membro="david", total=valor, posicoes=[pos])
+
+
+def _rv_qtyonly(source: str, inst: str, ticker: str, qtd: int) -> dict:  # custódia sem valor
+    pos = {"nome": ticker, "ticker": ticker, "quantidade": qtd}
+    return _extract(source=source, instituicao=inst, membro="david", posicoes=[pos])
+
+
 class TestBasic:
     def test_consolidates_single_extract(self):
         c = _consolidator()
@@ -199,6 +209,40 @@ class TestEmptyInstitutionDedup:
         )
         assert out.total_por_membro["david"] == 120_000.0  # só o mais recente
         assert any("dedup posição" in a and "2026-02-28" in a for a in out.avisos_validacao)
+
+
+class TestResolucaoRV:
+    """ADR-346 (A39.l9) — colapso de identidade RV por (ticker_norm, membro)."""
+
+    def test_a_collapse_custodia_qtyonly_into_valued(self):
+        # (a) mesma ticker+qtd, corretora valorada + custódia qty-only → colapsa;
+        # total = só a valorada (Leitura A); sem falso alarme de ressalva.
+        corretora = _rv_valued("rico.json", "Rico", "BRKM5", 300, 1821)
+        custodia = _rv_qtyonly("itau.json", "Itau", "BRKM5", 300)
+        out = _consolidator().consolidate([corretora, custodia])
+        assert out.n_posicoes == 1
+        assert out.total_por_membro["david"] == 1821.0
+        assert out.posicoes_sem_marcacao_por_membro == {}
+
+    def test_c_qty_diferente_never_funds(self):
+        corretora = _rv_valued("rico.json", "Rico", "BRKM5", 300, 1821)
+        custodia = _rv_qtyonly("itau.json", "Itau", "BRKM5", 500)
+        out = _consolidator().consolidate([corretora, custodia])
+        assert out.n_posicoes == 2  # never-fund
+        assert any(p.get("possivel_posicao_espelho") for p in out.dados)
+
+    def test_b_duas_valoradas_sinalizam_superestimado(self):
+        a = _rv_valued("rico.json", "Rico", "BRKM5", 300, 1821)
+        b = _rv_valued("xp.json", "XP", "BRKM5", 300, 1821)
+        out = _consolidator().consolidate([a, b])
+        assert out.n_posicoes == 2  # never-fund
+        assert all(p.get("pl_possivel_superestimado") for p in out.dados)
+
+    def test_fractional_suffix_normaliza_e_colapsa(self):
+        corretora = _rv_valued("rico.json", "Rico", "PETR4", 300, 1821)
+        custodia = _rv_qtyonly("itau.json", "Itau", "PETR4F", 300)
+        out = _consolidator().consolidate([corretora, custodia])
+        assert out.n_posicoes == 1  # PETR4F → PETR4 → colapsa
 
 
 class TestMemberInference:
