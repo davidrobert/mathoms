@@ -128,7 +128,7 @@ def _investimentos_verdict(payload: dict, collisions: list) -> tuple[str, str]:
         return PERDA_SILENCIOSA, f"dupla-contagem ADR-271: {len(collisions)} chave(s) viva(s) 2×"
     if not dados:
         return COBERTO_SEM_VALOR, "balde vazio (0 posições)"
-    return CONSERVADO, f"{len(dados)} posições; chave (tipo|instituição|descrição) única"
+    return CONSERVADO, f"{len(dados)} posições; sem duplicata literal nem snapshot cross-período"
 
 
 def _non_ledger_verdict(key: str, payload: dict) -> tuple[str, str]:
