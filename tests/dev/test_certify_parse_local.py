@@ -14,7 +14,14 @@ from dev.certify_parse_local import (
     content_digest,
     file_digest,
     mask_text,
+    stored_prefix,
 )
+
+
+def test_stored_prefix_extracts_adr084_identity() -> None:
+    assert stored_prefix("29d69a0bb52b_c6bank_extratoconta_202606-0_original.csv") == "29d69a0bb52b"
+    assert stored_prefix("sem_prefixo_valido.pdf") is None
+    assert stored_prefix("29D69A0BB52B_uppercase.pdf") is None  # prefixo é lowercase hex
 
 
 def test_content_digest_is_sha256_of_bytes(tmp_path) -> None:
