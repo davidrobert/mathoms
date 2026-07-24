@@ -65,6 +65,26 @@ def test_e3_group_sem_payload_nao_verificavel() -> None:
     assert e3_group_verdict({})[0] == NAO_VERIFICAVEL
 
 
+def _with_ledger(g: dict, *, tx_carregadas: int, **remocoes: int) -> dict:
+    g = dict(g)
+    g["tx_carregadas"] = tx_carregadas
+    g["remocoes"] = {k: {"count": v, "valor_cents": 0} for k, v in remocoes.items()}
+    return g
+
+
+def test_e3_group_ledger_fecha_upgrada_para_conservado() -> None:
+    # ADR-347 — sem ledger, dups>0 seria COBERTO; com o ledger de contagem que
+    # FECHA (7 == 5 survivors + 2 removidas), sobe a CONSERVADO (conservação provada).
+    g = _with_ledger(_e3(5, dups=2), tx_carregadas=7, intra_statement_dedup=2)
+    assert e3_group_verdict(g)[0] == CONSERVADO
+
+
+def test_e3_group_ledger_com_residuo_e_perda_silenciosa() -> None:
+    # ADR-347 — o ledger é o detector de P0: resíduo não-declarado ⇒ perda.
+    g = _with_ledger(_e3(5), tx_carregadas=10, intra_statement_dedup=1)
+    assert e3_group_verdict(g)[0] == PERDA_SILENCIOSA
+
+
 # ─────────────────────────── e4_bucket_verdict ───────────────────────────
 
 
