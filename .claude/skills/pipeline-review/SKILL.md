@@ -34,6 +34,12 @@ skills do repo: `docs/reference/SKILLS.md`.
 - **skip_llm** (default `false`) — run completo inclui as stages LLM (parecer,
   narrativas). Um run "com LLM" custa API real (~US$1–2) e leva ~25 min; só use
   `skip_llm=true` para um smoke determinístico (o relatório fica incompleto p/ revisão).
+- **baseline/`--compare`** (opcional, anti-regressão · [[ADR-343]]) — cada run
+  emite um `review_snapshot.json` PII-safe (via `collect_review_inputs.py`).
+  `dev/compare_reviews.py --current <dir> --baseline <dir>` responde "regrediu vs
+  o run anterior?" em 3 pernas (conservação, drift de valor, saúde de execução),
+  exit≠0 em regressão HARD. Sem baseline, o run é fotografia; com ele, um gate.
+  Home do baseline: `storage/<uuid>/reviews/<ts>-<run8>/` (durável, off-git).
 
 ## Ambiente
 
@@ -69,9 +75,17 @@ se `make pipeline-run` não existir mais.
    `sqlite3 mathoms.db "SELECT id FROM reports WHERE pipeline_run_id='<run_id>';"`.
    Deve ser diferente do `latest_report` do baseline.
 5. **Coletar insumos:** `.venv/bin/python .claude/skills/pipeline-review/scripts/collect_review_inputs.py <workspace_id> <report_id> _scratch/pipeline-review-<slug>-<AAAA-MM-DD>/`.
-   Isso escreve `report_data.json`, `parecer.json`, `cross_validation.json` e
-   `run_meta.md` (status/duração, needs_review por tipo, telemetria LLM). Leia o
+   Isso escreve `report_data.json`, `parecer.json`, `cross_validation.json`,
+   `run_meta.md` (status/duração, needs_review por tipo, telemetria LLM) e
+   `review_snapshot.json` (PII-safe, para `--compare` · [[ADR-343]]). Leia o
    stdout: `CV_falhas` já aponta inconsistências de conservação/consistência.
+6. **Comparar vs baseline (opcional, anti-regressão):** se houver um baseline
+   durável do run anterior, rode
+   `.venv/bin/python dev/compare_reviews.py --current <dir_deste_run> --baseline storage/<uuid>/reviews/<ts_anterior>-<run8>/`.
+   Exit≠0 + linhas `FAIL:` = regressão real (conservação quebrou, balde zerou,
+   seção esvaziou, valor derrapou); `NOTE:` = suppressor ativo (tier downgrade /
+   corpus cresceu). Para congelar este run como baseline futuro:
+   `cp -R <dir_deste_run> storage/<uuid>/reviews/<ts>-<run8>/`.
 
 ## Passo 2 — Rubrica (avalie execução E relatório contra todas as lentes)
 

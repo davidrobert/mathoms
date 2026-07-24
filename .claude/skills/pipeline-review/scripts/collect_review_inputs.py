@@ -3,8 +3,9 @@
 Escreve, fiel ao que a UI consome (sem HTTP/auth):
 - ``report_data.json``  — view-model E5 (``get_report_data``: 35+ chaves + lineage)
 - ``parecer.json``      — parecer_planejador decriptado
-- ``cross_validation.json`` — os 14 checks CV (conservação/consistência) com mensagens
+- ``cross_validation.json`` — os checks CV (conservação/consistência) com mensagens
 - ``run_meta.md``       — status/duração, needs_review por tipo, telemetria LLM (2 tabelas)
+- ``review_snapshot.json`` — snapshot PII-safe p/ ``dev/compare_reviews.py`` (ADR-343)
 
 Rode da RAIZ do repo (carrega ``.env`` + Fernet):
 ``.venv/bin/python .claude/skills/pipeline-review/scripts/collect_review_inputs.py <ws_id> <report_id> <out_dir>``
@@ -24,6 +25,7 @@ from sqlalchemy import text
 from backend.app.application.report.get_report_data import get_report_data
 from backend.app.core.database import async_session
 from backend.app.services.security.crypto import read_artifact_content
+from dev.compare_reviews import build_snapshot
 from scripts.validate_cross import run_cross_validation
 
 
@@ -34,7 +36,7 @@ async def _dump_report_data(db, ws: str, report_id: str, out: Path) -> list[str]
     return data
 
 
-async def _dump_parecer(db, ws: str, out: Path) -> str:
+async def _dump_parecer(db, ws: str, out: Path) -> dict | None:
     row = (
         await db.execute(
             text(
@@ -45,11 +47,11 @@ async def _dump_parecer(db, ws: str, out: Path) -> str:
         )
     ).first()
     if row is None:
-        return "ausente"
+        return None
     raw = json.loads(row[0]) if isinstance(row[0], str) else row[0]
     content = read_artifact_content(raw)
     (out / "parecer.json").write_text(json.dumps(content, ensure_ascii=False, indent=2))
-    return "ok"
+    return content if isinstance(content, dict) else {"_raw": content}
 
 
 def _dump_cross_validation(data: dict, out: Path) -> list[dict]:
@@ -71,10 +73,12 @@ async def _rows(db, sql: str, params: dict) -> list[dict]:
     return [dict(m) for m in (await db.execute(text(sql), params)).mappings().all()]
 
 
-async def _write_run_meta(db, ws: str, run_id: str, cv: list[dict], out: Path) -> None:
+async def _fetch_run_meta(
+    db, ws: str, run_id: str
+) -> tuple[dict, list[dict], list[dict], list[dict]]:
     run = await _rows(
         db,
-        "SELECT status, tier_at_run, total_documents, started_at, completed_at, "
+        "SELECT status, tier_at_run, total_documents, failed_at_stage, "
         "ROUND((julianday(completed_at)-julianday(started_at))*24*60,1) AS minutes "
         "FROM pipeline_runs WHERE id = :r",
         {"r": run_id},
@@ -97,10 +101,22 @@ async def _write_run_meta(db, ws: str, run_id: str, cv: list[dict], out: Path) -
         "WHERE pipeline_run_id = :r",
         {"r": run_id},
     )
+    return (run[0] if run else {}), nr, costs, calls
+
+
+def _write_run_meta(
+    run_id: str,
+    run: dict,
+    nr: list[dict],
+    cv: list[dict],
+    costs: list[dict],
+    calls: list[dict],
+    out: Path,
+) -> None:
     cv_fail = [c for c in cv if not c["passed"]]
     lines = [
         f"# Run meta — report {out.name}",
-        f"- run: `{run_id}` · {run[0] if run else '?'}",
+        f"- run: `{run_id}` · {run or '?'}",
         f"- needs_review por tipo: {nr}",
         f"- CV: {len(cv) - len(cv_fail)}/{len(cv)} OK; falhas: {[c['check_id'] + ':' + c['details'] for c in cv_fail]}",
         f"- pipeline_run_costs ({len(costs)}): {costs}",
@@ -121,9 +137,20 @@ async def main() -> None:
                 text("SELECT pipeline_run_id FROM reports WHERE id = :r"), {"r": report_id}
             )
         ).scalar()
-        await _write_run_meta(db, ws, run_id, cv, out_dir)
+        run, nr, costs, calls = await _fetch_run_meta(db, ws, run_id)
+    _write_run_meta(run_id, run, nr, cv, costs, calls, out_dir)
+    meta = {"run": run, "needs_review": nr, "costs": costs, "calls": calls}
+    snapshot = build_snapshot(
+        run_id=str(run_id), report_data=data, cv_results=cv, meta=meta, parecer=parecer
+    )
+    (out_dir / "review_snapshot.json").write_text(
+        json.dumps(snapshot, ensure_ascii=False, indent=2)
+    )
     fails = [c["check_id"] for c in cv if not c["passed"]]
-    print(f"OK report_data({len(data)} chaves) parecer={parecer} CV_falhas={fails} → {out_dir}")
+    print(
+        f"OK report_data({len(data)} chaves) parecer={'ok' if parecer else 'ausente'} "
+        f"CV_falhas={fails} snapshot=review_snapshot.json → {out_dir}"
+    )
 
 
 if __name__ == "__main__":

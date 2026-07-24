@@ -2,7 +2,7 @@
 id: ADR-343
 type: adr
 title: "Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico"
-status: Proposto
+status: Decidido
 date: "2026-07-23"
 relates_to:
   - "[[ADR-302]]"
@@ -15,7 +15,7 @@ aliases:
   - "review baseline"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/docs
   - area/tooling
   - area/dados
@@ -23,7 +23,7 @@ tags:
 
 # ADR-343 — Estado durável da pipeline-review
 
-**Status:** Proposto · **Data:** 2026-07-23
+**Status:** Decidido · **Data:** 2026-07-23
 
 > ADR >150 linhas: uma decisão (o split de zona de confiança) com dois mecanismos
 > acoplados — registro editorial + baseline `--compare` — que repousam na mesma
@@ -160,7 +160,13 @@ de zona de confiança + bifurcação para PII) tem peso próprio.
 - Um tier extra de persistência (`storage/<uuid>/reviews/`) vs. o `audit-vault`.
 - Manter o snapshot PII-safe alinhado à evolução do view-model E5.
 
-## Validação (critério de aceite para flip → Decidido)
+## Validação (critério de aceite — satisfeito no flip)
+
+> **Flip 2026-07-23:** PR1 (docs) mergeado (#1044); PR2 implementa
+> `build_snapshot`/`compare_reviews` em `dev/compare_reviews.py` + emissão em
+> `collect_review_inputs.py`, com 11 testes cobrindo os critérios abaixo
+> (`tests/dev/test_compare_reviews.py`, verdes) e smoke de CLI (exit 0/1/2).
+
 
 - `docs/_MOC/PIPELINE-REVIEWS-active.md` criado; `check_doc_links` verde;
   `build_doc_index --check` sem diff em `_generated/`; `validate_frontmatter`
