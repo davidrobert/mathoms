@@ -51,6 +51,12 @@ def file_digest(filename: str) -> str:
     return hashlib.sha256(filename.encode("utf-8")).hexdigest()[:12]
 
 
+def content_digest(src: Path) -> str:
+    """SHA-256 do conteúdo — chave de join com ``documents.content_hash`` (dedup do
+    DB). Requer originais destrancados (mesma pré-condição de cripto do harness)."""
+    return hashlib.sha256(src.read_bytes()).hexdigest()
+
+
 def doc_label(
     doc_type: Optional[str] = None,
     institution: Optional[str] = None,
@@ -118,6 +124,7 @@ def _classified_record(src: Path) -> tuple[dict, Optional[str]]:
     classification = _classify(src)
     record: dict[str, Any] = {
         "file": file_digest(src.name),
+        "content_hash": content_digest(src),
         "label": doc_label(
             classification["doc_type"], classification["institution"], classification["period"]
         ),
