@@ -47,6 +47,14 @@ class ConservationResult:
 
 # ─────────────────────────── E2 → E3 ───────────────────────────
 
+# Doc-types que carregam posição/informe (não transação bancária): passam pelo
+# reconciliador mas não produzem tx reconciliada — não podem inflar o denominador
+# E2→E3 (LC-07). Espelha a distinção do E4 (``e4_categorizer_adapter``:
+# ``tipo_documento in ("investment_report", "informe_rendimentos")``). Os tipos já
+# normalizados (``investimentosposicao``, ``informerendimentos``…) saem via
+# ``AccountGrouper.should_skip``; este set cobre as formas LLM com underscore.
+_NON_TX_DOC_TYPES = frozenset({"investment_report", "informe_rendimentos"})
+
 
 def _tx_cents(tx: dict) -> int:
     """Cents de uma transação. O pipeline move ``valor`` (float); ``amount``
@@ -61,9 +69,27 @@ def _sum_cents(txns: list[dict]) -> int:
     return sum(_tx_cents(t) for t in txns)
 
 
+def _skips_reconcile(artifact: dict) -> bool:
+    """True se o reconciliador não produziria tx a partir deste artefato E2 — tipo
+    pulado (``AccountGrouper.should_skip``: IRPF, posição, informe, fatura não-
+    suportada) ou doc-type de posição/informe (``_NON_TX_DOC_TYPES``). Filtra o
+    denominador E2→E3 para não contar tx que nunca entram no reconcile (LC-07)."""
+    from pipeline.domain.services.account_grouper import AccountGrouper
+
+    if not isinstance(artifact, dict):
+        return True
+    doc_type = str(artifact.get("tipo") or artifact.get("tipo_documento") or "").strip()
+    if doc_type in _NON_TX_DOC_TYPES:
+        return True
+    return AccountGrouper().should_skip(artifact)
+
+
 def e2_to_e3(e2_artifacts: list[dict], e3_artifacts: list[dict]) -> ConservationResult:
-    """Conservação E2→E3 (workspace-wide). Count HARD; valor HARD só se dups==0."""
-    e2_tx = [t for a in e2_artifacts for t in a.get("transacoes", [])]
+    """Conservação E2→E3 (workspace-wide). Count HARD; valor HARD só se dups==0.
+    O denominador exclui artefatos não-reconciliáveis (posição/informe/IRPF): suas
+    tx nunca entram no reconcile e inflariam a perda aparente (LC-07)."""
+    reconcilable = [a for a in e2_artifacts if not _skips_reconcile(a)]
+    e2_tx = [t for a in reconcilable for t in a.get("transacoes", [])]
     count_in = len(e2_tx)
     survivors = sum(a.get("transacoes_total", 0) for a in e3_artifacts)
     dups = sum(a.get("transacoes_duplicadas_removidas", 0) for a in e3_artifacts)
@@ -76,14 +102,14 @@ def e2_to_e3(e2_artifacts: list[dict], e3_artifacts: list[dict]) -> Conservation
 def _e2e3_verdict(
     count_in: int, count_out: int, survivors: int, dups: int, val_in: int, val_out: int
 ) -> ConservationResult:
+    """Veredito E2→E3 fail-closed. A ORDEM importa: queda de count COM dedup
+    declarado (dups>0) é sub-declaração de dedup ⇒ coberto, não perda (LC-07). Só é
+    perda quando a queda vem sem nenhum dedup declarado. (count/dups vão no report.)"""
     checks = [
-        (
-            count_out < count_in,
-            PERDA_SILENCIOSA,
-            f"count {count_in} -> {count_out} (sobrev+dups < entrada)",
-        ),
-        (dups > 0, COBERTO_SEM_VALOR, f"dups={dups}; valor removido não declarado no artefato"),
-        (val_out != val_in, PERDA_SILENCIOSA, f"Σ valor {val_in} -> {val_out} cents (dups=0)"),
+        (count_out < count_in and dups == 0, PERDA_SILENCIOSA, "count caiu sem dedup declarado"),
+        (count_out < count_in, COBERTO_SEM_VALOR, "sub-declaração de dedup; valor não-provável"),
+        (dups > 0, COBERTO_SEM_VALOR, "dups>0; valor removido não declarado no artefato"),
+        (val_out != val_in, PERDA_SILENCIOSA, "Σ valor diverge sem dedup (dups=0)"),
     ]
     v, d = next(
         ((vv, dd) for cond, vv, dd in checks if cond), (CONSERVADO, "count e valor conservam")
@@ -142,23 +168,83 @@ def _e3e4_verdict(
 
 
 def _norm(text: str) -> str:
-    """Normaliza descrição para chave de dedup (ADR-271: descricao_norm)."""
+    """Normaliza texto para chave de identidade de posição (ADR-271)."""
     stripped = unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode()
     return " ".join(stripped.lower().split())
 
 
-def _dedup_key(pos: dict) -> tuple[str, str, str]:
-    return (
-        _norm(pos.get("tipo", "")),
-        _norm(pos.get("instituicao", "")),
-        _norm(pos.get("descricao", "")),
-    )
+def _pos_descriptor(pos: dict) -> str:
+    """Descritor estável e time-invariante de uma posição: ticker quando houver,
+    senão nome+vencimento. É o que separa DOIS produtos distintos de UMA mesma
+    posição re-snapshotada — a descrição sozinha vem vazia neste corpus, e keyar só
+    por (tipo|instituição) funde produtos distintos do mesmo snapshot (LC-06)."""
+    ticker = _norm(pos.get("ticker_norm") or pos.get("ticker") or pos.get("codigo") or "")
+    if ticker:
+        return ticker
+    nome = _norm(pos.get("nome") or pos.get("descricao") or pos.get("name") or "")
+    venc = _norm(pos.get("vencimento") or "")
+    return f"{nome}@{venc}" if venc else nome
+
+
+def _pos_value_cents(pos: dict) -> int:
+    for k in ("valor_atual", "valor_total", "current_value", "valor_brl", "valor"):
+        raw = pos.get(k)
+        if raw not in (None, ""):
+            return to_cents(raw)
+    return 0
+
+
+def _pos_data_ref(pos: dict) -> str:
+    return _norm(pos.get("data_referencia") or pos.get("data_posicao") or pos.get("periodo") or "")
+
+
+def _pos_identity(pos: dict) -> tuple[str, str, str]:
+    """Identidade de posição SEM membro nem tempo. Membro fora da chave de propósito:
+    o vetor real (snapshot stale via escape membro-vazio) exige que a identidade não
+    dependa de atribuição de membro (frágil, ADR-287); o tempo entra à parte."""
+    return (_norm(pos.get("tipo", "")), _norm(pos.get("instituicao", "")), _pos_descriptor(pos))
+
+
+def _identity_label(identity: tuple[str, str, str], reason: str) -> str:
+    tipo, inst, desc = identity
+    return f"{tipo}|{inst}|{desc or '<sem-descrição>'} [{reason}]"
+
+
+def _exact_dups(positions: list[dict]) -> set[tuple[str, str, str]]:
+    """Identidades cuja linha COMPLETA (identidade + data_ref + valor + membro)
+    aparece 2×: duplicata literal dentro de um snapshot."""
+    seen: dict[tuple, int] = {}
+    for pos in positions:
+        full = _pos_identity(pos) + (
+            _pos_data_ref(pos),
+            _pos_value_cents(pos),
+            _norm(pos.get("membro", "")),
+        )
+        seen[full] = seen.get(full, 0) + 1
+    return {full[:3] for full, n in seen.items() if n > 1}
+
+
+def _cross_period(positions: list[dict]) -> set[tuple[str, str, str]]:
+    """Identidades presentes em ≥2 ``data_referencia`` distintas: somar dois
+    snapshots da MESMA posição infla o patrimônio (o vetor real — ex.: binance
+    stale). Só conta ``data_ref`` não-vazia (fail-safe: sem data não afirma nada)."""
+    refs: dict[tuple[str, str, str], set[str]] = {}
+    for pos in positions:
+        dr = _pos_data_ref(pos)
+        if dr:
+            refs.setdefault(_pos_identity(pos), set()).add(dr)
+    return {ident for ident, drs in refs.items() if len(drs) > 1}
 
 
 def investment_double_count(investimentos: dict) -> list[str]:
-    """Posições com mesma chave (tipo|instituicao|descricao_norm) vivas 2× (ADR-271) — falha em cenário sum-preserving; retorna chaves colididas mascaradas."""
-    seen: dict[tuple[str, str, str], int] = {}
-    for pos in investimentos.get("dados", []):
-        key = _dedup_key(pos)
-        seen[key] = seen.get(key, 0) + 1
-    return [f"{k[0]}|{k[1]}|<desc>" for k, n in seen.items() if n > 1]
+    """Posições dupla-contadas (ADR-271) — falha num cenário sum-preserving. Dois
+    vetores: duplicata literal num snapshot + mesma posição em ≥2 ``data_referencia``.
+    NÃO alerta em N produtos distintos do mesmo tipo/instituição no mesmo snapshot
+    (valor/descritor diferentes ⇒ somar é correto) — o falso-positivo do LC-06."""
+    positions = [p for p in investimentos.get("dados", []) if isinstance(p, dict)]
+    hits: dict[tuple[str, str, str], str] = {}
+    for ident in _exact_dups(positions):
+        hits[ident] = "duplicata-exata"
+    for ident in _cross_period(positions):
+        hits.setdefault(ident, "snapshot-stale-cross-período")
+    return [_identity_label(ident, reason) for ident, reason in hits.items()]
