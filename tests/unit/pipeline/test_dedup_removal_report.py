@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from datetime import date
 
+from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money, Transaction
+from pipeline.domain.services.e3_reconciler_adapter import E3ReconcilerAdapter
 from pipeline.domain.services.reconciliation_service import (
     DedupRemoval,
     ReconciliationConfig,
@@ -103,3 +105,36 @@ def test_reconcile_legado_inalterado_vs_report():
     novo, _ = svc.reconcile_with_report([stmt])
     assert [len(s.transactions) for s in legado] == [len(s.transactions) for s in novo]
     assert sum(len(s.transactions) for s in legado) == 1
+
+
+def _e2_payload(*, arquivo: str, txns: list[dict]) -> dict:
+    return {
+        "pipeline_stage": "E2",
+        "banco": "itau",
+        "tipo": "extratoconta",
+        "moeda": "BRL",
+        "periodo_inicio": "2026-01-01",
+        "periodo_fim": "2026-01-31",
+        "arquivo_origem": arquivo,
+        "transacoes": txns,
+    }
+
+
+def test_reconcile_via_store_declara_cross_file_dedup():
+    # Dois re-uploads sobrepostos (fontes distintas, mesma conta/período) com uma
+    # tx duplicada → o merge cross-file declara a remoção em result.removals (ADR-347).
+    sal = {"data": "2026-01-05", "descricao": "SALARIO", "valor": 5000.0}
+    store = InMemoryArtifactStore()
+    a = _e2_payload(
+        arquivo="a.csv", txns=[sal, {"data": "2026-01-06", "descricao": "X", "valor": -10.0}]
+    )
+    b = _e2_payload(
+        arquivo="b.csv", txns=[sal, {"data": "2026-01-07", "descricao": "Y", "valor": -20.0}]
+    )
+    store.seed("extract_statements", "itau_a", a)
+    store.seed("extract_statements", "itau_b", b)
+    result = E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
+    cross = [r for r in result.removals if r.canal == "cross_file_dedup"]
+    assert len(cross) == 1
+    assert cross[0].count == 1 and cross[0].valor_cents == 500000
+    assert cross[0].cross_source_count == 1  # a.csv ≠ b.csv → sinal de re-upload

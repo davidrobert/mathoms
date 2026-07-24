@@ -40,6 +40,7 @@ from pipeline.domain.services.e3_review_reasons import (
     store_document_id as _document_id_for,
 )
 from pipeline.domain.services.reconciliation_service import (
+    DedupRemoval,
     ReconciliationConfig,
     ReconciliationService,
 )
@@ -118,6 +119,8 @@ class ReconciliationStoreResult:
     baseline_warnings: tuple[BaselineDiffWarning, ...] = ()
     institution_warnings: tuple[EmptyInstitutionWarning, ...] = ()
     review_reasons: tuple[ReviewReason, ...] = ()
+    # ADR-347 PR1 — remoções de dedup por canal (ledger de conservação de contagem).
+    removals: tuple[DedupRemoval, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         """Forma plana — útil para asserts em testes e logs estruturados."""
@@ -360,7 +363,7 @@ class E3ReconcilerAdapter:
         ``serialize_to_e3_legacy_format``). Retorna :class:`ReconciliationStoreResult`."""
         outcome = self._load_with_outcome(store, input_stages)
         statements = outcome.statements
-        reconciled = self.reconcile(statements)
+        reconciled, removals = self._service.reconcile_with_report(statements)
 
         key_for = output_key_fn or self.output_key
 
@@ -397,9 +400,9 @@ class E3ReconcilerAdapter:
                 all_tx = []
                 for s in stmts:
                     all_tx.extend(s.transactions)
-                before = len(all_tx)
-                all_tx = self._service._dedup(all_tx)
-                dup_removed = before - len(all_tx)
+                all_tx, dup_removed, cents, cross = self._service.dedup_report(all_tx)
+                if dup_removed:
+                    removals.append(DedupRemoval("cross_file_dedup", dup_removed, cents, cross))
                 merged_stmt = BankStatement(
                     institution=base.institution,
                     member_key=base.member_key,
@@ -492,4 +495,5 @@ class E3ReconcilerAdapter:
             baseline_warnings=baseline_warnings,
             institution_warnings=tuple(outcome.institution_warnings),
             review_reasons=tuple(outcome.review_reasons) + tuple(cross_doc_reasons),
+            removals=tuple(removals),
         )
