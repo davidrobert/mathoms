@@ -438,3 +438,50 @@ class TestParseAccountRecordNormFallback:
             }
         )
         assert cfg.accounts[0].account_number_norm == "123456"
+
+
+class TestRVIntegrationRealShape:
+    """E2→E4 com a shape REAL dos parsers (A39.l9 PR3b): SEM `membro` explícito
+    (resolve via banco_membro, como no fluxo de produção) + Itaú custódia
+    só-quantidade + Rico carteira valorada sem `total` (fallback Σ posições).
+    Cobre o gap que TestResolucaoRV (membro explícito) não exercita."""
+
+    def _itau(self) -> dict:  # custódia acionária: nome+ticker+quantidade, SEM valor
+        return _extract(
+            source="itau_investimentosposicao-2_extract.json",
+            instituicao="itau",
+            posicoes=[
+                {"nome": "BRASKEM S.A.", "ticker": "BRKM5", "quantidade": 300},
+                {"nome": "ITAUSA S.A. Preferencial", "ticker": "ITSA4", "quantidade": 778},
+            ],
+        )
+
+    def _rico(self) -> dict:  # carteira valorada: nome/ticker + valor_atual (sem `total`)
+        return _extract(
+            source="rico_investimentosposicao-2_extract.json",
+            instituicao="rico",
+            posicoes=[
+                {"nome": "BRKM5", "ticker": "BRKM5", "quantidade": 300, "valor_atual": 800.0},
+                {"nome": "ITSA4", "ticker": "ITSA4", "quantidade": 778, "valor_atual": 300.0},
+            ],
+        )
+
+    def test_collapse_quando_instituicoes_resolvem_mesmo_membro(self):
+        # itau + rico → david: custódia só-quantidade COLAPSA na carteira valorada
+        # (mesmo ticker+membro) → PL uma vez (Σ posições Rico), SEM ressalva falsa.
+        c = _consolidator(family={"banco_membro": {"itau": "david", "rico": "david"}})
+        out = c.consolidate([self._itau(), self._rico()])
+        assert out.total_por_membro == {"david": 1100.0}
+        assert out.n_posicoes == 2  # 4 posições → 2 após colapso
+        assert out.posicoes_sem_marcacao_por_membro == {}
+
+    def test_membro_nao_resolvido_escala_sem_perder_nem_mostrar_interrogacao(self):
+        # rico sem mapeamento → valor sob "" (NÃO some) + david ganha ressalva
+        # com rótulo legível (`nome`), nunca "?". Conservador (ADR-346: escala).
+        c = _consolidator(family={"banco_membro": {"itau": "david"}})
+        out = c.consolidate([self._itau(), self._rico()])
+        assert out.total_por_membro.get("") == 1100.0  # valor preservado
+        assert out.n_posicoes == 4  # sem colapso (membros divergem)
+        david_badge = out.posicoes_sem_marcacao_por_membro.get("david", [])
+        assert "BRASKEM S.A." in david_badge
+        assert "?" not in david_badge

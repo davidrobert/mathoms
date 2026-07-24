@@ -1209,8 +1209,10 @@ def _itau_rv_position(line: str) -> Optional[Dict[str, Any]]:
     m = _ITAU_RV_TICKER_RE.match(line)
     if not m:
         return None
-    empresa = re.sub(r"[\d\s]+$", "", m.group(1)).strip()
-    return {"ticker": m.group(3), "empresa": empresa, "quantidade": int(m.group(2))}
+    # `nome` (não `empresa`): campo de rótulo canônico das 3 famílias de posição
+    # (CDB/Rico/Itaú) — o badge de ressalva em E4 lê `nome` (senão mostra "?").
+    nome = re.sub(r"[\d\s]+$", "", m.group(1)).strip()
+    return {"ticker": m.group(3), "nome": nome, "quantidade": int(m.group(2))}
 
 
 def _extract_itau_rv(lines: List[str]) -> Tuple[List[Dict[str, Any]], int]:
