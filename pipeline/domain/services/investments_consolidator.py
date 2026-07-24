@@ -20,6 +20,7 @@ Configuração injetável (``InvestmentsConsolidatorConfig``):
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -133,6 +134,64 @@ def _position_value(pos: dict) -> tuple[float, bool]:
         return float(chosen), False
     except (ValueError, TypeError):
         return 0.0, False
+
+
+def _norm_ticker(raw: Any) -> str | None:
+    """Identificador de mercado normalizado (ADR-346): B3 (4 letras + 1-2 dígitos,
+    sufixo fracionário `F` colapsado). Sem match → None (never-fund; posição não
+    entra na resolução por identificador — ISIN é follow-up V2)."""
+    if not raw:
+        return None
+    m = re.match(r"^([A-Z]{4}\d{1,2})F?$", str(raw).strip().upper())
+    return m.group(1) if m else None
+
+
+def _rv_group_indices(positions: list[dict]) -> dict[tuple[str, str], list[int]]:
+    groups: dict[tuple[str, str], list[int]] = {}
+    for i, p in enumerate(positions):
+        tk = p.get("ticker_norm")
+        if tk:
+            groups.setdefault((tk, p.get("membro", "")), []).append(i)
+    return groups
+
+
+def _resolve_rv_group(positions: list[dict], idxs: list[int], tk: str, membro: str):
+    """Resolução a/b/c de um grupo (ticker_norm, membro); NUNCA muda valor (Leitura A)."""
+    valued = [i for i in idxs if not positions[i].get("posicao_sem_marcacao")]
+    qtyonly = [i for i in idxs if positions[i].get("posicao_sem_marcacao")]
+    valued_qtys = {positions[i].get("quantidade") for i in valued}
+    drop: set[int] = set()
+    avisos: list[str] = []
+    for qi in qtyonly:
+        if not valued:
+            continue
+        if positions[qi].get("quantidade") in valued_qtys:
+            drop.add(qi)  # (a) colapsa custódia na valorada
+        else:
+            positions[qi]["possivel_posicao_espelho"] = True  # (c) qtd difere
+            avisos.append(f"[WARN] RV {tk} ({membro}): custódia qtd≠valorada (never-fund)")
+    if len(valued) >= 2:  # (b) 2+ valoradas → never-fund + ressalva de superestimação
+        for vi in valued:
+            positions[vi]["pl_possivel_superestimado"] = True
+        avisos.append(f"[WARN] RV {tk} ({membro}): {len(valued)} fontes valoradas — superest.")
+    return drop, avisos
+
+
+def _resolve_rv_collapse(positions: list[dict], sem_por_membro: dict[str, list[str]]):
+    """ADR-346 resolução RV por (ticker_norm, membro). Recomputa `sem_marcacao`
+    removendo as custódias colapsadas (sem falso alarme de ressalva)."""
+    drop: set[int] = set()
+    avisos: list[str] = []
+    for (tk, membro), idxs in _rv_group_indices(positions).items():
+        d, av = _resolve_rv_group(positions, idxs, tk, membro)
+        drop |= d
+        avisos += av
+    kept = [p for i, p in enumerate(positions) if i not in drop]
+    new_sem: dict[str, list[str]] = {}
+    for p in kept:
+        if p.get("posicao_sem_marcacao"):
+            new_sem.setdefault(p.get("membro", ""), []).append(p.get("nome") or "?")
+    return kept, new_sem, avisos
 
 
 # =============================================================================
@@ -317,6 +376,10 @@ class InvestmentsConsolidator:
                         "membro": membro,
                         "valor_atual": valor,
                         "posicao_sem_marcacao": sem_marcacao,
+                        "ticker_norm": _norm_ticker(
+                            pos.get("ticker_norm") or pos.get("ticker") or pos.get("codigo")
+                        ),
+                        "quantidade": pos.get("quantidade"),
                         "data_referencia": data_ref,
                         "taxa": pos.get("taxa") or pos.get("rentabilidade") or "",
                         "vencimento": pos.get("vencimento", ""),
@@ -347,6 +410,14 @@ class InvestmentsConsolidator:
             totals_by_member[membro] = totals_by_member.get(membro, 0.0) + total_f
             if source:
                 sources.append(source)
+
+        # Resolução RV cross-fonte (ADR-346): colapsa custódia qty-only na valorada
+        # de mesmo ticker+qtd. Roda após os totais (a custódia contribui 0 →
+        # `total_por_membro` inalterado, Leitura A) e antes do result.
+        all_positions, sem_marcacao_por_membro, rv_avisos = _resolve_rv_collapse(
+            all_positions, sem_marcacao_por_membro
+        )
+        avisos += rv_avisos
 
         total_geral = sum(totals_by_member.values())
 
