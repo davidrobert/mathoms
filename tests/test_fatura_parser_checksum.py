@@ -80,25 +80,33 @@ def _warn_codes(result) -> set:
     return {w["code"] for w in result.get("warn_reasons", [])}
 
 
-def test_santander_checksum_despesa_brasil_fecha(tmp_path):
+def _somas_por_escopo(result) -> dict:
+    somas: dict = {}
+    for t in result["transacoes"]:
+        if t.get("escopo"):
+            somas[t["escopo"]] = somas.get(t["escopo"], 0) + round(t["valor"] * 100)
+    return somas
+
+
+def test_santander_checksum_ambos_baldes_fecham(tmp_path):
     r = parse_santander_unique(
         _santander_pdf(tmp_path, _SANT_TX), "santander_faturaunique_202604.pdf"
     )
     validate_fatura_result(r, "santander_faturaunique_202604.pdf")
 
-    assert r["total_lancamentos_conferivel"] == {"valor_cents": 34370, "escopo": "despesa_brasil"}
-    by_escopo = {}
-    for t in r["transacoes"]:
-        by_escopo.setdefault(t.get("escopo"), []).append(t)
-    assert set(by_escopo) == {"despesa_brasil", "exterior", "pagamento"}
-    assert sum(round(t["valor"] * 100) for t in by_escopo["despesa_brasil"]) == 34370
-    # pagamento fora da soma, negativo, tipo=pagamento p/ E3/E4
-    pay = by_escopo["pagamento"][0]
+    # Lista: um signal por seção impressa (despesa_brasil + exterior) — l3-c3.
+    sig = r["total_lancamentos_conferivel"]
+    assert isinstance(sig, list)
+    assert {s["escopo"]: s["valor_cents"] for s in sig} == {
+        "despesa_brasil": 34370,
+        "exterior": 8000,
+    }
+    somas = _somas_por_escopo(r)
+    assert somas["despesa_brasil"] == 34370 and somas["exterior"] == 8000
+    # pagamento fora dos baldes, negativo, tipo=pagamento p/ E3/E4
+    pay = [t for t in r["transacoes"] if t.get("escopo") == "pagamento"][0]
     assert pay["valor"] < 0 and pay["tipo"] == "pagamento"
-    # exterior fora da soma, com forex
-    assert by_escopo["exterior"][0]["forex"]["moeda_original"] == "USD"
-    # fecha → sem WARN de mismatch
-    assert _MISMATCH not in _warn_codes(r)
+    assert _MISMATCH not in _warn_codes(r)  # ambos fecham → sem WARN
 
 
 def test_santander_checksum_quebra_ao_perder_linha_brasil(tmp_path):
@@ -111,6 +119,18 @@ def test_santander_checksum_quebra_ao_perder_linha_brasil(tmp_path):
     _apply_fatura_checksum(r, issues)
     assert _MISMATCH in _warn_codes(r)
     assert any("despesa_brasil" in i for i in issues)  # nomeia o balde
+
+
+def test_santander_checksum_quebra_ao_perder_exterior(tmp_path):
+    # l3-c3: o balde exterior agora é verificado (antes só tagueado).
+    r = parse_santander_unique(
+        _santander_pdf(tmp_path, _SANT_TX), "santander_faturaunique_202604.pdf"
+    )
+    r["transacoes"] = [t for t in r["transacoes"] if t["descricao"] != "CLOUD GOLDEN"]
+    issues: list[str] = []
+    _apply_fatura_checksum(r, issues)
+    assert _MISMATCH in _warn_codes(r)
+    assert any("exterior" in i for i in issues)
 
 
 def test_itau_checksum_lancamentos_atuais_fecha(tmp_path):

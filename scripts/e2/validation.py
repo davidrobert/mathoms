@@ -69,23 +69,24 @@ _CDB_MISMATCH_MSG = "Σ posições ≠ total declarado (cents) — escalado (ADR
 
 
 def _apply_fatura_checksum(result: Dict[str, Any], issues: List[str]) -> None:
-    """WARN (não escala) se Σ lançamentos ≠ total_compras declarado. Opt-in por
-    parser via `total_lancamentos_conferivel` (escopo casado); flip HARD por parser
-    após corpus limpo (ADR-342 §Emenda 2026-07-23). NUNCA compara com `saldo_atual`."""
+    """WARN (não escala) por balde cujo Σ lançamentos ≠ subtotal declarado. Opt-in
+    por parser via `total_lancamentos_conferivel` — objeto único OU lista (uma
+    entrada por seção; A39.l3-c3 verifica exterior além de despesa_brasil). Flip
+    HARD por parser após corpus limpo (ADR-342). NUNCA compara com `saldo_atual`."""
     signal = result.get("total_lancamentos_conferivel")
-    if not isinstance(signal, dict) or signal.get("valor_cents") is None:
+    if signal is None:
         return
-    # A39.l3: escopo-aware — soma só o subconjunto de tx cujo `escopo` casa o do
-    # signal (o schema #1036 já declara `escopo`; o gate ignorava). Fatura mistura
-    # despesa-Brasil + pagamento + exterior + IOF; `total_compras` é só despesa-Brasil.
-    escopo = signal.get("escopo")
-    soma_cents = sum(
-        round((t.get("valor") or 0) * 100)
-        for t in result.get("transacoes") or []
-        if t.get("escopo") == escopo
-    )
-    if soma_cents != signal["valor_cents"]:
-        _fatura_mismatch_warn(result, issues, escopo)
+    signals = signal if isinstance(signal, list) else [signal]
+    txs = result.get("transacoes") or []
+    for sig in signals:
+        if not isinstance(sig, dict) or sig.get("valor_cents") is None:
+            continue
+        escopo = sig.get("escopo")
+        soma_cents = sum(
+            round((t.get("valor") or 0) * 100) for t in txs if t.get("escopo") == escopo
+        )
+        if soma_cents != sig["valor_cents"]:
+            _fatura_mismatch_warn(result, issues, escopo)
 
 
 def _fatura_mismatch_warn(result: Dict[str, Any], issues: List[str], escopo) -> None:

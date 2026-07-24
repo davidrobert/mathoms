@@ -48,6 +48,14 @@
         }
       },
       "additionalProperties": false
+    },
+    "fatura_checksum_signal": {
+      "type": "object",
+      "required": ["valor_cents", "escopo"],
+      "properties": {
+        "valor_cents": {"type": "integer"},
+        "escopo": {"type": "string"}
+      }
     }
   },
   "properties": {
@@ -85,13 +93,11 @@
       "description": "ADR-342 §Emenda A38.l14 — linhas-candidatas (data+valor, excl. saldo) que o parser observou. Com 0 tx: >0 ⇒ falha silenciosa (gate escala); ==0 ⇒ dormência (não escala); ausente ⇒ fail-safe escala. Declarado p/ drift-detection em modo strict."
     },
     "total_lancamentos_conferivel": {
-      "type": "object",
-      "description": "ADR-342 §Emenda 2026-07-23 (checksums E2) — opt-in do parser de fatura: subtotal de lançamentos declarado no doc (total_compras), em cents, cujo escopo casa com o subconjunto de transacoes emitido. Presente ⇒ gate confere Σ(tx do escopo) == valor_cents (int cents, tol-zero) e WARN/escala em divergência; ausente ⇒ sem checksum. NUNCA saldo_atual (Total desta fatura).",
-      "required": ["valor_cents", "escopo"],
-      "properties": {
-        "valor_cents": {"type": "integer"},
-        "escopo": {"type": "string"}
-      }
+      "description": "ADR-342 §Emenda 2026-07-23/2026-07-24 (checksums E2) — opt-in do parser de fatura: subtotal(is) de lançamentos declarado(s) no doc (NUNCA saldo_atual), em cents, com escopo casando o subconjunto de transacoes. Objeto único OU lista (uma entrada por balde/seção — ex.: Santander despesa_brasil + exterior). Gate: para cada signal, Σ(tx do escopo) == valor_cents (int cents, tol-zero) ⇒ WARN nomeando o balde; ausente ⇒ sem checksum.",
+      "oneOf": [
+        {"$ref": "#/$defs/fatura_checksum_signal"},
+        {"type": "array", "items": {"$ref": "#/$defs/fatura_checksum_signal"}, "minItems": 1}
+      ]
     },
     "checksum_ok": {
       "type": "boolean",
