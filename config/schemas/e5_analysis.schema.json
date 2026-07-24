@@ -109,6 +109,18 @@
               "pct": {"type": "number"}
             }
           }
+        },
+        "pl_ressalva": {
+          "type": "boolean",
+          "description": "ADR-346 (A39.l9): true quando há posição RV sem valor de mercado (custódia só-quantidade) NÃO coberta por fallback IRPF — o PL é renderizado mas não 'certificado' (pode estar subestimado). false quando toda posição é valorada ou a marcação faltante é coberta pelo IRPF."
+        },
+        "posicoes_sem_marcacao": {
+          "type": "object",
+          "description": "ADR-346 (A39.l9): posições RV sem valor de mercado que deflacionam o PL (fora do fallback IRPF). count + tickers para o card carregar a ressalva de forma acionável.",
+          "properties": {
+            "count": {"type": "integer", "minimum": 0},
+            "tickers": {"type": "array", "items": {"type": "string"}}
+          }
         }
       }
     },

@@ -334,6 +334,53 @@ def test_current_positions_unattributed_goes_to_titular(config: PatrimonioConfig
     assert result["investimentos_conjuge"] == 50.0
 
 
+def test_pl_ressalva_when_sem_marcacao_not_irpf_covered(config: PatrimonioConfig):
+    """ADR-346 inv 7/8: posição RV sem valor de mercado num membro valorado por
+    broker deflaciona o PL → ressalva VISÍVEL (não nasce morta). Leitura A: o
+    número do PL não muda (total source-level)."""
+    baseline = {"members": {"david": {}, "mariana": {}}}
+    inv_atuais = {
+        "dados": [{"valor": 1}],
+        "total_por_membro": {"david": 200_000},
+        "posicoes_sem_marcacao_por_membro": {"david": ["PETR4", "VALE3"]},
+    }
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais)
+    )
+    assert result["pl_ressalva"] is True
+    assert result["posicoes_sem_marcacao"] == {"count": 2, "tickers": ["PETR4", "VALE3"]}
+    assert result["investimentos_titular"] == 200_000.0  # Leitura A: inalterado
+
+
+def test_pl_ressalva_false_when_irpf_fallback_covers(config: PatrimonioConfig):
+    """fp-S3: membro sem broker (total 0) cai no fallback IRPF que valora o
+    holding → marcação faltante é info, NÃO rebaixa o selo."""
+    baseline = {
+        "members": {"david": {"bens": {"investimentos": [{"valor": 300_000}]}}, "mariana": {}}
+    }
+    inv_atuais = {
+        "dados": [{"valor": 1}],
+        "total_por_membro": {"david": 0},
+        "posicoes_sem_marcacao_por_membro": {"david": ["PETR4"]},
+    }
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais)
+    )
+    assert result["fonte_investimentos"] == "posicoes_atuais+irpf"
+    assert result["pl_ressalva"] is False
+
+
+def test_no_ressalva_when_all_valued(config: PatrimonioConfig):
+    """Sem posição sem marcação → sem ressalva (nenhum falso alarme)."""
+    baseline = {"members": {"david": {}, "mariana": {}}}
+    inv_atuais = {"dados": [{"valor": 1}], "total_por_membro": {"david": 200_000}}
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais)
+    )
+    assert result["pl_ressalva"] is False
+    assert result["posicoes_sem_marcacao"] == {"count": 0, "tickers": []}
+
+
 def test_current_positions_caixa_from_adapter(config: PatrimonioConfig):
     """Caixa vem pré-carregada do adapter (shell lê E3 + taxas)."""
     baseline = {"members": {"david": {}, "mariana": {}}}

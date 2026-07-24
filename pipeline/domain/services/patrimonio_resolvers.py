@@ -27,6 +27,7 @@ from typing import Any
 
 from pipeline.domain.services.patrimonio_types import (
     MemberIdentity,
+    investimento_valor,
     resolve_value_year,
     safe_float,
 )
@@ -526,3 +527,39 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
         conjuge_data = {}
 
     return titular_data, conjuge_data
+
+
+def rv_ressalva(sem_por_membro: dict, identity, *, titular_fb: bool, conjuge_fb: bool) -> dict:
+    """ADR-346 (A39.l9) invariante 8: agrega posições RV sem valor de mercado por
+    membro (atribuição titular / cônjuge / não-atribuído→titular) e sinaliza
+    ``pl_ressalva`` quando o membro NÃO foi coberto pelo fallback IRPF — senão a
+    marcação faltante é info (o IRPF valora o holding, não deflaciona; fp-S3)."""
+    tickers: list[str] = []
+    for member_key, nomes in (sem_por_membro or {}).items():
+        kl = str(member_key).lower()
+        is_conjuge = bool(identity.conjuge_key and identity.conjuge_key in kl)
+        if not (conjuge_fb if is_conjuge else titular_fb):
+            tickers.extend(nomes)
+    return {
+        "pl_ressalva": bool(tickers),
+        "posicoes_sem_marcacao": {
+            "count": len(tickers),
+            "tickers": sorted({t for t in tickers if t}),
+        },
+    }
+
+
+def investimentos_from_irpf(bens: dict, *, extras: tuple[str, ...]) -> float:
+    """Soma investimentos IRPF (investimentos + contas_bancarias + extras)."""
+    total = 0.0
+    for inv in bens.get("investimentos", []) or []:
+        total += investimento_valor(inv)
+    contas = bens.get("contas_bancarias", [])
+    if isinstance(contas, list):
+        for c in contas:
+            total += investimento_valor(c)
+    else:
+        total += safe_float(contas)
+    for extra_key in extras:
+        total += safe_float(bens.get(extra_key, 0))
+    return total

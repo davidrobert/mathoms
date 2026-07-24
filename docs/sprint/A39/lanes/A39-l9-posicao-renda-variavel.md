@@ -108,3 +108,25 @@ schema aditivo-opcional no PR1 validaria nada (crítica do próprio painel: "$de
 sozinho valida nada") e arriscaria drift vs o output real do parser. No PR3 os
 campos ficam required + `additionalProperties:false` + `SCHEMA_BY_STAGE`, onde
 valida de fato. PR2 (null-não-soma + badge E5) segue.
+
+## Nota de execução (2026-07-24) — PR2 shipado (null-não-soma + ressalva de PL)
+
+PR2 entregue. O consolidador (E4) distingue ausência de valor (custódia
+só-quantidade → flag `posicao_sem_marcacao`) de zero legítimo, mantendo
+`valor_atual` numérico (a flag é a fonte de verdade da partição — invariante 1 —
+sem quebrar somas downstream, que fazem `.get(...,0)` mas passariam um
+present-`None`). Emite `posicoes_sem_marcacao_por_membro`. O `PatrimonioCalculator`
+(E5, caminho de PRODUÇÃO — não `analyze_finances.py`) emite `pl_ressalva` +
+`posicoes_sem_marcacao{count,tickers}` quando há posição sem marcação **não
+coberta** pelo fallback IRPF (fp-S3: coberta → info, não rebaixa o selo). O PL é
+renderizado **com** ressalva, nunca suprimido. Schema `e5_analysis` declara os
+campos. `rv_ressalva`/`investimentos_from_irpf` movidos p/ `patrimonio_resolvers`
+(SRP + manter `patrimonio_calculator` ≤500 linhas). Goldens: partição sobre a
+flag; ressalva dispara (broker) / não-dispara (IRPF-coberto); **Leitura A**
+(total_por_membro/PL inalterado). Snapshot view-model rebaselineado em commit
+isolado (ADR-287/G-c): diff puramente aditivo, zero valor monetário alterado.
+**Achado vs a revisão de painel:** em PRODUÇÃO o `PatrimonioCalculator` **funde**
+membro ≥3 no titular (`unattributed += v`), não dropa — o "membro some" era do
+`analyze_finances.py` legado; produção mis-atribui (limitação V1 já documentada),
+não perde. **Resta PR3** (TypeRules + parsers + resolução RV + checksums + lift
+discovery gate + `$defs` strict).

@@ -544,7 +544,12 @@
     "investivel_efetivo": 13000000,
     "investivel_financeiro": 13000000,
     "liquido": 58000000,
+    "pl_ressalva": false,
     "posicao_31_12": [],
+    "posicoes_sem_marcacao": {
+      "count": 0,
+      "tickers": []
+    },
     "residencia": 0,
     "tabela_categorias": [
       {
