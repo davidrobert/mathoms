@@ -33,6 +33,12 @@ from pipeline.domain.services.baseline_validator import (
     BaselineDiffWarning,
     BaselineValidator,
 )
+from pipeline.domain.services.e3_load_report import (
+    EmptyInstitutionWarning,
+    LoadOutcome,
+    LoadStat,
+    build_artifact_ledger,
+)
 from pipeline.domain.services.e3_review_reasons import (
     project_e3_reasons as _project_reasons,
 )
@@ -58,35 +64,6 @@ from pipeline.domain.services.statement_preprocessor import (
     PeriodDerivationWarning,
     StatementPeriodNormalizer,
 )
-
-# =============================================================================
-# Warnings estruturados do load (A28.l8)
-# =============================================================================
-
-
-@dataclass(frozen=True)
-class EmptyInstitutionWarning:
-    """Extrato E2 sem banco determinável — pulado para não gerar key E3 ``_...``."""
-
-    source: str
-
-    def format(self) -> str:
-        return f"empty-institution src={self.source} skipped=1 (needs_review)"
-
-    def to_review_reason(
-        self, *, stage: str, artifact_key: str, document_id: str | None
-    ) -> ReviewReason | None:
-        """Projeta (ADR-272) para ReviewReason — banco vazio é campo obrigatório ausente."""
-        return ReviewReason(
-            code=ReviewReasonCode.extract_missing_required_field,
-            stage=stage,
-            artifact_key=artifact_key,
-            document_id=document_id,
-            offending_value="banco=''",
-            expected="campo banco/institution nao-vazio no artefato E2",
-            message="extrato sem banco determinavel; documento requer revisao",
-        )
-
 
 # =============================================================================
 # Result container
@@ -145,18 +122,6 @@ class ReconciliationStoreResult:
     def __getitem__(self, key: str) -> Any:
         d = self.to_dict()
         return d[key]
-
-
-@dataclass
-class _LoadOutcome:
-    """Estado interno acumulado durante ``load_bank_statements``."""
-
-    statements: list[BankStatement] = field(default_factory=list)
-    period_warnings: list[PeriodDerivationWarning] = field(default_factory=list)
-    anachronic_warnings: list[AnachronicTransactionWarning] = field(default_factory=list)
-    institution_warnings: list[EmptyInstitutionWarning] = field(default_factory=list)
-    review_reasons: list[ReviewReason] = field(default_factory=list)
-    skipped: int = 0
 
 
 # =============================================================================
@@ -238,9 +203,9 @@ class E3ReconcilerAdapter:
 
     def _load_with_outcome(
         self, store: ArtifactStore, input_stages: Iterable[str] | None
-    ) -> _LoadOutcome:
+    ) -> LoadOutcome:
         stages = tuple(input_stages) if input_stages else self.INPUT_STAGES
-        outcome = _LoadOutcome()
+        outcome = LoadOutcome()
 
         # Dedup por key: os 3 INPUT_STAGES podem expor a mesma key; sem o set,
         # o mesmo artefato seria carregado várias vezes.
@@ -274,6 +239,8 @@ class E3ReconcilerAdapter:
                     outcome.skipped += 1
                     continue
                 normalized = norm_result.data
+                # ADR-347 PR1b — âncora de contagem: pós-period-norm, PRÉ-anachronic/undated.
+                raw_count = len(normalized.get("transacoes") or [])
 
                 # Drop anachronic transactions antes da conversão.
                 anach_result = self._anachronic_dropper.filter(normalized, source_name=key)
@@ -305,6 +272,15 @@ class E3ReconcilerAdapter:
                         stmt.source_document = key + stage_suffix(stage)
                     except KeyError:
                         stmt.source_document = key
+                # ADR-347 PR1b — fatos de carga (ledger de conservação por artefato).
+                anach_n = anach_result.warning.dropped_count if anach_result.warning else 0
+                tx_loaded = len(stmt.transactions)
+                outcome.load_stats[stmt.source_document] = LoadStat(
+                    tx_carregadas=raw_count,
+                    anachronic=anach_n,
+                    undated=raw_count - anach_n - tx_loaded,
+                    tx_loaded=tx_loaded,
+                )
                 outcome.statements.append(stmt)
 
         return outcome
@@ -391,7 +367,7 @@ class E3ReconcilerAdapter:
             sources = [s.source_document for s in stmts if s.source_document]
             if len(stmts) == 1:
                 merged_stmt = stmts[0]
-                dup_removed = 0
+                dup_removed = cents = 0
             else:
                 # Merge: concatena transactions, mantém metadados do primeiro.
                 # Re-reconcilia as transações juntas para pegar duplicatas
@@ -423,6 +399,8 @@ class E3ReconcilerAdapter:
                 payload = merged_stmt.to_e2_dict()
                 if len(stmts) > 1:
                     payload["pipeline_stage"] = "E3"
+            # ADR-347 PR1b — anexa o ledger de conservação (serializer-agnóstico).
+            payload.update(build_artifact_ledger(stmts, outcome.load_stats, dup_removed, cents))
             merged_statements.append(merged_stmt)
             emit_item_progress(
                 pipeline_run_id,
