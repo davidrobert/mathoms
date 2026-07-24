@@ -3,7 +3,9 @@ id: A39.l2
 type: lane
 title: "C6 Bank CSV: declarar conservacao_verificavel (semântica de saldo já correta) → escala perda silenciosa"
 sprint: A39
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1039
 priority: P0
 branch_slug: a39-l2-c6-csv-optin-verificabilidade
 adrs: ["[[ADR-342]]"]
@@ -11,7 +13,7 @@ depends_on: ["[[A39.l1]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/dados

@@ -3,7 +3,9 @@ id: A39.l4
 type: lane
 title: "C6 Bank PDF: corrigir semântica de saldo_inicial (ajuste do 1º dia) e então declarar verificabilidade"
 sprint: A39
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1041
 priority: P1
 branch_slug: a39-l4-c6-pdf-saldo-semantica
 adrs: ["[[ADR-342]]"]
@@ -11,7 +13,7 @@ depends_on: ["[[A39.l2]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/dados

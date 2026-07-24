@@ -76,7 +76,15 @@ def _apply_fatura_checksum(result: Dict[str, Any], issues: List[str]) -> None:
     signal = result.get("total_lancamentos_conferivel")
     if not isinstance(signal, dict) or signal.get("valor_cents") is None:
         return
-    soma_cents = sum(round((t.get("valor") or 0) * 100) for t in result.get("transacoes") or [])
+    # A39.l3: escopo-aware — soma só o subconjunto de tx cujo `escopo` casa o do
+    # signal (o schema #1036 já declara `escopo`; o gate ignorava). Fatura mistura
+    # despesa-Brasil + pagamento + exterior + IOF; `total_compras` é só despesa-Brasil.
+    escopo = signal.get("escopo")
+    soma_cents = sum(
+        round((t.get("valor") or 0) * 100)
+        for t in result.get("transacoes") or []
+        if t.get("escopo") == escopo
+    )
     if soma_cents != signal["valor_cents"]:
         issues.append("WARN: Σ lançamentos ≠ total_compras declarado (checksum de fatura)")
         _warn_reason(result, ReviewReasonCode.extract_fatura_total_mismatch, _FATURA_MISMATCH_MSG)

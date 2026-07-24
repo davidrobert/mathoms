@@ -3,7 +3,9 @@ id: A39.l3
 type: lane
 title: "Fatura closure: parsers emitem total_lancamentos_conferivel (gate #1036 pronto) + flip WARN→HARD"
 sprint: A39
-status: planned
+status: shipped
+ship_date: "2026-07-23"
+ship_pr: 1045
 priority: P0
 branch_slug: a39-l3-fatura-optin-parsers
 adrs: ["[[ADR-342]]"]
@@ -11,7 +13,7 @@ depends_on: ["[[A39.l1]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/dados
@@ -66,3 +68,31 @@ otimista) permanece até os parsers optarem.
 Médio — maior blast radius (parsers de fatura). Mitigação: opt-in por parser +
 WARN-first + corpus como gate empírico. O gate/contrato já está em `main` (#1036);
 esta lane é o lado do produtor do sinal. `depends_on` [[A39.l1]].
+
+## Nota de execução (2026-07-23) — identidade resolvida (co-design financial-planner)
+
+O opt-in do parser (commit 2) foi **deferido** ao descobrir que
+`Σ(compras itemizadas) == total_compras` **não fecha em 0/3** faturas reais. O
+co-design fechou a identidade correta — **destrava a implementação**:
+
+- **Alvo = subtotal POR SEÇÃO** (`despesas_brasil` + `despesas_exterior`):
+  `Σ_cents(tx da seção) == subtotal_declarado_cents(seção)`. **NÃO** comparar com
+  `saldo_atual`/"Total desta fatura" (inclui rotativo; [[ADR-342]] proíbe).
+- **Escopo ALARGADO:** o subtotal de seção inclui compras **+ anuidade + encargos/
+  juros de rotativo + IOF nacional + tarifas + seguros embutidos (SCP)**. A premissa
+  "só compras" era o furo.
+- **Causa-raiz (no código):** `tx_pattern` (`santander.py:736`) exige `DD/MM` no
+  início → linhas de encargo **sem data** somem (R$2,77 = IOF nacional; R$36 =
+  anuidade/SCP). **Fix:** capturar linhas sem-data reusando o fallback do IOF
+  exterior (`santander.py:762-780`, usa a data da tx anterior / `data_vencimento`).
+- **Sinal:** compra vs pagamento por **seção + keyword** (`PAGAMENTO EFETUADO`/
+  `ESTORNO`), nunca por `valor<0` — matar o `is_payment` morto (`santander.py:809`).
+  Em E2, somar no espaço-de-sinal do doc (débito positivo); normalizar p/ fluxo é E3/E4.
+- **Encargos são despesa** → emitir como tx (fecha o checksum **e** alimenta o
+  gasto). **Excluir** (double-count): `saldo_anterior`/rotativo; `pagamento efetuado`
+  emite com `tipo=pagamento` (E3/E4 = transferência interna).
+- **Identidade valor-a-pagar** (`saldo_anterior − pagamentos + encargos + IOF +
+  anuidade + Σlançamentos == total_desta_fatura`) = cross-check **secundário**,
+  nunca âncora de completude.
+- Sem ADR nova — emenda [[ADR-342]] já cobre. Vale também para [[A39.l8]]
+  (parser Itaú Visa: "Total dos lançamentos atuais" com a mesma identidade de seção).
