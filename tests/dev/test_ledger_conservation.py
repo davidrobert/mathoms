@@ -17,6 +17,12 @@ def _e2(*valores: float) -> dict:
     return {"transacoes": [{"valor": v} for v in valores]}
 
 
+def _e2_nao_reconciliavel(tipo_field: str, tipo: str, *valores: float) -> dict:
+    """Artefato E2 que o reconciliador não reconcilia (posição/informe): carrega
+    ``transacoes`` mas não deve entrar no denominador E2→E3 (LC-07)."""
+    return {tipo_field: tipo, "transacoes": [{"valor": v} for v in valores]}
+
+
 def _e3(survivors: list[float], dups: int = 0) -> dict:
     return {
         "transacoes_total": len(survivors),
@@ -65,6 +71,36 @@ def test_e2e3_tx_perdida_e_perda_silenciosa() -> None:
 def test_e2e3_valor_diverge_sem_dups_e_perda() -> None:
     r = e2_to_e3([_e2(100.0, 50.0)], [_e3([100.0, 49.0])])  # count ok, valor não
     assert r.verdict == PERDA_SILENCIOSA
+
+
+def test_e2e3_reupload_sobreposto_vira_coberto() -> None:
+    # Re-upload sobreposto: 5 tx entram (100,50 duplicados + 25 único), reconcile
+    # colapsa p/ 3 survivors mas declara só 1 dup (sub-declaração do dedup). count
+    # cai (5->4) COM dups>0 ⇒ coberto-sem-verificação, NÃO perda (LC-07).
+    r = e2_to_e3([_e2(100.0, 50.0, 100.0, 50.0, 25.0)], [_e3([100.0, 50.0, 25.0], dups=1)])
+    assert r.verdict == COBERTO_SEM_VALOR
+    assert r.count_in == 5 and r.count_out == 4
+
+
+def test_e2e3_denominador_exclui_posicao_skip() -> None:
+    # Artefato de posição (tipo em SKIP_TYPES via should_skip) não entra no
+    # denominador: sem o filtro daria perda (5->2); com o filtro, conserva (LC-07).
+    e2 = [_e2(100.0, 50.0), _e2_nao_reconciliavel("tipo", "investimentosposicao", 10.0, 20.0, 30.0)]
+    r = e2_to_e3(e2, [_e3([100.0, 50.0])])
+    assert r.verdict == CONSERVADO
+    assert r.count_in == 2 and r.value_in_cents == 15000
+
+
+def test_e2e3_denominador_exclui_investment_report_doctype() -> None:
+    # Doc-type de relatório LLM (investment_report) passa por should_skip mas não é
+    # transacional — o filtro o exclui pelo tipo_documento (LC-07).
+    e2 = [
+        _e2(100.0, 50.0),
+        _e2_nao_reconciliavel("tipo_documento", "investment_report", 10.0, 20.0),
+    ]
+    r = e2_to_e3(e2, [_e3([100.0, 50.0])])
+    assert r.verdict == CONSERVADO
+    assert r.count_in == 2
 
 
 # ─────────────────────────── E3 → E4 ───────────────────────────
@@ -134,6 +170,62 @@ def test_investment_double_count_limpo_quando_unico() -> None:
         "dados": [
             {"tipo": "CDB", "instituicao": "Banco X", "descricao": "CDB 2028"},
             {"tipo": "CDB", "instituicao": "Banco Y", "descricao": "CDB 2030"},
+        ]
+    }
+    assert investment_double_count(inv) == []
+
+
+def test_investment_n_produtos_distintos_mesma_data_nao_alerta() -> None:
+    # (a) LC-06: 4 LCA do mesmo tipo/instituição/membro/data_referencia, descrição
+    # vazia, valores distintos → produtos reais de UM snapshot; somar é correto.
+    inv = {
+        "dados": [
+            {
+                "tipo": "lca",
+                "instituicao": "btg",
+                "membro": "fulano",
+                "nome": "",
+                "data_referencia": "2026-03",
+                "valor_atual": v,
+            }
+            for v in (100.0, 200.0, 300.0, 400.0)
+        ]
+    }
+    assert investment_double_count(inv) == []
+
+
+def test_investment_mesma_posicao_dois_snapshots_alerta() -> None:
+    # (b) LC-06: MESMA posição (mesmo tipo/inst/ticker) em 2 data_referencia — e com
+    # membro divergente (o escape membro-vazio real) → snapshot stale cross-período.
+    base = {"tipo": "outros", "instituicao": "binance", "nome": "btc"}
+    a = {**base, "membro": "", "data_referencia": "2025-03", "valor_atual": 1000.0}
+    b = {**base, "membro": "fulano", "data_referencia": "2025-12", "valor_atual": 1500.0}
+    hits = investment_double_count({"dados": [a, b]})
+    assert len(hits) == 1 and "cross-período" in hits[0]
+
+
+def test_investment_le_campo_nome_nao_descricao() -> None:
+    # Posição real do E4 usa ``nome`` (não ``descricao``): dois produtos distintos com
+    # nomes diferentes e mesma data não devem colidir (regressão do bug de campo).
+    base = {"tipo": "acao", "instituicao": "xp", "data_referencia": "2026-03"}
+    a = {**base, "nome": "PETR4", "valor_atual": 500.0}
+    b = {**base, "nome": "VALE3", "valor_atual": 700.0}
+    assert investment_double_count({"dados": [a, b]}) == []
+
+
+def test_investment_vencimento_distingue_renda_fixa() -> None:
+    # Renda fixa sem nome mas com vencimentos distintos = produtos distintos: o
+    # descritor nome@vencimento separa-os mesmo no mesmo snapshot (LC-06).
+    base = {
+        "tipo": "cdb",
+        "instituicao": "btg",
+        "data_referencia": "2026-03",
+        "valor_atual": 1000.0,
+    }
+    inv = {
+        "dados": [
+            {**base, "vencimento": "2027-01"},
+            {**base, "vencimento": "2029-05"},
         ]
     }
     assert investment_double_count(inv) == []
