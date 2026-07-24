@@ -79,22 +79,44 @@ def _first_verdict(checks: list, default: tuple) -> tuple:
     return next(((v, d) for cond, v, d in checks if cond), default)
 
 
+def _ledger_verdict(fresh: dict, total: int) -> tuple[str, str] | None:
+    """ADR-347 — se o artefato declara o ledger (``tx_carregadas`` + ``remocoes``),
+    o fechamento (int, tol-zero) PROVA a conservação de contagem; resíduo = P0."""
+    remocoes = fresh.get("remocoes")
+    carregadas = fresh.get("tx_carregadas")
+    if not isinstance(remocoes, dict) or carregadas is None:
+        return None
+    declared = sum(int(r.get("count", 0)) for r in remocoes.values() if isinstance(r, dict))
+    resid = int(carregadas) - total - declared
+    if resid == 0:
+        return (
+            CONSERVADO,
+            f"ledger fecha: {carregadas} == {total} + {declared} declaradas (tol-zero)",
+        )
+    return (
+        PERDA_SILENCIOSA,
+        f"ledger não fecha: resíduo {resid} não-declarado (carregadas={carregadas})",
+    )
+
+
 def e3_group_verdict(fresh) -> tuple[str, str]:
-    """Veredito de um grupo E3: consistência interna (count) + dedup declarado.
-    0-tx não sobe a ``conservado`` — sem transação não há checksum que prove o
-    fechamento (loss total mascarada e grupo-posição legítimo são indistintos no
-    grão-grupo; o E2→E3 workspace decide)."""
+    """Veredito de um grupo E3: consistência interna (count) + **ledger de contagem
+    declarado** (ADR-347) quando presente. 0-tx não sobe a ``conservado``; sem ledger,
+    dups>0 fica ``coberto`` (valor removido não provável no artefato)."""
     if not isinstance(fresh, dict) or "transacoes" not in fresh:
         return NAO_VERIFICAVEL, "sem payload E3 legível"
     n_tx = len(fresh.get("transacoes") or [])
     total = int(fresh.get("transacoes_total", 0))
-    dups = int(fresh.get("transacoes_duplicadas_removidas", 0))
-    checks = [
-        (n_tx != total, NAO_VERIFICAVEL, f"transacoes_total={total} != len(transacoes)={n_tx}"),
-        (n_tx == 0, COBERTO_SEM_VALOR, "0 transações — sem checksum de fechamento neste grão"),
-        (dups > 0, COBERTO_SEM_VALOR, f"dups={dups}; valor removido não declarado no artefato"),
-    ]
-    return _first_verdict(checks, (CONSERVADO, "count interno fecha; dups=0 ⇒ valor provável"))
+    if n_tx != total:
+        return NAO_VERIFICAVEL, f"transacoes_total={total} != len(transacoes)={n_tx}"
+    if n_tx == 0:
+        return COBERTO_SEM_VALOR, "0 transações — sem checksum de fechamento neste grão"
+    ledger = _ledger_verdict(fresh, total)
+    if ledger is not None:
+        return ledger
+    if int(fresh.get("transacoes_duplicadas_removidas", 0)) > 0:
+        return COBERTO_SEM_VALOR, "dups>0 sem ledger; valor removido não declarado no artefato"
+    return CONSERVADO, "count interno fecha; dups=0 ⇒ valor provável"
 
 
 def _cat_cents_ok(txns: list, amount) -> bool:
@@ -235,11 +257,15 @@ def _e4_verdicts(e4: dict, collisions: list) -> list:
 
 
 def _e3_exec_dict(e3_result) -> dict:
+    excl: dict[str, int] = {}  # ADR-347 PR2 — tx contadas por canal de exclusão
+    for e in getattr(e3_result, "exclusions", ()):
+        excl[e.canal] = excl.get(e.canal, 0) + e.count
     return {
         "statements_loaded": e3_result.statements_loaded,
         "statements_reconciled": e3_result.statements_reconciled,
         "skipped_inputs": e3_result.skipped_inputs,
         "artifacts_written": e3_result.artifacts_written,
+        "exclusions": excl,
     }
 
 
@@ -284,12 +310,15 @@ def _fmt_conservation(results: list) -> list[str]:
 
 def _fmt_exec(report: LedgerReport) -> list[str]:
     e = report.e3_exec
+    excl = e.get("exclusions") or {}
+    excl_txt = ", ".join(f"{k}={v}" for k, v in sorted(excl.items())) if excl else "nenhuma"
     return [
         "## E3 execução (contexto do gap E2→E3)",
         f"- statements: carregados={e['statements_loaded']} reconciliados={e['statements_reconciled']} "
         f"skipped={e['skipped_inputs']} artefatos={e['artifacts_written']}",
-        "- gap de count E2→E3 = tx de statements skipped (declarados) + dedup — "
-        "atribua skipped antes de concluir perda silenciosa",
+        f"- exclusões de statement no load (tx por canal, ADR-347 PR2): {excl_txt}",
+        "- gap de count E2→E3 = remoções por artefato (remocoes) + exclusões acima; "
+        "o ledger que fecha por grupo prova a conservação, resíduo = perda",
     ]
 
 
