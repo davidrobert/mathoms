@@ -18,6 +18,7 @@ Este é o ponto de entrada da vault Obsidian-friendly de `docs/`. Para LLMs: com
 | "Que planos estão abertos?" | [PLANS-active](PLANS-active.md) (editorial) → `_generated/PLAN_PROGRESS.md` |
 | "Como foram tratados os achados das auditorias?" | [AUDITS-active](AUDITS-active.md) (editorial) |
 | "Que defeitos as revisões de pipeline acharam?" | [PIPELINE-REVIEWS-active](PIPELINE-REVIEWS-active.md) (editorial) |
+| "Que defeitos as certificações do razão (E3/E4) acharam?" | [LEDGER-CERTIFY-active](LEDGER-CERTIFY-active.md) (editorial) |
 | "O que está travado esperando o owner?" | [OWNER-GATED-active](OWNER-GATED-active.md) (editorial) |
 | "Que ADRs existem? Onde está X?" | `_generated/ADR_INDEX.md` (auto, agrupado por área) |
 | "O que mudou na última semana?" | `_generated/CHANGELOG_RECENT.md` (auto, últimos 14 dias) |
@@ -36,6 +37,7 @@ docs/
 │   ├── PLANS-active.md    ← editorial: planos abertos
 │   ├── AUDITS-active.md   ← editorial: rastreamento de auditorias
 │   ├── PIPELINE-REVIEWS-active.md ← editorial: defeitos das revisões de pipeline
+│   ├── LEDGER-CERTIFY-active.md ← editorial: defeitos das certificações de razão (E3/E4)
 │   ├── OWNER-GATED-active.md ← editorial: fila de itens travados no owner
 │   └── _generated/        ← auto, snapshot test bloqueia drift
 ├── _schemas/              ← JSON Schemas para frontmatter
