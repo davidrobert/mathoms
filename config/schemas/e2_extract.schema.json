@@ -56,6 +56,27 @@
         "valor_cents": {"type": "integer"},
         "escopo": {"type": "string"}
       }
+    },
+    "posicao_investimento": {
+      "type": "object",
+      "description": "ADR-346 (A39.l9) — posição de investimento emitida em `posicoes` por parsers de renda variável (Itaú posição acionária: ticker+quantidade, sem valor; Rico/XP carteira: nome/ticker valorado por classe) e por CDB (nome+valor_atual). Compartilhado pelas 2 famílias de parser, então a validação é sobre TIPOS + identidade — não fechamento de campos (additionalProperties:true; CDB detalhes agrega campos próprios como valor_resgate_disponivel). anyOf exige `nome` OU `ticker`: posição sem identidade é perda silenciosa (cai em key vazia no consolidador). valor_atual ausente/None = custódia só-quantidade (posicao_sem_marcacao no E4, ADR-346 invariante 1) — NÃO é zero.",
+      "anyOf": [
+        {"required": ["nome"]},
+        {"required": ["ticker"]}
+      ],
+      "properties": {
+        "nome": {"type": "string"},
+        "ticker": {"type": ["string", "null"]},
+        "empresa": {"type": ["string", "null"]},
+        "tipo": {"type": ["string", "null"]},
+        "classe": {"type": ["string", "null"]},
+        "instituicao": {"type": ["string", "null"]},
+        "valor_atual": {"type": ["number", "null"]},
+        "quantidade": {"type": ["number", "null"]},
+        "data_vencimento": {"type": ["string", "null"]},
+        "data_aplicacao": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
     }
   },
   "properties": {
@@ -78,6 +99,10 @@
     "transacoes": {
       "type": "array",
       "items": {"$ref": "#/$defs/transacao"}
+    },
+    "posicoes": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/posicao_investimento"}
     },
     "periodo_inicio": {"type": "string"},
     "periodo_fim": {"type": "string"},

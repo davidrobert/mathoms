@@ -162,6 +162,25 @@ _SANT_CDB_PDF_LINES = [
     "CDB DI SANTANDER Valor Total : R$ 143.248,51 Disponível para Resgate : R$ 138.304,04",
     "Você possui 1 contrato neste investimento",
 ]
+# Posição acionária Itaú (A39.l9): a qtd Total é o int antes do ticker;
+# `Preferencial778` cola Tipo+Livres (espelha o layout real sem espaços).
+_ITAU_POSICAO_LINES = [
+    "Posição Acionária",
+    "Empresa Custódia Código papel",
+    "Tipo Livres Bloqueadas Total",
+    "BRASKEM S.A. 300 0 300 BRKM5",
+    "TOTAL 300 0 300",
+    "ITAUSA S.A. Preferencial778 0 778 ITSA4",
+    "TOTAL 778 0 778",
+]
+
+
+def _rico_carteira_builder(tmp_path: Path, filename: str) -> Path:
+    from tests.fixtures.pdf.rico import generate_rico_carteira_xlsx
+
+    path = tmp_path / filename
+    path.write_bytes(generate_rico_carteira_xlsx())
+    return path
 
 
 _C6_EXTRATO_PJ_CSV = """EXTRATO DE CONTA CORRENTE C6 BANK
@@ -293,6 +312,16 @@ PASS_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path]]] = {
         _pdf_builder("santander", _FATURA_TX, kind="fatura"),
     ),
     "itau.parse_itau_fatura": ("itau_fatura_202604.pdf", _itau_fatura_builder),
+    # Posição de renda variável (A39.l9): custódia acionária Itaú (só-quantidade)
+    # + carteira Rico (valorada por classe).
+    "itau.parse_itau_investimentosposicao": (
+        "itau_investimentosposicao_202604.pdf",
+        _lines_pdf_builder(_ITAU_POSICAO_LINES),
+    ),
+    "rico.parse_rico_carteira": (
+        "rico_investimentosposicao_202604.xlsx",
+        _rico_carteira_builder,
+    ),
     # XLS binário gerado com xlwt (dev-dep, A24.l7 passo 3 — ex-INPUT_GAPS).
     "itau.parse_itau_xls": (
         "itau_extratocontapersonnalite_202604.xls",

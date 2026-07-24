@@ -59,3 +59,39 @@ def draw_rico_extrato(
     c.drawString(2 * cm, y, f"Saldo disponível: R$ {format_brl(running)}")
     y -= 0.5 * cm
     return y, running
+
+
+# Carteira consolidada XLSX (A39.l9) — paridade com ``parse_rico_carteira``.
+# Ações: PETR4 800 + ITSA4 300 == subtotal 1.100 (checksum por classe fecha);
+# Fundos: 500. Proventos/JCP no rodapé ficam fora do PL. Qtd (última célula) só
+# nos tickers RV — casa com a custódia acionária Itaú.
+_CARTEIRA_ROWS = [
+    ["Este é o seu patrimônio", "Total investido", "Saldo Disponível"],
+    ["R$ 1.600,00", "R$ 1.500,00", "R$ 100,00"],
+    ["Ações", "R$ 1.100,00"],
+    ["33,7%", "Renda Variável Brasil", "Posição", "% Alocação"],
+    ["PETR4", "R$ 800,00", "28,7%", "-", "Indefinido", "R$ 42,58", "1.700"],
+    ["ITSA4", "R$ 300,00", "4,26%", "-", "Indefinido", "R$ 13,82", "778"],
+    ["Fundos de Investimentos", "R$ 500,00"],
+    ["Fundo Sintetico FIF", "R$ 500,00", "1,31%", "64,87%"],
+    ["Dividendos, proventos e outras distribuições"],
+    ["Proventos"],
+    ["Ações", "R$ 50,00"],
+    ["PETR4", "1.700", "0,24%", "R$ 50,00"],
+]
+
+
+def generate_rico_carteira_xlsx() -> bytes:
+    """Carteira consolidada Rico: subtotal por classe fecha; proventos JCP fora do PL."""
+    from io import BytesIO
+
+    import openpyxl
+
+    wb = openpyxl.Workbook()
+    sh = wb.active
+    sh.title = "Sua carteira"
+    for row in _CARTEIRA_ROWS:
+        sh.append(row)
+    buf = BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
