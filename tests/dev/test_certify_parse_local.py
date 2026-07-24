@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 from dev.certify_parse_local import (
@@ -10,9 +11,16 @@ from dev.certify_parse_local import (
     _run_compare,
     compare_records,
     conservation_status,
+    content_digest,
     file_digest,
     mask_text,
 )
+
+
+def test_content_digest_is_sha256_of_bytes(tmp_path) -> None:
+    f = tmp_path / "extrato.pdf"
+    f.write_bytes(b"conteudo-do-extrato")
+    assert content_digest(f) == hashlib.sha256(b"conteudo-do-extrato").hexdigest()
 
 
 def test_mask_removes_monetary_cpf_and_long_numbers() -> None:

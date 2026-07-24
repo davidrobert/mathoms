@@ -102,6 +102,13 @@ A perda silenciosa mora na divergência. Reconcilie:
   `escalado-honesto`, não "vazio". Invariante: **≤1 vivo não-fallback por
   `(ws, stage, key)`** (um parcial de run anterior ressuscitado = falso-verde).
 
+**Mecanização** (tira a reconciliação da mão): o harness emite `content_hash` por
+doc (SHA-256 do conteúdo, chave de join com `documents.content_hash`) e
+`dev/harness_db_reconcile.reconcile(harness_records, db_hashes, live_artifacts)`
+computa `ingested`/`deduped`/`not_ingested` (P0) + violações do invariante. Alimente
+`db_hashes` (SELECT content_hash de `documents` do ws) e `live_artifacts` (pares
+`(stage, key)` vivos não-fallback de `pipeline_artifacts`).
+
 ### Passo 4 — Atribuir veredito + delegar aos especialistas
 
 Classifique cada doc em **um dos 5 vereditos** da [rubrica](references/rubric.md):
