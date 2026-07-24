@@ -637,6 +637,18 @@ def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 # Fatura: Unique PDF (pdfplumber)
 # ---------------------------------------------------------------------------
 
+# pdfplumber funde a coluna direita (Resumo/CET) sobre as linhas de tx no
+# layout lado-a-lado (#3e41/#4bb2). A tx real vem SEMPRE primeiro (coluna
+# esquerda); o lixo começa num destes marcadores. Estripar ANTES do
+# tx_pattern — senão o `$`-âncora captura o número poluído à direita (o
+# pagamento -119,21 virava +119,21, corrupção silenciosa de sinal).
+_RESUMO_POLLUTION = (" (+)", " (-)", " (=)", " Saldo", " Total", " COTAÇÃO")
+
+
+def _strip_resumo_pollution(line: str) -> str:
+    hits = [i for i in (line.find(m) for m in _RESUMO_POLLUTION) if i > 0]
+    return line[: min(hits)].rstrip() if hits else line
+
 
 def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse Santander Unique credit card invoice."""
@@ -754,43 +766,47 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
         current_card = None
         current_section_type = None
 
-        for line in detail_text.split("\n"):
-            # Check for card header
-            card_m = card_section_pattern.search(line)
+        for raw_line in detail_text.split("\n"):
+            # Card header — cada cartão reinicia suas subseções.
+            card_m = card_section_pattern.search(raw_line)
             if card_m:
                 current_card = f"{card_m.group(1).strip()} - {card_m.group(2).strip()}"
+                current_section_type = None
 
-            # Check section type
-            if "Pagamento" in line and ("Créditos" in line or "pagamentos" in line.lower()):
+            # Seção por header específico. "Total de pagamentos" (poluição do
+            # Resumo, fundido na linha) contém "pagamento" e re-disparava a
+            # seção → só o header literal "Pagamento e Demais Créditos" conta.
+            if "Pagamento e Demais" in raw_line:
                 current_section_type = "pagamento"
-            elif re.match(r"^\s*Despesas\s*$", line):
+            elif re.match(r"^\s*Despesas\b", raw_line):
                 current_section_type = "despesas"
 
             if not current_card:
                 continue
 
-            # IOF DESPESA NO EXTERIOR (standalone line, no date)
-            if "IOF DESPESA NO EXTERIOR" in line and not re.match(r"\s*\d{2}/\d{2}", line):
-                iof_m = re.search(r"IOF DESPESA NO EXTERIOR\s+([\d.,]+)", line)
+            # IOF DESPESA NO EXTERIOR (linha sem data). O emissor conta o IOF em
+            # "Total Despesas/Débitos no Brasil" (verificado no corpus) → escopo
+            # despesa_brasil, não exterior.
+            if "IOF DESPESA NO EXTERIOR" in raw_line and not re.match(r"\s*\d{2}/\d{2}", raw_line):
+                iof_m = re.search(r"IOF DESPESA NO EXTERIOR\s+([\d.,]+)", raw_line)
                 if iof_m:
-                    # IOF has no date in the PDF; prefer date of preceding transaction
                     iof_date = result.get("data_vencimento")
-                    if result.get("transacoes") and len(result["transacoes"]) > 0:
-                        last_tx = result["transacoes"][-1]
-                        if last_tx.get("data"):
-                            iof_date = last_tx["data"]
+                    if result.get("transacoes"):
+                        last_date = result["transacoes"][-1].get("data")
+                        if last_date:
+                            iof_date = last_date
                     result["transacoes"].append(
                         {
                             "data": iof_date,
                             "descricao": "IOF DESPESA NO EXTERIOR",
                             "valor": parse_brl(iof_m.group(1)),
                             "cartao": current_card,
+                            "escopo": "despesa_brasil",
                         }
                     )
                 continue
 
-            # TRY TRANSACTION MATCH FIRST (before skips), because pdfplumber
-            # merges right-column text onto transaction lines
+            line = _strip_resumo_pollution(raw_line)
             tx_m = tx_pattern.match(line)
             if tx_m:
                 date_parts = tx_m.group(1).split("/")
@@ -798,8 +814,7 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 mm = int(date_parts[1])
 
                 raw_desc = tx_m.group(2).strip()
-                valor_str = tx_m.group(3).strip()
-                valor_brl = parse_brl(valor_str)
+                valor_brl = parse_brl(tx_m.group(3).strip())
                 valor_usd = (
                     parse_brl(tx_m.group(4)) if tx_m.group(4) and tx_m.group(4).strip() else None
                 )
@@ -807,27 +822,41 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 if valor_brl is None:
                     continue
 
-                # Clean right-column junk from description
-                # e.g. "SCP COMPLETO- DEZ/25 26,34 (+) Total Despesas..." → chop at "(+)"
-                for junk in [" (+)", " (-)", " (=)", " Saldo", " Total"]:
-                    idx = raw_desc.find(junk)
-                    if idx > 0:
-                        raw_desc = raw_desc[:idx].strip()
-
                 date_str = resolve_date_ddmm(dd, mm, ref_year, ref_month)
 
-                is_payment = current_section_type == "pagamento" or valor_brl < 0
+                # Escopo = balde de completude (checksum por seção). Pagamento
+                # (débito da fatura anterior) sai como tipo=pagamento p/ E3/E4
+                # tratar como transferência interna, nunca despesa. Sinal em E2 =
+                # espaço-do-doc (magnitude impressa); normalização de fluxo é E3/E4.
+                if current_section_type == "pagamento":
+                    escopo, tipo = "pagamento", "pagamento"
+                elif valor_usd:
+                    escopo, tipo = "exterior", None
+                else:
+                    escopo, tipo = "despesa_brasil", None
 
                 tx = {
                     "data": date_str,
                     "descricao": raw_desc,
                     "valor": valor_brl,
                     "cartao": current_card,
+                    "escopo": escopo,
                 }
+                if tipo:
+                    tx["tipo"] = tipo
                 if valor_usd:
                     tx["forex"] = {"moeda_original": "USD", "valor_original": valor_usd}
 
                 result["transacoes"].append(tx)
+
+        # Opt-in do checksum de completude (ADR-342 §Emenda 2026-07-23): confere
+        # Σ(tx despesa_brasil) == "Total Despesas/Débitos no Brasil". Exterior e
+        # pagamento ficam FORA da soma (escopo ≠ signal.escopo).
+        if result.get("total_compras") is not None:
+            result["total_lancamentos_conferivel"] = {
+                "valor_cents": round(result["total_compras"] * 100),
+                "escopo": "despesa_brasil",
+            }
 
         log(LOG_PREFIX_FATURA, "INFO", f"  → {len(result['transacoes'])} transações extraídas")
     except Exception as e:

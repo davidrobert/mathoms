@@ -96,3 +96,22 @@ co-design fechou a identidade correta — **destrava a implementação**:
   nunca âncora de completude.
 - Sem ADR nova — emenda [[ADR-342]] já cobre. Vale também para [[A39.l8]]
   (parser Itaú Visa: "Total dos lançamentos atuais" com a mesma identidade de seção).
+
+## Nota de execução (2026-07-24) — opt-in shipado (fecha a lane)
+
+`parse_santander_unique` opt-in **entregue**. `escopo` declarado em
+`$defs/transacao` (enum `despesa_brasil|exterior|pagamento|lancamentos_atuais`);
+tag por seção ("Pagamento e Demais Créditos" → pagamento com `tipo=pagamento`;
+"Despesas" com coluna US$ → exterior; sem US$ → despesa_brasil; IOF DESPESA NO
+EXTERIOR → despesa_brasil, que é onde o emissor o conta). Emite
+`total_lancamentos_conferivel={valor_cents, escopo:despesa_brasil}`.
+
+Achado do corpus vs a nota de 2026-07-23: as linhas de encargo **não** somem —
+o IOF (única linha sem data) já era capturado; o resíduo era **tag de escopo
+errada** (IOF fora do balde Brasil) **+ corrupção de valor** no layout
+lado-a-lado (a poluição da coluna Resumo fundida na linha era capturada pelo
+`$`-âncora — pagamento −119,21 virava +119,21). Fix = estripe da poluição antes
+do match + IOF→despesa_brasil + seção pelo header literal. Os 3 PDFs Santander
+fecham a cent (R$ 39,96 / 543,68 / 3.566,08), zero falso-fire. `is_payment`
+morto removido. WARN-first mantido (flip HARD após ≥1 sprint verde). Golden
+sintético em `test_fatura_parser_checksum.py`.

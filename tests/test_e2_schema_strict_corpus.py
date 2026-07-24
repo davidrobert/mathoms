@@ -83,6 +83,29 @@ _FATURA_TX = [
     {"date": "2026-04-12", "description": "RESTAURANTE SINTETICO", "amount": 90.00},
 ]
 
+# Fatura Itaú (cartão): nacional + internacional (US$) + IOF sem data — exercita
+# o balde `lancamentos_atuais` (nacional+internacional+IOF) do parse_itau_fatura.
+_ITAU_FATURA_TX = [
+    {"date": "2026-04-05", "description": "MERCADO GOLDEN", "amount": 250.50},
+    {"date": "2026-04-19", "description": "CLOUD GOLDEN", "amount": 80.00, "usd": 15.00},
+    {"description": "Repasse de IOF", "amount": 2.80, "kind": "iof"},
+]
+
+
+def _itau_fatura_builder(tmp_path: Path, filename: str) -> Path:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import cm
+    from reportlab.pdfgen import canvas
+
+    from tests.fixtures.pdf.itau import draw_itau_fatura
+
+    path = tmp_path / filename
+    c = canvas.Canvas(str(path), pagesize=A4)
+    w, h = A4
+    draw_itau_fatura(c, w, h, h - 2 * cm, "2026-04", _ITAU_FATURA_TX)
+    c.save()
+    return path
+
 
 def _xls_builder(generator_name: str) -> Callable[[Path, str], Path]:
     def _build(tmp_path: Path, filename: str) -> Path:
@@ -269,6 +292,7 @@ PASS_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path]]] = {
         "santander_faturaunique_202604.pdf",
         _pdf_builder("santander", _FATURA_TX, kind="fatura"),
     ),
+    "itau.parse_itau_fatura": ("itau_fatura_202604.pdf", _itau_fatura_builder),
     # XLS binário gerado com xlwt (dev-dep, A24.l7 passo 3 — ex-INPUT_GAPS).
     "itau.parse_itau_xls": (
         "itau_extratocontapersonnalite_202604.xls",
