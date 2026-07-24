@@ -310,6 +310,14 @@ def classify_document(
             f"doc_type_sem_pipeline:{best_type} — sem parser/stage consumidor; "
             "revisar tipo do documento ou aguardar suporte (candidato A29+)"
         )
+    elif not best_type and "needs_review_reason" not in meta:
+        # A39.l12 — conteúdo não casou nenhum TypeRule (ex.: Binance CSV cripto,
+        # cujas colunas não têm âncora): escala honesto COM razão tipada, nunca
+        # needs_review silencioso sem motivo.
+        meta["needs_review_reason"] = (
+            "no_doc_type_match — conteúdo não reconhecido por nenhum TypeRule; "
+            "revisar/atribuir tipo do documento (candidato a suporte novo)"
+        )
     meta["confidence"] = confidence
     meta["needs_review"] = needs_review
 

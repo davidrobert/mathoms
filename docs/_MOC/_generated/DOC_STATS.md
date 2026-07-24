@@ -38,8 +38,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | lane | cancelled | 1 |
 | lane | in_progress | 5 |
 | lane | open | 4 |
-| lane | planned | 34 |
-| lane | shipped | 206 |
+| lane | planned | 33 |
+| lane | shipped | 207 |
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 32 |
 | plan | done | 4 |
