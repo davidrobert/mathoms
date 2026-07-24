@@ -339,6 +339,7 @@
 | ADR-341 | adr | Decidido |  | Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores | `adr/341-contrato-exec-context-parecer-eviction-redacao.md` |
 | ADR-342 | adr | Decidido |  | Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path | `adr/342-gate-anti-silencio-e2-read-path.md` |
 | ADR-343 | adr | Decidido |  | Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico | `adr/343-estado-duravel-pipeline-review.md` |
+| ADR-346 | adr | Proposto |  | Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador | `adr/346-identidade-posicao-renda-variavel.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
