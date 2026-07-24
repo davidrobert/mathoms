@@ -230,6 +230,20 @@ def new_cdb_position_result(banco: str) -> Dict[str, Any]:
     }
 
 
+def new_investment_position_result(banco: str) -> Dict[str, Any]:
+    """Template E2 para posição de renda variável (``tipo="investimentosposicao"``)."""
+    return {
+        "banco": banco,
+        "instituicao": banco,
+        "tipo": "investimentosposicao",
+        "tipo_conta": "investimento",
+        "moeda": "BRL",
+        "titular": None,
+        "posicoes": [],
+        "notas": [],
+    }
+
+
 def count_candidate_rows(text: str) -> int:
     """Linhas com data + valor monetário, excluindo linhas de saldo — proxy das
     transações que o parser deveria ter convertido (observação para o gate

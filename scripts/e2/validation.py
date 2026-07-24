@@ -114,6 +114,46 @@ def apply_cdb_checksum(result: Dict[str, Any], total_declarado: Optional[float] 
     result["checksum_ok"] = True  # A39.l6: traço positivo do pass
 
 
+_RV_EMPTY_MSG = "0 posições de renda variável extraídas — escalado (ADR-346 · A39.l9)"
+_RV_COUNT_MSG = "n_papéis detectado ≠ posições emitidas — escalado (ADR-346 checksum de contagem)"
+_RV_CLASS_MSG = "Σ posições da classe ≠ subtotal declarado (cents) — escalado (ADR-346)"
+
+
+def apply_rv_count_checksum(result: Dict[str, Any], raw_detected: Optional[int] = None) -> None:
+    """Posição só-quantidade (custódia acionária): sem valor a somar; a completude
+    é n_papéis observado == posições emitidas. Falha → escala (ADR-346)."""
+    posicoes = result.get("posicoes") or []
+    if not posicoes:
+        escalate_result(result, ReviewReasonCode.extract_empty_result, _RV_EMPTY_MSG)
+        return
+    if raw_detected is not None and raw_detected != len(posicoes):
+        escalate_result(result, ReviewReasonCode.extract_investment_sum_mismatch, _RV_COUNT_MSG)
+        return
+    result["checksum_ok"] = True
+
+
+def apply_rv_carteira_checksum(
+    result: Dict[str, Any], subtotais_por_classe: Dict[str, float]
+) -> None:
+    """Carteira valorada (Rico/XP): Σ posições por classe == subtotal declarado da
+    classe (int cents, ADR-090). Falha → escala; sem subtotal → skip com traço."""
+    posicoes = result.get("posicoes") or []
+    if not posicoes:
+        escalate_result(result, ReviewReasonCode.extract_empty_result, _RV_EMPTY_MSG)
+        return
+    if not subtotais_por_classe:
+        result["checksum_skipped_no_total"] = True
+        return
+    for classe, subtotal in subtotais_por_classe.items():
+        soma_cents = sum(
+            round((p.get("valor_atual") or 0) * 100) for p in posicoes if p.get("classe") == classe
+        )
+        if soma_cents != round((subtotal or 0) * 100):
+            escalate_result(result, ReviewReasonCode.extract_investment_sum_mismatch, _RV_CLASS_MSG)
+            return
+    result["checksum_ok"] = True
+
+
 def validate_extrato_result(
     result: Dict[str, Any], file_path: Path, is_csv: bool = False
 ) -> List[str]:

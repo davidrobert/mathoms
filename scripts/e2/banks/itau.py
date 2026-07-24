@@ -31,12 +31,13 @@ from scripts.e2.common import (
     log,
     make_result_template,
     new_cdb_position_result,
+    new_investment_position_result,
     parse_brl,
     read_pdf_text,
     resolve_date_ddmm,
     safe_date,
 )
-from scripts.e2.validation import apply_cdb_checksum
+from scripts.e2.validation import apply_cdb_checksum, apply_rv_count_checksum
 
 LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
@@ -59,6 +60,8 @@ PARSERS = [
     # Fatura de cartão não-cobranded. `_` terminador exclui `faturapaoacucar`
     # (roteia acima); disjunto, ordem relativa é indiferente.
     (r"^itau_fatura_", "parse_itau_fatura"),
+    # Posição acionária (custódia escritural investfone) — PDF, só-quantidade.
+    (r"^itau_investimentosposicao_.*\.pdf$", "parse_itau_investimentosposicao"),
 ]
 
 
@@ -1172,4 +1175,69 @@ def parse_itau_cdb_pdf(pdf_path: Path, filename: str) -> Dict[str, Any]:
         result["posicoes"].append(posicao)
 
     log(LOG_PREFIX_EXTRATO, "INFO", f"  → {len(result['posicoes'])} posição(ões) de CDB")
+    return result
+
+
+# Total (col após Livres/Bloqueadas) é o inteiro imediatamente antes do ticker;
+# `Preferencial778` cola Tipo+Livres no extract_words, então contar 3 ints falha
+# — ancorar no ticker é robusto ao sub-layout sem espaços (ADR-346 · A39.l9).
+_ITAU_RV_TICKER_RE = re.compile(r"^(.*?)\s+(\d+)\s+([A-Z]{4}\d{1,2})\s*$")
+_ITAU_RV_ROW_END_RE = re.compile(r"[A-Z]{4}\d{1,2}\s*$")
+
+
+def _itau_rv_lines(pdf: Any) -> List[str]:
+    """Reconstrói linhas via extract_words (agrupa por `top`) — extract_text
+    intercala colunas do layout de custódia."""
+    lines: List[str] = []
+    for page in pdf.pages:
+        words = sorted(page.extract_words(), key=lambda w: (round(w["top"]), w["x0"]))
+        cur: List[str] = []
+        cur_top: Optional[int] = None
+        for w in words:
+            top = round(w["top"])
+            if cur_top is not None and abs(top - cur_top) > 3:
+                lines.append(" ".join(cur))
+                cur = []
+            cur.append(w["text"])
+            cur_top = top
+        if cur:
+            lines.append(" ".join(cur))
+    return lines
+
+
+def _itau_rv_position(line: str) -> Optional[Dict[str, Any]]:
+    m = _ITAU_RV_TICKER_RE.match(line)
+    if not m:
+        return None
+    empresa = re.sub(r"[\d\s]+$", "", m.group(1)).strip()
+    return {"ticker": m.group(3), "empresa": empresa, "quantidade": int(m.group(2))}
+
+
+def _extract_itau_rv(lines: List[str]) -> Tuple[List[Dict[str, Any]], int]:
+    """Posições + n_papéis observado (linha terminada em ticker, exceto TOTAL)."""
+    posicoes: List[Dict[str, Any]] = []
+    raw_detected = 0
+    for line in lines:
+        if line.upper().startswith("TOTAL") or not _ITAU_RV_ROW_END_RE.search(line):
+            continue
+        raw_detected += 1
+        pos = _itau_rv_position(line)
+        if pos is not None:
+            posicoes.append(pos)
+    return posicoes, raw_detected
+
+
+def parse_itau_investimentosposicao(pdf_path: Path, filename: str) -> Dict[str, Any]:
+    """Posição acionária Itaú (custódia escritural): só-quantidade, sem valor (ADR-346)."""
+    log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Itaú posição acionária: {filename}")
+    result = new_investment_position_result(BANCO_ITAU)
+    if pdfplumber is None:
+        result["requires_llm_fallback"] = True
+        return result
+    with pdfplumber.open(pdf_path) as pdf:
+        lines = _itau_rv_lines(pdf)
+    result["titular"] = detect_member_from_text("\n".join(lines))
+    result["posicoes"], raw_detected = _extract_itau_rv(lines)
+    apply_rv_count_checksum(result, raw_detected)
+    log(LOG_PREFIX_EXTRATO, "INFO", f"  → {len(result['posicoes'])} posição(ões) RV")
     return result
