@@ -37,6 +37,8 @@ _EXTRATO_BANK_PREFIXES: set = set()
 _INVESTMENT_PATTERNS: List[str] = [
     r"cdbresumo",
     r"cdbdetalhes",
+    r"investimentosposicao",
+    r"carteirarendafixa",
 ]
 
 # Casa o segmento `{banco}_extratoconta` do filename canônico (prefixo de hash opcional).

@@ -394,3 +394,37 @@ class TestOtherWithoutPipelineGate:
         assert result["needs_review"] is True
         reason = result["classification_meta"]["needs_review_reason"]
         assert reason.startswith("doc_type_sem_pipeline:extratocripto")
+
+    def test_binance_csv_content_escalates_with_typed_reason(self, tmp_path):
+        # A39.l12 — via REAL (sem patch): colunas de exchange cripto não casam
+        # nenhum TypeRule → best_type=None. Escala honesto COM razão tipada
+        # (`no_doc_type_match`), nunca needs_review silencioso sem motivo. É o
+        # resíduo não-coberto do dogfood roteado corretamente (KR-A).
+        f = tmp_path / "binance_extratoconta_202602.csv"
+        f.write_text(
+            "id,datetime_tz_GMT-03:00,type,label,sent_amount,sent_currency,"
+            "received_amount,received_currency,fee_amount,fee_currency\n"
+            "1,2026-02-01 10:00:00,Deposit,,0,,0.5,BTC,0.0001,BTC\n",
+            encoding="utf-8",
+        )
+        result = dc.classify_document(f, tmp_path, use_llm=False)
+
+        assert result["doc_type"] == DocumentType.other
+        assert result["needs_review"] is True
+        reason = result["classification_meta"]["needs_review_reason"]
+        assert reason and "no_doc_type_match" in reason
+
+    def test_xlsx_preview_extraction_reads_cells(self, tmp_path):
+        # A39.l12 — hipótese "lacuna de extração de preview .xlsx" REFUTADA:
+        # `_extract_file_preview` lê xlsx via openpyxl (a carteira Rico da A39.l9
+        # classifica porque o preview funciona). Guard contra regressão silenciosa.
+        import openpyxl
+
+        from scripts.route_documents import _extract_file_preview
+
+        wb = openpyxl.Workbook()
+        wb.active.append(["Este é o seu patrimônio", "Total investido"])
+        x = tmp_path / "carteira.xlsx"
+        wb.save(x)
+
+        assert "Total investido" in _extract_file_preview(x)
