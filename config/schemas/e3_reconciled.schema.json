@@ -90,7 +90,34 @@
         "type": "object",
         "additionalProperties": true
       }
+    },
+    "tx_carregadas": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "ADR-347 — âncora de contagem (pós-period-norm, PRÉ-anachronic/undated). Aditivo-opcional (PR1); required no flip HARD (PR3)."
+    },
+    "remocoes": {
+      "type": "object",
+      "description": "ADR-347 — partição de remoções de tx por canal (ledger de conservação de contagem). Aditivo-opcional (PR1). Fecha tx_carregadas == transacoes_total + Σ remocoes[*].count.",
+      "properties": {
+        "undated_drop": {"$ref": "#/$defs/remocao"},
+        "anachronic": {"$ref": "#/$defs/remocao"},
+        "intra_statement_dedup": {"$ref": "#/$defs/remocao"},
+        "cross_file_dedup": {"$ref": "#/$defs/remocao"}
+      },
+      "additionalProperties": false
     }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "$defs": {
+    "remocao": {
+      "type": "object",
+      "required": ["count", "valor_cents"],
+      "properties": {
+        "count": {"type": "integer", "minimum": 0},
+        "valor_cents": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    }
+  }
 }
