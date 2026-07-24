@@ -614,7 +614,11 @@ def parse_santander_fatura_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 
         result["transacoes"].append(txn)
 
-    # Summary
+    # Summary. `total_compras` = Σ das próprias linhas → NÃO emite
+    # `total_lancamentos_conferivel` (checksum tautológico: Σtx == Σtx sempre passa,
+    # daria selo falso). O CSV não tem subtotal independente p/ reconciliar — uma
+    # linha malformada some com o total junto. Opt-in só onde há total impresso
+    # independente (parse_santander_unique PDF, ADR-342 §Emenda 2026-07-24).
     result["total_compras"] = round(total_compras, 2) if total_compras else None
     result["pagamentos"] = round(total_pagamentos, 2) if total_pagamentos else None
     saldo = total_compras + total_pagamentos
@@ -729,10 +733,13 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
         if m:
             result["saldo_anterior"] = parse_brl(m.group(1))
 
-        # Total Despesas
+        # Total Despesas (Brasil + Exterior — dois subtotais separados no doc)
         m = re.search(r"Total Despesas/Débitos no Brasil\s+([\d.,]+)", full_text)
         if m:
             result["total_compras"] = parse_brl(m.group(1))
+        m = re.search(r"Total Despesas/Débitos no Exterior\s+([\d.,]+)", full_text)
+        if m:
+            result["total_exterior"] = parse_brl(m.group(1))
 
         # Total pagamentos (sempre negativo por convenção — reduzem saldo da fatura)
         m = re.search(r"Total de pagamentos\s+([\d.,]+)", full_text)
@@ -849,14 +856,21 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
                 result["transacoes"].append(tx)
 
-        # Opt-in do checksum de completude (ADR-342 §Emenda 2026-07-23): confere
-        # Σ(tx despesa_brasil) == "Total Despesas/Débitos no Brasil". Exterior e
-        # pagamento ficam FORA da soma (escopo ≠ signal.escopo).
+        # Opt-in do checksum de completude (ADR-342 §Emenda 2026-07-24): um signal
+        # por seção impressa (despesa_brasil + exterior). O gate confere Σ(tx do
+        # escopo) == subtotal; pagamento fica fora (escopo próprio). Lista quando
+        # há exterior; objeto único quando só Brasil (retrocompat).
+        signals = []
         if result.get("total_compras") is not None:
-            result["total_lancamentos_conferivel"] = {
-                "valor_cents": round(result["total_compras"] * 100),
-                "escopo": "despesa_brasil",
-            }
+            signals.append(
+                {"valor_cents": round(result["total_compras"] * 100), "escopo": "despesa_brasil"}
+            )
+        if result.get("total_exterior") is not None:
+            signals.append(
+                {"valor_cents": round(result["total_exterior"] * 100), "escopo": "exterior"}
+            )
+        if signals:
+            result["total_lancamentos_conferivel"] = signals if len(signals) > 1 else signals[0]
 
         log(LOG_PREFIX_FATURA, "INFO", f"  → {len(result['transacoes'])} transações extraídas")
     except Exception as e:
