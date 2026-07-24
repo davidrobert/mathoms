@@ -239,6 +239,28 @@ _llm_cfg = PIPE_CONFIG.get("llm", {})
 _LLM_MODEL = _llm_cfg.get("model") or _default_model_for("anthropic")
 _LLM_MAX_TOKENS = _llm_cfg.get("max_tokens", 500)
 _LLM_CONFIDENCE_THRESHOLD = _llm_cfg.get("confidence_threshold", 0.7)
+# ADR-348 — invariante de determinismo, NÃO tunável: classificação é tarefa
+# discriminativa (labels em enums fechados); temp>0 sabota o gate de needs_review.
+# Deliberadamente fora de `_llm_cfg.get(...)` — config-flag institucionaliza um
+# botão de não-determinismo sem caso de uso. Anthropic não expõe seed → argmax
+# quase-determinístico (flip residual provider-side é o que o golden mede).
+_LLM_TEMPERATURE = 0.0
+# Fonte única do conjunto fechado de dest_group (dirige o diretório de destino
+# em dest_dir_for_group: base/"data"/group). Valor cru alucinado pelo LLM →
+# doc em data/<lixo>/ (perda silenciosa) + path-traversal. O prompt oferece 6;
+# `comprovantes` é regex-only hoje mas é dir consumido (ADR-239) → incluído para
+# não rejeitar destino válido. Futuro output_schema (re-route) deriva o Literal daqui.
+_DEST_GROUPS = frozenset(
+    {
+        "financial_statements",
+        "income_tax_br",
+        "income_tax_us",
+        "real_estate",
+        "vehicles",
+        "members",
+        "comprovantes",
+    }
+)
 
 # ---------------------------------------------------------------------------
 # Camada 1 — Classificação determinística por regex
@@ -569,6 +591,7 @@ Regras:
             response = client.messages.create(
                 model=_LLM_MODEL,
                 max_tokens=_LLM_MAX_TOKENS,
+                temperature=_LLM_TEMPERATURE,
                 messages=messages,
             )
             raw = response.content[0].text.strip()
@@ -587,6 +610,20 @@ Regras:
                     f"LLM classificou '{filename}' com confiança baixa ({confidence:.1%}) — nao_identificados/",
                 )
                 return None
+
+            # ADR-348 — dest_group dirige o diretório (dest_dir_for_group). Valor
+            # alucinado/fora do conjunto fechado → doc some em data/<lixo>/ +
+            # path-traversal. Trata como baixa confiança (nao_identificados/).
+            if result.get("dest_group") not in _DEST_GROUPS:
+                log(
+                    "WARN",
+                    f"LLM retornou dest_group inválido {result.get('dest_group')!r} "
+                    f"para '{filename}' — nao_identificados/",
+                )
+                return None
+            # doc_type dirige o filename (lista aberta no prompt) — guard não-fatal.
+            if not result.get("doc_type"):
+                log("WARN", f"LLM omitiu doc_type para '{filename}' — segue com final_name do LLM")
 
             log(
                 "INFO",
