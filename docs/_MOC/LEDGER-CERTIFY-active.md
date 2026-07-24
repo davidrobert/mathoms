@@ -75,5 +75,25 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 
 ---
 
-_Nenhum run registrado ainda. A primeira seção `## r1 — …` é adicionada pela
-primeira execução real da skill (Passo do entregável)._
+## r1 — ws-1b9f2cf5-2026-07-24
+
+> Skill ledger-certify ([[ADR-302]]) · run 57cd4618. Primeira re-derivação
+> in-process E3+E4 sobre E2 persistido via `dev/certify_ledger_local.py` — **zero
+> write no DB provado** (rows `pipeline_artifacts`/`transaction_overrides`
+> inalteradas antes/depois). Grupos E3: 82/109 `conservado`, 27
+> `coberto-sem-verificação` (0-tx ou dedup declarado). Baldes E4: 2/7 `conservado`
+> (`despesas`, `receitas`), 1 `perda` (`investimentos`), 4 `coberto` (fora do grão
+> transacional). natural_key cobertura: **11,8%**. Substrato E2 = workspace-latest;
+> drift vs persistido: 109 grupos casados (mesmo count), 0 count-divergente, 20
+> só-persistido com keying legado. Julgamento de materialidade (data-engineer +
+> financial-planner) + verificação adversarial ficam para a próxima **invocação de
+> certificação** — esta seção é o baseline mecânico do harness. Cru + instância em
+> `storage/<uuid>/ledger_certify/` (off-git).
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| LC01 — dedup de investimento não colapsa a chave `tipo\|instituicao\|descricao_norm` no balde `investimentos` (6 chaves vivas 2×) | dedup/transferência | Crítico | P0 | procede | procede-aberto | [[ADR-271]] (fuzzy/CNPJ é follow-up conhecido) |
+| LC02 — E2→E3: `Σ n_tx(E2)` excede `Σ [transacoes_total + dups]` no workspace (gap de count); `statements_reconciled=122`, `skipped_inputs=4` declarados | conservação/reconciliação | Alto | P1 | needs-verification | procede-aberto | atribuir as tx dos 4 statements skipped antes de concluir perda silenciosa |
+| LC03 — E3→E4: `Σ transacoes_total(E3)` excede `tx_total(_lineage)` de `despesas` em 1 (1 tx classificada a menos) | categorização/conservação | Médio | P2 | needs-verification | procede-aberto | localizar o drop entre `TransactionClassifier` e `CashFlowBuilder` |
+| LC04 — natural_key ausente em ~88% das tx classificadas (cobertura 11,8%) — join sticky-override degradado | consistência | Médio | P2 | procede | procede-aberto | [[ADR-287]] (gate classe-c, titular ausente) |
+| LC05 — 20 grupos E3 persistidos com keying legado não reproduzido (banco-prefixo vazio `_extrato_*`, períodos sentinela `189912`/`210001`) | saúde-execução | Baixo | P3 | não-acionável | não-acionável | drift benigno — a re-derivação atual não reproduz o keying antigo (já corrigido) |

@@ -78,18 +78,32 @@ Guarde o `run_id` e as keys.
 
 ### Passo 2 — Re-derivar E3+E4 in-process (determinístico, sem side-effects)
 
-O modo primário **não** confia no E3/E4 persistido — re-roda a transformação
-sobre o E2 persistido, igual o `parse-certify` re-parseia em vez de confiar no E2
-gravado. Semeie um `InMemoryArtifactStore` com os artefatos E2, com os flags/config
-reais do workspace (`dedup_natural_key_v2_enabled`, `learned_rules_v2`,
-`config_overrides` family/categorization/transferencias_internas), e rode E3+E4
-**pulando persist e learning-loop** (o learning-loop **escreve** `TransactionOverride`
-— desligue-o). Zero write no DB, zero Celery.
+**Mecanizado** — o harness `dev/certify_ledger_local.py` faz o Passo 2 **e** o
+Passo 3 de uma vez:
+
+```bash
+.venv/bin/python dev/certify_ledger_local.py <workspace> [--run <run_id>] [--persist]
+```
+
+Ele semeia um `InMemoryArtifactStore` com o E2 vivo (mais recente por
+`(stage canônico, key)` — replica o read-path workspace-latest), re-roda reconcile
+(E3, `_e3_run_reconciliation`) + categorize (E4, `categorize_via_store` +
+`serialize_e4_artifacts`) com os flags/config reais do workspace
+(`dedup_natural_key_v2_enabled`, `learned_rules_v2`, `config_overrides`
+family/categorization/transferencias_internas), **pulando persist e learning-loop**
+(o learning-loop **escreve** `TransactionOverride` — o harness nunca chama
+`main_with_store`/`apply_learning_loop`). Zero write no DB (provado por contagem de
+rows antes/depois), zero Celery, zero LLM. `--persist` grava a síntese crua off-git
+em `storage/<uuid>/ledger_certify/<ts>-<run8>/`. O núcleo puro
+(`dev/ledger_certify_core.py` + `dev/ledger_conservation.py`) tem os vereditos e o
+ledger de conservação — testável sem DB.
 
 ### Passo 3 — Ledger de conservação (cents) + cross-check de drift
 
-Compute o **ledger de conservação em int cents** (tol-zero, [[ADR-090]]) nas duas
-transições — as igualdades exatas estão na [rubrica](references/rubric.md):
+O harness **já emite** este passo: as duas transições de conservação (workspace,
+cents), as duas tabelas de veredito (eixo E3 por grupo + eixo E4 por balde), a
+cobertura de `natural_key` e o sumário de drift. Interprete a saída — as igualdades
+exatas estão na [rubrica](references/rubric.md):
 
 - **E2→E3**: toda tx extraída é reconciliada OU dedup declarado (count HARD);
   Σ valor conserva (HARD quando `dups==0`; senão `coberto-sem-verificação` — o
