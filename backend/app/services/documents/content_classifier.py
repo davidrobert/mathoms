@@ -196,6 +196,48 @@ def _maybe_apply_investment_override(
     )
 
 
+# Códigos de instituição conhecidos (derivados do catálogo de conteúdo) para o
+# fallback de filename. Um dashboard de carteira exportado (Rico/XP XLSX) pode
+# não conter o nome da corretora em NENHUMA célula — o único sinal é o filename.
+_KNOWN_INSTITUTION_CODES: frozenset[str] = frozenset(
+    code for _, code in INSTITUTION_CONTENT_PATTERNS
+)
+_INVESTMENT_POSITION_TYPES = frozenset({"investimentosposicao", "carteirarendafixa"})
+_FILENAME_TOKEN_RE = re.compile(r"[a-z0-9]+")
+
+
+def detect_institution_by_filename(filename: str) -> str | None:
+    """Casa um token do filename contra códigos conhecidos (content-first; só é consultado com conteúdo silencioso; token-based evita ``exp`` ≠ ``xp``)."""
+    tokens = set(_FILENAME_TOKEN_RE.findall(filename.lower()))
+    for code in _KNOWN_INSTITUTION_CODES:
+        if code in tokens:
+            return code
+    return None
+
+
+def _maybe_resolve_investment_institution(
+    result: ContentClassification, filename: str
+) -> ContentClassification:
+    # inst-vazia numa posição de investimento cai em key órfã no consolidador e
+    # descarta a fonte em silêncio (A39.l9 · ADR-346 invariante 2). Resolver pelo
+    # filename ANTES de deixar passar vazia; nunca some sem sinal.
+    if result.doc_type not in _INVESTMENT_POSITION_TYPES or result.institution:
+        return result
+    inst = detect_institution_by_filename(filename)
+    if inst is None:
+        return result
+    result.institution = inst
+    result.source = (result.source or "content_regex") + "+filename_institution"
+    return result
+
+
+def _apply_investment_overrides(
+    result: ContentClassification, filename: str, text: str
+) -> ContentClassification:
+    result = _maybe_apply_investment_override(result, filename, text)
+    return _maybe_resolve_investment_institution(result, filename)
+
+
 def classify_file(filepath: Path, preview_extractor) -> ContentClassification:
     """Classify a file by its content.
 
@@ -214,5 +256,4 @@ def classify_file(filepath: Path, preview_extractor) -> ContentClassification:
             confidence=0.0,
             source=f"content_regex_preview_error:{type(exc).__name__}",
         )
-    result = classify_text(text or "")
-    return _maybe_apply_investment_override(result, filepath.name, text or "")
+    return _apply_investment_overrides(classify_text(text or ""), filepath.name, text or "")
