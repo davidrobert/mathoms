@@ -77,13 +77,16 @@ from pipeline.domain.services.patrimonio_imovel_classifier import (
     split_imoveis_with_overrides,
     sum_imoveis_geradores_liquidos,
 )
-from pipeline.domain.services.patrimonio_resolvers import resolve_members
+from pipeline.domain.services.patrimonio_resolvers import (
+    investimentos_from_irpf,
+    resolve_members,
+    rv_ressalva,
+)
 from pipeline.domain.services.patrimonio_types import (
     PatrimonioConfig,
     PatrimonioInputs,
     RealEstateValuationContext,
     get_bens,
-    investimento_valor,
     safe_float,
     veiculo_valor,
 )
@@ -145,7 +148,7 @@ class PatrimonioCalculator:
         residencia, imoveis_investimento = self._split_imoveis(titular_bens, conjuge_bens)
         veiculos = self._sum_veiculos(titular_bens, conjuge_bens)
 
-        investimentos_titular, investimentos_conjuge, fonte = self._compute_investimentos(
+        investimentos_titular, investimentos_conjuge, fonte, ressalva = self._compute_investimentos(
             inputs, titular_bens, conjuge_bens
         )
 
@@ -234,6 +237,10 @@ class PatrimonioCalculator:
             "composicao": composicao,
             "tabela_categorias": composicao,
             "fonte_investimentos": fonte,
+            # ADR-346 (A39.l9): ressalva de PL quando há posição RV sem valor de
+            # mercado não coberta por IRPF — PL renderizado, mas não "certificado".
+            "pl_ressalva": ressalva["pl_ressalva"],
+            "posicoes_sem_marcacao": ressalva["posicoes_sem_marcacao"],
         }
 
     # -------------------------------------------------------------------------
@@ -319,47 +326,37 @@ class PatrimonioCalculator:
             if unattributed > 0:
                 titular_val += unattributed
 
-            fallback_used = False
+            titular_fb = False
+            conjuge_fb = False
             if titular_val == 0:
-                irpf_titular = self._investimentos_from_irpf(
+                irpf_titular = investimentos_from_irpf(
                     titular_bens, extras=("saldo_corretora", "moeda_estrangeira", "outros")
                 )
                 if irpf_titular > 0:
                     titular_val = irpf_titular
-                    fallback_used = True
+                    titular_fb = True
             if identity.conjuge_key and conjuge_val == 0:
-                irpf_conjuge = self._investimentos_from_irpf(conjuge_bens, extras=("outros",))
+                irpf_conjuge = investimentos_from_irpf(conjuge_bens, extras=("outros",))
                 if irpf_conjuge > 0:
                     conjuge_val = irpf_conjuge
-                    fallback_used = True
+                    conjuge_fb = True
 
-            fonte = "posicoes_atuais+irpf" if fallback_used else "posicoes_atuais"
-            return titular_val, conjuge_val, fonte
+            sem = inputs.investimentos_atuais.get("posicoes_sem_marcacao_por_membro", {})
+            ressalva = rv_ressalva(sem, identity, titular_fb=titular_fb, conjuge_fb=conjuge_fb)
+            fonte = "posicoes_atuais+irpf" if (titular_fb or conjuge_fb) else "posicoes_atuais"
+            return titular_val, conjuge_val, fonte, ressalva
 
         # Fallback IRPF
-        titular_val = self._investimentos_from_irpf(
+        titular_val = investimentos_from_irpf(
             titular_bens, extras=("saldo_corretora", "moeda_estrangeira", "outros")
         )
-        conjuge_val = self._investimentos_from_irpf(conjuge_bens, extras=("outros",))
-        return titular_val, conjuge_val, "irpf"
-
-    @staticmethod
-    def _investimentos_from_irpf(bens: dict, *, extras: tuple[str, ...]) -> float:
-        """Soma investimentos IRPF (investimentos + contas_bancarias + extras)."""
-        total = 0.0
-        for inv in bens.get("investimentos", []) or []:
-            total += investimento_valor(inv)
-
-        contas = bens.get("contas_bancarias", [])
-        if isinstance(contas, list):
-            for c in contas:
-                total += investimento_valor(c)
-        else:
-            total += safe_float(contas)
-
-        for extra_key in extras:
-            total += safe_float(bens.get(extra_key, 0))
-        return total
+        conjuge_val = investimentos_from_irpf(conjuge_bens, extras=("outros",))
+        return (
+            titular_val,
+            conjuge_val,
+            "irpf",
+            rv_ressalva({}, identity, titular_fb=True, conjuge_fb=True),
+        )
 
     @staticmethod
     def _compute_caixa(

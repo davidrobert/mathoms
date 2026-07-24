@@ -93,6 +93,10 @@ class ConsolidatedInvestments:
     data_consolidacao: str
     n_posicoes: int
     avisos_validacao: tuple[str, ...] = ()
+    # ADR-346 (A39.l9): posições sem valor de mercado (custódia só-quantidade)
+    # por membro — alimenta a ressalva de PL no E5 (`pl_ressalva`). NÃO soma no
+    # patrimônio (contribui 0), mas o membro carrega o traço.
+    posicoes_sem_marcacao_por_membro: dict[str, list[str]] = field(default_factory=dict)
 
     def to_legacy_dict(self) -> dict:
         out: dict = {
@@ -105,7 +109,30 @@ class ConsolidatedInvestments:
         }
         if self.avisos_validacao:
             out["avisos_validacao"] = list(self.avisos_validacao)
+        if self.posicoes_sem_marcacao_por_membro:
+            out["posicoes_sem_marcacao_por_membro"] = {
+                k: list(v) for k, v in sorted(self.posicoes_sem_marcacao_por_membro.items())
+            }
         return out
+
+
+_VALUE_KEYS = ("valor_total", "valor_atual", "current_value", "valor_brl")
+
+
+def _position_value(pos: dict) -> tuple[float, bool]:
+    """Retorna (valor, sem_marcacao). ``sem_marcacao=True`` quando NENHUMA chave
+    de valor de mercado está presente (custódia só-quantidade) — distinto de
+    valor zero legítimo (posição zerada). ``valor`` fica sempre numérico (0.0 se
+    sem marcação) para não quebrar somas downstream; a flag é a fonte de verdade
+    da partição (ADR-346 A39.l9). Preserva a preferência 'primeiro truthy'."""
+    present = [pos.get(k) for k in _VALUE_KEYS if pos.get(k) is not None]
+    if not present:
+        return 0.0, True
+    chosen = next((v for v in present if v), present[0])
+    try:
+        return float(chosen), False
+    except (ValueError, TypeError):
+        return 0.0, False
 
 
 # =============================================================================
@@ -259,6 +286,7 @@ class InvestmentsConsolidator:
         all_positions: list[dict] = []
         sources: list[str] = []
         totals_by_member: dict[str, float] = {}
+        sem_marcacao_por_membro: dict[str, list[str]] = {}
         avisos: list[str] = list(dedup_avisos)
 
         for cand in best_by_key.values():
@@ -273,22 +301,12 @@ class InvestmentsConsolidator:
             for pos in posicoes:
                 if not isinstance(pos, dict):
                     continue
-                valor = (
-                    pos.get("valor_total")
-                    or pos.get("valor_atual")
-                    or pos.get("current_value")
-                    or pos.get("valor_brl")
-                    or 0
-                )
-                try:
-                    valor = float(valor) if valor else 0.0
-                except (ValueError, TypeError):
-                    valor = 0.0
+                valor, sem_marcacao = _position_value(pos)
                 positions_sum += valor
-
+                nome = pos.get("nome") or pos.get("name") or pos.get("descricao") or ""
                 all_positions.append(
                     {
-                        "nome": (pos.get("nome") or pos.get("name") or pos.get("descricao") or ""),
+                        "nome": nome,
                         "tipo": (
                             pos.get("tipo")
                             or pos.get("tipo_produto")
@@ -298,11 +316,14 @@ class InvestmentsConsolidator:
                         "instituicao": instituicao,
                         "membro": membro,
                         "valor_atual": valor,
+                        "posicao_sem_marcacao": sem_marcacao,
                         "data_referencia": data_ref,
                         "taxa": pos.get("taxa") or pos.get("rentabilidade") or "",
                         "vencimento": pos.get("vencimento", ""),
                     }
                 )
+                if sem_marcacao:
+                    sem_marcacao_por_membro.setdefault(membro, []).append(nome or "?")
 
             try:
                 total_f = float(total_fonte) if total_fonte else 0.0
@@ -337,4 +358,5 @@ class InvestmentsConsolidator:
             data_consolidacao=self._iso_today(),
             n_posicoes=len(all_positions),
             avisos_validacao=tuple(avisos),
+            posicoes_sem_marcacao_por_membro=sem_marcacao_por_membro,
         )
