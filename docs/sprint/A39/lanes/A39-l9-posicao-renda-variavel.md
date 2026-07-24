@@ -91,3 +91,20 @@ instituição + dedup source-level sem descarte silencioso + criar
 propagação do badge para E5 (invariante bloqueante); PR3 = TypeRules
 (Posição Acionária / carteira) + parsers (XLSX valorada, custódia qty-only) +
 resolução RV (a/b/c) + checksums; valoração emprestada = follow-up V2.
+
+## Nota de execução (2026-07-24) — PR1 shipado (dedup source-level)
+
+PR1 entregue: `InvestmentsConsolidator` não descarta mais fonte inst-vazia em
+silêncio. Chave de dedup permanece `(inst,membro)` most-recent-wins; instituição
+vazia usa `_source`/artifact_key (fontes distintas não colidem em `("",membro)`);
+`data_ref` nunca entra na chave (evita somar snapshots temporais → PL 2×). Todo
+descarte registrado em `avisos_validacao` (invariante 2); instituição não-resolvida
+sinalizada. Goldens: invariante 4 (2 inst-vazia somam, não colapsam) + descarte
+datado logado. Suíte pipeline verde (5201).
+
+**Refino de faseamento vs ADR-346:** o `$defs/posicao_investimento` (item 8) foi
+**movido do PR1 para o PR3**, co-localizado com o parser que produz a shape — um
+schema aditivo-opcional no PR1 validaria nada (crítica do próprio painel: "$defs
+sozinho valida nada") e arriscaria drift vs o output real do parser. No PR3 os
+campos ficam required + `additionalProperties:false` + `SCHEMA_BY_STAGE`, onde
+valida de fato. PR2 (null-não-soma + badge E5) segue.

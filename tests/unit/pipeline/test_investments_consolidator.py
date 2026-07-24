@@ -49,6 +49,19 @@ def _extract(
     return out
 
 
+def _valued(
+    source: str, ticker: str, valor, *, inst: str = "", data_ref: str = "2026-07-31"
+) -> dict:
+    return _extract(
+        source=source,
+        instituicao=inst,
+        membro="david",
+        data_ref=data_ref,
+        total=valor,
+        posicoes=[_posicao(ticker, valor)],
+    )
+
+
 class TestBasic:
     def test_consolidates_single_extract(self):
         c = _consolidator()
@@ -156,6 +169,36 @@ class TestDedup:
 
         assert len(out.fontes) == 2
         assert out.total_por_membro["david"] == 150_000.0
+
+
+class TestEmptyInstitutionDedup:
+    """ADR-346 (A39.l9) — instituição vazia nunca é chave que descarta em
+    silêncio; todo descarte do dedup source-level é registrado."""
+
+    def test_two_empty_institution_sources_both_survive(self):
+        # Invariante 4: 2 fontes valoradas inst-vazia do mesmo membro NÃO
+        # colapsam em ("", membro) — ambas somam (senão uma sumiria).
+        out = _consolidator().consolidate(
+            [
+                _valued("rico_investimentosposicao_202607.json", "PETR4", 80_000),
+                _valued("xp_investimentosposicao_202607.json", "VALE3", 50_000),
+            ]
+        )
+        assert out.n_posicoes == 2
+        assert out.total_por_membro["david"] == 130_000.0
+        assert len(out.fontes) == 2
+        assert any("instituição não resolvida" in a for a in out.avisos_validacao)
+
+    def test_dedup_discard_is_logged(self):
+        # Invariante 2: colapso datado registra o descarte (mantém o recente).
+        out = _consolidator().consolidate(
+            [
+                _valued("btg_202602.json", "A", 100_000, inst="BTG", data_ref="2026-02-28"),
+                _valued("btg_202603.json", "A", 120_000, inst="BTG", data_ref="2026-03-31"),
+            ]
+        )
+        assert out.total_por_membro["david"] == 120_000.0  # só o mais recente
+        assert any("dedup posição" in a and "2026-02-28" in a for a in out.avisos_validacao)
 
 
 class TestMemberInference:
