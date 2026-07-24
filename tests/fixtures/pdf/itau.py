@@ -121,3 +121,62 @@ def _ddmm_tx_line(tx: Transaction, period: str, *, signed: bool) -> str:
     _, m_iso, d_iso = iso.split("-")
     desc = str(tx.get("description", "Lancamento"))[:50]
     return f"{d_iso}/{m_iso} {desc} {format_brl(amt if signed else abs(amt))}"
+
+
+def draw_itau_fatura(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+) -> tuple[float, float]:
+    """Fatura de cartão Itaú (não-cobranded) — paridade com ``parse_itau_fatura`` (marcadores: ``usd`` → internacional; ``kind == "iof"`` → "Repasse de IOF" sem data; demais → nacional; fecha Σ(lançamentos atuais) == total)."""
+    yy, mm = period.split("-")
+    nac, intl, iof, s_nac, s_intl, total = _itau_fatura_buckets(transactions)
+    c.setFont("Helvetica", 9)
+    lines = _itau_fatura_lines(period, nac, intl, iof, mm, yy, total, s_nac, s_intl)
+    return draw_text_lines(c, y, lines), total
+
+
+def _itau_fatura_buckets(transactions):
+    nac = [t for t in transactions if not t.get("usd") and t.get("kind") != "iof"]
+    intl = [t for t in transactions if t.get("usd")]
+    iof = [t for t in transactions if t.get("kind") == "iof"]
+    s_nac = sum(abs(float(t.get("amount", 0))) for t in nac)
+    s_intl = sum(abs(float(t.get("amount", 0))) for t in intl)
+    s_iof = sum(abs(float(t.get("amount", 0))) for t in iof)
+    return nac, intl, iof, s_nac, s_intl, s_nac + s_intl + s_iof
+
+
+def _itau_fatura_lines(period, nac, intl, iof, mm, yy, total, s_nac, s_intl) -> list[str]:
+    lines = [
+        "Cartão 4771.XXXX.XXXX.5739",
+        "Titular TITULAR GOLDEN",
+        f"Vencimento: 06/{mm}/{yy}",
+        "Total da fatura anterior 0,00",
+        f"Total desta fatura {format_brl(total)}",
+        f"Lançamentos atuais {format_brl(total)}",
+        "Lançamentos: compras e saques",
+        "TITULAR GOLDEN (final 4984)",
+        "DATA ESTABELECIMENTO VALOR EM R$",
+        *(_ddmm_tx_line(t, period, signed=False) for t in nac),
+        f"Lançamentos no cartão (final 4984) {format_brl(s_nac)}",
+    ]
+    if intl or iof:
+        lines += _itau_fatura_intl_lines(period, intl, iof, s_intl)
+    lines.append(f"Total dos lançamentos atuais {format_brl(total)}")
+    return lines
+
+
+def _itau_fatura_intl_lines(period, intl, iof, s_intl) -> list[str]:
+    s_iof = sum(abs(float(t.get("amount", 0))) for t in iof)
+    return [
+        "Lançamentos internacionais",
+        "TITULAR GOLDEN (final 4984)",
+        "DATA ESTABELECIMENTO US$ R$",
+        *(_ddmm_tx_line(t, period, signed=False) for t in intl),
+        f"Total transações inter. em R$ {format_brl(s_intl)}",
+        *(f"Repasse de IOF em R$ {format_brl(abs(float(t.get('amount', 0))))}" for t in iof),
+        f"Total lançamentos inter. em R$ {format_brl(s_intl + s_iof)}",
+    ]

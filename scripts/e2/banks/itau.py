@@ -56,6 +56,9 @@ PARSERS = [
     (r"^itau_cdbdetalhes_.*\.pdf$", "parse_itau_cdb_pdf"),
     (r"itau_faturapaoacucar.*\.csv$", "parse_itau_paoacucar_csv"),
     (r"itau_faturapaoacucar", "parse_itau_paoacucar"),
+    # Fatura de cartão não-cobranded. `_` terminador exclui `faturapaoacucar`
+    # (roteia acima); disjunto, ordem relativa é indiferente.
+    (r"^itau_fatura_", "parse_itau_fatura"),
 ]
 
 
@@ -768,6 +771,204 @@ def parse_itau_paoacucar(pdf_path: Path, filename: str) -> Dict[str, Any]:
         log(LOG_PREFIX_FATURA, "ERROR", f"  Falha ao abrir PDF {pdf_path.name}: {e}")
         return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
 
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Fatura Itaú (cartão não-cobranded) — PDF via extract_words
+# ---------------------------------------------------------------------------
+#
+# O layout Itaú funde duas tabelas lado-a-lado (Lançamentos à esquerda;
+# Limites/Encargos/CET à direita) e ainda tem um sub-layout SEM ESPAÇOS (o
+# pdfplumber concatena frases inteiras num só "word"). extract_text() perde a
+# separação de coluna; extract_words() preserva o x de cada token → filtrar
+# `x0 < _ITAU_COL_SPLIT` descarta a poluição da direita mesmo no sub-layout
+# denso. O valor R$ é sempre o token monetário mais à direita da coluna
+# esquerda (a descrição vem antes).
+_ITAU_COL_SPLIT = 360.0
+_ITAU_DATE_RE = re.compile(r"^(\d{2})/(\d{2})$")
+_ITAU_MONEY_RE = re.compile(r"^-?\d{1,3}(?:\.\d{3})*,\d{2}$")
+_ITAU_SUMMARY_PREFIXES = (
+    "lançamentosnocartão",
+    "total",  # Total transações inter., Total lançamentos inter., Total dos lançamentos atuais
+    "ltotal",
+    "dólardeconversão",
+    "dolardeconversão",
+    "próximafatura",
+    "proximafatura",
+    "demaisfaturas",
+    "dataestabelecimento",
+)
+
+
+def _itau_norm(joined: str) -> str:
+    return re.sub(r"\s+", "", joined).lower()
+
+
+def _itau_left_lines(page: Any) -> List[List[Dict[str, Any]]]:
+    """Reconstrói as linhas da coluna esquerda (tx) agrupando words por `top`.
+    Descarta a coluna direita (x0 ≥ split) — poluição de Limites/Encargos/CET."""
+    words = sorted(
+        (w for w in page.extract_words() if w["x0"] < _ITAU_COL_SPLIT),
+        key=lambda w: (round(w["top"]), w["x0"]),
+    )
+    lines: List[List[Dict[str, Any]]] = []
+    cur: List[Dict[str, Any]] = []
+    cur_top: Optional[int] = None
+    for w in words:
+        top = round(w["top"])
+        if cur_top is not None and abs(top - cur_top) > 3:
+            lines.append(cur)
+            cur = []
+        cur.append(w)
+        cur_top = top
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def _itau_line_value(words: List[Dict[str, Any]]) -> Optional[float]:
+    """Valor R$ = token monetário mais à direita (descrição/US$ vêm antes)."""
+    money = [w for w in words if _ITAU_MONEY_RE.match(w["text"])]
+    return parse_brl(max(money, key=lambda w: w["x0"])["text"]) if money else None
+
+
+def _itau_fatura_section(nline: str, current: str) -> str:
+    if nline.startswith("lançamentos:comprasesaques") or nline.startswith(
+        "lançamentoscomprasesaques"
+    ):
+        return "nacional"
+    if nline.startswith("lançamentosinternacionais"):
+        return "internacional"
+    if nline.startswith("comprasparceladas"):
+        return "future"
+    if nline.startswith("limitesdecrédito") or nline.startswith("encargoscobrados"):
+        return "stop"
+    return current
+
+
+def _itau_fatura_tx(words: List[Dict[str, Any]], val: float, ref_year, ref_month) -> Dict[str, Any]:
+    dm = _ITAU_DATE_RE.match(words[0]["text"])
+    dd, mm = int(dm.group(1)), int(dm.group(2))
+    desc = " ".join(w["text"] for w in words[1:] if not _ITAU_MONEY_RE.match(w["text"]))
+    return {
+        "data": resolve_date_ddmm(dd, mm, ref_year, ref_month),
+        "descricao": desc.strip(),
+        "valor": val,
+        "escopo": "lancamentos_atuais",
+    }
+
+
+def _itau_iof_tx(val: float, data_venc) -> Dict[str, Any]:
+    return {
+        "data": data_venc,
+        "descricao": "Repasse de IOF",
+        "valor": val,
+        "escopo": "lancamentos_atuais",
+    }
+
+
+def _append_itau_fatura_tx(
+    words: List[Dict[str, Any]],
+    nline: str,
+    section: str,
+    result: Dict[str, Any],
+    ref_year,
+    ref_month,
+) -> None:
+    """Datada (nacional/intl) → tx; "Repasse de IOF" (sem data, só internacional)
+    → tx de IOF (o emissor o conta em "Total lançamentos inter.", parte do total)."""
+    if _ITAU_DATE_RE.match(words[0]["text"]):
+        val = _itau_line_value(words)
+        if val is not None:
+            result["transacoes"].append(_itau_fatura_tx(words, val, ref_year, ref_month))
+    elif section == "internacional" and nline.startswith("repassedeiof"):
+        val = _itau_line_value(words)
+        if val is not None:
+            result["transacoes"].append(_itau_iof_tx(val, result.get("data_vencimento")))
+
+
+def _consume_itau_fatura_line(
+    words: List[Dict[str, Any]], section: str, result: Dict[str, Any], ref_year, ref_month
+) -> str:
+    nline = _itau_norm(" ".join(w["text"] for w in words))
+    new_section = _itau_fatura_section(nline, section)
+    if new_section != section:
+        return new_section  # linha de header não carrega tx
+    if section in ("nacional", "internacional") and not (
+        "(final" in nline or nline.startswith(_ITAU_SUMMARY_PREFIXES)
+    ):
+        _append_itau_fatura_tx(words, nline, section, result, ref_year, ref_month)
+    return section
+
+
+def _fill_itau_fatura_header(result: Dict[str, Any], full_text: str) -> None:
+    m = re.search(r"Vencimento:\s*(\d{2}/\d{2}/\d{4})", full_text)
+    if m:
+        d, mo, y = m.group(1).split("/")
+        result["data_vencimento"] = f"{y}-{mo}-{d}"
+    m = re.search(r"Total\s*desta\s*fatura\s+([\d.,]+)", full_text)
+    if m:
+        result["saldo_atual"] = parse_brl(m.group(1))
+    m = re.search(r"Total\s*da\s*fatura\s*anterior\s+([\d.,]+)", full_text)
+    if m:
+        result["saldo_anterior"] = parse_brl(m.group(1))
+    m = re.search(r"Pagamento\s*efetuado\s*em\s*\d+/\d+/\d+\s*(-?\s*[\d.,]+)", full_text)
+    if m:
+        val = parse_brl(m.group(1).replace(" ", ""))
+        result["pagamentos"] = -abs(val) if val else None
+    # Âncora do checksum: "Lançamentos atuais" (compras do período, exclui
+    # rotativo/saldo financiado — ADR-342 proíbe usar "Total desta fatura").
+    m = re.search(r"Lan[çc]amentos\s*atuais\s+([\d.,]+)", full_text)
+    if m:
+        result["total_compras"] = parse_brl(m.group(1))
+
+
+def _new_itau_fatura_result() -> Dict[str, Any]:
+    return {
+        "banco": BANCO_ITAU,
+        "tipo": "faturaitau",
+        "cartao": "Itaú",
+        "titular": None,
+        "moeda": "BRL",
+        "data_vencimento": None,
+        "saldo_anterior": None,
+        "total_compras": None,
+        "pagamentos": None,
+        "saldo_atual": None,
+        "transacoes": [],
+    }
+
+
+def _extract_itau_fatura(pdf: Any, result: Dict[str, Any], ref_year, ref_month) -> None:
+    full_text = "\n".join(p.extract_text() or "" for p in pdf.pages)
+    m = re.search(r"Titular\s+([A-ZÀ-Ú][A-ZÀ-Ú ]+)", full_text)
+    if m:
+        result["titular"] = m.group(1).strip()
+    _fill_itau_fatura_header(result, full_text)
+    section = ""
+    for page in pdf.pages:
+        for words in _itau_left_lines(page):
+            section = _consume_itau_fatura_line(words, section, result, ref_year, ref_month)
+    if result["total_compras"] is not None:
+        result["total_lancamentos_conferivel"] = {
+            "valor_cents": round(result["total_compras"] * 100),
+            "escopo": "lancamentos_atuais",
+        }
+
+
+def parse_itau_fatura(pdf_path: Path, filename: str) -> Dict[str, Any]:
+    """Parse Itaú credit-card invoice (cartão não-cobranded; layout denso)."""
+    log(LOG_PREFIX_FATURA, "INFO", f"Parsing Itaú Fatura: {filename}")
+    ref_year, ref_month = infer_fatura_ref_from_filename(filename)
+    result = _new_itau_fatura_result()
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            _extract_itau_fatura(pdf, result, ref_year, ref_month)
+    except Exception as e:
+        log(LOG_PREFIX_FATURA, "ERROR", f"  Falha ao abrir PDF {pdf_path.name}: {e}")
+        return {"erro": str(e), "requires_llm_fallback": True, "tipo": "fatura"}
+    log(LOG_PREFIX_FATURA, "INFO", f"  → {len(result['transacoes'])} transações extraídas")
     return result
 
 
