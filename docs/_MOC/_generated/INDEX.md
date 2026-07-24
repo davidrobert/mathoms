@@ -340,6 +340,7 @@
 | ADR-342 | adr | Decidido |  | Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path | `adr/342-gate-anti-silencio-e2-read-path.md` |
 | ADR-343 | adr | Decidido |  | Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico | `adr/343-estado-duravel-pipeline-review.md` |
 | ADR-346 | adr | Proposto |  | Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador | `adr/346-identidade-posicao-renda-variavel.md` |
+| ADR-347 | adr | Proposto |  | Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão) | `adr/347-ledger-conservacao-contagem-e3.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -904,6 +905,7 @@
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |
 | PLAN-launch-trust | plan | in_progress |  | Launch Trust — três frentes que precisam estar verdes antes de produção | `plan/LAUNCH_TRUST/_README.md` |
+| PLAN-ledger-integrity | plan | draft |  | Ledger Integrity — conservação do razão (E3/E4) + roteamento dos 5 gaps da certificação | `plan/LEDGER_INTEGRITY/_README.md` |
 | PLAN-llm-prompts-hardening | plan | done |  | LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting | `plan/LLM_PROMPTS_HARDENING/_README.md` |
 | PLAN-market-rates-ingestion | plan | draft |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `plan/MARKET_RATES_INGESTION/_README.md` |
 | PLAN-p1-structural | plan | paused |  | P1 — Plano estrutural (motor canônico + pipeline offline) | `plan/P1_STRUCTURAL/_README.md` |

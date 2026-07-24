@@ -18,6 +18,7 @@ aliases: ["PLANS-active", "plans-active"]
 | [`PLAN-data-lineage`](../plan/DATA_LINEAGE/_README.md) | Lineage fim-a-fim (forward+reverso) legível por LLM + fonte plugável (`SourceAdapter`/`SourceRef`) + extração limpa. Gate F0 abre 4 ADR (278-281) + emenda ADR-146; nenhuma lane abre antes de B1–B8. **Sprints A23–A27; corrente A26** (Ondas 0–5 shipped). |
 | [`PLAN-suggestion-lifecycle`](../plan/SUGGESTION_LIFECYCLE/_README.md) | Inbox `/acao` com 158 sugestões acumuladas (dogfood): supersede-per-run + `thesis_key` + valores determinísticos no parecer + cap/ordering. Gate F0 abre ADR-290. **Origem A25 (`done`); F1–F4 shipped**, gate de estabilidade thesis_key pendente. |
 | [`PLAN-go-shell`](../plan/GO_SHELL/_README.md) | Caminho 1 do [[ADR-150]] (shell Go + Python subprocess). **F0 pré-requisitos ✅ concluída 2026-07-02** (A3.store [[ADR-303]] · A3.cli #737 · otel #738 · benchmark gate PASSA 413ms≤500ms; resta só A3.codegen, ancorado a F1). F1+ (PR Go) segue bloqueada pelos gatilhos da ADR-150 (revisita 2027-Q2 / 100 workspaces). |
+| [`PLAN-ledger-integrity`](../plan/LEDGER_INTEGRITY/_README.md) | **`draft`.** Conservação do razão E3/E4 (origem: certificação `ledger-certify` r2, [[LEDGER-CERTIFY-active]]). Owna LC-01 (ledger de contagem, [[ADR-347]] Proposto) + LC-03; **roteia** LC-02 → lane própria `depends_on` A39.l9 (co-autoria ADR-346 step 4b) e LC-04/LC-05 → [[PLAN-data-lineage]]. Prioridade≠ordem: LC-01 1º por estar desbloqueado, LC-02 mais material mas gated. |
 
 ## Pausados relevantes
 
