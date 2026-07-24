@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-338 ADRs (ADR-001 a ADR-349) em [`docs/adr/`](../../adr/).
+339 ADRs (ADR-001 a ADR-349) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 302
+- **Decidido**: 303
 - **Proposto**: 33
 - **Roadmap**: 3
 
@@ -518,7 +518,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (49)
+### Decidido (50)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -567,6 +567,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-338]] — Contrato role-keyed no view-model — nome do membro só em valores, nunca em chaves
 - [[ADR-340]] — score_version 2.1 — componente de diversificação vira concentração imobiliária invertida (FIN-05) · phase dogfood-c11-fin05
 - [[ADR-342]] — Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path · phase A38.l3
+- [[ADR-344]] — Piso de materialidade no gate de conservação: roteamento sobre o caminho não-certificado (transitório) · phase A39.l10
 - [[ADR-346]] — Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador · phase A39.l9
 - [[ADR-348]] — Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group · phase A39.l11
 

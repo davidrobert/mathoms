@@ -339,6 +339,7 @@
 | ADR-341 | adr | Decidido |  | Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores | `adr/341-contrato-exec-context-parecer-eviction-redacao.md` |
 | ADR-342 | adr | Decidido |  | Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path | `adr/342-gate-anti-silencio-e2-read-path.md` |
 | ADR-343 | adr | Decidido |  | Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico | `adr/343-estado-duravel-pipeline-review.md` |
+| ADR-344 | adr | Decidido |  | Piso de materialidade no gate de conservação: roteamento sobre o caminho não-certificado (transitório) | `adr/344-piso-materialidade-conservacao-nao-certificada.md` |
 | ADR-346 | adr | Decidido |  | Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador | `adr/346-identidade-posicao-renda-variavel.md` |
 | ADR-347 | adr | Proposto |  | Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão) | `adr/347-ledger-conservacao-contagem-e3.md` |
 | ADR-348 | adr | Decidido |  | Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group | `adr/348-classificacao-llm-determinismo-temp0.md` |
@@ -797,7 +798,7 @@
 | A38.l8 | lane | planned | A38 | Extrato Consolidado Inteligente Santander: parse_santander_conta extrai 0 transações | `sprint/A38/lanes/A38-l8-santander-consolidado-inteligente.md` |
 | A38.l9 | lane | planned | A38 | Fatura Itaú Visa/Itaucard sem parser determinístico (100% E2-llm; 1 PDF com texto sem espaços) | `sprint/A38/lanes/A38-l9-fatura-itau-visa-parser.md` |
 | A39.l1 | lane | shipped | A39 | Harness como instrumento de medição: emitir campos de veredito + conservação em cents + congelar baseline | `sprint/A39/lanes/A39-l1-harness-instrumento-baseline.md` |
-| A39.l10 | lane | planned | A39 | Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) | `sprint/A39/lanes/A39-l10-piso-materialidade.md` |
+| A39.l10 | lane | shipped | A39 | Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) | `sprint/A39/lanes/A39-l10-piso-materialidade.md` |
 | A39.l11 | lane | shipped | A39 | Determinismo da classificação LLM: temperature=0 na via compartilhada + golden sintético + telemetria | `sprint/A39/lanes/A39-l11-classificacao-llm-determinismo.md` |
 | A39.l12 | lane | shipped | A39 | Resíduo não-coberto: verificar escalação honesta do Binance CSV + investigar extração de preview .xlsx (rico) | `sprint/A39/lanes/A39-l12-binance-rico-residuo.md` |
 | A39.l13 | lane | planned | A39 | Re-route: classify_by_llm pelo choke-point LLMService (budget + cache + telemetria + enum via Instructor) | `sprint/A39/lanes/A39-l13-reroute-classificacao-llmservice.md` |

@@ -40,6 +40,12 @@ tags:
 > `parse_santander_unique` e o novo `parse_itau_fatura` opt-in com o corpus real
 > fechando a cent (0 falso-fire). O WARN passa a nomear o balde. Ver §Emenda
 > 2026-07-24 (opt-in fatura).
+>
+> **Emenda 2026-07-24 (piso de materialidade — [[A39.l10]], [[ADR-344]]):** o
+> §Alternativas rejeitadas ("tolerância monetária no gate") vale para o caminho
+> **certificado** (cents-zero). O ramo **não-certificado** (WARN-∞) ganha um
+> **piso de materialidade** ([[ADR-344]]) — ∞ → materialidade **aperta**, não
+> afrouxa. Ver §Emenda 2026-07-24 (piso de materialidade).
 
 ## Contexto
 
@@ -246,3 +252,19 @@ por parser só após ≥1 sprint de corpus verde (rollout por banco, §Consequê
   onde a semântica fecha, no-op onde não fecha.
 - **Backfill dedicado de parciais:** overkill para blast radius dogfood;
   full re-run resolve e já é exigido pela correção do parser.
+
+## Emenda 2026-07-24 (piso de materialidade — [[A39.l10]], [[ADR-344]])
+
+Ponteiro-reconciliação, não mudança de decisão. O item §Alternativas rejeitadas
+"tolerância monetária no gate (ex.: R$ 10)" continua válido **para o caminho
+certificado** (`conservacao_verificavel=True`): onde a semântica de saldo fecha,
+tolerância = porta de silêncio (uma tx perdida abaixo do corte volta a passar).
+
+[[ADR-344]] adiciona um **piso de materialidade (R$ 100)** SÓ no ramo
+**não-certificado**, que hoje é **WARN-∞** (nunca escala). Ali a tolerância já é
+infinita — um piso finito é **estritamente mais estrito** (∞ → materialidade),
+não afrouxamento. `gap > piso` escala p/ `needs_review` com code próprio
+`extract.conservation_above_piso` (transitório, fora de `BLOCKING_CODES`); `gap ≤
+piso` segue WARN. O caminho certificado (§Decisão item 2) permanece cents-zero
+**intocado**. Piso absoluto/global único, transitório (sunset atrelado a marco de
+cobertura de certificação). Detalhe + rationale de domínio em [[ADR-344]].
