@@ -138,3 +138,39 @@ def test_reconcile_via_store_declara_cross_file_dedup():
     assert len(cross) == 1
     assert cross[0].count == 1 and cross[0].valor_cents == 500000
     assert cross[0].cross_source_count == 1  # a.csv ≠ b.csv → sinal de re-upload
+
+
+def test_artifact_ledger_balances_count_tol_zero():
+    # ADR-347 PR1b — o artefato E3 declara tx_carregadas + remocoes e fecha
+    # tx_carregadas == transacoes_total + Σ remocoes[*].count (tol-zero).
+    txns = [
+        {"data": "2026-01-05", "descricao": "MERCADO", "valor": -12.34},
+        {"data": "2026-01-05", "descricao": "MERCADO", "valor": -12.34},  # dup intra
+        {"descricao": "SEM DATA", "valor": -1.0},  # undated_drop
+    ]
+    store = InMemoryArtifactStore()
+    store.seed("extract_statements", "itau_x", _e2_payload(arquivo="x.csv", txns=txns))
+    E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
+    p = store.read("reconcile_transactions", store.list_keys("reconcile_transactions")[0])
+    rem = p["remocoes"]
+    assert p["tx_carregadas"] == 3
+    assert rem["intra_statement_dedup"]["count"] == 1 and rem["undated_drop"]["count"] == 1
+    assert p["tx_carregadas"] == len(p["transacoes"]) + sum(r["count"] for r in rem.values())
+
+
+def test_exclusions_ledger_conta_tx_de_statement_pulado():
+    # ADR-347 PR2 — statement inteiro pulado (banco vazio) tem suas tx contadas no
+    # ledger run-level de exclusões (conservação workspace), não somem em silêncio.
+    payload = _e2_payload(
+        arquivo="e.csv",
+        txns=[
+            {"data": "2026-01-05", "descricao": "A", "valor": -1.0},
+            {"data": "2026-01-06", "descricao": "B", "valor": -2.0},
+        ],
+    )
+    payload["banco"] = ""  # força o canal empty_institution
+    store = InMemoryArtifactStore()
+    store.seed("extract_statements", "sem_banco", payload)
+    result = E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
+    excl = {e.canal: e.count for e in result.exclusions}
+    assert excl.get("empty_institution") == 2
