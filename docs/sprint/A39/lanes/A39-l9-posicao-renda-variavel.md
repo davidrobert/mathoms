@@ -130,3 +130,30 @@ membro ≥3 no titular (`unattributed += v`), não dropa — o "membro some" era
 `analyze_finances.py` legado; produção mis-atribui (limitação V1 já documentada),
 não perde. **Resta PR3** (TypeRules + parsers + resolução RV + checksums + lift
 discovery gate + `$defs` strict).
+
+## Nota de execução (2026-07-24) — PR3a shipado (resolução RV no consolidador)
+
+PR3 partido em 2 (acoplamento: parsers precisam da resolução p/ não gerar falso
+alarme de ressalva quando os 2 docs têm o mesmo papel). **PR3a = resolução de
+identidade RV** no `InvestmentsConsolidator`: colapso cross-fonte por
+`(ticker_norm, membro)` — (a) custódia qty-only de mesma qtd colapsa na valorada
+(recompõe `posicoes_sem_marcacao`, sem falso alarme); (b) 2+ valoradas →
+never-fund + `pl_possivel_superestimado`; (c) qtd difere → never-fund +
+`possivel_posicao_espelho`. `ticker_norm` = B3 normalizado (fracionário `F`
+colapsado); sem match → never-fund (ISIN é V2). **Inerte sem parser** (posição
+por nome/CDB não tem ticker) → zero efeito na produção até PR3b. Roda após os
+totais → Leitura A (total inalterado). Goldens a/b/c + fracionário.
+
+**Corpus real validado no protótipo** (de-risk do PR3b): Itaú Posição Acionária
+(BRKM5 qtd 300, ITSA4 qtd 778 — qty-only via extract_words, `Preferencial778`
+cola Tipo+Livres → qtd = int antes do ticker) + Rico "Sua carteira" (openpyxl;
+Ações R$84.958,96 e Fundos R$130.476,74 fecham por classe; "Total investido"
+216.824,94 é **custo**, não âncora). Qtds casam (Itaú ITSA4/BRKM5 = Rico) → a
+resolução (a) colapsa → PL = valores Rico, sem ressalva falsa.
+
+**Resta PR3b** (o último): parsers determinísticos `parse_itau_investimentosposicao`
+(PDF, extract_words) + `parse_rico_carteira` (XLSX, openpyxl, subtotal por classe;
+proventos JCP fora do PL) + TypeRules ("Posição Acionária" / "Sua carteira") +
+registrar no registry + lift do discovery gate (`is_investment_type` inclui
+`investimentosposicao`/`carteirarendafixa`) + `$defs/posicao_investimento` wired
+strict + checksums (Rico por classe; Itaú n_papéis) + verificação no corpus real.
