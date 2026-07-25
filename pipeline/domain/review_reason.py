@@ -26,6 +26,9 @@ class ReviewReasonCode(str, enum.Enum):
     extract_llm_fallback = "extract.llm_fallback"
     extract_missing_required_field = "extract.missing_required_field"
     extract_incomplete_conservation = "extract.incomplete_conservation"
+    # Transitório (ADR-344): gap de conservação acima do piso de materialidade no
+    # caminho NÃO-certificado. Deletar quando os parsers relevantes certificarem.
+    extract_conservation_above_piso = "extract.conservation_above_piso"
     extract_empty_result = "extract.empty_result"
     extract_investment_sum_mismatch = "extract.investment_sum_mismatch"
     extract_fatura_total_mismatch = "extract.fatura_total_mismatch"

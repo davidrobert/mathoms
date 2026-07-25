@@ -242,20 +242,54 @@ def validate_extrato_result(
     return issues
 
 
+# Transitório (ADR-344): backstop de materialidade no ramo NÃO-certificado —
+# gap > piso escala p/ needs_review, gap ≤ piso segue WARN (como hoje). Piso de
+# materialidade-de-interrupção/leak, NÃO noise floor (ruído é <R$1); a faixa
+# R$1–R$100 é drop real pequeno tolerado por design até o parser certificar.
+# Absoluto/global único: piso relativo daria à conta MAIOR o MAIOR orçamento de
+# drop silencioso (anti-ICP). Constante de módulo (não config) — deletar quando
+# os parsers certificarem a semântica de saldo (deleção via código = intencional).
+_CONSERVATION_MATERIALITY_PISO_CENTS = 10000  # R$ 100,00
+
+
 def _apply_conservation_gate(result: Dict[str, Any], issues: List[str]) -> None:
-    """Conservação global em cents, tolerância zero (ADR-342). HARD (escala)
-    só quando o parser declarou `conservacao_verificavel`; demais em WARN
-    (telemetria). Sem mensagem com valores — só o fato e o código."""
+    """Conservação global em cents, tolerância zero no caminho certificado (ADR-342).
+    HARD (escala) quando o parser declarou `conservacao_verificavel`; senão, piso de
+    materialidade (ADR-344): gap > piso escala, gap ≤ piso WARN. Sem valores na
+    mensagem — só o fato e o código."""
     gap = conservation_gap_cents(result)
     if gap is None or gap == 0:
         return
-    code = ReviewReasonCode.extract_incomplete_conservation
     if result.get("conservacao_verificavel"):
         issues.append("ERROR: conservação global não fecha (saldo_inicial + Σtx ≠ saldo_final)")
-        escalate_result(result, code, "conservação global não fecha em cents — escalado (ADR-342)")
+        escalate_result(
+            result,
+            ReviewReasonCode.extract_incomplete_conservation,
+            "conservação global não fecha em cents — escalado (ADR-342)",
+        )
         return
-    issues.append("WARN: conservação global não fecha (parser sem semântica verificada)")
-    _warn_reason(result, code, "conservação não fecha (WARN — gate HARD é opt-in do parser)")
+    _apply_conservation_piso(result, issues, gap)
+
+
+def _apply_conservation_piso(result: Dict[str, Any], issues: List[str], gap: int) -> None:
+    """ADR-344 (transitório): caminho NÃO-certificado — gap > piso escala p/
+    needs_review (code próprio), gap ≤ piso segue WARN (drop pequeno tolerado)."""
+    if gap > _CONSERVATION_MATERIALITY_PISO_CENTS:
+        issues.append("WARN→needs_review: gap de conservação acima do piso de materialidade")
+        escalate_result(
+            result,
+            ReviewReasonCode.extract_conservation_above_piso,
+            "conservação não fecha acima do piso de materialidade — escalado (ADR-344, transitório)",
+        )
+        return
+    issues.append(
+        "WARN: conservação global não fecha (abaixo do piso; parser sem semântica verificada)"
+    )
+    _warn_reason(
+        result,
+        ReviewReasonCode.extract_incomplete_conservation,
+        "conservação não fecha abaixo do piso (WARN — gate HARD é opt-in do parser)",
+    )
 
 
 def validate_fatura_result(result: Dict[str, Any], filename: str) -> Dict[str, Any]:

@@ -100,13 +100,49 @@ def test_conservacao_quebrada_com_semantica_verificada_escala(tmp_path: Path) ->
     assert result["escalation_reason"]["code"] == "extract.incomplete_conservation"
 
 
-def test_conservacao_quebrada_sem_opt_in_do_parser_so_warn(tmp_path: Path) -> None:
-    """Layout antigo do Itaú / saldo derivado (Wise/Rico): WARN, nunca escala."""
+def test_conservacao_nao_certificada_acima_do_piso_escala(tmp_path: Path) -> None:
+    """ADR-344: gap > piso (R$100) no caminho NÃO-certificado escala com code
+    transitório próprio (gap aqui = |100+20−999| = R$879)."""
     result = _extrato_result(saldo_inicial=100.0, saldo_final=999.0)
+    validate_extrato_result(result, _substantial_csv(tmp_path), is_csv=True)
+    assert result["requires_llm_fallback"] is True
+    assert result["escalation_reason"]["code"] == "extract.conservation_above_piso"
+
+
+def test_conservacao_nao_certificada_abaixo_do_piso_so_warn(tmp_path: Path) -> None:
+    """ADR-344: gap ≤ piso (R$100) segue WARN como antes (drop pequeno tolerado
+    por design até o parser certificar). Gap aqui = |100+20−150| = R$30."""
+    result = _extrato_result(saldo_inicial=100.0, saldo_final=150.0)
     issues = validate_extrato_result(result, _substantial_csv(tmp_path), is_csv=True)
     assert "requires_llm_fallback" not in result
     assert result["warn_reasons"][0]["code"] == "extract.incomplete_conservation"
     assert any(i.startswith("WARN: conservação") for i in issues)
+
+
+def test_conservacao_certificada_1_cent_ainda_hard_escala(tmp_path: Path) -> None:
+    """ADR-344: o piso NÃO afeta o caminho certificado — gap de 1 cent (< piso)
+    ainda escala HARD (cents-zero, ADR-342 intocado). Gap = |100+20−120.01| = R$0,01."""
+    result = _extrato_result(
+        n_tx=2, saldo_inicial=100.0, saldo_final=120.01, conservacao_verificavel=True
+    )
+    validate_extrato_result(result, _substantial_csv(tmp_path), is_csv=True)
+    assert result["requires_llm_fallback"] is True
+    assert result["escalation_reason"]["code"] == "extract.incomplete_conservation"
+
+
+def test_piso_e_constante_global_unica_nao_per_banco() -> None:
+    """ADR-344: piso é constante global única (veto data-engineer contra per-banco).
+    Grep-gate: nenhum override de piso indexado por banco em scripts/e2/."""
+    import re
+    from pathlib import Path as _P
+
+    from scripts.e2 import validation as _v
+
+    assert isinstance(_v._CONSERVATION_MATERIALITY_PISO_CENTS, int)
+    e2_dir = _P(_v.__file__).parent
+    per_bank = re.compile(r"piso.*\[.*banco|PISO_POR_BANCO|piso_por_banco", re.I)
+    offenders = [p.name for p in e2_dir.rglob("*.py") if per_bank.search(p.read_text())]
+    assert offenders == [], f"piso per-banco proibido (ADR-344): {offenders}"
 
 
 def test_conservacao_fechada_nao_flagga(tmp_path: Path) -> None:

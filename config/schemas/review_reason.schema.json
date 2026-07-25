@@ -24,6 +24,7 @@
         "extract.llm_fallback",
         "extract.missing_required_field",
         "extract.incomplete_conservation",
+        "extract.conservation_above_piso",
         "extract.empty_result",
         "extract.investment_sum_mismatch",
         "extract.fatura_total_mismatch",

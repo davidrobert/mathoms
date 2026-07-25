@@ -9,14 +9,14 @@ Nenhuma lane prontidão atual.
 
 ## Todas as lanes da sprint (para inspeção)
 
-### planned (2)
+### planned (1)
 
-- [[A39.l10]] — Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) · priority P2 · branch `a39-l10-piso-materialidade`
 - [[A39.l13]] — Re-route: classify_by_llm pelo choke-point LLMService (budget + cache + telemetria + enum via Instructor) · priority P1 · branch `a39-l13-reroute-classificacao-llmservice`
 
-### shipped (11)
+### shipped (12)
 
 - [[A39.l1]] — Harness como instrumento de medição: emitir campos de veredito + conservação em cents + congelar baseline · priority P1 · branch `a39-l1-harness-instrumento-baseline`
+- [[A39.l10]] — Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) · priority P2 · branch `a39-l10-piso-materialidade`
 - [[A39.l11]] — Determinismo da classificação LLM: temperature=0 na via compartilhada + golden sintético + telemetria · priority P2 · branch `a39-l11-classificacao-llm-determinismo`
 - [[A39.l12]] — Resíduo não-coberto: verificar escalação honesta do Binance CSV + investigar extração de preview .xlsx (rico) · priority P2 · branch `a39-l12-binance-rico-residuo`
 - [[A39.l2]] — C6 Bank CSV: declarar conservacao_verificavel (semântica de saldo já correta) → escala perda silenciosa · priority P0 · branch `a39-l2-c6-csv-optin-verificabilidade`
