@@ -252,11 +252,25 @@ def validate_extrato_result(
 _CONSERVATION_MATERIALITY_PISO_CENTS = 10000  # R$ 100,00
 
 
+def _suppress_gate_if_saldos_inconsistentes(result: Dict[str, Any], issues: List[str]) -> bool:
+    """True se âncoras de saldo são unreliable (C6 Saldo do Dia stale) — só WARN."""
+    if not result.get("conservacao_saldos_inconsistentes"):
+        return False
+    issues.append(
+        "WARN: saldos diários inconsistentes com movimentos — gate de conservação suprimido"
+    )
+    _warn_reason(
+        result,
+        ReviewReasonCode.extract_incomplete_conservation,
+        "saldos inconsistentes (coluna âncora não confiável) — gate suprimido, txs mantidas",
+    )
+    return True
+
+
 def _apply_conservation_gate(result: Dict[str, Any], issues: List[str]) -> None:
-    """Conservação global em cents, tolerância zero no caminho certificado (ADR-342).
-    HARD (escala) quando o parser declarou `conservacao_verificavel`; senão, piso de
-    materialidade (ADR-344): gap > piso escala, gap ≤ piso WARN. Sem valores na
-    mensagem — só o fato e o código."""
+    """Conservação em cents: HARD se verificável (ADR-342), senão piso ADR-344."""
+    if _suppress_gate_if_saldos_inconsistentes(result, issues):
+        return
     gap = conservation_gap_cents(result)
     if gap is None or gap == 0:
         return

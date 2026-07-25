@@ -246,12 +246,16 @@ def _process_one_e2_llm_document(
 
         min_out = max(cfg.max_tokens, _E2_LLM_MIN_COMPLETION_TOKENS)
         progress.emit(doc.name, "awaiting_llm")
+        # Extratos longos (CSV anual / PDFs densos) estouravam o default 120s
+        # (ADR-270) e a 2ª tentativa a 240s — dogfood 5@5.com: timeout em
+        # c6bank CSV ~60KB. Base 300s → retry escala a 600s (teto ADR-270).
         result = service.call(
             system_prompt=SYSTEM_PROMPT,
             user_prompt=user_prompt,
             output_schema=LLMExtractOutput,
             max_retries=2,
             max_tokens=min_out,
+            timeout_s=300.0,
             stage=f"E2-llm:{doc.name}",
             image_bytes=image_bytes,
             image_media_type=image_media_type,
