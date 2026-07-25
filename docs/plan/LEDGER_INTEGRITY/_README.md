@@ -2,7 +2,7 @@
 id: PLAN-ledger-integrity
 type: plan
 title: "Ledger Integrity — conservação do razão (E3/E4) + roteamento dos 5 gaps da certificação"
-status: draft
+status: in_progress
 created_at: 2026-07-24
 last_review: 2026-07-24
 sprint_origem: A39
@@ -14,7 +14,7 @@ adrs_canonical:
   - "[[ADR-347]]"
 tags:
   - type/plan
-  - status/draft
+  - status/in-progress
   - area/pipeline
   - area/dados
 ---
@@ -24,9 +24,24 @@ tags:
 > **Origem.** Certificação `ledger-certify` ([[ADR-302]]) do ws de dogfood
 > `5@5.com` — seção `r2` de [[LEDGER-CERTIFY-active]]. Os 2 achados de hardening da
 > **skill** (LC06/LC07) saíram por task separada (fixados em PR #1063). Este plano
-> ataca os **5 achados de produto**. **Análise virou plano; nada foi corrigido.**
-> Revisado por painel de 4 (data-engineer + senior-cto + product-manager +
-> information-architect) — a estrutura abaixo incorpora as objeções bloqueantes.
+> ataca os **5 achados de produto**. Revisado por painel de 4 (data-engineer +
+> senior-cto + product-manager + information-architect) — a estrutura abaixo incorpora
+> as objeções bloqueantes. **Estado atual: ver bloco abaixo (4/5 em `main`).**
+
+## Estado (2026-07-24) — 4/5 itens em `main`
+
+- **LC-01** ✅ *measure* em `main` — PR1a [#1065](https://github.com/davidrobert/mathoms/pull/1065),
+  PR1b [#1068](https://github.com/davidrobert/mathoms/pull/1068), PR2
+  [#1070](https://github.com/davidrobert/mathoms/pull/1070) (o E3 declara toda
+  remoção/exclusão de tx) + [#1071](https://github.com/davidrobert/mathoms/pull/1071)
+  (a skill `ledger-certify` consome e **prova** o ledger). **Resta:** PR2b (`needs_review`
+  measure-then-emit) + PR3 (flip **HARD**) — gated por **soak WARN no dogfood** (não código-agora).
+- **LC-02** ✅ em `main` — [#1073](https://github.com/davidrobert/mathoms/pull/1073)
+  (`_collapse_empty_member`, emenda [[ADR-346]] §4b).
+- **LC-03** ✅ resolvido em `main` — [#1065](https://github.com/davidrobert/mathoms/pull/1065)
+  (é o skip **intencional** info-fiscal-anual, [[ADR-242]], não perda).
+- **LC-04 / LC-05** 📋 **onda aberta** — [[PLAN-data-lineage]] Onda 7
+  ([#1074](https://github.com/davidrobert/mathoms/pull/1074)), `pendente-agenda` (P2, pós-beta).
 
 ## O que este plano É (e o que ele ROTEIA) — [[ADR-182]]
 
@@ -38,7 +53,7 @@ fecha como unidade em vez de virar container-de-proximidade que nunca chega a `d
 
 | Item | Defeito | Prio | Materialidade | **Dono / rota** | ADR |
 |---|---|---|---|---|---|
-| **LC-01** (+LC-03) | remoção de tx não-declarada no E3 (356 tx) | **P1** | detector de P0; não perde dado *por si só* | **este plano** (tese) → sprint sucessora "ledger-trust E3/E4" | **[[ADR-347]]** (novo) |
+| **LC-01** (+LC-03) | remoção de tx não-declarada no E3 (356 tx) | **P1** | detector de P0; não perde dado *por si só* | **este plano** · ✅ measure em `main` (ver §Estado) | **[[ADR-347]]** (novo) |
 | **LC-02** | dedup de investimento escapa por membro-vazio | **P1** | **confirmado material** (PL inflado; 5-6 díg. em conta grande) | **lane própria**, `depends_on` consolidador da A39.l9 em `main` | co-autoria [[ADR-346]] (step 4b) |
 | **LC-03** | 1 tx dropada E3→E4 | P3 | 1 tx | **este plano** (bug standalone) | — |
 | **LC-04** | natural_key 11,8% → sticky-override degradado | **P2** | não afeta números do relatório | **onda em [[PLAN-data-lineage]]** (dono de ADR-287 + máquina de re-âncora) | [[ADR-287]] |
@@ -274,9 +289,11 @@ Distinguir **health/guardrail** (diff-zero, suíte verde) ≠ **output** (declar
 
 ## Rastreamento
 
-- **Owna:** LC-01 ([[ADR-347]]) + LC-03. Executa na sprint sucessora ("ledger-trust
-  E3/E4"); **não há sprint corrente** (A39 é candidate, fase pesada deferida).
-- **Roteia:** LC-02 → lane própria `depends_on` A39.l9-consolidador; LC-04+LC-05 →
-  [[PLAN-data-lineage]].
+- **Owna:** LC-01 ([[ADR-347]]) + LC-03 — **shipados direto por PRs** (sem sprint
+  dedicada; não houve sprint corrente). Ver §Estado. LC-01 measure em `main`; resta
+  PR2b/PR3 (soak).
+- **Roteou:** LC-02 → shipado (#1073, emenda [[ADR-346]] §4b); LC-04+LC-05 →
+  [[PLAN-data-lineage]] Onda 7 (#1074, `pendente-agenda`).
 - Achados-fonte: [[LEDGER-CERTIFY-active]] §r2. Cru + instância (PII) off-git em
-  `storage/<uuid>/ledger_certify/`. Flippa para `in_progress` quando a 1ª onda abrir lane.
+  `storage/<uuid>/ledger_certify/`. Plano `in_progress`; fecha (`done`) quando LC-01
+  PR2b/PR3 fecharem (pós-soak) — os demais itens já estão em `main` ou roteados.
