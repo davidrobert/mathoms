@@ -70,6 +70,62 @@ def _parse_csv_number(text: str) -> Optional[float]:
         return parse_brl(text)
 
 
+def _c6_csv_day_chain_breaks(day_sums: Dict[str, float], day_last_saldo: Dict[str, float]) -> int:
+    """Quebras EOD_d ≟ EOD_{d-1}+Σtx_d; ≤1 ok (gap sintético), dezenas = Saldo stale."""
+    breaks = 0
+    prev_eod: Optional[float] = None
+    for day, day_sum in day_sums.items():
+        eod = day_last_saldo.get(day)
+        if eod is None:
+            continue
+        if prev_eod is not None and abs(round(prev_eod + day_sum, 2) - eod) > 0.02:
+            breaks += 1
+        prev_eod = eod
+    return breaks
+
+
+def _c6_csv_set_saldo_inicial(
+    result: Dict[str, Any],
+    day_sums: Dict[str, float],
+    day_last_saldo: Dict[str, float],
+    saldo_first=None,
+) -> None:
+    """1ª âncora EOD − Σtx do 1º dia (semântica PDF A39.l4)."""
+    if not day_sums or not result["transacoes"]:
+        result["saldo_inicial"] = saldo_first
+        return
+    first_day = next(iter(day_sums))
+    if first_day in day_last_saldo:
+        result["saldo_inicial"] = round(day_last_saldo[first_day] - day_sums[first_day], 2)
+        return
+    if saldo_first is not None:
+        first_valor = result["transacoes"][0].get("valor", 0) or 0
+        result["saldo_inicial"] = round(saldo_first - first_valor, 2)
+        return
+    result["saldo_inicial"] = None
+
+
+def _c6_csv_apply_conservation_flags(
+    result: Dict[str, Any],
+    day_sums: Dict[str, float],
+    day_last_saldo: Dict[str, float],
+    saldo_first=None,
+) -> int:
+    """Opt-in verificável se cadeia ≤1 quebra; senão marca saldos inconsistentes."""
+    breaks = _c6_csv_day_chain_breaks(day_sums, day_last_saldo)
+    if saldo_first is None or result.get("saldo_final") is None or not result["transacoes"]:
+        return breaks
+    if breaks <= 1:
+        result["conservacao_verificavel"] = True
+        return breaks
+    n_tx = len(result["transacoes"])
+    result["conservacao_saldos_inconsistentes"] = True
+    result["notas"].append(
+        f"WARN: Saldo do Dia inconsistente ({breaks} quebras) — gate suprimido; {n_tx} txs"
+    )
+    return breaks
+
+
 # =============================================================================
 # Helpers — fatura CSV
 # =============================================================================
@@ -193,6 +249,9 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 
     saldo_first = None
     saldo_last = None
+    # Ordem de inserção = ordem do CSV (export C6 é cronológico).
+    day_sums: Dict[str, float] = {}
+    day_last_saldo: Dict[str, float] = {}
 
     for row in reader:
         if len(row) < 6:
@@ -241,34 +300,31 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         }
 
         result["transacoes"].append(tx)
+        day_sums[data_iso] = day_sums.get(data_iso, 0.0) + (valor or 0.0)
 
         saldo_val = _parse_csv_number(saldo_str)
         if saldo_val is not None:
             if saldo_first is None:
                 saldo_first = saldo_val
             saldo_last = saldo_val
+            day_last_saldo[data_iso] = saldo_val
 
     result["saldo_final"] = saldo_last
-
-    if saldo_first is not None and result["transacoes"]:
-        first_valor = result["transacoes"][0].get("valor", 0) or 0
-        result["saldo_inicial"] = round(saldo_first - first_valor, 2)
-    else:
-        result["saldo_inicial"] = saldo_first
-
-    # A39.l2 · ADR-342: saldo_inicial é a âncora do CSV − 1ª tx (semântica
-    # ancorada, não tautológica como Wise/Rico) → declara verificabilidade p/ o
-    # gate HARD escalar perda parcial de conservação, não só WARN silencioso.
-    if saldo_first is not None and result.get("saldo_final") is not None and result["transacoes"]:
-        result["conservacao_verificavel"] = True
+    _c6_csv_set_saldo_inicial(result, day_sums, day_last_saldo, saldo_first)
+    chain_breaks = _c6_csv_apply_conservation_flags(result, day_sums, day_last_saldo, saldo_first)
 
     n_tx = len(result["transacoes"])
     log(LOG_PREFIX_EXTRATO, "INFO", f"  Extraídas {n_tx} transações do CSV")
     if n_tx == 0:
-        # CSV estruturalmente válido mas sem linhas de dado — conta possivelmente inativa no período.
         msg = "WARN: Nenhuma transação encontrada no CSV — verifique se o extrato exportado está completo"
         result["notas"].append(msg)
         log(LOG_PREFIX_EXTRATO, "WARN", f"  {msg}")
+    if result.get("conservacao_saldos_inconsistentes"):
+        log(
+            LOG_PREFIX_EXTRATO,
+            "WARN",
+            f"  Saldo do Dia inconsistente ({chain_breaks} quebras) — sem conservacao_verificavel",
+        )
     if result["saldo_inicial"] is not None:
         log(LOG_PREFIX_EXTRATO, "INFO", f"  Saldo inicial: {result['saldo_inicial']:.2f}")
     if result["saldo_final"] is not None:

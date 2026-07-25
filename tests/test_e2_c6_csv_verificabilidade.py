@@ -57,3 +57,28 @@ def test_c6_csv_gap_material_escala_honesto(tmp_path: Path) -> None:
     assert conservation_gap_cents(result) != 0
     validate_extrato_result(result, p, is_csv=True)
     assert result["requires_llm_fallback"] is True
+
+
+# Coluna Saldo do Dia "stale" em vários dias (padrão do export anual C6 real):
+# âncoras não acompanham Σtx — NÃO declarar verificável nem escalar ao LLM.
+_CSV_SALDOS_STALE = (
+    _HEADER
+    + (
+        "01/01/2025,01/01/2025,CRÉDITO,Salario,5000.00,,5000.00\n"
+        "05/01/2025,05/01/2025,DÉBITO,Mercado,,450.00,5000.00\n"  # stale (= prev EOD)
+        "10/01/2025,10/01/2025,DÉBITO,Uber,,50.00,5000.00\n"  # stale de novo
+        "15/01/2025,15/01/2025,DÉBITO,Padaria,,30.00,5000.00\n"  # stale
+        "28/01/2025,28/01/2025,DÉBITO,Restaurante,,85.00,4385.00\n"  # âncora real tarde
+    )
+)
+
+
+def test_c6_csv_saldos_stale_mantem_txs_sem_escalar(tmp_path: Path) -> None:
+    """Saldo do Dia stale (export anual C6) mantém txs e não escala ao E2-llm."""
+    p = _write(tmp_path, _CSV_SALDOS_STALE)
+    result = parse_c6bank_csv(p, p.name)
+    assert result.get("conservacao_saldos_inconsistentes") is True
+    assert result.get("conservacao_verificavel") is not True
+    assert len(result["transacoes"]) == 5
+    validate_extrato_result(result, p, is_csv=True)
+    assert result.get("requires_llm_fallback") is not True
