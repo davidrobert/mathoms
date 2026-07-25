@@ -67,17 +67,38 @@ fixtures edge PII-zero, k≥2 repetições estáveis) + workflow dedicado.
 - **Fase 2** — estende o choke-point para o bloco `document` (toca a assinatura
   usada por todos os stages LLM — co-design `senior-cto` + `data-engineer`).
 
+**Resíduo declarado (corte da Fase 2):** ao shipar só a Fase 1, o path cru
+`anthropic.Anthropic()` **permanece** para PDF **imagem-only** até a Fase 2 — o
+bypass do choke-point **não fecha 100%** nesse incremento. Declarado explicitamente
+para o re-route parcial não parecer completo (débito de instrumentação continua na
+cauda image-only-PDF).
+
+## MLP — desacoplar a alavanca de risco (pitch PM)
+
+O re-route entrega as alavancas **seguras** (telemetria, enum, anti-injection,
+`LLMCallLog`, cache-hook) como adições puras; o **budget hard-stop** é *config* no
+`LLMService` — dá para rotear **sem armar**. Portanto o MLP (Fase 1) roteia + liga
+telemetria/enum/anti-injection/cache-wired, com o **budget hook INERTE**
+(NULL/unlimited em dogfood+beta). **Armar** o hard-stop é rollout separado
+(soft-warn-first, com carve-out "classificação nunca hard-stopa a porta de entrada,
+só avisa"). Enfileirar o enforcement no MLP quebraria upload a ~110% do cap — trava
+onboarding, a alavanca de maior risco e menor valor atual (BYOK, budget NULL).
+
 ## Consequências / risco de rollout
 
-- Pôr a chamada de maior volume sob budget ([[ADR-173]]) pode **hard-stop uploads**
-  a ~110% do cap → exige análise de risco + rollout próprios (não é ligar e sair).
+- **Budget wired-mas-inerte no MLP** (ver acima) — armar é rollout próprio.
 - `scripts/` CLI-isolado precisa de `LLMService` injetável (backend tem
   `WorkspaceContext`; CLI monta `LLMConfig` bare com budget/cache/metrics no-op).
-- Fecha a lacuna de observabilidade da [[ADR-348]].
+- Fecha a lacuna de observabilidade da [[ADR-348]] — KR primário é **enablement**
+  (0% → 100% observável), NÃO custo/hit-rate (métricas que só passam a existir
+  DEPOIS desta lane; a l13 é pré-requisito delas). BYOK: budget protege o *spend do
+  usuário*, não COGS da plataforma; "maior volume" = maior **frequência**, não custo.
 
 ## Por que ADR `Proposto` (não implementado aqui)
 
 Cross-cutting em 3 eixos (boundary refactor + contrato do choke-point +
 comportamento sob budget) → P1-shaped, cai na política "ADR `Proposto` antes de PR
 P0/P1". Enfiar no rabo de um P2 trailing (l11) seria dead-code-shipping. Lane
-própria P1, a priorizar (`product-manager`) antes de fechar a A39.
+própria P1. **Priorização PM (2026-07-24): Fase 1 → A40** (RICE ≈25,6 vs 1,5 da
+Fase 2; a l13 não move KR do A39 e o DoD do A39 já está atingido). Ver §Pitch em
+[[A39.l13]].
