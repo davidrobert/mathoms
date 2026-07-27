@@ -26,6 +26,7 @@ from backend.app.services.lastro_resolver import (
 )
 from backend.app.services.security.crypto import read_artifact_content
 from pipeline.artifact_store import stage_aliases
+from pipeline.domain.services.asset_classifier import classify_asset
 
 THRESHOLD_VERDE_PCT = 10.0
 THRESHOLD_AMARELO_PCT = 5.0
@@ -99,16 +100,26 @@ async def _load_latest_e5_artifact(
     return result.scalar_one_or_none()
 
 
+def _fallback_classe(pos: dict, descricao: str | None) -> str:
+    """Classe categórica derivada (last-resort do resolver, depois de catalog/override) — RV2-08."""
+    if pos.get("classe"):
+        return str(pos["classe"])
+    return classify_asset(
+        str(pos.get("tipo") or ""), str(descricao or ""), str(pos.get("instituicao") or "")
+    )
+
+
 def _build_asset_query(pos: dict) -> AssetQuery:
-    ticker = pos.get("ticker") or pos.get("codigo")
+    # RV2-08: E4 usa `ticker_norm` (não `ticker`/`codigo`) e não tem `classe` — sem isto
+    # o match de catalog nunca dispara e o fallback vira "Outros" (silent-zero). ADR-224 §3.
+    ticker = pos.get("ticker_norm") or pos.get("ticker") or pos.get("codigo")
     cnpj = pos.get("cnpj")
-    descricao = pos.get("descricao") or pos.get("nome") or pos.get("tipo")
-    asset_class = pos.get("classe") or pos.get("tipo") or "Outros"
+    descricao = pos.get("nome") or pos.get("descricao") or pos.get("tipo")
     return AssetQuery(
         ticker=str(ticker) if ticker else None,
         cnpj=str(cnpj) if cnpj else None,
         descricao=str(descricao) if descricao else None,
-        asset_class_fallback=str(asset_class),
+        asset_class_fallback=_fallback_classe(pos, descricao),
     )
 
 
@@ -140,6 +151,16 @@ def _caixa_to_dto(d: dict) -> ExposicaoCambialAtivoDTO:
     )
 
 
+def _pos_valor(pos: dict) -> Decimal:
+    """Valor canônico da posição E4 = `valor_atual`; fallbacks p/ shapes legados (RV2-08)."""
+    return _to_decimal(
+        pos.get("valor_atual")
+        or pos.get("valor_total")
+        or pos.get("valor")
+        or pos.get("valor_31_12_ano_base")
+    )
+
+
 def _aggregate_positions(
     posicoes: list[dict],
     catalog: list[CatalogEntry],
@@ -150,7 +171,7 @@ def _aggregate_positions(
     for pos in posicoes:
         if not isinstance(pos, dict):
             continue
-        valor = _to_decimal(pos.get("valor") or pos.get("valor_31_12_ano_base"))
+        valor = _pos_valor(pos)  # RV2-08: valor_atual (não valor/valor_31_12)
         if valor <= Decimal(0):
             continue
         moeda, source = _resolve_with_source(pos, catalog, overrides)
