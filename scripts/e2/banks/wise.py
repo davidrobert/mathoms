@@ -14,7 +14,6 @@ except ImportError:
 from scripts.e2.common import (
     BANCO_WISE,
     MESES_BR_INT,
-    count_candidate_rows,
     detect_member_from_text,
     infer_periodo_from_filename,
     log,
@@ -32,6 +31,15 @@ PARSERS = [
 
 _MOEDA_HEADER_RE = re.compile(r"Extrato\s+em\s+(USD|BRL|EUR)", re.I)
 _MOEDA_SALDO_RE = re.compile(r"\b(USD|BRL|EUR)\s+em\b")
+# Wise: cada tx é marcada por "N de mês de AAAA Transação" (data em linha própria,
+# valor em outra). O `count_candidate_rows` do common exige data+valor NA MESMA linha
+# → dava 0 p/ Wise e cegava o gate anti-silêncio (falha de parse virava falsa
+# dormância; ADR-342 §Emenda A38.l14). Contar os marcadores é a observação correta.
+_WISE_TX_MARKER_RE = re.compile(r"\d{1,2}\s+de\s+\w+\s+de\s+\d{4}\s+Transação")
+
+
+def _count_wise_candidate_rows(all_text: str) -> int:
+    return len(_WISE_TX_MARKER_RE.findall(all_text))
 
 
 def _detect_moeda(all_text: str, filename: str) -> str | None:
@@ -65,7 +73,7 @@ def parse_wise(pdf_path: Path, filename: str) -> Dict[str, Any]:
                 text = page.extract_text() or ""
                 all_text += text + "\n"
 
-            result["raw_rows_detected"] = count_candidate_rows(all_text)
+            result["raw_rows_detected"] = _count_wise_candidate_rows(all_text)
             moeda = _detect_moeda(all_text, filename)
             if moeda is None:
                 # Moeda indeterminada escala (ADR-342) — nunca default BRL.
