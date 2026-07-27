@@ -19,6 +19,8 @@ aliases:
   - "ADR 224"
   - "asset_catalog lastro_moeda"
   - "FU-2 exposicao cambial V2"
+amended_at:
+  - "2026-07-27"
 tags:
   - area/methodology
   - area/persistence
@@ -30,6 +32,11 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda 2026-07-27 (RV2-08):** documenta o contrato de campos da posição E4 —
+> valor canônico `valor_atual`, ticker canônico `ticker_norm`, sem campo `classe`.
+> V1 e V2 liam `valor`/`ticker` inexistentes → exposição cambial zerava ativos
+> internacionais (no-op silencioso desta ADR). Conformance; ver §Emenda ao final.
 
 ## Contexto
 
@@ -228,3 +235,26 @@ Entregue end-to-end em **Sprint A12** (5 PRs sequenciais):
 - [[ADR-102]] R18 — `response_model` explícito
 - [[ADR-109]] — snapshot OpenAPI
 - Co-design 2026-05-19: `financial-planner` (lista canônica V1 + critério MIXED + faixa 20-30% USD ICP), `data-engineer` (schema asset_catalog nova + seed YAML via op.execute + override pattern ADR-215 + read-time service-layer + cache strategy)
+
+## Emenda — contrato de campos da posição E4 (2026-07-27, RV2-08)
+
+O binding de campos assumido em §5 não batia com o output real do consolidador de
+investimentos (`investments_consolidator.py`). Posições de `investimentos_atuais.dados`
+carregam: **valor canônico** = `valor_atual` (não `valor`/`valor_31_12_ano_base`, que só
+existem em posições baseline-shaped legadas); **ticker canônico** = `ticker_norm` (não
+`ticker`/`codigo`); e **sem campo `classe`** — o fallback categórico é derivado read-time
+via `classify_asset` (last-resort, depois de catalog/override/ticker/cnpj/keyword).
+
+Consequência do binding errado (pré-emenda): tanto o V1 (`exposicao_cambial_analyzer.py`,
+instant-render no E5) quanto o V2 (`exposicao_cambial_v2.py`, autoritativo) liam 0 para
+toda posição e o match de catalog nunca disparava → a iniciativa desta ADR (computar
+ETFs/fundos com lastro USD) ficava no-op silencioso, com `exposicao_cambial.total_brl`
+igual ao total só-caixa.
+
+**Correção (conformance, não reabre a decisão):** value-chain `valor_atual → valor_total
+→ valor → valor_31_12_ano_base` e ticker-chain `ticker_norm → ticker → codigo` nos dois
+analyzers; fallback de classe via `classify_asset`. V2 permanece a fonte de verdade (§5);
+tornar o número autoritativo no PDF server-side (wire de `workspaceId` no render) é
+follow-up rastreado em [[PLAN-pipeline-review-r2]] (RV2-08). Regressão:
+`tests/unit/pipeline/test_exposicao_cambial_analyzer.py::test_rv2_08_ativo_le_valor_atual_nao_zero`
++ `backend/tests/test_exposicao_cambial_v2_binding.py`.
