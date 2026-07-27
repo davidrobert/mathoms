@@ -113,3 +113,23 @@ def test_detalhes_inclui_contas_e_ativos():
     assert detalhes_caixa[0]["fonte"] == "Wise USD"
     assert len(detalhes_ativos) == 1
     assert detalhes_ativos[0]["moeda"] == "USD"
+
+
+def test_rv2_08_ativo_le_valor_atual_nao_zero():
+    """RV2-08: posição E4 usa `valor_atual` (não `valor`) — antes lia 0 e o ativo sumia."""
+    r = compute_exposicao_cambial(
+        caixa_detalhes=[],
+        investimentos_atuais={
+            "dados": [
+                {
+                    "tipo": "etf",
+                    "nome": "Wise USD balance",
+                    "instituicao": "Wise",
+                    "valor_atual": "5000",
+                }
+            ]
+        },
+        investivel_financeiro=10_000,
+    )
+    assert r.total_brl == Decimal("5000")
+    assert any(d.get("moeda") == "USD" for d in r.detalhes)

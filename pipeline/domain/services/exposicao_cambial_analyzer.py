@@ -97,7 +97,16 @@ def _sum_caixa_estrangeiro(caixa_detalhes: list[dict]) -> dict[str, Decimal]:
 
 
 def _pos_value(pos: dict) -> Decimal:
-    return _to_decimal(pos.get("valor") or pos.get("valor_31_12_ano_base"))
+    # RV2-08: campo canônico de valor da posição E4 = `valor_atual`
+    # (investments_consolidator); `valor`/`valor_31_12` só em posições baseline
+    # legadas. Sem esta chain toda posição lia 0 (V1 é instant-render, não
+    # autoritativo — V2/lastro_resolver é a fonte de verdade, ADR-224 §5).
+    return _to_decimal(
+        pos.get("valor_atual")
+        or pos.get("valor_total")
+        or pos.get("valor")
+        or pos.get("valor_31_12_ano_base")
+    )
 
 
 def _pos_is_internacional(pos: dict) -> bool:
