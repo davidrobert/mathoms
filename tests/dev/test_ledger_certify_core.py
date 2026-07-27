@@ -148,9 +148,13 @@ def test_drift_particiona_matched_diff_only() -> None:
 # ─────────────────────────── build_report (síntese) ───────────────────────────
 
 
-def _fake_result(n: int, with_key: int, transf: int = 0) -> SimpleNamespace:
+def _fake_result(
+    n: int, with_key: int, transf: int = 0, valores: list[float] | None = None
+) -> SimpleNamespace:
+    vals = valores or [0.0] * n
     classified = [
-        SimpleNamespace(natural_key=({"x": 1} if i < with_key else None)) for i in range(n)
+        SimpleNamespace(natural_key=({"x": 1} if i < with_key else None), valor=vals[i])
+        for i in range(n)
     ]
     return SimpleNamespace(
         classified=classified, cash_flow=SimpleNamespace(transferencias_count=transf)
@@ -181,7 +185,7 @@ def test_build_report_synthetic_conserva() -> None:
         "run-1",
         seeds,
         _fake_e3_result(),
-        _fake_result(2, 1),
+        _fake_result(2, 1, valores=[1.0, 2.0]),
         _conserving_e4(2),
         fresh_e3,
         persisted_e3=fresh_e3,

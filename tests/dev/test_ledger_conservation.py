@@ -176,6 +176,27 @@ def test_e3e4_info_fiscal_nao_mascara_perda_real() -> None:
     assert r.verdict == PERDA_SILENCIOSA
 
 
+def test_e3e4_valor_provado_conservado() -> None:
+    # F1: valor E3 sobrevivente (100+80 = 18000 cents) == Σ valor classificado
+    # → CONSERVADO com o eixo-VALOR provado de verdade (não mais auto-referente).
+    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
+    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0, classified_cents=18000)
+    assert r.verdict == CONSERVADO
+    assert r.value_in_cents == 18000 and r.value_out_cents == 18000
+
+
+def test_e3e4_valor_nao_provado_vira_coberto() -> None:
+    # F1 WARN-first: count fecha mas Σ valor classificado diverge do valor E3
+    # sobrevivente → COBERTO_SEM_VALOR (nunca CONSERVADO sobre valor não-provável,
+    # nunca PERDA por valor). Antes do fix o eixo-valor era auto-referente (val==val).
+    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
+    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    r = e3_to_e4([_e3([100.0, 80.0])], despesas, receitas, 0, classified_cents=17999)
+    assert r.verdict == COBERTO_SEM_VALOR
+    assert r.value_in_cents == 18000 and r.value_out_cents == 17999
+
+
 # ─────────────── dedup de investimento (sum-preserving fail) ───────────────
 
 
