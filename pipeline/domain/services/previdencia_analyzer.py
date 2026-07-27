@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any
 
+from pipeline.domain.services.irpf_analyzer import PgblStatus
 from pipeline.domain.types.config import FiscalParameters
 
 
@@ -119,6 +120,7 @@ class CapacidadePgblIRPF:
     ano_base: int
     fonte: str
     nota_degradacao: str | None = None  # ADR-305 D3: existe ano mais recente não usado
+    pgbl_status: PgblStatus | None = None  # RV2-03: ramifica a nota (simplificado ≠ teto)
 
 
 @dataclass(frozen=True)
@@ -165,15 +167,48 @@ _NOTA_PROXY_ANO_CORRENTE = (
 )
 
 
+# RV2-03 (co-design financial-planner): a nota ramifica por PgblStatus, não por
+# restante>0. modelo_simplificado (dedução desabilitada pelo modelo) e no_teto
+# (teto de 12% consumido) colapsavam ambos em "teto atingido" — factualmente falso
+# no simplificado e invertia o conselho. Sem fabricar 12% hipotético (limite/aporte
+# ficam 0 — só a prosa cita a hipótese). Conformidade a ADR-305 D3.
+_NOTA_DIFERIMENTO = (
+    "Lembre que o PGBL difere o IR — o resgate é tributado; o benefício depende "
+    "da alíquota futura."
+)
+_NOTA_SIMPLIFICADO = (
+    "Declaração no modelo simplificado no ano-base {ano}: o desconto padrão "
+    "substitui as deduções legais, então o PGBL não gera economia de IR neste "
+    "modelo — o teto de 12% não foi consumido. Migrar para o modelo completo só "
+    "compensa se a soma das deduções legais (incluindo até 12% da renda tributável "
+    "em PGBL) superar o desconto simplificado, e a dedução de 12% pressupõe "
+    "contribuição a regime oficial de previdência. Avalie com seu contador — a "
+    "opção de modelo é feita a cada declaração e vale para o ano-calendário corrente."
+)
+_NOTA_SEM_RENDA = (
+    "Sem renda tributável no ano-base {ano}: sem base de cálculo, o PGBL não gera "
+    "dedução de IR no momento. O benefício reaparece se houver renda tributável "
+    "(ex.: pró-labore ou PJ tributada); reavalie se a situação mudar."
+)
+_NOTA_NO_TETO = (
+    "Teto de 12% da renda tributável já atingido no ano-base {ano} — aportes "
+    "adicionais em PGBL não trazem dedução extra neste ano."
+)
+
+
 def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: float) -> str:
-    """Nota de capacidade + ressalva de proxy retrospectivo (ADR-305 D3)."""
+    """Nota de capacidade PGBL ramificada por PgblStatus (RV2-03 · ADR-305 D3)."""
+    ano = cap.ano_base
+    if cap.pgbl_status == PgblStatus.modelo_simplificado:
+        return _NOTA_SIMPLIFICADO.format(ano=ano)
+    if cap.pgbl_status == PgblStatus.sem_renda_tributavel:
+        return _NOTA_SEM_RENDA.format(ano=ano)
+    if cap.pgbl_status == PgblStatus.no_teto or (cap.pgbl_status is None and restante <= 0):
+        return f"{_NOTA_NO_TETO.format(ano=ano)} {_NOTA_PROXY_ANO_CORRENTE}"
     capacidade = (
-        f"Capacidade PGBL restante do IRPF {cap.ano_base}: R$ {restante:,.0f} "
-        "(já descontado o aportado)."
-        if restante > 0
-        else f"Sem capacidade PGBL restante no ano-base {cap.ano_base} (teto atingido)."
+        f"Capacidade PGBL restante do IRPF {ano}: R$ {restante:,.0f} " "(já descontado o aportado)."
     )
-    return f"{capacidade} {_NOTA_PROXY_ANO_CORRENTE}"
+    return f"{capacidade} {_NOTA_DIFERIMENTO} {_NOTA_PROXY_ANO_CORRENTE}"
 
 
 class PrevidenciaAnalyzer:
