@@ -915,6 +915,7 @@
 | PLAN-llm-prompts-hardening | plan | done |  | LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting | `plan/LLM_PROMPTS_HARDENING/_README.md` |
 | PLAN-market-rates-ingestion | plan | draft |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `plan/MARKET_RATES_INGESTION/_README.md` |
 | PLAN-p1-structural | plan | paused |  | P1 — Plano estrutural (motor canônico + pipeline offline) | `plan/P1_STRUCTURAL/_README.md` |
+| PLAN-pipeline-review-r2 | plan | in_progress |  | Pipeline Review r2 — remediação dos achados sistêmicos (run 9d47574c, ws-1b9f2cf5) | `plan/PIPELINE_REVIEW_R2/_README.md` |
 | PLAN-public-release | plan | in_progress |  | PUBLIC_RELEASE — tornar o repo público in-place com segurança e qualidade de referência | `plan/PUBLIC_RELEASE/_README.md` |
 | PLAN-report-premium | plan | in_progress |  | Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html` | `plan/REPORT_PREMIUM/_README.md` |
 | PLAN-report-trust | plan | in_progress |  | Report Trust — o relatório não pode afirmar precisão que os dados não sustentam | `plan/REPORT_TRUST/_README.md` |
