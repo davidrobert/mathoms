@@ -241,6 +241,12 @@ def compare_records(current: list[dict], baseline: list[dict]) -> tuple[list[str
     return regressions, changes
 
 
+# Ratchet do contrato de completude (#1080): passou > mismatch > faltando. Um
+# checksum de fatura que fechava não pode virar mismatch/faltando em silêncio à
+# medida que o corpus cresce (ADR-342 §checksum de fatura + §Emenda 2026-07-27).
+_FATURA_CHECKSUM_RANK = {"passou": 2, "mismatch": 1, "faltando": 0, None: 0}
+
+
 def _regressions_for(rec: dict, base: dict) -> list[str]:
     out = []
     if rec.get("n_tx", 0) < base.get("n_tx", 0):
@@ -251,6 +257,21 @@ def _regressions_for(rec: dict, base: dict) -> list[str]:
         out.append(f"{rec['file']}: parser {base['parser']} -> nenhum (REGRESSÃO)")
     if base.get("escalated") and not rec.get("escalated") and rec.get("conservacao") is False:
         out.append(f"{rec['file']}: escalação honesta -> conservação quebrada (SILÊNCIO)")
+    out.extend(_completeness_regressions(rec, base))
+    return out
+
+
+def _completeness_regressions(rec: dict, base: dict) -> list[str]:
+    """Ratchet dos sinais de completude do #1080 — não regridem em silêncio."""
+    out = []
+    b_fc, r_fc = base.get("fatura_checksum_status"), rec.get("fatura_checksum_status")
+    if _FATURA_CHECKSUM_RANK.get(b_fc, 0) > _FATURA_CHECKSUM_RANK.get(r_fc, 0):
+        out.append(f"{rec['file']}: fatura_checksum {b_fc} -> {r_fc} (REGRESSÃO)")
+    novos = sorted(set(rec.get("scopes_uncovered") or []) - set(base.get("scopes_uncovered") or []))
+    if novos:
+        out.append(f"{rec['file']}: escopo(s) não-coberto(s) novo(s) {novos} (SILÊNCIO)")
+    if base.get("conservacao_verificavel") and not rec.get("conservacao_verificavel"):
+        out.append(f"{rec['file']}: conservacao_verificavel True -> False (des-certificação)")
     return out
 
 
