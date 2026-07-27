@@ -1019,6 +1019,7 @@ def _e3_build_adapter(ctx):
         BaselineValidatorConfig,
     )
     from pipeline.domain.services.e3_reconciler_adapter import E3ReconcilerAdapter
+    from pipeline.domain.services.fatura_payment_cross_checker import FaturaPaymentCrossChecker
     from pipeline.domain.services.reconciliation_service import ReconciliationConfig
     from pipeline.domain.services.reconciliation_validators import (
         SaldoContinuityConfig,
@@ -1057,6 +1058,7 @@ def _e3_build_adapter(ctx):
         saldo_validator=saldo_validator,
         temporal_detector=temporal_detector,
         baseline_validator=baseline_validator,
+        fatura_cross_checker=FaturaPaymentCrossChecker(),
     )
     return adapter, canon
 

@@ -46,6 +46,12 @@ from pipeline.domain.services.e3_review_reasons import (
 from pipeline.domain.services.e3_review_reasons import (
     store_document_id as _document_id_for,
 )
+from pipeline.domain.services.fatura_payment_cross_checker import (
+    FaturaCrossResult,
+    FaturaPaymentCrossChecker,
+    attach_cross_checksum,
+    index_by_key,
+)
 from pipeline.domain.services.reconciliation_service import (
     DedupRemoval,
     ReconciliationConfig,
@@ -101,6 +107,7 @@ class ReconciliationStoreResult:
     removals: tuple[DedupRemoval, ...] = ()
     # ADR-347 PR2 — statements excluídos no load (tx count por canal), ledger run-level.
     exclusions: tuple[StatementExclusion, ...] = ()
+    fatura_cross_results: tuple[FaturaCrossResult, ...] = ()  # ADR-350 PR1 measure-only
 
     def to_dict(self) -> dict[str, Any]:
         """Forma plana — útil para asserts em testes e logs estruturados."""
@@ -119,6 +126,7 @@ class ReconciliationStoreResult:
             "institution_warnings": [w.format() for w in self.institution_warnings],
             "review_reasons": [r.to_dict() for r in self.review_reasons],
             "exclusions": [{"canal": e.canal, "count": e.count} for e in self.exclusions],
+            "fatura_cross_results": [r.to_trace_dict() for r in self.fatura_cross_results],
         }
 
     # Acesso dict-like para retro-compat com os testes existentes que fazem
@@ -164,6 +172,7 @@ class E3ReconcilerAdapter:
         saldo_validator: SaldoContinuityValidator | None = None,
         temporal_detector: TemporalGapDetector | None = None,
         baseline_validator: BaselineValidator | None = None,
+        fatura_cross_checker: FaturaPaymentCrossChecker | None = None,
     ) -> None:
         self._config = config
         self._service = ReconciliationService(config)
@@ -174,6 +183,7 @@ class E3ReconcilerAdapter:
         self._saldo_validator = saldo_validator
         self._temporal_detector = temporal_detector
         self._baseline_validator = baseline_validator
+        self._fatura_cross_checker = fatura_cross_checker
 
     # -- Loading --
 
@@ -344,6 +354,11 @@ class E3ReconcilerAdapter:
         outcome = self._load_with_outcome(store, input_stages)
         statements = outcome.statements
         reconciled, removals = self._service.reconcile_with_report(statements)
+        # ADR-350 PR1 measure-only — cross-check fatura↔pagamento (pré-merge, NÃO escala).
+        fatura_cross = (
+            self._fatura_cross_checker.check(statements) if self._fatura_cross_checker else ()
+        )
+        cross_by_key = index_by_key(fatura_cross)
 
         key_for = output_key_fn or self.output_key
 
@@ -405,6 +420,7 @@ class E3ReconcilerAdapter:
                     payload["pipeline_stage"] = "E3"
             # ADR-347 PR1b — anexa o ledger de conservação (serializer-agnóstico).
             payload.update(build_artifact_ledger(stmts, outcome.load_stats, dup_removed, cents))
+            attach_cross_checksum(payload, merged_stmt, cross_by_key)
             merged_statements.append(merged_stmt)
             emit_item_progress(
                 pipeline_run_id,
@@ -479,4 +495,5 @@ class E3ReconcilerAdapter:
             review_reasons=tuple(outcome.review_reasons) + tuple(cross_doc_reasons),
             removals=tuple(removals),
             exclusions=tuple(outcome.exclusions),
+            fatura_cross_results=fatura_cross,
         )
