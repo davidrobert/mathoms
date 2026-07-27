@@ -28,6 +28,7 @@
         "extract.empty_result",
         "extract.investment_sum_mismatch",
         "extract.fatura_total_mismatch",
+        "extract.fatura_scope_uncovered",
         "dedup.possible_duplicate",
         "dedup.sentinel_period",
         "domain.validation_conflict",
