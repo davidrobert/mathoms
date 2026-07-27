@@ -67,32 +67,93 @@ def _is_dormant_by_observation(result: Dict[str, Any]) -> bool:
 _CDB_EMPTY_MSG = "0 posições de CDB extraídas — escalado (ADR-342)"
 _CDB_MISMATCH_MSG = "Σ posições ≠ total declarado (cents) — escalado (ADR-342 §Emenda l12)"
 
+# Escopos de lançamento intencionalmente FORA do checksum de fatura: `pagamento` é
+# transferência interna reconciliada em E3 (ADR-342 emenda 2026-07-27 §cobertura).
+_CHECKSUM_EXEMPT_SCOPES = frozenset({"pagamento"})
+_FATURA_SCOPE_UNCOVERED_MSG = (
+    "escopo(s) de lançamento sem subtotal declarado que os cubra — cobertura de "
+    "checksum incompleta (o checksum não certifica completude sobre esses baldes)"
+)
+
+
+def _valid_fatura_signals(result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sinais de checksum com `valor_cents` — objeto único OU lista (um por seção)."""
+    signal = result.get("total_lancamentos_conferivel")
+    signals = signal if isinstance(signal, list) else [signal]
+    return [s for s in signals if isinstance(s, dict) and s.get("valor_cents") is not None]
+
 
 def _apply_fatura_checksum(result: Dict[str, Any], issues: List[str]) -> None:
-    """WARN (não escala) por balde cujo Σ lançamentos ≠ subtotal declarado. Opt-in
-    por parser via `total_lancamentos_conferivel` — objeto único OU lista (uma
-    entrada por seção; A39.l3-c3 verifica exterior além de despesa_brasil). Flip
-    HARD por parser após corpus limpo (ADR-342). NUNCA compara com `saldo_atual`."""
-    signal = result.get("total_lancamentos_conferivel")
-    if signal is None:
-        return
-    signals = signal if isinstance(signal, list) else [signal]
+    """Checksum de fatura (WARN-first, ADR-342), opt-in por parser via
+    `total_lancamentos_conferivel`. Duas verificações: (1) Σ lançamentos == subtotal
+    declarado por escopo; (2) INVARIANTE DE COBERTURA (emenda 2026-07-27) — todo
+    escopo presente nas tx é coberto por algum sinal (senão falso-verde: tx num
+    escopo não-declarado escapava de toda soma). Seta `fatura_checksum` p/ o
+    read-path de certificação. NUNCA compara com `saldo_atual`."""
+    signals = _valid_fatura_signals(result)
     txs = result.get("transacoes") or []
+    if not signals:
+        result["fatura_checksum"] = _fatura_checksum_trace("faltando", set(), txs, [])
+        return
+    covered = {s.get("escopo") for s in signals}
+    uncovered = _fatura_scopes_uncovered(txs, covered)
+    mismatch = _check_scope_sums(signals, txs, result, issues)
+    if uncovered:
+        _fatura_scope_uncovered_warn(result, issues, uncovered)
+    status = "mismatch" if mismatch else "passou"
+    result["fatura_checksum"] = _fatura_checksum_trace(status, covered, txs, uncovered)
+
+
+def _fatura_scopes_uncovered(txs: List[Dict[str, Any]], covered: set) -> List[str]:
+    """Escopos presentes nas tx que nenhum sinal cobre (exclui `pagamento`); `None`
+    conta como leak real. Stringificado e ordenado — traço determinístico PII-safe."""
+    emitted = {t.get("escopo") for t in txs}
+    return sorted(str(e) for e in (emitted - set(covered) - _CHECKSUM_EXEMPT_SCOPES))
+
+
+def _check_scope_sums(
+    signals: List[Dict[str, Any]],
+    txs: List[Dict[str, Any]],
+    result: Dict[str, Any],
+    issues: List[str],
+) -> bool:
+    """Σ(tx do escopo) == valor_cents declarado, por sinal. True se algum diverge."""
+    mismatch = False
     for sig in signals:
-        if not isinstance(sig, dict) or sig.get("valor_cents") is None:
-            continue
         escopo = sig.get("escopo")
         soma_cents = sum(
             round((t.get("valor") or 0) * 100) for t in txs if t.get("escopo") == escopo
         )
         if soma_cents != sig["valor_cents"]:
             _fatura_mismatch_warn(result, issues, escopo)
+            mismatch = True
+    return mismatch
+
+
+def _fatura_checksum_trace(
+    status: str, covered: set, txs: List[Dict[str, Any]], uncovered: List[str]
+) -> Dict[str, Any]:
+    """Traço estruturado lido pelo harness de certificação (sem recomputar)."""
+    return {
+        "status": status,  # "passou" | "mismatch" | "faltando"
+        "scopes_checked": sorted(str(e) for e in covered),
+        "scopes_emitted": sorted({str(t.get("escopo")) for t in txs}),
+        "scopes_uncovered": uncovered,
+    }
 
 
 def _fatura_mismatch_warn(result: Dict[str, Any], issues: List[str], escopo) -> None:
     msg = f"Σ lançamentos ≠ total declarado no escopo '{escopo}' (checksum de fatura)"
     issues.append(f"WARN: {msg}")
     _warn_reason(result, ReviewReasonCode.extract_fatura_total_mismatch, msg)
+
+
+def _fatura_scope_uncovered_warn(
+    result: Dict[str, Any], issues: List[str], scopes: List[str]
+) -> None:
+    msg = f"{_FATURA_SCOPE_UNCOVERED_MSG}: {scopes}"
+    issues.append(f"WARN: {msg}")
+    _warn_reason(result, ReviewReasonCode.extract_fatura_scope_uncovered, msg)
 
 
 def apply_cdb_checksum(result: Dict[str, Any], total_declarado: Optional[float] = None) -> None:

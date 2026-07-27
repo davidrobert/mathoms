@@ -131,6 +131,7 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
         # --- Parse transactions — columns from config ---
         saldo_anterior = None
         saldo_values = []
+        result["raw_rows_detected"] = 0
 
         _sdata_start = SANTANDER_XLS_LAYOUT.get("data_start_row", 6)
         _scols = SANTANDER_XLS_LAYOUT.get("columns", {})
@@ -175,6 +176,11 @@ def parse_santander_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
                 if saldo_val is not None:
                     saldo_anterior = saldo_val
                 continue
+
+            # Linha de DADOS candidata (data válida, não-footer, não SALDO ANTERIOR):
+            # conta ANTES do parse de valor — assim uma linha com Crédito/Débito ilegível
+            # vira raw_rows>0 com 0 tx e o gate de dormância pega a falha silenciosa (F4).
+            result["raw_rows_detected"] += 1
 
             # Regular transaction — determine value from Crédito or Débito
             credito = parse_brl(cell_credito)

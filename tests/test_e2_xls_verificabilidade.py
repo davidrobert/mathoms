@@ -83,3 +83,18 @@ def test_santander_xls_gap_escala_honesto(tmp_path: Path) -> None:
     result["saldo_final"] = (result["saldo_final"] or 0) + 1000.0
     validate_extrato_result(result, p, is_csv=True)
     assert result["requires_llm_fallback"] is True
+
+
+def test_santander_xls_reporta_raw_rows_detected(tmp_path: Path) -> None:
+    """F4 (cert 5@5.com 2026-07-27): parse_santander_xls conta linhas de DADOS
+    candidatas p/ o gate de dormância (_is_dormant_by_observation) cobrir o caminho
+    XLS — antes só o PDF (parse_santander_conta) reportava raw_rows_detected, e um
+    XLS false-dormant (linhas presentes, 0 tx) escapava do gate."""
+    p = _write(
+        tmp_path,
+        "santander_extratoconta_202501_202501-0_original.xls",
+        generate_santander_xls("2025-01", _TXS_SANT),
+    )
+    result = parse_santander_xls(p, p.name)
+    assert result["raw_rows_detected"] == len(_TXS_SANT)
+    assert result["raw_rows_detected"] == len(result["transacoes"])

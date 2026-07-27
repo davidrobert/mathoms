@@ -185,6 +185,10 @@ def _count_metrics(result: dict) -> dict:
 
 def _quality_metrics(result: dict) -> dict:
     escalation = result.get("escalation_reason") or {}
+    # Traço de checksum de fatura setado por _apply_fatura_checksum (só leitura,
+    # nunca recomputa — mesmo princípio de conservation_gap_cents). `faltando`
+    # implícito quando o parser não emite o campo (extrato/CSV sem checksum).
+    fatura_checksum = result.get("fatura_checksum") or {}
     return {
         "escalated": bool(result.get("requires_llm_fallback")),
         "escalation_code": escalation.get("code"),
@@ -192,6 +196,8 @@ def _quality_metrics(result: dict) -> dict:
         "conservacao_verificavel": bool(result.get("conservacao_verificavel")),
         "total_set": result.get("saldo_atual") is not None,
         "vencimento_set": result.get("data_vencimento") is not None,
+        "fatura_checksum_status": fatura_checksum.get("status"),
+        "scopes_uncovered": fatura_checksum.get("scopes_uncovered") or [],
         "notas": [mask_text(n)[:160] for n in (result.get("notas") or [])[:6]],
     }
 

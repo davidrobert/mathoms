@@ -32,6 +32,9 @@ class ReviewReasonCode(str, enum.Enum):
     extract_empty_result = "extract.empty_result"
     extract_investment_sum_mismatch = "extract.investment_sum_mismatch"
     extract_fatura_total_mismatch = "extract.fatura_total_mismatch"
+    # Invariante de cobertura de escopo (ADR-342 emenda 2026-07-27): tx num escopo
+    # que nenhum sinal declarado cobre — checksum verde parcial (falso-verde).
+    extract_fatura_scope_uncovered = "extract.fatura_scope_uncovered"
     dedup_possible_duplicate = "dedup.possible_duplicate"
     dedup_sentinel_period = "dedup.sentinel_period"
     domain_validation_conflict = "domain.validation_conflict"

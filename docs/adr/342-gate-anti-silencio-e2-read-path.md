@@ -5,7 +5,7 @@ title: "Gate anti-silêncio no E2: escalação de extração vazia/parcial com c
 status: Decidido
 date: "2026-07-22"
 phase: A38.l3
-amended_at: ["2026-07-23", "2026-07-24"]
+amended_at: ["2026-07-23", "2026-07-24", "2026-07-27"]
 tags:
   - type/adr
   - status/decidido
@@ -46,6 +46,16 @@ tags:
 > **certificado** (cents-zero). O ramo **não-certificado** (WARN-∞) ganha um
 > **piso de materialidade** ([[ADR-344]]) — ∞ → materialidade **aperta**, não
 > afrouxa. Ver §Emenda 2026-07-24 (piso de materialidade).
+>
+> **Emenda 2026-07-27 (invariante de cobertura de escopo no checksum de fatura, [[A39.l3]]):**
+> o checksum per-escopo (Σ tx do escopo == subtotal declarado) só certificava os
+> escopos **declarados**; tx num escopo sem sinal (ex.: sleeve `exterior` cujo
+> subtotal impresso não foi lido, ou `escopo=None`) escapava de toda soma e o
+> checksum passava **verde parcial** — falso-verde. Agora o gate exige **cobertura
+> total**: `scopes_uncovered` não-vazio ⇒ WARN (`extract.fatura_scope_uncovered`),
+> e o traço `fatura_checksum` só afirma completude quando `scopes_uncovered == []`.
+> `pagamento` é isento (transferência interna, reconciliada em E3). Ver §Emenda
+> 2026-07-27.
 
 ## Contexto
 
@@ -268,3 +278,45 @@ não afrouxamento. `gap > piso` escala p/ `needs_review` com code próprio
 piso` segue WARN. O caminho certificado (§Decisão item 2) permanece cents-zero
 **intocado**. Piso absoluto/global único, transitório (sunset atrelado a marco de
 cobertura de certificação). Detalhe + rationale de domínio em [[ADR-344]].
+
+## Emenda 2026-07-27 (invariante de cobertura de escopo no checksum de fatura)
+
+A certificação de parse do workspace dogfood (parse-certify, 2026-07-27) expôs um
+**falso-verde latente** no checksum de fatura per-escopo introduzido em
+2026-07-24. O gate era **signal-driven**: para cada `signal` em
+`total_lancamentos_conferivel`, somava as tx cujo `escopo` casava e comparava com
+`valor_cents`. Não havia verificação de que **todo escopo presente nas tx** fosse
+coberto por algum sinal. Consequência concreta (Santander Unique multi-escopo): se
+o regex de `total_exterior` falha, o sinal `exterior` não é emitido, as tx
+`exterior` não somam contra nada, e o checksum `despesa_brasil` fecha **verde
+parcial** — as tx exterior ficam 100% não-verificadas sem sinal algum. O vetor
+simétrico é uma tx com `escopo=None` (ex.: variação de layout que não tagueia),
+que escapa de **toda** soma silenciosamente.
+
+**Decisão.** O checksum ganha um **invariante de cobertura de escopo**:
+
+```
+scopes_uncovered = {escopo(tx)} − {escopo(signal declarado)} − {escopos isentos}
+```
+
+- `scopes_uncovered` não-vazio ⇒ **WARN** (`extract.fatura_scope_uncovered`),
+  WARN-first (não escala — consistente com o resto do checksum de fatura).
+- **`pagamento` é o único escopo isento** (`_CHECKSUM_EXEMPT_SCOPES`): é
+  transferência interna, reconciliada em E3, intencionalmente fora do checksum de
+  compras (§Emenda 2026-07-24). `escopo=None`, ao contrário, é leak real e dispara.
+- O parser passa a setar um **traço estruturado** `result["fatura_checksum"] =
+  {status, scopes_checked, scopes_emitted, scopes_uncovered}` (`status` ∈
+  `passou`/`mismatch`/`faltando`). Só-leitura para o read-path de certificação
+  (mesmo princípio de `conservation_gap_cents` — o harness lê, nunca recomputa),
+  fechando a assimetria com o caminho de investimento que já emitia `checksum_ok`.
+- **Completude** (autorizar veredito `completo` na certificação) exige **as duas**
+  condições: `status == "passou"` **E** `scopes_uncovered == []`. Um checksum que
+  fecha sobre um subconjunto declarado não certifica os baldes que ninguém
+  declarou.
+
+Sem bump de contrato: `fatura_checksum` é campo aditivo top-level em `e2_extract`
+(`additionalProperties: true`, mesma manobra de `checksum_ok`); o novo code entra
+no enum de `ReviewReasonCode` + `config/schemas/review_reason.schema.json` (coluna
+DB é String, sem migration). Rationale de fundo: sem o invariante, uma tx num
+escopo novo/não-declarado some de toda soma — reabre exatamente a perda silenciosa
+que o §Decisão item 1 existe para matar.
