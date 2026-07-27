@@ -61,7 +61,7 @@ tags:
 
 Co-design: `data-engineer` + `product-designer`. ADR novo de **contrato do view-model E5** (money=number, id estável, sem PII-key, shape de alertas).
 
-### Onda C — citação do parecer (sem RV2-01)
+### Onda C — citação do parecer (inclui RV2-01, desparkado 2026-07-27)
 
 | Achado | Defeito (âncora) | ADR | Tipo | Status |
 |---|---|---|---|---|
@@ -70,8 +70,9 @@ Co-design: `data-engineer` + `product-designer`. ADR novo de **contrato do view-
 | RV2-09 | parecer rotula `receita_pj_pct` como "% da receita" (base trocada) | — | exec-context | aberto |
 | RV2-24 | limiar de poupança 30% (parecer) vs 25% (E5) | [[ADR-143]] | fonte única | aberto |
 | RV2-25 | `field_request_spurious` p/ `[]` (null-semantics) | — | fix | aberto |
+| RV2-01 | parecer FABRICA métrica em `metricas[]` (valor não derivável de nenhum campo E5); itens sem âncora escapam do verify (`parecer_evidencia.py::_iter_items` só itera riscos+sugestões) | [[ADR-304]] | ADR novo / extensão | aberto |
 
-Co-design: `prompt-engineer` + golden eval. **RV2-01 fora** (parkado).
+Co-design: `prompt-engineer` + golden eval. **RV2-01 desparkado (2026-07-27, pedido do owner)** — incluído: âncora `$.path` obrigatória em `metricas[]` + estender o loop de verificação de citação a `metricas[]`; eval golden anti-fabricação (temp=0).
 
 ### Onda D — plano de ação & identidade
 
@@ -91,7 +92,7 @@ Co-design: `prompt-engineer` + golden eval. **RV2-01 fora** (parkado).
 
 ## Parkado
 
-- **RV2-01** — parecer fabrica métrica sem âncora (`parecer.metricas[]` fora do verify). Parkado por decisão do owner (2026-07-27); reabrir sob demanda.
+- _(vazio)_ — **RV2-01 desparkado em 2026-07-27** por pedido do owner → movido para a Onda C. Nada permanece parkado.
 
 ## Critério de aceite (por onda)
 
@@ -111,3 +112,19 @@ Co-design: `prompt-engineer` + golden eval. **RV2-01 fora** (parkado).
 - **RV2-21** (**ADR novo**): condicionar densidade/confiança do `diagnostico_comportamental` a `nao_identificado_share_pct` (ancora em `NAO_IDENTIFICADO_THRESHOLD_PCT`); campo `confianca` (alta|parcial|insuficiente); 3 tiers (≤10% alta / 10–30% parcial+caveat+item de atenção / >30% zero item comportamental).
 - **RV2-15** (**ADR novo**): `cenarios_conjuge` emite **exatamente 2** cenários quando gate [[ADR-167]] True: "Renda atual do casal" (base, aporte cheio) + "Sem renda do cônjuge" (estresse, aporte ×0.66); retorno ancorado numa fonte única (base == IF realista). Sem upside/renda-parcial (fabricaria fator sem dado grounded).
 - **RV2-18** — co-design falhou (structured-output retry cap); **re-rodar** antes de implementar.
+
+## Retomada (prompt de execução — sessão fresca)
+
+> Cole numa sessão Claude Code fresca **no checkout principal** (serviços API+Celery+Redis de pé). Este plano é o spec; execução é **1 PR por fix**.
+
+**Missão.** Executar a remediação restante do pipeline-review r2 — Ondas A(resto)/B/C/D **+ RV2-01** (desparkado) — como PRs pequenos, 1 por achado, cada um verde no CI e mergeado por auto-merge squash. **NÃO** tocar RV2-02/05/17 (workstream ativo A39; coordenar/follow-up em [[ADR-342]]/[[ADR-347]], **sem PR concorrente**).
+
+**Ordem sugerida.** (1) **RV2-18** — re-rodar o co-design (data-engineer) que falhou: detecção PJ `cascata=0.0` vs `reserva=58,67` + nudge de perfil ([[ADR-268]]). (2) **ADR-novo** (1 ADR Proposto + 1 PR cada): **RV2-26** (prêmio por cobertura), **RV2-21** (confiança do diagnóstico por cobertura de categorização), **RV2-15** (2 cenários do cônjuge), **RV2-01** (âncora `$.path` em `metricas[]` + verify + eval anti-fabricação). (3) **RV2-19** (guardrail de aluguel, conformance [[ADR-306]]). (4) **Onda B** — contrato do view-model E5 (RV2-06/07/12/14/22): 1 ADR novo de contrato, co-design `data-engineer`+`product-designer`. (5) **Onda D** (RV2-04/13/23). **RV2-08 §E** (wire `workspaceId` no PDF server-side) é follow-up.
+
+**Decisões prontas.** Onda A co-designada (5/6) em `## Decisões de co-design — Onda A` acima; racional bruto off-git em `storage/1b9f2cf5-…/reviews/20260727-1835-9d47574c/ondaA_codesign.json`. Demais ondas: **co-designar antes de codar** (regra de domínio/contrato/prompt → especialista; CLAUDE.md §delegação).
+
+**Disciplina por fix.** conformance-first (não reabrir ADR decidida); **ADR Proposto ANTES do PR** para os de ADR-novo; **teste de regressão ANTES do fix** (reproduz o bug); função ≤20 linhas; `pre-commit run --all-files` verde; zero PII no git.
+
+**Gotchas desta execução.** (a) **Nunca** pipe `git commit` por `| tail` — engole a falha do hook; rode direto e confira `git log -1`. (b) Novo plano/ADR desincroniza `docs/_MOC/_generated/` → `python3 dev/build_doc_index.py --inline` + `git add`. (c) hook `code-style-baseline` falha se função nova >20 linhas (P1) — extraia helper, não `--save-baseline`. (d) auto-merge rápido deleta a branch → re-push vira "new branch" com commits órfãos pós-squash; sempre branch nova `off origin/main` + cherry-pick só o commit novo. (e) emenda de ADR exige `amended_at` no frontmatter + blockquote de sinal. (f) pipeline vs backend têm conftests que colidem — rode `pytest tests` e `pytest backend/tests` **separados**.
+
+**Estado.** RV2-03 (PR #1092, merged) + RV2-08 (PR #1094) entregues. Memória de sessão: `project_pipeline_review_r2_remediation` (fora do vault); MOC dos achados: `docs/_MOC/PIPELINE-REVIEWS-active.md` §r2.
