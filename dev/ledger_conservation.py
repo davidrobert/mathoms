@@ -127,11 +127,34 @@ def _bucket_value_ok(bucket: dict) -> bool:
     return total == parts
 
 
+def _classifier_skips(e3_artifacts: list[dict]) -> int:
+    """Canal de exclusão E3→E4 declarado: tx survivor do E3 que o
+    ``TransactionClassifier`` pula ANTES de classificar — mirror fiel dos dois
+    ``continue`` de ``_classify_account_audit`` (tx não-dict + linha
+    ``info_fiscal_anual``, ADR-242: informe fiscal anual não entra no fluxo mensal).
+    Reusa o predicado canônico ``is_info_fiscal_anual`` como fonte única (não um
+    literal duplicado no harness), simétrico ao ``_skips_reconcile`` da perna E2→E3
+    (ADR-347). Sem este termo, o gap E3→E4 vira falso ``perda-silenciosa`` (P0);
+    resíduo NÃO coberto por este canal permanece perda (anti-silêncio ADR-342)."""
+    from pipeline.domain.services.llm_category_hint import is_info_fiscal_anual
+
+    def _skip(tx: object) -> bool:  # espelha os dois `continue` de _classify_account_audit
+        return not isinstance(tx, dict) or is_info_fiscal_anual(tx.get("categoria_sugerida"))
+
+    return sum(
+        _skip(tx)
+        for art in e3_artifacts
+        if isinstance(art, dict)  # paridade com load_reconciled_accounts (fail-safe)
+        for tx in (art.get("transacoes") or [])
+    )
+
+
 def e3_to_e4(
     e3_artifacts: list[dict], despesas: dict, receitas: dict, transferencias_count: int
 ) -> ConservationResult:
     """Conservação E3→E4: todo classificado tem destino; baldes fecham."""
     e3_total = sum(a.get("transacoes_total", 0) for a in e3_artifacts)
+    excluded = _classifier_skips(e3_artifacts)
     signals = despesas.get("_lineage", {}).get("signals", {})
     tx_total = int(signals.get("tx_total", 0))
     dedup_collapsed = int(signals.get("dedup_collapsed", 0))
@@ -141,25 +164,30 @@ def e3_to_e4(
         + transferencias_count
         + dedup_collapsed
     )
-    return _e3e4_verdict(e3_total, tx_total, destino, despesas, receitas)
+    return _e3e4_verdict(e3_total, excluded, tx_total, destino, despesas, receitas)
 
 
-def _e3e4_verdict(
-    e3_total: int, tx_total: int, destino: int, despesas: dict, receitas: dict
-) -> ConservationResult:
-    buckets_ok = _bucket_value_ok(despesas) and _bucket_value_ok(receitas)
-    checks = [
+def _e3e4_checks(survivors: int, excluded: int, tx_total: int, destino: int, buckets_ok: bool):
+    return [
         (
-            e3_total != tx_total,
+            survivors != tx_total,
             PERDA_SILENCIOSA,
-            f"E3 {e3_total} -> E4 tx_total {tx_total} (dropou)",
+            f"survivors {survivors} (excl. {excluded} info_fiscal/não-dict) != tx_total "
+            f"{tx_total} (dropou)",
         ),
         (tx_total != destino, PERDA_SILENCIOSA, f"tx_total {tx_total} != destino {destino}"),
         (not buckets_ok, PERDA_SILENCIOSA, "Σ categorias != total_geral num balde"),
     ]
-    v, d = next(
-        ((vv, dd) for cond, vv, dd in checks if cond), (CONSERVADO, "count e baldes fecham")
-    )
+
+
+def _e3e4_verdict(
+    e3_total: int, excluded: int, tx_total: int, destino: int, despesas: dict, receitas: dict
+) -> ConservationResult:
+    survivors = e3_total - excluded
+    buckets_ok = _bucket_value_ok(despesas) and _bucket_value_ok(receitas)
+    checks = _e3e4_checks(survivors, excluded, tx_total, destino, buckets_ok)
+    default = (CONSERVADO, f"count e baldes fecham (excl. {excluded} info_fiscal/não-dict)")
+    v, d = next(((vv, dd) for cond, vv, dd in checks if cond), default)
     val = to_cents(despesas.get("total_geral", 0)) + to_cents(receitas.get("total_geral", 0))
     return ConservationResult("E3->E4", tx_total, destino, val, val, 0, v, d)
 

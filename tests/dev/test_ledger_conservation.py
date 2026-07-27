@@ -141,6 +141,41 @@ def test_e3e4_transferencia_conta_no_destino() -> None:
     assert r.verdict == CONSERVADO  # 1 receita + 1 despesa + 1 transferência = 3
 
 
+def _e3_com_info_fiscal(survivors: list[float], info_fiscal: int) -> dict:
+    """E3 com ``info_fiscal`` linhas ``info_fiscal_anual`` (o classificador as pula,
+    ADR-242) além dos ``survivors`` normais. ``transacoes_total`` conta TODAS."""
+    txns = [{"valor": v} for v in survivors]
+    txns += [{"valor": 0.0, "categoria_sugerida": "info_fiscal_anual"} for _ in range(info_fiscal)]
+    return {
+        "transacoes_total": len(txns),
+        "transacoes_duplicadas_removidas": 0,
+        "transacoes": txns,
+    }
+
+
+def test_e3e4_info_fiscal_anual_e_canal_declarado_nao_perda() -> None:
+    # F2: E3 carrega 3 survivors mas 1 é linha info_fiscal_anual que o classificador
+    # pula de propósito (ADR-242) → tx_total=2. Sem declarar o canal o check acusava
+    # falso PERDA_SILENCIOSA (P0); declarando via is_info_fiscal_anual, CONSERVADO.
+    # Reproduz o gap=1/residual=0 verificado no corpus 5@5.com r3.
+    e3 = _e3_com_info_fiscal([100.0, 80.0], info_fiscal=1)
+    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
+    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    r = e3_to_e4([e3], despesas, receitas, transferencias_count=0)
+    assert r.verdict == CONSERVADO
+
+
+def test_e3e4_info_fiscal_nao_mascara_perda_real() -> None:
+    # Adversarial (anti-silêncio): o canal info_fiscal NÃO pode mascarar perda real.
+    # E3=4 (3 normais + 1 info_fiscal), tx_total=2 → 1 normal sumiu ALÉM do info_fiscal.
+    # survivors declarados = 4-1 = 3 != tx_total 2 → PERDA (o drop real não é silenciado).
+    e3 = _e3_com_info_fiscal([100.0, 80.0, 30.0], info_fiscal=1)
+    despesas = _bucket(80.0, {"casa": 80.0}, 1, tx_total=2)
+    receitas = _bucket(100.0, {"salario": 100.0}, 1)
+    r = e3_to_e4([e3], despesas, receitas, transferencias_count=0)
+    assert r.verdict == PERDA_SILENCIOSA
+
+
 # ─────────────── dedup de investimento (sum-preserving fail) ───────────────
 
 
