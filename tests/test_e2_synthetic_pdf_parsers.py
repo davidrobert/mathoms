@@ -202,6 +202,57 @@ def test_picpay_synthetic_extracts_transactions(tmp_path: Path):
     assert result.get("saldo_final") is not None
 
 
+class _FakeTablePdf:
+    """PDF fake de 1 página: extract_text→header, extract_tables→[table]."""
+
+    def __init__(self, header: str, table: list) -> None:
+        self._header, self._table = header, table
+        self.pages = [self]
+
+    def extract_text(self) -> str:
+        return self._header
+
+    def extract_tables(self) -> list:
+        return [self._table]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+
+# Rows newest-first; coluna Saldo = running-balance CRONOLÓGICO (abertura=1000):
+# 04/01 +500 → 1500; 04/05 −200 → 1300. Última linha (mais antiga) carrega 1500.
+_PICPAY_HEADER = (
+    "PicPay\nConta: 12345678\nMOVIMENTAÇÕES 01 DE ABRIL DE 2026 A 05 DE ABRIL DE 2026\n"
+)
+_PICPAY_TABLE = [
+    ["Data/Hora", "Descrição", "Valor (R$)", "Saldo (R$)"],
+    ["05/04/2026 10:00", "Compra Mercado", "-200,00", "1.300,00"],
+    ["01/04/2026 09:00", "Pagto Recebido", "500,00", "1.500,00"],
+]
+
+
+def test_picpay_conservacao_fecha_sem_double_count(monkeypatch, tmp_path: Path):
+    """F3b (cert 5@5.com 2026-07-27): saldo_inicial = saldo_last − 1ª tx. Sem o
+    ajuste, a tx mais antiga é contada 2× e a conservação não fecha. Prova gap=0."""
+    from scripts.e2.banks import picpay as ppmod
+
+    monkeypatch.setattr(
+        ppmod.pdfplumber, "open", lambda _p: _FakeTablePdf(_PICPAY_HEADER, _PICPAY_TABLE)
+    )
+    path = tmp_path / "picpay_extratoconta_202604_202604-0_original.pdf"
+    path.write_bytes(b"%PDF-fake")
+
+    result = ppmod.parse_picpay(path, path.name)
+    si, sf = result.get("saldo_inicial"), result.get("saldo_final")
+    soma = sum(t["valor"] for t in result["transacoes"])
+    assert round(abs((si + soma) - sf) * 100) == 0, "picpay não fecha (double-count?)"
+    assert result.get("conservacao_verificavel") is True
+    assert round(si, 2) == 1000.00  # saldo da última linha (1500) − 1ª tx (500)
+
+
 def test_bankofamerica_synthetic_extracts_transactions(tmp_path: Path):
     """Layout `bankofamerica` — USD, `Account number`, `for Month … to …`, linhas MM/DD/YY."""
     filename = "bankofamerica_extratoconta_202604_golden.pdf"

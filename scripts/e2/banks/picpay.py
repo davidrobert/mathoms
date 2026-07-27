@@ -108,8 +108,22 @@ def parse_picpay(pdf_path: Path, filename: str) -> Dict[str, Any]:
 
             if saldo_first is not None:
                 result["saldo_final"] = saldo_first
-            if saldo_last is not None:
-                result["saldo_inicial"] = saldo_last
+            if saldo_last is not None and result["transacoes"]:
+                # saldo_last = saldo da coluna running-balance APÓS a tx mais antiga
+                # (última linha pré-reverse, já inclui a 1ª tx); subtrai-a p/ o saldo de
+                # abertura pré-período, senão a 1ª tx é contada 2× na conservação
+                # (double-count · F3b, cert 5@5.com 2026-07-27; mesma semântica do C6).
+                oldest = result["transacoes"][0].get("valor") or 0
+                result["saldo_inicial"] = round(saldo_last - oldest, 2)
+
+            # saldo_inicial e saldo_final vêm da coluna running-balance OBSERVADA (não
+            # derivados de saldo_final−Σtx) → conservação verificável (ADR-342 · F3b).
+            if (
+                result.get("saldo_inicial") is not None
+                and result.get("saldo_final") is not None
+                and result["transacoes"]
+            ):
+                result["conservacao_verificavel"] = True
 
     except Exception as e:
         log(LOG_PREFIX, "ERROR", f"  Falha ao processar {filename}: {e}")
