@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-18 planos detectados em [`docs/plan/`](../../plan/).
+19 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -43,6 +43,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Sprints envolvidas: A39
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-347]]
+
+### PLAN-pipeline-review-r2 — Pipeline Review r2 — remediação dos achados sistêmicos (run 9d47574c, ws-1b9f2cf5)
+
+- Status: `in_progress` · Sprint atual: A39
+- Sprints envolvidas: A39
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-343]]
 
 ### PLAN-public-release — PUBLIC_RELEASE — tornar o repo público in-place com segurança e qualidade de referência
 

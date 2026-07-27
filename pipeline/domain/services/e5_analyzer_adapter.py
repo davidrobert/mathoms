@@ -1129,6 +1129,7 @@ def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | No
         ano_base=resolved.ano,
         fonte="irpf_pgbl_capacidade",
         nota_degradacao=resolved.nota_degradacao,
+        pgbl_status=irpf.pgbl_status(resolved.ano),  # RV2-03: ramifica a nota por estado
     )
 
 
