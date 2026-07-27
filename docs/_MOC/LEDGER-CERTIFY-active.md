@@ -144,3 +144,54 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 > PR2b/PR3 gated por soak) · **LC03 resolvido** (#1065, skip intencional [[ADR-242]]) ·
 > **LC04/LC05** roteados e **onda aberta** ([[PLAN-data-lineage]] Onda 7, #1074,
 > `pendente-agenda` P2). Fonte: plano [[PLAN-ledger-integrity]] §Estado.
+
+> **Revisado em r3 (abaixo).** r2·LC01 (dedup membro-vazio) **holds** — 0 colisões
+> em r3 (r3·LC09). r2·LC02 (E2→E3 remoções): **count fecha**, mas a dimensão-**valor**
+> do dedup segue não-declarada → r3·LC06 (aberto até ADR-347 PR2). r2·LC03 (E3→E4
+> info_fiscal): pipeline resolvido (#1065), mas o **harness** ainda emite o falso P0
+> → r3·LC02 (lado-skill, novo). r2·LC04/LC05 (natural_key/membro) mantidos →
+> r3·LC07 (cobertura 11,8%→12,1%).
+
+---
+
+## r3 — ws-1b9f2cf5-2026-07-27
+
+> Skill ledger-certify ([[ADR-302]]) · run 5c030f1f. Re-derivação in-process E3+E4
+> sobre E2 persistido — **zero write no DB provado** (`pipeline_artifacts`
+> 11457→11457, `transaction_overrides` 12→12). Grupos E3: **91/105 `conservado`**
+> (ledger de contagem declarado fecha tol-0, [[ADR-347]]), 14 `coberto` (0-tx).
+> Baldes E4: 3/7 `conservado` (`despesas` 3544 tx, `receitas` 776 tx, `investimentos`
+> 18 pos **0 colisões**), 4 fora-do-grão. Transferências netadas: 1239. natural_key:
+> **12,1%** (754/6255). Drift vs persistido: 105 casados, **0 divergente** (a
+> re-derivação bate 1:1 com o run mais recente). **Julgamento:** data-engineer +
+> financial-planner em paralelo + verificação adversarial (**1/1 candidato a P0
+> refutado** — o único `perda` é falso-positivo do harness). Cru + instância (PII)
+> em `storage/<uuid>/ledger_certify/` (off-git).
+>
+> **DB vivo sob a cert:** um run novo aterrissou no meio da execução
+> (`pipeline_artifacts` 11039→11457, workspace em dogfood ativo); todos os números
+> vêm do snapshot r3 consistente, re-rodado após o novo run.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| LC01 — **[skill]** conservação de **VALOR** E3→E4 nunca é provada: `_e3e4_verdict` (`dev/ledger_conservation.py:163`) faz `val_in == val_out == despesas.total_geral + receitas.total_geral` (auto-referente) ⇒ uma queda de valor E3→E4 passaria em silêncio — o falso-verde que a skill existe pra pegar | conservação (skill) | Alto | P1 | procede | procede-aberto | harness-hardening: `val_in`=Σ cents E3 reconciliados (menos transferência+info_fiscal), `val_out`=Σ baldes E4 |
+| LC02 — **[skill]** check de count E3→E4 emite falso `perda/dupla-contagem-silenciosa` (P0) no canal `info_fiscal_anual` ([[ADR-242]]): gap=1, **residual=0** (verificado), = 1 linha pulada em `transaction_classifier.py:312` (grupo `c6bank_investment_report_BRL_202503_202503`). Pipeline resolvido r2·LC03/#1065; harness nunca endurecido | conservação (skill) | Médio | P2 | procede | procede-aberto | harness-hardening: declarar o canal com o **mesmo predicado** `is_info_fiscal_anual` + termo explícito no `ConservationResult` (não hard-code −1) |
+| LC03 — **[produto]** `receita_investimento` é balde catch-all **fora** de `_DEFAULT_ONE_TIME_CATEGORIES` (`fluxo_caixa_enricher.py:47`) ⇒ tratado como recorrente; 304 tx (39% das receitas) em perfil CDB-pesado funde retorno-de-principal/round-trip de corretora com rendimento → renda-fantasma recorrente (direção otimista) | categorização | Alto | P1 | procede | procede-aberto | camada-B: split por VALOR (juros vs principal vs ganho); corrompe fluxo + taxa de poupança (não TRS/IF — IRPF/goals-sourced) |
+| LC04 — **[produto]** balde `aporte_investimento` efetivamente morto (1 tx / 3544 despesas) ⇒ mecanismo [[ADR-333]] (`despesa_consumo = despesa_total − aporte`) inerte ⇒ taxa de poupança não-confiável; ligado a LC03 por assimetria de round-trip de corretora | categorização | Alto | P1 | procede | procede-aberto | camada-B: witness entrada-recorrente↔saída-aporte/transferência por instituição de investimento (count+valor) |
+| LC05 — **[produto]** `nao_identificado` = 460 despesas (13% por contagem) — materialidade por valor desconhecida; conta como consumo (deprime poupança) e pode esconder transferência/aporte | categorização/consistência | Médio | P2 (condicional a valor) | procede | procede-aberto | recomputar como **% de VALOR**; >~10% valor bloqueia seções fluxo/comportamental; <~5% degrada c/ disclaimer |
+| LC06 — **[produto]** E2→E3 valor de dedup não-declarado (Δvalor não-provável, `coberto-sem-verificação`): dups declaradas por count, valor removido ausente do artefato. Continuação de r2·LC02 (count fechou; **valor** aberto) | conservação | Alto | P1 | procede | procede-aberto | [[ADR-347]] PR2 (artefato carrega `remocoes[canal].{count,valor_cents}` §Dec-2/4/6); bloqueia beta fechado (auditabilidade); harness re-derivar valor é interim |
+| LC07 — **[produto]** natural_key cobertura 12,1% (754/6255) → ancoragem de override frágil (customer-facing) + lineage por membro; **não** quebra conservação (member_hashes all-or-nothing, [[ADR-287]]). Continuação de r2·LC04/LC05 | consistência | Médio | P1 se beta expõe override sticky / P2 read-only | procede | procede-aberto | [[PLAN-data-lineage]] Onda 7 (#1074) + ADR-321 (wiring titular) + **reancorar overrides antes** de abrir a feature; KR `k4_coverage_pct` c/ piso ≥90% |
+| LC08 — **[skill]** harness não pondera por **VALOR** nem tem witness de assimetria de round-trip por instituição ⇒ LC03/LC04 não são quantificáveis por materialidade | conservação (skill) | Médio | P2 | procede | procede-aberto | harness-hardening: breakdown por valor + witness de assimetria entrada↔saída por instituição de investimento |
+| LC09 — **[confirmação]** dupla-contagem de investimento **não ocorre** (0 colisões) — LC-02/#1073 ([[ADR-346]] §4b, membro-vazio) + detector/#1063 seguram | dedup/transferência | — | — | procede | procede-fechado | confirmação positiva de r2·LC01 |
+| LC10 — **[refutado]** `receita_resgate` (18) como receita é benigno — **está** em `_DEFAULT_ONE_TIME_CATEGORIES`, excluído da renda recorrente; a fronteira "resgate como recorrente" já é mitigada por construção (sobre-leitura minha) | categorização | Baixo | P3 | refutado | refutado | auditar que resgate/venda/restituição não vaze p/ o balde recorrente |
+
+> **Nota transversal (r3).** LC01/LC02/LC06/LC07 são instâncias do anti-silêncio da
+> [[ADR-347]]: *toda transformação que remove/altera contagem ou valor declara o delta
+> estruturalmente*. LC02 = canal E3→E4 faltando no harness; LC06 = dimensão-valor do
+> canal E2→E3; LC01 = dimensão-valor E3→E4 **nunca instrumentada**; LC07 = discriminante
+> de identidade que torna o delta atribuível por membro. **3 achados de skill**
+> (LC01/LC02/LC08) recomendam uma lane de hardening do harness antes da próxima cert
+> run — falso-positivo em ferramenta de certificação gateia beta e gera fadiga de
+> alarme. **Insulação (financial-planner):** TRS/renda-passiva e projeção-IF são
+> IRPF/goals-sourced, não E4-receita-sourced → LC03/LC04/LC05 corrompem só fluxo +
+> taxa de poupança, não patrimônio/TRS/IF.
