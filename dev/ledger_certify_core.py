@@ -219,6 +219,12 @@ def _natural_key_coverage(result) -> dict:
 # ─────────────────────────── montagem do report ───────────────────────────
 
 
+def _classified_cents(result) -> int:
+    """Σ |valor| (cents) das tx classificadas (pré-dedup, mesmo conjunto que as tx
+    E3 não-puladas) — lado-saída do check de VALOR E3→E4 (F1)."""
+    return sum(abs(to_cents(getattr(c, "valor", 0))) for c in result.classified)
+
+
 def _conservation(e2_payloads: list, fresh_e3: dict, e4: dict, result) -> list:
     e3_list = list(fresh_e3.values())
     return [
@@ -228,6 +234,7 @@ def _conservation(e2_payloads: list, fresh_e3: dict, e4: dict, result) -> list:
             e4.get("despesas", {}),
             e4.get("receitas", {}),
             result.cash_flow.transferencias_count,
+            _classified_cents(result),
         ),
     ]
 

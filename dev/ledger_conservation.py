@@ -149,22 +149,57 @@ def _classifier_skips(e3_artifacts: list[dict]) -> int:
     )
 
 
-def e3_to_e4(
-    e3_artifacts: list[dict], despesas: dict, receitas: dict, transferencias_count: int
-) -> ConservationResult:
-    """Conservação E3→E4: todo classificado tem destino; baldes fecham."""
-    e3_total = sum(a.get("transacoes_total", 0) for a in e3_artifacts)
-    excluded = _classifier_skips(e3_artifacts)
-    signals = despesas.get("_lineage", {}).get("signals", {})
-    tx_total = int(signals.get("tx_total", 0))
-    dedup_collapsed = int(signals.get("dedup_collapsed", 0))
-    destino = (
+def _survivor_value_cents(e3_artifacts: list[dict]) -> int:
+    """Σ |valor| (cents) das tx E3 NÃO-puladas pelo classificador. Usa ``valor``
+    (não ``amount``) p/ paridade com ``_coerce_valor`` do classificador — o lado
+    ``classified`` soma o mesmo campo, evitando drift amount↔valor no check de valor."""
+    from pipeline.domain.services.llm_category_hint import is_info_fiscal_anual
+
+    def _keep(tx: object) -> bool:
+        return isinstance(tx, dict) and not is_info_fiscal_anual(tx.get("categoria_sugerida"))
+
+    return sum(
+        abs(to_cents(tx.get("valor", 0)))
+        for art in e3_artifacts
+        if isinstance(art, dict)
+        for tx in (art.get("transacoes") or [])
+        if _keep(tx)
+    )
+
+
+def _e3e4_signals(despesas: dict) -> tuple[int, int]:
+    sig = despesas.get("_lineage", {}).get("signals", {})
+    return int(sig.get("tx_total", 0)), int(sig.get("dedup_collapsed", 0))
+
+
+def _e3e4_destino(despesas: dict, receitas: dict, transferencias_count: int, dedup: int) -> int:
+    return (
         receitas.get("total_transacoes", 0)
         + despesas.get("total_transacoes", 0)
         + transferencias_count
-        + dedup_collapsed
+        + dedup
     )
-    return _e3e4_verdict(e3_total, excluded, tx_total, destino, despesas, receitas)
+
+
+def e3_to_e4(
+    e3_artifacts: list[dict],
+    despesas: dict,
+    receitas: dict,
+    transferencias_count: int,
+    classified_cents: int | None = None,
+) -> ConservationResult:
+    """Conservação E3→E4: count fecha, baldes fecham, e (com ``classified_cents``) o
+    VALOR sobrevivente E3 == Σ valor classificado. Sem ele, o eixo-valor não é checado."""
+    excluded = _classifier_skips(e3_artifacts)
+    survivors = sum(a.get("transacoes_total", 0) for a in e3_artifacts) - excluded
+    value_in = _survivor_value_cents(e3_artifacts)
+    tx_total, dedup_collapsed = _e3e4_signals(despesas)
+    destino = _e3e4_destino(despesas, receitas, transferencias_count, dedup_collapsed)
+    buckets_ok = _bucket_value_ok(despesas) and _bucket_value_ok(receitas)
+    v, d = _e3e4_count_verdict(survivors, excluded, tx_total, destino, buckets_ok)
+    v, d = _value_downgrade(v, d, value_in, classified_cents)
+    value_out = value_in if classified_cents is None else classified_cents
+    return ConservationResult("E3->E4", tx_total, destino, value_in, value_out, 0, v, d)
 
 
 def _e3e4_checks(survivors: int, excluded: int, tx_total: int, destino: int, buckets_ok: bool):
@@ -180,16 +215,23 @@ def _e3e4_checks(survivors: int, excluded: int, tx_total: int, destino: int, buc
     ]
 
 
-def _e3e4_verdict(
-    e3_total: int, excluded: int, tx_total: int, destino: int, despesas: dict, receitas: dict
-) -> ConservationResult:
-    survivors = e3_total - excluded
-    buckets_ok = _bucket_value_ok(despesas) and _bucket_value_ok(receitas)
-    checks = _e3e4_checks(survivors, excluded, tx_total, destino, buckets_ok)
+def _value_downgrade(verdict: str, detail: str, value_in: int, classified_cents: int | None):
+    """WARN-first: count-conservado com VALOR não-provado (Σ valor E3 sobrevivente !=
+    Σ valor classificado) cai para ``coberto-sem-verificação`` — nunca afirma
+    ``conservado`` sobre valor não-provável, nunca sobe a PERDA por valor (evita
+    falso-P0 por convenção de sinal/amount). Sem ``classified_cents``, não checa."""
+    if verdict != CONSERVADO or classified_cents is None or value_in == classified_cents:
+        return verdict, detail
+    return (
+        COBERTO_SEM_VALOR,
+        f"count fecha; valor E3→E4 não-provado (Δ={value_in - classified_cents} cents)",
+    )
+
+
+def _e3e4_count_verdict(survivors: int, excluded: int, tx_total: int, destino: int, ok: bool):
+    checks = _e3e4_checks(survivors, excluded, tx_total, destino, ok)
     default = (CONSERVADO, f"count e baldes fecham (excl. {excluded} info_fiscal/não-dict)")
-    v, d = next(((vv, dd) for cond, vv, dd in checks if cond), default)
-    val = to_cents(despesas.get("total_geral", 0)) + to_cents(receitas.get("total_geral", 0))
-    return ConservationResult("E3->E4", tx_total, destino, val, val, 0, v, d)
+    return next(((vv, dd) for cond, vv, dd in checks if cond), default)
 
 
 # ─────────────────── dedup de investimento (camada B, P0) ───────────────────
