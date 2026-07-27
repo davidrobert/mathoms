@@ -98,3 +98,16 @@ Co-design: `prompt-engineer` + golden eval. **RV2-01 fora** (parkado).
 - **Cada fix:** teste de regressão ANTES do fix (bug reproduzido), conformidade ao ADR citado, `pre-commit` verde, sem PII, PR squash com CI verde.
 - **Onda B/C:** ADR novo/estendido referenciado no PR, flip `Decidido` no merge; eval golden na Onda C.
 - **Coordenado:** zero PR concorrente; follow-ups registrados nos ADRs donos.
+
+## Decisões de co-design — Onda A (2026-07-27)
+
+> Co-design 5/6 (RV2-18 pendente de retry) · financial-planner + data-engineer. Racional
+> completo off-git em `storage/1b9f2cf5-…/reviews/20260727-1835-9d47574c/ondaA_codesign.json`.
+> **3 dos 5 exigem ADR novo** → Onda A = ~5 PRs substanciais (cada um com ADR Proposto onde marcado + co-design já feito), **não** conformance trivial.
+
+- **RV2-08** (conformance [[ADR-224]] + **emenda datada**): bug de binding em V1 (`exposicao_cambial_analyzer.py`) **E** V2 (`exposicao_cambial_v2.py`) — leem `valor`/`valor_31_12` (campo real = `valor_atual`, `investments_consolidator.py:426`) e ticker errado. Fix: (1) value chain `valor_atual→valor_total→valor_31_12`; (2) ticker `ticker_norm` p/ match de catalog em V2; (3) lastro per-position via `lastro_resolver` (nunca moeda de negociação); (4) **não** somar `tabela_classes[Internacional]` (fonte errada); (5) V2 é fonte de verdade, V1 só instant-render — wire `workspaceId` no PDF server-side. Emenda [[ADR-224]] documentando o contrato de campos da posição E4.
+- **RV2-19** (conformance [[ADR-306]]): **manter** base IRPF-declarada (conservadora, correta p/ dependência); acabar com uso silencioso — bloco `aluguel_divergencia` quando divergência ≥25% & janela ≥6m; cobertura reporta faixa (irpf + recorrente); parecer modula severidade pela faixa (D7 estende de defasagem-temporal p/ divergência-de-valor).
+- **RV2-26** (**ADR novo**): decompor prêmio por COBERTURA (bottom-up), não por bem-dominante. cobertura→chave {auto,residencial,vida,saude,ap}; peso = Σ cobertura.premio_brl; reconciliar por apólice. Invariante: Σ premio_decomposicao == premio_total (cent-exato).
+- **RV2-21** (**ADR novo**): condicionar densidade/confiança do `diagnostico_comportamental` a `nao_identificado_share_pct` (ancora em `NAO_IDENTIFICADO_THRESHOLD_PCT`); campo `confianca` (alta|parcial|insuficiente); 3 tiers (≤10% alta / 10–30% parcial+caveat+item de atenção / >30% zero item comportamental).
+- **RV2-15** (**ADR novo**): `cenarios_conjuge` emite **exatamente 2** cenários quando gate [[ADR-167]] True: "Renda atual do casal" (base, aporte cheio) + "Sem renda do cônjuge" (estresse, aporte ×0.66); retorno ancorado numa fonte única (base == IF realista). Sem upside/renda-parcial (fabricaria fator sem dado grounded).
+- **RV2-18** — co-design falhou (structured-output retry cap); **re-rodar** antes de implementar.
