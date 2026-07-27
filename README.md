@@ -63,41 +63,35 @@ Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas inst
 
 ## Quick start
 
-Pré-requisitos: **Python 3.11+**, **Node 20+** (Next 16 exige Node ≥20.9), **Redis** (ex.: `brew install redis`). Recomenda-se um virtualenv na raiz do repositório.
+Pré-requisitos: **Python 3.11+**, **Node 20+** (Next 16 exige Node ≥20.9), **Redis** (ex.: `brew install redis`). `make help` lista todos os targets.
+
+### Opção A — Docker (recomendado · 1 comando)
 
 ```bash
-# Na raiz do repositório
-python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-
-pip install -e . -r requirements-dev.txt  # pipeline editable + backend + pytest plugins + reportlab
-
-cd frontend && npm install && cd ..
-
-# Variáveis de ambiente (gera .env com MATHOMS_FERNET_KEY e demais secrets)
-./scripts/gen-secrets.sh --init-env
-
-# Primeira vez / após mudanças em layout ou tokens:
-python3 design-tokens/build.py
-python3 dev/codegen_report_layout.py
-
-# Banco e usuário dev (SQLite em ./mathoms.db por padrão; cria admin@mathoms.ai / admin)
-cd backend && python seed_db.py && cd ..
+make dev-up-docker   # containers: API 8010 / Frontend 3010 / Postgres 5433 (coexiste com a stack nativa)
 ```
 
-**Subir a aplicação** — uma aba sobe os 6 serviços (Redis, API 8000, worker Celery, frontend 3000, ops API 8001, frontend-ops 3100):
+Sobe a stack inteira e **roda migrations + seed automaticamente** — não precisa de `.env` nem virtualenv (o compose traz defaults de dev). Boot leva ~60s.
+
+- Abrir **http://localhost:3010** · API: **http://localhost:8010/docs** · login `admin@mathoms.ai` / `admin`.
+- Parar (preserva volumes): `make docker-down` · logs: `make docker-logs` (`SVC=api` para um só) · reset destrutivo: `make docker-reset`.
+
+### Opção B — Nativo (uvicorn local)
 
 ```bash
-make dev-bootstrap   # primeira vez: venv, deps, .env, codegen (NÃO faz seed do DB — rode seed_db.py acima)
-make dev-up          # sobe tudo em background; logs em _dev_pids/<svc>.log
-make dev-status      # ✅/❌ por serviço (PID + porta)
-make dev-logs        # tail -f (use SVC=api para um só)
-make dev-down        # mata tudo (preserva .env e mathoms.db)
+make dev-bootstrap                          # 1. venv, deps (Python + ambos frontends), .env, codegen
+make up                                     # 2. migra (alembic) + sobe os 6 serviços em background
+cd backend && python seed_db.py && cd ..    # 3. cria o usuário dev (schema já migrado no passo 2)
 ```
 
-Abrir **http://localhost:3000** · API: **http://localhost:8000/docs**. Login com o usuário dev criado por `python seed_db.py` (ou pelo auto-seed da stack `make dev-up-docker`): `admin@mathoms.ai` / `admin`.
+Sobe 6 serviços: Redis, API 8000, worker Celery, frontend 3000, ops API 8001, frontend-ops 3100. Logs em `_dev_pids/<svc>.log`.
 
-Detalhes dos targets, `dev-pull`, `dev-restart-worker`, `dev-reset-env` e fallback manual de 4 terminais: **[docs/reference/SETUP.md §4](docs/reference/SETUP.md)**. Migrations Alembic, Playwright/PDF, troubleshooting: idem.
+- Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · login `admin@mathoms.ai` / `admin`.
+- Operar: `make status` (o que roda) · `make logs SVC=api` · `make down` (para tudo, preserva `.env` e `mathoms.db`) · `make recover` (destrava o clone).
+
+> **Ordem importa:** rode `make up` (que aplica as migrations Alembic) **antes** do `seed_db.py`. O `seed_db.py` cria o schema via `create_all` (uso de smoke/fixture) — rodá-lo num DB vazio antes das migrations gera drift que quebra o `alembic upgrade head` seguinte. O caminho canônico de schema é `make migrate` (embutido no `make up`).
+
+Demais targets (`make dev-pull`, `make native-restart-worker`, `make migrate`), fallback manual passo-a-passo e troubleshooting (Alembic, Playwright/PDF): **[docs/reference/SETUP.md §4](docs/reference/SETUP.md)** · `make help`.
 
 ### Console interno local (operador dev/staging)
 
@@ -119,7 +113,7 @@ cp config/internal_operators.example.yaml config/internal_operators.yaml
 # edite o arquivo e cole o hash do passo 1 em hashed_password
 ```
 
-Depois disso, `make dev-up` já sobe a Ops API (8001) e o frontend-ops (3100) com
+Depois disso, `make up` já sobe a Ops API (8001) e o frontend-ops (3100) com
 as envs corretas (`MATHOMS_INTERNAL_OPS_UI_ENABLED=1` + session secret efêmero ou
 o que estiver no `.env`). Login em **http://127.0.0.1:3100/login**.
 
@@ -131,4 +125,4 @@ separada; o console local é bloqueado por flag + bind local + guard de
 
 ## Contribuindo
 
-Antes de abrir um PR, leia [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md) e [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) (wrappers do pipeline, multi-tenant). Para testes e CI, [docs/reference/TESTING.md](docs/reference/TESTING.md). Fluxo de PR completo em [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md). Convenções de commit, paths sensíveis e hooks: [CLAUDE.md](CLAUDE.md). Política de segurança e divulgação de vulnerabilidades: [SECURITY.md](SECURITY.md).
+Antes de abrir um PR, leia [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md) e [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) (wrappers do pipeline, multi-tenant). Rode os gates locais antes do push: `make test` (pipeline + backend), `make precommit` (hooks de lint/PII/paths) e `make format` (ruff). Detalhes de testes e CI em [docs/reference/TESTING.md](docs/reference/TESTING.md); fluxo de PR completo em [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md). Convenções de commit, paths sensíveis e hooks: [CLAUDE.md](CLAUDE.md). Política de segurança e divulgação de vulnerabilidades: [SECURITY.md](SECURITY.md).

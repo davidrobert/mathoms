@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-339 ADRs (ADR-001 a ADR-349) em [`docs/adr/`](../../adr/).
+340 ADRs (ADR-001 a ADR-350) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 303
-- **Proposto**: 33
+- **Proposto**: 34
 - **Roadmap**: 3
 
 ## Fundação
@@ -571,7 +571,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-346]] — Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador · phase A39.l9
 - [[ADR-348]] — Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group · phase A39.l11
 
-### Proposto (7)
+### Proposto (8)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -580,6 +580,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-334]] — Dedup de imóvel: read-path deriva a chave inline (não confia na coluna persistida)
 - [[ADR-336]] — Roteamento de lucro PJ mal-classificado como dividendo via segundo sinal de fluxo (TRS) · phase dogfood cluster A
 - [[ADR-347]] — Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão) · phase A39
+- [[ADR-350]] — Checksum cross-source de fatura sem total impresso (fatura↔pagamento no extrato) · phase A39
 
 ## quality
 

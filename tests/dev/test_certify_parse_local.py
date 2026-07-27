@@ -86,6 +86,43 @@ def test_compare_accepts_improvement_and_reports_change() -> None:
     assert any("doc_type" in c for c in changes)
 
 
+# --- Ratchet do contrato de completude (#1080 · W0) ---
+
+
+def test_compare_flags_fatura_checksum_downgrade() -> None:
+    regs, _ = compare_records(
+        [_rec(fatura_checksum_status="mismatch")], [_rec(fatura_checksum_status="passou")]
+    )
+    assert any("fatura_checksum" in r for r in regs)
+
+
+def test_compare_flags_fatura_checksum_passou_to_faltando() -> None:
+    regs, _ = compare_records(
+        [_rec(fatura_checksum_status="faltando")], [_rec(fatura_checksum_status="passou")]
+    )
+    assert any("fatura_checksum" in r for r in regs)
+
+
+def test_compare_flags_new_uncovered_scope_as_silence() -> None:
+    regs, _ = compare_records([_rec(scopes_uncovered=["exterior"])], [_rec(scopes_uncovered=[])])
+    assert any("SILÊNCIO" in r and "exterior" in r for r in regs)
+
+
+def test_compare_flags_conservacao_verificavel_decertification() -> None:
+    regs, _ = compare_records(
+        [_rec(conservacao_verificavel=False)], [_rec(conservacao_verificavel=True)]
+    )
+    assert any("des-certificação" in r for r in regs)
+
+
+def test_compare_accepts_faltando_to_passou_improvement() -> None:
+    # faltando -> passou é melhoria (checksum passou a existir e fechar), não regressão.
+    regs, _ = compare_records(
+        [_rec(fatura_checksum_status="passou")], [_rec(fatura_checksum_status="faltando")]
+    )
+    assert regs == []
+
+
 def test_run_compare_missing_baseline_errs_clean(tmp_path: Path) -> None:
     # baseline ausente não crasha (exit 2), não é falso "0 regressões"
     assert _run_compare([_rec()], tmp_path / "inexistente.json") == 2
