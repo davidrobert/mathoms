@@ -253,6 +253,33 @@ def test_picpay_conservacao_fecha_sem_double_count(monkeypatch, tmp_path: Path):
     assert round(si, 2) == 1000.00  # saldo da última linha (1500) − 1ª tx (500)
 
 
+_PICPAY_TABLE_OLDEST_SEM_SALDO = [
+    ["Data/Hora", "Descrição", "Valor (R$)", "Saldo (R$)"],
+    ["05/04/2026 10:00", "Compra Mercado", "-200,00", "1.300,00"],
+    ["01/04/2026 09:00", "Pagto Recebido", "500,00", ""],  # tx mais antiga: Saldo em branco
+]
+
+
+def test_picpay_endpoint_saldo_vazio_nao_afirma_verificavel(monkeypatch, tmp_path: Path):
+    """F3b hardening (revisão adversarial PR #1080): se a tx mais antiga tem Saldo em
+    branco, saldo_inicial fica desalinhado — NÃO computa nem afirma verificável
+    (fail-safe), em vez de gravar saldo errado + flag falso no gate tol-zero."""
+    from scripts.e2.banks import picpay as ppmod
+
+    monkeypatch.setattr(
+        ppmod.pdfplumber,
+        "open",
+        lambda _p: _FakeTablePdf(_PICPAY_HEADER, _PICPAY_TABLE_OLDEST_SEM_SALDO),
+    )
+    path = tmp_path / "picpay_extratoconta_202604_202604-0_original.pdf"
+    path.write_bytes(b"%PDF-fake")
+
+    result = ppmod.parse_picpay(path, path.name)
+    assert result.get("saldo_final") == 1300.00  # tx mais nova, correto
+    assert result.get("saldo_inicial") is None  # oldest saldo vazio → não computa
+    assert not result.get("conservacao_verificavel")  # fail-safe: não afirma
+
+
 def test_bankofamerica_synthetic_extracts_transactions(tmp_path: Path):
     """Layout `bankofamerica` — USD, `Account number`, `for Month … to …`, linhas MM/DD/YY."""
     filename = "bankofamerica_extratoconta_202604_golden.pdf"
