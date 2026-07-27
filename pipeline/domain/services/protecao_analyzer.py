@@ -8,6 +8,11 @@ from datetime import date, timedelta
 from decimal import Decimal
 from typing import Literal, Mapping, Optional
 
+from pipeline.domain.services.premio_decomposicao import (
+    coberturas_pessoa,
+    premio_decomposicao,
+    premio_total_anual,
+)
 from pipeline.domain.services.seguradora_resolver import (
     canonicalize_apolice_seguradora,
     fallback_seguradora_display,
@@ -145,48 +150,8 @@ def _faixa_sinal(value: Decimal, faixas, fallback: str) -> str:
     return fallback
 
 
-# ===========================================================================
-# KPI G — Σ prêmios + decomposição
-# ===========================================================================
-
-
-def _premio_total_anual(apolices_vigentes: list[dict]) -> Decimal:
-    return sum((_to_decimal(a.get("premio_total_brl")) for a in apolices_vigentes), Decimal("0"))
-
-
-def _categoriza_apolice(apolice: dict) -> str:
-    """Classifica apólice em {auto, residencial, vida, saude, ap} pelo bem dominante."""
-    tipos = {b.get("tipo") for b in (apolice.get("bens_segurados") or [])}
-    if "imovel" in tipos and "veiculo" not in tipos:
-        return "residencial"
-    if "veiculo" in tipos:
-        return "auto"
-    if "pessoa" in tipos:
-        return _classifica_pessoa(apolice)
-    return "auto"  # fallback
-
-
-def _coberturas_pessoa(apolice: dict):
-    for bem in apolice.get("bens_segurados") or []:
-        if bem.get("tipo") == "pessoa":
-            yield from bem.get("coberturas") or []
-
-
-def _classifica_pessoa(apolice: dict) -> str:
-    """Sub-classificação V2 (vida/saude/ap) pelo tipo da 1ª cobertura."""
-    for cov in _coberturas_pessoa(apolice):
-        t = cov.get("tipo")
-        if t in ("vida", "saude", "acidentes"):
-            return "ap" if t == "acidentes" else t
-    return "vida"
-
-
-def _premio_decomposicao(apolices_vigentes: list[dict]) -> dict[str, Decimal]:
-    decomp: dict[str, Decimal] = {}
-    for a in apolices_vigentes:
-        cat = _categoriza_apolice(a)
-        decomp[cat] = decomp.get(cat, Decimal("0")) + _to_decimal(a.get("premio_total_brl"))
-    return decomp
+# KPI G — Σ prêmios + decomposição por cobertura vivem em premio_decomposicao.py
+# (ADR-352): premio_total_anual + premio_decomposicao, importados no topo.
 
 
 # ===========================================================================
@@ -297,7 +262,7 @@ def _lmi_casco(bem_veiculo: dict, fipe_value: Decimal) -> Decimal:
 def _has_apolice_pessoa_cobertura(apolices_vigentes: list[dict], tipo_cov: str) -> bool:
     """True quando há apólice vigente com cobertura pessoa do tipo (vida/saude/acidentes)."""
     return any(
-        cov.get("tipo") == tipo_cov for a in apolices_vigentes for cov in _coberturas_pessoa(a)
+        cov.get("tipo") == tipo_cov for a in apolices_vigentes for cov in coberturas_pessoa(a)
     )
 
 
@@ -439,9 +404,9 @@ def _fora_catalogo_count(apolices: list[dict]) -> int:
 
 
 def _protecao_payload(inp: ProtecaoInput, vigentes, vencendo, vencidas) -> dict:
-    premio_total = _premio_total_anual(vigentes)
+    premio_total = premio_total_anual(vigentes)
     pct = _pct_renda(premio_total, inp.renda_anual_liquida_brl)
-    decomp = _premio_decomposicao(vigentes)
+    decomp = premio_decomposicao(vigentes)
     return {
         "premio_total_anual_brl": str(premio_total.quantize(Decimal("0.01"))),
         "premio_decomposicao": {k: str(v.quantize(Decimal("0.01"))) for k, v in decomp.items()},

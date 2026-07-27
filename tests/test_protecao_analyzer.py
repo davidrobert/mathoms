@@ -132,16 +132,49 @@ def test_cenario_a_owner_com_seguros_kpi_g_soma_premios():
 
 
 def test_cenario_a_decomposicao_separa_auto_e_residencial():
-    """Combinada Porto: bens_segurados = auto + imovel; é categorizada como 'auto' (1ª categoria)."""
+    """ADR-352: combinada Porto (veículo 1800 + imóvel 650) rateia o prêmio total por
+    cobertura — auto e residencial separados, Σ == premio_total cent-exato."""
     inp = ProtecaoInput(
         apolices=[_apolice_auto_simples(), _apolice_combinada()],
         vehicles_by_id={},
         data_referencia=date(2026, 6, 1),
         renda_anual_liquida_brl=Decimal("200000"),
     )
+    decomp = compute_protecao(inp)["premio_decomposicao"]
+    # auto_simples 1500 → auto; combinada 3250 rateado 1800:650 → auto 2387.76 + resid 862.24
+    assert decomp["auto"] == "3887.76"
+    assert decomp["residencial"] == "862.24"
+    assert sum(Decimal(v) for v in decomp.values()) == Decimal("4750.00")
+
+
+def _apolice_sem_detalhe(premio="6022.27") -> dict:
+    return _apolice("SEMBEM-1", "porto", "2026-01-01", "2027-01-01", premio, _corretor(), [])
+
+
+def test_apolice_sem_bens_vai_para_nao_identificado():
+    """ADR-352 D3 (RV2-26): apólice sem bens_segurados não fabrica 'auto' — nao_identificado."""
+    inp = ProtecaoInput(
+        apolices=[_apolice_sem_detalhe()],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
+    decomp = compute_protecao(inp)["premio_decomposicao"]
+    assert decomp == {"nao_identificado": "6022.27"}
+    assert "auto" not in decomp
+
+
+def test_premio_decomposicao_conserva_total_cent_exato():
+    """ADR-352 D2: Σ premio_decomposicao == premio_total_anual (cent-exato) em mix."""
+    inp = ProtecaoInput(
+        apolices=[_apolice_combinada(), _apolice_sem_detalhe("999.99")],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
     out = compute_protecao(inp)
-    # 1500 (auto simples) + 3250 (combinada categorizada como auto pelo bem dominante)
-    assert out["premio_decomposicao"]["auto"] == "4750.00"
+    soma = sum(Decimal(v) for v in out["premio_decomposicao"].values())
+    assert soma == Decimal(out["premio_total_anual_brl"])  # 3250 + 999.99
 
 
 def test_cenario_a_pct_renda_em_faixa_cerbasi_ok():

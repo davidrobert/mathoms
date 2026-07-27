@@ -346,6 +346,7 @@
 | ADR-349 | adr | Proposto |  | Rotear classify_by_llm pelo choke-point LLMService (instrumentação: budget, cache, telemetria, enum) | `adr/349-reroute-classificacao-llmservice.md` |
 | ADR-350 | adr | Proposto |  | Checksum cross-source de fatura sem total impresso (fatura↔pagamento no extrato) | `adr/350-checksum-cross-source-fatura-pagamento.md` |
 | ADR-351 | adr | Proposto |  | Retorno de principal de investimento não é renda recorrente (receita_investimento) | `adr/351-retorno-principal-investimento-nao-recorrente.md` |
+| ADR-352 | adr | Proposto |  | Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante | `adr/352-premio-decomposicao-por-cobertura.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
