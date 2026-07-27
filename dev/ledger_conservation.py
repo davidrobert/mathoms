@@ -84,8 +84,22 @@ def _skips_reconcile(artifact: dict) -> bool:
     return AccountGrouper().should_skip(artifact)
 
 
+def _declared_dedup_cents(e3_artifacts: list[dict]) -> int:
+    """Σ ``valor_cents`` declarado nos canais de remoção (``remocoes``, ADR-347
+    §Dec-6). Prova a conservação de VALOR E2→E3 quando fecha contra o valor removido
+    (val_in − val_out); antes da serialização por canal, era 0 ⇒ valor não-provável."""
+    return sum(
+        int(r.get("valor_cents", 0))
+        for a in e3_artifacts
+        if isinstance(a, dict)
+        for r in (a.get("remocoes") or {}).values()
+        if isinstance(r, dict)
+    )
+
+
 def e2_to_e3(e2_artifacts: list[dict], e3_artifacts: list[dict]) -> ConservationResult:
-    """Conservação E2→E3 (workspace-wide). Count HARD; valor HARD só se dups==0.
+    """Conservação E2→E3 (workspace-wide). Count HARD; valor provado se dups==0 OU se
+    o valor removido pelo dedup == Σ ``remocoes[*].valor_cents`` declarado (ADR-347).
     O denominador exclui artefatos não-reconciliáveis (posição/informe/IRPF): suas
     tx nunca entram no reconcile e inflariam a perda aparente (LC-07)."""
     reconcilable = [a for a in e2_artifacts if not _skips_reconcile(a)]
@@ -96,24 +110,29 @@ def e2_to_e3(e2_artifacts: list[dict], e3_artifacts: list[dict]) -> Conservation
     count_out = survivors + dups
     e3_tx = [t for a in e3_artifacts for t in a.get("transacoes", [])]
     val_in, val_out = _sum_cents(e2_tx), _sum_cents(e3_tx)
-    return _e2e3_verdict(count_in, count_out, survivors, dups, val_in, val_out)
+    declared = _declared_dedup_cents(e3_artifacts)
+    return _e2e3_verdict(count_in, count_out, dups, val_in, val_out, declared)
 
 
 def _e2e3_verdict(
-    count_in: int, count_out: int, survivors: int, dups: int, val_in: int, val_out: int
+    count_in: int, count_out: int, dups: int, val_in: int, val_out: int, declared: int
 ) -> ConservationResult:
     """Veredito E2→E3 fail-closed. A ORDEM importa: queda de count COM dedup
-    declarado (dups>0) é sub-declaração de dedup ⇒ coberto, não perda (LC-07). Só é
-    perda quando a queda vem sem nenhum dedup declarado. (count/dups vão no report.)"""
+    declarado (dups>0) é sub-declaração ⇒ não perda (LC-07). Valor: dups>0 sobe a
+    conservado só se o removido == declarado (ADR-347 §Dec-6); senão coberto."""
+    value_ok = dups > 0 and (val_in - val_out) == declared
     checks = [
         (count_out < count_in and dups == 0, PERDA_SILENCIOSA, "count caiu sem dedup declarado"),
-        (count_out < count_in, COBERTO_SEM_VALOR, "sub-declaração de dedup; valor não-provável"),
-        (dups > 0, COBERTO_SEM_VALOR, "dups>0; valor removido não declarado no artefato"),
-        (val_out != val_in, PERDA_SILENCIOSA, "Σ valor diverge sem dedup (dups=0)"),
+        (count_out < count_in, COBERTO_SEM_VALOR, "sub-declaração de dedup; count não fecha"),
+        (
+            dups > 0 and not value_ok,
+            COBERTO_SEM_VALOR,
+            f"dups>0; valor removido {val_in - val_out} != declarado {declared}",
+        ),
+        (val_out != val_in and dups == 0, PERDA_SILENCIOSA, "Σ valor diverge sem dedup (dups=0)"),
     ]
-    v, d = next(
-        ((vv, dd) for cond, vv, dd in checks if cond), (CONSERVADO, "count e valor conservam")
-    )
+    default = (CONSERVADO, "count e valor conservam" + ("; dedup declarado fecha" if dups else ""))
+    v, d = next(((vv, dd) for cond, vv, dd in checks if cond), default)
     return ConservationResult("E2->E3", count_in, count_out, val_in, val_out, dups, v, d)
 
 

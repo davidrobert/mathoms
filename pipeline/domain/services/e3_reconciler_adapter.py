@@ -38,7 +38,7 @@ from pipeline.domain.services.e3_load_report import (
     LoadOutcome,
     LoadStat,
     StatementExclusion,
-    build_artifact_ledger,
+    attach_artifact_ledger,
 )
 from pipeline.domain.services.e3_review_reasons import (
     project_e3_reasons as _project_reasons,
@@ -419,7 +419,7 @@ class E3ReconcilerAdapter:
                 if len(stmts) > 1:
                     payload["pipeline_stage"] = "E3"
             # ADR-347 PR1b — anexa o ledger de conservação (serializer-agnóstico).
-            payload.update(build_artifact_ledger(stmts, outcome.load_stats, dup_removed, cents))
+            attach_artifact_ledger(payload, stmts, outcome.load_stats, dup_removed, cents, removals)
             attach_cross_checksum(payload, merged_stmt, cross_by_key)
             merged_statements.append(merged_stmt)
             emit_item_progress(
