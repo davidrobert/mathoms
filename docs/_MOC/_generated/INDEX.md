@@ -344,6 +344,7 @@
 | ADR-347 | adr | Proposto |  | Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão) | `adr/347-ledger-conservacao-contagem-e3.md` |
 | ADR-348 | adr | Decidido |  | Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group | `adr/348-classificacao-llm-determinismo-temp0.md` |
 | ADR-349 | adr | Proposto |  | Rotear classify_by_llm pelo choke-point LLMService (instrumentação: budget, cache, telemetria, enum) | `adr/349-reroute-classificacao-llmservice.md` |
+| ADR-350 | adr | Proposto |  | Checksum cross-source de fatura sem total impresso (fatura↔pagamento no extrato) | `adr/350-checksum-cross-source-fatura-pagamento.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
