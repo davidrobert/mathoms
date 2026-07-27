@@ -46,7 +46,7 @@ tags:
 | RV2-26 | `premio_decomposicao` 100% "auto" apesar de apólice multi-bem | — | fix | aberto |
 | RV2-21 | `diagnostico_comportamental` sem degradê por cobertura de categorização | — | fix | aberto |
 | RV2-15 | `cenarios_conjuge` unidimensional + retorno vs meta | — | fix | aberto |
-| RV2-18 | cascata `perfil_incompleto` sem nudge PJ + detecção PJ inconsistente | [[ADR-268]] | fix | aberto |
+| RV2-18 | cascata `perfil_incompleto` sem nudge PJ + detecção PJ inconsistente | [[ADR-268]] | fix | ✅ decrypt-wrap (root cause: `content_json` cru sem decriptar) |
 | RV2-20 | `premissas_economicas` global vazia p/ o período (seed) | — | config | aberto |
 
 ### Onda B — contrato do view-model E5 (1 ADR novo + refactor)
@@ -89,6 +89,13 @@ Co-design: `prompt-engineer` + golden eval. **RV2-01 desparkado (2026-07-27, ped
 | RV2-02 | `extract_with_llm` success mascara skip → **[[ADR-342]]** (anti-silêncio E2) | verificar cobertura; se gap, follow-up ao dono do ADR-342/e2-antisilence |
 | RV2-05 | CV16/CV17 fora do gate de conservação → **[[ADR-347]]** / [[ADR-330]] / [[ADR-336]] | escopo do gate é decisão A39; propor CV17 no gate como follow-up ao ADR-347 |
 | RV2-17 | ledger de contagem E2→E4 → **[[ADR-347]]** (Proposto) / [[PLAN-ledger-integrity]] | já é o escopo do plano ativo — não duplicar |
+
+## Follow-ups descobertos na execução
+
+| # | Origem | Achado | Ação |
+|---|---|---|---|
+| FU-1 | RV2-18 co-design (data-engineer) | `_build_tributario_section_sync(workspace_id)` seleciona o run via `_latest_run_id`, **não** o run relatado. Live-run: latest ≈ reportado (OK). Regen histórico (`regenerate_for_report`/`backfill_reports_from_artifacts`) puxaria o E4 do run mais novo → mismatch cross-run. Pré-existente, ortogonal ao decrypt (o fix RV2-18 não piora). | Investigar se a seção tributária é computada para run não-latest; se sim, threadar o `run_id` relatado. Lane própria (não bloqueia r2). |
+| FU-2 | RV2-18 dark-launch | O decrypt-wrap **acende** a cascata fiscal (das/iss/folha/camadas PGBL) em ws encriptado de **perfil completo** — código nunca exercitado em prod com input real. `read_artifact_content` passa a **raise `ArtifactDecryptError`** em key errada/rotação incompleta (fail-loud correto) em vez de zerar silencioso. | Sanity-check numérico com `financial-planner` antes de qualquer ws de perfil completo depender da cascata. Relatórios já publicados mostram zeros stale até **regen**. |
 
 ## Parkado
 

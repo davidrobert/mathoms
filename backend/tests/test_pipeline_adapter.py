@@ -315,6 +315,49 @@ async def test_tributario_section_shape_workspace_sem_perfil(db):
     assert cascata["motivo_nao_suportado"] == "perfil_incompleto"
 
 
+async def _persist_encrypted_e4(db, ws_id: str, run_id: str, key: str, content: dict) -> None:
+    """Persiste artifact E4 com content_json ENCRIPTADO (ADR-231) — espelha produção."""
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.services.security.crypto import encrypt_artifact_payload
+
+    db.add(
+        PipelineArtifact(
+            workspace_id=ws_id,
+            pipeline_run_id=run_id,
+            stage="categorize_transactions",
+            artifact_key=key,
+            content_json=encrypt_artifact_payload(content),
+        )
+    )
+
+
+async def _seed_encrypted_pj_run(db, ws_id: str) -> None:
+    """Run E4 com receita PJ (lucros) + 12 meses, tudo encriptado (ADR-231)."""
+    from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+
+    run = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.completed, tier_at_run="premium")
+    db.add(run)
+    await db.flush()
+    receitas = {"totais_por_categoria": {"lucros_distribuidos": 120000.0}}
+    fluxo = {"meses_ordenados": [f"2024-{m:02d}" for m in range(1, 13)]}
+    await _persist_encrypted_e4(db, ws_id, run.id, "receitas", receitas)
+    await _persist_encrypted_e4(db, ws_id, run.id, "fluxo_mensal_detalhado", fluxo)
+
+
+@pytest.mark.asyncio
+async def test_cascata_decripta_receitas_e4_e_sinaliza_pj(db):
+    """RV2-18: builder decripta content_json E4 (ADR-231). Perfil incompleto com receita
+    PJ encriptada sinaliza a inconsistência em vez de zerar silenciosamente a cascata."""
+    ws = await factories.make_workspace(db)  # sem business_profile → perfil_incompleto
+    await _seed_encrypted_pj_run(db, ws.id)
+    await db.commit()
+
+    cascata = (await build_goals_payload(ws.id, db=db))["tributario"]["cascata"]
+    assert cascata["motivo_nao_suportado"] == "perfil_incompleto"
+    assert cascata["receita_pj_detectada_anual"] > 0  # cru (encriptado) daria 0
+    assert "perfil_incompleto_com_receita" in cascata["signals"]
+
+
 _SIMPLES_BP_FIXTURE: dict = {
     "contador": "Acme Contadores",
     "regime": "simples",

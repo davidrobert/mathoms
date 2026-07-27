@@ -14,6 +14,7 @@ from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.business_profile import BusinessProfile
+from backend.app.services.security.crypto import read_artifact_content
 from pipeline.domain.models.transaction import Money
 from pipeline.domain.services.fiscal_source import FiscalSource
 from pipeline.domain.services.tributario.cascata_calculator import (
@@ -266,7 +267,9 @@ def _read_run_artifact(
         .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         .first()
     )
-    return row.content_json if row else None
+    # content_json é encrypted-at-rest (ADR-231); decripta como os readers canônicos
+    # (artifact_reader). Ler cru zerava a cascata fiscal inteira em prod (RV2-18).
+    return read_artifact_content(row.content_json) if row else None
 
 
 def _read_latest_workspace_artifact(
@@ -281,7 +284,7 @@ def _read_latest_workspace_artifact(
         .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         .first()
     )
-    return row.content_json if row else None
+    return read_artifact_content(row.content_json) if row else None
 
 
 # =============================================================================
