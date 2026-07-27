@@ -73,6 +73,24 @@ def test_e2e3_valor_diverge_sem_dups_e_perda() -> None:
     assert r.verdict == PERDA_SILENCIOSA
 
 
+def test_e2e3_dups_com_valor_declarado_vira_conservado() -> None:
+    # ADR-347 §Dec-6 (F6): dups>0, mas o valor removido (25000-15000=10000c) == Σ
+    # remocoes[*].valor_cents declarado → conservado (valor PROVADO), não mais coberto.
+    e3 = _e3([100.0, 50.0], dups=1)
+    e3["remocoes"] = {"intra_statement_dedup": {"count": 1, "valor_cents": 10000}}
+    r = e2_to_e3([_e2(100.0, 100.0, 50.0)], [e3])
+    assert r.verdict == CONSERVADO
+
+
+def test_e2e3_dups_valor_declarado_incompleto_fica_coberto() -> None:
+    # F6 WARN-first: declarado (9999) != removido (10000) → coberto (não afirma
+    # conservado sobre valor não-provável; não sobe a perda pois count fecha c/ dedup).
+    e3 = _e3([100.0, 50.0], dups=1)
+    e3["remocoes"] = {"intra_statement_dedup": {"count": 1, "valor_cents": 9999}}
+    r = e2_to_e3([_e2(100.0, 100.0, 50.0)], [e3])
+    assert r.verdict == COBERTO_SEM_VALOR
+
+
 def test_e2e3_reupload_sobreposto_vira_coberto() -> None:
     # Re-upload sobreposto: 5 tx entram (100,50 duplicados + 25 único), reconcile
     # colapsa p/ 3 survivors mas declara só 1 dup (sub-declaração do dedup). count

@@ -6,7 +6,11 @@ Prova que `dedup_report`/`reconcile_with_report` **declaram** o que o dedup remo
 
 from __future__ import annotations
 
+import json
 from datetime import date
+from pathlib import Path
+
+import jsonschema
 
 from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.domain.models.document import BankStatement
@@ -94,6 +98,7 @@ def test_reconcile_with_report_emite_DedupRemoval_intra():
     assert isinstance(r, DedupRemoval)
     assert r.canal == "intra_statement_dedup"
     assert r.count == 1 and r.valor_cents == 1234 and r.cross_source_count == 0
+    assert r.source == "a.csv"  # F6: source_document keyed p/ o ledger de VALOR por artefato
 
 
 def test_reconcile_legado_inalterado_vs_report():
@@ -155,7 +160,29 @@ def test_artifact_ledger_balances_count_tol_zero():
     rem = p["remocoes"]
     assert p["tx_carregadas"] == 3
     assert rem["intra_statement_dedup"]["count"] == 1 and rem["undated_drop"]["count"] == 1
+    # F6 (ADR-347 §Dec-6): valor do dedup intra serializado no artefato (antes era 0 hard-coded).
+    # Assinado (débito MERCADO -12,34 → -1234c), espelhando dedup_report; harness compara val_in-val_out.
+    assert rem["intra_statement_dedup"]["valor_cents"] == -1234
     assert p["tx_carregadas"] == len(p["transacoes"]) + sum(r["count"] for r in rem.values())
+
+
+def test_artifact_ledger_valor_cents_assinado_valida_schema():
+    # F6: intra valor_cents é ASSINADO (débito → negativo). O schema e3_reconciled deve
+    # aceitar inteiro assinado (remoção de minimum:0); senão o write em strict quebraria
+    # (DBArtifactStore._validate_schema, ADR-212). Trava a regressão que a revisão pegou.
+    txns = [
+        {"data": "2026-01-05", "descricao": "MERCADO", "valor": -12.34},
+        {"data": "2026-01-05", "descricao": "MERCADO", "valor": -12.34},  # dup intra (débito)
+    ]
+    store = InMemoryArtifactStore()
+    store.seed("extract_statements", "itau_x", _e2_payload(arquivo="x.csv", txns=txns))
+    E3ReconcilerAdapter(ReconciliationConfig()).reconcile_via_store(store)
+    p = store.read("reconcile_transactions", store.list_keys("reconcile_transactions")[0])
+    entry = p["remocoes"]["intra_statement_dedup"]
+    assert entry["valor_cents"] < 0  # débito → assinado negativo
+    schema_path = Path(__file__).resolve().parents[3] / "config/schemas/e3_reconciled.schema.json"
+    remocao_schema = json.loads(schema_path.read_text())["$defs"]["remocao"]
+    jsonschema.validate(entry, remocao_schema)  # raise se o $def rejeitar valor_cents assinado
 
 
 def test_exclusions_ledger_conta_tx_de_statement_pulado():

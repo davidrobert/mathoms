@@ -83,25 +83,33 @@ class LoadOutcome:
         self.exclusions.append(StatementExclusion(canal, count))
 
 
-def _remocoes(undated: int, anachronic: int, intra: int, cross: int, cross_cents: int) -> dict:
-    """Partição de remoções por canal (``valor_cents`` só p/ cross em PR1b — resto PR2)."""
+def _remocoes(
+    undated: int, anachronic: int, intra: int, cross: int, cross_cents: int, intra_cents: int
+) -> dict:
+    """Partição de remoções por canal (ADR-347). ``valor_cents``: intra + cross
+    serializados; undated/anachronic ficam 0 — captura de valor é a montante do
+    adapter (perda real), diferida ao PR2b (measure-then-emit)."""
     return {
         "undated_drop": {"count": undated, "valor_cents": 0},
         "anachronic": {"count": anachronic, "valor_cents": 0},
-        "intra_statement_dedup": {"count": intra, "valor_cents": 0},
+        "intra_statement_dedup": {"count": intra, "valor_cents": intra_cents},
         "cross_file_dedup": {"count": cross, "valor_cents": cross_cents},
     }
 
 
-def build_artifact_ledger(
-    reconciled_stmts: list[BankStatement],
-    load_stats: dict[str, LoadStat],
-    cross_removed: int,
-    cross_cents: int,
-) -> dict:
-    """Ledger de conservação por artefato E3 (ADR-347): fecha ``tx_carregadas ==
-    transacoes_total + Σ remocoes[*].count`` (tol-zero)."""
-    carregadas = anachronic = undated = intra = 0
+def _intra_cents_by_source(removals) -> dict[str, int]:
+    """Valor do dedup intra por ``source_document`` (ADR-347 §Dec-6), extraído dos
+    ``DedupRemoval`` (duck-typed: ``.canal``/``.source``/``.valor_cents``)."""
+    return {
+        r.source: r.valor_cents
+        for r in (removals or ())
+        if getattr(r, "canal", None) == "intra_statement_dedup" and getattr(r, "source", None)
+    }
+
+
+def _ledger_totals(reconciled_stmts, load_stats, by_source: dict[str, int]):
+    """(tx_carregadas, anachronic, undated, intra_count, intra_cents) somados por statement."""
+    carregadas = anachronic = undated = intra = intra_cents = 0
     for s in reconciled_stmts:
         st = load_stats.get(s.source_document or "")
         if st is None:
@@ -110,5 +118,32 @@ def build_artifact_ledger(
         anachronic += st.anachronic
         undated += st.undated
         intra += st.tx_loaded - len(s.transactions)
-    remocoes = _remocoes(undated, anachronic, intra, cross_removed, cross_cents)
+        intra_cents += by_source.get(s.source_document or "", 0)
+    return carregadas, anachronic, undated, intra, intra_cents
+
+
+def build_artifact_ledger(
+    reconciled_stmts: list[BankStatement],
+    load_stats: dict[str, LoadStat],
+    cross_removed: int,
+    cross_cents: int,
+    removals=None,
+) -> dict:
+    """Ledger de conservação por artefato E3 (ADR-347): ``tx_carregadas ==
+    transacoes_total + Σ remocoes[*].count`` (tol-zero). ``removals`` traz o valor do
+    dedup intra por ``source_document`` (§Dec-6); ausente ⇒ 0 (compat forward-only)."""
+    by_source = _intra_cents_by_source(removals)
+    carregadas, anachronic, undated, intra, intra_cents = _ledger_totals(
+        reconciled_stmts, load_stats, by_source
+    )
+    remocoes = _remocoes(undated, anachronic, intra, cross_removed, cross_cents, intra_cents)
     return {"tx_carregadas": carregadas, "remocoes": remocoes}
+
+
+def attach_artifact_ledger(
+    payload: dict, reconciled_stmts, load_stats, cross_removed, cross_cents, removals
+) -> None:
+    """Anexa (in-place) o ledger de conservação E3 (ADR-347) ao ``payload``."""
+    payload |= build_artifact_ledger(
+        reconciled_stmts, load_stats, cross_removed, cross_cents, removals
+    )

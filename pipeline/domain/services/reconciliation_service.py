@@ -84,6 +84,7 @@ class DedupRemoval:
     count: int
     valor_cents: int
     cross_source_count: int
+    source: str | None = None  # source_document do statement (intra); None p/ cross (merge)
 
 
 @dataclass(frozen=True)
@@ -184,7 +185,11 @@ class ReconciliationService:
             kept, count, valor_cents, cross = self.dedup_report(stmt.transactions)
             reconciled.append(_reconciled_copy(stmt, kept))
             if count:
-                removals.append(DedupRemoval("intra_statement_dedup", count, valor_cents, cross))
+                removals.append(
+                    DedupRemoval(
+                        "intra_statement_dedup", count, valor_cents, cross, stmt.source_document
+                    )
+                )
         return reconciled, removals
 
     def _dedup(self, transactions: list[Transaction]) -> list[Transaction]:

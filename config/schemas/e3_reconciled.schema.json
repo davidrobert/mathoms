@@ -115,7 +115,7 @@
       "required": ["count", "valor_cents"],
       "properties": {
         "count": {"type": "integer", "minimum": 0},
-        "valor_cents": {"type": "integer", "minimum": 0}
+        "valor_cents": {"type": "integer"}
       },
       "additionalProperties": false
     }
