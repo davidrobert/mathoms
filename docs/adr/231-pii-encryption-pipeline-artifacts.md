@@ -196,7 +196,7 @@ Mais delicado: exige schema awareness do encrypt path. Quebra schemas se campo n
 - **PR de implementação:**
   - Cria `backend/app/services/crypto.py` (encrypt_artifact_payload + decrypt_artifact_payload + kid helper).
   - Adiciona setting `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS` em `backend/app/core/config.py`.
-  - Patch `backend/app/services/db_artifact_store.py` (encrypt em write pós-validate; decrypt em read).
+  - Patch `backend/app/services/storage/db_artifact_store.py` (encrypt em write pós-validate; decrypt em read).
   - Cria `dev/migrate_encrypt_existing_artifacts.py` (idempotent, batch, --dry-run default).
   - Tests:
     - `backend/tests/test_crypto_artifact.py` (roundtrip + kid stable + fail-safe sem key).

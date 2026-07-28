@@ -31,7 +31,7 @@ size_lines: 49
 
 1. **Schema da Decision** — adicionar 3 campos nullable (migration `e0f1a2b3c4d5_adr162`):
    - `target_field: String(64)` — caminho dot-notation (`goal.if.trs_pct`, `goal.aporte.meta_aporte_mensal_brl`).
-   - `target_value: String(64)` — valor decimal/string serializado (parse no use case por `target_value_type`).
+   - `target_value: String(128)` — valor decimal/string serializado (parse no use case por `target_value_type`).
    - `target_value_type: String(8)` — `pct` | `brl` | `int` | `str`. Necessário para parsing seguro (BRL vai a Decimal, pct a float).
 
 2. **Mapping `target_field → goal_type + param_path`** vive em `backend/app/services/decision_goal_projection.py` (módulo novo). Tabela centralizada:

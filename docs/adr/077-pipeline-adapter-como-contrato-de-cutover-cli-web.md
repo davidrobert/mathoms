@@ -32,7 +32,7 @@ size_lines: 39
 **Contexto:** As 4 fases anteriores (F8.0–F8.3) criaram entidades `Goal`, `Task`, `TaskSuggestion`, `TaskAttachment`, `FeatureFlag` no DB, endpoints REST, UI completa e testes. O pipeline legado (E5, E5.N, E6) continua lendo de `config/goals.json` e `config/tarefas.md`. O cutover precisa de uma ponte que permita ao pipeline operar via DB sem reescrevê-lo. Esta ADR formaliza o contrato dessa ponte.
 
 **Decisão:**
-1. **`backend/app/services/pipeline_adapter.py`** é a fachada única entre pipeline e DB. Expõe 3 pares de funções (sync + async):
+1. **`backend/app/services/pipeline/pipeline_adapter.py`** é a fachada única entre pipeline e DB. Expõe 3 pares de funções (sync + async):
    - `build_goals_payload` → dict compatível com `goals.json`
    - `build_tasks_payload` → dict compatível com E5 `tarefas[]`
    - `build_tarefas_md` → string markdown compatível com `config/tarefas.md`
