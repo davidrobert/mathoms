@@ -40,13 +40,13 @@ tags:
 
 | Achado | Defeito (âncora) | ADR | Tipo | Status |
 |---|---|---|---|---|
-| RV2-03 | nota PGBL "teto atingido" sem branch por `PgblStatus` · `previdencia_analyzer.py:168-176` | [[ADR-305]] | conformance | 🚧 em execução |
-| RV2-08 | `exposicao_cambial` omite bucket Internacional · `exposicao_cambial_analyzer.py` | [[ADR-193]] · [[ADR-224]] | conformance | aberto |
-| RV2-19 | aluguel IRPF vs banco (bases distintas) sem disclosure | [[ADR-306]] | conformance | aberto |
-| RV2-26 | `premio_decomposicao` 100% "auto" apesar de apólice multi-bem | — | fix | aberto |
-| RV2-21 | `diagnostico_comportamental` sem degradê por cobertura de categorização | — | fix | aberto |
-| RV2-15 | `cenarios_conjuge` unidimensional + retorno vs meta | — | fix | aberto |
-| RV2-18 | cascata `perfil_incompleto` sem nudge PJ + detecção PJ inconsistente | [[ADR-268]] | fix | ✅ decrypt-wrap (root cause: `content_json` cru sem decriptar) |
+| RV2-03 | nota PGBL "teto atingido" sem branch por `PgblStatus` · `previdencia_analyzer.py:168-176` | [[ADR-305]] | conformance | ✅ merged #1092 |
+| RV2-08 | `exposicao_cambial` omite bucket Internacional · `exposicao_cambial_analyzer.py` | [[ADR-193]] · [[ADR-224]] | conformance | ✅ merged #1094 (emenda [[ADR-224]]; §E wire PDF deferido) |
+| RV2-19 | aluguel IRPF vs banco (bases distintas) sem disclosure | [[ADR-306]] | conformance | aberto (co-design pronto) |
+| RV2-26 | `premio_decomposicao` 100% "auto" apesar de apólice multi-bem | [[ADR-352]] | fix | ✅ merged #1097 (bottom-up por cobertura; follow-up PD label-map do card) |
+| RV2-21 | `diagnostico_comportamental` sem degradê por cobertura de categorização | ADR-353 (#1098) | fix | 🚧 #1098 (sibling `diagnostico_confianca`; chrome→Onda B, parecer→Onda C) |
+| RV2-15 | `cenarios_conjuge` unidimensional + retorno vs meta | — | fix | aberto (co-design pronto: 2 cenários base+estresse) |
+| RV2-18 | cascata `perfil_incompleto` sem nudge PJ + detecção PJ inconsistente | [[ADR-268]] | fix | ✅ merged #1096 (decrypt `content_json` E4; FU-1/FU-2) |
 | RV2-20 | `premissas_economicas` global vazia p/ o período (seed) | — | config | aberto |
 
 ### Onda B — contrato do view-model E5 (1 ADR novo + refactor)
@@ -70,9 +70,11 @@ Co-design: `data-engineer` + `product-designer`. ADR novo de **contrato do view-
 | RV2-09 | parecer rotula `receita_pj_pct` como "% da receita" (base trocada) | — | exec-context | aberto |
 | RV2-24 | limiar de poupança 30% (parecer) vs 25% (E5) | [[ADR-143]] | fonte única | aberto |
 | RV2-25 | `field_request_spurious` p/ `[]` (null-semantics) | — | fix | aberto |
-| RV2-01 | parecer FABRICA métrica em `metricas[]` (valor não derivável de nenhum campo E5); itens sem âncora escapam do verify (`parecer_evidencia.py::_iter_items` só itera riscos+sugestões) | [[ADR-304]] | ADR novo / extensão | aberto |
+| RV2-01 | parecer FABRICA métrica em `metricas[]` (valor não derivável de nenhum campo E5); itens sem âncora escapam do verify (`parecer_evidencia.py::_iter_items` só itera riscos+sugestões) | ADR-354 (extende [[ADR-296]]) | ADR novo | 🔬 co-design prompt-engineer **feito**; bloqueado por dep. catálogo KPI |
 
-Co-design: `prompt-engineer` + golden eval. **RV2-01 desparkado (2026-07-27, pedido do owner)** — incluído: âncora `$.path` obrigatória em `metricas[]` + estender o loop de verificação de citação a `metricas[]`; eval golden anti-fabricação (temp=0).
+Co-design: `prompt-engineer` **feito** (racional off-git + memória `project_rv2_01_metrica_anchoring_codesign`). **Decisão:** aplicar o padrão ADR-296 (LLM não autora o número) à `Metrica` — `Metrica.ancoras: list[Ancora]` (`default_factory=list`, `max_length=1`, nunca `min_length`=storm) + o finalize **sobrescreve** `valor_atual` com o valor stampado do E5 → fabricação **impossível por construção** (sem value-match frágil); métrica sem âncora resolvível → **drop**. Bumps `EVIDENCIA_VERIFICATION_VERSION` 4→5, `PROMPT_VERSION` 2.2.0→2.3.0, output 2.0→2.1. Teste determinístico (gate por-PR) + LLM-eval owner-gated.
+
+> **⚠️ Dependência load-bearing (não prevista na missão):** o catálogo de citação (`parecer_citation_catalog.py`) é **money-only**, mas o bug era **%**. Sem um **catálogo KPI curado** (~10-15 folhas `*_pct`/`cobertura_meses`/…, já leaves no `e5_analysis.schema.json`) exposto ao LLM, **toda métrica % vira drop → seção de métricas esvaziada** (troca fabricação por regressão). Exige co-design **data-engineer** (leaf vs derivação) + **financial-planner** (quais KPIs a seção mostra) **ANTES** de implementar. Ordem: co-design catálogo → ADR-354 Proposto → 1 PR (schema + verify + finalize + catálogo + prompt + bumps + teste).
 
 ### Onda D — plano de ação & identidade
 
@@ -134,4 +136,4 @@ Co-design: `prompt-engineer` + golden eval. **RV2-01 desparkado (2026-07-27, ped
 
 **Gotchas desta execução.** (a) **Nunca** pipe `git commit` por `| tail` — engole a falha do hook; rode direto e confira `git log -1`. (b) Novo plano/ADR desincroniza `docs/_MOC/_generated/` → `python3 dev/build_doc_index.py --inline` + `git add`. (c) hook `code-style-baseline` falha se função nova >20 linhas (P1) — extraia helper, não `--save-baseline`. (d) auto-merge rápido deleta a branch → re-push vira "new branch" com commits órfãos pós-squash; sempre branch nova `off origin/main` + cherry-pick só o commit novo. (e) emenda de ADR exige `amended_at` no frontmatter + blockquote de sinal. (f) pipeline vs backend têm conftests que colidem — rode `pytest tests` e `pytest backend/tests` **separados**.
 
-**Estado.** RV2-03 (PR #1092, merged) + RV2-08 (PR #1094) entregues. Memória de sessão: `project_pipeline_review_r2_remediation` (fora do vault); MOC dos achados: `docs/_MOC/PIPELINE-REVIEWS-active.md` §r2.
+**Estado (checkpoint 2026-07-27).** Entregues: RV2-03 (#1092), RV2-08 (#1094), **RV2-18 (#1096)**, **RV2-26 (#1097)**, **RV2-21 (#1098, auto-merge)**. **Reordenação (owner):** após RV2-21, priorizar **RV2-01** (Alto) → **RV2-04** (Alto, Onda D) **antes** dos P3 restantes (RV2-15/19/20). **RV2-01 co-designado** (prompt-engineer) mas **bloqueado** pela dependência do **catálogo KPI** (ver ⚠️ na Onda C) — exige co-design data-engineer + financial-planner antes do PR. Fila restante: catálogo-KPI+RV2-01 → RV2-04 → Onda B (RV2-06/07/12/14/22) → RV2-19/15/20/13/23. Memórias: `project_pipeline_review_r2_remediation` + `project_rv2_01_metrica_anchoring_codesign` (fora do vault); MOC: `docs/_MOC/PIPELINE-REVIEWS-active.md` §r2.
