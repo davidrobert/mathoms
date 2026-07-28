@@ -75,7 +75,9 @@ Para que nenhum achado se perca entre auditorias:
 >
 > **Gap de infra (fora de escopo doc):** Dockerfile do serviço Go
 > (`services/pipeline-service-go/`) sem entry no `.github/dependabot.yml` (SHA-pin
-> OK, falta re-pin automático) → task chip `task_bad477ac`.
+> OK, falta re-pin automático). **Resolvido:** entry `docker` para
+> `/services/pipeline-service-go` adicionado (conforma ADR-249; Dockerfile criado
+> pós-config em #792). Fecha o gap; task chip `task_bad477ac` retirado.
 >
 > **Falsos-positivos evitados (6 lentes):** (a) **ADR-024** (LiteLLM) NÃO foi
 > superseded por ADR-259 — é o proxy vigente (senior-cto+prompt-eng); classificador
