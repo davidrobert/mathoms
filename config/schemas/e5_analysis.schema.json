@@ -234,6 +234,13 @@
     "alertas": {"type": "array"},
     "consumo_consciente": {"type": "object"},
     "diagnostico_comportamental": {"type": "array"},
+    "diagnostico_confianca": {
+      "type": "object",
+      "properties": {
+        "nivel": {"enum": ["alta", "parcial", "insuficiente"]},
+        "share_nao_identificado_pct": {"type": "number"}
+      }
+    },
     "programa_milhas": {"type": "object"},
     "exposicao_cambial": {
       "type": "object",

@@ -269,6 +269,10 @@
       "padrao": "Disciplina de poupança"
     }
   ],
+  "diagnostico_confianca": {
+    "nivel": "alta",
+    "share_nao_identificado_pct": "0.000000"
+  },
   "endividamento": {
     "detalhe": "Financiamento imobiliário (Alex)",
     "dividas": [

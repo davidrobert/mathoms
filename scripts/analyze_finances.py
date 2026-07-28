@@ -2372,6 +2372,7 @@ def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
         "pontos_urgentes": [p.to_dict() for p in result.pontos_urgentes],
         "consumo": result.consumo_consciente.to_legacy_dict(),
         "diagnostico": [d.to_dict() for d in result.diagnosticos],
+        "diagnostico_confianca": result.diagnostico_confianca,
         "cenarios_conjuge": (
             result.cenarios_conjuge.to_legacy_dict() if result.cenarios_conjuge else {}
         ),
@@ -2560,6 +2561,7 @@ def _e5_compose_output(
         equilibrio_cerbasi=legacy["cerbasi"],
         consumo=legacy["consumo"],
         diagnostico=legacy["diagnostico"],
+        diagnostico_confianca=legacy["diagnostico_confianca"],
         cenarios_conjuge=legacy["cenarios_conjuge"],
         programa_milhas=programa_milhas,
         tarefas=tarefas_parsed if tarefas_parsed else None,

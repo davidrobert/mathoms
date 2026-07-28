@@ -225,6 +225,7 @@ class E5AnalysisResult:
     equilibrio_cerbasi: EquilibrioCerbasi
     cenarios_conjuge: CenariosConjugeResult | None
     diagnosticos: tuple[DiagnosticoItem, ...]
+    diagnostico_confianca: dict[str, str | float]
     pontos_fortes: tuple[PontoForteItem, ...]
     pontos_urgentes: tuple[PontoUrgenteItem, ...]
     # A8.3 — TRS efetiva + carteira de renda (None quando workspace sem IRPF
@@ -687,8 +688,9 @@ class E5AnalyzerAdapter:
                 fluxo=fluxo_legacy,
             )
 
-        # 17. Diagnósticos comportamentais.
+        # 17. Diagnósticos comportamentais + confiança por cobertura (ADR-353).
         diagnosticos = self._diagnostico.analyze(fluxo_legacy, ratios_dict)
+        diagnostico_confianca = self._diagnostico.confianca(fluxo_legacy)
 
         # 18. Pontos fortes + urgentes (agora com score/reserva REAIS).
         #     FP-002: passamos `goals={"if_pct": ...}` para o analyzer
@@ -759,6 +761,7 @@ class E5AnalyzerAdapter:
             equilibrio_cerbasi=equilibrio,
             cenarios_conjuge=cenarios,
             diagnosticos=tuple(diagnosticos),
+            diagnostico_confianca=diagnostico_confianca,
             pontos_fortes=tuple(pontos_fortes),
             pontos_urgentes=tuple(pontos_urgentes),
             passive_income=passive_income,
