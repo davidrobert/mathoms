@@ -126,3 +126,46 @@ class TestResult:
         item = DiagnosticoItem("P", "E", "M")
         d = item.to_dict()
         assert d == {"padrao": "P", "evidencia": "E", "mudanca_sugerida": "M"}
+
+
+def _fluxo_despesas(nao_id: float, outras: float) -> dict:
+    return {
+        "janela_12m": {"despesas_por_categoria": {"nao_identificado": nao_id, "outras": outras}}
+    }
+
+
+class TestConfianca:
+    """RV2-21 / ADR-353 — degradê por cobertura de categorização."""
+
+    def test_parcial_adiciona_ponto_cego_e_preserva_comportamental(self):
+        an = DiagnosticoComportamentalAnalyzer()
+        fluxo = _fluxo_despesas(21, 79)  # 21% → parcial
+        padroes = {d.padrao for d in an.analyze(fluxo, _ratios(30))}
+        assert "Disciplina de poupança" in padroes
+        assert "Ponto cego nos gastos" in padroes
+        assert an.confianca(fluxo)["nivel"] == "parcial"
+
+    def test_insuficiente_suprime_comportamental(self):
+        an = DiagnosticoComportamentalAnalyzer()
+        fluxo = _fluxo_despesas(40, 60)  # 40% → insuficiente
+        padroes = {d.padrao for d in an.analyze(fluxo, _ratios(30))}
+        assert padroes == {"Diagnóstico indisponível — cobertura insuficiente"}
+        assert an.confianca(fluxo)["nivel"] == "insuficiente"
+
+    def test_alta_nao_altera_densidade(self):
+        an = DiagnosticoComportamentalAnalyzer()
+        fluxo = _fluxo_despesas(5, 95)  # 5% → alta
+        padroes = {d.padrao for d in an.analyze(fluxo, _ratios(30))}
+        assert "Ponto cego nos gastos" not in padroes
+        assert an.confianca(fluxo)["nivel"] == "alta"
+
+    def test_share_denominador_soma_categorias(self):
+        an = DiagnosticoComportamentalAnalyzer()
+        c = an.confianca(_fluxo_despesas(264, 736))  # 264/1000 = 26,4%
+        assert c["nivel"] == "parcial"
+        assert c["share_nao_identificado_pct"] == 26.4
+
+    def test_sem_despesas_guard_alta(self):
+        c = DiagnosticoComportamentalAnalyzer().confianca({"janela_12m": {}})
+        assert c["nivel"] == "alta"
+        assert c["share_nao_identificado_pct"] == 0.0

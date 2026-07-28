@@ -14,7 +14,7 @@ Funções puras, sem I/O.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Mapping
 
@@ -236,6 +236,7 @@ class E5OutputInputs:
     consumo: dict[str, Any]
     diagnostico: list[dict[str, Any]]
     cenarios_conjuge: dict[str, Any]
+    diagnostico_confianca: dict[str, str | float] = field(default_factory=dict)
     programa_milhas: dict[str, Any] | None = None
     tarefas: list[dict[str, Any]] | None = None
     tarefas_status: dict[str, str] | None = None
@@ -316,6 +317,7 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
         "alertas": alertas,
         "consumo_consciente": inputs.consumo,
         "diagnostico_comportamental": inputs.diagnostico,
+        "diagnostico_confianca": inputs.diagnostico_confianca,
         "cenarios_conjuge": inputs.cenarios_conjuge,
         "programa_milhas": inputs.programa_milhas or {},
     }

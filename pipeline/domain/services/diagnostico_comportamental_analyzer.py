@@ -31,6 +31,36 @@ def _safe_float(val) -> float:
         return 0.0
 
 
+# Tiers de confiança do diagnóstico por cobertura de categorização (ADR-353 D1).
+NAO_IDENTIFICADO_PARCIAL_PCT = 10.0
+NAO_IDENTIFICADO_INSUFICIENTE_PCT = 30.0
+
+
+def _despesas_por_categoria(fluxo: dict) -> dict:
+    """janela_12m.despesas_por_categoria first, fallback top-level (ADR-353 D2)."""
+    j12m = (fluxo or {}).get("janela_12m") if isinstance(fluxo, dict) else None
+    if isinstance(j12m, dict) and j12m.get("despesas_por_categoria"):
+        return j12m["despesas_por_categoria"]
+    return (fluxo or {}).get("despesas_por_categoria") or {}
+
+
+def _nao_identificado_share_pct(fluxo: dict) -> float:
+    """% de despesa nao_identificado sobre Σ despesas_por_categoria; Σ≤0 → 0 (ADR-353 D2)."""
+    despesas = _despesas_por_categoria(fluxo)
+    total = sum(_safe_float(v) for v in despesas.values())
+    if total <= 0:
+        return 0.0
+    return _safe_float(despesas.get("nao_identificado", 0)) / total * 100
+
+
+def _confianca_nivel(share_pct: float) -> str:
+    if share_pct > NAO_IDENTIFICADO_INSUFICIENTE_PCT:
+        return "insuficiente"
+    if share_pct > NAO_IDENTIFICADO_PARCIAL_PCT:
+        return "parcial"
+    return "alta"
+
+
 # =============================================================================
 # Config
 # =============================================================================
@@ -74,6 +104,38 @@ class DiagnosticoItem:
             "evidencia": self.evidencia,
             "mudanca_sugerida": self.mudanca_sugerida,
         }
+
+
+def _fallback_item() -> DiagnosticoItem:
+    return DiagnosticoItem(
+        padrao="Análise em andamento",
+        evidencia="Dados insuficientes para diagnóstico comportamental",
+        mudanca_sugerida="Consolidar mais meses de dados",
+    )
+
+
+def _atencao_item(share_pct: float) -> DiagnosticoItem:
+    """Item de atenção do tier parcial — puxa o usuário a categorizar (ADR-353 D1)."""
+    return DiagnosticoItem(
+        padrao="Ponto cego nos gastos",
+        evidencia=(
+            f"{share_pct:.0f}% das despesas ainda estão sem categoria — "
+            "comportamento não observado nessa fatia."
+        ),
+        mudanca_sugerida="Categorizar as maiores despesas sem categoria para fechar o diagnóstico.",
+    )
+
+
+def _insuficiente_item(share_pct: float) -> DiagnosticoItem:
+    """Substitui os padrões quando a cobertura é insuficiente (>30%, ADR-353 D1)."""
+    return DiagnosticoItem(
+        padrao="Diagnóstico indisponível — cobertura insuficiente",
+        evidencia=(
+            f"{share_pct:.0f}% das despesas ainda estão sem categoria; com essa "
+            "fatia fora da leitura, apontar padrões seria enganoso."
+        ),
+        mudanca_sugerida="Categorize as despesas sem categoria para liberar o diagnóstico.",
+    )
 
 
 # =============================================================================
@@ -144,14 +206,26 @@ class DiagnosticoComportamentalAnalyzer:
                     )
                 )
 
-        # Fallback.
-        if not out:
-            out.append(
-                DiagnosticoItem(
-                    padrao="Análise em andamento",
-                    evidencia="Dados insuficientes para diagnóstico comportamental",
-                    mudanca_sugerida="Consolidar mais meses de dados",
-                )
-            )
+        return self._apply_confianca_gate(out, fluxo)
 
+    def _apply_confianca_gate(
+        self, out: list[DiagnosticoItem], fluxo: dict
+    ) -> list[DiagnosticoItem]:
+        """Degrada a densidade por cobertura de categorização (ADR-353 D1/D2)."""
+        share = _nao_identificado_share_pct(fluxo)
+        nivel = _confianca_nivel(share)
+        if nivel == "insuficiente":
+            return [_insuficiente_item(share)]
+        if nivel == "parcial":
+            out.append(_atencao_item(share))
+        if not out:
+            out.append(_fallback_item())
         return out
+
+    def confianca(self, fluxo: dict) -> dict[str, str | float]:
+        """Campo sibling diagnostico_confianca (ADR-353 D3)."""
+        share = _nao_identificado_share_pct(fluxo)
+        return {
+            "nivel": _confianca_nivel(share),
+            "share_nao_identificado_pct": round(share, 1),
+        }
