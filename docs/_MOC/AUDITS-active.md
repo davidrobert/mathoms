@@ -36,6 +36,71 @@ Para que nenhum achado se perca entre auditorias:
 
 ---
 
+## r9 — `vault-2026-07-28-r9` (scope `all` · mode `comprehensive` · painel 6 lentes)
+
+> Skill audit-vault ([[ADR-302]]) · amostra **rotativa** `--run 9` (NÃO `--full`).
+> **Painel completo de 6 especialistas restaurado** — o limite de gasto mensal da
+> org (que bloqueou o r8) foi liberado; um probe (information-architect síncrono)
+> validou antes do fan-out. Gates 7/7 verdes (339 ADRs, 1002 notas, 0 wikilink
+> broken). Coletor: **33 candidatos** — adr 15 · plan 8 · reference 8 · claude 1 ·
+> prompt 1 (`gate_flagged=0`, `changed=0`). Lentes: information-architect (forma:
+> 8 planos + agente + 15 ADRs) · data-engineer (schema/pipeline) · senior-cto
+> (arquitetura + ARCHITECTURE.md) · financial-planner (rule-alocacao + Decision) ·
+> sre-devops (Docker/CI + runbooks) · prompt-engineer (lineage_debug.yaml + LLM
+> boundary) · loop principal (PHASES). Bruto: `_scratch/audit-vault-2026-07-28-r9.md`.
+>
+> **Cadência anti-zumbi:** r8 (2026-07-27) fechou 100% (F01–F05 via #1102, F09
+> rebaixado). Zero `procede-aberto` remanescente para re-triar. **Watch item do r8
+> materializou:** o cluster ADR-285 (`services/*.py`→subpacotes) rendeu **+1**
+> (ADR-259, `vault.py`→`security/vault.py`), corroborado por 3 lentes independentes.
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F01 — ADR-259 :84/:88: `backend/app/services/vault.py` ⟂ real `services/security/vault.py` (`get_vault` em :84) — **cluster ADR-285**, decisão vigente | DOC-DRIFT | procede | procede-fechado | batch #1104 (IA+data-eng+loop; citação dupla) |
+| F02 — ADR-331: campo `status: Decidido` (+corpo "Entregue" D1/D4) ⟂ tag `status/proposto` — polui filtro tag-based | DOC-DRIFT | procede | procede-fechado | batch #1104 (IA+data-eng) |
+| F03 — ADR-329 `Proposto` mas D1 (`RETRIABLE_SKIP_REASONS`) já em produção | DOC-DRIFT | procede | **não-acionável** | verificado: **`Proposto` está correto** — só D1 shipou; D2 (retry hook)/D3 (OCR)/D4 (`documentos_pendentes`) **sem código**. Flip prematuro |
+| F04 — P1_STRUCTURAL `status: paused` + pause_reason "substituído" ⟂ corpo "concluído (2026-04-17)" + fases ✅; sucessor PLATFORM_REVIEW `done`+arquivado | DOC-DRIFT | procede | **aceito-wontfix** | rebaixado (cadência §4): cosmético (plano `paused` fora do funil de pickup), owner-gated. **Gatilho:** owner arquiva → `git mv docs/archive/` + flip status + cascade de links |
+| F05 — PIPELINE_REVIEW_R2 declara `relates_to [[PLAN-ledger-integrity]]` ⟂ LEDGER_INTEGRITY sem recíproco | DOC-DRIFT | procede | procede-fechado | batch #1104 (recíproco add; coordenam RV2-02/05/17 · ADR-347) |
+| F06 — SNAPSHOT_CHANGELOG_V3 `sprint_atual: A11` (fechada 2026-07-08) + W1-W4 shipados; só W5 backlog data-gated | DOC-DRIFT | procede | procede-fechado | batch #1104 (`sprint_atual`→null; status `in_progress` mantido — W5 aberta) |
+| F07 — rule-alocacao-alvo `enforcer_modules` cita só o classificador (10 buckets ADR-193); falta o enforcer real do KPI desvio/próximo-aporte (`alocacao_alvo_deviation.py`) — defeito de lineage (ADR-143) | DOC-DRIFT | procede | procede-fechado | batch #1104 (add `alocacao_alvo_deviation.py`; números da regra batem 1:1) |
+| F08 — ARCHITECTURE §10:902 `service.py` ⟂ real `litellm_client.py` (rename A6g.2c, commit 8e115ec7) | DOC-DRIFT | procede | procede-fechado | batch #1104 |
+| F09 — ARCHITECTURE §1:27 stack só lista Recharts; relatório usa Chart.js 4.5 (`report/charts/`, §10:935 já citava) | DOC-DRIFT | procede | procede-fechado | batch #1104 (+Chart.js na stack) |
+| F10 — `config/schemas/goal.alocacao_alvo.v2.schema.json` `description` "candidato v2, não em produção" ⟂ v2 **em produção** (cutover A12, 2026-07-08); a regra está certa, o schema ficou stale | DOC-DRIFT | procede | procede-aberto | task chip `task_1aefd2e9` (toca `config/` → fora do docs-only; P2) |
+| F11 — POLISH (≥10): ADR-130 `size_lines: 175` vs 216 linhas sem justificativa; `relates_to`⊊corpo (130/152/162/184/331); âncora-GH intra-doc morta em nota atômica (152/162); ADR-093 `_scratch/audit_stage_references.py`→`dev/`; ADR-162 `target_value String(64)`→`String(128)`; ADR-024 exceção classificador SDK-direto sem nota; api/v1/README versioning "não implementado" vs path-based live (A6e.5); ADR-152 ref TimelineTab.tsx removida; IA agent shorthand `<UPPER>_PLAN.md` legado | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
+
+> **Cluster ADR-285 (watch item, atualizado):** r8 fixou 303/208/236; r9 fixou
+> **259** (+1). Grep amplo do r8 (~15 ADRs) continua exigindo julgamento
+> vigente-vs-histórico por ADR — a maioria (092/075/077/212) cita paths antigos
+> como contexto histórico correto. Segue como watch para r10.
+>
+> **Gap de infra (fora de escopo doc):** Dockerfile do serviço Go
+> (`services/pipeline-service-go/`) sem entry no `.github/dependabot.yml` (SHA-pin
+> OK, falta re-pin automático) → task chip `task_bad477ac`.
+>
+> **Falsos-positivos evitados (6 lentes):** (a) **ADR-024** (LiteLLM) NÃO foi
+> superseded por ADR-259 — é o proxy vigente (senior-cto+prompt-eng); classificador
+> ADR-081 usa SDK Anthropic só como fallback P2 (coexistência). (b) **ADR-093**
+> cita stage-names legados como contexto histórico do próprio rename F9.4 — não
+> drift; F9.4 confirmado 100% concluído. (c) **DATA_LINEAGE** `in_progress`/`A26`
+> defensável (pause é nível-sprint; Ondas 6/7 abertas). (d) **PIPELINE_REVIEW_R2 /
+> PUBLIC_RELEASE / COMPETITIVE_PIERRE** `Proposto`/owner-gated frescos, não stale.
+> (e) `lineage_debug.yaml` determinismo íntegro (model/temp/seed; armadilha ADR-122
+> corretamente descartada). (f) ADR-162 PROJECTIONS + ADR-331 citações pré-fix =
+> snapshots evolutivos/históricos.
+>
+> **Verificados limpos:** ADR-021/042/130/152/184/324; runbooks
+> schema_validation_strict_flip/f9_3_alembic/dev_environment/docker_images;
+> api README (contrato); PHASES (evergreen); GO_SHELL a3cli (`consumed`);
+> ADR-249/250/322 (infra 1:1); ADR-259 Decimal/PII (linha-a-linha).
+>
+> **r9: 0 DOC-BLOCK · 10 DOC-DRIFT (F01–F10) · POLISH (F11).** Batch
+> `vault-drift-batch-r9` **executado** (#1104, 7 fixes docs-only, citação dupla) —
+> síntese neste PR. F03 não-acionável (Proposto correto); F04 rebaixado
+> (cadência §4, owner-gated); F10 via task chip (toca `config/`). Painel de 6
+> restaurado após o r8 loop-principal-only.
+
+---
+
 ## r8 — `vault-2026-07-27-r8` (scope `all` · mode `comprehensive`)
 
 > Skill audit-vault ([[ADR-302]]) · amostra **rotativa** `--run 8` (NÃO `--full`,
