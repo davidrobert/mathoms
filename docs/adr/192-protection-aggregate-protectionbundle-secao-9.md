@@ -133,7 +133,7 @@ class ProtectionBundle(TypedDict):
     has_us_exposure: bool                           # gate para compliance USA (D4)
 ```
 
-`ConfigStore` Protocol ganha `get_protection_bundle(workspace_id) -> ProtectionBundle`. Adapter mora em `backend/app/services/pipeline_adapter.py` (mesmo lugar de `build_goals_payload_sync`). Pipeline boundary preservado: `pipeline/**` recebe bundle tipado, não importa SQLAlchemy.
+`ConfigStore` Protocol ganha `get_protection_bundle(workspace_id) -> ProtectionBundle`. Adapter mora em `backend/app/services/pipeline/pipeline_adapter.py` (mesmo lugar de `build_goals_payload_sync`). Pipeline boundary preservado: `pipeline/**` recebe bundle tipado, não importa SQLAlchemy.
 
 ### D3 — Auto-inferência de risco via rules-as-code (ADR-143)
 

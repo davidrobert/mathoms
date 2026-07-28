@@ -73,7 +73,7 @@ Dois adapters concretos:
 `StageConfig` ganha campo `config_store: ConfigStore` (default
 `FileConfigStore` durante a janela de cutover; obrigatório após A7.5).
 
-`pipeline_adapter` (em `backend/app/services/pipeline_adapter.py`)
+`pipeline_adapter` (em `backend/app/services/pipeline/pipeline_adapter.py`)
 instancia `DBConfigStore` ao construir `StageConfig`. Pipeline injetado
 via construtor; nenhum `@lru_cache` ou cache em processo (ADR-111).
 Cache hot-path vai para Redis com invalidação por evento.
