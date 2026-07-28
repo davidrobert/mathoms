@@ -117,4 +117,4 @@
 - [../_MOC/_generated/ADR_INDEX.md](../_MOC/_generated/ADR_INDEX.md) — índice canônico de ADRs (auto-gerado)
 - ADRs relevantes: [ADR-013](../DECISIONS.md#adr-013), [ADR-077](../DECISIONS.md#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web), [ADR-081](../DECISIONS.md#adr-081), [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side), [ADR-157](../adr/157-schema-irpf-completo-stage-extract-irpf-full.md), [ADR-199](../adr/199-parecer-planejador-supersede-review-finances.md), [ADR-212](../adr/212-sunset-mathoms-use-db-artifacts-disk-store-cli.md), [ADR-213](../adr/213-sunset-stage-audit-documents.md)
 - [../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — sucessor de P1 estrutural (revisão multi-agente Sprint A11)
-- [../plan/P1_STRUCTURAL/_README.md](../plan/P1_STRUCTURAL/_README.md) — plano estrutural P1 (status: `paused` desde 2026-05-06)
+- [../archive/P1_STRUCTURAL-2026-07-28.md](../archive/P1_STRUCTURAL-2026-07-28.md) — plano estrutural P1 (concluído 2026-04-17, arquivado 2026-07-28; sucessor PLATFORM_REVIEW)

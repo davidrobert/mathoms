@@ -395,7 +395,7 @@ nunca chega ao `main`. Plano fora de `docs/` = plano invisível.
   entrada na tabela do [docs/agent_prompts/README.md](docs/agent_prompts/README.md).
 - **Canônico multi-fase** → `docs/<TOPIC>_PLAN.md`. Feature grande que
   atravessa várias lanes/sprints. Nome em **UPPER_SNAKE**:
-  `plan/REPORT_PREMIUM/_README.md`, `plan/I18N/_README.md`, `plan/P1_STRUCTURAL/_README.md`.
+  `plan/REPORT_PREMIUM/_README.md`, `plan/I18N/_README.md`.
   Linke da tabela "Onde procurar contexto adicional" abaixo se virar
   fonte de verdade.
 

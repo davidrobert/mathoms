@@ -25,11 +25,11 @@ aliases: ["PLANS-active", "plans-active"]
 | Plano | Pausado em | Razão |
 |---|---|---|
 | `PLAN-i18n` | 2026-04-?? | Aguardando produto definir locales prioritários. [plan/I18N/_README.md](../plan/I18N/_README.md). |
-| `PLAN-p1-structural` | 2026-04-?? | Substituído por `PLAN-platform-review`. [plan/P1_STRUCTURAL/_README.md](../plan/P1_STRUCTURAL/_README.md). |
 
 ## Encerrados
 
 - [`PLATFORM_REVIEW_PLAN-2026-07-08.md`](../archive/PLATFORM_REVIEW_PLAN-2026-07-08.md) — ✅ `done` 2026-07-08 (Sprint A11 fechada em modo code-complete modificado, emenda [[ADR-228]]; residual owner-gated transferido p/ [[PLAN-launch-trust]] §F2).
+- [`P1_STRUCTURAL-2026-07-28.md`](../archive/P1_STRUCTURAL-2026-07-28.md) — ✅ concluído 2026-04-17 (trabalho estrutural), superseded por PLATFORM_REVIEW; arquivado 2026-07-28 (audit-vault r9 F04).
 - [`PLAN-cenarios-estresse`](../plan/CENARIOS_ESTRESSE/_README.md) — ✅ `done` 2026-06-29 (modo USA removido, [[ADR-168]]); mantido in-place (não arquivado — `id` linkado por lane A8-4).
 - [`PRODUCT_PLAN-2026-04-15.md`](../archive/PRODUCT_PLAN-2026-04-15.md).
 - [`CONFIG_CUTOVER_PLAN-2026-04-27.md`](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).

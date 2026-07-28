@@ -249,3 +249,15 @@ follow-up de fixups (#988) após revisão adversarial pegar 2 regressões [major
 **Arquivado em:** 2026-07-18 (todas as ondas em `main`, CI verde; decisão do owner).
 **Residuais deferidos com gate:** DE-01 Fase 2 (drop `pipeline_run_costs`, soak
 ≥1 mês/owner) · DE-03 ([[ADR-339]] `Proposto`, dedup de doc de casal, P3 write-path).
+
+## P1_STRUCTURAL-2026-07-28.md
+
+Plano estrutural P1 (motor canônico + pipeline offline; pacotes, runners, CI,
+fronteiras). Trabalho estrutural **concluído em 2026-04-17**; pré-requisito era
+`CANONICAL_ENGINE_P0.md`.
+
+**Arquivado em:** 2026-07-28 (audit-vault r9 F04, decisão do owner — o frontmatter
+estava `paused` apesar do corpo dizer "concluído 2026-04-17"; corrigido para `done`
+antes do arquivamento, mesmo padrão do RESIDENCIA_E_USO r7).
+**Substituído por:** [`PLATFORM_REVIEW_PLAN-2026-07-08.md`](PLATFORM_REVIEW_PLAN-2026-07-08.md)
+(revisão multi-agente Sprint A11, que herdou o escopo estrutural remanescente).
