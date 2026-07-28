@@ -24,7 +24,8 @@
 - **Next.js 16.2** (App Router) + **React 19** + **TypeScript 6**
 - **Tailwind CSS 4.2** com design tokens gerados (`tokens.json` → CSS)
 - **base-ui/react + shadcn** (18 primitivos UI)
-- **Recharts 3.8** — visualizações (SVG, print-native)
+- **Recharts 3.8** — visualizações do dashboard/plano (SVG, print-native)
+- **Chart.js 4.5 + react-chartjs-2** — gráficos do relatório (`components/report/charts/`, canvas)
 - **next-themes** — dark mode
 - **Sonner** — toast notifications
 - **Lucide React** — ícones
@@ -899,7 +900,7 @@ mathoms.ai/
 │   │   ├── models/            # Money, Transaction, BankStatement, Investment, Baseline
 │   │   └── services/          # ReconciliationService, CategorizationService, calculators
 │   ├── llm/                   # LLM infrastructure
-│   │   ├── service.py         # LiteLLM + Instructor
+│   │   ├── litellm_client.py   # LiteLLM + Instructor
 │   │   ├── text_extractor.py
 │   │   ├── validators.py
 │   │   ├── prompts/

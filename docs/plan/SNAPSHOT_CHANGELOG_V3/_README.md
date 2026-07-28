@@ -4,7 +4,7 @@ type: plan
 title: "Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica"
 status: in_progress
 sprint_origem: A11
-sprint_atual: A11
+sprint_atual: null
 sprints_envolvidas: ["A11"]
 created_at: "2026-05-11"
 last_review: "2026-07-09"

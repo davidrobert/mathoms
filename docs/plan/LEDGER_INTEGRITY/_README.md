@@ -10,6 +10,8 @@ sprint_atual: A39
 sprints_envolvidas: [A39]
 paused_at: null
 pause_reason: null
+relates_to:
+  - "[[PLAN-pipeline-review-r2]]"
 adrs_canonical:
   - "[[ADR-347]]"
 tags:
