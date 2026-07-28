@@ -68,7 +68,7 @@ O executor remoto (pipeline-service hoje; subprocess do A3.cli no futuro)
 abre, **por stage**, sessão nova + `DBArtifactStore` e injeta em
 `ctx.artifact_store`, com commit/rollback/close ao fim do stage — espelho de
 `_open_artifact_session` / `_commit_and_close_artifact_session` do caminho
-Celery. **Importa a classe `backend.app.services.db_artifact_store.DBArtifactStore`
+Celery. **Importa a classe `backend.app.services.storage.db_artifact_store.DBArtifactStore`
 — nunca reimplementa**: o hook de validação `SCHEMA_BY_STAGE` e a
 criptografia vivem no `write()`; reimplementação silenciosamente não valida.
 `pipeline-service/**` está fora do import-ban de
@@ -116,7 +116,7 @@ HTTP com store SQLite, assertando persistência em `pipeline_artifacts`.
   [pipeline_service_container_smoke](../reference/runbooks/pipeline_service_container_smoke.md)
   — inclui a restrição SQLite WAL host↔container descoberta na entrega).
 - **Paridade de hidratação de contexto** — ✅ **entregue (PR #742)**:
-  `backend/app/services/run_context_factory.py` é a fonte única dos três
+  `backend/app/services/pipeline/run_context_factory.py` é a fonte única dos três
   executores (Celery/HTTP/CLI) — `DBConfigStore` + overrides, resolvers
   (ADR-215/219/222), budget hooks (ADR-173) e `tarefas.md`. A
   pré-condição do gate de paridade da [[ADR-150]] §7 está satisfeita.
