@@ -10,7 +10,7 @@ relates_to:
   - "[[ADR-090]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/backend
 ---

@@ -74,7 +74,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### PLAN-snapshot-changelog-v3 — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica
 
-- Status: `in_progress` · Sprint atual: A11
+- Status: `in_progress` · Sprint atual: —
 - Sprints envolvidas: A11
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-190]], [[ADR-148]]
