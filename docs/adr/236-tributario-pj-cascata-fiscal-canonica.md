@@ -53,7 +53,7 @@ Sprint A10.7 ([[A10.7]] / migration `b1a2c3d4e5f7`) adicionou `Workspace.busines
 
 Sessão 2026-05-20 (workspace dogfood) revelou três problemas em produção no card S8 "Tributário PJ — Cascata Fiscal":
 
-1. **Wiring incompleto** — `backend/app/services/pipeline_adapter.py::build_goals_payload_sync` nunca lê `business_profile_json` nem injeta `bundle["tributario"]`. Migration A10.7 ficou pela metade.
+1. **Wiring incompleto** — `backend/app/services/pipeline/pipeline_adapter.py::build_goals_payload_sync` nunca lê `business_profile_json` nem injeta `bundle["tributario"]`. Migration A10.7 ficou pela metade.
 
 2. **Nomes não casam** — `pipeline/domain/services/narrativas/charts_narrator.py::impostos_pj` (linha ~255) espera `contador_nome`, `regime_obs` (string livre), `holding_avaliacao_prazo` (string) — `BusinessProfile` tem `contador`, `regime` (enum), `holding_prazo_meses` (int).
 
@@ -117,7 +117,7 @@ Os valores que **mudam ao longo do tempo** derivam de transações + IRPF, **nã
 | `das_pago_mensal_brl` | E4 | Label nova `das_simples` — débito com keyword `\bDAS\b` ancorada (anti falso-positivo "ÁDAS" etc.). |
 | `folha_pj_mensal_brl` | E4 | Label `folha_pj` — débito com keyword `SALARIO`/`FOLHA`/`PAGAMENTO FUNCIONARIO` **em workspace com `pj_source_mapping` populado E ≥1 receita PJ observada**. Sem essas precondições, classifier emite warning tipado `FolhaPJProxyUnavailable` (ADR-097 D1) e label não é atribuída — telemetria distingue "ausência real" de "proxy desabilitado". |
 | `iss_pago_mensal_brl` | E4 | Label nova `iss` — débito com keyword `\bISS\b` ancorada (só aplicável em Presumido com ISS destacado). |
-| `receita_pj_anual_brl` | E3 (reconcile_transactions) | Soma de créditos PJ na janela 12m móvel. **Já calculado** em `e5n_narrativas.py:374`. |
+| `receita_pj_anual_brl` | E3 (reconcile_transactions) | Soma de créditos PJ na janela 12m móvel. **Já calculado** em `scripts/generate_narratives.py:472` (renomeado de `e5n_narrativas.py`, F9.4 · [[ADR-093]]). |
 | `outras_rendas_tributaveis_pf_anual_brl` | E1.6 ([[ADR-157]] `extract_irpf_full`) | Soma de `rendimentos_pj[].rendimentos_tributaveis_brl` + `rendimentos_pf[].valor_brl` (nomes canônicos do schema [config/schemas/e16_irpf_full.schema.json](../../config/schemas/e16_irpf_full.schema.json), ficha "Rendimentos Tributáveis" do IRPF). **Não** inclui `rendimentos_tributacao_exclusiva` (13º), `rendimentos_isentos` (lucros distribuídos) ou `rendimentos_exterior` (FU V2). |
 | `fator_r_pct` | Calculator (D3) | `(folha_pj_mensal_brl + pro_labore_mensal_brl) × 12 / receita_pj_anual_brl × 100`. |
 

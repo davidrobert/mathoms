@@ -4,9 +4,9 @@ type: plan
 title: Launch Trust — três frentes que precisam estar verdes antes de produção
 status: in_progress
 created_at: 2026-05-30
-last_review: 2026-05-30
+last_review: 2026-07-08
 sprint_origem: A20
-sprint_atual: A22
+sprint_atual: null
 sprints_envolvidas: [A20, A21, A22]
 paused_at: null
 pause_reason: null
