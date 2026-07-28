@@ -5,6 +5,7 @@ concept: "Alocação-alvo (7 classes AUVP)"
 methodology: [auvp]
 canonical_adr: "[[ADR-141]]"
 enforcer_modules:
+  - pipeline/domain/services/alocacao_alvo_deviation.py
   - pipeline/domain/services/investimentos_classes_analyzer.py
 formula_ref: "FORMULAS.md#alocação-auvp"
 tags:

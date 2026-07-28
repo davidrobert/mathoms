@@ -81,11 +81,11 @@ System prompt **deve** instruir: `"NÃO emitir CPF no output. Apenas sinalizar c
 
 Exceções permitidas (CNPJ): números de inscrição de pessoa jurídica (CNPJ, IPTU municipal, código RFB) são informação pública e podem trafegar no output bruto. **Comentar política de anonimização em logs** quando o consumer downstream loga payload.
 
-### 3. CPF cifrado em `FamilyMember.cpf_encrypted` via `vault.py` Fernet
+### 3. CPF cifrado em `FamilyMember.cpf_encrypted` via `security/vault.py` Fernet
 
 Adapter Python pós-extração — `backend/app/services/family_member_pii_service.py` (novo) — usa regex sobre o documento original (não o output do LLM) para extrair CPF e:
 
-1. Persiste em `FamilyMember.cpf_encrypted` via `backend/app/services/vault.py` (singleton lazy idempotente, aderente [[ADR-111]]).
+1. Persiste em `FamilyMember.cpf_encrypted` via `backend/app/services/security/vault.py` (singleton lazy idempotente, aderente [[ADR-111]]).
 2. Match com `member_key` (`titular`, `conjuge`, etc.) por fuzzy name/role.
 3. **Nunca grava CPF cru** em `pipeline_artifacts.payload` ou `LLMCallLog.input_text`.
 
