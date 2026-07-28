@@ -198,6 +198,31 @@ updates:
         applies-to: version-updates
         patterns: ["*"]
 
+  # Imagem dual do shell Go (ADR-150 F1 · ADR-303) — dois FROMs pinados:
+  # golang:1.26 (build) + python:3.12-slim (runtime do subprocess). O digest
+  # do python DEVE ficar em sync com pipeline-service/Dockerfile (constraint no
+  # próprio Dockerfile); Dependabot bumpa por diretório, então re-alinhe os dois
+  # PRs no review. Dockerfile criado pós-ADR-249 (#792), ficou sem esta entry.
+  - package-ecosystem: "docker"
+    directory: "/services/pipeline-service-go"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:docker"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      docker-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      docker-version:
+        applies-to: version-updates
+        patterns: ["*"]
+
   # ----------------------------------------------------------------------
   # GitHub Actions — pin updates
   # ----------------------------------------------------------------------
