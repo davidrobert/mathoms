@@ -36,8 +36,11 @@ Mudanças no OpenAPI são classificadas como:
 | **Aditivo tipado** | Adicionar `response_model` onde não havia | OK; bumpa o snapshot |
 | **Breaking** | Remover campo, mudar tipo de campo existente, remover endpoint | Requer ADR + nova versão `/api/v2/` |
 
-A6f.5 (Versioning) ainda não está implementado — por ora, toda mudança
-breaking exige ADR antes de merge.
+Versioning **path-based** (`/api/v1`) **já está em produção** desde A6e.5
+(mount `/api/v1` + prefixo legado `/api` com header `Deprecation`/`Sunset`;
+ver ARCHITECTURE §18.2). O que resta é o cutover **host-based**
+(`api.mathoms.ai/v1`, F7A). Toda mudança breaking exige ADR + `/api/v2` antes
+de merge.
 
 ## Arquivos
 
