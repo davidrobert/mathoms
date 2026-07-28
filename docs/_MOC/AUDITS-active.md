@@ -60,15 +60,15 @@ Para que nenhum achado se perca entre auditorias:
 
 | Código | Severidade | Veredito | Disposição | Trilha |
 |---|---|---|---|---|
-| F01 — ADR-303 (2 paths, contrato vigente): :71 `backend.app.services.db_artifact_store.DBArtifactStore` ⟂ real `services/storage/db_artifact_store.py`; :119 `services/run_context_factory.py` ⟂ real `services/pipeline/run_context_factory.py` (fallout ADR-285; 303 fora do delta do r7) | DOC-DRIFT | procede | procede-aberto | batch `vault-drift-batch-r8` (P2 proposto, owner: information-architect) — citação dupla no bruto |
-| F02 — ADR-208 :56 (nota de correção **do próprio r6**): `services/pipeline_service.py` ⟂ real `services/pipeline/pipeline_service.py` (`resolve_llm_tier_async`/`_classify_llm_config` :27,:74) | DOC-DRIFT | procede | procede-aberto | idem batch r8 |
-| F03 — ADR-236 (2 refs vigentes): :56/:190 `services/pipeline_adapter.py` ⟂ real `services/pipeline/pipeline_adapter.py` (`build_goals_payload_sync` :469); :120 "Já calculado em `e5n_narrativas.py:374`" ⟂ arquivo inexistente (F9.4 → `scripts/generate_narratives.py:~472`) | DOC-DRIFT | procede | procede-aberto | idem batch r8 |
-| F04 — ADR-035 `window.print()` + "upgrade path → Playwright se necessário": upgrade **foi tomado** (PDF prod = Playwright `pdf_renderer.py`, [[ADR-129]]); `superseded_by: []` sem nota | DOC-DRIFT | procede | procede-aberto | idem batch r8 (nota de supersedure; blast radius baixo) |
-| F05 — LAUNCH_TRUST/_README `last_review: 2026-05-30` (~2mo stale) + `sprint_atual: A22` mas A22 F3 fechou (#872); residuais em §F2 owner-gated | DOC-DRIFT | procede | procede-aberto | idem batch r8 (`in_progress` defensável; review/sprint metadata stale) |
+| F01 — ADR-303 (2 paths, contrato vigente): :71 `backend.app.services.db_artifact_store.DBArtifactStore` ⟂ real `services/storage/db_artifact_store.py`; :119 `services/run_context_factory.py` ⟂ real `services/pipeline/run_context_factory.py` (fallout ADR-285; 303 fora do delta do r7) | DOC-DRIFT | procede | procede-fechado | batch `vault-drift-batch-r8` #1102 (owner autorizou execução na sessão; citação dupla) |
+| F02 — ADR-208 :56 (nota de correção **do próprio r6**): `services/pipeline_service.py` ⟂ real `services/pipeline/pipeline_service.py` (`resolve_llm_tier_async`/`_classify_llm_config` :27,:74) | DOC-DRIFT | procede | procede-fechado | idem batch #1102 |
+| F03 — ADR-236 (2 refs vigentes): :56/:190 `services/pipeline_adapter.py` ⟂ real `services/pipeline/pipeline_adapter.py` (`build_goals_payload_sync` :469); :120 "Já calculado em `e5n_narrativas.py:374`" ⟂ arquivo inexistente (F9.4 → `scripts/generate_narratives.py:~472`) | DOC-DRIFT | procede | procede-fechado | idem batch #1102 |
+| F04 — ADR-035 `window.print()` + "upgrade path → Playwright se necessário": upgrade **foi tomado** (PDF prod = Playwright `pdf_renderer.py`, [[ADR-129]]); `superseded_by: []` sem nota | DOC-DRIFT | procede | procede-fechado | idem batch #1102 (nota de supersedure + relates_to) |
+| F05 — LAUNCH_TRUST/_README `last_review: 2026-05-30` (~2mo stale) + `sprint_atual: A22` mas A22 F3 fechou (#872); residuais em §F2 owner-gated | DOC-DRIFT | procede | procede-fechado | idem batch #1102 (`last_review`→07-08 + `sprint_atual`→null; corpo já datava A22 fechada) |
 | F06 — ADR-236 372 linhas sem `size_lines` no frontmatter (>150 sem justificativa de split) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta (gate não enforça; precedente r3/r6) |
 | F07 — ADR-178 `Decidido` com checkboxes de impl `- [ ]` desmarcadas embora `models/risk.py` + `application/risks/` tenham shipado | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
 | F08 — ADR-342 sem `relates_to` no frontmatter apesar do corpo cross-linkar ADR-344/272/090; ADR-344 declara `relates_to: [[ADR-342]]` (unidirecional no frontmatter) | DOC-POLISH | procede | aceito-wontfix | corpo cross-linka nos 2 sentidos; gates verdes; batch pré-beta |
-| F09 — S4_REAL_ESTATE_ENRICHMENT `status: done` não-arquivado (MESMO follow-up r3-F01; arquivamento deferido por 5+ links inbound — cascade) | DOC-DRIFT | procede | procede-aberto | owner decide `git mv → docs/archive/` + reescrita de links (recorrente desde r3) |
+| F09 — S4_REAL_ESTATE_ENRICHMENT `status: done` não-arquivado (MESMO follow-up r3-F01; arquivamento deferido por 5+ links inbound — cascade) | DOC-DRIFT | procede | aceito-wontfix | rebaixado (cadência §4): recorrente desde r3, cosmético, owner-gated. **Gatilho de reabertura:** owner decide arquivar OU os links inbound caírem, então `git mv → docs/archive/` + reescrita de links |
 
 > **Tamanho do cluster ADR-285/F9.4 (grep amplo, NÃO julgado):** `pipeline_adapter`
 > em 211/077/236/075/134/192; `db_artifact_store` em 303/132/083/231;
@@ -93,10 +93,13 @@ Para que nenhum achado se perca entre auditorias:
 > **Verificados limpos:** ADR-080/304; PIPELINE_ARTIFACTS/REPORT_PUBLICATION/SETUP/
 > SMOKE_TEST/disaster_recovery/incidents; GO_SHELL (in_progress + F2 ready).
 >
-> **r8: 0 DOC-BLOCK · 5 DOC-DRIFT (F01–F05, +F09 recorrente) · 3 DOC-POLISH
-> (F06–F08).** Vault saudável — nenhum drift indutor-de-erro-imediato; o sinal é
-> o resíduo ADR-285 em ADRs Decidido não-delta. Batch `vault-drift-batch-r8`
-> **proposto** (default sem `--fix`); F09 owner-gated (arquivamento com cascade).
+> **r8: 0 DOC-BLOCK · 5 DOC-DRIFT (F01–F05) · 3 DOC-POLISH (F06–F08) · 1
+> recorrente (F09).** Vault saudável — nenhum drift indutor-de-erro-imediato; o
+> sinal é o resíduo ADR-285 em ADRs Decidido não-delta. Batch
+> `vault-drift-batch-r8` **executado na sessão** (#1102, owner autorizou; F01–F05
+> fechados com citação dupla) — síntese em #1101. F06–F08 (POLISH) wontfix
+> pré-beta; **F09** rebaixado a `aceito-wontfix` (cadência §4 — S4 archival
+> owner-gated). **Zero `procede-aberto` remanescente.**
 
 ---
 
