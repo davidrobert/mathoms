@@ -88,7 +88,8 @@ Saída = uma linha mascarada por doc: `type`, `inst`, `conf`, `parser`, `n_tx`,
 regressão (`n_tx` menor, conservação passa→falha, parser perdido).
 
 **Home do baseline:** `_scratch/` some entre sessões (efêmero) — para persistir
-na máquina do dono use `storage/<uuid>/certify/` (durável, path proibido no git).
+na máquina do dono use `storage/<uuid>/parse_certify/` (durável, path proibido no
+git; mesmo dir do cru durável do §Entregável).
 
 ### Passo 3 — Cross-check harness ↔ DB (perda silenciosa vive aqui)
 
@@ -152,26 +153,45 @@ artefato vivo, recomputar o checksum). Descarte os REFUTED. Este passo mata
 - **Zero PII no entregável** — sem CPF, valores ou nomes reais. O harness já
   mascara; o baseline JSON **ainda pode vazar nome via filename** (`mask_text`
   não remove nome de pessoa) → nunca commite baseline; mantenha em `_scratch/`
-  ou `storage/<uuid>/certify/` (ambos fora do git). Nome próprio como chave de
-  dict é smell a **reportar, não reproduzir**.
+  ou `storage/<uuid>/parse_certify/` (ambos fora do git). Nome próprio como chave
+  de dict é smell a **reportar, não reproduzir**.
 - **Read-only** sobre o workspace — não reprocessa nem grava no DB. Não dispara
   run (isso é pipeline-review).
 - **Evidência sempre** — `campo`/número/`arquivo:linha` mascarado. Hipótese não
   verificada não vira bug.
 
-## Entregável
+## Entregável (três destinos · [[ADR-343]])
 
-Salve em `_scratch/parse-certify-<slug>-<AAAA-MM-DD>.md` e resuma no chat.
-Estrutura: **premissas → cobertura (grupos rodados, n docs) → TABELA DE VEREDITO
-POR DOCUMENTO → achados priorizados → próximos passos**, com critério de aceite.
+Bifurque por natureza, como a [[ledger-certify]] e a [[pipeline-review]]: o
+achado ou é **sistêmico/defeito** (afirmação sobre o pipeline de ingestão —
+recorre, PII-free) ou **instância/dado** (afirmação sobre os documentos deste
+workspace — não recorre, carrega PII via filename/valores). Só o primeiro
+aterrissa no git.
 
-Tabela de veredito (mascarada), colunas:
-`Doc (type+inst+período) · Classificado? · Parser · n_tx/n_itens/n_posições ·
-Conservação/Checksum · Veredito · Lacuna`
+1. **Working** → `_scratch/parse-certify-<slug>-<AAAA-MM-DD>.md` — completo, todas
+   as naturezas. Efêmero. Estrutura: **premissas → cobertura (grupos rodados, n
+   docs) → TABELA DE VEREDITO POR DOCUMENTO → achados priorizados → próximos
+   passos**, com critério de aceite.
+   - Tabela de veredito (mascarada), colunas:
+     `Doc (type+inst+período) · Classificado? · Parser · n_tx/n_itens/n_posições ·
+     Conservação/Checksum · Veredito · Lacuna`
+   - Achados priorizados (silêncio primeiro), colunas:
+     `ID · Achado · Dimensão · Severidade · Prioridade (P0–P3) · Dificuldade (S/M/L) ·
+     Risco regr. · Fix recomendado · Candidata a lane`
+2. **Cru durável (off-git)** → `storage/<uuid>/parse_certify/<ts>/synthesis.md`
+   — cópia crua **inclusive achados de instância/dado + PII** (filename, valores).
+   Path proibido no git (mesma zona de confiança do DB/artifacts); o `--baseline`
+   durável mora no mesmo dir (ver §Passo 2). Sobrevive entre sessões.
+3. **Curado canônico (git)** → **append** de seção `## rN — ws-<uuid8>-<data>` em
+   [`docs/_MOC/PARSE-CERTIFY-active.md`](../../../docs/_MOC/PARSE-CERTIFY-active.md)
+   com **só os achados sistêmicos/defeito**, deduplicados por `(dimensão,
+   evidência-âncora, regra)`. **Commit-safe:** zero literal monetário, zero nome
+   próprio; âncora = `arquivo:linha`/`campo`/`escalation_code`, nunca um valor; o
+   **título** tem de ser um defeito, não um dado. Siga a convenção timeless do
+   próprio arquivo (cobertura 100%, disposição, cadência anti-zumbi). Ao abrir run
+   novo, re-triar o `procede-aberto` da seção anterior.
 
-Achados priorizados (silêncio primeiro), colunas:
-`ID · Achado · Severidade · Prioridade (P0–P3) · Dificuldade (S/M/L) · Risco
-regr. · Fix recomendado · Candidata a lane`
+Resuma no chat (PII-scrubbed).
 
 ## Extensões do harness (o backlog que a skill produz)
 
