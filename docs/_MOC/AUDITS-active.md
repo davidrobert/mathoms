@@ -69,9 +69,10 @@ Para que nenhum achado se perca entre auditorias:
 | F11 — POLISH (≥10): ADR-130 `size_lines: 175` vs 216 linhas sem justificativa; `relates_to`⊊corpo (130/152/162/184/331); âncora-GH intra-doc morta em nota atômica (152/162); ADR-093 `_scratch/audit_stage_references.py`→`dev/`; ADR-162 `target_value String(64)`→`String(128)`; ADR-024 exceção classificador SDK-direto sem nota; api/v1/README versioning "não implementado" vs path-based live (A6e.5); ADR-152 ref TimelineTab.tsx removida; IA agent shorthand `<UPPER>_PLAN.md` legado | DOC-POLISH | procede | parcial | **ADR-162 (`String(128)`) + api/v1/README (versioning A6e.5) promovidos → fixados #1110**; demais 7 wontfix pré-beta |
 
 > **Cluster ADR-285 (watch item, RESOLVIDO):** r8 fixou 303/208/236; r9 fixou
-> **259**; **r9-follow-up (#1110) fixou 077/134/192/211/231 (+5)** — o subconjunto
-> que apresentava `services/pipeline_adapter.py` / `db_artifact_store.py` como
-> localização **vigente** (agente consultaria o ADR e erraria). **Restam ~9 que
+> **259**; **r9-follow-up fixou 077/134/192/211/231 (#1110) + 132 (#1111,
+> display-text de link com href já correto) = +6** — o subconjunto que apresentava
+> `services/pipeline_adapter.py` / `db_artifact_store.py` como localização
+> **vigente** (agente consultaria o ADR e erraria). **Restam ~9 que
 > citam o path antigo como contexto histórico CORRETO** (corrigir = revisionismo,
 > por isso NÃO se toca): 075 (estratégia CLI→web de época), 083 (já bannerado r6),
 > 092 (rename ADR, superseded por 093), 099/100/168/180/212 (descrevem
