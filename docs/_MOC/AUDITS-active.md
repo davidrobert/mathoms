@@ -36,6 +36,70 @@ Para que nenhum achado se perca entre auditorias:
 
 ---
 
+## r8 — `vault-2026-07-27-r8` (scope `all` · mode `comprehensive`)
+
+> Skill audit-vault ([[ADR-302]]) · amostra **rotativa** `--run 8` (NÃO `--full`,
+> NÃO `--fix`). Gates 7/7 verdes (zero finding mecânico: 339 ADRs, 1002 notas, 0
+> wikilink broken, `_generated/` sincronizado). Coletor: **23 candidatos**
+> (`gate_flagged=0`, `changed=0` — delta A36–A39 já em `origin/main`). Universo:
+> reference 59 · adr 343 · plan 34 · claude 12 · prompt 5 · root 1. **Sprint
+> bucket vazio** (nenhuma sprint `current`; claude/prompt/root fora da classe do
+> run-8). **Julgamento loop-principal-only** — painel de especialistas bloqueado
+> (limite de gasto mensal da org); owner escolheu prosseguir sem subagentes.
+> Verificação empírica doc↔código via Read/Grep. Bruto:
+> `_scratch/audit-vault-2026-07-27.md` (efêmero).
+>
+> **Cadência anti-zumbi:** r7 (2026-07-09) fechou 100%; os `procede-aberto` do r5
+> (F04–F11) foram absorvidos por r6 (6 executados, 1 refutado-parcial, 1
+> rebaixado). Zero `procede-aberto` remanescente para re-triar. **Meta-achado:**
+> o refactor **ADR-285** (`backend/app/services/*.py` → `services/pipeline/` +
+> `services/storage/`) deixou paths stale **apresentados como vigentes** em ADRs
+> Decidido que r7 não re-julgou — r7 Fase 3 focou só o delta + Proposto/Roadmap,
+> e o r6 (2026-07-03) julgou esses Decidido **antes** do 285 aterrissar. A
+> amostra rotativa r8 é exatamente o mecanismo que pega esse tipo de resíduo.
+
+| Código | Severidade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|
+| F01 — ADR-303 (2 paths, contrato vigente): :71 `backend.app.services.db_artifact_store.DBArtifactStore` ⟂ real `services/storage/db_artifact_store.py`; :119 `services/run_context_factory.py` ⟂ real `services/pipeline/run_context_factory.py` (fallout ADR-285; 303 fora do delta do r7) | DOC-DRIFT | procede | procede-aberto | batch `vault-drift-batch-r8` (P2 proposto, owner: information-architect) — citação dupla no bruto |
+| F02 — ADR-208 :56 (nota de correção **do próprio r6**): `services/pipeline_service.py` ⟂ real `services/pipeline/pipeline_service.py` (`resolve_llm_tier_async`/`_classify_llm_config` :27,:74) | DOC-DRIFT | procede | procede-aberto | idem batch r8 |
+| F03 — ADR-236 (2 refs vigentes): :56/:190 `services/pipeline_adapter.py` ⟂ real `services/pipeline/pipeline_adapter.py` (`build_goals_payload_sync` :469); :120 "Já calculado em `e5n_narrativas.py:374`" ⟂ arquivo inexistente (F9.4 → `scripts/generate_narratives.py:~472`) | DOC-DRIFT | procede | procede-aberto | idem batch r8 |
+| F04 — ADR-035 `window.print()` + "upgrade path → Playwright se necessário": upgrade **foi tomado** (PDF prod = Playwright `pdf_renderer.py`, [[ADR-129]]); `superseded_by: []` sem nota | DOC-DRIFT | procede | procede-aberto | idem batch r8 (nota de supersedure; blast radius baixo) |
+| F05 — LAUNCH_TRUST/_README `last_review: 2026-05-30` (~2mo stale) + `sprint_atual: A22` mas A22 F3 fechou (#872); residuais em §F2 owner-gated | DOC-DRIFT | procede | procede-aberto | idem batch r8 (`in_progress` defensável; review/sprint metadata stale) |
+| F06 — ADR-236 372 linhas sem `size_lines` no frontmatter (>150 sem justificativa de split) | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta (gate não enforça; precedente r3/r6) |
+| F07 — ADR-178 `Decidido` com checkboxes de impl `- [ ]` desmarcadas embora `models/risk.py` + `application/risks/` tenham shipado | DOC-POLISH | procede | aceito-wontfix | lista no bruto; batch pré-beta |
+| F08 — ADR-342 sem `relates_to` no frontmatter apesar do corpo cross-linkar ADR-344/272/090; ADR-344 declara `relates_to: [[ADR-342]]` (unidirecional no frontmatter) | DOC-POLISH | procede | aceito-wontfix | corpo cross-linka nos 2 sentidos; gates verdes; batch pré-beta |
+| F09 — S4_REAL_ESTATE_ENRICHMENT `status: done` não-arquivado (MESMO follow-up r3-F01; arquivamento deferido por 5+ links inbound — cascade) | DOC-DRIFT | procede | procede-aberto | owner decide `git mv → docs/archive/` + reescrita de links (recorrente desde r3) |
+
+> **Tamanho do cluster ADR-285/F9.4 (grep amplo, NÃO julgado):** `pipeline_adapter`
+> em 211/077/236/075/134/192; `db_artifact_store` em 303/132/083/231;
+> `pipeline_service` em 208; `run_context_factory` em 303; `e5n_narrativas` em
+> 212/092/099/100/166/236/176/168/180. **Muitos são contexto histórico correto**
+> (092 É a ADR do rename F9.4; 075/077 são era CLI-web; 212 descreve o que
+> sunset). O batch r8 exige **julgamento vigente-vs-histórico por ADR — nunca sed
+> cego**; só os 3 lidos (208/236/303) confirmam apresentação-como-vigente.
+>
+> **Falsos-positivos evitados (loop principal):** (a) **ADR-353** `Proposto` com
+> backend shipado mesmo-dia (#1098) NÃO é drift — governado pelo plano ativo
+> [[PLAN-pipeline-review-r2]] (ondas B/C deferem flip); símbolos corroborados
+> (`NAO_IDENTIFICADO_PARCIAL_PCT=10.0`/`INSUFICIENTE_PCT=30.0`; `diagnostico_confianca`
+> no schema E5 + adapter). (b) **ADR-342/344** LIMPO — todos os símbolos batem
+> (`_CONSERVATION_MATERIALITY_PISO_CENTS=10000`; 5 `ReviewReasonCode`;
+> `raw_rows_detected` no schema; traço `fatura_checksum` read-only). (c)
+> **ADR-314/174** `Proposto` owner-gated legítimo (checkboxes vazios G0 / §F2
+> residual), não zumbi. (d) **rule-imoveis-no-if** LIMPO (enforcers + PUT endpoint
+> `properties.py:151` verificados). (e) 7 ref docs **sem** fallout ADR-285 (r7 já
+> limpou); portas SETUP consistentes (native 800x / Docker 801x).
+>
+> **Verificados limpos:** ADR-080/304; PIPELINE_ARTIFACTS/REPORT_PUBLICATION/SETUP/
+> SMOKE_TEST/disaster_recovery/incidents; GO_SHELL (in_progress + F2 ready).
+>
+> **r8: 0 DOC-BLOCK · 5 DOC-DRIFT (F01–F05, +F09 recorrente) · 3 DOC-POLISH
+> (F06–F08).** Vault saudável — nenhum drift indutor-de-erro-imediato; o sinal é
+> o resíduo ADR-285 em ADRs Decidido não-delta. Batch `vault-drift-batch-r8`
+> **proposto** (default sem `--fix`); F09 owner-gated (arquivamento com cascade).
+
+---
+
 ## r7 — `vault-2026-07-09-r7` (sweep one-shot `--scope all --full --fix`)
 
 > Skill audit-vault ([[ADR-302]]) · **sweep 100% one-shot** em 3 fases
