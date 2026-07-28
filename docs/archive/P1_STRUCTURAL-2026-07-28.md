@@ -2,7 +2,7 @@
 id: PLAN-p1-structural
 type: plan
 title: P1 — Plano estrutural (motor canônico + pipeline offline)
-status: paused
+status: done
 created_at: 2026-04-17
 last_review: 2026-05-07
 sprint_origem: null
@@ -13,11 +13,17 @@ pause_reason: Substituído por PLAN-platform-review (revisão multi-agente 2026-
 adrs_canonical: []
 tags:
   - type/plan
-  - status/paused
+  - status/done
 ---
 
 # P1 — Plano estrutural (motor canônico + pipeline offline)
 
+> **Arquivado em 2026-07-28** (audit-vault r9 F04, decisão do owner). Trabalho
+> estrutural **concluído em 2026-04-17**; pausado 2026-05-06 e superseded por
+> PLATFORM_REVIEW (arquivado 2026-07-08). Mantido como arqueologia — `status: done`.
+> Links relativos internos podem apontar para paths pré-arquivamento (docs/archive/
+> é isento dos gates de link).
+>
 > **Escopo:** apenas decisões **estruturais** (pacotes, runners, CI, fronteiras). Regras de negócio novas ficam fora deste documento.
 > **Pré-requisito:** [CANONICAL_ENGINE_P0.md](../../reference/CANONICAL_ENGINE_P0.md)
 > **Status geral:** **concluído** (2026-04-17) — melhorias incrementais (mais goldens, `validate_artifact` em cada write) continuam no [BACKLOG.md](../../BACKLOG.md).
