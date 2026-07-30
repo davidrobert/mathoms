@@ -1,13 +1,15 @@
 ---
 name: pipeline-review
 description: >-
-  Roda o pipeline COMPLETO de um workspace no ambiente local e produz uma
-  revisão profunda priorizada — da execução E do relatório gerado — com tabela
-  de prioridade/dificuldade/risco. Use SEMPRE que o dono pedir para "rodar o
+  DISPARA um run completo do pipeline de um workspace no ambiente local e avalia
+  a saúde da EXECUÇÃO + o relatório como saída desse run, com tabela de
+  prioridade/dificuldade/risco. Use SEMPRE que o dono pedir para "rodar o
   pipeline e analisar/revisar" um workspace, gerar um relatório novo e criticá-lo,
   revisar a saúde de um run de dogfood, disparar um run completo e avaliar o
   output, ou dizer algo como "entra no workspace X e roda tudo + faz a análise" —
-  mesmo sem a palavra "skill". Recebe o workspace por email OU uuid.
+  mesmo sem a palavra "skill". NÃO julga relatório já existente sob rubrica de
+  produto (atende a família? a recomendação é a certa?) — isso é `report-review`,
+  que não dispara run. Recebe o workspace por email OU uuid.
 ---
 
 # pipeline-review
@@ -21,9 +23,18 @@ especialistas do §Subagentes do CLAUDE.md, com verificação adversarial.
 diagnóstico + plano de ataque priorizado. Deriva do processo testado que fechou
 o plano [[PLAN-dogfood-report-fix]].
 
-**Fronteira vs [[parse-certify]]:** aqui é o pipeline **inteiro** + o **relatório
-final E5→E7**. Certificar a **ingestão E0→E2 documento-a-documento** (cada arquivo
-virou artefato correto? a ingestão perdeu dado?) é a skill `parse-certify`.
+## Fronteira vs as 3 skills vizinhas
+
+| Skill | Objeto | Dispara run? |
+|---|---|---|
+| [[parse-certify]] | Ingestão E0→E2, documento-a-documento (cada arquivo virou artefato correto?) | não |
+| [[ledger-certify]] | Razão E3+E4, no grão transação/posição (sumiu ou dobrou?) | não |
+| **`pipeline-review`** (esta) | O pipeline **inteiro** + o relatório **como saída deste run** — saúde de **execução** | **sim** (~25 min, ~US$2) |
+| [[report-review]] | O relatório **já existente**, sob rubrica de **produto** — mérito para a família | não (custo zero) |
+
+O encadeamento natural é `pipeline-review` (produz e valida o run) → `report-review`
+(julga o mérito do output). Se o pedido não envolve **disparar** um run, a skill é a
+vizinha.
 
 Classe canônica (skill vs. subagente vs. prompt): [[ADR-302]]. Catálogo humano das
 skills do repo: `docs/reference/SKILLS.md`.
