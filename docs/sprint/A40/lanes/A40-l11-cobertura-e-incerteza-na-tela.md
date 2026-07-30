@@ -53,5 +53,7 @@ exatamente o padrão que esta sprint combate.
 - `rg 'diagnostico_confianca' frontend/src` > 0.
 - Um só número para o mesmo conceito na mesma tela.
 - **Verificação renderizada** — este cluster é inteiramente de percepção; fechar
-  sobre inferência de código não é aceitável.
+  sobre inferência de código não é aceitável. Spec com a fixture `degraded` (que já
+  liga os degrades) + assert de que o selo de confiança aparece e de que existe **um
+  só** percentual para o conceito na tela.
 - [[ADR-353]] só flipa **depois** de o consumidor existir.

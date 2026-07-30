@@ -64,4 +64,8 @@ artefato que o cliente arquiva. Por isso o painel pediu P2, não P3.
   gerados, com o `section_id` ofensor na mensagem.
 - E2E `@critical`: para todo `a[href^="#"]` do TopNav e do TOC, o alvo existe **e**
   tem altura > 0.
-- **Verificação renderizada obrigatória** em navegador e PDF.
+- **Verificação renderizada** — estender
+  `frontend/tests/e2e/reports/report-layout.@critical.spec.ts` (já existe e roda em
+  CI): para todo `a[href^="#"]` do TopNav e do TOC, o alvo existe **e** tem
+  `getBoundingClientRect().height > 0`. Este é **o gate** da âncora saudável — nenhuma
+  outra ferramenta emite veredito sobre isso.

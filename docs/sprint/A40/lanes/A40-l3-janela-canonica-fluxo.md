@@ -52,8 +52,12 @@ a guarda (gate de contrato, não ADR nova). RV3-16 e RV3-17 são a mesma violaç
 - Teste de contrato de janela com fixture onde `janela_12m.*` ≠ bloco `full` por
   valor detectável: todo componente cujo rótulo declara 12m exibe o valor de
   `janela_12m`. **Hoje esse teste falharia** — é o sinal de que ele mede o certo.
-- **Verificação renderizada obrigatória** (débito de método herdado): conferir a
-  legenda no navegador **e** no PDF via `pdftotext`.
+- **Verificação renderizada** — spec em `frontend/tests/e2e/reports/`, usando
+  `mockReportPage(page, { fixture })` + `waitForReportReady`. A fixture precisa ter
+  `janela_12m.*` **divergente** do bloco `full` por valor detectável; se nenhuma das
+  5 variantes representar isso, **a lane adiciona uma** (PII-zero, versionada em
+  `frontend/tests/e2e/fixtures/reports/` — vale como regressão permanente). A perna
+  de PDF reusa o padrão de `print.@critical.spec.ts`.
 - Declarar o sinal esperado do delta — atenção: a correção move a sobra exibida
   **para cima**, não para baixo (a legenda de 44m *subestimava* a sobra dos 12m).
 

@@ -32,7 +32,13 @@ async def download_report_pdf(
     surname = workspace.family_surname if workspace is not None else None
 
     # Token efêmero (60s) para Playwright autenticar na rota do frontend.
-    ephemeral_token = create_access_token(user.id, expires_delta=timedelta(minutes=1))
+    # `token_version` é obrigatório: sem ele o token nasce na versão 0 e é rejeitado
+    # (401) para todo usuário que já invalidou sessões — o PDF virava HTTP 500.
+    ephemeral_token = create_access_token(
+        user.id,
+        expires_delta=timedelta(minutes=1),
+        token_version=user.token_version or 0,
+    )
     frontend_base = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
     report_url = f"{frontend_base}/reports/{report_id}?print=1"
 

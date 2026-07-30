@@ -52,7 +52,9 @@ a regra de copy (ausência ⇒ `—`).
 - **Teste do gate:** removê-lo faz a fixture passar — senão o teste não testa o gate.
 - Três casos no teste do card: valor `null` ⇒ `—` e **sem** derivado; `0` ⇒ decisão
   explícita enquanto a origem não for saneada; valor real ⇒ renderiza.
-- **Verificação renderizada:** gerar o PDF e rodar `pdftotext` procurando os
-  identificadores da fixture. O bloco de excluídos provavelmente não sai no PDF (o
-  print CSS não força `details[open]`), **mas está no HTML servido** — conferir as
-  duas superfícies.
+- **Verificação renderizada** — spec com fixture contendo identificadores
+  **sintéticos** (PII-zero: documento fictício, matrícula e endereço inventados) no
+  campo de descrição. Assere que não aparecem em `page.inner_text('body')` **nem** no
+  PDF (padrão de `print.@critical.spec.ts` + `pdftotext -layout`). As duas superfícies
+  divergem: o print CSS não força `details[open]`, então o bloco colapsado pode não
+  sair no PDF **e ainda assim** estar no DOM servido — testar as duas.
