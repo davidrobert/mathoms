@@ -38,6 +38,10 @@ class _FakePage:
         self._counter = counter
         self._hold_seconds = hold_seconds
 
+    async def add_init_script(self, _script: str) -> None:
+        """O gate client-side lê o token de localStorage — ver `_CLIENT_TOKEN_KEY`."""
+        return None
+
     async def set_extra_http_headers(self, _headers: dict[str, str]) -> None:
         return None
 

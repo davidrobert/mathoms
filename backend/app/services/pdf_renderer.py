@@ -29,6 +29,20 @@ logger = logging.getLogger(__name__)
 # Lazy import — Playwright pode não estar instalado em ambientes leves (CI unit tests).
 _PLAYWRIGHT_AVAILABLE: Optional[bool] = None
 
+# Estado terminal da rota de relatório. Compartilhado (não duplicado) com o harness
+# de captura da skill `report-review` — se o sentinela mudar e o consumidor não
+# souber, ele captura página meio-renderizada e a revisão julga um fantasma.
+# Chave de auth do cliente Next (`frontend/src/lib/api/core.ts`). O gate de
+# `/reports/[id]` lê o token DAQUI — header `Authorization` sozinho não passa pelo
+# gate e a página redireciona para /login, produzindo timeout no wait_for_function.
+_CLIENT_TOKEN_KEY = "fin_token"
+
+REPORT_READY_PREDICATE = (
+    """() => !!document.querySelector('[data-report-ready="true"]')"""
+    """ || !!document.querySelector('[data-report-pdf-legacy="1"]')"""
+    """ || !!document.querySelector('[data-report-pdf-error="1"]')"""
+)
+
 # W1-T04 · Lazy singleton semaphore — limita renders simultâneos para
 # evitar OOM. Idempotente cross-worker: cada worker cria o seu próprio,
 # protegendo seus recursos locais. Lê valor de settings.MATHOMS_PDF_CONCURRENCY
@@ -101,6 +115,11 @@ async def render_pdf(
             try:
                 page = await browser.new_page()
 
+                # Semeia o token onde o cliente Next o procura. Sem isto o gate
+                # client-side redireciona para /login e o PDF do usuário nunca sai.
+                await page.add_init_script(
+                    f"localStorage.setItem({_CLIENT_TOKEN_KEY!r}, {bearer_token!r});"
+                )
                 # Injeta Bearer token no header de todas as requisições da page
                 await page.set_extra_http_headers(
                     {
@@ -116,12 +135,7 @@ async def render_pdf(
 
                 # Estado terminal da rota (sucesso F9+, legado pré-F9, ou erro de metadados).
                 ready_timeout = max(5_000, timeout_ms - 3_000)
-                await page.wait_for_function(
-                    """() => !!document.querySelector('[data-report-ready="true"]')"""
-                    """ || !!document.querySelector('[data-report-pdf-legacy="1"]')"""
-                    """ || !!document.querySelector('[data-report-pdf-error="1"]')""",
-                    timeout=ready_timeout,
-                )
+                await page.wait_for_function(REPORT_READY_PREDICATE, timeout=ready_timeout)
 
                 # Recharts / layout assíncronos
                 await page.wait_for_timeout(2000)
