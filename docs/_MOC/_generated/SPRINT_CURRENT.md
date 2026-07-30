@@ -1,7 +1,7 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# SPRINT_CURRENT — Lanes da sprint corrente — A39
+# SPRINT_CURRENT — Lanes da sprint corrente — A40
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
@@ -9,24 +9,22 @@ Nenhuma lane prontidão atual.
 
 ## Todas as lanes da sprint (para inspeção)
 
-### planned (1)
+### planned (14)
 
-- [[A39.l13]] — Re-route: classify_by_llm pelo choke-point LLMService (budget + cache + telemetria + enum via Instructor) · priority P1 · branch `a39-l13-reroute-classificacao-llmservice`
-
-### shipped (12)
-
-- [[A39.l1]] — Harness como instrumento de medição: emitir campos de veredito + conservação em cents + congelar baseline · priority P1 · branch `a39-l1-harness-instrumento-baseline`
-- [[A39.l10]] — Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) · priority P2 · branch `a39-l10-piso-materialidade`
-- [[A39.l11]] — Determinismo da classificação LLM: temperature=0 na via compartilhada + golden sintético + telemetria · priority P2 · branch `a39-l11-classificacao-llm-determinismo`
-- [[A39.l12]] — Resíduo não-coberto: verificar escalação honesta do Binance CSV + investigar extração de preview .xlsx (rico) · priority P2 · branch `a39-l12-binance-rico-residuo`
-- [[A39.l2]] — C6 Bank CSV: declarar conservacao_verificavel (semântica de saldo já correta) → escala perda silenciosa · priority P0 · branch `a39-l2-c6-csv-optin-verificabilidade`
-- [[A39.l3]] — Fatura closure: parsers emitem total_lancamentos_conferivel (gate #1036 pronto) + flip WARN→HARD · priority P0 · branch `a39-l3-fatura-optin-parsers`
-- [[A39.l4]] — C6 Bank PDF: corrigir semântica de saldo_inicial (ajuste do 1º dia) e então declarar verificabilidade · priority P1 · branch `a39-l4-c6-pdf-saldo-semantica`
-- [[A39.l5]] — Bradesco: diagnosticar saldo R$1/R$1 (raiz não confirmada) + teste de independência antes de flipar · priority P1 · branch `a39-l5-bradesco-saldo-diagnostico`
-- [[A39.l6]] — Checksum de CDB observável: traço checksum_ok/skipped_no_total + WARN posições-sem-total; estender Santander xlsx · priority P1 · branch `a39-l6-cdb-checksum-observavel`
-- [[A39.l7]] — Sweep de verificabilidade: itau_xls + santander_xls declaram conservacao_verificavel (wise/rico cortados) · priority P1 · branch `a39-l7-verificabilidade-sweep`
-- [[A39.l8]] — Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto) · priority P1 · branch `a39-l8-fatura-itau-visa`
-- [[A39.l9]] — Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) · priority P1 · branch `a39-l9-posicao-renda-variavel`
+- [[A40.l1]] — Instrumento: detector de duplicação cross-grupo + baseline congelado · priority P0 · branch `a40-l1-ledger-cross-grupo-check`
+- [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P2 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
+- [[A40.l11]] — Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato · priority P2 · branch `a40-l11-cobertura-e-incerteza-na-tela`
+- [[A40.l12]] — Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material · priority P1 · branch `a40-l12-classificacao-incompleta-distorce-kpi`
+- [[A40.l13]] — Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M · priority P2 · branch `a40-l13-copy-e-design-system`
+- [[A40.l14]] — Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 · priority P3 · branch `a40-l14-cleanup-orfaos-schema-morto`
+- [[A40.l2]] — Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio · priority P0 · branch `a40-l2-identidade-lancamento-cross-doc`
+- [[A40.l3]] — Janela canônica: todo número rotulado 12m lê janela_12m · priority P0 · branch `a40-l3-janela-canonica-fluxo`
+- [[A40.l4]] — Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer · priority P0 · branch `a40-l4-entrega-narrativas-secao`
+- [[A40.l5]] — Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite · priority P1 · branch `a40-l5-contrato-view-model-gate`
+- [[A40.l6]] — Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor · priority P1 · branch `a40-l6-cards-imovel-divida`
+- [[A40.l7]] — Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente · priority P1 · branch `a40-l7-navegacao-e-ponteiros`
+- [[A40.l8]] — Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa · priority P1 · branch `a40-l8-manifest-parecer-cobertura`
+- [[A40.l9]] — Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir · priority P1 · branch `a40-l9-materializacao-config-run-scoped`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

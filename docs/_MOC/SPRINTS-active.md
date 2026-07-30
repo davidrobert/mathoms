@@ -250,6 +250,32 @@ flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
 
 ## Sprint candidate (próxima)
 
+### A40 — Report trust: o dado que entrou tem de chegar ao usuário (`candidate` 2026-07-30)
+
+**Continuação declarada de [[PLAN-report-trust]]** (`sprint_origem: A28`) — não é
+plano novo. Origem: skill `report-review` sobre o último relatório do workspace
+dogfood, 2026-07-29 ([[REPORT-REVIEWS-active]] §r3, 33 achados sistêmicos).
+Nenhum stage foi re-executado: o objeto é o **artefato entregue**.
+
+A A39 provou que o dado **entra** certo; a A40 prova que ele **chega ao usuário**.
+26 dos 33 achados são defeitos de **entrega**, não de cálculo — consumidor lê chave
+que o emissor não emite, janela trocada, seção que colapsa depois de prometer
+conteúdo, PII cartorial interpolada no render. O sinal decisivo: a conservação do
+razão fecha em **tol-zero (105/105 grupos)** e ainda assim há duplicação material
+medida — **o gate vigente mede a camada errada**.
+
+Painel de 6 especialistas revisou antes da abertura e produziu 33 objeções, duas
+delas estruturais: **o mecanismo do achado P0 estava errado** (a normalização de
+caixa que ele culpava já existe no hash — escrita como estava, a lane shiparia um
+no-op e fecharia verde) e **os 7 achados "inertes" eram um evento de embarque de
+regressão** (deixam de ser inertes quando a [[A40.l4]] mergeia). 14 lanes em 3
+ondas; a ordem **não** segue a coluna de severidade, e sim "alcança o usuário na
+config atual", porque a própria rodada registrou que 37 dos 44 vereditos carregam
+inflação desconhecida.
+
+- **Sprint:** [sprint/A40/_README.md](../sprint/A40/_README.md) · **Origem:**
+  revisão de relatório 2026-07-29 ([[REPORT-REVIEWS-active]] §r3; cru off-git).
+
 ### A39 — Parse correctness: dívida de verificação da ingestão E0→E2 (`candidate` 2026-07-23)
 
 **Follow-on direto da A38** (mesma tese `ingest-trust`), origem na skill
