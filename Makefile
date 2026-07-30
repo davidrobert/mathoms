@@ -203,8 +203,14 @@ endef
 help:
 	@awk ' \
 	BEGIN { \
-	  printf "\n\033[1mMathoms AI — make targets\033[0m\n"; \
-	  printf "Uso: \033[36mmake <target>\033[0m  (pass-through: PYTEST_ARGS, RUFF_ARGS, SVC, M)\n"; \
+	  printf "\n\033[1mMathoms AI — comandos make\033[0m\n"; \
+	  printf "\n\033[1;33mComece aqui (primeira vez — escolha UM caminho):\033[0m\n"; \
+	  printf "  \033[36m%-18s\033[0m %s\n", "make dev-up-docker", "Docker — sobe tudo, migra e faz seed sozinho (sem .env/venv)"; \
+	  printf "  \033[36m%-18s\033[0m %s\n", "make onboard", "Nativo — setup do zero (deps, .env, migra, seed); depois: make up"; \
+	  printf "  \033[2mAbra :3010 (Docker) ou :3000 (nativo) — login admin@mathoms.ai / admin\033[0m\n"; \
+	  printf "\n\033[1;33mDia a dia (stack nativa):\033[0m\n"; \
+	  printf "  \033[36mmake up\033[0m sobe · \033[36mmake down\033[0m para · \033[36mmake status\033[0m mostra · \033[36mmake logs SVC=api\033[0m segue · \033[36mmake recover\033[0m destrava\n"; \
+	  printf "\n\033[2mReferência completa por categoria — uso: make <target> · pass-through: PYTEST_ARGS, RUFF_ARGS, SVC, M\033[0m\n"; \
 	} \
 	/^# -+ *$$/ { in_box = !in_box; if (in_box) { sect_name = ""; sect_printed = 0; } next; } \
 	in_box && sect_name == "" && /^# [A-Z]/ { \
@@ -563,7 +569,7 @@ docker-logs:
 # PIDs em _dev_pids/<svc>.pid · logs em _dev_pids/<svc>.log (no .gitignore)
 # ---------------------------------------------------------------------------
 
-.PHONY: dev-bootstrap dev-pull native-up native-down native-restart native-restart-worker \
+.PHONY: onboard dev-bootstrap dev-pull native-up native-down native-restart native-restart-worker \
         native-fresh status recover native-logs native-reset-env dev-dirs \
         dev-redis-up dev-api-up dev-worker-up dev-frontend-up \
         dev-ops-api-up dev-frontend-ops-up pipeline-run \
@@ -607,6 +613,13 @@ dev-bootstrap:
 	 fi
 	@echo ""
 	@echo "  ✅ Bootstrap completo. 'make up' (ou 'make native-up') para subir a stack."
+
+## onboard: Setup nativo do zero em 1 comando (bootstrap + migrate + seed) — depois 'make up'
+onboard:
+	@$(MAKE) -s dev-bootstrap
+	@$(MAKE) -s seed
+	@echo ""
+	@echo "  ✅ Onboarding completo. 'make up' sobe a stack (http://localhost:3000 · login admin@mathoms.ai / admin)."
 
 ## dev-pull: git pull --ff-only + npm install em ambos os frontends
 dev-pull:
@@ -911,7 +924,13 @@ codex-check:
 # Codegen / snapshots (commitar diff após rodar)
 # ---------------------------------------------------------------------------
 
-.PHONY: update-openapi-snapshot update-pipeline-service-openapi update-db-schema-reference
+.PHONY: codegen update-openapi-snapshot update-pipeline-service-openapi update-db-schema-reference
+
+## codegen: Regenera design tokens (CSS) + report-layout (TS/Pydantic) de tokens.json / report_layout.yaml
+codegen:
+	@$(PYTHON) design-tokens/build.py
+	@$(PYTHON) dev/codegen_report_layout.py
+	@echo "✓ Codegen concluído (design-tokens + report-layout). Comite o diff."
 
 ## update-openapi-snapshot: Regenera docs/reference/api/v1/openapi.json (A6f.2 · ADR-102)
 update-openapi-snapshot: update-pipeline-service-openapi
@@ -1009,11 +1028,15 @@ go-all: go-fmt go-lint go-test
 
 ALEMBIC := $(VENV)/alembic -c backend/alembic.ini
 
-.PHONY: migrate migrate-current migrate-history migrate-revision
+.PHONY: migrate migrate-current migrate-history migrate-revision seed
 
 ## migrate: alembic upgrade head (aplica migrations pendentes)
 migrate:
 	$(ALEMBIC) upgrade head
+
+## seed: Cria o usuário/workspace dev (admin@mathoms.ai / admin) no DB nativo — migra antes
+seed: migrate
+	@$(PYTHON) backend/seed_db.py
 
 ## migrate-current: Mostra revisão atual do DB
 migrate-current:
