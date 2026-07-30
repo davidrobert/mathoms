@@ -119,6 +119,7 @@ jobs:
       report: ${{ steps.filter.outputs.report_any_changed }}
       migration: ${{ steps.filter.outputs.migration_any_changed }}
       go: ${{ steps.filter.outputs.go_any_changed }}
+      dev_tools: ${{ steps.filter.outputs.dev_tools_any_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -207,6 +208,20 @@ jobs:
               - 'backend/tests/test_a*_seed_migrations.py'
               - 'backend/app/models/**'
               - '.github/workflows/ci.yml'
+            # `dev/**` inteiro, SEM allowlist. 24 módulos de dev/ são importados
+            # por testes e 6 `dev/check_*.py` rodam como step do próprio
+            # pipeline-tests — nenhum estava em filtro nenhum, então PR que só
+            # tocava dev/** não rodava a suíte que testa dev/** (provado por
+            # #1021: alterou dev/certify_parse_local.py e
+            # tests/dev/test_certify_parse_local.py ficou skipped).
+            # Glob e não allowlist porque a DIREÇÃO do erro importa: allowlist
+            # positiva falha ABERTA no próximo módulo novo (reintroduz este bug
+            # em silêncio); glob falha FECHADO e custa ~2min num PR de
+            # doc-tooling. NÃO entra no grupo `pipeline`: `backend-tests`
+            # também é gateado por `pipeline`, e dev/** não justifica arrastar
+            # um job de 543s.
+            dev_tools:
+              - 'dev/**'
 
   lint-all:
     # Job consolidado (era 5 jobs separados: lint, ruff, code-style-regression,
@@ -287,7 +302,10 @@ jobs:
     needs: changes
     # `pipeline` cobre mudança em tests/, scripts/, pipeline/, config/.
     # backend/ também porque importa pipeline/** e tem guardrail próprio.
-    if: needs.changes.outputs.pipeline == 'true' || needs.changes.outputs.backend == 'true'
+    # `dev_tools`: 24 módulos de dev/ são importados por tests/ e 6
+    # `dev/check_*.py` rodam como step deste job — sem isto, PR que só toca
+    # dev/** não roda o gate que testa dev/**.
+    if: needs.changes.outputs.pipeline == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.dev_tools == 'true'
     steps:
       - uses: actions/checkout@v4
 

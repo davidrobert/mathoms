@@ -111,6 +111,50 @@ def _row_counts(session, ws: str) -> dict:
     return {"pipeline_artifacts": int(art or 0), "transaction_overrides": int(ovr or 0)}
 
 
+_BLAST_SQL = """
+SELECT
+  SUM(CASE WHEN deleted_at IS NULL AND orphaned_at IS NULL THEN 1 ELSE 0 END) AS ativos,
+  SUM(CASE WHEN deleted_at IS NULL AND orphaned_at IS NULL
+            AND tx_valor_cents IS NOT NULL THEN 1 ELSE 0 END) AS ativos_com_snapshot,
+  SUM(CASE WHEN deleted_at IS NULL AND orphaned_at IS NULL AND tx_valor_cents IS NOT NULL
+            AND TRIM(COALESCE(tx_titular, '')) = '' THEN 1 ELSE 0 END) AS titular_vazio,
+  SUM(CASE WHEN deleted_at IS NULL AND orphaned_at IS NULL
+            AND tx_valor_cents IS NULL THEN 1 ELSE 0 END) AS sem_snapshot,
+  SUM(CASE WHEN deleted_at IS NULL AND orphaned_at IS NULL
+            AND natural_key_hash IS NULL THEN 1 ELSE 0 END) AS sem_ancora_v2,
+  SUM(CASE WHEN deleted_at IS NULL AND orphaned_at IS NOT NULL THEN 1 ELSE 0 END) AS quarentenados,
+  SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS soft_deleted
+FROM transaction_overrides WHERE workspace_id = :w
+"""
+
+
+def _override_blast_radius(session, ws: str) -> dict:
+    """Overrides ATIVOS ancorados em row E4 de ``titular`` vazio (carrier 2 da ADR-354),
+    via snapshot ADR-282 — agregados só, nenhuma coluna de conteúdo sai do DB."""
+    from sqlalchemy import text
+
+    row = session.execute(text(_BLAST_SQL), {"w": ws}).mappings().one()
+    return {k: int(v or 0) for k, v in row.items()}
+
+
+def _blast_radius_or_empty(session, ws: str) -> dict:
+    """Medição SECUNDÁRIA jamais derruba o entregável PRIMÁRIO (SQL cru sobre 5 colunas
+    nullable com M2 destrutiva pendente); o ``rollback`` é obrigatório porque em
+    PostgreSQL o statement falho aborta a transação (25P02) e derrubaria o
+    ``_row_counts`` seguinte — que é a PROVA de zero-write."""
+    from sqlalchemy.exc import SQLAlchemyError
+
+    try:
+        return _override_blast_radius(session, ws)
+    except SQLAlchemyError as exc:
+        session.rollback()
+        print(
+            f"[blast radius] não medido — schema divergente: {exc.__class__.__name__}",
+            file=sys.stderr,
+        )
+        return {}
+
+
 # ─────────────────────────── seed + re-derivação ───────────────────────────
 
 
@@ -223,6 +267,7 @@ def certify(session, ws: str, run_id: str | None) -> LedgerReport:
         _persisted_e3_by_key(session, ws),
     )
     report.counts_before = before
+    report.blast_radius = _blast_radius_or_empty(session, ws)
     report.counts_after = _row_counts(session, ws)
     return report
 

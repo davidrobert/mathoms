@@ -39,6 +39,28 @@ prova o fechamento**; sem isso, teto `coberto-sem-verificação`.
 | 4 | `perda/dupla-contagem-silenciosa` | Gap de count/valor que nenhuma declaração explica; OU dupla-contagem (posição `tipo\|instituicao\|descricao_norm` viva 2×, ADR-271; imóvel co-declarado somado, ADR-246); OU fronteira de decisão cruzada (camada B). | **Sim — P0** |
 | 5 | `não-verificável` | Lineage quebrado: `fontes` não casa E2, `natural_key` null impede join, artefato stale/parcial. | Surface — nunca falso-verde |
 
+### Eixo cross-grupo (4 estados) — fora dos 5 vereditos
+
+Uma **ocorrência cross-grupo** ([[ADR-354]]: a mesma chave provenance-free viva em
+≥2 triplas de proveniência) não é grupo E3 nem balde E4, logo **não recebe veredito
+de unidade**. Estado próprio, do bloco `## Duplicação cross-grupo` do harness.
+
+**Leia a partição antes de escalar.** `defect-shaped` = ≥1 campo de proveniência
+**PARCIAL** (vazio numa perna, preenchido na outra) — assinatura dos carriers da
+ADR-354. `coincidence-shaped` = nenhum campo parcial, incluindo campo vazio nas
+DUAS pernas: par simétrico, nada a canonicalizar. Só o primeiro é P0; escalar a
+segunda classe travaria a lane por sobre-detecção declarada.
+
+| Estado | Quando | Consequência |
+|---|---|---|
+| `defeito-de-identidade` | ≥1 ocorrência não-explicada **e `defect-shaped`** | **P0 do run**, mapeado a `perda/dupla-contagem-silenciosa` (extensão da linha 4: dupla-contagem sum-preserving) |
+| `coincidência-nao-declarada` | ocorrência não-explicada **`coincidence-shaped`** (nenhum campo parcial) | Sinal de **triagem** — sobre-detecção declarada do instrumento. Registre a classe (histograma) e siga; **não é P0** |
+| `coincidência-declarada` | shape de VALOR na whitelist declarada (`EXPLAINED_DIVERGENCE`, vazia por decisão A40.l1) | Linha **separada** — nunca somada ao numerador |
+| `não-verificável` | `cobertura=CEGA`: balde ilegível, uma das 3 identidades não fecha, ou <2 triplas no corpus (critério vacuoso) | Bloco **nulo** — um 0 aqui **não** é verde |
+
+O balde E4 pode estar `conservado` **e** haver ocorrência cross-grupo: a duplicação
+é *sum-preserving* dentro de cada grupo. É exatamente o falso-verde da camada B.
+
 ## Camada A — conservação por transição de stage (cents int, tol-zero)
 
 Fonte: [[ADR-090]] (`Decimal(str(v))`, prefira o campo `amount` decimal-string

@@ -23,8 +23,11 @@ from dev.ledger_conservation import (
     CONSERVADO,
     NAO_VERIFICAVEL,
     PERDA_SILENCIOSA,
+    CrossGroupSummary,
+    cross_group_summary,
     e2_to_e3,
     e3_to_e4,
+    fmt_cross_group,
     investment_double_count,
 )
 
@@ -66,6 +69,8 @@ class LedgerReport:
     drift: DriftSummary
     counts_before: dict = field(default_factory=dict)
     counts_after: dict = field(default_factory=dict)
+    cross_group: CrossGroupSummary = field(default_factory=CrossGroupSummary)
+    blast_radius: dict = field(default_factory=dict)
 
     @property
     def zero_write_ok(self) -> bool:
@@ -292,6 +297,7 @@ def build_report(ws, run_id, seeds, e3_result, result, e4, fresh_e3, persisted_e
         investment_collisions=collisions,
         natural_key=_natural_key_coverage(result),
         drift=_drift(fresh_e3, persisted_e3),
+        cross_group=cross_group_summary(e4, result.cash_flow.transferencias_count),
     )
 
 
@@ -363,14 +369,43 @@ def _fmt_drift(d: DriftSummary) -> list[str]:
     return lines
 
 
+def _ancora_identity(br: dict) -> str:
+    """ADR-282: ``as_columns()`` escreve ``natural_key_hash`` e o snapshot juntos, logo os
+    dois contadores DEVEM coincidir — comparação derivada, não prosa estática."""
+    if br["sem_ancora_v2"] == br["sem_snapshot"]:
+        return "=="
+    return "!= (writer contornou as_columns)"
+
+
+def _fmt_blast_radius(br: dict) -> list[str]:
+    """Blast radius da A40.l2 — lado-override do mesmo titular vazio; inertes em linha separada."""
+    if not br:
+        return [
+            "## Blast radius A40.l2",
+            "- não medido (sem sessão DB **ou** schema divergente — ver stderr)",
+        ]
+    return [
+        "## Blast radius A40.l2 (overrides ancorados em row de titular vazio)",
+        f"- numerador: titular_vazio={br['titular_vazio']} de "
+        f"ativos_com_snapshot={br['ativos_com_snapshot']} (população julgável) · "
+        f"ativos={br['ativos']} · sem_snapshot={br['sem_snapshot']} não julgáveis",
+        f"- contexto legado (não toca o numerador): sem_ancora_v2={br['sem_ancora_v2']} "
+        f"{_ancora_identity(br)} sem_snapshot={br['sem_snapshot']} (ADR-282)",
+        f"- inertes hoje (fora do numerador): quarentenados={br['quarentenados']} "
+        f"soft_deleted={br['soft_deleted']}",
+    ]
+
+
 def _report_blocks(report: LedgerReport) -> list:
     return [
         _fmt_conservation(report.conservation),
         _fmt_exec(report),
         _fmt_units("## Eixo E3 (por grupo)", report.e3_groups),
         _fmt_units("## Eixo E4 (por balde)", report.e4_buckets),
+        fmt_cross_group(report.cross_group),
         _fmt_tail(report),
         _fmt_drift(report.drift),
+        _fmt_blast_radius(report.blast_radius),
     ]
 
 

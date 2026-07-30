@@ -95,15 +95,17 @@ family/categorization/transferencias_internas), **pulando persist e learning-loo
 `main_with_store`/`apply_learning_loop`). Zero write no DB (provado por contagem de
 rows antes/depois), zero Celery, zero LLM. `--persist` grava a síntese crua off-git
 em `storage/<uuid>/ledger_certify/<ts>-<run8>/`. O núcleo puro
-(`dev/ledger_certify_core.py` + `dev/ledger_conservation.py`) tem os vereditos e o
-ledger de conservação — testável sem DB.
+(`dev/ledger_certify_core.py` + `dev/ledger_conservation.py` + `dev/ledger_cross_group.py`,
+detector cross-grupo da [[ADR-354]]) tem os vereditos e o ledger de conservação —
+testável sem DB.
 
 ### Passo 3 — Ledger de conservação (cents) + cross-check de drift
 
 O harness **já emite** este passo: as duas transições de conservação (workspace,
 cents), as duas tabelas de veredito (eixo E3 por grupo + eixo E4 por balde), a
-cobertura de `natural_key` e o sumário de drift. Interprete a saída — as igualdades
-exatas estão na [rubrica](references/rubric.md):
+**duplicação cross-grupo** ([[ADR-354]]), o **blast radius A40.l2**, a cobertura de
+`natural_key` e o sumário de drift. Interprete a saída — as igualdades exatas estão
+na [rubrica](references/rubric.md):
 
 - **E2→E3**: toda tx extraída é reconciliada OU dedup declarado (count HARD);
   Σ valor conserva (HARD quando `dups==0`; senão `coberto-sem-verificação` — o
@@ -115,6 +117,31 @@ exatas estão na [rubrica](references/rubric.md):
 Depois **cross-check** o E3/E4 fresco vs o persistido: divergência = **drift**
 (código mudou pós-último run, ou artefato stale) — reporta, não falha por si só.
 
+**Como ler o bloco `## Duplicação cross-grupo`** (o mesmo evento entregue por ≥2
+grupos-fonte; a conservação **por grupo** aprova esse cenário, [[ADR-354]]):
+
+1. **Leia a linha de cobertura PRIMEIRO.** `cobertura=OK` é o único estado em que o
+   numerador é legível; `cobertura=CEGA` ⇒ o bloco inteiro é `não-verificável` e um
+   0 **não** pode ser promovido a verde (balde ilegível, uma das 3 identidades que
+   não fecha, ou corpus de fonte única em que o critério "≥2 proveniências" é
+   vacuoso). A 3ª identidade — `multi-proveniência` vs `numerador+explicadas` —
+   existe para pegar filtro silencioso entre o detector e o numerador.
+2. **`não-explicada: N` é o numerador (KR-B).** A linha `shape declarado explicado` é
+   **outra coisa** — whitelist declarada, **nunca somada** ao numerador.
+3. **Leia a PARTIÇÃO antes de escalar.** `defect-shaped` = ≥1 campo de proveniência
+   **PARCIAL** (vazio numa perna, preenchido na outra) — assinatura dos carriers da
+   ADR-354, e o **único** gatilho de P0. `coincidence-shaped` = nenhum campo parcial
+   (inclui campo vazio nas DUAS pernas — par simétrico): sobre-detecção declarada do
+   instrumento, sinal de **triagem**, não P0.
+4. **Triagem por classe, não por ocorrência.** São 2 histogramas: o *diagnóstico*
+   (nomes de campo — que carrier) e o *de whitelist* (valores de vocabulário fechado
+   + fill-state de titular — o ÚNICO eixo que `explained` aceita). Um fix mata uma
+   classe inteira. Entrada de whitelist com assinatura de carrier é **rejeitada com
+   erro** pelo harness, não aceita com warning.
+5. **`Σ excesso` e a linha de `massa não-varrida` são off-git** — a curadoria do
+   Passo 5 não copia literal monetário para `docs/_MOC/LEDGER-CERTIFY-active.md`.
+   Queda de numerador acompanhada de `transferencias` subindo **não é progresso**.
+
 ### Passo 4 — Atribuir veredito + delegar aos especialistas
 
 Classifique **cada grupo E3 e cada balde E4** em **um dos 5 vereditos** da
@@ -123,6 +150,14 @@ Classifique **cada grupo E3 e cada balde E4** em **um dos 5 vereditos** da
 `não-verificável`. Regra de ouro: só sobe a `conservado` quem tem **checksum que
 prova o fechamento** (count-in==count-out, Σ-in==Σ-out, chave de dedup única);
 sem isso, teto `coberto-sem-verificação`.
+
+**Ocorrência cross-grupo não recebe veredito de unidade** — não é grupo E3 nem balde
+E4. Ela tem eixo próprio de 4 estados (ver rubrica §Eixo cross-grupo):
+`defeito-de-identidade` (≥1 ocorrência não-explicada **e defect-shaped** ⇒ achado
+**P0** do run, mapeado a `perda/dupla-contagem-silenciosa`) ·
+`coincidência-nao-declarada` (não-explicada mas coincidence-shaped ⇒ triagem, **não**
+P0) · `coincidência-declarada` (whitelisted, linha separada) · `não-verificável`
+(`cobertura=CEGA` ⇒ bloco nulo).
 
 **Conservação é o piso, não o teto.** Os piores erros são **sum-preserving** e
 passam por toda conservação (dedup dobrado é linha legítima de composição; swap de

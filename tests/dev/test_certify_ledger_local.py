@@ -69,3 +69,29 @@ def test_fresh_e3_reads_reconcile_keys() -> None:
     fresh = _fresh_e3(store)
     assert set(fresh) == {"g1", "g2"}
     assert fresh["g1"]["transacoes_total"] == 3
+
+
+class _FailingSession:
+    """Sessão cujo ``execute`` sempre falha — grava se o ``rollback`` foi chamado."""
+
+    def __init__(self) -> None:
+        self.rolled_back = 0
+
+    def execute(self, *_args, **_kwargs):
+        from sqlalchemy.exc import OperationalError
+
+        raise OperationalError("SELECT ...", {}, Exception("no such column: orphaned_at"))
+
+    def rollback(self) -> None:
+        self.rolled_back += 1
+
+
+def test_blast_radius_faz_rollback_antes_de_degradar() -> None:
+    # Em PostgreSQL o statement falho aborta a transação (25P02) e o `_row_counts`
+    # seguinte — a PROVA de zero-write — falharia junto. O rollback é o que mantém a
+    # sessão utilizável depois de a medição SECUNDÁRIA degradar.
+    from dev.certify_ledger_local import _blast_radius_or_empty
+
+    session = _FailingSession()
+    assert _blast_radius_or_empty(session, "ws-uuid") == {}
+    assert session.rolled_back == 1
