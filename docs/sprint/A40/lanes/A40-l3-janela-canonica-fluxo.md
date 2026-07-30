@@ -4,7 +4,7 @@ type: lane
 title: "Janela canônica: todo número rotulado 12m lê janela_12m"
 sprint: A40
 plan: PLAN-report-trust
-status: planned
+status: open
 priority: P0
 branch_slug: a40-l3-janela-canonica-fluxo
 adrs: []
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/open
   - priority/p0
   - area/frontend
   - area/pipeline

@@ -3,14 +3,14 @@ id: MOC-sprint-a40
 type: moc
 title: "Sprint A40 — Report trust: o dado que entrou tem de chegar ao usuário"
 aliases: ["A40", "Sprint A40"]
-sprint_status: candidate
+sprint_status: current
 date: "2026-07-30"
 theme: "report-trust"
 ---
 
 # Sprint A40 — Report trust (revisão do relatório entregue, 2026-07-30)
 
-> **Status:** `candidate`. **Continuação declarada** de [[PLAN-report-trust]]
+> **Status:** `current` (aberta 2026-07-30 — Onda 1 em `open`). **Continuação declarada** de [[PLAN-report-trust]]
 > (`sprint_origem: A28`) — não é plano novo. A tese daquele plano ("o relatório
 > não pode afirmar precisão que os dados não sustentam") é exatamente o que esta
 > rodada mediu; as lanes daqui entram lá com `sprint_atual: A40`.

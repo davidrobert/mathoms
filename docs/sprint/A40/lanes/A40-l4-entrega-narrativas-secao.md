@@ -4,7 +4,7 @@ type: lane
 title: "Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer"
 sprint: A40
 plan: PLAN-report-trust
-status: planned
+status: open
 priority: P0
 branch_slug: a40-l4-entrega-narrativas-secao
 adrs: []
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/open
   - priority/p0
   - area/frontend
   - area/pipeline
@@ -68,6 +68,11 @@ entrega — instância do padrão transversal (§Decisões nº 4 do sprint).
   "meta" tem de **variar**. Isso pega texto obsoleto antes de publicá-lo.
 - Rebaseline de `test_report_view_model_snapshot.py` com `MATHOMS_UPDATE_SNAPSHOT=1`
   (roda em `backend/tests`, ~8min).
+- **Declarar o sinal esperado do delta** (decisão nº 5 do painel): esta lane não
+  recalcula número, então o sinal é `=` para todo campo monetário — qualquer
+  divergência em `dev/golden_diff.py` no rebaseline é achado, não ruído de
+  snapshot. Se um valor mover, pare: a narrativa está sendo gerada a partir de
+  caminho diferente do que o card lê.
 
 ## Guarda anti-regressão
 
