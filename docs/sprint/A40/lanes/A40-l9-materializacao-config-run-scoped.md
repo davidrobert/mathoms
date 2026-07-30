@@ -4,7 +4,7 @@ type: lane
 title: "Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir"
 sprint: A40
 plan: PLAN-report-trust
-status: planned
+status: open
 priority: P1
 branch_slug: a40-l9-materializacao-config-run-scoped
 adrs: []
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/open
   - priority/p1
   - area/backend
   - area/pipeline
@@ -65,3 +65,9 @@ Três casos em `backend/tests/test_tributario_run_scoped_inputs.py`, invocando o
 2. Só o run corrente, sem E4 ⇒ marcado **explicitamente indisponível**, nunca zero
    silencioso.
 3. Perfil incompleto ⇒ o motivo declarado é o perfil, não o input vazio.
+
+- **Declarar o sinal esperado do delta** (decisão nº 5 do painel): `↑` em
+  `receita_pj_anual` e nos números tributários derivados — o defeito zerava o
+  input, então corrigi-lo só pode subir o valor. Delta `=` significa que o
+  entrypoint de produção não passa pelo caminho corrigido; delta `↓` significa
+  que o run resolvido é o errado. `dev/golden_diff.py` confere.

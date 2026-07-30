@@ -4,7 +4,7 @@ type: lane
 title: "Instrumento: detector de duplicação cross-grupo + baseline congelado"
 sprint: A40
 plan: PLAN-report-trust
-status: planned
+status: open
 priority: P0
 branch_slug: a40-l1-ledger-cross-grupo-check
 adrs: []
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/open
   - priority/p0
   - area/pipeline
   - area/dx
