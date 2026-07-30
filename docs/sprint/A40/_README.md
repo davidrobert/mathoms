@@ -174,6 +174,28 @@ apoiado neles é infundado — o único teto vivo é `max_exec_context_bytes`. M
 teto que não trava é pior que não ter, porque induz revisão a assumir proteção
 inexistente. Severidade Médio/P2, owner `prompt-engineer` → entra na [[A40.l8]].
 
+## Achados da construção do harness de captura (2026-07-30)
+
+Ao instrumentar a verificação renderizada, o caminho de produção de PDF revelou
+**dois defeitos independentes que quebravam o download do cliente** — ambos com
+prova vermelho/verde contra o frontend real, ambos **corrigidos** na mesma passada:
+
+1. **`token_version` não propagava** em `download_pdf.py`. `create_access_token`
+   nasce na versão 0; todo usuário que já invalidou sessões está em ≥ 1, então o
+   token efêmero era rejeitado com 401 e o endpoint devolvia **HTTP 500**.
+2. **Header `Authorization` não passa pelo gate client-side.** O gate de
+   `/reports/[id]` lê o token de `localStorage`; `render_pdf` só injetava o header,
+   então a página redirecionava para `/login` e o `wait_for_function` estourava —
+   **mesmo com token válido**. Confirmado isoladamente: com token válido e sem
+   semear `localStorage`, `ready=false`; semeando, `ready=true`.
+
+Regressão coberta por `backend/tests/test_pdf_auth_contract.py`, incluindo um teste
+de contrato que falha se alguém renomear a chave de auth no cliente.
+
+**Efeito colateral útil:** o harness confirmou o **RV3-04 por medição** — 31 âncoras
+de navegação, 1 sem alvo (`found: false, height: 0`). O achado deixou de ser
+inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
+
 ## ADRs
 
 | ADR | Estado | Escopo |

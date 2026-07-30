@@ -56,13 +56,26 @@ os scripts importam `backend` e leem `DATABASE_URL`/Fernet do `.env`.
 anterior foi commitada e mergeada, o checkout pode estar atrás e os pareceristas
 vão ler um MOC sem a seção que você mandou ler. Isso já matou um painel inteiro.
 
-## Passo 1 — Coleta + índice de conhecidos
+## Passo 1 — Coleta, captura e índice de conhecidos
 
 1. **Resolver:** `.venv/bin/python .claude/skills/pipeline-review/scripts/resolve_workspace.py <workspace>`
    (script compartilhado; não copie). Guarde `workspace_id` e `latest_report`.
 2. **Coletar insumos:** `.venv/bin/python .claude/skills/pipeline-review/scripts/collect_review_inputs.py <workspace_id> <report_id> _scratch/report-review-<slug>-<AAAA-MM-DD>/`
    — escreve `report_data.json`, `parecer.json`, `cross_validation.json`, `run_meta.md`.
-3. **Índice de conhecidos** — leia os MOCs de rodadas anteriores
+3. **Capturar as superfícies renderizadas** (fecha o débito de método da r3 — sem
+   isto, toda afirmação de clareza/UX é inferência de código):
+   ```
+   .venv/bin/python .claude/skills/pipeline-review/scripts/capture_report_render.py <workspace> --out <dir>/render/
+   ```
+   Exige **frontend de pé**; recusa base-url não-localhost. Produz `screen.txt`,
+   `print.txt` (mídia print emulada — o hook lê `matchMedia`, não o query param),
+   `report.pdf` **pela função de produção** + `report.txt`, screenshots 1280/390,
+   `anchors.json` e `MANIFEST.md` com provenance.
+   **Leia `screen.txt`/`report.txt` e os PNGs — nunca dumps de HTML.**
+   Se a perna de PDF falhar, isso **é o achado mais forte da rodada**: significa que
+   o download do cliente está quebrado. Frontend fora do ar ⇒ declare `clareza-ux`
+   sem cobertura, não finja que observou.
+4. **Índice de conhecidos** — leia os MOCs de rodadas anteriores
    ([[REPORT-REVIEWS-active]], [[PIPELINE-REVIEWS-active]], [[LEDGER-CERTIFY-active]],
    [[PARSE-CERTIFY-active]]) e monte um índice dos achados **já registrados e
    abertos**. Sem ele a rodada re-descobre o que já está rastreado e infla o placar.
@@ -134,8 +147,12 @@ seus — na `r3` isso derrubou três afirmações, uma delas invertendo a direç
   Título de achado com literal monetário ou nome próprio é smell — reescreva como
   defeito. Âncora é `campo.dot.path` ou `arquivo:linha`, **nunca** um valor.
 - **Evidência sempre.** Hipótese não confirmada não vira achado.
-- **Rotule o que não foi observado.** Se ninguém renderizou a tela nem o PDF, toda
-  afirmação de clareza/usabilidade é *inferência de código* e tem de dizer isso.
+- **Rotule o que não foi observado.** Afirmação de clareza/usabilidade feita sem a
+  captura do Passo 1.3 é *inferência de código* e tem de dizer isso.
+- **Artefatos de render são o material mais sensível da rodada** — são o documento
+  entregue, com PII já interpolada. Vivem em `storage/<uuid>/reviews/<...>/render/`
+  e **nunca** são citáveis no MOC git. Screenshot é o vazamento mais fácil de
+  cometer: não cole, não anexe, não descreva conteúdo nominal.
 
 ## Passo 9 — Entregável (três destinos · [[ADR-343]])
 

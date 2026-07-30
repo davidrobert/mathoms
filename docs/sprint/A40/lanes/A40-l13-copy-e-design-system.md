@@ -53,4 +53,8 @@ resolve o sintoma.
   componentes de relatório fora do primitivo, citando arquivo:linha.
 - Teste de primitivo: KPI renderiza com `font-mono` + `tabular-nums`.
 - Definição alcançável por teclado (Tab) e presente no PDF.
-- **Verificação renderizada** obrigatória.
+- **Verificação renderizada** — spec com fixture `large-values` (exercita
+  abreviação e alinhamento) assertando `font-mono`/`tabular-nums` no KPI do hero, e
+  ausência de `k`/`M` em valor monetário no `inner_text`. Acessibilidade via
+  `frontend/tests/e2e/reports/a11y.@critical.spec.ts` (já existe): a definição do KPI
+  tem de ter nome acessível.
