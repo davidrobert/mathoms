@@ -6,8 +6,8 @@ status: in_progress
 created_at: 2026-07-03
 last_review: 2026-07-03
 sprint_origem: A28
-sprint_atual: A28
-sprints_envolvidas: [A28]
+sprint_atual: A40
+sprints_envolvidas: [A28, A40]
 paused_at: null
 pause_reason: null
 adrs_canonical:

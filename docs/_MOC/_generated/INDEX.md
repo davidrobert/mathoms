@@ -348,6 +348,7 @@
 | ADR-351 | adr | Proposto |  | Retorno de principal de investimento não é renda recorrente (receita_investimento) | `adr/351-retorno-principal-investimento-nao-recorrente.md` |
 | ADR-352 | adr | Proposto |  | Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante | `adr/352-premio-decomposicao-por-cobertura.md` |
 | ADR-353 | adr | Proposto |  | Confiança do diagnóstico comportamental condicionada à cobertura de categorização | `adr/353-diagnostico-comportamental-confianca.md` |
+| ADR-354 | adr | Proposto |  | Identidade de transação (K4) exclui atributos de proveniência do documento | `adr/354-identidade-transacao-exclui-proveniencia.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -814,6 +815,20 @@
 | A39.l7 | lane | shipped | A39 | Sweep de verificabilidade: itau_xls + santander_xls declaram conservacao_verificavel (wise/rico cortados) | `sprint/A39/lanes/A39-l7-verificabilidade-sweep.md` |
 | A39.l8 | lane | shipped | A39 | Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto) | `sprint/A39/lanes/A39-l8-fatura-itau-visa.md` |
 | A39.l9 | lane | shipped | A39 | Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) | `sprint/A39/lanes/A39-l9-posicao-renda-variavel.md` |
+| A40.l1 | lane | planned | A40 | Instrumento: detector de duplicação cross-grupo + baseline congelado | `sprint/A40/lanes/A40-l1-ledger-cross-grupo-check.md` |
+| A40.l10 | lane | planned | A40 | Ordem do plano com critério encodado + pendências acionáveis do dono | `sprint/A40/lanes/A40-l10-pendencia-do-dono-e-ordem-do-plano.md` |
+| A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
+| A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
+| A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
+| A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
+| A40.l2 | lane | planned | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
+| A40.l3 | lane | planned | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
+| A40.l4 | lane | planned | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
+| A40.l5 | lane | planned | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
+| A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
+| A40.l7 | lane | planned | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
+| A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
+| A40.l9 | lane | planned | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -902,6 +917,7 @@
 | MOC-sprint-a37 | moc |  |  | Sprint A37 — Qualidade do relatório: achados do pipeline-review 2026-07-20 | `sprint/A37/_README.md` |
 | MOC-sprint-a38 | moc |  |  | Sprint A38 — Ingestão confiável: certificação de parse dos layouts 2026 (Wise/Santander/Itaú) | `sprint/A38/_README.md` |
 | MOC-sprint-a39 | moc |  |  | Sprint A39 — Parse correctness: fechar a dívida de verificação da ingestão E0→E2 | `sprint/A39/_README.md` |
+| MOC-sprint-a40 | moc |  |  | Sprint A40 — Report trust: o dado que entrou tem de chegar ao usuário | `sprint/A40/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |

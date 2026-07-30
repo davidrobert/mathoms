@@ -88,10 +88,16 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 > Fechamento determinístico: `dev/certify_ledger_local.py` (conservação tol-zero,
 > 105/105) + medição própria de duplicação cross-grupo.
 > Cru + síntese com valores: `storage/1b9f2cf5-…/reviews/2026-07-29-573a54a7/` (off-git).
+>
+> **Correção de âncora (2026-07-30, painel A40):** o mecanismo original do RV3-01 citava caixa de
+> `banco` como carrier. Está errado — `normalize_banco` (`_tx_identity.py:75`) já faz lowercase +
+> strip-accents **antes** do hash, em v1 e v2. Os carriers reais são `tipo_conta` (vocabulário) e
+> `titular` vazio. A duplicação medida **não muda**; a causa sim. Sem a correção, a lane shiparia
+> um no-op e fecharia verde.
 
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
 |---|---|---|---|---|---|---|
-| RV3-01 — dupla contagem cross-grupo no razão E4: `banco` sem normalização de caixa (`c6bank`↔`C6Bank`, `itau`↔`Itau`) + `titular` vazio numa das pernas ⇒ `transaction_hash` divergente fura o dedup K4; mesmo lançamento entra por `tipo_conta=extrato` e `tipo_conta=extratoconta` | correção | Crítico | P0 | procede (medido) | procede-aberto | owner: data-engineer · lane a abrir · [[ADR-350]]? |
+| RV3-01 — dupla contagem cross-grupo no razão E4: `tipo_conta` com vocabulário divergente (`extrato` vs `extratoconta`, que `normalize_tipo_conta` não colapsa) + `titular` vazio numa das pernas ⇒ `transaction_hash` divergente fura o dedup K4; mesmo lançamento entra por dois grupos-fonte | correção | Crítico | P0 | procede (medido) | procede-aberto | owner: data-engineer · [[A40.l2]] · [[ADR-354]] |
 | RV3-02 — `fluxo_caixa.janela_12m.*` tem **zero consumidores** em `frontend/src`; todo número de fluxo na tela/PDF vem do bloco de janela `full` (`FluxoMensalChart.tsx:82,92`, `conclusionUtils.ts:109`) enquanto o valor canônico de 12m existe no payload | consistência | Alto | P0 | procede (causa-raiz) | procede-aberto | owner: senior-cto · absorve RV3-16/RV3-17 |
 | RV3-03 — `SectionSummary.tsx:23` lê `narrativas[<ID maiúsculo>]`; builder emite `narrativas.summaries.<id minúsculo>` como **string** (componente espera objeto) ⇒ 16/16 parágrafos de abertura não renderizam; gate CV9 verde mede geração, não entrega | completude | Alto | P0 | procede | procede-aberto | owner: senior-cto · lane a abrir |
 | RV3-04 — `S_PROTECAO` `enabled: false` (`report_layout.yaml`) com componente entregue e testado + ausente de `MIGRATED_SECTIONS`; `buildNavGroups`/`tocGroups` em `ReportShell.tsx:107-126,187-207` não filtram `enabled` ⇒ âncora de nav sem alvo em 100% dos relatórios | completude | Alto | P1 | procede | procede-aberto | owner: product-designer · [[ADR-240]] §Entrega sem registro do flip |
@@ -123,7 +129,7 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 | RV3-30 — conversões de câmbio aparecem em `nao_identificado` e novamente como receita na moeda destino | correção | Médio | P2 | procede | procede-aberto | owner: data-engineer · faceta de RV3-01 |
 | RV3-31 — duas taxas de retirada (yield-alvo na meta vs SWR na estimativa) | solidez-financeira | Baixo | P3 | **refutado** | não-acionável | decisão explícita: [[ADR-191]] §Emenda 2026-07-15 + `FORMULAS.md:94` "nunca colapsar"; aceite cumprido nas 2 superfícies |
 | RV3-32 — `pipeline_run_costs` órfã (SSOT é `llm_call_log`) | saúde-execução | Baixo | P3 | procede (higiene) | procede-aberto | JÁ-CONHECIDO **RV2-22** |
-| RV3-33 — achados **inertes** (defeito real sem alcance ao usuário nesta config): ranking de despesa na narrativa (não renderiza por RV3-03), `alertas[]` dead-field, e 5 correlatos | — | — | — | procede-inerte | não-acionável | reavaliar quando RV3-03 fechar — o conteúdo passa a aparecer |
+| RV3-33 — achados **inertes** (defeito real sem alcance ao usuário nesta config): ranking de despesa na narrativa (não renderiza por RV3-03), `alertas[]` dead-field, e 5 correlatos — **os 7 deixam de ser inertes no instante em que [[A40.l4]] mergeia** | — | (intrínseca de cada um) | P2 | procede-bloqueado | procede-aberto · `depends_on: A40.l4` | owner: product-designer · re-triagem item-a-item é critério de aceite bloqueante da [[A40.l4]], não follow-up |
 
 **Positivos verificados:** conservação do razão fecha em tol-zero (105/105 grupos-fonte,
 baldes `despesas`/`receitas` fechando em cents); zero-write do harness confirmado;
