@@ -79,9 +79,8 @@ Sobe a stack inteira e **roda migrations + seed automaticamente** — não preci
 ### Opção B — Nativo (uvicorn local)
 
 ```bash
-make dev-bootstrap                          # 1. venv, deps (Python + ambos frontends), .env, codegen
-make up                                     # 2. migra (alembic) + sobe os 6 serviços em background
-cd backend && python seed_db.py && cd ..    # 3. cria o usuário dev (schema já migrado no passo 2)
+make onboard   # setup do zero: venv, deps, .env, migra o DB e cria o usuário dev
+make up        # sobe os 6 serviços em background
 ```
 
 Sobe 6 serviços: Redis, API 8000, worker Celery, frontend 3000, ops API 8001, frontend-ops 3100. Logs em `_dev_pids/<svc>.log`.
@@ -89,9 +88,7 @@ Sobe 6 serviços: Redis, API 8000, worker Celery, frontend 3000, ops API 8001, f
 - Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · login `admin@mathoms.ai` / `admin`.
 - Operar: `make status` (o que roda) · `make logs SVC=api` · `make down` (para tudo, preserva `.env` e `mathoms.db`) · `make recover` (destrava o clone).
 
-> **Ordem importa:** rode `make up` (que aplica as migrations Alembic) **antes** do `seed_db.py`. O `seed_db.py` cria o schema via `create_all` (uso de smoke/fixture) — rodá-lo num DB vazio antes das migrations gera drift que quebra o `alembic upgrade head` seguinte. O caminho canônico de schema é `make migrate` (embutido no `make up`).
-
-Demais targets (`make dev-pull`, `make native-restart-worker`, `make migrate`), fallback manual passo-a-passo e troubleshooting (Alembic, Playwright/PDF): **[docs/reference/SETUP.md §4](docs/reference/SETUP.md)** · `make help`.
+Passo a passo (o que o `onboard` faz): `make dev-bootstrap` → `make seed` (que roda `make migrate` antes de semear, criando o schema via Alembic — não via `create_all`). Demais targets, fallback manual e troubleshooting (Alembic, Playwright/PDF): **[docs/reference/SETUP.md §4](docs/reference/SETUP.md)** · `make help`.
 
 ### Console interno local (operador dev/staging)
 
