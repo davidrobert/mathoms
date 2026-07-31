@@ -282,13 +282,58 @@ procedimento parity double-run pronto; (7) `go-off ENV=native` testado no bake.
 - **Tier-2:** envelope WS shape+sequência = 0; span attrs normalizados exatos +
   trace contínuo; subtrees LLM estruturais; `⊆ divergência(Py,Py)` nos valores.
 - **Gate humano:** SMOKE_TEST_HUMAN PASS em `/reports/[id]` (run full do bake).
-- **CI:** job `go-parity-deterministic` verde **se** houver fixture commitável
-  PII-zero que semeie E0→E2; sem ela, o Tier-1 é make target owner-run local e o
-  CI cobre só E3→E5 semeando artefatos (decisão de escopo pendente — registrar no
-  PR que criar o job). Run full é owner-run e alimenta o gate humano.
+- **CI:** job `go-parity-deterministic` **DEFERIDO** (decisão 2026-07-31, ver
+  §Decisão abaixo). O Tier-1 é make target owner-run local; o Tier-2 é owner-run
+  e alimenta o gate humano.
 - **Dogfood:** bake com fixture → flip no workspace real (`go-on ENV=native`,
   restart do worker) → watch 3 runs → soak; rollback = `go-off ENV=native` com RTO
   em segundos; ledger de soak iniciado.
-- **Doc:** emenda 2026-07-08 na [[ADR-150]] §7 ✅; entrada em
-  `docs/reference/RUNBOOK.md` apontando para este track (procedimento go-on/go-off
-  prod + tabela de gatilhos + template de soak).
+- **Doc:** emenda 2026-07-08 na [[ADR-150]] §7 ✅; emenda 2026-07-31 (gate no
+  dogfood) ✅; entrada [RUNBOOK §11](../../../reference/RUNBOOK.md) apontando para
+  este track ✅ (go-on/go-off, `make go-parity`, leitura dos exit codes, sinais de
+  soak). Falta só o **template do ledger de soak**.
+
+## Decisão 2026-07-31 — o job de CI `go-parity-deterministic` fica DEFERIDO
+
+O A3 registrou o job como "candidato". Não construir agora, por três razões que
+se somam:
+
+1. **Orçamento de Actions.** O gasto de CI está em ~544% e a alavanca medida é o
+   **número de jobs** (GitHub cobra 1min mínimo por job). Um job de paridade
+   precisa de Redis + DB + worker Celery + binário Go de pé — é dos mais caros
+   que existiriam no repo. Somar isso durante um estouro de orçamento é o oposto
+   do que a causa-raiz recomenda.
+2. **O nightly está desligado** (waiver ADR-210 c4). Um gate "nightly ou
+   on-Go-change" cairia justamente na janela que não roda — gate verde sem
+   verificar nada é pior que gate ausente.
+3. **Falta fixture commitável.** Seedar E0→E2 exigiria documentos-fonte
+   PII-zero, que não existem; a fixture sintética de `tests/fixtures/pipeline_golden/`
+   é de **saída** de E2, então o job cobriria só E3→E5 — perdendo exatamente o E0/E2,
+   onde vivem as superfícies de LLM condicional.
+
+**Cobertura no lugar dele:** `go-test -race` + codegen sync + schemathesis contra
+o Go já rodam no `All checks green` e cobrem o contrato HTTP. O que o parity gate
+adiciona (corrupção de args/env no subprocess) é regressão que só aparece quando
+alguém edita `services/pipeline-service-go/internal/stages/` — evento raro.
+
+**Reabrir quando:** orçamento de Actions saudável **E** nightly religado. Aí o
+job entra no nightly (não per-PR), com Tier-1 sobre fixture sintética de E3→E5 e
+`log()` explícito do que ficou fora de cobertura.
+
+## Estado da execução (2026-07-31)
+
+| Fatia | Estado |
+|---|---|
+| A1 — comparador `dev/go_parity_gate.py` | ✅ #900 |
+| A2 — captura de eventos WS | ✅ #919 |
+| A3 — orquestrador + `make go-parity` | ✅ #1136 |
+| Pré-condição 2 (0-LLM) | ✅ medida — corpus real passa, sem fixture sintética |
+| A4 — Tier-2 (WS via `psubscribe` pré-dispatch) | ✅ #1137 — orquestração pronta; **execução é owner-run** (custo LLM) |
+| Doc — RUNBOOK §11 + template do ledger de soak | ✅ #1137 |
+| Job CI `go-parity-deterministic` | ⛔ **deferido** (§Decisão 2026-07-31) |
+| Fase B — gate humano | ⏸ owner |
+| Fase C — flip + soak | ⏸ owner |
+
+**Nada mais é executável sem o owner.** O caminho restante é: rodar o Tier-1
+(`make go-parity WS=<uuid>`, exige inbox vazio) → Tier-2 (custa LLM) → gate humano
+→ flip → soak com o ledger do RUNBOOK §11.3.
