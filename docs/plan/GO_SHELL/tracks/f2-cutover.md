@@ -289,6 +289,20 @@ procedimento parity double-run pronto; (7) `go-off ENV=native` testado no bake.
 - **Dogfood:** bake com fixture → flip no workspace real (`go-on ENV=native`,
   restart do worker) → watch 3 runs → soak; rollback = `go-off ENV=native` com RTO
   em segundos; ledger de soak iniciado.
-- **Doc:** emenda 2026-07-08 na [[ADR-150]] §7 ✅; entrada em
-  `docs/reference/RUNBOOK.md` apontando para este track (procedimento go-on/go-off
-  prod + tabela de gatilhos + template de soak).
+- **Doc:** emenda 2026-07-08 na [[ADR-150]] §7 ✅; emenda 2026-07-31 (gate no
+  dogfood) ✅; entrada [RUNBOOK §11](../../../reference/RUNBOOK.md) apontando para
+  este track ✅ (go-on/go-off, `make go-parity`, leitura dos exit codes, sinais de
+  soak). Falta só o **template do ledger de soak**.
+
+## Estado da execução (2026-07-31)
+
+| Fatia | Estado |
+|---|---|
+| A1 — comparador `dev/go_parity_gate.py` | ✅ #900 |
+| A2 — captura de eventos WS | ✅ #919 |
+| A3 — orquestrador + `make go-parity` | ✅ #1136 |
+| Pré-condição 2 (0-LLM) | ✅ medida — corpus real passa, sem fixture sintética |
+| A4 — Tier-2 (WS via `psubscribe` pré-dispatch) | ✅ orquestração pronta; **execução é owner-run** (custo LLM) |
+| Job CI `go-parity-deterministic` | ⏸ decisão de escopo (sem fixture commitável PII-zero) |
+| Fase B — gate humano | ⏸ owner |
+| Fase C — flip + soak | ⏸ owner |

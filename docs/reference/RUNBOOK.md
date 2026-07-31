@@ -631,7 +631,64 @@ backfill após DELETE volta a criar do baseline.
 
 ---
 
-## 11. Referências
+## 11. Cutover do shell Go (F2 do GO_SHELL · [[ADR-150]] §7)
+
+Procedimento e gatilhos de rollback vivem no track
+[plan/GO_SHELL/tracks/f2-cutover.md](../plan/GO_SHELL/tracks/f2-cutover.md) —
+esta seção é só o mapa operacional. **Fonte única do critério:** [[ADR-150]] §7 +
+emendas 2026-07-08 (tiers de paridade) e 2026-07-31 (gate no dogfood local).
+
+### 11.1 Ligar e desligar
+
+```bash
+make go-on  ENV=native     # shell Go :8002 + worker re-apontado
+make go-off ENV=native     # rollback: worker volta ao executor InProcess
+```
+
+O flip **não é a quente**: `get_pipeline_client()` memoiza o singleton por
+processo, então ambos os targets reiniciam o worker. RTO do rollback = 1 restart
+(segundos). Runs em voo: drain SIGTERM (grace 30s) + re-run idempotente — a
+escrita só commita no sucesso.
+
+### 11.2 Gate de paridade
+
+```bash
+make go-parity WS=<workspace_uuid>            # Tier-1: 3 runs por braço, 0 LLM
+```
+
+Alterna o overlay sozinho e devolve o worker ao Python no fim. Relatórios em
+`_scratch/go_parity/`.
+
+**Pré-condição: inbox vazio.** O harness verifica e falha com o path — ele **não
+move documento seu**. Com documento no inbox o E0 classificaria, e todo doc com
+`classification_confidence < 0,8` dispara o fallback LLM (o `skip_llm` do
+orquestrador filtra a lista de stages por `is_llm`; não alcança o E0). Isso gasta
+LLM e quebra o determinismo do Tier-1.
+
+Tier-2 (`--tier tier2`, via `dev/go_parity_run.py`) roda `FULL_ORDER` com
+narrativas e **custa LLM** — owner-run, alimenta o gate humano.
+
+Leitura dos exit codes:
+
+| Exit | Significado | Ação |
+|---|---|---|
+| 0 | Controle Py↔Py limpo **e** nenhuma divergência Go↔Py | segue para o gate humano |
+| 1 | Divergência Go↔Py com controle limpo | **bug de executor** — não flipa |
+| 2 | Controle Py↔Py sujo, ou falha de pré-condição | o gate **não está pronto**; normalização incompleta ou não-determinismo fora da allowlist. Qualquer veredito Go↔Py aqui é ruído |
+
+### 11.3 Sinais durante o soak
+
+Logs em `_dev_pids/go.log` + `worker.log`. Não há monitor externo no dogfood —
+`curl -sf localhost:8002/health` no início de cada run é o floor. Tabela completa
+de gatilhos de rollback (7 herdados + o de contenção SQLite) no track. O que é
+específico do dogfood e **não** existia sob `InProcess`:
+`OperationalError: database is locked` — sob o shell Go o subprocess escreve
+artefatos enquanto o worker escreve `pipeline_runs`/eventos, e SQLite WAL admite
+um escritor por vez. **1 ocorrência = rollback.**
+
+---
+
+## 12. Referências
 
 - [runbooks/f9_3_alembic_upgrade.md](runbooks/f9_3_alembic_upgrade.md) — F9.3 stage rename migration (pré-check + backup + rollback)
 - [runbooks/schema_validation_strict_flip.md](runbooks/schema_validation_strict_flip.md) — flip warn→strict per-schema (gate por baseline 7d + rollback de 1 linha, ADR-284)
