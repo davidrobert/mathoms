@@ -16,12 +16,30 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 MIN_KEYS_FOR_WINDOW = 2
-KID_AUDIT_SQL = """
-SELECT content_json->>'kid' AS kid, count(*)
-FROM pipeline_artifacts
-WHERE content_json->>'_encrypted' = 'true'
-GROUP BY 1;
-""".strip()
+
+# O sentinel ADR-231 guarda um booleano JSON. `->>` devolve TEXTO 'true' no
+# Postgres e o INTEIRO 1 no sqlite — comparar com o literal errado casa zero
+# linhas e a auditoria sai "limpa" sem ter olhado nada. Medido em 2026-07-31:
+# a forma Postgres contra o sqlite do dogfood devolvia vazio com 11.722
+# artifacts cifrados presentes. Uma query por dialeto, não uma "portável".
+_KID_AUDIT_SQL = {
+    "sqlite": (
+        "SELECT content_json->>'kid' AS kid, count(*) AS n\n"
+        "FROM pipeline_artifacts\n"
+        "WHERE content_json->>'_encrypted' = 1\n"
+        "GROUP BY 1 ORDER BY n DESC;"
+    ),
+    "postgres": (
+        "SELECT content_json->>'kid' AS kid, count(*) AS n\n"
+        "FROM pipeline_artifacts\n"
+        "WHERE content_json->>'_encrypted' = 'true'\n"
+        "GROUP BY 1 ORDER BY n DESC;"
+    ),
+}
+
+
+def kid_audit_sql(is_sqlite: bool) -> str:
+    return _KID_AUDIT_SQL["sqlite" if is_sqlite else "postgres"]
 
 
 class PreflightError(RuntimeError):
@@ -206,6 +224,7 @@ def cmd_rotate(args) -> int:
 
 def cmd_verify(args) -> int:
     keys, kid = _require_window()
+    _, sqlite_path = db_target()
     report = json.loads(args.report.read_text()) if args.report else run_task(dry_run=True)
     print("\n── 2º dry-run (prova de que nada ficou para trás) ──")
     print(format_report(report))
@@ -220,7 +239,7 @@ def cmd_verify(args) -> int:
         f"skipped={totals['skipped']} · 2º passe · kid={kid}"
     )
     print(f"\nIntegridade dos artifacts — rode e confira que só aparece o kid {kid}:\n")
-    print(KID_AUDIT_SQL)
+    print(kid_audit_sql(is_sqlite=sqlite_path is not None))
     return 0
 
 

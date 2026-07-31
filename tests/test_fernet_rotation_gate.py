@@ -130,6 +130,16 @@ def test_caminho_sqlite_preserva_a_barra_inicial(monkeypatch):
     assert path.is_absolute()
 
 
+def test_query_de_kid_usa_o_literal_do_dialeto():
+    """`->>` sobre booleano JSON devolve TEXTO 'true' no Postgres e o INTEIRO 1
+    no sqlite. Literal errado casa zero linhas e a auditoria sai "limpa" sem ter
+    olhado nada — medido contra o dogfood: vazio com 11.722 artifacts cifrados."""
+    gate = _load()
+    assert "= 1" in gate.kid_audit_sql(is_sqlite=True)
+    assert "'true'" not in gate.kid_audit_sql(is_sqlite=True)
+    assert "'true'" in gate.kid_audit_sql(is_sqlite=False)
+
+
 def test_alvo_nao_sqlite_nao_e_checado():
     """Postgres não tem arquivo para inspecionar — sem falso bloqueio."""
     gate = _load()
