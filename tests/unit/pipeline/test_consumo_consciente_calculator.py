@@ -75,6 +75,11 @@ class TestConfig:
         assert "moradia" in cfg.recurrent_categories
         assert "seguros" in cfg.recurrent_categories
 
+    def test_labels_pj_sao_recorrentes(self):
+        """Tributo/folha da PJ é obrigação recorrente, não gasto pontual (A40.l4)."""
+        cfg = ConsumoConscienteConfig.from_configs()
+        assert {"das_simples", "iss", "folha_pj"} <= cfg.recurrent_categories
+
 
 # =============================================================================
 # Filtro por threshold + categorias recorrentes
@@ -111,6 +116,20 @@ class TestFiltragem:
         )
         assert len(r.itens) == 1
         assert r.itens[0].descricao == "Viagem"
+
+    def test_das_simples_nao_infla_pontuais_nem_folga(self):
+        """DAS real (R$ 5k/guia) fica fora de ``total_pontuais`` — senão a folga
+        mensal sobe pelo valor do tributo e o teto sugerido cai (A40.l4)."""
+        cfg = ConsumoConscienteConfig.from_configs()
+        despesas = _despesas(
+            das_simples=[_txn("2026-01-20", "SIMPLES NACIONAL", 5539)],
+            folha_pj=[_txn("2026-01-25", "FOLHA DE PAGAMENTO", 2447)],
+            lazer=[_txn("2026-01-10", "Viagem", 5000)],
+        )
+        r = ConsumoConscienteCalculator(cfg).calculate(_fluxo(), despesas)
+
+        assert [i.descricao for i in r.itens] == ["Viagem"]
+        assert r.total_pontuais == 5000
 
     def test_non_list_transacoes_eh_ignorada(self):
         cfg = ConsumoConscienteConfig(consumo_min=100)

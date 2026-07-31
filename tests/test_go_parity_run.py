@@ -20,9 +20,11 @@ if str(_REPO) not in sys.path:
 from dev.go_parity_run import (  # noqa: E402
     _RUN_ID_RE,
     GateError,
+    RunRecord,
     _db_path,
     _inbox_files,
     _llm_artifact_count,
+    _ws_flags,
     assert_preconditions,
     render_verdict,
 )
@@ -117,3 +119,24 @@ def test_verdict_fails_on_any_divergence() -> None:
 
 def test_verdict_passes_when_all_clean() -> None:
     assert render_verdict(True, [True, True, True]) == 0
+
+
+def test_ws_flags_omitted_without_capture() -> None:
+    """Tier-1 não captura evento — passar --*-ws vazio faria o gate comparar lista nula."""
+    assert _ws_flags(RunRecord("a"), RunRecord("b"), RunRecord("c")) == []
+
+
+def test_ws_flags_emitted_per_arm(tmp_path: Path) -> None:
+    main = RunRecord("a", tmp_path / "py.json")
+    control = RunRecord("b", tmp_path / "ctl.json")
+    go = RunRecord("c", tmp_path / "go.json")
+    flags = _ws_flags(main, control, go)
+    assert flags[::2] == ["--python-ws", "--control-ws", "--go-ws"]
+    assert flags[1::2] == [str(main.ws_path), str(control.ws_path), str(go.ws_path)]
+
+
+def test_ws_flags_skip_go_on_control_pass(tmp_path: Path) -> None:
+    """No run de controle (go=None) só entram os dois braços Python."""
+    main = RunRecord("a", tmp_path / "py.json")
+    control = RunRecord("b", tmp_path / "ctl.json")
+    assert "--go-ws" not in _ws_flags(main, control, None)
