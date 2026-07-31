@@ -12,6 +12,8 @@
  */
 import type { ReportAnalysisData } from "@/lib/api";
 import { formatBRLNoCents } from "@/lib/format";
+import { resolveFluxoJanelaMensal } from "./fluxoJanela";
+import { describeJanelaEscopo } from "./janelaLabel";
 
 type Formatter = "brl" | "pct" | "int" | "num";
 
@@ -69,6 +71,28 @@ function prettyKey(key: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** Dois termos, uma base, um rótulo — e nenhuma "sobra" derivada aqui.
+ *
+ * Subtrair `despesa_mensal_media` (BRUTA, inclui `transferencia_patrimonial`)
+ * da receita recorrente produz um número que **não fecha** com a taxa de
+ * poupança exibida ao lado, que é ex-aporte por ADR-333; e o frontend não faz
+ * aritmética monetária para gerar número de headline (ADR-090). Enquanto o E5
+ * não emitir os termos ex-aporte mensalizados, a frase honesta tem dois
+ * números — a terceira base ("quanto sobra") vive num lugar só, o KPI de folga
+ * do card de Consumo Consciente, rotulado com a própria janela. Emitir aqui uma
+ * segunda e uma terceira leitura de "quanto sobra" na mesma seção foi medido
+ * como ilegível (F6). */
+function buildFluxoMensal(data: ReportAnalysisData): string | null {
+  const janela = resolveFluxoJanelaMensal(data.fluxo_caixa);
+  if (!janela) return null;
+  const receita = format(janela.receitaRecorrenteMensal, "brl");
+  const despesa = format(janela.despesaMensalMedia, "brl");
+  return (
+    `Sobre ${describeJanelaEscopo(janela.rotulo)}: receita recorrente de ` +
+    `${receita}/mês e despesa média de ${despesa}/mês.`
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // Chart conclusions
 // ─────────────────────────────────────────────────────────────────────
@@ -102,27 +126,28 @@ const BUILDERS: Record<string, Builder> = {
     }.`;
   },
 
-  fluxo_mensal: ({ data }) => {
-    const receita = getPath(data, "fluxo_caixa.receita_recorrente_mensal") as
-      | number
-      | undefined;
-    const despesa = getPath(data, "fluxo_caixa.despesa_mensal_media") as
-      | number
-      | undefined;
-    if (typeof receita !== "number" || typeof despesa !== "number") return null;
-    const liquido = receita - despesa;
-    return `Receita média mensal de ${format(receita, "brl")}, despesa média de ${format(despesa, "brl")}. Fluxo líquido: ${format(liquido, "brl")}.`;
-  },
+  // ADR-306 D1 (A40.l3) — família mensalização lê `fluxo_caixa.janela_12m`; o
+  // bloco `full` só entra rotulado. Este é o **único** texto de S2 que
+  // mensaliza fluxo: o chart irmão (`receita_despesa_mensal`) totaliza a janela
+  // renderizada, sem mensalizar e sem taxa.
+  fluxo_mensal: ({ data }) => buildFluxoMensal(data),
 
+  // ADR-306 D1 — `janela_12m` não traz `por_fonte`: composição é agregado
+  // histórico, permitido full **com rótulo** (é o que a cláusula final faz).
   receita_bar: ({ data }) => {
     const porFonte = getPath(data, "fluxo_caixa.por_fonte") as
       | Record<string, number>
       | undefined;
     const top = topEntry(porFonte);
     if (!top) return null;
-    return `${prettyKey(top.key)} lidera as receitas (${format(top.pct, "pct")}).`;
+    return `${prettyKey(top.key)} lidera as receitas (${format(top.pct, "pct")} do total de todo o período analisado).`;
   },
 
+  // A40.l3 NÃO tocou este texto. O percentual sai de `despesas_por_categoria`
+  // (bloco full, com aporte) enquanto a rosca do mesmo card desenha as fatias
+  // ex-aporte da janela renderizada (ADR-333) — medido: 50,0% no desenho, 43%
+  // aqui. Trocar a base OU o rótulo é decisão de domínio, não de render, e vive
+  // na lane A40.l15 junto com a base do Consumo Consciente.
   despesas_doughnut: ({ data }) => {
     const cat = getPath(data, "fluxo_caixa.despesas_por_categoria") as
       | Record<string, number>
@@ -190,11 +215,9 @@ const SECTION_SUMMARIES: Record<
       : "Patrimônio consolidado e estrutura de ativos/passivos.";
   },
   S2: (data) => {
-    const receita = getPath(data, "fluxo_caixa.receita_recorrente_mensal") as
-      | number
-      | undefined;
-    return receita
-      ? `Receita recorrente de ${format(receita, "brl")}/mês e distribuição de despesas no período.`
+    const janela = resolveFluxoJanelaMensal(data.fluxo_caixa);
+    return janela
+      ? `Receita recorrente de ${format(janela.receitaRecorrenteMensal, "brl")}/mês sobre ${describeJanelaEscopo(janela.rotulo)}, e distribuição de despesas no período.`
       : "Fluxo de caixa e diagnóstico comportamental do período.";
   },
   S3: () => "Carteira de investimentos: alocação atual, alvo e principais ativos.",

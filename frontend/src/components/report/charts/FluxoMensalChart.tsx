@@ -9,6 +9,8 @@ import { useIsPrint } from "../hooks/useIsPrint";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { PeriodToggle, type Period } from "../ui/PeriodToggle";
 import { fmtBRL, formatChartMonthLabel } from "./_shared";
+import { resolveFluxoJanelaMensal, type FluxoJanelaMensal } from "../utils/fluxoJanela";
+import { describeJanelaEscopo, pluralMeses } from "../utils/janelaLabel";
 import type { FluxoCaixaSummary } from "@/types/report-analysis";
 
 /** v2.E.3 — Chart "Fluxo de Caixa Mensal" em Chart.js (paridade
@@ -45,11 +47,10 @@ export function FluxoMensalChart({
     { label: "Despesa", data: despesa.map((v) => -v), color: theme.semantic.loss },
   ];
 
-  const context = buildContext(slicedLabels, fluxo);
-  const fallbackConclusion = conclusion ?? buildFallbackConclusion(fluxo);
+  const context = buildContext(slicedLabels, fluxo, effectivePeriod);
 
   return (
-    <ReportCard variant="neutral" title="Fluxo de Caixa Mensal" conclusion={fallbackConclusion}>
+    <ReportCard variant="neutral" title="Fluxo de Caixa Mensal" conclusion={conclusion}>
       {context && (
         <p
           data-chart-context
@@ -73,25 +74,39 @@ export function FluxoMensalChart({
   );
 }
 
+/** Duas cláusulas com origens distintas — misturá-las produzia "últimos 8
+ * meses (jan/25 a dez/25)" com 12 barras (I3): a contagem vinha do payload e o
+ * range do render. A primeira cláusula descreve o que está DESENHADO; a
+ * segunda declara a base do agregado citado, sempre rotulada. */
 function buildContext(
   slicedLabels: readonly string[],
   fluxo: FluxoCaixaSummary | undefined,
+  effectivePeriod: Period,
 ): string | null {
   if (slicedLabels.length === 0) return null;
-  const receita = fluxo?.receita_recorrente_mensal;
-  const despesa = fluxo?.despesa_mensal_media;
-  if (typeof receita !== "number" || typeof despesa !== "number") return null;
-  const first = slicedLabels[0];
-  const last = slicedLabels[slicedLabels.length - 1];
-  const range = first === last ? first : `${first} a ${last}`;
-  return `Janela dos últimos ${slicedLabels.length} meses (${range}). Receita recorrente média de ${fmtBRL(receita)}/mês versus despesa média de ${fmtBRL(despesa)}/mês.`;
+  const renderizada = describeRenderizada(slicedLabels);
+  // 3M/6M/YTD não têm bloco agregado no payload, e derivar a média de
+  // `totais_receita` trocaria receita recorrente por receita bruta
+  // (fluxo_caixa_enricher.py:432,471). Omitir é o único caminho honesto.
+  if (effectivePeriod !== "12m") return renderizada;
+  const janela = resolveFluxoJanelaMensal(fluxo);
+  if (!janela) return renderizada;
+  return `${renderizada} ${describeAgregado(janela)}`;
 }
 
-function buildFallbackConclusion(fluxo: FluxoCaixaSummary | undefined): string | undefined {
-  const receita = fluxo?.receita_recorrente_mensal;
-  const despesa = fluxo?.despesa_mensal_media;
-  if (typeof receita !== "number" || typeof despesa !== "number") return undefined;
-  const liquido = receita - despesa;
-  const taxa = receita > 0 ? (liquido / receita) * 100 : 0;
-  return `Saldo recorrente mensal de ${fmtBRL(liquido)}/mês. Taxa de poupança recorrente de ${taxa.toFixed(1).replace(".", ",")}%.`;
+/** Contagem e range vêm do MESMO lugar: as barras desenhadas. */
+function describeRenderizada(slicedLabels: readonly string[]): string {
+  const n = slicedLabels.length;
+  const first = slicedLabels[0];
+  const last = slicedLabels[n - 1];
+  const range = first === last ? first : `${first} a ${last}`;
+  return `No gráfico: ${n} ${pluralMeses(n)} (${range}).`;
+}
+
+/** ADR-306 D1 — agregado só aparece com rótulo explícito da própria base,
+ * inclusive quando é 12m: o leitor não pode inferir a base pela posição. */
+function describeAgregado(janela: FluxoJanelaMensal): string {
+  const receita = `${fmtBRL(janela.receitaRecorrenteMensal)}/mês`;
+  const despesa = `${fmtBRL(janela.despesaMensalMedia)}/mês`;
+  return `Média sobre ${describeJanelaEscopo(janela.rotulo)}: receita recorrente de ${receita} versus despesa média de ${despesa}.`;
 }

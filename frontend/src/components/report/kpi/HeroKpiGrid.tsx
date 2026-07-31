@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { KpiCard } from "../ui/Kpi";
 import { MonetaryValue } from "../MonetaryValue";
+import {
+  formatJanelaTooltip,
+  janelaBadgeLabel,
+  type JanelaRotulo,
+} from "../utils/janelaLabel";
+import { resolveTaxaPoupanca } from "../utils/fluxoJanela";
 import { formatFullBRL } from "@/lib/format";
 import type {
   PatrimonioData,
@@ -83,25 +89,24 @@ function PatrimonioInvestivelKpi({ patrimonio }: { patrimonio: PatrimonioData | 
       : undefined;
 
   return (
-    <span title={INVESTIVEL_TOOLTIP} style={{ display: "block" }}>
-      <KpiCard
-        hero
-        accent="primary"
-        tone="blue"
-        label="Patrimônio Investível"
-        value={formatCompactBRL(financeiro)}
-        sub={
-          <InvestivelSubline
-            financeiro={financeiro}
-            efetivo={efetivo}
-            geradores={geradores}
-            toggleOn={toggleOn}
-            pctLiquido={pctLiquido}
-            fonte={patrimonio?.fonte_investimentos}
-          />
-        }
-      />
-    </span>
+    <KpiCard
+      hero
+      accent="primary"
+      tone="blue"
+      label="Patrimônio Investível"
+      title={INVESTIVEL_TOOLTIP}
+      value={formatCompactBRL(financeiro)}
+      sub={
+        <InvestivelSubline
+          financeiro={financeiro}
+          efetivo={efetivo}
+          geradores={geradores}
+          toggleOn={toggleOn}
+          pctLiquido={pctLiquido}
+          fonte={patrimonio?.fonte_investimentos}
+        />
+      }
+    />
   );
 }
 
@@ -224,25 +229,62 @@ function reservaLabel(meses: number): string {
   return "excelente";
 }
 
+/** ADR-306 D2 + §Emenda A40.l3 — o rótulo da base é **texto impresso**, não
+ * tooltip: tooltip é `title=` nativo, não sai no PDF, e o PDF é o artefato que
+ * a família guarda. O tooltip fica como complemento ("média mensal calculada
+ * sobre …"), nunca como único portador da base.
+ *
+ * O par (percentual, base) vem de `resolveTaxaPoupanca` justamente para o
+ * componente não conseguir imprimir um sem o outro — o defeito medido era ler
+ * `ratios.janela_referencia` ("2026-01 a 2026-01", string de PERÍODO) como se
+ * fosse vocabulário de janela. */
 function TaxaPoupancaKpi({ ratios }: { ratios: RatiosData | undefined }) {
-  const recorrente = ratios?.taxa_poupanca_recorrente_pct;
-  const total = ratios?.taxa_poupanca_total_pct;
+  const taxa = resolveTaxaPoupanca(ratios);
+  const recorrente = taxa?.recorrentePct;
+  const total = taxa?.totalPct;
   return (
     <KpiCard
       label="Taxa de Poupança"
-      value={
-        recorrente != null
-          ? `${recorrente.toFixed(1).replace(".", ",")}%`
-          : "—"
-      }
-      sub={
-        total != null
-          ? `Recorrente · Total: ${total.toFixed(1).replace(".", ",")}%`
-          : "Recorrente"
-      }
+      title={formatJanelaTooltip(taxa?.rotulo ?? null) ?? undefined}
+      value={recorrente != null ? `${recorrente.toFixed(1).replace(".", ",")}%` : "—"}
+      sub={<TaxaPoupancaSub total={total} rotulo={taxa?.rotulo ?? null} />}
     />
   );
 }
+
+/** Sub-linha do card, dentro do próprio `KpiCard`. Nada de wrapper em volta do
+ * card: `<span style={{display:"block"}}>` virava o grid item e o card parava de
+ * esticar (134px medidos num item de 171px), além de produzir `span > div`. */
+function TaxaPoupancaSub({
+  total,
+  rotulo,
+}: {
+  readonly total: number | undefined;
+  readonly rotulo: JanelaRotulo | null;
+}) {
+  const badge = janelaBadgeLabel(rotulo);
+  return (
+    <>
+      {total != null
+        ? `Recorrente · Total: ${total.toFixed(1).replace(".", ",")}%`
+        : "Recorrente"}
+      {badge && (
+        <span data-janela-badge style={JANELA_BADGE_STYLE}>
+          {badge}
+        </span>
+      )}
+    </>
+  );
+}
+
+const JANELA_BADGE_STYLE = {
+  display: "block",
+  marginTop: 2,
+  fontSize: "var(--report-font-size-xs, 11px)",
+  textTransform: "none",
+  letterSpacing: "normal",
+  color: "var(--surface-muted-foreground)",
+} as const;
 
 function IndependenciaKpi({ goals }: { goals: Record<string, unknown> | undefined }) {
   const ifPct = numericField(goals, "if_pct");

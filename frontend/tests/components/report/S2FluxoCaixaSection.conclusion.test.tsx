@@ -51,10 +51,14 @@ const data = {
 describe("<S2FluxoCaixaSection /> — conclusion ids (audit-vault r4)", () => {
   it("passa conclusões derivadas de receita_bar/despesas_doughnut aos charts", () => {
     render(<S2FluxoCaixaSection data={data} />);
-    expect(conclusions.receita).toBe("CLT lidera as receitas (75%).");
-    expect(conclusions.despesas).toBe(
-      "Moradia concentra 80% do gasto recorrente.",
+    // A40.l3 (ADR-306 D1): composição vem do bloco full — a cláusula de
+    // período é obrigatória (full permitido apenas rotulado).
+    expect(conclusions.receita).toBe(
+      "CLT lidera as receitas (75% do total de todo o período analisado).",
     );
+    // O texto do donut NÃO foi tocado pela A40.l3 — base e rótulo do card saíram
+    // para a A40.l15 (decisão de domínio).
+    expect(conclusions.despesas).toBe("Moradia concentra 80% do gasto recorrente.");
   });
 
   it("prioriza narrativa E5.N quando presente sob o id canônico", () => {

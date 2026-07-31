@@ -9,8 +9,6 @@
  * pois o E5 JSON pode ter variações entre workspaces e versões.
  */
 
-import type { ChartSeries } from "./chart-series";
-
 // ──────────────────────────────────────────────────────────────────────
 // Lote A (S1) — Patrimônio
 // ──────────────────────────────────────────────────────────────────────
@@ -294,6 +292,12 @@ export interface RatiosData {
   cobertura_despesas_meses?: number;
   rentabilidade_pct?: number | string;
   aliquota_efetiva_ir_pct?: number | string;
+  /** ADR-306 D2 — vocabulário fechado da base (`12m` | `full` | `irpf_<ano>`).
+   * **Não confundir com `janela_referencia`**, que é string de PERÍODO
+   * ("2026-01 a 2026-01", `ratios_calculator.py`): passar `janela_referencia`
+   * a um formatador de rótulo funciona na fixture e quebra em produção. */
+  janela?: string;
+  janela_meses?: number;
   janela_referencia?: string;
   janela_n_meses?: number;
   /** Track T06 — shape aninhado preferido. `null` quando passive_income é omitido (caller). */
@@ -330,38 +334,13 @@ export interface ScoreData {
   conclusion?: string;
 }
 
-// Receitas (vive em fluxo_caixa, necessário no card de receitas de S1)
-export interface FluxoPorFonte {
-  outras_receitas?: number;
-  receita_investimento?: number;
-  receita_pj?: number;
-  receita_clt?: number;
-  receita_aluguel?: number;
-  [key: string]: number | undefined;
-}
-
-export interface FluxoCaixaSummary {
-  receita_total?: number;
-  receita_recorrente?: number;
-  receita_one_time?: number;
-  receita_recorrente_mensal?: number;
-  despesa_total?: number;
-  despesa_mensal_media?: number;
-  fluxo_liquido?: number;
-  por_fonte?: FluxoPorFonte;
-  por_fonte_detalhado?: Record<string, number>;
-  despesas_por_categoria?: Record<string, number>;
-  tabela_receitas?: Array<{ categoria: string; valor: number; pct: number }>;
-  receita_despesa_mensal_detalhado?: {
-    labels?: string[];
-    totais_receita?: number[];
-    totais_despesa?: number[];
-    /** Onda v2.E.2 — séries por sub-fonte de receita (1 dataset por origem). */
-    receita_datasets?: ChartSeries[];
-    /** Onda v2.E.2 — séries por sub-categoria de despesa (1 dataset por categoria). */
-    despesa_datasets?: ChartSeries[];
-  };
-}
+// Bloco `fluxo_caixa` — tipos extraídos para ./report-fluxo (A40.l3, gate T2
+// de tamanho de arquivo). Re-exportados aqui: import site não muda.
+export type {
+  FluxoPorFonte,
+  FluxoJanela12m,
+  FluxoCaixaSummary,
+} from "./report-fluxo";
 
 export type { ChartSeries } from "./chart-series";
 
@@ -386,6 +365,15 @@ export interface ConsumoConscienteData {
     [key: string]: unknown;
   }>;
   total_pontuais?: number;
+  /** ADR-306 (A40.l3) — total de pontuais **dentro da janela**; é o número que
+   * entra em `folga_mensal`, logo o único que permitiria ao leitor reproduzir a
+   * álgebra do card. **Sem consumidor no frontend por ora**: exibi-lo no KPI é a
+   * lane A40.l15, que exige co-change no E5 (ritmo mensal + equivalente da
+   * janela) para o card não misturar bases. */
+  total_pontuais_janela?: number;
+  /** ADR-306 D2 — rótulo da janela ("12m" | "full"). */
+  janela?: string;
+  janela_meses?: number;
   equivalente_meses_aporte?: number;
   folga_mensal?: number;
   folga_pct?: number;

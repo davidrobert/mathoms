@@ -23,13 +23,23 @@ import type { ReportResponse } from "@/lib/api";
  * - `degraded`       — A28.l9: todos os degrades de qualidade ativos
  *                      (nao_identificado 23%, premissas 10/10 fallback,
  *                      Monte Carlo sobre fallback, 7 imóveis pendentes)
+ * - `janela-divergente` — A40.l3 (ADR-306 D1): 36 meses onde o bloco `full`
+ *                      diverge de `fluxo_caixa.janela_12m` por valor
+ *                      detectável (sobra mensal R$ 4.000 vs R$ 11.000;
+ *                      gastos pontuais R$ 250.000 vs R$ 96.000). Só traz
+ *                      `narrativas.perfil_familia` **de propósito**: uma
+ *                      `narrativas.fluxo_mensal`/`S2` sombrearia
+ *                      `deriveChartConclusion` (precedência absoluta em
+ *                      `S2FluxoCaixaSection`) e o assert de janela viraria
+ *                      tautologia.
  */
 export type FixtureName =
   | "medium"
   | "long-strings"
   | "large-values"
   | "sparse-data"
-  | "degraded";
+  | "degraded"
+  | "janela-divergente";
 
 const FIXTURES_DIR = join(__dirname, "..", "fixtures", "reports");
 

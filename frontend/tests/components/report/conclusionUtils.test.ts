@@ -76,7 +76,9 @@ describe("deriveChartConclusion — convenção ADR-209 (pct absoluto)", () => {
         } as ReportAnalysisData["fluxo_caixa"],
       });
       const out = deriveChartConclusion("receita_bar", data);
-      expect(out).toContain("CLT lidera as receitas (60%)");
+      expect(out).toContain("CLT lidera as receitas (60%");
+      // A40.l3 (ADR-306 D1): composição é agregado full — exige rótulo.
+      expect(out).toContain("todo o período analisado");
     });
 
     it("trata fonte única (100% concentração) sem dividir extra", () => {

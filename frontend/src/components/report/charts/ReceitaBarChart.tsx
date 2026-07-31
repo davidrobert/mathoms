@@ -10,7 +10,7 @@ import { useChartTheme } from "./primitives/useChartTheme";
 import type { ChartSeries as ChartPrimitiveSeries } from "./primitives/types";
 import { PeriodToggle } from "../ui/PeriodToggle";
 import type { Period } from "../ui/PeriodToggle";
-import { fmtBRL } from "./_shared";
+import { fmtBRL, formatRangeHumano } from "./_shared";
 import type { ChartSeries, FluxoCaixaSummary } from "@/types/report-analysis";
 
 interface FonteAggregated {
@@ -68,7 +68,7 @@ export function ReceitaBarChart({
     color: f.color,
   }));
 
-  const chartContext = buildChartContext(aggregated, total);
+  const chartContext = buildChartContext(aggregated, total, formatRangeHumano(window.label));
   const fallbackConclusion = buildFallbackConclusion(aggregated, total);
 
   return (
@@ -136,20 +136,25 @@ function humanizeLabel(raw: string): string {
   return raw.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** ADR-306 D1 (A40.l3) — total da janela RENDERIZADA, rotulado: a conclusão ao
+ * lado cita a composição de todo o período (`por_fonte`), e os dois números
+ * diferem. */
 function buildChartContext(
   aggregated: readonly FonteAggregated[],
   total: number,
+  rangeLabel: string,
 ): string {
   if (total <= 0) return "Sem receita registrada na janela selecionada.";
+  const escopo = rangeLabel ? ` na janela exibida (${rangeLabel})` : "";
   const top = aggregated.slice(0, TOP_N_CONTEXT);
   const topShare = top.reduce((acc, f) => acc + f.total, 0);
   const restShare = Math.max(0, total - topShare);
   const restPct = ((restShare / total) * 100).toFixed(0);
   const topFmt = top.map((f) => `${f.label} (${((f.total / total) * 100).toFixed(0)}%)`).join(", ");
   if (aggregated.length <= TOP_N_CONTEXT) {
-    return `Composição da receita total de ${fmtBRL(total)} por fonte: ${topFmt}.`;
+    return `Composição da receita total de ${fmtBRL(total)}${escopo} por fonte: ${topFmt}.`;
   }
-  return `Composição da receita total de ${fmtBRL(total)} por fonte: ${topFmt}, outras (${restPct}%).`;
+  return `Composição da receita total de ${fmtBRL(total)}${escopo} por fonte: ${topFmt}, outras (${restPct}%).`;
 }
 
 function buildFallbackConclusion(

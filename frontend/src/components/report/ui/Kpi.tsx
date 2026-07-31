@@ -33,6 +33,11 @@ export interface KpiCardProps {
   readonly hero?: boolean;
   readonly progress?: { value: number; tone?: "green" | "blue" | "red" };
   readonly className?: string;
+  /** A40.l3 — tooltip nativo no próprio card. Envolver o KpiCard num
+   * `<span style={{display:block}}>` (padrão anterior) tirava o card do
+   * `align-items: stretch` do grid — 37px de deficit vs os irmãos da linha,
+   * medido — e produzia `span > div`, aninhamento inválido. */
+  readonly title?: string;
 }
 
 export function KpiCard({
@@ -44,11 +49,13 @@ export function KpiCard({
   hero = false,
   progress,
   className,
+  title,
 }: KpiCardProps) {
   return (
     <div
       className={className}
       data-kpi-hero={hero || undefined}
+      title={title}
       style={{
         background: "var(--surface-card)",
         borderRadius: "var(--radius-card, 12px)",

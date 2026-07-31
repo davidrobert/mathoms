@@ -5,6 +5,7 @@ title: "Política de base temporal de mensalização no E5 — janela canônica 
 status: Decidido
 phase: A28
 date: "2026-07-03"
+amended_at: ["2026-07-31"]
 relates_to:
   - "[[ADR-191]]"
   - "[[ADR-090]]"
@@ -22,6 +23,30 @@ tags:
 **Status:** Decidido (A28) • **Data:** 2026-07-03 • Co-design
 `financial-planner` + `senior-cto` (2026-07-03). Relaciona [[ADR-191]]
 (custo essencial), [[ADR-090]] (money), [[ADR-161]] (suggestions Cerbasi/Perini).
+
+> **Emenda de precisão (A40.l3, 2026-07-31)** — duas obrigações operacionais que
+> §Consequências deixava implícitas e que a A40.l3 mediu como **violadas em
+> produção**:
+>
+> 1. **Rótulo em tooltip não conta.** Tooltip (`title=` nativo ou portal com
+>    hover/focus) não sai no PDF, e o PDF é o artefato que a família guarda e leva
+>    ao contador. O rótulo obrigatório é **texto impresso ao lado do número**.
+>    Tooltip é complemento, nunca portador único da base.
+> 2. **O rótulo é lido do campo `janela`** (vocabulário D2), nunca de campo
+>    vizinho de nome parecido: `ratios.janela_referencia` é string de PERÍODO
+>    ("2026-01 a 2026-01", `ratios_calculator.py`) e passá-la a um formatador de
+>    rótulo funciona em fixture e quebra em produção.
+>
+> **Nota de leitura, sem valor normativo novo:** em §Decisão, o parêntese de D6
+> ("`total_pontuais` **(tabela)** segue full-period") escopa D6 ao **inventário
+> histórico**. Se o KPI de gastos pontuais deve migrar para a base de janela — por
+> ser o termo que fecha a álgebra da folga, que D1 põe na família de 12m — é
+> questão **aberta**, analisada em `docs/sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md`;
+> exige co-change no E5 e rebaseline de snapshot. Enquanto a A40.l15 não fecha, o
+> card exibe o acumulado full **rotulado** (mesma base da prosa que o E5 emite) e
+> a folga rotulada com a janela — duas bases, dois rótulos impressos. Registrado
+> aqui para o próximo revisor não re-litigar a fronteira D1/D6 do zero, como a
+> A40.l3 fez.
 
 ## Contexto
 
