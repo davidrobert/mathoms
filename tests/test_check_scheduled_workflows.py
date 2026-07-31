@@ -106,9 +106,35 @@ def test_waiver_vencido_vira_hard_fail(monkeypatch):
 
 def test_offline_degrada_para_pass(monkeypatch):
     gate = _load_gate()
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     monkeypatch.setattr(gate, "repo_slug", lambda: None)
     monkeypatch.setattr("sys.argv", ["check_scheduled_workflows.py"])
     assert gate.main() == 0
+
+
+def test_gh_mudo_dentro_do_ci_e_falha_nao_pass(monkeypatch):
+    """Degradar em silêncio no CI recriaria o fail-open que o gate combate."""
+    gate = _load_gate()
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setattr(gate, "workflow_state", lambda *_: None)
+    found = gate._check_state("o/r", _entry())
+    assert [v.signal for v in found] == ["GH"]
+    assert "permissions" in found[0].detail
+
+
+def test_gh_mudo_fora_do_ci_segue_gracioso(monkeypatch):
+    gate = _load_gate()
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setattr(gate, "workflow_state", lambda *_: None)
+    assert gate._check_state("o/r", _entry()) == []
+
+
+def test_sem_repo_slug_dentro_do_ci_falha(monkeypatch):
+    gate = _load_gate()
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setattr(gate, "repo_slug", lambda: None)
+    monkeypatch.setattr("sys.argv", ["check_scheduled_workflows.py"])
+    assert gate.main() == 1
 
 
 def test_escape_hatch_por_label(monkeypatch):

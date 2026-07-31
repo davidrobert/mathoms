@@ -142,17 +142,33 @@ def _waiver_state(entry: dict, ref: date) -> tuple[bool, Violation | None]:
     return False, Violation("WAIVER", entry["file"], detail)
 
 
+def running_in_ci() -> bool:
+    return os.environ.get("GITHUB_ACTIONS") == "true"
+
+
+def _unreachable(entry: dict, what: str) -> list[Violation]:
+    """No CI, `gh` mudo é falha — degradar em silêncio recriaria o fail-open."""
+    if not running_in_ci():
+        return []
+    detail = f"`gh` não respondeu para {what} — cheque permissions do job (actions/issues: read)"
+    return [Violation("GH", entry["file"], detail)]
+
+
 def _check_state(repo: str, entry: dict) -> list[Violation]:
     state = workflow_state(repo, entry["file"])
-    if state is None or state == "active":
+    if state is None:
+        return _unreachable(entry, "state do workflow")
+    if state == "active":
         return []
     return [Violation("S1", entry["file"], f"workflow está `{state}` (esperado `active`)")]
 
 
 def _check_liveness(repo: str, entry: dict, ref: date) -> list[Violation]:
     age = last_scheduled_run_age(repo, entry["file"], ref)
+    if age is None:
+        return _unreachable(entry, "runs agendados")
     limit = entry["max_age_days"]
-    if age is None or age <= limit:
+    if age <= limit:
         return []
     seen = "nunca rodou por schedule" if age == float("inf") else f"último run há {age}d"
     return [Violation("S2", entry["file"], f"{seen} (limite {limit}d)")]
@@ -165,7 +181,10 @@ def _check_issue_rot(entry: dict, ref: date) -> list[Violation]:
         if max_days is None:
             continue
         stale = stale_alert_issues(alert["label"], max_days, ref)
-        for issue in stale or []:
+        if stale is None:
+            out.extend(_unreachable(entry, f"Issues `{alert['label']}`"))
+            continue
+        for issue in stale:
             out.append(
                 Violation(
                     "S3",
@@ -236,6 +255,9 @@ def main() -> int:
     args = parser.parse_args()
     repo = repo_slug()
     if repo is None:
+        if running_in_ci():
+            print("check_scheduled_workflows: sem repo slug DENTRO do CI", file=sys.stderr)
+            return 1
         print("check_scheduled_workflows: gh indisponível — pass gracioso (offline)")
         return 0
     violations = collect(repo, today())

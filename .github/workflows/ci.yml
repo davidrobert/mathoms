@@ -236,6 +236,16 @@ jobs:
     timeout-minutes: 4
     needs: changes
     if: needs.changes.outputs.any_code == 'true'
+    # actions: read + issues: read — o gate de liveness (ADR-210 §camada 4) lê
+    # state/runs dos workflows agendados e a idade das Issues de alerta. Sem
+    # elevar aqui o job herda `contents: read` do workflow e os demais escopos
+    # ficam `none`: as chamadas `gh` falhariam, a degradação graciosa (pensada
+    # para rodar offline) daria pass, e o gate afirmaria cobertura que não
+    # houve — o mesmo fail-open que ele existe para eliminar.
+    permissions:
+      contents: read
+      actions: read
+      issues: read
     steps:
       - uses: actions/checkout@v4
 
