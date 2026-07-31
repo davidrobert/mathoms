@@ -992,6 +992,12 @@ def route_all(
         "routed": 0,
         "duplicates": 0,
         "unidentified": 0,
+        # ADR-355: `unidentified` funde quarentena com "ficou no inbox por baixa
+        # confiança". Só o segundo mede o encolhimento de corpus de um run sem
+        # LLM, e `llm_classified` mede quantos docs SÓ rotearam graças ao LLM
+        # (insumo da decisão de free tier).
+        "inbox_review": 0,
+        "llm_classified": 0,
         "skipped": 0,
         "details": [],
         "by_dest": {
@@ -1020,6 +1026,8 @@ def route_all(
         stats["details"].append(result)
 
         status = result["status"]
+        if result.get("source") in ("llm", "llm_fallback"):
+            stats["llm_classified"] += 1
         if status in ("routed", "would_route"):
             stats["routed"] += 1
             # Count by destination
@@ -1032,6 +1040,8 @@ def route_all(
             stats["duplicates"] += 1
         elif status in ("unidentified", "inbox_review"):
             stats["unidentified"] += 1
+            if status == "inbox_review":
+                stats["inbox_review"] += 1
         elif status == "skipped":
             stats["skipped"] += 1
 

@@ -49,7 +49,13 @@ def _routed_files(ctx: WorkspaceContext) -> list[str]:
 def test_route_documents_routes_csv_by_content_regex(e0_workspace: WorkspaceContext) -> None:
     """CSV sintético é classificado (itau/extratoconta) e movido do inbox p/ data/."""
     result = route_documents.run(e0_workspace)
-    assert result == {"success": True}
+    # ADR-355: o detail carrega a política LLM do run + o encolhimento de corpus.
+    assert result == {
+        "success": True,
+        "llm_calls_allowed": True,
+        "inbox_review": 0,
+        "llm_classified": 0,
+    }
     routed = _routed_files(e0_workspace)
     assert len(routed) == 1
     assert "itau_extratoconta_202601" in routed[0]
@@ -69,7 +75,7 @@ def test_route_documents_second_run_is_idempotent(e0_workspace: WorkspaceContext
     route_documents.run(e0_workspace)
     first = _routed_files(e0_workspace)
     result = route_documents.run(e0_workspace)
-    assert result == {"success": True}
+    assert result["success"] is True
     assert _routed_files(e0_workspace) == first
 
 
