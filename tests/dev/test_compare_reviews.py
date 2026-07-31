@@ -147,7 +147,7 @@ def test_strict_promotes_render_cv_to_hard() -> None:
 
 
 def test_delivery_cv9_failure_is_hard_by_default() -> None:
-    """ADR-355: CV9 mede ENTREGA de narrativa de seção — parágrafo que sumiu do
+    """ADR-356: CV9 mede ENTREGA de narrativa de seção — parágrafo que sumiu do
     relatório é regressão, não ruído de run incremental. Sai do _RENDER_SOFT."""
     cur = _snap(cv_results=_cv_failing("CV9"))
     hard, soft, _notes = compare_reviews(_snap(), cur, _report_data(), _report_data())

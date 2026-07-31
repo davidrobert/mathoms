@@ -1,5 +1,5 @@
 /**
- * ENTREGA das narrativas de seção — lado TS do par (A40.l4 · ADR-355).
+ * ENTREGA das narrativas de seção — lado TS do par (A40.l4 · ADR-356).
  *
  * Lê os MESMOS dois arquivos que `tests/test_e5n_delivery_contract.py`:
  * `e5n_delivery.json` (fixture gerada pelo produtor — o sentinela é a própria
@@ -151,7 +151,7 @@ const SUMMARY_TEXTS = Object.entries(FIXTURE.summaries).filter(([, t]) =>
   t.trim(),
 );
 
-describe("entrega de narrativa de seção (ADR-355)", () => {
+describe("entrega de narrativa de seção (ADR-356)", () => {
   it("o layout entrega exatamente os destinos declarados (P7)", () => {
     const doLayout = RENDER_SITES.filter((e) => e.summary_source).map(
       (e) => [e.id, e.summary_source] as const,
@@ -223,7 +223,7 @@ describe("entrega de narrativa de seção (ADR-355)", () => {
   });
 });
 
-describe("prova do gate — shapes que nenhum produtor emite (ADR-355)", () => {
+describe("prova do gate — shapes que nenhum produtor emite (ADR-356)", () => {
   it("chave legada `narrativas[<ID maiúsculo>]` é ignorada", () => {
     const data = buildData({
       narrativas: {
@@ -267,7 +267,7 @@ describe("prova do gate — shapes que nenhum produtor emite (ADR-355)", () => {
   });
 });
 
-describe("composição e supressão por seção (ADR-355)", () => {
+describe("composição e supressão por seção (ADR-356)", () => {
   // ADR-148: o sufixo de changelog era anexado DENTRO de `deriveSectionSummary`
   // (camada 3). Com a camada 2 acesa em 7 seções, a 3 deixaria de rodar nelas e
   // o sufixo pararia de renderizar sem ninguém decidir isso. Decisão da l4: o

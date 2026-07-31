@@ -128,7 +128,7 @@ estrategico:
       title: "Patrimônio — Estrutura e Composição"
       enabled: true
       summary: true
-      # ADR-355: destino declarado da narrativa E5.N (nunca id.toLowerCase()).
+      # ADR-356: destino declarado da narrativa E5.N (nunca id.toLowerCase()).
       summary_source: "s1"
       charts:
         - id: "patrimonio_doughnut"
@@ -179,7 +179,7 @@ estrategico:
       title: "Fluxo de Caixa — Receitas e Despesas"
       enabled: true
       summary: true
-      # ADR-355: `summaries.s2` é o parágrafo de SCORE financeiro, não de
+      # ADR-356: `summaries.s2` é o parágrafo de SCORE financeiro, não de
       # fluxo de caixa — mapear por lowercase publicaria score aqui. Destino
       # semântico do s2 é decisão de produto (gatilho financial-planner).
       summary_source: null
@@ -386,7 +386,7 @@ estrategico:
     - id: "S_IRPF_RENDA"
       title: "Renda Anual e Impostos"
       enabled: true
-      # A40.l4: `summary: false`. As três camadas da ADR-355 são vazias para
+      # A40.l4: `summary: false`. As três camadas da ADR-356 são vazias para
       # esta seção — não está em `SUPPORTED_SECTION_IDS` (LLM), o E5.N não
       # produz narrativa fiscal-IRPF (`summary_source: null`) e não há entrada
       # em `SECTION_SUMMARIES` (conclusionUtils.ts). Flag `true` + render site
@@ -464,7 +464,7 @@ estrategico:
       enabled: true
       summary: true
       summary_source: "s9"
-      # ADR-355 §D6: a S9 curto-circuita em <EmptyState/> quando o
+      # ADR-356 §D6: a S9 curto-circuita em <EmptyState/> quando o
       # `bubble_riscos` vem `data_state: "empty"`, e o parágrafo NÃO é impresso
       # nesse ramo (o EmptyState já é a mensagem). Declarar o gate aqui é o que
       # permite ao CV9 contar 6/7 em vez de mentir 7/7 nesse run.
@@ -548,7 +548,7 @@ estrategico:
     - id: "plano_de_acao"
       title: "Plano de Ação — Decisões em Vigor"
       enabled: true
-      # ADR-355: `summary: true` era flag morta — a seção nunca renderizou
+      # ADR-356: `summary: true` era flag morta — a seção nunca renderizou
       # <SectionSummary> (é projeção da Decision aggregate).
       summary: false
       divider_before: true
@@ -563,7 +563,7 @@ estrategico:
     - id: "APP_A"
       title: "Definições e Siglas"
       enabled: true
-      # ADR-355: apêndice renderiza <SectionSummary>; texto é determinístico
+      # ADR-356: apêndice renderiza <SectionSummary>; texto é determinístico
       # (camada 3), o E5.N não produz narrativa de apêndice.
       summary: true
       summary_source: null

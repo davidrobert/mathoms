@@ -276,7 +276,7 @@
     },
     "narrativas": {
       "type": "object",
-      "description": "Bloco E5.N (ADR-355 · A40.l4). Shape declarado porque o renderer depende dele: `summaries.sN` é STRING (o componente esperava objeto e o texto não renderizava em seção nenhuma). Insumo para o codegen de tipos do view-model (A40.l5) — sem esta declaração o tipo gerado nasce frouxo.",
+      "description": "Bloco E5.N (ADR-356 · A40.l4). Shape declarado porque o renderer depende dele: `summaries.sN` é STRING (o componente esperava objeto e o texto não renderizava em seção nenhuma). Insumo para o codegen de tipos do view-model (A40.l5) — sem esta declaração o tipo gerado nasce frouxo.",
       "properties": {
         "perfil_familia": {
           "type": "object",
@@ -309,7 +309,7 @@
     },
     "section_summaries": {
       "type": "object",
-      "description": "Camada 1 da precedência (ADR-355): parágrafo de seção gerado por LLM (ADR-144 §3), opt-in via MATHOMS_LLM_SECTION_SUMMARIES, default OFF. Chave é o id da seção em MAIÚSCULA (`S1`), valor é string — sem shape {context, conclusion}.",
+      "description": "Camada 1 da precedência (ADR-356): parágrafo de seção gerado por LLM (ADR-144 §3), opt-in via MATHOMS_LLM_SECTION_SUMMARIES, default OFF. Chave é o id da seção em MAIÚSCULA (`S1`), valor é string — sem shape {context, conclusion}.",
       "patternProperties": {
         "^[A-Z][A-Z0-9_]*$": {"type": "string"}
       },

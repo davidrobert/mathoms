@@ -1,6 +1,6 @@
 {
   "_doc": [
-    "Mapa ESPERADO seção → chave de `narrativas.summaries` (A40.l4 · ADR-355 §D2).",
+    "Mapa ESPERADO seção → chave de `narrativas.summaries` (A40.l4 · ADR-356 §D2).",
     "Declaração INDEPENDENTE do layout: `config/report_layout.yaml` é o runtime,",
     "este arquivo é a expectativa contra a qual o runtime é conferido — por",
     "tests/test_e5n_delivery_contract.py (Python) e por",

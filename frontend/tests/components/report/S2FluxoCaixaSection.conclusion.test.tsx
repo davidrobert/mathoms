@@ -62,7 +62,7 @@ describe("<S2FluxoCaixaSection /> — conclusion ids (audit-vault r4)", () => {
   });
 
   it("ignora conclusão no TOPO de narrativas — shape que nenhum produtor emite", () => {
-    // A40.l4 (ADR-355): este caso afirmava o contrário e passava verde sobre
+    // A40.l4 (ADR-356): este caso afirmava o contrário e passava verde sobre
     // uma fixture falso-verde. O E5.N emite conclusão de chart em
     // `narrativas.charts[id]`; nenhum dos 17 ids aparece no topo do bag, então
     // a precedência "narrativa > derivado" que o código implementava era ramo
@@ -75,6 +75,8 @@ describe("<S2FluxoCaixaSection /> — conclusion ids (audit-vault r4)", () => {
       },
     } as unknown as ReportAnalysisData;
     render(<S2FluxoCaixaSection data={topLevelKey} />);
-    expect(conclusions.receita).toBe("CLT lidera as receitas (75%).");
+    expect(conclusions.receita).toBe(
+      "CLT lidera as receitas (75% do total de todo o período analisado).",
+    );
   });
 });

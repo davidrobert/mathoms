@@ -1,4 +1,4 @@
-"""Substrato sintético dos testes de narrativa E5.N (A40.l4 · ADR-355).
+"""Substrato sintético dos testes de narrativa E5.N (A40.l4 · ADR-356).
 
 Família, `GoalsBundle` e payload E5 mínimos + o atalho que roda o builder e
 devolve `summaries`. Extraído de `tests/test_e5n_anti_hardcode.py` quando o
@@ -74,7 +74,7 @@ def _goals_if(params: Mapping[str, float]) -> dict[str, Any]:
 # Shape de produção de `bundle["tributario"]` (`pipeline_adapter`
 # `_assemble_tributario_section`): `regime` (não o label) é o sinal de perfil
 # declarado (ADR-236 §D5) e `contador_nome` existe; NÃO existe `contador_mensal`
-# (ADR-355 §D7 — o `get(..., 0)` legado publicava honorário "R$ 0,00/mês"). A base
+# (ADR-356 §D7 — o `get(..., 0)` legado publicava honorário "R$ 0,00/mês"). A base
 # da classificação de efeito tem de ser esse shape, senão as classificações
 # descrevem outro mundo.
 def _goals_tributario(params: Mapping[str, float]) -> dict[str, Any]:

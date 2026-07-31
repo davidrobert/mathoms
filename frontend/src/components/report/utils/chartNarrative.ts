@@ -1,5 +1,5 @@
 /**
- * ADR-355 (A40.l4) — leitura única da conclusão de chart vinda do E5.N.
+ * ADR-356 (A40.l4) — leitura única da conclusão de chart vinda do E5.N.
  *
  * Conclusões de chart vivem SEMPRE em `narrativas.charts[<id>]`: os 17 ids
  * que o produtor emite estão lá, e nenhum aparece no topo de `narrativas`.

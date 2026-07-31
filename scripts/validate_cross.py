@@ -340,7 +340,7 @@ def _delivered(value) -> bool:
 
 # Render site existir não é o mesmo que o parágrafo aparecer. A S9 curto-circuita
 # em ``<EmptyState/>`` quando o ``bubble_riscos`` vem ``data_state: "empty"`` e
-# NÃO imprime o ``s9`` nesse ramo — a mensagem já é o empty state (ADR-355 §D7).
+# NÃO imprime o ``s9`` nesse ramo — a mensagem já é o empty state (ADR-356 §D7).
 # A primeira versão do CV9 devolvia ``entregues=7/7`` num run que renderizava 6:
 # ela media produtor × mapa, e o 4º predicado só olhava flags ESTÁTICAS do
 # layout, cegas a supressão condicional.
@@ -409,7 +409,7 @@ def _nao_entregues(
 
 
 def _cv9_summaries_delivery(e5: dict) -> CrossValidationResult:
-    """CV9 — ENTREGA das narrativas de seção (A40.l4 · ADR-355 §D6)."""
+    """CV9 — ENTREGA das narrativas de seção (A40.l4 · ADR-356 §D6)."""
     summaries = (e5.get("narrativas") or {}).get("summaries") or {}
     destinos = _summary_render_destinations()
     fail = _delivery_failures(summaries, destinos)

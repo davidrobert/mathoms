@@ -9,7 +9,7 @@ interface SectionSummaryProps {
 }
 
 /**
- * Parágrafo editorial de abertura de seção — render site ÚNICO (ADR-355).
+ * Parágrafo editorial de abertura de seção — render site ÚNICO (ADR-356).
  *
  * A precedência (LLM → E5.N → derivado) vive em `resolveSectionSummary`;
  * aqui só se escolhe o registro visual:

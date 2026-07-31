@@ -1,4 +1,4 @@
-"""Classificação DERIVADA dos parâmetros de config citáveis (A40.l4 · ADR-355).
+"""Classificação DERIVADA dos parâmetros de config citáveis (A40.l4 · ADR-356).
 
 Braço A2 da guarda anti-hardcode (os outros quatro estão em
 `tests/test_e5n_anti_hardcode.py`, que também hospeda a tabela
@@ -107,7 +107,7 @@ _EFEITO_DECLARADO: dict[tuple[str, ...], EfeitoDeclarado] = {
     ),
     ("tributario", "contador_nome"): _gate(
         "presença liga a cláusula de contador; o NOME nunca é impresso — é PII "
-        "de terceiro (ADR-319 · ADR-355 §D9).",
+        "de terceiro (ADR-319 · ADR-356 §D9).",
         None,
     ),
     ("risks_projection",): _gate(

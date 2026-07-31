@@ -8,7 +8,7 @@ status: open
 priority: P0
 branch_slug: a40-l4-entrega-narrativas-secao
 adrs:
-  - "[[ADR-355]]"
+  - "[[ADR-356]]"
 depends_on: []
 tags:
   - type/lane
@@ -50,7 +50,7 @@ entrega — instância do padrão transversal (§Decisões nº 4 do sprint).
 - Padronizar os call-sites de conclusão de chart em `narrativas.charts`.
 - **Redefinir CV9** em `scripts/validate_cross.py` para medir entrega.
 - **Corrigir o que a entrega passa a publicar** — nenhum defeito conhecido vai ao
-  relatório: PII fora do texto (ADR-355 §D9), zero número de default de código
+  relatório: PII fora do texto (ADR-356 §D9), zero número de default de código
   (§D7-D8), zero afirmação duplicada com o empty state (§D7).
 
 ### O que a lane ENTREGA e o que ela DESLIGA
@@ -65,13 +65,13 @@ afirmado**.
 | --- | --- | --- |
 | `s1` → S1 | **entrega** | conferido contra os cards da própria seção no render single-source: 82,2% imóveis vs "82% do patrimônio bruto (R$ 600.000)" no card de composição |
 | `s3` → S3 | **entrega, com residual aberto** | ver §Residual — a contagem de "categorias de ativos" vem de `patrimonio.composicao` e a tabela da S3 vem de `investimentos.tabela_classes`; medido 3 vs 2 |
-| `s4` → S4 | **entrega sem contagem** | a quantidade de imóveis foi removida do texto (ADR-355 §D7); o que resta (valores de `patrimonio`) confere com o card |
+| `s4` → S4 | **entrega sem contagem** | a quantidade de imóveis foi removida do texto (ADR-356 §D7); o que resta (valores de `patrimonio`) confere com o card |
 | `s7` → S7 | **entrega** | 4% SWR, gap, prazo e ano conferem com os três cards da seção |
 | `s8` → S8 | **entrega parcial — DAS desligado** | o texto afirma só regime declarado + contador + holding. Estimativa de DAS/alíquota **removida** (§D7) e DAS **recolhido** também: o balde `das_simples` é 100% falso-positivo até o PR #1133 |
 | `s9` → S9 | **entrega, suprimida em empty state** | com riscos cadastrados o texto confere com a tabela de cobertura; sem riscos o parágrafo não é impresso (o `<EmptyState/>` é a mensagem) e o CV9 conta 6/7 |
 | `s10` → S10 | **entrega** | as 4 decisões e o aporte conferem com o card `top5_decisoes` |
 | `s2`, `s5`, `s6` | **não entregues (órfãs)** | sem seção de destino, com razão em `ORPHAN_SUMMARY_KEYS` |
-| `S_IRPF_RENDA`, `S_IRPF_OTIMIZACAO` | **render site deletado** | as três camadas são vazias para essas seções — flag prometia parágrafo que nenhum produtor podia produzir (ADR-355 §D11) |
+| `S_IRPF_RENDA`, `S_IRPF_OTIMIZACAO` | **render site deletado** | as três camadas são vazias para essas seções — flag prometia parágrafo que nenhum produtor podia produzir (ADR-356 §D11) |
 | conclusão de chart de S1/S2 via `narrativas.charts` | **deferida** | A40.l15 — o ranking do donut é hardcoded e o texto não tem a cláusula de janela da A40.l3 |
 
 ## Critério de aceite
@@ -212,24 +212,24 @@ procedimento descrito **e** servidor identificado por commit.
 Códigos de **cluster** (não RV3-xx), de `SINTESE.md` §placar cético do run
 `2026-07-29-573a54a7`. Verificados contra o output com a entrega ligada. **A
 re-triagem bloqueou:** 2 dos 7 viraram `agora-visível-e-errado` e foram
-corrigidos nesta lane (ver ADR-355 §D7-D9); os vereditos abaixo são os finais,
+corrigidos nesta lane (ver ADR-356 §D7-D9); os vereditos abaixo são os finais,
 pós-fix.
 
 | # | Cluster | Veredito | Motivo |
 | --- | --- | --- | --- |
 | 1 | **C11** — runway canônico (ADR-335) calculado e nunca renderizado; alias colide de nome com cobertura da reserva | `ainda-inerte` | Medido: `ratios.autonomia_financeira_meses` = 16,72 no payload, sem consumidor. É campo do view-model, não de narrativa. Dos 7 destinos entregues nenhum cita runway — o `s2`, que cita `cobertura_meses`, é órfão (`summary_source: null` na S2). A l4 não muda a superfície. Dono: A40.l5. |
-| 2 | **C18** — narrativa do donut de despesas publica ranking com 4 categorias fixas e ordem falsa | `ainda-inerte` | A l4 **não** aponta os charts de S1/S2 para `narrativas.charts` (ADR-355 §Deferimentos): o texto com o ranking hardcoded continua sem leitor, e o usuário segue protegido pelo `deriveChartConclusion` do TS, que ordena de verdade. Medido no texto real: ele cita **só o topo**, então o defeito das "4 categorias fixas" não se materializa como "14ª aparece como 3ª" — materializa-se como *ordem inventada quando há empate/valores próximos*. Dono: A40.l15. |
-| 3 | **C29** — narrativa fiscal publica DAS estimado e alíquota efetiva que nenhum campo do payload sustenta | `agora-visível-e-errado → CORRIGIDO (silêncio)` | O bloqueante de acender o `s8`. Três defeitos medidos (constante 6% fora de faixa, base = entrada na conta PF, ramo "sem regime + DAS" impossível) + o fallback declarado na §D7 original ser **inalcançável em produção**. Fix: a estimativa sai inteira e o `s8` afirma **só o regime declarado** + contador + holding. A substituição planejada (DAS **recolhido**, balde E4 `das_simples`) **também saiu**: o balde mede 100% de falso-positivo enquanto o matcher casa a preposição "DAS", e o fix é o PR **#1133**, não mergeado. Nem estimado nem recolhido — silêncio até o #1133. ADR-355 §D7. |
+| 2 | **C18** — narrativa do donut de despesas publica ranking com 4 categorias fixas e ordem falsa | `ainda-inerte` | A l4 **não** aponta os charts de S1/S2 para `narrativas.charts` (ADR-356 §Deferimentos): o texto com o ranking hardcoded continua sem leitor, e o usuário segue protegido pelo `deriveChartConclusion` do TS, que ordena de verdade. Medido no texto real: ele cita **só o topo**, então o defeito das "4 categorias fixas" não se materializa como "14ª aparece como 3ª" — materializa-se como *ordem inventada quando há empate/valores próximos*. Dono: A40.l15. |
+| 3 | **C29** — narrativa fiscal publica DAS estimado e alíquota efetiva que nenhum campo do payload sustenta | `agora-visível-e-errado → CORRIGIDO (silêncio)` | O bloqueante de acender o `s8`. Três defeitos medidos (constante 6% fora de faixa, base = entrada na conta PF, ramo "sem regime + DAS" impossível) + o fallback declarado na §D7 original ser **inalcançável em produção**. Fix: a estimativa sai inteira e o `s8` afirma **só o regime declarado** + contador + holding. A substituição planejada (DAS **recolhido**, balde E4 `das_simples`) **também saiu**: o balde mede 100% de falso-positivo enquanto o matcher casa a preposição "DAS", e o fix é o PR **#1133**, não mergeado. Nem estimado nem recolhido — silêncio até o #1133. ADR-356 §D7. |
 | 4 | **C30** — `dev/explain_number.py` devolve números de fixture sintética sem marcar | `ainda-inerte` | Ferramenta de dev, fora do caminho de render. A l4 não a toca. |
-| 5 | **C32** — narrativa determinística publica nome completo de adultos e de menor | `agora-visível-e-errado → CORRIGIDO` | A classificação "inerte" da SINTESE estava errada: `perfil_familia` renderiza hoje, independente desta lane. Mas a l4 **acendeu duas superfícies novas de PII** (`s4` citava `endereco.rua`; `s8` citava `contador_nome`), então não havia como fechar a lane sem tratar. Fix: primeiro nome para adultos, papel para o menor e para o contador, nada para endereço; guarda em 3 braços. ADR-355 §D9. |
+| 5 | **C32** — narrativa determinística publica nome completo de adultos e de menor | `agora-visível-e-errado → CORRIGIDO` | A classificação "inerte" da SINTESE estava errada: `perfil_familia` renderiza hoje, independente desta lane. Mas a l4 **acendeu duas superfícies novas de PII** (`s4` citava `endereco.rua`; `s8` citava `contador_nome`), então não havia como fechar a lane sem tratar. Fix: primeiro nome para adultos, papel para o menor e para o contador, nada para endereço; guarda em 3 braços. ADR-356 §D9. |
 | 6 | **C36** — blocos que não movem decisão competem com o sinal (orçamento 44m, premissas 10/10 indisponíveis, checklist de sucessão todo negativo) | `ainda-inerte` | São cards, não narrativa. Medido: a S9 curto-circuita em `<EmptyState/>` quando `bubble_riscos.data_state == "empty"` — e a l4 passou a **suprimir o `s9`** nesse ramo (o EmptyState já é a mensagem). O `s9` continua sendo **gerado** (`validate_narrativas` hard-falha em summary vazio); quem passa a saber que ele não foi entregue é o CV9, via `summary_suppressed_by` no layout — `entregues=6/esperadas=7` nesse run, sem reprovar. Não bloqueia a lane. |
-| 7 | **PD-20** — `goals?.trs_pct ?? 5.0` em `S7IndependenciaSection.tsx` (chave real é `goals.if_trs`) | `agora-visível-e-errado → CORRIGIDO (parcial)` | Não é "contradição 4 vs 5": sob ADR-191 §Emenda FP-03 o SWR 4% (que o `s7` cita, corretamente) e o yield-alvo 5% são conceitos distintos que **não se harmonizam** — "consertar" na direção de um número só desfaz FP-03 e encurta a meta de IF ~20%. O defeito era chave fantasma + rótulo: o card lê `ratios.rentabilidade.meta_pct`, imprime "Yield-alvo" (não "Meta") e não imprime nada quando o payload não traz. Residual: a meta ainda não é da família (ver §Residual). ADR-355 §D8. |
+| 7 | **PD-20** — `goals?.trs_pct ?? 5.0` em `S7IndependenciaSection.tsx` (chave real é `goals.if_trs`) | `agora-visível-e-errado → CORRIGIDO (parcial)` | Não é "contradição 4 vs 5": sob ADR-191 §Emenda FP-03 o SWR 4% (que o `s7` cita, corretamente) e o yield-alvo 5% são conceitos distintos que **não se harmonizam** — "consertar" na direção de um número só desfaz FP-03 e encurta a meta de IF ~20%. O defeito era chave fantasma + rótulo: o card lê `ratios.rentabilidade.meta_pct`, imprime "Yield-alvo" (não "Meta") e não imprime nada quando o payload não traz. Residual: a meta ainda não é da família (ver §Residual). ADR-356 §D8. |
 
 ## Residual medido (não bloqueou, fica declarado)
 
 | Item | Veredito medido | Dono |
 | --- | --- | --- |
-| **`s3` contradiz a tabela da própria S3** — "Carteira diversificada entre **3** categorias de ativos" enquanto o `top15_ativos`/`tabela_classes` da mesma seção lista **2** classes | Medido no render single-source (payload de um run real, cards e parágrafo da MESMA fonte): `diversificacao` conta entradas não-zero de `patrimonio.composicao` (`Imóveis de Renda`, `Investimentos Alex`, `Caixa e Moeda Estrangeira` — buckets patrimoniais, um deles **por membro**), e a tabela da S3 lê `investimentos.tabela_classes` (`Imóveis Investimento`, `Renda Fixa`). Mesma classe do `s4`: contagem de fonte que não é a da seção, e rótulo ("categorias de ativos") que não descreve o que foi contado. Fix candidato de 1 linha: `summary_source: null` na S3 — mas mudar destino é **decisão de produto** sob ADR-355 §D2 (gatilho `financial-planner`), não de quem fecha a lane | lane própria (gate `financial-planner`) |
+| **`s3` contradiz a tabela da própria S3** — "Carteira diversificada entre **3** categorias de ativos" enquanto o `top15_ativos`/`tabela_classes` da mesma seção lista **2** classes | Medido no render single-source (payload de um run real, cards e parágrafo da MESMA fonte): `diversificacao` conta entradas não-zero de `patrimonio.composicao` (`Imóveis de Renda`, `Investimentos Alex`, `Caixa e Moeda Estrangeira` — buckets patrimoniais, um deles **por membro**), e a tabela da S3 lê `investimentos.tabela_classes` (`Imóveis Investimento`, `Renda Fixa`). Mesma classe do `s4`: contagem de fonte que não é a da seção, e rótulo ("categorias de ativos") que não descreve o que foi contado. Fix candidato de 1 linha: `summary_source: null` na S3 — mas mudar destino é **decisão de produto** sob ADR-356 §D2 (gatilho `financial-planner`), não de quem fecha a lane | lane própria (gate `financial-planner`) |
 | **`s1` publica `residência própria de R$ 0,00`** | Medido no mesmo render. Mesma classe do "R$ 0,00 em campo fiscal" da §D7 (lê-se como "sua casa não vale nada"); no `s4` a parcela zerada foi suprimida nesta lane, no `s1` não — o `s1` não estava na lista fechada | A40.l5 |
 | **`perfil_familia.right` publica `n_imoveis`** — a mesma contagem que o `s4` deixou de afirmar | Medido: o card de perfil renderiza hoje (independe desta lane) e imprime `{n_imoveis} imóvel/imóveis`. É contradição **cross-seção** com a tabela da S4, não intra-seção; pré-existente e fora da lista fechada | lane própria |
 | **DAS no `s8` fica em silêncio até o PR #1133** — e `despesas_impostos` segue sem o balde | Medido: `_DAS_KEYWORDS = ("DAS",)` casa a preposição e o balde `das_simples` deu 100% de falso-positivo (pedágio, supermercado) no dogfood. A l4 não afirma DAS (estimado ou recolhido) e não soma `das_simples` em `despesas_impostos` — trocar "balde ausente" por "consumo publicado como imposto" é regressão. Quando o #1133 aterrissar, uma lane reintroduz as duas coisas com o sinal corroborado | lane pós-#1133 |

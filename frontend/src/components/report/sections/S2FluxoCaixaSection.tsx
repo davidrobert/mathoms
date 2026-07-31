@@ -50,7 +50,7 @@ export function S2FluxoCaixaSection({
   const equilibrio = data.equilibrio_cerbasi as
     | EquilibrioCerbasiData
     | undefined;
-  /** ADR-355 (A40.l4): a leitura `narrativas?.[id]` era ramo morto — o E5.N
+  /** ADR-356 (A40.l4): a leitura `narrativas?.[id]` era ramo morto — o E5.N
    * emite conclusão de chart em `narrativas.charts[id]`, nunca no topo. */
   const getConclusion = (id: string): string | undefined =>
     deriveChartConclusion(id, data) ?? undefined;

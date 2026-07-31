@@ -1,5 +1,5 @@
 ---
-id: ADR-355
+id: ADR-356
 type: adr
 title: "Precedência declarada do parágrafo de seção e CV9 como medida de entrega"
 status: Proposto
@@ -21,7 +21,7 @@ tags:
 size_lines: 658
 ---
 
-# ADR-355 — Precedência declarada do parágrafo de seção e CV9 como medida de entrega
+# ADR-356 — Precedência declarada do parágrafo de seção e CV9 como medida de entrega
 
 ## Tamanho — por que não é split
 

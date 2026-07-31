@@ -141,11 +141,11 @@
         "summary_source": {
           "type": ["string", "null"],
           "pattern": "^s([1-9]|10)$",
-          "description": "ADR-355 (A40.l4) — chave em narrativas.summaries que alimenta o <SectionSummary> desta seção (camada 2 da precedência LLM → E5.N → derivado). null = seção sem narrativa E5.N por decisão; a camada 2 é pulada. NUNCA derive de id.toLowerCase(): `s2` é o parágrafo de score e a S2 é Fluxo de Caixa. Gate: CV9 em scripts/validate_cross.py."
+          "description": "ADR-356 (A40.l4) — chave em narrativas.summaries que alimenta o <SectionSummary> desta seção (camada 2 da precedência LLM → E5.N → derivado). null = seção sem narrativa E5.N por decisão; a camada 2 é pulada. NUNCA derive de id.toLowerCase(): `s2` é o parágrafo de score e a S2 é Fluxo de Caixa. Gate: CV9 em scripts/validate_cross.py."
         },
         "summary_suppressed_by": {
           "type": ["string", "null"],
-          "description": "ADR-355 (A40.l4) — chart id cujo `data_state: \"empty\"` faz a seção curto-circuitar em <EmptyState/> e NÃO imprimir o parágrafo de abertura. Declarado porque o CV9 precisa saber, por run, que o destino não foi entregue (sem isso ele conta 7/7 num run que renderiza 6). Regra 7 de dev/check_chart_conclusion_parity.py enforça a correspondência com o <SectionSummary> condicionado no TSX."
+          "description": "ADR-356 (A40.l4) — chart id cujo `data_state: \"empty\"` faz a seção curto-circuitar em <EmptyState/> e NÃO imprimir o parágrafo de abertura. Declarado porque o CV9 precisa saber, por run, que o destino não foi entregue (sem isso ele conta 7/7 num run que renderiza 6). Regra 7 de dev/check_chart_conclusion_parity.py enforça a correspondência com o <SectionSummary> condicionado no TSX."
         },
         "divider_before": {
           "type": "boolean",
@@ -171,16 +171,16 @@
         },
         "summary": {
           "type": "boolean",
-          "description": "ADR-355 (A40.l4) — apêndices renderizam <SectionSummary> desde a Fase 10; a flag estava só em sectionSpec, o que fazia o denominador do CV9 mentir."
+          "description": "ADR-356 (A40.l4) — apêndices renderizam <SectionSummary> desde a Fase 10; a flag estava só em sectionSpec, o que fazia o denominador do CV9 mentir."
         },
         "summary_source": {
           "type": ["string", "null"],
           "pattern": "^s([1-9]|10)$",
-          "description": "ADR-355 (A40.l4) — chave em narrativas.summaries. null para todos os apêndices: o E5.N não produz narrativa de apêndice (texto é determinístico)."
+          "description": "ADR-356 (A40.l4) — chave em narrativas.summaries. null para todos os apêndices: o E5.N não produz narrativa de apêndice (texto é determinístico)."
         },
         "summary_suppressed_by": {
           "type": ["string", "null"],
-          "description": "ADR-355 (A40.l4) — mesmo campo de sectionSpec, declarado aqui para que um apêndice com <SectionSummary> condicionado tenha onde declarar o gate (nenhum tem hoje; sem o campo, a regra 7 exigiria uma declaração que o schema rejeitaria)."
+          "description": "ADR-356 (A40.l4) — mesmo campo de sectionSpec, declarado aqui para que um apêndice com <SectionSummary> condicionado tenha onde declarar o gate (nenhum tem hoje; sem o campo, a regra 7 exigiria uma declaração que o schema rejeitaria)."
         },
         "charts": {
           "type": "array",

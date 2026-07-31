@@ -141,7 +141,7 @@ class SummariesNarrator:
         }
 
 
-# Chaves de ``summaries`` sem seção de destino no layout (A40.l4 · ADR-355).
+# Chaves de ``summaries`` sem seção de destino no layout (A40.l4 · ADR-356).
 # CV9 exige que toda chave emitida ou tenha destino declarado ou esteja aqui
 # COM razão — sem isso, chave nova nasce órfã e ninguém percebe. É fato do
 # produtor (não do layout), por isso vive aqui.
@@ -282,7 +282,7 @@ def _summary_s4(M: Mapping[str, Any]) -> str:
 #
 # Logo: descreve-se o VALOR, que vem de `patrimonio` e é o que o card irmão
 # mostra; a quantidade fica com a tabela da seção, seu único dono (§D7 da
-# ADR-355 — "ou o número vem do payload, ou não é afirmado"). Cada parcela é
+# ADR-356 — "ou o número vem do payload, ou não é afirmado"). Cada parcela é
 # condicional: `residência (R$ 0,00)` lê-se como "sua casa não vale nada".
 _S4_VALOR_TEMPLATES: tuple[tuple[str, str], ...] = (
     ("residencia", "residência de {valor}"),

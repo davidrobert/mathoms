@@ -139,7 +139,7 @@ def test_summary_s9_empty_riscos_no_broken_concatenation():
     assert "0 riscos prioritários:" not in s9
 
 
-# A40.l4 (ADR-355) inverte o assert original: com a entrega ligada, o
+# A40.l4 (ADR-356) inverte o assert original: com a entrega ligada, o
 # `summaries.s9` imprime ACIMA do `<EmptyState/>` da S9RiscosSection, que já
 # traz o call-to-action. Duplicar o CTA com wording diferente ("Plano de Ação"
 # vs. "Cadastrar riscos no Console") confunde — o produtor fica factual.

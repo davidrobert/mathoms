@@ -1,5 +1,5 @@
 /**
- * ADR-355 (A40.l4) — precedência e normalização do parágrafo de abertura
+ * ADR-356 (A40.l4) — precedência e normalização do parágrafo de abertura
  * de seção. Único lugar do repo com lógica de "de onde vem esse texto".
  *
  * Três produtores competiam pelo mesmo parágrafo sem precedência declarada:

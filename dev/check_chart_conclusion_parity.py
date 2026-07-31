@@ -27,7 +27,7 @@ Escopo pragmático (regex, sem parser TS completo):
      `receita_fonte`/`despesas_categoria` em vez de
      `receita_bar`/`despesas_doughnut`).
   5. Em sections/*.tsx, o bag `narrativas` só pode ser acessado via `.charts`
-     (A40.l4 · ADR-355). Mesma classe da regra 4, um nível acima: leitura no
+     (A40.l4 · ADR-356). Mesma classe da regra 4, um nível acima: leitura no
      TOPO de `narrativas` — `narrativas?.["S1"]`, `narrativas?.score_gauge` —
      renderiza vazio em runtime porque nenhum produtor emite ali. O parágrafo
      de seção vem de `<SectionSummary data={data}>` (precedência em
@@ -35,13 +35,13 @@ Escopo pragmático (regex, sem parser TS completo):
      `narrativas.charts[id]` via `utils/chartNarrative.ts`.
   6. `summary: true` em `config/report_layout.yaml` ⟺ existe
      `<SectionSummary … sectionId="<id>">` em sections/*.tsx (A40.l4 ·
-     ADR-355). Esta regra é a **premissa do CV9**: o CV9 mede entrega contando
+     ADR-356). Esta regra é a **premissa do CV9**: o CV9 mede entrega contando
      destinos declarados em entradas com `summary: true`, e isso só é honesto
      se a flag for provavelmente o inventário de render sites. Sem ela, a flag
      mente nas duas direções — `summary: true` sem componente (texto gerado,
      mapeado e nunca exibido) e componente sem flag (denominador subestimado).
   7. `<SectionSummary>` sob CONDIÇÃO no TSX (`{!isEmpty && <SectionSummary …>}`)
-     ⟺ a entrada do layout declara `summary_suppressed_by` (A40.l4 · ADR-355).
+     ⟺ a entrada do layout declara `summary_suppressed_by` (A40.l4 · ADR-356).
      Render site existir não é o mesmo que o parágrafo aparecer: a S9
      curto-circuita em `<EmptyState/>` e engole o `s9`. Sem esta regra o CV9
      conta o destino como entregue num run que renderiza 6 de 7 — o furo medido

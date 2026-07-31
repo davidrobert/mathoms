@@ -1,4 +1,4 @@
-"""Contrato de ENTREGA das narrativas E5.N (A40.l4 · ADR-355).
+"""Contrato de ENTREGA das narrativas E5.N (A40.l4 · ADR-356).
 
 Este teste é o lado Python de um par sobre **uma fixture compartilhada**:
 
@@ -18,7 +18,7 @@ regravar após mudança legítima de copy::
 
 Família sintética (Alex/Bia): o produtor interpola **primeiro nome** em ``s3`` e
 em ``perfil_familia`` — a fixture não pode carregar PII. Nome completo, CPF e
-endereço não chegam a texto entregue nenhum (ADR-355 §D9, guarda em
+endereço não chegam a texto entregue nenhum (ADR-356 §D9, guarda em
 ``tests/test_e5n_pii_guard.py``).
 
 O substrato é a fixture sintética PII-zero do dogfood (``run_dogfood_pipeline_ctx``,

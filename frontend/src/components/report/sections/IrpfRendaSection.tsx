@@ -17,7 +17,7 @@ import type { ReportAnalysisData } from "@/lib/api";
  * (a seção inteira não é montada — sem placeholder vazio).
  *
  * A40.l4: sem parágrafo de abertura. O `<SectionSummary>` daqui era render site
- * MORTO nas três camadas da ADR-355 — medido: a seção não está em
+ * MORTO nas três camadas da ADR-356 — medido: a seção não está em
  * `SUPPORTED_SECTION_IDS` (LLM), tem `summary_source: null` (E5.N não produz
  * narrativa fiscal-IRPF) e não tem entrada em `SECTION_SUMMARIES`
  * (`conclusionUtils.ts`), então `resolveSectionSummary` devolvia `null` sempre.

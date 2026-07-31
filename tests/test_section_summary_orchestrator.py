@@ -124,7 +124,7 @@ def test_fallback_unknown_section_returns_none():
     assert _default_fallback("UNKNOWN_SECTION", {}) is None
 
 
-# A40.l4 (ADR-355 §D2): o teste acima usa `S1` — justamente o id onde
+# A40.l4 (ADR-356 §D2): o teste acima usa `S1` — justamente o id onde
 # `section_id.lower()` coincide com o destino correto. Com a entrega de narrativa
 # ligada, o caminho passou a ser alcançável em 5 seções, e para a S2 o lowercase
 # publicava o parágrafo de SCORE no topo do Fluxo de Caixa.

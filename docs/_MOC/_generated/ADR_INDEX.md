@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-346 ADRs (ADR-001 a ADR-355) em [`docs/adr/`](../../adr/).
+346 ADRs (ADR-001 a ADR-356) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -393,7 +393,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### Proposto (1)
 
-- [[ADR-355]] — Precedência declarada do parágrafo de seção e CV9 como medida de entrega · phase report-review r3 (RV3-03 · RV3-33) · A40.l4
+- [[ADR-356]] — Precedência declarada do parágrafo de seção e CV9 como medida de entrega · phase report-review r3 (RV3-03 · RV3-33) · A40.l4
 
 ## gtm
 

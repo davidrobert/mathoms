@@ -101,7 +101,7 @@ def _default_fallback(section_id: str, snapshot_data: Mapping[str, Any]) -> Opti
     return _GENERIC_FALLBACK.get(section_id)
 
 
-# ADR-355 §D2: a chave de `narrativas.summaries` NÃO é `section_id.lower()`.
+# ADR-356 §D2: a chave de `narrativas.summaries` NÃO é `section_id.lower()`.
 # `summaries.s2` é o parágrafo de SCORE e a S2 do layout é Fluxo de Caixa —
 # derivar por lowercase publicava o score no topo do fluxo de caixa. O mapa
 # canônico é `summary_source`, declarado no layout (mesma fonte que o renderer

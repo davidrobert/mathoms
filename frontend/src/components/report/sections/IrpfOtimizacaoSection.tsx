@@ -19,7 +19,7 @@ import type { IrpfKpis } from "@/types/irpf";
  * por serem prose-only. Guards escondem cards vazios sem regredir o PGBL.
  *
  * A40.l4: sem parágrafo de abertura, mesma razão medida da `IrpfRendaSection` —
- * render site morto nas três camadas da ADR-355 (`summary: false` no layout). */
+ * render site morto nas três camadas da ADR-356 (`summary: false` no layout). */
 export function IrpfOtimizacaoSection({ data }: { data: ReportAnalysisData }) {
   const kpis = useIrpfKpis(data);
   if (!kpis) return null;

@@ -1,4 +1,4 @@
-"""Anti-hardcode das narrativas E5.N (A40.l4 · ADR-355).
+"""Anti-hardcode das narrativas E5.N (A40.l4 · ADR-356).
 
 Guarda de **conteúdo**, complementar à guarda de forma
 (`tests/test_e5n_delivery_contract.py`): nenhum teste de shape detecta um
@@ -10,7 +10,7 @@ summary que cita parâmetro congelado. Quatro braços aqui, todos declarativos:
   com os dois valores. A granularidade importa: comparar o summary inteiro entre
   dois configs (a versão anterior desta guarda) fica VERDE quando se congela um
   literal entre outros parâmetros que ainda variam, que é exatamente a classe
-  corrigida à mão na §D7 da ADR-355.
+  corrigida à mão na §D7 da ADR-356.
 - **B — invariância.** Summary ancorado só no payload não pode mudar quando só a
   config muda (pega acoplamento acidental de texto medido a parâmetro).
 - **C — afirmação incondicional.** Frase que o produtor imprime sempre,

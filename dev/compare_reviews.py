@@ -39,7 +39,7 @@ _CONSERVATION_HARD = frozenset({"CV1", "CV2", "CV3", "CV6", "CV16", "CV17"})
 # Render/narrativa: falham legítimo em run incremental que reusa narrativa
 # (A36.l3) → SOFT (só com --strict), fora do gate default.
 _RENDER_SOFT = frozenset({"CV10", "CV11", "CV12", "CV13", "CV14"})
-# ENTREGA de narrativa de seção (CV9 pós-ADR-355): destino declarado no layout
+# ENTREGA de narrativa de seção (CV9 pós-ADR-356): destino declarado no layout
 # que deixa de renderizar é parágrafo que sumiu do relatório, não ruído de run
 # incremental — HARD no gate default. Sem isso o check nasceria silenciado no
 # pipeline-review e trocaria-se um verde vazio por outro.
@@ -216,7 +216,7 @@ def _cv_regressions(base: dict, cur: dict) -> list[str]:
 
 
 def _delivery_regressions(base: dict, cur: dict) -> list[str]:
-    """CV9 (ADR-355) — entrega de narrativa de seção que passa a falhar."""
+    """CV9 (ADR-356) — entrega de narrativa de seção que passa a falhar."""
     bi, ci = _cv_index(base), _cv_index(cur)
     return [
         f"entrega {cid} passa -> falha"

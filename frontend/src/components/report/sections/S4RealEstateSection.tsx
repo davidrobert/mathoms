@@ -9,7 +9,7 @@ import { RealEstateYieldCard } from "../cards/RealEstateYieldCard";
  *  RealEstateYieldCard é o único renderer. Seção é ocultada quando o workspace
  *  não tem property_identity (`data.real_estate === null`).
  *
- *  ADR-355 (A40.l4): o escape "tem narrativa S4" foi removido. Ele lia
+ *  ADR-356 (A40.l4): o escape "tem narrativa S4" foi removido. Ele lia
  *  `narrativas["S4"]`, chave que nenhum produtor emite — nunca foi alcançável.
  *  Com a entrega ligada, "tem narrativa" seria sempre verdadeiro (o E5.N emite
  *  `summaries.s4` sempre; `validate_narrativas` hard-falha em summary vazio),

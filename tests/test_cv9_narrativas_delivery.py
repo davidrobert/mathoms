@@ -1,4 +1,4 @@
-"""CV9 — os quatro predicados de ENTREGA de narrativa de seção (A40.l4 · ADR-355 §D6)."""
+"""CV9 — os quatro predicados de ENTREGA de narrativa de seção (A40.l4 · ADR-356 §D6)."""
 
 from __future__ import annotations
 

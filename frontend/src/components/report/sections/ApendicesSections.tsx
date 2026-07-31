@@ -360,7 +360,7 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
 /** ADR-117/122 · Fase 10 — APP_E: Próximos Ciclos e Roadmap.
  *
  * Seção forward-looking: roadmap e próximos passos, texto de abertura via
- * <SectionSummary> (precedência ADR-355). Variação vs. relatório
+ * <SectionSummary> (precedência ADR-356). Variação vs. relatório
  * anterior é responsabilidade da seção V0 (`VariacaoSection`, ADR-190
  * §Emenda) — o card "Histórico de Ciclos" foi removido em 2026-06-12
  * (TRACK-remove-historico-ciclos-app-e): duplicava `data.changelog`
