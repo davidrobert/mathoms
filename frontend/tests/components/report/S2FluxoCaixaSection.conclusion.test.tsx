@@ -61,12 +61,22 @@ describe("<S2FluxoCaixaSection /> — conclusion ids (audit-vault r4)", () => {
     expect(conclusions.despesas).toBe("Moradia concentra 80% do gasto recorrente.");
   });
 
-  it("prioriza narrativa E5.N quando presente sob o id canônico", () => {
-    const withNarrativa = {
+  it("ignora conclusão no TOPO de narrativas — shape que nenhum produtor emite", () => {
+    // A40.l4 (ADR-356): este caso afirmava o contrário e passava verde sobre
+    // uma fixture falso-verde. O E5.N emite conclusão de chart em
+    // `narrativas.charts[id]`; nenhum dos 17 ids aparece no topo do bag, então
+    // a precedência "narrativa > derivado" que o código implementava era ramo
+    // morto. Gate estático correspondente: regra 5 de
+    // dev/check_chart_conclusion_parity.py.
+    const topLevelKey = {
       ...data,
-      narrativas: { receita_bar: { conclusion: "Texto E5.N." } },
+      narrativas: {
+        receita_bar: { conclusion: "Texto no topo (nunca emitido)." },
+      },
     } as unknown as ReportAnalysisData;
-    render(<S2FluxoCaixaSection data={withNarrativa} />);
-    expect(conclusions.receita).toBe("Texto E5.N.");
+    render(<S2FluxoCaixaSection data={topLevelKey} />);
+    expect(conclusions.receita).toBe(
+      "CLT lidera as receitas (75% do total de todo o período analisado).",
+    );
   });
 });

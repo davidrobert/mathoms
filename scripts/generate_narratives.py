@@ -328,6 +328,22 @@ def _decisoes_titles_from_bundle(goals_cfg: dict) -> list[str]:
     ]
 
 
+# ``None`` = bloco ausente (workspace sem apólices analisadas), distinto de
+# ``False`` (analisado e sem gap): o narrator só afirma ausência de cobertura
+# no caso ``True``.
+def _protecao_gap_vida(e5_data: dict) -> bool | None:
+    """``gap_qualitativo[categoria='vida'].flag`` de ``protecao_patrimonial``."""
+    protecao = e5_data.get("protecao_patrimonial")
+    if not isinstance(protecao, dict):
+        return None
+    flags = protecao.get("gap_qualitativo")
+    if not isinstance(flags, list):
+        return None
+    return any(
+        isinstance(f, dict) and f.get("categoria") == "vida" and bool(f.get("flag")) for f in flags
+    )
+
+
 def _riscos_items_from_bundle(goals_cfg: dict) -> list[dict]:
     """Lê itens do ``risks_projection`` do ``GoalsBundle`` (ADR-180)."""
     projection = goals_cfg.get("risks_projection") or []
@@ -383,10 +399,14 @@ def load_metrics_from_e5(
     # Despesas por categoria
     desp_cat = fluxo.get("despesas_por_categoria", {})
 
-    # Diversificação: count non-zero composition categories
+    # Diversificação: count non-zero composition categories.
+    # A40.l4: o `or 5` transformava "nenhuma categoria classificada" em "5
+    # categorias" — número fabricado nos três consumidores (s3,
+    # perfil_familia.right, patrimonio_doughnut). Zero é zero; quem formata a
+    # frase declara a ausência (`carteira_diversificacao_frase`).
     composicao = pat.get("composicao", [])
-    diversificacao_count = (
-        len([c for c in composicao if isinstance(c, dict) and c.get("valor", 0) > 0]) or 5
+    diversificacao_count = len(
+        [c for c in composicao if isinstance(c, dict) and c.get("valor", 0) > 0]
     )
 
     # --- Computed from E5 data ---
@@ -469,11 +489,17 @@ def load_metrics_from_e5(
     pct_receita_outras = round(100 - pct_receita_pj - pct_receita_aluguel - pct_receita_clt, 1)
     pct_despesas_nao_id = round(_safe_div(despesas_nao_id, despesa_total) * 100, 1)
 
-    receita_pj_anual = (receita_pj / n_meses_periodo) * 12 if n_meses_periodo else 0
-    das_aliquota_pct = FISCAL.get("das_simples", {}).get("aliquota_efetiva_pct", 6.0) / 100
-    das_anual = receita_pj_anual * das_aliquota_pct
-    das_mensal = das_anual / 12 if receita_pj_anual else 0
-    pct_das_receita_pj = round(das_aliquota_pct * 100, 1)
+    # A40.l4 (co-design financial-planner): a estimativa de DAS saiu inteira do
+    # s8 — alíquota vinha de default 6% (`FISCAL` é `{}` em produção; a fonte
+    # legada migrou para `fiscal_parameters` em A7.2b) e a base era entrada na
+    # conta PF, não faturamento bruto (proibido por ADR-236 §Emenda CTO-05).
+    # Carga, alíquota e faturamento são passthrough da cascata, no card
+    # `impostos_pj` da mesma seção: um número, um dono.
+    #
+    # O substituto natural — DAS **recolhido**, categoria E4 `das_simples` —
+    # também NÃO entra: o balde está contaminado (matcher casava a preposição
+    # "DAS"; 100% de falso-positivo medido no dogfood) e o fix é o PR #1133,
+    # não mergeado. Sem métrica, sem cláusula.
 
     if_cfg = goals_cfg.get("independencia_financeira", {})
     renda_passiva_meta = if_cfg.get("renda_passiva_meta_mensal", 0)
@@ -545,7 +571,13 @@ def load_metrics_from_e5(
         "n_meses_periodo": n_meses_periodo,
         # === E5 JSON: despesas por categoria ===
         "despesas_nao_id": despesas_nao_id,
-        "despesas_impostos": desp_cat.get("impostos", 0) + desp_cat.get("das", 0),
+        # A40.l4: `desp_cat.get("das")` era chave MORTA — a categoria emitida
+        # pelo E4 é `das_simples` (`transaction_classifier_pj.py`). Somar a
+        # chave certa fica para depois do PR #1133: o balde `das_simples` mede
+        # 100% de falso-positivo hoje (pedágio, supermercado — o matcher casava
+        # a preposição "DAS"), e trocar "balde de DAS ausente" por "consumo
+        # publicado como imposto" é regressão, não fix.
+        "despesas_impostos": desp_cat.get("impostos", 0),
         "despesas_moradia": desp_cat.get("moradia", 0),
         "despesas_serv_dom": desp_cat.get("servicos_domesticos", 0),
         "despesas_reserva": desp_cat.get("reserva_desejos", 0),
@@ -567,7 +599,6 @@ def load_metrics_from_e5(
         "pct_receita_clt": pct_receita_clt,
         "pct_receita_outras": pct_receita_outras,
         "pct_despesas_nao_id": pct_despesas_nao_id,
-        "pct_das_receita_pj": pct_das_receita_pj,
         "pct_renda_passiva_meta": pct_renda_passiva_meta,
         # === Computed from E5 data ===
         _KEY_SAL_CONJUGE: salario_conjuge,
@@ -579,9 +610,12 @@ def load_metrics_from_e5(
         "aluguel_irpf_ano_ref": (
             passive_income.get("ano_referencia_irpf") if aluguel_anual_irpf > 0 else None
         ),
-        "das_anual_estimado": round(das_anual, 2),
-        "receita_pj_anual": round(receita_pj_anual, 2),
-        "das_aliquota_pct": round(das_aliquota_pct * 100, 1),
+        # A40.l4: `das_*_estimado`/`receita_pj_anual`/`das_aliquota_pct` e
+        # `pct_das_receita_pj` deletados — eram os únicos consumidores do
+        # default fiscal de 6% e não têm outro leitor.
+        # ADR-240 · gap_qualitativo[vida] — `None` quando não há apólices
+        # analisadas (o s9 não afirma ausência de cobertura sem sinal).
+        "protecao_gap_vida": _protecao_gap_vida(e5_data),
         "anos_para_if_calculo": round(prazo_anos),
         "aportes_acum_prazo": round(aportes_acum_prazo, 0),
         # === Computed: top asset & institutions (from E4) ===
@@ -635,8 +669,11 @@ def load_metrics_from_e5(
         # === Tributário (ADR-236 §D4: bundle["tributario"] expandido) ===
         # Legacy keys mantidas para compat de outros consumers (summaries_narrator.s8);
         # narrator ChartsNarrator.impostos_pj usa exclusivamente `tributario_section`.
-        "das_mensal_estimado": round(das_mensal, 2),
         "contador_mensal": trib_cfg.get("contador_mensal", 0),
+        # ADR-236 §D5: `regime is None` é o sinal de perfil pendente. O
+        # `regime_label` NUNCA é vazio ("Perfil tributário incompleto"), então
+        # ramificar pelo label deixava o fallback do s8 inalcançável.
+        "regime_declarado": trib_cfg.get("regime"),
         "contador_nome": trib_cfg.get("contador_nome", "") or "",
         "contador_canal": trib_cfg.get("contador_canal_pagamento", ""),
         "regime_obs": trib_cfg.get("regime_label") or trib_cfg.get("regime_obs", ""),

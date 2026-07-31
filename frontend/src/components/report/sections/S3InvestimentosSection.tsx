@@ -16,6 +16,7 @@ import {
   type Top15AtivosData,
 } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
+import { readNarrativeConclusion } from "../utils/chartNarrative";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 import type { RatiosData } from "@/types/report-analysis";
@@ -24,15 +25,6 @@ interface InvestimentosBlock extends InvestimentosClasseData, Top15AtivosData {
   estrategia_aporte?: EstrategiaAporteData;
   contrafluxo?: ContrafluxoData;
   cdi_anual?: number;
-}
-
-function readNarrativeConclusion(
-  charts: Record<string, unknown> | undefined,
-  chartId: string,
-): string | null {
-  const entry = charts?.[chartId] as { conclusion?: string } | undefined;
-  const text = entry?.conclusion?.trim();
-  return text && text.length > 0 ? text : null;
 }
 
 /** F9 · F2.C — Seção S3 (Investimentos). */
@@ -57,7 +49,7 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
 
   return (
     <ReportSection id="S3" title="Investimentos — Carteira Financeira">
-      <SectionSummary narrativas={narrativas} sectionId="S3" />
+      <SectionSummary data={data} sectionId="S3" />
 
       <div className="md:col-span-2">
         <AlocacaoAtualVsAlvoCard

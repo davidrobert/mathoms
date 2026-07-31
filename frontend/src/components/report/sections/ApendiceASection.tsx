@@ -1,7 +1,6 @@
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
 import { SectionSummary } from "../SectionSummary";
-import { deriveSectionSummary } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 
 const GLOSSARIO: Array<{ termo: string; definicao: string }> = [
@@ -87,17 +86,16 @@ function DefinitionTable({
  *  Glossário de termos financeiros + categorias patrimoniais.
  *  Conteúdo estático — válido para qualquer workspace.
  */
-export function ApendiceASection({ data }: { data?: ReportAnalysisData } = {}) {
-  const narrativas = data?.narrativas as Record<string, unknown> | undefined;
-  const fallback = data ? deriveSectionSummary("APP_A", data) : null;
+// `data` era opcional só porque um teste montava `<ApendiceASection />`; em
+// produção o `MigratedSection` sempre passa. O `{data && …}` que isso obrigava
+// é render site CONDICIONAL — a forma que a regra 7 de
+// `dev/check_chart_conclusion_parity.py` usa para detectar parágrafo suprimido
+// (A40.l4). Prop obrigatória mantém o render site incondicional, que é o que
+// produção faz.
+export function ApendiceASection({ data }: { data: ReportAnalysisData }) {
   return (
     <ReportSection id="APP_A" title="Apêndice A — Definições e Siglas">
-      <SectionSummary narrativas={narrativas} sectionId="APP_A" />
-      {fallback && !narrativas?.["APP_A"] && (
-        <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
-          {fallback}
-        </p>
-      )}
+      <SectionSummary data={data} sectionId="APP_A" />
       <DefinitionTable
         title="Glossário de Termos Financeiros"
         header="Sigla / Termo"

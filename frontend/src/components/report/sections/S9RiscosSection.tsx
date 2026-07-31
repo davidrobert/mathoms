@@ -18,10 +18,7 @@ import {
 } from "../charts/NarrativeChartCard";
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import {
-  deriveChartConclusion,
-  deriveSectionSummary,
-} from "../utils/conclusionUtils";
+import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 interface MitigationCounts {
   coberto: number;
@@ -83,7 +80,6 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const bubble = charts?.bubble_riscos as { data_state?: string } | undefined;
-  const fallback = deriveSectionSummary("S9", data);
   const isEmpty = bubble?.data_state === "empty";
 
   // TODO: dados reais virão de T03 — bundle vem do payload do report
@@ -95,12 +91,12 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
 
   return (
     <ReportSection id="S9" title="Riscos e Proteção — Seguros Críticos">
-      <SectionSummary narrativas={narrativas} sectionId="S9" />
-      {fallback && !narrativas?.["S9"] && (
-        <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
-          {fallback}
-        </p>
-      )}
+      {/* ADR-356: em empty state o <EmptyState/> abaixo JÁ é a mensagem
+          ("sem riscos cadastrados não há análise de cobertura"). Imprimir o
+          `s9` acima dele repetiria a mesma afirmação com wording diferente —
+          deduplicar o CTA não bastava. Fora do empty state, o parágrafo abre
+          a seção normalmente. */}
+      {!isEmpty && <SectionSummary data={data} sectionId="S9" />}
       {isEmpty ? (
         <div className="md:col-span-2">
           <EmptyState

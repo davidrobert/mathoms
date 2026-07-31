@@ -112,13 +112,18 @@ describe("<CascataFiscalCard /> · Simples Anexo III", () => {
     ).toBeInTheDocument();
   });
 
-  it("inclui nome do contador no disclaimer quando presente", () => {
+  // A40.l4 (ADR-319): o disclaimer sinaliza QUE existe contador, nunca QUEM —
+  // nome de terceiro é PII e o relatório circula fora da família.
+  it("sinaliza contador cadastrado sem publicar o nome", () => {
     render(
       <CascataFiscalCard
         tributario={buildBundle({ contador_nome: "Contábil ABC" })}
       />,
     );
-    expect(screen.getByText(/Contador no perfil: Contábil ABC\./i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Há contador cadastrado no perfil da PJ\./i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Contábil ABC/)).not.toBeInTheDocument();
   });
 });
 

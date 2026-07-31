@@ -21,6 +21,7 @@ from pipeline.domain.services.narrativas.alocacao_narrator import (
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
     APORTE_SEM_DISTRIBUICAO,
+    categorias_ativos_sufixo,
     ensure_period,
     fmt_aporte_distribuicao,
     fmt_currency,
@@ -123,7 +124,8 @@ class ChartsNarrator:
             },
             "patrimonio_doughnut": {
                 "context": (
-                    f"Distribuição do patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])} entre {M['diversificacao']} categorias de ativos, "
+                    f"Distribuição do patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])}"
+                    f"{categorias_ativos_sufixo(M['diversificacao'])}, "
                     "mostrando concentração em imóveis e peso relativo dos investimentos financeiros."
                 ),
                 "conclusion": (

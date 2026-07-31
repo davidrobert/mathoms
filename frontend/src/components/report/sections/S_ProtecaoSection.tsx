@@ -13,13 +13,12 @@ import { ProtecaoKpiHero } from "./SProtecao/ProtecaoKpiHero";
  *  Bens (auto V1) + Pessoas-V2 placeholder + PJ-V2 placeholder. */
 export function S_ProtecaoSection({ data }: { data: ReportAnalysisData }) {
   const protecao = data.protecao_patrimonial ?? null;
-  const narrativas = data.narrativas as Record<string, unknown> | undefined;
   if (protecao === null) {
     return null;
   }
   return (
     <ReportSection id="S_PROTECAO" title="Proteção Patrimonial — 4º Pilar">
-      <SectionSummary narrativas={narrativas} sectionId="S_PROTECAO" />
+      <SectionSummary data={data} sectionId="S_PROTECAO" />
       <ProtecaoKpiHero data={protecao} />
       <h3 className="text-style-subtitle mt-6">Bens (V1: auto)</h3>
       <ProtecaoGapVeiculos bens={protecao.bens_com_gap_cobertura} />

@@ -30,10 +30,12 @@ from pipeline.domain.services.narrativas.perfil_familia_narrator import (
     PerfilFamiliaNarrator,
 )
 from pipeline.domain.services.narrativas.summaries_narrator import (
+    ORPHAN_SUMMARY_KEYS,
     SummariesNarrator,
 )
 
 __all__ = [
+    "ORPHAN_SUMMARY_KEYS",
     "E5NarrativasBuilder",
     "NarrativasContext",
     "PerfilFamiliaNarrator",

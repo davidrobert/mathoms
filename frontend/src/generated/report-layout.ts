@@ -70,6 +70,8 @@ export interface SectionSpec {
   changelog?: ChangelogSpec[];
   data_source?: string;
   summary?: boolean;
+  summary_source?: string | null;
+  summary_suppressed_by?: string | null;
   divider_before?: boolean;
   collapsible?: boolean;
 }
@@ -78,6 +80,10 @@ export interface AppendixSpec {
   id: string;
   title: string;
   enabled: boolean;
+  optional?: boolean;
+  summary?: boolean;
+  summary_source?: string | null;
+  summary_suppressed_by?: string | null;
   charts?: ChartSpec[];
   cards?: CardSpec[];
 }
@@ -266,6 +272,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Patrimônio — Estrutura e Composição",
         "enabled": true,
         "summary": true,
+        "summary_source": "s1",
         "charts": [
           {
             "id": "patrimonio_doughnut",
@@ -328,6 +335,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Fluxo de Caixa — Receitas e Despesas",
         "enabled": true,
         "summary": true,
+        "summary_source": null,
         "divider_before": true,
         "charts": [
           {
@@ -398,6 +406,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Proteção Patrimonial — Pilar AUVP",
         "enabled": false,
         "summary": true,
+        "summary_source": null,
         "divider_before": true,
         "charts": [
           {
@@ -438,6 +447,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Investimentos — Carteira Financeira",
         "enabled": true,
         "summary": true,
+        "summary_source": "s3",
         "divider_before": true,
         "charts": [
           {
@@ -494,6 +504,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Real Estate — Imóveis e Renda Passiva",
         "enabled": true,
         "summary": true,
+        "summary_source": "s4",
         "divider_before": true,
         "charts": [],
         "cards": [
@@ -510,6 +521,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Independência Financeira — Projeção de Longo Prazo",
         "enabled": true,
         "summary": true,
+        "summary_source": "s7",
         "divider_before": true,
         "charts": [
           {
@@ -537,6 +549,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Previdência — PGBL e Fiscalidade",
         "enabled": true,
         "summary": true,
+        "summary_source": "s8",
         "divider_before": true,
         "charts": [
           {
@@ -552,7 +565,8 @@ export const LAYOUT: ReportLayout = {
         "id": "S_IRPF_RENDA",
         "title": "Renda Anual e Impostos",
         "enabled": true,
-        "summary": true,
+        "summary": false,
+        "summary_source": null,
         "divider_before": true,
         "charts": [
           {
@@ -591,7 +605,8 @@ export const LAYOUT: ReportLayout = {
         "id": "S_IRPF_OTIMIZACAO",
         "title": "Otimização Tributária",
         "enabled": true,
-        "summary": true,
+        "summary": false,
+        "summary_source": null,
         "cards": [
           {
             "id": "pgbl_capacidade",
@@ -618,6 +633,8 @@ export const LAYOUT: ReportLayout = {
         "title": "Riscos e Proteção — Seguros Críticos",
         "enabled": true,
         "summary": true,
+        "summary_source": "s9",
+        "summary_suppressed_by": "bubble_riscos",
         "divider_before": true,
         "charts": [
           {
@@ -658,6 +675,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Síntese Estratégica — Tarefas e Score",
         "enabled": true,
         "summary": true,
+        "summary_source": "s10",
         "divider_before": true,
         "charts": [
           {
@@ -703,7 +721,7 @@ export const LAYOUT: ReportLayout = {
         "id": "plano_de_acao",
         "title": "Plano de Ação — Decisões em Vigor",
         "enabled": true,
-        "summary": true,
+        "summary": false,
         "divider_before": true,
         "data_source": "decisions",
         "charts": [],
@@ -714,12 +732,16 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "APP_A",
         "title": "Definições e Siglas",
-        "enabled": true
+        "enabled": true,
+        "summary": true,
+        "summary_source": null
       },
       {
         "id": "APP_B",
         "title": "Premissas Econômicas",
         "enabled": true,
+        "summary": true,
+        "summary_source": null,
         "cards": [
           {
             "id": "premissas_economicas",
@@ -740,6 +762,8 @@ export const LAYOUT: ReportLayout = {
         "title": "Cenários de Estresse",
         "enabled": true,
         "optional": true,
+        "summary": false,
+        "summary_source": null,
         "charts": [],
         "cards": [
           {
@@ -754,6 +778,8 @@ export const LAYOUT: ReportLayout = {
         "id": "APP_D",
         "title": "Referências e Recursos",
         "enabled": true,
+        "summary": true,
+        "summary_source": null,
         "cards": [
           {
             "id": "fontes_dados",
@@ -773,6 +799,8 @@ export const LAYOUT: ReportLayout = {
         "id": "APP_E",
         "title": "Próximos Ciclos e Roadmap",
         "enabled": true,
+        "summary": true,
+        "summary_source": null,
         "cards": [
           {
             "id": "proximos_ciclos",

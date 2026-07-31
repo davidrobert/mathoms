@@ -322,7 +322,11 @@ repos:
         entry: python3 dev/check_chart_conclusion_parity.py
         language: system
         pass_filenames: false
-        files: '^(config/prompts/chart_conclusions\.yaml|frontend/src/components/report/utils/conclusionUtils\.ts|frontend/src/components/report/sections/.*\.tsx|dev/check_chart_conclusion_parity\.py)$'
+        # `report_layout.yaml` entra em A40.l4: a regra 6 (`summary: true` ⟺
+        # <SectionSummary>) é a âncora declarada da honestidade do CV9, e o
+        # lado que muda com mais frequência é a flag no YAML. Sem o path aqui,
+        # editar só o YAML não roda o gate.
+        files: '^(config/prompts/chart_conclusions\.yaml|config/report_layout\.yaml|frontend/src/components/report/utils/conclusionUtils\.ts|frontend/src/components/report/sections/.*\.tsx|dev/check_chart_conclusion_parity\.py)$'
 
       - id: planner-manifest-coverage
         # ADR-200 §D3 (M1) + ADR-206 §6 (snapshot drift):

@@ -1,0 +1,54 @@
+{
+  "_doc": [
+    "Mapa ESPERADO seção → chave de `narrativas.summaries` (A40.l4 · ADR-356 §D2).",
+    "Declaração INDEPENDENTE do layout: `config/report_layout.yaml` é o runtime,",
+    "este arquivo é a expectativa contra a qual o runtime é conferido — por",
+    "tests/test_e5n_delivery_contract.py (Python) e por",
+    "frontend/tests/components/report/sectionSummaryDelivery.test.tsx (TS).",
+    "",
+    "Existe porque as duas pernas anteriores liam o destino DO layout e o",
+    "asseriam contra o layout: mapeamento semanticamente errado passava 30/30.",
+    "Declarar `summary_source: s2` na S2 (s2 é o parágrafo de SCORE; a S2 é",
+    "Fluxo de Caixa) ficava invisível.",
+    "",
+    "Mudar este arquivo é DECISÃO DE PRODUTO (gatilho financial-planner), não",
+    "ajuste de teste: cada entrada carrega a razão semântica por escrito. Se um",
+    "diff altera `destinations` sem alterar a razão, o mapeamento não foi",
+    "pensado — foi acomodado."
+  ],
+  "destinations": {
+    "S1": {
+      "key": "s1",
+      "razao": "s1 narra patrimônio bruto/investível/endividamento; a S1 é Patrimônio Consolidado."
+    },
+    "S3": {
+      "key": "s3",
+      "razao": "s3 narra a carteira por categoria e por membro; a S3 é Investimentos."
+    },
+    "S4": {
+      "key": "s4",
+      "razao": "s4 narra portfólio imobiliário + aluguel recorrente; a S4 é Imóveis."
+    },
+    "S7": {
+      "key": "s7",
+      "razao": "s7 narra meta de IF, gap, prazo e renda passiva; a S7 é Independência Financeira."
+    },
+    "S8": {
+      "key": "s8",
+      "razao": "s8 narra regime PJ declarado, DAS recolhido e holding; a S8 é Tributário/Previdência."
+    },
+    "S9": {
+      "key": "s9",
+      "razao": "s9 narra riscos prioritários e cobertura; a S9 é Riscos e Proteção."
+    },
+    "S10": {
+      "key": "s10",
+      "razao": "s10 narra as decisões prioritárias do ciclo; a S10 é Síntese."
+    }
+  },
+  "orphans": {
+    "s2": "Parágrafo de SCORE financeiro. A S2 do layout é Fluxo de Caixa — derivar por lowercase publicaria o score no topo do fluxo. Destino semântico seria a S1 (que já hospeda o score_gauge) ou uma seção de score própria: decisão de produto.",
+    "s5": "Viagens + sobra mensal. A S5 saiu do layout com o Modo USA (ADR-168); o conteúdo pertence aos cards de orçamento/consumo da S2.",
+    "s6": "Exposição cambial. A S6 saiu do layout com o Modo USA (ADR-168); o card `exposicao_cambial` vive na S1."
+  }
+}

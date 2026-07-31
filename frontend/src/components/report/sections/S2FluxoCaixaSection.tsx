@@ -50,12 +50,10 @@ export function S2FluxoCaixaSection({
   const equilibrio = data.equilibrio_cerbasi as
     | EquilibrioCerbasiData
     | undefined;
-  const narrativas = data.narrativas as
-    | Record<string, { context?: string; conclusion?: string }>
-    | undefined;
-
+  /** ADR-356 (A40.l4): a leitura `narrativas?.[id]` era ramo morto — o E5.N
+   * emite conclusão de chart em `narrativas.charts[id]`, nunca no topo. */
   const getConclusion = (id: string): string | undefined =>
-    narrativas?.[id]?.conclusion ?? deriveChartConclusion(id, data) ?? undefined;
+    deriveChartConclusion(id, data) ?? undefined;
 
   /** Última label do dataset mensal vira anchor para period toggles dos cards
    * — paridade com `usePeriodWindow` dos charts (evita janela vazia quando
@@ -67,7 +65,7 @@ export function S2FluxoCaixaSection({
 
   return (
     <ReportSection id="S2" title="Fluxo de Caixa — Receitas e Despesas">
-      <SectionSummary narrativas={narrativas} sectionId="S2" />
+      <SectionSummary data={data} sectionId="S2" />
       {workspaceId && (
         <SuggestionCalloutInline sectionId="S2" workspaceId={workspaceId} />
       )}

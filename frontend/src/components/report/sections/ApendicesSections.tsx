@@ -6,7 +6,6 @@ import { MonetaryValue } from "../MonetaryValue";
 import { SectionSummary } from "../SectionSummary";
 import { PremissasEconomicasCard } from "../cards/PremissasEconomicasCard";
 import { StressScenarioCard } from "../cards/StressScenarioCard";
-import { deriveSectionSummary } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import {
@@ -32,27 +31,6 @@ function safeFormatDate(iso: string): string | null {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
   return formatDate(iso);
-}
-
-function getNarrativas(data: ReportAnalysisData): Record<string, unknown> | undefined {
-  return data.narrativas as Record<string, unknown> | undefined;
-}
-
-function SectionFallback({
-  narrativas,
-  sectionId,
-  text,
-}: {
-  narrativas: Record<string, unknown> | undefined;
-  sectionId: string;
-  text: string | null;
-}) {
-  if (!text || narrativas?.[sectionId]) return null;
-  return (
-    <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
-      {text}
-    </p>
-  );
 }
 
 function SimpleTable({
@@ -150,8 +128,6 @@ function MetasVigentesCard({
  * + metodologias estáticas (Perini / Cerbasi / AUVP / Score próprio).
  */
 export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
-  const narrativas = getNarrativas(data);
-  const fallback = deriveSectionSummary("APP_B", data);
   const goals = data.goals as Record<string, unknown> | undefined;
   const snapshot: PremissasSnapshotShape | null =
     goals && typeof goals === "object" && goals.premissas_snapshot != null
@@ -160,8 +136,7 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
 
   return (
     <ReportSection id="APP_B" title="Apêndice B — Premissas e Metodologia">
-      <SectionSummary narrativas={narrativas} sectionId="APP_B" />
-      <SectionFallback narrativas={narrativas} sectionId="APP_B" text={fallback} />
+      <SectionSummary data={data} sectionId="APP_B" />
 
       <MetasVigentesCard snapshot={snapshot} />
       <PremissasEconomicasCard premissas={data.premissas_economicas ?? null} />
@@ -228,8 +203,6 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
  * justificar o stress test em tom não-alarmista (CVM/Susep).
  */
 export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
-  const narrativas = getNarrativas(data);
-  const fallback = deriveSectionSummary("APP_C", data);
   const cenarios = data.cenarios_conjuge as
     | {
         labels?: string[];
@@ -270,13 +243,17 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
 
   return (
     <ReportSection id="APP_C" title="Apêndice C — Cenários de Estresse">
+      {/* A40.l4: a APP_C é o único apêndice com parágrafo de abertura
+          AUTORAL (tom CVM/Susep: "não são previsões"). O derivado dizia a
+          mesma coisa mais pobre — "validar a margem de segurança do plano"
+          aparecia nos dois, um sob o outro. Sem <SectionSummary> aqui; o
+          layout registra `summary: false` para a regra 6 do gate estático
+          não acusar flag sem render site. */}
       <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
         Como o seu plano se comporta se uma premissa central mudar. Não são
         previsões — são testes de resiliência para validar a margem de
         segurança do plano atual.
       </p>
-      <SectionSummary narrativas={narrativas} sectionId="APP_C" />
-      <SectionFallback narrativas={narrativas} sectionId="APP_C" text={fallback} />
 
       {hasCenarios && (
         <StressScenarioCard cenarios={cenarios!} goals={goals} />
@@ -324,14 +301,11 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
  * contagem de documentos) do _report_lineage injetado pela API.
  */
 export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
-  const narrativas = getNarrativas(data);
-  const fallback = deriveSectionSummary("APP_D", data);
   const lineage = data._report_lineage;
 
   return (
     <ReportSection id="APP_D" title="Apêndice D — Referências e Fontes">
-      <SectionSummary narrativas={narrativas} sectionId="APP_D" />
-      <SectionFallback narrativas={narrativas} sectionId="APP_D" text={fallback} />
+      <SectionSummary data={data} sectionId="APP_D" />
 
       <ReportCard variant="neutral" title="Pilares Metodológicos" size="half">
         <SimpleTable
@@ -385,21 +359,17 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
 
 /** ADR-117/122 · Fase 10 — APP_E: Próximos Ciclos e Roadmap.
  *
- * Seção forward-looking: roadmap e próximos passos, alimentada por
- * narrativas E5.N com fallback determinístico. Variação vs. relatório
+ * Seção forward-looking: roadmap e próximos passos, texto de abertura via
+ * <SectionSummary> (precedência ADR-356). Variação vs. relatório
  * anterior é responsabilidade da seção V0 (`VariacaoSection`, ADR-190
  * §Emenda) — o card "Histórico de Ciclos" foi removido em 2026-06-12
  * (TRACK-remove-historico-ciclos-app-e): duplicava `data.changelog`
  * single-pair com rótulo enganoso.
  */
 export function ApendiceESection({ data }: { data: ReportAnalysisData }) {
-  const narrativas = getNarrativas(data);
-  const fallback = deriveSectionSummary("APP_E", data);
-
   return (
     <ReportSection id="APP_E" title="Apêndice E — Próximos Ciclos e Roadmap">
-      <SectionSummary narrativas={narrativas} sectionId="APP_E" />
-      <SectionFallback narrativas={narrativas} sectionId="APP_E" text={fallback} />
+      <SectionSummary data={data} sectionId="APP_E" />
     </ReportSection>
   );
 }

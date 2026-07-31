@@ -101,10 +101,11 @@ def _seed_dogfood_store(raw_baseline: dict, e2_extracts: dict[str, dict]):
     return store
 
 
-def run_dogfood_pipeline(
-    root: Path, *, raw_baseline: dict, e2_extracts: dict[str, dict]
-) -> dict[str, Any]:
-    """Roda E1.5c→E3→E4→E5 sobre baseline bruto + extratos E2 seeded; exercita dedup genuíno (ADR-271 em E1.5c, ADR-255 em E3); retorna ``analise_financeira``."""
+# Extraído de ``run_dogfood_pipeline`` em A40.l4: a fixture compartilhada das
+# narrativas roda E5.N **em cima** deste substrato, e a única coisa que faltava
+# era acesso ao ctx (o store é onde o E5.N lê e escreve).
+def run_dogfood_pipeline_ctx(root: Path, *, raw_baseline: dict, e2_extracts: dict[str, dict]):
+    """Roda E1.5c→E3→E4→E5 e devolve o ``ctx``, para quem precisa continuar o run."""
     from pipeline.context import WorkspaceContext
     from scripts.analyze_finances import main_with_store as e5_mws
     from scripts.categorize_transactions import main_with_store as e4_mws
@@ -114,6 +115,14 @@ def run_dogfood_pipeline(
     ctx = WorkspaceContext(root=root, artifact_store=_seed_dogfood_store(raw_baseline, e2_extracts))
     for stage in (e15_mws, e3_mws, e4_mws, e5_mws):
         stage(ctx)
+    return ctx
+
+
+def run_dogfood_pipeline(
+    root: Path, *, raw_baseline: dict, e2_extracts: dict[str, dict]
+) -> dict[str, Any]:
+    """Roda E1.5c→E3→E4→E5 sobre baseline bruto + extratos E2 seeded; exercita dedup genuíno (ADR-271 em E1.5c, ADR-255 em E3); retorna ``analise_financeira``."""
+    ctx = run_dogfood_pipeline_ctx(root, raw_baseline=raw_baseline, e2_extracts=e2_extracts)
     return ctx.artifact_store.read("E5", "analise_financeira")
 
 

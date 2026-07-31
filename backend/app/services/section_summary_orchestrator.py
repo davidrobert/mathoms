@@ -101,6 +101,21 @@ def _default_fallback(section_id: str, snapshot_data: Mapping[str, Any]) -> Opti
     return _GENERIC_FALLBACK.get(section_id)
 
 
+# ADR-356 §D2: a chave de `narrativas.summaries` NÃO é `section_id.lower()`.
+# `summaries.s2` é o parágrafo de SCORE e a S2 do layout é Fluxo de Caixa —
+# derivar por lowercase publicava o score no topo do fluxo de caixa. O mapa
+# canônico é `summary_source`, declarado no layout (mesma fonte que o renderer
+# React lê). Seção sem destino declarado cai no fallback genérico.
+def _summary_source_key(section_id: str) -> Optional[str]:
+    from backend.app.generated.report_layout import LAYOUT
+
+    estrategico = LAYOUT.estrategico
+    for entry in [*estrategico.sections, *estrategico.appendices]:
+        if entry.id == section_id:
+            return entry.summary_source if entry.enabled else None
+    return None
+
+
 def _read_legacy_summary(snapshot_data: Mapping[str, Any], section_id: str) -> Optional[str]:
     if not isinstance(snapshot_data, Mapping):
         return None
@@ -108,9 +123,10 @@ def _read_legacy_summary(snapshot_data: Mapping[str, Any], section_id: str) -> O
     if not isinstance(narrativas, Mapping):
         return None
     summaries = narrativas.get("summaries")
-    if not isinstance(summaries, Mapping):
+    key = _summary_source_key(section_id)
+    if not isinstance(summaries, Mapping) or key is None:
         return None
-    text = summaries.get(section_id.lower())
+    text = summaries.get(key)
     if isinstance(text, str) and text.strip():
         return text.strip()
     return None
