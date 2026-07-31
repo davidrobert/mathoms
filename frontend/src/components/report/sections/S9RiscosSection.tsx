@@ -91,10 +91,12 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
 
   return (
     <ReportSection id="S9" title="Riscos e Proteção — Seguros Críticos">
-      {/* ADR-355: com `s9` entregue, este parágrafo imprime acima do
-          <EmptyState/> abaixo. O CTA vive só no EmptyState — o texto do
-          produtor (`_S9_EMPTY`) é factual, sem call-to-action duplicado. */}
-      <SectionSummary data={data} sectionId="S9" />
+      {/* ADR-355: em empty state o <EmptyState/> abaixo JÁ é a mensagem
+          ("sem riscos cadastrados não há análise de cobertura"). Imprimir o
+          `s9` acima dele repetiria a mesma afirmação com wording diferente —
+          deduplicar o CTA não bastava. Fora do empty state, o parágrafo abre
+          a seção normalmente. */}
+      {!isEmpty && <SectionSummary data={data} sectionId="S9" />}
       {isEmpty ? (
         <div className="md:col-span-2">
           <EmptyState

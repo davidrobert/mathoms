@@ -3,8 +3,11 @@
  *
  * Conclusões de chart vivem SEMPRE em `narrativas.charts[<id>]`: os 17 ids
  * que o produtor emite estão lá, e nenhum aparece no topo de `narrativas`.
- * Promovido de `S3InvestimentosSection` (onde era local) para eliminar as
- * cópias do padrão em S7/S9/S10 e as leituras top-level mortas de S1/S2.
+ * Promovido de `S3InvestimentosSection` (onde era função local) para que o
+ * padrão tenha uma casa nomeada — hoje o único call site é a própria S3
+ * (as demais seções passam `narrativas.charts` inteiro ao
+ * `NarrativeChartCard`). O que a promoção habilitou foi deletar as leituras
+ * top-level mortas de S1/S2 sem deixar o padrão sem endereço.
  *
  * Gate estático (regra 5 de `dev/check_chart_conclusion_parity.py`) impede
  * que a leitura no topo de `narrativas` volte a aparecer em `sections/*.tsx`.

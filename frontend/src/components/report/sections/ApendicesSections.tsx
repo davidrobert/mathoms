@@ -243,12 +243,17 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
 
   return (
     <ReportSection id="APP_C" title="Apêndice C — Cenários de Estresse">
+      {/* A40.l4: a APP_C é o único apêndice com parágrafo de abertura
+          AUTORAL (tom CVM/Susep: "não são previsões"). O derivado dizia a
+          mesma coisa mais pobre — "validar a margem de segurança do plano"
+          aparecia nos dois, um sob o outro. Sem <SectionSummary> aqui; o
+          layout registra `summary: false` para a regra 6 do gate estático
+          não acusar flag sem render site. */}
       <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
         Como o seu plano se comporta se uma premissa central mudar. Não são
         previsões — são testes de resiliência para validar a margem de
         segurança do plano atual.
       </p>
-      <SectionSummary data={data} sectionId="APP_C" />
 
       {hasCenarios && (
         <StressScenarioCard cenarios={cenarios!} goals={goals} />

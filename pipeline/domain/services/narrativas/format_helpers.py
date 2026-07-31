@@ -81,6 +81,29 @@ def clause(prefixo: str, valor, sufixo: str = ". ") -> str:
     return f"{prefixo}{valor}{sufixo}"
 
 
+# A40.l4: ``diversificacao`` vinha de ``len([...]) or 5`` — zero categoria
+# classificada virava "5 categorias". Zero é zero: sem categoria não se afirma
+# contagem. Os três call sites (s3, perfil_familia, patrimonio_doughnut) passam
+# a compartilhar estas duas frases.
+SEM_CATEGORIA_CLASSIFICADA = "Composição da carteira ainda não classificada por categoria de ativo"
+
+
+def carteira_diversificacao_frase(n) -> str:
+    """Frase de diversificação da carteira; sem categoria, declara a ausência."""
+    count = int(n or 0)
+    if count <= 0:
+        return f"{SEM_CATEGORIA_CLASSIFICADA}. "
+    return f"Carteira diversificada entre {count} {pluralize(count, 'categoria', 'categorias')} de ativos. "
+
+
+def categorias_ativos_sufixo(n) -> str:
+    """`` entre N categorias de ativos`` — vazio quando não há categoria."""
+    count = int(n or 0)
+    if count <= 0:
+        return ""
+    return f" entre {count} {pluralize(count, 'categoria', 'categorias')} de ativos"
+
+
 def ensure_period(s: str) -> str:
     """Termina ``s`` com '.' sem duplicar; '.!?' (após rstrip) ficam; vazio→vazio."""
     stripped = s.rstrip()

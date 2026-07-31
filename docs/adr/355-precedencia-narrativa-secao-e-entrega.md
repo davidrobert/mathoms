@@ -40,9 +40,13 @@ devolve string. O que estava morto em 100% dos casos era especificamente o texto
 do E5.N: as 8 seções que chamavam `deriveSectionSummary` renderizavam parágrafo
 derivado, o que fazia o defeito parecer ausente.
 
-Medição por render real através do dispatcher (`MigratedSection`, 13 seções
-`enabled`), antes desta ADR: **7 seções com parágrafo, 0 de 10 narrativas do
-E5.N entregues**.
+Medição por render real através do dispatcher (`MigratedSection`, 17 entradas
+`enabled` incluindo apêndices), antes desta ADR: **8 seções com parágrafo de
+abertura, 0 de 7 destinos do E5.N entregues**. As 8 são S8, S9, S10 e
+APP_A..APP_E — nenhuma delas exibindo texto do E5.N (todas caíam no derivado; a
+APP_C tem parágrafo autoral próprio). A primeira versão desta ADR dizia "7", em
+contradição com a própria contagem de call sites duas linhas acima; o número
+medido é 8.
 
 Cinco cópias do fallback determinístico viviam **fora** do componente, cada uma
 guardada por `!narrativas?.["<ID>"]` — guardas em ramo morto, que nunca podiam
@@ -91,16 +95,29 @@ A chave da camada 2 **não** é `sectionId.toLowerCase()`. Ver D2.
 | APP_A..APP_E | `null` | apêndices são texto determinístico |
 
 Derivar por lowercase publicaria o parágrafo de score no topo do Fluxo de Caixa.
-O bug já está codado em
-`backend/app/services/section_summary_orchestrator.py:113`
-(`_read_legacy_summary`) e o único teste que o cobre usa `S1` — justamente o id
-onde a coincidência acerta. Destino semântico do `s2` é **decisão de produto**
-(gatilho `financial-planner`), não inferência de string.
+O mesmo bug estava codado em
+`backend/app/services/section_summary_orchestrator.py::_read_legacy_summary`
+(`summaries.get(section_id.lower())`) e o único teste que o cobria usava `S1` —
+justamente o id onde a coincidência acerta. Com a entrega ligada o caminho
+passou a ser alcançável em 5 seções, então o `_read_legacy_summary` **também**
+lê `summary_source` (via `backend/app/generated/report_layout.py`); seção sem
+destino declarado cai no fallback genérico em vez de publicar o parágrafo de
+outra dimensão. Destino semântico do `s2` é **decisão de produto** (gatilho
+`financial-planner`), não inferência de string.
 
 **Allowlist de órfãs** — chaves emitidas sem destino, com razão escrita:
 `ORPHAN_SUMMARY_KEYS` em `pipeline/domain/services/narrativas/summaries_narrator.py`
 (`s2`, `s5`, `s6`). É fato do **produtor**, por isso não vive no layout. S5
 (viagens) e S6 (cambial) saíram do layout com o Modo USA ([[ADR-168]]).
+
+**O mapa esperado é declarado FORA do runtime** —
+`tests/fixtures/narrativas/e5n_destinations.json`, com a razão semântica por
+entrada, lido pelas duas pernas (Python + vitest). Sem isso as guardas liam o
+destino do layout e o aferiam **contra o layout**: declarar
+`summary_source: "s2"` na S2 passava 30/30 asserções, exatamente o defeito que
+esta §D2 existe para prevenir. Medido: com a declaração, a mesma mutação
+vermelha duas pernas — a de mapa (layout ≠ declaração) e a de conteúdo (a S2
+publicou o texto de outra dimensão).
 
 **KR-C honesto: 7 de 7 destinos declarados** — não 10/10 (10 chaves emitidas,
 3 sem seção) nem 16/16 (16 call sites, 8 sem chave produtora).
@@ -145,11 +162,12 @@ site com id que ninguém conhece renderiza vazio em runtime, silenciosamente". O
 gate passa a ignorar comentários (senão o comentário que documenta a remoção de
 um padrão proibido dispara a própria regra).
 
-### D6 — CV9 mede entrega: destino, órfã e shape
+### D6 — CV9 mede entrega: render site, destino, órfã e shape
 
-`scripts/validate_cross.py::_cv9_summaries_delivery`. Denominador = inventário
-do **consumidor** (layout), numerador = resolubilidade pelo **mesmo mapa que o
-renderer lê**. Três predicados, nenhum auto-referente:
+`scripts/validate_cross.py::_cv9_summaries_delivery`. Denominador = as entradas
+do layout que **de fato exibem parágrafo** (`enabled` **e** `summary: true` **e**
+`summary_source`), numerador = resolubilidade pelo **mesmo mapa que o renderer
+lê**. Quatro predicados, nenhum auto-referente:
 
 1. **destino sem texto** (`error`) — layout declara `summary_source` e a chave
    não existe em `summaries`. Direção que nenhum gate cobria.
@@ -158,9 +176,30 @@ renderer lê**. Três predicados, nenhum auto-referente:
 3. **shape** (`error`) — valor tem de ser `str` não-vazia. `{context,
    conclusion}` sob `summaries.sN` **passa** pelo `validate_narrativas`
    (`not {"a":1}` é `False`) e o renderer cai no derivado sem sinal.
+4. **destino sem render site** (`error`) — `summary_source` declarado numa
+   entrada com `summary: false` ou `enabled: false`: texto gerado, mapeado e
+   **invisível**. É o caso *gerado-mas-não-entregue*, a direção que o nome
+   "delivery" prometia e que a primeira versão do CV9 desta ADR deixava verde —
+   ela media produtor × mapa (o join), não entrega.
 
-`details` = `"entregues=N/esperadas=M; sem_texto=[...]; orfas=[...]; shape_invalido=[...]"`
-— o `N/M` **é** o KR-C, observável por run.
+**Premissa que torna o `entregues=N` honesto:** `summary: true` só significa
+"exibe parágrafo" porque a regra 6 de `dev/check_chart_conclusion_parity.py`
+(nova) enforça `summary: true` ⟺ `<SectionSummary … sectionId="<id>">` em
+`sections/*.tsx`, nas duas direções. Sem essa regra a flag mentiria: flag sem
+componente (texto invisível contado como entregue) e componente sem flag
+(denominador subestimado). Medido por mutação: apagar o `<SectionSummary>` da
+S10 deixa o gate vermelho.
+
+Alternativa considerada e rejeitada: **renomear o CV9** para "mapping" e tirar
+"entregues" da mensagem. Rejeitada porque a informação que falta (o render site)
+é declarativa e já vive no layout — bastava incluí-la no predicado e travar a
+flag. Nome honesto sem medir entrega seria trocar um gate decorativo por um
+rótulo modesto; aqui o gate passou a medir o que promete.
+
+`details` = `"entregues=N/esperadas=M; sem_texto=[...]; shape_invalido=[...]; orfas=[...]; sem_render=[...]"`
+— o `N/M` **é** o KR-C, observável por run. Unit test dos quatro predicados
+(incluindo o caso gerado-e-não-entregue construído de propósito):
+`tests/test_cv9_narrativas_delivery.py`.
 
 CV9 lê o **YAML** do repo (`_pc._REPO_ROOT / "config/report_layout.yaml"`), não
 o módulo Python gerado: importá-lo acoplaria `pipeline` → `backend`. O override
@@ -177,28 +216,84 @@ pipeline-review e trocaria-se um verde vazio por outro.
 
 **Limite honesto:** CV9 é telemetria de run, nunca gate de PR (só roda no stage
 `validate_cross`; em CI há apenas unit test com E5 sintético). O bloqueio em PR
-vem das outras duas pernas — vitest e regra estática. As três pernas observam
-coisas diferentes; é isso que remove a auto-referência.
+vem das outras pernas — vitest (fixture + mapa declarado + PII) e as regras
+estáticas 5 e 6. As pernas observam coisas diferentes; é isso que remove a
+auto-referência.
 
-### D7 — Correções de conteúdo, pré-condição de acender S8 e S9
+### D7 — Nenhum número entregue vem de default de código
 
-Acender a entrega publica o texto como está. Duas afirmações eram falsas por
-construção:
+Regra unificadora (co-design `financial-planner`, 2026-07-31): **ou o número vem
+do payload, ou não é afirmado**. Três instâncias da mesma doença — "sem dado →
+constante com aparência de cálculo" — tratadas como uma classe, com uma guarda
+por instância em `tests/test_e5n_anti_hardcode.py` §braço D:
 
-- **`s8`: alíquota DAS de default hardcoded.** `das_aliquota_pct` vinha de
-  `FISCAL.get("das_simples", {}).get("aliquota_efetiva_pct", 6.0)`, lido de
-  `config/parametros_fiscais.json` — arquivo migrado para a tabela
-  `fiscal_parameters` em A7.2b ([[ADR-135]]) e **path proibido no git**. Em
-  produção `FISCAL` é `{}`, logo 6% era constante, e
-  `das_mensal_estimado`/`das_anual_estimado` derivavam dela. Publicar "alíquota
-  efetiva 6%" + DAS em reais é **pior** que não mostrar nada, porque parece
-  calculado. Decisão: `das_aliquota_pct` passa a ser `None` sem fonte fiscal, e
-  o `s8` suprime a cláusula inteira, degradando para
-  `"Perfil tributário PJ pendente — …"` — o registro que o irmão
-  `charts_narrator.impostos_pj` já adota ([[ADR-236]] §D5).
-- **`s9`: "Seguros de vida e invalidez inexistentes" incondicional.** Passa a
-  exigir sinal: `protecao_patrimonial.gap_qualitativo[categoria='vida'].flag`
-  ([[ADR-240]]). `None` (bloco ausente) = não sabemos, então não afirmamos.
+**1. `s8` — a estimativa fiscal sai inteira.** `das_aliquota_pct` vinha de
+`FISCAL["das_simples"]["aliquota_efetiva_pct"]`, default 6%. Três defeitos
+independentes, todos medidos:
+
+- *constante fantasiada*: a própria fonte legada se desmente
+  (`_comment: "estimativa para Anexo V típico … RBT12 ≤ R$ 360k"` +
+  `_calcular_realmente: "usar tabela completa com RBT12"`). 6% só vale na 1ª
+  faixa (RBT12 ≤ R$ 180k, parcela a deduzir 0). Na faixa do ICP a efetiva é
+  11,05% (RBT12 720k) a 14,02% (1,8M) — **subestimava ~2×**, e no sentido que
+  infla sobra de caixa e capacidade de aporte. O motor canônico já calcula certo
+  (`cascata_calculator.compute_simples_aliquota_efetiva`, LC 123 art. 18);
+- *base errada*: `receita_pj_anual` anualizava `receita_por_natureza.receita_pj`
+  = pró-labore + lucros distribuídos ([[ADR-330]]), dinheiro que entrou na conta
+  **PF**. DAS incide sobre faturamento bruto (RBT12). [[ADR-236]] §Emenda CTO-05
+  já proibiu exatamente essa derivação;
+- *ramo impossível*: `f"{_S8_REGIME_SEM_LABEL}{das}"` produzia "Regime PJ não
+  informado (alíquota efetiva X%)". Sem regime não existe DAS.
+
+E o card irmão `impostos_pj`, na **mesma seção S8**, já publica receita bruta +
+tributos + carga + fator-R pela cascata canônica: um segundo estimador só pode
+concordar (redundante) ou discordar (defeito publicado) — e a l4 acabou de ligar
+o balde `das_simples` em `despesas_impostos`, então o relatório mostraria DAS
+**pago** de um lado e DAS **estimado a 6%** do outro.
+
+Decisão: o `s8` afirma **regime declarado** + **DAS recolhido** (categoria E4
+`das_simples`, fato de extrato — dispensa parâmetro fiscal e sobrevive a regime
+desconhecido) + contador + holding. Zero estimativa; carga e alíquota ficam com
+a cascata. `das_aliquota_pct`, `das_mensal_estimado`, `das_anual_estimado`,
+`pct_das_receita_pj` e `receita_pj_anual` foram **deletados** do metrics — eram
+os únicos consumidores do default fiscal.
+
+**Correção da primeira versão desta §D7 (objeção medida):** ela afirmava que o
+`s8` degradaria para "Perfil tributário PJ pendente". Falso em produção —
+`regime_obs` vem de `trib_cfg["regime_label"]` e `_regime_to_label(None, …)`
+devolve `"Perfil tributário incompleto"` (`pipeline_adapter.py`), nunca vazio,
+com `payload["tributario"]` sempre setado. Logo `_S8_REGIME_PENDENTE` era
+**código morto** e o que renderizava era o rótulo pelado, sem CTA e sem o valor
+detectado — regressão de UX vs. o card irmão. O sinal de ausência é
+`tributario.regime is None`, não string de label.
+
+**Não publicar (lista fechada, co-design `financial-planner`):** alíquota efetiva
+sem `regime` + `anexo_simples` declarados; DAS estimado a partir de entradas PF;
+"receita PJ anualizada" rotulada como receita da PJ sem o qualificador *entrada
+na conta PF*; **R$ 0,00 em campo fiscal** (lê-se como "sua PJ não paga imposto",
+pior que silêncio); honorário de contador (`contador_mensal` **não existe** em
+`bundle["tributario"]` — o `get(..., 0)` publicava "(R$ 0,00/mês)" em todo
+workspace com contador cadastrado); e **`contador_nome`**, que é PII de terceiro
+(ver D9).
+
+**2. `s3`/`perfil_familia`/`patrimonio_doughnut` — `diversificacao`.**
+`len([...]) or 5` transformava "nenhuma categoria classificada" em "5
+categorias", nos três consumidores. Zero é zero: `carteira_diversificacao_frase`
+declara a ausência ("Composição da carteira ainda não classificada por categoria
+de ativo") em vez de afirmar contagem.
+
+**3. `TrsEfetivaStat` (S7) — `goals?.trs_pct ?? 5.0`.** Ver D8.
+
+**Duas afirmações incondicionais** (não são default de código, são frase sem
+sinal):
+
+- **`s9`: "Seguros de vida e invalidez inexistentes".** Passa a exigir
+  `protecao_patrimonial.gap_qualitativo[categoria='vida'].flag` ([[ADR-240]]).
+  `None` = não sabemos, então não afirmamos.
+- **`s4`: contagem contraditória.** `n_imoveis` vem do E5 `investimentos` e os
+  valores vêm de `patrimonio` — fontes que divergem. Medido no render:
+  `"0 imóveis no portfólio: residência (R$ 800k)"`. Sem contagem confiável o
+  texto descreve o valor sem afirmar quantidade.
 
 Mais três, do mesmo cleanup incompleto da [[ADR-168]]/A10.1 (que limpou o `s5` e
 esqueceu os vizinhos):
@@ -206,10 +301,12 @@ esqueceu os vizinhos):
 - tail do `s8` "Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA
   expatriado antes da mudança" — deletado;
 - `s6` "Meta pré-EUA" → "Meta de reserva cambial";
-- `_S9_EMPTY` perde o CTA: com a entrega ligada ele imprime **acima** do
-  `<EmptyState/>` da S9 (o `<SectionSummary>` está antes do ternário `isEmpty`),
-  que já traz call-to-action — com wording diferente. O produtor fica factual; o
-  CTA é do componente.
+- `_S9_EMPTY` perde o CTA. **E a S9 em empty state não publica o `s9`**: o
+  `<EmptyState/>` já *é* a mensagem ("sem riscos cadastrados não há análise de
+  cobertura") — deduplicar o CTA não bastava, a afirmação também estava duplicada.
+  Idem APP_C: é o único apêndice com parágrafo de abertura **autoral** (tom
+  CVM/Susep, "não são previsões"), e o derivado repetia "validar a margem de
+  segurança do plano" logo abaixo ⇒ `summary: false` e sem `<SectionSummary>`.
 
 E dois defeitos de dado achados no caminho: `despesas_impostos` somava
 `desp_cat.get("das")`, mas a categoria emitida pelo E4 é `das_simples`
@@ -218,12 +315,95 @@ com cônjuge ausente emitia espaço órfão + frase sem sujeito
 (`"… .  possui R$ 0,00 …"`), que viraria user-facing no instante em que o `s3`
 acendesse.
 
-### D8 — Higiene do layout, senão o denominador mente nas duas direções
+**A fixture compartilhada é gerada na condição de PRODUÇÃO.** A primeira versão
+gerava com `tests/fixtures/legacy_configs/parametros_fiscais.json` copiado pelo
+`_build_e5_workspace`, então a guarda exercitava o ramo "alíquota declarada 6%"
+que produção nunca toma — o mesmo falso-verde de escopo que a A40.l3 pagou em 3
+rodadas. O arquivo é removido antes de gerar.
+
+### D8 — O yield-alvo da S7 vem do payload, e "meta" não serve a dois conceitos
+
+[[ADR-191]] §Emenda 2026-07-15 (FP-03) decidiu que *yield-alvo/TRS-meta* (5%,
+rentabilidade da carteira) e *taxa de retirada segura/SWR* (4%, regra dos 300 /
+Trinity ×25) são conceitos **distintos que nunca se colapsam**. Logo o `s7` está
+**correto** como está: "Renda passiva estimada (4% retirada segura)" é a
+superfície do SWR, com rótulo casando com valor.
+
+O defeito estava no card, em três camadas:
+
+1. **chave fantasma** — `goals.trs_pct` **não existe** no payload (o E5 emite
+   `goals.if_trs`, `if_projector.py:175`), então `(goals?.trs_pct) ?? 5.0` em
+   `S7IndependenciaSection.tsx` disparava **100% das vezes**: literal de código
+   impresso como se fosse a meta da família;
+2. **fonte** — a casa sancionada do yield-alvo é `ratios.rentabilidade.meta_pct`
+   (obrigatória em `e5_analysis.schema.json`, presente no snapshot do
+   view-model), a **mesma** que o `kpi_rentabilidade` da S3 lê. Ausente ou de
+   shape inesperado ⇒ **não se imprime meta alguma**; a TRS efetiva é valor
+   observado e sustenta-se sozinha;
+3. **rótulo** — o sublabel passa a "Yield-alvo", não "Meta" (a palavra "meta" já
+   é da meta de IF dois elementos acima), e o tooltip perde o comparativo com
+   Trinity 4%, vetado por [[ADR-191]] §D5 ("SWR de depleção do principal vs.
+   yield de fluxo são incomparáveis").
+
+**Enquadramento importa:** isto **não** é "contradição 4 vs 5 na mesma seção".
+Sob FP-03 os dois números são legítimos e coexistem, desde que cada um seja
+rotulado pelo próprio conceito e venha do payload. Tratar como contradição
+convidaria um fix que "harmoniza" os dois — o que desfaz FP-03 e reintroduz o
+otimismo ×20-vs-×25 (meta de IF ~20% mais curta).
+
+### D9 — PII não vai ao texto entregue
+
+O relatório é o artefato que a família guarda e **mostra a terceiros** (contador,
+corretor, banco). Medido em render real: a narrativa determinística publicava
+`nome_completo` de adultos **e de menor** (`perfil_familia_narrator`), a
+residência por logradouro (`s4`, via `endereco.rua`), o endereço completo na
+cláusula de pets, e o **nome do contador** (`s8` e o disclaimer do
+`CascataFiscalCard`). Todos PII dura por [[ADR-319]].
+
+Substituições: **primeiro nome** (`nome_curto`, já disponível em
+`NarrativasContext`) para adultos, **papel** para o menor ("Primeiro filho do
+casal" — menor é a PII mais sensível) e para o contador ("Contador cadastrado" /
+"Há contador cadastrado no perfil da PJ"), e **nada** para endereço.
+
+Guarda em três braços (`tests/test_e5n_pii_guard.py`), porque nenhum sozinho
+basta:
+
+- **sentinela por campo** — a família de teste carrega um valor PII-shaped
+  inconfundível em cada campo; nenhum pode aparecer no output. Campo novo que
+  vaze fica vermelho sem editar o teste;
+- **forma de nome completo** — sequência de 2+ palavras capitalizadas é padrão de
+  nome próprio; a allowlist é só de rótulos de regime, com razão escrita;
+- **regra estática** — narrador nenhum pode LER `nome_completo`,
+  `local_nascimento`, `cpf` ou `endereco` (o gate de pre-commit
+  `dev/check_pipeline_log_pii.py` cobre **log**, não texto renderizado; a regra
+  distingue leitura de menção em prosa, senão o comentário que documenta a
+  remoção dispara a própria regra).
+
+Medido por mutação: reintroduzir `nome_completo` no card de perfil deixa 3
+asserções vermelhas (sentinela + forma + regra estática).
+
+### D10 — O sufixo de changelog compõe com a camada 2
+
+O sufixo de delta ([[ADR-148]]) era anexado **dentro** de `deriveSectionSummary`
+— camada 3. Com a camada 2 acesa em 7 seções, a 3 deixaria de rodar nelas e o
+sufixo pararia de renderizar **sem ninguém decidir isso**.
+
+Decisão: o sufixo é *anotação de delta*, ortogonal a quem escreveu o
+parágrafo-base ⇒ **compõe com a camada 2**. **Não** compõe com a camada 1: o LLM
+recebe o snapshot e é quem redige o delta ([[ADR-144]] §3), e
+`deriveSectionSummary` já retornava antes do sufixo no ramo LLM. Assim o
+comportamento existente é preservado onde existia e estendido onde a camada 2 o
+substituiu. A [[ADR-148]] **não** perde efeito.
+
+### D11 — Higiene do layout, senão o denominador mente nas duas direções
 
 - `plano_de_acao` tinha `summary: true` e **não** renderiza `<SectionSummary>`
   (é projeção da `Decision` aggregate) ⇒ `summary: false`.
-- APP_A..APP_E renderizam `<SectionSummary>` e **não** tinham a flag ⇒
-  `appendixSpec` ganha `summary` + `summary_source`.
+- APP_A, APP_B, APP_D, APP_E renderizam `<SectionSummary>` e **não** tinham a
+  flag ⇒ `appendixSpec` ganha `summary` + `summary_source`. A APP_C fica
+  `summary: false` (parágrafo autoral, ver D7).
+- A correspondência flag ⟺ render site deixa de ser higiene manual e passa a ser
+  gate: regra 6 de `dev/check_chart_conclusion_parity.py` (ver D6).
 - `AppendixSpec` do codegen é `extra="forbid"` e não declarava `optional`,
   enquanto `APP_C` tem `optional: true` ⇒ **`backend/app/generated/report_layout.py`
   levantava `ValidationError` no import** (bug pré-existente; `--check` compara
@@ -255,16 +435,27 @@ própria.
 
 ## Consequências
 
-- KR-C medido por render real através do dispatcher: **0/7 → 7/7** destinos
-  entregues; seções com parágrafo de abertura **7 → 13**.
-- Guarda anti-regressão em três pernas independentes: fixture compartilhada
-  gerada pelo produtor (`tests/fixtures/narrativas/e5n_delivery.json`, lida por
-  `tests/test_e5n_delivery_contract.py` e por
-  `frontend/tests/components/report/sectionSummaryDelivery.test.tsx`), teste
-  anti-hardcode de conteúdo (`tests/test_e5n_anti_hardcode.py`) e regra estática
-  no gate de pre-commit.
-- **Delta visual esperado**: S1, S3, S4, S7, S9, S10 ganham a caixa
-  `border-l-4`; a S8 troca o `<p>` do fallback pela caixa. Os PNGs de
+- **KR-C medido** (render real via `MigratedSection`, mesmo payload nos dois
+  lados, `git archive origin/main` vs. worktree): seções com parágrafo de
+  abertura **8 → 13** (+5 = S1, S2, S3, S4, S7); destinos do E5.N entregues
+  **0/7 → 7/7**. A **APP_C não muda** — já tinha parágrafo autoral antes e
+  depois; creditá-la como ganho (a versão anterior dizia "+6 … APP_C") inflava o
+  delta. S2 entra pelo derivado (`summary_source: null`), não pelo E5.N.
+- Guarda anti-regressão em **cinco** pernas independentes: (1) fixture
+  compartilhada gerada pelo produtor na condição de produção
+  (`tests/fixtures/narrativas/e5n_delivery.json`); (2) mapa de destino declarado
+  fora do runtime (`e5n_destinations.json`), que é o que detecta destino
+  semanticamente errado; (3) anti-hardcode **por parâmetro citado**
+  (`tests/test_e5n_anti_hardcode.py`); (4) guarda de PII sobre o output
+  (`tests/test_e5n_pii_guard.py`); (5) regras estáticas 5 e 6 do gate de
+  pre-commit. As duas primeiras são lidas pelos dois lados (Python + vitest).
+- **Delta visual esperado**: S1, S3, S4, S7 e S9 ganham a caixa `border-l-4`; a
+  S8 troca o `<p>` do fallback pela caixa; a S2 ganha o `<p>` derivado (markup
+  igual ao fallback, texto novo). A **S10 não muda de registro** (já era `<p>`
+  derivado e o `s10` do E5.N agora ocupa a caixa — muda o registro, sim: `<p>` →
+  caixa). Nas **5 fixtures E2E** o bag `narrativas` só tem `perfil_familia`,
+  então a camada 2 não dispara nelas: nessas fixtures o delta é S2 ganhando o
+  `<p>` derivado e as demais mantendo o markup. Os PNGs de
   `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/`
   mudam nessas seções. O job visual **não é bloqueante** ⇒ o rebaseline é
   explícito, não deixado para o próximo agente.
@@ -292,12 +483,25 @@ própria.
   cabeado ao metrics do narrador. Os dois ramos `True` são inalcançáveis em
   produção. Não é defeito de texto (a cláusula é corretamente condicional), é
   fio solto: cabear ou deletar exige decisão sobre US tax status.
-- **`goals?.trs_pct ?? 5.0`** em `S7IndependenciaSection.tsx:96` — instância
-  PD-20/RV3-26, conta no KR-A da A40.l5 ("leituras órfãs 5 → 0"). A chave real é
-  `goals.if_trs` (`if_projector.py:175`). A contradição já é visível hoje via
-  `perfil_familia_narrator.py:192`, então entregar o `s7` adiciona superfície mas
-  não cria o defeito: veredito `agora-visível-e-errado · pré-existente · owned
-  by A40.l5`.
+- **A meta de TRS exibida não é configurável pela família.** O card agora lê
+  `ratios.rentabilidade.meta_pct` (D8), o que resolve a leitura órfã e a
+  contradição intra-seção — mas **não** faz o número ser da família:
+  `RatiosCalculator()` roda com `RentabilidadeConfig()` default (5,0) e
+  `PassiveIncomeConfig.trs_meta_pct`, construído a partir do goal do workspace,
+  **nunca é lido** pelo calculator. O wizard coleta `goal.if.inputs.trs_pct`
+  (0-20) e o relatório ignora. Ligar `RentabilidadeConfig.meta_pct` ao goal e
+  matar `PassiveIncomeConfig.trs_meta_pct` é mudança de **cálculo** — lane
+  própria, não esta.
+- **Base da cascata herda o erro de categoria do CTO-05 no ramo de regime
+  declarado** (`receita_bruta = receita_pj_anual`). A fonte correta de
+  faturamento declarado é `FinanceiroPJSnapshot.receita_bruta_total_anual`
+  (informe financeiro_pj, [[ADR-238]]), hoje passthrough e não usada. Mudança de
+  cálculo ⇒ ADR e lane separadas.
+- **`renda_passiva_estimada_4pct` cristaliza "4" no nome da chave** enquanto a
+  taxa é configurável (`taxa_retirada_segura_pct`). Workspace com 3,5% produz um
+  campo cujo nome mente para o próximo leitor (o LLM do parecer incluído). O
+  texto entregue é honesto (imprime a taxa real); a liability é o **nome da
+  chave** do view-model — dono A40.l5, que já mexe no contrato.
 
 ## Fronteira com a A40.l5
 

@@ -33,6 +33,13 @@ Escopo pragmático (regex, sem parser TS completo):
      de seção vem de `<SectionSummary data={data}>` (precedência em
      `utils/sectionSummarySource.ts`); a conclusão de chart vem de
      `narrativas.charts[id]` via `utils/chartNarrative.ts`.
+  6. `summary: true` em `config/report_layout.yaml` ⟺ existe
+     `<SectionSummary … sectionId="<id>">` em sections/*.tsx (A40.l4 ·
+     ADR-355). Esta regra é a **premissa do CV9**: o CV9 mede entrega contando
+     destinos declarados em entradas com `summary: true`, e isso só é honesto
+     se a flag for provavelmente o inventário de render sites. Sem ela, a flag
+     mente nas duas direções — `summary: true` sem componente (texto gerado,
+     mapeado e nunca exibido) e componente sem flag (denominador subestimado).
 
 Uso:
     python3 dev/check_chart_conclusion_parity.py
@@ -218,6 +225,46 @@ def _narrativas_top_level_access() -> list[str]:
     ]
 
 
+_SECTION_SUMMARY_RE = re.compile(r'<SectionSummary\b[^>]*?sectionId=\{?"([^"]+)"')
+_LAYOUT_YAML = _REPO_ROOT / "config" / "report_layout.yaml"
+
+
+def _summary_render_sites() -> set[str]:
+    """Ids literais passados a `<SectionSummary>` em sections/*.tsx."""
+    return {
+        sid
+        for tsx in sorted(_SECTIONS_DIR.glob("*.tsx"))
+        for sid in _SECTION_SUMMARY_RE.findall(_tsx_code(tsx))
+    }
+
+
+def _layout_summary_flag_ids() -> set[str]:
+    """Ids do layout com `summary: true` (seções + apêndices, `enabled` ou não)."""
+    layout = yaml.safe_load(_LAYOUT_YAML.read_text(encoding="utf-8")) or {}
+    estrategico = layout.get("estrategico") or {}
+    entries = [*(estrategico.get("sections") or []), *(estrategico.get("appendices") or [])]
+    return {e["id"] for e in entries if isinstance(e, dict) and e.get("summary")}
+
+
+def _summary_flag_vs_render_site() -> list[str]:
+    """Regra 6 — `summary: true` ⟺ `<SectionSummary sectionId="…">` existe."""
+    render_sites = _summary_render_sites()
+    declared = _layout_summary_flag_ids()
+    return [
+        *(
+            f"seção `{sid}` tem `summary: true` em {_LAYOUT_YAML.name} mas nenhum "
+            "<SectionSummary> em sections/*.tsx — o CV9 conta o destino como "
+            "entregue e o texto nunca é exibido"
+            for sid in sorted(declared - render_sites)
+        ),
+        *(
+            f"seção `{sid}` renderiza <SectionSummary> mas não tem `summary: true` "
+            f"em {_LAYOUT_YAML.name} — o denominador do CV9 fica subestimado"
+            for sid in sorted(render_sites - declared)
+        ),
+    ]
+
+
 def _fallback_only_with_builder(fallback_only: set[str], builders: set[str]) -> list[str]:
     """Regra 3 — fallback-only não pode ter builder (contradição)."""
     return [
@@ -238,6 +285,7 @@ def collect_violations() -> list[str]:
         *_fallback_only_with_builder(fallback_only, builders),
         *_call_site_unknown_id(builders, fallbacks),
         *_narrativas_top_level_access(),
+        *_summary_flag_vs_render_site(),
     ]
 
 

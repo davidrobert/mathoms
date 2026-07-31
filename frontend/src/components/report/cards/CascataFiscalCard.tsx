@@ -95,20 +95,23 @@ function CascataFullCard({
           <PgblBlock cascata={cascata} />
         </div>
         <TriggersList triggers={cascata.triggers} />
-        <FiduciaryDisclaimer contadorNome={tributario.contador_nome} />
+        <FiduciaryDisclaimer temContador={Boolean(tributario.contador_nome)} />
       </section>
     </ReportCard>
   );
 }
 
-function FiduciaryDisclaimer({ contadorNome }: { contadorNome: string | null }) {
+/** A40.l4 (ADR-319): o nome do contador é PII de terceiro — e com frequência
+ * pessoa física. O disclaimer precisa dizer que há contador no perfil, não
+ * quem ele é; o relatório é o artefato que a família mostra a terceiros. */
+function FiduciaryDisclaimer({ temContador }: { temContador: boolean }) {
   return (
     <p
       id="cascata-fiscal-disclaimer"
       className="rounded-md bg-[var(--surface-muted)] p-3 text-[0.7rem] leading-relaxed text-[var(--surface-muted-foreground)]"
     >
       {DISCLAIMER_SENTENCE}
-      {contadorNome ? ` Contador no perfil: ${contadorNome}.` : ""}
+      {temContador ? " Há contador cadastrado no perfil da PJ." : ""}
     </p>
   );
 }

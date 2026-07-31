@@ -70,7 +70,9 @@ describe("<S2FluxoCaixaSection /> — conclusion ids (audit-vault r4)", () => {
     // dev/check_chart_conclusion_parity.py.
     const topLevelKey = {
       ...data,
-      narrativas: { receita_bar: { conclusion: "Texto no topo (nunca emitido)." } },
+      narrativas: {
+        receita_bar: { conclusion: "Texto no topo (nunca emitido)." },
+      },
     } as unknown as ReportAnalysisData;
     render(<S2FluxoCaixaSection data={topLevelKey} />);
     expect(conclusions.receita).toBe("CLT lidera as receitas (75%).");

@@ -304,14 +304,33 @@ def _cv8_reserva_cobertura(e5: dict) -> CrossValidationResult | None:
 
 # Denominador é o inventário do CONSUMIDOR (layout), não do produtor. Lê o
 # YAML — não o módulo Python gerado (importá-lo acoplaria pipeline→backend).
-def _summary_destinations() -> dict[str, str]:
-    """``{section_id: summary_source}`` das entradas ``enabled`` do layout."""
-    estrategico = (_REPORT_LAYOUT or {}).get("estrategico") or {}
-    entries = [*(estrategico.get("sections") or []), *(estrategico.get("appendices") or [])]
+#
+# ``summary: true`` é o que faz o "entregues=N" ser honesto: a flag é o
+# inventário de render sites, e a correspondência flag ⟺
+# ``<SectionSummary sectionId="…">`` é enforçada em PR pela regra 6 de
+# ``dev/check_chart_conclusion_parity.py``. Sem essa premissa o CV9 mediria só
+# produtor × mapa (o join), enquanto o nome prometia render.
+def _summary_render_destinations() -> dict[str, str]:
+    """``{section_id: summary_source}`` das entradas que REALMENTE renderizam."""
     return {
         e["id"]: e["summary_source"]
-        for e in entries
-        if isinstance(e, dict) and e.get("enabled") and e.get("summary_source")
+        for e in _summary_entries()
+        if e.get("enabled") and e.get("summary") and e.get("summary_source")
+    }
+
+
+def _summary_entries() -> list[dict]:
+    estrategico = (_REPORT_LAYOUT or {}).get("estrategico") or {}
+    entries = [*(estrategico.get("sections") or []), *(estrategico.get("appendices") or [])]
+    return [e for e in entries if isinstance(e, dict)]
+
+
+def _summary_source_sem_render() -> dict[str, str]:
+    """Destinos declarados em entrada que não exibe parágrafo — gerado e não entregue."""
+    return {
+        e["id"]: e["summary_source"]
+        for e in _summary_entries()
+        if e.get("summary_source") and not (e.get("enabled") and e.get("summary"))
     }
 
 
@@ -321,36 +340,43 @@ def _delivered(value) -> bool:
 
 # CV9 mede o que o renderer consegue EXIBIR, não o que o produtor gerou.
 # Presença + não-vazio de ``s1..s10`` já é hard-fail de ``validate_narrativas``
-# a montante, então o CV9 antigo era verde por construção. As três direções
+# a montante, então o CV9 antigo era verde por construção. As quatro direções
 # aqui não tinham gate nenhum: (1) destino declarado no layout sem texto
 # (layout aponta ``s11``, ou produtor renomeia chave ⇒ parágrafo vazio em
 # silêncio); (2) chave emitida sem destino e sem razão na allowlist de órfãs;
 # (3) shape inválido — ``{context, conclusion}`` sob ``summaries.sN`` passa
-# pelo ``validate_narrativas`` e cai no fallback derivado sem sinal.
+# pelo ``validate_narrativas`` e cai no fallback derivado sem sinal; (4)
+# destino mapeado numa seção que não exibe parágrafo (``summary: false`` ou
+# ``enabled: false``) — texto gerado, mapeado e invisível, a direção que o nome
+# "delivery" prometia e nenhuma perna cobria.
 def _delivery_failures(summaries: dict, destinos: dict[str, str]) -> dict[str, list[str]]:
-    """Os três predicados de entrega, cada um com as chaves ofensoras."""
+    """Os quatro predicados de entrega, cada um com as chaves ofensoras."""
     from pipeline.domain.services.narrativas import ORPHAN_SUMMARY_KEYS
 
     esperadas = set(destinos.values())
+    sem_render = _summary_source_sem_render()
     return {
         "sem_texto": sorted(k for k in esperadas if k not in summaries),
         "shape_invalido": sorted(
             k for k in esperadas if k in summaries and not _delivered(summaries[k])
         ),
-        "orfas": sorted(set(summaries) - esperadas - set(ORPHAN_SUMMARY_KEYS)),
+        "orfas": sorted(
+            set(summaries) - esperadas - set(sem_render.values()) - set(ORPHAN_SUMMARY_KEYS)
+        ),
+        "sem_render": sorted(f"{sid}->{key}" for sid, key in sem_render.items()),
     }
 
 
 def _cv9_summaries_delivery(e5: dict) -> CrossValidationResult:
-    """CV9 — ENTREGA das narrativas de seção (A40.l4 · ADR-355)."""
+    """CV9 — ENTREGA das narrativas de seção (A40.l4 · ADR-355 §D6)."""
     summaries = (e5.get("narrativas") or {}).get("summaries") or {}
-    destinos = _summary_destinations()
+    destinos = _summary_render_destinations()
     fail = _delivery_failures(summaries, destinos)
     entregues = len(destinos) - len(fail["sem_texto"]) - len(fail["shape_invalido"])
     passed = not any(fail.values())
     return CrossValidationResult(
         "CV9",
-        "Narrativas delivery (destinos declarados no layout)",
+        "Narrativas delivery (destino declarado × render site do layout)",
         "info" if passed else "error",
         passed,
         f"entregues={entregues}/esperadas={len(destinos)}; "

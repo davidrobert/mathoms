@@ -14,6 +14,7 @@ from typing import Any, Mapping
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
     APORTE_SEM_DISTRIBUICAO,
+    carteira_diversificacao_frase,
     clause,
     ensure_period,
     fmt_aporte_distribuicao,
@@ -54,13 +55,10 @@ class SummariesNarrator:
         """Retorna ``{"s1": str, ..., "s10": str}``."""
         ctx = self._ctx
         M = metrics
-        _endereco = family.get("endereco", {}) or {}
 
-        # PD-02: cláusulas condicionais (sem "residência na ", " como contador",
-        # "pendente para ."). PD-06: empty-state de viagens (sem "0 viagens/ano
-        # entre R$ 0,00 e R$ 0,00").
-        _rua = _endereco.get("rua", "")
-        _residencia_loc = f" na {_rua}" if _rua else ""
+        # PD-02: cláusulas condicionais (sem " como contador", "pendente para
+        # ."). PD-06: empty-state de viagens (sem "0 viagens/ano entre R$ 0,00
+        # e R$ 0,00").
         _viagens = M.get("viagens_anuais_estimadas", 0)
         _custo_min = M.get("custo_viagem_minimo", 0)
         _custo_max = M.get("custo_viagem_maximo", 0)
@@ -70,14 +68,7 @@ class SummariesNarrator:
             if _viagens and (_custo_min or _custo_max)
             else "Padrão de viagens não identificado automaticamente neste período. "
         )
-        _contador_nome = M.get("contador_nome", "")
-        _contador_canal = f" {M['contador_canal']}" if M.get("contador_canal") else ""
-        _contador_clause = (
-            f"{_contador_nome} como contador "
-            f"({fmt_currency(M['contador_mensal'])}/mês{_contador_canal}). "
-            if _contador_nome
-            else ""
-        )
+        _contador_clause = _s8_contador_clause(M)
         _holding_clause = clause(
             "Avaliação de holding patrimonial pendente para ", M.get("holding_prazo", "")
         )
@@ -118,7 +109,7 @@ class SummariesNarrator:
             "s3": _summary_s3(M, ctx),
             # A37.l8 (FIN-03): aluguel recorrente atual + âncora IRPF + sinal de
             # vacância; sem yield % (único yield da S4 é o RealEstateYieldCard).
-            "s4": _summary_s4(M, _residencia_loc),
+            "s4": _summary_s4(M),
             # ADR-168 cleanup (Sprint A10.1): s5 reescrito sem EUA. Antes
             # citava custo fase F1/F2, sobra mensal e viagens-EUA — todas
             # chaves dead-data do Modo USA removido em A8.4 PR4. Refoca
@@ -176,7 +167,7 @@ ORPHAN_SUMMARY_KEYS: dict[str, str] = {
 def _summary_s3(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
     """s3 — carteira: titular sempre; cônjuge só quando existe na família."""
     base = (
-        f"Carteira diversificada entre {M['diversificacao']} categorias de ativos. "
+        f"{carteira_diversificacao_frase(M['diversificacao'])}"
         f"{ctx.titular_nome} mantém {fmt_currency(M[ctx.key_inv_titular])} "
         f"distribuídos entre {M[ctx.key_inst_titular]}."
     )
@@ -189,40 +180,70 @@ def _summary_s3(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
 
 
 # ADR-236 §D5 já adota este registro no card `impostos_pj`: sem perfil
-# tributário não se estima carga fiscal. A40.l4 estende ao texto do s8 —
-# `das_aliquota_pct` vinha de default hardcoded 6% (a fonte fiscal saiu de
-# `config/` em A7.2b), e "alíquota efetiva 6%" parece calculado.
+# tributário não se estima carga fiscal. A40.l4 (co-design financial-planner
+# 2026-07-31) estende ao s8 e vai além — nenhum número fiscal do s8 é
+# estimado:
+#
+# 1. A alíquota efetiva vinha de `FISCAL["das_simples"]["aliquota_efetiva_pct"]`
+#    (default 6%). A própria fonte legada se desmente ("estimativa para Anexo V
+#    típico … usar tabela completa com RBT12"): 6% só vale na 1ª faixa
+#    (RBT12 ≤ R$ 180k). Na faixa do ICP a efetiva é 11-14% — subestimava ~2×,
+#    no sentido que infla sobra de caixa e capacidade de aporte.
+# 2. A base era `receita_pj_anual` = pró-labore + lucros distribuídos (ADR-330),
+#    dinheiro que entrou na conta PF. DAS incide sobre faturamento bruto (RBT12).
+#    ADR-236 §Emenda CTO-05 já proibiu essa derivação.
+# 3. O card irmão `impostos_pj`, na MESMA seção S8, publica receita bruta +
+#    tributos + carga + fator-R pela cascata canônica. Um segundo estimador só
+#    pode concordar (redundante) ou discordar (defeito publicado).
+#
+# Logo: o s8 declara regime DECLARADO e DAS RECOLHIDO (categoria E4
+# `das_simples`, fato de extrato); carga e alíquota são da cascata, e o s8
+# não as reafirma.
 _S8_REGIME_PENDENTE = (
     "Perfil tributário PJ pendente — informe regime, anexo e CNAE para "
     "estimar a carga fiscal da pessoa jurídica."
 )
-_S8_REGIME_SEM_LABEL = "Regime PJ não informado"
 
 
-def _s8_das_clause(M: Mapping[str, Any]) -> str:
-    """Cláusula DAS — ``''`` quando não há alíquota de fonte fiscal vigente."""
-    aliquota = M.get("das_aliquota_pct")
-    if aliquota is None:
-        return ""
-    return (
-        f" (alíquota efetiva {fmt_percent(aliquota)}). "
-        f"DAS mensal estimado em {fmt_currency(M['das_mensal_estimado'])} "
-        f"({fmt_currency(M['das_anual_estimado'])}/ano) sobre receita PJ anualizada "
-        f"de {fmt_currency(M['receita_pj_anual'])}."
-    )
-
-
+# `regime_obs` NUNCA é vazio: vem de `trib_cfg["regime_label"]` e
+# `_regime_to_label(None, …)` devolve "Perfil tributário incompleto"
+# (pipeline_adapter.py). Ramificar por string de label deixava
+# `_S8_REGIME_PENDENTE` inalcançável e publicava o rótulo pelado, sem CTA. O
+# sinal de ausência é `tributario.regime is None`.
 def _s8_regime_head(M: Mapping[str, Any]) -> str:
-    regime = (M.get("regime_obs") or "").strip()
-    das = _s8_das_clause(M)
-    if regime:
-        return f"{regime}{das}" if das else ensure_period(regime)
-    return f"{_S8_REGIME_SEM_LABEL}{das}" if das else _S8_REGIME_PENDENTE
+    if M.get("regime_declarado") is None:
+        return _S8_REGIME_PENDENTE
+    return ensure_period((M.get("regime_obs") or "").strip()) or _S8_REGIME_PENDENTE
+
+
+def _s8_das_recolhido_clause(M: Mapping[str, Any]) -> str:
+    """DAS observado nos extratos — ``''`` sem balde recolhido no período."""
+    recolhido = M.get("das_recolhido_periodo") or 0
+    if recolhido <= 0:
+        return ""
+    meses = M.get("n_meses_periodo") or 0
+    janela = f" ({meses} {pluralize(meses, 'mês', 'meses')} de extrato)" if meses else ""
+    return f"DAS recolhido no período: {fmt_currency(recolhido)}{janela}. "
+
+
+# `contador_mensal` não existe em `bundle["tributario"]` (só `contador_nome`,
+# `holding_prazo_meses`, `regime*`, `cascata`) — o `get(..., 0)` publicava
+# honorário fabricado "R$ 0,00/mês". E `contador_nome` é nome de TERCEIRO
+# (pessoa física, com frequência): papel, não nome (ADR-319).
+def _s8_contador_clause(M: Mapping[str, Any]) -> str:
+    """``''`` sem contador cadastrado; valor só quando há honorário informado."""
+    if not M.get("contador_nome"):
+        return ""
+    mensal = M.get("contador_mensal") or 0
+    if mensal <= 0:
+        return "Contador cadastrado. "
+    canal = f" {M['contador_canal']}" if M.get("contador_canal") else ""
+    return f"Contador cadastrado ({fmt_currency(mensal)}/mês{canal}). "
 
 
 def _summary_s8(M: Mapping[str, Any], contador_clause: str, holding_clause: str) -> str:
-    """s8 — regime PJ + DAS (suprimido sem fonte fiscal) + contador + holding."""
-    tail = f"{contador_clause}{holding_clause}".strip()
+    """s8 — regime declarado + DAS recolhido + contador + holding. Zero estimativa."""
+    tail = f"{_s8_das_recolhido_clause(M)}{contador_clause}{holding_clause}".strip()
     head = _s8_regime_head(M)
     return f"{head} {tail}" if tail else head
 
@@ -233,15 +254,30 @@ def _summary_s8(M: Mapping[str, Any], contador_clause: str, holding_clause: str)
 _VACANCIA_MIN_MESES = 2
 
 
-def _summary_s4(M: Mapping[str, Any], residencia_loc: str) -> str:
+# A40.l4 (ADR-319): a residência era citada por logradouro (``endereco.rua``)
+# — endereço é PII dura e este parágrafo passou a ser entregue na S4.
+def _summary_s4(M: Mapping[str, Any]) -> str:
     """s4 — imóveis: aluguel recorrente atual (janela estável) + âncora IRPF, sem yield %."""
-    n = M["n_imoveis"]
-    base = (
-        f"{n} {pluralize(n, 'imóvel', 'imóveis')} no portfólio: residência{residencia_loc} "
-        f"({fmt_currency(M['residencia'])}), imóveis de investimento somando "
-        f"{fmt_currency(M['imoveis_investimento'])}. "
+    return _s4_portfolio_head(M) + _s4_aluguel_clause(M) + _s4_ancora_irpf(M)
+
+
+# `n_imoveis` vem do E5 (`investimentos`) e os valores vêm de `patrimonio` —
+# fontes distintas que divergem: "0 imóveis no portfólio: residência (R$ 800k)"
+# é contradição na mesma frase. Sem contagem confiável, descreve-se o valor sem
+# afirmar quantidade (A40.l4, medido no render).
+def _s4_portfolio_head(M: Mapping[str, Any]) -> str:
+    n = M["n_imoveis"] or 0
+    residencia = M.get("residencia") or 0
+    investimento = M.get("imoveis_investimento") or 0
+    valores = (
+        f"residência ({fmt_currency(residencia)}), imóveis de investimento "
+        f"somando {fmt_currency(investimento)}. "
     )
-    return base + _s4_aluguel_clause(M) + _s4_ancora_irpf(M)
+    if n > 0:
+        return f"{n} {pluralize(n, 'imóvel', 'imóveis')} no portfólio: {valores}"
+    if residencia <= 0 and investimento <= 0:
+        return "Nenhum imóvel identificado no portfólio. "
+    return f"Portfólio imobiliário sem contagem consolidada: {valores}"
 
 
 def _s4_aluguel_clause(M: Mapping[str, Any]) -> str:

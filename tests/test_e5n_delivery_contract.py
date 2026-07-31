@@ -16,8 +16,10 @@ regravar após mudança legítima de copy::
     MATHOMS_UPDATE_NARRATIVAS_FIXTURE=1 \\
       .venv/bin/python -m pytest tests/test_e5n_delivery_contract.py -q
 
-Família sintética (Alex/Bia) e ``endereco`` vazio: o produtor interpola nome
-curto em ``s3`` e rua em ``s4`` — a fixture não pode carregar PII.
+Família sintética (Alex/Bia): o produtor interpola **primeiro nome** em ``s3`` e
+em ``perfil_familia`` — a fixture não pode carregar PII. Nome completo, CPF e
+endereço não chegam a texto entregue nenhum (ADR-355 §D9, guarda em
+``tests/test_e5n_pii_guard.py``).
 """
 
 from __future__ import annotations
@@ -34,6 +36,7 @@ from tests.test_e5n_golden_execution import _build_e5_workspace, _new_e5n_ctx
 
 _REPO = Path(__file__).resolve().parents[1]
 _FIXTURE = _REPO / "tests" / "fixtures" / "narrativas" / "e5n_delivery.json"
+_DESTINATIONS = _REPO / "tests" / "fixtures" / "narrativas" / "e5n_destinations.json"
 _LAYOUT_YAML = _REPO / "config" / "report_layout.yaml"
 _UPDATE_ENV = "MATHOMS_UPDATE_NARRATIVAS_FIXTURE"
 
@@ -69,10 +72,13 @@ _GOALS: dict[str, Any] = {
     "aportes": {"meta_aporte_mensal": 20_000.0},
     "dolarizacao": {"meta_usd": 100_000.0, "aporte_mensal_brl": 2_000.0},
     "seguros": {"vida_term_minimo": 2_000_000, "vida_term_maximo": 4_000_000},
+    # Shape REAL de `bundle["tributario"]` (pipeline_adapter `_assemble_tributario_section`):
+    # `regime` + `regime_label` + `contador_nome` + `holding_prazo_meses`. Não
+    # tem `contador_mensal` — o `get(..., 0)` legado publicava "R$ 0,00/mês".
     "tributario": {
-        "regime_label": "Simples Nacional (Anexo III)",
-        "contador_mensal": 350.0,
-        "contador_nome": "Escritório Contábil",
+        "regime": "simples",
+        "regime_label": "Simples Nacional — Anexo III",
+        "contador_nome": "Escritório contábil da PJ",
         "holding_prazo_meses": 12,
     },
     "risks_projection": [
@@ -125,21 +131,41 @@ def _serialize(narrativas: dict[str, Any]) -> str:
     return json.dumps(narrativas, sort_keys=True, ensure_ascii=False, indent=2) + "\n"
 
 
+# ``summary: true`` faz parte do predicado: destino declarado numa seção que não
+# monta ``<SectionSummary>`` é texto gerado e nunca exibido. A correspondência
+# flag ⟺ render site é enforçada pela regra 6 de
+# ``dev/check_chart_conclusion_parity.py``.
 def _layout_destinations() -> dict[str, str]:
-    """``{section_id: summary_source}`` das entradas enabled do layout."""
+    """``{section_id: summary_source}`` das entradas que renderizam parágrafo."""
     layout = yaml.safe_load(_LAYOUT_YAML.read_text(encoding="utf-8"))
     estrategico = layout["estrategico"]
     entries = [*estrategico["sections"], *estrategico.get("appendices", [])]
     return {
         e["id"]: e["summary_source"]
         for e in entries
-        if e.get("enabled") and e.get("summary_source")
+        if e.get("enabled") and e.get("summary") and e.get("summary_source")
     }
+
+
+def _expected_destinations() -> dict[str, str]:
+    """Mapa ESPERADO, declarado fora do layout (ver `e5n_destinations.json`)."""
+    decl = json.loads(_DESTINATIONS.read_text(encoding="utf-8"))
+    return {sid: spec["key"] for sid, spec in decl["destinations"].items()}
+
+
+def _expected_orphans() -> dict[str, str]:
+    return dict(json.loads(_DESTINATIONS.read_text(encoding="utf-8"))["orphans"])
 
 
 @pytest.fixture(scope="module")
 def narrativas(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
+    """Narrativas geradas na CONDIÇÃO DE PRODUÇÃO (sem ``parametros_fiscais.json``)."""
+    # `_build_e5_workspace` copia o arquivo fiscal legado; em produção ele não
+    # existe (migrou para a tabela `fiscal_parameters` em A7.2b e é path
+    # proibido no git). Gerar a fixture com ele fazia a guarda testar um ramo
+    # que produção nunca toma — o falso-verde de escopo da A40.l3.
     root = _build_e5_workspace(tmp_path_factory.mktemp("e5n_delivery"), _FAMILY)
+    (root / "config" / "parametros_fiscais.json").unlink(missing_ok=True)
     _write_goals(root)
     return _run_e5n(root)
 
@@ -209,4 +235,32 @@ def test_no_orphan_summary_key_without_reason(narrativas: dict[str, Any]) -> Non
         f"chaves de summary sem destino e sem allowlist: {sorted(orfas)} — "
         "declare `summary_source` na seção ou registre a razão em "
         "ORPHAN_SUMMARY_KEYS (summaries_narrator.py)"
+    )
+
+
+# ── Destino SEMÂNTICO (A40.l4 · P7) ──────────────────────────────────────
+#
+# As pernas acima leem o destino DO layout e o conferem CONTRA o layout: um
+# mapeamento semanticamente errado (`summary_source: "s2"` na S2, que é Fluxo
+# de Caixa, quando `s2` é o parágrafo de SCORE) passava 30/30. A expectativa
+# vive fora do runtime, em `tests/fixtures/narrativas/e5n_destinations.json`,
+# com a razão semântica escrita por entrada — e o lado TS lê o MESMO arquivo.
+
+
+def test_layout_matches_declared_destinations() -> None:
+    """O layout entrega exatamente os destinos declarados — nem mais, nem outros."""
+    assert _layout_destinations() == _expected_destinations(), (
+        "`summary_source` do layout divergiu do mapa declarado em "
+        f"{_DESTINATIONS.name}. Isso é decisão de produto: atualize o mapa E a "
+        "razão semântica da entrada, não só o YAML."
+    )
+
+
+def test_orphan_allowlist_matches_declaration() -> None:
+    """`ORPHAN_SUMMARY_KEYS` do produtor == órfãs declaradas, chave a chave."""
+    from pipeline.domain.services.narrativas import ORPHAN_SUMMARY_KEYS
+
+    assert set(ORPHAN_SUMMARY_KEYS) == set(_expected_orphans()), (
+        "allowlist de órfãs do produtor divergiu da declarada em "
+        f"{_DESTINATIONS.name} — chave nova sem destino precisa de razão nos dois."
     )

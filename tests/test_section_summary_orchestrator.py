@@ -122,3 +122,28 @@ def test_fallback_unknown_section_returns_none():
     from backend.app.services.section_summary_orchestrator import _default_fallback
 
     assert _default_fallback("UNKNOWN_SECTION", {}) is None
+
+
+# A40.l4 (ADR-355 §D2): o teste acima usa `S1` — justamente o id onde
+# `section_id.lower()` coincide com o destino correto. Com a entrega de narrativa
+# ligada, o caminho passou a ser alcançável em 5 seções, e para a S2 o lowercase
+# publicava o parágrafo de SCORE no topo do Fluxo de Caixa.
+def test_fallback_nao_deriva_chave_por_lowercase():
+    """`S2` não lê `summaries.s2` — o mapa é `summary_source` do layout."""
+    from backend.app.services.section_summary_orchestrator import _default_fallback
+
+    snapshot_data = {
+        "_narrativas": {"summaries": {"s2": "Score financeiro de 5,6/10 (Regular)."}},
+    }
+    text = _default_fallback("S2", snapshot_data)
+    assert text is not None
+    assert "Score financeiro" not in text, text
+    assert "Fluxo de caixa" in text, text
+
+
+def test_fallback_usa_destino_declarado_no_layout():
+    """A leitura segue `summary_source`; S9 → s9 (não coincidência de string)."""
+    from backend.app.services.section_summary_orchestrator import _default_fallback
+
+    snapshot_data = {"_narrativas": {"summaries": {"s9": "2 riscos prioritários: a, b."}}}
+    assert _default_fallback("S9", snapshot_data) == "2 riscos prioritários: a, b."

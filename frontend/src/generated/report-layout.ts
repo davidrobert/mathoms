@@ -759,7 +759,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Cenários de Estresse",
         "enabled": true,
         "optional": true,
-        "summary": true,
+        "summary": false,
         "summary_source": null,
         "charts": [],
         "cards": [

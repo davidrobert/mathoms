@@ -2,33 +2,41 @@
 
 Guarda de **conteúdo**, complementar à guarda de forma
 (`tests/test_e5n_delivery_contract.py`): nenhum teste de shape detecta um
-summary que cita parâmetro congelado. Três braços, todos declarativos:
+summary que cita parâmetro congelado. Quatro braços, todos declarativos:
 
-- **A — parâmetros de `goals.json`.** Dois `goals_cfg` que diferem só em
-  valores citáveis. Os summaries que citam esses parâmetros TÊM de variar;
-  os que não citam TÊM de permanecer idênticos (invariância como assert de
-  igualdade — pega refactor futuro que acople texto a config por acidente).
-- **B — payload E5.** Dois E5 semeados diferindo só em valores medidos.
-  Pega número congelado ancorado no payload.
+- **A — por PARÂMETRO citado.** Para cada parâmetro citável há uma linha em
+  `_PARAMS_CITAVEIS`: onde ele mora, qual summary o cita, dois valores e como
+  o produtor o renderiza. O teste exige que o **token do valor** apareça no
+  texto — com os dois valores. A granularidade importa: comparar o summary
+  inteiro entre dois configs (a versão anterior desta guarda) fica VERDE quando
+  se congela um literal entre outros parâmetros que ainda variam, que é
+  exatamente a classe corrigida à mão na §D7 da ADR-355.
+- **B — invariância.** Summary ancorado só no payload não pode mudar quando só
+  a config muda (pega acoplamento acidental de texto medido a parâmetro).
 - **C — afirmação incondicional.** Frase que o produtor imprime sempre,
   independente de haver dado que a sustente.
-
-Por que o predicado NÃO é "todo summary que cita `%` tem de variar entre dois
-`goals_cfg`": os `%` de s1/s2 (`pct_investivel`, `taxa_endividamento`,
-`taxa_poupanca`, `pct_receita_*`) vêm do **payload E5**, não de `goals.json`, e
-são legitimamente invariantes a config. Tratá-los como bug levaria a reescrever
-dois summaries corretos.
+- **D — número que não vem do payload.** Regra unificadora do co-design
+  financial-planner: *nenhum número entregue vem de default de código — ou vem
+  do payload, ou não é afirmado*. Cobre as três instâncias da mesma doença
+  (alíquota DAS 6%, `diversificacao or 5`, `trs_pct ?? 5.0`).
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 import pytest
 
 import scripts.generate_narratives as e5n
 from pipeline.domain.services.narrativas import E5NarrativasBuilder
+from pipeline.domain.services.narrativas.format_helpers import (
+    fmt_currency,
+    fmt_num,
+    fmt_percent,
+    fmt_usd,
+)
 
 _FAMILY: dict[str, Any] = {
     "titular": "alex",
@@ -94,8 +102,10 @@ def _goals(params: Mapping[str, float]) -> dict[str, Any]:
             "vida_term_minimo": params["vida_min"],
             "vida_term_maximo": params["vida_max"],
         },
+        # `regime` (não o label) é o sinal de perfil declarado — ADR-236 §D5.
         "tributario": {
-            "regime_label": "Simples Nacional (Anexo III)",
+            "regime": "simples",
+            "regime_label": "Simples Nacional — Anexo III",
             "holding_prazo_meses": params["holding"],
         },
         "risks_projection": _RISKS,
@@ -172,24 +182,114 @@ def _pinned_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(e5n, "_load_taxas", lambda: {"cambio_usd_brl": 5.80})
 
 
-# ─────────────────── Braço A — parâmetros de goals.json ───────────────────
+# ──────────────── Braço A — por PARÂMETRO citado (granularidade) ────────────
 
-# Summaries que CITAM parâmetro de `goals.json` — variação é obrigatória.
-_VARIA_COM_GOALS = ("s6", "s7", "s8", "s9", "s10")
-# Summaries ancorados exclusivamente no payload E5 — invariância é obrigatória.
+
+@dataclass(frozen=True)
+class ParamCitavel:
+    """Um parâmetro citável: onde mora, quem o cita, e como aparece no texto."""
+
+    nome: str
+    summary_key: str
+    fonte: str  # "goals" | "e5"
+    path: tuple[str, ...]
+    valores: tuple[Any, Any]
+    render: Callable[[Any], str]
+
+
+def _set_path(blob: dict[str, Any], path: tuple[str, ...], valor: Any) -> None:
+    node = blob
+    for chave in path[:-1]:
+        node = node.setdefault(chave, {})
+    node[path[-1]] = valor
+
+
+def _summary_com_param(p: ParamCitavel, valor: Any) -> str:
+    """Renderiza `p.summary_key` com o parâmetro setado em `valor`."""
+    import copy
+
+    payload, goals = copy.deepcopy(_e5_payload()), copy.deepcopy(_GOALS_A)
+    _set_path(payload if p.fonte == "e5" else goals, p.path, valor)
+    return _summaries(payload, goals)[p.summary_key]
+
+
+_DAS_PATH = ("fluxo_caixa", "despesas_por_categoria", "das_simples")
+_SWR_PATH = ("independencia_financeira", "taxa_retirada_segura_pct")
+_RETORNO_PATH = ("independencia_financeira", "retorno_real_anual_pct")
+_REGIME_PATH = ("tributario", "regime_label")
+
+
+def _p(key: str, fonte: str, path: tuple[str, ...], a: Any, b: Any, render) -> ParamCitavel:
+    """Linha compacta da tabela; `nome` sai do path."""
+    return ParamCitavel(".".join(path), key, fonte, path, (a, b), render)
+
+
+def _tok_swr(v: Any) -> str:
+    return f"({fmt_num(v, 0)}% retirada segura)"
+
+
+def _tok_retorno(v: Any) -> str:
+    return f"retorno real {fmt_num(v, 0)}%"
+
+
+def _tok_vida_min(v: Any) -> str:
+    return f"R$ {int(v) // 1_000_000}-"
+
+
+def _tok_vida_max(v: Any) -> str:
+    return f"-{int(v) // 1_000_000}M em seguro term"
+
+
+def _tok_holding(v: Any) -> str:
+    return f"pendente para {v} meses"
+
+
+# Valores escolhidos para produzir tokens distintos entre si e do resto do
+# texto — token repetido no mesmo parágrafo daria falso-verde.
+_PARAMS_CITAVEIS: tuple[ParamCitavel, ...] = (
+    _p("s1", "e5", ("patrimonio", "bruto"), 2_500_000.0, 7_100_000.0, fmt_currency),
+    _p("s1", "e5", ("patrimonio", "residencia"), 812_000.0, 934_000.0, fmt_currency),
+    _p("s1", "e5", ("ratios", "taxa_endividamento_pct"), 8.0, 23.0, fmt_percent),
+    _p("s2", "e5", ("score", "valor"), 7.5, 4.2, fmt_num),
+    _p("s2", "e5", ("reserva_emergencia", "cobertura_meses"), 12.0, 31.0, fmt_num),
+    _p("s2", "e5", ("fluxo_caixa", "receita_total"), 481_000.0, 933_000.0, fmt_currency),
+    _p("s4", "e5", ("patrimonio", "imoveis_investimento"), 417_000.0, 1_253_000.0, fmt_currency),
+    _p("s5", "e5", ("fluxo_caixa", "despesa_mensal_media"), 25_300.0, 41_700.0, fmt_currency),
+    _p("s7", "e5", ("goals", "if_meta"), 5_100_000.0, 8_300_000.0, fmt_currency),
+    _p("s7", "e5", ("goals", "if_gap"), 3_400_000.0, 6_700_000.0, fmt_currency),
+    _p("s7", "e5", ("goals", "ano_if"), 2039, 2047, str),
+    _p("s8", "e5", _DAS_PATH, 9_600.0, 27_400.0, fmt_currency),
+    _p("s6", "goals", ("dolarizacao", "meta_usd"), 101_000.0, 253_000.0, fmt_usd),
+    _p("s6", "goals", ("dolarizacao", "aporte_mensal_brl"), 2_100.0, 4_700.0, fmt_currency),
+    _p("s7", "goals", _SWR_PATH, 4.0, 7.0, _tok_swr),
+    _p("s7", "goals", _RETORNO_PATH, 6.0, 9.0, _tok_retorno),
+    _p("s7", "goals", ("aportes", "meta_aporte_mensal"), 20_100.0, 31_500.0, fmt_currency),
+    _p("s10", "goals", ("aportes", "meta_aporte_mensal"), 20_100.0, 31_500.0, fmt_currency),
+    _p("s9", "goals", ("seguros", "vida_term_minimo"), 2_000_000, 3_000_000, _tok_vida_min),
+    _p("s9", "goals", ("seguros", "vida_term_maximo"), 4_000_000, 6_000_000, _tok_vida_max),
+    _p("s8", "goals", _REGIME_PATH, "Simples Nacional — Anexo III", "Lucro Presumido", str),
+    _p("s8", "goals", ("tributario", "holding_prazo_meses"), 12, 30, _tok_holding),
+)
+
+
+@pytest.mark.parametrize("param", _PARAMS_CITAVEIS, ids=lambda p: f"{p.summary_key}-{p.nome}")
+def test_trecho_que_cita_parametro_varia_com_o_parametro(param: ParamCitavel) -> None:
+    """O TOKEN do valor aparece no texto — com os dois valores do parâmetro."""
+    for valor in param.valores:
+        texto = _summary_com_param(param, valor)
+        token = param.render(valor)
+        assert token in texto, (
+            f"summaries.{param.summary_key} não cita `{param.nome}` = {valor!r} "
+            f"(token esperado {token!r}). O trecho está congelado: o número no "
+            f"texto não vem de {param.fonte}. Texto: {texto}"
+        )
+
+
+# ─────────────────────── Braço B — invariância ───────────────────────
+
+# Summaries ancorados exclusivamente no payload E5 — invariância a config é
+# obrigatória; mudança aqui denuncia acoplamento acidental.
 _INVARIANTE_A_GOALS = ("s1", "s2", "s3", "s4", "s5")
-
-
-@pytest.mark.parametrize("key", _VARIA_COM_GOALS)
-def test_summary_varia_com_parametro_de_goals(key: str) -> None:
-    """Parâmetro citável mudou ⇒ o texto muda. Igualdade = número congelado."""
-    payload = _e5_payload()
-    a = _summaries(payload, _GOALS_A)[key]
-    b = _summaries(payload, _GOALS_B)[key]
-    assert a != b, (
-        f"summaries.{key} é idêntico com metas/prazos/faixas diferentes — "
-        "o texto cita parâmetro congelado (hardcode) em vez de ler goals.json"
-    )
 
 
 @pytest.mark.parametrize("key", _INVARIANTE_A_GOALS)
@@ -201,22 +301,6 @@ def test_summary_ancorado_no_e5_ignora_goals(key: str) -> None:
     assert a == b, (
         f"summaries.{key} mudou só porque `goals.json` mudou — acoplou texto "
         "de dado medido a parâmetro de configuração"
-    )
-
-
-# ─────────────────────── Braço B — payload E5 ────────────────────────
-
-_VARIA_COM_E5 = ("s1", "s2", "s4", "s5")
-
-
-@pytest.mark.parametrize("key", _VARIA_COM_E5)
-def test_summary_varia_com_payload_e5(key: str) -> None:
-    """Valor medido mudou ⇒ o texto muda (pega número congelado no template)."""
-    a = _summaries(_e5_payload(_SEED_A), _GOALS_A)[key]
-    b = _summaries(_e5_payload(_SEED_B), _GOALS_A)[key]
-    assert a != b, (
-        f"summaries.{key} é idêntico com patrimônio/receita/reserva diferentes "
-        "— o número no texto está congelado, não vem do payload E5"
     )
 
 
@@ -263,22 +347,75 @@ def test_narrativas_nao_afirmam_obrigacao_fiscal_eua(needle: str) -> None:
     )
 
 
-# `parametros_fiscais.json` migrou para a tabela `fiscal_parameters` em A7.2b
-# e é path proibido no git: em produção `FISCAL` é `{}`. O default 6.0 fazia o
-# texto parecer calculado.
-def test_s8_omite_aliquota_sem_fonte_fiscal() -> None:
-    """Sem parâmetro fiscal vigente, o s8 não publica alíquota nem DAS."""
+# ───────── Braço D — número que não vem do payload (regra unificadora) ──────
+#
+# "Nenhum número entregue vem de default de código — ou vem do payload, ou não
+# é afirmado." Três instâncias da mesma doença, uma guarda por instância.
+
+
+# A estimativa saiu inteira (co-design financial-planner): a alíquota vinha de
+# default 6% (só válido na 1ª faixa do Simples, RBT12 ≤ R$ 180k) e a base era
+# entrada na conta PF, não faturamento bruto — derivação proibida por ADR-236
+# §Emenda CTO-05. O card `impostos_pj` da MESMA seção publica carga e receita
+# bruta pela cascata canônica: um número, um dono.
+def test_s8_nao_estima_carga_fiscal(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Nem com fonte fiscal legada disponível o s8 volta a estimar DAS/alíquota."""
+    monkeypatch.setattr(e5n, "FISCAL", {"das_simples": {"aliquota_efetiva_pct": 11.0}})
     s8 = _summaries(_e5_payload(), _GOALS_A)["s8"]
-    assert "alíquota efetiva" not in s8, s8
-    assert "DAS mensal estimado" not in s8, s8
+    for proibido in ("alíquota efetiva", "DAS mensal estimado", "receita PJ anualizada"):
+        assert proibido not in s8, f"`{proibido}` voltou ao s8: {s8}"
     assert s8.strip(), "s8 vazio quebraria validate_narrativas"
 
 
-def test_s8_publica_aliquota_quando_ha_fonte_fiscal(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Com fonte fiscal declarada, a cláusula volta — a supressão é condicional."""
-    monkeypatch.setattr(e5n, "FISCAL", {"das_simples": {"aliquota_efetiva_pct": 11.0}})
-    s8 = _summaries(_e5_payload(), _GOALS_A)["s8"]
-    assert "alíquota efetiva 11%" in s8, s8
+# `regime_label` NUNCA é vazio (`_regime_to_label(None, …)` devolve "Perfil
+# tributário incompleto"), então ramificar por string de label deixava o
+# fallback inalcançável e a família lia o rótulo pelado, sem CTA.
+def test_s8_sem_regime_declarado_nao_imprime_rotulo_pelado() -> None:
+    """`regime is None` ⇒ estado pendente com o que informar, não o label cru."""
+    goals = {**_GOALS_A, "tributario": {"regime_label": "Perfil tributário incompleto"}}
+    s8 = _summaries(_e5_payload(), goals)["s8"]
+    assert "Perfil tributário PJ pendente" in s8, s8
+    assert "informe regime, anexo e CNAE" in s8, s8
+
+
+def test_s8_nao_publica_valor_zero_em_campo_fiscal() -> None:
+    """Sem DAS recolhido no período, a cláusula desaparece — R$ 0,00 fiscal
+    lê-se como "sua PJ não paga imposto", pior que silêncio."""
+    payload = _e5_payload()
+    payload["fluxo_caixa"]["despesas_por_categoria"] = {"moradia": 1_000.0}
+    s8 = _summaries(payload, _GOALS_A)["s8"]
+    assert "DAS recolhido" not in s8, s8
+    assert "R$ 0,00" not in s8, s8
+
+
+def test_s8_nao_publica_honorario_de_contador_fabricado() -> None:
+    """`contador_mensal` não existe em `bundle["tributario"]` — o
+    `get(..., 0)` publicava "(R$ 0,00/mês)" em todo workspace com contador."""
+    goals = {
+        **_GOALS_A,
+        "tributario": {**_GOALS_A["tributario"], "contador_nome": "Escritório contábil"},
+    }
+    s8 = _summaries(_e5_payload(), goals)["s8"]
+    assert "Contador cadastrado." in s8, s8
+    assert "R$ 0,00" not in s8, s8
+
+
+def test_s3_nao_inventa_contagem_de_categorias() -> None:
+    """`composicao` vazia ⇒ o s3 declara a ausência (era `len(...) or 5`)."""
+    payload = _e5_payload()
+    payload["patrimonio"]["composicao"] = []
+    s3 = _summaries(payload, _GOALS_A)["s3"]
+    assert "5 categorias" not in s3, s3
+    assert "ainda não classificada por categoria" in s3, s3
+
+
+def test_s3_conta_categorias_quando_ha_composicao() -> None:
+    """A supressão é condicional: com composição, a contagem volta."""
+    payload = _e5_payload()
+    payload["patrimonio"]["composicao"] = [
+        {"categoria": c, "valor": 1.0} for c in ("imoveis", "rf", "rv")
+    ]
+    assert "entre 3 categorias de ativos" in _summaries(payload, _GOALS_A)["s3"]
 
 
 def test_s9_nao_afirma_ausencia_de_seguro_sem_sinal() -> None:

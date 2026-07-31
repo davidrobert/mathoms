@@ -10,10 +10,11 @@ Função pura sobre ``metrics`` + ``family`` + ``NarrativasContext``.
 from __future__ import annotations
 
 from datetime import date as _date
-from typing import Any
+from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
+    carteira_diversificacao_frase,
     clause,
     fmt_currency,
     fmt_num,
@@ -43,6 +44,26 @@ def _age(dob_str: str | None, today: _date) -> str:
         return "?"
 
 
+# A40.l4 (C32 · ADR-319): o card de perfil publicava ``nome_completo`` de
+# adultos E de menor. O relatório é o artefato que a família guarda e mostra a
+# terceiros (contador) — nome completo identifica; primeiro nome e papel
+# servem ao leitor sem identificar. Guarda: tests/test_e5n_pii_guard.py.
+def _membro_paragrafo(nome_curto: str, idade: str, descricao: str) -> str:
+    """``<p>`` de um adulto — primeiro nome (nunca ``nome_completo``) + idade."""
+    cabeca = f"{nome_curto}, {idade} anos" if nome_curto else f"{idade} anos"
+    return f"<p>{cabeca}" + (f", {descricao}" if descricao else ".") + "</p>\n"
+
+
+def _filho_paragrafo(filho: Mapping[str, Any], cidadanias: str) -> str:
+    """``<p>`` do filho — papel, nunca nome: menor é a PII mais sensível."""
+    if not filho:
+        return ""
+    cabeca = "Primeiro filho do casal"
+    if cidadanias:
+        cabeca += f", com dupla cidadania {cidadanias}"
+    return f"<p>{cabeca} — peça central no planejamento sucessório da família.</p>\n"
+
+
 class PerfilFamiliaNarrator:
     """Narra ``perfil_familia.left`` e ``.right`` — apresentação familiar."""
 
@@ -69,7 +90,6 @@ class PerfilFamiliaNarrator:
             "",
         )
         _filho = fm.get(_filho_key, {}) or {}
-        _endereco = family.get("endereco", {}) or {}
         _pets = family.get("pets", []) or []
 
         _titular_age = _age(_tit.get("data_nascimento"), today)
@@ -116,21 +136,13 @@ class PerfilFamiliaNarrator:
             if _empresas_str and _anos_exp
             else ""
         )
-        _endereco_partes = [
-            p
-            for p in (
-                _endereco.get("rua", ""),
-                _endereco.get("bairro", ""),
-                _endereco.get("cidade", ""),
-            )
-            if p
-        ]
+        # A40.l4 (ADR-319): endereço é PII dura e o relatório é artefato que a
+        # família mostra a terceiros — a residência não é citada por localização.
         _pets_clause = (
             f"<p>A família conta com {len(_pets)} {pluralize(len(_pets), 'gato', 'gatos')}"
             + (f" — {_pets_str}" if _pets_str else "")
-            + (f" — na residência em {', '.join(_endereco_partes)}" if _endereco_partes else "")
             + ".</p>"
-            if _pets or _endereco_partes
+            if _pets
             else ""
         )
 
@@ -158,29 +170,9 @@ class PerfilFamiliaNarrator:
 
         _tit_desc = f"{_prof_clause}{_empresas_clause}{_formacao_clause}{_regime_clause}".rstrip()
         _conj_desc = f"{_conj_prof_clause}{_esp_clause}{_sal_clause}{_perfil_int_clause}".rstrip()
-        _p_tit = (
-            f"<p>{_tit.get('nome_completo', '')}, {_titular_age} anos"
-            + (f", {_tit_desc}" if _tit_desc else ".")
-            + "</p>\n"
-        )
-        _p_conj = (
-            f"<p>{_conj.get('nome_completo', '')}, {_conjuge_age} anos"
-            + (f", {_conj_desc}" if _conj_desc else ".")
-            + "</p>\n"
-        )
-        _filho_nome = _filho.get("nome_completo", "")
-        _filho_local = _filho.get("local_nascimento", "")
-        _p_filho = ""
-        if _filho_nome:
-            _head = _filho_nome
-            if _filho_local:
-                _head += f" nasceu em {_filho_local}"
-            if _cidadanias_str:
-                _head += f" e possui dupla cidadania {_cidadanias_str}"
-            _p_filho = (
-                f"<p>{_head}. Primeiro filho do casal, é peça central "
-                "no planejamento internacional da família.</p>\n"
-            )
+        _p_tit = _membro_paragrafo(ctx.titular_nome, _titular_age, _tit_desc) if _tit else ""
+        _p_conj = _membro_paragrafo(ctx.conjuge_nome, _conjuge_age, _conj_desc) if _conj else ""
+        _p_filho = _filho_paragrafo(_filho, _cidadanias_str)
 
         left = f"{_p_tit}{_p_conj}{_p_filho}{_pets_clause}"
 
@@ -198,7 +190,7 @@ class PerfilFamiliaNarrator:
             f"{M['n_imoveis']} {pluralize(M['n_imoveis'], 'imóvel', 'imóveis')}{_imoveis_breakdown}, "
             f"carteiras {ctx.titular_nome} ({fmt_currency(M[ctx.key_inv_titular])}) e {ctx.conjuge_nome} ({fmt_currency(M[ctx.key_inv_conjuge])}). "
             f"Endividamento de {fmt_percent(M['taxa_endividamento'])} — saudável.</p>\n"
-            f"<p>Carteira diversificada entre {M['diversificacao']} categorias de ativos. "
+            f"<p>{carteira_diversificacao_frase(M['diversificacao'])}"
             f"Score financeiro de {fmt_num(M['score'])}/10 ({M['score_label']}), com taxa de poupança recorrente de {fmt_percent(M['taxa_poupanca'])} "
             f"e cobertura de {fmt_num(M['cobertura_meses'])} meses de despesas — base sólida para o plano IF.</p>"
         )

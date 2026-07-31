@@ -20,7 +20,6 @@ export function IrpfRendaSection({ data }: { data: ReportAnalysisData }) {
   const kpis = useIrpfKpis(data);
   if (!kpis) return null;
 
-
   return (
     <ReportSection id="S_IRPF_RENDA" title="Renda Anual e Impostos">
       <SectionSummary data={data} sectionId="S_IRPF_RENDA" />

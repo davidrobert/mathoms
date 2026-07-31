@@ -574,7 +574,9 @@ estrategico:
       title: "Cenários de Estresse"
       enabled: true
       optional: true
-      summary: true
+      # A40.l4: parágrafo de abertura AUTORAL no componente (tom CVM/Susep) —
+      # o derivado repetia a mesma afirmação logo abaixo. Sem <SectionSummary>.
+      summary: false
       summary_source: null
       charts: []
       cards:

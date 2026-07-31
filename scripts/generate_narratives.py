@@ -399,10 +399,14 @@ def load_metrics_from_e5(
     # Despesas por categoria
     desp_cat = fluxo.get("despesas_por_categoria", {})
 
-    # Diversificação: count non-zero composition categories
+    # Diversificação: count non-zero composition categories.
+    # A40.l4: o `or 5` transformava "nenhuma categoria classificada" em "5
+    # categorias" — número fabricado nos três consumidores (s3,
+    # perfil_familia.right, patrimonio_doughnut). Zero é zero; quem formata a
+    # frase declara a ausência (`carteira_diversificacao_frase`).
     composicao = pat.get("composicao", [])
-    diversificacao_count = (
-        len([c for c in composicao if isinstance(c, dict) and c.get("valor", 0) > 0]) or 5
+    diversificacao_count = len(
+        [c for c in composicao if isinstance(c, dict) and c.get("valor", 0) > 0]
     )
 
     # --- Computed from E5 data ---
@@ -485,16 +489,15 @@ def load_metrics_from_e5(
     pct_receita_outras = round(100 - pct_receita_pj - pct_receita_aluguel - pct_receita_clt, 1)
     pct_despesas_nao_id = round(_safe_div(despesas_nao_id, despesa_total) * 100, 1)
 
-    receita_pj_anual = (receita_pj / n_meses_periodo) * 12 if n_meses_periodo else 0
-    # A40.l4: sem default 6%. `parametros_fiscais.json` migrou para a tabela
-    # `fiscal_parameters` em A7.2b (ADR-135) e é path proibido no git — em
-    # produção FISCAL é {}, então o default publicava alíquota constante com
-    # aparência de cálculo. `None` faz o narrator suprimir a cláusula.
-    das_aliquota_declarada = FISCAL.get("das_simples", {}).get("aliquota_efetiva_pct")
-    das_aliquota_frac = (das_aliquota_declarada or 0.0) / 100
-    das_anual = receita_pj_anual * das_aliquota_frac
-    das_mensal = das_anual / 12 if receita_pj_anual else 0
-    pct_das_receita_pj = round(das_aliquota_frac * 100, 1)
+    # A40.l4 (co-design financial-planner): a estimativa de DAS saiu inteira do
+    # s8 — alíquota vinha de default 6% (`FISCAL` é `{}` em produção; a fonte
+    # legada migrou para `fiscal_parameters` em A7.2b) e a base era entrada na
+    # conta PF, não faturamento bruto (proibido por ADR-236 §Emenda CTO-05). O
+    # que a narrativa afirma agora é o DAS **recolhido** — categoria E4
+    # `das_simples`, fato de extrato que dispensa parâmetro fiscal e sobrevive
+    # a regime desconhecido. Carga e alíquota são passthrough da cascata, no
+    # card `impostos_pj` da mesma seção: um número, um dono.
+    das_recolhido_periodo = desp_cat.get("das_simples", 0)
 
     if_cfg = goals_cfg.get("independencia_financeira", {})
     renda_passiva_meta = if_cfg.get("renda_passiva_meta_mensal", 0)
@@ -591,7 +594,6 @@ def load_metrics_from_e5(
         "pct_receita_clt": pct_receita_clt,
         "pct_receita_outras": pct_receita_outras,
         "pct_despesas_nao_id": pct_despesas_nao_id,
-        "pct_das_receita_pj": pct_das_receita_pj,
         "pct_renda_passiva_meta": pct_renda_passiva_meta,
         # === Computed from E5 data ===
         _KEY_SAL_CONJUGE: salario_conjuge,
@@ -603,11 +605,10 @@ def load_metrics_from_e5(
         "aluguel_irpf_ano_ref": (
             passive_income.get("ano_referencia_irpf") if aluguel_anual_irpf > 0 else None
         ),
-        "das_anual_estimado": round(das_anual, 2),
-        "receita_pj_anual": round(receita_pj_anual, 2),
-        "das_aliquota_pct": (
-            round(das_aliquota_declarada, 1) if das_aliquota_declarada is not None else None
-        ),
+        # A40.l4: `das_*_estimado`/`receita_pj_anual`/`das_aliquota_pct` e
+        # `pct_das_receita_pj` deletados — eram os únicos consumidores do
+        # default fiscal de 6% e não têm outro leitor.
+        "das_recolhido_periodo": das_recolhido_periodo,
         # ADR-240 · gap_qualitativo[vida] — `None` quando não há apólices
         # analisadas (o s9 não afirma ausência de cobertura sem sinal).
         "protecao_gap_vida": _protecao_gap_vida(e5_data),
@@ -664,8 +665,11 @@ def load_metrics_from_e5(
         # === Tributário (ADR-236 §D4: bundle["tributario"] expandido) ===
         # Legacy keys mantidas para compat de outros consumers (summaries_narrator.s8);
         # narrator ChartsNarrator.impostos_pj usa exclusivamente `tributario_section`.
-        "das_mensal_estimado": round(das_mensal, 2),
         "contador_mensal": trib_cfg.get("contador_mensal", 0),
+        # ADR-236 §D5: `regime is None` é o sinal de perfil pendente. O
+        # `regime_label` NUNCA é vazio ("Perfil tributário incompleto"), então
+        # ramificar pelo label deixava o fallback do s8 inalcançável.
+        "regime_declarado": trib_cfg.get("regime"),
         "contador_nome": trib_cfg.get("contador_nome", "") or "",
         "contador_canal": trib_cfg.get("contador_canal_pagamento", ""),
         "regime_obs": trib_cfg.get("regime_label") or trib_cfg.get("regime_obs", ""),

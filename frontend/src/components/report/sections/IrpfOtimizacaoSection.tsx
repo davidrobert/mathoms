@@ -22,7 +22,6 @@ export function IrpfOtimizacaoSection({ data }: { data: ReportAnalysisData }) {
   const kpis = useIrpfKpis(data);
   if (!kpis) return null;
 
-
   return (
     <ReportSection id="S_IRPF_OTIMIZACAO" title="Otimização Tributária">
       <SectionSummary data={data} sectionId="S_IRPF_OTIMIZACAO" />

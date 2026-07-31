@@ -22,12 +22,12 @@
       "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 100,00/mês versus despesa média de R$ 0,00/mês."
     },
     "impostos_pj": {
-      "conclusion": "",
-      "context": "Perfil tributário PJ pendente — peça ao seu consultor preencher regime, anexo (Simples), CNAE e modelo de declaração IRPF para ver a cascata fiscal completa."
+      "conclusion": "Carga tributária total estimada em 0% da receita. Base PGBL indisponível neste momento.",
+      "context": "Cascata fiscal de Alex — Simples Nacional — Anexo III: receita PJ anualizada de R$ 0,00, tributos federais (DAS) de R$ 0,00/ano."
     },
     "patrimonio_doughnut": {
       "conclusion": "Imóveis respondem por 0% do patrimônio bruto. Aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção.",
-      "context": "Distribuição do patrimônio bruto de R$ 0,00 entre 5 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros."
+      "context": "Distribuição do patrimônio bruto de R$ 0,00, mostrando concentração em imóveis e peso relativo dos investimentos financeiros."
     },
     "projecao_3cenarios": {
       "conclusion": "Em cenário sem variação de mercado, a trajetória projetada aponta a meta para 2039, quando Alex tiver 54 anos. Hoje, a renda passiva estimada pela regra de retirada é R$ 0,00/mês (0% da meta de R$ 16k/mês).",
@@ -73,19 +73,19 @@
     }
   },
   "perfil_familia": {
-    "left": "<p>, 41 anos, Opera como PJ Simples.</p>\n<p>, 39 anos.</p>\n",
-    "right": "<p>Meta de independência financeira de R$ 5,0M (TRS 4%, renda passiva de R$ 16k/mês). Patrimônio investível atual de R$ 0,00 (0% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo realista de 14 anos (Alex 54 anos, 2039).</p>\n<p>Patrimônio bruto de R$ 0,00: 0 imóveis, carteiras Alex (R$ 0,00) e Bia (R$ 0,00). Endividamento de 0% — saudável.</p>\n<p>Carteira diversificada entre 5 categorias de ativos. Score financeiro de 5,6/10 (Regular), com taxa de poupança recorrente de 100% e cobertura de 0 meses de despesas — base sólida para o plano IF.</p>"
+    "left": "<p>Alex, 41 anos, Opera como PJ Simples.</p>\n<p>Bia, 39 anos.</p>\n",
+    "right": "<p>Meta de independência financeira de R$ 5,0M (TRS 4%, renda passiva de R$ 16k/mês). Patrimônio investível atual de R$ 0,00 (0% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo realista de 14 anos (Alex 54 anos, 2039).</p>\n<p>Patrimônio bruto de R$ 0,00: 0 imóveis, carteiras Alex (R$ 0,00) e Bia (R$ 0,00). Endividamento de 0% — saudável.</p>\n<p>Composição da carteira ainda não classificada por categoria de ativo. Score financeiro de 5,6/10 (Regular), com taxa de poupança recorrente de 100% e cobertura de 0 meses de despesas — base sólida para o plano IF.</p>"
   },
   "summaries": {
     "s1": "Patrimônio bruto de R$ 0,00 com 0% investível (R$ 0,00). Imóveis representam 0% do patrimônio bruto, com residência própria de R$ 0,00 e imóveis de investimento somando R$ 0,00. Endividamento de 0% sobre o bruto.",
     "s10": "4 decisões estratégicas prioritárias: iniciar aporte mensal de R$ 20k a distribuir entre as classes sub-representadas, Contratar seguro de vida term, Consolidar reserva de emergência, Revisar alocação em renda variável.",
     "s2": "Score financeiro de 5,6/10 (Regular). Pontos fortes: taxa de poupança recorrente de 100%, cobertura de 0 meses de despesas e endividamento controlado. Receita total no período de R$ 100,00 com 0% proveniente de PJ, 0% de aluguel, 0% de CLT e 100% de outras fontes.",
-    "s3": "Carteira diversificada entre 5 categorias de ativos. Alex mantém R$ 0,00 distribuídos entre instituições não detalhadas neste período. Bia possui R$ 0,00 concentrados em instituições não detalhadas neste período.",
-    "s4": "0 imóveis no portfólio: residência (R$ 0,00), imóveis de investimento somando R$ 0,00. Sem renda de aluguel identificada nos extratos do período.",
+    "s3": "Composição da carteira ainda não classificada por categoria de ativo. Alex mantém R$ 0,00 distribuídos entre instituições não detalhadas neste período. Bia possui R$ 0,00 concentrados em instituições não detalhadas neste período.",
+    "s4": "Nenhum imóvel identificado no portfólio. Sem renda de aluguel identificada nos extratos do período.",
     "s5": "Padrão de viagens não identificado automaticamente neste período. Receita recorrente de R$ 100,00/mês cobre as despesas mensais médias de R$ 0,00, gerando sobra para aportes e reserva de viagens.",
     "s6": "Exposição cambial: nenhum saldo em moeda estrangeira identificado no período. Total US$ 0. Meta de reserva cambial de US$ 100k com gap de US$ 100k — ritmo de R$ 2k/mês alcança a meta em 290 meses.",
     "s7": "Meta de independência financeira de R$ 5,0M em 2039. Gap atual de R$ 5,0M com prazo realista de 13,7 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (4% retirada segura): R$ 0,00/mês.",
-    "s8": "Simples Nacional (Anexo III) (alíquota efetiva 6%). DAS mensal estimado em R$ 0,00 (R$ 0,00/ano) sobre receita PJ anualizada de R$ 0,00. Escritório Contábil como contador (R$ 350,00/mês). Avaliação de holding patrimonial pendente para 12 meses.",
+    "s8": "Simples Nacional — Anexo III. Contador cadastrado. Avaliação de holding patrimonial pendente para 12 meses.",
     "s9": "2 riscos prioritários: Cobertura de vida abaixo do recomendado, Sucessão sem inventário planejado. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 2-4M em seguro term. Planejamento sucessório em estágio inicial."
   }
 }

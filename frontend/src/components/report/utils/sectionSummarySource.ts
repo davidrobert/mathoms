@@ -31,7 +31,8 @@ function buildSummarySourceMap(): Record<string, string> {
   ];
   const out: Record<string, string> = {};
   for (const entry of entries) {
-    if (entry.enabled && entry.summary_source) out[entry.id] = entry.summary_source;
+    if (entry.enabled && entry.summary_source)
+      out[entry.id] = entry.summary_source;
   }
   return out;
 }
@@ -57,17 +58,48 @@ function usableText(value: unknown): string | null {
   return text.length > 0 ? text : null;
 }
 
-function readLlmSummary(sectionId: string, data: ReportAnalysisData): string | null {
+function readLlmSummary(
+  sectionId: string,
+  data: ReportAnalysisData,
+): string | null {
   const bag = data.section_summaries as Record<string, unknown> | undefined;
   return usableText(bag?.[sectionId]);
 }
 
-function readE5nSummary(sectionId: string, data: ReportAnalysisData): string | null {
+function readE5nSummary(
+  sectionId: string,
+  data: ReportAnalysisData,
+): string | null {
   const key = LAYOUT_SUMMARY_SOURCE[sectionId];
   if (!key) return null;
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
-  const summaries = narrativas?.summaries as Record<string, unknown> | undefined;
+  const summaries = narrativas?.summaries as
+    Record<string, unknown> | undefined;
   return usableText(summaries?.[key]);
+}
+
+/**
+ * Sufixo de delta do changelog (ADR-148). Era anexado DENTRO de
+ * `deriveSectionSummary` — camada 3. Com a camada 2 acesa em 7 seções, a 3
+ * deixaria de rodar nelas e o sufixo pararia de renderizar sem ninguém
+ * decidir isso.
+ *
+ * Decisão (A40.l4): o sufixo é **anotação de delta**, ortogonal a quem
+ * escreveu o parágrafo-base — logo COMPÕE com a camada 2. Não compõe com a
+ * camada 1: o LLM recebe o snapshot e é quem redige o delta (ADR-144 §3), e
+ * `deriveSectionSummary` já retornava antes do sufixo no ramo LLM. Assim o
+ * comportamento de hoje é preservado onde existia e estendido onde a camada 2
+ * o substituiu.
+ */
+function changelogSuffix(
+  sectionId: string,
+  data: ReportAnalysisData,
+): string | null {
+  const matched = data.changelog?.find(
+    (entry) => entry.section_id === sectionId,
+  );
+  const summary = matched?.summary?.trim();
+  return summary ? `${summary}.` : null;
 }
 
 /**
@@ -85,7 +117,10 @@ export function resolveSectionSummary(
   const llm = readLlmSummary(sectionId, data);
   if (llm) return { text: llm, source: "llm" };
   const e5n = readE5nSummary(sectionId, data);
-  if (e5n) return { text: e5n, source: "e5n" };
+  if (e5n) {
+    const suffix = changelogSuffix(sectionId, data);
+    return { text: suffix ? `${e5n} ${suffix}` : e5n, source: "e5n" };
+  }
   const derived = usableText(deriveSectionSummary(sectionId, data));
   return derived ? { text: derived, source: "derived" } : null;
 }
