@@ -8,7 +8,9 @@
 # 5. frontend-e2e (Playwright + backend real) — opt-in via label `e2e`
 # 6. frontend-visual (Playwright snapshots) — opt-in via label `visual`
 #    ou workflow_dispatch; scan completo fica no nightly.
-# 7. gitleaks — secrets nos commits do PR (A34.l6 · ADR-319). Full-history
+# 7. gitleaks — secrets nos commits do PR (A34.l6 · ADR-319). Desde
+#    2026-07-31 é STEP do job `changes`, não job próprio (FinOps: o GH
+#    fatura no mínimo 1 min por job e o scan leva ~15s). Full-history
 #    semanal + Issue automática ficam em security.yml (schedule).
 #
 # Movido para nightly.yml (não bloqueia merge):
@@ -18,7 +20,7 @@
 # Gates de merge (all-green):
 # - lint-all green
 # - pipeline-tests + backend-tests + frontend-checks green
-# - gitleaks green (sempre roda — secret pode entrar por PR docs-only)
+# - changes green — inclui o gitleaks (sempre roda; secret entra por docs-only)
 # - E2E/visual green (quando rodam, opt-in)
 #
 # F7C estende para: Docker CVE scan, coverage ≥85%, deploy automático
@@ -41,9 +43,15 @@ on:
   # `workflow_call` e dispare via release.yml em vez de push:main full.
   pull_request:
     branches: [main]
-    # `ready_for_review` substitui o default que dispara em draft. Drafts
-    # só rodam CI quando promovidos a "ready". Economiza ~50% dos triggers
-    # se você usa drafts (que é o pattern recomendado para WIP em PR).
+    # CORREÇÃO 2026-07-31: o comentário anterior afirmava que listar
+    # `ready_for_review` suprimia run em draft e economizava ~50% dos
+    # triggers. É falso — `types:` só ADICIONA gatilhos; draft dispara
+    # normalmente em `opened`/`synchronize`. Suprimir exigiria
+    # `if: github.event.pull_request.draft == false` em cada job.
+    # Não implementado de propósito: os agentes deste repo não abrem draft,
+    # então a economia real seria ~0 e o `if:` extra só adicionaria
+    # superfície. Fica o texto honesto — a mesma classe de erro que a
+    # camada 4 da ADR-210 corrigiu (afirmar controle inexistente).
     types: [opened, synchronize, reopened, ready_for_review]
   # Trigger DORMENTE — Merge Queue do GitHub não está disponível neste repo
   # (private + conta User pessoal; precisaria de Organization + Enterprise
@@ -59,7 +67,9 @@ on:
       run_e2e:
         description: "Rodar Frontend E2E (Playwright)"
         type: boolean
-        default: true
+        # default true → false: dispatch acidental disparava um job Playwright
+        # de até 30 min. Quem quer E2E marca a caixa.
+        default: false
       run_visual:
         description: "Rodar Visual snapshots (lento, baselines OS-específicas)"
         type: boolean
@@ -101,9 +111,11 @@ jobs:
   # frontend-* e Lighthouse; PRs frontend-only não disparam pipeline/backend
   # tests. CLAUDE.md §"Concluído" linha 64–68 declara docs-only fora do gate.
   changes:
+    # Hospeda também o gitleaks de PR (antes job próprio) — ver step no fim.
     name: Detect changed paths
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    # 2→5min: absorve o gitleaks (~15s medido) sem folga apertada.
+    timeout-minutes: 5
     # tj-actions/changed-files SHA-pinned (não tag) por causa do incidente
     # CVE-2025-30066 (mar/2025) que comprometeu tags v1-v45. v47.0.6
     # (abr/2026) é pós-fix e SHA explícito impede tag-rewrite. files_yaml
@@ -123,7 +135,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          # 2→0: o gitleaks fundido neste job varre o range de commits do PR
+          # e precisa deles presentes localmente (o job antigo já usava 0).
+          # Custo medido do clone completo: ~35 MB / 2.1k commits, poucos
+          # segundos — cabe folgado no 1 min que o job já é faturado.
+          fetch-depth: 0
       - name: Detect changed files (SHA-pinned v47.0.6)
         id: filter
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
@@ -222,6 +238,36 @@ jobs:
             # um job de 543s.
             dev_tools:
               - 'dev/**'
+
+      # gitleaks era job próprio. Fundido aqui porque ambos rodavam SEM gate de
+      # path em todo PR: 2 job-starts × ~914 runs/mês, e o GH fatura no mínimo
+      # 1 min por job — 15s de trabalho custavam 60s. Medição de 2026-07-30:
+      # o trio always-on (changes 11s + gitleaks 15s + all-green 5s) consumia
+      # 2.742 min/mês para 23s de trabalho por run. Fundir devolve ~914 min.
+      #
+      # Roda DEPOIS do filter para o summary não perder as áreas quando o
+      # scan falha. Sem path-gating de propósito: secret entra por PR
+      # docs-only. A varredura full-history semanal fica em security.yml.
+      #
+      # Consequência aceita: secret detectado agora derruba `changes`, e todo
+      # downstream skipa (`needs: changes`). É fail-fast correto — a resposta
+      # a secret vazado é rotacionar + reescrever histórico + force-push, que
+      # gera run novo de qualquer forma, e `all-green` exige `changes` success,
+      # então o PR sai da elegibilidade de merge na hora. Se aparecer
+      # falso-positivo, o fix é `.gitleaks.toml`; se a taxa de falha do step
+      # passar de ~2% dos PRs em 30 dias, separe o job de novo.
+      - name: Run gitleaks (.gitleaks.toml)
+        # Só eventos de PR: em workflow_dispatch a action cairia em
+        # full-history scan — cobertura que pertence ao schedule de
+        # security.yml, não ao gate de merge.
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+          # Pin explícito = paridade com o rev do pre-commit
+          # (.pre-commit-config.yaml) — ver ADR-230 §D3.
+          GITLEAKS_VERSION: "8.24.3"
 
   lint-all:
     # Job consolidado (era 5 jobs separados: lint, ruff, code-style-regression,
@@ -974,35 +1020,6 @@ jobs:
         working-directory: services/pipeline-service-go
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.6.0 ./...
 
-  gitleaks:
-    # A34.l6 (ADR-319 · PLAN-public-release W2): gate de merge anti-secret.
-    # Sem path-gating: secret pode entrar por PR docs-only, então roda em
-    # TODO PR (~30s). Varre os commits do PR; a varredura full-history
-    # semanal + Issue automática permanecem em security.yml (schedule).
-    name: gitleaks (PR commits)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    # Só eventos de PR: em workflow_dispatch (runs manuais de e2e/visual) a
-    # action cairia em full-history scan — cobertura que pertence ao
-    # schedule de security.yml, não ao gate de merge.
-    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
-    # gitleaks-action lê PR commits via API — exige pull-requests: read.
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Run gitleaks (.gitleaks.toml)
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2.3.9
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
-          # Pin explícito = paridade com o rev do pre-commit
-          # (.pre-commit-config.yaml) — ver ADR-230 §D3.
-          GITLEAKS_VERSION: "8.24.3"
-
   all-green:
     # Meta-job: aceita success OU skipped (paths-filter pula jobs por área).
     # Falha apenas se algum job upstream falhou ou foi cancelado.
@@ -1010,6 +1027,10 @@ jobs:
     #
     # `frontend-lighthouse` movido para nightly.yml — não é gate de merge.
     # `lint-all` consolida lint+ruff+code-style+pii+tenancy num único job.
+    # `gitleaks` deixou de ser job e virou step de `changes` (FinOps: piso de
+    # 1 min/job). A cobertura anti-secret NÃO caiu — ela agora é exigida pelo
+    # `changes: success` no fim deste script, que é mais estrito do que a
+    # entrada antiga no loop: o loop aceitava `skipped`, `changes` não.
     name: All checks green
     runs-on: ubuntu-latest
     needs:
@@ -1020,13 +1041,12 @@ jobs:
       - frontend-checks
       - go-lint
       - go-test
-      - gitleaks
     if: always()
     steps:
       - name: Verify all required jobs passed or were skipped
         run: |
           fail=0
-          for job in lint-all pipeline-tests backend-tests frontend-checks go-lint go-test gitleaks; do
+          for job in lint-all pipeline-tests backend-tests frontend-checks go-lint go-test; do
             case "$job" in
               lint-all) result="${{ needs.lint-all.result }}" ;;
               pipeline-tests) result="${{ needs.pipeline-tests.result }}" ;;
@@ -1034,7 +1054,6 @@ jobs:
               frontend-checks) result="${{ needs.frontend-checks.result }}" ;;
               go-lint) result="${{ needs.go-lint.result }}" ;;
               go-test) result="${{ needs.go-test.result }}" ;;
-              gitleaks) result="${{ needs.gitleaks.result }}" ;;
             esac
             if [[ "$result" != "success" && "$result" != "skipped" ]]; then
               echo "✗ $job: $result"
@@ -1043,9 +1062,9 @@ jobs:
               echo "✓ $job: $result"
             fi
           done
-          # `changes` job sempre roda — exigir success.
+          # `changes` sempre roda e hospeda o gitleaks — exigir success.
           if [[ "${{ needs.changes.result }}" != "success" ]]; then
-            echo "✗ changes: ${{ needs.changes.result }}"
+            echo "✗ changes (inclui gitleaks): ${{ needs.changes.result }}"
             fail=1
           fi
           exit $fail
