@@ -52,22 +52,33 @@ de código.
 
 ## Escopo
 
-1. **Dry-run primeiro** — conta sem escrever e já responde se a rotação é
-   necessária:
+> **Use o gate executável.** [`dev/fernet_rotation_gate.py`](../../../../dev/fernet_rotation_gate.py)
+> implementa os passos abaixo com os guards embutidos — inclusive o que impede
+> o falso-limpo descrito na §Critério. Rode-o **no mesmo container do worker**
+> (a env que ele lê precisa ser a mesma que cifra os dados). Os comandos
+> `celery` crus continuam documentados no runbook `fernet_rotation.md` para
+> quem precisar do controle manual.
+
+1. **Preflight — a janela de rotação está aberta?**
 
    ```bash
-   celery -A backend.app.worker call rotate_fernet_secrets --kwargs '{"dry_run": true}'
+   python3 dev/fernet_rotation_gate.py preflight
    ```
 
-   `rotated > 0` no dry-run significa que **ainda há colunas na chave velha**
-   → a rotação não rodou (ou rodou parcial). `rotated = 0` com `failed = 0`
-   significa que tudo já está na chave atual → gate já satisfeito.
+   **Não pule.** Com a janela fechada (só a chave atual no ambiente), um valor
+   cifrado com a chave antiga não decifra e é contado como `skipped` — o
+   dry-run sai `rotated=0 failed=0` e você leria como "já está tudo certo",
+   exatamente no cenário que o gate existe para pegar. O `preflight` sai 1
+   nesse caso, em vez de deixar o falso-limpo passar.
 
-2. **Rodar de verdade**, se o dry-run acusou pendência (runbook
-   `fernet_rotation.md` §4):
+   Abrir a janela é ação de plataforma (Coolify), não do script: setar
+   `MATHOMS_FERNET_KEYS=<chave_nova>,<chave_antiga>` em **backend e worker**
+   com redeploy síncrono (runbook §2).
+
+2. **Rotacionar** — dry-run, mostra o report, pede confirmação, executa:
 
    ```bash
-   celery -A backend.app.worker call rotate_fernet_secrets
+   python3 dev/fernet_rotation_gate.py rotate
    ```
 
 3. **Ler o report.** A task devolve contagens **por coluna**, não um número
@@ -84,9 +95,14 @@ de código.
    `failed` = **não decifrou com chave nenhuma** e por isso nunca é
    sobrescrito.
 
-4. **Registrar a confirmação** somando os contadores dos targets, sem colar
-   segredo, chave ou valor sensível — só os números (ex.: "rotação de
-   2026-07-XX: `failed=0 rotated=N skipped=M` em K targets").
+4. **Fechar o gate** — 2º dry-run + as duas condições, e a query de `kid`:
+
+   ```bash
+   python3 dev/fernet_rotation_gate.py verify
+   ```
+
+   Saindo 0, ele imprime a linha de confirmação pronta para colar no G0 — só
+   contadores e o `kid` de 8 chars, sem chave nem valor sensível.
 
 5. Se a rotação **não** rodou: escalar como P0 imediato e rodá-la **antes** de
    qualquer avanço para W1+ (bloqueia G0).
