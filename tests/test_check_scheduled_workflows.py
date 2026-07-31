@@ -69,7 +69,7 @@ def test_s3_pega_issue_apodrecendo(monkeypatch):
         lambda *_: [{"number": 642, "title": "drift", "age": 46}],
     )
     entry = _entry(alerts=[{"label": "main-smoke-fail", "max_issue_age_days": 7}])
-    found = gate._check_issue_rot(entry, date(2026, 7, 30))
+    found = gate._check_issue_rot("o/r", entry, date(2026, 7, 30))
     assert [v.signal for v in found] == ["S3"]
     assert "#642" in found[0].detail
 
@@ -81,7 +81,7 @@ def test_s3_ignora_label_sem_limite_de_idade(monkeypatch):
         gate, "stale_alert_issues", lambda *_: [{"number": 1, "title": "x", "age": 90}]
     )
     entry = _entry(alerts=[{"label": "ci-budget"}])
-    assert gate._check_issue_rot(entry, date(2026, 7, 30)) == []
+    assert gate._check_issue_rot("o/r", entry, date(2026, 7, 30)) == []
 
 
 def test_waiver_vigente_degrada_violacao_para_warning(monkeypatch):

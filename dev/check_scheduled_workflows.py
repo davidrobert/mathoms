@@ -115,10 +115,15 @@ def last_scheduled_run_age(repo: str, filename: str, ref: date) -> float | None:
     return (datetime.combine(ref, datetime.min.time(), timezone.utc) - started).days
 
 
-def stale_alert_issues(label: str, max_days: int, ref: date) -> list[dict] | None:
-    data = _gh_json(
-        ["issue", "list", "--label", label, "--state", "open", "--json", "number,title,createdAt"]
-    )
+def _open_issues(repo: str, label: str) -> list[dict] | None:
+    """`--repo` explícito: inferência pelo remote que falhe calada cairia na
+    degradação graciosa em vez de acusar."""
+    args = ["issue", "list", "--repo", repo, "--label", label, "--state", "open"]
+    return _gh_json([*args, "--json", "number,title,createdAt"])
+
+
+def stale_alert_issues(repo: str, label: str, max_days: int, ref: date) -> list[dict] | None:
+    data = _open_issues(repo, label)
     if data is None:
         return None
     stale = []
@@ -174,13 +179,13 @@ def _check_liveness(repo: str, entry: dict, ref: date) -> list[Violation]:
     return [Violation("S2", entry["file"], f"{seen} (limite {limit}d)")]
 
 
-def _check_issue_rot(entry: dict, ref: date) -> list[Violation]:
+def _check_issue_rot(repo: str, entry: dict, ref: date) -> list[Violation]:
     out = []
     for alert in entry.get("alerts") or []:
         max_days = alert.get("max_issue_age_days")
         if max_days is None:
             continue
-        stale = stale_alert_issues(alert["label"], max_days, ref)
+        stale = stale_alert_issues(repo, alert["label"], max_days, ref)
         if stale is None:
             out.extend(_unreachable(entry, f"Issues `{alert['label']}`"))
             continue
@@ -199,7 +204,7 @@ def _check_issue_rot(entry: dict, ref: date) -> list[Violation]:
 def check_entry(repo: str, entry: dict, ref: date) -> list[Violation]:
     waived, expired = _waiver_state(entry, ref)
     found = _check_state(repo, entry) + _check_liveness(repo, entry, ref)
-    found += _check_issue_rot(entry, ref)
+    found += _check_issue_rot(repo, entry, ref)
     if waived:
         found = [Violation(v.signal, v.workflow, v.detail, waived=True) for v in found]
     return found + ([expired] if expired else [])
