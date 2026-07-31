@@ -45,19 +45,38 @@ diferiu-o explicitamente para cá) e o runbook de cutover.
 
 ## Pré-condições bloqueantes (antes de qualquer flip)
 
-1. **Postgres em staging.** O gate byte-a-byte de dois processos **exige
-   Postgres** — o smoke SQLite tem incoerência WAL host↔container
-   (`docs/reference/runbooks/pipeline_service_container_smoke.md §3`). Sem
-   staging Postgres-backed, este é o primeiro blocker.
-2. **Fixture curada com zero LLM no E2.** O fallback LLM do E2 é condicional
-   *dentro* do stage (`requires_llm`, setado por parsers como `wise`/
-   `bankofamerica`/`quintoandar` em `scripts/extract_bank_documents.py`) — **não**
-   é suprimido por `skip_llm`/`DETERMINISTIC_ORDER`. A fixture de Tier-1 tem que
-   ser 100% parseável por regex; o run assert **0 invocações E2-LLM** na
-   telemetria, senão o Tier-1 flaka.
+> **Reancorado 2026-07-31** ([[ADR-150]] emenda datada): o owner decidiu
+> continuar o cutover **no dogfood local**, sem mudar a arquitetura de banco. A
+> pré-condição 1 abaixo caiu; a 2 estava imprecisa. Ambiente do gate = overlay
+> nativo (`make go-on ENV=native`) contra o SQLite `mathoms.db` do dogfood.
+
+1. ~~**Postgres em staging.**~~ **CAÍDA.** A incoerência WAL é **host↔container**
+   (`runbooks/pipeline_service_container_smoke.md §3`); o overlay nativo roda o
+   binário Go **no host** (§6 do mesmo runbook: "binário no HOST — sem a
+   restrição de WAL do container") e os stages são subprocess do Python do host —
+   um só namespace, WAL coerente. Além disso **não existe produção** (#1130), logo
+   staging Postgres seria *menos* representativo do alvo que o dogfood local.
+   Postgres é **re-gate diferido** para quando [[ADR-228]] G2/G3 abrir.
+2. **Fixture curada com zero LLM — em 3 superfícies, medidas (não escolhidas).**
+   `skip_llm`/`DETERMINISTIC_ORDER` **não** suprime LLM condicional *dentro* de
+   stage não-`is_llm`. São três:
+   | Superfície | Gatilho | Como zerar |
+   |---|---|---|
+   | `route_documents` | fallback de classificação [[ADR-081]] camada 2 (confidence < 0,8) | todo doc da fixture classifica por regex com confidence ≥ 0,8 |
+   | `extract_invoices` / `extract_statements` | `requires_llm_fallback` — setado também por `itau`/`c6bank` em falha de parse/validação (`scripts/e2/validation.py`), **não** só por `wise`/`bankofamerica`/`quintoandar`: é propriedade do **documento**, não do banco | todo doc parseia limpo, 0 falha de validação |
+   | `generate_narratives` | `MATHOMS_LLM_SECTION_SUMMARIES=1` ([[ADR-144]]) — o stage está em `DETERMINISTIC_ORDER` | env var pinada **idêntica** nos dois braços (divergência aqui é o bug de env-passthrough que o gate caça) |
+
+   A curadoria é **empírica**: rodar E0→E2 sobre os candidatos e assert 0
+   invocação nas três antes de promover a fixture. Escolher por banco não basta.
 3. **`ANTHROPIC_API_KEY`** disponível no env do serviço Go para o Tier-2 (run
    full com narrativas). Owner-gated (custo LLM — orçar; ordem de grandeza
    abaixo dos evals de parecer, mas medir).
+4. **Risco novo assumido — dois escritores SQLite.** Sob `InProcess` o worker
+   escreve artefatos in-process; sob o shell Go o **subprocess** escreve artefatos
+   enquanto o worker escreve `pipeline_runs`/eventos. SQLite WAL admite um
+   escritor por vez → `OperationalError: database is locked` é **falha
+   shell-caused** (gatilho 8 abaixo). Não bloqueia o gate: é exatamente o que o
+   soak no dogfood tem que falsificar.
 
 ## Fase A — gate técnico (`senior-cto`)
 
@@ -131,25 +150,31 @@ sobre o run **full** real em staging e **valida visualmente** o relatório em
 status) que escapa da paridade byte-a-byte. Precedente: [[ADR-103]]. **Sem
 PASS aqui, não há flip em prod.**
 
-## Fase C — flip em prod (`sre-devops`)
+## Fase C — flip no dogfood local (`sre-devops`)
 
-**Rollout decidido:** staging bake → flip **global** no worker de prod (canário
-**temporal**, não per-tenant) → watch → widen. Per-tenant (dual-queue) fica
-pré-registrado, não construído (prod é efetivamente single-tenant dogfood; a
-redução de blast radius de canário per-workspace é ≈zero hoje).
+> **Reancorado 2026-07-31:** não há staging nem prod hospedado (#1130). O "bake"
+> e o "flip" acontecem **na mesma máquina** — o que muda entre eles não é
+> ambiente, é **o que roda em cima**: fixture curada (bake) vs. o workspace real
+> do owner (flip). O gate humano continua separando os dois.
 
-1. **Staging (bake real):** Postgres-backed, `go-on` equivalente, roda Fase A
-   (gate técnico, trace-continuity **bloqueante** em staging) + Fase B (gate
-   humano). É aqui que o "por workspace" da [[ADR-150]] §7 de fato acontece
-   (múltiplas fixtures).
-2. **Prod (flip global):** setar `MATHOMS_PIPELINE_SERVICE_URL` em **backend +
-   worker** → **restart do worker + backend** (o flip **não é a quente**:
-   `get_pipeline_client()` memoiza o singleton por processo; ler a env var só no
-   boot). Watch **intensivo nos 3 primeiros runs reais** (espelha o gate
-   técnico). Limpo → widen = deixar ligado; o relógio do soak começa.
+**Rollout decidido:** bake com fixture → flip do overlay nativo sobre o
+workspace real → watch → soak. Per-tenant (dual-queue) fica pré-registrado, não
+construído (o dogfood é single-tenant; blast radius de canário per-workspace
+é ≈zero).
+
+1. **Bake (fixture curada):** `make go-on ENV=native`, roda Fase A completa
+   (Tier-1 3×3 + Tier-2) sobre a fixture 0-LLM. Trace-continuity é **bloqueante
+   aqui** — é o único lugar antes do dado real. Múltiplas fixtures cobrem o "por
+   workspace" da [[ADR-150]] §7.
+2. **Flip (workspace real):** `make go-on ENV=native` com o worker dev
+   re-apontado (o target já seta `MATHOMS_PIPELINE_SERVICE_URL` e reinicia o
+   worker — o flip **não é a quente**: `get_pipeline_client()` memoiza o
+   singleton por processo). Rodar pela UI (`localhost:3000`) no workspace real.
+   Watch **intensivo nos 3 primeiros runs** (espelha o gate técnico). Limpo → o
+   relógio do soak começa.
 3. **Honestidade do runbook:** "reverte em segundos" da ADR = **restart**, não
-   hot-reload. RTO = 1 restart (segundos–1min). Runs em voo: drain SIGTERM
-   (grace 30s) + re-run idempotente (escrita só commita no sucesso).
+   hot-reload. RTO = `make go-off ENV=native` (segundos). Runs em voo: drain
+   SIGTERM (grace 30s) + re-run idempotente (escrita só commita no sucesso).
 
 ## Rollback (gatilhos acionáveis — reverter = `go-off`)
 
@@ -162,10 +187,11 @@ no ledger com causa + evidência.
 | 1 | Divergência de paridade (cents≠0, envelope WS≠0, ou schema-validation falha no `write()` que não ocorria sob Python) | golden_diff em double-run agendado + logs | **1 ocorrência** | Rollback imediato |
 | 2 | Nova classe de falha de stage shell-caused (503 `executor_unavailable`, subprocess morto, stdout não-parseável, env faltando) — verde sob Python, falha sob Go, mesmo input | WS `stage_failed`/`run_failed` + logs | **1 ocorrência** | Rollback imediato (falha de domínio idêntica nos dois **não** é gatilho) |
 | 3 | Runs quebrados shell-caused acumulando | WS + `pipeline_runs` | **≥2 na janela** OU ≥1 que quebrou relatório de usuário real | Rollback + incidente (status page <15min se user-facing) |
-| 4 | `:8002 /health` não-200 (shell down = todo run hard-fail, sem auto-degrade) | monitor Coolify/externo, 30s | **>90s (3 checks)** | Rollback |
-| 5 | OOMKill do container Go (~115MB RSS/subprocess × concorrência) | OOMKilled status, host `free -m`/dmesg | **≥1** | Rollback imediato |
+| 4 | `:8002 /health` não-200 (shell down = todo run hard-fail, sem auto-degrade) | `curl` local no início de cada run + `_dev_pids/go.log` (monitor externo é **N/A** no dogfood) | **1 run iniciado com shell não-saudável** | Rollback |
+| 5 | Pressão de memória (~115MB RSS/subprocess × concorrência 2) | `ps`/Activity Monitor no host; sem cgroup, **não há OOMKill** — o sintoma é swap/pressão | RSS do shell+subprocess > 1GB sustentado, ou pressão vermelha | Rollback + reduzir `--concurrency` |
 | 6 | Subprocess zumbi/defunct (lifecycle hardening deveria impedir) | host `ps aux \| grep defunct` | >60s → investigar; recorrência → rollback | Rollback na recorrência |
 | 7 | Latência de run estoura SLO por causa do shell | `pipeline_runs` / timestamps WS | Free >5min / Premium >15min p95, sustentado | Rollback (boot ~550ms/stage é esperado, não é gatilho) |
+| 8 | **`OperationalError: database is locked`** — contenção SQLite entre o subprocess (artefatos) e o worker (`pipeline_runs`/eventos); classe de falha que `InProcess` não tem | logs do worker + `go.log` | **1 ocorrência** | Rollback imediato; reabrir com `senior-cto` + `sre-devops` (pode exigir o re-gate Postgres antes do prazo) |
 
 **Procedimento:** env var vazia/removida em backend+worker no Coolify → restart →
 `InProcess` retoma → re-executar runs falhos sob Python (idempotente) → registrar
@@ -183,10 +209,11 @@ env-passthrough/OTel no subprocess). Ociosidade → estende a janela.
 
 **Ledger append-only (o "documentado" do §8):** por run (`run_id`, workspace,
 Free/Premium, executor=Go, status, duração vs SLO, timestamp); falhas + classe
-(shell vs domínio); uptime :8002 (≥99%); **parity check semanal** (double-run:
-`go-off` → re-run Python → golden_diff cents=0 + envelope=0); pico RSS + eventos
-OOM/zumbi (zero); resultado do gate humano; ledger de rollback (contagem 0
-exigida).
+(shell vs domínio); **shell saudável em 100% dos runs** (o "uptime :8002 ≥99%" de
+calendário é **N/A** no dogfood — o shell sobe por sessão de trabalho, não 24×7);
+**parity check semanal** (double-run: `go-off` → re-run Python → golden_diff
+cents=0 + envelope=0); pico RSS + zumbis (zero); **zero `database is locked`**
+(gatilho 8); resultado do gate humano; ledger de rollback (contagem 0 exigida).
 
 **F3 abre quando:** 14 dias + barra de atividade + parity checks todos zero +
 zero rollback + zero OOM/zumbi + health ≥ SLO, **tudo no ledger**. F3 remove só
@@ -196,14 +223,16 @@ em `backend/`+`pipeline/` e **sobrevive à F3**) — ADR de remoção própria.
 ## Observabilidade mínima (sem Sentry)
 
 **Floor bloqueante (antes do flip):** (1) logs JSON consultáveis por
-`run_id`/`workspace_id`/`stage` dos três (Go slog + worker + backend, via
-Coolify/`docker logs`); (2) status terminal + stage falha via WS/`pipeline_runs`;
-(3) monitor `:8002 /health` com alerta red >90s; (4) schema-validation no
-`write()` sempre ligada (sinal de paridade grátis); (5) detecção OOM/RSS; (6)
-procedimento parity double-run pronto; (7) `go-off` testado em staging.
+`run_id`/`workspace_id`/`stage` dos três (Go slog + worker + backend — no dogfood
+são `_dev_pids/go.log` + `worker.log`, não Coolify); (2) status terminal + stage
+falha via WS/`pipeline_runs`; (3) `curl :8002/health` verificado no início de cada
+run (alerta automatizado é **N/A** — sem monitor externo local); (4)
+schema-validation no `write()` sempre ligada (sinal de paridade grátis); (5)
+observação de RSS/pressão (sem cgroup não há OOMKill — ver gatilho 5); (6)
+procedimento parity double-run pronto; (7) `go-off ENV=native` testado no bake.
 
-**Nice-to-have:** OTel collector em prod (**bloqueante só em staging** —
-trace-continuity é gate técnico lá); Sentry (owner-gated); dashboards de duração.
+**Nice-to-have:** OTel collector local (**bloqueante no bake** — trace-continuity
+é gate técnico lá); Sentry (owner-gated); dashboards de duração.
 
 ## Follow-ups / fora de escopo
 
@@ -225,16 +254,20 @@ trace-continuity é gate técnico lá); Sentry (owner-gated); dashboards de dura
 
 ## Critério de aceite
 
-- **Tier-1:** 3× Go vs 3× Python em `DETERMINISTIC_ORDER`, fixture com 0
-  `requires_llm`; `go_parity_gate` = 0 divergências value/cents em E0→E5 após
-  normalização; controle Py↔Py = 0 diff residual; telemetria assert 0 E2-LLM.
+- **Tier-1:** 3× Go vs 3× Python em `DETERMINISTIC_ORDER`, fixture com 0 LLM nas
+  **3 superfícies** (pré-condição 2); `go_parity_gate` = 0 divergências
+  value/cents em E0→E5 após normalização; controle Py↔Py = 0 diff residual;
+  telemetria assert 0 invocação LLM (E0-route, E2, narrativas).
 - **Tier-2:** envelope WS shape+sequência = 0; span attrs normalizados exatos +
   trace contínuo; subtrees LLM estruturais; `⊆ divergência(Py,Py)` nos valores.
-- **Gate humano:** SMOKE_TEST_HUMAN PASS em `/reports/[id]` (run full staging).
-- **CI:** job `go-parity-deterministic` (Postgres service) verde; run full é make
-  target owner-run que alimenta o gate humano.
-- **Prod:** staging bake → flip global backend+worker (restart) → watch 3 runs →
-  widen; rollback = `go-off` com RTO ≤1min; ledger de soak iniciado.
+- **Gate humano:** SMOKE_TEST_HUMAN PASS em `/reports/[id]` (run full do bake).
+- **CI:** job `go-parity-deterministic` verde **se** houver fixture commitável
+  PII-zero que semeie E0→E2; sem ela, o Tier-1 é make target owner-run local e o
+  CI cobre só E3→E5 semeando artefatos (decisão de escopo pendente — registrar no
+  PR que criar o job). Run full é owner-run e alimenta o gate humano.
+- **Dogfood:** bake com fixture → flip no workspace real (`go-on ENV=native`,
+  restart do worker) → watch 3 runs → soak; rollback = `go-off ENV=native` com RTO
+  em segundos; ledger de soak iniciado.
 - **Doc:** emenda 2026-07-08 na [[ADR-150]] §7 ✅; entrada em
   `docs/reference/RUNBOOK.md` apontando para este track (procedimento go-on/go-off
   prod + tabela de gatilhos + template de soak).
