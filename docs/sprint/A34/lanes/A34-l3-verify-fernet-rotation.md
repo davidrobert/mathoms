@@ -1,7 +1,7 @@
 ---
 id: A34.l3
 type: lane
-title: "Confirmação operacional: rotação Fernet executada em prod"
+title: "Confirmação operacional: rotação Fernet executada na instância de dogfood"
 sprint: A34
 plan: PLAN-public-release
 status: planned
@@ -24,7 +24,7 @@ tags:
 A chave Fernet antiga vive no **histórico git**: um `.env` foi commitado em
 `ae340c60` e removido depois em `90279c68`. O rewrite de histórico da Onda 3
 ([[A34.l18]]) remove o **blob** que contém a chave, mas isso **não a torna
-inócua** — se a mesma chave ainda decifra colunas vivas em produção
+inócua** — se a mesma chave ainda decifra colunas vivas na instância viva
 (credenciais em `services/vault.py`, tokens, segredos por-workspace), a
 recuperação do blob por qualquer clone anterior ao rewrite continua valendo
 como ataque real. Remover a chave do repo é condição necessária, não
@@ -34,14 +34,29 @@ A neutralização real é **rotação**: a task Celery `rotate_fernet_secrets`
 ([[ADR-171]], runbook `fernet_rotation.md`) re-cifra as colunas com a chave
 nova. Depois disso, o blob histórico deixa de ser uma alavanca — decifra nada.
 
-Se a rotação **não** rodou em prod, isso é um **P0 de segurança independente
-do flip**: o repo hoje é privado, mas a chave já vazou para o histórico e para
+Se a rotação **não** rodou, isso é dívida de segurança **independente do
+flip**: o repo hoje é privado, mas a chave já vazou para o histórico e para
 qualquer backup/clone. A rotação precisa acontecer de qualquer forma; o flip
 apenas torna a exposição pública, elevando a urgência.
 
 **Não é verificável do repositório.** O estado das colunas cifradas é um fato
-de produção. Esta lane é um **gate de confirmação do owner**, não uma tarefa
+do banco vivo. Esta lane é um **gate de confirmação do owner**, não uma tarefa
 de código.
+
+> **Correção 2026-07-31 (terceira) — não existe produção.** As versões
+> anteriores tratavam isto como ação de prod (Coolify, container do worker,
+> redeploy síncrono de dois serviços). **Prod não está no ar** ([[ADR-228]]
+> G2/G3, owner-gated). A única instância do Mathoms com dado real é o
+> **dogfood local**: sqlite `mathoms.db` na raiz do checkout principal. O
+> procedimento encolhe — editar `.env` e reiniciar o que estiver rodando.
+>
+> Isso também **recalibra a urgência**. A chave vazou para o histórico (o
+> `.env` foi commitado em `ae340c60` e `ddb09f8e`), mas o texto cifrado que
+> ela protege vive em `mathoms.db`, que **nunca foi commitado** e está no
+> gitignore. Hoje é uma chave sem fechadura alcançável: rotacionar segue
+> sendo requisito do G0 e higiene correta, mas a exposição só se materializa
+> se o banco vazar junto. Não é o P0 de "corra agora" que a versão anterior
+> desta lane sugeria.
 
 > **Correção 2026-07-31.** A versão anterior deste doc mandava rodar
 > `python3 scripts/rotate_fernet_secrets.py --confirm` e aceitar a métrica
@@ -54,10 +69,12 @@ de código.
 
 > **Use o gate executável.** [`dev/fernet_rotation_gate.py`](../../../../dev/fernet_rotation_gate.py)
 > implementa os passos abaixo com os guards embutidos — inclusive o que impede
-> o falso-limpo descrito na §Critério. Rode-o **no mesmo container do worker**
-> (a env que ele lê precisa ser a mesma que cifra os dados). Os comandos
-> `celery` crus continuam documentados no runbook `fernet_rotation.md` para
-> quem precisar do controle manual.
+> o falso-limpo descrito na §Critério. Rode-o **da raiz do checkout que
+> hospeda o banco do dogfood** — nunca de um worktree: `_PROJECT_ROOT` deriva
+> da localização do módulo de config, então a cópia do script num worktree
+> aponta para o `mathoms.db` DAQUELE worktree, não o seu. O script imprime o
+> caminho absoluto e o tamanho justamente para isso ficar visível. Os comandos
+> `celery` crus continuam no runbook `fernet_rotation.md` para controle manual.
 
 1. **Preflight — a janela de rotação está aberta?**
 
@@ -71,9 +88,9 @@ de código.
    exatamente no cenário que o gate existe para pegar. O `preflight` sai 1
    nesse caso, em vez de deixar o falso-limpo passar.
 
-   Abrir a janela é ação de plataforma (Coolify), não do script: setar
-   `MATHOMS_FERNET_KEYS=<chave_nova>,<chave_antiga>` em **backend e worker**
-   com redeploy síncrono (runbook §2).
+   Abrir a janela é edição de ambiente, não ação do script: setar
+   `MATHOMS_FERNET_KEYS=<chave_nova>,<chave_antiga>` (a nova PRIMEIRO) no
+   `.env` e reiniciar API e worker — os dois precisam ler o mesmo conjunto.
 
 2. **Rotacionar** — dry-run, mostra o report, pede confirmação, executa:
 
@@ -164,13 +181,13 @@ Consequências práticas ao ler o report:
 ## Rollback
 
 Não destrutiva no repositório — **docs-only** do lado do vault (registra uma
-confirmação operacional). A ação de produção subjacente (rotação de chave) tem
+confirmação operacional). A rotação de chave em si tem
 rollback próprio no runbook `fernet_rotation.md` ([[ADR-171]]: dual-key window,
 re-cifração idempotente). Reverter a *confirmação* é apenas remover a linha de
 registro; reverter a *rotação* é fora do escopo desta lane e coberto pelo
 runbook.
 
-**Mergeia sem CI** (docs-only). A validação de segurança real é o fato de prod
+**Mergeia sem CI** (docs-only). A validação de segurança real é o fato do banco
 confirmado pelo owner, não um gate de CI.
 
 ## Referências
@@ -178,7 +195,7 @@ confirmado pelo owner, não um gate de CI.
 - [[ADR-171]] — rotação de segredos Fernet (dual-key window, runbook
   `fernet_rotation.md`).
 - [[PLAN-public-release]] §W0 / §Riscos & invariantes ("Fernet: o rewrite
-  remove o blob, mas a key só é inócua se a rotação rodou em prod — não
+  remove o blob, mas a key só é inócua se a rotação rodou no banco vivo — não
   verificável do repo").
 - [[A34.l2]] — backup mirror off-site + tag (par de pré-condições de W0).
 - [[A34.l18]] — runbook do rewrite de histórico que remove o blob da chave
@@ -188,6 +205,6 @@ confirmado pelo owner, não um gate de CI.
 
 ## Owner
 
-Owner (confirmação operacional de produção — owner-gated). Agente da lane
-apenas registra a confirmação no gate G0 após o owner reportar as métricas;
-não executa rotação nem acessa credenciais de prod.
+Owner. A rotação toca dado real e material de chave — agente não executa nem
+manuseia chave. O agente prepara o gate, interpreta o report (só contadores) e
+registra a confirmação no G0.
