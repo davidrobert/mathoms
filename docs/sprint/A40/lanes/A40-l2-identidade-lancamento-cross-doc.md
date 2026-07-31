@@ -4,7 +4,7 @@ type: lane
 title: "Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio"
 sprint: A40
 plan: PLAN-report-trust
-status: planned
+status: open
 priority: P0
 branch_slug: a40-l2-identidade-lancamento-cross-doc
 adrs: ["[[ADR-354]]"]
@@ -12,7 +12,7 @@ depends_on: ["[[A40.l1]]"]
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/open
   - priority/p0
   - area/pipeline
 ---
@@ -22,6 +22,36 @@ tags:
 > ⚠️ **Leia a §Problema antes de codar.** O mecanismo publicado originalmente no
 > [[REPORT-REVIEWS-active]] estava **errado** e foi corrigido pelo painel. A
 > versão errada leva a um fix que é **no-op** e fecha verde.
+
+## Medição herdada da [[A40.l1]] (instrumento pronto, baseline congelado)
+
+O detector cross-grupo mediu o defeito desta lane no corpus dogfood. **Não
+re-meça do zero — parta daqui:**
+
+- **261 ocorrências**, Σ excesso 81.288.000 cents. `carrier-shaped=261`,
+  `coincidence-shaped=0`.
+- Composição **exaustiva**: `banco` preenchido e **idêntico** nas duas pernas ·
+  `titular` **parcial** (preenchido numa, vazio na outra) · `tipo_conta` no par
+  `('extrato','extratoconta')` · `(2 rows, 2 provs)` em 100%.
+- **`banco` não diverge em nenhuma das 261** — confirma a decisão nº 1 do painel
+  e sepulta o mecanismo original do achado.
+- **Blast radius da re-ancoragem: 5 overrides** julgáveis (+7 quarentenados,
+  inertes). O passo de re-ancoragem é muito mais barato que o desenho assumia.
+- Baseline congelado off-git em `storage/<uuid>/ledger_certify/` (path e valores
+  fora do git, [[ADR-343]]).
+
+**Como provar o fix:** re-rodar `dev/certify_ledger_local.py <ws>` e comparar o
+numerador contra 261. A l1 deixou 8 ratchets provados por mutação, então filtro
+ou cap silencioso no numerador quebra teste em CI (grupo `dev_tools` no
+`ci.yml`).
+
+**Residual que esta lane herda:** o predicado de carrier 1 aceita QUALQUER
+divergência de `tipo_conta` (mais largo que o par variante). Par de tipos de
+conta genuinamente distintos sai `carrier-shaped` e fica in-whitelistável até o
+**alias-map versionado** que a [[ADR-354]] §Consequências atribui a esta lane.
+Assimetria a fechar: variante de vocabulário em `banco` com as duas pernas
+cheias **não** é carrier-shaped hoje — se o alias-map cobrir `banco`, a partição
+precisa do mesmo tratamento.
 
 ## Problema
 
