@@ -27,47 +27,83 @@ interface CategoryRow {
   readonly value: number;
 }
 
+/** Fonte efetiva das fatias: `janela` ⇒ somam o intervalo renderizado;
+ * `agregado` ⇒ vêm do snapshot do bloco inteiro, e o range do toggle não as
+ * descreve. */
+type DespesaFonte = "janela" | "agregado";
+
+/** Fatias + a evidência de como foram produzidas.
+ *
+ * **Nenhum texto deste componente lê `fonte`/`aporteExcluido` hoje** — quem
+ * decide o que a conclusão do card cita é a [[A40.l15]] (base do Consumo
+ * Consciente), e escolher a base é decisão de domínio, não de render. O par
+ * fica aqui, no MESMO objeto que carrega as fatias, para que aquela lane não
+ * possa imprimir rótulo derivado de uma expressão diferente da que somou os
+ * valores. */
+interface DespesaSlices {
+  readonly rows: readonly CategoryRow[];
+  readonly fonte: DespesaFonte;
+  /** Aporte removido das fatias (ADR-333). `0` quando não havia. */
+  readonly aporteExcluido: number;
+}
+
 function sumWindow(data: readonly number[], start: number, end: number): number {
   let total = 0;
   for (let i = start; i < end && i < data.length; i++) total += data[i] ?? 0;
   return total;
 }
 
-/** Soma cada `despesa_dataset[i].data[start..end)` em uma fatia. Categorias
- *  com soma > 0 são ordenadas desc; chave estável vem do `label` original.
- *  A37.l14 (PD-10 · ADR-333): aporte é poupança, não consumo — fica fora
- *  do doughnut (o `despesa_total` do payload segue intacto). */
+/** A37.l14 (PD-10 · ADR-333): aporte é poupança, não consumo — fica fora das
+ * fatias (o `despesa_total` do payload segue intacto). O valor retirado sai
+ * medido em `aporteExcluido` porque ele é exatamente a diferença entre este
+ * total e o total de despesas da mesma janela no chart irmão — declarar essa
+ * diferença ao leitor é a [[A40.l15]]. */
+function partitionAporte(rows: readonly CategoryRow[]): {
+  rows: readonly CategoryRow[];
+  aporteExcluido: number;
+} {
+  const aporte = rows.filter((row) => isAporteInvestimentoKey(row.key));
+  const consumo = rows.filter(
+    (row) => !isAporteInvestimentoKey(row.key) && row.value > 0,
+  );
+  return {
+    rows: [...consumo].sort((a, b) => b.value - a.value),
+    aporteExcluido: aporte.reduce((acc, row) => acc + row.value, 0),
+  };
+}
+
+/** Soma cada `despesa_dataset[i].data[start..end)` em uma fatia. Chave estável
+ *  vem do `label` original. */
 function buildSlices(
-  datasets: readonly ChartSeries[] | undefined,
+  datasets: readonly ChartSeries[],
   start: number,
   end: number,
-): readonly CategoryRow[] {
-  if (!datasets || datasets.length === 0) return [];
-  return datasets
-    .filter((ds) => !isAporteInvestimentoKey(ds.label))
-    .map((ds) => ({
-      key: ds.label,
-      label: humanizeCategoryLabel(ds.label),
-      value: sumWindow(ds.data, start, end),
-    }))
-    .filter((row) => row.value > 0)
-    .sort((a, b) => b.value - a.value);
+): DespesaSlices {
+  const somas = datasets.map((ds) => ({
+    key: ds.label,
+    label: humanizeCategoryLabel(ds.label),
+    value: sumWindow(ds.data, start, end),
+  }));
+  return { ...partitionAporte(somas), fonte: "janela" };
 }
 
 /** Fallback: extrai fatias do snapshot `despesas_por_categoria` quando o
- *  backend ainda não emitiu `despesa_datasets`. PeriodToggle vira no-op. */
+ *  backend ainda não emitiu `despesa_datasets`. PeriodToggle vira no-op, e as
+ *  fatias passam a ser do bloco inteiro — daí `fonte: "agregado"`. */
 function fallbackFromAggregate(
   raw: Record<string, number> | undefined,
-): readonly CategoryRow[] {
-  if (!raw) return [];
-  return Object.entries(raw)
-    .filter(([key, v]) => v > 0 && !isAporteInvestimentoKey(key))
-    .map(([key, value]) => ({ key, label: humanizeCategoryLabel(key), value }))
-    .sort((a, b) => b.value - a.value);
+): DespesaSlices {
+  const somas = Object.entries(raw ?? {}).map(([key, value]) => ({
+    key,
+    label: humanizeCategoryLabel(key),
+    value,
+  }));
+  return { ...partitionAporte(somas), fonte: "agregado" };
 }
 
+/** Chamado só depois do `return null` de fatias vazias — o caso `length === 0`
+ * não chega aqui, por isso não há ramo para ele. */
 function buildContext(slices: readonly CategoryRow[], total: number): string {
-  if (slices.length === 0) return "Sem dados de despesa no período selecionado.";
   return `Distribuição das despesas totais (${fmtBRL(total)}) entre ${slices.length} ${
     slices.length === 1 ? "categoria" : "categorias"
   }, destacando a composição de gastos e oportunidades de otimização.`;
@@ -113,7 +149,7 @@ function useDespesaSlices(
   fluxo: FluxoCaixaSummary | undefined,
   start: number,
   end: number,
-): readonly CategoryRow[] {
+): DespesaSlices {
   const det = fluxo?.receita_despesa_mensal_detalhado;
   const datasets = det?.despesa_datasets;
   const aggregate = fluxo?.despesas_por_categoria;
@@ -139,7 +175,8 @@ export function DespesasDoughnutChart({
   const effectivePeriod: Period = isPrint ? "12m" : period;
   const labels = fluxo?.receita_despesa_mensal_detalhado?.labels ?? [];
   const window = usePeriodWindow(labels, effectivePeriod);
-  const slices = useDespesaSlices(fluxo, window.start, window.end);
+  const despesas = useDespesaSlices(fluxo, window.start, window.end);
+  const slices = despesas.rows;
   const total = useMemo(() => slices.reduce((acc, s) => acc + s.value, 0), [slices]);
   const palette = theme.categorical;
   // A28.l9 — "não identificado" sai da paleta categórica: cinza neutro

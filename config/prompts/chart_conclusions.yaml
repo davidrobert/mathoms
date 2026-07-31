@@ -58,16 +58,36 @@ templates:
     required_keys: ["score.valor", "score.max"]
 
   # ---- S2 Fluxo de Caixa -------------------------------------------------
+  # A40.l3 (ADR-306 D1): mensalização lê `fluxo_caixa.janela_12m`; o bloco
+  # `full` só entra com o rótulo que `{janela_escopo}` carrega. Este é o ÚNICO
+  # texto de S2 que mensaliza — o chart irmão (`receita_despesa_mensal`)
+  # totaliza a janela exibida, sem mensalizar.
+  # Dois números, não três: `despesa_mensal_media` é BRUTA (inclui o aporte por
+  # ADR-333), logo `receita − despesa` NÃO é "quanto sobra" e não fecha com a
+  # taxa de poupança ex-aporte exibida no hero. "Quanto sobra" vive num lugar
+  # só, o KPI de folga do card de Consumo Consciente. Emitir capacidade/aporte/
+  # sobra aqui exige co-change no E5 — lane A40.l15.
   fluxo_mensal:
-    template: "Receita média mensal de {receita_recorrente|brl}, despesa média de {despesa_mensal|brl}. Fluxo líquido: {fluxo_liquido|brl}."
+    template: "Sobre {janela_escopo}: receita recorrente de {receita_recorrente|brl}/mês e despesa média de {despesa_mensal|brl}/mês."
     fallback: "Receita vs despesa mês a mês."
-    required_keys: ["fluxo_caixa.receita_recorrente_mensal", "fluxo_caixa.despesa_mensal_media"]
+    required_keys:
+      - "fluxo_caixa.janela_12m.receita_recorrente_mensal"
+      - "fluxo_caixa.janela_12m.despesa_mensal_media"
 
+  # A40.l3: `janela_12m` não contém `por_fonte` — composição é agregado
+  # histórico, que ADR-306 D1 permite full **apenas rotulado**.
   receita_bar:
-    template: "{receita_principal_fonte} lidera as receitas ({receita_principal_pct|pct})."
+    template: "{receita_principal_fonte} lidera as receitas ({receita_principal_pct|pct} do total de todo o período analisado)."
     fallback: "Composição das receitas por fonte."
     required_keys: ["fluxo_caixa.por_fonte"]
 
+  # A40.l3: o texto de conclusão do donut e do `receita_despesa_mensal` NÃO foi
+  # tocado por esta lane. Os dois citam bases legitimamente distintas (janela
+  # ex-aporte por ADR-333 vs bruto de todo o período) e escolher qual base cada
+  # texto declara é decisão de DOMÍNIO — lane A40.l15, que detém a base do
+  # Consumo Consciente. Defeito medido e herdado por ela: a rosca desenha 50,0%
+  # (Moradia, ex-aporte da janela) e a conclusão do MESMO card imprime 43%
+  # (base full).
   despesas_doughnut:
     template: "{despesa_top_categoria} concentra {despesa_top_pct|pct} do gasto recorrente."
     fallback: "Distribuição das despesas por categoria."

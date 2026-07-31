@@ -30,6 +30,13 @@ const FIXTURES: ReadonlyArray<FixtureName> = [
   "large-values",
   "sparse-data",
   "degraded",
+  // `janela-divergente` (A40.l3) NÃO entra aqui: é a única desta lista sem
+  // `real_estate`, e `S4RealEstateSection` é hide-when-empty (ADR-216 · #305) ⇒
+  // devolve `null`, enquanto `STRATEGIC_SECTIONS` exige S4. Medido: com ela na
+  // lista, 2 falhas ("seção S4 faltando", light + dark). Popular `real_estate`
+  // só para caber neste smoke afastaria a fixture do caso que ela existe para
+  // representar (divergência `janela_12m` ↔ full). Ela é exercitada pelo spec
+  // dedicado `janela-canonica.@critical.spec.ts`.
 ];
 
 const THEMES = ["light", "dark"] as const;

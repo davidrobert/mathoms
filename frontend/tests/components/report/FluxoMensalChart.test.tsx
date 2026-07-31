@@ -33,7 +33,8 @@ vi.mock("react-chartjs-2", () => ({
   ),
 }));
 
-function buildFluxo(): FluxoCaixaSummary {
+/** Bloco `full` (14 meses) — só ele é lido quando `janela_12m` está ausente. */
+function buildFluxoFullOnly(): FluxoCaixaSummary {
   const labels = Array.from({ length: 14 }, (_, i) => {
     const month = ((i + 2) % 12) + 1;
     const year = 25 + Math.floor((i + 2) / 12);
@@ -42,9 +43,28 @@ function buildFluxo(): FluxoCaixaSummary {
   const totais_receita = Array.from({ length: 14 }, () => 70_000);
   const totais_despesa = Array.from({ length: 14 }, () => 58_000);
   return {
+    janela: "full",
+    janela_meses: 14,
     receita_recorrente_mensal: 68_949,
     despesa_mensal_media: 57_607,
     receita_despesa_mensal_detalhado: { labels, totais_receita, totais_despesa },
+  };
+}
+
+/** ADR-306 D1 (A40.l3) — `janela_12m` divergente do bloco `full`: todo texto
+ * rotulado "últimos 12 meses" tem de citar 72.000/55.000, nunca 68.949/57.607. */
+function buildFluxo(): FluxoCaixaSummary {
+  return {
+    ...buildFluxoFullOnly(),
+    janela_12m: {
+      janela: "12m",
+      janela_meses: 12,
+      n_meses: 12,
+      periodo: "2025-04 a 2026-03",
+      receita_recorrente_mensal: 72_000,
+      despesa_mensal_media: 55_000,
+      taxa_poupanca_recorrente: 20.5,
+    },
   };
 }
 
@@ -58,9 +78,14 @@ describe("<FluxoMensalChart />", () => {
     render(<FluxoMensalChart fluxo={buildFluxo()} />);
     expect(screen.getByText("Fluxo de Caixa Mensal")).toBeInTheDocument();
     const ctx = document.querySelector("[data-chart-context]");
-    expect(ctx?.textContent).toContain("Janela dos últimos 12 meses");
-    expect(ctx?.textContent).toMatch(/R\$\s?68\.949/);
-    expect(ctx?.textContent).toMatch(/R\$\s?57\.607/);
+    // Contagem e range vêm do render; a base do agregado vem do payload.
+    expect(ctx?.textContent).toContain("No gráfico: 12 meses");
+    expect(ctx?.textContent).toContain("os últimos 12 meses documentados");
+    // ADR-306 D1: rótulo 12m ⇒ agregado de `janela_12m`, nunca do bloco full.
+    expect(ctx?.textContent).toMatch(/R\$\s?72\.000/);
+    expect(ctx?.textContent).toMatch(/R\$\s?55\.000/);
+    expect(ctx?.textContent).not.toMatch(/R\$\s?68\.949/);
+    expect(ctx?.textContent).not.toMatch(/R\$\s?57\.607/);
     expect(screen.getByTestId("chart-mock")).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "12M" })).toHaveAttribute(
       "aria-selected",
@@ -68,14 +93,25 @@ describe("<FluxoMensalChart />", () => {
     );
   });
 
-  it("toggle 3M reduz a janela do chart-context", async () => {
+  it("sem janela_12m: agregado full é citado com rótulo de período completo", () => {
+    render(<FluxoMensalChart fluxo={buildFluxoFullOnly()} />);
+    const ctx = document.querySelector("[data-chart-context]");
+    expect(ctx?.textContent).toMatch(/todo o período analisado \(14 meses\)/i);
+    expect(ctx?.textContent).toMatch(/R\$\s?68\.949/);
+    expect(ctx?.textContent).not.toMatch(/R\$\s?72\.000/);
+  });
+
+  it("toggle 3M reduz a janela e omite o agregado (payload não tem bloco 3m)", async () => {
     const user = userEvent.setup();
     render(<FluxoMensalChart fluxo={buildFluxo()} />);
 
     await user.click(screen.getByRole("tab", { name: "3M" }));
 
     const ctx = document.querySelector("[data-chart-context]");
-    expect(ctx?.textContent).toContain("Janela dos últimos 3 meses");
+    expect(ctx?.textContent).toContain("No gráfico: 3 meses");
+    // Derivar média de `totais_receita` trocaria receita bruta por recorrente.
+    expect(ctx?.textContent).not.toMatch(/R\$\s?72\.000/);
+    expect(ctx?.textContent).not.toMatch(/R\$\s?68\.949/);
   });
 
   it("usa prop conclusion quando passada", () => {
@@ -85,12 +121,14 @@ describe("<FluxoMensalChart />", () => {
     expect(screen.getByText("Texto custom de conclusão.")).toBeInTheDocument();
   });
 
-  it("gera fallback de conclusão com taxa de poupança quando prop ausente", () => {
+  it("não inventa conclusão própria — o texto de S2 vem de um builder só", () => {
+    // A40.l3 · I7: o componente tinha um `buildFallbackConclusion` que
+    // produção NUNCA alcançava (`FALLBACKS.fluxo_mensal` existe ⇒
+    // `deriveChartConclusion` nunca devolve null ⇒ a prop é sempre string).
+    // Asserts guardando aquele ramo davam cobertura fantasma: foi por isso que
+    // a mensalização full sem rótulo do chart irmão passou.
     render(<FluxoMensalChart fluxo={buildFluxo()} />);
-    // saldo = 68949 - 57607 = 11342; taxa = 11342 / 68949 ≈ 16.4%
-    const text = document.body.textContent ?? "";
-    expect(text).toMatch(/Saldo recorrente mensal de R\$\s?11\.342/);
-    expect(text).toContain("Taxa de poupança recorrente de 16,4%");
+    expect(document.querySelector("[data-chart-conclusion]")).toBeNull();
   });
 });
 

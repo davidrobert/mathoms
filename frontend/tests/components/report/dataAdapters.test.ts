@@ -50,7 +50,11 @@ describe("deriveChartConclusion()", () => {
     expect(deriveChartConclusion("score_gauge", data)).toBe("Score atual: 7,8 / 10 (Bom).");
   });
 
-  it("fluxo_mensal calcula fluxo líquido (receita - despesa)", () => {
+  it("fluxo_mensal rotula a base e não deriva sobra da despesa BRUTA", () => {
+    // A40.l3 (ADR-306 D1 + ADR-333): sem `janela_12m` o texto declara o período
+    // completo. E `receita − despesa_mensal_media` (7.000) não entra: a despesa
+    // média inclui o aporte, então essa "sobra" não fecha com a taxa ex-aporte
+    // exibida no hero — e o frontend não fabrica monetário de headline (ADR-090).
     const data = {
       fluxo_caixa: {
         receita_recorrente_mensal: 25_000,
@@ -58,17 +62,42 @@ describe("deriveChartConclusion()", () => {
       },
     } as unknown as ReportAnalysisData;
     const text = deriveChartConclusion("fluxo_mensal", data);
+    expect(text).toMatch(/todo o período analisado/);
     expect(text).toMatch(/R\$\s*25\.000/);
     expect(text).toMatch(/R\$\s*18\.000/);
-    expect(text).toMatch(/R\$\s*7\.000/); // líquido
+    expect(text).not.toMatch(/R\$\s*7\.000/);
+  });
+
+  it("fluxo_mensal lê a janela canônica quando ela existe, com rótulo", () => {
+    const data = {
+      fluxo_caixa: {
+        janela: "full",
+        janela_meses: 36,
+        receita_recorrente_mensal: 25_000,
+        despesa_mensal_media: 18_000,
+        janela_12m: {
+          janela: "12m",
+          janela_meses: 12,
+          receita_recorrente_mensal: 40_000,
+          despesa_mensal_media: 34_000,
+        },
+      },
+    } as unknown as ReportAnalysisData;
+    const text = deriveChartConclusion("fluxo_mensal", data) ?? "";
+    expect(text).toContain("os últimos 12 meses documentados");
+    expect(text).toMatch(/R\$\s?40\.000\/mês/);
+    expect(text).toMatch(/R\$\s?34\.000\/mês/);
+    expect(text).not.toMatch(/R\$\s?25\.000/);
+    expect(text).not.toMatch(/R\$\s?18\.000/);
   });
 
   it("receita_bar identifica top fonte e formata pt-BR", () => {
     const data = {
       fluxo_caixa: { por_fonte: { receita_clt: 10_000, receita_pj: 25_000, outras_receitas: 1_000 } },
     } as unknown as ReportAnalysisData;
+    // A40.l3 (ADR-306 D1): `por_fonte` só existe no bloco full — rótulo obrigatório.
     expect(deriveChartConclusion("receita_bar", data)).toBe(
-      "PJ lidera as receitas (69%).",
+      "PJ lidera as receitas (69% do total de todo o período analisado).",
     );
   });
 

@@ -51,7 +51,10 @@ export function ReportCard({
       )}
       {children}
       {conclusion && (
-        <div className="mt-4 rounded-[var(--radius-md)] border-l-[3px] border-[var(--brand-info)] bg-[color-mix(in_srgb,var(--brand-info)_6%,var(--surface-card))] px-3 py-2.5 text-xs leading-relaxed text-[var(--surface-foreground)]">
+        <div
+          data-chart-conclusion
+          className="mt-4 rounded-[var(--radius-md)] border-l-[3px] border-[var(--brand-info)] bg-[color-mix(in_srgb,var(--brand-info)_6%,var(--surface-card))] px-3 py-2.5 text-xs leading-relaxed text-[var(--surface-foreground)]"
+        >
           {conclusion}
         </div>
       )}

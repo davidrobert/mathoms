@@ -349,6 +349,7 @@
 | ADR-352 | adr | Proposto |  | Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante | `adr/352-premio-decomposicao-por-cobertura.md` |
 | ADR-353 | adr | Proposto |  | Confiança do diagnóstico comportamental condicionada à cobertura de categorização | `adr/353-diagnostico-comportamental-confianca.md` |
 | ADR-354 | adr | Proposto |  | Identidade de transação (K4) exclui atributos de proveniência do documento | `adr/354-identidade-transacao-exclui-proveniencia.md` |
+| ADR-355 | adr | Proposto |  | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages | `adr/355-intencao-sem-llm-propagada-ate-o-stage.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -821,6 +822,7 @@
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
+| A40.l15 | lane | planned | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
 | A40.l2 | lane | open | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
 | A40.l3 | lane | open | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l4 | lane | open | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
