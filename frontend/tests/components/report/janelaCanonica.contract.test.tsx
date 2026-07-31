@@ -57,6 +57,7 @@ vi.mock("react-chartjs-2", () => ({
 
 import { FluxoMensalChart } from "@/components/report/charts/FluxoMensalChart";
 import { ReceitaDespesaMensalChart } from "@/components/report/charts/ReceitaDespesaMensalChart";
+import { DespesasDoughnutChart } from "@/components/report/charts/DespesasDoughnutChart";
 import { ConsumoConscienteCard } from "@/components/report/cards/ConsumoConscienteCard";
 import { HeroKpiGrid } from "@/components/report/kpi/HeroKpiGrid";
 import { S2FluxoCaixaSection } from "@/components/report/sections/S2FluxoCaixaSection";
@@ -74,6 +75,7 @@ import type {
   FluxoCaixaSummary,
   RatiosData,
 } from "@/types/report-analysis";
+import { CLAUSULA_DE_BASE } from "../../shared/janelaBaseClause";
 
 const FIXTURE_PATH = join(
   __dirname,
@@ -125,10 +127,29 @@ const V = {
   pontuaisFull: brl2(250_000),
 } as const;
 
-/** Bloco `full` sem `janela_12m` — reproduz `degraded.json` / pré-A28. */
+/** Bloco `full` sem `janela_12m` **e sem o campo `janela`** — o caminho real de
+ * degradação (payload pré-A28).
+ *
+ * A versão anterior deletava só `janela_12m` e preservava `janela: "full"` no
+ * top-level: `parseJanelaRotulo` casava o vocabulário e o argumento
+ * `fallbackTipo` do seletor **nunca era exercitado**. O teste passava sem provar
+ * nada sobre o ramo que existe para o payload que não declara base.
+ * `janela_meses` fica (a contagem 36 vem do bloco lido, não de vizinho). */
 function fluxoSemJanela12m(): FluxoCaixaSummary {
   const clone = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
   delete clone.janela_12m;
+  delete clone.janela;
+  return clone as FluxoCaixaSummary;
+}
+
+/** Top-level com `janela` fora do vocabulário D2 — o shape que o produtor emite
+ * no campo VIZINHO (`janela_referencia = "2025-01 a 2025-12"`,
+ * `ratios_calculator.py:205`). Consumidor que aceitasse qualquer string
+ * rotularia a base com um intervalo. */
+function fluxoJanelaForaDoVocabulario(): FluxoCaixaSummary {
+  const clone = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
+  delete clone.janela_12m;
+  clone.janela = "2025-01 a 2025-12";
   return clone as FluxoCaixaSummary;
 }
 
@@ -283,6 +304,39 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     // Bloco full não emite a taxa ex-aporte: omitir > recomputar (ADR-333).
     expect(semJanela?.taxaPoupancaRecorrentePct).toBeUndefined();
   });
+
+  it("degradação REAL (sem `janela_12m` e sem campo `janela`) usa o fallbackTipo do bloco", () => {
+    // Exercita o argumento `fallbackTipo` de `readBloco`: sem declaração, a
+    // posição do bloco é a única evidência da base. Preservar `janela: "full"`
+    // (versão anterior desta fixture) fazia o vocabulário casar e o ramo nunca
+    // rodar. Prova de mutação: trocar o `"full"` do segundo `readBloco` por
+    // `"12m"` derruba este assert.
+    const degradado = fluxoSemJanela12m();
+    expect((degradado as { janela?: unknown }).janela).toBeUndefined();
+    const lido = resolveFluxoJanelaMensal(degradado);
+    expect(lido?.rotulo.tipo).toBe("full");
+    // A contagem vem do bloco lido (`janela_meses` do top-level), não de vizinho.
+    expect(lido?.rotulo.meses).toBe(36);
+    expect(lido?.receitaRecorrenteMensal).toBe(fluxo.receita_recorrente_mensal);
+  });
+
+  it("`janela` fora do vocabulário D2 degrada para o fallbackTipo, sem rotular com o intervalo", () => {
+    const lido = resolveFluxoJanelaMensal(fluxoJanelaForaDoVocabulario());
+    expect(lido?.rotulo.tipo).toBe("full");
+    expect(lido?.rotulo.anoIrpf).toBeUndefined();
+    expect(JSON.stringify(lido?.rotulo)).not.toContain("2025-01");
+    expect(lido?.receitaRecorrenteMensal).toBe(fluxo.receita_recorrente_mensal);
+  });
+
+  it("`janela: irpf_<ano>` no top-level vence a posição do bloco", () => {
+    // O rótulo vem do CAMPO, não de onde o número estava — se viesse da
+    // posição, o fallbackTipo "full" apagaria a declaração do payload.
+    const irpf = fluxoSemJanela12m() as Record<string, unknown>;
+    irpf.janela = "irpf_2024";
+    const lido = resolveFluxoJanelaMensal(irpf as FluxoCaixaSummary);
+    expect(lido?.rotulo.tipo).toBe("irpf");
+    expect(lido?.rotulo.anoIrpf).toBe("2024");
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────
@@ -411,6 +465,64 @@ describe("<ReceitaDespesaMensalChart /> — totaliza a janela exibida, não mens
 });
 
 // ─────────────────────────────────────────────────────────────────────
+// 6b. Donut de despesas — rótulo DERIVADO da fonte das fatias
+// ─────────────────────────────────────────────────────────────────────
+
+/** Payload sem `despesa_datasets`: o donut cai no snapshot
+ * `despesas_por_categoria`, que é de TODO o bloco. */
+function fluxoSemDespesaDatasets(): FluxoCaixaSummary {
+  const clone = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
+  const det = clone.receita_despesa_mensal_detalhado as Record<string, unknown>;
+  delete det.despesa_datasets;
+  return clone as FluxoCaixaSummary;
+}
+
+describe("<DespesasDoughnutChart /> — rótulo nasce da fonte efetiva das fatias", () => {
+  const CONSUMO_JANELA = brl0(828_000);
+  const CONSUMO_FULL = brl0(1_116_000);
+
+  it("com `despesa_datasets`: fatias da janela renderizada ⇒ rótulo de janela + range", () => {
+    render(<DespesasDoughnutChart fluxo={fluxo} />);
+    const text = document.querySelector(".chart-context")?.textContent ?? "";
+    expect(text).toContain("na janela exibida (jan/25 a dez/25)");
+    expect(text).toContain(CONSUMO_JANELA);
+    expect(text).not.toContain(CONSUMO_FULL);
+    expect(text).not.toMatch(/todo o período/i);
+  });
+
+  it("no fallback de agregado: fatias de todo o bloco ⇒ rótulo do bloco, sem range", () => {
+    // O defeito medido: o range da janela renderizada era impresso **sempre**,
+    // inclusive sobre o total acumulado do agregado — número full sob rótulo de
+    // janela, a terceira aparição do defeito-alvo da lane.
+    render(<DespesasDoughnutChart fluxo={fluxoSemDespesaDatasets()} />);
+    const text = document.querySelector(".chart-context")?.textContent ?? "";
+    expect(text).toContain("em todo o período analisado (36 meses)");
+    expect(text).toContain(CONSUMO_FULL);
+    expect(text).not.toContain("janela exibida");
+    expect(text).not.toContain("jan/25 a dez/25");
+  });
+
+  it("o aporte sai das fatias e volta declarado, reconciliando com o chart irmão", () => {
+    // 828.000 (consumo) + 144.000 (aporte) = 972.000, que é o total de despesas
+    // da MESMA janela citado pelo `ReceitaDespesaMensalChart`.
+    render(<DespesasDoughnutChart fluxo={fluxo} />);
+    const text = document.querySelector(".chart-context")?.textContent ?? "";
+    expect(text).toContain("despesas de consumo");
+    expect(text).toContain(`Aporte a investimento (${brl0(144_000)}) não entra`);
+    expect(text).toContain("3 categorias");
+  });
+
+  it("substantivos distintos para os dois totais da mesma janela", () => {
+    // Mesmo rótulo de base + mesmo substantivo + valores diferentes era
+    // irreconciliável (F: "o leitor não reconcilia"). Consumo ≠ total.
+    const { container } = render(<S2FluxoCaixaSection data={fx} />);
+    const texto = container.textContent ?? "";
+    expect(texto).toContain(`despesas de consumo (${CONSUMO_JANELA})`);
+    expect(texto).toContain(`despesas totais de ${brl0(972_000)}`);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────
 // 7. Invariante de SEÇÃO — o assert que pega B1 (composição, não unidade)
 // ─────────────────────────────────────────────────────────────────────
 
@@ -432,6 +544,16 @@ function taxasDePoupanca(root: HTMLElement): string[] {
 function valoresPorMes(root: HTMLElement): string[] {
   const texto = root.textContent ?? "";
   return [...texto.matchAll(/R\$\s*([\d.]+(?:,\d+)?)\s*\/mês/g)].map((m) => m[1]);
+}
+
+/** Todo texto derivado (context/conclusion) renderizado na seção — varredura,
+ * não enumeração de site: componente novo entra aqui sem ninguém lembrar. */
+function textosDerivados(root: HTMLElement): string[] {
+  return [
+    ...root.querySelectorAll(
+      "[data-chart-conclusion], [data-chart-context], .chart-context",
+    ),
+  ].map((n) => n.textContent ?? "");
 }
 
 describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () => {
@@ -472,16 +594,31 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
 
   it("todo agregado de período completo citado na seção vem rotulado", () => {
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
-    const textos = [
-      ...container.querySelectorAll("[data-chart-conclusion], [data-chart-context], .chart-context"),
-    ].map((n) => n.textContent ?? "");
-    for (const t of textos) {
-      // Nenhum texto cita agregado sem declarar a base: 12m documentados,
-      // janela exibida (range) ou todo o período analisado.
-      expect(t).toMatch(
-        /meses documentados|janela exibida|todo o período analisado|No gráfico:/i,
-      );
-    }
+    const textos = textosDerivados(container);
+    expect(textos.length).toBeGreaterThan(0);
+    // Nenhum texto cita agregado sem declarar a base: 12m documentados, mês
+    // documentado (singular), janela exibida (range) ou todo o período.
+    // `CLAUSULA_DE_BASE` é a MESMA const do spec de render (Playwright).
+    for (const t of textos) expect(t).toMatch(CLAUSULA_DE_BASE);
+  });
+
+  it("janela de UM mês documentado: a forma singular também satisfaz o invariante", () => {
+    // `janela_meses = 1` é o valor do substrato versionado
+    // (`dogfood_view_model.json`) — a forma singular é a que produção emite, e
+    // era exatamente a que faltava no regex deste teste (a do E2E a tinha).
+    // Sem "mês documentado" na cláusula, a conclusão do `fluxo_mensal`
+    // ("Sobre o último mês documentado: …") derruba este assert.
+    const umMes = JSON.parse(JSON.stringify(fx)) as JanelaFixture;
+    const bloco = umMes.fluxo_caixa.janela_12m as Record<string, unknown>;
+    bloco.janela_meses = 1;
+    bloco.n_meses = 1;
+    const { container } = render(
+      <S2FluxoCaixaSection data={umMes as ReportAnalysisData} />,
+    );
+    const textos = textosDerivados(container);
+    expect(textos.some((t) => /o último mês documentado/.test(t))).toBe(true);
+    expect(textos.some((t) => /meses documentados/.test(t))).toBe(false);
+    for (const t of textos) expect(t).toMatch(CLAUSULA_DE_BASE);
   });
 });
 

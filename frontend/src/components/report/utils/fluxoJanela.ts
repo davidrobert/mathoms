@@ -32,6 +32,20 @@ const HISTORICO: JanelaRotulo = {
   meses: undefined,
 };
 
+/** Base de um agregado histórico lido de `bloco`: o rótulo que o PRÓPRIO bloco
+ * declara, senão `full` sem contagem (nenhum outro campo descreve o acumulado —
+ * inferir de vizinho é o defeito).
+ *
+ * Existe para o consumidor que soma um snapshot de bloco inteiro (ex.: o
+ * fallback `despesas_por_categoria` do donut, quando `despesa_datasets` está
+ * ausente): sem isto o call site imprimia o range da janela renderizada ao lado
+ * de um total de todo o período. */
+export function resolveRotuloAgregado(bloco: unknown): JanelaRotulo {
+  if (bloco == null || typeof bloco !== "object") return HISTORICO;
+  const campos = bloco as Record<string, unknown>;
+  return parseJanelaRotulo(campos.janela, campos.janela_meses) ?? HISTORICO;
+}
+
 /** Par indissociável (valor, base). Existe como tipo para que o call site não
  * consiga imprimir o número sem o rótulo que o acompanha. */
 export interface ValorComJanela {

@@ -82,8 +82,37 @@ describe("<DespesasDoughnutChart />", () => {
     render(<DespesasDoughnutChart fluxo={FLUXO_WITH_DATASETS} />);
     const ctx = document.querySelector(".chart-context");
     // 12m: soma de 4 meses = (100+50+200) * 4 = 1.400
-    expect(ctx?.textContent).toMatch(/Distribuição das despesas totais/);
+    expect(ctx?.textContent).toMatch(/Distribuição das despesas de consumo/);
     expect(ctx?.textContent).toMatch(/3 categorias/);
+  });
+
+  // A40.l3 (ADR-306 D1) — o rótulo de base é DERIVADO da fonte das fatias, não
+  // impresso incondicionalmente. Com datasets as fatias somam a janela
+  // renderizada; no fallback vêm do agregado do bloco inteiro, e imprimir o
+  // range do toggle ali seria total full sob rótulo de janela.
+  it("rótulo de base acompanha a fonte: janela renderizada com datasets", () => {
+    render(<DespesasDoughnutChart fluxo={FLUXO_WITH_DATASETS} />);
+    const ctx = document.querySelector(".chart-context")?.textContent ?? "";
+    expect(ctx).toContain("na janela exibida (jan/26 a abr/26)");
+    expect(ctx).not.toMatch(/todo o período/i);
+  });
+
+  it("rótulo de base acompanha a fonte: agregado do bloco no fallback", () => {
+    render(
+      <DespesasDoughnutChart
+        fluxo={{ ...FLUXO_AGGREGATE_ONLY, janela: "full", janela_meses: 36 }}
+      />,
+    );
+    const ctx = document.querySelector(".chart-context")?.textContent ?? "";
+    expect(ctx).toContain("em todo o período analisado (36 meses)");
+    expect(ctx).not.toContain("janela exibida");
+  });
+
+  it("bloco de agregado sem `janela` declarada: rótulo full sem contagem inventada", () => {
+    render(<DespesasDoughnutChart fluxo={FLUXO_AGGREGATE_ONLY} />);
+    const ctx = document.querySelector(".chart-context")?.textContent ?? "";
+    expect(ctx).toContain("em todo o período analisado");
+    expect(ctx).not.toMatch(/\d+ (mês|meses)\)/);
   });
 
   it("renderiza PeriodToggle quando há datasets, oculta no fallback agregado", () => {
@@ -244,6 +273,38 @@ describe("<DespesasDoughnutChart />", () => {
     // (\s cobre o NBSP do Intl.NumberFormat pt-BR).
     const ctx = document.querySelector(".chart-context");
     expect(ctx?.textContent).toMatch(/\(R\$\s200\)/);
+  });
+
+  // A40.l3 — o delta prova a exclusão: sem medir o total COM e SEM o aporte, um
+  // label que não casa `isAporteInvestimentoKey` (ex.: "Aporte em
+  // investimentos", que a fixture E2E usava e o produtor nunca emite) deixa o
+  // aporte entrar no donut e nada falha.
+  it("aporte fica fora do total e o valor retirado é declarado (prova que o filtro rodou)", () => {
+    const datasets = (extra: readonly { label: string; data: number[] }[]) => ({
+      receita_despesa_mensal_detalhado: {
+        labels: ["26/01", "26/02"],
+        despesa_datasets: [{ label: "moradia", data: [100, 100] }, ...extra],
+      },
+    });
+
+    const sem = render(<DespesasDoughnutChart fluxo={datasets([])} />);
+    const ctxSem = sem.container.querySelector(".chart-context")?.textContent ?? "";
+    expect(ctxSem).toMatch(/\(R\$\s200\)/);
+    expect(ctxSem).not.toMatch(/Aporte a investimento/);
+
+    // `.title()` do produtor (`fluxo_caixa_enricher.py:404`) sobre
+    // `aporte_investimento` — a forma que de fato chega no wire.
+    const com = render(
+      <DespesasDoughnutChart
+        fluxo={datasets([{ label: "Aporte Investimento", data: [900, 900] }])}
+      />,
+    );
+    const ctxCom = com.container.querySelector(".chart-context")?.textContent ?? "";
+    // Total das fatias é o MESMO (o aporte não entrou) e o valor retirado
+    // aparece: sem essa segunda medida, um label fora da forma canônica
+    // ("Aporte em investimentos", que a fixture E2E usava) passava batido.
+    expect(ctxCom).toMatch(/\(R\$\s200\)/);
+    expect(ctxCom).toMatch(/Aporte a investimento \(R\$\s1\.800\) não entra/);
   });
 
   it("exclui aporte_investimento no fallback agregado", () => {

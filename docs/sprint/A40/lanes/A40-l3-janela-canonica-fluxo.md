@@ -38,10 +38,11 @@ a guarda (gate de contrato, não ADR nova). RV3-16 e RV3-17 são a mesma violaç
 
 ## Escopo
 
-> **Quatro itens deste escopo foram corrigidos após medição no DOM e no PDF
-> reais** — a regra geral abaixo é mais estrita que a [[ADR-306]] e o item do
-> Consumo Consciente saiu para a [[A40.l15]]. Leia §"Correção de escopo" no fim
-> do arquivo **antes** de auditar a lane.
+> **Cinco itens deste escopo foram corrigidos após medição no DOM e no PDF
+> reais** — a regra geral abaixo é mais estrita que a [[ADR-306]], o item do
+> Consumo Consciente saiu para a [[A40.l15]] e o defeito apareceu em dois sites
+> não listados. Leia §"Correção de escopo" no fim do arquivo **antes** de auditar
+> a lane.
 
 - `FluxoMensalChart.tsx` — `buildContext` deriva do **slice renderizado** ou
   consome `fluxo_caixa.janela_12m.*` quando a janela é 12m.
@@ -114,16 +115,28 @@ que `ReceitaDespesaMensalChart` passou). A guarda tem quatro camadas:
 
 **Buraco conhecido da camada 3.** O filtro `changes.report` cobre
 `frontend/src/components/report/**`, `frontend/src/types/report*.ts`,
-`frontend/tests/e2e/{reports,fixtures/reports}/**` e o próprio `ci.yml` — mas
-**não** `config/prompts/chart_conclusions.yaml`. PR que só edite o template do
-YAML não dispara o step de render. Impacto real é baixo (o YAML não é lido em
-runtime; `conclusionUtils.ts` duplica a lógica e
-`dev/check_chart_conclusion_parity.py` roda no pre-commit), mas o buraco existe e
-fica registrado em vez de coberto por otimismo.
+`frontend/tests/e2e/{reports,fixtures/reports}/**`, `frontend/tests/shared/**`,
+o encanamento do próprio gate (`frontend/playwright.config.ts` — webServer e
+override de comando — e `frontend/eslint.config.mjs` — regra
+`no-restricted-syntax` de janela) e o próprio `ci.yml`. Fica de fora
+`config/prompts/chart_conclusions.yaml`: PR que só edite o template do YAML não
+dispara o step de render. Impacto real é baixo (o YAML não é lido em runtime;
+`conclusionUtils.ts` duplica a lógica e `dev/check_chart_conclusion_parity.py`
+roda no pre-commit), mas o buraco existe e fica registrado em vez de coberto por
+otimismo.
+
+**Paridade de guarda entre os dois runners.** A cláusula de base aceita vive em
+`frontend/tests/shared/janelaBaseClause.ts` e é importada pelo contract test
+(Vitest, bloqueante) **e** pelo spec de render (Playwright). As duas cópias
+anteriores já haviam divergido: a forma singular "mês documentado" — a que
+`janela_meses = 1` produz, valor do substrato versionado — existia só no E2E, ou
+seja, a asserção mais forte estava no runner que não bloqueia merge. Const única
+elimina a classe; provado por mutação (remover a forma singular derruba o caso
+de 1 mês do Vitest).
 
 ## Correção de escopo (obrigatório para o painel)
 
-Quatro correções ao escopo original. Onde lane e ADR divergiram, **a ADR venceu**.
+Cinco correções ao escopo original. Onde lane e ADR divergiram, **a ADR venceu**.
 
 1. **A regra geral do escopo é mais estrita que a [[ADR-306]] — e inexequível.**
    "Nenhum texto de chart cita agregado de janela diferente da renderizada"
@@ -135,9 +148,21 @@ Quatro correções ao escopo original. Onde lane e ADR divergiram, **a ADR vence
    regra literalmente obrigaria a apagar a composição de receitas do relatório.
    **Regra vigente = a da ADR:** mensalização (ratios/KPIs/médias por mês) lê
    `janela_12m`; agregado de composição pode ficar em full **desde que
-   ROTULADO**. Medido no DOM: os 8 textos derivados do relatório declaram base —
-   4 citam a janela de 12m documentados, 2 a janela exibida (range), 2 todo o
-   período analisado.
+   ROTULADO**.
+
+   Medição (não estimativa) — varredura de
+   `[data-chart-conclusion], [data-chart-context], .chart-context` no DOM
+   renderizado da fixture `janela-divergente`, via Playwright contra `next dev`,
+   e conferida no PDF (`page.pdf` + `pdftotext -layout`): **8 textos derivados**,
+   todos em S2, todos com cláusula de base. Decomposição pela cláusula que cada
+   um imprime: **2** citam a janela de 12m documentados (contexto e conclusão do
+   `FluxoMensalChart`), **3** a janela exibida com range (`ReceitaBarChart`,
+   donut, conclusão do `ReceitaDespesaMensalChart`), **3** todo o período
+   analisado (conclusões de `receita_bar` e `despesas_doughnut`, contexto do
+   `ReceitaDespesaMensalChart`). Fora de S2 o relatório desta fixture não emite
+   texto derivado.
+   (A versão anterior desta linha dizia "4 / 2 / 2" — total certo, decomposição
+   errada. Contagem em doc agora só entra com a varredura que a produziu.)
 2. **O item 3 do escopo (Consumo Consciente) saiu desta lane.**
    "Consome `total_pontuais_janela` quando `janela != full`" é mudança de domínio
    no que a família vê e exige três co-changes no E5 + rebaseline de snapshot.
@@ -156,7 +181,30 @@ Quatro correções ao escopo original. Onde lane e ADR divergiram, **a ADR vence
    Consequência de método: a lane pediu "assert por componente rotulado" e é
    justamente esse formato que não detém o site não-listado — daí as camadas 1 e
    2 da guarda acima.
-4. **A verificação renderizada estava declarada como coberta por CI e não
+4. **O quinto site: o donut imprimia rótulo de janela sobre fonte variável.**
+   `DespesasDoughnutChart` soma `despesa_datasets` dentro da janela renderizada
+   **quando eles existem** e cai em `despesas_por_categoria` (agregado do bloco
+   inteiro) quando não — mas a cláusula "na janela exibida (`range`)" era impressa
+   nos dois casos. Medido no DOM: no ramo de fallback o texto exibia
+   R$ 1.116.000 (todo o período) sob rótulo `jan/25 a dez/25`. Corrigido tornando
+   o rótulo **derivado da fonte efetiva** (`fonte: "janela" | "agregado"` no
+   mesmo objeto que carrega as fatias) — mesma invariante do seletor de
+   `fluxoJanela.ts`: valor e rótulo nascem na mesma expressão. Os dois ramos têm
+   teste, e o par (rótulo, valor) foi lido no DOM **e** no PDF em cada um.
+
+   Junto veio um defeito de **reconciliação**: donut e chart irmão citavam
+   "despesas" da MESMA janela com valores diferentes (R$ 828.000 vs R$ 972.000),
+   porque o donut é ex-aporte por [[ADR-333]] e o irmão é bruto. Substantivos
+   agora se distinguem ("despesas de consumo" vs "despesas totais") e o donut
+   declara o valor retirado — 828.000 + 144.000 = 972.000 fecha para o leitor.
+   O defeito estava **invisível na fixture**: o dataset de aporte usava o label
+   `"Aporte em investimentos"`, que `isAporteInvestimentoKey` não casa e o
+   produtor nunca emite (`cat.replace("_"," ").title()` ⇒ `"Aporte Investimento"`
+   — `fluxo_caixa_enricher.py:404`, `analyze_finances.py:1345`). Com o label
+   errado o aporte entrava no donut, os dois totais coincidiam e a exclusão da
+   ADR-333 não era exercitada: a fixture testava um mundo que não existe.
+   Alinhada ao produtor, mais o assert do delta (total com e sem aporte).
+5. **A verificação renderizada estava declarada como coberta por CI e não
    estava.** `frontend-e2e` é opt-in por label. O gate mudou de lugar (step em
    `frontend-checks`). Precisão obrigatória no critério: a superfície de print é
    assertada por **conteúdo** (`emulateMedia({media:"print"})`); rasterização de
@@ -208,7 +256,8 @@ Medido no substrato versionado: **8 blocos** do view-model trazem a chave
 
 - **4 com rótulo IMPRESSO:** `ratios` (badge no hero), `consumo_consciente`
   (4 badges), `fluxo_caixa` + `fluxo_caixa.janela_12m` (cláusula de base na
-  prosa dos charts e no resumo de S2).
+  prosa dos charts — o resumo de S2 tem o mesmo rótulo, mas é inalcançável em
+  produção, ver §Residuais conhecidos).
 - **1 só com tooltip:** `reserva_emergencia` — `InfoTooltip` em
   `ReservaEmergenciaCard`, que por [[ADR-306]] §Emenda A40.l3 **não conta** como
   rótulo (não imprime no PDF).
@@ -244,3 +293,28 @@ handoff explícito para não passar por cobertura completa.
 - **`changes.outputs.report` tinha zero consumidores** desde que a ADR-210
   removeu o auto-trigger de `frontend-visual`. Esta lane passa a consumi-lo; a
   fiação já estava paga.
+
+### Residuais conhecidos (medidos no fechamento, não corrigidos aqui)
+
+- **`SECTION_SUMMARIES.S2` é inalcançável em produção.** Medido: os únicos
+  chamadores de `deriveSectionSummary` são `S8`, `S9`, `S10` e `APP_A..E`
+  (`rg deriveSectionSummary frontend/src`). `S2FluxoCaixaSection` usa
+  `<SectionSummary narrativas … />`, que lê **só** `narrativas.S2` (E5.N) e não
+  renderiza nada quando ausente — nenhum caminho chega ao template. As entradas
+  `S1`, `S2`, `S3`, `S4` e `S7` de `SECTION_SUMMARIES` estão nessa condição. A
+  lane manteve o template `S2` corrigido (lê `janela_12m` e rotula) porque
+  removê-lo é decisão de outra natureza (dead code cross-seção, 5 entradas), com
+  um teste de contrato como único consumidor. **Não inventar consumidor** — se a
+  decisão for remover, remova as 5 e o assert junto.
+- **Fixtures locais podem medir o checkout errado.** `playwright.config.ts` usa
+  `reuseExistingServer: !CI`: com um `next dev` de outro checkout já em
+  `127.0.0.1:3000`, `npm run test:e2e` num worktree mede **o código do outro
+  checkout** e passa/falha por motivo alheio (aconteceu na primeira medição
+  desta lane: o texto renderizado era o de `origin/main`). Em CI não ocorre
+  (`reuseExistingServer` é false). Verificação local honesta: subir o servidor do
+  próprio worktree em porta livre e apontar
+  `PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:<porta>`.
+- **`humanizeLabel` do `ReceitaBarChart` capitaliza dentro da palavra**: a
+  fixture emite `Salário`/`Bônus` e o DOM mostra `SaláRio`/`BôNus` (o `\b\w` casa
+  depois do acento decomposto). Cosmético, pré-existente e fora do escopo de
+  janela — mas visível em todo relatório com fonte de receita acentuada.

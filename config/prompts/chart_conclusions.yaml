@@ -92,9 +92,12 @@ templates:
     required_keys: ["fluxo_caixa.despesas_por_categoria"]
 
   # A40.l3: totaliza a janela EXIBIDA (rotulada), sem mensalizar e sem taxa —
-  # duas mensalizações na mesma seção era o defeito B1.
+  # duas mensalizações na mesma seção era o defeito B1. "despesas **totais**"
+  # distingue do donut irmão, que cita "despesas de consumo" (ex-aporte,
+  # ADR-333) da MESMA janela: substantivo igual com valor diferente sob o mesmo
+  # rótulo de base é irreconciliável para o leitor.
   receita_despesa_mensal:  # fallback-only (Fase 6 — sem builder); placeholders não interpolam
-    template: "Janela exibida — {meses_exibidos} meses ({range_exibido}): receitas de {receita_janela|brl} e despesas de {despesa_janela|brl}, saldo de {saldo_janela|brl} no intervalo."
+    template: "Janela exibida — {meses_exibidos} meses ({range_exibido}): receitas de {receita_janela|brl} e despesas totais de {despesa_janela|brl}, saldo de {saldo_janela|brl} no intervalo."
     fallback: "Receita vs despesa ao longo do tempo."
     required_keys: ["fluxo_caixa.receita_despesa_mensal_detalhado"]
 

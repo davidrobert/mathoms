@@ -19,6 +19,8 @@ import {
   humanizeCategoryLabel,
   isAporteInvestimentoKey,
 } from "@/lib/categoryLabels";
+import { resolveRotuloAgregado } from "../utils/fluxoJanela";
+import { describeJanelaEm } from "../utils/janelaLabel";
 import type { FluxoCaixaSummary, ChartSeries } from "@/types/report-analysis";
 
 interface CategoryRow {
@@ -27,57 +29,102 @@ interface CategoryRow {
   readonly value: number;
 }
 
+/** Fonte efetiva das fatias. Existe porque o rótulo de base é DERIVADO daqui:
+ * `janela` ⇒ as fatias somam o intervalo renderizado; `agregado` ⇒ vêm do
+ * snapshot do bloco inteiro e o range do toggle não as descreve. */
+type DespesaFonte = "janela" | "agregado";
+
+interface DespesaSlices {
+  readonly rows: readonly CategoryRow[];
+  readonly fonte: DespesaFonte;
+  /** Aporte removido das fatias (ADR-333). `0` quando não havia. */
+  readonly aporteExcluido: number;
+}
+
 function sumWindow(data: readonly number[], start: number, end: number): number {
   let total = 0;
   for (let i = start; i < end && i < data.length; i++) total += data[i] ?? 0;
   return total;
 }
 
-/** Soma cada `despesa_dataset[i].data[start..end)` em uma fatia. Categorias
- *  com soma > 0 são ordenadas desc; chave estável vem do `label` original.
- *  A37.l14 (PD-10 · ADR-333): aporte é poupança, não consumo — fica fora
- *  do doughnut (o `despesa_total` do payload segue intacto). */
+/** A37.l14 (PD-10 · ADR-333): aporte é poupança, não consumo — fica fora das
+ * fatias (o `despesa_total` do payload segue intacto). O valor retirado volta
+ * como número declarado no texto: sem ele o total do donut não reconcilia com o
+ * total de despesas da MESMA janela no chart irmão, e a diferença é exatamente
+ * o aporte. */
+function partitionAporte(rows: readonly CategoryRow[]): {
+  rows: readonly CategoryRow[];
+  aporteExcluido: number;
+} {
+  const aporte = rows.filter((row) => isAporteInvestimentoKey(row.key));
+  const consumo = rows.filter(
+    (row) => !isAporteInvestimentoKey(row.key) && row.value > 0,
+  );
+  return {
+    rows: [...consumo].sort((a, b) => b.value - a.value),
+    aporteExcluido: aporte.reduce((acc, row) => acc + row.value, 0),
+  };
+}
+
+/** Soma cada `despesa_dataset[i].data[start..end)` em uma fatia. Chave estável
+ *  vem do `label` original. */
 function buildSlices(
-  datasets: readonly ChartSeries[] | undefined,
+  datasets: readonly ChartSeries[],
   start: number,
   end: number,
-): readonly CategoryRow[] {
-  if (!datasets || datasets.length === 0) return [];
-  return datasets
-    .filter((ds) => !isAporteInvestimentoKey(ds.label))
-    .map((ds) => ({
-      key: ds.label,
-      label: humanizeCategoryLabel(ds.label),
-      value: sumWindow(ds.data, start, end),
-    }))
-    .filter((row) => row.value > 0)
-    .sort((a, b) => b.value - a.value);
+): DespesaSlices {
+  const somas = datasets.map((ds) => ({
+    key: ds.label,
+    label: humanizeCategoryLabel(ds.label),
+    value: sumWindow(ds.data, start, end),
+  }));
+  return { ...partitionAporte(somas), fonte: "janela" };
 }
 
 /** Fallback: extrai fatias do snapshot `despesas_por_categoria` quando o
- *  backend ainda não emitiu `despesa_datasets`. PeriodToggle vira no-op. */
+ *  backend ainda não emitiu `despesa_datasets`. PeriodToggle vira no-op — e o
+ *  rótulo de base muda com ele (ADR-306 D1). */
 function fallbackFromAggregate(
   raw: Record<string, number> | undefined,
-): readonly CategoryRow[] {
-  if (!raw) return [];
-  return Object.entries(raw)
-    .filter(([key, v]) => v > 0 && !isAporteInvestimentoKey(key))
-    .map(([key, value]) => ({ key, label: humanizeCategoryLabel(key), value }))
-    .sort((a, b) => b.value - a.value);
+): DespesaSlices {
+  const somas = Object.entries(raw ?? {}).map(([key, value]) => ({
+    key,
+    label: humanizeCategoryLabel(key),
+    value,
+  }));
+  return { ...partitionAporte(somas), fonte: "agregado" };
 }
 
-/** ADR-306 D1 (A40.l3) — o total é da janela RENDERIZADA; sem o range, o leitor
- * o confunde com o total do período completo citado na conclusão. */
+/** ADR-306 D1 (A40.l3) — o rótulo nasce da MESMA expressão que produziu as
+ * fatias. Com `despesa_datasets` o total é do intervalo renderizado; no
+ * fallback de agregado ele é do bloco inteiro, e imprimir o range do toggle
+ * seria número full sob rótulo de janela — o defeito que esta lane fecha. */
+function describeEscopoDasFatias(
+  fonte: DespesaFonte,
+  rangeLabel: string,
+  fluxo: FluxoCaixaSummary | undefined,
+): string {
+  if (fonte === "agregado") {
+    return ` ${describeJanelaEm(resolveRotuloAgregado(fluxo))}`;
+  }
+  return rangeLabel ? ` na janela exibida (${rangeLabel})` : "";
+}
+
 function buildContext(
-  slices: readonly CategoryRow[],
+  slices: DespesaSlices,
   total: number,
   rangeLabel: string,
+  fluxo: FluxoCaixaSummary | undefined,
 ): string {
-  if (slices.length === 0) return "Sem dados de despesa no período selecionado.";
-  const escopo = rangeLabel ? ` na janela exibida (${rangeLabel})` : "";
-  return `Distribuição das despesas totais (${fmtBRL(total)})${escopo} entre ${slices.length} ${
-    slices.length === 1 ? "categoria" : "categorias"
-  }, destacando a composição de gastos e oportunidades de otimização.`;
+  if (slices.rows.length === 0) return "Sem dados de despesa no período selecionado.";
+  const escopo = describeEscopoDasFatias(slices.fonte, rangeLabel, fluxo);
+  const nota =
+    slices.aporteExcluido > 0
+      ? ` Aporte a investimento (${fmtBRL(slices.aporteExcluido)}) não entra: é poupança, não consumo.`
+      : "";
+  return `Distribuição das despesas de consumo (${fmtBRL(total)})${escopo} entre ${slices.rows.length} ${
+    slices.rows.length === 1 ? "categoria" : "categorias"
+  }, destacando a composição de gastos e oportunidades de otimização.${nota}`;
 }
 
 function buildFallbackConclusion(slices: readonly CategoryRow[], total: number): string {
@@ -120,7 +167,7 @@ function useDespesaSlices(
   fluxo: FluxoCaixaSummary | undefined,
   start: number,
   end: number,
-): readonly CategoryRow[] {
+): DespesaSlices {
   const det = fluxo?.receita_despesa_mensal_detalhado;
   const datasets = det?.despesa_datasets;
   const aggregate = fluxo?.despesas_por_categoria;
@@ -146,7 +193,8 @@ export function DespesasDoughnutChart({
   const effectivePeriod: Period = isPrint ? "12m" : period;
   const labels = fluxo?.receita_despesa_mensal_detalhado?.labels ?? [];
   const window = usePeriodWindow(labels, effectivePeriod);
-  const slices = useDespesaSlices(fluxo, window.start, window.end);
+  const despesas = useDespesaSlices(fluxo, window.start, window.end);
+  const slices = despesas.rows;
   const total = useMemo(() => slices.reduce((acc, s) => acc + s.value, 0), [slices]);
   const palette = theme.categorical;
   // A28.l9 — "não identificado" sai da paleta categórica: cinza neutro
@@ -172,7 +220,7 @@ export function DespesasDoughnutChart({
   return (
     <ReportCard variant="neutral" title="Despesas por Categoria" conclusion={finalConclusion}>
       <p className="chart-context" style={CONTEXT_STYLE}>
-        {buildContext(slices, total, formatRangeHumano(window.label))}
+        {buildContext(despesas, total, formatRangeHumano(window.label), fluxo)}
       </p>
       {!isPrint && hasDatasets ? (
         <PeriodToggle value={period} onChange={setPeriod} periodLabel={window.label} />

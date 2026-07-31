@@ -27,6 +27,7 @@
 import { test, expect, type Page, type Locator } from "@playwright/test";
 
 import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
+import { CLAUSULA_DE_BASE } from "../../shared/janelaBaseClause";
 
 const VIEWPORT = { width: 1280, height: 800 };
 
@@ -168,11 +169,27 @@ test.describe("janela canônica de fluxo @critical", () => {
       .locator("[data-chart-conclusion], [data-chart-context], .chart-context")
       .allInnerTexts();
     expect(textos.length).toBeGreaterThan(0);
-    for (const t of textos) {
-      expect(t).toMatch(
-        /meses documentados|mês documentado|janela exibida|todo o período analisado|No gráfico:/i,
-      );
-    }
+    // Mesma const do contract test (Vitest) — ver tests/shared/janelaBaseClause.ts.
+    for (const t of textos) expect(t).toMatch(CLAUSULA_DE_BASE);
+  });
+
+  test("tela: donut de despesas cita consumo, e o total reconcilia com o chart irmão", async ({
+    page,
+  }) => {
+    await openReport(page);
+    // Substantivos distintos para os dois totais da MESMA janela: consumo
+    // (ex-aporte, ADR-333) no donut e total no chart irmão. 828 + 144 = 972.
+    const donut = page
+      .locator("section.card-variant-neutral")
+      .filter({ has: page.getByRole("heading", { name: "Despesas por Categoria" }) });
+    const ctx = donut.locator(".chart-context");
+    await expect(ctx).toContainText("despesas de consumo");
+    await expect(ctx).toContainText(/R\$\s?828\.000/);
+    await expect(ctx).toContainText("na janela exibida (jan/25 a dez/25)");
+    await expect(ctx).toContainText(/Aporte a investimento \(R\$\s?144\.000\) não entra/);
+    await expect(rdmCard(page).locator("[data-chart-conclusion]")).toContainText(
+      /despesas totais de R\$\s?972\.000/,
+    );
   });
 
   test("PDF: superfície print carrega a mesma janela canônica", async ({ page }) => {

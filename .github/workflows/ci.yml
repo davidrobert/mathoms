@@ -206,6 +206,13 @@ jobs:
               - 'frontend/tests/e2e/reports/**'
               - 'frontend/tests/e2e/fixtures/reports/**'
               - 'frontend/tests/e2e/helpers/mock-report.ts'
+              - 'frontend/tests/shared/**'
+              # Encanamento do próprio gate de render (A40.l3): o webServer e o
+              # override de comando vivem no config do Playwright, e a regra
+              # `no-restricted-syntax` de janela vive no config do ESLint. PR que
+              # quebrasse um dos dois não acionava o gate que eles sustentam.
+              - 'frontend/playwright.config.ts'
+              - 'frontend/eslint.config.mjs'
               - 'config/report_layout.yaml'
               - 'design-tokens/**'
               - '.github/workflows/ci.yml'
@@ -618,7 +625,8 @@ jobs:
       # `all-green.needs` — vermelho lá não impede merge, e ficou skipped em
       # 12/12 runs recentes. Label delega gate a memória humana; path filter,
       # não. Classe distinta do que ADR-210 tirou do PR: sem baseline de pixel e
-      # sem Postgres/Redis/Celery (fixture mockada, 6 testes).
+      # sem Postgres/Redis/Celery — fixture mockada, 8 testes (contagem medida
+      # com `npx playwright test <spec> --list`, não estimada).
       - name: Cache Playwright Chromium (report render)
         if: needs.changes.outputs.report == 'true'
         id: pw-cache-report
