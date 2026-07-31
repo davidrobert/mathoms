@@ -72,7 +72,7 @@ Marque cada item; **qualquer NÃO aborta o runbook**.
 - [ ] **(8) Metadados T1 tratados** — itens T1 de PRs/issues/CI editados/deletados;
       residual T3 aceito em [[ADR-316]] ([[A34.l21]]).
 - [ ] **(9) Fernet inócua** — rotação confirmada em prod (passe completo com
-      `failed=0`, [[A34.l3]] / [[ADR-171]]); o blob histórico removido no rewrite.
+      `failed=0` + 2º dry-run com `rotated=0`, [[A34.l3]] / [[ADR-171]]); o blob histórico removido no rewrite.
 - [ ] **(10) Backup íntegro por ≥30d** — mirror off-site restaurável + tag
       `pre-public-flip-backup` ([[A34.l2]]).
 - [ ] **(11) FREEZE de merges ativo** — janela W3→W8 sem novos merges em `main`

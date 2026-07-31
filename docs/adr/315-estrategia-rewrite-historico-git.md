@@ -58,7 +58,8 @@ Pré-condições (gate **G0**, herdadas de W0):
   no HEAD de `main`. É a **única rede** — sem ela, force-push mal-sequenciado =
   perda permanente.
 - Rotação Fernet ([[ADR-171]], lane [[A34.l3]]) confirmada em produção — passe
-  completo da task `rotate_fernet_secrets` com `failed=0` somado nos targets.
+  completo da task `rotate_fernet_secrets` com `failed=0`, mais um 2º
+  dry-run com `rotated=0` (ver [[A34.l3]] §Critério — `skipped` é ambíguo).
   O rewrite remove o blob da chave, mas a chave só é **inócua** se a rotação já
   rodou — não verificável do repo.
 
@@ -116,7 +117,7 @@ FREEZE. Assinalar:
 - [ ] Aprovar a **janela de FREEZE** de merges (W3→W8) e sua duração anunciada.
 - [ ] Confirmar backup off-site + tag `pre-public-flip-backup` como
       pré-condição bloqueante ([[A34.l2]]).
-- [ ] Confirmar rotação Fernet em prod (`failed=0`) antes do
+- [ ] Confirmar rotação Fernet em prod (`failed=0` + 2º dry-run com `rotated=0`) antes do
       rewrite ([[ADR-171]] / [[A34.l3]]).
 - [ ] Autorizar o **bypass do Ruleset** `non_fast_forward` na janela, com
       reativação verificada ([[A34.l20]]).
