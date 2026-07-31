@@ -1019,6 +1019,22 @@ go-test:
 ## go-all: fmt + lint + test Go
 go-all: go-fmt go-lint go-test
 
+# go-parity: gate técnico Tier-1 da F2 (ADR-150 §7) — 3 runs determinísticos em
+# cada braço + controle Py↔Py. Alterna o overlay sozinho (go-off/go-on ENV=native)
+# e devolve o worker ao Python no fim. Exige inbox VAZIO (senão o E0 gasta LLM e o
+# Tier-1 flaka) — o harness verifica e falha com instrução, não move seu documento.
+# STORAGE_ROOT vai absoluto: o valor do .env é relativo ao cwd.
+.PHONY: go-parity
+
+## go-parity: Gate de paridade Tier-1 Go↔Python — WS=<uuid> [RUNS=3]
+go-parity:
+	@test -n "$(WS)" || { echo "❌ WS= obrigatório. Uso: make go-parity WS=<workspace_uuid>"; exit 2; }
+	$(PYTHON) dev/go_parity_run.py \
+	  --workspace "$(WS)" \
+	  --runs $(or $(RUNS),3) \
+	  --storage-root "$(CURDIR)/$(or $(shell sed -n 's/^STORAGE_ROOT=//p' .env 2>/dev/null | tail -1 | tr -d '\"'),storage)" \
+	  --json-out "$(CURDIR)/_scratch/go_parity"
+
 # ---------------------------------------------------------------------------
 # Alembic — DB migrations
 #

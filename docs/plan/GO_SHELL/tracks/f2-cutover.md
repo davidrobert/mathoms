@@ -68,6 +68,27 @@ diferiu-o explicitamente para cá) e o runbook de cutover.
 
    A curadoria é **empírica**: rodar E0→E2 sobre os candidatos e assert 0
    invocação nas três antes de promover a fixture. Escolher por banco não basta.
+
+   **Medido 2026-07-31 no workspace de dogfood — não é preciso fixture sintética.**
+   O corpus real já satisfaz a pré-condição, desde que o inbox seja esvaziado:
+
+   | Superfície | Medição | Veredito |
+   |---|---|---|
+   | E2 (`requires_llm_fallback`) | Últimos **dois** runs full (`5a0eae54` 28/07, `9d47574c` 27/07): 125 artefatos de E2 (86 `extract_statements` + 39 `extract_invoices`), **0** em `extract_with_llm`. As escalações cessaram após 25/07 — os 5 docs que ainda escalavam nesse run aparecem como `extract_statements` nos seguintes (foram **corrigidos**, não perdidos: set de keys idêntico, 125=125) | ✅ limpo |
+   | E0 (`route_documents`) | 14 dos 163 docs têm `classification_confidence < 0,8` (3 em 0,0; 11 em 0,7) → dispararIAM o fallback. **Mas o E2 lê de `data/`** (`extract_bank_documents.py:69` itera `DATA_DIR`), não do inbox: em re-run de workspace já roteado o E0 só processa o que estiver no **inbox**. Hoje há 4 arquivos lá — justamente os não-classificados que o stage deixa para revisão manual (`unidentified > 0` → warning) | ⚠️ exige **esvaziar/mover o inbox** antes do run |
+   | `generate_narratives` | `MATHOMS_LLM_SECTION_SUMMARIES` off por default | ✅ pinar idêntico nos 2 braços |
+
+   **Receita do Tier-1 (sem custo de LLM, sobre o corpus real):** mover os 4
+   arquivos do inbox para fora → rodar `DETERMINISTIC_ORDER` → E0 não tem o que
+   classificar (0 LLM), E2 re-parseia os 125 de `data/` deterministicamente, os
+   stages `is_llm` já saem por `skip_llm`. Assert de telemetria: 0 artefato em
+   `extract_with_llm` e 0 chamada de classificação.
+
+   **Dívida independente descoberta aqui (não bloqueia F2):**
+   `pipeline/stages/route_documents.py:25` passa `use_llm=True` **hardcoded**, e o
+   `skip_llm` do orquestrador atua **filtrando a lista de stages** por `is_llm` —
+   nunca chega ao wrapper. Logo um run que pede "sem LLM" ainda gastaria LLM no E0
+   se o inbox tivesse doc de baixa confiança. O gate contorna pelo inbox vazio.
 3. **`ANTHROPIC_API_KEY`** disponível no env do serviço Go para o Tier-2 (run
    full com narrativas). Owner-gated (custo LLM — orçar; ordem de grandeza
    abaixo dos evals de parecer, mas medir).
