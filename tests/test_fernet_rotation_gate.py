@@ -89,6 +89,26 @@ def test_format_report_nao_vaza_nada_alem_de_contadores():
     assert "family_members_cpf" in out and "TOTAL" in out
 
 
+def test_roda_da_raiz_do_repo_sem_module_not_found():
+    """`python3 dev/fernet_rotation_gate.py` põe `dev/` no sys.path, não a raiz.
+    Sem o insert de _REPO_ROOT, `import backend.app...` quebra — e o erro só
+    aparece em produção, porque a avaliação pura acima nunca importa backend."""
+    import subprocess
+
+    proc = subprocess.run(
+        [sys.executable, "dev/fernet_rotation_gate.py", "preflight"],
+        cwd=_REPO,
+        capture_output=True,
+        text=True,
+        env={"PATH": "/usr/bin:/bin", "MATHOMS_FERNET_KEY": "x" * 44 + "="},
+        timeout=60,
+    )
+    combined = proc.stdout + proc.stderr
+    assert "ModuleNotFoundError" not in combined, combined[-800:]
+    # Chave sintética inválida ou janela fechada — ambos provam que o import passou.
+    assert "chaves ativas" in combined or "FECHADA" in combined, combined[-800:]
+
+
 def test_help_nao_exige_vault(monkeypatch, capsys):
     """`--help` precisa funcionar sem MATHOMS_FERNET_KEY — imports do vault são lazy."""
     gate = _load()
