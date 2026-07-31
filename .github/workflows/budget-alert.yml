@@ -182,3 +182,90 @@ jobs:
               });
               core.notice(`Issue criada #${created.data.number}`);
             }
+
+      # ── Watchdog de liveness dos workflows agendados (ADR-210 §camada 4) ──
+      # Mora aqui, e não em workflow próprio, por dois motivos: (a) este job já
+      # é diário, já tem checkout + issues:write + actions:read, então o custo
+      # marginal é ~5s em vez de +30 min faturados/mês; (b) arquivo novo é
+      # botão de mute novo — menos superfície de desligamento é o ponto.
+      # Auto-cobertura: budget-alert.yml está no próprio manifesto, então se
+      # ESTE workflow morrer, o gate de PR denuncia.
+      - name: Instala pyyaml (manifesto)
+        run: python3 -m pip install --quiet pyyaml
+
+      - name: Coleta violações de liveness
+        id: watchdog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 dev/check_scheduled_workflows.py --report > /tmp/watchdog.md
+          {
+            echo "report<<WATCHDOG_EOF"
+            cat /tmp/watchdog.md
+            echo "WATCHDOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: "Abre/atualiza/fecha Issue ops-watchdog"
+        uses: actions/github-script@v7
+        env:
+          REPORT: ${{ steps.watchdog.outputs.report }}
+        with:
+          script: |
+            const report = (process.env.REPORT || '').trim();
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'ops-watchdog', per_page: 5,
+            });
+
+            // Sem violações → fecha a issue. Alerta que se auto-resolve não
+            // apodrece, que é a patologia inteira que este watchdog combate.
+            if (!report) {
+              for (const issue of existing.data) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: issue.number, state: 'closed',
+                });
+                core.notice(`Liveness OK — fechada #${issue.number}`);
+              }
+              return;
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            const body = [
+              `**Watchdog de workflows agendados encontrou violações** (medição ${today}).`,
+              ``,
+              report,
+              ``,
+              `## Sinais`,
+              `- \`S0\` manifesto dessincronizado de \`.github/workflows/\``,
+              `- \`S1\` workflow agendado não está \`active\``,
+              `- \`S2\` sem run agendado dentro da janela declarada`,
+              `- \`S3\` Issue de alerta aberta além do limite de idade`,
+              `- \`WAIVED\` coberto por waiver vigente — informativo, não bloqueia`,
+              `- \`WAIVER\` waiver vencido — bloqueia até renovar ou resolver`,
+              ``,
+              `## Como resolver`,
+              `1. \`S1\` → religue: \`gh workflow enable <file>\`.`,
+              `2. \`S2\` → veja se o cron ainda dispara e se o YAML é válido.`,
+              `3. \`S3\` → trie a Issue citada. Enquanto aberta, a trava`,
+              `   anti-duplicata silencia toda falha nova do mesmo alerta.`,
+              `4. Exceção consciente → \`waiver\` datado em`,
+              `   \`.github/scheduled-workflows.yml\`.`,
+              ``,
+              `Política: [ADR-210](docs/adr/210-saude-do-test-suite-do-ci.md) §camada 4.`,
+            ].join('\n');
+            const title = `[ops-watchdog] Workflow agendado sem liveness — ${today}`;
+
+            if (existing.data.length > 0) {
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.data[0].number, title, body,
+              });
+              core.notice(`Atualizada #${existing.data[0].number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['ops-watchdog', 'ops'],
+              });
+              core.notice(`Issue criada #${created.data.number}`);
+            }

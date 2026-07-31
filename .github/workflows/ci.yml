@@ -294,6 +294,19 @@ jobs:
       - name: tenancy scoping lint — unit tests
         run: python -m pytest scripts/lint/test_check_workspace_scoping.py -q
 
+      - name: liveness dos workflows agendados (ADR-210 §camada 4)
+        # Step dentro do lint-all (e não job próprio) de propósito: job novo
+        # custaria 1 min faturado × ~900 runs/mês pelo arredondamento do GH,
+        # que é exatamente o desperdício que a medição de 2026-07-30 achou.
+        # Como step, custa ~2s do setup já pago.
+        # Consequência aceita: lint-all é `if: any_code == 'true'`, então PR
+        # docs-only não roda este gate — o cron diário em budget-alert.yml
+        # cobre esse resíduo (é lá que mora a detecção de repo parado).
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MATHOMS_PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: python3 dev/check_scheduled_workflows.py
+
   pipeline-tests:
     name: Pipeline tests (tests/)
     runs-on: ubuntu-latest
