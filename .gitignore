@@ -97,3 +97,28 @@ config/internal_operators.yaml
 logs/internal_ops_audit.log
 logs/
 .venv-pr1/
+
+# Worktrees de agente — cópias completas do repo (dezenas de MB cada), e
+# qualquer coisa que o agente deixe cair na raiz delas. Estava só em
+# `.git/info/exclude`, que é LOCAL e não viaja para outro clone: de dentro
+# do worktree o padrão da raiz não se aplica e um `git add -A` ali dentro
+# estagiaria o que estivesse solto (medido 2026-07-31 com um mirror bare de
+# 39 MB contendo o histórico inteiro). Aqui a regra é versionada.
+.claude/worktrees/
+
+# Resíduo de ferramenta e diretórios de trabalho que nunca são versionados.
+# `_archive/` e `processed/` já são bloqueados por dev/check_forbidden_paths.py
+# ([[ADR-319]]), mas hook é cinto — o .gitignore é o suspensório, e sobrevive
+# a `--no-verify`. `_archive/` reapareceu em 2026-07-31 (config do Obsidian,
+# sem PII) provando que o path volta sozinho.
+_archive/
+archive/
+processed/
+output/
+.hypothesis/
+
+# Mirrors bare criados para backup pré-flip (PLAN-public-release W0/A34.l2).
+# A lane exige guardá-los FORA da árvore do repo; este padrão é a rede caso
+# um caia aqui dentro — carregam o histórico completo, PII inclusa.
+*-mirror.git/
+mathoms-pre-public-flip.git/
