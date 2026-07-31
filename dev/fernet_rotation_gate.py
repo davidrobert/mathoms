@@ -16,6 +16,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 MIN_KEYS_FOR_WINDOW = 2
+LOCAL_HOSTS = frozenset({"", "localhost", "127.0.0.1", "::1", "0.0.0.0", "host.docker.internal"})
 KID_AUDIT_SQL = """
 SELECT content_json->>'kid' AS kid, count(*)
 FROM pipeline_artifacts
@@ -44,6 +45,27 @@ def run_task(dry_run: bool) -> dict:
     from backend.app.tasks.rotate_fernet_secrets import rotate_fernet_secrets
 
     return rotate_fernet_secrets(dry_run=dry_run)
+
+
+def db_target() -> str:
+    """`host:porta/database` do alvo — sem usuário nem senha. Só para o operador
+    enxergar em QUAL banco está mexendo antes de escrever."""
+    from urllib.parse import urlparse
+
+    from backend.app.core.config import settings
+
+    parsed = urlparse(settings.DATABASE_URL)
+    if parsed.scheme.startswith("sqlite"):
+        return f"sqlite:{(parsed.path or '').rsplit('/', 1)[-1] or 'memória'}"
+    port = f":{parsed.port}" if parsed.port else ""
+    return f"{parsed.hostname or '?'}{port}/{(parsed.path or '/').lstrip('/') or '?'}"
+
+
+def looks_local(target: str) -> bool:
+    """Alvo que quase certamente NÃO é produção (sqlite ou host de loopback)."""
+    if target.startswith("sqlite:"):
+        return True
+    return target.split(":")[0].split("/")[0] in LOCAL_HOSTS
 
 
 # ─── avaliação pura (testável offline com report sintético) ───
@@ -112,7 +134,24 @@ def format_report(report: dict) -> str:
 # ─── comandos ───
 
 
-def _require_window() -> tuple[int, str]:
+def _require_prod_target(allow_local: bool) -> str:
+    """Mostra o banco alvo ANTES de qualquer coisa — a l3 é sobre o dado de
+    produção, e rodar no laptop responde a pergunta errada em silêncio."""
+    target = db_target()
+    print(f"banco alvo:    {target}")
+    if looks_local(target) and not allow_local:
+        raise PreflightError(
+            f"o alvo `{target}` parece LOCAL, não produção.\n"
+            "A l3 pergunta se a chave vazada ainda decifra dado vivo — no seu\n"
+            "laptop isso não significa nada. Rode dentro do container do worker\n"
+            "(console do Coolify no serviço do worker, ou `docker exec`).\n"
+            "Se você realmente quer rodar contra este banco, passe --allow-local."
+        )
+    return target
+
+
+def _require_window(allow_local: bool = False) -> tuple[int, str]:
+    _require_prod_target(allow_local)
     keys, kid = key_window()
     print(f"chaves ativas: {keys} · kid da primária: {kid}")
     if keys < MIN_KEYS_FOR_WINDOW:
@@ -124,8 +163,8 @@ def _require_window() -> tuple[int, str]:
     return keys, kid
 
 
-def cmd_preflight(_args) -> int:
-    _require_window()
+def cmd_preflight(args) -> int:
+    _require_window(args.allow_local)
     print("OK — janela aberta. O dry-run agora é confiável.")
     print(
         "\nAtenção: esta é a env que ESTE processo vê. Rode o script no mesmo\n"
@@ -136,7 +175,7 @@ def cmd_preflight(_args) -> int:
 
 
 def cmd_rotate(args) -> int:
-    keys, _ = _require_window()
+    keys, _ = _require_window(args.allow_local)
     print("\n── dry-run (nada é escrito) ──")
     report = run_task(dry_run=True)
     print(format_report(report))
@@ -156,7 +195,7 @@ def cmd_rotate(args) -> int:
 
 
 def cmd_verify(args) -> int:
-    keys, kid = _require_window()
+    keys, kid = _require_window(args.allow_local)
     report = json.loads(args.report.read_text()) if args.report else run_task(dry_run=True)
     print("\n── 2º dry-run (prova de que nada ficou para trás) ──")
     print(format_report(report))
@@ -188,12 +227,23 @@ def _fail(problems: list[str]) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    # `--allow-local` vive num parser PAI herdado por cada subcomando: definido
+    # só no topo, `preflight --allow-local` falharia com "unrecognized
+    # arguments" e exigiria `--allow-local preflight`, que ninguém digita.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument(
+        "--allow-local",
+        action="store_true",
+        help="permite alvo local (drill/staging); por padrão só roda contra banco remoto",
+    )
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("preflight", help="a janela de rotação está aberta?")
-    rotate = sub.add_parser("rotate", help="dry-run → confirmação → passe real")
+    sub.add_parser("preflight", parents=[common], help="a janela de rotação está aberta?")
+    rotate = sub.add_parser("rotate", parents=[common], help="dry-run → confirmação → passe real")
     rotate.add_argument("--yes", action="store_true", help="pula a confirmação interativa")
-    verify = sub.add_parser("verify", help="2º dry-run + as duas condições do gate")
+    verify = sub.add_parser(
+        "verify", parents=[common], help="2º dry-run + as duas condições do gate"
+    )
     verify.add_argument("--report", type=Path, help="avalia um report JSON já salvo")
     return parser
 
