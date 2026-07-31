@@ -676,7 +676,43 @@ Leitura dos exit codes:
 | 1 | Divergência Go↔Py com controle limpo | **bug de executor** — não flipa |
 | 2 | Controle Py↔Py sujo, ou falha de pré-condição | o gate **não está pronto**; normalização incompleta ou não-determinismo fora da allowlist. Qualquer veredito Go↔Py aqui é ruído |
 
-### 11.3 Sinais durante o soak
+### 11.3 Ledger do soak (template)
+
+O §8 da [[ADR-150]] exige o soak **documentado** — sem ledger não há como afirmar
+os 14 dias. Copie para `_scratch/go_soak_ledger.md` (fora do git: carrega
+`run_id` de dado real) e preencha **por run**, append-only.
+
+```markdown
+# Ledger do soak — shell Go (F2)
+Início: YYYY-MM-DD · executor: Go · rollbacks: 0
+
+| # | data | run_id | tier | status | duração | vs SLO | shell /health | falha (classe) |
+|---|------|--------|------|--------|---------|--------|---------------|----------------|
+| 1 | | | Free/Premium | completed | | ok | 200 | — |
+
+## Parity check semanal (double-run)
+| semana | data | cents diff | envelope diff | veredito |
+|---|---|---|---|---|
+| 1 | | 0 | 0 | ok |
+
+## Incidentes
+| data | gatilho | evidência | ação | zerou o relógio? |
+|---|---|---|---|---|
+
+## Fechamento (F3 abre quando TODOS verdes)
+- [ ] 14 dias-calendário consecutivos em Go
+- [ ] ≥10 runs E0→E5 reais · [ ] ≥3 com LLM
+- [ ] parity checks semanais todos zero
+- [ ] zero rollback · [ ] zero `database is locked` · [ ] zero zumbi
+- [ ] shell saudável em 100% dos runs
+- [ ] gate humano PASS
+```
+
+**Regras do relógio:** rollback por gatilho **zera** para dia 0. Janela em Python
+por motivo não-Go (manutenção) **pausa**, não zera. 14 dias ociosos não provam
+nada — a barra de atividade é que dá significado ao soak.
+
+### 11.4 Sinais durante o soak
 
 Logs em `_dev_pids/go.log` + `worker.log`. Não há monitor externo no dogfood —
 `curl -sf localhost:8002/health` no início de cada run é o floor. Tabela completa
