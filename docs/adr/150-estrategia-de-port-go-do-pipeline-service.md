@@ -5,7 +5,7 @@ title: "Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via 
 status: Decidido
 phase: "F1 GO_SHELL — gatilho 4 disparado pelo owner, 2026-07-03"
 date: "2026-04-27"
-amended_at: ["2026-07-08"]
+amended_at: ["2026-07-08", "2026-07-31"]
 relates_to: ["[[ADR-112]]", "[[ADR-113]]", "[[ADR-102]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-109]]", "[[ADR-205]]", "[[ADR-212]]", "[[ADR-241]]", "[[ADR-291]]", "[[ADR-303]]"]
 supersedes: []
 superseded_by: []
@@ -33,6 +33,16 @@ size_lines: 331
 > §8: o fallback de prod é `InProcessPipelineClient` (unset da env var), não o
 > `pipeline-service` Python HTTP. Design executável: [[PLAN-go-shell]]
 > `tracks/f2-cutover.md`.
+
+> **Emenda 2026-07-31 (gate da F2 no dogfood local):** a pré-condição "o gate
+> exige Postgres em staging" pressupõe um ambiente hospedado que **não existe**
+> (#1130 — a única instância com dado real é o dogfood local SQLite). A
+> incoerência WAL que a motivou é **host↔container**, e o overlay
+> `make go-on ENV=native` roda o binário Go **no host**. O gate passa a rodar no
+> dogfood local; Postgres vira **re-gate diferido** para quando [[ADR-228]] G2/G3
+> abrir. A emenda também corrige a pré-condição "zero LLM" (são **3** superfícies
+> — E0-route, E2, narrativas — não só o E2) e assume explicitamente o risco novo
+> de **dois escritores SQLite**. Ver §Emenda ao fim.
 
 > **Decisão W6-T06 (2026-05-07):** Caminho 1 **continua sendo o default escolhido**
 > quando algum gatilho disparar — a estratégia de port (layout, pré-requisitos,
@@ -329,3 +339,67 @@ que precisa ser rastreável.
 rastreável a reinterpretação do critério de paridade e a correção do fallback.
 Pré-condição de infra confirmada por ambos os especialistas: o gate byte-a-byte
 **exige Postgres** (o smoke SQLite tem incoerência WAL host↔container).
+**Corrigido pela emenda 2026-07-31** — ver abaixo: a incoerência WAL é
+host↔container, e o overlay nativo é host-only.
+
+## Emenda 2026-07-31 — o gate da F2 roda no dogfood local (SQLite), não em staging Postgres
+
+A pré-condição de infra fechada na emenda anterior ("o gate byte-a-byte exige
+Postgres") **pressupõe um ambiente hospedado que não existe**. O owner decidiu
+2026-07-31 continuar o cutover no uso local como dogfood, sem mudar a
+arquitetura de banco. Esta emenda reancora o gate no ambiente que de fato roda o
+produto.
+
+1. **Não existe produção.** O [#1130](https://github.com/davidrobert/mathoms/pull/1130)
+   registra: a única instância com dado real é o **dogfood local** (SQLite
+   `mathoms.db` na raiz do checkout); [[ADR-228]] G2/G3 é owner-gated e prod não
+   está no ar. Um gate em staging Postgres validaria paridade contra um ambiente
+   **menos** representativo do alvo real, não mais.
+2. **A incoerência WAL é host↔container — o overlay nativo é host-only.** A
+   restrição documentada (`runbooks/pipeline_service_container_smoke.md §3`) é o
+   `-shm` mmap que o virtioFS não propaga entre host e container. Em
+   `make go-on ENV=native` o binário Go roda **no host** (o próprio runbook §6:
+   "binário no HOST — sem a restrição de WAL do container") e os stages são
+   subprocess do mesmo Python do host. Um só namespace de filesystem → WAL
+   coerente. A conclusão dos especialistas estava certa **para o caminho
+   container** e foi generalizada além do seu domínio.
+3. **Postgres vira re-gate diferido, não pré-condição.** Quando existir ambiente
+   hospedado ([[ADR-228]] G2/G3), o Tier-1 deve ser **re-executado** lá antes do
+   primeiro run de usuário real — semântica de isolamento e concorrência de
+   escritores difere. O que Postgres provaria e SQLite local não prova está no
+   item 5; o que o gate afirma (o shell não corrompe args/env/I/O) é
+   independente do backend de DB, porque o domínio é o mesmo binário Python.
+4. **Correção da pré-condição "zero LLM": são 3 superfícies, não 1.** A emenda
+   anterior nomeia só o `requires_llm` do E2. Medido no código: (a)
+   `route_documents` tem fallback LLM de classificação ([[ADR-081]] camada 2,
+   confidence < 0,8) e **não** é `is_llm` no registry; (b) o
+   `requires_llm_fallback` do E2 é setado também por `itau`/`c6bank` em caminhos
+   de **falha de parse/validação** (`scripts/e2/validation.py`), não só pelos
+   parsers `wise`/`bankofamerica`/`quintoandar` — é propriedade do documento, não
+   do banco; (c) `generate_narratives` está em `DETERMINISTIC_ORDER` e chama LLM
+   quando `MATHOMS_LLM_SECTION_SUMMARIES=1` ([[ADR-144]]). A fixture de Tier-1
+   tem que ser **medida** nas três (assert 0 invocação), não escolhida por banco;
+   a env var de (c) fica pinada idêntica nos dois braços — divergência ali é
+   exatamente o bug de env-passthrough que o gate caça.
+5. **Risco residual assumido: dois escritores SQLite.** Sob `InProcess` o worker
+   escreve artefatos no próprio processo. Sob o shell Go, o **subprocess** escreve
+   artefatos enquanto o worker escreve `pipeline_runs`/eventos — dois escritores
+   no mesmo arquivo, e SQLite WAL admite um por vez. `OperationalError: database
+   is locked` passa a ser **classe de falha shell-caused** e entra como gatilho de
+   rollback. É risco novo e real; descobri-lo no dogfood é preferível a diferi-lo.
+6. **Soak e rollback reancorados no local.** Os gatilhos e a barra de soak do §7
+   assumem monitor externo, status page e uptime de calendário. No dogfood: o
+   shell sobe por sessão de trabalho, então "uptime :8002 ≥99%" perde sentido e
+   vira **"shell saudável em 100% dos runs do ledger"**; monitor Coolify e status
+   page ficam **N/A explícito** (não "pendente"). A barra de atividade (≥10 runs
+   E0→E5, ≥3 com LLM) e a exigência de **zero rollback em 14 dias** permanecem —
+   são elas que dão significado ao soak, não o calendário.
+
+**Não é ADR nova.** O §7 (cutover, gate humano não-pulável, toggle único) e o §8
+(coexistência) seguem autoritativos; muda o **ambiente** onde o gate roda e a
+precisão de duas pré-condições. Detalhe executável: [[PLAN-go-shell]]
+`tracks/f2-cutover.md`. **Co-design não realizado** — a emenda anterior fechou o
+critério com `senior-cto` + `sre-devops`; esta corrige a premissa de ambiente com
+base em medição no código e na decisão do owner. Se o re-gate Postgres do item 3
+for antecipado, ou se o item 5 falhar no soak, **reabrir com os dois
+especialistas**.
