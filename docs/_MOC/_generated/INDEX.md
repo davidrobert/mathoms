@@ -815,13 +815,13 @@
 | A39.l7 | lane | shipped | A39 | Sweep de verificabilidade: itau_xls + santander_xls declaram conservacao_verificavel (wise/rico cortados) | `sprint/A39/lanes/A39-l7-verificabilidade-sweep.md` |
 | A39.l8 | lane | shipped | A39 | Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto) | `sprint/A39/lanes/A39-l8-fatura-itau-visa.md` |
 | A39.l9 | lane | shipped | A39 | Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) | `sprint/A39/lanes/A39-l9-posicao-renda-variavel.md` |
-| A40.l1 | lane | open | A40 | Instrumento: detector de duplicação cross-grupo + baseline congelado | `sprint/A40/lanes/A40-l1-ledger-cross-grupo-check.md` |
+| A40.l1 | lane | shipped | A40 | Instrumento: detector de duplicação cross-grupo + baseline congelado | `sprint/A40/lanes/A40-l1-ledger-cross-grupo-check.md` |
 | A40.l10 | lane | planned | A40 | Ordem do plano com critério encodado + pendências acionáveis do dono | `sprint/A40/lanes/A40-l10-pendencia-do-dono-e-ordem-do-plano.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
-| A40.l2 | lane | planned | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
+| A40.l2 | lane | open | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
 | A40.l3 | lane | open | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l4 | lane | open | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | planned | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
