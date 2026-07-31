@@ -7,7 +7,7 @@ sprint_origem: null
 sprint_atual: null
 sprints_envolvidas: []
 created_at: "2026-07-02"
-last_review: "2026-07-08"
+last_review: "2026-07-31"
 adrs_canonical:
   - "[[ADR-150]]"
   - "[[ADR-303]]"
@@ -95,12 +95,30 @@ runbook: [tracks/f2-cutover.md](tracks/f2-cutover.md) (co-design `senior-cto` +
 
 **A pré-condição registrada na [[ADR-303]] §Escopo deferido está FECHADA** (não
 mais pendente): paridade de hidratação de contexto (`run_context_factory.py`,
-PR #742) + enablement do smoke em container (PR #743). O que resta de F2 é gate +
-flip, não código de produto: (1) harness de paridade de **payload completo**
-(`dev/go_parity_gate.py`, F1 dec. 10 diferiu-o para cá) rodando sobre **Postgres**
-em staging; (2) gate humano do owner; (3) flip global em prod (backend+worker,
-**restart** — o singleton não re-lê em quente) com watch + soak ≥2 semanas antes
-de F3.
+PR #742) + enablement do smoke em container (PR #743).
+
+> **Reancorado 2026-07-31 — o cutover roda no dogfood local** ([[ADR-150]] emenda
+> datada). O owner decidiu continuar a migração no uso local, sem mudar a
+> arquitetura de banco. A pré-condição "Postgres em staging" **caiu**: a
+> incoerência WAL é host↔container e o overlay `go-on ENV=native` roda o binário
+> Go no host; além disso **não existe produção** (#1130), logo staging Postgres
+> seria menos representativo do alvo que o próprio dogfood. Postgres vira
+> **re-gate diferido** para quando [[ADR-228]] G2/G3 abrir.
+
+Fatias de F2 já em `main`: **#900** (A1 — `dev/go_parity_gate.py`, comparador
+Tier-1/Tier-2 com controle Py↔Py anti-mascaramento) e **#919** (A2 — captura de
+eventos WS via `dev/go_parity_capture.py`, envelope entra na paridade). O que
+resta é gate + flip, não código de produto:
+
+1. **Executável agora, sem infra:** `make go-parity` (orquestração — o harness
+   hoje só consome `run_id`s), curadoria empírica da fixture 0-LLM nas **3**
+   superfícies (E0-route [[ADR-081]], E2 `requires_llm_fallback`, narrativas
+   [[ADR-144]]), entrada no [RUNBOOK](../../reference/RUNBOOK.md), job CI
+   `go-parity-deterministic`.
+2. **Owner:** rodar Tier-1 (3×Go vs 3×Py + controle) e Tier-2 (custo LLM), gate
+   humano ([SMOKE_TEST_HUMAN](../../reference/SMOKE_TEST_HUMAN.md)).
+3. **Flip + soak:** `go-on ENV=native` no workspace real, watch 3 runs, soak ≥2
+   semanas (≥10 runs, ≥3 com LLM, zero rollback) antes de F3.
 
 ### F3 — Decommission do `pipeline-service/` Python — ⏸ bloqueada
 
@@ -113,7 +131,7 @@ de F3.
 | [TRACK-a3cli-orchestrator-cli](tracks/a3cli-orchestrator-cli.md) | A3.cli (Fase 1) + A3.cli.otel (Fase 2) — 2 PRs | `consumed` ✅ (#737 + #738) | — |
 | [TRACK-a3cli-benchmark](tracks/a3cli-benchmark.md) | A3.cli.benchmark — medição + decisão Caminho 1 vs 2 | `consumed` ✅ (gate PASSA: 413ms) | — |
 | [TRACK-f1-go-service](tracks/f1-go-service.md) | F1 — serviço Go em 4 fases/4 PRs + KRs | `consumed` ✅ (#780/#789/#791/Fase 4) | — |
-| [TRACK-f2-cutover](tracks/f2-cutover.md) | F2 — gate técnico (Tier-1/Tier-2) + gate humano + flip prod + soak | `ready` 🚧 (owner autorizou 2026-07-08) | Postgres em staging + fixture 0-LLM no E2 |
+| [TRACK-f2-cutover](tracks/f2-cutover.md) | F2 — gate técnico (Tier-1/Tier-2) + gate humano + flip no dogfood + soak | `ready` 🚧 (A1 #900 + A2 #919 em `main`; reancorado no dogfood local 2026-07-31) | fixture 0-LLM nas 3 superfícies (Postgres **não** é mais gate) |
 
 ## Critério de destrava de F1 (não recopiar — fonte única)
 
