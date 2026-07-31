@@ -13,7 +13,7 @@ _REPO = Path(__file__).resolve().parents[1]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
-from dev.go_parity_capture import _decode, _is_terminal  # noqa: E402
+from dev.go_parity_capture import _decode, _is_terminal, filter_by_run  # noqa: E402
 
 
 def test_is_terminal_recognises_terminal_events():
@@ -31,3 +31,20 @@ def test_decode_parses_json_and_swallows_garbage():
     assert _decode('{"event": "run_started"}') == {"event": "run_started"}
     assert _decode("not json") is None
     assert _decode(None) is None
+
+
+def test_filter_by_run_keeps_only_target_and_preserves_order():
+    """A sequência é o que o Tier-2 compara — filtrar não pode reordenar."""
+    events = [
+        {"event": "run_started", "run_id": "a"},
+        {"event": "run_started", "run_id": "b"},
+        {"event": "stage_started", "run_id": "a"},
+        {"event": "run_completed", "run_id": "a"},
+    ]
+    assert filter_by_run(events, "a") == [events[0], events[2], events[3]]
+
+
+def test_filter_by_run_empty_when_no_match():
+    """0 envelope é sinal de captura perdida — o orquestrador falha em cima disso."""
+    assert filter_by_run([{"event": "run_started", "run_id": "b"}], "a") == []
+    assert filter_by_run([{"event": "run_started"}], "a") == []
