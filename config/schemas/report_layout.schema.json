@@ -136,7 +136,12 @@
         "data_source": {"type": "string"},
         "summary": {
           "type": "boolean",
-          "description": "ADR-117/122 · Fase 5 — se true, renderiza <SectionSummary> no topo com section_summaries[id]."
+          "description": "ADR-117/122 · Fase 5 — se true, renderiza <SectionSummary> no topo da seção."
+        },
+        "summary_source": {
+          "type": ["string", "null"],
+          "pattern": "^s([1-9]|10)$",
+          "description": "ADR-355 (A40.l4) — chave em narrativas.summaries que alimenta o <SectionSummary> desta seção (camada 2 da precedência LLM → E5.N → derivado). null = seção sem narrativa E5.N por decisão; a camada 2 é pulada. NUNCA derive de id.toLowerCase(): `s2` é o parágrafo de score e a S2 é Fluxo de Caixa. Gate: CV9 em scripts/validate_cross.py."
         },
         "divider_before": {
           "type": "boolean",
@@ -159,6 +164,15 @@
         "optional": {
           "type": "boolean",
           "description": "ADR-167 (A8.4 PR3) — apêndice condicional: renderer omite a página inteira (seção + entrada no TOC) quando o componente retorna null. Numeração A/B/C/D/E permanece literal (não recomputada)."
+        },
+        "summary": {
+          "type": "boolean",
+          "description": "ADR-355 (A40.l4) — apêndices renderizam <SectionSummary> desde a Fase 10; a flag estava só em sectionSpec, o que fazia o denominador do CV9 mentir."
+        },
+        "summary_source": {
+          "type": ["string", "null"],
+          "pattern": "^s([1-9]|10)$",
+          "description": "ADR-355 (A40.l4) — chave em narrativas.summaries. null para todos os apêndices: o E5.N não produz narrativa de apêndice (texto é determinístico)."
         },
         "charts": {
           "type": "array",

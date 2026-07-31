@@ -9,7 +9,8 @@ from typing import Any
 from dev.compare_reviews import build_snapshot, compare_reviews
 
 _CONS_IDS = ["CV1", "CV2", "CV3", "CV6", "CV16", "CV17"]
-_RENDER_IDS = ["CV9", "CV10"]
+_RENDER_IDS = ["CV10"]
+_DELIVERY_IDS = ["CV9"]
 _RUN = {
     "status": "completed",
     "tier_at_run": "premium",
@@ -36,7 +37,7 @@ def _report_data() -> dict:
 
 
 def _cv(ids: list[str] | None = None) -> list[dict]:
-    picked = ids if ids is not None else _CONS_IDS + _RENDER_IDS
+    picked = ids if ids is not None else _CONS_IDS + _RENDER_IDS + _DELIVERY_IDS
     return [
         {"check_id": c, "name": "n", "severity": "error", "passed": True, "details": "d"}
         for c in picked
@@ -46,7 +47,7 @@ def _cv(ids: list[str] | None = None) -> list[dict]:
 def _cv_failing(fail: str) -> list[dict]:
     return [
         {"check_id": c, "name": "n", "severity": "error", "passed": c != fail, "details": "d"}
-        for c in _CONS_IDS + _RENDER_IDS
+        for c in _CONS_IDS + _RENDER_IDS + _DELIVERY_IDS
     ]
 
 
@@ -133,16 +134,25 @@ def test_emptied_section_is_hard_regression() -> None:
 
 
 def test_render_cv_failure_is_soft_not_hard_by_default() -> None:
-    cur = _snap(cv_results=_cv_failing("CV9"))  # render CV9 falha → SOFT em default
+    cur = _snap(cv_results=_cv_failing("CV10"))  # render CV10 falha → SOFT em default
     hard, soft, _notes = compare_reviews(_snap(), cur, _report_data(), _report_data())
     assert hard == []
-    assert any("CV9" in s for s in soft)
+    assert any("CV10" in s for s in soft)
 
 
 def test_strict_promotes_render_cv_to_hard() -> None:
-    cur = _snap(cv_results=_cv_failing("CV9"))
+    cur = _snap(cv_results=_cv_failing("CV10"))
     hard, _soft, _notes = compare_reviews(_snap(), cur, _report_data(), _report_data(), strict=True)
-    assert any("CV9" in h for h in hard)
+    assert any("CV10" in h for h in hard)
+
+
+def test_delivery_cv9_failure_is_hard_by_default() -> None:
+    """ADR-355: CV9 mede ENTREGA de narrativa de seção — parágrafo que sumiu do
+    relatório é regressão, não ruído de run incremental. Sai do _RENDER_SOFT."""
+    cur = _snap(cv_results=_cv_failing("CV9"))
+    hard, soft, _notes = compare_reviews(_snap(), cur, _report_data(), _report_data())
+    assert any("CV9" in h for h in hard), hard
+    assert not any("CV9" in s for s in soft)
 
 
 # ─────────────────────────── conservação + volume ───────────────────────────

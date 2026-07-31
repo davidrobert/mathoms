@@ -1,7 +1,6 @@
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
 import { SectionSummary } from "../SectionSummary";
-import { deriveSectionSummary } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 
 const GLOSSARIO: Array<{ termo: string; definicao: string }> = [
@@ -88,16 +87,9 @@ function DefinitionTable({
  *  Conteúdo estático — válido para qualquer workspace.
  */
 export function ApendiceASection({ data }: { data?: ReportAnalysisData } = {}) {
-  const narrativas = data?.narrativas as Record<string, unknown> | undefined;
-  const fallback = data ? deriveSectionSummary("APP_A", data) : null;
   return (
     <ReportSection id="APP_A" title="Apêndice A — Definições e Siglas">
-      <SectionSummary narrativas={narrativas} sectionId="APP_A" />
-      {fallback && !narrativas?.["APP_A"] && (
-        <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
-          {fallback}
-        </p>
-      )}
+      {data && <SectionSummary data={data} sectionId="APP_A" />}
       <DefinitionTable
         title="Glossário de Termos Financeiros"
         header="Sigla / Termo"

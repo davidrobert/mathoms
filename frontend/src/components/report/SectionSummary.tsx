@@ -1,33 +1,46 @@
 import { cn } from "@/lib/cn";
+import type { ReportAnalysisData } from "@/lib/api";
+import { resolveSectionSummary } from "./utils/sectionSummarySource";
 
 interface SectionSummaryProps {
-  narrativas: Record<string, unknown> | undefined;
+  data: ReportAnalysisData;
   sectionId: string;
   className?: string;
 }
 
 /**
- * Parágrafo editorial de abertura de seção.
+ * Parágrafo editorial de abertura de seção — render site ÚNICO (ADR-355).
  *
- * Lê `narrativas?.[sectionId]` (gerado por E5.N) e renderiza context +
- * conclusion com visual de destaque acima dos cards. Se não houver
- * narrativa para a seção, não renderiza nada.
+ * A precedência (LLM → E5.N → derivado) vive em `resolveSectionSummary`;
+ * aqui só se escolhe o registro visual:
+ *
+ * - `derived` → mesmo markup dos 5 blocos de fallback que este componente
+ *   substituiu (zero delta visual onde nada novo chega).
+ * - `e5n` / `llm` → caixa de destaque. Registro foreground sem `font-medium`:
+ *   os textos do E5.N são expositivos, não conclusões editoriais.
  *
  * Deve ser filho direto do grid do ReportSection (herda md:col-span-2).
  */
 export function SectionSummary({
-  narrativas,
+  data,
   sectionId,
   className,
 }: SectionSummaryProps) {
-  const entry = narrativas?.[sectionId] as
-    | { context?: string; conclusion?: string }
-    | undefined;
+  const resolved = resolveSectionSummary(sectionId, data);
+  if (!resolved) return null;
 
-  const context = entry?.context?.trim();
-  const conclusion = entry?.conclusion?.trim();
-
-  if (!context && !conclusion) return null;
+  if (resolved.source === "derived") {
+    return (
+      <p
+        className={cn(
+          "md:col-span-2 text-sm text-[var(--surface-muted-foreground)]",
+          className,
+        )}
+      >
+        {resolved.text}
+      </p>
+    );
+  }
 
   return (
     <div
@@ -38,21 +51,9 @@ export function SectionSummary({
         className,
       )}
     >
-      {context && (
-        <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
-          {context}
-        </p>
-      )}
-      {conclusion && (
-        <p
-          className={cn(
-            "text-sm font-medium leading-relaxed text-[var(--surface-foreground)]",
-            context && "mt-2",
-          )}
-        >
-          {conclusion}
-        </p>
-      )}
+      <p className="text-sm leading-relaxed text-[var(--surface-foreground)]">
+        {resolved.text}
+      </p>
     </div>
   );
 }

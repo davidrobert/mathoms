@@ -274,7 +274,47 @@
         "detalhes": {"type": "array"}
       }
     },
-    "narrativas": {"type": "object"},
+    "narrativas": {
+      "type": "object",
+      "description": "Bloco E5.N (ADR-355 · A40.l4). Shape declarado porque o renderer depende dele: `summaries.sN` é STRING (o componente esperava objeto e o texto não renderizava em seção nenhuma). Insumo para o codegen de tipos do view-model (A40.l5) — sem esta declaração o tipo gerado nasce frouxo.",
+      "properties": {
+        "perfil_familia": {
+          "type": "object",
+          "properties": {
+            "left": {"type": "string"},
+            "right": {"type": "string"}
+          }
+        },
+        "summaries": {
+          "type": "object",
+          "description": "Parágrafo de abertura por dimensão. Chave→seção NÃO é lowercase do id: o mapa canônico é `summary_source` em config/report_layout.yaml (`s2` é o parágrafo de score, não da S2/Fluxo de Caixa). Chave sem destino tem de estar em ORPHAN_SUMMARY_KEYS com razão escrita. Gate: CV9.",
+          "patternProperties": {
+            "^s([1-9]|10)$": {"type": "string", "minLength": 1}
+          },
+          "additionalProperties": false
+        },
+        "charts": {
+          "type": "object",
+          "description": "Conclusão/contexto por chart id. É o ÚNICO lugar onde conclusão de chart vive — leitura no topo de `narrativas` renderiza vazio (gate: regra 5 de dev/check_chart_conclusion_parity.py).",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "context": {"type": "string"},
+              "conclusion": {"type": "string"},
+              "data_state": {"type": "string", "enum": ["ok", "empty"]}
+            }
+          }
+        }
+      }
+    },
+    "section_summaries": {
+      "type": "object",
+      "description": "Camada 1 da precedência (ADR-355): parágrafo de seção gerado por LLM (ADR-144 §3), opt-in via MATHOMS_LLM_SECTION_SUMMARIES, default OFF. Chave é o id da seção em MAIÚSCULA (`S1`), valor é string — sem shape {context, conclusion}.",
+      "patternProperties": {
+        "^[A-Z][A-Z0-9_]*$": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "irpf_kpis": {
       "type": "object",
       "description": "KPIs derivados de E1.6/extract_irpf_full. ADR-266: 4 campos novos (ano_base_default, ano_base_completude, completude_motivo, anos_completude_por_ano) expressam estado tri-state da completude do ano-base.",

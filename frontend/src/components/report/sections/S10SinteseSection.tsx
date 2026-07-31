@@ -4,10 +4,7 @@ import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { PontosFortesCard, PontosUrgentesCard } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
-import {
-  deriveChartConclusion,
-  deriveSectionSummary,
-} from "../utils/conclusionUtils";
+import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 
 /** F9 · F2.G · ADR-117 — Seção S10 (Síntese Estratégica).
@@ -19,17 +16,9 @@ export function S10SinteseSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
 
-  const summaryFallback = deriveSectionSummary("S10", data);
-
   return (
     <ReportSection id="S10" title="Síntese Estratégica — Tarefas e Score">
-      <SectionSummary narrativas={narrativas} sectionId="S10" />
-      {/* Fallback determinístico quando E5.N não gerou narrativa para S10. */}
-      {summaryFallback && !narrativas?.["S10"] && (
-        <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
-          {summaryFallback}
-        </p>
-      )}
+      <SectionSummary data={data} sectionId="S10" />
 
       <div className="md:col-span-2">
         {/* A37.l14 (PD-02): título neutro — "Top 5" hardcoded mentia quando

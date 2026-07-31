@@ -139,9 +139,16 @@ def test_summary_s9_empty_riscos_no_broken_concatenation():
     assert "0 riscos prioritários:" not in s9
 
 
-def test_summary_s9_empty_riscos_mentions_console_cta():
+# A40.l4 (ADR-355) inverte o assert original: com a entrega ligada, o
+# `summaries.s9` imprime ACIMA do `<EmptyState/>` da S9RiscosSection, que já
+# traz o call-to-action. Duplicar o CTA com wording diferente ("Plano de Ação"
+# vs. "Cadastrar riscos no Console") confunde — o produtor fica factual.
+def test_summary_s9_empty_riscos_has_no_cta():
+    """`summaries.s9` em empty state não traz CTA (é do componente)."""
     s9 = _narrate_summary_with(riscos_nomes=[])
-    assert "Cadastr" in s9 or "Mape" in s9
+    for cta in ("Cadastr", "Mape", "Plano de Ação"):
+        assert cta not in s9, f"`{cta}` duplica o CTA do <EmptyState/> da S9: {s9}"
+    assert "Nenhum risco prioritário cadastrado" in s9
 
 
 # ── A37.l14 (PD-07) — linguagem de produto (sem rota interna nem jargão) ─
@@ -155,7 +162,8 @@ def test_s9_e_bubble_empty_sem_rota_interna_nem_workspace():
     for texto in (s9, bubble["context"], bubble["conclusion"]):
         assert "/plano" not in texto
         assert "workspace" not in texto.lower()
-    assert "Plano de Ação" in s9
+    # A40.l4: o CTA saiu do `s9` (duplicava o <EmptyState/> da seção); o do
+    # bubble permanece — o card do chart não tem empty state próprio com CTA.
     assert "Plano de Ação" in bubble["conclusion"]
 
 

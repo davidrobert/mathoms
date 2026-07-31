@@ -150,6 +150,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  changelog?: ChangelogSpec[];",
         "  data_source?: string;",
         "  summary?: boolean;",
+        "  summary_source?: string | null;",
         "  divider_before?: boolean;",
         "  collapsible?: boolean;",
         "}",
@@ -158,6 +159,9 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  id: string;",
         "  title: string;",
         "  enabled: boolean;",
+        "  optional?: boolean;",
+        "  summary?: boolean;",
+        "  summary_source?: string | null;",
         "  charts?: ChartSpec[];",
         "  cards?: CardSpec[];",
         "}",
@@ -311,6 +315,7 @@ class SectionSpec(_Base):
     changelog: list[ChangelogSpec] = []
     data_source: str | None = None
     summary: bool | None = None
+    summary_source: str | None = None
     divider_before: bool | None = None
     collapsible: bool | None = None
 
@@ -319,6 +324,12 @@ class AppendixSpec(_Base):
     id: str
     title: str
     enabled: bool
+    # `optional` existe no YAML (APP_C) e no JSON Schema desde ADR-167, mas
+    # faltava aqui — `extra="forbid"` fazia o import deste módulo levantar
+    # ValidationError (o `--check` compara texto, não importa). Corrigido A40.l4.
+    optional: bool | None = None
+    summary: bool | None = None
+    summary_source: str | None = None
     charts: list[ChartSpec] = []
     cards: list[CardSpec] = []
 

@@ -22,6 +22,8 @@ import re
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
+import yaml
+
 import scripts.pipeline_common as _pc
 
 # =============================================================================
@@ -45,12 +47,24 @@ def _load_json_config(path: Path) -> dict:
     return {}
 
 
+# Layout é artefato do produto, versionado no repo (ADR-076) — não config de
+# tenant. O override DB de ``report_layout`` não afeta o renderer React
+# (`ReportShell` importa `@/generated/report-layout`), então o YAML é a fonte
+# correta hoje; se o renderer passar a ler o layout do DB, este leitor segue.
+def _load_report_layout() -> dict:
+    """``config/report_layout.yaml`` do REPO (não do workspace)."""
+    path = _pc._REPO_ROOT / "config" / "report_layout.yaml"
+    if not path.exists():
+        return {}
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
 def _init_config(base_dir: Path) -> None:
     """(Re)carrega paths e configs a partir de um root_dir."""
     global PROJECT_DIR, E5_JSON_PATH
     global FAMILY_CONFIG_PATH, SCORING_CONFIG_PATH, PIPELINE_CONFIG_PATH
     global REPORT_SPEC_PATH, OUTPUT_DIR
-    global _SCORING_CONFIG, _PIPELINE_CONFIG, _QA_THRESHOLDS
+    global _SCORING_CONFIG, _PIPELINE_CONFIG, _QA_THRESHOLDS, _REPORT_LAYOUT
 
     PROJECT_DIR = base_dir
     E5_JSON_PATH = base_dir / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
@@ -63,6 +77,7 @@ def _init_config(base_dir: Path) -> None:
     _SCORING_CONFIG = _load_json_config(SCORING_CONFIG_PATH)
     _PIPELINE_CONFIG = _load_json_config(PIPELINE_CONFIG_PATH)
     _QA_THRESHOLDS = _PIPELINE_CONFIG.get("qa_thresholds", {})
+    _REPORT_LAYOUT = _load_report_layout()
 
 
 # =============================================================================
@@ -78,6 +93,7 @@ OUTPUT_DIR = PROJECT_DIR / "output"
 _SCORING_CONFIG: dict = {}
 _PIPELINE_CONFIG: dict = {}
 _QA_THRESHOLDS: dict = {}
+_REPORT_LAYOUT: dict = _load_report_layout()
 
 
 # =============================================================================
@@ -286,18 +302,59 @@ def _cv8_reserva_cobertura(e5: dict) -> CrossValidationResult | None:
     )
 
 
-def _cv9_summaries_completeness(e5: dict) -> CrossValidationResult:
-    narr = e5.get("narrativas", {})
-    summaries = narr.get("summaries", {})
-    missing_summaries = [f"s{i}" for i in range(1, 11) if f"s{i}" not in summaries]
-    empty_summaries = [k for k, v in summaries.items() if not v or not v.strip()]
-    severity = "error" if missing_summaries else ("warning" if empty_summaries else "info")
+# Denominador é o inventário do CONSUMIDOR (layout), não do produtor. Lê o
+# YAML — não o módulo Python gerado (importá-lo acoplaria pipeline→backend).
+def _summary_destinations() -> dict[str, str]:
+    """``{section_id: summary_source}`` das entradas ``enabled`` do layout."""
+    estrategico = (_REPORT_LAYOUT or {}).get("estrategico") or {}
+    entries = [*(estrategico.get("sections") or []), *(estrategico.get("appendices") or [])]
+    return {
+        e["id"]: e["summary_source"]
+        for e in entries
+        if isinstance(e, dict) and e.get("enabled") and e.get("summary_source")
+    }
+
+
+def _delivered(value) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+# CV9 mede o que o renderer consegue EXIBIR, não o que o produtor gerou.
+# Presença + não-vazio de ``s1..s10`` já é hard-fail de ``validate_narrativas``
+# a montante, então o CV9 antigo era verde por construção. As três direções
+# aqui não tinham gate nenhum: (1) destino declarado no layout sem texto
+# (layout aponta ``s11``, ou produtor renomeia chave ⇒ parágrafo vazio em
+# silêncio); (2) chave emitida sem destino e sem razão na allowlist de órfãs;
+# (3) shape inválido — ``{context, conclusion}`` sob ``summaries.sN`` passa
+# pelo ``validate_narrativas`` e cai no fallback derivado sem sinal.
+def _delivery_failures(summaries: dict, destinos: dict[str, str]) -> dict[str, list[str]]:
+    """Os três predicados de entrega, cada um com as chaves ofensoras."""
+    from pipeline.domain.services.narrativas import ORPHAN_SUMMARY_KEYS
+
+    esperadas = set(destinos.values())
+    return {
+        "sem_texto": sorted(k for k in esperadas if k not in summaries),
+        "shape_invalido": sorted(
+            k for k in esperadas if k in summaries and not _delivered(summaries[k])
+        ),
+        "orfas": sorted(set(summaries) - esperadas - set(ORPHAN_SUMMARY_KEYS)),
+    }
+
+
+def _cv9_summaries_delivery(e5: dict) -> CrossValidationResult:
+    """CV9 — ENTREGA das narrativas de seção (A40.l4 · ADR-355)."""
+    summaries = (e5.get("narrativas") or {}).get("summaries") or {}
+    destinos = _summary_destinations()
+    fail = _delivery_failures(summaries, destinos)
+    entregues = len(destinos) - len(fail["sem_texto"]) - len(fail["shape_invalido"])
+    passed = not any(fail.values())
     return CrossValidationResult(
         "CV9",
-        "Narrativas completeness (summaries)",
-        severity,
-        not missing_summaries and not empty_summaries,
-        f"Missing: {missing_summaries or 'nenhum'}, Empty: {empty_summaries or 'nenhum'}",
+        "Narrativas delivery (destinos declarados no layout)",
+        "info" if passed else "error",
+        passed,
+        f"entregues={entregues}/esperadas={len(destinos)}; "
+        + "; ".join(f"{k}={v or 'nenhuma'}" for k, v in fail.items()),
         ["narrativas"],
     )
 
@@ -463,7 +520,7 @@ _CV_OPTIONAL_CHECKS = (
     _cv17_renda_passiva_conservacao,
 )
 _CV_ALWAYS_CHECKS = (
-    _cv9_summaries_completeness,
+    _cv9_summaries_delivery,
     _cv10_charts_completeness,
     _cv11_tarefas_structure,
     _cv12_diagnostico,

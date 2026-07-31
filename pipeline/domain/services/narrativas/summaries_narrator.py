@@ -15,6 +15,7 @@ from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
     APORTE_SEM_DISTRIBUICAO,
     clause,
+    ensure_period,
     fmt_aporte_distribuicao,
     fmt_currency,
     fmt_num,
@@ -114,11 +115,7 @@ class SummariesNarrator:
                 f"com {fmt_percent(M['pct_receita_pj'])} proveniente de PJ, {fmt_percent(M['pct_receita_aluguel'])} de aluguel, "
                 f"{fmt_percent(M['pct_receita_clt'])} de CLT e {fmt_percent(M['pct_receita_outras'])} de outras fontes."
             ),
-            "s3": (
-                f"Carteira diversificada entre {M['diversificacao']} categorias de ativos. "
-                f"{ctx.titular_nome} mantém {fmt_currency(M[ctx.key_inv_titular])} distribuídos entre {M[ctx.key_inst_titular]}. "
-                f"{ctx.conjuge_nome} possui {fmt_currency(M[ctx.key_inv_conjuge])} concentrados em {M[ctx.key_inst_conjuge]}."
-            ),
+            "s3": _summary_s3(M, ctx),
             # A37.l8 (FIN-03): aluguel recorrente atual + âncora IRPF + sinal de
             # vacância; sem yield % (único yield da S4 é o RealEstateYieldCard).
             "s4": _summary_s4(M, _residencia_loc),
@@ -133,10 +130,12 @@ class SummariesNarrator:
             ),
             # A37.l14 (PD-12): enumeração dinâmica de contas USD (antes Wise/BofA
             # hardcoded — 3ª conta entrava no total mas sumia da lista).
+            # A40.l4: "Meta pré-EUA" era resíduo do Modo USA (ADR-168) — o
+            # cleanup da A10.1 tirou do s5 e esqueceu no vizinho.
             "s6": (
                 f"Exposição cambial: {_fmt_usd_por_banco(M.get('usd_saldos_por_banco'))}. "
                 f"Total {fmt_usd(M['poupanca_cambial_actual_usd'])}. "
-                f"Meta pré-EUA de {fmt_usd(M['poupanca_cambial_meta_usd'])} com gap de {fmt_usd(M['poupanca_cambial_gap_usd'])} — "
+                f"Meta de reserva cambial de {fmt_usd(M['poupanca_cambial_meta_usd'])} com gap de {fmt_usd(M['poupanca_cambial_gap_usd'])} — "
                 f"ritmo de {fmt_currency(M['aporte_cambial_mensal'])}/mês alcança a meta em {M['meses_para_cambial']} meses."
             ),
             "s7": (
@@ -145,17 +144,87 @@ class SummariesNarrator:
                 f"à taxa de aporte {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. "
                 f"Renda passiva estimada ({fmt_num(M['taxa_retirada_segura_pct'], 0)}% retirada segura): {fmt_currency(M['renda_passiva_4pct'])}/mês."
             ),
-            "s8": (
-                f"{M['regime_obs']} (alíquota efetiva {fmt_percent(M['das_aliquota_pct'])}). "
-                f"DAS mensal estimado em {fmt_currency(M['das_mensal_estimado'])} ({fmt_currency(M['das_anual_estimado'])}/ano) "
-                f"sobre receita PJ anualizada de {fmt_currency(M['receita_pj_anual'])}. "
-                f"{_contador_clause}"
-                f"{_holding_clause}"
-                "Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança."
-            ),
+            "s8": _summary_s8(M, _contador_clause, _holding_clause),
             "s9": _summary_s9(M, riscos_nomes),
             "s10": s10,
         }
+
+
+# Chaves de ``summaries`` sem seção de destino no layout (A40.l4 · ADR-355).
+# CV9 exige que toda chave emitida ou tenha destino declarado ou esteja aqui
+# COM razão — sem isso, chave nova nasce órfã e ninguém percebe. É fato do
+# produtor (não do layout), por isso vive aqui.
+ORPHAN_SUMMARY_KEYS: dict[str, str] = {
+    "s2": (
+        "parágrafo de SCORE financeiro; a S2 do layout é Fluxo de Caixa. "
+        "Destino semântico seria a S1 (que já hospeda o score_gauge) ou uma "
+        "seção de score própria — decisão de produto, não de lowercase."
+    ),
+    "s5": (
+        "viagens + sobra mensal; a S5 saiu do layout com o Modo USA (ADR-168). "
+        "Conteúdo pertence aos cards de orçamento/consumo da S2."
+    ),
+    "s6": (
+        "exposição cambial; a S6 saiu do layout com o Modo USA (ADR-168). "
+        "O card `exposicao_cambial` vive na S1."
+    ),
+}
+
+
+# Sem cônjuge, ``ctx.conjuge_nome`` é ``""``: a segunda frase saía sem sujeito
+# e com espaço órfão ("... .  possui R$ 0,00 ...").
+def _summary_s3(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
+    """s3 — carteira: titular sempre; cônjuge só quando existe na família."""
+    base = (
+        f"Carteira diversificada entre {M['diversificacao']} categorias de ativos. "
+        f"{ctx.titular_nome} mantém {fmt_currency(M[ctx.key_inv_titular])} "
+        f"distribuídos entre {M[ctx.key_inst_titular]}."
+    )
+    if not ctx.conjuge_nome:
+        return base
+    return (
+        f"{base} {ctx.conjuge_nome} possui {fmt_currency(M[ctx.key_inv_conjuge])} "
+        f"concentrados em {M[ctx.key_inst_conjuge]}."
+    )
+
+
+# ADR-236 §D5 já adota este registro no card `impostos_pj`: sem perfil
+# tributário não se estima carga fiscal. A40.l4 estende ao texto do s8 —
+# `das_aliquota_pct` vinha de default hardcoded 6% (a fonte fiscal saiu de
+# `config/` em A7.2b), e "alíquota efetiva 6%" parece calculado.
+_S8_REGIME_PENDENTE = (
+    "Perfil tributário PJ pendente — informe regime, anexo e CNAE para "
+    "estimar a carga fiscal da pessoa jurídica."
+)
+_S8_REGIME_SEM_LABEL = "Regime PJ não informado"
+
+
+def _s8_das_clause(M: Mapping[str, Any]) -> str:
+    """Cláusula DAS — ``''`` quando não há alíquota de fonte fiscal vigente."""
+    aliquota = M.get("das_aliquota_pct")
+    if aliquota is None:
+        return ""
+    return (
+        f" (alíquota efetiva {fmt_percent(aliquota)}). "
+        f"DAS mensal estimado em {fmt_currency(M['das_mensal_estimado'])} "
+        f"({fmt_currency(M['das_anual_estimado'])}/ano) sobre receita PJ anualizada "
+        f"de {fmt_currency(M['receita_pj_anual'])}."
+    )
+
+
+def _s8_regime_head(M: Mapping[str, Any]) -> str:
+    regime = (M.get("regime_obs") or "").strip()
+    das = _s8_das_clause(M)
+    if regime:
+        return f"{regime}{das}" if das else ensure_period(regime)
+    return f"{_S8_REGIME_SEM_LABEL}{das}" if das else _S8_REGIME_PENDENTE
+
+
+def _summary_s8(M: Mapping[str, Any], contador_clause: str, holding_clause: str) -> str:
+    """s8 — regime PJ + DAS (suprimido sem fonte fiscal) + contador + holding."""
+    tail = f"{contador_clause}{holding_clause}".strip()
+    head = _s8_regime_head(M)
+    return f"{head} {tail}" if tail else head
 
 
 # A37.l8 (FIN-03): 1 zero no fim da série pode ser corte de extrato/recebimento
@@ -206,10 +275,12 @@ def _s4_ancora_irpf(M: Mapping[str, Any]) -> str:
 # ADR-192 T01 D4: empty state coerente — workspace sem Risk cadastrado não pode
 # render "0 riscos prioritários: . Cobertura recomendada: R$ 0-0M em seguro term."
 # A37.l14 (PD-07): linguagem de produto — sem rota interna "/plano" nem "workspace".
+# A40.l4: sem CTA. Este texto passa a imprimir ACIMA do <EmptyState> da S9, que
+# já traz o call-to-action; duplicar o CTA com wording diferente confunde.
 _S9_EMPTY = (
-    "Nenhum risco prioritário cadastrado neste relatório. "
-    "Mapeie suas exposições críticas (seguros de vida, invalidez, sucessório, "
-    "compliance internacional) na tela Plano de Ação para destravar a análise de cobertura."
+    "Nenhum risco prioritário cadastrado neste relatório — sem exposições "
+    "mapeadas (vida, invalidez, sucessório, compliance internacional) não há "
+    "análise de cobertura."
 )
 _S9_COBERTURA_FALLBACK = (
     "Cobertura recomendada: faixa a definir após mapeamento de dependentes e renda líquida. "
@@ -226,6 +297,17 @@ def _s9_cobertura_line(M: Mapping[str, Any]) -> str:
     )
 
 
+_S9_GAP_VIDA = "Seguros de vida e invalidez inexistentes — classificados como urgentes. "
+
+
+# ``protecao_gap_vida`` vem de ``protecao_patrimonial.gap_qualitativo``
+# (categoria ``vida``, ADR-240). ``None`` = sem apólices analisadas: não
+# sabemos, então não afirmamos.
+def _s9_gap_vida_line(M: Mapping[str, Any]) -> str:
+    """Afirmação de ausência de cobertura só com sinal de gap (A40.l4)."""
+    return _S9_GAP_VIDA if M.get("protecao_gap_vida") is True else ""
+
+
 def _summary_s9(M: Mapping[str, Any], riscos_nomes: list[str]) -> str:
     if not riscos_nomes:
         return _S9_EMPTY
@@ -233,7 +315,7 @@ def _summary_s9(M: Mapping[str, Any], riscos_nomes: list[str]) -> str:
     n_label = pluralize(len(riscos_nomes), "risco prioritário", "riscos prioritários")
     return (
         f"{len(riscos_nomes)} {n_label}: {nomes_top3}. "
-        "Seguros de vida e invalidez inexistentes — classificados como urgentes. "
+        f"{_s9_gap_vida_line(M)}"
         f"{_s9_cobertura_line(M)}"
         "Planejamento sucessório em estágio inicial."
     )

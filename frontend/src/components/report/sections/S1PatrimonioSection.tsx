@@ -42,13 +42,14 @@ export function S1PatrimonioSection({ data }: S1Props) {
   const score = data.score;
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
-  const narrativas = data.narrativas as
-    | Record<string, { context?: string; conclusion?: string }>
-    | undefined;
 
-  /** ADR-117/122 — narrativa explícita do E5.N > fallback determinístico da Fase 6. */
+  /** ADR-355 (A40.l4): a leitura `narrativas?.[id]` que precedia o derivado era
+   * ramo morto — as conclusões do E5.N vivem em `narrativas.charts[id]`, e
+   * nenhum dos 17 ids aparece no topo do bag. O comentário anterior ("narrativa
+   * explícita do E5.N > fallback") descrevia um caminho inexistente. Apontar S1
+   * para `narrativas.charts` fica deferido (ver ADR-355 §Deferimentos). */
   const getConclusion = (id: string): string | undefined =>
-    narrativas?.[id]?.conclusion ?? deriveChartConclusion(id, data) ?? undefined;
+    deriveChartConclusion(id, data) ?? undefined;
 
   /** Última label do dataset mensal vira anchor para period toggle do card de
    * receitas — paridade com `usePeriodWindow` dos charts. */
@@ -59,7 +60,7 @@ export function S1PatrimonioSection({ data }: S1Props) {
 
   return (
     <ReportSection id="S1" title="Patrimônio — Estrutura e Composição">
-      <SectionSummary narrativas={narrativas} sectionId="S1" />
+      <SectionSummary data={data} sectionId="S1" />
 
       {/* Charts */}
       <PatrimonioDoughnutChart
@@ -80,8 +81,10 @@ export function S1PatrimonioSection({ data }: S1Props) {
             breakdown={score.breakdown}
             formula={score.formula}
             context={score.context}
-            // ADR-117/122 — narrativa explícita do E5.N > parágrafo emitido pelo calculator (v2.E.7).
-            conclusion={narrativas?.score_gauge?.conclusion ?? score.conclusion}
+            // ADR-355: leitura `narrativas.score_gauge` era ramo morto (o
+            // produtor emite em `narrativas.charts.score_gauge`); o parágrafo
+            // do calculator (v2.E.7) é a única fonte real hoje.
+            conclusion={score.conclusion}
           />
         </div>
       )}

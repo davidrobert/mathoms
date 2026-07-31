@@ -20,11 +20,10 @@ export function IrpfRendaSection({ data }: { data: ReportAnalysisData }) {
   const kpis = useIrpfKpis(data);
   if (!kpis) return null;
 
-  const narrativas = data.narrativas as Record<string, unknown> | undefined;
 
   return (
     <ReportSection id="S_IRPF_RENDA" title="Renda Anual e Impostos">
-      <SectionSummary narrativas={narrativas} sectionId="S_IRPF_RENDA" />
+      <SectionSummary data={data} sectionId="S_IRPF_RENDA" />
       <div className="md:col-span-2">
         <RendaEvolucaoChart kpis={kpis} />
       </div>

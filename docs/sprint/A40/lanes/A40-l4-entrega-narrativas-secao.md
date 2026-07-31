@@ -7,7 +7,8 @@ plan: PLAN-report-trust
 status: open
 priority: P0
 branch_slug: a40-l4-entrega-narrativas-secao
-adrs: []
+adrs:
+  - "[[ADR-355]]"
 depends_on: []
 tags:
   - type/lane
@@ -76,7 +77,54 @@ entrega — instância do padrão transversal (§Decisões nº 4 do sprint).
 
 ## Guarda anti-regressão
 
-Duas: o **par de testes sobre fixture compartilhado** (forma) e o **teste
-anti-hardcode** (conteúdo). O primeiro impede a divergência de shape voltar; o
-segundo é o único que detecta narrativa citando parâmetro desatualizado — e nenhum
-teste de forma o detecta.
+Três pernas independentes — e é a independência que remove a auto-referência:
+
+1. **Par sobre fixture compartilhada** (forma) — `tests/fixtures/narrativas/e5n_delivery.json`,
+   gerada pelo produtor, lida por `tests/test_e5n_delivery_contract.py` e por
+   `frontend/tests/components/report/sectionSummaryDelivery.test.tsx`.
+2. **Anti-hardcode** (conteúdo) — `tests/test_e5n_anti_hardcode.py`; nenhum teste
+   de forma detecta narrativa citando parâmetro desatualizado.
+3. **Regra estática** (estrutura) — regra 5 de `dev/check_chart_conclusion_parity.py`:
+   em `sections/*.tsx` o bag `narrativas` só via `.charts`.
+
+CV9 (`entregues=N/esperadas=M`) é a **quarta** perna, mas é telemetria de run, não
+gate de PR — só roda no stage `validate_cross`.
+
+## Medição — KR-C (render real via `MigratedSection`)
+
+| | antes | depois |
+| --- | --- | --- |
+| seções que renderizam parágrafo de abertura | 7 | 13 |
+| destinos declarados que entregam o texto do E5.N | **0 / 7** | **7 / 7** |
+
+As 7 de antes vinham todas de `deriveSectionSummary` (S8, S9, S10, APP_A, APP_B,
+APP_D, APP_E) — nenhuma do E5.N. As +6 são S1, S2, S3, S4, S7 e APP_C.
+
+## Checklist bloqueante — re-triagem dos 7 inertes (RV3-33)
+
+Códigos de **cluster** (não RV3-xx), de `SINTESE.md` §placar cético do run
+`2026-07-29-573a54a7`. Verificados contra o output com a entrega ligada:
+
+| # | Cluster | Veredito | Motivo |
+| --- | --- | --- | --- |
+| 1 | **C11** — runway canônico (ADR-335) calculado e nunca renderizado; alias colide de nome com cobertura da reserva | `ainda-inerte` | É campo do view-model, não de narrativa. Dos 7 destinos entregues, nenhum cita runway — o `s2`, que cita `cobertura_meses`, tem `summary_source: null`. A l4 não muda a superfície. |
+| 2 | **C18** — narrativa do donut de despesas publica ranking com 4 categorias fixas e ordem falsa | `ainda-inerte` | A l4 **não** aponta os charts de S1/S2 para `narrativas.charts` (ADR-355 §Deferimentos): o texto com o ranking falso continua sem leitor. O usuário segue protegido pelo `deriveChartConclusion` do TS, que ordena de verdade. Dono: A40.l15. |
+| 3 | **C29** — narrativa fiscal publica DAS estimado e alíquota efetiva que nenhum campo do payload sustenta | `agora-visível-e-correto` | Era o bloqueante de acender o `s8`. ADR-355 §D7: `das_aliquota_pct` passa a ser `None` sem fonte fiscal e o `s8` suprime a cláusula inteira, degradando para "Perfil tributário PJ pendente" (registro do irmão `impostos_pj`, ADR-236 §D5). Com fonte declarada, imprime valor declarado. |
+| 4 | **C30** — `dev/explain_number.py` devolve números de fixture sintética sem marcar | `ainda-inerte` | Ferramenta de dev, fora do caminho de render. A l4 não a toca. |
+| 5 | **C32** — narrativa determinística publica nome completo de adultos e de menor | `já-visível-antes-da-lane` | **A classificação "inerte" da SINTESE está errada para este.** O caminho é `narrativas.perfil_familia`, lido por `PerfilFamiliaCard` (`ReportShell.tsx:357`) sob a chave `"perfil_familia"` — que o produtor emite. Renderiza hoje, independente desta lane; as 5 fixtures E2E inclusive só têm `perfil_familia` no bag. A l4 não altera nem melhora. |
+| 6 | **C36** — blocos que não movem decisão competem com o sinal (orçamento 44m, premissas 10/10 indisponíveis, checklist de sucessão todo negativo) | `ainda-inerte` | São cards, não narrativa; e a S9 curto-circuita em `<EmptyState/>` quando `bubble_riscos.data_state == "empty"`. Não bloqueia a lane. |
+| 7 | **PD-20** — `goals?.trs_pct ?? 5.0` em `S7IndependenciaSection.tsx:96` (chave real é `goals.if_trs`) | `agora-visível-e-errado · pré-existente · owned by A40.l5` | O `s7` entregue cita `taxa_retirada_segura_pct` vindo de `goals.json`, ao lado de um card que lê a chave errada. A contradição já era visível via `perfil_familia_narrator.py:192`; a l4 adiciona superfície, não cria o defeito. Corrigir aqui faria o KR-A da l5 ("leituras órfãs 5 → 0") mentir. |
+
+## Delta esperado
+
+- **Monetário: `=`.** Nada da lane escreve campo do view-model. O sinal é
+  `backend/tests/test_report_view_model_snapshot.py` passar **verde sem
+  rebaseline** — o golden tem 31 chaves e não contém `narrativas` (o substrato
+  roda `E1.5c→E3→E4→E5` e nunca chama E5.N). Rodar com `MATHOMS_UPDATE_SNAPSHOT=1`
+  aqui só poderia mascarar regressão.
+- **Visual: 8 dos 48 PNGs.** `S1`, `S2`, `S3`, `S7` × {light, dark} ganham o
+  parágrafo derivado (as 5 fixtures E2E têm `narrativas` só com
+  `perfil_familia`, então a camada 2 não dispara nelas). `S4` segue não-montada
+  com a fixture `medium` (`real_estate: null`). As outras 9 seções mantêm markup
+  byte-idêntico. Rebaseline **tem de rodar em CI Linux** — o próprio spec
+  (`sections.snapshots.visual.spec.ts:22`) proíbe atualizar em macOS.

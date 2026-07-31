@@ -26,6 +26,13 @@ Escopo pragmático (regex, sem parser TS completo):
      sem conclusão em runtime, silenciosamente (audit-vault r4: S2 usava
      `receita_fonte`/`despesas_categoria` em vez de
      `receita_bar`/`despesas_doughnut`).
+  5. Em sections/*.tsx, o bag `narrativas` só pode ser acessado via `.charts`
+     (A40.l4 · ADR-355). Mesma classe da regra 4, um nível acima: leitura no
+     TOPO de `narrativas` — `narrativas?.["S1"]`, `narrativas?.score_gauge` —
+     renderiza vazio em runtime porque nenhum produtor emite ali. O parágrafo
+     de seção vem de `<SectionSummary data={data}>` (precedência em
+     `utils/sectionSummarySource.ts`); a conclusão de chart vem de
+     `narrativas.charts[id]` via `utils/chartNarrative.ts`.
 
 Uso:
     python3 dev/check_chart_conclusion_parity.py
@@ -148,11 +155,24 @@ def _interpolation_without_builder(
 _CALL_SITE_RE = re.compile(r'\b(?:deriveChartConclusion|getConclusion)\(\s*"([^"]+)"')
 
 
+_BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+# `(?<!:)` preserva `https://` — comentário de linha em TS/TSX nunca vem após `:`.
+_LINE_COMMENT_RE = re.compile(r"(?<!:)//[^\n]*")
+
+
+# Sem strip de comentário, um comentário que documenta a REMOÇÃO de um padrão
+# proibido (`// antes lia narrativas["S8"]`) dispara a própria regra.
+def _tsx_code(path: Path) -> str:
+    """Fonte sem comentários — o gate mede código, não prosa sobre o código."""
+    src = path.read_text(encoding="utf-8")
+    return _LINE_COMMENT_RE.sub("", _BLOCK_COMMENT_RE.sub("", src))
+
+
 def _section_call_sites() -> dict[str, set[str]]:
     """Ids literais por arquivo em sections/*.tsx (regra 4)."""
     out: dict[str, set[str]] = {}
     for tsx in sorted(_SECTIONS_DIR.glob("*.tsx")):
-        ids = set(_CALL_SITE_RE.findall(tsx.read_text(encoding="utf-8")))
+        ids = set(_CALL_SITE_RE.findall(_tsx_code(tsx)))
         if ids:
             out[tsx.name] = ids
     return out
@@ -166,6 +186,35 @@ def _call_site_unknown_id(builders: set[str], fallbacks: set[str]) -> list[str]:
         f"FALLBACKS de {_TS_PATH.name} (conclusão renderiza vazia em runtime)"
         for fname, ids in _section_call_sites().items()
         for cid in sorted(ids - known)
+    ]
+
+
+# Acesso ao bag `narrativas`: `.charts` / `?.charts` / `["charts"]`. Qualquer
+# outro acessor é leitura no topo do bag. Casts (`data.narrativas as X`) e props
+# JSX (`narrativas={...}`) não casam — não há `.`/`[` depois do identificador.
+_NARRATIVAS_ACCESS_RE = re.compile(
+    r"narrativas\s*\??\.\s*([A-Za-z_]\w*)" r"|narrativas\s*\??\.?\s*\[\s*([^\]\n]+?)\s*\]"
+)
+_ALLOWED_NARRATIVAS_ACCESS = frozenset({"charts", '"charts"', "'charts'"})
+
+
+def _forbidden_accessors(tsx: Path) -> list[str]:
+    """Acessores de `narrativas` fora da allowlist, num arquivo."""
+    matches = _NARRATIVAS_ACCESS_RE.finditer(_tsx_code(tsx))
+    accessors = (m.group(1) or m.group(2) or "" for m in matches)
+    return [a for a in accessors if a not in _ALLOWED_NARRATIVAS_ACCESS]
+
+
+def _narrativas_top_level_access() -> list[str]:
+    """Regra 5 — em sections/*.tsx, `narrativas` só via `.charts`."""
+    return [
+        f"leitura `narrativas[{accessor}]` em sections/{tsx.name} — o bag "
+        "só tem `charts`, `summaries` e `perfil_familia`; leitura no topo "
+        "renderiza vazio em runtime. Parágrafo de seção: "
+        "<SectionSummary data={data}>; conclusão de chart: "
+        "readNarrativeConclusion(narrativas.charts, id)"
+        for tsx in sorted(_SECTIONS_DIR.glob("*.tsx"))
+        for accessor in _forbidden_accessors(tsx)
     ]
 
 
@@ -188,6 +237,7 @@ def collect_violations() -> list[str]:
         *_interpolation_without_builder(charts, builders, fallback_only),
         *_fallback_only_with_builder(fallback_only, builders),
         *_call_site_unknown_id(builders, fallbacks),
+        *_narrativas_top_level_access(),
     ]
 
 

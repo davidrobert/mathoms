@@ -38,7 +38,12 @@ SCHEMA_VERSION = "1"
 _CONSERVATION_HARD = frozenset({"CV1", "CV2", "CV3", "CV6", "CV16", "CV17"})
 # Render/narrativa: falham legítimo em run incremental que reusa narrativa
 # (A36.l3) → SOFT (só com --strict), fora do gate default.
-_RENDER_SOFT = frozenset({"CV9", "CV10", "CV11", "CV12", "CV13", "CV14"})
+_RENDER_SOFT = frozenset({"CV10", "CV11", "CV12", "CV13", "CV14"})
+# ENTREGA de narrativa de seção (CV9 pós-ADR-355): destino declarado no layout
+# que deixa de renderizar é parágrafo que sumiu do relatório, não ruído de run
+# incremental — HARD no gate default. Sem isso o check nasceria silenciado no
+# pipeline-review e trocaria-se um verde vazio por outro.
+_DELIVERY_HARD = frozenset({"CV9"})
 
 # Seções do view-model E5 cuja ausência/esvaziamento é regressão.
 _SECTION_KEYS = (
@@ -210,6 +215,16 @@ def _cv_regressions(base: dict, cur: dict) -> list[str]:
     return [m for m in out if m]
 
 
+def _delivery_regressions(base: dict, cur: dict) -> list[str]:
+    """CV9 (ADR-355) — entrega de narrativa de seção que passa a falhar."""
+    bi, ci = _cv_index(base), _cv_index(cur)
+    return [
+        f"entrega {cid} passa -> falha"
+        for cid in sorted(_DELIVERY_HARD)
+        if _render_regressed(bi.get(cid), ci.get(cid))
+    ]
+
+
 def _tx_regression(base: dict, cur: dict, sup: dict) -> list[str]:
     b, c = base["run_health"].get("transacoes_total"), cur["run_health"].get("transacoes_total")
     if b and c is not None and c < b and not sup["corpus_shrank"]:
@@ -312,6 +327,7 @@ def _hard_regressions(
 ) -> tuple[list[str], list[str]]:
     """Retorna (hard, drift). ``drift`` vira hard ou soft conforme corpus_grew."""
     hard = _status_regression(base, cur) + _cv_regressions(base, cur)
+    hard += _delivery_regressions(base, cur)
     hard += _tx_regression(base, cur, sup) + _section_regressions(base, cur, sup)
     hard += _parecer_regressions(base, cur, sup)
     gone, drift = _value_drift(base_rd, cur_rd, band)

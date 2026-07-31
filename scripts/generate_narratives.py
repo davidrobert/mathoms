@@ -328,6 +328,22 @@ def _decisoes_titles_from_bundle(goals_cfg: dict) -> list[str]:
     ]
 
 
+# ``None`` = bloco ausente (workspace sem apólices analisadas), distinto de
+# ``False`` (analisado e sem gap): o narrator só afirma ausência de cobertura
+# no caso ``True``.
+def _protecao_gap_vida(e5_data: dict) -> bool | None:
+    """``gap_qualitativo[categoria='vida'].flag`` de ``protecao_patrimonial``."""
+    protecao = e5_data.get("protecao_patrimonial")
+    if not isinstance(protecao, dict):
+        return None
+    flags = protecao.get("gap_qualitativo")
+    if not isinstance(flags, list):
+        return None
+    return any(
+        isinstance(f, dict) and f.get("categoria") == "vida" and bool(f.get("flag")) for f in flags
+    )
+
+
 def _riscos_items_from_bundle(goals_cfg: dict) -> list[dict]:
     """Lê itens do ``risks_projection`` do ``GoalsBundle`` (ADR-180)."""
     projection = goals_cfg.get("risks_projection") or []
@@ -470,10 +486,15 @@ def load_metrics_from_e5(
     pct_despesas_nao_id = round(_safe_div(despesas_nao_id, despesa_total) * 100, 1)
 
     receita_pj_anual = (receita_pj / n_meses_periodo) * 12 if n_meses_periodo else 0
-    das_aliquota_pct = FISCAL.get("das_simples", {}).get("aliquota_efetiva_pct", 6.0) / 100
-    das_anual = receita_pj_anual * das_aliquota_pct
+    # A40.l4: sem default 6%. `parametros_fiscais.json` migrou para a tabela
+    # `fiscal_parameters` em A7.2b (ADR-135) e é path proibido no git — em
+    # produção FISCAL é {}, então o default publicava alíquota constante com
+    # aparência de cálculo. `None` faz o narrator suprimir a cláusula.
+    das_aliquota_declarada = FISCAL.get("das_simples", {}).get("aliquota_efetiva_pct")
+    das_aliquota_frac = (das_aliquota_declarada or 0.0) / 100
+    das_anual = receita_pj_anual * das_aliquota_frac
     das_mensal = das_anual / 12 if receita_pj_anual else 0
-    pct_das_receita_pj = round(das_aliquota_pct * 100, 1)
+    pct_das_receita_pj = round(das_aliquota_frac * 100, 1)
 
     if_cfg = goals_cfg.get("independencia_financeira", {})
     renda_passiva_meta = if_cfg.get("renda_passiva_meta_mensal", 0)
@@ -545,7 +566,10 @@ def load_metrics_from_e5(
         "n_meses_periodo": n_meses_periodo,
         # === E5 JSON: despesas por categoria ===
         "despesas_nao_id": despesas_nao_id,
-        "despesas_impostos": desp_cat.get("impostos", 0) + desp_cat.get("das", 0),
+        # A40.l4: a categoria emitida pelo E4 é `das_simples`
+        # (`transaction_classifier_pj.py`), não `das` — o balde de DAS
+        # desaparecia de `despesas_impostos`.
+        "despesas_impostos": desp_cat.get("impostos", 0) + desp_cat.get("das_simples", 0),
         "despesas_moradia": desp_cat.get("moradia", 0),
         "despesas_serv_dom": desp_cat.get("servicos_domesticos", 0),
         "despesas_reserva": desp_cat.get("reserva_desejos", 0),
@@ -581,7 +605,12 @@ def load_metrics_from_e5(
         ),
         "das_anual_estimado": round(das_anual, 2),
         "receita_pj_anual": round(receita_pj_anual, 2),
-        "das_aliquota_pct": round(das_aliquota_pct * 100, 1),
+        "das_aliquota_pct": (
+            round(das_aliquota_declarada, 1) if das_aliquota_declarada is not None else None
+        ),
+        # ADR-240 · gap_qualitativo[vida] — `None` quando não há apólices
+        # analisadas (o s9 não afirma ausência de cobertura sem sinal).
+        "protecao_gap_vida": _protecao_gap_vida(e5_data),
         "anos_para_if_calculo": round(prazo_anos),
         "aportes_acum_prazo": round(aportes_acum_prazo, 0),
         # === Computed: top asset & institutions (from E4) ===

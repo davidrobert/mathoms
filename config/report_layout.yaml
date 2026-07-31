@@ -128,6 +128,8 @@ estrategico:
       title: "Patrimônio — Estrutura e Composição"
       enabled: true
       summary: true
+      # ADR-355: destino declarado da narrativa E5.N (nunca id.toLowerCase()).
+      summary_source: "s1"
       charts:
         - id: "patrimonio_doughnut"
           enabled: true
@@ -177,6 +179,10 @@ estrategico:
       title: "Fluxo de Caixa — Receitas e Despesas"
       enabled: true
       summary: true
+      # ADR-355: `summaries.s2` é o parágrafo de SCORE financeiro, não de
+      # fluxo de caixa — mapear por lowercase publicaria score aqui. Destino
+      # semântico do s2 é decisão de produto (gatilho financial-planner).
+      summary_source: null
       divider_before: true
       charts:
         - id: "fluxo_mensal"
@@ -233,6 +239,8 @@ estrategico:
       title: "Proteção Patrimonial — Pilar AUVP"
       enabled: false  # P3 liga quando S_ProtecaoSection.tsx existir
       summary: true
+      # E5.N não produz narrativa de proteção patrimonial (ADR-240 é card).
+      summary_source: null
       divider_before: true
       charts:
         - id: "protecao_premio_decomp"  # KPI G hero — pizza por tipo (auto/residencial/vida-V2/saude-V2/ap-V2)
@@ -263,6 +271,7 @@ estrategico:
       title: "Investimentos — Carteira Financeira"
       enabled: true
       summary: true
+      summary_source: "s3"
       divider_before: true
       charts:
         - id: "top15_ativos"
@@ -315,6 +324,7 @@ estrategico:
       title: "Real Estate — Imóveis e Renda Passiva"
       enabled: true
       summary: true
+      summary_source: "s4"
       divider_before: true
       charts: []
       cards:
@@ -336,6 +346,7 @@ estrategico:
       title: "Independência Financeira — Projeção de Longo Prazo"
       enabled: true
       summary: true
+      summary_source: "s7"
       divider_before: true
       charts:
         - id: "projecao_3cenarios"
@@ -357,6 +368,7 @@ estrategico:
       title: "Previdência — PGBL e Fiscalidade"
       enabled: true
       summary: true
+      summary_source: "s8"
       divider_before: true
       charts:
         - id: "impostos_pj"
@@ -375,6 +387,8 @@ estrategico:
       title: "Renda Anual e Impostos"
       enabled: true
       summary: true
+      # E5.N não produz narrativa fiscal-IRPF; camada 3 (derivado) cobre.
+      summary_source: null
       divider_before: true
       charts:
         - id: "renda_evolucao_multi_anos"
@@ -413,6 +427,7 @@ estrategico:
       title: "Otimização Tributária"
       enabled: true
       summary: true
+      summary_source: null
       cards:
         - id: "pgbl_capacidade"
           enabled: true
@@ -443,6 +458,7 @@ estrategico:
       title: "Riscos e Proteção — Seguros Críticos"
       enabled: true
       summary: true
+      summary_source: "s9"
       divider_before: true
       charts:
         - id: "bubble_riscos"
@@ -473,6 +489,7 @@ estrategico:
       title: "Síntese Estratégica — Tarefas e Score"
       enabled: true
       summary: true
+      summary_source: "s10"
       divider_before: true
       charts:
         - id: "top5_decisoes"
@@ -521,7 +538,9 @@ estrategico:
     - id: "plano_de_acao"
       title: "Plano de Ação — Decisões em Vigor"
       enabled: true
-      summary: true
+      # ADR-355: `summary: true` era flag morta — a seção nunca renderizou
+      # <SectionSummary> (é projeção da Decision aggregate).
+      summary: false
       divider_before: true
       data_source: "decisions"
       charts: []
@@ -534,11 +553,17 @@ estrategico:
     - id: "APP_A"
       title: "Definições e Siglas"
       enabled: true
+      # ADR-355: apêndice renderiza <SectionSummary>; texto é determinístico
+      # (camada 3), o E5.N não produz narrativa de apêndice.
+      summary: true
+      summary_source: null
       # APP_A já migrado em ApendiceASection.tsx — cards[] vazio (uso hand-coded)
     - id: "APP_B"
       title: "Premissas Econômicas"
       # Fase 10 entregou ApendiceBSection (ADR-117/122).
       enabled: true
+      summary: true
+      summary_source: null
       cards:
         - {id: "premissas_economicas", enabled: true, variant: "feature", size: "full"}
         - {id: "metodologias", enabled: true, variant: "neutral", size: "full"}
@@ -549,18 +574,24 @@ estrategico:
       title: "Cenários de Estresse"
       enabled: true
       optional: true
+      summary: true
+      summary_source: null
       charts: []
       cards:
         - {id: "sensibilidade_ativos", enabled: true, variant: "feature", size: "full"}
     - id: "APP_D"
       title: "Referências e Recursos"
       enabled: true
+      summary: true
+      summary_source: null
       cards:
         - {id: "fontes_dados", enabled: true, variant: "neutral", size: "half"}
         - {id: "metodologia_links", enabled: true, variant: "neutral", size: "half"}
     - id: "APP_E"
       title: "Próximos Ciclos e Roadmap"
       enabled: true
+      summary: true
+      summary_source: null
       cards:
         - {id: "proximos_ciclos", enabled: true, variant: "highlight", size: "full"}
         - {id: "disclaimers", enabled: true, variant: "neutral", size: "full"}

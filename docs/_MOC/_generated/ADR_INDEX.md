@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-345 ADRs (ADR-001 a ADR-355) em [`docs/adr/`](../../adr/).
+346 ADRs (ADR-001 a ADR-355) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 303
-- **Proposto**: 39
+- **Proposto**: 40
 - **Roadmap**: 3
 
 ## Fundação
@@ -390,6 +390,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-158]] — Pipeline review screen — UI dedicada para aprovar/editar `StageReview` · phase Sprint A8 · Lane pipeline-review-screen
 - [[ADR-168]] — Remoção do Modo USA do relatório · phase A8.4 PR4
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
+
+### Proposto (1)
+
+- [[ADR-355]] — Precedência declarada do parágrafo de seção e CV9 como medida de entrega · phase report-review r3 (RV3-03 · RV3-33) · A40.l4
 
 ## gtm
 

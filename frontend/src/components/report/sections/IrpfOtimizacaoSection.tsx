@@ -22,11 +22,10 @@ export function IrpfOtimizacaoSection({ data }: { data: ReportAnalysisData }) {
   const kpis = useIrpfKpis(data);
   if (!kpis) return null;
 
-  const narrativas = data.narrativas as Record<string, unknown> | undefined;
 
   return (
     <ReportSection id="S_IRPF_OTIMIZACAO" title="Otimização Tributária">
-      <SectionSummary narrativas={narrativas} sectionId="S_IRPF_OTIMIZACAO" />
+      <SectionSummary data={data} sectionId="S_IRPF_OTIMIZACAO" />
       <IrpfPgblCapacidadeCard kpis={kpis} />
       {shouldRenderDependentes(kpis) && (
         <IrpfDependentesCard

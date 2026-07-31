@@ -18,10 +18,7 @@ import {
 } from "../charts/NarrativeChartCard";
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import {
-  deriveChartConclusion,
-  deriveSectionSummary,
-} from "../utils/conclusionUtils";
+import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 interface MitigationCounts {
   coberto: number;
@@ -83,7 +80,6 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const bubble = charts?.bubble_riscos as { data_state?: string } | undefined;
-  const fallback = deriveSectionSummary("S9", data);
   const isEmpty = bubble?.data_state === "empty";
 
   // TODO: dados reais virão de T03 — bundle vem do payload do report
@@ -95,12 +91,10 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
 
   return (
     <ReportSection id="S9" title="Riscos e Proteção — Seguros Críticos">
-      <SectionSummary narrativas={narrativas} sectionId="S9" />
-      {fallback && !narrativas?.["S9"] && (
-        <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
-          {fallback}
-        </p>
-      )}
+      {/* ADR-355: com `s9` entregue, este parágrafo imprime acima do
+          <EmptyState/> abaixo. O CTA vive só no EmptyState — o texto do
+          produtor (`_S9_EMPTY`) é factual, sem call-to-action duplicado. */}
+      <SectionSummary data={data} sectionId="S9" />
       {isEmpty ? (
         <div className="md:col-span-2">
           <EmptyState

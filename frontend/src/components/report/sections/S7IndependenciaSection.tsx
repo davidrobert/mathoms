@@ -58,7 +58,7 @@ export function S7IndependenciaSection({
 
   return (
     <ReportSection id="S7" title="Independência Financeira — Projeção de Longo Prazo">
-      <SectionSummary narrativas={narrativas} sectionId="S7" />
+      <SectionSummary data={data} sectionId="S7" />
       {workspaceId && (
         <SuggestionCalloutInline sectionId="S7" workspaceId={workspaceId} />
       )}
