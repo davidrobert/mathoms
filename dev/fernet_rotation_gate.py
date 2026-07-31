@@ -8,6 +8,13 @@ import json
 import sys
 from pathlib import Path
 
+# `python3 dev/fernet_rotation_gate.py` põe `dev/` no sys.path, não a raiz —
+# sem isto, `import backend.app...` quebra com ModuleNotFoundError (mesmo
+# padrão de dev/drill_seed.py e dev/restore_drill.py).
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 MIN_KEYS_FOR_WINDOW = 2
 KID_AUDIT_SQL = """
 SELECT content_json->>'kid' AS kid, count(*)
