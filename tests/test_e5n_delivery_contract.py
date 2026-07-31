@@ -20,19 +20,26 @@ Família sintética (Alex/Bia): o produtor interpola **primeiro nome** em ``s3``
 em ``perfil_familia`` — a fixture não pode carregar PII. Nome completo, CPF e
 endereço não chegam a texto entregue nenhum (ADR-355 §D9, guarda em
 ``tests/test_e5n_pii_guard.py``).
+
+O substrato é a fixture sintética PII-zero do dogfood (``run_dogfood_pipeline_ctx``,
+A23.l2) — com valores não-triviais. A primeira versão rodava sobre o E3 mínimo de
+1 transação de R$ 100 e a fixture nascia financeiramente vazia: sentinela de
+FORMA, não de CONTEÚDO (com todo monetário em zero, trocar a fonte de um número
+por outra não move a string).
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
 
-from tests.test_e5n_golden_execution import _build_e5_workspace, _new_e5n_ctx
+from tests.test_e5n_golden_execution import _build_e5_workspace
 
 _REPO = Path(__file__).resolve().parents[1]
 _FIXTURE = _REPO / "tests" / "fixtures" / "narrativas" / "e5n_delivery.json"
@@ -108,16 +115,34 @@ def _write_goals(root: Path) -> None:
     )
 
 
+# Substrato = fixture sintética PII-zero do dogfood (A23.l2), não o E3 mínimo de
+# 1 transação de R$ 100. Com o E3 mínimo a fixture saía financeiramente VAZIA
+# (`s1` com quatro `R$ 0,00`, `s2` com "0 meses", `s3`/`s5` zerados): sentinela de
+# FORMA funcionava, de CONTEÚDO não — copy podia trocar `patrimonio_bruto` por
+# `patrimonio_liquido` e a string exata continuava batendo, porque os dois eram
+# zero. O dogfood traz imóvel, CDB em dois anos, financiamento e dois extratos,
+# então os números impressos são distintos entre si.
+def _run_dogfood(root: Path):
+    """E1.5c→E3→E4→E5 sobre a fixture sintética do dogfood; devolve o ctx."""
+    from tests.pipeline_golden_substrate import load_fixture, run_dogfood_pipeline_ctx
+
+    dogfood = _REPO / "tests" / "fixtures" / "pipeline_golden" / "dogfood"
+    return run_dogfood_pipeline_ctx(
+        root,
+        raw_baseline=load_fixture(dogfood / "baseline-1.5.json"),
+        e2_extracts={
+            key: load_fixture(dogfood / f"{key}-2_extract.json")
+            for key in ("extrato-a", "extrato-b")
+        },
+    )
+
+
 def _run_e5n(root: Path) -> dict[str, Any]:
-    """E4→E5→E5.N reais (sem LLM, sem API key) e devolve ``narrativas``."""
-    from scripts.analyze_finances import main_with_store as e5_mws
-    from scripts.categorize_transactions import main_with_store as e4_mws
+    """E1.5c→E3→E4→E5→E5.N reais (sem LLM, sem API key) e devolve ``narrativas``."""
     from scripts.generate_narratives import _init_config as e5n_init
     from scripts.generate_narratives import main_with_store as e5n_mws
 
-    ctx = _new_e5n_ctx(root)
-    e4_mws(ctx)
-    e5_mws(ctx)
+    ctx = _run_dogfood(root)
     e5n_init(root)
     e5n_mws(ctx)
     payload = ctx.artifact_store.read("E5", "analise_financeira")
@@ -184,6 +209,25 @@ def test_fixture_matches_producer(narrativas: dict[str, Any]) -> None:
         f"intencional, regrave com {_UPDATE_ENV}=1 e rode o teste TS "
         "(sectionSummaryDelivery) no mesmo PR — ele assere as mesmas strings "
         "no DOM."
+    )
+
+
+# A fixture só é sentinela de CONTEÚDO se tiver conteúdo. Com todo monetário em
+# R$ 0,00 (o que o E3 mínimo produzia), trocar a fonte de um número por outra
+# mantém a string idêntica e o par TS+Python fica verde sobre nada. Este teste
+# impede a volta silenciosa a um substrato pobre.
+_VALOR_RE = re.compile(r"R\$ [\d.,]+[kM]?")
+_MINIMO_VALORES_DISTINTOS = 6
+
+
+def test_fixture_tem_conteudo_financeiro_nao_trivial(narrativas: dict[str, Any]) -> None:
+    """Os destinos entregues citam valores monetários distintos e não-zero."""
+    entregues = " ".join(narrativas["summaries"][key] for key in _layout_destinations().values())
+    valores = {v for v in _VALOR_RE.findall(entregues) if v != "R$ 0,00"}
+    assert len(valores) >= _MINIMO_VALORES_DISTINTOS, (
+        f"fixture com só {len(valores)} valores monetários distintos "
+        f"({sorted(valores)}) — substrato pobre devolve a guarda ao regime de "
+        "FORMA. Gere com `run_dogfood_pipeline_ctx`, não com o E3 mínimo."
     )
 
 

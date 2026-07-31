@@ -21,8 +21,8 @@ function emptyData(): ReportAnalysisData {
 }
 
 describe("ApendiceASection", () => {
-  it("renderiza glossário e categorias sem data", () => {
-    render(<ApendiceASection />);
+  it("renderiza glossário e categorias com data vazia", () => {
+    render(<ApendiceASection data={emptyData()} />);
     expect(screen.getByText(/Apêndice A/)).toBeInTheDocument();
     expect(screen.getByText(/Glossário de Termos Financeiros/)).toBeInTheDocument();
     expect(screen.getByText(/Categorias Patrimoniais/)).toBeInTheDocument();

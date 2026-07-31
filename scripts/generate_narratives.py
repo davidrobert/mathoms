@@ -492,12 +492,14 @@ def load_metrics_from_e5(
     # A40.l4 (co-design financial-planner): a estimativa de DAS saiu inteira do
     # s8 — alíquota vinha de default 6% (`FISCAL` é `{}` em produção; a fonte
     # legada migrou para `fiscal_parameters` em A7.2b) e a base era entrada na
-    # conta PF, não faturamento bruto (proibido por ADR-236 §Emenda CTO-05). O
-    # que a narrativa afirma agora é o DAS **recolhido** — categoria E4
-    # `das_simples`, fato de extrato que dispensa parâmetro fiscal e sobrevive
-    # a regime desconhecido. Carga e alíquota são passthrough da cascata, no
-    # card `impostos_pj` da mesma seção: um número, um dono.
-    das_recolhido_periodo = desp_cat.get("das_simples", 0)
+    # conta PF, não faturamento bruto (proibido por ADR-236 §Emenda CTO-05).
+    # Carga, alíquota e faturamento são passthrough da cascata, no card
+    # `impostos_pj` da mesma seção: um número, um dono.
+    #
+    # O substituto natural — DAS **recolhido**, categoria E4 `das_simples` —
+    # também NÃO entra: o balde está contaminado (matcher casava a preposição
+    # "DAS"; 100% de falso-positivo medido no dogfood) e o fix é o PR #1133,
+    # não mergeado. Sem métrica, sem cláusula.
 
     if_cfg = goals_cfg.get("independencia_financeira", {})
     renda_passiva_meta = if_cfg.get("renda_passiva_meta_mensal", 0)
@@ -569,10 +571,13 @@ def load_metrics_from_e5(
         "n_meses_periodo": n_meses_periodo,
         # === E5 JSON: despesas por categoria ===
         "despesas_nao_id": despesas_nao_id,
-        # A40.l4: a categoria emitida pelo E4 é `das_simples`
-        # (`transaction_classifier_pj.py`), não `das` — o balde de DAS
-        # desaparecia de `despesas_impostos`.
-        "despesas_impostos": desp_cat.get("impostos", 0) + desp_cat.get("das_simples", 0),
+        # A40.l4: `desp_cat.get("das")` era chave MORTA — a categoria emitida
+        # pelo E4 é `das_simples` (`transaction_classifier_pj.py`). Somar a
+        # chave certa fica para depois do PR #1133: o balde `das_simples` mede
+        # 100% de falso-positivo hoje (pedágio, supermercado — o matcher casava
+        # a preposição "DAS"), e trocar "balde de DAS ausente" por "consumo
+        # publicado como imposto" é regressão, não fix.
+        "despesas_impostos": desp_cat.get("impostos", 0),
         "despesas_moradia": desp_cat.get("moradia", 0),
         "despesas_serv_dom": desp_cat.get("servicos_domesticos", 0),
         "despesas_reserva": desp_cat.get("reserva_desejos", 0),
@@ -608,7 +613,6 @@ def load_metrics_from_e5(
         # A40.l4: `das_*_estimado`/`receita_pj_anual`/`das_aliquota_pct` e
         # `pct_das_receita_pj` deletados — eram os únicos consumidores do
         # default fiscal de 6% e não têm outro leitor.
-        "das_recolhido_periodo": das_recolhido_periodo,
         # ADR-240 · gap_qualitativo[vida] — `None` quando não há apólices
         # analisadas (o s9 não afirma ausência de cobertura sem sinal).
         "protecao_gap_vida": _protecao_gap_vida(e5_data),

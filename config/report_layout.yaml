@@ -386,8 +386,12 @@ estrategico:
     - id: "S_IRPF_RENDA"
       title: "Renda Anual e Impostos"
       enabled: true
-      summary: true
-      # E5.N não produz narrativa fiscal-IRPF; camada 3 (derivado) cobre.
+      # A40.l4: `summary: false`. As três camadas da ADR-355 são vazias para
+      # esta seção — não está em `SUPPORTED_SECTION_IDS` (LLM), o E5.N não
+      # produz narrativa fiscal-IRPF (`summary_source: null`) e não há entrada
+      # em `SECTION_SUMMARIES` (conclusionUtils.ts). Flag `true` + render site
+      # prometia parágrafo que nenhum produtor podia produzir.
+      summary: false
       summary_source: null
       divider_before: true
       charts:
@@ -426,7 +430,8 @@ estrategico:
     - id: "S_IRPF_OTIMIZACAO"
       title: "Otimização Tributária"
       enabled: true
-      summary: true
+      # A40.l4: mesma razão medida da S_IRPF_RENDA — camadas 1-3 vazias.
+      summary: false
       summary_source: null
       cards:
         - id: "pgbl_capacidade"
@@ -459,6 +464,11 @@ estrategico:
       enabled: true
       summary: true
       summary_source: "s9"
+      # ADR-355 §D6: a S9 curto-circuita em <EmptyState/> quando o
+      # `bubble_riscos` vem `data_state: "empty"`, e o parágrafo NÃO é impresso
+      # nesse ramo (o EmptyState já é a mensagem). Declarar o gate aqui é o que
+      # permite ao CV9 contar 6/7 em vez de mentir 7/7 nesse run.
+      summary_suppressed_by: "bubble_riscos"
       divider_before: true
       charts:
         - id: "bubble_riscos"

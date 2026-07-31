@@ -86,10 +86,16 @@ function DefinitionTable({
  *  Glossário de termos financeiros + categorias patrimoniais.
  *  Conteúdo estático — válido para qualquer workspace.
  */
-export function ApendiceASection({ data }: { data?: ReportAnalysisData } = {}) {
+// `data` era opcional só porque um teste montava `<ApendiceASection />`; em
+// produção o `MigratedSection` sempre passa. O `{data && …}` que isso obrigava
+// é render site CONDICIONAL — a forma que a regra 7 de
+// `dev/check_chart_conclusion_parity.py` usa para detectar parágrafo suprimido
+// (A40.l4). Prop obrigatória mantém o render site incondicional, que é o que
+// produção faz.
+export function ApendiceASection({ data }: { data: ReportAnalysisData }) {
   return (
     <ReportSection id="APP_A" title="Apêndice A — Definições e Siglas">
-      {data && <SectionSummary data={data} sectionId="APP_A" />}
+      <SectionSummary data={data} sectionId="APP_A" />
       <DefinitionTable
         title="Glossário de Termos Financeiros"
         header="Sigla / Termo"

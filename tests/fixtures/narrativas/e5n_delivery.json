@@ -10,39 +10,39 @@
       "data_state": "ok"
     },
     "cenarios_conjuge": {
-      "conclusion": "Sem renda do cônjuge: aporte cai para R$ 13,2k/mês (66% do aporte-base). IF em 18 anos (2043) — custo de oportunidade de +4 anos em relação ao cenário base.",
-      "context": "Cenário de estresse 'Sem renda do cônjuge'. Premissas: meta IF de R$ 5,0M, patrimônio investível de R$ 0,00, retorno real de 6% a.a. Atualmente Bia contribui com R$ 0,00/mês."
+      "conclusion": "Sem renda do cônjuge: aporte cai para R$ 13,2k/mês (66% do aporte-base). IF em 17 anos (2043) — custo de oportunidade de +4 anos em relação ao cenário base.",
+      "context": "Cenário de estresse 'Sem renda do cônjuge'. Premissas: meta IF de R$ 5,0M, patrimônio investível de R$ 130k, retorno real de 6% a.a. Atualmente Bia contribui com R$ 0,00/mês."
     },
     "despesas_doughnut": {
-      "conclusion": "Categoria 'não identificado' lidera com R$ 0,00 (0%), seguida por impostos (R$ 0,00), moradia (R$ 0,00) e serviços domésticos (R$ 0,00). Prioridade: reclassificar 'não identificado' via melhor rastreamento.",
-      "context": "Distribuição das despesas totais (R$ 0,00) entre 0 categorias, destacando a composição de gastos e oportunidades de otimização."
+      "conclusion": "Categoria 'não identificado' lidera com R$ 1,5k (100%), seguida por impostos (R$ 0,00), moradia (R$ 0,00) e serviços domésticos (R$ 0,00). Prioridade: reclassificar 'não identificado' via melhor rastreamento.",
+      "context": "Distribuição das despesas totais (R$ 1,5k) entre 1 categorias, destacando a composição de gastos e oportunidades de otimização."
     },
     "fluxo_mensal": {
-      "conclusion": "Fluxo líquido total de R$ 100,00 no período (1 meses). Taxa de poupança recorrente de 100% sustenta a meta de aportes mensais de R$ 20k para o plano IF.",
-      "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 100,00/mês versus despesa média de R$ 0,00/mês."
+      "conclusion": "Fluxo líquido total de R$ 1,5k no período (1 meses). Taxa de poupança recorrente de 50% sustenta a meta de aportes mensais de R$ 20k para o plano IF.",
+      "context": "Visão consolidada do fluxo de caixa mensal: receita recorrente de R$ 3k/mês versus despesa média de R$ 1,5k/mês."
     },
     "impostos_pj": {
       "conclusion": "Carga tributária total estimada em 0% da receita. Base PGBL indisponível neste momento.",
       "context": "Cascata fiscal de Alex — Simples Nacional — Anexo III: receita PJ anualizada de R$ 0,00, tributos federais (DAS) de R$ 0,00/ano."
     },
     "patrimonio_doughnut": {
-      "conclusion": "Imóveis respondem por 0% do patrimônio bruto. Aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção.",
-      "context": "Distribuição do patrimônio bruto de R$ 0,00, mostrando concentração em imóveis e peso relativo dos investimentos financeiros."
+      "conclusion": "Imóveis respondem por 82,2% do patrimônio bruto — acima do ideal de 50%. Aportes mensais de R$ 20k em ativos financeiros devem melhorar essa proporção.",
+      "context": "Distribuição do patrimônio bruto de R$ 730k entre 3 categorias de ativos, mostrando concentração em imóveis e peso relativo dos investimentos financeiros."
     },
     "projecao_3cenarios": {
-      "conclusion": "Em cenário sem variação de mercado, a trajetória projetada aponta a meta para 2039, quando Alex tiver 54 anos. Hoje, a renda passiva estimada pela regra de retirada é R$ 0,00/mês (0% da meta de R$ 16k/mês).",
+      "conclusion": "Em cenário sem variação de mercado, a trajetória projetada aponta a meta para 2039, quando Alex tiver 54 anos. Hoje, a renda passiva estimada pela regra de retirada é R$ 433,33/mês (2,7% da meta de R$ 16k/mês).",
       "context": "Projeção do patrimônio investível até atingir a meta de R$ 5,0M, considerando aportes mensais de R$ 20k e retorno real anual de 6%."
     },
     "receita_bar": {
       "conclusion": "Receita PJ lidera com R$ 0,00 (0%), seguida por CLT (R$ 0,00, 0%) e aluguel (R$ 0,00, 0%). Diversificação de fontes reduz risco de dependência única.",
-      "context": "Composição da receita total de R$ 100,00 por fonte: PJ (0%), CLT (0%), aluguel (0%), outras (100%)."
+      "context": "Composição da receita total de R$ 3k por fonte: PJ (0%), CLT (0%), aluguel (0%), outras (100%)."
     },
     "receita_despesa_mensal": {
-      "conclusion": "Receita recorrente de R$ 100,00/mês e despesa média de R$ 0,00/mês. Taxa de poupança recorrente de 100% valida a sustentabilidade do plano IF.",
-      "context": "Série temporal mensal de receitas (R$ 100,00/período) versus despesas (R$ 0,00/período), resultando em fluxo líquido de R$ 100,00."
+      "conclusion": "Receita recorrente de R$ 3k/mês e despesa média de R$ 1,5k/mês. Taxa de poupança recorrente de 50% valida a sustentabilidade do plano IF.",
+      "context": "Série temporal mensal de receitas (R$ 3k/período) versus despesas (R$ 1,5k/período), resultando em fluxo líquido de R$ 1,5k."
     },
     "renda_passiva": {
-      "conclusion": "Renda passiva estimada pela regra de retirada segura (4% sobre o investível): R$ 0,00/mês (0% da meta). Faltam R$ 16k/mês — patrimônio de R$ 5,0M (meta 2039) geraria R$ 16k/mês com TRS de 4%.",
+      "conclusion": "Renda passiva estimada pela regra de retirada segura (4% sobre o investível): R$ 433,33/mês (2,7% da meta). Faltam R$ 15,6k/mês — patrimônio de R$ 5,0M (meta 2039) geraria R$ 16k/mês com TRS de 4%.",
       "context": "Barra de progresso da renda passiva mensal em direção à meta de R$ 16k/mês. Cada segmento representa uma fonte: aluguéis, dividendos e rendimentos financeiros."
     },
     "score_gauge": {
@@ -50,8 +50,8 @@
       "context": "Indicador geral de saúde financeira da família, com score de 5,6/10 (Regular). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria."
     },
     "top15_ativos": {
-      "conclusion": "Concentração em poucos ativos reforça importância de aportes contínuos para diversificação.",
-      "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 0,00 em investimentos."
+      "conclusion": "Imóvel de investimento (R$ 600k de Alex) é o maior ativo individual. Concentração em poucos ativos reforça importância de aportes contínuos para diversificação.",
+      "context": "Ranking dos 15 maiores ativos financeiros individuais da família, totalizando R$ 130k em investimentos."
     },
     "top5_decisoes": {
       "conclusion": "Prioridade 1: Aporte mensal R$ 20k a distribuir entre as classes sub-representadas. Prioridade 2: Contratar seguro de vida term. Prioridade 3: Consolidar reserva de emergência. Prioridade 4: Revisar alocação em renda variável.",
@@ -62,8 +62,8 @@
       "context": "Padrão de despesas com viagens identificado nos extratos, estimando frequência e custo médio."
     },
     "waterfall_if": {
-      "conclusion": "Gap de R$ 5,0M será fechado por aportes disciplinados (R$ 20k/mês = R$ 3,3M em 14 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado.",
-      "context": "Decomposição do gap de independência financeira (R$ 5,0M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2039."
+      "conclusion": "Gap de R$ 4,9M será fechado por aportes disciplinados (R$ 20k/mês = R$ 3,1M em 13 anos) e rentabilidade real de 6% a.a. sobre patrimônio acumulado.",
+      "context": "Decomposição do gap de independência financeira (R$ 4,9M), mostrando componentes de patrimônio atual, aportes acumulados e rentabilidade esperada até 2039."
     },
     "wise_fiscal_flags": {
       "conclusion": "",
@@ -74,17 +74,17 @@
   },
   "perfil_familia": {
     "left": "<p>Alex, 41 anos, Opera como PJ Simples.</p>\n<p>Bia, 39 anos.</p>\n",
-    "right": "<p>Meta de independência financeira de R$ 5,0M (TRS 4%, renda passiva de R$ 16k/mês). Patrimônio investível atual de R$ 0,00 (0% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo realista de 14 anos (Alex 54 anos, 2039).</p>\n<p>Patrimônio bruto de R$ 0,00: 0 imóveis, carteiras Alex (R$ 0,00) e Bia (R$ 0,00). Endividamento de 0% — saudável.</p>\n<p>Composição da carteira ainda não classificada por categoria de ativo. Score financeiro de 5,6/10 (Regular), com taxa de poupança recorrente de 100% e cobertura de 0 meses de despesas — base sólida para o plano IF.</p>"
+    "right": "<p>Meta de independência financeira de R$ 5,0M (TRS 4%, renda passiva de R$ 16k/mês). Patrimônio investível atual de R$ 130k (2,6% da meta). Com aportes de R$ 20k/mês e retorno real de 6% a.a., prazo realista de 13 anos (Alex 54 anos, 2039).</p>\n<p>Patrimônio bruto de R$ 730k: 1 imóvel, carteiras Alex (R$ 80k) e Bia (R$ 0,00). Endividamento de 20,6% — saudável.</p>\n<p>Carteira diversificada entre 3 categorias de ativos. Score financeiro de 5,6/10 (Regular), com taxa de poupança recorrente de 50% e cobertura de 53,3 meses de despesas — base sólida para o plano IF.</p>"
   },
   "summaries": {
-    "s1": "Patrimônio bruto de R$ 0,00 com 0% investível (R$ 0,00). Imóveis representam 0% do patrimônio bruto, com residência própria de R$ 0,00 e imóveis de investimento somando R$ 0,00. Endividamento de 0% sobre o bruto.",
+    "s1": "Patrimônio bruto de R$ 730k com 17,8% investível (R$ 130k). Imóveis representam 82,2% do patrimônio bruto, com residência própria de R$ 0,00 e imóveis de investimento somando R$ 600k. Endividamento de 20,6% sobre o bruto.",
     "s10": "4 decisões estratégicas prioritárias: iniciar aporte mensal de R$ 20k a distribuir entre as classes sub-representadas, Contratar seguro de vida term, Consolidar reserva de emergência, Revisar alocação em renda variável.",
-    "s2": "Score financeiro de 5,6/10 (Regular). Pontos fortes: taxa de poupança recorrente de 100%, cobertura de 0 meses de despesas e endividamento controlado. Receita total no período de R$ 100,00 com 0% proveniente de PJ, 0% de aluguel, 0% de CLT e 100% de outras fontes.",
-    "s3": "Composição da carteira ainda não classificada por categoria de ativo. Alex mantém R$ 0,00 distribuídos entre instituições não detalhadas neste período. Bia possui R$ 0,00 concentrados em instituições não detalhadas neste período.",
-    "s4": "Nenhum imóvel identificado no portfólio. Sem renda de aluguel identificada nos extratos do período.",
-    "s5": "Padrão de viagens não identificado automaticamente neste período. Receita recorrente de R$ 100,00/mês cobre as despesas mensais médias de R$ 0,00, gerando sobra para aportes e reserva de viagens.",
+    "s2": "Score financeiro de 5,6/10 (Regular). Pontos fortes: taxa de poupança recorrente de 50%, cobertura de 53,3 meses de despesas e endividamento controlado. Receita total no período de R$ 3k com 0% proveniente de PJ, 0% de aluguel, 0% de CLT e 100% de outras fontes.",
+    "s3": "Carteira diversificada entre 3 categorias de ativos. Alex mantém R$ 80k distribuídos entre instituições não detalhadas neste período. Bia possui R$ 0,00 concentrados em instituições não detalhadas neste período.",
+    "s4": "Portfólio imobiliário com imóveis de investimento somando R$ 600k. Sem renda de aluguel identificada nos extratos do período.",
+    "s5": "Padrão de viagens não identificado automaticamente neste período. Receita recorrente de R$ 3k/mês cobre as despesas mensais médias de R$ 1,5k, gerando sobra para aportes e reserva de viagens.",
     "s6": "Exposição cambial: nenhum saldo em moeda estrangeira identificado no período. Total US$ 0. Meta de reserva cambial de US$ 100k com gap de US$ 100k — ritmo de R$ 2k/mês alcança a meta em 290 meses.",
-    "s7": "Meta de independência financeira de R$ 5,0M em 2039. Gap atual de R$ 5,0M com prazo realista de 13,7 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (4% retirada segura): R$ 0,00/mês.",
+    "s7": "Meta de independência financeira de R$ 5,0M em 2039. Gap atual de R$ 4,9M com prazo realista de 13,1 anos à taxa de aporte R$ 20k/mês e retorno real 6% a.a. Renda passiva estimada (4% retirada segura): R$ 433,33/mês.",
     "s8": "Simples Nacional — Anexo III. Contador cadastrado. Avaliação de holding patrimonial pendente para 12 meses.",
     "s9": "2 riscos prioritários: Cobertura de vida abaixo do recomendado, Sucessão sem inventário planejado. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 2-4M em seguro term. Planejamento sucessório em estágio inicial."
   }

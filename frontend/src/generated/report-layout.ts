@@ -71,6 +71,7 @@ export interface SectionSpec {
   data_source?: string;
   summary?: boolean;
   summary_source?: string | null;
+  summary_suppressed_by?: string | null;
   divider_before?: boolean;
   collapsible?: boolean;
 }
@@ -82,6 +83,7 @@ export interface AppendixSpec {
   optional?: boolean;
   summary?: boolean;
   summary_source?: string | null;
+  summary_suppressed_by?: string | null;
   charts?: ChartSpec[];
   cards?: CardSpec[];
 }
@@ -563,7 +565,7 @@ export const LAYOUT: ReportLayout = {
         "id": "S_IRPF_RENDA",
         "title": "Renda Anual e Impostos",
         "enabled": true,
-        "summary": true,
+        "summary": false,
         "summary_source": null,
         "divider_before": true,
         "charts": [
@@ -603,7 +605,7 @@ export const LAYOUT: ReportLayout = {
         "id": "S_IRPF_OTIMIZACAO",
         "title": "Otimização Tributária",
         "enabled": true,
-        "summary": true,
+        "summary": false,
         "summary_source": null,
         "cards": [
           {
@@ -632,6 +634,7 @@ export const LAYOUT: ReportLayout = {
         "enabled": true,
         "summary": true,
         "summary_source": "s9",
+        "summary_suppressed_by": "bubble_riscos",
         "divider_before": true,
         "charts": [
           {

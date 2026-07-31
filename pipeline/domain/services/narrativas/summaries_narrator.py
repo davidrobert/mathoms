@@ -196,9 +196,9 @@ def _summary_s3(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
 #    tributos + carga + fator-R pela cascata canônica. Um segundo estimador só
 #    pode concordar (redundante) ou discordar (defeito publicado).
 #
-# Logo: o s8 declara regime DECLARADO e DAS RECOLHIDO (categoria E4
-# `das_simples`, fato de extrato); carga e alíquota são da cascata, e o s8
-# não as reafirma.
+# Logo: o s8 declara o regime DECLARADO (+ contador e holding); carga, alíquota
+# e faturamento são da cascata, e o s8 não os reafirma. DAS também não — ver a
+# nota sobre o balde contaminado antes de `_s8_contador_clause`.
 _S8_REGIME_PENDENTE = (
     "Perfil tributário PJ pendente — informe regime, anexo e CNAE para "
     "estimar a carga fiscal da pessoa jurídica."
@@ -216,14 +216,18 @@ def _s8_regime_head(M: Mapping[str, Any]) -> str:
     return ensure_period((M.get("regime_obs") or "").strip()) or _S8_REGIME_PENDENTE
 
 
-def _s8_das_recolhido_clause(M: Mapping[str, Any]) -> str:
-    """DAS observado nos extratos — ``''`` sem balde recolhido no período."""
-    recolhido = M.get("das_recolhido_periodo") or 0
-    if recolhido <= 0:
-        return ""
-    meses = M.get("n_meses_periodo") or 0
-    janela = f" ({meses} {pluralize(meses, 'mês', 'meses')} de extrato)" if meses else ""
-    return f"DAS recolhido no período: {fmt_currency(recolhido)}{janela}. "
+# DAS **recolhido** era a substituição planejada para o DAS estimado — fato de
+# extrato em vez de constante fiscal. Não entra nesta lane: o balde de origem
+# (`despesas_por_categoria.das_simples`) está contaminado. `_DAS_KEYWORDS =
+# ("DAS",)` casava a PREPOSIÇÃO ("pagamento DAS lojas", "pedágio DAS ..."), e a
+# medição do balde no workspace de dogfood deu 100% de falso-positivo (pedágio,
+# supermercado). O fix do matcher é o PR #1133, ainda não mergeado.
+#
+# Afirmar "DAS recolhido no período: R$ X" com esse balde publicaria despesa de
+# consumo como tributo — o oposto do que a §D7 existe para impedir. Enquanto o
+# #1133 não aterrissa, o s8 fica em SILÊNCIO sobre DAS: nem estimado (default de
+# código) nem recolhido (sinal contaminado). Reintrodução é lane própria, com o
+# balde já corrigido.
 
 
 # `contador_mensal` não existe em `bundle["tributario"]` (só `contador_nome`,
@@ -242,8 +246,8 @@ def _s8_contador_clause(M: Mapping[str, Any]) -> str:
 
 
 def _summary_s8(M: Mapping[str, Any], contador_clause: str, holding_clause: str) -> str:
-    """s8 — regime declarado + DAS recolhido + contador + holding. Zero estimativa."""
-    tail = f"{_s8_das_recolhido_clause(M)}{contador_clause}{holding_clause}".strip()
+    """s8 — regime declarado + contador + holding. Zero número fiscal."""
+    tail = f"{contador_clause}{holding_clause}".strip()
     head = _s8_regime_head(M)
     return f"{head} {tail}" if tail else head
 
@@ -261,23 +265,40 @@ def _summary_s4(M: Mapping[str, Any]) -> str:
     return _s4_portfolio_head(M) + _s4_aluguel_clause(M) + _s4_ancora_irpf(M)
 
 
-# `n_imoveis` vem do E5 (`investimentos`) e os valores vêm de `patrimonio` —
-# fontes distintas que divergem: "0 imóveis no portfólio: residência (R$ 800k)"
-# é contradição na mesma frase. Sem contagem confiável, descreve-se o valor sem
-# afirmar quantidade (A40.l4, medido no render).
+# O s4 NÃO afirma quantidade de imóveis. A contagem disponível ao narrador é
+# `investimentos.n_imoveis_total` (`InstituicoesPorMembroAnalyzer`, conta
+# `bens_por_membro` do baseline IRPF: residência + investimento); a tabela da
+# S4 renderiza `real_estate.imoveis` (`populate_real_estate`, filtro estrito por
+# `codigo_rfb`, ADR-225). Duas fontes, e não há terceira que reconcilie:
+#
+# - medido no workspace de dogfood: `n_imoveis_total` = 6 e
+#   `len(real_estate.imoveis)` = 4 — o parágrafo abria a S4 com "6 imóveis no
+#   portfólio" e a MESMA seção listava 4 na tabela e dizia "4 imóveis de
+#   investimento". Nem 4+1 (residência) fecha em 6;
+# - a fonte da seção nem existe quando o narrador roda: `generate_narratives`
+#   monta metrics e constrói as narrativas ANTES de `_e5n_populate_real_estate`.
+#   Guardar a afirmação por "as duas fontes concordam" seria guarda em ramo
+#   morto — em produção o lado direito é sempre ausente.
+#
+# Logo: descreve-se o VALOR, que vem de `patrimonio` e é o que o card irmão
+# mostra; a quantidade fica com a tabela da seção, seu único dono (§D7 da
+# ADR-355 — "ou o número vem do payload, ou não é afirmado"). Cada parcela é
+# condicional: `residência (R$ 0,00)` lê-se como "sua casa não vale nada".
+_S4_VALOR_TEMPLATES: tuple[tuple[str, str], ...] = (
+    ("residencia", "residência de {valor}"),
+    ("imoveis_investimento", "imóveis de investimento somando {valor}"),
+)
+
+
 def _s4_portfolio_head(M: Mapping[str, Any]) -> str:
-    n = M["n_imoveis"] or 0
-    residencia = M.get("residencia") or 0
-    investimento = M.get("imoveis_investimento") or 0
-    valores = (
-        f"residência ({fmt_currency(residencia)}), imóveis de investimento "
-        f"somando {fmt_currency(investimento)}. "
-    )
-    if n > 0:
-        return f"{n} {pluralize(n, 'imóvel', 'imóveis')} no portfólio: {valores}"
-    if residencia <= 0 and investimento <= 0:
-        return "Nenhum imóvel identificado no portfólio. "
-    return f"Portfólio imobiliário sem contagem consolidada: {valores}"
+    partes = [
+        template.format(valor=fmt_currency(M.get(chave) or 0))
+        for chave, template in _S4_VALOR_TEMPLATES
+        if (M.get(chave) or 0) > 0
+    ]
+    if not partes:
+        return "Sem valor de imóveis identificado no portfólio. "
+    return f"Portfólio imobiliário com {', '.join(partes)}. "
 
 
 def _s4_aluguel_clause(M: Mapping[str, Any]) -> str:

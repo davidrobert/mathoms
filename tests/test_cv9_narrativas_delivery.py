@@ -27,8 +27,21 @@ def _layout(entries: list[dict[str, Any]]) -> dict[str, Any]:
     return {"estrategico": {"sections": entries, "appendices": []}}
 
 
-def _section(sid: str, source: str | None, *, summary: bool = True, enabled: bool = True) -> dict:
-    return {"id": sid, "enabled": enabled, "summary": summary, "summary_source": source}
+def _section(
+    sid: str,
+    source: str | None,
+    *,
+    summary: bool = True,
+    enabled: bool = True,
+    suppressed_by: str | None = None,
+) -> dict:
+    return {
+        "id": sid,
+        "enabled": enabled,
+        "summary": summary,
+        "summary_source": source,
+        "summary_suppressed_by": suppressed_by,
+    }
 
 
 # Cenário saudável: todo `sN` emitido tem destino OU está em
@@ -49,8 +62,13 @@ def pinned_layout(monkeypatch: pytest.MonkeyPatch):
     return _pin
 
 
-def _run(summaries: dict[str, Any]) -> vc.CrossValidationResult:
-    return vc._cv9_summaries_delivery({"narrativas": {"summaries": summaries}})
+def _run(
+    summaries: dict[str, Any], charts: dict[str, Any] | None = None
+) -> vc.CrossValidationResult:
+    narrativas: dict[str, Any] = {"summaries": summaries}
+    if charts is not None:
+        narrativas["charts"] = charts
+    return vc._cv9_summaries_delivery({"narrativas": narrativas})
 
 
 def test_layout_saudavel_passa_com_contagem_honesta(pinned_layout) -> None:
@@ -105,3 +123,60 @@ def test_layout_real_do_repo_entrega_todos_os_destinos() -> None:
     res = _run(_SUMMARIES_OK)
     assert res.passed, res.details
     assert "entregues=7/esperadas=7" in res.details
+
+
+# ── Supressão condicional (o furo que a 1ª versão do CV9 deixava verde) ──
+#
+# O 4º predicado lia só flags ESTÁTICAS do layout: seção com `summary: true` e
+# `<SectionSummary>` presente passava, mesmo quando o render curto-circuitava por
+# `data_state`. Medido: workspace sem risco cadastrado renderiza 6 de 7 e o CV9
+# dizia 7/7.
+
+_RISCOS_VAZIO = {"bubble_riscos": {"data_state": "empty"}}
+_RISCOS_OK = {"bubble_riscos": {"data_state": "ok"}}
+
+
+def test_secao_em_empty_state_nao_conta_o_destino_como_entregue(pinned_layout) -> None:
+    """Workspace sem riscos: o `s9` é gerado e a S9 o engole ⇒ 6/7, não 7/7."""
+    pinned_layout(
+        [
+            *(e for e in _DESTINOS_SAOS if e["id"] != "S9"),
+            _section("S9", "s9", suppressed_by="bubble_riscos"),
+        ]
+    )
+    res = _run(_SUMMARIES_OK, charts=_RISCOS_VAZIO)
+    assert "entregues=6/esperadas=7" in res.details, res.details
+    assert "suprimido=['S9->s9']" in res.details, res.details
+    # Supressão é a decisão de produto da §D7, não defeito: reprovar deixaria o
+    # CV9 vermelho em todo workspace sem risco — vermelho decorativo.
+    assert res.passed, res.details
+
+
+def test_secao_com_dados_conta_o_destino_normalmente(pinned_layout) -> None:
+    """A supressão é condicional ao run, não ao layout."""
+    pinned_layout(
+        [
+            *(e for e in _DESTINOS_SAOS if e["id"] != "S9"),
+            _section("S9", "s9", suppressed_by="bubble_riscos"),
+        ]
+    )
+    res = _run(_SUMMARIES_OK, charts=_RISCOS_OK)
+    assert "entregues=7/esperadas=7" in res.details, res.details
+    assert "suprimido=nenhuma" in res.details, res.details
+
+
+def test_layout_real_sem_riscos_reporta_6_de_7() -> None:
+    """Prova sobre o layout VERSIONADO, não sintético: workspace sem risco
+    cadastrado (`bubble_riscos.data_state == "empty"`) põe o `s9` fora da
+    entrega. É o caso vivo — a 1ª versão do CV9 dizia 7/7 aqui."""
+    res = _run(_SUMMARIES_OK, charts=_RISCOS_VAZIO)
+    assert "entregues=6/esperadas=7" in res.details, res.details
+    assert "suprimido=['S9->s9']" in res.details, res.details
+
+
+def test_gate_nao_declarado_nao_suprime(pinned_layout) -> None:
+    """Sem `summary_suppressed_by`, `data_state: empty` não desconta nada — é a
+    regra 7 do gate estático que impede a declaração de faltar."""
+    pinned_layout(_DESTINOS_SAOS)
+    res = _run(_SUMMARIES_OK, charts=_RISCOS_VAZIO)
+    assert "entregues=7/esperadas=7" in res.details, res.details

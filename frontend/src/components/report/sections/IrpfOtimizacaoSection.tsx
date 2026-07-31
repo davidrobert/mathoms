@@ -1,7 +1,6 @@
 "use client";
 
 import { ReportSection } from "../ReportSection";
-import { SectionSummary } from "../SectionSummary";
 import {
   IrpfDedutiveisAplicadosCard,
   IrpfDependentesCard,
@@ -17,14 +16,16 @@ import type { IrpfKpis } from "@/types/irpf";
  * Declarados (half, factual — ADR-194 §6.1) + Dedutíveis Aplicados por
  * Categoria (full, 4 categorias sparse — ADR-194 §6.2). Cards "Dependentes"
  * e "Dedutíveis" foram reativados em A12 (ADR-194) após removidos em 2026-05
- * por serem prose-only. Guards escondem cards vazios sem regredir o PGBL. */
+ * por serem prose-only. Guards escondem cards vazios sem regredir o PGBL.
+ *
+ * A40.l4: sem parágrafo de abertura, mesma razão medida da `IrpfRendaSection` —
+ * render site morto nas três camadas da ADR-355 (`summary: false` no layout). */
 export function IrpfOtimizacaoSection({ data }: { data: ReportAnalysisData }) {
   const kpis = useIrpfKpis(data);
   if (!kpis) return null;
 
   return (
     <ReportSection id="S_IRPF_OTIMIZACAO" title="Otimização Tributária">
-      <SectionSummary data={data} sectionId="S_IRPF_OTIMIZACAO" />
       <IrpfPgblCapacidadeCard kpis={kpis} />
       {shouldRenderDependentes(kpis) && (
         <IrpfDependentesCard

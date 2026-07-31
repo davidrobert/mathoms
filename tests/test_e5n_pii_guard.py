@@ -36,11 +36,24 @@ _SENTINELAS: dict[str, str] = {
     "membros.filho.nome_completo": "Zezinho Quirinovaldo Xisto",
     "membros.filho.local_nascimento": "Quixabeirópolis",
     "membros.titular.cpf": "123.456.789-09",
+    # Nome civil anterior (`extra.nome_nascimento`, `member_name_resolver`):
+    # PII da mesma classe de `nome_completo` e faltava na família-sentinela.
+    # Aparece nos dois paths que o resolver aceita — raiz e `extra`.
+    "membros.conjuge.nome_nascimento": "Zulmira Quaresmeira Zabumba",
+    "membros.conjuge.extra.nome_nascimento": "Zulmira Quinquagesima Zabumba",
     "endereco.rua": "Travessa Zorobabel Quintanilha",
     "endereco.bairro": "Vila Quimbanda",
     "endereco.cidade": "Quixabeirópolis do Norte",
     "tributario.contador_nome": "Zyxwv Quokka Contabilidade",
 }
+
+# `nome_curto` de DUAS palavras é caso legítimo e comum ("Ana Clara", "João
+# Pedro") — e é o substituto SANCIONADO pela §D9. O braço B precisa distingui-lo
+# de nome completo, senão a única saída de quem vê a falha é pôr nome de pessoa
+# na allowlist de termos de domínio, exatamente o que a §D9 proíbe. A família de
+# teste carrega um desses de propósito.
+_NOME_CURTO_TITULAR = "Alex Zé"
+_NOME_CURTO_CONJUGE = "Bia"
 
 _FAMILY: dict[str, Any] = {
     "titular": "alex",
@@ -53,7 +66,7 @@ _FAMILY: dict[str, Any] = {
     "membros": {
         "alex": {
             "papel": "titular",
-            "nome_curto": "Alex",
+            "nome_curto": _NOME_CURTO_TITULAR,
             "nome_completo": _SENTINELAS["membros.titular.nome_completo"],
             "cpf": _SENTINELAS["membros.titular.cpf"],
             "data_nascimento": "1985-06-15",
@@ -61,8 +74,10 @@ _FAMILY: dict[str, Any] = {
         },
         "bia": {
             "papel": "conjuge",
-            "nome_curto": "Bia",
+            "nome_curto": _NOME_CURTO_CONJUGE,
             "nome_completo": _SENTINELAS["membros.conjuge.nome_completo"],
+            "nome_nascimento": _SENTINELAS["membros.conjuge.nome_nascimento"],
+            "extra": {"nome_nascimento": _SENTINELAS["membros.conjuge.extra.nome_nascimento"]},
             "data_nascimento": "1987-03-20",
         },
         "kim": {
@@ -119,10 +134,39 @@ def _fluxo() -> dict[str, Any]:
     }
 
 
+# A varredura só vale sobre o vocabulário que produção emite. Sem
+# `alocacao_alvo.derived` o narrador do chart cai no "sem alvo" e os labels de
+# classe de ativo ("Renda Fixa", "Ações Int.") nunca aparecem — foi por isso que
+# o braço B ficava verde com termos de domínio fora da allowlist. Com o bloco, a
+# allowlist é exercitada em vez de declarada no vácuo.
+def _alocacao_alvo_derived() -> dict[str, Any]:
+    return {
+        "derived": {
+            "has_alvo": True,
+            "carteira_liquida_brl": 1_500_000.0,
+            "imoveis_fisicos_brl": 400_000.0,
+            "caixa": {"valor_brl": 50_000.0},
+            "desvio_max_pct": 7.4,
+            "next_aporte_classe": "acoes_int",
+            "comparaveis": [
+                {"classe": "renda_fixa", "atual_pct": 48.0, "alvo_pct": 40.0},
+                {"classe": "acoes_br", "atual_pct": 22.0, "alvo_pct": 25.0},
+                {"classe": "acoes_int", "atual_pct": 12.0, "alvo_pct": 20.0},
+                {"classe": "fiis", "atual_pct": 18.0, "alvo_pct": 15.0},
+            ],
+        }
+    }
+
+
 def _e5_payload() -> dict[str, Any]:
     return {
         "patrimonio": _patrimonio(),
-        "goals": {"if_meta": 5_000_000.0, "ano_if": 2039, "if_gap": 3_500_000.0},
+        "goals": {
+            "if_meta": 5_000_000.0,
+            "ano_if": 2039,
+            "if_gap": 3_500_000.0,
+            "alocacao_alvo": _alocacao_alvo_derived(),
+        },
         "fluxo_caixa": _fluxo(),
         "ratios": {"taxa_poupanca_recorrente_pct": 35.0, "taxa_endividamento_pct": 8.0},
         "score": {"valor": 7.5, "classificacao": "Saudável"},
@@ -130,18 +174,31 @@ def _e5_payload() -> dict[str, Any]:
     }
 
 
+# O blob era ENUMERADO à mão (`perfil.left` + `perfil.right` + `summaries.*` +
+# `charts[*].context/conclusion`). Campo de texto novo — um `charts[*].caption`,
+# um `perfil_familia.footer`, uma chave nova no artefato — nascia fora da varredura
+# e vazava sem deixar o teste vermelho. A varredura passa a ser do ARTEFATO
+# INTEIRO: toda string alcançável a partir do que o builder devolve.
+def _strings_do_artefato(node: Any) -> list[str]:
+    """Todas as strings alcançáveis — chaves de dict incluídas."""
+    if isinstance(node, str):
+        return [node]
+    if isinstance(node, dict):
+        return [
+            s for chave, valor in node.items() for s in ([str(chave)] + _strings_do_artefato(valor))
+        ]
+    if isinstance(node, (list, tuple)):
+        return [s for item in node for s in _strings_do_artefato(item)]
+    return []
+
+
 @pytest.fixture(scope="module")
 def texto_emitido(tmp_path_factory: pytest.TempPathFactory) -> str:
-    """Todo texto user-facing de ``narrativas`` num único blob."""
+    """Todo texto do artefato ``narrativas`` num único blob (varredura recursiva)."""
     e5n._init_config(tmp_path_factory.mktemp("pii_guard"))
     metrics = e5n.load_metrics_from_e5(_e5_payload(), goals_cfg=_GOALS)
     out = E5NarrativasBuilder.from_family_config(_FAMILY).build(metrics, _FAMILY)
-    perfil = out["perfil_familia"]
-    partes = [perfil.get("left", ""), perfil.get("right", ""), *out["summaries"].values()]
-    for chart in out["charts"].values():
-        if isinstance(chart, dict):
-            partes += [str(chart.get(k, "")) for k in ("context", "conclusion")]
-    return "\n".join(partes)
+    return "\n".join(_strings_do_artefato(out))
 
 
 # ───────────────────── Braço A — sentinela por campo ─────────────────────
@@ -159,7 +216,7 @@ def test_campo_pii_nao_chega_ao_texto_entregue(campo: str, valor: str, texto_emi
 
 def test_primeiro_nome_continua_disponivel(texto_emitido: str) -> None:
     """A guarda não é 'sem nome nenhum' — primeiro nome serve ao leitor."""
-    assert "Alex" in texto_emitido, texto_emitido[:400]
+    assert _NOME_CURTO_TITULAR in texto_emitido, texto_emitido[:400]
 
 
 # ─────────────────── Braço B — forma de nome completo ────────────────────
@@ -168,18 +225,69 @@ def test_primeiro_nome_continua_disponivel(texto_emitido: str) -> None:
 _CAPITALIZADA = r"[A-ZÁÂÃÀÉÊÍÓÔÕÚÇ][a-záâãàéêíóôõúç]{2,}"
 _SEQUENCIA_RE = re.compile(rf"{_CAPITALIZADA}(?:\s+{_CAPITALIZADA})+")
 
-# Termos de domínio que legitimamente são multi-palavra capitalizada. Hoje só
-# os rótulos de regime (`_REGIME_LABELS` do pipeline_adapter) — vocabulário
-# público, um campo, uma razão. Nome de pessoa NUNCA entra aqui; adicionar
-# entrada é decisão consciente de quem vê a falha.
+# Termos de domínio que legitimamente são multi-palavra capitalizada. Duas
+# famílias, uma razão cada — nome de pessoa NUNCA entra aqui:
+#
+# - rótulos de regime tributário (`_REGIME_LABELS` do pipeline_adapter):
+#   vocabulário público, um campo, um dono;
+# - labels de classe de ativo da taxonomia canônica de 8 buckets (ADR-193,
+#   `asset_classifier` / `alocacao_narrator._ALOC_CLASSE_LABELS`): entram no
+#   texto do chart `alocacao_atual_vs_alvo`. Medido: rodar o braço B contra o
+#   texto real (não contra a fixture antiga, que não produzia esse chart) acha
+#   "Renda Fixa" e "Ações Int" — dois termos de domínio fora da allowlist. O
+#   furo não era o texto; era a fixture não exercitar o vocabulário.
 _TERMOS_DE_DOMINIO: frozenset[str] = frozenset(
-    {"Simples Nacional", "Lucro Presumido", "Lucro Real"}
+    {
+        # `regime_label` — a fixture emite "Simples Nacional"; os outros dois são
+        # valores alternativos do MESMO campo.
+        "Simples Nacional",
+        "Lucro Presumido",
+        "Lucro Real",
+        # `_ALOC_CLASSE_LABELS` — a fixture emite os dois que a regra alcança.
+        # `Ações BR`, `Fora do alvo` e `FIIs` ficam fora de propósito: a regra de
+        # 2+ palavras capitalizadas não casa sigla nem preposição minúscula, e
+        # entrada que a regra nunca acusaria é entrada morta (teste abaixo).
+        "Renda Fixa",
+        "Ações Int",
+    }
 )
 
 
+# `nome_curto` de 2+ palavras ("Ana Clara") tem a MESMA forma de nome completo. É
+# o substituto sancionado pela §D9, então é subtraído dinamicamente da varredura
+# — nunca declarado em `_TERMOS_DE_DOMINIO`, que é vocabulário de domínio. Sem
+# isso a única saída de quem vê a falha seria pôr nome de pessoa na allowlist.
+def _nomes_curtos_da_familia() -> frozenset[str]:
+    membros = _FAMILY.get("membros", {}).values()
+    return frozenset(m["nome_curto"] for m in membros if m.get("nome_curto"))
+
+
 def _sequencias_suspeitas(texto: str) -> list[str]:
-    """Sequências de 2+ capitalizadas que não são termo de domínio declarado."""
-    return [s for s in _SEQUENCIA_RE.findall(texto) if s not in _TERMOS_DE_DOMINIO]
+    """Sequências de 2+ capitalizadas que não são termo de domínio nem `nome_curto`."""
+    permitido = _TERMOS_DE_DOMINIO | _nomes_curtos_da_familia()
+    return [s for s in _SEQUENCIA_RE.findall(texto) if s not in permitido]
+
+
+@pytest.mark.parametrize("termo", sorted(_TERMOS_DE_DOMINIO))
+def test_allowlist_so_tem_termo_que_a_regra_poderia_acusar(termo: str) -> None:
+    """Entrada que o regex nunca casaria é entrada morta — engorda a allowlist e
+    dá a impressão de que a guarda cobre mais do que cobre."""
+    assert _SEQUENCIA_RE.fullmatch(termo), (
+        f"`{termo}` não tem forma de 2+ palavras capitalizadas — a regra nunca o "
+        "acusaria. Remova da allowlist."
+    )
+
+
+# A fixture tem de EXERCITAR o vocabulário, senão a allowlist é declarada no
+# vácuo: foi assim que "Renda Fixa"/"Ações Int" ficaram fora dela por tanto
+# tempo. Este teste exige ao menos um termo de cada família de campo no texto.
+@pytest.mark.parametrize("termo", ["Simples Nacional", "Renda Fixa", "Ações Int"])
+def test_fixture_exercita_o_vocabulario_de_dominio(termo: str, texto_emitido: str) -> None:
+    """Cada família da allowlist tem representante no texto emitido."""
+    assert termo in texto_emitido, (
+        f"`{termo}` não aparece no texto emitido — a fixture deixou de produzir o "
+        "campo, e a allowlist correspondente virou declaração sem teste."
+    )
 
 
 def test_texto_entregue_nao_tem_forma_de_nome_completo(texto_emitido: str) -> None:
@@ -201,8 +309,16 @@ def test_texto_entregue_nao_tem_forma_de_nome_completo(texto_emitido: str) -> No
 # 5 de `dev/check_chart_conclusion_parity.py`).
 #
 # Campos PII da família que narrador nenhum pode ler. `nome_curto` NÃO está
-# aqui: primeiro nome é o substituto sancionado.
-_CAMPOS_PII_PROIBIDOS = ("nome_completo", "local_nascimento", "cpf", "endereco")
+# aqui: primeiro nome é o substituto sancionado. `nome_nascimento` (nome civil
+# anterior, `member_name_resolver`) entra em A40.l4 — é da mesma classe de
+# `nome_completo` e estava fora da lista e da família-sentinela.
+_CAMPOS_PII_PROIBIDOS = (
+    "nome_completo",
+    "nome_nascimento",
+    "local_nascimento",
+    "cpf",
+    "endereco",
+)
 
 
 def _leituras_do_campo(campo: str) -> list[str]:

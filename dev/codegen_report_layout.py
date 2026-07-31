@@ -151,6 +151,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  data_source?: string;",
         "  summary?: boolean;",
         "  summary_source?: string | null;",
+        "  summary_suppressed_by?: string | null;",
         "  divider_before?: boolean;",
         "  collapsible?: boolean;",
         "}",
@@ -162,6 +163,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  optional?: boolean;",
         "  summary?: boolean;",
         "  summary_source?: string | null;",
+        "  summary_suppressed_by?: string | null;",
         "  charts?: ChartSpec[];",
         "  cards?: CardSpec[];",
         "}",
@@ -316,6 +318,7 @@ class SectionSpec(_Base):
     data_source: str | None = None
     summary: bool | None = None
     summary_source: str | None = None
+    summary_suppressed_by: str | None = None
     divider_before: bool | None = None
     collapsible: bool | None = None
 
@@ -330,6 +333,7 @@ class AppendixSpec(_Base):
     optional: bool | None = None
     summary: bool | None = None
     summary_source: str | None = None
+    summary_suppressed_by: str | None = None
     charts: list[ChartSpec] = []
     cards: list[CardSpec] = []
 

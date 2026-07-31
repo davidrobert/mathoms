@@ -122,15 +122,17 @@ def _narrate_summary(n_imoveis: int, riscos: list[str]) -> dict[str, str]:
     return SummariesNarrator(ctx).narrate(metrics, _FAMILY_BASE, riscos, ["Aporte"])
 
 
-def test_summaries_s4_singular_when_one_imovel():
-    s4 = _narrate_summary(1, ["risco1"])["s4"]
-    assert "1 imóvel no portfólio" in s4
-    assert "1 imóveis" not in s4
-
-
-def test_summaries_s4_plural_when_multiple_imoveis():
-    s4 = _narrate_summary(3, ["risco1"])["s4"]
-    assert "3 imóveis no portfólio" in s4
+# A40.l4: os dois testes de pluralização do s4 ("1 imóvel"/"3 imóveis no
+# portfólio") foram DELETADOS, não atualizados — o s4 não afirma mais contagem de
+# imóveis, porque a contagem que o narrador tem (`n_imoveis`, do baseline IRPF)
+# não é a que a tabela da S4 renderiza (`real_estate.imoveis`); medido 6 vs 4 na
+# mesma seção. O invariante vive em
+# `tests/test_e5n_anti_hardcode.py::test_s4_nao_afirma_contagem_de_imoveis`, que
+# proíbe QUALQUER contagem, não só a divergente. A pluralização segue testada no
+# `perfil_familia`, que continua imprimindo `n_imoveis` (ver abaixo).
+def test_summaries_s4_ignora_n_imoveis():
+    """Mudar `n_imoveis` não muda o s4 — ele descreve valor, não quantidade."""
+    assert _narrate_summary(1, ["risco1"])["s4"] == _narrate_summary(7, ["risco1"])["s4"]
 
 
 # ── summaries.s9 (riscos) ──────────────────────────────────────────────

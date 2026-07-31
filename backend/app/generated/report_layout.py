@@ -82,6 +82,7 @@ class SectionSpec(_Base):
     data_source: str | None = None
     summary: bool | None = None
     summary_source: str | None = None
+    summary_suppressed_by: str | None = None
     divider_before: bool | None = None
     collapsible: bool | None = None
 
@@ -96,6 +97,7 @@ class AppendixSpec(_Base):
     optional: bool | None = None
     summary: bool | None = None
     summary_source: str | None = None
+    summary_suppressed_by: str | None = None
     charts: list[ChartSpec] = []
     cards: list[CardSpec] = []
 
@@ -386,7 +388,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                        {   'id': 'S_IRPF_RENDA',
                                            'title': 'Renda Anual e Impostos',
                                            'enabled': True,
-                                           'summary': True,
+                                           'summary': False,
                                            'summary_source': None,
                                            'divider_before': True,
                                            'charts': [   {   'id': 'renda_evolucao_multi_anos',
@@ -410,7 +412,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                        {   'id': 'S_IRPF_OTIMIZACAO',
                                            'title': 'Otimização Tributária',
                                            'enabled': True,
-                                           'summary': True,
+                                           'summary': False,
                                            'summary_source': None,
                                            'cards': [   {   'id': 'pgbl_capacidade',
                                                             'enabled': True,
@@ -429,6 +431,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                            'enabled': True,
                                            'summary': True,
                                            'summary_source': 's9',
+                                           'summary_suppressed_by': 'bubble_riscos',
                                            'divider_before': True,
                                            'charts': [   {   'id': 'bubble_riscos',
                                                              'enabled': True,

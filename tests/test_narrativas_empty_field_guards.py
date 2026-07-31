@@ -130,13 +130,19 @@ def test_perfil_familia_left_sem_buracos_de_fragmento():
     assert "salário-base de R$ 0,00" not in left
 
 
-def test_summaries_s4_omite_endereco_vazio():
-    """PD-02: s4 sem rua → 'residência (' e não 'residência na ('."""
-    fam = {**_FAMILY_BASE, "endereco": {}}
-    s = SummariesNarrator(NarrativasContext.from_family_config(fam)).narrate(
+def test_summaries_s4_nunca_localiza_a_residencia():
+    """PD-02 virou regra dura em A40.l4 (ADR-319 · §D9): o s4 não cita a
+    residência por localização nem quando a família TEM endereço cadastrado —
+    endereço é PII e o relatório é artefato que a família mostra a terceiros. O
+    teste antigo só cobria o buraco de template ('residência na ') com endereço
+    vazio; agora a ausência é incondicional."""
+    fam = {**_FAMILY_BASE, "endereco": {"rua": "Rua Exemplo, 100", "cidade": "Cidade Exemplo"}}
+    s4 = SummariesNarrator(NarrativasContext.from_family_config(fam)).narrate(
         _build_metrics(), fam, [], []
-    )
-    assert "residência na " not in s["s4"] and "residência (" in s["s4"]
+    )["s4"]
+    assert "residência na " not in s4, s4
+    assert "Rua Exemplo" not in s4 and "Cidade Exemplo" not in s4, s4
+    assert "residência de R$" in s4, s4
 
 
 def test_summaries_s8_omite_contador_e_holding_vazios():

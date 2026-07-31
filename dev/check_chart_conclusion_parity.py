@@ -40,6 +40,13 @@ Escopo pragmático (regex, sem parser TS completo):
      se a flag for provavelmente o inventário de render sites. Sem ela, a flag
      mente nas duas direções — `summary: true` sem componente (texto gerado,
      mapeado e nunca exibido) e componente sem flag (denominador subestimado).
+  7. `<SectionSummary>` sob CONDIÇÃO no TSX (`{!isEmpty && <SectionSummary …>}`)
+     ⟺ a entrada do layout declara `summary_suppressed_by` (A40.l4 · ADR-355).
+     Render site existir não é o mesmo que o parágrafo aparecer: a S9
+     curto-circuita em `<EmptyState/>` e engole o `s9`. Sem esta regra o CV9
+     conta o destino como entregue num run que renderiza 6 de 7 — o furo medido
+     na primeira versão do CV9. Vale nas duas direções: campo declarado sem
+     render site condicionado é declaração morta.
 
 Uso:
     python3 dev/check_chart_conclusion_parity.py
@@ -238,12 +245,16 @@ def _summary_render_sites() -> set[str]:
     }
 
 
-def _layout_summary_flag_ids() -> set[str]:
-    """Ids do layout com `summary: true` (seções + apêndices, `enabled` ou não)."""
+def _layout_entries() -> list[dict]:
     layout = yaml.safe_load(_LAYOUT_YAML.read_text(encoding="utf-8")) or {}
     estrategico = layout.get("estrategico") or {}
     entries = [*(estrategico.get("sections") or []), *(estrategico.get("appendices") or [])]
-    return {e["id"] for e in entries if isinstance(e, dict) and e.get("summary")}
+    return [e for e in entries if isinstance(e, dict)]
+
+
+def _layout_summary_flag_ids() -> set[str]:
+    """Ids do layout com `summary: true` (seções + apêndices, `enabled` ou não)."""
+    return {e["id"] for e in _layout_entries() if e.get("summary")}
 
 
 def _summary_flag_vs_render_site() -> list[str]:
@@ -261,6 +272,48 @@ def _summary_flag_vs_render_site() -> list[str]:
             f"seção `{sid}` renderiza <SectionSummary> mas não tem `summary: true` "
             f"em {_LAYOUT_YAML.name} — o denominador do CV9 fica subestimado"
             for sid in sorted(render_sites - declared)
+        ),
+    ]
+
+
+# Render site sob condição: `{cond && <SectionSummary …>}` e as variantes
+# ternárias. Escopo pragmático como a regra 4 (só o que o regex vê); um guard
+# indireto — `{renderSummary()}` — escapa. O gate mede a forma que existe hoje e
+# a que o próximo autor mais provavelmente escreve.
+_CONDITIONAL_SUMMARY_RE = re.compile(
+    r'(?:&&|\|\||\?)\s*<SectionSummary\b[^>]*?sectionId=\{?"([^"]+)"'
+)
+
+
+def _conditional_render_sites() -> set[str]:
+    """Ids cujo `<SectionSummary>` está atrás de uma condição no TSX."""
+    return {
+        sid
+        for tsx in sorted(_SECTIONS_DIR.glob("*.tsx"))
+        for sid in _CONDITIONAL_SUMMARY_RE.findall(_tsx_code(tsx))
+    }
+
+
+def _layout_suppression_declared() -> set[str]:
+    return {e["id"] for e in _layout_entries() if e.get("summary_suppressed_by")}
+
+
+def _conditional_summary_vs_declaration() -> list[str]:
+    """Regra 7 — render site condicionado ⟺ `summary_suppressed_by` declarado."""
+    conditional = _conditional_render_sites()
+    declared = _layout_suppression_declared()
+    return [
+        *(
+            f"seção `{sid}` renderiza <SectionSummary> sob condição mas não declara "
+            f"`summary_suppressed_by` em {_LAYOUT_YAML.name} — o CV9 conta o destino "
+            "como entregue em run que suprime o parágrafo"
+            for sid in sorted(conditional - declared)
+        ),
+        *(
+            f"seção `{sid}` declara `summary_suppressed_by` em {_LAYOUT_YAML.name} mas o "
+            "<SectionSummary> não está atrás de condição em sections/*.tsx — declaração "
+            "morta: o CV9 deixaria de contar um destino que sempre renderiza"
+            for sid in sorted(declared - conditional)
         ),
     ]
 
@@ -286,6 +339,7 @@ def collect_violations() -> list[str]:
         *_call_site_unknown_id(builders, fallbacks),
         *_narrativas_top_level_access(),
         *_summary_flag_vs_render_site(),
+        *_conditional_summary_vs_declaration(),
     ]
 
 

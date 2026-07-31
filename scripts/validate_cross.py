@@ -338,6 +338,32 @@ def _delivered(value) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
+# Render site existir não é o mesmo que o parágrafo aparecer. A S9 curto-circuita
+# em ``<EmptyState/>`` quando o ``bubble_riscos`` vem ``data_state: "empty"`` e
+# NÃO imprime o ``s9`` nesse ramo — a mensagem já é o empty state (ADR-355 §D7).
+# A primeira versão do CV9 devolvia ``entregues=7/7`` num run que renderizava 6:
+# ela media produtor × mapa, e o 4º predicado só olhava flags ESTÁTICAS do
+# layout, cegas a supressão condicional.
+#
+# O gate é declarado no layout (``summary_suppressed_by``) e a regra 7 de
+# ``dev/check_chart_conclusion_parity.py`` exige a correspondência com o
+# ``<SectionSummary>`` condicionado no TSX, nas duas direções — sem isso a
+# declaração derivaria do código em silêncio.
+def _suppressed_destinations(e5: dict, destinos: dict[str, str]) -> dict[str, str]:
+    """Destinos que ESTE run não entrega porque a seção está em empty state."""
+    charts = (e5.get("narrativas") or {}).get("charts") or {}
+    out = {}
+    for entry in _summary_entries():
+        gate = entry.get("summary_suppressed_by")
+        sid = entry.get("id")
+        if not gate or sid not in destinos:
+            continue
+        chart = charts.get(gate)
+        if isinstance(chart, dict) and chart.get("data_state") == "empty":
+            out[sid] = destinos[sid]
+    return out
+
+
 # CV9 mede o que o renderer consegue EXIBIR, não o que o produtor gerou.
 # Presença + não-vazio de ``s1..s10`` já é hard-fail de ``validate_narrativas``
 # a montante, então o CV9 antigo era verde por construção. As quatro direções
@@ -350,7 +376,7 @@ def _delivered(value) -> bool:
 # ``enabled: false``) — texto gerado, mapeado e invisível, a direção que o nome
 # "delivery" prometia e nenhuma perna cobria.
 def _delivery_failures(summaries: dict, destinos: dict[str, str]) -> dict[str, list[str]]:
-    """Os quatro predicados de entrega, cada um com as chaves ofensoras."""
+    """Os quatro predicados de FALHA, cada um com as chaves ofensoras."""
     from pipeline.domain.services.narrativas import ORPHAN_SUMMARY_KEYS
 
     esperadas = set(destinos.values())
@@ -367,12 +393,29 @@ def _delivery_failures(summaries: dict, destinos: dict[str, str]) -> dict[str, l
     }
 
 
+# ``suprimido`` sai do NUMERADOR mas não reprova: a supressão é a decisão de
+# produto da §D7 (o empty state é a mensagem), não um defeito. Reprovar deixaria
+# o CV9 vermelho em todo workspace sem risco cadastrado — trocaria um verde
+# decorativo por um vermelho decorativo. O que o nome "entregues" promete é o
+# número que o render produz, e é esse que sai: 6/7 quando a S9 suprime.
+# Contagem por SEÇÃO (não por chave): o denominador é o inventário de render
+# sites, e duas seções podem, em teoria, declarar o mesmo `summary_source`.
+def _nao_entregues(
+    destinos: dict[str, str], fail: dict[str, list[str]], suprimido: dict[str, str]
+) -> set[str]:
+    """Seções cujo parágrafo não chegou ao render neste run."""
+    sem_texto_ou_shape = set(fail["sem_texto"]) | set(fail["shape_invalido"])
+    return {sid for sid, key in destinos.items() if key in sem_texto_ou_shape} | set(suprimido)
+
+
 def _cv9_summaries_delivery(e5: dict) -> CrossValidationResult:
     """CV9 — ENTREGA das narrativas de seção (A40.l4 · ADR-355 §D6)."""
     summaries = (e5.get("narrativas") or {}).get("summaries") or {}
     destinos = _summary_render_destinations()
     fail = _delivery_failures(summaries, destinos)
-    entregues = len(destinos) - len(fail["sem_texto"]) - len(fail["shape_invalido"])
+    suprimido = _suppressed_destinations(e5, destinos)
+    entregues = len(destinos) - len(_nao_entregues(destinos, fail, suprimido))
+    detalhe = {**fail, "suprimido": sorted(f"{k}->{v}" for k, v in suprimido.items())}
     passed = not any(fail.values())
     return CrossValidationResult(
         "CV9",
@@ -380,7 +423,7 @@ def _cv9_summaries_delivery(e5: dict) -> CrossValidationResult:
         "info" if passed else "error",
         passed,
         f"entregues={entregues}/esperadas={len(destinos)}; "
-        + "; ".join(f"{k}={v or 'nenhuma'}" for k, v in fail.items()),
+        + "; ".join(f"{k}={v or 'nenhuma'}" for k, v in detalhe.items()),
         ["narrativas"],
     )
 
