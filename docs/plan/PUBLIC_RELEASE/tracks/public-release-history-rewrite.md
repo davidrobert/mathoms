@@ -45,7 +45,7 @@ Confirme **todas** antes de tocar em qualquer clone. Se uma falhar, PARE e repor
 | # | Pré-condição | Como confirmar | Dono |
 |---|---|---|---|
 | 0.1 | Backup mirror off-site restaurável + tag `pre-public-flip-backup` no HEAD de `main` ([[A34.l2]]) | Clone de teste do backup: `git clone --mirror <backup-url> /tmp/restore-test && git -C /tmp/restore-test log -1`. Confirmar tag existe em `origin`: `git ls-remote --tags origin pre-public-flip-backup` | Owner + agente |
-| 0.2 | Rotação Fernet confirmada em prod ([[A34.l3]] · [[ADR-171]]) — `old_key_decryptable=0` | Saída do `rotate_fernet_secrets.py` (runbook `fernet_rotation.md`) com contador zero. O rewrite remove o **blob** do `.env`, mas a key só é inócua se rotacionou em prod (não verificável do repo) | Owner |
+| 0.2 | Rotação Fernet confirmada em prod ([[A34.l3]] · [[ADR-171]]) — `failed=0` | Saída da task `rotate_fernet_secrets` (`celery -A backend.app.worker call …`, runbook `fernet_rotation.md`) com `failed` zerado em todos os targets. O rewrite remove o **blob** do `.env`, mas a key só é inócua se rotacionou em prod (não verificável do repo) | Owner |
 | 0.3 | FREEZE de merges anunciado e ativo ([[A34.l19]]) até o fim de W8 | Anúncio no canal + auto-merge desabilitado em PRs abertos | Owner |
 | 0.4 | [[ADR-315]] e [[ADR-317]] `Decidido` (estratégia + identidade de mailmap) | `git grep -l 'status: Decidido' docs/adr/315-*.md docs/adr/317-*.md` | Owner |
 | 0.5 | Onda 1 (saneamento do HEAD) mergeada — o rewrite trata o **histórico**, não o HEAD | Gate G1 verde no plano | Agente |

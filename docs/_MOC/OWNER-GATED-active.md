@@ -63,7 +63,7 @@ last_review: "2026-07-09"
 | Item | O que falta | Prep pronto? | O que destrava | Tempo est. | Doc-fonte |
 |---|---|---|---|---|---|
 | Backup mirror off-site + tag | `git clone --mirror` off-site + tag `pre-public-flip-backup` + prova de restaurabilidade | runbook na lane | Pré-condição de G0; rede de segurança do rewrite W3 | ~30min | [[A34.l2]] |
-| Rotação Fernet em prod | Confirmar `rotate_fernet_secrets.py` com `old_key_decryptable=0` | script existe (ADR-171) | Pré-condição de G0 | ~15min | [[A34.l3]] |
+| Rotação Fernet em prod | `celery -A backend.app.worker call rotate_fernet_secrets` (dry-run antes); gate fecha com `failed=0` somado nos targets | task Celery existe (ADR-171) | Pré-condição de G0 — **P0 independente do flip** | ~15min | [[A34.l3]] |
 | GHAS + Fernet secret + CODEOWNERS | Ativar GHAS, criar secret `MATHOMS_FERNET_KEY`, CODEOWNERS em workflows | lane pronta | Gate G5 do flip | ~20min | [[A34.l15]] |
 | Triagem de metadados + ticket Support | Tratar ~15 itens T1 dos 855; ticket ao GitHub Support (cache de PRs) | depende de G0 ([[ADR-316]]) | Gate G4-min | — | [[A34.l21]] |
 | Operações do flip (FREEZE→bypass→flip) | FREEZE de merges, deletar 85 branches `agent/*`, bypass do Ruleset, `--visibility public` + verificação G8 | runbooks nas lanes | O flip em si | sessão dedicada | [[A34.l19]] · [[A34.l20]] · [[A34.l22]] |

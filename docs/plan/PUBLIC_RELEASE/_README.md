@@ -154,8 +154,8 @@ deploy). Quadro operacional em [[ADR-316]] §Decisão do owner.
   LAUNCH_TRUST não quebra.
 - **`SECURITY.md`** (LGPD, SLAs) e **`.github/CONTRIBUTING.md`** já existem e são de bom
   padrão. CONTRIBUTING assume fluxo de agentes internos — adaptar é *should* (Onda 6 polish).
-- **Backup / rotação:** `rotate_fernet_secrets.py` ([[ADR-171]], runbook `fernet_rotation.md`)
-  é a ferramenta de confirmação da Fernet (Onda 0).
+- **Backup / rotação:** a task Celery `rotate_fernet_secrets` ([[ADR-171]], runbook
+  `fernet_rotation.md`) é a ferramenta de confirmação da Fernet (Onda 0).
 
 ---
 
@@ -186,7 +186,7 @@ W0(G0 gate decisões) ──► W2(G2 gates) ──► W1(G1 saneia HEAD) ──
 
 | Onda | Objetivo | Lanes | P | Gate |
 |------|----------|-------|---|------|
-| **W0 — Gate de decisões** (owner) | Travar política/negócio/IP/risco em 8 ADRs `Proposto`. Nenhuma lane W1+ abre antes de G0. | [[A34.l1]] ADRs do gate · [[A34.l2]] backup mirror off-site + tag · [[A34.l3]] confirmar rotação Fernet em prod | P0 | **G0:** 8 ADRs (313–320) mergeadas com decisão do owner; aceite de risco de metadados assinado **OU** restrição in-place reaberta; backup restaurável + tag `pre-public-flip-backup`; Fernet `old_key_decryptable=0` |
+| **W0 — Gate de decisões** (owner) | Travar política/negócio/IP/risco em 8 ADRs `Proposto`. Nenhuma lane W1+ abre antes de G0. | [[A34.l1]] ADRs do gate · [[A34.l2]] backup mirror off-site + tag · [[A34.l3]] confirmar rotação Fernet em prod | P0 | **G0:** 8 ADRs (313–320) mergeadas com decisão do owner; aceite de risco de metadados assinado **OU** restrição in-place reaberta; backup restaurável + tag `pre-public-flip-backup`; Fernet rotacionada com `failed=0` |
 | **W2 — Gates anti-regressão** | Instalar+provar gates PII + sigilo + secrets ANTES do saneamento. | [[A34.l4]] estender `lint_no_real_pii` a `docs/`+domínio · [[A34.l5]] estender `check_sigilo_terms` ao superset · [[A34.l6]] bloquear `_archive/` + gitleaks bloqueante | P0 | **G2:** os 4 gates rodam **VERMELHO** no HEAD contaminado (critério de detecção) e um commit-teste sintético é BARRADO |
 | **W1 — Saneamento do HEAD** | Zerar PII camada-1 + redigir/split IP público, sob gates verdes de W2. | [[A34.l7]] deletar `_archive/` · [[A34.l8]] regenerar `EXEMPLO_DE_RELATORIO` sintético · [[A34.l9]] anonimizar ~15 ADRs+docs (in-body) · [[A34.l10]] purgar CPFs+endereço · [[A34.l11]] neutralizar seed+paths · [[A34.l12]] redigir/split `COMPETITIVE_PIERRE`+prompts+pricing (owner) | P0 | **G1:** gates W2 verdes no HEAD; `git ls-files` sem `_archive/`; EXEMPLO regenerado com cobertura estrutural completa; `check_doc_links`+`check_adr_anchors` verdes; suíte completa verde |
 | **W5 — Hardening CI/CD** (∥ W1) | Fechar superfície que só existe em repo público. Config no HEAD, independe do histórico. | [[A34.l13]] `permissions: read-all` default + require-approval · [[A34.l14]] SHA-pin das 4 actions de terceiros · [[A34.l15]] GHAS + Fernet dummy → secret | P0/P1 | **G5:** permissions mínimas em todos os workflows; 4 actions SHA-pinned + Dependabot; GHAS + push protection; CODEOWNERS em `.github/workflows/**` |
@@ -276,7 +276,7 @@ FREEZE + bypass do Ruleset · [[ADR-316]] aceite de metadados (ou reabrir in-pla
 [[ADR-317]] identidade no mailmap + co-authors · [[ADR-318]] fronteira EN/PT-BR (+ confirmar
 que docs-EN não sinaliza mercado PT). **Confirmações operacionais** (assinadas dentro da
 [[ADR-315]]): backup off-site + tag `pre-public-flip-backup`, rotação Fernet em prod
-(`old_key_decryptable=0`), aprovação da janela de FREEZE (W3→W8). **[[ADR-319]] e [[ADR-320]]
+(`failed=0`), aprovação da janela de FREEZE (W3→W8). **[[ADR-319]] e [[ADR-320]]
 não entram aqui** — são técnicas, fechadas pela síntese do co-design (ratificação, não decisão).
 
 ---
@@ -284,8 +284,9 @@ não entram aqui** — são técnicas, fechadas pela síntese do co-design (rati
 ## Verificação (por onda)
 
 - **G0:** 8 ADRs mergeadas com decisão textual; backup mirror clonável de teste; tag
-  `pre-public-flip-backup` no HEAD de `main`; `rotate_fernet_secrets.py` com
-  `old_key_decryptable=0`.
+  `pre-public-flip-backup` no HEAD de `main`; task `rotate_fernet_secrets` com
+  `failed=0` somado nos targets (ver [[A34.l3]] §Critério — por que `failed=0`
+  é a propriedade certa e por que `old_key_decryptable` não existe).
 - **G2:** cada gate roda VERMELHO no HEAD atual (prova que detecta); commit-teste com
   PII/atribuição sintética-conhecida é BARRADO pelos 4 gates.
 - **G1:** `git grep` no HEAD = zero para CPF/endereço/placa/nome-de-terceiro/patrimônio-nominal;

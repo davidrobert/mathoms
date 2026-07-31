@@ -73,7 +73,7 @@ satisfeito — os 11 itens, todos verdes:
 6. 4 actions de terceiros SHA-pinned (`git grep -n "uses:.*@v[0-9]" .github/workflows/` vazio para elas).
 7. LICENSE (coerente com [[ADR-313]]) + README EN com disclaimer presentes.
 8. Itens T1 de metadados GitHub tratados; residual T3 aceito em [[ADR-316]].
-9. Fernet confirmada inócua (rotação [[ADR-171]] com `old_key_decryptable=0`, W0).
+9. Fernet confirmada inócua (rotação [[ADR-171]] com `failed=0`, W0).
 10. Backup off-site íntegro e restaurável (tag `pre-public-flip-backup`, W0).
 11. **SMOKE FINAL** — clone anônimo + grep dos padrões PII/atribuição = **zero**,
     executado **ANTES** do flip.
