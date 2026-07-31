@@ -12,6 +12,7 @@ relates_to:
   - "[[ADR-143]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-07-30"]
 aliases:
   - "ADR 210"
   - "Saude test suite CI"
@@ -26,6 +27,14 @@ tags:
 ---
 
 # ADR-210 — Saúde do test suite do CI
+
+> **Emenda (2026-07-30) — camada 4, liveness dos compensadores:** a camada 2
+> abaixo removeu o trigger `push: main` e declarou que o job `main-smoke` do
+> nightly cobriria o buraco. Em 2026-06-15 o nightly foi desabilitado e a
+> cobertura sumiu por 45 dias — este texto seguiu afirmando um controle que
+> não existia. Camada 4 (§Adendo 2026-07-30) fecha isso gateando a liveness
+> do compensador. **Enquanto o `main-smoke` não estiver vivo, a afirmação de
+> que `all-green: skipped = pass` é segura não vale.**
 
 ## Contexto
 
@@ -263,6 +272,119 @@ ativo como guardrail.
 
 E remover/no-op o job `main-smoke` de `nightly.yml`. Mudança totalmente
 reversível em 1 PR.
+
+## Adendo 2026-07-30 — Camada 4: liveness dos compensadores
+
+### O que aconteceu
+
+Em 2026-06-15 o `nightly.yml` foi `disabled_manually`. Ficou 45 dias fora do
+ar. Nesse período a camada 2 deste documento continuou afirmando, por escrito,
+que o `main-smoke` cobria a remoção do `push: main`. Não cobria.
+
+O desligamento não foi dano colateral dos jobs pesados, como pareceu à
+primeira vista: dois dos três últimos runs agendados falharam **no próprio
+`main-smoke`**, no step "Pipeline tests". Os crons já eram mutuamente
+exclusivos por `github.event.schedule`, então visual/e2e nunca poderiam ter
+derrubado o smoke. O acoplamento real é outro — **um `state: disabled` no
+nível do workflow mata os 6 jobs de uma vez**, e o nightly hospedava não só o
+smoke, mas o drill de backup ([[ADR-228]] G2) e o `lineage-eval`.
+
+Três consequências que só ficaram visíveis na investigação de 2026-07-30:
+
+1. **Classe de mudança sem teste algum.** `all-green` aceita `skipped`, e
+   `backend-tests` roda `-m "not migration"` em PR. O `main-smoke` era o único
+   lugar onde a suíte rodava sem filtro. Sem ele não é "janela de detecção de
+   +24h" — é cobertura zero para PR que não bate path filter.
+2. **Gate convertido em no-op.** `dev/check_lineage_eval_gate.py` só bloqueia
+   se existir Issue `lineage-eval-fail` aberta; quem abre essa Issue é o job
+   `lineage-eval` do nightly. Produtor morto ⇒ Issue nunca abre ⇒ o gate passa
+   por construção, afirmando cobertura que não houve. **Fail-open silencioso.**
+3. **Alerta que apodrece.** A Issue #642 abriu automaticamente em 2026-06-14,
+   como projetado, e seguia aberta 46 dias depois. Pior: a trava anti-duplicata
+   fazia toda falha nova ser silenciada com "issue já aberta". O mecanismo de
+   alerta funcionou; o que falhou foi não haver nada que cobrasse a triagem.
+
+Não é a primeira vez — #638/#647 já haviam tratado uma desativação anterior
+pelo mesmo motivo. Reincidência pede remoção de causa estrutural, não religar.
+
+### Decisão (Camada 4)
+
+**Invariante:** remover um gate em troca de um compensador agendado só é
+permitido se a **liveness do compensador for ela mesma gateada**. Sem isso,
+"temos cobertura noturna" é afirmação que ninguém verifica — e o custo do erro
+é falso verde, que é pior que vermelho.
+
+Materializa em `.github/scheduled-workflows.yml` (manifesto declarativo dos 9
+workflows agendados, incluindo o `budget-alert.yml` que hospeda o próprio
+watchdog) + `dev/check_scheduled_workflows.py`, com quatro sinais:
+
+| Sinal | Detecta | Por que existe |
+|---|---|---|
+| `S0` | manifesto ≠ `.github/workflows/*.yml` | senão o manifesto apodrece como apodreceu este texto |
+| `S1` | workflow não-`active` | o que aconteceu em 06-15 |
+| `S2` | sem run agendado dentro da janela | cron que parou, auto-disable por 60d de inatividade, YAML inválido |
+| `S3` | Issue de alerta além do limite de idade | teria disparado em 2026-06-21, **antes** do botão ser apertado |
+
+`S2` mede run **iniciado**, não bem-sucedido: falha já tem canal próprio
+(Issue), e duplicar alerta treina o operador a ignorar os dois.
+
+**Dois call-sites, classes de trigger distintas.** Gate de PR (step em
+`lint-all`) pega o modo de falha observado — o dono seguiu mergeando até #1117
+com o detector off; o primeiro PR após 06-15 teria falhado. Cron diário (steps
+em `budget-alert.yml`) pega o resíduo: repo quieto e PR docs-only, já que
+`lint-all` é `if: any_code`. Ambos são **steps em jobs existentes**, nunca jobs
+novos — ver §Custo.
+
+**Waiver datado.** Exceção declarada com `until:` no manifesto degrada as
+violações da entrada para warning; vencido o prazo, o waiver **ele mesmo** vira
+hard-fail. A exceção não pode apodrecer como apodreceu a Issue que ela cobre.
+Escape hatch por label `hotfix`/`ops-override`, senão o PR que conserta o drift
+não mergeia.
+
+**A Issue `ops-watchdog` fecha sozinha** quando o report volta vazio. Alerta
+que se auto-resolve não apodrece.
+
+### Custo: a alavanca é o número de jobs, não a duração
+
+A medição de 2026-07-30 (julho, 4.587 runs) reordenou o que importa:
+
+| workflow | runs | min/run | min/mês |
+|---|---:|---:|---:|
+| CI | 914 | 7,5 | 6.837 |
+| Security | 917 | 1,4 | 1.320 |
+| Auto-update PR branches | 1.055 | 1,0 | 1.055 |
+| PR Quality | 924 | 1,0 | 924 |
+| Auto-merge watchdog | 646 | 1,0 | 646 |
+| **total** | | | **~10.880** (544% de 2.000) |
+
+Quatro workflows marcam exatamente **1,0 min/run** porque o GitHub arredonda
+cada job para 1 minuto: os dois pollers rodam em 14s e são cobrados como 60.
+Juntos somam 3.945 min/mês — quase 2× o orçamento — para poucos minutos de
+computação real. O nightly inteiro custa ~690 min (6%): **desligá-lo cortou 6%
+do gasto e 100% da rede de segurança.** Por isso a camada 4 entra como step em
+job existente, nunca como job novo.
+
+### Gatilhos objetivos para reabrir a camada 2
+
+Reverter para `push: main` **não** é a resposta ao incidente: cobriria 1 dos 6
+jobs (não o drill de DR, não o visual, não o lineage-eval) e trocaria um custo
+medido por um problema que continua. Reabrir a decisão quando:
+
+- **repo virar público (A34 G0)** — Actions passa a ser ilimitado e o argumento
+  de custo, que é a única razão da camada 2, evapora; ou
+- **≥3 drifts/mês em `main`** que passaram pelo gate de PR (drift real, não
+  flake) — aí a janela de 24h virou dor mensurável.
+
+### Trade-offs aceitos
+
+1. **PR docs-only não roda o gate** (`lint-all` é `if: any_code`). Coberto pelo
+   cron diário. Alternativa — job próprio sempre-on — custaria ~900 min/mês,
+   mais que o nightly inteiro.
+2. **`S3` não cobre label sem `max_issue_age_days`.** `ci-budget` é crônica por
+   design (o workflow reescreve o corpo a cada run); idade ali não é abandono.
+3. **Waiver pode ser renovado indefinidamente por um operador determinado.** É
+   exceção auditável em git, não impedimento — o objetivo é tornar a decisão
+   visível e datada, não impossível.
 
 ## Referências
 

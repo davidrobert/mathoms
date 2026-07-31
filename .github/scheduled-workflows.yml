@@ -1,0 +1,127 @@
+# Manifesto de workflows agendados — liveness dos compensadores (ADR-210 §camada 4).
+#
+# Por que existe: a ADR-210 removeu o trigger `push: main` do ci.yml e
+# declarou, por escrito, que o job `main-smoke` do nightly cobriria o buraco.
+# Em 2026-06-15 o nightly foi desabilitado e a camada compensatória deixou de
+# existir por 45 dias — sem que nada no repositório percebesse. O texto da ADR
+# continuou afirmando uma cobertura que não havia.
+#
+# O invariante que este arquivo enforça: **remover um gate em troca de um
+# compensador agendado só é permitido se a liveness do compensador for, ela
+# mesma, gateada.** Sem isso, "temos cobertura noturna" é uma afirmação que
+# ninguém verifica.
+#
+# Consumido por `dev/check_scheduled_workflows.py`, que roda em dois lugares:
+#   - gate de PR (ci.yml, job lint-all) — falha o PR;
+#   - cron diário (budget-alert.yml) — abre Issue `ops-watchdog`.
+#
+# Três sinais, porque as falhas observadas foram de três tipos distintos:
+#   S1 state       — workflow desabilitado (foi o que aconteceu em 06-15).
+#   S2 liveness    — nenhum run agendado dentro de `max_age_days`. Pega o que
+#                    S1 não vê: cron que parou de disparar, auto-disable da
+#                    GitHub por 60 dias de inatividade, YAML inválido.
+#                    Mede run INICIADO, não bem-sucedido — falha já tem canal
+#                    próprio (Issue), não duplique o alerta.
+#   S3 issue-rot   — Issue de alerta aberta além de `max_issue_age_days`. É o
+#                    sinal que teria evitado o incidente: #642 abriu em 06-14 e
+#                    seguia aberta 46 dias depois. Pior, a trava anti-duplicata
+#                    faz toda falha nova ser silenciada por uma issue velha.
+#
+# `waiver` é exceção datada e auditável. Enquanto `until` não vencer, as
+# violações da entrada viram warning. Depois de vencer, o waiver ele mesmo
+# vira hard-fail — para que a exceção não apodreça como apodreceu a #642.
+#
+# Adicionar workflow com `schedule:` sem entrada aqui é erro: o script varre
+# .github/workflows/*.yml e falha em órfão. Sem isso o manifesto apodrece.
+
+version: 1
+
+workflows:
+  - file: nightly.yml
+    crons: ["30 5 * * *", "0 6 * * 1,3,5"]
+    max_age_days: 3 # diário: tolera 2 misses de infra antes de gritar
+    why: >-
+      Hospeda main-smoke, a ÚNICA execução da suíte sem filtro contra main
+      (all-green aceita skipped; backend-tests roda -m "not migration" em PR).
+      Hospeda também o drill de backup (ADR-228 G2) e o lineage-eval, produtor
+      da Issue que o gate dev/check_lineage_eval_gate.py consome.
+    adr: ADR-210
+    alerts:
+      - label: main-smoke-fail
+        max_issue_age_days: 7
+      - label: backup-drill-fail
+        max_issue_age_days: 7
+      - label: lineage-eval-fail
+        max_issue_age_days: 7
+      - label: visual-regression
+        max_issue_age_days: 14
+    waiver:
+      until: "2026-08-13"
+      reason: >-
+        Desabilitado manualmente em 2026-06-15 com #642/#643/#644 abertas.
+        Religar é decisão do owner (custa ~30-60min de runner com cache frio,
+        num repo em 544% do orçamento). Sem o waiver este gate trava todo
+        merge, inclusive o PR que o introduz. Vencimento força a decisão.
+
+  - file: budget-alert.yml
+    crons: ["0 2 * * *"]
+    max_age_days: 3
+    why: >-
+      Guardrail de FinOps e host do cron deste watchdog. Auto-cobertura: se o
+      budget-alert morrer, o watchdog morre junto — S1/S2 sobre ele mesmo é o
+      que torna esse acoplamento visível em vez de silencioso.
+    adr: ADR-210
+    alerts:
+      # `ci-budget` é crônica por design: a issue fica aberta enquanto o
+      # consumo estiver acima do teto, e o workflow reescreve o corpo a cada
+      # run. Idade não é sinal de abandono aqui, então sem max_issue_age_days.
+      - label: ci-budget
+
+  - file: security.yml
+    crons: ["0 3 * * 6"]
+    max_age_days: 12 # semanal
+    why: "Varredura de histórico completo (gitleaks) + audit de dependências."
+    adr: ADR-319
+    alerts:
+      - label: security
+        max_issue_age_days: 21
+    waiver:
+      until: "2026-08-13"
+      reason: >-
+        Seis Issues `security` abertas desde 2026-05-23 sem triagem — rot real,
+        não falso-positivo. Precisa de uma passada de triagem antes de virar
+        gate, senão bloqueia merge por dívida pré-existente.
+
+  - file: auto-update-prs.yml
+    crons: ["17,47 * * * *"]
+    max_age_days: 2
+    why: "Avança o trem de auto-merge (ADR-322); sem ele PRs congelam BEHIND."
+    adr: ADR-322
+
+  - file: automerge-watchdog.yml
+    crons: ["5,35 * * * *"]
+    max_age_days: 2
+    why: "Destrava PR com auto-merge preso (agregador stale, check fantasma)."
+    adr: ADR-322
+
+  - file: stale.yml
+    crons: ["30 6 * * *"]
+    max_age_days: 3
+    why: "Higiene de Issues/PRs parados."
+
+  - file: llm-cross-provider-smoke.yml
+    crons: ["0 6 * * 1"]
+    max_age_days: 12 # semanal
+    why: "Paridade cross-provider do parecer planejador (ADR-208)."
+    adr: ADR-208
+
+  - file: planner-golden-monthly.yml
+    crons: ["0 6 1 * *"]
+    max_age_days: 40 # mensal
+    why: "Golden do parecer com LLM real — drift de modelo entre versões."
+    adr: ADR-208
+
+  - file: branch-cleanup.yml
+    crons: ["0 6 1 * *"]
+    max_age_days: 40 # mensal
+    why: "Relatório de branches órfãs."
