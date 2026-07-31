@@ -71,8 +71,8 @@ Marque cada item; **qualquer NÃO aborta o runbook**.
       README com disclaimer e fronteira de idioma ([[A34.l16]]).
 - [ ] **(8) Metadados T1 tratados** — itens T1 de PRs/issues/CI editados/deletados;
       residual T3 aceito em [[ADR-316]] ([[A34.l21]]).
-- [ ] **(9) Fernet inócua** — rotação confirmada em prod (`old_key_decryptable=0`,
-      [[A34.l3]] / [[ADR-171]]); o blob histórico removido no rewrite.
+- [ ] **(9) Fernet inócua** — rotação confirmada em prod (passe completo com
+      `failed=0`, [[A34.l3]] / [[ADR-171]]); o blob histórico removido no rewrite.
 - [ ] **(10) Backup íntegro por ≥30d** — mirror off-site restaurável + tag
       `pre-public-flip-backup` ([[A34.l2]]).
 - [ ] **(11) FREEZE de merges ativo** — janela W3→W8 sem novos merges em `main`
@@ -305,8 +305,9 @@ que só é mitigável:
    janela** de novos clones/indexação — faça-o se o vazamento for PII de
    terceiro ou segredo vivo, mesmo sabendo que não desfaz o passado.
 2. **Rotacionar qualquer segredo** que apareça — se, contra o esperado, uma
-   Fernet/API key viva aparecer: rotação imediata via `rotate_fernet_secrets.py`
-   ([[ADR-171]]), invalidar tokens, e tratar como incidente de segurança
+   Fernet/API key viva aparecer: rotação imediata via a task
+   `rotate_fernet_secrets` ([[ADR-171]]), invalidar tokens, e tratar como
+   incidente de segurança
    (`SECURITY.md`).
 3. **Editar/deletar o item de metadado** (PR/issue/comment/CI log) que vazou.
 4. **Se PII de terceiro** (CPF, endereço, holerite de família/diarista):

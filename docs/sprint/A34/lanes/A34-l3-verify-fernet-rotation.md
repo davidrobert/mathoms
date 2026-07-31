@@ -30,49 +30,85 @@ recuperação do blob por qualquer clone anterior ao rewrite continua valendo
 como ataque real. Remover a chave do repo é condição necessária, não
 suficiente.
 
-A neutralização real é **rotação**: `rotate_fernet_secrets.py` ([[ADR-171]],
-runbook `fernet_rotation.md`) re-cifra as colunas com a chave nova e retira a
-chave antiga do conjunto de decifração. Depois disso, o blob histórico deixa
-de ser uma alavanca — decifra nada.
+A neutralização real é **rotação**: a task Celery `rotate_fernet_secrets`
+([[ADR-171]], runbook `fernet_rotation.md`) re-cifra as colunas com a chave
+nova. Depois disso, o blob histórico deixa de ser uma alavanca — decifra nada.
 
 Se a rotação **não** rodou em prod, isso é um **P0 de segurança independente
 do flip**: o repo hoje é privado, mas a chave já vazou para o histórico e para
 qualquer backup/clone. A rotação precisa acontecer de qualquer forma; o flip
 apenas torna a exposição pública, elevando a urgência.
 
-**Não é verificável do repositório.** O critério (`old_key_decryptable=0`)
-é um fato de produção. Esta lane é um **gate de confirmação do owner**, não
-uma tarefa de código.
+**Não é verificável do repositório.** O estado das colunas cifradas é um fato
+de produção. Esta lane é um **gate de confirmação do owner**, não uma tarefa
+de código.
+
+> **Correção 2026-07-31.** A versão anterior deste doc mandava rodar
+> `python3 scripts/rotate_fernet_secrets.py --confirm` e aceitar a métrica
+> `old_key_decryptable=0`. **Nenhum dos dois existe:** o arquivo não está no
+> repo (o mecanismo é uma task Celery) e a task não emite esse campo. O
+> escopo abaixo foi reescrito contra o código real
+> ([`backend/app/tasks/rotate_fernet_secrets.py`](../../../../backend/app/tasks/rotate_fernet_secrets.py)).
 
 ## Escopo
 
-1. Owner executa (ou confirma execução prévia de) `rotate_fernet_secrets.py`
-   em produção, conforme o runbook `fernet_rotation.md` ([[ADR-171]]).
-2. Capturar as três métricas de saída da rotação:
-   - `failed = 0` (nenhuma coluna falhou na re-cifração);
-   - `rotated > 0` (colunas efetivamente re-cifradas com a chave nova);
-   - `old_key_decryptable = 0` (a chave antiga não decifra mais nenhuma
-     coluna viva — o critério que fecha o gate).
-3. Registrar a confirmação **por métrica**, sem colar segredo, chave ou valor
-   sensível — apenas os contadores (ex.: "rotação de 2026-07-XX:
-   `failed=0 rotated=N old_key_decryptable=0`").
-4. Se a rotação **não** rodou: escalar como P0 imediato e rodá-la **antes** de
+1. **Dry-run primeiro** — conta sem escrever e já responde se a rotação é
+   necessária:
+
+   ```bash
+   celery -A backend.app.worker call rotate_fernet_secrets --kwargs '{"dry_run": true}'
+   ```
+
+   `rotated > 0` no dry-run significa que **ainda há colunas na chave velha**
+   → a rotação não rodou (ou rodou parcial). `rotated = 0` com `failed = 0`
+   significa que tudo já está na chave atual → gate já satisfeito.
+
+2. **Rodar de verdade**, se o dry-run acusou pendência (runbook
+   `fernet_rotation.md` §4):
+
+   ```bash
+   celery -A backend.app.worker call rotate_fernet_secrets
+   ```
+
+3. **Ler o report.** A task devolve contagens **por coluna**, não um número
+   único:
+
+   ```
+   {"dry_run": false,
+    "targets": {"<tabela>.<coluna>": {"rotated": N, "skipped": N, "failed": N},
+                "pipeline_artifacts.content_json": {...}}}
+   ```
+
+   Semântica (de `_rotate_row_value`): `skipped` = o valor **já está** na
+   chave atual · `rotated` = estava numa chave antiga e foi re-cifrado ·
+   `failed` = **não decifrou com chave nenhuma** e por isso nunca é
+   sobrescrito.
+
+4. **Registrar a confirmação** somando os contadores dos targets, sem colar
+   segredo, chave ou valor sensível — só os números (ex.: "rotação de
+   2026-07-XX: `failed=0 rotated=N skipped=M` em K targets").
+
+5. Se a rotação **não** rodou: escalar como P0 imediato e rodá-la **antes** de
    qualquer avanço para W1+ (bloqueia G0).
-
-Comando de referência (não executar como parte deste doc — é ação de prod do
-owner):
-
-```bash
-python3 scripts/rotate_fernet_secrets.py --confirm
-# saída esperada: failed=0 rotated=<N> old_key_decryptable=0
-```
 
 ## Critério de aceite (verificável)
 
-- Rotação confirmada em prod com `old_key_decryptable=0` — a chave antiga
-  (a que vazou no histórico) **não decifra nenhuma coluna viva**.
-- `failed=0` e `rotated>0` registrados na confirmação do gate G0
-  ([[PLAN-public-release]] §Verificação).
+O gate fecha com **`failed = 0` somado em todos os targets**, após um passe
+completo (`dry_run: false`).
+
+Por que isso basta, já que a task não emite `old_key_decryptable`: toda coluna
+não-nula termina o passe em um de dois estados — `skipped` (já estava na chave
+atual) ou `rotated` (foi re-cifrada com ela). `failed` é o único resto, e
+significa que o valor não decifra com **nenhuma** chave do conjunto, então
+também não decifra com a vazada. Logo `failed = 0` ⇒ nenhuma coluna viva é
+legível pela chave que vazou no histórico. É essa a propriedade que o gate
+queria, e ela é derivada — não um campo do report.
+
+- Passe completo com `failed = 0` em todos os targets, registrado na
+  confirmação do gate G0 ([[PLAN-public-release]] §Verificação).
+- `failed > 0` **não** fecha o gate: investigar cada linha pelo log
+  (`fernet rotation: undecryptable value`, com tabela/coluna/pk) antes de
+  seguir — pode ser dado corrompido ou chave de terceira geração perdida.
 - Confirmação anexada ao gate **sem** reproduzir chave/segredo — só os
   contadores.
 - Se não havia rodado: rotação executada e concluída antes de G0 liberar W1+.
