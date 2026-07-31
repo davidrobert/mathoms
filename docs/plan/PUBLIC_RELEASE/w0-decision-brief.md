@@ -23,7 +23,7 @@ pela síntese do co-design e já `Decidido (A34)`.
 
 **Confirmações operacionais que também travam G0** (assinadas dentro da
 ADR-315): backup mirror off-site + tag `pre-public-flip-backup`
-([[A34.l2]]) · rotação Fernet em prod com `failed=0` ([[A34.l3]]) ·
+([[A34.l2]]) · rotação Fernet em prod (`failed=0` + 2º dry-run com `rotated=0`, [[A34.l3]]) ·
 aprovação da janela de FREEZE (W3→W8).
 
 **Custo de errar:** das 6, duas são efetivamente permanentes (§1 e §2.3/§2.4)
@@ -99,7 +99,7 @@ force-push só acontece com TODOS verdadeiros:**
 
 - [ ] Backup mirror off-site íntegro e **testado com clone de verificação** ([[A34.l2]])
 - [ ] Tag `pre-public-flip-backup` no HEAD de `main`
-- [ ] Fernet rotacionada em prod: passe completo com `failed=0` ([[A34.l3]]) — sem isso, o blob histórico é abrível
+- [ ] Fernet rotacionada em prod: `failed=0` + 2º dry-run com `rotated=0` ([[A34.l3]]) — sem isso, o blob histórico é abrível
 - [ ] FREEZE anunciado; zero PR aberto; 85 branches `agent/*` deletadas ([[A34.l19]])
 - [ ] `.mailmap` exaustivo, revisado pelo owner, mantido **fora do repo** (o lado-origem é PII)
 - [ ] Validação dupla gitleaks no mirror reescrito = 0 achados (árvore + histórico completo)
@@ -155,7 +155,7 @@ higiene, independente do flip.
 - [ ] 6 ADRs (313–318) mergeadas com decisão textual datada do owner
 - [ ] Aceite de risco de metadados assinado ([[ADR-316]] Opção 1) **OU** restrição in-place reaberta (Opção 2)
 - [ ] Backup mirror restaurável + tag `pre-public-flip-backup` ([[A34.l2]])
-- [ ] Fernet: task `rotate_fernet_secrets` com `failed=0` ([[A34.l3]])
+- [ ] Fernet: task `rotate_fernet_secrets` — `failed=0` + 2º dry-run com `rotated=0` ([[A34.l3]])
 
 ## 6. Registro da sessão de decisão
 

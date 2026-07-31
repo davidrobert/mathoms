@@ -93,25 +93,57 @@ de código.
 
 ## Critério de aceite (verificável)
 
-O gate fecha com **`failed = 0` somado em todos os targets**, após um passe
-completo (`dry_run: false`).
+O gate fecha com **as duas condições juntas**, nesta ordem:
 
-Por que isso basta, já que a task não emite `old_key_decryptable`: toda coluna
-não-nula termina o passe em um de dois estados — `skipped` (já estava na chave
-atual) ou `rotated` (foi re-cifrada com ela). `failed` é o único resto, e
-significa que o valor não decifra com **nenhuma** chave do conjunto, então
-também não decifra com a vazada. Logo `failed = 0` ⇒ nenhuma coluna viva é
-legível pela chave que vazou no histórico. É essa a propriedade que o gate
-queria, e ela é derivada — não um campo do report.
+1. Passe completo (`dry_run: false`) com **`failed = 0`** somado nos targets.
+2. **Segundo dry-run** (passo 6 do runbook) retornando **`rotated = 0` e
+   `failed = 0`** em todos os targets — a prova de que nada ficou para trás.
 
-- Passe completo com `failed = 0` em todos os targets, registrado na
-  confirmação do gate G0 ([[PLAN-public-release]] §Verificação).
-- `failed > 0` **não** fecha o gate: investigar cada linha pelo log
-  (`fernet rotation: undecryptable value`, com tabela/coluna/pk) antes de
-  seguir — pode ser dado corrompido ou chave de terceira geração perdida.
-- Confirmação anexada ao gate **sem** reproduzir chave/segredo — só os
-  contadores.
-- Se não havia rodado: rotação executada e concluída antes de G0 liberar W1+.
+A condição 2 não é redundante: é ela que fecha o gate. Sem o segundo passe, um
+lote interrompido (a task é resumível) passaria como sucesso.
+
+### Por que `failed = 0` sozinho não bastaria — e o que `skipped` esconde
+
+> **Correção 2026-07-31 (segunda).** A primeira versão deste critério afirmava
+> que toda coluna termina em `skipped` (= já na chave atual) ou `rotated`, e
+> que `failed` capturaria o resto. **A derivação estava errada** e vale
+> registrar, porque o erro é sutil e reaparece em qualquer releitura apressada
+> do report.
+
+Em [`vault.py`](../../../../backend/app/services/security/vault.py) o
+`needs_rotation` retorna `False` em **dois** casos diferentes:
+
+- o valor decifra com a chave **primária** (está certo, nada a fazer);
+- o valor **não decifra com chave nenhuma** (`self.decrypt(...) is None`).
+
+Os dois caem no mesmo contador: `skipped`. Como `_rotate_row_value` só chega
+ao ramo `failed` quando `needs_rotation` já disse `True`, esse ramo é
+**praticamente inalcançável para as 4 colunas**. Quem produz `failed` de
+verdade é só o caminho dos artifacts, que compara `kid` em vez de tentar
+decifrar.
+
+Consequências práticas ao ler o report:
+
+- **A propriedade de segurança continua válida.** Um valor que não decifra com
+  nenhuma chave também não decifra com a vazada — logo não é vetor de
+  vazamento, que é o que o gate G0 precisa garantir.
+- **Mas `skipped` é ambíguo** e mistura "está tudo certo" com "isto aqui é
+  ilegível". Isso é um risco de **integridade**, não de segurança, e o report
+  não o distingue. Um `skipped` alto e inesperado merece investigação.
+- Para desambiguar os artifacts, use a query por `kid` do runbook
+  `fernet_rotation.md` §6: toda linha deve estar no `kid` da chave primária.
+
+### Checklist
+
+- [ ] Passe completo com `failed = 0` em todos os targets.
+- [ ] Segundo dry-run com `rotated = 0` e `failed = 0`.
+- [ ] Query por `kid` nos artifacts: 100% no `kid` da chave primária.
+- [ ] `failed > 0` **não** fecha o gate: investigar linha a linha pelo log
+      (`fernet rotation: artifact undecryptable`, com `artifact_id` e
+      `kid_stored`) antes de seguir.
+- [ ] Confirmação anexada ao gate **sem** reproduzir chave/segredo — só os
+      contadores.
+- [ ] Se não havia rodado: rotação executada e concluída antes de G0 liberar W1+.
 
 ## Rollback
 
