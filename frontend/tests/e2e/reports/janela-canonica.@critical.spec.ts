@@ -15,6 +15,13 @@
  * (0/5 têm `receita_recorrente_mensal`, 0/5 têm `consumo_consciente`), então um
  * spec escrito sobre elas passaria sem exercitar o defeito.
  *
+ * **Escopo:** o TEXTO derivado de `DespesasDoughnutChart` e
+ * `ReceitaDespesaMensalChart` saiu desta lane para a A40.l15 (os dois citam
+ * bases legitimamente distintas — janela ex-aporte por ADR-333 vs bruto de todo
+ * o período — e escolher qual base cada texto declara é decisão de domínio).
+ * `CARDS_DA_L15` os exclui nominalmente das varreduras; o resto de S2 segue
+ * coberto, e o desenho do donut continua assertado.
+ *
  * Instrumento da perna de PDF: `page.emulateMedia({ media: "print" })` ANTES
  * do `goto`. `?print=1` **não** liga `isPrint` — a rota só marca
  * `data-print-route="1"` para CSS, enquanto `useIsPrint` depende de
@@ -27,7 +34,7 @@
 import { test, expect, type Page, type Locator } from "@playwright/test";
 
 import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
-import { CLAUSULA_DE_BASE } from "../../shared/janelaBaseClause";
+import { CITA_AGREGADO, CLAUSULA_DE_BASE } from "../../shared/janelaBaseClause";
 
 const VIEWPORT = { width: 1280, height: 800 };
 
@@ -36,10 +43,13 @@ const RECEITA_12M = /R\$\s?92\.000/;
 const DESPESA_12M = /R\$\s?81\.000/;
 const RECEITA_FULL = /R\$\s?40\.000/;
 const DESPESA_FULL = /R\$\s?36\.000/;
-/** Média da série inteira — a mensalização sem rótulo que o chart irmão emitia. */
-const MEDIA_SERIE_FULL = /R\$\s?42\.667/;
 const PONTUAIS_12M = /R\$\s?96\.000,00/;
 const PONTUAIS_FULL = /R\$\s?250\.000,00/;
+
+/** Cards cujo TEXTO derivado saiu desta lane para a A40.l15 (base e rótulo do
+ * par são decisão de domínio). Mesma exclusão nominal do contract test —
+ * renomear um card devolve o texto ao invariante, e falha alto. */
+const CARDS_DA_L15 = ["Despesas por Categoria", "Receita vs Despesa — Mês a Mês"];
 
 async function openReport(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -60,23 +70,53 @@ function fluxoCard(page: Page): Locator {
     .filter({ has: page.getByRole("heading", { name: "Fluxo de Caixa Mensal" }) });
 }
 
-function rdmCard(page: Page): Locator {
-  return page
-    .locator("section.card-variant-neutral")
-    .filter({ has: page.getByRole("heading", { name: "Receita vs Despesa — Mês a Mês" }) });
-}
-
 function consumoCard(page: Page): Locator {
   return page
     .locator("section.card-variant-success")
     .filter({ has: page.getByRole("heading", { name: "Consumo Consciente" }) });
 }
 
+function s2(page: Page): Locator {
+  return page.locator("section#S2[data-report-section]");
+}
+
+/** Texto de S2 sem os cards herdados pela A40.l15. Usa `textContent` no clone
+ * porque nó destacado não tem layout e `innerText` volta vazio; a diferença é
+ * espaçamento entre elementos, e todo `X/mês` desta seção vive num único nó de
+ * texto (prosa). */
+async function textoNoEscopoDaLane(page: Page): Promise<string> {
+  return s2(page).evaluate((sec, fora) => {
+    const copia = sec.cloneNode(true) as HTMLElement;
+    for (const card of [...copia.querySelectorAll("section")]) {
+      const titulo = card.querySelector("h3")?.textContent?.trim() ?? "";
+      if (fora.includes(titulo)) card.remove();
+    }
+    return copia.textContent ?? "";
+  }, CARDS_DA_L15);
+}
+
 /** Valores citados como `X/mês` na seção — invariante de CONSUMO, não de site
  * enumerado: componente novo que mensalize o bloco full cai aqui. */
 async function valoresPorMes(page: Page): Promise<string[]> {
-  const texto = (await page.locator("section#S2[data-report-section]").innerText()) ?? "";
+  const texto = await textoNoEscopoDaLane(page);
   return [...texto.matchAll(/R\$\s*([\d.]+(?:,\d+)?)\s*\/mês/g)].map((m) => m[1]);
+}
+
+/** Todo texto derivado de S2 com o título do card que o hospeda — varredura,
+ * não enumeração de site. */
+async function textosDerivadosPorCard(
+  page: Page,
+): Promise<{ titulo: string; texto: string }[]> {
+  return s2(page).evaluate((sec) =>
+    [
+      ...sec.querySelectorAll(
+        "[data-chart-conclusion], [data-chart-context], .chart-context",
+      ),
+    ].map((n) => ({
+      titulo: n.closest("section")?.querySelector("h3")?.textContent?.trim() ?? "",
+      texto: n.textContent ?? "",
+    })),
+  );
 }
 
 test.describe("janela canônica de fluxo @critical", () => {
@@ -100,19 +140,16 @@ test.describe("janela canônica de fluxo @critical", () => {
     await expect(conclusion).not.toContainText(DESPESA_FULL);
   });
 
-  test("tela: chart irmão não emite segunda mensalização nem taxa própria", async ({
+  test("tela: no escopo da lane, S2 não emite taxa de poupança própria", async ({
     page,
   }) => {
     await openReport(page);
-    const conclusion = rdmCard(page).locator("[data-chart-conclusion]");
-    await expect(conclusion).toContainText("Janela exibida — 12 meses");
-    await expect(conclusion).not.toContainText(MEDIA_SERIE_FULL);
-    await expect(conclusion).not.toContainText(/Taxa de poupança/i);
-    // A taxa canônica vive no hero (S1). S2 não emite taxa própria — emitir é
-    // reintroduzir a segunda leitura divergente que a lane fechou.
-    const s2 = await page.locator("section#S2[data-report-section]").innerText();
-    expect(s2).not.toMatch(/taxa de poupança/i);
-    expect([...s2.matchAll(/\((\d{1,3}[.,]\d)% da receita\)/g)]).toEqual([]);
+    // A taxa canônica vive no hero (S1). `ReceitaDespesaMensalChart` continua
+    // emitindo uma taxa própria da série inteira — herdado pela A40.l15 junto
+    // com o resto do texto daquele card.
+    const texto = await textoNoEscopoDaLane(page);
+    expect(texto).not.toMatch(/taxa de poupança/i);
+    expect([...texto.matchAll(/\((\d{1,3}[.,]\d)% da receita\)/g)]).toEqual([]);
   });
 
   test("tela: hero imprime o rótulo da janela ao lado da taxa", async ({ page }) => {
@@ -151,7 +188,9 @@ test.describe("janela canônica de fluxo @critical", () => {
     );
   });
 
-  test("tela: toda mensalização de S2 vem da janela canônica", async ({ page }) => {
+  test("tela: no escopo da lane, toda mensalização vem da janela canônica", async ({
+    page,
+  }) => {
     await openReport(page);
     const porMes = await valoresPorMes(page);
     expect(porMes.length).toBeGreaterThan(0);
@@ -159,37 +198,37 @@ test.describe("janela canônica de fluxo @critical", () => {
     expect(porMes.filter((v) => !permitidos.has(v))).toEqual([]);
   });
 
-  test("tela: todo agregado citado em S2 declara a base", async ({ page }) => {
+  test("tela: todo texto que cita agregado declara a base", async ({ page }) => {
     await openReport(page);
-    const s2 = page.locator("section#S2[data-report-section]");
-    await expect(s2).toContainText("todo o período analisado");
+    await expect(s2(page)).toContainText("todo o período analisado");
     // Varredura de TODOS os textos derivados da seção — não só os que a lane
-    // tocou. Texto sem cláusula de base é o defeito, venha de onde vier.
-    const textos = await s2
-      .locator("[data-chart-conclusion], [data-chart-context], .chart-context")
-      .allInnerTexts();
-    expect(textos.length).toBeGreaterThan(0);
+    // tocou. Texto que cita agregado sem cláusula de base é o defeito, venha de
+    // onde vier. Os dois cards da A40.l15 ficam de fora, nominalmente.
+    const derivados = await textosDerivadosPorCard(page);
+    expect(derivados.length).toBeGreaterThan(0);
+    for (const titulo of CARDS_DA_L15) {
+      expect(derivados.map((d) => d.titulo)).toContain(titulo);
+    }
+    const sujeitos = derivados
+      .filter((d) => !CARDS_DA_L15.includes(d.titulo))
+      .filter((d) => CITA_AGREGADO.test(d.texto));
+    expect(sujeitos.length).toBeGreaterThan(0);
     // Mesma const do contract test (Vitest) — ver tests/shared/janelaBaseClause.ts.
-    for (const t of textos) expect(t).toMatch(CLAUSULA_DE_BASE);
+    for (const { texto } of sujeitos) expect(texto).toMatch(CLAUSULA_DE_BASE);
   });
 
-  test("tela: donut de despesas cita consumo, e o total reconcilia com o chart irmão", async ({
-    page,
-  }) => {
+  test("tela: fatias do donut somam a janela, ex-aporte (ADR-333)", async ({ page }) => {
     await openReport(page);
-    // Substantivos distintos para os dois totais da MESMA janela: consumo
-    // (ex-aporte, ADR-333) no donut e total no chart irmão. 828 + 144 = 972.
+    // Único assert desta lane sobre o donut: o total DESENHADO é o consumo da
+    // janela (828k), não o bruto (972k). O par (valor, rótulo) do texto do card
+    // é da A40.l15 — hoje a conclusão dele cita a base full.
     const donut = page
       .locator("section.card-variant-neutral")
       .filter({ has: page.getByRole("heading", { name: "Despesas por Categoria" }) });
     const ctx = donut.locator(".chart-context");
-    await expect(ctx).toContainText("despesas de consumo");
     await expect(ctx).toContainText(/R\$\s?828\.000/);
-    await expect(ctx).toContainText("na janela exibida (jan/25 a dez/25)");
-    await expect(ctx).toContainText(/Aporte a investimento \(R\$\s?144\.000\) não entra/);
-    await expect(rdmCard(page).locator("[data-chart-conclusion]")).toContainText(
-      /despesas totais de R\$\s?972\.000/,
-    );
+    await expect(ctx).not.toContainText(/R\$\s?972\.000/);
+    await expect(ctx).toContainText("3 categorias");
   });
 
   test("PDF: superfície print carrega a mesma janela canônica", async ({ page }) => {
@@ -197,12 +236,9 @@ test.describe("janela canônica de fluxo @critical", () => {
     await page.emulateMedia({ media: "print" });
     await openReport(page);
 
-    // Bloco print-only: prova que `isPrint === true` (senão não renderiza) e
-    // que o total da série inteira agora vem rotulado (ADR-306 D1).
-    const printTotals = page.locator("[data-rdm-print-totals]");
-    await expect(printTotals).toHaveCount(1);
-    await expect(printTotals).toContainText("Série completa");
-    await expect(printTotals).toContainText("36 meses");
+    // Bloco print-only: prova que `isPrint === true` — sem `isPrint` ele não
+    // renderiza e o resto do teste mediria a superfície de tela.
+    await expect(page.locator("[data-rdm-print-totals]")).toHaveCount(1);
 
     const context = fluxoCard(page).locator("[data-chart-context]");
     await expect(context).toContainText("os últimos 12 meses documentados");

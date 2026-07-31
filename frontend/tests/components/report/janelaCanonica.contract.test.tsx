@@ -21,14 +21,19 @@
  *     anterior deste spec renderizava componentes isolados e 5 dos 21 asserts
  *     guardavam `buildFallbackConclusion`, inalcançável em produção
  *     (`FALLBACKS.fluxo_mensal` existe ⇒ `deriveChartConclusion` nunca devolve
- *     null ⇒ a prop `conclusion` é sempre string). Por isso passou o defeito
- *     real: o chart IRMÃO (`ReceitaDespesaMensalChart`) mensalizava a série
- *     inteira sem rótulo e emitia uma SEGUNDA taxa de poupança. Defeito de
- *     composição só cai em teste de composição;
+ *     null ⇒ a prop `conclusion` é sempre string). Defeito de composição só cai
+ *     em teste de composição;
  *  6. **invariante do seletor** — nenhum par (valor, rótulo) devolvido por
  *     `resolveConsumoBases`/`resolveFluxoJanelaMensal` mistura blocos. Um ramo
  *     de degradação anterior devolvia `total_pontuais` (acumulado de todo o
  *     período) carregando o rótulo `12m` do campo vizinho.
+ *
+ * **Escopo do invariante de seção:** o TEXTO derivado de dois cards
+ * (`DespesasDoughnutChart` e `ReceitaDespesaMensalChart`) saiu desta lane para a
+ * [[A40.l15]] — os dois citam bases legitimamente distintas (janela ex-aporte
+ * por ADR-333 vs bruto de todo o período) e escolher qual base cada texto
+ * declara é decisão de domínio. `CARDS_DA_L15` os exclui nominalmente da
+ * varredura; o resto da seção continua coberto.
  *
  * A fixture é a **mesma** consumida pelo E2E (`janela-divergente.json`), para
  * que guarda e verificação renderizada não possam divergir.
@@ -56,7 +61,6 @@ vi.mock("react-chartjs-2", () => ({
 }));
 
 import { FluxoMensalChart } from "@/components/report/charts/FluxoMensalChart";
-import { ReceitaDespesaMensalChart } from "@/components/report/charts/ReceitaDespesaMensalChart";
 import { DespesasDoughnutChart } from "@/components/report/charts/DespesasDoughnutChart";
 import { ConsumoConscienteCard } from "@/components/report/cards/ConsumoConscienteCard";
 import { HeroKpiGrid } from "@/components/report/kpi/HeroKpiGrid";
@@ -75,7 +79,7 @@ import type {
   FluxoCaixaSummary,
   RatiosData,
 } from "@/types/report-analysis";
-import { CLAUSULA_DE_BASE } from "../../shared/janelaBaseClause";
+import { CITA_AGREGADO, CLAUSULA_DE_BASE } from "../../shared/janelaBaseClause";
 
 const FIXTURE_PATH = join(
   __dirname,
@@ -118,9 +122,6 @@ const V = {
   despesa12m: brl0(81_000),
   receitaFull: brl0(40_000),
   despesaFull: brl0(36_000),
-  /** Média mensalizada da série INTEIRA (1.536.000 / 36) — a mensalização sem
-   * rótulo que o chart irmão emitia. */
-  mediaSerieFull: brl0(42_667),
   /** `janela_12m.fluxo_liquido` — TOTAL de 12 meses, nunca uma taxa mensal. */
   totalIntervalo12m: brl0(228_000),
   pontuais12m: brl2(96_000),
@@ -328,6 +329,24 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     expect(lido?.receitaRecorrenteMensal).toBe(fluxo.receita_recorrente_mensal);
   });
 
+  it("`janela_12m` sem o campo `janela` usa o fallbackTipo do PRÓPRIO bloco", () => {
+    // Exercita `readBloco(bloco12m, "12m")` — o outro ramo de `fallbackTipo`,
+    // que nenhum caso cobria: fixar `"full"` nos dois call sites deixava a suíte
+    // verde. Aqui a posição do bloco é a única evidência da base, e rotulá-lo
+    // "full" seria pôr rótulo de período completo num agregado de 12 meses.
+    // Prova de mutação: trocar o `"12m"` do primeiro `readBloco` por `"full"`
+    // derruba este assert.
+    const semRotulo = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
+    const bloco = semRotulo.janela_12m as Record<string, unknown>;
+    delete bloco.janela;
+    delete bloco.janela_meses;
+    const lido = resolveFluxoJanelaMensal(semRotulo as FluxoCaixaSummary);
+    expect(lido?.rotulo.tipo).toBe("12m");
+    expect(lido?.receitaRecorrenteMensal).toBe(janela12m.receita_recorrente_mensal);
+    // `n_meses` do MESMO bloco serve de contagem; não há herança de vizinho.
+    expect(lido?.rotulo.meses).toBe(janela12m.n_meses);
+  });
+
   it("`janela: irpf_<ano>` no top-level vence a posição do bloco", () => {
     // O rótulo vem do CAMPO, não de onde o número estava — se viesse da
     // posição, o fallbackTipo "full" apagaria a declaração do payload.
@@ -422,6 +441,20 @@ describe("deriveChartConclusion('fluxo_mensal') — único texto que mensaliza S
     expect(text).toContain(V.receitaFull);
     expect(text).not.toContain(V.receita12m);
   });
+
+  it("bloco de 12m sem contagem: cláusula sem número de meses", () => {
+    // Mesmo defeito do hero, no outro portador: a prosa não pode afirmar
+    // "12 meses documentados" quando o payload declara só o NOME da janela.
+    // Prova de mutação: restaurar `rotulo.meses ?? 12` derruba o segundo assert.
+    const semContagem = JSON.parse(JSON.stringify(fx)) as JanelaFixture;
+    const bloco = semContagem.fluxo_caixa.janela_12m as Record<string, unknown>;
+    delete bloco.janela_meses;
+    delete bloco.n_meses;
+    const text = deriveChartConclusion("fluxo_mensal", semContagem as ReportAnalysisData) ?? "";
+    expect(text).toContain("Sobre a janela documentada:");
+    expect(text).not.toMatch(/\d+\s+(?:mês|meses)/);
+    expect(text).toContain(V.receita12m);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────
@@ -444,87 +477,56 @@ describe("deriveSectionSummary('S2') — mesma fonte, com rótulo", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────
-// 6. Site: chart irmão (ReceitaDespesaMensalChart) — origem do B1
+// 6. Fatias do donut — soma correta; o TEXTO do card é da [[A40.l15]]
 // ─────────────────────────────────────────────────────────────────────
 
-describe("<ReceitaDespesaMensalChart /> — totaliza a janela exibida, não mensaliza", () => {
-  it("não emite mensalização nem taxa de poupança", () => {
-    render(<ReceitaDespesaMensalChart fluxo={fluxo} />);
-    const text = conclusionText();
-    expect(text).toMatch(/Janela exibida — 12 meses/);
-    expect(text).not.toMatch(/\/mês/);
-    expect(text).not.toMatch(/Taxa de poupança/i);
-    expect(text).not.toContain(V.mediaSerieFull);
-    expect(text).not.toContain(V.despesaFull);
-  });
-
-  it("o agregado da série completa aparece rotulado no contexto", () => {
-    render(<ReceitaDespesaMensalChart fluxo={fluxo} />);
-    expect(contextText()).toMatch(/todo o período analisado \(36 meses\)/);
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────
-// 6b. Donut de despesas — rótulo DERIVADO da fonte das fatias
-// ─────────────────────────────────────────────────────────────────────
-
-/** Payload sem `despesa_datasets`: o donut cai no snapshot
- * `despesas_por_categoria`, que é de TODO o bloco. */
-function fluxoSemDespesaDatasets(): FluxoCaixaSummary {
-  const clone = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
-  const det = clone.receita_despesa_mensal_detalhado as Record<string, unknown>;
-  delete det.despesa_datasets;
-  return clone as FluxoCaixaSummary;
-}
-
-describe("<DespesasDoughnutChart /> — rótulo nasce da fonte efetiva das fatias", () => {
-  const CONSUMO_JANELA = brl0(828_000);
-  const CONSUMO_FULL = brl0(1_116_000);
-
-  it("com `despesa_datasets`: fatias da janela renderizada ⇒ rótulo de janela + range", () => {
+describe("<DespesasDoughnutChart /> — fatias somam a janela renderizada, ex-aporte", () => {
+  it("aporte não entra no total das fatias (delta com e sem o dataset)", () => {
+    // Único assert desta lane sobre o donut. O par (valor, rótulo) do TEXTO do
+    // card saiu para a [[A40.l15]]: o desenho é ex-aporte da janela e a conclusão
+    // cita a base full, e decidir qual base cada texto declara é domínio.
+    // O delta é o que prova que o filtro rodou — a fixture usava o label
+    // "Aporte em investimentos", que `isAporteInvestimentoKey` não casa e o
+    // produtor nunca emite (`fluxo_caixa_enricher.py:404` ⇒ "Aporte
+    // Investimento"): com ele, o aporte entrava no donut e nada falhava.
     render(<DespesasDoughnutChart fluxo={fluxo} />);
-    const text = document.querySelector(".chart-context")?.textContent ?? "";
-    expect(text).toContain("na janela exibida (jan/25 a dez/25)");
-    expect(text).toContain(CONSUMO_JANELA);
-    expect(text).not.toContain(CONSUMO_FULL);
-    expect(text).not.toMatch(/todo o período/i);
-  });
-
-  it("no fallback de agregado: fatias de todo o bloco ⇒ rótulo do bloco, sem range", () => {
-    // O defeito medido: o range da janela renderizada era impresso **sempre**,
-    // inclusive sobre o total acumulado do agregado — número full sob rótulo de
-    // janela, a terceira aparição do defeito-alvo da lane.
-    render(<DespesasDoughnutChart fluxo={fluxoSemDespesaDatasets()} />);
-    const text = document.querySelector(".chart-context")?.textContent ?? "";
-    expect(text).toContain("em todo o período analisado (36 meses)");
-    expect(text).toContain(CONSUMO_FULL);
-    expect(text).not.toContain("janela exibida");
-    expect(text).not.toContain("jan/25 a dez/25");
-  });
-
-  it("o aporte sai das fatias e volta declarado, reconciliando com o chart irmão", () => {
-    // 828.000 (consumo) + 144.000 (aporte) = 972.000, que é o total de despesas
-    // da MESMA janela citado pelo `ReceitaDespesaMensalChart`.
-    render(<DespesasDoughnutChart fluxo={fluxo} />);
-    const text = document.querySelector(".chart-context")?.textContent ?? "";
-    expect(text).toContain("despesas de consumo");
-    expect(text).toContain(`Aporte a investimento (${brl0(144_000)}) não entra`);
-    expect(text).toContain("3 categorias");
-  });
-
-  it("substantivos distintos para os dois totais da mesma janela", () => {
-    // Mesmo rótulo de base + mesmo substantivo + valores diferentes era
-    // irreconciliável (F: "o leitor não reconcilia"). Consumo ≠ total.
-    const { container } = render(<S2FluxoCaixaSection data={fx} />);
-    const texto = container.textContent ?? "";
-    expect(texto).toContain(`despesas de consumo (${CONSUMO_JANELA})`);
-    expect(texto).toContain(`despesas totais de ${brl0(972_000)}`);
+    const comAporte = document.querySelector(".chart-context")?.textContent ?? "";
+    expect(comAporte).toContain(brl0(828_000));
+    expect(comAporte).not.toContain(brl0(972_000));
+    expect(comAporte).toContain("3 categorias");
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────
 // 7. Invariante de SEÇÃO — o assert que pega B1 (composição, não unidade)
 // ─────────────────────────────────────────────────────────────────────
+
+/** Cards cujo TEXTO derivado saiu do escopo desta lane para a [[A40.l15]]: os
+ * dois citam bases legitimamente distintas (janela ex-aporte por ADR-333 vs
+ * bruto de todo o período) e escolher qual base cada texto declara é decisão de
+ * domínio, não de render.
+ *
+ * Exclusão **nominal**: card novo não entra aqui sem alguém escrever o nome
+ * dele, e renomear um card devolve o texto ao invariante (falha alta, não
+ * silenciosa). O `it` abaixo garante que os dois títulos existem na seção —
+ * senão a exclusão viraria vácuo sem ninguém notar. */
+const CARDS_DA_L15 = [
+  "Despesas por Categoria",
+  "Receita vs Despesa — Mês a Mês",
+] as const;
+
+function tituloDoCard(card: Element): string {
+  return card.querySelector("h3")?.textContent?.trim() ?? "";
+}
+
+/** Cópia da seção sem os cards herdados pela [[A40.l15]]. */
+function noEscopoDaLane(root: HTMLElement): HTMLElement {
+  const copia = root.cloneNode(true) as HTMLElement;
+  for (const card of [...copia.querySelectorAll("section")]) {
+    if ((CARDS_DA_L15 as readonly string[]).includes(tituloDoCard(card))) card.remove();
+  }
+  return copia;
+}
 
 /** Toda taxa de poupança exibida na seção. A canônica vive no hero (S1); S2 não
  * emite taxa própria — emitir é reintroduzir a segunda taxa divergente. */
@@ -557,16 +559,28 @@ function textosDerivados(root: HTMLElement): string[] {
 }
 
 describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () => {
-  it("S2 não emite taxa de poupança própria (a canônica é a do hero)", () => {
+  it("os dois cards herdados pela l15 estão na seção (exclusão não é vácuo)", () => {
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
-    // Antes da remediação o chart irmão emitia "Taxa de poupança de 15.6%"
-    // (média da série inteira) na mesma seção.
-    expect(taxasDePoupanca(container)).toEqual([]);
+    const titulos = [...container.querySelectorAll("section")].map(tituloDoCard);
+    for (const nome of CARDS_DA_L15) expect(titulos).toContain(nome);
+    // E a cópia sem eles perdeu exatamente 2 cards.
+    const restantes = [...noEscopoDaLane(container).querySelectorAll("section")];
+    expect(restantes.length).toBe(
+      [...container.querySelectorAll("section")].length - CARDS_DA_L15.length,
+    );
   });
 
-  it("toda mensalização da seção vem da janela canônica", () => {
+  it("no escopo da lane, S2 não emite taxa de poupança própria (a canônica é a do hero)", () => {
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
-    const porMes = valoresPorMes(container);
+    // `ReceitaDespesaMensalChart` continua emitindo "Taxa de poupança de 15,6%"
+    // (média da série inteira, sem rótulo) — herdado pela [[A40.l15]] junto com
+    // o resto do texto daquele card.
+    expect(taxasDePoupanca(noEscopoDaLane(container))).toEqual([]);
+  });
+
+  it("no escopo da lane, toda mensalização vem da janela canônica", () => {
+    const { container } = render(<S2FluxoCaixaSection data={fx} />);
+    const porMes = valoresPorMes(noEscopoDaLane(container));
     expect(porMes.length).toBeGreaterThan(0);
     // Só `janela_12m.receita_recorrente_mensal` e `.despesa_mensal_media`.
     const permitidos = new Set(["92.000", "81.000"]);
@@ -579,7 +593,7 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
 
   it("o total do intervalo de 12m nunca é citado como valor mensal", () => {
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
-    expect(valoresPorMes(container)).not.toContain("228.000");
+    expect(valoresPorMes(noEscopoDaLane(container))).not.toContain("228.000");
   });
 
   it("um único número de 'quanto sobra' na seção, e é rotulado", () => {
@@ -592,14 +606,28 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
     expect(badges(container)).toContain("últimos 12 meses documentados");
   });
 
-  it("todo agregado de período completo citado na seção vem rotulado", () => {
+  it("todo texto que cita agregado declara a base", () => {
     const { container } = render(<S2FluxoCaixaSection data={fx} />);
-    const textos = textosDerivados(container);
+    const textos = textosDerivados(noEscopoDaLane(container)).filter((t) =>
+      CITA_AGREGADO.test(t),
+    );
     expect(textos.length).toBeGreaterThan(0);
-    // Nenhum texto cita agregado sem declarar a base: 12m documentados, mês
-    // documentado (singular), janela exibida (range) ou todo o período.
+    // Varredura, não enumeração: componente novo cai aqui sem ninguém lembrar.
     // `CLAUSULA_DE_BASE` é a MESMA const do spec de render (Playwright).
     for (const t of textos) expect(t).toMatch(CLAUSULA_DE_BASE);
+  });
+
+  it("`No gráfico: N meses` não satisfaz o invariante (é o desenho, não a base)", () => {
+    // Prova de mutação da cláusula: enquanto `No gráfico:` esteve em
+    // `CLAUSULA_DE_BASE`, este texto passava — declarando quantas barras foram
+    // desenhadas e nada sobre a base do R$ citado. Reintroduzir a alternativa no
+    // regex derruba este assert.
+    const soODesenho = "No gráfico: 12 meses (25/01 a 25/12). Receita média de R$ 42.667/mês.";
+    expect(CITA_AGREGADO.test(soODesenho)).toBe(true);
+    expect(soODesenho).not.toMatch(CLAUSULA_DE_BASE);
+    // E o texto que só descreve o desenho, sem citar agregado, não é sujeito do
+    // invariante — não há número a rotular.
+    expect(CITA_AGREGADO.test("No gráfico: 3 meses (25/10 a 25/12).")).toBe(false);
   });
 
   it("janela de UM mês documentado: a forma singular também satisfaz o invariante", () => {
@@ -615,10 +643,12 @@ describe("<S2FluxoCaixaSection /> — invariante de seção (ADR-306 D1)", () =>
     const { container } = render(
       <S2FluxoCaixaSection data={umMes as ReportAnalysisData} />,
     );
-    const textos = textosDerivados(container);
+    const textos = textosDerivados(noEscopoDaLane(container));
     expect(textos.some((t) => /o último mês documentado/.test(t))).toBe(true);
     expect(textos.some((t) => /meses documentados/.test(t))).toBe(false);
-    for (const t of textos) expect(t).toMatch(CLAUSULA_DE_BASE);
+    for (const t of textos.filter((t) => CITA_AGREGADO.test(t))) {
+      expect(t).toMatch(CLAUSULA_DE_BASE);
+    }
   });
 });
 
@@ -730,6 +760,24 @@ describe("<HeroKpiGrid /> — taxa de poupança com rótulo impresso", () => {
     expect(container.querySelector('[title*="Média mensal calculada"]')).toBeNull();
   });
 
+  it("`janela: 12m` sem `janela_meses`: nenhum dígito de contagem no texto", () => {
+    // Defeito medido no render: `rotulo.meses ?? 12` imprimia "últimos 12 meses
+    // documentados" a partir de um payload que não afirma contagem nenhuma —
+    // precisão fabricada, a mesma classe que esta sprint persegue. O vocabulário
+    // D2 nomeia a janela; a contagem vive na chave irmã `janela_meses`.
+    // Prova de mutação: restaurar o `?? 12` derruba os dois asserts abaixo.
+    const { container } = renderHero({
+      taxa_poupanca_recorrente_pct: 25,
+      janela: "12m",
+    });
+    expect(badges(container)).toEqual(["janela documentada"]);
+    expect(badges(container)[0]).not.toMatch(/\d/);
+    const tooltip = container.querySelector('[title*="Média mensal"]');
+    expect(tooltip?.getAttribute("title")).toBe(
+      "Média mensal calculada sobre a janela documentada.",
+    );
+  });
+
   it("percentual serializado como string não derruba o KPI", () => {
     // Substrato real: `ratios.taxa_poupanca_recorrente_pct = "50.000000"`.
     const { container } = renderHero({
@@ -793,12 +841,5 @@ describe("superfície de print (PDF)", () => {
       />,
     );
     expect(badges(container)).toEqual(["últimos 12 meses documentados"]);
-  });
-
-  it("bloco de totais da série completa é rotulado", () => {
-    render(<ReceitaDespesaMensalChart fluxo={fluxo} />);
-    const bloco = document.querySelector("[data-rdm-print-totals]")?.textContent ?? "";
-    expect(bloco).toContain("Série completa");
-    expect(bloco).toContain("36 meses");
   });
 });

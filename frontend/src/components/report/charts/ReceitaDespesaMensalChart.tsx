@@ -12,7 +12,7 @@ import { ReportCard } from "../ReportCard";
 import { ChartCanvas } from "./primitives/ChartCanvas";
 import { useChartTheme } from "./primitives/useChartTheme";
 import { RDMLegend, type RDMLegendItem } from "./RDMLegend";
-import { fmtBRL, formatChartMonthLabel, formatRangeHumano } from "./_shared";
+import { fmtBRL, formatChartMonthLabel } from "./_shared";
 import { useIsPrint } from "../hooks/useIsPrint";
 import type { ChartSeries, FluxoCaixaSummary } from "@/types/report-analysis";
 import {
@@ -119,7 +119,7 @@ export function ReceitaDespesaMensalChart({
 
   const periodLabel = formatPeriodLabel(windowed.labels);
   const context = buildContext(enriched, totalMonths);
-  const conclusion = buildConclusion(windowed, periodLabel);
+  const conclusion = buildConclusion(enriched);
   const legend = buildLegendItems(enriched, hiddenIdx);
 
   return (
@@ -333,31 +333,18 @@ function buildContext(enriched: readonly EnrichedDataset[], totalMonths: number)
   const totalReceita = sumStack(enriched, "receita");
   const totalDespesa = sumStack(enriched, "despesa");
   const liquido = totalReceita - totalDespesa;
-  return `Série temporal de todo o período analisado (${totalMonths} ${totalMonths === 1 ? "mês" : "meses"}): receitas de ${fmtBRL(totalReceita)} versus despesas totais de ${fmtBRL(totalDespesa)}, com fluxo líquido de ${fmtBRL(liquido)}.`;
+  return `Série temporal mensal (${totalMonths} ${totalMonths === 1 ? "mês" : "meses"}) de receitas (${fmtBRL(totalReceita)}) versus despesas (${fmtBRL(totalDespesa)}), com fluxo líquido de ${fmtBRL(liquido)}.`;
 }
 
-/** ADR-306 D1 (A40.l3) — este chart NÃO mensaliza e NÃO cita taxa de poupança.
- *
- * Antes derivava média e taxa da série INTEIRA sem rótulo, ao lado do card
- * irmão que já declarava a janela canônica de 12m: duas mensalizações e duas
- * taxas divergentes na mesma seção, uma delas sem base declarada. A
- * mensalização de S2 vive num lugar só (`conclusionUtils.fluxo_mensal`, que lê
- * `janela_12m`); aqui o texto totaliza a janela **renderizada**, rotulada.
- *
- * "despesas **totais**" é deliberado: o donut irmão cita "despesas de consumo"
- * da MESMA janela, e os dois números diferem pelo aporte (ADR-333). Substantivo
- * igual com valor diferente sob o mesmo rótulo de base é irreconciliável para o
- * leitor — medido no DOM. */
-function buildConclusion(windowed: SlicedWindow, periodLabel: string): string {
-  const totalReceita = sumStack(windowed.datasets, "receita");
-  const totalDespesa = sumStack(windowed.datasets, "despesa");
-  const meses = windowed.labels.length;
-  if (meses === 0) return "";
-  const saldo = totalReceita - totalDespesa;
-  // Range em prosa usa o mesmo separador dos outros textos da seção (" a "):
-  // `formatPeriodLabel` serve o rótulo de navegação, ao lado dos botões.
-  const escopo = periodLabel ? ` (${formatRangeHumano(periodLabel)})` : "";
-  return `Janela exibida — ${meses} ${meses === 1 ? "mês" : "meses"}${escopo}: receitas de ${fmtBRL(totalReceita)} e despesas totais de ${fmtBRL(totalDespesa)}, saldo de ${fmtBRL(saldo)} no intervalo.`;
+function buildConclusion(enriched: readonly EnrichedDataset[]): string {
+  const totalReceita = sumStack(enriched, "receita");
+  const totalDespesa = sumStack(enriched, "despesa");
+  const months = enriched[0]?.data.length ?? 0;
+  if (months === 0) return "";
+  const mediaReceita = totalReceita / months;
+  const mediaDespesa = totalDespesa / months;
+  const taxaPoupanca = mediaReceita > 0 ? ((mediaReceita - mediaDespesa) / mediaReceita) * 100 : 0;
+  return `Receita média de ${fmtBRL(mediaReceita)}/mês e despesa média de ${fmtBRL(mediaDespesa)}/mês. Taxa de poupança de ${taxaPoupanca.toFixed(1)}%.`;
 }
 
 function sumStack(enriched: readonly EnrichedDataset[], stack: "receita" | "despesa"): number {
@@ -372,17 +359,12 @@ function formatPeriodLabel(labels: readonly string[]): string {
   return `${labels[0]}  —  ${labels[labels.length - 1]}`;
 }
 
-/** ADR-306 D1 (A40.l3) — o chart é fixado em 12m no print, mas estes totais são
- * da série INTEIRA; agregado full só é permitido rotulado. */
 function PrintTotalsBlock({ enriched }: { readonly enriched: readonly EnrichedDataset[] }) {
   const totalReceita = sumStack(enriched, "receita");
   const totalDespesa = sumStack(enriched, "despesa");
   const liquido = totalReceita - totalDespesa;
   return (
     <div style={PRINT_BLOCK_STYLE} data-rdm-print-totals>
-      <div>
-        <strong>Série completa</strong> — {enriched[0]?.data.length ?? 0} meses
-      </div>
       <div>
         <strong>Total receitas:</strong> {fmtBRL(totalReceita)}
       </div>

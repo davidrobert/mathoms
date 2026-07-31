@@ -1,8 +1,14 @@
 /** Estilos do chart "Receita vs Despesa — Mês a Mês" (v2.E.6).
  *
- * Extraídos de `ReceitaDespesaMensalChart.tsx` em A40.l3 para manter o
- * componente sob o limite de 500 linhas (CLAUDE.md §Code style · gate
- * `dev/audit_code_style.py` T2). Sem hex literal: tudo em `var(--*)`.
+ * Movimento **mecânico** (mesmos valores, zero efeito visual) extraído de
+ * `ReceitaDespesaMensalChart.tsx` em A40.l3, quando o texto novo daquele card
+ * levou o arquivo a 510 linhas — acima do limite de 500 do gate T2
+ * (`dev/audit_code_style.py`). Aquele texto voltou para a A40.l15, então hoje o
+ * componente cabe **sem** esta extração: medido, 492 linhas se inlinado (7 de
+ * folga em `main`, que já estava em 493). Fica porque devolve folga ao card que
+ * a A40.l15 vai tocar, e reverter só re-inflaria o arquivo.
+ *
+ * Sem hex literal: tudo em `var(--*)`.
  */
 export const CONTEXT_STYLE = {
   fontSize: 13,

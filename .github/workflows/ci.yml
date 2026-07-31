@@ -626,7 +626,7 @@ jobs:
       # 12/12 runs recentes. Label delega gate a memória humana; path filter,
       # não. Classe distinta do que ADR-210 tirou do PR: sem baseline de pixel e
       # sem Postgres/Redis/Celery — fixture mockada, 8 testes (contagem medida
-      # com `npx playwright test <spec> --list`, não estimada).
+      # com `npx playwright test <spec> --project=chromium --list`, não estimada).
       - name: Cache Playwright Chromium (report render)
         if: needs.changes.outputs.report == 'true'
         id: pw-cache-report

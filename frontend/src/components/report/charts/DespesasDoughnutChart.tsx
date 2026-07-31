@@ -7,7 +7,7 @@ import { ReportCard } from "../ReportCard";
 import { Alert } from "../ui/Alert";
 import { ChartDonut } from "./primitives/ChartDonut";
 import { useChartTheme } from "./primitives/useChartTheme";
-import { fmtBRL, formatRangeHumano } from "./_shared";
+import { fmtBRL } from "./_shared";
 import { PeriodToggle, type Period } from "../ui/PeriodToggle";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { useIsPrint } from "../hooks/useIsPrint";
@@ -19,8 +19,6 @@ import {
   humanizeCategoryLabel,
   isAporteInvestimentoKey,
 } from "@/lib/categoryLabels";
-import { resolveRotuloAgregado } from "../utils/fluxoJanela";
-import { describeJanelaEm } from "../utils/janelaLabel";
 import type { FluxoCaixaSummary, ChartSeries } from "@/types/report-analysis";
 
 interface CategoryRow {
@@ -29,11 +27,19 @@ interface CategoryRow {
   readonly value: number;
 }
 
-/** Fonte efetiva das fatias. Existe porque o rótulo de base é DERIVADO daqui:
- * `janela` ⇒ as fatias somam o intervalo renderizado; `agregado` ⇒ vêm do
- * snapshot do bloco inteiro e o range do toggle não as descreve. */
+/** Fonte efetiva das fatias: `janela` ⇒ somam o intervalo renderizado;
+ * `agregado` ⇒ vêm do snapshot do bloco inteiro, e o range do toggle não as
+ * descreve. */
 type DespesaFonte = "janela" | "agregado";
 
+/** Fatias + a evidência de como foram produzidas.
+ *
+ * **Nenhum texto deste componente lê `fonte`/`aporteExcluido` hoje** — quem
+ * decide o que a conclusão do card cita é a [[A40.l15]] (base do Consumo
+ * Consciente), e escolher a base é decisão de domínio, não de render. O par
+ * fica aqui, no MESMO objeto que carrega as fatias, para que aquela lane não
+ * possa imprimir rótulo derivado de uma expressão diferente da que somou os
+ * valores. */
 interface DespesaSlices {
   readonly rows: readonly CategoryRow[];
   readonly fonte: DespesaFonte;
@@ -48,10 +54,10 @@ function sumWindow(data: readonly number[], start: number, end: number): number 
 }
 
 /** A37.l14 (PD-10 · ADR-333): aporte é poupança, não consumo — fica fora das
- * fatias (o `despesa_total` do payload segue intacto). O valor retirado volta
- * como número declarado no texto: sem ele o total do donut não reconcilia com o
- * total de despesas da MESMA janela no chart irmão, e a diferença é exatamente
- * o aporte. */
+ * fatias (o `despesa_total` do payload segue intacto). O valor retirado sai
+ * medido em `aporteExcluido` porque ele é exatamente a diferença entre este
+ * total e o total de despesas da mesma janela no chart irmão — declarar essa
+ * diferença ao leitor é a [[A40.l15]]. */
 function partitionAporte(rows: readonly CategoryRow[]): {
   rows: readonly CategoryRow[];
   aporteExcluido: number;
@@ -82,8 +88,8 @@ function buildSlices(
 }
 
 /** Fallback: extrai fatias do snapshot `despesas_por_categoria` quando o
- *  backend ainda não emitiu `despesa_datasets`. PeriodToggle vira no-op — e o
- *  rótulo de base muda com ele (ADR-306 D1). */
+ *  backend ainda não emitiu `despesa_datasets`. PeriodToggle vira no-op, e as
+ *  fatias passam a ser do bloco inteiro — daí `fonte: "agregado"`. */
 function fallbackFromAggregate(
   raw: Record<string, number> | undefined,
 ): DespesaSlices {
@@ -95,36 +101,12 @@ function fallbackFromAggregate(
   return { ...partitionAporte(somas), fonte: "agregado" };
 }
 
-/** ADR-306 D1 (A40.l3) — o rótulo nasce da MESMA expressão que produziu as
- * fatias. Com `despesa_datasets` o total é do intervalo renderizado; no
- * fallback de agregado ele é do bloco inteiro, e imprimir o range do toggle
- * seria número full sob rótulo de janela — o defeito que esta lane fecha. */
-function describeEscopoDasFatias(
-  fonte: DespesaFonte,
-  rangeLabel: string,
-  fluxo: FluxoCaixaSummary | undefined,
-): string {
-  if (fonte === "agregado") {
-    return ` ${describeJanelaEm(resolveRotuloAgregado(fluxo))}`;
-  }
-  return rangeLabel ? ` na janela exibida (${rangeLabel})` : "";
-}
-
-function buildContext(
-  slices: DespesaSlices,
-  total: number,
-  rangeLabel: string,
-  fluxo: FluxoCaixaSummary | undefined,
-): string {
-  if (slices.rows.length === 0) return "Sem dados de despesa no período selecionado.";
-  const escopo = describeEscopoDasFatias(slices.fonte, rangeLabel, fluxo);
-  const nota =
-    slices.aporteExcluido > 0
-      ? ` Aporte a investimento (${fmtBRL(slices.aporteExcluido)}) não entra: é poupança, não consumo.`
-      : "";
-  return `Distribuição das despesas de consumo (${fmtBRL(total)})${escopo} entre ${slices.rows.length} ${
-    slices.rows.length === 1 ? "categoria" : "categorias"
-  }, destacando a composição de gastos e oportunidades de otimização.${nota}`;
+/** Chamado só depois do `return null` de fatias vazias — o caso `length === 0`
+ * não chega aqui, por isso não há ramo para ele. */
+function buildContext(slices: readonly CategoryRow[], total: number): string {
+  return `Distribuição das despesas totais (${fmtBRL(total)}) entre ${slices.length} ${
+    slices.length === 1 ? "categoria" : "categorias"
+  }, destacando a composição de gastos e oportunidades de otimização.`;
 }
 
 function buildFallbackConclusion(slices: readonly CategoryRow[], total: number): string {
@@ -220,7 +202,7 @@ export function DespesasDoughnutChart({
   return (
     <ReportCard variant="neutral" title="Despesas por Categoria" conclusion={finalConclusion}>
       <p className="chart-context" style={CONTEXT_STYLE}>
-        {buildContext(despesas, total, formatRangeHumano(window.label), fluxo)}
+        {buildContext(slices, total)}
       </p>
       {!isPrint && hasDatasets ? (
         <PeriodToggle value={period} onChange={setPeriod} periodLabel={window.label} />

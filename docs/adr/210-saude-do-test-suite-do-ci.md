@@ -391,12 +391,14 @@ medido por um problema que continua. Reabrir a decisão quando:
 **Não reabre a decisão.** A Camada 1 tirou do gate de PR (a) baselines de pixel
 OS-dependentes e (b) E2E com backend real. A perna de render admitida pela
 A40.l3 não é nenhuma das duas: **sem baseline**, sem Postgres/Redis/Celery/
-alembic, fixture mockada (`mockReportPage`), 7 testes. É uma **terceira classe** —
-"asserção de render sem baseline nem serviços" — que a ADR não enumerou.
+alembic, fixture mockada (`mockReportPage`), 8 testes (contados com
+`npx playwright test <spec> --project=chromium --list`, não estimados). É uma
+**terceira classe** — "asserção de render sem baseline nem serviços" — que a ADR
+não enumerou.
 
-**Custo — o que foi medido e o que não foi.** Medido local: os 7 testes rodam em
-**4,3 s** contra um `next dev` já quente. **Não medido:** o custo em CI, que é
-dominado por `playwright install` (cacheado) e pelo primeiro compile do
+**Custo — o que foi medido e o que não foi.** Medido local: os 8 testes rodam em
+**4,5 s** (5 workers) contra um `next dev` já quente. **Não medido:** o custo em
+CI, que é dominado por `playwright install` (cacheado) e pelo primeiro compile do
 Turbopack na rota de relatório. A estimativa de trabalho é ~2 min por PR que toca
 `changes.outputs.report`, dentro do caminho crítico existente
 (`backend-tests`, 9-10 min) ⇒ latência percebida ≈ inalterada. O `timeout-minutes`

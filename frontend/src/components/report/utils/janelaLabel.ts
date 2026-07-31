@@ -60,10 +60,18 @@ export function describeMesesDocumentados(n: number): string {
   return n === 1 ? "o último mês documentado" : `os últimos ${n} meses documentados`;
 }
 
-/** Cláusula de escopo temporal para prosa ("sobre …", "em …"). */
+/** Cláusula de escopo temporal para prosa ("sobre …", "em …").
+ *
+ * **`tipo: "12m"` sem `janela_meses` não vira "12 meses".** O vocabulário D2 é
+ * o NOME da janela; a contagem de meses documentados vive na chave irmã, e o
+ * default `?? 12` imprimia um número que o payload não afirma — a mesma classe
+ * de defeito que a A40.l3 fecha (declarar precisão que o dado não sustenta).
+ * Medido no render: `ratios = { janela: "12m" }` sem `janela_meses` produzia
+ * "os últimos 12 meses documentados". Sem contagem, a cláusula não cita
+ * contagem. */
 export function describeJanelaEscopo(rotulo: JanelaRotulo): string {
   if (rotulo.tipo === "12m") {
-    return describeMesesDocumentados(rotulo.meses ?? 12);
+    return rotulo.meses ? describeMesesDocumentados(rotulo.meses) : "a janela documentada";
   }
   if (rotulo.tipo === "irpf") {
     return `o ano-base IRPF${rotulo.anoIrpf ? ` ${rotulo.anoIrpf}` : ""}`;
@@ -73,23 +81,29 @@ export function describeJanelaEscopo(rotulo: JanelaRotulo): string {
 }
 
 /** Mesma cláusula com a preposição contraída ("**nos** últimos 12 meses",
- * "**no** último mês", "**em** todo o período"). Concatenar
- * `"em " + describeJanelaEscopo()` produzia "em os últimos 12 meses" — medido
- * no DOM renderizado. */
+ * "**no** último mês", "**na** janela documentada", "**em** todo o período").
+ * Concatenar `"em " + describeJanelaEscopo()` produzia "em os últimos 12 meses"
+ * — medido no DOM renderizado. */
 export function describeJanelaEm(rotulo: JanelaRotulo): string {
   const escopo = describeJanelaEscopo(rotulo);
   if (escopo.startsWith("os ")) return `nos ${escopo.slice(3)}`;
+  if (escopo.startsWith("a ")) return `na ${escopo.slice(2)}`;
   if (escopo.startsWith("o ")) return `no ${escopo.slice(2)}`;
   return `em ${escopo}`;
 }
 
 /** Rótulo curto para imprimir ao lado de um número (I5: tooltip não imprime
- * no PDF, e o PDF é o artefato que a família guarda). */
+ * no PDF, e o PDF é o artefato que a família guarda).
+ *
+ * Sem `janela_meses` o badge **não cita contagem** — ver
+ * `describeJanelaEscopo`. */
 export function janelaBadgeLabel(rotulo: JanelaRotulo | null): string | null {
   if (!rotulo) return null;
   if (rotulo.tipo === "12m") {
-    const meses = rotulo.meses ?? 12;
-    return meses === 1 ? "último mês documentado" : `últimos ${meses} meses documentados`;
+    if (!rotulo.meses) return "janela documentada";
+    return rotulo.meses === 1
+      ? "último mês documentado"
+      : `últimos ${rotulo.meses} meses documentados`;
   }
   if (rotulo.tipo === "irpf") {
     return `ano-base IRPF${rotulo.anoIrpf ? ` ${rotulo.anoIrpf}` : ""}`;

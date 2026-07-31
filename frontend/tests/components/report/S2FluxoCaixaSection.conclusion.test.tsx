@@ -56,9 +56,9 @@ describe("<S2FluxoCaixaSection /> — conclusion ids (audit-vault r4)", () => {
     expect(conclusions.receita).toBe(
       "CLT lidera as receitas (75% do total de todo o período analisado).",
     );
-    expect(conclusions.despesas).toBe(
-      "Moradia concentra 80% do gasto recorrente de todo o período analisado.",
-    );
+    // O texto do donut NÃO foi tocado pela A40.l3 — base e rótulo do card saíram
+    // para a A40.l15 (decisão de domínio).
+    expect(conclusions.despesas).toBe("Moradia concentra 80% do gasto recorrente.");
   });
 
   it("prioriza narrativa E5.N quando presente sob o id canônico", () => {

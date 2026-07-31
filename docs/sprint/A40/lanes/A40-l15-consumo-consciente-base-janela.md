@@ -1,7 +1,7 @@
 ---
 id: A40.l15
 type: lane
-title: "Consumo Consciente: card fala em quatro bases temporais; KPI de pontuais na base da janela"
+title: "Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês"
 sprint: A40
 plan: PLAN-report-trust
 status: planned
@@ -19,6 +19,56 @@ tags:
 ---
 
 # A40.l15 — `consumo-consciente-base-janela` (spun off da [[A40.l3]])
+
+## Escopo herdado da [[A40.l3]] no fechamento (2026-07-31)
+
+Além da base do KPI de pontuais (que criou esta lane), a [[A40.l3]] transferiu o
+**texto de conclusão/contexto de dois cards de S2**. Motivo: cinco rodadas
+tentaram fechar o par (valor, rótulo) desses textos e todas produziram
+inconsistência nova, porque a causa é estrutural — os dois citam bases
+legitimamente distintas ([[ADR-333]] ex-aporte vs bruto de todo o período) e
+**escolher qual base cada texto declara é decisão de domínio**, que é o objeto
+desta lane. Os três defeitos vão **medidos**, para não serem re-descobertos:
+
+1. **Donut: a rosca desenha 50,0%, a conclusão do mesmo card imprime 43%.**
+   Medido na fixture `janela-divergente`: Moradia = 414.000 de 828.000 de consumo
+   na janela renderizada (ex-aporte) ⇒ **50,0%** da geometria do donut. A
+   conclusão vem de `deriveChartConclusion("despesas_doughnut")`, que lê
+   `fluxo_caixa.despesas_por_categoria` (bloco full, **com** aporte):
+   558.000 / 1.296.000 ⇒ **43,1%**, renderizado "43%". Dois números para a mesma
+   pergunta, no mesmo card. Decidir aqui: o percentual acompanha o desenho
+   (janela, ex-aporte) ou o rótulo acompanha a base full.
+2. **`ReceitaDespesaMensalChart`: conclusão mensaliza a série inteira sem rótulo
+   e emite uma SEGUNDA taxa de poupança.** Medido no DOM e no PDF: "Receita média
+   de R$ 42.667/mês e despesa média de R$ 36.000/mês. Taxa de poupança de 15.6%."
+   — ao lado do card irmão que declara a janela canônica de 12m, e com a taxa
+   canônica ex-aporte (25,0%) já impressa no hero. O contexto do mesmo card
+   agrega 36 meses declarando apenas "Série temporal mensal (36 meses)".
+   **Armadilha medida:** a versão que a l3 chegou a escrever ("Janela exibida —
+   12 meses (…): receitas de … e despesas totais de …") rotula **a janela
+   exibida** sobre um agregado que não é da janela quando `despesa_datasets`
+   falta — nesse ramo o card exibe "despesas (R$ 0)" e "Taxa de poupança de
+   100.0%". Não reaproveitar aquela versão sem re-medir o ramo degradado.
+3. **A fixture escondia a divergência** — `despesa_datasets` usava o label
+   `"Aporte em investimentos"`, que `isAporteInvestimentoKey` não casa e o
+   produtor nunca emite (`fluxo_caixa_enricher.py:404` ⇒ `"Aporte
+   Investimento"`). Com o label errado o aporte entrava no donut e os dois totais
+   coincidiam. **Já corrigido em `main`**: esta lane herda a fixture fiel, e é ela
+   que torna o defeito 1 visível.
+
+Infraestrutura já entregue pela l3 e consumível aqui, sem reabrir decisão:
+
+- `DespesasDoughnutChart` expõe `{rows, fonte, aporteExcluido}` no MESMO objeto
+  que carrega as fatias (`fonte: "janela" | "agregado"`), para o rótulo nascer da
+  expressão que somou os valores em vez de ser inferido. **Nenhum texto lê esses
+  campos hoje.**
+- `janelaLabel.ts` (`describeJanelaEscopo`/`describeJanelaEm`/`janelaBadgeLabel`)
+  e o seletor `fluxoJanela.ts` — com a regra de que **sem `janela_meses` o texto
+  não cita contagem** (`?? 12` era contagem fabricada).
+- Guarda de seção com `CARDS_DA_L15` excluindo nominalmente estes dois cards em
+  `janelaCanonica.contract.test.tsx` e em `janela-canonica.@critical.spec.ts`.
+  **Ao fechar esta lane, remover as duas exclusões** — o assert de "exclusão não é
+  vácuo" fica verde mesmo depois, então ninguém será avisado automaticamente.
 
 ## Problema
 
@@ -125,6 +175,17 @@ Card coerente-e-menos-acionável > card incoerente.
   dedicado (payload sem `total_pontuais_janela` ⇒ valor full **e** rótulo full).
 - Rótulo é **texto impresso**, verificado no PDF com extração de texto
   ([[ADR-306]] §Emenda A40.l3: tooltip não conta).
+- **Donut:** o percentual da conclusão e a proporção **desenhada** citam a mesma
+  base, com rótulo — hoje 43% impresso sobre uma fatia de 50,0% (ver §Escopo
+  herdado). Se as bases forem mantidas distintas de propósito, cada número traz a
+  sua, com substantivos que não colidam.
+- **`ReceitaDespesaMensalChart`:** nenhum texto do card mensaliza sem rótulo, e S2
+  não emite taxa de poupança própria (a canônica é a do hero). Medir os dois ramos
+  — com e **sem** `despesa_datasets`.
+- **Guarda:** `CARDS_DA_L15` removido de `janelaCanonica.contract.test.tsx` e de
+  `janela-canonica.@critical.spec.ts`, devolvendo os dois cards à varredura de
+  seção. Sem isso a lane fecha com a guarda cega justamente nos cards que ela
+  tocou.
 
 ## Custo que esta lane carrega (declarar no PR)
 

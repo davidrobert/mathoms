@@ -143,20 +143,18 @@ const BUILDERS: Record<string, Builder> = {
     return `${prettyKey(top.key)} lidera as receitas (${format(top.pct, "pct")} do total de todo o período analisado).`;
   },
 
-  // ADR-306 D1 — composição é agregado histórico: permitido full **com rótulo**
-  // (a cláusula final é o rótulo). Não migrou para
-  // `janela_12m.despesas_por_categoria` porque aquele bloco inclui
-  // `aporte_investimento` e o donut o exclui por ADR-333/A37.l14: ler o bloco de
-  // 12m aqui trocaria o denominador do percentual pelo de um conjunto diferente
-  // do desenhado. O rótulo da janela RENDERIZADA fica no `[data-chart-context]`
-  // do próprio donut, que é onde o toggle de período atua.
+  // A40.l3 NÃO tocou este texto. O percentual sai de `despesas_por_categoria`
+  // (bloco full, com aporte) enquanto a rosca do mesmo card desenha as fatias
+  // ex-aporte da janela renderizada (ADR-333) — medido: 50,0% no desenho, 43%
+  // aqui. Trocar a base OU o rótulo é decisão de domínio, não de render, e vive
+  // na lane A40.l15 junto com a base do Consumo Consciente.
   despesas_doughnut: ({ data }) => {
     const cat = getPath(data, "fluxo_caixa.despesas_por_categoria") as
       | Record<string, number>
       | undefined;
     const top = topEntry(cat);
     if (!top) return null;
-    return `${prettyKey(top.key)} concentra ${format(top.pct, "pct")} do gasto recorrente de todo o período analisado.`;
+    return `${prettyKey(top.key)} concentra ${format(top.pct, "pct")} do gasto recorrente.`;
   },
 
   impostos_pj: ({ data }) => {

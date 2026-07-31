@@ -81,23 +81,20 @@ templates:
     fallback: "Composição das receitas por fonte."
     required_keys: ["fluxo_caixa.por_fonte"]
 
-  # A40.l3: permanece no bloco full **rotulado** (D1 permite agregado histórico
-  # assim). Migrar para `janela_12m.despesas_por_categoria` divergiria o
-  # denominador: aquele bloco inclui `aporte_investimento` e o donut o exclui
-  # (ADR-333 · A37.l14). O rótulo da janela RENDERIZADA fica no
-  # `[data-chart-context]` do donut, que é onde o toggle de período atua.
+  # A40.l3: o texto de conclusão do donut e do `receita_despesa_mensal` NÃO foi
+  # tocado por esta lane. Os dois citam bases legitimamente distintas (janela
+  # ex-aporte por ADR-333 vs bruto de todo o período) e escolher qual base cada
+  # texto declara é decisão de DOMÍNIO — lane A40.l15, que detém a base do
+  # Consumo Consciente. Defeito medido e herdado por ela: a rosca desenha 50,0%
+  # (Moradia, ex-aporte da janela) e a conclusão do MESMO card imprime 43%
+  # (base full).
   despesas_doughnut:
-    template: "{despesa_top_categoria} concentra {despesa_top_pct|pct} do gasto recorrente de todo o período analisado."
+    template: "{despesa_top_categoria} concentra {despesa_top_pct|pct} do gasto recorrente."
     fallback: "Distribuição das despesas por categoria."
     required_keys: ["fluxo_caixa.despesas_por_categoria"]
 
-  # A40.l3: totaliza a janela EXIBIDA (rotulada), sem mensalizar e sem taxa —
-  # duas mensalizações na mesma seção era o defeito B1. "despesas **totais**"
-  # distingue do donut irmão, que cita "despesas de consumo" (ex-aporte,
-  # ADR-333) da MESMA janela: substantivo igual com valor diferente sob o mesmo
-  # rótulo de base é irreconciliável para o leitor.
   receita_despesa_mensal:  # fallback-only (Fase 6 — sem builder); placeholders não interpolam
-    template: "Janela exibida — {meses_exibidos} meses ({range_exibido}): receitas de {receita_janela|brl} e despesas totais de {despesa_janela|brl}, saldo de {saldo_janela|brl} no intervalo."
+    template: "Ao longo do período analisado, fluxo líquido médio foi {fluxo_medio|brl}/mês."
     fallback: "Receita vs despesa ao longo do tempo."
     required_keys: ["fluxo_caixa.receita_despesa_mensal_detalhado"]
 
