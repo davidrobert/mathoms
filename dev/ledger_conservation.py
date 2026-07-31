@@ -25,6 +25,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from dev.golden_diff import to_cents
 
+# Detector cross-grupo (camada B, ADR-354 · A40.l1) — implementado nos módulos irmãos
+# ``dev.ledger_cross_group`` (detecção) e ``dev.ledger_cross_group_render`` (render) para
+# manter os arquivos sob o teto de 500 linhas, e re-exportado aqui porque este é o ponto
+# de entrada documentado do ledger.
+from dev.ledger_cross_group import (  # noqa: F401
+    EXPLAINED_DIVERGENCE,
+    CrossGroupCollision,
+    CrossGroupSummary,
+    cross_group_coverage,
+    cross_group_double_count,
+    cross_group_explained,
+    cross_group_numerator,
+    cross_group_summary,
+    cross_group_unkeyable,
+    validate_explained,
+)
+from dev.ledger_cross_group_render import fmt_cross_group  # noqa: F401
+
 # Vereditos fail-closed (rubrica ledger-certify).
 CONSERVADO = "conservado"
 COBERTO_SEM_VALOR = "coberto-sem-verificação-de-valor"
