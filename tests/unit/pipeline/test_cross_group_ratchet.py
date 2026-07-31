@@ -14,25 +14,42 @@ if str(_REPO) not in sys.path:
 from dev.ledger_cross_group import (  # noqa: E402
     EXPLAINED_DIVERGENCE,
     CrossGroupSummary,
+    _assert_explicadas_declaradas,
+    _coverage_ok,
     cross_group_coverage,
     cross_group_double_count,
     cross_group_explained,
     cross_group_numerator,
     cross_group_summary,
-    fmt_cross_group,
     validate_explained,
 )
+from dev.ledger_cross_group_render import fmt_cross_group  # noqa: E402
 from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
     buckets as _buckets,
+)
+from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
+    carrier_1_vocabulario as _carrier_1_vocabulario,
 )
 from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
     carrier_adr354 as _carrier_adr354,
 )
 from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
+    carrier_e_coincidencia as _carrier_e_coincidencia,
+)
+from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
     coincidencia_cross_conta as _coincidencia_cross_conta,
 )
 from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
+    corpus_denso as _corpus_denso,
+)
+from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
+    corpus_multi_eixo as _corpus_multi_eixo,
+)
+from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
     duas_ocorrencias_uma_imaterial as _duas_ocorrencias_uma_imaterial,
+)
+from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
+    par_sem_descricao as _par_sem_descricao,
 )
 from tests.unit.pipeline._cross_group_builders import (  # noqa: E402
     tx as _tx,
@@ -92,18 +109,43 @@ def test_shape_do_carrier_e_estruturalmente_inalcancavel_pela_whitelist() -> Non
         validate_explained(frozenset({shape}))
 
 
-def test_validate_explained_rejeita_as_tres_assinaturas_de_carrier() -> None:
+def test_validate_explained_rejeita_carrier_e_sentinela_de_vazio() -> None:
     casos = {
         "titular parcial (carrier 2)": "banco=itau|tipo_conta=extratoconta|titular=parcial",
-        "sentinela de vazio": "banco=(vazio)~itau|tipo_conta=extratoconta|titular=preenchido",
+        "sentinela ao lado de valor real = banco parcial (carrier 2)": (
+            "banco=(vazio)~itau|tipo_conta=extratoconta|titular=preenchido"
+        ),
         "tipo_conta divergente (carrier 1)": (
             "banco=itau|tipo_conta=extrato~extratoconta|titular=preenchido"
+        ),
+        "vazio em TODAS as pernas (eixo próprio: sentinela, não carrier)": (
+            "banco=(vazio)|tipo_conta=extratoconta|titular=preenchido"
         ),
     }
     for rotulo, entry in casos.items():
         with pytest.raises(ValueError):
             validate_explained(frozenset({entry}))
         assert rotulo  # nomeia o caso na falha
+
+
+def test_rota_alternativa_de_whitelist_nao_esvazia_o_numerador() -> None:
+    # RATCHET: `whitelisted = shape in explained or not descricao` passava 76/76 e
+    # esvaziava o numerador PARA DENTRO de `explicadas` sem tocar na whitelist (medido no
+    # corpus: 261→200, explicadas 0→61, `particao_fecha=True`, `coverage_ok=True` — todo o
+    # aparato anti-Goodhart contornado). Com a invariante, a rota é impossível: ocorrência
+    # explicada com shape fora de `explained` é erro, não linha de relatório.
+    cg = cross_group_summary(_par_sem_descricao())
+    assert len(cg.numerador) == 1 and cg.numerador[0].descricao_vazia is True
+    assert cg.explicadas == [] and cg.explained_shapes == ()
+
+
+def test_explicada_fora_da_whitelist_declarada_e_erro() -> None:
+    # O dente da invariante no grão da função: `explicadas` não-vazia com whitelist vazia
+    # é impossível POR CONSTRUÇÃO, não por convenção do call-site.
+    hit = cross_group_double_count(_carrier_adr354())[0]
+    with pytest.raises(ValueError, match="FORA da whitelist"):
+        _assert_explicadas_declaradas([hit], frozenset())
+    _assert_explicadas_declaradas([hit], frozenset({hit.explained_shape}))
 
 
 def test_validate_explained_aceita_a_coincidencia_declarada() -> None:
@@ -113,11 +155,68 @@ def test_validate_explained_aceita_a_coincidencia_declarada() -> None:
     validate_explained(frozenset({legitima}))
 
 
+# ───────── UMA definição de carrier: partição e validador não podem divergir ─────────
+
+
+def _rejeita_como_carrier(shape: str) -> bool:
+    """A whitelist rejeita este shape POR SER carrier (não por outro eixo)?"""
+    try:
+        validate_explained(frozenset({shape}))
+    except ValueError as exc:
+        return "carrier" in str(exc)
+    return False
+
+
+def test_carrier_1_sozinho_e_carrier_shaped() -> None:
+    # RATCHET: `defect_shaped = bool(parciais)` captura só o carrier 2 (titular
+    # assimétrico). O carrier 1 da ADR-354 — `tipo_conta` com vocabulário divergente —
+    # NÃO produz campo parcial quando titular é simétrico, então saía
+    # coincidence-shaped (não escala a P0) enquanto `_validate_entry` no MESMO módulo
+    # se recusava a whitelistar o mesmo shape chamando-o de carrier 1.
+    hit = cross_group_double_count(_carrier_1_vocabulario())[0]
+    assert hit.parciais == ""
+    assert hit.divergence == "tipo_conta"
+    assert hit.carriers == ("tipo_conta:c1",)
+    assert hit.defect_shaped is True
+
+
+def test_token_de_carrier_nao_embute_separador_de_campo() -> None:
+    # O valor de `carriers=` fica ao lado de campos `key=value` na linha de ocorrência; um
+    # `=`, espaço ou `+` DENTRO do valor quebra qualquer parse do relatório off-git.
+    hit = cross_group_double_count(_carrier_adr354())[0]
+    assert hit.carriers == ("titular:c2", "tipo_conta:c1")
+    for token in hit.carriers:
+        assert not set(token) & set("= +"), token
+
+
+def test_particao_e_validador_compartilham_a_definicao_de_carrier() -> None:
+    # RATCHET com dente: o defeito era ter DUAS definições de carrier no mesmo módulo.
+    # Para cada classe medida, "é carrier-shaped na partição" e "é rejeitado como
+    # carrier pela whitelist" TÊM de concordar. Fora do escopo desta equivalência:
+    # vazio em TODAS as pernas de campo de vocabulário, rejeitado por eixo próprio.
+    casos = {
+        "carrier 1+2 (titular parcial + tipo_conta variante)": _carrier_adr354(),
+        "carrier 1 sozinho (titular simétrico)": _carrier_1_vocabulario(),
+        "coincidência cross-conta (pernas simétricas)": _coincidencia_cross_conta(),
+    }
+    for rotulo, buckets in casos.items():
+        hit = cross_group_double_count(buckets)[0]
+        assert hit.defect_shaped is _rejeita_como_carrier(hit.explained_shape), rotulo
+
+
 # ───────── cobertura: o denominador que torna o 0 falsificável ─────────
 
 
+def test_particionadas_e_obrigatorio_para_afirmar_cobertura() -> None:
+    # RATCHET: com o default (`particionadas=None` ⇒ keys_multiprov), a 3ª identidade
+    # vira tautologia e um filtro dentro de `cross_group_numerator` fica invisível —
+    # medido na r3 (`and c.direction == "debit"` passava com a suíte verde).
+    with pytest.raises(TypeError):
+        cross_group_coverage(_carrier_adr354())  # type: ignore[call-arg]
+
+
 def test_cobertura_fecha_e_declara_ok() -> None:
-    cov = cross_group_coverage(_carrier_adr354())
+    cov = cross_group_coverage(_carrier_adr354(), particionadas=1)
     assert cov["rows_scanned"] == 2 and cov["declared_tx"] == 2
     assert cov["rows_keyed"] == 2 and cov["keys_distinct"] == 1
     assert cov["keys_multirow"] == 1 and cov["keys_multiprov"] == 1
@@ -145,7 +244,9 @@ def test_cobertura_cega_nomeia_o_balde_ilegivel() -> None:
     # O fail-safe de `_bucket_rows` devolve 0 rows quando `dados` é LISTA; sem o
     # veredito de cobertura isso produz texto idêntico a "0 colisões" (falso-verde
     # que a lane existe para fechar).
-    cov = cross_group_coverage({"despesas": {"dados": []}, "receitas": {"dados": {}}})
+    cov = cross_group_coverage(
+        {"despesas": {"dados": []}, "receitas": {"dados": {}}}, particionadas=0
+    )
     assert cov["rows_scanned"] == 0
     assert cov["buckets_ilegiveis"] == ("despesas",)
     assert cov["coverage_ok"] is False
@@ -154,7 +255,9 @@ def test_cobertura_cega_nomeia_o_balde_ilegivel() -> None:
 def test_cobertura_cega_em_corpus_de_fonte_unica() -> None:
     # 1 tripla de proveniência ⇒ o critério "≥2 triplas" é vacuoso ⇒ o detector NÃO
     # PODE flagar: distingue "0 porque limpo" de "0 porque fonte única".
-    cov = cross_group_coverage(_buckets(despesas=[_tx(valor=10.0), _tx(valor=20.0)]))
+    cov = cross_group_coverage(
+        _buckets(despesas=[_tx(valor=10.0), _tx(valor=20.0)]), particionadas=0
+    )
     assert cov["provenance_triples"] == 1
     assert cov["coverage_ok"] is False
 
@@ -162,14 +265,74 @@ def test_cobertura_cega_em_corpus_de_fonte_unica() -> None:
 def test_invariante_scanned_menos_keyed_igual_soma_das_exclusoes() -> None:
     # Torna o dict de exclusões falsificável de graça: as razões declaradas TÊM de
     # explicar toda row varrida e não chaveada, sem resíduo. É auto-consistente —
-    # por isso o predicado tem teste próprio (test_qualquer_valor_nao_zero_...).
+    # por isso o predicado tem teste próprio
+    # (test_so_valor_exatamente_zero_e_excluido_por_valor, no arquivo irmão).
     buckets = _buckets(
         despesas=[_tx(tipo_conta="extrato"), _tx(tipo_conta="extratoconta", valor=0.0)],
         receitas=[_tx(data="", valor=50.0)],
     )
-    cov = cross_group_coverage(buckets)
+    cov = cross_group_coverage(buckets, particionadas=0)
     assert cov["rows_scanned"] - cov["rows_keyed"] == sum(cov["unkeyable"].values())
     assert sum(cov["unkeyable"].values()) == 2
+
+
+def test_identidade_interna_quebra_com_residuo_nao_declarado() -> None:
+    # TRIPWIRE: `interna = True` em `_coverage_ok` sobrevive a mutação hoje porque os dois
+    # ramos compartilham `_unkeyable_reason` (é no-op enquanto não divergirem) — logo o
+    # termo pode ser DELETADO sem sinal. Aqui o resíduo é artificial e bilateral: 2 rows
+    # não chaveadas com 1 exclusão declarada reprova; com 2 declaradas, aprova.
+    cov = {
+        "rows_scanned": 10,
+        "rows_keyed": 8,
+        "unkeyable": {"valor_zero": 1},
+        "declared_tx": 10,
+        "particao_fecha": True,
+        "buckets_ilegiveis": (),
+        "provenance_triples": 2,
+    }
+    assert _coverage_ok(cov) is False
+    cov["unkeyable"] = {"valor_zero": 2}
+    assert _coverage_ok(cov) is True
+
+
+def test_identidade_externa_quebra_quando_o_declarado_nao_bate() -> None:
+    # RATCHET: `externa` (rows_scanned == Σ total_transacoes) é o ÚNICO termo de
+    # `_coverage_ok` que NÃO é auto-consistente — o detector não lê `total_transacoes` —
+    # e era o único sem teste: forçar `externa = True` mantinha a suíte verde, e um
+    # balde que perde rows na leitura passava como cobertura OK.
+    buckets = _carrier_adr354()
+    buckets["despesas"]["total_transacoes"] = 3
+    cov = cross_group_coverage(buckets, particionadas=1)
+    assert cov["rows_scanned"] == 2 and cov["declared_tx"] == 3
+    assert cov["coverage_ok"] is False
+
+
+def test_numerador_atravessa_os_dois_baldes_cinco_categorias_e_duas_moedas() -> None:
+    # RATCHET: as fixturas de 1 categoria / 1 balde / 1 moeda deixavam passar filtro em
+    # QUALQUER desses eixos (medido na r3: varrer só a 1ª categoria de `dados`, ou
+    # `and c.direction == "debit"` dentro do numerador, com a suíte verde).
+    cg = cross_group_summary(_corpus_multi_eixo())
+    assert len(cg.numerador) == 5
+    assert {c.direction for c in cg.numerador} == {"debit", "credit"}
+    assert {c.moeda for c in cg.numerador} == {"BRL", "USD"}
+    assert cg.coverage["rows_scanned"] == 10 and cg.coverage["declared_tx"] == 10
+    assert cg.coverage["particao_fecha"] is True
+    assert cg.coverage["coverage_ok"] is True
+
+
+_N_DENSO = 150
+
+
+def test_numerador_nao_tem_cap_constante() -> None:
+    # RATCHET: `[:100]` dentro de `cross_group_numerator` passava 76/76 — só `[:1]` era
+    # pego, porque a fixture mais densa tinha 5 colisões. Em produção o cap PEGA e a 3ª
+    # identidade reprova a cobertura, então o furo é no gate pré-merge, não no runtime.
+    # 150 colisões (~300 rows sintéticas) fecham qualquer cap constante plausível.
+    cg = cross_group_summary(_corpus_denso(_N_DENSO))
+    assert len(cg.numerador) == _N_DENSO
+    assert cg.coverage["keys_multiprov"] == _N_DENSO
+    assert cg.coverage["rows_scanned"] == 2 * _N_DENSO
+    assert cg.coverage["particao_fecha"] is True and cg.coverage["coverage_ok"] is True
 
 
 # ───────── render: os tokens negativos precisam existir de verdade ─────────
@@ -198,3 +361,25 @@ def test_render_declara_cobertura_ok_e_os_dois_histogramas() -> None:
     assert "histograma diagnóstico" in texto and "histograma por shape de whitelist" in texto
     assert "transferencias=7" in texto
     assert "unidade: ocorrências" in texto and "unidade: rows" in texto
+    # O número IMPRESSO (o que a skill manda grepar) tem asserção própria: 1 ocorrência,
+    # 2 proveniências, 100,00 ⇒ (P−1)·valor = 10000 cents.
+    assert "não-explicada: 1 ocorrência(s)" in texto
+    assert "Σ excesso 10000 cents" in texto
+    # A partição imprime a definição de carrier que a whitelist USA — sem isso, o leitor
+    # não tem como saber que "coincidence-shaped" não inclui carrier 1.
+    assert "carrier-shaped=1" in texto and "coincidence-shaped=0" in texto
+    assert "a MESMA definição que a whitelist rejeita" in texto
+    assert "carriers=titular:c2+tipo_conta:c1" in texto
+
+
+def test_render_pina_o_numero_impresso_em_corpus_misto() -> None:
+    # RATCHET: o numerador estava pinado no grão de DADOS, mas o número IMPRESSO não —
+    # `len(hits)` → `sum(1 for c in hits if c.defect_shaped)` e `_sum_excess → 0` passavam
+    # 76/76. Corpus MISTO de propósito: com só carrier, filtrar por `defect_shaped` é
+    # indistinguível de `len`. Σ = 10000 (carrier) + 20000 (coincidência).
+    cg = cross_group_summary(_carrier_e_coincidencia())
+    assert len(cg.numerador) == 2
+    texto = "\n".join(fmt_cross_group(cg))
+    assert "não-explicada: 2 ocorrência(s)" in texto
+    assert "Σ excesso 30000 cents" in texto
+    assert "carrier-shaped=1" in texto and "coincidence-shaped=1" in texto

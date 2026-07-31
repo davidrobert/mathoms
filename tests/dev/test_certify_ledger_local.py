@@ -95,3 +95,69 @@ def test_blast_radius_faz_rollback_antes_de_degradar() -> None:
     session = _FailingSession()
     assert _blast_radius_or_empty(session, "ws-uuid") == {}
     assert session.rolled_back == 1
+
+
+def _rederive_vazio(_session, _ws, _run):
+    """``_rederive`` sem DB: store vazio + E4 mínimo legível pelo núcleo puro."""
+    from pipeline.artifact_store import InMemoryArtifactStore
+
+    e3_result = SimpleNamespace(
+        statements_loaded=0, statements_reconciled=0, skipped_inputs=0, artifacts_written=0
+    )
+    result = SimpleNamespace(classified=[], cash_flow=SimpleNamespace(transferencias_count=0))
+    return InMemoryArtifactStore(), [], e3_result, result, {"investimentos": {"dados": []}}
+
+
+def test_certify_degrada_o_blast_radius_sem_derrubar_a_certificacao(monkeypatch) -> None:
+    # RATCHET no grão de `certify`: o CALL-SITE não tinha teste — voltar a chamar
+    # `_override_blast_radius` (SQL cru sobre 5 colunas nullable, sem guarda) mantinha a
+    # suíte verde e derrubava a certificação inteira num schema divergente, junto com a
+    # prova de zero-write.
+    from dev import certify_ledger_local as mod
+
+    monkeypatch.setattr(mod, "_row_counts", lambda _s, _w: {"pipeline_artifacts": 7})
+    monkeypatch.setattr(mod, "_rederive", _rederive_vazio)
+    monkeypatch.setattr(mod, "_persisted_e3_by_key", lambda _s, _w: {})
+    session = _FailingSession()
+    report = mod.certify(session, "ws-uuid", "run-1")
+    assert report.blast_radius == {}
+    assert session.rolled_back == 1
+    assert report.zero_write_ok is True
+    assert "não medido" in mod.format_report(report)
+
+
+class _PendingWriteSession(_FailingSession):
+    """Sessão em que a re-derivação deixou escrita PENDENTE — visível a SELECT na mesma
+    sessão (é assim que o zero-write se prova) — e cujo ``rollback`` a apaga."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.pending = 0
+
+    def rollback(self) -> None:
+        super().rollback()
+        self.pending = 0
+
+
+def _rederive_escrevendo(session, _ws, _run):
+    """``_rederive`` que deixa 1 escrita pendente — o caso que a prova de zero-write tem de pegar."""
+    session.pending = 1
+    return _rederive_vazio(session, _ws, _run)
+
+
+def test_contagem_final_vem_antes_do_blast_radius_que_faz_rollback(monkeypatch) -> None:
+    # RATCHET de ORDEM: com `blast_radius` ANTES de `counts_after`, o `rollback` do ramo
+    # degradado apaga a escrita pendente antes da 2ª contagem ⇒ counts_before ==
+    # counts_after, `rolled_back == 1` e `zero_write_ok=True` — veredito de zero-write com
+    # escrita tendo existido. A medição SECUNDÁRIA vem DEPOIS da prova, nunca antes.
+    from dev import certify_ledger_local as mod
+
+    monkeypatch.setattr(mod, "_row_counts", lambda s, _w: {"pipeline_artifacts": 7 + s.pending})
+    monkeypatch.setattr(mod, "_rederive", _rederive_escrevendo)
+    monkeypatch.setattr(mod, "_persisted_e3_by_key", lambda _s, _w: {})
+    session = _PendingWriteSession()
+    report = mod.certify(session, "ws-uuid", "run-1")
+    assert session.rolled_back == 1 and session.pending == 0
+    assert report.counts_before == {"pipeline_artifacts": 7}
+    assert report.counts_after == {"pipeline_artifacts": 8}
+    assert report.zero_write_ok is False

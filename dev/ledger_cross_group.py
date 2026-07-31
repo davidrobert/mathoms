@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Duplicação ENTRE grupos-fonte do E4 (camada B, [[ADR-354]]) — reporta, não dedupa."""
+"""Duplicação ENTRE grupos-fonte do E4 (camada B, [[ADR-354]]) — reporta, não dedupa.
+
+O render do bloco vive em ``dev.ledger_cross_group_render`` (teto de 500 linhas do
+CLAUDE.md); a detecção não importa o render, então a dependência é um DAG."""
 
 from __future__ import annotations
 
@@ -8,7 +11,7 @@ import sys
 from dataclasses import dataclass, field
 from decimal import InvalidOperation
 from pathlib import Path
-from typing import Callable, Iterator
+from typing import Iterator
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -24,13 +27,35 @@ _SHAPE_FIELDS: tuple[str, ...] = (*_CLOSED_VOCAB_FIELDS, "titular")
 _EMPTY_VALUE = "(vazio)"
 _PREENCHIDO, _PARCIAL, _VAZIO = "preenchido", "parcial", "vazio"
 _FILL_STATES: tuple[str, ...] = (_PREENCHIDO, _PARCIAL, _VAZIO)
-# Rótulo PRÓPRIO: ``DEDUP_LEGITIMO`` é um dos 5 vereditos da rubrica, e emprestar a
-# autoridade de veredito a uma decisão de whitelist contamina o eixo de julgamento.
-_EXPLAINED_LABEL = "shape declarado explicado"
 # Shapes declarados legítimos, no eixo de VALOR (ver ``_explained_shape``). VAZIO por
 # decisão (A40.l1). Entrada nova exige ADR/decisão citada + fixture que prove a classe
 # + diff no PR, e passa por ``validate_explained``. Por OCORRÊNCIA é proibida (Goodhart).
 EXPLAINED_DIVERGENCE: frozenset[str] = frozenset()
+# Carrier 1 da [[ADR-354]] é QUALQUER divergência de ``tipo_conta`` entre as pernas — mais
+# largo que o par variante que motivou a ADR ('extrato' vs 'extratoconta'): distinguir
+# variante-de-vocabulário de tipo REALMENTE distinto exige o alias-map versionado da
+# [[A40.l2]]. Sob [[ADR-342]] o instrumento erra para SOBRE-detecção. Carrier 2 é
+# assimetria de fill. Os dois entram na definição ÚNICA de ``carrier_signatures``.
+_VOCAB_CARRIER_FIELD = "tipo_conta"
+# Sufixos curtos: o valor de ``carriers=`` fica ao lado de campos ``key=value`` no render,
+# então não pode embutir ``=``, espaço nem ``+``. A glosa longa sai uma vez, no render.
+_CARRIER_1, _CARRIER_2 = "c1", "c2"
+
+
+def _tag_fields(tag: str) -> frozenset[str]:
+    """Nomes de campo de uma tag ``a+b`` (``divergence`` / ``parciais``)."""
+    return frozenset(tag.split("+")) if tag else frozenset()
+
+
+def carrier_signatures(divergentes: frozenset[str], parciais: frozenset[str]) -> tuple[str, ...]:
+    """Assinaturas de carrier [[ADR-354]] presentes — definição ÚNICA, consumida pela
+    partição do relatório E pelo validador de whitelist."""
+    # Duas leituras divergentes de "carrier" no mesmo módulo (partição só via fill
+    # parcial, validador também via tipo_conta) deixavam o carrier 1 fora da partição.
+    fill = tuple(f"{name}:{_CARRIER_2}" for name in sorted(parciais))
+    if _VOCAB_CARRIER_FIELD not in divergentes:
+        return fill
+    return fill + (f"{_VOCAB_CARRIER_FIELD}:{_CARRIER_1}",)
 
 
 @dataclass(frozen=True)
@@ -57,9 +82,14 @@ class CrossGroupCollision:
         return (self.n_provenances - 1) * self.valor_cents
 
     @property
+    def carriers(self) -> tuple[str, ...]:
+        """Assinaturas de carrier [[ADR-354]] nesta ocorrência — MESMA definição da whitelist."""
+        return carrier_signatures(_tag_fields(self.divergence), _tag_fields(self.parciais))
+
+    @property
     def defect_shaped(self) -> bool:
-        """Assimetria de proveniência NO eixo divergente — ``parcial`` implica divergente."""
-        return bool(self.parciais)
+        """Carrier-shaped: assimetria de fill OU QUALQUER divergência de ``tipo_conta``."""
+        return bool(self.carriers)
 
     @property
     def shape(self) -> str:
@@ -117,7 +147,7 @@ def _row_moeda(row: dict) -> str:
 def _unkeyable_reason(row: dict) -> str | None:
     """Razão declarada da exclusão da chave, ``None`` se chaveável (fonte ÚNICA do predicado)."""
     # Piso aqui derruba o numerador SEM quebrar a identidade de cobertura (que é
-    # auto-consistente); quem trava é `test_qualquer_valor_nao_zero_segue_chaveavel`.
+    # auto-consistente); quem trava é `test_so_valor_exatamente_zero_e_excluido_por_valor`.
     cents = _row_cents(row)
     if cents is None:
         return "valor_nao_monetario"
@@ -202,19 +232,35 @@ def _parse_shape(entry: str) -> dict[str, str]:
     return {name: payload for name, payload in segs}
 
 
+def _shape_divergentes(fields: dict[str, str]) -> frozenset[str]:
+    """Campos de vocabulário com >1 valor no shape declarado (``~`` separa os valores)."""
+    return frozenset(n for n in _CLOSED_VOCAB_FIELDS if len(fields[n].split("~")) > 1)
+
+
+def _shape_parciais(fields: dict[str, str]) -> frozenset[str]:
+    """Campos fill-ASSIMÉTRICOS no shape: ``titular=parcial`` e sentinela de vazio ao lado
+    de valor real — que é a MESMA assimetria, escrita em valores."""
+    parciais = {"titular"} if fields["titular"] == _PARCIAL else set()
+    for name in _CLOSED_VOCAB_FIELDS:
+        values = fields[name].split("~")
+        if _EMPTY_VALUE in values and len(values) > 1:
+            parciais.add(name)
+    return frozenset(parciais)
+
+
 def _validate_entry(entry: str) -> None:
-    """Rejeita as 3 assinaturas de carrier: titular parcial, sentinela de vazio, tipo_conta divergente."""
+    """Rejeita assinatura de carrier ([[ADR-354]], definição ÚNICA) + vazio em TODAS as pernas."""
     fields = _parse_shape(entry)
     if fields["titular"] not in _FILL_STATES:
         raise ValueError(f"fill-state de titular desconhecido em {entry!r}: {fields['titular']!r}")
-    if fields["titular"] == _PARCIAL:
+    carriers = carrier_signatures(_shape_divergentes(fields), _shape_parciais(fields))
+    if carriers:
         raise ValueError(
-            f"whitelist com assinatura de carrier ADR-354 (titular parcial): {entry!r}"
+            f"whitelist com assinatura de carrier ADR-354 ({'+'.join(carriers)}; "
+            f"c1=tipo_conta divergente, c2=campo de proveniência parcial): {entry!r}"
         )
-    if len(fields["tipo_conta"].split("~")) > 1:
-        raise ValueError(f"whitelist com carrier 1 da ADR-354 (tipo_conta divergente): {entry!r}")
     for name in _CLOSED_VOCAB_FIELDS:
-        if _EMPTY_VALUE in fields[name].split("~"):
+        if fields[name] == _EMPTY_VALUE:
             raise ValueError(f"whitelist com sentinela de vazio em {name}: {entry!r}")
 
 
@@ -287,6 +333,19 @@ def cross_group_explained(hits: list[CrossGroupCollision]) -> list[CrossGroupCol
     return [c for c in hits if c.whitelisted]
 
 
+def _assert_explicadas_declaradas(explicadas: list, explained: frozenset[str]) -> None:
+    """Toda ocorrência na linha ``explicadas`` TEM shape na whitelist declarada."""
+    # Sem esta invariante, uma rota alternativa de whitelist (``whitelisted = shape in
+    # explained or <predicado novo>``) esvazia o numerador para dentro de ``explicadas``
+    # sem tocar em ``explained`` — com as 3 identidades fechando e cobertura OK.
+    fora = sorted({c.explained_shape for c in explicadas} - set(explained))
+    if fora:
+        raise ValueError(
+            f"ocorrência em explicadas com shape FORA da whitelist declarada "
+            f"(rota alternativa de whitelist, [[ADR-354]] anti-Goodhart): {fora}"
+        )
+
+
 def cross_group_unkeyable(buckets_e4: dict) -> dict[str, int]:
     """Rows dos baldes transacionais EXCLUÍDAS da chave, por razão declarada (ADR-342)."""
     out = {"sem_data": 0, "valor_zero": 0, "valor_nao_monetario": 0}
@@ -343,10 +402,13 @@ def _coverage_ok(cov: dict) -> bool:
     )
 
 
-def cross_group_coverage(buckets_e4: dict, *, particionadas: int | None = None) -> dict:
+def cross_group_coverage(buckets_e4: dict, *, particionadas: int) -> dict:
     """Denominadores: sem eles "0 por corpus limpo" e "0 por detector cego" são byte-idênticos."""
+    # ``particionadas`` é OBRIGATÓRIO de propósito: com default a 3ª identidade vira
+    # tautologia (particionadas := keys_multiprov) e um filtro dentro do numerador fica
+    # invisível. Quem não sabe quantas saíram particionadas não pode afirmar cobertura.
     cov = _coverage_counts(buckets_e4)
-    cov["particionadas"] = cov["keys_multiprov"] if particionadas is None else particionadas
+    cov["particionadas"] = particionadas
     cov["particao_fecha"] = cov["keys_multiprov"] == cov["particionadas"]
     return {**cov, "coverage_ok": _coverage_ok(cov)}
 
@@ -360,140 +422,11 @@ def cross_group_summary(
     """Deriva e PARTICIONA o detector [[ADR-354]], fechando a 3ª identidade de cobertura."""
     hits = cross_group_double_count(buckets_e4, explained=explained)
     numerador, explicadas = cross_group_numerator(hits), cross_group_explained(hits)
+    _assert_explicadas_declaradas(explicadas, explained)
     return CrossGroupSummary(
         numerador=numerador,
         explicadas=explicadas,
         coverage=cross_group_coverage(buckets_e4, particionadas=len(numerador) + len(explicadas)),
         nao_varrido={"transferencias": int(transferencias_count)},
         explained_shapes=tuple(sorted(explained)),
-    )
-
-
-# ─────────────────────────── render (boundary de PII) ───────────────────────────
-
-
-def _sum_excess(hits: list) -> int:
-    return sum(c.excess_cents for c in hits)
-
-
-def _intra_prov_extra_rows(hits: list) -> int:
-    """Rows além de 1 por proveniência: repetição legítima OU miss do dedup K4 (achado distinto)."""
-    return sum(c.n_rows - c.n_provenances for c in hits)
-
-
-def _fmt_coverage(cov: dict) -> list[str]:
-    """Veredito grepável de cobertura + os denominadores que o tornam falsificável."""
-    if not cov:
-        return ["- **cobertura=CEGA — não medida (sem payload E4)**"]
-    head = (
-        "- cobertura=OK"
-        if cov["coverage_ok"]
-        else "- **cobertura=CEGA — bloco NÃO-VERIFICÁVEL, não leia como 0**"
-    )
-    return [
-        f"{head} · {cov['rows_scanned']} rows varridas · {cov['rows_keyed']} chaveadas · "
-        f"{cov['keys_distinct']} chaves distintas",
-        f"- cobertura (falsificabilidade): declaradas={cov['declared_tx']} (total_transacoes, "
-        f"campo que o detector NÃO lê) · multi-row={cov['keys_multirow']} · "
-        f"triplas no corpus={cov['provenance_triples']} (<2 ⇒ critério vacuoso) · "
-        f"baldes ilegíveis={'+'.join(cov['buckets_ilegiveis']) or 'nenhum'}",
-        f"- 3ª identidade (nenhum filtro silencioso entre detector e numerador): "
-        f"multi-proveniência={cov['keys_multiprov']} vs numerador+explicadas="
-        f"{cov['particionadas']} ⇒ {'fecha' if cov['particao_fecha'] else 'NÃO FECHA'}",
-    ]
-
-
-def _fmt_unscanned(nao_varrido: dict, cov: dict) -> list[str]:
-    """Massa que estruturalmente não passa pelos 2 baldes varridos + exclusões."""
-    unkeyable = cov.get("unkeyable") or {}
-    skip = " ".join(f"{k}={v}" for k, v in sorted(unkeyable.items())) or "n/d"
-    massa = " ".join(f"{k}={v}" for k, v in sorted(nao_varrido.items())) or "n/d"
-    return [
-        f"- massa não-varrida (kind transferencia não vai a balde; queda de numerador "
-        f"com esta massa subindo NÃO é progresso): {massa}",
-        f"- rows não-chaveáveis (unidade: rows · declarado, anti-silêncio ADR-342): {skip} · "
-        f"rows chaveadas com descrição normalizada vazia (unidade: rows, NÃO excluídas): "
-        f"{cov.get('keyed_sem_descricao', 0)}",
-    ]
-
-
-def _fmt_partition(hits: list) -> list[str]:
-    """Partição defeito vs coincidência — linha de RELATÓRIO, nunca predicado de entrada."""
-    defect = sum(1 for c in hits if c.defect_shaped)
-    return [
-        f"- partição do numerador (unidade: ocorrências): defect-shaped (≥1 campo de "
-        f"proveniência PARCIAL — vazio numa perna, preenchido na outra)={defect} · "
-        f"coincidence-shaped (nenhum campo parcial)={len(hits) - defect} · ocorrências com "
-        f"descrição normalizada vazia={sum(1 for c in hits if c.descricao_vazia)} · rows além "
-        f"de 1 por proveniência={_intra_prov_extra_rows(hits)} (repetição legítima OU miss de "
-        f"dedup K4 — achado distinto, fora do numerador)"
-    ]
-
-
-def _fmt_histogram(title: str, hits: list, key: Callable, cap: int) -> list[str]:
-    """Histograma por classe: UM fix mata a classe inteira, então a triagem é por classe."""
-    counts: dict[str, int] = {}
-    for c in hits:
-        counts[key(c)] = counts.get(key(c), 0) + 1
-    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
-    return [f"- {title}: {len(ranked)} classe(s)"] + [
-        f"  · {shape} → {n} ocorrência(s)" for shape, n in ranked[:cap]
-    ]
-
-
-def _fmt_occurrences(hits: list, cap: int) -> list[str]:
-    """Detalhe PII-safe: digest + mês + moeda + direction + contagens + tags de nome de campo."""
-    if not hits:
-        return []
-    return [f"- ocorrências (cap {cap}; digest + tags de campo, sem valor exato):"] + [
-        f"  · {c.key_digest} mes={c.mes} moeda={c.moeda} dir={c.direction} "
-        f"rows={c.n_rows} provs={c.n_provenances} div={c.divergence or 'nenhum'} "
-        f"parciais={c.parciais or 'nenhum'} vazio-total={c.vazios_totais or 'nenhum'} "
-        f"desc_vazia={int(c.descricao_vazia)}"
-        for c in hits[:cap]
-    ]
-
-
-def _fmt_numerator(hits: list) -> list[str]:
-    """Linha do numerador do KR-B + partição + 2 histogramas + ocorrências (``[off-git]``: ADR-343)."""
-    head = (
-        f"- não-explicada: {len(hits)} ocorrência(s) · "
-        f"Σ excesso {_sum_excess(hits)} cents [off-git] · [numerador KR-B]"
-    )
-    return (
-        [head]
-        + _fmt_partition(hits)
-        + _fmt_histogram("histograma diagnóstico (nomes de campo)", hits, lambda c: c.shape, 12)
-        + _fmt_histogram(
-            "histograma por shape de whitelist (valores de vocabulário fechado + fill-state de "
-            "titular — o ÚNICO eixo que `explained` aceita)",
-            hits,
-            lambda c: c.explained_shape,
-            12,
-        )
-        + _fmt_occurrences(hits, 20)
-    )
-
-
-def _fmt_explained(hits: list, shapes: tuple[str, ...]) -> list[str]:
-    """Linha da whitelist APLICADA — separada por construção, nunca somada."""
-    head = (
-        f"- {_EXPLAINED_LABEL} (linha separada; NUNCA somada ao numerador): "
-        f"{len(hits)} ocorrência(s) · Σ excesso {_sum_excess(hits)} cents [off-git]"
-    )
-    tail = f"- shapes declarados explicados (aplicados): {', '.join(shapes) or 'nenhum'}"
-    return [head] + _fmt_occurrences(hits, 8) + [tail]
-
-
-_TITLE = "## Duplicação cross-grupo — divergência CONFINADA à proveniência (reporta, não dedupa)"
-
-
-def fmt_cross_group(cg: CrossGroupSummary) -> list[str]:
-    """Bloco do relatório: cobertura primeiro, numerador e whitelisted em linhas SEPARADAS."""
-    return (
-        [_TITLE]
-        + _fmt_coverage(cg.coverage)
-        + _fmt_unscanned(cg.nao_varrido, cg.coverage)
-        + _fmt_numerator(cg.numerador)
-        + _fmt_explained(cg.explicadas, cg.explained_shapes)
     )

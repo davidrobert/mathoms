@@ -267,8 +267,10 @@ def certify(session, ws: str, run_id: str | None) -> LedgerReport:
         _persisted_e3_by_key(session, ws),
     )
     report.counts_before = before
-    report.blast_radius = _blast_radius_or_empty(session, ws)
+    # ORDEM É A PROVA: o `rollback` do blast radius degradado apaga a escrita pendente que
+    # a 2ª contagem tem de ver (rationale no doc da lane A40.l1).
     report.counts_after = _row_counts(session, ws)
+    report.blast_radius = _blast_radius_or_empty(session, ws)
     return report
 
 

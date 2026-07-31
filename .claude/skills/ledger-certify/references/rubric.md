@@ -45,16 +45,31 @@ Uma **ocorrência cross-grupo** ([[ADR-354]]: a mesma chave provenance-free viva
 ≥2 triplas de proveniência) não é grupo E3 nem balde E4, logo **não recebe veredito
 de unidade**. Estado próprio, do bloco `## Duplicação cross-grupo` do harness.
 
-**Leia a partição antes de escalar.** `defect-shaped` = ≥1 campo de proveniência
-**PARCIAL** (vazio numa perna, preenchido na outra) — assinatura dos carriers da
-ADR-354. `coincidence-shaped` = nenhum campo parcial, incluindo campo vazio nas
-DUAS pernas: par simétrico, nada a canonicalizar. Só o primeiro é P0; escalar a
-segunda classe travaria a lane por sobre-detecção declarada.
+**Leia a partição antes de escalar.** O token impresso é **`carrier-shaped`**
+(`defect-shaped` não existe no output do harness) e vale por **disjunção**: campo de
+proveniência **PARCIAL** (`<campo>:c2` — vazio numa perna, preenchido na outra)
+**OU** **QUALQUER divergência de `tipo_conta`** entre as pernas (`tipo_conta:c1`).
+Ocorrência com `parciais=''` e `carriers=tipo_conta:c1` é **carrier**, não
+coincidência — rebaixá-la a `coincidência-nao-declarada` esconde exatamente o
+carrier 1 que a [[A40.l1]] existe para achar. `coincidence-shaped` = **nenhum** dos
+dois, incluindo campo vazio nas DUAS pernas: par simétrico, nada a canonicalizar.
+Só o primeiro é P0; escalar a segunda classe travaria a lane por sobre-detecção
+declarada.
+
+**Residual declarado do predicado de carrier 1** ([[ADR-354]] §Consequências): ele é
+**mais largo** que o par variante que motivou a ADR (`extrato` vs `extratoconta`) —
+distinguir variante-de-vocabulário de tipo de conta REALMENTE distinto exige o
+alias-map versionado da [[A40.l2]]. Consequência: coincidência legítima intra-banco
+entre tipos de conta distintos (tarifa de mesmo valor no mesmo dia em conta e
+poupança) sai `carrier-shaped`, escala a P0 **e é estruturalmente in-whitelistável**
+(o validador rejeita o shape por ser carrier). Sob [[ADR-342]] o instrumento erra
+para **sobre-detecção rotulada**, nunca para sub-detecção silenciosa; a triagem por
+classe (histograma) é o antídoto, não a whitelist.
 
 | Estado | Quando | Consequência |
 |---|---|---|
-| `defeito-de-identidade` | ≥1 ocorrência não-explicada **e `defect-shaped`** | **P0 do run**, mapeado a `perda/dupla-contagem-silenciosa` (extensão da linha 4: dupla-contagem sum-preserving) |
-| `coincidência-nao-declarada` | ocorrência não-explicada **`coincidence-shaped`** (nenhum campo parcial) | Sinal de **triagem** — sobre-detecção declarada do instrumento. Registre a classe (histograma) e siga; **não é P0** |
+| `defeito-de-identidade` | ≥1 ocorrência não-explicada **e `carrier-shaped`** (campo parcial **OU** `tipo_conta` divergente — basta um) | **P0 do run**, mapeado a `perda/dupla-contagem-silenciosa` (extensão da linha 4: dupla-contagem sum-preserving) |
+| `coincidência-nao-declarada` | ocorrência não-explicada **`coincidence-shaped`** (`carriers=nenhum`: nem campo parcial nem `tipo_conta` divergente) | Sinal de **triagem** — sobre-detecção declarada do instrumento. Registre a classe (histograma) e siga; **não é P0** |
 | `coincidência-declarada` | shape de VALOR na whitelist declarada (`EXPLAINED_DIVERGENCE`, vazia por decisão A40.l1) | Linha **separada** — nunca somada ao numerador |
 | `não-verificável` | `cobertura=CEGA`: balde ilegível, uma das 3 identidades não fecha, ou <2 triplas no corpus (critério vacuoso) | Bloco **nulo** — um 0 aqui **não** é verde |
 

@@ -128,11 +128,20 @@ grupos-fonte; a conservação **por grupo** aprova esse cenário, [[ADR-354]]):
    existe para pegar filtro silencioso entre o detector e o numerador.
 2. **`não-explicada: N` é o numerador (KR-B).** A linha `shape declarado explicado` é
    **outra coisa** — whitelist declarada, **nunca somada** ao numerador.
-3. **Leia a PARTIÇÃO antes de escalar.** `defect-shaped` = ≥1 campo de proveniência
-   **PARCIAL** (vazio numa perna, preenchido na outra) — assinatura dos carriers da
-   ADR-354, e o **único** gatilho de P0. `coincidence-shaped` = nenhum campo parcial
+3. **Leia a PARTIÇÃO antes de escalar.** O token impresso é **`carrier-shaped`** (grepe
+   por ele; `defect-shaped` não existe no output) e a definição é **disjunção de dois
+   carriers da ADR-354**: `<campo>:c2` = campo de proveniência **PARCIAL** (vazio numa
+   perna, preenchido na outra) **OU** `tipo_conta:c1` = **QUALQUER divergência de
+   `tipo_conta`** entre as pernas. Basta **um** dos dois: ocorrência
+   `carrier-shaped` com `parciais=''` (carrier 1 puro, `titular` simétrico) é
+   **carrier**, não coincidência — a glosa sai impressa no próprio bloco.
+   `carrier-shaped` é o **único** gatilho de P0. `coincidence-shaped` = nenhum dos dois
    (inclui campo vazio nas DUAS pernas — par simétrico): sobre-detecção declarada do
-   instrumento, sinal de **triagem**, não P0.
+   instrumento, sinal de **triagem**, não P0. **Residual declarado:** o predicado de
+   carrier 1 é **largo de propósito** — par de tipos de conta genuinamente distintos
+   (tarifa de mesmo valor no mesmo dia em conta e poupança) também sai `carrier-shaped`
+   e é **in-whitelistável** até o alias-map versionado da [[A40.l2]]; sob [[ADR-342]]
+   sobre-detecção rotulada > sub-detecção silenciosa.
 4. **Triagem por classe, não por ocorrência.** São 2 histogramas: o *diagnóstico*
    (nomes de campo — que carrier) e o *de whitelist* (valores de vocabulário fechado
    + fill-state de titular — o ÚNICO eixo que `explained` aceita). Um fix mata uma
@@ -153,9 +162,9 @@ sem isso, teto `coberto-sem-verificação`.
 
 **Ocorrência cross-grupo não recebe veredito de unidade** — não é grupo E3 nem balde
 E4. Ela tem eixo próprio de 4 estados (ver rubrica §Eixo cross-grupo):
-`defeito-de-identidade` (≥1 ocorrência não-explicada **e defect-shaped** ⇒ achado
+`defeito-de-identidade` (≥1 ocorrência não-explicada **e `carrier-shaped`** ⇒ achado
 **P0** do run, mapeado a `perda/dupla-contagem-silenciosa`) ·
-`coincidência-nao-declarada` (não-explicada mas coincidence-shaped ⇒ triagem, **não**
+`coincidência-nao-declarada` (não-explicada mas `coincidence-shaped` ⇒ triagem, **não**
 P0) · `coincidência-declarada` (whitelisted, linha separada) · `não-verificável`
 (`cobertura=CEGA` ⇒ bloco nulo).
 

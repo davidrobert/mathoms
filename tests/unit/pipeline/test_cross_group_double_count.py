@@ -15,7 +15,9 @@ from dev.ledger_cross_group import (  # noqa: E402
     CrossGroupCollision,
     _cross_group_key,
     _fill_states,
+    _row_moeda,
     _row_provenance,
+    _unkeyable_reason,
     cross_group_coverage,
     cross_group_double_count,
     cross_group_numerator,
@@ -124,6 +126,17 @@ def test_chave_muda_com_data_valor_e_descricao() -> None:
     assert _cross_group_key("debit", _tx(valor=100.0, descricao="compra farmacia")) != chave
 
 
+def test_row_moeda_espelha_build_hash_inputs() -> None:
+    # RATCHET: o comentário «espelha build_hash_inputs» era afirmação NÃO-verificada —
+    # remover `.strip().upper()` mantinha a suíte verde e faria `" usd "` deixar de
+    # casar com `"USD"` na mesma chave (sub-detecção silenciosa).
+    from pipeline.domain.services._tx_identity import build_hash_inputs
+
+    for bruto in (" usd ", "brl", "BRL", "", None, "eur", "Usd\t"):
+        inputs = build_hash_inputs("2026-03-30", "b", "t", "extratoconta", 1.0, bruto, "d")
+        assert _row_moeda({"moeda": bruto}) == inputs.moeda, bruto
+
+
 def test_proveniencia_e_normalizada_antes_de_contar_triplas() -> None:
     # `normalize_*` só ajusta casing/espaço/acento: drift de formatação NÃO cria
     # tripla nova (senão toda conta viraria "grupo-fonte" novo e o numerador
@@ -153,7 +166,7 @@ def test_detector_nao_muta_o_payload() -> None:
     snap = copy.deepcopy(buckets)
     cross_group_double_count(buckets)
     cross_group_unkeyable(buckets)
-    cross_group_coverage(buckets)
+    cross_group_coverage(buckets, particionadas=1)
     assert snap == buckets
 
 
@@ -196,17 +209,20 @@ def test_row_sem_data_e_contada_e_nao_flagada() -> None:
     assert cross_group_unkeyable(buckets) == _skipped("sem_data", 2)
 
 
-def test_qualquer_valor_nao_zero_segue_chaveavel() -> None:
-    # RATCHET do PREDICADO, não da identidade: um piso de materialidade dentro de
-    # `_unkeyable_reason` (ex.: `cents < 5000`) derruba o numerador em silêncio E a
-    # identidade `rows_scanned − rows_keyed == Σ unkeyable` CONTINUA fechando, porque
-    # é auto-consistente (toda row excluída é contada como excluída). Só fixando o
-    # predicado — valor não-zero abaixo de qualquer piso plausível segue chaveável —
-    # a alavanca fica travada.
-    for valor in (0.01, 1.0, 49.99, 4999.99):
+def test_so_valor_exatamente_zero_e_excluido_por_valor() -> None:
+    # RATCHET BILATERAL do PREDICADO, não da identidade: um piso OU um cap dentro de
+    # `_unkeyable_reason` derruba o numerador em silêncio E a identidade
+    # `rows_scanned − rows_keyed == Σ unkeyable` CONTINUA fechando, porque é
+    # auto-consistente (toda row excluída é contada como excluída). A versão anterior
+    # fixava 4 valores, todos PISO — `cents > 499_999` passava com a suíte verde.
+    # Aqui o predicado é fixado nos DOIS lados: exclusão por valor ⟺ cents == 0.
+    for valor in (0.01, 1.0, 49.99, 4999.99, 100_000.0, 98_765_432.10):
+        assert _unkeyable_reason(_tx(valor=valor)) is None, valor
         buckets = _par_divergente(valor=valor)
         assert cross_group_unkeyable(buckets)["valor_zero"] == 0, valor
         assert len(cross_group_double_count(buckets)) == 1, valor
+    for zero in (0.0, -0.0, "0.00"):
+        assert _unkeyable_reason(_tx(valor=zero)) == "valor_zero", zero
 
 
 def test_descricao_vazia_segue_chaveavel_e_sai_rotulada() -> None:
@@ -223,7 +239,7 @@ def test_descricao_vazia_segue_chaveavel_e_sai_rotulada() -> None:
     hits = cross_group_double_count(buckets)
     assert len(hits) == 1 and hits[0].descricao_vazia is True
     assert cross_group_unkeyable(buckets) == _skipped("valor_zero", 0)
-    assert cross_group_coverage(buckets)["keyed_sem_descricao"] == 2
+    assert cross_group_coverage(buckets, particionadas=1)["keyed_sem_descricao"] == 2
 
 
 # ───────── baldes varridos: alavanca silenciosa de massa ─────────
@@ -329,3 +345,21 @@ def test_excess_conta_proveniencias_e_nao_rows() -> None:
     assert len(hits) == 1
     assert (hits[0].n_rows, hits[0].n_provenances) == (3, 2)
     assert hits[0].excess_cents == 10000
+
+
+def test_excess_escala_com_o_numero_de_proveniencias() -> None:
+    # TRIPWIRE: `excess_cents` só era pinado com `n_provenances == 2`, onde (P−1) == 1 e
+    # `valor_cents` sozinho dá o MESMO número — o fator nunca era exercitado. 3 pernas do
+    # mesmo evento ⇒ 2 duplicatas cross-grupo, não 1 nem 3.
+    buckets = _buckets(
+        despesas=[
+            _tx(tipo_conta="extrato"),
+            _tx(tipo_conta="extratoconta"),
+            _tx(tipo_conta="extratopoupanca"),
+        ]
+    )
+    hits = cross_group_double_count(buckets)
+    assert len(hits) == 1
+    assert (hits[0].n_rows, hits[0].n_provenances) == (3, 3)
+    assert hits[0].valor_cents == 10000
+    assert hits[0].excess_cents == 2 * hits[0].valor_cents == 20000
