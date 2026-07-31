@@ -89,43 +89,51 @@ def test_format_report_nao_vaza_nada_alem_de_contadores():
     assert "family_members_cpf" in out and "TOTAL" in out
 
 
-def test_looks_local_reconhece_loopback_e_sqlite():
-    """Rodar no laptop responde a pergunta errada em silêncio — a l3 é sobre
-    o dado de PRODUÇÃO."""
+def test_sqlite_ausente_bloqueia(tmp_path):
+    """Rodar de um worktree aponta para um `mathoms.db` que não existe — e
+    `rotate` diria "nada a rotacionar" com toda a confiança sobre o banco errado."""
     gate = _load()
-    for alvo in ("localhost:5432/mathoms", "127.0.0.1/db", "sqlite:mathoms.db", "::1:5432/x"):
-        assert gate.looks_local(alvo), alvo
+    problem = gate.sqlite_problem(tmp_path / "nao-existe.db")
+    assert problem and "NÃO existe" in problem
 
 
-def test_looks_local_nao_marca_host_remoto():
+def test_sqlite_vazio_bloqueia(tmp_path):
     gate = _load()
-    for alvo in ("db.interno:5432/mathoms_prod", "postgres.svc:5432/app", "10.0.1.5:5432/x"):
-        assert not gate.looks_local(alvo), alvo
+    vazio = tmp_path / "mathoms.db"
+    vazio.touch()
+    problem = gate.sqlite_problem(vazio)
+    assert problem and "vazio" in problem
 
 
-def test_alvo_local_bloqueia_sem_allow_local(monkeypatch):
-    import pytest
-
+def test_sqlite_com_dado_passa(tmp_path):
     gate = _load()
-    monkeypatch.setattr(gate, "db_target", lambda: "localhost:5432/mathoms")
-    with pytest.raises(gate.PreflightError) as exc:
-        gate._require_prod_target(allow_local=False)
-    assert "--allow-local" in str(exc.value)
+    real = tmp_path / "mathoms.db"
+    real.write_bytes(b"SQLite format 3\x00" + b"\x00" * 500)
+    assert gate.sqlite_problem(real) is None
 
 
-def test_allow_local_aceito_depois_do_subcomando():
-    """`preflight --allow-local` é a forma que se digita; definida só no parser
-    do topo, argparse exigiria `--allow-local preflight` e falharia."""
+def test_caminho_sqlite_preserva_a_barra_inicial(monkeypatch):
+    """`sqlite:////abs` → urlparse devolve `//abs`; um lstrip("/") ingênuo come
+    as duas e vira caminho RELATIVO, que nunca existe → falso bloqueio."""
     gate = _load()
-    for cmd in ("preflight", "rotate", "verify"):
-        args = gate.build_parser().parse_args([cmd, "--allow-local"])
-        assert args.allow_local is True and args.cmd == cmd
+
+    class _S:
+        DATABASE_URL = "sqlite+aiosqlite:////srv/mathoms/mathoms.db"
+
+    import types
+
+    fake = types.ModuleType("backend.app.core.config")
+    fake.settings = _S()
+    monkeypatch.setitem(sys.modules, "backend.app.core.config", fake)
+    desc, path = gate.db_target()
+    assert str(path) == "/srv/mathoms/mathoms.db"
+    assert path.is_absolute()
 
 
-def test_allow_local_libera_o_alvo(monkeypatch):
+def test_alvo_nao_sqlite_nao_e_checado():
+    """Postgres não tem arquivo para inspecionar — sem falso bloqueio."""
     gate = _load()
-    monkeypatch.setattr(gate, "db_target", lambda: "localhost:5432/mathoms")
-    assert gate._require_prod_target(allow_local=True) == "localhost:5432/mathoms"
+    assert gate.sqlite_problem(None) is None
 
 
 def test_roda_da_raiz_do_repo_sem_module_not_found():
