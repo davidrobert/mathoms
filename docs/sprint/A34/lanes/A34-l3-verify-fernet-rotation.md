@@ -4,7 +4,7 @@ type: lane
 title: "Confirmação operacional: rotação Fernet executada na instância de dogfood"
 sprint: A34
 plan: PLAN-public-release
-status: planned
+status: shipped
 priority: P0
 branch_slug: verify-fernet-rotation
 adrs: ["[[ADR-171]]"]
@@ -12,12 +12,37 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a34
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/seguranca
 ---
 
 # A34.l3 — `verify-fernet-rotation` (W0 · Gate)
+
+## Resultado — 2026-07-31 · gate FECHADO
+
+Rotação executada pelo owner na instância de dogfood e verificada com
+`dev/fernet_rotation_gate.py verify` (2º dry-run, as duas condições):
+
+```
+rotação Fernet: failed=0 rotated=0 skipped=12150 · 2º passe · kid=05d68234
+```
+
+Por target: `family_members.cpf_encrypted` 3 · `llm_configs.api_key_encrypted`
+1 · `password_vault.encrypted_password` 6 · `pipeline_artifacts.content_json`
+12.140 · `protections.policy_ref` 0 — todos com `rotated=0 failed=0`.
+
+**Verificação independente** (query de `kid`, dialeto sqlite): os 11.722
+artifacts cifrados saíram de `kid=51c36c21` e estão **todos** em
+`kid=05d68234`, um único kid — a chave que vazou no histórico não decifra
+mais nenhuma coluna viva. É a propriedade que o G0 exigia.
+
+Backup pré-rotação conferido (`pragma integrity_check = ok`, 11.722 artifacts
+no kid antigo) e movido para fora da máquina pelo owner.
+
+**Janela ainda ABERTA** (`chaves ativas: 2`), de propósito: a chave antiga só
+sai do `.env` após ≥1 ciclo de uso sem erro de decrypt (runbook §7). Fechar
+cedo é o único caminho restante para perda de dado.
 
 ## Problema
 
