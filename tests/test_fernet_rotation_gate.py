@@ -89,6 +89,45 @@ def test_format_report_nao_vaza_nada_alem_de_contadores():
     assert "family_members_cpf" in out and "TOTAL" in out
 
 
+def test_looks_local_reconhece_loopback_e_sqlite():
+    """Rodar no laptop responde a pergunta errada em silêncio — a l3 é sobre
+    o dado de PRODUÇÃO."""
+    gate = _load()
+    for alvo in ("localhost:5432/mathoms", "127.0.0.1/db", "sqlite:mathoms.db", "::1:5432/x"):
+        assert gate.looks_local(alvo), alvo
+
+
+def test_looks_local_nao_marca_host_remoto():
+    gate = _load()
+    for alvo in ("db.interno:5432/mathoms_prod", "postgres.svc:5432/app", "10.0.1.5:5432/x"):
+        assert not gate.looks_local(alvo), alvo
+
+
+def test_alvo_local_bloqueia_sem_allow_local(monkeypatch):
+    import pytest
+
+    gate = _load()
+    monkeypatch.setattr(gate, "db_target", lambda: "localhost:5432/mathoms")
+    with pytest.raises(gate.PreflightError) as exc:
+        gate._require_prod_target(allow_local=False)
+    assert "--allow-local" in str(exc.value)
+
+
+def test_allow_local_aceito_depois_do_subcomando():
+    """`preflight --allow-local` é a forma que se digita; definida só no parser
+    do topo, argparse exigiria `--allow-local preflight` e falharia."""
+    gate = _load()
+    for cmd in ("preflight", "rotate", "verify"):
+        args = gate.build_parser().parse_args([cmd, "--allow-local"])
+        assert args.allow_local is True and args.cmd == cmd
+
+
+def test_allow_local_libera_o_alvo(monkeypatch):
+    gate = _load()
+    monkeypatch.setattr(gate, "db_target", lambda: "localhost:5432/mathoms")
+    assert gate._require_prod_target(allow_local=True) == "localhost:5432/mathoms"
+
+
 def test_roda_da_raiz_do_repo_sem_module_not_found():
     """`python3 dev/fernet_rotation_gate.py` põe `dev/` no sys.path, não a raiz.
     Sem o insert de _REPO_ROOT, `import backend.app...` quebra — e o erro só
@@ -105,8 +144,9 @@ def test_roda_da_raiz_do_repo_sem_module_not_found():
     )
     combined = proc.stdout + proc.stderr
     assert "ModuleNotFoundError" not in combined, combined[-800:]
-    # Chave sintética inválida ou janela fechada — ambos provam que o import passou.
-    assert "chaves ativas" in combined or "FECHADA" in combined, combined[-800:]
+    # Qualquer uma destas provou que o import de backend passou: o guard de
+    # alvo local, o de janela fechada, ou a leitura das chaves.
+    assert "banco alvo" in combined, combined[-800:]
 
 
 def test_help_nao_exige_vault(monkeypatch, capsys):
