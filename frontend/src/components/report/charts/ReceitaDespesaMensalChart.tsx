@@ -15,6 +15,18 @@ import { RDMLegend, type RDMLegendItem } from "./RDMLegend";
 import { fmtBRL, formatChartMonthLabel } from "./_shared";
 import { useIsPrint } from "../hooks/useIsPrint";
 import type { ChartSeries, FluxoCaixaSummary } from "@/types/report-analysis";
+import {
+  CONCLUSION_STYLE,
+  CONTEXT_STYLE,
+  DOTS_STYLE,
+  DOT_ACTIVE_STYLE,
+  DOT_STYLE,
+  NAV_BTN_STYLE,
+  NAV_LABEL_STYLE,
+  NAV_ROW_STYLE,
+  NAV_WRAPPER_STYLE,
+  PRINT_BLOCK_STYLE,
+} from "./rdmStyles";
 
 const WINDOW = 12;
 
@@ -107,7 +119,7 @@ export function ReceitaDespesaMensalChart({
 
   const periodLabel = formatPeriodLabel(windowed.labels);
   const context = buildContext(enriched, totalMonths);
-  const conclusion = buildConclusion(enriched);
+  const conclusion = buildConclusion(windowed, periodLabel);
   const legend = buildLegendItems(enriched, hiddenIdx);
 
   return (
@@ -321,18 +333,26 @@ function buildContext(enriched: readonly EnrichedDataset[], totalMonths: number)
   const totalReceita = sumStack(enriched, "receita");
   const totalDespesa = sumStack(enriched, "despesa");
   const liquido = totalReceita - totalDespesa;
-  return `Série temporal mensal (${totalMonths} ${totalMonths === 1 ? "mês" : "meses"}) de receitas (${fmtBRL(totalReceita)}) versus despesas (${fmtBRL(totalDespesa)}), com fluxo líquido de ${fmtBRL(liquido)}.`;
+  return `Série temporal de todo o período analisado (${totalMonths} ${totalMonths === 1 ? "mês" : "meses"}): receitas de ${fmtBRL(totalReceita)} versus despesas de ${fmtBRL(totalDespesa)}, com fluxo líquido de ${fmtBRL(liquido)}.`;
 }
 
-function buildConclusion(enriched: readonly EnrichedDataset[]): string {
-  const totalReceita = sumStack(enriched, "receita");
-  const totalDespesa = sumStack(enriched, "despesa");
-  const months = enriched[0]?.data.length ?? 0;
-  if (months === 0) return "";
-  const mediaReceita = totalReceita / months;
-  const mediaDespesa = totalDespesa / months;
-  const taxaPoupanca = mediaReceita > 0 ? ((mediaReceita - mediaDespesa) / mediaReceita) * 100 : 0;
-  return `Receita média de ${fmtBRL(mediaReceita)}/mês e despesa média de ${fmtBRL(mediaDespesa)}/mês. Taxa de poupança de ${taxaPoupanca.toFixed(1)}%.`;
+/** ADR-306 D1 (A40.l3) — este chart NÃO mensaliza e NÃO cita taxa de poupança.
+ *
+ * Antes derivava média e taxa da série INTEIRA sem rótulo, ao lado do card
+ * irmão que já declarava a janela canônica de 12m: duas mensalizações e duas
+ * taxas divergentes na mesma seção, uma delas sem base declarada. A
+ * mensalização de S2 vive num lugar só (`conclusionUtils.fluxo_mensal`, que lê
+ * `janela_12m`); aqui o texto totaliza a janela **renderizada**, rotulada. */
+function buildConclusion(windowed: SlicedWindow, periodLabel: string): string {
+  const totalReceita = sumStack(windowed.datasets, "receita");
+  const totalDespesa = sumStack(windowed.datasets, "despesa");
+  const meses = windowed.labels.length;
+  if (meses === 0) return "";
+  const saldo = totalReceita - totalDespesa;
+  // `formatPeriodLabel` usa espaços duplos em volta do travessão (layout do
+  // rótulo de navegação); em prosa isso vira espaço duplo no texto.
+  const escopo = periodLabel ? ` (${periodLabel.replace(/\s+/g, " ")})` : "";
+  return `Janela exibida — ${meses} ${meses === 1 ? "mês" : "meses"}${escopo}: receitas de ${fmtBRL(totalReceita)} e despesas de ${fmtBRL(totalDespesa)}, saldo de ${fmtBRL(saldo)} no intervalo.`;
 }
 
 function sumStack(enriched: readonly EnrichedDataset[], stack: "receita" | "despesa"): number {
@@ -413,86 +433,3 @@ function RDMNav({ page, total, label, onPrev, onNext }: RDMNavProps) {
     </div>
   );
 }
-
-const CONTEXT_STYLE = {
-  fontSize: 13,
-  lineHeight: 1.5,
-  color: "var(--surface-muted-foreground)",
-  marginBottom: 12,
-} as const;
-
-const CONCLUSION_STYLE = {
-  fontSize: 12,
-  lineHeight: 1.5,
-  marginTop: 12,
-  padding: "10px 12px",
-  borderLeft: "3px solid var(--brand-info)",
-  background: "color-mix(in srgb, var(--brand-info) 6%, var(--surface-card))",
-  borderRadius: "var(--radius-md)",
-  color: "var(--surface-foreground)",
-} as const;
-
-const NAV_WRAPPER_STYLE = {
-  marginBottom: 8,
-} as const;
-
-const NAV_ROW_STYLE = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 12,
-  userSelect: "none",
-} as const;
-
-const NAV_BTN_STYLE = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 28,
-  height: 28,
-  borderRadius: "50%",
-  border: "1.5px solid var(--surface-border)",
-  background: "var(--surface-background)",
-  color: "var(--surface-foreground)",
-  cursor: "pointer",
-  fontSize: 16,
-  fontWeight: 700,
-} as const;
-
-const NAV_LABEL_STYLE = {
-  fontSize: 12,
-  fontWeight: 600,
-  color: "var(--surface-foreground)",
-  minWidth: 160,
-  textAlign: "center" as const,
-};
-
-const DOTS_STYLE = {
-  display: "flex",
-  gap: 5,
-  justifyContent: "center",
-  marginTop: 6,
-} as const;
-
-const DOT_STYLE = {
-  width: 6,
-  height: 6,
-  borderRadius: "50%",
-  background: "var(--surface-border)",
-} as const;
-
-const DOT_ACTIVE_STYLE = {
-  ...DOT_STYLE,
-  background: "var(--brand-accent)",
-} as const;
-
-const PRINT_BLOCK_STYLE = {
-  display: "flex",
-  flexDirection: "column" as const,
-  gap: 4,
-  marginTop: 10,
-  padding: "8px 12px",
-  borderRadius: "var(--radius-md)",
-  background: "var(--surface-muted)",
-  fontSize: 12,
-};

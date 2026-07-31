@@ -501,8 +501,10 @@
     "taxa_poupanca_recorrente_pct": 25.0,
     "taxa_poupanca_total_pct": 31.0,
     "taxa_endividamento_pct": 15.0,
-    "janela_referencia": "12m",
-    "janela_n_meses": 12
+    "janela_referencia": "2025-01 a 2025-12",
+    "janela_n_meses": 12,
+    "janela": "12m",
+    "janela_meses": 12
   },
   "reserva_emergencia": {
     "atual": 80000,

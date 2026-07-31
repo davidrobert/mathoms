@@ -74,6 +74,7 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l12]] | Classificação incompleta distorce KPI | P1 | l1 | RV3-20, RV3-21 · flip [[ADR-351]] |
 | [[A40.l13]] | Copy e design system | P3 | l4 | RV3-23, RV3-24, RV3-25 |
 | [[A40.l14]] | Limpeza de órfãos e schema morto | P3 | — | RV3-32 + handoff A39 |
+| [[A40.l15]] | Consumo Consciente: KPI de pontuais na base da janela (+3 co-changes E5) | P2 | l3 | spun off da l3 (mudança de domínio; exige rebaseline de snapshot) |
 
 ## Ondas
 

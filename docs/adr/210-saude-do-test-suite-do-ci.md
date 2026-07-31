@@ -5,6 +5,7 @@ title: "Saúde do test suite do CI — gates, telemetria e ciclo de vida"
 status: Decidido
 phase: "Sprint A12 (test health · CI cost)"
 date: "2026-05-14"
+amended_at: ["2026-05-19", "2026-07-30", "2026-07-31"]
 relates_to:
   - "[[ADR-067]]"
   - "[[ADR-093]]"
@@ -12,7 +13,6 @@ relates_to:
   - "[[ADR-143]]"
 supersedes: []
 superseded_by: []
-amended_at: ["2026-07-30"]
 aliases:
   - "ADR 210"
   - "Saude test suite CI"
@@ -385,6 +385,55 @@ medido por um problema que continua. Reabrir a decisão quando:
 3. **Waiver pode ser renovado indefinidamente por um operador determinado.** É
    exceção auditável em git, não impedimento — o objetivo é tornar a decisão
    visível e datada, não impossível.
+
+## Adendo 2026-07-31 (A40.l3) — terceira classe de asserção de render, e uma premissa vencida
+
+**Não reabre a decisão.** A Camada 1 tirou do gate de PR (a) baselines de pixel
+OS-dependentes e (b) E2E com backend real. A perna de render admitida pela
+A40.l3 não é nenhuma das duas: **sem baseline**, sem Postgres/Redis/Celery/
+alembic, fixture mockada (`mockReportPage`), 7 testes. É uma **terceira classe** —
+"asserção de render sem baseline nem serviços" — que a ADR não enumerou.
+
+**Custo — o que foi medido e o que não foi.** Medido local: os 7 testes rodam em
+**4,3 s** contra um `next dev` já quente. **Não medido:** o custo em CI, que é
+dominado por `playwright install` (cacheado) e pelo primeiro compile do
+Turbopack na rota de relatório. A estimativa de trabalho é ~2 min por PR que toca
+`changes.outputs.report`, dentro do caminho crítico existente
+(`backend-tests`, 9-10 min) ⇒ latência percebida ≈ inalterada. O `timeout-minutes`
+do job subiu 7 → 12 para não esconder hang real. **Reavaliar com número real de
+CI no primeiro PR que dispare o step** — a base mensal de Actions já está perto do
+teto default de `budget-alert.yml` e uma estimativa errada aqui é caro.
+
+**Admitida por path filter, não por label.** Entra como *step* do job
+`frontend-checks` gateado por `needs.changes.outputs.report`, e não como job
+novo: `frontend-checks` já está em `all-green.needs`, logo o gate bloqueia merge
+sem tocar o ruleset. O erro da Camada 1 a evitar aqui é delegar gate a memória
+humana — medido: `frontend-e2e` (label `e2e`) ficou **skipped em 12/12** runs
+recentes e **não** está em `all-green.needs`, então vermelho lá não impede merge.
+
+**Restrição de ambiente que o step tem de respeitar.** `frontend-checks` é
+node-only (sem `setup-python`). O `webServer` do Playwright roda `npm run dev`,
+que dispara o lifecycle `predev` → `codegen:check` → `python3
+design-tokens/build.py` — ou seja, o step **falharia sempre** sem intervenção. O
+step passa `PLAYWRIGHT_WEB_SERVER_COMMAND=npx next dev --turbopack`, que não passa
+pelo lifecycle npm; os artefatos de codegen são versionados
+(`frontend/src/generated/`, `frontend/src/styles/tokens.css`) e o drift deles já é
+gateado pelo pre-commit no job `lint`. Alternativas descartadas: `setup-python` +
+deps só para o `--check` (paga setup em todo PR de frontend para verificar o que
+outro job já verifica) e `npm run build && npm run start` (o `prebuild` chama o
+**mesmo** codegen, e o build completo custa mais que o gate).
+
+**Premissa vencida (não corrigida por este adendo).** A rede de compensação que
+a Camada 1 (`frontend-visual-full` em nightly, janela ≤24h + issue automática) e
+a Camada 2 (`main-smoke`, que substituiu o `push: main` removido do `ci.yml`)
+prometem **não existe desde 2026-06-15**: o workflow `Nightly` está
+`disabled_manually`, com os últimos runs agendados em failure em 2026-06-14/15.
+`ci.yml:36-37` continua afirmando por escrito que o `main-smoke` cobre o drift.
+Ou o owner reabilita **apenas** o cron diário `30 5 * * *` (~84 min/mês), ou a
+ADR e o comentário param de alegar cobertura. Reabilitar o nightly inteiro
+(~480 min/mês, +24%) não é recomendado: entrega janela de até 24h para um defeito
+que o gate de PR pega em 2 min. Registrado como follow-up owner-gated em
+`docs/sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md`.
 
 ## Referências
 

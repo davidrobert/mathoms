@@ -576,11 +576,11 @@ jobs:
     # Consolida ESLint + tsc + Vitest para pagar checkout/setup-node/npm ci
     # uma vez por PR frontend. Trade-off aceito: fail-fast por step (se lint
     # falha, type-check/Vitest não rodam).
-    name: Frontend checks (ESLint + tsc + Vitest)
+    name: Frontend checks (ESLint + tsc + Vitest + report render)
     runs-on: ubuntu-latest
-    # ESLint observado ~43s; Vitest observado ~1m49s. 7min dá buffer sem
-    # esconder hang real em npm/Vitest.
-    timeout-minutes: 7
+    # ESLint observado ~43s; Vitest observado ~1m49s; step de render (A40.l3)
+    # ~2min em PR que toca relatório. 12min dá buffer sem esconder hang real.
+    timeout-minutes: 12
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     defaults:
@@ -611,14 +611,58 @@ jobs:
       - name: Run Vitest
         run: npm test -- --reporter=default --reporter=junit --outputFile=./vitest-results.xml
 
+      # ── A40.l3 · ADR-306 D1 — asserção de RENDER, gateada por área ──────
+      # Por que step aqui e não job novo/label `e2e`: `frontend-checks` já está
+      # em `all-green.needs`, logo o gate bloqueia merge no dia 1 sem tocar o
+      # ruleset. `frontend-e2e` roda por label e **não** está em
+      # `all-green.needs` — vermelho lá não impede merge, e ficou skipped em
+      # 12/12 runs recentes. Label delega gate a memória humana; path filter,
+      # não. Classe distinta do que ADR-210 tirou do PR: sem baseline de pixel e
+      # sem Postgres/Redis/Celery (fixture mockada, 6 testes).
+      - name: Cache Playwright Chromium (report render)
+        if: needs.changes.outputs.report == 'true'
+        id: pw-cache-report
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Playwright Chromium (cache miss)
+        if: needs.changes.outputs.report == 'true' && steps.pw-cache-report.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright OS deps (cache hit)
+        if: needs.changes.outputs.report == 'true' && steps.pw-cache-report.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Report render gate (janela canônica — tela + superfície de print)
+        if: needs.changes.outputs.report == 'true'
+        env:
+          # `npm run dev` dispara `predev` → `codegen:check` → `python3 …`, e este
+          # job é node-only (sem setup-python): o webServer do Playwright não
+          # subiria e o gate falharia sempre. `next dev` direto não passa pelo
+          # lifecycle npm, e os artefatos de codegen são versionados
+          # (`frontend/src/generated/`, `src/styles/tokens.css`) — o drift deles já
+          # é gateado pelo pre-commit no job `lint`. Alternativas descartadas:
+          # adicionar setup-python + requirements só para o `--check` (paga setup
+          # por PR de frontend para verificar o que outro job já verifica), e
+          # `npm run build && npm run start` (o `prebuild` chama o MESMO codegen,
+          # e o build completo custa mais que o próprio gate).
+          PLAYWRIGHT_WEB_SERVER_COMMAND: npx next dev --turbopack
+        run: npx playwright test tests/e2e/reports/janela-canonica.@critical.spec.ts --project=chromium
+
       - name: Upload results (only on failure)
         # Vitest junit XML só interessa em falha — em verde ninguém baixa.
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-vitest-results
-          path: frontend/vitest-results.xml
+          path: |
+            frontend/vitest-results.xml
+            frontend/playwright-report/
+            frontend/playwright-results/
           retention-days: 7
+          if-no-files-found: ignore
 
   frontend-e2e:
     name: Frontend E2E (Playwright + backend real)

@@ -76,7 +76,15 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEB_SERVER
     ? undefined
     : {
-        command: "npm run dev",
+        // A40.l3 — override porque `npm run dev` dispara o lifecycle `predev`
+        // (`codegen:check` → `python3 design-tokens/build.py`), e o job
+        // `frontend-checks` é node-only: sem setup-python o webServer nem sobe.
+        // Os artefatos de codegen são versionados (`frontend/src/generated/`,
+        // `src/styles/tokens.css`) e o drift já tem gate próprio no pre-commit,
+        // então o step de render pede `npx next dev --turbopack` direto. Manter o
+        // webServer do Playwright (em vez de subir servidor à mão) preserva a
+        // espera por readiness, o timeout e o pipe de logs.
+        command: process.env.PLAYWRIGHT_WEB_SERVER_COMMAND ?? "npm run dev",
         url: "http://127.0.0.1:3000",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

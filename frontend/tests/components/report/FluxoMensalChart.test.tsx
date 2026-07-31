@@ -78,7 +78,9 @@ describe("<FluxoMensalChart />", () => {
     render(<FluxoMensalChart fluxo={buildFluxo()} />);
     expect(screen.getByText("Fluxo de Caixa Mensal")).toBeInTheDocument();
     const ctx = document.querySelector("[data-chart-context]");
-    expect(ctx?.textContent).toContain("Janela dos últimos 12 meses");
+    // Contagem e range vêm do render; a base do agregado vem do payload.
+    expect(ctx?.textContent).toContain("No gráfico: 12 meses");
+    expect(ctx?.textContent).toContain("os últimos 12 meses documentados");
     // ADR-306 D1: rótulo 12m ⇒ agregado de `janela_12m`, nunca do bloco full.
     expect(ctx?.textContent).toMatch(/R\$\s?72\.000/);
     expect(ctx?.textContent).toMatch(/R\$\s?55\.000/);
@@ -106,7 +108,7 @@ describe("<FluxoMensalChart />", () => {
     await user.click(screen.getByRole("tab", { name: "3M" }));
 
     const ctx = document.querySelector("[data-chart-context]");
-    expect(ctx?.textContent).toContain("Janela dos últimos 3 meses");
+    expect(ctx?.textContent).toContain("No gráfico: 3 meses");
     // Derivar média de `totais_receita` trocaria receita bruta por recorrente.
     expect(ctx?.textContent).not.toMatch(/R\$\s?72\.000/);
     expect(ctx?.textContent).not.toMatch(/R\$\s?68\.949/);
@@ -119,24 +121,14 @@ describe("<FluxoMensalChart />", () => {
     expect(screen.getByText("Texto custom de conclusão.")).toBeInTheDocument();
   });
 
-  it("gera fallback de conclusão com sobra e taxa canônicas de 12m", () => {
+  it("não inventa conclusão própria — o texto de S2 vem de um builder só", () => {
+    // A40.l3 · I7: o componente tinha um `buildFallbackConclusion` que
+    // produção NUNCA alcançava (`FALLBACKS.fluxo_mensal` existe ⇒
+    // `deriveChartConclusion` nunca devolve null ⇒ a prop é sempre string).
+    // Asserts guardando aquele ramo davam cobertura fantasma: foi por isso que
+    // a mensalização full sem rótulo do chart irmão passou.
     render(<FluxoMensalChart fluxo={buildFluxo()} />);
-    // sobra = 72000 - 55000 = 17000 (bloco 12m), não 68949 - 57607 = 11342.
-    const text = document.body.textContent ?? "";
-    expect(text).toMatch(/Saldo recorrente mensal de R\$\s?17\.000/);
-    expect(text).not.toMatch(/R\$\s?11\.342/);
-    // Taxa é lida de `taxa_poupanca_recorrente` (ex-aporte, ADR-333), nunca
-    // recomputada de despesa_mensal_media — (72000-55000)/72000 = 23,6%.
-    expect(text).toContain("Taxa de poupança recorrente de 20,5%");
-    expect(text).not.toContain("23,6%");
-  });
-
-  it("sem janela_12m: fallback rotula o período completo e não inventa taxa", () => {
-    render(<FluxoMensalChart fluxo={buildFluxoFullOnly()} />);
-    const text = document.body.textContent ?? "";
-    expect(text).toMatch(/Saldo recorrente mensal de R\$\s?11\.342/);
-    expect(text).toMatch(/todo o período analisado \(14 meses\)/i);
-    expect(text).not.toContain("Taxa de poupança");
+    expect(document.querySelector("[data-chart-conclusion]")).toBeNull();
   });
 });
 

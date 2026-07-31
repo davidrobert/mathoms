@@ -16,7 +16,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | changelog-entry | 252 |
 | doc | 2 |
 | domain-rule | 11 |
-| lane | 273 |
+| lane | 274 |
 | marketing-draft | 1 |
 | moc | 33 |
 | plan | 18 |
@@ -38,7 +38,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | lane | cancelled | 1 |
 | lane | in_progress | 5 |
 | lane | open | 8 |
-| lane | planned | 39 |
+| lane | planned | 40 |
 | lane | shipped | 212 |
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 33 |

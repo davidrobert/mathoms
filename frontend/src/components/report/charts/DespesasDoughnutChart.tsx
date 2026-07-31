@@ -7,7 +7,7 @@ import { ReportCard } from "../ReportCard";
 import { Alert } from "../ui/Alert";
 import { ChartDonut } from "./primitives/ChartDonut";
 import { useChartTheme } from "./primitives/useChartTheme";
-import { fmtBRL } from "./_shared";
+import { fmtBRL, formatRangeHumano } from "./_shared";
 import { PeriodToggle, type Period } from "../ui/PeriodToggle";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { useIsPrint } from "../hooks/useIsPrint";
@@ -66,9 +66,16 @@ function fallbackFromAggregate(
     .sort((a, b) => b.value - a.value);
 }
 
-function buildContext(slices: readonly CategoryRow[], total: number): string {
+/** ADR-306 D1 (A40.l3) — o total é da janela RENDERIZADA; sem o range, o leitor
+ * o confunde com o total do período completo citado na conclusão. */
+function buildContext(
+  slices: readonly CategoryRow[],
+  total: number,
+  rangeLabel: string,
+): string {
   if (slices.length === 0) return "Sem dados de despesa no período selecionado.";
-  return `Distribuição das despesas totais (${fmtBRL(total)}) entre ${slices.length} ${
+  const escopo = rangeLabel ? ` na janela exibida (${rangeLabel})` : "";
+  return `Distribuição das despesas totais (${fmtBRL(total)})${escopo} entre ${slices.length} ${
     slices.length === 1 ? "categoria" : "categorias"
   }, destacando a composição de gastos e oportunidades de otimização.`;
 }
@@ -165,7 +172,7 @@ export function DespesasDoughnutChart({
   return (
     <ReportCard variant="neutral" title="Despesas por Categoria" conclusion={finalConclusion}>
       <p className="chart-context" style={CONTEXT_STYLE}>
-        {buildContext(slices, total)}
+        {buildContext(slices, total, formatRangeHumano(window.label))}
       </p>
       {!isPrint && hasDatasets ? (
         <PeriodToggle value={period} onChange={setPeriod} periodLabel={window.label} />

@@ -30,6 +30,10 @@ const FIXTURES: ReadonlyArray<FixtureName> = [
   "large-values",
   "sparse-data",
   "degraded",
+  // A40.l3 — única fixture com `fluxo_caixa.janela_12m` + `consumo_consciente`
+  // populados. Sem ela, o smoke por fixture nunca renderizava os componentes
+  // que a lane corrige (0/4 das anteriores têm `receita_recorrente_mensal`).
+  "janela-divergente",
 ];
 
 const THEMES = ["light", "dark"] as const;

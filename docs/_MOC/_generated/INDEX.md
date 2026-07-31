@@ -822,6 +822,7 @@
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
+| A40.l15 | lane | planned | A40 | Consumo Consciente: card fala em quatro bases temporais; KPI de pontuais na base da janela | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
 | A40.l2 | lane | open | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
 | A40.l3 | lane | open | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l4 | lane | open | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |

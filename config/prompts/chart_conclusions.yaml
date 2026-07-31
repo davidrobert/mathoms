@@ -59,11 +59,16 @@ templates:
 
   # ---- S2 Fluxo de Caixa -------------------------------------------------
   # A40.l3 (ADR-306 D1): mensalização lê `fluxo_caixa.janela_12m`; o bloco
-  # `full` só entra com o rótulo que `{janela_escopo}` carrega. "Sobra mensal"
-  # (não "Fluxo líquido"): `janela_12m.fluxo_liquido` é o TOTAL do intervalo de
-  # 12 meses, ~20× a sobra por mês. Degrade sem `janela_12m` → rótulo full.
+  # `full` só entra com o rótulo que `{janela_escopo}` carrega. Este é o ÚNICO
+  # texto de S2 que mensaliza — o chart irmão (`receita_despesa_mensal`)
+  # totaliza a janela exibida, sem mensalizar.
+  # Dois números, não três: `despesa_mensal_media` é BRUTA (inclui o aporte por
+  # ADR-333), logo `receita − despesa` NÃO é "quanto sobra" e não fecha com a
+  # taxa de poupança ex-aporte exibida no hero. "Quanto sobra" vive num lugar
+  # só, o KPI de folga do card de Consumo Consciente. Emitir capacidade/aporte/
+  # sobra aqui exige co-change no E5 — lane A40.l15.
   fluxo_mensal:
-    template: "Sobre {janela_escopo}: receita média mensal de {receita_recorrente|brl}, despesa média de {despesa_mensal|brl}. Sobra mensal: {sobra_mensal|brl}/mês."
+    template: "Sobre {janela_escopo}: receita recorrente de {receita_recorrente|brl}/mês e despesa média de {despesa_mensal|brl}/mês."
     fallback: "Receita vs despesa mês a mês."
     required_keys:
       - "fluxo_caixa.janela_12m.receita_recorrente_mensal"
@@ -76,13 +81,20 @@ templates:
     fallback: "Composição das receitas por fonte."
     required_keys: ["fluxo_caixa.por_fonte"]
 
+  # A40.l3: permanece no bloco full **rotulado** (D1 permite agregado histórico
+  # assim). Migrar para `janela_12m.despesas_por_categoria` divergiria o
+  # denominador: aquele bloco inclui `aporte_investimento` e o donut o exclui
+  # (ADR-333 · A37.l14). O rótulo da janela RENDERIZADA fica no
+  # `[data-chart-context]` do donut, que é onde o toggle de período atua.
   despesas_doughnut:
     template: "{despesa_top_categoria} concentra {despesa_top_pct|pct} do gasto recorrente de todo o período analisado."
     fallback: "Distribuição das despesas por categoria."
     required_keys: ["fluxo_caixa.despesas_por_categoria"]
 
+  # A40.l3: totaliza a janela EXIBIDA (rotulada), sem mensalizar e sem taxa —
+  # duas mensalizações na mesma seção era o defeito B1.
   receita_despesa_mensal:  # fallback-only (Fase 6 — sem builder); placeholders não interpolam
-    template: "Ao longo do período analisado, fluxo líquido médio foi {fluxo_medio|brl}/mês."
+    template: "Janela exibida — {meses_exibidos} meses ({range_exibido}): receitas de {receita_janela|brl} e despesas de {despesa_janela|brl}, saldo de {saldo_janela|brl} no intervalo."
     fallback: "Receita vs despesa ao longo do tempo."
     required_keys: ["fluxo_caixa.receita_despesa_mensal_detalhado"]
 

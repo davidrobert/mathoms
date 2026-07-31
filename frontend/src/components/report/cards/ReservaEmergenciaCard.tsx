@@ -2,7 +2,7 @@ import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { formatJanelaTooltip } from "../utils/janelaLabel";
+import { formatJanelaTooltip, parseJanelaRotulo } from "../utils/janelaLabel";
 import type { CardVariant } from "@/generated/report-layout";
 import type { ReservaEmergenciaData } from "@/types/report-analysis";
 
@@ -65,7 +65,9 @@ export function ReservaEmergenciaCard({
   const despesasMensais = reserva?.despesas_mensais ?? 0;
   const nivel12 = reserva?.nivel_12_meses ?? 0;
   // ADR-306 (A28.l4) — rótulo da janela de mensalização; payload antigo omite.
-  const janelaTooltip = formatJanelaTooltip(reserva?.janela, reserva?.janela_meses);
+  const janelaTooltip = formatJanelaTooltip(
+    parseJanelaRotulo(reserva?.janela, reserva?.janela_meses),
+  );
   const alvo = resolveAlvo(reserva);
   const alvoRefBrl = alvo?.alvoBrl ?? nivel12;
   const pctRumoAlvo = alvoRefBrl > 0 ? Math.min(100, (total / alvoRefBrl) * 100) : 0;

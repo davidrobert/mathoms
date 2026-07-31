@@ -27,6 +27,17 @@ export function formatChartMonthLabel(label: string): string {
   return `${MONTH_SHORT_PT_LOWER[month - 1]}/${year}`;
 }
 
+/** A40.l3 — range da janela renderizada, legível em PROSA.
+ *
+ * `usePeriodWindow().label` devolve o range cru do payload ("25/01 — 25/12") e
+ * serve bem como rótulo do `<PeriodToggle>`, ao lado dos botões. Em texto
+ * corrido o mesmo formato se lê como dd/MM — e no PDF o toggle não renderiza,
+ * então a prosa fica sendo o único portador da base. */
+export function formatRangeHumano(rangeLabel: string): string {
+  const partes = rangeLabel.split("—").map((p) => formatChartMonthLabel(p.trim()));
+  return partes.length === 2 ? `${partes[0]} a ${partes[1]}` : partes.join("");
+}
+
 export function fmtBRL(n: number): string {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",

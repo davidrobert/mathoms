@@ -23,9 +23,13 @@ export interface FluxoPorFonte {
  * pré-A28 e `degraded` chegam sem ele).
  *
  * `fluxo_liquido` é `receita_total − despesa_total` **do intervalo de 12
- * meses** — um TOTAL. A sobra mensal é
- * `receita_recorrente_mensal − despesa_mensal_media`; confundir as duas
- * infla o número em ~20×. */
+ * meses** — um TOTAL; lê-lo como taxa mensal infla o número em ~20×.
+ *
+ * E `receita_recorrente_mensal − despesa_mensal_media` **não** é "quanto sobra":
+ * `despesa_mensal_media` é BRUTA (inclui `transferencia_patrimonial`/aporte por
+ * ADR-333), logo essa diferença não fecha com `taxa_poupanca_recorrente`, que é
+ * ex-aporte. Nenhum consumidor deriva sobra daqui — o número de sobra exibido é
+ * `consumo_consciente.folga_mensal`, que o E5 calcula. */
 export interface FluxoJanela12m {
   janela?: string;
   janela_meses?: number;

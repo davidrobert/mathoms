@@ -292,6 +292,12 @@ export interface RatiosData {
   cobertura_despesas_meses?: number;
   rentabilidade_pct?: number | string;
   aliquota_efetiva_ir_pct?: number | string;
+  /** ADR-306 D2 — vocabulário fechado da base (`12m` | `full` | `irpf_<ano>`).
+   * **Não confundir com `janela_referencia`**, que é string de PERÍODO
+   * ("2026-01 a 2026-01", `ratios_calculator.py`): passar `janela_referencia`
+   * a um formatador de rótulo funciona na fixture e quebra em produção. */
+  janela?: string;
+  janela_meses?: number;
   janela_referencia?: string;
   janela_n_meses?: number;
   /** Track T06 — shape aninhado preferido. `null` quando passive_income é omitido (caller). */
@@ -359,9 +365,11 @@ export interface ConsumoConscienteData {
     [key: string]: unknown;
   }>;
   total_pontuais?: number;
-  /** ADR-306 D6 (A40.l3) — total de pontuais **dentro da janela**; é o número
-   * que entra em `folga_mensal`, logo o único que permite ao leitor reproduzir
-   * a álgebra do card. */
+  /** ADR-306 (A40.l3) — total de pontuais **dentro da janela**; é o número que
+   * entra em `folga_mensal`, logo o único que permitiria ao leitor reproduzir a
+   * álgebra do card. **Sem consumidor no frontend por ora**: exibi-lo no KPI é a
+   * lane A40.l15, que exige co-change no E5 (ritmo mensal + equivalente da
+   * janela) para o card não misturar bases. */
   total_pontuais_janela?: number;
   /** ADR-306 D2 — rótulo da janela ("12m" | "full"). */
   janela?: string;
