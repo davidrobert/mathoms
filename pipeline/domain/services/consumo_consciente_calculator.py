@@ -63,6 +63,13 @@ _DEFAULT_RECURRENT = frozenset(
         "assinaturas",
         "impostos",
         "servicos_domesticos",
+        # Labels PJ ([[ADR-236]] §D2): tributo e folha da PJ são obrigação
+        # recorrente, não "gasto pontual relevante" cortável. Sem isso um DAS de
+        # R$ 5k/guia entra em ``total_pontuais`` e infla ``folga_mensal`` —
+        # deflacionando a despesa recorrente que sustenta a recomendação (A40.l4).
+        "das_simples",
+        "iss",
+        "folha_pj",
     }
 )
 

@@ -5,6 +5,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.services.transaction_classifier import (  # noqa: E402
@@ -136,7 +138,7 @@ def test_lucros_distribuidos_loses_to_pro_labore_when_both_keywords_present():
 
 
 # =============================================================================
-# 3. das_simples — débito + keyword DAS (word-bounded)
+# 3. das_simples — débito + sinal inequívoco da guia (nunca ``DAS`` isolado)
 # =============================================================================
 
 
@@ -151,11 +153,53 @@ def test_das_simples_label_assigned_on_debit_with_anchored_keyword():
     assert results[0].categoria == "das_simples"
 
 
-def test_das_simples_no_false_positive_on_substring():
-    """``ADASA`` (saneamento DF) não deve casar DAS — word-boundary."""
+@pytest.mark.parametrize(
+    "descricao",
+    [
+        "SIMPLES NACIONAL",
+        "PAGAMENTO SIMPLES NACIONAL",
+        # Truncamento emitido por export de banco — forma real em produção.
+        "INT /SIMPLES NACIONA 072",
+        "INT SIMPLES NACIONA 0720",
+        # DARF é canal de arrecadação, não identidade de guia: quando a string
+        # traz DARF **e** o sinal do Simples, continua sendo DAS.
+        "TRIBUTOS FEDERAIS DARF NUMERADO SIMPLES NACIONAL",
+    ],
+)
+def test_das_simples_matches_real_guide_signals(descricao):
     classifier = TransactionClassifier(_config_with_pj())
     acc = _account()
-    acc["transacoes"] = [_tx("ADASA CONTA SANEAMENTO", -180.00, tipo="debito")]
+    acc["transacoes"] = [_tx(descricao, -5000.00, tipo="debito")]
+
+    results = classifier.classify_account(acc)
+
+    assert results[0].categoria == "das_simples"
+
+
+@pytest.mark.parametrize(
+    "descricao",
+    [
+        # Preposição portuguesa: era 100% dos matches em produção (A40.l4).
+        "C6TAG PEDAGIO — RODOVIA DAS COLINAS SP 280",
+        "C6TAG ESTACIONAMENTO — SHOPPING SP MARKET AVENIDA DAS",
+        "SUPERMERCADO VILA DAS FLORES",
+        "CAFE DAS COISINHAS",
+        "C6TAG PEDAGIO — RODOVIA ROTA DAS BANDEIRAS SP36",
+        "C6TAG ESTACIONAMENTO — CONCESSIONARIA DAS RODOVIAS",
+        "PAGAMENTO DAS FATURAS",
+        # ``ADASA`` (saneamento DF) — regressão do guard de substring original.
+        "ADASA CONTA SANEAMENTO",
+        # Simples Doméstico recolhe via DAE — não é DAS do Simples Nacional.
+        "SIMPLES DOMESTICO 04/2025",
+        # DARF sem sinal do Simples fica em impostos (tributo federal genérico).
+        "TRIBUTOS FEDERAIS DARF NUMERADO",
+        "PARCELAM DARF 2025 - DEBITO RFB",
+    ],
+)
+def test_das_simples_no_false_positive(descricao):
+    classifier = TransactionClassifier(_config_with_pj())
+    acc = _account()
+    acc["transacoes"] = [_tx(descricao, -180.00, tipo="debito")]
 
     results = classifier.classify_account(acc)
 

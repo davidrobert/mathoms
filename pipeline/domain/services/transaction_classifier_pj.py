@@ -7,11 +7,26 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Literal
 
-# Keywords PJ default — ancoradas em word-boundary para evitar falsos-positivos
-# (DAS em ADASA, ISS em DEMISSAO). Sobrescrevíveis via ClassifierConfig.
+# Keywords PJ default — sobrescrevíveis via ClassifierConfig. ``ISS`` é ancorada
+# em word-boundary para evitar falso-positivo por substring (ISS em DEMISSAO).
 
 _PRO_LABORE_KEYWORDS: tuple[str, ...] = ("PRO-LABORE", "PROLABORE", "PRO LABORE")
-_DAS_KEYWORDS: tuple[str, ...] = ("DAS",)
+# DAS exige sinal inequívoco da guia, nunca o token ``DAS`` isolado: word-boundary
+# não protege contra a preposição portuguesa ("RODOVIA DAS COLINAS", "VILA DAS
+# FLORES"), que era o caminho de 100% dos matches em produção (A40.l4). Todas as
+# entradas aqui são multi-token qualificados, logo o match é por substring —
+# a garantia vem da keyword ser unívoca, não do delimitador.
+# ``SIMPLES NAC`` cobre ``SIMPLES NACIONAL`` e o truncamento ``SIMPLES NACIONA``
+# emitido por export de banco. ``SIMPLES`` sozinho está fora de propósito: colide
+# com Simples Doméstico (DAE, empregado doméstico).
+_DAS_KEYWORDS: tuple[str, ...] = (
+    "SIMPLES NAC",
+    "DAS SIMPLES",
+    "DAS-SIMPLES",
+    "DAS MEI",
+    "DAS-MEI",
+    "DASMEI",
+)
 _ISS_KEYWORDS: tuple[str, ...] = ("ISS",)
 _FOLHA_PJ_KEYWORDS: tuple[str, ...] = (
     "SALARIO",
@@ -150,7 +165,7 @@ def try_classify_pj_label(
     if pj_side and any_keyword_matches(norm, config.pro_labore_keywords):
         return ("receita", "pro_labore"), None
 
-    if is_debito and any_keyword_word_bounded(norm, config.das_keywords):
+    if is_debito and any_keyword_matches(norm, config.das_keywords):
         return ("despesa", "das_simples"), None
 
     if is_debito and any_keyword_word_bounded(norm, config.iss_keywords):
