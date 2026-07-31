@@ -347,12 +347,17 @@ function formatPeriodLabel(labels: readonly string[]): string {
   return `${labels[0]}  —  ${labels[labels.length - 1]}`;
 }
 
+/** ADR-306 D1 (A40.l3) — o chart é fixado em 12m no print, mas estes totais são
+ * da série INTEIRA; agregado full só é permitido rotulado. */
 function PrintTotalsBlock({ enriched }: { readonly enriched: readonly EnrichedDataset[] }) {
   const totalReceita = sumStack(enriched, "receita");
   const totalDespesa = sumStack(enriched, "despesa");
   const liquido = totalReceita - totalDespesa;
   return (
     <div style={PRINT_BLOCK_STYLE} data-rdm-print-totals>
+      <div>
+        <strong>Série completa</strong> — {enriched[0]?.data.length ?? 0} meses
+      </div>
       <div>
         <strong>Total receitas:</strong> {fmtBRL(totalReceita)}
       </div>

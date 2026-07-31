@@ -9,6 +9,11 @@ import { useIsPrint } from "../hooks/useIsPrint";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { PeriodToggle, type Period } from "../ui/PeriodToggle";
 import { fmtBRL, formatChartMonthLabel } from "./_shared";
+import {
+  describeJanelaEscopo,
+  resolveFluxoJanelaMensal,
+  type FluxoJanelaMensal,
+} from "../utils/fluxoJanela";
 import type { FluxoCaixaSummary } from "@/types/report-analysis";
 
 /** v2.E.3 — Chart "Fluxo de Caixa Mensal" em Chart.js (paridade
@@ -45,7 +50,7 @@ export function FluxoMensalChart({
     { label: "Despesa", data: despesa.map((v) => -v), color: theme.semantic.loss },
   ];
 
-  const context = buildContext(slicedLabels, fluxo);
+  const context = buildContext(slicedLabels, fluxo, effectivePeriod);
   const fallbackConclusion = conclusion ?? buildFallbackConclusion(fluxo);
 
   return (
@@ -76,22 +81,41 @@ export function FluxoMensalChart({
 function buildContext(
   slicedLabels: readonly string[],
   fluxo: FluxoCaixaSummary | undefined,
+  effectivePeriod: Period,
 ): string | null {
   if (slicedLabels.length === 0) return null;
-  const receita = fluxo?.receita_recorrente_mensal;
-  const despesa = fluxo?.despesa_mensal_media;
-  if (typeof receita !== "number" || typeof despesa !== "number") return null;
+  const janela = resolveFluxoJanelaMensal(fluxo);
+  if (!janela) return null;
   const first = slicedLabels[0];
   const last = slicedLabels[slicedLabels.length - 1];
   const range = first === last ? first : `${first} a ${last}`;
-  return `Janela dos últimos ${slicedLabels.length} meses (${range}). Receita recorrente média de ${fmtBRL(receita)}/mês versus despesa média de ${fmtBRL(despesa)}/mês.`;
+  // 3M/6M/YTD não têm bloco agregado no payload, e derivar a média de
+  // `totais_receita` trocaria receita recorrente por receita bruta
+  // (fluxo_caixa_enricher.py:432,471). Omitir é o único caminho honesto.
+  if (effectivePeriod !== "12m") {
+    return `Janela dos últimos ${slicedLabels.length} meses (${range}).`;
+  }
+  const meses = janela.janela === "12m" ? janela.janelaMeses : undefined;
+  return `Janela dos últimos ${meses ?? slicedLabels.length} meses (${range}). ${describeAgregado(janela)}`;
+}
+
+/** ADR-306 D1 — agregado full só aparece com rótulo explícito de período. */
+function describeAgregado(janela: FluxoJanelaMensal): string {
+  const receita = `${fmtBRL(janela.receitaRecorrenteMensal)}/mês`;
+  const despesa = `${fmtBRL(janela.despesaMensalMedia)}/mês`;
+  if (janela.janela === "12m") {
+    return `Receita recorrente média de ${receita} versus despesa média de ${despesa}.`;
+  }
+  return `Média sobre ${describeJanelaEscopo(janela)}: receita recorrente de ${receita} versus despesa média de ${despesa}.`;
 }
 
 function buildFallbackConclusion(fluxo: FluxoCaixaSummary | undefined): string | undefined {
-  const receita = fluxo?.receita_recorrente_mensal;
-  const despesa = fluxo?.despesa_mensal_media;
-  if (typeof receita !== "number" || typeof despesa !== "number") return undefined;
-  const liquido = receita - despesa;
-  const taxa = receita > 0 ? (liquido / receita) * 100 : 0;
-  return `Saldo recorrente mensal de ${fmtBRL(liquido)}/mês. Taxa de poupança recorrente de ${taxa.toFixed(1).replace(".", ",")}%.`;
+  const janela = resolveFluxoJanelaMensal(fluxo);
+  if (!janela) return undefined;
+  const base = `Saldo recorrente mensal de ${fmtBRL(janela.sobraMensal)}/mês, medido sobre ${describeJanelaEscopo(janela)}.`;
+  const taxa = janela.taxaPoupancaRecorrentePct;
+  // Bloco `full` não emite taxa_poupanca_*; recomputar de despesa_mensal_media
+  // reintroduziria o aporte no numerador (erro que ADR-333 fechou).
+  if (taxa === undefined) return base;
+  return `${base} Taxa de poupança recorrente de ${taxa.toFixed(1).replace(".", ",")}%.`;
 }

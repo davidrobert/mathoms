@@ -58,18 +58,26 @@ templates:
     required_keys: ["score.valor", "score.max"]
 
   # ---- S2 Fluxo de Caixa -------------------------------------------------
+  # A40.l3 (ADR-306 D1): mensalização lê `fluxo_caixa.janela_12m`; o bloco
+  # `full` só entra com o rótulo que `{janela_escopo}` carrega. "Sobra mensal"
+  # (não "Fluxo líquido"): `janela_12m.fluxo_liquido` é o TOTAL do intervalo de
+  # 12 meses, ~20× a sobra por mês. Degrade sem `janela_12m` → rótulo full.
   fluxo_mensal:
-    template: "Receita média mensal de {receita_recorrente|brl}, despesa média de {despesa_mensal|brl}. Fluxo líquido: {fluxo_liquido|brl}."
+    template: "Sobre {janela_escopo}: receita média mensal de {receita_recorrente|brl}, despesa média de {despesa_mensal|brl}. Sobra mensal: {sobra_mensal|brl}/mês."
     fallback: "Receita vs despesa mês a mês."
-    required_keys: ["fluxo_caixa.receita_recorrente_mensal", "fluxo_caixa.despesa_mensal_media"]
+    required_keys:
+      - "fluxo_caixa.janela_12m.receita_recorrente_mensal"
+      - "fluxo_caixa.janela_12m.despesa_mensal_media"
 
+  # A40.l3: `janela_12m` não contém `por_fonte` — composição é agregado
+  # histórico, que ADR-306 D1 permite full **apenas rotulado**.
   receita_bar:
-    template: "{receita_principal_fonte} lidera as receitas ({receita_principal_pct|pct})."
+    template: "{receita_principal_fonte} lidera as receitas ({receita_principal_pct|pct} do total de todo o período analisado)."
     fallback: "Composição das receitas por fonte."
     required_keys: ["fluxo_caixa.por_fonte"]
 
   despesas_doughnut:
-    template: "{despesa_top_categoria} concentra {despesa_top_pct|pct} do gasto recorrente."
+    template: "{despesa_top_categoria} concentra {despesa_top_pct|pct} do gasto recorrente de todo o período analisado."
     fallback: "Distribuição das despesas por categoria."
     required_keys: ["fluxo_caixa.despesas_por_categoria"]
 

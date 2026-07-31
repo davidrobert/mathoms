@@ -12,6 +12,7 @@
  */
 import type { ReportAnalysisData } from "@/lib/api";
 import { formatBRLNoCents } from "@/lib/format";
+import { describeJanelaEscopo, resolveFluxoJanelaMensal } from "./fluxoJanela";
 
 type Formatter = "brl" | "pct" | "int" | "num";
 
@@ -102,25 +103,26 @@ const BUILDERS: Record<string, Builder> = {
     }.`;
   },
 
+  // ADR-306 D1 (A40.l3) — família mensalização lê `fluxo_caixa.janela_12m`; o
+  // bloco `full` só entra rotulado. "Sobra mensal" (não "Fluxo líquido"):
+  // `janela_12m.fluxo_liquido` é o TOTAL do intervalo, 20× maior.
   fluxo_mensal: ({ data }) => {
-    const receita = getPath(data, "fluxo_caixa.receita_recorrente_mensal") as
-      | number
-      | undefined;
-    const despesa = getPath(data, "fluxo_caixa.despesa_mensal_media") as
-      | number
-      | undefined;
-    if (typeof receita !== "number" || typeof despesa !== "number") return null;
-    const liquido = receita - despesa;
-    return `Receita média mensal de ${format(receita, "brl")}, despesa média de ${format(despesa, "brl")}. Fluxo líquido: ${format(liquido, "brl")}.`;
+    const janela = resolveFluxoJanelaMensal(data.fluxo_caixa);
+    if (!janela) return null;
+    const receita = format(janela.receitaRecorrenteMensal, "brl");
+    const despesa = format(janela.despesaMensalMedia, "brl");
+    return `Sobre ${describeJanelaEscopo(janela)}: receita média mensal de ${receita}, despesa média de ${despesa}. Sobra mensal: ${format(janela.sobraMensal, "brl")}/mês.`;
   },
 
+  // ADR-306 D1 — `janela_12m` não traz `por_fonte`: composição é agregado
+  // histórico, permitido full **com rótulo** (é o que a cláusula final faz).
   receita_bar: ({ data }) => {
     const porFonte = getPath(data, "fluxo_caixa.por_fonte") as
       | Record<string, number>
       | undefined;
     const top = topEntry(porFonte);
     if (!top) return null;
-    return `${prettyKey(top.key)} lidera as receitas (${format(top.pct, "pct")}).`;
+    return `${prettyKey(top.key)} lidera as receitas (${format(top.pct, "pct")} do total de todo o período analisado).`;
   },
 
   despesas_doughnut: ({ data }) => {
@@ -129,7 +131,7 @@ const BUILDERS: Record<string, Builder> = {
       | undefined;
     const top = topEntry(cat);
     if (!top) return null;
-    return `${prettyKey(top.key)} concentra ${format(top.pct, "pct")} do gasto recorrente.`;
+    return `${prettyKey(top.key)} concentra ${format(top.pct, "pct")} do gasto recorrente de todo o período analisado.`;
   },
 
   impostos_pj: ({ data }) => {
@@ -190,11 +192,9 @@ const SECTION_SUMMARIES: Record<
       : "Patrimônio consolidado e estrutura de ativos/passivos.";
   },
   S2: (data) => {
-    const receita = getPath(data, "fluxo_caixa.receita_recorrente_mensal") as
-      | number
-      | undefined;
-    return receita
-      ? `Receita recorrente de ${format(receita, "brl")}/mês e distribuição de despesas no período.`
+    const janela = resolveFluxoJanelaMensal(data.fluxo_caixa);
+    return janela
+      ? `Receita recorrente de ${format(janela.receitaRecorrenteMensal, "brl")}/mês sobre ${describeJanelaEscopo(janela)}, e distribuição de despesas no período.`
       : "Fluxo de caixa e diagnóstico comportamental do período.";
   },
   S3: () => "Carteira de investimentos: alocação atual, alvo e principais ativos.",

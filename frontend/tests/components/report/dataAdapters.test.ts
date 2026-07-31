@@ -67,8 +67,9 @@ describe("deriveChartConclusion()", () => {
     const data = {
       fluxo_caixa: { por_fonte: { receita_clt: 10_000, receita_pj: 25_000, outras_receitas: 1_000 } },
     } as unknown as ReportAnalysisData;
+    // A40.l3 (ADR-306 D1): `por_fonte` só existe no bloco full — rótulo obrigatório.
     expect(deriveChartConclusion("receita_bar", data)).toBe(
-      "PJ lidera as receitas (69%).",
+      "PJ lidera as receitas (69% do total de todo o período analisado).",
     );
   });
 

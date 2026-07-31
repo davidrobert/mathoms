@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { KpiCard } from "../ui/Kpi";
 import { MonetaryValue } from "../MonetaryValue";
+import { formatJanelaTooltip } from "../utils/janelaLabel";
 import { formatFullBRL } from "@/lib/format";
 import type {
   PatrimonioData,
@@ -227,7 +228,14 @@ function reservaLabel(meses: number): string {
 function TaxaPoupancaKpi({ ratios }: { ratios: RatiosData | undefined }) {
   const recorrente = ratios?.taxa_poupanca_recorrente_pct;
   const total = ratios?.taxa_poupanca_total_pct;
-  return (
+  // ADR-306 §Consequências — `ratios` é rotulado no payload e é a base da
+  // única taxa que produção exibe. Payload sem `janela_referencia` (pré-A28)
+  // não ganha wrapper: DOM idêntico, nada de rótulo inventado.
+  const janelaTooltip = formatJanelaTooltip(
+    ratios?.janela_referencia,
+    ratios?.janela_n_meses,
+  );
+  const card = (
     <KpiCard
       label="Taxa de Poupança"
       value={
@@ -241,6 +249,12 @@ function TaxaPoupancaKpi({ ratios }: { ratios: RatiosData | undefined }) {
           : "Recorrente"
       }
     />
+  );
+  if (!janelaTooltip) return card;
+  return (
+    <span title={janelaTooltip} style={{ display: "block" }}>
+      {card}
+    </span>
   );
 }
 
