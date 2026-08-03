@@ -817,6 +817,20 @@ def _e5n_build_and_validate() -> tuple[dict | None, list[str]]:
     return narrativas, []
 
 
+def _e5n_refresh_tributario(ctx, goals_cfg: dict) -> None:
+    """RV3-11 (A40.l9 PR2): a seção tributária é read-model do E4 — re-resolvida
+    AQUI, quando o E4 do run corrente já existe. O valor materializado em t=0 no
+    goals.json vinha do run anterior (e, antes do fix, do corrente sem E4 = zeros);
+    fica como fallback quando o resolver não foi injetado (CLI/testes)."""
+    resolver = getattr(ctx, "tributario_section_resolver", None)
+    if resolver is None or not ctx.workspace_id:
+        return
+    fresh = resolver.resolve(ctx.workspace_id)
+    if fresh is not None:
+        goals_cfg["tributario"] = fresh
+        print("  ✓ tributario re-resolvido em stage-time (run corrente com E4)")
+
+
 def _resolve_cambio_via_config_store(ctx) -> Decimal | None:
     """Resolve USD/BRL via ``ctx.config_store.get_market_rate`` (A7.5); ``None`` se indisponível."""
     cs = getattr(ctx, "config_store", None) if ctx is not None else None
@@ -986,6 +1000,7 @@ def main_with_store(ctx) -> dict:
     # ADR-180 (Sprint A10.6): ``goals.json`` agora vem de ``ctx.config_overrides``
     # (``GoalsBundle`` montado pelo pipeline_adapter) — não mais de filesystem.
     goals_cfg = ctx.load_config("goals.json")
+    _e5n_refresh_tributario(ctx, goals_cfg)
     _e5n_load_metrics(e5_data, cambio_usd_brl=cambio_usd_brl, goals_cfg=goals_cfg)
     narrativas, errors = _e5n_build_and_validate()
     if narrativas is None:

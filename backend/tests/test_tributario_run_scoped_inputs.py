@@ -112,16 +112,8 @@ def _build_input_sync(ws_id: str):
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "RV3-11 (A40.l9): _latest_run_id resolve o run corrente sem E4 e o input "
-        "sai zerado; o PR2 move a resolução para o último run COM E4. Este xfail "
-        "estrito vira verde (e falha o marker) no PR2 — remover o marker lá."
-    ),
-)
 async def test_regressao_run_corrente_sem_e4_resolve_o_anterior_completo(db):
-    """Caso 1 do critério de aceite — vermelho hoje."""
+    """Caso 1 do critério de aceite — era xfail(strict) no PR1; verde desde o PR2."""
     t0 = datetime.now(timezone.utc)
     ws = await _ws_with_profile(db)
     await _seed_completed_run_with_e4(db, ws.id, started_at=t0 - timedelta(hours=2))
@@ -148,8 +140,9 @@ async def test_run_corrente_sem_e4_emite_warning_nao_silencio(db, monkeypatch):
     assert events, "input zerou sem nenhum WARNING — a falha voltou a ser silenciosa"
     missing = {m for extra in events for m in extra.get("missing", [])}
     assert {"receitas", "despesas", "fluxo_mensal_detalhado"} <= missing
-    # O zero de hoje segue zero (o PR1 não muda resolução) — polaridade pinada.
+    # Sem NENHUM run com E4, o valor segue zero — mas declarado, não silencioso.
     assert inp.receita_pj_anual.amount == Decimal("0")
+    assert inp.inputs_run_scoped_disponiveis is False
 
 
 @pytest.mark.asyncio
@@ -196,3 +189,101 @@ async def test_warning_nao_carrega_valor_monetario(db, monkeypatch):
     for msg, extra in recorder.warnings:
         blob = msg + repr(extra)
         assert not money_re.search(blob), f"valor monetário no log: {blob[:160]}"
+
+
+@pytest.mark.asyncio
+async def test_sem_e4_algum_cascata_declara_o_sinal(db):
+    """Caso 2 (forma PR2): o zero run-scoped vira sinal no output — canal CTO-05."""
+    ws = await _ws_with_profile(db)
+    await _seed_current_run_without_e4(db, ws.id, started_at=datetime.now(timezone.utc))
+
+    out = compute(_build_input_sync(ws.id))
+
+    assert "inputs_run_scoped_indisponiveis" in out.signals
+
+
+@pytest.mark.asyncio
+async def test_com_e4_disponivel_sem_sinal_de_ausencia(db):
+    """Contra-prova do sinal: dado presente não é declarado ausente."""
+    ws = await _ws_with_profile(db)
+    await _seed_completed_run_with_e4(
+        db, ws.id, started_at=datetime.now(timezone.utc) - timedelta(hours=1)
+    )
+
+    out = compute(_build_input_sync(ws.id))
+
+    assert "inputs_run_scoped_indisponiveis" not in out.signals
+    assert out.receita_bruta.amount > Decimal("0")
+
+
+async def _seed_running_run_with_e4(db, ws_id: str, *, started_at: datetime, receitas: dict):
+    """Run corrente (running) COM E4 já escrito — o cenário de frescor do PR2."""
+    from backend.app.models.pipeline_run import PipelineRunStatus
+
+    run = _run(ws_id, started_at=started_at, status=PipelineRunStatus.running)
+    db.add(run)
+    await db.flush()
+    for key, content in (
+        ("receitas", receitas),
+        ("despesas", _DESPESAS_E4),
+        ("fluxo_mensal_detalhado", _FLUXO_E4),
+        ("patrimonio", {"dados": {"imoveis_investimento": []}}),
+    ):
+        db.add(_artifact(ws_id, run.id, key, content))
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_run_corrente_com_e4_escrito_e_o_resolvido(db):
+    """Frescor: no meio do run (pós-E4), a resolução pega o run CORRENTE — não o
+    anterior. É o que o resolver injetado do PR2 explora em E5.N."""
+    t0 = datetime.now(timezone.utc)
+    ws = await _ws_with_profile(db)
+    await _seed_completed_run_with_e4(db, ws.id, started_at=t0 - timedelta(hours=2))
+    receitas_novas = {"totais_por_categoria": {"pro_labore": 240000.0, "lucros_distribuidos": 0.0}}
+    await _seed_running_run_with_e4(db, ws.id, started_at=t0, receitas=receitas_novas)
+
+    inp = _build_input_sync(ws.id)
+
+    # 240k/12 = 20k de pró-labore mensal ⇒ resolveu o corrente (o anterior daria 10k).
+    assert inp.pro_labore_mensal.amount == Decimal("20000")
+
+
+@pytest.mark.asyncio
+async def test_db_resolver_entrega_secao_fresca_do_run_com_e4(db):
+    """PR2: o resolver injetado devolve a seção do último run COM E4 — é ele que
+    o E5.N consome no lugar do goals.json materializado em t=0."""
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.services.db_tributario_section_resolver import (
+        DBTributarioSectionResolver,
+    )
+
+    ws = await _ws_with_profile(db)
+    await _seed_completed_run_with_e4(
+        db, ws.id, started_at=datetime.now(timezone.utc) - timedelta(hours=1)
+    )
+
+    with SyncSessionLocal() as sync_db:
+        section = DBTributarioSectionResolver(session=sync_db).resolve(ws.id)
+
+    assert section is not None
+    assert section["cascata"]["receita_bruta"] > 0
+
+
+@pytest.mark.asyncio
+async def test_db_resolver_falha_degrada_para_none(db, monkeypatch):
+    """Resolver é best-effort: exceção interna vira None (caller usa o fallback)."""
+    import backend.app.services.pipeline.pipeline_adapter as adapter
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.services.db_tributario_section_resolver import (
+        DBTributarioSectionResolver,
+    )
+
+    def _boom(*a, **k):
+        raise RuntimeError("db exploded")
+
+    monkeypatch.setattr(adapter, "_build_tributario_section_sync", _boom)
+    ws = await _ws_with_profile(db)
+
+    with SyncSessionLocal() as sync_db:
+        assert DBTributarioSectionResolver(session=sync_db).resolve(ws.id) is None

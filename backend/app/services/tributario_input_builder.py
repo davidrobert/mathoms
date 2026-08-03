@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from decimal import Decimal
 from typing import Any, Optional
 
@@ -35,7 +35,9 @@ _IRPF_STAGES: tuple[str, ...] = ("extract_irpf_full",)
 logger = logging.getLogger("mathoms.tributario.input_builder")
 
 
-def _warn_run_scoped_unavailable(workspace_id: str, run_id: str, missing: list[str]) -> None:
+def _warn_run_scoped_unavailable(
+    workspace_id: str, run_id: Optional[str] = None, *, missing: list[str]
+) -> None:
     # RV3-11 (A40.l9 PR1): `_latest_run_id` resolve o run CORRENTE, cujo E4 ainda
     # não existe em t=0 — todo input run-scoped sai zerado em silêncio. Este WARNING
     # é o contador que impede o próximo "FIXADO" falso; o fix real é o PR2 (resolver
@@ -65,13 +67,28 @@ class _PJTotals:
 
 def build_cascata_input_sync(workspace_id: str, *, db: SyncSession) -> CascataInput:
     """Constrói ``CascataInput`` a partir de DB+artifacts (ADR-236 §D4 + A17 L1+L2)."""
+    run_id = _resolve_e4_run_id(workspace_id, db=db)
     bp = _load_business_profile(workspace_id, db=db)
     irpf_total = _load_irpf_renda_tributavel(workspace_id, db=db)
-    pj_totals = _load_pj_totals(workspace_id, db=db)
-    imoveis = _load_imoveis(workspace_id, db=db)
+    pj_totals = _load_pj_totals(workspace_id, run_id, db=db)
+    imoveis = _load_imoveis(workspace_id, run_id, db=db)
     previdencia = _load_previdencia_snapshot(workspace_id, db=db)
     financeiro_pj = _load_financeiro_pj_snapshot(workspace_id, db=db)
-    return _assemble_input(bp, irpf_total, pj_totals, imoveis, previdencia, financeiro_pj)
+    inp = _assemble_input(bp, irpf_total, pj_totals, imoveis, previdencia, financeiro_pj)
+    return replace(inp, inputs_run_scoped_disponiveis=run_id is not None)
+
+
+def _resolve_e4_run_id(workspace_id: str, *, db: SyncSession) -> Optional[str]:
+    """Resolve o run dos inputs run-scoped — e declara quando não há nenhum."""
+    run_id = _latest_run_id_with_e4(workspace_id, db=db)
+    if run_id is None and _latest_run_id(workspace_id, db=db) is not None:
+        # Runs existem mas nenhum tem E4 — a antiga resolução devolvia o run
+        # corrente e zerava tudo em silêncio (RV3-11).
+        _warn_run_scoped_unavailable(
+            workspace_id,
+            missing=["receitas", "despesas", "fluxo_mensal_detalhado", "patrimonio"],
+        )
+    return run_id
 
 
 def _load_previdencia_snapshot(
@@ -144,8 +161,9 @@ def _load_irpf_renda_tributavel(workspace_id: str, *, db: SyncSession) -> Money:
     return extract_renda_tributavel_pf(irpf_artifact).total
 
 
-def _load_pj_totals(workspace_id: str, *, db: SyncSession) -> _PJTotals:
-    run_id = _latest_run_id(workspace_id, db=db)
+def _load_pj_totals(
+    workspace_id: str, run_id: Optional[str] = None, *, db: SyncSession
+) -> _PJTotals:
     if run_id is None:
         return _PJTotals.empty()
     arts = {
@@ -154,7 +172,7 @@ def _load_pj_totals(workspace_id: str, *, db: SyncSession) -> _PJTotals:
     }
     missing = [key for key, art in arts.items() if art is None]
     if missing:
-        _warn_run_scoped_unavailable(workspace_id, run_id, missing)
+        _warn_run_scoped_unavailable(workspace_id, run_id, missing=missing)
     return _build_pj_totals(
         _category_totals(arts["receitas"]),
         _category_totals(arts["despesas"]),
@@ -179,14 +197,15 @@ def _build_pj_totals(
     )
 
 
-def _load_imoveis(workspace_id: str, *, db: SyncSession) -> tuple[int, Decimal]:
-    """Retorna ``(imoveis_alugados_count, receita_aluguel_anual_brl)`` da última run E4."""
-    run_id = _latest_run_id(workspace_id, db=db)
+def _load_imoveis(
+    workspace_id: str, run_id: Optional[str] = None, *, db: SyncSession
+) -> tuple[int, Decimal]:
+    """Retorna ``(imoveis_alugados_count, receita_aluguel_anual_brl)`` do run E4 resolvido."""
     if run_id is None:
         return 0, Decimal("0")
     patrimonio = _read_run_artifact(run_id, _E4_STAGES, "patrimonio", db=db)
     if patrimonio is None:
-        _warn_run_scoped_unavailable(workspace_id, run_id, ["patrimonio"])
+        _warn_run_scoped_unavailable(workspace_id, run_id, missing=["patrimonio"])
     return _extract_imoveis(patrimonio)
 
 
@@ -273,6 +292,22 @@ def _latest_run_id(workspace_id: str, *, db: SyncSession) -> Optional[str]:
     return db.execute(
         select(PipelineRun.id)
         .where(PipelineRun.workspace_id == workspace_id)
+        .order_by(PipelineRun.started_at.desc())
+        .limit(1)
+    ).scalar_one_or_none()
+
+
+def _latest_run_id_with_e4(workspace_id: str, *, db: SyncSession) -> Optional[str]:
+    # RV3-11 (A40.l9 PR2): o predicado é "run que TEM E4", não "run mais recente" —
+    # em t=0 o run corrente ainda não escreveu E4 e resolvê-lo zerava tudo. No meio
+    # do run (E5.N via resolver injetado) o corrente já tem E4 e é ele que sai daqui.
+    return db.execute(
+        select(PipelineRun.id)
+        .join(PipelineArtifact, PipelineArtifact.pipeline_run_id == PipelineRun.id)
+        .where(
+            PipelineRun.workspace_id == workspace_id,
+            PipelineArtifact.stage.in_(_E4_STAGES),
+        )
         .order_by(PipelineRun.started_at.desc())
         .limit(1)
     ).scalar_one_or_none()

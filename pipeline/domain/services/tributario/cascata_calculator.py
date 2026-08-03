@@ -125,6 +125,9 @@ class CascataInput:
     previdencia_snapshot: Optional[PrevidenciaSnapshot] = None
     # ADR-238 (A17 L2 P3 plumbing) — sinergia ADR-236 cascata PJ.
     financeiro_pj_snapshot: Optional[FinanceiroPJSnapshot] = None
+    # RV3-11 (A40.l9): False quando nenhum run tem E4 — os campos run-scoped
+    # (PJ totals, imóveis) são zero por AUSÊNCIA de dado, não por dado zero.
+    inputs_run_scoped_disponiveis: bool = True
 
 
 @dataclass(frozen=True)
@@ -458,11 +461,15 @@ def _pgbl_fields(layers: _ComputedLayers) -> dict:
 def _assemble_output(
     inp: CascataInput, layers: _ComputedLayers, triggers: tuple[CascataTrigger, ...]
 ) -> CascataOutput:
+    # RV3-11: absorve o sinal de ausência no canal aberto do CTO-05 — os zeros
+    # run-scoped viram declaração ("sem E4"), não fato tributário.
+    signals = () if inp.inputs_run_scoped_disponiveis else ("inputs_run_scoped_indisponiveis",)
     return CascataOutput(
         regime=inp.regime,
         regime_label=_regime_label(inp.regime, inp.anexo_simples),
         regime_nao_suportado=False,
         motivo_nao_suportado=None,
+        signals=signals,
         triggers=triggers,
         previdencia_snapshot=inp.previdencia_snapshot,
         financeiro_pj_snapshot=inp.financeiro_pj_snapshot,
