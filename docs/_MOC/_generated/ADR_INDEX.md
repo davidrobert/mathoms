@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 303
-- **Proposto**: 40
+- **Decidido**: 304
+- **Proposto**: 39
 - **Roadmap**: 3
 
 ## Fundação
@@ -522,7 +522,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (50)
+### Decidido (51)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -574,8 +574,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-344]] — Piso de materialidade no gate de conservação: roteamento sobre o caminho não-certificado (transitório) · phase A39.l10
 - [[ADR-346]] — Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador · phase A39.l9
 - [[ADR-348]] — Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group · phase A39.l11
+- [[ADR-355]] — Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages · phase A40 (dívida independente da F2 do GO_SHELL)
 
-### Proposto (13)
+### Proposto (12)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -589,7 +590,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-352]] — Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante · phase pipeline-review r2 (RV2-26)
 - [[ADR-353]] — Confiança do diagnóstico comportamental condicionada à cobertura de categorização · phase pipeline-review r2 (RV2-21)
 - [[ADR-354]] — Identidade de transação (K4) exclui atributos de proveniência do documento · phase report-review r3 (RV3-01) · A40.l2
-- [[ADR-355]] — Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages · phase A40 (dívida independente da F2 do GO_SHELL)
 
 ## quality
 

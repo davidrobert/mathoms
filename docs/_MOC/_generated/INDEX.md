@@ -349,7 +349,7 @@
 | ADR-352 | adr | Proposto |  | Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante | `adr/352-premio-decomposicao-por-cobertura.md` |
 | ADR-353 | adr | Proposto |  | Confiança do diagnóstico comportamental condicionada à cobertura de categorização | `adr/353-diagnostico-comportamental-confianca.md` |
 | ADR-354 | adr | Proposto |  | Identidade de transação (K4) exclui atributos de proveniência do documento | `adr/354-identidade-transacao-exclui-proveniencia.md` |
-| ADR-355 | adr | Proposto |  | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages | `adr/355-intencao-sem-llm-propagada-ate-o-stage.md` |
+| ADR-355 | adr | Decidido |  | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages | `adr/355-intencao-sem-llm-propagada-ate-o-stage.md` |
 | ADR-356 | adr | Proposto |  | Precedência declarada do parágrafo de seção e CV9 como medida de entrega | `adr/356-precedencia-narrativa-secao-e-entrega.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
