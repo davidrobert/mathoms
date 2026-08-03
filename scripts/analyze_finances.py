@@ -2587,6 +2587,14 @@ def _e5_persist(store, ctx, output: Dict[str, Any]) -> None:
     store.write("analyze_finances", E5_ARTIFACT_KEY, output)
 
 
+def _e5_prazo_if_line(goals: Dict[str, Any]) -> str:
+    """Linha de prazo IF do sumário; declara ausência em vez de imprimir 999."""
+    prazo = goals.get("prazo_anos_realista")
+    if prazo is None:
+        return "  Prazo IF (realista): não projetável com as premissas atuais"
+    return f"  Prazo IF (realista): {prazo:.1f} anos → {goals['ano_if']}"
+
+
 def _e5_print_summary(legacy: Dict[str, Any]) -> None:
     from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
 
@@ -2603,7 +2611,7 @@ def _e5_print_summary(legacy: Dict[str, Any]) -> None:
     print(f"  Patrimônio Investível Efetivo: R$ {patrimonio['investivel_efetivo']:,.2f}")
     print(f"  IF Meta: R$ {goals['if_meta']:,.2f}")
     print(f"  IF Progresso: {goals['if_pct']:.1f}%")
-    print(f"  Prazo IF (realista): {goals['prazo_anos_realista']:.1f} anos → {goals['ano_if']}")
+    print(_e5_prazo_if_line(goals))
     print("=" * 70)
 
 

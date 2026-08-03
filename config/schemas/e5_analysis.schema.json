@@ -467,13 +467,13 @@
         },
         "prazos_if": {
           "type": "array",
-          "items": {"type": "number", "minimum": 0},
-          "description": "Prazo até IF em anos. Sentinela 999 (legacy) quando aporte=0 e investivel<meta."
+          "items": {"type": ["number", "null"], "minimum": 0},
+          "description": "Prazo até IF em anos. null = não projetável (aporte=0 ou retorno=0 com investivel<meta); era a sentinela 999, que propagava para anos_if/idade_titular."
         },
         "anos_if": {
           "type": "array",
-          "items": {"type": "integer"},
-          "description": "Ano calendário projetado da IF (reference_date.year + prazo_if)."
+          "items": {"type": ["integer", "null"]},
+          "description": "Ano calendário projetado da IF (reference_date.year + prazo_if); null quando prazos_if é null."
         },
         "premissas": {
           "type": "object",
@@ -499,13 +499,14 @@
             "properties": {
               "nome": {"type": "string", "minLength": 1},
               "aporte_mensal": {"type": "number", "minimum": 0},
-              "prazo_if_anos": {"type": "number", "minimum": 0},
-              "ano_if": {"type": "integer"},
+              "prazo_if_anos": {"type": ["number", "null"], "minimum": 0},
+              "ano_if": {"type": ["integer", "null"]},
               "resumo": {"type": "string", "minLength": 1},
               "idade_titular": {
-                "type": "integer",
+                "type": ["integer", "null"],
                 "minimum": 0,
-                "description": "ADR-338: role-keyed (era idade_<nome>). Idade do titular no ano IF projetado; sem upper bound porque a sentinela legada prazo=999 propaga para idade = age + 999, valores >120 sinalizam não-atingimento."
+                "maximum": 120,
+                "description": "ADR-338: role-keyed (era idade_<nome>). Idade do titular no ano IF projetado; null quando prazo_if_anos é null. O upper bound de 120 fecha a porta para a sentinela legada (age + 999 = 1040)."
               }
             }
           }
@@ -514,8 +515,8 @@
       "patternProperties": {
         "^idade_[a-z_][a-z0-9_]*_if$": {
           "type": "array",
-          "items": {"type": "integer", "minimum": 0},
-          "description": "ADR-338: role-keyed idade_titular_if (o pattern legado ainda casa; nome do membro nunca em chave). Idade do titular projetada por cenário; sem upper bound — sentinela prazo=999 propaga para valores >120."
+          "items": {"type": ["integer", "null"], "minimum": 0, "maximum": 120},
+          "description": "ADR-338: role-keyed idade_titular_if (o pattern legado ainda casa; nome do membro nunca em chave). Idade do titular projetada por cenário; null quando o prazo não é projetável. O upper bound de 120 fecha a porta para a sentinela legada (age + 999 = 1040)."
         }
       }
     },

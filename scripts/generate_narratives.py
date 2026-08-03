@@ -616,7 +616,9 @@ def load_metrics_from_e5(
         # ADR-240 · gap_qualitativo[vida] — `None` quando não há apólices
         # analisadas (o s9 não afirma ausência de cobertura sem sinal).
         "protecao_gap_vida": _protecao_gap_vida(e5_data),
-        "anos_para_if_calculo": round(prazo_anos),
+        # `None` propaga: sem prazo projetado o narrador omite a cláusula de IF
+        # em vez de escrever "999 anos" (ver IFProjector._solve_prazo).
+        "anos_para_if_calculo": None if prazo_anos is None else round(prazo_anos),
         "aportes_acum_prazo": round(aportes_acum_prazo, 0),
         # === Computed: top asset & institutions (from E4) ===
         "top_asset_nome": top_asset["nome"],

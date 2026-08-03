@@ -180,12 +180,23 @@ class PerfilFamiliaNarrator:
         # EUA. Antes citava plano de mudança via visto F1/F2 + custo da
         # fase USA — chaves dead-data do Modo USA removido em A8.4 PR4.
         # Refoca em IF (já era o segundo parágrafo) e amplia panorama.
+        # Prazo ausente (era a sentinela 999 → "1040 anos, 3025"): a frase
+        # nomeia a premissa que falta em vez de projetar um número inventado.
+        _prazo = M.get("anos_para_if_calculo")
+        _prazo_frase = (
+            "as premissas atuais não permitem projetar um prazo realista"
+            if _prazo is None
+            else (
+                f"prazo realista de {_prazo} anos "
+                f"({ctx.titular_nome} {M[ctx.key_idade_titular_if]} anos, {M['if_ano']})"
+            )
+        )
         right = (
             f"<p>Meta de independência financeira de {fmt_currency(M['if_meta'])} (TRS {fmt_num(M['if_trs_pct'], 0)}%, "
             f"renda passiva de {fmt_currency(M['if_renda_passiva_meta'])}/mês). "
             f"Patrimônio investível atual de {fmt_currency(M['patrimonio_investivel'])} ({fmt_percent(M['progresso_if'])} da meta). "
             f"Com aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a., "
-            f"prazo realista de {M['anos_para_if_calculo']} anos ({ctx.titular_nome} {M[ctx.key_idade_titular_if]} anos, {M['if_ano']}).</p>\n"
+            f"{_prazo_frase}.</p>\n"
             f"<p>Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])}: "
             f"{M['n_imoveis']} {pluralize(M['n_imoveis'], 'imóvel', 'imóveis')}{_imoveis_breakdown}, "
             f"carteiras {ctx.titular_nome} ({fmt_currency(M[ctx.key_inv_titular])}) e {ctx.conjuge_nome} ({fmt_currency(M[ctx.key_inv_conjuge])}). "

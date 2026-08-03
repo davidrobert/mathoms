@@ -171,7 +171,8 @@ class TestAnalyzer:
         )
         assert result.cenarios[0].prazo_if_anos == 0.0
 
-    def test_aporte_zero_resulta_em_sentinela_999(self):
+    def test_aporte_zero_resulta_em_ausencia_explicita(self):
+        """Sem prazo projetável nada dele deriva — era 999 → ano 3025, idade 1040."""
         cfg = _cfg(aporte_base=0)
         analyzer = CenariosConjugeAnalyzer(cfg)
         result = analyzer.analyze(
@@ -179,7 +180,12 @@ class TestAnalyzer:
             goals=_goals(),
             fluxo=_fluxo_salario_conjuge(),
         )
-        assert result.cenarios[0].prazo_if_anos == 999
+        cenario = result.cenarios[0]
+        assert cenario.prazo_if_anos is None
+        assert cenario.ano_if is None
+        assert cenario.idade_titular is None
+        assert "não projetável" in cenario.resumo
+        assert "999" not in cenario.resumo
 
     def test_to_legacy_dict_shape(self):
         analyzer = CenariosConjugeAnalyzer(_cfg())

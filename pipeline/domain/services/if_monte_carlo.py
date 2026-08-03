@@ -63,8 +63,11 @@ class MonteCarloIFResult:
     p10_ano_if: int | None
     p50_ano_if: int | None
     p90_ano_if: int | None
-    prob_if_ate_idade_meta: float
-    idade_meta_usada: int
+    # `None` quando a projeção determinística não produziu idade-meta: sem alvo
+    # não há "probabilidade até a idade X" a medir. O cone (P10/P50/P90) não
+    # depende da idade-meta e continua sendo produzido.
+    prob_if_ate_idade_meta: float | None
+    idade_meta_usada: int | None
     sigma_usado: float
     exibir_cone: bool
     # ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje).
@@ -158,9 +161,13 @@ def _calcular_caminhos_percentis(
 
 
 def _prob_ate_meta(
-    alguma_vez: np.ndarray, primeiro_true: np.ndarray, horizonte_meta: int, n: int
-) -> float:
+    alguma_vez: np.ndarray, primeiro_true: np.ndarray, horizonte_meta: int | None, n: int
+) -> float | None:
     """Fração de simulações que atingem IF antes do horizonte-meta."""
+    # Sem horizonte não há o que medir: a métrica é "probabilidade até a idade
+    # X"; devolver 0.0 afirmaria "nenhuma simulação atinge".
+    if horizonte_meta is None:
+        return None
     n_ate = int(np.sum(alguma_vez & (primeiro_true < horizonte_meta)))
     return round(n_ate / n, 4) if n > 0 else 0.0
 
@@ -182,14 +189,14 @@ def _proveniencia(config: IFMonteCarloConfig) -> dict:
 
 def _resultado_sem_cone(
     motivo: str,
-    idade_meta: int,
+    idade_meta: int | None,
     config: IFMonteCarloConfig,
 ) -> MonteCarloIFResult:
     return MonteCarloIFResult(
         p10_ano_if=None,
         p50_ano_if=None,
         p90_ano_if=None,
-        prob_if_ate_idade_meta=0.0,
+        prob_if_ate_idade_meta=None if idade_meta is None else 0.0,
         idade_meta_usada=idade_meta,
         sigma_usado=config.sigma_anual,
         exibir_cone=False,
@@ -203,8 +210,8 @@ def _mc_core(
     pv: float,
     fv: float,
     config: IFMonteCarloConfig,
-    horizonte_meta: int,
-) -> tuple[tuple[int, int, int], bool, str | None, float, np.ndarray] | None:
+    horizonte_meta: int | None,
+) -> tuple[tuple[int, int, int], bool, str | None, float | None, np.ndarray] | None:
     """Roda simulações e retorna (percentis, exibir, motivo, prob, patrimonios) ou None."""
     mu_log, sigma_log = _lognormal_params(config.retorno_real_esperado, config.sigma_anual)
     anos, n, p_true, alguma_vez, patrimonios = _simular_caminhos(pv, fv, config, mu_log, sigma_log)
@@ -212,7 +219,8 @@ def _mc_core(
         return None
     percentis = _calcular_percentis(anos)
     exibir, motivo = _gate_exibicao(pv / fv, percentis[1])
-    prob = _prob_ate_meta(alguma_vez, p_true, max(0, horizonte_meta), n)
+    horizonte = None if horizonte_meta is None else max(0, horizonte_meta)
+    prob = _prob_ate_meta(alguma_vez, p_true, horizonte, n)
     return percentis, exibir, motivo, prob, patrimonios
 
 
@@ -225,7 +233,7 @@ def _caminhos_kwargs(patrimonios: np.ndarray, ano_base: int, exibir: bool) -> di
 
 
 def _build_mc_result(
-    core: tuple, config: IFMonteCarloConfig, ano_base: int, idade_meta_if: int
+    core: tuple, config: IFMonteCarloConfig, ano_base: int, idade_meta_if: int | None
 ) -> MonteCarloIFResult:
     percentis, exibir, motivo, prob, patrimonios = core
     p10, p50, p90 = _anos_if(percentis, ano_base, exibir)
@@ -248,15 +256,18 @@ def run_monte_carlo_if(
     config: IFMonteCarloConfig,
     ano_base: int,
     idade_titular_atual: int,
-    idade_meta_if: int = 65,
+    idade_meta_if: int | None = 65,
 ) -> MonteCarloIFResult:
     """50 000 simulações log-normais → P10/P50/P90 + gate de cone; reprodutível."""
     # ADR-360: seed é constante de modelo, então o cone é função pura dos inputs
     # de domínio e monótono em patrimônio/aporte.
+    # `idade_meta_if=None` (determinística sem prazo) suprime só
+    # prob_if_ate_idade_meta / idade_meta_usada; o cone independe da idade-meta.
     pv, fv = float(config.patrimonio_investivel), float(config.meta_if)
     if fv <= 0 or pv < 0:
         return _resultado_sem_cone("meta_if inválida ou patrimônio negativo", idade_meta_if, config)
-    core = _mc_core(pv, fv, config, idade_meta_if - idade_titular_atual)
+    horizonte_meta = None if idade_meta_if is None else idade_meta_if - idade_titular_atual
+    core = _mc_core(pv, fv, config, horizonte_meta)
     if core is None:
         return _resultado_sem_cone(
             "acumulação inicial — foco em consistência de aporte", idade_meta_if, config
