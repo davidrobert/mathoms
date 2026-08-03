@@ -271,7 +271,17 @@ estrategico:
       title: "Investimentos — Carteira Financeira"
       enabled: true
       summary: true
-      summary_source: "s3"
+      # A40: entrega do `s3` DESLIGADA. O parágrafo afirmava "diversificada entre
+      # N categorias de ativos" contando `patrimonio.composicao` — baldes
+      # patrimoniais, um deles por membro — enquanto a tabela desta seção conta
+      # classes de ativo (`investimentos.tabela_classes`). No corpus dogfood: 3
+      # vs 2. Não é número errado, é conceito errado: chama de diversificação de
+      # carteira um conjunto que inclui imóvel e um balde nomeado por pessoa.
+      # Trocar a fonte não resolve — com 2 classes a afirmação honesta é
+      # CONCENTRADA, não diversificada, o que inverte o sinal da frase e exige
+      # limiar de domínio. Decidir o que esta abertura afirma sobre a carteira
+      # fica na [[A40.l15]] (base de narrativa), com gatilho financial-planner.
+      summary_source: null
       divider_before: true
       charts:
         - id: "top15_ativos"

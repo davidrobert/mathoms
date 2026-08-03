@@ -146,6 +146,13 @@ class SummariesNarrator:
 # COM razão — sem isso, chave nova nasce órfã e ninguém percebe. É fato do
 # produtor (não do layout), por isso vive aqui.
 ORPHAN_SUMMARY_KEYS: dict[str, str] = {
+    "s3": (
+        "Carteira por categoria e por membro. Desligado na A40: afirmava "
+        "diversificação contando `patrimonio.composicao` (baldes patrimoniais, um "
+        "por membro) enquanto a tabela da S3 conta `investimentos.tabela_classes`. "
+        "Conceito errado, não número errado — com 2 classes a afirmação honesta é "
+        "concentrada, o que inverte o sinal da frase. Decisão de produto: A40.l15."
+    ),
     "s2": (
         "parágrafo de SCORE financeiro; a S2 do layout é Fluxo de Caixa. "
         "Destino semântico seria a S1 (que já hospeda o score_gauge) ou uma "

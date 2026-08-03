@@ -21,10 +21,6 @@
       "key": "s1",
       "razao": "s1 narra patrimônio bruto/investível/endividamento; a S1 é Patrimônio Consolidado."
     },
-    "S3": {
-      "key": "s3",
-      "razao": "s3 narra a carteira por categoria e por membro; a S3 é Investimentos."
-    },
     "S4": {
       "key": "s4",
       "razao": "s4 narra portfólio imobiliário + aluguel recorrente; a S4 é Imóveis."
@@ -49,6 +45,7 @@
   "orphans": {
     "s2": "Parágrafo de SCORE financeiro. A S2 do layout é Fluxo de Caixa — derivar por lowercase publicaria o score no topo do fluxo. Destino semântico seria a S1 (que já hospeda o score_gauge) ou uma seção de score própria: decisão de produto.",
     "s5": "Viagens + sobra mensal. A S5 saiu do layout com o Modo USA (ADR-168); o conteúdo pertence aos cards de orçamento/consumo da S2.",
-    "s6": "Exposição cambial. A S6 saiu do layout com o Modo USA (ADR-168); o card `exposicao_cambial` vive na S1."
+    "s6": "Exposição cambial. A S6 saiu do layout com o Modo USA (ADR-168); o card `exposicao_cambial` vive na S1.",
+    "s3": "Carteira por categoria e por membro. DESLIGADO na A40: a frase afirmava diversificação contando `patrimonio.composicao` (baldes patrimoniais, um por membro) enquanto a tabela da S3 conta `investimentos.tabela_classes` — 3 vs 2 no corpus dogfood. Não é número errado, é conceito errado. Com 2 classes a afirmação honesta seria CONCENTRADA, não diversificada, o que inverte o sinal da frase e exige limiar de domínio: decisão de produto na A40.l15."
   }
 }
