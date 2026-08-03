@@ -1,6 +1,6 @@
 # Stateless-readiness audit (A6f.6)
 
-**Data:** 2026-04-20 (snapshot inicial) · **Last verified:** 2026-07-02 (audit-vault r4: §2 linhas re-sincronizadas; §4 atualizado com o rate limit Redis genérico do PR #720)
+**Data:** 2026-04-20 (snapshot inicial) · **Last verified:** 2026-08-03 ([[ADR-359]]: §1/§5/§6 deixam de contar ocorrências à mão e passam a apontar para `dev/check_stateless_primitives.py`; a afirmação anterior de §5 era falsa desde a publicação)
 **Escopo:** `backend/app/` + `backend/app/tasks/` + `pipeline/`
 **Objetivo:** avaliar se a stack atual sobrevive a `N` uvicorn workers + `M`
 Celery workers apontando para o mesmo Postgres + Redis — critério de aceite
@@ -18,9 +18,16 @@ para horizontal scale ([[ADR-102]] R19).
 
 A maior parte da base **já segue o padrão stateless-ready**: WebSockets
 via Redis pub/sub (nada em memória), rate limit de invitations via DB,
-zero `asyncio.create_task` fora do Celery, zero file locks, zero
-`@lru_cache` em código da aplicação, singletons são *lazy-init immutable*
-(cada worker inicializa o seu, operam independentes).
+ausência das primitivas proibidas ([[ADR-111]] §3) **enforçada por
+`dev/check_stateless_primitives.py`** em vez de contada à mão, singletons são
+*lazy-init immutable* (cada worker inicializa o seu, operam independentes).
+
+> **Nota de método ([[ADR-359]], 2026-08-03):** este documento afirmou por 3,5
+> meses "zero `threading.Thread` em app code" enquanto
+> `pipeline_service._start_fallback_thread` existia. Contagem escrita à mão
+> registra o momento em que foi escrita, não um invariante. §1, §5 e §6 agora
+> delegam ao gate; §2 (globais mutáveis) segue manual, pela razão da
+> alternativa 2 da [[ADR-111]].
 
 ---
 
@@ -28,9 +35,14 @@ zero `asyncio.create_task` fora do Celery, zero file locks, zero
 
 ### 1. `@lru_cache` / `@functools.cache` / `cached_property`
 
-**Resultado:** zero uso em `backend/app/`. Os únicos usos de
-`functools.partial` aparecem em `services/documents/document_canonical_rename.py`
-e `services/documents/document_reclassify_bulk_service.py` (uso local, não cache).
+**Enforçado por** `dev/check_stateless_primitives.py` (hard-fail, `pre-commit`):
+decorator de cache em `backend/app/**` ou `pipeline/**` falha o commit. Exceções,
+se algum dia houver, vivem na allowlist do gate — e o próprio gate exige que o
+path de cada entrada apareça neste documento.
+
+`functools.partial` em `services/documents/document_canonical_rename.py` e
+`services/documents/document_reclassify_bulk_service.py` é uso local, não cache —
+fora do escopo do gate.
 
 **Veredito:** ✅ OK — nenhum cache mutável cross-request.
 
@@ -107,25 +119,35 @@ Dois mecanismos, ambos sem estado em memória:
 **Veredito:** ✅ **OK — Postgres/Redis são o único estado**. Multi-worker
 seguro por construção.
 
-### 5. Background tasks — **zero `asyncio.create_task` / `BackgroundTasks`**
+### 5. Background tasks — **enforçado, não contado**
 
-Grep em `backend/app/` — zero uso de:
+`asyncio.create_task`, `fastapi.BackgroundTasks` e `threading.Thread` em
+`backend/app/**` + `pipeline/**` são **hard-fail** em
+`dev/check_stateless_primitives.py`. Trabalho assíncrono vai pelo Celery
+(`backend/app/tasks/`), que usa Redis como broker + backend de resultado —
+cross-worker seguro por design.
 
-- `asyncio.create_task(...)` — nenhum resultado.
-- `fastapi.BackgroundTasks` — nenhum resultado.
-- `threading.Thread` — nenhum resultado em app code.
+**Fora do escopo do gate, por decisão:** `threading.Lock` / `threading.Semaphore`
+/ `asyncio.Semaphore` sobre objeto **local ao processo** (ex.: `_pdf_semaphore`
+em §2, o lock de contador de progresso em `pipeline/stages/extract_with_llm.py`).
+Concorrência intra-processo sobre recurso local é categoria (b), não estado de
+negócio compartilhado; a [[ADR-111]] §3 nunca as proibiu.
 
-**Todas** as tarefas assíncronas vão pelo Celery (`backend/app/tasks/`),
-que usa Redis como broker + backend de resultado. Cross-worker seguro
-por design.
+**Histórico ([[ADR-359]]):** esta seção afirmava "`threading.Thread` — nenhum
+resultado em app code" desde 2026-04-20 e a afirmação era falsa —
+`pipeline_service._start_fallback_thread` (fallback in-process quando o broker
+recusava o dispatch) existia desde 2026-04-14 e só foi removido em 2026-08-03.
+O thread também não sobrevivia a processo de vida curta, o que produzia run
+órfão em `pending`; a decisão de fazer a falha de dispatch ser alta está na
+[[ADR-359]].
 
-**Veredito:** ✅ **OK**.
+**Veredito:** ✅ **OK — sustentado por gate**.
 
-### 6. File locks — **zero uso**
+### 6. File locks — **enforçado, não contado**
 
-Grep `fcntl`, `flock`, `filelock`, `portalocker` em `backend/` e
-`pipeline/` — **zero resultados**. Nenhum lock em disco que precisaria
-ser migrado para advisory lock Postgres ou `SET NX` Redis.
+`fcntl`, `flock`, `filelock` e `portalocker` em `backend/app/**` + `pipeline/**`
+são hard-fail em `dev/check_stateless_primitives.py`. Nenhum lock em disco que
+precisaria ser migrado para advisory lock Postgres ou `SET NX` Redis.
 
 **Status pós-[[ADR-212]] (2026-05-14):** artifacts gravados exclusivamente via
 SQLAlchemy + Postgres em `pipeline_artifacts`. `DiskArtifactStore` foi
