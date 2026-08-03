@@ -5,7 +5,7 @@ title: "Parecer do planejador (E6) supersede review_finances — aggregate Plann
 status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
-amended_at: ["2026-06-12"]
+amended_at: ["2026-06-12", "2026-08-03"]
 relates_to:
   - "[[ADR-024]]"
   - "[[ADR-026]]"
@@ -49,6 +49,11 @@ tags:
 # ADR-199 — Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced
 
 **Status:** Decidido (Ato 1 — fundação arquitetural do PLANNER_REVIEW) • **Data:** 2026-05-13
+
+> **Emenda 2026-08-03 ([[A40.l17]]):** dois invariantes do cache/custo do parecer
+> nomeados — o cache guarda **somente output aprovado** (veredito negativo não é
+> cacheável) e custo pertence ao envelope de **todo** retorno pós-chamada, com
+> `cost_known=False` quando não há registro. Ver §Emenda 2026-08-03 no fim.
 
 ## Contexto
 
@@ -173,3 +178,51 @@ de prompts) no composite (`:p{prompt_version}`). Todo bump futuro é
 auto-invalidante; alternativa de bumpar `manifest_version` "de carona" foi
 rejeitada — manifest descreve a projeção do E5, não o prompt. Teste:
 `tests/test_parecer_orchestrator.py::test_cache_key_changes_with_prompt_version`.
+
+## Emenda 2026-08-03 — cache guarda só output publicável; custo pertence a todo retorno pós-chamada
+
+Origem: A40.l17, aberta pelo run `2ded7aab` (o `output_summary` do stage reportou
+`tokens {in:0,out:0}, cost_usd 0.0` enquanto o `llm_call_log` registrava
+76.133/17.000 e US$ 0,4834). Co-design `prompt-engineer` + `senior-cto`,
+2026-08-03. Dois invariantes que já valiam por topologia do call-graph — e por
+isso eram re-litigáveis — passam a ser decisão registrada:
+
+**E1. O cache semântico do parecer guarda somente output aprovado por todos os
+guardrails; veredito negativo não é cacheável.** A Decisão 3 original da
+[[A40.l17]] ("escrever cache no caminho `needs_review`") está **rejeitada**, por
+dois motivos independentes:
+
+- O valor cacheado é o `ParecerPlanejadorOutput`, não o envelope: `status` e
+  `error_detail` morrem no round-trip, e um hit devolve o valor com o `status`
+  default (`"Gerado"`). Cachear o placeholder de `needs_review` o serviria como
+  parecer publicável — a docstring do próprio `empty_needs_review_output` diz
+  *"não é salvo nem publicado"*.
+- Sob `temperature 0.1`, o veredito de red line / sigilo / evidência é função da
+  **amostra**, não do input: **a re-geração é o retry**. Cachear a amostra
+  rejeitada por 7 dias — sem primitiva de `delete` no `LLMCacheBackend` —
+  converte um sorteio ruim em bloqueio determinístico de uma semana. Re-pagar é
+  o preço de não travar amostragem estocástica. Continuidade da [[ADR-307]] §5
+  ("write só em retorno validado — nunca exceção, nunca erro"), aplicada à
+  camada que a §6 daquela ADR escopa para cá.
+
+Se "não re-tentar agora" virar necessidade real, a forma é **cooldown** (key
+própria com timestamp + attempt_count, TTL ≤15 min, zero payload — padrão
+rate-limit da [[ADR-111]]), nunca cache de output; exige lane + decisão próprias
+e primitiva de flush antes.
+
+**E2. Custo/tokens pertencem ao envelope de todo retorno pós-chamada; ausência
+de registro após tentativa é `cost_known=False`, não zero.** `_needs_review`
+recebe as métricas da chamada (VO `LLMCallMetrics`, extraído uma única vez no
+orchestrator), em paridade com o sucesso. E como `LLMService.call` só registra
+em `summary.calls` **após** `create()` retornar, falha pós-cobrança (reask
+storm, timeout) não deixa rastro nem ali nem em `llm_call_log` — esse `0.0` é
+ignorância, não gasto zero, e sai marcado `cost_known=False` (paridade com a
+coluna homônima de `LLMCallLog`). Recuperar o valor real dessa classe exige
+mudança no choke-point (`litellm_client`) e fica **fora desta emenda** — é
+trabalho futuro com emenda à [[ADR-173]].
+
+Escopo intocado: o hard-stop de budget da [[ADR-173]] lê `llm_call_log` e nunca
+leu `output_summary` — o defeito era de telemetria/leitura humana, não de
+segurança de budget. Gates: `tests/test_parecer_cache_policy.py` (E1, com prova
+de mutação) e `tests/test_parecer_custo_em_needs_review.py` (E2, polaridade
+pinada nos dois sentidos).
