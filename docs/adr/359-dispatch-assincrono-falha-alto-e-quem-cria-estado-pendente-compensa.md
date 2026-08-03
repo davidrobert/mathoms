@@ -2,7 +2,7 @@
 id: ADR-359
 type: adr
 title: "Dispatch assíncrono falha alto; quem cria estado pendente compensa"
-status: Proposto
+status: Decidido
 phase: "A40"
 date: "2026-08-03"
 relates_to:
@@ -17,7 +17,7 @@ superseded_by: []
 aliases: ["ADR 359", "dispatch falha alto", "run orfao pending"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/backend
   - area/pipeline
   - phase/a40
@@ -25,7 +25,7 @@ tags:
 
 # ADR-359 — Dispatch assíncrono falha alto; quem cria estado pendente compensa
 
-**Status:** Proposto (A40) • **Data:** 2026-08-03 • **Relaciona**
+**Status:** Decidido (A40) • **Data:** 2026-08-03 • **Relaciona**
 [[ADR-029-TQ]] (Celery + Redis), [[ADR-111]] (stateless rigoroso),
 [[ADR-172]] (`failure_reason` + detector de runs travados), [[ADR-297]]
 (guarda de redelivery), [[ADR-110]] (logging estruturado).
@@ -212,6 +212,14 @@ sustenta vale; contagem escrita à mão é passivo.
   (`pipeline_service`, `api/me.py`, `api/categorization_rules.py`). Os outros dois
   falham alto (bom) mas também não compensam a linha pendente — mesma classe,
   severidade menor.
+
+## Entrega
+
+PR #1154, merge `9d30dc2d` em `main` (2026-08-03), CI verde. §1–§8 shipados; o
+enforcement de §8 (`dev/check_stateless_primitives.py`) está ativo em
+`pre-commit`, o que é a condição da [[ADR-358]] para nascer `Decidido` em vez de
+`Proposto` — a decisão não depende de evidência futura. Os itens abaixo são
+recortes deferidos, não validação pendente.
 
 ## Deferimentos datados (2026-08-03)
 
