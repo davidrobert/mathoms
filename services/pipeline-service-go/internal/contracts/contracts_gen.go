@@ -71,7 +71,7 @@ type StageExecuteRequest struct {
 	// RunId Backend-issued PipelineRun UUID
 	RunId string `json:"run_id"`
 
-	// SkipLlm Run sem LLM: suprime chamada LLM condicional dentro do stage (classificação E0, section summaries) — ADR-355. O filtro de stages `is_llm` é do chamador; aqui o stage já foi escolhido.
+	// SkipLlm Run sem LLM: suprime chamada LLM condicional dentro do stage (classificação E0, section summaries) — ADR-355. O filtro de stages `is_llm` é do chamador; aqui o stage já foi escolhido. Default `false` (≠ do `RunStartRequest`, que assume run determinístico) preserva o comportamento de chamador que não envia o campo.
 	SkipLlm     *bool  `json:"skip_llm,omitempty"`
 	WorkspaceId string `json:"workspace_id"`
 

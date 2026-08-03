@@ -229,7 +229,7 @@
           },
           "skip_llm": {
             "default": false,
-            "description": "Run sem LLM: suprime chamada LLM condicional dentro do stage (classifica\u00e7\u00e3o E0, section summaries) \u2014 ADR-355. O filtro de stages `is_llm` \u00e9 do chamador; aqui o stage j\u00e1 foi escolhido.",
+            "description": "Run sem LLM: suprime chamada LLM condicional dentro do stage (classifica\u00e7\u00e3o E0, section summaries) \u2014 ADR-355. O filtro de stages `is_llm` \u00e9 do chamador; aqui o stage j\u00e1 foi escolhido. Default `false` (\u2260 do `RunStartRequest`, que assume run determin\u00edstico) preserva o comportamento de chamador que n\u00e3o envia o campo.",
             "title": "Skip Llm",
             "type": "boolean"
           },
