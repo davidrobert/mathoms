@@ -401,8 +401,13 @@
         "p10_ano_if": {"type": ["integer", "null"]},
         "p50_ano_if": {"type": ["integer", "null"]},
         "p90_ano_if": {"type": ["integer", "null"]},
-        "prob_if_ate_idade_meta": {"type": "number"},
-        "idade_meta_usada": {"type": "integer"},
+        "prob_if_ate_idade_meta": {"type": ["number", "null"]},
+        "idade_meta_usada": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 120,
+          "description": "Idade-alvo da projeção determinística. null = prazo não projetável (aporte ou retorno nulos): sem alvo não há 'probabilidade até a idade X', e prob_if_ate_idade_meta também é null. O upper bound de 120 fecha a porta para a sentinela legada 999, que somada à idade dava 1040 e virava âncora citável do parecer."
+        },
         "sigma_usado": {"type": "number"},
         "exibir_cone": {"type": "boolean"},
         "aporte_mensal_usado": {"type": "number"},

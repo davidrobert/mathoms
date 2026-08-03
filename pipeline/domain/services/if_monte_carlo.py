@@ -260,9 +260,8 @@ def run_monte_carlo_if(
 ) -> MonteCarloIFResult:
     """50 000 simulações log-normais → P10/P50/P90 + gate de cone; reprodutível."""
     # ADR-360: seed é constante de modelo, então o cone é função pura dos inputs
-    # de domínio e monótono em patrimônio/aporte.
-    # `idade_meta_if=None` (determinística sem prazo) suprime só
-    # prob_if_ate_idade_meta / idade_meta_usada; o cone independe da idade-meta.
+    # de domínio e monótono em patrimônio/aporte. `idade_meta_if=None`
+    # (determinística sem prazo) suprime só prob/idade_meta — o cone independe.
     pv, fv = float(config.patrimonio_investivel), float(config.meta_if)
     if fv <= 0 or pv < 0:
         return _resultado_sem_cone("meta_if inválida ou patrimônio negativo", idade_meta_if, config)

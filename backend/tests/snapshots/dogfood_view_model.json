@@ -214,29 +214,29 @@
   ],
   "cenarios_conjuge": {
     "anos_if": [
-      3025
+      null
     ],
     "aportes": [
       0
     ],
     "cenarios": [
       {
-        "ano_if": 3025,
+        "ano_if": null,
         "aporte_mensal": 0,
-        "idade_titular": 1040,
+        "idade_titular": null,
         "nome": "Sem renda do cônjuge",
-        "prazo_if_anos": 999,
-        "resumo": "Sem renda do cônjuge, aporte cai para R$ 0,00/mês (66% do base). IF em 999 anos (3025)."
+        "prazo_if_anos": null,
+        "resumo": "Sem renda do cônjuge, aporte cai para R$ 0,00/mês (66% do base). Prazo até a IF não projetável com as premissas deste cenário."
       }
     ],
     "idade_titular_if": [
-      1040
+      null
     ],
     "labels": [
       "Sem renda do cônjuge"
     ],
     "prazos_if": [
-      999
+      null
     ],
     "premissas": {
       "aporte_base": 0,
@@ -391,14 +391,15 @@
     ]
   },
   "goals": {
-    "ano_if": 3025,
-    "idade_titular_if": 1040,
+    "ano_if": null,
+    "idade_titular_if": null,
     "if_gap": 87000000,
     "if_meta": 100000000,
     "if_pct": "13.000000",
     "if_trs": "4.000000",
     "if_trs_monthly_value": 333333,
-    "prazo_anos_realista": "999.000000",
+    "motivo_prazo_indefinido": "prazo até a IF não projetável com as premissas atuais (aporte mensal e/ou retorno real nulos)",
+    "prazo_anos_realista": null,
     "renda_passiva_estimada_4pct": 43333,
     "retorno_esperado_pct_aa": "6.000000"
   },
@@ -408,14 +409,14 @@
     "caminho_p50": [],
     "caminho_p90": [],
     "exibir_cone": false,
-    "idade_meta_usada": 1040,
+    "idade_meta_usada": null,
     "mc_version": "2.0",
     "motivo_sem_cone": "acumulação inicial — foco em consistência de aporte",
     "n_simulacoes_usado": 50000,
     "p10_ano_if": null,
     "p50_ano_if": null,
     "p90_ano_if": null,
-    "prob_if_ate_idade_meta": "0.577400",
+    "prob_if_ate_idade_meta": null,
     "seed_usado": 360,
     "sigma_usado": "0.110000"
   },

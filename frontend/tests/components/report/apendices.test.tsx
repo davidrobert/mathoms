@@ -195,6 +195,25 @@ describe("ApendiceCSection (ADR-167 · A8.4 PR3)", () => {
     expect(screen.queryByText("3025")).toBeNull();
   });
 
+  it("prazo ausente (null) no goals degrada coluna base para '—'", () => {
+    // Forma atual da não-convergência; o caso 999 acima cobre artefatos E5
+    // persistidos antes da troca da sentinela por ausência explícita.
+    const data = {
+      cenarios_conjuge: {
+        labels: ["Sem renda do cônjuge"],
+        aportes: [12000],
+        prazos_if: [19.5],
+        anos_if: [2046],
+        premissas: { aporte_base: 20000 },
+      },
+      goals: { prazo_anos_realista: null, ano_if: null },
+    } as unknown as ReportAnalysisData;
+    render(<ApendiceCSection data={data} />);
+    expect(screen.queryByText("999a")).toBeNull();
+    expect(screen.queryByText("3025")).toBeNull();
+    expect(screen.queryByText("nulla")).toBeNull();
+  });
+
   it("renderiza copy não-alarmista no subtítulo (CVM/Susep)", () => {
     const data = {
       cenarios_conjuge: {
