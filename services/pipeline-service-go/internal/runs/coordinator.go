@@ -31,12 +31,15 @@ func boolOr(v *bool, fallback bool) bool {
 	return *v
 }
 
-func stageRequest(req contracts.RunStartRequest) contracts.StageExecuteRequest {
+// stageRequest recebe skipLLM já RESOLVIDO (ADR-355): o default do run é
+// `true` e o do request per-stage é `false`, então copiar o ponteiro cru
+// entregaria LLM liberado num run determinístico que omitiu o campo.
+func stageRequest(req contracts.RunStartRequest, skipLLM bool) contracts.StageExecuteRequest {
 	return contracts.StageExecuteRequest{
 		RunId: req.RunId, WorkspaceId: req.WorkspaceId, WorkspaceRoot: req.WorkspaceRoot,
 		ConfigDir: req.ConfigDir, Incremental: req.Incremental,
-		IncrementalDocPaths: req.IncrementalDocPaths,
-		BaseRunId:           req.BaseRunId, BaseRunFallbackStages: req.BaseRunFallbackStages,
+		IncrementalDocPaths: req.IncrementalDocPaths, SkipLlm: &skipLLM,
+		BaseRunId: req.BaseRunId, BaseRunFallbackStages: req.BaseRunFallbackStages,
 	}
 }
 
@@ -82,7 +85,7 @@ func (c *Coordinator) loop(ctx context.Context, req contracts.RunStartRequest) (
 			continue
 		}
 		c.publishStage(ctx, req.RunId, "stage_started", stage, "running", events.Pct(progress), nil)
-		resp, err := c.Runner.RunStage(ctx, stage, stageRequest(req))
+		resp, err := c.Runner.RunStage(ctx, stage, stageRequest(req, skipLLM))
 		if err != nil {
 			return nil, nil, err
 		}
