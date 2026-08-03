@@ -470,6 +470,45 @@ ingerido (`FinanceiroPJSnapshot.regime_declarado` é computado e nunca consultad
 genuíno. Tratar os três como iguais produziria um wizard perguntando o que o sistema
 já sabe — queimando a única janela de atenção do dono no item de menor valor.
 
+## Inventário de follow-up da sessão de 2026-07-30/08-03
+
+Auditoria do próprio trabalho: tudo que a execução de [[A40.l1]], [[A40.l3]],
+[[A40.l4]] e [[A40.l16]] produziu como follow-up, e **se tem destino**. A
+convenção desta sprint é que um item ou tem lane, ou tem disposição escrita —
+item que tem só descrição evapora no fim da sprint.
+
+| Follow-up | Onde está | Tem destino? |
+|---|---|---|
+| Texto do donut e do chart mês a mês (base ex-aporte vs bruto) | [[A40.l15]] | **lane** |
+| `s3` — o que a abertura da S3 afirma sobre a carteira | [[A40.l15]] | **lane** |
+| Predicado de carrier 1 largo demais (par conta/poupança do mesmo banco colide) | [[A40.l2]] §Residual | **lane** |
+| Assimetria `banco` vs `tipo_conta` na partição | [[A40.l2]] §Residual | **lane** |
+| Re-medir o balde `das_simples` pós-`69a2fad4` e reintroduzir o DAS no `s8` | [[A40.l4]] §Residual | **sem lane** → Pendência 10 |
+| `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l4]] §Residual | **sem lane** → Pendência 10 |
+| PD-20 — meta de TRS não é configurável (`trs_meta_pct` nunca lido) | [[A40.l4]] §Residual | **sem lane** → Pendência 10 |
+| Sufixo de changelog ([[ADR-148]]) não renderiza em seção nenhuma | [[A40.l4]] §Residual | **sem lane** → Pendência 10 |
+| **Regressão de contexto do gerador** (bump 2.1.0→2.2.0, #1004) | descrita em [[A40.l16]] e no plano | **sem lane** → Pendência 10 |
+| **Pontos cegos do `dev/check_pipeline_log_pii.py`** | *nada* | ver §Fora do sprint |
+| **`banco` vazio em 20 grupos `extrato`** | *nada* | ver §Fora do sprint |
+| Obrigação de rótulo da [[ADR-306]] cumprida em 2 de 8 blocos com chave `janela` | [[A40.l3]] §Handoff | **sem lane** → Pendência 10 |
+
+**A regressão do gerador é a de maior consequência da lista.** A [[A40.l16]] mede
+que o enforcement ficou dormente sob o prompt 2.1.0 (9,1% em 11 runs) e saltou a
+87,5% em 8 runs sob 2.2.0, com densidade de âncoras caindo de 9 para 5 e tokens
+monetários em prosa subindo de 0 para 3,5. Ou seja: a l16 remove o **amplificador**;
+a **causa** é o gerador ter passado a digitar número em vez de ancorá-lo. Sem lane,
+a Onda 0 fecha com o sintoma tratado e a causa viva.
+
+## Pendências de decisão — item 10 (2026-08-03)
+
+**10. Os 7 follow-ups sem destino viram lane nesta sprint, ou disposição explícita
+de não-fazer?** São os marcados "sem lane" na tabela acima. A decisão de
+2026-08-03 foi "nada sai da A40" — mas ela cobria o escopo então existente, não
+follow-up gerado depois pela execução. Cada um tem custo e dono diferentes: a
+regressão do gerador exige eval (o de US$ 26 mede o gerador e não foi re-rodado);
+os quatro da [[A40.l4]] são de superfície; o da [[ADR-306]] são 6 blocos de rótulo.
+Deixá-los sem destino é a única opção que não é decisão — é esquecimento.
+
 ## Fora do sprint (disposição explícita)
 
 - **RV3-19** (métrica do parecer fabricável) — já tem dono ativo com co-design em
@@ -493,6 +532,25 @@ já sabe — queimando a única janela de atenção do dono no item de menor val
   escaneado sem entrar em `processed` **nem** em `errors` (stage reporta
   `success: True`), então deletar o call-site da Caixa antes de fechar esse gap
   troca "conta some no Tier-1" por "conta some em todo tier, sem sinal".
+- **Pontos cegos do `dev/check_pipeline_log_pii.py`** — achado ao fechar a
+  [[A40.l16]], e é o que explica por que o vazamento de valor monetário em log
+  sobreviveu 4 semanas: (a) o escopo é só `pipeline/**`
+  (`PIPELINE_DIR.rglob("*.py")`), e os três loggers `mathoms.llm.*` do parecer vivem
+  em `backend/app/services/**`; (b) valida interpolação na *message* assumindo que
+  `extra=` é redigido por chave — mas `"error"` e `"reason"` não casam nenhum
+  substring de `SENSITIVE_FIELD_SUBSTRINGS`. O mesmo padrão `extra={"error": str(exc)}`
+  pode existir em outros services, hoje sem gate. **Fora da A40 por tema** (é
+  hardening de gate de log, não report-trust) e **não roteado** — precisa de dono.
+  Gatilho `sre-devops`. Registrar em [[PLAN-launch-trust]] ou sprint de governança;
+  a [[A41]] é a candidata natural, já que a tese dela é fechar rota alternativa ao
+  choke-point de LLM.
+- **`banco` vazio em 20 grupos `extrato`** — medido ao levantar o vocabulário de
+  `tipo_conta` para o alias-map da [[A40.l2]]: dos 135 grupos E3 do corpus dogfood,
+  20 têm `banco` vazio (chave começando por `_`). Não é questão de alias — é defeito
+  de extração a montante, e é o mesmo carrier que aparece nos 30 grupos "só no
+  persistido" do drift medido pela [[A40.l1]]. **Fora da A40 por camada** (E0→E2, não
+  entrega do relatório): pertence a [[PLAN-data-lineage]] ou a uma rodada de
+  `parse-certify`. Não roteado.
 
 ## Infra de CI tocada durante a sprint (não são lanes)
 
