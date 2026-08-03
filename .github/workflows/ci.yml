@@ -165,15 +165,22 @@ jobs:
               # `config/**` era amplo demais — casava com config/*.md
               # (definitions.md, report_spec.md, etc — docs do produto).
               # Limita aos formatos de runtime config que o pipeline lê.
-              - 'config/**.json'
-              - 'config/**.yaml'
-              - 'config/**.yml'
+              # `**/*.ext`, não `**.ext`: `**` só cruza `/` como segmento
+              # inteiro, então `config/**.yaml` deixava config/prompts/*.yaml
+              # fora do filtro e um PR que só mexia no prompt do parecer não
+              # rodava pipeline-tests nem backend-tests (medido 2026-08-03:
+              # +5 arquivos cobertos, 0 regressão).
+              - 'config/**/*.json'
+              - 'config/**/*.yaml'
+              - 'config/**/*.yml'
               - 'config/schemas/**'
               - 'requirements.in'
               - 'requirements.lock'
               - '.github/workflows/ci.yml'
             go:
-              - '**.go'
+              # No-op aqui (o micromatch do tj-actions casa os 14 .go nas duas
+              # formas), mas alinha com labeler.yml, onde `**.go` casava 0.
+              - '**/*.go'
               - 'go.work'
               - 'go.work.sum'
               - 'services/**'
@@ -187,7 +194,13 @@ jobs:
             any_code:
               - '**'
               - '!docs/**'
-              - '!**.md'
+              # `!*.md` (raiz), não `!**/*.md`: era escrito `!**.md`, que sob
+              # micromatch excluía só a raiz. Trocar para `**/*.md` tiraria 22
+              # .md fora de docs/ — config/methodology.md, planner_persona.md,
+              # READMEs de fixture — do lint-all, que é onde roda o gate de
+              # PII. `!*.md` preserva o comportamento medido (2943 arquivos,
+              # diff zero em 2026-08-03) e diz o que faz.
+              - '!*.md'
               - '!.claude/**'
               - '!_archive/**'
               - '!_scratch/**'
