@@ -12,20 +12,26 @@ theme: "llm-governance"
 
 > **Status:** `candidate`. A [[A40]] segue `current` — duas sprints `current` é
 > hard fail em `build_doc_index.py --check`, e a decisão do dono de 2026-08-03
-> ("nada sai da A40") é explícita em não despejar lane para cá. As 4 lanes
+> ("nada sai da A40") é explícita em não despejar lane para cá. As 3 lanes
 > nascem `planned`: escritas, **não autorizadas para pickup**.
 
 > **Origem:** §Escopo deferido da [[ADR-355]] (mergeada 2026-08-03, PRs #1138 +
 > #1141) + 1 achado colateral medido durante aquela implementação. Nenhum item
-> aqui é hipótese: os 4 têm `path:linha` e comportamento observado.
+> aqui é hipótese: os 4 têm `path:linha` e comportamento observado — 3 aqui, o
+> quarto em [[A40.l24]].
 
-> **Objeção registrada (`product-manager`, 2026-08-03):** o PM recomendou **não
-> abrir A41** — desmembrar, com [[A41.l1]] direto na A40 (tem consumidor com
-> data) e o resto como frente nova em [[PLAN-launch-trust]] com gatilho de
-> evento. A sprint foi aberta assim mesmo por decisão do dono; a substância da
-> revisão está incorporada (fusão de duas lanes em [[A41.l3]], KR reformulado,
-> free tier fora do DoD). Se a A41 for colapsada nos planos depois, as 4 lanes
-> migram sem reescrita — `plan:` já aponta para a casa temática de cada uma.
+> **Objeção do `product-manager` (2026-08-03) — acatada em parte.** O PM
+> recomendou **não abrir A41**: desmembrar, com a lane do gate F2 direto na A40
+> (tem consumidor com data) e o resto como frente nova em [[PLAN-launch-trust]]
+> com gatilho de evento. Decisão do dono no mesmo dia: **a metade urgente foi
+> acatada** — a lane virou [[A40.l24]] na sprint corrente, que é o único lugar
+> de onde ela é pescável antes do próximo `make go-parity`. A A41 permanece com
+> as 3 lanes que **esperam gatilho** e não têm consumidor datado. A numeração
+> começa em `l2` de propósito: o vão registra a promoção.
+>
+> O resto da revisão está incorporado (fusão de duas lanes em [[A41.l3]], KR
+> reformulado, free tier fora do DoD). Se a A41 for colapsada nos planos depois,
+> as 3 lanes migram sem reescrita — `plan:` já aponta para a casa temática.
 
 ## Tese
 
@@ -64,18 +70,19 @@ o torna durável (mesmo padrão do KR-A da [[A40]]: provar que o gate morde).
 
 | Lane | O quê | Prio | `plan:` |
 | --- | --- | --- | --- |
-| [[A41.l1]] | Asserção "0 LLM" do gate F2 passa a medir no boundary do SDK | P1 | [[PLAN-go-shell]] |
 | [[A41.l2]] | E0 classify passa pelo choke-point `LLMService` | P1 | [[PLAN-launch-trust]] |
 | [[A41.l3]] | Caixa: decidir o reframe em ADR antes de dimensionar | P1 | [[PLAN-launch-trust]] |
 | [[A41.l4]] | Gate que fecha a rota alternativa (fecha o KR) | P1 | [[PLAN-launch-trust]] |
 
-Ordem: **l1 → l2 → [ADR do reframe] → l3 → l4**. Todas P1, nenhuma P0 — não há
+Ordem: **l2 → [ADR do reframe] → l3 → l4**. Todas P1, nenhuma P0 — não há
 produção (#1130) e nenhum item é incidente de custo hoje.
 
-`l1` é a primeira porque é a única com **consumidor datado**: o track
-[[TRACK-f2-cutover]] declara que nada mais é executável sem o dono rodar o
-Tier-1, e o §Critério de aceite dele afirma `assert 0 invocação LLM`. Se o dono
-rodar antes do fix, recebe **falso-verde** e paga o custo do run.
+A quarta lane desta sprint vive na sprint corrente: [[A40.l24]] (asserção "0
+LLM" do gate F2). Ela saiu daqui porque é a única com **consumidor datado** — o
+[[TRACK-f2-cutover]] declara que nada mais avança sem o dono rodar o Tier-1, e o
+§Critério de aceite dele afirma `assert 0 invocação LLM`. Lane `planned` em
+sprint `candidate` não aparece em `SPRINT_CURRENT`; esperar o gatilho da A41
+significaria deixar o dono rodar o gate contra uma asserção que não prova nada.
 
 `l4` fecha por último por construção: o gate falharia no próprio código que
 `l2` e `l3` estão consertando.
@@ -86,12 +93,13 @@ Evento, não calendário. Qualquer um dos dois:
 
 - **(a)** decisão de abrir o beta fechado / 2º usuário — mesmo gate de
   [[ADR-228]] G2/G3 e da F2 de [[PLAN-launch-trust]]; ou
-- **(b)** o `make go-parity` com o hook de [[A41.l1]] medir **≥1 chamada de
+- **(b)** o `make go-parity` com o hook de [[A40.l24]] medir **≥1 chamada de
   visão da Caixa** no corpus do dogfood — aí [[A41.l3]] tem alcance provado e
   sobe para P0.
 
-Até lá as lanes ficam `planned`. [[A41.l1]] pode ser promovida sozinha se o dono
-agendar o `make go-parity` antes da sprint abrir — é o caso que o PM levantou.
+Até lá as 3 lanes ficam `planned`. O gatilho (b) depende de [[A40.l24]] ter
+entrado: sem o hook no boundary do SDK, o gate não sabe medir o que dispararia
+esta sprint.
 
 ## Decisão pendente (não é lane) — LLM no E0 para free tier
 
@@ -132,10 +140,12 @@ GROUP BY r.tier_at_run;
 
 1. KR verde: `rg` retorna 0 fora dos dois diretórios permitidos **e** o gate
    morde — fixture com o import ⇒ `EXIT≠0`.
-2. `make go-parity` Tier-1 fica **vermelho** quando há ≥1 chamada ao SDK,
-   provado por **teste de mutação**, não por inspeção.
-3. Run com `skip_llm=True` sobre o corpus do dogfood: **0 chamadas ao SDK** e
+2. Run com `skip_llm=True` sobre o corpus do dogfood: **0 chamadas ao SDK** e
    **0 rows novas em `LLMCallLog`**. É o teste ponta-a-ponta da promessa da
    [[ADR-355]].
-4. A decisão pendente do free tier está **nomeada e transferida** para o dono
+3. A decisão pendente do free tier está **nomeada e transferida** para o dono
    com gatilho escrito — não conta como débito (precedente: A28, A22, A39).
+
+Não é critério desta sprint: `make go-parity` Tier-1 ficar vermelho com ≥1
+chamada ao SDK. Isso é aceite de [[A40.l24]], que fecha na A40 — a A41 **consome**
+esse instrumento (gatilho (b)) em vez de responder por ele.

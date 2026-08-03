@@ -1,12 +1,12 @@
 ---
-id: A41.l1
+id: A40.l24
 type: lane
 title: "Asserção \"0 LLM\" do gate F2 mede a camada errada — passa para o boundary do SDK"
-sprint: A41
+sprint: A40
 plan: PLAN-go-shell
-status: planned
+status: open
 priority: P1
-branch_slug: a41-l1-gate-0-llm-no-boundary-do-sdk
+branch_slug: a40-l24-gate-0-llm-no-boundary-do-sdk
 adrs:
   - "[[ADR-355]]"
 depends_on: []
@@ -14,17 +14,24 @@ parallel_with:
   - "[[TRACK-f2-cutover]]"
 tags:
   - type/lane
-  - sprint/a41
-  - status/planned
+  - sprint/a40
+  - status/open
   - priority/p1
   - area/pipeline
   - area/llm
 ---
 
-# A41.l1 — `gate-0-llm-no-boundary-do-sdk`
+# A40.l24 — `gate-0-llm-no-boundary-do-sdk`
 
-> Primeira da A41 por ser a única com **consumidor datado**. Promovível sozinha
-> se o dono agendar `make go-parity` antes de a sprint abrir.
+> **Fora do tema da A40, dentro da A40 de propósito.** Nasceu como `A41.l1` e foi
+> promovida em 2026-08-03 por ser a única dos follow-ups da [[ADR-355]] com
+> **consumidor datado**: enquanto a [[A41]] espera gatilho, o dono pode rodar
+> `make go-parity` a qualquer momento e receber falso-verde. Uma lane `planned`
+> em sprint `candidate` não aparece em `SPRINT_CURRENT` — sprint corrente é o
+> único lugar de onde ela é pescável a tempo.
+>
+> Não compartilha arquivo com nenhuma outra lane da A40: roda em paralelo com
+> qualquer onda.
 
 ## Problema
 

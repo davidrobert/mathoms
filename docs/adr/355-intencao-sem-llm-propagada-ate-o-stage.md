@@ -11,7 +11,7 @@ relates_to:
   - "[[ADR-173]]"
   - "[[ADR-303]]"
   - "[[ADR-329]]"
-  - "[[A41.l1]]"
+  - "[[A40.l24]]"
   - "[[A41.l2]]"
   - "[[A41.l3]]"
   - "[[A41.l4]]"
@@ -111,9 +111,9 @@ Deferido, com motivo (organizado na [[A41]] em 2026-08-03):
    como decisão pendente em [[A41]], **não** como lane: o número não é
    mensurável com validade sobre um corpus premium curado.
 
-Achado colateral desta implementação, organizado em [[A41.l1]]: a asserção
-"0 LLM" do gate F2 conta artefato de stage `%llm%` e não vê chamada de visão
-bem-sucedida.
+Achado colateral desta implementação, organizado em [[A40.l24]] (na sprint
+corrente, não na [[A41]], porque tem consumidor datado): a asserção "0 LLM" do
+gate F2 conta artefato de stage `%llm%` e não vê chamada de visão bem-sucedida.
 
 Não bloqueia a F2 do GO_SHELL: o gate (`dev/go_parity_run.py`, #1136) contorna
 o E0 exigindo **inbox vazio** como pré-condição — sem documento para classificar,
