@@ -5,6 +5,7 @@ title: "Sprint A40 — Report trust: o dado que entrou tem de chegar ao usuário
 aliases: ["A40", "Sprint A40"]
 sprint_status: current
 date: "2026-07-30"
+date_target: "2026-08-17"
 theme: "report-trust"
 ---
 
@@ -53,7 +54,52 @@ burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
 usuário, e viraria carimbo.
 
-## Lanes (29)
+## Gate de saída e encerramento (decisão do dono, 2026-08-03)
+
+Até 2026-08-03 esta sprint **não tinha critério de encerramento**: o frontmatter
+declarava só `date: "2026-07-30"` (criação) e as 6 ocorrências de "gate de saída"
+no arquivo eram **todas ponteiro** para [[PLAN-report-trust]] — zero seção
+própria. Duas consequências medidas: "antes do fim da sprint" não tinha referente,
+e o tripwire da [[A40.l21]] (*"se a [[A40.l18]] escorregar >1 sprint, reverta a
+l21"*) não era avaliável. **Esta seção é o host que faltava** (fecha a §Pendência
+de decisão nº 7).
+
+**Critério substantivo — herdado, não novo.** A A40 encerra quando o
+[§Gate de saída do dogfood](../../plan/REPORT_TRUST/_README.md) de
+[[PLAN-report-trust]] fica verde: 2 re-runs completos consecutivos (E0→E6 +
+parecer + revisão do dono) com zero ocorrência nas 6 classes, nenhum P0/P1 novo
+aberto nesses 2 re-runs, e os gates de owner da [[A28]] executados. Não se
+duplica o gate aqui — duplicar criaria duas fontes de verdade sobre a mesma
+condição de parada.
+
+**Data-alvo: `2026-08-17`** (`date_target` no frontmatter; precedente de campo é
+o `closed:` da [[MOC-sprint-a33]], único de 35 MOCs de sprint a datar
+encerramento). É **alvo, não compromisso**: existe para dar aritmética ao
+tripwire, não para forçar corte.
+
+> **Premissa da data, explicitada porque não foi medida.** O contador de 2 re-runs
+> só pôde iniciar quando a [[A40.l16]] aterrissou (`0f8c3b18`, #1159, 2026-08-03) —
+> antes dela o run não completava. Daí duas semanas de janela de gate. A cadência
+> histórica **não** foi usada como base e contradiz esse número: medido no flip de
+> `sprint_status: done` das últimas 5 sprints fechadas, o span foi de 0 a 2 dias
+> (A35 0 · A33 1 · A38 1 · A37 2), contra 24 lanes ainda abertas aqui. Usar a
+> cadência daria data indefensável; usar o gate dá uma verificável. **Sobrescrever
+> é uma linha no frontmatter** — a decisão do dono foi a *forma* (gate + data), não
+> este valor.
+
+**Tripwire da [[A40.l21]], agora com gatilho computável.** Se a [[A40.l18]] não
+tiver mergeado até `date_target`, a l21 é revertida — os 7 read sites de
+`partial_failure` são dead code pelos critérios do próprio repo enquanto nenhum
+writer o emite. Owner do gatilho: quem fizer o pickup seguinte após a data.
+Antes desta seção, "1 sprint" não tinha referente e o tripwire era prosa em 3
+lugares e mecanismo em nenhum.
+
+**O que esta seção deliberadamente não faz:** não fixa "nada sai da A40" (decisão
+separada do dono, 2026-08-03, e mantida) nem transforma a data em critério de
+corte. Lane que atravessar a data segue na sprint; o que a data governa é o
+tripwire.
+
+## Lanes (30)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -89,6 +135,73 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l27]] | Órfão de dispatch: varredura de beat, `cancel` de `resuming`, read path de `failure_reason` | P1 | l19 | residual de **[[ADR-359]]** §Def. 1-3 · #1154 |
 | [[A40.l28]] | Idade-meta do cone é output do modelo + rótulo `p10`/`p90` aponta para dois lados | P1 | — | [[ADR-361]] §Def. 1-2 · contrato, sem brief · KR-E |
 | [[A40.l29]] | Editorial do ano de IF: dois anos concorrentes, eixo em "quando", faixa sem componente | P2 | — | [[ADR-361]] §Def. 4/6/7 + RV3-14 · **começa por brief de `product-designer`** · KR-E |
+
+## Predicado do campo `status` de lane (decisão do dono, 2026-08-03)
+
+Fecha a §Pendência de decisão nº 1. O predicado não é invenção desta sprint: é o
+que o **consumidor** já faz e o que o **vault** já pratica, escrito.
+
+**Quem lê `status`.** Um consumidor de máquina, um só:
+[`dev/_sprint_current_renderer.py:27`](../../../dev/_sprint_current_renderer.py)
+declara `LANE_STATUS_OPEN = {"ready", "open", "in_progress"}` — apenas esses três
+aparecem em [`SPRINT_CURRENT.md`](../../_MOC/_generated/SPRINT_CURRENT.md), a
+superfície canônica de pickup (`ready` não existe no enum do schema de lane;
+`open` é o valor operante). Logo o predicado tem de ser sobre **elegibilidade de
+pickup** — não sobre "alguém pegou", não sobre "a onda abriu".
+
+**O predicado.**
+
+- **`open`** ⇔ a lane pode ser pega **e terminada** agora: todo `depends_on` está
+  terminal (`shipped`/`cancelled`) **ou** a lane declara **amarra explícita de
+  entrega parcial**.
+- **`blocked`** ⇔ liberada, mas retida por bloqueador declarado — com o motivo em
+  blockquote no topo do arquivo. Convenção já vigente: das 8 lanes `blocked` do
+  vault, [[A26.l5]] é o precedente de bloqueio por **lane irmã** e F12.2–F12.8 de
+  bloqueio por **gate externo**.
+- **`planned`** ⇔ escopo escrito, **não liberado**. A liberação é **por lane, sob
+  demanda**, na ordem declarada em §Ondas — não por onda inteira.
+- **`in_progress`** ⇔ branch/PR aberta. **`shipped`/`cancelled`** ⇔ terminal.
+
+**Verdito aplicado** (medido no frontmatter das 29 lanes em `3f2c26de`):
+
+| classe | n | lanes | veredito |
+|---|---|---|---|
+| terminal | 4 | l1, l3, l4, l24 | coerente |
+| `open`, deps terminais | 1 | l2 | coerente |
+| `open`, sem `depends_on` | 10 | l9, l16, l17, l19, l21, l23, l25, l26, l28, l29 | coerente |
+| `open`, dep pendente **com** amarra parcial | 1 | l27 | **coerente** pela 2ª cláusula — a amarra está escrita na lane (entrega itens 2–5, declara o item 1 não-entregue) |
+| `planned`, dep pendente | 2 | l6, l10 | coerente |
+| `planned`, liberação pendente | 8 | l5, l7, l8, l11, l12, l13, l14, l15 | coerente sob liberação por-lane |
+| `open`, dep pendente **sem** amarra | 2 | **l18, l22** | **incoerente → `blocked`** |
+| `open`, dep pendente, relação contestada | 1 | l20 | **retida** — ver abaixo |
+
+**O que mudou de fato: duas lanes.** [[A40.l18]] (dep [[A40.l21]] `open`) e
+[[A40.l22]] (dep [[A40.l20]] `open`) passam a `blocked`. Nenhuma decisão nova —
+é o frontmatter passando a concordar com o que §Ondas já declara em 3 lugares. Era
+**a armadilha medida**: quem fizesse pickup pela ordem óbvia de `SPRINT_CURRENT`
+pegava a l18, e shipar o writer antes do reader entrega *"um run com banner
+vermelho e botão de reprocessar: pior que hoje"*. Com o flip, a l21 fica a
+primeira P0 pegável da Onda 3 — que é o que a sprint quer.
+
+**A [[A40.l20]] fica `open` de propósito, e isso é o único cheque em aberto.** O
+frontmatter dela declara `depends_on: [[A40.l18]]`, mas a prosa afirma em 4
+lugares que a dependência é da **decisão** (a [[ADR-357]] `Proposto` fixa o
+vocabulário), não do merge. Aplicar o predicado mecanicamente a decidiria a
+§Pendência nº 2 na direção "serializa" — fora do escopo desta passada. Fica
+`open`, com a divergência **nomeada aqui** em vez de invisível.
+
+**`blocked` deixa de ter zero uso nesta sprint** — eram 0 de 29 contra 8 no
+resto do vault, o sinal de que o campo não codificava dependência. Prioridade
+**não** muda: `blocked` diz "ainda não pegável", não "menos importante"; l18 e
+l22 seguem P0.
+
+**Sem gate, isto é convenção e não garantia** — mesma família da lição registrada
+na emenda da [[ADR-111]] (*afirmação de audit sem gate é dívida*). O predicado do
+`open` é derivável de `depends_on` + `status`, portanto gateável em ~10 linhas; a
+cláusula de amarra parcial exige campo novo no schema, que é gatilho
+`information-architect`. Candidato natural a hospedar: [[A40.l23]], que já é a
+lane de gate de referência de doc e já é candidata a absorver o gate de
+autorreferência da §Pendência nº 12. **Não roteado nesta passada.**
 
 ## Ondas
 
@@ -296,13 +409,16 @@ confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
 
 ## Pendências de decisão (2026-08-03)
 
-Doze perguntas de **higiene interna desta sprint**. Deliberadamente **não** entram
+Doze perguntas de **higiene interna desta sprint** — **3 resolvidas** em
+2026-08-03 (nº 1, nº 7 e, em parte, nº 11), **9 abertas**. Deliberadamente **não** entram
 em [[OWNER-GATED]]: aquele registro é de gates estratégicos entre planos
 (licença, flip de cutover, LGPD), e misturar higiene de sprint diluiria o sinal
 dele. Cada item traz o que foi **medido** sobre `origin/main` (`a1e70223`) e
 termina em pergunta — nenhuma decisão embutida.
 
-**1. Qual é o predicado do campo `status` de lane?**
+**1. Qual é o predicado do campo `status` de lane?** — ✅ **RESOLVIDA 2026-08-03.**
+Predicado escrito e aplicado em §Predicado do campo `status` de lane (2 flips:
+l18 e l22 → `blocked`). O diagnóstico abaixo fica como registro do que foi medido.
 
 O campo não deriva de regra declarada e está **anti-correlacionado** com dependência
 satisfeita. Medido no frontmatter das 24 lanes:
@@ -380,7 +496,10 @@ DAS no `s8` e `das_simples` em `despesas_impostos` depois de re-medir o balde co
 matcher de `69a2fad4`). Esses ficam na A40 — e então precisam de lane, contra as 24
 atuais — ou viram disposição explícita de não-fazer na §Fora do sprint?
 
-**7. Onde mora o tripwire de revert da [[A40.l21]], e quem é o owner?**
+**7. Onde mora o tripwire de revert da [[A40.l21]], e quem é o owner?** —
+✅ **RESOLVIDA 2026-08-03.** Host = §Gate de saída e encerramento (novo); gatilho =
+`date_target` do frontmatter; owner = quem fizer o pickup seguinte após a data. O
+diagnóstico abaixo fica como registro.
 
 A amarra "se a [[A40.l18]] escorregar >1 sprint, reverta a [[A40.l21]]" está em **3
 lugares de prosa** (`_README` §Ondas · [[A40.l21]] §Decisão · [[PLAN-report-trust]])

@@ -4,7 +4,7 @@ type: lane
 title: "Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: blocked
 priority: P0
 branch_slug: a40-l22-superficie-de-degradacao
 adrs: []
@@ -13,13 +13,19 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/blocked
   - priority/p0
   - area/frontend
 ---
 
 # A40.l22 — `superficie-de-degradacao`
 
+> 🚧 **Bloqueada pela [[A40.l20]]** (2026-08-03) — não é pegável até a l20
+> entregar o estado gerado-e-retido no modelo. `blocked` e não `open` pelo
+> §Predicado do campo `status` do [`_README`](../_README.md): dep pendente, sem
+> amarra de entrega parcial. Não é mudança de prioridade — segue **P0** e
+> **bloqueador de fato do beta**.
+>
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fatia **premium/add-on** da
 > F11.5 — o caminho determinístico dela foi entregue na Sprint B (2026-04-17),
 > conforme `docs/reference/PHASES.md`. Estende A28.l9; **não** inventa banner.

@@ -4,7 +4,7 @@ type: lane
 title: "Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: blocked
 priority: P0
 branch_slug: a40-l18-criticidade-de-stage
 adrs:
@@ -14,7 +14,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/blocked
   - priority/p0
   - area/pipeline
   - area/backend
@@ -22,9 +22,15 @@ tags:
 
 # A40.l18 — `criticidade-de-stage`
 
+> 🚧 **Bloqueada pela [[A40.l21]]** (2026-08-03) — não é pegável até a l21 mergear.
+> `blocked` e não `open` pelo §Predicado do campo `status` do
+> [`_README`](../_README.md): dep pendente, sem amarra de entrega parcial. Não é
+> mudança de prioridade — segue **P0**.
+>
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fecha a **classe**, não o caso.
 > `depends_on` [[A40.l21]] por **ordem reader-first**: os leitores toleram
-> `partial_failure` antes de o writer o emitir.
+> `partial_failure` antes de o writer o emitir. Shipar o writer primeiro entregaria
+> um run com banner vermelho e botão de reprocessar — pior que hoje.
 
 ## Problema
 
