@@ -11,9 +11,9 @@ adrs:
   - "[[ADR-359]]"
   - "[[ADR-172]]"
 depends_on:
-  - "[[A40.l27]]"
+  - "[[A40.l19]]"
 parallel_with:
-  - "[[A40.l27]]"
+  - "[[A40.l21]]"
 tags:
   - type/lane
   - sprint/a40
@@ -93,7 +93,7 @@ não chega a operador nem a usuário.
    vs. *worker vivo com fila funda ⇒ **não cancele**, espere*. Sem ela o operador
    cancela run legítimo.
 
-## Por que depende da [[A40.l27]]
+## Por que depende da [[A40.l19]]
 
 O tipo `pipelinerunstatus` no DB **não tem `resuming`** (tabela do §Problema da
 l19). Um predicado que compara contra `resuming` funciona em SQLite e é quebra
@@ -104,7 +104,7 @@ enum aqui: PR próprio, é dela.
 itens 2–5 e **declara o item 1 como não-entregue** em vez de shipar predicado que
 quebra no cutover.
 
-## Coordenação com a [[A40.l27]]
+## Coordenação com a [[A40.l21]]
 
 O item 4 toca `schemas/pipeline.py` + os readers de status no frontend — as mesmas
 superfícies que a l21 (leitores tolerantes a `partial_failure`). `parallel_with`,
