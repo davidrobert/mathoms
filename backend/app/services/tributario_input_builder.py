@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Optional
@@ -30,6 +31,19 @@ from pipeline.domain.services.tributario.irpf_renda_tributavel import (
 _E3_STAGES: tuple[str, ...] = ("E3", "reconcile_transactions")
 _E4_STAGES: tuple[str, ...] = ("E4", "categorize_transactions")
 _IRPF_STAGES: tuple[str, ...] = ("extract_irpf_full",)
+
+logger = logging.getLogger("mathoms.tributario.input_builder")
+
+
+def _warn_run_scoped_unavailable(workspace_id: str, run_id: str, missing: list[str]) -> None:
+    # RV3-11 (A40.l9 PR1): `_latest_run_id` resolve o run CORRENTE, cujo E4 ainda
+    # não existe em t=0 — todo input run-scoped sai zerado em silêncio. Este WARNING
+    # é o contador que impede o próximo "FIXADO" falso; o fix real é o PR2 (resolver
+    # injetado, invocado quando o E4 do run já está escrito).
+    logger.warning(
+        "tributario_run_scoped_input_unavailable",
+        extra={"workspace_id": workspace_id, "resolved_run_id": run_id, "missing": missing},
+    )
 
 
 @dataclass(frozen=True)
@@ -134,10 +148,18 @@ def _load_pj_totals(workspace_id: str, *, db: SyncSession) -> _PJTotals:
     run_id = _latest_run_id(workspace_id, db=db)
     if run_id is None:
         return _PJTotals.empty()
-    receita_totals = _category_totals(_read_run_artifact(run_id, _E4_STAGES, "receitas", db=db))
-    despesa_totals = _category_totals(_read_run_artifact(run_id, _E4_STAGES, "despesas", db=db))
-    n_meses = _count_months(_read_run_artifact(run_id, _E4_STAGES, "fluxo_mensal_detalhado", db=db))
-    return _build_pj_totals(receita_totals, despesa_totals, n_meses)
+    arts = {
+        key: _read_run_artifact(run_id, _E4_STAGES, key, db=db)
+        for key in ("receitas", "despesas", "fluxo_mensal_detalhado")
+    }
+    missing = [key for key, art in arts.items() if art is None]
+    if missing:
+        _warn_run_scoped_unavailable(workspace_id, run_id, missing)
+    return _build_pj_totals(
+        _category_totals(arts["receitas"]),
+        _category_totals(arts["despesas"]),
+        _count_months(arts["fluxo_mensal_detalhado"]),
+    )
 
 
 def _build_pj_totals(
@@ -163,6 +185,8 @@ def _load_imoveis(workspace_id: str, *, db: SyncSession) -> tuple[int, Decimal]:
     if run_id is None:
         return 0, Decimal("0")
     patrimonio = _read_run_artifact(run_id, _E4_STAGES, "patrimonio", db=db)
+    if patrimonio is None:
+        _warn_run_scoped_unavailable(workspace_id, run_id, ["patrimonio"])
     return _extract_imoveis(patrimonio)
 
 
