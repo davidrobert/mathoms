@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import pytest
 
-from pipeline.domain.services.if_projector import (
+from pipeline.domain.services.if_monte_carlo import (
     IFMonteCarloConfig,
     run_monte_carlo_if,
 )

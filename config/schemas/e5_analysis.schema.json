@@ -394,7 +394,28 @@
         "required": ["ticker", "ano_base", "total_proventos_brl", "renda_liquida_brl"]
       }
     },
-    "if_monte_carlo": {"type": "object"},
+    "if_monte_carlo": {
+      "type": "object",
+      "description": "Cone Monte Carlo de IF (ADR-237 + ADR-360). Reprodutível: seed é constante de modelo versionada, não entropia do SO — mesmo input produz o mesmo cone. mc_version ausente = artefato v1 (pré-ADR-360, não-seedado, n=10k). Séries caminho_* têm dispersão amostral de ~1,2% e não são valor citável.",
+      "properties": {
+        "p10_ano_if": {"type": ["integer", "null"]},
+        "p50_ano_if": {"type": ["integer", "null"]},
+        "p90_ano_if": {"type": ["integer", "null"]},
+        "prob_if_ate_idade_meta": {"type": "number"},
+        "idade_meta_usada": {"type": "integer"},
+        "sigma_usado": {"type": "number"},
+        "exibir_cone": {"type": "boolean"},
+        "aporte_mensal_usado": {"type": "number"},
+        "motivo_sem_cone": {"type": ["string", "null"]},
+        "caminho_p10": {"type": "array"},
+        "caminho_p50": {"type": "array"},
+        "caminho_p90": {"type": "array"},
+        "mc_version": {"type": "string"},
+        "seed_usado": {"type": ["integer", "null"]},
+        "n_simulacoes_usado": {"type": "integer"}
+      },
+      "required": ["exibir_cone", "mc_version", "seed_usado", "n_simulacoes_usado"]
+    },
     "premissas_economicas": {
       "type": "object",
       "description": "Snapshot das premissas econômicas vigentes no momento da emissão (ADR-219 D5). Auditoria fiduciária: relatório de 2026-03 mostra premissa vigente naquela data, não a atual. status 'parcial' = pelo menos uma classe sem premissa vigente.",

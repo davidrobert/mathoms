@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-350 ADRs (ADR-001 a ADR-359) em [`docs/adr/`](../../adr/).
+351 ADRs (ADR-001 a ADR-360) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 305
-- **Proposto**: 41
+- **Proposto**: 42
 - **Roadmap**: 4
 
 ## Fundação
@@ -578,7 +578,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-348]] — Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group · phase A39.l11
 - [[ADR-355]] — Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages · phase A40 (dívida independente da F2 do GO_SHELL)
 
-### Proposto (13)
+### Proposto (14)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -593,6 +593,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-353]] — Confiança do diagnóstico comportamental condicionada à cobertura de categorização · phase pipeline-review r2 (RV2-21)
 - [[ADR-354]] — Identidade de transação (K4) exclui atributos de proveniência do documento · phase report-review r3 (RV3-01) · A40.l2
 - [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40
+- [[ADR-360]] — Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO · phase A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)
 
 ### Roadmap (1)
 

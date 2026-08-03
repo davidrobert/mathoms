@@ -190,6 +190,22 @@ class TestAnalyzeViaStore:
         assert result.if_projection is not None
         assert result.if_projection.if_meta == 5_000_000
 
+    def test_monte_carlo_if_e_reprodutivel_entre_runs(self):
+        """ADR-360 — dois runs do mesmo store produzem o mesmo cone."""
+        # Único teste na topologia do bug: o adapter é que não passava seed.
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        goals = {"independencia_financeira": {"if_meta": 5_000_000, "trs_pct": 4.0}}
+
+        def _run():
+            adapter = E5AnalyzerAdapter.from_configs(goals=goals, titular_dob=_DAVID_DOB)
+            return adapter.analyze_via_store(store).monte_carlo_if
+
+        primeiro, segundo = _run(), _run()
+        assert primeiro is not None
+        assert primeiro == segundo
+        assert primeiro.seed_usado is not None
+
     def test_if_projection_none_without_config(self):
         store = InMemoryArtifactStore()
         _seed_minimal(store)

@@ -39,9 +39,10 @@ _FAMILY = {
         "bia": {"nome_curto": "Bia", "data_nascimento": "1987-07-22"},
     },
 }
-# data_analise = data de hoje; prob_if_ate_idade_meta = saída Monte Carlo não-seedada.
-# Ambos não-monetários e fora do escopo do snapshot de conservação numérica.
-_VOLATILE_LEAVES = frozenset({"data_analise", "prob_if_ate_idade_meta"})
+# data_analise = data de hoje. `prob_if_ate_idade_meta` SAIU em ADR-360 (o Monte
+# Carlo passou a ser seedado) — não remascare: o mascaramento voltaria a esconder
+# exatamente a regressão que a ADR fecha.
+_VOLATILE_LEAVES = frozenset({"data_analise"})
 
 
 def _to_cents(value: Any) -> int:
