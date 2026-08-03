@@ -220,16 +220,18 @@ Levantado no co-design, **fora do escopo desta ADR**, com dono no owner:
    `premissas_economicas`, apesar de a [[ADR-219]] ter construído a tabela para
    isso. `sigma_usado: 0.11` é constante de código apresentada como premissa
    auditada — erro de premissa domina o erro amostral que esta ADR reduziu.
-3. **P50 condicional aos sobreviventes:** `anos = primeiro_true[alguma_vez] + 1`
-   tira os percentis só das simulações que atingem a meta em 40 anos, enquanto
-   `prob_if_ate_idade_meta` usa `n` cheio no denominador. O "P50" exibido é a
-   mediana **dos bem-sucedidos** — otimista por construção, e mais otimista quanto
-   pior o plano. Distorção maior que os 2,4% desta ADR.
-4. **`int(np.percentile(...))` trunca** (piso, não arredonda) — viés sistemático
-   de ~meio ano para baixo no ano de IF.
-5. **`idade_meta_usada: 1040`** no payload: sentinela 999 de `_solve_prazo` somada
-   à idade, em path citável formatado como "anos" — o parecer pode ancorar "IF aos
-   1040 anos".
+3. ~~**P50 condicional aos sobreviventes**~~ — **fechado** pela `ADR-361`
+   (#1162, 2026-08-03): o quantil passa a sair da base cheia com censura declarada
+   por percentil. Era a distorção maior que os 2,4% desta ADR.
+4. ~~**`int(np.percentile(...))` trunca**~~ — **fechado** na mesma passada
+   (`np.quantile(..., method="inverted_cdf")`).
+5. ~~**`idade_meta_usada: 1040`**~~ — **fechado** em #1158 (2026-08-03): prazo não
+   projetável emite ausência com motivo em vez de sentinela 999 somada à idade.
+
+> **Estado do deferimento em 2026-08-03.** Sobra o **item 1** (precisão de
+> exibição), agora com lane e dono: [[A40.l25]]. Os itens 3-5 fecharam no mesmo
+> dia; o item 2 (`sigma` por perfil) foi absorvido pela mesma lane. Manter esta
+> lista sem marcar o que fechou faria a ADR afirmar dívida inexistente.
 
 ## Referências
 
