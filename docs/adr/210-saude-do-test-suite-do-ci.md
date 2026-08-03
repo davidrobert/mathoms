@@ -463,7 +463,7 @@ escrito que **"por que a suíte dobrou desde maio é investigação separada"**.
 Este adendo é essa investigação. Ele não muda o teto — confirma que 20min é
 o número certo e diz por quê, que é o que faltava para o bump não ser cego.
 
-### Medição (56 jobs `backend-tests` via API, jan-a-ago por janelas)
+### Medição (56 jobs `backend-tests` via API, mai-a-ago por janelas)
 
 | janela | mediana do job |
 |---|---:|
