@@ -57,6 +57,13 @@ para os demais extrai texto e **pula o documento** se vier vazio — que é
 exatamente o caso do PDF escaneado. É a capacidade que `caixa.py` implementou
 localmente porque não existia no lugar certo.
 
+**O pulo é totalmente silencioso** (medido 2026-08-03 pela [[A40.l24]]):
+`_process_one_e2_llm_document` retorna `(None, None, …)`, então o doc não entra
+em `processed` **nem** em `errors` e o stage reporta `success: True`. Consequência
+para a ordem dos atos: deletar o call-site da Caixa **antes** de fechar esse gap
+troca "conta desaparece só no Tier-1" por "conta desaparece em todo tier,
+inclusive premium, sem sinal" — o oposto do critério de aceite abaixo.
+
 Se isso procede, o fix não é threading do ctx por ~10 módulos: é **deletar o
 call-site** e mover a capacidade PDF-como-documento para `extract_with_llm` —
 mais barato, e **generaliza** (PDF escaneado de qualquer banco passa a ser

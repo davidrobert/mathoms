@@ -485,7 +485,16 @@ jobs:
     # (planner_field_requests + planner_review_persistence + endpoint admin
     # + tier filter + check_orphan); pytest agora roda em ~7:30-7:40 sem
     # margem. Bumped para 12min (2× tempo observado).
-    timeout-minutes: 12
+    # 2026-08-03: a política "2× observado" erodiu para 1,15× sem ninguém
+    # mexer no teto — medido nos 6 PRs do dia: 9m02s, 9m15s, 9m51s, 10m01s,
+    # 10m13s, 10m21s. O PR #1157 bateu 12min DUAS vezes e virou falso-vermelho
+    # (diff só em dev/, tests/, Makefile, docs/ — zero referência a go_parity
+    # em backend/tests, logo não pode ter mexido neste job). 20min restaura
+    # ~2× sobre o observado. Teto mais alto NÃO custa Actions a mais: a
+    # cobrança é por minuto consumido, e job que passa consome o mesmo.
+    # Por que a suíte dobrou desde maio (5-8min → 9-10min) é investigação
+    # separada — este bump só para de reprovar PR por variância de runner.
+    timeout-minutes: 20
     needs: changes
     # backend/ importa pipeline/**; mudança em pipeline pode quebrar backend.
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.pipeline == 'true'

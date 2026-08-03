@@ -4,7 +4,7 @@ type: lane
 title: "Asserção \"0 LLM\" do gate F2 mede a camada errada — passa para o boundary do SDK"
 sprint: A40
 plan: PLAN-go-shell
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l24-gate-0-llm-no-boundary-do-sdk
 adrs:
@@ -15,7 +15,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/llm
@@ -35,8 +35,9 @@ tags:
 
 ## Problema
 
-`_llm_artifact_count` ([`dev/go_parity_run.py:85`](../../../../dev/go_parity_run.py))
-conta `pipeline_artifacts WHERE stage LIKE '%llm%'`. Isso enxerga o stub de
+`_llm_artifact_count` (era `dev/go_parity_run.py:85`; hoje
+[`llm_artifact_count`](../../../../dev/go_parity_llm_free.py) após a extração
+desta lane) conta `pipeline_artifacts WHERE stage LIKE '%llm%'`. Isso enxerga o stub de
 escalação do E2 e o artefato de `extract_with_llm` — e **não enxerga chamada LLM
 bem-sucedida fora desses stages**:
 
@@ -79,3 +80,43 @@ em vez de virar comentário solto.
   asserção no boundary do SDK, no PR desta lane.
 - Ressalva em `docs/_MOC/OWNER-GATED-active.md` §1 removida quando o gate passar
   a morder (ela existe só enquanto a asserção mente).
+
+## Entregue 2026-08-03
+
+**Correção de premissa desta lane.** O §Decisão dizia "medir no boundary do SDK".
+Isso **não é alcançável no harness**: o run é disparado por `make pipeline-run`
+e executa no worker Celery (ou em subprocess do shell Go), então o spy
+`RecordingAnthropicSDK` — que vive no processo do teste — não alcança a chamada.
+Instrumentar o boundary em produção exigiria estado mutável de módulo sempre
+ligado, que [[ADR-111]] proíbe.
+
+O que entrou no lugar, mais forte: o Tier-1 **impede** a chamada em vez de
+detectá-la. `LLM_FREE=1` apaga `ANTHROPIC_API_KEY` do env do worker Celery **e**
+do shell Go, e o harness exige o marcador na saída do `make` (scrub que não rodou
+falha alto). Credencial ausente é garantia por construção; detecção pós-hoc
+seria sempre incompleta enquanto existir a rota alternativa ([[A41.l2]] /
+[[A41.l3]] / [[A41.l4]]).
+
+**Achado não previsto: #1151 inverteu a asserção.** Entre a escrita desta lane e
+a execução, #1151 trocou a contagem de artefato por `requires_llm_fallback` —
+que é setado **só quando a visão falha**. O gate passou a reprovar o braço sem
+credencial (zero chamada) e a aprovar o que fez chamada paga. Como o Makefile
+injeta a key só no braço Go, o veredito ficava invertido **entre os braços** na
+configuração real do dono. Os três testes de #1151 que codificavam essa
+polaridade foram removidos.
+
+**Prova de mutação (o critério desta lane):** `tests/test_go_parity_llm_free_gate.py`
+força a visão da Caixa com credencial e prova que a chamada acontece **sem**
+setar o flag; reverter a polaridade de #1151 ou remover o scrub do Makefile
+deixa a suíte vermelha (ambas verificadas).
+
+**Reclassificado, não descartado:** `requires_llm_fallback` continua lido como
+sinal de **corpus encolhido** ([[ADR-355]] §Consequências) — reportado, sem
+reprovar. No Tier-1 o stub é o comportamento esperado.
+
+Colateral: `dev/go_parity_run.py` passou de 500 linhas (P2) → extraídos
+`dev/go_parity_llm_free.py` + `dev/go_parity_errors.py`. E `_make` entrou no
+autouse guard de `tests/test_go_parity_run.py`: `_restore_python_arm` agora
+reinicia o worker com credencial (senão o gate deixaria a stack de dev do dono
+sem a key — a mesma degradação silenciosa que esta lane fecha), e sem o stub um
+teste unitário derrubaria o Celery do dono.

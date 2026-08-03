@@ -37,6 +37,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
+from dev.go_parity_errors import GateError
+from dev.go_parity_llm_free import (
+    LLM_FREE_MARKER,
+    assert_llm_free,
+    assert_scrub_applied,
+    escalated_docs,
+)
+
 _REPO = Path(__file__).resolve().parents[1]
 
 _TERMINAL = frozenset({"completed", "failed", "cancelled"})
@@ -46,10 +54,6 @@ _RUN_ID_RE = re.compile(r"Run ([0-9a-f-]{36}) disparado")
 # estado, e esperar o timeout normal (1800s) confunde "stack de pé mas lenta" com
 # "stack no chão". Grace curto separa os dois casos.
 _PENDING_GRACE_S = 90
-
-
-class GateError(RuntimeError):
-    """Falha de pré-condição ou de orquestração — nunca de paridade (isso é veredito)."""
 
 
 @dataclass(frozen=True)
@@ -101,15 +105,6 @@ def _run_ids(con: sqlite3.Connection, workspace: str) -> set[str]:
 def _status(con: sqlite3.Connection, run_id: str) -> str | None:
     row = con.execute("SELECT status FROM pipeline_runs WHERE id=?", (run_id,)).fetchone()
     return row[0] if row else None
-
-
-def _llm_artifact_count(con: sqlite3.Connection, run_id: str) -> int:
-    """Assert de 0-LLM: artefato em extract_with_llm invalida o Tier-1 (ver §Pré-condições 2)."""
-    row = con.execute(
-        "SELECT COUNT(*) FROM pipeline_artifacts WHERE pipeline_run_id=? AND stage LIKE '%llm%'",
-        (run_id,),
-    ).fetchone()
-    return int(row[0])
 
 
 # ───────────────────────────── pré-condições ─────────────────────────────
@@ -187,16 +182,30 @@ def assert_preconditions(workspace: str, storage_root: Path, con: sqlite3.Connec
 # ───────────────────────────── orquestração ─────────────────────────────
 
 
-def _make(target: str, *, env_name: str = "native") -> None:
+def _make(target: str, *, env_name: str = "native", llm_free: bool = False) -> str:
     cmd = ["make", "-s", target, f"ENV={env_name}"]
+    if llm_free:
+        cmd.append("LLM_FREE=1")
     proc = subprocess.run(cmd, cwd=_REPO, capture_output=True, text=True)
     if proc.returncode != 0:
         raise GateError(f"`{' '.join(cmd)}` falhou:\n{proc.stdout}\n{proc.stderr}")
+    return proc.stdout
 
 
-def switch_arm(arm: Arm) -> None:
-    print(f"▶  ligando braço {arm.name} (`make {arm.make_target} ENV=native`)…")
-    _make(arm.make_target)
+def switch_arm(arm: Arm, *, llm_free: bool = False) -> None:
+    """Liga o braço; no Tier-1 apaga a credencial LLM dos DOIS braços."""
+    # Sem o scrub, `_go-on-native` injeta a key do .env no shell Go (repassada a
+    # cada subprocess por os.Environ()) e `dev-worker-up` só herda o env do shell:
+    # o MESMO extrato da Caixa saiu com 2986 bytes num braço e 1002 no outro.
+    label = " [LLM_FREE]" if llm_free else ""
+    print(f"▶  ligando braço {arm.name} (`make {arm.make_target} ENV=native`){label}…")
+    out = _make(arm.make_target, llm_free=llm_free)
+    if llm_free and arm is PYTHON_ARM and LLM_FREE_MARKER not in out:
+        # `go-off` é idempotente: sem overlay Go ligado ele não reinicia o worker,
+        # que seguiria com o env do dono. No 1º braço do gate é sempre o caso.
+        out += _make("dev-worker-up", llm_free=True)
+    if llm_free:
+        assert_scrub_applied(arm, out)
 
 
 def dispatch_run(workspace: str, con: sqlite3.Connection) -> str:
@@ -284,39 +293,6 @@ def _finish_capture(proc: subprocess.Popen, out: Path, run_id: str, *, grace_s: 
     return scoped
 
 
-def _llm_fallback_docs(run_id: str) -> list[str]:
-    """Documentos que pediram fallback LLM, lidos do PAYLOAD do E2."""
-    # Contar `stage LIKE '%llm%'` não vê chamada feita DENTRO de stage não-`is_llm`:
-    # `scripts/e2/banks/caixa.py` monta o SDK Anthropic direto de `os.environ` e não
-    # passa pelo client instrumentado (`llm_call_log` fica vazio). Medido 2026-08-03:
-    # o braço Go recebeu ANTHROPIC_API_KEY via `os.Environ()` do executor e fez
-    # chamada de visão paga; o braço Python não tinha a key e o MESMO extrato saiu
-    # com 1002 bytes em vez de 2986 — e o gate certificou os dois como "0 LLM".
-    # O flag no payload é o sinal honesto.
-    from dev.go_parity_gate import collect_run_artifacts
-
-    flagged = []
-    for (stage, key), payload in collect_run_artifacts(run_id).items():
-        if isinstance(payload, dict) and payload.get("requires_llm_fallback"):
-            flagged.append(f"{stage}/{key}")
-    return flagged
-
-
-def _assert_llm_free(con: sqlite3.Connection, run_id: str, arm: Arm, tier: str) -> int:
-    """No Tier-1 escalação LLM invalida o run; no Tier-2 é esperada (só reporta)."""
-    escalated = _llm_artifact_count(con, run_id)
-    fallback = _llm_fallback_docs(run_id)
-    if tier == "tier1" and (escalated or fallback):
-        raise GateError(
-            f"run {run_id} do braço {arm.name} não é 0-LLM: {escalated} artefato(s) de stage "
-            f"LLM + {len(fallback)} doc(s) com requires_llm_fallback ({', '.join(fallback[:3])}"
-            f"{'…' if len(fallback) > 3 else ''}).\n"
-            f"   Se um braço tem ANTHROPIC_API_KEY no env e o outro não, o mesmo documento "
-            f"parseia diferente e a divergência vira falso bug de executor."
-        )
-    return escalated + len(fallback)
-
-
 def _one_run(arm: Arm, workspace: str, con: sqlite3.Connection, args, index: int) -> RunRecord:
     """Um run do braço: captura sobe ANTES do dispatch (corrida de pub/sub), depois espera e valida."""
     print(f"▶  {arm.name} run {index + 1}/{args.runs}…")
@@ -326,8 +302,15 @@ def _one_run(arm: Arm, workspace: str, con: sqlite3.Connection, args, index: int
     status = wait_terminal(con, run_id, timeout_s=args.timeout, poll_s=args.poll)
     if status != "completed":
         raise GateError(f"run {run_id} do braço {arm.name} terminou {status}")
-    escalated = _assert_llm_free(con, run_id, arm, args.tier)
-    print(f"   ✓ {run_id[:8]} completed, {escalated} artefato(s) LLM")
+    llm_evidence = assert_llm_free(con, run_id, arm, args.tier)
+    escalated = escalated_docs(run_id)
+    print(f"   ✓ {run_id[:8]} completed, {llm_evidence} evidência(s) de chamada LLM")
+    if escalated:
+        # Corpus encolhido, não gasto de LLM — ver docstring de `_escalated_docs`.
+        print(
+            f"   · {len(escalated)} doc(s) escalaram (corpus menor que o run full): "
+            f"{', '.join(escalated[:3])}{'…' if len(escalated) > 3 else ''}"
+        )
     ws_path = _finish_capture(capture, ws_out, run_id) if capture else None
     return RunRecord(run_id=run_id, ws_path=ws_path)
 
@@ -347,9 +330,10 @@ def execute_interleaved(
     # produz falso positivo caro (manda caçar bug de Go que não existe). Intercalar +
     # alternar a ordem dentro do par balanceia a posição ordinal.
     runs: dict[str, list[RunRecord]] = {PYTHON_ARM.name: [], GO_ARM.name: []}
+    llm_free = args.tier == "tier1"
     for i in range(args.runs):
         for arm in _pair_order(i):
-            switch_arm(arm)
+            switch_arm(arm, llm_free=llm_free)
             runs[arm.name].append(_one_run(arm, workspace, con, args, i))
     return runs[PYTHON_ARM.name], runs[GO_ARM.name]
 
@@ -443,9 +427,15 @@ def _restore_python_arm() -> None:
     """Roda SEMPRE, inclusive em falha: abortar no braço Go sem isso deixaria o
     dogfood executando stages pelo shell Go sem o owner ter feito o flip. Não
     propaga erro — mascararia a exceção original que interessa diagnosticar."""
-    print("\n▶  devolvendo o worker ao executor Python…")
+    print("\n▶  devolvendo o worker ao executor Python (com credencial)…")
     try:
         switch_arm(PYTHON_ARM)
+        # `go-off` não reinicia o worker quando o overlay Go não estava ligado, e o
+        # worker do gate roda com a credencial APAGADA (`LLM_FREE=1`). Sem este
+        # restart explícito o dono ficaria com a stack de dev sem ANTHROPIC_API_KEY
+        # e veria stages LLM degradando em silêncio — exatamente a classe de bug
+        # que esta lane fecha.
+        _make("dev-worker-up")
     except GateError as exc:
         print(f"::error:: FALHA AO RESTAURAR o executor Python: {exc}", file=sys.stderr)
         print(
