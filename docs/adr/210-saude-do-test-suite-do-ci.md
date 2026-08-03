@@ -5,7 +5,7 @@ title: "Saúde do test suite do CI — gates, telemetria e ciclo de vida"
 status: Decidido
 phase: "Sprint A12 (test health · CI cost)"
 date: "2026-05-14"
-amended_at: ["2026-05-19", "2026-07-30", "2026-07-31"]
+amended_at: ["2026-05-19", "2026-07-30", "2026-07-31", "2026-08-03"]
 relates_to:
   - "[[ADR-067]]"
   - "[[ADR-093]]"
@@ -27,6 +27,13 @@ tags:
 ---
 
 # ADR-210 — Saúde do test suite do CI
+
+> **Emenda (2026-08-03) — a tabela §Ganhos está vencida:** ela afirma
+> `backend-tests ≈ 5min`, número de 2026-05-14. A mediana medida em
+> 2026-08-03 é **9,9min** — a suíte cresceu 37,5% em testes desde então. O
+> adendo 2026-08-03 re-baseliniza e fixa a regra de dimensionamento do
+> `timeout-minutes`. Leia os ganhos daquela tabela como histórico do fix,
+> não como estado atual.
 
 > **Emenda (2026-07-30) — camada 4, liveness dos compensadores:** a camada 2
 > abaixo removeu o trigger `push: main` e declarou que o job `main-smoke` do
@@ -436,6 +443,111 @@ ADR e o comentário param de alegar cobertura. Reabilitar o nightly inteiro
 (~480 min/mês, +24%) não é recomendado: entrega janela de até 24h para um defeito
 que o gate de PR pega em 2 min. Registrado como follow-up owner-gated em
 `docs/sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md`.
+
+## Adendo 2026-08-03 — re-baseline do `backend-tests` e a regra do teto
+
+**Não reabre a decisão.** Executa o item 3 do §Plano de adoção (audit
+comparando tempo de CI atual vs baseline) e corrige um número vencido.
+
+### O que aconteceu
+
+O PR #1157 levou 12m16s no `backend-tests` e foi **cancelado por timeout**
+(teto 12min). O diff não toca `backend/` — mexe em `dev/`, `tests/`,
+`Makefile`, `docs/`. Não é bug de filtro: o job é
+`if: backend == 'true' || pipeline == 'true'` e `tests/` cai no filtro
+`pipeline`, porque `backend/` importa `pipeline/`. O job devia rodar; o teto
+é que estava apertado.
+
+O próprio #1157 subiu o teto para 20min para se desbloquear, e registrou por
+escrito que **"por que a suíte dobrou desde maio é investigação separada"**.
+Este adendo é essa investigação. Ele não muda o teto — confirma que 20min é
+o número certo e diz por quê, que é o que faltava para o bump não ser cego.
+
+### Medição (56 jobs `backend-tests` via API, jan-a-ago por janelas)
+
+| janela | mediana do job |
+|---|---:|
+| 2026-05-10..20 | 6,33min |
+| 2026-06-10..20 | 7,88min |
+| 2026-07-10..20 | 9,81min |
+| 2026-07-25..08-03 | ~9,9-10,0min (máx. sucesso 10,97min) |
+
+**A causa não é regressão de performance.** Comparando o log de um run de
+maio com um de agosto:
+
+| | maio | agosto | Δ |
+|---|---:|---:|---:|
+| testes | 2192 | 3015 | **+37,5%** |
+| passo pytest | 343,8s | 518,2s | +50,7% |
+| custo por teste | 0,157s | 0,172s | **+9,6%** |
+
+Os +823 testes vêm de 103 arquivos novos (213 → 314 arquivos) das sprints
+A34-A40 — crescimento difuso, sem culpado único. Os ~9,6% de deriva por
+teste são o custo de setup por teste (recreate-per-test do SQLite), não um
+teste patológico.
+
+**Não há o que otimizar estruturalmente** (medido com `--junit-xml` + `-n 4`,
+espelhando o runner de 4 vCPU):
+
+- setup do job ~30s de ~10min; o orçamento **é** o passo pytest
+- 432 arquivos empacotados em 4 workers → desbalanço **1,00×**
+- arquivo mais pesado 32s contra caminho crítico de 290s ⇒ `--dist loadgroup`
+  não pina gargalo
+- teste mais lento **2,38s**; os 30 mais lentos somam ~40s de 311s
+
+### Decisão: o teto é detector de *hang*, dimensionado a ~2× da mediana
+
+`timeout-minutes` existe para matar processo travado (deadlock, retry
+infinito, espera de rede), não para policiar performance — hang não termina
+20% mais devagar, ele não termina. Todos os outros jobs do `ci.yml` já
+seguem ~2× ou mais; só o `backend-tests` havia derivado para **1,21×**:
+
+| job | mediana | teto | folga |
+|---|---:|---:|---:|
+| `backend-tests` (antes) | 9,93min | 12 | **1,21×** |
+| `frontend-checks` | 4,68min | 12 | 2,56× |
+| `pipeline-tests` | 2,02min | 12 | 5,94× |
+| `lint-all` | 2,41min | 5 | 2,07× |
+
+Os 20min que o #1157 já aplicou **ficam** — restauram a convenção. A assimetria
+decide: subir o teto custa **0 min faturado** em regime normal (timeout só bila
+tempo real); o falso vermelho custa `all-green` stale + merge manual, além de
+ensinar o operador a re-rodar job vermelho sem ler.
+
+Confirmação empírica no run do #1160 (que toca `ci.yml` e por isso roda a suíte
+**sem** o deselect de `migration`): 3106 testes, passo pytest 10m02s, job
+10m51s. Isso é **90% do teto antigo** de 12min contra **54% do novo** — o teto
+de 12 teria reprovado esse run também, sem nenhuma relação com o diff.
+
+### Sharding e `pytest-split` — rejeitados pelo custo, coerente com camada 4
+
+Dividir em 2 shards de ~5,5min: `ceil(5,5)×2 = 12` min faturados contra 10
+hoje, ⇒ **~+2min por disparo**. O job dispara em **61%** dos runs de CI
+(33 de 54 amostrados) ≈ ~550 disparos/mês ⇒ **~+1.100 min/mês** num orçamento
+já em 544% de 2.000. É a mesma conta da camada 4 (§Custo: a alavanca é o
+número de jobs) e da §Alternativas (B). Reavaliar **se o repo virar público**
+(A34 G0) — Actions passa a ilimitado e o argumento de custo evapora, como já
+registrado nos gatilhos da camada 2.
+
+### Anti-recorrência: `--durations=25` no passo
+
+A investigação acima custou rodar a suíte local e baixar log de maio para
+reconstruir o que o pytest imprime de graça. O passo passa a rodar
+`--durations=25`: zero minutos, e a próxima erosão do teto começa com dado
+em vez de arqueologia. **Regra para a próxima vez:** se a mediana passar de
+12min (= 60% do teto novo), medir por esse output antes de mexer no número —
+e só bumpar se o crescimento for de volume, como foi aqui.
+
+### Trade-offs aceitos
+
+1. **Hang no `backend-tests` agora queima 20min em vez de 12.** Evento raro;
+   20 min faturados uma vez é mais barato que falso vermelho recorrente.
+2. **O teto volta a erodir** (~+1,2min/mês no ritmo atual). Fixo em número
+   absoluto, qualquer teto erode; o que muda é haver medição embutida e
+   gatilho declarado (mediana > 12min).
+3. **Os ~9,6% de deriva por teste não foram atacados.** Abaixo do ruído de
+   runner (±2min entre 9,0 e 12,3 na mesma semana); virar projeto de
+   otimização de fixture exige sinal maior que esse.
 
 ## Referências
 
