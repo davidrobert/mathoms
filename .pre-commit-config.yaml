@@ -450,6 +450,15 @@ repos:
         files: ^(\.claude/agents/.*\.md|\.codex/agents/.*\.toml|dev/sync_codex_agents\.py)$
         pass_filenames: false
 
+      - id: labeler-config
+        # Glob negativo sob `any-glob-to-*` faz a label casar em todo PR
+        # (actions/labeler@v5 avalia o negativo como padrão próprio).
+        name: "labeler.yml: sem glob negativo sob chave any-*"
+        entry: python3 dev/check_labeler_config.py
+        language: system
+        files: ^(\.github/labeler\.yml|dev/check_labeler_config\.py)$
+        pass_filenames: false
+
       # --------------------------------------------------------------------
       # Gates da vault Obsidian-friendly (Fase 1 do plano DOC_REORG, ADR-182)
       # Acionados quando arquivos da vault mudam (notas, schemas, MOCs).
