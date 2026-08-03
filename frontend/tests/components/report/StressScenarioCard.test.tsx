@@ -114,4 +114,25 @@ describe("StressScenarioCard — Leitura (A37.l10 PD-09)", () => {
     expect(leitura?.textContent).toContain("reduz a capacidade de aporte em 40%");
     expect(leitura?.textContent).not.toContain("estende a IF");
   });
+
+  // Forma atual da não-convergência (PR #1158): o E5 emite null onde antes vinha
+  // 999. Sem este ramo a coluna cairia num "—" mudo, perdendo o rótulo explícito.
+  it("prazo estresse null (não projetável) rotula igual ao 999 legado", () => {
+    render(
+      <StressScenarioCard
+        cenarios={{
+          labels: ["Sem renda do cônjuge"],
+          aportes: [12000],
+          prazos_if: [null],
+          anos_if: [null],
+          premissas: { aporte_base: 20000 },
+        }}
+        goals={{ if_prazo_anos: 14.2, if_ano: 2040 }}
+      />,
+    );
+    expect(screen.getByText("Não atinge")).toBeInTheDocument();
+    const leitura = screen.getByText(/Leitura:/).closest("p");
+    expect(leitura?.textContent).toContain("reduz a capacidade de aporte em 40%");
+    expect(leitura?.textContent).not.toContain("estende a IF");
+  });
 });

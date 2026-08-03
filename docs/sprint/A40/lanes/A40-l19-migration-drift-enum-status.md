@@ -9,6 +9,7 @@ priority: P1
 branch_slug: a40-l19-migration-drift-enum-status
 adrs:
   - "[[ADR-357]]"
+  - "[[ADR-359]]"
 depends_on: []
 tags:
   - type/lane
@@ -24,6 +25,12 @@ tags:
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). **PR próprio** (migration não
 > mistura com feature). P1 de execução, mas **gate de deploy** do cutover
 > Postgres.
+
+> **Segundo consumidor (2026-08-03, [[ADR-359]]):** além da [[ADR-357]] §7, o
+> `resuming` ausente do tipo do DB bloqueia a varredura de órfão da [[A40.l27]] —
+> lá o `resuming` entra em **predicado de query**, e um órfão nesse estado é hoje o
+> único que nenhuma superfície mata. Se esta lane escorregar, **dois** consumidores
+> param, e a l27 entrega parcial declarando o item 1 como não-entregue.
 
 ## Problema
 
