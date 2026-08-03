@@ -1,15 +1,19 @@
 """PipelineService — runs the pipeline via Celery task with DB-tracked progress.
 
-Phase 5: migrated from threading.Thread to Celery task queue.
-Cancellation is stage-boundary: sets status in DB, task checks between stages.
+Phase 5 migrou para a fila Celery; a ADR-359 removeu o fallback in-process que
+sobrevivia da ADR-014 — o Celery é o único executor, e falha de dispatch é
+**alta**. Cancellation is stage-boundary: sets status in DB, task checks between
+stages.
 """
 
 from __future__ import annotations
 
 import logging
+import uuid
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
@@ -17,11 +21,32 @@ from backend.app.core.database import SyncSessionLocal
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.services.pipeline.events import publish_run_cancelled
+from backend.app.services.pipeline.pipeline_failure_reasons import (
+    DISPATCH_FAILED,
+    RUN_SETUP_FAILED,
+)
 from backend.app.services.security.vault import get_vault
 from backend.app.services.storage import StorageService
 
 logger = logging.getLogger(__name__)
 _vault = get_vault()
+
+
+class PipelineDispatchError(RuntimeError):
+    # `reason` é valor de `pipeline_failure_reasons`; o caller compensa o estado
+    # que ele mesmo criou e traduz para a superfície dele (ADR-359 §2).
+    """O run não foi entregue a nenhum executor (ADR-359)."""
+
+    def __init__(self, reason: str, run_id: str) -> None:
+        self.reason = reason
+        self.run_id = run_id
+        super().__init__(f"pipeline dispatch failed run={run_id} reason={reason}")
+
+
+def _redacted_broker_host() -> str:
+    """Host:porta do broker sem credencial — ``REDIS_URL`` carrega senha em prod."""
+    parts = urlsplit(settings.REDIS_URL)
+    return f"{parts.hostname or '?'}:{parts.port or '?'}"
 
 
 def _classify_llm_config(cfg: LLMConfig | None, ws_id: str, *, context: str) -> str:
@@ -94,27 +119,42 @@ def _dispatch_celery_task(
 ) -> str:
     from backend.app.tasks.pipeline_task import run_pipeline_task
 
-    result = run_pipeline_task.delay(
-        run_id=run_id,
-        ws_id=ws_id,
-        tenant_root_str=str(tenant_root),
-        config_dir_str=str(config_dir),
-        stages=stages,
-        skip_llm=skip_llm,
-        stop_on_error=stop_on_error,
-        tier=tier,
-        incremental=incremental,
-        incremental_doc_paths=incremental_doc_paths or [],
-        base_run_id=base_run_id,
-        base_run_fallback_stages=base_run_fallback_stages or [],
+    task_id = str(uuid.uuid4())
+    # ADR-359: persistir ANTES do enqueue faz `celery_task_id IS NULL` significar
+    # "dispatch nunca tentado" — invariante do qual a cura de órfão depende. A
+    # ordem inversa (delay → write) tornava run legitimamente enfileirado
+    # indistinguível de run nunca despachado, e deixava janela em que um cancel
+    # não podia revogar a task. O worker reescreve o mesmo id em `_mark_run_started`.
+    _persist_celery_task_id(run_id, task_id)
+    run_pipeline_task.apply_async(
+        kwargs={
+            "run_id": run_id,
+            "ws_id": ws_id,
+            "tenant_root_str": str(tenant_root),
+            "config_dir_str": str(config_dir),
+            "stages": stages,
+            "skip_llm": skip_llm,
+            "stop_on_error": stop_on_error,
+            "tier": tier,
+            "incremental": incremental,
+            "incremental_doc_paths": incremental_doc_paths or [],
+            "base_run_id": base_run_id,
+            "base_run_fallback_stages": base_run_fallback_stages or [],
+        },
+        task_id=task_id,
     )
+    logger.info("Pipeline %s dispatched as Celery task %s", run_id, task_id)
+    return task_id
+
+
+def _persist_celery_task_id(run_id: str, task_id: str) -> None:
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
-        if run:
-            run.celery_task_id = result.id
-            db.commit()
-    logger.info("Pipeline %s dispatched as Celery task %s", run_id, result.id)
-    return result.id
+        if run is None:
+            logger.warning("Pipeline run %s desapareceu antes do dispatch", run_id)
+            return
+        run.celery_task_id = task_id
+        db.commit()
 
 
 def _prepare_run_context(ws_id: str, tier: str | None) -> tuple[str, object, object]:
@@ -141,75 +181,56 @@ def start_pipeline_run(
     incremental_doc_paths: list[str] | None = None,
     base_run_id: str | None = None,
     base_run_fallback_stages: list[str] | None = None,
-) -> str | None:
-    """Launch the pipeline as a Celery task.
+) -> str:
+    """Launch the pipeline as a Celery task; returns the Celery task ID.
 
-    Returns the Celery task ID, or None if Celery is unavailable (fallback to thread).
+    Levanta ``PipelineDispatchError`` se o run não foi entregue a nenhum
+    executor. **Não** transiciona estado — compensar é do caller que criou o
+    estado forward (ADR-359 §2).
     """
-    tier, tenant_root, config_dir = _prepare_run_context(ws_id, tier)
-    args = (
-        run_id,
-        ws_id,
-        tenant_root,
-        config_dir,
-        stages,
-        skip_llm,
-        stop_on_error,
-        tier,
-        incremental,
-        incremental_doc_paths,
-        base_run_id,
-        base_run_fallback_stages,
-    )
     try:
-        return _dispatch_celery_task(*args)
+        tier, tenant_root, config_dir = _prepare_run_context(ws_id, tier)
     except Exception as exc:
-        logger.warning(
-            "Celery unavailable (%s), falling back to background thread for run %s",
-            exc,
+        _log_dispatch_failure(run_id, ws_id, RUN_SETUP_FAILED, exc)
+        raise PipelineDispatchError(RUN_SETUP_FAILED, run_id) from exc
+    try:
+        return _dispatch_celery_task(
             run_id,
+            ws_id,
+            tenant_root,
+            config_dir,
+            stages,
+            skip_llm,
+            stop_on_error,
+            tier,
+            incremental,
+            incremental_doc_paths,
+            base_run_id,
+            base_run_fallback_stages,
         )
-        _start_fallback_thread(*args)
-        return None
+    except Exception as exc:
+        _log_dispatch_failure(run_id, ws_id, DISPATCH_FAILED, exc)
+        raise PipelineDispatchError(DISPATCH_FAILED, run_id) from exc
 
 
-def _start_fallback_thread(
-    run_id,
-    ws_id,
-    tenant_root,
-    config_dir,
-    stages,
-    skip_llm,
-    stop_on_error,
-    tier,
-    incremental=False,
-    incremental_doc_paths=None,
-    base_run_id=None,
-    base_run_fallback_stages=None,
-):
-    """Fallback: run pipeline in a daemon thread when Celery/Redis is unavailable."""
-    import threading
-
-    from backend.app.tasks.pipeline_task import run_pipeline_task
-
-    def _thread_target():
-        run_pipeline_task(
-            run_id=run_id,
-            ws_id=ws_id,
-            tenant_root_str=str(tenant_root),
-            config_dir_str=str(config_dir),
-            stages=stages,
-            skip_llm=skip_llm,
-            stop_on_error=stop_on_error,
-            tier=tier,
-            incremental=incremental,
-            incremental_doc_paths=incremental_doc_paths or [],
-            base_run_id=base_run_id,
-            base_run_fallback_stages=base_run_fallback_stages or [],
-        )
-
-    t = threading.Thread(target=_thread_target, daemon=True, name=f"pipeline-{run_id[:8]}")
-    t.start()
+def _log_dispatch_failure(run_id: str, ws_id: str, reason: str, exc: Exception) -> None:
+    """``ERROR``, nunca ``CRITICAL``: isto é sintoma; o incidente é 'broker
+    degradado', que não é cognoscível daqui (ADR-359 §7). Sem ``str(exc)`` — erro
+    de conexão traz a URL do broker, e ``REDIS_URL`` carrega credencial."""
+    logger.error(
+        "mathoms.pipeline.dispatch_failed run=%s reason=%s error=%s broker=%s",
+        run_id,
+        reason,
+        type(exc).__name__,
+        _redacted_broker_host(),
+        extra={
+            "event": "mathoms.pipeline.dispatch_failed",
+            "run_id": run_id,
+            "workspace_id": ws_id,
+            "failure_reason": reason,
+            "broker_error_class": type(exc).__name__,
+        },
+    )
 
 
 def _flip_run_to_resuming(run_id: str, ws_id: str) -> tuple[str | None, str]:
@@ -255,14 +276,42 @@ def resume_pipeline_run(run_id: str, ws_id: str) -> None:
         _mark_run_completed(run_id)
         return
 
-    start_pipeline_run(
-        run_id=run_id,
-        ws_id=ws_id,
-        stages=remaining_stages,
-        skip_llm=False,
-        stop_on_error=True,
-        tier=tier,
-    )
+    _dispatch_resume(run_id, ws_id, remaining_stages, tier, paused_stage)
+
+
+def _dispatch_resume(
+    run_id: str, ws_id: str, stages: list[str], tier: str, paused_stage: str | None
+) -> None:
+    """Despacha o resume; em falha de dispatch reverte a pausa em vez de matá-la."""
+    try:
+        start_pipeline_run(
+            run_id=run_id,
+            ws_id=ws_id,
+            stages=stages,
+            skip_llm=False,
+            stop_on_error=True,
+            tier=tier,
+        )
+    except PipelineDispatchError:
+        # ADR-359 §2: a ação forward aqui foi `needs_review`→`resuming` + zerar
+        # `paused_at_stage`. Marcar `failed` (a compensação do trigger)
+        # converteria pausa recuperável em run morto com o ponto de pausa
+        # perdido — compensar é REVERTER.
+        _revert_resuming_to_needs_review(run_id, paused_stage)
+        raise
+
+
+def _revert_resuming_to_needs_review(run_id: str, paused_stage: str | None) -> None:
+    """UPDATE condicional em ``status='resuming'`` — no-op se outro ator já avançou."""
+    with SyncSessionLocal() as db:
+        result = db.execute(
+            update(PipelineRun)
+            .where(PipelineRun.id == run_id, PipelineRun.status == PipelineRunStatus.resuming)
+            .values(status=PipelineRunStatus.needs_review, paused_at_stage=paused_stage)
+        )
+        db.commit()
+    if result.rowcount != 1:
+        logger.warning("Compensação de resume no-op run=%s — status já não era `resuming`", run_id)
 
 
 def cancel_pipeline_run(run_id: str) -> bool:

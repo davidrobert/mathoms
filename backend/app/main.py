@@ -58,6 +58,7 @@ from backend.app.application.base.errors import (
     ConflictError,
     NotFoundError,
     PreconditionFailedError,
+    ServiceUnavailableError,
 )
 from backend.app.application.base.errors import (
     ValidationError as DomainValidationError,
@@ -160,6 +161,22 @@ async def _handle_account_locked(request: Request, exc: AccountLockedError) -> J
     return JSONResponse(
         status_code=429,
         content={"detail": {"code": exc.code or "account_locked", "message": str(exc)}},
+        headers={"Retry-After": str(exc.retry_after_s)},
+    )
+
+
+# ADR-359 — falha de dispatch é indisponibilidade de infra, não erro de input.
+# Sem 503 tipado o cliente não distingue "broker caiu, tente em 10s" de bug.
+@app.exception_handler(ServiceUnavailableError)
+async def _handle_service_unavailable(
+    request: Request, exc: ServiceUnavailableError
+) -> JSONResponse:
+    body: dict = {"message": str(exc)}
+    if exc.code:
+        body["code"] = exc.code
+    return JSONResponse(
+        status_code=503,
+        content={"detail": body},
         headers={"Retry-After": str(exc.retry_after_s)},
     )
 
