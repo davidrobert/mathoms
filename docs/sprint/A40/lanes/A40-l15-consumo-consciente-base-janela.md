@@ -154,6 +154,33 @@ Sem eles o frontend teria de fazer aritmética monetária de headline, o que
 Todos em `pipeline/domain/services/consumo_consciente_calculator.py` +
 `to_legacy_dict`, com contraparte em `frontend/src/types/report-analysis.ts`.
 
+## Herdado da A40 (2026-07-31) — abertura da S3: o que afirmar sobre a carteira
+
+A entrega do `s3` foi **desligada** (`summary_source: null`), não corrigida. O
+parágrafo afirmava *"diversificada entre N categorias de ativos"* contando
+`patrimonio.composicao` — baldes patrimoniais, um deles **por membro** — enquanto
+a tabela da própria seção conta `investimentos.tabela_classes`. No corpus
+dogfood: **3 vs 2**.
+
+**Não é número errado, é conceito errado.** Trocar a fonte para a tabela não
+resolve: com 2 classes a afirmação honesta é **concentrada**, não diversificada —
+o que **inverte o sinal da frase**, de tranquilização para alerta. É o quinto caso
+do viés otimista que o painel registrou na decisão nº 5.
+
+O que esta lane decide (gatilho `financial-planner`):
+
+- A partir de quantas classes uma carteira é diversificada? Concentração
+  **dentro** da classe conta?
+- A abertura da S3 deve falar de carteira (dado de `investimentos`) — falar de
+  composição patrimonial ali seria conteúdo da S1 no lugar errado.
+- Se a resposta honesta for "concentrada", a frase passa a ser achado, não
+  descrição — e isso muda o que a seção comunica.
+
+Observação lateral: um dos baldes de `patrimonio.composicao` chama-se
+`Investimentos <nome de pessoa>`. Se esse rótulo chegar a texto renderizado, é
+nome próprio no relatório — a classe que a [[A40.l4]] fechou. Confirmado que o
+snapshot git-tracked não carrega dado de família.
+
 ## Gate de shipping (herdado do co-design — não flexibilizar)
 
 **Os três co-changes entram no MESMO PR que a troca do KPI.** Se não couberem, o

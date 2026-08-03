@@ -447,7 +447,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Investimentos — Carteira Financeira",
         "enabled": true,
         "summary": true,
-        "summary_source": "s3",
+        "summary_source": null,
         "divider_before": true,
         "charts": [
           {

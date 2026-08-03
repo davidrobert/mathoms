@@ -122,7 +122,7 @@ def test_layout_real_do_repo_entrega_todos_os_destinos() -> None:
     """Sanidade sobre o layout versionado — não sobre um cenário sintético."""
     res = _run(_SUMMARIES_OK)
     assert res.passed, res.details
-    assert "entregues=7/esperadas=7" in res.details
+    assert "entregues=6/esperadas=6" in res.details
 
 
 # ── Supressão condicional (o furo que a 1ª versão do CV9 deixava verde) ──
@@ -165,12 +165,12 @@ def test_secao_com_dados_conta_o_destino_normalmente(pinned_layout) -> None:
     assert "suprimido=nenhuma" in res.details, res.details
 
 
-def test_layout_real_sem_riscos_reporta_6_de_7() -> None:
+def test_layout_real_sem_riscos_reporta_5_de_6() -> None:
     """Prova sobre o layout VERSIONADO, não sintético: workspace sem risco
     cadastrado (`bubble_riscos.data_state == "empty"`) põe o `s9` fora da
     entrega. É o caso vivo — a 1ª versão do CV9 dizia 7/7 aqui."""
     res = _run(_SUMMARIES_OK, charts=_RISCOS_VAZIO)
-    assert "entregues=6/esperadas=7" in res.details, res.details
+    assert "entregues=5/esperadas=6" in res.details, res.details
     assert "suprimido=['S9->s9']" in res.details, res.details
 
 
