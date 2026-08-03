@@ -465,11 +465,19 @@ Cadeia causal medida, ponta a ponta:
    rodou `make dev`. Neste worker a chave não está presente (medido via `ps eww <pid>`).
    Os runs full de 25–28/07 tiveram a chave exportada no shell; é isso, e só isso, que
    explica eles terem o artefato.
-4. Prova direta (`_scratch/caixa_gate_experiment.py`, 2 braços sobre o PDF real):
-   sem a chave → `n_tx=0, requires_llm_fallback=True` (reproduz o braço Python
-   exatamente); com chave **inválida** → log `PDF sem camada de texto — usando extração
-   via LLM (visão)` seguido de `401 authentication_error`. Ou seja: **a decisão de chamar
-   depende do env, jamais da política do run.**
+4. Prova direta, 2 braços chamando `parse_caixa` sobre o PDF real do dogfood (custo zero;
+   o 2º braço usa chave **inválida** de propósito e para no 401):
+   - `env -u ANTHROPIC_API_KEY` → `n_tx=0, requires_llm_fallback=True`, log
+     `ANTHROPIC_API_KEY não definida — LLM fallback desabilitado`. Reproduz o braço
+     Python exatamente.
+   - `ANTHROPIC_API_KEY=<inválida>` → log `PDF sem camada de texto — usando extração via
+     LLM (visão)` seguido de `401 authentication_error`.
+
+   Ou seja: **a decisão de chamar depende do env, jamais da política do run** — a função
+   não recebe `ctx`. O gate de regressão desse comportamento é
+   `tests/test_go_parity_llm_free_gate.py::test_visao_da_caixa_chama_o_sdk_e_nao_deixa_rastro_no_flag`
+   (spy nomeado sobre o SDK, sem API), entregue pela [[A40.l24]] — é a forma versionada
+   da mesma prova.
 
 Hipóteses anteriores **refutadas**: não é efeito de ordem (5º run Python voltou a 242);
 não é estado acumulado no `ctx` reusado do InProcess (a divergência nasce no E2, e ambos os
