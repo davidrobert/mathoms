@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 304
-- **Proposto**: 42
+- **Decidido**: 305
+- **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
@@ -302,7 +302,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (14)
+### Decidido (15)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -318,14 +318,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-285]] — backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio · phase A33.l9
 - [[ADR-289]] — Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) · phase F1
 - [[ADR-290]] — Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion · phase A25
+- [[ADR-359]] — Dispatch assíncrono falha alto; quem cria estado pendente compensa · phase A40
 
-### Proposto (5)
+### Proposto (4)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
 - [[ADR-329]] — Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium
 - [[ADR-339]] — Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata
-- [[ADR-359]] — Dispatch assíncrono falha alto; quem cria estado pendente compensa · phase A40
 
 ## categorization
 
