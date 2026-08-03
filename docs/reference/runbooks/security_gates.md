@@ -36,6 +36,7 @@ Resolvidas em 2026-08-03 (PRs de bump de deps de segurança — Python + fronten
 - ✅ 9 advisories HIGH de `next` (bypass de middleware/proxy, DoS em Server Actions, SSRF, cache confusion, disclosure de Server Function endpoints) → bump `next` 16.2.10 → 16.3.0 (primeira fora do range vulnerável `9.3.4-canary.0 – 16.3.0-preview.10`).
 - ✅ `GHSA-f88m-g3jw-g9cj` (`sharp` < 0.35.0, CVEs herdadas do libvips) → `sharp` 0.35.3, puxada pela `optionalDependencies` do `next@16.3.0`.
 - ✅ 13 `PYSEC-2026-*` (`pillow` 12.2.0) + `CVE-2026-59881` (`aiohttp` 3.14.1) → `pip-compile -P` (ambas transitivas, sem import direto), lock recompilado. Mesma classe da [[ADR-299]].
+- ✅ `CVE-2026-69247` (`cryptography` 49.0.0, oráculo Bleichenbacher em `pkcs7_decrypt_*`) → piso `cryptography>=50.0.0` no `.in` (dep **direta** → piso, não `-P`). Advisory publicada **durante** a própria triagem: o `pip-audit` local deu verde e o do CI, ~40min depois, acusou. Reforça a lição da [[ADR-299]] — re-rodar o audit imediatamente antes do push em PR de bump de segurança.
 
 Resolvidas em 2026-05-20 (PRs [#356](https://github.com/davidrobert/mathoms/pull/356) + [#357](https://github.com/davidrobert/mathoms/pull/357)):
 
