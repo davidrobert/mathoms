@@ -563,10 +563,14 @@
     ]
   },
   "if_monte_carlo": {
-    "p10_ano_if": 2044,
+    "p10_ano_if": 2036,
+    "p10_censurado": false,
     "p50_ano_if": 2040,
-    "p90_ano_if": 2036,
+    "p50_censurado": false,
+    "p90_ano_if": null,
+    "p90_censurado": true,
     "prob_if_ate_idade_meta": 0.31,
+    "prob_if_ate_horizonte": 0.8821,
     "idade_meta_usada": 60,
     "sigma_usado": 0.15,
     "exibir_cone": true,
@@ -649,7 +653,11 @@
         2046,
         2500000
       ]
-    ]
+    ],
+    "mc_version": "3.0",
+    "seed_usado": 360,
+    "n_simulacoes_usado": 50000,
+    "horizonte_anos": 40
   },
   "goals": {
     "if_meta": 5000000,

@@ -58,7 +58,10 @@ def test_se_if_pct_abaixo_15pct_nao_exibe_cone():
 
 def test_p10_le_p50_le_p90():
     """Ordem estocástica: P10 ≤ P50 ≤ P90."""
-    cfg = _config(pv=800_000, fv=2_000_000)  # 40%
+    # ADR-361: o cenário anterior (40% da meta, sem aporte) tinha taxa de sucesso
+    # 92,6% — abaixo do piso de 95% do P90, que passa a ser censurado. Para
+    # continuar testando ORDEM é preciso um plano que publique os três.
+    cfg = _config(pv=800_000, fv=2_000_000, pmt=3_000.0)  # sucesso ~99,9%
     result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
     assert result.exibir_cone is True
     assert result.p10_ano_if is not None
@@ -88,12 +91,15 @@ def test_termos_reais_escala_independente():
 
 
 def test_patrimonio_ja_atingiu_meta():
-    """Patrimônio >= meta → exibir_cone False (n_atingiu trivial, p50 = 1)."""
+    """Patrimônio >= meta → sem cone e probabilidade 1,0 (ADR-361)."""
+    # Antes o `if result.exibir_cone:` tornava o teste vacuoso e o caminho
+    # degenerado publicava "0% de chance" para quem já é independente.
     cfg = _config(pv=3_000_000, fv=2_000_000)  # 150%
     result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=50)
-    if result.exibir_cone:
-        assert result.p50_ano_if is not None
-        assert result.p50_ano_if <= 2026 + 5
+    assert result.exibir_cone is False
+    assert result.motivo_sem_cone == "meta já atingida"
+    assert result.prob_if_ate_idade_meta == 1.0
+    assert result.p50_ano_if is None
 
 
 def test_prob_if_ate_idade_meta_entre_0_e_1():
@@ -103,8 +109,10 @@ def test_prob_if_ate_idade_meta_entre_0_e_1():
     assert 0.0 <= result.prob_if_ate_idade_meta <= 1.0
 
 
-def test_p50_maior_35_anos_nao_exibe_cone():
+def test_if_pct_insuficiente_nao_exibe_cone():
     """Retorno muito baixo + patrimônio inicial pequeno → if_pct < 15% → sem cone."""
+    # O nome antigo citava o gate `_GATE_P50_MAX`, deletado pela ADR-361 — mas o
+    # caso que ele exercita sempre foi o gate de `if_pct`.
     cfg = IFMonteCarloConfig(
         patrimonio_investivel=Decimal("50000"),
         meta_if=Decimal("2000000"),

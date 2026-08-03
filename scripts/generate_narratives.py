@@ -691,9 +691,19 @@ def load_metrics_from_e5(
         "aloc_derived": (goals.get("alocacao_alvo") or {}).get("derived") or {},
         "aloc_rebalanceamento": aloc_alvo.get("rebalanceamento", "anual"),
         # === A37.l8 (FIN-08): Monte Carlo IF (N3) — projeção probabilística ===
+        "mc_p10_ano_if": mc_if.get("p10_ano_if"),
         "mc_p50_ano_if": mc_if.get("p50_ano_if"),
+        "mc_p90_ano_if": mc_if.get("p90_ano_if"),
         "mc_prob_if_ate_idade_meta": mc_if.get("prob_if_ate_idade_meta"),
         "mc_idade_meta": mc_if.get("idade_meta_usada"),
+        # ADR-361 — sem estes o narrador não distingue "cone não simulado" de
+        # "a mediana não atinge a meta no horizonte", e cairia na frase
+        # determinística ("a trajetória aponta a meta para X") justamente no
+        # cenário em que ela é a mais otimista possível.
+        "mc_p50_censurado": mc_if.get("p50_censurado", False),
+        "mc_p90_censurado": mc_if.get("p90_censurado", False),
+        "mc_prob_if_ate_horizonte": mc_if.get("prob_if_ate_horizonte"),
+        "mc_horizonte_anos": mc_if.get("horizonte_anos"),
         # === config/goals.json: riscos e decisões ===
         "riscos_prioritarios": riscos,
         "decisoes_prioritarias": decisoes,

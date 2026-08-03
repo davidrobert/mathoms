@@ -336,6 +336,12 @@ context_sections:
         label: "Projeção IF (Monte Carlo)"
         value_format: "raw"
         on_null: "skip"
+        # ADR-361: os 6 campos de percentil+censura e as 2 probabilidades não
+        # cabem no cap default de 300 (medido: 320 com cone, 369 com o cone
+        # suprimido, onde `motivo_sem_cone` é string longa). Sem este knob a
+        # correção de honestidade entraria cortando dado de domínio do contexto
+        # do LLM. 380 = maior prefixo escalar medido + folga.
+        max_chars: 380
       - format: "scalar"
         path: "$.cenarios_conjuge"
         label: "Cenário 'Sem renda do cônjuge' (ADR-166)"

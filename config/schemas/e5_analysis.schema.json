@@ -396,12 +396,16 @@
     },
     "if_monte_carlo": {
       "type": "object",
-      "description": "Cone Monte Carlo de IF (ADR-237 + ADR-360). Reprodutível: seed é constante de modelo versionada, não entropia do SO — mesmo input produz o mesmo cone. mc_version ausente = artefato v1 (pré-ADR-360, não-seedado, n=10k). Séries caminho_* têm dispersão amostral de ~1,2% e não são valor citável.",
+      "description": "Cone Monte Carlo de IF (ADR-237 + ADR-360 + ADR-361). Reprodutível: seed é constante de modelo versionada, não entropia do SO — mesmo input produz o mesmo cone. Percentis são quantis da BASE CHEIA com censura à direita: pXX_ano_if é null quando prob_if_ate_horizonte não sustenta o percentil (piso k% + 5pp de folga), e pXX_censurado distingue isso de 'cone não simulado'. Regra de leitura: exibir_cone governa o bloco; pXX_censurado só é significativo com exibir_cone=true. mc_version ausente = artefato v1 (pré-ADR-360, não-seedado, n=10k, percentil dos sobreviventes); '2.0' = seedado, percentil dos sobreviventes; '3.0' = seedado, percentil censurado — o mesmo p50_ano_if NÃO é comparável entre 2.0 e 3.0. Séries caminho_* têm dispersão amostral de ~1,2% e não são valor citável.",
       "properties": {
         "p10_ano_if": {"type": ["integer", "null"]},
+        "p10_censurado": {"type": "boolean"},
         "p50_ano_if": {"type": ["integer", "null"]},
+        "p50_censurado": {"type": "boolean"},
         "p90_ano_if": {"type": ["integer", "null"]},
+        "p90_censurado": {"type": "boolean"},
         "prob_if_ate_idade_meta": {"type": ["number", "null"]},
+        "prob_if_ate_horizonte": {"type": "number"},
         "idade_meta_usada": {
           "type": ["integer", "null"],
           "minimum": 0,
@@ -417,9 +421,10 @@
         "caminho_p90": {"type": "array"},
         "mc_version": {"type": "string"},
         "seed_usado": {"type": ["integer", "null"]},
-        "n_simulacoes_usado": {"type": "integer"}
+        "n_simulacoes_usado": {"type": "integer"},
+        "horizonte_anos": {"type": "integer"}
       },
-      "required": ["exibir_cone", "mc_version", "seed_usado", "n_simulacoes_usado"]
+      "required": ["exibir_cone", "mc_version", "seed_usado", "n_simulacoes_usado", "horizonte_anos", "prob_if_ate_horizonte", "p10_censurado", "p50_censurado", "p90_censurado"]
     },
     "premissas_economicas": {
       "type": "object",

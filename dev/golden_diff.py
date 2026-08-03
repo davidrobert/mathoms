@@ -60,7 +60,19 @@ _NON_MONETARY_SUFFIXES = (
     "_aa",
     "_count",
 )
-_NON_MONETARY_PREFIXES = ("idade_", "anos_", "ano_", "nivel_", "prazo_", "prazos_", "pct_")
+_NON_MONETARY_PREFIXES = (
+    "idade_",
+    "anos_",
+    "ano_",
+    "nivel_",
+    "prazo_",
+    "prazos_",
+    "pct_",
+    # ADR-361: `prob_*` é fração 0-1, não R$. Sem o prefixo o classificador
+    # monetário-por-default leria `prob_if_ate_horizonte=0.44` como R$ 0,44 e
+    # reportaria delta_cents fantasma — terceiro remendo da mesma classe.
+    "prob_",
+)
 
 ClassifyFn = Callable[[str], bool]
 

@@ -241,12 +241,23 @@ export interface PremissasEconomicasClassRow {
  * ``exibir_cone`` false → mostrar apenas ``motivo_sem_cone`` (se presente).
  * ``caminho_p*`` são séries [ano_absoluto, valor_brl] para o Chart.js. */
 export interface IFMonteCarloData {
+  /** ADR-361 — quantil da BASE CHEIA, com censura à direita: `null` quando a
+   * taxa de sucesso no horizonte não sustenta o percentil. `pXX_censurado`
+   * distingue essa censura de "cone não simulado" (`exibir_cone: false`), e só
+   * é significativo com `exibir_cone: true`. Atenção: `p10_ano_if` é o ano mais
+   * CEDO (cenário favorável), enquanto `caminho_p10` é o patrimônio mais BAIXO
+   * (cenário adverso) — o sufixo `p10` aponta para lados opostos nos dois. */
   p10_ano_if: number | null;
+  p10_censurado?: boolean;
   p50_ano_if: number | null;
+  p50_censurado?: boolean;
   p90_ano_if: number | null;
+  p90_censurado?: boolean;
   /** `null` quando a projeção determinística não produziu idade-meta: sem
    * alvo não há "probabilidade até a idade X". O cone independe dos dois. */
   prob_if_ate_idade_meta: number | null;
+  /** Taxa de sucesso no horizonte simulado (base cheia) — decide a censura. */
+  prob_if_ate_horizonte?: number;
   idade_meta_usada: number | null;
   sigma_usado: number;
   exibir_cone: boolean;
@@ -256,6 +267,7 @@ export interface IFMonteCarloData {
   caminho_p10: [number, number][];
   caminho_p50: [number, number][];
   caminho_p90: [number, number][];
+  horizonte_anos?: number;
 }
 
 /** A8.3 — TRS efetiva, renda passiva observada e carteira de renda.
