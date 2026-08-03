@@ -1,7 +1,5 @@
-"""Cone Monte Carlo de IF (N3 · ADR-237) — extraído de ``if_projector.py``.
-
-Separado por responsabilidade: ``if_projector`` resolve o prazo determinístico,
-este módulo simula a dispersão em torno dele.
+"""Cone Monte Carlo de IF (N3 · ADR-237) — ``if_projector`` resolve o prazo
+determinístico, este módulo simula a dispersão em torno dele.
 """
 
 from __future__ import annotations
@@ -19,7 +17,13 @@ _SIGMA_POR_PERFIL: dict[str, float] = {
 }
 
 _GATE_IF_PCT_MIN = 0.15  # < 15% → não exibir cone
-_GATE_P50_MAX = 35  # P50 > 35 anos → não exibir cone
+
+# ADR-361 — um percentil de tempo-até-o-evento só é publicável como ano se a
+# taxa de sucesso no horizonte o define: P(atingir até o ano rotulado Pk) tem de
+# ser k%. A folga de 5 pp sobre o piso evita publicar o ano dos últimos caminhos
+# a cruzar, que é instável ao horizonte e ao seed.
+_PISO_P10, _PISO_P50, _PISO_P90 = 0.10, 0.50, 0.90
+_FOLGA_PUBLICACAO = 0.05
 
 # ADR-360 — seed é constante de MODELO, não parâmetro do cliente: mantém o cone
 # reprodutível e monótono em patrimônio/aporte (derivar do input re-sortearia a
@@ -28,7 +32,12 @@ _GATE_P50_MAX = 35  # P50 > 35 anos → não exibir cone
 # olhando o resultado é fabricar número. Nunca configurável por workspace.
 _MC_SEED = 360
 _MC_N_SIMULACOES = 50_000
-_MC_VERSION = "2.0"
+# Versão do CONTRATO publicado do cone, não do RNG (padrão score_version /
+# ADR-217 §D3): ausente = v1 (não-seedado, n=10k, percentil dos sobreviventes) ·
+# "2.0" = seedado, percentil dos sobreviventes · "3.0" = seedado, percentil
+# censurado na base cheia (ADR-361). O mesmo `p50_ano_if` significa números
+# não-comparáveis entre 2.0 e 3.0 — é o que o carimbo existe para separar.
+_MC_VERSION = "3.0"
 
 
 @dataclass(frozen=True)
@@ -84,6 +93,18 @@ class MonteCarloIFResult:
     mc_version: str = _MC_VERSION
     seed_usado: int = _MC_SEED
     n_simulacoes_usado: int = _MC_N_SIMULACOES
+    horizonte_anos: int = 40
+    # ADR-361 — taxa de sucesso no horizonte simulado, base cheia (`n`). É o
+    # denominador que decide a censura: substitui o ano quando ele não existe.
+    prob_if_ate_horizonte: float = 0.0
+    # Por-percentil e explícito porque o consumidor que NÃO pode inferir é o
+    # parecer, que lê o bloco cru sem o schema: `null` sozinho significaria tanto
+    # "cone não simulado" quanto "não atinge no horizonte". Só é significativo
+    # com `exibir_cone=True`; derivados de um único predicado sobre
+    # `prob_if_ate_horizonte`, logo monótonos (P50 censurado ⇒ P90 censurado).
+    p10_censurado: bool = False
+    p50_censurado: bool = False
+    p90_censurado: bool = False
 
 
 def _lognormal_params(r: float, sigma: float) -> tuple[float, float]:
@@ -128,19 +149,44 @@ def _simular_caminhos(
     return anos, n, primeiro_true, alguma_vez, patrimonios
 
 
-def _gate_exibicao(if_pct: float, p50_anos: int) -> tuple[bool, str | None]:
-    """Retorna (exibir, motivo) conforme gates N3."""
+def _gate_exibicao(if_pct: float) -> tuple[bool, str | None]:
+    """Retorna (exibir, motivo). Suprime o cone só por insuficiência de DADO."""
+    # ADR-361: o gate antigo também suprimia quando `P50 > 35 anos` — lendo o P50
+    # enviesado, e portanto escondendo o cone justamente nos planos que mais
+    # precisavam do diagnóstico, num rodapé cinza. Má notícia agora é dita pela
+    # copy, não pela ausência do bloco.
     if if_pct < _GATE_IF_PCT_MIN:
         return False, "acumulação inicial — foco em consistência de aporte"
-    if p50_anos > _GATE_P50_MAX:
-        return False, "horizonte muito longo — revise aporte ou meta"
     return True, None
 
 
-def _calcular_percentis(anos: list[int]) -> tuple[int, int, int]:
-    """Retorna (P10, P50, P90) em anos."""
-    arr = np.array(anos)
-    return int(np.percentile(arr, 10)), int(np.percentile(arr, 50)), int(np.percentile(arr, 90))
+def _quantil_censurado(
+    primeiro_true: np.ndarray, alguma_vez: np.ndarray, k: float, prob_sucesso: float
+) -> int | None:
+    """Quantil ``k`` do ano de chegada na base cheia; ``None`` se censurado."""
+    # `inverted_cdf` é o quantil empírico exato — min{t : F(t) >= k} — sobre anos
+    # inteiros, então não há interpolação para `int()` truncar (o antigo
+    # `int(np.percentile(...))` enviesava ~meio ano para baixo).
+    if prob_sucesso < k + _FOLGA_PUBLICACAO:
+        return None
+    tempos = np.where(alguma_vez, primeiro_true + 1, np.inf)
+    return int(np.quantile(tempos, k, method="inverted_cdf"))
+
+
+def _percentis_publicaveis(
+    primeiro_true: np.ndarray, alguma_vez: np.ndarray, prob_sucesso: float
+) -> tuple[tuple[int | None, int | None, int | None], tuple[bool, bool, bool]]:
+    """(P10, P50, P90) em anos relativos + flags de censura."""
+    p10, p50, p90 = (
+        _quantil_censurado(primeiro_true, alguma_vez, piso, prob_sucesso)
+        for piso in (_PISO_P10, _PISO_P50, _PISO_P90)
+    )
+    if p50 is None:
+        # Guarda de assimetria: a censura morde primeiro a perna adversa, então
+        # publicar só a favorável trocaria o viés otimista por um pior — sobraria
+        # apenas a boa notícia. Cenário favorável não sai sem o central.
+        p10 = None
+    return (p10, p50, p90), (p10 is None, p50 is None, p90 is None)
 
 
 def _calcular_caminhos_percentis(
@@ -173,55 +219,101 @@ def _prob_ate_meta(
 
 
 def _anos_if(
-    percentis: tuple[int, int, int], ano_base: int, exibir: bool
+    percentis: tuple[int | None, int | None, int | None], ano_base: int, exibir: bool
 ) -> tuple[int | None, int | None, int | None]:
-    """Aplica ano_base offset ou retorna (None, None, None) se cone não exibido."""
+    """Aplica ano_base offset; (None, None, None) se cone não exibido."""
+    # Percentil já censurado entra `None` e sai `None` — offset não inventa ano.
     if not exibir:
         return None, None, None
     p10, p50, p90 = percentis
-    return ano_base + p10, ano_base + p50, ano_base + p90
+    return tuple(None if p is None else ano_base + p for p in (p10, p50, p90))  # type: ignore[return-value]
 
 
 def _proveniencia(config: IFMonteCarloConfig) -> dict:
-    """ADR-360 — campos observados do config que rodou (não declarados)."""
-    return {"seed_usado": config.seed, "n_simulacoes_usado": config.n_simulacoes}
+    """ADR-360/361 — campos observados do config que rodou (não declarados)."""
+    return {
+        "seed_usado": config.seed,
+        "n_simulacoes_usado": config.n_simulacoes,
+        "horizonte_anos": config.horizonte_anos,
+    }
+
+
+def _campos_comuns(config: IFMonteCarloConfig, idade_meta: int | None) -> dict:
+    """Campos que não dependem do resultado da simulação."""
+    return {
+        "idade_meta_usada": idade_meta,
+        "sigma_usado": config.sigma_anual,
+        "aporte_mensal_usado": config.aporte_mensal,
+        **_proveniencia(config),
+    }
 
 
 def _resultado_sem_cone(
     motivo: str,
     idade_meta: int | None,
     config: IFMonteCarloConfig,
+    *,
+    prob_if_ate_idade_meta: float | None = 0.0,
+    prob_if_ate_horizonte: float = 0.0,
 ) -> MonteCarloIFResult:
     return MonteCarloIFResult(
         p10_ano_if=None,
         p50_ano_if=None,
         p90_ano_if=None,
-        prob_if_ate_idade_meta=None if idade_meta is None else 0.0,
-        idade_meta_usada=idade_meta,
-        sigma_usado=config.sigma_anual,
+        # #1158: sem idade-meta não há horizonte, então a probabilidade é
+        # ausência — 0,0 afirmaria "nenhuma simulação atinge".
+        prob_if_ate_idade_meta=(None if idade_meta is None else prob_if_ate_idade_meta),
         exibir_cone=False,
-        aporte_mensal_usado=config.aporte_mensal,
         motivo_sem_cone=motivo,
-        **_proveniencia(config),
+        prob_if_ate_horizonte=prob_if_ate_horizonte,
+        **_campos_comuns(config, idade_meta),
     )
 
 
+def _resultado_meta_atingida(
+    idade_meta: int | None, config: IFMonteCarloConfig
+) -> MonteCarloIFResult:
+    """Patrimônio >= meta: não há pergunta "em que ano" (ADR-361)."""
+    # O caminho antigo caía no horizonte-meta degenerado (`prazo=0` →
+    # `primeiro_true < 0` nunca verdadeiro) e publicava "0% de chance de atingir
+    # IF" para a família que já é independente.
+    return _resultado_sem_cone(
+        "meta já atingida",
+        idade_meta,
+        config,
+        prob_if_ate_idade_meta=1.0,
+        prob_if_ate_horizonte=1.0,
+    )
+
+
+@dataclass(frozen=True)
+class _NucleoMC:
+    """Saída bruta da simulação, antes do offset de ``ano_base``."""
+
+    percentis: tuple[int | None, int | None, int | None]
+    censurados: tuple[bool, bool, bool]
+    exibir: bool
+    motivo: str | None
+    prob_if_ate_idade_meta: float | None
+    prob_if_ate_horizonte: float
+    patrimonios: np.ndarray
+
+
 def _mc_core(
-    pv: float,
-    fv: float,
-    config: IFMonteCarloConfig,
-    horizonte_meta: int | None,
-) -> tuple[tuple[int, int, int], bool, str | None, float | None, np.ndarray] | None:
-    """Roda simulações e retorna (percentis, exibir, motivo, prob, patrimonios) ou None."""
+    pv: float, fv: float, config: IFMonteCarloConfig, horizonte_meta: int | None
+) -> _NucleoMC | None:
+    """Roda as simulações e resolve percentis + gate, ou None se nenhuma atinge."""
     mu_log, sigma_log = _lognormal_params(config.retorno_real_esperado, config.sigma_anual)
     anos, n, p_true, alguma_vez, patrimonios = _simular_caminhos(pv, fv, config, mu_log, sigma_log)
     if not anos:
         return None
-    percentis = _calcular_percentis(anos)
-    exibir, motivo = _gate_exibicao(pv / fv, percentis[1])
+    prob_horizonte = round(float(alguma_vez.mean()), 4)
+    percentis, censurados = _percentis_publicaveis(p_true, alguma_vez, prob_horizonte)
+    exibir, motivo = _gate_exibicao(pv / fv)
     horizonte = None if horizonte_meta is None else max(0, horizonte_meta)
-    prob = _prob_ate_meta(alguma_vez, p_true, horizonte, n)
-    return percentis, exibir, motivo, prob, patrimonios
+    prob_meta = _prob_ate_meta(alguma_vez, p_true, horizonte, n)
+    args = (percentis, censurados, exibir, motivo, prob_meta, prob_horizonte)
+    return _NucleoMC(*args, patrimonios)
 
 
 def _caminhos_kwargs(patrimonios: np.ndarray, ano_base: int, exibir: bool) -> dict:
@@ -232,24 +324,40 @@ def _caminhos_kwargs(patrimonios: np.ndarray, ano_base: int, exibir: bool) -> di
     return {"caminho_p10": cp[0], "caminho_p50": cp[1], "caminho_p90": cp[2]}
 
 
+def _censura_kwargs(core: _NucleoMC) -> dict:
+    """Flags de censura; falsas sem cone, senão o consumidor leria censura onde
+    não houve simulação."""
+    c10, c50, c90 = core.censurados if core.exibir else (False, False, False)
+    return {"p10_censurado": c10, "p50_censurado": c50, "p90_censurado": c90}
+
+
 def _build_mc_result(
-    core: tuple, config: IFMonteCarloConfig, ano_base: int, idade_meta_if: int | None
+    core: _NucleoMC, config: IFMonteCarloConfig, ano_base: int, idade_meta_if: int | None
 ) -> MonteCarloIFResult:
-    percentis, exibir, motivo, prob, patrimonios = core
-    p10, p50, p90 = _anos_if(percentis, ano_base, exibir)
+    p10, p50, p90 = _anos_if(core.percentis, ano_base, core.exibir)
     return MonteCarloIFResult(
         p10_ano_if=p10,
         p50_ano_if=p50,
         p90_ano_if=p90,
-        prob_if_ate_idade_meta=prob,
-        idade_meta_usada=idade_meta_if,
-        sigma_usado=config.sigma_anual,
-        exibir_cone=exibir,
-        aporte_mensal_usado=config.aporte_mensal,
-        motivo_sem_cone=motivo,
-        **_caminhos_kwargs(patrimonios, ano_base, exibir),
-        **_proveniencia(config),
+        prob_if_ate_idade_meta=core.prob_if_ate_idade_meta,
+        exibir_cone=core.exibir,
+        motivo_sem_cone=core.motivo,
+        prob_if_ate_horizonte=core.prob_if_ate_horizonte,
+        **_censura_kwargs(core),
+        **_caminhos_kwargs(core.patrimonios, ano_base, core.exibir),
+        **_campos_comuns(config, idade_meta_if),
     )
+
+
+def _resultado_degenerado(
+    pv: float, fv: float, idade_meta: int | None, config: IFMonteCarloConfig
+) -> MonteCarloIFResult | None:
+    """Casos em que simular não responde nada; ``None`` = simular normalmente."""
+    if fv <= 0 or pv < 0:
+        return _resultado_sem_cone("meta_if inválida ou patrimônio negativo", idade_meta, config)
+    if pv >= fv:
+        return _resultado_meta_atingida(idade_meta, config)
+    return None
 
 
 def run_monte_carlo_if(
@@ -263,12 +371,12 @@ def run_monte_carlo_if(
     # de domínio e monótono em patrimônio/aporte. `idade_meta_if=None`
     # (determinística sem prazo) suprime só prob/idade_meta — o cone independe.
     pv, fv = float(config.patrimonio_investivel), float(config.meta_if)
-    if fv <= 0 or pv < 0:
-        return _resultado_sem_cone("meta_if inválida ou patrimônio negativo", idade_meta_if, config)
-    horizonte_meta = None if idade_meta_if is None else idade_meta_if - idade_titular_atual
-    core = _mc_core(pv, fv, config, horizonte_meta)
+    degenerado = _resultado_degenerado(pv, fv, idade_meta_if, config)
+    if degenerado is not None:
+        return degenerado
+    horizonte = None if idade_meta_if is None else idade_meta_if - idade_titular_atual
+    core = _mc_core(pv, fv, config, horizonte)
     if core is None:
-        return _resultado_sem_cone(
-            "acumulação inicial — foco em consistência de aporte", idade_meta_if, config
-        )
+        motivo = "acumulação inicial — foco em consistência de aporte"
+        return _resultado_sem_cone(motivo, idade_meta_if, config)
     return _build_mc_result(core, config, ano_base, idade_meta_if)
