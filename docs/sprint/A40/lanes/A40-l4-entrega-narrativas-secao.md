@@ -4,7 +4,7 @@ type: lane
 title: "Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P0
 branch_slug: a40-l4-entrega-narrativas-secao
 adrs:
@@ -13,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/frontend
   - area/pipeline
@@ -111,6 +111,34 @@ afirmado**.
   divergência em `dev/golden_diff.py` no rebaseline é achado, não ruído de
   snapshot. Se um valor mover, pare: a narrativa está sendo gerada a partir de
   caminho diferente do que o card lê.
+
+## Fechamento (2026-07-31 · #1139 `6c5d9814`)
+
+**Entrega com gate por narrativa, não liga-tudo.** `s1`, `s7`, `s10` entregam
+(conferidos contra os cards da própria seção). `s4` entrega **sem contagem**
+(`n_imoveis_total`=6 vs `real_estate.imoveis`=4 na mesma seção). `s8` entrega
+**sem afirmar DAS** (o balde `das_simples` era 100% falso-positivo até o #1133,
+mergeado). `s9` segue gerado e o CV9 passa a saber que foi suprimido por empty
+state. `s2`, `s5`, `s6` são órfãs declaradas.
+
+**O `s3` foi desligado depois, em #1144** — afirmava diversificação contando
+`patrimonio.composicao` (baldes patrimoniais, um por membro) enquanto a tabela da
+S3 conta `investimentos.tabela_classes`: 3 vs 2. Conceito errado, não número
+errado; a decisão do que a abertura da S3 afirma sobre a carteira está na
+[[A40.l15]].
+
+**Critério de aceite NÃO cumprido:** a re-triagem bloqueante dos 7 achados
+inertes, contra output renderizado, **não rodou** — morreu por limite de gasto,
+junto com as duas lentes adversariais. A lane mergeou assim por decisão do dono.
+O que foi verificado: suítes (5544 pytest · 1464 vitest · tsc 0), as 106
+asserções das guardas novas, e a medição do KR-C com dois servidores e o mesmo
+payload (7 → 12 seções). O que **não** foi verificado: se algum texto entregue
+contradiz a própria seção além dos casos já desligados.
+
+**Defeitos de produção que a lane removeu, medidos:** PII (nome completo de
+adultos e de menor no card de perfil) · alíquota efetiva de 6% vinda de constante
+legada que se desmentia no próprio comentário, ~2× subestimada na direção que
+infla sobra · `or 5` publicando "5 categorias" quando são zero.
 
 ## Guarda anti-regressão
 
