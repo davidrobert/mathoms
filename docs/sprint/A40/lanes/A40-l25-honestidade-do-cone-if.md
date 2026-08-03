@@ -8,6 +8,7 @@ status: open
 priority: P1
 branch_slug: a40-l25-honestidade-do-cone-if
 adrs:
+  - "[[ADR-361]]"
   - "[[ADR-360]]"
   - "[[ADR-219]]"
   - "[[ADR-237]]"
@@ -27,14 +28,11 @@ tags:
 # A40.l25 — `honestidade-do-cone-if`
 
 > **Residual nomeado de duas ADRs, não achado novo.** O que sobra aqui é o que a
-> [[ADR-360]] §Deferimento item 1 e a `ADR-361` (PR #1162, aberta) §Deferimento
-> item 5 deixaram explicitamente aberto depois de fecharem determinismo (#1156),
+> [[ADR-360]] §Deferimento item 1 e a [[ADR-361]] (#1162) §Deferimento item 5
+> deixaram explicitamente aberto depois de fecharem determinismo (#1156),
 > sentinela de não-convergência (#1158) e censura de percentil (#1162). Sem lane,
 > o residual vive só em §Deferimento de ADR — invisível ao `SPRINT_CURRENT`,
 > portanto não pescável.
->
-> `ADR-361` fica sem wikilink até #1162 mergear (o gate `check_doc_links`
-> hard-falha em alvo inexistente) — religar o `[[…]]` é parte do merge dela.
 >
 > Entra na A40 por casar com a **KR-E** (honestidade da recomendação): as duas
 > faces são números que afirmam precisão ou procedência que não têm.
@@ -53,7 +51,7 @@ erro-padrão da proporção a `p ≈ 0,3` é ~0,21 pp. Hoje:
 - **Probabilidade sai em inteiro** (`_fmt_probabilidade` no Python,
   `formatProbability` no TS) — "31%" contra "cerca de 30%". Ninguém planeja
   diferente entre 31% e 33%; a diferença é entre prometer precisão inexistente e
-  comunicar magnitude. A `ADR-361` manteve o inteiro **de propósito**, porque
+  comunicar magnitude. A [[ADR-361]] manteve o inteiro **de propósito**, porque
   mudar exige paridade Python↔TS (§Deferimento item 5 dela).
 - **As séries do cone não estão declaradas fora do catálogo de citação.** Hoje
   elas não são citáveis por acidente (`_is_money_leaf` não casa lista de pares),
@@ -106,9 +104,9 @@ follow-up nunca aterrissou.
 
 - Determinismo do cone — fechado pela [[ADR-360]] (#1156).
 - Percentil censurado / truncamento de `int(np.percentile)` — fechados pela
-  `ADR-361` (#1162).
+  [[ADR-361]] (#1162).
 - Sentinela 999 em `idade_meta_usada` — fechada em #1158.
-- Aposentar de vez o ano do MC como manchete: a `ADR-361` já resolveu o caso
+- Aposentar de vez o ano do MC como manchete: a [[ADR-361]] já resolveu o caso
   em que o ano **não existe** (censura declarada). Reduzir o ano publicado a
   faixa quando ele existe é decisão editorial de S7 e depende de `product-designer`
   — não abre aqui sem brief.
