@@ -494,6 +494,22 @@ jobs:
     # cobrança é por minuto consumido, e job que passa consome o mesmo.
     # Por que a suíte dobrou desde maio (5-8min → 9-10min) é investigação
     # separada — este bump só para de reprovar PR por variância de runner.
+    #
+    # 2026-08-03 (#1160) — a "investigação separada" acima: feita, e os 20min
+    # ficam confirmados como o número certo. Medição em 56 jobs (mediana do
+    # job 6,33 → 7,88 → 9,81 → 9,93min de mai a ago) em ADR-210 §Adendo
+    # 2026-08-03. Veredito: é VOLUME, não regressão. 2192 → 3015 testes
+    # (+37,5%, 103 arquivos novos das sprints A34-A40), enquanto o custo por
+    # teste subiu só 9,6% (0,157 → 0,172 s/teste). Nada a otimizar: setup do
+    # job é ~30s de ~10min (o orçamento é o passo pytest), o packing dos 432
+    # arquivos em 4 workers dá desbalanço 1,00×, arquivo mais pesado 32s
+    # contra caminho crítico de 290s, teste mais lento 2,38s — sem hotspot
+    # para segregar e sem serialização para quebrar. Sharding/pytest-split
+    # fica rejeitado: ~550 disparos/mês × ~+2min faturados (piso de 1 min/job)
+    # ≈ +1.100 min/mês num orçamento já em 544% — ADR-210 §Custo (camada 4) e
+    # §Alternativas (B). PRÓXIMA VEZ: se a mediana passar de 12min (60% do
+    # teto), ler a tabela do `--durations=25` abaixo antes de mexer no número,
+    # e só bumpar se o crescimento for de volume, como foi aqui.
     timeout-minutes: 20
     needs: changes
     # backend/ importa pipeline/**; mudança em pipeline pode quebrar backend.
@@ -572,7 +588,13 @@ jobs:
             MARKER_FILTER=""
             echo "::notice::Migration paths tocados; rodando suíte completa (sem deselect)."
           fi
-          eval pytest backend/tests/ -q --tb=short -n auto --dist loadgroup $MARKER_FILTER
+          # `--durations=25` (#1160): custo zero em minutos e imprime no log o
+          # que a investigação do falso vermelho do #1157 teve de reconstruir
+          # rodando a suíte local + baixando log de maio. Sem ele, a próxima
+          # erosão do teto vira arqueologia de novo. É a fonte de medição
+          # citada no comentário do `timeout-minutes` deste job.
+          eval pytest backend/tests/ -q --tb=short -n auto --dist loadgroup \
+            --durations=25 $MARKER_FILTER
 
       - name: Upload coverage (artifact only on failure)
         # Coverage XML só interessa quando CI quebra — em verde, ninguém
