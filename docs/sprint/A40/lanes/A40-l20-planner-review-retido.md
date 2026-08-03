@@ -60,13 +60,24 @@ reprocessar) produz copy contraditória no mesmo card.
    qualidade.
 4. A API expõe uma **classe fechada de motivo** client-facing
    (ex.: `citacao_nao_confirmada` / `politica_de_conteudo` / `dado_insuficiente`).
-   **Nunca** `error_detail` cru — o valor real hoje é
-   `"valor monetário na prosa (severidade alta): risco:3"`, vocabulário de
-   operador que não pode chegar ao cliente.
+   **Nunca** `error_detail` cru — o valor real é
+   `"evidencia unverified (severidade alta): risco:3"`, vocabulário de operador
+   que não pode chegar ao cliente.
+   > Atualizado 2026-08-03 pela [[A40.l16]]: a forma anterior citada aqui
+   > (`"valor monetário na prosa (severidade alta): risco:3"`) **deixou de ser
+   > produzível** — `_LAYER_LABELS` foi deletado com a saída de `number_in_prose`
+   > de `_HARD_LAYERS`, e o reason volta ao `_DEFAULT_LABEL` para as 3 camadas
+   > hard restantes. O argumento não muda: o vocabulário continua de operador.
 5. Persistir a tupla estrutural `(item_type, index, layer, severidade)` no
    summary — hoje o `dropped` do `StrictDecision` perde a camada no caminho e só
    sobra `count`. **Sem prosa e sem valor monetário**, preservando o padrão
    PII-safe já declarado no stage.
+   > Delta da [[A40.l16]] (2026-08-03): `_parse_hard_violations` voltou a
+   > 2-tupla. Isso **não** remove capacidade desta lane — `dropped` nunca carregou
+   > o `layer` (era descartado antes do `return`, inclusive antes de #875); o que
+   > muda é que reintroduzir o 3º elemento no parse passa a ser parte do escopo
+   > desta decisão (~2 linhas), agora desacoplado de qualquer rótulo
+   > client-facing.
 
 ## Critério de aceite
 

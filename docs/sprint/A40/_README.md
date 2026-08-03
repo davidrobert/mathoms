@@ -95,12 +95,13 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 **Onda 0 — parar a sangria** ([[A40.l16]], [[A40.l17]]), aberta 2026-08-03 pelo
 incidente do run `2ded7aab`. **Precede a Onda 1 e não é negociável**, por um
 motivo estrutural e não de gravidade: a Onda 1 é "medir antes de mexer", e medir
-exige **run que completa**. Com 89% dos runs perdendo conselho e uma fração
-falhando, o baseline da l1 e a re-rodada de gate de toda onda posterior medem um
+exige **run que completa**. Com 87,5% dos runs afetados sob o prompt vigente 2.2.0
+e uma fração falhando, o baseline da l1 e a re-rodada de gate de toda onda posterior medem um
 pipeline que não entrega — e o §Gate de saída do dogfood de [[PLAN-report-trust]],
 que exige 2 re-runs completos consecutivos, **não pode nem iniciar o contador**.
-A l16 é XS (uma linha em `_HARD_LAYERS` + bump de versão de verificação) e
-independente. A l17 é cortável.
+A l16 é S (uma linha em `_HARD_LAYERS` + bump de versão de verificação + o
+saneamento de PII do caminho de exceção que o próprio critério de aceite dela
+exigia — ver [[A40.l16]] §Decisão 6) e independente. A l17 é cortável.
 
 **Onda 1 — medir antes de mexer** ([[A40.l1]], [[A40.l3]], [[A40.l4]], [[A40.l9]]).
 A l1 é instrumento: congela o baseline **sobre `origin/main`** antes de qualquer

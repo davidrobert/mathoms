@@ -152,33 +152,41 @@ def _run_prose(descricao: str, severidade: str = "Baixa", workspace_id: str = "w
 
 
 # -----------------------------------------------------------------------
-# KR1 A27 (ADR-304) — pureza monetária da prosa: enforcement na máquina ADR-295
+# Pureza monetária da prosa — telemetria, NÃO enforcement
+# (ADR-304 §Emenda 2026-08-03: budget monitorado da ADR-296 restaurado)
 # -----------------------------------------------------------------------
 
 
-class TestNumberInProseEnforcement:
+class TestNumberInProseEhTelemetria:
     @pytest.fixture(autouse=True)
     def _strict(self, monkeypatch):
         monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "strict")
 
-    def test_reais_digitado_baixa_severidade_item_cai(self):
+    def test_reais_digitado_baixa_severidade_publica_item(self):
+        """Mesmo em strict o item sobrevive: a âncora dele está verificada."""
         result, store = _run_prose("Reserva cobre fração pequena do essencial: R$ 12.345,67.")
-        assert result["success"] is True  # parecer publicado, item ofensor removido
+        assert result["success"] is True
         agg = result["evidencia_verification"]
-        assert agg["items_dropped"] == 1
-        assert agg["failures_by_layer"]["number_in_prose"] == 1
+        assert agg["items_dropped"] == 0
+        assert agg["failures_by_layer"]["number_in_prose"] == 1  # telemetria segue contando
         artifact = store.read("E6-parecer", "parecer_planejador")
-        assert artifact.get("riscos", []) == []
+        assert len(artifact["riscos"]) == 1
 
-    def test_valor_sem_prefixo_reais_tambem_cai(self):
-        """Detector da ADR-304 pega '720 mil reais' — mesma definição do eval KR1."""
+    def test_valor_sem_prefixo_reais_conta_sem_derrubar(self):
+        """Detector estendido (ADR-304 §1, mantida) pega '720 mil reais' — só conta."""
         result, _ = _run_prose("Renda tributável de 720 mil reais concentra o risco fiscal.")
-        assert result["evidencia_verification"]["items_dropped"] == 1
+        agg = result["evidencia_verification"]
+        assert agg["failures_by_layer"]["number_in_prose"] == 1
+        assert agg["items_dropped"] == 0
 
-    def test_severidade_alta_vira_needs_review_com_motivo_proprio(self):
-        result, _ = _run_prose("Descoberto de R$ 9.876,00 nas despesas.", severidade="Alta")
-        assert result["status"] == "needs_review"
-        assert result["reason"] == "valor monetário na prosa (severidade alta): risco:0"
+    def test_severidade_critica_nao_derruba_o_run(self):
+        """O run do incidente: item Crítica + R$ na prosa não vira needs_review."""
+        result, store = _run_prose("Descoberto de R$ 9.876,00 nas despesas.", severidade="Crítica")
+        assert result["success"] is True
+        assert result.get("status") != "needs_review"
+        assert (
+            store.read("E6-parecer", "parecer_planejador")["riscos"][0]["severidade"] == "Crítica"
+        )
 
     def test_entry_number_in_prose_auditavel_no_artifact(self):
         _, store = _run_prose("Aporte atual de R$ 2.000,00 mensais é insuficiente.")
@@ -200,7 +208,8 @@ class TestNumberInProseEnforcement:
         result, _ = _run_prose("Cobertura de 2,1 meses e 44,7% da renda, meta 25× até 2030.")
         assert result["evidencia_verification"]["failures_by_layer"]["number_in_prose"] == 0
 
-    def test_warn_explicito_so_telemetria(self, monkeypatch):
+    def test_warn_e_strict_sao_equivalentes_para_esta_camada(self, monkeypatch):
+        """Pós-reversão os dois modos coincidem aqui — é a definição de "telemetria"."""
         monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "warn")
         result, store = _run_prose("Gasto essencial de R$ 4.321,00 sem cobertura.")
         assert result["success"] is True
@@ -208,7 +217,7 @@ class TestNumberInProseEnforcement:
         assert agg["failures_by_layer"]["number_in_prose"] == 1
         assert agg["items_dropped"] == 0
         artifact = store.read("E6-parecer", "parecer_planejador")
-        assert len(artifact["riscos"]) == 1  # warn não remove
+        assert len(artifact["riscos"]) == 1
 
     def test_warning_dataclass_format_pii_safe(self):
         from backend.app.services.parecer_evidencia import NumberInProseWarning
@@ -432,11 +441,12 @@ class TestJsonPathRegexParity:
 
 
 class TestCacheKeyBump:
-    def test_verification_version_bumped_para_adr304(self):
-        """ "4": number_in_prose virou hard — cache pré-enforcement pode ter R$ na prosa."""
+    def test_verification_version_bumped_para_reversao_adr304(self):
+        """ "5": reversão de number_in_prose — cache sob ev4 guarda output MUTILADO
+        (itens dropados pelo enforcement) e o hit não repopula evidencia_summary."""
         from backend.app.services.parecer_evidencia import EVIDENCIA_VERIFICATION_VERSION
 
-        assert EVIDENCIA_VERIFICATION_VERSION == "4"
+        assert EVIDENCIA_VERIFICATION_VERSION == "5"
 
     def test_post_bump_key_differs_from_pre_f4_key(self):
         from backend.app.services.parecer_orchestrator import compute_cache_key

@@ -9,6 +9,8 @@ relates_to:
   - "[[ADR-296]]"
   - "[[ADR-295]]"
   - "[[ADR-081]]"
+  - "[[ADR-202]]"
+  - "[[ADR-204]]"
   - "[[ADR-357]]"
   - "[[ADR-358]]"
 supersedes: []
@@ -20,6 +22,7 @@ tags:
   - status/decidido
   - area/llm
   - phase/a27
+size_lines: 229
 ---
 
 # ADR-304 — KR1 do parecer: pureza monetária da prosa (fix de prompt + doutrina de enforcement)
@@ -31,12 +34,20 @@ citação), [[ADR-081]] (regex→LLM→needs_review).
 > **Emenda 2026-08-03 (incidente P0 do enforcement, [[A40.l16]]):** a §2
 > ("`==0` estrito é enforcement, não prompt") e a §3 (timing) estão
 > **revogadas**. A condição que a §3 impôs — *"validar contra tráfego real"* —
-> foi cumprida por acidente em 9 runs e **reprovou**: 8/9 perderam conselho
-> verificado, 1 derrubou o entregável. A §1 (fix de prompt, persona 1.1.0 ·
-> yaml 1.6 · detector `_REAIS_RE`) **permanece vigente e não é tocada**. A
-> política operativa de `number_in_prose` volta a ser a da [[ADR-296]]
-> §Re-eval holdout: **budget monitorado, não invariante `==0`**. Ver
-> §Emenda 2026-08-03 ao final.
+> foi cumprida por acidente e **reprovou**: sob o prompt vigente 2.2.0, 6 runs
+> apagaram 1–4 conselhos verificados (15 itens) e 1 derrubou o entregável inteiro
+> — 7 dos 8 runs da janela. A §1 (fix de prompt, persona 1.1.0 · yaml 1.6 · detector
+> `_REAIS_RE`) **permanece vigente e não é tocada**. A política operativa de
+> `number_in_prose` volta a ser a da [[ADR-296]] §Re-eval holdout: **budget
+> monitorado, não invariante `==0`**. Ver §Emenda 2026-08-03 ao final.
+
+> **Por que passa de 150 linhas (CLAUDE.md §ADRs) — sem split.** A emenda de
+> 2026-08-03 dobra o tamanho porque carrega a **tabela run-a-run que reprova a §3**.
+> Split é o caminho errado aqui: a §2/§3 revogadas e a evidência que as revoga só
+> significam algo lado a lado — separá-las recria exatamente o defeito que
+> originou o incidente, uma doutrina de enforcement legível sem o tráfego que a
+> reprova. Reavaliar quando a evidência migrar para dashboard consultável (então a
+> tabela sai e a nota volta para ~150).
 
 ## Contexto
 
@@ -119,23 +130,96 @@ pela qual esta é emenda e não supersedure.
 Aquele parágrafo havia rejeitado explicitamente os três remédios: *"Strip
 quebraria a prosa; drop perderia item bom"*.
 
-**Evidência que reprova a condição da §3** (9 runs consecutivos, `riscos_count`
-publicado = 12 − `items_dropped`, exato):
+**Evidência que reprova a condição da §3.** Janela completa em que o contador
+existiu — `pipeline_stage_logs.output_summary` →
+`evidencia_verification.failures_by_layer.number_in_prose`, o único instrumento
+persistido (19 runs do workspace de dogfood, 2026-07-10 → 07-31):
 
-| data | `number_in_prose` | itens apagados | riscos entregues |
-| --- | --- | --- | --- |
-| 2026-07-31 | 3 | — | **run `failed`, zero relatório** |
-| 2026-07-29 | 1 | 1 | 11 |
-| 2026-07-28 | 2 | 2 | 10 |
-| 2026-07-27 | 3 | 3 | 9 |
-| 2026-07-25 | 2 | 2 | 10 |
-| 2026-07-23 | 0 | 0 | 12 |
-| 2026-07-23 | 3 | 3 | 9 |
-| 2026-07-22 | 4 | 4 | 9 |
+| data | prompt | `number_in_prose` (itens) | itens apagados | riscos entregues |
+| --- | --- | --- | --- | --- |
+| 2026-07-31 | 2.2.0 | 3 | 0 | **run `failed`, zero relatório** |
+| 2026-07-29 | 2.2.0 | 1 | 1 | 11 |
+| 2026-07-28 | 2.2.0 | 2 | 2 | 10 |
+| 2026-07-27 | 2.2.0 | 3 | 3 | 9 |
+| 2026-07-25 | 2.2.0 | 2 | 2 | 10 |
+| 2026-07-23 | 2.2.0 | 0 | 0 | 12 |
+| 2026-07-23 | 2.2.0 | 3 | 3 | 9 |
+| 2026-07-22 | 2.2.0 | 4 | 4 | 9 |
+| 2026-07-20 | 2.1.0 | 1 | 1 | 9 |
+| 07-18 … 07-10 (10 runs) | 2.1.0 | 0 | 0 | 9–10 |
 
-89% dos runs afetados contra os 4,2% projetados no holdout. Em todos,
-`evidencia_failed: 0` — as citações estavam corretas; o único defeito era **por
-onde** o número entrou na frase.
+**Duas perdas de natureza distinta, não uma:** runs que **apagaram** 1–4 conselhos
+vs. 1 run que **destruiu o entregável** (escalou para `needs_review`,
+`items_dropped: 0`). São KRs diferentes — não somar.
+
+**Cada par de números pertence a uma janela; trocá-las é o erro fácil.** Agregação
+das mesmas 19 linhas acima, por `prompt_version`:
+
+| janela | runs | com `number_in_prose > 0` | taxa | runs que apagaram | itens apagados |
+| --- | --- | --- | --- | --- | --- |
+| prompt **2.2.0** (gerador vigente) | 8 | 7 | **87,5%** | **6** | **15** |
+| prompt 2.1.0 | 11 | 1 | 9,1% | 1 | 1 |
+| janela inteira do contador | 19 | 8 | 42,1% | **7** | **16** |
+
+Contra os 4,2% projetados no holdout, o que reprova é o **87,5%** — a taxa do
+gerador vigente. E **7 runs / 16 itens só valem para a janela inteira**: o 7º run
+que apaga e o 16º item são de 2026-07-20, sob **2.1.0**. Sob 2.2.0 são **6 / 15**
+(o 7º run afetado de 2.2.0 é o de 07-31, que escalou em vez de apagar). Versão
+anterior desta emenda atribuía 7/16 a 2.2.0 — errado.
+
+<!-- Derivação (só contadores, zero PII):
+  SELECT json_extract(output_summary,'$.evidencia_verification.prompt_version') AS prompt,
+         COUNT(*), SUM(nip>0), SUM(dropped>0), SUM(dropped)
+  FROM pipeline_stage_logs WHERE stage='review_finances_holistic'
+    AND json_extract(output_summary,'$.evidencia_verification.failures_by_layer.number_in_prose')
+        IS NOT NULL
+  GROUP BY prompt;   -- nip/dropped = os dois json_extract correspondentes -->
+
+**Cuidado ao reler este contador (o instrumento não cobre todo run).** A chave
+`failures_by_layer.number_in_prose` só existe quando a verificação de evidência
+**roda** — 2 dos 7 caminhos de retorno de `generate_parecer` (sucesso e
+`needs_review` por evidência). Cache hit, LLM indisponível, falha de chamada, red
+line e sigilo §13 não produzem `evidencia_summary`, logo não produzem a chave.
+"Chave ausente" lê-se **não medido**, nunca `0`; as medianas acima são sobre os 19
+runs que a emitiram (todos com `cache_hit: 0`). Detalhe em [[A40.l16]].
+
+Em todos os 19, `evidencia_failed: 0`. Isso prova que **toda âncora presente
+resolveu certo** — não que todo número tenha âncora atrás: item com `ancoras: []`
+não gera entry (fail-open, **RV2-10**).
+
+**A identidade `riscos_count = 12 − items_dropped` é falsa** (afirmada em versão
+anterior desta emenda como "exato"): quebra em 2 dos 7 runs que apagaram (janela
+inteira) — em 2026-07-22 porque `items_dropped` conta itens de **qualquer** tipo (riscos *e*
+sugestões), e em 2026-07-20 porque **12 não é constante do gerador**, é o cap ≤12
+da [[ADR-202]] §D5, atingido rotineiramente só sob 2.2.0. Consequência para o
+KR-1 da §Frente 4 de [[PLAN-report-trust]]: "emitidos" tem de vir de
+`publicados + items_dropped + riscos_truncados`, **nunca** da constante 12.
+
+**A causa raiz é uma regressão de gerador, não o enforcement** — e sem nomeá-la a
+próxima medição parece defeito endêmico. O enforcement mergeou em 2026-07-08
+(#875) e ficou **dormente por 11 runs** (1/11, mediana 0, densidade de âncoras
+mediana 9). Em 2026-07-21 o #1004 (exec context do manifest 2.0 — eviction por
+seção, blocos densos) bumpou `PROMPT_VERSION` 2.1.0→2.2.0. A partir daí: 7/8
+afetados, densidade de âncoras mediana **9 → 5**, tokens monetários na prosa
+mediana **0 → 3,5**. O `model_id` não mudou na janela. É experimento natural entre
+versões e **confirma** a tese §Não é o fim da pureza de prosa (abaixo): número na
+prosa é *sintoma* de âncora ausente. O enforcement foi o amplificador; o gatilho
+segue aberto.
+
+**Budget declarado, medido, com unidade explícita** ([[ADR-358]] §Decisão 2 — o
+que se declara é a distribuição, não o ideal):
+
+| grandeza | baseline (mediana, n=8, prompt 2.2.0) |
+| --- | --- |
+| itens ofensores/parecer (`failures_by_layer.number_in_prose`) | **2,5** |
+| tokens monetários/parecer (`money_tokens_total`) | **3,5** |
+| densidade de âncoras/parecer (`ancoras_total`) | **5** |
+
+Gate = *"não piora vs. este baseline, por `prompt_version`, janela ≥8 runs"*.
+**Cuidado de unidade** ([[ADR-358]] §3): `failures_by_layer.number_in_prose` conta
+**itens**; o eval publica `money_tokens_total` (**tokens**) sob o mesmo nome
+`number_in_prose`. A "mediana 0" da [[ADR-296]] é meta do **gerador** e vira lane
+própria (exec context + RV2-10) — não é gate desta camada.
 
 **A evidência de §1 estava inflada na fonte** — registro necessário para que
 ninguém re-derive a mesma decisão do mesmo número. O "61→7" foi medido por um
@@ -153,3 +237,20 @@ medido em corpus de eval. A prevenção durável está em [[ADR-358]].
 do incidente tinha densidade 6 contra mediana 11–14) + cobertura do catálogo de
 citação. Número na prosa é *sintoma* de âncora ausente; o guardrail agia na
 variável errada.
+
+**O baseline do eval ficou stale, e a §Decisão 4 da [[A40.l16]] se apoia numa
+premissa parcial.** "O eval mede o gerador, que está intacto" vale para a reversão
+(ela não toca o gerador), mas o gerador **mudou** em 2026-07-21. Logo
+`test_number_in_prose_within_budget` (mediana `== 0`) e o piso
+`_DENSITY_FLOOR = 5` foram calibrados contra 2.1.0 e provavelmente reprovariam
+hoje — a densidade real sob 2.2.0 é exatamente 5, isto é, passa raspando. Não se
+re-roda aqui (US$ 26, owner-gated); a re-medição fica registrada em
+[`OWNER-GATED-active`](../_MOC/OWNER-GATED-active.md) §2, como manda a [[ADR-358]]
+§Corolário.
+
+**O que esta emenda NÃO desfaz.** Os pareceres já entregues seguem truncados: o
+artifact em `pipeline_artifacts` é imutável ([[ADR-204]]) e o `PlannerReview` o lê
+como fonte de verdade, então a retenção passada continua **não declarada** até
+[[A40.l20]]/[[A40.l22]]. As `Suggestion` que nunca nasceram não retroagem ao Inbox
+de `/acao`. O bump de `EVIDENCIA_VERIFICATION_VERSION` impede que o cache **sirva**
+a mutilação de novo; não repara a já entregue.
