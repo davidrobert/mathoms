@@ -21,6 +21,16 @@ class StageExecuteRequest(BaseModel):
     config_dir: Optional[str] = None
     incremental: bool = False
     incremental_doc_paths: list[str] = Field(default_factory=list)
+    skip_llm: bool = Field(
+        default=False,
+        description=(
+            "Run sem LLM: suprime chamada LLM condicional dentro do stage "
+            "(classificação E0, section summaries) — ADR-355. O filtro de stages "
+            "`is_llm` é do chamador; aqui o stage já foi escolhido. Default `false` "
+            "(≠ do `RunStartRequest`, que assume run determinístico) preserva o "
+            "comportamento de chamador que não envia o campo."
+        ),
+    )
     base_run_id: Optional[str] = Field(
         default=None,
         description="Run base para fallback run-pinado em from_stage (ADR-291/ADR-303)",

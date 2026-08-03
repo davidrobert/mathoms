@@ -90,6 +90,7 @@ def build_hydrated_request_context(req):
             config_dir=Path(req.config_dir) if req.config_dir else None,
             incremental=req.incremental,
             incremental_doc_paths=list(req.incremental_doc_paths),
+            skip_llm=req.skip_llm,
             materialize_tarefas=True,
         )
     except Exception as exc:
