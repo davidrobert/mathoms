@@ -29,7 +29,13 @@ Schedule failure abre Issue label `security` (job `open-issue-on-schedule-failur
 | Vuln | Onde | Tipo | SLO | Issue |
 |---|---|---|---|---|
 | `PYSEC-2025-183` | `PyJWT` (weak encryption, **DISPUTADA** pelo PyPA — key length é responsabilidade da app, não bug de código) | `pip-audit ignore-vulns` inline | Permanente — mitigado em runtime: `MATHOMS_SECRET_KEY` (32 bytes) via `scripts/gen-secrets.sh --init-env`; PyJWT 2.12.1+ emite `InsecureKeyLengthWarning` em runtime. Reavaliar se upstream publicar patch. | n/a (disputada) |
-| `GHSA-qx2v-qp2m-jg93` | `postcss` XSS via stringify, nested em `node_modules/next/node_modules/postcss@8.4.31` | aceito como moderate — não trip `--audit-level=high`. `npm audit fix --force` exigiria downgrade de next para 9.3.3 (breaking inaceitável). | MEDIUM best-effort — aguarda upstream next bundling postcss>=8.5.10 | [#354](https://github.com/davidrobert/mathoms/issues/354) |
+
+Resolvidas em 2026-08-03 (PRs de bump de deps de segurança — Python + frontend):
+
+- ✅ `GHSA-qx2v-qp2m-jg93` + `GHSA-r28c-9q8g-f849` + `GHSA-fxqj-rqcc-2cmp` (`postcss`) → **fecha [#354](https://github.com/davidrobert/mathoms/issues/354)**. O diferimento assumia "permanece moderate, não trip HIGH+"; as duas advisories de path-traversal via `sourceMappingURL` escalaram para **HIGH** e passaram a tripar o gate. Resolvido por floor `postcss>=8.5.23` em `frontend/package.json` (devDependency) — o override `"postcss": "$postcss"` propaga o floor pra árvore de prod do `next`. Nota: bumpar só o `next` **não** resolveria, porque o override puxa a versão da raiz de volta.
+- ✅ 9 advisories HIGH de `next` (bypass de middleware/proxy, DoS em Server Actions, SSRF, cache confusion, disclosure de Server Function endpoints) → bump `next` 16.2.10 → 16.3.0 (primeira fora do range vulnerável `9.3.4-canary.0 – 16.3.0-preview.10`).
+- ✅ `GHSA-f88m-g3jw-g9cj` (`sharp` < 0.35.0, CVEs herdadas do libvips) → `sharp` 0.35.3, puxada pela `optionalDependencies` do `next@16.3.0`.
+- ✅ 13 `PYSEC-2026-*` (`pillow` 12.2.0) + `CVE-2026-59881` (`aiohttp` 3.14.1) → `pip-compile -P` (ambas transitivas, sem import direto), lock recompilado. Mesma classe da [[ADR-299]].
 
 Resolvidas em 2026-05-20 (PRs [#356](https://github.com/davidrobert/mathoms/pull/356) + [#357](https://github.com/davidrobert/mathoms/pull/357)):
 

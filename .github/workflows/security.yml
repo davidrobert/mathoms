@@ -211,8 +211,15 @@ jobs:
 
   # npm-audit-prod é gate blocking (HIGH+). Vulns deferidas exigem
   # `overrides` no package.json com justificativa + Issue de tracking
-  # (runbook §"Ignorar CVE em npm audit"). Postcss nested em next
-  # permanece moderate via #354 mas não trip o threshold HIGH+.
+  # (runbook §"Ignorar CVE em npm audit").
+  #
+  # O diferimento de postcss (#354) FECHOU: as advisories novas
+  # (GHSA-r28c-9q8g-f849 / GHSA-fxqj-rqcc-2cmp) escalaram para HIGH e
+  # passaram a tripar o threshold — "permanece moderate" deixou de valer.
+  # postcss é devDependency, mas o override `"postcss": "$postcss"` a
+  # promove pra árvore de prod do next, então o floor do `.in` de dev é
+  # que governa o que o gate vê: bumpar só o next NÃO resolve (o override
+  # puxaria a versão da raiz de volta pra baixo). Ver runbook §Diferimentos.
   npm-audit-prod:
     name: npm audit (prod deps)
     runs-on: ubuntu-latest
