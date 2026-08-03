@@ -53,7 +53,7 @@ burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
 usuário, e viraria carimbo.
 
-## Lanes (27)
+## Lanes (29)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -86,6 +86,7 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l24]] | Asserção "0 LLM" do gate F2 passa a medir no boundary do SDK | P1 | — | promovida da [[A41]] · [[ADR-355]] · [[PLAN-go-shell]] |
 | [[A40.l25]] | Honestidade do cone de IF: precisão de exibição + `sigma` como premissa auditada | P1 | — | residual de [[ADR-360]] §Def. 1 + `ADR-361` §Def. 5 · KR-E |
 | [[A40.l26]] | Cobertura do solver de prazo IF (aporte 0 com retorno > 0 converge) | P2 | — | [[ADR-360]] §Def. 6-7, abertos *pelo* #1158 · co-design `financial-planner` |
+| [[A40.l27]] | Órfão de dispatch: varredura de beat, `cancel` de `resuming`, read path de `failure_reason` | P1 | l19 | residual de **[[ADR-359]]** §Def. 1-3 · #1154 |
 | [[A40.l28]] | Idade-meta do cone é output do modelo + rótulo `p10`/`p90` aponta para dois lados | P1 | — | `ADR-361` §Def. 1-2 · contrato, sem brief · KR-E |
 | [[A40.l29]] | Editorial do ano de IF: dois anos concorrentes, eixo em "quando", faixa sem componente | P2 | — | `ADR-361` §Def. 4/6/7 + RV3-14 · **começa por brief de `product-designer`** · KR-E |
 
@@ -220,7 +221,6 @@ Três lanes da Onda 1 estão em `main`, entregues **antes** da Onda 0 existir
 | [[A40.l1]] | `92a91884` (#1118) | 261 colisões cross-grupo · Σ 81.288.000 cents · baseline congelado off-git · 8 ratchets provados por mutação |
 | [[A40.l3]] | `b12aff30` (#1124) | `janela_12m` passa de 0 consumidores a leitura por seletor único; rótulo impresso (tooltip não sai no PDF) |
 | [[A40.l4]] | `6c5d9814` (#1139) | precedência de 3 fontes declarada ([[ADR-356]]); 7 → 12 seções entregando parágrafo |
-| [[A40.l27]] | Órfão de dispatch: varredura de beat, `cancel` de `resuming`, read path de `failure_reason` | P1 | l19 | residual de **[[ADR-359]]** §Def. 1-3 · #1154 |
 
 
 **A precedência da Onda 0 sobre a Onda 1 é real, e não retroage sobre o baseline
@@ -296,7 +296,7 @@ confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
 
 ## Pendências de decisão (2026-08-03)
 
-Nove perguntas de **higiene interna desta sprint**. Deliberadamente **não** entram
+Doze perguntas de **higiene interna desta sprint**. Deliberadamente **não** entram
 em [[OWNER-GATED]]: aquele registro é de gates estratégicos entre planos
 (licença, flip de cutover, LGPD), e misturar higiene de sprint diluiria o sinal
 dele. Cada item traz o que foi **medido** sobre `origin/main` (`a1e70223`) e
@@ -326,9 +326,10 @@ A prosa afirma que sim em **3 lugares** (`_README` linha da l20 na tabela de lan
 `_README` §Ondas ordem interna · [[A40.l20]] blockquote de abertura, e um 4º em
 [[PLAN-report-trust]]), sempre na forma "depende da *decisão*, não do *merge*". O
 frontmatter da l20 declara `depends_on: ["[[A40.l18]]"]`, que é a única relação de
-dependência do schema — `parallel_with` existe e é usado por 2 das 25 ([[A40.l24]] →
-[[TRACK-f2-cutover]] e [[A40.l25]] → [[A40.l11]]), mas não expressa "depende da
-decisão". Qual das duas leituras
+dependência do schema — `parallel_with` existe e é usado por 6 das 29 ([[A40.l24]] →
+[[TRACK-f2-cutover]], [[A40.l25]] → [[A40.l11]], [[A40.l26]] e [[A40.l28]] →
+[[A40.l25]], [[A40.l27]] → [[A40.l21]], [[A40.l29]] → [[A40.l25]]+[[A40.l28]]),
+mas não expressa "depende da decisão". Qual das duas leituras
 vale para quem pega a lane: a prosa ou o frontmatter?
 
 **3. A tabela de evidência da emenda da [[ADR-304]] tem 8 linhas — o denominador 9 é
@@ -518,15 +519,29 @@ monetários em prosa subindo de 0 para 3,5. Ou seja: a l16 remove o **amplificad
 a **causa** é o gerador ter passado a digitar número em vez de ancorá-lo. Sem lane,
 a Onda 0 fecha com o sintoma tratado e a causa viva.
 
-## Pendências de decisão — item 10 (2026-08-03)
+## Pendências de decisão — itens 11-12 (2026-08-03)
 
-**10. Os 7 follow-ups sem destino viram lane nesta sprint, ou disposição explícita
+**11. Os 7 follow-ups sem destino viram lane nesta sprint, ou disposição explícita
 de não-fazer?** São os marcados "sem lane" na tabela acima. A decisão de
 2026-08-03 foi "nada sai da A40" — mas ela cobria o escopo então existente, não
 follow-up gerado depois pela execução. Cada um tem custo e dono diferentes: a
 regressão do gerador exige eval (o de US$ 26 mede o gerador e não foi re-rodado);
 os quatro da [[A40.l4]] são de superfície; o da [[ADR-306]] são 6 blocos de rótulo.
 Deixá-los sem destino é a única opção que não é decisão — é esquecimento.
+
+**12. Autorreferência em `depends_on`/`parallel_with` vira gate, ou fica no olho
+do revisor?** A [[A40.l27]] entrou em `main` declarando `depends_on: [[A40.l27]]`
+e `parallel_with: [[A40.l27]]` — um find-replace de renumeração trocou os
+wikilinks `[[A40.l19]]`/`[[A40.l21]]` pelo próprio id, deixando a prosa "l19"/"l21"
+intacta em texto plano. **Nenhum gate pegou**: `check_doc_links` só pergunta se o
+alvo resolve (resolve — é a própria nota), `validate_frontmatter` valida o schema
+(a lista é de strings válidas), e o corpo continuou coerente porque a prosa não
+usa wikilink. O efeito é pior que um link quebrado: **reescreve o grafo de
+dependências em silêncio** e some do `depends_on` de quem deveria constar. Custo
+do gate: ~10 linhas em `dev/validate_frontmatter.py` (266 linhas, tem folga —
+`check_doc_links.py` está em 498/500 e estouraria o P2). Não há caso legítimo de
+nota depender de si mesma. Absorver na [[A40.l23]], que já é a lane de gate de
+referência de doc, ou lane própria?
 
 ## Fora do sprint (disposição explícita)
 
@@ -633,7 +648,7 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 
 Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
 não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
-27 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
+29 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
 que ela **não** é superseded), as abertas por §Entregas fora de lane e as
 emendadas por §Infra de CI tocada durante a sprint.
 
