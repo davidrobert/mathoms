@@ -162,13 +162,14 @@ pickup** — não sobre "alguém pegou", não sobre "a onda abriu".
   demanda**, na ordem declarada em §Ondas — não por onda inteira.
 - **`in_progress`** ⇔ branch/PR aberta. **`shipped`/`cancelled`** ⇔ terminal.
 
-**Verdito aplicado** (medido no frontmatter das 29 lanes em `3f2c26de`):
+**Verdito aplicado** (medido no frontmatter das 29 lanes em `33bb0710`, via
+`yaml.safe_load` — regex de `depends_on` erra a forma inline):
 
 | classe | n | lanes | veredito |
 |---|---|---|---|
-| terminal | 4 | l1, l3, l4, l24 | coerente |
+| terminal | 5 | l1, l3, l4, l16, l24 | coerente |
 | `open`, deps terminais | 1 | l2 | coerente |
-| `open`, sem `depends_on` | 10 | l9, l16, l17, l19, l21, l23, l25, l26, l28, l29 | coerente |
+| `open`, sem `depends_on` | 9 | l9, l17, l19, l21, l23, l25, l26, l28, l29 | coerente |
 | `open`, dep pendente **com** amarra parcial | 1 | l27 | **coerente** pela 2ª cláusula — a amarra está escrita na lane (entrega itens 2–5, declara o item 1 não-entregue) |
 | `planned`, dep pendente | 2 | l6, l10 | coerente |
 | `planned`, liberação pendente | 8 | l5, l7, l8, l11, l12, l13, l14, l15 | coerente sob liberação por-lane |
@@ -409,8 +410,8 @@ confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
 
 ## Pendências de decisão (2026-08-03)
 
-Doze perguntas de **higiene interna desta sprint** — **3 resolvidas** em
-2026-08-03 (nº 1, nº 7 e, em parte, nº 11), **9 abertas**. Deliberadamente **não** entram
+Doze perguntas de **higiene interna desta sprint** — **2 resolvidas** em
+2026-08-03 (nº 1 e nº 7), **10 abertas**. Deliberadamente **não** entram
 em [[OWNER-GATED]]: aquele registro é de gates estratégicos entre planos
 (licença, flip de cutover, LGPD), e misturar higiene de sprint diluiria o sinal
 dele. Cada item traz o que foi **medido** sobre `origin/main` (`a1e70223`) e
@@ -622,14 +623,14 @@ item que tem só descrição evapora no fim da sprint.
 | `s3` — o que a abertura da S3 afirma sobre a carteira | [[A40.l15]] | **lane** |
 | Predicado de carrier 1 largo demais (par conta/poupança do mesmo banco colide) | [[A40.l2]] §Residual | **lane** |
 | Assimetria `banco` vs `tipo_conta` na partição | [[A40.l2]] §Residual | **lane** |
-| Re-medir o balde `das_simples` pós-`69a2fad4` e reintroduzir o DAS no `s8` | [[A40.l4]] §Residual | **sem lane** → Pendência 10 |
-| `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l4]] §Residual | **sem lane** → Pendência 10 |
-| PD-20 — meta de TRS não é configurável (`trs_meta_pct` nunca lido) | [[A40.l4]] §Residual | **sem lane** → Pendência 10 |
-| Sufixo de changelog ([[ADR-148]]) não renderiza em seção nenhuma | [[A40.l4]] §Residual | **sem lane** → Pendência 10 |
-| **Regressão de contexto do gerador** (bump 2.1.0→2.2.0, #1004) | descrita em [[A40.l16]] e no plano | **sem lane** → Pendência 10 |
+| Re-medir o balde `das_simples` pós-`69a2fad4` e reintroduzir o DAS no `s8` | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
+| `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
+| PD-20 — meta de TRS não é configurável (`trs_meta_pct` nunca lido) | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
+| Sufixo de changelog ([[ADR-148]]) não renderiza em seção nenhuma | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
+| **Regressão de contexto do gerador** (bump 2.1.0→2.2.0, #1004) | descrita em [[A40.l16]] e no plano | **sem lane** → Pendência 11 |
 | **Pontos cegos do `dev/check_pipeline_log_pii.py`** | *nada* | ver §Fora do sprint |
 | **`banco` vazio em 20 grupos `extrato`** | *nada* | ver §Fora do sprint |
-| Obrigação de rótulo da [[ADR-306]] cumprida em 2 de 8 blocos com chave `janela` | [[A40.l3]] §Handoff | **sem lane** → Pendência 10 |
+| Obrigação de rótulo da [[ADR-306]] cumprida em 2 de 8 blocos com chave `janela` | [[A40.l3]] §Handoff | **sem lane** → Pendência 11 |
 
 **A regressão do gerador é a de maior consequência da lista.** A [[A40.l16]] mede
 que o enforcement ficou dormente sob o prompt 2.1.0 (9,1% em 11 runs) e saltou a
@@ -640,8 +641,16 @@ a Onda 0 fecha com o sintoma tratado e a causa viva.
 
 ## Pendências de decisão — itens 11-12 (2026-08-03)
 
-**11. Os 7 follow-ups sem destino viram lane nesta sprint, ou disposição explícita
-de não-fazer?** São os marcados "sem lane" na tabela acima. A decisão de
+**11. Os 6 follow-ups sem destino viram lane nesta sprint, ou disposição explícita
+de não-fazer?** São os marcados "sem lane" na tabela acima.
+
+> **Denominador corrigido, 2026-08-03.** Esta pergunta dizia "7 follow-ups": a
+> tabela tem **6** linhas "sem lane" e o corpo desta própria pergunta enumera 6
+> (4 da [[A40.l4]] + 1 da [[ADR-306]] + a regressão do gerador). As 2 linhas
+> "ver §Fora do sprint" **têm** destino — disposição explícita de não-fazer — então
+> não entram na conta. As 6 linhas da tabela também apontavam para a "Pendência
+> 10", que é sobre a [[A40.l27]] ir para a [[A41]]; o ponteiro correto sempre foi
+> esta, a 11. A decisão de
 2026-08-03 foi "nada sai da A40" — mas ela cobria o escopo então existente, não
 follow-up gerado depois pela execução. Cada um tem custo e dono diferentes: a
 regressão do gerador exige eval (o de US$ 26 mede o gerador e não foi re-rodado);
