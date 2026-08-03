@@ -455,10 +455,20 @@ parser Caixa". O gate falhou como ela avisou que falharia.
    fora do escopo do `skip_llm`. Igualar o env dos dois braços é pré-condição do Tier-2 —
    e igualar **não** substitui [[A41.l3]]: sem o gate de política, igualar por cima só
    troca "divergem" por "os dois gastam LLM no Tier-1".
-4. **O gate mede a camada errada** — [[A40.l24]] (`open`, P1, `parallel_with` este track)
-   existe para isso. Com asserção no boundary do SDK `anthropic`, este run teria falhado
-   alto ("chamada LLM num run 0-LLM") em vez de render um artefato extra misterioso e
-   ~2 h de investigação. É o próximo passo executável mais barato.
+4. **O gate media a camada errada** — mitigado em #1151 (mesmo dia): `_assert_llm_free`
+   passou a ler `requires_llm_fallback` do **payload** do E2, não só `stage LIKE '%llm%'`.
+   Paliativo consciente: pega **escalação**, não **chamada bem-sucedida** — a extração de
+   visão que funciona não deixa flag algum, então um corpus onde só a Caixa dispara ainda
+   passaria. A asserção honesta ("0 chamada") só fecha no boundary do SDK `anthropic` ou
+   roteando o call-site pelo choke-point instrumentado — [[A40.l24]] + [[A41.l2]]/[[A41.l3]].
+5. **Consequência imediata de #1151: o corpus de dogfood deixa de servir ao Tier-1 como
+   está.** Com a asserção nova, cada run aborta com `GateError` — há 18–19 docs com
+   `requires_llm_fallback` (medido nos runs de 03/08: 19 no braço Python, 18 no Go). Isto
+   **contradiz** a conclusão "não é preciso fixture sintética" da pré-condição 2. Saída:
+   ou as 18–19 escalações passam a ser servidas (exige LLM → é Tier-2, não Tier-1), ou a
+   fixture curada volta ao escopo, ou a asserção separa "escalou e ninguém serviu"
+   (simétrico nos dois braços, inofensivo à paridade) de "chamou LLM" (assimétrico, é o
+   bug). A terceira é a mais barata e a que preserva a intenção original do gate.
 
 ### C. Defeito metodológico do harness — corrigido
 
@@ -474,7 +484,7 @@ confundida. Sem isso, todo achado exigiria o experimento manual acima.
 | A1 — comparador `dev/go_parity_gate.py` | ✅ #900 |
 | A2 — captura de eventos WS | ✅ #919 |
 | A3 — orquestrador + `make go-parity` | ✅ #1136 |
-| Pré-condição 2 (0-LLM) | ⚠️ **operacionalização errada** — a asserção conta artefato de stage `%llm%` e não vê chamada de visão bem-sucedida ([[A40.l24]]); o Tier-1 de 03/08 gastou 1 chamada LLM por braço Go (§B.1) |
+| Pré-condição 2 (0-LLM) | ⚠️ **conclusão caiu** — o Tier-1 de 03/08 gastou 1 chamada LLM por braço Go, invisível à asserção antiga (§B.1). #1151 endureceu a asserção; com ela o corpus real **não passa** (18–19 escalações), logo "não é preciso fixture sintética" precisa ser re-decidido (§B.3 item 5) |
 | A4 — Tier-2 (WS via `psubscribe` pré-dispatch) | ✅ #1137 — orquestração pronta; **execução é owner-run** (custo LLM) |
 | Doc — RUNBOOK §11 + template do ledger de soak | ✅ #1137 |
 | Job CI `go-parity-deterministic` | ⛔ **deferido** (§Decisão 2026-07-31) |
@@ -488,8 +498,8 @@ confundida. Sem isso, todo achado exigiria o experimento manual acima.
    do Go; o gate só o expôs.
 2. ✅ **Divergência `caixa` — explicada** (§B.1/B.2, 2026-08-03). Não é bug de executor: é
    [[ADR-355]] 3ª superfície ([[A41.l3]]) exposta por assimetria de env entre os dois
-   braços. Substituída por três itens concretos (§B.3): declarar no gate humano que o flip
-   religa a chamada de visão sem gate; igualar o env dos braços antes do Tier-2; rodar
-   [[A40.l24]] para o gate parar de medir a camada errada.
+   braços. Substituída por itens concretos (§B.3): declarar no gate humano que o flip
+   religa a chamada de visão sem gate; igualar o env dos braços antes do Tier-2; resolver
+   o que fazer com as 18–19 escalações não-servidas, que pós-#1151 abortam o Tier-1.
 3. Depois disso: re-rodar Tier-1 (agora intercalado) → Tier-2 (custa LLM) → gate humano →
    flip → soak com o ledger do RUNBOOK §11.3.
