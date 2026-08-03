@@ -340,6 +340,7 @@
 | ADR-342 | adr | Decidido |  | Gate anti-silêncio no E2: escalação de extração vazia/parcial com contrato de read-path | `adr/342-gate-anti-silencio-e2-read-path.md` |
 | ADR-343 | adr | Decidido |  | Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico | `adr/343-estado-duravel-pipeline-review.md` |
 | ADR-344 | adr | Decidido |  | Piso de materialidade no gate de conservação: roteamento sobre o caminho não-certificado (transitório) | `adr/344-piso-materialidade-conservacao-nao-certificada.md` |
+| ADR-345 | adr | Roadmap |  | Propagação do taint E2→E5 e selo de qualidade no read-path — adoção deferida | `adr/345-selo-de-qualidade-no-read-path-deferido.md` |
 | ADR-346 | adr | Decidido |  | Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador | `adr/346-identidade-posicao-renda-variavel.md` |
 | ADR-347 | adr | Proposto |  | Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão) | `adr/347-ledger-conservacao-contagem-e3.md` |
 | ADR-348 | adr | Decidido |  | Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group | `adr/348-classificacao-llm-determinismo-temp0.md` |
@@ -834,6 +835,7 @@
 | A40.l20 | lane | open | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
 | A40.l21 | lane | open | A40 | Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha | `sprint/A40/lanes/A40-l21-leitores-tolerantes-partial-failure.md` |
 | A40.l22 | lane | open | A40 | Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF | `sprint/A40/lanes/A40-l22-superficie-de-degradacao.md` |
+| A40.l23 | lane | open | A40 | Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível | `sprint/A40/lanes/A40-l23-gate-ref-adr-em-prosa.md` |
 | A40.l3 | lane | open | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l4 | lane | open | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | planned | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
