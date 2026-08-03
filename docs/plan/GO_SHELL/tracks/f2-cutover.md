@@ -493,9 +493,14 @@ confundida. Sem isso, todo achado exigiria o experimento manual acima.
 
 **Bloqueios do flip após a 1ª execução real (2026-08-03):**
 
-1. ⛔ **Seed do Monte Carlo de IF** — sem isso o Tier-1 nunca fecha byte-exact, porque o
-   controle Py↔Py suja sozinho. É débito de produto (reprodutibilidade do relatório), não
-   do Go; o gate só o expôs.
+1. ✅ **Seed do Monte Carlo de IF — fechado** ([[ADR-360]], 2026-08-03). Era débito de
+   produto (reprodutibilidade do relatório), não do Go; o gate só o expôs. O seed passou a
+   ser constante de modelo versionada (`_MC_SEED`) com guard de fail-fast contra
+   `seed=None`, `n_simulacoes` 10k→50k, e proveniência (`mc_version`/`seed_usado`/
+   `n_simulacoes_usado`) no artefato. Seed derivado do input foi **rejeitado** por quebrar
+   monotonicidade em patrimônio/aporte e atribuibilidade de golden diff — ver
+   [[ADR-360]] §Alternativas. Falta **re-rodar o Tier-1** para confirmar 0 diff residual no
+   controle Py↔Py sem allowlist para o cone.
 2. ✅ **Divergência `caixa` — explicada** (§B.1/B.2, 2026-08-03). Não é bug de executor: é
    [[ADR-355]] 3ª superfície ([[A41.l3]]) exposta por assimetria de env entre os dois
    braços. Substituída por itens concretos (§B.3): declarar no gate humano que o flip
