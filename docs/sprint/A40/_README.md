@@ -75,6 +75,13 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l13]] | Copy e design system | P3 | l4 | RV3-23, RV3-24, RV3-25 |
 | [[A40.l14]] | Limpeza de órfãos e schema morto | P3 | — | RV3-32 + handoff A39 |
 | [[A40.l15]] | Consumo Consciente: KPI de pontuais na base da janela (+3 co-changes E5) + base do texto do donut e do chart mês a mês | P2 | l3 | spun off da l3 (mudança de domínio; exige rebaseline de snapshot) |
+| [[A40.l16]] | Desescalar `number_in_prose`: defeito de forma para de apagar conselho e de derrubar o run | **P0** | — | incidente `2ded7aab` · emenda **[[ADR-304]]** + **[[ADR-358]]** |
+| [[A40.l17]] | Custo e cache no caminho `needs_review` do parecer | P1 | — | incidente `2ded7aab` |
+| [[A40.l18]] | Criticidade de stage: add-on advisory não veta o entregável | **P0** | l21 | incidente `2ded7aab` · **[[ADR-357]]** |
+| [[A40.l19]] | Migration do drift de enum de status (4 valores) | P1 + gate de deploy | — | **[[ADR-357]]** §7 |
+| [[A40.l20]] | `PlannerReview` representa gerado-e-retido (destrava a UI) | **P0** | l18 (**decisão**, não merge) | emenda provável **[[ADR-204]]** |
+| [[A40.l21]] | Leitores tolerantes a `partial_failure` (reader-first) | **P0** | — | **[[ADR-357]]** §Consequências |
+| [[A40.l22]] | Superfície de degradação no relatório + PDF | P1 | l20 | fatia premium da F11.5 |
 
 ## Ondas
 
@@ -88,6 +95,32 @@ RV3-07** e porque é reincidência de um "FIXADO" falso.
 [[A40.l8]], [[A40.l12]]). A l2 só abre depois da l1: sem detector, o fix fecha
 verde sem prova. A l5 vem **antes** das lanes de correção individual de contrato —
 senão cada uma é fixada uma vez e volta a divergir.
+
+**Onda 4 — degradação honesta** ([[A40.l16]]…[[A40.l22]]), aberta 2026-08-03 pelo
+incidente do run `2ded7aab`. É a §Frente 4 de [[PLAN-report-trust]] — leia lá a
+tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2. Três regras de
+ordenação que **não** são estéticas:
+
+- **[[A40.l16]] shipa sozinha e primeiro.** Domina estritamente o status quo
+  (hoje itens caem invisíveis **e errados**; pós-l16 só quando legitimamente
+  retidos). Bloquear um fix de 1 linha atrás de uma onda de 5 superfícies
+  transformaria correção do dia em correção de duas semanas.
+- **[[A40.l21]] antes de [[A40.l18]]** (reader-first). Shipar o writer primeiro
+  entrega um run que produziu relatório com banner vermelho de falha e botão de
+  reprocessar — pior que hoje.
+- **[[A40.l20]] depende da *decisão* da [[A40.l18]]**, não do merge.
+
+**Precedência de corte:** nunca cortar [[A40.l16]] nem [[A40.l18]]. Cortáveis, em
+ordem: [[A40.l17]], marcador em `/reports` (já fora), dead-letter (já fora por
+gatilho).
+
+**Decisões do dono ainda abertas** (não assumidas por esta entrada): (a) quais
+lanes P2/P3 saem da A40 para caber a onda 4 — candidatas [[A40.l10]],
+[[A40.l11]], [[A40.l13]], [[A40.l14]]; (b) se `items_dropped > 0` entra como 6ª
+classe do §Gate de saída do dogfood de [[PLAN-report-trust]] ou fica
+explicitamente fora. Note que [[A40.l22]] toca as mesmas superfícies de
+[[A40.l11]] e [[A40.l13]] — pelo critério de agrupamento desta sprint
+("arquivo compartilhado"), a l22 vai primeiro e as outras rebaseiam.
 
 **Onda 3 — o que depende das anteriores** ([[A40.l6]], [[A40.l10]], [[A40.l11]],
 [[A40.l13]], [[A40.l14]]).

@@ -11,6 +11,7 @@ relates_to:
   - "[[ADR-292]]"
   - "[[ADR-295]]"
   - "[[ADR-293]]"
+  - "[[ADR-304]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 296", "citação determinística", "render value from path"]
@@ -163,3 +164,10 @@ de gate baseados em evidência empírica (mesma força da redefinição da [[A26
   `value_mismatch` estruturalmente impossível). Strip quebraria a prosa; drop perderia
   item bom — então é **budget monitorado** (mediana 0 = maioria limpa), não invariante
   `==0`. Resíduo registrado para re-medir em eval futura.
+
+> **Contrariada e restaurada (2026-08-03):** a [[ADR-304]] §2 estabeleceu a
+> doutrina oposta (`==0` estrito via enforcement) sem supersedure declarada, e o
+> enforcement embarcado no PR #875 derrubou 1 run completo e apagou conselho
+> verificado em 8 de 9 runs. A [[ADR-304]] §Emenda 2026-08-03 revoga a §2 e
+> restaura este parágrafo como política operativa. **Não é emenda desta nota** —
+> nada aqui mudou.
