@@ -11,6 +11,10 @@ relates_to:
   - "[[ADR-173]]"
   - "[[ADR-303]]"
   - "[[ADR-329]]"
+  - "[[A41.l1]]"
+  - "[[A41.l2]]"
+  - "[[A41.l3]]"
+  - "[[A41.l4]]"
 tags:
   - type/adr
   - status/decidido
@@ -84,21 +88,32 @@ Fechado agora: E0 + narrativas + as 5 camadas de propagação (contexto,
 `BuildArgs`) + orquestrador puro (`run_stages`/`run_pipeline`, usado por testes e
 `dev/`).
 
-Deferido, com motivo:
+Deferido, com motivo (organizado na [[A41]] em 2026-08-03):
 
-1. **Caixa E2.** `parser_fn(file_path, filename)` é contrato uniforme de ~10
-   módulos em `scripts/e2/banks/`; threading exige mudar todos. Lane própria —
-   **não** resolver com global nem contextvar ([[ADR-111]]).
-2. **Rotear E0 + caixa pelo choke-point.** É o buraco maior: sem hard-stop de
-   budget ([[ADR-173]]), sem `LLMCallLog`, sem cache ([[ADR-307]]), sem métricas
-   ([[ADR-110]]), sem sanitização de prompt-injection ([[ADR-175]]) — e o caixa
-   manda PDF financeiro inteiro em base64 para a API. Depois disso, o
-   choke-point vira *enforcement* e o contexto segue sendo *política*.
+1. **Caixa E2** — [[A41.l3]]. `parser_fn(file_path, filename)` é contrato
+   uniforme de ~10 módulos em `scripts/e2/banks/`; threading exige mudar todos.
+   **Não** resolver com global nem contextvar ([[ADR-111]]). A lane reabre o
+   enquadramento: `extract_with_llm` já é o caminho gated e a Caixa é o único
+   banco que o atalha, então o fix pode ser deletar o call-site em vez de
+   propagar o contexto.
+2. **Rotear E0 + caixa pelo choke-point** — [[A41.l2]] (E0) e [[A41.l3]]
+   (caixa). É o buraco maior: sem hard-stop de budget ([[ADR-173]]), sem
+   `LLMCallLog`, sem cache ([[ADR-307]]), sem métricas ([[ADR-110]]), sem
+   sanitização de prompt-injection ([[ADR-175]]) — e o caixa manda PDF
+   financeiro inteiro em base64 para a API. Depois disso, o choke-point vira
+   *enforcement* e o contexto segue sendo *política*. O gate que fecha a rota
+   alternativa é [[A41.l4]].
 3. **Free tier.** Hoje `tier == "free"` pula stages `is_llm` mas o E0 continua
    gastando. Ligar `llm_calls_allowed=False` para free é decisão de produto
    (gate: `gtm-strategist` + `product-manager`), com regressão real de qualidade
    — não viaja sob título de bugfix. O contador `llm_classified` deste PR mede
-   exatamente quantos documentos por run só rotearam graças ao LLM.
+   exatamente quantos documentos por run só rotearam graças ao LLM. Registrado
+   como decisão pendente em [[A41]], **não** como lane: o número não é
+   mensurável com validade sobre um corpus premium curado.
+
+Achado colateral desta implementação, organizado em [[A41.l1]]: a asserção
+"0 LLM" do gate F2 conta artefato de stage `%llm%` e não vê chamada de visão
+bem-sucedida.
 
 Não bloqueia a F2 do GO_SHELL: o gate (`dev/go_parity_run.py`, #1136) contorna
 o E0 exigindo **inbox vazio** como pré-condição — sem documento para classificar,
