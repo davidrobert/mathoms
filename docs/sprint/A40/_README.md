@@ -132,7 +132,12 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 evita merge-hell"), a l22 vai primeiro e as duas rebaseiam sobre ela.
 
 **Onda 4 — o que depende das anteriores** ([[A40.l6]], [[A40.l10]], [[A40.l11]],
-[[A40.l13]], [[A40.l14]], [[A40.l23]]).
+[[A40.l13]], [[A40.l14]], [[A40.l15]], [[A40.l23]]). A l15 entra aqui — estava na
+tabela e fora das ondas desde que nasceu (spun off da l3, 2026-07-31): depende da
+l3 (shipada), é P2, e toca as mesmas superfícies de relatório que l11/l13, logo
+rebaseia sobre a [[A40.l22]] pela mesma regra de arquivo-compartilhado. **Mover é
+decisão do dono** — coloquei onde o critério declarado da sprint a coloca, não por
+preferência.
 
 **Precedência de corte:** nunca cortar [[A40.l16]] nem [[A40.l18]]. Cortáveis, em
 ordem: [[A40.l17]], marcador em `/reports` (já fora de escopo), dead-letter (já
@@ -144,6 +149,32 @@ apontou que a severidade desta rodada não é insumo confiável de sequenciament
 7 `CONFIRMADO` são confiáveis, os **37 `PARCIAL` carregam inflação desconhecida**
 (débito de método #3 da própria r3 — zero refutado em 36 clusters). A ordem aqui é
 por **"alcança o usuário na configuração atual"**, e começa pelo que foi **medido**.
+
+## Estado da Onda 1 (2026-08-03) — o que shipou e o que a Onda 0 não invalida
+
+Três lanes da Onda 1 estão em `main`, entregues **antes** da Onda 0 existir
+(ela nasceu em 2026-08-03, do incidente `2ded7aab`):
+
+| Lane | Commit | O que ficou medido |
+|---|---|---|
+| [[A40.l1]] | `92a91884` (#1118) | 261 colisões cross-grupo · Σ 81.288.000 cents · baseline congelado off-git · 8 ratchets provados por mutação |
+| [[A40.l3]] | `b12aff30` (#1124) | `janela_12m` passa de 0 consumidores a leitura por seletor único; rótulo impresso (tooltip não sai no PDF) |
+| [[A40.l4]] | `6c5d9814` (#1139) | precedência de 3 fontes declarada ([[ADR-356]]); 7 → 12 seções entregando parágrafo |
+
+**A precedência da Onda 0 sobre a Onda 1 é real, e não retroage sobre o baseline
+da l1.** O argumento da Onda 0 é que medir exige run que completa. Isso vale para
+todo gate que dependa de **run com parecer** — inclusive o §Gate de saída do
+dogfood de [[PLAN-report-trust]], que não pode iniciar o contador de 2 re-runs
+consecutivos antes da [[A40.l16]]. Mas a medição da l1 é
+`dev/certify_ledger_local.py`, que é **read-only, sem Celery e sem LLM**: re-deriva
+E3+E4 in-process sobre o E2 persistido. O caminho que o incidente quebrou (parecer
+→ `needs_review` → `success: False` → zero linha em `reports`) **não participa**
+dessa medição. As 261 seguem válidas como baseline de KR-B.
+
+O que **não** foi cumprido nas três: a re-triagem bloqueante da l4 (os 7 achados
+inertes verificados contra output renderizado) morreu por limite de gasto e a lane
+mergeou sem ela. O risco ficou delimitado — s4 entrega sem contagem, s8 sem DAS,
+s9 suprimido, e o `s3` foi desligado depois (#1144) — mas não verificado.
 
 ## Decisões do painel (correções incorporadas)
 
