@@ -1,23 +1,32 @@
-"""Contrato de "0 LLM" do Tier-1 (A40.l24 · [[ADR-355]]) — medir e impedir.
+"""Contrato de credencial LLM dos dois braços do gate (A40.l24 · [[ADR-355]]).
 
 Extraído de ``go_parity_run.py`` quando ele passou de 500 linhas (P2).
 
-O Tier-1 garante 0-LLM **impedindo** a chamada (credencial apagada dos dois
-braços, ``LLM_FREE=1`` no Makefile) em vez de detectá-la depois. Detecção
-pós-hoc é estruturalmente incompleta hoje: ``scripts/e2/banks/caixa.py`` e
-``scripts/route_documents.py`` montam o SDK ``anthropic`` direto de
+O que os dois tiers exigem é a **mesma** coisa por caminhos opostos: os dois
+braços com o mesmo estado de credencial. O Tier-1 garante 0-LLM **impedindo** a
+chamada (credencial apagada dos dois, ``LLM_FREE=1`` no Makefile) em vez de
+detectá-la depois; o Tier-2 é run full e precisa da credencial **nos dois**.
+Assimetria em qualquer direção faz o mesmo documento parsear diferente e a
+divergência vira falso bug de executor.
+
+Detecção pós-hoc é estruturalmente incompleta hoje: ``scripts/e2/banks/caixa.py``
+e ``scripts/route_documents.py`` montam o SDK ``anthropic`` direto de
 ``os.environ`` e nunca aparecem em ``llm_call_log``. Fechar essa rota é a A41.l4.
 """
 
 from __future__ import annotations
 
+import os
 import sqlite3
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from dev.go_parity_errors import GateError
 
 if TYPE_CHECKING:
     from dev.go_parity_run import Arm
+
+_REPO = Path(__file__).resolve().parents[1]
 
 # Espelha `LLM_FREE_MARKER` no Makefile. O gate verifica que o scrub REALMENTE
 # rodou em vez de confiar que passar `LLM_FREE=1` basta: se alguém quebrar o
@@ -79,6 +88,52 @@ def assert_llm_free(con: sqlite3.Connection, run_id: str, arm: "Arm", tier: str)
             f"pegou — confira o marcador `{LLM_FREE_MARKER}` na saída do make."
         )
     return calls + escalated
+
+
+def _shell_declares_credential() -> bool:
+    """Env do processo do harness — é o que `make dev-worker-up` vai herdar."""
+    return bool(os.environ.get("ANTHROPIC_API_KEY", "").strip())
+
+
+def _dotenv_declares_credential(env_file: Path) -> bool:
+    """Só presença, nunca o valor: o `.env` alimenta o shell Go, não o worker."""
+    if not env_file.exists():
+        return False
+    for line in env_file.read_text().splitlines():
+        if line.startswith("ANTHROPIC_API_KEY="):
+            return bool(line.partition("=")[2].strip().strip("\"'"))
+    return False
+
+
+def assert_credential_symmetry(tier: str, *, env_file: Path | None = None) -> None:
+    """Tier-2 exige a credencial nos DOIS braços — `.env` sozinho alimenta só o Go."""
+    # Espelho do scrub do Tier-1: lá a simetria vem de apagar dos dois; aqui, de ter
+    # nos dois. `_go-on-native` lê ANTHROPIC_API_KEY do `.env` e injeta no shell Go,
+    # que a repassa a cada subprocess (`os.Environ()`); `dev-worker-up` só herda o env
+    # do shell. `.env` com key + shell sem = Go com credencial e Python sem, que é a
+    # divergência de 2026-08-03 (mesmo artifact_key, 2986 vs 1002 bytes). Falha ANTES
+    # de gastar run: o Tier-2 custa LLM, e descobrir depois é pagar duas vezes.
+    if tier != "tier2" or _shell_declares_credential():
+        return
+    raise GateError(_credential_gap_message(env_file or _REPO / ".env"))
+
+
+def _credential_gap_message(env_file: Path) -> str:
+    """Diagnóstico distinto: key só no `.env` (assimétrica) vs. ausente em todo lugar."""
+    if _dotenv_declares_credential(env_file):
+        return (
+            "Tier-2 com credencial ASSIMÉTRICA: `ANTHROPIC_API_KEY` está no `.env` "
+            "(que o `_go-on-native` injeta no shell Go) mas NÃO no env deste shell "
+            "(que é o que o `dev-worker-up` herda).\n"
+            "   O braço Go faria chamada de LLM que o braço Python não faz, e o diff "
+            "apareceria como bug de executor.\n"
+            "   Exporte a chave no shell antes do gate: `export ANTHROPIC_API_KEY=…`"
+        )
+    return (
+        "Tier-2 sem `ANTHROPIC_API_KEY` no env: o run full não exercita LLM algum, "
+        "então o tier não mede o que promete (envelope WS + subtrees LLM).\n"
+        "   Exporte a chave no shell, ou rode `--tier tier1`."
+    )
 
 
 def assert_scrub_applied(arm: "Arm", make_output: str) -> None:
