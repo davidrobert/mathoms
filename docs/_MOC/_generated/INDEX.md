@@ -846,6 +846,8 @@
 | A40.l28 | lane | open | A40 | Idade-meta do cone é output do modelo, não pergunta da família — e o rótulo do percentil aponta para dois lados | `sprint/A40/lanes/A40-l28-idade-meta-e-rotulo-do-cone.md` |
 | A40.l29 | lane | open | A40 | Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente | `sprint/A40/lanes/A40-l29-editorial-do-ano-de-if.md` |
 | A40.l3 | lane | shipped | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
+| A40.l30 | lane | open | A40 | Ancorabilidade do exec context: o invariante que o #1004 furou sem nenhum teste vermelho | `sprint/A40/lanes/A40-l30-ancorabilidade-do-exec-context.md` |
+| A40.l31 | lane | planned | A40 | Gerador ancora em vez de digitar: correção guiada pelo mecanismo, com o eval como gate de saída | `sprint/A40/lanes/A40-l31-gerador-ancora-em-vez-de-digitar.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | planned | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |

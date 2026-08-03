@@ -82,7 +82,7 @@ tripwire, não para forçar corte.
 > antes dela o run não completava. Daí duas semanas de janela de gate. A cadência
 > histórica **não** foi usada como base e contradiz esse número: medido no flip de
 > `sprint_status: done` das últimas 5 sprints fechadas, o span foi de 0 a 2 dias
-> (A35 0 · A33 1 · A38 1 · A37 2), contra 24 lanes ainda abertas aqui. Usar a
+> (A35 0 · A33 1 · A38 1 · A37 2), contra 26 lanes ainda abertas aqui. Usar a
 > cadência daria data indefensável; usar o gate dá uma verificável. **Sobrescrever
 > é uma linha no frontmatter** — a decisão do dono foi a *forma* (gate + data), não
 > este valor.
@@ -99,7 +99,7 @@ separada do dono, 2026-08-03, e mantida) nem transforma a data em critério de
 corte. Lane que atravessar a data segue na sprint; o que a data governa é o
 tripwire.
 
-## Lanes (30)
+## Lanes (31)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -135,6 +135,8 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l27]] | Órfão de dispatch: varredura de beat, `cancel` de `resuming`, read path de `failure_reason` | P1 | l19 | residual de **[[ADR-359]]** §Def. 1-3 · #1154 |
 | [[A40.l28]] | Idade-meta do cone é output do modelo + rótulo `p10`/`p90` aponta para dois lados | P1 | — | [[ADR-361]] §Def. 1-2 · contrato, sem brief · KR-E |
 | [[A40.l29]] | Editorial do ano de IF: dois anos concorrentes, eixo em "quando", faixa sem componente | P2 | — | [[ADR-361]] §Def. 4/6/7 + RV3-14 · **começa por brief de `product-designer`** · KR-E |
+| [[A40.l30]] | Ancorabilidade do exec context: o invariante que o #1004 furou sem teste vermelho | P1 | — | causa viva pós-[[A40.l16]] · **instrumento, US$ 0** · gateia a [[A40.l8]] · co-design `prompt-engineer` |
+| [[A40.l31]] | Gerador ancora em vez de digitar: correção guiada pelo mecanismo | P2 | l30 | par da l30 · **gasta** (re-eval ~US$ 26, owner-gated) · `planned` |
 
 ## Predicado do campo `status` de lane (decisão do dono, 2026-08-03)
 
@@ -175,6 +177,11 @@ pickup** — não sobre "alguém pegou", não sobre "a onda abriu".
 | `planned`, liberação pendente | 8 | l5, l7, l8, l11, l12, l13, l14, l15 | coerente sob liberação por-lane |
 | `open`, dep pendente **sem** amarra | 2 | **l18, l22** | **incoerente → `blocked`** |
 | `open`, dep pendente, relação contestada | 1 | l20 | **retida** — ver abaixo |
+
+A [[A40.l30]] e a [[A40.l31]], abertas depois desta medição, nascem conformes:
+l30 `open` sem `depends_on`; l31 `planned` com dep pendente (`l30`) — coerente nos
+dois eixos, e é o primeiro caso da sprint em que `planned` foi escolhido **pelo
+predicado**, não por herança de nascimento.
 
 **O que mudou de fato: duas lanes.** [[A40.l18]] (dep [[A40.l21]] `open`) e
 [[A40.l22]] (dep [[A40.l20]] `open`) passam a `blocked`. Nenhuma decisão nova —
@@ -227,6 +234,17 @@ RV3-07** e porque é reincidência de um "FIXADO" falso.
 [[A40.l8]], [[A40.l12]]). A l2 só abre depois da l1: sem detector, o fix fecha
 verde sem prova. A l5 vem **antes** das lanes de correção individual de contrato —
 senão cada uma é fixada uma vez e volta a divergir.
+
+**[[A40.l30]] entra como instrumento que gateia esta onda** (aberta 2026-08-03,
+co-design `prompt-engineer`). Não é Onda 0 — a Onda 0 é "parar a sangria" e sua
+não-negociabilidade era *"medir exige run que completa"*, o que a [[A40.l16]] já
+entregou. Não flutua livre como l25-l29, porque tem **consumidor datado dentro da
+Onda 2**: a [[A40.l8]] projeta `context_section` no corpo orçado, que é
+exatamente a mutação que passou verde em #1004 sem nenhum teste vermelho. Amarra:
+**a l8 não mergeia sem o item 2 da l30** — mesmo precedente
+instrumento-antes-de-mutação que esta seção já declara para l1 → l2. A
+[[A40.l31]] (o fix, que gasta) fica **fora das ondas** e `planned`, atrás do
+diagnóstico da l30.
 
 **Onda 3 — degradação honesta** (na ordem reader-first que esta seção declara:
 [[A40.l21]], [[A40.l18]], [[A40.l19]], [[A40.l20]], [[A40.l22]]). Fecha a classe que o
@@ -410,8 +428,8 @@ confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
 
 ## Pendências de decisão (2026-08-03)
 
-Doze perguntas de **higiene interna desta sprint** — **2 resolvidas** em
-2026-08-03 (nº 1 e nº 7), **10 abertas**. Deliberadamente **não** entram
+Doze perguntas de **higiene interna desta sprint** — **3 resolvidas** em
+2026-08-03 (nº 1, nº 7 e, em parte, nº 11), **9 abertas**. Deliberadamente **não** entram
 em [[OWNER-GATED]]: aquele registro é de gates estratégicos entre planos
 (licença, flip de cutover, LGPD), e misturar higiene de sprint diluiria o sinal
 dele. Cada item traz o que foi **medido** sobre `origin/main` (`a1e70223`) e
@@ -627,26 +645,43 @@ item que tem só descrição evapora no fim da sprint.
 | `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
 | PD-20 — meta de TRS não é configurável (`trs_meta_pct` nunca lido) | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
 | Sufixo de changelog ([[ADR-148]]) não renderiza em seção nenhuma | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
-| **Regressão de contexto do gerador** (bump 2.1.0→2.2.0, #1004) | descrita em [[A40.l16]] e no plano | **sem lane** → Pendência 11 |
+| ~~Regressão de contexto do gerador~~ → **ancorabilidade do exec context** (#1004) | [[A40.l30]] (instrumento) + [[A40.l31]] (fix) | **lane** |
 | **Pontos cegos do `dev/check_pipeline_log_pii.py`** | *nada* | ver §Fora do sprint |
 | **`banco` vazio em 20 grupos `extrato`** | *nada* | ver §Fora do sprint |
 | Obrigação de rótulo da [[ADR-306]] cumprida em 2 de 8 blocos com chave `janela` | [[A40.l3]] §Handoff | **sem lane** → Pendência 11 |
 
-**A regressão do gerador é a de maior consequência da lista.** A [[A40.l16]] mede
-que o enforcement ficou dormente sob o prompt 2.1.0 (9,1% em 11 runs) e saltou a
-87,5% em 8 runs sob 2.2.0, com densidade de âncoras caindo de 9 para 5 e tokens
-monetários em prosa subindo de 0 para 3,5. Ou seja: a l16 remove o **amplificador**;
-a **causa** é o gerador ter passado a digitar número em vez de ancorá-lo. Sem lane,
-a Onda 0 fecha com o sintoma tratado e a causa viva.
+**Era a de maior consequência da lista, e agora tem lane — com o nome corrigido.**
+A [[A40.l16]] mede que o enforcement ficou dormente sob o prompt 2.1.0 (9,1% em 11
+runs) e saltou a 87,5% em 8 runs sob 2.2.0, com densidade de âncoras caindo de 9
+para 5 e tokens monetários em prosa subindo de 0 para 3,5. A l16 remove o
+**amplificador**; a causa segue viva.
+
+**Mas não é "regressão do gerador"** — co-design `prompt-engineer`, 2026-08-03. O
+diff de #1004 (`85860f79`) em `pipeline/llm/prompts/parecer_planejador.py` são **14
+linhas**, e são só a regra de recovery de eviction mais o bump de versão: nenhuma
+regra de ancoragem mudou, a persona não foi tocada. O que mudou foi o **input** —
+`parecer_distiller.py` levou 158 linhas no mesmo commit ([[ADR-341]] D1-D4).
+Medido in-process sem LLM: os tokens `R$` que o modelo **vê** no corpo dobraram
+(9,0 → 18,0) e o conjunto **ancorável** ficou igual (29 folhas, cap 30). O nome
+antigo convidava a reescrever persona e a não medir nada.
+
+Roteado em **duas** lanes, com corte em **US$ 0 | US$ 26**: [[A40.l30]] é
+instrumento (denominador, invariante de ancorabilidade, re-medição retroativa dos
+19 runs — tudo sem geração nova) e [[A40.l31]] é o fix, que gasta e fica atrás do
+diagnóstico. Lane única ficaria infechável, não por misturar medir com mudar, mas
+por **depender de sessão do dono no meio**.
 
 ## Pendências de decisão — itens 11-12 (2026-08-03)
 
-**11. Os 6 follow-ups sem destino viram lane nesta sprint, ou disposição explícita
-de não-fazer?** São os marcados "sem lane" na tabela acima.
+**11. Os follow-ups sem destino viram lane nesta sprint, ou disposição explícita
+de não-fazer?** — 🟡 **PARCIAL 2026-08-03:** a ancorabilidade do exec context
+(ex-"regressão do gerador") virou [[A40.l30]] + [[A40.l31]]; **restam 5**. São os
+marcados "sem lane" na tabela acima.
 
 > **Denominador corrigido, 2026-08-03.** Esta pergunta dizia "7 follow-ups": a
-> tabela tem **6** linhas "sem lane" e o corpo desta própria pergunta enumera 6
-> (4 da [[A40.l4]] + 1 da [[ADR-306]] + a regressão do gerador). As 2 linhas
+> tabela tinha **6** linhas "sem lane" — hoje **5**, com a ancorabilidade do exec
+> context roteada para a [[A40.l30]] — e o corpo desta própria pergunta enumerava 6
+> (4 da [[A40.l4]] + 1 da [[ADR-306]] + o ex-"gerador"). As 2 linhas
 > "ver §Fora do sprint" **têm** destino — disposição explícita de não-fazer — então
 > não entram na conta. As 6 linhas da tabela também apontavam para a "Pendência
 > 10", que é sobre a [[A40.l27]] ir para a [[A41]]; o ponteiro correto sempre foi
@@ -744,6 +779,12 @@ não competem por capacidade, mas ficariam órfãos):
 
 ## Achado novo do painel (fora dos 33)
 
+> **Terceiro botão que mente, mesma classe, achado no co-design da [[A40.l30]]
+> (2026-08-03):** `narrative_hints_global` em `config/prompts/parecer_planejador.yaml`
+> é **config morta** — `ManifestData` não tem o campo e `load_manifest` não lê a
+> chave; as regras chegam ao modelo pela persona e pelo `_CATALOG_INSTRUCTION`.
+> Não é defeito vivo, é botão sem fio. Entra nesta mesma lane, mesmo owner.
+
 `max_total_input_tokens` e `max_tool_iterations` no manifest do parecer são **teto
 declarativo**: parseados e nunca enforçados. Qualquer raciocínio de custo/latência
 apoiado neles é infundado — o único teto vivo é `max_exec_context_bytes`. Manter um
@@ -776,7 +817,7 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 
 Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
 não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
-29 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
+31 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
 que ela **não** é superseded), as abertas por §Entregas fora de lane e as
 emendadas por §Infra de CI tocada durante a sprint.
 
@@ -787,7 +828,9 @@ emendadas por §Infra de CI tocada durante a sprint.
 | [[ADR-351]] | `Proposto` · flip na [[A40.l12]] | [[A40.l12]] | Retorno de principal não é renda recorrente |
 | [[ADR-353]] | `Proposto` · flip na [[A40.l11]] | [[A40.l11]] | Confiança do diagnóstico — **bloqueado** até o campo-portador ter consumidor |
 | [[ADR-357]] | `Proposto` · flip no merge da [[A40.l18]] | [[A40.l18]], [[A40.l19]], [[A40.l20]], [[A40.l21]] | Criticidade de stage e degradação do run — add-on advisory não veta o entregável. **A mais carregada da sprint: 4 lanes** |
-| [[ADR-358]] | `Proposto` | [[A40.l16]] | Enforcement em produção exige budget de produção — e KR no plano onde ele age |
+| [[ADR-358]] | `Proposto` | [[A40.l16]], [[A40.l30]], [[A40.l31]] | Enforcement em produção exige budget de produção — e KR no plano onde ele age. A l30 fecha os defeitos **nº 2** (gate medido num plano, aplicado em outro — `_DENSITY_FLOOR`) e **nº 3** (detector inspeciona 3 campos dos 8+) que a ADR nomeia |
+| **[[ADR-341]]** | `Decidido` (A37.l1) · a [[A40.l30]] **estende**, não reabre | [[A40.l30]], [[A40.l31]] | Contrato do exec context do parecer. D1-D4 são exatamente o que #1004 mudou (cap 8192→16384, 6→10 seções, hints fora do corpo) — e o que dobrou a superfície monetária que o modelo vê sem ampliar a ancorável |
+| [[ADR-296]] | `Decidido` (A26.l9) | [[A40.l30]], [[A40.l31]] | Citação determinística: LLM emite `(claim, path, rótulo)` e o pipeline renderiza o valor. É a ADR cuja densidade mediana **11** foi medida no holdout sintético — o número que **não** deve ser confundido com o `5` do dogfood |
 | [[ADR-356]] | `Proposto` | [[A40.l4]] (`shipped`) | Precedência declarada do parágrafo de seção e CV9 como medida de entrega. **Flip pendente** — ver §Pendências de decisão nº 5 |
 | [[ADR-355]] | `Decidido` | [[A40.l24]] | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages |
 | **[[ADR-360]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1156) · residual em [[A40.l25]] e [[A40.l26]] | Seed do cone Monte Carlo é constante de modelo versionada, não entropia do SO. Rejeita seed derivado do input por quebrar monotonicidade em patrimônio/aporte |
