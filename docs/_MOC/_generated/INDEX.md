@@ -830,7 +830,7 @@
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
 | A40.l15 | lane | planned | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
-| A40.l16 | lane | open | A40 | Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run | `sprint/A40/lanes/A40-l16-desescalar-number-in-prose.md` |
+| A40.l16 | lane | shipped | A40 | Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run | `sprint/A40/lanes/A40-l16-desescalar-number-in-prose.md` |
 | A40.l17 | lane | open | A40 | Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero | `sprint/A40/lanes/A40-l17-custo-e-cache-em-needs-review.md` |
 | A40.l18 | lane | open | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
 | A40.l19 | lane | open | A40 | Drift de enum de status: 4 valores existem em Python e não no tipo do DB | `sprint/A40/lanes/A40-l19-migration-drift-enum-status.md` |

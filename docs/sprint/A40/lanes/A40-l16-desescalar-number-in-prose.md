@@ -4,7 +4,7 @@ type: lane
 title: "Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P0
 branch_slug: a40-l16-desescalar-number-in-prose
 adrs:
@@ -14,7 +14,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/llm
   - area/backend
