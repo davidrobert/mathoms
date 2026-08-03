@@ -221,15 +221,17 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
       }
     | undefined;
   // A37.l10 PD-09 — o payload E5 (IFProjection.to_legacy_dict) expõe
-  // prazo_anos_realista/ano_if; sentinela 999 = "não atinge" (if_projector)
-  // degrada a coluna base para "—" em vez de exibir "999a".
+  // prazo_anos_realista/ano_if; ausência degrada a coluna base para "—".
+  // `null` é a forma atual; o `!== 999` cobre artefatos E5 já persistidos
+  // antes da troca da sentinela por ausência explícita.
   const rawGoals = data.goals as
-    | { prazo_anos_realista?: number; ano_if?: number }
+    | { prazo_anos_realista?: number | null; ano_if?: number | null }
     | undefined;
-  const goalsAtingeIF = rawGoals != null && rawGoals.prazo_anos_realista !== 999;
-  const goals = goalsAtingeIF
-    ? { if_prazo_anos: rawGoals.prazo_anos_realista, if_ano: rawGoals.ano_if }
-    : undefined;
+  const prazoBase = rawGoals?.prazo_anos_realista;
+  const goals =
+    prazoBase != null && prazoBase !== 999
+      ? { if_prazo_anos: prazoBase, if_ano: rawGoals?.ano_if ?? undefined }
+      : undefined;
 
   const hasCenarios = !!cenarios?.labels && cenarios.labels.length > 0;
   const hasMilhas =

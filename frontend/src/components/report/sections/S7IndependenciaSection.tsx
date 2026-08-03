@@ -181,9 +181,20 @@ function IFMonteCarloBlock({
           <>
             {" "}sem aporte mensal — só o patrimônio atual compondo.
           </>
-        )}{" "}
-        Probabilidade de atingir IF até a idade {monteCarloIF.idade_meta_usada}:{" "}
-        <strong>{formatProbability(monteCarloIF.prob_if_ate_idade_meta)}</strong>
+        )}
+        {/* Idade-meta ausente (projeção determinística sem prazo): omite a
+            cláusula em vez de escrever "até a idade 1040". */}
+        {monteCarloIF.idade_meta_usada != null &&
+          monteCarloIF.prob_if_ate_idade_meta != null && (
+            <>
+              {" "}
+              Probabilidade de atingir IF até a idade{" "}
+              {monteCarloIF.idade_meta_usada}:{" "}
+              <strong>
+                {formatProbability(monteCarloIF.prob_if_ate_idade_meta)}
+              </strong>
+            </>
+          )}
       </p>
       <IFConeConeChart
         caminhoP10={monteCarloIF.caminho_p10}

@@ -297,6 +297,20 @@ describe("IFMonteCarloBlock · premissas fallback (A28.l9)", () => {
     ).not.toBeInTheDocument();
   });
 
+  // Projeção determinística sem prazo → idade-meta null. Antes a sentinela 999
+  // somava à idade e o cone anunciava "até a idade 1040" (métrica fabricada).
+  it("idade-meta ausente: omite a cláusula de probabilidade, mantém o cone", () => {
+    const data = makeData({
+      if_monte_carlo: makeMonteCarlo({
+        idade_meta_usada: null,
+        prob_if_ate_idade_meta: null,
+      }),
+    });
+    render(<S7IndependenciaSection data={data} />);
+    expect(screen.queryByText(/Probabilidade de atingir IF/)).toBeNull();
+    expect(screen.getByTestId("s7-if-cone-chart")).toBeInTheDocument();
+  });
+
   it("motivo_sem_cone: role note + ícone, não só itálico (a11y A28.l9)", () => {
     const data = makeData({
       if_monte_carlo: makeMonteCarlo({

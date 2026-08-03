@@ -11,6 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.services.if_projector import (  # noqa: E402
+    MOTIVO_PRAZO_INDEFINIDO,
     IFProjection,
     IFProjector,
     IFProjectorConfig,
@@ -141,11 +142,15 @@ class TestProject:
         # ~13-14 anos (validação grosseira; exatidão depende da math).
         assert 10 < p.prazo_anos_realista < 20
 
-    def test_prazo_999_when_zero_aporte_and_below_target(self):
+    def test_prazo_ausente_when_zero_aporte_and_below_target(self):
+        """Sem prazo projetável, tudo que dele deriva é ausência — não 999/1040."""
         cfg = _config(aporte_mensal=0, retorno_real_anual_pct=0)
         p = IFProjector(cfg).project(investivel=100_000)
 
-        assert p.prazo_anos_realista == 999.0
+        assert p.prazo_anos_realista is None
+        assert p.idade_titular_if is None
+        assert p.ano_if is None
+        assert p.motivo_prazo_indefinido == MOTIVO_PRAZO_INDEFINIDO
 
     def test_idade_titular_increments_with_anos_restantes(self):
         p = IFProjector(_config()).project(investivel=1_000_000)

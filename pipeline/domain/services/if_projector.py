@@ -34,6 +34,11 @@ def _calculate_age(dob: date, reference_date: date) -> int:
     return age
 
 
+def _round_opt(val: float | None, ndigits: int) -> float | None:
+    """``round`` que preserva ausência em vez de arredondar ``None``."""
+    return None if val is None else round(val, ndigits)
+
+
 # =============================================================================
 # Config
 # =============================================================================
@@ -147,44 +152,59 @@ def extract_renda_passiva_from_text(content: str) -> float:
 # =============================================================================
 
 
+# Não afirma "infinito": premissas nulas só põem o caso fora do ramo fechado.
+MOTIVO_PRAZO_INDEFINIDO = (
+    "prazo até a IF não projetável com as premissas atuais "
+    "(aporte mensal e/ou retorno real nulos)"
+)
+
+
 @dataclass(frozen=True)
 class IFProjection:
     """Saída de ``IFProjector.project``. Compatível com o output de
     ``analyze_goals`` do legado via :meth:`to_legacy_dict`.
     """
 
+    # `prazo_anos_realista is None` = ausência medida; idade/ano projetados
+    # acompanham em None (nunca aritmética sobre sentinela — era 999 → 1040).
     if_meta: float
     if_trs: float
     if_trs_monthly_value: float
     if_pct: float
     if_gap: float
-    prazo_anos_realista: float
-    idade_titular_if: int
-    ano_if: int
+    prazo_anos_realista: float | None
+    idade_titular_if: int | None
+    ano_if: int | None
     renda_passiva_estimada_4pct: float
     # FP-009 — retorno real esperado %a.a. (== `retorno_real_anual_pct`).
     # Consumido por `rule_endividamento_perigoso` (carry-trade trigger).
     retorno_esperado_pct_aa: float = 6.0
     idade_conjuge_if: int | None = None
+    motivo_prazo_indefinido: str | None = None
+    # Separa "não há cônjuge datado" (chave ausente) de "há cônjuge, mas o
+    # prazo não foi projetado" (chave presente com valor `null`).
+    tem_conjuge_datado: bool = False
     titular_key: str = "david"
     conjuge_key: str = ""
 
     def to_legacy_dict(self) -> dict:
+        # Chaves sempre presentes; `null` sem prazo projetado (distinga por `is None`).
         out: dict = {
             "if_meta": round(self.if_meta, 2),
             "if_trs": round(self.if_trs, 2),
             "if_trs_monthly_value": round(self.if_trs_monthly_value, 2),
             "if_pct": round(self.if_pct, 2),
             "if_gap": round(self.if_gap, 2),
-            "prazo_anos_realista": round(self.prazo_anos_realista, 1),
+            "prazo_anos_realista": _round_opt(self.prazo_anos_realista, 1),
             # ADR-338: chave role-keyed (era idade_<nome>_if + alias morto "david_idade_if").
             "idade_titular_if": self.idade_titular_if,
             "ano_if": self.ano_if,
+            "motivo_prazo_indefinido": self.motivo_prazo_indefinido,
             "renda_passiva_estimada_4pct": round(self.renda_passiva_estimada_4pct, 2),
             # FP-009: alinhamento com retorno ponderado da carteira fica para FP-004.
             "retorno_esperado_pct_aa": round(self.retorno_esperado_pct_aa, 2),
         }
-        if self.idade_conjuge_if is not None and self.conjuge_key:
+        if self.conjuge_key and self.tem_conjuge_datado:
             out["idade_conjuge_if"] = self.idade_conjuge_if
         return out
 
@@ -192,6 +212,26 @@ class IFProjection:
 # =============================================================================
 # Service
 # =============================================================================
+
+
+def _project_horizon(
+    cfg: IFProjectorConfig, prazo_anos: float | None
+) -> tuple[int | None, int | None, int | None]:
+    """(idade_titular, idade_conjuge, ano) na IF; tudo ``None`` sem prazo."""
+    # Ausência propaga em vez de virar aritmética: era `idade + 999` → 1040.
+    if prazo_anos is None:
+        return None, None, None
+    anos = int(prazo_anos)
+    idade_conjuge = (
+        None
+        if cfg.conjuge_dob is None
+        else _calculate_age(cfg.conjuge_dob, cfg.reference_date) + anos
+    )
+    return (
+        _calculate_age(cfg.titular_dob, cfg.reference_date) + anos,
+        idade_conjuge,
+        cfg.reference_date.year + anos,
+    )
 
 
 class IFProjector:
@@ -207,8 +247,11 @@ class IFProjector:
         n = log((FV + PMT/r) / (PV + PMT/r)) / log(1+r)
 
     Quando ``aporte_mensal == 0`` ou ``retorno_real_anual_pct == 0`` e
-    ``investivel < if_meta``, retorna ``prazo_anos_realista = 999`` (paridade
-    com legado — sinaliza "infinito/inviável").
+    ``investivel < if_meta``, o ramo fechado acima não se aplica e
+    ``prazo_anos_realista`` é ``None`` — junto com ``idade_titular_if`` /
+    ``idade_conjuge_if`` / ``ano_if``. Era a sentinela ``999`` do legado, que
+    somada à idade produzia "IF aos 1040 anos" no payload E5 e virava âncora
+    citável do parecer.
     """
 
     def __init__(self, config: IFProjectorConfig) -> None:
@@ -233,12 +276,7 @@ class IFProjector:
             aporte_mensal=cfg.aporte_mensal,
         )
 
-        anos_restantes = int(prazo_anos)
-        idade_titular_if = _calculate_age(cfg.titular_dob, cfg.reference_date) + anos_restantes
-        idade_conjuge_if: int | None = None
-        if cfg.conjuge_dob is not None:
-            idade_conjuge_if = _calculate_age(cfg.conjuge_dob, cfg.reference_date) + anos_restantes
-        ano_if = cfg.reference_date.year + anos_restantes
+        idade_titular_if, idade_conjuge_if, ano_if = _project_horizon(cfg, prazo_anos)
 
         taxa = cfg.taxa_retirada_segura_pct / 100.0
         renda_passiva_current = investivel * taxa / 12
@@ -255,6 +293,8 @@ class IFProjector:
             ano_if=ano_if,
             renda_passiva_estimada_4pct=renda_passiva_current,
             retorno_esperado_pct_aa=cfg.retorno_real_anual_pct,
+            motivo_prazo_indefinido=None if prazo_anos is not None else MOTIVO_PRAZO_INDEFINIDO,
+            tem_conjuge_datado=cfg.conjuge_dob is not None,
             titular_key=cfg.titular_key,
             conjuge_key=cfg.conjuge_key,
         )
@@ -266,8 +306,10 @@ class IFProjector:
         if_meta: float,
         r: float,
         aporte_mensal: float,
-    ) -> float:
+    ) -> float | None:
         """Resolve n (meses) em PV*(1+r)^n + PMT*((1+r)^n - 1)/r = FV."""
+        # `None` fora do ramo fechado (r <= 0 ou aporte <= 0) — era a sentinela
+        # 999.0, que vazava somada à idade do titular. O chamador não inventa prazo.
         if investivel >= if_meta:
             return 0.0
         if r > 0 and aporte_mensal > 0:
@@ -276,4 +318,4 @@ class IFProjector:
             if denominator > 0 and numerator / denominator > 0:
                 n_meses = math.log(numerator / denominator) / math.log(1 + r)
                 return max(0.0, n_meses / 12)
-        return 999.0
+        return None

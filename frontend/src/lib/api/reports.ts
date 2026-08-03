@@ -244,8 +244,10 @@ export interface IFMonteCarloData {
   p10_ano_if: number | null;
   p50_ano_if: number | null;
   p90_ano_if: number | null;
-  prob_if_ate_idade_meta: number;
-  idade_meta_usada: number;
+  /** `null` quando a projeção determinística não produziu idade-meta: sem
+   * alvo não há "probabilidade até a idade X". O cone independe dos dois. */
+  prob_if_ate_idade_meta: number | null;
+  idade_meta_usada: number | null;
   sigma_usado: number;
   exibir_cone: boolean;
   /** ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje). */

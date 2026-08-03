@@ -100,9 +100,12 @@ class CenariosConjugeConfig:
 class CenarioItem:
     nome: str
     aporte_mensal: float
-    prazo_if_anos: float
-    ano_if: int
-    idade_titular: int
+    # `None` = prazo não projetável com as premissas do cenário. Era a sentinela
+    # 999, que propagava para ano_if=3025 e idade_titular=1040 (mesmo defeito de
+    # IFProjector._solve_prazo).
+    prazo_if_anos: float | None
+    ano_if: int | None
+    idade_titular: int | None
     resumo: str
 
     def to_dict(self) -> dict:
@@ -165,9 +168,13 @@ class CenariosConjugeAnalyzer:
         salario_conjuge_brl = self._extract_salario_conjuge(fluxo)
 
         aporte = round(cfg.aporte_base * cfg.fator_reduzido, 2)
-        prazo = round(self._compute_prazo(investivel, meta_if, r, aporte), 1)
-        ano_if = cfg.reference_date.year + int(prazo)
-        idade_titular = _calculate_age(cfg.titular_dob, cfg.reference_date) + int(prazo)
+        prazo_bruto = self._compute_prazo(investivel, meta_if, r, aporte)
+        prazo = None if prazo_bruto is None else round(prazo_bruto, 1)
+        ano_if: int | None = None
+        idade_titular: int | None = None
+        if prazo is not None:
+            ano_if = cfg.reference_date.year + int(prazo)
+            idade_titular = _calculate_age(cfg.titular_dob, cfg.reference_date) + int(prazo)
 
         cenario = CenarioItem(
             nome=self._LABEL,
@@ -209,7 +216,8 @@ class CenariosConjugeAnalyzer:
         return 0.0
 
     @staticmethod
-    def _compute_prazo(investivel: float, meta: float, r: float, aporte: float) -> float:
+    def _compute_prazo(investivel: float, meta: float, r: float, aporte: float) -> float | None:
+        """``None`` fora do ramo fechado — era a sentinela 999 (ver CenarioItem)."""
         if investivel >= meta:
             return 0.0
         if r > 0 and aporte > 0:
@@ -218,17 +226,19 @@ class CenariosConjugeAnalyzer:
             if denominator > 0 and numerator / denominator > 0:
                 n_meses = math.log(numerator / denominator) / math.log(1 + r)
                 return max(0.0, n_meses / 12)
-        # Sentinela legada: 999 (int) preservado para paridade dos goldens.
-        return 999
+        return None
 
-    def _resumo(self, aporte: float, prazo: float, ano_if: int) -> str:
+    def _resumo(self, aporte: float, prazo: float | None, ano_if: int | None) -> str:
         # A37.l14 (PD-11): f"{v:,.0f}" produzia milhar US ("R$ 13,200");
         # fmt_currency é o formatador BR canônico das narrativas.
         cfg = self._config
-        return (
+        head = (
             f"Sem renda do cônjuge, aporte cai para {fmt_currency(aporte)}/mês "
-            f"({cfg.fator_reduzido:.0%} do base). IF em {prazo:.0f} anos ({ano_if})."
+            f"({cfg.fator_reduzido:.0%} do base)."
         )
+        if prazo is None:
+            return f"{head} Prazo até a IF não projetável com as premissas deste cenário."
+        return f"{head} IF em {prazo:.0f} anos ({ano_if})."
 
 
 # =============================================================================

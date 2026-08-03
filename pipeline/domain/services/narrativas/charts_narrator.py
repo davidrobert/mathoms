@@ -280,7 +280,20 @@ class ChartsNarrator:
         ano_if = _cm_anos[0] if _cm_anos else ""
         fator = M.get("cm_fator_reduzido", 0)
         prazo_base = M.get("if_prazo_anos", 0)
-        delta_anos = prazo - prazo_base if prazo_base else 0
+        delta_anos = prazo - prazo_base if (prazo_base and prazo is not None) else 0
+        # Prazo ausente (era a sentinela 999): declara a ausência em vez de
+        # escrever "IF em N/D anos (N/D)".
+        desfecho = (
+            "Prazo até a IF não projetável com as premissas deste cenário."
+            if prazo is None
+            else f"IF em {fmt_num(prazo, 0)} anos ({ano_if})"
+            + (
+                f" — custo de oportunidade de +{fmt_num(delta_anos, 0)} anos "
+                "em relação ao cenário base."
+                if delta_anos > 0
+                else "."
+            )
+        )
         return {
             "context": (
                 f"Cenário de estresse 'Sem renda do cônjuge'. "
@@ -292,12 +305,7 @@ class ChartsNarrator:
             "conclusion": (
                 f"Sem renda do cônjuge: aporte cai para "
                 f"{fmt_currency(aporte)}/mês ({fmt_num(fator * 100, 0)}% do aporte-base). "
-                f"IF em {fmt_num(prazo, 0)} anos ({ano_if})"
-                + (
-                    f" — custo de oportunidade de +{fmt_num(delta_anos, 0)} anos em relação ao cenário base."
-                    if delta_anos > 0
-                    else "."
-                )
+                f"{desfecho}"
             ),
         }
 
@@ -416,6 +424,20 @@ def _fmt_probabilidade(prob: float) -> str:
     return f"{round(prob * 100)}%"
 
 
+def _projecao_deterministica_frase(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
+    """Fallback sem Monte Carlo: ano/idade projetados, ou a ausência deles."""
+    # Sem prazo determinístico não há ano/idade a projetar (era 3025/1040).
+    if M.get("if_ano") is None or M.get(ctx.key_idade_titular_if) is None:
+        return (
+            "Com as premissas atuais (aporte e retorno reais), a trajetória "
+            "determinística não projeta um ano para a meta."
+        )
+    return (
+        f"Em cenário sem variação de mercado, a trajetória projetada aponta a meta para "
+        f"{M['if_ano']}, quando {ctx.titular_nome} tiver {M[ctx.key_idade_titular_if]} anos."
+    )
+
+
 def _projecao_3cenarios_conclusion(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
     renda = (
         f"Hoje, a renda passiva estimada pela regra de retirada é {fmt_currency(M['renda_passiva_4pct'])}/mês "
@@ -431,11 +453,7 @@ def _projecao_3cenarios_conclusion(M: Mapping[str, Any], ctx: NarrativasContext)
             f"Cenário central (P50): meta em {p50}; {aprox}{prob_txt} de chance de "
             f"{ctx.titular_nome} alcançá-la já até os {idade_meta} anos. " + renda
         )
-    return (
-        f"Em cenário sem variação de mercado, a trajetória projetada aponta a meta para "
-        f"{M['if_ano']}, quando {ctx.titular_nome} tiver {M[ctx.key_idade_titular_if]} anos. "
-        + renda
-    )
+    return _projecao_deterministica_frase(M, ctx) + " " + renda
 
 
 def _fmt_aporte_head(M: Mapping[str, Any]) -> str:
