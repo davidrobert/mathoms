@@ -29,6 +29,9 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_percent,
     pluralize,
 )
+from pipeline.domain.services.narrativas.projecao_if_narrator import (
+    narrate_projecao_if_conclusion,
+)
 from pipeline.domain.services.narrativas.tributario_narrator import (
     narrate_cascata,
     narrate_wise_fiscal_flags,
@@ -220,7 +223,7 @@ class ChartsNarrator:
                 ),
                 # A37.l8 (FIN-08): linguagem probabilística via if_monte_carlo —
                 # nunca "será atingida" determinístico.
-                "conclusion": _projecao_3cenarios_conclusion(M, ctx),
+                "conclusion": narrate_projecao_if_conclusion(M, ctx),
             },
             "waterfall_if": {
                 "context": (
@@ -411,51 +414,6 @@ def _narrate_bubble_riscos(
 
 
 # ── A37.l8 (FIN-08): projeção IF probabilística ─────────────────────────
-def _fmt_probabilidade(prob: float) -> str:
-    """Paridade com formatProbability do S7 (ADR-237): guards <1% / >99%."""
-    if prob <= 0:
-        return "0%"
-    if prob >= 1:
-        return "100%"
-    if prob < 0.01:
-        return "<1%"
-    if prob > 0.99:
-        return ">99%"
-    return f"{round(prob * 100)}%"
-
-
-def _projecao_deterministica_frase(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
-    """Fallback sem Monte Carlo: ano/idade projetados, ou a ausência deles."""
-    # Sem prazo determinístico não há ano/idade a projetar (era 3025/1040).
-    if M.get("if_ano") is None or M.get(ctx.key_idade_titular_if) is None:
-        return (
-            "Com as premissas atuais (aporte e retorno reais), a trajetória "
-            "determinística não projeta um ano para a meta."
-        )
-    return (
-        f"Em cenário sem variação de mercado, a trajetória projetada aponta a meta para "
-        f"{M['if_ano']}, quando {ctx.titular_nome} tiver {M[ctx.key_idade_titular_if]} anos."
-    )
-
-
-def _projecao_3cenarios_conclusion(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
-    renda = (
-        f"Hoje, a renda passiva estimada pela regra de retirada é {fmt_currency(M['renda_passiva_4pct'])}/mês "
-        f"({fmt_percent(M['pct_renda_passiva_meta'])} da meta de {fmt_currency(M['if_renda_passiva_meta'])}/mês)."
-    )
-    p50 = M.get("mc_p50_ano_if")
-    prob = M.get("mc_prob_if_ate_idade_meta")
-    idade_meta = M.get("mc_idade_meta")
-    if p50 and prob is not None and idade_meta:
-        prob_txt = _fmt_probabilidade(prob)
-        aprox = "" if prob_txt[0] in "<>" else "~"
-        return (
-            f"Cenário central (P50): meta em {p50}; {aprox}{prob_txt} de chance de "
-            f"{ctx.titular_nome} alcançá-la já até os {idade_meta} anos. " + renda
-        )
-    return _projecao_deterministica_frase(M, ctx) + " " + renda
-
-
 def _fmt_aporte_head(M: Mapping[str, Any]) -> str:
     # A37.l2 (PD-01): distribuição vazia/zerada → sem parêntese de divisão
     # (antes: 4 parcelas hardcoded viravam "R$ 0,00"). Keys dinâmicas.
