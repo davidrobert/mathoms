@@ -19,8 +19,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### PLAN-go-shell — Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess
 
 - Status: `in_progress` · Sprint atual: —
-- Sprints envolvidas: —
-- Lanes: _(sem lanes vinculadas por `plan:`)_
+- Sprints envolvidas: A41
+- Lanes: 0 done · 0 in_progress · 1 open · 0 blocked
 - ADRs canônicas: [[ADR-150]], [[ADR-303]], [[ADR-112]], [[ADR-113]]
 
 ### PLAN-internal-admin — Console interno (operadores) — IA-0 a IA-4
@@ -33,8 +33,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### PLAN-launch-trust — Launch Trust — três frentes que precisam estar verdes antes de produção
 
 - Status: `in_progress` · Sprint atual: —
-- Sprints envolvidas: A21, A22
-- Lanes: 14 done · 0 in_progress · 0 open · 0 blocked
+- Sprints envolvidas: A21, A22, A41
+- Lanes: 14 done · 0 in_progress · 3 open · 0 blocked
 - ADRs canônicas: [[ADR-246]], [[ADR-255]], [[ADR-267]], [[ADR-268]], [[ADR-271]]
 
 ### PLAN-ledger-integrity — Ledger Integrity — conservação do razão (E3/E4) + roteamento dos 5 gaps da certificação
