@@ -227,11 +227,26 @@ Levantado no co-design, **fora do escopo desta ADR**, com dono no owner:
    (`np.quantile(..., method="inverted_cdf")`).
 5. ~~**`idade_meta_usada: 1040`**~~ — **fechado** em #1158 (2026-08-03): prazo não
    projetável emite ausência com motivo em vez de sentinela 999 somada à idade.
+6. **`_solve_prazo` conflacia "inatingível" com "ramo não implementado"** — aberto
+   *pelo* #1158, que corrigiu a fabricação mas não a cobertura do solver. Com
+   `aporte == 0` e `r > 0`, `n = ln(FV/PV)/ln(1+r)` converge (dogfood: PV 13 M,
+   meta 100 M, 6% real → **~35 anos**); com `r == 0` e `aporte > 0`,
+   `n = (FV−PV)/PMT`. Os dois caem em ausência hoje, então **o produto está calado
+   sobre um prazo que sabe calcular**. Por isso o `motivo_prazo_indefinido` diz
+   "não projetável com as premissas atuais" e **não** afirma "inviável".
+   Preencher muda o prazo de workspaces reais → gatilho de `financial-planner`.
+   Lane: [[A40.l26]].
+7. **Terceira cópia do 999 em dead code:** `scripts/analyze_finances.py::analyze_goals`
+   (~L1226) mantém a sentinela e não tem call-site (`rg 'analyze_goals\('` → só a
+   definição). Remoção mecânica, fora do escopo do #1158. Sem dono; absorvida
+   como limpeza oportunista da [[A40.l26]].
 
-> **Estado do deferimento em 2026-08-03.** Sobra o **item 1** (precisão de
-> exibição), agora com lane e dono: [[A40.l25]]. Os itens 3-5 fecharam no mesmo
-> dia; o item 2 (`sigma` por perfil) foi absorvido pela mesma lane. Manter esta
-> lista sem marcar o que fechou faria a ADR afirmar dívida inexistente.
+> **Estado do deferimento em 2026-08-03.** Os itens 3-5 fecharam no mesmo dia.
+> Sobram o **item 1** (precisão de exibição) e o **item 2** (`sigma` por perfil),
+> ambos na [[A40.l25]], e os **itens 6-7**, abertos *pelo* fix do item 5 e
+> carregados pela [[A40.l26]]. Marcar o que fechou evita afirmar dívida
+> inexistente; registrar o que o próprio fix abriu evita o inverso — fechar um
+> item e sair achando que a área está limpa.
 
 ## Referências
 
