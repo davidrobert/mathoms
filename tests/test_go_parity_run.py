@@ -19,6 +19,7 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
 import dev.go_parity_run as gpr  # noqa: E402
+from dev.go_parity_llm_free import llm_artifact_count  # noqa: E402
 from dev.go_parity_run import (  # noqa: E402
     _RUN_ID_RE,
     PYTHON_ARM,
@@ -28,7 +29,6 @@ from dev.go_parity_run import (  # noqa: E402
     _db_path,
     _execute_both_arms,
     _inbox_files,
-    _llm_artifact_count,
     _redis_endpoint,
     _ws_flags,
     assert_preconditions,
@@ -50,6 +50,9 @@ def _stub_stack_check(monkeypatch: pytest.MonkeyPatch) -> None:
     """O guard de stack abre socket real; neutralizar evita que a suíte dependa
     do Redis de dev estar de pé. Ele tem teste dedicado abaixo."""
     monkeypatch.setattr(gpr, "assert_stack_up", lambda: None)
+    # `_restore_python_arm` reinicia o worker por `_make`; sem neutralizar, um
+    # teste unitário derrubaria o Celery da stack de dev do dono.
+    monkeypatch.setattr(gpr, "_make", lambda *_a, **_kw: "")
 
 
 def test_stack_guard_fails_on_closed_port(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -144,44 +147,10 @@ def test_terminal_runs_do_not_block(tmp_path: Path, db: sqlite3.Connection) -> N
 
 def test_llm_artifact_count_catches_escalation(db: sqlite3.Connection) -> None:
     """A pré-condição 0-LLM é assert de run, não de fixture — precisa pegar o stage LLM."""
-    assert _llm_artifact_count(db, "r1") == 0
+    assert llm_artifact_count(db, "r1") == 0
     db.execute("INSERT INTO pipeline_artifacts VALUES ('a1', 'r1', 'extract_with_llm')")
     db.commit()
-    assert _llm_artifact_count(db, "r1") == 1
-
-
-def _stub_payloads(monkeypatch: pytest.MonkeyPatch, payloads: dict) -> None:
-    import dev.go_parity_gate as gate
-
-    monkeypatch.setattr(gate, "collect_run_artifacts", lambda _rid: payloads)
-
-
-def test_fallback_flag_detected_in_e2_payload(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Contar stage '%llm%' é cego: caixa.py monta o SDK direto e não vira stage LLM."""
-    _stub_payloads(
-        monkeypatch,
-        {
-            ("extract_statements", "x_caixa_extratoconta"): {"requires_llm_fallback": True},
-            ("extract_statements", "y_itau_extratoconta"): {"requires_llm_fallback": False},
-            ("analyze_finances", "analise"): {"total": 1},
-        },
-    )
-    assert gpr._llm_fallback_docs("r1") == ["extract_statements/x_caixa_extratoconta"]
-
-
-def test_tier1_rejects_run_with_fallback_even_sem_stage_llm(
-    monkeypatch: pytest.MonkeyPatch, db: sqlite3.Connection
-) -> None:
-    """O caso real de 2026-08-03: 0 artefato de stage LLM, mas houve chamada paga."""
-    _stub_payloads(monkeypatch, {("extract_statements", "k"): {"requires_llm_fallback": True}})
-    assert _llm_artifact_count(db, "r1") == 0
-    with pytest.raises(GateError, match="não é 0-LLM"):
-        gpr._assert_llm_free(db, "r1", PYTHON_ARM, "tier1")
-
-
-def test_tier2_tolerates_fallback(monkeypatch: pytest.MonkeyPatch, db: sqlite3.Connection) -> None:
-    _stub_payloads(monkeypatch, {("extract_statements", "k"): {"requires_llm_fallback": True}})
-    assert gpr._assert_llm_free(db, "r1", PYTHON_ARM, "tier2") == 1
+    assert llm_artifact_count(db, "r1") == 1
 
 
 def test_run_id_regex_extracts_uuid() -> None:
@@ -252,13 +221,13 @@ def test_pair_order_alternates_who_goes_first() -> None:
 def test_interleaved_balances_ordinal_positions(monkeypatch: pytest.MonkeyPatch) -> None:
     """py,py,go,go correlaciona braço com ordem; intercalado não."""
     ordem: list[str] = []
-    monkeypatch.setattr(gpr, "switch_arm", lambda arm: None)
+    monkeypatch.setattr(gpr, "switch_arm", lambda arm, **_kw: None)
     monkeypatch.setattr(
         gpr,
         "_one_run",
         lambda arm, ws, con, args, i: (ordem.append(arm.name), RunRecord(f"{arm.name}{i}"))[1],
     )
-    args = argparse.Namespace(runs=2)
+    args = argparse.Namespace(runs=2, tier="tier1")
     py, go = gpr.execute_interleaved("ws", None, args)
     assert ordem == ["python", "go", "go", "python"]
     assert [r.run_id for r in py] == ["python0", "python1"]
@@ -268,17 +237,17 @@ def test_interleaved_balances_ordinal_positions(monkeypatch: pytest.MonkeyPatch)
 def test_arms_restored_to_python_even_on_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """Abortar no braço Go sem restaurar deixaria o dogfood executando via shell Go."""
     switched: list[str] = []
-    monkeypatch.setattr(gpr, "switch_arm", lambda arm: switched.append(arm.name))
+    monkeypatch.setattr(gpr, "switch_arm", lambda arm, **_kw: switched.append(arm.name))
     monkeypatch.setattr(gpr, "_one_run", lambda *a: (_ for _ in ()).throw(GateError("boom")))
     with pytest.raises(GateError, match="boom"):
-        _execute_both_arms("ws", None, argparse.Namespace(runs=2))
+        _execute_both_arms("ws", None, argparse.Namespace(runs=2, tier="tier1"))
     assert switched[-1] == PYTHON_ARM.name, "última troca tem que voltar ao Python"
 
 
 def _fail_only_after(state: dict) -> object:
     """switch_arm que funciona no corpo e quebra no restore — modela o pior caso real."""
 
-    def fake_switch(arm):
+    def fake_switch(arm, **_kw):
         if state["falhou"]:
             raise GateError("go-off caiu")
 
@@ -296,7 +265,7 @@ def test_restore_failure_does_not_mask_original(monkeypatch: pytest.MonkeyPatch,
     monkeypatch.setattr(gpr, "_one_run", fake_one_run)
     monkeypatch.setattr(gpr, "switch_arm", _fail_only_after(state))
     with pytest.raises(GateError, match="causa raiz"):
-        _execute_both_arms("ws", None, argparse.Namespace(runs=2))
+        _execute_both_arms("ws", None, argparse.Namespace(runs=2, tier="tier1"))
     assert "FALHA AO RESTAURAR" in capsys.readouterr().err
 
 

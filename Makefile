@@ -708,11 +708,23 @@ dev-api-up: dev-dirs
 	   --host 127.0.0.1 --port $(PORT_API) --reload \
 	   > $(CURDIR)/$(DEV_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/api.pid
 
+# Gate de paridade Tier-1 (A40.l24): `LLM_FREE=1` apaga ANTHROPIC_API_KEY do env
+# do worker Celery E do shell Go. Sem isso os braços rodam com credencial
+# ASSIMÉTRICA — `_go-on-native` injeta a key lida do .env e o executor Go a
+# repassa a cada subprocess, enquanto `dev-worker-up` só herda o env do shell.
+# A chamada de visão de `scripts/e2/banks/caixa.py` lê `os.environ` direto (por
+# fora do choke-point, ADR-355 §Escopo), então o MESMO extrato sai completo num
+# braço e parcial no outro, e a divergência vira falso bug de executor.
+# Medido 2026-08-03: 2986 bytes (com key) vs 1002 (sem) no mesmo artifact_key.
+LLM_FREE_SCRUB = $(if $(LLM_FREE),ANTHROPIC_API_KEY= ,)
+LLM_FREE_MARKER = LLM-FREE: ANTHROPIC_API_KEY scrubbed
+
 dev-worker-up: dev-dirs
 	@echo "▶  Subindo Celery worker nativo (concurrency=2, max-tasks-per-child=200)…"
 	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
+	@$(if $(LLM_FREE),echo "   · $(LLM_FREE_MARKER) (worker Celery)",true)
 	@TS=$$(date +%s); \
-	 nohup $(VENV)/celery -A backend.app.worker worker \
+	 $(LLM_FREE_SCRUB) nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-native-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
@@ -1195,7 +1207,8 @@ _go-on-native:
 	 DBURL=$$(getv MATHOMS_DATABASE_URL); \
 	 AKEY=$$(getv ANTHROPIC_API_KEY); AKEY="$${AKEY:-$${ANTHROPIC_API_KEY:-}}"; \
 	 RURL=$$(getv MATHOMS_REDIS_URL); RURL="$${RURL:-redis://localhost:6379/0}"; \
-	 [ -n "$$AKEY" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente (.env/shell) — stages LLM vão falhar"; \
+	 [ -z "$(LLM_FREE)" ] || { AKEY=""; echo "   · $(LLM_FREE_MARKER) (shell Go)"; }; \
+	 [ -n "$$AKEY" ] || [ -n "$(LLM_FREE)" ] || echo "   ⚠ ANTHROPIC_API_KEY ausente (.env/shell) — stages LLM vão falhar"; \
 	 [ -n "$$DBURL" ] || echo "   ⚠ MATHOMS_DATABASE_URL ausente no .env — caindo para sqlite mathoms.db (pode DIFERIR do DB da stack nativa!)"; \
 	 MATHOMS_DATABASE_URL="$${DBURL:-sqlite+aiosqlite:///$(CURDIR)/mathoms.db}" \
 	 ANTHROPIC_API_KEY="$$AKEY" \
@@ -1213,7 +1226,7 @@ _go-on-native:
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
 	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
 	@TS=$$(date +%s); \
-	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:$(PORT_GO)" \
+	 $(LLM_FREE_SCRUB) MATHOMS_PIPELINE_SERVICE_URL="http://localhost:$(PORT_GO)" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-native-go-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
