@@ -71,6 +71,9 @@ class ParecerGenerationResult:
     # WHY float (ADR-090): valor em USD vindo do LLM provider (Anthropic API);
     # persistência converte para cents (BigInteger) em PlannerReview.cost_usd_cents.
     cost_usd: float = 0.0  # rate USD from LLM provider — converted to cents on persist (ADR-090)
+    # False ⇒ `cost_usd` 0.0 significa desconhecido, não grátis (modelo fora da rate
+    # table, ou chamada que falhou pós-cobrança e não deixou entry em summary.calls).
+    cost_known: bool = True
     latency_ms: int = 0
     # Telemetria de invocações do PlannerDrillDown — inclui cache hits e o
     # stamping pós-LLM de âncoras (ADR-296), então pode exceder o cap
@@ -204,16 +207,37 @@ def _build_llm_service(config: ParecerOrchestratorConfig):
     )
 
 
-def _extract_last_call_metrics(llm: Any) -> tuple[int, int, float]:
-    """Extrai métricas do último call do LLMService — defensivo p/ fakes."""
+@dataclass(frozen=True)
+class LLMCallMetrics:
+    """Custo/tokens de uma chamada. ``cost_known=False`` ⇒ ``cost_usd`` é 0.0 por
+    ignorância (pricing ausente ou chamada sem registro), não por gasto zero."""
+
+    tokens_in: int = 0
+    tokens_out: int = 0
+    cost_usd: float = 0.0  # rate USD do provider — persistência converte p/ cents (ADR-090)
+    cost_known: bool = True
+
+
+# Sentinela para o caminho em que nenhuma chamada foi tentada: zero é fato, não lacuna.
+_NO_LLM_CALL = LLMCallMetrics()
+
+
+def _extract_last_call_metrics(llm: Any, *, call_attempted: bool = True) -> LLMCallMetrics:
+    """Métricas do último call do LLMService — defensivo p/ fakes."""
+    # `LLMService.call` só faz `summary.calls.append` DEPOIS de `create()` retornar
+    # (litellm_client.py), então falha pós-cobrança (reask storm, timeout) não deixa
+    # entry. Ausência após tentativa é DESCONHECIDO — reportar 0.0 como certo mentiria
+    # exatamente na classe mais cara. Recuperar o valor exige mudar o choke-point.
     summary = getattr(llm, "summary", None)
-    if summary is None or not getattr(summary, "calls", None):
-        return 0, 0, 0.0
-    last = summary.calls[-1]
-    return (
-        getattr(last, "tokens_in", 0) or 0,
-        getattr(last, "tokens_out", 0) or 0,
-        float(getattr(last, "cost_estimate_usd", 0.0) or 0.0),
+    calls = getattr(summary, "calls", None) if summary is not None else None
+    if not calls:
+        return LLMCallMetrics(cost_known=not call_attempted)
+    last = calls[-1]
+    return LLMCallMetrics(
+        tokens_in=getattr(last, "tokens_in", 0) or 0,
+        tokens_out=getattr(last, "tokens_out", 0) or 0,
+        cost_usd=float(getattr(last, "cost_estimate_usd", 0.0) or 0.0),
+        cost_known=bool(getattr(last, "cost_known", True)),
     )
 
 
@@ -222,14 +246,17 @@ def _extract_last_call_metrics(llm: Any) -> tuple[int, int, float]:
 # ----------------------------------------------------------------------
 
 
+# `metrics` default = _NO_LLM_CALL (zero conhecido): correto p/ cache hit e llm-None;
+# caminhos pós-chamada DEVEM passar as métricas reais — rejeição já cobrada reportava
+# zero (A40.l17).
 def _base_result(
     *,
     output: ParecerPlanejadorOutput,
     persona_hash: str,
     manifest: ManifestData,
     config: ParecerOrchestratorConfig,
+    metrics: LLMCallMetrics = _NO_LLM_CALL,
 ) -> ParecerGenerationResult:
-    """Skeleton com campos imutáveis; caller adiciona métricas via ``dataclasses.replace``."""
     return ParecerGenerationResult(
         output=output,
         persona_hash=persona_hash,
@@ -237,6 +264,21 @@ def _base_result(
         schema_version=config.schema_version,
         model_id=config.model_id,
         tier_at_generation=config.tier,
+        tokens_in=metrics.tokens_in,
+        tokens_out=metrics.tokens_out,
+        cost_usd=metrics.cost_usd,
+        cost_known=metrics.cost_known,
+    )
+
+
+def _placeholder_output(
+    persona_hash: str, manifest: ManifestData, config: ParecerOrchestratorConfig
+) -> ParecerPlanejadorOutput:
+    return empty_needs_review_output(
+        persona_hash=persona_hash,
+        manifest_version=manifest.version,
+        model_id=config.model_id,
+        tier=config.tier,
     )
 
 
@@ -247,16 +289,15 @@ def _needs_review(
     manifest: ManifestData,
     config: ParecerOrchestratorConfig,
     elapsed_ms: int,
+    metrics: LLMCallMetrics,
 ) -> ParecerGenerationResult:
-    """Resultado em ``status='needs_review'`` (não publica artifact)."""
-    placeholder = empty_needs_review_output(
-        persona_hash=persona_hash,
-        manifest_version=manifest.version,
-        model_id=config.model_id,
-        tier=config.tier,
-    )
+    """Resultado ``needs_review`` carregando o custo da chamada; não publica artifact."""
     base = _base_result(
-        output=placeholder, persona_hash=persona_hash, manifest=manifest, config=config
+        output=_placeholder_output(persona_hash, manifest, config),
+        persona_hash=persona_hash,
+        manifest=manifest,
+        config=config,
+        metrics=metrics,
     )
     return replace(base, status="needs_review", error_detail=reason, latency_ms=elapsed_ms)
 
@@ -281,17 +322,15 @@ def _success_result(
     manifest: ManifestData,
     config: ParecerOrchestratorConfig,
     tools: PlannerDrillDown,
-    llm: Any,
+    metrics: LLMCallMetrics,
     elapsed_ms: int,
 ) -> ParecerGenerationResult:
-    """Empacota sucesso com métricas extraídas do LLM."""
-    tokens_in, tokens_out, cost_usd = _extract_last_call_metrics(llm)
-    base = _base_result(output=output, persona_hash=persona_hash, manifest=manifest, config=config)
+    """Empacota sucesso com as métricas da chamada."""
+    base = _base_result(
+        output=output, persona_hash=persona_hash, manifest=manifest, config=config, metrics=metrics
+    )
     return replace(
         base,
-        tokens_in=tokens_in,
-        tokens_out=tokens_out,
-        cost_usd=cost_usd,
         latency_ms=elapsed_ms,
         tool_iterations=tools.iterations_count,
         tool_trace=tools.to_trace_dicts(),
@@ -355,6 +394,7 @@ def generate_parecer(
             manifest=manifest,
             config=config,
             elapsed_ms=_elapsed_ms(start),
+            metrics=_NO_LLM_CALL,
         )
     return _generate_with_llm(
         llm=llm,
@@ -567,6 +607,7 @@ def _generate_with_llm(
     raw, err = _call_llm_safe(
         llm=llm, system_prompt=system_prompt, user_prompt=user_prompt, config=config
     )
+    metrics = _extract_last_call_metrics(llm, call_attempted=True)
     if raw is None:
         return _needs_review(
             reason=err or "LLM call failed",
@@ -574,6 +615,7 @@ def _generate_with_llm(
             manifest=manifest,
             config=config,
             elapsed_ms=_elapsed_ms(start),
+            metrics=metrics,
         )
     red_lines_err, red_lines_summary = _check_red_lines(raw, e5_data, config)
     if red_lines_err:
@@ -583,6 +625,7 @@ def _generate_with_llm(
             manifest=manifest,
             config=config,
             elapsed_ms=_elapsed_ms(start),
+            metrics=metrics,
         )
         return replace(base, red_lines_summary=red_lines_summary)
     sigilo_err = _check_sigilo(raw, config)
@@ -594,6 +637,7 @@ def _generate_with_llm(
                 manifest=manifest,
                 config=config,
                 elapsed_ms=_elapsed_ms(start),
+                metrics=metrics,
             ),
             red_lines_summary=red_lines_summary,
         )
@@ -605,6 +649,7 @@ def _generate_with_llm(
             manifest=manifest,
             config=config,
             elapsed_ms=_elapsed_ms(start),
+            metrics=metrics,
         )
         return replace(
             base,
@@ -630,7 +675,7 @@ def _generate_with_llm(
         manifest=manifest,
         config=config,
         tools=tools,
-        llm=llm,
+        metrics=metrics,
         elapsed_ms=_elapsed_ms(start),
     )
     return replace(

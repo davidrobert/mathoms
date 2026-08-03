@@ -108,6 +108,8 @@ def _needs_review_return(result, workspace_id: str, store) -> dict:
         "reason": result.error_detail,
         "tokens": {"in": result.tokens_in, "out": result.tokens_out},
         "cost_usd": result.cost_usd,
+        # A40.l17: 0.0 de falha pós-cobrança sem registro ≠ gasto zero real.
+        "cost_known": result.cost_known,
         "latency_ms": result.latency_ms,
     }
     if result.evidencia_summary is not None:
@@ -149,6 +151,7 @@ def _success_return(result, workspace_id: str) -> dict:
         "cache_hit": result.cache_hit,
         "tokens": {"in": result.tokens_in, "out": result.tokens_out},
         "cost_usd": result.cost_usd,
+        "cost_known": result.cost_known,
         "latency_ms": result.latency_ms,
         "tool_iterations": result.tool_iterations,
         "model_id": result.model_id,
