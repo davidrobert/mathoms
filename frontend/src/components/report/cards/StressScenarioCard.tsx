@@ -12,8 +12,8 @@ import { ReportCard } from "../ReportCard";
 type StressCenarios = {
   labels?: string[];
   aportes?: number[];
-  prazos_if?: number[];
-  anos_if?: number[];
+  prazos_if?: (number | null)[];
+  anos_if?: (number | null)[];
   premissas?: { aporte_base?: number };
 };
 
@@ -67,6 +67,10 @@ export function StressScenarioCard({
   const prazoEstresse = cenarios.prazos_if?.[0];
   const anoEstresse = cenarios.anos_if?.[0];
 
+  // Duas formas do mesmo estado: `null` é a atual; `999` sobrevive em
+  // artefatos E5 já persistidos no DB antes da troca por ausência explícita.
+  const estresseNaoProjetavel = prazoEstresse == null || prazoEstresse === 999;
+
   const aporteBase = cenarios.premissas?.aporte_base;
   const prazoBase = goals?.if_prazo_anos;
   const anoBase = goals?.if_ano;
@@ -76,11 +80,13 @@ export function StressScenarioCard({
       ? ((aporteEstresse - aporteBase) / aporteBase) * 100
       : null;
   const deltaPrazo =
-    prazoBase != null && prazoEstresse != null && prazoEstresse !== 999
+    prazoBase != null && prazoEstresse != null && !estresseNaoProjetavel
       ? prazoEstresse - prazoBase
       : null;
   const deltaAno =
-    anoBase != null && anoEstresse != null ? anoEstresse - anoBase : null;
+    anoBase != null && anoEstresse != null && !estresseNaoProjetavel
+      ? anoEstresse - anoBase
+      : null;
   const leitura = leituraTexto(deltaAportePct, deltaPrazo);
 
   return (
@@ -133,8 +139,8 @@ export function StressScenarioCard({
             <div className="flex justify-between">
               <dt className="text-[var(--surface-muted-foreground)]">Prazo até IF</dt>
               <dd className="font-mono tabular-nums">
-                {prazoEstresse === 999 ? "Não atinge" : fmtAnosMeses(prazoEstresse)}
-                {prazoEstresse !== 999 && (
+                {estresseNaoProjetavel ? "Não atinge" : fmtAnosMeses(prazoEstresse)}
+                {!estresseNaoProjetavel && (
                   <span
                     className={
                       deltaPrazo != null && deltaPrazo > 0
@@ -150,8 +156,8 @@ export function StressScenarioCard({
             <div className="flex justify-between">
               <dt className="text-[var(--surface-muted-foreground)]">Ano IF</dt>
               <dd className="font-mono tabular-nums">
-                {prazoEstresse === 999 ? "—" : (anoEstresse ?? "—")}
-                {prazoEstresse !== 999 && deltaAno != null && deltaAno !== 0 && (
+                {estresseNaoProjetavel ? "—" : (anoEstresse ?? "—")}
+                {!estresseNaoProjetavel && deltaAno != null && deltaAno !== 0 && (
                   <span
                     className={deltaAno > 0 ? "text-[var(--semantic-warning)] ml-1" : "ml-1"}
                   >
