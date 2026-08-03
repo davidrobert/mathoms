@@ -3,20 +3,28 @@
 from __future__ import annotations
 
 import logging
+import os
+from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.app.application.base.errors import ConflictError, ValidationError
+from backend.app.application.base.errors import (
+    ConflictError,
+    ServiceUnavailableError,
+    ValidationError,
+)
 from backend.app.core.config import settings
 from backend.app.models.document import DOCUMENT_CLASSIFIED_OK, Document, DocumentStatus
 from backend.app.models.goal import Goal
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.schemas.pipeline import PipelineRunRequest, PipelineRunResponse
+from backend.app.services.pipeline.pipeline_failure_reasons import DISPATCH_UNCONFIRMED
 from backend.app.services.pipeline.pipeline_service import (
+    PipelineDispatchError,
     resolve_llm_tier_async,
     start_pipeline_run,
 )
@@ -24,6 +32,11 @@ from backend.app.services.pipeline.pipeline_service import (
 _logger = logging.getLogger("mathoms.pipeline.trigger")
 
 _ACTIVE_RUN_MESSAGE = "Já existe uma execução ativa neste workspace. Cancele ou aguarde."
+_DISPATCH_FAILED_MESSAGE = (
+    "Não foi possível enfileirar a execução — o serviço de processamento está "
+    "indisponível. Tente novamente em alguns instantes."
+)
+_DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES = 2
 _MISSING_IF_GOAL_MESSAGE = (
     "Defina sua meta de Independência Financeira antes de processar. "
     "Acesse Plano → Meta IF para configurar."
@@ -58,34 +71,129 @@ async def trigger_pipeline(
         db=db,
     )
 
-    start_pipeline_run(
-        run_id=run.id,
-        ws_id=workspace_id,
-        stages=stages,
-        skip_llm=body.skip_llm,
-        stop_on_error=body.stop_on_error,
-        tier=tier,
-        incremental=body.incremental,
-        incremental_doc_paths=incremental_doc_paths or [],
-        base_run_id=base_run_id,
-        base_run_fallback_stages=base_run_fallback_stages,
-    )
+    try:
+        start_pipeline_run(
+            run_id=run.id,
+            ws_id=workspace_id,
+            stages=stages,
+            skip_llm=body.skip_llm,
+            stop_on_error=body.stop_on_error,
+            tier=tier,
+            incremental=body.incremental,
+            incremental_doc_paths=incremental_doc_paths or [],
+            base_run_id=base_run_id,
+            base_run_fallback_stages=base_run_fallback_stages,
+        )
+    except PipelineDispatchError as exc:
+        # ADR-359 §2: esta função criou a linha `pending`, logo esta função a
+        # compensa. Sem isso o run fica `pending` para sempre e o índice parcial
+        # `ux_pipeline_runs_ws_active` tranca o workspace inteiro.
+        await _compensate_undispatched_run(run.id, reason=exc.reason, db=db)
+        raise ServiceUnavailableError(_DISPATCH_FAILED_MESSAGE, code=exc.reason) from exc
     return PipelineRunResponse.model_validate(run)
+
+
+# O filtro por `status='pending'` é o que impede a regressão de dois executores:
+# se o enqueue publicou e só o ack falhou, a task ESTÁ na fila e o worker já
+# flippou para `running` — aí `rowcount == 0` e a compensação é no-op, deixando o
+# índice parcial seguir bloqueando. Na ordem inversa, a guarda de redelivery
+# (ADR-297) recusa a task porque `failed` é terminal. As duas ordens ficam
+# seguras; incondicional, nenhuma fica.
+async def _compensate_undispatched_run(run_id: str, *, reason: str, db: AsyncSession) -> None:
+    """``pending`` → ``failed``, condicional (ADR-359 §3)."""
+    result = await db.execute(
+        update(PipelineRun)
+        .where(PipelineRun.id == run_id, PipelineRun.status == PipelineRunStatus.pending)
+        .values(
+            status=PipelineRunStatus.failed,
+            failure_reason=reason,
+            completed_at=datetime.now(timezone.utc),
+        )
+    )
+    await db.commit()
+    if result.rowcount != 1:
+        _logger.warning(
+            "mathoms.pipeline.trigger.compensation_noop",
+            extra={"run_id": run_id, "failure_reason": reason},
+        )
 
 
 async def _check_no_active_run(workspace_id: str, *, db: AsyncSession) -> None:
     """UX-level fast-path. O guard authoritativo é o partial unique index
     ``ux_pipeline_runs_ws_active`` (migração i4c5d6e7f8a9)."""
     result = await db.execute(
-        select(func.count())
-        .select_from(PipelineRun)
-        .where(
+        select(PipelineRun).where(
             PipelineRun.workspace_id == workspace_id,
             PipelineRun.status.in_([PipelineRunStatus.pending, PipelineRunStatus.running]),
         )
     )
-    if (result.scalar() or 0) > 0:
-        raise ConflictError(_ACTIVE_RUN_MESSAGE)
+    blocking = result.scalars().first()
+    if blocking is None:
+        return
+    if await _heal_undispatched_run(blocking, db=db):
+        return
+    raise ConflictError(_ACTIVE_RUN_MESSAGE)
+
+
+def _undispatched_threshold() -> timedelta:
+    raw = os.environ.get("MATHOMS_UNDISPATCHED_RUN_THRESHOLD_MINUTES")
+    try:
+        minutes = int(raw) if raw else _DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES
+    except ValueError:
+        minutes = _DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES
+    return timedelta(minutes=max(minutes, 1))
+
+
+def _older_than_threshold(started_at: datetime | None) -> bool:
+    """SQLite devolve `DateTime(timezone=True)` naive — normaliza para UTC antes de comparar."""
+    if started_at is None:
+        return False
+    if started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    return started_at < datetime.now(timezone.utc) - _undispatched_threshold()
+
+
+# `celery_task_id IS NULL` é o discriminante: desde a ADR-359 o id é persistido
+# ANTES do enqueue, então NULL significa "dispatch nunca tentado", nunca
+# "enfileirado esperando fila" — sem isso, run legítimo em fila funda seria
+# marcado `failed` e depois recusado pelo worker. Roda no processo do request e é
+# write no Postgres: funciona com Redis fora, que é exatamente quando o órfão nasce.
+async def _heal_undispatched_run(run: PipelineRun, *, db: AsyncSession) -> bool:
+    """Cura o run que ninguém reivindicou, no instante do bloqueio (ADR-359 §5)."""
+    if run.status != PipelineRunStatus.pending or run.celery_task_id is not None:
+        return False
+    if not _older_than_threshold(run.started_at):
+        return False
+    if not await _flip_to_dispatch_unconfirmed(run.id, db=db):
+        return False
+    _logger.warning(
+        "mathoms.pipeline.trigger.healed_undispatched_run",
+        extra={
+            "run_id": run.id,
+            "workspace_id": run.workspace_id,
+            "failure_reason": DISPATCH_UNCONFIRMED,
+        },
+    )
+    return True
+
+
+async def _flip_to_dispatch_unconfirmed(run_id: str, *, db: AsyncSession) -> bool:
+    """UPDATE atômico; ``False`` quando outro ator ganhou a corrida."""
+    result = await db.execute(
+        update(PipelineRun)
+        .where(
+            PipelineRun.id == run_id,
+            PipelineRun.status == PipelineRunStatus.pending,
+            PipelineRun.celery_task_id.is_(None),
+        )
+        .values(
+            status=PipelineRunStatus.failed,
+            failure_reason=DISPATCH_UNCONFIRMED,
+            completed_at=datetime.now(timezone.utc),
+        )
+    )
+    await db.commit()
+    return result.rowcount == 1
 
 
 async def _require_if_goal(workspace_id: str, *, db: AsyncSession) -> None:

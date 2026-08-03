@@ -182,6 +182,18 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: stateless-primitives
+        # ADR-359: STATELESS_AUDIT §5 afirmou "zero threading.Thread em app
+        # code" por 3,5 meses enquanto o fallback de dispatch existia — a
+        # afirmação nasceu falsa e nada a verificava. Afirmação de audit sem
+        # gate é dívida, não garantia.
+        name: "Proíbe primitiva non-stateless em app code (ADR-111 §3)"
+        entry: python3 dev/check_stateless_primitives.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        types: [python]
+
       - id: no-leak-field-consumers
         # F2-DB8 (A24.l1): guarda contínua do de-leak — novo reader de
         # tipo_lancamento/numero_conta_norm em pipeline/** ou backend/** falha.
