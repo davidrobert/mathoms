@@ -44,6 +44,9 @@ from backend.app.services.db_property_overrides_resolver import (
 from backend.app.services.db_property_supersession_writer import (
     DBPropertySupersessionWriter,
 )
+from backend.app.services.db_tributario_section_resolver import (
+    DBTributarioSectionResolver,
+)
 from backend.app.services.institution_catalog_provider import (
     DBInstitutionCatalogProvider,
 )
@@ -94,6 +97,9 @@ def _db_resolvers(session: Session) -> dict:
         "property_overrides_resolver": DBPropertyOverridesResolver(session=session),
         # A33.l8 (ADR-137): catálogo de instituições p/ injection nos prompts LLM.
         "institution_catalog_provider": DBInstitutionCatalogProvider(session=session),
+        # RV3-11 (A40.l9): seção tributária resolvida em stage-time (E5.N), do
+        # último run COM E4 — o goals.json de t=0 fica só como fallback.
+        "tributario_section_resolver": DBTributarioSectionResolver(session=session),
     }
 
 

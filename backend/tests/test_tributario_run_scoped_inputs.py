@@ -247,3 +247,43 @@ async def test_run_corrente_com_e4_escrito_e_o_resolvido(db):
 
     # 240k/12 = 20k de pró-labore mensal ⇒ resolveu o corrente (o anterior daria 10k).
     assert inp.pro_labore_mensal.amount == Decimal("20000")
+
+
+@pytest.mark.asyncio
+async def test_db_resolver_entrega_secao_fresca_do_run_com_e4(db):
+    """PR2: o resolver injetado devolve a seção do último run COM E4 — é ele que
+    o E5.N consome no lugar do goals.json materializado em t=0."""
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.services.db_tributario_section_resolver import (
+        DBTributarioSectionResolver,
+    )
+
+    ws = await _ws_with_profile(db)
+    await _seed_completed_run_with_e4(
+        db, ws.id, started_at=datetime.now(timezone.utc) - timedelta(hours=1)
+    )
+
+    with SyncSessionLocal() as sync_db:
+        section = DBTributarioSectionResolver(session=sync_db).resolve(ws.id)
+
+    assert section is not None
+    assert section["cascata"]["receita_bruta"] > 0
+
+
+@pytest.mark.asyncio
+async def test_db_resolver_falha_degrada_para_none(db, monkeypatch):
+    """Resolver é best-effort: exceção interna vira None (caller usa o fallback)."""
+    import backend.app.services.pipeline.pipeline_adapter as adapter
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.services.db_tributario_section_resolver import (
+        DBTributarioSectionResolver,
+    )
+
+    def _boom(*a, **k):
+        raise RuntimeError("db exploded")
+
+    monkeypatch.setattr(adapter, "_build_tributario_section_sync", _boom)
+    ws = await _ws_with_profile(db)
+
+    with SyncSessionLocal() as sync_db:
+        assert DBTributarioSectionResolver(session=sync_db).resolve(ws.id) is None

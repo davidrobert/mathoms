@@ -5,6 +5,7 @@ from pipeline.ports.economic_assumptions_resolver import EconomicAssumptionsReso
 from pipeline.ports.property_identity_resolver import PropertyIdentityResolver
 from pipeline.ports.property_overrides_resolver import PropertyOverridesResolver
 from pipeline.ports.property_supersession_writer import PropertySupersessionWriter
+from pipeline.ports.tributario_section_resolver import TributarioSectionResolver
 
 __all__ = [
     "ConfigStore",
@@ -12,4 +13,5 @@ __all__ = [
     "PropertyIdentityResolver",
     "PropertyOverridesResolver",
     "PropertySupersessionWriter",
+    "TributarioSectionResolver",
 ]

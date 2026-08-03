@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         PropertyIdentityResolver,
         PropertyOverridesResolver,
         PropertySupersessionWriter,
+        TributarioSectionResolver,
     )
 
 
@@ -99,6 +100,14 @@ class WorkspaceContext:
     #: fiduciária). ``None`` → E5 emite ``premissas_economicas`` ausente
     #: (UI degrada — compat com testes/CLI legados).
     economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = field(
+        default=None, repr=False
+    )
+
+    #: ``TributarioSectionResolver`` injetável (RV3-11 · A40.l9). Permite ao
+    #: E5.N resolver a seção tributária QUANDO ela é consumida — momento em que
+    #: o E4 do run corrente já existe — em vez de ler o valor materializado em
+    #: t=0 no ``goals.json``. ``None`` → fallback ao materializado (CLI/testes).
+    tributario_section_resolver: Optional["TributarioSectionResolver"] = field(
         default=None, repr=False
     )
 
@@ -263,6 +272,7 @@ class WorkspaceContext:
         property_supersession_writer: Optional["PropertySupersessionWriter"] = None,
         economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = None,
         property_overrides_resolver: Optional["PropertyOverridesResolver"] = None,
+        tributario_section_resolver: Optional["TributarioSectionResolver"] = None,
         imoveis_no_if: bool = True,
         institution_catalog_provider: Optional["InstitutionCatalogProvider"] = None,
     ) -> WorkspaceContext:
@@ -294,6 +304,7 @@ class WorkspaceContext:
             property_supersession_writer=property_supersession_writer,
             economic_assumptions_resolver=economic_assumptions_resolver,
             property_overrides_resolver=property_overrides_resolver,
+            tributario_section_resolver=tributario_section_resolver,
             imoveis_no_if=imoveis_no_if,
             institution_catalog_provider=institution_catalog_provider,
         )
