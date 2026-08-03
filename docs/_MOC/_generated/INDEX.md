@@ -351,6 +351,8 @@
 | ADR-354 | adr | Proposto |  | Identidade de transação (K4) exclui atributos de proveniência do documento | `adr/354-identidade-transacao-exclui-proveniencia.md` |
 | ADR-355 | adr | Decidido |  | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages | `adr/355-intencao-sem-llm-propagada-ate-o-stage.md` |
 | ADR-356 | adr | Proposto |  | Precedência declarada do parágrafo de seção e CV9 como medida de entrega | `adr/356-precedencia-narrativa-secao-e-entrega.md` |
+| ADR-357 | adr | Proposto |  | Criticidade de stage e degradação do run — add-on advisory não veta o entregável | `adr/357-criticidade-de-stage-e-degradacao-do-run.md` |
+| ADR-358 | adr | Proposto |  | Enforcement em produção exige budget de produção — e KR no plano onde ele age | `adr/358-enforcement-de-producao-exige-budget-de-producao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -824,7 +826,14 @@
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
 | A40.l14 | lane | planned | A40 | Limpeza: schema órfão, quarentena inerte no read-path e cauda do A39 | `sprint/A40/lanes/A40-l14-cleanup-orfaos-schema-morto.md` |
 | A40.l15 | lane | planned | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
+| A40.l16 | lane | open | A40 | Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run | `sprint/A40/lanes/A40-l16-desescalar-number-in-prose.md` |
+| A40.l17 | lane | open | A40 | Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero | `sprint/A40/lanes/A40-l17-custo-e-cache-em-needs-review.md` |
+| A40.l18 | lane | open | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
+| A40.l19 | lane | open | A40 | Drift de enum de status: 4 valores existem em Python e não no tipo do DB | `sprint/A40/lanes/A40-l19-migration-drift-enum-status.md` |
 | A40.l2 | lane | open | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
+| A40.l20 | lane | open | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
+| A40.l21 | lane | open | A40 | Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha | `sprint/A40/lanes/A40-l21-leitores-tolerantes-partial-failure.md` |
+| A40.l22 | lane | open | A40 | Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF | `sprint/A40/lanes/A40-l22-superficie-de-degradacao.md` |
 | A40.l3 | lane | open | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l4 | lane | open | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | planned | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
