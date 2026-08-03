@@ -84,11 +84,11 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l22]] | Superfície de degradação no relatório + PDF | **P0** | l20 | fatia premium da F11.5 · **bloqueador do beta** (6ª classe do gate de saída) |
 | [[A40.l23]] | Gate: ADR citada em prosa resolve para arquivo (reserva de ID é invisível) | P2 | — | classe exposta pela **[[ADR-345]]** |
 | [[A40.l24]] | Asserção "0 LLM" do gate F2 passa a medir no boundary do SDK | P1 | — | promovida da [[A41]] · [[ADR-355]] · [[PLAN-go-shell]] |
-| [[A40.l25]] | Honestidade do cone de IF: precisão de exibição + `sigma` como premissa auditada | P1 | — | residual de [[ADR-360]] §Def. 1 + `ADR-361` §Def. 5 · KR-E |
+| [[A40.l25]] | Honestidade do cone de IF: precisão de exibição + `sigma` como premissa auditada | P1 | — | residual de [[ADR-360]] §Def. 1 + [[ADR-361]] §Def. 5 · KR-E |
 | [[A40.l26]] | Cobertura do solver de prazo IF (aporte 0 com retorno > 0 converge) | P2 | — | [[ADR-360]] §Def. 6-7, abertos *pelo* #1158 · co-design `financial-planner` |
 | [[A40.l27]] | Órfão de dispatch: varredura de beat, `cancel` de `resuming`, read path de `failure_reason` | P1 | l19 | residual de **[[ADR-359]]** §Def. 1-3 · #1154 |
-| [[A40.l28]] | Idade-meta do cone é output do modelo + rótulo `p10`/`p90` aponta para dois lados | P1 | — | `ADR-361` §Def. 1-2 · contrato, sem brief · KR-E |
-| [[A40.l29]] | Editorial do ano de IF: dois anos concorrentes, eixo em "quando", faixa sem componente | P2 | — | `ADR-361` §Def. 4/6/7 + RV3-14 · **começa por brief de `product-designer`** · KR-E |
+| [[A40.l28]] | Idade-meta do cone é output do modelo + rótulo `p10`/`p90` aponta para dois lados | P1 | — | [[ADR-361]] §Def. 1-2 · contrato, sem brief · KR-E |
+| [[A40.l29]] | Editorial do ano de IF: dois anos concorrentes, eixo em "quando", faixa sem componente | P2 | — | [[ADR-361]] §Def. 4/6/7 + RV3-14 · **começa por brief de `product-designer`** · KR-E |
 
 ## Ondas
 
@@ -255,13 +255,13 @@ sem isso a sprint fecharia dizendo menos do que entregou.
 |---|---|---|---|
 | Determinismo do cone de IF | `35acc75e` (#1156) | **[[ADR-360]]** `Proposto` | Cone era sorteado da entropia do SO (0,7% de diferença entre runs com input idêntico). Seed passa a ser constante de modelo + guard de boundary; `n` 10k→50k (dispersão 2,4%→1,2% a 85 ms); proveniência (`mc_version`/`seed_usado`/`n_simulacoes_usado`) no artefato; schema do bloco fechado. Mediu que **subir `n` não compra reprodutibilidade** (0,2% sobra a 1 M) |
 | Sentinela de não-convergência | `7107b956` (#1158) | — | `prazo_anos_realista` não projetável emitia 999, somado à idade virava `idade_meta_usada: 1040` em path citável formatado como "anos". Passa a emitir ausência com motivo. Fecha o item 5 do §Deferimento da [[ADR-360]] |
-| Percentil censurado do cone | #1162 (**aberta**) | **`ADR-361`** | `Pk` do ano de IF saía da base **dos sobreviventes** (otimista, e mais otimista quanto pior o plano) enquanto `prob` usava `n` cheio. Passa a quantil na base cheia com censura declarada por percentil; corrige também o truncamento de `int(np.percentile)`. `mc_version` → `3.0` |
+| Percentil censurado do cone | `790c1c5f` (#1162) | **[[ADR-361]]** | `Pk` do ano de IF saía da base **dos sobreviventes** (otimista, e mais otimista quanto pior o plano) enquanto `prob` usava `n` cheio. Passa a quantil na base cheia com censura declarada por percentil; corrige também o truncamento de `int(np.percentile)`. `mc_version` → `3.0` |
 
 **O que sobra dos três** está na [[A40.l25]], [[A40.l26]], [[A40.l28]] e
 [[A40.l29]] — não em §Deferimento de ADR, que é invisível ao `SPRINT_CURRENT`.
 
 > **Correção de cobertura — 2026-08-03.** A l25 e a l26 cobriam 3 dos 7 itens do
-> §Deferimento da `ADR-361`: o item 5 (faixa de 5 pp) e o residual da
+> §Deferimento da [[ADR-361]]: o item 5 (faixa de 5 pp) e o residual da
 > [[ADR-360]]. Os outros quatro estavam **descritos e sem destino** — exatamente
 > o estado que esta seção existe para impedir. Roteados agora: **l28** leva os
 > dois de contrato (idade-meta como input, rename do rótulo) e **l29** leva os
@@ -288,7 +288,7 @@ gate é dívida, não garantia. Mesma família do §Débito de método herdado d
 fim deste arquivo.
 
 **Owner-gated destas entregas** (também em [[OWNER-GATED]]): flip da [[ADR-360]] e
-da `ADR-361` `Proposto` → `Decidido`; **nota one-shot de recalibração** no
+da [[ADR-361]] `Proposto` → `Decidido`; **nota one-shot de recalibração** no
 primeiro relatório pós-merge (seed + `n` + censura deslocam todo o bloco de IF, e
 sem a nota a leitura racional de "IF em 2040" virar 2041 é "meu plano piorou");
 **re-rodar o Tier-1** do gate F2 (`make go-parity WS=<dogfood> RUNS=2`) para
@@ -663,7 +663,7 @@ emendadas por §Infra de CI tocada durante a sprint.
 | [[ADR-356]] | `Proposto` | [[A40.l4]] (`shipped`) | Precedência declarada do parágrafo de seção e CV9 como medida de entrega. **Flip pendente** — ver §Pendências de decisão nº 5 |
 | [[ADR-355]] | `Decidido` | [[A40.l24]] | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages |
 | **[[ADR-360]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1156) · residual em [[A40.l25]] e [[A40.l26]] | Seed do cone Monte Carlo é constante de modelo versionada, não entropia do SO. Rejeita seed derivado do input por quebrar monotonicidade em patrimônio/aporte |
-| **`ADR-361`** | `Proposto` · PR **aberta** (#1162) | — (fora de lane) · residual em [[A40.l25]] | Percentil de tempo-até-o-evento só é publicável como ano se a taxa de sucesso o define — censura declarada na base cheia |
+| **[[ADR-361]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1162) · residual em [[A40.l25]], [[A40.l28]] e [[A40.l29]] | Percentil de tempo-até-o-evento só é publicável como ano se a taxa de sucesso o define — censura declarada na base cheia |
 | [[ADR-359]] | `Decidido` | — (fora de lane, #1154/#1155) | Dispatch assíncrono falha alto e quem cria estado pendente compensa |
 | [[ADR-304]] | `Decidido` · emendada 2026-08-03 | [[A40.l16]] | Pureza monetária da prosa do parecer; a emenda revoga a doutrina `==0` da §2 |
 | [[ADR-345]] | `Roadmap` | [[A40.l23]] | Propagação do taint E2→E5 e selo de qualidade no read-path — adoção deferida; expôs a classe de reserva-de-ID invisível |

@@ -220,7 +220,7 @@ Levantado no co-design, **fora do escopo desta ADR**, com dono no owner:
    `premissas_economicas`, apesar de a [[ADR-219]] ter construído a tabela para
    isso. `sigma_usado: 0.11` é constante de código apresentada como premissa
    auditada — erro de premissa domina o erro amostral que esta ADR reduziu.
-3. ~~**P50 condicional aos sobreviventes**~~ — **fechado** pela `ADR-361`
+3. ~~**P50 condicional aos sobreviventes**~~ — **fechado** pela [[ADR-361]]
    (#1162, 2026-08-03): o quantil passa a sair da base cheia com censura declarada
    por percentil. Era a distorção maior que os 2,4% desta ADR.
 4. ~~**`int(np.percentile(...))` trunca**~~ — **fechado** na mesma passada

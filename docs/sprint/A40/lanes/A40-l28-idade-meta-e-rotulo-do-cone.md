@@ -8,6 +8,7 @@ status: open
 priority: P1
 branch_slug: a40-l28-idade-meta-e-rotulo-do-cone
 adrs:
+  - "[[ADR-361]]"
   - "[[ADR-237]]"
   - "[[ADR-219]]"
 depends_on: []
@@ -24,13 +25,11 @@ tags:
 
 # A40.l28 — `idade-meta-e-rotulo-do-cone`
 
-> **Residual de contrato da `ADR-361` (PR #1162), itens 1 e 2 do §Deferimento.**
+> **Residual de contrato da [[ADR-361]] (#1162), itens 1 e 2 do §Deferimento.**
 > A [[A40.l25]] pegou o item 5 (faixa de 5 pp) e o residual da [[ADR-360]]; estes
 > dois ficaram sem destino. São contrato/payload — não dependem de brief de
 > design, ao contrário da [[A40.l29]].
 >
-> `ADR-361` fica sem wikilink até #1162 mergear (`check_doc_links` hard-falha em
-> alvo inexistente). Religar é parte do merge dela.
 >
 > Entra na A40 pela **KR-E** (honestidade da recomendação): as duas faces são
 > números que dizem medir uma coisa e medem outra.
@@ -48,7 +47,7 @@ determinístico, a métrica publicada é:
 > P(o Monte Carlo bate a data que o card determinístico logo acima imprimiu).
 
 E como `mu_log = log(1+r) − ½σ²`, a mediana simulada fica **estruturalmente**
-atrás do determinístico. Medição feita no co-design da `ADR-361`, oito planos
+atrás do determinístico. Medição feita no co-design da [[ADR-361]], oito planos
 deliberadamente distintos (PV de R$ 300 k a R$ 5 M, meta de R$ 2 M a R$ 20 M,
 aporte de R$ 2 k a R$ 30 k):
 
@@ -67,7 +66,7 @@ aporte de R$ 2 k a R$ 30 k):
 constante de modelo, não métrica do cliente — e é publicada como
 "~44% de chance de {titular} alcançá-la até os {idade} anos".
 
-A `ADR-361` §Deferimento item 1 registrou isto como **maior que o defeito que
+A [[ADR-361]] §Deferimento item 1 registrou isto como **maior que o defeito que
 ela corrigiu**. Não existe campo de idade-meta em
 `goals.independencia_financeira` (só `if_meta`, `trs_pct`,
 `taxa_retirada_segura_pct`, `retorno_real_anual_pct`) — é campo novo.
@@ -79,7 +78,7 @@ ela corrigiu**. Não existe campo de idade-meta em
 
 Mesmo sufixo, orientação oposta, mesmo bloco. A legenda do gráfico já diz
 "P10 — cenário adverso" enquanto o campo de ano ao lado quer dizer o contrário.
-A `ADR-361` deixou o rename fora de propósito, para não misturar mudança de
+A [[ADR-361]] deixou o rename fora de propósito, para não misturar mudança de
 contrato com correção estatística — mas o v3.0 circulando com o rótulo ambíguo
 fica mais caro de desfazer a cada consumidor novo.
 
@@ -88,7 +87,7 @@ fica mais caro de desfazer a cada consumidor novo.
 1. **`idade_meta_if` vira input** em `goals.independencia_financeira` (default
    65, editável), com migração de leitura no adapter. Enquanto não houver valor
    declarado, a **única probabilidade honesta é `prob_if_ate_horizonte`** (já
-   publicada pela `ADR-361`) — `prob_if_ate_idade_meta` não sai.
+   publicada pela [[ADR-361]]) — `prob_if_ate_idade_meta` não sai.
 2. **Rename** `p10_ano_if`/`p90_ano_if` → `ano_if_cenario_favoravel` /
    `ano_if_cenario_adverso` (e as flags de censura junto), com `mc_version`
    bumpado. Toca payload, `config/schemas/e5_analysis.schema.json`, tipos TS,
