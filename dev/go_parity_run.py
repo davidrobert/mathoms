@@ -310,10 +310,26 @@ def _one_run(arm: Arm, workspace: str, con: sqlite3.Connection, args, index: int
     return RunRecord(run_id=run_id, ws_path=ws_path)
 
 
-def execute_arm(arm: Arm, workspace: str, con: sqlite3.Connection, args) -> list[RunRecord]:
-    """Liga o braço e roda N runs sequenciais; aborta no primeiro que não completar."""
-    switch_arm(arm)
-    return [_one_run(arm, workspace, con, args, i) for i in range(args.runs)]
+def _pair_order(index: int) -> tuple[Arm, Arm]:
+    """Alterna quem vai primeiro em cada par, para nenhum braço monopolizar posição ordinal."""
+    return (PYTHON_ARM, GO_ARM) if index % 2 == 0 else (GO_ARM, PYTHON_ARM)
+
+
+def execute_interleaved(
+    workspace: str, con: sqlite3.Connection, args
+) -> tuple[list[RunRecord], list[RunRecord]]:
+    """Intercala os braços em vez de rodar N de um e depois N do outro."""
+    # Medido 2026-08-03: braços sequenciais (py,py,go,go) tornam "ser Go" e "ser o 3º
+    # run" perfeitamente correlacionados — e o E3 lê artefato pelo mais recente ENTRE
+    # runs, então efeito de acumulação é possível. Gate que confunde ordem com executor
+    # produz falso positivo caro (manda caçar bug de Go que não existe). Intercalar +
+    # alternar a ordem dentro do par balanceia a posição ordinal.
+    runs: dict[str, list[RunRecord]] = {PYTHON_ARM.name: [], GO_ARM.name: []}
+    for i in range(args.runs):
+        for arm in _pair_order(i):
+            switch_arm(arm)
+            runs[arm.name].append(_one_run(arm, workspace, con, args, i))
+    return runs[PYTHON_ARM.name], runs[GO_ARM.name]
 
 
 # ───────────────────────────── veredito ─────────────────────────────
@@ -417,11 +433,9 @@ def _restore_python_arm() -> None:
 
 def _execute_both_arms(workspace: str, con: sqlite3.Connection, args) -> tuple[list, list]:
     try:
-        py_runs = execute_arm(PYTHON_ARM, workspace, con, args)
-        go_runs = execute_arm(GO_ARM, workspace, con, args)
+        return execute_interleaved(workspace, con, args)
     finally:
         _restore_python_arm()
-    return py_runs, go_runs
 
 
 def main(argv: list[str] | None = None) -> int:

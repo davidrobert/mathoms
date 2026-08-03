@@ -7,6 +7,7 @@ orquestração (make/dispatch/poll) é exercitado ao vivo pelo `make go-parity`.
 
 from __future__ import annotations
 
+import argparse
 import sqlite3
 import sys
 from pathlib import Path
@@ -208,28 +209,60 @@ def test_running_never_trips_pending_guard() -> None:
     _assert_consumed("r1", "running", 99_999.0)
 
 
+def test_pair_order_alternates_who_goes_first() -> None:
+    """Se um braço sempre corre primeiro, posição ordinal vira variável confundida com executor."""
+    assert [a.name for a in gpr._pair_order(0)] == ["python", "go"]
+    assert [a.name for a in gpr._pair_order(1)] == ["go", "python"]
+
+
+def test_interleaved_balances_ordinal_positions(monkeypatch: pytest.MonkeyPatch) -> None:
+    """py,py,go,go correlaciona braço com ordem; intercalado não."""
+    ordem: list[str] = []
+    monkeypatch.setattr(gpr, "switch_arm", lambda arm: None)
+    monkeypatch.setattr(
+        gpr,
+        "_one_run",
+        lambda arm, ws, con, args, i: (ordem.append(arm.name), RunRecord(f"{arm.name}{i}"))[1],
+    )
+    args = argparse.Namespace(runs=2)
+    py, go = gpr.execute_interleaved("ws", None, args)
+    assert ordem == ["python", "go", "go", "python"]
+    assert [r.run_id for r in py] == ["python0", "python1"]
+    assert [r.run_id for r in go] == ["go0", "go1"]
+
+
 def test_arms_restored_to_python_even_on_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """Abortar no braço Go sem restaurar deixaria o dogfood executando via shell Go."""
     switched: list[str] = []
     monkeypatch.setattr(gpr, "switch_arm", lambda arm: switched.append(arm.name))
-    monkeypatch.setattr(
-        gpr, "execute_arm", lambda arm, *a: (_ for _ in ()).throw(GateError("boom"))
-    )
+    monkeypatch.setattr(gpr, "_one_run", lambda *a: (_ for _ in ()).throw(GateError("boom")))
     with pytest.raises(GateError, match="boom"):
-        _execute_both_arms("ws", None, None)
-    assert switched == [PYTHON_ARM.name]
+        _execute_both_arms("ws", None, argparse.Namespace(runs=2))
+    assert switched[-1] == PYTHON_ARM.name, "última troca tem que voltar ao Python"
+
+
+def _fail_only_after(state: dict) -> object:
+    """switch_arm que funciona no corpo e quebra no restore — modela o pior caso real."""
+
+    def fake_switch(arm):
+        if state["falhou"]:
+            raise GateError("go-off caiu")
+
+    return fake_switch
 
 
 def test_restore_failure_does_not_mask_original(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
     """Erro no restore não pode engolir a exceção que interessa diagnosticar."""
-    monkeypatch.setattr(
-        gpr, "switch_arm", lambda arm: (_ for _ in ()).throw(GateError("go-off caiu"))
-    )
-    monkeypatch.setattr(
-        gpr, "execute_arm", lambda arm, *a: (_ for _ in ()).throw(GateError("causa raiz"))
-    )
+    state = {"falhou": False}
+
+    def fake_one_run(*_a):
+        state["falhou"] = True
+        raise GateError("causa raiz")
+
+    monkeypatch.setattr(gpr, "_one_run", fake_one_run)
+    monkeypatch.setattr(gpr, "switch_arm", _fail_only_after(state))
     with pytest.raises(GateError, match="causa raiz"):
-        _execute_both_arms("ws", None, None)
+        _execute_both_arms("ws", None, argparse.Namespace(runs=2))
     assert "FALHA AO RESTAURAR" in capsys.readouterr().err
 
 
