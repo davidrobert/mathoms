@@ -452,11 +452,13 @@ repos:
 
       - id: labeler-config
         # Glob negativo sob `any-glob-to-*` faz a label casar em todo PR
-        # (actions/labeler@v5 avalia o negativo como padrão próprio).
-        name: "labeler.yml: sem glob negativo sob chave any-*"
+        # (actions/labeler@v5 avalia o negativo como padrão próprio). Cobre
+        # também `**` colado (`config/**.yaml`), que não cruza `/` e deixava
+        # config/prompts/* fora do filtro `pipeline` do ci.yml.
+        name: "labeler.yml + files_yaml: glob negativo sob any-* e ** colado"
         entry: python3 dev/check_labeler_config.py
         language: system
-        files: ^(\.github/labeler\.yml|dev/check_labeler_config\.py)$
+        files: ^(\.github/labeler\.yml|\.github/workflows/.*\.yml|dev/check_labeler_config\.py)$
         pass_filenames: false
 
       # --------------------------------------------------------------------

@@ -9,6 +9,16 @@
 # padrão, e todo arquivo que não seja o excluído já satisfaz o "any".
 # Exclusão vive em `all-globs-to-all-files`. Gate: dev/check_labeler_config.py.
 #
+# `**` só cruza `/` quando é o segmento INTEIRO. `config/**.yaml` compila para
+# `config/[^/]*\.yaml` e ignora `config/prompts/*.yaml`; a forma que desce em
+# subpasta é `config/**/*.yaml`. Idem `**/*.go` (não `**.go`, que casava 0
+# arquivo no minimatch do labeler — medido 2026-08-03). Mesmo gate.
+#
+# Glob que aponta para um SHIM não é detectável por gate — o arquivo existe e
+# é rastreado, mas o conteúdo migrou. Ao mover conteúdo canônico de lugar,
+# revise este arquivo: `area:adr` ficou ~3 meses casando só docs/DECISIONS.md
+# (shim pós-ADR-182) enquanto as 352 ADRs viviam em docs/adr/.
+#
 # Manter alinhado com a matriz `changes` em ci.yml para coerência.
 
 'area:backend':
@@ -29,9 +39,9 @@
           - 'pipeline/**'
           - 'scripts/**'
           - 'tests/**'
-          - 'config/**.json'
-          - 'config/**.yaml'
-          - 'config/**.yml'
+          - 'config/**/*.json'
+          - 'config/**/*.yaml'
+          - 'config/**/*.yml'
           - 'config/schemas/**'
 
 # Não reintroduza `!**/CHANGELOG.md` aqui: sob `any-glob-to-any-file` o
@@ -68,15 +78,18 @@
           - 'config/report_layout.yaml'
           - 'frontend/src/styles/**'
 
+# docs/adr/** é onde as ADRs vivem desde a F2 do DOC_REORG ([[ADR-182]]).
+# docs/DECISIONS.md fica só pelo caso raro de editar o shim de âncoras.
 'area:adr':
   - changed-files:
       - any-glob-to-any-file:
+          - 'docs/adr/**'
           - 'docs/DECISIONS.md'
 
 'area:go':
   - changed-files:
       - any-glob-to-any-file:
-          - '**.go'
+          - '**/*.go'
           - 'go.work'
           - 'go.work.sum'
           - 'services/**'

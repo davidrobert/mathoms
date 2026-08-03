@@ -99,7 +99,10 @@ jobs:
             any_code:
               - '**'
               - '!docs/**'
-              - '!**.md'
+              # `!*.md` (raiz) e não `!**/*.md` — mesmo motivo do any_code em
+              # ci.yml: excluir .md aninhado tiraria config/*.md e READMEs de
+              # fixture do trivy-fs. Comportamento idêntico ao `!**.md` antigo.
+              - '!*.md'
               - '!.claude/**'
               - '!_archive/**'
               - '!_scratch/**'
