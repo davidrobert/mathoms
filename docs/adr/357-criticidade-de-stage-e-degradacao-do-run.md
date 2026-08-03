@@ -45,7 +45,7 @@ valor, não em quem **decide** o destino do run — inversão de DIP.
 
 A classe tem **3 membros vivos**, todos na cauda pós-`analyze_finances`:
 `review_finances_holistic`, `generate_narratives`
-([`scripts/generate_narratives.py:966,975`](../../scripts/generate_narratives.py))
+([`scripts/generate_narratives.py:971,980`](../../scripts/generate_narratives.py))
 e `validate_cross`
 ([`scripts/validate_cross.py:699,711,717`](../../scripts/validate_cross.py)).
 Qualquer um destrói o entregável hoje.
@@ -159,7 +159,7 @@ resume.
 
 ## Consequências
 
-- Frontend: os 5 read sites que tratam `partial_failure` como falha devem ser
+- Frontend: os **7** read sites que tratam `partial_failure` como falha devem ser
   corrigidos **antes** do writer emitir (reader-first — ver [[A40.l21]]).
   Shipar o writer primeiro entrega um run que produziu relatório com banner
   vermelho de falha, pior que hoje.

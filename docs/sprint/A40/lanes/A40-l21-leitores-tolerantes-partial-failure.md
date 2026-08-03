@@ -30,7 +30,8 @@ tags:
 ([`frontend/src/lib/api/pipeline.ts`](../../../../frontend/src/lib/api/pipeline.ts))
 e já tem rótulo "Parcial" com variante `warning` em
 [`frontend/src/lib/format.ts`](../../../../frontend/src/lib/format.ts) — mas a
-lógica o trata como **falha** em 5 read sites:
+lógica o trata como **falha** em **7** read sites (9 hits de `partial_failure` em
+`frontend/src/` menos as 2 declarações acima):
 
 - `frontend/src/lib/pipelinePhases.ts` — `isFailed: runStatus === "failed" || runStatus === "partial_failure"`. Pinta a fase "Montando seu relatório" de vermelho num run que **produziu** relatório: ativamente enganoso.
 - `frontend/src/app/(app)/pipeline/page.tsx` (3 sites) — `lastFailedRun` levanta banner de falha para run que produziu relatório.
@@ -69,6 +70,6 @@ o número deste PR.
 - `pipelinePhases.isFailed` **não** contém `partial_failure`.
 - Toast + redirect disparam em `partial_failure`, não só em `completed`.
 - Fixture de `partial_failure` (o helper de `frontend/tests/lib/format.test.ts`
-  já constrói o estado) ⇒ nenhum dos 5 sites renderiza afordância de falha.
+  já constrói o estado) ⇒ nenhum dos **7** sites renderiza afordância de falha.
 - `cd frontend && npm test -- --run` verde; `tsc --noEmit` verde.
 - axe-core 0 critical/serious no histórico com run parcial, light e dark.

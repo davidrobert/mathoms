@@ -94,9 +94,15 @@ afirmado**.
 - **CHECKLIST BLOQUEANTE — re-triagem dos 7 inertes (RV3-33).** A lane só pode ser
   marcada `done` com os 7 re-verificados **contra o output já renderizando**, cada
   um com veredito registrado (`ainda-inerte` / `agora-visível-e-correto` /
-  `agora-visível-e-errado`). **A re-triagem bloqueou:** C29 e C32 viraram
-  `agora-visível-e-errado` e foram corrigidos aqui; PD-20 também. Vereditos
-  finais em §Checklist.
+  `agora-visível-e-errado`). **A re-triagem rodou duas vezes e bloqueou nas duas.**
+  A 1ª achou C29 e C32 `agora-visível-e-errado` (PD-20 também). A 2ª, pós-remediação,
+  achou C32 resolvido e provado por mutação e **C29 ainda errado** — o DAS
+  "recolhido" que entrou no lugar da estimativa também era falso —, mais **duas
+  contradições novas**: o `s4` afirmando 6 imóveis com a seção listando 4, e o CV9
+  contando 7 de 7 quando o render entrega 6. A **3ª passada, depois da remediação
+  final, não rodou** (limite de gasto da org). Vereditos em §Checklist são os da
+  remediação final; o que está aberto é a verificação **dessa última rodada de
+  correções**, não a re-triagem inteira.
 - Teste anti-hardcode **por parâmetro citado**, não por summary: para cada
   parâmetro citável, o trecho que o cita tem de conter o token do valor — com dois
   valores diferentes. A granularidade por summary (a primeira versão) fica VERDE
@@ -127,13 +133,27 @@ S3 conta `investimentos.tabela_classes`: 3 vs 2. Conceito errado, não número
 errado; a decisão do que a abertura da S3 afirma sobre a carteira está na
 [[A40.l15]].
 
-**Critério de aceite NÃO cumprido:** a re-triagem bloqueante dos 7 achados
-inertes, contra output renderizado, **não rodou** — morreu por limite de gasto,
-junto com as duas lentes adversariais. A lane mergeou assim por decisão do dono.
-O que foi verificado: suítes (5544 pytest · 1464 vitest · tsc 0), as 106
-asserções das guardas novas, e a medição do KR-C com dois servidores e o mesmo
-payload (7 → 12 seções). O que **não** foi verificado: se algum texto entregue
-contradiz a própria seção além dos casos já desligados.
+**Critério de aceite parcialmente cumprido — a re-triagem bloqueante rodou duas
+vezes e bloqueou nas duas; a 3ª passada não rodou.** Cronologia:
+
+1. **1ª passada** — C29 e C32 viraram `agora-visível-e-errado` (PD-20 também).
+   Bloqueou; remediação aplicada.
+2. **2ª passada, pós-remediação** — C32 resolvido e **provado por mutação**. C29
+   **ainda errado**: o DAS *recolhido* que entrou no lugar da estimativa também era
+   falso. Mais **duas contradições novas**: o `s4` afirmando 6 imóveis com a seção
+   listando 4, e o CV9 contando 7 de 7 quando o render entrega 6. Bloqueou de novo;
+   remediação final aplicada (DAS em silêncio, `s4` sem contagem, CV9 com
+   `summary_suppressed_by`).
+3. **3ª passada, depois da remediação final — não rodou.** Morreu no limite de gasto
+   da org, junto com as duas lentes adversariais. A lane mergeou assim por decisão
+   do dono.
+
+O que **está aberto** é a verificação da **última rodada de correções**, não a
+re-triagem inteira. O que foi verificado: suítes (5544 pytest · 1464 vitest · tsc 0),
+as 106 asserções das guardas novas, e a medição do KR-C com dois servidores e o mesmo
+payload (7 → 12 seções). O que **não** foi verificado: se os três fixes da remediação
+final se sustentam no output renderizado, e se algum texto entregue contradiz a
+própria seção além dos casos já desligados.
 
 **Defeitos de produção que a lane removeu, medidos:** PII (nome completo de
 adultos e de menor no card de perfil) · alíquota efetiva de 6% vinda de constante
@@ -238,16 +258,22 @@ procedimento descrito **e** servidor identificado por commit.
 ## Checklist bloqueante — re-triagem dos 7 inertes (RV3-33)
 
 Códigos de **cluster** (não RV3-xx), de `SINTESE.md` §placar cético do run
-`2026-07-29-573a54a7`. Verificados contra o output com a entrega ligada. **A
-re-triagem bloqueou:** 2 dos 7 viraram `agora-visível-e-errado` e foram
-corrigidos nesta lane (ver ADR-356 §D7-D9); os vereditos abaixo são os finais,
-pós-fix.
+`2026-07-29-573a54a7`. Verificados contra o output com a entrega ligada.
+
+**A re-triagem rodou duas vezes e bloqueou nas duas.** 1ª: C29 e C32
+`agora-visível-e-errado` (PD-20 também) — ver ADR-356 §D7-D9. 2ª, pós-remediação:
+C32 resolvido e provado por mutação, **C29 ainda errado** (o DAS *recolhido* que
+substituiu a estimativa também era falso), mais duas contradições novas — `s4`
+afirmando 6 imóveis contra 4 na seção, e CV9 contando 7 de 7 com o render
+entregando 6. A **3ª passada, pós-remediação final, não rodou** (limite de gasto da
+org). Os vereditos abaixo são os da **remediação final** e não passaram por
+verificação renderizada.
 
 | # | Cluster | Veredito | Motivo |
 | --- | --- | --- | --- |
 | 1 | **C11** — runway canônico (ADR-335) calculado e nunca renderizado; alias colide de nome com cobertura da reserva | `ainda-inerte` | Medido: `ratios.autonomia_financeira_meses` = 16,72 no payload, sem consumidor. É campo do view-model, não de narrativa. Dos 7 destinos entregues nenhum cita runway — o `s2`, que cita `cobertura_meses`, é órfão (`summary_source: null` na S2). A l4 não muda a superfície. Dono: A40.l5. |
 | 2 | **C18** — narrativa do donut de despesas publica ranking com 4 categorias fixas e ordem falsa | `ainda-inerte` | A l4 **não** aponta os charts de S1/S2 para `narrativas.charts` (ADR-356 §Deferimentos): o texto com o ranking hardcoded continua sem leitor, e o usuário segue protegido pelo `deriveChartConclusion` do TS, que ordena de verdade. Medido no texto real: ele cita **só o topo**, então o defeito das "4 categorias fixas" não se materializa como "14ª aparece como 3ª" — materializa-se como *ordem inventada quando há empate/valores próximos*. Dono: A40.l15. |
-| 3 | **C29** — narrativa fiscal publica DAS estimado e alíquota efetiva que nenhum campo do payload sustenta | `agora-visível-e-errado → CORRIGIDO (silêncio)` | O bloqueante de acender o `s8`. Três defeitos medidos (constante 6% fora de faixa, base = entrada na conta PF, ramo "sem regime + DAS" impossível) + o fallback declarado na §D7 original ser **inalcançável em produção**. Fix: a estimativa sai inteira e o `s8` afirma **só o regime declarado** + contador + holding. A substituição planejada (DAS **recolhido**, balde E4 `das_simples`) **também saiu**: o balde mede 100% de falso-positivo enquanto o matcher casa a preposição "DAS", e o fix é o PR **#1133**, não mergeado. Nem estimado nem recolhido — silêncio até o #1133. ADR-356 §D7. |
+| 3 | **C29** — narrativa fiscal publica DAS estimado e alíquota efetiva que nenhum campo do payload sustenta | `agora-visível-e-errado → CORRIGIDO (silêncio)` | O bloqueante de acender o `s8`. Três defeitos medidos (constante 6% fora de faixa, base = entrada na conta PF, ramo "sem regime + DAS" impossível) + o fallback declarado na §D7 original ser **inalcançável em produção**. Fix: a estimativa sai inteira e o `s8` afirma **só o regime declarado** + contador + holding. A substituição planejada (DAS **recolhido**, balde E4 `das_simples`) **também saiu**: o balde media 100% de falso-positivo enquanto o matcher casava a preposição "DAS". O fix é o PR **#1133**, **mergeado em `69a2fad4`** (2026-07-31 17:06, uma hora antes desta lane) — `_DAS_KEYWORDS` hoje tem **6 keywords unívocas** (`SIMPLES NAC`, `DAS SIMPLES`, `DAS-SIMPLES`, `DAS MEI`, `DAS-MEI`, `DASMEI`). Nem estimado nem recolhido: o `s8` shipou em silêncio porque o sinal do balde não foi re-medido pós-`69a2fad4` — reintroduzir é lane própria. ADR-356 §D7. |
 | 4 | **C30** — `dev/explain_number.py` devolve números de fixture sintética sem marcar | `ainda-inerte` | Ferramenta de dev, fora do caminho de render. A l4 não a toca. |
 | 5 | **C32** — narrativa determinística publica nome completo de adultos e de menor | `agora-visível-e-errado → CORRIGIDO` | A classificação "inerte" da SINTESE estava errada: `perfil_familia` renderiza hoje, independente desta lane. Mas a l4 **acendeu duas superfícies novas de PII** (`s4` citava `endereco.rua`; `s8` citava `contador_nome`), então não havia como fechar a lane sem tratar. Fix: primeiro nome para adultos, papel para o menor e para o contador, nada para endereço; guarda em 3 braços. ADR-356 §D9. |
 | 6 | **C36** — blocos que não movem decisão competem com o sinal (orçamento 44m, premissas 10/10 indisponíveis, checklist de sucessão todo negativo) | `ainda-inerte` | São cards, não narrativa. Medido: a S9 curto-circuita em `<EmptyState/>` quando `bubble_riscos.data_state == "empty"` — e a l4 passou a **suprimir o `s9`** nesse ramo (o EmptyState já é a mensagem). O `s9` continua sendo **gerado** (`validate_narrativas` hard-falha em summary vazio); quem passa a saber que ele não foi entregue é o CV9, via `summary_suppressed_by` no layout — `entregues=6/esperadas=7` nesse run, sem reprovar. Não bloqueia a lane. |
@@ -260,7 +286,7 @@ pós-fix.
 | **`s3` contradiz a tabela da própria S3** — "Carteira diversificada entre **3** categorias de ativos" enquanto o `top15_ativos`/`tabela_classes` da mesma seção lista **2** classes | Medido no render single-source (payload de um run real, cards e parágrafo da MESMA fonte): `diversificacao` conta entradas não-zero de `patrimonio.composicao` (`Imóveis de Renda`, `Investimentos Alex`, `Caixa e Moeda Estrangeira` — buckets patrimoniais, um deles **por membro**), e a tabela da S3 lê `investimentos.tabela_classes` (`Imóveis Investimento`, `Renda Fixa`). Mesma classe do `s4`: contagem de fonte que não é a da seção, e rótulo ("categorias de ativos") que não descreve o que foi contado. Fix candidato de 1 linha: `summary_source: null` na S3 — mas mudar destino é **decisão de produto** sob ADR-356 §D2 (gatilho `financial-planner`), não de quem fecha a lane | lane própria (gate `financial-planner`) |
 | **`s1` publica `residência própria de R$ 0,00`** | Medido no mesmo render. Mesma classe do "R$ 0,00 em campo fiscal" da §D7 (lê-se como "sua casa não vale nada"); no `s4` a parcela zerada foi suprimida nesta lane, no `s1` não — o `s1` não estava na lista fechada | A40.l5 |
 | **`perfil_familia.right` publica `n_imoveis`** — a mesma contagem que o `s4` deixou de afirmar | Medido: o card de perfil renderiza hoje (independe desta lane) e imprime `{n_imoveis} imóvel/imóveis`. É contradição **cross-seção** com a tabela da S4, não intra-seção; pré-existente e fora da lista fechada | lane própria |
-| **DAS no `s8` fica em silêncio até o PR #1133** — e `despesas_impostos` segue sem o balde | Medido: `_DAS_KEYWORDS = ("DAS",)` casa a preposição e o balde `das_simples` deu 100% de falso-positivo (pedágio, supermercado) no dogfood. A l4 não afirma DAS (estimado ou recolhido) e não soma `das_simples` em `despesas_impostos` — trocar "balde ausente" por "consumo publicado como imposto" é regressão. Quando o #1133 aterrissar, uma lane reintroduz as duas coisas com o sinal corroborado | lane pós-#1133 |
+| **DAS no `s8` ficou em silêncio** — e `despesas_impostos` segue sem o balde | Medido: `_DAS_KEYWORDS = ("DAS",)` casava a preposição e o balde `das_simples` deu 100% de falso-positivo (pedágio, supermercado) no dogfood. O PR **#1133 mergeou em `69a2fad4`** (2026-07-31 17:06) e `_DAS_KEYWORDS` hoje tem **6 keywords unívocas**; a lane mergeou às 18:09 sem re-medir o balde com o matcher novo. A l4 não afirma DAS (estimado ou recolhido) e não soma `das_simples` em `despesas_impostos` — trocar "balde ausente" por "consumo publicado como imposto" é regressão. Reintroduzir as duas coisas exige **re-medir o sinal do balde pós-`69a2fad4`** | lane pós-re-medição do balde |
 | **Sufixo de changelog (ADR-148) não renderiza em seção nenhuma** | Medido: `get_report_data.py:78` usa `SnapshotChangelogConfig()` default, cujo `sections_to_compare` é `M_PL`/`M_TAXA_POUPANCA`/`M_RESERVA_MESES`/`M_AUVP_DESVIO` — nenhum é id de seção do layout, e o casamento é por `section_id`. A composição decidida na §D10 é contrato, não preservação de comportamento visível | A40.l5 |
 | **C11** — `ratios.autonomia_financeira_meses` = 16,72 calculado e sem consumidor | Confirmado. Campo do view-model, não de narrativa; nenhum dos 7 destinos o cita. | A40.l5 |
 | **C18** — ranking do donut | O texto real cita só o topo; a instância "14ª maior como 3ª" **não se materializa**. O defeito é ordem inventada em valores próximos, e o texto segue sem leitor. | A40.l15 |

@@ -36,9 +36,9 @@ O estado "parecer foi gerado e teve conteúdo retido" **não existe** no modelo:
 - `PlannerReview.status` é hardcoded `"Gerado"`
   ([`planner_review_persistence.py:93`](../../../../backend/app/services/planner_review_persistence.py),
   citando [[ADR-204]] §D1).
-- `_should_persist_planner_review` retorna `False` quando
+- `_should_persist_planner_review` (def em `:1130`) retorna `False` quando
   `detail["status"] == "needs_review"`
-  ([`pipeline_task.py:1134`](../../../../backend/app/tasks/pipeline_task.py)).
+  ([`pipeline_task.py:1136`](../../../../backend/app/tasks/pipeline_task.py)).
 
 Resultado: em retenção **não existe row**, a API responde 404, e a seção do
 relatório cai na copy de "ainda não gerado" — que **mente** para um cliente
@@ -72,7 +72,9 @@ reprocessar) produz copy contraditória no mesmo card.
 
 - Fixture com item de alta severidade + violação hard ⇒ row de `PlannerReview`
   existe com status de retenção; API 200 (não 404).
-- `usePlannerReviewState` ganha o estado correspondente; nenhuma resposta da API
+- O `state` que `usePlannerReview`
+  ([`frontend/src/hooks/usePlannerReview.ts:67`](../../../../frontend/src/hooks/usePlannerReview.ts))
+  devolve ganha o estado correspondente; nenhuma resposta da API
   contém `error_detail` cru, `risco[N]`, nome de camada interna, `stage`, `E5` ou
   `E6`.
 - `items_gated_count` inalterado em semântica; contador de retidos é campo

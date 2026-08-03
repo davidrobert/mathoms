@@ -31,8 +31,9 @@ tags:
 `StageResult.success: bool` é o único canal e `False` significa
 indistintamente "o pipeline não pode continuar" e "este add-on não entregou". A
 classe tem **3 membros vivos** na cauda pós-`analyze_finances`:
-`review_finances_holistic`, `generate_narratives` (`:966,975`) e `validate_cross`
-(`:699,711,717`). Qualquer um destrói o entregável.
+`review_finances_holistic`, `generate_narratives`
+(`scripts/generate_narratives.py:971,980`) e `validate_cross`
+(`scripts/validate_cross.py:699,711,717`). Qualquer um destrói o entregável.
 
 `PipelineRunStatus.partial_failure` existe desde a migration inicial e **nunca é
 atribuído**. `_finalize_pipeline_outcome` faz `if not has_failure:

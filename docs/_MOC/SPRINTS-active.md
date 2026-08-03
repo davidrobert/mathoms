@@ -30,10 +30,17 @@ Painel de 6 especialistas revisou antes da abertura e produziu 33 objeções, du
 delas estruturais: **o mecanismo do achado P0 estava errado** (a normalização de
 caixa que ele culpava já existe no hash — escrita como estava, a lane shiparia um
 no-op e fecharia verde) e **os 7 achados "inertes" eram um evento de embarque de
-regressão** (deixam de ser inertes quando a [[A40.l4]] mergeia). 14 lanes em 3
-ondas; a ordem **não** segue a coluna de severidade, e sim "alcança o usuário na
-config atual", porque a própria rodada registrou que 37 dos 44 vereditos carregam
-inflação desconhecida.
+regressão** (deixam de ser inertes quando a [[A40.l4]] mergeia). **24 lanes em 5
+ondas (0–4) + 1 fora de onda**; a ordem **não** segue a coluna de severidade, e sim
+"alcança o usuário na config atual", porque a própria rodada registrou que 37 dos 44
+vereditos carregam inflação desconhecida.
+
+**Reordenada em 2026-08-03.** A abertura tinha 14 lanes em 3 ondas; a **Onda 0**
+("parar a sangria") e a **Onda 3** ("degradação honesta") nasceram do incidente do
+run `2ded7aab`, e a [[A40.l24]] entrou fora de onda, promovida da A41. A Onda 0
+**precede a Onda 1 e não é negociável** — a Onda 1 é "medir antes de mexer" e medir
+exige run que completa. **Nada saiu da sprint:** as ondas novas entram por cima do
+escopo existente, sem despejar lane P2/P3 para a A41.
 
 - **Sprint:** [sprint/A40/_README.md](../sprint/A40/_README.md) · **Origem:**
   revisão de relatório 2026-07-29 ([[REPORT-REVIEWS-active]] §r3; cru off-git).
