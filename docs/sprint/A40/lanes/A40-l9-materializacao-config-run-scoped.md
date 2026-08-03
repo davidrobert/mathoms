@@ -4,15 +4,18 @@ type: lane
 title: "Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l9-materializacao-config-run-scoped
-adrs: []
+ship_pr: 1188
+ship_date: "2026-08-03"
+adrs:
+  - "[[ADR-330]]"
 depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
@@ -20,6 +23,14 @@ tags:
 
 # A40.l9 — `materializacao-config-run-scoped` (RV3-11)
 
+> ✅ **Shipped 2026-08-03** — PR1 `fc387557` (#1187, xfail-armadilha + contador
+> WARNING) + PR2 `df633428` (#1188, predicado `_latest_run_id_with_e4` +
+> `TributarioSectionResolver` injetado, consumido pelo E5.N em stage-time).
+> Os 3 casos do critério fecharam; o xfail(strict) do PR1 XPASSou no fix e o
+> marker saiu no mesmo PR. Ausência declarada em 2 canais: WARNING + sinal
+> `inputs_run_scoped_indisponiveis` no canal CTO-05 (sem campo órfão).
+> Delta declarado `↑` confirmável no 1º run real; goldens sintéticos `=`.
+>
 > Promovido de P2 para **P1** pelo painel, e ordenado **à frente** da [[A40.l10]].
 
 ## Problema

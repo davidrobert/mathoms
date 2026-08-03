@@ -226,7 +226,8 @@ A l16 é S (uma linha em `_HARD_LAYERS` + bump de versão de verificação + o
 saneamento de PII do caminho de exceção que o próprio critério de aceite dela
 exigia — ver [[A40.l16]] §Decisão 6) e independente. A l17 é cortável.
 
-**Onda 1 — medir antes de mexer** ([[A40.l1]], [[A40.l3]], [[A40.l4]], [[A40.l9]]).
+**Onda 1 — medir antes de mexer** ([[A40.l1]], [[A40.l3]], [[A40.l4]], [[A40.l9]]) —
+✅ **completa 2026-08-03**: a l9 (a última) shipou em #1187 + #1188.
 A l1 é instrumento: congela o baseline **sobre `origin/main`** antes de qualquer
 mutação — lição da A39 (baseline pós-mutação mede o próprio fix). A l3 fecha três
 achados com esforço S e risco baixo. A l9 sobe para cá porque é **pré-requisito de
@@ -430,8 +431,8 @@ confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
 
 ## Pendências de decisão (2026-08-03)
 
-Doze perguntas de **higiene interna desta sprint** — **3 resolvidas** em
-2026-08-03 (nº 1, nº 7 e, em parte, nº 11), **9 abertas**. Deliberadamente **não** entram
+Doze perguntas de **higiene interna desta sprint** — **4 resolvidas** em
+2026-08-03 (nº 1, nº 7, nº 9 e, em parte, nº 11), **8 abertas**. Deliberadamente **não** entram
 em [[OWNER-GATED]]: aquele registro é de gates estratégicos entre planos
 (licença, flip de cutover, LGPD), e misturar higiene de sprint diluiria o sinal
 dele. Cada item traz o que foi **medido** sobre `origin/main` (`a1e70223`) e
@@ -544,7 +545,18 @@ Três números circulam na sprint sem caminho de re-medição para o próximo ag
 Número sem path força o próximo agente a re-medir do zero ou a confiar. Anexar o
 path off-git virá convenção da sprint, ou fica caso a caso?
 
-**9. A precedência não-negociável da Onda 0 bloqueia a [[A40.l9]]?**
+**9. A precedência não-negociável da Onda 0 bloqueia a [[A40.l9]]?** —
+✅ **RESOLVIDA 2026-08-03: não bloqueava**, por três fundamentos medidos, e a
+questão morreu duas vezes. (1) `dev/golden_diff.py` é differ puro sobre
+`dev/n.py` (stdlib, *"puro/stateless (ADR-111)"*) — sem Celery, sem LLM, sem
+DB; não roda nada. (2) Os goldens comparados não vêm de run vivo: as fixtures
+de `tests/fixtures/pipeline_golden/dogfood/` são commitadas e o snapshot do
+view-model se reproduz *"sem DB"* (rebaseline via `MATHOMS_UPDATE_SNAPSHOT=1`).
+(3) De todo modo a Onda 0 completou **antes** de a l9 abrir PR (l16 #1159 +
+l17 #1183) — a precedência já não retinha nada. A isenção do §Estado da Onda 1
+para a l1 valia para a l9 *a fortiori*: o instrumento da l1 ao menos lê DB; o
+da l9 nem isso. A l9 shipou em #1187 + #1188. O diagnóstico abaixo fica como
+registro.
 
 A [[A40.l9]] é a única lane da Onda 1 que não shipou (`status: open`, sem
 `depends_on`). O §Estado da Onda 1 escreveu a isenção **só para a medição da
