@@ -133,14 +133,27 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 [[A40.l13]]; pelo critério de agrupamento desta sprint ("arquivo compartilhado,
 evita merge-hell"), a l22 vai primeiro e as duas rebaseiam sobre ela.
 
-**Fora de onda — [[A40.l24]]**, promovida da [[A41]] em 2026-08-03. Não é tema
-report-trust e não compartilha arquivo com nenhuma lane daqui — entra pelo
-critério de **consumidor datado**: o [[TRACK-f2-cutover]] declara que nada mais
-avança sem o dono rodar `make go-parity`, e a asserção "0 invocação LLM" do
-Tier-1 hoje é vacuamente verde (conta artefato de stage `%llm%` e não vê chamada
-de visão bem-sucedida). Se o dono rodar antes do fix, recebe falso-verde e paga
-o custo do run. Sprint corrente é o único lugar de onde a lane é pescável a
-tempo. Não desloca escopo: roda em paralelo com qualquer onda.
+**Fora de onda — [[A40.l24]] · ✅ `9b7d330e` (#1157), 2026-08-03.** Promovida da
+[[A41]] pelo critério de **consumidor datado**: o [[TRACK-f2-cutover]] declara que
+nada mais avança sem o dono rodar `make go-parity`, e a asserção "0 invocação
+LLM" do Tier-1 era vacuamente verde. Não é tema report-trust e não compartilhou
+arquivo com nenhuma lane daqui — não deslocou escopo.
+
+O que ficou medido: a asserção tinha sido **invertida** por #1151 —
+`requires_llm_fallback` só é escrito quando a visão da Caixa **falha**, então o
+gate reprovava o braço sem credencial (zero chamada) e aprovava o que fez chamada
+paga; como o `_go-on-native` injeta a key só no braço Go, o veredito ficava
+invertido **entre os braços**. Trocado por **impedir** em vez de detectar
+(`LLM_FREE=1` apaga a credencial dos dois braços, marcador verificado na saída do
+`make`), com prova de mutação nos dois sentidos. Detalhe e a correção de premissa
+da lane (medir no boundary do SDK é inalcançável no harness) no §Entregue dela.
+
+> **Pendência com o dono, não fechada pelo PR:** o critério "run com
+> `skip_llm=True` sobre o corpus do dogfood ⇒ 0 chamadas ao SDK e 0 rows novas em
+> `LLMCallLog`" exige a stack local e **não foi executado** — a lane subiu a
+> `shipped` com a prova de mutação (unit) e sem a prova ao vivo. Registrado em
+> [`OWNER-GATED-active.md`](../../_MOC/OWNER-GATED-active.md) §1; a asserção
+> mordendo de verdade só se confirma no 1º `make go-parity` do dono.
 
 **Onda 4 — o que depende das anteriores** ([[A40.l6]], [[A40.l10]], [[A40.l11]],
 [[A40.l13]], [[A40.l14]], [[A40.l15]], [[A40.l23]]). A l15 entra aqui — estava na
@@ -380,6 +393,27 @@ já sabe — queimando a única janela de atenção do dono no item de menor val
   ([[ADR-090]], string em campo numérico) — permanecem em [[PLAN-pipeline-review-r2]];
   a A40 absorve só as facetas user-facing ([[A40.l6]], [[A40.l5]]).
 - **RV3-31** — refutado; sem gatilho próprio (ver §Decisões nº 7).
+- **Rota alternativa ao choke-point LLM** ([[A41.l2]] E0 · [[A41.l3]] Caixa ·
+  [[A41.l4]] gate de ausência de rota) — deferida na [[A41]] `candidate` por
+  decisão da [[ADR-355]] §Escopo, **não** é para atacar antes do fim da A40. Só a
+  [[A40.l24]] veio para cá, pelo consumidor datado. A l3 exige ADR `Proposto`
+  (`senior-cto` + `prompt-engineer`) antes de dimensionar, e carrega uma
+  **restrição de ordem** achada em 2026-08-03: `extract_with_llm` pula PDF
+  escaneado sem entrar em `processed` **nem** em `errors` (stage reporta
+  `success: True`), então deletar o call-site da Caixa antes de fechar esse gap
+  troca "conta some no Tier-1" por "conta some em todo tier, sem sinal".
+
+## Infra de CI tocada durante a sprint (não são lanes)
+
+Duas correções de CI achadas ao entregar a [[A40.l24]]. Não têm lane porque não
+são escopo report-trust e não competem por capacidade — mas ficam registradas
+para não virarem mudança órfã de política:
+
+| O que | Estado | Por quê |
+|---|---|---|
+| `backend-tests` `timeout-minutes` 12 → 20 | ✅ `9b7d330e` (#1157) | A política declarada no job ("2× tempo observado", de maio a ~7:30) erodiu para **1,15×**: medido nos 6 PRs de 2026-08-03, 9m02s–10m21s contra teto de 12. Reprovou o #1157 duas vezes por variância de runner, com diff que não alcança o job. Teto não muda custo de Actions (cobrança é por minuto consumido). |
+| Investigação "por que a suíte dobrou" (5-8min em maio → 9-10min) | ⏳ **#1160 aberto** — emenda [[ADR-210]] | O bump acima para o falso-vermelho mas não explica o crescimento. **Se a sprint fechar com #1160 aberto, a baseline e a regra de dimensionamento não ficam registradas.** |
+| Label cosmético fora do caminho de merge | ✅ `76b32d3a` (#1161) | `Apply size label` (action Docker) vivia no mesmo job que `Validate PR title`, que é required check, sem `continue-on-error` — i/o timeout do Docker Hub em `alpine:3.15` bloqueava merge do repo inteiro. O pin por SHA da action não cobre a imagem base dela, e o hook de pin do repo não alcança Dockerfile de terceiro. |
 
 ## Achado novo do painel (fora dos 33)
 
