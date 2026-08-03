@@ -53,7 +53,7 @@ burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
 usuário, e viraria carimbo.
 
-## Lanes (26)
+## Lanes (27)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -178,6 +178,16 @@ aberta. Não compartilha arquivo com nenhuma onda — `if_monte_carlo.py` +
 superfícies de exibição de S7 — e depende só de #1162 aterrissar. Sequenciá-la
 dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
 
+**[[A40.l27]] é residual pelo mesmo critério, mas NÃO flutua livre** (aberta
+2026-08-03): `depends_on: [[A40.l19]]`, que está na Onda 3. O `resuming` ausente do
+tipo `pipelinerunstatus` no DB entra em **predicado de query** na varredura de
+órfão — é a mesma quebra-armada-no-cutover que a l19 existe para pagar. Logo:
+paralela a tudo, **exceto** que o item 1 dela não pode mergear antes da l19. Amarra
+declarada na lane: se a l19 escorregar, ela entrega os itens 2-5 e **declara o item
+1 como não-entregue**, em vez de shipar predicado que quebra em Postgres.
+Colocação e escopo são sugestão do critério declarado da sprint — ver §Pendências
+de decisão nº 10.
+
 **Precedência de corte:** nunca cortar [[A40.l16]] nem [[A40.l18]]. Cortáveis, em
 ordem: [[A40.l17]], marcador em `/reports` (já fora de escopo), dead-letter (já
 fora, por gatilho). **Nada sai da A40** — decisão do dono, 2026-08-03: a onda 0 e
@@ -199,6 +209,7 @@ Três lanes da Onda 1 estão em `main`, entregues **antes** da Onda 0 existir
 | [[A40.l1]] | `92a91884` (#1118) | 261 colisões cross-grupo · Σ 81.288.000 cents · baseline congelado off-git · 8 ratchets provados por mutação |
 | [[A40.l3]] | `b12aff30` (#1124) | `janela_12m` passa de 0 consumidores a leitura por seletor único; rótulo impresso (tooltip não sai no PDF) |
 | [[A40.l4]] | `6c5d9814` (#1139) | precedência de 3 fontes declarada ([[ADR-356]]); 7 → 12 seções entregando parágrafo |
+| [[A40.l27]] | Órfão de dispatch: varredura de beat, `cancel` de `resuming`, read path de `failure_reason` | P1 | l19 | residual de **[[ADR-359]]** §Def. 1-3 · #1154 |
 
 
 **A precedência da Onda 0 sobre a Onda 1 é real, e não retroage sobre o baseline
@@ -237,6 +248,25 @@ sem isso a sprint fecharia dizendo menos do que entregou.
 
 **O que sobra dos três** está na [[A40.l25]] e na [[A40.l26]] — não em §Deferimento de ADR, que é
 invisível ao `SPRINT_CURRENT`.
+
+### Órfão de dispatch (gate de paridade Go, não report-trust)
+
+Gatilho distinto dos três acima: rodar `make go-parity` ([[TRACK-f2-cutover]]) com
+Redis fora do ar. Registrado na mesma seção porque a natureza é idêntica — shipou
+na janela da sprint, sem lane.
+
+| Entrega | Commit | ADR | O que ficou medido |
+|---|---|---|---|
+| Dispatch falha alto + compensação por caller | `9d30dc2d` (#1154) | **[[ADR-359]]** `Decidido` | `make pipeline-run` com broker fora saía **exit 0** e deixava o run `pending` para sempre, trancando o workspace via `ux_pipeline_runs_ws_active` com "Cancele ou **aguarde**". O fallback em `threading.Thread(daemon=True)` **duplicava execução** (`.delay()` e a escrita de `celery_task_id` no mesmo `try`; `running` não é terminal para `_mark_run_started`). Deletado; compensa quem fez a ação forward (`trigger` marca `failed`, `resume` **reverte** restaurando `paused_at_stage`); `UPDATE` condicional + `rowcount` pareado com a guarda da [[ADR-297]]; `celery_task_id` pré-gerado **antes** do enqueue; cura no ponto de bloqueio (write no Postgres — funciona com Redis fora); 503 + `Retry-After` |
+| Gate estático de primitiva non-stateless | `9d30dc2d` (#1154) | emenda **[[ADR-111]]** | `STATELESS_AUDIT` §5 afirmava "`threading.Thread` — nenhum resultado em app code" desde 2026-04-20 e a afirmação era **falsa na data em que foi escrita** (o thread existia desde 2026-04-14). Não houve drift: nada a verificava. `dev/check_stateless_primitives.py` é **AST**, não grep — grep acusa `category_cache.py:3`, cuja docstring *afirma a ausência*, e confunde o `create_task` do agregado Tarefas com `asyncio.create_task` |
+
+**O que sobra** está na [[A40.l27]]. **Consequência para outra lane:** a [[A40.l19]]
+passa a ter **dois** consumidores (a [[ADR-357]] §7 e a varredura da l27) — se ela
+escorregar, os dois param.
+
+**Lição transferível registrada na emenda da [[ADR-111]]:** afirmação de audit sem
+gate é dívida, não garantia. Mesma família do §Débito de método herdado da r3, no
+fim deste arquivo.
 
 **Owner-gated destas entregas** (também em [[OWNER-GATED]]): flip da [[ADR-360]] e
 da `ADR-361` `Proposto` → `Decidido`; **nota one-shot de recalibração** no
@@ -364,6 +394,28 @@ critério de aceite da l9 são 3 casos em
 `↑` por `dev/golden_diff.py`. A l9 está isenta pelo mesmo argumento da l1, ou o
 golden_diff a amarra a um run completo — e portanto à [[A40.l16]]?
 
+**10. A [[A40.l27]] entra na A40 ou é despejada para a [[A41]]?**
+
+Aberta pelo critério declarado desta sprint (residual de §Entregas fora de lane +
+`depends_on: l19`, que já está aqui). Contra: o gatilho é [[PLAN-go-shell]], não os
+33 achados da r3. A favor: o resíduo inclui o **único estado inescapável do
+sistema** (órfão em `resuming`: fora do predicado de `fin.detect_stuck_runs`,
+`cancel_pipeline_run` recusa, `is_run_active` sempre `True`), e a decisão que o
+expõe já está `Decidido` em `main`. A regra vigente do dono (*"nada sai da A40"*,
+2026-08-03) foi escrita para escopo **existente** — vale para lane nascida depois?
+Se a resposta for A41, mover é uma linha.
+
+**Padrão que emergiu sem ser decidido:** as lanes l24 em diante entraram por
+gatilho que **não é** report-trust, cada uma com justificativa própria e nenhuma
+com regra comum. Vale declarar um critério de admissão para a próxima sprint, ou
+seguir caso a caso?
+
+**Colisão de id de lane, medida nesta sessão:** esta lane foi renumerada **duas
+vezes** (l25 → l26 → l27) porque #1167 e #1170 alocaram os ids em paralelo enquanto
+o PR estava aberto. É a mesma classe que o CLAUDE.md já documenta para ADR ("nunca
+reserve ID; reserve o trabalho") — id de lane também é recurso global monotônico
+cuja alocação só é real na escrita. Vale um gate, ou a taxa de colisão é aceitável?
+
 ## Decisões do painel (correções incorporadas)
 
 **1. O mecanismo do P0 estava errado — corrigido antes de abrir a lane.**
@@ -488,7 +540,7 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 
 Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
 não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
-26 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
+27 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
 que ela **não** é superseded) e as abertas por §Entregas fora de lane.
 
 | ADR | Estado | Lane | Escopo |
@@ -509,6 +561,8 @@ que ela **não** é superseded) e as abertas por §Entregas fora de lane.
 | [[ADR-306]] | `Decidido` | [[A40.l15]] | Base temporal de mensalização no E5 — janela canônica 12m + rótulo por bloco |
 | [[ADR-240]] | `Decidido` | [[A40.l7]] | Card `S_PROTECAO` no relatório (pilar de proteção patrimonial) |
 | [[ADR-204]] | `Decidido` · emenda provável na [[A40.l20]] | [[A40.l20]] | Imutabilidade do parecer pós-publicação; §D1 é quem fixa o vocabulário de `PlannerReview.status` |
+| **[[ADR-359]]** | `Decidido` (#1154/#1155) | — (fora de lane) · residual em [[A40.l27]] · 2º consumidor da [[A40.l19]] | Dispatch assíncrono falha alto; quem cria estado pendente compensa. **Supersede** a cláusula de fallback da [[ADR-014]], que contradizia o corpo dela |
+| [[ADR-111]] | `Decidido` · **emendada** 2026-08-03 (correção factual, não mudança de decisão) | — | Stateless rigoroso. A afirmação "0 `threading.Thread` em app code" nasceu falsa em 2026-04-20; o enforcement passa a ser par (comportamento + `dev/check_stateless_primitives.py`) |
 | [[ADR-278]] | `Decidido` · **não** superseded | — | `_hash_v1` congelado; a A40 não cria `_hash_v3` |
 
 ## Débito de método herdado da r3

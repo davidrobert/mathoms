@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-12 open.
+13 open.
 
-## Open (12)
+## Open (13)
 
 - [[A40.l16]] — Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run · priority P0 · branch `a40-l16-desescalar-number-in-prose`
 - [[A40.l17]] — Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero · priority P1 · branch `a40-l17-custo-e-cache-em-needs-review`
@@ -20,6 +20,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l23]] — Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível · priority P2 · branch `a40-l23-gate-ref-adr-em-prosa`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l26]] — Cobertura do solver de prazo IF: aporte zero com retorno positivo converge, e o produto nunca mostrou · priority P2 · branch `a40-l26-cobertura-do-solver-de-prazo-if`
+- [[A40.l27]] — Órfão de dispatch: varredura de beat, cancel de `resuming` e read path de failure_reason · priority P1 · branch `a40-l27-orfao-de-dispatch-residual`
 - [[A40.l9]] — Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir · priority P1 · branch `a40-l9-materializacao-config-run-scoped`
 
 ---
