@@ -5,6 +5,10 @@
 # objeto `changed-files` com `any-glob-to-any-file` (ANY arquivo bate)
 # ou `all-globs-to-all-files` (TODOS os arquivos batem).
 #
+# Glob negativo (`!…`) NÃO vale sob chave `any-*` — ali ele é só mais um
+# padrão, e todo arquivo que não seja o excluído já satisfaz o "any".
+# Exclusão vive em `all-globs-to-all-files`. Gate: dev/check_labeler_config.py.
+#
 # Manter alinhado com a matriz `changes` em ci.yml para coerência.
 
 'area:backend':
@@ -30,12 +34,19 @@
           - 'config/**.yml'
           - 'config/schemas/**'
 
+# Não reintroduza `!**/CHANGELOG.md` aqui: sob `any-glob-to-any-file` o
+# negativo é avaliado como padrão próprio, e QUALQUER arquivo que não seja
+# um CHANGELOG.md satisfaz o "any" — a label casava em todo PR (medido
+# 2026-08-03: #1161 tocou só .github/workflows/pr-quality.yml e recebeu
+# `area:docs`). Gate: dev/check_labeler_config.py. A exclusão também já era
+# inerte de intenção: pós-ADR-182/F5 o churn de changelog vive em
+# docs/sprint/<X>/changelog/CHG-*.md, e docs/CHANGELOG.md é shim (último
+# toque 2026-05-16) coberto de propósito por 'docs/**'.
 'area:docs':
   - changed-files:
       - any-glob-to-any-file:
           - 'docs/**'
           - '*.md'
-          - '!**/CHANGELOG.md'
 
 'area:db':
   - changed-files:
