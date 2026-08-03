@@ -5,6 +5,8 @@ title: "Entrega de narrativas de seção + re-triagem dos 7 achados que passam a
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1139
+ship_date: "2026-07-31"
 priority: P0
 branch_slug: a40-l4-entrega-narrativas-secao
 adrs:
