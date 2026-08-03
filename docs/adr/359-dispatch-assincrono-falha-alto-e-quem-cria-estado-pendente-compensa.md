@@ -223,7 +223,10 @@ recortes deferidos, não validação pendente.
 
 ## Deferimentos datados (2026-08-03)
 
-Registrados aqui em vez de reservar ID de ADR (precedente [[ADR-356]]):
+Registrados aqui em vez de reservar ID de ADR (precedente [[ADR-356]]).
+**Dono: [[A40.l27]]** (itens 1-3), aberta 2026-08-03 — deferimento em rodapé de ADR
+`Decidido` não é pescável pelo `SPRINT_CURRENT`, e o item 1 é o único estado
+inescapável do sistema. Itens 4-5 declarados fora daquela lane.
 
 1. **Varredura de beat para órfão `pending`/`resuming`** estendendo
    `fin.detect_stuck_runs`. Condição de retomada: **§4 mergeado** (sem ele o
