@@ -90,13 +90,15 @@ from pipeline.domain.services.fluxo_caixa_enricher import (
     FluxoCaixaEnricher,
     FluxoEnricherConfig,
 )
-from pipeline.domain.services.if_projector import (
+from pipeline.domain.services.if_monte_carlo import (
     IFMonteCarloConfig,
+    MonteCarloIFResult,
+    run_monte_carlo_if,
+)
+from pipeline.domain.services.if_projector import (
     IFProjection,
     IFProjector,
     IFProjectorConfig,
-    MonteCarloIFResult,
-    run_monte_carlo_if,
 )
 from pipeline.domain.services.informe_extrato_override import (
     ExtratoPosicao,
