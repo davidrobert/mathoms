@@ -213,7 +213,9 @@ autorreferência da §Pendência nº 12. **Não roteado nesta passada.**
 
 ## Ondas
 
-**Onda 0 — parar a sangria** ([[A40.l16]], [[A40.l17]]), aberta 2026-08-03 pelo
+**Onda 0 — parar a sangria** ([[A40.l16]], [[A40.l17]]) — ✅ **completa
+2026-08-03** (l16 em `0f8c3b18`/#1159, l17 em `c17b2122`/#1183): a precedência
+sobre a Onda 1 deixa de reter qualquer lane. Aberta 2026-08-03 pelo
 incidente do run `2ded7aab`. **Precede a Onda 1 e não é negociável**, por um
 motivo estrutural e não de gravidade: a Onda 1 é "medir antes de mexer", e medir
 exige **run que completa**. Com 87,5% dos runs afetados sob o prompt vigente 2.2.0
