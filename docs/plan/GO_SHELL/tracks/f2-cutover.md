@@ -74,25 +74,57 @@ diferiu-o explicitamente para cá) e o runbook de cutover.
 
    | Superfície | Medição | Veredito |
    |---|---|---|
-   | E2 (`requires_llm_fallback`) | Últimos **dois** runs full (`5a0eae54` 28/07, `9d47574c` 27/07): 125 artefatos de E2 (86 `extract_statements` + 39 `extract_invoices`), **0** em `extract_with_llm`. As escalações cessaram após 25/07 — os 5 docs que ainda escalavam nesse run aparecem como `extract_statements` nos seguintes (foram **corrigidos**, não perdidos: set de keys idêntico, 125=125) | ✅ limpo |
+   | E2 (`requires_llm_fallback`) | Últimos **dois** runs full (`5a0eae54` 28/07, `9d47574c` 27/07): 125 artefatos de E2 (86 `extract_statements` + 39 `extract_invoices`), **0** em `extract_with_llm`. As escalações cessaram após 25/07 — os 5 docs que ainda escalavam nesse run aparecem como `extract_statements` nos seguintes (foram **corrigidos**, não perdidos: set de keys idêntico, 125=125) | ⚠️ **medição cega** — ver reescrita abaixo |
    | E0 (`route_documents`) | 14 dos 163 docs têm `classification_confidence < 0,8` (3 em 0,0; 11 em 0,7) → dispararIAM o fallback. **Mas o E2 lê de `data/`** (`extract_bank_documents.py:69` itera `DATA_DIR`), não do inbox: em re-run de workspace já roteado o E0 só processa o que estiver no **inbox**. Hoje há 4 arquivos lá — justamente os não-classificados que o stage deixa para revisão manual (`unidentified > 0` → warning) | ⚠️ exige **esvaziar/mover o inbox** antes do run |
    | `generate_narratives` | `MATHOMS_LLM_SECTION_SUMMARIES` off por default | ✅ pinar idêntico nos 2 braços |
 
    **Receita do Tier-1 (sem custo de LLM, sobre o corpus real):** mover os 4
-   arquivos do inbox para fora → rodar `DETERMINISTIC_ORDER` → E0 não tem o que
-   classificar (0 LLM), E2 re-parseia os 125 de `data/` deterministicamente, os
-   stages `is_llm` já saem por `skip_llm`. Assert de telemetria: 0 artefato em
-   `extract_with_llm` e 0 chamada de classificação.
+   arquivos do inbox para fora → `dev/go_parity_run.py --tier tier1`, que liga
+   cada braço com **`LLM_FREE=1`** → `DETERMINISTIC_ORDER` roda, os stages
+   `is_llm` saem por `skip_llm`, e as superfícies condicionais não têm credencial
+   para usar.
 
-   > **Corrigido 2026-08-03 (ver §B.1).** A linha "E2 ✅ limpo" acima está **errada**, e o
-   > erro é de instrumento: "0 artefato em `extract_with_llm`" ≠ "0 chamada LLM no E2".
-   > Existe uma **terceira** rota de LLM no E2 — a extração por visão do parser da Caixa —
-   > que grava artefato normal de `extract_statements` e portanto é invisível a essa
-   > contagem. Ela roda sempre que `ANTHROPIC_API_KEY` está no `os.environ` do processo,
-   > independente de `skip_llm`. Além disso 18–19 artefatos de E2 por run carregam
-   > `requires_llm_fallback=True` sem serviço (o stage que os consome é `is_llm`), então o
-   > corpus do Tier-1 é **menor** que o do run full — simetricamente nos dois braços, o que
-   > preserva a validade da paridade, mas não a leitura de "corpus real passa".
+   > **Reescrito 2026-08-03 pela [[A40.l24]].** Duas versões anteriores desta
+   > asserção não podiam ficar vermelhas, cada uma por um motivo diferente.
+   >
+   > **O que estava errado.** "0 artefato em `extract_with_llm`" é cego: a
+   > extração por visão do parser da Caixa grava artefato **normal** de
+   > `extract_statements`, e o stub de escalação também vai para o stage
+   > determinístico ([[ADR-342]]) — nenhum dos dois vira stage `%llm%`. A correção
+   > seguinte (#1151) trocou a cegueira por uma **inversão**: gatear em
+   > `requires_llm_fallback` reprova o braço **sem** credencial (zero chamada, o
+   > flag é setado só quando a visão **falha**) e aprova o braço que fez chamada
+   > paga (sucesso não deixa rastro no flag).
+   >
+   > **Por que o veredito ficava invertido entre os braços.** `_go-on-native`
+   > injeta `ANTHROPIC_API_KEY` lida do `.env` no shell Go, e
+   > `executor.go` a repassa a cada subprocess por `os.Environ()`; `dev-worker-up`
+   > só herda o env do shell. Medido: o mesmo `artifact_key` do extrato da Caixa
+   > saiu com **2986 bytes** nos runs com credencial e **1002** nos sem, e o E3
+   > deixou de reconciliar a conta (105 vs 106 artefatos de
+   > `reconcile_transactions`) — divergência que o gate leria como bug de executor.
+   >
+   > **O que vale agora.** O Tier-1 garante 0-LLM **impedindo** a chamada, não
+   > detectando-a depois: `LLM_FREE=1` apaga a credencial do worker Celery **e**
+   > do shell Go, e o harness exige o marcador `LLM-FREE: ANTHROPIC_API_KEY
+   > scrubbed` na saída do `make` (scrub que não rodou falha alto). Asserções
+   > secundárias, ambas sobre o DB: 0 row em `llm_call_log` para o run e 0
+   > artefato de stage `%llm%`.
+   >
+   > **Limite declarado.** Detecção pós-hoc continua **estruturalmente incompleta**
+   > enquanto `scripts/e2/banks/caixa.py` e `scripts/route_documents.py` montarem
+   > o SDK `anthropic` direto de `os.environ`: essas chamadas nunca aparecem em
+   > `llm_call_log` ([[ADR-355]] §Escopo). Fechar a rota é [[A41.l2]] / [[A41.l3]],
+   > e o gate de ausência de rota (`rg 'import anthropic'` = 0 fora de
+   > `pipeline/llm/`) é [[A41.l4]]. Até lá a garantia vem da credencial ausente.
+   >
+   > **Corpus menor, e isso é esperado.** 18–19 artefatos de E2 por run carregam
+   > `requires_llm_fallback=True` sem serviço (quem os consome é `is_llm`), então o
+   > corpus do Tier-1 é menor que o do run full — **simetricamente** nos dois
+   > braços, o que preserva a validade da paridade. O harness passou a **reportar**
+   > esses docs como corpus encolhido ([[ADR-355]] §Consequências) em vez de
+   > reprovar o run com eles. Divergência de *quais* docs escalaram entre braços
+   > continua sendo pega pelo diff de artefato do `go_parity_gate`.
 
    **Dívida independente descoberta aqui (não bloqueia F2):**
    `pipeline/stages/route_documents.py:25` passa `use_llm=True` **hardcoded**, e o
@@ -297,7 +329,9 @@ procedimento parity double-run pronto; (7) `go-off ENV=native` testado no bake.
 - **Tier-1:** 3× Go vs 3× Python em `DETERMINISTIC_ORDER`, fixture com 0 LLM nas
   **3 superfícies** (pré-condição 2); `go_parity_gate` = 0 divergências
   value/cents em E0→E5 após normalização; controle Py↔Py = 0 diff residual;
-  telemetria assert 0 invocação LLM (E0-route, E2, narrativas).
+  0-LLM garantido por **credencial ausente** nos dois braços (`LLM_FREE=1`,
+  marcador verificado) + 0 row em `llm_call_log` + 0 artefato de stage `%llm%`
+  — ver pré-condição 2 para por que a asserção não é por telemetria de artefato.
 - **Tier-2:** envelope WS shape+sequência = 0; span attrs normalizados exatos +
   trace contínuo; subtrees LLM estruturais; `⊆ divergência(Py,Py)` nos valores.
 - **Gate humano:** SMOKE_TEST_HUMAN PASS em `/reports/[id]` (run full do bake).
