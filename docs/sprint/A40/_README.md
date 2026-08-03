@@ -53,7 +53,7 @@ burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
 usuário, e viraria carimbo.
 
-## Lanes (27)
+## Lanes (29)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -325,9 +325,10 @@ A prosa afirma que sim em **3 lugares** (`_README` linha da l20 na tabela de lan
 `_README` §Ondas ordem interna · [[A40.l20]] blockquote de abertura, e um 4º em
 [[PLAN-report-trust]]), sempre na forma "depende da *decisão*, não do *merge*". O
 frontmatter da l20 declara `depends_on: ["[[A40.l18]]"]`, que é a única relação de
-dependência do schema — `parallel_with` existe e é usado por 4 das 27 ([[A40.l24]] →
-[[TRACK-f2-cutover]], [[A40.l25]] → [[A40.l11]], [[A40.l26]] → [[A40.l25]] e
-[[A40.l27]] → [[A40.l21]]), mas não expressa "depende da decisão". Qual das duas leituras
+dependência do schema — `parallel_with` existe e é usado por 6 das 29 ([[A40.l24]] →
+[[TRACK-f2-cutover]], [[A40.l25]] → [[A40.l11]], [[A40.l26]] e [[A40.l28]] →
+[[A40.l25]], [[A40.l27]] → [[A40.l21]], [[A40.l29]] → [[A40.l25]]+[[A40.l28]]),
+mas não expressa "depende da decisão". Qual das duas leituras
 vale para quem pega a lane: a prosa ou o frontmatter?
 
 **3. A tabela de evidência da emenda da [[ADR-304]] tem 8 linhas — o denominador 9 é
@@ -646,7 +647,7 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 
 Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
 não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
-27 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
+29 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
 que ela **não** é superseded), as abertas por §Entregas fora de lane e as
 emendadas por §Infra de CI tocada durante a sprint.
 
