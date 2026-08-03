@@ -299,7 +299,7 @@ materialidade (ADR-344) · [[A39.l11]] determinismo da classificação LLM ·
 ~1.5 lanes durante a autoria (convergindo com o painel); l1 nasce shipped, l3/l6
 residuais, ADR-343 descartada (emenda [[ADR-342]] superou). ADRs novas restantes:
 344 (piso) + RV + temp=0. **Deferidos:** propagação E2→E5 + selo → REPORT_TRUST
-(ADR-345); órfãos + cauda [[A38.l8]]/[[A38.l11]] → A40.
+([[ADR-345]]); órfãos + cauda [[A38.l8]]/[[A38.l11]] → A40.
 
 **Execução 2026-07-23:** onda de flips + observabilidade + classificação
 **entregue** — l1 (#1035) · l2 (#1039) · l4 (#1041) · l5 (#1042) · l6 (#1043) ·

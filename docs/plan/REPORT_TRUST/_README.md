@@ -156,7 +156,7 @@ sequenciamento; esta frente não tem numeração própria.
 | **3** | [[A40.l18]] | Criticidade de stage + `partial_failure` alcançável ([[ADR-357]]) | **P0** |
 | **3** | [[A40.l19]] | Migration do drift de enum (4 valores) | P1 + gate de deploy |
 | **3** | [[A40.l20]] | `PlannerReview` representa "gerado e retido" | **P0** |
-| **3** — a superfície | [[A40.l22]] | Estados de degradação no relatório + PDF | P1 |
+| **3** — a superfície | [[A40.l22]] | Estados de degradação no relatório + PDF | **P0** (bloqueador do beta — ver 6ª classe) |
 
 **A onda 0 precede a onda 1 da A40** ("medir antes de mexer") por motivo
 estrutural, não de gravidade: medir exige run que completa, e o §Gate de saída
@@ -261,6 +261,47 @@ cross-seção, categoria dominante sem rótulo, dado extraído ausente do relat�
 projeção precisa sobre premissa fallback sem ressalva — verificado por goldens
 + testes de invariante + teste de honestidade de UX (ver KRs da A28).
 
+**6ª classe — retenção de conselho não declarada** (adicionada 2026-08-03, co-design
+`senior-cto`; origem no incidente do run `2ded7aab` — ver §Frente 4):
+
+> Nenhuma retenção de conselho do parecer sem **declaração por classe de motivo**
+> no artefato entregue.
+
+Três precisões que fazem a classe funcionar:
+
+- **Não é `items_dropped == 0`.** Essa forma amarraria o contador a um gerador
+  estocástico e **adicionaria uma dimensão insaturável ao próprio gate** — o risco
+  R6 que o gate existe para conter, reintroduzido dentro dele. Pior: depois da
+  [[A40.l16]] a retenção *legítima* continua desejável (sigilo §13,
+  `pairing_mismatch` em risco grave), e o único caminho para manter o gate verde
+  seria **enfraquecer enforcement legítimo**. A forma adotada — resíduo **não
+  declarado** = 0 — é satisfazível por trabalho finito: construir a superfície
+  uma vez.
+- **Por classe de motivo, não contagem agregada.** Um banner fixo ("alguns itens
+  foram retidos") satisfaria uma identidade aritmética com informação ~zero. A
+  declaração distingue sigilo / pareamento / severidade / degradação de stage.
+- **Cobre item-level *e* stage-level.** Retenção de N itens e ausência do parecer
+  inteiro (stage `degraded`, [[ADR-357]]) são a mesma falha de honestidade em
+  granularidades diferentes. Se a classe só falasse de itens, "parecer inteiro
+  ausente e a tela cala" passaria pelo gate.
+
+**A classe é enunciada sobre a propriedade, nunca sobre a lane, e não é
+condicional.** Escrever "se a superfície existir, então…" produziria um gate
+satisfazível **por não construir a superfície** — o incentivo perverso máximo.
+Consequência aceita explicitamente: enquanto a superfície não existir, qualquer
+retenção viola a classe, logo **[[A40.l22]] é bloqueador de fato do beta** — e é
+por isso que ela sobe para **P0**. [[A40.l22]] é a *implementação prevista* da
+classe, não a definição dela: o gate sobrevive a l22 mudar de forma.
+
+**O volume de retenção não entra no gate** — vive como budget monitorado no
+tripwire T1 (§Frente 4), com limiar que dispara investigação e **nunca** zera o
+contador. Mesmo instrumento que a [[A40.l16]] restaurou para `number_in_prose`:
+simetria, não exceção.
+
+Homogeneidade com o conjunto: a 5ª classe já é um invariante de **declaração**
+("projeção precisa sobre premissa fallback **sem ressalva**") verificado pelo
+teste de honestidade de UX. A 6ª tem a mesma forma e o mesmo verificador.
+
 ### Gate de saída do dogfood (operacionalizado 2026-07-06)
 
 > Antecipa o follow-up "gate de abertura" (antes reservado a A29): "refinar até
@@ -271,7 +312,7 @@ projeção precisa sobre premissa fallback sem ressalva — verificado por golde
 O dogfood pode encerrar (abrindo caminho para beta) quando:
 
 - [ ] **2 re-runs completos consecutivos** (pipeline E0→E6 + parecer + revisão
-  do owner) com **zero** ocorrência nas 5 classes acima; *N=2 é default
+  do owner) com **zero** ocorrência nas 6 classes acima; *N=2 é default
   proposto — owner pode recalibrar antes do primeiro re-run contar*.
 - [ ] Nenhum item novo P0/P1 aberto pela revisão do owner nesses 2 re-runs
   (achados P2 viram backlog de A29+, não resetam o contador).

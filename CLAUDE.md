@@ -481,6 +481,16 @@ Convenções:
 - **Supersedure bidirecional:** ADR-Y supersede ADR-X → declare
   `supersedes: ["[[ADR-X]]"]` em Y E `superseded_by: ["[[ADR-Y]]"]`
   em X (frontmatter).
+- **Nunca reserve ID; reserve o trabalho.** Citar "ADR-NNN" em prosa para
+  segurar um número **não funciona**: o ID é recurso global monotônico
+  alocado na escrita (`ls docs/adr/ | tail`), e menção em prosa é
+  invisível a `check_doc_links.py` — o próximo agente rouba o número sem
+  saber. Trabalho deferido vive como **§Deferimento datado com dono** no
+  plano (wikilink-ável, visível aos gates, com condição de retomada) —
+  precedente [[ADR-356]]. Se o ID **precisa** ser ocupado, escreva a nota
+  `Roadmap` **com corpo** (a decisão de deferir + escopo + condição de
+  retomada, forma da [[ADR-159]]); `Roadmap` vazio não é placeholder
+  aceito. Caso de origem: [[ADR-345]].
 - **Emenda datada:** emendar ADR (`## Emenda/Correção/Calibração ... YYYY-MM-DD`)
   exige `amended_at: ["YYYY-MM-DD"]` no frontmatter + blockquote de sinal
   no topo (padrão ADR-027). Gate: `dev/check_adr_amendment_signal.py`.

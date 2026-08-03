@@ -209,10 +209,10 @@ baseline sobre `origin/main` antes de qualquer mutação**.
 
 - **Propagação E2→E5 + selo de qualidade no relatório** (o "taint" que impede
   KPI derivado de input escalado nascer com cara certificada) → **plano
-  REPORT_TRUST**, gated por **ADR-345** (read-path/render, co-design
+  REPORT_TRUST**, gated por **[[ADR-345]]** (read-path/render, co-design
   product-designer + data-engineer + financial-planner). É o follow-up que a
   própria [[ADR-342]] §Consequências punt para "A39+". **Risco registrado
-  (financial-planner):** até ADR-345 aterrissar, input escalado ainda pode
+  (financial-planner):** até [[ADR-345]] aterrissar, input escalado ainda pode
   aparecer em KPI com cara certificada — KR-A do A39 cobre a camada **E2**, não a
   de KPI.
 - **Reconciliação dos 3 docs órfãos no DB** (dir=123, `documents`=126) por
@@ -265,7 +265,7 @@ baseline sobre `origin/main` antes de qualquer mutação**.
   financial-planner + data-engineer.
 - **`temperature=0` ([[A39.l11]]) muda o runtime de TODO upload em prod**, não só
   o harness — coordenar com senior-cto; ADR `Proposto` antes.
-- **Propagação E2→E5 deferida:** KR-A garante o E2, não o KPI — até ADR-345,
+- **Propagação E2→E5 deferida:** KR-A garante o E2, não o KPI — até [[ADR-345]],
   input escalado pode surfar em KPI certificado (aceito, registrado).
 - **Sobreposição com cauda A38:** [[A38.l9]]/[[A38.l13]] **adotadas** como lanes
   A39 (evita merge-hell); resto da cauda deferido explicitamente.
@@ -297,7 +297,7 @@ Co-design sobre o rascunho de 9 lanes. Correções incorporadas:
   float-think **se** enquadrado como **roteamento sobre não-certificado**
   (certificado segue zero-cents; não-certificado hoje escala ∞→materialidade =
   estritamente mais estrito); piso **global único** (respeita veto DE contra
-  per-banco). **Selo (E2→E5) = ADR-345 nova** (read-path) → deferida a
+  per-banco). **Selo (E2→E5) = [[ADR-345]] nova** (read-path) → deferida a
   REPORT_TRUST. **Coerência de threshold:** selo dispara em "escalado OU
   gap>piso", nunca `gap≠0` cru (senão ruído de arredondamento). Ordem: ADR-343/344
   `Proposto` antes do impl; l6 só referencia (emenda + impl mesmo PR).
@@ -316,7 +316,7 @@ Co-design sobre o rascunho de 9 lanes. Correções incorporadas:
   (fatura viesa **otimista**: despesa↓→poupança↑, pior modo). **KR-C precisa de
   companheiro de valor** (não só contagem 36/36 — escalar tudo bate o KR com zero
   despesa verificada). **Propagação E2→E5 é load-bearing** (sem ela KR-A é
-  cosmético na camada de KPI) → registrada como dependência deferida (ADR-345),
+  cosmético na camada de KPI) → registrada como dependência deferida ([[ADR-345]]),
   não descartada. Posições de investimento perdidas corrompem patrimônio →
   [[A39.l9]] é **P1**, não P2.
 - **prompt-engineer:** a chamada LLM roda em **`temperature=1.0`** (sem seed) —

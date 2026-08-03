@@ -5,7 +5,7 @@ title: "Superfície de degradação: o relatório declara o que foi retido, incl
 sprint: A40
 plan: PLAN-report-trust
 status: open
-priority: P1
+priority: P0
 branch_slug: a40-l22-superficie-de-degradacao
 adrs: []
 depends_on:
@@ -14,7 +14,7 @@ tags:
   - type/lane
   - sprint/a40
   - status/open
-  - priority/p1
+  - priority/p0
   - area/frontend
 ---
 

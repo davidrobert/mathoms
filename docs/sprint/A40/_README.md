@@ -53,7 +53,7 @@ burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
 usuário, e viraria carimbo.
 
-## Lanes (14)
+## Lanes (23)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -81,7 +81,8 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l19]] | Migration do drift de enum de status (4 valores) | P1 + gate de deploy | — | **[[ADR-357]]** §7 |
 | [[A40.l20]] | `PlannerReview` representa gerado-e-retido (destrava a UI) | **P0** | l18 (**decisão**, não merge) | emenda provável **[[ADR-204]]** |
 | [[A40.l21]] | Leitores tolerantes a `partial_failure` (reader-first) | **P0** | — | **[[ADR-357]]** §Consequências |
-| [[A40.l22]] | Superfície de degradação no relatório + PDF | P1 | l20 | fatia premium da F11.5 |
+| [[A40.l22]] | Superfície de degradação no relatório + PDF | **P0** | l20 | fatia premium da F11.5 · **bloqueador do beta** (6ª classe do gate de saída) |
+| [[A40.l23]] | Gate: ADR citada em prosa resolve para arquivo (reserva de ID é invisível) | P2 | — | classe exposta pela **[[ADR-345]]** |
 
 ## Ondas
 
@@ -131,7 +132,7 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 evita merge-hell"), a l22 vai primeiro e as duas rebaseiam sobre ela.
 
 **Onda 4 — o que depende das anteriores** ([[A40.l6]], [[A40.l10]], [[A40.l11]],
-[[A40.l13]], [[A40.l14]]).
+[[A40.l13]], [[A40.l14]], [[A40.l23]]).
 
 **Precedência de corte:** nunca cortar [[A40.l16]] nem [[A40.l18]]. Cortáveis, em
 ordem: [[A40.l17]], marcador em `/reports` (já fora de escopo), dead-letter (já
