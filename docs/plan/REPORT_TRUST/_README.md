@@ -88,18 +88,30 @@ stage devolveu `success: False` → `_finalize_pipeline_outcome` pulou
 `_run_post_processing` → zero linha em `reports`, e também zero lineage edge
 ([[ADR-279]]) e zero sync de status E2.
 
-**Não é caso isolado.** Nos 9 últimos runs, `riscos_count` publicado =
-12 − `items_dropped`, exato: **8 de 9 runs apagaram silenciosamente 1–4
-conselhos** cuja citação estava verificada (`evidencia_failed: 0` em todos). E a
-perda propaga a jusante: item dropado nunca vira `Suggestion` → nunca chega ao
-Inbox de `/acao` → nunca vira Task/Decision ([[ADR-136]]). Como o defeito é
-estocástico, o mesmo risco **pisca entre relatórios** sem explicação.
+**Não é caso isolado.** Sob o prompt vigente 2.2.0 (n=8 runs), **6 apagaram
+silenciosamente 1–4 conselhos** (15 itens) cuja citação estava verificada
+(`evidencia_failed: 0` em todos os 19 runs da janela do contador), e **1 destruiu
+o entregável** — 7 dos 8 afetados, em duas perdas de natureza distinta, que
+respondem a KRs diferentes (KR-1 vs. KR-0). Os totais **7 runs / 16 itens** são da
+janela inteira do contador (n=19), não de 2.2.0 — o 7º run que apaga é de
+2026-07-20, sob prompt 2.1.0 ([[ADR-304]] §Emenda, tabela de agregação).
+E a perda propaga a jusante: item dropado nunca vira `Suggestion`
+→ nunca chega ao Inbox de `/acao` → nunca vira Task/Decision ([[ADR-136]]). Como o
+defeito é estocástico, o mesmo risco **pisca entre relatórios** sem explicação.
+
+**Cuidado ao instrumentar o KR-1:** `riscos_count = 12 − items_dropped` **não é
+identidade** — quebra em 2 dos 7 runs que apagaram (janela inteira), porque `items_dropped`
+conta itens de qualquer tipo (riscos *e* sugestões) e 12 é o **cap** da
+[[ADR-202]] §D5, não a emissão do gerador. "Emitidos" tem de vir de
+`publicados + items_dropped + riscos_truncados`. Tabela completa e derivação:
+[[ADR-304]] §Emenda 2026-08-03.
 
 ### Por que isto bloqueia o gate de saída do dogfood
 
 O §Gate de saída exige **2 re-runs completos consecutivos**. Um run `failed` não
-é re-run completo — e com 89% dos runs afetados o contador **não pode iniciar**.
-O custo de não fazer não é US$ 1,5655 × N: é o beta não abrir.
+é re-run completo — e com 87,5% dos runs afetados sob o prompt vigente o contador
+**não pode iniciar**. O custo de não fazer não é US$ 1,5655 × N: é o beta não
+abrir.
 
 ### Conflito de ADR que autorizava o enforcement
 
@@ -109,10 +121,18 @@ item bom — então é **budget monitorado** (mediana 0 = maioria limpa), não
 invariante `==0`"*. [[ADR-304]] §2 estabeleceu a doutrina oposta 12 dias depois
 **sem `supersedes` nem emenda**, e §3 condicionou o enforcement a duas
 pré-condições: *"quando a A27 for promovida"* + *"validar contra tráfego real"*.
-A A27 segue `candidate`; o tráfego real **reprova** (89% vs 4,2% projetado). O
-PR #875 violou as pré-condições da própria ADR que o autorizava.
+A A27 segue `candidate`; o tráfego real **reprova** (87,5% sob o prompt vigente
+2.2.0 vs. 4,2% projetado no holdout). O PR #875 violou as pré-condições da própria
+ADR que o autorizava — e ficou **dormente por 11 runs** (1/11 = 9,1% sob prompt
+2.1.0) até que o bump 2.1.0→2.2.0 de 2026-07-21 (#1004, exec context) levasse a
+taxa a 87,5%: o enforcement é o amplificador, a regressão de gerador é o gatilho.
 
-Três medições mostram que o gate mirou o alvo errado:
+Quatro medições mostram que o gate mirou o alvo errado:
+
+- **A camada não mede correção.** É detector de **presença** de `R$` na prosa, não
+  de divergência: nada compara o token com `ancoras[].valor_renderizado`. Escalar
+  um entregável sobre sinal que não sabe se o número está certo não se justifica
+  em nenhum volume ([[ADR-358]] §Decisão 1).
 
 - **Sub-citação é fail-open.** Item com `ancoras: []` não gera entry no
   verificador. O run tinha `ancoras_total: 6` contra mediana 11 ([[ADR-296]]) e
@@ -160,9 +180,9 @@ sequenciamento; esta frente não tem numeração própria.
 
 **A onda 0 precede a onda 1 da A40** ("medir antes de mexer") por motivo
 estrutural, não de gravidade: medir exige run que completa, e o §Gate de saída
-abaixo exige 2 re-runs completos consecutivos — com 89% dos runs degradando, o
-contador não inicia e o baseline de toda onda posterior mede um pipeline que não
-entrega.
+abaixo exige 2 re-runs completos consecutivos — com 87,5% dos runs degradando sob
+o prompt vigente, o contador não inicia e o baseline de toda onda posterior mede um
+pipeline que não entrega.
 
 **Ordem reader-first (não acoplar PRs).** Os **7** read sites de `partial_failure`
 no frontend são **código morto hoje** (o status existe no union type e no

@@ -16,11 +16,11 @@ from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
 
 # Citação que resolve ERRADO — derruba item. missing_path (cobertura) fica fora.
 # ADR-296: pairing_mismatch (rotulo ↔ root incoerente) substitui value_mismatch.
-# ADR-304: number_in_prose (valor monetário digitado na prosa) é hard — KR1 ==0
-# estrito é enforcement, não prompt; mesma máquina drop vs needs_review.
-_HARD_LAYERS = frozenset({"whitelist_miss", "resolve_null", "pairing_mismatch", "number_in_prose"})
-_LAYER_LABELS = {"number_in_prose": "valor monetário na prosa"}
-_DEFAULT_LABEL = "evidencia unverified"
+# ADR-358: entrada nova aqui exige ADR própria + budget de produção declarado.
+# number_in_prose foi removido (ADR-304 §Emenda 2026-08-03): é detector de
+# PRESENÇA de R$ na prosa, não de divergência — a âncora do item segue verificada,
+# então a premissa da ADR-295 ("silenciar ≡ emitir número errado") não transfere.
+_HARD_LAYERS = frozenset({"whitelist_miss", "resolve_null", "pairing_mismatch"})
 _HIGH_SEVERIDADE = frozenset({"Crítica", "Alta"})
 _SUGESTAO_HORIZONS = frozenset(
     {"sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"}
@@ -36,20 +36,18 @@ class StrictDecision:
     dropped: tuple[tuple[str, int], ...]
 
 
-def _parse_hard_violations(violations: list[str]) -> list[tuple[str, int, str]]:
-    """``"tipo:índice:camada"`` → ``(tipo, índice, camada)`` só das camadas hard.
-
-    Dedupe por (tipo, índice): item com citação errada E R$ na prosa cai uma vez
-    (``items_dropped`` conta itens, não violações); a 1ª camada rotula o motivo.
-    """
-    out: list[tuple[str, int, str]] = []
+def _parse_hard_violations(violations: list[str]) -> list[tuple[str, int]]:
+    """``"tipo:índice:camada"`` → ``(tipo, índice)`` só das camadas hard, deduplicado."""
+    # Dedupe por (tipo, índice): item cujas DUAS âncoras falham (ex.: whitelist_miss +
+    # resolve_null) cai uma vez — `items_dropped` conta itens, não violações.
+    out: list[tuple[str, int]] = []
     seen: set[tuple[str, int]] = set()
     for raw in violations:
         item_type, index, layer = raw.split(":")
         key = (item_type, int(index))
         if layer in _HARD_LAYERS and key not in seen:
             seen.add(key)
-            out.append((item_type, int(index), layer))
+            out.append(key)
     return out
 
 
@@ -83,19 +81,17 @@ def _drop_items(
 def enforce_strict_per_item(
     output: ParecerPlanejadorOutput, violations: list[str]
 ) -> StrictDecision:
-    """Aplica a política per-item (ADR-295; number_in_prose via ADR-304) sobre as hard."""
+    """Aplica a política per-item (ADR-295) sobre as violações hard."""
     hard = _parse_hard_violations(violations)
     if not hard:
         return StrictDecision(output=output, needs_review_reason=None, dropped=())
-    high = [(t, i, layer) for (t, i, layer) in hard if _is_high_severity(output, t, i)]
+    high = [(t, i) for (t, i) in hard if _is_high_severity(output, t, i)]
     if high:
-        t, i, layer = high[0]
-        label = _LAYER_LABELS.get(layer, _DEFAULT_LABEL)
-        reason = f"{label} (severidade alta): {t}:{i}"
+        t, i = high[0]
+        reason = f"evidencia unverified (severidade alta): {t}:{i}"
         return StrictDecision(output=output, needs_review_reason=reason, dropped=())
-    targets = [(t, i) for (t, i, _) in hard]
     return StrictDecision(
-        output=_drop_items(output, targets), needs_review_reason=None, dropped=tuple(targets)
+        output=_drop_items(output, hard), needs_review_reason=None, dropped=tuple(hard)
     )
 
 

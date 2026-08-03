@@ -9,6 +9,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
 from dataclasses import dataclass, field, replace
 from typing import Any, Mapping, Optional
@@ -50,6 +51,9 @@ from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 
 logger = logging.getLogger("mathoms.llm.parecer_planejador")
 _SCHEMA_VERSION = "1.0"  # bump em mudança breaking do output schema (ADR-202)
+# Allowlist de forma p/ o código de classificação em `_exc_label` — o valor vem de
+# `LLMErrorType`, mas a asserção de forma é barata e fecha a classe de vazamento inteira.
+_SAFE_ERROR_CODE_RE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
 
 
 @dataclass
@@ -156,7 +160,10 @@ def _write_cache(cache: Any, key: str, output: ParecerPlanejadorOutput, ttl_s: i
     try:
         cache.set(key, output.model_dump_json(), ttl_s=ttl_s)
     except Exception as exc:  # noqa: BLE001 — cache write é best-effort
-        logger.warning("parecer_planejador_cache_write_failed: %s", exc)
+        logger.warning(
+            "parecer_planejador_cache_write_failed",
+            extra={"error": _exc_label(exc)},
+        )
 
 
 # ----------------------------------------------------------------------
@@ -363,11 +370,44 @@ def _call_llm_safe(
         _emit_riscos_truncados(output)
         return output, None
     except Exception as exc:  # noqa: BLE001 — todas exceções viram needs_review
+        label = _exc_label(exc)
         logger.warning(
             "parecer_planejador_llm_call_failed",
-            extra={"workspace_id": config.workspace_id, "error": str(exc)[:200]},
+            extra={"workspace_id": config.workspace_id, "error": label},
         )
-        return None, f"LLM call failed: {exc}"
+        return None, f"LLM call failed: {label}"
+
+
+def _exc_label(exc: Exception) -> str:
+    """Rótulo PII-safe da exceção: tipo + classificação + nº de erros de validação."""
+    # NUNCA `str(exc)`: o `ValidationError` do Instructor ecoa `input_value` — prosa que
+    # o LLM derivou de dado do cliente, com valor monetário real — e a
+    # `LLMValidationError` re-embrulha esse texto na própria `message`, então truncar não
+    # resolve. O destino não é só o log: este rótulo vira `error_detail`, persistido em
+    # `_meta` do artifact e re-logado pelo stage. Padrão de `NumberInProseWarning`:
+    # contagem + rótulo estático, nunca o valor.
+    parts = [type(exc).__name__]
+    code = getattr(getattr(exc, "error_type", None), "value", None)
+    if isinstance(code, str) and _SAFE_ERROR_CODE_RE.match(code):
+        parts.append(code)
+    count = _validation_error_count(exc)
+    if count is not None:
+        parts.append(f"{count} erro(s) de validação")
+    return " · ".join(parts)
+
+
+def _validation_error_count(exc: Exception) -> Optional[int]:
+    """Nº de erros de validação quando a exceção os expõe estruturalmente; senão ``None``."""
+    errors = getattr(exc, "validation_errors", None)  # LLMValidationError
+    if isinstance(errors, list):
+        return len(errors)
+    counter = getattr(exc, "error_count", None)  # pydantic ValidationError
+    if not callable(counter):
+        return None
+    try:
+        return int(counter())
+    except Exception:  # noqa: BLE001 — rótulo de log nunca derruba o parecer
+        return None
 
 
 def _invoke_parecer_llm(
@@ -397,7 +437,10 @@ def _emit_riscos_truncados(output: ParecerPlanejadorOutput) -> None:
                 dropped=dropped, prompt_name="parecer_planejador", prompt_version=PROMPT_VERSION
             )
     except Exception as metrics_exc:  # noqa: BLE001 — telemetria nunca derruba o parecer
-        logger.warning("parecer_riscos_truncados_metric_failed: %s", metrics_exc)
+        logger.warning(
+            "parecer_riscos_truncados_metric_failed",
+            extra={"error": _exc_label(metrics_exc)},
+        )
 
 
 def _build_prompts(

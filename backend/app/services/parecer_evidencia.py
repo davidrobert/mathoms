@@ -21,7 +21,11 @@ logger = logging.getLogger("mathoms.llm.parecer_planejador")
 # (transcrição de número) substituído por pairing_mismatch (rotulo ↔ root do path).
 # "4" (ADR-304): number_in_prose vira violação hard per-item (KR1 A27 — enforcement,
 # não prompt); cache pré-enforcement pode conter R$ na prosa.
-EVIDENCIA_VERIFICATION_VERSION = "4"
+# "5" (ADR-304 §Emenda 2026-08-03): reversão — number_in_prose volta a telemetria.
+# Bump OBRIGATÓRIO: o cache sob ev4 guarda outputs já MUTILADOS (itens dropados pelo
+# enforcement) e o hit não repopula evidencia_summary, então serviria a mutilação com
+# items_dropped ausente do output_summary — o fix seria "verificado" pelo artefato do bug.
+EVIDENCIA_VERIFICATION_VERSION = "5"
 
 _EVIDENCIA_MODE_ENV = "MATHOMS_PARECER_EVIDENCIA_MODE"
 _VALID_MODES = ("warn", "strict")
@@ -46,8 +50,10 @@ _REAIS_RE = re.compile(
 
 # ADR-296: pairing_mismatch substitui value_mismatch (este zerado por construção —
 # prosa não tem R$). Ordem preservada p/ telemetria; value_mismatch fica no histórico.
-# ADR-304: number_in_prose é violação de pureza monetária da prosa (per-item, KR1) —
-# nem cobertura nem correção de citação; não entra em coverage/correctness_failed.
+# number_in_prose é pureza monetária da prosa — nem cobertura nem correção de citação;
+# fora de coverage/correctness_failed E fora de _HARD_LAYERS (ADR-304 §Emenda
+# 2026-08-03: budget monitorado, não invariante ==0). Fica aqui porque dict.fromkeys
+# garante a chave em 0 mesmo em run limpo — tirar daqui emudece a telemetria.
 _LAYERS = ("missing_path", "whitelist_miss", "resolve_null", "pairing_mismatch", "number_in_prose")
 # ADR-292/A26.l6: cobertura (item sem âncora verificável) ≠ correção (âncora que
 # resolve errado / rotulo incoerente). Mesma partição que o gate do eval.
@@ -64,8 +70,16 @@ _REASON_TO_LAYER = {
 class MoneyToken:
     """Token monetário extraído da prosa — sempre em cents int (ADR-090)."""
 
+    # RESÍDUO SEM CONSUMIDOR (era `value_mismatch`, ADR-296): nenhum call-site lê `cents`
+    # nem `half_step_cents` — `verify_evidencia` só usa `len(money_tokens)`. Não existe
+    # comparador prosa ↔ `ancoras[].valor_renderizado` em lugar nenhum do repo; é por isso
+    # que `number_in_prose` detecta PRESENÇA e não divergência, e é essa ausência que
+    # sustenta a reversão da ADR-304 §Emenda 2026-08-03. Mantido (não deletado) porque a
+    # lane do comparador real precisa dos dois campos.
     cents: int
-    half_step_cents: int  # 0 = match exato; >0 = intervalo [cents-h, cents+h)
+    # Semântica PROJETADA (nunca exercida): 0 = valor exato na prosa; >0 = a prosa
+    # arredondou ("3 milhões"), então o match seria o intervalo [cents-h, cents+h).
+    half_step_cents: int
 
 
 @dataclass(frozen=True)
@@ -93,8 +107,10 @@ class EvidenciaVerification:
     failures_by_layer: dict[str, int] = field(default_factory=lambda: dict.fromkeys(_LAYERS, 0))
     entries: list[dict] = field(default_factory=list)
     violations: list[str] = field(default_factory=list)  # "tipo:índice:camada"
-    # ADR-296: money_tokens_total agora é number_in_prose (R$ cru na prosa — deve ser 0);
-    # ancoras_total é a densidade de citação (substitui money_tokens como piso anti-sub-citação).
+    # UNIDADES DIFERENTES, não confundir ao ler budget (ADR-358 §3 — régua errada):
+    # money_tokens_total conta TOKENS monetários; failures_by_layer["number_in_prose"]
+    # conta ITENS ofensores. O eval expõe o primeiro sob o nome do segundo.
+    # ancoras_total é a densidade de citação (piso anti-sub-citação, ADR-296).
     money_tokens_total: int = 0
     range_in_scalar_count: int = 0
     ancoras_total: int = 0
@@ -170,8 +186,8 @@ def verify_evidencia(
         result.range_in_scalar_count += _count_ranges(prose_fields)
         result.ancoras_total += len(ancoras)
         if money_tokens:
-            # ADR-304: pureza monetária é violação per-item — flui pela mesma
-            # máquina strict da citação (drop vs needs_review, ADR-295).
+            # Entra em `violations` para auditoria, mas a camada está FORA de
+            # _HARD_LAYERS: o enforcement strict a ignora (ADR-304 §Emenda 2026-08-03).
             _record_number_in_prose(
                 result, item_type=item_type, index=index, token_count=len(money_tokens)
             )
@@ -233,8 +249,9 @@ def _record(
 def _record_number_in_prose(
     result: EvidenciaVerification, *, item_type: str, index: int, token_count: int
 ) -> None:
-    """Violação de pureza monetária da prosa (ADR-304) — per-item, camadas separadas
-    dos contadores de âncora (``verified``/``failed`` seguem contando só citações)."""
+    """Pureza monetária da prosa — budget monitorado (ADR-296 §Re-eval), não hard."""
+    # Camada separada dos contadores de âncora (`verified`/`failed` seguem contando só
+    # citações) e incrementa por ITEM ofensor, não por token — ver §UNIDADES acima.
     warning = NumberInProseWarning(item_type=item_type, item_index=index, token_count=token_count)
     result.number_in_prose_warnings.append(warning)
     result.failures_by_layer["number_in_prose"] += 1

@@ -60,6 +60,7 @@ last_review: "2026-07-09"
 | Gates de sugestão (F1/F2/KR5) | 2 runs reais: `thesis_key` estável ≥90%, match de valor ≥98%, utilidade não-regride | ✅ F1-F4 shipped | `done` do [[PLAN-suggestion-lifecycle]] | ocorre junto com os re-runs | [[PLAN-suggestion-lifecycle]] |
 | Gate humano do Go F2 | Rodar protocolo `SMOKE_TEST_HUMAN` sobre run full em staging | aguarda staging Postgres (§3) | Flip do cutover Go (§1) | ~30min | [[PLAN-go-shell]] |
 | Amarração de drift (contínua) | A cada bump de prompt/model: re-medição no harness sintético antes de manter strict | ✅ harness pronto | Manutenção segura do modo strict de citação | recorrente | [[A26.l2]] |
+| Re-eval do holdout sob prompt 2.2.0 | Baseline do eval é de 2026-07-02, medido sob prompt **2.1.0**; o gerador mudou em 07-21 (exec context, #1004). Dois gates ficaram calibrados contra a versão antiga: `number_in_prose_median == 0` e `_DENSITY_FLOOR = 5` (densidade real sob 2.2.0 = mediana 5, passa raspando) | ✅ harness pronto (`MATHOMS_RUN_LLM_EVAL=1`) | Saber se os gates do eval ainda valem; base da lane de gerador (exec context + RV2-10) | ~US$ 26, 1 run | [[ADR-304]] §Emenda · [[ADR-358]] |
 
 ## 3. Provisionamento de infra / credenciais
 

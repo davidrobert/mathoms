@@ -167,7 +167,8 @@ de gate baseados em evidência empírica (mesma força da redefinição da [[A26
 
 > **Contrariada e restaurada (2026-08-03):** a [[ADR-304]] §2 estabeleceu a
 > doutrina oposta (`==0` estrito via enforcement) sem supersedure declarada, e o
-> enforcement embarcado no PR #875 derrubou 1 run completo e apagou conselho
-> verificado em 8 de 9 runs. A [[ADR-304]] §Emenda 2026-08-03 revoga a §2 e
-> restaura este parágrafo como política operativa. **Não é emenda desta nota** —
-> nada aqui mudou.
+> enforcement embarcado no PR #875 **derrubou 1 entregável completo e apagou
+> conselho verificado em 7 runs (16 itens)**. Taxa e janela **não** se repetem aqui
+> de propósito: dependem do `prompt_version`, e a tabela de agregação vive na
+> [[ADR-304]] §Emenda 2026-08-03 — que revoga a §2 e restaura este parágrafo como
+> política operativa. **Não é emenda desta nota** — nada aqui mudou.

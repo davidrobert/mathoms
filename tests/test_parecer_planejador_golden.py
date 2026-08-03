@@ -822,7 +822,8 @@ class TestCrossProviderSmoke:
         jsonschema.validate(artifact, schema)
 
     def test_hard_caps_respected_across_provider(self, workspace_e5):
-        """Hard caps (ADR-202 §D3): riscos ≤ 12, P0 ≤ 2 agregado, etc."""
+        """Caps de duas seções distintas: riscos ≤ 12 é ADR-202 §D5 (hard caps);
+        P0 ≤ 2 agregado é §D3 (enums fechados / invariante de Prioridade)."""
         provider, model_id = _cross_provider_env_or_skip()
         result, store = self._call_real_llm(workspace_e5, provider, model_id)
         artifact = store.read("E6-parecer", "parecer_planejador")

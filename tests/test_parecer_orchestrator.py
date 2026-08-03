@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import hashlib
+import logging
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 
 from backend.app.services.parecer_orchestrator import (
     ParecerOrchestratorConfig,
@@ -20,6 +23,7 @@ from backend.app.services.parecer_orchestrator import (
     validate_anti_sigilo,
 )
 from backend.app.services.storage.llm_cache import InMemoryLLMCache
+from pipeline.llm.error_classification import LLMValidationError
 from pipeline.llm.schemas.parecer_planejador import (
     Metadata,
     ParecerPlanejadorOutput,
@@ -372,7 +376,10 @@ class TestGenerateParecerOrchestrator:
         result = generate_parecer(e5_data=e5, config=config, llm_service=_FailingLLM(), cache=cache)
 
         assert result.status == "needs_review"
-        assert result.error_detail and "provider exploded" in result.error_detail
+        # A40.l16: o texto da exceção NÃO entra no error_detail (pode carregar prosa
+        # do cliente — ver TestFalhaDeLlmNaoVazaValorMonetario). Só tipo + classificação.
+        assert result.error_detail and "RuntimeError" in result.error_detail
+        assert "provider exploded" not in result.error_detail
 
     def test_sigilo_violation_returns_needs_review(self):
         e5 = {"patrimonio": {"bruto": 1}}
@@ -407,3 +414,82 @@ class TestGenerateParecerOrchestrator:
         assert result.output.metadata.persona_hash != "0" * 64  # sobrescreveu placeholder
         assert result.output.metadata.model_id == "anthropic/claude-test"
         assert result.output.metadata.tier_at_generation == "premium"
+
+
+# -----------------------------------------------------------------------
+# PII no caminho de exceção do LLM (A40.l16)
+# -----------------------------------------------------------------------
+
+_MONEY_IN_LOG_RE = re.compile(r"R\$ ?[0-9]")
+_LLM_LOGGER = "mathoms.llm.parecer_planejador"
+
+
+def _validation_error_carregando_valor_monetario() -> ValidationError:
+    """`ValidationError` real cujo `input_value` é prosa do cliente com valor monetário.
+
+    Reproduz o caminho de produção: o Instructor valida o output contra o schema e o
+    `input_value` que ele ecoa é a prosa que o LLM derivou de dado do cliente.
+    """
+    try:
+        Risco(
+            titulo="Concentracao",
+            descricao="PETR4 vale R$ 9.876,00.",  # ticker derruba; a prosa vai p/ input_value
+            severidade="Alta",
+            ancora_metodologica="convergencia",
+            tema_canonico="Liquidez",
+            section_id="S1",
+        )
+    except ValidationError as exc:
+        return exc
+    raise AssertionError("schema aceitou prosa com ticker — fixture perdeu validade")
+
+
+class TestFalhaDeLlmNaoVazaValorMonetario:
+    """`str(exc)` do Instructor ecoa `input_value`; `LLMValidationError` re-embrulha esse
+    texto na própria `message` (`litellm_client.py`), então `str(exc)` do caminho de
+    exceção do orchestrator carrega valor monetário real do cliente."""
+
+    def _run(self, caplog) -> Any:
+        inner = _validation_error_carregando_valor_monetario()
+        assert _MONEY_IN_LOG_RE.search(str(inner)), "fixture não reproduz mais o vazamento"
+
+        class _ValidationFailingLLM:
+            summary = _FakeLLMSummary()
+
+            def call(self, **kwargs):
+                raise LLMValidationError(
+                    f"Output validation failed after 3 attempts: {inner}",
+                    validation_errors=[str(inner)],
+                )
+
+        with caplog.at_level(logging.WARNING, logger=_LLM_LOGGER):
+            return generate_parecer(
+                e5_data={"patrimonio": {"bruto": 1}},
+                config=ParecerOrchestratorConfig(workspace_id="ws-pii", tier="premium"),
+                llm_service=_ValidationFailingLLM(),
+                cache=InMemoryLLMCache(),
+            )
+
+    def test_log_do_logger_llm_nao_contem_valor_monetario(self, caplog):
+        result = self._run(caplog)
+        assert result.status == "needs_review"
+        emitidos = [r for r in caplog.records if r.name == _LLM_LOGGER]
+        assert emitidos, "nenhuma linha emitida — o teste não observa o caminho de exceção"
+        for rec in emitidos:
+            # `__dict__` cobre message, args e tudo que veio via `extra=` — o vazamento
+            # estava justamente em `extra`, que a denylist de redação não cobre ("error"
+            # não casa nenhum substring de SENSITIVE_FIELD_SUBSTRINGS).
+            blob = rec.getMessage() + repr(rec.__dict__)
+            assert not _MONEY_IN_LOG_RE.search(blob), f"vazou no log: {blob[:200]}"
+
+    def test_error_detail_nao_contem_valor_monetario(self, caplog):
+        """`error_detail` é persistido em `_meta` do artifact e re-logado pelo stage."""
+        result = self._run(caplog)
+        assert not _MONEY_IN_LOG_RE.search(result.error_detail or "")
+
+    def test_error_detail_preserva_tipo_e_contagem(self, caplog):
+        """Sanitizar não é emudecer: tipo, classificação e nº de erros seguem no log."""
+        result = self._run(caplog)
+        assert "LLMValidationError" in (result.error_detail or "")
+        assert "validation" in (result.error_detail or "")
+        assert "1" in (result.error_detail or "")
