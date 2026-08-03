@@ -41,7 +41,13 @@ from dev.golden_diff import FieldDiff, diff_golden  # noqa: E402
 # ─────────────────────────── normalização (identidade) ───────────────────────────
 
 _IDENTITY_KEYS = frozenset({"run_id", "pipeline_run_id", "workspace_id", "trace_id"})
-_TIMESTAMP_KEYS = frozenset({"timestamp", "created_at", "updated_at", "generated_at"})
+# `consolidation_date` é instante de PROCESSAMENTO (quando o E4 consolidou), não dado de
+# domínio — medido sujando o controle Py↔Py na 1ª execução real do gate (2026-08-03).
+# Entra por nome explícito, NÃO por sufixo `_date`: a allowlist tem que continuar fechada,
+# senão um `data_vencimento`/`data_adesao` (que carregam significado) seria mascarado.
+_TIMESTAMP_KEYS = frozenset(
+    {"timestamp", "created_at", "updated_at", "generated_at", "consolidation_date"}
+)
 _RUN_SENTINEL = "<RUN_ID>"
 _TS_SENTINEL = "<TS>"
 _PATH_SENTINEL = "<WS>"

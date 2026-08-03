@@ -320,7 +320,52 @@ alguém edita `services/pipeline-service-go/internal/stages/` — evento raro.
 job entra no nightly (não per-PR), com Tier-1 sobre fixture sintética de E3→E5 e
 `log()` explícito do que ficou fora de cobertura.
 
-## Estado da execução (2026-07-31)
+## 1ª execução real do Tier-1 (2026-08-03) — veredito: **exit 2**, e achou divergência real
+
+`make go-parity WS=<dogfood> RUNS=2` rodou ponta a ponta (4 runs, 0 escalação LLM nos
+quatro — a pré-condição 2 se confirmou no campo). Veredito **exit 2 = controle Py↔Py
+sujo**, portanto nenhuma conclusão Go↔Py é válida ainda. O guard funcionou como
+projetado. Três achados:
+
+### A. Controle sujo — duas causas distintas
+
+| Causa | Natureza | Estado |
+|---|---|---|
+| `categorize_transactions/{despesas,receitas}` → `consolidation_date` diverge entre runs | **Normalização incompleta.** É instante de processamento, não dado de domínio | ✅ corrigido — entrou em `_TIMESTAMP_KEYS` por **nome explícito** (não por sufixo `_date`, que mascararia `data_vencimento`/`data_adesao`) |
+| `analyze_finances/analise_financeira` → `if_monte_carlo.caminho_p10[*]` diverge entre runs | **Não-determinismo de domínio**, não de normalização | ⛔ **bloqueia o byte-exact**. `if_projector.py:306` tem `seed: int \| None = None` e a 360 faz `np.random.default_rng(config.seed)`; **nenhum call-site seta seed** → 10.000 simulações com entropia do SO a cada run. Medido: `caminho_p10[22]` = R$ 11.037.269,90 vs R$ 10.961.276,98 (**0,7%**) com input idêntico |
+
+O segundo item **não é problema do Go** — é do produto: o cone P10/P50/P90 da projeção de
+IF não é reproduzível entre runs. Ver §Débito abaixo.
+
+### B. Divergência real de executor (o gate se justificou)
+
+O braço Go produziu **243** artefatos contra **242** do Python. O extra é
+`('reconcile_transactions', 'caixa_extratoconta_BRL_202606_202606')`.
+
+Hipótese de **efeito de ordem** (o run Go era o 3º, e o E3 lê artefato pelo mais recente
+entre runs) foi **refutada por experimento**: um 5º run Python, na posição ordinal 5,
+voltou a dar 242 sem o artefato.
+
+| Ordinal | Executor | Artefatos | E3 `caixa` |
+|---|---|---|---|
+| 1, 2, **5** | Python InProcess | 242 | **0** |
+| 3, 4 | shell Go | 243 | **1** |
+
+**2/2 no Go, 0/3 no Python** — a diferença acompanha o executor, é reproduzível, e o E2 de
+entrada é idêntico nos quatro runs (`659bca9ee3ed_caixa_extratoconta_202605_202606`).
+Nota: os runs **full** históricos (Python, `skip_llm=False`) **têm** o artefato — então sob
+`DETERMINISTIC_ORDER` o InProcess deixa de produzi-lo e o Go continua. **Não está
+explicado, e enquanto não estiver o flip não pode acontecer** — pode ser o Go escrevendo a
+mais, ou o InProcess deixando de reconciliar uma conta.
+
+### C. Defeito metodológico do harness — corrigido
+
+Braços sequenciais (`py,py,go,go`) tornam "ser Go" e "ser o 3º run" perfeitamente
+correlacionados; o 3×3 do §7 tem o mesmo vício. Agora `execute_interleaved` intercala e
+**alterna quem vai primeiro em cada par**, então posição ordinal deixa de ser variável
+confundida. Sem isso, todo achado exigiria o experimento manual acima.
+
+## Estado da execução (2026-07-31, atualizado 2026-08-03)
 
 | Fatia | Estado |
 |---|---|
@@ -334,6 +379,12 @@ job entra no nightly (não per-PR), com Tier-1 sobre fixture sintética de E3→
 | Fase B — gate humano | ⏸ owner |
 | Fase C — flip + soak | ⏸ owner |
 
-**Nada mais é executável sem o owner.** O caminho restante é: rodar o Tier-1
-(`make go-parity WS=<uuid>`, exige inbox vazio) → Tier-2 (custa LLM) → gate humano
-→ flip → soak com o ledger do RUNBOOK §11.3.
+**Bloqueios do flip após a 1ª execução real (2026-08-03):**
+
+1. ⛔ **Seed do Monte Carlo de IF** — sem isso o Tier-1 nunca fecha byte-exact, porque o
+   controle Py↔Py suja sozinho. É débito de produto (reprodutibilidade do relatório), não
+   do Go; o gate só o expôs.
+2. ⛔ **Explicar a divergência `caixa`** (§B). Enquanto não se souber se é o Go escrevendo
+   a mais ou o InProcess deixando de reconciliar, flipar é apostar sem saber para que lado.
+3. Depois disso: re-rodar Tier-1 (agora intercalado) → Tier-2 (custa LLM) → gate humano →
+   flip → soak com o ledger do RUNBOOK §11.3.
