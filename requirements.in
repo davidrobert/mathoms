@@ -29,4 +29,7 @@ anthropic>=0.30
 jsonschema>=4.20
 
 # Monte Carlo simulations (IF projector — N3)
-numpy>=1.26
+# Teto de major por ADR-360: a política do numpy garante o bit stream do
+# ``Generator`` só no mesmo build/ambiente e permite quebrá-lo em release X.Y —
+# bump é evento de rebaseline de snapshot, não upgrade silencioso do Dependabot.
+numpy>=1.26,<3

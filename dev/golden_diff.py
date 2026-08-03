@@ -43,6 +43,10 @@ _NON_MONETARY_EXACT = frozenset(
         "taxa_poupanca_recorrente",
         "taxa_poupanca_total",
         "meses_alvo",  # alvo da reserva em meses (A28.l1), não R$
+        # ADR-360 — proveniência do Monte Carlo. Monetário-por-default trataria
+        # `seed_usado=360` como R$ 3,60 e reportaria delta_cents fantasma.
+        "seed_usado",
+        "n_simulacoes_usado",
     }
 )
 _NON_MONETARY_SUFFIXES = (

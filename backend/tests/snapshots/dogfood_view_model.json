@@ -409,11 +409,14 @@
     "caminho_p90": [],
     "exibir_cone": false,
     "idade_meta_usada": 1040,
+    "mc_version": "2.0",
     "motivo_sem_cone": "acumulação inicial — foco em consistência de aporte",
+    "n_simulacoes_usado": 50000,
     "p10_ano_if": null,
     "p50_ano_if": null,
     "p90_ano_if": null,
-    "prob_if_ate_idade_meta": "<volatile>",
+    "prob_if_ate_idade_meta": "0.577400",
+    "seed_usado": 360,
     "sigma_usado": "0.110000"
   },
   "investimentos": {

@@ -8,6 +8,9 @@ from decimal import Decimal
 import pytest
 
 from pipeline.domain.services.if_monte_carlo import (
+    _MC_N_SIMULACOES,
+    _MC_SEED,
+    _MC_VERSION,
     IFMonteCarloConfig,
     MonteCarloIFResult,
     run_monte_carlo_if,
@@ -183,3 +186,85 @@ def test_pmt_alto_pv_baixo_levanta_prob_de_zero():
         r_com.prob_if_ate_idade_meta > 0.25
     ), f"PMT alto deveria levantar prob > 25%, got {r_com.prob_if_ate_idade_meta:.2%}"
     assert r_com.prob_if_ate_idade_meta > r_sem.prob_if_ate_idade_meta + 0.20
+
+
+# =============================================================================
+# ADR-360 — reprodutibilidade do cone
+# =============================================================================
+
+
+def _default_config(pv: float = 800_000, fv: float = 3_000_000, pmt: float = 8_000):
+    """Config SEM seed explícito — exercita o default de produção."""
+    return IFMonteCarloConfig(
+        patrimonio_investivel=Decimal(str(pv)),
+        meta_if=Decimal(str(fv)),
+        aporte_mensal=Decimal(str(pmt)),
+    )
+
+
+def _cone(cfg) -> MonteCarloIFResult:
+    return run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=40)
+
+
+def test_config_default_produz_cone_reprodutivel():
+    """ADR-360: config de produção (sem seed) → duas chamadas idênticas."""
+    # Topologia do bug original: era o call-site que não passava seed.
+    r1, r2 = _cone(_default_config()), _cone(_default_config())
+    assert r1 == r2, "cone com config default divergiu entre chamadas"
+    assert r1.caminho_p10 and r1.caminho_p50 and r1.caminho_p90
+
+
+def test_seed_none_explicito_e_rejeitado_no_boundary():
+    """Guard de fail-fast: ``seed=None`` deixa de ser construível (ADR-360)."""
+    with pytest.raises(ValueError, match="seed"):
+        IFMonteCarloConfig(
+            patrimonio_investivel=Decimal("800000"),
+            meta_if=Decimal("3000000"),
+            seed=None,  # type: ignore[arg-type]
+        )
+
+
+def test_proveniencia_no_resultado_com_e_sem_cone():
+    """``mc_version``/``seed_usado``/``n_simulacoes_usado`` nos dois caminhos."""
+    com_cone = _cone(_default_config())
+    sem_cone = _cone(_default_config(pv=100_000, fv=5_000_000, pmt=0.0))
+    assert sem_cone.exibir_cone is False
+    for r in (com_cone, sem_cone):
+        assert r.mc_version == _MC_VERSION
+        assert r.seed_usado == _MC_SEED
+        assert r.n_simulacoes_usado == _MC_N_SIMULACOES
+
+
+def _assert_cone_nao_decresce(base: MonteCarloIFResult, maior: MonteCarloIFResult) -> None:
+    for nome in ("caminho_p10", "caminho_p50", "caminho_p90"):
+        antes, depois = getattr(base, nome), getattr(maior, nome)
+        assert len(antes) == len(depois)
+        for (ano, v_antes), (_, v_depois) in zip(antes, depois):
+            assert v_depois >= v_antes, f"{nome} caiu em {ano}: {v_antes} → {v_depois}"
+    assert maior.prob_if_ate_idade_meta >= base.prob_if_ate_idade_meta
+
+
+@pytest.mark.parametrize("delta_pv,delta_pmt", [(1_000.0, 0.0), (0.0, 100.0)])
+def test_cone_e_monotonico_em_patrimonio_e_aporte(delta_pv: float, delta_pmt: float):
+    """Mais patrimônio ou mais aporte nunca reporta cone pior (ADR-360)."""
+    # Propriedade que o seed derivado do input quebraria: re-semear a cada centavo
+    # faz o cenário adverso oscilar ~2% e o cliente lê "aportei mais e piorou".
+    pv, pmt, n = 800_000.0, 8_000.0, 10_000
+    base = _cone(_config(pv=pv, fv=3_000_000, seed=_MC_SEED, n=n, pmt=pmt))
+    maior = _cone(_config(pv=pv + delta_pv, fv=3_000_000, seed=_MC_SEED, n=n, pmt=pmt + delta_pmt))
+    _assert_cone_nao_decresce(base, maior)
+
+
+def test_grandezas_publicadas_sao_robustas_a_troca_de_seed():
+    """Anti "seed shopping": o publicado cabe na tolerância sobre seeds alternativos."""
+    # Falha aqui = o seed escolhido é sorte. A resposta é subir n, não trocar seed.
+    rs = [
+        _cone(_config(pv=800_000, fv=3_000_000, seed=s, n=_MC_N_SIMULACOES, pmt=8_000.0))
+        for s in range(_MC_SEED, _MC_SEED + 10)
+    ]
+    serie = [r.caminho_p50[22][1] for r in rs]
+    dispersao = (max(serie) - min(serie)) / (sum(serie) / len(serie))
+    assert dispersao <= 0.02, f"dispersão da série do cone {dispersao:.2%} > 2%"
+    probs = [r.prob_if_ate_idade_meta for r in rs]
+    assert max(probs) - min(probs) <= 0.006, f"prob varia {max(probs) - min(probs):.4f} > 0,6 pp"
+    assert len({r.p50_ano_if for r in rs}) == 1, "ano de IF do P50 muda com o seed"

@@ -380,6 +380,12 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
             "caminho_p10": [list(p) for p in mc.caminho_p10],
             "caminho_p50": [list(p) for p in mc.caminho_p50],
             "caminho_p90": [list(p) for p in mc.caminho_p90],
+            # ADR-360 — proveniência no FIM do bloco de propósito: o distiller do
+            # parecer renderiza `$.if_monte_carlo` raw com cap de 300 chars, então
+            # metadado de auditoria não desloca dado de domínio do contexto do LLM.
+            "mc_version": mc.mc_version,
+            "seed_usado": mc.seed_usado,
+            "n_simulacoes_usado": mc.n_simulacoes_usado,
         }
 
     return output

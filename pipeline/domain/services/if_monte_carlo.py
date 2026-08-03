@@ -21,6 +21,15 @@ _SIGMA_POR_PERFIL: dict[str, float] = {
 _GATE_IF_PCT_MIN = 0.15  # < 15% → não exibir cone
 _GATE_P50_MAX = 35  # P50 > 35 anos → não exibir cone
 
+# ADR-360 — seed é constante de MODELO, não parâmetro do cliente: mantém o cone
+# reprodutível e monótono em patrimônio/aporte (derivar do input re-sortearia a
+# cada centavo, e mais aporte poderia reportar cone pior). Valor escolhido ex
+# ante — o próprio número da ADR, precedente ADR-281 — porque escolher seed
+# olhando o resultado é fabricar número. Nunca configurável por workspace.
+_MC_SEED = 360
+_MC_N_SIMULACOES = 50_000
+_MC_VERSION = "2.0"
+
 
 @dataclass(frozen=True)
 class IFMonteCarloConfig:
@@ -30,11 +39,21 @@ class IFMonteCarloConfig:
     meta_if: Decimal
     sigma_anual: float = 0.11
     retorno_real_esperado: float = 0.05
-    n_simulacoes: int = 10_000
+    n_simulacoes: int = _MC_N_SIMULACOES
     horizonte_anos: int = 40
-    seed: int | None = None
+    seed: int = _MC_SEED
     ano_base: int = 2026
     aporte_mensal: Decimal = Decimal("0")
+
+    def __post_init__(self) -> None:
+        # ADR-360: `seed=None` semeia da entropia do SO e o payload continua
+        # "válido" — bug invisível em review. O guard torna a classe de bug
+        # inconstruível, que é mais forte que um teste sobre a função.
+        if self.seed is None:
+            raise ValueError(
+                "IFMonteCarloConfig.seed não pode ser None (ADR-360 — cone "
+                f"reprodutível): esperado int, got {self.seed!r}"
+            )
 
 
 @dataclass(frozen=True)
@@ -56,6 +75,12 @@ class MonteCarloIFResult:
     caminho_p10: tuple[tuple[int, float], ...] = field(default_factory=tuple)
     caminho_p50: tuple[tuple[int, float], ...] = field(default_factory=tuple)
     caminho_p90: tuple[tuple[int, float], ...] = field(default_factory=tuple)
+    # ADR-360 — proveniência: o artefato tem de bastar para reproduzir o cone.
+    # `mc_version` é declarado (bump exige ADR sucessora, padrão score_version /
+    # ADR-217); os outros dois são observados do config que rodou.
+    mc_version: str = _MC_VERSION
+    seed_usado: int = _MC_SEED
+    n_simulacoes_usado: int = _MC_N_SIMULACOES
 
 
 def _lognormal_params(r: float, sigma: float) -> tuple[float, float]:
@@ -88,7 +113,9 @@ def _simular_caminhos(
 ) -> tuple[list[int], int, np.ndarray, np.ndarray, np.ndarray]:
     rng = np.random.default_rng(config.seed)
     n, h = config.n_simulacoes, config.horizonte_anos
-    log_retornos = rng.normal(mu_log, sigma_log, (n, h))
+    # ADR-360: z padrão escalado depois — location-scale explícita, então revisar
+    # a premissa muda a largura do cone, não o sorteio (não depende do Generator).
+    log_retornos = mu_log + sigma_log * rng.standard_normal((n, h))
     pmt_anual = float(config.aporte_mensal) * 12.0
     patrimonios = _compute_patrimonios(pv, pmt_anual, log_retornos)
     atingiu = patrimonios >= fv
@@ -148,6 +175,11 @@ def _anos_if(
     return ano_base + p10, ano_base + p50, ano_base + p90
 
 
+def _proveniencia(config: IFMonteCarloConfig) -> dict:
+    """ADR-360 — campos observados do config que rodou (não declarados)."""
+    return {"seed_usado": config.seed, "n_simulacoes_usado": config.n_simulacoes}
+
+
 def _resultado_sem_cone(
     motivo: str,
     idade_meta: int,
@@ -163,6 +195,7 @@ def _resultado_sem_cone(
         exibir_cone=False,
         aporte_mensal_usado=config.aporte_mensal,
         motivo_sem_cone=motivo,
+        **_proveniencia(config),
     )
 
 
@@ -183,12 +216,19 @@ def _mc_core(
     return percentis, exibir, motivo, prob, patrimonios
 
 
+def _caminhos_kwargs(patrimonios: np.ndarray, ano_base: int, exibir: bool) -> dict:
+    """Séries do cone como kwargs; vazio quando o gate desliga a exibição."""
+    if not exibir:
+        return {}
+    cp = _calcular_caminhos_percentis(patrimonios, ano_base)
+    return {"caminho_p10": cp[0], "caminho_p50": cp[1], "caminho_p90": cp[2]}
+
+
 def _build_mc_result(
     core: tuple, config: IFMonteCarloConfig, ano_base: int, idade_meta_if: int
 ) -> MonteCarloIFResult:
     percentis, exibir, motivo, prob, patrimonios = core
     p10, p50, p90 = _anos_if(percentis, ano_base, exibir)
-    cp = _calcular_caminhos_percentis(patrimonios, ano_base) if exibir else ((), (), ())
     return MonteCarloIFResult(
         p10_ano_if=p10,
         p50_ano_if=p50,
@@ -199,9 +239,8 @@ def _build_mc_result(
         exibir_cone=exibir,
         aporte_mensal_usado=config.aporte_mensal,
         motivo_sem_cone=motivo,
-        caminho_p10=cp[0],
-        caminho_p50=cp[1],
-        caminho_p90=cp[2],
+        **_caminhos_kwargs(patrimonios, ano_base, exibir),
+        **_proveniencia(config),
     )
 
 
@@ -211,7 +250,9 @@ def run_monte_carlo_if(
     idade_titular_atual: int,
     idade_meta_if: int = 65,
 ) -> MonteCarloIFResult:
-    """10 000 simulações log-normais vetorizadas → P10/P50/P90 + gate de cone."""
+    """50 000 simulações log-normais → P10/P50/P90 + gate de cone; reprodutível."""
+    # ADR-360: seed é constante de modelo, então o cone é função pura dos inputs
+    # de domínio e monótono em patrimônio/aporte.
     pv, fv = float(config.patrimonio_investivel), float(config.meta_if)
     if fv <= 0 or pv < 0:
         return _resultado_sem_cone("meta_if inválida ou patrimônio negativo", idade_meta_if, config)
