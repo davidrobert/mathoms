@@ -22,7 +22,7 @@ tags:
 
 # A40.l18 — `criticidade-de-stage`
 
-> Onda 1 do §Frente 4 de [[PLAN-report-trust]]. Fecha a **classe**, não o caso.
+> Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fecha a **classe**, não o caso.
 > `depends_on` [[A40.l21]] por **ordem reader-first**: os leitores toleram
 > `partial_failure` antes de o writer o emitir.
 

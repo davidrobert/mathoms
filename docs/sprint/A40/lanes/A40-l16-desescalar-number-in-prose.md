@@ -22,7 +22,7 @@ tags:
 
 # A40.l16 — `desescalar-number-in-prose`
 
-> Onda 0 do §Frente 4 de [[PLAN-report-trust]]. **Se uma só coisa shipar, é
+> Onda 0 da A40 (§Frente 4 de [[PLAN-report-trust]]). **Se uma só coisa shipar, é
 > esta:** destrava o relatório *e* devolve 1–4 conselhos/run à cadeia
 > `Suggestion → Inbox /acao → Task/Decision` ([[ADR-136]]).
 
