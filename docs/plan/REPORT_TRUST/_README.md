@@ -88,16 +88,19 @@ stage devolveu `success: False` → `_finalize_pipeline_outcome` pulou
 `_run_post_processing` → zero linha em `reports`, e também zero lineage edge
 ([[ADR-279]]) e zero sync de status E2.
 
-**Não é caso isolado.** Sob o prompt vigente 2.2.0 (n=8 runs), **7 apagaram
-silenciosamente 1–4 conselhos** (16 itens) cuja citação estava verificada
+**Não é caso isolado.** Sob o prompt vigente 2.2.0 (n=8 runs), **6 apagaram
+silenciosamente 1–4 conselhos** (15 itens) cuja citação estava verificada
 (`evidencia_failed: 0` em todos os 19 runs da janela do contador), e **1 destruiu
-o entregável** — duas perdas de natureza distinta, que respondem a KRs diferentes
-(KR-1 vs. KR-0). E a perda propaga a jusante: item dropado nunca vira `Suggestion`
+o entregável** — 7 dos 8 afetados, em duas perdas de natureza distinta, que
+respondem a KRs diferentes (KR-1 vs. KR-0). Os totais **7 runs / 16 itens** são da
+janela inteira do contador (n=19), não de 2.2.0 — o 7º run que apaga é de
+2026-07-20, sob prompt 2.1.0 ([[ADR-304]] §Emenda, tabela de agregação).
+E a perda propaga a jusante: item dropado nunca vira `Suggestion`
 → nunca chega ao Inbox de `/acao` → nunca vira Task/Decision ([[ADR-136]]). Como o
 defeito é estocástico, o mesmo risco **pisca entre relatórios** sem explicação.
 
 **Cuidado ao instrumentar o KR-1:** `riscos_count = 12 − items_dropped` **não é
-identidade** — quebra em 2 dos 7 runs completos afetados, porque `items_dropped`
+identidade** — quebra em 2 dos 7 runs que apagaram (janela inteira), porque `items_dropped`
 conta itens de qualquer tipo (riscos *e* sugestões) e 12 é o **cap** da
 [[ADR-202]] §D5, não a emissão do gerador. "Emitidos" tem de vir de
 `publicados + items_dropped + riscos_truncados`. Tabela completa e derivação:

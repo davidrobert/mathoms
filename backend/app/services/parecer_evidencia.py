@@ -70,8 +70,16 @@ _REASON_TO_LAYER = {
 class MoneyToken:
     """Token monetário extraído da prosa — sempre em cents int (ADR-090)."""
 
+    # RESÍDUO SEM CONSUMIDOR (era `value_mismatch`, ADR-296): nenhum call-site lê `cents`
+    # nem `half_step_cents` — `verify_evidencia` só usa `len(money_tokens)`. Não existe
+    # comparador prosa ↔ `ancoras[].valor_renderizado` em lugar nenhum do repo; é por isso
+    # que `number_in_prose` detecta PRESENÇA e não divergência, e é essa ausência que
+    # sustenta a reversão da ADR-304 §Emenda 2026-08-03. Mantido (não deletado) porque a
+    # lane do comparador real precisa dos dois campos.
     cents: int
-    half_step_cents: int  # 0 = match exato; >0 = intervalo [cents-h, cents+h)
+    # Semântica PROJETADA (nunca exercida): 0 = valor exato na prosa; >0 = a prosa
+    # arredondou ("3 milhões"), então o match seria o intervalo [cents-h, cents+h).
+    half_step_cents: int
 
 
 @dataclass(frozen=True)

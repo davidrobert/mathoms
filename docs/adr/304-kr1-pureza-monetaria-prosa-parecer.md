@@ -22,6 +22,7 @@ tags:
   - status/decidido
   - area/llm
   - phase/a27
+size_lines: 229
 ---
 
 # ADR-304 — KR1 do parecer: pureza monetária da prosa (fix de prompt + doutrina de enforcement)
@@ -33,12 +34,20 @@ citação), [[ADR-081]] (regex→LLM→needs_review).
 > **Emenda 2026-08-03 (incidente P0 do enforcement, [[A40.l16]]):** a §2
 > ("`==0` estrito é enforcement, não prompt") e a §3 (timing) estão
 > **revogadas**. A condição que a §3 impôs — *"validar contra tráfego real"* —
-> foi cumprida por acidente e **reprovou**: sob o prompt vigente 2.2.0, 7 runs
-> apagaram 1–4 conselhos verificados (16 itens) e 1 derrubou o entregável
-> inteiro. A §1 (fix de prompt, persona 1.1.0 · yaml 1.6 · detector
+> foi cumprida por acidente e **reprovou**: sob o prompt vigente 2.2.0, 6 runs
+> apagaram 1–4 conselhos verificados (15 itens) e 1 derrubou o entregável inteiro
+> — 7 dos 8 runs da janela. A §1 (fix de prompt, persona 1.1.0 · yaml 1.6 · detector
 > `_REAIS_RE`) **permanece vigente e não é tocada**. A política operativa de
 > `number_in_prose` volta a ser a da [[ADR-296]] §Re-eval holdout: **budget
 > monitorado, não invariante `==0`**. Ver §Emenda 2026-08-03 ao final.
+
+> **Por que passa de 150 linhas (CLAUDE.md §ADRs) — sem split.** A emenda de
+> 2026-08-03 dobra o tamanho porque carrega a **tabela run-a-run que reprova a §3**.
+> Split é o caminho errado aqui: a §2/§3 revogadas e a evidência que as revoga só
+> significam algo lado a lado — separá-las recria exatamente o defeito que
+> originou o incidente, uma doutrina de enforcement legível sem o tráfego que a
+> reprova. Reavaliar quando a evidência migrar para dashboard consultável (então a
+> tabela sai e a nota volta para ~150).
 
 ## Contexto
 
@@ -139,21 +148,48 @@ persistido (19 runs do workspace de dogfood, 2026-07-10 → 07-31):
 | 2026-07-20 | 2.1.0 | 1 | 1 | 9 |
 | 07-18 … 07-10 (10 runs) | 2.1.0 | 0 | 0 | 9–10 |
 
-**Duas perdas de natureza distinta, não uma:** 7 runs **apagaram** 1–4 conselhos
-(16 itens no total); 1 run **destruiu o entregável** (escalou para `needs_review`,
+**Duas perdas de natureza distinta, não uma:** runs que **apagaram** 1–4 conselhos
+vs. 1 run que **destruiu o entregável** (escalou para `needs_review`,
 `items_dropped: 0`). São KRs diferentes — não somar.
 
-**A taxa depende da janela, e a janela que importa é a do gerador vigente:**
-87,5% (7/8) sob prompt **2.2.0**; 9,1% (1/11) sob **2.1.0**; 42,1% (8/19) sobre a
-janela inteira. Contra os 4,2% projetados no holdout, o que reprova é o 87,5%.
+**Cada par de números pertence a uma janela; trocá-las é o erro fácil.** Agregação
+das mesmas 19 linhas acima, por `prompt_version`:
+
+| janela | runs | com `number_in_prose > 0` | taxa | runs que apagaram | itens apagados |
+| --- | --- | --- | --- | --- | --- |
+| prompt **2.2.0** (gerador vigente) | 8 | 7 | **87,5%** | **6** | **15** |
+| prompt 2.1.0 | 11 | 1 | 9,1% | 1 | 1 |
+| janela inteira do contador | 19 | 8 | 42,1% | **7** | **16** |
+
+Contra os 4,2% projetados no holdout, o que reprova é o **87,5%** — a taxa do
+gerador vigente. E **7 runs / 16 itens só valem para a janela inteira**: o 7º run
+que apaga e o 16º item são de 2026-07-20, sob **2.1.0**. Sob 2.2.0 são **6 / 15**
+(o 7º run afetado de 2.2.0 é o de 07-31, que escalou em vez de apagar). Versão
+anterior desta emenda atribuía 7/16 a 2.2.0 — errado.
+
+<!-- Derivação (só contadores, zero PII):
+  SELECT json_extract(output_summary,'$.evidencia_verification.prompt_version') AS prompt,
+         COUNT(*), SUM(nip>0), SUM(dropped>0), SUM(dropped)
+  FROM pipeline_stage_logs WHERE stage='review_finances_holistic'
+    AND json_extract(output_summary,'$.evidencia_verification.failures_by_layer.number_in_prose')
+        IS NOT NULL
+  GROUP BY prompt;   -- nip/dropped = os dois json_extract correspondentes -->
+
+**Cuidado ao reler este contador (o instrumento não cobre todo run).** A chave
+`failures_by_layer.number_in_prose` só existe quando a verificação de evidência
+**roda** — 2 dos 7 caminhos de retorno de `generate_parecer` (sucesso e
+`needs_review` por evidência). Cache hit, LLM indisponível, falha de chamada, red
+line e sigilo §13 não produzem `evidencia_summary`, logo não produzem a chave.
+"Chave ausente" lê-se **não medido**, nunca `0`; as medianas acima são sobre os 19
+runs que a emitiram (todos com `cache_hit: 0`). Detalhe em [[A40.l16]].
 
 Em todos os 19, `evidencia_failed: 0`. Isso prova que **toda âncora presente
 resolveu certo** — não que todo número tenha âncora atrás: item com `ancoras: []`
 não gera entry (fail-open, **RV2-10**).
 
 **A identidade `riscos_count = 12 − items_dropped` é falsa** (afirmada em versão
-anterior desta emenda como "exato"): quebra em 2 dos 7 runs completos afetados —
-em 2026-07-22 porque `items_dropped` conta itens de **qualquer** tipo (riscos *e*
+anterior desta emenda como "exato"): quebra em 2 dos 7 runs que apagaram (janela
+inteira) — em 2026-07-22 porque `items_dropped` conta itens de **qualquer** tipo (riscos *e*
 sugestões), e em 2026-07-20 porque **12 não é constante do gerador**, é o cap ≤12
 da [[ADR-202]] §D5, atingido rotineiramente só sob 2.2.0. Consequência para o
 KR-1 da §Frente 4 de [[PLAN-report-trust]]: "emitidos" tem de vir de

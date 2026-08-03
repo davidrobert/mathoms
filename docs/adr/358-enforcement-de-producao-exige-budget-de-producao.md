@@ -32,7 +32,9 @@ tags:
 ## Contexto
 
 O enforcement de `number_in_prose` (PR #875, autorizado pela [[ADR-304]] §2)
-destruiu um run completo e apagou conselho verificado em 8 de 9 runs. A análise
+destruiu um run completo e apagou conselho verificado em 7 runs (16 itens).
+A taxa depende de `prompt_version` e a decomposição por janela vive na
+[[ADR-304]] §Evidência — não é repetida aqui de propósito. A análise
 da causa não achou um bug de implementação: achou **três defeitos de método**,
 todos reprodutíveis por qualquer futuro enforcement.
 
@@ -56,7 +58,8 @@ autorizou a doutrina estava inflado na fonte, e ninguém podia saber sem ler o
 detector.
 
 O custo composto: doutrina errada aplicada com raio de dano subestimado ~20×
-(4,2% projetado vs 89% real).
+(4,2% projetado no holdout vs 87,5% medido sob o prompt 2.2.0 — sob 2.1.0 a
+taxa era 9,1%; ver [[ADR-304]] §Evidência).
 
 ## Decisão
 
