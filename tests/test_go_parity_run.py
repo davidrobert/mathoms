@@ -17,19 +17,45 @@ _REPO = Path(__file__).resolve().parents[1]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
+import dev.go_parity_run as gpr  # noqa: E402
 from dev.go_parity_run import (  # noqa: E402
     _RUN_ID_RE,
+    PYTHON_ARM,
     GateError,
     RunRecord,
+    _assert_consumed,
     _db_path,
+    _execute_both_arms,
     _inbox_files,
     _llm_artifact_count,
+    _redis_endpoint,
     _ws_flags,
     assert_preconditions,
     render_verdict,
 )
 
 WS = "1b9f2cf5-0000-0000-0000-000000000000"
+
+# Convenção do repo: 6390 é porta fechada (nunca acerta o Redis de dev por acidente).
+CLOSED_PORT_URL = "redis://127.0.0.1:6390/0"
+
+# Referência capturada antes de qualquer monkeypatch — o autouse abaixo troca o
+# atributo do módulo, e o teste dedicado precisa da função real.
+_REAL_STACK_CHECK = gpr.assert_stack_up
+
+
+@pytest.fixture(autouse=True)
+def _stub_stack_check(monkeypatch: pytest.MonkeyPatch) -> None:
+    """O guard de stack abre socket real; neutralizar evita que a suíte dependa
+    do Redis de dev estar de pé. Ele tem teste dedicado abaixo."""
+    monkeypatch.setattr(gpr, "assert_stack_up", lambda: None)
+
+
+def test_stack_guard_fails_on_closed_port(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Sem este guard o dispatch enfileira e o gate pendura até o timeout de 1800s."""
+    monkeypatch.setenv("MATHOMS_REDIS_URL", CLOSED_PORT_URL)
+    with pytest.raises(GateError, match="Redis inacessível"):
+        _REAL_STACK_CHECK()
 
 
 @pytest.fixture
@@ -39,11 +65,15 @@ def db(tmp_path: Path) -> sqlite3.Connection:
     con = sqlite3.connect(path)
     con.executescript(
         """
-        CREATE TABLE pipeline_runs (id TEXT PRIMARY KEY, workspace_id TEXT, status TEXT);
+        CREATE TABLE pipeline_runs (
+            id TEXT PRIMARY KEY, workspace_id TEXT, status TEXT, started_at TEXT
+        );
         CREATE TABLE pipeline_artifacts (id TEXT PRIMARY KEY, pipeline_run_id TEXT, stage TEXT);
         """
     )
-    con.execute("INSERT INTO pipeline_runs VALUES ('r1', ?, 'completed')", (WS,))
+    con.execute(
+        "INSERT INTO pipeline_runs VALUES ('r1', ?, 'completed', '2026-08-01 00:00:00')", (WS,)
+    )
     con.commit()
     return con
 
@@ -94,6 +124,23 @@ def test_precondition_rejects_unknown_workspace(tmp_path: Path, db: sqlite3.Conn
         assert_preconditions("outro-uuid", tmp_path, db)
 
 
+@pytest.mark.parametrize("status", ["pending", "running"])
+def test_active_run_blocks_gate(status: str, tmp_path: Path, db: sqlite3.Connection) -> None:
+    """Um `pending` órfão de tentativa anterior faria o dispatch dar ConflictError no meio."""
+    (tmp_path / WS / "inbox").mkdir(parents=True)
+    db.execute("INSERT INTO pipeline_runs VALUES ('r2', ?, ?, '2026-08-02 00:00:00')", (WS, status))
+    db.commit()
+    with pytest.raises(GateError, match="run ativo"):
+        assert_preconditions(WS, tmp_path, db)
+
+
+def test_terminal_runs_do_not_block(tmp_path: Path, db: sqlite3.Connection) -> None:
+    (tmp_path / WS / "inbox").mkdir(parents=True)
+    db.execute("INSERT INTO pipeline_runs VALUES ('r2', ?, 'failed', '2026-08-02 00:00:00')", (WS,))
+    db.commit()
+    assert_preconditions(WS, tmp_path, db)
+
+
 def test_llm_artifact_count_catches_escalation(db: sqlite3.Connection) -> None:
     """A pré-condição 0-LLM é assert de run, não de fixture — precisa pegar o stage LLM."""
     assert _llm_artifact_count(db, "r1") == 0
@@ -133,6 +180,57 @@ def test_ws_flags_emitted_per_arm(tmp_path: Path) -> None:
     flags = _ws_flags(main, control, go)
     assert flags[::2] == ["--python-ws", "--control-ws", "--go-ws"]
     assert flags[1::2] == [str(main.ws_path), str(control.ws_path), str(go.ws_path)]
+
+
+def test_redis_endpoint_parses_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MATHOMS_REDIS_URL", "redis://127.0.0.1:6390/1")
+    assert _redis_endpoint() == ("127.0.0.1", 6390)
+
+
+def test_redis_endpoint_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("MATHOMS_REDIS_URL", raising=False)
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    assert _redis_endpoint() == ("localhost", 6379)
+
+
+def test_pending_past_grace_fails_fast() -> None:
+    """Worker no chão: sem isso o gate esperaria o timeout inteiro (1800s)."""
+    with pytest.raises(GateError, match="nenhum worker Celery"):
+        _assert_consumed("r1", "pending", gpr._PENDING_GRACE_S + 1)
+
+
+def test_pending_inside_grace_tolerated() -> None:
+    _assert_consumed("r1", "pending", 5.0)
+
+
+def test_running_never_trips_pending_guard() -> None:
+    """`running` é run demorado legítimo — só `pending` significa não-consumido."""
+    _assert_consumed("r1", "running", 99_999.0)
+
+
+def test_arms_restored_to_python_even_on_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Abortar no braço Go sem restaurar deixaria o dogfood executando via shell Go."""
+    switched: list[str] = []
+    monkeypatch.setattr(gpr, "switch_arm", lambda arm: switched.append(arm.name))
+    monkeypatch.setattr(
+        gpr, "execute_arm", lambda arm, *a: (_ for _ in ()).throw(GateError("boom"))
+    )
+    with pytest.raises(GateError, match="boom"):
+        _execute_both_arms("ws", None, None)
+    assert switched == [PYTHON_ARM.name]
+
+
+def test_restore_failure_does_not_mask_original(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
+    """Erro no restore não pode engolir a exceção que interessa diagnosticar."""
+    monkeypatch.setattr(
+        gpr, "switch_arm", lambda arm: (_ for _ in ()).throw(GateError("go-off caiu"))
+    )
+    monkeypatch.setattr(
+        gpr, "execute_arm", lambda arm, *a: (_ for _ in ()).throw(GateError("causa raiz"))
+    )
+    with pytest.raises(GateError, match="causa raiz"):
+        _execute_both_arms("ws", None, None)
+    assert "FALHA AO RESTAURAR" in capsys.readouterr().err
 
 
 def test_ws_flags_skip_go_on_control_pass(tmp_path: Path) -> None:
