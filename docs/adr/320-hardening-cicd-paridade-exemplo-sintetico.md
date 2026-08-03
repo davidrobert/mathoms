@@ -5,6 +5,7 @@ title: "Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintéti
 status: Decidido
 phase: A34
 date: "2026-07-08"
+amended_at: ["2026-08-03"]
 relates_to: ["[[PLAN-public-release]]", "[[A34.l13]]", "[[A34.l14]]", "[[A34.l15]]", "[[A34.l8]]"]
 supersedes: []
 superseded_by: []
@@ -16,6 +17,14 @@ tags:
 ---
 
 # ADR-320 — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético
+
+> **Emenda (2026-08-03) — o SHA-pin da decisão 2 tem um limite que não estava
+> escrito:** ele pina o *código* da action, não a **imagem base** que uma action
+> Docker builda em runtime. Uma das 4 actions pinadas (`CodelyTV/pr-size-labeler`)
+> fazia `FROM alpine:3.15` sem digest e derrubou um required check por
+> indisponibilidade do Docker Hub. A emenda no fim desta nota fecha a regra:
+> action de terceiro em job *required* não pode ser `runs.using: docker`. Leia a
+> decisão 2 como "fecha reescrita de tag", não como "fecha dependência externa".
 
 **Status:** Decidido (A34) · **Data:** 2026-07-08 · Uma das 8 ADRs do gate G0 de
 [[PLAN-public-release]]. Diferente das ADRs 313–318 (owner-gated), esta
@@ -151,3 +160,49 @@ registrada como não-decisão de escopo abaixo.
 - **Regras de negócio do relatório** (quais seções existem, o que cada card
   mostra) permanecem em `config/report_layout.yaml` + [[PLAN-report-premium]];
   esta ADR só exige que a regeneração as preserve integralmente.
+
+## Emenda 2026-08-03 — SHA-pin não cobre a base da imagem de Docker action
+
+**O que a decisão 2 não garantia.** O pin por SHA fecha o vetor de reescrita de
+tag (CVE-2025-30066). Não fecha o que a action **resolve em runtime**: uma action
+`runs.using: docker` tem `Dockerfile` próprio, e o `FROM` dela é uma dependência
+externa que o nosso pin não alcança. Das 4 actions pinadas em [[A34.l14]],
+`CodelyTV/pr-size-labeler` fazia `FROM alpine:3.15` — sem digest, resolvido no
+Docker Hub a cada run.
+
+**Incidente medido (2026-08-03, PR #1157, run 30816509828 attempt 1, job
+91695493843).** `dial tcp …:443: i/o timeout` ao resolver
+`docker.io/library/alpine:3.15`, com retry que também falhou. O job era
+`Title (Conventional Commits)`, *required check* do ruleset `main-protection`
+(id 15884038): merge de **todo** PR do repo ficou bloqueado por um label
+cosmético de tamanho.
+
+**O mecanismo, que é o que importa para não repetir.** O runner builda a imagem
+de uma Docker action num **passo sintetizado, antes dos passos declarados** no
+workflow. Steps observados: `2 Build CodelyTV/pr-size-labeler → failure`,
+`4 Validate PR title → skipped`. Como esse passo não é declarado, ele **não
+carrega `continue-on-error`** — logo `continue-on-error: true` no passo que
+referencia a action **não** protege o check. A correção que fecha o buraco é
+remover Docker do caminho, não tolerar a falha dele.
+
+**Regra (emenda à decisão 2).** Action de terceiro em job que seja *required
+status check* deve ser `node20`/`composite`. `runs.using: docker` é vedado nesse
+caminho — o build da imagem é dependência externa não-pinável de fora, no gate de
+merge. Fora de job required (nightly, security, jobs informativos), Docker action
+segue aceitável. Antes de adotar action de terceiro em job required, ler
+`runs.using` no `action.yml` dela no SHA pinado.
+
+**Por que não há gate automático.** O hook `docker-sha-pin` ([[ADR-249]])
+escaneia `Dockerfile`/`compose` via `git ls-files` e por construção **não**
+alcança o `Dockerfile` de action de terceiro — ele vive no repo dela e é buscado
+em runtime. Verificar `runs.using` exigiria rede no pre-commit (buscar o
+`action.yml` remoto), o que se recusa por princípio. A regra fica editorial,
+sustentada por esta ADR + comentário no cabeçalho do workflow.
+
+**Aplicado.** `76b32d3a` (#1161) removeu `CodelyTV/pr-size-labeler` e reimplementou
+o size-label como script `gh` inline no próprio job, com thresholds e ignore-list
+em paridade; `continue-on-error: true` entrou nos dois passos de label como defesa
+em profundidade (label cosmética nunca gateia merge). As 3 actions restantes de
+[[A34.l14]] são `node20` — nenhuma outra Docker action está em caminho de merge.
+Registro operacional da sprint em [[MOC-sprint-a40]] §Infra de CI tocada durante
+a sprint.
