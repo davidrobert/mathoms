@@ -19,7 +19,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### PLAN-go-shell — Go shell (Caminho 1 da ADR-150) — port do pipeline-service para Go + Python via subprocess
 
 - Status: `in_progress` · Sprint atual: —
-- Sprints envolvidas: A41
+- Sprints envolvidas: A40
 - Lanes: 0 done · 0 in_progress · 1 open · 0 blocked
 - ADRs canônicas: [[ADR-150]], [[ADR-303]], [[ADR-112]], [[ADR-113]]
 

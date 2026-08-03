@@ -836,6 +836,7 @@
 | A40.l21 | lane | open | A40 | Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha | `sprint/A40/lanes/A40-l21-leitores-tolerantes-partial-failure.md` |
 | A40.l22 | lane | open | A40 | Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF | `sprint/A40/lanes/A40-l22-superficie-de-degradacao.md` |
 | A40.l23 | lane | open | A40 | Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível | `sprint/A40/lanes/A40-l23-gate-ref-adr-em-prosa.md` |
+| A40.l24 | lane | open | A40 | Asserção "0 LLM" do gate F2 mede a camada errada — passa para o boundary do SDK | `sprint/A40/lanes/A40-l24-gate-0-llm-no-boundary-do-sdk.md` |
 | A40.l3 | lane | shipped | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | planned | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
@@ -843,7 +844,6 @@
 | A40.l7 | lane | planned | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | open | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
-| A41.l1 | lane | planned | A41 | Asserção "0 LLM" do gate F2 mede a camada errada — passa para o boundary do SDK | `sprint/A41/lanes/A41-l1-gate-0-llm-no-boundary-do-sdk.md` |
 | A41.l2 | lane | planned | A41 | Classificação do E0 passa pelo choke-point LLMService (budget, log, cache, sanitização) | `sprint/A41/lanes/A41-l2-e0-pelo-choke-point.md` |
 | A41.l3 | lane | planned | A41 | Caixa chama o SDK sem gate, sem choke-point e sem BYOK — decidir o reframe antes de dimensionar | `sprint/A41/lanes/A41-l3-caixa-reframe-antes-de-dimensionar.md` |
 | A41.l4 | lane | planned | A41 | Gate fecha a rota alternativa ao choke-point: import do SDK fora de pipeline/llm hard-falha | `sprint/A41/lanes/A41-l4-gate-rota-alternativa-ao-choke-point.md` |
