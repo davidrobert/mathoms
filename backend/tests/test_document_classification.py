@@ -395,6 +395,30 @@ class TestOtherWithoutPipelineGate:
         reason = result["classification_meta"]["needs_review_reason"]
         assert reason.startswith("doc_type_sem_pipeline:extratocripto")
 
+    def test_run_sem_llm_marca_skip_reason_retentavel(self, tmp_path):
+        # ADR-355: sem o motivo tipado, doc parkado por run determinístico fica
+        # indistinguível de doc genuinamente ambíguo — e some do corpus sem
+        # dizer que a causa é reversível no próximo run com LLM.
+        f = tmp_path / "generico.txt"
+        f.write_text("conteudo sem marcador de tipo reconhecivel\n" * 5, encoding="utf-8")
+
+        result = dc.classify_document(f, tmp_path, use_llm=False)
+
+        meta = result["classification_meta"]
+        assert meta["confidence"] < 0.8, "fixture precisa cair abaixo do threshold"
+        assert meta["llm_skipped_reason"] == "llm_disabled_for_run"
+        assert dc.is_retriable_skip_reason(meta) is True
+
+    def test_confianca_alta_sem_llm_nao_inventa_skip_reason(self, tmp_path, monkeypatch):
+        """Só marca o motivo quando o LLM SERIA consultado (confidence < 0,8)."""
+        _patch_classify_file(monkeypatch, doc_type="extratocontabrl", institution="itau")
+        f = tmp_path / "extrato.csv"
+        f.write_text("data,valor\n")
+
+        result = dc.classify_document(f, tmp_path, use_llm=False)
+
+        assert "llm_skipped_reason" not in result["classification_meta"]
+
     def test_binance_csv_content_escalates_with_typed_reason(self, tmp_path):
         # A39.l12 — via REAL (sem patch): colunas de exchange cripto não casam
         # nenhum TypeRule → best_type=None. Escala honesto COM razão tipada

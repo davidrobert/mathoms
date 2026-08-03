@@ -152,6 +152,22 @@ func TestEnvelopeShapeHasNoNulls(t *testing.T) {
 	}
 }
 
+func TestStageRequestCarregaSkipLLMResolvido(t *testing.T) {
+	// ADR-355: o default do run é `true` e o do request per-stage é `false`.
+	// Copiar o ponteiro cru entregaria LLM liberado sempre que o chamador
+	// omitisse SkipLlm — o bug ao contrário do que esta ADR fecha.
+	req := contracts.RunStartRequest{RunId: "r1", WorkspaceId: "w1", WorkspaceRoot: "/ws"}
+	if req.SkipLlm != nil {
+		t.Fatal("premissa do teste: request do run sem o campo")
+	}
+	for _, resolvido := range []bool{true, false} {
+		got := stageRequest(req, resolvido)
+		if got.SkipLlm == nil || *got.SkipLlm != resolvido {
+			t.Errorf("skipLLM=%v não chegou ao request per-stage: %v", resolvido, got.SkipLlm)
+		}
+	}
+}
+
 func TestRunnerErrorPropagates(t *testing.T) {
 	mr := miniredis.RunT(t)
 	t.Setenv("REDIS_URL", "redis://"+mr.Addr())

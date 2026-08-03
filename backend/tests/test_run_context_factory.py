@@ -88,6 +88,25 @@ def test_incremental_flags_and_config_dir_precedence(tmp_path, session_factory):
         hydrated.close()
 
 
+@pytest.mark.parametrize("skip_llm, esperado", [(True, False), (False, True)])
+def test_skip_llm_e_a_unica_negacao_da_politica(tmp_path, session_factory, skip_llm, esperado):
+    """ADR-355: wire fala `skip_llm` (negativo), ctx fala `llm_calls_allowed` (positivo);
+    a negação vive só aqui, senão cada executor vira um lugar para inverter a polaridade."""
+    hydrated = _build(tmp_path, session_factory, skip_llm=skip_llm)
+    try:
+        assert hydrated.ctx.llm_calls_allowed is esperado
+    finally:
+        hydrated.close()
+
+
+def test_politica_llm_default_preserva_comportamento(tmp_path, session_factory):
+    hydrated = _build(tmp_path, session_factory)
+    try:
+        assert hydrated.ctx.llm_calls_allowed is True
+    finally:
+        hydrated.close()
+
+
 def test_close_is_idempotent_and_never_raises(tmp_path, session_factory):
     hydrated = _build(tmp_path, session_factory)
     hydrated.close()

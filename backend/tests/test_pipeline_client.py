@@ -117,6 +117,29 @@ def test_http_execute_stage_translates_payload_and_response(tmp_path):
     assert body["incremental"] is False
 
 
+def _skip_llm_no_payload(tmp_path, *, llm_calls_allowed: bool) -> bool:
+    import json as _json
+
+    captured: dict = {}
+
+    def _record(req: httpx.Request) -> httpx.Response:
+        captured.update(_json.loads(req.content.decode()))
+        return httpx.Response(200, json={"stage": "E0", "success": True})
+
+    transport = httpx.MockTransport(_record)
+    client = HttpPipelineClient("http://ps.local", http=httpx.Client(transport=transport))
+    ctx = _ctx(tmp_path)
+    ctx.llm_calls_allowed = llm_calls_allowed
+    client.execute_stage(ctx, "E0", workspace_id="ws-1")
+    return captured["skip_llm"]
+
+
+@pytest.mark.parametrize("llm_calls_allowed, esperado", [(False, True), (True, False)])
+def test_http_payload_carries_run_llm_policy(tmp_path, llm_calls_allowed, esperado):
+    """ADR-355: sem o campo o serviço rehidrata o ctx com LLM liberado."""
+    assert _skip_llm_no_payload(tmp_path, llm_calls_allowed=llm_calls_allowed) is esperado
+
+
 def test_http_execute_stage_translates_failure(tmp_path):
     def handler(req: httpx.Request) -> httpx.Response:
         return httpx.Response(

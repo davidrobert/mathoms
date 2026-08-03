@@ -115,18 +115,20 @@ func TestTraceparentIsInjectedIntoChildEnv(t *testing.T) {
 
 func TestBuildArgsFlagMapping(t *testing.T) {
 	cfg, base := "/cfg", "run-base"
-	inc := true
+	inc, skipLLM := true, true
 	docs := []string{"inbox/a.pdf", "inbox/b.pdf"}
 	fallback := []string{"E2-extratos", "E2-faturas"}
 	r := contracts.StageExecuteRequest{
 		RunId: "r1", WorkspaceId: "w1", WorkspaceRoot: "/ws",
 		ConfigDir: &cfg, Incremental: &inc, IncrementalDocPaths: &docs,
+		SkipLlm:   &skipLLM,
 		BaseRunId: &base, BaseRunFallbackStages: &fallback,
 	}
 	got := strings.Join(BuildArgs("reconcile_transactions", r), " ")
 	for _, frag := range []string{
 		"--config-dir /cfg", "--incremental ",
 		"--incremental-doc inbox/a.pdf --incremental-doc inbox/b.pdf",
+		"--skip-llm", // ADR-355: sem a flag o E0 gasta LLM em run determinístico
 		"--base-run-id run-base", "--base-run-fallback-stages E2-extratos,E2-faturas",
 	} {
 		if !strings.Contains(got+" ", frag) {
@@ -137,7 +139,7 @@ func TestBuildArgsFlagMapping(t *testing.T) {
 
 func TestBuildArgsOmitsAbsentOptionals(t *testing.T) {
 	got := strings.Join(BuildArgs("analyze_finances", req()), " ")
-	for _, frag := range []string{"--config-dir", "--incremental", "--base-run"} {
+	for _, frag := range []string{"--config-dir", "--incremental", "--skip-llm", "--base-run"} {
 		if strings.Contains(got, frag) {
 			t.Errorf("flag %q não deveria aparecer (decisão 9): %s", frag, got)
 		}
