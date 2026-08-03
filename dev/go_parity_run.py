@@ -284,15 +284,37 @@ def _finish_capture(proc: subprocess.Popen, out: Path, run_id: str, *, grace_s: 
     return scoped
 
 
+def _llm_fallback_docs(run_id: str) -> list[str]:
+    """Documentos que pediram fallback LLM, lidos do PAYLOAD do E2."""
+    # Contar `stage LIKE '%llm%'` não vê chamada feita DENTRO de stage não-`is_llm`:
+    # `scripts/e2/banks/caixa.py` monta o SDK Anthropic direto de `os.environ` e não
+    # passa pelo client instrumentado (`llm_call_log` fica vazio). Medido 2026-08-03:
+    # o braço Go recebeu ANTHROPIC_API_KEY via `os.Environ()` do executor e fez
+    # chamada de visão paga; o braço Python não tinha a key e o MESMO extrato saiu
+    # com 1002 bytes em vez de 2986 — e o gate certificou os dois como "0 LLM".
+    # O flag no payload é o sinal honesto.
+    from dev.go_parity_gate import collect_run_artifacts
+
+    flagged = []
+    for (stage, key), payload in collect_run_artifacts(run_id).items():
+        if isinstance(payload, dict) and payload.get("requires_llm_fallback"):
+            flagged.append(f"{stage}/{key}")
+    return flagged
+
+
 def _assert_llm_free(con: sqlite3.Connection, run_id: str, arm: Arm, tier: str) -> int:
     """No Tier-1 escalação LLM invalida o run; no Tier-2 é esperada (só reporta)."""
     escalated = _llm_artifact_count(con, run_id)
-    if escalated and tier == "tier1":
+    fallback = _llm_fallback_docs(run_id)
+    if tier == "tier1" and (escalated or fallback):
         raise GateError(
-            f"run {run_id} do braço {arm.name} produziu {escalated} artefato(s) de stage "
-            f"LLM — a pré-condição 0-LLM quebrou; o Tier-1 flakaria (track §Pré-condições 2)"
+            f"run {run_id} do braço {arm.name} não é 0-LLM: {escalated} artefato(s) de stage "
+            f"LLM + {len(fallback)} doc(s) com requires_llm_fallback ({', '.join(fallback[:3])}"
+            f"{'…' if len(fallback) > 3 else ''}).\n"
+            f"   Se um braço tem ANTHROPIC_API_KEY no env e o outro não, o mesmo documento "
+            f"parseia diferente e a divergência vira falso bug de executor."
         )
-    return escalated
+    return escalated + len(fallback)
 
 
 def _one_run(arm: Arm, workspace: str, con: sqlite3.Connection, args, index: int) -> RunRecord:

@@ -150,6 +150,40 @@ def test_llm_artifact_count_catches_escalation(db: sqlite3.Connection) -> None:
     assert _llm_artifact_count(db, "r1") == 1
 
 
+def _stub_payloads(monkeypatch: pytest.MonkeyPatch, payloads: dict) -> None:
+    import dev.go_parity_gate as gate
+
+    monkeypatch.setattr(gate, "collect_run_artifacts", lambda _rid: payloads)
+
+
+def test_fallback_flag_detected_in_e2_payload(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Contar stage '%llm%' é cego: caixa.py monta o SDK direto e não vira stage LLM."""
+    _stub_payloads(
+        monkeypatch,
+        {
+            ("extract_statements", "x_caixa_extratoconta"): {"requires_llm_fallback": True},
+            ("extract_statements", "y_itau_extratoconta"): {"requires_llm_fallback": False},
+            ("analyze_finances", "analise"): {"total": 1},
+        },
+    )
+    assert gpr._llm_fallback_docs("r1") == ["extract_statements/x_caixa_extratoconta"]
+
+
+def test_tier1_rejects_run_with_fallback_even_sem_stage_llm(
+    monkeypatch: pytest.MonkeyPatch, db: sqlite3.Connection
+) -> None:
+    """O caso real de 2026-08-03: 0 artefato de stage LLM, mas houve chamada paga."""
+    _stub_payloads(monkeypatch, {("extract_statements", "k"): {"requires_llm_fallback": True}})
+    assert _llm_artifact_count(db, "r1") == 0
+    with pytest.raises(GateError, match="não é 0-LLM"):
+        gpr._assert_llm_free(db, "r1", PYTHON_ARM, "tier1")
+
+
+def test_tier2_tolerates_fallback(monkeypatch: pytest.MonkeyPatch, db: sqlite3.Connection) -> None:
+    _stub_payloads(monkeypatch, {("extract_statements", "k"): {"requires_llm_fallback": True}})
+    assert gpr._assert_llm_free(db, "r1", PYTHON_ARM, "tier2") == 1
+
+
 def test_run_id_regex_extracts_uuid() -> None:
     out = "✅ Run 7f3a1b2c-4d5e-6f70-8901-234567890abc disparado — todos, sem LLM, tier=premium."
     assert _RUN_ID_RE.search(out).group(1) == "7f3a1b2c-4d5e-6f70-8901-234567890abc"

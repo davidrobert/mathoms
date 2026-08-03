@@ -51,3 +51,12 @@ class AccountLockedError(AuthenticationError):
 
 class PreconditionFailedError(DomainError):
     """Pré-condição não atendida (feature flag off, etc). Router → 403."""
+
+
+class ServiceUnavailableError(DomainError):
+    # Distinta de erro de negócio: o input do usuário estava correto (ADR-359).
+    """Infra recusou o trabalho; retentar resolve. Router → 503 + Retry-After."""
+
+    def __init__(self, message: str, *, retry_after_s: int = 10, code: str | None = None) -> None:
+        super().__init__(message, code=code)
+        self.retry_after_s = int(retry_after_s)

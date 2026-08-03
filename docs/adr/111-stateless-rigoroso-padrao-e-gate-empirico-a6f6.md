@@ -5,9 +5,10 @@ title: "Stateless-rigoroso: padrão e gate empírico (A6f.6)"
 status: Decidido
 phase: "A6f.6"
 date: "2026-04-20"
-relates_to: []
+relates_to: ["[[ADR-359]]"]
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-03"]
 aliases: ["ADR 111"]
 tags:
   - area/backend
@@ -21,6 +22,13 @@ size_lines: 136
 # ADR-111 — Stateless-rigoroso: padrão e gate empírico (A6f.6)
 
 **Status:** Decidido (A6f.6) • **Data:** 2026-04-20
+
+> **Correção factual (2026-08-03, [[ADR-359]]):** a bullet "Background tasks: 0
+> ocorrências de `asyncio.create_task`, `BackgroundTasks` ou `threading.Thread`
+> em app code" abaixo era **falsa na data em que foi escrita** —
+> `pipeline_service._start_fallback_thread` existia desde 2026-04-14. A decisão e
+> a regra R19 permanecem íntegras; o que falhou foi o método de verificação. Ver
+> §Correção do método de verificação no fim desta nota.
 
 **Contexto:** Para que a stack escale horizontalmente (ADR-102 R19 — "Stateless-ready")
 precisa existir uma garantia — auditada e testada — de que nada no código da
@@ -152,3 +160,35 @@ decisões anteriores. A contribuição de A6f.6 passa a ser:
 .2 ✅, .3 ✅, .5a ✅, .6 ✅; .1 (pipeline-as-service) e .4 (DB schema
 review) seguem independentes. A6-human (§18 do plano) valida cutover DB
 end-to-end e destrava A6c (remoção do `MaterializationBridge`).
+
+## Correção do método de verificação — 2026-08-03
+
+`_start_fallback_thread` em `services/pipeline/pipeline_service.py` fazia
+`threading.Thread(target=..., daemon=True)` desde `6219acd5` (2026-04-14), **6
+dias antes** deste audit. A afirmação "0 ocorrências" e o eco dela em
+`STATELESS_AUDIT.md` §5 nasceram falsos e sobreviveram 3,5 meses. Não houve
+drift — houve ausência de verificação.
+
+**Lição transferível: afirmação de audit sem gate é dívida, não garantia.** Um
+documento que conta ocorrências à mão registra o momento em que foi escrito, não
+um invariante; e o próprio gate empírico desta ADR
+(`test_multi_worker_concurrency.py`) testa **comportamento** multi-worker, não a
+**ausência das primitivas** proibidas — nunca teve como pegar isto.
+
+**Emenda ao ponto 2 (gate automatizado):** o gate passa a ser um par.
+
+1. `test_multi_worker_concurrency.py` — comportamento (inalterado).
+2. `dev/check_stateless_primitives.py` — ausência das primitivas nomeadas como
+   proibidas no ponto 3, em `backend/app/**` + `pipeline/**`, hard-fail em
+   `pre-commit`, allowlist por `(path, símbolo)` com justificativa. Cada entrada
+   da allowlist deve estar mencionada em `STATELESS_AUDIT.md`, fechando o loop
+   doc↔código.
+
+Isto **não** contradiz a alternativa 2 rejeitada acima: ela descartou lint para
+**globais mutáveis**, onde singleton legítimo é indistinguível de dict acumulador
+por AST. Conjunto fechado de primitivas nomeadas é a metade tratável, com zero
+falso-positivo. §2 deste audit segue manual, pela razão original.
+
+Consequência editorial: §5 e §6 do `STATELESS_AUDIT.md` deixam de afirmar "zero
+resultados" e passam a apontar para o gate. O que substituiu a contagem à mão foi
+o mecanismo, não uma contagem nova.

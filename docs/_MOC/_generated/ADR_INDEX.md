@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-349 ADRs (ADR-001 a ADR-358) em [`docs/adr/`](../../adr/).
+350 ADRs (ADR-001 a ADR-359) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 304
+- **Decidido**: 305
 - **Proposto**: 41
 - **Roadmap**: 4
 
@@ -302,7 +302,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (14)
+### Decidido (15)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -318,6 +318,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-285]] — backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio · phase A33.l9
 - [[ADR-289]] — Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) · phase F1
 - [[ADR-290]] — Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion · phase A25
+- [[ADR-359]] — Dispatch assíncrono falha alto; quem cria estado pendente compensa · phase A40
 
 ### Proposto (4)
 

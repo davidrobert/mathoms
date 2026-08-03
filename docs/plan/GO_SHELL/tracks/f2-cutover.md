@@ -84,6 +84,16 @@ diferiu-o explicitamente para cá) e o runbook de cutover.
    stages `is_llm` já saem por `skip_llm`. Assert de telemetria: 0 artefato em
    `extract_with_llm` e 0 chamada de classificação.
 
+   > **Corrigido 2026-08-03 (ver §B.1).** A linha "E2 ✅ limpo" acima está **errada**, e o
+   > erro é de instrumento: "0 artefato em `extract_with_llm`" ≠ "0 chamada LLM no E2".
+   > Existe uma **terceira** rota de LLM no E2 — a extração por visão do parser da Caixa —
+   > que grava artefato normal de `extract_statements` e portanto é invisível a essa
+   > contagem. Ela roda sempre que `ANTHROPIC_API_KEY` está no `os.environ` do processo,
+   > independente de `skip_llm`. Além disso 18–19 artefatos de E2 por run carregam
+   > `requires_llm_fallback=True` sem serviço (o stage que os consome é `is_llm`), então o
+   > corpus do Tier-1 é **menor** que o do run full — simetricamente nos dois braços, o que
+   > preserva a validade da paridade, mas não a leitura de "corpus real passa".
+
    **Dívida independente descoberta aqui (não bloqueia F2):**
    `pipeline/stages/route_documents.py:25` passa `use_llm=True` **hardcoded**, e o
    `skip_llm` do orquestrador atua **filtrando a lista de stages** por `is_llm` —
@@ -212,11 +222,20 @@ no ledger com causa + evidência.
 | 5 | Pressão de memória (~115MB RSS/subprocess × concorrência 2) | `ps`/Activity Monitor no host; sem cgroup, **não há OOMKill** — o sintoma é swap/pressão | RSS do shell+subprocess > 1GB sustentado, ou pressão vermelha | Rollback + reduzir `--concurrency` |
 | 6 | Subprocess zumbi/defunct (lifecycle hardening deveria impedir) | host `ps aux \| grep defunct` | >60s → investigar; recorrência → rollback | Rollback na recorrência |
 | 7 | Latência de run estoura SLO por causa do shell | `pipeline_runs` / timestamps WS | Free >5min / Premium >15min p95, sustentado | Rollback (boot ~550ms/stage é esperado, não é gatilho) |
-| 8 | **`OperationalError: database is locked`** — contenção SQLite entre o subprocess (artefatos) e o worker (`pipeline_runs`/eventos); classe de falha que `InProcess` não tem | logs do worker + `go.log` | **1 ocorrência** | Rollback imediato; reabrir com `senior-cto` + `sre-devops` (pode exigir o re-gate Postgres antes do prazo) |
+| 8 | **`OperationalError: database is locked`** — contenção SQLite entre o subprocess (artefatos) e o worker (`pipeline_runs`/eventos) | logs do worker + `go.log` + **`api.log`** (a daemon thread do fallback roda no processo da API) | **1 ocorrência** | Rollback imediato; reabrir com `senior-cto` + `sre-devops` |
 
-**Procedimento:** env var vazia/removida em backend+worker no Coolify → restart →
-`InProcess` retoma → re-executar runs falhos sob Python (idempotente) → registrar
-no ledger.
+> **Correção 2026-08-03:** o gatilho 8 dizia "classe de falha que `InProcess` não tem".
+> **Falso** — o worker nativo já roda `--concurrency=2` prefork e a API uvicorn escreve no
+> mesmo SQLite, então múltiplos escritores já existem hoje. O flip **acrescenta um
+> escritor**, não inaugura a classe. E o `busy_timeout=30s` herdado do `SyncSessionLocal`
+> **não** é mitigação suficiente: [[ADR-256]] registra incidente de 2026-05-22 com
+> `database is locked` **após** os 30s. O risco está amortecido, não resolvido — e segue
+> aceito nominalmente pela emenda [[ADR-150]] 2026-07-31 item 5, logo **não é** motivo de
+> adiamento por si.
+
+**Procedimento:** `make go-off ENV=native` (mata o shell e reinicia o worker sem a env
+var) → `InProcess` retoma → re-executar runs falhos (idempotente) → registrar no ledger.
+Coolify **não existe** (#1130) — a menção anterior era herdada do desenho pré-emenda.
 
 ## Soak de ≥2 semanas (pré-F3 — [[ADR-150]] §8)
 
@@ -322,10 +341,17 @@ job entra no nightly (não per-PR), com Tier-1 sobre fixture sintética de E3→
 
 ## 1ª execução real do Tier-1 (2026-08-03) — veredito: **exit 2**, e achou divergência real
 
-`make go-parity WS=<dogfood> RUNS=2` rodou ponta a ponta (4 runs, 0 escalação LLM nos
-quatro — a pré-condição 2 se confirmou no campo). Veredito **exit 2 = controle Py↔Py
-sujo**, portanto nenhuma conclusão Go↔Py é válida ainda. O guard funcionou como
-projetado. Três achados:
+`make go-parity WS=<dogfood> RUNS=2` rodou ponta a ponta (4 runs). Veredito **exit 2 =
+controle Py↔Py sujo**, portanto nenhuma conclusão Go↔Py é válida ainda. O guard funcionou
+como projetado. Três achados.
+
+> **Correção 2026-08-03 (pós-§B.1).** A frase original dizia "0 escalação LLM nos quatro —
+> a pré-condição 2 se confirmou no campo". **Falso como escrito.** O que a asserção do
+> harness mede é "0 artefato em stage `%llm%`" — e isso passou. Mas cada run carrega
+> **18–19 artefatos de E2 com `requires_llm_fallback=True`** (escalações não-servidas,
+> porque `extract_with_llm` é `is_llm` e sai do `DETERMINISTIC_ORDER`), e **cada braço Go
+> fez 1 chamada LLM real** que a asserção não vê. A pré-condição 2 **não** está confirmada
+> no campo; sua operacionalização é que está errada ([[A40.l24]]).
 
 ### A. Controle sujo — duas causas distintas
 
@@ -351,12 +377,98 @@ voltou a dar 242 sem o artefato.
 | 1, 2, **5** | Python InProcess | 242 | **0** |
 | 3, 4 | shell Go | 243 | **1** |
 
-**2/2 no Go, 0/3 no Python** — a diferença acompanha o executor, é reproduzível, e o E2 de
-entrada é idêntico nos quatro runs (`659bca9ee3ed_caixa_extratoconta_202605_202606`).
-Nota: os runs **full** históricos (Python, `skip_llm=False`) **têm** o artefato — então sob
-`DETERMINISTIC_ORDER` o InProcess deixa de produzi-lo e o Go continua. **Não está
-explicado, e enquanto não estiver o flip não pode acontecer** — pode ser o Go escrevendo a
-mais, ou o InProcess deixando de reconciliar uma conta.
+**2/2 no Go, 0/3 no Python** — a diferença acompanha o executor e é reproduzível. Os runs
+**full** históricos (Python, `skip_llm=False`) **têm** o artefato.
+
+#### B.1 — Explicada (2026-08-03): a divergência nasce no E2, não no E3
+
+A premissa de que "o E2 de entrada é idêntico nos quatro runs" era **falsa** — só a
+*chave* era idêntica. O **conteúdo** difere:
+
+| Braço | `requires_llm_fallback` | `n_tx` | `periodo` | `notas` |
+|---|---|---|---|---|
+| Python (runs 1, 2, 5) | `True` (`escalation.code=extract.empty_result`) | 0 | `2026-05-01…06-30` (do filename) | erro de parsing |
+| Go (runs 3, 4) · full histórico | ausente | 8 | `2026-06-01…06-30` (do modelo) | `Transações extraídas via LLM (PDF somente-imagem)` |
+
+O PDF da Caixa tem camada de texto (11 127 chars) mas **nenhuma transação parseável**:
+tabelas vazias, fallback de texto vazio. Aí
+[`caixa.py::_extract_via_llm`](../../../../scripts/e2/banks/caixa.py) entra — extração por
+**visão**, mandando o PDF inteiro em base64. No braço Go ela roda e devolve 8 transações;
+no braço Python ela desiste e o artefato virou stub, que o E3 exclui como `llm_stub`
+([[ADR-342]], `e3_reconciler_adapter.py:236`). Daí `llm_fallback: 19` (Py) vs `18` (Go) no
+`output_summary` do E2, e E3 = 105 vs 106.
+
+**A única variável é `os.environ["ANTHROPIC_API_KEY"]`.** `_extract_via_llm` decide por
+dois testes e nada mais: `import anthropic` e `os.environ.get("ANTHROPIC_API_KEY")`
+(l. 220–226). Não recebe `ctx`, logo **não** consulta `ctx.llm_calls_allowed`.
+
+Cadeia causal medida, ponta a ponta:
+
+1. `_go-on-native` (Makefile l. 1201) **injeta `ANTHROPIC_API_KEY` explicitamente** no env
+   do servidor Go — de propósito, com comentário ("só vai explícito o que é lido de
+   `os.environ`").
+2. `executor.go:125` faz `cmd.Env = append(os.Environ(), …)` → **todo subprocess de stage
+   herda a chave**.
+3. `dev-worker-up` (l. 711) sobe o worker Celery **sem env algum** — herda o shell que
+   rodou `make dev`. Neste worker a chave não está presente (medido via `ps eww <pid>`).
+   Os runs full de 25–28/07 tiveram a chave exportada no shell; é isso, e só isso, que
+   explica eles terem o artefato.
+4. Prova direta (`_scratch/caixa_gate_experiment.py`, 2 braços sobre o PDF real):
+   sem a chave → `n_tx=0, requires_llm_fallback=True` (reproduz o braço Python
+   exatamente); com chave **inválida** → log `PDF sem camada de texto — usando extração
+   via LLM (visão)` seguido de `401 authentication_error`. Ou seja: **a decisão de chamar
+   depende do env, jamais da política do run.**
+
+Hipóteses anteriores **refutadas**: não é efeito de ordem (5º run Python voltou a 242);
+não é estado acumulado no `ctx` reusado do InProcess (a divergência nasce no E2, e ambos os
+braços rodam o *mesmo* código com o *mesmo* input); não é o Go escrevendo a mais (o
+artefato dele é uma extração legítima, idêntica em shape à do run full).
+
+#### B.2 — Veredito: nenhum dos dois braços está certo, e não é bug de reconcile
+
+- **O braço Go está errado no contrato.** Fez chamada LLM num run que declarou
+  `skip_llm=True`. O *dado* dele é melhor (bate com o run full), mas chegou lá violando a
+  política do run — e gastou LLM num Tier-1 que devia custar zero.
+- **O braço Python está certo por acidente.** Não chamou porque a chave falta no env do
+  worker, **não** porque honrou `skip_llm`. Exporte a chave e ele reproduz o Go (§B.1
+  item 4). `skip_llm` não é enforçado nessa superfície em **nenhum** dos dois executores.
+
+Logo o fix não é "fazer um imitar o outro": é fazer a decisão depender da **política do
+run** em vez do **env do processo** — exatamente [[ADR-355]] (`Decidido`), 3ª superfície da
+tabela, deferida para [[A41.l3]] com o enquadramento já escolhido ("o fix pode ser deletar
+o call-site em vez de propagar o contexto": `extract_with_llm` já é o caminho gated e a
+Caixa é o único banco que o atalha). A [[ADR-355]] §Consequências **previu este achado
+textualmente** — "`_llm_artifact_count` … não vê uma extração de visão bem-sucedida do
+parser Caixa". O gate falhou como ela avisou que falharia.
+
+#### B.3 — O que isto muda para o flip
+
+1. **Não é bloqueio de shell.** É defeito de produto pré-existente, com ADR `Decidido` e
+   lane. §B sai da lista de bloqueios como "explicar" e entra como "declarar".
+2. **Mas o cutover tem efeito colateral próprio, e ele é novo:** pós-flip o shell Go
+   entrega a chave a **todo** subprocess de stage por construção, então o flip
+   **silenciosamente religa** a chamada de visão sem gate em runs onde hoje ela está morta
+   — inclusive determinísticos. Ou [[A41.l3]] fecha antes, ou isso vai declarado no gate
+   humano. Não pode ir implícito.
+3. **Tier-2 não é comparável enquanto os envs divergirem.** No run full a mesma assimetria
+   reaparece (Py sem chave → stub; Go com chave → extração), então a divergência se repete
+   fora do escopo do `skip_llm`. Igualar o env dos dois braços é pré-condição do Tier-2 —
+   e igualar **não** substitui [[A41.l3]]: sem o gate de política, igualar por cima só
+   troca "divergem" por "os dois gastam LLM no Tier-1".
+4. **O gate media a camada errada** — mitigado em #1151 (mesmo dia): `_assert_llm_free`
+   passou a ler `requires_llm_fallback` do **payload** do E2, não só `stage LIKE '%llm%'`.
+   Paliativo consciente: pega **escalação**, não **chamada bem-sucedida** — a extração de
+   visão que funciona não deixa flag algum, então um corpus onde só a Caixa dispara ainda
+   passaria. A asserção honesta ("0 chamada") só fecha no boundary do SDK `anthropic` ou
+   roteando o call-site pelo choke-point instrumentado — [[A40.l24]] + [[A41.l2]]/[[A41.l3]].
+5. **Consequência imediata de #1151: o corpus de dogfood deixa de servir ao Tier-1 como
+   está.** Com a asserção nova, cada run aborta com `GateError` — há 18–19 docs com
+   `requires_llm_fallback` (medido nos runs de 03/08: 19 no braço Python, 18 no Go). Isto
+   **contradiz** a conclusão "não é preciso fixture sintética" da pré-condição 2. Saída:
+   ou as 18–19 escalações passam a ser servidas (exige LLM → é Tier-2, não Tier-1), ou a
+   fixture curada volta ao escopo, ou a asserção separa "escalou e ninguém serviu"
+   (simétrico nos dois braços, inofensivo à paridade) de "chamou LLM" (assimétrico, é o
+   bug). A terceira é a mais barata e a que preserva a intenção original do gate.
 
 ### C. Defeito metodológico do harness — corrigido
 
@@ -372,7 +484,7 @@ confundida. Sem isso, todo achado exigiria o experimento manual acima.
 | A1 — comparador `dev/go_parity_gate.py` | ✅ #900 |
 | A2 — captura de eventos WS | ✅ #919 |
 | A3 — orquestrador + `make go-parity` | ✅ #1136 |
-| Pré-condição 2 (0-LLM) | ✅ medida — corpus real passa, sem fixture sintética |
+| Pré-condição 2 (0-LLM) | ⚠️ **conclusão caiu** — o Tier-1 de 03/08 gastou 1 chamada LLM por braço Go, invisível à asserção antiga (§B.1). #1151 endureceu a asserção; com ela o corpus real **não passa** (18–19 escalações), logo "não é preciso fixture sintética" precisa ser re-decidido (§B.3 item 5) |
 | A4 — Tier-2 (WS via `psubscribe` pré-dispatch) | ✅ #1137 — orquestração pronta; **execução é owner-run** (custo LLM) |
 | Doc — RUNBOOK §11 + template do ledger de soak | ✅ #1137 |
 | Job CI `go-parity-deterministic` | ⛔ **deferido** (§Decisão 2026-07-31) |
@@ -384,7 +496,10 @@ confundida. Sem isso, todo achado exigiria o experimento manual acima.
 1. ⛔ **Seed do Monte Carlo de IF** — sem isso o Tier-1 nunca fecha byte-exact, porque o
    controle Py↔Py suja sozinho. É débito de produto (reprodutibilidade do relatório), não
    do Go; o gate só o expôs.
-2. ⛔ **Explicar a divergência `caixa`** (§B). Enquanto não se souber se é o Go escrevendo
-   a mais ou o InProcess deixando de reconciliar, flipar é apostar sem saber para que lado.
+2. ✅ **Divergência `caixa` — explicada** (§B.1/B.2, 2026-08-03). Não é bug de executor: é
+   [[ADR-355]] 3ª superfície ([[A41.l3]]) exposta por assimetria de env entre os dois
+   braços. Substituída por itens concretos (§B.3): declarar no gate humano que o flip
+   religa a chamada de visão sem gate; igualar o env dos braços antes do Tier-2; resolver
+   o que fazer com as 18–19 escalações não-servidas, que pós-#1151 abortam o Tier-1.
 3. Depois disso: re-rodar Tier-1 (agora intercalado) → Tier-2 (custa LLM) → gate humano →
    flip → soak com o ledger do RUNBOOK §11.3.
