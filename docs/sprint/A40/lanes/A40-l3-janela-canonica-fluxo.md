@@ -5,6 +5,8 @@ title: "Janela canônica: todo número rotulado 12m lê janela_12m"
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1124
+ship_date: "2026-07-31"
 priority: P0
 branch_slug: a40-l3-janela-canonica-fluxo
 adrs: []
