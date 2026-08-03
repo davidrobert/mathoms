@@ -496,15 +496,31 @@ já sabe — queimando a única janela de atenção do dono no item de menor val
 
 ## Infra de CI tocada durante a sprint (não são lanes)
 
-Duas correções de CI achadas ao entregar a [[A40.l24]]. Não têm lane porque não
-são escopo report-trust e não competem por capacidade — mas ficam registradas
-para não virarem mudança órfã de política:
+Três correções de CI e uma investigação, achadas ao entregar a [[A40.l24]]. Não
+têm lane porque não são escopo report-trust e não competem por capacidade — mas
+ficam registradas para não virarem mudança órfã de política:
 
 | O que | Estado | Por quê |
 |---|---|---|
 | `backend-tests` `timeout-minutes` 12 → 20 | ✅ `9b7d330e` (#1157) | A política declarada no job ("2× tempo observado", de maio a ~7:30) erodiu para **1,15×**: medido nos 6 PRs de 2026-08-03, 9m02s–10m21s contra teto de 12. Reprovou o #1157 duas vezes por variância de runner, com diff que não alcança o job. Teto não muda custo de Actions (cobrança é por minuto consumido). |
-| Investigação "por que a suíte dobrou" (5-8min em maio → 9-10min) | ⏳ **#1160 aberto** — emenda [[ADR-210]] | O bump acima para o falso-vermelho mas não explica o crescimento. **Se a sprint fechar com #1160 aberto, a baseline e a regra de dimensionamento não ficam registradas.** |
+| Investigação "por que a suíte dobrou" (5-8min em maio → 9-10min) | ✅ `1d16f1b4` (#1160) · adendo 2026-08-03 na [[ADR-210]] | **Era volume, não regressão** — então o bump acima não mascarava nada. Medido em 56 jobs: mediana 6,33 → 7,88 → 9,81 → 9,93min (mai→ago). A suíte foi de **2192 para 3015 testes** (+37,5%, 103 arquivos novos das sprints A34-A40) com custo por teste subindo só **9,6%** (0,157 → 0,172 s). Nada a otimizar: setup do job é ~30s de ~10min, o packing dos 432 arquivos em 4 workers dá desbalanço **1,00×**, arquivo mais pesado 32s contra caminho crítico de 290s, teste mais lento 2,38s. Sharding/`pytest-split` **rejeitado** com a conta (~550 disparos/mês × ~+2min faturados ≈ **+1.100 min/mês** num orçamento a 544%), coerente com §Custo da camada 4. Fecha a §Ganhos vencida (afirmava `≈5min`, de 2026-05-14) |
 | Label cosmético fora do caminho de merge | ✅ `76b32d3a` (#1161) | `Apply size label` (action Docker) vivia no mesmo job que `Validate PR title`, que é required check, sem `continue-on-error` — i/o timeout do Docker Hub em `alpine:3.15` bloqueava merge do repo inteiro. O pin por SHA da action não cobre a imagem base dela, e o hook de pin do repo não alcança Dockerfile de terceiro. |
+
+**A erosão volta.** O teto cresce ~+1,2min/mês no ritmo atual, e teto fixo em
+número absoluto sempre erode — o que mudou é que a medição agora é embutida
+(`--durations=25` no passo, custo zero em minutos) e o gatilho é declarado:
+**mediana > 12min** (60% do teto de 20) ⇒ ler a tabela do log antes de mexer no
+número, e só bumpar se o crescimento for de volume. Sem isso, o próximo agente
+repete a arqueologia que este ciclo custou (rodar a suíte local com
+`--junit-xml` + baixar log de um run de maio).
+
+**Dois resíduos desta investigação, nenhum com lane** (não são report-trust e
+não competem por capacidade, mas ficariam órfãos):
+
+| Resíduo | Estado | Por quê importa |
+|---|---|---|
+| Revisão `sre-devops` da mudança de política de CI **não foi feita** | ⏳ **owner-gated** — ver [[OWNER-GATED]] | O CLAUDE.md §Protocolo de delegação lista "Política CI/CD … FinOps" como **gatilho obrigatório** de `sre-devops`. O #1160 mudou política de um job que é required check e escreveu numa ADR a regra de dimensionamento (~2× da mediana), **e mergeou sem essa revisão** — a sessão rodou sob instrução de não invocar subagente sem pedido explícito. Risco baixo no diff (comentário + flag de reporte + adendo de doc; a mudança de teto foi do #1157), mas a **regra de política** entrou sem o especialista. Decisão do dono: passar retroativo ou aceitar |
+| Mudança em `ci.yml` custa ~5 runs de CI para mergear | 📌 registrado, sem ação | `ci.yml` está em **todos** os path filters (por sanity contra regressão de filtro), então qualquer diff nele dispara a suíte completa; e o ruleset `main-protection` tem `strict_required_status_checks_policy: true`, então cada commit que entra em `main` durante a janela força re-run. Com main recebendo 6 commits em ~1h20 (multi-sessão), o #1160 pagou **5 ciclos completos** para um diff de 24 linhas + doc. Num orçamento a 544%, a lição operacional é **agrupar mudanças de `ci.yml`** num PR só, em janela de main parada — não shipar uma por vez |
 
 ## Achado novo do painel (fora dos 33)
 
@@ -541,7 +557,8 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
 não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
 27 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
-que ela **não** é superseded) e as abertas por §Entregas fora de lane.
+que ela **não** é superseded), as abertas por §Entregas fora de lane e as
+emendadas por §Infra de CI tocada durante a sprint.
 
 | ADR | Estado | Lane | Escopo |
 |---|---|---|---|
@@ -563,6 +580,7 @@ que ela **não** é superseded) e as abertas por §Entregas fora de lane.
 | [[ADR-204]] | `Decidido` · emenda provável na [[A40.l20]] | [[A40.l20]] | Imutabilidade do parecer pós-publicação; §D1 é quem fixa o vocabulário de `PlannerReview.status` |
 | **[[ADR-359]]** | `Decidido` (#1154/#1155) | — (fora de lane) · residual em [[A40.l27]] · 2º consumidor da [[A40.l19]] | Dispatch assíncrono falha alto; quem cria estado pendente compensa. **Supersede** a cláusula de fallback da [[ADR-014]], que contradizia o corpo dela |
 | [[ADR-111]] | `Decidido` · **emendada** 2026-08-03 (correção factual, não mudança de decisão) | — | Stateless rigoroso. A afirmação "0 `threading.Thread` em app code" nasceu falsa em 2026-04-20; o enforcement passa a ser par (comportamento + `dev/check_stateless_primitives.py`) |
+| [[ADR-210]] | `Decidido` · **emendada** 2026-08-03 (re-baseline, não mudança de decisão) | — (§Infra de CI, #1160) | Saúde do test suite do CI. A §Ganhos afirmava `backend-tests ≈ 5min` desde 2026-05-14 e a mediana medida é **9,9min**; o adendo fixa a regra de dimensionamento do `timeout-minutes` (~2× da mediana; teto é detector de *hang*, não policial de performance) e rejeita sharding com a conta. Mesma família da emenda da [[ADR-111]]: **texto afirmando estado que não valia mais** |
 | [[ADR-278]] | `Decidido` · **não** superseded | — | `_hash_v1` congelado; a A40 não cria `_hash_v3` |
 
 ## Débito de método herdado da r3
