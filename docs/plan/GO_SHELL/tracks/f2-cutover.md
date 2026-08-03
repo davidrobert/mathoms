@@ -212,11 +212,20 @@ no ledger com causa + evidência.
 | 5 | Pressão de memória (~115MB RSS/subprocess × concorrência 2) | `ps`/Activity Monitor no host; sem cgroup, **não há OOMKill** — o sintoma é swap/pressão | RSS do shell+subprocess > 1GB sustentado, ou pressão vermelha | Rollback + reduzir `--concurrency` |
 | 6 | Subprocess zumbi/defunct (lifecycle hardening deveria impedir) | host `ps aux \| grep defunct` | >60s → investigar; recorrência → rollback | Rollback na recorrência |
 | 7 | Latência de run estoura SLO por causa do shell | `pipeline_runs` / timestamps WS | Free >5min / Premium >15min p95, sustentado | Rollback (boot ~550ms/stage é esperado, não é gatilho) |
-| 8 | **`OperationalError: database is locked`** — contenção SQLite entre o subprocess (artefatos) e o worker (`pipeline_runs`/eventos); classe de falha que `InProcess` não tem | logs do worker + `go.log` | **1 ocorrência** | Rollback imediato; reabrir com `senior-cto` + `sre-devops` (pode exigir o re-gate Postgres antes do prazo) |
+| 8 | **`OperationalError: database is locked`** — contenção SQLite entre o subprocess (artefatos) e o worker (`pipeline_runs`/eventos) | logs do worker + `go.log` + **`api.log`** (a daemon thread do fallback roda no processo da API) | **1 ocorrência** | Rollback imediato; reabrir com `senior-cto` + `sre-devops` |
 
-**Procedimento:** env var vazia/removida em backend+worker no Coolify → restart →
-`InProcess` retoma → re-executar runs falhos sob Python (idempotente) → registrar
-no ledger.
+> **Correção 2026-08-03:** o gatilho 8 dizia "classe de falha que `InProcess` não tem".
+> **Falso** — o worker nativo já roda `--concurrency=2` prefork e a API uvicorn escreve no
+> mesmo SQLite, então múltiplos escritores já existem hoje. O flip **acrescenta um
+> escritor**, não inaugura a classe. E o `busy_timeout=30s` herdado do `SyncSessionLocal`
+> **não** é mitigação suficiente: [[ADR-256]] registra incidente de 2026-05-22 com
+> `database is locked` **após** os 30s. O risco está amortecido, não resolvido — e segue
+> aceito nominalmente pela emenda [[ADR-150]] 2026-07-31 item 5, logo **não é** motivo de
+> adiamento por si.
+
+**Procedimento:** `make go-off ENV=native` (mata o shell e reinicia o worker sem a env
+var) → `InProcess` retoma → re-executar runs falhos (idempotente) → registrar no ledger.
+Coolify **não existe** (#1130) — a menção anterior era herdada do desenho pré-emenda.
 
 ## Soak de ≥2 semanas (pré-F3 — [[ADR-150]] §8)
 
