@@ -5,6 +5,8 @@ title: "Instrumento: detector de duplicação cross-grupo + baseline congelado"
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1118
+ship_date: "2026-07-30"
 priority: P0
 branch_slug: a40-l1-ledger-cross-grupo-check
 adrs: []

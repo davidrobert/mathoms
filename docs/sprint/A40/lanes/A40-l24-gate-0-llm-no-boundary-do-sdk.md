@@ -5,6 +5,8 @@ title: "Asserção \"0 LLM\" do gate F2 mede a camada errada — passa para o bo
 sprint: A40
 plan: PLAN-go-shell
 status: shipped
+ship_pr: 1157
+ship_date: "2026-08-03"
 priority: P1
 branch_slug: a40-l24-gate-0-llm-no-boundary-do-sdk
 adrs:
