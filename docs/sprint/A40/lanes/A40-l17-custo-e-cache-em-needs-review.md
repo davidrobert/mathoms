@@ -20,7 +20,7 @@ tags:
 
 # A40.l17 — `custo-e-cache-em-needs-review`
 
-> Onda 0 do §Frente 4 de [[PLAN-report-trust]]. Cortável se a onda apertar.
+> Onda 0 da A40 (§Frente 4 de [[PLAN-report-trust]]). Cortável se a onda apertar.
 
 ## Problema
 

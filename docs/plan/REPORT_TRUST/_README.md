@@ -145,15 +145,24 @@ nunca deletando conselho. A doutrina certa já existe no repo: [[ADR-294]]/A28.l
 
 ### Ondas
 
-| Onda | Lane | Escopo | Prio |
+A numeração é a das **ondas da A40** — o sprint é a autoridade única de
+sequenciamento; esta frente não tem numeração própria.
+
+| Onda A40 | Lane | Escopo | Prio |
 | --- | --- | --- | --- |
-| 0 — parar a sangria | [[A40.l16]] | `number_in_prose` fora de `_HARD_LAYERS` + emenda [[ADR-304]] + [[ADR-358]] `Proposto` | **P0** |
-| 0 | [[A40.l17]] | Custo e cache no caminho `needs_review` | P1 |
-| 1 — o contrato | [[A40.l18]] | Criticidade de stage + `partial_failure` alcançável ([[ADR-357]]) | **P0** |
-| 1 | [[A40.l19]] | Migration do drift de enum (4 valores) | P1 + gate de deploy |
-| 1 | [[A40.l20]] | `PlannerReview` representa "gerado e retido" | **P0** |
-| 2 — a superfície | [[A40.l21]] | Leitores tolerantes a `partial_failure` (reader-first) | P0 |
-| 2 | [[A40.l22]] | Estados de degradação no relatório + PDF | P1 |
+| **0** — parar a sangria | [[A40.l16]] | `number_in_prose` fora de `_HARD_LAYERS` + emenda [[ADR-304]] + [[ADR-358]] `Proposto` | **P0** |
+| **0** | [[A40.l17]] | Custo e cache no caminho `needs_review` | P1 |
+| **3** — o contrato | [[A40.l21]] | Leitores tolerantes a `partial_failure` (reader-first — vai **antes** da l18) | P0 |
+| **3** | [[A40.l18]] | Criticidade de stage + `partial_failure` alcançável ([[ADR-357]]) | **P0** |
+| **3** | [[A40.l19]] | Migration do drift de enum (4 valores) | P1 + gate de deploy |
+| **3** | [[A40.l20]] | `PlannerReview` representa "gerado e retido" | **P0** |
+| **3** — a superfície | [[A40.l22]] | Estados de degradação no relatório + PDF | P1 |
+
+**A onda 0 precede a onda 1 da A40** ("medir antes de mexer") por motivo
+estrutural, não de gravidade: medir exige run que completa, e o §Gate de saída
+abaixo exige 2 re-runs completos consecutivos — com 89% dos runs degradando, o
+contador não inicia e o baseline de toda onda posterior mede um pipeline que não
+entrega.
 
 **Ordem reader-first (não acoplar PRs).** Os 5 read sites de `partial_failure`
 no frontend são **código morto hoje** (o status existe no union type e no

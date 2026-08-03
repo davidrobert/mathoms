@@ -23,7 +23,7 @@ tags:
 
 # A40.l20 — `planner-review-retido`
 
-> Onda 1 do §Frente 4 de [[PLAN-report-trust]]. Desbloqueia a [[A40.l22]].
+> Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Desbloqueia a [[A40.l22]].
 >
 > **Depende da *decisão*, não do *merge*, da [[A40.l18]]:** o vocabulário de
 > status é fixado pela [[ADR-357]] `Proposto`; implementar contra a ADR permite

@@ -20,7 +20,7 @@ tags:
 
 # A40.l22 — `superficie-de-degradacao`
 
-> Onda 2 do §Frente 4 de [[PLAN-report-trust]]. Fatia **premium/add-on** da
+> Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fatia **premium/add-on** da
 > F11.5 — o caminho determinístico dela foi entregue na Sprint B (2026-04-17),
 > conforme `docs/reference/PHASES.md`. Estende A28.l9; **não** inventa banner.
 

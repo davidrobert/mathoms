@@ -21,7 +21,7 @@ tags:
 
 # A40.l19 — `migration-drift-enum-status`
 
-> Onda 1 do §Frente 4 de [[PLAN-report-trust]]. **PR próprio** (migration não
+> Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). **PR próprio** (migration não
 > mistura com feature). P1 de execução, mas **gate de deploy** do cutover
 > Postgres.
 

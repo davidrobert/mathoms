@@ -10,7 +10,7 @@ theme: "report-trust"
 
 # Sprint A40 — Report trust (revisão do relatório entregue, 2026-07-30)
 
-> **Status:** `current` (aberta 2026-07-30 — Onda 1 em `open`). **Continuação declarada** de [[PLAN-report-trust]]
+> **Status:** `current` (aberta 2026-07-30; **Onda 0 em `open`** desde 2026-08-03 — ver §Ondas). **Continuação declarada** de [[PLAN-report-trust]]
 > (`sprint_origem: A28`) — não é plano novo. A tese daquele plano ("o relatório
 > não pode afirmar precisão que os dados não sustentam") é exatamente o que esta
 > rodada mediu; as lanes daqui entram lá com `sprint_atual: A40`.
@@ -85,6 +85,16 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 
 ## Ondas
 
+**Onda 0 — parar a sangria** ([[A40.l16]], [[A40.l17]]), aberta 2026-08-03 pelo
+incidente do run `2ded7aab`. **Precede a Onda 1 e não é negociável**, por um
+motivo estrutural e não de gravidade: a Onda 1 é "medir antes de mexer", e medir
+exige **run que completa**. Com 89% dos runs perdendo conselho e uma fração
+falhando, o baseline da l1 e a re-rodada de gate de toda onda posterior medem um
+pipeline que não entrega — e o §Gate de saída do dogfood de [[PLAN-report-trust]],
+que exige 2 re-runs completos consecutivos, **não pode nem iniciar o contador**.
+A l16 é XS (uma linha em `_HARD_LAYERS` + bump de versão de verificação) e
+independente. A l17 é cortável.
+
 **Onda 1 — medir antes de mexer** ([[A40.l1]], [[A40.l3]], [[A40.l4]], [[A40.l9]]).
 A l1 é instrumento: congela o baseline **sobre `origin/main`** antes de qualquer
 mutação — lição da A39 (baseline pós-mutação mede o próprio fix). A l3 fecha três
@@ -96,34 +106,37 @@ RV3-07** e porque é reincidência de um "FIXADO" falso.
 verde sem prova. A l5 vem **antes** das lanes de correção individual de contrato —
 senão cada uma é fixada uma vez e volta a divergir.
 
-**Onda 4 — degradação honesta** ([[A40.l16]]…[[A40.l22]]), aberta 2026-08-03 pelo
-incidente do run `2ded7aab`. É a §Frente 4 de [[PLAN-report-trust]] — leia lá a
-tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2. Três regras de
-ordenação que **não** são estéticas:
+**Onda 3 — degradação honesta** ([[A40.l18]]…[[A40.l22]]). Fecha a classe que o
+incidente expôs: contrato de criticidade de stage, `partial_failure` alcançável, e
+o retido declarado na tela. É a §Frente 4 de [[PLAN-report-trust]] — leia lá a
+tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 
-- **[[A40.l16]] shipa sozinha e primeiro.** Domina estritamente o status quo
-  (hoje itens caem invisíveis **e errados**; pós-l16 só quando legitimamente
-  retidos). Bloquear um fix de 1 linha atrás de uma onda de 5 superfícies
-  transformaria correção do dia em correção de duas semanas.
-- **[[A40.l21]] antes de [[A40.l18]]** (reader-first). Shipar o writer primeiro
-  entrega um run que produziu relatório com banner vermelho de falha e botão de
-  reprocessar — pior que hoje.
-- **[[A40.l20]] depende da *decisão* da [[A40.l18]]**, não do merge.
+**Ordem interna, e nenhuma das três é estética:**
+
+- **[[A40.l21]] antes de [[A40.l18]]** (reader-first). Os 5 read sites de
+  `partial_failure` no frontend são código morto hoje — o status existe no union
+  type e no `format.ts`, mas nenhum writer o emite. Corrigi-los primeiro é PR
+  coeso e de risco zero. Shipar o writer primeiro entregaria um run que produziu
+  relatório com banner vermelho de falha e botão de reprocessar: **pior que hoje**.
+  Amarra: se a l18 escorregar >1 sprint, **reverta a l21** — é dead code pelos
+  nossos próprios critérios.
+- **[[A40.l20]] depende da *decisão* da [[A40.l18]]**, não do merge. O vocabulário
+  de status é fixado pela [[ADR-357]] `Proposto`; implementar contra a ADR permite
+  mergear em paralelo em vez de serializar duas semanas.
+- **[[A40.l19]] em PR próprio** — migration não mistura com feature.
+
+**Esta onda precede a Onda 4 por conflito de arquivo, não por prioridade.** A
+[[A40.l22]] toca as mesmas superfícies do relatório que [[A40.l11]] e
+[[A40.l13]]; pelo critério de agrupamento desta sprint ("arquivo compartilhado,
+evita merge-hell"), a l22 vai primeiro e as duas rebaseiam sobre ela.
+
+**Onda 4 — o que depende das anteriores** ([[A40.l6]], [[A40.l10]], [[A40.l11]],
+[[A40.l13]], [[A40.l14]]).
 
 **Precedência de corte:** nunca cortar [[A40.l16]] nem [[A40.l18]]. Cortáveis, em
-ordem: [[A40.l17]], marcador em `/reports` (já fora), dead-letter (já fora por
-gatilho).
-
-**Decisões do dono ainda abertas** (não assumidas por esta entrada): (a) quais
-lanes P2/P3 saem da A40 para caber a onda 4 — candidatas [[A40.l10]],
-[[A40.l11]], [[A40.l13]], [[A40.l14]]; (b) se `items_dropped > 0` entra como 6ª
-classe do §Gate de saída do dogfood de [[PLAN-report-trust]] ou fica
-explicitamente fora. Note que [[A40.l22]] toca as mesmas superfícies de
-[[A40.l11]] e [[A40.l13]] — pelo critério de agrupamento desta sprint
-("arquivo compartilhado"), a l22 vai primeiro e as outras rebaseiam.
-
-**Onda 3 — o que depende das anteriores** ([[A40.l6]], [[A40.l10]], [[A40.l11]],
-[[A40.l13]], [[A40.l14]]).
+ordem: [[A40.l17]], marcador em `/reports` (já fora de escopo), dead-letter (já
+fora, por gatilho). **Nada sai da A40** — decisão do dono, 2026-08-03: a onda 0 e
+a onda 3 entram por cima do escopo existente, sem despejar lane P2/P3 para A41.
 
 **A ordem não segue a coluna de severidade, e isso é deliberado.** O painel
 apontou que a severidade desta rodada não é insumo confiável de sequenciamento: os

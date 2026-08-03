@@ -20,7 +20,7 @@ tags:
 
 # A40.l21 — `leitores-tolerantes-partial-failure`
 
-> Onda 2 do §Frente 4 de [[PLAN-report-trust]], mas **shipa antes da
+> Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]), mas **shipa antes da
 > [[A40.l18]]** — disciplina expand/contract: leitor tolerante antes de o writer
 > emitir. Risco zero, porque hoje o status é **inalcançável em produção**.
 
