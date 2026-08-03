@@ -286,15 +286,15 @@ sem sanitização ([[ADR-175]]) — e não há gate impedindo o quarto.
 `tests/fakes/`, com gate no pre-commit que hard-falha no próximo (3 → 0).
 
 **Gatilho de promoção** (evento, não calendário): decisão de abrir o 2º usuário,
-**ou** o `make go-parity` medir ≥1 chamada de visão da Caixa no dogfood. A
-[[A41.l1]] é promovível sozinha antes disso — ela conserta uma asserção de gate
-que hoje é vacuamente verde e tem consumidor datado.
+**ou** o `make go-parity` medir ≥1 chamada de visão da Caixa no dogfood.
 
-O `product-manager` recomendou desmembrar em vez de abrir sprint; a objeção está
-registrada no `_README` da A41.
+O `product-manager` recomendou desmembrar em vez de abrir sprint. Acatado em
+parte, por decisão do dono (2026-08-03): a lane com **consumidor datado** foi
+promovida para a sprint corrente como [[A40.l24]] — a A41 mantém as 3 lanes que
+esperam gatilho. A objeção completa está registrada no `_README` da A41.
 
-- **Sprint:** [sprint/A41/_README.md](../sprint/A41/_README.md) · 4 lanes
-  `planned` · [[PLAN-go-shell]] + [[PLAN-launch-trust]].
+- **Sprint:** [sprint/A41/_README.md](../sprint/A41/_README.md) · 3 lanes
+  `planned` · [[PLAN-launch-trust]].
 
 ### A39 — Parse correctness: dívida de verificação da ingestão E0→E2 (`candidate` 2026-07-23)
 

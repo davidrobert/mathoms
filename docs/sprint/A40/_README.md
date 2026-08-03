@@ -53,7 +53,7 @@ burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
 usuário, e viraria carimbo.
 
-## Lanes (23)
+## Lanes (24)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -83,6 +83,7 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l21]] | Leitores tolerantes a `partial_failure` (reader-first) | **P0** | — | **[[ADR-357]]** §Consequências |
 | [[A40.l22]] | Superfície de degradação no relatório + PDF | **P0** | l20 | fatia premium da F11.5 · **bloqueador do beta** (6ª classe do gate de saída) |
 | [[A40.l23]] | Gate: ADR citada em prosa resolve para arquivo (reserva de ID é invisível) | P2 | — | classe exposta pela **[[ADR-345]]** |
+| [[A40.l24]] | Asserção "0 LLM" do gate F2 passa a medir no boundary do SDK | P1 | — | promovida da [[A41]] · [[ADR-355]] · [[PLAN-go-shell]] |
 
 ## Ondas
 
@@ -130,6 +131,15 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 [[A40.l22]] toca as mesmas superfícies do relatório que [[A40.l11]] e
 [[A40.l13]]; pelo critério de agrupamento desta sprint ("arquivo compartilhado,
 evita merge-hell"), a l22 vai primeiro e as duas rebaseiam sobre ela.
+
+**Fora de onda — [[A40.l24]]**, promovida da [[A41]] em 2026-08-03. Não é tema
+report-trust e não compartilha arquivo com nenhuma lane daqui — entra pelo
+critério de **consumidor datado**: o [[TRACK-f2-cutover]] declara que nada mais
+avança sem o dono rodar `make go-parity`, e a asserção "0 invocação LLM" do
+Tier-1 hoje é vacuamente verde (conta artefato de stage `%llm%` e não vê chamada
+de visão bem-sucedida). Se o dono rodar antes do fix, recebe falso-verde e paga
+o custo do run. Sprint corrente é o único lugar de onde a lane é pescável a
+tempo. Não desloca escopo: roda em paralelo com qualquer onda.
 
 **Onda 4 — o que depende das anteriores** ([[A40.l6]], [[A40.l10]], [[A40.l11]],
 [[A40.l13]], [[A40.l14]], [[A40.l15]], [[A40.l23]]). A l15 entra aqui — estava na
