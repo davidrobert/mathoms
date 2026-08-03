@@ -28,17 +28,24 @@ import argparse
 import json
 import os
 import re
+import socket
 import sqlite3
 import subprocess
 import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse
 
 _REPO = Path(__file__).resolve().parents[1]
 
 _TERMINAL = frozenset({"completed", "failed", "cancelled"})
 _RUN_ID_RE = re.compile(r"Run ([0-9a-f-]{36}) disparado")
+
+# `pending` = task enfileirada e NÃO consumida. Sem worker o run nunca sai desse
+# estado, e esperar o timeout normal (1800s) confunde "stack de pé mas lenta" com
+# "stack no chão". Grace curto separa os dois casos.
+_PENDING_GRACE_S = 90
 
 
 class GateError(RuntimeError):
@@ -115,10 +122,56 @@ def _inbox_files(workspace: str, storage_root: Path) -> list[Path]:
     return [p for p in inbox.rglob("*") if p.is_file()]
 
 
+def _redis_endpoint() -> tuple[str, int]:
+    url = (
+        os.environ.get("MATHOMS_REDIS_URL")
+        or os.environ.get("REDIS_URL")
+        or "redis://localhost:6379/0"
+    )
+    parsed = urlparse(url)
+    return parsed.hostname or "localhost", parsed.port or 6379
+
+
+def assert_stack_up() -> None:
+    """Redis no chão = dispatch enfileira e ninguém consome; o gate penduraria até o timeout."""
+    host, port = _redis_endpoint()
+    try:
+        with socket.create_connection((host, port), timeout=3):
+            return
+    except OSError as exc:
+        raise GateError(
+            f"Redis inacessível em {host}:{port} ({exc}) — o run seria enfileirado e nunca "
+            f"consumido.\n   Suba a stack antes do gate: `make native-up`"
+        ) from exc
+
+
+def _active_run(con: sqlite3.Connection, workspace: str) -> str | None:
+    row = con.execute(
+        "SELECT id FROM pipeline_runs WHERE workspace_id=? AND status IN ('pending','running') "
+        "ORDER BY started_at DESC LIMIT 1",
+        (workspace,),
+    ).fetchone()
+    return row[0] if row else None
+
+
+def assert_no_active_run(con: sqlite3.Connection, workspace: str) -> None:
+    """`_check_no_active_run` do trigger rejeita run concorrente — inclusive um `pending`
+    órfão de tentativa anterior. Detectar aqui evita ConflictError no meio do braço."""
+    stuck = _active_run(con, workspace)
+    if stuck:
+        raise GateError(
+            f"workspace já tem run ativo ({stuck[:8]}) — o dispatch seria rejeitado por "
+            f"conflito.\n   Se ele está preso (ex.: enfileirado com a stack no chão), cancele: "
+            f"POST /v1/workspaces/{{ws}}/runs/{stuck}/cancel, ou pelo console interno."
+        )
+
+
 def assert_preconditions(workspace: str, storage_root: Path, con: sqlite3.Connection) -> None:
     """Falha ANTES de gastar run. Inbox não-vazio faria o E0 classificar (e gastar LLM)."""
+    assert_stack_up()
     if not _run_ids(con, workspace):
         raise GateError(f"workspace {workspace} não tem run algum — confirme o uuid")
+    assert_no_active_run(con, workspace)
     pending = _inbox_files(workspace, storage_root)
     if pending:
         raise GateError(
@@ -162,13 +215,25 @@ def dispatch_run(workspace: str, con: sqlite3.Connection) -> str:
     return fresh.pop()
 
 
+def _assert_consumed(run_id: str, status: str | None, elapsed_s: float) -> None:
+    """Distingue "worker no chão" de "run demorado" — sem isso ambos viram o mesmo timeout."""
+    if status == "pending" and elapsed_s > _PENDING_GRACE_S:
+        raise GateError(
+            f"run {run_id} continua `pending` após {int(elapsed_s)}s — nenhum worker Celery "
+            f"consumiu a task.\n   Suba a stack (`make native-up`) e confirme o worker: "
+            f"`pgrep -fl 'celery.*worker'`"
+        )
+
+
 def wait_terminal(con: sqlite3.Connection, run_id: str, *, timeout_s: int, poll_s: int) -> str:
-    deadline = time.monotonic() + timeout_s
+    started = time.monotonic()
+    deadline = started + timeout_s
     last = None
     while time.monotonic() < deadline:
         status = _status(con, run_id)
         if status in _TERMINAL:
             return status
+        _assert_consumed(run_id, status, time.monotonic() - started)
         if status != last:
             print(f"   · {run_id[:8]} → {status}")
             last = status
@@ -336,7 +401,34 @@ def _storage_root(args: argparse.Namespace) -> Path:
     return (_REPO / os.environ.get("STORAGE_ROOT", "storage")).resolve()
 
 
+def _restore_python_arm() -> None:
+    """Roda SEMPRE, inclusive em falha: abortar no braço Go sem isso deixaria o
+    dogfood executando stages pelo shell Go sem o owner ter feito o flip. Não
+    propaga erro — mascararia a exceção original que interessa diagnosticar."""
+    print("\n▶  devolvendo o worker ao executor Python…")
+    try:
+        switch_arm(PYTHON_ARM)
+    except GateError as exc:
+        print(f"::error:: FALHA AO RESTAURAR o executor Python: {exc}", file=sys.stderr)
+        print(
+            "::error:: rode `make go-off ENV=native` — o worker pode estar no Go.", file=sys.stderr
+        )
+
+
+def _execute_both_arms(workspace: str, con: sqlite3.Connection, args) -> tuple[list, list]:
+    try:
+        py_runs = execute_arm(PYTHON_ARM, workspace, con, args)
+        go_runs = execute_arm(GO_ARM, workspace, con, args)
+    finally:
+        _restore_python_arm()
+    return py_runs, go_runs
+
+
 def main(argv: list[str] | None = None) -> int:
+    # Gate de dezenas de minutos: sem line-buffering o progresso só aparece no fim
+    # quando stdout é arquivo/pipe (`make ... | tee`, background), e um run travado
+    # fica indistinguível de um run silencioso.
+    sys.stdout.reconfigure(line_buffering=True)
     args = _parse_args(argv)
     args.storage_root = _storage_root(args)
     if args.runs < 2:
@@ -345,11 +437,7 @@ def main(argv: list[str] | None = None) -> int:
     assert_preconditions(args.workspace, args.storage_root, con)
     args.json_out.mkdir(parents=True, exist_ok=True)
 
-    py_runs = execute_arm(PYTHON_ARM, args.workspace, con, args)
-    go_runs = execute_arm(GO_ARM, args.workspace, con, args)
-    print("\n▶  devolvendo o worker ao executor Python…")
-    switch_arm(PYTHON_ARM)
-
+    py_runs, go_runs = _execute_both_arms(args.workspace, con, args)
     base, control = py_runs[0], py_runs[1]
     control_ok = invoke_gate(main=base, control=control, go=None, args=args)
     mains = [invoke_gate(main=base, control=control, go=g, args=args) for g in go_runs]
