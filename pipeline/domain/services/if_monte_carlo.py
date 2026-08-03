@@ -380,3 +380,61 @@ def run_monte_carlo_if(
         motivo = "acumulação inicial — foco em consistência de aporte"
         return _resultado_sem_cone(motivo, idade_meta_if, config)
     return _build_mc_result(core, config, ano_base, idade_meta_if)
+
+
+# =============================================================================
+# Payload E5 (ADR-361) — a ORDEM de composição é o contrato do wire
+# =============================================================================
+
+
+def _cone_percentis(mc: MonteCarloIFResult) -> dict:
+    """Anos do cone com a flag de censura INTERCALADA (ADR-361)."""
+    # O corte do distiller é prefixal, então flags agrupadas depois dos três anos
+    # abririam uma janela em que o LLM lê o ano sem saber que foi censurado.
+    return {
+        "p10_ano_if": mc.p10_ano_if,
+        "p10_censurado": mc.p10_censurado,
+        "p50_ano_if": mc.p50_ano_if,
+        "p50_censurado": mc.p50_censurado,
+        "p90_ano_if": mc.p90_ano_if,
+        "p90_censurado": mc.p90_censurado,
+    }
+
+
+def _cone_premissas(mc: MonteCarloIFResult) -> dict:
+    """Probabilidades (dois horizontes distintos) + premissas do run."""
+    return {
+        "prob_if_ate_idade_meta": mc.prob_if_ate_idade_meta,
+        "prob_if_ate_horizonte": mc.prob_if_ate_horizonte,
+        "idade_meta_usada": mc.idade_meta_usada,
+        "sigma_usado": mc.sigma_usado,
+        "exibir_cone": mc.exibir_cone,
+        "aporte_mensal_usado": float(mc.aporte_mensal_usado),
+        "motivo_sem_cone": mc.motivo_sem_cone,
+    }
+
+
+def _cone_series_e_proveniencia(mc: MonteCarloIFResult) -> dict:
+    """Séries ano→BRL e, no fim, a proveniência do run."""
+    # ADR-360 — proveniência no FIM de propósito: o distiller renderiza o bloco
+    # raw com cap de chars, então metadado não desloca dado de domínio do LLM.
+    return {
+        "caminho_p10": [list(p) for p in mc.caminho_p10],
+        "caminho_p50": [list(p) for p in mc.caminho_p50],
+        "caminho_p90": [list(p) for p in mc.caminho_p90],
+        "mc_version": mc.mc_version,
+        "seed_usado": mc.seed_usado,
+        "n_simulacoes_usado": mc.n_simulacoes_usado,
+        "horizonte_anos": mc.horizonte_anos,
+    }
+
+
+def monte_carlo_to_dict(mc: MonteCarloIFResult) -> dict:
+    """Bloco ``if_monte_carlo`` do payload E5 — a ORDEM de composição é o contrato."""
+    # Pública porque o gate de orçamento do exec context do parecer mede a ordem
+    # de produção, não uma cópia dela.
+    return {
+        **_cone_percentis(mc),
+        **_cone_premissas(mc),
+        **_cone_series_e_proveniencia(mc),
+    }

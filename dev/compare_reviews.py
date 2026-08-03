@@ -67,7 +67,9 @@ _TIER_DEPENDENT_SECTIONS = frozenset({"narrativas"})
 
 # Voláteis: mudam entre runs idênticos, nunca são regressão (espelha
 # _VOLATILE_LEAVES de backend/tests/test_report_view_model_snapshot.py).
-_VOLATILE_LEAVES = frozenset({"data_analise", "prob_if_ate_idade_meta"})
+# ADR-360 tirou `prob_if_ate_idade_meta` do mascaramento no snapshot (o cone é
+# reprodutível); a cópia aqui sobrevivia e mantinha o campo cego nesta ferramenta.
+_VOLATILE_LEAVES = frozenset({"data_analise"})
 
 _BRACKET_RE = re.compile(r"\[[^\]]*\]")
 

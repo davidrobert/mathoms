@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Mapping
 
-from pipeline.domain.services.if_monte_carlo import MonteCarloIFResult
+from pipeline.domain.services.if_monte_carlo import MonteCarloIFResult, monte_carlo_to_dict
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
 
 _logger = logging.getLogger("mathoms.pipeline.e5_serialization")
@@ -366,27 +366,7 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
 
     # N3: Monte Carlo IF — cone P10/P50/P90 + caminhos ano→BRL.
     if inputs.monte_carlo_if is not None:
-        mc = inputs.monte_carlo_if
-        output["if_monte_carlo"] = {
-            "p10_ano_if": mc.p10_ano_if,
-            "p50_ano_if": mc.p50_ano_if,
-            "p90_ano_if": mc.p90_ano_if,
-            "prob_if_ate_idade_meta": mc.prob_if_ate_idade_meta,
-            "idade_meta_usada": mc.idade_meta_usada,
-            "sigma_usado": mc.sigma_usado,
-            "exibir_cone": mc.exibir_cone,
-            "aporte_mensal_usado": float(mc.aporte_mensal_usado),
-            "motivo_sem_cone": mc.motivo_sem_cone,
-            "caminho_p10": [list(p) for p in mc.caminho_p10],
-            "caminho_p50": [list(p) for p in mc.caminho_p50],
-            "caminho_p90": [list(p) for p in mc.caminho_p90],
-            # ADR-360 — proveniência no FIM do bloco de propósito: o distiller do
-            # parecer renderiza `$.if_monte_carlo` raw com cap de 300 chars, então
-            # metadado de auditoria não desloca dado de domínio do contexto do LLM.
-            "mc_version": mc.mc_version,
-            "seed_usado": mc.seed_usado,
-            "n_simulacoes_usado": mc.n_simulacoes_usado,
-        }
+        output["if_monte_carlo"] = monte_carlo_to_dict(inputs.monte_carlo_if)
 
     return output
 
