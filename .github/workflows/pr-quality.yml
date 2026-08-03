@@ -9,8 +9,22 @@
 # 3. size-label  — adiciona label `size:XS|S|M|L|XL` baseado em linhas
 #                  modificadas. Comenta quando >XL pedindo split.
 #
-# Não bloqueia merge sozinho — `title-lint` deve virar required check via
-# Repository Ruleset (Onda 1). `auto-label` e `size-label` são informativos.
+# `Title (Conventional Commits)` é required check no ruleset `main-protection`
+# (id 15884038) — reprovar aqui bloqueia merge de qualquer PR. Por isso os dois
+# passos de label carregam `continue-on-error: true`: label é cosmética e nunca
+# deve gatear merge; a única razão legítima de o job reprovar é título inválido.
+#
+# O size-label é script `gh` inline, não action de terceiro, por causa de um
+# incidente medido (2026-08-03, PR #1157, run 30816509828 attempt 1): a action
+# Docker `CodelyTV/pr-size-labeler` faz `FROM alpine:3.15` sem digest, o
+# runner buildava a imagem dela num passo sintetizado ANTES dos passos do job,
+# e um timeout do Docker Hub reprovou o check com `Validate PR title` marcado
+# `skipped` — nunca chegou a rodar. `continue-on-error` não cobre esse passo
+# de build (ele não é declarado aqui), então a única correção real foi tirar
+# Docker Hub do caminho de merge. Nota: o hook `docker-sha-pin` (ADR-249)
+# escaneia via `git ls-files` e por construção não alcança o Dockerfile de
+# action de terceiro — o pin por SHA da action pina o código dela, não a base
+# da imagem que ela builda.
 #
 # Permissions: declaração no workflow level. Em repo privado pessoal não
 # há fork PR (só branches do mesmo repo), então `pull_request` (não
@@ -62,8 +76,6 @@ jobs:
       - name: Validate PR title
         if: github.event_name == 'pull_request'
         # amannn/action-semantic-pull-request@v5.5.3
-        # TODO(onda-3): SHA-pin alinhado com o padrão de tj-actions e
-        # astral-sh/setup-uv em ci.yml.
         uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825  # v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,6 +116,9 @@ jobs:
 
       - name: Apply area:* + dependency labels
         if: github.event_name == 'pull_request'
+        # Label cosmética nunca reprova required check — ver §continue-on-error
+        # no cabeçalho.
+        continue-on-error: true
         # Labeler precisa de pull-requests: write (já no workflow level).
         # actions/labeler@v5.0.0
         uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9  # v5
@@ -115,40 +130,70 @@ jobs:
 
       - name: Apply size label
         if: github.event_name == 'pull_request'
-        # CodelyTV/pr-size-labeler@v1
-        # TODO(onda-3): SHA-pin.
-        uses: CodelyTV/pr-size-labeler@095a41fca88b8764fd9e008ad269bcdb82bb38b9  # v1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          xs_label: 'size:XS'
-          xs_max_size: '20'
-          s_label: 'size:S'
-          s_max_size: '100'
-          m_label: 'size:M'
-          m_max_size: '300'
-          l_label: 'size:L'
-          l_max_size: '600'
-          xl_label: 'size:XL'
-          # Não falha o job em XL — só comenta. Decisão de aceitar PR
-          # grande é humana. Mitigação real virá em revisor (humano ou
-          # CODEOWNERS) quando o size:XL aparecer.
-          fail_if_xl: 'false'
-          message_if_xl: |
-            ## ⚠️ PR grande (>600 linhas modificadas)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
 
-            PRs grandes são mais difíceis de revisar e arriscados de reverter.
-            Se possível, considere quebrar em commits/PRs menores
-            (CLAUDE.md §Git e commits: "Diff >300 linhas ou 3+ camadas → quebre em commits sequenciais").
+          # Codegen e snapshot inflam o diff sem custo de review — ficam fora
+          # da conta. `*` casa `/` em `case`, então cobre subárvore inteira.
+          ignored() {
+            case "$1" in
+              frontend/package-lock.json|\
+              frontend/src/generated/*|\
+              backend/app/generated/*|\
+              docs/reference/DB_SCHEMA_REFERENCE.md|\
+              backend/app/openapi_snapshot.json|\
+              frontend/openapi-snapshot.json|\
+              *.snap|\
+              *__snapshots__/*|\
+              dev/code_style_baseline.json) return 0 ;;
+            esac
+            return 1
+          }
 
-            Se o tamanho é justificado (refactor cross-cutting, codegen, migração de schema),
-            adicione um comentário explicando o porquê para acelerar o review.
-          files_to_ignore: |
-            'frontend/package-lock.json'
-            'frontend/src/generated/**'
-            'backend/app/generated/**'
-            'docs/reference/DB_SCHEMA_REFERENCE.md'
-            'backend/app/openapi_snapshot.json'
-            'frontend/openapi-snapshot.json'
-            '**/*.snap'
-            '**/__snapshots__/**'
-            'dev/code_style_baseline.json'
+          # REST paginado (não `gh pr view --json files`, que trunca em 100).
+          files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" \
+                    --jq '.[] | [.filename, .additions, .deletions] | @tsv')
+
+          changed=0
+          while IFS=$'\t' read -r path adds dels; do
+            [ -n "$path" ] || continue
+            ignored "$path" && continue
+            changed=$(( changed + adds + dels ))
+          done <<< "$files"
+
+          if   [ "$changed" -le 20  ]; then size='size:XS'
+          elif [ "$changed" -le 100 ]; then size='size:S'
+          elif [ "$changed" -le 300 ]; then size='size:M'
+          elif [ "$changed" -le 600 ]; then size='size:L'
+          else                              size='size:XL'
+          fi
+          echo "$changed linhas modificadas (fora do ignore) → $size"
+
+          # Size label é exclusiva: remove as outras antes de aplicar a atual.
+          for stale in $(gh pr view "$PR" --repo "$REPO" --json labels \
+                           --jq '.labels[].name | select(startswith("size:"))'); do
+            [ "$stale" = "$size" ] && continue
+            gh pr edit "$PR" --repo "$REPO" --remove-label "$stale"
+          done
+          gh pr edit "$PR" --repo "$REPO" --add-label "$size"
+
+          # Não falha o job em XL — só comenta. Decisão de aceitar PR grande
+          # é humana. Marcador HTML evita recomentar a cada `synchronize`.
+          MARKER='<!-- pr-size-labeler:xl -->'
+          if [ "$size" = 'size:XL' ] && ! gh pr view "$PR" --repo "$REPO" \
+               --json comments --jq '.comments[].body' | grep -qF "$MARKER"; then
+            gh pr comment "$PR" --repo "$REPO" --body "$MARKER
+          ## ⚠️ PR grande (>600 linhas modificadas)
+
+          PRs grandes são mais difíceis de revisar e arriscados de reverter.
+          Se possível, considere quebrar em commits/PRs menores
+          (CLAUDE.md §Git e commits: \"Diff >300 linhas ou 3+ camadas → quebre em commits sequenciais\").
+
+          Se o tamanho é justificado (refactor cross-cutting, codegen, migração de schema),
+          adicione um comentário explicando o porquê para acelerar o review."
+          fi
