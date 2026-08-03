@@ -53,7 +53,7 @@ burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
 usuário, e viraria carimbo.
 
-## Lanes (24)
+## Lanes (25)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -84,6 +84,7 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l22]] | Superfície de degradação no relatório + PDF | **P0** | l20 | fatia premium da F11.5 · **bloqueador do beta** (6ª classe do gate de saída) |
 | [[A40.l23]] | Gate: ADR citada em prosa resolve para arquivo (reserva de ID é invisível) | P2 | — | classe exposta pela **[[ADR-345]]** |
 | [[A40.l24]] | Asserção "0 LLM" do gate F2 passa a medir no boundary do SDK | P1 | — | promovida da [[A41]] · [[ADR-355]] · [[PLAN-go-shell]] |
+| [[A40.l25]] | Honestidade do cone de IF: precisão de exibição + `sigma` como premissa auditada | P1 | — | residual de [[ADR-360]] §Def. 1 + `ADR-361` §Def. 5 · KR-E |
 
 ## Ondas
 
@@ -163,6 +164,12 @@ rebaseia sobre a [[A40.l22]] pela mesma regra de arquivo-compartilhado. **Mover 
 decisão do dono** — coloquei onde o critério declarado da sprint a coloca, não por
 preferência.
 
+**[[A40.l25]] fica fora das ondas, por definição** (aberta 2026-08-03): é o
+residual das §Entregas fora de lane, cujo código já está em `main` ou em PR
+aberta. Não compartilha arquivo com nenhuma onda — `if_monte_carlo.py` +
+superfícies de exibição de S7 — e depende só de #1162 aterrissar. Sequenciá-la
+dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
+
 **Precedência de corte:** nunca cortar [[A40.l16]] nem [[A40.l18]]. Cortáveis, em
 ordem: [[A40.l17]], marcador em `/reports` (já fora de escopo), dead-letter (já
 fora, por gatilho). **Nada sai da A40** — decisão do dono, 2026-08-03: a onda 0 e
@@ -185,6 +192,7 @@ Três lanes da Onda 1 estão em `main`, entregues **antes** da Onda 0 existir
 | [[A40.l3]] | `b12aff30` (#1124) | `janela_12m` passa de 0 consumidores a leitura por seletor único; rótulo impresso (tooltip não sai no PDF) |
 | [[A40.l4]] | `6c5d9814` (#1139) | precedência de 3 fontes declarada ([[ADR-356]]); 7 → 12 seções entregando parágrafo |
 
+
 **A precedência da Onda 0 sobre a Onda 1 é real, e não retroage sobre o baseline
 da l1.** O argumento da Onda 0 é que medir exige run que completa. Isso vale para
 todo gate que dependa de **run com parecer** — inclusive o §Gate de saída do
@@ -206,6 +214,28 @@ s9 suprimido, e o `s3` foi desligado depois (#1144) — mas não verificado.
 > está em [[A40.l4]] §Fechamento; a pergunta que sobra está na §Pendências de
 > decisão nº 4. Reescrever este parágrafo ficou fora do escopo fechado da passada
 > que corrigiu a lane.
+
+## Entregas fora de lane (2026-08-03)
+
+Trabalho que **shipou dentro da janela desta sprint sem lane própria** — nasceu de
+gate/achado, não do backlog dos 33. Registrado aqui porque a §Lanes não o cobre e
+sem isso a sprint fecharia dizendo menos do que entregou.
+
+| Entrega | Commit | ADR | O que ficou medido |
+|---|---|---|---|
+| Determinismo do cone de IF | `35acc75e` (#1156) | **[[ADR-360]]** `Proposto` | Cone era sorteado da entropia do SO (0,7% de diferença entre runs com input idêntico). Seed passa a ser constante de modelo + guard de boundary; `n` 10k→50k (dispersão 2,4%→1,2% a 85 ms); proveniência (`mc_version`/`seed_usado`/`n_simulacoes_usado`) no artefato; schema do bloco fechado. Mediu que **subir `n` não compra reprodutibilidade** (0,2% sobra a 1 M) |
+| Sentinela de não-convergência | `7107b956` (#1158) | — | `prazo_anos_realista` não projetável emitia 999, somado à idade virava `idade_meta_usada: 1040` em path citável formatado como "anos". Passa a emitir ausência com motivo. Fecha o item 5 do §Deferimento da [[ADR-360]] |
+| Percentil censurado do cone | #1162 (**aberta**) | **`ADR-361`** | `Pk` do ano de IF saía da base **dos sobreviventes** (otimista, e mais otimista quanto pior o plano) enquanto `prob` usava `n` cheio. Passa a quantil na base cheia com censura declarada por percentil; corrige também o truncamento de `int(np.percentile)`. `mc_version` → `3.0` |
+
+**O que sobra dos três** está na [[A40.l25]] — não em §Deferimento de ADR, que é
+invisível ao `SPRINT_CURRENT`.
+
+**Owner-gated destas entregas** (também em [[OWNER-GATED]]): flip da [[ADR-360]] e
+da `ADR-361` `Proposto` → `Decidido`; **nota one-shot de recalibração** no
+primeiro relatório pós-merge (seed + `n` + censura deslocam todo o bloco de IF, e
+sem a nota a leitura racional de "IF em 2040" virar 2041 é "meu plano piorou");
+**re-rodar o Tier-1** do gate F2 (`make go-parity WS=<dogfood> RUNS=2`) para
+confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
 
 ## Pendências de decisão (2026-08-03)
 
@@ -239,8 +269,9 @@ A prosa afirma que sim em **3 lugares** (`_README` linha da l20 na tabela de lan
 `_README` §Ondas ordem interna · [[A40.l20]] blockquote de abertura, e um 4º em
 [[PLAN-report-trust]]), sempre na forma "depende da *decisão*, não do *merge*". O
 frontmatter da l20 declara `depends_on: ["[[A40.l18]]"]`, que é a única relação de
-dependência do schema — `parallel_with` existe e é usado por 1 das 24 ([[A40.l24]] →
-[[TRACK-f2-cutover]]), mas não expressa "depende da decisão". Qual das duas leituras
+dependência do schema — `parallel_with` existe e é usado por 2 das 25 ([[A40.l24]] →
+[[TRACK-f2-cutover]] e [[A40.l25]] → [[A40.l11]]), mas não expressa "depende da
+decisão". Qual das duas leituras
 vale para quem pega a lane: a prosa ou o frontmatter?
 
 **3. A tabela de evidência da emenda da [[ADR-304]] tem 8 linhas — o denominador 9 é
@@ -448,9 +479,9 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 ## ADRs
 
 Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
-não do que a lane prometeu. A tabela cobre as **13** ADRs que o frontmatter `adrs:`
-das 24 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota
-de que ela **não** é superseded).
+não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
+25 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
+que ela **não** é superseded) e as abertas por §Entregas fora de lane.
 
 | ADR | Estado | Lane | Escopo |
 |---|---|---|---|
@@ -462,6 +493,9 @@ de que ela **não** é superseded).
 | [[ADR-358]] | `Proposto` | [[A40.l16]] | Enforcement em produção exige budget de produção — e KR no plano onde ele age |
 | [[ADR-356]] | `Proposto` | [[A40.l4]] (`shipped`) | Precedência declarada do parágrafo de seção e CV9 como medida de entrega. **Flip pendente** — ver §Pendências de decisão nº 5 |
 | [[ADR-355]] | `Decidido` | [[A40.l24]] | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages |
+| **[[ADR-360]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1156) · residual em [[A40.l25]] | Seed do cone Monte Carlo é constante de modelo versionada, não entropia do SO. Rejeita seed derivado do input por quebrar monotonicidade em patrimônio/aporte |
+| **`ADR-361`** | `Proposto` · PR **aberta** (#1162) | — (fora de lane) · residual em [[A40.l25]] | Percentil de tempo-até-o-evento só é publicável como ano se a taxa de sucesso o define — censura declarada na base cheia |
+| [[ADR-359]] | `Decidido` | — (fora de lane, #1154/#1155) | Dispatch assíncrono falha alto e quem cria estado pendente compensa |
 | [[ADR-304]] | `Decidido` · emendada 2026-08-03 | [[A40.l16]] | Pureza monetária da prosa do parecer; a emenda revoga a doutrina `==0` da §2 |
 | [[ADR-345]] | `Roadmap` | [[A40.l23]] | Propagação do taint E2→E5 e selo de qualidade no read-path — adoção deferida; expôs a classe de reserva-de-ID invisível |
 | [[ADR-306]] | `Decidido` | [[A40.l15]] | Base temporal de mensalização no E5 — janela canônica 12m + rótulo por bloco |
