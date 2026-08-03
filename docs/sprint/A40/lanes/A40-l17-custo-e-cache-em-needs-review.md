@@ -4,15 +4,18 @@ type: lane
 title: "Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l17-custo-e-cache-em-needs-review
-adrs: []
+ship_pr: 1183
+ship_date: "2026-08-03"
+adrs:
+  - "[[ADR-199]]"
 depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/llm

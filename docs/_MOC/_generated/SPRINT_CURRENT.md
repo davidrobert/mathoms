@@ -5,11 +5,10 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-13 open.
+12 open.
 
-## Open (13)
+## Open (12)
 
-- [[A40.l17]] — Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero · priority P1 · branch `a40-l17-custo-e-cache-em-needs-review`
 - [[A40.l19]] — Drift de enum de status: 4 valores existem em Python e não no tipo do DB · priority P1 · branch `a40-l19-migration-drift-enum-status`
 - [[A40.l2]] — Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio · priority P0 · branch `a40-l2-identidade-lancamento-cross-doc`
 - [[A40.l20]] — PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente · priority P0 · branch `a40-l20-planner-review-retido`
