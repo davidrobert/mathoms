@@ -56,7 +56,9 @@ _PERMANENT_ERROR_NAMES = frozenset(
 # C8 (ADR-329): skip reasons transitórios — a pré-condição volta (ex.: chave LLM
 # reprovisionada), então docs parkados por esses motivos são RE-TENTÁVEIS num run
 # premium posterior. ``sdk_not_installed`` fica de fora (exige deploy, não é transitório).
-RETRIABLE_SKIP_REASONS = frozenset({"missing_api_key"})
+# ``llm_disabled_for_run`` (ADR-355) é o mais transitório de todos: a pré-condição
+# volta no próximo run que não seja ``skip_llm``.
+RETRIABLE_SKIP_REASONS = frozenset({"missing_api_key", "llm_disabled_for_run"})
 
 
 def is_retriable_skip_reason(classification_meta: dict | None) -> bool:
@@ -267,6 +269,12 @@ def classify_document(
     best_period = content_result.period
     best_dest_group = content_result.dest_group
     confidence = content_result.confidence
+
+    # ADR-355: distingue "não perguntamos ao LLM" de "perguntamos e ficou ambíguo".
+    # Sem isto o doc cai em ``needs_review`` — que já acumula 5 causas — e some do
+    # corpus sem dizer que a causa é reversível no próximo run com LLM.
+    if not use_llm and confidence < _CONTENT_CONFIDENCE_THRESHOLD:
+        meta["llm_skipped_reason"] = "llm_disabled_for_run"
 
     if use_llm and confidence < _CONTENT_CONFIDENCE_THRESHOLD:
         skip_reason = _llm_prerequisites_skip_reason(api_key)

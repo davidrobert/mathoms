@@ -676,6 +676,7 @@ def _setup_run_context(
     config_dir: Path,
     incremental: bool,
     incremental_doc_paths: list[str] | None,
+    skip_llm: bool = False,
 ):
     """Cria WorkspaceContext hidratado (delegado a ``run_context_factory``).
 
@@ -696,6 +697,7 @@ def _setup_run_context(
         config_dir=config_dir,
         incremental=incremental,
         incremental_doc_paths=incremental_doc_paths,
+        skip_llm=skip_llm,
     )
     ctx = hydrated.ctx
     ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
@@ -1574,6 +1576,7 @@ def run_pipeline_task(
         config_dir,
         incremental,
         incremental_doc_paths,
+        skip_llm,
     )
     logger.info(
         "pipeline_start run_id=%s workspace_id=%s incremental=%s "

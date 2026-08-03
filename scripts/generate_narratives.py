@@ -919,6 +919,11 @@ def _e5n_load_informes(store) -> list[dict]:
 
 def _e5n_generate_section_summaries(ctx, e5_data: dict) -> dict:
     """Hook v2.9 — gera section_summaries via LLM se MATHOMS_LLM_SECTION_SUMMARIES=1."""
+    # ADR-355: `generate_narratives` não é `is_llm`, então `skip_llm` não o filtra
+    # — a política de run precisa ser consultada aqui, senão a env var vence.
+    if not getattr(ctx, "llm_calls_allowed", True):
+        return {}
+
     # Falha aberta: import erro / generator off → retorna {} (E5.N
     # continua sem o campo; frontend cai em deriveSectionSummary).
     try:

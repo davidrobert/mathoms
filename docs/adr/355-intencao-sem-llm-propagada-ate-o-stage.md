@@ -2,7 +2,7 @@
 id: ADR-355
 type: adr
 title: "Intenção \"sem LLM\" do run é propagada até o stage, não só até a lista de stages"
-status: Proposto
+status: Decidido
 phase: A40 (dívida independente da F2 do GO_SHELL)
 date: "2026-07-31"
 relates_to:
@@ -13,7 +13,7 @@ relates_to:
   - "[[ADR-329]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
 ---
 

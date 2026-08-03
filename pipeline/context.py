@@ -120,6 +120,14 @@ class WorkspaceContext:
     #: lido de ``workspaces.imoveis_no_if`` em ``_setup_run_context``.
     imoveis_no_if: bool = field(default=True)
 
+    #: ADR-355 — política do run: este stage pode fazer chamada LLM? ``False``
+    #: num run ``skip_llm`` (a negação vive só em ``build_hydrated_context``).
+    #: Governa a chamada LLM **condicional dentro de stage não-``is_llm``**
+    #: (classificação E0, section summaries) — todo call-site novo desse tipo
+    #: lê aqui. Não é o ``skip_llm`` do request (que filtra a LISTA de stages
+    #: por ``is_llm``) nem ``llm_call_hooks`` (budget/telemetria, ADR-173).
+    llm_calls_allowed: bool = True
+
     #: ADR-173 — hooks de FinOps no choke-point LLM (budget hard-stop +
     #: ``LLMCallLog``). Backend injeta ``LLMBudgetService`` em
     #: ``_setup_run_context``; ``None`` em CLI/testes → sem cap, sem log.

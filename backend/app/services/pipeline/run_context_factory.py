@@ -174,6 +174,7 @@ def build_hydrated_context(
     config_dir: Optional[Path] = None,
     incremental: bool = False,
     incremental_doc_paths: Optional[List[str]] = None,
+    skip_llm: bool = False,
     materialize_tarefas: bool = False,
     session_factory: Optional[Callable[[], Session]] = None,
 ) -> HydratedContext:
@@ -181,6 +182,11 @@ def build_hydrated_context(
     session = (session_factory or _default_session_factory)()
     ctx = _build_ctx(ws_id, tenant_root, run_id, config_dir, session=session)
     ctx.incremental, ctx.incremental_doc_paths = incremental, list(incremental_doc_paths or [])
+    # ADR-355: ÚNICO ponto de negação entre o vocabulário do wire (``skip_llm``,
+    # negativo, filtra stages) e o do contexto (``llm_calls_allowed``, positivo,
+    # governa chamada dentro de stage). Espalhar o ``not`` por executor seria
+    # três lugares para inverter a polaridade.
+    ctx.llm_calls_allowed = not skip_llm
     _attach_llm_budget_hooks(ctx, ws_id, run_id)
     _attach_llm_response_cache(ctx)
     _attach_llm_metrics_emitter(ctx)

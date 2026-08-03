@@ -6,7 +6,7 @@ e por debug/ops local:
     python -m pipeline.orchestrator run-stage <stage> \
         --workspace <path> --run-id <id> --workspace-id <id> \
         [--config-dir <path>] [--incremental] [--incremental-doc <path>...] \
-        [--base-run-id <id>] [--base-run-fallback-stages <csv>]
+        [--skip-llm] [--base-run-id <id>] [--base-run-fallback-stages <csv>]
 
 stdout: somente o JSON do ``StageResult`` (5 campos). stderr: erros
 estruturados em JSON. Exit codes: 0 = sucesso, 1 = falha de stage,
@@ -63,6 +63,7 @@ def _add_run_stage_parser(subparsers) -> None:
         "--workspace-id", required=True, help="Workspace id (tenancy do store, ADR-303 D3)."
     )
     _add_run_stage_optional_flags(p)
+    _add_base_run_flags(p)
 
 
 def _add_run_stage_optional_flags(p: argparse.ArgumentParser) -> None:
@@ -75,6 +76,14 @@ def _add_run_stage_optional_flags(p: argparse.ArgumentParser) -> None:
         dest="incremental_docs",
         help="Path de documento novo (repetível).",
     )
+    p.add_argument(
+        "--skip-llm",
+        action="store_true",
+        help="Run sem LLM: suprime chamada condicional dentro do stage (ADR-355).",
+    )
+
+
+def _add_base_run_flags(p: argparse.ArgumentParser) -> None:
     p.add_argument("--base-run-id", default=None, help="Run base para leitura pinada (ADR-291).")
     p.add_argument(
         "--base-run-fallback-stages",
@@ -179,6 +188,7 @@ def _hydration_kwargs(args: argparse.Namespace) -> dict:
         "config_dir": args.config_dir,
         "incremental": args.incremental,
         "incremental_doc_paths": list(args.incremental_docs),
+        "skip_llm": args.skip_llm,
         "materialize_tarefas": True,
     }
 

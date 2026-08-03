@@ -82,6 +82,9 @@ func BuildArgs(stage string, req contracts.StageExecuteRequest) []string {
 			args = append(args, "--incremental-doc", doc)
 		}
 	}
+	if req.SkipLlm != nil && *req.SkipLlm {
+		args = append(args, "--skip-llm")
+	}
 	if req.BaseRunId != nil && *req.BaseRunId != "" {
 		args = append(args, "--base-run-id", *req.BaseRunId)
 	}

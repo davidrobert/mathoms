@@ -374,6 +374,13 @@ def run_stages(
     stop_on_error: bool = True,
 ) -> PipelineResult:
     """Executa uma lista arbitrária de stages em ordem."""
+    # ADR-355: filtrar a lista por ``is_llm`` não impede chamada LLM condicional
+    # dentro de stage determinístico. Os executores Celery/HTTP/CLI anotam via
+    # ``build_hydrated_context``; aqui (caminho puro — testes, dev/) o ctx já
+    # chega pronto, então a política é anotada nele — como ``artifact_store`` e
+    # ``shell_degraded``, é estado per-run, não global.
+    ctx.llm_calls_allowed = not skip_llm
+
     result = PipelineResult(started_at=datetime.now().isoformat())
 
     for stage in stages:
