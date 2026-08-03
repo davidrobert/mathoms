@@ -86,6 +86,8 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l24]] | Asserção "0 LLM" do gate F2 passa a medir no boundary do SDK | P1 | — | promovida da [[A41]] · [[ADR-355]] · [[PLAN-go-shell]] |
 | [[A40.l25]] | Honestidade do cone de IF: precisão de exibição + `sigma` como premissa auditada | P1 | — | residual de [[ADR-360]] §Def. 1 + `ADR-361` §Def. 5 · KR-E |
 | [[A40.l26]] | Cobertura do solver de prazo IF (aporte 0 com retorno > 0 converge) | P2 | — | [[ADR-360]] §Def. 6-7, abertos *pelo* #1158 · co-design `financial-planner` |
+| [[A40.l28]] | Idade-meta do cone é output do modelo + rótulo `p10`/`p90` aponta para dois lados | P1 | — | `ADR-361` §Def. 1-2 · contrato, sem brief · KR-E |
+| [[A40.l29]] | Editorial do ano de IF: dois anos concorrentes, eixo em "quando", faixa sem componente | P2 | — | `ADR-361` §Def. 4/6/7 + RV3-14 · **começa por brief de `product-designer`** · KR-E |
 
 ## Ondas
 
@@ -178,6 +180,14 @@ aberta. Não compartilha arquivo com nenhuma onda — `if_monte_carlo.py` +
 superfícies de exibição de S7 — e depende só de #1162 aterrissar. Sequenciá-la
 dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
 
+**[[A40.l28]] e [[A40.l29]] seguem o critério da l25** (abertas 2026-08-03):
+mesmo residual, mesma dependência de #1162 aterrissar, fora das ondas pelo mesmo
+motivo. São **disjuntas por camada** — a l28 é contrato (payload, schema,
+catálogo, tipos) e a l29 é exibição (S7, narrador, componente) — então as três
+rodam em paralelo entre si e com a l26. A l29 é a única com **passo 0 que não é
+código**: sem o brief de `product-designer` ela fica parada, e foi por isso que a
+l25 a empurrou para fora em vez de absorvê-la.
+
 **[[A40.l27]] é residual pelo mesmo critério, mas NÃO flutua livre** (aberta
 2026-08-03): `depends_on: [[A40.l19]]`, que está na Onda 3. O `resuming` ausente do
 tipo `pipelinerunstatus` no DB entra em **predicado de query** na varredura de
@@ -246,8 +256,16 @@ sem isso a sprint fecharia dizendo menos do que entregou.
 | Sentinela de não-convergência | `7107b956` (#1158) | — | `prazo_anos_realista` não projetável emitia 999, somado à idade virava `idade_meta_usada: 1040` em path citável formatado como "anos". Passa a emitir ausência com motivo. Fecha o item 5 do §Deferimento da [[ADR-360]] |
 | Percentil censurado do cone | #1162 (**aberta**) | **`ADR-361`** | `Pk` do ano de IF saía da base **dos sobreviventes** (otimista, e mais otimista quanto pior o plano) enquanto `prob` usava `n` cheio. Passa a quantil na base cheia com censura declarada por percentil; corrige também o truncamento de `int(np.percentile)`. `mc_version` → `3.0` |
 
-**O que sobra dos três** está na [[A40.l25]] e na [[A40.l26]] — não em §Deferimento de ADR, que é
-invisível ao `SPRINT_CURRENT`.
+**O que sobra dos três** está na [[A40.l25]], [[A40.l26]], [[A40.l28]] e
+[[A40.l29]] — não em §Deferimento de ADR, que é invisível ao `SPRINT_CURRENT`.
+
+> **Correção de cobertura — 2026-08-03.** A l25 e a l26 cobriam 3 dos 7 itens do
+> §Deferimento da `ADR-361`: o item 5 (faixa de 5 pp) e o residual da
+> [[ADR-360]]. Os outros quatro estavam **descritos e sem destino** — exatamente
+> o estado que esta seção existe para impedir. Roteados agora: **l28** leva os
+> dois de contrato (idade-meta como input, rename do rótulo) e **l29** leva os
+> três editoriais, que a própria l25 declarou fora de escopo por dependerem de
+> brief. O item 3 (sentinela 999) tinha sido fechado pelo #1158.
 
 ### Órfão de dispatch (gate de paridade Go, não report-trust)
 
