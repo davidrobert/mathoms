@@ -164,7 +164,7 @@ abaixo exige 2 re-runs completos consecutivos — com 89% dos runs degradando, o
 contador não inicia e o baseline de toda onda posterior mede um pipeline que não
 entrega.
 
-**Ordem reader-first (não acoplar PRs).** Os 5 read sites de `partial_failure`
+**Ordem reader-first (não acoplar PRs).** Os **7** read sites de `partial_failure`
 no frontend são **código morto hoje** (o status existe no union type e no
 `format.ts`, mas nenhum writer o emite). Corrigi-los primeiro é PR coeso, de
 risco zero e inalcançável em produção; só então [[A40.l18]] flippa o emissor.

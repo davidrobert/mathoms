@@ -108,14 +108,15 @@ RV3-07** e porque é reincidência de um "FIXADO" falso.
 verde sem prova. A l5 vem **antes** das lanes de correção individual de contrato —
 senão cada uma é fixada uma vez e volta a divergir.
 
-**Onda 3 — degradação honesta** ([[A40.l18]]…[[A40.l22]]). Fecha a classe que o
+**Onda 3 — degradação honesta** (na ordem reader-first que esta seção declara:
+[[A40.l21]], [[A40.l18]], [[A40.l19]], [[A40.l20]], [[A40.l22]]). Fecha a classe que o
 incidente expôs: contrato de criticidade de stage, `partial_failure` alcançável, e
 o retido declarado na tela. É a §Frente 4 de [[PLAN-report-trust]] — leia lá a
 tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 
 **Ordem interna, e nenhuma das três é estética:**
 
-- **[[A40.l21]] antes de [[A40.l18]]** (reader-first). Os 5 read sites de
+- **[[A40.l21]] antes de [[A40.l18]]** (reader-first). Os **7** read sites de
   `partial_failure` no frontend são código morto hoje — o status existe no union
   type e no `format.ts`, mas nenhum writer o emite. Corrigi-los primeiro é PR
   coeso e de risco zero. Shipar o writer primeiro entregaria um run que produziu
@@ -185,6 +186,131 @@ O que **não** foi cumprido nas três: a re-triagem bloqueante da l4 (os 7 achad
 inertes verificados contra output renderizado) morreu por limite de gasto e a lane
 mergeou sem ela. O risco ficou delimitado — s4 entrega sem contagem, s8 sem DAS,
 s9 suprimido, e o `s3` foi desligado depois (#1144) — mas não verificado.
+
+> **Imprecisão do parágrafo acima, nomeada e não corrigida (2026-08-03).** "Morreu
+> por limite de gasto e a lane mergeou sem ela" descreve a **3ª passada**, não a
+> re-triagem: ela rodou **duas vezes e bloqueou nas duas**. A cronologia precisa
+> está em [[A40.l4]] §Fechamento; a pergunta que sobra está na §Pendências de
+> decisão nº 4. Reescrever este parágrafo ficou fora do escopo fechado da passada
+> que corrigiu a lane.
+
+## Pendências de decisão (2026-08-03)
+
+Nove perguntas de **higiene interna desta sprint**. Deliberadamente **não** entram
+em [[OWNER-GATED]]: aquele registro é de gates estratégicos entre planos
+(licença, flip de cutover, LGPD), e misturar higiene de sprint diluiria o sinal
+dele. Cada item traz o que foi **medido** sobre `origin/main` (`a1e70223`) e
+termina em pergunta — nenhuma decisão embutida.
+
+**1. Qual é o predicado do campo `status` de lane?**
+
+O campo não deriva de regra declarada e está **anti-correlacionado** com dependência
+satisfeita. Medido no frontmatter das 24 lanes:
+
+- **Mesma onda, mesmo `depends_on`, `status` diferente** — [[A40.l2]] (`open`) e
+  [[A40.l12]] (`planned`) estão as duas na Onda 2 e dependem as duas só de
+  [[A40.l1]], que está `shipped`. Segundo par: [[A40.l14]] (`planned`) e
+  [[A40.l23]] (`open`), as duas na Onda 4, as duas sem `depends_on`.
+- **8 lanes com todas as deps satisfeitas estão `planned`** (l5, l7, l8, l11, l12,
+  l13, l14, l15) enquanto **3 lanes com dep não satisfeita estão `open`** (l18
+  depende de l21 `open`; l20 de l18 `open`; l22 de l20 `open`).
+- O enum do schema admite `planned` · `open` · `in_progress` · `blocked` ·
+  `shipped` · `cancelled`. **`blocked` não é usado por nenhuma das 24.**
+
+`status` significa "dep satisfeita", "onda aberta", "alguém pegou", ou nada
+verificável? Se houver predicado, quem o deriva e quando?
+
+**2. A [[A40.l20]] pode abrir PR antes de a [[A40.l18]] mergear?**
+
+A prosa afirma que sim em **3 lugares** (`_README` linha da l20 na tabela de lanes ·
+`_README` §Ondas ordem interna · [[A40.l20]] blockquote de abertura, e um 4º em
+[[PLAN-report-trust]]), sempre na forma "depende da *decisão*, não do *merge*". O
+frontmatter da l20 declara `depends_on: ["[[A40.l18]]"]`, que é a única relação de
+dependência do schema — `parallel_with` existe e é usado por 1 das 24 ([[A40.l24]] →
+[[TRACK-f2-cutover]]), mas não expressa "depende da decisão". Qual das duas leituras
+vale para quem pega a lane: a prosa ou o frontmatter?
+
+**3. A tabela de evidência da emenda da [[ADR-304]] tem 8 linhas — o denominador 9 é
+o quê?**
+
+Medido na tabela (linhas 127-134 do arquivo da ADR): **8 linhas de dado**; **7 de 8
+(87,5%)** têm `number_in_prose` > 0; **6 de 8 (75%)** tiveram item apagado (a linha
+de 2026-07-31 é o run que falhou, com `—` na coluna de apagados). E **7 documentos**
+afirmam "9 runs" / "8 de 9" / "89%": [[ADR-304]], [[ADR-296]], [[ADR-358]],
+[[PLAN-report-trust]], este `_README`, [[A40.l16]] e [[A40.l22]]. O run do incidente
+`2ded7aab` **já é** a 1ª linha da tabela. Falta uma 9ª linha que existe e não foi
+tabulada, ou o denominador 9 — e os 89% derivados dele — está errado?
+
+**4. A re-triagem bloqueante da [[A40.l4]] conta como critério cumprido?**
+
+Cronologia medida e agora escrita na lane: rodou **2×** e **bloqueou nas 2**; a 1ª
+achou C29 e C32 `agora-visível-e-errado`; a 2ª achou C32 resolvido e provado por
+mutação, C29 ainda errado (o DAS *recolhido* que substituiu a estimativa também era
+falso) e **2 contradições novas** (`s4` com 6 imóveis contra 4 na seção; CV9 contando
+7 de 7 com o render entregando 6); a **3ª passada, pós-remediação final, não rodou**
+(limite de gasto). "Rodou 2×, bloqueou 2×, corrigido, 3ª passada não rodou" satisfaz
+o critério de aceite, ou a lane precisa da passada final antes de fechar de fato?
+
+**5. A [[ADR-356]] flippa para `Decidido (A40.l4)` ou fica `Proposto` com o motivo
+escrito?**
+
+Medido: `status: Proposto` no arquivo; [[A40.l4]] (a lane que a implementa) está
+`shipped` em `6c5d9814` (#1139). O CLAUDE.md §"Política operacional" diz que o PR de
+implementação flippa a ADR no merge — mas o critério de aceite da lane não foi
+integralmente cumprido (nº 4 acima). Flip agora, ou `Proposto` com o motivo do
+não-flip registrado no próprio arquivo?
+
+**6. Os 4 residuais que a [[A40.l4]] roteou para "lane própria" ficam na A40?**
+
+Medido na §Residual da lane — 14 linhas, das quais **4** têm `Dono` = "lane própria":
+
+1. **`s3` contradiz a tabela da própria S3** — 3 categorias no parágrafo, 2 classes
+   na tabela (`lane própria (gate financial-planner)`).
+2. **`perfil_familia.right` publica `n_imoveis`** — a contagem que o `s4` deixou de
+   afirmar; contradição cross-seção com a tabela da S4.
+3. **PD-20 — a meta de TRS não é configurável** — `PassiveIncomeConfig.trs_meta_pct`
+   nunca é lido pelo `RatiosCalculator`.
+4. **Base da cascata** — `receita_bruta = receita_pj_anual` em vez de
+   `FinanceiroPJSnapshot.receita_bruta_total_anual` ([[ADR-238]]).
+
+Uma 5ª linha tem disposição distinta ("lane pós-re-medição do balde": reintroduzir
+DAS no `s8` e `das_simples` em `despesas_impostos` depois de re-medir o balde com o
+matcher de `69a2fad4`). Esses ficam na A40 — e então precisam de lane, contra as 24
+atuais — ou viram disposição explícita de não-fazer na §Fora do sprint?
+
+**7. Onde mora o tripwire de revert da [[A40.l21]], e quem é o owner?**
+
+A amarra "se a [[A40.l18]] escorregar >1 sprint, reverta a [[A40.l21]]" está em **3
+lugares de prosa** (`_README` §Ondas · [[A40.l21]] §Decisão · [[PLAN-report-trust]])
+e em **nenhum mecanismo**: este `_README` não tem seção própria de gate de saída nem
+de DoD — todas as menções a "gate de saída" fora desta seção (tabela de lanes,
+§Ondas, §Estado da Onda 1) são ponteiro para [[PLAN-report-trust]] §Gate de saída do
+dogfood — e o frontmatter da sprint declara `date: "2026-07-30"` sem data de fim. Sem
+data de fim, "escorregar >1 sprint" não é avaliável. Qual artefato hospeda o
+tripwire, com que gatilho, e sob qual owner?
+
+**8. Vale acrescentar o path off-git ao lado de cada número medido?**
+
+Três números circulam na sprint sem caminho de re-medição para o próximo agente:
+
+- **"261 colisões · Σ 81.288.000 cents"** (§Estado da Onda 1 e [[A40.l2]]) — a
+  [[A40.l1]] declara o destino genérico `storage/<uuid>/certify/`, não o dump.
+- **"105/105 grupos"** (§Tese, [[A40.l1]], [[ADR-354]], [[REPORT-REVIEWS-active]],
+  [[SPRINTS-active]]).
+- **"25m23s e US$ 1,5655"** do run `2ded7aab` ([[A40.l16]], [[PLAN-report-trust]]).
+
+Número sem path força o próximo agente a re-medir do zero ou a confiar. Anexar o
+path off-git virá convenção da sprint, ou fica caso a caso?
+
+**9. A precedência não-negociável da Onda 0 bloqueia a [[A40.l9]]?**
+
+A [[A40.l9]] é a única lane da Onda 1 que não shipou (`status: open`, sem
+`depends_on`). O §Estado da Onda 1 escreveu a isenção **só para a medição da
+[[A40.l1]]** — `dev/certify_ledger_local.py` é read-only, sem Celery e sem LLM. O
+critério de aceite da l9 são 3 casos em
+`backend/tests/test_tributario_run_scoped_inputs.py` **mais** conferência de delta
+`↑` por `dev/golden_diff.py`. A l9 está isenta pelo mesmo argumento da l1, ou o
+golden_diff a amarra a um run completo — e portanto à [[A40.l16]]?
 
 ## Decisões do painel (correções incorporadas)
 
@@ -287,13 +413,27 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 
 ## ADRs
 
-| ADR | Estado | Escopo |
-|---|---|---|
-| **[[ADR-354]]** | a abrir `Proposto` na [[A40.l2]] | Identidade de transação (K4) exclui atributos de proveniência do documento |
-| [[ADR-337]] | emenda na [[A40.l6]] | Critério 4 (gate de PII no view-model) não existe |
-| [[ADR-351]] | flip na [[A40.l12]] | Retorno de principal não é renda recorrente |
-| [[ADR-353]] | flip na [[A40.l11]] | Confiança do diagnóstico — **bloqueado** até o campo-portador ter consumidor |
-| [[ADR-278]] | **não** superseded | `_hash_v1` congelado; a A40 não cria `_hash_v3` |
+Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
+não do que a lane prometeu. A tabela cobre as **13** ADRs que o frontmatter `adrs:`
+das 24 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota
+de que ela **não** é superseded).
+
+| ADR | Estado | Lane | Escopo |
+|---|---|---|---|
+| **[[ADR-354]]** | `Proposto` (aberta em #1114) · flip a `Decidido` no merge da [[A40.l2]] | [[A40.l2]] | Identidade de transação (K4) exclui atributos de proveniência do documento |
+| [[ADR-337]] | `Decidido` · emenda na [[A40.l6]] | [[A40.l6]] | Critério 4 (gate de PII no view-model) não existe |
+| [[ADR-351]] | `Proposto` · flip na [[A40.l12]] | [[A40.l12]] | Retorno de principal não é renda recorrente |
+| [[ADR-353]] | `Proposto` · flip na [[A40.l11]] | [[A40.l11]] | Confiança do diagnóstico — **bloqueado** até o campo-portador ter consumidor |
+| [[ADR-357]] | `Proposto` · flip no merge da [[A40.l18]] | [[A40.l18]], [[A40.l19]], [[A40.l20]], [[A40.l21]] | Criticidade de stage e degradação do run — add-on advisory não veta o entregável. **A mais carregada da sprint: 4 lanes** |
+| [[ADR-358]] | `Proposto` | [[A40.l16]] | Enforcement em produção exige budget de produção — e KR no plano onde ele age |
+| [[ADR-356]] | `Proposto` | [[A40.l4]] (`shipped`) | Precedência declarada do parágrafo de seção e CV9 como medida de entrega. **Flip pendente** — ver §Pendências de decisão nº 5 |
+| [[ADR-355]] | `Decidido` | [[A40.l24]] | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages |
+| [[ADR-304]] | `Decidido` · emendada 2026-08-03 | [[A40.l16]] | Pureza monetária da prosa do parecer; a emenda revoga a doutrina `==0` da §2 |
+| [[ADR-345]] | `Roadmap` | [[A40.l23]] | Propagação do taint E2→E5 e selo de qualidade no read-path — adoção deferida; expôs a classe de reserva-de-ID invisível |
+| [[ADR-306]] | `Decidido` | [[A40.l15]] | Base temporal de mensalização no E5 — janela canônica 12m + rótulo por bloco |
+| [[ADR-240]] | `Decidido` | [[A40.l7]] | Card `S_PROTECAO` no relatório (pilar de proteção patrimonial) |
+| [[ADR-204]] | `Decidido` · emenda provável na [[A40.l20]] | [[A40.l20]] | Imutabilidade do parecer pós-publicação; §D1 é quem fixa o vocabulário de `PlannerReview.status` |
+| [[ADR-278]] | `Decidido` · **não** superseded | — | `_hash_v1` congelado; a A40 não cria `_hash_v3` |
 
 ## Débito de método herdado da r3
 
