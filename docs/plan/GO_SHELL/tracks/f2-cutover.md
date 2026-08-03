@@ -131,9 +131,27 @@ diferiu-o explicitamente para cá) e o runbook de cutover.
    `skip_llm` do orquestrador atua **filtrando a lista de stages** por `is_llm` —
    nunca chega ao wrapper. Logo um run que pede "sem LLM" ainda gastaria LLM no E0
    se o inbox tivesse doc de baixa confiança. O gate contorna pelo inbox vazio.
-3. **`ANTHROPIC_API_KEY`** disponível no env do serviço Go para o Tier-2 (run
+3. **`ANTHROPIC_API_KEY`** disponível no env dos **dois braços** para o Tier-2 (run
    full com narrativas). Owner-gated (custo LLM — orçar; ordem de grandeza
    abaixo dos evals de parecer, mas medir).
+
+   > **Corrigido 2026-08-03.** Esta pré-condição dizia "no env do serviço Go" — e
+   > pedir a credencial só de um lado **garante** a assimetria que a [[A40.l24]]
+   > fechou no Tier-1. `_go-on-native` lê a chave do `.env` e a injeta no shell Go
+   > (repassada a cada subprocess por `os.Environ()`); `dev-worker-up` só herda o env
+   > do shell. `.env` com chave + shell sem chave = braço Go chamando LLM que o Python
+   > não chama, e o diff aparece como bug de executor — a divergência de §B.1 de novo,
+   > agora fora do escopo do `skip_llm`.
+   >
+   > **Como é enforçado:** `assert_credential_symmetry` em `assert_preconditions`
+   > (`dev/go_parity_llm_free.py`) aborta o Tier-2 antes de gastar run se a chave
+   > estiver no `.env` e não no shell, ou ausente nos dois. **Exportar no shell** é a
+   > forma correta: `export ANTHROPIC_API_KEY=…` antes do `make go-parity`.
+   >
+   > **Por que não injetar a chave no worker** (que "resolveria" por cima): ligaria a
+   > chamada de visão sem gate do `caixa.py` em **todo** run de dev, inclusive
+   > determinístico ([[ADR-355]] 3ª superfície, [[A41.l3]]) — trocaria "os braços
+   > divergem" por "os dois gastam LLM". O guard informa; a decisão fica com o dono.
 4. **Risco novo assumido — dois escritores SQLite.** Sob `InProcess` o worker
    escreve artefatos in-process; sob o shell Go o **subprocess** escreve artefatos
    enquanto o worker escreve `pipeline_runs`/eventos. SQLite WAL admite um
@@ -484,25 +502,28 @@ parser Caixa". O gate falhou como ela avisou que falharia.
    **silenciosamente religa** a chamada de visão sem gate em runs onde hoje ela está morta
    — inclusive determinísticos. Ou [[A41.l3]] fecha antes, ou isso vai declarado no gate
    humano. Não pode ir implícito.
-3. **Tier-2 não é comparável enquanto os envs divergirem.** No run full a mesma assimetria
-   reaparece (Py sem chave → stub; Go com chave → extração), então a divergência se repete
-   fora do escopo do `skip_llm`. Igualar o env dos dois braços é pré-condição do Tier-2 —
-   e igualar **não** substitui [[A41.l3]]: sem o gate de política, igualar por cima só
-   troca "divergem" por "os dois gastam LLM no Tier-1".
-4. **O gate media a camada errada** — mitigado em #1151 (mesmo dia): `_assert_llm_free`
-   passou a ler `requires_llm_fallback` do **payload** do E2, não só `stage LIKE '%llm%'`.
-   Paliativo consciente: pega **escalação**, não **chamada bem-sucedida** — a extração de
-   visão que funciona não deixa flag algum, então um corpus onde só a Caixa dispara ainda
-   passaria. A asserção honesta ("0 chamada") só fecha no boundary do SDK `anthropic` ou
-   roteando o call-site pelo choke-point instrumentado — [[A40.l24]] + [[A41.l2]]/[[A41.l3]].
-5. **Consequência imediata de #1151: o corpus de dogfood deixa de servir ao Tier-1 como
-   está.** Com a asserção nova, cada run aborta com `GateError` — há 18–19 docs com
-   `requires_llm_fallback` (medido nos runs de 03/08: 19 no braço Python, 18 no Go). Isto
-   **contradiz** a conclusão "não é preciso fixture sintética" da pré-condição 2. Saída:
-   ou as 18–19 escalações passam a ser servidas (exige LLM → é Tier-2, não Tier-1), ou a
-   fixture curada volta ao escopo, ou a asserção separa "escalou e ninguém serviu"
-   (simétrico nos dois braços, inofensivo à paridade) de "chamou LLM" (assimétrico, é o
-   bug). A terceira é a mais barata e a que preserva a intenção original do gate.
+3. ✅ **Tier-2 não era comparável enquanto os envs divergissem — fechado.** No run full a
+   mesma assimetria reaparecia (Py sem chave → stub; Go com chave → extração), fora do
+   escopo do `skip_llm`. `assert_credential_symmetry` (pré-condição 3) aborta o Tier-2
+   antes de gastar run. Igualar **não** substitui [[A41.l3]]: sem o gate de política,
+   igualar por cima só trocaria "divergem" por "os dois gastam LLM".
+4. ✅ **O gate media a camada errada — fechado pela [[A40.l24]]** (#1151 → #1157). Duas
+   iterações: #1151 trocou a cegueira (`stage LIKE '%llm%'`) por uma **inversão** (gatear
+   em `requires_llm_fallback` reprova o braço sem credencial e aprova o que pagou, porque
+   o flag só é setado quando a visão **falha**); #1157 fechou **impedindo** a chamada —
+   `LLM_FREE=1` apaga a credencial dos dois braços, com marcador verificado e prova de
+   mutação. Ver pré-condição 2 §Reescrito.
+
+   > Meu item 4 original propunha medir "no boundary do SDK". A [[A40.l24]] mostrou que
+   > **não é alcançável** no harness: o run executa no worker Celery / subprocess Go, fora
+   > do alcance do spy, e instrumentar sempre-ligado violaria [[ADR-111]]. Impedir > medir.
+5. ✅ **"O corpus de dogfood deixa de servir ao Tier-1" — resolvido, não confirmado.** Era
+   consequência da inversão de #1151, não do corpus: com a asserção daquele PR os 18–19
+   docs com `requires_llm_fallback` abortariam todo run. O #1157 os **reclassificou** como
+   corpus encolhido ([[ADR-355]] §Consequências) — reportados, sem reprovar, porque sob
+   `DETERMINISTIC_ORDER` o stub é o comportamento esperado (`extract_with_llm` é `is_llm`).
+   A conclusão "não é preciso fixture sintética" da pré-condição 2 **volta a valer**, agora
+   com a garantia de 0-LLM vindo da credencial ausente em vez de contagem de artefato.
 
 ### C. Defeito metodológico do harness — corrigido
 
@@ -537,8 +558,19 @@ confundida. Sem isso, todo achado exigiria o experimento manual acima.
    controle Py↔Py sem allowlist para o cone.
 2. ✅ **Divergência `caixa` — explicada** (§B.1/B.2, 2026-08-03). Não é bug de executor: é
    [[ADR-355]] 3ª superfície ([[A41.l3]]) exposta por assimetria de env entre os dois
-   braços. Substituída por itens concretos (§B.3): declarar no gate humano que o flip
-   religa a chamada de visão sem gate; igualar o env dos braços antes do Tier-2; resolver
-   o que fazer com as 18–19 escalações não-servidas, que pós-#1151 abortam o Tier-1.
-3. Depois disso: re-rodar Tier-1 (agora intercalado) → Tier-2 (custa LLM) → gate humano →
-   flip → soak com o ledger do RUNBOOK §11.3.
+   braços. Dos quatro itens que ela gerou em §B.3, três fecharam no mesmo dia (asserção
+   do Tier-1 pela [[A40.l24]]; corpus reclassificado; simetria de credencial do Tier-2 na
+   pré-condição 3). **Sobra um, e é do gate humano** — item 3 abaixo.
+3. ⛔ **Declarar no gate humano que o flip religa uma chamada LLM sem gate.** Único item de
+   §B.3 ainda aberto, e não é fechável por harness: pós-flip o shell Go entrega
+   `ANTHROPIC_API_KEY` a **todo** subprocess de stage por construção
+   (`executor.go` → `os.Environ()`), então a extração de visão do `caixa.py` — que hoje
+   está morta no worker por ausência de credencial — passa a rodar, **inclusive em runs
+   determinísticos**, sem budget ([[ADR-173]]), sem `LLMCallLog`, sem sanitização
+   ([[ADR-175]]) e mandando PDF financeiro inteiro em base64. Duas saídas, escolha do dono:
+   fechar [[A41.l3]] antes do flip, ou aceitar explicitamente no gate humano com o custo
+   declarado. **Não pode ir implícito** — é mudança de comportamento causada pelo cutover,
+   não pré-existente a ele.
+4. Depois disso: re-rodar Tier-1 (agora intercalado, com seed fixo e `LLM_FREE=1`) →
+   Tier-2 (custa LLM; exige a chave exportada no shell) → gate humano → flip → soak com o
+   ledger do RUNBOOK §11.3.

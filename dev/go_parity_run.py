@@ -40,6 +40,7 @@ from urllib.parse import urlparse
 from dev.go_parity_errors import GateError
 from dev.go_parity_llm_free import (
     LLM_FREE_MARKER,
+    assert_credential_symmetry,
     assert_llm_free,
     assert_scrub_applied,
     escalated_docs,
@@ -161,12 +162,22 @@ def assert_no_active_run(con: sqlite3.Connection, workspace: str) -> None:
         )
 
 
-def assert_preconditions(workspace: str, storage_root: Path, con: sqlite3.Connection) -> None:
+def assert_preconditions(
+    workspace: str, storage_root: Path, con: sqlite3.Connection, tier: str = "tier1"
+) -> None:
     """Falha ANTES de gastar run. Inbox não-vazio faria o E0 classificar (e gastar LLM)."""
     assert_stack_up()
     if not _run_ids(con, workspace):
         raise GateError(f"workspace {workspace} não tem run algum — confirme o uuid")
     assert_no_active_run(con, workspace)
+    # O Tier-1 resolve a simetria de credencial apagando dos dois braços (LLM_FREE);
+    # o Tier-2 precisa dela PRESENTE nos dois, e `.env` sozinho só alimenta o Go.
+    assert_credential_symmetry(tier)
+    assert_inbox_empty(workspace, storage_root)
+
+
+def assert_inbox_empty(workspace: str, storage_root: Path) -> None:
+    """Inbox com arquivo faz o E0 classificar — e gastar LLM em doc de baixa confiança."""
     pending = _inbox_files(workspace, storage_root)
     if pending:
         raise GateError(
@@ -460,7 +471,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.runs < 2:
         raise GateError("--runs >= 2: o controle Py↔Py exige dois runs Python")
     con = _connect(_db_path(args.db))
-    assert_preconditions(args.workspace, args.storage_root, con)
+    assert_preconditions(args.workspace, args.storage_root, con, args.tier)
     args.json_out.mkdir(parents=True, exist_ok=True)
 
     py_runs, go_runs = _execute_both_arms(args.workspace, con, args)

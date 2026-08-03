@@ -17,6 +17,7 @@ import pytest
 from dev.go_parity_errors import GateError
 from dev.go_parity_llm_free import (
     LLM_FREE_MARKER,
+    assert_credential_symmetry,
     assert_llm_free,
     assert_scrub_applied,
     escalated_docs,
@@ -183,3 +184,47 @@ def test_makefile_apaga_a_credencial_nos_dois_bracos():
     assert "LLM_FREE_SCRUB = $(if $(LLM_FREE),ANTHROPIC_API_KEY= ,)" in makefile
     assert makefile.count("$(LLM_FREE_SCRUB) ") >= 2, "worker nativo e worker-go precisam do scrub"
     assert '[ -z "$(LLM_FREE)" ] || { AKEY=""' in makefile, "shell Go continua injetando a key"
+
+
+# ───────── Tier-2: a simetria vem de TER a credencial nos dois braços ─────────
+
+
+def _env_file(tmp_path: Path, *, declares: bool) -> Path:
+    env = tmp_path / ".env"
+    body = "MATHOMS_DATABASE_URL=sqlite+aiosqlite:///x.db\n"
+    env.write_text(body + ('ANTHROPIC_API_KEY="sk-ant-nao-usada"\n' if declares else ""))
+    return env
+
+
+def test_tier2_reprova_key_no_dotenv_e_ausente_no_shell(tmp_path, monkeypatch):
+    """O caso real de 2026-08-03: só o shell Go recebe a key, e o diff vira falso bug."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    with pytest.raises(GateError, match="ASSIMÉTRICA"):
+        assert_credential_symmetry("tier2", env_file=_env_file(tmp_path, declares=True))
+
+
+def test_tier2_reprova_ausencia_total_da_key(tmp_path, monkeypatch):
+    """Sem credencial em lugar algum o Tier-2 é simétrico mas vazio — não mede o que promete."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    with pytest.raises(GateError, match="não exercita LLM"):
+        assert_credential_symmetry("tier2", env_file=_env_file(tmp_path, declares=False))
+
+
+def test_tier2_passa_com_key_no_shell(tmp_path, monkeypatch):
+    """Key no shell ⇒ worker Celery herda E `_go-on-native` usa o fallback do shell."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-nao-usada")
+    assert_credential_symmetry("tier2", env_file=_env_file(tmp_path, declares=True))
+
+
+def test_tier1_ignora_a_simetria_por_presenca(tmp_path, monkeypatch):
+    """No Tier-1 a simetria vem do scrub; exigir presença aqui reprovaria o gate honesto."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    assert_credential_symmetry("tier1", env_file=_env_file(tmp_path, declares=True))
+
+
+def test_guard_de_simetria_esta_ligado_antes_de_gastar_run():
+    """Prova de mutação: o guard só serve se `assert_preconditions` o chamar."""
+    source = (_REPO / "dev" / "go_parity_run.py").read_text(encoding="utf-8")
+    body = source.split("def assert_preconditions(")[1].split("\ndef ")[0]
+    assert "assert_credential_symmetry(tier)" in body
+    assert "assert_preconditions(args.workspace, args.storage_root, con, args.tier)" in source
