@@ -150,9 +150,19 @@ def _build_cache():
 
 
 def _try_cache(cache: Any, key: str) -> Optional[ParecerPlanejadorOutput]:
-    """Lê cache; retorna output deserializado ou ``None``."""
-    raw = cache.get(key)
-    return ParecerPlanejadorOutput.model_validate_json(raw) if raw else None
+    """Lê cache; ``None`` em miss. Fail-open como o write (ADR-144)."""
+    # Simetria load-bearing: LLMCacheBackend não tem `delete` e o TTL é 7 dias, então
+    # entrada envenenada (Redis fora, shape alheio, payload truncado) que subisse como
+    # exceção derrubaria o stage em todo retry até o TTL expirar — sem via de flush.
+    try:
+        raw = cache.get(key)
+        return ParecerPlanejadorOutput.model_validate_json(raw) if raw else None
+    except Exception as exc:  # noqa: BLE001 — leitura de cache é best-effort
+        logger.warning(
+            "parecer_planejador_cache_read_failed",
+            extra={"error": _exc_label(exc)},
+        )
+        return None
 
 
 def _write_cache(cache: Any, key: str, output: ParecerPlanejadorOutput, ttl_s: int) -> None:
