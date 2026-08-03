@@ -31,94 +31,13 @@ from pipeline.llm.schemas.parecer_planejador import (
     Risco,
     Sugestao,
 )
-
-
-def make_valid_parecer_output() -> ParecerPlanejadorOutput:
-    """Output Pydantic válido (todos invariantes obedecidos)."""
-    metadata = Metadata(
-        persona_hash="0" * 64,
-        manifest_version="1.0.0",
-        model_id="placeholder",
-        tier_at_generation="premium",
-        generated_at="2026-05-13T12:00:00+00:00",
-    )
-    pontos = [
-        PontoForte(
-            titulo=f"Ponto forte {i}",
-            descricao="Descrição neutra do ponto forte sem ticker e sem citar metodologia interna.",
-            ancora_metodologica="convergencia",
-            tema_canonico="Saúde de balanço",
-            section_id="S10",
-        )
-        for i in range(3)
-    ]
-    sug1 = Sugestao(
-        prioridade="P1",
-        acao="Constituir reserva de emergência cobrindo seis meses de despesas essenciais.",
-        impacto_qualitativo="Reduz dependência de crédito em caso de evento adverso e fortalece resiliência.",
-        ancora_metodologica="convergencia",
-        tema_canonico="Liquidez",
-        confianca="alta",
-        section_id="S1",
-        suggestion_dedup_key="0" * 64,
-    )
-    return ParecerPlanejadorOutput(
-        version="1.0",
-        metadata=metadata,
-        diagnostico_geral=(
-            "Família com patrimônio bruto consolidado e taxa de poupança razoável; "
-            "estrutura de proteção e reserva ainda apresenta gaps materiais."
-        ),
-        pontos_fortes=pontos,
-        riscos=[
-            Risco(
-                severidade="Alta",
-                titulo="Reserva de emergência insuficiente",
-                descricao=(
-                    "A cobertura atual da reserva fica abaixo do alvo recomendado de seis meses."
-                ),
-                ancora_metodologica="convergencia",
-                tema_canonico="Liquidez",
-                section_id="S1",
-                evidencia_path="$.reserva_emergencia.cobertura_meses",
-                confianca="alta",
-            )
-        ],
-        sugestoes_execucao=[sug1],
-        sugestoes_taticas=[],
-        sugestoes_estrategicas=[],
-        metricas=[],
-        notas_metodologicas=[],
-    )
-
-
-@dataclass
-class _FakeLLMCallResult:
-    output: Any
-    tokens_in: int = 1234
-    tokens_out: int = 567
-    cost_estimate_usd: float = 0.0123  # rate USD mock (ADR-090 — production converts to cents)
-
-
-@dataclass
-class _FakeLLMSummary:
-    calls: list = field(default_factory=list)
-
-
-class _FakeLLMService:
-    """LLM service que devolve output canned em vez de chamar API."""
-
-    def __init__(self, output: ParecerPlanejadorOutput) -> None:
-        self._output = output
-        self.summary = _FakeLLMSummary()
-        self.last_call_kwargs: dict = {}
-
-    def call(self, **kwargs) -> _FakeLLMCallResult:
-        self.last_call_kwargs = kwargs
-        result = _FakeLLMCallResult(output=self._output)
-        self.summary.calls.append(result)
-        return result
-
+from tests.fakes.parecer import (
+    FailingLLM,
+    FakeLLMService,
+    FakeLLMSummary,
+    ValidationFailingLLM,
+    make_valid_parecer_output,
+)
 
 # -----------------------------------------------------------------------
 # Manifest + persona
@@ -292,7 +211,7 @@ class TestGenerateParecerOrchestrator:
             "score": {"valor": 7, "classificacao": "Bom"},
             "fluxo_caixa": {"receita_total": 30_000},
         }
-        fake_llm = _FakeLLMService(output=make_valid_parecer_output())
+        fake_llm = FakeLLMService(output=make_valid_parecer_output())
         cache = InMemoryLLMCache()
         config = ParecerOrchestratorConfig(workspace_id="ws-test", tier="premium")
 
@@ -306,7 +225,7 @@ class TestGenerateParecerOrchestrator:
         assert result.output.metadata.persona_hash == result.persona_hash
         assert len(result.output.metadata.persona_hash) == 64
         # second call reads from cache (no LLM hit)
-        fake_llm2 = _FakeLLMService(
+        fake_llm2 = FakeLLMService(
             output=make_valid_parecer_output()
         )  # output diferente, mas cache vence
         result2 = generate_parecer(e5_data=e5, config=config, llm_service=fake_llm2, cache=cache)
@@ -333,7 +252,7 @@ class TestGenerateParecerOrchestrator:
     def test_llm_call_uses_parecer_timeout_base(self):
         """Parecer passa timeout_s=240 — emenda ADR-270 (incidente 4×120s, 2026-06-12)."""
         e5 = {"patrimonio": {"bruto": 1}}
-        fake = _FakeLLMService(output=make_valid_parecer_output())
+        fake = FakeLLMService(output=make_valid_parecer_output())
         config = ParecerOrchestratorConfig(workspace_id="ws-timeout", tier="premium")
 
         generate_parecer(e5_data=e5, config=config, llm_service=fake, cache=InMemoryLLMCache())
@@ -342,7 +261,7 @@ class TestGenerateParecerOrchestrator:
 
     def test_dedup_keys_recalculated_deterministic(self):
         e5 = {"patrimonio": {"bruto": 1}}
-        fake = _FakeLLMService(output=make_valid_parecer_output())
+        fake = FakeLLMService(output=make_valid_parecer_output())
         cache = InMemoryLLMCache()
         config = ParecerOrchestratorConfig(workspace_id="ws-A", tier="premium")
 
@@ -357,7 +276,7 @@ class TestGenerateParecerOrchestrator:
         # Workspace diferente => dedup_key diferente
         config_b = ParecerOrchestratorConfig(workspace_id="ws-B", tier="premium")
         cache_b = InMemoryLLMCache()
-        fake_b = _FakeLLMService(output=make_valid_parecer_output())
+        fake_b = FakeLLMService(output=make_valid_parecer_output())
         r3 = generate_parecer(e5_data=e5, config=config_b, llm_service=fake_b, cache=cache_b)
         k3 = r3.output.sugestoes_execucao[0].suggestion_dedup_key
         assert k3 != k1
@@ -365,15 +284,9 @@ class TestGenerateParecerOrchestrator:
     def test_llm_failure_returns_needs_review(self):
         e5 = {"patrimonio": {"bruto": 1}}
 
-        class _FailingLLM:
-            summary = _FakeLLMSummary()
-
-            def call(self, **kwargs):
-                raise RuntimeError("provider exploded")
-
         cache = InMemoryLLMCache()
         config = ParecerOrchestratorConfig(workspace_id="ws-X", tier="premium")
-        result = generate_parecer(e5_data=e5, config=config, llm_service=_FailingLLM(), cache=cache)
+        result = generate_parecer(e5_data=e5, config=config, llm_service=FailingLLM(), cache=cache)
 
         assert result.status == "needs_review"
         # A40.l16: o texto da exceção NÃO entra no error_detail (pode carregar prosa
@@ -393,7 +306,7 @@ class TestGenerateParecerOrchestrator:
                 )
             }
         )
-        fake = _FakeLLMService(output=bad_output)
+        fake = FakeLLMService(output=bad_output)
         cache = InMemoryLLMCache()
         config = ParecerOrchestratorConfig(workspace_id="ws-S", tier="premium")
         result = generate_parecer(e5_data=e5, config=config, llm_service=fake, cache=cache)
@@ -403,7 +316,7 @@ class TestGenerateParecerOrchestrator:
 
     def test_metadata_overridden_with_real_persona_hash(self):
         e5 = {"patrimonio": {"bruto": 1}}
-        fake = _FakeLLMService(output=make_valid_parecer_output())
+        fake = FakeLLMService(output=make_valid_parecer_output())
         cache = InMemoryLLMCache()
         config = ParecerOrchestratorConfig(
             workspace_id="ws-meta", tier="premium", model_id="anthropic/claude-test"
@@ -453,20 +366,11 @@ class TestFalhaDeLlmNaoVazaValorMonetario:
         inner = _validation_error_carregando_valor_monetario()
         assert _MONEY_IN_LOG_RE.search(str(inner)), "fixture não reproduz mais o vazamento"
 
-        class _ValidationFailingLLM:
-            summary = _FakeLLMSummary()
-
-            def call(self, **kwargs):
-                raise LLMValidationError(
-                    f"Output validation failed after 3 attempts: {inner}",
-                    validation_errors=[str(inner)],
-                )
-
         with caplog.at_level(logging.WARNING, logger=_LLM_LOGGER):
             return generate_parecer(
                 e5_data={"patrimonio": {"bruto": 1}},
                 config=ParecerOrchestratorConfig(workspace_id="ws-pii", tier="premium"),
-                llm_service=_ValidationFailingLLM(),
+                llm_service=ValidationFailingLLM(inner),
                 cache=InMemoryLLMCache(),
             )
 
