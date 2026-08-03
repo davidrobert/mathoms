@@ -5,11 +5,10 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-15 open.
+14 open.
 
-## Open (15)
+## Open (14)
 
-- [[A40.l16]] — Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run · priority P0 · branch `a40-l16-desescalar-number-in-prose`
 - [[A40.l17]] — Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero · priority P1 · branch `a40-l17-custo-e-cache-em-needs-review`
 - [[A40.l18]] — Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável · priority P0 · branch `a40-l18-criticidade-de-stage`
 - [[A40.l19]] — Drift de enum de status: 4 valores existem em Python e não no tipo do DB · priority P1 · branch `a40-l19-migration-drift-enum-status`
