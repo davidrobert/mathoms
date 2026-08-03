@@ -53,7 +53,7 @@ burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
 contagem. Também rejeitado KR de percepção: em dogfood com N=1 o time É o
 usuário, e viraria carimbo.
 
-## Lanes (25)
+## Lanes (26)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -85,6 +85,7 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l23]] | Gate: ADR citada em prosa resolve para arquivo (reserva de ID é invisível) | P2 | — | classe exposta pela **[[ADR-345]]** |
 | [[A40.l24]] | Asserção "0 LLM" do gate F2 passa a medir no boundary do SDK | P1 | — | promovida da [[A41]] · [[ADR-355]] · [[PLAN-go-shell]] |
 | [[A40.l25]] | Honestidade do cone de IF: precisão de exibição + `sigma` como premissa auditada | P1 | — | residual de [[ADR-360]] §Def. 1 + `ADR-361` §Def. 5 · KR-E |
+| [[A40.l26]] | Cobertura do solver de prazo IF (aporte 0 com retorno > 0 converge) | P2 | — | [[ADR-360]] §Def. 6-7, abertos *pelo* #1158 · co-design `financial-planner` |
 
 ## Ondas
 
@@ -164,6 +165,13 @@ rebaseia sobre a [[A40.l22]] pela mesma regra de arquivo-compartilhado. **Mover 
 decisão do dono** — coloquei onde o critério declarado da sprint a coloca, não por
 preferência.
 
+**[[A40.l26]] também fica fora das ondas** (aberta 2026-08-03): carrega o
+residual determinístico que o #1158 abriu ao fechar o §Def. 5 — `_solve_prazo`
+não implementa os ramos `aporte == 0, r > 0` e `r == 0, aporte > 0`, que
+convergem (~35 anos no dogfood). É P2 e não P0 porque o custo é **informação
+retida**, não falsa: o #1158 já trocou a sentinela por ausência. Toca
+`if_projector.py`, disjunto da l25 (`if_monte_carlo.py`) — paralelas.
+
 **[[A40.l25]] fica fora das ondas, por definição** (aberta 2026-08-03): é o
 residual das §Entregas fora de lane, cujo código já está em `main` ou em PR
 aberta. Não compartilha arquivo com nenhuma onda — `if_monte_carlo.py` +
@@ -227,7 +235,7 @@ sem isso a sprint fecharia dizendo menos do que entregou.
 | Sentinela de não-convergência | `7107b956` (#1158) | — | `prazo_anos_realista` não projetável emitia 999, somado à idade virava `idade_meta_usada: 1040` em path citável formatado como "anos". Passa a emitir ausência com motivo. Fecha o item 5 do §Deferimento da [[ADR-360]] |
 | Percentil censurado do cone | #1162 (**aberta**) | **`ADR-361`** | `Pk` do ano de IF saía da base **dos sobreviventes** (otimista, e mais otimista quanto pior o plano) enquanto `prob` usava `n` cheio. Passa a quantil na base cheia com censura declarada por percentil; corrige também o truncamento de `int(np.percentile)`. `mc_version` → `3.0` |
 
-**O que sobra dos três** está na [[A40.l25]] — não em §Deferimento de ADR, que é
+**O que sobra dos três** está na [[A40.l25]] e na [[A40.l26]] — não em §Deferimento de ADR, que é
 invisível ao `SPRINT_CURRENT`.
 
 **Owner-gated destas entregas** (também em [[OWNER-GATED]]): flip da [[ADR-360]] e
@@ -480,7 +488,7 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 
 Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
 não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
-25 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
+26 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
 que ela **não** é superseded) e as abertas por §Entregas fora de lane.
 
 | ADR | Estado | Lane | Escopo |
@@ -493,7 +501,7 @@ que ela **não** é superseded) e as abertas por §Entregas fora de lane.
 | [[ADR-358]] | `Proposto` | [[A40.l16]] | Enforcement em produção exige budget de produção — e KR no plano onde ele age |
 | [[ADR-356]] | `Proposto` | [[A40.l4]] (`shipped`) | Precedência declarada do parágrafo de seção e CV9 como medida de entrega. **Flip pendente** — ver §Pendências de decisão nº 5 |
 | [[ADR-355]] | `Decidido` | [[A40.l24]] | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages |
-| **[[ADR-360]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1156) · residual em [[A40.l25]] | Seed do cone Monte Carlo é constante de modelo versionada, não entropia do SO. Rejeita seed derivado do input por quebrar monotonicidade em patrimônio/aporte |
+| **[[ADR-360]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1156) · residual em [[A40.l25]] e [[A40.l26]] | Seed do cone Monte Carlo é constante de modelo versionada, não entropia do SO. Rejeita seed derivado do input por quebrar monotonicidade em patrimônio/aporte |
 | **`ADR-361`** | `Proposto` · PR **aberta** (#1162) | — (fora de lane) · residual em [[A40.l25]] | Percentil de tempo-até-o-evento só é publicável como ano se a taxa de sucesso o define — censura declarada na base cheia |
 | [[ADR-359]] | `Decidido` | — (fora de lane, #1154/#1155) | Dispatch assíncrono falha alto e quem cria estado pendente compensa |
 | [[ADR-304]] | `Decidido` · emendada 2026-08-03 | [[A40.l16]] | Pureza monetária da prosa do parecer; a emenda revoga a doutrina `==0` da §2 |

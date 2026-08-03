@@ -840,6 +840,7 @@
 | A40.l23 | lane | open | A40 | Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível | `sprint/A40/lanes/A40-l23-gate-ref-adr-em-prosa.md` |
 | A40.l24 | lane | shipped | A40 | Asserção "0 LLM" do gate F2 mede a camada errada — passa para o boundary do SDK | `sprint/A40/lanes/A40-l24-gate-0-llm-no-boundary-do-sdk.md` |
 | A40.l25 | lane | open | A40 | Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada | `sprint/A40/lanes/A40-l25-honestidade-do-cone-if.md` |
+| A40.l26 | lane | open | A40 | Cobertura do solver de prazo IF: aporte zero com retorno positivo converge, e o produto nunca mostrou | `sprint/A40/lanes/A40-l26-cobertura-do-solver-de-prazo-if.md` |
 | A40.l3 | lane | shipped | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | planned | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
