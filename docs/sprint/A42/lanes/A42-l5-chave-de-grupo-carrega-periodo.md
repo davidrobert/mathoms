@@ -9,8 +9,7 @@ branch_slug: a42-l5-chave-de-grupo-carrega-periodo
 adrs:
   - "[[ADR-354]]"
   - "[[ADR-310]]"
-depends_on: []
-parallel_with:
+depends_on:
   - "[[A40.l2]]"
 tags:
   - type/lane
@@ -27,10 +26,29 @@ tags:
 > *period-free* da [[ADR-310]]; a [[ADR-354]] é `Proposto` e **não tem emenda** — se
 > esta lane exigir mudança de decisão, a forma é emenda datada a ela, escrita nesta lane.
 
-> **Paralela a [[A40.l2]]:** a l2 é dona da identidade de **transação**
+> **Serializada atrás de [[A40.l2]]** — `depends_on`, não `parallel_with`. A razão foi
+> medida pelo `senior-cto` em 2026-08-04 e **invalida o critério de aceite que esta lane
+> tinha**: reagrupar *period-free* **muta input de hash sem tocar a função de hash**.
+> Cadeia verificada linha a linha:
+>
+> 1. a chave period-free faz duas pernas da mesma conta caírem no mesmo grupo;
+> 2. o merge posicional escreve `member_key = base.member_key` (= a 1ª perna da lista);
+> 3. a serialização grava **um** `titular` por artefato (`e3_serialization.py:96`);
+> 4. o classificador **lê** `account["titular"]` do artefato E3 (`transaction_classifier.py:300`);
+> 5. e o alimenta em `build_hash_inputs` (`:350`) → `_hash_v2` → `transaction_hash`;
+> 6. o hash muda ⇒ a constraint única de override não casa ⇒ **override manual do dono
+>    é orfanado**.
+>
+> A promessa antiga ("nenhuma alteração na função de hash") é **verdadeira e
+> irrelevante**: esta lane canonicaliza **fora** do hash, e o guarda anti-regressão da
+> [[A40.l2]] protege só contra canonicalizar **dentro**. Os vetores-golden pinam
+> `HashInputs → hash`; **ninguém pina `artefato E3 → HashInputs`**. A [[A40.l2]] PR4
+> re-ancora overrides contra um baseline que esta lane move — daí a ordem ser dura.
+
+> **Divisão de escopo com a [[A40.l2]]:** a l2 é dona da identidade de **transação**
 > (`_tx_identity`, agrupador de conta) e do colapsador cross-documento; esta lane é
 > dona da chave de **artefato** do razão. **Nunca** tocar a função de hash de
-> identidade (proibida por [[ADR-278]] D1 e pelo risco de orfanar override).
+> identidade (proibida por [[ADR-278]] D1).
 
 > **Colisão de arquivo declarada com [[A42.l6]]** (mesma onda): as duas tocam
 > `pipeline/domain/services/e3_reconciler_adapter.py`, em funções diferentes — esta
@@ -64,8 +82,21 @@ existe separada, e é ela que fecha a classe.
 
 ## Decisão
 
-1. **Reagrupamento period-free** na chave de artefato do razão, alinhando-a à
-   definição já canônica de conta.
+1. **Decidir a tupla inteira da chave de artefato — não só "tirar o período".** O repo
+   tem **três** noções concorrentes de "mesma conta", e elas discordam sobre qual
+   discriminante é identidade: o agrupador de conta usa `(banco, tipo_conta, moeda)`
+   — **sem membro**; o agrupamento da reconciliação usa `(instituição, membro, moeda)`
+   — **sem tipo_conta**; e a chave de artefato usa `(banco, tipo_conta, MOEDA, período)`.
+   Remover o período alinha à primeira e **descarta o membro** que a segunda preserva —
+   e é exatamente esse descarte que dispara a cadeia de hash acima. Esta lane é a única
+   que pode fechar a divergência: ela **declara a tupla final**, nomeando as três, e
+   prova por fixture se membro entra ou sai. O ratchet de conservação de população é
+   **cego** a isso — over-merge não perde linha nenhuma.
+2. **Rótulo de período derivado do span real** dos lançamentos (achado migrado da
+   [[A42.l6]] no split de 2026-08-04): com a chave period-free, o período do artefato
+   deixa de ser cosmético e passa a ser a **única** representação honesta do span.
+   Deixá-lo noutra lane era deixar metade da decisão de período fora da lane que decide
+   período.
 2. **Seleção de saldo por período máximo** — ao fundir pernas, o saldo de fechamento
    tem de vir da perna de período mais recente, não da posição na lista. Este ponto é
    o que impede o modo de falha que a medição do §r4 identificou: fundir sem escolher
@@ -95,8 +126,18 @@ ela — heading **sem** wikilink e `amended_at` no frontmatter, no mesmo commit.
   mesma conta, períodos diferentes e sobrepostos ⇒ um único grupo. Hoje são dois.
   Este teste é a razão de ser da lane; sem ele, o fix fecha verde contra o corpus
   atual (onde a classe é latente) sem provar nada.
+- **Estabilidade de `transaction_hash` sob o merge — o critério que faltava.** Teste
+  novo que pina `artefato E3 → HashInputs` (hoje **nada** pina esse trecho; os
+  vetores-golden começam depois dele). Fixture sintética PII-zero com **duas pernas
+  nativo↔nativo de titular divergente e períodos diferentes** ⇒ o hash de **todas** as
+  transações é idêntico pré e pós-merge. A mesma fixture serve ao teste da classe
+  latente acima. Prova por mutação: reverter o fix mata o teste.
+- **Delta de override orfanado igual a zero**, medido e reportado no PR — o mesmo gate
+  que a [[A40.l2]] usa, aqui também. A conservação de população **não** cobre isso, e a
+  versão anterior desta lane afirmava que cobria.
 - **Conservação de população** como ratchet: nenhuma linha desaparece no
-  reagrupamento. O desenho fail-closed foi eliminado por medição no §r4 (cobertura de
+  reagrupamento. Contagem também **por tupla de identidade**, não só total de linhas —
+  senão over-merge passa verde. O desenho fail-closed foi eliminado por medição no §r4 (cobertura de
   contraparte em torno de metade ⇒ quarentenar vocabulário desconhecido apagaria
   centenas de linhas de fonte única) e o ratchet existe para ele não voltar por
   acidente.
@@ -107,3 +148,7 @@ ela — heading **sem** wikilink e `amended_at` no frontmatter, no mesmo commit.
   entrega que sustenta a segunda metade do KR-C.
 - Golden do razão verde com delta declarado; **nenhuma** alteração na função de hash
   de identidade.
+- **Contrato de `artifact_key` re-congelado:** `dev/go_parity_gate.py:55` declara que a
+  chave de artefato do razão é o filename lógico determinístico. Esta lane **move** esse
+  contrato ⇒ o controle de paridade Py↔Py precisa ser re-congelado, com o baseline
+  anterior arquivado. O gate é owner-gated (nunca rodou) — declarar, não rotear.

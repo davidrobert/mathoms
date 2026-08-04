@@ -9,7 +9,8 @@ branch_slug: a42-l2-ancora-fidelidade-e-verdict-do-gate
 adrs:
   - "[[ADR-342]]"
   - "[[ADR-090]]"
-depends_on: []
+depends_on:
+  - "[[A42.l3]]"
 tags:
   - type/lane
   - sprint/a42
@@ -71,8 +72,25 @@ Seis PRs em ordem obrigatória. **Invertê-la produz fix sem detecção.**
    conclusão do parser. Fechamento independente dos extremos igual a zero é
    **suficiente para afirmar** verificabilidade; fechamento diferente de zero **não
    é suficiente para escalar** — âncora terminal defasada produz falso-positivo, e
-   escalar exclui a chave inteira do razão, o que é pior que hoje. Código de aviso
-   **próprio**, não reusar o code que já serve três ramos.
+   escalar exclui a chave inteira do razão, o que é pior que hoje.
+
+   **O terceiro estado é representado por valor, não por ausência** (correção do
+   `senior-cto`, 2026-08-04). A primeira versão desta lane pedia "código de aviso
+   próprio"; isso deixaria o estado legível como *"marca de escalação ausente"* —
+   indistinguível de "extraiu e fechou", e todo leitor novo herdaria o **default
+   otimista**. É o mesmo defeito de sentinela indecidível que a [[A42.l5]] está
+   consertando (LC04): esta lane criaria um LC04 novo enquanto a l5 fecha o antigo.
+   Portanto: **enum fechado** de verificabilidade no payload E2 (`provada` /
+   `nao_verificavel(motivo)` / `falhou`), validado no boundary, `additionalProperties`
+   fechado, e schema em modo estrito. O code de aviso continua existindo — mas como
+   telemetria do motivo, não como o portador do estado. E **não** reusar o code que já
+   serve três ramos.
+
+   A lane declara também se o **piso de materialidade** ([[ADR-344]]) se aplica a esta
+   classe. Hoje a supressão retorna **antes** do cálculo do gap, então a classe nunca
+   chega ao piso; com o gate computado sobre observações, um gap material passa a cair no
+   piso e **escalaria** — contradizendo a assimetria decidida acima. Ambiguidade no ponto
+   exato onde a materialidade importa; resolver na ADR, não no PR.
 3. **Dormência exige o par:** zero candidatas **e** saldo presente. Hoje um export
    sem nenhuma linha datada não escala por **acidente de limiar de tamanho**, não por
    decisão. Armadilha do fix óbvio: tratar zero candidatas como dormência converte

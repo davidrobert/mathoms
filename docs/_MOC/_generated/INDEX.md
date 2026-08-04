@@ -860,11 +860,12 @@
 | A42.l1 | lane | planned | A42 | Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo | `sprint/A42/lanes/A42-l1-unlock-aborta-run-e-secret-inalcancavel.md` |
 | A42.l10 | lane | planned | A42 | Misclassificação na classificação amplifica o carrier de duplicação | `sprint/A42/lanes/A42-l10-misclassificacao-amplifica-carrier.md` |
 | A42.l11 | lane | planned | A42 | Enforce do checksum cross-source: fatura contra o débito de pagamento no extrato | `sprint/A42/lanes/A42-l11-enforce-cross-source-fatura-pagamento.md` |
+| A42.l12 | lane | planned | A42 | Estado de extração do documento: predicado único e lista de stages derivada do registry | `sprint/A42/lanes/A42-l12-predicado-unico-de-extracao.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
 | A42.l5 | lane | planned | A42 | Chave de agrupamento do razão carrega o período do documento | `sprint/A42/lanes/A42-l5-chave-de-grupo-carrega-periodo.md` |
-| A42.l6 | lane | planned | A42 | Contrato de store e de artefato: escopo, predicado único de extração e registry de stage | `sprint/A42/lanes/A42-l6-contrato-de-store-e-de-artefato.md` |
+| A42.l6 | lane | planned | A42 | Contrato do store: política de escopo, retenção de órfão e validação de artefato | `sprint/A42/lanes/A42-l6-contrato-de-store-e-de-artefato.md` |
 | A42.l7 | lane | planned | A42 | Registro de custo de LLM é fonte de verdade que perde row e vaza identificador de documento | `sprint/A42/lanes/A42-l7-registro-de-custo-perde-row.md` |
 | A42.l8 | lane | planned | A42 | Mês vazio por falha de extração conta como mês documentado | `sprint/A42/lanes/A42-l8-mes-vazio-conta-como-documentado.md` |
 | A42.l9 | lane | planned | A42 | Vocabulário do checksum de fatura: separar dívida acionável de teto estrutural | `sprint/A42/lanes/A42-l9-identidade-do-checksum-de-fatura.md` |

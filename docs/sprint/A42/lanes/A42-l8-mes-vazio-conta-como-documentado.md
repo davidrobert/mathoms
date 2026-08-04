@@ -11,7 +11,6 @@ adrs:
   - "[[ADR-345]]"
 depends_on:
   - "[[A40.l15]]"
-parallel_with:
   - "[[A40.l11]]"
 tags:
   - type/lane
@@ -27,10 +26,13 @@ tags:
 > [[PIPELINE-REVIEWS-active]] §r4 — RV4-04, RV4-05 (Alto, par de mesmo fix), RV4-26,
 > RV4-28, RV4-46, RV4-55.
 
-> **Depende de [[A40.l15]]**, que é dona do enricher de fluxo, e é **paralela a
-> [[A40.l11]]** (unificação dos percentuais de confiança). Escreve o mesmo arquivo que
-> a l15 ⇒ serializar. **Na promoção, re-ler a disposição das duas:** se qualquer uma
-> estiver `cancelled`, esta lane absorve o escopo e declara a absorção.
+> **Depende de [[A40.l15]]** (dona do enricher de fluxo — mesmo arquivo) **e de
+> [[A40.l11]]** (dona da resolução do vocabulário de confiança e do único consumidor do
+> campo de confiança do view-model). A dependência da l11 foi acrescentada em 2026-08-04
+> por objeção do `financial-planner`: a **declaração ao usuário** desta lane usa aquele
+> campo, e ele hoje é a única chave top-level sem leitor. Ordem: a l11 cria o consumidor →
+> esta lane acrescenta a segunda entrada. Se a l11 não vier antes, esta lane **emite a
+> banda no payload e não tenta renderizar**. **Na promoção, re-ler a disposição das duas.**
 
 > **Atenção — esta lane invalida uma premissa de lane já shipada.** A [[A40.l3]]
 > tratou *qual* janela cada número lê e o *rótulo* impresso; **não** a validade da
@@ -84,9 +86,92 @@ terceira base não localizada, e aí vira item próprio.
    publicado — declarar o sinal do delta.
 4. **Ler as duas listas** declaradas no custo essencial, conforme a regra escrita.
 
-Interação com a [[ADR-345]] (`Roadmap`): a **exibição** do selo de cobertura ao
-usuário é escopo dela, não desta lane. Aqui entra só a **agregação honesta**; a lane
-[[A42.l2]] registra o gatilho de retomada da nota.
+### Piso de publicação — a decisão que faltava (`financial-planner`, 2026-08-04)
+
+Excluir mês **encurta a janela**, e isso não era decisão, era consequência: trocar "12
+meses, dois falsos-zero" por "10 honestos" muda o divisor de todo número mensalizado. A
+régua abaixo é a decisão de domínio, derivada de dois critérios — *o divisor entra no
+número?* e *a família se compromete contra ele?*
+
+| Classe | Exemplos | Piso |
+|---|---|---|
+| **C1 · razão de mesma janela** (divisor cancela) | taxa de poupança recorrente, percentuais de equilíbrio, share por categoria | **3** |
+| **C2 · nível descritivo** | despesa mensal média, receita recorrente, autonomia em meses | **6** |
+| **C3 · nível dimensionante** (a família financia ou se compromete) | custo essencial → alvo de reserva, cobertura em meses, folga/capacidade de aporte, projeções | **6**, com correção conservadora enquanto a janela não fecha |
+
+Bandas, **reusando o vocabulário de confiança que já existe** (sem inventar quarta
+palavra): janela cheia ⇒ `alta`. Entre o piso de C2 e a janela cheia ⇒ `parcial`: C1 e C2
+publicam com a janela **impressa**, C3 publica **com correção conservadora** e rótulo de
+provisório. Entre o piso de C1 e o de C2 ⇒ `parcial`, mas **C3 não publica**. Abaixo do
+piso de C1 ⇒ `insuficiente`: **nenhuma mensalização publica**, em nenhuma classe — o
+relatório mostra os meses documentados e seus totais e diz que a janela é insuficiente.
+
+Por que 3 e 6: **3** é onde variação mês a mês passa a ser observável (com 1 a variância
+é indefinida; com 2 existe uma comparação) — abaixo disso "padrão", "recorrente" e
+"média" são asserção, não observação. **6** é onde um mês atípico deixa de mover a média
+acima de ~20%, é a janela mais curta que contém um ciclo de essencial semestral, e é o
+número que a [[A40.l15]] já intuiu — ratificar um threshold que o plano carrega é mais
+barato que introduzir um sétimo.
+
+**Score:** publica só se **todos** os componentes passarem o piso da própria classe.
+Faltando componente, publique os que passam e **não publique o agregado**.
+**Renormalizar peso sobre os componentes disponíveis é proibido** — dropar um componente
+ruim *sobe* a média ponderada, o que é Goodhart puro num produto com viés otimista
+documentado.
+
+**Postura conservadora, e só de um lado.** C1/C2 publicam o número com a janela impressa
+e **suprimem a conclusão** que depende do nível estar certo. C3 usa
+`max(média, percentil 75 dos meses observados)` — **não o máximo**, que dimensionaria
+alvo absurdo a partir de um outlier e mata adesão. A correção vai **no custo e não na
+receita**: duas conservadorias empilhadas multiplicam, zeram a folga e ninguém sabe qual
+delas o fez. O **mesmo** valor corrigido alimenta alvo de reserva **e** cobertura em
+meses, senão a reconciliação algébrica entre os dois quebra. E a descontinuidade é
+declarada: quando a janela fecha, o alvo **cai** — sem microcopy isso lê como
+instabilidade da ferramenta.
+
+**Contiguidade gateia afirmação sobre padrão, não sobre nível.** Com o mesmo número de
+meses, lacuna no meio é **melhor** para nível (cobre mais do ciclo anual) e **pior** para
+trajetória (quebra a série e pode esconder mudança de regime). Logo: bloco contíguo
+mínimo de 3 para diagnóstico comportamental, classificação de equilíbrio e qualquer texto
+de tendência; médias de nível **não** degradam por contiguidade.
+
+**Recência é estrutural, não predicado:** com a janela ancorada nos meses-calendário
+decorridos e teto na data de análise, "meses esparsos ao longo de dois anos" deixa de ser
+possível. Aparece em troca a banda baixa por **defasagem** (família cujo último documento
+é antigo) — hoje isso publica média de janela cheia sobre dado velho com confiança cheia.
+Consequência declarada, não descoberta depois.
+
+**Correção de premissa minha:** eu havia raciocinado que perder meses atípicos
+superestimaria o custo. O `financial-planner` mostrou que o sinal é **indeterminado** —
+perder um mês de pico tira o gasto do numerador **e** o mês do divisor (subestima),
+enquanto um repique que caiu em mês **retido** passa a ser dividido por menos (superestima).
+O que o fix garante não é um número mais correto: é a troca de um viés **sistemático,
+sempre para baixo e silencioso** por **erro de amostragem, sinal desconhecido e
+declarável**. Não afirmar que o número do cliente ficou certo.
+
+**Fora desta lane, com deferimento datado:** a correção certa para repique anual é
+**anualizá-lo** em vez de deixar a janela decidir o peso dele — isso muda a fórmula
+vigente do custo essencial e exige decisão própria.
+
+Interação com a [[ADR-345]] (`Roadmap`): a **exibição** do selo é escopo dela. Aqui entra
+a **agregação honesta** e a **decisão de publicar ou não** — que mora no **payload, nunca
+no frontend**: métrica abaixo do piso sai **ausente + irmão com o motivo** (forma já
+precedente no repo), nunca nulo sem checar o consumidor, porque o ramo de ausência já
+existe nesse código e às vezes fabrica default. Se cada consumidor reimplementar o piso,
+reproduzimos em três lugares o defeito dos "três percentuais para o mesmo conceito".
+
+**O que o usuário vê: nenhum selo novo.** Com 98 de 128 documentos carregando alguma
+reserva, selo novo é ruído. Um selo por conceito por tela — resolver o campo de confiança
+existente como **pior das duas entradas** (cobertura de categorização × cobertura
+temporal) **nomeando a causa**; **uma** linha agregada no bloco de premissas, **texto
+impresso e não tooltip** (o PDF é o artefato que a família leva ao contador); e ressalva
+por seção **só onde a banda mudou o output**. Selo onde nada mudou é decoração — é o que
+produz fadiga.
+
+**Governança:** isto é **regra nova**, não precisão de regra existente — a política
+vigente decide o divisor, nunca piso de publicação nem dimensionamento conservador. Abre
+**ADR própria** `Proposto` + emenda datada na cláusula do divisor apontando para ela +
+tabela de bandas na referência de fórmulas.
 
 ## Critério de aceite
 
@@ -100,5 +185,31 @@ usuário é escopo dela, não desta lane. Aqui entra só a **agregação honesta
 - **Delta de todo número exibido declarado** (`↑`/`↓`/`=`) — esta lane move
   denominador, logo move quase todo número mensalizado. Rebaseline silencioso é
   reprovação.
+- **Banda derivada, não julgada:** o payload emite meses decorridos na janela,
+  documentados, e maior bloco contíguo; a banda é função **só** desses três. Teste por
+  tabela nos cinco pontos de fronteira.
+- **Piso por classe enforçado no produtor:** cada métrica mensalizada declara sua classe
+  numa lista única, com teste anti-órfã (métrica mensalizada sem classe declarada ⇒
+  falha). Abaixo do piso ⇒ chave **ausente + motivo**. **Nenhum consumidor reimplementa o
+  piso** — provado por busca, não por inspeção.
+- **Sem renormalização de peso no score:** teste que prova que dropar componente **não**
+  sobe o número.
+- **Predição testável, que vale como detector:** o fix move **níveis**, não razões de
+  mesma janela. Esperado `↑` em despesa média, custo essencial e alvo de reserva; `↓` em
+  cobertura e autonomia; **`=` em taxa de poupança recorrente e nos percentuais de
+  equilíbrio**. Se uma razão de mesma janela se mover, é **achado** — ou existe uma
+  segunda base não localizada (é o próprio RV4-55 desta lane), ou o mês fantasma não
+  contribuía zero, o que seria extração **parcial** e não falha total. Não tratar como
+  ruído de rebaseline.
+- **Medir o divisor isolado primeiro:** o item de config desta lane também sobe o custo
+  essencial. Juntos, não se sabe se o denominador foi consertado.
+- **Contrato com o parecer:** métrica suprimida sai **ausente do exec-context** do stage
+  de parecer, com o motivo presente, e a persona não mensaliza por conta própria a partir
+  da série crua. Há histórico de fabricação de métrica ali — sem esta cláusula o E5
+  suprime e o E6 republica.
+- **O substrato versionado cai na banda mais baixa** e o snapshot vai mostrar cards
+  suprimidos e score não publicado. Isso vai **parecer** regressão: declarar antes. E
+  **não calibrar o piso para o snapshot ficar verde** — é a forma mais barata de Goodhart
+  aqui.
 - Snapshot do view-model rebaselinado com manifesto, coordenado com a fila da
   [[A40.l15]].

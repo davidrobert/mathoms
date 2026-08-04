@@ -82,25 +82,35 @@ sobre o mesmo corpus, prova o fechamento**:
 
 Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 
-## Lanes (11)
+## Lanes (12)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
-| [[A42.l1]] | Stage de unlock aborta o run inteiro, e o path do arquivo de senha é inalcançável em deploy limpo | **P0** | 0 | — |
-| [[A42.l2]] | Parsers line-oriented: âncora de fidelidade + supressão vira verdict do gate | P1 | 1 | — |
+| [[A42.l1]] | Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo | **P0** | 0 | — |
 | [[A42.l3]] | Harness de certificação: falso-verde para dentro | P1 | 1 | — |
 | [[A42.l4]] | Check que não consegue avaliar evapora em vez de virar `skipped` | P2 | 1 | — |
-| [[A42.l5]] | Chave de agrupamento do razão carrega o período do documento | P1 | 2 | [[A40.l2]] (∥) |
-| [[A42.l6]] | Contrato de store e de artefato: escopo, predicado único de extração, registry | P1 | 2 | — |
-| [[A42.l7]] | Registro de custo de LLM é SSOT que perde row e vaza filename | P1 | 2 | [[A40.l19]] |
-| [[A42.l8]] | Mês vazio por falha de extração conta como mês documentado | P1 | 2 | [[A40.l15]] |
+| [[A42.l2]] | Parsers line-oriented: âncora de fidelidade + supressão vira verdict do gate | P1 | 1 | [[A42.l3]] |
+| [[A42.l6]] | Contrato do store: política de escopo, retenção de órfão e validação de artefato | P1 | 2 | [[A42.l5]] |
+| [[A42.l7]] | Registro de custo de LLM é fonte de verdade que perde row e vaza filename | P1 | 2 | [[A40.l19]] |
+| [[A42.l5]] | Chave de agrupamento do razão carrega o período do documento | P1 | 2 | [[A40.l2]] |
+| [[A42.l8]] | Mês vazio por falha de extração conta como mês documentado | P1 | 2 | [[A40.l15]] · [[A40.l11]] |
 | [[A42.l9]] | Vocabulário do checksum de fatura: separar dívida acionável de teto estrutural | P1 | 3 | [[A42.l2]] |
 | [[A42.l10]] | Misclassificação na classificação amplifica o carrier de duplicação | P1 | 3 | [[A41.l2]] |
 | [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | [[A40.l2]] |
+| [[A42.l12]] | Estado de extração do documento: predicado único e stages derivados do registry | P2 | 3 | [[A42.l2]] |
 
-Capacidade decidida: teto de 14 lanes. **Fechou em 11** — os slots restantes não
-foram preenchidos de propósito: padding para bater um número é a forma mais barata
-de Goodhart num plano.
+Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
+nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
+com bloqueio e reversibilidade distintos). Os slots restantes não foram preenchidos de
+propósito: padding para bater um número é a forma mais barata de Goodhart num plano.
+
+**Ordem dentro da tabela reflete pickup, não numeração.** A l3 vem antes da l2 porque a
+l2 consome o ratchet que a l3 entrega; a l5 vem antes da l6 pela mesma razão. Nenhuma
+lane tem `depends_on: []` só porque a dependência estava em prosa — a [[A40]] mediu
+exatamente essa armadilha (`SPRINT_CURRENT` apresenta como pegável em qualquer ordem, e
+shipar o writer antes do reader entrega pior que hoje), e a A42 a reproduziria uma sprint
+depois se `parallel_with` fosse o veículo. `parallel_with` não é lido por consumidor de
+máquina nenhum.
 
 ## Ondas
 
@@ -116,28 +126,42 @@ o arquivo de senha existe e o run completa — morde em deploy limpo e no segund
 usuário). Fica fora da Onda 1 para não competir por pickup com instrumento nem
 sugerir bloqueio que não existe.
 
-**Onda 1 — instrumento** ([[A42.l2]], [[A42.l3]], [[A42.l4]]). **Não são disjuntas —
-partição declarada.** A l4 é solo em arquivo. A l2 e a l3 tocam ambas
-`dev/certify_parse_local.py`, e no mesmo ratchet: a **l3 é a dona do arquivo** e entrega
-a cláusula de ratchet que a l2 precisa; a l2 consome e não edita. Uma versão anterior
-deste plano afirmava disjunção aqui — era falso, e a partição existe porque duas lanes
-P1 reescrevendo o mesmo ratchet em paralelo é exatamente o cenário que a onda diz evitar.
+**Onda 1 — instrumento** ([[A42.l3]] e [[A42.l4]] livres; [[A42.l2]] atrás da l3).
+**Não são disjuntas — partição declarada.** A l4 é solo em arquivo. A l2 e a l3 tocam
+ambas `dev/certify_parse_local.py`, e no mesmo ratchet: a **l3 é a dona do arquivo** e
+entrega a cláusula que a l2 precisa — cláusula que agora está no **critério de aceite da
+l3**, não só na prosa da l2. Uma versão anterior deste plano afirmava disjunção aqui: era
+falso, e duas lanes P1 reescrevendo o mesmo ratchet em paralelo é exatamente o cenário que
+a onda diz evitar.
 
-**Onda 2 — identidade, contrato e base** ([[A42.l5]], [[A42.l6]], [[A42.l7]],
-[[A42.l8]]). Colisões declaradas: **l5 ∩ l6** em `e3_reconciler_adapter.py` (funções
-diferentes — seleção de saldo vs. sítio do predicado de extração), com acoplamento
-semântico a vigiar (o guard "por expectativa" da l6 conta grupos cujo keying a l5 muda);
-**l8** entra na fila de rebaseline do snapshot do view-model, compartilhada com a
-[[A40.l15]]. Quem mergear primeiro avisa; a segunda rebaseia e **recalibra**, não copia.
+**Onda 2 — identidade, contrato e base** ([[A42.l5]] → [[A42.l6]]; [[A42.l7]] e
+[[A42.l8]] independentes entre si). A l5 e a l6 são **sequenciais**, não paralelas: o
+guard "por expectativa" da l6 conta grupos cujo keying a l5 muda, e o escopo da listagem
+da l6 muda o conjunto de pernas do merge da l5 — logo o `titular` que vai ao hash. A l8
+entra na fila de rebaseline do snapshot do view-model, compartilhada com a [[A40.l15]].
 
-**Onda 3 — o que depende de terceiros** ([[A42.l9]], [[A42.l10]], [[A42.l11]]).
+**Onda 3 — o que depende de terceiros** ([[A42.l9]], [[A42.l10]], [[A42.l11]],
+[[A42.l12]]). A l12 está aqui, e não na 2, porque depende do enum de verificabilidade que
+a l2 cria: escrever o predicado contra o mundo de dois estados e receber o terceiro depois
+acenderia o selo de qualidade sobre conservação não provada — o falso-verde da tese,
+produzido pela lane que existe para matá-lo.
 
-**Amarra obrigatória das dependências cross-sprint.** Cinco lanes dependem de lane
-de outra sprint. Na promoção, **re-ler a disposição de cada dependência**: se a
-lane-alvo estiver `cancelled`, a lane A42 **absorve o escopo** e declara a absorção
-no corpo. Sem essa cláusula, uma A40 que fecha `done` com [[A40.l15]] `cancelled`
-deixa a [[A42.l8]] esperando um evento que nunca chega. Precedente: cláusula de
-entrega parcial da [[A40.l27]].
+**Amarra obrigatória das dependências cross-sprint.** Seis lanes dependem de lane de
+outra sprint. Na promoção, **re-ler a disposição de cada dependência**, com **três**
+ramos — não um:
+
+1. dependência `cancelled` ⇒ a lane A42 **absorve o escopo** e declara a absorção no
+   corpo. Sem isso, uma A40 que fecha `done` com [[A40.l15]] `cancelled` deixa a
+   [[A42.l8]] esperando um evento que nunca chega;
+2. dependência `shipped` ⇒ a dependência é morta, remover e anotar o PR;
+3. dependência ainda `open`, **carregada por plano vivo** — caso real da [[A40.l2]] sob
+   o plano de report-trust, e o ramo **mais provável** dos três: a lane sobrevive ao
+   fechamento da sprint, porque a cláusula 4 do §Critério de admissão diz que plano é dono
+   de tese além da sprint. Nesse ramo a lane A42 permanece `blocked` e a condição de
+   destravamento é o **merge do PR nomeado**, não o fechamento da A40. A versão anterior
+   desta amarra só cobria o ramo 1.
+
+Precedente: cláusula de entrega parcial da [[A40.l27]].
 
 ## Relação com a A39
 
@@ -254,7 +278,9 @@ do PR de implementação.
 |---|---|---|
 | [[A42.l2]] | **Emenda datada à [[ADR-342]]** — não ADR nova | Mesma decisão com o eixo refinado (separar fidelidade do parser de completude da fonte). Precedente: a emenda de 2026-07-27, também nascida desta skill |
 | [[A42.l5]] | Corolário da emenda [[ADR-354]] | O repo já tem a definição period-free certa e agrupa pela errada |
-| [[A42.l6]] | Emenda [[ADR-291]] | Política de escopo do store: `list_keys` e `read` discordam |
+| [[A42.l6]] | Emenda [[ADR-291]] | Política de escopo do store: listagem e leitura discordam. Toca também [[ADR-278]] e [[ADR-212]] |
+| [[A42.l12]] | **ADR nova** `Proposto` | Onde mora o predicado único de extração é decisão de **boundary** (`backend/` ↔ `pipeline/`) — uma emenda de política de escopo não pode ser o veículo dela |
+| [[A42.l8]] | **ADR nova** `Proposto` + emenda datada à [[ADR-306]] D3 | Piso de publicação por classe de métrica e dimensionamento conservador são **regra nova**; a política vigente decide o divisor, nunca piso nem conservadoria. A emenda aponta para a ADR nova |
 | [[A42.l1]] | **ADR nova** `Proposto` | Provisionamento de secret em tenant limpo — co-design `senior-cto` + `sre-devops` |
 | [[A42.l7]] | Coordenar com [[ADR-357]] §7 | Migration + contrato de coluna; serializada atrás de [[A40.l19]] na cadeia alembic |
 
