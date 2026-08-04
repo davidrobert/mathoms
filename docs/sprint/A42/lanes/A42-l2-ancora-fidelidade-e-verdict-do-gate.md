@@ -104,7 +104,9 @@ desta lane.
   emitidas ⇒ escalação HARD). Nenhuma asserção nova pode sobreviver à remoção do
   mecanismo que ela nomeia.
 - `--compare` do harness verde, com rebaseline **manifestado** (disciplina de
-  `dev/golden_diff.py`), e o ratchet aceitando código de aviso estruturado como
-  alternativa honesta à escalação.
+  `dev/golden_diff.py`). **A cláusula de ratchet que aceita código de aviso estruturado
+  como alternativa honesta à escalação é entregue pela [[A42.l3]]**, que é dona de
+  `dev/certify_parse_local.py` — esta lane **consome** e não edita esse arquivo. Colisão
+  declarada; as duas são da mesma onda e não são disjuntas.
 - Zero chamada de LLM adicional no corpus, exceto o export sem linha datada.
 - Validação de schema em modo estrito sobre o corpus com os campos novos declarados.

@@ -814,7 +814,7 @@
 | A39.l10 | lane | shipped | A39 | Piso de materialidade: roteamento a needs_review sobre o caminho não-certificado (ADR-344, transitório) | `sprint/A39/lanes/A39-l10-piso-materialidade.md` |
 | A39.l11 | lane | shipped | A39 | Determinismo da classificação LLM: temperature=0 na via compartilhada + golden sintético + telemetria | `sprint/A39/lanes/A39-l11-classificacao-llm-determinismo.md` |
 | A39.l12 | lane | shipped | A39 | Resíduo não-coberto: verificar escalação honesta do Binance CSV + investigar extração de preview .xlsx (rico) | `sprint/A39/lanes/A39-l12-binance-rico-residuo.md` |
-| A39.l13 | lane | planned | A39 | Re-route: classify_by_llm pelo choke-point LLMService (budget + cache + telemetria + enum via Instructor) | `sprint/A39/lanes/A39-l13-reroute-classificacao-llmservice.md` |
+| A39.l13 | lane | cancelled | A39 | Re-route: classify_by_llm pelo choke-point LLMService (budget + cache + telemetria + enum via Instructor) | `sprint/A39/lanes/A39-l13-reroute-classificacao-llmservice.md` |
 | A39.l2 | lane | shipped | A39 | C6 Bank CSV: declarar conservacao_verificavel (semântica de saldo já correta) → escala perda silenciosa | `sprint/A39/lanes/A39-l2-c6-csv-optin-verificabilidade.md` |
 | A39.l3 | lane | shipped | A39 | Fatura closure: parsers emitem total_lancamentos_conferivel (gate #1036 pronto) + flip WARN→HARD | `sprint/A39/lanes/A39-l3-checksum-fechamento-fatura.md` |
 | A39.l4 | lane | shipped | A39 | C6 Bank PDF: corrigir semântica de saldo_inicial (ajuste do 1º dia) e então declarar verificabilidade | `sprint/A39/lanes/A39-l4-c6-pdf-saldo-semantica.md` |
@@ -824,7 +824,7 @@
 | A39.l8 | lane | shipped | A39 | Fatura Itaú Visa: TypeRule determinístico + parser (via words) + checksum ADR-343 (cobre 3 não-coberto) | `sprint/A39/lanes/A39-l8-fatura-itau-visa.md` |
 | A39.l9 | lane | shipped | A39 | Posição de renda variável: TypeRule + parser + identidade ticker+proprietário + null-não-soma (cobre 2 não-coberto) | `sprint/A39/lanes/A39-l9-posicao-renda-variavel.md` |
 | A40.l1 | lane | shipped | A40 | Instrumento: detector de duplicação cross-grupo + baseline congelado | `sprint/A40/lanes/A40-l1-ledger-cross-grupo-check.md` |
-| A40.l10 | lane | planned | A40 | Ordem do plano com critério encodado + pendências acionáveis do dono | `sprint/A40/lanes/A40-l10-pendencia-do-dono-e-ordem-do-plano.md` |
+| A40.l10 | lane | open | A40 | Ordem do plano com critério encodado + pendências acionáveis do dono | `sprint/A40/lanes/A40-l10-pendencia-do-dono-e-ordem-do-plano.md` |
 | A40.l11 | lane | planned | A40 | Cobertura e incerteza na tela: três percentuais para o mesmo conceito, prazo de IF como fato | `sprint/A40/lanes/A40-l11-cobertura-e-incerteza-na-tela.md` |
 | A40.l12 | lane | planned | A40 | Classificação incompleta distorce KPI: mecanismo de aporte inerte + não-identificado material | `sprint/A40/lanes/A40-l12-classificacao-incompleta-distorce-kpi.md` |
 | A40.l13 | lane | planned | A40 | Copy e design system: primitivo monetário no hero, jargão de implementação, abreviação k/M | `sprint/A40/lanes/A40-l13-copy-e-design-system.md` |
@@ -867,7 +867,7 @@
 | A42.l6 | lane | planned | A42 | Contrato de store e de artefato: escopo, predicado único de extração e registry de stage | `sprint/A42/lanes/A42-l6-contrato-de-store-e-de-artefato.md` |
 | A42.l7 | lane | planned | A42 | Registro de custo de LLM é fonte de verdade que perde row e vaza identificador de documento | `sprint/A42/lanes/A42-l7-registro-de-custo-perde-row.md` |
 | A42.l8 | lane | planned | A42 | Mês vazio por falha de extração conta como mês documentado | `sprint/A42/lanes/A42-l8-mes-vazio-conta-como-documentado.md` |
-| A42.l9 | lane | planned | A42 | Identidade do checksum de fatura: separar dívida acionável de teto estrutural | `sprint/A42/lanes/A42-l9-identidade-do-checksum-de-fatura.md` |
+| A42.l9 | lane | planned | A42 | Vocabulário do checksum de fatura: separar dívida acionável de teto estrutural | `sprint/A42/lanes/A42-l9-identidade-do-checksum-de-fatura.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

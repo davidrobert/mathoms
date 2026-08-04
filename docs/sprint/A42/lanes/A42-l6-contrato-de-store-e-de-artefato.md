@@ -26,6 +26,15 @@ tags:
 > LC09 · [[PIPELINE-REVIEWS-active]] §r4 — RV4-15, RV4-19, RV4-21, RV4-23, RV4-48.
 > Sete achados, um contrato.
 
+> **Colisão de arquivo declarada com [[A42.l5]]** (mesma onda): as duas tocam
+> `pipeline/domain/services/e3_reconciler_adapter.py` em funções diferentes — esta lane
+> no sítio do predicado de extração (um dos três leitores que o predicado único
+> substitui), a l5 no sítio de seleção de saldo. Partição declarada, não disjunção:
+> quem mergear primeiro avisa; a segunda rebaseia. **Acoplamento a vigiar:** o guard
+> "por expectativa" desta lane conta grupos que o run escreveu, e é a l5 que muda o
+> keying que define esse conjunto — se esta lane mergear depois da l5, o número
+> esperado mudou e o guard tem de ser recalibrado, não copiado.
+
 ## Problema
 
 O contrato do store de artefatos e o do registro de stage estão inconsistentes em

@@ -25,6 +25,14 @@ tags:
 > §r4 — RV4-17, RV4-18, RV4-45. Adota também o resíduo declarado da [[A39.l6]]
 > (traço positivo do checksum, já emitido e nunca lido).
 
+> **Esta lane é dona de `dev/certify_parse_local.py`.** Colisão declarada com
+> [[A42.l2]] (mesma onda): o critério da l2 exige que o ratchet aceite código de aviso
+> estruturado como alternativa honesta à escalação, e o ratchet de des-certificação vive
+> na **mesma função** que esta lane reescreve para ler os traços de checksum. Não são
+> disjuntas — a onda paralelizava três lanes sob premissa falsa. Resolução: **esta lane
+> entrega a mudança de ratchet**, incluindo a cláusula que a l2 precisa; a l2 consome e
+> **não** edita este arquivo. Quem mergear primeiro avisa.
+
 ## Problema
 
 As ferramentas de certificação — as que existem para provar que o pipeline fecha —

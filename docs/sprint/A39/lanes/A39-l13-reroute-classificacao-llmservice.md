@@ -3,7 +3,7 @@ id: A39.l13
 type: lane
 title: "Re-route: classify_by_llm pelo choke-point LLMService (budget + cache + telemetria + enum via Instructor)"
 sprint: A39
-status: planned
+status: cancelled
 priority: P1
 branch_slug: a39-l13-reroute-classificacao-llmservice
 adrs: ["[[ADR-349]]"]
@@ -11,7 +11,7 @@ depends_on: ["[[A39.l11]]"]
 tags:
   - type/lane
   - sprint/a39
-  - status/planned
+  - status/cancelled
   - priority/p1
   - area/pipeline
   - area/dados

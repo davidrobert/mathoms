@@ -16,10 +16,9 @@ theme: "ingest-ledger-trust"
 > [[PIPELINE-REVIEWS-active]] §r4 (run completo + relatório, 74 achados).
 > Skills [[ADR-302]]; disciplina de estado durável [[ADR-343]].
 
-> **Sucessora declarada da [[A39]]** (mesma tese `ingest-trust`). A A39 executou
-> 12 de 13 lanes; o que restou são **resíduos declarados dentro de lanes shipadas**,
-> travados num blocker de domínio que o §r2 acabou de destravar. Esta sprint abre
-> **no mesmo PR** que flipa a A39 para `done` — ver §Relação com a A39.
+> **Sucessora declarada da [[A39]]** (mesma tese `ingest-trust`). A A39 executou 12 de
+> 13 lanes e nunca foi fechada; esta sprint abre **no mesmo PR** que a flipa para
+> `done`, com disposição item a item — ver §Relação com a A39.
 
 ## Tese
 
@@ -95,7 +94,7 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 | [[A42.l6]] | Contrato de store e de artefato: escopo, predicado único de extração, registry | P1 | 2 | — |
 | [[A42.l7]] | Registro de custo de LLM é SSOT que perde row e vaza filename | P1 | 2 | [[A40.l19]] |
 | [[A42.l8]] | Mês vazio por falha de extração conta como mês documentado | P1 | 2 | [[A40.l15]] |
-| [[A42.l9]] | Identidade do checksum de fatura — destrava o resíduo deferido da [[A39]] | P1 | 3 | [[A42.l2]] |
+| [[A42.l9]] | Vocabulário do checksum de fatura: separar dívida acionável de teto estrutural | P1 | 3 | [[A42.l2]] |
 | [[A42.l10]] | Misclassificação na classificação amplifica o carrier de duplicação | P1 | 3 | [[A41.l2]] |
 | [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | [[A40.l2]] |
 
@@ -117,11 +116,19 @@ o arquivo de senha existe e o run completa — morde em deploy limpo e no segund
 usuário). Fica fora da Onda 1 para não competir por pickup com instrumento nem
 sugerir bloqueio que não existe.
 
-**Onda 1 — instrumento** ([[A42.l2]], [[A42.l3]], [[A42.l4]]). As três são
-disjuntas em arquivo e podem correr em paralelo.
+**Onda 1 — instrumento** ([[A42.l2]], [[A42.l3]], [[A42.l4]]). **Não são disjuntas —
+partição declarada.** A l4 é solo em arquivo. A l2 e a l3 tocam ambas
+`dev/certify_parse_local.py`, e no mesmo ratchet: a **l3 é a dona do arquivo** e entrega
+a cláusula de ratchet que a l2 precisa; a l2 consome e não edita. Uma versão anterior
+deste plano afirmava disjunção aqui — era falso, e a partição existe porque duas lanes
+P1 reescrevendo o mesmo ratchet em paralelo é exatamente o cenário que a onda diz evitar.
 
 **Onda 2 — identidade, contrato e base** ([[A42.l5]], [[A42.l6]], [[A42.l7]],
-[[A42.l8]]).
+[[A42.l8]]). Colisões declaradas: **l5 ∩ l6** em `e3_reconciler_adapter.py` (funções
+diferentes — seleção de saldo vs. sítio do predicado de extração), com acoplamento
+semântico a vigiar (o guard "por expectativa" da l6 conta grupos cujo keying a l5 muda);
+**l8** entra na fila de rebaseline do snapshot do view-model, compartilhada com a
+[[A40.l15]]. Quem mergear primeiro avisa; a segunda rebaseia e **recalibra**, não copia.
 
 **Onda 3 — o que depende de terceiros** ([[A42.l9]], [[A42.l10]], [[A42.l11]]).
 
@@ -142,7 +149,7 @@ que flipa a A39 para `done`**, com disposição item a item:
 
 | Resíduo da A39 | Blocker declarado | Disposição |
 |---|---|---|
-| [[A39.l3]] c2 (opt-in de fatura) + [[A39.l8]] (parser determinístico) | Identidade do checksum de fatura: a soma não fechava em 0 de 3 faturas reais, e a decisão de domínio ("o que o total impresso inclui") ficou pendente | **Adotado** por [[A42.l9]]. O §r2 destravou: em 31 de 41 documentos o total impresso **é a soma das próprias linhas** — o checksum seria tautológico. Não é dívida de wiring, é **teto estrutural**. A pergunta de domínio deixa de ser bloqueante porque a resposta é "esses documentos não têm testemunha independente" |
+| [[A39.l3]] c2 (opt-in de fatura) + [[A39.l8]] (parser determinístico) | A §Deferido da A39 (escrita 2026-07-23) os declara bloqueados na identidade do checksum | **Nada a adotar — já entregues.** A [[ADR-342]] §Emenda **2026-07-24** decidiu a identidade (por seção) e ligou os dois parsers com o corpus fechando a cent, zero falso-fire. O deferimento durou um dia; a §Deferido da A39 nunca foi reescrita. A [[A42.l9]] atende **PC12**, que é defeito próprio e posterior (vocabulário: `faltando` conflaciona dívida com teto em 31 de 41 documentos) — **não** o resíduo da A39 |
 | [[A39.l6]] residual (traço positivo do checksum) | — | **Adotado** por [[A42.l3]] — o traço já é emitido e escrito no schema; o harness não o lê |
 | §Deferidos — propagação E2→E5 e selo de qualidade, gated por [[ADR-345]] | ADR `Roadmap`, adoção deferida | **Gatilho registrado** por [[A42.l2]]. A condição de retomada da nota é "quando um achado de revisão demonstrar número de origem degradada chegando ao usuário sem sinal" — o §r2 é esse achado. Registrar o gatilho é docs-only; **promover a nota exige design** ([[ADR-358]]) e não é escopo desta sprint |
 | [[A39.l13]] (`planned`) — re-route da classificação pelo choke-point de LLM | — | **`cancelled`** por duplicação: é a [[A41.l2]], que já é dona dos mesmos arquivos |
@@ -161,8 +168,8 @@ superfície possui o achado):
 
 | Achado | Destino | Motivo |
 |---|---|---|
-| Duplicação cross-documento do razão (P0, ~19% da receita) + suas 3 camadas de identidade | [[A40.l2]] | É o KR-B da A40, com instrumento shipado ([[A40.l1]]) e fix escrito em 5 PRs. A trilha do próprio achado aponta para lá. Abrir lane aqui criaria duas fontes de verdade no mesmo arquivo |
-| Débito de âncora estável de override manual | [[A40.l2]] PR3 | A própria trilha diz "não abrir lane" |
+| Duplicação cross-documento do razão (P0, ~19% da receita) | [[A40.l2]] | É o KR-B da A40, com instrumento shipado ([[A40.l1]]) e escopo em 5 PRs. A trilha do próprio achado aponta para lá. **Ressalva registrada:** o §r4 mediu que **4 dos 5 desenhos de fix foram eliminados**, e o desenho sobrevivente (colapsador por transação, chave provenance-free day-exact) **não está escrito** nos PRs atuais da l2 — o P0 tem dono e não tem fix escrito. Isto é aviso à A40, não escopo da A42 |
+| Débito de âncora estável de override manual + eixo member-level do lineage em zero | [[A40.l2]] PR3 | Mesma causa; a trilha de ambos diz "não abrir lane" |
 | Limiar de confiança + canal de pausa inalcançável | [[A40.l21]] | A trilha diz "acoplar a A40.l21" |
 | Decisão registrada pelo dono descartada da única seção que responde "o que fazer" (**P0**) | [[A40.l10]] | Ver §Nota sobre o P0 de entrega abaixo |
 | Termo de marca metodológica vazando para o índice web | [[A40.l7]] | l7 já é dona do YAML de layout e do shell; alcança o usuário hoje |
@@ -173,19 +180,30 @@ superfície possui o achado):
 | Componente de proteção ausente do score | [[A40.l11]] | A trilha diz "não duplicar" |
 | Número monetário em formato en-US na prosa gerada | [[A40.l13]] | l13 já cria o gate de render monetário |
 | Cobertura de citação e limiar sem fonte no repo | [[A40.l30]]/[[A40.l31]] | l30 é o instrumento de ancorabilidade; paralelo colidiria no catálogo |
-| Lineage member-level em zero | [[A40.l2]] PR3 | Mesma causa do débito de âncora |
 | `else` exaustivo do equilíbrio presente/futuro (percentual publicado **inverte** sob a lista declarada) · input de contrato sem leitor · convenção de unidade quebrada · campos sem consumidor | [[PLAN-pipeline-review-r2]] | É domínio e contrato de view-model, não a camada desta sprint. O primeiro é o de maior materialidade dos quatro e pede posição na Onda A, não no fim da cauda |
 
-**Cauda não alocada (~38 achados P2/P3 da revisão de pipeline).** Permanecem
-`procede-aberto` em [[PIPELINE-REVIEWS-active]] §r4, em três classes: *contrato de
-view-model* → Onda B do [[PLAN-pipeline-review-r2]]; *citação e parecer* →
-[[A40.l30]]/[[A40.l31]]; *cosmético de render* → [[A40.l13]]. O que não couber em
-nenhuma recebe `aceito-wontfix` com rationale no MOC da skill — cauda sem
-disposição não é corte, é esquecimento.
+**Cauda não alocada — contada, não estimada.** A revisão de pipeline tem **73
+achados codificados** (o 74º é de instância e ficou off-git, sem código, logo não é
+roteável). Deles: 22 em lane A42, 20 roteados nominalmente acima, 9
+refutados/positivos, e **22 sem destino individual** — 12 P2 e 10 P3.
+
+Duas dimensões inteiras estão **fora da sprint por camada**, e é honesto nomeá-las
+com a contagem em vez de diluí-las em "cauda": **`qualidade-llm` (13 achados abertos,
+zero na A42)** e **`clareza-ux` (10 abertos, zero na A42)**. Juntas são 36% dos
+abertos. O corte é o §Critério de admissão cláusula 3 — nenhuma das duas é ingestão,
+razão, contrato de store ou instrumento de certificação — e o destino é
+[[A40.l30]]/[[A40.l31]] (citação e parecer), [[A40.l13]] e [[A40.l7]] (render), ou o
+[[PLAN-pipeline-review-r2]].
+
+Dos 22 sem destino individual, **8 não caem em nenhuma dessas classes** e ficam
+explicitamente para `aceito-wontfix` com rationale no MOC da skill, na próxima
+re-triagem (r5). Um deles merece nota: há um P3 de **egresso de fragmento de
+identificador fiscal mascarado ao provedor**, duplicado em dois campos — é P3 pela
+materialidade, mas é vazamento, e não deve morrer na cauda anônima.
 
 **Refutados e positivos** ficam registrados nos MOCs de origem com rationale e
-**não viram lane**: 2 refutados no §r2, 2 no §r4 do razão, 6 no §r4 da revisão; 4
-achados positivos (`procede-fechado`).
+**não viram lane**: no §r2, 1 refutado + 1 não-acionável; no §r4 do razão, 2
+refutados + 1 confirmação fechada; no §r4 da revisão, 6 refutados + 3 positivos.
 
 ### Nota sobre o P0 de entrega
 

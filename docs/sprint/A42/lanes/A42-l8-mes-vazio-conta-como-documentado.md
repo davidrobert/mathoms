@@ -65,6 +65,12 @@ contra a regra escrita), e há **quatro listas paralelas** de categoria que dive
 com aporte classificado como transferência patrimonial num bloco e gasto
 discricionário noutro.
 
+E um sintoma que é consequência dos itens 2–4, não causa própria (RV4-55): **dois
+números diferentes carregam o mesmo rótulo** de cobertura de despesas em meses no mesmo
+payload, com fator de cerca de 2× entre eles — porque calculam sobre bases distintas.
+Deve **cair junto** com o fix de denominador; se não cair, é sinal de que ainda há uma
+terceira base não localizada, e aí vira item próprio.
+
 ## Decisão
 
 1. **Mês cuja extração determinística produziu zero lançamentos não conta como mês
