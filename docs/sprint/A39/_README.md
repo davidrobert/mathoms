@@ -3,17 +3,24 @@ id: MOC-sprint-a39
 type: moc
 title: "Sprint A39 — Parse correctness: fechar a dívida de verificação da ingestão E0→E2"
 aliases: ["A39", "Sprint A39"]
-sprint_status: candidate
+sprint_status: done
 date: "2026-07-23"
 theme: "ingest-trust"
 ---
 
 # Sprint A39 — Parse correctness (dívida de verificação E0→E2, 2026-07-23)
 
-> **Status:** `candidate` (próxima; owner promove a `current`). Follow-on direto
-> do [[MOC-sprint-a38]] (mesma tese `ingest-trust`). Escopo: **ingestão E0→E2**
-> — do documento ao artefato E2 verificado. Propagação E2→E5 e selo no relatório
-> ficam **fora** (deferidos ao plano REPORT_TRUST; ver §Deferidos).
+> **Status:** `done` — fechada em 2026-08-04 pela abertura da [[A42]], sua sucessora
+> declarada na mesma tese `ingest-trust`. **12 de 13 lanes shipadas**; a 13ª e os
+> resíduos deferidos receberam disposição item a item em §Fechamento. Follow-on direto
+> do [[MOC-sprint-a38]]. Escopo: **ingestão E0→E2** — do documento ao artefato E2
+> verificado. Propagação E2→E5 e selo no relatório ficam **fora** (deferidos ao plano
+> REPORT_TRUST; ver §Deferidos).
+
+> **Nota de leitura.** As seções abaixo são registro datado de 2026-07-23 e **não
+> foram reescritas**. Onde a §"Deferido — fase pesada" lista lanes com blocker
+> (l9/l10/l11/l12), o estado final divergiu: as quatro shiparam depois. A disposição
+> autoritativa é a de §Fechamento.
 
 > **Origem:** skill `parse-certify` sobre o workspace dogfood inteiro
 > (`5@5.com`, 123 docs em `financial_statements`), 2026-07-23, sobre `main @
@@ -334,3 +341,29 @@ Co-design sobre o rascunho de 9 lanes. Correções incorporadas:
 Relatório: `_scratch/parse-certify-5at5-2026-07-23.md`. Baseline durável:
 `storage/<uuid>/certify/financial_statements-2026-07-23.json`. Contrato que as
 lanes emendam: [[ADR-342]]. Cauda reconciliada: [[MOC-sprint-a38]].
+
+---
+
+## Fechamento (2026-08-04) — disposição autoritativa
+
+A A39 é fechada pela abertura da [[A42]], sua sucessora declarada na mesma tese
+`ingest-trust`. Motivo: manter duas sprints `candidate` com a mesma tese, sobre os
+mesmos arquivos, cria duas fontes de verdade — exatamente o que o roteamento da A42
+existe para evitar. Precedente: a própria A39 fez isso com a cauda da [[MOC-sprint-a38]].
+
+**Lanes:** 12 de 13 `shipped` (l1–l12). Disposição do restante e dos resíduos:
+
+| Item | Estado em 2026-08-04 | Disposição |
+|---|---|---|
+| [[A39.l13]] — re-route da classificação pelo choke-point de LLM | `planned`, nunca pescada | **`cancelled`** por duplicação: é a [[A41.l2]], que já é dona dos mesmos arquivos e nasceu com o escopo completo |
+| [[A39.l3]] c2 (opt-in de fatura) + [[A39.l8]] (parser determinístico) — resíduos declarados dentro de lanes shipadas | Bloqueados na identidade do checksum de fatura: a soma não fechava em 0 de 3 faturas reais e a decisão de domínio ficou pendente | **Adotados** por [[A42.l9]]. O blocker foi destravado por medição em [[PARSE-CERTIFY-active]] §r2: em 31 de 41 documentos o total impresso **é a soma das próprias linhas**, logo o checksum seria tautológico e proibido pela [[ADR-342]]. Não era dívida de wiring — era **teto estrutural**, e a pergunta de domínio deixa de ser bloqueante |
+| [[A39.l6]] residual — traço positivo do checksum | Emitido pelo produtor e declarado no schema; nunca lido pelo harness | **Adotado** por [[A42.l3]] |
+| §Deferidos — propagação E2→E5 e selo de qualidade, gated por [[ADR-345]] | Nota `Roadmap`, adoção deferida | **Gatilho de retomada registrado** por [[A42.l2]]. A condição escrita na nota ("quando um achado de revisão demonstrar número de origem degradada chegando ao usuário sem sinal") foi satisfeita pelo §r2. Registrar o gatilho é docs-only; promover a nota exige design ([[ADR-358]]) |
+| §Deferidos — reconciliação de órfãos no DB e quarentena inerte no read-path | Roteado para A40 | Permanece com a [[A40]]; sem mudança |
+| §Deferidos — cauda da A38 não surfada no corpus | Roteado para A40 | Permanece; sem mudança |
+
+**KRs:** atingidos como registrado acima (KR-A ✅, KR-B 6 parsers, KR-C/D
+observabilidade + gate escopo-aware). O que a A39 **não** provou — e a [[A42]] assume
+como tese — é que os instrumentos que declaram esses KRs não dão verde sem medir: o §r2
+achou o gate de conservação de um parser suprimido por conclusão do próprio parser,
+introduzido **depois** do fechamento das lanes desta sprint.

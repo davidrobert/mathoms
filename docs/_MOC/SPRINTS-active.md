@@ -282,6 +282,43 @@ flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
 
 ## Sprint candidate (próxima)
 
+### A42 — Provabilidade da ingestão e do razão: fechar o falso-verde do instrumento (`candidate` 2026-08-04)
+
+**Origem:** três certificações do mesmo workspace dogfood em 2026-08-04 —
+[[PARSE-CERTIFY-active]] §r2 (ingestão E0→E2, 9 abertos + 1 do r1),
+[[LEDGER-CERTIFY-active]] §r4 (razão E3/E4, 10 abertos) e
+[[PIPELINE-REVIEWS-active]] §r4 (run completo, 74 achados). Absorve o handoff que a
+[[A40]] §Fora do sprint declarou **fora dela por camada** e "não roteado".
+
+**Tese:** o corpus não regrediu em dado — regrediu em **capacidade de provar** que o
+dado está certo. Os três instrumentos que deveriam denunciar perda passaram a dar
+verde sem medir: gate de conservação suprimido por conclusão do próprio parser, skill
+de certificação carimbando `coberto` sobre a dimensão de 62,5% do peso do score, e
+check que não consegue avaliar **evaporando** da conta em vez de virar `skipped`.
+Daí a Onda 1 ser instrumento, não fix: sem detecção, todo fix abaixo regride em
+silêncio e fecha verde.
+
+**Sucessora declarada da [[A39]]** (mesma tese `ingest-trust`), fechada no mesmo PR:
+12 de 13 lanes shipadas, e os resíduos deferidos — travados na identidade do checksum
+de fatura — ganham destino porque o §r2 destravou o blocker por medição (o total
+impresso é a soma das próprias linhas em 31 de 41 documentos ⇒ **teto estrutural**,
+não dívida de wiring).
+
+**KRs** (4, binários, cada um com duas linhas de contagem contra Goodhart): fidelidade
+discriminada de completude da fonte · instrumento que não dá verde falso (prova por
+mutação: remover o input ⇒ exit ≠ 0) · identidade sob cobertura redundante · base
+mensal honesta.
+
+**Gate de saída:** não é burn-down — é **re-certificação**. A42 fecha quando
+`parse-certify` r3 + `ledger-certify` r5, sobre o mesmo corpus, retornarem **zero
+achado novo da classe falso-verde**.
+
+**Gatilho de promoção** (evento, não calendário): [[A40]] → `done`.
+
+- **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · **11 lanes**
+  `planned` em 4 ondas (0–3), teto de capacidade 14. Declara o **critério de admissão**
+  em 5 cláusulas, fechando a §Pendência de decisão nº 10 da [[A40]].
+
 ### A41 — Governança de chamada LLM: fechar a rota alternativa ao choke-point (`candidate` 2026-08-03)
 
 **Origem:** §Escopo deferido da [[ADR-355]] (mergeada 2026-08-03) + 1 achado
@@ -302,43 +339,6 @@ esperam gatilho. A objeção completa está registrada no `_README` da A41.
 
 - **Sprint:** [sprint/A41/_README.md](../sprint/A41/_README.md) · 3 lanes
   `planned` · [[PLAN-launch-trust]].
-
-### A39 — Parse correctness: dívida de verificação da ingestão E0→E2 (`candidate` 2026-07-23)
-
-**Follow-on direto da A38** (mesma tese `ingest-trust`), origem na skill
-`parse-certify` sobre o workspace dogfood inteiro (`5@5.com`, 123 docs, pós-A38).
-A38 garantiu que **transação não some em silêncio**; A39 sobe a régua: **todo
-parser com saldo observado independentemente declara verificabilidade** (o gate
-HARD da [[ADR-342]] já existe — o trabalho é certificar semântica por-parser e
-flipar o flag, não construir gate) **e faturas ganham checksum de fechamento**
-(identidade de domínio própria, ADR-343 nova corrige a cláusula errada do
-[[ADR-342]] item 1). Baseline: 3 `completo` / 99 `coberto-sem-verificação` / 11
-`escalado-honesto` / **4 `perda-silenciosa`** / 6 `não-coberto`. **12 lanes** em
-4 ondas (DoD = W0+W1 P0/P1; W2 P2 trailing), revisadas por painel de 6
-especialistas: **W0** [[A39.l1]] harness-instrumento (✅ **shipped #1035**) ·
-[[A39.l2]] C6 CSV opt-in · [[A39.l3]] fatura opt-in dos parsers (gate shipped
-#1036) · [[A39.l4]] semântica de saldo C6 PDF. **W1** [[A39.l5]] saldo bradesco ·
-[[A39.l6]] observabilidade checksum CDB (cobertura shipped #1036) · [[A39.l7]]
-sweep de verificabilidade · [[A39.l8]] fatura Itaú Visa (adota [[A38.l9]]) ·
-[[A39.l9]] posição RV (adota [[A38.l13]]). **W2 trailing** [[A39.l10]] piso de
-materialidade (ADR-344) · [[A39.l11]] determinismo da classificação LLM ·
-[[A39.l12]] resíduo Binance/rico. **Reconciliação:** #1035/#1036/#1037 shiparam
-~1.5 lanes durante a autoria (convergindo com o painel); l1 nasce shipped, l3/l6
-residuais, ADR-343 descartada (emenda [[ADR-342]] superou). ADRs novas restantes:
-344 (piso) + RV + temp=0. **Deferidos:** propagação E2→E5 + selo → REPORT_TRUST
-([[ADR-345]]); órfãos + cauda [[A38.l8]]/[[A38.l11]] → A40.
-
-**Execução 2026-07-23:** onda de flips + observabilidade + classificação
-**entregue** — l1 (#1035) · l2 (#1039) · l4 (#1041) · l5 (#1042) · l6 (#1043) ·
-l7 (#1040) em `main`; l3 (#1045, gate escopo-aware — opt-in deferido) e l8 (#1047,
-classificação fatura Itaú — parser deferido) parciais. **KR-A completo** (os 4
-perda-silenciosa escalam). **Fase pesada deferida** (blocker real, não cram):
-[[A39.l9]] parser RV+ADR · [[A39.l10]] piso (ADR-344 + valor de materialidade =
-decisão de domínio) · [[A39.l11]] temp=0 (eval owner-gated) · opt-in/parser de
-fatura ([[A39.l3]]/[[A39.l8]]) bloqueados na **identidade do checksum de fatura**
-(o que "Total Despesas" inclui — 0/3 fecham). Detalhe: [sprint/A39/_README.md](../sprint/A39/_README.md) §Estado de execução.
-
-- **Plano:** [sprint/A39/_README.md](../sprint/A39/_README.md) · **Origem:** skill `parse-certify` no workspace `5@5.com` 2026-07-23 (corpus fora do git).
 
 ### A27 — Data Lineage Onda 6 (conclusão): citação confiável do parecer (`candidate` 2026-06-19)
 
@@ -433,6 +433,7 @@ editorial único com os flips de frontmatter + regeneração de índices.
 
 | Sprint | Status | Resumo |
 |---|---|---|
+| A39 | done | Parse correctness (dívida de verificação E0→E2, tese `ingest-trust`) — 12 de 13 lanes shipadas (#1035–#1047+). Fechada 2026-08-04 pela abertura da [[A42]], sucessora declarada na mesma tese; l13 `cancelled` por duplicação com [[A41.l2]] e os resíduos deferidos adotados por [[A42.l9]]/[[A42.l3]] (§Fechamento do `_README`). |
 | A6 | done | Migração infra+domínio (ADR-097, ADR-111). |
 | A7 | done | Config DB cutover (CLI legacy removal). |
 | A8 | done | Continuação multi-tenant. |

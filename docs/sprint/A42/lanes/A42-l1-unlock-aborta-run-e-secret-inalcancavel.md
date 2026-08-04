@@ -1,0 +1,67 @@
+---
+id: A42.l1
+type: lane
+title: "Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo"
+sprint: A42
+status: planned
+priority: P0
+branch_slug: a42-l1-unlock-aborta-run-e-secret-inalcancavel
+depends_on: []
+tags:
+  - type/lane
+  - sprint/a42
+  - status/planned
+  - priority/p0
+  - area/pipeline
+  - area/backend
+---
+
+# A42.l1 — `unlock-aborta-run-e-secret-inalcancavel` (RV4-01)
+
+> **Origem:** [[PIPELINE-REVIEWS-active]] §r4 2026-08-04 — RV4-01 (P0, `saúde-execução`).
+> Reproduzido por mutação **e** por run real com status `failed`. Veredito adversarial
+> PARTIAL; a parte confirmada é a que importa.
+
+## Problema
+
+O primeiro stage do pipeline carrega o arquivo de senhas **antes** de verificar se
+existe algum documento cifrado, e aborta o processo em falha. Consequência: um
+workspace **sem nenhum documento cifrado** tem o run inteiro morto no stage 1 de 18.
+
+O agravante é que o arquivo de senhas só chega ao tenant por cópia de um diretório
+que é **bloqueado por `.gitignore` e por `dev/check_forbidden_paths.py`**. Ou seja:
+num deploy limpo, não existe caminho suportado para criar esse arquivo. O defeito
+não é "falta configurar" — é que a configuração exigida é inalcançável.
+
+**Por que não apareceu no dogfood:** neste workspace o arquivo existe (resíduo de
+sessão antiga) e o run completa 18/18. O defeito morde no **segundo usuário** e em
+qualquer ambiente provisionado do zero. É por isso que esta lane está em onda solo
+com gate externo: o critério de aceite **não pode** ser "o dogfood roda".
+
+## Decisão
+
+Duas mudanças independentes, na ordem:
+
+1. **Ordem do predicado** — verificar a existência de documento cifrado **antes** de
+   tocar o material de senha. Sem documento cifrado, o stage é no-op de sucesso.
+2. **Ausência de secret não é falha abortiva** — é ausência de trabalho. Se há
+   documento cifrado e não há material de senha, o caminho correto é escalar para
+   revisão (o documento fica pendente, o run segue), nunca derrubar o run.
+
+**ADR nova `Proposto` obrigatória** antes do PR de implementação: provisionamento de
+secret por tenant em ambiente limpo é decisão de arquitetura e de operação —
+co-design `senior-cto` + `sre-devops`. A ADR precisa responder onde o material vive
+num tenant provisionado do zero, dado que o diretório atual é path proibido.
+
+## Critério de aceite
+
+- Teste de regressão **antes** do fix: workspace sem documento cifrado e **sem**
+  arquivo de senhas ⇒ stage completa como no-op; hoje o processo morre.
+- Teste de regressão: workspace **com** documento cifrado e sem material de senha ⇒
+  o documento é escalado para revisão e o run **prossegue**; nenhum caminho aborta.
+- **O aceite não usa o corpus dogfood** (onde o arquivo existe): fixture de tenant
+  limpo. Um teste que passe só porque o ambiente local tem o resíduo é falso-verde —
+  a mesma classe que esta sprint existe para matar.
+- Nenhum workaround assado em fixture: se a suíte hoje cria o arquivo para fazer o
+  stage passar, esse setup sai no mesmo PR (é ele que esconde o defeito).
+- ADR `Proposto` mergeada antes do PR de implementação.
