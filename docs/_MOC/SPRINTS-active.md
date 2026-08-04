@@ -315,7 +315,7 @@ achado novo da classe falso-verde**.
 
 **Gatilho de promoção** (evento, não calendário): [[A40]] → `done`.
 
-- **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · **11 lanes**
+- **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · **12 lanes**
   `planned` em 4 ondas (0–3), teto de capacidade 14. Declara o **critério de admissão**
   em 5 cláusulas, fechando a §Pendência de decisão nº 10 da [[A40]].
 

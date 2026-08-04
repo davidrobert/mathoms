@@ -90,5 +90,11 @@ O princípio único: **"não consegui avaliar" é um estado, não um sucesso.**
   que o tinha.
 - Nenhum check novo que dependa de variável de ambiente para morder: se a condição
   não está satisfeita, o resultado é `indeterminado` com exit próprio — não `pass`.
+- **O ratchet aceita o enum de verificabilidade da [[A42.l2]]**, e des-certificação
+  (`provada → nao_verificavel`) **falha** o `--compare`. Este bullet é a entrega de que a
+  l2 depende: ela declara em prosa que consome esta cláusula, e sem o item estar no DoD
+  **desta** lane a l3 poderia shipar verde deixando a l2 bloqueada — dependência cujo
+  entregável não está no critério do provedor não é dependência, é esperança (correção do
+  `senior-cto`, 2026-08-04).
 - **KR-B da sprint só é mensurável depois desta lane.** É a razão pela qual ela está
   na Onda 1 e não depois dos fixes que ela deveria vigiar.
