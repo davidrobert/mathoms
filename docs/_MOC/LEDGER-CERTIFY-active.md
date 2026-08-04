@@ -195,3 +195,65 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 > alarme. **Insulação (financial-planner):** TRS/renda-passiva e projeção-IF são
 > IRPF/goals-sourced, não E4-receita-sourced → LC03/LC04/LC05 corrompem só fluxo +
 > taxa de poupança, não patrimônio/TRS/IF.
+
+---
+
+## r4 — ws-1b9f2cf5-2026-08-04
+
+> Skill ledger-certify ([[ADR-302]]) · run 604f8816. Re-derivação in-process E3+E4
+> sobre E2 persistido — **zero write no DB provado** (`pipeline_artifacts`
+> 13626→13626, `transaction_overrides` 12→12). Grupos E3: **90/105 `conservado`**
+> ([[ADR-347]], tol-0), 15 `coberto` (**todos** 0-tx). Baldes E4: `despesas` (21 cat,
+> 3540 tx) + `receitas` (9 cat, 773 tx) + `investimentos` (18 pos, **0 colisões**)
+> `conservado`; E3→E4 conserva count **e** valor (Δ=0). Drift vs persistido: 105
+> casados, **0 divergente**. natural_key: **12,1%** (754/6247) — patamar de r3.
+> **Julgamento:** data-engineer (2 rodadas, a 2ª revogando a 1ª) + financial-planner
+> em paralelo + verificação adversarial (**1/1 candidato a P0 CONFIRMADO**, 5
+> refutações mortas) + **`senior-cto` decidindo e fechando** (§Anti-loop) após 3
+> rodadas convergirem em desenhos que a medição eliminou. Cru + instância (PII) em
+> `storage/<uuid>/ledger_certify/` (off-git).
+>
+> **Camada A limpa; o P0 é de identidade e não é novo** — as 261 ocorrências
+> cross-grupo são o **baseline já congelado** pela [[A40.l1]]; r4 reproduz byte-a-byte
+> ⇒ **zero drift, zero progresso**. O valor de r4 é (a) materialidade, (b) causa-raiz,
+> (c) eliminar 4 dos 5 desenhos de fix por medição.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| LC01 — **[produto]** duplicação cross-documento de sobreposição: mesma conta com múltiplos documentos-fonte de período sobreposto (um parseado nativamente, outro escalado ao LLM) rende 261 eventos 2× no E4 entregue = **~19% da receita** e **~8% da despesa**. Sum-preserving ⇒ passa por toda conservação. E5 consome E4 verbatim (`fluxo_caixa_enricher.py:283`, acumuladores `+=`) ⇒ **infla 1:1**, sem dedup a jusante | identidade/dedup | Alto | **P0** | procede (CONFIRMADO) | procede-aberto | [[A40.l2]] — **colapsador cross-documento por TRANSAÇÃO** (domain service puro, injetado com `default None` no `E3ReconcilerAdapter`, após `reconcile_with_report` e **antes** do agrupamento), chave provenance-free day-exact; sobrevivente = perna nativa |
+| LC02 — **[produto]** a chave de agrupamento de artefato do E3 carrega o **período do documento** (`e3_serialization.py:136`) ⇒ duas pernas da mesma conta **nunca se encontram** no dedup, independente de identidade de transação. O E3 tem duas noções concorrentes de "mesma conta": `AccountGrouper.key()` é **period-free** ([[ADR-310]]) e o agrupamento de artefato é **period-bearing** — o repo tem a definição certa e agrupa pela errada | contrato de agrupamento | Alto | P1 | procede | procede-aberto | corolário novo da emenda [[ADR-354]]; regrouping period-free + balance selection por `max(period_end)` é lane própria (fecha a classe latente native↔native) |
+| LC03 — **[produto]** o dedup existente exige descrição **bruta byte-idêntica** (`reconciliation_service.py:152`, sem `normalize_descricao`, ±3 dias) ⇒ teto de colapso **~48%** (126/261). Torna o desenho "fundir os grupos" um fix parcial que **fecha verde** pagando o preço máximo | dedup | Alto | P1 | procede | procede-aberto | não reusar `is_duplicate` no colapsador; usar a chave normalizada que já roda dentro do `_hash_v2` de produção |
+| LC04 — **[produto]** colisão literal↔sentinela destrói informação: o token residual do contrato LLM (`e2_llm_extract.py:94`) é **byte-idêntico** ao default de "desconhecido" do código (`e3_serialization.py:99`,`:137`; `document.py:186`) ⇒ a jusante é **indecidível** se o dado disse ou o código defaultou (11 de 17 artefatos vêm do contrato, 6 do default). É defeito de **contrato**, não alucinação — o LLM cumpriu a instrução | contrato de identidade | Médio | P1 | procede | procede-aberto | [[A40.l2]] PR-B: sentinela reservado fora de `TIPO_CANONICAL` nos 3 sítios + `Literal[...]` em `document_type` validado no boundary |
+| LC05 — **[skill]** `_non_ledger_verdict` (`dev/ledger_certify_core.py:161`) é catch-all com **default `coberto`**: conta containers que esses baldes não usam (`patrimonio` usa `itens`=67, não `dados`; `fluxo_mensal_detalhado` usa `meses_ordenados`=44) ⇒ imprime "0 itens · coberto" com o payload completo em mãos, e a glosa "fora do grão transacional" é **factualmente falsa** para `fluxo_mensal_detalhado` (sai de `result.cash_flow`, mesma população classificada). Carimba `coberto` sobre a dimensão de **62,5% do peso do score** | conservação (skill) | Alto | P1 | procede | procede-aberto | registry `{balde → checker \| não-verificável(motivo)}` com default **`não-verificável`**; + estender o drift (hoje só E3) para contagem por balde E4 — **guard que fecha a classe**, não a instância |
+| LC06 — **[skill]** a rubrica declara a P0 nº 1 (dedup patrimonial [[ADR-271]]/[[ADR-246]]) coberta, mas o check que roda (`investment_double_count`) varre o balde E4 `investimentos` (18 pos, origem E2) — **população e vetor diferentes** de `investimentos_consolidados` do E1.5c (49 entradas, eixos cross-year/cross-declarante). P0 nº 1 **nunca exercitada** em r1–r4 | conservação (skill) | Alto | P1 | procede | procede-aberto | invariantes de **saída** (não reimportar os módulos de dedup — seria tautologia): PAT-1 (contribuição = `valores_31_12[max(ano)]`, nunca Σ anos, fechando contra o agregado publicado), IMO-1/2, INV-1/2, MEM-1 — **com partição de julgabilidade** e prova por mutação |
+| LC07 — **[produto]** misclassificação E0 a montante **amplifica** (não causa) o carrier: doc de conta corrente classificado como outro tipo foi escalado ao LLM e rendeu 72 tx de conta corrente. Com E0 perfeito a classe **permanece** (banco emite mensal + consolidado anual da mesma conta) | ingestão (E0) | Médio | P1 | procede | procede-aberto | escopo da skill `parse-certify` ([[parse-certify-registry]]), lane separada; não bloqueia a l2. Ganho colateral: E0 correto manda o doc ao parser nativo ⇒ perna LLM deixa de existir |
+| LC08 — **[produto]** `list_keys` (workspace-wide, `db_artifact_store.py:379`) e `read` (run-scoped, 3 degraus) **discordam de política de escopo** — a assimetria que [[ADR-291]] §Contexto documenta como causa-raiz e consertou só do lado do `read`. Efeitos: `_e3_validate_outputs` reporta 137 grupos escritos quando o run escreveu 105; e órfão de **keying** nunca recebe `retention_until` (retenção é key-scoped) ⇒ imortal | contrato de store / retenção | Médio | P1 (contrato) + P2 (GC) | procede | procede-aberto | paridade de política (mesma regra de 3 degraus) + guard reescrito **por expectativa**; escopar `list_keys` ingenuamente torna o guard de [[ADR-291]] D5 dead code e devolve o E4-vazio-silencioso. **GC depois do PR-D** — os órfãos são a pré-imagem da re-ancoragem |
+| LC09 — **[produto]** o `artifact_key` rotula período que **subrepresenta o span real** (key de 1 mês transportando 13) porque o `periodo` do artefato LLM vem de um único `YYYYMM` expandido, enquanto `transacoes` carrega o PDF inteiro | ingestão (E2) | Médio | P2 | procede | procede-aberto | derivar `periodo` do span real das tx (`extract_with_llm.py:438`); ordem 5 da trilha decidida |
+| LC10 — **[produto]** natural_key 12,1% — 88% dos ajustes manuais sem âncora estável. Continuação de r3·LC07 (sem mudança) | consistência | Médio | P1 | procede | procede-aberto | **não abrir lane**: mesma causa do LC01/LC04 e [[A40.l2]] PR3 é o vetor. Gate de beta correto **não é cobertura ≥X%** e sim **nenhum override ativo sem âncora** (recusar a promoção no ato > aceitar e perder em silêncio) |
+| LC11 — **[refutado]** acreção de E3 stale (137 grupos latest-per-key de 9 runs) **não** causa dupla-contagem em produção: E3 não está em `_WORKSPACE_SCOPED_STAGES` ([[ADR-241]] rejeitou explicitamente) ⇒ órfão de run anterior retorna `None` nos 3 degraus do `read` e é descartado. As sobreposições que eu medi vinham do próprio `_persisted_e3_by_key` do harness (workspace-latest **por desenho**, para o drift) | contrato de store | Baixo | P3 | refutado | refutado | sobre-leitura minha; o defeito real virou LC08 |
+| LC12 — **[refutado]** "skip silencioso do E2-LLM" **não é a causa** desta duplicação — aquele defeito é o **inverso** (doc escalado morria sem LLM) e já foi corrigido (`extract_with_llm.py:76-81`, [[ADR-342]]). **Nenhum documento foi extraído duas vezes**: o nativo emitiu stub e o LLM pegou o doc **uma** vez | ingestão | — | — | refutado | refutado | o invariante ausente não é "um extrator por documento" e sim "**um razão canônico por conta, idempotente sob cobertura redundante**" |
+| LC13 — **[confirmação]** o eixo **patrimônio não se move** neste defeito: a perna LLM não tem campo de saldo ⇒ `saldo_final_unknown=True` ⇒ `e5_analyzer_adapter.py:896` **já a pula**. Hoje o caixa **não** é duplicado; a contaminação é **só do eixo de fluxo** | conservação | — | — | procede | procede-fechado | é o que desacopla a instrumentação de patrimônio do caminho crítico da l2 — **e** o argumento decisivo contra fundir (fundir insere statement sem saldo; por `stmts[-1]` posicional, apagaria a conta inteira) |
+
+> **Nota transversal (r4).** O eixo novo desta rodada é **identidade sob cobertura
+> redundante**, não conservação: LC01/LC02/LC03/LC04 são quatro camadas do mesmo
+> defeito — dois documentos legítimos da mesma conta, um escalado ao LLM, que o razão
+> trata como duas contas porque a chave de grupo carrega período **e** um sentinela de
+> ausência. **Quatro dos cinco desenhos de fix foram eliminados por medição** (alias-map
+> e fail-closed pela [[A40.l1]]/r4; fail-closed em `account_type` e fundir por medição
+> desta rodada) — a cobertura de contraparte é **50,88%**, então quarentenar vocabulário
+> desconhecido apagaria ~252 rows de fonte única/órfãs, e fundir colapsaria só ~48%.
+> **Anti-Goodhart:** o critério de aceite da l2 usa **banda** `[259,261]`, não ponto
+> fixo, porque o instrumento é estimador com piso irrefutável 126 (descrição bruta) —
+> e adiciona **conservação de população** como ratchet para o desenho fail-closed não
+> voltar por acidente. **2 achados de skill** (LC05/LC06) são falso-verde de escopo
+> **para dentro**: a skill carimbou `coberto` na dimensão de 62,5% do peso do score e
+> nunca exercitou a P0 nº 1 da própria rubrica em 4 rodadas — precedente direto do
+> "critério derivado de contador exige ler o código". **Insulação (financial-planner),
+> revista:** TRS/renda-passiva/projeção-IF seguem IRPF/goals-sourced ⇒ insulados de
+> LC01; mas **todos expostos ao patrimônio** ⇒ a insulação **transfere** o risco, não o
+> reduz. E as duas pernas de LC01 **não se cancelam**: na taxa de poupança o viés é
+> otimista sempre que a família gasta >25% da receita; na folga mensal as pernas
+> **somam** (a parte pontual do débito duplicado se cancela dentro do parêntese e não
+> reduz a folga); na reserva o cancelamento é estruturalmente impossível. Sintoma de
+> produto: o relatório afirma folga confortável **e** reserva insuficiente ao mesmo
+> tempo — incoerência interna visível ao usuário.
