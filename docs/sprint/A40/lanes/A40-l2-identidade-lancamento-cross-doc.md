@@ -4,7 +4,7 @@ type: lane
 title: "Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l2-identidade-lancamento-cross-doc
 adrs: ["[[ADR-354]]"]
@@ -12,7 +12,7 @@ depends_on: ["[[A40.l1]]"]
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/pipeline
 ---
@@ -22,6 +22,14 @@ tags:
 > ⚠️ **Leia a §Problema antes de codar.** O mecanismo publicado originalmente no
 > [[REPORT-REVIEWS-active]] estava **errado** e foi corrigido pelo painel. A
 > versão errada leva a um fix que é **no-op** e fecha verde.
+
+> 🔴 **Segunda correção de mecanismo — 2026-08-05.** O [[LEDGER-CERTIFY-active]]
+> §r4 (2026-08-04) **eliminou 4 dos 5 desenhos de fix** do §Escopo original. O
+> defeito medido não mudou; o mecanismo mudou de *canonicalizar a montante* para
+> *colapsar por transação antes do agrupamento*. O §Escopo abaixo foi reescrito e
+> a decisão está na **§Emenda de [[ADR-354]]** (2026-08-05). O plano de 5 PRs
+> que estava aqui até 2026-08-04 colapsaria ~48% do defeito **ou** apagaria dado
+> legítimo — não o siga a partir de histórico de PR antigo.
 
 ## Medição herdada da [[A40.l1]] (instrumento pronto, baseline congelado)
 
@@ -58,11 +66,15 @@ então filtro ou cap silencioso **no numerador** quebra teste em CI (grupo
 
 **Residual que esta lane herda:** o predicado de carrier 1 aceita QUALQUER
 divergência de `tipo_conta` (mais largo que o par variante). Par de tipos de
-conta genuinamente distintos sai `carrier-shaped` e fica in-whitelistável até o
-**alias-map versionado** que a [[ADR-354]] §Consequências atribui a esta lane.
-Assimetria a fechar: variante de vocabulário em `banco` com as duas pernas
-cheias **não** é carrier-shaped hoje — se o alias-map cobrir `banco`, a partição
-precisa do mesmo tratamento.
+conta genuinamente distintos sai `carrier-shaped` e fica in-whitelistável no
+**detector**. O PR1 fecha isso **do lado do colapsador** — a allow-list
+(`extrato` ≡ `extratoconta`, com deny-list de sufixo de moeda) impede que o par
+conta↔poupança colapse. O detector segue sobre-detectando rotulado, que é a
+direção correta para instrumento ([[ADR-342]]); só o mutador precisa da
+allow-list. Assimetria que **continua aberta**: variante de vocabulário em
+`banco` com as duas pernas cheias não é carrier-shaped hoje, e o colapsador a
+bloqueia por `banco_conflitante` — logo um alias de `banco` exigiria tratamento
+próprio nos dois lados.
 
 ## Problema
 
@@ -84,49 +96,92 @@ Os carriers reais, ambos sobrevivendo à normalização como strings distintas:
    `None` — mas o `transaction_hash` **continua sendo computado** com titular
    vazio. A perna fica sem chave de re-ancoragem e com hash próprio.
 
-## Escopo — 5 PRs, nenhum toca `_hash_v2`
+## O que a medição de 2026-08-04 eliminou
 
-Princípio: **medir → conter → corrigir a montante → re-ancorar → quarentenar**.
+Os 4 desenhos abaixo estavam no §Escopo desta lane e **morreram por medição**
+([[LEDGER-CERTIFY-active]] §r4). Ficam registrados para que ninguém os
+ressuscite achando que são escopo pendente:
+
+| Desenho morto | Por que morreu |
+| --- | --- |
+| alias-map de `tipo_conta` como **canonicalização a montante** da chave de grupo | A chave que faz as duas pernas se encontrarem é **provenance-free** e não contém `tipo_conta`. Canonicalizar a montante não é pré-requisito de nada |
+| **fail-closed** em vocabulário desconhecido | Cobertura de contraparte é **50,88%** ⇒ quarentenar apagaria ~252 rows de fonte única ou órfãs. Fail-closed aqui é destrutivo |
+| **fail-closed** em `account_type_equivalences` (`account_grouper.py:181`) | Mesma medição |
+| **fundir os grupos-fonte** | Colapsa só ~48% (teto 126/261, LC03) **e** é destrutivo: a perna LLM não tem saldo e o merge elege `closing_balance=stmts[-1].closing_balance` **posicional** (`e3_reconciler_adapter.py`) ⇒ apagaria o saldo da conta inteira (LC13) |
+
+**Sobreviveu:** colapso **por transação**, pré-agrupamento — e o alias-map do dono
+renasce como **allow-list do predicado de colapso**, não como canonicalização.
+
+## Escopo — 3 PRs, nenhum toca `_hash_v2`
 
 `_hash_v1` está **congelado** ([[ADR-278]] D1) e `_hash_v2` é a chave de dedup
-**e** de re-ancoragem de `transaction_overrides`. Mudar os inputs de v2 órfãna a
-categorização manual do dono — regressão user-facing **pior** que a duplicação
-que estamos consertando, e já vivida neste repo.
+**e** de re-ancoragem de `transaction_overrides`. O colapsador **seleciona rows**;
+não toca input de hash — a §Não-decisão da [[ADR-354]] (nenhum `_hash_v3`) segue
+integralmente válida.
 
-- **PR0 (docs-only, serializado)** — [[ADR-354]] `Proposto`: *"Identidade de
-  transação (K4) exclui atributos de proveniência do documento"*. Invariante: só
-  campos que descrevem o **evento bancário** entram no hash; campos que descrevem
-  **qual documento entregou** são canonicalizados a montante ou excluídos.
-  Não-decisão explícita: **nenhum `_hash_v3`** nesta ADR.
-- **PR1** — depende da [[A40.l1]] (detector + blast radius).
-- **PR2 — canonicalização a montante.** `tipo_conta` ganha alias-map **declarado e
-  versionado no DB**, no padrão `institution_catalog` ([[ADR-137]]) — não
-  normalização free-form dentro do hash. `account_grouper.py:181`
-  (`account_type_equivalences`, hoje passthrough) vira **fail-closed**: vocabulário
-  desconhecido emite sinal, não cria grupo silencioso.
-- **PR3 — `titular` vazio vira sinal.** É defeito de extração a reparar em E2/E3;
-  row que bate no gate `_has_discriminants` passa a ser **contado e surfaçado**,
-  não passe silencioso.
-- **PR4 — re-ancoragem + quarentena.** Duplicata que sobrevive à canonicalização é
-  **quarentenada** (`needs_review`), nunca somada em silêncio.
+- **PR0 (docs-only, feito)** — **§Emenda de [[ADR-354]]** em 2026-08-05 (`6ae208b6`):
+  revoga as duas primeiras §Consequências e registra o predicado de 4 cláusulas.
+- **PR1 — colapsador measure-only** ✅ (`5bbead91`). Domain service puro
+  `CrossDocumentCollapser`, injetado com `default None` no `E3ReconcilerAdapter`
+  **após** `reconcile_with_report` e **antes** do agrupamento. Chave = a do detector
+  da [[A40.l1]]. Não remove row; emite candidato com os `_hash_v2` que **removeria**.
+- **PR2 — re-ancoragem (backend), pré-condição do enforce.** Consome os hashes do
+  PR1, cruza com `transaction_overrides` ativos e produz o mapa
+  removido→sobrevivente. Respeita o boundary (`pipeline/**` sem `sqlalchemy`): o
+  pipeline **emite**, o backend **decide**. Enforce só liga se a interseção for
+  vazia **ou** o mapa cobrir 100%.
+- **PR3 — enforce.** Colapsa de fato, com os 4 eixos de aceite abaixo.
+
+**`titular` vazio deixa de ser PR próprio:** é a cláusula de unificabilidade do
+predicado (perna vazia unifica, perna conflitante não colapsa) e já está no PR1
+com teste. O débito de âncora estável de override que a [[A42]] §Fora do sprint
+roteia para "l2 PR3" é atendido pelo **PR2** desta numeração.
 
 ## Critério de aceite
 
-- Detector da [[A40.l1]] reporta **0 duplicação não-explicada** no corpus após os PRs.
+**Anti-Goodhart primeiro:** a chave do colapsador **contém** a do detector, logo
+"o numerador cai a 0" é quase tautológico — o colapso zera o instrumento por
+construção. Por isso o aceite exige eixos que **não derivam da mesma chave**, e
+declara que o colapso correto pode ser **menor** que 261 (sinal, não regressão).
+
+- **Banda, não ponto fixo:** colapso ∈ `[259,261]` — o instrumento é estimador com
+  piso irrefutável 126 (descrição bruta).
+- **Conservação de cardinalidade (multiset)** por (conta, mês): sobrevivente =
+  `max` sobre proveniências. Métrica derivada da chave não falsifica isto.
+- **Invariante de saldo:** nenhum grupo perde `closing_balance`, a contagem de
+  `saldo_final_unknown` não muda, e os 105 grupos seguem fechando em tol-0.
+- **Oráculo a jusante:** queda de ~19% da receita e ~8% da despesa nos meses
+  afetados, **e** desaparecimento da incoerência "folga confortável + reserva
+  insuficiente" que o [[LEDGER-CERTIFY-active]] §r4 nomeia como sintoma visível.
 - `COUNT(*) WHERE orphaned_at IS NOT NULL` em `transaction_overrides` **não sobe**
-  entre antes e depois do backfill. Se subir, o re-run rodou sem re-âncora →
-  **abortar e restaurar**.
-- Vetores-golden de hash em `tests/unit/pipeline/test_tx_identity_propagation.py`:
-  N tuplas `HashInputs` fixas → N hashes literais, cobrindo v1 e v2. Qualquer
-  edição em `normalize_*` que mude um hash **quebra o teste**.
-- Teste de propagação: transação com `transaction_hash` pré-estampado em E2 sobre
-  identidade não resolvida tem o hash **substituído** após resolução em E3 — senão
-  o fix inteiro é inerte.
+  entre antes e depois do backfill. Se subir → **abortar e restaurar**.
+- Vetores-golden de hash em `tests/unit/pipeline/test_tx_identity_propagation.py`
+  seguem verdes — o colapsador não altera nenhum hash.
 - Declarar o **sinal esperado do delta** (§Decisões nº 5 do sprint) e conferir com
   `dev/golden_diff.py`.
+- **Prova por mutação** em cada cláusula do predicado (8 mutações no PR1).
 
 ## Guarda anti-regressão
 
-A guarda central é o **vetor-golden de hash**: impede que alguém "resolva" um caso
-futuro canonicalizando dentro de `_hash_v2` e órfãne overrides em silêncio — o
-modo de falha que esta sequência de 5 PRs existe para evitar.
+Duas, e nenhuma é o vetor-golden de hash (que segue válido mas agora é trivial —
+o colapsador não toca hash):
+
+1. **Equivalência com o carrier da [[A40.l1]]:** todo candidato colapsável tem de
+   ser `carrier-shaped` pela definição **única** de `carrier_signatures`, com as
+   tags derivadas do próprio candidato. Impede que uma cláusula relaxada faça o
+   colapsador apagar a coincidência cross-conta que a l1 declara como
+   sobre-detecção aceitável.
+2. **Cardinalidade multiset:** impede que a chave day-exact transforme *2 eventos
+   vistos 1× cada* em *1 evento*.
+
+## Achado adjacente medido no PR1 (não é escopo desta lane)
+
+`_reconciled_copy` (`reconciliation_service.py`) reconstrói `BankStatement`
+campo-a-campo e **perde `account_number_raw`/`_norm`** — o "discriminador real
+entre 2 membros no mesmo banco" da [[ADR-226]] PR2 nunca chega ao payload E3 nem
+ao `account_number` por transação. Medido em 2026-08-05: presente após o load,
+`None` após o reconcile. Está gateado por `xfail(strict=True)` em
+`tests/unit/pipeline/test_cross_document_collapser.py::test_reconcile_preserva_todo_campo_de_identidade`;
+corrigir muda output do E3 (golden), logo é **PR próprio com delta declarado**, e
+o XPASS estrito força a remoção do marker. Candidato natural a dono: [[A42.l5]]
+(já reescreve o keying de grupo do E3).
