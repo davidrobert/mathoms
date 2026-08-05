@@ -1,11 +1,11 @@
 ---
-id: A42.l13
+id: A40.l32
 type: lane
 title: "Proveniência do executor: qual código computou este run"
-sprint: A42
-status: planned
+sprint: A40
+status: open
 priority: P1
-branch_slug: a42-l13-proveniencia-do-executor-do-run
+branch_slug: a40-l32-proveniencia-do-executor-do-run
 adrs:
   - "[[ADR-362]]"
   - "[[ADR-363]]"
@@ -13,15 +13,21 @@ adrs:
 depends_on: []
 tags:
   - type/lane
-  - sprint/a42
-  - status/planned
+  - sprint/a40
+  - status/open
   - priority/p1
   - area/ci
   - area/pipeline
   - area/infra
 ---
 
-# A42.l13 — `proveniencia-do-executor-do-run`
+# A40.l32 — `proveniencia-do-executor-do-run`
+
+> **Promovida da [[A42]] por decisão do dono em 2026-08-05**, reparentada
+> (`sprint: A40` + `git mv`) pela porta de nível-lane do §Gatilho de promoção da
+> A42 — precedente exato da [[A40.l24]], que nasceu `A41.l1`. Não reabre a
+> cláusula 2 do §Critério de admissão da A40: aquela governa achado **novo sem
+> dono**; esta lane já nasceu escrita, com ADR exigida e dono.
 
 > **Origem:** pedido do dono em 2026-08-05 — "após rodar o pipeline do dogfood e
 > executar a `report-review`, não consigo identificar sobre qual versão do
@@ -50,8 +56,8 @@ Em produção é pior: o `Dockerfile` não assa SHA, **nenhum dos 11 workflows f
 build de imagem**, e o container não tem `.git` — **incidente não é atribuível a
 release**.
 
-Esta lane pertence à A42 pela cláusula 3 do §Critério de admissão: é
-**instrumento de certificação**. O §r4 do [[PIPELINE-REVIEWS-active]] declara um
+A lane nasceu na [[A42]] pela cláusula 3 do §Critério de admissão daquela sprint
+(**instrumento de certificação**) e foi promovida para a A40 por decisão do dono. O §r4 do [[PIPELINE-REVIEWS-active]] declara um
 `tip` no cabeçalho enquanto o parágrafo abaixo documenta que o run correu num
 worker ~38 commits à frente — mesma classe de falso-verde da tese da sprint, na
 camada do harness.

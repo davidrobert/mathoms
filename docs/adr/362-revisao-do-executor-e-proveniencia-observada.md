@@ -3,7 +3,7 @@ id: ADR-362
 type: adr
 title: "Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade"
 status: Proposto
-phase: "A42"
+phase: "A40"
 date: "2026-08-05"
 relates_to:
   - "[[ADR-343]]"
@@ -20,7 +20,7 @@ tags:
   - status/proposto
   - area/pipeline
   - area/ci
-  - phase/a42
+  - phase/a40
 ---
 
 # ADR-362 — Revisão do executor é proveniência de processo observada
