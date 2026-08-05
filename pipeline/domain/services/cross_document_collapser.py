@@ -27,7 +27,7 @@ Puro, sem I/O.
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Iterable
 
 from pipeline.domain.models.document import BankStatement
@@ -125,6 +125,20 @@ class RemovalTarget:
 
     def to_trace_dict(self) -> dict:
         return {"hash": self.hash, "remover": self.remover, "no_bucket": self.no_bucket}
+
+
+@dataclass(frozen=True)
+class CollapseRemoval:
+    """Remoção declarada por statement — canal ``cross_document_collapse`` ([[ADR-347]])."""
+
+    # `valor_cents` é ASSINADO (débito negativo), como o resto do ledger. NÃO reusar
+    # `CollapseCandidate.valor_cents`, que é magnitude (`decimal_cents` faz `abs()`):
+    # `_declared_dedup_cents` nunca fecharia contra `val_in − val_out`.
+    canal: str
+    count: int
+    valor_cents: int
+    cross_source_count: int
+    source: str | None = None
 
 
 @dataclass(frozen=True)
@@ -254,6 +268,18 @@ def _extraction_split(stmts: Iterable[BankStatement]) -> tuple[int, int, int]:
 _Row = tuple[BankStatement, Transaction]
 
 
+def _row_order(row: _Row) -> tuple:
+    """Ordem total de conteúdo; índice no statement só como ÚLTIMO desempate."""
+    stmt, tx = row
+    return (
+        stmt.source_document or "",
+        stmt.member_key or "",
+        getattr(tx, "category_hint", None) or "",
+        tx.description or "",
+        stmt.transactions.index(tx),
+    )
+
+
 @dataclass(frozen=True)
 class _KeyGroup:
     """Rows que colidem numa chave, já particionadas por proveniência."""
@@ -289,6 +315,20 @@ class _KeyGroup:
     def llm_rows(self) -> list[_Row]:
         return [row for row in self.rows if row[0].extraction_method == _LLM]
 
+    def rows_to_drop(self) -> list[_Row]:
+        """Rows excedentes, native-first, por ORDEM TOTAL DE CONTEÚDO."""
+        # A escolha entre rows K4-idênticas É observável: `arquivo_origem`, `membro` e
+        # `categoria_sugerida` saem da row escolhida (`e3_serialization.py:84-93`), e
+        # `source_document` difere em 262/262. Então a ordem é de conteúdo e a POSIÇÃO
+        # só desempata rows byte-idênticas do MESMO arquivo — caso em que a escolha é
+        # inobservável. Ordinal puro quebraria sob parser que reordena o arquivo.
+        card = self.survivor_cardinality
+        keep_native = min(len(self.native_rows), card)
+        drop: list[_Row] = []
+        for rows, keep in ((self.native_rows, keep_native), (self.llm_rows, card - keep_native)):
+            drop.extend(sorted(rows, key=_row_order)[keep:])
+        return drop
+
     def field_values(self, name: str) -> frozenset[str]:
         return _field_values(self.by_provenance, name)
 
@@ -301,6 +341,28 @@ class _KeyGroup:
     def parciais(self) -> str:
         """Campos vazios numa perna e cheios na outra — a assimetria de fill (carrier 2)."""
         return "+".join(n for n in _PROVENANCE_FIELDS if _is_partial(self.field_values(n)))
+
+
+_CANAL = "cross_document_collapse"
+
+
+def _tx_cents_signed(tx: Transaction) -> int:
+    """Cents com SINAL — o ledger grava débito negativo (espelha `_tx_cents`)."""
+    return int(decimal_cents(tx.amount.amount) * (-1 if tx.amount.amount < 0 else 1))
+
+
+def _removals_by_source(drop: list[_Row]) -> tuple[CollapseRemoval, ...]:
+    """Uma ``CollapseRemoval`` por ``source_document`` — o ledger é per-group, então
+    atribuição global não fecha."""
+    agg: dict[str | None, list[int]] = {}
+    for stmt, tx in drop:
+        bucket = agg.setdefault(stmt.source_document, [0, 0])
+        bucket[0] += 1
+        bucket[1] += _tx_cents_signed(tx)
+    return tuple(
+        CollapseRemoval(_CANAL, count, cents, cross_source_count=count, source=src)
+        for src, (count, cents) in sorted(agg.items(), key=lambda kv: kv[0] or "")
+    )
 
 
 def _group_by_key(statements: Iterable[BankStatement]) -> list[_KeyGroup]:
@@ -360,6 +422,48 @@ class CrossDocumentCollapser:
             blocked_reason=reason,
             divergence=group.divergence,
             parciais=group.parciais,
+        )
+
+    def collapse(
+        self, statements: Iterable[BankStatement]
+    ) -> tuple[
+        tuple[BankStatement, ...], tuple[CollapseCandidate, ...], tuple[CollapseRemoval, ...]
+    ]:
+        """Mede **e** remove, no MESMO passo — identidade de row é identidade de objeto."""
+        # Não existe endereço serializado de row (e nenhum `_hash_v3`): o measure e o
+        # agrupamento rodam sobre a MESMA lista, no mesmo processo, então selecionar
+        # objetos é suficiente. `RemovalTarget` fica sendo registro de decisão para o
+        # gate de override, não endereço de remoção.
+        stmts = list(statements)
+        groups = _group_by_key(stmts)
+        candidates = tuple(sorted((self._candidate(g) for g in groups), key=lambda c: c.key_digest))
+        drop = self._rows_to_drop(groups)
+        return (self._apply(stmts, drop), candidates, _removals_by_source(drop))
+
+    def _rows_to_drop(self, groups: list[_KeyGroup]) -> list[_Row]:
+        """Rows a remover, escolhidas por ORDEM TOTAL DE CONTEÚDO (posição desempata)."""
+        out: list[_Row] = []
+        for group in groups:
+            if self._blocked_reason(group):
+                continue
+            out.extend(group.rows_to_drop())
+        return out
+
+    @staticmethod
+    def _apply(stmts: list[BankStatement], drop: list[_Row]) -> tuple[BankStatement, ...]:
+        """Cópias via ``replace`` — construtor campo-a-campo apagaria campo novo."""
+        by_stmt: dict[int, set[int]] = {}
+        for stmt, tx in drop:
+            by_stmt.setdefault(id(stmt), set()).add(id(tx))
+        return tuple(
+            replace(
+                s,
+                transactions=[t for t in s.transactions if id(t) not in by_stmt[id(s)]],
+                notes=list(s.notes),
+            )
+            if id(s) in by_stmt
+            else s
+            for s in stmts
         )
 
     def _blocked_reason(self, group: _KeyGroup) -> str | None:
