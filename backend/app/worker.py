@@ -12,7 +12,7 @@ from celery.schedules import crontab
 from celery.signals import worker_process_init
 
 from backend.app.core.config import settings
-from backend.app.core.logging import setup_logging
+from backend.app.core.logging import get_logger, setup_logging
 from backend.app.core.otel import instrument_celery, setup_otel
 
 # BUG-002 fix: ensure project root is on sys.path so that `import pipeline`
@@ -120,3 +120,14 @@ def _init_worker_observability(**_: object) -> None:
     setup_logging()
     setup_otel(service_name="mathoms-worker")
     instrument_celery()
+    _announce_executor_revision()
+
+
+def _announce_executor_revision() -> None:
+    """Anuncia no log qual revisão este processo executa (ADR-362)."""
+    # É o único jeito de o preflight saber o que o worker VIVO roda: comparar o
+    # run passado com o HEAD não diz nada sobre quem vai executar o próximo.
+    get_logger("worker").info(
+        "mathoms.worker.boot",
+        extra={"executor_revision": settings.executor_revision or "desconhecido"},
+    )

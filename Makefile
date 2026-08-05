@@ -30,6 +30,10 @@ VENV    := .venv/bin
 # Usa o python do venv quando existe; senão cai para python3 do PATH (worktrees em
 # .claude/worktrees/ e ambientes sem venv não têm .venv/bin/python).
 PYTHON  := $(shell [ -x .venv/bin/python ] && echo .venv/bin/python || command -v python3)
+# ADR-362 — revisão do executor, resolvida UMA vez por invocação do make e
+# pinada no env de cada processo lançado. Resolver dentro do processo pinaria o
+# HEAD do momento do run, não o bytecode carregado.
+BUILD_SHA := $(shell $(PYTHON) dev/build_info.py 2>/dev/null)
 PIP     := $(VENV)/pip
 
 # Pass-through para CLIs externas. Ex.: `make test-pipeline PYTEST_ARGS="-x -k saldo"`
@@ -704,7 +708,7 @@ dev-redis-up: dev-dirs
 dev-api-up: dev-dirs
 	@echo "▶  Subindo API principal (porta $(PORT_API))…"
 	$(call check_port_free,$(PORT_API))
-	@nohup $(VENV)/uvicorn backend.app.main:app \
+	@MATHOMS_BUILD_SHA=$(BUILD_SHA) nohup $(VENV)/uvicorn backend.app.main:app \
 	   --host 127.0.0.1 --port $(PORT_API) --reload \
 	   > $(CURDIR)/$(DEV_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/api.pid
 
@@ -724,7 +728,7 @@ dev-worker-up: dev-dirs
 	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
 	@$(if $(LLM_FREE),echo "   · $(LLM_FREE_MARKER) (worker Celery)",true)
 	@TS=$$(date +%s); \
-	 $(LLM_FREE_SCRUB) nohup $(VENV)/celery -A backend.app.worker worker \
+	 $(LLM_FREE_SCRUB) MATHOMS_BUILD_SHA=$(BUILD_SHA) nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-native-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
@@ -747,6 +751,7 @@ dev-ops-api-up: dev-dirs
 	 fi; \
 	 MATHOMS_INTERNAL_OPS_UI_ENABLED=1 \
 	 MATHOMS_INTERNAL_OPS_SESSION_SECRET="$$OPS_SECRET" \
+	 MATHOMS_BUILD_SHA=$(BUILD_SHA) \
 	 nohup $(VENV)/uvicorn backend.app.main:app \
 	   --host 127.0.0.1 --port $(PORT_OPS_API) --reload \
 	   > $(CURDIR)/$(DEV_DIR)/ops-api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/ops-api.pid
@@ -856,12 +861,13 @@ native-reset-env:
 
 ## pipeline-run: Reprocessa o pipeline de um workspace (WS=<uuid> [FROM=<stage>] [SKIP_LLM=0] [RESET=1] [YES=1]; sem WS lista)
 pipeline-run:
+	@$(PYTHON) dev/build_info.py --preflight $(CURDIR)/$(DEV_DIR)/worker.log || true
 	@ARGS=""; \
 	 if [ -n "$(FROM)" ]; then ARGS="$$ARGS --from-stage $(FROM)"; fi; \
 	 if [ "$(SKIP_LLM)" = "0" ]; then ARGS="$$ARGS --with-llm"; fi; \
 	 if [ "$(RESET)" = "1" ]; then ARGS="$$ARGS --reset"; fi; \
 	 if [ "$(YES)" = "1" ]; then ARGS="$$ARGS --yes"; fi; \
-	 $(PYTHON) -m backend.app.scripts.run_workspace_pipeline $(WS) $$ARGS
+	 MATHOMS_BUILD_SHA=$(BUILD_SHA) $(PYTHON) -m backend.app.scripts.run_workspace_pipeline $(WS) $$ARGS
 
 # ---------------------------------------------------------------------------
 # Tests, lint, format

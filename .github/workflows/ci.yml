@@ -104,6 +104,10 @@ env:
   # Migração é ADR-109-sensitive (auth portability) — exige decisão humana.
   MATHOMS_FERNET_KEY: "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
   PYTHONDONTWRITEBYTECODE: "1"
+  # ADR-362 — revisão do executor no bloco `env:` do workflow: alcança todo job
+  # sem criar nenhum, e o orçamento de Actions desta casa é contado em JOBS.
+  # Normalizada a 12 chars no boundary (`${{ github.sha }}` tem 40).
+  MATHOMS_BUILD_SHA: ${{ github.sha }}
 
 jobs:
   # Detecta o que mudou para condicionar jobs subsequentes. PRs docs-only

@@ -5,6 +5,8 @@ from pathlib import Path
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
+from backend.app.core.executor_revision import normalize_executor_revision
+
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 # W1-T05 · Production hardening: rejeita defaults conhecidamente
@@ -41,6 +43,12 @@ class Settings(BaseSettings):
     API_VERSION: str = "1.0.0"
     LEGACY_SUNSET_DATE: str = "TBD F7A"
     DEBUG: bool = True
+
+    # ADR-362 — revisão do processo que executa, pinada no LAUNCH (env
+    # MATHOMS_BUILD_SHA, exportada por `dev/build_info.py`). Não é `API_VERSION`
+    # (contrato de API, ornamental) e não é garantia de reprodutibilidade.
+    # Vazio ≡ desconhecido: o processo sobe, ninguém é morto por isso.
+    BUILD_SHA: str = ""
 
     # Auth
     SECRET_KEY: str = "dev-secret-key-change-in-production"
@@ -207,6 +215,11 @@ class Settings(BaseSettings):
     def cache_redis_url(self) -> str:
         """Resolve Redis URL para cache/pubsub; default cai no broker em dev."""
         return self.REDIS_CACHE_URL or self.REDIS_URL
+
+    @property
+    def executor_revision(self) -> str | None:
+        """Revisão do processo em execução; None ≡ desconhecido (ADR-362)."""
+        return normalize_executor_revision(self.BUILD_SHA)
 
 
 settings = Settings()
