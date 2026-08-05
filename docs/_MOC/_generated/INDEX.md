@@ -351,7 +351,7 @@
 | ADR-353 | adr | Proposto |  | Confiança do diagnóstico comportamental condicionada à cobertura de categorização | `adr/353-diagnostico-comportamental-confianca.md` |
 | ADR-354 | adr | Proposto |  | Identidade de transação (K4) exclui atributos de proveniência do documento | `adr/354-identidade-transacao-exclui-proveniencia.md` |
 | ADR-355 | adr | Decidido |  | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages | `adr/355-intencao-sem-llm-propagada-ate-o-stage.md` |
-| ADR-356 | adr | Proposto |  | Precedência declarada do parágrafo de seção e CV9 como medida de entrega | `adr/356-precedencia-narrativa-secao-e-entrega.md` |
+| ADR-356 | adr | Decidido |  | Precedência declarada do parágrafo de seção e CV9 como medida de entrega | `adr/356-precedencia-narrativa-secao-e-entrega.md` |
 | ADR-357 | adr | Proposto |  | Criticidade de stage e degradação do run — add-on advisory não veta o entregável | `adr/357-criticidade-de-stage-e-degradacao-do-run.md` |
 | ADR-358 | adr | Proposto |  | Enforcement em produção exige budget de produção — e KR no plano onde ele age | `adr/358-enforcement-de-producao-exige-budget-de-producao.md` |
 | ADR-359 | adr | Decidido |  | Dispatch assíncrono falha alto; quem cria estado pendente compensa | `adr/359-dispatch-assincrono-falha-alto-e-quem-cria-estado-pendente-compensa.md` |

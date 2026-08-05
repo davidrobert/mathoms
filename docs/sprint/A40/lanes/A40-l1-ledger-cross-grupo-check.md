@@ -300,9 +300,18 @@ estavam em nenhum doc do vault até este registro:
    `test_render_pina_o_numero_impresso_em_corpus_misto`), mas **nenhum teste
    asserta comprimento de lista/histograma** — a lista de evidência encolhe em
    silêncio enquanto o headline a contradiz.
-4. **Metade dos mutantes tem só a prova do implementador.** As duas lentes
-   independentes de verificação do fechamento morreram por limite de gasto da
-   org; os **4 mais críticos** dos 8 mutantes foram re-confirmados manualmente,
-   os outros 4 não. Onde este doc e o [[A40]] dizem "8 ratchets provados por
-   mutação", leia **8 ratchets, 4 re-confirmados manualmente; 4 só com a prova
-   do implementador**.
+4. **Metade dos mutantes tem só a prova do implementador — e a partição não era
+   re-derivável.** As duas lentes independentes de verificação do fechamento
+   morreram por limite de gasto da org; os **4 mais críticos** dos 8 mutantes
+   foram re-confirmados manualmente, os outros 4 não. Onde este doc e o [[A40]]
+   dizem "8 ratchets provados por mutação", leia **8 ratchets, 4 re-confirmados
+   manualmente; 4 só com a prova do implementador**. As 8 alavancas, coladas do
+   corpo do #1118 em 2026-08-05 (§Pendência nº 8 do [[A40]] — antes só existiam
+   lá, e `tests/unit/pipeline/test_cross_group_ratchet.py` tem 26 testes sem
+   partição de 8): `whitelisted … or not descricao` · teto/piso em
+   `_unkeyable_reason` · cap `[:100]` no numerador · desarmar `particionadas` ·
+   `len(hits)` filtrado no render · `Σ excesso → 0` · `interna = True` ·
+   `excess_cents` sem `(P−1)`. O corpo do PR **não** mapeia alavanca → nome de
+   teste nem parte os 8 em re-confirmados/não — essa partição segue
+   **não-re-derivável**; re-derivar exige re-rodar a prova de mutação sobre os
+   26 testes.

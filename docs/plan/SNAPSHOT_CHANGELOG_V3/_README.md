@@ -121,6 +121,21 @@ top-N filter (≤4 métricas por construção); `M_DIVIDA_PCT` (campo
 `M_SCORE`/`M_IF_ANOS`/`M_DESPESA_MM3` cortadas por anti-metodológicas em
 delta mensal. Texto original das lanes abaixo mantido como histórico.
 
+> **Residual W3 — sufixo de changelog não renderiza em seção nenhuma
+> (registrado 2026-08-05, achado pela [[A40.l4]]).** A forma reduzida acima
+> trocou o default de `sections_to_compare` por **ids de métrica** (`M_PL`,
+> `M_TAXA_POUPANCA`, `M_RESERVA_MESES`, `M_AUVP_DESVIO`), mas o consumidor
+> (`get_report_data.py:78`) casa por `section_id` de **layout** — nenhum
+> `M_*` é id de seção, então o item é computado e não tem onde pousar. É
+> defeito deste plano (nasceu no corte da W3), não da A40 — roteado para cá
+> pela triagem de destino do PR #1197 (a atribuição anterior "A40.l5" nunca
+> aterrissou no escopo daquela lane). **Condição de retomada:** junto da W5
+> (multi-cadência), ou antes se a seção V0 voltar a exibir comparativos —
+> o fix é casar o vocabulário do default com o que o consumidor espera
+> (mapear `M_*` → seção hospedeira ou trocar o ponto de casamento).
+> Dono: quem pegar a W5. Cabe na §Emenda 2026-07-09 da [[ADR-190]], sem ADR
+> nova.
+
 Lanes:
 
 - **W3-T01** `data-engineer review` antes do PR: schema E5 expandido
