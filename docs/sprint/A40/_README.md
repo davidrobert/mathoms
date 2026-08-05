@@ -99,6 +99,20 @@ separada do dono, 2026-08-03, e mantida) nem transforma a data em critério de
 corte. Lane que atravessar a data segue na sprint; o que a data governa é o
 tripwire.
 
+**E na `date_target`, a decisão é promoção individual — não fusão de sprint (2026-08-05).**
+A pergunta "colocar a [[A42]] inteira dentro da A40" foi avaliada com painel
+(`product-manager`, `information-architect`, `senior-cto`) e recusada. O motivo é
+mecânico e vale registrar aqui, porque é **sobre esta seção**: os dois gates de saída são
+adversariais — toda lane A42 muta E0→E4, upstream de todo run E0→E6, então cada merge da
+A42 **zeraria o contador de 2 re-runs consecutivos** desta sprint, enquanto o gate da A42
+exige rodar instrumentos cuja função é abrir achado novo (o que a cláusula "nenhum P0/P1
+novo nesses 2 re-runs" proíbe). A sprint fundida só fecharia quando a A42 já estivesse
+pronta — e 12 lanes a mais tornariam a `date_target` ficção, matando o único gatilho
+computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, a saída é
+**promover lane individual** da A42 por consumidor datado (precedente [[A40.l24]],
+promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
+promoção a `current`.
+
 ## Lanes (31)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre

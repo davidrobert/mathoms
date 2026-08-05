@@ -77,6 +77,7 @@ last_review: "2026-07-09"
 | Status page + alertas | Signups Instatus + UptimeRobot + burn-rate rules + drill de incidente | depende do Sentry | Gate G5 da [[ADR-228]] | ~30min | [[PLAN-launch-trust]] |
 | Staging Postgres p/ Go F2 | Provisionar staging Postgres-backed + `ANTHROPIC_API_KEY` no env do serviço Go | ✅ harness `go_parity_gate.py` pronto | Gate técnico F2 → gate humano → flip | — | [[PLAN-go-shell]] |
 | PITR/backup do Postgres (Coolify) | Confirmar PITR + `pg_dump` pré-drop com retenção 30d | runbook §5 | Pré-condição operacional da [[A26.l5]] | — | [[A26.l5]] |
+| 🚫 **Nenhum workspace novo antes da [[A42.l1]]** | **Gate, não tarefa:** não provisionar workspace novo — beta, 2º usuário **ou tenant de teste do próprio dono** — enquanto a [[A42.l1]] não shipar. O stage 1/18 carrega o material de senha antes de checar se há documento cifrado e **aborta o run**; o arquivo só chega ao tenant por cópia de diretório bloqueado por `dev/check_forbidden_paths.py`, logo em deploy limpo **não existe caminho suportado** para criá-lo. O dogfood não expõe (tem o resíduo de sessão antiga e roda 18/18) | ADR `Proposto` autorizada (docs-only, co-design `senior-cto` + `sre-devops`); lane escrita e `planned` | Destrava provisionamento de tenant limpo; substitui a promoção da lane para a [[A40]], que foi avaliada e recusada em 2026-08-05 | — | [[A42.l1]] |
 
 ## 4. Gasto / aprovação de orçamento
 

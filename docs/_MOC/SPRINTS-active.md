@@ -313,7 +313,19 @@ mensal honesta.
 `parse-certify` r3 + `ledger-certify` r5, sobre o mesmo corpus, retornarem **zero
 achado novo da classe falso-verde**.
 
-**Gatilho de promoção** (evento, não calendário): [[A40]] → `done`.
+**Gatilho de promoção** — **dois níveis** desde 2026-08-05 (evento, não calendário):
+**sprint** = [[A40]] → `done`; **lane** = promoção individual por *consumidor datado*,
+reparentando (`sprint: A40`), precedente [[A40.l24]].
+
+**Fusão A42 → A40 avaliada e recusada (2026-08-05, painel `product-manager` +
+`information-architect` + `senior-cto`).** Não re-litigar sem fato novo. Motivo
+decisivo: os dois gates de saída são **adversariais** — toda lane A42 muta E0→E4,
+upstream de todo run E0→E6, logo cada merge zeraria o contador de 2 re-runs
+consecutivos da A40, enquanto o gate da A42 exige rodar instrumentos cuja função é
+abrir achado novo (o que a cláusula "nenhum P0/P1 novo" da A40 proíbe). Medido também:
+mover as 12 lanes muda `SPRINT_CURRENT.md` em **zero linhas** (todas `planned`), a
+renumeração toca **304 ocorrências em 23 arquivos** com 40% fora de qualquer gate, e
+nenhuma sprint acima de ~11 lanes fechou pelo próprio gate na história do repo.
 
 - **Sprint:** [sprint/A42/_README.md](../sprint/A42/_README.md) · **12 lanes**
   `planned` em 4 ondas (0–3), teto de capacidade 14. Declara o **critério de admissão**

@@ -22,6 +22,28 @@ tags:
 > Reproduzido por mutação **e** por run real com status `failed`. Veredito adversarial
 > PARTIAL; a parte confirmada é a que importa.
 
+> 🔑 **Gatilho de promoção desta lane, nomeado 2026-08-05: o mesmo evento da [[A41]]** —
+> *decisão de abrir o beta fechado / 2º usuário*. Foi avaliado promover esta lane para a
+> [[A40]] agora (é a única P0 da sprint com `depends_on: []`) e **recusado** por
+> `product-manager` + `senior-cto`: ela falha a condição 1 da exceção da cláusula 2 do
+> §Critério de admissão — *"P0 que **alcança o usuário**"*. Não alcança ninguém hoje: o
+> dogfood é N=1 e tem o arquivo residual, e o 2º usuário só existe depois do gate de
+> saída da A40, que é o **mesmo evento** que promove esta sprint. As ordens coincidem, e
+> adotá-la furaria por nada a regra que a A42 acabou de escrever.
+>
+> **O que substitui a promoção, e morde mais cedo que ela:** entrada em
+> [[OWNER-GATED]] §3 bloqueando o provisionamento de **qualquer** workspace novo —
+> beta, 2º usuário **ou tenant de teste do próprio dono** — antes desta lane shipar. A
+> lane cobriria só o beta; o gate cobre o tenant de teste, que é o caminho por onde o
+> defeito chega primeiro. Custo zero de capacidade.
+>
+> **Autorizado a executar já, fora da contabilidade de lane:** a ADR `Proposto` abaixo
+> (docs-only). O poste longo desta lane **não é o código** — são duas correções de ordem
+> de predicado — é a pergunta de operação *"onde mora o material de senha num tenant
+> provisionado do zero, dado que o diretório atual é path proibido"*. Escrita agora, a
+> lane fica pegável em horas quando o gatilho disparar. Precedente de "ADR antes de
+> autorizar a lane": a [[A40]] §Fora do sprint sobre a [[A41.l3]].
+
 ## Problema
 
 O primeiro stage do pipeline carrega o arquivo de senhas **antes** de verificar se
