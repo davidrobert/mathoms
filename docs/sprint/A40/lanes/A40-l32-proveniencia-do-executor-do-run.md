@@ -52,9 +52,11 @@ Duas colunas mortas provam que o problema não é falta de espaço, é falta de
 contrato: `pipeline_runs.config_snapshot` (writer só em test builder, **0 de 109
 rows**) e `pipeline_artifacts.schema_version` (writer real, **zero leitores**).
 
-Em produção é pior: o `Dockerfile` não assa SHA, **nenhum dos 11 workflows faz
-build de imagem**, e o container não tem `.git` — **incidente não é atribuível a
-release**.
+**Correção de premissa, 2026-08-05 (dono):** a versão inicial desta lane dizia
+que "em produção é pior — incidente não é atribuível a release". **Não existe
+produção**: o projeto roda só na máquina do dono, em dogfood e desenvolvimento.
+O escopo é o **loop local**, exatamente como o dono descreveu. Emendas nas
+[[ADR-362]] e [[ADR-363]].
 
 A lane nasceu na [[A42]] pela cláusula 3 do §Critério de admissão daquela sprint
 (**instrumento de certificação**) e foi promovida para a A40 por decisão do dono. O §r4 do [[PIPELINE-REVIEWS-active]] declara um
@@ -82,18 +84,23 @@ Ver [[ADR-362]] (o quê e onde) e [[ADR-363]] (de onde vem o valor). O núcleo:
 
 ## Fases
 
+Reordenadas em 2026-08-05 após a correção de premissa: **o preflight subiu para a
+primeira onda** porque o incidente que ele impede é local, já aconteceu (worker
+stale invalidou uma rodada de 74 achados) e ele **não depende de migration**.
+
 | Fase | Entrega | Valor imediato | Migration? |
 |---|---|---|---|
-| **F0** | Coluna + write nos 2 INSERTs + `dev/build_info.py --export` no launch (Makefile) e `${{ github.sha }}` no CI | Todo stage passa a declarar quem o executou. Nenhum run novo nasce inatribuível | **sim**, 1 (`ADD COLUMN NULL`, catalog-only) |
-| **F1** | Leitor: frase de escopo derivada dos stage logs + `run_meta.md` em prosa + `executor_revision` em todo log record + `service.version` no OTel + `/health` com campo **novo** | O dono lê no arquivo que já abre. `/health` para de mentir | não |
-| **F2** | Preflight lê a revisão do **processo vivo** vs HEAD e avisa antes do run; `_upstream_source_runs` em `detail`; leitor de `SCHEMA_VERSION` | **Impede** o incidente do worker stale em vez de detectá-lo depois | não |
-| **F3** | Owner-gated — ver §Deferido da [[ADR-363]] | Incidente em prod atribuível a release | não |
+| **F0** | `dev/build_info.py --export` nos targets nativos do Makefile + `${{ github.sha }}` no CI + linha de boot do worker + **preflight** (revisão do processo vivo vs HEAD, avisa) | **Impede** o worker stale antes do run, em vez de descobri-lo na síntese. Nenhum schema tocado | **não** |
+| **F1** | Coluna `executor_revision` em `pipeline_stage_logs` + write nos 2 INSERTs | Nenhum run novo nasce inatribuível. Não deixar lagar: ~53 runs/30 dias e backfill proibido | **sim**, 1 (`ADD COLUMN NULL`) |
+| **F2** | Leitor: frase de escopo derivada dos stage logs + `run_meta.md` em prosa + `executor_revision` em todo log record | **A dor literal do dono** — ele lê no arquivo que já abre | não |
+| **F3** | `/health` com campo novo (`Optional[str]`) e `version` de volta a `settings.API_VERSION` | Corrige defeito de tipo **latente**; sem pressa, não há healthcheck rodando | não |
+| — | ~~Prod: env na plataforma, fail-fast de boot, label OCI, OTel~~ | **Não aplicável até existir deploy** — ver [[ADR-363]] §Emenda | — |
 
-**Por que a coluna entra na F0 e não depois:** a primeira síntese deferia a
-migration para o fim, alegando que só há leitor de dogfood. O parecer de schema
-derrubou: são **~53 runs/30 dias**, o backfill é proibido por fabricar dado, e
-portanto **cada dia de deferimento produz runs permanentemente inatribuíveis**.
-Trocar dado irrecuperável por uma migration nullable sem índice é o trade errado.
+**Por que a coluna não é a F0 e continua sem lagar:** o preflight entrega valor
+sem tocar schema, então vai antes por ser mais barato e mais urgente. Mas a
+restrição do `data-engineer` segue de pé — **cada dia sem a coluna produz runs
+permanentemente inatribuíveis** (backfill fabrica dado), então F0 e F1 são a
+mesma onda, não fases distantes.
 
 ## Critério de aceite
 
@@ -122,6 +129,10 @@ Todos por **medição**, com a mutação que os mata anotada:
 - **Escopo não mente.** Run com `from_stage` ⇒ o entregável nomeia os stages
   herdados e o run de origem. *Mutação:* hardcodar `full`.
 - **Delta de jobs de CI = zero.**
+- **Preflight (F0) morde.** Lançar o worker num commit, mover a árvore, disparar
+  o run ⇒ o preflight **avisa** antes de executar. *Mutação:* comparar o run
+  passado em vez do processo vivo ⇒ não avisa (era o desenho original, e ele não
+  diz nada sobre quem vai executar).
 
 ## Fora desta lane
 
@@ -136,12 +147,24 @@ Todos por **medição**, com a mutação que os mata anotada:
 - **Amplificador "zero commits + drift ⇒ severidade sobe".** Dead code medido
   (52, 15 e 24 commits nas 3 janelas reais) e inferência inválida (config em DB
   move número sem commit). Fica `NOTE:` nomeando a dimensão cega.
+- **Tudo que depende de deploy** — env na plataforma, `${MATHOMS_BUILD_SHA:?}`,
+  fail-fast de produção, label OCI, tag imutável, `service.version` no OTel
+  (opt-in e sem coletor local). Re-entra quando houver deploy; **não está na
+  fila de ninguém**.
 - **Superfície do cliente.** Nada de SHA no relatório da família nem na faixa de
   auditoria: há drift de 4 vias pré-existente ali, herdado e não criado aqui.
 - **Página de runs no console ops.** Já é o item IA-2 do [[PLAN-internal-admin]].
 - **Coluna em `pipeline_runs`, tabela `run_executions`, backfill, bump de
   `SCHEMA_VERSION`, coluna per-artefato.** Rejeitados com medição na
   [[ADR-362]] §Alternativas rejeitadas.
+
+## Prioridade: base honesta
+
+P1 herdado da abertura. Com a correção de premissa, a perna de produção da
+justificativa **desaparece** — o que sustenta P1 é o custo local medido: o
+worker stale invalidou uma rodada inteira de review (74 achados), e a F0 custa
+zero API. Um `product-manager` pode legitimamente rebaixar para P2; a lane
+declara a base em vez de herdar o número.
 
 ## Débito adjacente descoberto (não é escopo, é registro)
 
