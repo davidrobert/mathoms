@@ -130,6 +130,13 @@ integralmente válida.
   removido→sobrevivente. Respeita o boundary (`pipeline/**` sem `sqlalchemy`): o
   pipeline **emite**, o backend **decide**. Enforce só liga se a interseção for
   vazia **ou** o mapa cobrir 100%.
+  **Não construa do zero** — `backend/app/services/internal_ops/backfill_override_identity.py`
+  ([[ADR-282]]) já tem a máquina: `ReanchorPlan`, `CollisionPlan` (N overrides
+  colapsam numa chave ⇒ vencedor reancora, perdedores soft-delete),
+  `BackfillReport`, revalidação TOCTOU entre plan e apply, e o filtro
+  `orphaned_at IS NULL` que mantém override quarentenado inerte. O delta desta
+  lane é a **fonte** dos candidatos (hashes do colapsador em vez de
+  `natural_key_hash IS NULL`).
 - **PR3 — enforce.** Colapsa de fato, com os 4 eixos de aceite abaixo.
 
 **`titular` vazio deixa de ser PR próprio:** é a cláusula de unificabilidade do
