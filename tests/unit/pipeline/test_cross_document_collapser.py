@@ -134,6 +134,32 @@ def test_repeticao_legitima_no_mesmo_dia_preserva_a_cardinalidade_multiset() -> 
     assert len(candidato.removable_hashes) == 2
 
 
+def _par_com_cardinalidade(n_nativo: int, n_llm: int) -> list[BankStatement]:
+    """Mesmo evento visto ``n_nativo`` vezes pela perna nativa e ``n_llm`` pela LLM."""
+    return [
+        _stmt(*[_tx() for _ in range(n_nativo)], extraction_method="native"),
+        _stmt(
+            *[_tx() for _ in range(n_llm)],
+            tipo_conta="extrato",
+            titular=None,
+            extraction_method="llm",
+        ),
+    ]
+
+
+@pytest.mark.parametrize("n_nativo,n_llm", [(1, 2), (2, 1), (3, 1), (1, 3), (2, 2)])
+def test_aritmetica_multiset_sob_cardinalidade_assimetrica(n_nativo, n_llm) -> None:
+    """Sobreviventes == cardinalidade multiset; o corte nunca excede a perna LLM."""
+    # Não ocorre no corpus (100% das 261 é `2 rows, 2 provs`) — guarda para quando
+    # ocorrer: se o corte pedisse mais que `llm_rows`, a lista sairia curta em silêncio.
+    (candidato,) = _measure(_par_com_cardinalidade(n_nativo, n_llm))
+
+    assert candidato.survivor_cardinality == max(n_nativo, n_llm)
+    assert candidato.n_rows - candidato.removable_rows == candidato.survivor_cardinality
+    assert candidato.removable_rows == min(n_nativo, n_llm)
+    assert len(candidato.removable_hashes) == candidato.removable_rows
+
+
 def test_par_nativo_mais_nativo_nao_colapsa() -> None:
     """Classe latente nativo↔nativo é escopo da [[A42.l5]], não desta lane."""
     statements = [
