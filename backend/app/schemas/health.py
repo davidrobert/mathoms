@@ -26,6 +26,11 @@ class HealthResponse(BaseModel):
 
     api: Literal["ok"]
     version: str
+    # ADR-362/363 — revisão do processo que responde. NULL ≡ desconhecido (subiu
+    # sem MATHOMS_BUILD_SHA). Campo NOVO em vez de sobrecarregar `version`: este é
+    # `str` required non-nullable e o healthcheck é `curl -fsS`, então um valor
+    # nullable ali daria 500 e marcaria o container unhealthy.
+    executor_revision: Optional[str] = None
     redis: str
     celery: str
     database: str
