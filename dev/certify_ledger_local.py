@@ -194,9 +194,13 @@ def _build_context(session, ws: str, run_id: str | None, store):
 def _rederive_e3(ctx, store):
     """Reconcile in-process (serializer/key legados) — escreve só no InMemory.
     Devolve o ``ReconciliationStoreResult`` (skipped_inputs contextualiza o gap)."""
+    from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
     from scripts.reconcile_transactions import _e3_build_adapter, _e3_run_reconciliation
 
-    adapter, canon = _e3_build_adapter(ctx)
+    # A40.l2 PR1b — o colapsador entra AQUI e não em produção: a medição precisa rodar
+    # dentro do caminho real (`reconcile_via_store`), mas o stage não deve gastar CPU
+    # produzindo candidato que nenhum consumidor de produção lê.
+    adapter, canon = _e3_build_adapter(ctx, cross_document_collapser=CrossDocumentCollapser())
     return _e3_run_reconciliation(adapter, store, canon)
 
 

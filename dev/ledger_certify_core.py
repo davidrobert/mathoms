@@ -18,6 +18,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from dev.golden_diff import to_cents
+from dev.ledger_collapse_layer import (
+    CollapseLayerSummary,
+    collapse_layer_summary,
+    detector_digests,
+    fmt_collapse_layer,
+)
 from dev.ledger_conservation import (
     COBERTO_SEM_VALOR,
     CONSERVADO,
@@ -70,6 +76,9 @@ class LedgerReport:
     counts_before: dict = field(default_factory=dict)
     counts_after: dict = field(default_factory=dict)
     cross_group: CrossGroupSummary = field(default_factory=CrossGroupSummary)
+    # A40.l2 PR1b — camada E3 do colapso, ao lado do numerador E4: o gate do enforce
+    # não pode ser lido só pelo detector (populações distintas por construção).
+    collapse_layer: CollapseLayerSummary = field(default_factory=CollapseLayerSummary)
     blast_radius: dict = field(default_factory=dict)
 
     @property
@@ -281,10 +290,19 @@ def _e3_exec_dict(e3_result) -> dict:
     }
 
 
+def _collapse_layer(e3_result, cross_group) -> CollapseLayerSummary:
+    """Camada E3 medida contra o numerador do detector — vazia se o colapsador não
+    foi injetado (``default None`` no adapter mantém o stage inerte)."""
+    return collapse_layer_summary(
+        getattr(e3_result, "collapse_candidates", ()), detector_digests(cross_group)
+    )
+
+
 def build_report(ws, run_id, seeds, e3_result, result, e4, fresh_e3, persisted_e3) -> LedgerReport:
     """Monta o ``LedgerReport`` a partir das peças re-derivadas (puro)."""
     e2_payloads = seeds
     collisions = investment_double_count(e4.get("investimentos", {}))
+    cross_group = cross_group_summary(e4, result.cash_flow.transferencias_count)
     return LedgerReport(
         workspace_id=ws,
         run_id=run_id,
@@ -297,7 +315,8 @@ def build_report(ws, run_id, seeds, e3_result, result, e4, fresh_e3, persisted_e
         investment_collisions=collisions,
         natural_key=_natural_key_coverage(result),
         drift=_drift(fresh_e3, persisted_e3),
-        cross_group=cross_group_summary(e4, result.cash_flow.transferencias_count),
+        cross_group=cross_group,
+        collapse_layer=_collapse_layer(e3_result, cross_group),
     )
 
 
@@ -403,6 +422,7 @@ def _report_blocks(report: LedgerReport) -> list:
         _fmt_units("## Eixo E3 (por grupo)", report.e3_groups),
         _fmt_units("## Eixo E4 (por balde)", report.e4_buckets),
         fmt_cross_group(report.cross_group),
+        fmt_collapse_layer(report.collapse_layer),
         _fmt_tail(report),
         _fmt_drift(report.drift),
         _fmt_blast_radius(report.blast_radius),
