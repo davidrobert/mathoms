@@ -123,13 +123,19 @@ def test_nao_muta_os_statements_de_entrada() -> None:
 
 def test_replace_preserva_campo_que_construtor_campo_a_campo_perderia() -> None:
     """Regressão de ADR-226 PR2: `account_number_norm` sobrevive ao colapso."""
-    nativa, llm = _par()
-    nativa.account_number_raw, nativa.account_number_norm = "12345-6", "123456"
+    # O statement checado tem de PERDER row sem esvaziar — só assim passa pelo
+    # `replace`. Com 1 row ele sai pelo ramo `else s`, intacto, e a asserção passaria
+    # mesmo com construtor campo-a-campo (a mutação M4 sobreviveu por isso).
+    a, b = _doc(1, "a.pdf"), _doc(2, "b.pdf")
+    b.account_number_raw, b.account_number_norm = "12345-6", "123456"
+    llm = _doc(1, "llm.pdf", "llm")
 
-    saida, _c, _r = CrossDocumentCollapser().collapse([nativa, llm])
+    saida, _c, _r = CrossDocumentCollapser().collapse([a, b, llm])
 
-    sobrevivente = next(s for s in saida if s.extraction_method == "native")
+    sobrevivente = next(s for s in saida if s.source_document == "b.pdf")
+    assert len(sobrevivente.transactions) == 1  # perdeu 1 de 2 => passou pelo replace
     assert sobrevivente.account_number_norm == "123456"
+    assert sobrevivente.account_number_raw == "12345-6"
 
 
 def test_grupo_bloqueado_nao_remove_row() -> None:
