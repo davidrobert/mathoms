@@ -20,11 +20,13 @@ tags:
 
 # A40.l22 — `superficie-de-degradacao`
 
-> 🚧 **Bloqueada pela [[A40.l20]]** (2026-08-03) — não é pegável até a l20
-> entregar o estado gerado-e-retido no modelo. `blocked` e não `open` pelo
+> 🚧 **Bloqueada pelo PR1 da [[A40.l20]]** (2026-08-03; gatilho precisado em
+> 2026-08-05) — não é pegável até o **contrato** do desfecho gerado-e-retido
+> existir no modelo e na API (l20 §Sequência de entrega, PR1). **Não** espera o
+> PR2 (wire-up no orquestrador, atrás da [[A40.l18]]): esta lane consome estado e
+> contadores, que o PR1 entrega, e testa por fixture. `blocked` e não `open` pelo
 > §Predicado do campo `status` do [`_README`](../_README.md): dep pendente, sem
-> amarra de entrega parcial. Não é mudança de prioridade — segue **P0** e
-> **bloqueador de fato do beta**.
+> amarra de entrega parcial. Segue **P0** e **bloqueador de fato do beta**.
 >
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fatia **premium/add-on** da
 > F11.5 — o caminho determinístico dela foi entregue na Sprint B (2026-04-17),
@@ -39,7 +41,9 @@ caso premium-com-retenção.
 
 E a perda parcial é **indetectável por construção**: ausência de seção inteira é
 auto-evidente ao rolar; ausência de 3 de 12 itens numa lista que ninguém contou,
-não. Foi isso que fez a perda durar 9 runs.
+não. Foi isso que fez a perda atravessar 7 runs (16 itens apagados,
+2026-07-20 → 07-29) sem detecção — só o run de 2026-07-31, que falhou inteiro e
+é auto-evidente, a revelou ([[ADR-304]] §Emenda 2026-08-03).
 
 ## Decisão
 

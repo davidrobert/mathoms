@@ -149,6 +149,13 @@ vezes e bloqueou nas duas; a 3ª passada não rodou.** Cronologia:
 3. **3ª passada, depois da remediação final — não rodou.** Morreu no limite de gasto
    da org, junto com as duas lentes adversariais. A lane mergeou assim por decisão
    do dono.
+   **Disposição (2026-08-05, decisão do dono, §Pendência nº 4 do [[A40]]):**
+   critério **não-cumprido**, **subsumido pelo §Gate de saída e encerramento** da
+   sprint — o §Checklist bloqueante desta lane entra como **insumo declarado** da
+   revisão do dono no 1º dos 2 re-runs. Sem work-item novo (cláusula 2 do
+   §Critério de admissão da [[A42]]): os alvos nomeados já são itens adotados em
+   [[A40.l6]], [[A40.l12]] e [[A40.l11]]. A lane **não** volta a `open`: `shipped`
+   é fato de merge, e a dívida agora tem host com gatilho.
 
 O que **está aberto** é a verificação da **última rodada de correções**, não a
 re-triagem inteira. O que foi verificado: suítes (5544 pytest · 1464 vitest · tsc 0),
@@ -286,7 +293,7 @@ verificação renderizada.
 | Item | Veredito medido | Dono |
 | --- | --- | --- |
 | **`s3` contradiz a tabela da própria S3** — "Carteira diversificada entre **3** categorias de ativos" enquanto o `top15_ativos`/`tabela_classes` da mesma seção lista **2** classes | Medido no render single-source (payload de um run real, cards e parágrafo da MESMA fonte): `diversificacao` conta entradas não-zero de `patrimonio.composicao` (`Imóveis de Renda`, `Investimentos Alex`, `Caixa e Moeda Estrangeira` — buckets patrimoniais, um deles **por membro**), e a tabela da S3 lê `investimentos.tabela_classes` (`Imóveis Investimento`, `Renda Fixa`). Mesma classe do `s4`: contagem de fonte que não é a da seção, e rótulo ("categorias de ativos") que não descreve o que foi contado. Fix candidato de 1 linha: `summary_source: null` na S3 — mas mudar destino é **decisão de produto** sob ADR-356 §D2 (gatilho `financial-planner`), não de quem fecha a lane | lane própria (gate `financial-planner`) |
-| **`s1` publica `residência própria de R$ 0,00`** | Medido no mesmo render. Mesma classe do "R$ 0,00 em campo fiscal" da §D7 (lê-se como "sua casa não vale nada"); no `s4` a parcela zerada foi suprimida nesta lane, no `s1` não — o `s1` não estava na lista fechada | A40.l5 |
+| **`s1` publica `residência própria de R$ 0,00`** | Medido no mesmo render. Mesma classe do "R$ 0,00 em campo fiscal" da §D7 (lê-se como "sua casa não vale nada"); no `s4` a parcela zerada foi suprimida nesta lane, no `s1` não — o `s1` não estava na lista fechada | **[[A40.l6]]** — item adotado 2026-08-05 (classe zero-como-valor RV3-27; a l5 registrou e devolveu a decisão ao dono) |
 | **`perfil_familia.right` publica `n_imoveis`** — a mesma contagem que o `s4` deixou de afirmar | Medido: o card de perfil renderiza hoje (independe desta lane) e imprime `{n_imoveis} imóvel/imóveis`. É contradição **cross-seção** com a tabela da S4, não intra-seção; pré-existente e fora da lista fechada | **[[A40.l6]]** — item adotado 2026-08-05 |
 | **DAS no `s8` ficou em silêncio** — e `despesas_impostos` segue sem o balde | Medido: `_DAS_KEYWORDS = ("DAS",)` casava a preposição e o balde `das_simples` deu 100% de falso-positivo (pedágio, supermercado) no dogfood. O PR **#1133 mergeou em `69a2fad4`** (2026-07-31 17:06) e `_DAS_KEYWORDS` hoje tem **6 keywords unívocas**; a lane mergeou às 18:09 sem re-medir o balde com o matcher novo. A l4 não afirma DAS (estimado ou recolhido) e não soma `das_simples` em `despesas_impostos` — trocar "balde ausente" por "consumo publicado como imposto" é regressão. Reintroduzir as duas coisas exige **re-medir o sinal do balde pós-`69a2fad4`** | **[[A40.l12]]** — item adotado 2026-08-05 |
 | **Sufixo de changelog (ADR-148) não renderiza em seção nenhuma** | Medido: `get_report_data.py:78` usa `SnapshotChangelogConfig()` default, cujo `sections_to_compare` é `M_PL`/`M_TAXA_POUPANCA`/`M_RESERVA_MESES`/`M_AUVP_DESVIO` — nenhum é id de seção do layout, e o casamento é por `section_id`. A composição decidida na §D10 é contrato, não preservação de comportamento visível | **fora da A40** — [[PLAN-snapshot-changelog-v3]] §Residual W3 (é resíduo daquele plano; o ponteiro "A40.l5" nunca aterrissou no §Escopo da l5 — corrigido em 2026-08-05, ver `_README` §Fora do sprint) |

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -33,6 +34,20 @@ SCHEMA_BY_TYPE: dict[str, str] = {
 
 # Subdiretórios excluídos do walk default (consumo interno ou legado).
 EXCLUDED_DIRS = {"_MOC", "_schemas", "archive", "agent_prompts"}
+
+# Campos de frontmatter que carregam arestas do grafo de notas (wikilinks).
+# Autorreferência aqui reescreve o grafo em silêncio: check_doc_links.py nunca
+# vê o frontmatter (strip antes de extrair), e o schema só valida o shape
+# `[[...]]` (A40 §Pendência 12 — caso de origem: A40.l27).
+GRAPH_EDGE_FIELDS: tuple[str, ...] = (
+    "depends_on",
+    "parallel_with",
+    "supersedes",
+    "superseded_by",
+)
+
+# `[[id]]`, `[[id|alias]]`, `[[id#anchor]]` — captura o id (antes de | ou #).
+WIKILINK_RE = re.compile(r"^\[\[([^\]|#\n]+?)(?:\|[^\]\n]+?)?(?:#[^\]\n]+?)?\]\]$")
 
 
 @dataclass(frozen=True)
@@ -142,7 +157,46 @@ def validate_note(
     if note_type not in schemas:
         msg = f"type {note_type!r} não mapeado em SCHEMA_BY_TYPE {sorted(schemas)}"
         return _strict_skip(md_path, "type", msg, strict=strict)
-    return _validate_against_schema(md_path, fm, schemas[note_type])
+    errors = _validate_against_schema(md_path, fm, schemas[note_type])
+    return errors + _self_reference_errors(md_path, fm)
+
+
+def _wikilink_target(raw: str) -> str:
+    """Extrai o id de `[[id]]` / `[[id|alias]]` / `[[id#anchor]]`; '' se não é wikilink."""
+    match = WIKILINK_RE.match(raw.strip())
+    return match.group(1).strip() if match else ""
+
+
+def _edge_values(fm: dict, field: str) -> list[str]:
+    """Normaliza campo de aresta em lista de strings (aceita string solta ou lista)."""
+    value = fm.get(field)
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [item for item in value if isinstance(item, str)]
+    return []
+
+
+def _self_ref_error(md_path: Path, field: str, raw: str, note_id: str) -> ValidationError:
+    """Monta o erro de autorreferência no formato esperado/recebido do módulo."""
+    message = (
+        "esperado: wikilink para OUTRA nota (nenhuma nota depende de si mesma)\n"
+        f"  recebido: autorreferência {raw!r} em nota id={note_id!r}"
+    )
+    return ValidationError(path=md_path, field=field, message=message)
+
+
+def _self_reference_errors(md_path: Path, fm: dict) -> list[ValidationError]:
+    """Erros de autorreferência nos campos de aresta (find-replace de renumeração)."""
+    note_id = fm.get("id")
+    if not isinstance(note_id, str):
+        return []
+    return [
+        _self_ref_error(md_path, field, raw, note_id)
+        for field in GRAPH_EDGE_FIELDS
+        for raw in _edge_values(fm, field)
+        if _wikilink_target(raw) == note_id
+    ]
 
 
 def _strict_skip(md_path: Path, field: str, message: str, *, strict: bool) -> list[ValidationError]:

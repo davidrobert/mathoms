@@ -80,7 +80,9 @@ abrir", isso bloqueia a saída do dogfood.
 ### Incidente de origem
 
 Run `2ded7aab` (workspace dogfood premium, 2026-07-31) marcado `failed` após
-25m23s e US$ 1,5655. Os 17 stages anteriores passaram; o E5 fechou com artifact
+25m23s e US$ 1,5655 (re-medível: `pipeline_runs.started_at/finished_at` +
+`SUM(llm_call_log.cost_usd) WHERE pipeline_run_id` do run `2ded7aab` — nenhum
+dos dois é PII). Os 17 stages anteriores passaram; o E5 fechou com artifact
 de 123.498 bytes — **o relatório era derivável e não foi derivado**. Causa: o
 guardrail `number_in_prose` (LLM digitou valor em R$ na prosa, **além** de emitir
 a âncora) escalou para `needs_review` porque o item era severidade Crítica/Alta →
@@ -192,9 +194,13 @@ Mesma disciplina expand/contract que o repo aplica a evolução de enum. Amarra:
 se o writer escorregar >1 sprint, **reverta o leitor** — é dead code pelos
 nossos critérios.
 
-**[[A40.l20]] depende da *decisão*, não do *merge*, de [[A40.l18]]** — o
-vocabulário de status é fixado pela [[ADR-357]] `Proposto`; implementar contra a
-ADR permite mergear em paralelo.
+**[[A40.l20]] entrega em 2 PRs** (corrigido 2026-08-05): o contrato do desfecho
+retido (modelo, API, estado de UI, contador) mergeia em paralelo à [[A40.l18]]
+contra o vocabulário da [[ADR-357]] `Proposto`; o wire-up no orquestrador fica
+atrás do merge dela — medido, ele reescreve os mesmos hunks de
+`backend/app/tasks/pipeline_task.py`. A formulação anterior ("depende da decisão,
+não do merge") tratava a dependência como de vocabulário. Mesma amarra da ordem
+reader-first: writer escorregando >1 sprint ⇒ reverte o leitor **e** o contrato.
 
 ### KRs
 
@@ -233,7 +239,7 @@ declara o sinal do delta e `dev/golden_diff.py` confere. A [[A40.l16]] declara
 ### Fora de escopo, com gatilho de descorte nomeado
 
 - **Painel cru em `ops.mathoms.ai`** — cortado. Reach=1, e a audiência já tem
-  substituto equivalente que já usou (a query de DB que produziu a série de 9
+  substituto equivalente que já usou (a query de DB que produziu a série de 19
   runs). Descorta quando o beta abrir (audiência ≥5) **ou** T1 disparar.
 - **Dead-letter do output retido** — P2, onda 3, por **gatilho** e não por data:
   ativa quando alguém re-propõe enforcement **ou** T1 dispara. Re-escopado para
