@@ -909,6 +909,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `duration_ms` | `INTEGER` | yes | — | — |
 | `started_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `completed_at` | `DATETIME` | yes | — | — |
+| `executor_revision` | `VARCHAR(48)` | yes | — | — |
 
 **Constraints:**
 
@@ -2437,6 +2438,7 @@ type PipelineStageLog struct {
 	DurationMs *int `db:"duration_ms" json:"duration_ms"`
 	StartedAt time.Time `db:"started_at" json:"started_at"`
 	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
+	ExecutorRevision *string `db:"executor_revision" json:"executor_revision"`
 }
 ```
 
