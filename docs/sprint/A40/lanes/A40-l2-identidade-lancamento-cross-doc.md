@@ -128,7 +128,7 @@ integralmente válida.
 - **PR1b — instrumento de E3 (novo, medido em 2026-08-05).** Promove a sonda de
   paridade a parte do harness, com ratchet: contagem de chaves colapsáveis e de rows
   removíveis no grão E3, ao lado do numerador E4. **Bloqueia o PR3** — sem ela o
-  enforce remove 66 chaves que nenhum instrumento observa. Custo S, 0 LLM,
+  enforce remove 70 chaves (58% dos cents) que nenhum instrumento observa. Custo S, 0 LLM,
   read-only.
 - **PR2 — re-ancoragem (backend), pré-condição do enforce.** Consome os hashes do
   PR1, cruza com `transaction_overrides` ativos e produz o mapa
@@ -158,12 +158,36 @@ corpus**. Detector e colapsador medidos na **mesma re-derivação** (`_rederive`
 | | detector ([[A40.l1]], baldes E4) | colapsador (statements E3) |
 |---|---|---|
 | chaves colidentes | **261** (261 carrier, 0 coincidence) | **331** |
-| Σ cents | **81.288.000** | **216.980.850** (2,67×) |
 | rows removíveis | — | **411** |
 | bloqueados pelo predicado | — | **0** |
 
-**Paridade por `(mês, cents, moeda, direction)`:** 225 tuplas em ambos · **0 só no
-detector** · **66 só no colapsador**.
+**Paridade é EXATA, por digest.** Os dois instrumentos derivam a chave com
+`sha256("|".join(str(p) for p in key))` sobre tuplas de conteúdo idêntico — o
+detector trunca em 8, o colapsador em 12 —, então `det.key_digest ==
+col.key_digest[:8]` é comparação exata, não aproximação:
+
+| | chaves |
+|---|---|
+| em ambos | **261** |
+| só no detector | **0** |
+| só no colapsador | **70** |
+
+`261 + 70 = 331` fecha. **O detector é subconjunto estrito do colapsador.**
+
+> ⚠️ **Correção de método, mesma sessão.** A primeira medição publicada aqui usou
+> paridade por `(mês, cents, moeda, direction)` — tupla **mais grossa que as duas
+> chaves**, porque descarta a descrição — e reportou `225 / 0 / 66`. Ela colapsava
+> eventos distintos na mesma tupla e **subcontava a interseção**. O número por
+> digest (`261 / 0 / 70`) é o correto. Lição: paridade entre dois instrumentos exige
+> a chave dos instrumentos, não uma projeção dela.
+
+**Σ cents — as duas fórmulas não são comparáveis** e a versão anterior desta seção
+as comparou indevidamente ("2,67×"). O detector soma
+`(n_provenances − 1) × valor_cents`; o colapsador soma `valor_cents × rows
+removíveis`. Nas **mesmas** 261 chaves: detector **81.288.000**, colapsador
+**91.630.250** — o gap de **10.342.250** é exatamente o efeito multiset (rows vs
+proveniências), não divergência de medição. As 70 chaves órfãs somam
+**125.350.600 cents = 58% de tudo que o enforce removeria**.
 
 Três leituras, e a primeira invalida o critério que estava escrito aqui:
 
@@ -174,10 +198,13 @@ Três leituras, e a primeira invalida o critério que estava escrito aqui:
    em baldes opostos não chegam aos baldes). Comparar os dois números era comparar
    coisas distintas.
 2. **`0 só no detector` é a boa notícia:** o colapsador cobre **tudo** que o
-   instrumento conta — não há ponto cego na direção perigosa. Mas os **66 só no
-   colapsador** são o problema: se o enforce remover essas rows, re-rodar o detector
-   e ver 0 **não prova** que o colapso foi correto. É o furo anti-Goodhart da
-   [[ADR-354]] §Emenda, agora com número — e maior do que a emenda supunha.
+   instrumento conta — não há ponto cego na direção perigosa, e isso é o que
+   autoriza usar o detector como oráculo secundário. Mas as **70 só no colapsador**
+   são o problema, e são materiais: **89 rows** e **58% dos cents** que o enforce
+   removeria. Se o enforce as remover, re-rodar o detector e ver 0 **não prova** que
+   o colapso foi correto — mais da metade do dinheiro sai fora do campo de visão do
+   instrumento. É o furo anti-Goodhart da [[ADR-354]] §Emenda, agora com número, e
+   maior do que a emenda supunha.
 3. **`0 bloqueados` significa que 4 das 5 cláusulas protetivas estão
    inexercitadas** neste corpus. O valor delas aqui é seguro contra corpus futuro,
    **não** proteção medida. Quem valida é a fixture sintética + a prova de mutação,
@@ -198,7 +225,7 @@ construção. Por isso o aceite exige eixos que **não derivam da mesma chave**.
 
 - **Pré-condição do PR3, nova e bloqueante: paridade de camada.** O enforce não
   mergeia enquanto o número de E3 não tiver instrumento contado e ratcheteado —
-  hoje `66` chaves colapsáveis estão fora do campo de visão do detector. Sem isso o
+  hoje **70** chaves colapsáveis (89 rows, 58% dos cents) estão fora do campo de visão do detector. Sem isso o
   gate de saída da lane é vácuo por construção. Baseline de E3 a congelar: **331
   chaves / 411 rows / 216.980.850 cents**.
 - **Banda sobre o número de E3, não sobre 261.** O `[259,261]` que estava aqui era
