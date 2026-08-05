@@ -506,7 +506,12 @@ implementação flippa a ADR no merge — mas o critério de aceite da lane não
 integralmente cumprido (nº 4 acima). Flip agora, ou `Proposto` com o motivo do
 não-flip registrado no próprio arquivo?
 
-**6. Os 4 residuais que a [[A40.l4]] roteou para "lane própria" ficam na A40?**
+**6. Os 4 residuais que a [[A40.l4]] roteou para "lane própria" ficam na A40?** —
+✅ **RESOLVIDA 2026-08-05.** Absorvida pela resolução da Pendência 11 (mesma
+triagem, mesmo PR) — ver lá o destino item a item. Resultado: 3 dos 4 adotados em
+lanes vivas ([[A40.l6]], [[A40.l12]] ×2); o 4º ("Base da cascata") não tinha dono
+vivo nem materialidade medida e saiu da A40 por disposição explícita ([[REPORT-REVIEWS-active]]).
+O diagnóstico abaixo fica como registro do que foi medido.
 
 Medido na §Residual da lane — 14 linhas, das quais **4** têm `Dono` = "lane própria":
 
@@ -682,14 +687,15 @@ item que tem só descrição evapora no fim da sprint.
 | `s3` — o que a abertura da S3 afirma sobre a carteira | [[A40.l15]] | **lane** |
 | Predicado de carrier 1 largo demais (par conta/poupança do mesmo banco colide) | [[A40.l2]] §Residual | **lane** |
 | Assimetria `banco` vs `tipo_conta` na partição | [[A40.l2]] §Residual | **lane** |
-| Re-medir o balde `das_simples` pós-`69a2fad4` e reintroduzir o DAS no `s8` | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
-| `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
-| PD-20 — meta de TRS não é configurável (`trs_meta_pct` nunca lido) | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
-| Sufixo de changelog ([[ADR-148]]) não renderiza em seção nenhuma | [[A40.l4]] §Residual | **sem lane** → Pendência 11 |
+| Re-medir o balde `das_simples` pós-`69a2fad4` e reintroduzir o DAS no `s8` | [[A40.l4]] §Residual | **item adotado** — [[A40.l12]] |
+| `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l4]] §Residual | **item adotado** — [[A40.l6]] |
+| PD-20 — meta de TRS não é configurável (`trs_meta_pct` nunca lido) | [[A40.l4]] §Residual | **item adotado** — [[A40.l12]] |
+| Sufixo de changelog ([[ADR-148]]) não renderiza em seção nenhuma | [[A40.l4]] §Residual | **fora da A40** — [[PLAN-snapshot-changelog-v3]] §Residual W3 (o ponteiro para A40.l5 nunca aterrissou lá) |
+| Base da cascata — `receita_bruta = receita_pj_anual` em vez de `FinanceiroPJSnapshot.receita_bruta_total_anual` | [[A40.l4]] §Residual | **fora da A40** — [[REPORT-REVIEWS-active]] (materialidade não medida) |
 | ~~Regressão de contexto do gerador~~ → **ancorabilidade do exec context** (#1004) | [[A40.l30]] (instrumento) + [[A40.l31]] (fix) | **lane** |
 | **Pontos cegos do `dev/check_pipeline_log_pii.py`** | *nada* | ver §Fora do sprint |
 | **`banco` vazio em 20 grupos `extrato`** | *nada* | ver §Fora do sprint |
-| Obrigação de rótulo da [[ADR-306]] cumprida em 4 de 8 blocos com chave `janela` (o "2 de 8" do corpo do #1124 estava errado — ver [[A40.l3]] §Handoff) | [[A40.l3]] §Handoff | **sem lane** → Pendência 11 |
+| Obrigação de rótulo da [[ADR-306]] cumprida em **5 de 8** blocos com chave `janela` (correção final, 2026-08-05: os "2 de 8" e "4 de 8" anteriores estavam errados — `orcamento_prospectivo` conta, porque tem base declarada em texto impresso pela prosa do produtor, mesmo sem vir do campo `janela`; só `equilibrio_cerbasi`, `passive_income` e `reserva_emergencia` — tooltip não conta, [[ADR-306]] §Emenda A40.l3 — não cumprem) | [[A40.l3]] §Handoff | **item adotado** — [[A40.l11]] |
 
 **Era a de maior consequência da lista, e agora tem lane — com o nome corrigido.**
 A [[A40.l16]] mede que o enforcement ficou dormente sob o prompt 2.1.0 (9,1% em 11
@@ -715,24 +721,30 @@ por **depender de sessão do dono no meio**.
 ## Pendências de decisão — itens 11-12 (2026-08-03)
 
 **11. Os follow-ups sem destino viram lane nesta sprint, ou disposição explícita
-de não-fazer?** — 🟡 **PARCIAL 2026-08-03:** a ancorabilidade do exec context
-(ex-"regressão do gerador") virou [[A40.l30]] + [[A40.l31]]; **restam 5**. São os
-marcados "sem lane" na tabela acima.
+de não-fazer?** — ✅ **RESOLVIDA 2026-08-05.** A ancorabilidade do exec context já
+tinha ido para [[A40.l30]]+[[A40.l31]] em 2026-08-03. Os **5** que restavam foram
+triados pela mesma regra que a A42 já formalizou em `main` (§Critério de admissão,
+`ecfa760f` #1193 · `3dbc558b` #1194): **destino é quem já possui o arquivo ou a
+superfície** — nenhum nasce lane nova na A40. Resultado, item a item:
 
-> **Denominador corrigido, 2026-08-03.** Esta pergunta dizia "7 follow-ups": a
-> tabela tinha **6** linhas "sem lane" — hoje **5**, com a ancorabilidade do exec
-> context roteada para a [[A40.l30]] — e o corpo desta própria pergunta enumerava 6
-> (4 da [[A40.l4]] + 1 da [[ADR-306]] + o ex-"gerador"). As 2 linhas
-> "ver §Fora do sprint" **têm** destino — disposição explícita de não-fazer — então
-> não entram na conta. As 6 linhas da tabela também apontavam para a "Pendência
-> 10", que é sobre a [[A40.l27]] ir para a [[A41]]; o ponteiro correto sempre foi
-> esta, a 11. A decisão de
-2026-08-03 foi "nada sai da A40" — mas ela cobria o escopo então existente, não
-follow-up gerado depois pela execução. Cada um tem custo e dono diferentes: a
-regressão do gerador exige eval (o de US$ 26 mede o gerador e não foi re-rodado);
-os quatro da [[A40.l4]] são de superfície; o da [[ADR-306]] são 4 blocos de rótulo
-(8 − 4 cumpridos, ver [[A40.l3]] §Handoff).
-Deixá-los sem destino é a única opção que não é decisão — é esquecimento.
+| Item | Destino | Por quê |
+|---|---|---|
+| DAS ausente no `s8`/`despesas_impostos` | **item adotado — [[A40.l12]]** | mesmo arquivo/risco de KPI distorcido por balde incompleto |
+| `perfil_familia.right` publica `n_imoveis` desatualizado | **item adotado — [[A40.l6]]** | contradição cross-seção, mesma classe de "zero-como-valor" que a l6 já cobre |
+| PD-20 — meta de TRS não configurável | **item adotado — [[A40.l12]]** | mesmo arquivo (`e5_analyzer_adapter.py`) do item 1, risco diferente — **não** agrupado na mesma tarefa (arquivo compartilhado ≠ risco compartilhado) |
+| Sufixo de changelog (ADR-148) não renderiza | **fora da A40** — [[PLAN-snapshot-changelog-v3]] §Residual W3 | é resíduo daquele plano (`W3-T05` entregou o default em forma reduzida); o ponteiro "A40.l5" nunca aterrissou no §Escopo da l5 — atribuição sem mecanismo, mesma classe que a emenda da [[ADR-111]] já nomeou |
+| Rótulo da [[ADR-306]] — **3** blocos sem rótulo válido (não 2, não 4 — ver correção no §Inventário acima) | **item adotado — [[A40.l11]]** | l11 já é dona de "rótulo de escopo"; deps (l3, l4) já `shipped` |
+
+Nenhum dos 5 justificava lane nova: a cláusula de exceção da A42 (P0 que alcança o
+usuário, sem dono vivo, com espera medida em semanas) não se aplica a nenhum —
+todos são P1/P2/P3 de superfície. Só a "Base da cascata" (item 4 da Pendência 6,
+que este item 11 absorve) não tinha dono vivo **e** não tinha materialidade
+medida — saiu da A40 por disposição explícita, registrada em [[REPORT-REVIEWS-active]]
+como residual pós-r3: mede o delta entre `receita_pj_anual` e
+`receita_bruta_total_anual` no corpus dogfood antes de decidir lane (delta
+material) ou `aceito-wontfix` (delta imaterial). "Sem dono vivo + sem
+materialidade medida" é o único caso desta lista que qualifica como "esquecimento
+evitado por disposição", não por adoção.
 
 **12. Autorreferência em `depends_on`/`parallel_with` vira gate, ou fica no olho
 do revisor?** A [[A40.l27]] entrou em `main` declarando `depends_on: [[A40.l27]]`
@@ -790,6 +802,22 @@ referência de doc, ou lane própria?
   persistido" do drift medido pela [[A40.l1]]. **Fora da A40 por camada** (E0→E2, não
   entrega do relatório): pertence a [[PLAN-data-lineage]] ou a uma rodada de
   `parse-certify`. Não roteado.
+- **Sufixo de changelog ([[ADR-148]]) não renderiza em seção nenhuma** — residual da
+  [[A40.l4]], fecha a Pendência 11 (2026-08-05). É defeito de [[PLAN-snapshot-changelog-v3]]
+  (`W3-T05` entregou o default em forma reduzida — ids de métrica que não casam
+  `section_id` de layout), não da A40. **Fora da A40 por origem** — precisa de
+  entrada datada com dono e condição de retomada em
+  [`_README`](../../plan/SNAPSHOT_CHANGELOG_V3/_README.md) desse plano (fora do
+  escopo deste PR).
+- **Base da cascata** — `receita_bruta = receita_pj_anual` em vez de
+  `FinanceiroPJSnapshot.receita_bruta_total_anual` ([[ADR-238]]) — residual da
+  [[A40.l4]], fecha a Pendência 11 (2026-08-05). Dono do arquivo é a [[A40.l9]]
+  (`shipped`); [[PLAN-tributario-pj]] está `done`. **Fora da A40 por falta de dono
+  vivo e de materialidade medida** — mudança de cálculo exigiria emenda a
+  ADR-236/238 antes de qualquer código. Registrado em [[REPORT-REVIEWS-active]]
+  como residual pós-r3: entra na próxima re-triagem com uma medição de entrada
+  (delta entre as duas fontes no corpus dogfood); delta material ⇒ abre lane com a
+  emenda; delta imaterial ⇒ `aceito-wontfix`.
 
 ## Infra de CI tocada durante a sprint (não são lanes)
 

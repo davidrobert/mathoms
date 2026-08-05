@@ -58,3 +58,17 @@ a regra de copy (ausência ⇒ `—`).
   PDF (padrão de `print.@critical.spec.ts` + `pdftotext -layout`). As duas superfícies
   divergem: o print CSS não força `details[open]`, então o bloco colapsado pode não
   sair no PDF **e ainda assim** estar no DOM servido — testar as duas.
+
+## Item adotado (2026-08-05)
+
+Follow-up órfão da [[A40.l4]] §Residual: `perfil_familia.right` publica
+`{n_imoveis} imóvel/imóveis` de forma independente do card S4 — a mesma contagem
+que a l4 deixou de afirmar na tabela da S4 por já estar sob suspeita (fonte que não
+é a da seção). Contradição **cross-seção**, não intra-seção, e pré-existente à l4.
+
+- Fonte única: `perfil_familia.right` passa a ler a mesma contagem canônica que a
+  tabela da S4 usa — não reabre o cálculo, só corrige o consumo.
+- Critério de aceite: fixture com a S4 suprimindo a contagem (fonte suspeita) ⇒
+  `perfil_familia.right` também suprime, não afirma número órfão.
+- Verificação renderizada: card de perfil e tabela S4 no mesmo payload mostram o
+  mesmo número, ou os dois ausentes.
