@@ -2,9 +2,10 @@
 id: ADR-361
 type: adr
 title: "Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos"
-status: Proposto
+status: Decidido
 phase: "A40"
 date: "2026-08-03"
+amended_at: ["2026-08-05"]
 relates_to:
   - "[[ADR-360]]"
   - "[[ADR-237]]"
@@ -23,6 +24,12 @@ tags:
 ---
 
 # ADR-361 — Percentil do cone de IF é quantil da base cheia com censura declarada
+
+> **Emenda 2026-08-05 (decisão do dono):** flip `Proposto` → `Decidido`, na mesma
+> passada da [[ADR-360]]. Código em `main` desde 2026-08-03 (`790c1c5f`/#1162),
+> gateado por teste; a nota one-shot que cobre a variação desta ADR (maior que a
+> do reseed — ver §Consequências) ganha especificação em [[ADR-360]] §Nota
+> one-shot, para não duplicar o mecanismo em duas ADRs.
 
 ## Contexto
 

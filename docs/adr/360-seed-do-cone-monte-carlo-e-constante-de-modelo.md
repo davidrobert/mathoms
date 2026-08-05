@@ -2,9 +2,10 @@
 id: ADR-360
 type: adr
 title: "Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO"
-status: Proposto
+status: Decidido
 phase: "A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)"
 date: "2026-08-03"
+amended_at: ["2026-08-05"]
 relates_to:
   - "[[ADR-237]]"
   - "[[ADR-219]]"
@@ -23,7 +24,13 @@ tags:
 
 # ADR-360 — Seed do cone Monte Carlo de IF é constante de modelo
 
-**Status:** Proposto (A40) • **Data:** 2026-08-03 • **Relaciona** [[ADR-237]] (o
+> **Emenda 2026-08-05 (decisão do dono):** flip `Proposto` → `Decidido`. Todo o
+> código já estava em `main` desde 2026-08-03 (#1156), gateado por teste; o que
+> faltava era autorizar a nota one-shot de recalibração (bloqueio §"Negativas"
+> abaixo), que ganha especificação própria no fim deste arquivo e fecha
+> `docs/_MOC/OWNER-GATED-active.md` #45.
+
+**Status:** Decidido (A40) • **Data:** 2026-08-03 • **Relaciona** [[ADR-237]] (o
 cone e seu PMT), [[ADR-219]] (premissas versionadas + critério "re-run produz
 mesmas projeções"), [[ADR-217]] (`score_version` como precedente de carimbo de
 versão no payload), [[ADR-090]] (dinheiro nunca é `float`).
@@ -167,10 +174,10 @@ expôs. Retomada com critério empírico: reduzir a dispersão do sweep de 30 se
 - **Números que o cliente já viu mudam.** Seed + `n` novos deslocam todo o bloco;
   um relatório que dizia "IF em 2040" pode dizer 2041 sem que a carteira tenha
   mudado. Mitigação: `mc_version` no payload + nota one-shot no primeiro relatório
-  pós-merge ("recalibração do modelo de projeção — a variação nesta seção vem do
-  modelo, não da sua carteira"). Sem isso, a inferência racional do cliente é "meu
-  plano piorou". Atenua o risco: `if_monte_carlo` **não** está em
-  `DEFAULT_SECTION_VALUE_PATHS`, então nenhum card de variação fabrica a piora.
+  pós-merge — especificada abaixo, §Nota one-shot de recalibração. Sem isso, a
+  inferência racional do cliente é "meu plano piorou". Atenua o risco:
+  `if_monte_carlo` **não** está em `DEFAULT_SECTION_VALUE_PATHS`, então nenhum
+  card de variação fabrica a piora.
 - Latência do MC 29 ms → 85 ms (dentro dos 150 ms da [[ADR-237]]); pico de memória
   transiente sobe na mesma proporção (~5 arrays de `n×40` float64).
 - **Sobra 1,2% de erro amostral.** Reprodutível ≠ preciso: o número para de se
@@ -204,6 +211,44 @@ expôs. Retomada com critério empírico: reduzir a dispersão do sweep de 30 se
   quantizar na precisão do estimador, **não** remascarar.
 - `make go-parity WS=<dogfood> RUNS=2` → controle Py↔Py com 0 diff residual, sem
   allowlist para o cone.
+
+## Nota one-shot de recalibração — especificação (2026-08-05, decisão do dono)
+
+Autorizada pelo dono na mesma decisão que flipou esta ADR e a [[ADR-361]] para
+`Decidido`. Fecha `docs/_MOC/OWNER-GATED-active.md` #45. Co-design
+`financial-planner`: uma nota **solta** (rodapé/aviso separado) não basta — o
+cliente lê a frase da seção que carrega o ano, não um aviso ao lado. Cobre a
+variação desta ADR (seed + `n`) **e** a da [[ADR-361]] (censura de percentil, cuja
+variação é maior e sempre no sentido de adiar a data) — uma nota só, não duas.
+
+**Gatilho.** Ao gerar um relatório para um workspace, se existe report anterior do
+mesmo workspace com `if_monte_carlo.mc_version` ausente ou `"2.0"`, o relatório
+atual (o primeiro com `mc_version: "3.0"`) inclui a nota. Workspace sem report
+anterior **nunca** vê a nota — não há "antes" para comparar, e mostrá-la
+introduziria dúvida sobre estabilidade do modelo onde não havia.
+
+**Forma — in-section, não rodapé.** A nota fica dentro da seção S7, adjacente à
+frase do narrador que carrega `p50_ano_if` (`projecao_if_narrator.py`) — o mesmo
+lugar de onde vem a confusão que ela previne.
+
+**Conteúdo mínimo, quatro elementos:**
+
+1. Par explícito **ano antigo → ano novo** (os dois números, não só o novo).
+2. Direção declarada e monotônica: a variação é sempre no sentido de **corrigir
+   para mais conservador**, nunca o oposto — a recalibração fecha um viés
+   otimista pré-existente, não introduz um novo.
+3. Causa em linguagem do cliente — "recalibração do modelo de projeção" —
+   explicitamente **não** "sua carteira mudou" e **não** "seu plano piorou".
+4. `if_monte_carlo` continua fora de `DEFAULT_SECTION_VALUE_PATHS` (já é o estado
+   atual, sem mudança de código) — nenhum card de variação pode fabricar leitura
+   de piora a partir deste bloco.
+
+**Critério de aceite da nota:** cliente com report anterior `mc_version` ausente
+ou `"2.0"` lê os quatro elementos na mesma seção do report novo; cliente sem
+report anterior não vê nada. Owner do item de implementação: [[A40.l25]], que já é
+dona do arquivo-alvo (`if_monte_carlo.py` + exibição de S7) e já registrava esta
+nota como pendência no seu §Critério de aceite — esta especificação remove o
+"pendente no dono".
 
 ## Deferimento datado — 2026-08-03
 

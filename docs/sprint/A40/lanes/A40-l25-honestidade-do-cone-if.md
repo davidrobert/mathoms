@@ -98,7 +98,13 @@ follow-up nunca aterrissou.
 - Verificação renderizada (navegador ou `pdftotext`) da S7 — exigência do
   §Débito de método desta sprint: a lane não fecha sobre inferência de código.
 - Se mudar número exibido: `mc_version` bumpa e a mudança entra na nota de
-  recalibração pendente no dono (§Entregas fora de lane).
+  recalibração — especificada e **autorizada** em [[ADR-360]] §Nota one-shot de
+  recalibração (2026-08-05; fecha `OWNER-GATED-active.md` #45). Critério: nota
+  in-section em S7 (não rodapé), gatilho por `mc_version` do report anterior do
+  workspace (ausente/`"2.0"` ⇒ mostra; sem report anterior ⇒ nunca mostra), par
+  ano-antigo→ano-novo explícito, direção sempre "mais conservador" declarada,
+  causa em linguagem de cliente ("recalibração do modelo", nunca "sua carteira
+  mudou").
 
 ## Fora de escopo
 
