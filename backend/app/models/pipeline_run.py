@@ -88,6 +88,12 @@ class PipelineRun(Base):
 
 
 class PipelineStageLog(Base):
+    """Execução de um stage — tabela de execuções do run, não espelho 1:1."""
+
+    # Não há unique em `(pipeline_run_id, stage)` e dois call-sites de produção já
+    # ordenam por `started_at DESC`: resume e redelivery produzem row nova, então
+    # um run pode ter N execuções do mesmo stage — e revisões diferentes.
+
     __tablename__ = "pipeline_stage_logs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -105,5 +111,15 @@ class PipelineStageLog(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
     completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # ADR-362 — revisão do processo que executou ESTE stage. NULL ≡ executor não
+    # declarou (run pré-F1, CLI, teste, dev sem MATHOMS_BUILD_SHA); nunca
+    # backfilled, porque inferir de `created_at` vs `git log` fabricaria dado.
+    # Escrita só no INSERT: os caminhos terminais reescrevem `output_summary` por
+    # atribuição total, e um run misto precisa preservar N valores distintos.
+    # `String(48)` e não 20: `varchar` no Postgres REJEITA o INSERT acima do
+    # limite, e `${{ github.sha }}` + `-dirty` dá 46 — largura folgada é a 2ª
+    # camada de defesa atrás da normalização no boundary.
+    executor_revision: Mapped[Optional[str]] = mapped_column(String(48), nullable=True)
 
     pipeline_run = relationship("PipelineRun", back_populates="stage_logs")

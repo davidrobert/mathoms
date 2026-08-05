@@ -24,6 +24,7 @@ from pathlib import Path
 from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 
+from backend.app.core.config import settings
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.document import Document, DocumentType
 from backend.app.models.pipeline_run import (
@@ -819,6 +820,7 @@ def _record_stage_skip(
                 started_at=stage_started_at,
                 completed_at=stage_started_at,
                 output_summary={"skipped": True, "reason": skip_reason},
+                executor_revision=settings.executor_revision,
             )
         )
         db.commit()
@@ -844,6 +846,7 @@ def _record_stage_running(
                 stage=stage_name,
                 status=PipelineStageStatus.running,
                 started_at=stage_started_at,
+                executor_revision=settings.executor_revision,
             )
         )
         db.commit()
