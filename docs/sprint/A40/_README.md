@@ -436,8 +436,9 @@ confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
 
 ## Pendências de decisão (2026-08-03)
 
-Doze perguntas de **higiene interna desta sprint** — **4 resolvidas** em
-2026-08-03 (nº 1, nº 7, nº 9 e, em parte, nº 11), **8 abertas**. Deliberadamente **não** entram
+Doze perguntas de **higiene interna desta sprint** — **5 resolvidas** (nº 1, nº 7,
+nº 9 e, em parte, nº 11 em 2026-08-03; nº 10 em 2026-08-04 pela [[A42]]),
+**7 abertas**. Deliberadamente **não** entram
 em [[OWNER-GATED]]: aquele registro é de gates estratégicos entre planos
 (licença, flip de cutover, LGPD), e misturar higiene de sprint diluiria o sinal
 dele. Cada item traz o que foi **medido** sobre `origin/main` (`a1e70223`) e
@@ -581,7 +582,18 @@ critério de aceite da l9 são 3 casos em
 `↑` por `dev/golden_diff.py`. A l9 está isenta pelo mesmo argumento da l1, ou o
 golden_diff a amarra a um run completo — e portanto à [[A40.l16]]?
 
-**10. A [[A40.l27]] entra na A40 ou é despejada para a [[A41]]?**
+**10. A [[A40.l27]] entra na A40 ou é despejada para a [[A41]]?** —
+✅ **RESOLVIDA 2026-08-04 pelo §Critério de admissão da [[A42]]**, que declara
+fechar esta pendência. A regra geral que faltava está escrita lá em 5 cláusulas
+com precedência: destino é **quem já possui o arquivo ou a superfície** (tie-break
+primário); a **A40 admite apenas por adoção** depois de 2026-08-03 — nada nasce
+lane nova nela, *mesmo sendo P0*, com exceção única e nomeada de P0 que alcança o
+usuário, sem dono de arquivo em lane viva, e cuja espera se mede em semanas; a
+**A42 admite por camada** (ingestão, razão, contrato de store, instrumento);
+**plano temático vivo tem precedência sobre sprint**; e o que não passa recebe
+disposição explícita no MOC da skill. Aplicado à pergunta concreta: a l27 fica na
+A40, porque `depends_on: l19` já está aqui e nenhuma outra lane viva possui o
+arquivo. O diagnóstico abaixo fica como registro.
 
 Aberta pelo critério declarado desta sprint (residual de §Entregas fora de lane +
 `depends_on: l19`, que já está aqui). Contra: o gatilho é [[PLAN-go-shell]], não os

@@ -15,6 +15,9 @@ validadores extraídos de ``scripts/reconcile_transactions.py`` na Sessão A1:
 
 Lógica residual (``reconciliation.md`` summary, ``qa_log.md`` rewriting,
 ``cleanup_e3_directory``) vive em ``scripts/reconcile_transactions.main_with_store``.
+
+``ReconciliationStoreResult`` mora em ``e3_reconciliation_result`` e é
+re-exportado aqui — o import histórico deste módulo segue válido.
 """
 
 from __future__ import annotations
@@ -33,6 +36,7 @@ from pipeline.domain.services.baseline_validator import (
     BaselineDiffWarning,
     BaselineValidator,
 )
+from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
 from pipeline.domain.services.e3_load_report import (
     EmptyInstitutionWarning,
     LoadOutcome,
@@ -40,6 +44,7 @@ from pipeline.domain.services.e3_load_report import (
     StatementExclusion,
     attach_artifact_ledger,
 )
+from pipeline.domain.services.e3_reconciliation_result import ReconciliationStoreResult
 from pipeline.domain.services.e3_review_reasons import (
     project_e3_reasons as _project_reasons,
 )
@@ -71,70 +76,6 @@ from pipeline.domain.services.statement_preprocessor import (
     PeriodDerivationWarning,
     StatementPeriodNormalizer,
 )
-
-# =============================================================================
-# Result container
-# =============================================================================
-
-
-@dataclass(frozen=True)
-class ReconciliationStoreResult:
-    """Saída enriquecida de :meth:`E3ReconcilerAdapter.reconcile_via_store`.
-
-    Contagens espelham os campos do dict legado do retorno; warnings são
-    dataclasses estruturadas (não strings) — serialização para o formato
-    legado fica no shell que consome este resultado.
-    """
-
-    statements_loaded: int
-    statements_reconciled: int
-    artifacts_written: int
-    skipped_inputs: int
-    period_warnings: tuple[PeriodDerivationWarning, ...] = ()
-    anachronic_warnings: tuple[AnachronicTransactionWarning, ...] = ()
-    saldo_warnings: tuple[SaldoGapWarning, ...] = ()
-    # ADR-310 — sinal de auditoria: statements classificados como fatura que
-    # ficaram fora da cadeia de continuidade de saldo.
-    saldo_exclusions: tuple[FaturaExcludedFromSaldoChain, ...] = ()
-    # Emenda ADR-310 (2026-07-08) — statements sem número coalescidos na cadeia
-    # numerada da mesma conta (Tier 2); número ausente jamais some em silêncio.
-    inferred_chain_members: tuple[SaldoChainMemberInferred, ...] = ()
-    temporal_warnings: tuple[TemporalGapWarning, ...] = ()
-    baseline_warnings: tuple[BaselineDiffWarning, ...] = ()
-    institution_warnings: tuple[EmptyInstitutionWarning, ...] = ()
-    review_reasons: tuple[ReviewReason, ...] = ()
-    # ADR-347 PR1 — remoções de dedup por canal (ledger de conservação de contagem).
-    removals: tuple[DedupRemoval, ...] = ()
-    # ADR-347 PR2 — statements excluídos no load (tx count por canal), ledger run-level.
-    exclusions: tuple[StatementExclusion, ...] = ()
-    fatura_cross_results: tuple[FaturaCrossResult, ...] = ()  # ADR-350 PR1 measure-only
-
-    def to_dict(self) -> dict[str, Any]:
-        """Forma plana — útil para asserts em testes e logs estruturados."""
-        return {
-            "statements_loaded": self.statements_loaded,
-            "statements_reconciled": self.statements_reconciled,
-            "artifacts_written": self.artifacts_written,
-            "skipped_inputs": self.skipped_inputs,
-            "period_warnings": [w.format() for w in self.period_warnings],
-            "anachronic_warnings": [w.format() for w in self.anachronic_warnings],
-            "saldo_warnings": [w.format() for w in self.saldo_warnings],
-            "saldo_exclusions": [w.format() for w in self.saldo_exclusions],
-            "inferred_chain_members": [w.format() for w in self.inferred_chain_members],
-            "temporal_warnings": [w.format() for w in self.temporal_warnings],
-            "baseline_warnings": [w.format() for w in self.baseline_warnings],
-            "institution_warnings": [w.format() for w in self.institution_warnings],
-            "review_reasons": [r.to_dict() for r in self.review_reasons],
-            "exclusions": [{"canal": e.canal, "count": e.count} for e in self.exclusions],
-            "fatura_cross_results": [r.to_trace_dict() for r in self.fatura_cross_results],
-        }
-
-    # Acesso dict-like para retro-compat com os testes existentes que fazem
-    # ``result["artifacts_written"]``.
-    def __getitem__(self, key: str) -> Any:
-        d = self.to_dict()
-        return d[key]
-
 
 # =============================================================================
 # Adapter
@@ -173,6 +114,7 @@ class E3ReconcilerAdapter:
         temporal_detector: TemporalGapDetector | None = None,
         baseline_validator: BaselineValidator | None = None,
         fatura_cross_checker: FaturaPaymentCrossChecker | None = None,
+        cross_document_collapser: CrossDocumentCollapser | None = None,
     ) -> None:
         self._config = config
         self._service = ReconciliationService(config)
@@ -184,6 +126,7 @@ class E3ReconcilerAdapter:
         self._temporal_detector = temporal_detector
         self._baseline_validator = baseline_validator
         self._fatura_cross_checker = fatura_cross_checker
+        self._cross_document_collapser = cross_document_collapser
 
     # -- Loading --
 
@@ -359,6 +302,15 @@ class E3ReconcilerAdapter:
             self._fatura_cross_checker.check(statements) if self._fatura_cross_checker else ()
         )
         cross_by_key = index_by_key(fatura_cross)
+        # ADR-354 §Emenda — mede pré-agrupamento: a chave de artefato carrega período
+        # e `tipo_conta`, então as duas pernas do mesmo evento nunca se encontram
+        # depois daqui. Measure-only: não remove row (enforce + re-ancoragem são PRs
+        # próprios; remover row órfãna override ancorado no hash dela).
+        collapse_candidates = (
+            self._cross_document_collapser.measure(reconciled)
+            if self._cross_document_collapser
+            else ()
+        )
 
         key_for = output_key_fn or self.output_key
 
@@ -496,4 +448,5 @@ class E3ReconcilerAdapter:
             removals=tuple(removals),
             exclusions=tuple(outcome.exclusions),
             fatura_cross_results=fatura_cross,
+            collapse_candidates=collapse_candidates,
         )

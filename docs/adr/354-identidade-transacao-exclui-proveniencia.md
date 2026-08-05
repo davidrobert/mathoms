@@ -5,6 +5,7 @@ title: "Identidade de transação (K4) exclui atributos de proveniência do docu
 status: Proposto
 phase: report-review r3 (RV3-01) · A40.l2
 date: "2026-07-30"
+amended_at: ["2026-08-05"]
 relates_to:
   - "[[ADR-278]]"
   - "[[ADR-287]]"
@@ -17,6 +18,13 @@ tags:
 ---
 
 # ADR-354 — Identidade de transação (K4) exclui atributos de proveniência do documento
+
+> ⚠️ **Emendada em 2026-08-05.** A §Decisão original segue válida; **duas das
+> quatro §Consequências foram revogadas por medição** (alias-map a montante e
+> fail-closed de vocabulário). O mecanismo de correção mudou de
+> *canonicalizar a montante* para *colapsar por transação antes do
+> agrupamento*. Leia a §Emenda antes de implementar — a forma original leva a
+> um fix que colapsa ~48% ou apaga dado legítimo.
 
 ## Contexto
 
@@ -98,3 +106,87 @@ restaurar. O custo é real e é a razão de a lane ter 5 PRs em vez de 1.
 
 Não supersede [[ADR-278]] nem [[ADR-287]]; complementa [[ADR-350]] (mesma família
 de falha, lado fatura).
+
+## Emenda A40.l2 — o mecanismo é colapso por transação, não canonicalização a montante · 2026-08-05
+
+> A certificação de razão de 2026-08-04 ([[LEDGER-CERTIFY-active]] §r4, LC01-LC04)
+> re-mediu o defeito e **eliminou 4 dos 5 desenhos de fix** desta ADR. O defeito
+> medido não mudou (261 ocorrências, reproduzidas byte-a-byte); a causa e o
+> mecanismo de correção mudaram.
+
+**Revogado — as duas primeiras §Consequências.**
+
+- *"`tipo_conta` ganha alias-map … canonicalizado a montante"* como mecanismo de
+  correção: a chave que faz as duas pernas se encontrarem é **provenance-free**
+  (não contém `tipo_conta`), logo canonicalizar `tipo_conta` a montante não é
+  pré-requisito de nada. O alias-map sobrevive com **papel novo** (abaixo).
+- *"O vocabulário desconhecido é fail-closed"*: a cobertura de contraparte no
+  corpus é **50,88%** — quarentenar vocabulário desconhecido apagaria ~252 rows
+  de fonte única ou órfãs. Fail-closed aqui é destrutivo, não conservador.
+
+**Também rejeitado, e não estava escrito como alternativa: fundir os grupos-fonte.**
+Dois motivos independentes. (1) O dedup existente exige descrição **bruta
+byte-idêntica** (`reconciliation_service.py:159`), teto de colapso ~48% (126/261) —
+fecharia verde pagando o preço máximo. (2) É **destrutivo**: a perna escalada ao LLM
+não tem saldo, e o merge elege `closing_balance=stmts[-1].closing_balance`
+**posicional** (`e3_reconciler_adapter.py:409`) — inserir a perna sem saldo apagaria
+o saldo da conta inteira.
+
+**Decisão emendada.** O mecanismo é um **colapsador cross-documento por
+transação**: domain service puro, injetado com `default None` no
+`E3ReconcilerAdapter`, **após** `reconcile_with_report` e **antes** do agrupamento
+de artefato. Chave = a mesma do detector da [[A40.l1]]
+(`data, valor_cents, moeda, direction, descricao_normalizada`). O colapsador
+**seleciona rows**; não toca input de hash — a §Não-decisão (nenhum `_hash_v3`)
+segue integralmente válida.
+
+**O predicado do colapsador é estritamente mais forte que a chave do detector.**
+Um detector pode sobre-detectar rotulado ([[ADR-342]]); um mutador que sobre-colapsa
+**deleta dado legítimo**. Quatro cláusulas conjuntas, cada uma fechando uma classe
+medida:
+
+1. **`carrier-shaped`** — nunca `coincidence-shaped`. Fecha a classe de
+   sobre-detecção declarada da [[A40.l1]] §SOBRE-detecção (mesma tarifa, mesmo dia,
+   contas distintas, pernas simétricas).
+2. **Par de `tipo_conta` ∈ allow-list** — é aqui que o alias-map renasce, como
+   allow-list do predicado e não como canonicalização. Colapsa **só**
+   `extrato` ≡ `extratoconta`; **sufixo de moeda é identidade de conta**
+   (C6 Global USD/EUR, Wise BRL/USD são contas distintas), com **deny-list
+   explícita** validada na construção da config. Sem esta cláusula, carrier 1
+   ("qualquer divergência de `tipo_conta`") colapsaria tarifa de mesmo valor em
+   conta **e** poupança — o §Residual declarado da [[A40.l1]].
+3. **Exatamente uma perna marcada como extraída por LLM.** O marcador
+   `extraido_por` tem **um único writer** (`extract_with_llm.py:432`) e o extrator
+   nativo não o emite, então ausência ⇒ nativo. Par nativo↔nativo **não colapsa**
+   (é a classe latente da [[A42.l5]]); ambas-LLM não colapsa. A conflação
+   "row legada sem o campo" ⇒ nativo erra para **sub-colapso**, que é a direção
+   segura para um mutador.
+4. **Multiset-aware** — a cardinalidade do sobrevivente é o `max` por proveniência,
+   nunca 1-por-chave. Chave day-exact não distingue *1 evento visto 2×* de *2
+   eventos vistos 1× cada*; sem esta cláusula, duas compras legítimas idênticas no
+   mesmo dia viram uma.
+
+Sobrevivente do par: a **perna nativa**.
+
+**A conservação por grupo segue declarada insuficiente** (§Consequências original,
+4º item) — inalterada, e é o que explica por que o defeito atravessou 105/105
+grupos em tol-zero.
+
+**Anti-Goodhart — a banda não basta.** A chave do colapsador contém a chave do
+detector, então "o numerador cai a 0" é quase tautológico: o colapso zera o
+instrumento por construção. O critério exige **eixos que não derivam da mesma
+chave**: conservação de cardinalidade multiset por (conta, mês); invariante de
+saldo (nenhum grupo perde `closing_balance`, contagem de `saldo_final_unknown`
+inalterada, 105 grupos ainda fecham tol-0); e o oráculo a jusante (queda de ~19%
+da receita e ~8% da despesa nos meses afetados). **Corolário:** o colapso correto
+pode ser **menor** que 261 — e isso é sinal, não regressão.
+
+**Consequência de sequenciamento.** A re-ancoragem de `transaction_overrides` deixa
+de ser o último passo e passa a ser **pré-condição do enforce**: o colapsador remove
+row, e override ancorado no `transaction_hash` dela órfãna — que é exatamente o
+critério de aborto (`COUNT(*) WHERE orphaned_at IS NOT NULL` não sobe). O caminho
+respeita o boundary de `pipeline/**` (sem `sqlalchemy`): o pipeline **emite** os
+hashes que removeria, o backend **decide** o mapa removido→sobrevivente.
+
+Co-design `data-engineer` (2026-08-05) — as cláusulas 1, 3 e 4 e o eixo de
+cardinalidade são objeções dele ao desenho que eu havia proposto.

@@ -39,6 +39,12 @@ class BankStatement:
     # digits-only canônico via ``normalize_account_number``.
     account_number_raw: Optional[str] = None
     account_number_norm: Optional[str] = None
+    # ADR-354 §Emenda — ``"llm"`` | ``"native"`` | ``None`` (não determinado).
+    # O marcador ``extraido_por`` tem UM writer (``extract_with_llm.py``) e o
+    # extrator nativo não o emite, então ausência ⇒ ``"native"``: row legada de
+    # LLM sem o campo lê como nativa e o par sai do predicado de colapso, o que
+    # erra para SUB-colapso (direção segura para mutador).
+    extraction_method: Optional[str] = None
 
     @property
     def net_flow(self) -> Money:
@@ -176,6 +182,7 @@ class BankStatement:
             account_type=d.get("tipo") or d.get("account_type") or d.get("tipo_documento"),
             account_number_raw=account_number_raw,
             account_number_norm=account_number_norm,
+            extraction_method="llm" if d.get("extraido_por") == "llm" else "native",
         )
 
     def to_e2_dict(self) -> dict:

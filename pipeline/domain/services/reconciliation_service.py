@@ -59,6 +59,9 @@ def _cross_source(a: Transaction, b: Transaction) -> bool:
 
 def _reconciled_copy(stmt: BankStatement, transactions: list[Transaction]) -> BankStatement:
     """Cópia de ``stmt`` com a lista de transações dedup-ada (não muta o original)."""
+    # Construtor campo-a-campo: campo novo em BankStatement NÃO chega aqui sozinho —
+    # é como `account_number_*` se perde (gate em
+    # test_cross_document_collapser::test_reconcile_preserva_todo_campo_de_identidade).
     return BankStatement(
         institution=stmt.institution,
         member_key=stmt.member_key,
@@ -71,6 +74,7 @@ def _reconciled_copy(stmt: BankStatement, transactions: list[Transaction]) -> Ba
         source_document=stmt.source_document,
         notes=list(stmt.notes),
         account_type=stmt.account_type,
+        extraction_method=stmt.extraction_method,
     )
 
 
