@@ -36,16 +36,23 @@ class _Cand:
         rows: int = 1,
         cents: int = 10000,
         card: int = 1,
+        no_bucket: int | None = None,
     ) -> None:
         self.key_digest = digest
         self.blocked_reason = blocked
         self.removable_rows = 0 if blocked else rows
         self.valor_cents = cents
         self.survivor_cardinality = card
+        # `no_bucket > removable_rows` ⇒ alvo pede remoção PARCIAL de bucket.
+        self.rows_alcancadas_por_hash = 0 if blocked else (no_bucket or rows)
 
     @property
     def collapsible(self) -> bool:
         return self.blocked_reason is None and self.removable_rows > 0
+
+    @property
+    def alvo_ambiguo(self) -> bool:
+        return self.rows_alcancadas_por_hash != self.removable_rows
 
 
 class _Collision:
@@ -236,6 +243,38 @@ def test_filtro_assimetrico_dentro_do_sumario_derruba_a_particao() -> None:
 
     assert not s.particao_fecha
     assert not s.layer_ok
+
+
+def test_histograma_de_cardinalidade_incompleto_derruba_a_identidade_3() -> None:
+    """Isolada: só a identidade 3 falha, então `layer_ok` não pode ser carregado pelas
+    outras duas. Sem este teste, `cardinalidade_fecha → True` sobrevive à mutação."""
+    from dev.ledger_collapse_layer import CollapseLayerSummary
+
+    s = CollapseLayerSummary(candidatos=5, colapsaveis=5, cardinalidade={1: 3}, so_no_colapsador=5)
+
+    assert s.particao_fecha and s.paridade_fecha  # isolamento: só a 3 falha
+    assert not s.cardinalidade_fecha
+    assert not s.layer_ok
+    assert "cardinalidade False" in "\n".join(fmt_collapse_layer(s))
+
+
+def test_alvo_que_resolve_mais_rows_que_o_declarado_derruba_a_identidade_4() -> None:
+    """Esta é a asserção que teria pegado o P0 de 2026-08-05: o alvo declarava 411 rows
+    e resolvia 453, porque hash não endereça row. Isolada — as outras 3 identidades
+    fecham, então `layer_ok` não pode ser carregado por elas."""
+    cands = [_Cand("aaaaaaaaaa", rows=1, no_bucket=2)]
+
+    s = collapse_layer_summary(cands, frozenset({"aaaaaaaa"}))
+
+    assert s.particao_fecha and s.paridade_fecha and s.cardinalidade_fecha
+    assert (s.rows_removiveis, s.rows_alcancadas) == (1, 2)
+    assert s.candidatos_com_alvo_ambiguo == 1
+    assert not s.alvo_enderecavel
+    assert not s.layer_ok
+    texto = "\n".join(fmt_collapse_layer(s))
+    assert "ALVO NÃO ENDEREÇÁVEL" in texto
+    assert "removeria 1 rows a mais" in texto
+    assert "alvo False" in texto
 
 
 def test_render_declara_clausulas_inexercitadas_quando_nada_bloqueia() -> None:
