@@ -234,3 +234,43 @@ def test_sensitive_list_covers_documented_fields():
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+# ───────── ADR-362/363 — revisão do executor em todo record ─────────
+
+
+def _emit_with_formatter(formatter: MathomsJsonFormatter) -> dict:
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(formatter)
+    logger = logging.getLogger("mathoms.test.executor_revision")
+    logger.handlers = [handler]
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    logger.info("evento qualquer")
+    return json.loads(stream.getvalue().strip())
+
+
+def test_executor_revision_entra_em_todo_record() -> None:
+    """Atribuição se faz sobre o ERROR das 3h, não sobre a linha de boot."""
+    record = _emit_with_formatter(MathomsJsonFormatter(executor_revision="aaaaaaaaaaaa"))
+    assert record["executor_revision"] == "aaaaaaaaaaaa"
+
+
+def test_sem_revisao_a_chave_e_omitida_nunca_unknown() -> None:
+    """Ausência é chave ausente — um 3º vocabulário mataria o grep de runs sem proveniência."""
+    record = _emit_with_formatter(MathomsJsonFormatter(executor_revision=None))
+    assert "executor_revision" not in record
+
+
+def test_extra_explicito_vence_o_valor_injetado() -> None:
+    """A linha de boot do worker declara a própria revisão; o formatter não a sobrescreve."""
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(MathomsJsonFormatter(executor_revision="aaaaaaaaaaaa"))
+    logger = logging.getLogger("mathoms.test.executor_revision_extra")
+    logger.handlers = [handler]
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    logger.info("boot", extra={"executor_revision": "bbbbbbbbbbbb"})
+    assert json.loads(stream.getvalue().strip())["executor_revision"] == "bbbbbbbbbbbb"

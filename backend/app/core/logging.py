@@ -51,6 +51,13 @@ __all__ = [
 class MathomsJsonFormatter(JsonFormatter):
     """JSON formatter with ISO 8601 UTC timestamps and correlation context."""
 
+    def __init__(self, *args: Any, executor_revision: str | None = None, **kwargs: Any) -> None:
+        # ADR-362/363 — injetado por CONSTRUTOR, não lido de global: atribuição de
+        # incidente se faz sobre o ERROR das 3h, não sobre a linha de boot, então
+        # a revisão vai em todo record. Ausente ⇒ chave omitida, nunca "unknown".
+        super().__init__(*args, **kwargs)
+        self._executor_revision = executor_revision
+
     def add_fields(
         self,
         log_record: dict[str, Any],
@@ -80,6 +87,8 @@ class MathomsJsonFormatter(JsonFormatter):
         pipeline_run_id = get_pipeline_run_id()
         if pipeline_run_id:
             log_record["pipeline_run_id"] = pipeline_run_id
+        if self._executor_revision and "executor_revision" not in log_record:
+            log_record["executor_revision"] = self._executor_revision
 
         otel_trace_id = getattr(record, "otelTraceID", None)
         if otel_trace_id and otel_trace_id != "0":
@@ -117,6 +126,13 @@ def _resolve_log_format() -> str:
     return os.environ.get("MATHOMS_LOG_FORMAT", "json").lower()
 
 
+def _resolve_executor_revision() -> str | None:
+    """Revisão pinada no launch (ADR-362). Import lazy: `settings` puxa Fernet."""
+    from backend.app.core.config import settings
+
+    return settings.executor_revision
+
+
 def setup_logging() -> None:
     """Configure root logger with JSON (or text) handler on stdout. Idempotent."""
     root = logging.getLogger()
@@ -130,7 +146,7 @@ def setup_logging() -> None:
     if _resolve_log_format() == "text":
         handler.setFormatter(_TextFormatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
     else:
-        handler.setFormatter(MathomsJsonFormatter())
+        handler.setFormatter(MathomsJsonFormatter(executor_revision=_resolve_executor_revision()))
 
     root.addHandler(handler)
     root.setLevel(_resolve_log_level())

@@ -248,3 +248,68 @@ def test_elapsed_minutes_run_inacabado_e_tz_mista() -> None:
     assert elapsed_minutes("nao-e-data", "2026-08-05T10:00:00") is None
     mista = elapsed_minutes("2026-08-05T10:00:00+00:00", "2026-08-05T10:30:00")
     assert mista == 30.0
+
+
+# ───── proveniência: contexto, jamais supressor nem perna de regressão ─────
+
+
+def _prov(rev: str | None, *, mista: bool = False) -> dict:
+    return {"executor_revision": rev, "execucao_mista": mista, "ancestry": "identical"}
+
+
+def _snap_prov(rev: str | None, *, mista: bool = False, **kw) -> dict:
+    snap = _snap(**kw)
+    snap["provenance"] = _prov(rev, mista=mista)
+    return snap
+
+
+def test_revisao_divergente_nao_suprime_nenhuma_regressao() -> None:
+    """Gate do método: o conjunto de FAIL é BYTE-IDÊNTICO com e sem divergência."""
+    # A regressão injetada é de PARECER de propósito: `_parecer_regressions`
+    # devolve [] inteiro sob `tier_downgrade`, então é a única classe que expõe
+    # proveniência virando supressor. Uma regressão de seção determinística NÃO
+    # serve — `tier_downgrade` não a suprime, e o teste passaria mutado.
+    base_p = _parecer(n=10)
+    cur_p = _parecer(n=3)
+    sem, _s1, _n1 = compare_reviews(
+        _snap(parecer=base_p), _snap(parecer=cur_p), _report_data(), _report_data()
+    )
+    assert any("n_secoes" in h for h in sem), "pré-condição: a regressão tem de aparecer"
+
+    b, c = _snap(parecer=base_p), _snap(parecer=cur_p)
+    b["provenance"] = _prov("aaaaaaaaaaaa")
+    c["provenance"] = _prov("bbbbbbbbbbbb")
+    com, _s2, notes = compare_reviews(b, c, _report_data(), _report_data())
+    assert com == sem
+    assert any("revisão do executor mudou" in n for n in notes)
+
+
+def test_divergencia_de_revisao_nao_gera_hard() -> None:
+    hard, _soft, notes = compare_reviews(
+        _snap_prov("aaaaaaaaaaaa"), _snap_prov("bbbbbbbbbbbb"), _report_data(), _report_data()
+    )
+    assert hard == []
+    assert any("dimensão CEGA" in n for n in notes)
+
+
+def test_execucao_mista_aparece_como_nota() -> None:
+    _h, _s, notes = compare_reviews(
+        _snap_prov("aaaaaaaaaaaa"),
+        _snap_prov("aaaaaaaaaaaa", mista=True),
+        _report_data(),
+        _report_data(),
+    )
+    assert any("execução mista" in n for n in notes)
+
+
+def test_baseline_sem_provenance_degrada_para_nota() -> None:
+    """Baseline v1 (pré-F2) não explode; declara que comparou sem proveniência."""
+    hard, _soft, notes = compare_reviews(
+        _snap(), _snap_prov("aaaaaaaaaaaa"), _report_data(), _report_data()
+    )
+    assert hard == []
+    assert any("desconhecida em um dos runs" in n for n in notes)
+
+
+def test_snapshot_omite_provenance_quando_nao_ha() -> None:
+    assert "provenance" not in _snap()
