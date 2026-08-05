@@ -36,6 +36,7 @@ from pipeline.domain.services.baseline_validator import (
     BaselineDiffWarning,
     BaselineValidator,
 )
+from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
 from pipeline.domain.services.e3_load_report import (
     EmptyInstitutionWarning,
     LoadOutcome,
@@ -113,6 +114,7 @@ class E3ReconcilerAdapter:
         temporal_detector: TemporalGapDetector | None = None,
         baseline_validator: BaselineValidator | None = None,
         fatura_cross_checker: FaturaPaymentCrossChecker | None = None,
+        cross_document_collapser: CrossDocumentCollapser | None = None,
     ) -> None:
         self._config = config
         self._service = ReconciliationService(config)
@@ -124,6 +126,7 @@ class E3ReconcilerAdapter:
         self._temporal_detector = temporal_detector
         self._baseline_validator = baseline_validator
         self._fatura_cross_checker = fatura_cross_checker
+        self._cross_document_collapser = cross_document_collapser
 
     # -- Loading --
 
@@ -299,6 +302,15 @@ class E3ReconcilerAdapter:
             self._fatura_cross_checker.check(statements) if self._fatura_cross_checker else ()
         )
         cross_by_key = index_by_key(fatura_cross)
+        # ADR-354 §Emenda — mede pré-agrupamento: a chave de artefato carrega período
+        # e `tipo_conta`, então as duas pernas do mesmo evento nunca se encontram
+        # depois daqui. Measure-only: não remove row (enforce + re-ancoragem são PRs
+        # próprios; remover row órfãna override ancorado no hash dela).
+        collapse_candidates = (
+            self._cross_document_collapser.measure(reconciled)
+            if self._cross_document_collapser
+            else ()
+        )
 
         key_for = output_key_fn or self.output_key
 
@@ -436,4 +448,5 @@ class E3ReconcilerAdapter:
             removals=tuple(removals),
             exclusions=tuple(outcome.exclusions),
             fatura_cross_results=fatura_cross,
+            collapse_candidates=collapse_candidates,
         )

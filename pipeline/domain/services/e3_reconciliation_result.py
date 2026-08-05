@@ -14,6 +14,7 @@ from typing import Any
 
 from pipeline.domain.review_reason import ReviewReason
 from pipeline.domain.services.baseline_validator import BaselineDiffWarning
+from pipeline.domain.services.cross_document_collapser import CollapseCandidate
 from pipeline.domain.services.e3_load_report import (
     EmptyInstitutionWarning,
     StatementExclusion,
@@ -63,6 +64,8 @@ class ReconciliationStoreResult:
     # ADR-347 PR2 — statements excluídos no load (tx count por canal), ledger run-level.
     exclusions: tuple[StatementExclusion, ...] = ()
     fatura_cross_results: tuple[FaturaCrossResult, ...] = ()  # ADR-350 PR1 measure-only
+    # ADR-354 §Emenda PR1 measure-only — candidatos a colapso cross-documento.
+    collapse_candidates: tuple[CollapseCandidate, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         """Forma plana — útil para asserts em testes e logs estruturados."""
@@ -82,6 +85,7 @@ class ReconciliationStoreResult:
             "review_reasons": [r.to_dict() for r in self.review_reasons],
             "exclusions": [{"canal": e.canal, "count": e.count} for e in self.exclusions],
             "fatura_cross_results": [r.to_trace_dict() for r in self.fatura_cross_results],
+            "collapse_candidates": [c.to_trace_dict() for c in self.collapse_candidates],
         }
 
     # Acesso dict-like para retro-compat com os testes existentes que fazem
