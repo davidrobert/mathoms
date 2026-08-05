@@ -451,9 +451,10 @@ confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
 
 ## Pendências de decisão (2026-08-03)
 
-Doze perguntas de **higiene interna desta sprint** — **5 resolvidas** (nº 1, nº 7,
-nº 9 e, em parte, nº 11 em 2026-08-03; nº 10 em 2026-08-04 pela [[A42]]),
-**7 abertas**. Deliberadamente **não** entram
+Doze perguntas de **higiene interna desta sprint** — **12 resolvidas** (nº 1, nº 7,
+nº 9 em 2026-08-03; nº 10 em 2026-08-04 pela [[A42]]; nº 6 e nº 11 em 2026-08-05
+pelo #1197; nº 2, 3, 4, 5, 8 e 12 em 2026-08-05 por decisão do dono, delegada e
+aplicada nesta passada), **0 abertas**. Deliberadamente **não** entram
 em [[OWNER-GATED]]: aquele registro é de gates estratégicos entre planos
 (licença, flip de cutover, LGPD), e misturar higiene de sprint diluiria o sinal
 dele. Cada item traz o que foi **medido** sobre `origin/main` (`a1e70223`) e
