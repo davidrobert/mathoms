@@ -267,8 +267,23 @@ class _KeyGroup:
 
     @property
     def survivor_cardinality(self) -> int:
-        """Multiset: o evento ocorreu tantas vezes quanto a perna que mais o viu."""
-        return max(len(group) for group in self.by_provenance.values())
+        """Eventos distintos = máximo de rows num MESMO arquivo ([[ADR-354]] §Emenda 2)."""
+        # A unidade de contagem é (proveniência, source_document), não a perna: "um
+        # arquivo reportou 2×" = 2 eventos (repetição legítima); "dois arquivos
+        # reportaram 1× cada" = 1 evento visto por documentos sobrepostos. Medido
+        # 2026-08-05: source_document difere em 262/262 das legs com ≥2 rows e 0/262
+        # têm evidência de 2 eventos — o `max` por perna sobre rows cruas importava a
+        # duplicação intra-proveniência e preservava o par nativo+LLM em 42 chaves.
+        per_file: dict[tuple, int] = {}
+        for prov, rows in self.by_provenance.items():
+            for stmt, _tx in rows:
+                k = (prov, stmt.source_document or "")
+                per_file[k] = per_file.get(k, 0) + 1
+        return max(per_file.values())
+
+    @property
+    def native_rows(self) -> list[_Row]:
+        return [row for row in self.rows if row[0].extraction_method == _NATIVE]
 
     @property
     def llm_rows(self) -> list[_Row]:
@@ -309,26 +324,28 @@ class CrossDocumentCollapser:
         candidates = [self._candidate(group) for group in _group_by_key(statements)]
         return tuple(sorted(candidates, key=lambda c: c.key_digest))
 
-    def _targets(self, group: _KeyGroup, removable: int) -> tuple[RemovalTarget, ...]:
-        """Alvo por BUCKET com multiplicidade — nunca uma row por hash (ver RemovalTarget)."""
-        if not removable:
-            return ()
-        # `llm_rows` é um único bucket de proveniência (o predicado exige exatamente
-        # 1 perna nativa + 1 LLM), logo há no máximo um alvo. `min` impede declarar
-        # remoção maior que o bucket, que a fatia antiga silenciava.
-        stmt, tx = group.llm_rows[0]
-        return (
-            RemovalTarget(
-                hash=_row_hash(tx, stmt),
-                remover=min(removable, len(group.llm_rows)),
-                no_bucket=len(group.llm_rows),
-            ),
+    def _targets(self, group: _KeyGroup, card: int) -> tuple[RemovalTarget, ...]:
+        """Um alvo por BUCKET de proveniência, sobrevivente **native-first**."""
+        # Sobrevivem `card` rows, preenchidas primeiro pela perna nativa (invariante
+        # de domínio: o kind do sobrevivente nunca vem da perna LLM — eleger a LLM
+        # converteria receita em transferência nas 6 chaves com kind assimétrico).
+        # Sob a cardinalidade por arquivo, bucket NATIVO também perde row (2 nativas
+        # de arquivos sobrepostos, card=1); a versão anterior só emitia alvo LLM.
+        keep_native = min(len(group.native_rows), card)
+        keep_llm = card - keep_native
+        planned = (
+            (group.native_rows, len(group.native_rows) - keep_native),
+            (group.llm_rows, len(group.llm_rows) - keep_llm),
+        )
+        return tuple(
+            RemovalTarget(hash=_row_hash(rows[0][1], rows[0][0]), remover=n, no_bucket=len(rows))
+            for rows, n in planned
+            if n > 0
         )
 
     def _candidate(self, group: _KeyGroup) -> CollapseCandidate:
         reason = self._blocked_reason(group)
-        removable = 0 if reason else len(group.rows) - group.survivor_cardinality
-        targets = self._targets(group, removable)
+        targets = () if reason else self._targets(group, group.survivor_cardinality)
         return CollapseCandidate(
             key_digest=_key_digest(group.key),
             mes=str(group.key[0])[:7],
