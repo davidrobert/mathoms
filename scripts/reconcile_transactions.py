@@ -1007,8 +1007,12 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     return filename
 
 
-def _e3_build_adapter(ctx):
+def _e3_build_adapter(ctx, *, cross_document_collapser=None):
     """Carrega configs + monta E3ReconcilerAdapter com domain services tipados."""
+    # ADR-354 §Emenda: `cross_document_collapser` fica None em produção (o stage não
+    # gasta CPU medindo o que ninguém lê). Quem injeta é dev/certify_ledger_local.py,
+    # e assim a medição roda DENTRO de reconcile_via_store — sem instrumento paralelo
+    # que possa divergir do caminho real.
     from pipeline.domain.models.bank import BankCanonicalizer
     from pipeline.domain.services.account_grouper import (
         AccountGrouper,
@@ -1059,6 +1063,7 @@ def _e3_build_adapter(ctx):
         temporal_detector=temporal_detector,
         baseline_validator=baseline_validator,
         fatura_cross_checker=FaturaPaymentCrossChecker(),
+        cross_document_collapser=cross_document_collapser,
     )
     return adapter, canon
 
