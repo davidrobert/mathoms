@@ -265,13 +265,21 @@ def _snap_prov(rev: str | None, *, mista: bool = False, **kw) -> dict:
 
 def test_revisao_divergente_nao_suprime_nenhuma_regressao() -> None:
     """Gate do método: o conjunto de FAIL é BYTE-IDÊNTICO com e sem divergência."""
-    # Mutação que mata: transformar proveniência em supressor ou em perna hard.
-    rd = copy.deepcopy(_report_data())
-    rd["patrimonio"] = {}  # regressão real injetada
-    sem, _s1, _n1 = compare_reviews(_snap(), _snap(report_data=rd), _report_data(), rd)
-    com, _s2, notes = compare_reviews(
-        _snap_prov("aaaaaaaaaaaa"), _snap_prov("bbbbbbbbbbbb", report_data=rd), _report_data(), rd
+    # A regressão injetada é de PARECER de propósito: `_parecer_regressions`
+    # devolve [] inteiro sob `tier_downgrade`, então é a única classe que expõe
+    # proveniência virando supressor. Uma regressão de seção determinística NÃO
+    # serve — `tier_downgrade` não a suprime, e o teste passaria mutado.
+    base_p = _parecer(n=10)
+    cur_p = _parecer(n=3)
+    sem, _s1, _n1 = compare_reviews(
+        _snap(parecer=base_p), _snap(parecer=cur_p), _report_data(), _report_data()
     )
+    assert any("n_secoes" in h for h in sem), "pré-condição: a regressão tem de aparecer"
+
+    b, c = _snap(parecer=base_p), _snap(parecer=cur_p)
+    b["provenance"] = _prov("aaaaaaaaaaaa")
+    c["provenance"] = _prov("bbbbbbbbbbbb")
+    com, _s2, notes = compare_reviews(b, c, _report_data(), _report_data())
     assert com == sem
     assert any("revisão do executor mudou" in n for n in notes)
 
