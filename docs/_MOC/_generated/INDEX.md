@@ -850,6 +850,7 @@
 | A40.l3 | lane | shipped | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l30 | lane | open | A40 | Ancorabilidade do exec context: o invariante que o #1004 furou sem nenhum teste vermelho | `sprint/A40/lanes/A40-l30-ancorabilidade-do-exec-context.md` |
 | A40.l31 | lane | planned | A40 | Gerador ancora em vez de digitar: correção guiada pelo mecanismo, com o eval como gate de saída | `sprint/A40/lanes/A40-l31-gerador-ancora-em-vez-de-digitar.md` |
+| A40.l32 | lane | open | A40 | Proveniência do executor: qual código computou este run | `sprint/A40/lanes/A40-l32-proveniencia-do-executor-do-run.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | planned | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
@@ -863,7 +864,6 @@
 | A42.l10 | lane | planned | A42 | Misclassificação na classificação amplifica o carrier de duplicação | `sprint/A42/lanes/A42-l10-misclassificacao-amplifica-carrier.md` |
 | A42.l11 | lane | planned | A42 | Enforce do checksum cross-source: fatura contra o débito de pagamento no extrato | `sprint/A42/lanes/A42-l11-enforce-cross-source-fatura-pagamento.md` |
 | A42.l12 | lane | planned | A42 | Estado de extração do documento: predicado único e lista de stages derivada do registry | `sprint/A42/lanes/A42-l12-predicado-unico-de-extracao.md` |
-| A42.l13 | lane | planned | A42 | Proveniência do executor: qual código computou este run | `sprint/A42/lanes/A42-l13-proveniencia-do-executor-do-run.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |

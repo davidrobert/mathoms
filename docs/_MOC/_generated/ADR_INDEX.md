@@ -344,7 +344,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### Proposto (1)
 
-- [[ADR-363]] — Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem · phase A42
+- [[ADR-363]] — Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem · phase A40
 
 ## data-lineage
 
@@ -599,7 +599,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-353]] — Confiança do diagnóstico comportamental condicionada à cobertura de categorização · phase pipeline-review r2 (RV2-21)
 - [[ADR-354]] — Identidade de transação (K4) exclui atributos de proveniência do documento · phase report-review r3 (RV3-01) · A40.l2
 - [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40
-- [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A42
+- [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 
 ### Roadmap (1)
 

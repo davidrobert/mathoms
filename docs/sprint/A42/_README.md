@@ -110,14 +110,13 @@ sobre o mesmo corpus, prova o fechamento**:
 
 Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 
-## Lanes (13)
+## Lanes (12)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
 | [[A42.l1]] | Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo | **P0** | 0 | — |
 | [[A42.l3]] | Harness de certificação: falso-verde para dentro | P1 | 1 | — |
 | [[A42.l4]] | Check que não consegue avaliar evapora em vez de virar `skipped` | P2 | 1 | — |
-| [[A42.l13]] | Proveniência do executor: qual código computou este run | P1 | 1 | — |
 | [[A42.l2]] | Parsers line-oriented: âncora de fidelidade + supressão vira verdict do gate | P1 | 1 | [[A42.l3]] |
 | [[A42.l6]] | Contrato do store: política de escopo, retenção de órfão e validação de artefato | P1 | 2 | [[A42.l5]] |
 | [[A42.l7]] | Registro de custo de LLM é fonte de verdade que perde row e vaza filename | P1 | 2 | [[A40.l19]] |
@@ -128,12 +127,12 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 | [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | [[A40.l2]] |
 | [[A42.l12]] | Estado de extração do documento: predicado único e stages derivados do registry | P2 | 3 | [[A42.l2]] |
 
-Capacidade decidida: teto de 14 lanes. **Fechou em 13** — 11 na abertura, mais a l12
+Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
-com bloqueio e reversibilidade distintos), mais a **l13** admitida em 2026-08-05 pela
-cláusula 3 (instrumento de certificação), a pedido do dono. O slot restante não foi
-preenchido de propósito: padding para bater um número é a forma mais barata de Goodhart
-num plano.
+com bloqueio e reversibilidade distintos). Uma 13ª (proveniência do executor) foi
+admitida e **promovida para a [[A40]] no mesmo dia** — ver §Lanes promovidas. Os slots
+restantes não foram preenchidos de propósito: padding para bater um número é a forma
+mais barata de Goodhart num plano.
 
 **Ordem dentro da tabela reflete pickup, não numeração.** A l3 vem antes da l2 porque a
 l2 consome o ratchet que a l3 entrega; a l5 vem antes da l6 pela mesma razão. Nenhuma
@@ -311,10 +310,19 @@ em ordem de precedência:
 gate — que declara que algo **para** até isso existir. "É importante e urgente" não
 qualifica.
 
+## Lanes promovidas para fora desta sprint
+
+| Lane | Destino | Quando | Por quê |
+|---|---|---|---|
+| Proveniência do executor (nasceu `A42.l13`) | **[[A40.l32]]** | 2026-08-05 | Decisão do dono, pela porta de nível-lane do §Gatilho de promoção. Instrumento sem custo de API, sem dependência das ondas da A42, e o gate da A42 (`A40 → done`) travaria por ~2 semanas trabalho que o dono pediu para destravar |
+
+**A l13 não foi reciclada.** O id fica queimado: renumerar lane viva por economia de
+número é o que produz resíduo em prosa. Próxima lane desta sprint é a l14.
+
 ## Gatilho de promoção a `current`
 
 Evento, não calendário: **[[A40]] → `done`**. Enquanto a A40 é `current`, duas
-sprints `current` são hard fail em `build_doc_index.py --check`, e as **13** lanes
+sprints `current` são hard fail em `build_doc_index.py --check`, e as **12** lanes
 nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]].
 
 **Dois níveis, decisão do dono 2026-08-05.** A pergunta "faz sentido fundir a A42
@@ -323,7 +331,7 @@ motivo mecânico registrado lá). O que a fusão comprava de legítimo era uma c
 tirar lane individual da fila quando ela passa a importar antes do fechamento da A40 —
 e para isso já existe porta, com precedente executado:
 
-- **Nível sprint:** [[A40]] → `done` (inalterado). Promove as 13 de uma vez.
+- **Nível sprint:** [[A40]] → `done` (inalterado). Promove as 12 de uma vez.
 - **Nível lane:** **promoção individual para a sprint corrente por *consumidor
   datado***, reparentando a lane (`sprint: A40` + `git mv`). Precedente exato:
   [[A40.l24]], que nasceu `A41.l1` e foi promovida assim por decisão do dono em

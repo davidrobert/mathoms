@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-11 open · 1 in_progress.
+12 open · 1 in_progress.
 
-## Open (11)
+## Open (12)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l19]] — Drift de enum de status: 4 valores existem em Python e não no tipo do DB · priority P1 · branch `a40-l19-migration-drift-enum-status`
@@ -20,6 +20,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l28]] — Idade-meta do cone é output do modelo, não pergunta da família — e o rótulo do percentil aponta para dois lados · priority P1 · branch `a40-l28-idade-meta-e-rotulo-do-cone`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l30]] — Ancorabilidade do exec context: o invariante que o #1004 furou sem nenhum teste vermelho · priority P1 · branch `a40-l30-ancorabilidade-do-exec-context`
+- [[A40.l32]] — Proveniência do executor: qual código computou este run · priority P1 · branch `a40-l32-proveniencia-do-executor-do-run`
 
 ## In progress (1)
 

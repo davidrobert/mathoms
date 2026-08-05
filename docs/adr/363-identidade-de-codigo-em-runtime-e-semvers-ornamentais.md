@@ -3,7 +3,7 @@ id: ADR-363
 type: adr
 title: "Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem"
 status: Proposto
-phase: "A42"
+phase: "A40"
 date: "2026-08-05"
 relates_to:
   - "[[ADR-362]]"
@@ -18,7 +18,7 @@ tags:
   - status/proposto
   - area/ci
   - area/infra
-  - phase/a42
+  - phase/a40
 ---
 
 # ADR-363 — Identidade de código é fato de runtime, não conteúdo da imagem
