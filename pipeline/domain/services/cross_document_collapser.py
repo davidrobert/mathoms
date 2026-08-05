@@ -1,18 +1,26 @@
 """Colapsador cross-documento por transação ([[ADR-354]] §Emenda) — measure-only.
 
 Duas pernas legítimas da mesma conta — uma parseada nativamente, outra escalada ao
-LLM porque o parser nativo emitiu stub — com período sobreposto entregam o mesmo
-evento 2× ao razão. É **sum-preserving**, então atravessa toda conservação por grupo
-(105/105 em tol-zero) e infla o fluxo 1:1 no E5.
+LLM porque o parser nativo emitiu stub — entregam o mesmo evento 2× ao razão. É
+**sum-preserving**, então atravessa toda conservação por grupo (105/105 em tol-zero)
+e infla o fluxo 1:1 no E5.
 
 Este service identifica os candidatos **antes** do agrupamento de artefato do E3, no
 grão transação. **Não remove** (measure-only, padrão [[ADR-347]]/[[ADR-350]] PR1): o
 enforce e a re-ancoragem de override são PRs próprios, porque remover row órfãna
 override ancorado no ``transaction_hash`` dela.
 
-O predicado é **estritamente mais forte** que a chave do detector da [[A40.l1]]: um
-detector pode sobre-detectar rotulado ([[ADR-342]]), um mutador que sobre-colapsa
-apaga dado legítimo. Cada cláusula fecha uma classe medida — ver [[ADR-354]] §Emenda.
+O predicado é **mais forte** que a chave do detector da [[A40.l1]] — um detector pode
+sobre-detectar rotulado ([[ADR-342]]), um mutador que sobre-colapsa apaga dado
+legítimo. Medido em 2026-08-05, porém, a força vem só de ``banco`` e da allow-list de
+``tipo_conta``: ``titular`` é satisfeito por vacuidade em 331/331 (perna LLM sem
+titular) e ``account_number_norm`` está vazio em 117/117 statements.
+
+**Duas premissas que este módulo NÃO verifica**, contra a leitura intuitiva:
+sobreposição de período (o metadado declarado é lixo na perna LLM — 85,2% das rows
+caem fora do próprio período — então não sustenta cláusula) e distinção entre "1
+evento visto 2×" e "2 eventos vistos 1× cada" dentro de uma proveniência (os campos
+que distinguiriam não estão na chave nem no hash). Ver [[ADR-354]] §Emenda.
 Puro, sem I/O.
 """
 
@@ -97,6 +105,29 @@ def _identity_collision(group: frozenset[str], suffixes: frozenset[str]) -> str 
 
 
 @dataclass(frozen=True)
+class RemovalTarget:
+    """Alvo de remoção com **multiplicidade** — hash NÃO endereça row."""
+
+    # As 8 partes de `_hash_v2` são a união da 5-tupla da chave de colapso com a tripla
+    # de proveniência, então TODAS as rows de um bucket compartilham o mesmo hash por
+    # construção. Emitir lista de hashes fazia 1 hash endereçar N rows: medido em
+    # 2026-08-05, alvo declarando 411 rows resolvia 453 — e o excesso eram exatamente
+    # os sobreviventes eleitos pela cardinalidade multiset.
+
+    hash: str
+    remover: int
+    no_bucket: int
+
+    @property
+    def hash_desaparece(self) -> bool:
+        """``True`` ⇒ nenhuma row com esse hash sobra: override ancorado nele órfãna."""
+        return self.remover >= self.no_bucket
+
+    def to_trace_dict(self) -> dict:
+        return {"hash": self.hash, "remover": self.remover, "no_bucket": self.no_bucket}
+
+
+@dataclass(frozen=True)
 class CollapseCandidate:
     """Ocorrência cross-proveniência, PII-safe (digest + cents + códigos, nunca texto)."""
 
@@ -109,7 +140,7 @@ class CollapseCandidate:
     n_provenances: int
     survivor_cardinality: int
     removable_rows: int
-    removable_hashes: tuple[str, ...]
+    removal_targets: tuple[RemovalTarget, ...]
     blocked_reason: str | None
     # Tags em NOMES de campo (nunca valores — PII), na mesma forma que o detector da
     # [[A40.l1]] emite: permitem afirmar a equivalência "colapsável ⇒ carrier-shaped"
@@ -120,6 +151,16 @@ class CollapseCandidate:
     @property
     def collapsible(self) -> bool:
         return self.blocked_reason is None and self.removable_rows > 0
+
+    @property
+    def rows_alcancadas_por_hash(self) -> int:
+        """Rows que um consumidor que apaga por CONJUNTO de hash atingiria."""
+        return sum(t.no_bucket for t in self.removal_targets)
+
+    @property
+    def alvo_ambiguo(self) -> bool:
+        """Alvo pede remoção PARCIAL de um bucket — apagar por hash removeria a mais."""
+        return self.rows_alcancadas_por_hash != self.removable_rows
 
     def to_trace_dict(self) -> dict:
         return {
@@ -132,6 +173,8 @@ class CollapseCandidate:
             "n_provenances": self.n_provenances,
             "survivor_cardinality": self.survivor_cardinality,
             "removable_rows": self.removable_rows,
+            "removal_targets": [t.to_trace_dict() for t in self.removal_targets],
+            "alvo_ambiguo": self.alvo_ambiguo,
             "blocked_reason": self.blocked_reason,
             "divergence": self.divergence,
             "parciais": self.parciais,
@@ -266,9 +309,26 @@ class CrossDocumentCollapser:
         candidates = [self._candidate(group) for group in _group_by_key(statements)]
         return tuple(sorted(candidates, key=lambda c: c.key_digest))
 
+    def _targets(self, group: _KeyGroup, removable: int) -> tuple[RemovalTarget, ...]:
+        """Alvo por BUCKET com multiplicidade — nunca uma row por hash (ver RemovalTarget)."""
+        if not removable:
+            return ()
+        # `llm_rows` é um único bucket de proveniência (o predicado exige exatamente
+        # 1 perna nativa + 1 LLM), logo há no máximo um alvo. `min` impede declarar
+        # remoção maior que o bucket, que a fatia antiga silenciava.
+        stmt, tx = group.llm_rows[0]
+        return (
+            RemovalTarget(
+                hash=_row_hash(tx, stmt),
+                remover=min(removable, len(group.llm_rows)),
+                no_bucket=len(group.llm_rows),
+            ),
+        )
+
     def _candidate(self, group: _KeyGroup) -> CollapseCandidate:
         reason = self._blocked_reason(group)
         removable = 0 if reason else len(group.rows) - group.survivor_cardinality
+        targets = self._targets(group, removable)
         return CollapseCandidate(
             key_digest=_key_digest(group.key),
             mes=str(group.key[0])[:7],
@@ -278,8 +338,8 @@ class CrossDocumentCollapser:
             n_rows=len(group.rows),
             n_provenances=len(group.by_provenance),
             survivor_cardinality=group.survivor_cardinality,
-            removable_rows=removable,
-            removable_hashes=tuple(_row_hash(tx, stmt) for stmt, tx in group.llm_rows[:removable]),
+            removable_rows=sum(t.remover for t in targets),
+            removal_targets=targets,
             blocked_reason=reason,
             divergence=group.divergence,
             parciais=group.parciais,
