@@ -319,8 +319,28 @@ construção. Por isso o aceite exige eixos que **não derivam da mesma chave**.
 
 - **Pré-condição 1 do PR3, bloqueante: alvo endereçável.** `alvo_enderecavel` do
   instrumento (rows que o alvo resolve == rows declaradas) tem de ser **verdadeiro**.
-  Hoje é **falso**: 411 declaradas, 453 resolvidas, 42 candidatos ambíguos. Enquanto
-  for falso, nenhum enforce pode ligar — removeria os sobreviventes.
+  Medido a partir de `main` **após** o #1208 (`3e0e3eb7`, 2026-08-05): **continua
+  falso** — 411 declaradas, 453 resolvidas, 42 ambíguos. O #1208 tornou a ambiguidade
+  **visível e declarada**; **não a resolveu**. O PR3 precisa de **identidade de row**
+  (hash+ordinal no bucket, ou hash+statement), não só de multiplicidade.
+  **A forma é única e diz mais que a contagem:**
+
+  | forma | ocorrências | `remover` | `no_bucket` | ambíguo |
+  |---|---|---|---|---|
+  | 1 nativa + 2 LLM (`n_rows=3, card=2`) | **42** | 1 | 2 | **sim** |
+  | 1 nativa + 1 LLM (`n_rows=2, card=1`) | 149 | 1 | 1 | não |
+  | 2 nativas + 2 LLM (`n_rows=4, card=2`) | 80 | 2 | 2 | não |
+  | 2 nativas + 1 LLM (`n_rows=3, card=2`) | 60 | 1 | 1 | não |
+
+  `149+80+60+42 = 331`; `hash_desaparece=False` nos 42 (sobra 1 das 2).
+
+  🔴 **Achado que aperta a decisão de cardinalidade.** Nos 42, a perna LLM viu o evento
+  2× e a nativa 1×, então `card = max(1,2) = 2` e sobrevivem **1 nativa + 1 LLM** —
+  exatamente o par duplicado **cross-documento** que esta lane existe para remover. Para
+  essas 42 chaves o `411` não é "o lado conservador do trade-off": ele **preserva o
+  defeito-alvo**. É a inversão da C4 (§Medição, leitura 4) aparecendo no **alvo**, não
+  só na contagem — e é evidência direta a favor de recalcular `survivor_cardinality`
+  sobre eventos distintos em vez de rows cruas.
 - **Pré-condição 2 do PR3, bloqueante: paridade de camada.** O enforce não mergeia
   enquanto o número de E3 não tiver instrumento contado e ratcheteado — **113 das 411
   rows (27,5%)** não existem como `transaction_hash` em balde algum. Sem isso o gate
