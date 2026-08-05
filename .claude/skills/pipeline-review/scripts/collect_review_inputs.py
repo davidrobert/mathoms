@@ -27,7 +27,13 @@ from backend.app.core.database import async_session
 from backend.app.services.security.crypto import read_artifact_content
 from dev.build_info import ancestry, commits_ahead_of
 from dev.compare_reviews import build_snapshot, elapsed_minutes
-from dev.run_scope import mixed_execution, revisions_in, scope_sentence
+from dev.run_scope import (
+    mixed_execution,
+    partial_attribution,
+    revisions_in,
+    scope_sentence,
+    unknown_revision_count,
+)
 from scripts.validate_cross import run_cross_validation
 
 
@@ -123,8 +129,9 @@ async def _fetch_stage_logs(db, run_id: str) -> list[dict]:
 
 
 _UNKNOWN_EXECUTOR = (
-    "- executor: **desconhecido** — nenhum stage declarou revisão "
-    "(processo subiu sem MATHOMS_BUILD_SHA)"
+    "- executor: **desconhecido** — nenhum stage declarou revisão. Causa provável: "
+    "run anterior a 2026-08-05 (a coluna não existia e não há backfill, por decisão "
+    "da ADR-362), ou processo subiu sem `MATHOMS_BUILD_SHA`."
 )
 _MIXED_EXECUTION = (
     "- ⚠️ **execução mista**: o run atravessou mais de uma revisão — "
@@ -162,6 +169,11 @@ def _provenance_lines(run: dict, stage_rows: list[dict]) -> list[str]:
     lines = [_executor_line(revs), f"- {escopo}", _ancestry_line(revs)]
     if mixed_execution(stage_rows):
         lines.append(_MIXED_EXECUTION)
+    if partial_attribution(stage_rows):
+        lines.append(
+            f"- ⚠️ **atribuição parcial**: {unknown_revision_count(stage_rows)} stage(s) "
+            "sem revisão declarada — a revisão acima não cobre o run inteiro"
+        )
     return lines + [_NO_REPRODUCIBILITY]
 
 
@@ -172,6 +184,7 @@ def _provenance_context(run: dict, stage_rows: list[dict]) -> dict:
         "executor_revision": revs[0] if len(revs) == 1 else None,
         "executor_revisions": revs,
         "execucao_mista": mixed_execution(stage_rows),
+        "atribuicao_parcial": partial_attribution(stage_rows),
         "ancestry": ancestry(revs[0] if revs else None),
         "commits_ahead": commits_ahead_of(revs[0]) if revs else None,
         "escopo": {

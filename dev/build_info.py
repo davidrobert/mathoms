@@ -98,11 +98,14 @@ def ancestry(revision: str | None, head: str | None = None) -> str:
     if not revision:
         return "desconhecido"
     base = revision.split(_DIRTY_SUFFIX)[0]
+    dirty = _DIRTY_SUFFIX in revision
     head = head or _git("rev-parse", "HEAD")
     if not head:
         return "desconhecido"
     if head.startswith(base) or base.startswith(head[: len(base)]):
-        return "identical"
+        # `identical-dirty` existe porque com árvore suja o sha não identifica o
+        # código: dizer `identical` devolveria a garantia que o sufixo tira.
+        return "identical-dirty" if dirty else "identical"
     counts = _divergence_counts(base, head)
     if counts is None:
         return "unreachable"
@@ -143,15 +146,36 @@ def boot_revision_from_log(text: str) -> str | None:
     return found
 
 
+_UNKNOWN_REVISION_LITERAL = "desconhecido"
+
+
+def _inconclusive_warning(live: str, head: str) -> str:
+    return (
+        f"AVISO: comparação INCONCLUSIVA — worker `{live}` vs HEAD `{head}`, "
+        "com árvore suja. Código não commitado não é identificado pelo sha; "
+        "o worker pode estar rodando outra coisa. Reinicie para garantir."
+    )
+
+
+_NO_REVISION_ANNOUNCED = (
+    "AVISO: nenhum processo anunciou revisão no log — não é possível saber qual "
+    "código vai executar este run. Suba o worker via `make dev-worker-up` para "
+    "pinar a revisão."
+)
+
+
 def preflight_warning(live: str | None, head: str | None) -> str | None:
     """Aviso quando o processo vivo não roda a revisão do HEAD atual."""
-    if live is None:
-        return (
-            "AVISO: nenhum processo anunciou revisão no log — não é possível "
-            "saber qual código vai executar este run. Suba o worker via "
-            "`make dev-worker-up` para pinar a revisão."
-        )
-    if head is None or live == head:
+    if live is None or live == _UNKNOWN_REVISION_LITERAL:
+        return _NO_REVISION_ANNOUNCED
+    if head is None:
+        return None
+    # Árvore suja ⇒ o sha NÃO identifica o código, então igualdade não prova nada:
+    # é o laço dominante do dogfood ("corrijo → reinicio → rodo → ajusto → rodo
+    # sem reiniciar"), e silenciar aqui é o falso-verde mais fácil de cometer.
+    if _DIRTY_SUFFIX in live or _DIRTY_SUFFIX in head:
+        return _inconclusive_warning(live, head)
+    if live == head:
         return None
     return (
         f"AVISO: o worker vivo roda `{live}` e o HEAD é `{head}`. O run vai "
@@ -166,7 +190,8 @@ def _cmd_preflight(log_path: Path) -> int:
     if warning:
         print(warning, file=sys.stderr)
         return 0
-    print("preflight: worker vivo na revisão do HEAD")
+    # Imprime a revisão: linha verde sem valor esconde `-dirty` e outras surpresas.
+    print(f"preflight: worker vivo em `{boot_revision_from_log(text)}` == HEAD")
     return 0
 
 

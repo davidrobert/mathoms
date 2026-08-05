@@ -5,7 +5,7 @@ title: "Revisão do executor é proveniência de processo observada, não garant
 status: Proposto
 phase: "A40"
 date: "2026-08-05"
-amended_at: ["2026-08-05"]
+amended_at: ["2026-08-05", "2026-08-06"]
 relates_to:
   - "[[ADR-343]]"
   - "[[ADR-311]]"
@@ -144,9 +144,13 @@ processo. A exceção (b) ("singleton lazy idempotente") é **inaplicável**: el
 exige que cada worker descubra o **mesmo** resultado, e a propriedade que
 torna este campo útil é justamente **diferir** entre a API e um worker stale.
 
-O `git` vive em `dev/build_info.py`, que também avisa no launch quando
+O `git` vive em `dev/build_info.py`. ~~Ele também avisa no launch quando
 `pipeline.__file__` e `backend.app.__file__` resolvem para raízes git
-diferentes — o caso `PYTHONPATH`-de-worktree que já invalidou um run.
+diferentes — o caso `PYTHONPATH`-de-worktree que já invalidou um run.~~
+**Retirado pela emenda de 2026-08-06:** `--check-roots` é morto por
+construção (o `sys.path.insert` do próprio script iguala as raízes) e não
+tinha chamador. O mecanismo real é o preflight — ver [[ADR-363]] §Emenda
+2026-08-06.
 
 ## Proibições
 
@@ -219,3 +223,28 @@ dogfood**. Não há segunda justificativa de escopo. A consequência prática es
 sustenta P1 é o custo local medido — o worker stale invalidou uma rodada inteira
 de review (74 achados). Um PM pode legitimamente argumentar P2; a lane declara a
 base honesta em vez de herdar a prioridade.
+
+## Emenda 2026-08-06 — falso-verde do preflight e testes que não mordiam
+
+Auditoria adversarial sobre o código entregue. Duas correções de **decisão**,
+não de prosa:
+
+1. **Árvore suja não pode virar verde.** `preflight_warning` decidia por
+   igualdade de string, e `X-dirty == X-dirty` devolvia silêncio — no laço
+   dominante do dogfood ("corrijo → reinicio → rodo → ajusto → rodo sem
+   reiniciar"). Passa a existir veredito **inconclusivo**: com árvore suja de
+   qualquer lado, a igualdade não prova nada porque o sha não identifica o
+   código. Pela mesma razão, `ancestry` ganha o 7º estado `identical-dirty`.
+2. **`skipped` não é `computado`.** A frase de escopo somava os dois e um run
+   0-LLM anunciava "18 stage(s) computado(s)" com 8 inertes. Passa a contar em
+   duas linhas, o que é a mesma disciplina anti-Goodhart que a A42 aplica aos
+   próprios KRs.
+3. **Cobertura parcial não colapsa.** NULL + valor no mesmo run reportava a
+   revisão conhecida como se cobrisse o run inteiro. Agora há
+   `atribuicao_parcial` em destaque, e o escalar do snapshot fica `None`.
+
+E quatro testes entregues **não mordiam** — provado por mutação: o gate
+anti-fabricação (comparava com `_ROOT` rodando *de* `_ROOT`), o de árvore suja
+(asseria contra o ambiente, verde em CI por construção), a injeção da revisão
+no handler do root, e a precedência `herdado > incremental`. Todos reescritos
+com a mutação que os mata anotada.

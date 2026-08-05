@@ -5,7 +5,7 @@ title: "Identidade de código é fato de runtime injetado no deploy, não conte�
 status: Proposto
 phase: "A40"
 date: "2026-08-05"
-amended_at: ["2026-08-05"]
+amended_at: ["2026-08-05", "2026-08-06"]
 relates_to:
   - "[[ADR-362]]"
   - "[[ADR-249]]"
@@ -153,7 +153,7 @@ desenvolvimento. Não há produção, staging, nem registry. `docker-compose.pro
 |---|---|
 | `MATHOMS_BUILD_SHA` é variável de **runtime** | **Confirmada, e agora trivialmente** — sem imagem publicada, não há outro lugar de onde tirar |
 | **Zero diff no Dockerfile** | **Confirmada e reforçada** — não há build de imagem em CI para receber `--build-arg` |
-| Fonte única real | **`dev/build_info.py --export` invocado pelos targets nativos do Makefile** (`dev-api-up`, `dev-worker-up`, `dev-ops-api-up`, `pipeline-run`) + `${{ github.sha }}` no CI. Estes são os **dois** ambientes que existem |
+| Fonte única real | **`dev/build_info.py` (sem flag) resolvido uma vez por invocação do `make` (`BUILD_SHA :=`) e pinado no env de cada processo LANÇADO** — api, ops-api e os 5 launches de worker — mais `${{ github.sha }}` no CI. Estes são os **dois** ambientes que existem. **`pipeline-run` NÃO é fonte:** aquele processo só faz `apply_async` e sai; quem escreve a coluna é o worker, com a revisão do *seu* launch |
 | `/health` ganha campo novo em vez de trocar `version` | **Confirmada, urgência rebaixada** — ver abaixo |
 | 4 semvers ornamentais + `report_version` morto | Inalterada |
 
@@ -196,3 +196,25 @@ que compara a revisão do **processo vivo** com o HEAD antes de disparar o run �
 peça de maior valor da lane, porque o incidente que ela impede (worker stale
 servindo código velho, que invalidou uma rodada de 74 achados) é **local** e já
 aconteceu. E o preflight **não depende de migration nenhuma**.
+
+## Emenda 2026-08-06 — correções apontadas por auditoria adversarial
+
+Auditoria de 53 agentes sobre o código entregue (32 achados confirmados de 48
+julgados). O que esta ADR afirmava errado:
+
+- **`--export` nunca existiu.** A tabela da emenda anterior citava
+  `dev/build_info.py --export`; o script resolve a revisão sem flag. Corrigido
+  na própria tabela.
+- **`pipeline-run` não é fonte de proveniência.** Aquele processo dispara
+  `apply_async` e termina; os dois INSERTs que escrevem a coluna rodam **dentro
+  do worker**, com a revisão do launch *do worker*. O pin ali era decorativo e
+  foi removido.
+- **A cobertura era 1 de 5 launches de worker.** Os outros 4 (incluindo o
+  overlay Go, que mata o worker pinado e relança) produziam stage log com
+  revisão NULL, e o preflight então mandava reiniciar um worker recém-subido —
+  o que desligava o overlay. Todos pinados.
+- **`--check-roots` é morto por construção** e não tinha chamador: o
+  `sys.path.insert(0, _ROOT)` no topo do próprio script faz os dois imports
+  resolverem sob a mesma raiz, então o aviso nunca dispara. A afirmação de que
+  "avisa no launch" (ADR-362 §5) fica **retirada**; o mecanismo real de
+  detecção é o preflight, que compara o processo vivo com o HEAD.

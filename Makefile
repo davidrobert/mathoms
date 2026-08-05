@@ -409,7 +409,7 @@ smoke-up: smoke-dirs
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
 	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
-	 nohup $(VENV)/celery -A backend.app.worker worker \
+	 MATHOMS_BUILD_SHA=$(BUILD_SHA) nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-smoke-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
@@ -867,7 +867,7 @@ pipeline-run:
 	 if [ "$(SKIP_LLM)" = "0" ]; then ARGS="$$ARGS --with-llm"; fi; \
 	 if [ "$(RESET)" = "1" ]; then ARGS="$$ARGS --reset"; fi; \
 	 if [ "$(YES)" = "1" ]; then ARGS="$$ARGS --yes"; fi; \
-	 MATHOMS_BUILD_SHA=$(BUILD_SHA) $(PYTHON) -m backend.app.scripts.run_workspace_pipeline $(WS) $$ARGS
+	 $(PYTHON) -m backend.app.scripts.run_workspace_pipeline $(WS) $$ARGS
 
 # ---------------------------------------------------------------------------
 # Tests, lint, format
@@ -1186,7 +1186,7 @@ _go-on-smoke:
 	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 MATHOMS_PIPELINE_SERVICE_URL="http://localhost:$(PORT_GO)" \
-	 nohup $(VENV)/celery -A backend.app.worker worker \
+	 MATHOMS_BUILD_SHA=$(BUILD_SHA) nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-smoke-go-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
@@ -1233,7 +1233,7 @@ _go-on-native:
 	$(call kill_celery_scoped,celery-native(-go)?-$(WT))
 	@TS=$$(date +%s); \
 	 $(LLM_FREE_SCRUB) MATHOMS_PIPELINE_SERVICE_URL="http://localhost:$(PORT_GO)" \
-	 nohup $(VENV)/celery -A backend.app.worker worker \
+	 MATHOMS_BUILD_SHA=$(BUILD_SHA) nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-native-go-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
@@ -1253,7 +1253,7 @@ _go-off-smoke:
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
 	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
-	 nohup $(VENV)/celery -A backend.app.worker worker \
+	 MATHOMS_BUILD_SHA=$(BUILD_SHA) nohup $(VENV)/celery -A backend.app.worker worker \
 	   --hostname="celery-smoke-$(WT)@%h-$$TS" \
 	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
