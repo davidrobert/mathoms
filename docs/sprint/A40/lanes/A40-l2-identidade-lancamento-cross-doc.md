@@ -112,7 +112,7 @@ ressuscite achando que são escopo pendente:
 **Sobreviveu:** colapso **por transação**, pré-agrupamento — e o alias-map do dono
 renasce como **allow-list do predicado de colapso**, não como canonicalização.
 
-## Escopo — 3 PRs, nenhum toca `_hash_v2`
+## Escopo — 4 PRs, nenhum toca `_hash_v2`
 
 `_hash_v1` está **congelado** ([[ADR-278]] D1) e `_hash_v2` é a chave de dedup
 **e** de re-ancoragem de `transaction_overrides`. O colapsador **seleciona rows**;
@@ -124,7 +124,16 @@ integralmente válida.
 - **PR1 — colapsador measure-only** ✅ **PR #1195**. Domain service puro
   `CrossDocumentCollapser`, injetado com `default None` no `E3ReconcilerAdapter`
   **após** `reconcile_with_report` e **antes** do agrupamento. Chave = a do detector
-  da [[A40.l1]]. Não remove row; emite candidato com os `_hash_v2` que **removeria**.
+  da [[A40.l1]]. Não remove row; emite **alvo com multiplicidade** (`RemovalTarget`).
+  ⚠️ O contrato original — "emite os `_hash_v2` que removeria" — era **errado**: hash
+  não endereça row (ver §P0 achado pela verificação). Corrigido no PR1b.
+- **PR1b — instrumento de E3 + correção do P0 de endereçamento.** Promove a medição a
+  parte do harness (`dev/ledger_collapse_layer.py`), com **4 identidades** e ratchet
+  por mutação; injeta o colapsador **no harness** via kwarg do `_e3_build_adapter`, não
+  em produção. Troca a lista de hashes por `RemovalTarget(hash, remover, no_bucket)`.
+  **Bloqueia o PR3** por dois eixos medidos: `alvo_enderecavel=false` (411 declaradas
+  vs 453 resolvidas) e 113 das 411 rows fora do campo de visão do detector. Custo S,
+  0 LLM, read-only.
 - **PR2 — re-ancoragem (backend), pré-condição do enforce.** Consome os hashes do
   PR1, cruza com `transaction_overrides` ativos e produz o mapa
   removido→sobrevivente. Respeita o boundary (`pipeline/**` sem `sqlalchemy`): o
@@ -144,17 +153,190 @@ predicado (perna vazia unifica, perna conflitante não colapsa) e já está no P
 com teste. O débito de âncora estável de override que a [[A42]] §Fora do sprint
 roteia para "l2 PR3" é atendido pelo **PR2** desta numeração.
 
+## Medição do PR1 contra o corpus real (2026-08-05) — a banda estava errada
+
+O PR1 shipou o instrumento; esta é a primeira vez que ele foi **apontado para o
+corpus**. Detector e colapsador medidos na **mesma re-derivação** (`_rederive` do
+`dev/certify_ledger_local.py`, ws dogfood, run `82b30303`, zero-write):
+
+| | detector ([[A40.l1]], baldes E4) | colapsador (statements E3) |
+|---|---|---|
+| chaves colidentes | **261** (261 carrier, 0 coincidence) | **331** |
+| rows removíveis | — | **411** |
+| bloqueados pelo predicado | — | **0** |
+
+**Paridade é EXATA, por digest.** Os dois instrumentos derivam a chave com
+`sha256("|".join(str(p) for p in key))` sobre tuplas de conteúdo idêntico — o
+detector trunca em 8, o colapsador em 12 —, então `det.key_digest ==
+col.key_digest[:8]` é comparação exata, não aproximação:
+
+| | chaves |
+|---|---|
+| em ambos | **261** |
+| só no detector | **0** |
+| só no colapsador | **70** |
+
+`261 + 70 = 331` fecha. **O detector é subconjunto estrito do colapsador.**
+
+> ⚠️ **Correção de método, mesma sessão.** A primeira medição publicada aqui usou
+> paridade por `(mês, cents, moeda, direction)` — tupla **mais grossa que as duas
+> chaves**, porque descarta a descrição — e reportou `225 / 0 / 66`. Ela colapsava
+> eventos distintos na mesma tupla e **subcontava a interseção**. O número por
+> digest (`261 / 0 / 70`) é o correto. Lição: paridade entre dois instrumentos exige
+> a chave dos instrumentos, não uma projeção dela.
+
+**A identidade que fecha o diagnóstico de camada.** Aplicando a fórmula **do
+detector** (`(n_provenances − 1) × valor_cents`) aos grupos **do colapsador**,
+restritos às 261 chaves compartilhadas, sai **81.288.000 — idêntico ao cent** ao
+número do detector. Mesma chave, mesmo valor, mesma fórmula ⇒ mesmo número: não há
+drift de normalização, de data nem de moeda entre as camadas. É prova mais forte que
+qualquer paridade.
+
+**Σ cents exige nomear a fórmula em cada célula** — três somas plausíveis diferem em
+até 2,6× e a primeira versão desta seção comparou duas delas como se fossem a mesma
+grandeza:
+
+| soma | valor |
+|---|---|
+| detector: `Σ (n_prov − 1) × cents` | 81.288.000 |
+| colapsador: `Σ cents` por chave | 186.132.700 |
+| colapsador: `Σ cents × rows removíveis` | 216.980.850 |
+| colapsador: `Σ cents × n_rows` | 490.090.665 |
+
+> ⚠️ **O `excess_cents` do detector é PISO por construção, não medida do fenômeno.**
+> Nas mesmas 261 chaves o E3 tem **733 rows** (`{2:111, 3:89, 4:61}`) e o E4 apenas
+> **522** (`{2:261}`) — o dedup por `transaction_hash` do E4 já achatou a
+> multiplicidade intra-proveniência antes do detector olhar. **O detector é incapaz
+> de reportar multiplicidade ≥3.** Uma versão anterior desta seção atribuía o gap ao
+> "efeito multiset", com o sinal invertido: o multiset **reduz** removable (593→411)
+> e não pode explicar gap para cima.
+
+Quatro leituras. A primeira invalida o critério que estava escrito aqui; a última
+inverte uma conclusão que esta lane publicou como confirmada.
+
+1. **A banda `[259,261]` é falsificada, e a causa é erro de camada** — instrumento em
+   **E4**, mutador em **E3**, populações diferentes por construção (detector varre
+   4.321 rows; o E3 tem 6.398 tx, e a [[A40.l1]] §SUB-detecção já declarava que
+   transferência e par em baldes opostos não chegam aos baldes). **Mas "não é bug" era
+   falso:** o artefato do PR1 carregava um P0 próprio (leitura 4).
+2. **`0 só no detector` autoriza o detector como oráculo secundário** — o colapsador
+   cobre tudo que o instrumento conta, sem ponto cego na direção perigosa. O gate
+   "re-rodar e ver 0", porém, **é vácuo para 113 das 411 rows (27,5%)**: 89 das 70
+   chaves exclusivas mais 24 dentro das compartilhadas, nenhuma existindo como
+   `transaction_hash` em balde algum (comparador validado — 298 de 322 casam, logo o
+   0/89 é ausência real).
+   **Correção de materialidade:** dizer "58% dos cents" era enganoso. Desses cents,
+   **99,7% são transferência interna** (64 chaves / 79 rows / 124.962.300), valor
+   bruto **dinheiro-neutro** no fluxo, sem row em `receitas`/`despesas`, sem campo de
+   relatório e sem âncora de override. O bloqueio do PR1b se sustenta pelo **grão row
+   e pela ausência de instrumento**, não pela massa em cents — e a materialidade zero
+   é **condicional** à classificação atual de transferência interna, que este repo já
+   viu sobre-disparar.
+3. **`0 bloqueados` ⇒ 6 de 6 ramos de rejeição inexercitados** (não "4 de 5"), medidos
+   independentemente e sem short-circuit: `descricao_vazia`,
+   `proveniencias_diferente_de_duas`, `banco_conflitante`, `titular_conflitante`,
+   `tipo_conta_fora_da_allow_list`, `par_nao_e_nativo_mais_llm`. Duas nuances que
+   mudam a leitura: a allow-list de `tipo_conta` é **331/331 no lado do PASS** —
+   inexercitada no bloqueio, porém **load-bearing**, é o que separa colapsar de
+   apagar; e `titular` é satisfeito **por vacuidade** em 331/331, com
+   `account_number_norm` vazio em 117/117 statements. A evidência de identidade do
+   predicado reduz-se a `banco` + a chave de colisão.
+4. **A cláusula multiset NÃO salva 182 transações legítimas — ela preserva 182 rows de
+   duplicação intra-proveniência.** A aritmética está certa (924 rows medidos direto,
+   593 ingênuo − 411 multiset = 182); a **semântica está invertida**. Nas 262 legs com
+   ≥2 rows: `source_document` difere em **262/262**, merge_key legado difere em
+   **262/262**, mesmo objeto em **0/262**. A descrição bruta é **byte-idêntica em
+   168** (onde `is_duplicate` retorna `True` em 168/168) e nas outras **94** a
+   divergência é *exatamente* o sufixo de roteamento que `normalize_descricao`
+   remove ([[ADR-255]] it.2, cujo docstring cita extratos sobrepostos do C6).
+   **0/262 têm evidência de 2 eventos distintos.** Estrutural: as rows de um bucket
+   são K4-idênticas **por construção**, então a cláusula não tem como distinguir "o
+   evento ocorreu 2×" de "uma perna reportou 2×" — os campos que distinguiriam não
+   estão na chave nem no hash.
+   **Consequência dura:** 411 não é o lado conservador de um trade-off — é
+   **insuficiente em 182 rows / Σ 86.977.115 cents**. Pós-enforce, **182 de 331 chaves
+   (55%)** ficariam com 2 rows onde os predicados do próprio pipeline reconhecem 1
+   evento. Só as 149 chaves `card=1` saem corretas. O número consistente com
+   `is_duplicate` + [[ADR-255]] neste corpus é o **ingênuo 593**.
+
+### P0 achado pela verificação: hash não endereça row
+
+O §Escopo dizia que o PR1 "emite candidato com os `_hash_v2` que removeria" e que o
+PR2 "consome os hashes do PR1". **Isso estava errado como contrato.** As 8 partes de
+`_hash_v2` são a **união** da 5-tupla da chave de colapso com a tripla de
+proveniência, logo **todas** as rows de um bucket compartilham o mesmo hash — 1 hash
+endereça N rows.
+
+Medido: alvo declarando **411** rows **resolve 453**. O excesso de **42** são
+exatamente os sobreviventes que a cardinalidade multiset elegeu; um consumidor que
+apagasse pelo conjunto de hashes apagaria o sobrevivente junto, e **nenhum
+instrumento existente perceberia**. Aritmética por forma: `(1,1)×149` excesso 0 ·
+`(1,2)×60` excesso 0 · `(2,1)×42` excesso **1** · `(2,2)×80` excesso 0.
+
+**Contrato correto** (entregue junto do PR1b): o candidato emite
+`RemovalTarget(hash, remover, no_bucket)` — alvo com **multiplicidade** —, e
+`hash_desaparece` (`remover >= no_bucket`) é exatamente o predicado de que o PR2
+precisa para saber se um override ancorado naquele hash órfãna. `alvo_ambiguo` marca
+remoção parcial de bucket.
+
+O teste que deixou o P0 passar assertia `len(removable_hashes) == removable_rows` —
+**comprimento de lista, cego à resolução**. E o comentário adjacente declarava que as
+formas assimétricas "não ocorrem no corpus": falso, `(2 llm, 1 nativo)` ocorre **42×**
+e só 149 das 331 são `2 rows, 2 provs`. O comentário justificava como hipotético
+exatamente o caso real.
+
+### Três classes que nenhuma das leituras cobria
+
+1. **Duplicação intra-proveniência cross-arquivo — 182 rows / Σ 86.977.115.**
+   Nenhum dos três dedups a alcança: por statement (`reconciliation_service.py`,
+   escopo = 1 statement) · `cross_file_dedup` (só roda com >1 statement no mesmo
+   `output_key`, e a key legada carrega **período** — arquivos de período sobreposto da
+   mesma conta nunca se encontram; 9 de 106 grupos têm >1 statement) · o colapsador
+   (`_group_by_key` exige ≥2 proveniências, logo é cego a colisão dentro de uma).
+   **Não é "o dedup pega isso depois".** É buraco estrutural, e é o que a cláusula
+   multiset transforma de defeito em feature. Candidato a lane própria — sobrepõe-se à
+   [[A42.l5]] (período na chave de grupo).
+2. **Assimetria de `kind` entre pernas do mesmo evento — 6 chaves, Σ 388.300.** A perna
+   nativa classifica receita/despesa (com row em balde) e a LLM classifica
+   `transferencia` (sem row em balde nenhum), porque `InternalTransferDetector` recebe
+   `banco`/`tipo_conta` — precisamente os campos que divergem. Defeito do razão
+   **atual**, independente do colapsador, e nenhum dos dois instrumentos o reporta.
+3. **O predicado é cego a período.** Duas pernas com períodos declarados **totalmente
+   disjuntos** saem `blocked_reason=None`. Recomendação: **não** adicionar cláusula de
+   período — o metadado não sustenta decisão (na perna LLM, **85,2%** das rows caem
+   fora do próprio período declarado, contra 1,8% na nativa) — e sim corrigir o
+   docstring, que justificava o mecanismo com uma premissa que nada verifica. Feito.
+
 ## Critério de aceite
 
 **Anti-Goodhart primeiro:** a chave do colapsador **contém** a do detector, logo
 "o numerador cai a 0" é quase tautológico — o colapso zera o instrumento por
-construção. Por isso o aceite exige eixos que **não derivam da mesma chave**, e
-declara que o colapso correto pode ser **menor** que 261 (sinal, não regressão).
+construção. Por isso o aceite exige eixos que **não derivam da mesma chave**.
 
-- **Banda, não ponto fixo:** colapso ∈ `[259,261]` — o instrumento é estimador com
-  piso irrefutável 126 (descrição bruta).
-- **Conservação de cardinalidade (multiset)** por (conta, mês): sobrevivente =
-  `max` sobre proveniências. Métrica derivada da chave não falsifica isto.
+- **Pré-condição 1 do PR3, bloqueante: alvo endereçável.** `alvo_enderecavel` do
+  instrumento (rows que o alvo resolve == rows declaradas) tem de ser **verdadeiro**.
+  Hoje é **falso**: 411 declaradas, 453 resolvidas, 42 candidatos ambíguos. Enquanto
+  for falso, nenhum enforce pode ligar — removeria os sobreviventes.
+- **Pré-condição 2 do PR3, bloqueante: paridade de camada.** O enforce não mergeia
+  enquanto o número de E3 não tiver instrumento contado e ratcheteado — **113 das 411
+  rows (27,5%)** não existem como `transaction_hash` em balde algum. Sem isso o gate
+  de saída da lane é vácuo por construção. Baseline de E3 a congelar: **331 chaves /
+  411 rows declaradas / 453 resolvidas / Σ(cents × rows removíveis) = 216.980.850**
+  — a fórmula faz parte do baseline, porque três somas plausíveis diferem em 2,6×.
+- **Banda sobre o número de E3, não sobre 261.** O `[259,261]` que estava aqui era
+  erro de camada (ver §Medição do PR1). A banda correta parte do baseline de E3
+  acima; o numerador do detector E4 (261) passa a ser **oráculo secundário** que
+  também tem de cair — nunca o alvo primário.
+- 🔴 **`survivor_cardinality` tem de ser recalculada antes do enforce.** Hoje é
+  `max(len(group))` sobre rows **cruas**, o que importa para dentro do multiset toda a
+  duplicação intra-proveniência (182 rows medidas). A cardinalidade correta é o número
+  de **eventos distintos** na perna — rows já deduplicadas pelo mesmo critério que
+  `is_duplicate` + `normalize_descricao` aplicam. Sem isso o enforce fica insuficiente
+  em 182 rows e o resultado não é conservador: é errado nos dois sentidos.
+- **Antes do PR3, medir o efeito no ledger de conservação** ([[ADR-347]],
+  `attach_artifact_ledger`) e na continuidade de saldo: remover row é **sum-breaking
+  por artefato** mesmo quando é dinheiro-neutro no fluxo. Nenhuma das lentes de
+  verificação mediu isso — está aberto.
 - **Invariante de saldo:** nenhum grupo perde `closing_balance`, a contagem de
   `saldo_final_unknown` não muda, e os 105 grupos seguem fechando em tol-0.
 - **Oráculo a jusante:** queda de ~19% da receita e ~8% da despesa nos meses
