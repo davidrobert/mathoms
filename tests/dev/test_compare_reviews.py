@@ -248,3 +248,60 @@ def test_elapsed_minutes_run_inacabado_e_tz_mista() -> None:
     assert elapsed_minutes("nao-e-data", "2026-08-05T10:00:00") is None
     mista = elapsed_minutes("2026-08-05T10:00:00+00:00", "2026-08-05T10:30:00")
     assert mista == 30.0
+
+
+# ───── proveniência: contexto, jamais supressor nem perna de regressão ─────
+
+
+def _prov(rev: str | None, *, mista: bool = False) -> dict:
+    return {"executor_revision": rev, "execucao_mista": mista, "ancestry": "identical"}
+
+
+def _snap_prov(rev: str | None, *, mista: bool = False, **kw) -> dict:
+    snap = _snap(**kw)
+    snap["provenance"] = _prov(rev, mista=mista)
+    return snap
+
+
+def test_revisao_divergente_nao_suprime_nenhuma_regressao() -> None:
+    """Gate do método: o conjunto de FAIL é BYTE-IDÊNTICO com e sem divergência."""
+    # Mutação que mata: transformar proveniência em supressor ou em perna hard.
+    rd = copy.deepcopy(_report_data())
+    rd["patrimonio"] = {}  # regressão real injetada
+    sem, _s1, _n1 = compare_reviews(_snap(), _snap(report_data=rd), _report_data(), rd)
+    com, _s2, notes = compare_reviews(
+        _snap_prov("aaaaaaaaaaaa"), _snap_prov("bbbbbbbbbbbb", report_data=rd), _report_data(), rd
+    )
+    assert com == sem
+    assert any("revisão do executor mudou" in n for n in notes)
+
+
+def test_divergencia_de_revisao_nao_gera_hard() -> None:
+    hard, _soft, notes = compare_reviews(
+        _snap_prov("aaaaaaaaaaaa"), _snap_prov("bbbbbbbbbbbb"), _report_data(), _report_data()
+    )
+    assert hard == []
+    assert any("dimensão CEGA" in n for n in notes)
+
+
+def test_execucao_mista_aparece_como_nota() -> None:
+    _h, _s, notes = compare_reviews(
+        _snap_prov("aaaaaaaaaaaa"),
+        _snap_prov("aaaaaaaaaaaa", mista=True),
+        _report_data(),
+        _report_data(),
+    )
+    assert any("execução mista" in n for n in notes)
+
+
+def test_baseline_sem_provenance_degrada_para_nota() -> None:
+    """Baseline v1 (pré-F2) não explode; declara que comparou sem proveniência."""
+    hard, _soft, notes = compare_reviews(
+        _snap(), _snap_prov("aaaaaaaaaaaa"), _report_data(), _report_data()
+    )
+    assert hard == []
+    assert any("desconhecida em um dos runs" in n for n in notes)
+
+
+def test_snapshot_omite_provenance_quando_nao_ha() -> None:
+    assert "provenance" not in _snap()

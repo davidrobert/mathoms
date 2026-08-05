@@ -79,6 +79,54 @@ def divergent_roots_warning(pipeline_root: str | None, backend_root: str | None)
     )
 
 
+def _divergence_counts(base: str, head: str) -> tuple[str, str] | None:
+    """(atrás, à frente) entre duas revisões, ou None se a base é inalcançável."""
+    # `unreachable` é obrigatório: branches `agent/*` são squash-merged e
+    # auto-deletadas, e `git rev-list A..B` com A órfão devolve VAZIO — sem este
+    # estado o leitor concluiria, errado, que nada mudou. Ausência nunca vira zero.
+    if _git("cat-file", "-e", f"{base}^{{commit}}") is None:
+        return None
+    counts = _git("rev-list", "--left-right", "--count", f"{base}...{head}")
+    if counts is None:
+        return None
+    behind, ahead = (counts.split() + ["0", "0"])[:2]
+    return behind, ahead
+
+
+def ancestry(revision: str | None, head: str | None = None) -> str:
+    """Relação entre a revisão de um run e o HEAD atual — 6 estados."""
+    if not revision:
+        return "desconhecido"
+    base = revision.split(_DIRTY_SUFFIX)[0]
+    head = head or _git("rev-parse", "HEAD")
+    if not head:
+        return "desconhecido"
+    if head.startswith(base) or base.startswith(head[: len(base)]):
+        return "identical"
+    counts = _divergence_counts(base, head)
+    if counts is None:
+        return "unreachable"
+    behind, ahead = counts
+    if behind == "0" and ahead != "0":
+        return "ancestor"
+    return "descendant" if ahead == "0" and behind != "0" else "divergent"
+
+
+def commits_ahead_of(revision: str | None, head: str | None = None) -> int | None:
+    """Quantos commits o HEAD tem à frente da revisão do run (None se indecidível)."""
+    if not revision:
+        return None
+    base = revision.split(_DIRTY_SUFFIX)[0]
+    head = head or _git("rev-parse", "HEAD")
+    if not head or _git("cat-file", "-e", f"{base}^{{commit}}") is None:
+        return None
+    counts = _git("rev-list", "--left-right", "--count", f"{base}...{head}")
+    if counts is None:
+        return None
+    parts = counts.split()
+    return int(parts[1]) if len(parts) == 2 and parts[1].isdigit() else None
+
+
 def boot_revision_from_log(text: str) -> str | None:
     """Última revisão anunciada no log de boot (JSON estruturado)."""
     found = None

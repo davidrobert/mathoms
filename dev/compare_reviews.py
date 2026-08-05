@@ -185,9 +185,25 @@ def _run_health(report_data: dict, meta: dict) -> dict:
 
 
 def build_snapshot(
-    *, run_id: str, report_data: dict, cv_results: list[dict], meta: dict, parecer: Any
+    *,
+    run_id: str,
+    report_data: dict,
+    cv_results: list[dict],
+    meta: dict,
+    parecer: Any,
+    provenance: dict | None = None,
 ) -> dict:
     """Snapshot PII-safe (meta = {run, needs_review, costs, calls}, telemetria do run)."""
+    snap = _snapshot_body(run_id, report_data, cv_results, meta, parecer)
+    # `provenance` é chave TOP-LEVEL, fora do `run_health` (ADR-343 §Emenda): os 9
+    # campos de run_health são todos consumidos por perna ou supressor, e um campo
+    # não-comparável ali seria assumido comparável pelo próximo leitor.
+    return {**snap, "provenance": provenance} if provenance else snap
+
+
+def _snapshot_body(
+    run_id: str, report_data: dict, cv_results: list[dict], meta: dict, parecer: Any
+) -> dict:
     return {
         "schema_version": SCHEMA_VERSION,
         "run_id": run_id,
@@ -372,12 +388,34 @@ def _hard_regressions(
     return hard + gone, drift
 
 
+_BLIND_DIMENSION_NOTE = (
+    "dimensão CEGA: config em DB (categorização, fiscal, câmbio, metas) muda "
+    "número sem commit — nenhum veredito de não-determinismo é válido aqui"
+)
+
+
+def provenance_notes(base: dict, cur: dict) -> list[str]:
+    """Contexto de proveniência — jamais supressor, jamais perna de regressão."""
+    # O amplificador "zero commits + drift ⇒ severidade sobe" foi MEDIDO como dead
+    # code (52/15/24 commits nas 3 janelas reais) e a inferência seria inválida.
+    bp, cp = base.get("provenance") or {}, cur.get("provenance") or {}
+    br, cr = bp.get("executor_revision"), cp.get("executor_revision")
+    out = []
+    if br and cr and br != cr:
+        out.append(f"revisão do executor mudou: {br} -> {cr} (contexto, não regressão)")
+    if not br or not cr:
+        out.append("revisão do executor desconhecida em um dos runs — comparação sem proveniência")
+    if cp.get("execucao_mista"):
+        out.append("execução mista no run atual: stages rodaram em revisões diferentes")
+    return out + [_BLIND_DIMENSION_NOTE] if out else out
+
+
 def compare_reviews(
     base: dict, cur: dict, base_rd: dict, cur_rd: dict, *, strict: bool = False, band: float = 10.0
 ) -> tuple[list[str], list[str], list[str]]:
     """Retorna (hard, soft, notes). ``hard`` não-vazio ⇒ exit 1."""
     sup = _suppressors(base, cur)
-    notes = [k for k, v in sup.items() if v]
+    notes = [k for k, v in sup.items() if v] + provenance_notes(base, cur)
     hard, drift = _hard_regressions(base, cur, base_rd, cur_rd, sup, band)
     soft = _soft_changes(base, cur, sup)
     if sup["corpus_grew"]:
