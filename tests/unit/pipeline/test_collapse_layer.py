@@ -195,6 +195,49 @@ def test_render_pina_os_numeros_impressos() -> None:
     assert "layer_ok=true" in texto
 
 
+def _corpus_misto(n: int = 150) -> list:
+    """1 em 5 bloqueado, `rows` e `card` variando — nenhum eixo constante."""
+    return [
+        _Cand(
+            f"{i:08d}ff",
+            blocked="descricao_vazia" if i % 5 == 0 else None,
+            rows=1 + i % 3,
+            card=1 + i % 4,
+        )
+        for i in range(n)
+    ]
+
+
+def test_summary_nao_capa_nem_filtra_a_entrada() -> None:
+    """As identidades 1 e 3 são **auto-consistentes**: cap sobre a lista de entrada
+    reduz os dois lados e elas seguem fechando. O que dá dente é ancorar cada
+    contagem em valor computado FORA do sumário."""
+    cands = _corpus_misto()
+    esperado_col = sum(1 for c in cands if c.collapsible)
+    esperado_rows = sum(c.removable_rows for c in cands if c.collapsible)
+    esperado_cents = sum(c.valor_cents * c.removable_rows for c in cands if c.collapsible)
+
+    s = collapse_layer_summary(cands, frozenset({"99999999"}))
+
+    assert s.candidatos == 150  # pega cap aplicado a `todos`
+    assert s.colapsaveis == esperado_col
+    assert s.bloqueados == 150 - esperado_col
+    assert s.rows_removiveis == esperado_rows
+    assert s.cents_removiveis == esperado_cents
+    assert sum(s.cardinalidade.values()) == esperado_col  # pega cap no histograma
+    assert s.so_no_colapsador == len({c.key_digest[:8] for c in cands if c.collapsible})
+
+
+def test_filtro_assimetrico_dentro_do_sumario_derruba_a_particao() -> None:
+    """O que a identidade 1 realmente pega: contagem de um lado sem o outro."""
+    from dev.ledger_collapse_layer import CollapseLayerSummary
+
+    s = CollapseLayerSummary(candidatos=10, colapsaveis=4, bloqueados_por_motivo={"x": 3})
+
+    assert not s.particao_fecha
+    assert not s.layer_ok
+
+
 def test_render_declara_clausulas_inexercitadas_quando_nada_bloqueia() -> None:
     """0 bloqueados não pode ler como "predicado validado" — é o falso-verde da tese."""
     texto = "\n".join(

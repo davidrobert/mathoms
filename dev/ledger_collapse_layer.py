@@ -44,17 +44,22 @@ class CollapseLayerSummary:
 
     @property
     def particao_fecha(self) -> bool:
-        """Identidade 1: colapsável + bloqueado == candidato (pega filtro silencioso)."""
+        """Identidade 1 — **auto-consistente**: pega filtro ASSIMÉTRICO dentro do
+        sumário, não cap sobre a lista de entrada (reduziria os dois lados)."""
+        # Mesma classe da identidade interna da [[A40.l1]]: fecha com qualquer piso.
+        # Quem trava cap na entrada é `test_summary_nao_capa_nem_filtra_a_entrada`,
+        # que ancora as contagens FORA do sumário.
         return self.colapsaveis + self.bloqueados == self.candidatos
 
     @property
     def paridade_fecha(self) -> bool:
-        """Identidade 2: em-ambos + só-no-colapsador == colapsável."""
+        """Identidade 2 — **externa**: cruza com os digests do detector, conjunto que
+        este módulo não produz. É a que pega colisão de prefixo e undercount."""
         return self.em_ambos + self.so_no_colapsador == self.colapsaveis
 
     @property
     def cardinalidade_fecha(self) -> bool:
-        """Identidade 3: Σ cardinalidade == colapsável (pega cap/filtro no histograma)."""
+        """Identidade 3 — auto-consistente como a 1; pega cap no histograma."""
         return sum(self.cardinalidade.values()) == self.colapsaveis
 
     @property
