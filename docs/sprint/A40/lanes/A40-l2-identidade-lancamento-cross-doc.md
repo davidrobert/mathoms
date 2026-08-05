@@ -112,7 +112,7 @@ ressuscite achando que são escopo pendente:
 **Sobreviveu:** colapso **por transação**, pré-agrupamento — e o alias-map do dono
 renasce como **allow-list do predicado de colapso**, não como canonicalização.
 
-## Escopo — 3 PRs, nenhum toca `_hash_v2`
+## Escopo — 4 PRs, nenhum toca `_hash_v2`
 
 `_hash_v1` está **congelado** ([[ADR-278]] D1) e `_hash_v2` é a chave de dedup
 **e** de re-ancoragem de `transaction_overrides`. O colapsador **seleciona rows**;
@@ -125,6 +125,11 @@ integralmente válida.
   `CrossDocumentCollapser`, injetado com `default None` no `E3ReconcilerAdapter`
   **após** `reconcile_with_report` e **antes** do agrupamento. Chave = a do detector
   da [[A40.l1]]. Não remove row; emite candidato com os `_hash_v2` que **removeria**.
+- **PR1b — instrumento de E3 (novo, medido em 2026-08-05).** Promove a sonda de
+  paridade a parte do harness, com ratchet: contagem de chaves colapsáveis e de rows
+  removíveis no grão E3, ao lado do numerador E4. **Bloqueia o PR3** — sem ela o
+  enforce remove 66 chaves que nenhum instrumento observa. Custo S, 0 LLM,
+  read-only.
 - **PR2 — re-ancoragem (backend), pré-condição do enforce.** Consome os hashes do
   PR1, cruza com `transaction_overrides` ativos e produz o mapa
   removido→sobrevivente. Respeita o boundary (`pipeline/**` sem `sqlalchemy`): o
@@ -144,17 +149,65 @@ predicado (perna vazia unifica, perna conflitante não colapsa) e já está no P
 com teste. O débito de âncora estável de override que a [[A42]] §Fora do sprint
 roteia para "l2 PR3" é atendido pelo **PR2** desta numeração.
 
+## Medição do PR1 contra o corpus real (2026-08-05) — a banda estava errada
+
+O PR1 shipou o instrumento; esta é a primeira vez que ele foi **apontado para o
+corpus**. Detector e colapsador medidos na **mesma re-derivação** (`_rederive` do
+`dev/certify_ledger_local.py`, ws dogfood, run `82b30303`, zero-write):
+
+| | detector ([[A40.l1]], baldes E4) | colapsador (statements E3) |
+|---|---|---|
+| chaves colidentes | **261** (261 carrier, 0 coincidence) | **331** |
+| Σ cents | **81.288.000** | **216.980.850** (2,67×) |
+| rows removíveis | — | **411** |
+| bloqueados pelo predicado | — | **0** |
+
+**Paridade por `(mês, cents, moeda, direction)`:** 225 tuplas em ambos · **0 só no
+detector** · **66 só no colapsador**.
+
+Três leituras, e a primeira invalida o critério que estava escrito aqui:
+
+1. **A banda `[259,261]` é falsificada, e a causa é erro de camada.** Ela foi
+   derivada de um instrumento que varre **E4** e aplicada a um mutador que opera em
+   **E3** — populações diferentes por construção (o detector varre 4.321 rows; o E3
+   tem 6.398 tx, e a [[A40.l1]] §SUB-detecção já declarava que transferência e par
+   em baldes opostos não chegam aos baldes). Comparar os dois números era comparar
+   coisas distintas.
+2. **`0 só no detector` é a boa notícia:** o colapsador cobre **tudo** que o
+   instrumento conta — não há ponto cego na direção perigosa. Mas os **66 só no
+   colapsador** são o problema: se o enforce remover essas rows, re-rodar o detector
+   e ver 0 **não prova** que o colapso foi correto. É o furo anti-Goodhart da
+   [[ADR-354]] §Emenda, agora com número — e maior do que a emenda supunha.
+3. **`0 bloqueados` significa que 4 das 5 cláusulas protetivas estão
+   inexercitadas** neste corpus. O valor delas aqui é seguro contra corpus futuro,
+   **não** proteção medida. Quem valida é a fixture sintética + a prova de mutação,
+   não este run. Composição dos 331: 279 `div=titular+tipo_conta parciais=titular`
+   e 52 `div=tipo_conta parciais=-` (titular simétrico — carrier 1 sozinho).
+
+**A cláusula multiset é a que está trabalhando, e é mensurável:** cardinalidade
+`{1: 149, 2: 182}` sobre 924 rows nas chaves colidentes. Colapso ingênuo (1 row por
+chave) removeria **593**; com multiset remove **411**. A cláusula **salva 182
+transações legítimas** — a objeção do co-design `data-engineer`, confirmada por
+medição.
+
 ## Critério de aceite
 
 **Anti-Goodhart primeiro:** a chave do colapsador **contém** a do detector, logo
 "o numerador cai a 0" é quase tautológico — o colapso zera o instrumento por
-construção. Por isso o aceite exige eixos que **não derivam da mesma chave**, e
-declara que o colapso correto pode ser **menor** que 261 (sinal, não regressão).
+construção. Por isso o aceite exige eixos que **não derivam da mesma chave**.
 
-- **Banda, não ponto fixo:** colapso ∈ `[259,261]` — o instrumento é estimador com
-  piso irrefutável 126 (descrição bruta).
+- **Pré-condição do PR3, nova e bloqueante: paridade de camada.** O enforce não
+  mergeia enquanto o número de E3 não tiver instrumento contado e ratcheteado —
+  hoje `66` chaves colapsáveis estão fora do campo de visão do detector. Sem isso o
+  gate de saída da lane é vácuo por construção. Baseline de E3 a congelar: **331
+  chaves / 411 rows / 216.980.850 cents**.
+- **Banda sobre o número de E3, não sobre 261.** O `[259,261]` que estava aqui era
+  erro de camada (ver §Medição do PR1). A banda correta parte do baseline de E3
+  acima; o numerador do detector E4 (261) passa a ser **oráculo secundário** que
+  também tem de cair — nunca o alvo primário.
 - **Conservação de cardinalidade (multiset)** por (conta, mês): sobrevivente =
-  `max` sobre proveniências. Métrica derivada da chave não falsifica isto.
+  `max` sobre proveniências. Métrica derivada da chave não falsifica isto. Medido:
+  a cláusula vale 182 rows neste corpus.
 - **Invariante de saldo:** nenhum grupo perde `closing_balance`, a contagem de
   `saldo_final_unknown` não muda, e os 105 grupos seguem fechando em tol-0.
 - **Oráculo a jusante:** queda de ~19% da receita e ~8% da despesa nos meses
