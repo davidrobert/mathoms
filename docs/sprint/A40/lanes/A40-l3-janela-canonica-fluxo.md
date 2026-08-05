@@ -361,6 +361,14 @@ varredura recursiva por chave `janela`): **8 blocos** a trazem —
 Os 4 restantes **não são desta lane** (escopo é fluxo de caixa). Registrado como
 handoff explícito para não passar por cobertura completa.
 
+**Destino do handoff, 2026-08-05:** dos 4, os 3 que não cumprem a obrigação da
+[[ADR-306]] (`equilibrio_cerbasi` sem base alguma, `passive_income` com janela
+`irpf` nunca exposta, `reserva_emergencia` só com tooltip — que não conta, pela
+própria emenda A40.l3 acima) foram adotados como item da [[A40.l11]]. O 4º
+(`orcamento_prospectivo`) já tem rótulo impresso pela prosa do produtor, então não
+carrega handoff — fica só o registro acima de que a base não vem do campo
+`janela`.
+
 ### Follow-ups registrados (fora do escopo desta lane)
 
 - **[[A40.l15]] — base do KPI de gastos pontuais** (spun off deste escopo, ver
