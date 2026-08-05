@@ -131,6 +131,9 @@ integralmente válida.
   lista de hashes por `RemovalTarget(hash, remover, no_bucket)`; `hash_desaparece` é o
   predicado que o PR2 consome. Saiu **separado** do instrumento a pedido do
   `pr-size-labeler` — 97 linhas que mudam contrato merecem revisão isolada.
+- **PR1d — cardinalidade por arquivo** ✅ (este PR). Revoga a cláusula 4 (§Emenda 2 da
+  [[ADR-354]]) e **reordena o resto**: vem antes do gate, porque muda o alvo que o gate
+  mede. Rebaseline 411 → **593**.
 - **PR1c — instrumento de E3.** Promove a medição a parte do harness
   (`dev/ledger_collapse_layer.py`), com **4 identidades** e ratchet por mutação;
   injeta o colapsador **no harness** via kwarg do `_e3_build_adapter`, não em
@@ -311,6 +314,116 @@ exatamente o caso real.
    fora do próprio período declarado, contra 1,8% na nativa) — e sim corrigir o
    docstring, que justificava o mecanismo com uma premissa que nada verifica. Feito.
 
+## Co-design de 2026-08-05 — seis premissas minhas morreram
+
+`data-engineer` + `financial-planner` em paralelo (gatilho duplo: contrato entre stages
++ regra de domínio sobre dinheiro). **Não ressuscite nenhuma destas:**
+
+| Premissa que eu escrevi | Por que é falsa |
+| --- | --- |
+| "a perna LLM não carrega âncora v2, logo remover row dela não órfãna override" | O gate `_has_discriminants` governa só o campo `natural_key` do **item E4**. O subsistema de override tem **hasher próprio, sem gate** (`override_identity.py:52-65` → `compute_natural_key`), e é esse valor que o read-path casa. Row de perna LLM **pode** ancorar override em v2, com hash degenerado. Gate construído sobre isso nasce cego na classe exata que o enforce apaga |
+| "cruzar os alvos com `transaction_overrides.transaction_hash`" | Coluna é **namespace de versão mista**: row pré-cutover carrega `_hash_v1`, pós-cutover `_hash_v2`. Interseção contra conjunto v2 dá vazio **por incompatibilidade de versão**, não por corpus — foi exatamente o meu 0/5 |
+| "o único sintoma do colapso não declarado é o valor degradar" | `e2_to_e3` monta `count_out = survivors + Σ transacoes_duplicadas_removidas`, e esse campo é **só cross-file**. Canal novo em `remocoes` **não entra no `count_out`** ⇒ dispara o check de *count* antes de qualquer check de valor. Corolário: a invariante 7 da [[ADR-347]] (`duplicadas == intra + cross_file`) **não é verdade hoje** e nada a testa |
+| "reusar `candidate.valor_cents` no 5º canal" | `CollapseCandidate.valor_cents` é **magnitude** (`decimal_cents` faz `abs()`); o ledger grava **assinado** (débito negativo). Reusar faz `_declared_dedup_cents` nunca fechar contra `val_in − val_out` |
+| "cardinalidade correta = eventos distintos por `is_duplicate` ou descrição normalizada" | Normalizada é **degenerada** (constante dentro da chave ⇒ `card=1` sempre = colapso ingênuo disfarçado). `is_duplicate` byte-idêntico é **o critério que já falhou** nas 94/262 legs com sufixo de roteamento. O discriminador é **`source_document`** |
+| "`alvo_enderecavel` é pré-condição do enforce" | Mede se um consumidor **que apaga por conjunto de hash** removeria a mais — consumidor que a decisão de D2 garante nunca existir. E **degrada** de 42 para 140 sob a regra nova: evidência de que a métrica é errada, não de que a regra é |
+
+**Sequenciamento decidido** (reordena a lane; D4 primeiro porque muda o alvo que o
+gate mede — gate construído sobre 411 seria re-medido inteiro):
+
+`PR1d` cardinalidade ✅ → `PR-D2/D3` (`collapse()` + 5º canal + `intra` autoritativo +
+schema + patch do `count_out`) → `PR-D1` (gate + `AuditRecord` + flag) → `PR3` (flip
+em produção).
+
+### O que o PR-D2/D3 tem de trazer
+
+- **`collapse(statements) -> (statements, candidates, removals)`** — mutação é
+  **seleção sobre os objetos no mesmo passo**, cópias via `replace` (idioma de
+  `_reconciled_copy`, que existe porque construtor campo-a-campo perdia campo).
+  Identidade de row = identidade de objeto dentro da chamada. **Zero endereço
+  serializado, zero `_hash_v3`.**
+- **5º canal `cross_document_collapse`** com `count` **e** `valor_cents` **assinado**
+  (somado das `Transaction` removidas), emitido **por statement** via `DedupRemoval`
+  (o ledger é per-group; atribuição global não fecha).
+- **`intra` deixa de ser inferido por diferença.** Motivo mais forte que "os canais
+  competem pela mesma subtração": a inferência é **o mecanismo que converte remoção
+  não-declarada em absorção silenciosa**. Com `intra` autoritativo, canal futuro
+  não-instrumentado produz resíduo ≠ 0 ⇒ `PERDA_SILENCIOSA` **alto**. É a [[ADR-342]]
+  aplicada ao próprio ledger.
+- **Patch obrigatório no harness:** `e2_to_e3` passa a usar
+  `count_out = survivors + Σ remocoes[*].count` quando `remocoes` existe, com fallback.
+  Sem isso o PR3 fecha com veredito degradado por bookkeeping.
+- **Schema:** `config/schemas/e3_reconciled.schema.json` tem `additionalProperties:
+  false` em `remocoes` ⇒ editar **no mesmo PR do writer**, senão hard-fail no step
+  `MATHOMS_PIPELINE_SCHEMA_MODE=strict`. Compat sem campo de versão: propriedade
+  **opcional** + leitores channel-agnostic (`_ledger_verdict` e `_declared_dedup_cents`
+  já iteram `.values()`), então artefato de 4 e de 5 canais coexistem sem branch.
+- **Emenda datada na [[ADR-347]]**, não ADR nova — a §Dec-4 é dona da partição.
+  **Antes** do flip HARD do PR3 dela, senão o teste de exaustividade nasce sobre uma
+  partição de 4.
+- **Bug adjacente:** `_intra_cents_by_source` é dict-comprehension keyed por `source`
+  ⇒ dois statements com o mesmo `source_document` se **sobrescrevem** e
+  `_ledger_totals` somaria o mesmo cents 2×. Ao promover a count+cents, **some**.
+- **Classe nova declarável:** sob a regra nova um statement da perna LLM pode ficar com
+  **0 transações** e ainda escrever artefato ⇒ E3 vazio, que `e3_group_verdict` rotula
+  `COBERTO_SEM_VALOR`. Declare como esperado ou pule a escrita.
+
+### O que o PR-D1 (gate) tem de trazer
+
+- Interseção computada **sobre as colunas de snapshot da [[ADR-282]]**
+  (`tx_data`, `tx_valor_cents`, `tx_moeda`, `tx_descricao`), recompondo o
+  **`_key_digest`** da chave de colapso — **não** por igualdade de hash. Imune a versão
+  de hash, imune ao gate de discriminantes, sem PII cruzando o boundary.
+- **Polaridade:** gate que **bloqueia** deve **sobre-detectar** ⇒ o join **descarta
+  `direction` e proveniência**. Over-match é adjudicável à mão em 5–12 rows;
+  under-match é override órfão em produção. Isso também absorve a deriva medida E3↔E4
+  (4282/4320 = 99,1%), que vem de `direction` (sinal vs balde).
+- Override com `natural_key_hash IS NULL` **e** `orphaned_at IS NULL` (âncora
+  indecidível) conta como **hit e bloqueia**. Hoje são 0.
+- Mora em `backend/app/services/internal_ops/collapse_precondition.py`, read-only,
+  devolvendo `OpResult`. **Não persiste tabela** ([[ADR-111]]): durabilidade é
+  `AuditRecord` via `append_audit`. O enforce destrava por **feature flag** flipada
+  pelo operador, **não** por leitura runtime do gate (acoplamento de estado + forçaria
+  `pipeline/**` a consultar DB). Flag nova exige entry em `DEFAULTS` no mesmo PR.
+- **Duas faces, e a segunda é obrigatória:** "vazio" é propriedade do corpus **e do
+  tempo**; gate one-shot pré-flip caduca no dia seguinte. Face (b): por run, emitir
+  `ReviewReason` informativo quando `hash_desaparece` casa override ativo — mantém o
+  sinal vivo pós-flip sem bloquear (measure-then-emit, [[ADR-347]] §Dec-3).
+
+### Salvaguardas de produto exigidas pelo `financial-planner` (bloqueantes no PR3)
+
+O erro não é +19% na receita: é **+63% no superávit** (erro de diferença amplifica os
+dois níveis), e ele entra na **janela 12m** que é denominador de todo headline —
+score, reserva-alvo, patrimônio-alvo, taxa de poupança, folga. O modo de falha é
+comportamental antes de numérico: a família compromete um aporte que não se sustenta, quebra no mês 3 e saca da
+reserva, perdendo o **hábito**, que vale mais que o valor.
+
+1. **Contador visível na S2** (Fluxo de Caixa), não a lista: *"N lançamentos
+   consolidados por sobreposição de documentos, em M meses"*. Aterrissa em
+   `analise_financeira` (metadata de `fluxo`). **Sem essa linha o PR3 não mergeia** — o
+   agregado fica irreconciliável contra o extrato do banco, e para o planejador B2B2C,
+   que responde profissionalmente pelo número, ledger irreconciliável é veto de adoção.
+   Gatilho novo: mudança no que o relatório mostra ⇒ **`product-designer`** no slice de UI.
+2. **`needs_review` cirúrgico, nunca em bloco** — só bucket com remoção parcial e chave
+   com `kind` divergente. Review de 593 rows vira approve-all e o mecanismo morre.
+3. **Sem limiar de valor.** Faz identidade depender de magnitude, que não é fato de
+   domínio, e **preserva exatamente as maiores distorções** — as que movem receita 19%.
+4. **Assimetria de tolerância documentada como escolha:** o colapsador é mais rígido que
+   o dedup intra (sem ±3d/±R$0,01). Consequência aceita: par cross-documento com Δ1 dia
+   **continua** dupla-contando. Sub-colapso limitado e nomeado > sobre-colapso ilimitado.
+5. **Detalhe da remoção no ops/E7, não no relatório da família** — o planejador precisa
+   da lista; a família precisa do fato.
+
+> **O risco que o `financial-planner` recusa:** enforce que remove 593 rows sem que a
+> remoção seja um número declarado que família e planejador possam **reconciliar**.
+> Hoje o erro é visível como contradição ("folga confortável + reserva insuficiente");
+> depois seria **invisível**. "Apagar dinheiro real não é a quebra de confiança pior —
+> apagar sem dizer é."
+
+**Escopo que a l2 NÃO fecha:** duplicação intra-proveniência em chave de **proveniência
+única** (buraco do `cross_file_dedup` com período na key) permanece aberta e é da
+[[A42.l5]]. Diga isso no PR3, senão alguém conclui que a classe estrutural fechou.
+
 ## Critério de aceite
 
 **Anti-Goodhart primeiro:** a chave do colapsador **contém** a do detector, logo
@@ -344,19 +457,35 @@ construção. Por isso o aceite exige eixos que **não derivam da mesma chave**.
 - **Pré-condição 2 do PR3, bloqueante: paridade de camada.** O enforce não mergeia
   enquanto o número de E3 não tiver instrumento contado e ratcheteado — **113 das 411
   rows (27,5%)** não existem como `transaction_hash` em balde algum. Sem isso o gate
-  de saída da lane é vácuo por construção. Baseline de E3 a congelar: **331 chaves /
-  411 rows declaradas / 453 resolvidas / Σ(cents × rows removíveis) = 216.980.850**
-  — a fórmula faz parte do baseline, porque três somas plausíveis diferem em 2,6×.
+  de saída da lane é vácuo por construção. Baseline de E3 **sob a regra nova**
+  (2026-08-05, pós-§Emenda 2): **331 chaves / 593 rows declaradas / 733 resolvidas /
+  `card {1: 331}` / Σ(cents × rows removíveis) = 303.957.965 / 121 rows e 161.960.555
+  cents fora do campo de visão do detector**. A fórmula faz parte do baseline, porque
+  três somas plausíveis diferem em 2,6×. **Não pine o número como alvo** — o alvo é a
+  regra; pinar 593 é Goodhart (esta lane já acumula três instâncias de identidade que
+  fecha por construção e esconde o defeito).
 - **Banda sobre o número de E3, não sobre 261.** O `[259,261]` que estava aqui era
   erro de camada (ver §Medição do PR1). A banda correta parte do baseline de E3
   acima; o numerador do detector E4 (261) passa a ser **oráculo secundário** que
   também tem de cair — nunca o alvo primário.
-- 🔴 **`survivor_cardinality` tem de ser recalculada antes do enforce.** Hoje é
-  `max(len(group))` sobre rows **cruas**, o que importa para dentro do multiset toda a
-  duplicação intra-proveniência (182 rows medidas). A cardinalidade correta é o número
-  de **eventos distintos** na perna — rows já deduplicadas pelo mesmo critério que
-  `is_duplicate` + `normalize_descricao` aplicam. Sem isso o enforce fica insuficiente
-  em 182 rows e o resultado não é conservador: é errado nos dois sentidos.
+- ✅ **Cardinalidade = eventos por ARQUIVO** (§Emenda 2 da [[ADR-354]], feito no PR1d):
+  sobrevivente = `max` de rows num mesmo `(proveniência, source_document)`. Duas guardas
+  gêmeas, cada uma com prova por mutação: *um arquivo reportando 2× não colapsa para 1*
+  e *dois arquivos reportando 1× cada colapsam para 1*.
+  **Os dois critérios que eu havia proposto morreram no co-design:** descrição
+  normalizada é **degenerada** (é constante dentro da chave por construção — devolveria
+  `card=1` sempre, ou seja o colapso ingênuo disfarçado, apagando repetição legítima em
+  80 chaves); e `is_duplicate` byte-idêntico é **o critério que já falhou** nas 94/262
+  legs com sufixo de roteamento, reproduzindo o teto de ~48% que a §Emenda 1 sepultou.
+- **Sobrevivente é a perna nativa em 100% dos casos**, incluindo as 6 chaves com `kind`
+  assimétrico — eleger a perna LLM converteria receita em `transferencia`, **apagando
+  renda em silêncio**, que é o pior falso-positivo possível neste produto.
+- **Consistência com a regra vigente, testada:** par que o `is_duplicate` colapsaria
+  **dentro** de um arquivo tem de colapsar também **entre** arquivos (2 rows idênticas
+  em 1 vs 2 statements ⇒ mesmo resultado). É o argumento que autoriza a regra: ela é
+  **estritamente mais rígida** que o dedup já vigente (±3 dias, ±R$ 0,01), logo **não
+  abre classe nova de falso-positivo** — só remove a dependência de fronteira de
+  arquivo de uma regra que o produto já aceitou.
 - 🔴 **O PR3 precisa de um 5º canal declarado no ledger — medido 2026-08-05.** O
   `build_artifact_ledger` ([[ADR-347]]) infere o dedup intra por **diferença**
   (`intra = st.tx_loaded - len(s.transactions)`, `e3_load_report.py:120`), e o
