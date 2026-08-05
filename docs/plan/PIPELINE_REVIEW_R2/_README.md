@@ -70,11 +70,25 @@ Co-design: `data-engineer` + `product-designer`. ADR novo de **contrato do view-
 | RV2-09 | parecer rotula `receita_pj_pct` como "% da receita" (base trocada) | — | exec-context | aberto |
 | RV2-24 | limiar de poupança 30% (parecer) vs 25% (E5) | [[ADR-143]] | fonte única | aberto |
 | RV2-25 | `field_request_spurious` p/ `[]` (null-semantics) | — | fix | aberto |
-| RV2-01 | parecer FABRICA métrica em `metricas[]` (valor não derivável de nenhum campo E5); itens sem âncora escapam do verify (`parecer_evidencia.py::_iter_items` só itera riscos+sugestões) | ADR-354 (extende [[ADR-296]]) | ADR novo | 🔬 co-design prompt-engineer **feito**; bloqueado por dep. catálogo KPI |
+| RV2-01 | parecer FABRICA métrica em `metricas[]` (valor não derivável de nenhum campo E5); itens sem âncora escapam do verify (`parecer_evidencia.py::_iter_items` só itera riscos+sugestões) | ADR nova, ID a alocar na escrita (extende [[ADR-296]]; o "ADR-354" antes reservado aqui é da [[A40.l2]] desde #1114) | ADR novo | 🔬 co-design prompt-engineer **feito**; bloqueado por dep. catálogo KPI |
 
-Co-design: `prompt-engineer` **feito** (racional off-git + memória `project_rv2_01_metrica_anchoring_codesign`). **Decisão:** aplicar o padrão ADR-296 (LLM não autora o número) à `Metrica` — `Metrica.ancoras: list[Ancora]` (`default_factory=list`, `max_length=1`, nunca `min_length`=storm) + o finalize **sobrescreve** `valor_atual` com o valor stampado do E5 → fabricação **impossível por construção** (sem value-match frágil); métrica sem âncora resolvível → **drop**. Bumps `EVIDENCIA_VERIFICATION_VERSION` 4→5, `PROMPT_VERSION` 2.2.0→2.3.0, output 2.0→2.1. Teste determinístico (gate por-PR) + LLM-eval owner-gated.
+Co-design: `prompt-engineer` **feito** (racional off-git + memória `project_rv2_01_metrica_anchoring_codesign`). **Decisão:** aplicar o padrão ADR-296 (LLM não autora o número) à `Metrica` — `Metrica.ancoras: list[Ancora]` (`default_factory=list`, `max_length=1`, nunca `min_length`=storm) + o finalize **sobrescreve** `valor_atual` com o valor stampado do E5 → fabricação **impossível por construção** (sem value-match frágil); métrica sem âncora resolvível → **drop**. Bumps `EVIDENCIA_VERIFICATION_VERSION` **5→6** (o "5" foi tomado pela [[A40.l16]] — ver nota abaixo), `PROMPT_VERSION` 2.2.0→2.3.0 (**colide com o bump da [[A40.l31]]** — quem chegar primeiro leva, o outro rebaseia), output 2.0→2.1. Teste determinístico (gate por-PR) + LLM-eval owner-gated.
 
-> **⚠️ Dependência load-bearing (não prevista na missão):** o catálogo de citação (`parecer_citation_catalog.py`) é **money-only**, mas o bug era **%**. Sem um **catálogo KPI curado** (~10-15 folhas `*_pct`/`cobertura_meses`/…, já leaves no `e5_analysis.schema.json`) exposto ao LLM, **toda métrica % vira drop → seção de métricas esvaziada** (troca fabricação por regressão). Exige co-design **data-engineer** (leaf vs derivação) + **financial-planner** (quais KPIs a seção mostra) **ANTES** de implementar. Ordem: co-design catálogo → ADR-354 Proposto → 1 PR (schema + verify + finalize + catálogo + prompt + bumps + teste).
+> ⚠️ **Três derivas desta entrada, registradas na [[A40.l30]] §Handoff e fechadas
+> aqui (medido 2026-08-05).** (1) `EVIDENCIA_VERIFICATION_VERSION`: a [[A40.l16]]
+> shipou o bump 4→5 primeiro (#1159, `0f8c3b18`) e
+> `backend/app/services/parecer_evidencia.py:28` já é `"5"` — bumpar "4→5" agora
+> criaria colisão silenciosa de chave de cache
+> (`parecer_orchestrator.py:143`, `:ev{…}:p{…}:rl{…}`): dois conteúdos de
+> verificação diferentes compartilhando entrada, exatamente a classe que o bump
+> existe para evitar. Por isso **5→6**. (2) `PROMPT_VERSION` 2.2.0→2.3.0 colide
+> com a [[A40.l31]], que declara o mesmo bump. (3) O ID "ADR-354" que esta
+> entrada reservava em prosa é da [[A40.l2]] desde #1114 ([[ADR-354]] =
+> identidade K4); a regra é reservar o trabalho, não o ID ([[ADR-345]]) — e o
+> gate da [[A40.l23]] não pega este caso: ele checa que a referência *resolve*,
+> não a posse.
+
+> **⚠️ Dependência load-bearing (não prevista na missão):** o catálogo de citação (`parecer_citation_catalog.py`) é **money-only**, mas o bug era **%**. Sem um **catálogo KPI curado** (~10-15 folhas `*_pct`/`cobertura_meses`/…, já leaves no `e5_analysis.schema.json`) exposto ao LLM, **toda métrica % vira drop → seção de métricas esvaziada** (troca fabricação por regressão). Exige co-design **data-engineer** (leaf vs derivação) + **financial-planner** (quais KPIs a seção mostra) **ANTES** de implementar. Ordem: co-design catálogo → ADR nova `Proposto` (ID alocado na escrita) → 1 PR (schema + verify + finalize + catálogo + prompt + bumps + teste).
 
 ### Onda D — plano de ação & identidade
 

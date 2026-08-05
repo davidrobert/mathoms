@@ -65,7 +65,11 @@ indetectável e precisa.
   do card, **print-visible, nunca tooltip**.
 
 **Uma linha no `ReportDataQualityBanner` existente** (A28.l9) para o estado
-parcial. Não criar o 6º banner. Emenda de uma palavra no título: hoje diz
+parcial. **Não criar banner novo** — medido em 2026-08-05
+(`rg -n 'export function [A-Za-z]*Banner' frontend/src/components/report/`), há
+**4**: `ReportDataQualityBanner`, `DefasagemWarningBanner`, `AcumuladoresBanner`,
+`MonthClosedBanner`. Reusar um dos 4 é a decisão; o argumento é a enumeração,
+não um ordinal. Emenda de uma palavra no título: hoje diz
 *"N pendências afetam a **precisão** deste relatório"* — item retido afeta
 **completude**, não precisão; use "afetam a **leitura**", palavra que o próprio
 componente já usa na barra limpa.

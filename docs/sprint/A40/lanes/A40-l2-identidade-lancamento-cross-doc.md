@@ -41,9 +41,20 @@ re-meça do zero — parta daqui:**
   fora do git, [[ADR-343]]).
 
 **Como provar o fix:** re-rodar `dev/certify_ledger_local.py <ws>` e comparar o
-numerador contra 261. A l1 deixou 8 ratchets provados por mutação, então filtro
-ou cap silencioso no numerador quebra teste em CI (grupo `dev_tools` no
-`ci.yml`).
+numerador contra 261. A l1 deixou **8 ratchets — 4 re-confirmados manualmente, 4
+só com a prova do implementador** (ver [[A40.l1]] §Fechamento, residual 4) —,
+então filtro ou cap silencioso **no numerador** quebra teste em CI (grupo
+`dev_tools` no `ci.yml`).
+
+> ⚠️ **Furo conhecido do instrumento que você vai usar como prova.** Os caps de
+> **comprimento** do render não têm ratchet: `dev/ledger_cross_group_render.py:118`
+> e `:124` (histogramas, 12), `:126` (`_fmt_occurrences(hits, 20)`) e `:137`
+> (cap 8). Os ratchets existentes pinam o **numerador impresso**
+> (`test_numerador_nao_tem_cap_constante`,
+> `test_render_pina_o_numero_impresso_em_corpus_misto`), não o comprimento das
+> listas — a lista de evidência pode encolher em silêncio enquanto o headline a
+> contradiz. **Prove pelo numerador, não pela lista renderizada.** Detalhe em
+> [[A40.l1]] §Fechamento, residuais 3 e 4.
 
 **Residual que esta lane herda:** o predicado de carrier 1 aceita QUALQUER
 divergência de `tipo_conta` (mais largo que o par variante). Par de tipos de
