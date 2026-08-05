@@ -78,7 +78,8 @@ def test_classe_medida_e_colapsavel_com_uma_row_removivel() -> None:
     assert (candidato.n_rows, candidato.n_provenances) == (2, 2)
     assert candidato.survivor_cardinality == 1
     assert candidato.removable_rows == 1
-    assert len(candidato.removable_hashes) == 1
+    assert _rows_alcancadas(candidato, _par_nativo_llm()) == 1
+    assert not candidato.alvo_ambiguo
 
 
 def test_coincidencia_cross_conta_com_pernas_simetricas_nao_colapsa() -> None:
@@ -92,7 +93,7 @@ def test_coincidencia_cross_conta_com_pernas_simetricas_nao_colapsa() -> None:
 
     assert not candidato.collapsible
     assert candidato.blocked_reason == "banco_conflitante"
-    assert candidato.removable_hashes == ()
+    assert candidato.removal_targets == ()
 
 
 def test_titular_conflitante_nao_colapsa_mesmo_com_tipo_conta_variante() -> None:
@@ -131,7 +132,7 @@ def test_repeticao_legitima_no_mesmo_dia_preserva_a_cardinalidade_multiset() -> 
     assert candidato.n_rows == 4
     assert candidato.survivor_cardinality == 2
     assert candidato.removable_rows == 2
-    assert len(candidato.removable_hashes) == 2
+    assert not candidato.alvo_ambiguo
 
 
 def _par_com_cardinalidade(n_nativo: int, n_llm: int) -> list[BankStatement]:
@@ -147,17 +148,34 @@ def _par_com_cardinalidade(n_nativo: int, n_llm: int) -> list[BankStatement]:
     ]
 
 
+def _rows_alcancadas(candidato, statements: list[BankStatement]) -> int:
+    """Rows que o alvo emitido REALMENTE resolve no corpus."""
+    # Hash não endereça row (toda row de um bucket tem o mesmo). Asserção sobre `len`
+    # da lista de hashes é cega a isso — foi assim que o alvo passou a declarar 411 e
+    # resolver 453 (medido 2026-08-05).
+    from pipeline.domain.services.cross_document_collapser import _row_hash
+
+    alvo = {t.hash for t in candidato.removal_targets}
+    return sum(1 for s in statements for tx in s.transactions if _row_hash(tx, s) in alvo)
+
+
 @pytest.mark.parametrize("n_nativo,n_llm", [(1, 2), (2, 1), (3, 1), (1, 3), (2, 2)])
 def test_aritmetica_multiset_sob_cardinalidade_assimetrica(n_nativo, n_llm) -> None:
     """Sobreviventes == cardinalidade multiset; o corte nunca excede a perna LLM."""
-    # Não ocorre no corpus (100% das 261 é `2 rows, 2 provs`) — guarda para quando
-    # ocorrer: se o corte pedisse mais que `llm_rows`, a lista sairia curta em silêncio.
-    (candidato,) = _measure(_par_com_cardinalidade(n_nativo, n_llm))
+    # A forma (2 llm, 1 nativo) OCORRE — 42× no corpus dogfood. O comentário anterior
+    # aqui dizia que nenhuma dessas formas ocorria, e era falso: só 149 das 331 são
+    # `2 rows, 2 provs`.
+    statements = _par_com_cardinalidade(n_nativo, n_llm)
+
+    (candidato,) = _measure(statements)
 
     assert candidato.survivor_cardinality == max(n_nativo, n_llm)
     assert candidato.n_rows - candidato.removable_rows == candidato.survivor_cardinality
     assert candidato.removable_rows == min(n_nativo, n_llm)
-    assert len(candidato.removable_hashes) == candidato.removable_rows
+    # O eixo que o `len` da lista não cobria: quantas rows o alvo resolve de fato.
+    assert _rows_alcancadas(candidato, statements) == candidato.rows_alcancadas_por_hash
+    # Remoção PARCIAL de bucket é ambígua por construção e tem de ser declarada.
+    assert candidato.alvo_ambiguo == (n_llm > candidato.removable_rows)
 
 
 def test_par_nativo_mais_nativo_nao_colapsa() -> None:
@@ -240,8 +258,9 @@ def test_sobrevivente_e_a_perna_nativa() -> None:
     nativa, llm = _par_nativo_llm()
     (candidato,) = _measure([nativa, llm])
 
-    assert candidato.removable_hashes == (_row_hash(llm.transactions[0], llm),)
-    assert _row_hash(nativa.transactions[0], nativa) not in candidato.removable_hashes
+    alvo = {t.hash for t in candidato.removal_targets}
+    assert alvo == {_row_hash(llm.transactions[0], llm)}
+    assert _row_hash(nativa.transactions[0], nativa) not in alvo
 
 
 @pytest.mark.parametrize(
