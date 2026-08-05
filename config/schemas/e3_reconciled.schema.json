@@ -103,7 +103,7 @@
         "undated_drop": {"$ref": "#/$defs/remocao"},
         "anachronic": {"$ref": "#/$defs/remocao"},
         "intra_statement_dedup": {"$ref": "#/$defs/remocao"},
-        "cross_file_dedup": {"$ref": "#/$defs/remocao"}
+        "cross_file_dedup": {"$ref": "#/$defs/remocao"}, "cross_document_collapse": {"$ref": "#/$defs/remocao"}
       },
       "additionalProperties": false
     }
