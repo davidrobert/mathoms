@@ -112,7 +112,7 @@ ressuscite achando que são escopo pendente:
 **Sobreviveu:** colapso **por transação**, pré-agrupamento — e o alias-map do dono
 renasce como **allow-list do predicado de colapso**, não como canonicalização.
 
-## Escopo — 4 PRs, nenhum toca `_hash_v2`
+## Escopo — 5 PRs, nenhum toca `_hash_v2`
 
 `_hash_v1` está **congelado** ([[ADR-278]] D1) e `_hash_v2` é a chave de dedup
 **e** de re-ancoragem de `transaction_overrides`. O colapsador **seleciona rows**;
@@ -127,15 +127,19 @@ integralmente válida.
   da [[A40.l1]]. Não remove row; emite **alvo com multiplicidade** (`RemovalTarget`).
   ⚠️ O contrato original — "emite os `_hash_v2` que removeria" — era **errado**: hash
   não endereça row (ver §P0 achado pela verificação). Corrigido no PR1b.
-- **PR1b — instrumento de E3 + correção do P0 de endereçamento.** Promove a medição a
-  parte do harness (`dev/ledger_collapse_layer.py`), com **4 identidades** e ratchet
-  por mutação; injeta o colapsador **no harness** via kwarg do `_e3_build_adapter`, não
-  em produção. Troca a lista de hashes por `RemovalTarget(hash, remover, no_bucket)`.
-  **Bloqueia o PR3** por dois eixos medidos: `alvo_enderecavel=false` (411 declaradas
-  vs 453 resolvidas) e 113 das 411 rows fora do campo de visão do detector. Custo S,
-  0 LLM, read-only.
-- **PR2 — re-ancoragem (backend), pré-condição do enforce.** Consome os hashes do
-  PR1, cruza com `transaction_overrides` ativos e produz o mapa
+- **PR1b — correção do P0 de endereçamento** ✅ **PR #1208** (`c0c27a9b`). Troca a
+  lista de hashes por `RemovalTarget(hash, remover, no_bucket)`; `hash_desaparece` é o
+  predicado que o PR2 consome. Saiu **separado** do instrumento a pedido do
+  `pr-size-labeler` — 97 linhas que mudam contrato merecem revisão isolada.
+- **PR1c — instrumento de E3.** Promove a medição a parte do harness
+  (`dev/ledger_collapse_layer.py`), com **4 identidades** e ratchet por mutação;
+  injeta o colapsador **no harness** via kwarg do `_e3_build_adapter`, não em
+  produção. **Bloqueia o PR3** por dois eixos medidos: `alvo_enderecavel=false` (411
+  declaradas vs 453 resolvidas) e 113 das 411 rows fora do campo de visão do detector.
+  Custo S, 0 LLM, read-only.
+- **PR2 — re-ancoragem (backend), pré-condição do enforce.** Consome os
+  `RemovalTarget` do PR1b (não "os hashes" — hash não endereça row), cruza com
+  `transaction_overrides` ativos e produz o mapa
   removido→sobrevivente. Respeita o boundary (`pipeline/**` sem `sqlalchemy`): o
   pipeline **emite**, o backend **decide**. Enforce só liga se a interseção for
   vazia **ou** o mapa cobrir 100%.
