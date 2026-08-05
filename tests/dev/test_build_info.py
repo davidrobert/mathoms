@@ -129,6 +129,30 @@ def test_preflight_avisa_quando_ninguem_anunciou() -> None:
     assert "nenhum processo" in (preflight_warning(None, "aaaaaaaaaaaa") or "")
 
 
+# Linha REAL do worker nativo (copiada de `_dev_pids/worker.log`, 2026-08-05).
+# O Celery prefixa com o formatter dele, então o JSON não começa na coluna 0.
+_LINHA_REAL_CELERY = (
+    "[2026-08-05 15:17:21,534: WARNING/ForkPoolWorker-1] "
+    '{"message": "mathoms.worker.boot", "executor_revision": "ceca2e9b7604", '
+    '"timestamp": "2026-08-05T18:17:21.530530Z", "level": "INFO", "logger": "mathoms.worker"}'
+)
+
+
+def test_le_a_linha_que_o_worker_REALMENTE_emite() -> None:
+    """Regressão: o parser exigia `startswith("{")` e pulava todas as linhas."""
+    # O teste original alimentava JSON puro inventado por mim. O produtor emite
+    # com prefixo do Celery, então o preflight ficava cego no ambiente real —
+    # descoberto pelo dono rodando de verdade, não pela suíte.
+    assert boot_revision_from_log(_LINHA_REAL_CELERY) == "ceca2e9b7604"
+
+
+def test_linha_de_ruido_do_celery_sem_json_nao_quebra() -> None:
+    """O Celery loga a mesma mensagem 2×: uma sem JSON, outra com."""
+    ruido = "[2026-08-05 15:17:21,530: INFO/ForkPoolWorker-1] mathoms.worker.boot"
+    assert boot_revision_from_log(ruido) is None
+    assert boot_revision_from_log(f"{ruido}\n{_LINHA_REAL_CELERY}") == "ceca2e9b7604"
+
+
 def test_boot_revision_pega_a_ultima_do_log() -> None:
     """Worker recicla filhos (max-tasks-per-child); vale a última."""
     log = "\n".join(

@@ -132,18 +132,29 @@ def commits_ahead_of(revision: str | None, head: str | None = None) -> int | Non
 
 def boot_revision_from_log(text: str) -> str | None:
     """Última revisão anunciada no log de boot (JSON estruturado)."""
+    # O JSON NÃO começa na coluna 0: o Celery prefixa cada linha com o formatter
+    # dele (`[2026-… WARNING/ForkPoolWorker-1] {…}`). Exigir `startswith("{")`
+    # fazia o parser pular todas as linhas reais — o teste original alimentava
+    # JSON puro inventado por mim, não o que o produtor emite.
     found = None
     for line in text.splitlines():
-        line = line.strip()
-        if not line.startswith("{") or _LOG_KEY not in line:
+        if _LOG_KEY not in line:
             continue
-        try:
-            value = json.loads(line).get(_LOG_KEY)
-        except (ValueError, AttributeError):
-            continue
-        if isinstance(value, str) and value:
+        value = _revision_in_line(line)
+        if value:
             found = value
     return found
+
+
+def _revision_in_line(line: str) -> str | None:
+    start = line.find("{")
+    if start < 0:
+        return None
+    try:
+        value = json.loads(line[start:]).get(_LOG_KEY)
+    except (ValueError, AttributeError):
+        return None
+    return value if isinstance(value, str) and value else None
 
 
 _UNKNOWN_REVISION_LITERAL = "desconhecido"
