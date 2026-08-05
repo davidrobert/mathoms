@@ -38,7 +38,7 @@ ver ADR-146.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Iterable
 
@@ -59,23 +59,11 @@ def _cross_source(a: Transaction, b: Transaction) -> bool:
 
 def _reconciled_copy(stmt: BankStatement, transactions: list[Transaction]) -> BankStatement:
     """Cópia de ``stmt`` com a lista de transações dedup-ada (não muta o original)."""
-    # Construtor campo-a-campo: campo novo em BankStatement NÃO chega aqui sozinho —
-    # é como `account_number_*` se perde (gate em
-    # test_cross_document_collapser::test_reconcile_preserva_todo_campo_de_identidade).
-    return BankStatement(
-        institution=stmt.institution,
-        member_key=stmt.member_key,
-        period_start=stmt.period_start,
-        period_end=stmt.period_end,
-        currency=stmt.currency,
-        transactions=transactions,
-        opening_balance=stmt.opening_balance,
-        closing_balance=stmt.closing_balance,
-        source_document=stmt.source_document,
-        notes=list(stmt.notes),
-        account_type=stmt.account_type,
-        extraction_method=stmt.extraction_method,
-    )
+    # `replace`, não construtor campo-a-campo: a reconstrução explícita apagava
+    # todo campo adicionado depois dela — `account_number_raw`/`_norm` (ADR-226
+    # PR2) chegavam `None` no payload E3, matando o discriminador entre dois
+    # membros no mesmo banco. `notes` segue copiada por ser lista mutável.
+    return replace(stmt, transactions=transactions, notes=list(stmt.notes))
 
 
 @dataclass(frozen=True)
