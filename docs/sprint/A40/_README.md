@@ -602,9 +602,14 @@ DAS no `s8` e `das_simples` em `despesas_impostos` depois de re-medir o balde co
 matcher de `69a2fad4`). Esses ficam na A40 — e então precisam de lane, contra as 24
 atuais — ou viram disposição explícita de não-fazer na §Fora do sprint?
 
-**Relacionado:** o `s1` publicando "residência própria de R$ 0,00" foi roteado
-para a [[A40.l5]] (registrado lá em §Escopo herdado), mas é da classe
-**zero-como-valor**, que é a RV3-27 da [[A40.l6]] — mover ou manter?
+**Relacionado — ✅ RESOLVIDO 2026-08-05:** o `s1` publicando "residência própria
+de R$ 0,00" **move** da [[A40.l5]] para a [[A40.l6]]. Critério: classe
+zero-como-valor (RV3-27) é escopo declarado da l6; a regra já está decidida em
+[[ADR-356]] §D7 e o arquivo é `summaries_narrator.py` (pipeline), disjunto do
+entregável da l5 (codegen + gate de contrato de frontend) — o campo tem consumidor
+e o zero é genuíno, logo não é leitura órfã. Manter na l5 decidiria a política de
+zero-como-valor em dois lugares. Registrado em [[ADR-356]] §Emenda 2026-08-05, no
+§Itens adotados da l6 e no §Escopo herdado da l5 (como ponteiro).
 
 **7. Onde mora o tripwire de revert da [[A40.l21]], e quem é o owner?** —
 ✅ **RESOLVIDA 2026-08-03.** Host = §Gate de saída e encerramento (novo); gatilho =
@@ -830,18 +835,21 @@ materialidade medida" é o único caso desta lista que qualifica como "esquecime
 evitado por disposição", não por adoção.
 
 **12. Autorreferência em `depends_on`/`parallel_with` vira gate, ou fica no olho
-do revisor?** A [[A40.l27]] entrou em `main` declarando `depends_on: [[A40.l27]]`
-e `parallel_with: [[A40.l27]]` — um find-replace de renumeração trocou os
-wikilinks `[[A40.l19]]`/`[[A40.l21]]` pelo próprio id, deixando a prosa "l19"/"l21"
-intacta em texto plano. **Nenhum gate pegou**: `check_doc_links` só pergunta se o
-alvo resolve (resolve — é a própria nota), `validate_frontmatter` valida o schema
-(a lista é de strings válidas), e o corpo continuou coerente porque a prosa não
-usa wikilink. O efeito é pior que um link quebrado: **reescreve o grafo de
-dependências em silêncio** e some do `depends_on` de quem deveria constar. Custo
-do gate: ~10 linhas em `dev/validate_frontmatter.py` (266 linhas, tem folga —
-`check_doc_links.py` está em 498/500 e estouraria o P2). Não há caso legítimo de
-nota depender de si mesma. Absorver na [[A40.l23]], que já é a lane de gate de
-referência de doc, ou lane própria?
+do revisor?** — ✅ **RESOLVIDA 2026-08-05: vira gate, absorvida pela [[A40.l23]]
+§Escopo adotado item 1 e entregue antecipadamente no PR #1216** — registro
+canônico no arquivo da lane. A [[A40.l27]] entrou em `main` declarando
+`depends_on: [[A40.l27]]` e `parallel_with: [[A40.l27]]` — find-replace de
+renumeração trocou os wikilinks pelo próprio id. **Duas correções factuais ao
+diagnóstico original:** (a) o mecanismo não era "`check_doc_links` pergunta se o
+alvo resolve" — aquele gate **nunca vê o frontmatter** (o strip apaga antes de
+extrair wikilinks), então aresta para id **inexistente** também passa nos cinco
+gates — buraco maior, agora nomeado como item 1b da l23, ainda aberto; (b) o
+custo real foi ~34 linhas no estilo do módulo, não ~10 (segue longe do P2 de
+500). O gate cobre também `supersedes`/`superseded_by` e alias/anchor; prova de
+mutação em `tests/test_doc_graph_gates.py`. Id duplicado (rabo da §Pendência 10)
+**já tinha gate** em `check_doc_links` — pinado por teste no mesmo PR; a
+renumeração 2× da l27 não foi falha de gate (ele disparou no rebase), é problema
+de **alocação**, que o `former_ids` (l23 item 3) audita.
 
 ## Fora do sprint (disposição explícita)
 

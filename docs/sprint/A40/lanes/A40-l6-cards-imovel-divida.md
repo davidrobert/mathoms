@@ -59,7 +59,30 @@ a regra de copy (ausência ⇒ `—`).
   divergem: o print CSS não força `details[open]`, então o bloco colapsado pode não
   sair no PDF **e ainda assim** estar no DOM servido — testar as duas.
 
-## Item adotado (2026-08-05)
+## Itens adotados (2026-08-05)
+
+### `s1` publica "residência própria de R$ 0,00" (movido da [[A40.l5]])
+
+Mesma classe do RV3-27 (zero-como-valor) que esta lane já é dona; a l5 registrou o
+item em §Escopo herdado e devolveu a decisão ao dono, que o moveu para cá em
+2026-08-05 (ver [[ADR-356]] §Emenda 2026-08-05).
+
+- **Arquivo é `pipeline/`, não frontend:** o f-string do `s1` em
+  `pipeline/domain/services/narrativas/summaries_narrator.py` (a parcela
+  `residência própria de {…}`). A regra já está decidida — [[ADR-356]] §D7 ("ou o
+  número vem do payload, ou não é afirmado") — e a implementação-precedente é
+  `_S4_VALOR_TEMPLATES` + `_s4_portfolio_head`, no mesmo módulo: parcela
+  condicional a `> 0`. **Não** é redecisão de produto; é aplicar a regra à parcela
+  que ficou fora da lista fechada da l4.
+- **Independe do `depends_on: [[A40.l5]]`** desta lane: o item não passa pelo
+  codegen nem pelo gate de contrato. Pode ir em PR próprio, antes da l5.
+- **Coordenar com a [[A40.l15]]**, que também edita esse módulo (decisão do `s3`).
+  Hunks disjuntos (`s1` vs `_summary_s3`); quem chegar depois rebaseia.
+- Aceite: fixture com `residencia = 0` ⇒ a parcela **não é afirmada** (nem
+  "R$ 0,00", nem `—` dentro da frase); com valor real ⇒ afirmada. Prova por
+  mutação: restaurar o f-string incondicional deixa o teste vermelho.
+
+### `perfil_familia.right` publica `n_imoveis` (da [[A40.l4]] §Residual)
 
 Follow-up órfão da [[A40.l4]] §Residual: `perfil_familia.right` publica
 `{n_imoveis} imóvel/imóveis` de forma independente do card S4 — a mesma contagem

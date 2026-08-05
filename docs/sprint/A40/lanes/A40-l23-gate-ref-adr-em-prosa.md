@@ -65,14 +65,49 @@ era candidata a absorver o gate da §Pendência de decisão nº 12. Origem: aval
 fusão [[A42]] → [[A40]] (recusada), que mediu os três como **blind spots provados**,
 não hipóteses. São ortogonais ao gate de ADR-em-prosa acima e podem ir em PR próprio.
 
-1. **Autorreferência e aresta órfã em `depends_on`/`parallel_with`.** É a §Pendência
-   nº 12 da [[A40]]: a l27 entrou em `main` declarando `depends_on: [[A40.l27]]` —
-   find-replace de renumeração trocou os wikilinks pelo próprio id e **nenhum gate
-   pegou** (`check_doc_links` só pergunta se o alvo resolve, e resolve: é a própria
-   nota). Efeito pior que link quebrado: **reescreve o grafo de dependências em
-   silêncio**. ~10 linhas em `dev/validate_frontmatter.py` (266 linhas, tem folga;
-   `check_doc_links.py` está em 498/500 e estouraria o P2 de tamanho). Não há caso
-   legítimo de nota depender de si mesma.
+1. ~~**Autorreferência em `depends_on`/`parallel_with`.**~~ ✅ **Item adotado e
+   entregue antecipadamente** — PR #1216, 2026-08-05. Fecha a §Pendência nº 12 da
+   [[A40]]. Gate em `dev/validate_frontmatter.py::validate_note` (+34 linhas,
+   266→320 — a estimativa de "~10 linhas" era otimista; segue longe do P2 de 500),
+   cobrindo também `supersedes`/`superseded_by`, e alias `|` / anchor `#`. Testes +
+   prova de mutação em `tests/test_doc_graph_gates.py` (desligar o gate derruba 6;
+   rebaixar o `ERRO:` de id duplicado derruba 2). **Não sobra nada deste item.**
+
+1b. **Aresta órfã (`depends_on` para id inexistente) — NÃO é o mesmo gate, e não
+   cabe no `validate_frontmatter.py`.** Medido 2026-08-05: um `depends_on` cujo
+   wikilink aponta para o id inexistente `A40.l999-nao-existe` passa nos
+   **cinco** gates de doc. A causa é mais
+   funda que a §Pendência 12 descrevia: `check_doc_links.py` **nunca vê o
+   frontmatter** (`_strip_frontmatter_preserving_lines` o apaga antes de extrair
+   wikilinks — fixture reporta *0 wikilinks*). Logo não é "o alvo resolve": é que
+   a aresta é invisível. Autorreferência é **intra-arquivo** (funciona com o
+   `pass_filenames: true` do hook `doc-frontmatter`); aresta órfã é
+   **cross-arquivo** e exige o índice global de ids, que uma invocação de 1
+   arquivo não tem — colocar lá dá falso-verde ou varredura N². Home correta,
+   com precedente exato de forma: **`dev/check_lane_plan_refs.py`** (69 linhas,
+   `pass_filenames: false`, já valida a FK `lane.plan` cross-arquivo desta mesma
+   maneira) — estenda para `depends_on`/`parallel_with`/`prompt`/`adrs`, ou crie
+   `dev/check_lane_graph_refs.py` irmão. **2 violações pré-existentes saem no
+   mesmo PR** (senão o gate nasce vermelho):
+   `docs/sprint/A11/lanes/A11-report-publication-month-closed.md` →
+   `parallel_with: "[[A11.competitive-pierre]]"` (id nunca existiu) e
+   `docs/sprint/A12/lanes/A12-decision-code-autogen-server-gen.md` →
+   `prompt: "[[decision-code-autogen]]"` (o id real é
+   `TRACK-decision-code-autogen`).
+
+1c. **Id duplicado entre arquivos JÁ tem gate — não escrever de novo.** Medido
+   2026-08-05: `check_doc_links.py` emite `ERRO: id duplicado` e sai 1; com
+   `pass_filenames: false` ele sempre varre a vault inteira, logo não é burlável
+   tocando 1 arquivo. Os outros três gates ficam verdes na mesma fixture
+   (`check_doc_filename_id` deriva o prefixo esperado do próprio id e aceita
+   qualquer slug; `build_doc_index --check` emite as duas linhas sem detectar).
+   A l27 renumerada 2× **não** foi falha de gate — o gate disparou, no rebase; o
+   que falta é detecção na **alocação**, que nenhum gate de arquivo dá (os
+   colidentes nunca coexistem antes do rebase) — é o que o `former_ids` (item 3)
+   audita e o protocolo de checar PR aberto antes do pickup mitiga. O
+   comportamento está **pinado** por teste em `tests/test_doc_graph_gates.py`
+   (PR #1216), porque `check_doc_links.py` está em 498/500 linhas e um split
+   futuro para caber no P2 poderia dropar o branch de colisão em silêncio.
 2. **Coerência `path ↔ sprint`.** Lane com `sprint: AXX` tem de viver em
    `docs/sprint/AXX/lanes/`. Hoje **nada verifica**: medido em cópia isolada da vault,
    mover as 12 lanes da A42 para `docs/sprint/A40/lanes/` trocando só o campo `sprint`
@@ -108,8 +143,14 @@ prova de outra) ficou invisível às duas sprints até 2026-08-05.
 
 ### Dos 3 gates de grafo de lane (§Escopo adotado)
 
-- **Prova por mutação nos três, senão o gate é vácuo** (regra 3 da [[A42]]): fixture com
-  `depends_on: ["[[self]]"]` ⇒ EXIT≠0 · lane com `sprint: A40` sob `docs/sprint/A42/lanes/`
+- ✅ **Autorreferência (item 1): entregue com prova de mutação** — PR #1216,
+  `tests/test_doc_graph_gates.py` (fixture `depends_on: ["[[A99.l1]]"]` na
+  própria nota ⇒ EXIT=1; desligar o gate derruba 6 testes).
+- **Aresta órfã (item 1b) ainda aberta** — fixture com
+  `depends_on: "[[id-inexistente]]"` ⇒ EXIT≠0, no gate cross-arquivo (ver 1b),
+  com as 2 violações pré-existentes corrigidas no mesmo PR.
+- **Prova por mutação nos restantes, senão o gate é vácuo** (regra 3 da [[A42]]):
+  lane com `sprint: A40` sob `docs/sprint/A42/lanes/`
   ⇒ EXIT≠0 · `former_ids` com id fora do pattern ⇒ EXIT≠0.
 - `former_ids` retroaplicado em [[A40.l24]] e [[A40.l27]] no mesmo PR — sem isso o campo
   nasce sem os dois únicos casos que existem.

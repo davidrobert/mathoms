@@ -76,16 +76,18 @@ não batia neste arquivo. Handoff só existe quando a lane de destino o registra
 
 | Herdado | O que foi medido na l4 |
 |---|---|
-| **`s1` publica "residência própria de R$ 0,00"** | Mesma classe do "R$ 0,00 em campo fiscal" (lê-se como "sua casa não vale nada"). No `s4` a parcela zerada foi suprimida na l4; no `s1` não, porque o `s1` estava fora da lista fechada. **Ver §Pendências de decisão nº 6 do [[A40]]:** é classe zero-como-valor, que é a RV3-27 da [[A40.l6]] — o dono decide se fica aqui ou move |
+| ~~**`s1` publica "residência própria de R$ 0,00"**~~ | **Movido para [[A40.l6]]** em 2026-08-05 (decisão do dono, §Pendência nº 6 "Relacionado" do [[A40]]; registrado em [[ADR-356]] §Emenda 2026-08-05): é classe zero-como-valor (RV3-27), o arquivo é `summaries_narrator.py` (pipeline) e a regra já está decidida na §D7 da ADR-356 — não é leitura órfã nem contrato de frontend |
 | **Sufixo de changelog da [[ADR-148]] não renderiza em seção nenhuma** | `get_report_data.py:78` usa `SnapshotChangelogConfig()` default, cujo `sections_to_compare` (`M_PL`, `M_TAXA_POUPANCA`, `M_RESERVA_MESES`, `M_AUVP_DESVIO`) não contém nenhum id de seção do layout, e o casamento é por `section_id`. A composição decidida na §D10 é contrato, não preservação de comportamento visível |
 | **C11 — `ratios.autonomia_financeira_meses` = 16,72 sem consumidor** | Runway canônico ([[ADR-335]]) calculado e nunca renderizado; o alias colide de nome com cobertura da reserva. É campo do view-model, não de narrativa — nenhum dos 7 destinos entregues o cita |
 | **C36 — blocos que não movem decisão** | A parte narrativa (duplicação no empty state da S9) foi corrigida na l4. O que sobra são **cards**: orçamento 44m, premissas 10/10 indisponíveis, checklist de sucessão todo negativo |
 | **`renda_passiva_estimada_4pct` cristaliza "4" no nome do campo** | O SWR 4% e o yield-alvo 5% são conceitos distintos sob [[ADR-191]] §Emenda FP-03 e **não se harmonizam**. Um número no nome do campo trava a taxa no contrato — é exatamente o tipo de acoplamento que o codegen desta lane deveria expor |
 
-Os 5 entram no numerador de "leituras órfãs" **se e somente se** o gate os
-classificar como tal. `s1` e `renda_passiva_estimada_4pct` provavelmente não são
-órfãos (têm consumidor); são defeitos de **contrato**, que é o objeto desta lane.
-Não presuma que "5 → 0" já os cobre.
+Os 4 restantes entram no numerador de "leituras órfãs" **se e somente se** o gate
+os classificar como tal (o do changelog foi roteado para
+[[PLAN-snapshot-changelog-v3]] §Residual W3 em 2026-08-05 — era resíduo daquele
+plano). `renda_passiva_estimada_4pct` provavelmente não é órfão (tem consumidor);
+é defeito de **contrato**, que é o objeto desta lane. Não presuma que "5 → 0" já
+os cobre.
 
 ## Guarda anti-regressão
 
