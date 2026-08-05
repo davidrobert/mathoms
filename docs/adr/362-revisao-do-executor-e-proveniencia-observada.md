@@ -5,6 +5,7 @@ title: "Revisão do executor é proveniência de processo observada, não garant
 status: Proposto
 phase: "A40"
 date: "2026-08-05"
+amended_at: ["2026-08-05"]
 relates_to:
   - "[[ADR-343]]"
   - "[[ADR-311]]"
@@ -24,6 +25,14 @@ tags:
 ---
 
 # ADR-362 — Revisão do executor é proveniência de processo observada
+
+> **Emenda 2026-08-05 (correção de premissa, não de decisão):** o §Contexto
+> afirmava que *"em produção não há `.git` nem SHA assado, logo incidente não é
+> atribuível a release"*. **Não existe produção** — o projeto roda só na máquina
+> do dono, em dogfood e desenvolvimento. A decisão sobrevive inteira (foi
+> derivada de realidades locais: worktrees, árvore suja, worker stale); o que
+> cai é um argumento de escopo que eu usei para dizer que o problema era maior
+> que o dogfood. Ver §Emenda 2026-08-05.
 
 ## Contexto
 
@@ -47,8 +56,8 @@ Consequências medidas, todas verificadas em código:
   derivada de `stage`, logo redundante.
 - Achado de review pode já ter sido corrigido em `main` entre o run e o
   fechamento da rodada, e **o dado bruto para checar isso não existe**.
-- Em produção não há `.git` nem SHA assado: **incidente não é atribuível a
-  release**.
+- ~~Em produção não há `.git` nem SHA assado: **incidente não é atribuível a
+  release**.~~ **Retirado pela emenda de 2026-08-05: não existe produção.**
 
 O precedente correto não é nenhuma das colunas mortas: é
 **`prompt_version`** ([[ADR-311]]), que nasceu para ser consultável e tem
@@ -182,3 +191,31 @@ Critério de recuo: o mesmo da [[ADR-311]] §D5.
   no corpo da task e o worker roda com `--max-tasks-per-child`, então um `git
   pull` mid-run dessincroniza sem mudar o stamp. Mitigado por preflight e pelo
   aviso de raízes divergentes; **não** resolvido.
+
+## Emenda 2026-08-05 — não existe produção; o escopo é o loop local
+
+O §Contexto listava a inatribuibilidade de incidente em produção como quarta
+consequência medida. **Era hipótese, não medição:** o projeto roda exclusivamente
+na máquina do dono, em dogfood e desenvolvimento. O plano [[PLAN-launch-trust]]
+já parte de *"assumindo que o projeto ainda não está em produção"* — esta ADR era
+o outlier do vault, não o vault.
+
+**O que NÃO muda (e por que a decisão sobrevive intacta):** cada escolha desta
+ADR foi derivada de realidade local, não de deploy.
+
+| Decisão | Premissa que a sustenta | Local-only afeta? |
+|---|---|---|
+| Env pinada no launch, zero subprocess `git` em `backend/app` | Worker que memoiza o HEAD do momento do run mente sobre o bytecode — **incidente local, medido** (worker de 07:28 servindo HEAD de 08:13) | não |
+| Grão de stage, não de run | `_mark_run_started` roda 2× no resume | não |
+| Sufixo `-dirty` na identidade | Dogfood roda de worktrees, com árvore suja | **reforça** |
+| `String(48)` | CI injeta `${{ github.sha }}` = 40 chars, e **CI é real** | não |
+| `NULL ≡ desconhecido`, sem backfill | Backfill não sabe qual worktree rodou | **reforça** |
+
+**O que muda:** o problema é exatamente o que o dono descreveu — **do loop de
+dogfood**. Não há segunda justificativa de escopo. A consequência prática está na
+[[ADR-363]], que carregava o peso do enquadramento de deploy.
+
+**Efeito na prioridade:** a perna de produção da justificativa desaparece. O que
+sustenta P1 é o custo local medido — o worker stale invalidou uma rodada inteira
+de review (74 achados). Um PM pode legitimamente argumentar P2; a lane declara a
+base honesta em vez de herdar a prioridade.
