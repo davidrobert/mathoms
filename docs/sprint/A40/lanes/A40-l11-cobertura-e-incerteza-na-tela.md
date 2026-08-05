@@ -57,3 +57,19 @@ exatamente o padrão que esta sprint combate.
   liga os degrades) + assert de que o selo de confiança aparece e de que existe **um
   só** percentual para o conceito na tela.
 - [[ADR-353]] só flipa **depois** de o consumidor existir.
+
+## Item adotado (2026-08-05)
+
+Follow-up de [[A40.l3]] §Assimetria de rótulo (handoff explícito, sem destino até
+então): dos 8 blocos com chave `janela` no substrato, **3 não cumprem** a obrigação
+da [[ADR-306]] — não 2. Correção de contagem: `reserva_emergencia` só tem tooltip
+(`InfoTooltip`), e a [[ADR-306]] §Emenda A40.l3 já declara que tooltip **não conta**
+como rótulo, porque não sai no PDF. Os 3 que não cumprem: `equilibrio_cerbasi` (sem
+base alguma), `passive_income` (janela `irpf` nunca exposta), `reserva_emergencia`
+(só tooltip).
+
+- Mesma classe de defeito que esta lane já cobre (RV3-29): campo existe, rótulo que
+  o declara não chega ao usuário.
+- Critério de aceite adicional: os 3 blocos passam a ter rótulo **impresso** (não
+  tooltip) lido do campo `janela`/base declarada, verificado em render + PDF (mesmo
+  padrão `pdftotext -layout` das demais lanes de `clareza-ux` desta sprint).

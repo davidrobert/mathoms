@@ -131,6 +131,18 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 | RV3-32 — `pipeline_run_costs` órfã (SSOT é `llm_call_log`) | saúde-execução | Baixo | P3 | procede (higiene) | procede-aberto | JÁ-CONHECIDO **RV2-22** |
 | RV3-33 — achados **inertes** (defeito real sem alcance ao usuário nesta config): ranking de despesa na narrativa (não renderiza por RV3-03), `alertas[]` dead-field, e 5 correlatos — **os 7 deixam de ser inertes no instante em que [[A40.l4]] mergeia** | — | (intrínseca de cada um) | P2 | procede-bloqueado | procede-aberto · `depends_on: A40.l4` | owner: product-designer · re-triagem item-a-item é critério de aceite bloqueante da [[A40.l4]], não follow-up |
 
+**Residual pós-r3, achado ao executar a [[A40.l4]] (2026-08-05):** "Base da
+cascata" — `tributario_input_builder` usa `receita_bruta = receita_pj_anual` (a
+anualização do input do wizard) em vez de
+`FinanceiroPJSnapshot.receita_bruta_total_anual` ([[ADR-238]], já passthrough e não
+usada). Confirmado por leitura de código; **materialidade não medida**. Não é RV3-xx
+(não fazia parte dos 188 achados brutos da r3) e não tem dono vivo: o arquivo é da
+[[A40.l9]] (`shipped`) e [[PLAN-tributario-pj]] está `done`. Disposição: entra na
+próxima re-triagem (r4) com uma medição de entrada — delta entre `receita_pj_anual`
+e `receita_bruta_total_anual` no corpus dogfood. Delta material ⇒ abre lane com
+emenda a ADR-236/238 antes de qualquer código (mudança de cálculo). Delta imaterial
+⇒ `aceito-wontfix`. Ver [[A40]] §Fora do sprint e §Pendências de decisão nº 11.
+
 **Positivos verificados:** conservação do razão fecha em tol-zero (105/105 grupos-fonte,
 baldes `despesas`/`receitas` fechando em cents); zero-write do harness confirmado;
 `PremissasFallbackAlert` dispara corretamente quando as premissas são parciais;
