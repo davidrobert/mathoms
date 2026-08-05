@@ -72,6 +72,16 @@ aberto nesses 2 re-runs, e os gates de owner da [[A28]] executados. Não se
 duplica o gate aqui — duplicar criaria duas fontes de verdade sobre a mesma
 condição de parada.
 
+**Insumo declarado do 1º re-run (2026-08-05).** A revisão do dono no primeiro dos
+2 re-runs entra com **dois checklists na mão**, não em leitura livre: (1) o
+§Checklist bloqueante da [[A40.l4]] — os 7 clusters, com atenção aos 3 fixes da
+remediação final que nunca passaram por verificação renderizada (DAS em silêncio
+no `s8`, `s4` sem contagem, CV9 com `summary_suppressed_by`); (2) o §Residual
+medido da mesma lane. Isto **não** adiciona cláusula ao gate de
+[[PLAN-report-trust]] — as 6 classes são enunciadas sobre propriedade, nunca sobre
+lane, e transformá-las em checklist de lane produziria gate satisfazível por não
+construir a superfície. É insumo operacional da execução do gate, e vive aqui.
+
 **Data-alvo: `2026-08-17`** (`date_target` no frontmatter; precedente de campo é
 o `closed:` da [[MOC-sprint-a33]], único de 35 MOCs de sprint a datar
 encerramento). É **alvo, não compromisso**: existe para dar aritmética ao
@@ -395,16 +405,13 @@ E3+E4 in-process sobre o E2 persistido. O caminho que o incidente quebrou (parec
 dessa medição. As 261 seguem válidas como baseline de KR-B.
 
 O que **não** foi cumprido nas três: a re-triagem bloqueante da l4 (os 7 achados
-inertes verificados contra output renderizado) morreu por limite de gasto e a lane
-mergeou sem ela. O risco ficou delimitado — s4 entrega sem contagem, s8 sem DAS,
-s9 suprimido, e o `s3` foi desligado depois (#1144) — mas não verificado.
-
-> **Imprecisão do parágrafo acima, nomeada e não corrigida (2026-08-03).** "Morreu
-> por limite de gasto e a lane mergeou sem ela" descreve a **3ª passada**, não a
-> re-triagem: ela rodou **duas vezes e bloqueou nas duas**. A cronologia precisa
-> está em [[A40.l4]] §Fechamento; a pergunta que sobra está na §Pendências de
-> decisão nº 4. Reescrever este parágrafo ficou fora do escopo fechado da passada
-> que corrigiu a lane.
+inertes verificados contra output renderizado) **rodou 2× e bloqueou nas 2**; a
+**3ª passada, pós-remediação final, não rodou** (limite de gasto) e a lane mergeou
+assim por decisão do dono. O risco ficou delimitado — s4 entrega sem contagem, s8
+sem DAS, s9 suprimido, `s3` desligado depois (#1144) — mas os 3 fixes finais não
+foram verificados no render. Cronologia precisa em [[A40.l4]] §Fechamento;
+disposição em §Pendências de decisão nº 4 (resolvida 2026-08-05: não-cumprido,
+subsumido pelo gate de saída, com o checklist como insumo declarado).
 
 ## Entregas fora de lane (2026-08-03)
 
@@ -533,7 +540,20 @@ afirmam "9 runs" / "8 de 9" / "89%": [[ADR-304]], [[ADR-296]], [[ADR-358]],
 `2ded7aab` **já é** a 1ª linha da tabela. Falta uma 9ª linha que existe e não foi
 tabulada, ou o denominador 9 — e os 89% derivados dele — está errado?
 
-**4. A re-triagem bloqueante da [[A40.l4]] conta como critério cumprido?**
+**4. A re-triagem bloqueante da [[A40.l4]] conta como critério cumprido?** — ✅
+**RESOLVIDA 2026-08-05: não conta.** Verificação não-rodada aceita como cumprida é
+exatamente a classe "gate verde medindo a camada errada" que esta sprint existe
+para matar — a lane fica registrada como **critério parcialmente cumprido**, sem
+reabrir status (`shipped` = PR mergeado, e mergeou). **E não nasce work-item
+novo:** os alvos nomeados da 3ª passada já foram decompostos em itens adotados
+(contagem de imóveis → [[A40.l6]]; DAS e PD-20 → [[A40.l12]]; rótulo da
+[[ADR-306]] → [[A40.l11]], #1197), e o que sobra — "os três fixes da remediação
+final se sustentam no output renderizado?" — é **subsumido pelo §Gate de saída e
+encerramento**: qualquer remanescente `agora-visível-e-errado` aparece como
+ocorrência das 6 classes ou como P0/P1 novo nos 2 re-runs, e as duas cláusulas
+travam o gate. **Subsunção só é real com insumo declarado** — ver a linha nova em
+§Gate de saída e encerramento; sem ela, "subsumido" seria esperança, não
+mecanismo. O diagnóstico abaixo fica como registro.
 
 Cronologia medida e agora escrita na lane: rodou **2×** e **bloqueou nas 2**; a 1ª
 achou C29 e C32 `agora-visível-e-errado`; a 2ª achou C32 resolvido e provado por
@@ -544,7 +564,13 @@ falso) e **2 contradições novas** (`s4` com 6 imóveis contra 4 na seção; CV
 o critério de aceite, ou a lane precisa da passada final antes de fechar de fato?
 
 **5. A [[ADR-356]] flippa para `Decidido (A40.l4)` ou fica `Proposto` com o motivo
-escrito?**
+escrito?** — ✅ **RESOLVIDA 2026-08-05: flip, com emenda datada.** Código em `main`
+desde `6c5d9814` (#1139); `Proposto` com código shipado é a classe RV3-04 que esta
+sprint cataloga. A emenda registra (a) que o critério de aceite da lane foi
+parcialmente cumprido e que o residual é portado pelo §Gate de saída e
+encerramento (§Pendência nº 4) e (b) a troca de dono do §Deferimento do `s1`,
+l5 → [[A40.l6]] (fecha o "Relacionado" da §Pendência nº 6). O diagnóstico abaixo
+fica como registro.
 
 Medido: `status: Proposto` no arquivo; [[A40.l4]] (a lane que a implementa) está
 `shipped` em `6c5d9814` (#1139). O CLAUDE.md §"Política operacional" diz que o PR de
@@ -947,7 +973,7 @@ emendadas por §Infra de CI tocada durante a sprint.
 | [[ADR-358]] | `Proposto` | [[A40.l16]], [[A40.l30]], [[A40.l31]] | Enforcement em produção exige budget de produção — e KR no plano onde ele age. A l30 fecha os defeitos **nº 2** (gate medido num plano, aplicado em outro — `_DENSITY_FLOOR`) e **nº 3** (detector inspeciona 3 campos dos 8+) que a ADR nomeia |
 | **[[ADR-341]]** | `Decidido` (A37.l1) · a [[A40.l30]] **estende**, não reabre | [[A40.l30]], [[A40.l31]] | Contrato do exec context do parecer. D1-D4 são exatamente o que #1004 mudou (cap 8192→16384, 6→10 seções, hints fora do corpo) — e o que dobrou a superfície monetária que o modelo vê sem ampliar a ancorável |
 | [[ADR-296]] | `Decidido` (A26.l9) | [[A40.l30]], [[A40.l31]] | Citação determinística: LLM emite `(claim, path, rótulo)` e o pipeline renderiza o valor. É a ADR cuja densidade mediana **11** foi medida no holdout sintético — o número que **não** deve ser confundido com o `5` do dogfood |
-| [[ADR-356]] | `Proposto` | [[A40.l4]] (`shipped`) | Precedência declarada do parágrafo de seção e CV9 como medida de entrega. **Flip pendente** — ver §Pendências de decisão nº 5 |
+| [[ADR-356]] | `Decidido (A40.l4)` · **emendada** 2026-08-05 (registro do flip + dono do deferimento do `s1`) | [[A40.l4]] (`shipped`) | Precedência declarada do parágrafo de seção e CV9 como medida de entrega. Flip feito com o residual da re-triagem nomeado e portado pelo §Gate de saída e encerramento |
 | [[ADR-355]] | `Decidido` | [[A40.l24]] | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages |
 | **[[ADR-360]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1156) · residual em [[A40.l25]] e [[A40.l26]] | Seed do cone Monte Carlo é constante de modelo versionada, não entropia do SO. Rejeita seed derivado do input por quebrar monotonicidade em patrimônio/aporte |
 | **[[ADR-361]]** | `Proposto` · flip pendente no dono | — (fora de lane, #1162) · residual em [[A40.l25]], [[A40.l28]] e [[A40.l29]] | Percentil de tempo-até-o-evento só é publicável como ano se a taxa de sucesso o define — censura declarada na base cheia |

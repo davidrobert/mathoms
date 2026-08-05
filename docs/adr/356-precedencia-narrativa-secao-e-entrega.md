@@ -2,9 +2,10 @@
 id: ADR-356
 type: adr
 title: "Precedência declarada do parágrafo de seção e CV9 como medida de entrega"
-status: Proposto
+status: Decidido
 phase: report-review r3 (RV3-03 · RV3-33) · A40.l4
 date: "2026-07-31"
+amended_at: ["2026-08-05"]
 relates_to:
   - "[[ADR-144]]"
   - "[[ADR-122]]"
@@ -15,13 +16,19 @@ relates_to:
   - "[[ADR-236]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/frontend
   - area/pipeline
 size_lines: 658
 ---
 
 # ADR-356 — Precedência declarada do parágrafo de seção e CV9 como medida de entrega
+
+> **Emenda 2026-08-05 (registro do flip + correção de dono, não mudança de
+> decisão):** esta nota flippa `Proposto` → `Decidido (A40.l4)` — o código está em
+> `main` desde `6c5d9814` (#1139). Duas ressalvas ficam escritas: o critério de
+> aceite da lane foi **parcialmente** cumprido, e um §Deferimento troca de dono.
+> Ver §Emenda 2026-08-05.
 
 ## Tamanho — por que não é split
 
@@ -628,7 +635,7 @@ própria.
   Lane própria, com o gate.
 - **`s1` publica `residência própria de R$ 0,00`.** Mesma classe do "R$ 0,00 em
   campo fiscal" da §D7; no `s4` a parcela zerada passou a ser suprimida, no `s1`
-  não. Dono A40.l5.
+  não. Dono **[[A40.l6]]** (movido da l5 em 2026-08-05 — ver §Emenda 2026-08-05).
 - **`perfil_familia.right` publica `n_imoveis`** — a contagem que o `s4` deixou de
   afirmar. Contradição **cross-seção** com a tabela da S4 (não intra-seção),
   pré-existente e independente desta lane, num card que já renderizava.
@@ -676,3 +683,29 @@ A l4 entrega **dado declarativo** (mapa `summary_source` no layout + allowlist d
 existe. A l4 **não** constrói `dev/check_view_model_contract.py` nem
 `dev/codegen_report_analysis.py` — são o entregável da l5, e a declaração de
 shape que a l4 deixa é o insumo que impede o codegen da l5 gerar tipo frouxo.
+
+## Emenda 2026-08-05 — flip do status e dono do deferimento do s1
+
+**Flip para `Decidido (A40.l4)`.** A [[A40.l4]] mergeou em `6c5d9814` (#1139) e as
+11 decisões estão em produção. Manter `Proposto` com código shipado é a classe
+**RV3-04** que esta própria sprint catalogou (entrega sem registro do flip) e que
+a §Política operacional do CLAUDE.md fecha no merge do PR de implementação.
+
+**O que o flip NÃO afirma.** O §Critério de aceite bloqueante da lane (re-triagem
+dos 7 inertes contra output renderizado) foi cumprido em **2 de 3** passadas; a
+3ª, pós-remediação final, não rodou (limite de gasto). Residual: se os 3 fixes
+finais (DAS em silêncio no `s8`, `s4` sem contagem, CV9 com
+`summary_suppressed_by`) se sustentam no render. Portador declarado: o §Gate de
+saída e encerramento da [[A40]], como insumo do 1º dos 2 re-runs (§Pendência de
+decisão nº 4, resolvida 2026-08-05). O flip é sobre a **decisão** estar em
+produção, não sobre a lane estar perfeita.
+
+**Correção de dono no §Deferimentos datados — `s1` publica "residência própria de
+R$ 0,00".** Passa de [[A40.l5]] para **[[A40.l6]]**: é a classe zero-como-valor
+(RV3-27), escopo declarado da l6, e a regra já está decidida aqui (§D7, "ou o
+número vem do payload, ou não é afirmado") com implementação-precedente em
+`_S4_VALOR_TEMPLATES`/`_s4_portfolio_head`
+(`pipeline/domain/services/narrativas/summaries_narrator.py`) — a parcela do `s1`
+vive no mesmo módulo, no f-string do `s1`. A l5 é codegen + gate de contrato de
+frontend, e o campo tem consumidor e valor genuinamente zero: não é leitura órfã.
+Deixar na l5 decidiria a política de zero-como-valor em dois lugares.

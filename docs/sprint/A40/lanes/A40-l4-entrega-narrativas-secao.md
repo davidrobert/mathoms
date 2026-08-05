@@ -149,6 +149,13 @@ vezes e bloqueou nas duas; a 3ª passada não rodou.** Cronologia:
 3. **3ª passada, depois da remediação final — não rodou.** Morreu no limite de gasto
    da org, junto com as duas lentes adversariais. A lane mergeou assim por decisão
    do dono.
+   **Disposição (2026-08-05, decisão do dono, §Pendência nº 4 do [[A40]]):**
+   critério **não-cumprido**, **subsumido pelo §Gate de saída e encerramento** da
+   sprint — o §Checklist bloqueante desta lane entra como **insumo declarado** da
+   revisão do dono no 1º dos 2 re-runs. Sem work-item novo (cláusula 2 do
+   §Critério de admissão da [[A42]]): os alvos nomeados já são itens adotados em
+   [[A40.l6]], [[A40.l12]] e [[A40.l11]]. A lane **não** volta a `open`: `shipped`
+   é fato de merge, e a dívida agora tem host com gatilho.
 
 O que **está aberto** é a verificação da **última rodada de correções**, não a
 re-triagem inteira. O que foi verificado: suítes (5544 pytest · 1464 vitest · tsc 0),
