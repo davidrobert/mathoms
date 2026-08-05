@@ -4,10 +4,12 @@ type: adr
 title: "Estado durável da pipeline-review: baseline off-git + registro de defeito git-canônico"
 status: Decidido
 date: "2026-07-23"
+amended_at: ["2026-08-05"]
 relates_to:
   - "[[ADR-302]]"
   - "[[ADR-247]]"
   - "[[ADR-319]]"
+  - "[[ADR-362]]"
 aliases:
   - "ADR 343"
   - "pipeline-review registry"
@@ -24,6 +26,12 @@ tags:
 # ADR-343 — Estado durável da pipeline-review
 
 **Status:** Decidido · **Data:** 2026-07-23
+
+> **Emenda 2026-08-05 (limite de garantia, não mudança de decisão):** o
+> `--compare` desta ADR comparava dois runs **sem saber se rodaram no mesmo
+> código**, e três dos seus predicados davam verde sem medir. O split de zona de
+> confiança permanece intacto; o que muda é o contrato do snapshot e a correção
+> de um falso-verde ativo. Ver §Emenda 2026-08-05.
 
 > ADR >150 linhas: uma decisão (o split de zona de confiança) com dois mecanismos
 > acoplados — registro editorial + baseline `--compare` — que repousam na mesma
@@ -180,6 +188,68 @@ de zona de confiança + bifurcação para PII) tem peso próprio.
   linha `FAIL:` correta; run incremental que reusa narrativa (CV9/CV10 falham)
   **não** falsa-falha em modo default.
 - Passo 5 da SKILL reescrito para os três destinos.
+
+## Emenda 2026-08-05 — contrato do snapshot e falso-verde do supressor
+
+Três defeitos medidos no próprio instrumento, todos da classe "dá verde sem
+medir". Nenhum altera o split de zona de confiança; todos alteram o que o
+`--compare` consegue afirmar.
+
+### 1. Cache hit se passava por downgrade de tier (falso-verde ativo)
+
+`_suppressors` ligava `tier_downgrade` quando o run atual tinha zero chamadas
+LLM, e `tier_downgrade` faz `_parecer_regressions` retornar lista vazia. Parecer
+servido do cache (TTL de 7 dias) tem zero chamadas e continua íntegro e
+comparável ⇒ **toda regressão de parecer era descartada em silêncio**.
+
+O predicado passa a exigir ausência de `cache_hit`, que entra no snapshot lido
+de `_meta.cache_hit` do artefato do parecer — campo emitido desde sempre e sem
+nenhum leitor até aqui.
+
+### 2. O parecer não era run-scoped
+
+O coletor buscava o parecer por `workspace_id` com `ORDER BY id DESC LIMIT 1`.
+Run que não produziu parecer (tier free, `skip_llm`, falha do stage) carregava o
+de um run **anterior**: o snapshot afirmava `status: ok` e o `--compare` media
+run A contra run B. Passa a filtrar por `pipeline_run_id`.
+
+### 3. O read-path era SQLite-only
+
+`julianday()` e `needs_review = 1` quebram em Postgres, e a produção roda
+Postgres ⇒ **nenhuma afirmação da review sobre produção era verificável**. A
+duração passa a ser calculada em Python (helper `elapsed_minutes`, testado nos
+dois dialetos) e o predicado booleano vira `IS TRUE`.
+
+### 4. Contrato do snapshot: contexto não é supressor nem perna
+
+O snapshot ganha `parecer.cache_hit` agora, e — quando a [[ADR-362]] aterrissar
+— `executor_revision`, `escopo` e `ancestry` como chaves **top-level de
+contexto**, explicitamente **fora** do `run_health`: os 9 campos de `run_health`
+são todos consumidos por perna de regressão ou supressor, e um campo
+não-comparável ali seria assumido comparável pelo próximo leitor.
+
+Regras duras que saem daqui:
+
+- **`executor_revision` jamais é supressor.** No loop de dogfood "o código
+  mudou" é o caso quase sempre; supressor sempre-ligado troca este gate por
+  verde vazio.
+- **Nenhuma perna nova de regressão** por divergência de revisão. O amplificador
+  "zero commits + drift ⇒ severidade sobe" foi **medido como dead code**: as três
+  janelas reais entre rodadas consecutivas tiveram 52, 15 e 24 commits nos paths
+  de cálculo. E a inferência seria inválida, porque config em DB move número
+  monetário sem commit. Fica `NOTE:` que **nomeia a dimensão cega**.
+- **`SCHEMA_VERSION` não é bumpado**; ganha **leitor**. Hoje tem zero leitores em
+  código e nos testes — bump sem leitor é ritual. O leitor avisa em divergência e
+  reusa o exit code 2 já reservado para "baseline inutilizável". Compat
+  verificada: os três acessos não-guardados são todos a `base["run_health"]`, que
+  existe em v1 ⇒ baseline antigo **degrada, não explode**.
+
+### Dimensão cega declarada
+
+A tabela de atribuição de drift tem uma dimensão sem observável: **config em
+DB** (categorização, overrides, parâmetros fiscais, câmbio, metas, `date.today()`).
+Enquanto ela for cega, **nenhuma conclusão de "não-determinismo" é válida** — o
+veredito correto é `NOTE:`, nunca `FAIL:`.
 
 ## Referências
 

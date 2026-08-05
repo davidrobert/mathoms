@@ -117,6 +117,7 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 | [[A42.l1]] | Stage de unlock aborta o run inteiro, e o secret dele é inalcançável em deploy limpo | **P0** | 0 | — |
 | [[A42.l3]] | Harness de certificação: falso-verde para dentro | P1 | 1 | — |
 | [[A42.l4]] | Check que não consegue avaliar evapora em vez de virar `skipped` | P2 | 1 | — |
+| [[A42.l13]] | Proveniência do executor: qual código computou este run | P1 | 1 | — |
 | [[A42.l2]] | Parsers line-oriented: âncora de fidelidade + supressão vira verdict do gate | P1 | 1 | [[A42.l3]] |
 | [[A42.l6]] | Contrato do store: política de escopo, retenção de órfão e validação de artefato | P1 | 2 | [[A42.l5]] |
 | [[A42.l7]] | Registro de custo de LLM é fonte de verdade que perde row e vaza filename | P1 | 2 | [[A40.l19]] |
@@ -127,10 +128,12 @@ Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 | [[A42.l11]] | Enforce do checksum cross-source fatura ↔ débito de pagamento | P1 | 3 | [[A40.l2]] |
 | [[A42.l12]] | Estado de extração do documento: predicado único e stages derivados do registry | P2 | 3 | [[A42.l2]] |
 
-Capacidade decidida: teto de 14 lanes. **Fechou em 12** — 11 na abertura, mais a l12
+Capacidade decidida: teto de 14 lanes. **Fechou em 13** — 11 na abertura, mais a l12
 nascida do **split da l6** por decisão do `senior-cto` (eram dois agregados empacotados,
-com bloqueio e reversibilidade distintos). Os slots restantes não foram preenchidos de
-propósito: padding para bater um número é a forma mais barata de Goodhart num plano.
+com bloqueio e reversibilidade distintos), mais a **l13** admitida em 2026-08-05 pela
+cláusula 3 (instrumento de certificação), a pedido do dono. O slot restante não foi
+preenchido de propósito: padding para bater um número é a forma mais barata de Goodhart
+num plano.
 
 **Ordem dentro da tabela reflete pickup, não numeração.** A l3 vem antes da l2 porque a
 l2 consome o ratchet que a l3 entrega; a l5 vem antes da l6 pela mesma razão. Nenhuma
