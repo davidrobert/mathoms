@@ -144,7 +144,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l17]] | Custo e cache no caminho `needs_review` do parecer | P1 | — | incidente `2ded7aab` |
 | [[A40.l18]] | Criticidade de stage: add-on advisory não veta o entregável | **P0** | l21 | incidente `2ded7aab` · **[[ADR-357]]** |
 | [[A40.l19]] | Migration do drift de enum de status (4 valores) | P1 + gate de deploy | — | **[[ADR-357]]** §7 |
-| [[A40.l20]] | `PlannerReview` representa gerado-e-retido (destrava a UI) | **P0** | l18 (**decisão**, não merge) | emenda provável **[[ADR-204]]** |
+| [[A40.l20]] | `PlannerReview` representa gerado-e-retido (destrava a UI) | **P0** | l18 (**PR2**; PR1 em paralelo) | emenda provável **[[ADR-204]]** |
 | [[A40.l21]] | Leitores tolerantes a `partial_failure` (reader-first) | **P0** | — | **[[ADR-357]]** §Consequências |
 | [[A40.l22]] | Superfície de degradação no relatório + PDF | **P0** | l20 | fatia premium da F11.5 · **bloqueador do beta** (6ª classe do gate de saída) |
 | [[A40.l23]] | Gate: ADR citada em prosa resolve para arquivo (reserva de ID é invisível) | P2 | — | classe exposta pela **[[ADR-345]]** |
@@ -211,12 +211,13 @@ pegava a l18, e shipar o writer antes do reader entrega *"um run com banner
 vermelho e botão de reprocessar: pior que hoje"*. Com o flip, a l21 fica a
 primeira P0 pegável da Onda 3 — que é o que a sprint quer.
 
-**A [[A40.l20]] fica `open` de propósito, e isso é o único cheque em aberto.** O
-frontmatter dela declara `depends_on: [[A40.l18]]`, mas a prosa afirma em 4
-lugares que a dependência é da **decisão** (a [[ADR-357]] `Proposto` fixa o
-vocabulário), não do merge. Aplicar o predicado mecanicamente a decidiria a
-§Pendência nº 2 na direção "serializa" — fora do escopo desta passada. Fica
-`open`, com a divergência **nomeada aqui** em vez de invisível.
+**A [[A40.l20]] fica `open`, agora com amarra escrita — não é mais cheque em
+aberto.** A §Pendência nº 2 foi resolvida em 2026-08-05 **contra a prosa**: a
+dependência da [[A40.l18]] é de **código** (mesmo hunk de `pipeline_task.py`),
+não de vocabulário. `depends_on` fica; o que muda é a lane declarar entrega
+parcial em 2 PRs, o que a mantém `open` pela **2ª cláusula** deste predicado
+(precedente [[A40.l27]]). `parallel_with` foi **rejeitado**: declararia
+paralelismo que o diff não sustenta.
 
 **`blocked` deixa de ter zero uso nesta sprint** — eram 0 de 29 contra 8 no
 resto do vault, o sinal de que o campo não codificava dependência. Prioridade
@@ -284,9 +285,14 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
   relatório com banner vermelho de falha e botão de reprocessar: **pior que hoje**.
   Amarra: se a l18 escorregar >1 sprint, **reverta a l21** — é dead code pelos
   nossos próprios critérios.
-- **[[A40.l20]] depende da *decisão* da [[A40.l18]]**, não do merge. O vocabulário
-  de status é fixado pela [[ADR-357]] `Proposto`; implementar contra a ADR permite
-  mergear em paralelo em vez de serializar duas semanas.
+- **[[A40.l20]] entrega em 2 PRs** (corrigido 2026-08-05): o PR1 (contrato do
+  desfecho retido) mergeia em paralelo à [[A40.l18]] contra o vocabulário da
+  [[ADR-357]] `Proposto`; o PR2 (o wire-up em `pipeline_task.py`) fica **atrás do
+  merge** dela, porque medido em 2026-08-05 reescreve as mesmas linhas
+  (`:1192-1193`, `:1329`, `:1180-1200`). A formulação anterior ("depende da
+  decisão, não do merge") tratava a dependência como de vocabulário —
+  falsificada. Amarra: o PR1 é revertido com a [[A40.l21]] se a l18 não mergear
+  até `date_target`.
 - **[[A40.l19]] em PR próprio** — migration não mistura com feature.
 
 **Esta onda precede a Onda 4 por conflito de arquivo, não por prioridade.** A
@@ -480,7 +486,20 @@ satisfeita. Medido no frontmatter das 24 lanes:
 `status` significa "dep satisfeita", "onda aberta", "alguém pegou", ou nada
 verificável? Se houver predicado, quem o deriva e quando?
 
-**2. A [[A40.l20]] pode abrir PR antes de a [[A40.l18]] mergear?**
+**2. A [[A40.l20]] pode abrir PR antes de a [[A40.l18]] mergear?** — ✅
+**RESOLVIDA 2026-08-05: sim para o PR1, não para o PR2** — e a prosa é que estava
+errada, não o frontmatter. Medido em `backend/app/tasks/pipeline_task.py`: o
+desfecho retido do parecer retorna `success: False` (`_needs_review_return`), e
+nesse ramo o código (a) rolla a sessão de artifact (`:1329`), (b) só chama
+`_persist_planner_review_if_applicable` dentro de `if result.success`
+(`:1192-1193`) e (c) grava `failed` + `failed_at_stage` (`:1180-1200`) — as três
+são o diff da l18. A dependência **não** é de vocabulário; é de hunk. Logo:
+`depends_on` mantido, `parallel_with` **rejeitado**, e a lane passa a declarar
+entrega parcial em 2 PRs (l20 §Sequência de entrega). Efeito em cadeia: a
+[[A40.l22]] continua `blocked`, mas o gatilho dela passa a ser o **PR1** da l20 —
+sem isso a superfície que torna a 6ª classe do gate satisfazível ficaria atrás de
+l21→l18→l20→l22 (4 merges) e a `date_target` mataria o único bloqueador de fato
+do beta. O diagnóstico abaixo fica como registro do que foi medido.
 
 A prosa afirma que sim em **3 lugares** (`_README` linha da l20 na tabela de lanes ·
 `_README` §Ondas ordem interna · [[A40.l20]] blockquote de abertura, e um 4º em
@@ -493,7 +512,18 @@ mas não expressa "depende da decisão". Qual das duas leituras
 vale para quem pega a lane: a prosa ou o frontmatter?
 
 **3. A tabela de evidência da emenda da [[ADR-304]] tem 8 linhas — o denominador 9 é
-o quê?**
+o quê?** — ✅ **RESOLVIDA 2026-08-05: o denominador 9 estava errado; não existe 9º
+run.** A emenda original da [[ADR-304]] (#1142) rotulou a tabela de 8 linhas como
+"9 runs consecutivos" e derivou "8/9" e "89%". O #1159 ([[A40.l16]] · Onda 0) **já
+tinha reescrito** a emenda com a janela persistida completa (19 runs,
+2026-07-10 → 07-31; sob o prompt 2.2.0: 8 runs, 7 afetados = 87,5%, 6 apagaram 15
+itens; janela inteira: 7 runs apagando / 16 itens) e corrigido [[ADR-304]],
+[[ADR-296]], [[ADR-358]], [[PLAN-report-trust]] §Frente 4 e [[A40.l16]] — a
+pendência foi medida contra a versão pré-#1159. Resíduos textuais corrigidos no
+#1216: [[A40.l22]] ("durar 9 runs" → 7 runs / 16 itens sem detecção) e
+[[PLAN-report-trust]] §Fora de escopo ("série de 9 runs" → 19). **Não** confundir
+com o ~89% de violação de citação (32/36, n=3) de [[A26.l1]] — métrica distinta e
+correta. O diagnóstico abaixo fica como registro.
 
 Medido na tabela (linhas 127-134 do arquivo da ADR): **8 linhas de dado**; **7 de 8
 (87,5%)** têm `number_in_prose` > 0; **6 de 8 (75%)** tiveram item apagado (a linha

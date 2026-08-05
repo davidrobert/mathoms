@@ -192,9 +192,13 @@ Mesma disciplina expand/contract que o repo aplica a evolução de enum. Amarra:
 se o writer escorregar >1 sprint, **reverta o leitor** — é dead code pelos
 nossos critérios.
 
-**[[A40.l20]] depende da *decisão*, não do *merge*, de [[A40.l18]]** — o
-vocabulário de status é fixado pela [[ADR-357]] `Proposto`; implementar contra a
-ADR permite mergear em paralelo.
+**[[A40.l20]] entrega em 2 PRs** (corrigido 2026-08-05): o contrato do desfecho
+retido (modelo, API, estado de UI, contador) mergeia em paralelo à [[A40.l18]]
+contra o vocabulário da [[ADR-357]] `Proposto`; o wire-up no orquestrador fica
+atrás do merge dela — medido, ele reescreve os mesmos hunks de
+`backend/app/tasks/pipeline_task.py`. A formulação anterior ("depende da decisão,
+não do merge") tratava a dependência como de vocabulário. Mesma amarra da ordem
+reader-first: writer escorregando >1 sprint ⇒ reverte o leitor **e** o contrato.
 
 ### KRs
 
@@ -233,7 +237,7 @@ declara o sinal do delta e `dev/golden_diff.py` confere. A [[A40.l16]] declara
 ### Fora de escopo, com gatilho de descorte nomeado
 
 - **Painel cru em `ops.mathoms.ai`** — cortado. Reach=1, e a audiência já tem
-  substituto equivalente que já usou (a query de DB que produziu a série de 9
+  substituto equivalente que já usou (a query de DB que produziu a série de 19
   runs). Descorta quando o beta abrir (audiência ≥5) **ou** T1 disparar.
 - **Dead-letter do output retido** — P2, onda 3, por **gatilho** e não por data:
   ativa quando alguém re-propõe enforcement **ou** T1 dispara. Re-escopado para
