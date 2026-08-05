@@ -23,6 +23,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -77,6 +78,28 @@ _BRACKET_RE = re.compile(r"\[[^\]]*\]")
 # ─────────────────────────────── snapshot ───────────────────────────────
 
 
+def _as_datetime(value: object) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+
+
+def elapsed_minutes(started: object, completed: object) -> float | None:
+    """Duração em minutos, calculada em Python e não em SQL."""
+    # O coletor usava `julianday()`, que só existe em SQLite — dev roda SQLite e
+    # prod roda Postgres, então o read-path da review não rodava contra prod.
+    # Aceita datetime (asyncpg) e str (aiosqlite): os dois dialetos, um número.
+    start, end = _as_datetime(started), _as_datetime(completed)
+    if start is None or end is None:
+        return None
+    if (start.tzinfo is None) != (end.tzinfo is None):
+        start, end = start.replace(tzinfo=None), end.replace(tzinfo=None)
+    return round((end - start).total_seconds() / 60, 1)
+
+
 def _leaf(path: str) -> str:
     return path.rsplit(".", 1)[-1].split("[", 1)[0]
 
@@ -125,10 +148,12 @@ def _sections_map(data: dict) -> dict[str, str]:
 def _parecer_snapshot(parecer: Any) -> dict[str, Any]:
     """Sinal estrutural do parecer (não persiste o texto: PII + maior artefato)."""
     if not isinstance(parecer, dict) or not parecer:
-        return {"status": "ausente", "n_secoes": 0, "schema_valid": False}
+        return {"status": "ausente", "n_secoes": 0, "schema_valid": False, "cache_hit": False}
     secoes = parecer.get("secoes", parecer.get("sections"))
     n = len(secoes) if isinstance(secoes, (list, dict)) else len(parecer)
-    return {"status": "ok", "n_secoes": n, "schema_valid": True}
+    meta = parecer.get("_meta")
+    hit = bool(meta.get("cache_hit")) if isinstance(meta, dict) else False
+    return {"status": "ok", "n_secoes": n, "schema_valid": True, "cache_hit": hit}
 
 
 def _cv_snapshot(cv_results: list[dict]) -> list[dict]:
@@ -177,13 +202,24 @@ def build_snapshot(
 # ─────────────────────────────── compare ────────────────────────────────
 
 
+def _llm_off(base: dict, cur: dict) -> bool:
+    """LLM ausente no run atual — cache hit não conta."""
+    # Parecer servido do cache (TTL 7 dias) tem zero chamadas LLM e continua
+    # íntegro e comparável. Contá-lo como tier_downgrade zerava
+    # `_parecer_regressions` inteiro — falso-verde ativo no gate da ADR-343.
+    had = bool(base.get("run_health", {}).get("llm_calls"))
+    has = bool(cur.get("run_health", {}).get("llm_calls"))
+    if not (had and not has):
+        return False
+    return not cur.get("parecer", {}).get("cache_hit", False)
+
+
 def _suppressors(base: dict, cur: dict) -> dict[str, bool]:
     bh, ch = base.get("run_health", {}), cur.get("run_health", {})
     tier_down = bh.get("tier_at_run") == "premium" and ch.get("tier_at_run") != "premium"
-    llm_off = bool(bh.get("llm_calls")) and not ch.get("llm_calls")
     bd, cd = bh.get("total_documents") or 0, ch.get("total_documents") or 0
     return {
-        "tier_downgrade": tier_down or llm_off,
+        "tier_downgrade": tier_down or _llm_off(base, cur),
         "corpus_grew": cd > bd,
         "corpus_shrank": cd < bd,
     }

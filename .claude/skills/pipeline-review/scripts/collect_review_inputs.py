@@ -25,7 +25,7 @@ from sqlalchemy import text
 from backend.app.application.report.get_report_data import get_report_data
 from backend.app.core.database import async_session
 from backend.app.services.security.crypto import read_artifact_content
-from dev.compare_reviews import build_snapshot
+from dev.compare_reviews import build_snapshot, elapsed_minutes
 from scripts.validate_cross import run_cross_validation
 
 
@@ -36,14 +36,19 @@ async def _dump_report_data(db, ws: str, report_id: str, out: Path) -> list[str]
     return data
 
 
-async def _dump_parecer(db, ws: str, out: Path) -> dict | None:
+async def _dump_parecer(db, ws: str, run_id: str | None, out: Path) -> dict | None:
+    """Parecer deste run, nunca o último do workspace."""
+    # Sem o filtro por pipeline_run_id, run que não produziu parecer (free tier,
+    # skip_llm, falha do stage) carregava silenciosamente o parecer de um run
+    # anterior: o snapshot dizia `status: ok` e o --compare media run A vs run B.
     row = (
         await db.execute(
             text(
                 "SELECT content_json FROM pipeline_artifacts WHERE workspace_id = :ws "
+                "AND pipeline_run_id = :run "
                 "AND stage IN ('review_finances_holistic','E6-parecer') ORDER BY id DESC LIMIT 1"
             ),
-            {"ws": ws},
+            {"ws": ws, "run": run_id},
         )
     ).first()
     if row is None:
@@ -78,15 +83,16 @@ async def _fetch_run_meta(
 ) -> tuple[dict, list[dict], list[dict], list[dict]]:
     run = await _rows(
         db,
-        "SELECT status, tier_at_run, total_documents, failed_at_stage, "
-        "ROUND((julianday(completed_at)-julianday(started_at))*24*60,1) AS minutes "
+        "SELECT status, tier_at_run, total_documents, failed_at_stage, started_at, completed_at "
         "FROM pipeline_runs WHERE id = :r",
         {"r": run_id},
     )
+    if run:
+        run[0]["minutes"] = elapsed_minutes(run[0].get("started_at"), run[0].get("completed_at"))
     nr = await _rows(
         db,
         "SELECT doc_type, COUNT(*) AS n FROM documents WHERE workspace_id = :ws "
-        "AND needs_review = 1 GROUP BY doc_type",
+        "AND needs_review IS TRUE GROUP BY doc_type",
         {"ws": ws},
     )
     costs = await _rows(
@@ -130,13 +136,13 @@ async def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     async with async_session() as db:
         data = await _dump_report_data(db, ws, report_id, out_dir)
-        parecer = await _dump_parecer(db, ws, out_dir)
-        cv = _dump_cross_validation(data, out_dir)
         run_id = (
             await db.execute(
                 text("SELECT pipeline_run_id FROM reports WHERE id = :r"), {"r": report_id}
             )
         ).scalar()
+        parecer = await _dump_parecer(db, ws, run_id, out_dir)
+        cv = _dump_cross_validation(data, out_dir)
         run, nr, costs, calls = await _fetch_run_meta(db, ws, run_id)
     _write_run_meta(run_id, run, nr, cv, costs, calls, out_dir)
     meta = {"run": run, "needs_review": nr, "costs": costs, "calls": calls}
@@ -147,8 +153,10 @@ async def main() -> None:
         json.dumps(snapshot, ensure_ascii=False, indent=2)
     )
     fails = [c["check_id"] for c in cv if not c["passed"]]
+    hit = bool((parecer or {}).get("_meta", {}).get("cache_hit")) if parecer else False
+    estado = f"ok{' (CACHE HIT)' if hit else ''}" if parecer else "ausente-neste-run"
     print(
-        f"OK report_data({len(data)} chaves) parecer={'ok' if parecer else 'ausente'} "
+        f"OK report_data({len(data)} chaves) parecer={estado} "
         f"CV_falhas={fails} snapshot=review_snapshot.json → {out_dir}"
     )
 

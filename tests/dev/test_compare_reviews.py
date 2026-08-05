@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import copy
 import json
+from datetime import datetime
 from typing import Any
 
-from dev.compare_reviews import build_snapshot, compare_reviews
+from dev.compare_reviews import build_snapshot, compare_reviews, elapsed_minutes
 
 _CONS_IDS = ["CV1", "CV2", "CV3", "CV6", "CV16", "CV17"]
 _RENDER_IDS = ["CV10"]
@@ -91,7 +92,12 @@ def test_snapshot_keeps_counts_and_drops_cv_details() -> None:
     assert snap["run_health"]["transacoes_total"] == 100
     assert snap["run_health"]["total_documents"] == 40
     assert all("details" not in c and "name" not in c for c in snap["cross_validation"])
-    assert snap["parecer"] == {"status": "ok", "n_secoes": 10, "schema_valid": True}
+    assert snap["parecer"] == {
+        "status": "ok",
+        "n_secoes": 10,
+        "schema_valid": True,
+        "cache_hit": False,
+    }
 
 
 # ─────────────────────── critério 2: re-run idêntico ───────────────────────
@@ -185,3 +191,60 @@ def test_value_drift_suppressed_when_corpus_grew() -> None:
     assert not any("acoes" in h for h in hard)
     assert "corpus_grew" in notes
     assert any("acoes" in s for s in soft)
+
+
+# ───── cache hit ≠ downgrade de tier: o falso-verde que zerava o parecer ─────
+
+
+def _parecer(*, n: int = 10, cache_hit: bool = False) -> dict:
+    return {"secoes": list(range(n)), "_meta": {"cache_hit": cache_hit}}
+
+
+def test_cache_hit_does_not_suppress_parecer_regression() -> None:
+    """Parecer do cache tem 0 chamadas LLM mas é íntegro e comparável."""
+    # Mutação que mata: reintroduzir `or llm_off` sem a checagem de cache em
+    # `_suppressors` ⇒ tier_downgrade liga ⇒ _parecer_regressions devolve [].
+    base = _snap(parecer=_parecer(n=10))
+    cur = _snap(calls=[], parecer=_parecer(n=4, cache_hit=True))
+    hard, _soft, notes = compare_reviews(base, cur, _report_data(), _report_data())
+    assert "tier_downgrade" not in notes
+    assert any("n_secoes" in h for h in hard)
+
+
+def test_llm_genuinely_off_still_suppresses() -> None:
+    """Guard contra sobre-correção: sem parecer nenhum, a supressão continua."""
+    base = _snap(parecer=_parecer())
+    cur = _snap(calls=[], parecer=None)
+    hard, _soft, notes = compare_reviews(base, cur, _report_data(), _report_data())
+    assert "tier_downgrade" in notes
+    assert not any("parecer" in h for h in hard)
+
+
+def test_baseline_sem_cache_hit_degrada_sem_explodir() -> None:
+    """Baseline v1 (pré-campo) não quebra e preserva a semântica antiga."""
+    base, cur = _snap(parecer=_parecer()), _snap(calls=[], parecer=_parecer())
+    for snap in (base, cur):
+        del snap["parecer"]["cache_hit"]
+    hard, _soft, notes = compare_reviews(base, cur, _report_data(), _report_data())
+    assert "tier_downgrade" in notes
+    assert hard == []
+
+
+# ───── duração portável: julianday era SQLite-only (dev) vs Postgres (prod) ─────
+
+
+def test_elapsed_minutes_aceita_datetime_e_string() -> None:
+    """Os dois dialetos têm de produzir o mesmo número."""
+    # asyncpg devolve datetime; aiosqlite devolve str. Se divergirem, a duração
+    # muda de valor ao trocar de dialeto. Mutação que mata: voltar a duração p/ SQL.
+    a, b = datetime(2026, 8, 5, 10, 0), datetime(2026, 8, 5, 10, 24, 30)
+    assert elapsed_minutes(a, b) == 24.5
+    assert elapsed_minutes(a.isoformat(), b.isoformat()) == 24.5
+
+
+def test_elapsed_minutes_run_inacabado_e_tz_mista() -> None:
+    assert elapsed_minutes("2026-08-05T10:00:00", None) is None
+    assert elapsed_minutes(None, None) is None
+    assert elapsed_minutes("nao-e-data", "2026-08-05T10:00:00") is None
+    mista = elapsed_minutes("2026-08-05T10:00:00+00:00", "2026-08-05T10:30:00")
+    assert mista == 30.0
