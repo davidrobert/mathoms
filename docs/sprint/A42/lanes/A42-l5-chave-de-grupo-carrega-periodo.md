@@ -63,6 +63,31 @@ tags:
 > §r4 aponta "A40.l2 PR-B", e esse PR **não existe** no escopo escrito da l2 (que vai de
 > PR0 a PR4) — KR sem lane que o entregue é KR órfão.
 
+> **Item desta lane já entregue — `account_number` no merge (2026-08-05).** O achado
+> adjacente medido no PR1 da [[A40.l2]] (`_reconciled_copy` reconstruía
+> `BankStatement` campo-a-campo e perdia `account_number_raw`/`_norm`, [[ADR-226]] PR2)
+> roteia para cá pela cláusula 1 do §Critério de admissão — esta lane é dona da chave
+> de artefato e do sítio de merge. Entregue fora de ordem porque é defeito vivo em todo
+> run, não porque a lane abriu. Três consequências para o escopo restante:
+>
+> 1. **O sítio de merge saiu de `e3_reconciler_adapter.py`** para
+>    `pipeline/domain/services/e3_statement_merge.py` (`merge_group_statements`) — o
+>    inline estourava os limites de função e de arquivo. A §Colisão de arquivo com a
+>    [[A42.l6]] **muda**: a seleção de saldo de fechamento que esta lane vem reescrever
+>    (§Decisão 2) agora mora no arquivo novo, e a colisão com a l6 no adapter deixa de
+>    existir por esse eixo.
+> 2. **A seleção posicional continua lá e continua sendo desta lane** —
+>    `closing_balance=stmts[-1].closing_balance` e `member_key` herdado do primeiro
+>    seguem por posição na lista, exatamente o modo de falha do §r4. O fix de
+>    `account_number` **não** os tocou.
+> 3. **O número de conta do grupo é afirmado só quando há um único `_norm` distinto**
+>    (predicado set-based, espelho de `continuity_chain._sole_number`). Sob a chave
+>    period-free que esta lane vai introduzir os grupos ficam **maiores**, então esse
+>    predicado passa a devolver `None` mais vezes — é o comportamento correto (não se
+>    afirma identidade de conta que o grupo não tem) e é a guarda que impede over-merge
+>    de inventar discriminante. A tupla final declarada pela §Decisão 1 precisa dizer se
+>    `account_number` entra nela.
+
 ## Problema
 
 O repositório tem **duas noções concorrentes de "mesma conta"**:

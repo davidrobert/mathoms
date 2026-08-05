@@ -419,18 +419,8 @@ def test_extraction_method_sobrevive_ao_reconcile() -> None:
     assert sorted(s.extraction_method for s in saida) == ["llm", "native"]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "DEFEITO VIVO medido em 2026-08-05: `_reconciled_copy` "
-        "(reconciliation_service.py) reconstrói BankStatement campo-a-campo e perde "
-        "`account_number_raw`/`_norm` — o discriminador de identidade de conta da "
-        "ADR-226 PR2 nunca chega ao payload E3, nem ao `account_number` por transação. "
-        "Corrigir muda output do E3 (golden), logo é PR próprio com delta declarado; "
-        "quando corrigir, o XPASS estrito força a remoção deste marker."
-    ),
-)
 def test_reconcile_preserva_todo_campo_de_identidade() -> None:
+    """Era `xfail(strict)` até o fix de 2026-08-05 (ADR-226 PR2)."""
     from dataclasses import fields
 
     from pipeline.domain.services.reconciliation_service import (

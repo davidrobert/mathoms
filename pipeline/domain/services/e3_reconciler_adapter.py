@@ -51,6 +51,7 @@ from pipeline.domain.services.e3_review_reasons import (
 from pipeline.domain.services.e3_review_reasons import (
     store_document_id as _document_id_for,
 )
+from pipeline.domain.services.e3_statement_merge import merge_group_statements
 from pipeline.domain.services.fatura_payment_cross_checker import (
     FaturaCrossResult,
     FaturaPaymentCrossChecker,
@@ -343,26 +344,13 @@ class E3ReconcilerAdapter:
                 # Merge: concatena transactions, mantém metadados do primeiro.
                 # Re-reconcilia as transações juntas para pegar duplicatas
                 # cross-file dentro da mesma conta.
-                base = stmts[0]
                 all_tx = []
                 for s in stmts:
                     all_tx.extend(s.transactions)
                 all_tx, dup_removed, cents, cross = self._service.dedup_report(all_tx)
                 if dup_removed:
                     removals.append(DedupRemoval("cross_file_dedup", dup_removed, cents, cross))
-                merged_stmt = BankStatement(
-                    institution=base.institution,
-                    member_key=base.member_key,
-                    period_start=min(s.period_start for s in stmts),
-                    period_end=max(s.period_end for s in stmts),
-                    currency=base.currency,
-                    transactions=all_tx,
-                    opening_balance=stmts[0].opening_balance,
-                    closing_balance=stmts[-1].closing_balance,
-                    source_document=None,
-                    notes=[f"merged from {len(stmts)} source statements"],
-                    account_type=base.account_type,
-                )
+                merged_stmt = merge_group_statements(stmts, all_tx)
 
             if serialize_fn is not None:
                 payload = serialize_fn(merged_stmt, sources, dup_removed)
