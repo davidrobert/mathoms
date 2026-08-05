@@ -8,7 +8,7 @@ priority: P1
 branch_slug: a42-l3-harness-falso-verde-para-dentro
 adrs:
   - "[[ADR-302]]"
-depends_on: []
+depends_on: ["[[A40.l2]]"]
 tags:
   - type/lane
   - sprint/a42
@@ -24,6 +24,33 @@ tags:
 > classe `[skill]`) · [[PARSE-CERTIFY-active]] §r2 — PC13 · [[PIPELINE-REVIEWS-active]]
 > §r4 — RV4-17, RV4-18, RV4-45. Adota também o resíduo declarado da [[A39.l6]]
 > (traço positivo do checksum, já emitido e nunca lido).
+
+> 🔴 **Segunda colisão, medida 2026-08-05 — o item 1 desta lane reescreve o arquivo
+> que produz a prova do KR-B da [[A40]].** O "classificador de balde do razão" do item 1
+> é [`dev/ledger_certify_core.py:161`](../../../../dev/ledger_certify_core.py) —
+> `_non_ledger_verdict`, que retorna `COBERTO_SEM_VALOR` com a glosa *"origem
+> E2/baseline (fora do grão transacional)"*. **O mesmo arquivo**, na linha 300,
+> monta `cross_group=cross_group_summary(...)`, que é o numerador de **261** contra o
+> qual a [[A40.l2]] prova o fix (`dev/certify_ledger_local.py:40` importa
+> `build_report` daqui). Nenhuma das duas lanes declarava a aresta, em nenhuma
+> direção: o §Escopo abaixo nomeia só `dev/certify_parse_local.py`, e o critério de
+> agrupamento por arquivo — que as duas sprints declaram — passou por cima dela.
+>
+> **Consequência se ignorada:** reescrever o veredito antes de a prova da [[A40.l2]]
+> estar registrada não dá conflito de merge, dá **invalidação silenciosa de prova** —
+> o `--compare` deixa de ser maçã-com-maçã e a l2 fecha verde sobre um instrumento
+> diferente do que congelou o baseline. É a lição da [[A39]] que a própria
+> [[A40.l1]] codificou (*baseline pós-mutação mede o próprio fix*), agora entre
+> sprints.
+>
+> **Amarra, com entrega parcial declarada** (forma da [[A40.l27]], que o §Amarra do
+> `_README` já cita como precedente): `depends_on: [[A40.l2]]` cobre **o item 1 e a
+> extensão do drift para contagem por balde** — os dois que tocam
+> `ledger_certify_core.py`. Os itens **3, 4 e 5** (traço de checksum, perna de volume,
+> auditoria de paridade fail-open) **não** tocam esse arquivo e podem shipar antes,
+> declarando o item 1 como não-entregue. O item 2 (invariantes da P0 nº 1) fica com o
+> item 1 por escrever no mesmo agregado publicado. Destravamento é o **merge do PR
+> nomeado** da l2, não o fechamento da A40 — ramo 3 do §Amarra.
 
 > **Esta lane é dona de `dev/certify_parse_local.py`.** Colisão declarada com
 > [[A42.l2]] (mesma onda): o critério da l2 exige que o ratchet aceite código de aviso
@@ -98,3 +125,9 @@ O princípio único: **"não consegui avaliar" é um estado, não um sucesso.**
   `senior-cto`, 2026-08-04).
 - **KR-B da sprint só é mensurável depois desta lane.** É a razão pela qual ela está
   na Onda 1 e não depois dos fixes que ela deveria vigiar.
+- **O item 1 (e a extensão do drift) não mergeia antes do PR nomeado da [[A40.l2]]**,
+  e o PR desta lane cita o número dele. Se os itens 3-5 forem entregues antes, o corpo
+  declara o item 1 como **não-entregue** — nunca como fora de escopo. Colocar a amarra
+  no DoD (e não só no blockquote) é a mesma correção que esta lane já sofreu do
+  `senior-cto` em 2026-08-04 para a cláusula que a [[A42.l2]] consome: *dependência
+  cujo entregável não está no critério de aceite não é dependência, é esperança.*

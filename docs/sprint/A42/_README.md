@@ -50,6 +50,34 @@ O corte é por **camada**, não por severidade: entra o que é ingestão (E0→E
 razão (E3/E4), contrato de store/artefato, ou instrumento de certificação. Fora
 dessas quatro não entra — ainda que seja P0. Ver §Critério de admissão.
 
+**A fusão foi avaliada de novo em 2026-08-05, a pedido do dono, e recusada — com um
+motivo mecânico que a versão original desta seção não tinha.** O argumento anterior era
+de camada e de handoff sem dono; ele continua válido, mas não é o decisivo. O decisivo
+é que **os dois gates de saída são adversariais**, não só heterogêneos:
+
+- a A40 fecha com 2 re-runs **completos consecutivos** E0→E6 e **nenhum P0/P1 novo
+  aberto nesses 2 re-runs**;
+- a A42 fecha rodando `parse-certify` r3 + `ledger-certify` r5 — instrumentos cuja
+  **função é achar achado novo** — contra baseline congelado **antes** de qualquer
+  mutação.
+
+Fundidas: toda lane A42 muta E0→E4, que é upstream de todo run E0→E6, logo **cada merge
+da A42 zera o contador de re-runs consecutivos da A40**; e as rodadas que fecham a A42
+abrem os P0/P1 que a cláusula da A40 proíbe na janela. Somando, a sprint fundida só
+fecharia numa janela em que ninguém merga lane da A42 — que é, exatamente, a sequência
+que a separação já codifica. Três consequências menores, todas medidas: dois baselines
+do mesmo corpus com datas de freeze diferentes forçariam re-freeze pós-mutação (o
+anti-padrão que as duas sprints nomeiam como lição da [[A39]]); o anti-Goodhart do KR-C
+perderia referente (num agregado de 9 KRs, "aqui" e "lá" viram o mesmo lugar, e a sprint
+sobre dupla contagem contaria o próprio KR duas vezes); e a `date_target` da A40 — único
+gatilho computável do tripwire de revert da [[A40.l21]] — viraria ficção.
+
+E a fusão **não compra o que parece comprar**: medido em cópia isolada da vault, mover as
+12 lanes para `docs/sprint/A40/lanes/` muda `SPRINT_CURRENT.md` em **zero linhas** (as 12
+são `planned`; o renderer só lê `{ready, open, in_progress}`). O ganho de pickup exige
+flipar status, que é decisão de liberação — **ortogonal à fusão**. Ver §Gatilho de
+promoção para a porta que entrega esse ganho sem os custos.
+
 ## KR — provabilidade, com duas linhas de contagem
 
 Todo KR aqui é binário e medido por harness existente. Cada um tem uma segunda
@@ -126,7 +154,8 @@ o arquivo de senha existe e o run completa — morde em deploy limpo e no segund
 usuário). Fica fora da Onda 1 para não competir por pickup com instrumento nem
 sugerir bloqueio que não existe.
 
-**Onda 1 — instrumento** ([[A42.l3]] e [[A42.l4]] livres; [[A42.l2]] atrás da l3).
+**Onda 1 — instrumento** ([[A42.l4]] livre; [[A42.l3]] atrás da [[A40.l2]] **no item 1**,
+com entrega parcial declarada; [[A42.l2]] atrás da l3).
 **Não são disjuntas — partição declarada.** A l4 é solo em arquivo. A l2 e a l3 tocam
 ambas `dev/certify_parse_local.py`, e no mesmo ratchet: a **l3 é a dona do arquivo** e
 entrega a cláusula que a l2 precisa — cláusula que agora está no **critério de aceite da
@@ -146,9 +175,13 @@ a l2 cria: escrever o predicado contra o mundo de dois estados e receber o terce
 acenderia o selo de qualidade sobre conservação não provada — o falso-verde da tese,
 produzido pela lane que existe para matá-lo.
 
-**Amarra obrigatória das dependências cross-sprint.** Seis lanes dependem de lane de
-outra sprint. Na promoção, **re-ler a disposição de cada dependência**, com **três**
-ramos — não um:
+**Amarra obrigatória das dependências cross-sprint.** **Seis lanes carregam sete
+arestas** para fora da sprint: [[A42.l5]] e [[A42.l11]] → [[A40.l2]] · [[A42.l3]] →
+[[A40.l2]] (aberta 2026-08-05, ver abaixo) · [[A42.l7]] → [[A40.l19]] · [[A42.l8]] →
+[[A40.l15]] **e** [[A40.l11]] · [[A42.l10]] → [[A41.l2]]. A contagem anterior dizia
+"seis lanes" e eram **cinco lanes / seis arestas** — contava aresta como lane, num
+plano cuja tese é "contada, não estimada". Na promoção, **re-ler a disposição de cada
+dependência** — por **aresta**, não por lane — com **três** ramos, não um:
 
 1. dependência `cancelled` ⇒ a lane A42 **absorve o escopo** e declara a absorção no
    corpo. Sem isso, uma A40 que fecha `done` com [[A40.l15]] `cancelled` deixa a
@@ -162,6 +195,18 @@ ramos — não um:
    desta amarra só cobria o ramo 1.
 
 Precedente: cláusula de entrega parcial da [[A40.l27]].
+
+**Furo desta amarra, fechado 2026-08-05.** Ela cobria só a direção `A42 → A40`: "a
+dependência escorregou, e agora?". Faltava a direção inversa — **lane A42 que põe em
+risco entrega viva da A40**. No ramo 3, que a própria amarra declara o mais provável, a
+A42 promove com a [[A40.l2]] ainda em voo e a [[A42.l3]] livre para reescrever
+[`dev/ledger_certify_core.py`](../../../dev/ledger_certify_core.py) — o arquivo que
+produz o numerador de 261 contra o qual a l2 prova o fix. Não é conflito de merge: é
+**invalidação silenciosa de prova**, que fecha verde. Fechado com a sétima aresta acima
+(`depends_on` na l3, com entrega parcial declarada na lane). **Regra que generaliza:**
+antes de promover, verificar também se alguma lane desta sprint **escreve no
+instrumento** de uma lane viva de outra — o critério de agrupamento por arquivo não
+alcança dependência cross-sprint, e foi exatamente aqui que ele não alcançou.
 
 ## Relação com a A39
 
@@ -266,8 +311,31 @@ qualifica.
 ## Gatilho de promoção a `current`
 
 Evento, não calendário: **[[A40]] → `done`**. Enquanto a A40 é `current`, duas
-sprints `current` são hard fail em `build_doc_index.py --check`, e as 11 lanes
+sprints `current` são hard fail em `build_doc_index.py --check`, e as **12** lanes
 nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]].
+
+**Dois níveis, decisão do dono 2026-08-05.** A pergunta "faz sentido fundir a A42
+dentro da A40?" foi avaliada e **recusada** (§Por que esta sprint existe, agora com o
+motivo mecânico registrado lá). O que a fusão comprava de legítimo era uma coisa só —
+tirar lane individual da fila quando ela passa a importar antes do fechamento da A40 —
+e para isso já existe porta, com precedente executado:
+
+- **Nível sprint:** [[A40]] → `done` (inalterado). Promove as 12 de uma vez.
+- **Nível lane:** **promoção individual para a sprint corrente por *consumidor
+  datado***, reparentando a lane (`sprint: A40` + `git mv`). Precedente exato:
+  [[A40.l24]], que nasceu `A41.l1` e foi promovida assim por decisão do dono em
+  2026-08-03 — a única dos follow-ups com consumidor datado. **Reparentar é o que a
+  torna visível:** `_filter_sprint_lanes` em
+  [`dev/_sprint_current_renderer.py`](../../../dev/_sprint_current_renderer.py) filtra
+  por `lane.sprint ∈ {corrente}`, então flipar uma lane A42 para `open` **não** a faz
+  aparecer no `SPRINT_CURRENT`.
+
+Isto **não** reabre a cláusula 2 do §Critério de admissão (*"nada nasce lane nova na
+A40, mesmo sendo P0"*), por uma distinção de verbo: aquela cláusula governa achado
+**novo sem dono**. Lane que já nasceu, em outra sprint, com dono e com ADR exigida, é
+**promovida** — operação diferente, gate mais estreito (consumidor datado, que exige
+artefato citável declarando que algo *para* até isso existir; "é importante e urgente"
+não qualifica). Manter os dois verbos distintos é o que impede deriva de precedente.
 
 ## ADRs exigidas antes de PR de implementação
 
