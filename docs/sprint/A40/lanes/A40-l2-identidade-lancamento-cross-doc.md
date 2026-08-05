@@ -119,9 +119,9 @@ renasce como **allow-list do predicado de colapso**, não como canonicalização
 não toca input de hash — a §Não-decisão da [[ADR-354]] (nenhum `_hash_v3`) segue
 integralmente válida.
 
-- **PR0 (docs-only, feito)** — **§Emenda de [[ADR-354]]** em 2026-08-05 (`6ae208b6`):
+- **PR0 (docs-only, feito)** — **§Emenda de [[ADR-354]]** em 2026-08-05, no PR #1195:
   revoga as duas primeiras §Consequências e registra o predicado de 4 cláusulas.
-- **PR1 — colapsador measure-only** ✅ (`5bbead91`). Domain service puro
+- **PR1 — colapsador measure-only** ✅ **PR #1195**. Domain service puro
   `CrossDocumentCollapser`, injetado com `default None` no `E3ReconcilerAdapter`
   **após** `reconcile_with_report` e **antes** do agrupamento. Chave = a do detector
   da [[A40.l1]]. Não remove row; emite candidato com os `_hash_v2` que **removeria**.
