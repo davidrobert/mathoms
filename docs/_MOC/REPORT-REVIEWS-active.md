@@ -55,6 +55,19 @@ A cadência anti-zumbi não cruza registros.
    owner + link para lane ou ADR `Proposto`.
 4. **Débito de método é entregável.** Cada rodada registra os furos do próprio
    processo (Passo 6 da skill) — é o insumo mais reusável que ela produz.
+5. **Número medido traz caminho de re-medição.** Toda afirmação numérica de
+   **instância** (medida de um run/corpus — não derivável do repo com `rg`/`ls`)
+   citada em doc canônico traz, **na primeira menção de cada documento**, um de
+   três: (a) o path off-git **mascarado** (`storage/<uuid>/…`), (b) o comando que
+   a re-mede, ou (c) wikilink para o registro que traz (a) ou (b). O escape (c)
+   existe para o número não obrigar N edições em N documentos — o custo cai sobre
+   o **produtor** do número, e é uma linha. Vale para qualquer skill de
+   certificação, não só a `report-review`. **Não** vale para contagem derivável do
+   vault (nº de lanes, de testes, de ADRs): essas se re-medem com `rg`. **Sem
+   gate** — é convenção no olho do revisor, mesma família da lição da emenda da
+   [[ADR-111]] (*afirmação de audit sem gate é dívida*). Se um 2º registro
+   precisar da mesma cláusula, ela **migra para ADR** em vez de ser copiada nos 4
+   MOCs. (Origem: [[A40]] §Pendência de decisão nº 8, 2026-08-05.)
 
 ## Formato de seção
 
@@ -86,7 +99,10 @@ BACKLOG, ADR de veredito, ou commit que fechou.
 > design → **verificação adversarial de 44 céticos** (7 CONFIRMADO, 37 PARCIAL, 0
 > REFUTADO) + **crítico de completude** que auditou o próprio processo.
 > Fechamento determinístico: `dev/certify_ledger_local.py` (conservação tol-zero,
-> 105/105) + medição própria de duplicação cross-grupo.
+> 105/105 — re-medível com `python3 dev/certify_ledger_local.py <workspace> --run
+> 573a54a7…`; síntese congelada do run em
+> `storage/<uuid>/ledger_certify/20260731T012427Z-573a54a7/synthesis.md`, off-git
+> por [[ADR-343]]) + medição própria de duplicação cross-grupo.
 > Cru + síntese com valores: `storage/1b9f2cf5-…/reviews/2026-07-29-573a54a7/` (off-git).
 >
 > **Correção de âncora (2026-07-30, painel A40):** o mecanismo original do RV3-01 citava caixa de

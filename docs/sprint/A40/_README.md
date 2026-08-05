@@ -36,7 +36,8 @@ mais do que a cobertura sustenta.
 26 dos 33 achados são defeitos de **entrega**, não de cálculo: consumidor lê
 chave que o emissor não emite, janela trocada, seção que colapsa depois de
 prometer conteúdo, PII interpolada no render. O sinal decisivo é que a
-conservação do razão fecha em **tol-zero (105/105 grupos)** e ainda assim existe
+conservação do razão fecha em **tol-zero (105/105 grupos)** — procedência e
+comando de re-medição em [[REPORT-REVIEWS-active]] §r3 — e ainda assim existe
 duplicação material medida — **o gate vigente mede a camada errada**.
 
 ## KRs
@@ -619,7 +620,17 @@ dogfood — e o frontmatter da sprint declara `date: "2026-07-30"` sem data de f
 data de fim, "escorregar >1 sprint" não é avaliável. Qual artefato hospeda o
 tripwire, com que gatilho, e sob qual owner?
 
-**8. Vale acrescentar o path off-git ao lado de cada número medido?**
+**8. Vale acrescentar o path off-git ao lado de cada número medido?** — ✅
+**RESOLVIDA 2026-08-05: vira convenção, com host único e escape de ponteiro.** A
+regra mora em [[REPORT-REVIEWS-active]] §Convenção de rastreamento, cláusula 5 —
+não nesta seção (que morre com a sprint) e não replicada nos 4 MOCs de skill
+(cópia em 2 hosts ⇒ migra para ADR). Escopo do retrofit: **apenas os números
+listados abaixo**, sem varredura. Aterrissados no #1216: "105/105 grupos" em
+[[REPORT-REVIEWS-active]] §r3 (comando + síntese congelada) com ponteiro na
+§Tese; "25m23s e US$ 1,5655" em [[PLAN-report-trust]] §Incidente de origem
+(query de re-medição); "8 ratchets" em [[A40.l1]] §Fechamento residual 4 (as 8
+alavancas coladas do #1118; a partição 4/8 declarada não-re-derivável). O
+diagnóstico abaixo fica como registro.
 
 Números que circulam na sprint sem caminho de re-medição para o próximo agente:
 

@@ -80,7 +80,9 @@ abrir", isso bloqueia a saída do dogfood.
 ### Incidente de origem
 
 Run `2ded7aab` (workspace dogfood premium, 2026-07-31) marcado `failed` após
-25m23s e US$ 1,5655. Os 17 stages anteriores passaram; o E5 fechou com artifact
+25m23s e US$ 1,5655 (re-medível: `pipeline_runs.started_at/finished_at` +
+`SUM(llm_call_log.cost_usd) WHERE pipeline_run_id` do run `2ded7aab` — nenhum
+dos dois é PII). Os 17 stages anteriores passaram; o E5 fechou com artifact
 de 123.498 bytes — **o relatório era derivável e não foi derivado**. Causa: o
 guardrail `number_in_prose` (LLM digitou valor em R$ na prosa, **além** de emitir
 a âncora) escalou para `needs_review` porque o item era severidade Crítica/Alta →
