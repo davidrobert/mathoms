@@ -3,6 +3,7 @@ id: ADR-347
 type: adr
 title: "Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão)"
 status: Proposto
+amended_at: ["2026-08-05"]
 phase: A39
 date: "2026-07-24"
 relates_to:
@@ -31,6 +32,10 @@ tags:
 > (anachronic dupla-subtraído). Este documento incorpora as correções bloqueantes.
 > Flippa para `Decidido` no merge do PR3 (flip HARD). Tamanho >150 linhas
 > justificado: contrato multi-canal com âncora de medição + prova de exaustividade.
+
+> ⚠️ **Emendada em 2026-08-05 (A40.l2 D3).** A partição de remoções ganhou o 5º
+> canal `cross_document_collapse`, e `intra_statement_dedup` deixou de ser inferido
+> por diferença. Ver §Emenda ao fim.
 
 ## Contexto
 
@@ -174,3 +179,27 @@ no E3; E4/E5 herdam o padrão em vez de re-derivar).
   o statement-level cabe em `review_reasons` — não criar estado novo ([[ADR-111]]).
 - **Dropar tx ambígua sem review:** viola anti-silêncio ([[ADR-342]]); cauda longa
   (lançamentos legítimos idênticos) exige `needs_review`.
+
+## Emenda — 5º canal e intra autoritativo · 2026-08-05
+
+A partição da §Decisão ganhou o canal **`cross_document_collapse`** (colapso
+cross-documento da [[A40.l2]], [[ADR-354]] §Emenda 2), com `count` e `valor_cents`
+**assinado**, agregado por `source_document`.
+
+**`intra_statement_dedup` deixa de ser inferido por diferença** (`tx_loaded −
+len(transactions)`) e passa a ser **autoritativo** — soma dos fatos `DedupRemoval`
+que o reconcile já emite. Motivo medido: a inferência convertia remoção
+não-declarada em **absorção silenciosa** (colapso de 3 rows aparecia como
+`intra count=3/valor_cents=0` e o invariante 1 fechava). Com canais autoritativos,
+canal futuro não-instrumentado produz resíduo ≠ 0 e o invariante quebra **alto** —
+é a [[ADR-342]] aplicada ao próprio ledger. Caller sem fatos (`removals=None`)
+mantém a inferência legada.
+
+Correção adjacente: a agregação por source era dict-comprehension que
+**sobrescrevia** entradas do mesmo arquivo; agora soma, e a leitura é por source
+**distinto** do grupo.
+
+**Consequência para o flip HARD (F3 do §Faseamento):** o teste de exaustividade da
+partição (invariante 3) deve nascer sobre **5 canais**, não 4. `e2_to_e3` do
+harness passou a computar `count_out` pela partição completa quando `remocoes`
+existe — `transacoes_duplicadas_removidas` é só cross-file e subdeclarava.
