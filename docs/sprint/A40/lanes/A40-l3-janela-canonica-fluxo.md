@@ -322,6 +322,14 @@ mais um argumento para a [[A40.l15]] tratar o texto daquele card.
 
 ### Assimetria de rótulo que esta lane NÃO fecha (handoff)
 
+> **Correção de número publicado.** O corpo do #1124 registrou "a obrigação de
+> rótulo da [[ADR-306]] está cumprida em **2 de 8** blocos". A medição recursiva
+> desta seção corrige para **4** com rótulo lido do campo `janela` (a partição
+> completa abaixo: 4 + 1 prosa do produtor + 1 só tooltip + 2 sem nada = 8). O
+> corpo do PR é imutável e chegou a propagar: o §Inventário do [[A40]] repetiu o
+> "2 de 8" até 2026-08-05, quando foi corrigido junto com este registro — quem
+> só ler o PR fica com o número errado.
+
 Medido no substrato versionado (`backend/tests/snapshots/dogfood_view_model.json`,
 varredura recursiva por chave `janela`): **8 blocos** a trazem —
 `consumo_consciente`, `equilibrio_cerbasi`, `fluxo_caixa`,

@@ -108,7 +108,8 @@ drift de payload. `prompt_version` **não** é estratificador suficiente;
 2. **Invariante determinístico — o gate que faltava.** Check sobre o exec context
    **renderizado**: toda folha R$ que o modelo vê tem path no catálogo. Entra em
    **`warn` com baseline medido**; flip a fail só em PR próprio com prova
-   red-before-green por mutação (padrão dos 8 ratchets da [[A40.l1]]). **Não**
+   red-before-green por mutação (padrão dos 8 ratchets da [[A40.l1]] — 4
+   re-confirmados manualmente, ver lá §Fechamento, residual 4). **Não**
    instalar gate hard no mesmo PR que introduz a métrica.
 3. **Re-medição retroativa dos 19 runs, US$ 0.**
    `pipeline/stages/parecer_planejador.py` já persiste

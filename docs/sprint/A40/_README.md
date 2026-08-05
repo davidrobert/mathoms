@@ -104,6 +104,11 @@ tripwire.
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
 
+**Convenção da coluna Título:** é **rótulo curto**, não o título canônico — este
+é o `title` do frontmatter da lane. Medido em 2026-08-05: 1 das 31 coincide
+literalmente. Divergência de redação aqui **não** é defeito; divergência de
+`priority` ou de `depends_on` é.
+
 | Lane | Título | Prio | depends_on | Achados |
 |---|---|---|---|---|
 | [[A40.l1]] | Instrumento: detector de duplicação cross-grupo + baseline congelado | P0 | — | débito de método r3 #4 (habilita l2) |
@@ -115,10 +120,10 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 | [[A40.l7]] | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa incoerente | P1 | — | RV3-04, RV3-05, RV3-15, RV3-28 |
 | [[A40.l8]] | Cobertura do manifest do parecer (dado renderizado inalcançável) | P1 | — | RV3-08 |
 | [[A40.l9]] | Materialização de config run-scoped (input zerado silenciosamente) | **P1** | — | RV3-11 |
-| [[A40.l10]] | Ordem do plano + pendências do dono | P2 | l9 | RV3-07, RV3-10 |
+| [[A40.l10]] | Ordem do plano + pendências do dono | P1 | l9 | RV3-07, RV3-10 |
 | [[A40.l11]] | Cobertura e incerteza na tela | P2 | l3, l4 | RV3-13, RV3-14, RV3-29 · flip [[ADR-353]] |
 | [[A40.l12]] | Classificação incompleta distorce KPI | P1 | l1 | RV3-20, RV3-21 · flip [[ADR-351]] |
-| [[A40.l13]] | Copy e design system | P3 | l4 | RV3-23, RV3-24, RV3-25 |
+| [[A40.l13]] | Copy e design system | P2 | l4 | RV3-23, RV3-24, RV3-25 |
 | [[A40.l14]] | Limpeza de órfãos e schema morto | P3 | — | RV3-32 + handoff A39 |
 | [[A40.l15]] | Consumo Consciente: KPI de pontuais na base da janela (+3 co-changes E5) + base do texto do donut e do chart mês a mês | P2 | l3 | spun off da l3 (mudança de domínio; exige rebaseline de snapshot) |
 | [[A40.l16]] | Desescalar `number_in_prose`: defeito de forma para de apagar conselho e de derrubar o run | **P0** | — | incidente `2ded7aab` · emenda **[[ADR-304]]** + **[[ADR-358]]** |
@@ -353,7 +358,7 @@ Três lanes da Onda 1 estão em `main`, entregues **antes** da Onda 0 existir
 
 | Lane | Commit | O que ficou medido |
 |---|---|---|
-| [[A40.l1]] | `92a91884` (#1118) | 261 colisões cross-grupo · Σ 81.288.000 cents · baseline congelado off-git · 8 ratchets provados por mutação |
+| [[A40.l1]] | `92a91884` (#1118) | 261 colisões cross-grupo · Σ 81.288.000 cents · baseline congelado off-git · **8 ratchets, 4 re-confirmados manualmente** (4 só com a prova do implementador — ver [[A40.l1]] §Fechamento, residual 4) |
 | [[A40.l3]] | `b12aff30` (#1124) | `janela_12m` passa de 0 consumidores a leitura por seletor único; rótulo impresso (tooltip não sai no PDF) |
 | [[A40.l4]] | `6c5d9814` (#1139) | precedência de 3 fontes declarada ([[ADR-356]]); 7 → 12 seções entregando parágrafo |
 
@@ -518,6 +523,10 @@ DAS no `s8` e `das_simples` em `despesas_impostos` depois de re-medir o balde co
 matcher de `69a2fad4`). Esses ficam na A40 — e então precisam de lane, contra as 24
 atuais — ou viram disposição explícita de não-fazer na §Fora do sprint?
 
+**Relacionado:** o `s1` publicando "residência própria de R$ 0,00" foi roteado
+para a [[A40.l5]] (registrado lá em §Escopo herdado), mas é da classe
+**zero-como-valor**, que é a RV3-27 da [[A40.l6]] — mover ou manter?
+
 **7. Onde mora o tripwire de revert da [[A40.l21]], e quem é o owner?** —
 ✅ **RESOLVIDA 2026-08-03.** Host = §Gate de saída e encerramento (novo); gatilho =
 `date_target` do frontmatter; owner = quem fizer o pickup seguinte após a data. O
@@ -534,13 +543,19 @@ tripwire, com que gatilho, e sob qual owner?
 
 **8. Vale acrescentar o path off-git ao lado de cada número medido?**
 
-Três números circulam na sprint sem caminho de re-medição para o próximo agente:
+Números que circulam na sprint sem caminho de re-medição para o próximo agente:
 
-- **"261 colisões · Σ 81.288.000 cents"** (§Estado da Onda 1 e [[A40.l2]]) — a
-  [[A40.l1]] declara o destino genérico `storage/<uuid>/certify/`, não o dump.
+- **"261 colisões · Σ 81.288.000 cents"** (§Estado da Onda 1 e [[A40.l2]]) —
+  **resolvido 2026-08-05:** o path exato do dump (mascarado) está em [[A40.l1]]
+  §Fechamento; antes só havia o destino genérico `storage/<uuid>/certify/`.
 - **"105/105 grupos"** (§Tese, [[A40.l1]], [[ADR-354]], [[REPORT-REVIEWS-active]],
   [[SPRINTS-active]]).
 - **"25m23s e US$ 1,5655"** do run `2ded7aab` ([[A40.l16]], [[PLAN-report-trust]]).
+- **"8 ratchets"** ([[A40.l1]], [[A40.l2]]) — o corpo do #1118 enumera as 8
+  alavancas de mutação, mas `tests/unit/pipeline/test_cross_group_ratchet.py`
+  tem **26** testes e nenhuma partição de 8: não dá para re-derivar dos nomes de
+  teste quais 4 foram re-confirmados manualmente (ver [[A40.l1]] §Fechamento,
+  residual 4).
 
 Número sem path força o próximo agente a re-medir do zero ou a confiar. Anexar o
 path off-git virá convenção da sprint, ou fica caso a caso?
@@ -662,7 +677,7 @@ item que tem só descrição evapora no fim da sprint.
 | ~~Regressão de contexto do gerador~~ → **ancorabilidade do exec context** (#1004) | [[A40.l30]] (instrumento) + [[A40.l31]] (fix) | **lane** |
 | **Pontos cegos do `dev/check_pipeline_log_pii.py`** | *nada* | ver §Fora do sprint |
 | **`banco` vazio em 20 grupos `extrato`** | *nada* | ver §Fora do sprint |
-| Obrigação de rótulo da [[ADR-306]] cumprida em 2 de 8 blocos com chave `janela` | [[A40.l3]] §Handoff | **sem lane** → Pendência 11 |
+| Obrigação de rótulo da [[ADR-306]] cumprida em 4 de 8 blocos com chave `janela` (o "2 de 8" do corpo do #1124 estava errado — ver [[A40.l3]] §Handoff) | [[A40.l3]] §Handoff | **sem lane** → Pendência 11 |
 
 **Era a de maior consequência da lista, e agora tem lane — com o nome corrigido.**
 A [[A40.l16]] mede que o enforcement ficou dormente sob o prompt 2.1.0 (9,1% em 11
@@ -703,7 +718,8 @@ marcados "sem lane" na tabela acima.
 2026-08-03 foi "nada sai da A40" — mas ela cobria o escopo então existente, não
 follow-up gerado depois pela execução. Cada um tem custo e dono diferentes: a
 regressão do gerador exige eval (o de US$ 26 mede o gerador e não foi re-rodado);
-os quatro da [[A40.l4]] são de superfície; o da [[ADR-306]] são 6 blocos de rótulo.
+os quatro da [[A40.l4]] são de superfície; o da [[ADR-306]] são 4 blocos de rótulo
+(8 − 4 cumpridos, ver [[A40.l3]] §Handoff).
 Deixá-los sem destino é a única opção que não é decisão — é esquecimento.
 
 **12. Autorreferência em `depends_on`/`parallel_with` vira gate, ou fica no olho

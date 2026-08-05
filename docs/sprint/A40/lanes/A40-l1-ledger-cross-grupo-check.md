@@ -258,3 +258,51 @@ Fechado com um output novo (`dev_tools`) que gateia **só** `pipeline-tests`;
 `dev/**`). O controle compensatório declarado (`main-smoke` em `nightly.yml`) está
 com o workflow `disabled_manually` — **P0 operacional a escalar ao owner**:
 re-habilitar e isolar `main-smoke` dos jobs pesados que causaram as falhas.
+
+## Fechamento (2026-07-30 · #1118 `92a91884`)
+
+Registro na **lane produtora**, aterrissado em 2026-08-05 (resgate de edits de
+2026-08-03 que ficaram fora do git). Até então estes números só existiam na
+[[A40.l2]] (consumidora), no [[A40]] §Estado da Onda 1 e no corpo do PR #1118 —
+nenhum deles é o lugar onde quem re-mede vem procurar.
+
+| Medida | Valor |
+|---|---|
+| rows varridas / chaveadas / chaves distintas | 4.320 / 4.316 / 4.055 |
+| **numerador KR-B (não-explicada)** | **261 ocorrências** |
+| Σ excesso | **81.288.000 cents** |
+| partição | `carrier-shaped=261` · `coincidence-shaped=0` |
+| 3ª identidade (nenhum filtro silencioso) | multi-proveniência 261 == numerador+explicadas 261 ⇒ fecha |
+| rows não-chaveáveis | `valor_zero=4`, resto 0 |
+| massa não-varrida (declarada) | `transferencias=1239` |
+| blast radius da [[A40.l2]] | `titular_vazio` = **5 de 5** overrides julgáveis (+7 quarentenados inertes) |
+| sinal do delta | `=` (261 antes e depois; detector de `HEAD` como módulo paralelo dá contagem, Σ e lista de `key_digest` idênticas) |
+
+Composição das 261, exaustiva: `banco` **preenchido e idêntico** nas duas pernas ·
+`titular` **parcial** · `tipo_conta` no par `('extrato','extratoconta')`. São os
+**dois carriers da [[ADR-354]] simultaneamente**, em 100% dos casos — o que valida
+empiricamente a decisão nº 1 do painel (`banco` não diverge em nenhuma das 261).
+
+**Baseline congelado off-git** ([[ADR-343]]):
+`storage/<uuid>/ledger_certify/20260731T012427Z-573a54a7/synthesis.md`.
+
+### Residuais 3 e 4 — furos conhecidos do instrumento que a [[A40.l2]] vai usar
+
+Os residuais 1 e 2 (largura do predicado de carrier; assimetria `banco` vs
+`tipo_conta`) já estão em §Limites declarados do detector. Os outros dois não
+estavam em nenhum doc do vault até este registro:
+
+3. **Caps de comprimento do render sem ratchet.**
+   `dev/ledger_cross_group_render.py:118` e `:124` (histogramas, cap 12), `:126`
+   (`_fmt_occurrences(hits, 20)`) e `:137` (`_fmt_occurrences(hits, 8)`). Os
+   ratchets existentes pinam o **numerador impresso**
+   (`test_numerador_nao_tem_cap_constante`,
+   `test_render_pina_o_numero_impresso_em_corpus_misto`), mas **nenhum teste
+   asserta comprimento de lista/histograma** — a lista de evidência encolhe em
+   silêncio enquanto o headline a contradiz.
+4. **Metade dos mutantes tem só a prova do implementador.** As duas lentes
+   independentes de verificação do fechamento morreram por limite de gasto da
+   org; os **4 mais críticos** dos 8 mutantes foram re-confirmados manualmente,
+   os outros 4 não. Onde este doc e o [[A40]] dizem "8 ratchets provados por
+   mutação", leia **8 ratchets, 4 re-confirmados manualmente; 4 só com a prova
+   do implementador**.

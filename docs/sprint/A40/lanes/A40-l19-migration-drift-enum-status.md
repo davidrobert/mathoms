@@ -67,3 +67,10 @@ porque Postgres ainda não existe em produção.
 - Asserção de que o `ALTER TYPE` é guardado por dialeto.
 - Enumeração cruzada: todo membro dos enums Python existe no tipo do DB. Gate
   estático que falha se alguém adicionar valor ao Python sem migration.
+- **PR contém apenas `backend/alembic/versions/**` + o teste da migration —
+  nenhum arquivo de feature no diff.** A regra "PR próprio" já está na prosa
+  (blockquote acima e [[A40]] §Ondas); aqui ela vira algo conferível por quem
+  revisa. Das três regras de ordem interna da Onda 3, a nº 1 (l21 antes da l18)
+  já está no frontmatter (`depends_on` da [[A40.l18]]) e a nº 2 (l20 depende da
+  *decisão* da l18) é a §Pendência de decisão nº 2 do [[A40]]; esta é higiene de
+  PR, não dependência — não se expressa em `depends_on`.
