@@ -5,7 +5,7 @@ title: "Identidade de transação (K4) exclui atributos de proveniência do docu
 status: Proposto
 phase: report-review r3 (RV3-01) · A40.l2
 date: "2026-07-30"
-amended_at: ["2026-08-05"]
+amended_at: ["2026-08-05", "2026-08-05"]
 relates_to:
   - "[[ADR-278]]"
   - "[[ADR-287]]"
@@ -25,6 +25,12 @@ tags:
 > *canonicalizar a montante* para *colapsar por transação antes do
 > agrupamento*. Leia a §Emenda antes de implementar — a forma original leva a
 > um fix que colapsa ~48% ou apaga dado legítimo.
+>
+> ⚠️ **Segunda emenda, 2026-08-05 (mesma data, sessão posterior):** a cláusula 4
+> do predicado (multiset por perna) foi **revogada por medição** — 0/262 legs com
+> ≥2 rows tinham evidência de 2 eventos, e a cláusula preservava o par nativo+LLM
+> em 42 chaves. A cardinalidade passa a contar eventos por **arquivo**. Ver
+> §Emenda 2.
 
 ## Contexto
 
@@ -190,3 +196,40 @@ hashes que removeria, o backend **decide** o mapa removido→sobrevivente.
 
 Co-design `data-engineer` (2026-08-05) — as cláusulas 1, 3 e 4 e o eixo de
 cardinalidade são objeções dele ao desenho que eu havia proposto.
+
+## Emenda 2 — cardinalidade conta eventos por arquivo, não por perna · 2026-08-05
+
+> Co-design data-engineer + financial-planner sobre a medição do PR1 apontado ao
+> corpus (verificação adversarial de 4 lentes, mesma data).
+
+**Revogada a cláusula 4 da Emenda 1** (multiset: `max` de rows por proveniência).
+Medido: nas 262 legs com ≥2 rows, `source_document` difere em **262/262**, a
+descrição bruta é byte-idêntica em 168 (onde `is_duplicate` retorna `True` em
+168/168) e nas 94 restantes a divergência é exatamente o sufixo de roteamento que
+`normalize_descricao` remove ([[ADR-255]] it.2). **0/262 têm evidência de 2
+eventos.** A cláusula importava a duplicação intra-proveniência para dentro do
+sobrevivente (182 rows) e preservava o par nativo+LLM — o defeito-alvo — em 42
+chaves. Pior: fazia a identidade do lançamento depender de **quantos arquivos** a
+família subiu, com sinal perverso (quem envia extrato anual + mensais vê mais
+renda), sendo que documento sobreposto é o onboarding modal.
+
+**Regra nova:** eventos distintos = máximo de rows num mesmo
+`(proveniência, source_document)`. Um arquivo reportando 2× = 2 eventos (repetição
+legítima aparece 2× no MESMO extrato — protegida); dois arquivos reportando 1×
+cada = 1 evento visto por documentos sobrepostos. A regra é **estritamente mais
+rígida** que o `is_duplicate` que já roda a montante (±3 dias, ±R$ 0,01) — não
+abre classe nova de falso-positivo; remove a dependência de fronteira de arquivo
+de uma regra que o produto já aceitou.
+
+**Dois critérios foram rejeitados no co-design:** descrição normalizada
+(degenerada — constante dentro da chave por construção, equivale ao colapso
+ingênuo e apagaria repetição legítima em 80 chaves) e `is_duplicate` byte-idêntico
+(o critério que já falhou nas 94 legs com sufixo de roteamento; reproduziria o
+teto de ~48% que a Emenda 1 sepultou).
+
+**Invariante mantido e agora testado:** sobrevivente é a perna **nativa**
+(native-first) — nas 6 chaves com `kind` assimétrico, eleger a perna LLM
+converteria receita em transferência, apagando renda em silêncio.
+
+**Rebaseline no corpus dogfood:** removível 411 → **593** (`card {1: 331}`); o
+alvo é a **regra**, não o número — pinar 593 seria Goodhart.
