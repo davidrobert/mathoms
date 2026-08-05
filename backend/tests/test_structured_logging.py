@@ -274,3 +274,29 @@ def test_extra_explicito_vence_o_valor_injetado() -> None:
     logger.setLevel(logging.INFO)
     logger.info("boot", extra={"executor_revision": "bbbbbbbbbbbb"})
     assert json.loads(stream.getvalue().strip())["executor_revision"] == "bbbbbbbbbbbb"
+
+
+def _root_json_revisions() -> list[str | None]:
+    return [
+        getattr(h.formatter, "_executor_revision", None)
+        for h in logging.getLogger().handlers
+        if isinstance(h.formatter, MathomsJsonFormatter)
+    ]
+
+
+def test_setup_logging_injeta_a_revisao_no_handler_do_root(monkeypatch) -> None:
+    """A INJEÇÃO no handler do root — os outros testes constroem o formatter à mão."""
+    # Mutação que mata: apagar o kwarg em `setup_logging`. A propriedade que a
+    # ADR-363 §3 vende ("todo record") ficava sem cobertura nenhuma.
+    from backend.app.core import config as core_config
+
+    monkeypatch.setattr(core_config.settings, "BUILD_SHA", "feedfacecafe", raising=False)
+    root = logging.getLogger()
+    salvos = list(root.handlers)
+    try:
+        setup_logging()
+        revisions = _root_json_revisions()
+        assert revisions, "setup_logging não instalou o formatter JSON"
+        assert "feedfacecafe" in revisions
+    finally:
+        root.handlers = salvos

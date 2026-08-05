@@ -43,25 +43,49 @@ def test_normalizacao_nunca_levanta() -> None:
 # ─────────────────────── anti-fabricação (gate central) ───────────────────────
 
 
-def test_revisao_e_do_worktree_apontado_nao_do_cwd() -> None:
-    """Gate central: a revisão vem do worktree pinado, não do HEAD ambiente."""
-    # Mutação que mata: resolver sem `cwd` — passaria a devolver o HEAD de quem
-    # chama, que é a fabricação que a ADR-362 proíbe (worker de 07:28 servindo
-    # HEAD de 08:13).
-    head_aqui = subprocess.run(
+def _git_repo(path: Path) -> str:
+    """Repo git real e isolado — asserção contra ambiente não morde em CI."""
+    for cmd in (
+        ["init", "-q"],
+        ["config", "user.email", "t@t"],
+        ["config", "user.name", "t"],
+        ["commit", "-q", "--allow-empty", "-m", "c0"],
+    ):
+        subprocess.run(["git", *cmd], cwd=path, check=True, capture_output=True)
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=path, capture_output=True, text=True, check=True
+    ).stdout.strip()[:12]
+
+
+def test_revisao_e_do_worktree_apontado_nao_do_cwd(tmp_path, monkeypatch) -> None:
+    """Gate central: a revisão vem do worktree APONTADO, não do cwd do processo."""
+    # Mutação que mata: `cwd=cwd` sem o fallback `or _ROOT` em `_git` — passaria a
+    # devolver o HEAD de quem chama. O teste anterior comparava com `_ROOT` e rodava
+    # DE `_ROOT`, então cwd == alvo e o mutante sobrevivia. Trocar o cwd é o que
+    # separa "resolve do lugar certo" de "resolve de onde chamaram".
+    outro = _git_repo(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    head_do_repo = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=_ROOT, capture_output=True, text=True, check=True
     ).stdout.strip()[:12]
-    assert (resolve_revision() or "").startswith(head_aqui)
+
+    assert (resolve_revision() or "").startswith(head_do_repo)
+    assert not (resolve_revision() or "").startswith(outro)
 
 
-def test_arvore_suja_marca_dirty() -> None:
-    """Árvore suja ⇒ o sha não identifica o código; igualdade acerta sozinha."""
-    rev = resolve_revision()
-    assert rev is not None
-    porcelain = subprocess.run(
-        ["git", "status", "--porcelain"], cwd=_ROOT, capture_output=True, text=True, check=True
-    ).stdout.strip()
-    assert rev.endswith("-dirty") is bool(porcelain)
+def test_arvore_limpa_nao_marca_dirty(tmp_path) -> None:
+    """Determinístico: repo próprio, não o estado do checkout de quem roda."""
+    _git_repo(tmp_path)
+    assert not (resolve_revision(cwd=tmp_path) or "").endswith("-dirty")
+
+
+def test_arquivo_untracked_marca_dirty(tmp_path) -> None:
+    """Untracked marca dirty: `diff-index` mente por omissão, `status` não."""
+    # Mutação que mata: `dirty = False` constante, ou trocar por `diff-index`.
+    # Arquivo novo é módulo importável, logo muda o que o processo executa.
+    _git_repo(tmp_path)
+    (tmp_path / "modulo_novo.py").write_text("x = 1\n")
+    assert (resolve_revision(cwd=tmp_path) or "").endswith("-dirty")
 
 
 def test_sem_git_devolve_none(tmp_path: Path) -> None:
@@ -85,6 +109,19 @@ def test_preflight_avisa_quando_worker_roda_codigo_velho() -> None:
 
 def test_preflight_silencioso_quando_worker_esta_no_head() -> None:
     assert preflight_warning("aaaaaaaaaaaa", "aaaaaaaaaaaa") is None
+
+
+def test_preflight_nao_da_verde_com_arvore_suja() -> None:
+    """Caso DOMINANTE do dogfood: sujo dos dois lados, iguais por string."""
+    # Mutação que mata: ramo de igualdade antes da checagem de `-dirty` ⇒ None ⇒
+    # imprime "worker vivo na revisão do HEAD" para worker que pode ser outro.
+    w = preflight_warning("aaaaaaaaaaaa-dirty", "aaaaaaaaaaaa-dirty")
+    assert w is not None and "INCONCLUSIVA" in w
+
+
+def test_preflight_trata_literal_desconhecido_como_ausencia() -> None:
+    """O worker loga `desconhecido` quando sobe sem a env — não é uma revisão."""
+    assert "nenhum processo" in (preflight_warning("desconhecido", "aaaaaaaaaaaa") or "")
 
 
 def test_preflight_avisa_quando_ninguem_anunciou() -> None:

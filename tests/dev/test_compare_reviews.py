@@ -119,7 +119,7 @@ def test_tier_downgrade_suppresses_premium_surfaces() -> None:
     cur = _snap(run={**_RUN, "tier_at_run": "free"}, calls=[], parecer=None, report_data=rd_free)
     hard, _soft, notes = compare_reviews(_snap(), cur, _report_data(), rd_free)
     assert hard == []
-    assert "tier_downgrade" in notes
+    assert any("tier_downgrade" in n for n in notes)
 
 
 # ─────────── critério 4: regressão injetada → FAIL (e render não falsa-falha) ───────────
@@ -189,7 +189,7 @@ def test_value_drift_suppressed_when_corpus_grew() -> None:
     cur = _snap(run={**_RUN, "total_documents": 55})
     hard, soft, notes = compare_reviews(_snap(), cur, _report_data(), rd_up)
     assert not any("acoes" in h for h in hard)
-    assert "corpus_grew" in notes
+    assert any("corpus_grew" in n for n in notes)
     assert any("acoes" in s for s in soft)
 
 
@@ -207,7 +207,7 @@ def test_cache_hit_does_not_suppress_parecer_regression() -> None:
     base = _snap(parecer=_parecer(n=10))
     cur = _snap(calls=[], parecer=_parecer(n=4, cache_hit=True))
     hard, _soft, notes = compare_reviews(base, cur, _report_data(), _report_data())
-    assert "tier_downgrade" not in notes
+    assert not any("tier_downgrade" in n for n in notes)
     assert any("n_secoes" in h for h in hard)
 
 
@@ -216,7 +216,7 @@ def test_llm_genuinely_off_still_suppresses() -> None:
     base = _snap(parecer=_parecer())
     cur = _snap(calls=[], parecer=None)
     hard, _soft, notes = compare_reviews(base, cur, _report_data(), _report_data())
-    assert "tier_downgrade" in notes
+    assert any("tier_downgrade" in n for n in notes)
     assert not any("parecer" in h for h in hard)
 
 
@@ -226,7 +226,7 @@ def test_baseline_sem_cache_hit_degrada_sem_explodir() -> None:
     for snap in (base, cur):
         del snap["parecer"]["cache_hit"]
     hard, _soft, notes = compare_reviews(base, cur, _report_data(), _report_data())
-    assert "tier_downgrade" in notes
+    assert any("tier_downgrade" in n for n in notes)
     assert hard == []
 
 

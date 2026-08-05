@@ -399,15 +399,28 @@ def provenance_notes(base: dict, cur: dict) -> list[str]:
     # O amplificador "zero commits + drift ⇒ severidade sobe" foi MEDIDO como dead
     # code (52/15/24 commits nas 3 janelas reais) e a inferência seria inválida.
     bp, cp = base.get("provenance") or {}, cur.get("provenance") or {}
-    br, cr = bp.get("executor_revision"), cp.get("executor_revision")
+    # Decide pelo PLURAL: sob execução mista o escalar é None de propósito, e ler
+    # dele reportaria "desconhecida" para um run cuja proveniência é conhecida.
+    bl, cl = _revision_list(bp), _revision_list(cp)
     out = []
-    if br and cr and br != cr:
-        out.append(f"revisão do executor mudou: {br} -> {cr} (contexto, não regressão)")
-    if not br or not cr:
+    if bl and cl and bl != cl:
+        out.append(f"revisão do executor mudou: {','.join(bl)} -> {','.join(cl)}")
+    if not bl or not cl:
         out.append("revisão do executor desconhecida em um dos runs — comparação sem proveniência")
-    if cp.get("execucao_mista"):
-        out.append("execução mista no run atual: stages rodaram em revisões diferentes")
+    for lado, prov in (("baseline", bp), ("atual", cp)):
+        if prov.get("execucao_mista"):
+            out.append(f"execução mista no run {lado}: stages rodaram em revisões diferentes")
+        if prov.get("atribuicao_parcial"):
+            out.append(f"atribuição PARCIAL no run {lado}: alguns stages sem revisão declarada")
     return out + [_BLIND_DIMENSION_NOTE] if out else out
+
+
+def _revision_list(prov: dict) -> list[str]:
+    plural = prov.get("executor_revisions")
+    if isinstance(plural, list) and plural:
+        return [str(x) for x in plural]
+    single = prov.get("executor_revision")
+    return [str(single)] if single else []
 
 
 def compare_reviews(
@@ -415,7 +428,8 @@ def compare_reviews(
 ) -> tuple[list[str], list[str], list[str]]:
     """Retorna (hard, soft, notes). ``hard`` não-vazio ⇒ exit 1."""
     sup = _suppressors(base, cur)
-    notes = [k for k, v in sup.items() if v] + provenance_notes(base, cur)
+    notes = [f"suppressor ativo — {k}" for k, v in sup.items() if v]
+    notes += [f"contexto — {n}" for n in provenance_notes(base, cur)]
     hard, drift = _hard_regressions(base, cur, base_rd, cur_rd, sup, band)
     soft = _soft_changes(base, cur, sup)
     if sup["corpus_grew"]:
@@ -449,7 +463,7 @@ def _compare_dirs(
 
 def _print_compare(hard: list[str], soft: list[str], notes: list[str]) -> None:
     for n in notes:
-        print(f"NOTE: suppressor ativo — {n}")
+        print(f"NOTE: {n}")
     for s in soft:
         print(f"CHANGED: {s}")
     for h in hard:
