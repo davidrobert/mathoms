@@ -1,0 +1,78 @@
+# Registro de actions usadas em jobs required (gate: dev/check_required_job_actions.py).
+#
+# ADR-320 §Emenda 2026-08-05: `runs.using: docker` é vedado em job required —
+# o SHA-pin das actions de terceiro (A34.l14) cobre o CÓDIGO da action, não a
+# IMAGEM BASE que uma action `runs.using: docker` builda em runtime. Achado do
+# #1161: `CodelyTV/pr-size-labeler` puxava `alpine:3.15` sem digest, um timeout
+# de I/O do Docker Hub bloqueou o build, e o required check "Title (Conventional
+# Commits)" reprovou o repo inteiro sem nenhuma linha de diff alcançar o job.
+#
+# Ação sem gate era convenção editorial — dívida, não garantia (mesma família da
+# emenda da ADR-111). Este arquivo + o gate tornam a regra verificável.
+#
+# Adicionar action nova a um job `required_jobs` abaixo: consulte o `action.yml`
+# dela no ref pinado ANTES de adicionar a entrada — rede só neste passo manual,
+# o gate em si não a exige:
+#   gh api repos/<owner>/<repo>/contents/action.yml?ref=<sha-ou-tag> --jq '.content' | base64 -d | grep -A2 '^runs:'
+# Se `runs.using` vier `docker` (ou variante `docker1`/etc.), a action NÃO pode
+# entrar num job `required_jobs` — mova o job para fora do fecho, ou troque a
+# action por um script inline (padrão do #1161: `gh` CLI em vez de action).
+
+actions:
+  actions/checkout:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  actions/setup-python:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  actions/cache:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  actions/upload-artifact:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  actions/setup-node:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  actions/github-script:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  actions/labeler:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  actions/setup-go:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  gitleaks/gitleaks-action:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  tj-actions/changed-files:
+    runs_using: node24
+    verified_at: "2026-08-05"
+  astral-sh/setup-uv:
+    runs_using: node24
+    verified_at: "2026-08-05"
+  golangci/golangci-lint-action:
+    runs_using: node20
+    verified_at: "2026-08-05"
+  amannn/action-semantic-pull-request:
+    runs_using: node20
+    verified_at: "2026-08-05"
+
+# Fecho de jobs required — não é o mesmo que "todo job do workflow". A
+# Repository Ruleset `main-protection` exige dois status checks: "All checks
+# green" (job `all-green` de ci.yml + o fecho do `needs:` dele) e "Title
+# (Conventional Commits)" (job `title-lint` de pr-quality.yml). Job fora
+# desta lista pode usar action Docker livremente — não é required.
+required_jobs:
+  ci.yml:
+    - changes
+    - lint-all
+    - pipeline-tests
+    - backend-tests
+    - frontend-checks
+    - go-lint
+    - go-test
+    - all-green
+  pr-quality.yml:
+    - title-lint

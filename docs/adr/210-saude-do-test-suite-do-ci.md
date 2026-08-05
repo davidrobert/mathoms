@@ -5,7 +5,7 @@ title: "Saúde do test suite do CI — gates, telemetria e ciclo de vida"
 status: Decidido
 phase: "Sprint A12 (test health · CI cost)"
 date: "2026-05-14"
-amended_at: ["2026-05-19", "2026-07-30", "2026-07-31", "2026-08-03"]
+amended_at: ["2026-05-19", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-05"]
 relates_to:
   - "[[ADR-067]]"
   - "[[ADR-093]]"
@@ -27,6 +27,31 @@ tags:
 ---
 
 # ADR-210 — Saúde do test suite do CI
+
+> **Emenda (2026-08-05) — revisão retroativa `sre-devops` do adendo 2026-08-03,
+> fecha `OWNER-GATED-active.md` "Revisão sre-devops da política de CI do
+> #1160":** o teto de 20min + a regra "~2× a mediana" seguem aprovados, mas o
+> gatilho declarado ("reavaliar quando a mediana passar de 60% do teto") não
+> tinha emissor — nada calculava essa mediana automaticamente; a única forma
+> de notar a erosão foi arqueologia manual em 56 jobs via API. Fechado por
+> `dev/check_backend_job_duration_drift.py`, step novo em `budget-alert.yml`
+> (mesmo padrão do watchdog de liveness §camada 4: abre/atualiza/fecha issue
+> `ci-duration-drift`, não bloqueia merge). Adicionalmente, medido que o `if:`
+> de `backend-tests` reusava o filtro `pipeline` (desenhado para
+> `pipeline-tests`, que legitimamente precisa de `tests/**`+`scripts/**`) —
+> conflando "mudou biblioteca que o backend importa" com "mudou teste/script
+> do pipeline que o backend não toca". Medido por grafo de import real (AST,
+> não grep — a 1ª passada por regex subcontou): **4** cruzamentos vivos, dois
+> deles em código de **produção**, não só teste — `backend/app/services/storage/{db_artifact_store,artifact_retention}.py`
+> importam `scripts.pipeline_common` (módulo compartilhado, já documentado no
+> CLAUDE.md), e testes importam `tests.fakes`, `scripts.route_documents` e
+> `scripts.e2.{banks,registry}` (parsers de banco). Filtro novo `pipeline_lib`
+> restringe `backend-tests` a `pipeline/**` + `config/schemas/**` + os 4 paths
+> medidos, com `dev/check_backend_pipeline_coupling.py` gateando drift dos dois
+> lados (import novo fora do filtro ⇒ falha; entrada do filtro que ninguém
+> importa mais ⇒ falha) — sem esse gate a narrowing repetiria a classe de bug
+> que o comentário de `dev_tools` no `ci.yml` já nomeia ("allowlist positiva
+> falha ABERTA no próximo módulo novo").
 
 > **Emenda (2026-08-03) — a tabela §Ganhos está vencida:** ela afirma
 > `backend-tests ≈ 5min`, número de 2026-05-14. A mediana medida em
