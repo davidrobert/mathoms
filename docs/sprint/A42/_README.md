@@ -110,7 +110,7 @@ sobre o mesmo corpus, prova o fechamento**:
 
 Precedente de DoD por re-execução da skill: A32, A37, [[A39]] KR-E.
 
-## Lanes (12)
+## Lanes (13)
 
 | Lane | O quê | Prio | Onda | Dep |
 |---|---|---|---|---|
@@ -314,7 +314,7 @@ qualifica.
 ## Gatilho de promoção a `current`
 
 Evento, não calendário: **[[A40]] → `done`**. Enquanto a A40 é `current`, duas
-sprints `current` são hard fail em `build_doc_index.py --check`, e as **12** lanes
+sprints `current` são hard fail em `build_doc_index.py --check`, e as **13** lanes
 nascem `planned` — **escritas, não autorizadas para pickup**. Padrão [[A41]].
 
 **Dois níveis, decisão do dono 2026-08-05.** A pergunta "faz sentido fundir a A42
@@ -323,7 +323,7 @@ motivo mecânico registrado lá). O que a fusão comprava de legítimo era uma c
 tirar lane individual da fila quando ela passa a importar antes do fechamento da A40 —
 e para isso já existe porta, com precedente executado:
 
-- **Nível sprint:** [[A40]] → `done` (inalterado). Promove as 12 de uma vez.
+- **Nível sprint:** [[A40]] → `done` (inalterado). Promove as 13 de uma vez.
 - **Nível lane:** **promoção individual para a sprint corrente por *consumidor
   datado***, reparentando a lane (`sprint: A40` + `git mv`). Precedente exato:
   [[A40.l24]], que nasceu `A41.l1` e foi promovida assim por decisão do dono em

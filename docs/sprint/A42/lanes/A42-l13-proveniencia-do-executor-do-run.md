@@ -3,7 +3,7 @@ id: A42.l13
 type: lane
 title: "Proveniência do executor: qual código computou este run"
 sprint: A42
-status: open
+status: planned
 priority: P1
 branch_slug: a42-l13-proveniencia-do-executor-do-run
 adrs:
@@ -14,7 +14,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a42
-  - status/open
+  - status/planned
   - priority/p1
   - area/ci
   - area/pipeline
