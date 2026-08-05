@@ -355,8 +355,8 @@
 | ADR-357 | adr | Proposto |  | Criticidade de stage e degradação do run — add-on advisory não veta o entregável | `adr/357-criticidade-de-stage-e-degradacao-do-run.md` |
 | ADR-358 | adr | Proposto |  | Enforcement em produção exige budget de produção — e KR no plano onde ele age | `adr/358-enforcement-de-producao-exige-budget-de-producao.md` |
 | ADR-359 | adr | Decidido |  | Dispatch assíncrono falha alto; quem cria estado pendente compensa | `adr/359-dispatch-assincrono-falha-alto-e-quem-cria-estado-pendente-compensa.md` |
-| ADR-360 | adr | Proposto |  | Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO | `adr/360-seed-do-cone-monte-carlo-e-constante-de-modelo.md` |
-| ADR-361 | adr | Proposto |  | Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos | `adr/361-percentil-do-cone-de-if-e-censurado-na-base-cheia.md` |
+| ADR-360 | adr | Decidido |  | Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO | `adr/360-seed-do-cone-monte-carlo-e-constante-de-modelo.md` |
+| ADR-361 | adr | Decidido |  | Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos | `adr/361-percentil-do-cone-de-if-e-censurado-na-base-cheia.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
