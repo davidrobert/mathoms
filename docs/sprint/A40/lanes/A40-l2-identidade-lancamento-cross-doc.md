@@ -333,10 +333,24 @@ construção. Por isso o aceite exige eixos que **não derivam da mesma chave**.
   de **eventos distintos** na perna — rows já deduplicadas pelo mesmo critério que
   `is_duplicate` + `normalize_descricao` aplicam. Sem isso o enforce fica insuficiente
   em 182 rows e o resultado não é conservador: é errado nos dois sentidos.
-- **Antes do PR3, medir o efeito no ledger de conservação** ([[ADR-347]],
-  `attach_artifact_ledger`) e na continuidade de saldo: remover row é **sum-breaking
-  por artefato** mesmo quando é dinheiro-neutro no fluxo. Nenhuma das lentes de
-  verificação mediu isso — está aberto.
+- 🔴 **O PR3 precisa de um 5º canal declarado no ledger — medido 2026-08-05.** O
+  `build_artifact_ledger` ([[ADR-347]]) infere o dedup intra por **diferença**
+  (`intra = st.tx_loaded - len(s.transactions)`, `e3_load_report.py:120`), e o
+  colapsador remove row de `s.transactions` **antes** do ledger. Consequência medida
+  (fixture de 10 tx, 3 removidas): as 3 aparecem em `intra_statement_dedup`
+  (`count=3, valor_cents=0`) e o **invariante do ledger FECHA** —
+  `tx_carregadas == transacoes_total + Σ remocoes[*].count`. Ou seja, o enforce não
+  quebra o ledger: ele **misatribui 411 rows a um canal que significa outra coisa**, e
+  a partição de 4 canais (`undated_drop`, `anachronic`, `intra_statement_dedup`,
+  `cross_file_dedup`) esconde isso porque é fechada e o count compensa.
+  **Único sintoma:** em `e2_to_e3`, `val_out` cai mas `declared` não, então
+  `value_ok = dups > 0 and (val_in − val_out) == declared` fica falso e o veredito
+  degrada de `CONSERVADO` para `COBERTO_SEM_VALOR` — sinal fraco para 411 rows
+  mal-atribuídas. **Ação:** o PR3 adiciona `cross_document_collapse` a `_remocoes`
+  com `count` **e** `valor_cents`, e o `intra` deixa de ser inferido por diferença
+  (senão os dois canais competem pela mesma subtração). Terceira instância nesta lane
+  do mesmo padrão: identidade que fecha por construção esconde o defeito.
+- **Continuidade de saldo** segue não medida sob remoção — abrir junto do PR3.
 - **Invariante de saldo:** nenhum grupo perde `closing_balance`, a contagem de
   `saldo_final_unknown` não muda, e os 105 grupos seguem fechando em tol-0.
 - **Oráculo a jusante:** queda de ~19% da receita e ~8% da despesa nos meses
