@@ -84,32 +84,40 @@ class LoadOutcome:
 
 
 def _remocoes(
-    undated: int, anachronic: int, intra: int, cross: int, cross_cents: int, intra_cents: int
+    undated: int,
+    anachronic: int,
+    intra: tuple[int, int],
+    cross: tuple[int, int],
+    collapse: tuple[int, int],
 ) -> dict:
-    """Partição de remoções por canal (ADR-347). ``valor_cents``: intra + cross
-    serializados; undated/anachronic ficam 0 — captura de valor é a montante do
-    adapter (perda real), diferida ao PR2b (measure-then-emit)."""
+    """Partição de remoções por canal (ADR-347 + Emenda A40.l2). ``valor_cents``
+    assinado; undated/anachronic ficam 0 — captura de valor é a montante do adapter
+    (perda real), diferida ao PR2b (measure-then-emit)."""
     return {
         "undated_drop": {"count": undated, "valor_cents": 0},
         "anachronic": {"count": anachronic, "valor_cents": 0},
-        "intra_statement_dedup": {"count": intra, "valor_cents": intra_cents},
-        "cross_file_dedup": {"count": cross, "valor_cents": cross_cents},
+        "intra_statement_dedup": {"count": intra[0], "valor_cents": intra[1]},
+        "cross_file_dedup": {"count": cross[0], "valor_cents": cross[1]},
+        "cross_document_collapse": {"count": collapse[0], "valor_cents": collapse[1]},
     }
 
 
-def _intra_cents_by_source(removals) -> dict[str, int]:
-    """Valor do dedup intra por ``source_document`` (ADR-347 §Dec-6), extraído dos
-    ``DedupRemoval`` (duck-typed: ``.canal``/``.source``/``.valor_cents``)."""
-    return {
-        r.source: r.valor_cents
-        for r in (removals or ())
-        if getattr(r, "canal", None) == "intra_statement_dedup" and getattr(r, "source", None)
-    }
+def _channel_by_source(removals, canal: str) -> dict[str, tuple[int, int]]:
+    """``{source: (count, cents)}`` SOMADOS — a dict-comprehension anterior
+    sobrescrevia: dois statements com o mesmo ``source_document`` perdiam um ao outro
+    e `_ledger_totals` somava o mesmo cents 2× (achado do co-design A40.l2)."""
+    out: dict[str, list[int]] = {}
+    for r in removals or ():
+        if getattr(r, "canal", None) == canal and getattr(r, "source", None):
+            bucket = out.setdefault(r.source, [0, 0])
+            bucket[0] += r.count
+            bucket[1] += r.valor_cents
+    return {src: (c, v) for src, (c, v) in out.items()}
 
 
-def _ledger_totals(reconciled_stmts, load_stats, by_source: dict[str, int]):
-    """(tx_carregadas, anachronic, undated, intra_count, intra_cents) somados por statement."""
-    carregadas = anachronic = undated = intra = intra_cents = 0
+def _stat_sums(reconciled_stmts, load_stats) -> tuple[int, int, int, int]:
+    """``(tx_carregadas, anachronic, undated, intra_inferido)`` somados por statement."""
+    carregadas = anachronic = undated = inferred = 0
     for s in reconciled_stmts:
         st = load_stats.get(s.source_document or "")
         if st is None:
@@ -117,9 +125,28 @@ def _ledger_totals(reconciled_stmts, load_stats, by_source: dict[str, int]):
         carregadas += st.tx_carregadas
         anachronic += st.anachronic
         undated += st.undated
-        intra += st.tx_loaded - len(s.transactions)
-        intra_cents += by_source.get(s.source_document or "", 0)
-    return carregadas, anachronic, undated, intra, intra_cents
+        inferred += st.tx_loaded - len(s.transactions)
+    return carregadas, anachronic, undated, inferred
+
+
+def _channel_sums(reconciled_stmts, chan_map: dict[str, tuple[int, int]]) -> tuple[int, int]:
+    """Soma por ``source`` DISTINTO do grupo — por statement re-somaria o canal
+    quando dois statements compartilham o mesmo arquivo."""
+    total = cents = 0
+    for src in {s.source_document for s in reconciled_stmts if s.source_document}:
+        n, v = chan_map.get(src, (0, 0))
+        total += n
+        cents += v
+    return total, cents
+
+
+def _authoritative_remocoes(reconciled_stmts, removals, undated, anachronic, cross) -> dict:
+    """Partição com canais AUTORITATIVOS (fatos declarados, nunca diferença)."""
+    intra = _channel_sums(reconciled_stmts, _channel_by_source(removals, "intra_statement_dedup"))
+    collapse = _channel_sums(
+        reconciled_stmts, _channel_by_source(removals, "cross_document_collapse")
+    )
+    return _remocoes(undated, anachronic, intra, cross, collapse)
 
 
 def build_artifact_ledger(
@@ -129,14 +156,18 @@ def build_artifact_ledger(
     cross_cents: int,
     removals=None,
 ) -> dict:
-    """Ledger de conservação por artefato E3 (ADR-347): ``tx_carregadas ==
-    transacoes_total + Σ remocoes[*].count`` (tol-zero). ``removals`` traz o valor do
-    dedup intra por ``source_document`` (§Dec-6); ausente ⇒ 0 (compat forward-only)."""
-    by_source = _intra_cents_by_source(removals)
-    carregadas, anachronic, undated, intra, intra_cents = _ledger_totals(
-        reconciled_stmts, load_stats, by_source
-    )
-    remocoes = _remocoes(undated, anachronic, intra, cross_removed, cross_cents, intra_cents)
+    """Ledger E3 (ADR-347): ``tx_carregadas == transacoes_total + Σ remocoes[*].count``."""
+    # Com `removals` presente, `intra` é AUTORITATIVO (fatos dos DedupRemoval), não
+    # inferido por diferença — a inferência convertia remoção não-declarada em
+    # absorção silenciosa (colapso de 3 rows aparecia como intra count=3/cents=0 e o
+    # invariante FECHAVA). Canal não-instrumentado agora produz resíduo ≠ 0 e quebra
+    # alto. `removals=None` mantém a inferência legada (compat de caller antigo).
+    carregadas, anachronic, undated, inferred = _stat_sums(reconciled_stmts, load_stats)
+    cross = (cross_removed, cross_cents)
+    if removals is None:
+        remocoes = _remocoes(undated, anachronic, (inferred, 0), cross, (0, 0))
+    else:
+        remocoes = _authoritative_remocoes(reconciled_stmts, removals, undated, anachronic, cross)
     return {"tx_carregadas": carregadas, "remocoes": remocoes}
 
 

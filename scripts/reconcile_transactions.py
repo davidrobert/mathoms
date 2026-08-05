@@ -1007,7 +1007,7 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     return filename
 
 
-def _e3_build_adapter(ctx, *, cross_document_collapser=None):
+def _e3_build_adapter(ctx, *, cross_document_collapser=None, collapse_enforce=False):
     """Carrega configs + monta E3ReconcilerAdapter com domain services tipados."""
     # ADR-354 §Emenda: `cross_document_collapser` fica None em produção (o stage não
     # gasta CPU medindo o que ninguém lê). Quem injeta é dev/certify_ledger_local.py,
@@ -1064,6 +1064,7 @@ def _e3_build_adapter(ctx, *, cross_document_collapser=None):
         baseline_validator=baseline_validator,
         fatura_cross_checker=FaturaPaymentCrossChecker(),
         cross_document_collapser=cross_document_collapser,
+        collapse_enforce=collapse_enforce,
     )
     return adapter, canon
 

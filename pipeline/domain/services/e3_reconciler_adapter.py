@@ -116,8 +116,10 @@ class E3ReconcilerAdapter:
         baseline_validator: BaselineValidator | None = None,
         fatura_cross_checker: FaturaPaymentCrossChecker | None = None,
         cross_document_collapser: CrossDocumentCollapser | None = None,
+        collapse_enforce: bool = False,
     ) -> None:
         self._config = config
+        self._collapse_enforce = collapse_enforce
         self._service = ReconciliationService(config)
         self._canonicalizer = canonicalizer or BankCanonicalizer.empty()
         self._grouper = grouper or AccountGrouper()
@@ -307,11 +309,19 @@ class E3ReconcilerAdapter:
         # e `tipo_conta`, então as duas pernas do mesmo evento nunca se encontram
         # depois daqui. Measure-only: não remove row (enforce + re-ancoragem são PRs
         # próprios; remover row órfãna override ancorado no hash dela).
-        collapse_candidates = (
-            self._cross_document_collapser.measure(reconciled)
-            if self._cross_document_collapser
-            else ()
-        )
+        collapse_candidates: tuple = ()
+        if self._cross_document_collapser and self._collapse_enforce:
+            # Enforce: mede E remove no mesmo passo (D2) — as remoções entram em
+            # `removals` e o ledger as declara no canal `cross_document_collapse`.
+            # Statement esvaziado CONTINUA escrevendo artefato: o ledger dele carrega
+            # a remoção, senão a conservação E2→E3 do workspace perderia as rows.
+            reconciled, collapse_candidates, collapse_removals = (
+                self._cross_document_collapser.collapse(reconciled)
+            )
+            reconciled = list(reconciled)
+            removals.extend(collapse_removals)
+        elif self._cross_document_collapser:
+            collapse_candidates = self._cross_document_collapser.measure(reconciled)
 
         key_for = output_key_fn or self.output_key
 

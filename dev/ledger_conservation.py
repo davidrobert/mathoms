@@ -102,6 +102,17 @@ def _skips_reconcile(artifact: dict) -> bool:
     return AccountGrouper().should_skip(artifact)
 
 
+def _declared_removed_count(artifact: dict) -> int:
+    """Remoções declaradas do artefato — partição completa quando ``remocoes`` existe."""
+    # `transacoes_duplicadas_removidas` é SÓ cross-file (O4 do co-design A40.l2):
+    # canal novo em `remocoes` não entrava no count_out e o check de COUNT disparava
+    # antes de qualquer check de valor. Fallback preserva artefato antigo.
+    remocoes = artifact.get("remocoes")
+    if isinstance(remocoes, dict) and remocoes:
+        return sum(int(r.get("count", 0)) for r in remocoes.values() if isinstance(r, dict))
+    return int(artifact.get("transacoes_duplicadas_removidas", 0))
+
+
 def _declared_dedup_cents(e3_artifacts: list[dict]) -> int:
     """Σ ``valor_cents`` declarado nos canais de remoção (``remocoes``, ADR-347
     §Dec-6). Prova a conservação de VALOR E2→E3 quando fecha contra o valor removido
@@ -124,7 +135,7 @@ def e2_to_e3(e2_artifacts: list[dict], e3_artifacts: list[dict]) -> Conservation
     e2_tx = [t for a in reconcilable for t in a.get("transacoes", [])]
     count_in = len(e2_tx)
     survivors = sum(a.get("transacoes_total", 0) for a in e3_artifacts)
-    dups = sum(a.get("transacoes_duplicadas_removidas", 0) for a in e3_artifacts)
+    dups = sum(_declared_removed_count(a) for a in e3_artifacts)
     count_out = survivors + dups
     e3_tx = [t for a in e3_artifacts for t in a.get("transacoes", [])]
     val_in, val_out = _sum_cents(e2_tx), _sum_cents(e3_tx)
