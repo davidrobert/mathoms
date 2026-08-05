@@ -28,6 +28,11 @@ class CollapseLayerSummary:
     colapsaveis: int = 0
     bloqueados_por_motivo: dict[str, int] = field(default_factory=dict)
     rows_removiveis: int = 0
+    # Rows que o ALVO emitido resolve. Diverge de `rows_removiveis` quando o alvo pede
+    # remoção parcial de um bucket — e é a divergência que o gate tem de ver, porque um
+    # consumidor que apaga por conjunto de hash removeria a mais.
+    rows_alcancadas: int = 0
+    candidatos_com_alvo_ambiguo: int = 0
     cents_removiveis: int = 0
     cardinalidade: dict[int, int] = field(default_factory=dict)
     # Paridade exata contra o numerador do detector E4.
@@ -63,6 +68,12 @@ class CollapseLayerSummary:
         return sum(self.cardinalidade.values()) == self.colapsaveis
 
     @property
+    def alvo_enderecavel(self) -> bool:
+        """Identidade 4 — **externa ao sumário**: o alvo resolve exatamente o que o
+        measure declara. Falso ⇒ nenhum enforce pode ligar (removeria a mais)."""
+        return self.rows_alcancadas == self.rows_removiveis
+
+    @property
     def sem_ponto_cego(self) -> bool:
         """Detector ⊆ colapsador. Falso ⇒ o colapsador NÃO cobre o que o gate mede."""
         return self.so_no_detector == 0
@@ -70,7 +81,12 @@ class CollapseLayerSummary:
     @property
     def layer_ok(self) -> bool:
         """Token grepável — falso ⇒ os números desta camada não são legíveis."""
-        return self.particao_fecha and self.paridade_fecha and self.cardinalidade_fecha
+        return (
+            self.particao_fecha
+            and self.paridade_fecha
+            and self.cardinalidade_fecha
+            and self.alvo_enderecavel
+        )
 
 
 def _digest_len(digests: frozenset[str]) -> int:
@@ -140,6 +156,8 @@ def collapse_layer_summary(candidates, detector_digests: frozenset[str]) -> Coll
         colapsaveis=len(colapsaveis),
         bloqueados_por_motivo=_motivos(todos),
         rows_removiveis=sum(c.removable_rows for c in colapsaveis),
+        rows_alcancadas=sum(c.rows_alcancadas_por_hash for c in colapsaveis),
+        candidatos_com_alvo_ambiguo=sum(1 for c in colapsaveis if c.alvo_ambiguo),
         cents_removiveis=_cents(colapsaveis),
         cardinalidade=_histograma(c.survivor_cardinality for c in colapsaveis),
         orfas_rows=orfas_rows,
@@ -177,7 +195,22 @@ def _fmt_paridade(s: CollapseLayerSummary) -> list[str]:
         f"**{s.orfas_cents}** cents",
         f"- `layer_ok={str(s.layer_ok).lower()}` "
         f"(partição {s.particao_fecha} · paridade {s.paridade_fecha} · "
-        f"cardinalidade {s.cardinalidade_fecha})",
+        f"cardinalidade {s.cardinalidade_fecha} · alvo {s.alvo_enderecavel})",
+    ]
+
+
+def _fmt_rows(s: CollapseLayerSummary) -> list[str]:
+    excesso = s.rows_alcancadas - s.rows_removiveis
+    aviso = (
+        ""
+        if s.alvo_enderecavel
+        else f"  ⚠️ **ALVO NÃO ENDEREÇÁVEL** — o enforce removeria {excesso} rows a mais"
+    )
+    return [
+        f"- rows removíveis: **{s.rows_removiveis}** · "
+        f"cents removíveis: **{s.cents_removiveis}** (fórmula: cents × rows)",
+        f"- rows que o ALVO resolve: **{s.rows_alcancadas}**{aviso}"
+        f" · candidatos com alvo ambíguo: {s.candidatos_com_alvo_ambiguo}",
     ]
 
 
@@ -190,8 +223,7 @@ def fmt_collapse_layer(summary: CollapseLayerSummary) -> list[str]:
         "",
         f"- candidatos cross-proveniência: **{summary.candidatos}** "
         f"(colapsáveis **{summary.colapsaveis}**, bloqueados {summary.bloqueados})",
-        f"- rows removíveis: **{summary.rows_removiveis}** · "
-        f"cents removíveis: **{summary.cents_removiveis}** (fórmula: cents × rows)",
+        *_fmt_rows(summary),
         f"- cardinalidade multiset: {dict(sorted(summary.cardinalidade.items()))}",
         *_fmt_motivos(summary),
         *_fmt_paridade(summary),
