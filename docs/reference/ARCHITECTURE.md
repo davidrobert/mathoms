@@ -325,6 +325,49 @@ bloqueia recriação acidental.
 
 ---
 
+## 4.2. Mapa de identificadores de versão
+
+Há muitas coisas chamadas "version" no sistema e elas **não são
+intercambiáveis**. Antes de criar mais uma, encaixe o caso numa das quatro
+classes abaixo. Origem: [[ADR-362]] e [[ADR-363]].
+
+**Declarado** — contrato com ritual de bump; mudar exige ADR sucessora.
+
+| Identificador | Versiona | Onde vive |
+|---|---|---|
+| `prompt_version` ([[ADR-311]]) | template de instrução LLM | coluna em `pipeline_artifacts`, liftada do payload |
+| `mc_version` ([[ADR-360]]) | modelo do cone de Monte Carlo | payload do artefato de análise |
+| `score_version` | fórmula do score | payload do artefato de análise |
+| `SCHEMA_VERSION` do `review_snapshot` ([[ADR-343]]) | contrato do snapshot de review | `dev/compare_reviews.py` |
+
+**Observado** — fato do ambiente, sem ritual; `NULL` significa desconhecido.
+
+| Identificador | Versiona | Onde vive |
+|---|---|---|
+| `executor_revision` ([[ADR-362]]) | o **processo** que executou um stage | coluna em `pipeline_stage_logs` |
+| `seed_usado` / `n_simulacoes_usado` ([[ADR-360]]) | parâmetros efetivos da simulação | payload do artefato de análise |
+
+**Ornamental** — existe, não identifica código. Não usar como proveniência.
+
+`settings.API_VERSION` (contrato de API) · versão em `pyproject` · versão em
+`frontend/package.json` (bumpada por PR de dependência) · `const version` do
+serviço Go (`-ldflags -X` não alcança `const`).
+
+**Morto** — `report_version` de `config/pipeline.json`: `required` no schema,
+zero leitores; os consumidores eram templates do renderer descontinuado pela
+[[ADR-129]].
+
+> **Nenhum destes é condição suficiente de reprodutibilidade.** Cinco entradas
+> movem número monetário com zero commits — temperature do parecer, TTL do cache
+> de LLM, câmbio resolvido por data, config em DB ([[ADR-135]]/[[ADR-137]]) e
+> artefatos herdados ([[ADR-291]]/[[ADR-241]]). Ver [[ADR-362]] §Cláusula de
+> honestidade.
+
+`pipeline_artifacts.schema_version` tem writer e **zero leitores** — é derivada
+de `stage`, portanto redundante. Não construir sobre ela.
+
+---
+
 ## 5. API Surface
 
 > **Contagem real** (2026-07-02): `ls backend/app/api/*.py | grep -v __init__` → 34 arquivos de router (+ subdir `admin/`). Tabela abaixo é amostra do caminho principal — fonte de verdade é o filesystem.

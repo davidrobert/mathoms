@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-352 ADRs (ADR-001 a ADR-361) em [`docs/adr/`](../../adr/).
+354 ADRs (ADR-001 a ADR-363) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 307
-- **Proposto**: 41
+- **Proposto**: 43
 - **Roadmap**: 4
 
 ## Fundação
@@ -342,6 +342,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-320]] — Hardening de CI/CD e contrato de paridade estrutural do EXEMPLO sintético · phase A34
 - [[ADR-322]] — Trem de auto-merge serializado com identidade real (aposenta autoupdate-action)
 
+### Proposto (1)
+
+- [[ADR-363]] — Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem · phase A42
+
 ## data-lineage
 
 ### Decidido (3)
@@ -580,7 +584,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-360]] — Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO · phase A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)
 - [[ADR-361]] — Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos · phase A40
 
-### Proposto (13)
+### Proposto (14)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -595,6 +599,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-353]] — Confiança do diagnóstico comportamental condicionada à cobertura de categorização · phase pipeline-review r2 (RV2-21)
 - [[ADR-354]] — Identidade de transação (K4) exclui atributos de proveniência do documento · phase report-review r3 (RV3-01) · A40.l2
 - [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40
+- [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A42
 
 ### Roadmap (1)
 
