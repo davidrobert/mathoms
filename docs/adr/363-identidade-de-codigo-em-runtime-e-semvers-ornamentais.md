@@ -5,6 +5,7 @@ title: "Identidade de código é fato de runtime injetado no deploy, não conte�
 status: Proposto
 phase: "A40"
 date: "2026-08-05"
+amended_at: ["2026-08-05"]
 relates_to:
   - "[[ADR-362]]"
   - "[[ADR-249]]"
@@ -22,6 +23,13 @@ tags:
 ---
 
 # ADR-363 — Identidade de código é fato de runtime, não conteúdo da imagem
+
+> **Emenda 2026-08-05 (correção de premissa, não de decisão):** esta ADR foi
+> escrita como se houvesse deploy vivo — healthcheck derrubando container,
+> `${MATHOMS_BUILD_SHA:?}` bricando *"o próximo deploy"*, plataforma de deploy
+> mapeando a variável. **Não existe deploy.** O projeto roda só na máquina do
+> dono. As decisões seguem corretas; a urgência e o §Deferido estavam mal
+> enquadrados. Ver §Emenda 2026-08-05.
 
 ## Contexto
 
@@ -132,3 +140,59 @@ espelho Python e o gate de paridade.
 - O valor é falsificável: nada impede uma env copiada de outro ambiente. As
   defesas são indiretas (sufixo `-dirty`, preflight comparando o processo vivo
   com o HEAD). O inimigo é o esquecimento, não o adversário.
+
+## Emenda 2026-08-05 — não existe deploy; a única fonte que importa é o Makefile
+
+O projeto roda **exclusivamente na máquina do dono**, em dogfood e
+desenvolvimento. Não há produção, staging, nem registry. `docker-compose.prod.yml`
+é arquivo no repo, não sistema em execução.
+
+### O que sobrevive, e fica mais simples
+
+| Decisão | Estado após a emenda |
+|---|---|
+| `MATHOMS_BUILD_SHA` é variável de **runtime** | **Confirmada, e agora trivialmente** — sem imagem publicada, não há outro lugar de onde tirar |
+| **Zero diff no Dockerfile** | **Confirmada e reforçada** — não há build de imagem em CI para receber `--build-arg` |
+| Fonte única real | **`dev/build_info.py --export` invocado pelos targets nativos do Makefile** (`dev-api-up`, `dev-worker-up`, `dev-ops-api-up`, `pipeline-run`) + `${{ github.sha }}` no CI. Estes são os **dois** ambientes que existem |
+| `/health` ganha campo novo em vez de trocar `version` | **Confirmada, urgência rebaixada** — ver abaixo |
+| 4 semvers ornamentais + `report_version` morto | Inalterada |
+
+### O `/health`: risco latente, não incêndio
+
+O texto dizia que trocar o valor de `version` *"derrubaria o container"*, no
+presente. Correção: `HealthResponse.version` é de fato `str` required
+non-nullable, e o `curl -fsS` de fato mora em `docker-compose.prod.yml` — mas
+**esse compose não está rodando em lugar nenhum**. O defeito é real e latente; a
+decisão (campo novo, não sobrecarregar `version`) continua certa **pela restrição
+de tipo**, que não depende de deploy. O que era "fatal" passa a "correto e sem
+pressa".
+
+### O §Deferido estava mal enquadrado
+
+Não é *"owner-gated esperando o dono setar uma variável"*. É **não aplicável até
+existir deploy**. A diferença importa: a formulação anterior punha na fila do dono
+uma ação que não tem onde acontecer, e foi exatamente com base nela que eu
+instruí o dono a configurar variável numa plataforma que ele não usa.
+
+Reclassificado — **nada aqui está na fila de ninguém**; tudo re-entra quando (e se)
+houver deploy:
+
+- `${MATHOMS_BUILD_SHA:?}` no compose de prod + fail-fast de boot.
+- Label OCI + tag imutável por revisão.
+- Atribuição de incidente a release.
+
+**`deployment.environment` e `service.version` no OTel também saem da fila:**
+o OTel é opt-in por `OTEL_EXPORTER_OTLP_ENDPOINT` e a variável não está no
+`.env.example` — hoje não há coletor escutando, então instrumentar isso entrega
+zero. Volta junto com o deploy.
+
+O caminho Go permanece deferido pelo motivo original (`-X` não alcança `const`),
+que é independente desta emenda.
+
+### O que fica no lugar
+
+Um único ambiente a servir: **o local**. Isso promove o que era F2 — o preflight
+que compara a revisão do **processo vivo** com o HEAD antes de disparar o run — a
+peça de maior valor da lane, porque o incidente que ela impede (worker stale
+servindo código velho, que invalidou uma rodada de 74 achados) é **local** e já
+aconteceu. E o preflight **não depende de migration nenhuma**.

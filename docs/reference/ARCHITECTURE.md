@@ -342,6 +342,10 @@ classes abaixo. Origem: [[ADR-362]] e [[ADR-363]].
 
 **Observado** — fato do ambiente, sem ritual; `NULL` significa desconhecido.
 
+> Os dois ambientes que existem hoje são **dev local** (targets nativos do
+> Makefile) e **CI**. Não há produção nem staging em execução — ver
+> [[ADR-363]] §Emenda 2026-08-05.
+
 | Identificador | Versiona | Onde vive |
 |---|---|---|
 | `executor_revision` ([[ADR-362]]) | o **processo** que executou um stage | coluna em `pipeline_stage_logs` |
