@@ -127,6 +127,7 @@ jobs:
       backend: ${{ steps.filter.outputs.backend_any_changed }}
       frontend: ${{ steps.filter.outputs.frontend_any_changed }}
       pipeline: ${{ steps.filter.outputs.pipeline_any_changed }}
+      pipeline_lib: ${{ steps.filter.outputs.pipeline_lib_any_changed }}
       any_code: ${{ steps.filter.outputs.any_code_any_changed }}
       report: ${{ steps.filter.outputs.report_any_changed }}
       migration: ${{ steps.filter.outputs.migration_any_changed }}
@@ -176,6 +177,33 @@ jobs:
               - 'config/schemas/**'
               - 'requirements.in'
               - 'requirements.lock'
+              - '.github/workflows/ci.yml'
+            # `pipeline_lib` gateia `backend-tests` (não `pipeline-tests`, que
+            # continua no grupo `pipeline` acima). Mais estreito de propósito:
+            # `backend-tests` importa pipeline/** de verdade, mas não precisa
+            # re-rodar quando só um teste/script de pipeline muda — medido por
+            # grafo de import real (ADR-210 §Adendo 2026-08-05): só
+            # `backend/tests/test_detect_extract_llm_drift.py` cruza para
+            # `tests.fakes` e só `backend/tests/test_classification_parity.py`
+            # para `scripts.route_documents`. `dev/check_backend_pipeline_coupling.py`
+            # (pre-commit + step abaixo) falha se um import novo cruzar essa
+            # fronteira sem entrar aqui — sem esse gate, allowlist estreita
+            # falha ABERTA no próximo módulo novo (mesma classe que o
+            # comentário de `dev_tools` já nomeia).
+            pipeline_lib:
+              - 'pipeline/**'
+              - 'pipeline-service/**'
+              - 'config/**/*.json'
+              - 'config/**/*.yaml'
+              - 'config/**/*.yml'
+              - 'config/schemas/**'
+              - 'requirements.in'
+              - 'requirements.lock'
+              - 'tests/fakes/**'
+              - 'tests/fixtures/**'
+              - 'scripts/route_documents.py'
+              - 'scripts/pipeline_common.py'
+              - 'scripts/e2/**'
               - '.github/workflows/ci.yml'
             go:
               # No-op aqui (o micromatch do tj-actions casa os 14 .go nas duas
@@ -526,7 +554,10 @@ jobs:
     timeout-minutes: 20
     needs: changes
     # backend/ importa pipeline/**; mudança em pipeline pode quebrar backend.
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.pipeline == 'true'
+    # `pipeline_lib`, não `pipeline` (ADR-210 §Adendo 2026-08-05) — este job
+    # não precisa re-rodar quando só teste/script de pipeline muda; ver
+    # comentário do filtro em `changes` acima.
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.pipeline_lib == 'true'
     services:
       redis:
         image: redis:7-alpine
@@ -535,6 +566,11 @@ jobs:
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v4
+
+      - name: Backend↔pipeline coupling em sync com o filtro pipeline_lib (ADR-210 §Adendo 2026-08-05)
+        # Stdlib só (ast) — roda antes do venv de propósito, mesmo custo do
+        # `dev/check_pipeline_boundaries.py` em pipeline-tests.
+        run: python3 dev/check_backend_pipeline_coupling.py --verbose
 
       - name: Setup Python
         uses: actions/setup-python@v5
