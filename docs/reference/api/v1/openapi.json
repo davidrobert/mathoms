@@ -5105,6 +5105,17 @@
             "title": "Database",
             "type": "string"
           },
+          "executor_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Executor Revision"
+          },
           "pipeline_service_reachable": {
             "anyOf": [
               {

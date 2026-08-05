@@ -293,7 +293,16 @@ app.include_router(admin_router)
 @app.get("/health", response_model=HealthResponse)
 async def health() -> dict:
     """Health check — reports Redis, Celery worker, and DB status."""
-    checks: dict = {"api": "ok", "version": "0.6.0"}
+    # ADR-363 — `version` é o contrato de API (ornamental, não identifica código) e
+    # era literal `"0.6.0"` stale enquanto `main.py` declarava `API_VERSION`="1.0.0":
+    # duas versões divergentes na mesma app. `executor_revision` é o campo NOVO que
+    # identifica o processo; nullable de propósito, porque o processo tem de subir
+    # sem a env — trocar o VALOR de `version` por algo nullable daria 500 aqui.
+    checks: dict = {
+        "api": "ok",
+        "version": settings.API_VERSION,
+        "executor_revision": settings.executor_revision,
+    }
 
     try:
         import redis.asyncio as aioredis
