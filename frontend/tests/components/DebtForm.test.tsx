@@ -19,6 +19,26 @@ const PROPS_COTITULAR: PropertyOption[] = [
 ];
 const MEMBERS: MemberOption[] = [{ id: "m-1", label: "David" }];
 
+type TestUser = ReturnType<typeof userEvent.setup>;
+
+/** Abre o Select de imóvel e escolhe a opção — esperando o popup abrir.
+ *
+ * O popup do Select (`@base-ui/react`) abre de forma assíncrona: em jsdom leva
+ * ~7 macrotasks (~20ms) depois que `await user.click(trigger)` já retornou.
+ * Enquanto fechado, o positioner tem `hidden` + `pointer-events: none`, e
+ * clicar direto na opção joga "Unable to perform pointer interaction as the
+ * element has `pointer-events: none`". Quem ganha essa corrida depende só da
+ * velocidade do runner — o ubuntu-latest do CI (~400ms/teste) ganhava por
+ * acidente, máquina de dev (~15ms/teste) perdia — o que dava falha só local.
+ *
+ * `findByRole("option")` é o ponto de espera determinístico: `*ByRole` exclui
+ * nó fora da a11y tree, então só resolve **depois** que o popup abriu.
+ */
+async function escolheImovel(user: TestUser, nome: RegExp) {
+  await user.click(screen.getByLabelText(/Imóvel vinculado/i));
+  await user.click(await screen.findByRole("option", { name: nome }));
+}
+
 describe("DebtForm", () => {
   it("oculta percentual_atribuicao_imovel quando property tem 1 cotitular", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
@@ -29,9 +49,7 @@ describe("DebtForm", () => {
         onSubmit={onSubmit}
       />,
     );
-    const user = userEvent.setup();
-    await user.click(screen.getByLabelText(/Imóvel vinculado/i));
-    await user.click(screen.getByText(/Apto Vila Mariana/i));
+    await escolheImovel(userEvent.setup(), /Apto Vila Mariana/i);
     expect(screen.queryByLabelText(/Percentual de atribuição/i)).not.toBeInTheDocument();
   });
 
@@ -44,9 +62,7 @@ describe("DebtForm", () => {
         onSubmit={onSubmit}
       />,
     );
-    const user = userEvent.setup();
-    await user.click(screen.getByLabelText(/Imóvel vinculado/i));
-    await user.click(screen.getByText(/Casa praia/i));
+    await escolheImovel(userEvent.setup(), /Casa praia/i);
     await waitFor(() =>
       expect(screen.getByLabelText(/Percentual de atribuição/i)).toBeInTheDocument(),
     );
@@ -63,8 +79,7 @@ describe("DebtForm", () => {
     );
     const user = userEvent.setup();
     await user.type(screen.getByLabelText(/Saldo devedor/i), "300000");
-    await user.click(screen.getByLabelText(/Imóvel vinculado/i));
-    await user.click(screen.getByText(/Apto Vila Mariana/i));
+    await escolheImovel(user, /Apto Vila Mariana/i);
     await user.click(screen.getByRole("button", { name: /Salvar/i }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit.mock.calls[0][0].percentual_atribuicao_imovel).toBeNull();
