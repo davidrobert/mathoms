@@ -137,6 +137,22 @@ export function getPhase(idOrStage: PhaseId | string): Phase {
   return PIPELINE_PHASES.find((p) => p.id === phaseId) ?? PIPELINE_PHASES[0];
 }
 
+/**
+ * Etapa que não roda mais. `degraded` terminou — só não entregou (ADR-357 §4,
+ * espelho de `_STAGE_DONE_STATUSES` do orquestrador). Fonte única: com duas
+ * cópias, o próximo status novo entra pela metade.
+ */
+const STAGE_DONE_STATUSES = [
+  "completed",
+  "skipped",
+  "skipped_free_tier",
+  "degraded",
+] as const;
+
+export function isStageDone(status: string): boolean {
+  return (STAGE_DONE_STATUSES as readonly string[]).includes(status);
+}
+
 export type PhaseStatus =
   | "pending"
   | "active"
@@ -206,11 +222,7 @@ export function computePhaseStates(
 
   return PIPELINE_PHASES.map((phase) => {
     const logsForPhase = stageLogs.filter((s) => phase.stages.includes(s.stage));
-    const completedStages = logsForPhase.filter((s) =>
-      // `degraded` terminou — só não entregou (ADR-357 §4, espelho de
-      // `_STAGE_DONE_STATUSES`). Sem ele a fase final nunca fecha.
-      ["completed", "skipped", "skipped_free_tier", "degraded"].includes(s.status),
-    ).length;
+    const completedStages = logsForPhase.filter((s) => isStageDone(s.status)).length;
     const totalStages = logsForPhase.length;
     const status = phaseStatusFor(phase.id, completedStages, totalStages, ctx);
     return { phase, status, completedStages, totalStages };

@@ -28,9 +28,11 @@ describe("runStatusFromEvent — matriz evento × status", () => {
 
   for (const event of EVENT_NAMES) {
     for (const status of STATUSES) {
-      it(`${event} carregando status ${status} → ${status}`, () => {
-        expect(runStatusFromEvent(ev({ event, status }))).toBe(status);
-      });
+      for (const stage of [undefined, "review_finances_holistic"]) {
+        it(`${event} + status ${status}${stage ? " + stage nomeada" : ""} → ${status}`, () => {
+          expect(runStatusFromEvent(ev({ event, status, stage }))).toBe(status);
+        });
+      }
     }
   }
 
@@ -47,9 +49,23 @@ describe("runStatusFromEvent — matriz evento × status", () => {
   });
 
   it("evento de stage não sequestra o desfecho do run", () => {
-    // `status` é reusado com semântica de stage; `stage` é o discriminador.
+    // `status` é reusado com semântica de stage; o nome run-level é o filtro.
     const stageEvent = ev({ event: "stage_completed", stage: "E3", status: "completed" });
     expect(runStatusFromEvent(stageEvent)).toBeNull();
+  });
+
+  // Mata a mutação "usa `!event.stage` como discriminador": um writer que
+  // nomeie a etapa degradada no evento terminal viraria `completed` em silêncio.
+  it("evento terminal que nomeia a etapa degradada continua sendo parcial", () => {
+    expect(
+      runStatusFromEvent(
+        ev({
+          event: "run_completed",
+          stage: "review_finances_holistic",
+          status: "partial_failure",
+        }),
+      ),
+    ).toBe("partial_failure");
   });
 
   it("evento desconhecido sem status → null (não inventa desfecho)", () => {

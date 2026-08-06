@@ -126,9 +126,25 @@ class TestPublishEvent:
         publish("run-1")
         payload = fake_redis.last.payload
         assert payload["status"] == expected_status
-        # Evento run-level não tem `stage` — é o discriminador que o leitor usa
-        # para não confundir `status` de stage com `status` de run.
+        # Evento run-level não tem `stage` — o leitor não depende disso desde a
+        # A40.l21, mas o writer que passar a nomear a etapa degradada aqui deve
+        # fazê-lo conscientemente.
         assert "stage" not in payload
+
+    def test_degraded_stage_status_ainda_nao_existe(self):
+        """Tripwire reader-first: a A40.l21 casa a string exata `degraded`."""
+        # Forma negativa de propósito — `xfail(strict)` vira armadilha em PR
+        # pareado. Fica vermelho no PR que criar o membro (A40.l18/l19),
+        # que é exatamente quando os read sites precisam ser reconferidos.
+        from backend.app.models.pipeline_run import PipelineStageStatus
+
+        assert not hasattr(PipelineStageStatus, "degraded"), (
+            "PipelineStageStatus.degraded chegou. Antes de emitir, confira os 3 "
+            "read sites da A40.l21: frontend/src/app/(app)/pipeline/_components/"
+            "degradedStage.ts (casa a string), frontend/src/lib/pipelinePhases.ts "
+            "(STAGE_DONE_STATUSES, espelho de _STAGE_DONE_STATUSES) e "
+            "frontend/src/lib/format.ts (STAGE_STATUS_MAP). Depois delete este teste."
+        )
 
     def test_publish_event_with_detail(self, fake_redis):
         publish_event("run-1", "custom", detail={"key": "value"})

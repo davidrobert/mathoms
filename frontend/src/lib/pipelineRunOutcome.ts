@@ -74,9 +74,12 @@ export function terminalRunOutcome(status: string): RunOutcome | null {
  * fallback para writer que esqueça o parâmetro.
  */
 export function runStatusFromEvent(event: PipelineEvent): PipelineRunStatus | null {
-  // `status` é reusado por eventos de stage; run-level é o único sem `stage`.
-  if (!event.stage && event.status && event.status in OUTCOME_BY_STATUS) {
+  // Discriminador é o NOME ser run-level, não a ausência de `stage`: um writer
+  // que nomeie a etapa degradada no evento terminal continua sendo lido certo.
+  // `status` é reusado por eventos de stage, que nunca casam este conjunto.
+  if (!(event.event in STATUS_BY_EVENT_NAME)) return null;
+  if (event.status && event.status in OUTCOME_BY_STATUS) {
     return event.status as PipelineRunStatus;
   }
-  return STATUS_BY_EVENT_NAME[event.event] ?? null;
+  return STATUS_BY_EVENT_NAME[event.event];
 }

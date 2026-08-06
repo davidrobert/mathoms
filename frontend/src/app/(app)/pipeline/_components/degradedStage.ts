@@ -23,10 +23,15 @@ const CAVEAT_BY_STAGE: Record<string, string> = {
 };
 
 const CAVEAT_FALLBACK = "Relatório gerado, com uma etapa final incompleta.";
+const CAVEAT_MULTIPLE = "Relatório gerado, sem algumas das análises finais.";
 
 export function degradedRunCaveat(
   run: Pick<PipelineRunResponse, "stage_logs">,
 ): string {
-  const stage = deriveDegradedStage(run);
+  // Os 3 add-ons degradáveis são independentes: nomear um só mentiria sobre
+  // o número de lacunas quando mais de um cai no mesmo run.
+  const degraded = run.stage_logs.filter((s) => s.status === "degraded");
+  if (degraded.length > 1) return CAVEAT_MULTIPLE;
+  const stage = degraded[0]?.stage;
   return (stage && CAVEAT_BY_STAGE[stage]) || CAVEAT_FALLBACK;
 }

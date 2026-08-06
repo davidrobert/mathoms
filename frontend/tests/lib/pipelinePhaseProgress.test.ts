@@ -166,6 +166,25 @@ describe("computePhaseProgress", () => {
     expect(computePhaseProgress(states)).toBe(100);
   });
 
+  // O ramo VIVO: `computePhaseStates` tem um consumidor só (`ActiveRunCard`),
+  // que só renderiza sob status ativo — logo `runStatus === "partial_failure"`
+  // nunca chega lá. Um stage `degraded` durante a cauda, sim.
+  it("run ainda rodando com etapa já degradada não trava o stepper", () => {
+    const logs = [
+      ...PIPELINE_PHASES.slice(0, 2).flatMap((p) =>
+        p.stages.map((s) => ({ stage: s, status: "completed" })),
+      ),
+      ...PIPELINE_PHASES[2].stages.map((s) => ({
+        stage: s,
+        status: s === "generate_narratives" ? "degraded" : "completed",
+      })),
+    ];
+    const states = computePhaseStates(logs, "validate_cross", "running");
+    const organizing = states.find((s) => s.phase.id === "organizing")!;
+    expect(organizing.status).toBe("completed");
+    expect(computePhaseProgress(states)).toBeGreaterThan(50);
+  });
+
   it("run failed continua pintando a fase da etapa que falhou", () => {
     const logs = PIPELINE_PHASES.flatMap((p) =>
       p.stages.map((s) => ({

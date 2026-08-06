@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CircleAlert, X } from "lucide-react";
 import type { PipelineRunResponse } from "@/lib/api";
+import { stageName } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { degradedRunCaveat, deriveDegradedStage } from "./degradedStage";
 
@@ -29,6 +30,7 @@ export function PartialRunBanner({
   redirecting?: boolean;
 }) {
   const degradedStage = deriveDegradedStage(run);
+  const hasFreeTierSkip = run.stage_logs.some((s) => s.status === "skipped_free_tier");
 
   return (
     <div
@@ -38,8 +40,10 @@ export function PartialRunBanner({
       <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
       <div className="flex-1 min-w-0">
         <p className="text-foreground">
-          <span className="font-medium">{degradedRunCaveat(run)}</span>{" "}
-          O restante da análise está completo.
+          <span className="font-medium">{degradedRunCaveat(run)}</span>
+          {/* Reasseguração só quando é verdade: no tier free o mesmo run pode
+              ter pulado etapas, e o banner ao lado diz o contrário. */}
+          {!hasFreeTierSkip && " O restante da análise está completo."}
           {redirecting && " Redirecionando..."}
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -51,8 +55,10 @@ export function PartialRunBanner({
               Ver relatório
             </Link>
           )}
-          {/* ADR-357 §8: retomar só a etapa degradada é run novo com
-              `from_stage` — não resume. Evita re-pagar o pipeline inteiro. */}
+          {/* ADR-357 §8: retomar a partir da etapa degradada é run novo com
+              `from_stage` — não resume. Evita re-pagar o pipeline inteiro.
+              O rótulo diz "a partir de" porque `from_stage` roda a cauda, não
+              uma etapa só — mesma fórmula do `FailedRunCard`. */}
           {onRetryDegraded && degradedStage && (
             <Button
               size="sm"
@@ -61,7 +67,7 @@ export function PartialRunBanner({
               onClick={() => onRetryDegraded(degradedStage)}
               disabled={triggering}
             >
-              Tentar a etapa que faltou
+              Reprocessar a partir de {stageName(degradedStage)}
             </Button>
           )}
         </div>

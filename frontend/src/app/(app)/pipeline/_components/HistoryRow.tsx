@@ -54,11 +54,11 @@ function HistoryRowSummary({ run }: { run: PipelineRunResponse }) {
         {st.label}
       </StatusBadge>
       {/* Metadados secundários cedem espaço ao rótulo em telas estreitas. */}
-      <span className="hidden sm:inline text-sm text-muted-foreground whitespace-nowrap">
+      <span className="hidden min-[520px]:inline text-sm text-muted-foreground whitespace-nowrap">
         {run.stage_logs.length} etapa(s)
       </span>
       {duration != null && (
-        <span className="hidden sm:inline text-xs text-muted-foreground whitespace-nowrap">
+        <span className="hidden min-[520px]:inline text-xs text-muted-foreground whitespace-nowrap">
           {formatDuration(duration)}
         </span>
       )}
@@ -79,7 +79,9 @@ function RetryActions({
 }) {
   const failedStage = deriveFailedStage(run);
   return (
-    <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+    // `opacity-0` não desliga hit-testing: sem `pointer-events-none` os botões
+    // ficam clicáveis e invisíveis (alvo fantasma em toque).
+    <div className="flex gap-2 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto">
       <Button
         size="sm"
         variant="ghost"

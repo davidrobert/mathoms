@@ -8,8 +8,8 @@
  * complexidade de mock de WS aqui (hook tem suite própria em 6.5A.7).
  */
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 
@@ -253,8 +253,56 @@ describe("PipelinePage", () => {
       stubPipelinePage([makePartialRun({ id: "run-partial", report_id: "report-77" })]);
       render(<PipelinePage />);
       await screen.findByText(/Concluído com ressalva/);
-      const links = screen.getAllByRole("link", { name: /ver relatório/i });
-      expect(links.some((l) => l.getAttribute("href") === "/reports/report-77")).toBe(true);
+      // Escopado à LINHA: fora do escopo, o link do banner satisfaria a
+      // asserção mesmo com o histórico quebrado.
+      const row = document.getElementById("pipeline-run-run-partial")!;
+      expect(within(row).getByRole("link", { name: /ver relatório/i })).toHaveAttribute(
+        "href",
+        "/reports/report-77",
+      );
+    });
+
+    // O invariante que protege o CTA: `lastFailedRun` e `lastPartialRun` são
+    // alimentados pelo run notável MAIS RECENTE, nunca pelos dois.
+    it("parcial recente + falhado antigo: um banner só, e o CTA sobrevive", async () => {
+      stubPipelinePage([
+        makePartialRun({ id: "run-partial" }),
+        makeRun({ id: "run-old-failed", status: "failed", failed_at_stage: "reconcile_transactions" }),
+      ]);
+      render(<PipelinePage />);
+      await screen.findByText(/Concluído com ressalva/);
+      expect(screen.getAllByRole("status")).toHaveLength(1);
+      expect(screen.queryByText(/Não conseguimos completar a etapa/)).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Processar documentos/ })).toBeInTheDocument();
+    });
+
+    it("falhado recente + parcial antigo: card de falha, sem banner de ressalva", async () => {
+      stubPipelinePage([
+        makeRun({ id: "run-new-failed", status: "failed", failed_at_stage: "reconcile_transactions" }),
+        makePartialRun({ id: "run-old-partial" }),
+      ]);
+      render(<PipelinePage />);
+      expect(await screen.findByText(/Não conseguimos completar a etapa/)).toBeInTheDocument();
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+
+    it("oferece reprocessar a partir da etapa degradada, não o run inteiro", async () => {
+      let triggerBody: any = null;
+      stubPipelinePage([makePartialRun({ id: "run-partial" })]);
+      server.use(
+        http.post("/api/v1/workspaces/:workspaceId/pipeline/run", async ({ request }) => {
+          triggerBody = await request.json();
+          return HttpResponse.json(makeRun({ status: "running" }));
+        }),
+      );
+      const user = userEvent.setup();
+      render(<PipelinePage />);
+      const banner = await screen.findByRole("status");
+      await user.click(
+        within(banner).getByRole("button", { name: /Reprocessar a partir de/ }),
+      );
+      await waitFor(() => expect(triggerBody).not.toBeNull());
+      expect(triggerBody.from_stage).toBe("review_finances_holistic");
     });
 
     it("declara a lacuna em banner próprio", async () => {
@@ -338,7 +386,7 @@ describe("PipelinePage", () => {
       expect(h.toast.warning).not.toHaveBeenCalled();
     });
 
-    it("mesmo run terminando duas vezes anuncia uma só (WS + polling)", async () => {
+    it("dois eventos WS do mesmo run anunciam uma só vez", async () => {
       await mountAndFinish({
         event: "run_completed",
         run_id: "run-dup",
@@ -352,6 +400,50 @@ describe("PipelinePage", () => {
         });
       });
       expect(h.toast.warning).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // O braço de polling é o único caminho para terminais que não publicam
+  // evento (`_mark_run_completed` do resume) e o mais provável em rede ruim.
+  describe("desfecho terminal pelo polling (A40.l21)", () => {
+    async function pollUntilTerminal(terminalStatus: string) {
+      const active = makeRun({ id: "run-poll", status: "running", report_id: null });
+      stubPipelinePage([active]);
+      server.use(
+        http.get("/api/v1/workspaces/:workspaceId/pipeline/runs/:runId", () =>
+          HttpResponse.json(
+            terminalStatus === "partial_failure"
+              ? makePartialRun({ id: "run-poll" })
+              : makeRun({ id: "run-poll", status: terminalStatus as any }),
+          ),
+        ),
+      );
+      render(<PipelinePage />);
+      await screen.findByText(/Cancelar/);
+      // `...Async` avança o relógio E drena microtasks entre ticks — a versão
+      // síncrona deixa o fetch do MSW pendente e o teste vira flake sob carga.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2100);
+      });
+    }
+
+    beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: true }));
+    afterEach(() => vi.useRealTimers());
+
+    it("run parcial anuncia a ressalva também sem WebSocket", async () => {
+      await pollUntilTerminal("partial_failure");
+      await waitFor(() => expect(h.toast.warning).toHaveBeenCalledTimes(1), {
+        timeout: 5000,
+      });
+      expect(h.toast.error).not.toHaveBeenCalled();
+    });
+
+    it("run falhado continua anunciando erro pelo polling", async () => {
+      await pollUntilTerminal("failed");
+      await waitFor(() => expect(h.toast.error).toHaveBeenCalledTimes(1), {
+        timeout: 5000,
+      });
+      expect(h.toast.warning).not.toHaveBeenCalled();
     });
   });
 

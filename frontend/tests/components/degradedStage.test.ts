@@ -16,6 +16,19 @@ describe("deriveDegradedStage", () => {
     expect(deriveDegradedStage(makeRun())).toBeNull();
   });
 
+  // Alimenta `from_stage`, que roda a cauda inteira a partir dali: pegar a
+  // PRIMEIRA degradada cobre as demais. Um refactor "pega a última" estreitaria
+  // o reprocessamento e deixaria lacuna sem caminho de volta.
+  it("com duas degradadas, devolve a primeira — from_stage cobre a cauda", () => {
+    const run = makePartialRun({
+      stage_logs: [
+        makeStageLog({ stage: "generate_narratives", status: "degraded" }),
+        makeStageLog({ stage: "review_finances_holistic", status: "degraded" }),
+      ],
+    });
+    expect(deriveDegradedStage(run)).toBe("generate_narratives");
+  });
+
   // ADR-357 §3: `failed_at_stage` fica nulo em degradação, e a etapa degradada
   // grava `degraded` — se `deriveFailedStage` a achasse, o run voltaria a ser
   // pintado como falha em todos os consumidores.
@@ -35,6 +48,20 @@ describe("degradedRunCaveat", () => {
       stage_logs: [makeStageLog({ stage, status: "degraded" })],
     });
     expect(degradedRunCaveat(run)).toMatch(pattern);
+  });
+
+  // Os 3 add-ons são independentes: nomear um só mentiria sobre o número de
+  // lacunas.
+  it("dois add-ons degradados não afirmam uma lacuna só", () => {
+    const run = makePartialRun({
+      stage_logs: [
+        makeStageLog({ stage: "generate_narratives", status: "degraded" }),
+        makeStageLog({ stage: "review_finances_holistic", status: "degraded" }),
+      ],
+    });
+    expect(degradedRunCaveat(run)).toBe(
+      "Relatório gerado, sem algumas das análises finais.",
+    );
   });
 
   it("etapa degradável desconhecida cai em frase genérica verdadeira", () => {
