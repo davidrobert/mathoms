@@ -162,3 +162,20 @@ def test_multiplos_baixos_descartados_juntos():
     assert d.needs_review_reason is None
     assert d.output.riscos == [] and d.output.sugestoes_execucao == []
     assert len(d.dropped) == 3
+
+
+# Contar o gatilho como "dropado" faria `items_dropped` mentir no output_summary e
+# quebraria a invariante retido ⇒ contador 0 (ADR-366 §D4).
+def test_retido_inteiro_nao_reporta_item_dropado():
+    """No ramo de alta severidade NADA é removido — o parecer inteiro é retido."""
+    out = _output(riscos=[_risco("Crítica")])
+    d = enforce_strict_per_item(out, ["risco:0:whitelist_miss"])
+    assert d.needs_review_reason is not None
+    assert d.dropped == ()
+    # O gatilho é preservado como diagnóstico, em campo próprio.
+    assert d.retention_trigger is not None
+    assert (d.retention_trigger.item_type, d.retention_trigger.layer) == (
+        "risco",
+        "whitelist_miss",
+    )
+    assert d.retention_trigger.severidade == "Crítica"

@@ -283,3 +283,192 @@ async def test_persist_after_stage_success_resolves_workspace(db, sync_session):
 
     review_id = persist_after_stage_success(sync_session, run_id=run.id, detail=make_detail())
     assert review_id is not None
+
+
+# ---------------------------------------------------------------------------
+# Desfecho da geração (ADR-366) — o detail vem do PRODUTOR REAL, não de um dict
+# escrito à mão: `ParecerGenerationResult` → `_needs_review_return`/`_success_return`.
+# Fixture de autor seria a mesma suposição contada duas vezes.
+# ---------------------------------------------------------------------------
+
+
+class _NullStore:
+    """ArtifactStore inerte — aqui só interessa o `detail` que o stage devolve."""
+
+    def write(self, *_args, **_kwargs) -> None:
+        return None
+
+
+_MODEL_ID = "anthropic/claude-sonnet-4-20250514"
+
+
+def _placeholder_output():
+    """Placeholder REAL do desfecho retido — 3 pontos fortes intitulados "placeholder"."""
+    from backend.app.services.parecer_finalization import empty_needs_review_output
+
+    return empty_needs_review_output(
+        persona_hash=PERSONA_HASH,
+        manifest_version="1.0",
+        model_id=_MODEL_ID,
+        tier="premium",
+    )
+
+
+def _generation_result(**overrides):
+    """`ParecerGenerationResult` real com o placeholder real do desfecho retido."""
+    from backend.app.services.parecer_orchestrator import ParecerGenerationResult
+
+    base = ParecerGenerationResult(
+        output=_placeholder_output(),
+        persona_hash=PERSONA_HASH,
+        manifest_version="1.0",
+        schema_version="1.0",
+        model_id=_MODEL_ID,
+        tier_at_generation="premium",
+        cost_usd=0.42,
+    )
+    for key, value in overrides.items():
+        setattr(base, key, value)
+    return base
+
+
+def _detail_retido(reason: str = "parecer.citacao_nao_confirmada") -> dict:
+    """Detail do desfecho retido, produzido pelo próprio stage."""
+    from pipeline.stages.parecer_planejador import _needs_review_return
+
+    result = _generation_result(
+        status="needs_review",
+        error_detail="evidencia unverified (severidade alta): risco:3",
+        retention_reason=reason,
+    )
+    return _needs_review_return(result, "ws-test", _NullStore())
+
+
+def _real_dropped_items() -> list[dict]:
+    """Roda o enforcement DE VERDADE — a tupla tem de nascer dele, não do teste."""
+    from backend.app.services.parecer_strict_enforcement import enforce_strict_per_item
+    from pipeline.llm.schemas.parecer_planejador import Ancora, Risco
+
+    risco = Risco(
+        severidade="Baixa",
+        titulo="Risco sintético para enforcement",
+        descricao="Descrição sintética do item para enforcement.",
+        ancora_metodologica="convergencia",
+        tema_canonico="Liquidez",
+        section_id="S1",
+        confianca="alta",
+        ancoras=[Ancora(path="$.reserva_emergencia.total_liquida", rotulo="reserva")],
+    )
+    output = _generation_result().output.model_copy(update={"riscos": [risco]})
+    decision = enforce_strict_per_item(output, ["risco:0:pairing_mismatch"])
+    return [d.as_dict() for d in decision.dropped]
+
+
+def _detail_com_drop() -> dict:
+    """Detail de parecer ENTREGUE que perdeu itens — cadeia real de enforcement."""
+    from backend.app.services.parecer_evidencia import EvidenciaVerification
+    from pipeline.stages.parecer_planejador import _success_return
+
+    verification = EvidenciaVerification()
+    dropped = _real_dropped_items()
+    result = _generation_result(
+        retention_reason="parecer.citacao_nao_confirmada",
+        evidencia_summary=verification.summary(needs_review_triggered=False, dropped_items=dropped),
+    )
+    return _success_return(result, "ws-test")
+
+
+def _review_of(sync_session, workspace_id: str) -> PlannerReview:
+    return (
+        sync_session.execute(
+            select(PlannerReview).where(PlannerReview.workspace_id == workspace_id)
+        )
+        .scalars()
+        .one()
+    )
+
+
+@pytest.mark.asyncio
+async def test_desfecho_retido_cria_row_com_contadores_zerados(db, sync_session):
+    """Retido existe no modelo — e `_sum_shown` sobre o placeholder NÃO vira 3 itens."""
+    workspace = await factories.make_workspace(db)
+    run = await factories.make_run(db, workspace=workspace)
+    await make_artifacts(db, workspace, run)
+    await db.commit()
+
+    review_id = persist_planner_review(
+        sync_session, workspace_id=workspace.id, run_id=run.id, detail=_detail_retido()
+    )
+    sync_session.commit()
+
+    assert review_id is not None
+    review = _review_of(sync_session, workspace.id)
+    assert review.outcome == "retido"
+    assert review.retention_reason == "parecer.citacao_nao_confirmada"
+    assert review.items_shown_count == 0
+    assert review.items_dropped_count == 0
+    # `status` é o eixo de PUBLICAÇÃO e não se move com o desfecho (ADR-366 §D1).
+    assert review.status == "Gerado"
+
+
+@pytest.mark.asyncio
+async def test_indisponibilidade_tecnica_nao_vira_row(db, sync_session):
+    """`needs_review` sem motivo = nada gerado; row diria "retivemos" com lineage falsa."""
+    workspace = await factories.make_workspace(db)
+    run = await factories.make_run(db, workspace=workspace)
+    await make_artifacts(db, workspace, run)
+    await db.commit()
+
+    detail = _detail_retido()
+    detail["retention_reason"] = None  # ramo `llm is None` / `raw is None`
+
+    assert (
+        persist_planner_review(
+            sync_session, workspace_id=workspace.id, run_id=run.id, detail=detail
+        )
+        is None
+    )
+    assert sync_session.execute(select(PlannerReview)).scalars().all() == []
+
+
+@pytest.mark.asyncio
+async def test_entregue_com_retencao_conta_itens_sem_tocar_gating(db, sync_session):
+    """Parecer entregue com itens removidos: contador próprio, `items_gated_count` intacto."""
+    workspace = await factories.make_workspace(db)
+    run = await factories.make_run(db, workspace=workspace)
+    await make_artifacts(db, workspace, run)
+    await db.commit()
+
+    persist_planner_review(
+        sync_session, workspace_id=workspace.id, run_id=run.id, detail=_detail_com_drop()
+    )
+    sync_session.commit()
+
+    review = _review_of(sync_session, workspace.id)
+    assert review.outcome == "entregue_com_retencao"
+    assert review.items_dropped_count == 1
+    # Gating comercial (ação = comprar) e retenção por qualidade (ação = reprocessar)
+    # nunca somam no mesmo número.
+    assert review.items_gated_count == 0
+    assert review.items_shown_count > 0
+
+
+def test_detail_do_stage_carrega_a_tupla_estrutural():
+    """A camada e a severidade sobrevivem até o summary — era aqui que morriam."""
+    dropped = _detail_com_drop()["evidencia_verification"]["dropped_items"]
+    assert dropped == [
+        {"item_type": "risco", "index": 0, "layer": "pairing_mismatch", "severidade": "Baixa"}
+    ]
+
+
+def test_detail_do_retido_carrega_os_campos_que_a_persistencia_indexa():
+    """Sem estes 5, persistir o retido dava KeyError — não 404."""
+    detail = _detail_retido()
+    for field in (
+        "persona_hash",
+        "manifest_version",
+        "schema_version",
+        "model_id",
+        "tier_at_generation",
+    ):
+        assert detail[field], field
