@@ -420,7 +420,78 @@ reserva, perdendo o **hábito**, que vale mais que o valor.
 > depois seria **invisível**. "Apagar dinheiro real não é a quebra de confiança pior —
 > apagar sem dizer é."
 
-**Escopo que a l2 NÃO fecha:** duplicação intra-proveniência em chave de **proveniência
+## Decisões do dono — 2026-08-05, pós-verificação adversarial
+
+Tomadas com o dado do dogfood declarado **descartável** (perda não é risco), logo o
+critério foi **qual regra o produto quer a longo prazo**, não qual é segura de tentar.
+
+### D5 — o enforce cobre as 453 de perna LLM; as 140 nativas ficam de fora
+
+**Não é sobre risco. É sobre coerência.** A verificação mediu que o enforce **retém 576
+rows da MESMA forma** que remove nas 140 — mesma chave, mesma proveniência, arquivos
+distintos —, porque `_group_by_key` só retém chave viva em **≥2 proveniências**. O
+discriminador entre remover e reter é, portanto, **se por acaso existia uma perna LLM
+naquela chave**.
+
+Isso é acidente, não regra. Consequências que reprovam:
+
+- O razão pós-enforce fica **internamente inconsistente**: nenhum consumidor consegue
+  afirmar "duplicação intra-proveniência foi removida" nem "foi preservada".
+- É o mesmo vício que reprovou a opção A na decisão de cardinalidade — identidade de
+  lançamento dependendo de circunstância do upload, não do fato.
+- A premissa do D4 para essa classe **falha em 16/140 dias** (contagem diferente entre
+  os dois arquivos) e em 61/140 (multiset de chaves diferente).
+- O único oráculo externo — resíduo `saldo_final − (saldo_inicial + Σ tx)` — **piora em
+  3/3** grupos mensuráveis, e cada delta é exatamente o cents do canal daquele grupo,
+  somando as 140.
+- A metade protetiva do D4 é **vácuo empírico**: `card {1: 331}`, 0/331 exercita a guarda.
+
+**As 453** (remoção de perna LLM inteira) entram: **zero** sinal contrário, native-first
+100%, `kind` de fluxo preservado em 6/6, e é o defeito para o qual a lane foi aberta.
+
+**Implementação:** `keep_native = len(group.native_rows)` — row nativa **nunca** é
+removida. A cardinalidade por arquivo (§Emenda 2 da [[ADR-354]]) **continua válida** e
+segue governando quantas rows da perna LLM sobrevivem; o que muda é que ela deixa de
+autorizar corte no bucket nativo.
+
+**Medido pós-D5 (corpus dogfood, 2026-08-05):** rows removidas **593 → 453**;
+declarado == removido == canal (`453`); rows nativas **5504 → 5504**, preservadas;
+Σ cents assinado **12.001.051** (era 64.753.775 — a queda reflete que as 140 nativas,
+que carregavam 80.528.182, saíram do escopo). Chaves colapsáveis seguem 331.
+
+> ⚠️ **Bug que a primeira tentativa de D5 introduziu, e como ele passou verde.**
+> `_targets` (que computa `removable_rows`) e `rows_to_drop` (que remove) derivavam o
+> corte em **cópias separadas** da mesma fórmula. Mudei uma e não a outra: o measure
+> passou a declarar **453** enquanto a mutação removia **593** — com a suíte **verde**,
+> porque a fixture de 1 nativa + 1 LLM é justamente o caso onde as duas concordam.
+> **Só a medição no corpus achou.** `keep_split` virou fonte única e o teste novo
+> exercita 7 formas assimétricas. É a materialização do risco F2 que o `senior-cto`
+> nomeou ao pedir que o eixo (i) fosse promovido ao corpus.
+
+**As 140 + 576 = 716 rows viram uma classe só** — duplicação intra-proveniência
+cross-arquivo — roteada para a [[A42.l5]] com **regra e instrumento próprios**. Não é
+deferimento por medo: é recusa a shipar meia regra sem instrumento, que é o padrão que
+esta lane passou o dia inteiro corrigindo.
+
+### D6 — o caption da V0 é derivado do dado, não hardcoded
+
+Sem ele, o primeiro relatório pós-flip renderiza **"Receitas ▼19% — avaliação ruim"**
+(`VariacaoSection.deltaColor` + `deltaAriaLabel`), atribuído a nada. O produto passaria
+a **afirmar** que a família ganhou 19% menos — falso-positivo mais caro que o número
+que estamos corrigindo, porque o erro atual é otimista e este seria acusatório.
+
+**Regra:** presença de `consolidacao_cross_documento` no relatório atual **+** ausência
+no snapshot comparado ⇒ a base de comparação mudou ⇒ caption. **Derivado**, não flag de
+migração — generaliza para qualquer campo futuro que marque mudança de método, e não
+deixa resíduo a limpar depois do flip.
+
+**Sem suprimir cor** — o delta de patrimônio é legítimo e suprimir tudo distorce.
+
+**Débito registrado, não desta lane:** a V0 **julga** (`avaliação ruim`), o que é certo
+para movimento real e errado para mudança de método. A noção de **base não-comparável**
+pertence ao plano [SNAPSHOT_CHANGELOG_V3](../../../plan/SNAPSHOT_CHANGELOG_V3/_README.md); abrir item lá.
+
+**Escopo que a l2 NÃO fecha (atualizado pela D5):** a classe **inteira** de duplicação intra-proveniência cross-arquivo — **716 rows** (140 que o D4 removia + 576 que o colapsador retém por não haver perna LLM na chave). Inclui a duplicação em chave de **proveniência
 única** (buraco do `cross_file_dedup` com período na key) permanece aberta e é da
 [[A42.l5]]. Diga isso no PR3, senão alguém conclui que a classe estrutural fechou.
 
