@@ -155,8 +155,11 @@ templates:
     fallback: "Matriz de riscos priorizados."
 
   # ---- S10 Síntese -------------------------------------------------------
+  # A40.l10: "5 decisões" mentia com fila menor — mesma classe que a A37.l14
+  # (PD-02) removeu do título do card. E "90 dias" contradizia o horizonte real
+  # da fila (`short_6_12m`, pipeline_adapter._TOP5_DECISION_HORIZON).
   top5_decisoes:  # fallback-only (Fase 6 — sem builder); template estático
-    template: "5 decisões de maior impacto para os próximos 90 dias."
+    template: "Decisões priorizadas para os próximos 6 a 12 meses."
     fallback: "Próximas decisões de alto impacto."
 
   # ---- USA ---------------------------------------------------------------

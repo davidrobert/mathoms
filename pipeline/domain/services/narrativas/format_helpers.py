@@ -17,6 +17,7 @@ Paridade 100% com legado.
 from __future__ import annotations
 
 import re
+from typing import Any, Mapping
 
 
 def fmt_currency(value) -> str:
@@ -146,6 +147,36 @@ def fmt_aporte_distribuicao(dist) -> str:
     """Parcelas > 0 como ``'R$ 5k Cofrinhos, R$ 8k IPCA+'``; vazia/zerada → ``''``."""
     entries = [(k, v) for k, v in (dist or {}).items() if isinstance(v, (int, float)) and v > 0]
     return ", ".join(f"{fmt_currency(v)} {humanize_instrumento(k)}" for k, v in entries)
+
+
+# A40.l10: teto de itens renderizados da fila de decisões. Espelha
+# `pipeline_adapter._TOP5_DECISION_LIMIT` — se as duas superfícies da S10
+# cortarem em pontos diferentes, uma afirma contagem que a outra não lista.
+TOP_DECISOES_RENDER = 5
+
+
+def strip_terminal_punct(s: str) -> str:
+    """Remove '.', '!' ou '?' finais — item de lista separada por vírgula não os leva."""
+    return s.rstrip().rstrip(".!?").rstrip()
+
+
+# A40.l10 (RV4-02): até 2026-08-05 esta frase ocupava "Prioridade 1"
+# incondicionalmente no `charts.top5_decisoes` e no `summaries.s10`, e a fila do
+# dono era enumerada a partir de `decisoes[1:]` — a primeira decisão registrada
+# não chegava ao leitor. Aporte é um `Goal` (APORTE_MENSAL), não uma `Decision`:
+# numerá-lo na mesma fila funde duas categorias e, por ser a única linha que o
+# motor sempre consegue calcular, tornava o item mais fácil de computar
+# sistematicamente o mais importante — inversão de Cerbasi (quitar dívida
+# onerosa antes de aportar) e de Perini (reserva antes de risco).
+# Produtor único das duas superfícies: o comentário "mesma guard do
+# charts.top5_decisoes" que ficava no `s10` descrevia uma segunda cópia.
+def fmt_aporte_contexto(M: Mapping[str, Any]) -> str:
+    """Meta vigente de aporte como enquadramento; zerada/ausente omite a frase."""
+    if not M.get("meta_aporte_mensal"):
+        return ""
+    parcelas = fmt_aporte_distribuicao(M.get("aporte_distribuicao"))
+    divisao = f"com divisão ({parcelas})" if parcelas else APORTE_SEM_DISTRIBUICAO
+    return f"Meta vigente de aporte mensal: {fmt_currency(M['meta_aporte_mensal'])} {divisao}. "
 
 
 def fmt_usd(value) -> str:

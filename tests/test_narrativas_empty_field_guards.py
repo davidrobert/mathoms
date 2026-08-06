@@ -38,43 +38,39 @@ def _narrate_s10(metrics: dict) -> str:
 # gerava 4 parcelas hardcoded "R$ 0,00" no top5_decisoes e no s10.
 
 
-def test_top5_decisoes_distribuicao_vazia_sem_parcelas_zero():
-    m = {**_build_metrics(), "aporte_distribuicao": {}}
-    conclusion = _narrate_top5(m)
-    assert "R$ 0,00" not in conclusion
-    assert "(" not in conclusion.split("Prioridade 2")[0]
-    assert "a distribuir entre as classes sub-representadas" in conclusion
+# A40.l10: o enquadramento de aporte saiu do card e passou a viver só no `s10`
+# (as duas superfícies renderizam juntas na S10 e a sentença se repetia
+# verbatim). Os 5 guards que rodavam sobre o `conclusion` do card viraram: 1
+# guard de ausência aqui + os 3 casos de cobertura única movidos para o bloco
+# do `s10` abaixo (`{}` e instrumentos arbitrários já eram cobertos lá).
+def test_top5_decisoes_nao_carrega_enquadramento_de_aporte():
+    # A fila deste módulo abre com o título "Aporte mensal" — a asserção é
+    # sobre a SENTENÇA de enquadramento, não sobre a palavra.
+    conclusion = _narrate_top5(_build_metrics())
+    assert "Meta vigente de aporte mensal" not in conclusion
+    assert "a distribuir entre as classes sub-representadas" not in conclusion
+    assert "com divisão (" not in conclusion
 
 
-def test_top5_decisoes_distribuicao_ausente_trata_como_vazia():
+def test_summaries_s10_distribuicao_ausente_trata_como_vazia():
     """Metrics antigos (sem a key) não podem quebrar nem imprimir zeros."""
     m = _build_metrics()
     m.pop("aporte_distribuicao")
-    conclusion = _narrate_top5(m)
-    assert "R$ 0,00" not in conclusion
-    assert "a distribuir entre as classes sub-representadas" in conclusion
+    s10 = _narrate_s10(m)
+    assert "R$ 0,00" not in s10
+    assert "a distribuir entre as classes sub-representadas" in s10
 
 
-def test_top5_decisoes_distribuicao_zerada_trata_como_vazia():
+def test_summaries_s10_distribuicao_zerada_trata_como_vazia():
     m = {**_build_metrics(), "aporte_distribuicao": {"cofrinhos_itau": 0, "ivvb11": 0}}
-    conclusion = _narrate_top5(m)
-    assert "R$ 0,00" not in conclusion
-    assert "a distribuir entre as classes sub-representadas" in conclusion
+    s10 = _narrate_s10(m)
+    assert "R$ 0,00" not in s10
+    assert "a distribuir entre as classes sub-representadas" in s10
 
 
-def test_top5_decisoes_instrumentos_arbitrarios_todos_aparecem():
-    m = {
-        **_build_metrics(),
-        "aporte_distribuicao": {"cdb_liquidez": 6_000, "etf_global": 9_000, "fii_hglg11": 0},
-    }
-    conclusion = _narrate_top5(m)
-    assert "com divisão (R$ 6k CDB Liquidez, R$ 9k ETF Global)" in conclusion
-    assert "R$ 0,00" not in conclusion
-
-
-def test_top5_decisoes_keys_legadas_preservam_rotulos():
-    conclusion = _narrate_top5(_build_metrics())
-    assert "com divisão (R$ 5k Cofrinhos, R$ 8k IPCA+, R$ 4k IVVB11, R$ 3k Wise USD)" in conclusion
+def test_summaries_s10_keys_legadas_preservam_rotulos():
+    s10 = _narrate_s10(_build_metrics())
+    assert "com divisão (R$ 5k Cofrinhos, R$ 8k IPCA+, R$ 4k IVVB11, R$ 3k Wise USD)" in s10
 
 
 def test_summaries_s10_distribuicao_vazia_sem_parcelas_zero():

@@ -89,6 +89,23 @@ plano). `renda_passiva_estimada_4pct` provavelmente não é órfão (tem consumi
 é defeito de **contrato**, que é o objeto desta lane. Não presuma que "5 → 0" já
 os cobre.
 
+## Escopo herdado da [[A40.l10]] — o gate cross-stack não dispara
+
+Registrado aqui em 2026-08-05 **pelo destino**, na convenção que esta lane já
+declara acima. A l10 mediu, ao regravar a fixture de entrega:
+
+| Herdado | O que foi medido na l10 |
+|---|---|
+| **Mudança na fixture compartilhada Py↔TS não dispara o job que a consome** | `frontend/tests/components/report/sectionSummaryDelivery.test.tsx` lê `../../../../tests/fixtures/narrativas/e5n_delivery.json`, **fora** de `frontend/`. O filtro `filter.frontend` (`.github/workflows/ci.yml`) casa `frontend/**`, `design-tokens/**`, `config/report_layout.yaml` e o workflow — **não** `tests/fixtures/narrativas/**`. Medido: *Frontend checks* saiu `skipping` num PR que regravou a fixture 2×. Quebrar o contrato cross-stack deixaria o CI **verde** |
+
+É a mesma classe desta lane — par produtor↔consumidor existente cujo gate não
+fecha —, só que na camada de **disparo** em vez da de contrato. O `tsc --noEmit`
+que a l5 quer usar como gate de consumo tem o mesmo problema: só roda quando o
+filtro deixa. **Não corrigido na l10 por custo**: acrescentar o path faz
+*Frontend checks* rodar em todo diff de fixture do pipeline, e a A40 tem histórico
+de orçamento de Actions estourado por contagem de jobs — é decisão com gatilho
+`sre-devops`, não carona de PR de narrativa.
+
 ## Guarda anti-regressão
 
 O gate **é** a guarda — única lane cujo entregável principal é impedir a classe

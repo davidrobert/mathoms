@@ -20,10 +20,9 @@ from pipeline.domain.services.narrativas.alocacao_narrator import (
 )
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
-    APORTE_SEM_DISTRIBUICAO,
+    TOP_DECISOES_RENDER,
     categorias_ativos_sufixo,
     ensure_period,
-    fmt_aporte_distribuicao,
     fmt_currency,
     fmt_num,
     fmt_percent,
@@ -356,6 +355,17 @@ _BUBBLE_EMPTY_CONCLUSION = (
     "Sem riscos prioritários cadastrados. Próximo passo: registrar exposições "
     "(seguro de vida, invalidez, sucessório, compliance) na tela Plano de Ação."
 )
+# A40.l10 (RV4-02): fila vazia dizia "Prioridade 1: Aporte mensal R$ 0,00" —
+# afirmava uma prioridade que ninguém registrou. Mesma forma do empty state
+# do bubble acima: nomeia a ausência e aponta a tela que a resolve.
+_DECISOES_EMPTY_CONTEXT = (
+    "Nenhuma decisão estratégica de curto prazo (6-12 meses) registrada para este ciclo."
+)
+_DECISOES_EMPTY_CONCLUSION = (
+    "Nenhuma decisão priorizada para os próximos 6 a 12 meses. Registre na tela "
+    "Plano de Ação as decisões que pretende executar neste ciclo para que entrem "
+    "no ranking do próximo relatório."
+)
 # Templates de ação indexados por (has_us_exposure, has_seguro_range). ADR-192 T01 D4:
 # perfil USA só é assumido quando `has_us_exposure` for explicitamente True.
 _ACTION_LINES: dict[tuple[bool, bool], str] = {
@@ -413,21 +423,22 @@ def _narrate_bubble_riscos(
     }
 
 
-# ── A37.l8 (FIN-08): projeção IF probabilística ─────────────────────────
-def _fmt_aporte_head(M: Mapping[str, Any]) -> str:
-    # A37.l2 (PD-01): distribuição vazia/zerada → sem parêntese de divisão
-    # (antes: 4 parcelas hardcoded viravam "R$ 0,00"). Keys dinâmicas.
-    aporte = fmt_currency(M["meta_aporte_mensal"])
-    parcelas = fmt_aporte_distribuicao(M.get("aporte_distribuicao"))
-    if not parcelas:
-        return f"Prioridade 1: Aporte mensal {aporte} {APORTE_SEM_DISTRIBUICAO}. "
-    return f"Prioridade 1: Aporte mensal {aporte} com divisão ({parcelas}). "
+def _fmt_fila_decisoes(decisoes: list[str]) -> str:
+    """Enumera a fila a partir da posição 1; ``ensure_period`` por item preserva '?' e '!'."""
+    return " ".join(
+        ensure_period(f"Prioridade {i + 1}: {d.rstrip()}")
+        for i, d in enumerate(decisoes[:TOP_DECISOES_RENDER])
+    )
 
 
-def _narrate_top5_decisoes(M: Mapping[str, Any], decisoes: list[str]) -> dict[str, str]:
+# O enquadramento de aporte NÃO entra aqui — vive no `summaries.s10`, que
+# renderiza logo acima deste card na mesma seção. Emitir nos dois repetia a
+# sentença verbatim (achado da verificação adversarial da A40.l10).
+def _narrate_top5_decisoes(_M: Mapping[str, Any], decisoes: list[str]) -> dict[str, str]:
+    if not decisoes:
+        return {"context": _DECISOES_EMPTY_CONTEXT, "conclusion": _DECISOES_EMPTY_CONCLUSION}
     context = (
         f"{len(decisoes)} {pluralize(len(decisoes), 'decisão estratégica', 'decisões estratégicas')} "
         "de curto prazo (6-12 meses) para otimizar a trajetória até IF."
     )
-    tail = ". ".join(f"Prioridade {i + 2}: {d.rstrip('.')}" for i, d in enumerate(decisoes[1:5]))
-    return {"context": context, "conclusion": ensure_period(_fmt_aporte_head(M) + tail)}
+    return {"context": context, "conclusion": _fmt_fila_decisoes(decisoes)}
