@@ -12,12 +12,20 @@ digest**: os dois instrumentos derivam a chave com
 truncamentos diferentes — então comparar por prefixo é exato, não aproximado. O
 comprimento é **derivado** do detector, nunca constante literal.
 
+Os campos que produção também emite vêm de ``shadow_counts`` (domínio), **nunca**
+recomputados aqui. A direção da dependência é essa e não a inversa: este instrumento existe
+para PROVAR a telemetria de produção — se calculasse por conta própria, provaria a si mesmo.
+Derivação paralela da mesma regra é o bug do ``keep_split``: duas cópias concordavam na
+fixture, divergiam no corpus, e o measure declarava 453 enquanto a mutação removia 593.
+
 PII-safe: só contagens, cents agregados e nomes de motivo. Puro, sem I/O.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
+from pipeline.domain.services.cross_document_collapse_types import shadow_counts
 
 
 @dataclass(frozen=True)
@@ -135,35 +143,36 @@ def _histograma(valores) -> dict:
     return out
 
 
-def _cents(colapsaveis: list) -> int:
-    """Fórmula DECLARADA: cents × rows removíveis."""
-    # O detector soma (n_provenances − 1) × cents. Os dois números NÃO são
-    # comparáveis; o gap entre eles é o efeito multiset, não divergência de medição.
-    return sum(c.valor_cents * c.removable_rows for c in colapsaveis)
-
-
 def _motivos(todos: list) -> dict:
     return _histograma(c.blocked_reason or "sem_motivo" for c in todos if not c.collapsible)
+
+
+def _proprios(colapsaveis: list, detector_digests: frozenset[str], n: int) -> dict:
+    """Campos que só este instrumento produz — o resto vem de ``shadow_counts``."""
+    orfas_rows, orfas_cents = _orfas(detector_digests, colapsaveis, n)
+    return {
+        "rows_alcancadas": sum(c.rows_alcancadas_por_hash for c in colapsaveis),
+        "cardinalidade": _histograma(c.survivor_cardinality for c in colapsaveis),
+        "orfas_rows": orfas_rows,
+        "orfas_cents": orfas_cents,
+        "digest_len": n,
+    }
 
 
 def collapse_layer_summary(candidates, detector_digests: frozenset[str]) -> CollapseLayerSummary:
     """Sumário da camada E3 + paridade contra o numerador do detector E4."""
     todos = list(candidates)
     colapsaveis = [c for c in todos if c.collapsible]
+    base = shadow_counts(todos)
     n = _digest_len(detector_digests)
-    orfas_rows, orfas_cents = _orfas(detector_digests, colapsaveis, n)
     return CollapseLayerSummary(
-        candidatos=len(todos),
-        colapsaveis=len(colapsaveis),
+        candidatos=base["candidatos"],
+        colapsaveis=base["colapsaveis"],
         bloqueados_por_motivo=_motivos(todos),
-        rows_removiveis=sum(c.removable_rows for c in colapsaveis),
-        rows_alcancadas=sum(c.rows_alcancadas_por_hash for c in colapsaveis),
-        candidatos_com_alvo_ambiguo=sum(1 for c in colapsaveis if c.alvo_ambiguo),
-        cents_removiveis=_cents(colapsaveis),
-        cardinalidade=_histograma(c.survivor_cardinality for c in colapsaveis),
-        orfas_rows=orfas_rows,
-        orfas_cents=orfas_cents,
-        digest_len=n,
+        rows_removiveis=base["rows_removiveis"],
+        candidatos_com_alvo_ambiguo=base["alvo_ambiguo"],
+        cents_removiveis=base["cents_removiveis"],
+        **_proprios(colapsaveis, detector_digests, n),
         **_parity(detector_digests, colapsaveis, todos),
     )
 
