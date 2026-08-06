@@ -7,6 +7,7 @@ mudar nada. Um teste que só checasse "o colapsador foi instanciado" passaria ig
 
 from __future__ import annotations
 
+import ast
 import sys
 from pathlib import Path
 
@@ -69,3 +70,30 @@ def test_bloqueado_conta_como_candidato_mas_nao_como_colapsavel():
 @pytest.mark.parametrize("campo", ["candidatos", "colapsaveis", "rows_removiveis"])
 def test_sem_candidato_zera_sem_estourar(campo):
     assert shadow_counts(())[campo] == 0
+
+
+def _enforce_args_do_stage() -> list[ast.expr | None]:
+    """Valor de ``collapse_enforce`` em cada chamada a ``_e3_build_adapter`` no stage."""
+    fonte = Path(__file__).resolve().parents[3] / "scripts" / "reconcile_transactions.py"
+    arvore = ast.parse(fonte.read_text(encoding="utf-8"))
+    return [
+        next((kw.value for kw in node.keywords if kw.arg == "collapse_enforce"), None)
+        for node in ast.walk(arvore)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_e3_build_adapter"
+    ]
+
+
+def test_stage_de_producao_nunca_liga_o_enforce():
+    """AST, não grep: o único caminho de produção monta o adapter em SOMBRA."""
+    # Sem isto, `collapse_enforce=True` no call-site passa verde — nenhum teste de unidade
+    # do colapsador exercita `main_with_store`, e a suíte segue passando enquanto produção
+    # começa a remover dado financeiro.
+    chamadas = _enforce_args_do_stage()
+
+    assert chamadas, "call-site sumiu — o teste passaria por vacuidade"
+    for arg in chamadas:
+        assert arg is None or (
+            isinstance(arg, ast.Constant) and arg.value is False
+        ), "stage de produção passou collapse_enforce truthy — a sombra virou enforce"
