@@ -176,6 +176,60 @@ veio do #973). Refutados: 5, entre eles a alegação de que a mudança no
 `chart_conclusions.yaml` seria fix inerte não declarado — o corpo do commit já
 a declara.
 
+## Desenho fixado para os PRs restantes (painel 2026-08-05)
+
+Escrito aqui para não morrer com a sessão. **PR1 shipou; PR2 e PR3 estão abertos.**
+
+**PR2 — `elegibilidade` (exige ADR `Proposto` ANTES do PR).**
+
+- **Dois campos ortogonais, não um enum** (decisão `financial-planner`, que
+  rejeitou a taxonomia de 3 valores que eu havia proposto): `origem_premissa` ∈
+  {`cadastro_familia`, `documento_ingerido`, `derivado_e5`} e `elegibilidade` ∈
+  {`computavel`, `nao_verificavel`, `degenerada`, `pendente_de_dado`}. Graduar
+  por "observável dentro do E5" embutia um ranking de confiança **invertido** —
+  fato de cadastro é declaração de 1ª mão do dono, enquanto
+  `passivo_acima_30_pct_patrimonio` deriva de baseline defasado.
+- **`conjuge_sem_renda_propria` = `degenerada`**, e sai do disjuntivo de
+  `flag_vida` enquanto `protecao_wiring` fixar `renda_propria_brl = 0`: hoje
+  dispara em **100%** dos workspaces com cônjuge. Não é default conservador, é
+  falso positivo estrutural na recomendação mais vendedora do produto. Quando
+  houver produtor, o predicado correto é dependência econômica
+  (`renda_conjuge < k × custo_essencial_familiar`, `k = 0,5` proposto), não
+  `renda == 0`.
+- **Avaliado em `PontosUrgentesAnalyzer.analyze()`** — não no
+  `E5NarrativasBuilder` (a projeção é achatada para `list[str]` antes do
+  narrador) nem no `e5_serialization`.
+- **Dois arrays, não omissão** (`senior-cto`, resolvendo o conflito entre o
+  molde da [[ADR-167]] "emite ou omite" e a 6ª classe do gate de saída): o E5
+  emite `pontos_urgentes` (ranqueado, só elegíveis) **e** o bucket de retidos com
+  `elegibilidade` + motivo. Sobrevive da ADR-167 a metade que importa — uma
+  camada decide, o TS tem zero lógica de elegibilidade.
+- **Strings do enum nunca aparecem na UI** (`product-designer`): mapa enum→copy
+  no frontend, e a frase nomeia **o dado que falta**, não o estado interno.
+  `pendente_de_dado` → visível com CTA; `degenerada`/`nao_verificavel` → fora do
+  ranking, declarados no payload.
+- **Disciplina anti-órfão** (`data-engineer`), no mesmo PR: teste derivado de
+  `dataclasses.fields()` (não lista enumerada à mão — o padrão "construtor
+  campo-a-campo perde campo novo" já mordeu neste repo), leitor no
+  `PontosUrgentesCard.tsx` **ou** registro escrito de payload-only com motivo, e
+  rebaseline consciente do snapshot do view-model.
+
+**PR3 — ordenação do ranking. BLOQUEADO por objeção do `financial-planner`, e a
+objeção é material.** A ordem defensável é por **tier de irreversibilidade**
+(T0 ruína: dívida em carry-trade e gap de vida com dependente menor sem apólice ·
+T1 fragilidade: reserva < alvo **do perfil** · T2 alavancagem: endividamento ·
+T3 otimização), com desempate por impacto anualizado. **Mas as duas variáveis
+sobre as quais o analyzer hoje decidiria estão mal medidas:**
+`taxa_endividamento_pct` é dívidas/patrimônio bruto enquanto a metodologia
+declarada no repo é comprometimento mensal de renda, e `reserva_minima_meses` é
+chapada em 6 enquanto o alvo canônico varia por perfil. **Encodar ordenação sobre
+isso troca uma indeterminação por outra, com aparência de rigor** — por isso o
+PR3 não sai antes de corrigir a medição, e por isso não o entreguei. Decisão
+adicional do painel: extrair o critério para **um** helper puro compartilhado com
+`suggestion_rules` (que já tem carry-trade encodado e morto por falta de
+produtor), em vez de criar a **terceira** ordenação do mesmo domínio no mesmo
+relatório — que é o defeito que a lane veio corrigir.
+
 ## Residual medido — achado novo, sem lane
 
 **A fixture compartilhada Py↔TS muda sem disparar o job que a consome.**
