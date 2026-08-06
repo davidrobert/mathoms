@@ -145,3 +145,23 @@ def test_e2_to_e3_artefato_antigo_mantem_fallback() -> None:
     r = e2_to_e3(e2, e3)
 
     assert (r.count_in, r.count_out) == (6, 6)
+
+
+def test_sobre_declaracao_nao_passa_como_conservado() -> None:
+    """P0-4: a guarda era unilateral — só testava `count_out < count_in`, e
+    sobre-declaração caía no default CONSERVADO. Com o 5º canal, a mesma row declarada
+    em dois canais ficava invisível; e é este somatório que vira o contador da S2."""
+    from dev.ledger_conservation import PERDA_SILENCIOSA, e2_to_e3
+
+    e2 = [{"tipo": "extratoconta", "transacoes": [{"valor": 0}] * 100}]
+    remocoes = {
+        "intra_statement_dedup": {"count": 15, "valor_cents": 0},
+        "cross_document_collapse": {"count": 15, "valor_cents": 0},  # a MESMA row 2x
+    }
+    e3 = [{"transacoes_total": 90, "transacoes": [], "remocoes": remocoes}]
+
+    r = e2_to_e3(e2, e3)
+
+    assert (r.count_in, r.count_out) == (100, 120)
+    assert r.verdict == PERDA_SILENCIOSA
+    assert "SOBRE-declaração" in r.detail

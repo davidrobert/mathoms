@@ -161,3 +161,65 @@ async def test_sem_candidato_colapsavel_libera(db) -> None:
     assert result.ok and report.liberado
     assert result.details["alvos_do_colapsador"] == 0
     assert result.details["overrides_ativos"] == 1
+
+
+async def test_override_com_natural_key_mas_sem_snapshot_bloqueia(db) -> None:
+    """P0: antes ele ESCAPAVA. `_override_gate_digest` devolvia `None`, `None in alvos`
+    era `False`, e `_ancora_indecidivel` não o pegava porque exigia `natural_key_hash
+    is None`. Workspace inteiro sem snapshot devolvia `hits=0 ⇒ liberado`."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as s:
+        # `hash_version=2` é o que isola o P0: âncora v2 GENUÍNA, então
+        # `_ancora_indecidivel` NÃO o pega — antes ele escapava por completo.
+        _override(s, ws.id, titular=None, natural_key="nk-v2", hash_version=2, tx_data=None)
+        result, report = collapse_precondition.evaluate(s, ws.id, [_candidato()])
+
+    assert not result.ok
+    assert report.hits_ancora_indecidivel == 0  # escapava por aqui
+    assert report.sem_snapshot == 1  # e agora é pego por aqui
+    assert not report.liberado
+
+
+async def test_hash_version_1_conta_como_sem_ancora_v2(db) -> None:
+    """`natural_key_hash` preenchido em `hash_version=1` é v1 disfarçada — igualmente
+    indecidível. O proxy `natural_key_hash is None` sozinho deixava passar."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as s:
+        _override(s, ws.id, titular=None, natural_key="nk-v1", hash_version=1, tx_data=None)
+        result, report = collapse_precondition.evaluate(s, ws.id, [_candidato()])
+
+    assert not result.ok
+    assert report.hits_ancora_indecidivel == 1
+
+
+async def test_vivacidade_do_join_distingue_corpus_limpo_de_cegueira(db) -> None:
+    """`hits=0` só é segurança se o join CASA alguma coisa. Sem este número, gate cujo
+    digest nunca resolve é indistinguível de corpus sem risco."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+    vivo = gate_key_digest(data_iso=_DATA, valor_cents=_CENTS, moeda=_MOEDA, descricao=_DESC_CRUA)
+
+    with SyncSessionLocal() as s:
+        _override(s, ws.id, titular="alguem")
+        _cego, rep_cego = collapse_precondition.evaluate(s, ws.id, [], corpus_digests=frozenset())
+        _vivo, rep_vivo = collapse_precondition.evaluate(s, ws.id, [], corpus_digests={vivo})
+
+    assert (rep_cego.hits, rep_vivo.hits) == (0, 0)  # ambos "liberados" por hits
+    assert rep_cego.snapshot_casa_corpus == 0  # ...mas este separa os dois
+    assert rep_vivo.snapshot_casa_corpus == 1
+
+
+async def test_tx_data_fora_do_iso_e_contado(db) -> None:
+    """`tx_data` é `String(10)`: acomoda `DD/MM/YYYY` igual. A forma é contada, não presumida."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as s:
+        _override(s, ws.id, titular="alguem", tx_data="30/03/2026")
+        _r, report = collapse_precondition.evaluate(s, ws.id, [_candidato()])
+
+    assert report.tx_data_nao_iso == 1

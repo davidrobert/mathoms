@@ -149,10 +149,28 @@ def _e2e3_verdict(
     """Veredito E2→E3 fail-closed. A ORDEM importa: queda de count COM dedup
     declarado (dups>0) é sub-declaração ⇒ não perda (LC-07). Valor: dups>0 sobe a
     conservado só se o removido == declarado (ADR-347 §Dec-6); senão coberto."""
+    # A guarda era UNILATERAL: os dois primeiros checks só testavam `count_out <
+    # count_in`, e sobre-declaração caía no `default = CONSERVADO`. Com o `intra`
+    # autoritativo e o 5º canal (ADR-347 §Emenda), a mesma row declarada em dois canais
+    # ficava invisível — e é este somatório que alimenta o contador mostrado à família.
     value_ok = dups > 0 and (val_in - val_out) == declared
-    checks = [
+    checks = _e2e3_checks(count_in, count_out, dups, val_in, val_out, declared, value_ok)
+    default = (CONSERVADO, "count e valor conservam" + ("; dedup declarado fecha" if dups else ""))
+    v, d = next(((vv, dd) for cond, vv, dd in checks if cond), default)
+    return ConservationResult("E2->E3", count_in, count_out, val_in, val_out, dups, v, d)
+
+
+def _e2e3_checks(count_in, count_out, dups, val_in, val_out, declared, value_ok) -> list:
+    """Checks do veredito E2→E3, na ORDEM que importa (count antes de valor)."""
+    return [
         (count_out < count_in and dups == 0, PERDA_SILENCIOSA, "count caiu sem dedup declarado"),
         (count_out < count_in, COBERTO_SEM_VALOR, "sub-declaração de dedup; count não fecha"),
+        (
+            count_out > count_in,
+            PERDA_SILENCIOSA,
+            f"SOBRE-declaração: count_out {count_out} > count_in {count_in} "
+            f"(mesma row declarada em >1 canal, ou canal contado 2x)",
+        ),
         (
             dups > 0 and not value_ok,
             COBERTO_SEM_VALOR,
@@ -160,9 +178,6 @@ def _e2e3_verdict(
         ),
         (val_out != val_in and dups == 0, PERDA_SILENCIOSA, "Σ valor diverge sem dedup (dups=0)"),
     ]
-    default = (CONSERVADO, "count e valor conservam" + ("; dedup declarado fecha" if dups else ""))
-    v, d = next(((vv, dd) for cond, vv, dd in checks if cond), default)
-    return ConservationResult("E2->E3", count_in, count_out, val_in, val_out, dups, v, d)
 
 
 # ─────────────────────────── E3 → E4 ───────────────────────────
