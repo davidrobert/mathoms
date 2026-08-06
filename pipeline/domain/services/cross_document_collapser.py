@@ -156,6 +156,11 @@ def _key_digest(key: tuple) -> str:
     return hashlib.sha256("|".join(str(p) for p in key).encode("utf-8")).hexdigest()[:12]
 
 
+def _gate_digest_da_chave(key: tuple) -> str:
+    """Projeta a chave de colapso na chave do gate — via a função canônica, nunca inline."""
+    return gate_key_digest(data_iso=key[0], valor_cents=key[1], moeda=key[2], descricao=key[4])
+
+
 def _row_hash(tx: Transaction, stmt: BankStatement) -> str:
     """``_hash_v2`` da row — a chave de re-ancoragem de ``transaction_overrides``."""
     inputs = build_hash_inputs(
@@ -201,14 +206,18 @@ _Row = tuple[BankStatement, Transaction]
 
 def gate_key_digest(*, data_iso: str, valor_cents: int, moeda: str, descricao: str | None) -> str:
     """Digest da chave de colapso SEM ``direction`` e SEM proveniência — a chave do
-    **gate de override** ([[A40.l2]] D1)."""
+    **gate de override** ([[A40.l2]] D1). FONTE ÚNICA: o produtor (`_candidate`) e o
+    consumidor (`collapse_precondition`) chamam esta função, nenhum monta a tupla."""
     # Descartar `direction` é deliberado: gate que BLOQUEIA deve sobre-detectar, e a
     # direction do E4 vem do balde enquanto a do E3 vem do sinal (deriva medida
     # 4282/4320). O backend recompõe este digest das colunas de snapshot da
     # [[ADR-282]] (`tx_data`, `tx_valor_cents`, `tx_moeda`, `tx_descricao`) — logo é
     # imune a versão de hash e ao gate de discriminantes, sem PII cruzando o boundary.
+    # `.strip()` acompanha `_collapse_key`: sem ele as duas derivações divergiam para moeda com
+    # espaço. Inerte hoje (os dois chamadores passam dado já stripado) e por isso invisível —
+    # que é como a divergência do `keep_split` sobreviveu à suíte.
     return _key_digest(
-        (data_iso, int(valor_cents), (moeda or "").upper(), normalize_descricao(descricao))
+        (data_iso, int(valor_cents), (moeda or "").strip().upper(), normalize_descricao(descricao))
     )
 
 
@@ -343,8 +352,10 @@ class CrossDocumentCollapser:
         # Sobrevivem `card` rows, preenchidas primeiro pela perna nativa (invariante
         # de domínio: o kind do sobrevivente nunca vem da perna LLM — eleger a LLM
         # converteria receita em transferência nas 6 chaves com kind assimétrico).
-        # Sob a cardinalidade por arquivo, bucket NATIVO também perde row (2 nativas
-        # de arquivos sobrepostos, card=1); a versão anterior só emitia alvo LLM.
+        # Sob a D5 (`keep_native = len(native_rows)`) o bucket NATIVO **nunca** perde row: o
+        # `planned` dele sempre dá `n=0` e nenhum alvo nativo é emitido. O texto anterior aqui
+        # afirmava o contrário — comentário que mente sobre decisão do dono convida a
+        # "restaurar" a remoção nativa que a medição reprovou (3/3 grupos pioraram).
         keep_native, keep_llm = group.keep_split()  # fonte única — ver `keep_split`
         planned = (
             (group.native_rows, len(group.native_rows) - keep_native),
@@ -361,7 +372,7 @@ class CrossDocumentCollapser:
         targets = () if reason else self._targets(group, group.survivor_cardinality)
         return CollapseCandidate(
             key_digest=_key_digest(group.key),
-            gate_digest=_key_digest((group.key[0], group.key[1], group.key[2], group.key[4])),
+            gate_digest=_gate_digest_da_chave(group.key),
             mes=str(group.key[0])[:7],
             valor_cents=int(group.key[1]),
             moeda=str(group.key[2]),
