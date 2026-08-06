@@ -114,6 +114,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: enum-migration-parity
+        name: "Membro de enum Python existe nas migrations (ADR-357 §7)"
+        entry: python3 dev/check_enum_migration_parity.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: forbidden-paths
         name: "Bloqueia paths sensíveis (storage/, .env, *.db, …)"
         entry: python dev/check_forbidden_paths.py

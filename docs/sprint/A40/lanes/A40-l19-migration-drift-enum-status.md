@@ -4,7 +4,7 @@ type: lane
 title: "Drift de enum de status: 4 valores existem em Python e não no tipo do DB"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l19-migration-drift-enum-status
 adrs:
@@ -14,7 +14,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/backend
   - area/db
