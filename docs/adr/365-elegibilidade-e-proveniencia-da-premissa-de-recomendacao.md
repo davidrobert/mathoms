@@ -23,6 +23,15 @@ tags:
 > sem o código atrás dela. Registro para não virar precedente silencioso.
 > O flip para `Decidido` é **decisão do dono**, não consequência do merge
 > (precedente [[ADR-361]] §Emenda 2026-08-05).
+>
+> **§Deferimento datado (2026-08-06) — dono e condição.** O dono decidiu **manter
+> `Proposto` no merge** e flipar no **PR de fecho da [[A40.l10]]** (que já vai
+> existir para declarar RV3-07 parcialmente fechado). **Condição de retomada:**
+> verificação **renderizada** — abrir o relatório de um workspace sem dependente
+> econômico e confirmar que o item de seguro de vida não aparece, e de um com
+> gatilho `degenerada` e confirmar que a frase de retenção aparece no `s10` e no
+> PDF. O que sustenta esta nota hoje é suíte verde e prova de mutação; ninguém
+> olhou a tela, e a [[A40]] exige passada renderizada para lane de `clareza-ux`.
 
 ## Contexto
 
