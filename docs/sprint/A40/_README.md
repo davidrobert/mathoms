@@ -248,6 +248,17 @@ resto do vault, o sinal de que o campo não codificava dependência. Prioridade
 **não** muda: `blocked` diz "ainda não pegável", não "menos importante"; l18 e
 l22 seguem P0.
 
+> **Delta 2026-08-06 — o predicado tem custo de manutenção, e ele apareceu.** A
+> tabela acima é medição datada em `33bb0710`; não a reescreva. O que mudou: a
+> [[A40.l21]] mergeou em `c8239386` (#1232) e, com o `depends_on` da [[A40.l18]]
+> satisfeito, o `blocked` dela virou **stale** — ninguém flipa o campo no merge da
+> dependência, então a lane sumiu do `SPRINT_CURRENT` justamente quando ficou
+> pegável. É o modo de falha simétrico ao que o predicado nasceu para matar:
+> antes, `open` mentia para cima (armadilha de pickup); agora `blocked` mente para
+> baixo (lane P0 invisível). Flipada para `in_progress` no pickup de 2026-08-06.
+> Reforça o §"Sem gate, isto é convenção e não garantia" acima — o gate derivável
+> de `depends_on` + `status` pega **os dois** sentidos, e continua não roteado.
+
 **Sem gate, isto é convenção e não garantia** — mesma família da lição registrada
 na emenda da [[ADR-111]] (*afirmação de audit sem gate é dívida*). O predicado do
 `open` é derivável de `depends_on` + `status`, portanto gateável em ~10 linhas; a

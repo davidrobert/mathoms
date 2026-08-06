@@ -34,9 +34,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | changelog-entry | (sem status) | 252 |
 | doc | (sem status) | 2 |
 | domain-rule | (sem status) | 11 |
-| lane | blocked | 10 |
+| lane | blocked | 9 |
 | lane | cancelled | 2 |
-| lane | in_progress | 7 |
+| lane | in_progress | 8 |
 | lane | open | 14 |
 | lane | planned | 54 |
 | lane | shipped | 219 |

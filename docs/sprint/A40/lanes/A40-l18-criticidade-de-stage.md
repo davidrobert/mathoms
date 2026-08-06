@@ -4,7 +4,7 @@ type: lane
 title: "Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável"
 sprint: A40
 plan: PLAN-report-trust
-status: blocked
+status: in_progress
 priority: P0
 branch_slug: a40-l18-criticidade-de-stage
 adrs:
@@ -14,7 +14,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/in-progress
   - priority/p0
   - area/pipeline
   - area/backend
@@ -22,10 +22,16 @@ tags:
 
 # A40.l18 — `criticidade-de-stage`
 
-> 🚧 **Bloqueada pela [[A40.l21]]** (2026-08-03) — não é pegável até a l21 mergear.
-> `blocked` e não `open` pelo §Predicado do campo `status` do
-> [`_README`](../_README.md): dep pendente, sem amarra de entrega parcial. Não é
-> mudança de prioridade — segue **P0**.
+> ✅ **Desbloqueada 2026-08-06:** a [[A40.l21]] mergeou em `c8239386` (#1232). Pelo
+> §Predicado do campo `status` do [`_README`](../_README.md) — *`open` ⇔ todo
+> `depends_on` terminal* — o `blocked` de 2026-08-03 ficou obsoleto no merge e não
+> foi flipado então; quem lesse o `SPRINT_CURRENT` não veria a lane. `depends_on`
+> **fica**: registra a ordem reader-first que foi cumprida, não um bloqueio vivo.
+>
+> **Relógio herdado da l21.** Os leitores tolerantes já estão em `main` e são dead
+> code até esta lane emitir o writer. O §Gate de saída do [`_README`](../_README.md)
+> manda **reverter a l21** (e o PR1 da [[A40.l20]]) se esta lane não mergear até
+> `date_target: 2026-08-17`.
 >
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fecha a **classe**, não o caso.
 > `depends_on` [[A40.l21]] por **ordem reader-first**: os leitores toleram
