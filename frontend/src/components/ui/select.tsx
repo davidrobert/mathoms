@@ -44,6 +44,11 @@ function sameItemLabels(a: SelectItemLabel[], b: SelectItemLabel[]) {
  * trigger mostrava `p-single` em vez de `Apto Vila Mariana`. A referência é
  * estabilizada porque o Root joga `items` no store por `Object.is`: array
  * novo a cada render notificaria todos os subscribers à toa.
+ *
+ * **Limite conhecido:** a travessia só enxerga `<SelectItem>` presente no JSX
+ * — item entregue por componente intermediário (`<MeusItens/>`) não é
+ * alcançável antes de montar, e o trigger volta ao value cru sem erro nem
+ * teste vermelho. Nesse caso passe `items` explícito ao `Select`.
  */
 function useItemLabels(
   children: React.ReactNode,
