@@ -222,6 +222,15 @@ prova de mutação em 4 rodadas matando 12 asserções · schema com
 `additionalProperties: false` no item, que **compra gate hoje**
 (`test_e5_golden_execution` valida um E5 gerado de verdade, fora do modo `warn`).
 
+> **Débito de método do PR2 (2026-08-06), medido por revisão adversarial de
+> tamanho.** A §Sequência abaixo manda, no item 1, *"ADR-365 `Proposto`
+> (docs-only, **antes do código**)"* — e eu abri a ADR no **primeiro commit do
+> próprio PR de implementação**. Os 411 linhas de docs sozinhas fazem o #1243
+> passar de `size:L` para `size:XL`. O padrão que se repete nesta lane é *"a ADR
+> nasce junto com o código porque a decisão só ficou clara ao medir"*; isso é
+> legítimo, mas então a forma correta é **PR docs-only depois da medição e antes
+> do PR de código**, não junto. Sem esta linha, o próximo PR2 repete.
+>
 > **Nota de execução, 2026-08-06:** o merge do #1243 ficou bloqueado por
 > **degradação do GitHub Actions** — `Service Unavailable` + `Failed to resolve
 > action download info`, com o job de validação de título (que só lê uma string)
@@ -329,6 +338,15 @@ zero wiring novo.
    `items` declarado no schema com `additionalProperties: false`. Prova derivada
    de `dataclasses.fields()` — não lista à mão. Asserção sobre a **string
    narrada**, com mutação nos dois sentidos.
+   **Pré-condição bloqueante do PR3, medida em 2026-08-06 (revisão de tamanho do
+   #1243):** o `code` que o PR2 entrega é **necessário e não suficiente**.
+   `build_default_tarefas_status` (`e5_serialization.py`) continua chaveando por
+   **posição** (`{str(i+1): "pendente"}`), e `tarefas_status` é lido pelo
+   frontend (`reports.ts`) e pelo manifest do parecer. Ou seja: **reordenar sem
+   antes trocar essa chave shipa a classe RV4-02 dentro do próprio PR3** — o
+   status que o dono registrou passa a apontar para outra tarefa. Não é fix de 5
+   linhas: é mudança de contrato cross-stack, com rebaseline de golden e de
+   snapshot. Ou o PR3 abre com essa troca, ou não reordena.
 3. **PR3 — ordenação + reserva.** Tier constante por regra, extraído para **um**
    helper puro compartilhado com `suggestion_rules` (não a terceira ordenação do
    mesmo domínio). Reserva: **piso 6 decide existência; `meses_alvo` gradua a
