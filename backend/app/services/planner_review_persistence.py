@@ -14,7 +14,7 @@ from backend.app.models.planner_field_request import (
     VALID_FIELD_REQUEST_REASONS,
     PlannerFieldRequest,
 )
-from backend.app.models.planner_review import PlannerReview
+from backend.app.models.planner_review import ParecerOutcome, PlannerReview
 from backend.app.services.security.crypto import read_artifact_content
 from backend.app.services.suggestion_supersede import persist_suggestions_for_run
 from pipeline.artifact_store import stage_aliases
@@ -53,6 +53,35 @@ def _find_artifact(
     return row
 
 
+def _dropped_count(detail: dict) -> int:
+    """Itens retidos por qualidade — generation-scoped, do summary do stage."""
+    return int((detail.get("evidencia_verification") or {}).get("items_dropped", 0))
+
+
+def _derive_outcome(detail: dict) -> ParecerOutcome:
+    """Desfecho a partir do detail do stage (ADR-366 §D1)."""
+    if detail.get("status") == "needs_review":
+        return ParecerOutcome.retido
+    return (
+        ParecerOutcome.entregue_com_retencao if _dropped_count(detail) else ParecerOutcome.entregue
+    )
+
+
+def _review_outcome_fields(detail: dict, shown: int) -> dict:
+    """Desfecho + motivo + contadores. No retido, contagens são 0 por invariante."""
+    outcome = _derive_outcome(detail)
+    retido = outcome is ParecerOutcome.retido
+    return {
+        "outcome": outcome.value,
+        "retention_reason": detail.get("retention_reason"),
+        # `_sum_shown` sobre o artifact do retido devolveria 3 — são os pontos fortes
+        # placeholder de `empty_needs_review_output`, não itens exibidos (ADR-366 §D5).
+        "items_shown_count": 0 if retido else shown,
+        "items_gated_count": 0,
+        "items_dropped_count": 0 if retido else _dropped_count(detail),
+    }
+
+
 def _review_audit_fields(detail: dict) -> dict:
     """Campos de auditoria extraídos do detail (persona, manifest, model, tier)."""
     return {
@@ -76,6 +105,8 @@ def _review_metrics_fields(detail: dict) -> dict:
     }
 
 
+# `status` fica no eixo de PUBLICAÇÃO (ADR-204 §D1); o desfecho vive em `outcome`,
+# ortogonal (ADR-366 §D1). Publicar um retido é barrado por guard próprio na API.
 def _build_review(
     *,
     workspace_id: str,
@@ -85,14 +116,14 @@ def _build_review(
     detail: dict,
 ) -> PlannerReview:
     """Empacota PlannerReview a partir do detail do stage + IDs de artifact."""
+    shown = _sum_shown(read_artifact_content(parecer_artifact.content_json) or {})
     return PlannerReview(
         workspace_id=workspace_id,
         pipeline_run_id=run_id,
         pipeline_artifact_id=parecer_artifact.id,
         e5_artifact_id=e5_artifact.id,
-        status="Gerado",  # ADR-204 §D1
-        items_shown_count=_sum_shown(read_artifact_content(parecer_artifact.content_json) or {}),
-        items_gated_count=0,
+        status="Gerado",
+        **_review_outcome_fields(detail, shown),
         **_review_audit_fields(detail),
         **_review_metrics_fields(detail),
     )
@@ -264,10 +295,24 @@ def _do_persist(
     return review.id
 
 
+# ``needs_review`` sem motivo de retenção = LLM indisponível ou chamada sem output:
+# nada foi gerado, logo não há desfecho retido. Row ali afirmaria "seu conteúdo foi
+# retido" com lineage fabricada (``model_id`` configurado, não usado).
+def _is_persistable(detail: dict) -> bool:
+    """Indisponibilidade técnica não vira row (ADR-366 §D6)."""
+    return detail.get("status") != "needs_review" or bool(detail.get("retention_reason"))
+
+
 def persist_planner_review(
     db: Session, *, workspace_id: str, run_id: str, detail: dict
 ) -> Optional[str]:
     """Persiste aggregate (com custo) + suggestions. Idempotente por (ws, run_id)."""
+    if not _is_persistable(detail):
+        logger.info(
+            "planner_review_persistence_skipped_unavailable",
+            extra={"workspace_id": workspace_id, "run_id": run_id},
+        )
+        return None
     artifacts = _load_artifacts(db, workspace_id=workspace_id, run_id=run_id)
     if artifacts is None:
         return None

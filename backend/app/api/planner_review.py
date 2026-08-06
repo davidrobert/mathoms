@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,7 @@ from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.planner_review import (
     VALID_PLANNER_REVIEW_STATUSES,
+    ParecerOutcome,
     PlannerReview,
 )
 from backend.app.models.report import Report
@@ -21,7 +23,7 @@ from backend.app.models.workspace import Workspace
 from backend.app.repositories.planner_review_repository import (
     PlannerReviewRepository,
 )
-from backend.app.schemas.dto.planner_review import PlannerReviewResponse
+from backend.app.schemas.dto.planner_review import PlannerReviewResponse, RetentionDetail
 from backend.app.services.audit import AuditAction
 from backend.app.services.pipeline.pipeline_service import resolve_llm_tier_async
 from backend.app.services.planner_review_tier_filter import apply_tier_filter
@@ -125,8 +127,10 @@ def _build_response(
     """Empacota DTO final — items_shown/gated refletem tier atual do request."""
     return PlannerReviewResponse(
         **_review_audit_dump(review),
-        items_shown_count=_count_visible(content),
+        items_shown_count=_count_visible(content) if content is not None else 0,
         items_gated_count=items_gated_count_filtered,
+        outcome=review.outcome,  # type: ignore[arg-type]
+        retention=_retention_detail(review),
         content=content,
     )
 
@@ -162,14 +166,39 @@ def _compute_immutable_hash(artifact: dict) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+def _retention_detail(review: PlannerReview) -> Optional[RetentionDetail]:
+    """Retenção no wire — só existe quando houve motivo (ADR-366 §D3)."""
+    if not review.retention_reason:
+        return None
+    return RetentionDetail(
+        reason=review.retention_reason,  # type: ignore[arg-type]
+        items_dropped_count=review.items_dropped_count,
+    )
+
+
 async def _render_review(
     db: AsyncSession, *, workspace_id: str, review: PlannerReview
 ) -> PlannerReviewResponse:
     """Carrega artifact + aplica tier filter + monta response — usado por GET/POST."""
+    if review.outcome == ParecerOutcome.retido.value:
+        # Retorna ANTES de carregar/filtrar: o artifact do retido é o placeholder de
+        # `empty_needs_review_output`, e servi-lo entregaria 3 pontos fortes fabricados
+        # + "Inspecione _meta.error_detail" a um cliente premium (ADR-366 §D5).
+        return _build_response(review, None, 0)
     artifact = await _load_artifact(db, review.pipeline_artifact_id)
     tier = await resolve_llm_tier_async(db, workspace_id)
     content, gated = apply_tier_filter(artifact=artifact, tier=tier)  # type: ignore[arg-type]
     return _build_response(review, content, gated)
+
+
+def _conflict_publish_retido() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail={
+            "code": "retained_cannot_publish",
+            "message": "Parecer retido não pode ser publicado.",
+        },
+    )
 
 
 def _conflict_publish(current_status: str) -> HTTPException:
@@ -191,6 +220,24 @@ def _log_published(workspace_id: str, review_id: str, immutable_hash: str) -> No
             "immutable_hash": immutable_hash[:8],
         },
     )
+
+
+# ADR-366 §D2: sem o guard do retido, publicar congelaria `immutable_hash` sobre o
+# artifact placeholder — corromperia a defesa que a ADR-204 §D7 constrói.
+async def _publish_if_allowed(
+    db: AsyncSession,
+    repo: PlannerReviewRepository,
+    *,
+    workspace_id: str,
+    review: PlannerReview,
+) -> None:
+    """Transição idempotente Gerado → Publicado; retido e demais status dão 409."""
+    if review.outcome == ParecerOutcome.retido.value:
+        raise _conflict_publish_retido()
+    if review.status == "Gerado":
+        await _do_publish(db, repo, workspace_id=workspace_id, review=review)
+    elif review.status != "Publicado":
+        raise _conflict_publish(review.status)
 
 
 async def _do_publish(
@@ -227,8 +274,5 @@ async def publish_planner_review(
     review = await repo.get_latest_for_run(workspace.id, run_id)
     if review is None:
         raise _not_generated()
-    if review.status == "Gerado":
-        await _do_publish(db, repo, workspace_id=workspace.id, review=review)
-    elif review.status != "Publicado":
-        raise _conflict_publish(review.status)
+    await _publish_if_allowed(db, repo, workspace_id=workspace.id, review=review)
     return await _render_review(db, workspace_id=workspace.id, review=review)

@@ -7648,7 +7648,14 @@
         "description": "Resposta do endpoint ``GET .../planner-review`` \u2014 metadados + conte\u00fado tipado.",
         "properties": {
           "content": {
-            "$ref": "#/components/schemas/ParecerPlanejadorContent"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ParecerPlanejadorContent"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "cost_usd_cents": {
             "title": "Cost Usd Cents",
@@ -7690,6 +7697,17 @@
             "title": "Model Id",
             "type": "string"
           },
+          "outcome": {
+            "default": "nao_registrado",
+            "enum": [
+              "entregue",
+              "entregue_com_retencao",
+              "retido",
+              "nao_registrado"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
           "persona_hash": {
             "title": "Persona Hash",
             "type": "string"
@@ -7709,6 +7727,16 @@
               }
             ],
             "title": "Published At"
+          },
+          "retention": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetentionDetail"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "schema_version": {
             "title": "Schema Version",
@@ -7778,8 +7806,7 @@
           "items_shown_count",
           "items_gated_count",
           "cost_usd_cents",
-          "created_at",
-          "content"
+          "created_at"
         ],
         "title": "PlannerReviewResponse",
         "type": "object"
@@ -9837,6 +9864,31 @@
           "status"
         ],
         "title": "ResidenciaStatusResponse",
+        "type": "object"
+      },
+      "RetentionDetail": {
+        "additionalProperties": false,
+        "description": "Reten\u00e7\u00e3o por qualidade \u2014 classe FECHADA de motivo (ADR-366 \u00a7D3).",
+        "properties": {
+          "items_dropped_count": {
+            "default": 0,
+            "title": "Items Dropped Count",
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "parecer.citacao_nao_confirmada",
+              "parecer.sigilo",
+              "parecer.conselho_vedado"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "RetentionDetail",
         "type": "object"
       },
       "RiscoDTO": {

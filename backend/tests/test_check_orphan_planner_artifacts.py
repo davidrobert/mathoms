@@ -34,36 +34,41 @@ def sync_session() -> Generator[Session, None, None]:
         s.close()
 
 
-def _make_artifact_content() -> dict:
-    return {
-        "version": "1.0",
-        "metadata": {
-            "persona_hash": "f" * 64,
-            "manifest_version": "1.0",
-            "schema_version": "1.0",
-            "model_id": "anthropic/claude-sonnet-4-20250514",
-            "tier_at_generation": "premium",
-            "generated_at": "2026-05-14T10:00:00+00:00",
-        },
-        "diagnostico_geral": "diag mínimo para teste de healthcheck órfão",
-        "pontos_fortes": [],
-        "riscos": [],
-        "sugestoes_execucao": [],
-        "sugestoes_taticas": [],
-        "sugestoes_estrategicas": [],
-        "metricas": [],
-        "notas_metodologicas": [],
-    }
+# `_meta.status` é o que o produtor sempre escreve (_build_artifact_json) e o único
+# discriminante de desfecho disponível ao backfill (ADR-366).
+_BASE_ARTIFACT_CONTENT = {
+    "version": "1.0",
+    "metadata": {
+        "persona_hash": "f" * 64,
+        "manifest_version": "1.0",
+        "schema_version": "1.0",
+        "model_id": "anthropic/claude-sonnet-4-20250514",
+        "tier_at_generation": "premium",
+        "generated_at": "2026-05-14T10:00:00+00:00",
+    },
+    "diagnostico_geral": "diag mínimo para teste de healthcheck órfão",
+    "pontos_fortes": [],
+    "riscos": [],
+    "sugestoes_execucao": [],
+    "sugestoes_taticas": [],
+    "sugestoes_estrategicas": [],
+    "metricas": [],
+    "notas_metodologicas": [],
+}
 
 
-async def _seed_orphan(db, workspace, age_hours: int = 2) -> PipelineArtifact:
+def _make_artifact_content(status: str = "Gerado") -> dict:
+    return {**_BASE_ARTIFACT_CONTENT, "_meta": {"status": status}}
+
+
+async def _seed_orphan(db, workspace, age_hours: int = 2, status: str = "Gerado"):
     """Artifact E6-parecer sem PlannerReview correspondente, criado N horas atrás."""
     run = await factories.make_run(db, workspace=workspace)
     e5 = build_e5_artifact(workspace.id, run.id, age_hours=age_hours)
     parecer = build_parecer_artifact(
         workspace.id,
         run.id,
-        content_json=_make_artifact_content(),
+        content_json=_make_artifact_content(status),
         age_hours=age_hours,
     )
     db.add_all([e5, parecer])
@@ -221,6 +226,23 @@ async def test_retro_create_without_e5_returns_none(db, sync_session):
 
     workspace = await factories.make_workspace(db)
     parecer = await _seed_orphan_parecer_no_e5(db, workspace)
+    await db.commit()
+    orphan = OrphanRow(
+        artifact_id=parecer.id,
+        workspace_id=workspace.id,
+        pipeline_run_id=parecer.pipeline_run_id,
+        created_at=parecer.created_at,
+    )
+    assert _retro_create_planner_review(sync_session, orphan) is None
+
+
+@pytest.mark.asyncio
+async def test_retro_create_skips_artifact_nao_gerado(db, sync_session):
+    """Artifact de parecer RETIDO não vira row "Gerado" (ADR-366)."""
+    from backend.scripts.check_orphan_planner_artifacts import OrphanRow
+
+    workspace = await factories.make_workspace(db)
+    parecer = await _seed_orphan(db, workspace, status="needs_review")
     await db.commit()
     orphan = OrphanRow(
         artifact_id=parecer.id,

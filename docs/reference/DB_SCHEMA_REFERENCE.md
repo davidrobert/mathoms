@@ -965,6 +965,9 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `tier_at_generation` | `VARCHAR(20)` | no | — | — |
 | `items_shown_count` | `INTEGER` | no | `0` | — |
 | `items_gated_count` | `INTEGER` | no | `0` | — |
+| `outcome` | `VARCHAR(32)` | no | server: `nao_registrado` | — |
+| `retention_reason` | `VARCHAR(48)` | yes | — | — |
+| `items_dropped_count` | `INTEGER` | no | server: `0` | — |
 | `cost_usd_cents` | `BIGINT` | no | `0` | — |
 | `tokens_in` | `INTEGER` | no | `0` | — |
 | `tokens_out` | `INTEGER` | no | `0` | — |
@@ -2476,6 +2479,9 @@ type PlannerReviewMetadata struct {
 	TierAtGeneration string `db:"tier_at_generation" json:"tier_at_generation"`
 	ItemsShownCount int `db:"items_shown_count" json:"items_shown_count"`
 	ItemsGatedCount int `db:"items_gated_count" json:"items_gated_count"`
+	Outcome string `db:"outcome" json:"outcome"`
+	RetentionReason *string `db:"retention_reason" json:"retention_reason"`
+	ItemsDroppedCount int `db:"items_dropped_count" json:"items_dropped_count"`
 	CostUsdCents int64 `db:"cost_usd_cents" json:"cost_usd_cents"`
 	TokensIn int `db:"tokens_in" json:"tokens_in"`
 	TokensOut int `db:"tokens_out" json:"tokens_out"`
