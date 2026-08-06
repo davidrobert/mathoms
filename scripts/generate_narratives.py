@@ -331,6 +331,36 @@ def _decisoes_titles_from_bundle(goals_cfg: dict) -> list[str]:
 # ``None`` = bloco ausente (workspace sem apólices analisadas), distinto de
 # ``False`` (analisado e sem gap): o narrator só afirma ausência de cobertura
 # no caso ``True``.
+# ADR-365 §D5: a copy nomeia o DADO que falta ou a razão de a regra não
+# discriminar — nunca o valor do enum. Uma frase por classe de motivo (a 6ª
+# classe do gate de saída proíbe contagem agregada do tipo "alguns itens foram
+# retidos", que satisfaria uma identidade aritmética com informação ~zero).
+_CLASSE_DE_RETENCAO: dict[str, str] = {
+    "pendente_de_dado": "falta um dado seu",
+    "degenerada": "a regra atual não distingue o seu caso",
+    "nao_verificavel": "não foi possível avaliar a premissa neste ciclo",
+}
+
+
+def _classes_de_retencao(e5_data: dict) -> list[dict[str, str]]:
+    """``[{"motivo": <classe legível>, "acao": <título>}]`` dos itens retidos."""
+    out: list[dict[str, str]] = []
+    for item in e5_data.get("pontos_urgentes_retidos") or []:
+        if not isinstance(item, dict):
+            continue
+        motivo = _CLASSE_DE_RETENCAO.get(str(item.get("elegibilidade") or ""))
+        if not motivo:
+            continue
+        dado = str(item.get("dado_faltante") or "").strip()
+        out.append(
+            {
+                "acao": str(item.get("acao") or ""),
+                "motivo": f"falta {dado}" if dado else motivo,
+            }
+        )
+    return out
+
+
 def _protecao_gap_vida(e5_data: dict) -> bool | None:
     """``gap_qualitativo[categoria='vida'].flag`` de ``protecao_patrimonial``."""
     protecao = e5_data.get("protecao_patrimonial")
@@ -616,6 +646,10 @@ def load_metrics_from_e5(
         # ADR-240 · gap_qualitativo[vida] — `None` quando não há apólices
         # analisadas (o s9 não afirma ausência de cobertura sem sinal).
         "protecao_gap_vida": _protecao_gap_vida(e5_data),
+        # ADR-365 §D5: o array de retidos só é honesto se algo o declara ao
+        # leitor. Esta é a chave que o `s10` consome — classes de motivo, nunca
+        # os valores do enum.
+        "recomendacoes_retidas": _classes_de_retencao(e5_data),
         # `None` propaga: sem prazo projetado o narrador omite a cláusula de IF
         # em vez de escrever "999 anos" (ver IFProjector._solve_prazo).
         "anos_para_if_calculo": None if prazo_anos is None else round(prazo_anos),

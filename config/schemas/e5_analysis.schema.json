@@ -227,7 +227,16 @@
       "description": "Recomendação PGBL (ADR-277/305). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null no caminho proxy_receita_pj. nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao."
     },
     "pontos_fortes": {"type": "array"},
-    "pontos_urgentes": {"type": "array"},
+    "pontos_urgentes": {
+      "type": "array",
+      "description": "A40.l10 / ADR-365 — recomendacoes do plano com premissa SUSTENTADA (elegibilidade == computavel). Valor novo em origem_premissa/elegibilidade = membro no Literal de pontos_urgentes_analyzer + entrada neste enum + linha na RULE-elegibilidade-da-recomendacao. `prazo` NAO e orfao: leitores sao backend/app/services/dashboard_service.py (GET /dashboard) e o manifest do parecer, que injeta $.pontos_urgentes raw.",
+      "items": {"$ref": "#/$defs/PontoUrgente"}
+    },
+    "pontos_urgentes_retidos": {
+      "type": "array",
+      "description": "A40.l10 / ADR-365 D4 — recomendacoes retiradas do ranking, com a classe de motivo declarada (6a classe do Criterio de done do PLAN-report-trust: nenhuma retencao de conselho sem declaracao por classe de motivo). Projecao da mesma lista de pontos_urgentes, nao store. Deliberadamente FORA do whitelist do parecer: injetar item degenerado no contexto do LLM amplificaria o que a taxonomia existe para conter.",
+      "items": {"$ref": "#/$defs/PontoUrgente"}
+    },
     "equilibrio_cerbasi": {"type": "object"},
     "tarefas": {"type": "array"},
     "tarefas_status": {"type": "object"},
@@ -808,6 +817,24 @@
     "protecao_patrimonial": {
       "type": "object",
       "description": "Proteção patrimonial (ADR-240 D8 · A28.l6): apólices de extract_comprovantes_bens → compute_protecao. Sempre presente pós-wiring (workspace sem apólice = KPIs zerados + gap_qualitativo, cenário G6-b). Contrato completo em protecao_patrimonial.schema.json (validado no hook pós-write)."
+    }
+  },
+  "$defs": {
+    "PontoUrgente": {
+      "type": "object",
+      "description": "Item de recomendação do plano (ADR-365). Mesmo shape nos dois arrays — eles são projeções da MESMA lista produzida por PontosUrgentesAnalyzer.analyze, particionada por elegibilidade em e5_serialization.partition_pontos_urgentes.",
+      "properties": {
+        "prioridade": {"type": "string"},
+        "acao": {"type": "string"},
+        "impacto": {"type": "string"},
+        "prazo": {"type": "string"},
+        "code": {"type": "string"},
+        "origem_premissa": {"enum": ["cadastro_familia", "documento_ingerido", "derivado_e5"]},
+        "elegibilidade": {"enum": ["computavel", "nao_verificavel", "degenerada", "pendente_de_dado"]},
+        "dado_faltante": {"type": ["string", "null"]}
+      },
+      "required": ["prioridade", "acao", "impacto", "prazo", "code", "origem_premissa", "elegibilidade"],
+      "additionalProperties": false
     }
   },
   "additionalProperties": true
