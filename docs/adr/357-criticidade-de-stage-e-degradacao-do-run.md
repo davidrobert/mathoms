@@ -165,9 +165,17 @@ resume.
   vermelho de falha, pior que hoje.
 - `publish_run_completed`/`publish_run_failed` recebem o status real como
   parâmetro em vez de ganharem um terceiro evento.
-- `make update-openapi-snapshot` → **diff vazio esperado**: `partial_failure` já
-  está publicado no snapshot. Diff ⇒ alguém adicionou status novo e §3 foi
-  violada.
+- `make update-openapi-snapshot` → **`PipelineRunStatus` inalterado** (é o que
+  esta §3 protege — `partial_failure` já está publicado, e reuso é justamente o
+  ponto). `PipelineStageStatus` **ganha `degraded`**, 1 linha; idem
+  `docs/reference/DB_SCHEMA_REFERENCE.md` via `make update-db-schema-reference`.
+  Diff no enum de **run** ⇒ alguém adicionou status novo e a §3 foi violada.
+  > Corrigido 2026-08-06, ainda em `Proposto`, por medição na A40.l18. A
+  > previsão original era "diff vazio esperado" e teria reprovado o PR que
+  > cumpre a §3: [`backend/app/schemas/pipeline.py`](../../backend/app/schemas/pipeline.py)
+  > declara `status: PipelineStageStatus` em `PipelineStageLogResponse`, logo o
+  > enum de stage é superfície pública de API. O raciocínio original cobriu só o
+  > status de run.
 - Débito nomeado, **não** corrigido aqui: `StageSpec.writes` é ficção para
   `generate_narratives` (declara chave própria, escreve na do E5) e
   `validate_cross` (declara chave, é read-only). `validate_full_order` valida um

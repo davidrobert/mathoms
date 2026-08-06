@@ -83,8 +83,17 @@ stage LLM); artifact degradado commitado, nunca publicado — **exceto**
   `needs_review`; zero row em `StageReview`; `paused_at_stage is None`.
 - Gate estático: todo stage após `analyze_finances` é `degradable`; todo stage
   até ele é `required`. Falha se alguém inserir stage no meio sem decidir.
-- `make update-openapi-snapshot` ⇒ **diff vazio**. Diff ⇒ status novo foi
-  adicionado e a [[ADR-357]] §3 foi violada.
+- `make update-openapi-snapshot` ⇒ o enum **`PipelineRunStatus` inalterado** (é
+  ele que a [[ADR-357]] §3 protege: `partial_failure` é reuso, não status novo).
+  O enum `PipelineStageStatus` ganha **exatamente `degraded`**, e nada mais.
+  Idem `make update-db-schema-reference`.
+  > Corrigido 2026-08-06 **por medição**. A forma anterior — *"diff vazio; diff
+  > ⇒ §3 violada"* — era falsa e teria reprovado o PR correto:
+  > [`PipelineStageLogResponse.status`](../../../../backend/app/schemas/pipeline.py)
+  > publica o enum de **stage** no snapshot, então `degraded` (que a §3 **manda**
+  > criar) muda `openapi.json` e `DB_SCHEMA_REFERENCE.md` — 1 linha em cada. A
+  > previsão original raciocinou só sobre o status de **run**. Mesma correção na
+  > [[ADR-357]] §Consequências.
 - `dev/check_pipeline_boundaries.py` verde (mapeamento `outcome →
   PipelineStageStatus` mora em `backend/`).
 - Log estruturado `stage_degraded` com `stage`, `criticality`, `reason_class`
