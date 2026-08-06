@@ -122,3 +122,52 @@ async def test_maybe_reset_declined_preserves_artifacts(db, monkeypatch) -> None
         "reconcile_transactions",
         "analyze_finances",
     }
+
+
+# ───── resolução por email do dono (make pipeline-run WS=<email>) ─────
+
+
+@pytest.mark.asyncio
+async def test_resolve_por_email_do_dono(db) -> None:
+    """`WS=<email>` dispensa consultar o uuid antes de cada run."""
+    owner = await make_user(db, email="dono-unico@exemplo.test")
+    ws = await make_workspace(db, owner=owner)
+
+    found = await find_workspace_or_list(db, "dono-unico@exemplo.test")
+
+    assert found is not None and found.id == ws.id
+
+
+@pytest.mark.asyncio
+async def test_email_ambiguo_recusa_em_vez_de_escolher(db, capsys) -> None:
+    """Ambiguidade NÃO escolhe em silêncio — este CLI aceita `--reset`."""
+    # Mutação que mata: copiar o `LIMIT 1` da skill de review. Ela só LÊ; aqui
+    # a operação muta (deleta artifacts), então escolher 1 de N é footgun.
+    owner = await make_user(db, email="dono-com-dois@exemplo.test")
+    await make_workspace(db, owner=owner, name="Primeiro")
+    await make_workspace(db, owner=owner, name="Segundo")
+
+    found = await find_workspace_or_list(db, "dono-com-dois@exemplo.test")
+
+    assert found is None
+    assert "desambigue com WS=<uuid>" in capsys.readouterr().out
+
+
+@pytest.mark.asyncio
+async def test_email_inexistente_nao_confunde_com_uuid(db, capsys) -> None:
+    """Email sem match reporta ausência de DONO, não de workspace."""
+    found = await find_workspace_or_list(db, "ninguem@exemplo.test")
+
+    assert found is None
+    assert "Nenhum workspace com dono" in capsys.readouterr().out
+
+
+@pytest.mark.asyncio
+async def test_uuid_continua_funcionando(db) -> None:
+    """O caminho antigo não regride — `@` é o único discriminador."""
+    owner = await make_user(db, email="por-uuid@exemplo.test")
+    ws = await make_workspace(db, owner=owner)
+
+    found = await find_workspace_or_list(db, ws.id)
+
+    assert found is not None and found.id == ws.id
