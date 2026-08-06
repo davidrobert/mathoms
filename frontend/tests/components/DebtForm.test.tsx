@@ -68,6 +68,30 @@ describe("DebtForm", () => {
     );
   });
 
+  it("mostra o rótulo — não o id/slug — nos triggers de imóvel e tipo", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <DebtForm
+        properties={PROPS_SINGLE}
+        members={MEMBERS}
+        onSubmit={onSubmit}
+      />,
+    );
+    const user = userEvent.setup();
+    await escolheImovel(user, /Apto Vila Mariana/i);
+    const imovel = screen.getByLabelText(/Imóvel vinculado/i);
+    expect(imovel).toHaveTextContent(/Apto Vila Mariana/i);
+    expect(imovel).not.toHaveTextContent("p-single");
+
+    await user.click(screen.getByLabelText(/^Tipo$/i));
+    await user.click(
+      await screen.findByRole("option", { name: /Financiamento imobiliário/i }),
+    );
+    const tipo = screen.getByLabelText(/^Tipo$/i);
+    expect(tipo).toHaveTextContent(/Financiamento imobiliário/i);
+    expect(tipo).not.toHaveTextContent("financiamento_imobiliario");
+  });
+
   it("submete payload sem percentual quando property tem 1 cotitular", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(
