@@ -15,6 +15,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Mapping, Optional
 
 from backend.app.core.llm_metrics import get_llm_metrics_emitter
+from backend.app.models.planner_review import ParecerRetentionReason
 from backend.app.services.parecer_context_sanitizer import sanitize_e5_for_parecer
 from backend.app.services.parecer_distiller import distill_exec_context
 from backend.app.services.parecer_evidencia import (
@@ -39,7 +40,11 @@ from backend.app.services.parecer_pos_llm_guardrails import (
     guardrails_summary,
 )
 from backend.app.services.parecer_red_lines import RED_LINES_VERSION, check_red_lines
-from backend.app.services.parecer_strict_enforcement import enforce_strict_per_item
+from backend.app.services.parecer_strict_enforcement import (
+    StrictDecision,
+    enforce_strict_per_item,
+    no_enforcement,
+)
 from pipeline.llm.models_catalog import PARECER_MODEL
 from pipeline.llm.prompts.parecer_planejador import (
     PROMPT_VERSION,
@@ -84,6 +89,10 @@ class ParecerGenerationResult:
     cache_hit: bool = False
     status: str = "Gerado"
     error_detail: Optional[str] = None
+    # Classe fechada client-facing (ADR-366 §D3). `None` em `needs_review` significa
+    # INDISPONIBILIDADE técnica: nada foi gerado, logo não há desfecho retido a
+    # persistir — o leitor responde 404, não 200 (§D6).
+    retention_reason: Optional[str] = None
     evidencia_summary: Optional[dict] = None
     evidencia_entries: Optional[list[dict]] = None
     red_lines_summary: Optional[dict] = None
@@ -152,14 +161,36 @@ def _build_cache():
     return get_default_llm_cache()
 
 
-def _try_cache(cache: Any, key: str) -> Optional[ParecerPlanejadorOutput]:
+# O cache guardava o output NU. Como ele é gravado já pós-enforcement, um hit servia
+# a mutilação sem repopular a verificação — e o contador de retidos sairia 0 para um
+# parecer que perdeu itens. O envelope carrega a verificação junto (ADR-366 §D7); o
+# shape antigo fica ilegível e o bump de `ev` garante que nenhum hit o alcance.
+@dataclass(frozen=True)
+class _CachedParecer:
+    """Envelope do cache: output + a verificação que o hit precisa repopular."""
+
+    output: ParecerPlanejadorOutput
+    evidencia_summary: Optional[dict]
+    evidencia_entries: Optional[list[dict]]
+    retention_reason: Optional[str]
+
+
+# Fail-open é simetria load-bearing com o write: LLMCacheBackend não tem `delete` e o
+# TTL é 7 dias, então entrada envenenada (Redis fora, shape alheio, payload truncado)
+# que subisse como exceção derrubaria o stage em todo retry até o TTL expirar.
+def _try_cache(cache: Any, key: str) -> Optional[_CachedParecer]:
     """Lê cache; ``None`` em miss. Fail-open como o write (ADR-144)."""
-    # Simetria load-bearing: LLMCacheBackend não tem `delete` e o TTL é 7 dias, então
-    # entrada envenenada (Redis fora, shape alheio, payload truncado) que subisse como
-    # exceção derrubaria o stage em todo retry até o TTL expirar — sem via de flush.
     try:
         raw = cache.get(key)
-        return ParecerPlanejadorOutput.model_validate_json(raw) if raw else None
+        if not raw:
+            return None
+        envelope = json.loads(raw)
+        return _CachedParecer(
+            output=ParecerPlanejadorOutput.model_validate(envelope["output"]),
+            evidencia_summary=envelope.get("evidencia_summary"),
+            evidencia_entries=envelope.get("evidencia_entries"),
+            retention_reason=envelope.get("retention_reason"),
+        )
     except Exception as exc:  # noqa: BLE001 — leitura de cache é best-effort
         logger.warning(
             "parecer_planejador_cache_read_failed",
@@ -168,10 +199,16 @@ def _try_cache(cache: Any, key: str) -> Optional[ParecerPlanejadorOutput]:
         return None
 
 
-def _write_cache(cache: Any, key: str, output: ParecerPlanejadorOutput, ttl_s: int) -> None:
+def _write_cache(cache: Any, key: str, cached: _CachedParecer, ttl_s: int) -> None:
     """Best-effort cache write (ADR-144 — fail open)."""
     try:
-        cache.set(key, output.model_dump_json(), ttl_s=ttl_s)
+        payload = {
+            "output": cached.output.model_dump(mode="json"),
+            "evidencia_summary": cached.evidencia_summary,
+            "evidencia_entries": cached.evidencia_entries,
+            "retention_reason": cached.retention_reason,
+        }
+        cache.set(key, json.dumps(payload, ensure_ascii=False), ttl_s=ttl_s)
     except Exception as exc:  # noqa: BLE001 — cache write é best-effort
         logger.warning(
             "parecer_planejador_cache_write_failed",
@@ -282,9 +319,28 @@ def _placeholder_output(
     )
 
 
+def _needs_review_overrides(
+    reason: str,
+    # Sem default de propósito: `None` é valor SIGNIFICATIVO (indisponibilidade
+    # técnica, sem row) e um default o tornaria o silêncio de quem esqueceu.
+    reason_code: Optional[ParecerRetentionReason],
+    elapsed_ms: int,
+) -> dict:
+    """Campos que distinguem o desfecho retido do resultado base."""
+    return {
+        "status": "needs_review",
+        "error_detail": reason,
+        "retention_reason": reason_code.value if reason_code else None,
+        "latency_ms": elapsed_ms,
+    }
+
+
+# `reason_code` é obrigatório de propósito (ADR-366 §D3): produtor novo não compila sem
+# classificar, e assim não existe ramo que caia em parse da prosa de `error_detail`.
 def _needs_review(
     *,
     reason: str,
+    reason_code: Optional[ParecerRetentionReason],
     persona_hash: str,
     manifest: ManifestData,
     config: ParecerOrchestratorConfig,
@@ -299,20 +355,29 @@ def _needs_review(
         config=config,
         metrics=metrics,
     )
-    return replace(base, status="needs_review", error_detail=reason, latency_ms=elapsed_ms)
+    return replace(base, **_needs_review_overrides(reason, reason_code, elapsed_ms))
 
 
 def _hit_result(
     *,
-    cached: ParecerPlanejadorOutput,
+    cached: _CachedParecer,
     persona_hash: str,
     manifest: ManifestData,
     config: ParecerOrchestratorConfig,
     elapsed_ms: int,
 ) -> ParecerGenerationResult:
-    """Resultado de cache hit — sem custo, sem tokens."""
-    base = _base_result(output=cached, persona_hash=persona_hash, manifest=manifest, config=config)
-    return replace(base, cache_hit=True, latency_ms=elapsed_ms)
+    """Resultado de cache hit — sem custo, sem tokens, mas com a verificação intacta."""
+    base = _base_result(
+        output=cached.output, persona_hash=persona_hash, manifest=manifest, config=config
+    )
+    return replace(
+        base,
+        cache_hit=True,
+        latency_ms=elapsed_ms,
+        evidencia_summary=cached.evidencia_summary,
+        evidencia_entries=cached.evidencia_entries,
+        retention_reason=cached.retention_reason,
+    )
 
 
 def _success_result(
@@ -390,6 +455,7 @@ def generate_parecer(
     if llm is None:
         return _needs_review(
             reason="LLM service unavailable (ANTHROPIC_API_KEY missing)",
+            reason_code=None,  # indisponibilidade: nada gerado, nada cobrado (ADR-366 §D6)
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -543,33 +609,35 @@ def _check_evidencia(
     manifest: ManifestData,
     e5_data: Mapping[str, Any],
     config: ParecerOrchestratorConfig,
-) -> tuple[EvidenciaVerification, Optional[str], ParecerPlanejadorOutput, int]:
+) -> tuple[EvidenciaVerification, Optional[str], ParecerPlanejadorOutput, StrictDecision]:
     """Citação verificada E5→E6 (ADR-279 §E). Strict aplica enforcement per-item (ADR-295):
     item ofensor sai; needs_review só se severidade alta. Retorna (verificação, motivo de
-    needs_review|None, output possivelmente com itens removidos, nº de itens removidos)."""
+    needs_review|None, output possivelmente com itens removidos, decisão do enforcement)."""
+    # Devolve a StrictDecision inteira, não `len(dropped)`: era aqui que a camada e a
+    # severidade morriam, e é delas que o desfecho persistido precisa (ADR-366 §D3).
     drill = PlannerDrillDown(
         e5_data=e5_data, section_whitelist=manifest.tools_section_whitelist, format_hints={}
     )
     verification = verify_evidencia(output=raw, drill=drill)
     log_evidencia_kpi(verification, config.workspace_id)
     if not verification.violations:
-        return verification, None, raw, 0
+        return verification, None, raw, no_enforcement(raw)
     mode = resolve_evidencia_mode(manifest.evidencia_verification_mode)
     logger.warning(
         "parecer_planejador_evidencia_violations",
         extra={"workspace_id": config.workspace_id, "mode": mode},
     )
     if mode != "strict":
-        return verification, None, raw, 0
+        return verification, None, raw, no_enforcement(raw)
     decision = enforce_strict_per_item(raw, verification.violations)
     if decision.needs_review_reason:
-        return verification, decision.needs_review_reason, raw, 0
+        return verification, decision.needs_review_reason, raw, decision
     if decision.dropped:
         logger.warning(
             "parecer_planejador_items_dropped",
             extra={"workspace_id": config.workspace_id, "count": len(decision.dropped)},
         )
-    return verification, None, decision.output, len(decision.dropped)
+    return verification, None, decision.output, decision
 
 
 def _apply_pos_llm_guardrails(
@@ -611,6 +679,7 @@ def _generate_with_llm(
     if raw is None:
         return _needs_review(
             reason=err or "LLM call failed",
+            reason_code=None,  # indisponibilidade: nenhum output válido (ADR-366 §D6)
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -621,6 +690,7 @@ def _generate_with_llm(
     if red_lines_err:
         base = _needs_review(
             reason=red_lines_err,
+            reason_code=ParecerRetentionReason.conselho_vedado,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -633,6 +703,7 @@ def _generate_with_llm(
         return replace(
             _needs_review(
                 reason=sigilo_err,
+                reason_code=ParecerRetentionReason.sigilo,
                 persona_hash=persona_hash,
                 manifest=manifest,
                 config=config,
@@ -641,10 +712,11 @@ def _generate_with_llm(
             ),
             red_lines_summary=red_lines_summary,
         )
-    evidencia, evidencia_err, raw, items_dropped = _check_evidencia(raw, manifest, e5_data, config)
+    evidencia, evidencia_err, raw, decision = _check_evidencia(raw, manifest, e5_data, config)
     if evidencia_err:
         base = _needs_review(
             reason=evidencia_err,
+            reason_code=decision.retention_reason,
             persona_hash=persona_hash,
             manifest=manifest,
             config=config,
@@ -653,7 +725,12 @@ def _generate_with_llm(
         )
         return replace(
             base,
-            evidencia_summary=evidencia.summary(needs_review_triggered=True),
+            evidencia_summary=evidencia.summary(
+                needs_review_triggered=True,
+                retention_trigger=(
+                    decision.retention_trigger.as_dict() if decision.retention_trigger else None
+                ),
+            ),
             evidencia_entries=evidencia.entries,
             red_lines_summary=red_lines_summary,
         )
@@ -668,7 +745,23 @@ def _generate_with_llm(
         persona_hash=persona_hash,
         manifest_version=manifest.version,
     )
-    _write_cache(cache, cache_key, final, ttl_s=config.cache_ttl_s)
+    evidencia_summary = evidencia.summary(
+        needs_review_triggered=False,
+        dropped_items=[d.as_dict() for d in decision.dropped],
+    )
+    _write_cache(
+        cache,
+        cache_key,
+        _CachedParecer(
+            output=final,
+            evidencia_summary=evidencia_summary,
+            evidencia_entries=evidencia.entries,
+            retention_reason=(
+                decision.retention_reason.value if decision.retention_reason else None
+            ),
+        ),
+        ttl_s=config.cache_ttl_s,
+    )
     success = _success_result(
         output=final,
         persona_hash=persona_hash,
@@ -680,13 +773,12 @@ def _generate_with_llm(
     )
     return replace(
         success,
-        evidencia_summary=evidencia.summary(
-            needs_review_triggered=False, items_dropped=items_dropped
-        ),
+        evidencia_summary=evidencia_summary,
         evidencia_entries=evidencia.entries,
         red_lines_summary=red_lines_summary,
         field_request_audit=field_request_audit or None,
         pos_llm_guardrails=pos_llm_guardrails,
+        retention_reason=decision.retention_reason.value if decision.retention_reason else None,
     )
 
 

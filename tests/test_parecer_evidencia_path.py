@@ -441,12 +441,12 @@ class TestJsonPathRegexParity:
 
 
 class TestCacheKeyBump:
-    def test_verification_version_bumped_para_reversao_adr304(self):
-        """ "5": reversão de number_in_prose — cache sob ev4 guarda output MUTILADO
-        (itens dropados pelo enforcement) e o hit não repopula evidencia_summary."""
+    def test_verification_version_bumped_para_envelope_adr366(self):
+        """ "6": o cache passa a guardar envelope {output, evidencia_*}; o shape "5"
+        (output nu) é ilegível, e o bump é o que garante que nenhum hit o alcance."""
         from backend.app.services.parecer_evidencia import EVIDENCIA_VERIFICATION_VERSION
 
-        assert EVIDENCIA_VERIFICATION_VERSION == "5"
+        assert EVIDENCIA_VERIFICATION_VERSION == "6"
 
     def test_post_bump_key_differs_from_pre_f4_key(self):
         from backend.app.services.parecer_orchestrator import compute_cache_key

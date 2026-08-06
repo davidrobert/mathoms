@@ -95,6 +95,33 @@ def _build_artifact_json(result) -> dict:
     return payload
 
 
+def _cost_detail(result) -> dict:
+    """Tokens, custo e latência — comuns aos dois desfechos do stage."""
+    return {
+        "tokens": {"in": result.tokens_in, "out": result.tokens_out},
+        "cost_usd": result.cost_usd,
+        # A40.l17: 0.0 de falha pós-cobrança sem registro ≠ gasto zero real.
+        "cost_known": result.cost_known,
+        "latency_ms": result.latency_ms,
+    }
+
+
+def _audit_detail(result) -> dict:
+    """Campos de auditoria que a persistência do PlannerReview indexa por chave."""
+    return {
+        "persona_hash": result.persona_hash,
+        "manifest_version": result.manifest_version,
+        "schema_version": result.schema_version,
+        "model_id": result.model_id,
+        "tier_at_generation": result.tier_at_generation,
+        "tool_iterations": result.tool_iterations,
+    }
+
+
+# `retention_reason` None = indisponibilidade técnica: nada foi gerado, logo não há
+# desfecho retido a persistir — o leitor responde 404, não 200 (ADR-366 §D3/§D6). Os 5
+# campos de auditoria eram descartados aqui, e a persistência os indexa com
+# `detail[...]` em colunas NOT NULL: persistir dava KeyError, não 404.
 def _needs_review_return(result, workspace_id: str, store) -> dict:
     """Persiste artifact mínimo + retorna status needs_review."""
     logger.warning(
@@ -106,11 +133,9 @@ def _needs_review_return(result, workspace_id: str, store) -> dict:
         "success": False,
         "status": "needs_review",
         "reason": result.error_detail,
-        "tokens": {"in": result.tokens_in, "out": result.tokens_out},
-        "cost_usd": result.cost_usd,
-        # A40.l17: 0.0 de falha pós-cobrança sem registro ≠ gasto zero real.
-        "cost_known": result.cost_known,
-        "latency_ms": result.latency_ms,
+        "retention_reason": result.retention_reason,
+        **_cost_detail(result),
+        **_audit_detail(result),
     }
     if result.evidencia_summary is not None:
         status["evidencia_verification"] = result.evidencia_summary
@@ -149,17 +174,12 @@ def _success_return(result, workspace_id: str) -> dict:
         "success": True,
         "status": result.status,
         "cache_hit": result.cache_hit,
-        "tokens": {"in": result.tokens_in, "out": result.tokens_out},
-        "cost_usd": result.cost_usd,
-        "cost_known": result.cost_known,
-        "latency_ms": result.latency_ms,
-        "tool_iterations": result.tool_iterations,
-        "model_id": result.model_id,
-        "persona_hash": result.persona_hash,
-        "manifest_version": result.manifest_version,
-        "schema_version": result.schema_version,
-        "tier_at_generation": result.tier_at_generation,
+        **_cost_detail(result),
+        **_audit_detail(result),
         "parecer_summary": summary,
+        # Preenchido também no sucesso: parecer ENTREGUE pode ter perdido itens
+        # (`entregue_com_retencao`), e é o desfecho comum (ADR-366 §D1).
+        "retention_reason": result.retention_reason,
     }
     if result.evidencia_summary is not None:
         status["evidencia_verification"] = result.evidencia_summary
