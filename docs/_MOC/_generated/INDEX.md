@@ -360,6 +360,7 @@
 | ADR-362 | adr | Proposto |  | Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade | `adr/362-revisao-do-executor-e-proveniencia-observada.md` |
 | ADR-363 | adr | Proposto |  | Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem | `adr/363-identidade-de-codigo-em-runtime-e-semvers-ornamentais.md` |
 | ADR-364 | adr | Proposto |  | Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem | `adr/364-remocao-de-row-e-mudanca-de-identidade.md` |
+| ADR-365 | adr | Proposto |  | Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais | `adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -621,6 +622,7 @@
 | RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |
 | RULE-concentracao-imobiliaria | domain-rule |  |  |  | `reference/rules/rule-concentracao-imobiliaria.md` |
 | RULE-disability-coverage-gap | domain-rule |  |  |  | `reference/rules/disability-coverage-gap.md` |
+| RULE-elegibilidade-da-recomendacao | domain-rule |  |  |  | `reference/rules/rule-elegibilidade-da-recomendacao.md` |
 | RULE-imoveis-no-if | domain-rule |  |  |  | `reference/rules/rule-imoveis-no-if.md` |
 | RULE-independencia-financeira | domain-rule |  |  |  | `reference/rules/rule-independencia-financeira.md` |
 | RULE-itcmd-estimated | domain-rule |  |  |  | `reference/rules/itcmd-estimated.md` |

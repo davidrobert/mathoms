@@ -7,7 +7,7 @@ plan: PLAN-report-trust
 status: open
 priority: P1
 branch_slug: a40-l10-pendencia-do-dono-e-ordem-do-plano
-adrs: []
+adrs: ["[[ADR-365]]"]
 depends_on: ["[[A40.l9]]"]
 tags:
   - type/lane
