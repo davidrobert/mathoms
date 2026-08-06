@@ -7,8 +7,8 @@ executa no worker Celery — `make dev-up` (ou ao menos redis + dev-worker-up)
 precisa estar de pé.
 
 Usage:
-    .venv/bin/python -m backend.app.scripts.run_workspace_pipeline <workspace_id>
-    .venv/bin/python -m backend.app.scripts.run_workspace_pipeline <workspace_id> \
+    .venv/bin/python -m backend.app.scripts.run_workspace_pipeline <uuid|email-do-dono>
+    .venv/bin/python -m backend.app.scripts.run_workspace_pipeline <uuid|email-do-dono> \
         --from-stage reconcile_transactions --with-llm --reset --yes
 
 Default é `skip_llm=True` (só DETERMINISTIC_ORDER) — reprocessar com stages
@@ -31,6 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.base.errors import ConflictError, ValidationError
 from backend.app.core.database import async_session
+from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.pipeline import PipelineRunRequest
 from backend.app.services.internal_ops.pipeline_reset import reset_workspace_from_stage
@@ -44,7 +45,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description="Dispara run do pipeline de um workspace (dev/debug)."
     )
     parser.add_argument(
-        "workspace_id", nargs="?", default=None, help="UUID do workspace (omita para listar)"
+        "workspace",
+        nargs="?",
+        default=None,
+        metavar="UUID_OU_EMAIL",
+        help="UUID do workspace ou email do dono (omita para listar)",
     )
     _add_flags(parser)
     return parser.parse_args(argv)
@@ -78,18 +83,52 @@ def build_request(args: argparse.Namespace) -> PipelineRunRequest:
     )
 
 
-async def find_workspace_or_list(db: AsyncSession, workspace_id: str | None) -> Workspace | None:
-    """Resolve o workspace; sem id (ou id inexistente), lista os disponíveis."""
-    if workspace_id:
-        workspace = await db.get(Workspace, workspace_id)
-        if workspace is not None:
-            return workspace
-        print(f"❌ Workspace {workspace_id!r} não encontrado. Disponíveis:")
-    else:
-        print("Workspaces disponíveis (rode com WS=<uuid>):")
+async def _print_available(db: AsyncSession) -> None:
     rows = (await db.execute(select(Workspace).order_by(Workspace.name))).scalars()
     for ws in rows:
         print(f"   {ws.id}  {ws.name}")
+
+
+async def _owned_by_email(db: AsyncSession, email: str) -> list[Workspace]:
+    result = await db.execute(
+        select(Workspace)
+        .join(User, User.id == Workspace.owner_id)
+        .where(User.email == email)
+        .order_by(Workspace.created_at)
+    )
+    return list(result.scalars())
+
+
+async def _resolve_by_owner_email(db: AsyncSession, email: str) -> Workspace | None:
+    """Email do dono → workspace. Ambiguidade NÃO escolhe em silêncio."""
+    # Um dono pode ter N workspaces e este CLI dispara run — com `--reset`, que
+    # deleta artifacts. Escolher um dos N caladamente é o footgun. A skill de
+    # review usa `LIMIT 1` porque só LÊ; aqui a operação muta.
+    rows = await _owned_by_email(db, email)
+    if len(rows) == 1:
+        return rows[0]
+    if not rows:
+        print(f"❌ Nenhum workspace com dono {email!r}. Disponíveis:")
+        await _print_available(db)
+        return None
+    print(f"❌ {email!r} tem {len(rows)} workspaces — desambigue com WS=<uuid>:")
+    for ws in rows:
+        print(f"   {ws.id}  {ws.name}")
+    return None
+
+
+async def find_workspace_or_list(db: AsyncSession, workspace: str | None) -> Workspace | None:
+    """Resolve o workspace por UUID ou email do dono; sem match, lista os disponíveis."""
+    if workspace and "@" in workspace:
+        return await _resolve_by_owner_email(db, workspace)
+    if workspace:
+        found = await db.get(Workspace, workspace)
+        if found is not None:
+            return found
+        print(f"❌ Workspace {workspace!r} não encontrado. Disponíveis:")
+    else:
+        print("Workspaces disponíveis (rode com WS=<uuid|email>):")
+    await _print_available(db)
     return None
 
 
@@ -167,7 +206,7 @@ async def _amain(argv: list[str] | None = None) -> int:
         print(f"❌ Request inválido: {exc}")
         return 1
     async with async_session() as db:
-        workspace = await find_workspace_or_list(db, args.workspace_id)
+        workspace = await find_workspace_or_list(db, args.workspace)
         if workspace is None:
             return 1
         if not await _reset_if_requested(db, args, workspace.id):
