@@ -102,7 +102,16 @@ todo workspace, e a causa raiz está a montante (o produtor não popula o sinal)
 não no `ORDER BY`.
 
 **§Deferimento datado (2026-08-05) — dono e condição de retomada.** Popular
-`priority`/`impact_1y_brl_cents` no `accept_suggestion` é trabalho de
-[[PLAN-suggestion-lifecycle]], dono do arquivo. Retomada quando esse plano
-tocar `accept_suggestion.py`, ou quando uma rodada de revisão medir a ordem
-efetiva do S10 num corpus com ≥2 decisões de impacto conhecido e divergente.
+`priority`/`impact_1y_brl_cents` em `accept_suggestion.py` fica deferido, e
+**esta nota é o emissor** — o destino natural seria o
+[[PLAN-suggestion-lifecycle]] (`status: in_progress`), mas ele **não registra
+este handoff** hoje: nem o `_README.md` menciona `accept_suggestion`/`priority`/
+`impact_1y`, nem o histórico do arquivo tem commit daquele plano. Pela
+convenção do repo — *handoff só existe quando o destino o registra* — nomeá-lo
+aqui não transfere a propriedade. Fica registrado como deferimento **sem dono
+declarado**, para não fabricar um.
+
+Retomada quando uma rodada de revisão medir a ordem efetiva do S10 num corpus
+com ≥2 decisões de impacto conhecido e divergente, **ou** quando qualquer lane
+tocar `accept_suggestion.py` — que é o ponto onde o custo marginal do fix cai
+para perto de zero.

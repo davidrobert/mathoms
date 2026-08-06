@@ -95,7 +95,7 @@ queimaria a única janela de atenção do dono no item de menor valor.
 >
 > **Por que cai:** `dependentes_menores_18` e `irpf_kpis.dependentes.count`
 > medem **populações diferentes** — cadastro da família (`protecao_wiring.py`,
-> `role ∉ {titular, conjuge}` + idade) versus ficha da declaração do ano-base
+> `papel ∉ {titular, conjuge}` + idade) versus ficha da declaração do ano-base
 > ([[ADR-305]], último ano **completo**, defasado 1-2 anos). Divergem nos dois
 > sentidos sem que nenhuma esteja errada. Detalhe e âncoras no re-veredito de
 > RV3-10 em [[REPORT-REVIEWS-active]] §r3 (`procede` → **refutado**).
@@ -119,8 +119,11 @@ queimaria a única janela de atenção do dono no item de menor valor.
   motivo declarado.
 - Fixture com regime ausente ⇒ item não some em silêncio: vira pendência com
   CTA. **Nota de medição (2026-08-05):** a pendência de regime **já existe
-  renderizada** (`CascataFiscalCard.tsx::PerfilPendenteState`, S8, entregue pelo
-  CTO-05 em #973) — o que falta é âncora e posição no plano, não superfície.
+  renderizada** — `CascataFiscalCard.tsx::PerfilPendenteState` (S8) nomeia os 4
+  campos que faltam e diz a quem pedir; veio com o card da cascata ([[ADR-236]],
+  Sprint A16 L2 P5, #395), **não** com o CTO-05 (#973), que entregou a CTA no
+  narrador (`tributario_narrator._narrate_perfil_pendente`). O que falta é
+  âncora e posição no plano, não superfície.
 - Recomendação não-computável **nunca** desaparece sem rastro.
 - **Anti-falso-verde (decisão do `senior-cto`):** nenhum critério desta lane tem
   como alvo de asserção um campo de payload sozinho. Toda asserção é sobre a
@@ -151,7 +154,27 @@ e de assumir risco.
 índice 0, então descartar `decisoes[0]` e reimprimi-lo como "Prioridade 1:
 Aporte mensal" produzia texto plausível. `tests/test_e5n_entrega_da_fila_de_decisoes.py`
 abre com uma decisão que **não** é de aporte; prova de mutação em 3 rodadas
-(slice original, guard de meta zerada, guard de fila vazia) mata as 9 asserções.
+(slice original, guard de meta zerada, guard de fila vazia) mata as asserções.
+
+**Verificação adversarial do próprio PR (2026-08-05) — 7 achados, 1 deles P1.**
+A 1ª rodada do fix corrigiu só o **início** do slice do `s10` (`[1:4]` → `[:4]`)
+e deixou o teto em 4: com a fila cheia — que é **5**, o
+`_TOP5_DECISION_LIMIT` — a frase afirmava "5 decisões" e listava 4, ao lado de
+um card que listava as 5. Era a mesma classe de defeito que esta lane existe
+para fechar, reintroduzida no fix. Escapou porque o teste de cauda do `s10`
+usava fila **curta** (3 itens) — exatamente o recorte que evita o caso que
+falha. Corrigido com teto compartilhado (`TOP_DECISOES_RENDER`) e asserção de
+que as duas superfícies cortam no mesmo ponto.
+
+Os outros 6: frase de aporte **repetida verbatim** nas duas superfícies da
+mesma seção (resumo e card renderizam juntos — o enquadramento passou a viver
+só no `s10`); `..` no `s10` quando o título do dono termina em ponto; `?.` no
+card quando o título é interrogativo; `context` do estado vazio ainda
+enunciando propósito sobre conjunto vazio; e 2 imprecisões de citação nas notas
+de doc (`irpf_analyzer.py::_dependentes` não existe; `PerfilPendenteState` não
+veio do #973). Refutados: 5, entre eles a alegação de que a mudança no
+`chart_conclusions.yaml` seria fix inerte não declarado — o corpo do commit já
+a declara.
 
 ## Fora de escopo — com destino, não como cauda
 
