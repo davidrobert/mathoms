@@ -4,18 +4,19 @@ type: lane
 title: "PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l20-planner-review-retido
 adrs:
   - "[[ADR-204]]"
   - "[[ADR-357]]"
+  - "[[ADR-366]]"
 depends_on:
   - "[[A40.l18]]"
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/backend
   - area/frontend
@@ -126,5 +127,66 @@ split é permissão para paralelismo, não obrigação.
   `E6`.
 - `items_gated_count` inalterado em semântica; contador de retidos é campo
   distinto.
-- Snapshot do view-model rebaselinado com `MATHOMS_UPDATE_SNAPSHOT=1`.
+- ~~Snapshot do view-model rebaselinado com `MATHOMS_UPDATE_SNAPSHOT=1`.~~
+  **Corrigido 2026-08-06 por medição — o critério era inalcançável.**
+  `backend/tests/snapshots/dogfood_view_model.json` tem **zero** ocorrência de
+  `parecer`/`planner`/`items_gated`/`PlannerReview`, e o substrato golden
+  (`tests/pipeline_golden_substrate.py`) roda só E1.5→E5: o stage do parecer nunca
+  executa. A seção é aggregate-driven por endpoint próprio (`usePlannerReview`),
+  fora do view-model. Rebaselinar produziria diff vazio — ou capturaria drift de
+  outro PR como se fosse deste. Substituído por `make update-openapi-snapshot`
+  (o DTO muda) + `make update-db-schema-reference` (3 colunas novas).
 - Termo novo registrado em `COPY_GUIDELINES` §2.2 com data, antes de propagar.
+
+## Estado — PR1 entregue (2026-08-06)
+
+Canônica: [[ADR-366]] (`Proposto`; flippa no merge do **PR2**, não deste — a tese
+"o desfecho retido é alcançável" só fica provada quando o membro ganha produtor).
+
+**Três decisões desta lane foram revistas em co-design** (`data-engineer` +
+`senior-cto` + `product-designer`, 2026-08-06):
+
+1. **`status` NÃO recebe o desfecho** (§Decisão item 1 da lane). São dois
+   desfechos de retenção, e `entregue_com_retencao` é um parecer **publicável** —
+   como valor de `status` daria 409 no publish de algo publicável. Eixo próprio
+   (`outcome`), com guard explícito de publish para o retido.
+2. **A classe fechada tem 3 membros, não os 3 propostos.** `dado_insuficiente`
+   foi cortado (zero produtores); `politica_de_conteudo` foi dividido em
+   `parecer.sigilo` e `parecer.conselho_vedado`, que têm produtores distintos.
+   Os 2 ramos de **indisponibilidade técnica** (LLM ausente, chamada sem output)
+   **não geram row** — dizer "seu conteúdo foi retido" quando nada foi gerado é a
+   mesma mentira invertida.
+3. **O item 5 estava no lugar errado.** `(item_type, index, layer)` já existia em
+   `_meta.evidencia_verification`; o que faltava era a **severidade** e o
+   **veredito** do enforcement. E `dropped` ganhou par (`retention_trigger`)
+   porque no ramo de alta severidade nada é removido.
+
+**Blocker que a lane não nomeava, e que teria tornado o PR1 pior que o bug:** o
+artifact do desfecho retido é o placeholder de `empty_needs_review_output` — 3
+pontos fortes intitulados `"placeholder"` e um `diagnostico_geral` que manda
+*"Inspecione `_meta.error_detail`"*. Persistir e servir sem suprimir entregaria
+conteúdo **fabricado** a um cliente premium, com `items_shown_count=3`. Daí
+`content: Optional`, decidido antes de carregar o artifact.
+
+### Pendente — PR2 (atrás do merge da [[A40.l18]])
+
+`_should_persist_planner_review` deixa de excluir o desfecho retido. Medido em
+2026-08-06: são **3** guards independentes, não 1 — a lane citava só
+`status == "needs_review"`. O 3º (`"persona_hash" in result.detail`) é o mais
+silencioso, e um PR2 que abra só a cláusula citada fica verde no diff e **morto em
+runtime**. O enriquecimento do detail que o fecha já entrou neste PR1.
+
+### Achados nomeados, não corrigidos aqui
+
+- **Free tier cai na mesma copy que mente** — o stage recusa antes de gerar
+  (`{"skipped": True}`), não há row, e o 404 vira "ainda não gerado". É a outra
+  metade da mesma mentira; o flag da [[ADR-208]] §D2 que faria free gerar **não
+  existe em código**. Destino: [[A40.l22]].
+- **`output_summary` de `stage_logs` expõe a prosa crua** por outro endpoint —
+  o gate de não-vazamento desta lane cobre `/planner-review`, não aquele DTO.
+- **`check_orphan_planner_artifacts` é falso-verde** — casa `stage == "E6-parecer"`
+  sem `stage_aliases`, logo nunca encontra órfão. Ganhou a guarda de `_meta.status`
+  neste PR para que corrigir o filtro depois não abra a janela; o filtro **não**
+  foi corrigido.
+- **`riscos_truncados` é uma 4ª subtração silenciosa** (cap ≤12), fora do
+  contador desta lane.

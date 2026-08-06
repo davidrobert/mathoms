@@ -841,7 +841,7 @@
 | A40.l18 | lane | open | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
 | A40.l19 | lane | shipped | A40 | Drift de enum de status: 4 valores existem em Python e não no tipo do DB | `sprint/A40/lanes/A40-l19-migration-drift-enum-status.md` |
 | A40.l2 | lane | in_progress | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
-| A40.l20 | lane | open | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
+| A40.l20 | lane | in_progress | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
 | A40.l21 | lane | shipped | A40 | Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha | `sprint/A40/lanes/A40-l21-leitores-tolerantes-partial-failure.md` |
 | A40.l22 | lane | blocked | A40 | Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF | `sprint/A40/lanes/A40-l22-superficie-de-degradacao.md` |
 | A40.l23 | lane | open | A40 | Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível | `sprint/A40/lanes/A40-l23-gate-ref-adr-em-prosa.md` |

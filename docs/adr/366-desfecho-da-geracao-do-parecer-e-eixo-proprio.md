@@ -69,7 +69,13 @@ O desfecho vive em `outcome`, com 4 membros:
 | `entregue` | sem retenção | caminho de sucesso atual |
 | `entregue_com_retencao` | `dropped` não-vazio | `enforce_strict_per_item` — alcançável já no PR1 |
 | `retido` | parecer inteiro retido por política ou qualidade | os 3 ramos de política do orchestrator — PR2, atrás da [[A40.l18]] |
-| `nao_registrado` | rows anteriores à migration | só a migration |
+| `nao_registrado` | rows anteriores à migration **e** qualquer writer que não declare o desfecho | `server_default` da migration + default do modelo |
+
+O default é `nao_registrado` **nos dois níveis**, e não `entregue`: writer que
+esquece de declarar não passa a **afirmar completude**. É o mesmo princípio de
+`cost_known` — "zero real" e "desconhecido" precisam ser distinguíveis no tipo,
+não por convenção. Há 4 construtores campo-a-campo de `PlannerReview` no repo, e
+esse default é o que impede que um deles minta por omissão.
 
 **O argumento decisivo é o desfecho `entregue_com_retencao`:** ele é um parecer
 **publicável**. Se o desfecho fosse valor de `status`, `POST .../publish`
