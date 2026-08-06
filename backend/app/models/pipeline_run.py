@@ -30,6 +30,9 @@ class PipelineStageStatus(str, enum.Enum):
     skipped = "skipped"
     skipped_free_tier = "skipped_free_tier"
     needs_review = "needs_review"
+    # ADR-357 §3 — add-on advisory que não entregou. Terminal e não retomável,
+    # ao contrário de needs_review (que existe para o resume re-entrar).
+    degraded = "degraded"
 
 
 class PipelineRun(Base):

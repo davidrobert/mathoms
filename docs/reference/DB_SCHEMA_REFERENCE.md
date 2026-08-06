@@ -1795,7 +1795,7 @@ Schema usa `SQLAlchemy Enum()` nativo (Python enum → DB enum ou `VARCHAR + CHE
 - `documents.doc_type → (bank_statement, comprovante_bem, credit_card_bill, e1_5_baseline_json, e1_members_json, informe_rendimentos_anuais, investment_report, irpf, other)`
 - `documents.status → (classifying, error, needs_password, processed, processing, ready, unlocking, uploaded)`
 - `pipeline_runs.status → (cancelled, completed, failed, needs_review, partial_failure, pending, resuming, running)`
-- `pipeline_stage_logs.status → (completed, failed, needs_review, pending, running, skipped, skipped_free_tier)`
+- `pipeline_stage_logs.status → (completed, degraded, failed, needs_review, pending, running, skipped, skipped_free_tier)`
 - `stage_reviews.status → (approved, edited, pending)`
 
 ### 4. Colunas JSON (observação, não risco)
