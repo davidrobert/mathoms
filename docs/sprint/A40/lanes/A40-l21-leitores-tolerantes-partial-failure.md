@@ -4,7 +4,9 @@ type: lane
 title: "Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1232
+ship_date: "2026-08-06"
 priority: P0
 branch_slug: a40-l21-leitores-tolerantes-partial-failure
 adrs:
@@ -13,7 +15,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/frontend
 ---
@@ -126,7 +128,7 @@ read sites são dead code enquanto nenhum writer emite o status. **Dono:** quem
 fizer o pickup seguinte após a data. Esta seção não cria mecanismo novo (seria
 segunda fonte de verdade); registra a **receita**, que faltava:
 
-- `git revert <sha-do-squash de #<PR>>` — PR único, frontend-only + 2 testes de
+- `git revert c8239386` (squash de #1232) — PR único, frontend-only + 2 testes de
   backend (um pina campo já emitido, outro é tripwire negativo).
 - Não há PR pareado a reverter junto.
 
