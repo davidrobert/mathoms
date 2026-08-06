@@ -227,7 +227,14 @@ prova de mutação em 4 rodadas matando 12 asserções · schema com
 > action download info`, com o job de validação de título (que só lê uma string)
 > falhando em 9m28s e 15m01s no `Set up job`, e o de pipeline estourando o
 > timeout de 5m contra ~30-40s históricos. Não é o diff; a suíte está verde
-> localmente. Re-run pendente.
+> localmente (`pytest tests` 5855 · `pytest backend/tests` 3175 · TS 22/22).
+>
+> **Como retomar:** `gh run rerun <run-id> --failed` nos 3 workflows do PR
+> (`gh pr checks 1243` lista os ids). O auto-merge está ligado — o PR mergeia
+> sozinho quando um run completo passar. **Não retentar em rajada:** o repo cobra
+> por job e a A40 já tem histórico de orçamento de Actions estourado; cada
+> tentativa num serviço degradado queima minutos sem chance de passar. O sinal de
+> que recuperou é `Detect changed paths` voltar a completar em ~1-2min.
 
 ## Estratégia decidida para PR2 e PR3 (painel 2026-08-06)
 
@@ -361,11 +368,14 @@ vira ADR: é **emenda datada em [[ADR-218]]** + linha em `FORMULAS.md`.
   O passo que a l10 dá é **o campo, não o store** — e a ADR-365 **tem** de nomear
   o alvo, senão o próximo agente reinventa `elegibilidade` dentro de
   `suggestion_rules` e passamos de cinco representações para seis.
-- **Achados novos a registrar no fecho:** `rule_seguros_insuficientes` emite
-  título **byte-idêntico** ao do analyzer (dois caminhos, mesma frase, mesmo
-  usuário); `rule_reserva_insuficiente` está **morta** (`meses_cobertura` ×
-  `cobertura_meses`, RV3-09, dona é a [[A40.l5]]); `dedupeBySemanticKey` é
-  supressor não-declarado no frontend.
+- **Achados novos, registrados (não "a registrar") em 2026-08-06.** Descrição sem
+  destino evapora no fim da sprint — é a convenção declarada da própria A40:
+
+  | Achado | Destino | Estado do registro |
+  |---|---|---|
+  | `dedupeBySemanticKey` (`curadoriaDestaques.ts`) descarta item da lista **sem declarar** — colapso por regex sobre texto, *first-wins*, então a **ordem** decide quem sobrevive | [[A40.l22]] | **registrado pelo destino** (§Escopo herdado da A40.l10). É a mesma classe da l22, só que no frontend e sem passar pelo produtor |
+  | `rule_reserva_insuficiente` está **morta** (`meses_cobertura` × `cobertura_meses`) | [[A40.l5]] | **já registrado** — é o RV3-09, e a l5 o usa como fixture (2) do gate de contrato |
+  | `rule_seguros_insuficientes` emite título **byte-idêntico** ao do analyzer: dois produtores, mesma frase, mesmo usuário | **sem dono** | Nenhuma lane viva possui `suggestion_rules`. Este arquivo é o **emissor** e o destino não existe — não fabrico ownership. Cai naturalmente na lane de convergência que o §Estado-alvo da [[ADR-365]] condiciona; até lá, é dívida nomeada, não cauda anônima |
 
 ## Residual medido — achado novo, sem lane
 
