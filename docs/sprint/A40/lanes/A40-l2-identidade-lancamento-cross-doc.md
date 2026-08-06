@@ -363,6 +363,14 @@ medir; não é que o mecanismo esteja morto.
    não consegue julgar. Confirma a escolha da forma universal sobre a existencial: sob `> 0`,
    os 4 matches certificariam vivacidade e o 5º entraria no `hits == 0` como corpus limpo.
 
+**O probe tem de virar `dev/`, e isso é dívida desta lane, não opcional.** Ele rodou a partir
+do scratchpad da sessão. A medição **precisa ser refeita antes do flip** — pela mesma razão que
+a [[ADR-364]] §5 dá para o gate rodar todo run: "vazio" é propriedade do corpus **e do tempo**,
+e overrides nascem continuamente. Instrumento que morre com a sessão é instrumento que o
+próximo agente **re-deriva**, e re-derivar instrumento de medição é exatamente como se produz
+um que devolve `0` por engano (ver o quase-acidente abaixo). Promover em PR próprio, separado
+do registro docs.
+
 **Limites declarados, para ninguém sobre-ler:** N=5 overrides, **um** workspace, estado de
 **hoje** — overrides nascem continuamente e o corpus muda a cada upload. Isto autoriza fechar o
 desenho do predicado; **não** autoriza o flip. E a auto-validação do instrumento é a assimetria
