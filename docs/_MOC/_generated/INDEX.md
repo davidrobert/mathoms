@@ -836,7 +836,7 @@
 | A40.l16 | lane | shipped | A40 | Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run | `sprint/A40/lanes/A40-l16-desescalar-number-in-prose.md` |
 | A40.l17 | lane | shipped | A40 | Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero | `sprint/A40/lanes/A40-l17-custo-e-cache-em-needs-review.md` |
 | A40.l18 | lane | in_progress | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
-| A40.l19 | lane | in_progress | A40 | Drift de enum de status: 4 valores existem em Python e não no tipo do DB | `sprint/A40/lanes/A40-l19-migration-drift-enum-status.md` |
+| A40.l19 | lane | shipped | A40 | Drift de enum de status: 4 valores existem em Python e não no tipo do DB | `sprint/A40/lanes/A40-l19-migration-drift-enum-status.md` |
 | A40.l2 | lane | in_progress | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
 | A40.l20 | lane | open | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
 | A40.l21 | lane | shipped | A40 | Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha | `sprint/A40/lanes/A40-l21-leitores-tolerantes-partial-failure.md` |

@@ -4,7 +4,9 @@ type: lane
 title: "Drift de enum de status: 4 valores existem em Python e não no tipo do DB"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1241
+ship_date: "2026-08-06"
 priority: P1
 branch_slug: a40-l19-migration-drift-enum-status
 adrs:
@@ -14,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/backend
   - area/db
@@ -22,6 +24,14 @@ tags:
 
 # A40.l19 — `migration-drift-enum-status`
 
+> ✅ **Entregue em `c9688111` (#1241), 2026-08-06.** Migration com os 5 valores +
+> `dev/check_enum_migration_parity.py` (AST dos dois lados, direção
+> `python ⊆ declarado`). O gate **não** lê o banco de teste: ele nasce de
+> `Base.metadata.create_all`, que materializa o próprio enum Python, e teria
+> ficado verde durante todos os meses de drift. Prova: com a migration removida,
+> o gate reporta exatamente os 5 valores desta tabela, nenhum deles hardcoded.
+> Destrava o writer da [[A40.l18]] e o item 1 da [[A40.l27]].
+>
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). **PR próprio** (migration não
 > mistura com feature). P1 de execução, mas **gate de deploy** do cutover
 > Postgres.
