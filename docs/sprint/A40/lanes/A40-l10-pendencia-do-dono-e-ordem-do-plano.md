@@ -176,6 +176,28 @@ veio do #973). Refutados: 5, entre eles a alegação de que a mudança no
 `chart_conclusions.yaml` seria fix inerte não declarado — o corpo do commit já
 a declara.
 
+## Residual medido — achado novo, sem lane
+
+**A fixture compartilhada Py↔TS muda sem disparar o job que a consome.**
+`frontend/tests/components/report/sectionSummaryDelivery.test.tsx` lê
+`../../../../tests/fixtures/narrativas/e5n_delivery.json` — **fora** de
+`frontend/`. O filtro de path do job *Frontend checks* (`.github/workflows/ci.yml`
+§`filter.frontend`) casa `frontend/**`, `design-tokens/**`,
+`config/report_layout.yaml` e o próprio workflow; **não** casa
+`tests/fixtures/narrativas/**`. Medido neste PR: o job saiu `skipping` num diff
+que regravou a fixture duas vezes. Consequência: quebrar o contrato cross-stack
+deixaria o CI **verde** — o par Py↔TS existe, o gate dele não fecha. Aqui o lado
+TS foi rodado localmente (22/22), então o PR está coberto; o buraco é sistêmico.
+
+**Não corrigido nesta lane, e a razão é custo, não esquecimento.** Acrescentar o
+path ao filtro faz o *Frontend checks* (ESLint + tsc + Vitest + report render)
+rodar em todo diff de fixture do pipeline, e a A40 já tem histórico de orçamento
+de Actions estourado por contagem de jobs. É decisão de CI/CD com gatilho
+`sre-devops`, não carona de PR de narrativa. **Destino:** [[A40.l5]] — é a lane
+do contrato de view-model e do gate que cruza schema × tipos TS × readers Python;
+este é o mesmo defeito na camada de disparo. Se a l5 não o adotar, vira item de
+[[A42]] pela cláusula de camada (instrumento de certificação).
+
 ## Fora de escopo — com destino, não como cauda
 
 Cada item abaixo saiu por medição, não por conveniência. A convenção do repo é
