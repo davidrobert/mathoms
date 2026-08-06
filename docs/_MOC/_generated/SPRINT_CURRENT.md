@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-11 open · 2 in_progress.
+11 open · 1 in_progress.
 
 ## Open (11)
 
@@ -21,10 +21,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l30]] — Ancorabilidade do exec context: o invariante que o #1004 furou sem nenhum teste vermelho · priority P1 · branch `a40-l30-ancorabilidade-do-exec-context`
 - [[A40.l32]] — Proveniência do executor: qual código computou este run · priority P1 · branch `a40-l32-proveniencia-do-executor-do-run`
 
-## In progress (2)
+## In progress (1)
 
 - [[A40.l2]] — Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio · priority P0 · branch `a40-l2-identidade-lancamento-cross-doc`
-- [[A40.l21]] — Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha · priority P0 · branch `a40-l21-leitores-tolerantes-partial-failure`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
