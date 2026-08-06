@@ -307,3 +307,28 @@ def test_formula_de_cents_e_rows_nao_proveniencias() -> None:
     s = collapse_layer_summary([_Cand("aaaaaaaaaa", cents=10000, rows=3, card=3)], frozenset())
 
     assert s.cents_removiveis == 30000
+
+
+_SENTINELA = {
+    "candidatos": 111,
+    "colapsaveis": 222,
+    "rows_removiveis": 333,
+    "cents_removiveis": 444,
+    "alvo_ambiguo": 555,
+}
+
+
+def test_instrumento_delega_ao_shadow_counts_do_dominio(monkeypatch) -> None:
+    """Prova a DELEGAÇÃO, não os valores — recomputar local dá o mesmo número hoje."""
+    # Teste de valores passa com ou sem delegação, e o instrumento volta a ter cópia
+    # própria da fórmula: o bug do `keep_split`, onde as duas derivações concordavam na
+    # fixture e divergiam no corpus.
+    import dev.ledger_collapse_layer as mod
+
+    monkeypatch.setattr(mod, "shadow_counts", lambda _c: _SENTINELA)
+
+    s = collapse_layer_summary([_Cand("aaaaaaaaaa", cents=10000, rows=3, card=3)], frozenset())
+
+    assert (s.candidatos, s.colapsaveis) == (111, 222)
+    assert (s.rows_removiveis, s.cents_removiveis) == (333, 444)
+    assert s.candidatos_com_alvo_ambiguo == 555
