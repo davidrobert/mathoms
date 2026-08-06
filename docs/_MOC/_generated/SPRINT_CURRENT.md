@@ -22,7 +22,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## In progress (2)
 
-- [[A40.l19]] — Drift de enum de status: 4 valores existem em Python e não no tipo do DB · priority P1 · branch `a40-l19-migration-drift-enum-status`
+- [[A40.l18]] — Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável · priority P0 · branch `a40-l18-criticidade-de-stage`
 - [[A40.l2]] — Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio · priority P0 · branch `a40-l2-identidade-lancamento-cross-doc`
 
 ---

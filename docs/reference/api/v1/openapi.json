@@ -7582,7 +7582,8 @@
           "failed",
           "skipped",
           "skipped_free_tier",
-          "needs_review"
+          "needs_review",
+          "degraded"
         ],
         "title": "PipelineStageStatus",
         "type": "string"
