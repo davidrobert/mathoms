@@ -155,41 +155,173 @@ integralmente válida.
   `natural_key_hash IS NULL`).
 - **PR3 — enforce.** Colapsa de fato, com os 4 eixos de aceite abaixo.
 
-### O PR3 foi serializado em cinco — 2026-08-06
+### O PR3 foi serializado — 2026-08-06, revisado por painel no mesmo dia
 
-O "PR3" nasceu monolítico (pipeline + backend + frontend num diff só) e a [[ADR-364]]
-acrescentou pré-condição que ele não tinha: **re-ancoragem** antes de qualquer remoção.
-Um diff que atravessa três camadas *e* introduz mutação destrutiva não é revisável, e o
-flip não pode ser efeito colateral de um PR cujo título diz "contador".
+> 🔴 **A primeira versão desta seção (commit `115307d0`) tinha três afirmações falsas.**
+> Painel de 5 especialistas + refutação adversarial as derrubou; o texto abaixo é o
+> corrigido. Não recupere a versão anterior do histórico de PR.
 
-| PR | o que entrega | estado |
+**Falsa nº 1 — o trilema de transporte dos `corpus_digests` não existe.** Ele pressupunha
+que o consumidor é o Celery task. Não é: `scripts/reconcile_transactions.py` **já** importa
+`feature_flags_service` e **já** usa `store.session` (query ORM dentro do stage), porque
+`dev/check_pipeline_boundaries.py:42` define `_PIPELINE_ROOT = _REPO_ROOT / "pipeline"` — e
+`scripts/**` **não** é coberto pelo gate de boundary. Produtor e consumidor no mesmo escopo
+léxico ⇒ **nada viaja**. A pergunta "como levar 5504 strings" era sintoma de ter posto o
+consumidor no lugar errado.
+
+**Falsa nº 2 — "o 5º canal chega ao E5" não é escopo pendente do 3c: o canal já está em
+`main`.** `e3_load_report.py` (`_remocoes` com `cross_document_collapse`) e
+`config/schemas/e3_reconciled.schema.json` já o declaram. O que falta é o **carrier** até o
+E5 — `analyze_finances.py` lê **só** `categorize_transactions` + baseline + IRPF; **o E5 não
+lê E3** — e a superfície.
+
+**Falsa nº 3 — `AuditRecord` por run não é durável.** `append_audit` é `db.add` **sem
+commit** (commit é do endpoint, ADR-309 D2), e o loop do `pipeline_task` faz **rollback** em
+`result is None` e em `not result.success`. A série temporal que a [[ADR-364]] §5 promove a
+gatilho de rollback nasceria com **os vermelhos apagados**. Some-se que `append_audit` é
+tipada `AsyncSession` enquanto `DBArtifactStore.session` é `Session` sync. Durabilidade vai
+para `pipeline_stage_logs.output_summary`; `internal_ops_audit` recebe **uma** row quando o
+operador flippa a flag.
+
+#### O gate atual é INCAPAZ de ficar verde — achado que reordena a lane
+
+`liberado = hits == 0 and sem_snapshot == 0`, e `hits` conta override cujo
+`gate_digest` está em `alvos`. Mas `gate_digest` é `(data, cents, moeda, descricao_norm)` —
+**as duas pernas o compartilham por construção; é a definição de candidato**. Re-ancorar o
+override no sobrevivente não muda nenhum dos quatro componentes ⇒ o override **segue sendo
+hit para sempre**. A única saída existente é quarentenar, que é exatamente o que a
+[[ADR-364]] §2 proíbe como forma de quitação.
+
+Logo o gate não é "pré-condição que a re-ancoragem satisfaz": ele torna o enforce
+**inalcançável**, e a saída natural de quem estiver sob pressão de entrega é afrouxar
+`liberado` — a trave movida retroativamente. **Correção:** descoberta continua por
+**digest** (as duas razões medidas do docstring seguem válidas), mas a **adjudicação passa a
+ser por hash**, porque o digest é invariante sob re-ancoragem.
+
+Dois furos irmãos, medidos no mesmo arquivo:
+
+- **`evaluate(db, ws, [])` sai `liberado`.** `alvos = ∅ ⇒ hits = 0 ⇒ liberado`. Run com a
+  flag de measure desligada (`_e3_build_collapser` devolve `None`) **autorizaria o flip
+  destrutivo**. O predicado passa a exigir `medido`.
+- **`_alvos` é fail-open.** `getattr(c, "collapsible", False)` / `getattr(c, "gate_digest",
+  "")`: qualquer rename ⇒ `alvos = ∅` ⇒ `liberado=True` **em silêncio**. Vira acesso por
+  atributo com `AttributeError` alto (precedente [[ADR-359]]).
+- **`tx_data_nao_iso` é medido e não impede nada.** Override com `tx_data="30/03/2026"` conta
+  em `com_snapshot`, nunca casa nada, e sai `liberado`. "Confunde medir com impedir" em forma
+  literal. Entra no predicado.
+- **Vivacidade tem de ser UNIVERSAL, não existencial.** `snapshot_casa_corpus ==
+  com_snapshot`. Com 5 overrides ativos, 1 match certificaria vivacidade para os 4 que o join
+  não vê — e esses 4 entram no `hits == 0` como corpus limpo.
+
+#### A duplicação do `keep_split` está VIVA no arquivo que o 3b estende
+
+O produtor do `gate_digest` **não** chama `gate_key_digest`: `cross_document_collapser.py`
+monta a tupla inline (`_key_digest((group.key[0], group.key[1], group.key[2], group.key[4]))`)
+enquanto `gate_key_digest` a monta por outro caminho — e as duas **já divergem**:
+`_collapse_key` faz `(currency or "").strip().upper()`, `gate_key_digest` faz
+`(moeda or "").upper()` **sem `strip`**. Inerte hoje só porque o único chamador passa dado já
+stripado.
+
+E o teste que deveria pegar isso não pega: `backend/tests/test_collapse_precondition.py`
+constrói o `gate_digest` da fixture **chamando `gate_key_digest`** — o produtor da fixture é
+o consumidor sob teste. Fonte única no 3b é **pré-condição**, não follow-up, e o teste de
+derivação tem de ser alimentado pelos **dois produtores reais**.
+
+#### Ordem de trabalho — seis PRs, cinco mecanismos de undo
+
+| PR | escopo | undo |
 |---|---|---|
-| **PR3a — sombra** | colapsador instanciado em produção, **measure-only**; agregado PII-safe por run no log estruturado; flag `cross_document_collapse_measure_enabled` (default `True`, `OPERATOR_ONLY`) | [#1231](https://github.com/davidrobert/mathoms/pull/1231) |
-| **PR3b — gate por run** | `evaluate()` rodando todo run + `AuditRecord` ([[ADR-364]] §5) | **desenho aberto** ↓ |
-| **PR3c — contador + caption** | 5º canal chegando a `analise_financeira`, contador da S2 e caption da V0 (D6) | não iniciado |
-| **PR3d — re-ancoragem** | par `(hash removido → hash sobrevivente)` + backend reancorando ([[ADR-364]] §2) | não iniciado |
-| **PR3e — o flip** | flag de enforce + rota de ops + recusa sem `PreconditionReport` do run corrente | bloqueado por 3b–3d |
+| **3b — o gate** | fonte única do digest · `CollapseMeasurement` com corpus **pré-poda** · `survivor_hash` em `CollapseCandidate` · predicado corrigido · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · comentário stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
+| **3c1 — o dado** (paralelo ao 3d) | carrier E3→E4→E5 · `meses` no `$defs/remocao` · campo **omitido** quando zero · nomes que sobrevivem ao `is_monetary` · emenda na [[ADR-347]] | campo ausente |
+| **3d — o drain** (depende do 3b) | re-ancora os condenados **enquanto as duas rows existem**; apply só do caso 1→1 | `orphaned_at` + re-run |
+| **3c2 — a superfície** | contador da S2 · caption simétrico da V0 · rebaseline | render condicional |
+| **3e — o flip** | bloqueado pelos quatro; §Critério de saída abaixo | flag off |
 
-**Questão aberta do PR3b — de onde vêm os `corpus_digests`.** O `evaluate()` os exige para
-distinguir *"nenhum override em risco"* de *"o join nunca casa"*. Dois caminhos, ambos com
-defeito, e a escolha **não** deve ser unilateral:
+100% read-only no 3b, e ele vem **primeiro** porque o 3d consome a classificação que ele
+define. O 3c foi partido porque atravessava pipeline+backend+frontend num diff.
 
-- **carregar no result dict do stage** — são os digests de **todas** as rows do E3 (5504+
-  no dogfood), e o result dict é persistido em `stage_logs`. Infla o log em ordem de
-  grandeza para um dado que só interessa por um instante.
-- **re-derivar no backend a partir do artefato E3** — mantém o contrato pipeline→backend
-  minúsculo, mas cria **segunda cópia da fórmula do digest**. É literalmente o bug do
-  `keep_split` (§D5): duas derivações da mesma regra, uma delas atualizada, suíte verde e
-  measure declarando um número enquanto a mutação fazia outro.
+**O brief do 3c2 abre junto com o 3b** — ele é o long pole real (frontend + snapshot +
+brief), não o 3d.
 
-Um terceiro caminho — o stage entregar os digests **em memória** ao Celery task, que usa e
-descarta antes de persistir — evita os dois defeitos e paga em acoplamento temporal.
-Decidir com `senior-cto` + `data-engineer` antes de codar.
+#### Restrições duras do 3d, todas verificadas no código
 
-**`titular` vazio deixa de ser PR próprio:** é a cláusula de unificabilidade do
-predicado (perna vazia unifica, perna conflitante não colapsa) e já está no PR1
-com teste. O débito de âncora estável de override que a [[A42]] §Fora do sprint
-roteia para "l2 PR3" é atendido pelo **PR2** desta numeração.
+- **`_fresh_legacy` NÃO pode ser reusado**: revalida `natural_key_hash IS NULL` e devolve
+  `None` para todo plano de colapso (cuja âncora é **não**-nula) ⇒ "0 aplicados" com a suíte
+  **verde**. Precisa de revalidador irmão que confira `natural_key_hash == <esperado>`.
+- **`_preflight` recusa com `cutover_already_active`** quando `override_natural_key_v2_enabled`
+  está ligada — que é exatamente o estado desta lane. Entry point irmão, com preflight próprio.
+- **Apply só do caso 1→1.** Colisão e ambiguidade ficam **report-only**: `_apply` chama
+  `_quarantine` e `_soft_delete_losers`, e reuso integral apagaria a categorização que o gate
+  protege — aprovação por destruição, contra a [[ADR-364]] §2 e contra o critério de aceite
+  desta lane. Trava: contagens de `orphaned_at`/`deleted_at` **iguais** antes e depois.
+
+#### Duas armadilhas de nome que o instrumento pune
+
+`dev/golden_diff.py::is_monetary` é **monetário-por-default**: `count` está em
+`_NON_MONETARY_EXACT`, mas `lancamentos` e `valor_cents_credito` são classificados
+**monetários** ⇒ `to_cents` multiplica por 100 ⇒ snapshot e `delta_cents` saem **100× errados
+no mesmo PR** cujo aceite manda conferir com `golden_diff`. Payload decidido:
+`consolidacao_cross_documento = {count, meses, receitas_omitidas, despesas_omitidas}`, dinheiro
+em **reais** como o resto de `fluxo_caixa`, magnitudes separadas por direção, **nunca net
+assinado**.
+
+**Campo omitido quando `count == 0`** (precedente ADR-132 T2) — e o argumento decisivo não é
+estético: `parecer_orchestrator` mete `sha256(json.dumps(e5_data, sort_keys=True))` na chave de
+cache, então campo sempre presente forçaria **regeração integral do parecer em toda a base** num
+PR que corrige zero, contra o hard-stop de budget da [[ADR-173]] e com o precedente de
+degradação em regeração (incidente 2026-08-03).
+
+#### D6: intenção mantida, mecânica corrigida para **cruzar zero**
+
+A regra por **presença** dispara em quase todo workspace — o defeito exige perna LLM na mesma
+conta, logo a maioria tem **zero** colapsos, e o caption acenderia afirmando "as linhas
+marcadas não são comparáveis" onde nenhum número mudou de base: o falso-positivo acusatório que
+a D6 existe para impedir. Passa a disparar quando **exatamente um** dos dois lados tem
+`count > 0` — o que cobre de graça o **rollback** (flag off ⇒ receita salta +19% de volta com
+"▲ ótimo"), que a D6 não cobria.
+
+#### Sítio que ninguém havia contado: a prosa DENTRO da S2
+
+`sectionSummarySource.ts::changelogSuffix` anexa ao parágrafo de abertura da seção o
+`ChangelogEntry.summary`, cujo template rende *"Receita total recuou R$ X desde o relatório
+anterior (−19,0%)"*. **Rodapé de 12px não vence narrador de 14px acima dele.** O 3c2 tem de
+**medir** se a prosa narra a queda e **declarar o resultado**; se narrar, a salvaguarda nº 1 do
+`financial-planner` **não** está cumprida por contador+caption, e a prosa é bloqueante. Decidir
+se o conserto é da l2 ou vira lane é **do dono** — é mudança de escopo de lane P0.
+
+#### Critério de saída do enforce (3e) — os 4 eixos atuais não bastam
+
+Cumulativamente: (1) relatório `liberado=True` do **run de referência** — *o run mais recente
+que EXECUTOU `reconcile_transactions`*, com limite de idade; "último run completado" está errado
+nas duas direções (runs `from_stage` completam sem executar E3; `needs_review` executa E3 sem
+completar). (2) `medido is True`. (3) **Dois** runs consecutivos com `hits == 0` **depois** do
+drain — um run mede o próprio drain. (4) **Ensaio de rollback medido**: a §Não-decisão da
+[[ADR-364]] recusa rollout percentual porque "o undo existe", e undo nunca executado é premissa,
+não propriedade. (5) Identidade tripla do contador, tolerância zero. (6) Os **6/6** ramos de
+`blocked_reason` exercitados por fixture + controle negativo em CI — hoje a medição deu `0
+bloqueados`, isto é, 6 de 6 **inexercitados**. (7) Sentinela pós-flip com número e dono.
+(8) A guarda por AST de `d6f94949` é **estreitada**, nunca deletada — é a guarda que o PR do
+flip tem incentivo a apagar. (9) Flag de enforce em `DEFAULTS` **e** `OPERATOR_ONLY` no mesmo
+PR, com teste AST de que o único call-site de `set_flag` com ela é o service de ops gateado.
+
+#### O que ainda NÃO sabemos — medir antes de fechar o predicado do 3b
+
+**A adjudicação por hash está viva?** Nunca foi medido. Os "5 overrides julgáveis" da
+[[A40.l1]] significam "tem snapshot", **não** "tem âncora v2 que casa row do E3". Publicar
+**por override** (casou sobrevivente / casou removido / casou nada / sem v2 / não-ISO), nunca
+só agregados, usando `dev/certify_ledger_local.py::_rederive` com o colapsador injetado
+(zero-write) e lendo `survivor_hash`/`corpus_row_hashes` do **produtor real** — jamais
+re-derivando à mão no backend: instrumento não validado que devolve 0 **mata um desenho
+correto**, e é a armadilha que travou o PR3 da [[A40.l10]].
+
+**Se der 0:** a polaridade é segura (tudo condenado ⇒ vermelho), mas a escapatória é morta e o
+adjudicador passa a ser `(gate_digest, tx_banco, tx_direction)` das colunas de snapshot —
+reconstrói proveniência sem depender de versão de hash. **Parar e re-projetar antes do 3c2.**
+
+Também abertos: custo do gate por run (sha256 duplo sobre ~6,4k tx + SELECT na sessão de escrita
+do E3, que no SQLite compartilha write-lock) e **quantos workspaces têm `colapsaveis > 0`** — o
+mecanismo não é específico do dogfood, então tratar isto como número de dogfood **subestima a
+população**.
 
 ## Medição do PR1 contra o corpus real (2026-08-05) — a banda estava errada
 
