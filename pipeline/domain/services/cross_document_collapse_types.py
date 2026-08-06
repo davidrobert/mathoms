@@ -47,6 +47,19 @@ class CollapseRemoval:
     source: str | None = None
 
 
+def shadow_counts(candidates) -> dict[str, int]:
+    """Agregado PII-safe da sombra (ADR-364) — só contagens e cents, nunca texto."""
+    todos = list(candidates)  # materializa ANTES: generator consumido daria candidatos=0
+    colapsaveis = [c for c in todos if c.collapsible]
+    return {
+        "candidatos": len(todos),
+        "colapsaveis": len(colapsaveis),
+        "rows_removiveis": sum(c.removable_rows for c in colapsaveis),
+        "cents_removiveis": sum(c.valor_cents * c.removable_rows for c in colapsaveis),
+        "alvo_ambiguo": sum(1 for c in colapsaveis if c.alvo_ambiguo),
+    }
+
+
 @dataclass(frozen=True)
 class CollapseCandidate:
     """Ocorrência cross-proveniência, PII-safe (digest + cents + códigos, nunca texto)."""
