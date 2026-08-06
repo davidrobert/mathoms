@@ -159,7 +159,7 @@ function DebtRowActions({ debt, properties, onAssign }: DebtRowActionsProps) {
   };
   return (
     <Select
-      value={debt.property_id ?? "__placeholder__"}
+      value={debt.property_id ?? null}
       onValueChange={handleChange}
       disabled={submitting}
     >

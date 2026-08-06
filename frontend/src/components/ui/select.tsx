@@ -6,7 +6,73 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/cn"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+type SelectItemLabel = { label: React.ReactNode; value: unknown }
+
+/** Coleta `{value, label}` de cada `<SelectItem>` descendente. */
+function collectItemLabels(node: React.ReactNode, out: SelectItemLabel[]) {
+  React.Children.forEach(node, (child) => {
+    if (!React.isValidElement(child)) {
+      return
+    }
+    const { value, children } = child.props as {
+      value?: unknown
+      children?: React.ReactNode
+    }
+    if (child.type === SelectItem || child.type === SelectPrimitive.Item) {
+      out.push({ value, label: children })
+      return
+    }
+    collectItemLabels(children, out)
+  })
+}
+
+function sameItemLabels(a: SelectItemLabel[], b: SelectItemLabel[]) {
+  return (
+    a.length === b.length &&
+    a.every(
+      (item, i) =>
+        Object.is(item.value, b[i].value) && Object.is(item.label, b[i].label)
+    )
+  )
+}
+
+/**
+ * Deriva `items` do Root a partir dos `<SelectItem>` no JSX.
+ *
+ * Sem `items`, `Select.Value` do base-ui renderiza o `value` cru — os
+ * call-sites usam id/slug como value e nome legível como children, então o
+ * trigger mostrava `p-single` em vez de `Apto Vila Mariana`. A referência é
+ * estabilizada porque o Root joga `items` no store por `Object.is`: array
+ * novo a cada render notificaria todos os subscribers à toa.
+ */
+function useItemLabels(
+  children: React.ReactNode,
+  override: SelectPrimitive.Root.Props<unknown>["items"]
+) {
+  const stable = React.useRef<SelectItemLabel[]>([])
+  if (override) {
+    return override
+  }
+  const collected: SelectItemLabel[] = []
+  collectItemLabels(children, collected)
+  if (!sameItemLabels(stable.current, collected)) {
+    stable.current = collected
+  }
+  return stable.current
+}
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  children,
+  items,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const resolvedItems = useItemLabels(children, items)
+  return (
+    <SelectPrimitive.Root items={resolvedItems} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
