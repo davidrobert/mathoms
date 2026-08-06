@@ -138,3 +138,47 @@ async def test_cross_tenant_get_flags_returns_403(db, client):
 
     resp = await client.get(f"/api/workspaces/{ws_b.id}/feature-flags")
     assert resp.status_code == 403
+
+
+async def _put_flag(db, client, flag: str, *, operator_only: frozenset, monkeypatch):
+    """Setup comum: deny-list injetada + workspace autenticado + PUT na flag."""
+    from backend.app.services import feature_flags_service
+
+    monkeypatch.setattr(feature_flags_service, "OPERATOR_ONLY", operator_only)
+    user = await factories.make_user(db)
+    ws = await factories.make_workspace(db, owner=user)
+    await db.commit()
+    client.headers["Authorization"] = f"Bearer {create_access_token(user.id)}"
+    return await client.put(f"/api/workspaces/{ws.id}/feature-flags/{flag}", json={"enabled": True})
+
+
+@pytest.mark.asyncio
+async def test_flag_operator_only_recusa_flip_pelo_workspace(db, client, monkeypatch):
+    """A40.l2 D1: flag que governa mutação destrutiva não é flipável pelo workspace."""
+    # A pré-condição dela é medida FORA do request (gate de override); flipável pelo
+    # endpoint normal, o gate viraria decorativo. `learning_loop_enabled` é cobaia:
+    # prova o MECANISMO sem depender da flag do enforce, que só nasce no PR3.
+    resp = await _put_flag(
+        db,
+        client,
+        "learning_loop_enabled",
+        operator_only=frozenset({"learning_loop_enabled"}),
+        monkeypatch=monkeypatch,
+    )
+
+    assert resp.status_code == 422
+    assert "operator-only" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_flag_fora_da_deny_list_continua_flipavel(db, client, monkeypatch):
+    """Prova que a guarda DISCRIMINA — sem isto, um `raise` incondicional passaria."""
+    resp = await _put_flag(
+        db,
+        client,
+        "learning_loop_enabled",
+        operator_only=frozenset({"outra_flag"}),
+        monkeypatch=monkeypatch,
+    )
+
+    assert resp.status_code == 200
