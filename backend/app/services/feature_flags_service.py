@@ -29,6 +29,13 @@ from backend.app.models.feature_flag import FeatureFlag
 
 # Defaults de produto. Flags definidas aqui têm efeito imediato no CI
 # e em qualquer workspace que ainda não tenha a row persistida.
+# Flags que o WORKSPACE não pode flipar sozinho — só operador, por rota de ops.
+# Motivo: elas governam mutação destrutiva de dado financeiro cuja pré-condição é um
+# gate medido fora do request (A40.l2 D1). Sem esta lista, `PUT /feature-flags/{flag}`
+# aceita qualquer chave de DEFAULTS e a própria família ligaria o enforce, contornando
+# o gate inteiro — o que tornaria o gate decorativo.
+OPERATOR_ONLY: frozenset[str] = frozenset()
+
 DEFAULTS: dict[str, bool] = {
     # F8.2 — backlog interativo de tarefas. Em F8.4 (cutover), vira default True
     # para todos. Por enquanto True porque a UI /plano-de-acao já está em produção

@@ -25,6 +25,11 @@ async def set_feature_flag(
     *,
     db: AsyncSession,
 ) -> FlagsResponse:
+    if flag in feature_flags_service.OPERATOR_ONLY:
+        raise ValidationError(
+            f"flag '{flag}' é operator-only: exige rota de ops com pré-condição medida, "
+            "não pode ser flipada pelo workspace"
+        )
     try:
         flags = await feature_flags_service.set_flag(workspace_id, flag, command.enabled, db=db)
     except ValueError as exc:

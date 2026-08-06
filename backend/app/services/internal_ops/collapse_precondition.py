@@ -21,6 +21,7 @@ versão de hash, imune ao gate de discriminantes, sem PII cruzando o boundary.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from sqlalchemy import select
@@ -31,6 +32,9 @@ from backend.app.services.internal_ops.results import OpResult
 from pipeline.domain.services.cross_document_collapser import gate_key_digest
 
 _ACTION = "override.collapse_precondition"
+# `tx_data` é `String(10)`, largura que acomoda `YYYY-MM-DD` E `DD/MM/YYYY` igualmente —
+# o tipo não discrimina, então a forma é contada, não presumida.
+_ISO = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 
 @dataclass(frozen=True)
@@ -42,11 +46,19 @@ class PreconditionReport:
     hits: int = 0
     hits_ancora_indecidivel: int = 0
     quarentenados_atingidos: int = 0
+    # Ativos sem snapshot utilizável: o gate NÃO consegue julgá-los. Contá-los à parte
+    # é o que separa "corpus limpo" de "não consegui olhar" — sem isso um workspace
+    # cujos overrides não têm snapshot devolvia `hits=0 ⇒ liberado`.
+    sem_snapshot: int = 0
+    tx_data_nao_iso: int = 0
+    # Vivacidade do join: dos que TÊM snapshot, quantos casam alguma row do E3. Se
+    # esta fração é ~0, `hits=0` é vácuo — o join nunca casa, não há segurança.
+    snapshot_casa_corpus: int = 0
 
     @property
     def liberado(self) -> bool:
-        """``True`` ⇒ nenhum override ativo é atingido; o enforce pode ser flipado."""
-        return self.hits == 0
+        """``True`` ⇒ nenhum override ativo é atingido **e** todos foram julgáveis."""
+        return self.hits == 0 and self.sem_snapshot == 0
 
     def as_details(self) -> dict:
         return {
@@ -55,6 +67,9 @@ class PreconditionReport:
             "hits": self.hits,
             "hits_ancora_indecidivel": self.hits_ancora_indecidivel,
             "quarentenados_atingidos": self.quarentenados_atingidos,
+            "sem_snapshot": self.sem_snapshot,
+            "tx_data_nao_iso": self.tx_data_nao_iso,
+            "snapshot_casa_corpus": self.snapshot_casa_corpus,
             "liberado": self.liberado,
         }
 
@@ -71,12 +86,19 @@ def _override_gate_digest(override: TransactionOverride) -> str | None:
     )
 
 
+def _sem_ancora_v2(override: TransactionOverride) -> bool:
+    """Sem âncora v2 utilizável — `hash_version=1` conta, mesmo com hash preenchido."""
+    # `natural_key_hash is None` sozinho é proxy errado: row com hash preenchido em
+    # `hash_version=1` é v1 disfarçada e igualmente indecidível.
+    return override.natural_key_hash is None or (override.hash_version or 0) < 2
+
+
 def _ancora_indecidivel(override: TransactionOverride) -> bool:
-    """Override ativo sem âncora v2 E sem snapshot — não dá para decidir, então bloqueia."""
+    """Sem âncora v2 E sem snapshot — não dá para decidir, então bloqueia."""
     # Fail-closed deliberado: a polaridade de um gate que BLOQUEIA é sobre-detectar.
     # Over-match é adjudicável à mão em poucas rows; under-match é override órfão em
     # produção, que apaga categorização manual sem sinal.
-    return override.natural_key_hash is None and _override_gate_digest(override) is None
+    return _sem_ancora_v2(override) and _override_gate_digest(override) is None
 
 
 def _ativos(db: Session, workspace_id: str) -> list[TransactionOverride]:
@@ -107,28 +129,37 @@ def _alvos(collapse_candidates) -> frozenset[str]:
     )
 
 
-def _build_report(db: Session, workspace_id: str, alvos: frozenset[str]) -> PreconditionReport:
+def _build_report(
+    db: Session, workspace_id: str, alvos: frozenset[str], corpus: frozenset[str]
+) -> PreconditionReport:
     ativos = _ativos(db, workspace_id)
     indecidiveis = [o for o in ativos if _ancora_indecidivel(o)]
     casados = [o for o in ativos if _override_gate_digest(o) in alvos]
+    com_snapshot = [o for o in ativos if _override_gate_digest(o) is not None]
     return PreconditionReport(
         overrides_ativos=len(ativos),
         alvos_do_colapsador=len(alvos),
         hits=len({o.id for o in casados} | {o.id for o in indecidiveis}),
         hits_ancora_indecidivel=len(indecidiveis),
         quarentenados_atingidos=_quarentenados_atingidos(db, workspace_id, alvos),
+        sem_snapshot=len(ativos) - len(com_snapshot),
+        tx_data_nao_iso=sum(1 for o in ativos if o.tx_data and not _ISO.fullmatch(o.tx_data)),
+        snapshot_casa_corpus=sum(1 for o in com_snapshot if _override_gate_digest(o) in corpus),
     )
 
 
 def evaluate(
-    db: Session, workspace_id: str, collapse_candidates
+    db: Session, workspace_id: str, collapse_candidates, corpus_digests=frozenset()
 ) -> tuple[OpResult, PreconditionReport]:
     """Avalia a pré-condição. Read-only: não escreve, não commita, não muta override."""
-    report = _build_report(db, workspace_id, _alvos(collapse_candidates))
+    # `corpus_digests` são os gate_digest de TODAS as rows do E3 (não só as
+    # colapsáveis): medem a VIVACIDADE do join. Sem isso não há como distinguir
+    # "nenhum override em risco" de "o join nunca casa".
+    report = _build_report(db, workspace_id, _alvos(collapse_candidates), frozenset(corpus_digests))
     if report.liberado:
         return OpResult(ok=True, details=report.as_details()), report
     erro = (
-        f"{report.hits} override(s) ativo(s) ancoram em row que o colapso removeria "
-        "— enforce bloqueado (re-ancore ou quarentene antes de flipar a flag)"
+        f"{report.hits} hit(s) + {report.sem_snapshot} sem snapshot julgável "
+        "— enforce bloqueado (re-ancore, quarentene ou complete o snapshot)"
     )
     return OpResult(ok=False, error=erro, details=report.as_details()), report
