@@ -58,13 +58,135 @@ queimaria a única janela de atenção do dono no item de menor valor.
 
 - Enum `elegibilidade` no item do plano de ação, avaliado no builder, com docstring
   co-localizado (methodology-as-code).
-- Consultar o regime declarado em vez de perguntar.
+- ~~Consultar o regime declarado em vez de perguntar.~~ → **reformulado em
+  2026-08-05:** declarar o regime como pendência de **confirmação**
+  (pré-preenchida com o indício + proveniência rotulada), **nunca** como input
+  da cascata. O texto original autorizava literalmente a promoção que a medição
+  recusa — ver §Fora de escopo.
 - Pendência acionável **só** para a taxa da dívida.
-- Critério de ordenação **encodado e auditável**.
+- ~~Critério de ordenação **encodado e auditável**.~~ → **desambiguado em
+  2026-08-05:** encodado no ranking de `pontos_urgentes` (hoje a ordem literal
+  dos `out.append` do analyzer). A fila de `Decision` fica **fora** — é
+  governada pela [[ADR-179]], com a garantia estreitada pela §Emenda
+  2026-08-05 dela. Sem essa desambiguação o próximo revisor reabre RV3-07
+  sobre a superfície errada.
+
+> **Correção de escopo — 2026-08-05.** Dois dos quatro bullets acima partiam de
+> premissa medida como falsa. `elegibilidade` continua, mas **avaliado no
+> `PontosUrgentesAnalyzer`** — não no `E5NarrativasBuilder`: a projeção é
+> achatada para `list[str]` de títulos antes de chegar ao narrador
+> (`generate_narratives._decisoes_titles_from_bundle`), então enum posto ali
+> nasce inerte.
 
 ## Critério de aceite
 
-- KR-E: fixture com contagem de dependentes zero + regra que cita dependentes
-  menores ⇒ item marcado `refutada_por_payload` e **ausente** do plano renderizado.
-- Fixture com regime ausente ⇒ item não some em silêncio: vira pendência com CTA.
+> **Correção de premissa — 2026-08-05** (painel `financial-planner`,
+> `senior-cto`, `product-designer`, `data-engineer`, `product-manager`,
+> `information-architect`; 6/6 aprovaram com ressalva). O primeiro critério
+> abaixo **encodava uma regra falsa** e foi substituído. O texto original fica
+> preservado logo abaixo, tachado — reescrever sem preservar transformaria
+> "corrigimos um critério mal-escrito" em "afrouxamos o critério para caber no
+> entregue", acusação barata de fazer e cara de defender num gate de saída
+> declaradamente adversarial.
+>
+> ~~KR-E: fixture com contagem de dependentes zero + regra que cita dependentes
+> menores ⇒ item marcado `refutada_por_payload` e **ausente** do plano
+> renderizado.~~
+>
+> **Por que cai:** `dependentes_menores_18` e `irpf_kpis.dependentes.count`
+> medem **populações diferentes** — cadastro da família (`protecao_wiring.py`,
+> `role ∉ {titular, conjuge}` + idade) versus ficha da declaração do ano-base
+> ([[ADR-305]], último ano **completo**, defasado 1-2 anos). Divergem nos dois
+> sentidos sem que nenhuma esteja errada. Detalhe e âncoras no re-veredito de
+> RV3-10 em [[REPORT-REVIEWS-active]] §r3 (`procede` → **refutado**).
+>
+> **Governa o KR-E da [[A40]], não este arquivo.** O KR admite **duas** saídas
+> ("...no topo do plano ... **sem pendência pareada**") e o critério antigo
+> admitia uma só (remover) — media, portanto, um critério mais **forte** que o
+> KR, engessando o desenho e virando falso-vermelho para quem escolher a saída
+> legítima de parear. E "ausente do plano renderizado" colidia com a **6ª
+> classe** do §Critério de done do [[PLAN-report-trust]] ("nenhuma retenção de
+> conselho sem declaração por classe de motivo no artefato entregue").
+
+- **KR-E** ([[A40]] §KRs — *honestidade da recomendação*, não a sigla
+  homônima de anti-regressão das sprints A37-A39): toda recomendação suprimida
+  do **ranking** carrega, no artefato E5, a classe de motivo que a suprimiu
+  **e** uma declaração na narrativa já renderizada. Nenhuma sai sem as duas —
+  ausente do ranking, presente no artefato.
+- A taxonomia é de **proveniência da premissa**, não de concordância entre dois
+  campos: fixture com `conjuge_sem_renda_propria` (tautológico enquanto
+  `protecao_wiring.py` fixa `renda_propria_brl = 0`) ⇒ item fora do ranking com
+  motivo declarado.
+- Fixture com regime ausente ⇒ item não some em silêncio: vira pendência com
+  CTA. **Nota de medição (2026-08-05):** a pendência de regime **já existe
+  renderizada** (`CascataFiscalCard.tsx::PerfilPendenteState`, S8, entregue pelo
+  CTO-05 em #973) — o que falta é âncora e posição no plano, não superfície.
 - Recomendação não-computável **nunca** desaparece sem rastro.
+- **Anti-falso-verde (decisão do `senior-cto`):** nenhum critério desta lane tem
+  como alvo de asserção um campo de payload sozinho. Toda asserção é sobre a
+  **string narrada**, na mesma fixture, com prova de mutação — inverter o input
+  tem de mudar o **texto**, não só o payload.
+
+## Entregue
+
+**PR1 — RV4-02 (P0), 2026-08-05.** A primeira decisão do dono chega às duas
+superfícies da S10. O defeito era **duplo** e a lane citava só metade:
+`charts.top5_decisoes` enumerava `decisoes[1:5]` e `summaries.s10` enumerava
+`decisoes[1:4]` — este último derrubando também tudo a partir da quinta e, com
+≤3 decisões, afirmando a contagem **sem listar nenhuma**. Como
+`report_layout.yaml` declara `S10.summary_source: "s10"`, o mesmo descarte
+aparecia 2× na mesma seção.
+
+O aporte saiu da numeração e virou enquadramento (`fmt_aporte_contexto`, produtor
+único em `format_helpers` — o comentário "mesma guard do charts.top5_decisoes"
+que existia no `s10` descrevia uma **segunda cópia**). Decisão de domínio do
+`financial-planner`: aporte é um `Goal`, não uma `Decision`, e como é a única
+linha que o motor sempre consegue calcular, ocupar "Prioridade 1"
+incondicionalmente fazia o item mais fácil de computar ser sistematicamente o
+mais importante — inversão dos padrões consagrados de planejamento patrimonial
+brasileiro, que põem quitar dívida onerosa e formar reserva **antes** de aportar
+e de assumir risco.
+
+**Por que a suíte não pegava:** toda fixture do repo põe um título de aporte no
+índice 0, então descartar `decisoes[0]` e reimprimi-lo como "Prioridade 1:
+Aporte mensal" produzia texto plausível. `tests/test_e5n_entrega_da_fila_de_decisoes.py`
+abre com uma decisão que **não** é de aporte; prova de mutação em 3 rodadas
+(slice original, guard de meta zerada, guard de fila vazia) mata as 9 asserções.
+
+## Fora de escopo — com destino, não como cauda
+
+Cada item abaixo saiu por medição, não por conveniência. A convenção do repo é
+que **handoff só existe quando o destino o registra**; onde o destino ainda não
+registrou, isto aqui é o emissor e está nomeado.
+
+- **Promover `regime_declarado` a `CascataInput.regime`** — recusado. O nome
+  engana: o valor é **inferido pelo LLM** quando o informe não declara
+  (`pipeline/llm/prompts/informe_pj.py` manda deduzir por retenções e **chutar
+  `simples_nacional`** no ambíguo, e mapear **Lucro Real → `lucro_presumido`**
+  com `needs_review`), e `needs_review`/`confidence` são **descartados** em
+  `fiscal_source._build_pj_summary`. Promover publicaria a cascata inteira sobre
+  regime chutado, ferindo o invariante da emenda CTO-05 da [[ADR-236]]
+  ("nenhum número tributário derivado quando o regime é desconhecido"). Há ainda
+  3 obstáculos mecânicos: vocabulário incompatível (`simples_nacional` vs
+  `simples`), 2º guard `anexo_simples is None` que mantém o Simples suprimido de
+  todo modo, e o default morto `anexo_simples or "V"` — Anexo V é a tabela mais
+  cara, e relaxar o guard inflaria a carga publicada ~2,5× na 1ª faixa.
+  **§Deferimento datado (2026-08-05), condição de retomada:** quando
+  `needs_review`/`confidence` do informe PJ deixarem de ser descartados **e** o
+  prompt parar de chutar regime em ambiguidade.
+- **Pipe `debts → E5.endividamento.taxa_juros`** — `debts.taxa_juros_aa` já tem
+  coluna, DTO e formulário; falta o consumo (o E5 hardcoda `taxa_juros: None`).
+  **Amarra escrita:** não popular a taxa sem corrigir, no mesmo PR, o parser da
+  red line RL2 — ele exige o caractere `%` numa string contra um schema que
+  obriga `number|null`, e compara contra `> 1.5` assumindo taxa **mensal**
+  enquanto a coluna é **anual**. Popular sem isso troca um silêncio por erro de
+  ordem de grandeza.
+- **Os 4 predicados de "dependente"** — `protection_bundle_populator` filtra
+  `role == "dependente"` e **exclui `role == "filho"`**, zerando o fator de
+  cobertura de vida justamente para quem tem filho: o hero e o chip da S9 se
+  contradizem para o mesmo cadastro. É defeito de **cálculo**, não de narrativa,
+  e não tem código de rodada por ter sido achado em co-design.
+- **Ordenação da fila de `Decision`** — não tocada de propósito: mudar
+  `_top5_decisions_stmt` altera o payload de S10 de todo workspace e a causa
+  raiz está a montante (o produtor não popula `priority`/`impact_1y`). O estado
+  real ficou registrado em [[ADR-179]] §Emenda 2026-08-05.

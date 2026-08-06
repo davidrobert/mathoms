@@ -16,9 +16,16 @@ tags:
   - status/decidido
   - type/adr
 size_lines: 45
+amended_at: ["2026-08-05"]
 ---
 
 # ADR-179 — `Decision` aggregate — extensão de schema (`impact_1y/10y`, `horizon`, `priority`)
+
+> ⚠️ **Emendada em 2026-08-05 (fato medido, não mudança de decisão).** A §Decisão
+> segue válida e as 4 colunas existem. O que **não** vale é a garantia que outras
+> notas vinham citando desta: a "ordenação justificável" **degenera para ordem de
+> criação** em produção, e `impact_10y DESC` nunca foi implementado. Antes de
+> citar esta ADR como fronteira de ordenação, leia a §Emenda 2026-08-05.
 
 **Status:** Decidido (Sprint A10.3) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Estende** [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain) • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.3](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
@@ -61,3 +68,41 @@ Decision em produção tem registros com `amount_brl_cents` populado mas sem ess
 - [ ] Endpoint `/decisions/{id}` aceita registros legados sem os 4 campos (Optional retorna null no DTO).
 
 **Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.3](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.3).
+
+## Emenda 2026-08-05 — o delta entre o decidido e o vigente
+
+Medido durante a [[A40.l10]], ao avaliar se esta ADR servia de fronteira para
+"o critério de ordenação já está encodado". **Serve para o schema, não para a
+ordenação.** Três fatos, nesta ordem de materialidade:
+
+1. **A ordenação degenera para ordem de criação.** O `ORDER BY` existe
+   (`backend/app/services/pipeline/pipeline_adapter.py::_top5_decisions_stmt`:
+   `priority` NULLS LAST → `impact_1y_brl_cents` DESC NULLS LAST → `code` ASC),
+   mas o caminho dominante de criação —
+   `backend/app/application/suggestions/accept_suggestion.py`, aceitar uma
+   `Suggestion` — monta o `DecisionCreateCommand` **sem** `priority` e **sem**
+   `impact_1y_brl_cents`. Com as duas chaves nulas, as quatro primeiras
+   cláusulas empatam e sobra `code ASC`. O trade-off declarado acima
+   ("ordenação justificável") é, na prática, ordem de chegada.
+2. **`impact_10y DESC` nunca foi implementado.** O §Trade-offs promete
+   `impact_10y DESC` para horizonte longo; nenhum `ORDER BY` do repo o
+   referencia, e `impact_10y_brl_cents` é **write-only** (migration, DTO, form
+   de `/plano` — zero leitores). Some-se a isso que o card S10 filtra
+   `horizon == "short_6_12m"`: decisão `medium`/`long` não chega a texto nenhum
+   do relatório, então o critério de horizonte longo não tem superfície.
+3. **Os 7 critérios de aceite acima seguem em checkbox vazio**, três meses após
+   o `Decidido`. Pelo menos os 4 primeiros estão cumpridos no código; o registro
+   é que ficou para trás. Não os marco aqui porque não os verifiquei um a um —
+   registrar a dúvida é mais honesto que carimbar.
+
+**O que esta emenda não faz.** Não reabre a decisão, não muda o schema e não
+propõe reordenar a fila. A [[A40.l10]] deliberadamente **não** toca
+`_top5_decisions_stmt`: mudar a ordem de `Decision` altera o payload de S10 de
+todo workspace, e a causa raiz está a montante (o produtor não popula o sinal),
+não no `ORDER BY`.
+
+**§Deferimento datado (2026-08-05) — dono e condição de retomada.** Popular
+`priority`/`impact_1y_brl_cents` no `accept_suggestion` é trabalho de
+[[PLAN-suggestion-lifecycle]], dono do arquivo. Retomada quando esse plano
+tocar `accept_suggestion.py`, ou quando uma rodada de revisão medir a ordem
+efetiva do S10 num corpus com ≥2 decisões de impacto conhecido e divergente.
