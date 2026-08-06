@@ -454,6 +454,20 @@ removida. A cardinalidade por arquivo (§Emenda 2 da [[ADR-354]]) **continua vá
 segue governando quantas rows da perna LLM sobrevivem; o que muda é que ela deixa de
 autorizar corte no bucket nativo.
 
+**Medido pós-D5 (corpus dogfood, 2026-08-05):** rows removidas **593 → 453**;
+declarado == removido == canal (`453`); rows nativas **5504 → 5504**, preservadas;
+Σ cents assinado **12.001.051** (era 64.753.775 — a queda reflete que as 140 nativas,
+que carregavam 80.528.182, saíram do escopo). Chaves colapsáveis seguem 331.
+
+> ⚠️ **Bug que a primeira tentativa de D5 introduziu, e como ele passou verde.**
+> `_targets` (que computa `removable_rows`) e `rows_to_drop` (que remove) derivavam o
+> corte em **cópias separadas** da mesma fórmula. Mudei uma e não a outra: o measure
+> passou a declarar **453** enquanto a mutação removia **593** — com a suíte **verde**,
+> porque a fixture de 1 nativa + 1 LLM é justamente o caso onde as duas concordam.
+> **Só a medição no corpus achou.** `keep_split` virou fonte única e o teste novo
+> exercita 7 formas assimétricas. É a materialização do risco F2 que o `senior-cto`
+> nomeou ao pedir que o eixo (i) fosse promovido ao corpus.
+
 **As 140 + 576 = 716 rows viram uma classe só** — duplicação intra-proveniência
 cross-arquivo — roteada para a [[A42.l5]] com **regra e instrumento próprios**. Não é
 deferimento por medo: é recusa a shipar meia regra sem instrumento, que é o padrão que
