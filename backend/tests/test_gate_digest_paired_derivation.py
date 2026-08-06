@@ -119,3 +119,15 @@ def test_digest_discrimina_cada_componente(campo):
     )
 
     assert _override_gate_digest(base) != _override_gate_digest(mexido)
+
+
+def test_produtor_DELEGA_a_funcao_canonica(monkeypatch):
+    """Prova a delegação, não a igualdade — a prova de mutação mostrou que só a igualdade
+    deixa a duplicação voltar sem quebrar nada."""
+    # Com input já stripado, tupla inline e função canônica dão o MESMO digest: os testes de
+    # paridade acima passam com a duplicação reintroduzida. Só interceptar a chamada distingue.
+    import pipeline.domain.services.cross_document_collapser as mod
+
+    monkeypatch.setattr(mod, "gate_key_digest", lambda **_: "SENTINELA")
+
+    assert _digest_do_pipeline() == "SENTINELA"
