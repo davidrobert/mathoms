@@ -501,13 +501,31 @@ pertence ao plano [SNAPSHOT_CHANGELOG_V3](../../../plan/SNAPSHOT_CHANGELOG_V3/_R
 "o numerador cai a 0" é quase tautológico — o colapso zera o instrumento por
 construção. Por isso o aceite exige eixos que **não derivam da mesma chave**.
 
-- **Pré-condição 1 do PR3, bloqueante: alvo endereçável.** `alvo_enderecavel` do
-  instrumento (rows que o alvo resolve == rows declaradas) tem de ser **verdadeiro**.
-  Medido a partir de `main` **após** o #1208 (`3e0e3eb7`, 2026-08-05): **continua
-  falso** — 411 declaradas, 453 resolvidas, 42 ambíguos. O #1208 tornou a ambiguidade
-  **visível e declarada**; **não a resolveu**. O PR3 precisa de **identidade de row**
-  (hash+ordinal no bucket, ou hash+statement), não só de multiplicidade.
-  **A forma é única e diz mais que a contagem:**
+- ✅ **`alvo_enderecavel` RETIRADO de `layer_ok` em 2026-08-05** — deixa de ser
+  pré-condição do PR3. A pergunta certa não era *"posso retirar um eixo de gate?"*, mas
+  **"posso desfazer uma fusão?"**: três eixos respondem *"os números que imprimo são
+  legíveis?"* (propriedade do **instrumento**) e `alvo_enderecavel` responde *"um mutador
+  causaria dano?"* (propriedade do **produto**). Fundidos, a legibilidade ficava **refém
+  de uma decisão de produto** — [[ADR-342]] invertida. A desfusão seria correta **mesmo
+  com o eixo verde**.
+
+  **Os 4 critérios do `senior-cto`**, todos verificados antes de retirar:
+
+  | | critério | evidência |
+  |---|---|---|
+  | **T1** | nomear o consumidor que a métrica prediz e provar que não existe | `grep` em `main`: nenhum consumidor de `removal_targets`/`hash_desaparece` fora de teste — `collapse()` remove por `id()` sobre a mesma lista |
+  | **T2** | anti-hindsight: já estava vermelha antes da degradação? | **Sim** — `false` já no #1211 com 42 ambíguos, antes do D4 levá-la a 140. Quem move a trave não constrói o gate que o bloqueia nem publica o bloqueio |
+  | **T3** | a substituição domina na classe de falha | `test_declarado_bate_com_removido_em_corpus_HETEROGENEO` mede **7 formas assimétricas** (promovido após o bug do D5, que a fixture simétrica não pegava) + o canal do ledger |
+  | **T4** | o número continua visível **e** ratcheteado | segue no render com ⚠️, e o teste assere que o texto **não some** |
+
+  🔴 **Falsificador a vigiar (F1):** se algum caminho futuro — face (b), re-ancoragem,
+  console ops — resolver `RemovalTarget.hash` contra um conjunto de rows e **agir** por
+  ele, a métrica volta a viver e a retirada vira trave movida retroativamente. **Encode,
+  não confie:** o PR3 dá **consumidor legítimo** ao `RemovalTarget` (emitir o hash do
+  **sobrevivente**, alimentando a re-ancoragem) **ou** o deleta. Estrutura órfã apodrece
+  e depois é adotada errado por quem não leu a lane.
+
+  **Registro histórico** — a forma dos ambíguos sob a métrica retirada:
 
   | forma | ocorrências | `remover` | `no_bucket` | ambíguo |
   |---|---|---|---|---|
