@@ -111,6 +111,25 @@ class TestPublishEvent:
         publish_run_cancelled("run-1")
         assert fake_redis.last.payload["event"] == "run_cancelled"
 
+    @pytest.mark.parametrize(
+        ("publish", "expected_status"),
+        [
+            (publish_run_completed, "completed"),
+            (publish_run_failed, "failed"),
+            (publish_run_cancelled, "cancelled"),
+        ],
+    )
+    def test_run_level_event_carries_status(self, fake_redis, publish, expected_status):
+        """O leitor (A40.l21) chaveia o desfecho por `status`, não pelo nome do evento."""
+        # Sem este pin, a A40.l18 pode remover o campo ao passar o status real
+        # como parâmetro (ADR-357 §Consequências) sem quebrar teste nenhum.
+        publish("run-1")
+        payload = fake_redis.last.payload
+        assert payload["status"] == expected_status
+        # Evento run-level não tem `stage` — é o discriminador que o leitor usa
+        # para não confundir `status` de stage com `status` de run.
+        assert "stage" not in payload
+
     def test_publish_event_with_detail(self, fake_redis):
         publish_event("run-1", "custom", detail={"key": "value"})
         assert fake_redis.last.payload["detail"] == {"key": "value"}

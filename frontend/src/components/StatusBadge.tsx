@@ -16,14 +16,19 @@ interface StatusBadgeProps {
   variant: StatusVariant;
   children: React.ReactNode;
   className?: string;
+  /** Distingue status que compartilham variante (ex.: `warning` cobre
+   *  "Concluído com ressalva" e "Aguardando revisão"). Decorativo: o texto do
+   *  badge já carrega o significado, então marque `aria-hidden` no ícone. */
+  icon?: React.ReactNode;
 }
 
-export function StatusBadge({ variant, children, className }: StatusBadgeProps) {
+export function StatusBadge({ variant, children, className, icon }: StatusBadgeProps) {
   return (
     <Badge
       variant="outline"
-      className={cn(variantStyles[variant], className)}
+      className={cn(variantStyles[variant], icon && "gap-1", className)}
     >
+      {icon}
       {children}
     </Badge>
   );

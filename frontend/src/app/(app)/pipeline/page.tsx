@@ -24,6 +24,11 @@ import {
   resolveStageName,
 } from "@/lib/pipelineStageNames";
 import { usePipelineWS } from "@/lib/usePipelineWS";
+import {
+  isDeliveredRun,
+  runStatusFromEvent,
+  terminalRunOutcome,
+} from "@/lib/pipelineRunOutcome";
 import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -47,8 +52,27 @@ import {
   getDismissedFreeTierRunId,
   setDismissedFreeTierRunId,
 } from "./_components/dismissedFreeTierBanner";
+import { PartialRunBanner } from "./_components/PartialRunBanner";
+import {
+  getDismissedPartialRunId,
+  setDismissedPartialRunId,
+} from "./_components/dismissedPartialRun";
 
 const ACTIVE_STATUSES = new Set(["pending", "running", "resuming"]);
+
+/** Banner dispensável: esconde o run já dispensado e limpa dispensa órfã. */
+function resolveDismissable(
+  run: PipelineRunResponse | null,
+  getDismissed: () => string | null,
+  setDismissed: (id: string | null) => void,
+): PipelineRunResponse | null {
+  const dismissedId = getDismissed();
+  if (!run) {
+    if (dismissedId) setDismissed(null);
+    return null;
+  }
+  return run.id === dismissedId ? null : run;
+}
 
 export default function PipelinePage() {
   const { workspace } = useWorkspace();
@@ -77,6 +101,11 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   // ADR-119 item 6 — timestamp do último `stage_activity` por stage.
   const lastActivityByStageRef = useRef<Record<string, number>>({});
   const [lastFailedRun, setLastFailedRun] = useState<PipelineRunResponse | null>(null);
+  /** Run terminal que entregou relatório com lacuna (ADR-357) — nunca vai para
+   *  `lastFailedRun`, que apagaria o `TriggerCard` e pintaria card de falha. */
+  const [lastPartialRun, setLastPartialRun] = useState<PipelineRunResponse | null>(null);
+  /** Fecha a janela em que WS e polling anunciam o mesmo run terminal. */
+  const notifiedRunIdRef = useRef<string | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [freeTierSkippedRun, setFreeTierSkippedRun] = useState<PipelineRunResponse | null>(null);
   const [pendingReviewCount, setPendingReviewCount] = useState<number>(0);
@@ -128,32 +157,50 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     }
   }, [activeRun, workspace.id]);
 
+  /** Toast + redirect de desfecho terminal. Único mapeamento status→UX,
+   *  compartilhado por WS e polling — o resume grava `completed` sem publicar
+   *  evento, então existe terminal que só o polling enxerga. */
+  const notifyRunOutcome = useCallback(
+    (status: string, runId: string | undefined, errorDetail?: string) => {
+      const outcome = terminalRunOutcome(status);
+      if (!outcome) return;
+      if (runId && notifiedRunIdRef.current === runId) return;
+      notifiedRunIdRef.current = runId ?? null;
+
+      toast[outcome.toast](outcome.title, {
+        description: errorDetail || outcome.description,
+        duration: outcome.durationMs,
+        action: outcome.redirectToReports
+          ? { label: "Ver relatórios", onClick: () => router.push("/reports") }
+          : undefined,
+      });
+      if (outcome.redirectToReports) {
+        setTimeout(() => router.push("/reports"), 2000);
+      }
+    },
+    [router],
+  );
+
+  const absorbTerminalRun = useCallback((updated: PipelineRunResponse) => {
+    setLastFailedRun(updated.status === "failed" ? updated : null);
+    setLastPartialRun(updated.status === "partial_failure" ? updated : null);
+    setActiveRun(ACTIVE_STATUSES.has(updated.status) ? updated : null);
+    setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+  }, []);
+
   const handleRunFinished = useCallback((event: PipelineEvent) => {
-    if (event.event === "run_completed") {
-      toast.success("Relatório gerado com sucesso!", {
-        action: { label: "Ver relatórios", onClick: () => router.push("/reports") },
-        duration: 8000,
-      });
-      setTimeout(() => router.push("/reports"), 2000);
-    } else if (event.event === "run_failed") {
-      toast.error("Pipeline falhou", {
-        description: event.error || "Verifique os detalhes da execução.",
-        duration: 8000,
-      });
-    } else if (event.event === "run_cancelled") {
-      toast.info("Pipeline cancelado", { duration: 4000 });
-    }
+    // Status do run manda sobre o nome do evento: ADR-357 proíbe evento novo,
+    // e os dois nomes admitidos carregam `status` — o leitor fica indiferente
+    // à escolha da A40.l18.
+    const status = runStatusFromEvent(event);
+    if (status) notifyRunOutcome(status, event.run_id ?? activeRun?.id, event.error);
 
     if (activeRun) {
-      getPipelineRun(workspace.id, activeRun.id).then((updated) => {
-        if (updated.status === "failed" || updated.status === "partial_failure") {
-          setLastFailedRun(updated);
-        }
-        setActiveRun(ACTIVE_STATUSES.has(updated.status) ? updated : null);
-        setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-      }).catch(() => setActiveRun(null));
+      getPipelineRun(workspace.id, activeRun.id)
+        .then(absorbTerminalRun)
+        .catch(() => setActiveRun(null));
     }
-  }, [activeRun, router, workspace.id]);
+  }, [activeRun, absorbTerminalRun, notifyRunOutcome, workspace.id]);
 
   const bumpWsLiveness = useCallback(() => {
     lastWsEventRef.current = Date.now();
@@ -194,24 +241,30 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
       setActiveRun(active ?? null);
 
       if (!active) {
-        const recentFailed = runsData.runs.find(
+        // Anuncia só o mais recente entre falhado e parcial — nunca os dois.
+        const notable = runsData.runs.find(
           (r) => r.status === "failed" || r.status === "partial_failure"
         );
-        const dismissedId = getDismissedFailedRunId();
-        if (recentFailed && recentFailed.id !== dismissedId) {
-          setLastFailedRun(recentFailed);
-        } else if (!recentFailed && dismissedId) {
-          // No more failed runs — clear stale dismissal.
-          setDismissedFailedRunId(null);
-        }
+        setLastFailedRun(resolveDismissable(
+          notable?.status === "failed" ? notable : null,
+          getDismissedFailedRunId,
+          setDismissedFailedRunId,
+        ));
+        setLastPartialRun(resolveDismissable(
+          notable?.status === "partial_failure" ? notable : null,
+          getDismissedPartialRunId,
+          setDismissedPartialRunId,
+        ));
 
-        const recentCompleted = runsData.runs.find((r) => r.status === "completed");
+        // Run parcial também pode ter pulado etapas por free tier — gatear em
+        // `completed` casava um run mais antigo e citava o runId errado.
+        const recentDelivered = runsData.runs.find((r) => isDeliveredRun(r.status));
         const dismissedFreeTierId = getDismissedFreeTierRunId();
-        if (recentCompleted && recentCompleted.id !== dismissedFreeTierId) {
-          const skipped = recentCompleted.stage_logs?.filter(
+        if (recentDelivered && recentDelivered.id !== dismissedFreeTierId) {
+          const skipped = recentDelivered.stage_logs?.filter(
             (s) => s.status === "skipped_free_tier"
           ) ?? [];
-          if (skipped.length > 0) setFreeTierSkippedRun(recentCompleted);
+          if (skipped.length > 0) setFreeTierSkippedRun(recentDelivered);
         }
       }
     } catch {
@@ -260,18 +313,11 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
       if (!activeRun) return;
       try {
         const updated = await getPipelineRun(workspace.id, activeRun.id);
-        setActiveRun(ACTIVE_STATUSES.has(updated.status) ? updated : null);
-        setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+        absorbTerminalRun(updated);
 
         if (!ACTIVE_STATUSES.has(updated.status)) {
           if (pollRef.current) clearInterval(pollRef.current);
-          if (updated.status === "failed" || updated.status === "partial_failure") {
-            setLastFailedRun(updated);
-          }
-          if (updated.status === "completed") {
-            toast.success("Relatório gerado com sucesso!");
-            setTimeout(() => router.push("/reports"), 1500);
-          }
+          notifyRunOutcome(updated.status, updated.id);
         }
       } catch {
         /* ignore polling errors */
@@ -282,11 +328,12 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [activeRun?.id, activeRun?.status, wsStatus, router, workspace.id]);
+  }, [activeRun?.id, activeRun?.status, wsStatus, absorbTerminalRun, notifyRunOutcome, workspace.id]);
 
   async function handleTrigger(fromStage?: string, incremental?: boolean) {
     setError("");
     setLastFailedRun(null);
+    setLastPartialRun(null);
     setFreeTierSkippedRun(null);
     setTriggering(true);
     try {
@@ -356,6 +403,18 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           />
         )}
 
+        {!activeRun && lastPartialRun && (
+          <PartialRunBanner
+            run={lastPartialRun}
+            onRetryDegraded={(fromStage) => handleTrigger(fromStage)}
+            triggering={triggering}
+            onDismiss={() => {
+              setDismissedPartialRunId(lastPartialRun.id);
+              setLastPartialRun(null);
+            }}
+          />
+        )}
+
         {showTrigger && (
           <TriggerCard
             readyCount={readyCount}
@@ -393,6 +452,12 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           <div className="mb-6 rounded-lg bg-gain/10 p-4 text-center text-sm text-gain">
             Relatório gerado com sucesso! Redirecionando...
           </div>
+        )}
+
+        {/* Janela transitória: `handleWSEvent` grava o run terminal em
+            `activeRun` sem filtro, e sem este slot a página fica vazia. */}
+        {activeRun?.status === "partial_failure" && (
+          <PartialRunBanner run={activeRun} redirecting />
         )}
 
         {freeTierSkippedRun && (

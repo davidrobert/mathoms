@@ -201,7 +201,10 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
     let lastRun: any = null;
     while (Date.now() < deadline) {
       lastRun = await pollRuns();
-      if (lastRun?.status === "completed") break;
+      // ADR-357: `partial_failure` é terminal e entregue — sai do loop e segue
+      // para abrir o relatório, senão o teste gira até o deadline e acusa
+      // "não completou" num run que completou.
+      if (lastRun?.status === "completed" || lastRun?.status === "partial_failure") break;
       if (lastRun?.status === "failed") {
         const failedLog = (lastRun.stage_logs ?? []).find(
           (s: any) => s.status === "failed",
@@ -214,9 +217,9 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
       await page.waitForTimeout(2_000);
     }
     expect(
-      lastRun?.status,
+      ["completed", "partial_failure"],
       `Pipeline não completou em 3min (status=${lastRun?.status}, stage=${lastRun?.current_stage})`,
-    ).toBe("completed");
+    ).toContain(lastRun?.status);
 
     // UI deve refletir estado final (concluído OU já redirecionou p/ /reports)
     await expect(

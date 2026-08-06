@@ -9,6 +9,7 @@
  * - Toda etapa técnica pertence a exatamente uma fase.
  * - Etapas desconhecidas caem em "processing" (fallback defensivo).
  */
+import { isDeliveredRun } from "./pipelineRunOutcome";
 
 export type PhaseId = "preparing" | "reading" | "organizing" | "reporting";
 
@@ -177,8 +178,9 @@ function phaseStatusFor(
   if (totalStages > 0 && completedStages === totalStages && !ctx.isFailed) {
     return "completed";
   }
-  // fase anterior à atual e sem logs ainda → considerar concluída se run completo
-  if (ctx.runStatus === "completed" && totalStages === 0) return "completed";
+  // fase anterior à atual e sem logs ainda → considerar concluída se o run
+  // entregou (ADR-357: `partial_failure` é terminal e entregue)
+  if (isDeliveredRun(ctx.runStatus) && totalStages === 0) return "completed";
   return "pending";
 }
 
@@ -191,11 +193,13 @@ export function computePhaseStates(
   currentStage: string | null | undefined,
   runStatus: string,
 ): PhaseState[] {
+  // NÃO casar `degraded` aqui: add-on advisory que não entregou não pinta a
+  // fase de vermelho (ADR-357 §3). Coberto por teste de mutação.
   const failedStage = stageLogs.find((s) => s.status === "failed");
   const ctx: PhaseContext = {
     activePhaseId: currentStage ? phaseOfStage(currentStage) : null,
     failedPhaseId: failedStage ? phaseOfStage(failedStage.stage) : null,
-    isFailed: runStatus === "failed" || runStatus === "partial_failure",
+    isFailed: runStatus === "failed",
     needsReview: runStatus === "needs_review",
     runStatus,
   };
@@ -203,7 +207,9 @@ export function computePhaseStates(
   return PIPELINE_PHASES.map((phase) => {
     const logsForPhase = stageLogs.filter((s) => phase.stages.includes(s.stage));
     const completedStages = logsForPhase.filter((s) =>
-      ["completed", "skipped", "skipped_free_tier"].includes(s.status),
+      // `degraded` terminou — só não entregou (ADR-357 §4, espelho de
+      // `_STAGE_DONE_STATUSES`). Sem ele a fase final nunca fecha.
+      ["completed", "skipped", "skipped_free_tier", "degraded"].includes(s.status),
     ).length;
     const totalStages = logsForPhase.length;
     const status = phaseStatusFor(phase.id, completedStages, totalStages, ctx);

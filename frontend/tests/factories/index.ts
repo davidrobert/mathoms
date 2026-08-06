@@ -210,6 +210,29 @@ export function makeRun(
   };
 }
 
+/**
+ * Run degradado (ADR-357 · A40.l21): terminal, **entregue**, com lacuna.
+ *
+ * Os três campos juntos são o que distingue parcial de falhado — sem
+ * `report_id` o teste "mostra Ver relatório" passa verde sem nunca renderizar
+ * o link, e sem `failed_at_stage: null` a fixture mente sobre §3 da ADR.
+ */
+export function makePartialRun(
+  overrides: Partial<PipelineRunResponse> = {},
+): PipelineRunResponse {
+  const n = next("run");
+  return makeRun({
+    status: "partial_failure" satisfies PipelineRunStatus,
+    report_id: `report-partial-${n}`,
+    failed_at_stage: null,
+    stage_logs: [
+      makeStageLog({ stage: "analyze_finances", status: "completed" }),
+      makeStageLog({ stage: "review_finances_holistic", status: "degraded" }),
+    ],
+    ...overrides,
+  });
+}
+
 // ─── Report ───
 
 export function makeReport(

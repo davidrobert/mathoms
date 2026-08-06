@@ -104,9 +104,10 @@ function ProgressBarExplainer({ llmStageActive }: { llmStageActive: boolean }) {
 }
 
 function progressBarFillClass(status: PipelineRunResponse["status"]) {
-  if (status === "failed" || status === "partial_failure") return "bg-loss";
+  if (status === "failed") return "bg-loss";
   if (status === "completed") return "bg-gain";
-  if (status === "needs_review") return "bg-warning";
+  // `partial_failure` entregou: mesma severidade de `needs_review` (ADR-357).
+  if (status === "needs_review" || status === "partial_failure") return "bg-warning";
   return "bg-primary";
 }
 
