@@ -4,7 +4,7 @@ type: lane
 title: "Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: open
 priority: P0
 branch_slug: a40-l18-criticidade-de-stage
 adrs:
@@ -14,7 +14,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/open
   - priority/p0
   - area/pipeline
   - area/backend
@@ -32,6 +32,25 @@ tags:
 > code até esta lane emitir o writer. O §Gate de saída do [`_README`](../_README.md)
 > manda **reverter a l21** (e o PR1 da [[A40.l20]]) se esta lane não mergear até
 > `date_target: 2026-08-17`.
+>
+> ## 🔓 Estado em 2026-08-06 — **PR1 entregue, PR2 (o writer) é o que falta**
+>
+> **`status: open`, não `in_progress`** — e a distinção não é burocrática. O PR1
+> (vocabulário inerte) mergeou em `4620cc04` (#1242); **não há branch nem PR
+> aberto** para o PR2. Deixar `in_progress` faria esta P0 parecer **tomada** e
+> ninguém a pegaria — o modo de falha exato que o §Delta de 2026-08-06 do
+> [`_README`](../_README.md) §Predicado documenta para o `blocked` stale, só que
+> pelo outro campo. Enquanto o PR2 não tiver dono, `open` é o valor honesto.
+>
+> **Já em `main`, não refazer:** `PipelineStageStatus.degraded` + gate de
+> paridade Python↔TS (`4620cc04`/#1242) · migration dos 5 valores + gate AST de
+> paridade de enum ([[A40.l19]], `c9688111`/#1241).
+>
+> **O PR2 é o §Delta do co-design + §Decisões do dono desta lane**, e o escopo
+> está fechado — o que falta é execução, não decisão. Comece por §Delta,
+> item 2 (a disposição cega à forma da não-entrega) e pelo §Critério de aceite
+> corrigido; o bullet de `validation` foi **invertido** em 2026-08-06 e a forma
+> antiga levaria ao comportamento errado.
 >
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fecha a **classe**, não o caso.
 > `depends_on` [[A40.l21]] por **ordem reader-first**: os leitores toleram
