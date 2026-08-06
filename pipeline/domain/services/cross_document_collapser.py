@@ -16,6 +16,14 @@ legítimo. Medido em 2026-08-05, porém, a força vem só de ``banco`` e da allo
 ``tipo_conta``: ``titular`` é satisfeito por vacuidade em 331/331 (perna LLM sem
 titular) e ``account_number_norm`` está vazio em 117/117 statements.
 
+**§D5 (2026-08-05) — row nativa nunca é removida.** A cardinalidade por arquivo
+([[ADR-354]] §Emenda 2) governa quantas rows da perna LLM sobrevivem, mas **não**
+autoriza corte no bucket nativo. Cortar lá removia 140 rows de uma classe — duplicação
+**intra-proveniência** cross-arquivo — da qual este service **retém** outras 576, porque
+``_group_by_key`` só forma grupo com ≥2 proveniências. O discriminador seria "existia
+perna LLM nesta chave", que é acidente: o razão ficaria sem poder afirmar nem que a
+classe foi removida nem que foi preservada. As 716 vão inteiras para a [[A42.l5]].
+
 **Duas premissas que este módulo NÃO verifica**, contra a leitura intuitiva:
 sobreposição de período (o metadado declarado é lixo na perna LLM — 85,2% das rows
 caem fora do próprio período — então não sustenta cláusula) e distinção entre "1
@@ -251,6 +259,15 @@ class _KeyGroup:
     def llm_rows(self) -> list[_Row]:
         return [row for row in self.rows if row[0].extraction_method == _LLM]
 
+    def keep_split(self) -> tuple[int, int]:
+        """``(keep_native, keep_llm)`` — FONTE ÚNICA do corte."""
+        # `rows_to_drop` e `_targets` derivavam isto em cópias separadas; mudar uma e
+        # não a outra fez o measure declarar 453 enquanto a mutação removia 593, e a
+        # fixture de 1+1 rows não exercitava a divergência (medido no corpus,
+        # 2026-08-05). `max(0, ...)` porque com nativas >= card o excedente é negativo.
+        keep_native = len(self.native_rows)  # D5: nativa nunca sai
+        return keep_native, max(0, self.survivor_cardinality - keep_native)
+
     def rows_to_drop(self) -> list[_Row]:
         """Rows excedentes, native-first, por ORDEM TOTAL DE CONTEÚDO."""
         # A escolha entre rows K4-idênticas É observável: `arquivo_origem`, `membro` e
@@ -258,10 +275,9 @@ class _KeyGroup:
         # `source_document` difere em 262/262. Então a ordem é de conteúdo e a POSIÇÃO
         # só desempata rows byte-idênticas do MESMO arquivo — caso em que a escolha é
         # inobservável. Ordinal puro quebraria sob parser que reordena o arquivo.
-        card = self.survivor_cardinality
-        keep_native = min(len(self.native_rows), card)
+        keep_native, keep_llm = self.keep_split()
         drop: list[_Row] = []
-        for rows, keep in ((self.native_rows, keep_native), (self.llm_rows, card - keep_native)):
+        for rows, keep in ((self.native_rows, keep_native), (self.llm_rows, keep_llm)):
             drop.extend(sorted(rows, key=_row_order)[keep:])
         return drop
 
@@ -329,8 +345,7 @@ class CrossDocumentCollapser:
         # converteria receita em transferência nas 6 chaves com kind assimétrico).
         # Sob a cardinalidade por arquivo, bucket NATIVO também perde row (2 nativas
         # de arquivos sobrepostos, card=1); a versão anterior só emitia alvo LLM.
-        keep_native = min(len(group.native_rows), card)
-        keep_llm = card - keep_native
+        keep_native, keep_llm = group.keep_split()  # fonte única — ver `keep_split`
         planned = (
             (group.native_rows, len(group.native_rows) - keep_native),
             (group.llm_rows, len(group.llm_rows) - keep_llm),

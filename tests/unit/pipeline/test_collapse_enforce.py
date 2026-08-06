@@ -63,6 +63,26 @@ def test_rows_removidas_de_fato_igualam_o_declarado() -> None:
     assert sum(r.count for r in removals) == declarado
 
 
+def test_declarado_bate_com_removido_em_corpus_HETEROGENEO() -> None:
+    """O eixo (i) sobre formas que DIVERGEM — a fixture de 1+1 rows não o exercita."""
+    # Foi assim que a D5 passou verde declarando 453 e removendo 593: `_targets` e
+    # `rows_to_drop` derivavam o corte em cópias separadas e concordavam só no caso
+    # simétrico. `keep_split` é a fonte única; este teste é o que trava a regressão.
+    formas = [(1, 1), (1, 3), (2, 1), (3, 2), (1, 2), (2, 2), (4, 1)]
+    entrada = []
+    for i, (n_nat, n_llm) in enumerate(formas):
+        entrada += [_doc(n_nat, f"nat{i}.pdf"), _doc(n_llm, f"llm{i}.pdf", "llm")]
+
+    saida, candidatos, removals = CrossDocumentCollapser().collapse(entrada)
+
+    removidas = _total_tx(entrada) - _total_tx(saida)
+    declarado = sum(c.removable_rows for c in candidatos if c.collapsible)
+    assert removidas == declarado == sum(r.count for r in removals)
+    # invariante da D5, no mesmo corpus heterogêneo
+    nat = lambda s: sum(len(x.transactions) for x in s if x.extraction_method == "native")  # noqa: E731
+    assert nat(entrada) == nat(saida)
+
+
 def test_removal_declara_cents_ASSINADO_nao_magnitude() -> None:
     """`candidate.valor_cents` é magnitude (`abs`); o ledger grava assinado. Reusar a
     magnitude faria `_declared_dedup_cents` nunca fechar contra `val_in − val_out`."""
@@ -74,12 +94,13 @@ def test_removal_declara_cents_ASSINADO_nao_magnitude() -> None:
 
 
 def test_removal_e_agregado_por_source_document() -> None:
-    """O ledger é per-group ⇒ atribuição global não fecha."""
+    """O ledger é per-group ⇒ atribuição global não fecha. Sob a D5 só a perna LLM
+    entra: os dois arquivos nativos sobrepostos ficam (escopo da [[A42.l5]])."""
     statements = [_doc(1, "a.pdf"), _doc(1, "b.pdf"), _doc(1, "llm.pdf", "llm")]
 
     _s, _c, removals = CrossDocumentCollapser().collapse(statements)
 
-    assert {r.source for r in removals} == {"b.pdf", "llm.pdf"}  # 'a.pdf' sobrevive
+    assert {r.source for r in removals} == {"llm.pdf"}
     assert all(r.canal == "cross_document_collapse" for r in removals)
 
 
@@ -126,14 +147,16 @@ def test_replace_preserva_campo_que_construtor_campo_a_campo_perderia() -> None:
     # O statement checado tem de PERDER row sem esvaziar — só assim passa pelo
     # `replace`. Com 1 row ele sai pelo ramo `else s`, intacto, e a asserção passaria
     # mesmo com construtor campo-a-campo (a mutação M4 sobreviveu por isso).
-    a, b = _doc(1, "a.pdf"), _doc(2, "b.pdf")
-    b.account_number_raw, b.account_number_norm = "12345-6", "123456"
-    llm = _doc(1, "llm.pdf", "llm")
+    # Sob a D5 quem perde row parcialmente é a perna LLM: 1 nativa + 3 LLM ⇒ card=3,
+    # keep_native=1, keep_llm=2 ⇒ o statement LLM perde 1 de 3 e passa pelo `replace`.
+    nativa = _doc(1, "a.pdf")
+    llm = _doc(3, "llm.pdf", "llm")
+    llm.account_number_raw, llm.account_number_norm = "12345-6", "123456"
 
-    saida, _c, _r = CrossDocumentCollapser().collapse([a, b, llm])
+    saida, _c, _r = CrossDocumentCollapser().collapse([nativa, llm])
 
-    sobrevivente = next(s for s in saida if s.source_document == "b.pdf")
-    assert len(sobrevivente.transactions) == 1  # perdeu 1 de 2 => passou pelo replace
+    sobrevivente = next(s for s in saida if s.source_document == "llm.pdf")
+    assert len(sobrevivente.transactions) == 2  # perdeu 1 de 3 => passou pelo replace
     assert sobrevivente.account_number_norm == "123456"
     assert sobrevivente.account_number_raw == "12345-6"
 
