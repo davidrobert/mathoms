@@ -176,6 +176,59 @@ veio do #973). Refutados: 5, entre eles a alegação de que a mudança no
 `chart_conclusions.yaml` seria fix inerte não declarado — o corpo do commit já
 a declara.
 
+**PR2 — elegibilidade (#1243), 2026-08-06.** Implementa a [[ADR-365]] + a nota
+[[RULE-elegibilidade-da-recomendacao]].
+
+O defeito que virou o coração do PR **não estava nos 3 achados que originaram a
+lane**: `pontos_urgentes` não consultava `gap_qualitativo`, então *"Contratar
+seguro de vida e invalidez / Alta / Imediato"* era emitido para **100% dos
+workspaces sem apólice de pessoa** — inclusive titular solteiro sem dependente
+econômico. Seguro de vida protege dependente econômico; sem dependente é custo
+puro. Passa a mapear o predicado canônico da [[ADR-240]] (KPI F), derrubando de
+**2 para 1** os produtores dele; `_has_apolice_vida_vigente` sai como código
+morto. O canônico é mais **estreito** (exige cobertura de `vida`, não qualquer
+bem `pessoa`): apólice de acidentes deixa de suprimir o item — verdadeiro-positivo
+antes oculto.
+
+`PontoUrgenteItem` ganha `code` estável + os dois eixos + `dado_faltante`.
+`analyze()` devolve **uma** lista; a partição em ranqueados × retidos é projeção,
+na serialização. O leitor que legitima o array de retidos é a frase por classe de
+motivo no `s10` — `PontosUrgentesCard.tsx` fica **intocado**, porque a copy de
+`degenerada` é decisão de superfície da [[A40.l22]].
+
+**Delta é de população, não de valor** — o gate mecânico de golden é cego a
+"quem recebe a recomendação". Medido nos dois substratos, que exercitam braços
+opostos: no `dogfood_view_model` (dois adultos, sem dependente) o gap é
+`sem gatilho` e o item **não é produzido** — não é retenção, é conselho que não
+existe ([[ADR-167]]); no `e5n_delivery` (família com cônjuge) o gap é
+`conjuge_sem_renda_propria`, o item sai do ranking como `degenerada` e o `s10`
+**declara**: *"1 recomendação não entrou na lista: Contratar seguro de vida e
+invalidez (a regra atual não distingue o seu caso)."*
+
+**Dois erros meus, pegos por medição e não por revisão:**
+
+1. O campo novo atravessa **três** construtores campo-a-campo e o
+   `E5OutputInputs` o engoliu — com a suíte **verde** e a chave ausente do
+   payload. Só apareceu rodando o substrato golden e imprimindo o E5. As provas
+   de travessia passaram a derivar de `dataclasses.fields()`.
+2. Marquei `rentabilidade_nao_medida` como `pendente_de_dado` e reverti: a
+   premissa **é** verificável (o item dispara *porque* o dado falta) e o conselho
+   é supri-lo — esconderia do ranking o item mais acionável. `pendente_de_dado`
+   significa "não consigo avaliar se o conselho se aplica", não "o conselho é
+   sobre um dado que falta".
+
+Verificação: `pytest tests` 5855 · `pytest backend/tests` 3175 · TS 22/22 ·
+prova de mutação em 4 rodadas matando 12 asserções · schema com
+`additionalProperties: false` no item, que **compra gate hoje**
+(`test_e5_golden_execution` valida um E5 gerado de verdade, fora do modo `warn`).
+
+> **Nota de execução, 2026-08-06:** o merge do #1243 ficou bloqueado por
+> **degradação do GitHub Actions** — `Service Unavailable` + `Failed to resolve
+> action download info`, com o job de validação de título (que só lê uma string)
+> falhando em 9m28s e 15m01s no `Set up job`, e o de pipeline estourando o
+> timeout de 5m contra ~30-40s históricos. Não é o diff; a suíte está verde
+> localmente. Re-run pendente.
+
 ## Estratégia decidida para PR2 e PR3 (painel 2026-08-06)
 
 Segundo painel de 6 especialistas, com **22 objeções sustentadas** contra o

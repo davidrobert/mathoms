@@ -14,6 +14,16 @@ tags:
 
 # ADR-365 — Elegibilidade e proveniência da premissa de uma recomendação
 
+> **Desvio de forma, declarado.** A política do CLAUDE.md pede ADR `Proposto`
+> **antes** do PR de implementação, e o `information-architect` recomendou um PR
+> docs-only separado. Esta nota foi aberta no **primeiro commit do próprio PR de
+> implementação** (#1243). O ganho de revisão-antes-de-codar foi obtido pelo
+> co-design que a precede (painel de 6 especialistas, 22 objeções sustentadas
+> contra o código); o que se perde é a janela em que o vault registra a proposta
+> sem o código atrás dela. Registro para não virar precedente silencioso.
+> O flip para `Decidido` é **decisão do dono**, não consequência do merge
+> (precedente [[ADR-361]] §Emenda 2026-08-05).
+
 ## Contexto
 
 O relatório recomenda ações no plano (`pontos_urgentes`) sem distinguir a
