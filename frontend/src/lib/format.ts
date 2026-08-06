@@ -444,7 +444,9 @@ const RUN_STATUS_MAP: Record<PipelineRunStatus, StatusLabel> = {
   pending:         { label: "Pendente",       variant: "neutral" },
   running:         { label: "Em execução",    variant: "info" },
   completed:       { label: "Concluído",      variant: "success" },
-  partial_failure: { label: "Parcial",        variant: "warning" },
+  // "Parcial" responde "quanto rodou?"; a pergunta do usuário é "eu tenho
+  // relatório?" (A40.l21).
+  partial_failure: { label: "Concluído com ressalva", variant: "warning" },
   failed:          { label: "Falhou",         variant: "error" },
   cancelled:       { label: "Cancelado",      variant: "muted" },
   needs_review:    { label: "Aguardando revisão", variant: "warning" },
@@ -469,6 +471,7 @@ const STAGE_STATUS_MAP: Record<PipelineStageStatus, StageStatusLabel> = {
   skipped:           { label: "Ignorado",           variant: "muted",    icon: "⊘" },
   skipped_free_tier: { label: "Premium",            variant: "muted",    icon: "⊘" },
   needs_review:      { label: "Aguardando revisão", variant: "warning",  icon: "⚠" },
+  degraded:          { label: "Não publicado",      variant: "warning",  icon: "◐" },
 };
 
 export function stageStatusLabel(status: PipelineStageStatus): StageStatusLabel {

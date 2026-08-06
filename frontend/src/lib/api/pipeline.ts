@@ -19,7 +19,10 @@ export type PipelineStageStatus =
   | "failed"
   | "skipped"
   | "skipped_free_tier"
-  | "needs_review";
+  | "needs_review"
+  // ADR-357 §3 — add-on advisory que não entregou. Leitor tolerante antes do
+  // writer (A40.l21 shipa antes da A40.l18); terminal e não retomável.
+  | "degraded";
 
 export interface PipelineStageLog {
   id: string;
@@ -80,7 +83,8 @@ export interface PipelineEvent {
   event: string;
   run_id?: string;
   stage?: string;
-  status?: string;
+  /** Evento run-level carrega o status do run; evento de stage, o do stage. */
+  status?: PipelineRunStatus | PipelineStageStatus;
   progress_pct?: number;
   error?: string;
   detail?: Record<string, unknown>;

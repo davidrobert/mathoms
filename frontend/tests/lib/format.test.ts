@@ -658,6 +658,15 @@ describe("runStatusLabel()", () => {
     expect(out.label.length).toBeGreaterThan(0);
     expect(out.variant).toMatch(/^(success|warning|error|info|neutral|premium|muted)$/);
   });
+
+  // A40.l21: "Parcial" respondia "quanto rodou?"; o rótulo tem de responder
+  // "eu tenho relatório?". Trava o texto — o it.each acima não o faria.
+  it("partial_failure é 'Concluído com ressalva', em warning", () => {
+    expect(runStatusLabel("partial_failure")).toEqual({
+      label: "Concluído com ressalva",
+      variant: "warning",
+    });
+  });
 });
 
 describe("stageStatusLabel()", () => {
@@ -669,12 +678,21 @@ describe("stageStatusLabel()", () => {
     "skipped",
     "skipped_free_tier",
     "needs_review",
+    "degraded",
   ];
 
   it.each(ALL)("retorna label/variant/icon para %s", (s) => {
     const out = stageStatusLabel(s);
     expect(out.label.length).toBeGreaterThan(0);
     expect(out.icon.length).toBeGreaterThan(0);
+  });
+
+  // Leitor tolerante antes do writer (ADR-357 §3): sem entrada no mapa, a UI
+  // mostraria a string crua "degraded" com ícone "?".
+  it("degraded não vaza vocabulário de backend na tela", () => {
+    const out = stageStatusLabel("degraded");
+    expect(out.label).toBe("Não publicado");
+    expect(out.variant).toBe("warning");
   });
 });
 

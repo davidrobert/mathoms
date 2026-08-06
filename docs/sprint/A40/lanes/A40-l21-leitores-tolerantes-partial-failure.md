@@ -4,7 +4,7 @@ type: lane
 title: "Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l21-leitores-tolerantes-partial-failure
 adrs:
@@ -13,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/frontend
 ---
@@ -33,10 +33,10 @@ e já tem rótulo "Parcial" com variante `warning` em
 lógica o trata como **falha** em **7** read sites (9 hits de `partial_failure` em
 `frontend/src/` menos as 2 declarações acima):
 
-- `frontend/src/lib/pipelinePhases.ts` — `isFailed: runStatus === "failed" || runStatus === "partial_failure"`. Pinta a fase "Montando seu relatório" de vermelho num run que **produziu** relatório: ativamente enganoso.
+- `frontend/src/lib/pipelinePhases.ts` — `isFailed: runStatus === "failed" || runStatus === "partial_failure"`. (Descrição corrigida na execução: não pinta de vermelho — **veta** o ramo `completed` das 4 fases, deixando o stepper todo cinza. Ver §Correções de premissa.)
 - `frontend/src/app/(app)/pipeline/page.tsx` (3 sites) — `lastFailedRun` levanta banner de falha para run que produziu relatório.
 - `frontend/src/app/(app)/pipeline/_components/HistoryRow.tsx` (2 sites)
-- `frontend/src/app/(app)/pipeline/_components/ActiveRunCard.tsx` — `bg-loss` onde deveria ser `bg-warning`.
+- `frontend/src/app/(app)/pipeline/_components/ActiveRunCard.tsx` — `bg-loss` onde deveria ser `bg-warning`. (Este site e o anterior são **inalcançáveis pela página** mesmo pós-[[A40.l18]]: `ActiveRunCard` só renderiza sob `ACTIVE_STATUSES`. Corrigidos por tolerância, provados por teste direto — teste de página com fixture parcial passaria verde sem tocá-los.)
 
 E o **toast + redirect** disparam só em `completed`: run parcial hoje não emite
 toast nenhum e **abandona o usuário em `/pipeline`** sem dizer que existe
@@ -65,11 +65,113 @@ parâmetro, em vez de ganhar um terceiro evento.
 lane** — é dead code pelos nossos próprios critérios. O PR do writer referencia
 o número deste PR.
 
+## Correções de premissa medidas na execução (2026-08-05)
+
+O recon de execução varreu `frontend/src/` inteiro e achou **24 sites
+materiais**, não 7. Os 7 da §Problema conferem (`rg "partial_failure"` dá 9
+hits menos 2 declarações), mas são o subconjunto que cita o literal. Três
+correções que mudam o trabalho, não só a contagem:
+
+1. **O site nº 1 está descrito errado.** `pipelinePhases.ts:198 isFailed` não
+   pinta a fase de vermelho: o vermelho vem de `ctx.failedPhaseId`, que exige
+   um `stage_log` com status `failed` — e a [[ADR-357]] §3 decide que a etapa
+   degradada grava `degraded`. O que `isFailed` faz é **vetar** o ramo
+   `completed` das 4 fases, que caem em `runStatus === "completed"` e viram
+   `pending`: stepper todo cinza, progresso travado. Fix diferente — exige
+   mexer também na linha do atalho de fase sem logs e no conjunto de etapas
+   terminadas.
+2. **Classe de omissão irmã, não enumerada.** Seis sites perguntam "este run
+   entregou?" com `=== "completed"` e por isso **excluem** o run parcial:
+   toast/redirect do WS, toast/redirect do polling, banner de free tier
+   (casava um `completed` mais antigo e citava o `runId` errado), o slot
+   transitório da página, o atalho de fase sem logs, e o loop do
+   `golden-path.spec.ts`. Fechada com o predicado `isDeliveredRun`.
+3. **`degraded` (stage) também é vocabulário novo da [[ADR-357]].** Leitor cego
+   a ele mostraria a string crua com ícone `?` e nunca fecharia a fase final.
+   Entra nesta lane pela mesma disciplina expand/contract.
+
+**Falso-verde evitado no critério original:** 2 dos 7 sites
+(`pipelinePhases.ts:198` e `ActiveRunCard.tsx:107`) só rodam dentro do
+`ActiveRunCard`, que a página renderiza apenas sob
+`ACTIVE_STATUSES = {pending, running, resuming}` — um teste de página com
+fixture parcial passa verde **sem tocá-los**. Precisam de teste direto de
+unidade.
+
+**Limite declarado do gate axe:** em jsdom o axe classifica `color-contrast`
+como `incomplete`, nunca `violations`, e o helper do repo lê só `violations`.
+O par light/dark prova estrutura ARIA/DOM, **não** contraste; contraste real
+exige Playwright/Lighthouse.
+
 ## Critério de aceite
 
-- `pipelinePhases.isFailed` **não** contém `partial_failure`.
-- Toast + redirect disparam em `partial_failure`, não só em `completed`.
-- Fixture de `partial_failure` (o helper de `frontend/tests/lib/format.test.ts`
-  já constrói o estado) ⇒ nenhum dos **7** sites renderiza afordância de falha.
+- `pipelinePhases.isFailed` **não** contém `partial_failure`, e
+  `stageLogs.find(status === "failed")` **continua cego** a `degraded`
+  (as duas metades, provadas por mutação).
+- Toast + redirect disparam em `partial_failure`, nos **dois** caminhos (WS e
+  polling), e o desfecho vem do `status` do run — não do nome do evento.
+- Fixture `makePartialRun()` (`status`, `report_id` populado e
+  `failed_at_stage: null` juntos) ⇒ nenhum site renderiza afordância de falha
+  **e** a afordância positiva "Ver relatório" é asserida.
 - `cd frontend && npm test -- --run` verde; `tsc --noEmit` verde.
 - axe-core 0 critical/serious no histórico com run parcial, light e dark.
+- `make update-openapi-snapshot` com **diff vazio** — `partial_failure` já
+  está publicado; diff ⇒ [[ADR-357]] §3 foi violada.
+
+## Amarra de reversão (2026-08-05)
+
+O gatilho já é computável e mora no
+[§Gate de saída da [[MOC-sprint-a40]]](../_README.md): se a [[A40.l18]] não
+tiver mergeado até `date_target` (`2026-08-17`), esta lane é revertida — os
+read sites são dead code enquanto nenhum writer emite o status. **Dono:** quem
+fizer o pickup seguinte após a data. Esta seção não cria mecanismo novo (seria
+segunda fonte de verdade); registra a **receita**, que faltava:
+
+- `git revert <sha-do-squash de #<PR>>` — PR único, frontend-only + 2 testes de
+  backend (um pina campo já emitido, outro é tripwire negativo).
+- Não há PR pareado a reverter junto.
+
+**"Risco zero" é sobre o status novo, não sobre o PR inteiro** (correção de
+2026-08-05). O PR carrega 5 mudanças de UX em statuses **vivos**, que o revert
+também desfaz — enumeradas aqui porque um revert cego as perderia em silêncio:
+
+1. "Ver relatório" volta a ser hover-only em todo run com `report_id` (inclui
+   `completed`) — invisível em toque e no foco por teclado.
+2. Metadados do histórico ("N etapa(s)", duração) voltam a aparecer abaixo de
+   520px, onde sobrepõem o bloco da direita.
+3. O `focus-within` + `pointer-events-none` do cluster de retry some — volta o
+   alvo clicável invisível.
+4. Copy dos toasts de `failed`/`cancelled` volta a "Pipeline falhou" /
+   "Pipeline cancelado" (jargão vedado pelo COPY_GUIDELINES §6.3).
+5. O caminho de polling volta a **não** anunciar `failed`/`cancelled` — quem
+   está com WebSocket caído fica sem aviso nenhum.
+
+Se o revert acontecer, re-landar os 5 em PR próprio.
+
+## Pré-condições que este PR impõe à [[A40.l18]]
+
+O leitor passou a depender de duas coisas que o writer precisa honrar:
+
+1. **O call-site de `_finalize_run` tem de passar o status real** ao helper
+   run-level. Assinatura com default (`status: str = "completed"`) não basta:
+   `test_run_level_event_carries_status` chama o publisher sem argumento e
+   continuaria verde. O gate é um teste **no call-site**, não no publisher.
+2. **A etapa degradada tem de gravar `stage_log.status == "degraded"`** — o
+   leitor casa a string exata para a copy da lacuna e para o reprocessamento
+   direcionado. Gravar `skipped` ou `failed` degrada em silêncio (com `failed`,
+   volta a pintar a fase de vermelho). Tripwire negativo em
+   `backend/tests/test_events.py::test_degraded_stage_status_ainda_nao_existe`
+   fica vermelho no PR que criar o membro do enum.
+
+**Não coberto:** se a [[A40.l18]] inventar um nome de evento novo apesar da
+[[ADR-357]], `usePipelineWS.TERMINAL_EVENTS` não casa, `onRunFinished` nunca
+dispara e a página gira para sempre num run terminado. Mudar aquele conjunto
+para um predicado por status foi avaliado e recusado neste PR: altera semântica
+de fechamento de socket para todos os runs, em troca de zero benefício
+alcançável hoje.
+
+**Hand-off para a [[A40.l22]]:** a lista em `/reports`
+(`frontend/src/app/(app)/reports/page.tsx`) não tem indicador de degradação
+nenhum — e é para lá que o usuário é redirecionado. A l22 é a dona.
+
+Deliberadamente **fora** desta lane: estados de degradação dentro do relatório
+e no PDF ([[A40.l22]]), e a UI de "gerado e retido" ([[A40.l20]]).

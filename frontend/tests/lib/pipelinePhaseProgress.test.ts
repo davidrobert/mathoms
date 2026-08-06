@@ -117,6 +117,85 @@ describe("computePhaseProgress", () => {
     expect(phaseOfStage(stage)).toBe(expected);
   });
 
+  // ─── ADR-357 / A40.l21 — run degradado é terminal e entregue ───
+
+  const allStagesWith = (degradedStage: string) =>
+    PIPELINE_PHASES.flatMap((p) =>
+      p.stages.map((s) => ({
+        stage: s,
+        status: s === degradedStage ? "degraded" : "completed",
+      })),
+    );
+
+  it("partial_failure não pinta nenhuma fase de falha", () => {
+    const states = computePhaseStates(
+      allStagesWith("review_finances_holistic"),
+      null,
+      "partial_failure",
+    );
+    expect(states.every((s) => s.status !== "failed")).toBe(true);
+  });
+
+  // Mata a mutação plausível "completa a exaustividade" em
+  // `stageLogs.find(s => s.status === "failed" || s.status === "degraded")`.
+  it("etapa degradada não marca a fase como falhada", () => {
+    const states = computePhaseStates(
+      allStagesWith("review_finances_holistic"),
+      null,
+      "partial_failure",
+    );
+    const reporting = states.find((s) => s.phase.id === "reporting")!;
+    expect(reporting.status).toBe("completed");
+  });
+
+  it("fase sem logs próprios fecha num run parcial (não fica pendente)", () => {
+    // Só as fases 1-3 têm logs; a 4 não registrou nenhuma etapa.
+    const logs = PIPELINE_PHASES.slice(0, 3).flatMap((p) =>
+      p.stages.map((s) => ({ stage: s, status: "completed" })),
+    );
+    const states = computePhaseStates(logs, null, "partial_failure");
+    expect(states.find((s) => s.phase.id === "reporting")!.status).toBe("completed");
+  });
+
+  it("run parcial chega a 100% — entregou", () => {
+    const states = computePhaseStates(
+      allStagesWith("review_finances_holistic"),
+      null,
+      "partial_failure",
+    );
+    expect(computePhaseProgress(states)).toBe(100);
+  });
+
+  // O ramo VIVO: `computePhaseStates` tem um consumidor só (`ActiveRunCard`),
+  // que só renderiza sob status ativo — logo `runStatus === "partial_failure"`
+  // nunca chega lá. Um stage `degraded` durante a cauda, sim.
+  it("run ainda rodando com etapa já degradada não trava o stepper", () => {
+    const logs = [
+      ...PIPELINE_PHASES.slice(0, 2).flatMap((p) =>
+        p.stages.map((s) => ({ stage: s, status: "completed" })),
+      ),
+      ...PIPELINE_PHASES[2].stages.map((s) => ({
+        stage: s,
+        status: s === "generate_narratives" ? "degraded" : "completed",
+      })),
+    ];
+    const states = computePhaseStates(logs, "validate_cross", "running");
+    const organizing = states.find((s) => s.phase.id === "organizing")!;
+    expect(organizing.status).toBe("completed");
+    expect(computePhaseProgress(states)).toBeGreaterThan(50);
+  });
+
+  it("run failed continua pintando a fase da etapa que falhou", () => {
+    const logs = PIPELINE_PHASES.flatMap((p) =>
+      p.stages.map((s) => ({
+        stage: s,
+        status: s === "reconcile_transactions" ? "failed" : "completed",
+      })),
+    );
+    const states = computePhaseStates(logs, null, "failed");
+    expect(states.find((s) => s.phase.id === "organizing")!.status).toBe("failed");
+  });
+
   it("monotônico: progresso nunca decresce conforme stages adicionam", () => {
     const phase2Stages = PIPELINE_PHASES[1].stages;
     let prev = 0;
