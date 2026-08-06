@@ -34,6 +34,8 @@ function premiumResponse(): PlannerReviewResponse {
     tier_at_generation: "premium",
     items_shown_count: 5,
     items_gated_count: 0,
+    outcome: "entregue",
+    retention: null,
     cost_usd_cents: 42,
     created_at: "2026-05-13T16:00:00Z",
     published_at: null,
@@ -116,19 +118,20 @@ function premiumResponse(): PlannerReviewResponse {
 
 function freeResponse(): PlannerReviewResponse {
   const p = premiumResponse();
+  const base = p.content!;
   return {
     ...p,
     tier_at_generation: "free",
     items_gated_count: 14,
     content: {
-      ...p.content,
-      pontos_fortes: p.content.pontos_fortes.slice(0, 1),
+      ...base,
+      pontos_fortes: base.pontos_fortes.slice(0, 1),
       sugestoes_execucao: [],
       sugestoes_taticas: [],
       sugestoes_estrategicas: [],
       metricas: [],
       meta: {
-        ...p.content.meta,
+        ...base.meta,
         tier_at_generation: "free",
         gated_counts: {
           pontos_fortes: 2,
@@ -144,16 +147,30 @@ function freeResponse(): PlannerReviewResponse {
   };
 }
 
+function retainedResponse(
+  reason:
+    | "parecer.citacao_nao_confirmada"
+    | "parecer.sigilo" = "parecer.citacao_nao_confirmada",
+): PlannerReviewResponse {
+  return {
+    ...premiumResponse(),
+    items_shown_count: 0,
+    outcome: "retido",
+    retention: { reason, items_dropped_count: 0 },
+    content: null,
+  };
+}
+
 describe("<SParecerSection /> @ADR-199", () => {
   it("renderiza empty state quando endpoint retorna 404 not_generated_yet", async () => {
     server.use(
-      http.get(
-        `${API}/workspaces/:wsId/reports/:reportId/planner-review`,
-        () =>
-          HttpResponse.json(
-            { detail: { code: "not_generated_yet", message: "ainda não gerado" } },
-            { status: 404 },
-          ),
+      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+        HttpResponse.json(
+          {
+            detail: { code: "not_generated_yet", message: "ainda não gerado" },
+          },
+          { status: 404 },
+        ),
       ),
     );
 
@@ -165,11 +182,87 @@ describe("<SParecerSection /> @ADR-199", () => {
     expect(screen.getByText("Parecer ainda não gerado")).toBeInTheDocument();
   });
 
+  it("declara o parecer retido em vez de dizer que não foi gerado (ADR-366)", async () => {
+    server.use(
+      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+        HttpResponse.json(retainedResponse()),
+      ),
+    );
+
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-retained")).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText("Parecer retido neste relatório"),
+    ).toBeInTheDocument();
+    // Delimitação de dano: o cliente não pode generalizar a lacuna do add-on.
+    expect(
+      screen.getByText("Os números das demais seções não mudam."),
+    ).toBeInTheDocument();
+    // A copy de "ainda não gerado" MENTE aqui — é o defeito que a lane conserta.
+    expect(screen.queryByTestId("parecer-empty")).not.toBeInTheDocument();
+  });
+
+  it("não vaza vocabulário de operador no estado retido (ADR-366 §D3)", async () => {
+    server.use(
+      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+        HttpResponse.json(retainedResponse("parecer.sigilo")),
+      ),
+    );
+
+    const { container } = render(
+      <SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />,
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-retained")).toBeInTheDocument();
+    });
+
+    const html = container.innerHTML;
+    for (const leak of [
+      "placeholder",
+      "error_detail",
+      "_meta",
+      "whitelist_miss",
+      "resolve_null",
+      "pairing_mismatch",
+      "needs_review",
+      "parecer.sigilo",
+    ]) {
+      expect(html).not.toContain(leak);
+    }
+    // `risco:N` é o shape do vocabulário de operador; "Risco" sozinho é legítimo.
+    expect(html).not.toMatch(/risco:\s*\d/i);
+  });
+
+  it("motivo desconhecido cai no fallback — classe nova não apaga a seção", async () => {
+    server.use(
+      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+        HttpResponse.json({
+          ...retainedResponse(),
+          retention: {
+            reason: "parecer.motivo_do_futuro",
+            items_dropped_count: 0,
+          },
+        }),
+      ),
+    );
+
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-retained")).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText("O parecer deste relatório não foi publicado."),
+    ).toBeInTheDocument();
+  });
+
   it("renderiza parecer premium completo (hero + risco crítico + movimento P0)", async () => {
     server.use(
-      http.get(
-        `${API}/workspaces/:wsId/reports/:reportId/planner-review`,
-        () => HttpResponse.json(premiumResponse()),
+      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+        HttpResponse.json(premiumResponse()),
       ),
     );
 
@@ -178,27 +271,34 @@ describe("<SParecerSection /> @ADR-199", () => {
     await waitFor(() => {
       expect(screen.getByTestId("parecer-hero")).toBeInTheDocument();
     });
-    expect(screen.getByTestId("parecer-tier-badge")).toHaveTextContent("Premium");
+    expect(screen.getByTestId("parecer-tier-badge")).toHaveTextContent(
+      "Premium",
+    );
     expect(screen.getByTestId("parecer-risks-table")).toBeInTheDocument();
-    expect(screen.getByText("Concentração imobiliária 70%")).toBeInTheDocument();
+    expect(
+      screen.getByText("Concentração imobiliária 70%"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("parecer-movimento-card")).toBeInTheDocument();
-    expect(screen.getByText("Diversificar 15% do imobiliário")).toBeInTheDocument();
+    expect(
+      screen.getByText("Diversificar 15% do imobiliário"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("parecer-metricas-table")).toBeInTheDocument();
     expect(screen.getByTestId("parecer-disclaimer")).toBeInTheDocument();
   });
 
   it("renderiza tier free com badge Amostra + teaser '+N no Premium'", async () => {
     server.use(
-      http.get(
-        `${API}/workspaces/:wsId/reports/:reportId/planner-review`,
-        () => HttpResponse.json(freeResponse()),
+      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+        HttpResponse.json(freeResponse()),
       ),
     );
 
     render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
 
     await waitFor(() => {
-      expect(screen.getByTestId("parecer-tier-badge")).toHaveTextContent("Amostra");
+      expect(screen.getByTestId("parecer-tier-badge")).toHaveTextContent(
+        "Amostra",
+      );
     });
     // Teaser de horizonte execução
     expect(
@@ -209,9 +309,8 @@ describe("<SParecerSection /> @ADR-199", () => {
 
   it("não cita Perini/Cerbasi/AUVP no DOM renderizado (sigilo §13)", async () => {
     server.use(
-      http.get(
-        `${API}/workspaces/:wsId/reports/:reportId/planner-review`,
-        () => HttpResponse.json(premiumResponse()),
+      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+        HttpResponse.json(premiumResponse()),
       ),
     );
 
@@ -231,9 +330,8 @@ describe("<SParecerSection /> @ADR-199", () => {
 
   it("renderiza disclaimer fiduciário visível", async () => {
     server.use(
-      http.get(
-        `${API}/workspaces/:wsId/reports/:reportId/planner-review`,
-        () => HttpResponse.json(premiumResponse()),
+      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+        HttpResponse.json(premiumResponse()),
       ),
     );
 
