@@ -311,6 +311,15 @@ incidente expôs: contrato de criticidade de stage, `partial_failure` alcançáv
 o retido declarado na tela. É a §Frente 4 de [[PLAN-report-trust]] — leia lá a
 tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 
+> **Estado da Onda 3 em 2026-08-06.** [[A40.l21]] ✅ `c8239386` (#1232) ·
+> [[A40.l19]] ✅ `c9688111` (#1241) · [[A40.l18]] **PR1** ✅ `4620cc04` (#1242),
+> **PR2 (o writer) pendente** · [[A40.l20]] e [[A40.l22]] não iniciadas.
+> A l19 subiu de posição na execução por ser **pré-condição dura** do PR2 da
+> l18 (`degraded` precisa existir no tipo do DB antes de qualquer `INSERT`), e o
+> gate que ela trouxe usa direção-subconjunto, o que tornou a ordem
+> l19 → l18 segura em todo instante. Com ela em `main`, o item 1 da [[A40.l27]]
+> também destravou.
+
 **Ordem interna, e nenhuma das três é estética:**
 
 - **[[A40.l21]] antes de [[A40.l18]]** (reader-first). Os **7** read sites de
@@ -486,6 +495,31 @@ primeiro relatório pós-merge (seed + `n` + censura deslocam todo o bloco de IF
 sem a nota a leitura racional de "IF em 2040" virar 2041 é "meu plano piorou");
 **re-rodar o Tier-1** do gate F2 (`make go-parity WS=<dogfood> RUNS=2`) para
 confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
+
+## Decisões do dono — A40.l18 (2026-08-06)
+
+Três perguntas que o painel de co-design da [[A40.l18]] classificou como
+não-delegáveis. **Todas respondidas na mesma sessão**, com a recomendação
+aceita nos três casos. O detalhe e o mecanismo ficam na lane (§Decisões do
+dono); aqui fica o registro de que foram feitas e quando, para que o §Gate de
+saída não as reabra por esquecimento.
+
+1. **Honestidade na tela em run degradado — metade negativa agora.** O PR2 da
+   l18 suprime o `CleanBar` (que hoje **afirma** "sem pendências que afetem a
+   leitura deste relatório", inclusive no PDF); a ressalva positiva fica com a
+   [[A40.l22]]. Recusado segurar o PR2 até a l22 — ela depende do PR1 da
+   [[A40.l20]] e estouraria a `date_target`, revertendo a [[A40.l21]] já em `main`.
+2. **Detecção de degradação — card em `/admin/metrics` + cadência do dono.**
+   Sentry fica para a próxima janela (segue OWNER-GATED). Recusado
+   explicitamente "só log estruturado".
+3. **Tolerância de conservação — follow-up com ADR própria**, fora do PR2. Ver
+   [[A40.l18]] §Follow-ups nomeados, item 1: `patrimonio_composicao_diff_pct_max: 5`
+   deixa passar R$ 150k–400k não explicados num patrimônio de R$ 3–8M, e os dois
+   únicos checks de tolerância zero (CV16/CV17) estão fora do conjunto que pausa.
+
+Estas **não** entram em [[OWNER-GATED]] pelo mesmo critério da §Pendências
+abaixo: aquele registro é de gates estratégicos entre planos, e higiene de
+sprint diluiria o sinal dele.
 
 ## Pendências de decisão (2026-08-03)
 
