@@ -20,9 +20,9 @@ from pipeline.domain.services.narrativas.alocacao_narrator import (
 )
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
+    TOP_DECISOES_RENDER,
     categorias_ativos_sufixo,
     ensure_period,
-    fmt_aporte_contexto,
     fmt_currency,
     fmt_num,
     fmt_percent,
@@ -358,6 +358,9 @@ _BUBBLE_EMPTY_CONCLUSION = (
 # A40.l10 (RV4-02): fila vazia dizia "Prioridade 1: Aporte mensal R$ 0,00" —
 # afirmava uma prioridade que ninguém registrou. Mesma forma do empty state
 # do bubble acima: nomeia a ausência e aponta a tela que a resolve.
+_DECISOES_EMPTY_CONTEXT = (
+    "Nenhuma decisão estratégica de curto prazo (6-12 meses) registrada para este ciclo."
+)
 _DECISOES_EMPTY_CONCLUSION = (
     "Nenhuma decisão priorizada para os próximos 6 a 12 meses. Registre na tela "
     "Plano de Ação as decisões que pretende executar neste ciclo para que entrem "
@@ -421,18 +424,21 @@ def _narrate_bubble_riscos(
 
 
 def _fmt_fila_decisoes(decisoes: list[str]) -> str:
-    """Enumera a fila **inteira** a partir da posição 1 (top-5 já cortado a montante)."""
-    return ". ".join(f"Prioridade {i + 1}: {d.rstrip('.')}" for i, d in enumerate(decisoes[:5]))
+    """Enumera a fila a partir da posição 1; ``ensure_period`` por item preserva '?' e '!'."""
+    return " ".join(
+        ensure_period(f"Prioridade {i + 1}: {d.rstrip()}")
+        for i, d in enumerate(decisoes[:TOP_DECISOES_RENDER])
+    )
 
 
-def _narrate_top5_decisoes(M: Mapping[str, Any], decisoes: list[str]) -> dict[str, str]:
+# O enquadramento de aporte NÃO entra aqui — vive no `summaries.s10`, que
+# renderiza logo acima deste card na mesma seção. Emitir nos dois repetia a
+# sentença verbatim (achado da verificação adversarial da A40.l10).
+def _narrate_top5_decisoes(_M: Mapping[str, Any], decisoes: list[str]) -> dict[str, str]:
+    if not decisoes:
+        return {"context": _DECISOES_EMPTY_CONTEXT, "conclusion": _DECISOES_EMPTY_CONCLUSION}
     context = (
         f"{len(decisoes)} {pluralize(len(decisoes), 'decisão estratégica', 'decisões estratégicas')} "
         "de curto prazo (6-12 meses) para otimizar a trajetória até IF."
     )
-    # Fila vazia não recebe o enquadramento de aporte: com nada priorizado, a
-    # meta seria a única frase do card e voltaria a ser lida como a prioridade.
-    if not decisoes:
-        return {"context": context, "conclusion": _DECISOES_EMPTY_CONCLUSION}
-    conclusion = fmt_aporte_contexto(M) + _fmt_fila_decisoes(decisoes)
-    return {"context": context, "conclusion": ensure_period(conclusion)}
+    return {"context": context, "conclusion": _fmt_fila_decisoes(decisoes)}

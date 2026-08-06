@@ -47,10 +47,15 @@ def test_top5_decisoes_context_plural_when_multiple_decisoes():
     assert "3 decisões estratégicas" in context
 
 
-def test_top5_decisoes_context_plural_when_zero_decisoes():
+# A40.l10: fila vazia deixou de contar ("0 decisões estratégicas ... para
+# otimizar a trajetória até IF" enunciava propósito sobre conjunto vazio) e
+# passou a nomear a ausência. A pluralização com n=0 segue coberta pelos
+# unitários de `pluralize` no fim deste arquivo.
+def test_top5_decisoes_context_zero_decisoes_nomeia_a_ausencia():
     out = _narrate_charts([])
     context = out["top5_decisoes"]["context"]
-    assert "0 decisões estratégicas" in context
+    assert "Nenhuma decisão estratégica" in context
+    assert "0 decisões" not in context
 
 
 # ── top5_decisoes conclusion: sem ". ." ───────────────────────────────

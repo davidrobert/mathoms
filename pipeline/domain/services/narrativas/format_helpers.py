@@ -149,6 +149,17 @@ def fmt_aporte_distribuicao(dist) -> str:
     return ", ".join(f"{fmt_currency(v)} {humanize_instrumento(k)}" for k, v in entries)
 
 
+# A40.l10: teto de itens renderizados da fila de decisões. Espelha
+# `pipeline_adapter._TOP5_DECISION_LIMIT` — se as duas superfícies da S10
+# cortarem em pontos diferentes, uma afirma contagem que a outra não lista.
+TOP_DECISOES_RENDER = 5
+
+
+def strip_terminal_punct(s: str) -> str:
+    """Remove '.', '!' ou '?' finais — item de lista separada por vírgula não os leva."""
+    return s.rstrip().rstrip(".!?").rstrip()
+
+
 # A40.l10 (RV4-02): até 2026-08-05 esta frase ocupava "Prioridade 1"
 # incondicionalmente no `charts.top5_decisoes` e no `summaries.s10`, e a fila do
 # dono era enumerada a partir de `decisoes[1:]` — a primeira decisão registrada

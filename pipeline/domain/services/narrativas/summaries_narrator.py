@@ -13,6 +13,7 @@ from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
+    TOP_DECISOES_RENDER,
     carteira_diversificacao_frase,
     clause,
     ensure_period,
@@ -22,6 +23,7 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_percent,
     fmt_usd,
     pluralize,
+    strip_terminal_punct,
 )
 
 
@@ -173,13 +175,17 @@ _S10_SEM_DECISOES = "Nenhuma decisão estratégica priorizada para os próximos 
 # primeira decisão E tudo a partir da quinta — e, com 3 decisões ou menos,
 # afirmava a contagem sem listar nenhuma. Como `report_layout.yaml` declara
 # `S10.summary_source: "s10"`, o descarte do card aparecia 2× na mesma seção.
+# O enquadramento de aporte vive AQUI e não no card: as duas superfícies
+# renderizam juntas na S10, e emitir a mesma sentença nas duas a repetia
+# verbatim (achado da verificação adversarial deste PR).
 def _summary_s10(M: Mapping[str, Any], decisoes: list[str]) -> str:
-    """s10 — abertura da Síntese Estratégica: a fila do dono, a partir da 1ª."""
+    """s10 — abertura da Síntese Estratégica: a fila do dono inteira, a partir da 1ª."""
     n = len(decisoes)
     if not n:
         return _S10_SEM_DECISOES
     label = pluralize(n, "decisão estratégica prioritária", "decisões estratégicas prioritárias")
-    return f"{fmt_aporte_contexto(M)}{n} {label}: {', '.join(decisoes[:4])}."
+    itens = ", ".join(strip_terminal_punct(d) for d in decisoes[:TOP_DECISOES_RENDER])
+    return f"{fmt_aporte_contexto(M)}{n} {label}: {itens}."
 
 
 # ADR-236 §D5 já adota este registro no card `impostos_pj`: sem perfil
