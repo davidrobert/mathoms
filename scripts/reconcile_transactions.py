@@ -1007,12 +1007,35 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     return filename
 
 
+def _e3_collapse_measure_enabled(ctx, store) -> bool:
+    """Flag ``cross_document_collapse_measure_enabled`` (ADR-364) — DB soberana."""
+    if ctx.workspace_id is None:
+        return False
+    try:
+        from backend.app.services.feature_flags_service import is_enabled_sync
+        from backend.app.services.storage.db_artifact_store import DBArtifactStore
+    except ImportError:
+        return False
+    if not isinstance(store, DBArtifactStore):
+        # Golden/CLI: quem quer medir injeta o colapsador direto (dev/certify_ledger_local.py),
+        # e assim a medição roda DENTRO de reconcile_via_store, sem instrumento paralelo.
+        return False
+    return is_enabled_sync(
+        ctx.workspace_id, "cross_document_collapse_measure_enabled", db=store.session
+    )
+
+
+def _e3_build_collapser(ctx, store):
+    """Colapsador em modo SOMBRA — mede, nunca remove (``collapse_enforce`` fica False)."""
+    if not _e3_collapse_measure_enabled(ctx, store):
+        return None
+    from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
+
+    return CrossDocumentCollapser()
+
+
 def _e3_build_adapter(ctx, *, cross_document_collapser=None, collapse_enforce=False):
     """Carrega configs + monta E3ReconcilerAdapter com domain services tipados."""
-    # ADR-354 §Emenda: `cross_document_collapser` fica None em produção (o stage não
-    # gasta CPU medindo o que ninguém lê). Quem injeta é dev/certify_ledger_local.py,
-    # e assim a medição roda DENTRO de reconcile_via_store — sem instrumento paralelo
-    # que possa divergir do caminho real.
     from pipeline.domain.models.bank import BankCanonicalizer
     from pipeline.domain.services.account_grouper import (
         AccountGrouper,
@@ -1123,6 +1146,20 @@ def _e3_write_sidecar_logs(ctx, written_filenames: List[str], result) -> None:
         )
 
 
+def _e3_log_collapse_shadow(ctx, result) -> None:
+    """Emite o agregado da sombra (ADR-364). Sem leitor a medição é CPU queimada."""
+    candidates = getattr(result, "collapse_candidates", ())
+    if not candidates:
+        return
+    from pipeline.domain.services.cross_document_collapse_types import shadow_counts
+    from pipeline.observability import get_logger
+
+    get_logger("reconcile_transactions").info(
+        "cross-document collapse shadow",
+        extra={"pipeline_run_id": ctx.pipeline_run_id, **shadow_counts(candidates)},
+    )
+
+
 def _e3_log_warnings(result) -> None:
     for w in result.saldo_warnings:
         log_progress("E3.2", f"WARNING ({w.account_key.bank}): {w.format()}")
@@ -1212,8 +1249,10 @@ def main_with_store(ctx) -> Dict[str, Any]:
     print("E3 RECONCILIATION STAGE — Caminho B (main_with_store)")
     print("=" * 80)
 
-    adapter, canon = _e3_build_adapter(ctx)
     store = ctx.get_artifact_store()
+    adapter, canon = _e3_build_adapter(
+        ctx, cross_document_collapser=_e3_build_collapser(ctx, store)
+    )
 
     log_progress("E3.0", f"Workspace root: {ctx.root}")
     log_progress("E3.0", f"Store impl:     {type(store).__name__}")
@@ -1233,6 +1272,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
     written_filenames = _e3_validate_outputs(store, ctx)
     _e3_write_sidecar_logs(ctx, written_filenames, result)
     _e3_log_warnings(result)
+    _e3_log_collapse_shadow(ctx, result)
     _e3_print_summary(result)
     return _e3_build_result_dict(written_filenames, result)
 

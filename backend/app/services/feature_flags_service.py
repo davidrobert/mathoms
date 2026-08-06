@@ -30,11 +30,13 @@ from backend.app.models.feature_flag import FeatureFlag
 # Defaults de produto. Flags definidas aqui têm efeito imediato no CI
 # e em qualquer workspace que ainda não tenha a row persistida.
 # Flags que o WORKSPACE não pode flipar sozinho — só operador, por rota de ops.
-# Motivo: elas governam mutação destrutiva de dado financeiro cuja pré-condição é um
-# gate medido fora do request (A40.l2 D1). Sem esta lista, `PUT /feature-flags/{flag}`
-# aceita qualquer chave de DEFAULTS e a própria família ligaria o enforce, contornando
-# o gate inteiro — o que tornaria o gate decorativo.
-OPERATOR_ONLY: frozenset[str] = frozenset()
+# Sem esta lista, `PUT /feature-flags/{flag}` aceita qualquer chave de DEFAULTS. Dois
+# motivos distintos, ambos sobre o gate de pré-condição do colapso (A40.l2 D1 · ADR-364):
+#   - flag de MUTAÇÃO: a própria família ligaria o enforce, contornando o gate.
+#   - flag de MEDIÇÃO: desligá-la cega o gate. Ele roda por run sobre o que o measure
+#     produz; sem medição não há `PreconditionReport`, e a ausência de sinal é
+#     indistinguível de sinal limpo — que é como se aprova enforce por vacuidade.
+OPERATOR_ONLY: frozenset[str] = frozenset({"cross_document_collapse_measure_enabled"})
 
 DEFAULTS: dict[str, bool] = {
     # F8.2 — backlog interativo de tarefas. Em F8.4 (cutover), vira default True
@@ -81,6 +83,12 @@ DEFAULTS: dict[str, bool] = {
     # aprovado (zero delta monetário no dado real) + goldens v2≡v1. Rollback = flag
     # off por workspace (E4 volta a v1); drop do shim v1 (M2) é carry-over ≥1 sprint.
     "dedup_natural_key_v2_enabled": True,
+    # ADR-364 · A40.l2 — sombra do colapso cross-documento. Default True: o E3 passa a
+    # MEDIR duplicação cross-proveniência todo run, sem remover nada (output byte-idêntico,
+    # canal do ledger em 0). É o que torna o gate por-run possível — "vazio" é propriedade
+    # do corpus E do tempo, e gate one-shot pré-flip caduca no dia seguinte. Kill-switch de
+    # operador se o custo O(n) da medição aparecer em algum workspace grande.
+    "cross_document_collapse_measure_enabled": True,
 }
 
 
