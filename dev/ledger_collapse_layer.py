@@ -69,8 +69,14 @@ class CollapseLayerSummary:
 
     @property
     def alvo_enderecavel(self) -> bool:
-        """Identidade 4 — **externa ao sumário**: o alvo resolve exatamente o que o
-        measure declara. Falso ⇒ nenhum enforce pode ligar (removeria a mais)."""
+        """Rows que o alvo resolve == rows declaradas. **Reportado, não gateado.**"""
+        # Retirado de `layer_ok` em 2026-08-05 (critério do senior-cto). Não é uma
+        # propriedade de LEGIBILIDADE do instrumento — é dano contrafactual de um
+        # consumidor que apaga por CONJUNTO de hash. Fundir as duas naturezas deixava a
+        # legibilidade refém de uma decisão de produto, que é a ADR-342 invertida.
+        #
+        # A retirada passou os 4 critérios do senior-cto; o registro completo, com a
+        # evidência de cada um, está na §Critério de aceite da [[A40.l2]].
         return self.rows_alcancadas == self.rows_removiveis
 
     @property
@@ -81,12 +87,7 @@ class CollapseLayerSummary:
     @property
     def layer_ok(self) -> bool:
         """Token grepável — falso ⇒ os números desta camada não são legíveis."""
-        return (
-            self.particao_fecha
-            and self.paridade_fecha
-            and self.cardinalidade_fecha
-            and self.alvo_enderecavel
-        )
+        return self.particao_fecha and self.paridade_fecha and self.cardinalidade_fecha
 
 
 def _digest_len(digests: frozenset[str]) -> int:
@@ -195,7 +196,8 @@ def _fmt_paridade(s: CollapseLayerSummary) -> list[str]:
         f"**{s.orfas_cents}** cents",
         f"- `layer_ok={str(s.layer_ok).lower()}` "
         f"(partição {s.particao_fecha} · paridade {s.paridade_fecha} · "
-        f"cardinalidade {s.cardinalidade_fecha} · alvo {s.alvo_enderecavel})",
+        f"cardinalidade {s.cardinalidade_fecha}) — `alvo_enderecavel="
+        f"{str(s.alvo_enderecavel).lower()}` é REPORTADO, não gateia",
     ]
 
 

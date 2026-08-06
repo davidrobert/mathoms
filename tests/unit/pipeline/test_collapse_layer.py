@@ -258,23 +258,23 @@ def test_histograma_de_cardinalidade_incompleto_derruba_a_identidade_3() -> None
     assert "cardinalidade False" in "\n".join(fmt_collapse_layer(s))
 
 
-def test_alvo_que_resolve_mais_rows_que_o_declarado_derruba_a_identidade_4() -> None:
-    """Esta é a asserção que teria pegado o P0 de 2026-08-05: o alvo declarava 411 rows
-    e resolvia 453, porque hash não endereça row. Isolada — as outras 3 identidades
-    fecham, então `layer_ok` não pode ser carregado por elas."""
+def test_alvo_nao_enderecavel_e_REPORTADO_mas_nao_gateia() -> None:
+    """T4 da desfusão: o número continua impresso e visível, sem prender `layer_ok`."""
+    # `alvo_enderecavel` mede dano contrafactual de um consumidor que apaga por CONJUNTO
+    # de hash — consumidor que `collapse()` garante não existir (remove por `id()` na
+    # mesma lista). Prender a LEGIBILIDADE do instrumento a isso era ADR-342 invertida.
     cands = [_Cand("aaaaaaaaaa", rows=1, no_bucket=2)]
 
     s = collapse_layer_summary(cands, frozenset({"aaaaaaaa"}))
 
-    assert s.particao_fecha and s.paridade_fecha and s.cardinalidade_fecha
     assert (s.rows_removiveis, s.rows_alcancadas) == (1, 2)
     assert s.candidatos_com_alvo_ambiguo == 1
-    assert not s.alvo_enderecavel
-    assert not s.layer_ok
+    assert not s.alvo_enderecavel  # o fato segue medido
+    assert s.layer_ok  # ...e as 3 identidades de legibilidade fecham
     texto = "\n".join(fmt_collapse_layer(s))
-    assert "ALVO NÃO ENDEREÇÁVEL" in texto
+    assert "ALVO NÃO ENDEREÇÁVEL" in texto  # ratchet T4: o número NÃO some do render
     assert "removeria 1 rows a mais" in texto
-    assert "alvo False" in texto
+    assert "é REPORTADO, não gateia" in texto
 
 
 def test_render_declara_clausulas_inexercitadas_quando_nada_bloqueia() -> None:
