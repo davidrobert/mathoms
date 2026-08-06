@@ -155,6 +155,37 @@ integralmente válida.
   `natural_key_hash IS NULL`).
 - **PR3 — enforce.** Colapsa de fato, com os 4 eixos de aceite abaixo.
 
+### O PR3 foi serializado em cinco — 2026-08-06
+
+O "PR3" nasceu monolítico (pipeline + backend + frontend num diff só) e a [[ADR-364]]
+acrescentou pré-condição que ele não tinha: **re-ancoragem** antes de qualquer remoção.
+Um diff que atravessa três camadas *e* introduz mutação destrutiva não é revisável, e o
+flip não pode ser efeito colateral de um PR cujo título diz "contador".
+
+| PR | o que entrega | estado |
+|---|---|---|
+| **PR3a — sombra** | colapsador instanciado em produção, **measure-only**; agregado PII-safe por run no log estruturado; flag `cross_document_collapse_measure_enabled` (default `True`, `OPERATOR_ONLY`) | [#1231](https://github.com/davidrobert/mathoms/pull/1231) |
+| **PR3b — gate por run** | `evaluate()` rodando todo run + `AuditRecord` ([[ADR-364]] §5) | **desenho aberto** ↓ |
+| **PR3c — contador + caption** | 5º canal chegando a `analise_financeira`, contador da S2 e caption da V0 (D6) | não iniciado |
+| **PR3d — re-ancoragem** | par `(hash removido → hash sobrevivente)` + backend reancorando ([[ADR-364]] §2) | não iniciado |
+| **PR3e — o flip** | flag de enforce + rota de ops + recusa sem `PreconditionReport` do run corrente | bloqueado por 3b–3d |
+
+**Questão aberta do PR3b — de onde vêm os `corpus_digests`.** O `evaluate()` os exige para
+distinguir *"nenhum override em risco"* de *"o join nunca casa"*. Dois caminhos, ambos com
+defeito, e a escolha **não** deve ser unilateral:
+
+- **carregar no result dict do stage** — são os digests de **todas** as rows do E3 (5504+
+  no dogfood), e o result dict é persistido em `stage_logs`. Infla o log em ordem de
+  grandeza para um dado que só interessa por um instante.
+- **re-derivar no backend a partir do artefato E3** — mantém o contrato pipeline→backend
+  minúsculo, mas cria **segunda cópia da fórmula do digest**. É literalmente o bug do
+  `keep_split` (§D5): duas derivações da mesma regra, uma delas atualizada, suíte verde e
+  measure declarando um número enquanto a mutação fazia outro.
+
+Um terceiro caminho — o stage entregar os digests **em memória** ao Celery task, que usa e
+descarta antes de persistir — evita os dois defeitos e paga em acoplamento temporal.
+Decidir com `senior-cto` + `data-engineer` antes de codar.
+
 **`titular` vazio deixa de ser PR próprio:** é a cláusula de unificabilidade do
 predicado (perna vazia unifica, perna conflitante não colapsa) e já está no PR1
 com teste. O débito de âncora estável de override que a [[A42]] §Fora do sprint
