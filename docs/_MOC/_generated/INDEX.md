@@ -359,6 +359,7 @@
 | ADR-361 | adr | Decidido |  | Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos | `adr/361-percentil-do-cone-de-if-e-censurado-na-base-cheia.md` |
 | ADR-362 | adr | Proposto |  | Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade | `adr/362-revisao-do-executor-e-proveniencia-observada.md` |
 | ADR-363 | adr | Proposto |  | Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem | `adr/363-identidade-de-codigo-em-runtime-e-semvers-ornamentais.md` |
+| ADR-364 | adr | Proposto |  | Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem | `adr/364-remocao-de-row-e-mudanca-de-identidade.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

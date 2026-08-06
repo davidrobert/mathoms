@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-354 ADRs (ADR-001 a ADR-363) em [`docs/adr/`](../../adr/).
+355 ADRs (ADR-001 a ADR-364) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 308
-- **Proposto**: 42
+- **Proposto**: 43
 - **Roadmap**: 4
 
 ## Fundação
@@ -581,7 +581,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-360]] — Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO · phase A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)
 - [[ADR-361]] — Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos · phase A40
 
-### Proposto (14)
+### Proposto (15)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -597,6 +597,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-354]] — Identidade de transação (K4) exclui atributos de proveniência do documento · phase report-review r3 (RV3-01) · A40.l2
 - [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
+- [[ADR-364]] — Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem
 
 ### Roadmap (1)
 
