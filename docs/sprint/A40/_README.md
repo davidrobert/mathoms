@@ -73,6 +73,19 @@ aberto nesses 2 re-runs, e os gates de owner da [[A28]] executados. Não se
 duplica o gate aqui — duplicar criaria duas fontes de verdade sobre a mesma
 condição de parada.
 
+**Cláusula de reinício do contador — [[A40.l2]] (2026-08-06).** O flip do enforce de
+colapso cross-documento muta o E3 **a montante de todo run E0→E6**, logo **zera** o contador
+de 2 re-runs consecutivos — pelo mesmo argumento que recusou fundir a [[A42]] na A40. Por
+isso: **o contador de 2 re-runs só inicia depois que a [[A40.l2]] estiver terminal** — flip
+mergeado, ou flip declarado não-entregue. Sem esta cláusula, se o flip mergear com o contador
+em 1/2, alguém decide na hora se recomeça; é a pior decisão possível, tomada sob pressão de
+`date_target`.
+
+**§Estado dos KRs — obrigação de leitura honesta.** Se o flip escorregar, a **KR-B é
+reportada não atingida**. É proibido ler as 261 ocorrências como "explicadas" por estarem
+**medidas** na sombra: medir não é corrigir, e contar sombra como explicação é Goodhart contra
+o anti-Goodhart escrito no próprio KR.
+
 **Insumo declarado do 1º re-run (2026-08-05).** A revisão do dono no primeiro dos
 2 re-runs entra com **dois checklists na mão**, não em leitura livre: (1) o
 §Checklist bloqueante da [[A40.l4]] — os 7 clusters, com atenção aos 3 fixes da

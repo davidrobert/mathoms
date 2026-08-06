@@ -208,6 +208,7 @@ jobs:
               - 'scripts/route_documents.py'
               - 'scripts/pipeline_common.py'
               - 'scripts/e2/**'
+              - 'scripts/reconcile_transactions.py'
               - '.github/workflows/ci.yml'
             go:
               # No-op aqui (o micromatch do tj-actions casa os 14 .go nas duas
