@@ -822,7 +822,7 @@
   "$defs": {
     "PontoUrgente": {
       "type": "object",
-      "description": "Item de recomendação do plano (ADR-365). Mesmo shape nos dois arrays — eles são projeções da MESMA lista produzida por PontosUrgentesAnalyzer.analyze, particionada por elegibilidade em e5_serialization.partition_pontos_urgentes.",
+      "description": "Item de recomendação do plano (ADR-365). Mesmo shape nos dois arrays — eles são projeções da MESMA lista produzida por PontosUrgentesAnalyzer.analyze, particionada por elegibilidade em e5_serialization.partition_pontos_urgentes. `code`/`origem_premissa`/`elegibilidade` sao OPCIONAIS de proposito: o produtor sempre os emite, mas artefato antigo em pipeline_artifacts nao os tem e nao e revalidado na leitura — e o leitor os trata como ausentes==computavel (partition_pontos_urgentes). Marcar required contradiria essa tolerancia, e o modo strict do CI pega (medido no #1243). `additionalProperties: false` fica: e ele que barra campo novo sem schema.",
       "properties": {
         "prioridade": {"type": "string"},
         "acao": {"type": "string"},
@@ -833,7 +833,7 @@
         "elegibilidade": {"enum": ["computavel", "nao_verificavel", "degenerada", "pendente_de_dado"]},
         "dado_faltante": {"type": ["string", "null"]}
       },
-      "required": ["prioridade", "acao", "impacto", "prazo", "code", "origem_premissa", "elegibilidade"],
+      "required": ["prioridade", "acao", "impacto", "prazo"],
       "additionalProperties": false
     }
   },

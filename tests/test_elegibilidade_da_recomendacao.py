@@ -107,6 +107,50 @@ def test_tarefas_projetam_so_o_ranking():
     assert [t["t"] for t in build_default_tarefas(ranq)] == ["Ação"]
 
 
+# ── Contrato de schema: tolerante ao legado, fechado a campo novo ─────
+
+
+def _valida(item: dict[str, Any]) -> bool:
+    import json
+    import pathlib
+
+    import jsonschema
+
+    schema = json.loads(
+        (
+            pathlib.Path(__file__).resolve().parents[1] / "config/schemas/e5_analysis.schema.json"
+        ).read_text()
+    )
+    sub = {"$defs": schema["$defs"], **schema["$defs"]["PontoUrgente"]}
+    try:
+        jsonschema.validate(item, sub)
+        return True
+    except jsonschema.ValidationError:
+        return False
+
+
+_LEGADO = {"prioridade": "Alta", "acao": "X", "impacto": "Y", "prazo": "Imediato"}
+
+
+def test_schema_aceita_item_legado_sem_os_campos_novos():
+    """Artefato antigo em `pipeline_artifacts` não tem os 3 campos e não é
+    revalidado na leitura — marcá-los `required` contradiria a tolerância que
+    `partition_pontos_urgentes` implementa (ausente == computavel). O modo
+    `strict` do CI pegou essa contradição no #1243."""
+    assert _valida(_LEGADO)
+
+
+def test_schema_barra_campo_novo_sem_declaracao():
+    """`additionalProperties: false` é o que o item compra de gate — sem isso,
+    afrouxar o `required` deixaria o bloco sem proteção nenhuma."""
+    assert not _valida({**_LEGADO, "campo_nao_declarado": 1})
+
+
+def test_schema_barra_valor_fora_do_vocabulario():
+    assert not _valida({**_LEGADO, "elegibilidade": "inventado"})
+    assert not _valida({**_LEGADO, "origem_premissa": "inventado"})
+
+
 # ── Declaração narrada — o leitor que legitima o array ────────────────
 
 
