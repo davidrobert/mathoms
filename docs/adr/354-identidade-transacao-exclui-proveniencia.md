@@ -144,7 +144,14 @@ transação**: domain service puro, injetado com `default None` no
 de artefato. Chave = a mesma do detector da [[A40.l1]]
 (`data, valor_cents, moeda, direction, descricao_normalizada`). O colapsador
 **seleciona rows**; não toca input de hash — a §Não-decisão (nenhum `_hash_v3`)
-segue integralmente válida.
+segue integralmente válida **quanto ao mecanismo**.
+
+> 🔴 **Correção, 2026-08-06 ([[ADR-364]]).** A frase acima é verdadeira sobre o
+> mecanismo e **falsa sobre a consequência**. A §Não-decisão proíbe `_hash_v3` **porque
+> órfãna a categorização manual do dono** — e remover a row sob o hash produz o **mesmo
+> resultado** que mudar o hash sob a row: o override deixa de resolver. A [[ADR-364]]
+> declara que remoção de row **herda** a restrição, e a **quita por re-ancoragem** em vez
+> de evitação.
 
 **O predicado do colapsador é estritamente mais forte que a chave do detector.**
 Um detector pode sobre-detectar rotulado ([[ADR-342]]); um mutador que sobre-colapsa
