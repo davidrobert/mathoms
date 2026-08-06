@@ -176,59 +176,143 @@ veio do #973). Refutados: 5, entre eles a alegação de que a mudança no
 `chart_conclusions.yaml` seria fix inerte não declarado — o corpo do commit já
 a declara.
 
-## Desenho fixado para os PRs restantes (painel 2026-08-05)
+## Estratégia decidida para PR2 e PR3 (painel 2026-08-06)
 
-Escrito aqui para não morrer com a sessão. **PR1 shipou; PR2 e PR3 estão abertos.**
+Segundo painel de 6 especialistas, com **22 objeções sustentadas** contra o
+código e 2 caídas. **Substitui o §Desenho fixado de 2026-08-05** — três
+premissas daquele registro não sobreviveram à medição, e estão corrigidas
+abaixo. PR1 shipou (#1230); PR2 e PR3 seguem abertos.
 
-**PR2 — `elegibilidade` (exige ADR `Proposto` ANTES do PR).**
+### O achado que reordena a lane
 
-- **Dois campos ortogonais, não um enum** (decisão `financial-planner`, que
-  rejeitou a taxonomia de 3 valores que eu havia proposto): `origem_premissa` ∈
-  {`cadastro_familia`, `documento_ingerido`, `derivado_e5`} e `elegibilidade` ∈
-  {`computavel`, `nao_verificavel`, `degenerada`, `pendente_de_dado`}. Graduar
-  por "observável dentro do E5" embutia um ranking de confiança **invertido** —
-  fato de cadastro é declaração de 1ª mão do dono, enquanto
-  `passivo_acima_30_pct_patrimonio` deriva de baseline defasado.
-- **`conjuge_sem_renda_propria` = `degenerada`**, e sai do disjuntivo de
-  `flag_vida` enquanto `protecao_wiring` fixar `renda_propria_brl = 0`: hoje
-  dispara em **100%** dos workspaces com cônjuge. Não é default conservador, é
-  falso positivo estrutural na recomendação mais vendedora do produto. Quando
-  houver produtor, o predicado correto é dependência econômica
-  (`renda_conjuge < k × custo_essencial_familiar`, `k = 0,5` proposto), não
-  `renda == 0`.
-- **Avaliado em `PontosUrgentesAnalyzer.analyze()`** — não no
-  `E5NarrativasBuilder` (a projeção é achatada para `list[str]` antes do
-  narrador) nem no `e5_serialization`.
-- **Dois arrays, não omissão** (`senior-cto`, resolvendo o conflito entre o
-  molde da [[ADR-167]] "emite ou omite" e a 6ª classe do gate de saída): o E5
-  emite `pontos_urgentes` (ranqueado, só elegíveis) **e** o bucket de retidos com
-  `elegibilidade` + motivo. Sobrevive da ADR-167 a metade que importa — uma
-  camada decide, o TS tem zero lógica de elegibilidade.
-- **Strings do enum nunca aparecem na UI** (`product-designer`): mapa enum→copy
-  no frontend, e a frase nomeia **o dado que falta**, não o estado interno.
-  `pendente_de_dado` → visível com CTA; `degenerada`/`nao_verificavel` → fora do
-  ranking, declarados no payload.
-- **Disciplina anti-órfão** (`data-engineer`), no mesmo PR: teste derivado de
-  `dataclasses.fields()` (não lista enumerada à mão — o padrão "construtor
-  campo-a-campo perde campo novo" já mordeu neste repo), leitor no
-  `PontosUrgentesCard.tsx` **ou** registro escrito de payload-only com motivo, e
-  rebaseline consciente do snapshot do view-model.
+**`pontos_urgentes` não lê `gap_qualitativo`.** `_seguro_vida_item` decide só por
+"existe apólice com `tipos_bem` contendo `pessoa`" — não lê `flag_vida`, não lê
+dependentes, não lê passivo. Consequência medida: **"Contratar seguro de vida e
+invalidez / Alta / Imediato" dispara para 100% dos workspaces sem apólice,
+inclusive solteiro sem dependente econômico.** Sob as três metodologias, seguro
+de vida protege dependente econômico; sem dependente é custo puro. Não é
+conservadorismo, é conselho errado — e é o item mais vendável do card, na frente
+do cliente.
 
-**PR3 — ordenação do ranking. BLOQUEADO por objeção do `financial-planner`, e a
-objeção é material.** A ordem defensável é por **tier de irreversibilidade**
-(T0 ruína: dívida em carry-trade e gap de vida com dependente menor sem apólice ·
-T1 fragilidade: reserva < alvo **do perfil** · T2 alavancagem: endividamento ·
-T3 otimização), com desempate por impacto anualizado. **Mas as duas variáveis
-sobre as quais o analyzer hoje decidiria estão mal medidas:**
-`taxa_endividamento_pct` é dívidas/patrimônio bruto enquanto a metodologia
-declarada no repo é comprometimento mensal de renda, e `reserva_minima_meses` é
-chapada em 6 enquanto o alvo canônico varia por perfil. **Encodar ordenação sobre
-isso troca uma indeterminação por outra, com aparência de rigor** — por isso o
-PR3 não sai antes de corrigir a medição, e por isso não o entreguei. Decisão
-adicional do painel: extrair o critério para **um** helper puro compartilhado com
-`suggestion_rules` (que já tem carry-trade encodado e morto por falta de
-produtor), em vez de criar a **terceira** ordenação do mesmo domínio no mesmo
-relatório — que é o defeito que a lane veio corrigir.
+Isto **é** o caso de estreia da taxonomia, não um vizinho dela: é uma
+recomendação no topo do plano cuja premissa o payload não sustenta, que é
+literalmente o KR-E. Vai no PR2. `protecao` **já é parâmetro** de `analyze()` —
+zero wiring novo.
+
+### Três premissas minhas que a medição derrubou
+
+1. **O fix "barato" da reserva não é barato — e a versão crua dele é
+   regressão.** `_perfil_por_pct` **nunca retorna `clt_estavel`** (o comentário
+   no próprio código diz que a contagem de fontes CLT não existe no fluxo v1 e
+   assume a variante conservadora). Logo o **piso** de `meses_alvo` é **12**,
+   não 6. Trocar `reserva_minima_meses` por `meses_alvo` cru faria toda família
+   com 6-12 meses receber "Alta / Imediato" — enquanto `avaliacao_liquidity`, no
+   **mesmo payload**, rotula essa faixa "Adequada", e o `HeroKpiGrid` pinta 8
+   meses de **verde** com "Meta 18m (perfil de renda)". Alerta vermelho ao lado
+   de KPI verde na mesma página é exatamente o que a sprint existe para impedir.
+2. **`prazo` não é órfã.** Tem 2 leitores vivos: `dashboard_service` (serve
+   `GET /dashboard`) e o manifest do parecer, que injeta `$.pontos_urgentes`
+   raw. Declarar o shape no schema exige `description` nomeando os dois
+   consumidores — senão a [[A40.l5]] mira o campo errado no cleanup.
+3. **"O schema não é gate" é falso para este bloco.**
+   `tests/test_e5_golden_execution.py` valida um E5 **gerado de verdade**, hard,
+   fora do modo `warn`. Declarar `pontos_urgentes.items` com
+   `additionalProperties: false` **compra gate hoje** e custa 1 fixture.
+
+### Decisões que fecham os conflitos da rodada anterior
+
+- **`Literal`, não `str, Enum`** (tie-break `senior-cto`, revendo a própria
+  resposta anterior com evidência melhor): `ReviewReasonCode` é Enum por ter 3
+  produtores, comportamento anexado e versionamento em schema próprio —
+  `elegibilidade` não tem nenhum dos três. O precedente exato é `PctRendaSinal`,
+  `Literal` **no mesmo módulo de proteção**. Vocabulário versionado **inline** em
+  `e5_analysis.schema.json`, sem schema standalone.
+- **`code` estável por regra é pré-condição, não enfeite.** Sem ele:
+  `build_default_tarefas` numera `n = i + 1` sobre `pontos_urgentes` e
+  `build_default_tarefas_status` chaveia por essa posição — **reordenar remapeia
+  o status do dono para outra tarefa**, que é a mesma classe do RV4-02 que o PR1
+  acabou de fechar. E `dev/golden_diff.py` cai em diff posicional sem chave
+  natural. `code` entra no PR2 e destrava o PR3.
+- **O Conflito 2 era falso.** [[ADR-167]] governa elegibilidade de **bloco
+  irrelevante** ("este cenário não existe para esta família") — não há conselho
+  a declarar. Aqui o conselho existe e a **premissa** é que não se sustenta.
+  Três especialistas chegaram nisso independentemente. Emite-com-flag, e a
+  metade que importa da ADR-167 (uma camada decide, o TS confia) sobrevive.
+- **O leitor é a sentença narrada no `s10`, não o card.** `PontosUrgentesCard`
+  fica **intocado** no PR2 — a copy de `degenerada`/`nao_verificavel` é decisão
+  de superfície da [[A40.l22]], e leitor sem copy decidida é meia-superfície. A
+  sentença por classe no `s10` já renderiza na mesma seção e sai no PDF: fecha o
+  par produtor↔leitor sem antecipar a l22.
+- **`conjuge_sem_renda_propria` fica em `protecao_analyzer`** e é marcado
+  `degenerada` na camada de conselho. Remover o gatilho mudaria o payload
+  `protecao_patrimonial` para outros consumidores; marcar é contido. Condição de
+  deleção vai na ADR.
+- **PR3 não estava bloqueado pelo que eu achei que bloqueava.** A má medição
+  atinge os thresholds que decidem se o item **existe**, não o tier que ele
+  **ocupa** — tier é constante por regra e é encodável hoje sem consumir nenhuma
+  variável suspeita. O que gateava o PR3 era o `code`.
+
+### Sequência
+
+1. **ADR-365 `Proposto`** (docs-only, antes do código). Fixa os 2 eixos
+   ortogonais com o contraexemplo que prova a ortogonalidade, `Literal` com
+   condição escrita de promoção a Enum, `code` como identidade, os dois arrays
+   como **projeção de uma lista única** (colapsar depois é deletar um ramo de
+   serializer, não migrar dado), `degenerada` como valor **transitório** com
+   condição de deleção, e o **§Estado-alvo** de convergência em ≤5 linhas.
+   Alocar o ID **na escrita** (`ls docs/adr/ | tail`), nunca reservando em prosa.
+   `adrs: []` da lane deixa de estar vazio no mesmo commit.
+2. **PR2 — código.** `code` + `origem_premissa` + `elegibilidade` + `dado_faltante`
+   em `PontoUrgenteItem`; `_seguro_vida_item` passa a mapear `gap_qualitativo`;
+   `conjuge_sem_renda_propria` → `degenerada`; partição em `pontos_urgentes` (só
+   `computavel`) + `pontos_urgentes_retidos`; sentença por classe no `s10`;
+   `items` declarado no schema com `additionalProperties: false`. Prova derivada
+   de `dataclasses.fields()` — não lista à mão. Asserção sobre a **string
+   narrada**, com mutação nos dois sentidos.
+3. **PR3 — ordenação + reserva.** Tier constante por regra, extraído para **um**
+   helper puro compartilhado com `suggestion_rules` (não a terceira ordenação do
+   mesmo domínio). Reserva: **piso 6 decide existência; `meses_alvo` gradua a
+   prioridade dentro do item** (Alta se cobertura < piso; Média se piso ≤
+   cobertura < alvo), copy nomeando o perfil — e `HeroKpiGrid.reservaTone`
+   ancorado em `meses_alvo` no mesmo PR, senão nasce a contradição KPI×alerta.
+   T0 de dívida **declarado inerte** no artefato, nunca encodado vazio: tier que
+   nunca dispara ensina que "não apareceu dívida cara" = "não há dívida cara".
+4. **Fecho da lane** (docs-only): RV3-07 parcialmente fechado, residual com
+   §Deferimento datado.
+
+**Forma dos docs (medida, não suposta):** o molde `rule-cenario-conjuge-estresse.md`
+é **bloqueado pelo hook `sigilo-terms`** num arquivo novo — inclusive no campo
+`methodology:` do frontmatter e na tag `methodology/<m>`; os 11 existentes só
+passam por baseline. A RULE nova nasce **sem** esses dois. O fix da reserva não
+vira ADR: é **emenda datada em [[ADR-218]]** + linha em `FORMULAS.md`.
+
+### Fora da lane, com destino
+
+- **Fórmula de `taxa_endividamento_pct`.** `scoring.json` declara unidade
+  "% renda mensal comprometida"; o código calcula `dividas / patrimonio.bruto`.
+  Mover a fórmula move o **score de todo workspace**, mais pontos fortes,
+  alertas, red lines e a prosa do `s1`. **Lane única no sprint seguinte**, sob
+  [[PLAN-report-trust]], **fundida** com o pipe `debts → E5` e o fix do parser da
+  RL2 — são a mesma lane, porque `parcela_mensal` é o segundo campo morto do
+  `DividaItem` e sem ele o endividamento por renda é **incomputável**. Exige ADR
+  `Proposto` + baseline congelado antes do fix (padrão [[A40.l1]]).
+  **No PR3, o ganho de maior ROI é de rótulo, não de fórmula:** trocar
+  "Taxa de endividamento em 25% — meta < 20%" por "Dívidas equivalem a 25% do
+  patrimônio bruto — referência < 20%". Zero mudança de cálculo.
+- **Convergência das representações.** O painel mediu **cinco**, não três, e
+  divergiu sobre o alvo: `senior-cto` e `product-designer` apontam `Suggestion`
+  (que já tem `code`/`severity`/`kind`/`dedup_key` e ponte para `Decision`);
+  `data-engineer` e `financial-planner` querem `pontos_urgentes` e `Decision`
+  **separados** por serem agregados de donos diferentes (motor × dono). O que é
+  consenso: `tarefas` não é conceito, é alias com perda; e a l10 **não funde**.
+  O passo que a l10 dá é **o campo, não o store** — e a ADR-365 **tem** de nomear
+  o alvo, senão o próximo agente reinventa `elegibilidade` dentro de
+  `suggestion_rules` e passamos de cinco representações para seis.
+- **Achados novos a registrar no fecho:** `rule_seguros_insuficientes` emite
+  título **byte-idêntico** ao do analyzer (dois caminhos, mesma frase, mesmo
+  usuário); `rule_reserva_insuficiente` está **morta** (`meses_cobertura` ×
+  `cobertura_meses`, RV3-09, dona é a [[A40.l5]]); `dedupeBySemanticKey` é
+  supressor não-declarado no frontend.
 
 ## Residual medido — achado novo, sem lane
 
