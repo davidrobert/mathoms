@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-359 ADRs (ADR-001 a ADR-368) em [`docs/adr/`](../../adr/).
+360 ADRs (ADR-001 a ADR-369) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 308
-- **Proposto**: 47
+- **Proposto**: 48
 - **Roadmap**: 4
 
 ## Fundação
@@ -583,7 +583,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-360]] — Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO · phase A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)
 - [[ADR-361]] — Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos · phase A40
 
-### Proposto (15)
+### Proposto (16)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -600,6 +600,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-364]] — Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem
+- [[ADR-369]] — Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) · phase A40
 
 ### Roadmap (1)
 
