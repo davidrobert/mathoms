@@ -98,10 +98,23 @@ class TestPublishEvent:
         assert fake_redis.last.payload["event"] == "needs_review"
 
     def test_publish_run_completed(self, fake_redis):
-        publish_run_completed("run-1")
+        publish_run_completed("run-1", status="completed")
         payload = fake_redis.last.payload
         assert payload["event"] == "run_completed"
         assert payload["progress_pct"] == 100
+
+    def test_publish_run_completed_carrega_partial_failure(self, fake_redis):
+        """Terminal que entregou COM lacuna reusa `run_completed` com o status real."""
+        # ADR-357 §Consequências recusa evento novo; `pipelineRunOutcome.ts`
+        # chaveia por `status`, então é o campo que carrega a diferença.
+        publish_run_completed("run-1", status="partial_failure")
+        assert fake_redis.last.payload["event"] == "run_completed"
+        assert fake_redis.last.payload["status"] == "partial_failure"
+
+    def test_publish_run_completed_exige_status(self):
+        """Sem `status` obrigatório, um call-site esquecido anuncia `completed` num run degradado."""
+        with pytest.raises(TypeError):
+            publish_run_completed("run-1")
 
     def test_publish_run_failed(self, fake_redis):
         publish_run_failed("run-1")
@@ -114,7 +127,8 @@ class TestPublishEvent:
     @pytest.mark.parametrize(
         ("publish", "expected_status"),
         [
-            (publish_run_completed, "completed"),
+            (lambda rid: publish_run_completed(rid, status="completed"), "completed"),
+            (lambda rid: publish_run_completed(rid, status="partial_failure"), "partial_failure"),
             (publish_run_failed, "failed"),
             (publish_run_cancelled, "cancelled"),
         ],

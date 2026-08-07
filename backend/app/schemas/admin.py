@@ -171,6 +171,11 @@ class MetricsResponse(BaseModel):
     new_users_last_period: int
     period_days: int
     generated_at: str
+    # A40.l18 · ADR-357 — zero-fill estrutural sobre os enums; `0` medido e
+    # "não medido" precisam ser distinguíveis na tela.
+    pipeline_runs_by_status: dict[str, int]
+    stages_degraded_by_reason: dict[str, int]
+    stages_degraded_by_stage: dict[str, int]
 
 
 class UserWorkspaceDTO(BaseModel):

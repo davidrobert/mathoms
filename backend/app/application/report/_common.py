@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.application.base.errors import NotFoundError
 from backend.app.models.report import Report
 from backend.app.schemas.report import ReportResponse
+from backend.app.services.report_run_outcome import ReportRunOutcome
 
 
 def serialize_report(
@@ -22,6 +23,7 @@ def serialize_report(
     consumed_document_count: int = 0,
     consumed_document_ids: list[str] | None = None,
     workspace_family_surname: str | None = None,
+    run_outcome: ReportRunOutcome,
 ) -> ReportResponse:
     ids = source_document_ids if source_document_ids is not None else []
     consumed_ids = consumed_document_ids if consumed_document_ids is not None else []
@@ -41,6 +43,7 @@ def serialize_report(
         consumed_document_ids=consumed_ids,
         premissas_snapshot=report.premissas_snapshot_json,
         workspace_family_surname=workspace_family_surname,
+        run_outcome=run_outcome,
     )
 
 

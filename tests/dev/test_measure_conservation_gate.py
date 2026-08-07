@@ -97,11 +97,20 @@ def test_cv1_violation_pauses_today_and_core() -> None:
     assert c.pauses_today and c.pauses_core
 
 
-def test_render_only_leaves_pause_gate_under_core() -> None:
-    """Narrativas ausentes (CV9/CV10 error): pausa hoje, sai do gate sob core."""
+def _render_regression_e5() -> dict:
+    """Narrativas ENTREGUES mas incompletas — regressão de render de verdade."""
+    # A40.l18 mudou a forma deste caso. Antes era `narrativas: {}` (ausentes),
+    # mas ausência agora SKIPA a classe de render (CV9/CV10/CV14): sem narrativa
+    # o stage a montante degradou, e reportar render vermelho conflacionaria
+    # "não veio" com "regressou". O caso que este teste quer medir é o segundo.
     e5 = _clean_e5()
-    e5["narrativas"] = {"summaries": {}, "charts": {}}
-    c = mcg.classify("render", _failed(e5))
+    e5["narrativas"]["charts"].pop(_REQUIRED_CHARTS[0])
+    return e5
+
+
+def test_render_only_leaves_pause_gate_under_core() -> None:
+    """Narrativas incompletas (CV9/CV10 error): pausa hoje, sai do gate sob core."""
+    c = mcg.classify("render", _failed(_render_regression_e5()))
     assert {"CV9", "CV10"} & c.failed
     assert c.pauses_today
     assert not c.pauses_core
@@ -112,8 +121,7 @@ def test_measure_aggregates_deltas() -> None:
     clean = _clean_e5()
     cv2 = _clean_e5()
     cv2["patrimonio"]["composicao"] = [{"valor": 1200.0}]
-    render = _clean_e5()
-    render["narrativas"] = {"summaries": {}, "charts": {}}
+    render = _render_regression_e5()
 
     report = mcg.measure([("clean", clean), ("cv2", cv2), ("render", render)])
     assert report.total == 3

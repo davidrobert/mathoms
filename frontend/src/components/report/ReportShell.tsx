@@ -8,6 +8,7 @@ import pkg from "../../../package.json";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
 import { formatPeriodCoverPtBR } from "@/lib/format";
+import type { ReportRunOutcome } from "@/lib/api/reports";
 import { useFeatureFlags } from "@/lib/useFeatureFlags";
 import { ExecutiveSummarySection } from "./ExecutiveSummarySection";
 import { ReportProvenanceProvider } from "./provenance/ReportProvenanceProvider";
@@ -37,8 +38,18 @@ import { useReportFontScale } from "./useReportFontScale";
 import { useReportTocOpen } from "./useReportTocOpen";
 
 const COVER_MONTH_SHORT_PT = [
-  "jan", "fev", "mar", "abr", "mai", "jun",
-  "jul", "ago", "set", "out", "nov", "dez",
+  "jan",
+  "fev",
+  "mar",
+  "abr",
+  "mai",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "out",
+  "nov",
+  "dez",
 ];
 
 /** v2.F.3b — "Gerado em" no cover: `10 abr 2026, 16h25`.
@@ -67,6 +78,7 @@ interface ReportShellProps {
   reportCreatedAt: string;
   /** F11.4a — opcional; link para a execução no Pipeline. */
   pipelineRunId?: string | null;
+  runOutcome: ReportRunOutcome;
   /** F11.4a — `sourceDocumentCount`: docs prontos no workspace (mutável); `consumedDocumentCount`: docs extraídos pela run (imutável). */
   sourceDocumentCount?: number | null;
   consumedDocumentCount?: number | null;
@@ -110,7 +122,9 @@ function buildNavGroups(): {
   const titles = buildTitleMap();
   const nav = LAYOUT.navigation;
   if (nav?.estrategico) {
-    const mapGroup = (groups: NonNullable<typeof nav.estrategico>): NavGroup[] =>
+    const mapGroup = (
+      groups: NonNullable<typeof nav.estrategico>,
+    ): NavGroup[] =>
       groups.map((g) => ({
         label: g.label,
         links: g.links.map((l) => ({
@@ -130,7 +144,11 @@ function buildNavGroups(): {
   return {
     estrategico: [
       {
-        links: strategic.map((s) => ({ id: s.id, label: shortLabel(s.title), num: s.id })),
+        links: strategic.map((s) => ({
+          id: s.id,
+          label: shortLabel(s.title),
+          num: s.id,
+        })),
       },
     ],
   };
@@ -153,6 +171,7 @@ export function ReportShell({
   reportPeriod,
   reportCreatedAt,
   pipelineRunId,
+  runOutcome,
   sourceDocumentCount,
   consumedDocumentCount,
   familySurname,
@@ -166,12 +185,12 @@ export function ReportShell({
 
   const analysisPeriodFromSnapshot =
     dataState.status === "success"
-      ? (typeof dataState.data.periodo_dados === "string"
+      ? ((typeof dataState.data.periodo_dados === "string"
           ? dataState.data.periodo_dados
           : undefined) ??
         (typeof dataState.data.data_analise === "string"
           ? dataState.data.data_analise
-          : undefined)
+          : undefined))
       : undefined;
 
   const enabledSections = useMemo<SectionSpec[]>(
@@ -245,7 +264,10 @@ export function ReportShell({
       <ReportTopNav
         groupsByMode={navGroups}
         brand={
-          <nav aria-label="Trilha de navegação" className="flex items-center gap-1.5 text-xs">
+          <nav
+            aria-label="Trilha de navegação"
+            className="flex items-center gap-1.5 text-xs"
+          >
             <Link
               href="/reports"
               className="text-white/60 hover:text-white"
@@ -253,7 +275,9 @@ export function ReportShell({
             >
               Relatórios
             </Link>
-            <span aria-hidden className="text-white/30">/</span>
+            <span aria-hidden className="text-white/30">
+              /
+            </span>
             <span
               className="font-medium text-white"
               style={{ fontFamily: "var(--font-display)" }}
@@ -270,7 +294,10 @@ export function ReportShell({
               sidebarOpen={sidebarOpen}
               onToggleSidebar={toggleSidebar}
             />
-            <span className="mx-1 hidden h-5 w-px bg-white/15 md:inline-block" aria-hidden />
+            <span
+              className="mx-1 hidden h-5 w-px bg-white/15 md:inline-block"
+              aria-hidden
+            />
             <AppearanceMenu />
           </>
         }
@@ -322,103 +349,109 @@ export function ReportShell({
                   meta={coverMeta}
                 />
               )}
-            <article
-              className="max-w-[1120px] px-10 py-8 font-body text-[var(--surface-foreground)]"
-              data-report-mode={mode}
-              data-report-ready="true"
-            >
-              <ReportPremissasBlock data={dataState.data} />
+              <article
+                className="max-w-[1120px] px-10 py-8 font-body text-[var(--surface-foreground)]"
+                data-report-mode={mode}
+                data-report-ready="true"
+              >
+                <ReportPremissasBlock data={dataState.data} />
 
-              {/* Sumário Executivo (Hero KPI) — modo estratégico, antes do Perfil
-                * Paridade com EXEMPLO_DE_RELATORIO.html:1376 (id="kpis"). */}
-              {mode === "estrategico" && (
-                <ExecutiveSummarySection data={dataState.data} />
-              )}
+                {/* Sumário Executivo (Hero KPI) — modo estratégico, antes do Perfil
+                 * Paridade com EXEMPLO_DE_RELATORIO.html:1376 (id="kpis"). */}
+                {mode === "estrategico" && (
+                  <ExecutiveSummarySection data={dataState.data} />
+                )}
 
-              {/* V0 (SNAPSHOT_CHANGELOG_V3 W4/D6 · ADR-190 §Emenda) — "O que
-                * mudou desde o último relatório". Hide-when-empty: retorna
-                * null no primeiro relatório (comparisons null). */}
-              {mode === "estrategico" && (
-                <VariacaoSection data={dataState.data} />
-              )}
+                {/* V0 (SNAPSHOT_CHANGELOG_V3 W4/D6 · ADR-190 §Emenda) — "O que
+                 * mudou desde o último relatório". Hide-when-empty: retorna
+                 * null no primeiro relatório (comparisons null). */}
+                {mode === "estrategico" && (
+                  <VariacaoSection data={dataState.data} />
+                )}
 
-              {/* A28.l9 — banner agregado de qualidade de dados (KR4),
-                * entre o Sumário Executivo e a primeira seção. */}
-              {mode === "estrategico" && (
-                <ReportDataQualityBanner
-                  data={dataState.data}
-                  workspaceId={workspaceId}
-                />
-              )}
-
-              {/* Perfil da Família — modo estratégico, acima das seções */}
-              {mode === "estrategico" && (
-                <PerfilFamiliaCard
-                  narrativas={dataState.data.narrativas as Record<string, unknown> | undefined}
-                />
-              )}
-
-              {/* Titulares — CPF mascarado por default (ADR-259 §4) */}
-              {mode === "estrategico" && <TitularesCard workspaceId={workspaceId} />}
-
-              {enabledSections.map((section) =>
-                MIGRATED_SECTIONS.has(section.id) ? (
-                  <MigratedSection
-                    key={section.id}
-                    sectionId={section.id}
+                {/* A28.l9 — banner agregado de qualidade de dados (KR4),
+                 * entre o Sumário Executivo e a primeira seção. */}
+                {mode === "estrategico" && (
+                  <ReportDataQualityBanner
                     data={dataState.data}
                     workspaceId={workspaceId}
-                    reportId={reportId}
+                    runOutcome={runOutcome}
                   />
-                ) : (
-                  <ReportSection
-                    key={section.id}
-                    id={section.id}
-                    title={section.title}
-                  >
-                    <ReportSectionStub
-                      cardIds={(section.cards ?? [])
-                        .filter((c) => c.enabled)
-                        .map((c) => c.id)}
-                      chartIds={(section.charts ?? [])
-                        .filter((c) => c.enabled)
-                        .map((c) => c.id)}
+                )}
+
+                {/* Perfil da Família — modo estratégico, acima das seções */}
+                {mode === "estrategico" && (
+                  <PerfilFamiliaCard
+                    narrativas={
+                      dataState.data.narrativas as
+                        Record<string, unknown> | undefined
+                    }
+                  />
+                )}
+
+                {/* Titulares — CPF mascarado por default (ADR-259 §4) */}
+                {mode === "estrategico" && (
+                  <TitularesCard workspaceId={workspaceId} />
+                )}
+
+                {enabledSections.map((section) =>
+                  MIGRATED_SECTIONS.has(section.id) ? (
+                    <MigratedSection
+                      key={section.id}
+                      sectionId={section.id}
+                      data={dataState.data}
+                      workspaceId={workspaceId}
+                      reportId={reportId}
                     />
-                  </ReportSection>
-                ),
-              )}
-
-              {/* Direção E · Onda 5 · ADR-153 — agregador "Próximos passos"
-                * com lista das sugestões pendentes do workspace. */}
-              {mode === "estrategico" && (
-                <SuggestionCalloutSummary workspaceId={workspaceId} />
-              )}
-
-              {/* Apêndices — modo estratégico */}
-              {mode === "estrategico" &&
-                (LAYOUT.estrategico.appendices ?? [])
-                  .filter((a) => a.enabled)
-                  .map((a) =>
-                    MIGRATED_SECTIONS.has(a.id) ? (
-                      <MigratedSection
-                        key={a.id}
-                        sectionId={a.id}
-                        data={dataState.data}
-                        workspaceId={workspaceId}
-                        reportId={reportId}
+                  ) : (
+                    <ReportSection
+                      key={section.id}
+                      id={section.id}
+                      title={section.title}
+                    >
+                      <ReportSectionStub
+                        cardIds={(section.cards ?? [])
+                          .filter((c) => c.enabled)
+                          .map((c) => c.id)}
+                        chartIds={(section.charts ?? [])
+                          .filter((c) => c.enabled)
+                          .map((c) => c.id)}
                       />
-                    ) : null,
-                  )}
-            </article>
-            <ReportSourceStrip
-              reportPeriod={reportPeriod}
-              analysisPeriod={analysisPeriodFromSnapshot}
-              generatedAtIso={reportCreatedAt}
-              pipelineRunId={pipelineRunId}
-              sourceDocumentCount={sourceDocumentCount}
-              consumedDocumentCount={consumedDocumentCount}
-            />
-            <ExportToolbar />
+                    </ReportSection>
+                  ),
+                )}
+
+                {/* Direção E · Onda 5 · ADR-153 — agregador "Próximos passos"
+                 * com lista das sugestões pendentes do workspace. */}
+                {mode === "estrategico" && (
+                  <SuggestionCalloutSummary workspaceId={workspaceId} />
+                )}
+
+                {/* Apêndices — modo estratégico */}
+                {mode === "estrategico" &&
+                  (LAYOUT.estrategico.appendices ?? [])
+                    .filter((a) => a.enabled)
+                    .map((a) =>
+                      MIGRATED_SECTIONS.has(a.id) ? (
+                        <MigratedSection
+                          key={a.id}
+                          sectionId={a.id}
+                          data={dataState.data}
+                          workspaceId={workspaceId}
+                          reportId={reportId}
+                        />
+                      ) : null,
+                    )}
+              </article>
+              <ReportSourceStrip
+                reportPeriod={reportPeriod}
+                analysisPeriod={analysisPeriodFromSnapshot}
+                generatedAtIso={reportCreatedAt}
+                pipelineRunId={pipelineRunId}
+                sourceDocumentCount={sourceDocumentCount}
+                consumedDocumentCount={consumedDocumentCount}
+              />
+              <ExportToolbar />
             </ReportProvenanceProvider>
           )}
         </main>

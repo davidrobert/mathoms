@@ -75,6 +75,7 @@ function buildReportResponse(
     consumed_document_count: 3,
     consumed_document_ids: ["doc-1", "doc-2", "doc-3"],
     has_analysis_data: true,
+    run_outcome: "complete",
     premissas_snapshot: null,
   };
 }
@@ -132,7 +133,10 @@ export async function mockReportPage(
 
     if (path === "/auth/me") return json(route, buildUser());
     if (path === "/me/workspaces") {
-      return json(route, { workspaces: [buildWorkspace(workspaceId)], total: 1 });
+      return json(route, {
+        workspaces: [buildWorkspace(workspaceId)],
+        total: 1,
+      });
     }
     if (path === `/workspaces/${workspaceId}/reports/${reportId}`) {
       return json(route, buildReportResponse(reportId, workspaceId));

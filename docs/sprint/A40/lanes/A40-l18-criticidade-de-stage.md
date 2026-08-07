@@ -33,6 +33,72 @@ tags:
 > manda **reverter a l21** (e o PR1 da [[A40.l20]]) se esta lane não mergear até
 > `date_target: 2026-08-17`.
 >
+> ## 🚧 Estado em 2026-08-07 — **PR2 completo em [#1258](https://github.com/davidrobert/mathoms/pull/1258), aguardando review**
+>
+> `status: open` até o merge. Os 8 commits do PR2 cobrem o §Critério de aceite
+> inteiro **e** as duas condições de merge do §Decisões do dono:
+>
+> | Commit | O que entrega |
+> | --- | --- |
+> | `0b95d22d` | `StageSpec.criticality` + `commit_artifacts_on_degrade` + resolvedor puro `pipeline/stage_outcome.py` |
+> | `d71d0c3c` | gate AST `dev/check_stage_criticality.py` (4 regras provadas por mutação) + cobertura do resolvedor |
+> | `7f41be2e` | cascata `missing_narrativas` morta (classe de render SKIPA) + vocabulário de retry corrigido por medição |
+> | `e4fcf337` | **o writer**: `partial_failure` escrito, `degraded` gravado e em `_STAGE_DONE_STATUSES`, post-processing em degradação, `failed_at_stage`/`failure_reason` NULL, degradação sem `stop_on_error` |
+> | `263d4d1f` | 10 testes de aceite, 5 mutações provadas |
+> | `2c8d169c` | **supressão do `CleanBar`** (§Decisões do dono, 1) |
+> | `d88730fe` | **`StageFailureReason` + card em `/admin/metrics` + log** (item 2) |
+> | `c807722d` | card no console ops + gate de paridade do `types.ts` + cadência no RUNBOOK |
+>
+> Suítes: backend 3162, pipeline 5913, frontend 1571, `tsc --noEmit` limpo nos dois
+> apps. Snapshots: enums de pipeline **sem diff** (o PR1 pagou); `ReportResponse`
+> e `MetricsResponse` ganham campo, o que é esperado.
+>
+> **§Follow-ups nomeados ganharam 3 itens** (ver seção): aliasing do
+> `DBArtifactStore` (P1, `data-engineer`, ADR própria — e ela **depende** da §6),
+> índice parcial de `pipeline_stage_logs` com gatilho medível, e CI própria do
+> `frontend-ops` (lane A42).
+>
+> ## 📋 Co-design de 2026-08-07 — decisões que o escopo "fechado" não previa
+>
+> Painel de 4 especialistas sobre 14 questões que uma recon de medição expôs
+> (várias afirmações dos docs refutadas). O que ficou decidido e **ainda não
+> implementado**:
+>
+> - **`CleanBar`:** `return null`, com os guards **invertidos** —
+>   `if (signals.count > 0) return <SignalsAlert/>; if (runDegraded) return null;`
+>   — para não tocar `computeDataQualitySignals`. Pôr `runDegraded` no `count`
+>   renderizaria *"1 pendência afeta a precisão"* com uma `<ul>` **vazia**. O
+>   slot já renderiza `null` em produção por dois vizinhos, então não há salto de
+>   layout novo. Predicado **positivo** (`renderiza ⟺ run entregou sem stage
+>   degradado`): o negativo deixaria o run **cancelado** com E5 ainda afirmando
+>   "sem pendências". Desfecho vem por `ReportResponse`/payload que a página já
+>   espera — **não** por fetch novo, senão o PDF captura o `CleanBar` no primeiro
+>   paint. Campo **obrigatório** no DTO, nunca `boolean | undefined`.
+>   Aceite que importa: `pdftotext` do relatório degradado **não** contém "sem
+>   pendências que afetem a leitura".
+> - **Card:** `pipeline_runs_by_status` ancorado em `PipelineRun.started_at`
+>   (invariante grátis: soma == `pipeline_runs_last_period`);
+>   `stages_degraded_last_period` por `reason_class` **e por `stage`**, ancorado
+>   em `PipelineStageLog.started_at`; **taxa** na tela (contagem sem denominador
+>   não sustenta threshold). Zeros **estruturais** em DTOs aninhados, não
+>   `dict[str, int]` — o dict gera `additionalProperties` no snapshot e
+>   `noUncheckedIndexedAccess` do `frontend-ops` convida ao `?? 0` que
+>   re-conflaciona ausência com zero. Agregação em **Python** com projeção de
+>   coluna (query JSON-path seria a primeira do repo e a suíte de PR só roda
+>   SQLite). `cost_usd` **nullable** + `cost_known` sempre — a semântica de 3
+>   casos já existe em `LLMCallMetrics`; `0.0` no timeout caro é a mesma falha de
+>   silêncio que o dono recusou.
+> - **`frontend-ops` não está em NENHUM workflow de CI** — um `types.ts`
+>   dessincronizado passa todos os gates. Fechar a falha específica com gate de
+>   paridade em pytest (idioma do PR1) + 1 linha no `files_yaml`; CI do
+>   `frontend-ops` é lane própria (A42).
+> - **Índice de `pipeline_stage_logs`** fica dívida com gatilho medível: a forma
+>   certa em Postgres é índice **parcial**, e escolher o composto agora é escolher
+>   o índice errado com custo de migration.
+> - **Cadência de leitura do card** vai para `RUNBOOK.md` §7.3 com número e
+>   threshold. Card que ninguém abre tem o mesmo modo de falha do log sem sink —
+>   esta casa já perdeu 45 dias de nightly desligado sem notar.
+>
 > ## 🔓 Estado em 2026-08-06 — **PR1 entregue, PR2 (o writer) é o que falta**
 >
 > **`status: open`, não `in_progress`** — e a distinção não é burocrática. O PR1
@@ -124,6 +190,24 @@ Painel de 4 especialistas sobre 3 lacunas que uma recon adversarial expôs
    rótulo `"ratelimiterror"` — nunca casa. Corrigir para
    `ratelimit`/`overloaded`/`apistatus`; o teste de tabela nasce vermelho e
    documenta o bug.
+   > ⚠️ **REFUTADO 2026-08-07 por medição no PR2. Não aplique a prescrição
+   > acima — ela É a regressão.** Duas premissas erradas: (a) `should_retry`
+   > recebe `str(exc)[:2000]`, **não** o nome da classe, e o que chega ali é uma
+   > `LLMError` que re-embrulha a mensagem do provider; (b) `_normalize` colapsa
+   > `_` em espaço nos **dois** lados, então o corpo do erro
+   > (`rate_limit_error` → `rate limit error`) **casa** `rate_limit` e **não**
+   > casa `ratelimit`. Trocar para `ratelimit` desligaria um retry que funciona,
+   > e `apistatus` não casa mensagem nenhuma.
+   >
+   > **O gap real, e era silencioso:** o overload da Anthropic (529 / 500
+   > `overloaded_error`, o transiente mais comum em pico) é mapeado por litellm
+   > para `InternalServerError`, cuja mensagem não contém nenhum dos 5 padrões
+   > antigos. E a mensagem de timeout tem duas formas — `classify_error` conhece
+   > ambas, a tabela conhecia uma. **Entregue:** acrescentados `overloaded`,
+   > `529` e `timed out`; nada removido; tabela extraída para constante única
+   > (era repetida 4×). Teste alimentado pelo produtor
+   > (`backend/tests/test_stage_retry_vocabulary.py`), provado por mutação —
+   > contra a tabela antiga, exatamente os 5 casos dos gaps ficam vermelhos.
 6. **Observabilidade é condição de merge, não follow-up** — log sem sink é
    silêncio com outra sintaxe. Ver §Decisões do dono, itens 1 e 2.
 
@@ -176,7 +260,29 @@ de ADR é reservado em prosa (precedente [[ADR-356]]).
    Dono: [[A40.l20]] PR2.
 6. **`StageSpec.writes` é ficção** para `generate_narratives` (declara chave
    própria, escreve na do E5) e `validate_cross` (declara chave, é read-only).
-   Débito já nomeado na [[ADR-357]] §Consequências, mantido.
+   Débito já nomeado na [[ADR-357]] §Consequências, mantido. Medido no PR2: o
+   campo tem **1 consumidor** no repo inteiro (`validate_full_order`) e ninguém lê
+   o artifact stage `generate_narratives` — é nó órfão, não aresta validada.
+7. **Aliasing do `DBArtifactStore` — P1, dono `data-engineer`, ADR própria.**
+   `_maybe_decrypt` devolve `row.content_json` por **referência** e a coluna é
+   `JSON` plain sem `MutableDict`: `read → mutar in-place → write` na mesma
+   `(stage, key)` é **lost update silencioso** quando
+   `ENCRYPT_PIPELINE_ARTIFACTS=False`. Provado empiricamente no PR2. O default
+   `True` mascara em produção, e os harnesses que desligam não rodam E5.N — por
+   isso ninguém tropeçou. A ADR nova **depende** da [[ADR-357]] §6: consertar o
+   aliasing sem a exceção travada em pé abre o vetor de corrupção do deliverable
+   que hoje é impedido pelo próprio defeito.
+8. **Índice de `pipeline_stage_logs`** — o card filtra `status` + `started_at` em
+   full scan. Dívida deliberada: a forma certa em Postgres é índice **parcial**
+   (`WHERE status='degraded'`), que não existe em SQLite, então escolher o
+   composto agora é escolher o índice errado com custo de migration. Gatilho de
+   retomada: Postgres vivo **e** rows degradadas na casa dos milhares, **ou** p95
+   do endpoint encostando no 1s do `SLO.md`.
+9. **CI própria do `frontend-ops`** — lane A42. O app não está em nenhum workflow;
+   o PR2 fechou só a falha específica (paridade do `types.ts` por pytest + 1 linha
+   no `files_yaml`). Job mínimo defensável: `setup-node@v4` + `npm ci` +
+   `typecheck` + `lint`, gateado por grupo `frontend_ops` novo, sem Playwright e
+   sem `build`.
 
 ## Critério de aceite
 
@@ -212,12 +318,35 @@ de ADR é reservado em prosa (precedente [[ADR-356]]).
   > CV1/CV2/CV3/CV6 falhando publicariam à família um relatório cujos números
   > não fecham, com banner de ressalva — informação **errada** vendida como
   > incompleta. Ver §Follow-ups nomeados, item 1.
-- Gate estático: todo stage após `analyze_finances` é `degradable`; todo stage
-  até ele é `required`. Falha se alguém inserir stage no meio sem decidir.
-- `make update-openapi-snapshot` ⇒ o enum **`PipelineRunStatus` inalterado** (é
-  ele que a [[ADR-357]] §3 protege: `partial_failure` é reuso, não status novo).
-  O enum `PipelineStageStatus` ganha **exatamente `degraded`**, e nada mais.
-  Idem `make update-db-schema-reference`.
+- Gate estático (`dev/check_stage_criticality.py`): todo stage até
+  `analyze_finances` é `required`; todo stage **após** ele **declara**
+  `criticality=` explicitamente — com qualquer valor. Falha se alguém inserir
+  stage no meio sem decidir.
+  > **Reconciliado 2026-08-07 no PR2.** A forma anterior pedia *"todo stage após
+  > `analyze_finances` é `degradable`"*, o que **contradizia o §Delta item 3**
+  > desta mesma lane — ele recusou a recíproca por forçar `validate_cross` para
+  > dentro da classe por CI e transformar questão semântica em invariante de
+  > pipeline. As duas seções foram escritas no mesmo dia e ninguém notou.
+  >
+  > Exigir **declaração** em vez de **valor** entrega o que este critério quer
+  > (*"falha se alguém inserir stage no meio sem decidir"*) sem o que o §Delta
+  > recusa: o CI cobra a decisão, não escolhe o valor. Por AST, porque o default
+  > do dataclass é indistinguível do valor explícito em runtime — a declaração só
+  > existe no texto do código. O gate também recusa
+  > `commit_artifacts_on_degrade` em stage `required` (config morta) e valor fora
+  > de `{required, degradable}`.
+- `make update-openapi-snapshot` e `make update-db-schema-reference` ⇒ **diff
+  vazio nos dois enums**. Diff no enum de **run** ⇒ alguém adicionou status novo
+  e a [[ADR-357]] §3 foi violada.
+  > **Corrigido 2026-08-07 por medição no PR2 — terceira revisão deste bullet.**
+  > A forma anterior (*"o enum `PipelineStageStatus` ganha exatamente
+  > `degraded`"*) acertou a superfície e errou **quem paga**: o PR1
+  > (`4620cc04`/#1242) já declarou o membro Python, então `degraded` já está no
+  > `openapi.json` e no `DB_SCHEMA_REFERENCE.md`. Lida ao pé da letra, ela
+  > reprovaria o PR2 correto. Medido: os dois `make` não produzem diff.
+  >
+  > Se o PR2 acrescentar campo a `MetricsResponse` (§Decisões do dono, 2), o
+  > snapshot ganha diff **não-enum** — esperado, e não é violação da §3.
   > Corrigido 2026-08-06 **por medição**. A forma anterior — *"diff vazio; diff
   > ⇒ §3 violada"* — era falsa e teria reprovado o PR correto:
   > [`PipelineStageLogResponse.status`](../../../../backend/app/schemas/pipeline.py)

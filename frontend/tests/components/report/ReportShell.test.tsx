@@ -11,9 +11,7 @@ import type { UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
 
 vi.mock("@/lib/WorkspaceProvider", () => ({
-  WorkspaceProvider: ({ children }: { children: ReactNode }) => (
-    <>{children}</>
-  ),
+  WorkspaceProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
   useWorkspace: () => ({
     workspace: {
       id: "ws-test",
@@ -57,7 +55,9 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          workspaceId="ws-test" reportTitle="Relatório Família Teste"
+          workspaceId="ws-test"
+          runOutcome="complete"
+          reportTitle="Relatório Família Teste"
           dataState={state}
           reportPeriod="2026-Q1"
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -66,9 +66,15 @@ describe("ReportShell", () => {
     );
 
     // Título aparece no header + no hero do article
-    expect(screen.getAllByText("Relatório Família Teste").length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/202601-202604/).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByRole("note", { name: /Origem dos dados do relatório/i })).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Relatório Família Teste").length,
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByText(/202601-202604/).length).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(
+      screen.getByRole("note", { name: /Origem dos dados do relatório/i }),
+    ).toBeInTheDocument();
   });
 
   it("mostra link da execução do pipeline quando pipelineRunId está definido (F11.4a)", () => {
@@ -78,7 +84,9 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          workspaceId="ws-test" reportTitle="Rel"
+          workspaceId="ws-test"
+          runOutcome="complete"
+          reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -87,7 +95,10 @@ describe("ReportShell", () => {
       ),
     );
     const link = screen.getByRole("link", { name: "aaaaaaaa…" });
-    expect(link).toHaveAttribute("href", `/pipeline?run=${encodeURIComponent(runId)}`);
+    expect(link).toHaveAttribute(
+      "href",
+      `/pipeline?run=${encodeURIComponent(runId)}`,
+    );
   });
 
   it("oculta seletor de modo quando há apenas um modo visível", () => {
@@ -99,7 +110,9 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          workspaceId="ws-test" reportTitle="Rel"
+          workspaceId="ws-test"
+          runOutcome="complete"
+          reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -109,15 +122,9 @@ describe("ReportShell", () => {
     expect(
       screen.queryByRole("tablist", { name: "Modo de visualização" }),
     ).toBeNull();
-    expect(
-      screen.queryByRole("tab", { name: "Estratégico" }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole("tab", { name: "Tático" }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole("tab", { name: "EUA" }),
-    ).toBeNull();
+    expect(screen.queryByRole("tab", { name: "Estratégico" })).toBeNull();
+    expect(screen.queryByRole("tab", { name: "Tático" })).toBeNull();
+    expect(screen.queryByRole("tab", { name: "EUA" })).toBeNull();
   });
 
   it("renderiza seções migradas sem stubs no modo estratégico", () => {
@@ -126,7 +133,9 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          workspaceId="ws-test" reportTitle="Rel"
+          workspaceId="ws-test"
+          runOutcome="complete"
+          reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -149,7 +158,9 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          workspaceId="ws-test" reportTitle="Rel"
+          workspaceId="ws-test"
+          runOutcome="complete"
+          reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -173,6 +184,7 @@ describe("ReportShell", () => {
         <ReportShell
           reportId="r1"
           workspaceId="ws-test"
+          runOutcome="complete"
           reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
@@ -192,6 +204,7 @@ describe("ReportShell", () => {
         <ReportShell
           reportId="r1"
           workspaceId="ws-test"
+          runOutcome="complete"
           reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
@@ -214,6 +227,7 @@ describe("ReportShell", () => {
         <ReportShell
           reportId="r1"
           workspaceId="ws-test"
+          runOutcome="complete"
           reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
@@ -236,6 +250,7 @@ describe("ReportShell", () => {
         <ReportShell
           reportId="r1"
           workspaceId="ws-test"
+          runOutcome="complete"
           reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
@@ -255,6 +270,7 @@ describe("ReportShell", () => {
         <ReportShell
           reportId="r1"
           workspaceId="ws-test"
+          runOutcome="complete"
           reportTitle="Rel da família"
           dataState={state}
           reportPeriod={null}
@@ -263,7 +279,10 @@ describe("ReportShell", () => {
       ),
     );
     expect(
-      screen.getByRole("heading", { level: 1, name: "Planejamento Financeiro" }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Planejamento Financeiro",
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText("Pessoal e Patrimonial")).toBeInTheDocument();
   });
@@ -274,7 +293,9 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          workspaceId="ws-test" reportTitle="Rel"
+          workspaceId="ws-test"
+          runOutcome="complete"
+          reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"

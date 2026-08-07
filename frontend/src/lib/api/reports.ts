@@ -26,6 +26,18 @@ export interface ReportResponse {
   /** v2.F.3 — sobrenome da família (do workspace) para badge/cover. Pode vir
    * `null` quando o workspace não definiu sobrenome ou pré v2.F.3a. */
   workspace_family_surname?: string | null;
+  /** A40.l18 · ADR-357 — desfecho do run, polaridade POSITIVA: só `complete`
+   * autoriza o relatório a AFIRMAR que não há pendências. Obrigatório: campo
+   * opcional que chegasse `undefined` faria a supressão sumir em silêncio. */
+  run_outcome: ReportRunOutcome;
+}
+
+/** Desfecho do run sob a ótica do relatório (espelha `ReportRunOutcome` do backend). */
+export type ReportRunOutcome = "complete" | "with_gap" | "unknown";
+
+/** O relatório pode afirmar "sem pendências"? Só um run que entregou tudo pode. */
+export function mayAssertCleanQuality(outcome: ReportRunOutcome): boolean {
+  return outcome === "complete";
 }
 
 export interface ReportListResponse {
@@ -160,7 +172,8 @@ export interface ReportAnalysisData {
   tributario?: TributarioBundle;
   /** ADR-240 D8 (A19 L1) — bloco S_PROTECAO 4º pilar AUVP. Ausente quando
    *  workspace não tem apólices ingeridas (UI oculta seção). */
-  protecao_patrimonial?: import("@/types/protecao").ProtecaoPatrimonialData | null;
+  protecao_patrimonial?:
+    import("@/types/protecao").ProtecaoPatrimonialData | null;
   // Extensibilidade para chaves ainda não tipadas
   [key: string]: unknown;
 }
@@ -179,7 +192,8 @@ export interface CascataPayload {
   regime: "mei" | "simples" | "lucro_presumido" | "lucro_real" | null;
   regime_label: string;
   regime_nao_suportado: boolean;
-  motivo_nao_suportado: "lucro_real" | "perfil_incompleto" | "anexo_simples_pendente" | null;
+  motivo_nao_suportado:
+    "lucro_real" | "perfil_incompleto" | "anexo_simples_pendente" | null;
   receita_bruta: number;
   tributos_federais: number;
   iss_total: number;
@@ -195,7 +209,8 @@ export interface CascataPayload {
   pgbl_base_anual: number;
   pgbl_limite_anual: number;
   pgbl_aplicavel: boolean;
-  pgbl_motivo_inaplicavel: "declaracao_simplificada" | "renda_tributavel_pf_zerada" | null;
+  pgbl_motivo_inaplicavel:
+    "declaracao_simplificada" | "renda_tributavel_pf_zerada" | null;
   /** Fração (0.32 = 32%). Apenas em regime=simples. */
   fator_r_pct: number | null;
   fator_r_faixa: "anexo_iii" | "anexo_v" | null;
@@ -306,16 +321,24 @@ export interface PassiveIncomeData {
 
 // ─── Reports ───
 
-export async function listReports(workspaceId: string): Promise<ReportListResponse> {
+export async function listReports(
+  workspaceId: string,
+): Promise<ReportListResponse> {
   return apiFetch(`/workspaces/${workspaceId}/reports`);
 }
 
-export async function getReport(workspaceId: string, reportId: string): Promise<ReportResponse> {
+export async function getReport(
+  workspaceId: string,
+  reportId: string,
+): Promise<ReportResponse> {
   return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}`);
 }
 
 /** F9 · F4.2 — URL de download do PDF server-side (Playwright). */
-export function getReportDownloadPdfUrl(workspaceId: string, reportId: string): string {
+export function getReportDownloadPdfUrl(
+  workspaceId: string,
+  reportId: string,
+): string {
   return `${API_BASE}/workspaces/${workspaceId}/reports/${reportId}/download.pdf`;
 }
 
@@ -324,7 +347,10 @@ export function getReportDownloadPdfUrl(workspaceId: string, reportId: string): 
  * Retorna 404 se o relatório é pré-F9 ou se o artifact foi removido — verifique
  * antes via `ReportResponse.has_analysis_data` para evitar a requisição.
  */
-export async function getReportData(workspaceId: string, reportId: string): Promise<ReportAnalysisData> {
+export async function getReportData(
+  workspaceId: string,
+  reportId: string,
+): Promise<ReportAnalysisData> {
   return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/data`);
 }
 

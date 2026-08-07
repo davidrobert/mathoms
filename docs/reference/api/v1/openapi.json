@@ -6743,6 +6743,13 @@
             "title": "Period Days",
             "type": "integer"
           },
+          "pipeline_runs_by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Pipeline Runs By Status",
+            "type": "object"
+          },
           "pipeline_runs_last_period": {
             "title": "Pipeline Runs Last Period",
             "type": "integer"
@@ -6750,6 +6757,20 @@
           "pipeline_runs_total": {
             "title": "Pipeline Runs Total",
             "type": "integer"
+          },
+          "stages_degraded_by_reason": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Stages Degraded By Reason",
+            "type": "object"
+          },
+          "stages_degraded_by_stage": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Stages Degraded By Stage",
+            "type": "object"
           },
           "storage_bytes_total": {
             "title": "Storage Bytes Total",
@@ -6780,7 +6801,10 @@
           "documents_uploaded_last_period",
           "new_users_last_period",
           "period_days",
-          "generated_at"
+          "generated_at",
+          "pipeline_runs_by_status",
+          "stages_degraded_by_reason",
+          "stages_degraded_by_stage"
         ],
         "title": "MetricsResponse",
         "type": "object"
@@ -9481,6 +9505,9 @@
             ],
             "title": "Premissas Snapshot"
           },
+          "run_outcome": {
+            "$ref": "#/components/schemas/ReportRunOutcome"
+          },
           "score": {
             "anyOf": [
               {
@@ -9528,10 +9555,21 @@
           "id",
           "workspace_id",
           "title",
-          "created_at"
+          "created_at",
+          "run_outcome"
         ],
         "title": "ReportResponse",
         "type": "object"
+      },
+      "ReportRunOutcome": {
+        "description": "Desfecho do run sob a \u00f3tica do relat\u00f3rio.",
+        "enum": [
+          "complete",
+          "with_gap",
+          "unknown"
+        ],
+        "title": "ReportRunOutcome",
+        "type": "string"
       },
       "ReportSummaryDTO": {
         "properties": {

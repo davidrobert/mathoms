@@ -242,7 +242,7 @@ escrita autônoma):
 | --- | --- | --- |
 | Usuários | Anonimizar (default, FKs preservadas), Hard delete (superadmin + motivo), Reset senha (16 chars one-time), Editar nome/ativo, **Alterar email** (invalida JWTs), Toggle `is_developer` | `user.anonymize` · `user.hard_delete` · `user.reset_password` · `user.update_profile` · `user.email_changed` · `user.set_developer_flag` |
 | Documentos | Purge bulk (user\|workspace scope, preview paginada, rollback em OSError de blob), Delete individual | `document.purge` · `document.delete` |
-| Métricas | Dashboard com filtro 7d/30d/90d + export CSV; **Custo LLM por workspace** (mês-calendário UTC, mesma janela do hard-stop ADR-173) com **Editar cap** (mostra status resultante antes de confirmar) e **Remover cap** (confirmação dupla; NULL = sem teto) | `workspace.update_llm_budget` (edição) · leitura sem audit |
+| Métricas | Dashboard com filtro 7d/30d/90d + export CSV; **Custo LLM por workspace** (mês-calendário UTC, mesma janela do hard-stop ADR-173) com **Editar cap** (mostra status resultante antes de confirmar) e **Remover cap** (confirmação dupla; NULL = sem teto); **Degradação de etapas** (ADR-357 — ver cadência abaixo) | `workspace.update_llm_budget` (edição) · leitura sem audit |
 | Relatórios | Lista read-only paginada (offset/total) | leitura — sem audit |
 
 **Anonimização é default** — prefira sempre anonymize sobre hard delete. Hard
@@ -257,6 +257,33 @@ a edição via UI gera audit. A janela reseta na virada do mês-calendário UTC.
 ativo (estado inativo, dados preservados). Transferir ownership para outro
 admin é operação **manual** (SQL/console) — não há automação em IA-0
 (ADR-116; automação fica para F7F-Remote IA-4).
+
+**Degradação de etapas — cadência semanal (ADR-357 · A40.l18).** Um add-on
+advisory da cauda do pipeline (parecer, narrativas, cross-validation) pode não
+entregar sem derrubar o run: o relatório é gerado e a lacuna fica declarada
+(`partial_failure`). O card existe porque a alternativa — só log estruturado — é
+o modo de falha que produziu o incidente de origem: **9 dias sem detecção**
+(ADR-304 §Emenda). Card que ninguém abre tem o mesmo modo de falha, com sintaxe
+melhor; esta casa já perdeu 45 dias de nightly desligado sem notar.
+
+Olhe **1×/semana**, em Métricas → *Degradação de etapas* (30d), três números:
+
+1. **Taxa sobre runs.** Contagem sozinha não sustenta threshold — 4 em 200 e 4 em
+   5 são mundos diferentes. Acima de ~10% investigue.
+2. **Por motivo.** `unknown` acima de ~20% do total significa que o mapeamento de
+   `reason_class` não cobre os tipos reais — e toda a copy client-facing da
+   A40.l20 fica construída em cima de moeda ao ar. Revise
+   `backend/app/services/pipeline/stage_failure_reason.py`.
+3. **Por etapa.** `review_finances_holistic` degradando é visível ao cliente
+   premium e custa API; `validate_cross` é grátis e invisível. A etapa decide se o
+   próximo passo é olhar o provider ou o código.
+
+Não fecha com *Runs por desfecho*: um run pode degradar várias etapas, e run longo
+cruza a janela. As duas âncoras são deliberadamente diferentes
+(`PipelineStageLog.started_at` vs `PipelineRun.started_at`).
+
+Alerta automático (burn-rate) depende do Sentry, que é OWNER-GATED (ADR-228 G4).
+Até lá esta leitura semanal **é** o controle.
 
 ### 7.4 Rotação de credenciais
 

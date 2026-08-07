@@ -50,6 +50,7 @@ const reports: ReportResponse[] = [
     consumed_document_count: 1,
     consumed_document_ids: ["doc-1"],
     has_analysis_data: true,
+    run_outcome: "complete",
   },
 ];
 
@@ -159,10 +160,34 @@ const transactions: TransactionItem[] = [
 
 const dashboard: DashboardResponse = {
   kpis: [
-    { label: "Receitas", value: "R$ 12.500,00", raw_value: 12_500, delta: 500, delta_percent: 0.04 },
-    { label: "Despesas", value: "R$ 8.400,00", raw_value: -8_400, delta: -120, delta_percent: -0.014 },
-    { label: "Saldo", value: "R$ 4.100,00", raw_value: 4_100, delta: 380, delta_percent: 0.1 },
-    { label: "Score", value: "78", raw_value: 78, delta: null, delta_percent: null },
+    {
+      label: "Receitas",
+      value: "R$ 12.500,00",
+      raw_value: 12_500,
+      delta: 500,
+      delta_percent: 0.04,
+    },
+    {
+      label: "Despesas",
+      value: "R$ 8.400,00",
+      raw_value: -8_400,
+      delta: -120,
+      delta_percent: -0.014,
+    },
+    {
+      label: "Saldo",
+      value: "R$ 4.100,00",
+      raw_value: 4_100,
+      delta: 380,
+      delta_percent: 0.1,
+    },
+    {
+      label: "Score",
+      value: "78",
+      raw_value: 78,
+      delta: null,
+      delta_percent: null,
+    },
   ],
   charts: [],
   alerts: [],
