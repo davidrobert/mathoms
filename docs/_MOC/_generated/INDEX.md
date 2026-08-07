@@ -363,6 +363,7 @@
 | ADR-365 | adr | Proposto |  | Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais | `adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md` |
 | ADR-366 | adr | Proposto |  | Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação | `adr/366-desfecho-da-geracao-do-parecer-e-eixo-proprio.md` |
 | ADR-367 | adr | Proposto |  | Ordem do plano por irreversibilidade: tier constante por regra, e o alvo da reserva gradua sem mover o gatilho | `adr/367-ordem-do-plano-por-irreversibilidade.md` |
+| ADR-368 | adr | Proposto |  | Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão | `adr/368-ancorabilidade-do-exec-context-e-densidade-por-item.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

@@ -21,6 +21,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models.llm_call_log import LLMCallLog
+from backend.app.models.pipeline_run import PipelineRun, PipelineStageLog
 from pipeline.artifact_store import stage_aliases
 
 logger = logging.getLogger("mathoms.llm.parecer_drift")
@@ -255,10 +256,178 @@ def compute_parecer_drift_signals(db: Session, workspace_id: str) -> list[DriftS
     return signals + _compare_windows(cur, base)
 
 
+# ----------------------------------------------------------------------
+# Ancoragem — 2 sinais sobre `pipeline_stage_logs.output_summary` (A40.l30 item 4)
+# ----------------------------------------------------------------------
+# Fonte é o stage log, NÃO o `LLMCallLog`: ele não carrega densidade de citação nem
+# pureza de prosa, e **não deve ganhar 2 colunas por isso** (§Escopo item 4 da lane).
+#
+# Estratificador é `(prompt_version, manifest_version)`, não `(prompt_version,
+# model_name)` como os 5 sinais acima. Razão medida: entre 2.1.0 e 2.2.0 o payload E5
+# também mudou (#1006 shape de `passive_income`, #1010 bases da A37.l9), então
+# `prompt_version` sozinho conflacia mudança de prompt com drift de payload — e
+# `manifest_version` já está no summary, de graça.
+#
+# Pisos derivados da RE-MEDIÇÃO retroativa das 66 execuções reais do stage
+# (`dev/measure_parecer_ancoragem.py`, 2026-08-07), não de estimativa. A primeira
+# calibragem desta lane usou ~7 itens — o denominador do golden sintético — e daria piso
+# 0,30, que NÃO pegaria a regressão real. O denominador em produção é ~19:
+#
+#   prompt/manifest   n    âncoras  itens   âncoras/item   prosa/item
+#   2.1.0 / 1.6       1      13       19       0,684          0,000
+#   2.1.0 / 1.8      15       9       18       0,500          0,000
+#   2.1.0 / 1.9       2       7       18,5     0,380          0,028
+#   2.2.0 / 2.0.2     9       5       19       0,278          0,190
+#
+# O "9→5" é Δ = −0,222 âncora/item entre janelas adjacentes com N útil. Piso 0,15 pega
+# essa e a de 1.6→1.8 (−0,184); o termo 2·SE cuida do ruído com N pequeno. Prosa foi
+# 0,000→0,190, então 0,10 pega com margem.
+ANCORAS_POR_ITEM_FLOOR = 0.15
+PROSA_MONETARIA_FLOOR = 0.10
+
+
+@dataclass(frozen=True)
+class _AnchorWindow:
+    """Janela de ancoragem. `unknown` conta rows PRÉ-instrumento (sem `itens_total`)."""
+
+    prompt_version: str
+    manifest_version: str
+    ancoras_por_item: tuple[float, ...]
+    prosa_por_item: tuple[float, ...]
+    unknown: int
+
+    @property
+    def n(self) -> int:
+        return len(self.ancoras_por_item)
+
+
+def _fetch_parecer_stage_summaries(db: Session, workspace_id: str) -> list[dict]:
+    """`output_summary` das execuções do stage do parecer, mais recentes primeiro."""
+    stmt = (
+        select(PipelineStageLog.output_summary)
+        .join(PipelineRun, PipelineStageLog.pipeline_run_id == PipelineRun.id)
+        .where(
+            PipelineRun.workspace_id == workspace_id,
+            PipelineStageLog.stage.in_(PARECER_STAGES),
+            PipelineStageLog.output_summary.isnot(None),
+        )
+        .order_by(PipelineStageLog.started_at.desc())
+        .limit(WINDOW_LIMIT * 10)
+    )
+    return [r[0] for r in db.execute(stmt).all() if isinstance(r[0], dict)]
+
+
+# Ausência de `itens_total` é `unknown`, **nunca 0**: o cache do envelope (ADR-366 §D7)
+# serve summary antigo num run novo, e ler ausência como zero compararia janela
+# instrumentada com janela de 3 campos — delta de drift falso, exatamente o erro de régua
+# que a ADR-358 §3 condena. O antipadrão vive no repo
+# (`tests/test_parecer_evidencia_llm_eval.py:84` faz `.get(..., 0)`); não copiar.
+def _rates_from(summary: dict) -> Optional[tuple[float, float]]:
+    """(âncoras/item, tokens monetários/item) — ``None`` se o summary é pré-instrumento."""
+    verification = summary.get("evidencia_verification")
+    if not isinstance(verification, dict):
+        return None
+    itens = verification.get("itens_total")
+    if not isinstance(itens, int) or itens <= 0:
+        return None
+    ancoras = float(verification.get("ancoras_total", 0))
+    prosa = float(verification.get("money_tokens_total", 0))
+    return ancoras / itens, prosa / itens
+
+
+def _build_anchor_windows(summaries: list[dict]) -> list[_AnchorWindow]:
+    grouped: dict[tuple[str, str], list[Optional[tuple[float, float]]]] = {}
+    order: list[tuple[str, str]] = []
+    for summary in summaries:
+        key = _anchor_key(summary)
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        if len(grouped[key]) < WINDOW_LIMIT:
+            grouped[key].append(_rates_from(summary))
+    return [_anchor_window_from(key, grouped[key]) for key in order]
+
+
+def _anchor_key(summary: dict) -> tuple[str, str]:
+    verification = summary.get("evidencia_verification") or {}
+    prompt = verification.get("prompt_version") or "unversioned"
+    return str(prompt), str(summary.get("manifest_version") or "unknown")
+
+
+def _anchor_window_from(key: tuple[str, str], rates) -> _AnchorWindow:
+    known = [r for r in rates if r is not None]
+    return _AnchorWindow(
+        prompt_version=key[0],
+        manifest_version=key[1],
+        ancoras_por_item=tuple(a for a, _ in known),
+        prosa_por_item=tuple(p for _, p in known),
+        unknown=len(rates) - len(known),
+    )
+
+
+def _anchor_signal(name: str, cur: _AnchorWindow, base: _AnchorWindow, *, attr, floor):
+    atual, anterior = getattr(cur, attr), getattr(base, attr)
+    delta = _mean(atual) - _mean(anterior)
+    verdict = _verdict_banded(delta, floor, _pooled_se_mean(atual, anterior))
+    return DriftSignal(
+        signal=name,
+        prompt_version=cur.prompt_version,
+        # O campo carrega o manifest porque É o estratificador desta família de sinais.
+        model_name=f"manifest={cur.manifest_version}",
+        value=round(delta, 4),
+        baseline=round(_mean(anterior), 4),
+        baseline_kind="prev_version",
+        n_current=cur.n,
+        n_baseline=base.n,
+        verdict=verdict,
+    )
+
+
+def _insufficient_anchor_signal(
+    cur: _AnchorWindow, base: Optional[_AnchorWindow] = None
+) -> DriftSignal:
+    return DriftSignal(
+        signal="ancoragem_window_sample",
+        prompt_version=cur.prompt_version,
+        model_name=f"manifest={cur.manifest_version}",
+        value=float(cur.n),
+        baseline=float(base.n) if base is not None else None,
+        baseline_kind="prev_version",
+        n_current=cur.n,
+        n_baseline=base.n if base is not None else 0,
+        # `unknown` no verdict e não em `value`: o leitor tem de ver que a janela foi
+        # descartada por ser pré-instrumento, não por ter medido zero.
+        verdict=f"insufficient_data:unknown={cur.unknown}",
+    )
+
+
+_ANCHOR_SIGNAL_SPECS = (
+    ("ancoras_por_item_delta", "ancoras_por_item", ANCORAS_POR_ITEM_FLOOR),
+    ("prosa_monetaria_rate_delta", "prosa_por_item", PROSA_MONETARIA_FLOOR),
+)
+
+
+def compute_ancoragem_drift_signals(db: Session, workspace_id: str) -> list[DriftSignal]:
+    """2 sinais de ancoragem: densidade por item e prosa monetária por item."""
+    windows = _build_anchor_windows(_fetch_parecer_stage_summaries(db, workspace_id))
+    if not windows:
+        return []
+    cur = windows[0]
+    base = next((w for w in windows[1:] if w.n >= MIN_WINDOW_N), None)
+    if base is None or cur.n < MIN_WINDOW_N:
+        return [_insufficient_anchor_signal(cur, base)]
+    return [
+        _anchor_signal(name, cur, base, attr=attr, floor=floor)
+        for name, attr, floor in _ANCHOR_SIGNAL_SPECS
+    ]
+
+
 def emit_parecer_drift(db: Session, workspace_id: str) -> None:
     """Best-effort pós-persistência do parecer — nunca propaga exceção."""
     try:
-        for s in compute_parecer_drift_signals(db, workspace_id):
+        signals = compute_parecer_drift_signals(db, workspace_id)
+        signals += compute_ancoragem_drift_signals(db, workspace_id)
+        for s in signals:
             level = logging.WARNING if s.verdict == "warn" else logging.INFO
             logger.log(level, "parecer drift signal", extra={"drift": s.__dict__})
     except Exception:  # noqa: BLE001 — observabilidade não quebra a geração
