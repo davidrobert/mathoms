@@ -360,7 +360,10 @@ def _safe_persist(db: Session, *, workspace_id: str, run_id: str, detail: dict) 
     return review_id
 
 
-def persist_after_stage_success(db: Session, *, run_id: str, detail: dict) -> Optional[str]:
+# Nome sem `_success` desde a A40.l20 PR2: o desfecho retido chega aqui com
+# ``success: False`` e stage degradado, e um entry point chamado "after stage
+# success" convidaria o próximo leitor a re-fechar a porta que o PR2 abriu.
+def persist_after_stage_result(db: Session, *, run_id: str, detail: dict) -> Optional[str]:
     """Entry point do ``_record_stage_result`` — resolve workspace + delega."""
     workspace_id = _workspace_id_from_run(db, run_id)
     if not workspace_id:
@@ -370,6 +373,6 @@ def persist_after_stage_success(db: Session, *, run_id: str, detail: dict) -> Op
 
 
 __all__ = [
-    "persist_after_stage_success",
+    "persist_after_stage_result",
     "persist_planner_review",
 ]

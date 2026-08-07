@@ -13,7 +13,7 @@ from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.planner_review import PlannerReview
 from backend.app.models.suggestion import Suggestion
 from backend.app.services.planner_review_persistence import (
-    persist_after_stage_success,
+    persist_after_stage_result,
     persist_planner_review,
 )
 from backend.tests import factories
@@ -274,14 +274,14 @@ async def test_persist_handles_missing_artifacts_gracefully(db, sync_session):
 
 
 @pytest.mark.asyncio
-async def test_persist_after_stage_success_resolves_workspace(db, sync_session):
+async def test_persist_after_stage_result_resolves_workspace(db, sync_session):
     """Entry point alto-nível só recebe run_id; resolve workspace via FK."""
     workspace = await factories.make_workspace(db)
     run = await factories.make_run(db, workspace=workspace)
     await make_artifacts(db, workspace, run)
     await db.commit()
 
-    review_id = persist_after_stage_success(sync_session, run_id=run.id, detail=make_detail())
+    review_id = persist_after_stage_result(sync_session, run_id=run.id, detail=make_detail())
     assert review_id is not None
 
 
