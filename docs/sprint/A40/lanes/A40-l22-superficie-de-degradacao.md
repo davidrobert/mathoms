@@ -4,7 +4,7 @@ type: lane
 title: "Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l22-superficie-de-degradacao
 adrs: []
@@ -13,7 +13,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/frontend
 ---
@@ -49,6 +49,27 @@ tags:
 > virou pegável. É o caso que o §Delta de 2026-08-06 do `_README` previu, agora
 > ocorrido; a [[A40.l18]] sofreu o simétrico (`open` stale pós-merge) no mesmo dia.
 >
+> 🚧 **Em execução desde 2026-08-07** (`in_progress` pelo §Predicado do
+> [`_README`](../_README.md): branch aberta). PR único em
+> `agent/a40-l22-superficie-degradacao/20260807-1522`.
+>
+> **Duas medições da execução que o escopo escrito não previa** (detalhe no PR):
+>
+> 1. **O contador de retenção é escalar do parecer inteiro**, não por bucket:
+>    `retention.items_dropped_count` é um número só, e o enforcement remove
+>    risco **ou** sugestão. A caption diz *"N itens do parecer retidos na
+>    conferência"*, não *"N riscos"* — atribuí-lo ao bucket em cuja caption ele
+>    mora afirmaria algo falso quando o item retido foi uma sugestão. Expor o
+>    breakdown por bucket exigiria coluna + migration, fora do §Aceite.
+> 2. **A perna de PDF do §Critério de aceite é parcial, e a causa é
+>    pré-existente.** A ressalva do banner chega à camada de texto do PDF
+>    (assertada por `pdftotext`); a nota da SEÇÃO não, em geometria A4 — e
+>    nenhum `<h2>` de seção chega (`"Parecer do Planejador"`,
+>    `"Síntese Estratégica"`, `"Apêndice"`: 0 ocorrências). Com
+>    `paperHeight: 300in` o mesmo run traz a nota, os pontos fortes e o
+>    diagnóstico. É defeito do export, não desta lane; o assert fica como
+>    `test.fixme` nomeado em `print.@critical.spec.ts`.
+
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fatia **premium/add-on** da
 > F11.5 — o caminho determinístico dela foi entregue na Sprint B (2026-04-17),
 > conforme `docs/reference/PHASES.md`. Estende A28.l9; **não** inventa banner.
