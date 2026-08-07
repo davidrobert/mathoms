@@ -22,6 +22,10 @@ from backend.app.models.goal import Goal
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.schemas.pipeline import PipelineRunRequest, PipelineRunResponse
+from backend.app.services.pipeline.dispatch_contract import (
+    PRE_DISPATCH_STATUSES,
+    undispatched_threshold,
+)
 from backend.app.services.pipeline.pipeline_failure_reasons import DISPATCH_UNCONFIRMED
 from backend.app.services.pipeline.pipeline_service import (
     PipelineDispatchError,
@@ -36,7 +40,6 @@ _DISPATCH_FAILED_MESSAGE = (
     "Não foi possível enfileirar a execução — o serviço de processamento está "
     "indisponível. Tente novamente em alguns instantes."
 )
-_DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES = 2
 _MISSING_IF_GOAL_MESSAGE = (
     "Defina sua meta de Independência Financeira antes de processar. "
     "Acesse Plano → Meta IF para configurar."
@@ -121,10 +124,13 @@ async def _compensate_undispatched_run(run_id: str, *, reason: str, db: AsyncSes
 async def _check_no_active_run(workspace_id: str, *, db: AsyncSession) -> None:
     """UX-level fast-path. O guard authoritativo é o partial unique index
     ``ux_pipeline_runs_ws_active`` (migração i4c5d6e7f8a9)."""
+    # A40.l27 — `resuming` entra no fast-path. Sem ele, um trigger durante um resume
+    # LEGÍTIMO não era bloqueado e criava um segundo executor no mesmo workspace, ambos
+    # escrevendo artefatos. O predicado é o contrato de dispatch, não o literal `pending`.
     result = await db.execute(
         select(PipelineRun).where(
             PipelineRun.workspace_id == workspace_id,
-            PipelineRun.status.in_([PipelineRunStatus.pending, PipelineRunStatus.running]),
+            PipelineRun.status.in_([PipelineRunStatus.running, *PRE_DISPATCH_STATUSES]),
         )
     )
     blocking = result.scalars().first()
@@ -135,22 +141,13 @@ async def _check_no_active_run(workspace_id: str, *, db: AsyncSession) -> None:
     raise ConflictError(_ACTIVE_RUN_MESSAGE)
 
 
-def _undispatched_threshold() -> timedelta:
-    raw = os.environ.get("MATHOMS_UNDISPATCHED_RUN_THRESHOLD_MINUTES")
-    try:
-        minutes = int(raw) if raw else _DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES
-    except ValueError:
-        minutes = _DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES
-    return timedelta(minutes=max(minutes, 1))
-
-
 def _older_than_threshold(started_at: datetime | None) -> bool:
     """SQLite devolve `DateTime(timezone=True)` naive — normaliza para UTC antes de comparar."""
     if started_at is None:
         return False
     if started_at.tzinfo is None:
         started_at = started_at.replace(tzinfo=timezone.utc)
-    return started_at < datetime.now(timezone.utc) - _undispatched_threshold()
+    return started_at < datetime.now(timezone.utc) - undispatched_threshold()
 
 
 # `celery_task_id IS NULL` é o discriminante: desde a ADR-359 o id é persistido
@@ -160,9 +157,12 @@ def _older_than_threshold(started_at: datetime | None) -> bool:
 # write no Postgres: funciona com Redis fora, que é exatamente quando o órfão nasce.
 async def _heal_undispatched_run(run: PipelineRun, *, db: AsyncSession) -> bool:
     """Cura o run que ninguém reivindicou, no instante do bloqueio (ADR-359 §5)."""
-    if run.status != PipelineRunStatus.pending or run.celery_task_id is not None:
+    if run.status not in PRE_DISPATCH_STATUSES or run.celery_task_id is not None:
         return False
-    if not _older_than_threshold(run.started_at):
+    # Relógio de entrada-no-estado, como na varredura de beat: em `resuming`, `started_at`
+    # é do run ORIGINAL e o predicado seria sempre verdadeiro (mataria resume legítimo).
+    clock = run.started_at if run.status == PipelineRunStatus.pending else run.last_heartbeat_at
+    if not _older_than_threshold(clock):
         return False
     if not await _flip_to_dispatch_unconfirmed(run.id, db=db):
         return False

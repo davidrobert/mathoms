@@ -20,6 +20,7 @@ from backend.app.core.config import settings
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+from backend.app.services.pipeline.dispatch_contract import CANCELLABLE_STATUSES
 from backend.app.services.pipeline.events import publish_run_cancelled
 from backend.app.services.pipeline.pipeline_failure_reasons import (
     DISPATCH_FAILED,
@@ -233,6 +234,26 @@ def _log_dispatch_failure(run_id: str, ws_id: str, reason: str, exc: Exception) 
     )
 
 
+# A40.l27 — três writes aqui, cada um fechando um defeito medido (co-design `sre-devops`
+# 2026-08-07):
+#
+# (1) `celery_task_id = None`. O id herdado é STALE (do run original, já terminado), e
+# deixá-lo não-NULL faria o discriminante de órfão (`celery_task_id IS NULL`, ADR-359 §4)
+# nunca casar em `resuming` — a varredura veria o zumbi e o julgaria legítimo. Limpar é
+# seguro: `_dispatch_celery_task` grava um id novo antes do enqueue, e revogar a task
+# original (terminada) já era no-op.
+#
+# (2) `last_heartbeat_at = now()` é o relógio de ENTRADA-NO-ESTADO. `started_at` é do run
+# original (horas antes), então predicado temporal sobre ele seria sempre verdadeiro e
+# mataria resume legítimo na primeira varredura — precisamente a alternativa que a ADR-359
+# §Alternativas rejeitou (run legítimo `failed`, worker recusa por terminal, descarte
+# silencioso com `failure_reason` mentiroso). É o único relógio durável disponível e é
+# lixo estale durante `resuming`; a ADR-172 não colide porque filtra `status='running'`.
+#
+# (3) `paused_at_stage` PRESERVADO (antes era zerado aqui). A única cópia durável do ponto
+# de pausa passava a existir só na memória do processo que morreu. Com a coluna intacta o
+# zumbi segue diagnosticável; zerá-la tornava `_stages_after_paused(None)` → `[]` →
+# `_mark_run_completed`, i.e. run reportando sucesso sem executar nada.
 def _flip_run_to_resuming(run_id: str, ws_id: str) -> tuple[str | None, str]:
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
@@ -245,7 +266,8 @@ def _flip_run_to_resuming(run_id: str, ws_id: str) -> tuple[str | None, str]:
         tier = run.tier_at_run or "free"
 
         run.status = PipelineRunStatus.resuming
-        run.paused_at_stage = None
+        run.celery_task_id = None
+        run.last_heartbeat_at = datetime.now(timezone.utc)
         db.commit()
     return paused_stage, tier
 
@@ -324,7 +346,9 @@ def cancel_pipeline_run(run_id: str) -> bool:
         run = db.get(PipelineRun, run_id)
         if not run:
             return False
-        if run.status not in (PipelineRunStatus.pending, PipelineRunStatus.running):
+        # `resuming` entra aqui (A40.l27): sem isso o órfão de resume não tinha NENHUMA
+        # porta de saída — `cancel` recusava e `is_run_active` devolvia True para sempre.
+        if run.status not in CANCELLABLE_STATUSES:
             return False
 
         run.status = PipelineRunStatus.cancelled

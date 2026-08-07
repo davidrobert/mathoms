@@ -11,7 +11,7 @@ import logging
 import os
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import SyncSessionLocal
@@ -25,8 +25,15 @@ from backend.app.models import (
 from backend.app.models.audit_log import AuditLog
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.services.audit import READ_ACCESS_ACTIONS, AuditAction, audit_log_sync
+from backend.app.services.pipeline.dispatch_contract import (
+    PRE_DISPATCH_STATUSES,
+    undispatched_threshold,
+)
 from backend.app.services.pipeline.events import publish_run_failed
-from backend.app.services.pipeline.pipeline_failure_reasons import HEARTBEAT_TIMEOUT
+from backend.app.services.pipeline.pipeline_failure_reasons import (
+    DISPATCH_UNCONFIRMED,
+    HEARTBEAT_TIMEOUT,
+)
 from backend.app.services.task_notification_service import (
     scan_and_create_notifications,
 )
@@ -299,6 +306,119 @@ def _publish_failed_safe(run_id: str) -> None:
         publish_run_failed(run_id)
     except Exception as exc:  # noqa: BLE001 — best-effort WS publish
         logger.warning("detect_stuck_runs.publish_failed run=%s err=%s", run_id, exc)
+
+
+# Relógio de "tempo no estado pré-dispatch", por status — NÃO é o mesmo campo nos dois.
+# `pending` nasce com `started_at`, então ele mede a idade do estado. Em `resuming`,
+# `started_at` é do run ORIGINAL (horas antes da pausa), e usá-lo tornaria o threshold
+# vacuidade: todo resume nasceria "velho". `_flip_run_to_resuming` re-stampa
+# `last_heartbeat_at` no mesmo UPDATE do flip exatamente para dar um relógio ao estado.
+# A cobertura desta tabela vs PRE_DISPATCH_STATUSES é travada por teste — status novo
+# sem relógio sairia silenciosamente da varredura.
+_PRE_DISPATCH_CLOCK = {
+    PipelineRunStatus.pending: PipelineRun.started_at,
+    PipelineRunStatus.resuming: PipelineRun.last_heartbeat_at,
+}
+
+
+# `celery_task_id IS NULL` é o discriminante — não o tempo. Desde a ADR-359 §4 o id é
+# persistido ANTES do enqueue, então NULL significa "dispatch nunca tentado", nunca
+# "enfileirado esperando fila funda". Sem isso a varredura mataria trabalho legítimo, que
+# é o invariante nº 1 do §Critério de aceite da A40.l27.
+def _select_undispatched_candidates(db: Session, now: datetime) -> list[PipelineRun]:
+    """Runs pré-dispatch sem dono há mais que o threshold."""
+    cutoff = now - undispatched_threshold()
+    por_status = [
+        and_(PipelineRun.status == status, clock.is_not(None), clock < cutoff)
+        for status, clock in _PRE_DISPATCH_CLOCK.items()
+    ]
+    stmt = select(PipelineRun).where(PipelineRun.celery_task_id.is_(None), or_(*por_status))
+    return list(db.execute(stmt).scalars().all())
+
+
+# O filtro de `celery_task_id` no UPDATE é o que fecha a corrida com o dispatcher: se ele
+# gravou o id entre o SELECT e o UPDATE, `rowcount == 0` e o run legítimo sobrevive.
+# Padrão de `_flip_stuck_run_atomic`, nunca UPDATE incondicional.
+def _flip_undispatched_atomic(db: Session, run: PipelineRun, *, now: datetime) -> bool:
+    """UPDATE atômico filtrando status esperado **e** ``celery_task_id IS NULL``."""
+    result = db.execute(
+        update(PipelineRun)
+        .where(
+            PipelineRun.id == run.id,
+            PipelineRun.status == run.status,
+            PipelineRun.celery_task_id.is_(None),
+        )
+        .values(
+            status=PipelineRunStatus.failed,
+            failure_reason=DISPATCH_UNCONFIRMED,
+            completed_at=now,
+            current_stage=None,
+        )
+    )
+    return result.rowcount == 1
+
+
+#: Cap de linhas por-run numa varredura. A população é estruturalmente pequena (o índice
+#: parcial `ux_pipeline_runs_ws_active` limita a 1 run pré-dispatch por workspace, e a
+#: causa correlata é restart/deploy, não broker fora — onde a compensação SÍNCRONA já
+#: age antes de virar órfão). O cap existe só para o caso que ninguém previu.
+_UNDISPATCHED_LOG_CAP = 20
+
+
+def _log_one_undispatched(run_id: str, workspace_id: str, minutes: int) -> None:
+    logger.warning(
+        "Undispatched pipeline run reaped",
+        extra={
+            "event": "mathoms.pipeline.undispatched_run_reaped",
+            "run_id": run_id,
+            "workspace_id": workspace_id,
+            "failure_reason": DISPATCH_UNCONFIRMED,
+            "threshold_minutes": minutes,
+        },
+    )
+
+
+# Uma `WARNING` POR RUN (espelhando `_log_stuck_run`) + uma agregada com a contagem. Só a
+# agregada reproduziria o defeito que esta lane existe para pagar: obrigaria SQL para
+# responder *qual workspace, qual run, há quanto tempo* — que é exatamente como
+# `failure_reason` virou write-only por 3 meses. `WARNING`, nunca `CRITICAL`: não há pager
+# para acordar (ADR-359 §7), e N `CRITICAL` por minuto é fadiga programada.
+def _log_undispatched_sweep(colhidos: list[tuple[str, str]], threshold: timedelta) -> None:
+    """Log por run colhido (até o cap) + agregado da varredura."""
+    minutes = int(threshold.total_seconds() // 60)
+    for run_id, workspace_id in colhidos[:_UNDISPATCHED_LOG_CAP]:
+        _log_one_undispatched(run_id, workspace_id, minutes)
+    logger.warning(
+        "Undispatched pipeline runs reaped",
+        extra={
+            "event": "mathoms.pipeline.undispatched_runs_reaped",
+            "count": len(colhidos),
+            "logged_individually": min(len(colhidos), _UNDISPATCHED_LOG_CAP),
+            "threshold_minutes": minutes,
+        },
+    )
+
+
+# Complementa a cura síncrona da ADR-359 §5, que só age quando o usuário tenta disparar de
+# novo; esta não depende de ação do usuário.
+@celery_app.task(name="fin.detect_undispatched_runs", bind=True, max_retries=1)
+def detect_undispatched_runs(self) -> dict[str, int]:
+    """A40.l27 — colhe run pré-dispatch que ninguém reivindicou (``dispatch_unconfirmed``)."""
+    threshold = undispatched_threshold()
+    now = datetime.now(timezone.utc)
+    colhidos: list[tuple[str, str]] = []
+    with SyncSessionLocal() as db:
+        for run in _select_undispatched_candidates(db, now):
+            if _flip_undispatched_atomic(db, run, now=now):
+                colhidos.append((run.id, run.workspace_id))
+        db.commit()
+    if colhidos:
+        _log_undispatched_sweep(colhidos, threshold)
+    for run_id, _ws_id in colhidos:
+        _publish_failed_safe(run_id)
+    result = {"reaped": len(colhidos)}
+    logger.info("detect_undispatched_runs: %s", result)
+    return result
 
 
 @celery_app.task(name="fin.detect_stuck_runs", bind=True, max_retries=1)
