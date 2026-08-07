@@ -299,8 +299,10 @@ def _hard_cut(bodies: list[str], kept: list[int], evicted: list[dict], cap: int)
     return body.encode("utf-8")[:budget].decode("utf-8", errors="ignore") + marker
 
 
-def _fit_body_to_budget(sections: list[dict], bodies: list[str], cap: int) -> str:
-    """Eviction determinística por seção (ADR-341 D2): corpo excede o budget →
+def _evict_to_budget(
+    sections: list[dict], bodies: list[str], cap: int
+) -> tuple[list[int], list[dict]]:
+    """Índices mantidos + seções evictadas (ADR-341 D2): corpo excede o budget →
     remove seções INTEIRAS de menor prioridade até caber (marcador incluso no
     orçamento). Nunca corta no meio de seção enquanto houver seção a evictar."""
     kept = list(range(len(sections)))
@@ -310,10 +312,32 @@ def _fit_body_to_budget(sections: list[dict], bodies: list[str], cap: int) -> st
         victim = next(victims)
         kept.remove(victim)
         evicted.append(sections[victim])
+    return kept, evicted
+
+
+def _fit_body_to_budget(sections: list[dict], bodies: list[str], cap: int) -> str:
+    kept, evicted = _evict_to_budget(sections, bodies, cap)
     body = _join_body(bodies, kept, evicted)
     if len(body.encode("utf-8")) <= cap:
         return body
     return _hard_cut(bodies, kept, evicted, cap)
+
+
+# Existe para o instrumento de ancorabilidade (A40.l30 item 2) medir o **observável** e
+# não o teto: seção evictada não é visível, e medir sobre `manifest.sections` inteiro
+# produziria baseline otimista — o espelho exato do "piso lido como medida" que a lane
+# fecha. O flag de hard cut é necessário porque aí a atribuição por seção deixa de ser
+# exata (o corte é no meio de uma seção) e o instrumento tem de se declarar degradado em
+# vez de reportar número que não pode sustentar.
+def surviving_sections(
+    manifest: ManifestData, e5_data: Mapping[str, Any]
+) -> tuple[list[dict], bool]:
+    """Seções que o modelo de fato vê, + se o corpo sofreu ``_hard_cut``."""
+    bodies = [_render_section_body(section, e5_data) for section in manifest.sections]
+    cap = manifest.max_exec_context_bytes
+    kept, evicted = _evict_to_budget(manifest.sections, bodies, cap)
+    hard_cut = len(_join_body(bodies, kept, evicted).encode("utf-8")) > cap
+    return [manifest.sections[i] for i in kept], hard_cut
 
 
 def _render_catalog_block(manifest: ManifestData, e5_data: Mapping[str, Any]) -> str:

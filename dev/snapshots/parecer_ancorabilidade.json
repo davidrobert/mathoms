@@ -1,0 +1,64 @@
+{
+  "_comment": "A40.l30 item 2 — folhas R$ visíveis no corpo do exec context sem rota de citação no catálogo RENDERIZADO. Gate por diff de conjunto: um #1004 futuro aparece aqui. Rebaseline: MATHOMS_UPDATE_SNAPSHOT=1 pytest tests/test_parecer_ancorabilidade.py — US$ 0, in-process.",
+  "corpus": "make_workspace_e5 (sintético, PII-zero)",
+  "parametros_geradores": {
+    "manifest_version": "2.0.2",
+    "max_exec_context_bytes": 16384,
+    "catalogo_max_bytes": 1600,
+    "catalogo_max_entries": 30,
+    "max_list_items": 5,
+    "priority_roots": [
+      "reserva_emergencia",
+      "endividamento",
+      "passive_income",
+      "if_monte_carlo",
+      "patrimonio",
+      "fluxo_caixa",
+      "investimentos",
+      "previdencia_pgbl",
+      "irpf_kpis"
+    ]
+  },
+  "medicao": {
+    "visiveis": 28,
+    "ancoraveis": 12,
+    "catalogo_construido": 30,
+    "catalogo_renderizado": 19,
+    "hard_cut": false
+  },
+  "inancoraveis": [
+    "$.consumo_consciente.folga_mensal",
+    "$.exposicao_cambial.total_brl",
+    "$.fluxo_caixa.janela_12m.transferencia_patrimonial",
+    "$.fluxo_caixa.receita_por_natureza.receita_outras",
+    "$.fluxo_caixa.receita_por_natureza.receita_pj",
+    "$.fluxo_caixa.receita_recorrente_mensal",
+    "$.fluxo_caixa.receita_total",
+    "$.investimentos.tabela_classes[0].valor",
+    "$.investimentos.tabela_classes[1].valor",
+    "$.investimentos.tabela_classes[2].valor",
+    "$.investimentos.tabela_classes[3].valor",
+    "$.investimentos.tabela_classes[4].valor",
+    "$.investimentos.tabela_classes[5].valor",
+    "$.investimentos.total",
+    "$.investimentos.total_financeiro",
+    "$.investimentos.total_imoveis_investimento"
+  ],
+  "paths_projetados_sem_dado_no_corpus": [
+    "$.consumo_consciente.analise",
+    "$.consumo_consciente.equivalente_meses_aporte",
+    "$.consumo_consciente.janela",
+    "$.consumo_consciente.janela_meses",
+    "$.consumo_consciente.teto_sugerido",
+    "$.consumo_consciente.total_pontuais",
+    "$.consumo_consciente.total_pontuais_janela",
+    "$.fluxo_caixa.despesa_mensal_essencial",
+    "$.fluxo_caixa.janela",
+    "$.fluxo_caixa.janela_meses",
+    "$.fluxo_caixa.receita_one_time",
+    "$.fluxo_caixa.receita_recorrente",
+    "$.irpf_kpis.dependentes",
+    "$.premissas_economicas.status",
+    "$.ratios.concentracao_imobiliaria"
+  ]
+}
