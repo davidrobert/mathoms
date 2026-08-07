@@ -198,6 +198,12 @@ async def _project_risks_bubble_async(
 # ═══════════════════════════════════════════════════════════════════════
 
 
+# A40.l28 (ADR-369 D2) — `horizonte_anos` é `required` no goal.if v1 e o wizard
+# já o pergunta ("Em quantos anos você quer chegar lá?"), mas este boundary o
+# descartava: o alvo do Monte Carlo vinha da saída do próprio projetor. Vai junto
+# `effective_from`, sem o qual o prazo é relativo a um "quando" perdido — "15
+# anos" respondido em 2026 e relido em 2030 viraria 2045 em vez de 2041 —, e
+# `is_template`, que separa "declarou" de "o onboarding semeou".
 def _serialize_if_goal(goal: Goal) -> dict[str, Any]:
     """Extrai o sub-dict `independencia_financeira` do formato legado (D15)."""
     inputs = goal.params_json.get("inputs", {})
@@ -209,6 +215,9 @@ def _serialize_if_goal(goal: Goal) -> dict[str, Any]:
         "renda_passiva_meta_mensal": inputs.get("renda_passiva_mensal_brl"),
         "retorno_real_anual_pct": inputs.get("retorno_real_anual_pct"),
         "taxa_retirada_segura_classica_pct": inputs.get("taxa_retirada_conservadora_pct", 4.0),
+        "horizonte_anos": inputs.get("horizonte_anos"),
+        "declarado_em": goal.effective_from.isoformat() if goal.effective_from else None,
+        "is_template": bool(goal.is_template),
         "_nota_taxa_retirada": _IF_GOAL_TAXA_RETIRADA_NOTA,
         "_source": "db:goals (ADR-075 adapter)",
     }

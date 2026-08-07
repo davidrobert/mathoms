@@ -26,6 +26,16 @@ def _safe_float(val) -> float:
     return 0.0
 
 
+def _safe_int(val) -> int | None:
+    """``None`` preservado — ausência de prazo declarado não é zero (ADR-369 D2)."""
+    if isinstance(val, bool) or val is None:
+        return None
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return None
+
+
 def _calculate_age(dob: date, reference_date: date) -> int:
     """Idade em anos (calendar-accurate) — paridade com ``calculate_edad``."""
     age = reference_date.year - dob.year
@@ -72,6 +82,14 @@ class IFProjectorConfig:
     reference_date: date = _TODAY_FALLBACK
     titular_key: str = "david"
     conjuge_key: str = ""
+    # A40.l28 (ADR-369 D2) — o prazo DECLARADO pela família (`goals.
+    # independencia_financeira.horizonte_anos`), qualificado aqui porque o
+    # projetor também resolve um prazo REALISTA a partir do aporte. São os dois
+    # lados da tesoura: compromisso vs. capacidade. `prazo_declarado_pendente`
+    # marca Goal semeado no onboarding — ninguém declarou nada.
+    prazo_declarado_anos: int | None = None
+    prazo_declarado_em: str | None = None
+    prazo_declarado_pendente: bool = False
 
     @classmethod
     def from_configs(
@@ -111,6 +129,9 @@ class IFProjectorConfig:
             reference_date=reference_date or _TODAY_FALLBACK,
             titular_key=titular_key,
             conjuge_key=conjuge_key,
+            prazo_declarado_anos=_safe_int(goals_cfg.get("horizonte_anos")),
+            prazo_declarado_em=goals_cfg.get("declarado_em"),
+            prazo_declarado_pendente=bool(goals_cfg.get("is_template", False)),
         )
 
 
