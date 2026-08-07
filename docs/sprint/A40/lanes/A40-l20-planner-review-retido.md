@@ -5,6 +5,7 @@ title: "PlannerReview representa gerado-e-retido: hoje o estado é inalcançáve
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1278
 ship_date: "2026-08-07"
 priority: P0
 branch_slug: a40-l20-planner-review-retido
@@ -26,7 +27,7 @@ tags:
 # A40.l20 — `planner-review-retido`
 
 > ✅ **Entregue em 2 PRs.** PR1: `0301f7a0` (#1250, 2026-08-06) — contrato,
-> DTO, guard de publish e estado de UI. PR2: 2026-08-07 — o wire-up no
+> DTO, guard de publish e estado de UI. PR2: #1278 (2026-08-07) — o wire-up no
 > orquestrador que dá **produtor** ao membro `retido`, mais `generation_unavailable`
 > e o gate de paridade dos vocabulários. Ver §Estado — PR2 entregue.
 
