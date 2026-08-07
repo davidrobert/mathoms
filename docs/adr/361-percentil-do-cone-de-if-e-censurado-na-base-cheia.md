@@ -173,21 +173,22 @@ ano e adverso na série de patrimônio.
 
 Levantado no co-design, fora do escopo desta ADR, com dono no owner:
 
-1. **`idade_meta_usada` é output do modelo, não pergunta da família.** O adapter
-   passa `idade_meta_if = if_projection.idade_titular_if`, então
-   `prob_if_ate_idade_meta` mede P(o Monte Carlo bate a data que o card
-   determinístico acabou de imprimir). Como `mu_log = log(1+r) − ½σ²`, a mediana
-   simulada fica estruturalmente atrás do determinístico: medi 31,1%–45,9% em
-   oito planos radicalmente diferentes — 14,8 pp de amplitude, ou seja é
-   praticamente constante de modelo, não métrica do cliente. Exige campo novo em
-   `goals.independencia_financeira` (`idade_meta_if`, default 65, editável).
-   Enquanto não existir, a única probabilidade honesta é a taxa de sucesso no
-   horizonte. **Maior que o defeito que esta ADR corrige.**
-2. **`p10`/`p90` apontam para lados opostos no mesmo payload.** `p10_ano_if` é o
-   ano mais cedo (favorável); `caminho_p10` é o patrimônio mais baixo (adverso).
-   Renomear para `ano_if_cenario_favoravel` / `_adverso` toca payload, tipos TS,
-   catálogo de citação e snapshot — separado de propósito para não misturar
-   rename de contrato com correção estatística.
+1. ~~**`idade_meta_usada` é output do modelo, não pergunta da família.**~~
+   **Fechado pela [[ADR-369]] D2** (#1269, 2026-08-07): a probabilidade passou a
+   medir o prazo que a família declarou, e `prob_if_ate_idade_meta` /
+   `idade_meta_usada` foram **removidas**, não reaproveitadas. A premissa deste
+   item — *"exige campo novo (`idade_meta_if`, default 65, editável)"* — era
+   **falsa**: `horizonte_anos` já é `required` no `goal.if` v1 e o wizard já o
+   pergunta; o campo era **descartado** por `_serialize_if_goal`. E o diagnóstico
+   de amplitude estava certo pelo motivo errado: os 14,8 pp vinham de os oito
+   planos terem **folga zero** (prazo declarado == determinístico), não da fonte
+   do alvo — com a folga variando, a amplitude medida foi de ~85 pp.
+2. ~~**`p10`/`p90` apontam para lados opostos no mesmo payload.**~~
+   **Fechado pela [[ADR-369]] D1** (#1268, 2026-08-07): `mc_version` 4.0,
+   rename-only. Os **três** anos foram renomeados (não só p10/p90 — deixar
+   `p50_ano_if` no meio da família recriaria a confusão dentro dela), junto das
+   flags de censura e do par `horizonte_simulado_anos` /
+   `prob_if_ate_horizonte_simulado`. `caminho_p10/p50/p90` ficaram como estavam.
 3. ~~**A sentinela 999 do determinístico vaza em outras superfícies.**~~
    **Resolvido pelo #1158**, mergeado em `main` durante a execução desta lane:
    `prazo_anos_realista`, `ano_if`, `idade_titular_if`, `idade_meta_usada` e

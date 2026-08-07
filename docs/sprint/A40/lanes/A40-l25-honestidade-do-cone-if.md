@@ -105,6 +105,17 @@ follow-up nunca aterrissou.
   ano-antigo→ano-novo explícito, direção sempre "mais conservador" declarada,
   causa em linguagem de cliente ("recalibração do modelo", nunca "sua carteira
   mudou").
+  > ⚠️ **A especificação acima está DUAS mudanças atrás — leia antes de escrever
+  > a nota.** A [[ADR-369]] (#1268/#1269, 2026-08-07) deslocou o bloco de IF mais
+  > duas vezes, e a segunda é de **semântica**, não de calibração. Três ajustes
+  > obrigatórios: (a) o gatilho tem de disparar também para `mc_version` `"3.0"`
+  > e `"4.0"`, não só ausente/`"2.0"`; (b) o par ano-antigo→ano-novo **não
+  > basta** — o número da probabilidade mudou por motivo diferente do ano; (c) a
+  > direção **"sempre mais conservador" deixa de valer**: a probabilidade agora
+  > mede o prazo declarado e pode **subir ou descer** conforme a folga do plano,
+  > então afirmar monotonia seria falso. Registrado também no §Entregas fora de
+  > lane do [[A40]]; esta cópia existe porque a implementação é desta lane, e
+  > registro no lugar onde a dona não lê é registro invisível.
 
 ## Fora de escopo
 
