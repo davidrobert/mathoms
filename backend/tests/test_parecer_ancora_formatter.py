@@ -1,10 +1,14 @@
 """Round-trip por tipo do valor_renderizado das âncoras (A28.l10 · ADR-296).
 
-Dogfood 72883bde: o finalize aplicava BRL a toda folha citada —
-``prob_if_ate_idade_meta=0.31`` virava "R$ 0,31" e ``idade_meta_usada=53``
-virava "R$ 53,00". O dispatch agora vem de ``ancora_format_hint`` (catálogo
-de citação — a folha conhece seu campo), nunca de heurística sobre o valor.
-Determinístico, sem LLM: opera sobre o output pós-geração.
+Dogfood 72883bde: o finalize aplicava BRL a toda folha citada — a fração de
+probabilidade virava "R$ 0,31" e a idade em anos virava "R$ 53,00". O dispatch
+agora vem de ``ancora_format_hint`` (catálogo de citação — a folha conhece seu
+campo), nunca de heurística sobre o valor. Determinístico, sem LLM: opera sobre
+o output pós-geração.
+
+As folhas do fixture são as VIVAS do contrato (ADR-369 D2 aposentou
+``prob_if_ate_idade_meta``/``idade_meta_usada``): um teste de formatação
+ancorado em chave morta continua verde enquanto deixa de cobrir o payload real.
 """
 
 from __future__ import annotations
@@ -17,13 +21,14 @@ from pipeline.llm.schemas.parecer_planejador import Ancora, Risco
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 
 _E5 = {
-    "if_monte_carlo": {"prob_if_ate_idade_meta": 0.31, "idade_meta_usada": 53},
+    "if_monte_carlo": {"prob_if_ate_prazo_declarado": 0.31},
+    "goals": {"idade_titular_if": 53},
     "reserva_emergencia": {"total_liquida": 84_000.0, "cobertura_meses": 4.2},
 }
-_WHITELIST = frozenset({"if_monte_carlo", "reserva_emergencia"})
+_WHITELIST = frozenset({"if_monte_carlo", "goals", "reserva_emergencia"})
 
-_PROB = "$.if_monte_carlo.prob_if_ate_idade_meta"
-_IDADE = "$.if_monte_carlo.idade_meta_usada"
+_PROB = "$.if_monte_carlo.prob_if_ate_prazo_declarado"
+_IDADE = "$.goals.idade_titular_if"
 _MOEDA = "$.reserva_emergencia.total_liquida"
 _MESES = "$.reserva_emergencia.cobertura_meses"
 

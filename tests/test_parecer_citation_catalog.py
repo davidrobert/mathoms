@@ -136,8 +136,8 @@ def test_ancora_format_hint_por_tipo_de_folha():
     (a folha conhece seu campo), nunca de heurística sobre o valor."""
     from backend.app.services.parecer_citation_catalog import ancora_format_hint
 
-    assert ancora_format_hint("$.if_monte_carlo.prob_if_ate_idade_meta") == "prob_pct"
-    assert ancora_format_hint("$.if_monte_carlo.idade_meta_usada") == "anos"
+    assert ancora_format_hint("$.if_monte_carlo.prob_if_ate_prazo_declarado") == "prob_pct"
+    assert ancora_format_hint("$.goals.idade_titular_if") == "anos"
     assert ancora_format_hint("$.ratios.taxa_poupanca_recorrente_pct") == "pct"
     # R3.3: concentracao_imobiliaria (SSOT risco, ADR-340) serializa sem sufixo _pct
     # mas é percentual — percent2 casa com o card (59,97%), não "59.97" cru.

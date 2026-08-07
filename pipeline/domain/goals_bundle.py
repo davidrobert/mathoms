@@ -25,6 +25,12 @@ class IFGoalSection(TypedDict, total=False):
     renda_passiva_meta_mensal: Optional[float]
     retorno_real_anual_pct: Optional[float]
     taxa_retirada_segura_classica_pct: float
+    # A40.l28 (ADR-369 D2) — o prazo que a família declarou, com a data em que
+    # declarou. O nome preserva o do `goal.if` v1 (`horizonte_anos`, `required`
+    # lá); quem qualifica é o domínio, que o lê como `prazo_declarado_anos`.
+    horizonte_anos: Optional[int]
+    declarado_em: Optional[str]
+    is_template: bool
     _nota_taxa_retirada: str
     _source: str
 

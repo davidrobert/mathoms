@@ -76,7 +76,13 @@
 # bloco de eviction_priority 8, aceito porque o nome antigo apontava para o lado
 # oposto da legenda do gráfico. Bump invalida cache Redis (o rename já invalida
 # pelo hash do E5; este bump não cobra a frota de novo).
-version: "2.0.3"
+# 2.0.4 — A40.l28 PR-B (ADR-369 D2): a probabilidade do cone passa a medir o
+# prazo DECLARADO pela família, e o bloco publica a proveniência do alvo
+# (`prazo_declarado_anos`/`ano_alvo_declarado`/`declarado_em`/motivo). Prefixo
+# escalar 475 → 633 chars no pior caso; `max_chars` 490 → 650. As chaves
+# `prob_if_ate_idade_meta`/`idade_meta_usada` saem do catálogo de citação (as
+# sucessoras não contêm token monetário — medido). Bump invalida cache Redis.
+version: "2.0.4"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -349,11 +355,18 @@ context_sections:
         # correção de honestidade entraria cortando dado de domínio do contexto
         # do LLM.
         # ADR-369 D1 (A40.l28 PR-A) — remedido nos cinco estados observáveis
-        # após o rename: 429 (cone cheio), 426, 422, **475** (cone suprimido),
-        # 434. 490 = pior caso medido + folga, na mesma proporção do 380/369
-        # anterior. Remedir, não estimar: a estimativa do co-design (+97) não
-        # contava os renames de `horizonte_*`, e o valor real é +106.
-        max_chars: 490
+        # após o rename: 429 (cone cheio), 426, 422, 475 (cone suprimido), 434.
+        # Remedir, não estimar: a estimativa do co-design (+97) não contava os
+        # renames de `horizonte_*`, e o valor real foi +106.
+        # ADR-369 D2 (PR-B) — remedido de novo nos SETE estados (os cinco acima
+        # mais os dois de ausência de prazo): 567, 564, 560, 613, 572, 582 e
+        # **633** no pior, que é cone suprimido COM prazo vencido — os dois
+        # motivos longos no mesmo payload, combinação que nenhuma estimativa
+        # tinha considerado. 650 = pior medido + folga. O bloco foi de 369 para
+        # 633 chars (+72%) num `eviction_priority: 8`: é o custo permanente de
+        # contexto de nomear o dono da data, aceito porque o número anterior
+        # media o modelo contra si mesmo.
+        max_chars: 650
       - format: "scalar"
         path: "$.cenarios_conjuge"
         label: "Cenário 'Sem renda do cônjuge' (ADR-166)"

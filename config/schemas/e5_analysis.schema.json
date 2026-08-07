@@ -405,7 +405,7 @@
     },
     "if_monte_carlo": {
       "type": "object",
-      "description": "Cone Monte Carlo de IF (ADR-237 + ADR-360 + ADR-361 + ADR-369). Reprodutível: seed é constante de modelo versionada, não entropia do SO — mesmo input produz o mesmo cone. Os anos do cone são quantis do TEMPO na BASE CHEIA com censura à direita: ano_if_cenario_* é null quando prob_if_ate_horizonte_simulado não sustenta o percentil (piso k% + 5pp de folga), e o irmão _censurado distingue isso de 'cone não simulado'. Regra de leitura: exibir_cone governa o bloco; _censurado só é significativo com exibir_cone=true. ATENÇÃO ao par de nomes: ano_if_cenario_favoravel é o ano mais CEDO, enquanto caminho_p10 é a série de patrimônio mais BAIXA (cenário adverso) — por isso os anos deixaram de usar pXX (ADR-369 D1) e as séries mantiveram. mc_version ausente = artefato v1 (pré-ADR-360, não-seedado, n=10k, percentil dos sobreviventes); '2.0' = seedado, percentil dos sobreviventes; '3.0' = seedado, percentil censurado — o mesmo p50_ano_if NÃO é comparável entre 2.0 e 3.0; '4.0' = 3.0 com as chaves RENOMEADAS, valores idênticos e comparáveis a 3.0. Séries caminho_* têm dispersão amostral de ~1,2% e não são valor citável.",
+      "description": "Cone Monte Carlo de IF (ADR-237 + ADR-360 + ADR-361 + ADR-369). Reprodutível: seed é constante de modelo versionada, não entropia do SO — mesmo input produz o mesmo cone. Os anos do cone são quantis do TEMPO na BASE CHEIA com censura à direita: ano_if_cenario_* é null quando prob_if_ate_horizonte_simulado não sustenta o percentil (piso k% + 5pp de folga), e o irmão _censurado distingue isso de 'cone não simulado'. Regra de leitura: exibir_cone governa o bloco; _censurado só é significativo com exibir_cone=true. ATENÇÃO ao par de nomes: ano_if_cenario_favoravel é o ano mais CEDO, enquanto caminho_p10 é a série de patrimônio mais BAIXA (cenário adverso) — por isso os anos deixaram de usar pXX (ADR-369 D1) e as séries mantiveram. mc_version ausente = artefato v1 (pré-ADR-360, não-seedado, n=10k, percentil dos sobreviventes); '2.0' = seedado, percentil dos sobreviventes; '3.0' = seedado, percentil censurado — o mesmo p50_ano_if NÃO é comparável entre 2.0 e 3.0; '4.0' = 3.0 com as chaves RENOMEADAS, valores idênticos e comparáveis a 3.0; '5.0' = a probabilidade mede o PRAZO DECLARADO pela família (prob_if_ate_prazo_declarado, ancorado em ano absoluto via a data da declaração) em vez da idade que o próprio projetor determinístico produziu — mudança de semântica, logo INCOMPARÁVEL com 4.0, e por isso prob_if_ate_idade_meta/idade_meta_usada foram removidas em vez de reaproveitadas. prob_if_ate_prazo_declarado é null nos três estados de ausência (prazo não declarado, prazo vencido, meta já atingida sem alvo), sempre com motivo_sem_prazo_declarado. prazo_declarado_truncado=true significa que o prazo declarado excede a janela simulada e a probabilidade publicada é a da janela — um PISO, porque truncar só remove sucessos. Séries caminho_* têm dispersão amostral de ~1,2% e não são valor citável.",
       "properties": {
         "ano_if_cenario_favoravel": {"type": ["integer", "null"]},
         "ano_if_cenario_favoravel_censurado": {"type": "boolean"},
@@ -413,14 +413,13 @@
         "ano_if_cenario_central_censurado": {"type": "boolean"},
         "ano_if_cenario_adverso": {"type": ["integer", "null"]},
         "ano_if_cenario_adverso_censurado": {"type": "boolean"},
-        "prob_if_ate_idade_meta": {"type": ["number", "null"]},
+        "prob_if_ate_prazo_declarado": {"type": ["number", "null"]},
+        "prazo_declarado_anos": {"type": ["integer", "null"], "minimum": 1, "maximum": 50},
+        "ano_alvo_declarado": {"type": ["integer", "null"]},
+        "declarado_em": {"type": ["string", "null"]},
+        "prazo_declarado_truncado": {"type": "boolean"},
+        "motivo_sem_prazo_declarado": {"type": ["string", "null"]},
         "prob_if_ate_horizonte_simulado": {"type": "number"},
-        "idade_meta_usada": {
-          "type": ["integer", "null"],
-          "minimum": 0,
-          "maximum": 120,
-          "description": "Idade-alvo da projeção determinística. null = prazo não projetável (aporte ou retorno nulos): sem alvo não há 'probabilidade até a idade X', e prob_if_ate_idade_meta também é null. O upper bound de 120 fecha a porta para a sentinela legada 999, que somada à idade dava 1040 e virava âncora citável do parecer."
-        },
         "sigma_usado": {"type": "number"},
         "exibir_cone": {"type": "boolean"},
         "aporte_mensal_usado": {"type": "number"},
@@ -433,7 +432,7 @@
         "n_simulacoes_usado": {"type": "integer"},
         "horizonte_simulado_anos": {"type": "integer", "description": "Janela da SIMULAÇÃO (40 anos). Qualificada porque horizonte_anos sem qualificador já nomeia o prazo declarado pela família no Goal IF, que é outro número (ADR-369 D1)."}
       },
-      "required": ["exibir_cone", "mc_version", "seed_usado", "n_simulacoes_usado", "horizonte_simulado_anos", "prob_if_ate_horizonte_simulado", "ano_if_cenario_favoravel_censurado", "ano_if_cenario_central_censurado", "ano_if_cenario_adverso_censurado"]
+      "required": ["exibir_cone", "mc_version", "seed_usado", "n_simulacoes_usado", "horizonte_simulado_anos", "prob_if_ate_horizonte_simulado", "ano_if_cenario_favoravel_censurado", "ano_if_cenario_central_censurado", "ano_if_cenario_adverso_censurado", "prazo_declarado_truncado"]
     },
     "premissas_economicas": {
       "type": "object",

@@ -94,8 +94,13 @@ def _is_money_key(key: str) -> bool:
 
 # --- Tipo de folha por nome de campo (A28.l10) ---------------------------------
 # A folha conhece seu campo: o dispatch de formatação do finalize (ADR-296) vem
-# DAQUI — nunca de heurística sobre o valor. Ordem importa: "prob_if_ate_idade_meta"
-# contém o token monetário "meta" e só é percentual porque "prob" vence primeiro.
+# DAQUI — nunca de heurística sobre o valor. Ordem importa: "prob_reserva_ideal"
+# contém o token monetário "reserva" e só é percentual porque "prob" vence
+# primeiro. O exemplo canônico era `prob_if_ate_idade_meta` ("meta" é token
+# monetário), removida na ADR-369 D2 junto com `idade_meta_usada`: as chaves
+# sucessoras (`prob_if_ate_prazo_declarado`, `prazo_declarado_anos`) não contêm
+# token monetário e, por isso, deixam de ser folhas citáveis — o catálogo é
+# `monetary_only`, e a citabilidade das anteriores era acidente, não feature.
 _PCT_KEY_MARKERS = ("pct", "percent", "percentual")
 _COUNT_KEY_MARKERS = ("count", "qtd", "quantidade")
 

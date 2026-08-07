@@ -39,8 +39,10 @@ _MC_N_SIMULACOES = 50_000
 # não-comparáveis entre 2.0 e 3.0 — é o que o carimbo existe para separar.
 # "4.0" = 3.0 com as chaves RENOMEADAS; valores idênticos e comparáveis a 3.0
 # (ADR-369 D1). A ressalva é obrigatória justamente porque a linha acima
-# estabelece o precedente contrário.
-_MC_VERSION = "4.0"
+# estabelece o precedente contrário. "5.0" = a probabilidade passa a medir o
+# prazo que a FAMÍLIA declarou, não a data que o próprio modelo imprimiu
+# (ADR-369 D2) — mudança de semântica, logo incomparável com 4.0.
+_MC_VERSION = "5.0"
 
 
 @dataclass(frozen=True)
@@ -71,6 +73,24 @@ class IFMonteCarloConfig:
             )
 
 
+_MOTIVO_NAO_DECLARADO = "prazo ainda não declarado"
+_MOTIVO_PRAZO_VENCIDO = "prazo declarado já venceu"
+
+
+@dataclass(frozen=True)
+class PrazoDeclarado:
+    """Prazo que a família declarou, já ancorado em ano absoluto (ADR-369 D2)."""
+
+    # `anos` é o que a família RESPONDEU (1..50) e não se move entre runs; o que
+    # sobra até o alvo é derivado do `ano_base` de cada run. Publicar o restante
+    # nesta chave faria o número do compromisso encolher sozinho todo ano, e
+    # ficar negativo no prazo vencido. A âncora é absoluta de propósito: "15
+    # anos" declarado em 2026 e relido em 2030 significa 2041, não 2045.
+    anos: int
+    ano_alvo: int
+    declarado_em: str
+
+
 @dataclass(frozen=True)
 class MonteCarloIFResult:
     """Saída de :func:`run_monte_carlo_if` — cone de cenários para S7."""
@@ -81,11 +101,13 @@ class MonteCarloIFResult:
     ano_if_cenario_favoravel: int | None
     ano_if_cenario_central: int | None
     ano_if_cenario_adverso: int | None
-    # `None` quando a projeção determinística não produziu idade-meta: sem alvo
-    # não há "probabilidade até a idade X" a medir. O cone (P10/P50/P90) não
-    # depende da idade-meta e continua sendo produzido.
-    prob_if_ate_idade_meta: float | None
-    idade_meta_usada: int | None
+    # ADR-369 D2 — P(cumprir o prazo que a família declarou). A chave anterior
+    # (`prob_if_ate_idade_meta`) foi REMOVIDA, não reaproveitada: sobreviveria
+    # com a semântica invertida — de modelo-contra-si para
+    # compromisso-contra-capacidade — e quem compara payload por chave não lê
+    # `mc_version`. `None` nos três estados de ausência, sempre com motivo.
+    prob_if_ate_prazo_declarado: float | None
+    prazo_declarado_anos: int | None
     sigma_usado: float
     exibir_cone: bool
     # ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje).
@@ -115,6 +137,17 @@ class MonteCarloIFResult:
     ano_if_cenario_favoravel_censurado: bool = False
     ano_if_cenario_central_censurado: bool = False
     ano_if_cenario_adverso_censurado: bool = False
+    # ADR-369 D2 — proveniência do alvo: de quem é a data e quando foi dita.
+    # `ano_alvo_declarado` evita o token "meta", que faria a chave virar folha
+    # monetária do catálogo de citação e o ano 2041 sair como "R$ 2.041,00".
+    ano_alvo_declarado: int | None = None
+    declarado_em: str | None = None
+    # Prazo declarável vai a 50 anos e a janela simulada é 40: clampamos com
+    # flag em vez de estender a janela (estender mudaria a base da censura da
+    # ADR-361 e o tamanho das séries `caminho_*`). A probabilidade publicada
+    # vira então um PISO — truncar a janela só remove sucessos, nunca adiciona.
+    prazo_declarado_truncado: bool = False
+    motivo_sem_prazo_declarado: str | None = None
 
 
 def _lognormal_params(r: float, sigma: float) -> tuple[float, float]:
@@ -216,15 +249,15 @@ def _calcular_caminhos_percentis(
     return caminho_p10, caminho_p50, caminho_p90
 
 
-def _prob_ate_meta(
-    alguma_vez: np.ndarray, primeiro_true: np.ndarray, horizonte_meta: int | None, n: int
+def _prob_ate_prazo(
+    alguma_vez: np.ndarray, primeiro_true: np.ndarray, anos_efetivos: int | None, n: int
 ) -> float | None:
-    """Fração de simulações que atingem IF antes do horizonte-meta."""
-    # Sem horizonte não há o que medir: a métrica é "probabilidade até a idade
-    # X"; devolver 0.0 afirmaria "nenhuma simulação atinge".
-    if horizonte_meta is None:
+    """Fração de simulações que atingem IF dentro do prazo declarado."""
+    # Sem prazo mensurável não há o que medir: devolver 0.0 afirmaria "nenhuma
+    # simulação atinge", que é outra frase (ADR-361 D8).
+    if anos_efetivos is None:
         return None
-    n_ate = int(np.sum(alguma_vez & (primeiro_true < horizonte_meta)))
+    n_ate = int(np.sum(alguma_vez & (primeiro_true < anos_efetivos)))
     return round(n_ate / n, 4) if n > 0 else 0.0
 
 
@@ -248,40 +281,80 @@ def _proveniencia(config: IFMonteCarloConfig) -> dict:
     }
 
 
-def _campos_comuns(config: IFMonteCarloConfig, idade_meta: int | None) -> dict:
+@dataclass(frozen=True)
+class _PrazoResolvido:
+    """Prazo declarado depois do confronto com a janela simulada."""
+
+    anos_efetivos: int | None
+    truncado: bool = False
+    motivo: str | None = None
+    origem: PrazoDeclarado | None = None
+
+    def campos(self) -> dict:
+        """Proveniência publicada — o que a família DECLAROU, não o clampado."""
+        decl = self.origem
+        return {
+            "prazo_declarado_anos": None if decl is None else decl.anos,
+            "ano_alvo_declarado": None if decl is None else decl.ano_alvo,
+            "declarado_em": None if decl is None else decl.declarado_em,
+            "prazo_declarado_truncado": self.truncado,
+            "motivo_sem_prazo_declarado": self.motivo,
+        }
+
+
+def _resolver_prazo(
+    prazo: PrazoDeclarado | None, janela_anos: int, ano_base: int
+) -> _PrazoResolvido:
+    """Confronta o prazo declarado com a janela simulada (ADR-369 D2)."""
+    if prazo is None:
+        return _PrazoResolvido(None, motivo=_MOTIVO_NAO_DECLARADO)
+    restantes = prazo.ano_alvo - ano_base
+    if restantes <= 0:
+        # `prob = 0` aqui é aritmeticamente correto e inútil (raciocínio do D8 da
+        # ADR-361): afirma "nenhuma simulação atinge" quando o que houve é que a
+        # pergunta deixou de se aplicar.
+        return _PrazoResolvido(None, motivo=_MOTIVO_PRAZO_VENCIDO, origem=prazo)
+    if restantes > janela_anos:
+        # Clampa, nunca estende: estender mudaria a base da censura da ADR-361 e
+        # o tamanho das séries `caminho_*`. A `prob` publicada vira um PISO.
+        return _PrazoResolvido(janela_anos, truncado=True, origem=prazo)
+    return _PrazoResolvido(restantes, origem=prazo)
+
+
+def _campos_comuns(config: IFMonteCarloConfig, prazo: _PrazoResolvido) -> dict:
     """Campos que não dependem do resultado da simulação."""
     return {
-        "idade_meta_usada": idade_meta,
         "sigma_usado": config.sigma_anual,
         "aporte_mensal_usado": config.aporte_mensal,
+        **prazo.campos(),
         **_proveniencia(config),
     }
 
 
 def _resultado_sem_cone(
     motivo: str,
-    idade_meta: int | None,
+    prazo: _PrazoResolvido,
     config: IFMonteCarloConfig,
     *,
-    prob_if_ate_idade_meta: float | None = 0.0,
+    prob_declarado: float | None = 0.0,
     prob_if_ate_horizonte_simulado: float = 0.0,
 ) -> MonteCarloIFResult:
     return MonteCarloIFResult(
         ano_if_cenario_favoravel=None,
         ano_if_cenario_central=None,
         ano_if_cenario_adverso=None,
-        # #1158: sem idade-meta não há horizonte, então a probabilidade é
-        # ausência — 0,0 afirmaria "nenhuma simulação atinge".
-        prob_if_ate_idade_meta=(None if idade_meta is None else prob_if_ate_idade_meta),
+        # Sem prazo mensurável a probabilidade é ausência com motivo — 0,0
+        # afirmaria "nenhuma simulação atinge" (#1158 / ADR-361 D8).
+        prob_if_ate_prazo_declarado=(None if prazo.anos_efetivos is None else prob_declarado),
         exibir_cone=False,
         motivo_sem_cone=motivo,
         prob_if_ate_horizonte_simulado=prob_if_ate_horizonte_simulado,
-        **_campos_comuns(config, idade_meta),
+        **_campos_comuns(config, prazo),
     )
 
 
 def _resultado_meta_atingida(
-    idade_meta: int | None, config: IFMonteCarloConfig
+    prazo: _PrazoResolvido, config: IFMonteCarloConfig
 ) -> MonteCarloIFResult:
     """Patrimônio >= meta: não há pergunta "em que ano" (ADR-361)."""
     # O caminho antigo caía no horizonte-meta degenerado (`prazo=0` →
@@ -289,9 +362,9 @@ def _resultado_meta_atingida(
     # IF" para a família que já é independente.
     return _resultado_sem_cone(
         "meta já atingida",
-        idade_meta,
+        prazo,
         config,
-        prob_if_ate_idade_meta=1.0,
+        prob_declarado=1.0,
         prob_if_ate_horizonte_simulado=1.0,
     )
 
@@ -304,13 +377,13 @@ class _NucleoMC:
     censurados: tuple[bool, bool, bool]
     exibir: bool
     motivo: str | None
-    prob_if_ate_idade_meta: float | None
+    prob_if_ate_prazo_declarado: float | None
     prob_if_ate_horizonte_simulado: float
     patrimonios: np.ndarray
 
 
 def _mc_core(
-    pv: float, fv: float, config: IFMonteCarloConfig, horizonte_meta: int | None
+    pv: float, fv: float, config: IFMonteCarloConfig, anos_efetivos: int | None
 ) -> _NucleoMC | None:
     """Roda as simulações e resolve percentis + gate, ou None se nenhuma atinge."""
     mu_log, sigma_log = _lognormal_params(config.retorno_real_esperado, config.sigma_anual)
@@ -320,9 +393,10 @@ def _mc_core(
     prob_horizonte = round(float(alguma_vez.mean()), 4)
     percentis, censurados = _percentis_publicaveis(p_true, alguma_vez, prob_horizonte)
     exibir, motivo = _gate_exibicao(pv / fv)
-    horizonte = None if horizonte_meta is None else max(0, horizonte_meta)
-    prob_meta = _prob_ate_meta(alguma_vez, p_true, horizonte, n)
-    args = (percentis, censurados, exibir, motivo, prob_meta, prob_horizonte)
+    # `_resolver_prazo` já garante `anos_efetivos > 0` ou `None`; o clamp para
+    # zero que existia aqui era defesa contra o prazo derivado da idade.
+    prob_prazo = _prob_ate_prazo(alguma_vez, p_true, anos_efetivos, n)
+    args = (percentis, censurados, exibir, motivo, prob_prazo, prob_horizonte)
     return _NucleoMC(*args, patrimonios)
 
 
@@ -346,109 +420,52 @@ def _censura_kwargs(core: _NucleoMC) -> dict:
 
 
 def _build_mc_result(
-    core: _NucleoMC, config: IFMonteCarloConfig, ano_base: int, idade_meta_if: int | None
+    core: _NucleoMC, config: IFMonteCarloConfig, ano_base: int, prazo: _PrazoResolvido
 ) -> MonteCarloIFResult:
     favoravel, central, adverso = _anos_if(core.percentis, ano_base, core.exibir)
     return MonteCarloIFResult(
         ano_if_cenario_favoravel=favoravel,
         ano_if_cenario_central=central,
         ano_if_cenario_adverso=adverso,
-        prob_if_ate_idade_meta=core.prob_if_ate_idade_meta,
+        prob_if_ate_prazo_declarado=core.prob_if_ate_prazo_declarado,
         exibir_cone=core.exibir,
         motivo_sem_cone=core.motivo,
         prob_if_ate_horizonte_simulado=core.prob_if_ate_horizonte_simulado,
         **_censura_kwargs(core),
         **_caminhos_kwargs(core.patrimonios, ano_base, core.exibir),
-        **_campos_comuns(config, idade_meta_if),
+        **_campos_comuns(config, prazo),
     )
 
 
 def _resultado_degenerado(
-    pv: float, fv: float, idade_meta: int | None, config: IFMonteCarloConfig
+    pv: float, fv: float, prazo: _PrazoResolvido, config: IFMonteCarloConfig
 ) -> MonteCarloIFResult | None:
     """Casos em que simular não responde nada; ``None`` = simular normalmente."""
     if fv <= 0 or pv < 0:
-        return _resultado_sem_cone("meta_if inválida ou patrimônio negativo", idade_meta, config)
+        return _resultado_sem_cone("meta_if inválida ou patrimônio negativo", prazo, config)
     if pv >= fv:
-        return _resultado_meta_atingida(idade_meta, config)
+        return _resultado_meta_atingida(prazo, config)
     return None
 
 
+# ADR-360: seed é constante de modelo, então o cone é função pura dos inputs de
+# domínio e monótono em patrimônio/aporte. ADR-369 D2: a idade do titular saiu da
+# assinatura porque só existia para derivar o alvo do próprio modelo — o cone
+# nunca dependeu dela, e a probabilidade agora mede o prazo que a família
+# declarou.
 def run_monte_carlo_if(
     config: IFMonteCarloConfig,
     ano_base: int,
-    idade_titular_atual: int,
-    idade_meta_if: int | None = 65,
+    prazo_declarado: PrazoDeclarado | None = None,
 ) -> MonteCarloIFResult:
     """50 000 simulações log-normais → cone de cenários + gate; reprodutível."""
-    # ADR-360: seed é constante de modelo, então o cone é função pura dos inputs
-    # de domínio e monótono em patrimônio/aporte. `idade_meta_if=None`
-    # (determinística sem prazo) suprime só prob/idade_meta — o cone independe.
     pv, fv = float(config.patrimonio_investivel), float(config.meta_if)
-    degenerado = _resultado_degenerado(pv, fv, idade_meta_if, config)
+    prazo = _resolver_prazo(prazo_declarado, config.horizonte_simulado_anos, ano_base)
+    degenerado = _resultado_degenerado(pv, fv, prazo, config)
     if degenerado is not None:
         return degenerado
-    horizonte = None if idade_meta_if is None else idade_meta_if - idade_titular_atual
-    core = _mc_core(pv, fv, config, horizonte)
+    core = _mc_core(pv, fv, config, prazo.anos_efetivos)
     if core is None:
         motivo = "acumulação inicial — foco em consistência de aporte"
-        return _resultado_sem_cone(motivo, idade_meta_if, config)
-    return _build_mc_result(core, config, ano_base, idade_meta_if)
-
-
-# =============================================================================
-# Payload E5 (ADR-361) — a ORDEM de composição é o contrato do wire
-# =============================================================================
-
-
-def _cone_cenarios(mc: MonteCarloIFResult) -> dict:
-    """Anos do cone com a flag de censura INTERCALADA (ADR-361)."""
-    # O corte do distiller é prefixal, então flags agrupadas depois dos três anos
-    # abririam uma janela em que o LLM lê o ano sem saber que foi censurado.
-    return {
-        "ano_if_cenario_favoravel": mc.ano_if_cenario_favoravel,
-        "ano_if_cenario_favoravel_censurado": mc.ano_if_cenario_favoravel_censurado,
-        "ano_if_cenario_central": mc.ano_if_cenario_central,
-        "ano_if_cenario_central_censurado": mc.ano_if_cenario_central_censurado,
-        "ano_if_cenario_adverso": mc.ano_if_cenario_adverso,
-        "ano_if_cenario_adverso_censurado": mc.ano_if_cenario_adverso_censurado,
-    }
-
-
-def _cone_premissas(mc: MonteCarloIFResult) -> dict:
-    """Probabilidades (dois horizontes distintos) + premissas do run."""
-    return {
-        "prob_if_ate_idade_meta": mc.prob_if_ate_idade_meta,
-        "prob_if_ate_horizonte_simulado": mc.prob_if_ate_horizonte_simulado,
-        "idade_meta_usada": mc.idade_meta_usada,
-        "sigma_usado": mc.sigma_usado,
-        "exibir_cone": mc.exibir_cone,
-        "aporte_mensal_usado": float(mc.aporte_mensal_usado),
-        "motivo_sem_cone": mc.motivo_sem_cone,
-    }
-
-
-def _cone_series_e_proveniencia(mc: MonteCarloIFResult) -> dict:
-    """Séries ano→BRL e, no fim, a proveniência do run."""
-    # ADR-360 — proveniência no FIM de propósito: o distiller renderiza o bloco
-    # raw com cap de chars, então metadado não desloca dado de domínio do LLM.
-    return {
-        "caminho_p10": [list(p) for p in mc.caminho_p10],
-        "caminho_p50": [list(p) for p in mc.caminho_p50],
-        "caminho_p90": [list(p) for p in mc.caminho_p90],
-        "mc_version": mc.mc_version,
-        "seed_usado": mc.seed_usado,
-        "n_simulacoes_usado": mc.n_simulacoes_usado,
-        "horizonte_simulado_anos": mc.horizonte_simulado_anos,
-    }
-
-
-def monte_carlo_to_dict(mc: MonteCarloIFResult) -> dict:
-    """Bloco ``if_monte_carlo`` do payload E5 — a ORDEM de composição é o contrato."""
-    # Pública porque o gate de orçamento do exec context do parecer mede a ordem
-    # de produção, não uma cópia dela.
-    return {
-        **_cone_cenarios(mc),
-        **_cone_premissas(mc),
-        **_cone_series_e_proveniencia(mc),
-    }
+        return _resultado_sem_cone(motivo, prazo, config)
+    return _build_mc_result(core, config, ano_base, prazo)

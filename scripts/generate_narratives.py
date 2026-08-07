@@ -410,16 +410,36 @@ def _mc_major(mc_if: dict) -> int:
     return int(cabeca) if cabeca.isdigit() else 1
 
 
+# Artefato < 5.0 tem probabilidade, mas com a semântica ANTIGA (o modelo medido
+# contra a data que ele mesmo imprimiu). Copiar aquele valor para a chave nova
+# publicaria a semântica velha sob o nome novo — a fabricação que a ADR-369 D2
+# existe para impedir. Vira ausência com motivo: o cone (rename-only) sobrevive,
+# a probabilidade não.
+_PRAZO_AUSENTE_PRE_5_0 = {
+    "prob_if_ate_prazo_declarado": None,
+    "prazo_declarado_anos": None,
+    "ano_alvo_declarado": None,
+    "declarado_em": None,
+    "prazo_declarado_truncado": False,
+    "motivo_sem_prazo_declarado": "prazo declarado ausente no artefato (contrato anterior)",
+}
+
+
 def _cone_com_nomes_de_hoje(mc_if: dict) -> dict:
-    """Bloco do cone sob as chaves de 4.0, seja qual for a versão gravada."""
+    """Bloco do cone sob o contrato de hoje, seja qual for a versão gravada."""
     # Único site de tradução do contrato (ADR-369 D3). Sem ele, um artefato 3.0
     # relido por este código devolveria todos os anos `None` e o narrador cairia
     # na frase determinística — a mais otimista do relatório, e sem incerteza
     # declarada — exatamente quando a mediana não atinge a meta. É o defeito que
     # o D9 da ADR-361 fechou, reintroduzido em silêncio.
-    if _mc_major(mc_if) >= 4:
+    major = _mc_major(mc_if)
+    if major >= 5:
         return mc_if
-    return {**mc_if, **{novo: mc_if.get(antigo) for novo, antigo in _CONE_CHAVES_PRE_4_0.items()}}
+    renomeado = mc_if
+    if major < 4:
+        traducao = {novo: mc_if.get(antigo) for novo, antigo in _CONE_CHAVES_PRE_4_0.items()}
+        renomeado = {**mc_if, **traducao}
+    return {**renomeado, **_PRAZO_AUSENTE_PRE_5_0}
 
 
 def load_metrics_from_e5(
@@ -762,8 +782,12 @@ def load_metrics_from_e5(
         "mc_ano_if_cenario_favoravel": mc_if.get("ano_if_cenario_favoravel"),
         "mc_ano_if_cenario_central": mc_if.get("ano_if_cenario_central"),
         "mc_ano_if_cenario_adverso": mc_if.get("ano_if_cenario_adverso"),
-        "mc_prob_if_ate_idade_meta": mc_if.get("prob_if_ate_idade_meta"),
-        "mc_idade_meta": mc_if.get("idade_meta_usada"),
+        "mc_prob_if_ate_prazo_declarado": mc_if.get("prob_if_ate_prazo_declarado"),
+        "mc_prazo_declarado_anos": mc_if.get("prazo_declarado_anos"),
+        "mc_ano_alvo_declarado": mc_if.get("ano_alvo_declarado"),
+        "mc_declarado_em": mc_if.get("declarado_em"),
+        "mc_prazo_declarado_truncado": mc_if.get("prazo_declarado_truncado", False),
+        "mc_motivo_sem_prazo_declarado": mc_if.get("motivo_sem_prazo_declarado"),
         # ADR-361 — sem estes o narrador não distingue "cone não simulado" de
         # "a mediana não atinge a meta no horizonte", e cairia na frase
         # determinística ("a trajetória aponta a meta para X") justamente no

@@ -39,6 +39,9 @@ _NON_MONETARY_EXACT = frozenset(
         "transacoes_duplicadas_removidas",
         "acumuladores_pct_gerador",
         "percentual_patrimonio",
+        # ADR-369 D2 aposentou estas duas do contrato; ficam porque o diff também
+        # compara goldens HISTÓRICOS, onde elas existem — remover reintroduziria
+        # o delta_cents fantasma nessas comparações.
         "prob_if_ate_idade_meta",
         "taxa_poupanca_recorrente",
         "taxa_poupanca_total",

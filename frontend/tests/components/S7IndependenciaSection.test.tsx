@@ -234,8 +234,10 @@ function makeMonteCarlo(overrides: Partial<IFMonteCarloData> = {}): IFMonteCarlo
     ano_if_cenario_favoravel: 2036,
     ano_if_cenario_central: 2040,
     ano_if_cenario_adverso: 2044,
-    prob_if_ate_idade_meta: 0.31,
-    idade_meta_usada: 60,
+    prob_if_ate_prazo_declarado: 0.31,
+    prazo_declarado_anos: 15,
+    ano_alvo_declarado: 2041,
+    declarado_em: "2026-03-01",
     sigma_usado: 0.15,
     exibir_cone: true,
     motivo_sem_cone: null,
@@ -300,18 +302,44 @@ describe("IFMonteCarloBlock · premissas fallback (A28.l9)", () => {
     ).not.toBeInTheDocument();
   });
 
-  // Projeção determinística sem prazo → idade-meta null. Antes a sentinela 999
-  // somava à idade e o cone anunciava "até a idade 1040" (métrica fabricada).
-  it("idade-meta ausente: omite a cláusula de probabilidade, mantém o cone", () => {
+  // ADR-369 D2 — sem prazo declarado (Goal semeado, prazo vencido, ou artefato
+  // de contrato anterior) a cláusula some. Publicar "0%" seria aritmeticamente
+  // correto e inútil: afirmaria "nenhuma simulação atinge".
+  it("prazo declarado ausente: omite a cláusula de probabilidade, mantém o cone", () => {
     const data = makeData({
       if_monte_carlo: makeMonteCarlo({
-        idade_meta_usada: null,
-        prob_if_ate_idade_meta: null,
+        prazo_declarado_anos: null,
+        prob_if_ate_prazo_declarado: null,
       }),
     });
     render(<S7IndependenciaSection data={data} />);
     expect(screen.queryByText(/Probabilidade de atingir IF/)).toBeNull();
     expect(screen.getByTestId("s7-if-cone-chart")).toBeInTheDocument();
+  });
+
+  // A data é da família: sem "que você declarou" o usuário lê o ano como nosso.
+  it("prazo declarado presente: nomeia o dono da data e o ano-alvo", () => {
+    const data = makeData({ if_monte_carlo: makeMonteCarlo() });
+    render(<S7IndependenciaSection data={data} />);
+    expect(
+      screen.getByText(/15 anos que você declarou/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/2041/)).toBeInTheDocument();
+  });
+
+  // Prazo além da janela: o número é PISO, não teto — truncar a janela só
+  // remove sucessos. Rotular como teto seria o defeito que a lane mata.
+  it("prazo truncado: declara que a probabilidade é um piso", () => {
+    const data = makeData({
+      if_monte_carlo: makeMonteCarlo({
+        prazo_declarado_anos: 48,
+        prazo_declarado_truncado: true,
+        horizonte_simulado_anos: 40,
+      }),
+    });
+    render(<S7IndependenciaSection data={data} />);
+    expect(screen.getByText(/piso/)).toBeInTheDocument();
+    expect(screen.queryByText(/teto/)).toBeNull();
   });
 
   it("motivo_sem_cone: role note + ícone, não só itálico (a11y A28.l9)", () => {

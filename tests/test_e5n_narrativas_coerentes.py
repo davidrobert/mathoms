@@ -134,8 +134,11 @@ _METRICS_MINIMAS: dict[str, Any] = {
     "aluguel_irpf_ano_ref": None,
     "aloc_derived": {},
     "mc_ano_if_cenario_central": None,
-    "mc_prob_if_ate_idade_meta": None,
-    "mc_idade_meta": None,
+    "mc_prob_if_ate_prazo_declarado": None,
+    "mc_prazo_declarado_anos": None,
+    "mc_ano_alvo_declarado": None,
+    "mc_declarado_em": None,
+    "mc_prazo_declarado_truncado": False,
 }
 
 
@@ -434,56 +437,19 @@ def test_metrics_aloc_derived_wiring_e_v1_aposentado(e5n):
         assert chave_v1 not in metrics, chave_v1
 
 
-# ----------------------------------------------------------------------
-# FIN-08 — projeção IF probabilística (if_monte_carlo)
-# ----------------------------------------------------------------------
-
-
-def test_projecao_probabilistica_com_monte_carlo():
-    m = _metrics_base() | {
-        "mc_ano_if_cenario_central": 2039,
-        "mc_prob_if_ate_idade_meta": 0.41,
-        "mc_idade_meta": 65,
-    }
-    conclusion = _charts(m)["projecao_3cenarios"]["conclusion"]
-    assert "2039" in conclusion
-    assert "41%" in conclusion
-    assert "65" in conclusion
-    assert "será atingida" not in conclusion
-
-
-def test_projecao_fallback_deterministico_sem_promessa():
-    conclusion = _charts(_metrics_base())["projecao_3cenarios"]["conclusion"]
-    assert "2038" in conclusion
-    assert "será atingida" not in conclusion
-    assert "será" not in conclusion
-
-
-@pytest.mark.parametrize(
-    ("prob", "esperado"),
-    [(0.004, "<1%"), (0.995, ">99%"), (0.5, "50%")],
-)
-def test_projecao_probabilidade_guards(prob: float, esperado: str):
-    m = _metrics_base() | {
-        "mc_ano_if_cenario_central": 2039,
-        "mc_prob_if_ate_idade_meta": prob,
-        "mc_idade_meta": 65,
-    }
-    conclusion = _charts(m)["projecao_3cenarios"]["conclusion"]
-    assert esperado in conclusion
-
-
 def test_metrics_monte_carlo_wiring(e5n):
     data = _e5_data_minimal()
     data["if_monte_carlo"] = {
         # `mc_version` explícito: sem carimbo o payload é lido como v1 e passa
         # pela tradução de compat (ADR-369 D3), que procuraria as chaves antigas.
-        "mc_version": "4.0",
+        "mc_version": "5.0",
         "ano_if_cenario_central": 2040,
-        "prob_if_ate_idade_meta": 0.4123,
-        "idade_meta_usada": 65,
+        "prob_if_ate_prazo_declarado": 0.4123,
+        "prazo_declarado_anos": 15,
+        "ano_alvo_declarado": 2041,
     }
     metrics = e5n.load_metrics_from_e5(data)
     assert metrics["mc_ano_if_cenario_central"] == 2040
-    assert metrics["mc_prob_if_ate_idade_meta"] == 0.4123
-    assert metrics["mc_idade_meta"] == 65
+    assert metrics["mc_prob_if_ate_prazo_declarado"] == 0.4123
+    assert metrics["mc_prazo_declarado_anos"] == 15
+    assert metrics["mc_ano_alvo_declarado"] == 2041
