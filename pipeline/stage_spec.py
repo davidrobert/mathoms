@@ -32,6 +32,25 @@ class StageSpec:
                  ``[name]`` (o próprio).
         is_llm:  True se o stage depende de chamada a LLM.
         tier:    ``"free"`` (executado em todos os workspaces) ou ``"premium"``.
+        criticality: ``"required"`` — a não-entrega deste stage impede o
+                 entregável, e o run vira ``failed``. ``"degradable"`` — é
+                 enriquecimento: a não-entrega degrada o run
+                 (``partial_failure``) e o relatório continua sendo derivado
+                 (ADR-357 §1). Default fail-closed: stage novo só sai do raio
+                 de explosão por decisão explícita.
+
+                 Alcança **apenas** o canal de não-entrega (``success: False``
+                 ou exceção). O canal ``validation`` é ortogonal: stage
+                 degradável que *entrega* veredito com ``valid: False``
+                 continua pausando em ``needs_review`` (ADR-357 §1).
+        commit_artifacts_on_degrade: em degradação, commita os artefatos
+                 coletados em vez de fazer rollback — a superfície de
+                 diagnóstico precisa ter o que ler (ADR-357 §6). Default
+                 ``False`` (rollback, comportamento pré-A40.l18) porque a
+                 exceção é destrutiva: stage que escreve em chave de **outro**
+                 stage corromperia o deliverable ao commitar um merge parcial.
+                 Declarado por stage de propósito — ``writes`` é ficção para 2
+                 dos 3 degradáveis e não serve de discriminador.
     """
 
     name: str
@@ -39,6 +58,8 @@ class StageSpec:
     writes: tuple[str, ...] = field(default_factory=tuple)
     is_llm: bool = False
     tier: str = "free"
+    criticality: str = "required"
+    commit_artifacts_on_degrade: bool = False
 
 
 # =============================================================================
@@ -194,11 +215,27 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
         reads=("categorize_transactions", "consolidate_baseline"),
         writes=("analyze_finances",),
     ),
+    # ADR-357 §1 — ``analyze_finances`` é o último stage ``required``; a cauda
+    # abaixo é enriquecimento e não veta o entregável. Os 3 declaram
+    # ``criticality`` explicitamente: o gate de
+    # ``dev/check_stage_criticality.py`` recusa herança do default aqui, porque
+    # stage novo na cauda herdando ``required`` reintroduz o incidente de origem
+    # (run 2ded7aab: E5 completo, relatório nunca derivado).
     "generate_narratives": StageSpec(
-        "generate_narratives", reads=("analyze_finances",), writes=("generate_narratives",)
+        "generate_narratives",
+        reads=("analyze_finances",),
+        writes=("generate_narratives",),
+        criticality="degradable",
+        # Escreve na chave do E5 (``analyze_finances``/``analise_financeira``),
+        # não na própria: commitar merge parcial corromperia o deliverable.
+        commit_artifacts_on_degrade=False,
     ),
     "validate_cross": StageSpec(
-        "validate_cross", reads=("analyze_finances",), writes=("validate_cross",)
+        "validate_cross",
+        reads=("analyze_finances",),
+        writes=("validate_cross",),
+        criticality="degradable",
+        commit_artifacts_on_degrade=True,
     ),
     # ADR-199 (Ato 4): parecer planejador supersede ``review_finances``
     # (removido junto com ``apply_review`` após cutover do parecer).
@@ -208,6 +245,8 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
         writes=("review_finances_holistic",),
         is_llm=True,
         tier="premium",
+        criticality="degradable",
+        commit_artifacts_on_degrade=True,
     ),
 }
 
