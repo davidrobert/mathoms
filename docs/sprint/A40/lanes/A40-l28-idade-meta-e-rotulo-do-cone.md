@@ -4,10 +4,13 @@ type: lane
 title: "Idade-meta do cone é output do modelo, não pergunta da família — e o rótulo do percentil aponta para dois lados"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1269
+ship_date: "2026-08-07"
 priority: P1
 branch_slug: a40-l28-idade-meta-e-rotulo-do-cone
 adrs:
+  - "[[ADR-369]]"
   - "[[ADR-361]]"
   - "[[ADR-237]]"
   - "[[ADR-219]]"
@@ -17,13 +20,71 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/financial-planning
 ---
 
 # A40.l28 — `idade-meta-e-rotulo-do-cone`
+
+> ✅ **Entregue em 3 PRs, 2026-08-07:** `6d17d335` (#1267, [[ADR-369]] `Proposto`),
+> `ce9405a2` (#1268, rename do cone — `mc_version` 4.0), `d72ef569` (#1269, prazo
+> declarado vira a fonte — `mc_version` 5.0). Os dois PRs de contrato mergearam na
+> mesma janela: o cache do parecer é `sha256(json.dumps(e5_data))`, então a frota
+> paga **uma** re-geração, não duas.
+>
+> **Ordem invertida em relação à numeração do §Escopo, de propósito.** O rename
+> (item 2) foi primeiro porque é rename-only: estabelece o vocabulário com risco
+> mínimo antes da mudança semântica, e deixa a narrativa de versão limpa — 4.0
+> comparável a 3.0, 5.0 incomparável com 4.0.
+>
+> **Seis coisas que a execução mediu diferente do escrito.** O §Co-design já havia
+> corrigido a lane; a execução corrigiu o §Co-design.
+>
+> 1. **O compat não previne `KeyError` — previne algo pior.** O §Co-design dizia que
+>    o acesso duro em `projecao_if_narrator.py` derrubaria o stage. Derruba, mas só
+>    é alcançado depois de um guard `.get()`. Sem compat, artefato 3.0 relido por
+>    código 4.0 devolve os anos `None` e cai em `_projecao_deterministica` — a frase
+>    **mais otimista do relatório**, sem incerteza declarada, exatamente quando a
+>    mediana não atinge a meta. É o defeito que a [[ADR-361]] D9 fechou,
+>    reintroduzido **em silêncio**. Mesma conclusão, motivo pior.
+> 2. **Quem gateia produtor ↔ `required` do schema não é o step strict do CI.** O
+>    step `MATHOMS_PIPELINE_SCHEMA_MODE=strict` roda só `test_schema_validation.py`,
+>    cujas fixtures são sintéticas: desincronizar `required` **passa** lá (verificado
+>    por mutação). Quem pega é `tests/test_e5_golden_execution.py`, que valida o
+>    payload real produzido e já roda em modo default.
+> 3. **`max_chars` medido duas vezes, errado nas duas estimativas.** PR-A: +106, não
+>    +97 (a estimativa não contava os renames de `horizonte_*`) — 369 → 475, cap
+>    380 → 490. PR-B: **633**, não os 484 estimados, e o pior caso não é nenhum dos
+>    cinco estados conhecidos — é cone suprimido **com** prazo vencido, os dois
+>    motivos longos no mesmo payload. Cap 490 → 650, manifest 2.0.2 → 2.0.4. O bloco
+>    foi de 369 para 633 chars (+72%) num `eviction_priority: 8`: custo permanente
+>    de contexto, aceito porque o número anterior media o modelo contra si mesmo.
+> 4. **`ano_meta_declarado` era armadilha.** `"meta"` é token monetário em
+>    `_MONEY_KEY_TOKENS`: medido, o nome óbvio vira folha do catálogo com hint
+>    `brl` e o ano 2041 sairia como "R$ 2.041,00" no parecer — o acidente que a
+>    [[ADR-361]] §Consequências manda não replicar. Ficou `ano_alvo_declarado`.
+> 5. **A banda `folga = 0 ⇒ [30%, 50%]` do §Co-design está errada por 0,7 pp.** São
+>    duas forças opostas e o co-design contava uma: o log-normal atrasa a mediana,
+>    mas o prazo determinístico é resolvido em anos inteiros e arredonda para CIMA
+>    (medido: 18,54→19 e 14,45→15, meio ano de folga escondida), devolvendo parte do
+>    atraso. Medido: 49,3% e 50,7%. Banda entregue: [30%, 55%]. A afirmação que ela
+>    protege — cara-ou-coroa, não 85% — continua de pé.
+> 6. **Polaridade invertida no prazo truncado, pega pelo `product-designer`.** O
+>    brief da consulta descrevia o número como **teto**; é **piso**
+>    (`P(T ≤ 40) ≤ P(T ≤ 50)` — truncar a janela só remove sucessos). Rotular como
+>    teto seria publicar um número que diz medir uma coisa e mede outra: o defeito
+>    que esta lane existe para matar, reintroduzido na copy.
+>
+> **Amplitude entregue: ~85 pp** (11,0% em folga −5 → 96,7% em +12), contra os 40 pp
+> exigidos e os 14,8 pp que a [[ADR-361]] mediu com folga zero.
+>
+> **Um gap do gate da [[A40.l30]] achado de passagem, não corrigido aqui:** o
+> snapshot `parecer_ancorabilidade.json` só moveu `manifest_version` porque seu
+> corpus sintético (`make_workspace_e5`) **não produz bloco `if_monte_carlo`** — a
+> saída das duas chaves do catálogo de citação (medida diretamente) é invisível
+> para ele.
 
 > **Residual de contrato da [[ADR-361]] (#1162), itens 1 e 2 do §Deferimento.**
 > A [[A40.l25]] pegou o item 5 (faixa de 5 pp) e o residual da [[ADR-360]]; estes

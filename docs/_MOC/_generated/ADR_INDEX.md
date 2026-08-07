@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 308
-- **Proposto**: 48
+- **Decidido**: 309
+- **Proposto**: 47
 - **Roadmap**: 4
 
 ## Fundação
@@ -527,7 +527,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (53)
+### Decidido (54)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -582,8 +582,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-355]] — Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages · phase A40 (dívida independente da F2 do GO_SHELL)
 - [[ADR-360]] — Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO · phase A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)
 - [[ADR-361]] — Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos · phase A40
+- [[ADR-369]] — Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) · phase A40.l28
 
-### Proposto (16)
+### Proposto (15)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -600,7 +601,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-364]] — Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem
-- [[ADR-369]] — Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) · phase A40
 
 ### Roadmap (1)
 

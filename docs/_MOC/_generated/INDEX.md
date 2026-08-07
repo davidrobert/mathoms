@@ -364,7 +364,7 @@
 | ADR-366 | adr | Proposto |  | Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação | `adr/366-desfecho-da-geracao-do-parecer-e-eixo-proprio.md` |
 | ADR-367 | adr | Proposto |  | Ordem do plano por irreversibilidade: tier constante por regra, e o alvo da reserva gradua sem mover o gatilho | `adr/367-ordem-do-plano-por-irreversibilidade.md` |
 | ADR-368 | adr | Proposto |  | Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão | `adr/368-ancorabilidade-do-exec-context-e-densidade-por-item.md` |
-| ADR-369 | adr | Proposto |  | Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) | `adr/369-rotulo-e-alvo-do-cone-de-if.md` |
+| ADR-369 | adr | Decidido |  | Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) | `adr/369-rotulo-e-alvo-do-cone-de-if.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -853,7 +853,7 @@
 | A40.l25 | lane | open | A40 | Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada | `sprint/A40/lanes/A40-l25-honestidade-do-cone-if.md` |
 | A40.l26 | lane | open | A40 | Cobertura do solver de prazo IF: aporte zero com retorno positivo converge, e o produto nunca mostrou | `sprint/A40/lanes/A40-l26-cobertura-do-solver-de-prazo-if.md` |
 | A40.l27 | lane | shipped | A40 | Órfão de dispatch: varredura de beat, cancel de `resuming` e read path de failure_reason | `sprint/A40/lanes/A40-l27-orfao-de-dispatch-residual.md` |
-| A40.l28 | lane | open | A40 | Idade-meta do cone é output do modelo, não pergunta da família — e o rótulo do percentil aponta para dois lados | `sprint/A40/lanes/A40-l28-idade-meta-e-rotulo-do-cone.md` |
+| A40.l28 | lane | shipped | A40 | Idade-meta do cone é output do modelo, não pergunta da família — e o rótulo do percentil aponta para dois lados | `sprint/A40/lanes/A40-l28-idade-meta-e-rotulo-do-cone.md` |
 | A40.l29 | lane | open | A40 | Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente | `sprint/A40/lanes/A40-l29-editorial-do-ano-de-if.md` |
 | A40.l3 | lane | shipped | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
 | A40.l30 | lane | shipped | A40 | Ancorabilidade do exec context: o invariante que o #1004 furou sem nenhum teste vermelho | `sprint/A40/lanes/A40-l30-ancorabilidade-do-exec-context.md` |

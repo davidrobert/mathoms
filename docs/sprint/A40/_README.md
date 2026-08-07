@@ -471,6 +471,10 @@ sem isso a sprint fecharia dizendo menos do que entregou.
 
 **O que sobra dos três** está na [[A40.l25]], [[A40.l26]], [[A40.l28]] e
 [[A40.l29]] — não em §Deferimento de ADR, que é invisível ao `SPRINT_CURRENT`.
+**A [[A40.l28]] fechou em 2026-08-07** (#1267/#1268/#1269, [[ADR-369]]): os itens
+1 e 2 do §Deferimento da [[ADR-361]] saíram do papel. Sobram a [[A40.l25]]
+(faixa de 5 pp, `sigma` por perfil), a [[A40.l26]] (`_solve_prazo`) e a
+[[A40.l29]] (manchete/eixo/faixa na UI).
 
 > **Correção de cobertura — 2026-08-03.** A l25 e a l26 cobriam 3 dos 7 itens do
 > §Deferimento da [[ADR-361]]: o item 5 (faixa de 5 pp) e o residual da
@@ -505,6 +509,22 @@ primeiro relatório pós-merge (seed + `n` + censura deslocam todo o bloco de IF
 sem a nota a leitura racional de "IF em 2040" virar 2041 é "meu plano piorou");
 **re-rodar o Tier-1** do gate F2 (`make go-parity WS=<dogfood> RUNS=2`) para
 confirmar 0 diff residual no controle Py↔Py sem allowlist para o cone.
+
+> **Ampliação da nota one-shot — [[A40.l28]] (2026-08-07), registrada, não
+> executada.** A [[ADR-369]] deslocou o bloco de IF uma terceira vez, e desta vez
+> a mudança é de **semântica**, não de calibração: a probabilidade deixou de medir
+> P(o modelo bater a própria data) e passou a medir P(cumprir o prazo que a
+> família declarou). Consequências para a nota especificada em [[ADR-360]] §Nota
+> one-shot: (a) o gatilho tem de disparar também para `mc_version` `"3.0"` e
+> `"4.0"`, não só ausente/`"2.0"`; (b) o par "ano antigo → ano novo" **não basta**
+> — o número da probabilidade muda por motivo diferente do ano, e para muitos
+> planos ele vai **cair** (o alvo declarado costuma ser mais curto que o
+> determinístico); (c) o elemento 2 da nota ("a variação é sempre no sentido de
+> corrigir para mais conservador") **não vale** para esta terceira mudança: aqui a
+> probabilidade pode subir ou descer conforme a folga do plano. Sem essa ressalva,
+> a nota afirmaria monotonia que a [[ADR-369]] quebra. Escrever a nota continua
+> owner-gated; esta entrada existe para que ela não seja escrita com a
+> especificação de duas mudanças atrás.
 
 ## Decisões do dono — A40.l18 (2026-08-06)
 

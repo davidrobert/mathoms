@@ -2,9 +2,10 @@
 id: ADR-369
 type: adr
 title: "Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0)"
-status: Proposto
+status: Decidido
+phase: "A40.l28"
 date: "2026-08-07"
-phase: A40
+amended_at: ["2026-08-07"]
 relates_to:
   - "[[ADR-361]]"
   - "[[ADR-360]]"
@@ -14,13 +15,40 @@ relates_to:
   - "[[ADR-173]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
   - phase/a40
 ---
 
 # ADR-369 — Rótulo e alvo do cone de IF
+
+> **Emenda 2026-08-07 — flip `Proposto` → `Decidido (A40.l28)`.** Os dois bumps
+> estão em `main`: `ce9405a2` (#1268, 4.0) e `d72ef569` (#1269, 5.0), na mesma
+> janela de merge para a frota pagar uma re-geração de parecer só. A condição do
+> flip era a evidência renderizada da S7, anexada aos dois PRs sobre fixture
+> sintética PII-zero (precedente [[ADR-365]]).
+>
+> **Três afirmações desta ADR que a execução corrigiu**, registradas aqui porque
+> quem reler o texto acima merece saber onde ele errou:
+>
+> 1. **O D3 dizia que o compat previne a falha silenciosa; e previne — mas o
+>    §Co-design da lane dizia `KeyError`.** Medido: os guards do narrador usam
+>    `.get()`, então artefato stale não derruba o stage; cai na frase
+>    determinística, a mais otimista do relatório. A conclusão (compat
+>    obrigatório) não muda; a gravidade, sim.
+> 2. **O custo de contexto foi subestimado nas duas medições.** 4.0 inflou +106
+>    chars (estimado +97) e 5.0 levou o bloco a **633** (estimado ~484). O pior
+>    caso não é nenhum dos cinco estados conhecidos do cone: é cone suprimido
+>    **com** prazo vencido, os dois motivos longos coabitando o payload.
+> 3. **`ano_meta_declarado`, o nome natural para o alvo, era armadilha.**
+>    `"meta"` é token monetário: a chave viraria folha do catálogo com hint
+>    `brl` e o ano 2041 sairia como "R$ 2.041,00" — o acidente que a [[ADR-361]]
+>    §Consequências manda não replicar. Ficou `ano_alvo_declarado`.
+>
+> **O gatilho de remoção do compat (D3) segue aberto e é medível:**
+> `python3 dev/count_mc_version_legado.py` — rodado contra o DB local em
+> 2026-08-07, **1 de 1 artefato alcançável ainda é 3.0**.
 
 ## Contexto
 
@@ -85,20 +113,20 @@ defeito que o D1 existe para matar.
 **D2 — `mc_version` 4.0 → 5.0 troca a semântica da probabilidade.** De
 "P(bater a data que o próprio modelo imprimiu)" para "P(cumprir o prazo que a
 família declarou)". O alvo é derivado de `horizonte_anos`, ancorado em **ano
-absoluto** via `Goal.effective_from`: `ano_meta_declarado = effective_from.year +
+absoluto** via `Goal.effective_from`: `ano_alvo_declarado = effective_from.year +
 horizonte_anos`. "15 anos" declarado em 2026 e relido em 2030 tem de continuar
 significando 2041, não 2045.
 
 Por isso `prob_if_ate_idade_meta` é **renomeada, não reaproveitada**
 (`prob_if_ate_prazo_declarado`), e `idade_meta_usada` é substituída por
-`prazo_declarado_anos` + `ano_meta_declarado` + `declarado_em`. Manter a chave
+`prazo_declarado_anos` + `ano_alvo_declarado` + `declarado_em`. Manter a chave
 antiga a deixaria sobrevivendo com semântica invertida — de modelo-contra-si para
 compromisso-contra-capacidade — e o consumidor que compara payloads por chave não
 lê `mc_version`. A remoção é o sinal.
 
 Três estados de ausência, cada um com motivo próprio no payload:
 `Goal.is_template = true` (semeado no onboarding, ninguém declarou nada);
-prazo declarado já vencido (`prazo_declarado_anos <= 0`), onde `prob = 0` seria
+prazo declarado já vencido (`ano_alvo_declarado` no passado), onde `prob = 0` seria
 aritmeticamente correto e inútil, pelo mesmo raciocínio do D8 da [[ADR-361]]; e
 prazo maior que a janela simulada (`horizonte_anos` aceita até 50, a janela é
 40), que **clampa com flag** — estender a janela mudaria a base da censura da
