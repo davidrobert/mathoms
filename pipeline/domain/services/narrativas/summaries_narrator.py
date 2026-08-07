@@ -182,10 +182,30 @@ def _summary_s10(M: Mapping[str, Any], decisoes: list[str]) -> str:
     """s10 — abertura da Síntese Estratégica: a fila do dono inteira, a partir da 1ª."""
     n = len(decisoes)
     if not n:
-        return _S10_SEM_DECISOES
+        return ensure_period(_S10_SEM_DECISOES + _frase_retidas(M))
     label = pluralize(n, "decisão estratégica prioritária", "decisões estratégicas prioritárias")
     itens = ", ".join(strip_terminal_punct(d) for d in decisoes[:TOP_DECISOES_RENDER])
-    return f"{fmt_aporte_contexto(M)}{n} {label}: {itens}."
+    return ensure_period(f"{fmt_aporte_contexto(M)}{n} {label}: {itens}.{_frase_retidas(M)}")
+
+
+# ADR-365 §D5: sem esta frase o array `pontos_urgentes_retidos` seria conselho
+# retido sem declaração — a 6ª classe do §Critério de done do PLAN-report-trust.
+# UMA frase por classe de motivo, nunca contagem agregada: "alguns itens foram
+# retidos" satisfaria uma identidade aritmética com informação ~zero.
+def _frase_retidas(M: Mapping[str, Any]) -> str:
+    retidas = M.get("recomendacoes_retidas") or []
+    if not retidas:
+        return ""
+    partes = [
+        f"{r.get('acao', '')} ({r.get('motivo', '')})"
+        for r in retidas
+        if isinstance(r, dict) and r.get("acao")
+    ]
+    if not partes:
+        return ""
+    plural = pluralize(len(partes), "recomendação", "recomendações")
+    entrou = pluralize(len(partes), "entrou", "entraram")
+    return f" {len(partes)} {plural} não {entrou} na lista: {'; '.join(partes)}."
 
 
 # ADR-236 §D5 já adota este registro no card `impostos_pj`: sem perfil

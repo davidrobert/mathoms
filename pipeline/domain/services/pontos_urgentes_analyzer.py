@@ -18,9 +18,22 @@ Função pura. Config tipada (R9/ISP).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal, Mapping, Optional
 
 from pipeline.domain.services.narrativas.format_helpers import pluralize
+
+# ADR-365 — dois eixos ORTOGONAIS. `origem_premissa` diz de onde vem o fato;
+# `elegibilidade` diz se o produto consegue avaliá-lo. Um eixo só embutiria
+# ranking de confiança invertido: fato de cadastro é declaração de 1ª mão do
+# dono, enquanto fato derivado do baseline IRPF é defasado 1-2 anos (ADR-305).
+# Prova da ortogonalidade: `dependentes_menores_18` é (cadastro_familia,
+# computavel) e `conjuge_sem_renda_propria` é (cadastro_familia, degenerada).
+OrigemPremissa = Literal["cadastro_familia", "documento_ingerido", "derivado_e5"]
+
+# `degenerada` é TRANSITÓRIO (ADR-365 §D6): marca predicado que não discrimina
+# por defeito de produtor, não categoria de domínio. Sai quando
+# `renda_propria_brl` tiver produtor real.
+Elegibilidade = Literal["computavel", "nao_verificavel", "degenerada", "pendente_de_dado"]
 
 
 def _safe_float(val) -> float:
@@ -58,12 +71,23 @@ class PontosUrgentesConfig:
 # =============================================================================
 
 
+# `code` é identidade estável por regra (ADR-365 §D3), pré-condição de qualquer
+# ordenação: `build_default_tarefas_status` chaveia por POSIÇÃO, então reordenar
+# sem id remapearia o status registrado pelo dono para outra tarefa — mesma
+# classe do RV4-02. Também é a chave natural que `dev/golden_diff.py` usa para
+# não cair em diff posicional.
 @dataclass(frozen=True)
 class PontoUrgenteItem:
     prioridade: str
     acao: str
     impacto: str
     prazo: str
+    code: str = ""
+    origem_premissa: OrigemPremissa = "derivado_e5"
+    elegibilidade: Elegibilidade = "computavel"
+    # Nomeia o dado ausente para a copy — a copy NUNCA nomeia o valor do enum
+    # (ADR-365 §D5). `None` quando não há dado faltante a pedir.
+    dado_faltante: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -71,6 +95,10 @@ class PontoUrgenteItem:
             "acao": self.acao,
             "impacto": self.impacto,
             "prazo": self.prazo,
+            "code": self.code,
+            "origem_premissa": self.origem_premissa,
+            "elegibilidade": self.elegibilidade,
+            "dado_faltante": self.dado_faltante,
         }
 
 
@@ -82,34 +110,88 @@ class PontoUrgenteItem:
 _ACAO_SEGURO_VIDA = "Contratar seguro de vida e invalidez"
 
 
-def _has_apolice_vida_vigente(vigentes: list[dict]) -> bool:
-    """Presença V1: apólice vigente com bem ``pessoa`` conta como cobertura de vida."""
-    return any("pessoa" in (a.get("tipos_bem") or []) for a in vigentes)
+# A40.l10 · ADR-365 §D4 + RULE-elegibilidade-da-recomendacao: até 2026-08-06 este
+# item decidia por conta própria ("existe apólice vigente com bem `pessoa`?") e
+# ignorava o gap de proteção. Resultado medido: "Contratar seguro de vida" era
+# emitido para TODO workspace sem apólice de pessoa, inclusive titular solteiro
+# sem dependente econômico — conselho errado, não default conservador, no item
+# mais vendável do card. Passa a mapear o predicado canônico da ADR-240 (KPI F),
+# derrubando de 2 para 1 os produtores dele. Note que o predicado canônico é mais
+# ESTREITO: exige cobertura de `vida`, não qualquer bem `pessoa` — apólice de
+# acidentes sem vida deixa de suprimir o item (verdadeiro-positivo antes oculto).
+_GAP_VIDA_TAXONOMIA: dict[str, tuple[OrigemPremissa, Elegibilidade]] = {
+    "dependentes_menores_18": ("cadastro_familia", "computavel"),
+    "passivo_acima_30_pct_patrimonio": ("derivado_e5", "computavel"),
+    # Tautológico enquanto `protecao_wiring` fixar `renda_propria_brl = 0`
+    # (ADR-240 §D3): dispara para todo workspace com cônjuge.
+    "conjuge_sem_renda_propria": ("cadastro_familia", "degenerada"),
+}
+
+
+def _gap_vida(protecao: Mapping[str, Any]) -> dict[str, Any] | None:
+    for gap in protecao.get("gap_qualitativo") or []:
+        if isinstance(gap, dict) and gap.get("categoria") == "vida":
+            return gap
+    return None
+
+
+def _detalhe_apolices(vigentes: list[dict]) -> str:
+    if not vigentes:
+        return "nenhuma apólice identificada"
+    n = len(vigentes)
+    return (
+        f"{n} {pluralize(n, 'apólice vigente cobre', 'apólices vigentes cobrem')} bens "
+        "(auto/residencial), sem cobertura de vida identificada"
+    )
 
 
 def _seguro_vida_item(protecao: dict[str, Any] | None) -> PontoUrgenteItem | None:
-    """Item de seguro de vida condicional a ``protecao_patrimonial``; ``None``
-    no payload (caller legado sem wiring) preserva o item incondicional."""
+    """Item de seguro de vida derivado de ``gap_qualitativo`` (ADR-240 KPI F)."""
     if protecao is None:
-        return _item_seguro_vida("nenhuma apólice identificada")
-    vigentes = protecao.get("apolices_vigentes") or []
-    if _has_apolice_vida_vigente(vigentes):
-        return None
-    if vigentes:
-        n = len(vigentes)
+        # Caller legado sem wiring: o conselho existe, a premissa é inavaliável.
+        return _item_seguro_vida("nenhuma apólice identificada", "nao_verificavel")
+    gap = _gap_vida(protecao)
+    if gap is None:
+        return _item_seguro_vida("nenhuma apólice identificada", "nao_verificavel")
+    detalhe = _detalhe_apolices(protecao.get("apolices_vigentes") or [])
+    if not gap.get("flag"):
+        return _sem_gap_vida(str(gap.get("rationale") or ""), detalhe)
+    origem, eleg = _GAP_VIDA_TAXONOMIA.get(
+        str(gap.get("rationale") or ""), ("derivado_e5", "nao_verificavel")
+    )
+    return _item_seguro_vida(detalhe, eleg, origem=origem)
+
+
+def _sem_gap_vida(rationale: str, detalhe: str) -> PontoUrgenteItem | None:
+    """Gap fechado: ou o conselho não se aplica, ou falta o cadastro que o decide."""
+    if rationale == "sem family_members":
         return _item_seguro_vida(
-            f"{n} {pluralize(n, 'apólice vigente cobre', 'apólices vigentes cobrem')} bens "
-            "(auto/residencial), sem cobertura de vida identificada"
+            detalhe,
+            "pendente_de_dado",
+            origem="cadastro_familia",
+            dado_faltante="composição da família",
         )
-    return _item_seguro_vida("nenhuma apólice identificada")
+    # "sem gatilho" (nenhuma dependência econômica) e "apolice_vida_ativa" não
+    # são retenção: o conselho não existe, logo não há o que declarar (ADR-167).
+    return None
 
 
-def _item_seguro_vida(detalhe: str) -> PontoUrgenteItem:
+def _item_seguro_vida(
+    detalhe: str,
+    elegibilidade: Elegibilidade,
+    *,
+    origem: OrigemPremissa = "derivado_e5",
+    dado_faltante: Optional[str] = None,
+) -> PontoUrgenteItem:
     return PontoUrgenteItem(
         prioridade="Alta",
         acao=_ACAO_SEGURO_VIDA,
         impacto=f"Proteção patrimonial da família — {detalhe}",
         prazo="Imediato",
+        code="seguro_vida",
+        origem_premissa=origem,
+        elegibilidade=elegibilidade,
+        dado_faltante=dado_faltante,
     )
 
 
@@ -145,6 +227,7 @@ class PontosUrgentesAnalyzer:
                         f"abaixo do mínimo de {cfg.reserva_minima_meses:.0f}"
                     ),
                     prazo="Imediato",
+                    code="reserva_insuficiente",
                 )
             )
 
@@ -159,6 +242,7 @@ class PontosUrgentesAnalyzer:
                         f"meta < {cfg.endividamento_maximo_pct:.0f}%"
                     ),
                     prazo="Próximo trimestre",
+                    code="endividamento_alto",
                 )
             )
 
@@ -174,6 +258,11 @@ class PontosUrgentesAnalyzer:
                     acao="Consolidar dados de rentabilidade dos investimentos",
                     impacto=("Sem dados de performance, impossível otimizar alocação"),
                     prazo="Próximo trimestre",
+                    # `computavel`, não `pendente_de_dado`: a premissa É verificável
+                    # — o item dispara PORQUE `rentabilidade_pct == "N/D"`, e o
+                    # conselho é justamente suprir o dado. Marcá-lo pendente o
+                    # esconderia do ranking sendo ele o mais acionável.
+                    code="rentabilidade_nao_medida",
                 )
             )
 

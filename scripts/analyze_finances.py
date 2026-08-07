@@ -2341,6 +2341,13 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
 
 def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
     """Converte sub-resultados tipados em dicts legacy-shaped."""
+    from pipeline.domain.services.e5_serialization import partition_pontos_urgentes
+
+    # ADR-365 §D4: o analyzer devolve uma lista só; a partição em ranqueados ×
+    # retidos é projeção, feita aqui.
+    _pu_ranqueados, _pu_retidos = partition_pontos_urgentes(
+        [p.to_dict() for p in result.pontos_urgentes]
+    )
     investimentos_dict = result.investimentos_classes.to_legacy_dict()
     # A37.l9 — rótulo de fonte: tabela_classes/top_ativos leem bens IRPF do
     # baseline (foto 31/12 do ano-base), enquanto patrimonio.investimentos_*
@@ -2369,7 +2376,8 @@ def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
         "endividamento": result.endividamento.to_legacy_dict(),
         "previdencia": result.previdencia.to_legacy_dict(),
         "pontos_fortes": [p.to_dict() for p in result.pontos_fortes],
-        "pontos_urgentes": [p.to_dict() for p in result.pontos_urgentes],
+        "pontos_urgentes": _pu_ranqueados,
+        "pontos_urgentes_retidos": _pu_retidos,
         "consumo": result.consumo_consciente.to_legacy_dict(),
         "diagnostico": [d.to_dict() for d in result.diagnosticos],
         "diagnostico_confianca": result.diagnostico_confianca,
@@ -2556,6 +2564,7 @@ def _e5_compose_output(
         previdencia=legacy["previdencia"],
         pontos_fortes=legacy["pontos_fortes"],
         pontos_urgentes=legacy["pontos_urgentes"],
+        pontos_urgentes_retidos=legacy["pontos_urgentes_retidos"],
         investimentos_classes=legacy["investimentos_classes"],
         investimentos_warnings=legacy.get("investimentos_warnings"),
         equilibrio_cerbasi=legacy["cerbasi"],

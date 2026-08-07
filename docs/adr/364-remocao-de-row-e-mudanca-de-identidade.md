@@ -88,6 +88,28 @@ canário, e o undo existe (flag off + re-run reconstrói o artefato E3). Percent
 adicionaria complexidade sem habilitar decisão. A sombra do item 4 dá o estágio que
 importa; o contador visível na S2 dá o sinal de rollback de produto.
 
+## Estado de implementação
+
+Registro de fato, **não** emenda — nenhuma decisão acima mudou. A ADR segue `Proposto`
+porque 4 dos 5 itens não têm código.
+
+| item | estado |
+|---|---|
+| **1** — remoção herda a restrição | decidido, sem código próprio (é premissa dos outros) |
+| **2** — quitação por re-ancoragem | ⬜ [[A40.l2]] PR3d |
+| **3** — `RemovalTarget` com consumidor | ⬜ PR3b (o consumidor é a **adjudicação do gate**, não o drain) |
+| **4** — flag de sombra `measure` | ✅ [#1231](https://github.com/davidrobert/mathoms/pull/1231) (`65464db6`) — em produção, `OPERATOR_ONLY`. A flag de **enforce** e a recusa do write-path são do PR3e |
+| **5** — gate todo run | ⬜ PR3b. **Destino corrigido:** durabilidade vai para `pipeline_stage_logs.output_summary`, **não** `AuditRecord` por run — `append_audit` é `db.add` sem commit e o loop do `pipeline_task` faz *rollback* em falha, então a série temporal que este item promove a gatilho de rollback nasceria com os **vermelhos apagados**. O `internal_ops_audit` recebe **uma** row quando o operador flippa a flag |
+
+**Achado que a §Decisão 2 pressupunha e que não era verdade** (medido 2026-08-06, painel de 5
+especialistas): o gate de pré-condição, como escrito, **não pode ficar verde**. O `gate_digest`
+é `(data, cents, moeda, descricao_norm)` e as duas pernas o compartilham **por construção** —
+re-ancorar no sobrevivente não muda nenhum componente, logo o override segue `hit` para sempre,
+e a única saída existente é quarentenar, que esta ADR §2 proíbe como forma de quitação. A
+decisão de quitar por re-ancoragem **permanece**; o que muda é o mecanismo do gate: descoberta
+por **digest**, adjudicação por **hash**. Detalhe e travas na §"O PR3 foi serializado" da
+[[A40.l2]].
+
 ## Consequências
 
 - Em produção o colapsador **deixa de ser `None`** — sempre instanciado, com a flag
