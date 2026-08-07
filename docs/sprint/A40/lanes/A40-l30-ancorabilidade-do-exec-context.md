@@ -4,20 +4,23 @@ type: lane
 title: "Ancorabilidade do exec context: o invariante que o #1004 furou sem nenhum teste vermelho"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1262
+ship_date: "2026-08-07"
 priority: P1
 branch_slug: a40-l30-ancorabilidade-do-exec-context
 adrs:
   - "[[ADR-341]]"
   - "[[ADR-296]]"
   - "[[ADR-358]]"
+  - "[[ADR-368]]"
 depends_on: []
 parallel_with:
   - "[[A40.l17]]"
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
@@ -26,6 +29,31 @@ tags:
 
 # A40.l30 — `ancorabilidade-do-exec-context`
 
+> ✅ **Entregue em 3 PRs, 2026-08-07:** `800f41f9` (#1260, denominador + inventário
+> 3→9 campos), `087ab664` (#1261, invariante + paridade de corpus), `5988c703`
+> (#1262, drift + re-medição + [[ADR-368]] `Proposto`). US$ 0, gerador intocado,
+> eval de ~US$ 26 **não** rodado.
+>
+> **Três resultados que corrigem premissas escritas nesta lane.** (1) A
+> ancorabilidade real é medida contra o catálogo **renderizado**, não o construído:
+> `max_bytes: 1600` corta 9 das 29 entries, então o modelo tem 78% e não os 96%
+> registrados no §Problema. (2) Depois de dar ao corpus os 3 blocos do item 5, cai
+> para **43%** e `catalogo_construido` bate o cap 30 — a afirmação "inanição de
+> catálogo é **impossível** nesse corpus" deixou de valer, e o corpus de eval
+> escondia metade do defeito. (3) A re-medição de **66 execuções** (não 19)
+> decompõe o "9→5": o número de **itens é constante** (18→19), logo a queda é
+> inteiramente *menos âncoras por item* — e **começa antes de 2.2.0**, sob a mesma
+> `prompt_version`, conforme o manifest anda (0,684 → 0,500 → 0,380). O confounder
+> que o §Problema nomeava como hipótese está **medido**.
+>
+> **Duas armadilhas de método, registradas.** Os pisos de drift calibrados no
+> denominador do golden (~7 itens) davam 0,30 e ficariam **verdes com a regressão
+> viva** — o Δ real sobre ~19 itens é −0,222; a régua veio da população medida. E o
+> `EVIDENCIA_VERIFICATION_VERSION` **não** foi bumpado: é alavanca de invalidação de
+> cache, não versão de schema, e o bump forçaria geração cobrada, violando o "US$ 0"
+> da própria lane. O estratificador é `prose_inventory_version`, e ausência da chave
+> é `unknown` — **nunca 0**.
+>
 > **Instrumento, US$ 0, sem geração nova.** É a causa que a [[A40.l16]] deixou
 > viva ao remover o amplificador — mas **não** é "regressão do gerador", e o nome
 > importa porque roteia o trabalho. Co-design `prompt-engineer` 2026-08-03: o
