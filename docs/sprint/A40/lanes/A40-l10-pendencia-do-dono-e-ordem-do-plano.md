@@ -231,19 +231,38 @@ prova de mutação em 4 rodadas matando 12 asserções · schema com
 > legítimo, mas então a forma correta é **PR docs-only depois da medição e antes
 > do PR de código**, não junto. Sem esta linha, o próximo PR2 repete.
 >
-> **Nota de execução, 2026-08-06:** o merge do #1243 ficou bloqueado por
-> **degradação do GitHub Actions** — `Service Unavailable` + `Failed to resolve
-> action download info`, com o job de validação de título (que só lê uma string)
-> falhando em 9m28s e 15m01s no `Set up job`, e o de pipeline estourando o
-> timeout de 5m contra ~30-40s históricos. Não é o diff; a suíte está verde
-> localmente (`pytest tests` 5855 · `pytest backend/tests` 3175 · TS 22/22).
->
-> **Como retomar:** `gh run rerun <run-id> --failed` nos 3 workflows do PR
-> (`gh pr checks 1243` lista os ids). O auto-merge está ligado — o PR mergeia
-> sozinho quando um run completo passar. **Não retentar em rajada:** o repo cobra
-> por job e a A40 já tem histórico de orçamento de Actions estourado; cada
-> tentativa num serviço degradado queima minutos sem chance de passar. O sinal de
-> que recuperou é `Detect changed paths` voltar a completar em ~1-2min.
+**O CI pegou um defeito que a suíte local não pegava.** O passo
+`Pipeline JSON schema strict` (`MATHOMS_PIPELINE_SCHEMA_MODE=strict`, que só roda
+no CI — o default é `warn`) falhou com 3 paths em drift:
+`$.pontos_urgentes[].code`, `.elegibilidade`, `.origem_premissa`. Causa: eu
+marquei os três como `required` no `$defs/PontoUrgente` enquanto o **leitor** os
+trata como opcionais **de propósito** — `partition_pontos_urgentes` faz
+`i.get("elegibilidade", "computavel")` porque artefato antigo em
+`pipeline_artifacts` não os tem e não é revalidado na leitura. Schema exigindo o
+que o leitor perdoa é contrato que mente. `required` voltou aos 4 campos
+originais; `additionalProperties: false` **ficou**, porque é ele que compra o
+gate — e três testes travam os dois lados (legado valida · campo não declarado
+não valida · valor fora do vocabulário não valida). Decisão registrada na
+[[ADR-365]] §D7.
+
+**Revisão adversarial de tamanho (bot `size:XL`).** Pedi a um revisor
+independente que **tentasse provar** que o PR devia ter sido quebrado, em vez de
+justificá-lo. Procedente: a fatia de docs (411 linhas) devia ter sido PR próprio
+e anterior — vira o §Débito de método acima. **Não** procedente: quebrar o núcleo
+(taxonomia → partição → frase do `s10` é cadeia real; elo isolado deixa array
+inerte ou retenção sem declaração) e o gatilho de camadas (produção toca **uma**
+camada — `pipeline` + `scripts`; o `backend/` do diff é snapshot de teste). Ganho
+colateral: a revisão expôs a §Pré-condição bloqueante do PR3 acima.
+
+> **Mergeado em `main` 2026-08-07** — commit `76814e14`, CI **8/8 verde**
+> (`Pipeline tests` 1m47s · `Backend tests` 9m32s). O merge ficou algumas horas
+> travado por **degradação do GitHub Actions** (`Service Unavailable`, `Failed to
+> resolve action download info`; o job que valida o título do PR falhando em
+> 15m01s no `Set up job`) — **não pelo diff**. Duas falhas reportadas nesse
+> intervalo eram **supersessão**, não defeito: num run cancelado, o job que estava
+> rodando é marcado `failure`. Heurística para não confundir de novo: **olhe o
+> `Lint` do mesmo run** — se passou, a infra estava sã e o `failure` vizinho é
+> morte por cancelamento.
 
 ## Estratégia decidida para PR2 e PR3 (painel 2026-08-06)
 
