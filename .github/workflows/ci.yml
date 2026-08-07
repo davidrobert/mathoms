@@ -156,6 +156,14 @@ jobs:
               - 'backend/**'
               - 'requirements.in'
               - 'requirements.lock'
+              # A40.l18 — `frontend-ops/**` não está em NENHUM grupo (só em
+              # `any_code`), então esse app não tem verificação de TS em CI e a
+              # paridade do `types.ts` com o DTO vive num teste pytest
+              # (`test_frontend_ops_metrics_parity.py`). Sem esta linha, um PR que
+              # mova só o lado TS pula `backend-tests` e o gate não roda — falha
+              # ABERTA, mesma classe do comentário de `pipeline_lib` abaixo. CI
+              # própria do frontend-ops é lane separada (A42).
+              - 'frontend-ops/src/lib/types.ts'
               - '.github/workflows/ci.yml'
             frontend:
               - 'frontend/**'

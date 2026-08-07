@@ -24,6 +24,10 @@ function formatBytes(bytes: number): string {
   return `${value.toFixed(2)} ${units[i]}`;
 }
 
+function breakdownRows(prefix: string, counts: Record<string, number>): Array<[string, string]> {
+  return Object.entries(counts).map(([k, v]) => [`${prefix}.${k}`, String(v)]);
+}
+
 function downloadCsv(snap: MetricsResponse): void {
   const rows: Array<[string, string]> = [
     ["users_total", String(snap.users_total)],
@@ -38,6 +42,11 @@ function downloadCsv(snap: MetricsResponse): void {
     ["new_users_last_period", String(snap.new_users_last_period)],
     ["period_days", String(snap.period_days)],
     ["generated_at", snap.generated_at],
+    // A40.l18 — número novo que não entre aqui produz export silenciosamente
+    // incompleto; os breakdowns entram achatados como `chave.subchave`.
+    ...breakdownRows("pipeline_runs_by_status", snap.pipeline_runs_by_status),
+    ...breakdownRows("stages_degraded_by_reason", snap.stages_degraded_by_reason),
+    ...breakdownRows("stages_degraded_by_stage", snap.stages_degraded_by_stage),
   ];
   const csv = "metric,value\n" + rows.map(([k, v]) => `${k},${v}`).join("\n") + "\n";
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -143,8 +152,65 @@ export default function MetricsPage() {
         </div>
       )}
 
+      {snap && <DegradationSection snap={snap} />}
+
       <LlmBudgetSection />
     </section>
+  );
+}
+
+/** A40.l18 · ADR-357 — degradação precisa de superfície de PULL, não só de log. */
+function DegradationSection({ snap }: { snap: MetricsResponse }) {
+  const degraded = sumOf(snap.stages_degraded_by_reason);
+  const runs = snap.pipeline_runs_last_period;
+  // Taxa, não só contagem: 4 degradações em 200 runs e em 5 runs são mundos
+  // diferentes, e sem denominador não existe threshold de investigação.
+  const rate = runs > 0 ? `${((degraded / runs) * 100).toFixed(1).replace(".", ",")}%` : "—";
+  return (
+    <div className="mt-8">
+      <h2 className="font-display text-lg font-semibold text-surface-fg">
+        Degradação de etapas ({snap.period_days}d)
+      </h2>
+      <p className="mt-1 text-sm text-surface-muted-fg">
+        Etapas que terminaram sem entregar. O relatório foi gerado; a lacuna está declarada.
+        Não fecha com os runs abaixo — um run pode degradar várias etapas.
+      </p>
+      <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <KpiCard label="Etapas degradadas" value={degraded.toLocaleString("pt-BR")} />
+        <KpiCard label="Taxa sobre runs" value={rate} />
+      </div>
+      <div className="mt-4 grid gap-6 md:grid-cols-3">
+        <CountTable title="Por motivo" counts={snap.stages_degraded_by_reason} />
+        <CountTable title="Por etapa" counts={snap.stages_degraded_by_stage} />
+        <CountTable title="Runs por desfecho" counts={snap.pipeline_runs_by_status} />
+      </div>
+    </div>
+  );
+}
+
+function sumOf(counts: Record<string, number>): number {
+  return Object.values(counts).reduce((a, b) => a + b, 0);
+}
+
+/** Ordena por frequência e mantém o zero visível — zero medido não é ausência. */
+function CountTable({ title, counts }: { title: string; counts: Record<string, number> }) {
+  const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  return (
+    <div className="rounded-card border border-surface-border bg-surface-card p-4">
+      <div className="text-xs uppercase tracking-wide text-surface-muted-fg">{title}</div>
+      {rows.length === 0 ? (
+        <div className="mt-2 text-sm text-surface-muted-fg">Sem dados na janela.</div>
+      ) : (
+        <ul className="mt-2 space-y-1 text-sm">
+          {rows.map(([k, v]) => (
+            <li key={k} className="flex items-baseline justify-between gap-3">
+              <span className={v === 0 ? "text-surface-muted-fg" : "text-surface-fg"}>{k}</span>
+              <span className="mono-num text-surface-fg">{v.toLocaleString("pt-BR")}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

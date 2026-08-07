@@ -107,6 +107,11 @@ export interface MetricsResponse {
   new_users_last_period: number;
   period_days: number;
   generated_at: string;
+  /** A40.l18 · ADR-357 — zero-fill estrutural: toda chave do enum está presente,
+   * então `0` medido nunca é confundido com ausência de dado. */
+  pipeline_runs_by_status: Record<string, number>;
+  stages_degraded_by_reason: Record<string, number>;
+  stages_degraded_by_stage: Record<string, number>;
 }
 
 export interface UserWorkspace {
