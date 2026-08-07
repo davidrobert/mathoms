@@ -1000,11 +1000,16 @@ jobs:
 
       - name: Locate generated baselines (debug)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
+        # `working-directory: frontend` é default do job, então o path
+        # `frontend/tests` resolvia para `frontend/frontend/tests`: `find` saía 1
+        # em path inexistente e, com `shell: bash -e`, derrubava o JOB INTEIRO
+        # depois de o Playwright ter passado e a baseline ter subido. Medido na
+        # A40.l22 ao gerar as 4 baselines de `S_parecer` (run 31215930136).
         run: |
           echo "=== PNGs em tests/ que parecem snapshot ==="
-          find frontend/tests -name "*.png" 2>/dev/null | head -100
+          find tests -name "*.png" 2>/dev/null | head -100
           echo "=== diretórios -snapshots ou __snapshots__ ==="
-          find frontend/tests -type d \( -name "*-snapshots" -o -name "__snapshots__" \) 2>/dev/null
+          find tests -type d \( -name "*-snapshots" -o -name "__snapshots__" \) 2>/dev/null || true
 
       - name: Upload generated baselines (quando --update-snapshots foi passado)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
