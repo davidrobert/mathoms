@@ -125,24 +125,39 @@ export interface ReportDataQualitySignals {
   readonly needsReviewDocs: number;
   readonly premissas: PremissasDegrade | null;
   readonly imoveisPendentes: number;
+  /** A40.l22 — itens do parecer retidos na conferência (só o desfecho
+   *  PARCIAL; o retido inteiro é auto-evidente ao rolar e não ganha linha). */
+  readonly parecerRetidos: number;
   /** Quantos sinais ativos (0 = banner colapsa para barra fina). */
   readonly count: number;
+}
+
+/** Sinais ativos. Cada linha do banner é condicional num sinal específico, então
+ *  o `count` tem de ser a soma EXATA das linhas que vão renderizar — contar algo
+ *  sem linha própria produz "1 pendência" com `<ul>` vazia (A40.l18 · ADR-357). */
+function countActiveSignals(s: Omit<ReportDataQualitySignals, "count">): number {
+  return (
+    (s.naoIdentificado ? 1 : 0) +
+    (s.needsReviewDocs > 0 ? 1 : 0) +
+    (s.premissas ? 1 : 0) +
+    (s.imoveisPendentes > 0 ? 1 : 0) +
+    (s.parecerRetidos > 0 ? 1 : 0)
+  );
 }
 
 export function computeDataQualitySignals(
   data: ReportAnalysisData,
   needsReviewDocs: number,
+  parecerRetidos = 0,
 ): ReportDataQualitySignals {
-  const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
-  const share = computeNaoIdentificadoShare(fluxo);
-  const naoIdentificado =
-    share && share.pct > NAO_IDENTIFICADO_THRESHOLD_PCT ? share : null;
-  const premissas = computePremissasDegrade(data.premissas_economicas);
-  const imoveisPendentes = pendingClassificationProperties(data.real_estate).length;
-  const count =
-    (naoIdentificado ? 1 : 0) +
-    (needsReviewDocs > 0 ? 1 : 0) +
-    (premissas ? 1 : 0) +
-    (imoveisPendentes > 0 ? 1 : 0);
-  return { naoIdentificado, needsReviewDocs, premissas, imoveisPendentes, count };
+  const share = computeNaoIdentificadoShare(data.fluxo_caixa as FluxoCaixaSummary | undefined);
+  const parcial = {
+    naoIdentificado:
+      share && share.pct > NAO_IDENTIFICADO_THRESHOLD_PCT ? share : null,
+    needsReviewDocs,
+    premissas: computePremissasDegrade(data.premissas_economicas),
+    imoveisPendentes: pendingClassificationProperties(data.real_estate).length,
+    parecerRetidos,
+  };
+  return { ...parcial, count: countActiveSignals(parcial) };
 }

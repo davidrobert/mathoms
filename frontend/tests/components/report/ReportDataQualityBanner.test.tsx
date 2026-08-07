@@ -5,7 +5,7 @@
  * leitor responde "quão confiável é este relatório?" pelo banner, sem
  * abrir `<details>`. Relatório limpo colapsa para barra fina.
  */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { ReportDataQualityBanner } from "@/components/report/ReportDataQualityBanner";
@@ -14,6 +14,12 @@ import type { ReportAnalysisData } from "@/lib/api";
 const mockNeedsReview = vi.hoisted(() => ({ count: 0 }));
 vi.mock("@/components/report/hooks/useNeedsReviewCount", () => ({
   useNeedsReviewCount: () => mockNeedsReview.count,
+}));
+
+/** A40.l22 — o hook faz `GET .../planner-review`; aqui só o contador importa. */
+const mockParecerRetidos = vi.hoisted(() => ({ count: 0 }));
+vi.mock("@/components/report/hooks/useParecerRetidoCount", () => ({
+  useParecerRetidoCount: () => mockParecerRetidos.count,
 }));
 
 function degradedData(): ReportAnalysisData {
@@ -47,7 +53,16 @@ function degradedData(): ReportAnalysisData {
   };
 }
 
+/** Payload sem nenhum sinal derivado do E5 — isola o sinal sob teste. */
+function limpoData(): ReportAnalysisData {
+  return { fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } } };
+}
+
 describe("<ReportDataQualityBanner />", () => {
+  beforeEach(() => {
+    mockParecerRetidos.count = 0;
+  });
+
   it("degradado: consolida os 4 sinais com CTAs de resolução", () => {
     mockNeedsReview.count = 13;
     render(
@@ -177,5 +192,80 @@ describe("<ReportDataQualityBanner />", () => {
     expect(
       screen.getByLabelText("Pendências de qualidade de dados").children,
     ).toHaveLength(1);
+  });
+
+  // ─── A40.l22 — a ressalva do parecer parcialmente retido ───
+
+  it("título diz 'leitura', não 'precisão' — item retido afeta completude", () => {
+    mockNeedsReview.count = 1;
+    render(
+      <ReportDataQualityBanner
+        data={limpoData()}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
+    const banner = screen.getByTestId("data-quality-banner");
+    expect(banner.textContent).toMatch(/pendência afeta a leitura deste relatório/);
+    expect(banner.textContent).not.toMatch(/precis[ãa]o deste relat[óo]rio/);
+  });
+
+  it("parcial: acrescenta 1 linha, entra no contador e reusa o CTA da seção", () => {
+    mockNeedsReview.count = 0;
+    mockParecerRetidos.count = 2;
+    render(
+      <ReportDataQualityBanner
+        data={limpoData()}
+        workspaceId="ws-1"
+        reportId="report-1"
+        runOutcome="complete"
+      />,
+    );
+
+    const banner = screen.getByTestId("data-quality-banner");
+    expect(banner.textContent).toMatch(/1 pendência afeta/);
+    expect(banner.textContent).toMatch(
+      /2 itens do parecer retidos na conferência antes da publicação/,
+    );
+    // Zero banner novo: a linha nasce DENTRO do banner existente.
+    const lista = screen.getByLabelText("Pendências de qualidade de dados");
+    expect(lista.children).toHaveLength(1);
+    expect(banner).toContainElement(lista);
+    expect(
+      screen.getByRole("link", { name: "Reprocessar o parecer" }),
+    ).toHaveAttribute("href", "/pipeline");
+    // A linha nomeia o parecer, nunca "riscos" — o item retido pode ser sugestão.
+    expect(banner.textContent).not.toMatch(/\d+\s+riscos?\s+retid/i);
+  });
+
+  it("retido INTEIRO não ganha linha — sinal é proporcional à invisibilidade", () => {
+    // O desfecho retido inteiro tem `items_dropped_count` 0 por invariante e a
+    // seção ausente é auto-evidente ao rolar. Duas linhas para o mesmo fato
+    // treinariam o leitor a ignorar as duas.
+    mockNeedsReview.count = 0;
+    mockParecerRetidos.count = 0;
+    render(
+      <ReportDataQualityBanner
+        data={limpoData()}
+        workspaceId="ws-1"
+        reportId="report-1"
+        runOutcome="with_gap"
+      />,
+    );
+    expect(screen.queryByTestId("data-quality-banner")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("data-quality-clean")).not.toBeInTheDocument();
+  });
+
+  it("sem `reportId` o sinal fica desligado, não quebrado", () => {
+    mockNeedsReview.count = 0;
+    mockParecerRetidos.count = 0;
+    render(
+      <ReportDataQualityBanner
+        data={limpoData()}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
+    expect(screen.getByTestId("data-quality-clean")).toBeInTheDocument();
   });
 });

@@ -161,6 +161,145 @@ function retainedResponse(
   };
 }
 
+/** Parecer ENTREGUE com itens retidos na conferência (A40.l22 · ADR-366 §D1).
+ *
+ * `content` presente + `outcome: entregue_com_retencao` — o desfecho que hoje
+ * chega à tela como um parecer íntegro, com a lacuna indetectável. `riscos`
+ * ganha um 2º item para que a caption tenha "Mostrando 2 de 2" e a aritmética
+ * "visíveis + retidos = total" fique **falsa** de propósito: é ela que o
+ * substantivo de cada contador tem de impedir.
+ */
+function parcialResponse(dropped = 2): PlannerReviewResponse {
+  const p = premiumResponse();
+  const base = p.content!;
+  return {
+    ...p,
+    outcome: "entregue_com_retencao",
+    retention: {
+      reason: "parecer.citacao_nao_confirmada",
+      items_dropped_count: dropped,
+    },
+    content: {
+      ...base,
+      riscos: [
+        base.riscos[0],
+        { ...base.riscos[0], titulo: "Cobertura de seguro abaixo do necessário" },
+      ],
+    },
+  };
+}
+
+function serve(body: PlannerReviewResponse) {
+  server.use(
+    http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+      HttpResponse.json(body),
+    ),
+  );
+}
+
+describe("<SParecerSection /> — retenção parcial @A40.l22", () => {
+  it("declara a nota de retenção acima do diagnóstico, em texto no DOM", async () => {
+    serve(parcialResponse(2));
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    const nota = await screen.findByTestId("parecer-retencao-parcial");
+    expect(nota).toHaveTextContent("2 itens do parecer retidos na conferência");
+    expect(nota).toHaveTextContent("Os números das demais seções não mudam.");
+    // Nunca `title=`/hover: falha WCAG 1.4.13 e desaparece no PDF.
+    expect(nota.querySelector("[title]")).toBeNull();
+    // A ação vem junto com o fato (COPY_GUIDELINES §7.1).
+    expect(
+      screen.getAllByRole("link", { name: /Reprocessar o parecer/i }).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("a nota precede o diagnóstico na ordem de leitura", async () => {
+    serve(parcialResponse(2));
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    const nota = await screen.findByTestId("parecer-retencao-parcial");
+    const corpo = screen.getByTestId("parecer-diagnostico-body");
+    // `DOCUMENT_POSITION_FOLLOWING` = 4: o corpo vem DEPOIS da nota.
+    expect(nota.compareDocumentPosition(corpo) & 4).toBe(4);
+  });
+
+  it("caption separa os 3 contadores pelo substantivo — 'riscos' vs 'itens do parecer'", async () => {
+    const body = parcialResponse(2);
+    body.content!.meta.gated_counts = { ...body.content!.meta.gated_counts, riscos: 3 };
+    serve(body);
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    const caption = await screen.findByTestId("parecer-risks-caption");
+    expect(caption).toHaveTextContent("Mostrando 2 de 2 riscos");
+    expect(caption).toHaveTextContent("2 itens do parecer retidos na conferência");
+    expect(caption).toHaveTextContent("+3 no Premium");
+    // O contador de retenção NÃO pode se apresentar como contador de riscos —
+    // o item retido pode ter sido uma sugestão.
+    expect(caption.textContent).not.toMatch(/\d+\s+riscos?\s+retid/i);
+    // Retido (qualidade) e gated (comercial) nunca somados: ações diferentes.
+    expect(caption.textContent).not.toContain("5 no Premium");
+  });
+
+  it("parecer íntegro não ganha nota nem 3º contador", async () => {
+    serve(premiumResponse());
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-hero")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("parecer-retencao-parcial")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("parecer-risks-caption-retidos"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("desfecho `entregue` com contador preenchido por engano NÃO acende o sinal", async () => {
+    // O gate é o `outcome` (ADR-366 §D1), nunca o contador — este é o teste que
+    // fica vermelho se alguém "simplificar" para ler `items_dropped_count` cru.
+    serve({
+      ...premiumResponse(),
+      retention: {
+        reason: "parecer.citacao_nao_confirmada",
+        items_dropped_count: 2,
+      },
+    });
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-hero")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("parecer-retencao-parcial")).not.toBeInTheDocument();
+  });
+
+  it("não vaza vocabulário de operador no estado parcial", async () => {
+    serve(parcialResponse(2));
+    const { container } = render(
+      <SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />,
+    );
+    await screen.findByTestId("parecer-retencao-parcial");
+
+    const html = container.innerHTML;
+    for (const leak of [
+      "error_detail",
+      "_meta",
+      "whitelist_miss",
+      "resolve_null",
+      "pairing_mismatch",
+      "number_in_prose",
+      "needs_review",
+      "parecer.citacao_nao_confirmada",
+      "entregue_com_retencao",
+      "items_dropped",
+      "E5",
+      "E6",
+    ]) {
+      expect(html).not.toContain(leak);
+    }
+    expect(html).not.toMatch(/risco:\s*\d/i);
+    expect(html).not.toMatch(/\bstage\b/i);
+  });
+});
+
 describe("<SParecerSection /> @ADR-199", () => {
   it("renderiza empty state quando endpoint retorna 404 not_generated_yet", async () => {
     server.use(
@@ -255,8 +394,11 @@ describe("<SParecerSection /> @ADR-199", () => {
       expect(screen.getByTestId("parecer-retained")).toBeInTheDocument();
     });
     expect(
-      screen.getByText("O parecer deste relatório não foi publicado."),
+      screen.getByText("O parecer deste relatório foi retido antes da publicação."),
     ).toBeInTheDocument();
+    // COPY_GUIDELINES §2.2 `@2026-08-06` bane "não publicado" (colide com o
+    // estado `Publicado` da ADR-204) — era a redação anterior deste fallback.
+    expect(document.body.innerHTML).not.toMatch(/n[ãa]o (foi )?publicad/i);
   });
 
   it("renderiza parecer premium completo (hero + risco crítico + movimento P0)", async () => {

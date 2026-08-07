@@ -7,6 +7,7 @@
 import { AlertOctagon, AlertTriangle, Info } from "lucide-react";
 
 import { ParecerAncoraChips } from "./ParecerAncoraChips";
+import { frasePecasRetidas } from "@/lib/parecerRetencaoCopy";
 import type { Risco, Severidade } from "@/lib/api";
 
 const SEVERIDADE_RANK: Record<Severidade, number> = {
@@ -44,6 +45,11 @@ interface ParecerRisksTableProps {
   riscos: Risco[];
   /** Sinaliza teaser do tier free — exibido como caption "+N no Premium". */
   gatedCount?: number;
+  /** A40.l22 — itens retidos na conferência, escalar do parecer inteiro.
+   *  Contador ortogonal ao `gatedCount`: retido = qualidade (ação
+   *  reprocessar), gated = comercial (ação comprar). Somá-los apagaria a
+   *  diferença de ação. */
+  retidosCount?: number;
 }
 
 function sortBySeveridade(riscos: Risco[]): Risco[] {
@@ -55,6 +61,7 @@ function sortBySeveridade(riscos: Risco[]): Risco[] {
 export function ParecerRisksTable({
   riscos,
   gatedCount = 0,
+  retidosCount = 0,
 }: ParecerRisksTableProps) {
   if (riscos.length === 0 && gatedCount === 0) return null;
 
@@ -68,17 +75,20 @@ export function ParecerRisksTable({
       aria-labelledby="parecer-risks-title"
       data-testid="parecer-risks-table"
     >
-      <header className="mb-2 flex items-baseline justify-between gap-2">
+      {/* `<md` empilha: com 3 contadores a caption não cabe ao lado do h3. */}
+      <header className="mb-2 flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between md:gap-2">
         <h3
           id="parecer-risks-title"
           className="font-heading text-lg font-semibold text-[var(--surface-foreground)]"
         >
           Riscos identificados
         </h3>
-        <span className="text-xs text-[var(--surface-muted-foreground)]">
-          Mostrando {visible.length} de {riscos.length}
-          {gatedCount > 0 && ` · +${gatedCount} no Premium`}
-        </span>
+        <RisksCaption
+          visible={visible.length}
+          total={riscos.length}
+          gatedCount={gatedCount}
+          retidosCount={retidosCount}
+        />
       </header>
 
       <ul className="flex flex-col gap-2">
@@ -100,6 +110,50 @@ export function ParecerRisksTable({
         </details>
       )}
     </section>
+  );
+}
+
+/** Caption dos 3 contadores.
+ *
+ * Cada contador em `<span>` próprio com `flex-wrap`, e o `·` separado e
+ * `aria-hidden`: a 12px o leitor lê posicionalmente ("5, 7, 2" ⇒ 5+2=7), então
+ * o substantivo de cada contador é o que separa "riscos" de "itens do parecer".
+ * Quebrar no meio de "itens do parecer retidos" reintroduziria a ambiguidade.
+ */
+function RisksCaption({
+  visible,
+  total,
+  gatedCount,
+  retidosCount,
+}: {
+  visible: number;
+  total: number;
+  gatedCount: number;
+  retidosCount: number;
+}) {
+  return (
+    <span
+      className="flex flex-wrap gap-x-2 text-xs text-[var(--surface-muted-foreground)]"
+      data-testid="parecer-risks-caption"
+    >
+      <span className="whitespace-nowrap">
+        Mostrando {visible} de {total} {total === 1 ? "risco" : "riscos"}
+      </span>
+      {retidosCount > 0 && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span data-testid="parecer-risks-caption-retidos">
+            {frasePecasRetidas(retidosCount)}
+          </span>
+        </>
+      )}
+      {gatedCount > 0 && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span className="whitespace-nowrap">+{gatedCount} no Premium</span>
+        </>
+      )}
+    </span>
   );
 }
 

@@ -6,9 +6,13 @@
 
 import type { ParecerContentMeta } from "@/lib/api";
 
+import { ParecerRetencaoParcialNota } from "./ParecerRetencaoNota";
+
 interface ParecerHeroDiagnosticoProps {
   diagnostico: string;
   meta: ParecerContentMeta;
+  /** A40.l22 — itens retidos na conferência (0 = parecer íntegro). */
+  itensRetidos?: number;
 }
 
 function formatGeneratedAt(iso: string): string {
@@ -23,6 +27,7 @@ function formatGeneratedAt(iso: string): string {
 export function ParecerHeroDiagnostico({
   diagnostico,
   meta,
+  itensRetidos = 0,
 }: ParecerHeroDiagnosticoProps) {
   const isPremium = meta.tier_at_generation === "premium";
   return (
@@ -61,6 +66,7 @@ export function ParecerHeroDiagnostico({
           </span>
         </div>
       </header>
+      <ParecerRetencaoParcialNota count={itensRetidos} />
       <p
         className="font-body text-base leading-relaxed text-[var(--surface-foreground)]"
         data-testid="parecer-diagnostico-body"
