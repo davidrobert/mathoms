@@ -43,6 +43,12 @@ size_lines: 51
 - ✅ Falha visível a usuário em ≤20 min worst-case (5 min beat + 15 min threshold).
 - ✅ Métricas de SLO confiáveis — runs órfãs não distorcem `runs_in_progress`.
 - ✅ Runbook trivial (just retry).
+  - **Caiu em 2026-08-07 ([[A40.l27]]):** retry cego é inseguro — `_is_cancelled` só
+    aborta em `cancelled` e `_finalize_run` só early-returna em
+    `cancelled`/`needs_review`, então um worker vivo-mas-lento **sobrescreve** o
+    `failed` deste detector, e o "Reprocessar" do usuário cria um **segundo executor**
+    no mesmo workspace escrevendo artefatos. O runbook real, com o passo de diagnóstico
+    obrigatório antes de qualquer retry, é [[runbook-stuck-pipeline-runs]] §5.
 - ⚠️ Threshold 15 min é heurístico; pipeline genuinamente lento (extract LLM 5+ min) precisa de checkpoint intra-stage. Mitigação: stages LLM já chamam `update_progress` que atualiza heartbeat.
 - ❌ Não detecta falsos-running — race entre worker hung + heartbeat update agendado em outra task. Aceito; coverage > 95% dos cenários reais.
 

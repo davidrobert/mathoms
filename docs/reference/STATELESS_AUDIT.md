@@ -64,6 +64,11 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | `services/task_progress_service.py:57-61` | `_BRL_RE`, `_SHORT_BRL_RE` | regex | ✅ imutável |
 | `services/documents/document_classification.py:20-30` | `_CONTENT_CONFIDENCE_THRESHOLD`, `_REVIEW_CONFIDENCE_THRESHOLD`, `_TRANSIENT_ERROR_NAMES`, `_PERMANENT_ERROR_NAMES` | thresholds + frozensets | ✅ imutável |
 | `services/pipeline/pipeline_adapter.py:409` | `_GOAL_TYPE_MAP` | `dict` | ✅ imutável |
+| `services/pipeline/dispatch_contract.py:23-49` | `DEFAULT_UNDISPATCHED_THRESHOLD_MINUTES`, `PRE_DISPATCH_STATUSES`, `CANCELLABLE_STATUSES` | int + tuples de enum | ✅ imutável (contrato de dispatch, A40.l27) |
+| `tasks/periodic_tasks.py:318,365` | `_PRE_DISPATCH_CLOCK`, `_UNDISPATCHED_LOG_CAP` | `dict[enum, Column]` + int | ✅ imutável (criado uma vez, lido; cobertura vs `PRE_DISPATCH_STATUSES` travada por teste) |
+| `services/parecer_evidencia.py:44-81` | `PROSE_INVENTORY_VERSION`, `_SUGESTAO_HORIZONS`, `_USD_RE`, `_DOLARES_RE` | int + tuple + regex | ✅ imutável (A40.l30 PR1) |
+| `services/parecer_drift_monitor.py:285-286,404` | `ANCORAS_POR_ITEM_FLOOR`, `PROSA_MONETARIA_FLOOR`, `_ANCHOR_SIGNAL_SPECS` | floats + tuple | ✅ imutável (pisos derivados de medição, A40.l30 PR3) |
+| `services/parecer_ancorabilidade.py:39-41` | `_MONEY_FORMAT`, `_MONEY_PREFIX`, `_LIST_WILDCARD` | `str` | ✅ imutável (A40.l30 PR2) |
 | `services/task_attachment_service.py:29` | `_SUBDIR` | `str` | ✅ imutável |
 | `services/pdf_renderer.py:30` | `_PLAYWRIGHT_AVAILABLE` | `Optional[bool]` lazy | ⚠️ mutável mas **idempotente** — cada worker descobre o mesmo resultado independente |
 | `services/security/rate_limit.py:41` | `_DEFAULT_POLICIES` | `dict[str, RateLimitPolicy]` (frozen dataclasses) | ✅ categoria (a) — políticas imutáveis; o **contador** vive no Redis (`INCR`+`EXPIRE`, W4-T04 · #720), nunca em memória |
