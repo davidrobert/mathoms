@@ -4,7 +4,7 @@ type: lane
 title: "Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite"
 sprint: A40
 plan: PLAN-report-trust
-status: planned
+status: open
 priority: P1
 branch_slug: a40-l5-contrato-view-model-gate
 adrs: []
@@ -12,13 +12,49 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/open
   - priority/p1
   - area/frontend
   - area/dx
 ---
 
 # A40.l5 — `contrato-view-model-gate` (alavanca estrutural)
+
+> 🔓 **Liberada em 2026-08-07 (decisão do dono).** `planned` → `open`. Não houve
+> condição técnica a satisfazer — `depends_on` sempre foi vazio; o que faltava era
+> a liberação por-lane que o §Predicado do [`_README`](../_README.md) exige. O
+> motivo de liberar agora: esta lane é a **única dona da KR-A** e a porta da
+> [[A40.l6]] (KR-D). Encerrar a sprint pelo gate de saída com as duas represadas
+> entregaria 2 de 5 KRs jamais tocados — não por escolha, por esquecimento.
+>
+> ## Decisão do dono, 2026-08-07 — o gate de consumo NÃO alarga o filtro de CI
+>
+> Fecha o herdado da [[A40.l10]] abaixo (§"o gate cross-stack não dispara"), que
+> era a única pendência real desta lane. **Medido em `652aa028`**, e a medição
+> corrige a premissa: o buraco é **menor** do que o registro herdado sugere,
+> porque os dois gates desta lane rodam sob filtros diferentes.
+>
+> | Gate | Job | Condição de disparo | Cobre a l5? |
+> |---|---|---|---|
+> | `dev/check_view_model_contract.py` (sincronia) | *Lint* | `any_code: '**'` + step `pre-commit (all files)` | ✅ **todo PR**, qualquer path |
+> | `tsc --noEmit` (consumo) | *Frontend checks* | `filter.frontend` — `frontend/**`, `design-tokens/**`, `config/report_layout.yaml`, o workflow | ❌ escapa em diff de `config/schemas/**` e `tests/fixtures/**` |
+>
+> **Decisão: o gate de sincronia é o mecanismo que sustenta a KR-A; o `tsc` é
+> reforço.** O filtro **não** é alargado. Alargá-lo faria *Frontend checks* rodar
+> em todo diff de fixture do pipeline — custo recorrente de Actions (a A40 já tem
+> histórico de orçamento estourado por contagem de jobs) para fechar um caso que o
+> hook de pre-commit já pega em `--all-files`.
+>
+> **Consequência que o PR tem de honrar:** `check_view_model_contract.py` nasce
+> **hook de pre-commit**, não teste sob `frontend/`. Se nascer como teste do
+> Vitest ou do `frontend-checks`, herda o filtro e a decisão acima vira falsa — a
+> lane que existe para matar "gate mede produção, não consumo" teria criado outra
+> instância dela.
+>
+> **Não fechado por esta decisão:** o par produtor↔consumidor de fixture cross-stack
+> (`tests/fixtures/narrativas/**` lido de dentro de `frontend/`) segue com CI que
+> não re-dispara. Continua gatilho `sre-devops`, e continua **não roteado** —
+> registrado aqui para não ser relido como resolvido.
 
 ## Problema
 
