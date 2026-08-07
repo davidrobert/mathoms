@@ -49,7 +49,7 @@ def _config(pv_ratio: float, pmt: float, sigma: float = 0.11) -> IFMonteCarloCon
         meta_if=Decimal(str(_META)),
         sigma_anual=sigma,
         retorno_real_esperado=0.05,
-        horizonte_anos=40,
+        horizonte_simulado_anos=40,
         ano_base=_ANO_BASE,
         aporte_mensal=Decimal(str(pmt)),
     )
@@ -77,7 +77,11 @@ def _pares_publicados(r: MonteCarloIFResult) -> list[tuple[float, int]]:
     """(piso, ano) dos percentis que saíram como ano — censurado fica de fora."""
     return [
         (k, ano)
-        for k, ano in ((0.10, r.p10_ano_if), (0.50, r.p50_ano_if), (0.90, r.p90_ano_if))
+        for k, ano in (
+            (0.10, r.ano_if_cenario_favoravel),
+            (0.50, r.ano_if_cenario_central),
+            (0.90, r.ano_if_cenario_adverso),
+        )
         if ano is not None
     ]
 
@@ -116,18 +120,18 @@ def test_p90_alem_do_horizonte_nao_vira_ano():
     # A perna que existe para mostrar risco era a mais corrompida: publicava
     # "P90 = 36 anos" quando o P90 verdadeiro está fora do horizonte.
     resultado = _cone(_config(0.20, 5_000.0))
-    assert resultado.p50_ano_if is not None, "P50 deveria sobreviver com sucesso ~88%"
-    assert resultado.p90_ano_if is None, "P90 não é definível com sucesso < 95%"
-    assert resultado.p90_censurado is True
-    assert resultado.horizonte_anos == 40
+    assert resultado.ano_if_cenario_central is not None, "P50 deveria sobreviver com sucesso ~88%"
+    assert resultado.ano_if_cenario_adverso is None, "P90 não é definível com sucesso < 95%"
+    assert resultado.ano_if_cenario_adverso_censurado is True
+    assert resultado.horizonte_simulado_anos == 40
 
 
 def test_sucesso_abaixo_de_50pct_nao_publica_ano_central():
     """A guarda pedida: na mediana a meta não é atingida no horizonte."""
     resultado = _cone(_config(0.15, 0.0))
-    assert resultado.p50_ano_if is None
-    assert resultado.p50_censurado is True
-    assert resultado.prob_if_ate_horizonte < 0.50
+    assert resultado.ano_if_cenario_central is None
+    assert resultado.ano_if_cenario_central_censurado is True
+    assert resultado.prob_if_ate_horizonte_simulado < 0.50
 
 
 def test_perna_favoravel_nunca_sai_sozinha():
@@ -136,19 +140,27 @@ def test_perna_favoravel_nunca_sai_sozinha():
     # favorável: 2050" sem central nem adversa é pior que o defeito original —
     # some a má notícia e sobra só a boa.
     resultado = _cone(_config(0.15, 0.0))
-    assert resultado.p50_ano_if is None
+    assert resultado.ano_if_cenario_central is None
     assert (
-        resultado.p10_ano_if is None
+        resultado.ano_if_cenario_favoravel is None
     ), "perna favorável publicada sem a central — censura virou viés otimista"
-    assert resultado.p10_censurado is True
+    assert resultado.ano_if_cenario_favoravel_censurado is True
 
 
 def test_plano_saudavel_nao_perde_nenhum_percentil():
     """Contraprova: a censura não pode morder plano folgado."""
     r = _cone(_config(0.50, 5_000.0))
-    assert (r.p10_censurado, r.p50_censurado, r.p90_censurado) == (False, False, False)
-    assert r.p10_ano_if is not None and r.p50_ano_if is not None and r.p90_ano_if is not None
-    assert r.p10_ano_if <= r.p50_ano_if <= r.p90_ano_if
+    assert (
+        r.ano_if_cenario_favoravel_censurado,
+        r.ano_if_cenario_central_censurado,
+        r.ano_if_cenario_adverso_censurado,
+    ) == (False, False, False)
+    assert (
+        r.ano_if_cenario_favoravel is not None
+        and r.ano_if_cenario_central is not None
+        and r.ano_if_cenario_adverso is not None
+    )
+    assert r.ano_if_cenario_favoravel <= r.ano_if_cenario_central <= r.ano_if_cenario_adverso
 
 
 def test_cone_suprimido_nao_e_censura_estatistica():
@@ -157,34 +169,36 @@ def test_cone_suprimido_nao_e_censura_estatistica():
     # não há como diferenciar "não simulamos" de "simulamos e não chega".
     suprimido = _cone(_config(0.05, 0.0))  # if_pct < 15% → gate de dado
     assert suprimido.exibir_cone is False
-    assert suprimido.p50_ano_if is None
-    assert suprimido.p50_censurado is False
+    assert suprimido.ano_if_cenario_central is None
+    assert suprimido.ano_if_cenario_central_censurado is False
 
 
 def test_censura_com_cone_exibido_e_observavel():
     """Par do teste acima: censura só existe com o cone ligado."""
     censurado = _cone(_config(0.15, 0.0))
     assert censurado.exibir_cone is True
-    assert censurado.p50_ano_if is None
-    assert censurado.p50_censurado is True
+    assert censurado.ano_if_cenario_central is None
+    assert censurado.ano_if_cenario_central_censurado is True
 
 
 def test_censura_e_monotonica():
     """P50 censurado ⇒ P90 censurado; nunca o inverso."""
     for pv_ratio, pmt in ((0.15, 0.0), (0.20, 5_000.0), (0.50, 5_000.0)):
         r = _cone(_config(pv_ratio, pmt))
-        if r.p50_censurado:
-            assert r.p90_censurado, f"P50 censurado sem P90 em pv={pv_ratio} pmt={pmt}"
+        if r.ano_if_cenario_central_censurado:
+            assert (
+                r.ano_if_cenario_adverso_censurado
+            ), f"P50 censurado sem P90 em pv={pv_ratio} pmt={pmt}"
 
 
 def test_taxa_de_sucesso_e_publicada_na_base_cheia():
-    """``prob_if_ate_horizonte`` é o denominador que decide a censura."""
+    """``prob_if_ate_horizonte_simulado`` é o denominador que decide a censura."""
     # Sem ele no payload, o consumidor teria de inferir a censura de um ``null``.
     cfg = _config(0.20, 0.0)
     sucesso, _ = _cdf_base_cheia(cfg)
     resultado = _cone(cfg)
-    assert resultado.prob_if_ate_horizonte == pytest.approx(sucesso, abs=1e-4)
-    assert 0.0 <= resultado.prob_if_ate_horizonte <= 1.0
+    assert resultado.prob_if_ate_horizonte_simulado == pytest.approx(sucesso, abs=1e-4)
+    assert 0.0 <= resultado.prob_if_ate_horizonte_simulado <= 1.0
 
 
 def test_familia_ja_independente_nao_le_probabilidade_zero():

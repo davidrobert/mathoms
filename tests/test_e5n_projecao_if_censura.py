@@ -15,13 +15,13 @@ def test_projecao_mediana_censurada_nao_cai_no_deterministico():
     # Sem o ramo de censura, a frase mais otimista do relatório sairia justamente
     # no plano em que a mediana não atinge a meta no horizonte.
     m = _metrics_base() | {
-        "mc_p50_ano_if": None,
-        "mc_p50_censurado": True,
-        "mc_p90_censurado": True,
-        "mc_prob_if_ate_horizonte": 0.436,
+        "mc_ano_if_cenario_central": None,
+        "mc_ano_if_cenario_central_censurado": True,
+        "mc_ano_if_cenario_adverso_censurado": True,
+        "mc_prob_if_ate_horizonte_simulado": 0.436,
         "mc_prob_if_ate_idade_meta": 0.31,
         "mc_idade_meta": 65,
-        "mc_horizonte_anos": 40,
+        "mc_horizonte_simulado_anos": 40,
     }
     conclusion = _charts(m)["projecao_3cenarios"]["conclusion"]
     assert "não é atingida dentro dos 40 anos" in conclusion
@@ -34,14 +34,14 @@ def test_projecao_mediana_censurada_nao_cai_no_deterministico():
 def test_projecao_cenario_adverso_censurado_declara_horizonte():
     """Sucesso entre 55% e 95%: central existe, adverso fica fora do horizonte."""
     m = _metrics_base() | {
-        "mc_p10_ano_if": 2044,
-        "mc_p50_ano_if": 2053,
-        "mc_p90_ano_if": None,
-        "mc_p90_censurado": True,
-        "mc_prob_if_ate_horizonte": 0.8821,
+        "mc_ano_if_cenario_favoravel": 2044,
+        "mc_ano_if_cenario_central": 2053,
+        "mc_ano_if_cenario_adverso": None,
+        "mc_ano_if_cenario_adverso_censurado": True,
+        "mc_prob_if_ate_horizonte_simulado": 0.8821,
         "mc_prob_if_ate_idade_meta": 0.41,
         "mc_idade_meta": 65,
-        "mc_horizonte_anos": 40,
+        "mc_horizonte_simulado_anos": 40,
     }
     conclusion = _charts(m)["projecao_3cenarios"]["conclusion"]
     assert "2053" in conclusion
@@ -52,13 +52,13 @@ def test_projecao_cenario_adverso_censurado_declara_horizonte():
 def test_projecao_faixa_completa_publica_os_dois_extremos():
     """Plano folgado: a faixa sai como faixa, não como ponto."""
     m = _metrics_base() | {
-        "mc_p10_ano_if": 2039,
-        "mc_p50_ano_if": 2046,
-        "mc_p90_ano_if": 2058,
-        "mc_prob_if_ate_horizonte": 0.99,
+        "mc_ano_if_cenario_favoravel": 2039,
+        "mc_ano_if_cenario_central": 2046,
+        "mc_ano_if_cenario_adverso": 2058,
+        "mc_prob_if_ate_horizonte_simulado": 0.99,
         "mc_prob_if_ate_idade_meta": 0.62,
         "mc_idade_meta": 65,
-        "mc_horizonte_anos": 40,
+        "mc_horizonte_simulado_anos": 40,
     }
     conclusion = _charts(m)["projecao_3cenarios"]["conclusion"]
     assert "entre 2039 no cenário favorável e 2058 no adverso" in conclusion

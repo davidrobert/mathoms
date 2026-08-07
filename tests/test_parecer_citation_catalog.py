@@ -148,5 +148,6 @@ def test_ancora_format_hint_por_tipo_de_folha():
     assert ancora_format_hint("$.reserva_emergencia.total_liquida") == "brl"
     assert ancora_format_hint("$.reserva_emergencia.nivel_6_meses") == "brl"
     assert ancora_format_hint("$.investimentos.tabela_classes[2].valor") == "brl"
-    # fallback: folha sem tipo conhecido nunca ganha prefixo R$
-    assert ancora_format_hint("$.goals.p50_ano_if") == "string"
+    # fallback: folha sem tipo conhecido nunca ganha prefixo R$ — exemplo
+    # sintético, porque chave real (era `p50_ano_if`) envelhece com o contrato.
+    assert ancora_format_hint("$.goals.rotulo_do_plano") == "string"
