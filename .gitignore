@@ -42,7 +42,10 @@ storage/
 !backend/app/services/storage/
 
 # Frontend
-frontend/node_modules/
+# Sem barra final: `node_modules/` casa APENAS diretórios, e o truque de
+# worktree (symlink node_modules → clone principal) escapou o ignore e foi
+# commitado em b8460274. Gate: dev/check_tracked_symlinks.py.
+frontend/node_modules
 frontend/.next/
 frontend/coverage/
 frontend/tsconfig.tsbuildinfo
@@ -54,7 +57,7 @@ frontend/playwright-results/
 # baselines são geradas exclusivamente em CI Linux (lane report-a11y-finalize).
 frontend/tests/**/*-darwin.png
 frontend/tests/**/*-win32.png
-node_modules/
+node_modules
 
 # Testing
 .pytest_cache/
