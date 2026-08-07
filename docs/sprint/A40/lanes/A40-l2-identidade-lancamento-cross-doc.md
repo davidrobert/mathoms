@@ -232,7 +232,9 @@ derivação tem de ser alimentado pelos **dois produtores reais**.
 | PR | escopo | undo |
 |---|---|---|
 | **3a — a sombra** ✅ [#1231](https://github.com/davidrobert/mathoms/pull/1231) (`65464db6`) | colapsador em produção **measure-only** · `shadow_counts` PII-safe no log estruturado · flag `cross_document_collapse_measure_enabled` (`True`, `OPERATOR_ONLY`) | flag off |
-| **3b — o gate** | fonte única do digest · `CollapseMeasurement` com corpus **pré-poda** · `survivor_hash` em `CollapseCandidate` · predicado corrigido · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · comentário stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
+| **3b1 — fonte única do digest** ✅ [#1251](https://github.com/davidrobert/mathoms/pull/1251) (`077fb7e9`) | `_gate_digest_da_chave` chama `gate_key_digest`, nunca monta a tupla inline · teste de derivação alimentado pelos **dois produtores reais** (`test_gate_digest_paired_derivation.py`) | revert |
+| **3b2 — `CollapseMeasurement`** ✅ [#1256](https://github.com/davidrobert/mathoms/pull/1256) (`4fdcf400`) | corpus **pré-poda** no VO (`corpus_gate_digests`, `corpus_row_hashes`) · `survivor_hash` em `CollapseCandidate` | revert |
+| **3b — o gate** ✅ (este PR) | predicado corrigido (5 cláusulas cumulativas + adjudicação por hash) · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · parâmetro stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
 | **3c1 — o dado** (paralelo ao 3d) | carrier E3→E4→E5 · `meses` no `$defs/remocao` · campo **omitido** quando zero · nomes que sobrevivem ao `is_monetary` · emenda na [[ADR-347]] | campo ausente |
 | **3d — o drain** (depende do 3b) | re-ancora os condenados **enquanto as duas rows existem**; apply só do caso 1→1 | `orphaned_at` + re-run |
 | **3c2 — a superfície** | contador da S2 · caption simétrico da V0 · rebaseline | render condicional |
@@ -259,7 +261,8 @@ ficam registrados para que ninguém os leia como escopo pendente:**
 define. O 3c foi partido porque atravessava pipeline+backend+frontend num diff.
 
 **O brief do 3c2 abre junto com o 3b** — ele é o long pole real (frontend + snapshot +
-brief), não o 3d.
+brief), não o 3d. ✅ Aberto em 2026-08-07:
+[`tracks/a40-l2-3c2-superficie-do-colapso.md`](../tracks/a40-l2-3c2-superficie-do-colapso.md).
 
 #### Restrições duras do 3d, todas verificadas no código
 
@@ -387,6 +390,33 @@ desenho do predicado; **não** autoriza o flip. E a auto-validação do instrume
 > literalmente a armadilha que o painel nomeou ao citar o PR3 da [[A40.l10]]. O probe agora
 > **recusa emitir veredito** quando `corpus` ou `overrides` é vazio: `0` por "não observei" e `0`
 > por "observei e não achei" são indistinguíveis no número, e só o guard os separa.
+
+#### ✅ RE-MEDIDO 2026-08-07 no PR3b — reproduz, e fecha o gap de chave da medição anterior
+
+O probe foi re-executado antes de fechar o desenho, como a §Emenda da [[ADR-364]] exige
+("vazio é propriedade do corpus **e do tempo**"). **Reproduz ao número:** 117 statements ·
+5560 hashes · 331 sobreviventes · 331 removidos · 5 overrides ativos · `4`
+`casou_corpus_fora_de_candidato` · `1` `casou_nada` · `0` em candidato · veredito **join
+VIVO**.
+
+**Gap de método que a medição de 06/08 tinha, e que esta fecha.** O probe adjudica por
+`_hash_v2`; a cláusula de vivacidade do predicado adjudica por `gate_digest`. **São chaves
+diferentes** — o "4 ≠ 5" publicado acima era inferência de um join para o outro. Medido
+agora pelo join que o gate de fato usa (`evaluate()` sobre o corpus real, zero-write):
+
+| | |
+| --- | --- |
+| corpus | **5227** `gate_digests` / **5560** `row_hashes` (o digest é direction-free ⇒ colapsa 333) |
+| `overrides_ativos` / `com_snapshot` | 5 / **5** |
+| `sem_snapshot` · `tx_data_nao_iso` | 0 · 0 |
+| `snapshot_casa_corpus` | **4** ⇒ universal **reprova**, existencial passaria |
+| `hits` | 0 |
+| **predicado ANTIGO** | **`liberado=True`** |
+
+**A inferência de 06/08 estava certa, e agora está medida na chave certa.** O achado novo é
+o último: o predicado antigo dizia `liberado` **hoje, no corpus real** — isto é, autorizava o
+flip destrutivo com 1 de 5 overrides que ele não sabe julgar. Não era um risco teórico à
+espera de um workspace ruim; era o estado corrente do dogfood.
 
 #### O que ainda NÃO sabemos — medir antes de fechar o predicado do 3b
 
@@ -616,6 +646,17 @@ em produção).
   `COBERTO_SEM_VALOR`. Declare como esperado ou pule a escrita.
 
 ### O que o PR-D1 (gate) tem de trazer
+
+> ✅ **Emenda 2026-08-07 — o D1 shipou como PR3b, com duas correções ao texto abaixo.**
+> **(a) Durabilidade é `pipeline_stage_logs.output_summary`**, não `AuditRecord` via
+> `append_audit` (razão na §"O PR3 foi serializado", Falsa nº 3 — `db.add` sem commit +
+> rollback do loop apagaria os vermelhos da série, e a tipagem `AsyncSession` não bate com a
+> `Session` sync do `DBArtifactStore`). **(b) O predicado tem cinco cláusulas cumulativas**
+> (`medido` · `hits` · `sem_snapshot` · `tx_data_nao_iso` · vivacidade **universal**) e
+> **adjudica por hash**, não só por digest — sem isso ele era inalcançável por construção.
+> O resto do texto abaixo (polaridade sobre-detectora, âncora indecidível bloqueando,
+> read-only, `OpResult`, flag do operador, face (b) por run) segue **válido e implementado**.
+> Detalhe e medição na §Emenda de 2026-08-07 da [[ADR-364]].
 
 - Interseção computada **sobre as colunas de snapshot da [[ADR-282]]**
   (`tx_data`, `tx_valor_cents`, `tx_moeda`, `tx_descricao`), recompondo o

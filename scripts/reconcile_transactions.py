@@ -1034,6 +1034,34 @@ def _e3_build_collapser(ctx, store):
     return CrossDocumentCollapser()
 
 
+# Devolve `None` quando não houve medição — ausência de relatório é o sinal honesto de "não
+# olhei", e o write-path do flip (PR3e) recusa por ausência. Emitir relatório vazio seria
+# pior: pareceria medição com corpus limpo. `scripts/**` está fora do gate de boundary
+# (`dev/check_pipeline_boundaries.py` cobre só `pipeline/`), e este módulo já consulta o DB
+# pela flag da sombra — produtor e consumidor no mesmo escopo léxico, nada viaja.
+#
+# `result.collapse_measurement` é acesso por ATRIBUTO, não `getattr(..., None)`:
+# `ReconciliationStoreResult` sempre tem o campo, e um default silencioso aqui reproduziria —
+# uma camada acima — exatamente o fail-open que este PR fechou em `_alvos` (rename ⇒ gate
+# inerte, sem sinal).
+def _e3_collapse_precondition(ctx, store, result) -> Optional[Dict[str, Any]]:
+    """Gate de pré-condição do enforce, por run ([[ADR-364]] §5). Read-only, nunca bloqueia."""
+    medicao = result.collapse_measurement
+    if not medicao.corpus_gate_digests or ctx.workspace_id is None:
+        return None
+    try:
+        from backend.app.services.internal_ops import collapse_precondition
+        from backend.app.services.storage.db_artifact_store import DBArtifactStore
+    except ImportError:
+        return None
+    if not isinstance(store, DBArtifactStore):
+        return None
+    _op, report = collapse_precondition.evaluate(
+        store.session, ctx.workspace_id, medicao.candidates, medicao.corpus_gate_digests
+    )
+    return report.as_details()
+
+
 def _e3_build_adapter(ctx, *, cross_document_collapser=None, collapse_enforce=False):
     """Carrega configs + monta E3ReconcilerAdapter com domain services tipados."""
     from pipeline.domain.models.bank import BankCanonicalizer
@@ -1274,7 +1302,16 @@ def main_with_store(ctx) -> Dict[str, Any]:
     _e3_log_warnings(result)
     _e3_log_collapse_shadow(ctx, result)
     _e3_print_summary(result)
-    return _e3_build_result_dict(written_filenames, result)
+    detail = _e3_build_result_dict(written_filenames, result)
+    # Este dict vira `pipeline_stage_logs.output_summary` (`pipeline_task.py`), a durabilidade
+    # escolhida para a série do gate. `AuditRecord` foi recusado: `append_audit` é `db.add` SEM
+    # commit e o loop do `pipeline_task` faz rollback em `not result.success` — a série que a
+    # ADR-364 §5 promove a gatilho de rollback nasceria com os vermelhos apagados. Chave
+    # OMITIDA quando não houve medição: `None` explícito leria como "medi e não achei".
+    precondicao = _e3_collapse_precondition(ctx, store, result)
+    if precondicao:
+        detail["collapse_precondition"] = precondicao
+    return detail
 
 
 def _write_reconciliation_summary(path: Path, *, written_filenames: List[str], result) -> None:
