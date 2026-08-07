@@ -53,8 +53,10 @@ def _stmt(arquivo: str, *, llm: bool) -> BankStatement:
 
 def _digest_do_pipeline() -> str:
     """Produtor 1 — o colapsador, sobre os objetos de domínio do E3."""
-    candidatos = CrossDocumentCollapser().measure(
-        [_stmt("nativo.json", llm=False), _stmt("llm.json", llm=True)]
+    candidatos = (
+        CrossDocumentCollapser()
+        .measure([_stmt("nativo.json", llm=False), _stmt("llm.json", llm=True)])
+        .candidates
     )
     assert len(candidatos) == 1, "fixture deixou de produzir candidato — teste vira vácuo"
     return candidatos[0].gate_digest

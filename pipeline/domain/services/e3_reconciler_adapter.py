@@ -36,6 +36,7 @@ from pipeline.domain.services.baseline_validator import (
     BaselineDiffWarning,
     BaselineValidator,
 )
+from pipeline.domain.services.cross_document_collapse_types import CollapseMeasurement
 from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
 from pipeline.domain.services.e3_load_report import (
     EmptyInstitutionWarning,
@@ -309,19 +310,19 @@ class E3ReconcilerAdapter:
         # e `tipo_conta`, então as duas pernas do mesmo evento nunca se encontram
         # depois daqui. Measure-only: não remove row (enforce + re-ancoragem são PRs
         # próprios; remover row órfãna override ancorado no hash dela).
-        collapse_candidates: tuple = ()
+        collapse_measurement = CollapseMeasurement()
         if self._cross_document_collapser and self._collapse_enforce:
             # Enforce: mede E remove no mesmo passo (D2) — as remoções entram em
             # `removals` e o ledger as declara no canal `cross_document_collapse`.
             # Statement esvaziado CONTINUA escrevendo artefato: o ledger dele carrega
             # a remoção, senão a conservação E2→E3 do workspace perderia as rows.
-            reconciled, collapse_candidates, collapse_removals = (
+            reconciled, collapse_measurement, collapse_removals = (
                 self._cross_document_collapser.collapse(reconciled)
             )
             reconciled = list(reconciled)
             removals.extend(collapse_removals)
         elif self._cross_document_collapser:
-            collapse_candidates = self._cross_document_collapser.measure(reconciled)
+            collapse_measurement = self._cross_document_collapser.measure(reconciled)
 
         key_for = output_key_fn or self.output_key
 
@@ -446,5 +447,6 @@ class E3ReconcilerAdapter:
             removals=tuple(removals),
             exclusions=tuple(outcome.exclusions),
             fatura_cross_results=fatura_cross,
-            collapse_candidates=collapse_candidates,
+            collapse_candidates=collapse_measurement.candidates,
+            collapse_measurement=collapse_measurement,
         )

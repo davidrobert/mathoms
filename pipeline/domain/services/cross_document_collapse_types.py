@@ -47,6 +47,19 @@ class CollapseRemoval:
     source: str | None = None
 
 
+@dataclass(frozen=True)
+class CollapseMeasurement:
+    """Candidatos **+** o corpus contra o qual o gate de override se cruza ([[ADR-364]])."""
+
+    # O corpus é sempre PRÉ-poda, nos dois modos. Derivá-lo depois da remoção perderia
+    # exatamente as rows removidas — onde os overrides em risco ancoram —, e a garantia
+    # anti-vácuo degradaria no único momento em que ela é load-bearing.
+
+    candidates: tuple = ()
+    corpus_gate_digests: frozenset[str] = frozenset()
+    corpus_row_hashes: frozenset[str] = frozenset()
+
+
 def shadow_counts(candidates) -> dict[str, int]:
     """Agregado PII-safe da sombra (ADR-364) — só contagens e cents, nunca texto."""
     todos = list(candidates)  # materializa ANTES: generator consumido daria candidatos=0
@@ -77,6 +90,10 @@ class CollapseCandidate:
     blocked_reason: str | None
     # Digest direction-free para o gate de override (D1) — ver `gate_key_digest`.
     gate_digest: str = ""
+    # `_hash_v2` da row que SOBREVIVE ao colapso — alvo da re-ancoragem ([[ADR-364]] §2).
+    # Vive no candidato e não no `RemovalTarget` porque é propriedade do GRUPO: sob a D5 há
+    # no máximo 1 alvo por candidato, e todas as rows de um bucket compartilham um hash.
+    survivor_hash: str = ""
     # Tags em NOMES de campo (nunca valores — PII), na mesma forma que o detector da
     # [[A40.l1]] emite: permitem afirmar a equivalência "colapsável ⇒ carrier-shaped"
     # sem que o pipeline importe `dev/`.
