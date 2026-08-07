@@ -110,6 +110,27 @@ async def test_row_do_retido_nasce_ao_lado_do_stage_degradado_e_do_relatorio(see
 
 
 @pytest.mark.asyncio
+async def test_row_do_run_atende_a_api_sem_prosa_de_operador(seeded):
+    """Fecha a cadeia: a row que o run cria é a que o leitor serve, e ela não vaza."""
+    from backend.app.api.planner_review import _render_review
+
+    _drive(seeded, _ParecerRetido(), stages=[_E5_STAGE, _PARECER])
+    review = await _review_row(seeded)
+
+    # `db=None` de propósito: no retido o `_render_review` decide ANTES de carregar
+    # o artifact (ADR-366 §D5). Se algum dia carregar, este teste quebra alto em vez
+    # de servir os 3 pontos fortes "placeholder" a um cliente premium.
+    resposta = await _render_review(None, workspace_id=seeded["ws_id"], review=review)
+
+    assert resposta.content is None
+    assert resposta.retention.reason == "parecer.sigilo"
+    corpo = resposta.model_dump_json()
+    assert _PROSA_DE_OPERADOR not in corpo
+    for proibido in ("error_detail", "risco:", "unverified", "needs_review", "sigilo §13"):
+        assert proibido not in corpo, proibido
+
+
+@pytest.mark.asyncio
 async def test_indisponibilidade_tecnica_nao_vira_row_pelo_caminho_do_run(seeded):
     """Sem `retention_reason` nada foi gerado; a decisão é do domínio, não do filtro."""
     # Se o filtro do orquestrador duplicasse `_is_persistable`, esta asserção passaria
