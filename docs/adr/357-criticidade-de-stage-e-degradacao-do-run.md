@@ -75,6 +75,22 @@ Criticidade é do **registry**, não do stage (DIP) nem do run — com um único
 deliverable ([[ADR-131]]), a variação "crítico num contexto, não em outro" não
 existe hoje, e inventá-la seria abstração sem instância.
 
+**`criticality` alcança apenas o canal de NÃO-ENTREGA (2026-08-06).** O canal
+`validation` (`detail["validation"]["valid"]`, consumido por
+`_has_validation_errors`) é **ortogonal** e permanece intocado: stage
+`degradable` que **entrega** um veredito com `valid: False` continua pausando em
+`needs_review`, com row em `StageReview` e `run.paused_at_stage`.
+
+Declarado aqui, e não derivado do critério de aceite de uma lane, porque a
+derivação silenciosa é o que produz mudança de contrato sem decisão. Dois
+argumentos: (a) pausar **preserva** o E5 e deixa o run retomável — ninguém perde
+entregável, que é o dano que esta ADR existe para impedir; (b) `validate_cross`
+é o único degradável que emite `validation`, e ali `valid: False` são checks de
+**conservação** (a soma fecha?) — publicar à família um relatório cujos números
+não fecham, com banner de ressalva, seria vender informação **errada** como
+incompleta. O que destrói o entregável hoje são os três
+`return {"success": False}` do mesmo arquivo, e esses a `criticality` alcança.
+
 ### 2. Um canal, uma verdade
 
 **Nenhuma chave nova no retorno do stage.** O stage continua dizendo "não
@@ -86,6 +102,33 @@ política indefinida).
 
 `{"skipped": True}` é normalizado para `outcome=skipped` no mesmo ato. O default
 atual (dict sem `"success"` ⇒ `completed`) é **preservado**.
+
+**A disposição é cega à FORMA da não-entrega.** As duas rotas do loop —
+`result is None` (exceção após retries) e `result.success is False` — mapeiam
+ambas para `degraded` quando `criticality=degradable`. **`result.error` é
+proibido como discriminador:** `error is None` significa "nenhuma exceção cruzou
+a fronteira do runner", não "o stage declarou". A assimetria é medida — a mesma
+falha de rede vira `error=None` dentro de `llm.call` e `error=str(exc)` em
+`store.write`, que fica fora do `try`.
+
+**`reason_class` é descritivo, nunca dispositivo (2026-08-06).**
+`StageFailureReason` (enum fechado: `enforcement`, `provider_error`, `network`,
+`timeout`, `budget_exhausted`, `llm_unavailable`, `internal_error`, `unknown`)
+viaja no `detail` e é persistido em `PipelineStageLog.output_summary`. Isso
+**não** reabre a porta que esta seção fechou, e a diferença é verificável e não
+retórica: `{"degraded": True}` era **dispositivo** — o produtor nomeava o próprio
+raio de explosão. `reason_class` só entra em copy, log e alerta; **nenhuma
+ramificação de status o consulta**. Invariante provado por teste paramétrico
+sobre **todos** os membros do enum: para o mesmo stage degradável, a tripla
+`(run.status, stage_log.status, existe row em reports)` é idêntica em todos.
+Mutação que o teste mata: `if reason_class == "budget_exhausted": failed`.
+
+Ele é **obrigatório, não cosmético**. A classe fechada client-facing da
+[[A40.l20]] §4 tem 3 membros que são todos juízos sobre o conteúdo do cliente;
+sem `reason_class`, um `ReadTimeout` da Anthropic cai nessa classe e a UI diz ao
+cliente premium que o conteúdo dele foi retido por política — mentira nova, da
+mesma família da que a l20 existe para consertar. A informação já existe e é
+jogada fora: `_exc_label` lê `exc.error_type` e o achata em string de display.
 
 ### 3. `PipelineStageStatus.degraded` novo; `partial_failure` reusado
 
@@ -139,12 +182,40 @@ dev é SQLite; em Postgres o caminho de `needs_review` do stage log — **já vi
 ([[ADR-272]]/E3) — quebraria no `INSERT`. A migration inclui os 4 valores em
 drift + `degraded`, no padrão guardado por dialeto já usado no repo.
 
+> ✅ **Entregue pela [[A40.l19]] em `c9688111` (#1241), 2026-08-06**, junto com
+> `dev/check_enum_migration_parity.py` — o gate que faltava. Ele lê os dois lados
+> por **AST** e não o banco de teste: este nasce de `Base.metadata.create_all`,
+> que materializa o próprio enum Python, e teria ficado verde durante todos os
+> meses de drift. Direção `python ⊆ declarado`, nunca igualdade — Postgres não
+> tem `DROP VALUE`, e exigir igualdade transformaria toda remoção legítima em
+> falha eterna. É também o que tornou seguro mergear a migration antes do membro
+> Python (`degraded` declarado no tipo, ausente no código, gate verde).
+
 ### 8. Degradável = não-retryável in-run, não-reexecutável, re-rodável por run novo
 
-`_run_stage_with_retry` só retenta exceção — correto como está. Veredito de
-enforcement sobre gerador estocástico não é transitório, e o dinheiro já foi
-gasto. "Retentar só o parecer" é run novo com `from_stage` ([[ADR-291]]), não
-resume.
+`_run_stage_with_retry` só retenta exceção — correto como está. "Retentar só o
+parecer" é run novo com `from_stage` ([[ADR-291]]), não resume.
+
+**O motivo é que o retry transitório já foi consumido a montante.**
+`LLMService.call` ([`pipeline/llm/litellm_client.py`](../../pipeline/llm/litellm_client.py))
+já retenta `RETRYABLE_ERRORS` com backoff 30/60/120s e escalada de timeout
+([[ADR-270]]). Repetir no orquestrador é layering de retry que a própria ADR-270
+§1 proíbe.
+
+> **Justificativa substituída em 2026-08-06, ainda em `Proposto`.** A forma
+> anterior era *"veredito de enforcement sobre gerador estocástico não é
+> transitório, e o dinheiro já foi gasto"*. **As duas premissas são falsas no
+> ramo de infra**, e a medição é o `except Exception` de
+> [`parecer_orchestrator.py`](../../backend/app/services/parecer_orchestrator.py)
+> (`# noqa: BLE001 — todas exceções viram needs_review`), que envolve
+> `llm.call` inteiro: queda de provider, `ReadTimeout`, 5xx, hard-stop de budget
+> ([[ADR-173]]) e bug de código chegam ao orquestrador como `success: False` com
+> `error is None`, indistinguíveis de um veredito de enforcement. Nesse ramo a
+> falha **é** transitória e o dinheiro **não** foi gasto.
+>
+> A conclusão sobrevive; a justificativa não. Manter o texto original faria a
+> próxima pessoa deduzir que degradação implica dinheiro gasto — e desenhar
+> billing ou alerta em cima de uma premissa falsa.
 
 ## Alternativas rejeitadas
 
