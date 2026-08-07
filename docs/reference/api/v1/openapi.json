@@ -6743,6 +6743,13 @@
             "title": "Period Days",
             "type": "integer"
           },
+          "pipeline_runs_by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Pipeline Runs By Status",
+            "type": "object"
+          },
           "pipeline_runs_last_period": {
             "title": "Pipeline Runs Last Period",
             "type": "integer"
@@ -6750,6 +6757,20 @@
           "pipeline_runs_total": {
             "title": "Pipeline Runs Total",
             "type": "integer"
+          },
+          "stages_degraded_by_reason": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Stages Degraded By Reason",
+            "type": "object"
+          },
+          "stages_degraded_by_stage": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Stages Degraded By Stage",
+            "type": "object"
           },
           "storage_bytes_total": {
             "title": "Storage Bytes Total",
@@ -6780,7 +6801,10 @@
           "documents_uploaded_last_period",
           "new_users_last_period",
           "period_days",
-          "generated_at"
+          "generated_at",
+          "pipeline_runs_by_status",
+          "stages_degraded_by_reason",
+          "stages_degraded_by_stage"
         ],
         "title": "MetricsResponse",
         "type": "object"

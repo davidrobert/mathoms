@@ -42,7 +42,11 @@ async def metrics(
     db: AsyncSession = Depends(get_db),
     _: InternalOpsPrincipal = Depends(require_internal_operator),
 ) -> MetricsResponse:
-    snap = await get_metrics(db, period_days=period_days)
+    return _to_response(await get_metrics(db, period_days=period_days))
+
+
+def _to_response(snap) -> MetricsResponse:
+    """Mapeia campo-a-campo — campo novo no snapshot que não entre aqui sai da tela."""
     return MetricsResponse(
         users_total=snap.users_total,
         users_active=snap.users_active,
@@ -56,6 +60,9 @@ async def metrics(
         new_users_last_period=snap.new_users_last_period,
         period_days=snap.period_days,
         generated_at=snap.generated_at,
+        pipeline_runs_by_status=snap.pipeline_runs_by_status,
+        stages_degraded_by_reason=snap.stages_degraded_by_reason,
+        stages_degraded_by_stage=snap.stages_degraded_by_stage,
     )
 
 

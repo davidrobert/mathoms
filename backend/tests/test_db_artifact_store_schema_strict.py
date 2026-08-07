@@ -149,7 +149,7 @@ class TestValidationErrorNuncaRetenta:
             calls.append(stage_name)
             raise jsonschema.ValidationError("connection timeout 503 rate_limit")
 
-        result, attempts, error_msg, tb = _run_stage_with_retry(None, "E2-llm", _stage)
+        result, attempts, error_msg, tb, _reason = _run_stage_with_retry(None, "E2-llm", _stage)
         assert result is None
         assert attempts == 1
         assert len(calls) == 1
@@ -166,7 +166,7 @@ class TestValidationErrorNuncaRetenta:
             calls.append(stage_name)
             raise RuntimeError("connection timeout")
 
-        result, attempts, _, _ = _run_stage_with_retry(None, "E2-llm", _stage)
+        result, attempts, _, _, _ = _run_stage_with_retry(None, "E2-llm", _stage)
         assert result is None
         assert attempts == 3  # 1 tentativa + 2 retries (STAGE_RETRY_CONFIGS["E2-llm"])
         assert len(sleeps) == 2

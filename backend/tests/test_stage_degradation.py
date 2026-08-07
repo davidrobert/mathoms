@@ -32,6 +32,7 @@ from backend.app.models.report import Report
 from backend.app.models.stage_review import StageReview
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
+from backend.app.services.pipeline.stage_failure_reason import StageFailureReason
 from backend.tests.test_pipeline_task import _build_file_backed_engines
 from pipeline.orchestrator import StageResult
 
@@ -371,3 +372,98 @@ async def test_degradado_com_e5_do_base_run_e_partial_failure(base_and_tail):
     assert (
         run.status is PipelineRunStatus.partial_failure
     ), "o predicado de entregável precisa alcançar o base run (ADR-291)"
+
+
+# ───────── `reason_class` é descritivo, nunca dispositivo (ADR-357 §2) ─────────
+
+
+async def _isolated_seed(tmp_path, db_name: str):
+    """`(async_engine, sync_engine, seed, sync_session)` com DB próprio."""
+    async_engine, sync_engine, async_session, sync_session = await _build_file_backed_engines(
+        tmp_path / db_name
+    )
+    seed = await _seed(async_session)
+    seed.update({"async_session": async_session, "tmp_path": tmp_path})
+    return async_engine, sync_engine, seed, sync_session
+
+
+async def _terminal_triple_for_degraded_parecer(tmp_path, db_tag: str):
+    """`(run.status, stage_log.status, nº de reports, failed_at_stage)` após degradar o parecer."""
+    import backend.app.tasks.pipeline_task as task_module
+
+    async_engine, sync_engine, seed, sync_session = await _isolated_seed(
+        tmp_path, f"reason_{db_tag}.db"
+    )
+    with patch.object(task_module, "SyncSessionLocal", sync_session):
+        _drive(seed, _ScriptedStages(not_delivered={_PARECER}), stages=[_E5_STAGE, _PARECER])
+        run = await _run_row(seed)
+        triple = (
+            run.status,
+            await _stage_status(seed, _PARECER),
+            len(await _reports(seed)),
+            run.failed_at_stage,
+        )
+    await async_engine.dispose()
+    sync_engine.dispose()
+    return triple
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("reason", [m.value for m in StageFailureReason])
+async def test_reason_class_nao_muda_a_disposicao(tmp_path, monkeypatch, reason: str):
+    """Para o mesmo stage degradável, a tripla terminal é idêntica em TODOS os motivos."""
+    # É esta a diferença verificável entre `reason_class` e o contrato
+    # `{"degraded": True}` que a §2 rejeitou: lá o produtor nomeava o próprio raio
+    # de explosão. A mutação que este teste mata é
+    # `if reason_class == "budget_exhausted": outcome = failed`.
+    #
+    # O motivo é forçado no CLASSIFICADOR, não no `detail`: o loop recomputa a
+    # classe a partir do detail, então plantar `reason_class` no retorno do stage
+    # não alcançaria a disposição — o teste passaria sem exercitar nada.
+    import backend.app.services.pipeline.stage_failure_reason as sfr
+
+    monkeypatch.setattr(sfr, "reason_from_stage_detail", lambda _d: sfr.StageFailureReason(reason))
+    assert await _terminal_triple_for_degraded_parecer(tmp_path, reason) == (
+        PipelineRunStatus.partial_failure,
+        PipelineStageStatus.degraded,
+        1,
+        None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_reason_class_e_persistido_no_output_summary(seeded):
+    """Sem coluna nova: merge sobre CÓPIA do detail (precedente `redelivered`)."""
+    stages = _ScriptedStages(not_delivered={_PARECER})
+    _drive(seeded, stages, stages=[_E5_STAGE, _PARECER])
+
+    async with seeded["async_session"]() as s:
+        row = (
+            await s.execute(
+                select(PipelineStageLog).where(
+                    PipelineStageLog.pipeline_run_id == seeded["run_id"],
+                    PipelineStageLog.stage == _PARECER,
+                )
+            )
+        ).scalar_one()
+        assert row.output_summary is not None
+        assert row.output_summary["reason_class"] in {m.value for m in StageFailureReason}
+
+
+@pytest.mark.asyncio
+async def test_excecao_classifica_pelo_objeto_nao_pela_mensagem(seeded):
+    """A rota de exceção deriva de `type(exc)`; `unknown` fixo apagaria queda de shell."""
+    stages = _ScriptedStages(raises={_PARECER})
+    _drive(seeded, stages, stages=[_E5_STAGE, _PARECER])
+
+    async with seeded["async_session"]() as s:
+        row = (
+            await s.execute(
+                select(PipelineStageLog).where(
+                    PipelineStageLog.pipeline_run_id == seeded["run_id"],
+                    PipelineStageLog.stage == _PARECER,
+                )
+            )
+        ).scalar_one()
+        # `RuntimeError` genérico não é `LLMError`: classe honesta é `internal_error`.
+        assert row.output_summary["reason_class"] == StageFailureReason.internal_error.value

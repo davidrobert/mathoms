@@ -503,8 +503,17 @@ def _is_schema_validation_error(exc: Exception) -> bool:
 def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
     """Execute a stage with configurable retry on transient errors.
 
-    Returns (result, attempts, error_msg, tb). result is None if all retries exhausted.
+    Returns (result, attempts, error_msg, tb, reason_class). result is None if all
+    retries exhausted; reason_class is derived from the live exception OBJECT.
     """
+    # `reason_class` sai daqui, e não do texto de `error_msg`, porque a ADR-357
+    # §Delta item 1 proíbe re-derivar a classe por match de string sobre a
+    # mensagem. Este é o último ponto em que o objeto de exceção existe.
+    from backend.app.services.pipeline.stage_failure_reason import (
+        StageFailureReason,
+        reason_from_exception,
+    )
+
     retry_cfg = get_retry_config(stage_name)
     attempts = 0
     last_tb = None
@@ -512,7 +521,7 @@ def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
     while True:
         try:
             result = _run_stage(ctx, stage_name)
-            return result, attempts + 1, None, None
+            return result, attempts + 1, None, None, StageFailureReason.unknown.value
         except Exception as exc:
             last_tb = traceback.format_exc()
             error_msg = str(exc)[:2000]
@@ -520,7 +529,7 @@ def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
                 attempts += 1
                 time.sleep(retry_cfg.delay_for_attempt(attempts - 1))
                 continue
-            return None, attempts + 1, error_msg, last_tb
+            return None, attempts + 1, error_msg, last_tb, reason_from_exception(exc).value
 
 
 _CRASH_RUN_STATUSES = (
@@ -901,6 +910,7 @@ def _record_stage_exception(
     elapsed_ms: int,
     progress_pct: int,
     outcome: "StageOutcome",
+    reason_class: str = "unknown",
 ) -> None:
     error_msg = f"{exc_error} (after {attempts} attempt(s))" if attempts > 1 else exc_error
     with SyncSessionLocal() as db:
@@ -913,6 +923,7 @@ def _record_stage_exception(
             "error_type": exc_error.split(":")[0].strip() if exc_error else "Exception",
             "traceback": exc_tb,
             "attempt_count": attempts,
+            "reason_class": reason_class,
         }
         # Ver §3 em `_record_stage_result`: degradação não popula campo de falha.
         if outcome == "failed":
@@ -1210,6 +1221,46 @@ def _summarize_per_doc_errors(detail) -> str | None:
     return "\n".join(lines)[:2000] or None
 
 
+# `cost_usd` e `cost_known` viajam JUNTOS. `LLMService.call` só registra a chamada
+# DEPOIS de `create()` retornar, então falha pós-cobrança dá `cost_known=False` —
+# logar `cost_usd: 0.0` sozinho reportaria "grátis" exatamente no timeout caro.
+# `None` faz agregação falhar alto em vez de enviesar para baixo; `0.0` com
+# `cost_known=True` é fato (stage sem LLM).
+def _cost_pair(detail) -> tuple[float | None, bool]:
+    metrics = detail.get("llm_metrics") if isinstance(detail, dict) else None
+    metrics = metrics if isinstance(metrics, dict) else {}
+    return metrics.get("cost_usd"), bool(metrics.get("cost_known", False))
+
+
+def _log_stage_degraded(
+    run_id: str, stage_name: str, reason: str, detail, *, criticality: str
+) -> None:
+    """`WARNING` (anomalia recuperável — o run entregou), namespace `mathoms.*`."""
+    cost_usd, cost_known = _cost_pair(detail)
+    logger.warning(
+        "stage_degraded",
+        extra={
+            "event": "mathoms.pipeline.stage_degraded",
+            "run_id": run_id,
+            "stage": stage_name,
+            "criticality": criticality,
+            "reason_class": reason,
+            "cost_usd": cost_usd,
+            "cost_known": cost_known,
+        },
+    )
+
+
+def _summary_with_reason(detail, reason: str) -> dict:
+    """Merge sobre CÓPIA — `output_summary` é atribuição TOTAL nos caminhos terminais."""
+    # Mutar `result.detail` in-place não é rastreado pelo tipo `JSON` do
+    # SQLAlchemy (coluna sem `MutableDict`), e sobrescrever o summary inteiro
+    # apaga o detail do stage. Precedente: `summary["redelivered"]`.
+    summary = dict(detail) if isinstance(detail, dict) else {}
+    summary["reason_class"] = reason
+    return summary
+
+
 def _record_stage_result(
     run_id: str,
     stage_name: str,
@@ -1218,6 +1269,7 @@ def _record_stage_result(
     elapsed_ms: int,
     completed_pct: int,
     outcome: "StageOutcome",
+    reason_class: str = "unknown",
 ) -> bool:
     """Persiste resultado final do stage + publica evento. Retorna ``True`` se ENTREGOU. Pós-stage hook ADR-199 materializa ``PlannerReview`` se ``stage_name == review_finances_holistic``."""
     with SyncSessionLocal() as db:
@@ -1225,7 +1277,11 @@ def _record_stage_result(
         stage_log.status = _STAGE_STATUS_BY_OUTCOME[outcome]
         stage_log.duration_ms = elapsed_ms
         stage_log.completed_at = datetime.now(timezone.utc)
-        stage_log.output_summary = result.detail
+        stage_log.output_summary = (
+            result.detail
+            if outcome.delivered
+            else _summary_with_reason(result.detail, reason_class)
+        )
         if result.error:
             stage_log.errors = result.error
         elif not outcome.delivered:
@@ -1283,7 +1339,12 @@ def _execute_stages_loop(
     é propriedade do run e o finalize a lê de ``stage_logs`` (ADR-357 §3) — flag
     local mediria só esta invocação, e resume/redelivery partem o run em duas.
     """
-    from pipeline.stage_outcome import commits_artifacts_on_degrade, resolve_stage_outcome
+    from backend.app.services.pipeline import stage_failure_reason as sfr
+    from pipeline.stage_outcome import (
+        commits_artifacts_on_degrade,
+        resolve_stage_outcome,
+        stage_criticality,
+    )
 
     has_failure = False
     paused_for_review = False
@@ -1331,7 +1392,9 @@ def _execute_stages_loop(
         ctx.artifact_store = store
 
         start_mono = time.monotonic()
-        result, attempts, exc_error, exc_tb = _run_stage_with_retry(ctx, stage_name, run_stage_fn)
+        result, attempts, exc_error, exc_tb, exc_reason = _run_stage_with_retry(
+            ctx, stage_name, run_stage_fn
+        )
         elapsed_ms = int((time.monotonic() - start_mono) * 1000)
         completed_pct = int(((stage_idx + 1) / total_stages) * 100)
 
@@ -1349,8 +1412,12 @@ def _execute_stages_loop(
                 elapsed_ms,
                 progress_pct,
                 outcome,
+                exc_reason,
             )
             if outcome == "degraded":
+                _log_stage_degraded(
+                    run_id, stage_name, exc_reason, None, criticality=stage_criticality(stage_name)
+                )
                 continue
             has_failure = True
             if stop_on_error:
@@ -1376,6 +1443,11 @@ def _execute_stages_loop(
             delivered=bool(result.success),
             declared_skip=isinstance(result.detail, dict) and bool(result.detail.get("skipped")),
         )
+        reason = (
+            sfr.StageFailureReason.unknown.value
+            if outcome.delivered
+            else sfr.reason_from_stage_detail(result.detail).value
+        )
 
         if result.success:
             try:
@@ -1384,7 +1456,7 @@ def _execute_stages_loop(
                 logger.exception("artifact commit failed stage=%s: %s", stage_name, exc)
                 has_failure = True
                 _record_stage_result(
-                    run_id, stage_name, log_id, result, elapsed_ms, completed_pct, outcome
+                    run_id, stage_name, log_id, result, elapsed_ms, completed_pct, outcome, reason
                 )
                 if stop_on_error:
                     break
@@ -1412,7 +1484,12 @@ def _execute_stages_loop(
             elapsed_ms,
             completed_pct,
             outcome,
+            reason,
         )
+        if outcome == "degraded":
+            _log_stage_degraded(
+                run_id, stage_name, reason, result.detail, criticality=stage_criticality(stage_name)
+            )
         # Degradação NUNCA honra `stop_on_error`. Os 3 degradáveis são os 3
         # últimos de FULL_ORDER, nesta ordem, e o default do trigger/resume é
         # `True`: parar aqui faria degradar `generate_narratives` apagar também
