@@ -52,8 +52,13 @@ letra miúda. Para o leitor que mostra o relatório ao cônjuge, a pergunta é
 
 Já existe achado de review aberto sobre isto — **RV3-14** em
 [[REPORT-REVIEWS]] (P2, `procede-aberto`, dono `product-designer` +
-`financial-planner`): *prazo de IF impresso como fato com divergência vs
-`p50_ano_if` só em `text-xs`*. Esta lane é o destino executável dele.
+`financial-planner`): *prazo de IF impresso como fato com divergência vs o ano do
+cenário central do cone só em `text-xs`*. Esta lane é o destino executável dele.
+As chaves mudaram de nome na [[ADR-369]] (2026-08-07): o ano é
+`ano_if_cenario_central` e a probabilidade é `prob_if_ate_prazo_declarado` — que
+agora mede o prazo **declarado pela família**, não a idade que o próprio
+projetor produziu. O achado não muda; a copy que esta lane vai escrever tem um
+alvo com dono, o que era metade do problema.
 
 ### 2. O eixo é "quando", e o dado bom é "quanto"
 

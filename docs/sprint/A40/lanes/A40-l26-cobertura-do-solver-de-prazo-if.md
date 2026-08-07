@@ -80,9 +80,15 @@ refactor. Perguntas para o especialista, não para o agente:
    hoje se chama `prazo_anos_realista`.
 3. **O caso `r == 0`** é premissa legítima ou sinal de config incompleta que
    deveria virar `needs_review` em vez de projeção?
-4. **Interação com o cone:** com o ramo preenchido, `idade_meta_usada` volta a
-   existir e `prob_if_ate_idade_meta` volta a ser emitida — o que reabre o escopo
-   da [[A40.l25]]. Ordenar as duas é decisão da lane que rodar primeiro.
+4. ~~**Interação com o cone:** com o ramo preenchido, `idade_meta_usada` volta a
+   existir e `prob_if_ate_idade_meta` volta a ser emitida.~~ **Dissolvida pela
+   [[ADR-369]] D2** (#1269, 2026-08-07): as duas chaves não existem mais e a
+   probabilidade do cone **deixou de depender do solver determinístico** — ela
+   mede o prazo que a família declarou (`prob_if_ate_prazo_declarado`), cujo
+   alvo vem do Goal, não do `_solve_prazo`. Preencher os ramos faltantes muda o
+   **prazo realista** exibido e a **folga** (`declarado − determinístico`), que é
+   o que move a probabilidade — mas não ressuscita chave nenhuma nem reabre o
+   escopo da [[A40.l25]] por esta via.
 
 ## Critério de aceite
 
