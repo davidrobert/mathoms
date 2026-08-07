@@ -67,7 +67,7 @@ def _par_nativo_llm(**kw) -> list[BankStatement]:
 
 
 def _measure(statements: list[BankStatement], config=None):
-    return CrossDocumentCollapser(config).measure(statements)
+    return CrossDocumentCollapser(config).measure(statements).candidates
 
 
 def test_classe_medida_e_colapsavel_com_uma_row_removivel() -> None:

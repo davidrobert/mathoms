@@ -52,6 +52,7 @@ from pipeline.domain.services._tx_identity import (
 )
 from pipeline.domain.services.cross_document_collapse_types import (
     CollapseCandidate,
+    CollapseMeasurement,
     CollapseRemoval,
     RemovalTarget,
 )
@@ -154,6 +155,29 @@ def _collapse_key(tx: Transaction, stmt: BankStatement) -> tuple:
 
 def _key_digest(key: tuple) -> str:
     return hashlib.sha256("|".join(str(p) for p in key).encode("utf-8")).hexdigest()[:12]
+
+
+def _corpus_digests(stmts: list[BankStatement]) -> tuple[frozenset[str], frozenset[str]]:
+    """`(gate_digests, row_hashes)` de TODAS as rows — sempre sobre a lista PRÉ-poda."""
+    gates, hashes = set(), set()
+    for stmt in stmts:
+        for tx in stmt.transactions:
+            gates.add(_gate_digest_da_chave(_collapse_key(tx, stmt)))
+            hashes.add(_row_hash(tx, stmt))
+    return frozenset(gates), frozenset(hashes)
+
+
+def _survivor_hash(group: _KeyGroup) -> str:
+    """`_hash_v2` da row que sobrevive — sob a D5 é sempre uma nativa, quando há nativa."""
+    # Sem nativa o grupo não é colapsável (`_extraction_reason` exige 1 nativa + 1 LLM), mas
+    # o campo é emitido mesmo assim: string vazia é o valor honesto para "não há sobrevivente
+    # eleito", e devolver o hash de uma LLM faria a re-ancoragem apontar para a perna errada.
+    keep_native, _ = group.keep_split()
+    sobreviventes = sorted(group.native_rows, key=_row_order)[:keep_native]
+    if not sobreviventes:
+        return ""
+    stmt, tx = sobreviventes[0]
+    return _row_hash(tx, stmt)
 
 
 def _gate_digest_da_chave(key: tuple) -> str:
@@ -342,10 +366,18 @@ class CrossDocumentCollapser:
     def __init__(self, config: CrossDocumentCollapseConfig | None = None) -> None:
         self._config = config or CrossDocumentCollapseConfig()
 
-    def measure(self, statements: Iterable[BankStatement]) -> tuple[CollapseCandidate, ...]:
-        """Candidatos com ≥2 proveniências na mesma chave — ordem estável por digest."""
-        candidates = [self._candidate(group) for group in _group_by_key(statements)]
-        return tuple(sorted(candidates, key=lambda c: c.key_digest))
+    def measure(self, statements: Iterable[BankStatement]) -> CollapseMeasurement:
+        """Candidatos + corpus. Devolve o VO para que o corpus NÃO possa ser obtido depois."""
+        # Se o corpus fosse um método à parte, um caller poderia derivá-lo pós-colapso e
+        # perder exatamente as rows removidas — onde os overrides em risco ancoram.
+        stmts = list(statements)
+        candidates = [self._candidate(group) for group in _group_by_key(stmts)]
+        gates, hashes = _corpus_digests(stmts)
+        return CollapseMeasurement(
+            candidates=tuple(sorted(candidates, key=lambda c: c.key_digest)),
+            corpus_gate_digests=gates,
+            corpus_row_hashes=hashes,
+        )
 
     def _targets(self, group: _KeyGroup, card: int) -> tuple[RemovalTarget, ...]:
         """Um alvo por BUCKET de proveniência, sobrevivente **native-first**."""
@@ -373,6 +405,7 @@ class CrossDocumentCollapser:
         return CollapseCandidate(
             key_digest=_key_digest(group.key),
             gate_digest=_gate_digest_da_chave(group.key),
+            survivor_hash=_survivor_hash(group),
             mes=str(group.key[0])[:7],
             valor_cents=int(group.key[1]),
             moeda=str(group.key[2]),
@@ -389,9 +422,7 @@ class CrossDocumentCollapser:
 
     def collapse(
         self, statements: Iterable[BankStatement]
-    ) -> tuple[
-        tuple[BankStatement, ...], tuple[CollapseCandidate, ...], tuple[CollapseRemoval, ...]
-    ]:
+    ) -> tuple[tuple[BankStatement, ...], CollapseMeasurement, tuple[CollapseRemoval, ...]]:
         """Mede **e** remove, no MESMO passo — identidade de row é identidade de objeto."""
         # Não existe endereço serializado de row (e nenhum `_hash_v3`): o measure e o
         # agrupamento rodam sobre a MESMA lista, no mesmo processo, então selecionar
@@ -400,8 +431,13 @@ class CrossDocumentCollapser:
         stmts = list(statements)
         groups = _group_by_key(stmts)
         candidates = tuple(sorted((self._candidate(g) for g in groups), key=lambda c: c.key_digest))
+        # PRÉ-poda, e por isso derivado ANTES do `_apply` — ver `CollapseMeasurement`.
+        gates, hashes = _corpus_digests(stmts)
         drop = self._rows_to_drop(groups)
-        return (self._apply(stmts, drop), candidates, _removals_by_source(drop))
+        medicao = CollapseMeasurement(
+            candidates=candidates, corpus_gate_digests=gates, corpus_row_hashes=hashes
+        )
+        return (self._apply(stmts, drop), medicao, _removals_by_source(drop))
 
     def _rows_to_drop(self, groups: list[_KeyGroup]) -> list[_Row]:
         """Rows a remover, escolhidas por ORDEM TOTAL DE CONTEÚDO (posição desempata)."""

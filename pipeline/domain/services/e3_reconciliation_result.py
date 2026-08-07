@@ -9,11 +9,12 @@ adapter é outra (como ele produz).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from pipeline.domain.review_reason import ReviewReason
 from pipeline.domain.services.baseline_validator import BaselineDiffWarning
+from pipeline.domain.services.cross_document_collapse_types import CollapseMeasurement
 from pipeline.domain.services.cross_document_collapser import CollapseCandidate
 from pipeline.domain.services.e3_load_report import (
     EmptyInstitutionWarning,
@@ -66,6 +67,8 @@ class ReconciliationStoreResult:
     fatura_cross_results: tuple[FaturaCrossResult, ...] = ()  # ADR-350 PR1 measure-only
     # ADR-354 §Emenda PR1 measure-only — candidatos a colapso cross-documento.
     collapse_candidates: tuple[CollapseCandidate, ...] = ()
+    # ADR-364 — corpus PRÉ-poda para o gate de override; ver `CollapseMeasurement`.
+    collapse_measurement: CollapseMeasurement = field(default_factory=CollapseMeasurement)
 
     def to_dict(self) -> dict[str, Any]:
         """Forma plana — útil para asserts em testes e logs estruturados."""
