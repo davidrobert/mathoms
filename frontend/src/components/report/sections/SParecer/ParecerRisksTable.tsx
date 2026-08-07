@@ -17,23 +17,37 @@ const SEVERIDADE_RANK: Record<Severidade, number> = {
   Baixa: 3,
 };
 
+// `token` pinta ícone, `border-left` e tint — todos decorativos (o ícone é
+// `aria-hidden` e a severidade também é texto), onde 3:1 basta. `textToken` é o
+// RÓTULO, que precisa de 4,5:1 a 10px. Só Média divergia: `--semantic-alert`
+// sobre o próprio tint dá 1,97 em light (medido por axe ao dar cobertura a
+// `ParecerBody` — A40.l22). Crítica/Alta 5,84 e Baixa 5,25 já passavam, e
+// mantêm `textToken = token` para a triagem por cor continuar de pé.
 const SEVERIDADE_TONE: Record<
   Severidade,
-  { token: string; Icon: typeof Info; label: string }
+  { token: string; textToken: string; Icon: typeof Info; label: string }
 > = {
   Crítica: {
     token: "var(--semantic-loss)",
+    textToken: "var(--semantic-loss)",
     Icon: AlertOctagon,
     label: "Crítica",
   },
-  Alta: { token: "var(--semantic-loss)", Icon: AlertOctagon, label: "Alta" },
+  Alta: {
+    token: "var(--semantic-loss)",
+    textToken: "var(--semantic-loss)",
+    Icon: AlertOctagon,
+    label: "Alta",
+  },
   Média: {
     token: "var(--semantic-alert)",
+    textToken: "var(--report-alert-warning-text)",
     Icon: AlertTriangle,
     label: "Média",
   },
   Baixa: {
     token: "var(--semantic-info-financial)",
+    textToken: "var(--semantic-info-financial)",
     Icon: Info,
     label: "Baixa",
   },
@@ -185,7 +199,7 @@ function RiscoRow({ risco }: { risco: Risco }) {
           </p>
           <span
             className="shrink-0 text-[10px] font-medium uppercase tracking-wide"
-            style={{ color: tone.token }}
+            style={{ color: tone.textToken }}
           >
             {tone.label}
           </span>

@@ -112,6 +112,21 @@ function parecerContent() {
     section_id: "S4",
     confianca: "media",
   });
+  // Uma sugestão por prioridade: `PRIORIDADE_TONE` tem 3 membros e o rótulo P1
+  // era o que falhava contraste. Fixture com um só valor deixaria o gate de
+  // a11y verde por AUSÊNCIA do caso, não por correção (A40.l22).
+  const sugestao = (prioridade: string, acao: string) => ({
+    prioridade,
+    acao,
+    impacto_qualitativo: "Reduz exposição concentrada sem alterar a liquidez.",
+    tema_canonico: "Alocação",
+    confianca: "media",
+    section_id: "S4",
+    suggestion_dedup_key: prioridade.toLowerCase().repeat(32).slice(0, 64),
+    impacto_estimado: null,
+    evidencia_path: null,
+    ancoras: [],
+  });
   return {
     version: "1.0",
     diagnostico_geral:
@@ -124,10 +139,15 @@ function parecerContent() {
         section_id: "S1",
       },
     ],
-    riscos: [risco("Concentração de ativos acima do teto"), risco("Cobertura de seguro insuficiente")],
-    sugestoes_execucao: [],
-    sugestoes_taticas: [],
-    sugestoes_estrategicas: [],
+    // Uma de cada severidade que renderiza no top-5: Crítica e Média cobrem os
+    // dois `textToken` distintos de `SEVERIDADE_TONE`.
+    riscos: [
+      { ...risco("Concentração de ativos acima do teto"), severidade: "Crítica" },
+      risco("Cobertura de seguro insuficiente"),
+    ],
+    sugestoes_execucao: [sugestao("P0", "Redistribuir 15% da posição concentrada")],
+    sugestoes_taticas: [sugestao("P1", "Revisar o capital segurado do titular")],
+    sugestoes_estrategicas: [sugestao("P2", "Avaliar previdência complementar")],
     metricas: [],
     notas_metodologicas: [],
     meta,

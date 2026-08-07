@@ -32,6 +32,14 @@ const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
 const THEMES = ["light", "dark"] as const;
 type Theme = (typeof THEMES)[number];
 
+/** A40.l22 — os 2 estados de degradação de `S_parecer`.
+ *
+ * `S_parecer` fica FORA de `STRATEGIC_SECTIONS` acima de propósito: no estado
+ * default (404) a seção é um empty state de 3 linhas, e uma baseline dele não
+ * detectaria nada. O que muda de fato é o DOM dos estados novos.
+ */
+const PARECER_STATES = ["retido", "parcial"] as const;
+
 async function setupReport(page: Page, theme: Theme): Promise<void> {
   // next-themes lê localStorage key="theme" antes do mount — injetar
   // ANTES de qualquer goto evita flash light → dark no snapshot.
@@ -53,6 +61,8 @@ async function snapshotSection(
   page: Page,
   sectionId: string,
   theme: Theme,
+  /** A40.l22 — nome da baseline quando a MESMA seção tem >1 estado. */
+  baselineId: string = sectionId,
 ): Promise<void> {
   const selector = `section#${sectionId}[data-report-section]`;
   const exists = await page.locator(selector).count();
@@ -62,7 +72,7 @@ async function snapshotSection(
   }
   await page.locator(selector).scrollIntoViewIfNeeded();
   await expect(page.locator(selector)).toHaveScreenshot(
-    `${sectionId}.${theme}.png`,
+    `${baselineId}.${theme}.png`,
     {
       // Tolerância proporcional — chart.js canvas tem não-determinismo
       // inerente entre runs no mesmo runner Linux (~1-2% da imagem em
@@ -122,3 +132,30 @@ test.describe("Snapshots — cover (hero)", () => {
 
 // ADR-168 (A8.4 PR4): Modo USA removido — bloco USA `test.describe` deletado.
 // Modo Estratégico cobre 100% do relatório.
+
+// ─── A40.l22 · S_parecer degradado ─────────────────────────────────────
+
+test.describe("Snapshots — S_parecer degradado", () => {
+  for (const theme of THEMES) {
+    for (const estado of PARECER_STATES) {
+      test(`S_parecer ${estado} — ${theme}`, async ({ page }) => {
+        await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
+        const { workspaceId, reportId } = await mockReportPage(page, {
+          plannerReview: estado,
+        });
+        await page.setViewportSize(VIEWPORT);
+        await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+        await waitForReportReady(page);
+        // Controle positivo: sem isto, um estado que não montou geraria
+        // baseline do empty state e o gate ficaria verde sobre o DOM errado.
+        await page.waitForSelector(
+          estado === "retido"
+            ? '[data-testid="parecer-retained"]'
+            : '[data-testid="parecer-retencao-parcial"]',
+          { timeout: 5_000 },
+        );
+        await snapshotSection(page, "S_parecer", theme, `S_parecer-${estado}`);
+      });
+    }
+  }
+});
