@@ -569,9 +569,13 @@
     "ano_if_cenario_central_censurado": false,
     "ano_if_cenario_adverso": null,
     "ano_if_cenario_adverso_censurado": true,
-    "prob_if_ate_idade_meta": 0.31,
+    "prob_if_ate_prazo_declarado": 0.31,
+    "prazo_declarado_anos": 15,
+    "ano_alvo_declarado": 2041,
+    "declarado_em": "2026-03-01",
+    "prazo_declarado_truncado": false,
+    "motivo_sem_prazo_declarado": null,
     "prob_if_ate_horizonte_simulado": 0.8821,
-    "idade_meta_usada": 60,
     "sigma_usado": 0.15,
     "exibir_cone": true,
     "aporte_mensal_usado": 5000.0,
@@ -654,7 +658,7 @@
         2500000
       ]
     ],
-    "mc_version": "4.0",
+    "mc_version": "5.0",
     "seed_usado": 360,
     "n_simulacoes_usado": 50000,
     "horizonte_simulado_anos": 40

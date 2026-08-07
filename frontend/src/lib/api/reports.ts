@@ -274,12 +274,22 @@ export interface IFMonteCarloData {
   ano_if_cenario_central_censurado?: boolean;
   ano_if_cenario_adverso?: number | null;
   ano_if_cenario_adverso_censurado?: boolean;
-  /** `null` quando a projeção determinística não produziu idade-meta: sem
-   * alvo não há "probabilidade até a idade X". O cone independe dos dois. */
-  prob_if_ate_idade_meta: number | null;
+  /** ADR-369 D2 — P(cumprir o PRAZO QUE A FAMÍLIA DECLAROU), não a idade que o
+   * projetor determinístico produziu. `null` nos três estados de ausência
+   * (prazo não declarado, prazo vencido, artefato de contrato anterior), sempre
+   * com `motivo_sem_prazo_declarado`. Publicar 0% seria correto e inútil. */
+  prob_if_ate_prazo_declarado?: number | null;
+  prazo_declarado_anos?: number | null;
+  /** Ano absoluto do alvo — a data da declaração + o prazo declarado. */
+  ano_alvo_declarado?: number | null;
+  /** ISO date em que a família declarou o prazo (`Goal.effective_from`). */
+  declarado_em?: string | null;
+  /** Prazo declarado excede a janela simulada: a probabilidade publicada é a da
+   * janela, portanto um PISO — truncar só remove sucessos, nunca adiciona. */
+  prazo_declarado_truncado?: boolean;
+  motivo_sem_prazo_declarado?: string | null;
   /** Taxa de sucesso na janela SIMULADA (base cheia) — decide a censura. */
   prob_if_ate_horizonte_simulado?: number;
-  idade_meta_usada: number | null;
   sigma_usado: number;
   exibir_cone: boolean;
   /** ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje). */

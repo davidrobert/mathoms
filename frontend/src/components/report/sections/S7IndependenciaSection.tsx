@@ -182,17 +182,31 @@ function IFMonteCarloBlock({
             {" "}sem aporte mensal — só o patrimônio atual compondo.
           </>
         )}
-        {/* Idade-meta ausente (projeção determinística sem prazo): omite a
-            cláusula em vez de escrever "até a idade 1040". */}
-        {monteCarloIF.idade_meta_usada != null &&
-          monteCarloIF.prob_if_ate_idade_meta != null && (
+        {/* ADR-369 D2 — a data é da família, não nossa: a legenda nomeia o
+            prazo declarado e o ano que ele fixa. Sem prazo declarado a cláusula
+            some (o `motivo` vive no payload); publicar "0%" seria correto e
+            inútil. */}
+        {monteCarloIF.prob_if_ate_prazo_declarado != null &&
+          monteCarloIF.prazo_declarado_anos != null && (
             <>
               {" "}
-              Probabilidade de atingir IF até a idade{" "}
-              {monteCarloIF.idade_meta_usada}:{" "}
+              Probabilidade de atingir IF dentro dos{" "}
+              {monteCarloIF.prazo_declarado_anos} anos que você declarou
+              {monteCarloIF.ano_alvo_declarado != null && (
+                <> (até {monteCarloIF.ano_alvo_declarado})</>
+              )}
+              :{" "}
               <strong>
-                {formatProbability(monteCarloIF.prob_if_ate_idade_meta)}
+                {formatProbability(monteCarloIF.prob_if_ate_prazo_declarado)}
               </strong>
+              {monteCarloIF.prazo_declarado_truncado === true && (
+                <>
+                  {" "}
+                  — piso, porque a simulação cobre{" "}
+                  {monteCarloIF.horizonte_simulado_anos ?? 40} anos e o prazo
+                  declarado é maior
+                </>
+              )}
             </>
           )}
       </p>
