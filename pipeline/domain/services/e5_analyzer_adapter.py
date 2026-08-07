@@ -93,6 +93,7 @@ from pipeline.domain.services.fluxo_caixa_enricher import (
 from pipeline.domain.services.if_monte_carlo import (
     IFMonteCarloConfig,
     MonteCarloIFResult,
+    PrazoDeclarado,
     run_monte_carlo_if,
 )
 from pipeline.domain.services.if_projector import (
@@ -586,7 +587,7 @@ class E5AnalyzerAdapter:
                 investivel=float(patrimonio_full.get("investivel_efetivo", 0))
             )
 
-        # 7b. Monte Carlo IF — cone P10/P50/P90 (N3).
+        # 7b. Monte Carlo IF — cone de cenários (N3).
         monte_carlo_if: MonteCarloIFResult | None = None
         if if_projection is not None and self._if_projector_config is not None:
             _cfg = self._if_projector_config
@@ -597,17 +598,10 @@ class E5AnalyzerAdapter:
                 retorno_real_esperado=_cfg.retorno_real_anual_pct / 100.0,
                 aporte_mensal=Decimal(str(max(0.0, _cfg.aporte_mensal))),
             )
-            _idade_atual = (self._reference_date.year - _cfg.titular_dob.year) - (
-                1
-                if (self._reference_date.month, self._reference_date.day)
-                < (_cfg.titular_dob.month, _cfg.titular_dob.day)
-                else 0
-            )
             monte_carlo_if = run_monte_carlo_if(
                 _mc_cfg,
                 ano_base=self._reference_date.year,
-                idade_titular_atual=_idade_atual,
-                idade_meta_if=if_projection.idade_titular_if,
+                prazo_declarado=_prazo_declarado_do_goal(_cfg),
             )
 
         # 8. Reserva emergência (FORMULAS.md §Reserva · A28.l1) — item-level
@@ -982,6 +976,25 @@ _ME_KEYWORDS_GENERIC: tuple[str, ...] = (
     "deposito em moeda nacional decorrente de moeda",
     "moeda nacional decorrente",
 )
+
+
+# ADR-369 D2 — o alvo do Monte Carlo é o prazo que a FAMÍLIA declarou, ancorado
+# em ano absoluto. Antes o adapter passava `if_projection.idade_titular_if`, a
+# saída do projetor determinístico, e a métrica publicada media P(o modelo bater
+# a data que ele mesmo imprimiu). Um teste por AST trava a expressão deste
+# kwarg: asserção sobre o valor deixaria um refactor reintroduzir a derivação
+# com o teste verde.
+def _prazo_declarado_do_goal(cfg: IFProjectorConfig) -> PrazoDeclarado | None:
+    """``None`` quando ninguém declarou prazo — o MC emite ausência com motivo."""
+    if cfg.prazo_declarado_pendente or cfg.prazo_declarado_anos is None:
+        return None
+    if not cfg.prazo_declarado_em:
+        return None
+    return PrazoDeclarado(
+        anos=cfg.prazo_declarado_anos,
+        ano_alvo=int(cfg.prazo_declarado_em[:4]) + cfg.prazo_declarado_anos,
+        declarado_em=cfg.prazo_declarado_em,
+    )
 
 
 def _distribuicao_pj_signal_from_fluxo(fluxo_legacy: dict) -> DistribuicaoPJSignal | None:

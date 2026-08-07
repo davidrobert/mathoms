@@ -18,7 +18,8 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Mapping
 
-from pipeline.domain.services.if_monte_carlo import MonteCarloIFResult, monte_carlo_to_dict
+from pipeline.domain.services.if_monte_carlo import MonteCarloIFResult
+from pipeline.domain.services.if_monte_carlo_payload import monte_carlo_to_dict
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
 
 _logger = logging.getLogger("mathoms.pipeline.e5_serialization")
