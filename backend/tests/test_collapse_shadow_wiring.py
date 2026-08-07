@@ -93,3 +93,87 @@ def test_store_que_nao_e_db_fica_inerte(store):
     from scripts.reconcile_transactions import _e3_build_collapser
 
     assert _e3_build_collapser(_Ctx("ws-qualquer"), store) is None
+
+
+# ─── PR3b: o gate de pré-condição por run (ADR-364 §5) ──────────────────────────────────
+#
+# Mesmo elo, um andar acima: o gate exige `DBArtifactStore` pelas MESMAS duas razões (sessão
+# real + workspace), então nenhum teste do pipeline o alcança. Sem os testes abaixo o PR3b
+# poderia shipar com o gate escrito, testado em unidade, e **nunca chamado em produção** — o
+# defeito que esta sprint já pagou em outra lane (diff verde, runtime morto).
+
+
+class _Medicao:
+    def __init__(self, candidates=(), corpus=frozenset()):
+        self.candidates = candidates
+        self.corpus_gate_digests = corpus
+
+
+class _Resultado:
+    def __init__(self, medicao):
+        self.collapse_measurement = medicao
+
+
+def _gate_com_store(ws_id, run_id, medicao):
+    """Roda o gate sobre um ``DBArtifactStore`` real, como o stage faz."""
+    from scripts.reconcile_transactions import _e3_collapse_precondition
+
+    def _rodar(sync_conn):
+        with Session(sync_conn) as s:
+            store = DBArtifactStore(s, workspace_id=ws_id, pipeline_run_id=run_id)
+            return _e3_collapse_precondition(_Ctx(ws_id), store, _Resultado(medicao))
+
+    return _rodar
+
+
+# Sem override no workspace não há o que órfãnar; o que este teste trava é que o gate *rodou*
+# em produção e emitiu as cláusulas — não o veredito.
+@pytest.mark.asyncio
+async def test_gate_roda_com_db_artifact_store_e_devolve_relatorio(db: AsyncSession):
+    """O elo de produção do gate: store real + workspace real ⇒ relatório PII-free."""
+    ws_id, run_id = await _seed(db)
+
+    relatorio = await _com_store(
+        db, _gate_com_store(ws_id, run_id, _Medicao(corpus={"digest-qualquer"}))
+    )
+
+    assert relatorio is not None, "gate INERTE em produção — o composition root não o alcança"
+    assert relatorio["medido"] is True
+    assert relatorio["corpus_observado"] == 1
+    assert "clausulas_reprovadas" in relatorio
+
+
+@pytest.mark.asyncio
+async def test_sem_medicao_o_gate_nao_emite_relatorio(db: AsyncSession):
+    """Corpus vazio = flag off. Ausência é o sinal honesto; relatório vazio mentiria."""
+    ws_id, run_id = await _seed(db)
+
+    assert await _com_store(db, _gate_com_store(ws_id, run_id, _Medicao())) is None
+
+
+@pytest.mark.parametrize("store", [None, object()])
+def test_gate_nao_roda_sem_store_de_db(store):
+    """`InMemoryArtifactStore` não tem `.session` — o golden não pode estourar aqui."""
+    from scripts.reconcile_transactions import _e3_collapse_precondition
+
+    resultado = _Resultado(_Medicao(corpus={"digest-qualquer"}))
+
+    assert _e3_collapse_precondition(_Ctx("ws-qualquer"), store, resultado) is None
+
+
+def test_main_with_store_chama_o_gate_e_anexa_ao_detail():
+    """AST: o composition root chama o gate E o resultado entra no dict que vira
+    ``output_summary``. Asserção sobre o service provaria o gate, não a fiação."""
+    import ast
+    from pathlib import Path
+
+    fonte = Path(__file__).resolve().parents[2] / "scripts" / "reconcile_transactions.py"
+    corpo = next(
+        n
+        for n in ast.walk(ast.parse(fonte.read_text(encoding="utf-8")))
+        if isinstance(n, ast.FunctionDef) and n.name == "main_with_store"
+    )
+    trecho = ast.dump(corpo)
+
+    assert "_e3_collapse_precondition" in trecho, "gate removido do composition root"
+    assert "collapse_precondition" in trecho, "relatório não chega ao detail/output_summary"

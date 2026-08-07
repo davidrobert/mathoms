@@ -379,7 +379,10 @@ class CrossDocumentCollapser:
             corpus_row_hashes=hashes,
         )
 
-    def _targets(self, group: _KeyGroup, card: int) -> tuple[RemovalTarget, ...]:
+    # O parâmetro `card` saiu daqui: era assinatura mentindo sobre a fonte do corte. O corpo
+    # já derivava tudo de `keep_split()`, e manter um segundo canal para a cardinalidade é
+    # exatamente a forma do bug do D5 — duas cópias da mesma fórmula, uma delas atualizada.
+    def _targets(self, group: _KeyGroup) -> tuple[RemovalTarget, ...]:
         """Um alvo por BUCKET de proveniência, sobrevivente **native-first**."""
         # Sobrevivem `card` rows, preenchidas primeiro pela perna nativa (invariante
         # de domínio: o kind do sobrevivente nunca vem da perna LLM — eleger a LLM
@@ -401,7 +404,7 @@ class CrossDocumentCollapser:
 
     def _candidate(self, group: _KeyGroup) -> CollapseCandidate:
         reason = self._blocked_reason(group)
-        targets = () if reason else self._targets(group, group.survivor_cardinality)
+        targets = () if reason else self._targets(group)
         return CollapseCandidate(
             key_digest=_key_digest(group.key),
             gate_digest=_gate_digest_da_chave(group.key),
