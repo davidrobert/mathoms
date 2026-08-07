@@ -1,7 +1,9 @@
 # Orquestrador — Sprint A40 "Report trust": fechamento das 3 P0 pegáveis
 
 > **Escopo:** [[A40.l2]] (restante) + [[A40.l20]] (restante) + [[A40.l22]].
-> **Criado:** 2026-08-07, contra `main @ b8460274`.
+> **Criado:** 2026-08-07, contra `main @ 2571f203`. Os números de linha citados
+> abaixo foram **reverificados** nesse commit — se `main` andou, reverifique-os
+> antes de confiar (o mecanismo continua válido; o endereço, não necessariamente).
 > **Uso:** cole o bloco inteiro no início da sessão, ou a §Frente que for pegar.
 > Cada frente é **1 branch, 1 PR, 1 agente**. Nunca funda duas frentes num PR.
 
@@ -45,6 +47,12 @@ As três são **P0** e as únicas P0 pegáveis da A40. Estado em 2026-08-07:
 > `status: blocked` (dep satisfeita há 1 dia). É o modo de falha que o próprio
 > §Predicado registra: ninguém flipa o campo no merge da dependência. Corrigir
 > isso é PR docs-only de 3 linhas e **não pertence a nenhuma das 3 frentes**.
+
+**Contexto de 2026-08-07, tarde:** [[A40.l30]], [[A40.l27]] e [[A40.l28]] shipparam
+em sequência (#1260-#1270, com a [[ADR-368]] e a [[ADR-369]]). São **P1** e não
+tocam nenhuma das três frentes abaixo — mas mudam a fila do nível 1: sobram
+[[A40.l10]] PR3, [[A40.l32]] e [[A40.l25]]. E a [[A40.l8]], que a l30 gateava,
+está liberada.
 
 **Paralelismo:** as três tocam árvores disjuntas (E3/backend-ops · orquestrador ·
 frontend+PDF). Rodam em paralelo sem merge-hell. **Ordem, se houver 1 slot só:**
