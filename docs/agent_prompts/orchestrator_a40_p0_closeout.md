@@ -9,7 +9,34 @@
 
 ---
 
-## 0. Antes de qualquer coisa
+## 0. Comando de arranque (cole isto numa sessão nova)
+
+Uma frente por sessão. Troque **`<FRENTE>`** por `A`, `B` ou `C`:
+
+```
+Leia docs/agent_prompts/orchestrator_a40_p0_closeout.md e execute a Frente <FRENTE>.
+
+Regras: rode o §1 antes de qualquer edição — inclusive os 2 checks de pickup e a
+reverificação dos números de linha citados (main anda várias vezes por dia).
+O prompt é roteador; a lane em docs/sprint/A40/lanes/ é fonte de verdade, e onde
+divergirem, a lane vence — me avise da divergência em 1 linha.
+Se a §"medir antes de editar" da sua frente existir, o resultado da medição entra
+no PR mesmo que confirme o esperado.
+Não funda frentes: 1 branch, 1 PR. Pare e me pergunte se o escopo crescer para
+fora da §Aceite da frente.
+```
+
+- **Frente A** = [[A40.l2]], restante do PR3b (a mais longa; dita o ritmo da sprint)
+- **Frente B** = [[A40.l20]] PR2 (a menor; comece por medir as portas)
+- **Frente C** = [[A40.l22]] (frontend + PDF; bloqueador do beta)
+
+As três rodam em paralelo em worktrees separados:
+
+```bash
+git worktree add ../mathoms-a40-l2 -b agent/a40-l2-3b/$(date +%Y%m%d-%H%M) origin/main
+```
+
+## 1. Antes de qualquer coisa
 
 ```bash
 git fetch origin && git status && git worktree list
@@ -30,7 +57,7 @@ verdade, este arquivo é roteador + estado medido.
 
 ---
 
-## 1. Por que estas três, e por que agora
+## 2. Por que estas três, e por que agora
 
 As três são **P0** e as únicas P0 pegáveis da A40. Estado em 2026-08-07:
 
@@ -42,11 +69,11 @@ As três são **P0** e as únicas P0 pegáveis da A40. Estado em 2026-08-07:
   §Gate de saída, o contador de 2 re-runs consecutivos **só inicia quando a l2
   estiver terminal**. Nenhuma outra lane muda essa data.
 
-> ⚠️ **Frontmatter stale, medido hoje — não use `SPRINT_CURRENT` como verdade
-> aqui.** `A40.l18` ainda diz `status: open` (mergeada) e `A40.l22` ainda diz
-> `status: blocked` (dep satisfeita há 1 dia). É o modo de falha que o próprio
-> §Predicado registra: ninguém flipa o campo no merge da dependência. Corrigir
-> isso é PR docs-only de 3 linhas e **não pertence a nenhuma das 3 frentes**.
+> ✅ **Frontmatter corrigido em 2026-08-07** (PR docs-only): `A40.l18` → `shipped`,
+> `A40.l22` → `open`. Durante ~1 dia as duas mentiram em sentidos opostos e as
+> duas eram P0 — registro em `_README` §Predicado, Delta 2026-08-07. Se você
+> encontrar divergência nova entre `status` e `origin/main`, é o mesmo defeito
+> (flip manual sem gate), não um caso novo.
 
 **Contexto de 2026-08-07, tarde:** [[A40.l30]], [[A40.l27]] e [[A40.l28]] shipparam
 em sequência (#1260-#1270, com a [[ADR-368]] e a [[ADR-369]]). São **P1** e não
@@ -60,7 +87,7 @@ l2 → l20 → l22.
 
 ---
 
-## 2. Regras que valem nas três frentes
+## 3. Regras que valem nas três frentes
 
 - **CLAUDE.md manda**, sempre. Branch `agent/*`, Conventional Commits, squash,
   sem `--no-verify`, sem push em `main`, sem `--admin`.
@@ -85,11 +112,11 @@ l2 → l20 → l22.
 
 ---
 
-## 3. Frente A — [[A40.l2]], restante do PR3b (o gate da pré-condição)
+## 4. Frente A — [[A40.l2]], restante do PR3b (o gate da pré-condição)
 
 **Branch:** `agent/a40-l2-3b/<ts>` · **P0** · a mais longa das três.
 
-### Estado medido em `main @ b8460274` (não re-derive)
+### Estado medido em `main @ 2571f203` (não re-derive)
 
 | Sub-PR | Estado |
 |---|---|
@@ -175,7 +202,7 @@ ele define. Ao mergear, **abra o brief do 3c2 junto** — ele é o long pole rea
 
 ---
 
-## 4. Frente B — [[A40.l20]] PR2 (wire-up no orquestrador)
+## 5. Frente B — [[A40.l20]] PR2 (wire-up no orquestrador)
 
 **Branch:** `agent/a40-l20-pr2/<ts>` · **P0** · a menor das três.
 
@@ -234,7 +261,7 @@ na mesma copy que mente → **destino [[A40.l22]]**.
 
 ---
 
-## 5. Frente C — [[A40.l22]] (superfície de degradação, inclusive PDF)
+## 6. Frente C — [[A40.l22]] (superfície de degradação, inclusive PDF)
 
 **Branch:** `agent/a40-l22-superficie-degradacao/<ts>` · **P0** ·
 **bloqueador de fato do beta** (6ª classe do §Gate de saída).
@@ -298,7 +325,7 @@ de `sleep`.
 
 ---
 
-## 6. Definition of done (as três)
+## 7. Definition of done (as três)
 
 Uma frente **só está concluída** quando o PR está **mergeado em `main` via
 squash** com CI verde (`gh pr view <N> --json mergeCommit,mergedAt`). PR aberto
@@ -321,7 +348,7 @@ python3 dev/build_doc_index.py --check
 
 ---
 
-## 7. O que NÃO fazer
+## 8. O que NÃO fazer
 
 - **Não funda frentes.** Três lanes, três PRs. A l2 sozinha já é multi-PR.
 - **Não pine número como alvo** (`593`, `411`, `261`). O alvo é a **regra**;
@@ -336,7 +363,7 @@ python3 dev/build_doc_index.py --check
 
 ---
 
-## 8. Referências
+## 9. Referências
 
 - Lanes: [[A40.l2]] · [[A40.l20]] · [[A40.l22]]
 - Sprint: [`docs/sprint/A40/_README.md`](../sprint/A40/_README.md) §Gate de saída ·

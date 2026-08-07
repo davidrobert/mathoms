@@ -4,7 +4,7 @@ type: lane
 title: "Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P0
 branch_slug: a40-l18-criticidade-de-stage
 adrs:
@@ -14,7 +14,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/backend
@@ -33,9 +33,17 @@ tags:
 > manda **reverter a l21** (e o PR1 da [[A40.l20]]) se esta lane não mergear até
 > `date_target: 2026-08-17`.
 >
-> ## 🚧 Estado em 2026-08-07 — **PR2 completo em [#1258](https://github.com/davidrobert/mathoms/pull/1258), aguardando review**
+> ## ✅ Estado em 2026-08-07 — **lane `shipped`; PR2 mergeado em [#1258](https://github.com/davidrobert/mathoms/pull/1258) (`b8460274`)**
 >
-> `status: open` até o merge. Os 8 commits do PR2 cobrem o §Critério de aceite
+> A regra que esta seção declarava — *"`status: open` até o merge"* — foi
+> cumprida com atraso de campo: o merge saiu às 14h e o `status` só flipou às
+> 18h, na varredura que também achou o `blocked` stale da [[A40.l22]]. **Os dois
+> sentidos do §Predicado falharam no mesmo dia e pelo mesmo motivo** — o flip é
+> manual e ninguém o faz no merge. Registrado aqui como terceira instância, que é
+> o que autoriza gastar as ~10 linhas do gate derivável de `depends_on` +
+> `status` (candidato: [[A40.l23]]).
+>
+> Os 8 commits do PR2 cobrem o §Critério de aceite
 > inteiro **e** as duas condições de merge do §Decisões do dono:
 >
 > | Commit | O que entrega |
@@ -61,8 +69,10 @@ tags:
 > ## 📋 Co-design de 2026-08-07 — decisões que o escopo "fechado" não previa
 >
 > Painel de 4 especialistas sobre 14 questões que uma recon de medição expôs
-> (várias afirmações dos docs refutadas). O que ficou decidido e **ainda não
-> implementado**:
+> (várias afirmações dos docs refutadas). O que ficou decidido — **todos
+> implementados no PR2**, exceto o índice parcial, que foi decidido *como
+> dívida com gatilho* e não como entrega (o texto abaixo era "ainda não
+> implementado" e ficou stale entre a decisão e o merge do mesmo dia):
 >
 > - **`CleanBar`:** `return null`, com os guards **invertidos** —
 >   `if (signals.count > 0) return <SignalsAlert/>; if (runDegraded) return null;`

@@ -267,6 +267,21 @@ l22 seguem P0.
 > Reforça o §"Sem gate, isto é convenção e não garantia" acima — o gate derivável
 > de `depends_on` + `status` pega **os dois** sentidos, e continua não roteado.
 
+> **Delta 2026-08-07 — os DOIS sentidos falharam no mesmo dia, e isso fecha o
+> argumento do gate.** A [[A40.l18]] mergeou (`b8460274`/#1258, PR2) e ficou
+> `open` por 4h; a [[A40.l22]] teve seu bloqueador satisfeito em 06/08 (o **PR1**
+> da [[A40.l20]], `0301f7a0`/#1250) e ficou `blocked` por um dia. Uma mentia para
+> cima, a outra para baixo — **as duas P0**, as duas invisíveis ou fantasma no
+> `SPRINT_CURRENT`, e nenhuma detectada por leitura do vault: as duas só
+> apareceram numa varredura que cruzou `status` do frontmatter com commits de
+> `origin/main`. Corrigidas em 2026-08-07.
+>
+> O §Delta de 2026-08-06 já havia previsto o sentido `blocked`; a novidade é a
+> **simetria**, e ela é o que converte "convenção" em dívida datada: três
+> instâncias em dois dias, todas no mesmo campo, todas por flip manual que
+> ninguém faz no merge. O gate derivável de `depends_on` + `status` pega os dois
+> sentidos em ~10 linhas. **Continua não roteado** — candidato segue [[A40.l23]].
+
 **Sem gate, isto é convenção e não garantia** — mesma família da lição registrada
 na emenda da [[ADR-111]] (*afirmação de audit sem gate é dívida*). O predicado do
 `open` é derivável de `depends_on` + `status`, portanto gateável em ~10 linhas; a

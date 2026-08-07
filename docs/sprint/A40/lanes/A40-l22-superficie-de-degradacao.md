@@ -4,7 +4,7 @@ type: lane
 title: "Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF"
 sprint: A40
 plan: PLAN-report-trust
-status: blocked
+status: open
 priority: P0
 branch_slug: a40-l22-superficie-de-degradacao
 adrs: []
@@ -13,20 +13,30 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/blocked
+  - status/open
   - priority/p0
   - area/frontend
 ---
 
 # A40.l22 — `superficie-de-degradacao`
 
-> 🚧 **Bloqueada pelo PR1 da [[A40.l20]]** (2026-08-03; gatilho precisado em
-> 2026-08-05) — não é pegável até o **contrato** do desfecho gerado-e-retido
-> existir no modelo e na API (l20 §Sequência de entrega, PR1). **Não** espera o
-> PR2 (wire-up no orquestrador, atrás da [[A40.l18]]): esta lane consome estado e
-> contadores, que o PR1 entrega, e testa por fixture. `blocked` e não `open` pelo
-> §Predicado do campo `status` do [`_README`](../_README.md): dep pendente, sem
-> amarra de entrega parcial. Segue **P0** e **bloqueador de fato do beta**.
+> 🔓 **Desbloqueada em 2026-08-06, campo corrigido em 2026-08-07.** O gatilho
+> declarado era o **PR1** da [[A40.l20]] — não o PR2 —, e ele mergeou em
+> `0301f7a0`/#1250. Esta lane consome **estado e contadores**, que o PR1 entrega,
+> e testa por fixture; o wire-up no orquestrador (PR2 da l20) não a gateia.
+>
+> `open`, não `in_progress`: ninguém a pegou ainda, e `in_progress` a faria
+> parecer tomada. O `depends_on` continua apontando para a [[A40.l20]] — que não
+> é terminal —, e é a **2ª cláusula** do §Predicado do campo `status` do
+> [`_README`](../_README.md) que sustenta o `open`: amarra explícita de entrega
+> parcial, escrita neste blockquote. Mesma forma da [[A40.l27]] e da própria l20.
+> Segue **P0** e **bloqueador de fato do beta**.
+>
+> ⚠️ **Ficou `blocked` por um dia inteiro depois de desbloqueada** — ninguém flipa
+> o campo no merge da dependência, e nesse intervalo a lane sumiu do
+> [`SPRINT_CURRENT`](../../../_MOC/_generated/SPRINT_CURRENT.md) justamente quando
+> virou pegável. É o caso que o §Delta de 2026-08-06 do `_README` previu, agora
+> ocorrido; a [[A40.l18]] sofreu o simétrico (`open` stale pós-merge) no mesmo dia.
 >
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fatia **premium/add-on** da
 > F11.5 — o caminho determinístico dela foi entregue na Sprint B (2026-04-17),
