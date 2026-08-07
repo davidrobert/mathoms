@@ -30,8 +30,23 @@ logger = logging.getLogger("mathoms.llm.parecer_planejador")
 # shape antigo não é legível; o bump é o que garante que nenhum hit o alcance.
 EVIDENCIA_VERIFICATION_VERSION = "6"
 
+# Inventário de campos de prosa inspecionados — estratificador do summary (A40.l30).
+# 1 (implícito, sem a chave): riscos[].descricao/.evidencia + sugestoes_*[].acao — os
+# 3 campos que a ADR-304 §"evidência inflada" (b) nomeia contra os 8+ da R22.
+# 2: os 9 campos das duas classes (ver _iter_anchorable_items/_iter_prose_only_items).
+#
+# É chave PRÓPRIA, e não bump de EVIDENCIA_VERIFICATION_VERSION, por decisão do
+# co-design `prompt-engineer` 2026-08-07: o bump invalida o cache do envelope
+# (ADR-366 §D7) ⇒ força geração nova ⇒ viola a restrição "US$ 0" da lane. Um cache
+# hit serve summary antigo, então TODO leitor trata ausência como `unknown` — nunca
+# como 0. Comparar janela instrumentada com janela pré-instrumento produziria delta
+# de drift falso: é a mesma classe de erro (piso lido como medida) que a lane fecha.
+PROSE_INVENTORY_VERSION = 2
+
 _EVIDENCIA_MODE_ENV = "MATHOMS_PARECER_EVIDENCIA_MODE"
 _VALID_MODES = ("warn", "strict")
+
+_SUGESTAO_HORIZONS = ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas")
 
 # Ancorada em R$ — percentuais, anos, datas e multiplicadores sem R$ ficam fora.
 _MONEY_RE = re.compile(
@@ -48,6 +63,24 @@ _RANGE_RE = re.compile(r"R\$\s*[\d.,]+\s*(?:-|–|\ba\b|\baté\b)\s*(?:R\$\s*)?[
 _REAIS_RE = re.compile(
     r"(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?"
     r"(?:\s*(milh(?:[õo]es|[ãa]o)|mil|mi))?\s*(?:de\s+)?reais\b",
+    re.IGNORECASE,
+)
+
+# Moeda estrangeira na prosa (A40.l30 item 7 — defeito (c) da ADR-304 §"evidência
+# inflada"). NÃO é detector de transcrição, é de FABRICAÇÃO: medido em 2026-08-07, o
+# exec context não contém nenhum US$ (`FormatHint` não tem `usd`, `_format_brl` é a
+# única saída monetária, e `$.narrativas` não é projetado no manifest). Logo US$ na
+# prosa não foi copiado de lugar nenhum. Contador SEPARADO de money_tokens_total:
+# folhar moedas num número só é o defeito de unidade da ADR-358 §3. Consequência
+# assumida: o catálogo é BRL-only por construção (`_entry_for` → format_value(v,"brl")),
+# então valor USD não tem rota de âncora — telemetria, nunca gate (ver §Handoff).
+_USD_RE = re.compile(
+    r"(?:US\$|USD)\s*(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?"
+    r"(?:\s*(milh(?:[õo]es|[ãa]o)|mil|mi)\b)?"
+)
+_DOLARES_RE = re.compile(
+    r"(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?"
+    r"(?:\s*(milh(?:[õo]es|[ãa]o)|mil|mi))?\s*(?:de\s+)?d[óo]lares\b",
     re.IGNORECASE,
 )
 
@@ -132,6 +165,24 @@ class EvidenciaVerification:
     money_tokens_total: int = 0
     range_in_scalar_count: int = 0
     ancoras_total: int = 0
+    # DENOMINADOR (A40.l30 item 1). Sem ele, "densidade" conflacia *menos âncoras por
+    # item* com *menos itens* — é o que impedia decompor o 9→5 medido pela A40.l16.
+    # Conta só itens da classe ANCORÁVEL (têm contrato `ancoras` no schema); prosa da
+    # classe B entra em money_tokens_total e NÃO no denominador, senão "âncoras por
+    # item" divide por itens que não podem ter âncora.
+    itens_total: int = 0
+    # Item com `ancoras: []` — hoje contribui 0 em ancoras_total e não gera entry
+    # (fail-open que explica `evidencia_failed: 0` nos 19 runs). Aqui ele é CONTADO.
+    itens_sem_ancora: int = 0
+    # Moeda estrangeira e métricas: telemetria em chave própria, FORA de
+    # money_tokens_total (ADR-358 §3 — não folhar unidades diferentes num número só).
+    money_tokens_usd: int = 0
+    # `metricas[].valor_atual`/`target` são "string formatada" POR CONTRATO e contêm
+    # R$ legitimamente hoje — incluí-los na pureza de prosa produziria falso-positivo
+    # em massa. Medido aqui como *before* executável para a RV2-01 do
+    # PLAN-pipeline-review-r2, que dá `Metrica.ancoras` e sobrescreve `valor_atual`
+    # pelo valor stampado do E5. NENHUM gate lê esta chave.
+    metricas_money_tokens: int = 0
     # ADR-304: sinal auditável por item ofensor (padrão ADR-097 D1).
     number_in_prose_warnings: list[NumberInProseWarning] = field(default_factory=list)
 
@@ -179,6 +230,11 @@ class EvidenciaVerification:
             "money_tokens_total": self.money_tokens_total,
             "range_in_scalar_count": self.range_in_scalar_count,
             "ancoras_total": self.ancoras_total,
+            "itens_total": self.itens_total,
+            "itens_sem_ancora": self.itens_sem_ancora,
+            "money_tokens_usd": self.money_tokens_usd,
+            "metricas_money_tokens": self.metricas_money_tokens,
+            "prose_inventory_version": PROSE_INVENTORY_VERSION,
         }
 
 
@@ -207,34 +263,84 @@ def verify_evidencia(
 ) -> EvidenciaVerification:
     """Cross-check por âncora sobre riscos + sugestões; ``drill`` é instância dedicada."""
     result = EvidenciaVerification()
-    for item_type, index, prose_fields, ancoras in _iter_items(output):
-        # ADR-296: prosa NÃO deve conter R$. money_tokens_total vira telemetria de
-        # number_in_prose (deve ser 0); range_in_scalar idem.
-        money_tokens = _extract_money_tokens(prose_fields)
-        result.money_tokens_total += len(money_tokens)
-        result.range_in_scalar_count += _count_ranges(prose_fields)
+    for item_type, index, prose_fields, ancoras in _iter_anchorable_items(output):
+        _record_prose(result, item_type=item_type, index=index, prose_fields=prose_fields)
+        result.itens_total += 1
         result.ancoras_total += len(ancoras)
-        if money_tokens:
-            # Entra em `violations` para auditoria, mas a camada está FORA de
-            # _HARD_LAYERS: o enforcement strict a ignora (ADR-304 §Emenda 2026-08-03).
-            _record_number_in_prose(
-                result, item_type=item_type, index=index, token_count=len(money_tokens)
-            )
+        if not ancoras:
+            result.itens_sem_ancora += 1
         for ancora in ancoras:
             layer = _check_anchor(drill, ancora)
             _record(result, item_type=item_type, index=index, path=ancora.path, layer=layer)
+    for item_type, index, prose_fields in _iter_prose_only_items(output):
+        _record_prose(result, item_type=item_type, index=index, prose_fields=prose_fields)
+    result.metricas_money_tokens = _count_metricas_money(output)
     return result
 
 
-def _iter_items(
+def _record_prose(
+    result: EvidenciaVerification,
+    *,
+    item_type: str,
+    index: int,
+    prose_fields: list[Optional[str]],
+) -> None:
+    """Pureza monetária de um item (ADR-296: prosa NÃO deve conter R$)."""
+    money_tokens = _extract_money_tokens(prose_fields)
+    result.money_tokens_total += len(money_tokens)
+    result.money_tokens_usd += len(_extract_usd_tokens(prose_fields))
+    result.range_in_scalar_count += _count_ranges(prose_fields)
+    if money_tokens:
+        # Entra em `violations` para auditoria, mas a camada está FORA de
+        # _HARD_LAYERS: o enforcement strict a ignora (ADR-304 §Emenda 2026-08-03).
+        _record_number_in_prose(
+            result, item_type=item_type, index=index, token_count=len(money_tokens)
+        )
+
+
+# Classe ANCORÁVEL — o schema dá `ancoras` a estes itens, logo são o denominador
+# legítimo de "âncoras por item". 6 dos 9 campos do inventário v2.
+def _iter_anchorable_items(
     output: ParecerPlanejadorOutput,
 ) -> Iterator[tuple[str, int, list[Optional[str]], list[Ancora]]]:
-    """(item_type, índice, campos de prosa, âncoras) por item verificável."""
+    """(item_type, índice, campos de prosa, âncoras) por item com contrato de âncora."""
     for i, risco in enumerate(output.riscos):
-        yield "risco", i, [risco.descricao, risco.evidencia], risco.ancoras
-    for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+        yield "risco", i, [risco.titulo, risco.descricao, risco.evidencia], risco.ancoras
+    for horizon in _SUGESTAO_HORIZONS:
         for i, sug in enumerate(getattr(output, horizon)):
-            yield horizon, i, [sug.acao], sug.ancoras
+            yield horizon, i, _sugestao_prose(sug), sug.ancoras
+
+
+def _sugestao_prose(sug) -> list[Optional[str]]:
+    """`impacto_qualitativo` é nomeado na R22 e nunca foi inspecionado; `caveat` é
+    prosa user-visible que entra pelo mesmo item."""
+    caveat = sug.impacto_estimado.caveat if sug.impacto_estimado is not None else None
+    return [sug.acao, sug.impacto_qualitativo, caveat]
+
+
+# Classe PROSA-SEM-ÂNCORA — R22 nomeia `diagnostico_geral`, `descricao`, `conteudo` e
+# `notas_metodologicas[]`, mas o schema não lhes dá `ancoras`. Entram na pureza
+# monetária e ficam FORA do denominador: dividir por item que não pode ancorar
+# produziria densidade estruturalmente inatingível.
+# `campos_faltantes_pediria_se_iterasse[].motivo` fica fora por outro critério —
+# não é renderizado ao usuário (`rg 'campos_faltantes' frontend/src` = 0 hits; vira
+# `ReviewReason`). O critério de fronteira do inventário é **prosa renderizada ao
+# usuário**, não "nomeado na R22" — sem regra explícita o próximo agente re-litiga.
+def _iter_prose_only_items(
+    output: ParecerPlanejadorOutput,
+) -> Iterator[tuple[str, int, list[Optional[str]]]]:
+    """(item_type, índice, campos de prosa) por item user-visible sem contrato de âncora."""
+    yield "diagnostico_geral", 0, [output.diagnostico_geral]
+    for i, ponto in enumerate(output.pontos_fortes):
+        yield "ponto_forte", i, [ponto.titulo, ponto.descricao]
+    for i, nota in enumerate(output.notas_metodologicas):
+        yield "nota_metodologica", i, [nota.titulo, nota.conteudo]
+
+
+def _count_metricas_money(output: ParecerPlanejadorOutput) -> int:
+    """Tokens monetários em `metricas[]` — telemetria isolada (ver campo no agregado)."""
+    fields = [f for m in output.metricas for f in (m.nome, m.valor_atual, m.target)]
+    return len(_extract_money_tokens(fields)) + len(_extract_usd_tokens(fields))
 
 
 def _check_anchor(drill: PlannerDrillDown, ancora: Ancora) -> Optional[str]:
@@ -298,13 +404,43 @@ def _record_number_in_prose(
 
 
 def _extract_money_tokens(prose_fields: list[Optional[str]]) -> list[MoneyToken]:
+    return _tokens_for(prose_fields, (_MONEY_RE, _REAIS_RE))
+
+
+def _extract_usd_tokens(prose_fields: list[Optional[str]]) -> list[MoneyToken]:
+    return _tokens_for(prose_fields, (_USD_RE, _DOLARES_RE))
+
+
+def _tokens_for(
+    prose_fields: list[Optional[str]], patterns: tuple[re.Pattern, ...]
+) -> list[MoneyToken]:
     tokens: list[MoneyToken] = []
     for text in prose_fields:
-        if not text:
-            continue
-        tokens.extend(_token_from_match(m) for m in _MONEY_RE.finditer(text))
-        tokens.extend(_token_from_match(m) for m in _REAIS_RE.finditer(text))
+        if text:
+            tokens.extend(_dedupe_by_span(text, patterns))
     return tokens
+
+
+def _dedupe_by_span(text: str, patterns: tuple[re.Pattern, ...]) -> list[MoneyToken]:
+    """Um valor monetário = UM token. "R$ 720 mil reais" casa `_MONEY_RE` (0,10) E
+    `_REAIS_RE` (3,16) — spans sobrepostos, 2 tokens para 1 valor. É o defeito (a) da
+    ADR-304 §"evidência inflada" ("conta matches, não valores distintos"), e sem o
+    dedupe ampliar o inventário de 3→9 campos re-baselinaria um número simultaneamente
+    piso (poucos campos) e inflado (match duplo) — ninguém poderia interpretá-lo.
+    Vence o match que começa antes; empate no início, o mais longo (o com prefixo R$,
+    cujo `_token_from_match` lê o multiplicador correto)."""
+    matches = sorted(
+        (m for pattern in patterns for m in pattern.finditer(text)),
+        key=lambda m: (m.start(), -m.end()),
+    )
+    kept: list[re.Match] = []
+    covered_end = -1
+    for match in matches:
+        if match.start() < covered_end:
+            continue
+        kept.append(match)
+        covered_end = match.end()
+    return [_token_from_match(m) for m in kept]
 
 
 def _count_ranges(prose_fields: list[Optional[str]]) -> int:
@@ -330,6 +466,7 @@ def _to_cents(value: Decimal) -> int:
 
 __all__ = [
     "EVIDENCIA_VERIFICATION_VERSION",
+    "PROSE_INVENTORY_VERSION",
     "EvidenciaVerification",
     "MoneyToken",
     "NumberInProseWarning",
