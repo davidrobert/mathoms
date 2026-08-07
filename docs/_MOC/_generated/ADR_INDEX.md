@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-358 ADRs (ADR-001 a ADR-367) em [`docs/adr/`](../../adr/).
+359 ADRs (ADR-001 a ADR-368) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 308
-- **Proposto**: 46
+- **Proposto**: 47
 - **Roadmap**: 4
 
 ## Fundação
@@ -463,10 +463,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-307]] — Cache de resposta LLM opt-in no choke-point (hook universal) + invariantes de drift · phase W6-T02
 - [[ADR-341]] — Contrato do exec context do parecer: budget, eviction por seção, blocos densos, hints, recovery e redação de identificadores · phase A37.l1
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 - [[ADR-358]] — Enforcement em produção exige budget de produção — e KR no plano onde ele age · phase A40
+- [[ADR-368]] — Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão · phase A40
 
 ## marketing
 
