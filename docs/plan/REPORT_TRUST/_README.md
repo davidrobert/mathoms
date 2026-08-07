@@ -191,8 +191,11 @@ no frontend são **código morto hoje** (o status existe no union type e no
 `format.ts`, mas nenhum writer o emite). Corrigi-los primeiro é PR coeso, de
 risco zero e inalcançável em produção; só então [[A40.l18]] flippa o emissor.
 Mesma disciplina expand/contract que o repo aplica a evolução de enum. Amarra:
-se o writer escorregar >1 sprint, **reverta o leitor** — é dead code pelos
-nossos critérios.
+se o writer escorregar >1 sprint, **reverta o leitor** ([[A40.l21]]) — é dead
+code pelos nossos critérios. Custo e receita do revert na §Amarra de reversão da
+lane: o comando **já não aplica limpo** pós-#1242, e o PR carrega 5 correções de
+UX em statuses **vivos**, a re-landar em PR próprio. "Risco zero" era sobre o
+status novo, não sobre o PR inteiro.
 
 **[[A40.l20]] entrega em 2 PRs** (corrigido 2026-08-05): o contrato do desfecho
 retido (modelo, API, estado de UI, contador) mergeia em paralelo à [[A40.l18]]

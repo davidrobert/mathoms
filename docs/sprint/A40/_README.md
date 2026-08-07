@@ -111,12 +111,20 @@ tripwire, não para forçar corte.
 > é uma linha no frontmatter** — a decisão do dono foi a *forma* (gate + data), não
 > este valor.
 
-**Tripwire da [[A40.l21]], agora com gatilho computável.** Se a [[A40.l18]] não
-tiver mergeado até `date_target`, a l21 é revertida — os 7 read sites de
-`partial_failure` são dead code pelos critérios do próprio repo enquanto nenhum
-writer o emite. Owner do gatilho: quem fizer o pickup seguinte após a data.
-Antes desta seção, "1 sprint" não tinha referente e o tripwire era prosa em 3
-lugares e mecanismo em nenhum.
+**Tripwire da [[A40.l21]], agora com gatilho computável.** Se **o writer** da
+[[A40.l18]] (o **PR2**) não tiver mergeado até `date_target`, a l21 é revertida —
+os read sites de `partial_failure` são dead code pelos critérios do próprio repo
+enquanto nenhum writer o emite. Owner do gatilho: quem fizer o pickup seguinte
+após a data. Antes desta seção, "1 sprint" não tinha referente e o tripwire era
+prosa em 3 lugares e mecanismo em nenhum.
+
+> **Qualificação de 2026-08-06, medida.** A l18 passou a entregar em 2 PRs e o
+> **PR1 já mergeou** (`4620cc04`, #1242): ele adiciona `PipelineStageStatus.degraded`
+> e o gate de paridade, mas **não emite `partial_failure`** — o status segue
+> inalcançável em produção. Lido ao pé da letra, o predicado original ("a l18
+> mergeou") já estaria satisfeito por um merge que não destrava nada, e o
+> tripwire ficaria verde medindo a camada errada. O que arma o tripwire é o
+> **writer**, não a lane.
 
 **O que esta seção deliberadamente não faz:** não fixa "nada sai da A40" (decisão
 separada do dono, 2026-08-03, e mantida) nem transforma a data em critério de
@@ -327,16 +335,18 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
   type e no `format.ts`, mas nenhum writer o emite. Corrigi-los primeiro é PR
   coeso e de risco zero. Shipar o writer primeiro entregaria um run que produziu
   relatório com banner vermelho de falha e botão de reprocessar: **pior que hoje**.
-  Amarra: se a l18 escorregar >1 sprint, **reverta a l21** — é dead code pelos
-  nossos próprios critérios.
+  Amarra: se o **writer** da l18 (PR2) escorregar >1 sprint, **reverta a l21** —
+  é dead code pelos nossos próprios critérios. Custo e receita do revert em
+  [[A40.l21]] §Amarra de reversão: o comando **já não aplica limpo** pós-#1242, e
+  o PR carrega 5 correções de UX em statuses **vivos**, a re-landar em PR próprio.
 - **[[A40.l20]] entrega em 2 PRs** (corrigido 2026-08-05): o PR1 (contrato do
   desfecho retido) mergeia em paralelo à [[A40.l18]] contra o vocabulário da
   [[ADR-357]] `Proposto`; o PR2 (o wire-up em `pipeline_task.py`) fica **atrás do
   merge** dela, porque medido em 2026-08-05 reescreve as mesmas linhas
   (`:1192-1193`, `:1329`, `:1180-1200`). A formulação anterior ("depende da
   decisão, não do merge") tratava a dependência como de vocabulário —
-  falsificada. Amarra: o PR1 é revertido com a [[A40.l21]] se a l18 não mergear
-  até `date_target`.
+  falsificada. Amarra: o PR1 é revertido com a [[A40.l21]] se o **writer** da
+  l18 (PR2) não mergear até `date_target`.
 - **[[A40.l19]] em PR próprio** — migration não mistura com feature.
 
 **Esta onda precede a Onda 4 por conflito de arquivo, não por prioridade.** A
