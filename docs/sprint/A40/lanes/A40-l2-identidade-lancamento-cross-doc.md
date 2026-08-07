@@ -363,13 +363,18 @@ medir; não é que o mecanismo esteja morto.
    não consegue julgar. Confirma a escolha da forma universal sobre a existencial: sob `> 0`,
    os 4 matches certificariam vivacidade e o 5º entraria no `hits == 0` como corpus limpo.
 
-**O probe tem de virar `dev/`, e isso é dívida desta lane, não opcional.** Ele rodou a partir
-do scratchpad da sessão. A medição **precisa ser refeita antes do flip** — pela mesma razão que
-a [[ADR-364]] §5 dá para o gate rodar todo run: "vazio" é propriedade do corpus **e do tempo**,
-e overrides nascem continuamente. Instrumento que morre com a sessão é instrumento que o
-próximo agente **re-deriva**, e re-derivar instrumento de medição é exatamente como se produz
-um que devolve `0` por engano (ver o quase-acidente abaixo). Promover em PR próprio, separado
-do registro docs.
+**O probe é `dev/probe_collapse_adjudication.py`** ✅ (promovido em
+[#1249](https://github.com/davidrobert/mathoms/pull/1249), `0cf8653c`). Ele rodou primeiro do
+scratchpad da sessão, e a promoção não foi higiene: a medição **precisa ser refeita antes do
+flip** — pela mesma razão que a [[ADR-364]] §5 dá para o gate rodar todo run, "vazio" é
+propriedade do corpus **e do tempo**, e override nasce continuamente. Instrumento que morre com
+a sessão é instrumento que o próximo agente **re-deriva**, e re-derivar instrumento de medição
+é exatamente como se produz um que devolve `0` por engano (ver o quase-acidente abaixo).
+
+Na promoção o veredito foi **corrigido**: a versão do scratchpad imprimia *"adjudicação por
+hash MORTA"* quando nenhum override estava em candidato — conflacionando **join morto** com
+**corpus limpo**. A versão em `dev/` reporta as duas dimensões em linhas separadas, e o guard
+anti-vácuo virou estado próprio (`INDETERMINADO`, exit 2).
 
 **Limites declarados, para ninguém sobre-ler:** N=5 overrides, **um** workspace, estado de
 **hoje** — overrides nascem continuamente e o corpus muda a cada upload. Isto autoriza fechar o
