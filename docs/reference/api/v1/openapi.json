@@ -7422,6 +7422,17 @@
             ],
             "title": "Failed At Stage"
           },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          },
           "id": {
             "title": "Id",
             "type": "string"

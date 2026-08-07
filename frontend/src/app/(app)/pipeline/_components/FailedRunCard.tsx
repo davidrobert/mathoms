@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, RefreshCw, XCircle } from "lucide-react";
 import type { PipelineRunResponse, PipelineStageLog } from "@/lib/api";
 import { formatDuration, stageName } from "@/lib/format";
 import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
+import { messageForFailureReason } from "@/lib/pipelineFailureReason";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { deriveFailedStage } from "./failedStage";
@@ -85,7 +86,12 @@ function FailedRunHeader({
   onDismiss: () => void;
 }) {
   const failedStage = run.stage_logs.find((s) => s.status === "failed");
-  const userError = buildUserFacingError(failedStage?.errors, deriveFailedStage(run));
+  // `failure_reason` VENCE o texto do stage: quando o backend nomeou a causa, o run morreu
+  // antes de executar stage algum, e derivar a mensagem de `failedStage?.errors` (undefined
+  // aqui) produziria "travou no estágio inicial" — afirmação falsa (A40.l27).
+  const userError =
+    messageForFailureReason(run.failure_reason) ??
+    buildUserFacingError(failedStage?.errors, deriveFailedStage(run));
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-start gap-3 min-w-0">

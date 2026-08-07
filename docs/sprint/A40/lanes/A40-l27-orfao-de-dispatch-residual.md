@@ -121,9 +121,9 @@ de arquivo-compartilhado da sprint.
 - `UPDATE` atômico filtrando o status esperado, com checagem de `rowcount`
   (padrão `_flip_stuck_run_atomic`) — nunca incondicional.
 - `failure_reason` aparece no snapshot OpenAPI e tem ≥1 reader no frontend.
-- Runbook referenciado no §12 Referências de
-  [RUNBOOK.md](../../../reference/RUNBOOK.md) (o arquivo não tem frontmatter, logo
-  não é wikilink-ável).
+- [[runbook-stuck-pipeline-runs]] referenciado no §12 Referências de
+  [RUNBOOK.md](../../../reference/RUNBOOK.md) (esse **hub** não tem frontmatter, logo
+  não é wikilink-ável; o runbook novo tem, e é).
 - Severidade de log `WARNING` com contagem no reaper, espelhando `_log_stuck_run`.
   **Nada em `CRITICAL`** — não há pager para acordar ([[ADR-359]] §7).
 
