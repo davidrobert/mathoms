@@ -160,10 +160,13 @@ function RisksCaption({
 function RiscoRow({ risco }: { risco: Risco }) {
   const tone = SEVERIDADE_TONE[risco.severidade];
   const Icon = tone.Icon;
+  // `role="article"` no `<li>` quebrava a estrutura da lista (axe `list`,
+  // serious): a `<ul>` passava a ter filho que não é `listitem`. O
+  // `aria-label` que ele carregava era redundante — severidade e título já
+  // são texto dentro do item. Medido ao dar cobertura axe a `ParecerBody`
+  // pela primeira vez (A40.l22): a seção só era escaneada no estado empty.
   return (
     <li
-      role="article"
-      aria-label={`Risco ${tone.label}: ${risco.titulo}`}
       className="flex items-start gap-3 rounded-md border border-[var(--surface-border)] border-l-[3px] px-4 py-3"
       style={{
         borderLeftColor: tone.token,
