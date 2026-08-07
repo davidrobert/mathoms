@@ -33,34 +33,30 @@ tags:
 > manda **reverter a l21** (e o PR1 da [[A40.l20]]) se esta lane não mergear até
 > `date_target: 2026-08-17`.
 >
-> ## 🚧 Estado em 2026-08-07 — **o writer está em `main`; falta a observabilidade**
+> ## 🚧 Estado em 2026-08-07 — **PR2 completo em [#1258](https://github.com/davidrobert/mathoms/pull/1258), aguardando review**
 >
-> **Em `main` (PR2, parte 1):** `StageSpec.criticality` +
-> `commit_artifacts_on_degrade` + resolvedor puro `pipeline/stage_outcome.py`
-> (`0b95d22d`) · gate AST `dev/check_stage_criticality.py` + cobertura do
-> resolvedor (`d71d0c3c`) · cascata `missing_narrativas` morta + vocabulário de
-> retry (`7f41be2e`) · **o writer**: `partial_failure` escrito, `degraded`
-> gravado, `degraded` em `_STAGE_DONE_STATUSES`, post-processing em degradação,
-> `failed_at_stage`/`failure_reason` NULL, degradação sem `stop_on_error`
-> (`e4fcf337`) · 10 testes de aceite provados por mutação (`263d4d1f`).
+> `status: open` até o merge. Os 8 commits do PR2 cobrem o §Critério de aceite
+> inteiro **e** as duas condições de merge do §Decisões do dono:
 >
-> Suítes verdes: backend 3111, pipeline 5913. Snapshots sem diff.
+> | Commit | O que entrega |
+> | --- | --- |
+> | `0b95d22d` | `StageSpec.criticality` + `commit_artifacts_on_degrade` + resolvedor puro `pipeline/stage_outcome.py` |
+> | `d71d0c3c` | gate AST `dev/check_stage_criticality.py` (4 regras provadas por mutação) + cobertura do resolvedor |
+> | `7f41be2e` | cascata `missing_narrativas` morta (classe de render SKIPA) + vocabulário de retry corrigido por medição |
+> | `e4fcf337` | **o writer**: `partial_failure` escrito, `degraded` gravado e em `_STAGE_DONE_STATUSES`, post-processing em degradação, `failed_at_stage`/`failure_reason` NULL, degradação sem `stop_on_error` |
+> | `263d4d1f` | 10 testes de aceite, 5 mutações provadas |
+> | `2c8d169c` | **supressão do `CleanBar`** (§Decisões do dono, 1) |
+> | `d88730fe` | **`StageFailureReason` + card em `/admin/metrics` + log** (item 2) |
+> | `c807722d` | card no console ops + gate de paridade do `types.ts` + cadência no RUNBOOK |
 >
-> **Falta para fechar o PR2 — as duas condições de merge do §Decisões do dono:**
+> Suítes: backend 3162, pipeline 5913, frontend 1571, `tsc --noEmit` limpo nos dois
+> apps. Snapshots: enums de pipeline **sem diff** (o PR1 pagou); `ReportResponse`
+> e `MetricsResponse` ganham campo, o que é esperado.
 >
-> 1. **`StageFailureReason`** (§Delta item 1). O enum não foi criado. O co-design
->    de 2026-08-07 acrescentou: mapa **total** sobre `LLMErrorType` com gate
->    (`validation` e `context_length` não tinham alvo, e `validation` é o modo de
->    falha mais frequente do parecer); `budget_exhausted` derivado por
->    `isinstance` porque `LLMBudgetExceededError` **não tem** `error_type`;
->    `enforcement` mantido como **projeção** de `retention_reason` (remover
->    esvaziaria o balde mais frequente do card); `missing_input` novo, com 4
->    produtores reais; rota de exceção deriva de `type(exc).__name__` no boundary
->    (**não** `unknown` fixo — com `HttpPipelineClient` sem fallback, `result is
->    None` é a rota primária de queda de shell). E `output_summary` é atribuição
->    TOTAL: merge sobre **cópia**, nunca mutação in-place.
-> 2. **Supressão do `CleanBar`** (§Decisões do dono, 1) e **card em
->    `/admin/metrics`** (item 2). Ver §Co-design de 2026-08-07 abaixo.
+> **§Follow-ups nomeados ganharam 3 itens** (ver seção): aliasing do
+> `DBArtifactStore` (P1, `data-engineer`, ADR própria — e ela **depende** da §6),
+> índice parcial de `pipeline_stage_logs` com gatilho medível, e CI própria do
+> `frontend-ops` (lane A42).
 >
 > ## 📋 Co-design de 2026-08-07 — decisões que o escopo "fechado" não previa
 >
@@ -264,7 +260,29 @@ de ADR é reservado em prosa (precedente [[ADR-356]]).
    Dono: [[A40.l20]] PR2.
 6. **`StageSpec.writes` é ficção** para `generate_narratives` (declara chave
    própria, escreve na do E5) e `validate_cross` (declara chave, é read-only).
-   Débito já nomeado na [[ADR-357]] §Consequências, mantido.
+   Débito já nomeado na [[ADR-357]] §Consequências, mantido. Medido no PR2: o
+   campo tem **1 consumidor** no repo inteiro (`validate_full_order`) e ninguém lê
+   o artifact stage `generate_narratives` — é nó órfão, não aresta validada.
+7. **Aliasing do `DBArtifactStore` — P1, dono `data-engineer`, ADR própria.**
+   `_maybe_decrypt` devolve `row.content_json` por **referência** e a coluna é
+   `JSON` plain sem `MutableDict`: `read → mutar in-place → write` na mesma
+   `(stage, key)` é **lost update silencioso** quando
+   `ENCRYPT_PIPELINE_ARTIFACTS=False`. Provado empiricamente no PR2. O default
+   `True` mascara em produção, e os harnesses que desligam não rodam E5.N — por
+   isso ninguém tropeçou. A ADR nova **depende** da [[ADR-357]] §6: consertar o
+   aliasing sem a exceção travada em pé abre o vetor de corrupção do deliverable
+   que hoje é impedido pelo próprio defeito.
+8. **Índice de `pipeline_stage_logs`** — o card filtra `status` + `started_at` em
+   full scan. Dívida deliberada: a forma certa em Postgres é índice **parcial**
+   (`WHERE status='degraded'`), que não existe em SQLite, então escolher o
+   composto agora é escolher o índice errado com custo de migration. Gatilho de
+   retomada: Postgres vivo **e** rows degradadas na casa dos milhares, **ou** p95
+   do endpoint encostando no 1s do `SLO.md`.
+9. **CI própria do `frontend-ops`** — lane A42. O app não está em nenhum workflow;
+   o PR2 fechou só a falha específica (paridade do `types.ts` por pytest + 1 linha
+   no `files_yaml`). Job mínimo defensável: `setup-node@v4` + `npm ci` +
+   `typecheck` + `lint`, gateado por grupo `frontend_ops` novo, sem Playwright e
+   sem `build`.
 
 ## Critério de aceite
 
