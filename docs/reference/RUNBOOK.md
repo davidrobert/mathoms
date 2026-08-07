@@ -753,6 +753,7 @@ um escritor por vez. **1 ocorrência = rollback.**
 
 ## 12. Referências
 
+- [runbooks/stuck_pipeline_runs.md](runbooks/stuck_pipeline_runs.md) — run travado: os 4 valores de `failure_reason` (`dispatch_failed` / `dispatch_unconfirmed` / `run_setup_failed` / `heartbeat_timeout`) + o órfão em `resuming`, com a bifurcação broker-fora vs. fila-funda **antes** de cancelar ([[ADR-359]], [[ADR-172]])
 - [runbooks/f9_3_alembic_upgrade.md](runbooks/f9_3_alembic_upgrade.md) — F9.3 stage rename migration (pré-check + backup + rollback)
 - [runbooks/schema_validation_strict_flip.md](runbooks/schema_validation_strict_flip.md) — flip warn→strict per-schema (gate por baseline 7d + rollback de 1 linha, ADR-284)
 - [runbooks/override_legacy_drop.md](runbooks/override_legacy_drop.md) — ADR-282 Fase E: drop destrutivo do hash legado de override (gates G1/G2/G2b/G3 + backup/PITR + sign-off do owner; drafts da migration destrutiva e do sentinela G3 em apêndice — drop gated por go/no-go)

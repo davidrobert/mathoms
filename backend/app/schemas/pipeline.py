@@ -131,6 +131,11 @@ class PipelineRunResponse(BaseModel):
     status: PipelineRunStatus
     current_stage: Optional[str] = None
     failed_at_stage: Optional[str] = None
+    # A40.l27 — coluna write-only desde 2026-05: a ADR-172 decidiu "UI consome
+    # `failure_reason` e mostra mensagem honesta" e o campo nunca saiu do DB. A ADR-359
+    # acrescentou 3 valores ao vocabulário, e sem read path os 4 são legíveis só por SQL —
+    # a distinção que eles compram não chega a operador nem a usuário.
+    failure_reason: Optional[str] = None
     paused_at_stage: Optional[str] = None
     tier_at_run: str = "free"
     total_documents: Optional[int] = None

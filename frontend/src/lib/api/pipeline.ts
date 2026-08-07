@@ -41,6 +41,8 @@ export interface PipelineRunResponse {
   status: PipelineRunStatus;
   current_stage: string | null;
   failed_at_stage: string | null;
+  /** A40.l27 — motivo nomeado pelo backend. Ver `pipelineFailureReason.ts`. */
+  failure_reason: string | null;
   paused_at_stage: string | null;
   tier_at_run: string;
   total_documents: number | null;
