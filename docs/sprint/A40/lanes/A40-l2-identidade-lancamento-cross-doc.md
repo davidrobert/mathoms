@@ -322,9 +322,75 @@ bloqueados`, isto é, 6 de 6 **inexercitados**. (7) Sentinela pós-flip com núm
 flip tem incentivo a apagar. (9) Flag de enforce em `DEFAULTS` **e** `OPERATOR_ONLY` no mesmo
 PR, com teste AST de que o único call-site de `set_flag` com ela é o service de ops gateado.
 
+#### ✅ MEDIDO 2026-08-06 — a adjudicação por hash está VIVA, e o resultado não é o previsto
+
+O painel exigiu esta medição **antes** de fechar o predicado do 3b, e previu dois desfechos:
+join vivo (escapatória válida) ou join morto (`⇒` adjudicador vira
+`(gate_digest, tx_banco, tx_direction)`). **Nenhum dos dois descreve o que foi medido.**
+
+Instrumento: probe zero-write sobre o corpus dogfood, capturando os statements **no ponto em
+que o colapsador de produção os recebe** (subclasse que registra e delega) — o
+`ReconciliationStoreResult` não os carrega, e re-parsear o payload E3 seria o instrumento
+paralelo que a §D5 proíbe. Hashes pelo produtor real (`_row_hash`), nunca re-derivados.
+
+Observado: **117 statements · 5560 hashes de corpus · 331 sobreviventes · 331 removidos ·
+5 overrides ativos.**
+
+| classe | n |
+|---|---|
+| `casou_corpus_fora_de_candidato` | **4** |
+| `casou_nada` | 1 |
+| `casou_sobrevivente` | **0** |
+| `casou_removido` | **0** |
+| `sem_v2` | 0 |
+
+**Leitura.** O join por hash **funciona** — 4 de 5 overrides casam rows reais do E3 por
+`_hash_v2`. O que é zero é outra coisa: **nenhum override ancora em row que participe de
+candidato a colapso**. Ou seja, o corpus está *limpo* quanto ao risco que o gate existe para
+medir; não é que o mecanismo esteja morto.
+
+**Três consequências para o 3b:**
+
+1. **A contingência do painel NÃO dispara.** O adjudicador continua sendo `_hash_v2`; não é
+   preciso trocar por `(gate_digest, tx_banco, tx_direction)`.
+2. **A escapatória (`natural_key_hash == survivor_hash ⇒ seguro`) é exercitada por ZERO
+   overrides hoje.** Ela é necessária para o gate ser alcançável em princípio, mas o corpus
+   dogfood **não a prova**. As travas 1 e 2 do predicado (Q4) têm de vir de **fixture
+   sintética**, e o PR3b deve dizer isso — senão alguém lê "gate verde no dogfood" como
+   evidência de que a escapatória funciona, quando ela nunca foi percorrida.
+3. **A vivacidade universal (`snapshot_casa_corpus == com_snapshot`) reprovaria hoje: 4 ≠ 5.**
+   E isso é a **polaridade correta** — o 1 que não casa nada é exatamente o override que o gate
+   não consegue julgar. Confirma a escolha da forma universal sobre a existencial: sob `> 0`,
+   os 4 matches certificariam vivacidade e o 5º entraria no `hits == 0` como corpus limpo.
+
+**O probe é `dev/probe_collapse_adjudication.py`** ✅ (promovido em
+[#1249](https://github.com/davidrobert/mathoms/pull/1249), `0cf8653c`). Ele rodou primeiro do
+scratchpad da sessão, e a promoção não foi higiene: a medição **precisa ser refeita antes do
+flip** — pela mesma razão que a [[ADR-364]] §5 dá para o gate rodar todo run, "vazio" é
+propriedade do corpus **e do tempo**, e override nasce continuamente. Instrumento que morre com
+a sessão é instrumento que o próximo agente **re-deriva**, e re-derivar instrumento de medição
+é exatamente como se produz um que devolve `0` por engano (ver o quase-acidente abaixo).
+
+Na promoção o veredito foi **corrigido**: a versão do scratchpad imprimia *"adjudicação por
+hash MORTA"* quando nenhum override estava em candidato — conflacionando **join morto** com
+**corpus limpo**. A versão em `dev/` reporta as duas dimensões em linhas separadas, e o guard
+anti-vácuo virou estado próprio (`INDETERMINADO`, exit 2).
+
+**Limites declarados, para ninguém sobre-ler:** N=5 overrides, **um** workspace, estado de
+**hoje** — overrides nascem continuamente e o corpus muda a cada upload. Isto autoriza fechar o
+desenho do predicado; **não** autoriza o flip. E a auto-validação do instrumento é a assimetria
+**4 contra 1**: join quebrado daria 0/5, join trivial daria 5/5.
+
+> ⚠️ **A primeira execução deste probe imprimiu `VEREDITO: adjudicação por hash MORTA` com
+> `corpus=0`** — o instrumento não havia capturado statement nenhum (`ReconciliationStoreResult`
+> não expõe `.statements`). Publicar aquele "0" teria **matado um desenho correto**, que é
+> literalmente a armadilha que o painel nomeou ao citar o PR3 da [[A40.l10]]. O probe agora
+> **recusa emitir veredito** quando `corpus` ou `overrides` é vazio: `0` por "não observei" e `0`
+> por "observei e não achei" são indistinguíveis no número, e só o guard os separa.
+
 #### O que ainda NÃO sabemos — medir antes de fechar o predicado do 3b
 
-**A adjudicação por hash está viva?** Nunca foi medido. Os "5 overrides julgáveis" da
+~~**A adjudicação por hash está viva?**~~ — **medido acima em 2026-08-06.** O texto original dizia: Os "5 overrides julgáveis" da
 [[A40.l1]] significam "tem snapshot", **não** "tem âncora v2 que casa row do E3". Publicar
 **por override** (casou sobrevivente / casou removido / casou nada / sem v2 / não-ISO), nunca
 só agregados, usando `dev/certify_ledger_local.py::_rederive` com o colapsador injetado
