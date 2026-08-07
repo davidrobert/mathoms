@@ -615,23 +615,26 @@
   "pontos_urgentes": [
     {
       "acao": "Reduzir endividamento",
+      "code": "endividamento_alto",
+      "dado_faltante": null,
+      "elegibilidade": "computavel",
       "impacto": "Taxa de endividamento em 20.6% — meta < 20%",
+      "origem_premissa": "derivado_e5",
       "prazo": "Próximo trimestre",
-      "prioridade": "Alta"
-    },
-    {
-      "acao": "Contratar seguro de vida e invalidez",
-      "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
-      "prazo": "Imediato",
       "prioridade": "Alta"
     },
     {
       "acao": "Consolidar dados de rentabilidade dos investimentos",
+      "code": "rentabilidade_nao_medida",
+      "dado_faltante": null,
+      "elegibilidade": "computavel",
       "impacto": "Sem dados de performance, impossível otimizar alocação",
+      "origem_premissa": "derivado_e5",
       "prazo": "Próximo trimestre",
       "prioridade": "Média"
     }
   ],
+  "pontos_urgentes_retidos": [],
   "previdencia_pgbl": {
     "aliquota_marginal": "7.500000",
     "ano_base": null,
@@ -823,23 +826,15 @@
       "t": "Reduzir endividamento"
     },
     {
-      "e": "Imediato",
-      "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
-      "n": 2,
-      "p": "alta",
-      "t": "Contratar seguro de vida e invalidez"
-    },
-    {
       "e": "Próximo trimestre",
       "impacto": "Sem dados de performance, impossível otimizar alocação",
-      "n": 3,
+      "n": 2,
       "p": "média",
       "t": "Consolidar dados de rentabilidade dos investimentos"
     }
   ],
   "tarefas_status": {
     "1": "pendente",
-    "2": "pendente",
-    "3": "pendente"
+    "2": "pendente"
   }
 }

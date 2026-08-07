@@ -105,3 +105,20 @@ de descoberta).
 - Teste com humano (n=1): o dono abre um relatório parcial **sem** ter visto o
   `/pipeline` e diz em 1 frase o que falta e o que fazer; e lê o PDF do estado
   retido **sem** concluir que os números das outras seções são suspeitos.
+
+## Escopo herdado da [[A40.l10]] — supressor não-declarado no frontend
+
+Registrado aqui **pelo destino** em 2026-08-06 (a convenção do repo é que handoff
+só existe quando a lane de destino o registra; a l10 é o emissor).
+
+| Herdado | O que foi medido na l10 |
+|---|---|
+| **`dedupeBySemanticKey` descarta itens da lista sem declarar** | `frontend/src/components/report/utils/curadoriaDestaques.ts` colapsa itens por chave semântica derivada de **regex sobre o texto** e é *first-wins*: o item que sobrevive depende da **ordem** de chegada, e o descartado some da tela sem rastro no payload nem na narrativa |
+
+É a mesma classe que esta lane existe para fechar — retenção que o artefato não
+declara —, só que **no frontend** e sem nem passar pelo produtor. Duas
+consequências que a l22 herda: (a) a contagem que a l10 passou a declarar no
+`s10` (recomendações retidas por classe de motivo, [[ADR-365]]) **pode divergir**
+do que o card renderiza, porque o dedupe atua depois; (b) qualquer ordenação
+futura ([[A40.l10]] PR3) muda **qual** item sobrevive ao dedupe, sem mudar o
+payload — logo asserção sobre payload não prova o renderizado.

@@ -360,6 +360,7 @@
 | ADR-362 | adr | Proposto |  | Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade | `adr/362-revisao-do-executor-e-proveniencia-observada.md` |
 | ADR-363 | adr | Proposto |  | Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem | `adr/363-identidade-de-codigo-em-runtime-e-semvers-ornamentais.md` |
 | ADR-364 | adr | Proposto |  | Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem | `adr/364-remocao-de-row-e-mudanca-de-identidade.md` |
+| ADR-365 | adr | Proposto |  | Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais | `adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -621,6 +622,7 @@
 | RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |
 | RULE-concentracao-imobiliaria | domain-rule |  |  |  | `reference/rules/rule-concentracao-imobiliaria.md` |
 | RULE-disability-coverage-gap | domain-rule |  |  |  | `reference/rules/disability-coverage-gap.md` |
+| RULE-elegibilidade-da-recomendacao | domain-rule |  |  |  | `reference/rules/rule-elegibilidade-da-recomendacao.md` |
 | RULE-imoveis-no-if | domain-rule |  |  |  | `reference/rules/rule-imoveis-no-if.md` |
 | RULE-independencia-financeira | domain-rule |  |  |  | `reference/rules/rule-independencia-financeira.md` |
 | RULE-itcmd-estimated | domain-rule |  |  |  | `reference/rules/itcmd-estimated.md` |
@@ -835,7 +837,7 @@
 | A40.l15 | lane | planned | A40 | Consumo Consciente: KPI de pontuais na base da janela + texto de base do donut e do chart mês a mês | `sprint/A40/lanes/A40-l15-consumo-consciente-base-janela.md` |
 | A40.l16 | lane | shipped | A40 | Desescalar number_in_prose: defeito de forma deixa de apagar conselho e de derrubar o run | `sprint/A40/lanes/A40-l16-desescalar-number-in-prose.md` |
 | A40.l17 | lane | shipped | A40 | Custo e cache no caminho needs_review do parecer: US$ 0,48 reportados como zero | `sprint/A40/lanes/A40-l17-custo-e-cache-em-needs-review.md` |
-| A40.l18 | lane | in_progress | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
+| A40.l18 | lane | open | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
 | A40.l19 | lane | shipped | A40 | Drift de enum de status: 4 valores existem em Python e não no tipo do DB | `sprint/A40/lanes/A40-l19-migration-drift-enum-status.md` |
 | A40.l2 | lane | in_progress | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
 | A40.l20 | lane | open | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |

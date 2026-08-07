@@ -84,4 +84,34 @@ describe("ui/select — rótulo no trigger", () => {
     render(<Fixture value="p-desconhecido" />);
     expect(screen.getByLabelText("Imóvel")).toHaveTextContent("p-desconhecido");
   });
+
+  /** Congela o limite documentado em `useItemLabels`: a travessia não monta
+   * componente intermediário, então o item entregue por ele é invisível e o
+   * trigger volta ao value cru — silenciosamente. Quem cair nesse caso passa
+   * `items` explícito. Se algum dia a derivação passar a cobrir indireção,
+   * este teste falha e é o lembrete de atualizar o comentário. */
+  it("não enxerga item entregue por componente intermediário", () => {
+    function ItensIndiretos() {
+      return (
+        <>
+          {OPCOES.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </>
+      );
+    }
+    render(
+      <Select value="p-single">
+        <SelectTrigger aria-label="Imóvel">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <ItensIndiretos />
+        </SelectContent>
+      </Select>,
+    );
+    expect(screen.getByLabelText("Imóvel")).toHaveTextContent("p-single");
+  });
 });
