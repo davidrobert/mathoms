@@ -388,6 +388,40 @@ def _riscos_items_from_bundle(goals_cfg: dict) -> list[dict]:
     ]
 
 
+# ADR-369 D3 — chaves do cone antes do rename de `mc_version` 4.0, mapeadas
+# nome-novo → nome-antigo. Artefato gravado sob 2.0/3.0 (ou sem carimbo, que é
+# v1) continua sendo lido; o valor é o mesmo, só a chave mudou.
+_CONE_CHAVES_PRE_4_0 = {
+    "ano_if_cenario_favoravel": "p10_ano_if",
+    "ano_if_cenario_favoravel_censurado": "p10_censurado",
+    "ano_if_cenario_central": "p50_ano_if",
+    "ano_if_cenario_central_censurado": "p50_censurado",
+    "ano_if_cenario_adverso": "p90_ano_if",
+    "ano_if_cenario_adverso_censurado": "p90_censurado",
+    "prob_if_ate_horizonte_simulado": "prob_if_ate_horizonte",
+    "horizonte_simulado_anos": "horizonte_anos",
+}
+
+
+def _mc_major(mc_if: dict) -> int:
+    """Major de ``mc_version``; ausente = 1 (artefato pré-ADR-360)."""
+    # Comparar a string inteira ordenaria "10.0" antes de "4.0" — o major é int.
+    cabeca = str(mc_if.get("mc_version") or "1.0").split(".", 1)[0]
+    return int(cabeca) if cabeca.isdigit() else 1
+
+
+def _cone_com_nomes_de_hoje(mc_if: dict) -> dict:
+    """Bloco do cone sob as chaves de 4.0, seja qual for a versão gravada."""
+    # Único site de tradução do contrato (ADR-369 D3). Sem ele, um artefato 3.0
+    # relido por este código devolveria todos os anos `None` e o narrador cairia
+    # na frase determinística — a mais otimista do relatório, e sem incerteza
+    # declarada — exatamente quando a mediana não atinge a meta. É o defeito que
+    # o D9 da ADR-361 fechou, reintroduzido em silêncio.
+    if _mc_major(mc_if) >= 4:
+        return mc_if
+    return {**mc_if, **{novo: mc_if.get(antigo) for novo, antigo in _CONE_CHAVES_PRE_4_0.items()}}
+
+
 def load_metrics_from_e5(
     e5_data: dict,
     *,
@@ -461,7 +495,7 @@ def load_metrics_from_e5(
     )
 
     # A37.l8 (FIN-08): Monte Carlo IF já presente no payload E5 (N3).
-    mc_if = e5_data.get("if_monte_carlo") or {}
+    mc_if = _cone_com_nomes_de_hoje(e5_data.get("if_monte_carlo") or {})
 
     patrimonio_bruto = pat.get("bruto", 0)
     # C2.1: o campo vivo é ``investivel_efetivo`` (o mesmo que ``goals.if_pct`` usa como
@@ -725,19 +759,19 @@ def load_metrics_from_e5(
         "aloc_derived": (goals.get("alocacao_alvo") or {}).get("derived") or {},
         "aloc_rebalanceamento": aloc_alvo.get("rebalanceamento", "anual"),
         # === A37.l8 (FIN-08): Monte Carlo IF (N3) — projeção probabilística ===
-        "mc_p10_ano_if": mc_if.get("p10_ano_if"),
-        "mc_p50_ano_if": mc_if.get("p50_ano_if"),
-        "mc_p90_ano_if": mc_if.get("p90_ano_if"),
+        "mc_ano_if_cenario_favoravel": mc_if.get("ano_if_cenario_favoravel"),
+        "mc_ano_if_cenario_central": mc_if.get("ano_if_cenario_central"),
+        "mc_ano_if_cenario_adverso": mc_if.get("ano_if_cenario_adverso"),
         "mc_prob_if_ate_idade_meta": mc_if.get("prob_if_ate_idade_meta"),
         "mc_idade_meta": mc_if.get("idade_meta_usada"),
         # ADR-361 — sem estes o narrador não distingue "cone não simulado" de
         # "a mediana não atinge a meta no horizonte", e cairia na frase
         # determinística ("a trajetória aponta a meta para X") justamente no
         # cenário em que ela é a mais otimista possível.
-        "mc_p50_censurado": mc_if.get("p50_censurado", False),
-        "mc_p90_censurado": mc_if.get("p90_censurado", False),
-        "mc_prob_if_ate_horizonte": mc_if.get("prob_if_ate_horizonte"),
-        "mc_horizonte_anos": mc_if.get("horizonte_anos"),
+        "mc_ano_if_cenario_central_censurado": mc_if.get("ano_if_cenario_central_censurado", False),
+        "mc_ano_if_cenario_adverso_censurado": mc_if.get("ano_if_cenario_adverso_censurado", False),
+        "mc_prob_if_ate_horizonte_simulado": mc_if.get("prob_if_ate_horizonte_simulado"),
+        "mc_horizonte_simulado_anos": mc_if.get("horizonte_simulado_anos"),
         # === config/goals.json: riscos e decisões ===
         "riscos_prioritarios": riscos,
         "decisoes_prioritarias": decisoes,

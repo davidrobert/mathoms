@@ -563,14 +563,14 @@
     ]
   },
   "if_monte_carlo": {
-    "p10_ano_if": 2036,
-    "p10_censurado": false,
-    "p50_ano_if": 2040,
-    "p50_censurado": false,
-    "p90_ano_if": null,
-    "p90_censurado": true,
+    "ano_if_cenario_favoravel": 2036,
+    "ano_if_cenario_favoravel_censurado": false,
+    "ano_if_cenario_central": 2040,
+    "ano_if_cenario_central_censurado": false,
+    "ano_if_cenario_adverso": null,
+    "ano_if_cenario_adverso_censurado": true,
     "prob_if_ate_idade_meta": 0.31,
-    "prob_if_ate_horizonte": 0.8821,
+    "prob_if_ate_horizonte_simulado": 0.8821,
     "idade_meta_usada": 60,
     "sigma_usado": 0.15,
     "exibir_cone": true,
@@ -654,10 +654,10 @@
         2500000
       ]
     ],
-    "mc_version": "3.0",
+    "mc_version": "4.0",
     "seed_usado": 360,
     "n_simulacoes_usado": 50000,
-    "horizonte_anos": 40
+    "horizonte_simulado_anos": 40
   },
   "goals": {
     "if_meta": 5000000,

@@ -69,7 +69,14 @@
 # Hints: peso de classe financeira cita-se da carteira financeira, nunca de
 # base com imóvel físico; alíquota rotulada "efetiva (blended)". Bump invalida
 # cache Redis.
-version: "2.0.2"
+# 2.0.3 — A40.l28 PR-A (ADR-369 D1): o cone de IF renomeou as chaves do payload
+# (percentil → cenário nomeado; `horizonte_*` → `horizonte_simulado_*`), e nomes
+# mais longos inflaram o prefixo escalar de $.if_monte_carlo de 369 → 475 chars
+# no pior caso — `max_chars` sobe 380 → 490. Custo permanente de contexto num
+# bloco de eviction_priority 8, aceito porque o nome antigo apontava para o lado
+# oposto da legenda do gráfico. Bump invalida cache Redis (o rename já invalida
+# pelo hash do E5; este bump não cobra a frota de novo).
+version: "2.0.3"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -336,12 +343,17 @@ context_sections:
         label: "Projeção IF (Monte Carlo)"
         value_format: "raw"
         on_null: "skip"
-        # ADR-361: os 6 campos de percentil+censura e as 2 probabilidades não
+        # ADR-361: os 6 campos de cenário+censura e as 2 probabilidades não
         # cabem no cap default de 300 (medido: 320 com cone, 369 com o cone
         # suprimido, onde `motivo_sem_cone` é string longa). Sem este knob a
         # correção de honestidade entraria cortando dado de domínio do contexto
-        # do LLM. 380 = maior prefixo escalar medido + folga.
-        max_chars: 380
+        # do LLM.
+        # ADR-369 D1 (A40.l28 PR-A) — remedido nos cinco estados observáveis
+        # após o rename: 429 (cone cheio), 426, 422, **475** (cone suprimido),
+        # 434. 490 = pior caso medido + folga, na mesma proporção do 380/369
+        # anterior. Remedir, não estimar: a estimativa do co-design (+97) não
+        # contava os renames de `horizonte_*`, e o valor real é +106.
+        max_chars: 490
       - format: "scalar"
         path: "$.cenarios_conjuge"
         label: "Cenário 'Sem renda do cônjuge' (ADR-166)"

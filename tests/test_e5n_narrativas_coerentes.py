@@ -133,7 +133,7 @@ _METRICS_MINIMAS: dict[str, Any] = {
     "aluguel_anual_irpf": 0.0,
     "aluguel_irpf_ano_ref": None,
     "aloc_derived": {},
-    "mc_p50_ano_if": None,
+    "mc_ano_if_cenario_central": None,
     "mc_prob_if_ate_idade_meta": None,
     "mc_idade_meta": None,
 }
@@ -441,7 +441,7 @@ def test_metrics_aloc_derived_wiring_e_v1_aposentado(e5n):
 
 def test_projecao_probabilistica_com_monte_carlo():
     m = _metrics_base() | {
-        "mc_p50_ano_if": 2039,
+        "mc_ano_if_cenario_central": 2039,
         "mc_prob_if_ate_idade_meta": 0.41,
         "mc_idade_meta": 65,
     }
@@ -465,7 +465,7 @@ def test_projecao_fallback_deterministico_sem_promessa():
 )
 def test_projecao_probabilidade_guards(prob: float, esperado: str):
     m = _metrics_base() | {
-        "mc_p50_ano_if": 2039,
+        "mc_ano_if_cenario_central": 2039,
         "mc_prob_if_ate_idade_meta": prob,
         "mc_idade_meta": 65,
     }
@@ -476,11 +476,14 @@ def test_projecao_probabilidade_guards(prob: float, esperado: str):
 def test_metrics_monte_carlo_wiring(e5n):
     data = _e5_data_minimal()
     data["if_monte_carlo"] = {
-        "p50_ano_if": 2040,
+        # `mc_version` explícito: sem carimbo o payload é lido como v1 e passa
+        # pela tradução de compat (ADR-369 D3), que procuraria as chaves antigas.
+        "mc_version": "4.0",
+        "ano_if_cenario_central": 2040,
         "prob_if_ate_idade_meta": 0.4123,
         "idade_meta_usada": 65,
     }
     metrics = e5n.load_metrics_from_e5(data)
-    assert metrics["mc_p50_ano_if"] == 2040
+    assert metrics["mc_ano_if_cenario_central"] == 2040
     assert metrics["mc_prob_if_ate_idade_meta"] == 0.4123
     assert metrics["mc_idade_meta"] == 65

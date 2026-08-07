@@ -251,28 +251,34 @@ export interface PremissasEconomicasClassRow {
   razao_indisponivel: string | null;
 }
 
-/** N3 — Monte Carlo IF: cone de probabilidade P10/P50/P90.
+/** N3 — Monte Carlo IF: cone de cenários (favorável / central / adverso).
  *
  * ``exibir_cone`` false → mostrar apenas ``motivo_sem_cone`` (se presente).
  * ``caminho_p*`` são séries [ano_absoluto, valor_brl] para o Chart.js. */
 export interface IFMonteCarloData {
   /** ADR-361 — quantil da BASE CHEIA, com censura à direita: `null` quando a
-   * taxa de sucesso no horizonte não sustenta o percentil. `pXX_censurado`
-   * distingue essa censura de "cone não simulado" (`exibir_cone: false`), e só
-   * é significativo com `exibir_cone: true`. Atenção: `p10_ano_if` é o ano mais
-   * CEDO (cenário favorável), enquanto `caminho_p10` é o patrimônio mais BAIXO
-   * (cenário adverso) — o sufixo `p10` aponta para lados opostos nos dois. */
-  p10_ano_if: number | null;
-  p10_censurado?: boolean;
-  p50_ano_if: number | null;
-  p50_censurado?: boolean;
-  p90_ano_if: number | null;
-  p90_censurado?: boolean;
+   * taxa de sucesso no horizonte não sustenta o percentil. O irmão
+   * `_censurado` distingue essa censura de "cone não simulado"
+   * (`exibir_cone: false`), e só é significativo com `exibir_cone: true`.
+   *
+   * ADR-369 D1 — o cenário é NOMEADO porque o percentil apontava para lados
+   * opostos: `ano_if_cenario_favoravel` é o ano mais CEDO, enquanto
+   * `caminho_p10` é o patrimônio mais BAIXO (cenário adverso). As séries
+   * mantiveram `pXX` de propósito — ali o número já casa com a legenda.
+   *
+   * Opcionais porque relatório de artefato stale (`mc_version` < 4.0)
+   * legitimamente não os traz — o leitor tem de tolerar a ausência. */
+  ano_if_cenario_favoravel?: number | null;
+  ano_if_cenario_favoravel_censurado?: boolean;
+  ano_if_cenario_central?: number | null;
+  ano_if_cenario_central_censurado?: boolean;
+  ano_if_cenario_adverso?: number | null;
+  ano_if_cenario_adverso_censurado?: boolean;
   /** `null` quando a projeção determinística não produziu idade-meta: sem
    * alvo não há "probabilidade até a idade X". O cone independe dos dois. */
   prob_if_ate_idade_meta: number | null;
-  /** Taxa de sucesso no horizonte simulado (base cheia) — decide a censura. */
-  prob_if_ate_horizonte?: number;
+  /** Taxa de sucesso na janela SIMULADA (base cheia) — decide a censura. */
+  prob_if_ate_horizonte_simulado?: number;
   idade_meta_usada: number | null;
   sigma_usado: number;
   exibir_cone: boolean;
@@ -282,7 +288,8 @@ export interface IFMonteCarloData {
   caminho_p10: [number, number][];
   caminho_p50: [number, number][];
   caminho_p90: [number, number][];
-  horizonte_anos?: number;
+  /** Janela da SIMULAÇÃO (40 anos) — não o prazo declarado pela família. */
+  horizonte_simulado_anos?: number;
 }
 
 /** A8.3 — TRS efetiva, renda passiva observada e carteira de renda.

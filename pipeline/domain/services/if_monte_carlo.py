@@ -37,7 +37,10 @@ _MC_N_SIMULACOES = 50_000
 # "2.0" = seedado, percentil dos sobreviventes · "3.0" = seedado, percentil
 # censurado na base cheia (ADR-361). O mesmo `p50_ano_if` significa números
 # não-comparáveis entre 2.0 e 3.0 — é o que o carimbo existe para separar.
-_MC_VERSION = "3.0"
+# "4.0" = 3.0 com as chaves RENOMEADAS; valores idênticos e comparáveis a 3.0
+# (ADR-369 D1). A ressalva é obrigatória justamente porque a linha acima
+# estabelece o precedente contrário.
+_MC_VERSION = "4.0"
 
 
 @dataclass(frozen=True)
@@ -49,7 +52,10 @@ class IFMonteCarloConfig:
     sigma_anual: float = 0.11
     retorno_real_esperado: float = 0.05
     n_simulacoes: int = _MC_N_SIMULACOES
-    horizonte_anos: int = 40
+    # ADR-369 D1 — janela de SIMULAÇÃO. O qualificador existe porque
+    # `horizonte_anos` sem ele já nomeia o prazo declarado pela família no Goal
+    # IF (`goal.if.schema.json`), que é outro número.
+    horizonte_simulado_anos: int = 40
     seed: int = _MC_SEED
     ano_base: int = 2026
     aporte_mensal: Decimal = Decimal("0")
@@ -67,11 +73,14 @@ class IFMonteCarloConfig:
 
 @dataclass(frozen=True)
 class MonteCarloIFResult:
-    """Saída de :func:`run_monte_carlo_if` — cone P10/P50/P90 para S7."""
+    """Saída de :func:`run_monte_carlo_if` — cone de cenários para S7."""
 
-    p10_ano_if: int | None
-    p50_ano_if: int | None
-    p90_ano_if: int | None
+    # ADR-369 D1 — o cenário é nomeado, não numerado por percentil: `p10` do ano
+    # é o décimo mais RÁPIDO (favorável) enquanto `caminho_p10` é o décimo mais
+    # POBRE (adverso). O mesmo sufixo apontava para lados opostos no mesmo bloco.
+    ano_if_cenario_favoravel: int | None
+    ano_if_cenario_central: int | None
+    ano_if_cenario_adverso: int | None
     # `None` quando a projeção determinística não produziu idade-meta: sem alvo
     # não há "probabilidade até a idade X" a medir. O cone (P10/P50/P90) não
     # depende da idade-meta e continua sendo produzido.
@@ -93,18 +102,19 @@ class MonteCarloIFResult:
     mc_version: str = _MC_VERSION
     seed_usado: int = _MC_SEED
     n_simulacoes_usado: int = _MC_N_SIMULACOES
-    horizonte_anos: int = 40
+    horizonte_simulado_anos: int = 40
     # ADR-361 — taxa de sucesso no horizonte simulado, base cheia (`n`). É o
     # denominador que decide a censura: substitui o ano quando ele não existe.
-    prob_if_ate_horizonte: float = 0.0
-    # Por-percentil e explícito porque o consumidor que NÃO pode inferir é o
+    prob_if_ate_horizonte_simulado: float = 0.0
+    # Por-cenário e explícito porque o consumidor que NÃO pode inferir é o
     # parecer, que lê o bloco cru sem o schema: `null` sozinho significaria tanto
     # "cone não simulado" quanto "não atinge no horizonte". Só é significativo
     # com `exibir_cone=True`; derivados de um único predicado sobre
-    # `prob_if_ate_horizonte`, logo monótonos (P50 censurado ⇒ P90 censurado).
-    p10_censurado: bool = False
-    p50_censurado: bool = False
-    p90_censurado: bool = False
+    # `prob_if_ate_horizonte_simulado`, logo monótonos (central censurado ⇒
+    # adverso censurado).
+    ano_if_cenario_favoravel_censurado: bool = False
+    ano_if_cenario_central_censurado: bool = False
+    ano_if_cenario_adverso_censurado: bool = False
 
 
 def _lognormal_params(r: float, sigma: float) -> tuple[float, float]:
@@ -136,7 +146,7 @@ def _simular_caminhos(
     sigma_log: float,
 ) -> tuple[list[int], int, np.ndarray, np.ndarray, np.ndarray]:
     rng = np.random.default_rng(config.seed)
-    n, h = config.n_simulacoes, config.horizonte_anos
+    n, h = config.n_simulacoes, config.horizonte_simulado_anos
     # ADR-360: z padrão escalado depois — location-scale explícita, então revisar
     # a premissa muda a largura do cone, não o sorteio (não depende do Generator).
     log_retornos = mu_log + sigma_log * rng.standard_normal((n, h))
@@ -234,7 +244,7 @@ def _proveniencia(config: IFMonteCarloConfig) -> dict:
     return {
         "seed_usado": config.seed,
         "n_simulacoes_usado": config.n_simulacoes,
-        "horizonte_anos": config.horizonte_anos,
+        "horizonte_simulado_anos": config.horizonte_simulado_anos,
     }
 
 
@@ -254,18 +264,18 @@ def _resultado_sem_cone(
     config: IFMonteCarloConfig,
     *,
     prob_if_ate_idade_meta: float | None = 0.0,
-    prob_if_ate_horizonte: float = 0.0,
+    prob_if_ate_horizonte_simulado: float = 0.0,
 ) -> MonteCarloIFResult:
     return MonteCarloIFResult(
-        p10_ano_if=None,
-        p50_ano_if=None,
-        p90_ano_if=None,
+        ano_if_cenario_favoravel=None,
+        ano_if_cenario_central=None,
+        ano_if_cenario_adverso=None,
         # #1158: sem idade-meta não há horizonte, então a probabilidade é
         # ausência — 0,0 afirmaria "nenhuma simulação atinge".
         prob_if_ate_idade_meta=(None if idade_meta is None else prob_if_ate_idade_meta),
         exibir_cone=False,
         motivo_sem_cone=motivo,
-        prob_if_ate_horizonte=prob_if_ate_horizonte,
+        prob_if_ate_horizonte_simulado=prob_if_ate_horizonte_simulado,
         **_campos_comuns(config, idade_meta),
     )
 
@@ -282,7 +292,7 @@ def _resultado_meta_atingida(
         idade_meta,
         config,
         prob_if_ate_idade_meta=1.0,
-        prob_if_ate_horizonte=1.0,
+        prob_if_ate_horizonte_simulado=1.0,
     )
 
 
@@ -295,7 +305,7 @@ class _NucleoMC:
     exibir: bool
     motivo: str | None
     prob_if_ate_idade_meta: float | None
-    prob_if_ate_horizonte: float
+    prob_if_ate_horizonte_simulado: float
     patrimonios: np.ndarray
 
 
@@ -327,22 +337,26 @@ def _caminhos_kwargs(patrimonios: np.ndarray, ano_base: int, exibir: bool) -> di
 def _censura_kwargs(core: _NucleoMC) -> dict:
     """Flags de censura; falsas sem cone, senão o consumidor leria censura onde
     não houve simulação."""
-    c10, c50, c90 = core.censurados if core.exibir else (False, False, False)
-    return {"p10_censurado": c10, "p50_censurado": c50, "p90_censurado": c90}
+    favoravel, central, adverso = core.censurados if core.exibir else (False, False, False)
+    return {
+        "ano_if_cenario_favoravel_censurado": favoravel,
+        "ano_if_cenario_central_censurado": central,
+        "ano_if_cenario_adverso_censurado": adverso,
+    }
 
 
 def _build_mc_result(
     core: _NucleoMC, config: IFMonteCarloConfig, ano_base: int, idade_meta_if: int | None
 ) -> MonteCarloIFResult:
-    p10, p50, p90 = _anos_if(core.percentis, ano_base, core.exibir)
+    favoravel, central, adverso = _anos_if(core.percentis, ano_base, core.exibir)
     return MonteCarloIFResult(
-        p10_ano_if=p10,
-        p50_ano_if=p50,
-        p90_ano_if=p90,
+        ano_if_cenario_favoravel=favoravel,
+        ano_if_cenario_central=central,
+        ano_if_cenario_adverso=adverso,
         prob_if_ate_idade_meta=core.prob_if_ate_idade_meta,
         exibir_cone=core.exibir,
         motivo_sem_cone=core.motivo,
-        prob_if_ate_horizonte=core.prob_if_ate_horizonte,
+        prob_if_ate_horizonte_simulado=core.prob_if_ate_horizonte_simulado,
         **_censura_kwargs(core),
         **_caminhos_kwargs(core.patrimonios, ano_base, core.exibir),
         **_campos_comuns(config, idade_meta_if),
@@ -366,7 +380,7 @@ def run_monte_carlo_if(
     idade_titular_atual: int,
     idade_meta_if: int | None = 65,
 ) -> MonteCarloIFResult:
-    """50 000 simulações log-normais → P10/P50/P90 + gate de cone; reprodutível."""
+    """50 000 simulações log-normais → cone de cenários + gate; reprodutível."""
     # ADR-360: seed é constante de modelo, então o cone é função pura dos inputs
     # de domínio e monótono em patrimônio/aporte. `idade_meta_if=None`
     # (determinística sem prazo) suprime só prob/idade_meta — o cone independe.
@@ -387,17 +401,17 @@ def run_monte_carlo_if(
 # =============================================================================
 
 
-def _cone_percentis(mc: MonteCarloIFResult) -> dict:
+def _cone_cenarios(mc: MonteCarloIFResult) -> dict:
     """Anos do cone com a flag de censura INTERCALADA (ADR-361)."""
     # O corte do distiller é prefixal, então flags agrupadas depois dos três anos
     # abririam uma janela em que o LLM lê o ano sem saber que foi censurado.
     return {
-        "p10_ano_if": mc.p10_ano_if,
-        "p10_censurado": mc.p10_censurado,
-        "p50_ano_if": mc.p50_ano_if,
-        "p50_censurado": mc.p50_censurado,
-        "p90_ano_if": mc.p90_ano_if,
-        "p90_censurado": mc.p90_censurado,
+        "ano_if_cenario_favoravel": mc.ano_if_cenario_favoravel,
+        "ano_if_cenario_favoravel_censurado": mc.ano_if_cenario_favoravel_censurado,
+        "ano_if_cenario_central": mc.ano_if_cenario_central,
+        "ano_if_cenario_central_censurado": mc.ano_if_cenario_central_censurado,
+        "ano_if_cenario_adverso": mc.ano_if_cenario_adverso,
+        "ano_if_cenario_adverso_censurado": mc.ano_if_cenario_adverso_censurado,
     }
 
 
@@ -405,7 +419,7 @@ def _cone_premissas(mc: MonteCarloIFResult) -> dict:
     """Probabilidades (dois horizontes distintos) + premissas do run."""
     return {
         "prob_if_ate_idade_meta": mc.prob_if_ate_idade_meta,
-        "prob_if_ate_horizonte": mc.prob_if_ate_horizonte,
+        "prob_if_ate_horizonte_simulado": mc.prob_if_ate_horizonte_simulado,
         "idade_meta_usada": mc.idade_meta_usada,
         "sigma_usado": mc.sigma_usado,
         "exibir_cone": mc.exibir_cone,
@@ -425,7 +439,7 @@ def _cone_series_e_proveniencia(mc: MonteCarloIFResult) -> dict:
         "mc_version": mc.mc_version,
         "seed_usado": mc.seed_usado,
         "n_simulacoes_usado": mc.n_simulacoes_usado,
-        "horizonte_anos": mc.horizonte_anos,
+        "horizonte_simulado_anos": mc.horizonte_simulado_anos,
     }
 
 
@@ -434,7 +448,7 @@ def monte_carlo_to_dict(mc: MonteCarloIFResult) -> dict:
     # Pública porque o gate de orçamento do exec context do parecer mede a ordem
     # de produção, não uma cópia dela.
     return {
-        **_cone_percentis(mc),
+        **_cone_cenarios(mc),
         **_cone_premissas(mc),
         **_cone_series_e_proveniencia(mc),
     }

@@ -40,27 +40,29 @@ def _chance_ate_idade_meta(M: Mapping[str, Any], ctx: NarrativasContext) -> str:
 
 def _faixa_cenarios(M: Mapping[str, Any]) -> str:
     """Extremos da faixa quando existem; vazio quando censurados."""
-    # Rótulo de percentil não vai para copy user-facing: "P10" é o ano mais cedo
-    # (favorável) enquanto `caminho_p10` é o patrimônio mais baixo (adverso) — o
-    # mesmo sufixo aponta para lados opostos.
-    p10, p90 = M.get("mc_p10_ano_if"), M.get("mc_p90_ano_if")
-    if p10 and p90:
-        return f", entre {p10} no cenário favorável e {p90} no adverso"
-    if p10:
-        return f", a partir de {p10} no cenário favorável"
+    # Rótulo de percentil nunca foi para copy user-facing porque "P10" é o ano
+    # mais cedo (favorável) enquanto `caminho_p10` é o patrimônio mais baixo
+    # (adverso). ADR-369 D1 levou o nome do cenário para dentro do contrato, e a
+    # copy passou a ler igual ao payload em vez de traduzi-lo aqui.
+    favoravel = M.get("mc_ano_if_cenario_favoravel")
+    adverso = M.get("mc_ano_if_cenario_adverso")
+    if favoravel and adverso:
+        return f", entre {favoravel} no cenário favorável e {adverso} no adverso"
+    if favoravel:
+        return f", a partir de {favoravel} no cenário favorável"
     return ""
 
 
 def _projecao_com_central(M: Mapping[str, Any], ctx: NarrativasContext, renda: str) -> str:
     """Mediana publicável: faixa + chance, e o adverso fora do horizonte se for."""
     cauda = ""
-    if M.get("mc_p90_censurado") and M.get("mc_horizonte_anos"):
+    if M.get("mc_ano_if_cenario_adverso_censurado") and M.get("mc_horizonte_simulado_anos"):
         cauda = (
             f" Nas simulações mais lentas a meta fica além dos "
-            f"{M['mc_horizonte_anos']} anos projetados."
+            f"{M['mc_horizonte_simulado_anos']} anos projetados."
         )
     return (
-        f"Cenário central: meta em {M['mc_p50_ano_if']}{_faixa_cenarios(M)}; "
+        f"Cenário central: meta em {M['mc_ano_if_cenario_central']}{_faixa_cenarios(M)}; "
         f"{_chance_ate_idade_meta(M, ctx)}.{cauda} " + renda
     )
 
@@ -71,8 +73,8 @@ def _projecao_sem_central(M: Mapping[str, Any], ctx: NarrativasContext, renda: s
     # aponta a meta para X"): a mais otimista do relatório, exatamente no plano
     # em que a mediana não chega. O sujeito é o plano, não a pessoa, e a
     # afirmação vem datada e condicionada ao aporte de hoje.
-    horizonte = M.get("mc_horizonte_anos") or 40
-    prob_h = M.get("mc_prob_if_ate_horizonte")
+    horizonte = M.get("mc_horizonte_simulado_anos") or 40
+    prob_h = M.get("mc_prob_if_ate_horizonte_simulado")
     fatia = f"{_fmt_probabilidade(prob_h)} das simulações chegam lá" if prob_h else ""
     meio = f" — {fatia}" if fatia else ""
     return (
@@ -107,8 +109,8 @@ def narrate_projecao_if_conclusion(M: Mapping[str, Any], ctx: NarrativasContext)
         f"({fmt_percent(M['pct_renda_passiva_meta'])} da meta de {fmt_currency(M['if_renda_passiva_meta'])}/mês)."
     )
     tem_prob = M.get("mc_prob_if_ate_idade_meta") is not None and M.get("mc_idade_meta")
-    if M.get("mc_p50_ano_if") and tem_prob:
+    if M.get("mc_ano_if_cenario_central") and tem_prob:
         return _projecao_com_central(M, ctx, renda)
-    if M.get("mc_p50_censurado") and tem_prob:
+    if M.get("mc_ano_if_cenario_central_censurado") and tem_prob:
         return _projecao_sem_central(M, ctx, renda)
     return _projecao_deterministica(M, ctx, renda)

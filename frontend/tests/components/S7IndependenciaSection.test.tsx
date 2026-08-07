@@ -228,9 +228,12 @@ describe("<S7IndependenciaSection /> · acessibilidade (label + tooltip)", () =>
 
 function makeMonteCarlo(overrides: Partial<IFMonteCarloData> = {}): IFMonteCarloData {
   return {
-    p10_ano_if: 2044,
-    p50_ano_if: 2040,
-    p90_ano_if: 2036,
+    // ADR-369 D1 — cenário nomeado: favorável é o ano mais CEDO (2036), adverso
+    // é o mais tarde (2044). O fixture antigo lia `p10_ano_if: 2044`, que era
+    // literalmente a inversão que o rename existe para desfazer.
+    ano_if_cenario_favoravel: 2036,
+    ano_if_cenario_central: 2040,
+    ano_if_cenario_adverso: 2044,
     prob_if_ate_idade_meta: 0.31,
     idade_meta_usada: 60,
     sigma_usado: 0.15,

@@ -20,7 +20,7 @@ def _cfg_com_cone(pv: float = 800_000, fv: float = 2_000_000) -> IFMonteCarloCon
         sigma_anual=0.11,
         retorno_real_esperado=0.05,
         n_simulacoes=5_000,
-        horizonte_anos=40,
+        horizonte_simulado_anos=40,
         seed=42,
     )
 
@@ -33,20 +33,20 @@ def _cfg_sem_cone() -> IFMonteCarloConfig:
         sigma_anual=0.11,
         retorno_real_esperado=0.05,
         n_simulacoes=2_000,
-        horizonte_anos=40,
+        horizonte_simulado_anos=40,
         seed=42,
     )
 
 
 def test_caminho_paths_have_correct_shape():
-    """Após run_monte_carlo_if com cone, len(caminho_p50) == config.horizonte_anos."""
+    """Após run_monte_carlo_if com cone, len(caminho_p50) == config.horizonte_simulado_anos."""
     cfg = _cfg_com_cone()
     result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
 
     assert result.exibir_cone is True
-    assert len(result.caminho_p50) == cfg.horizonte_anos
-    assert len(result.caminho_p10) == cfg.horizonte_anos
-    assert len(result.caminho_p90) == cfg.horizonte_anos
+    assert len(result.caminho_p50) == cfg.horizonte_simulado_anos
+    assert len(result.caminho_p10) == cfg.horizonte_simulado_anos
+    assert len(result.caminho_p90) == cfg.horizonte_simulado_anos
 
 
 def test_caminho_paths_monotonically_plausible():

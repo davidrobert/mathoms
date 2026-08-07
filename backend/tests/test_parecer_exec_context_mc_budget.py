@@ -21,17 +21,17 @@ from pipeline.domain.services.if_monte_carlo import IFMonteCarloConfig, run_mont
 _MANIFEST = Path(__file__).resolve().parents[2] / "config" / "prompts" / "parecer_planejador.yaml"
 
 # Escalares de DOMÍNIO: mudam a leitura do número, então nenhum pode ser cortado.
-# `mc_version`/`seed_usado`/`n_simulacoes_usado`/`horizonte_anos` ficam de fora de
+# `mc_version`/`seed_usado`/`n_simulacoes_usado`/`horizonte_simulado_anos` ficam de fora de
 # propósito — são metadado de auditoria e vivem depois dos `caminho_*` (ADR-360).
 _CAMPOS_DOMINIO = (
-    "p10_ano_if",
-    "p10_censurado",
-    "p50_ano_if",
-    "p50_censurado",
-    "p90_ano_if",
-    "p90_censurado",
+    "ano_if_cenario_favoravel",
+    "ano_if_cenario_favoravel_censurado",
+    "ano_if_cenario_central",
+    "ano_if_cenario_central_censurado",
+    "ano_if_cenario_adverso",
+    "ano_if_cenario_adverso_censurado",
     "prob_if_ate_idade_meta",
-    "prob_if_ate_horizonte",
+    "prob_if_ate_horizonte_simulado",
     "idade_meta_usada",
     "sigma_usado",
     "exibir_cone",
@@ -42,8 +42,8 @@ _CAMPOS_DOMINIO = (
 # (patrimônio, meta, aporte) — os cinco estados observáveis do bloco.
 _ESTADOS = [
     pytest.param("5000000", "10000000", "15000", id="cone-cheio"),
-    pytest.param("2000000", "10000000", "5000", id="p90-censurado"),
-    pytest.param("1500000", "10000000", "0", id="p50-e-p10-censurados"),
+    pytest.param("2000000", "10000000", "5000", id="adverso-censurado"),
+    pytest.param("1500000", "10000000", "0", id="central-e-favoravel-censurados"),
     pytest.param("400000", "10000000", "0", id="cone-suprimido"),
     pytest.param("11000000", "10000000", "0", id="meta-ja-atingida"),
 ]
@@ -90,7 +90,7 @@ def test_dado_de_dominio_do_cone_sobrevive_ao_corte(pv: str, fv: str, pmt: str):
 def test_flag_de_censura_segue_o_ano_que_qualifica(pv: str, fv: str, pmt: str):
     """Intercalada, então não existe janela de ano sem qualificador no prefixo."""
     renderizado = _render(pv, fv, pmt)
-    for percentil in ("p10", "p50", "p90"):
-        pos_ano = renderizado.index(f'"{percentil}_ano_if"')
-        pos_flag = renderizado.index(f'"{percentil}_censurado"')
-        assert pos_flag > pos_ano, f"{percentil}: flag deveria seguir o ano"
+    for cenario in ("favoravel", "central", "adverso"):
+        pos_ano = renderizado.index(f'"ano_if_cenario_{cenario}"')
+        pos_flag = renderizado.index(f'"ano_if_cenario_{cenario}_censurado"')
+        assert pos_flag > pos_ano, f"{cenario}: flag deveria seguir o ano"

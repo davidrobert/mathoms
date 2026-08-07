@@ -32,7 +32,7 @@ def _config(
         sigma_anual=sigma,
         retorno_real_esperado=retorno,
         n_simulacoes=n,
-        horizonte_anos=40,
+        horizonte_simulado_anos=40,
         seed=seed,
         aporte_mensal=Decimal(str(pmt)),
     )
@@ -42,9 +42,9 @@ def test_seed_fixo_resultado_deterministico():
     """Mesma seed → resultado idêntico em duas chamadas."""
     r1 = run_monte_carlo_if(_config(seed=7), ano_base=2026, idade_titular_atual=35)
     r2 = run_monte_carlo_if(_config(seed=7), ano_base=2026, idade_titular_atual=35)
-    assert r1.p50_ano_if == r2.p50_ano_if
-    assert r1.p10_ano_if == r2.p10_ano_if
-    assert r1.p90_ano_if == r2.p90_ano_if
+    assert r1.ano_if_cenario_central == r2.ano_if_cenario_central
+    assert r1.ano_if_cenario_favoravel == r2.ano_if_cenario_favoravel
+    assert r1.ano_if_cenario_adverso == r2.ano_if_cenario_adverso
 
 
 def test_se_if_pct_abaixo_15pct_nao_exibe_cone():
@@ -53,7 +53,7 @@ def test_se_if_pct_abaixo_15pct_nao_exibe_cone():
     result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
     assert result.exibir_cone is False
     assert result.motivo_sem_cone is not None
-    assert result.p50_ano_if is None
+    assert result.ano_if_cenario_central is None
 
 
 def test_p10_le_p50_le_p90():
@@ -64,10 +64,14 @@ def test_p10_le_p50_le_p90():
     cfg = _config(pv=800_000, fv=2_000_000, pmt=3_000.0)  # sucesso ~99,9%
     result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
     assert result.exibir_cone is True
-    assert result.p10_ano_if is not None
-    assert result.p50_ano_if is not None
-    assert result.p90_ano_if is not None
-    assert result.p10_ano_if <= result.p50_ano_if <= result.p90_ano_if
+    assert result.ano_if_cenario_favoravel is not None
+    assert result.ano_if_cenario_central is not None
+    assert result.ano_if_cenario_adverso is not None
+    assert (
+        result.ano_if_cenario_favoravel
+        <= result.ano_if_cenario_central
+        <= result.ano_if_cenario_adverso
+    )
 
 
 def test_vetorizacao_10k_menos_de_2s():
@@ -87,7 +91,7 @@ def test_termos_reais_escala_independente():
     escala = run_monte_carlo_if(
         _config(pv=5_000_000, fv=20_000_000, seed=99), ano_base=2026, idade_titular_atual=35
     )
-    assert base.p50_ano_if == escala.p50_ano_if
+    assert base.ano_if_cenario_central == escala.ano_if_cenario_central
 
 
 def test_patrimonio_ja_atingiu_meta():
@@ -99,7 +103,7 @@ def test_patrimonio_ja_atingiu_meta():
     assert result.exibir_cone is False
     assert result.motivo_sem_cone == "meta já atingida"
     assert result.prob_if_ate_idade_meta == 1.0
-    assert result.p50_ano_if is None
+    assert result.ano_if_cenario_central is None
 
 
 def test_prob_if_ate_idade_meta_entre_0_e_1():
@@ -119,7 +123,7 @@ def test_if_pct_insuficiente_nao_exibe_cone():
         sigma_anual=0.11,
         retorno_real_esperado=0.01,
         n_simulacoes=5_000,
-        horizonte_anos=40,
+        horizonte_simulado_anos=40,
         seed=123,
     )
     result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
@@ -130,9 +134,9 @@ def test_resultado_sem_cone_campos_none():
     """Quando exibir_cone=False, anos devem ser None."""
     cfg = _config(pv=100_000, fv=2_000_000)  # 5% → abaixo de 15%
     result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
-    assert result.p10_ano_if is None
-    assert result.p50_ano_if is None
-    assert result.p90_ano_if is None
+    assert result.ano_if_cenario_favoravel is None
+    assert result.ano_if_cenario_central is None
+    assert result.ano_if_cenario_adverso is None
 
 
 # =============================================================================
@@ -146,21 +150,21 @@ def test_pmt_zero_preserves_legacy_behavior():
     cfg_zero = _config(pv=800_000, fv=2_000_000, seed=42, pmt=0.0)
     r_legacy = run_monte_carlo_if(cfg_legacy, ano_base=2026, idade_titular_atual=35)
     r_zero = run_monte_carlo_if(cfg_zero, ano_base=2026, idade_titular_atual=35)
-    assert r_legacy.p10_ano_if == r_zero.p10_ano_if
-    assert r_legacy.p50_ano_if == r_zero.p50_ano_if
-    assert r_legacy.p90_ano_if == r_zero.p90_ano_if
+    assert r_legacy.ano_if_cenario_favoravel == r_zero.ano_if_cenario_favoravel
+    assert r_legacy.ano_if_cenario_central == r_zero.ano_if_cenario_central
+    assert r_legacy.ano_if_cenario_adverso == r_zero.ano_if_cenario_adverso
     assert r_legacy.prob_if_ate_idade_meta == r_zero.prob_if_ate_idade_meta
 
 
 def test_pmt_positivo_aumenta_prob_if():
-    """PMT > 0 ⇒ prob_if_ate_idade_meta sobe e p50_ano_if cai (ADR-237)."""
+    """PMT > 0 ⇒ prob_if_ate_idade_meta sobe e ano_if_cenario_central cai (ADR-237)."""
     cfg_sem_aporte = _config(pv=600_000, fv=3_000_000, seed=42)
     cfg_com_aporte = _config(pv=600_000, fv=3_000_000, seed=42, pmt=5_000.0)
     r_sem = run_monte_carlo_if(cfg_sem_aporte, ano_base=2026, idade_titular_atual=35)
     r_com = run_monte_carlo_if(cfg_com_aporte, ano_base=2026, idade_titular_atual=35)
     assert r_com.prob_if_ate_idade_meta > r_sem.prob_if_ate_idade_meta
-    assert r_com.p50_ano_if is not None and r_sem.p50_ano_if is not None
-    assert r_com.p50_ano_if < r_sem.p50_ano_if
+    assert r_com.ano_if_cenario_central is not None and r_sem.ano_if_cenario_central is not None
+    assert r_com.ano_if_cenario_central < r_sem.ano_if_cenario_central
 
 
 def test_pmt_com_sigma_zero_converge_para_deterministico():
@@ -170,7 +174,9 @@ def test_pmt_com_sigma_zero_converge_para_deterministico():
     result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
     assert result.exibir_cone is True
     assert (
-        result.p50_ano_if == result.p10_ano_if == result.p90_ano_if
+        result.ano_if_cenario_central
+        == result.ano_if_cenario_favoravel
+        == result.ano_if_cenario_adverso
     ), "sigma=0 deve colapsar P10=P50=P90"
     pmt_anual = pmt * 12.0
     w = pv
@@ -180,7 +186,7 @@ def test_pmt_com_sigma_zero_converge_para_deterministico():
         anos_deterministico = t + 1
         if w >= fv:
             break
-    assert abs(result.p50_ano_if - (2026 + anos_deterministico)) <= 1
+    assert abs(result.ano_if_cenario_central - (2026 + anos_deterministico)) <= 1
 
 
 def test_pmt_alto_pv_baixo_levanta_prob_de_zero():
@@ -275,4 +281,4 @@ def test_grandezas_publicadas_sao_robustas_a_troca_de_seed():
     assert dispersao <= 0.02, f"dispersão da série do cone {dispersao:.2%} > 2%"
     probs = [r.prob_if_ate_idade_meta for r in rs]
     assert max(probs) - min(probs) <= 0.006, f"prob varia {max(probs) - min(probs):.4f} > 0,6 pp"
-    assert len({r.p50_ano_if for r in rs}) == 1, "ano de IF do P50 muda com o seed"
+    assert len({r.ano_if_cenario_central for r in rs}) == 1, "ano de IF do P50 muda com o seed"
