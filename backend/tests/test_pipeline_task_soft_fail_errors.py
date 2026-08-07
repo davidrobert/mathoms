@@ -131,11 +131,16 @@ def _silence_publish(monkeypatch):
 def _run_and_get_log(tmp_path, monkeypatch, *, result, stage="stage_x"):
     """Roda ``_record_stage_result`` contra SQLite isolado e retorna o ``PipelineStageLog``."""
     from backend.app.models import PipelineStageLog
+    from pipeline.stage_outcome import resolve_stage_outcome
 
     SL, db = _make_engine_and_session(tmp_path)
     run_id, log_id, _ = _seed_run_with_running_stage(db)
     monkeypatch.setattr("backend.app.tasks.pipeline_task.SyncSessionLocal", SL)
-    _record_stage_result(run_id, stage, log_id, result, 100, 50)
+    # Deriva o desfecho como o loop faz (A40.l18) em vez de fixar `failed`: assim
+    # o teste continua exercitando a disposição real, e um stage que virasse
+    # `degradable` mudaria estas asserções em vez de passar por vacuidade.
+    outcome = resolve_stage_outcome(stage, delivered=bool(result.success))
+    _record_stage_result(run_id, stage, log_id, result, 100, 50, outcome)
     db.expire_all()
     return db.get(PipelineStageLog, log_id)
 

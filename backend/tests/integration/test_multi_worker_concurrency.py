@@ -251,7 +251,7 @@ def test_ws_terminal_event_closes_connection_cross_worker(shared_redis):
     client = TestClient(app)
     with pytest.raises(WebSocketDisconnect):
         with client.websocket_connect(f"/api/pipeline/runs/{run_id}/ws?token={token}") as ws:
-            events_module.publish_run_completed(run_id)
+            events_module.publish_run_completed(run_id, status="completed")
             # Drena até receber run_completed (ou WebSocketDisconnect).
             for _ in range(5):
                 msg = ws.receive_json()

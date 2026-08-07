@@ -16,6 +16,7 @@ import time
 import traceback
 import uuid
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 _BRT = ZoneInfo("America/Sao_Paulo")
@@ -55,6 +56,9 @@ from backend.app.services.report_tasks_snapshot_service import (
     build_snapshot_sync,
 )
 from backend.app.worker import celery_app
+
+if TYPE_CHECKING:  # `pipeline.*` só é importável após _bootstrap_pipeline_sys_path()
+    from pipeline.stage_outcome import StageOutcome
 
 logger = logging.getLogger(__name__)
 
@@ -545,7 +549,33 @@ _STAGE_DONE_STATUSES = (
     PipelineStageStatus.completed,
     PipelineStageStatus.skipped,
     PipelineStageStatus.skipped_free_tier,
+    # ADR-357 §4 — `degraded` terminou; só não entregou. Sem ele aqui, o
+    # redelivery Celery re-executa e RE-PAGA o stage LLM já cobrado (US$ 0,48 no
+    # incidente de origem), reintroduzindo no ramo degradado a regressão que a
+    # A37.l12 fechou.
+    PipelineStageStatus.degraded,
 )
+
+# Tradução desfecho → status persistido (ADR-357). Mora em `backend/` porque toca
+# o enum SQLAlchemy; a DERIVAÇÃO do desfecho é pura e mora em
+# `pipeline/stage_outcome.py`.
+#
+# `skipped` mapeia para `completed` de propósito. `PipelineStageStatus.skipped` já
+# significa outra coisa — o orquestrador decidiu NÃO rodar o stage (tier free /
+# `skip_llm`), gravado por `_record_stage_skip` antes da execução. Já
+# `{"skipped": True}` é no-op declarado pelo próprio stage (5 early-returns do
+# parecer, `extract_*` sem documento) e hoje grava `completed`. Conflacionar os
+# dois flipparia status e evento WS de caso que ship hoje; a ADR-357 §2 manda
+# preservar o default atual.
+# Chaveado por string, não pelo membro do enum: `pipeline.*` só é importável
+# depois de `_bootstrap_pipeline_sys_path()`, então import module-level aqui
+# quebraria o worker. `StageOutcome` é `str, Enum` e hashea como a string.
+_STAGE_STATUS_BY_OUTCOME: dict[str, PipelineStageStatus] = {
+    "completed": PipelineStageStatus.completed,
+    "skipped": PipelineStageStatus.completed,
+    "degraded": PipelineStageStatus.degraded,
+    "failed": PipelineStageStatus.failed,
+}
 
 
 def _find_stage_completion_marker(run_id: str, stage_name: str) -> dict | None:
@@ -575,7 +605,15 @@ def _publish_redelivered_stage_event(
     if status == PipelineStageStatus.completed:
         publish_stage_completed(run_id, stage_name, completed_pct)
         return
-    publish_stage_skipped(run_id, stage_name, "LLM stage skipped (redelivery)", completed_pct)
+    # Reusa `stage_skipped` (a §Consequências da ADR-357 recusa evento novo), mas
+    # carrega o status REAL do marcador: com `degraded` em `_STAGE_DONE_STATUSES`,
+    # anunciar `status="skipped"` faria o frontend ler skip onde houve degradação.
+    reason = (
+        "stage degradado neste run (redelivery)"
+        if status == PipelineStageStatus.degraded
+        else "LLM stage skipped (redelivery)"
+    )
+    publish_stage_skipped(run_id, stage_name, reason, completed_pct, status=status.value)
 
 
 def _log_stage_redelivered(run_id: str, stage_name: str, log_id: str) -> None:
@@ -862,11 +900,12 @@ def _record_stage_exception(
     exc_tb: str | None,
     elapsed_ms: int,
     progress_pct: int,
+    outcome: "StageOutcome",
 ) -> None:
     error_msg = f"{exc_error} (after {attempts} attempt(s))" if attempts > 1 else exc_error
     with SyncSessionLocal() as db:
         stage_log = db.get(PipelineStageLog, log_id)
-        stage_log.status = PipelineStageStatus.failed
+        stage_log.status = _STAGE_STATUS_BY_OUTCOME[outcome]
         stage_log.duration_ms = elapsed_ms
         stage_log.completed_at = datetime.now(timezone.utc)
         stage_log.errors = error_msg
@@ -875,8 +914,10 @@ def _record_stage_exception(
             "traceback": exc_tb,
             "attempt_count": attempts,
         }
-        run = db.get(PipelineRun, run_id)
-        run.failed_at_stage = stage_name
+        # Ver §3 em `_record_stage_result`: degradação não popula campo de falha.
+        if outcome == "failed":
+            run = db.get(PipelineRun, run_id)
+            run.failed_at_stage = stage_name
         db.commit()
     publish_stage_failed(run_id, stage_name, exc_error or "Unknown error", progress_pct)
 
@@ -1176,32 +1217,36 @@ def _record_stage_result(
     result,
     elapsed_ms: int,
     completed_pct: int,
+    outcome: "StageOutcome",
 ) -> bool:
-    """Persiste resultado final do stage + publica evento. Retorna ``True`` em sucesso. Pós-stage hook ADR-199 materializa ``PlannerReview`` se ``stage_name == review_finances_holistic``."""
+    """Persiste resultado final do stage + publica evento. Retorna ``True`` se ENTREGOU. Pós-stage hook ADR-199 materializa ``PlannerReview`` se ``stage_name == review_finances_holistic``."""
     with SyncSessionLocal() as db:
         stage_log = db.get(PipelineStageLog, log_id)
-        stage_log.status = (
-            PipelineStageStatus.completed if result.success else PipelineStageStatus.failed
-        )
+        stage_log.status = _STAGE_STATUS_BY_OUTCOME[outcome]
         stage_log.duration_ms = elapsed_ms
         stage_log.completed_at = datetime.now(timezone.utc)
         stage_log.output_summary = result.detail
         if result.error:
             stage_log.errors = result.error
-        elif not result.success:
+        elif not outcome.delivered:
             stage_log.errors = _summarize_per_doc_errors(result.detail)
         db.commit()
 
-    if result.success:
+    if outcome.delivered:
         _persist_planner_review_if_applicable(run_id, stage_name, result)
         publish_stage_completed(run_id, stage_name, completed_pct)
         return True
 
     publish_stage_failed(run_id, stage_name, result.error or "Unknown error", completed_pct)
-    with SyncSessionLocal() as db:
-        run = db.get(PipelineRun, run_id)
-        run.failed_at_stage = stage_name
-        db.commit()
+    # ADR-357 §3 — `failed_at_stage` NÃO é populado em degradação: preenchido ao
+    # lado de um status entregue, ele mentiria para todo leitor futuro (e o
+    # `deriveFailedStage` do frontend pintaria a etapa de vermelho num run que
+    # entregou). O stage degradado é derivável de `stage_logs`.
+    if outcome == "failed":
+        with SyncSessionLocal() as db:
+            run = db.get(PipelineRun, run_id)
+            run.failed_at_stage = stage_name
+            db.commit()
     return False
 
 
@@ -1234,8 +1279,12 @@ def _execute_stages_loop(
     contenção com a sessão que escreve em ``pipeline_stage_logs``
     (ADR-212 PR3a: sempre ``DBArtifactStore``; flag dies).
 
-    Retorna ``(has_failure, paused_for_review)``.
+    Retorna ``(has_failure, paused_for_review)``. Degradação NÃO entra na tupla:
+    é propriedade do run e o finalize a lê de ``stage_logs`` (ADR-357 §3) — flag
+    local mediria só esta invocação, e resume/redelivery partem o run em duas.
     """
+    from pipeline.stage_outcome import commits_artifacts_on_degrade, resolve_stage_outcome
+
     has_failure = False
     paused_for_review = False
     total_stages = len(stages)
@@ -1288,6 +1337,7 @@ def _execute_stages_loop(
 
         # Exception during stage (all retries exhausted): rollback + close.
         if result is None:
+            outcome = resolve_stage_outcome(stage_name, delivered=False)
             _rollback_and_close_artifact_session(stage_session)
             _record_stage_exception(
                 run_id,
@@ -1298,7 +1348,10 @@ def _execute_stages_loop(
                 exc_tb,
                 elapsed_ms,
                 progress_pct,
+                outcome,
             )
+            if outcome == "degraded":
+                continue
             has_failure = True
             if stop_on_error:
                 break
@@ -1318,28 +1371,54 @@ def _execute_stages_loop(
             paused_for_review = True
             break
 
+        outcome = resolve_stage_outcome(
+            stage_name,
+            delivered=bool(result.success),
+            declared_skip=isinstance(result.detail, dict) and bool(result.detail.get("skipped")),
+        )
+
         if result.success:
             try:
                 _commit_and_close_artifact_session(stage_session)
             except Exception as exc:  # noqa: BLE001
                 logger.exception("artifact commit failed stage=%s: %s", stage_name, exc)
                 has_failure = True
-                _record_stage_result(run_id, stage_name, log_id, result, elapsed_ms, completed_pct)
+                _record_stage_result(
+                    run_id, stage_name, log_id, result, elapsed_ms, completed_pct, outcome
+                )
                 if stop_on_error:
                     break
                 continue
+        elif outcome == "degraded" and commits_artifacts_on_degrade(stage_name):
+            # ADR-357 §6 — artifact degradado é COMMITADO (nunca publicado): a
+            # superfície de diagnóstico precisa ter o que ler, e o marcador
+            # terminal promete "artefatos persistidos". A exceção travada é o
+            # stage que escreve em chave de OUTRO stage (`generate_narratives`
+            # grava na chave do E5): ali não há onde pôr o marcador
+            # `_meta.status` que os dois leitores usam para discriminar, e
+            # commitar mentiria sobre um E5 que está completo.
+            try:
+                _commit_and_close_artifact_session(stage_session)
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("artifact commit failed on degrade stage=%s: %s", stage_name, exc)
         else:
             _rollback_and_close_artifact_session(stage_session)
 
-        succeeded = _record_stage_result(
+        delivered = _record_stage_result(
             run_id,
             stage_name,
             log_id,
             result,
             elapsed_ms,
             completed_pct,
+            outcome,
         )
-        if not succeeded:
+        # Degradação NUNCA honra `stop_on_error`. Os 3 degradáveis são os 3
+        # últimos de FULL_ORDER, nesta ordem, e o default do trigger/resume é
+        # `True`: parar aqui faria degradar `generate_narratives` apagar também
+        # `validate_cross` e o parecer que o cliente premium pagou — uma lacuna
+        # virando três, criada pela própria lane que existe para matá-las.
+        if not delivered and outcome == "failed":
             has_failure = True
             if stop_on_error:
                 break
@@ -1347,21 +1426,96 @@ def _execute_stages_loop(
     return has_failure, paused_for_review
 
 
-def _finalize_run(run_id: str, has_failure: bool) -> None:
-    """Seta ``PipelineRun`` para ``completed`` ou ``failed`` e publica evento."""
+# Desfechos em que o post-processing roda — quem cria a row em `reports`,
+# materializa lineage edges e sincroniza status E2 (ADR-357 §5 · ADR-131).
+#
+# Predicado POSITIVO de propósito. O antigo `if not has_failure` era negativo, e
+# negativo deixa passar todo status futuro sem decisão. `partial_failure` entra
+# porque o entregável existe — é o ponto inteiro da lane.
+#
+# `cancelled` entra para PRESERVAR comportamento vivo: hoje o loop faz `break`
+# com `has_failure=False`, `_finalize_run` early-returna no status e o gate
+# antigo ficava verdadeiro. Cancelar depois de `analyze_finances` já gera
+# relatório. Mudar isso é decisão de produto e lane própria — não desta.
+_POST_PROCESS_STATUSES = (
+    PipelineRunStatus.completed,
+    PipelineRunStatus.partial_failure,
+    PipelineRunStatus.cancelled,
+)
+
+
+def _degraded_stages(db, run_id: str) -> list[str]:
+    """Stages com ``stage_log`` degradado neste run."""
+    # Consultado no DB, não herdado de flag do loop: a degradação é propriedade do
+    # RUN, e a flag local mede a INVOCAÇÃO. O `resume` re-despacha a task com o
+    # mesmo `run_id` e só os stages restantes (caminho vivo, não exótico), e o
+    # redelivery pula stages já concluídos pelo marcador — nos dois casos as
+    # flags voltam limpas e o run finalizaria `completed` com um stage degradado
+    # no banco.
+    from sqlalchemy import select
+
+    return list(
+        db.execute(
+            select(PipelineStageLog.stage).where(
+                PipelineStageLog.pipeline_run_id == run_id,
+                PipelineStageLog.status == PipelineStageStatus.degraded,
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+# ADR-291: run só-de-cauda (`from_stage`) lê o E5 do run BASE por fallback do
+# store, então o predicado de entregável não pode filtrar só por
+# `pipeline_run_id == run.id` — reprovaria um run de cauda que está íntegro.
+def _run_has_deliverable(db, run: PipelineRun) -> bool:
+    """Existe artifact E5 alcançável por este run — inclui o base run de ``from_stage``."""
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from pipeline.artifact_store import stage_aliases
+    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY, E5_OUTPUT_STAGE
+
+    run_ids = [r for r in (run.id, run.base_run_id) if r]
+    row = db.execute(
+        select(PipelineArtifact.id).where(
+            PipelineArtifact.pipeline_run_id.in_(run_ids),
+            PipelineArtifact.stage.in_(stage_aliases(E5_OUTPUT_STAGE)),
+            PipelineArtifact.artifact_key == E5_ARTIFACT_KEY,
+        )
+    ).first()
+    return row is not None
+
+
+def _terminal_status(db, run: PipelineRun, *, has_failure: bool) -> PipelineRunStatus:
+    """Desfecho 3-way do run (ADR-357 §3/§5)."""
+    if has_failure:
+        return PipelineRunStatus.failed
+    if not _degraded_stages(db, run.id):
+        return PipelineRunStatus.completed
+    # A cegueira da §2 é sobre a FORMA da não-entrega do STAGE. "O run entregou?"
+    # é pergunta de run, respondida por evidência — sem E5 não há relatório, e
+    # `partial_failure` ("entregue com lacuna declarada") mentiria.
+    if _run_has_deliverable(db, run):
+        return PipelineRunStatus.partial_failure
+    return PipelineRunStatus.failed
+
+
+def _finalize_run(run_id: str, has_failure: bool) -> PipelineRunStatus:
+    """Seta o desfecho terminal do ``PipelineRun``, publica evento e o retorna."""
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
         if run.status in (PipelineRunStatus.cancelled, PipelineRunStatus.needs_review):
-            return
-        if has_failure:
-            run.status = PipelineRunStatus.failed
-            publish_run_failed(run_id)
-        else:
-            run.status = PipelineRunStatus.completed
-            publish_run_completed(run_id)
+            return run.status
+        status = _terminal_status(db, run, has_failure=has_failure)
+        run.status = status
         run.completed_at = datetime.now(timezone.utc)
         run.current_stage = None
         db.commit()
+    if status is PipelineRunStatus.failed:
+        publish_run_failed(run_id)
+    else:
+        publish_run_completed(run_id, status=status.value)
+    return status
 
 
 def _materialize_lineage_edges(ws_id: str, run_id: str) -> None:
@@ -1519,8 +1673,7 @@ def _finalize_pipeline_outcome(
     """Finaliza run + roda post-processing — extraído p/ achatar nesting (P9)."""
     if paused_for_review:
         return
-    _finalize_run(run_id, has_failure)
-    if not has_failure:
+    if _finalize_run(run_id, has_failure) in _POST_PROCESS_STATUSES:
         _run_post_processing(ws_id, run_id, tenant_root)
 
 

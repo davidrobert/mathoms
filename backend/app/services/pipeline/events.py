@@ -95,12 +95,19 @@ def publish_stage_failed(run_id: str, stage: str, error: str, progress_pct: int)
     )
 
 
-def publish_stage_skipped(run_id: str, stage: str, reason: str, progress_pct: int) -> None:
+def publish_stage_skipped(
+    run_id: str, stage: str, reason: str, progress_pct: int, *, status: str = "skipped"
+) -> None:
+    """Etapa não executada nesta invocação; `status` carrega o estado REAL do stage_log."""
+    # O redelivery reusa este evento para stage já concluído (A37.l12). Com
+    # `degraded` em `_STAGE_DONE_STATUSES` (ADR-357 §4), o marcador de um stage
+    # degradado passaria por aqui anunciando `status="skipped"` — e `status` é
+    # contrato lido pelo frontend, não prosa. O default cobre o skip de verdade.
     publish_event(
         run_id,
         "stage_skipped",
         stage=stage,
-        status="skipped",
+        status=status,
         progress_pct=progress_pct,
         detail={"reason": reason},
     )
@@ -184,8 +191,13 @@ def publish_needs_review(run_id: str, stage: str) -> None:
     publish_event(run_id, "needs_review", stage=stage, status="needs_review")
 
 
-def publish_run_completed(run_id: str) -> None:
-    publish_event(run_id, "run_completed", status="completed", progress_pct=100)
+def publish_run_completed(run_id: str, *, status: str) -> None:
+    """Terminal que ENTREGOU — `completed` ou `partial_failure` (ADR-357 §Consequências)."""
+    # `status` é obrigatório de propósito: com default, um call-site que esqueça
+    # o parâmetro anuncia `completed` num run degradado e nenhum teste percebe —
+    # `pipelineRunOutcome.ts` chaveia por `event.status` e só cai no nome do
+    # evento como fallback. Evento novo foi rejeitado pela mesma §.
+    publish_event(run_id, "run_completed", status=status, progress_pct=100)
 
 
 def publish_run_failed(run_id: str) -> None:
