@@ -7,7 +7,7 @@ plan: PLAN-report-trust
 status: open
 priority: P1
 branch_slug: a40-l10-pendencia-do-dono-e-ordem-do-plano
-adrs: []
+adrs: ["[[ADR-365]]"]
 depends_on: ["[[A40.l9]]"]
 tags:
   - type/lane
@@ -176,6 +176,75 @@ veio do #973). Refutados: 5, entre eles a alegação de que a mudança no
 `chart_conclusions.yaml` seria fix inerte não declarado — o corpo do commit já
 a declara.
 
+**PR2 — elegibilidade (#1243), 2026-08-06.** Implementa a [[ADR-365]] + a nota
+[[RULE-elegibilidade-da-recomendacao]].
+
+O defeito que virou o coração do PR **não estava nos 3 achados que originaram a
+lane**: `pontos_urgentes` não consultava `gap_qualitativo`, então *"Contratar
+seguro de vida e invalidez / Alta / Imediato"* era emitido para **100% dos
+workspaces sem apólice de pessoa** — inclusive titular solteiro sem dependente
+econômico. Seguro de vida protege dependente econômico; sem dependente é custo
+puro. Passa a mapear o predicado canônico da [[ADR-240]] (KPI F), derrubando de
+**2 para 1** os produtores dele; `_has_apolice_vida_vigente` sai como código
+morto. O canônico é mais **estreito** (exige cobertura de `vida`, não qualquer
+bem `pessoa`): apólice de acidentes deixa de suprimir o item — verdadeiro-positivo
+antes oculto.
+
+`PontoUrgenteItem` ganha `code` estável + os dois eixos + `dado_faltante`.
+`analyze()` devolve **uma** lista; a partição em ranqueados × retidos é projeção,
+na serialização. O leitor que legitima o array de retidos é a frase por classe de
+motivo no `s10` — `PontosUrgentesCard.tsx` fica **intocado**, porque a copy de
+`degenerada` é decisão de superfície da [[A40.l22]].
+
+**Delta é de população, não de valor** — o gate mecânico de golden é cego a
+"quem recebe a recomendação". Medido nos dois substratos, que exercitam braços
+opostos: no `dogfood_view_model` (dois adultos, sem dependente) o gap é
+`sem gatilho` e o item **não é produzido** — não é retenção, é conselho que não
+existe ([[ADR-167]]); no `e5n_delivery` (família com cônjuge) o gap é
+`conjuge_sem_renda_propria`, o item sai do ranking como `degenerada` e o `s10`
+**declara**: *"1 recomendação não entrou na lista: Contratar seguro de vida e
+invalidez (a regra atual não distingue o seu caso)."*
+
+**Dois erros meus, pegos por medição e não por revisão:**
+
+1. O campo novo atravessa **três** construtores campo-a-campo e o
+   `E5OutputInputs` o engoliu — com a suíte **verde** e a chave ausente do
+   payload. Só apareceu rodando o substrato golden e imprimindo o E5. As provas
+   de travessia passaram a derivar de `dataclasses.fields()`.
+2. Marquei `rentabilidade_nao_medida` como `pendente_de_dado` e reverti: a
+   premissa **é** verificável (o item dispara *porque* o dado falta) e o conselho
+   é supri-lo — esconderia do ranking o item mais acionável. `pendente_de_dado`
+   significa "não consigo avaliar se o conselho se aplica", não "o conselho é
+   sobre um dado que falta".
+
+Verificação: `pytest tests` 5855 · `pytest backend/tests` 3175 · TS 22/22 ·
+prova de mutação em 4 rodadas matando 12 asserções · schema com
+`additionalProperties: false` no item, que **compra gate hoje**
+(`test_e5_golden_execution` valida um E5 gerado de verdade, fora do modo `warn`).
+
+> **Débito de método do PR2 (2026-08-06), medido por revisão adversarial de
+> tamanho.** A §Sequência abaixo manda, no item 1, *"ADR-365 `Proposto`
+> (docs-only, **antes do código**)"* — e eu abri a ADR no **primeiro commit do
+> próprio PR de implementação**. Os 411 linhas de docs sozinhas fazem o #1243
+> passar de `size:L` para `size:XL`. O padrão que se repete nesta lane é *"a ADR
+> nasce junto com o código porque a decisão só ficou clara ao medir"*; isso é
+> legítimo, mas então a forma correta é **PR docs-only depois da medição e antes
+> do PR de código**, não junto. Sem esta linha, o próximo PR2 repete.
+>
+> **Nota de execução, 2026-08-06:** o merge do #1243 ficou bloqueado por
+> **degradação do GitHub Actions** — `Service Unavailable` + `Failed to resolve
+> action download info`, com o job de validação de título (que só lê uma string)
+> falhando em 9m28s e 15m01s no `Set up job`, e o de pipeline estourando o
+> timeout de 5m contra ~30-40s históricos. Não é o diff; a suíte está verde
+> localmente (`pytest tests` 5855 · `pytest backend/tests` 3175 · TS 22/22).
+>
+> **Como retomar:** `gh run rerun <run-id> --failed` nos 3 workflows do PR
+> (`gh pr checks 1243` lista os ids). O auto-merge está ligado — o PR mergeia
+> sozinho quando um run completo passar. **Não retentar em rajada:** o repo cobra
+> por job e a A40 já tem histórico de orçamento de Actions estourado; cada
+> tentativa num serviço degradado queima minutos sem chance de passar. O sinal de
+> que recuperou é `Detect changed paths` voltar a completar em ~1-2min.
+
 ## Estratégia decidida para PR2 e PR3 (painel 2026-08-06)
 
 Segundo painel de 6 especialistas, com **22 objeções sustentadas** contra o
@@ -269,6 +338,15 @@ zero wiring novo.
    `items` declarado no schema com `additionalProperties: false`. Prova derivada
    de `dataclasses.fields()` — não lista à mão. Asserção sobre a **string
    narrada**, com mutação nos dois sentidos.
+   **Pré-condição bloqueante do PR3, medida em 2026-08-06 (revisão de tamanho do
+   #1243):** o `code` que o PR2 entrega é **necessário e não suficiente**.
+   `build_default_tarefas_status` (`e5_serialization.py`) continua chaveando por
+   **posição** (`{str(i+1): "pendente"}`), e `tarefas_status` é lido pelo
+   frontend (`reports.ts`) e pelo manifest do parecer. Ou seja: **reordenar sem
+   antes trocar essa chave shipa a classe RV4-02 dentro do próprio PR3** — o
+   status que o dono registrou passa a apontar para outra tarefa. Não é fix de 5
+   linhas: é mudança de contrato cross-stack, com rebaseline de golden e de
+   snapshot. Ou o PR3 abre com essa troca, ou não reordena.
 3. **PR3 — ordenação + reserva.** Tier constante por regra, extraído para **um**
    helper puro compartilhado com `suggestion_rules` (não a terceira ordenação do
    mesmo domínio). Reserva: **piso 6 decide existência; `meses_alvo` gradua a
@@ -308,11 +386,14 @@ vira ADR: é **emenda datada em [[ADR-218]]** + linha em `FORMULAS.md`.
   O passo que a l10 dá é **o campo, não o store** — e a ADR-365 **tem** de nomear
   o alvo, senão o próximo agente reinventa `elegibilidade` dentro de
   `suggestion_rules` e passamos de cinco representações para seis.
-- **Achados novos a registrar no fecho:** `rule_seguros_insuficientes` emite
-  título **byte-idêntico** ao do analyzer (dois caminhos, mesma frase, mesmo
-  usuário); `rule_reserva_insuficiente` está **morta** (`meses_cobertura` ×
-  `cobertura_meses`, RV3-09, dona é a [[A40.l5]]); `dedupeBySemanticKey` é
-  supressor não-declarado no frontend.
+- **Achados novos, registrados (não "a registrar") em 2026-08-06.** Descrição sem
+  destino evapora no fim da sprint — é a convenção declarada da própria A40:
+
+  | Achado | Destino | Estado do registro |
+  |---|---|---|
+  | `dedupeBySemanticKey` (`curadoriaDestaques.ts`) descarta item da lista **sem declarar** — colapso por regex sobre texto, *first-wins*, então a **ordem** decide quem sobrevive | [[A40.l22]] | **registrado pelo destino** (§Escopo herdado da A40.l10). É a mesma classe da l22, só que no frontend e sem passar pelo produtor |
+  | `rule_reserva_insuficiente` está **morta** (`meses_cobertura` × `cobertura_meses`) | [[A40.l5]] | **já registrado** — é o RV3-09, e a l5 o usa como fixture (2) do gate de contrato |
+  | `rule_seguros_insuficientes` emite título **byte-idêntico** ao do analyzer: dois produtores, mesma frase, mesmo usuário | **sem dono** | Nenhuma lane viva possui `suggestion_rules`. Este arquivo é o **emissor** e o destino não existe — não fabrico ownership. Cai naturalmente na lane de convergência que o §Estado-alvo da [[ADR-365]] condiciona; até lá, é dívida nomeada, não cauda anônima |
 
 ## Residual medido — achado novo, sem lane
 

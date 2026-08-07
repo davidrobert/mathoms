@@ -50,8 +50,22 @@ class TestEndividamento:
         assert "Reduzir endividamento" not in acoes
 
 
-def _protecao(vigentes: list[dict] | None = None) -> dict:
-    return {"apolices_vigentes": vigentes or []}
+def _protecao(
+    vigentes: list[dict] | None = None,
+    *,
+    gap_flag: bool = False,
+    gap_rationale: str = "sem family_members",
+) -> dict:
+    """Forma do produtor: `compute_protecao` SEMPRE emite `gap_qualitativo`
+    (`_protecao_payload`), e é dele que o item de seguro passa a derivar
+    (A40.l10 · ADR-365). Fixture sem o bloco não representa nenhum payload real."""
+    return {
+        "apolices_vigentes": vigentes or [],
+        "gap_qualitativo": [
+            {"categoria": "vida", "flag": gap_flag, "rationale": gap_rationale},
+            {"categoria": "saude", "flag": False, "rationale": "evidencia_pagamento_saude"},
+        ],
+    }
 
 
 class TestSeguro:
@@ -96,10 +110,83 @@ class TestSeguro:
     def test_omitido_quando_ha_apolice_de_vida_vigente(self):
         vigentes = [{"apolice_numero": "VIDA-1", "tipos_bem": ["pessoa"]}]
         out = PontosUrgentesAnalyzer().analyze(
-            _ratios(), _reserva(), _pat(), protecao=_protecao(vigentes)
+            _ratios(),
+            _reserva(),
+            _pat(),
+            protecao=_protecao(vigentes, gap_rationale="apolice_vida_ativa"),
         )
         acoes = {i.acao for i in out}
         assert "Contratar seguro de vida e invalidez" not in acoes
+
+    # ── A40.l10 · ADR-365: o item passa a derivar do gap canônico ──────
+
+    def test_omitido_quando_nao_ha_dependencia_economica(self):
+        """O achado que motivou o PR: sem gatilho de dependência (titular
+        solteiro, sem filho menor, sem passivo alto), recomendar seguro de vida
+        é conselho errado — e não é retenção, é conselho que não existe."""
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(), _reserva(), _pat(), protecao=_protecao([], gap_rationale="sem gatilho")
+        )
+        assert "Contratar seguro de vida e invalidez" not in {i.acao for i in out}
+
+    def test_computavel_quando_ha_dependente_menor(self):
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(),
+            _reserva(),
+            _pat(),
+            protecao=_protecao([], gap_flag=True, gap_rationale="dependentes_menores_18"),
+        )
+        seguro = [i for i in out if i.code == "seguro_vida"]
+        assert len(seguro) == 1
+        assert seguro[0].elegibilidade == "computavel"
+        assert seguro[0].origem_premissa == "cadastro_familia"
+
+    def test_degenerada_quando_gatilho_e_conjuge_sem_renda(self):
+        """Tautológico enquanto `renda_propria_brl` é fixo em 0 (ADR-240 §D3)."""
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(),
+            _reserva(),
+            _pat(),
+            protecao=_protecao([], gap_flag=True, gap_rationale="conjuge_sem_renda_propria"),
+        )
+        seguro = [i for i in out if i.code == "seguro_vida"]
+        assert len(seguro) == 1
+        assert seguro[0].elegibilidade == "degenerada"
+
+    def test_computavel_quando_gatilho_e_passivo_alto(self):
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(),
+            _reserva(),
+            _pat(),
+            protecao=_protecao([], gap_flag=True, gap_rationale="passivo_acima_30_pct_patrimonio"),
+        )
+        seguro = [i for i in out if i.code == "seguro_vida"]
+        assert seguro[0].elegibilidade == "computavel"
+        assert seguro[0].origem_premissa == "derivado_e5"
+
+    def test_pendente_de_dado_quando_falta_cadastro_da_familia(self):
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(), _reserva(), _pat(), protecao=_protecao([])
+        )
+        seguro = [i for i in out if i.code == "seguro_vida"]
+        assert seguro[0].elegibilidade == "pendente_de_dado"
+        assert seguro[0].dado_faltante == "composição da família"
+
+    def test_nao_verificavel_sem_bloco_de_protecao(self):
+        """Caller legado: o conselho existe, a premissa é inavaliável."""
+        out = PontosUrgentesAnalyzer().analyze(_ratios(), _reserva(), _pat())
+        seguro = [i for i in out if i.code == "seguro_vida"]
+        assert seguro[0].elegibilidade == "nao_verificavel"
+
+    def test_todo_item_tem_code_estavel(self):
+        """`code` é pré-condição de ordenação: `build_default_tarefas_status`
+        chaveia por posição, então reordenar sem id remapeia o status do dono."""
+        out = PontosUrgentesAnalyzer().analyze(
+            _ratios(endiv=25, rent="N/D"), _reserva(cobertura=1), _pat()
+        )
+        codes = [i.code for i in out]
+        assert all(codes), f"item sem code: {codes}"
+        assert len(codes) == len(set(codes)), f"code duplicado: {codes}"
 
 
 class TestRentabilidade:
@@ -129,6 +216,15 @@ class TestConfig:
 
 
 class TestResult:
+    def test_to_dict_cobre_todo_campo_do_dataclass(self):
+        """Derivado de `fields()`, não enumerado à mão: `to_dict` é construtor
+        campo-a-campo, e o padrão "construtor campo-a-campo perde campo novo" já
+        mordeu neste repo. Enumerar aqui repetiria a mesma omissão 2×."""
+        import dataclasses
+
+        item = PontoUrgenteItem("Alta", "Ação X", "Impacto", "Imediato")
+        assert set(item.to_dict()) == {f.name for f in dataclasses.fields(PontoUrgenteItem)}
+
     def test_item_to_dict(self):
         item = PontoUrgenteItem("Alta", "Ação X", "Impacto", "Imediato")
         d = item.to_dict()
@@ -137,6 +233,10 @@ class TestResult:
             "acao": "Ação X",
             "impacto": "Impacto",
             "prazo": "Imediato",
+            "code": "",
+            "origem_premissa": "derivado_e5",
+            "elegibilidade": "computavel",
+            "dado_faltante": None,
         }
 
     def test_seguro_sempre_presente_mesmo_quando_tudo_ok(self):

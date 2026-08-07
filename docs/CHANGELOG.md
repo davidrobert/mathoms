@@ -3,8 +3,7 @@
 # CHANGELOG — shim
 
 > **Não altere histórico aqui.** Para LLMs: leia
-> [`CHANGELOG_RECENT`](_MOC/_generated/CHANGELOG_RECENT.md) e crie/edite
-> `docs/sprint/<X>/changelog/<id>.md`.
+> [`CHANGELOG_RECENT`](_MOC/_generated/CHANGELOG_RECENT.md).
 
 ## Onde ler agora
 
@@ -14,14 +13,16 @@
 | "Cronologia completa de uma sprint" | `docs/sprint/<X>/changelog/` (1 arquivo por entrada) |
 | "Inventário atual" | [docs/_MOC/_generated/DOC_STATS.md](_MOC/_generated/DOC_STATS.md) |
 
-## Cronologia top-level por sprint
+## Quando criar uma entrada
 
-Use `docs/sprint/<X>/changelog/`; sprints com entries incluem A12, A11,
-A10, A8, A7, F65 e F0..F9 legado. Contagens atuais: [`DOC_STATS`](_MOC/_generated/DOC_STATS.md).
+**Não é por PR** — isso valeu até A12; de A34 em diante nenhuma sprint tem
+entrada. Hoje marca fechamento de sprint ou cutover grande. Lane registra na
+própria lane; fix avulso, no PR. Gotcha ou limite de API que o próximo agente
+precisa vai para docstring ([[ADR-143]]) ou emenda de ADR — nunca só no PR.
 
-## Como criar uma entrada nova
+## Como criar a entrada
 
-1. Após mergear PR em `main`, crie `docs/sprint/<sprint-atual>/changelog/CHG-YYYY-MM-DD-<SCOPE>.md`.
+1. Crie `docs/sprint/<sprint-atual>/changelog/CHG-YYYY-MM-DD-<SCOPE>.md`.
 2. Frontmatter: `id`, `type: changelog-entry`, `date`, `summary`; opcionais `sprint`, `lane`, `adrs`, `prs`, `commits`, `breaking`, `files_touched`, `tags`.
 3. Validação: `python3 dev/validate_frontmatter.py docs/sprint/<X>/changelog/<id>.md`.
 4. Regenere índice: `python3 dev/build_doc_index.py --inline`.

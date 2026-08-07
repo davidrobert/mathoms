@@ -5,6 +5,14 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/cn"
 
+/**
+ * `orientation` precisa chegar ao primitivo, não só ao CSS.
+ *
+ * A versão anterior gastava a prop num `data-orientation` escrito à mão: as
+ * classes `group-data-vertical/tabs:*` passavam a valer, mas o base-ui nunca
+ * era informado — `aria-orientation` do tablist e o eixo das setas ficavam
+ * horizontais. O `data-orientation` do Root vem do próprio primitivo.
+ */
 function Tabs({
   className,
   orientation = "horizontal",
@@ -13,7 +21,7 @@ function Tabs({
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
-      data-orientation={orientation}
+      orientation={orientation}
       className={cn(
         "group/tabs flex gap-2 data-horizontal:flex-col",
         className

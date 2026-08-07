@@ -86,6 +86,7 @@ tests/test_e2_synthetic_pdf_parsers.py  # registry E2 × PDF; todos os bancos co
 tests/test_e0_route_edges.py tests/test_e7_edges.py tests/test_e5_e6_e5n_edges.py  # 7D.1/7D.2 — helpers de borda (E0/E7/E5/E6/E5.N)
 tests/fixtures/pdf_generator.py # 6.5F.12 — 14 códigos BankCode; registry com `_draw_*` (C6, Bradesco, BTG, … Quinto Andar)
 dev/check_pipeline_boundaries.py # P1 — imports proibidos em pipeline/
+dev/check_enum_migration_parity.py # A40.l19 · ADR-357 §7 — membro de enum Python ⊆ tipo declarado nas migrations (AST dos dois lados; ler o DB de teste seria auto-referente)
 pipeline/cli_run_stage.py     # CLI run-stage do orchestrator (A3.cli · ADR-150)
 backend/tests/regressions/      # 6.5E.8 — 1 test por bug histórico (BUG-NNN)
 tests/test_design_tokens_build.py       # F9 — 20 tests (tokens build + parity)

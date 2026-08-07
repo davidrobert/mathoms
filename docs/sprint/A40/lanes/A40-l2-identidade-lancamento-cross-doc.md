@@ -7,7 +7,7 @@ plan: PLAN-report-trust
 status: in_progress
 priority: P0
 branch_slug: a40-l2-identidade-lancamento-cross-doc
-adrs: ["[[ADR-354]]"]
+adrs: ["[[ADR-354]]", "[[ADR-364]]"]
 depends_on: ["[[A40.l1]]"]
 tags:
   - type/lane
@@ -112,7 +112,7 @@ ressuscite achando que são escopo pendente:
 **Sobreviveu:** colapso **por transação**, pré-agrupamento — e o alias-map do dono
 renasce como **allow-list do predicado de colapso**, não como canonicalização.
 
-## Escopo — 5 PRs, nenhum toca `_hash_v2`
+## Escopo — 11 PRs, nenhum toca `_hash_v2`
 
 `_hash_v1` está **congelado** ([[ADR-278]] D1) e `_hash_v2` é a chave de dedup
 **e** de re-ancoragem de `transaction_overrides`. O colapsador **seleciona rows**;
@@ -231,11 +231,29 @@ derivação tem de ser alimentado pelos **dois produtores reais**.
 
 | PR | escopo | undo |
 |---|---|---|
+| **3a — a sombra** ✅ [#1231](https://github.com/davidrobert/mathoms/pull/1231) (`65464db6`) | colapsador em produção **measure-only** · `shadow_counts` PII-safe no log estruturado · flag `cross_document_collapse_measure_enabled` (`True`, `OPERATOR_ONLY`) | flag off |
 | **3b — o gate** | fonte única do digest · `CollapseMeasurement` com corpus **pré-poda** · `survivor_hash` em `CollapseCandidate` · predicado corrigido · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · comentário stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
 | **3c1 — o dado** (paralelo ao 3d) | carrier E3→E4→E5 · `meses` no `$defs/remocao` · campo **omitido** quando zero · nomes que sobrevivem ao `is_monetary` · emenda na [[ADR-347]] | campo ausente |
 | **3d — o drain** (depende do 3b) | re-ancora os condenados **enquanto as duas rows existem**; apply só do caso 1→1 | `orphaned_at` + re-run |
 | **3c2 — a superfície** | contador da S2 · caption simétrico da V0 · rebaseline | render condicional |
 | **3e — o flip** | bloqueado pelos quatro; §Critério de saída abaixo | flag off |
+
+**Follow-ups do 3a, mergeados no mesmo dia — são consertos de defeito que ELE introduziu, e
+ficam registrados para que ninguém os leia como escopo pendente:**
+
+- ✅ [#1236](https://github.com/davidrobert/mathoms/pull/1236) (`897e9405`) — `dev/ledger_collapse_layer.py`
+  **delega** ao `shadow_counts` do domínio. O 3a criou a função em `pipeline/domain/` e deixou o
+  instrumento de `dev/` com **segunda derivação** dos mesmos 4 campos: a classe `keep_split`,
+  criada no mesmo dia em que ela custou o dia. Direção da dependência é `dev/` → domínio, nunca
+  a inversa — instrumento que recomputa **prova a si mesmo**.
+- ✅ [#1239](https://github.com/davidrobert/mathoms/pull/1239) (`c0a3aef8`) — o ramo de produção
+  da sombra passa a ser **exercitado**. Ele exige `isinstance(store, DBArtifactStore)` e toda a
+  suíte do pipeline injeta `InMemoryArtifactStore` ⇒ o 3a shipou com o caminho de produção
+  coberto **só por leitura de código**. O teste mora em `backend/tests/` (único lugar com store
+  DB real) e o acoplamento `backend → scripts` é **declarado** nos dois lados exigidos pelo
+  [[ADR-210]] §Adendo — allowlist do gate **e** filtro `pipeline_lib` do `ci.yml`, senão
+  `backend-tests` não re-roda quando o stage muda e a cobertura falha **aberta**.
+
 
 100% read-only no 3b, e ele vem **primeiro** porque o 3d consome a classificação que ele
 define. O 3c foi partido porque atravessava pipeline+backend+frontend num diff.
@@ -781,6 +799,20 @@ o colapsador não toca hash):
    sobre-detecção aceitável.
 2. **Cardinalidade multiset:** impede que a chave day-exact transforme *2 eventos
    vistos 1× cada* em *1 evento*.
+3. **AST no call-site do stage** (`test_collapse_shadow.py::test_stage_de_producao_nunca_liga_o_enforce`):
+   nenhuma chamada a `_e3_build_adapter` em `scripts/reconcile_transactions.py` passa
+   `collapse_enforce` truthy. Existe porque a prova de mutação mediu que
+   `collapse_enforce=True` no call-site **sobrevive à suíte inteira** — nenhum teste de unidade
+   do colapsador exercita `main_with_store`. O 3e **estreita** esta guarda ("só sob a flag de
+   enforce, e só por esse caminho"); **deletá-la é o atalho que o PR do flip tem incentivo a
+   tomar**.
+4. **Delegação, não valores** (`test_collapse_layer.py::test_instrumento_delega_ao_shadow_counts_do_dominio`):
+   monkeypatcha `shadow_counts` com sentinelas e assere a propagação. Teste de **valores**
+   passaria com ou sem delegação — as duas derivações concordam hoje, e é essa concordância que
+   esconde a divergência futura.
+5. **Fiação da sombra** (`backend/tests/test_collapse_shadow_wiring.py`): 4 estados do
+   predicado do store + flag em `DEFAULTS` **e** `OPERATOR_ONLY`. Flag fora de `DEFAULTS` faz
+   `is_enabled_sync` devolver `False` **em silêncio** — o mesmo modo de falha uma camada acima.
 
 ## Achado adjacente medido no PR1 (não é escopo desta lane)
 
