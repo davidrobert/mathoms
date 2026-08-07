@@ -92,11 +92,11 @@ e executa no worker Celery (ou em subprocess do shell Go), então o spy
 Instrumentar o boundary em produção exigiria estado mutável de módulo sempre
 ligado, que [[ADR-111]] proíbe.
 
-O que entrou no lugar, mais forte: o Tier-1 **impede** a chamada em vez de
-detectá-la. `LLM_FREE=1` apaga `ANTHROPIC_API_KEY` do env do worker Celery **e**
+O que entrou no lugar, mais forte: **no Tier-1** o gate **impede** a chamada em vez
+de detectá-la. `LLM_FREE=1` apaga `ANTHROPIC_API_KEY` do env do worker Celery **e**
 do shell Go, e o harness exige o marcador na saída do `make` (scrub que não rodou
-falha alto). Credencial ausente é garantia por construção; detecção pós-hoc
-seria sempre incompleta enquanto existir a rota alternativa ([[A41.l2]] /
+falha alto). Credencial ausente é garantia por construção **nesse tier**; detecção
+pós-hoc seria sempre incompleta enquanto existir a rota alternativa ([[A41.l2]] /
 [[A41.l3]] / [[A41.l4]]).
 
 **Achado não previsto: #1151 inverteu a asserção.** Entre a escrita desta lane e
@@ -115,6 +115,31 @@ deixa a suíte vermelha (ambas verificadas).
 **Reclassificado, não descartado:** `requires_llm_fallback` continua lido como
 sinal de **corpus encolhido** ([[ADR-355]] §Consequências) — reportado, sem
 reprovar. No Tier-1 o stub é o comportamento esperado.
+
+### O que esta lane NÃO fechou
+
+Estava só no [`_README` da A40](../_README.md) e em
+[`OWNER-GATED-active.md`](../../../_MOC/OWNER-GATED-active.md) §1 — quem lesse a
+lane sozinha concluía que os 4 critérios foram cumpridos. Não foram:
+
+1. **Critério 2 (`run com skip_llm=True` ⇒ 0 chamadas ao SDK e 0 rows novas em
+   `LLMCallLog`) não foi executado.** Exige a stack local do dono; a lane subiu a
+   `shipped` com a prova de mutação (unit) e **sem** a prova ao vivo. O 1º
+   `make go-parity` é que confirma a asserção mordendo — está em OWNER-GATED §1
+   com os itens a conferir.
+2. **A simetria de credencial ficou fechada só no Tier-1.** `llm_free =
+   args.tier == "tier1"` deixou o **Tier-2** com a mesma assimetria que esta lane
+   corrigiu — e o Tier-2 **custa dinheiro**: `_go-on-native` segue injetando a key
+   do `.env` no shell Go enquanto `dev-worker-up` só herda o env do shell, então
+   `.env` com chave + shell sem chave reproduz a divergência de 2986 vs 1002 bytes
+   fora do escopo do `skip_llm`. Fechado depois por **#1169** com
+   `assert_credential_symmetry`, que enforça simetria por **presença** (o Tier-2
+   precisa da credencial nos dois braços) em `assert_preconditions`, antes de
+   gastar run.
+
+O erro de enquadramento do item 2 vale para quem retomar: o eixo do defeito é
+**simetria**, não ausência. Scrub só serve ao tier que pode rodar sem a
+credencial; o tier em que ela é legítima precisa da checagem oposta.
 
 Colateral: `dev/go_parity_run.py` passou de 500 linhas (P2) → extraídos
 `dev/go_parity_llm_free.py` + `dev/go_parity_errors.py`. E `_make` entrou no
