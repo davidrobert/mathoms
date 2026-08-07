@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-357 ADRs (ADR-001 a ADR-366) em [`docs/adr/`](../../adr/).
+358 ADRs (ADR-001 a ADR-367) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 308
-- **Proposto**: 45
+- **Proposto**: 46
 - **Roadmap**: 4
 
 ## Fundação
@@ -622,10 +622,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-220]] — Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados · phase A12
 - [[ADR-240]] — Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) · phase A19.l1
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-218]] — Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini · phase A12
 - [[ADR-365]] — Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais
+- [[ADR-367]] — Ordem do plano por irreversibilidade: tier constante por regra, e o alvo da reserva gradua sem mover o gatilho
 
 ## security
 

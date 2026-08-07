@@ -316,6 +316,7 @@ módulo enforcer.
 | ITCMD estimado por UF (alíquota × patrimônio bruto, tabela injetada por `fiscal_parameters`) | `pipeline/domain/services/protection/itcmd_estimator.py::itcmd_estimated` ([rule](rules/itcmd-estimated.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
 | Compliance US-person (FBAR / FATCA / Estate Tax NRA, gate explícito por `us_tax_status`) | `pipeline/domain/services/protection/compliance_us_person.py::compliance_risk_us_person` ([rule](rules/compliance-risk-us-person.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
 | Elegibilidade e proveniência da premissa de uma recomendação (só `computavel` entra no ranking; retido é declarado) | `pipeline/domain/services/pontos_urgentes_analyzer.py::PontoUrgenteItem` + `e5_serialization.py::partition_pontos_urgentes` ([rule](rules/rule-elegibilidade-da-recomendacao.md)) | [ADR-365](../adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md) |
+| Ordem do plano de ação por tier de irreversibilidade (T0 ruína · T1 fragilidade · T2 alavancagem · T3 otimização; piso emite, alvo gradua) | `pipeline/domain/services/pontos_urgentes_analyzer.py::PontosUrgentesAnalyzer.analyze` ([rule](rules/rule-ordem-do-plano-por-irreversibilidade.md)) | [ADR-367](../adr/367-ordem-do-plano-por-irreversibilidade.md) |
 
 **Regra geral:** nada de regras de produto em markdown editorial. Toda
 regra que o código enforce vive no código (docstring) + ADR (porquê);
