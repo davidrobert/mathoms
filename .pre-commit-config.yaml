@@ -24,6 +24,23 @@ repos:
       - id: check-added-large-files
         args: ["--maxkb=1024"]  # 1MB — PRs ficam leves; override com --no-verify se precisar
       - id: detect-private-key
+      # Rede secundária de symlink. NÃO substitui `tracked-symlinks` abaixo:
+      # `check-symlinks` só acusa symlink QUEBRADO, e no commit ofensor
+      # (b8460274) o alvo resolvia na máquina do dono — passaria limpo aqui e
+      # quebraria em todo clone alheio. Serve para o caso inverso: symlink que
+      # já nasce apontando pra lugar nenhum.
+      - id: check-symlinks
+        stages: [pre-commit]
+      # Symlink virado arquivo regular por checkout sem suporte a symlink —
+      # classe ortogonal, mas silenciosa: `AGENTS.md -> CLAUDE.md` viraria um
+      # arquivo de 10 bytes com o texto "CLAUDE.md".
+      #
+      # `stages` pinado nos dois: sem isso o hook também roda no estágio
+      # commit-msg, recebe `.git/worktrees/<n>/COMMIT_EDITMSG` como filename e
+      # estoura `is outside repository` — quebra todo commit feito de dentro de
+      # um worktree, que é como os agentes trabalham neste repo.
+      - id: destroyed-symlinks
+        stages: [pre-commit]
 
   # ----------------------------------------------------------------------
   # gitleaks — varre stage atual ([[ADR-230]] §D3, Sprint A11 W2-T03).
@@ -136,6 +153,18 @@ repos:
         pass_filenames: true
         # Não queremos restringir por tipo — queremos ver TODOS os paths
         types: [file]
+
+      - id: tracked-symlinks
+        # b8460274 (PR #1258): o truque de worktree (symlink node_modules → clone
+        # principal) escapou o `.gitignore` — padrão com barra final casa só
+        # diretório — e foi rastreado com alvo absoluto, quebrado fora da máquina
+        # do dono. Full-scan do índice: barato (2 symlinks hoje) e independente
+        # do diff, porque o ofensor entra por `git add -A`, não por edição.
+        name: "Symlink rastreado tem alvo relativo dentro do repo"
+        entry: python3 dev/check_tracked_symlinks.py
+        language: system
+        pass_filenames: false
+        always_run: true
 
       - id: residencia-keyword-dead
         # ADR-215 P6: keyword foi substituída por override DB. Adições novas
