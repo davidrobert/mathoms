@@ -282,6 +282,25 @@ l22 seguem P0.
 > ninguém faz no merge. O gate derivável de `depends_on` + `status` pega os dois
 > sentidos em ~10 linhas. **Continua não roteado** — candidato segue [[A40.l23]].
 
+> **Liberação 2026-08-07 — [[A40.l5]] e [[A40.l7]] passam a `open`.** Primeira vez
+> nesta sprint que a **1ª cláusula** do predicado (`planned` ⇒ liberação por-lane,
+> sob demanda) é exercida como decisão explícita em vez de herança de nascimento.
+> A tabela de veredito acima é medição datada em `33bb0710` e **não se reescreve**;
+> o que muda é que a linha *"`planned`, liberação pendente | 8"* passa a valer 6.
+>
+> **Critério de escolha, para o próximo par não ser arbitrário:** as duas foram
+> escolhidas por serem as **únicas donas de KR sem lane pegável** — l5 é a única
+> dona da KR-A e a porta da [[A40.l6]] (KR-D); l7 é a metade não-entregue da KR-C.
+> Sem elas, a A40 podia fechar pelo §Gate de saída com **2 de 5 KRs jamais
+> tocados** — e KR não atingido por decisão é legítimo, por esquecimento de
+> liberação não é. As outras 6 `planned` seguem represadas **de propósito**.
+>
+> Pendência substantiva da l5 resolvida no mesmo ato: o gate de consumo **não**
+> alarga `filter.frontend` (registro completo na própria lane). Consequência que
+> o PR tem de honrar: `check_view_model_contract.py` nasce **hook de pre-commit**,
+> onde `any_code: '**'` o faz rodar em todo PR — se nascer sob `frontend/`, herda
+> o filtro e a decisão vira falsa.
+
 **Sem gate, isto é convenção e não garantia** — mesma família da lição registrada
 na emenda da [[ADR-111]] (*afirmação de audit sem gate é dívida*). O predicado do
 `open` é derivável de `depends_on` + `status`, portanto gateável em ~10 linhas; a

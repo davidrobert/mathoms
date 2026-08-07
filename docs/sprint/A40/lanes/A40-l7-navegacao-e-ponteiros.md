@@ -4,7 +4,7 @@ type: lane
 title: "Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente"
 sprint: A40
 plan: PLAN-report-trust
-status: planned
+status: open
 priority: P1
 branch_slug: a40-l7-navegacao-e-ponteiros
 adrs: ["[[ADR-240]]"]
@@ -12,12 +12,27 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/planned
+  - status/open
   - priority/p1
   - area/frontend
 ---
 
 # A40.l7 — `navegacao-e-ponteiros` (RV3-04, RV3-05, RV3-15, RV3-28)
+
+> 🔓 **Liberada em 2026-08-07 (decisão do dono)**, no mesmo par que a [[A40.l5]].
+> `depends_on` sempre foi vazio; faltava a liberação por-lane. Motivo: é o que
+> resta da **KR-C** — a [[A40.l4]] entregou a metade "seção renderiza parágrafo",
+> e as âncoras de nav sem alvo são a outra metade do critério (*"0 âncoras de nav
+> sem alvo"*). Sem esta lane a KR-C fecha pela metade.
+>
+> **Não é par de execução com a l5** — as duas tocam `frontend/`, mas em camadas
+> distintas (l5: tipos gerados + readers; l7: `ReportShell`/`S9`/`ParecerRisksTable`
+> + `report_layout.yaml`). Podem correr em paralelo; quem mergear depois rebaseia.
+>
+> ⚠️ **Colisão real a vigiar:** a [[A40.l22]] mexe em `S_parecer` e no PDF, e esta
+> lane mexe em `ParecerRisksTable.tsx:93` (o rótulo *"de baixa severidade"* que
+> mente) — **a l22 estende a caption desse mesmo componente**. Se as duas correrem
+> juntas, combine quem toca o arquivo, ou serialize l22 → l7.
 
 ## Problema
 
