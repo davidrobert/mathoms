@@ -8,6 +8,7 @@ date: "2026-08-06"
 relates_to:
   - "[[ADR-204]]"
   - "[[ADR-357]]"
+  - "[[ADR-365]]"
   - "[[ADR-199]]"
   - "[[ADR-208]]"
   - "[[ADR-272]]"
@@ -85,13 +86,11 @@ não — não cabem no eixo de publicação. Reusar `status` também deixaria a
 re-geração fora da chain de supersedure da [[ADR-204]] §D3, que só conhece
 `Publicado → Superseded`.
 
-Ortogonalidade não é invenção desta ADR: a decisão de elegibilidade da
-recomendação, um stage antes (ADR em PR aberto na mesma sprint, [[A40.l10]] PR2),
-separa proveniência da premissa de elegibilidade pelo mesmo motivo. Colapsar aqui
-produziria um terceiro vocabulário para "conselho retido, declarado por classe de
-motivo" no mesmo relatório.
-> Cross-link pendente: a ADR daquela decisão ainda não estava em `main` quando
-> esta foi escrita. Ligar as duas quando o PR dela aterrissar.
+Ortogonalidade não é invenção desta ADR: a [[ADR-365]] §D1, um stage antes e na
+mesma sprint ([[A40.l10]] PR2), separa proveniência da premissa de elegibilidade
+da recomendação pelo mesmo motivo. Colapsar aqui produziria um terceiro
+vocabulário para "conselho retido, declarado por classe de motivo" no mesmo
+relatório.
 
 ### D2. O 409 do publish passa a ser invariante declarada, não acidente de string
 
