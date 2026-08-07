@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # Enums user-facing alinhados com pipeline.llm.schemas.parecer_planejador.
 # Reexpostos aqui para evitar dep do frontend em módulo pipeline (boundary
@@ -179,6 +179,22 @@ class ParecerPlanejadorContent(BaseModel):
     meta: ParecerContentMeta
 
 
+class RetentionDetail(BaseModel):
+    """Retenção por qualidade — classe FECHADA de motivo (ADR-366 §D3)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Nunca `error_detail` cru: o valor real é vocabulário de operador
+    # ("evidencia unverified (severidade alta): risco:3") e, no ramo de sigilo,
+    # carrega o próprio termo §13.
+    reason: Literal[
+        "parecer.citacao_nao_confirmada",
+        "parecer.sigilo",
+        "parecer.conselho_vedado",
+    ]
+    items_dropped_count: int = 0
+
+
 class PlannerReviewResponse(BaseModel):
     """Resposta do endpoint ``GET .../planner-review`` — metadados + conteúdo tipado."""
 
@@ -203,6 +219,25 @@ class PlannerReviewResponse(BaseModel):
     superseded_by_id: Optional[str] = None
     immutable_hash: Optional[str] = None
 
+    # Desfecho da geração — eixo ORTOGONAL a `status` (ADR-366 §D1). Discriminante
+    # que o cliente consome direto; nunca re-derivado de contador no frontend.
+    outcome: Literal["entregue", "entregue_com_retencao", "retido", "nao_registrado"] = (
+        "nao_registrado"
+    )
+    retention: Optional[RetentionDetail] = None
     # Conteúdo tipado (Ato 5). Após `apply_tier_filter`, free traz subset
     # com `meta.gated_counts.<bucket>` > 0 indicando teaser.
-    content: ParecerPlanejadorContent
+    # `None` ⟺ `outcome == "retido"`: o artifact do desfecho retido é o placeholder
+    # de `empty_needs_review_output` (3 pontos fortes intitulados "placeholder" +
+    # "Inspecione _meta.error_detail"). Sanitizar seria whitelist eterna; `null` é
+    # porta fechada e torna a invariante enforçada por tipo (ADR-366 §D5).
+    content: Optional[ParecerPlanejadorContent] = None
+
+    @model_validator(mode="after")
+    def _outcome_matches_payload(self) -> "PlannerReviewResponse":
+        """Correlação desfecho ↔ payload — fail-fast no boundary (ADR-366 §D5)."""
+        if (self.outcome == "retido") != (self.content is None):
+            raise ValueError(f"outcome={self.outcome!r} incompatível com content presente/ausente")
+        if self.retention is None and self.outcome in ("entregue_com_retencao", "retido"):
+            raise ValueError(f"outcome={self.outcome!r} exige `retention`")
+        return self

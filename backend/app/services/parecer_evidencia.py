@@ -7,7 +7,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Sequence
 
 from pipeline.llm.prompts.parecer_planejador import PROMPT_VERSION
 from pipeline.llm.schemas.parecer_planejador import Ancora, ParecerPlanejadorOutput
@@ -25,7 +25,10 @@ logger = logging.getLogger("mathoms.llm.parecer_planejador")
 # Bump OBRIGATÓRIO: o cache sob ev4 guarda outputs já MUTILADOS (itens dropados pelo
 # enforcement) e o hit não repopula evidencia_summary, então serviria a mutilação com
 # items_dropped ausente do output_summary — o fix seria "verificado" pelo artefato do bug.
-EVIDENCIA_VERIFICATION_VERSION = "5"
+# "6" (ADR-366 §D7): a CAUSA daquele defeito — o hit não repopular — só agora foi
+# tocada. O cache passa a guardar envelope {output, evidencia_summary, entries}, e o
+# shape antigo não é legível; o bump é o que garante que nenhum hit o alcance.
+EVIDENCIA_VERIFICATION_VERSION = "6"
 
 _EVIDENCIA_MODE_ENV = "MATHOMS_PARECER_EVIDENCIA_MODE"
 _VALID_MODES = ("warn", "strict")
@@ -98,6 +101,21 @@ class NumberInProseWarning:
         )
 
 
+# Recebe dicts já serializados, não `DroppedItem`: o enforcement consome esta
+# verificação, e importá-lo aqui inverteria a dependência.
+def _retention_block(dropped_items, retention_trigger: Optional[dict]) -> dict:
+    """Retenção por qualidade no summary — contagem, tupla estrutural e gatilho."""
+    return {
+        # ADR-295: itens removidos pelo enforcement per-item no strict (auditável).
+        "items_dropped": len(dropped_items),
+        # ADR-366 §D3: a tupla estrutural que se perdia — `_parse_hard_violations`
+        # descartava a camada e `_check_evidencia` colapsava tudo em `len()`.
+        "dropped_items": list(dropped_items),
+        # Item que reteve o parecer INTEIRO — diagnóstico, nunca contagem.
+        "retention_trigger": retention_trigger,
+    }
+
+
 @dataclass
 class EvidenciaVerification:
     """Agregado + detalhe por-path da verificação (telemetria F4)."""
@@ -135,7 +153,22 @@ class EvidenciaVerification:
             section[entry["outcome"]] = section.get(entry["outcome"], 0) + 1
         return out
 
-    def summary(self, *, needs_review_triggered: bool, items_dropped: int = 0) -> dict:
+    def summary(
+        self,
+        *,
+        needs_review_triggered: bool,
+        dropped_items: Sequence[dict] = (),
+        retention_trigger: Optional[dict] = None,
+    ) -> dict:
+        return {
+            **self._verification_block(),
+            **_retention_block(dropped_items, retention_trigger),
+            "prompt_version": PROMPT_VERSION,
+            "needs_review_triggered": needs_review_triggered,
+        }
+
+    def _verification_block(self) -> dict:
+        """Agregados da verificação de citação — sem nada de enforcement."""
         return {
             "evidencia_verified": self.verified,
             "evidencia_failed": self.failed,
@@ -146,10 +179,6 @@ class EvidenciaVerification:
             "money_tokens_total": self.money_tokens_total,
             "range_in_scalar_count": self.range_in_scalar_count,
             "ancoras_total": self.ancoras_total,
-            # ADR-295: itens removidos pelo enforcement per-item no strict (auditável).
-            "items_dropped": items_dropped,
-            "prompt_version": PROMPT_VERSION,
-            "needs_review_triggered": needs_review_triggered,
         }
 
 

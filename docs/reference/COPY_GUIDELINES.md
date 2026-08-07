@@ -120,6 +120,10 @@ Rotas: `/plano` e fluxos de meta = estratégico; `/documents`,
 Quando uma decisão terminológica nova surgir, adicione linha aqui com
 `@yyyy-mm-dd` antes de propagar para outros docs.
 
+| Termo canônico | Definição (1 linha) | Capitalização | Abreviação aceita | Sinônimos a **evitar** |
+| --- | --- | --- | --- | --- |
+| **Retido** `@2026-08-06` | Conteúdo que o Mathoms gerou e **não publicou** por não passar na própria conferência de qualidade — sempre ligado ao objeto ("parecer retido", "2 riscos retidos na conferência") | minúsculo em corpo; sentence case em título de estado ("Parecer retido neste relatório") | — | `em revisão` (implica fila humana que não existe); `não publicado` (colide com o estado `Publicado` de [[ADR-204]], e seria falso no caso mais comum); `retenção` **sem objeto** (colide com retenção de IRRF, já user-facing no mesmo relatório); `suprimido`, `omitido`, `erro` |
+
 ---
 
 ## 3. Capitalização

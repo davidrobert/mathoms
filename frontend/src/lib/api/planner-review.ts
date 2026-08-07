@@ -154,7 +154,23 @@ export interface ParecerPlanejadorContent {
   meta: ParecerContentMeta;
 }
 
-export type PlannerReviewStatus = "Pendente" | "Gerado" | "Publicado" | "Superseded";
+export type PlannerReviewStatus =
+  "Pendente" | "Gerado" | "Publicado" | "Superseded";
+
+/** Desfecho da geração — eixo ORTOGONAL a `status`, que é publicação (ADR-366 §D1). */
+export type ParecerOutcome =
+  "entregue" | "entregue_com_retencao" | "retido" | "nao_registrado";
+
+/** Motivo da retenção — classe FECHADA; nunca o `error_detail` cru (ADR-366 §D3). */
+export type ParecerRetentionReason =
+  | "parecer.citacao_nao_confirmada"
+  | "parecer.sigilo"
+  | "parecer.conselho_vedado";
+
+export interface ParecerRetention {
+  reason: ParecerRetentionReason;
+  items_dropped_count: number;
+}
 
 export interface PlannerReviewResponse {
   id: string;
@@ -175,7 +191,10 @@ export interface PlannerReviewResponse {
   supersedes_id: string | null;
   superseded_by_id: string | null;
   immutable_hash: string | null;
-  content: ParecerPlanejadorContent;
+  outcome: ParecerOutcome;
+  retention: ParecerRetention | null;
+  /** `null` ⟺ `outcome === "retido"` — o backend nunca serve o placeholder (ADR-366 §D5). */
+  content: ParecerPlanejadorContent | null;
 }
 
 /** GET .../planner-review — retorna parecer com tier filter aplicado.

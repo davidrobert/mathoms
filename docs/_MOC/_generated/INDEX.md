@@ -361,6 +361,7 @@
 | ADR-363 | adr | Proposto |  | Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem | `adr/363-identidade-de-codigo-em-runtime-e-semvers-ornamentais.md` |
 | ADR-364 | adr | Proposto |  | Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem | `adr/364-remocao-de-row-e-mudanca-de-identidade.md` |
 | ADR-365 | adr | Proposto |  | Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais | `adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md` |
+| ADR-366 | adr | Proposto |  | Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação | `adr/366-desfecho-da-geracao-do-parecer-e-eixo-proprio.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -840,7 +841,7 @@
 | A40.l18 | lane | open | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
 | A40.l19 | lane | shipped | A40 | Drift de enum de status: 4 valores existem em Python e não no tipo do DB | `sprint/A40/lanes/A40-l19-migration-drift-enum-status.md` |
 | A40.l2 | lane | in_progress | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
-| A40.l20 | lane | open | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
+| A40.l20 | lane | in_progress | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
 | A40.l21 | lane | shipped | A40 | Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha | `sprint/A40/lanes/A40-l21-leitores-tolerantes-partial-failure.md` |
 | A40.l22 | lane | blocked | A40 | Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF | `sprint/A40/lanes/A40-l22-superficie-de-degradacao.md` |
 | A40.l23 | lane | open | A40 | Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível | `sprint/A40/lanes/A40-l23-gate-ref-adr-em-prosa.md` |

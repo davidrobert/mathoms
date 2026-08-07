@@ -83,15 +83,16 @@ _REVIEW_DEFAULTS = dict(
 # fmt: on
 
 
-def make_review_row(*, workspace_id, run_id, parecer_id, e5_id, status="Gerado"):
+def make_review_row(*, workspace_id, run_id, parecer_id, e5_id, status="Gerado", **overrides):
     """Row factory para PlannerReview com defaults sensatos."""
+    fields = {**_REVIEW_DEFAULTS, **overrides}
     return PlannerReview(
         workspace_id=workspace_id,
         pipeline_run_id=run_id,
         pipeline_artifact_id=parecer_id,
         e5_artifact_id=e5_id,
         status=status,
-        **_REVIEW_DEFAULTS,
+        **fields,
     )
 
 
@@ -118,13 +119,18 @@ async def make_run_artifacts(db, workspace, run):
     return e5, parecer
 
 
-async def make_planner_review(db, *, workspace, status="Gerado"):
+async def make_planner_review(db, *, workspace, status="Gerado", **overrides):
     """Cria run + 2 artifacts (E5 + parecer) + Report + PlannerReview."""
     run = await factories.make_run(db, workspace=workspace)
     e5, parecer = await make_run_artifacts(db, workspace, run)
     report = await factories.make_report(db, workspace=workspace, pipeline_run=run)
     review = make_review_row(
-        workspace_id=workspace.id, run_id=run.id, parecer_id=parecer.id, e5_id=e5.id, status=status
+        workspace_id=workspace.id,
+        run_id=run.id,
+        parecer_id=parecer.id,
+        e5_id=e5.id,
+        status=status,
+        **overrides,
     )
     db.add(review)
     await db.commit()
@@ -271,3 +277,95 @@ async def test_publish_rejects_invalid_status(auth_client, db):
     resp = await _post_publish(auth_client, ws.id, report.id)
     assert resp.status_code == 409
     assert resp.json()["detail"]["code"] == "invalid_status_for_publish"
+
+
+# ─── desfecho retido (ADR-366) ──────────────────────────────────────────
+
+
+_RETIDO = {
+    "outcome": "retido",
+    "retention_reason": "parecer.sigilo",
+    "items_shown_count": 0,
+    "items_dropped_count": 0,
+}
+
+
+async def _get_retido(auth_client, db):
+    """Semeia um review retido premium e devolve a resposta do GET."""
+    from backend.app.models.workspace import Workspace
+
+    workspace = (await db.execute(select(Workspace))).scalars().first()
+    _, report = await make_planner_review(db, workspace=workspace, **_RETIDO)
+    await _seed_premium_llm_config(db, workspace.id)
+    return await auth_client.get(
+        f"/api/workspaces/{workspace.id}/reports/{report.id}/planner-review"
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_retido_devolve_200_sem_conteudo(auth_client, db):
+    """Retido é 200 com `content: null` — 404 diria "não gerado", que é mentira."""
+    resp = await _get_retido(auth_client, db)
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["outcome"] == "retido"
+    assert body["content"] is None
+    assert body["items_shown_count"] == 0
+    assert body["retention"] == {
+        "reason": "parecer.sigilo",
+        "items_dropped_count": 0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_retido_nao_vaza_vocabulario_de_operador(auth_client, db):
+    """Nem o placeholder nem a prosa de operador cruzam o boundary (ADR-366 §D3/§D5)."""
+    raw = (await _get_retido(auth_client, db)).text
+    for leak in (
+        "placeholder",
+        "error_detail",
+        "_meta",
+        "needs_review",
+        "whitelist_miss",
+        "resolve_null",
+        "pairing_mismatch",
+        "Inspecione",
+    ):
+        assert leak not in raw, leak
+
+
+@pytest.mark.asyncio
+async def test_publish_rejeita_parecer_retido(auth_client, db):
+    """Publicar congelaria `immutable_hash` sobre o placeholder (ADR-366 §D2)."""
+    from backend.app.models.workspace import Workspace
+
+    workspace = (await db.execute(select(Workspace))).scalars().first()
+    _, report = await make_planner_review(db, workspace=workspace, **_RETIDO)
+
+    resp = await _post_publish(auth_client, workspace.id, report.id)
+
+    assert resp.status_code == 409
+    assert resp.json()["detail"]["code"] == "retained_cannot_publish"
+
+
+@pytest.mark.asyncio
+async def test_publish_permite_entregue_com_retencao(auth_client, db):
+    """Parecer entregue com itens removidos é PUBLICÁVEL — foi o que decidiu o eixo próprio."""
+    from backend.app.models.workspace import Workspace
+
+    workspace = (await db.execute(select(Workspace))).scalars().first()
+    _, report = await make_planner_review(
+        db,
+        workspace=workspace,
+        outcome="entregue_com_retencao",
+        retention_reason="parecer.citacao_nao_confirmada",
+        items_dropped_count=2,
+    )
+    await _seed_premium_llm_config(db, workspace.id)
+
+    resp = await _post_publish(auth_client, workspace.id, report.id)
+
+    assert resp.status_code == 200
+    assert resp.json()["outcome"] == "entregue_com_retencao"
+    assert resp.json()["retention"]["items_dropped_count"] == 2

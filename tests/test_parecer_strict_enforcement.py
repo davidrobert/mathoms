@@ -67,7 +67,9 @@ def test_risco_baixa_hard_e_descartado():
     out = _output(riscos=[_risco("Baixa"), _risco("Média", "Mantido")])
     d = enforce_strict_per_item(out, ["risco:0:pairing_mismatch"])
     assert d.needs_review_reason is None
-    assert d.dropped == (("risco", 0),)
+    assert [(x.item_type, x.index) for x in d.dropped] == [("risco", 0)]
+    # ADR-366 §D3: a camada e a severidade que `_parse_hard_violations` descartava.
+    assert (d.dropped[0].layer, d.dropped[0].severidade) == ("pairing_mismatch", "Baixa")
     assert [r.titulo for r in d.output.riscos] == ["Mantido"]
 
 
@@ -121,7 +123,9 @@ def test_item_com_citacao_errada_e_prosa_monetaria_cai_pelo_pairing():
     out = _output(riscos=[_risco("Baixa")])
     d = enforce_strict_per_item(out, ["risco:0:pairing_mismatch", "risco:0:number_in_prose"])
     assert d.needs_review_reason is None
-    assert d.dropped == (("risco", 0),)
+    assert [(x.item_type, x.index, x.layer) for x in d.dropped] == [
+        ("risco", 0, "pairing_mismatch")
+    ]
     assert d.output.riscos == []
 
 
@@ -130,7 +134,8 @@ def test_duas_camadas_hard_no_mesmo_item_contam_um_drop():
     out = _output(riscos=[_risco("Baixa")])
     d = enforce_strict_per_item(out, ["risco:0:whitelist_miss", "risco:0:resolve_null"])
     assert d.needs_review_reason is None
-    assert d.dropped == (("risco", 0),)
+    # A camada preservada é a da PRIMEIRA violação — a que o dedupe manteve.
+    assert [(x.item_type, x.index, x.layer) for x in d.dropped] == [("risco", 0, "whitelist_miss")]
     assert d.output.riscos == []
 
 
@@ -157,3 +162,20 @@ def test_multiplos_baixos_descartados_juntos():
     assert d.needs_review_reason is None
     assert d.output.riscos == [] and d.output.sugestoes_execucao == []
     assert len(d.dropped) == 3
+
+
+# Contar o gatilho como "dropado" faria `items_dropped` mentir no output_summary e
+# quebraria a invariante retido ⇒ contador 0 (ADR-366 §D4).
+def test_retido_inteiro_nao_reporta_item_dropado():
+    """No ramo de alta severidade NADA é removido — o parecer inteiro é retido."""
+    out = _output(riscos=[_risco("Crítica")])
+    d = enforce_strict_per_item(out, ["risco:0:whitelist_miss"])
+    assert d.needs_review_reason is not None
+    assert d.dropped == ()
+    # O gatilho é preservado como diagnóstico, em campo próprio.
+    assert d.retention_trigger is not None
+    assert (d.retention_trigger.item_type, d.retention_trigger.layer) == (
+        "risco",
+        "whitelist_miss",
+    )
+    assert d.retention_trigger.severidade == "Crítica"

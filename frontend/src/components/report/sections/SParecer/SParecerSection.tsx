@@ -5,8 +5,10 @@
 // (não data_source do snapshot E5, igual a PlanoDeAcao). Renderer único
 // pós-ADR-129. CSS de print em `SParecer.print.css`.
 
+import Link from "next/link";
 import { useCallback } from "react";
 
+import { Alert } from "../../ui/Alert";
 import { ReportSection } from "../../ReportSection";
 import { usePlannerReview } from "@/hooks/usePlannerReview";
 
@@ -22,7 +24,10 @@ interface SParecerSectionProps {
   reportId: string;
 }
 
-export function SParecerSection({ workspaceId, reportId }: SParecerSectionProps) {
+export function SParecerSection({
+  workspaceId,
+  reportId,
+}: SParecerSectionProps) {
   const { state, reload } = usePlannerReview(workspaceId, reportId);
   const handleMutate = useCallback(async () => {
     await reload();
@@ -46,9 +51,12 @@ export function SParecerSection({ workspaceId, reportId }: SParecerSectionProps)
             Não foi possível carregar o parecer — atualize a página.
           </p>
         )}
+        {state.kind === "retained" && (
+          <ParecerRetainedState reason={state.data.retention?.reason} />
+        )}
         {state.kind === "ready" && (
           <ParecerBody
-            data={state.data}
+            content={state.content}
             workspaceId={workspaceId}
             onMutate={handleMutate}
           />
@@ -68,21 +76,65 @@ function ParecerEmptyState() {
         Parecer ainda não gerado
       </p>
       <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">
-        Próximo relatório premium incluirá o parecer orientativo do
-        planejador.
+        Próximo relatório premium incluirá o parecer orientativo do planejador.
       </p>
     </div>
   );
 }
 
+// Uma copy para todos os motivos, de propósito: o cliente age igual (reprocessar) em
+// qualquer um deles, e explicar "política de conteúdo" exigiria nomear material §13.
+// A classe fechada segue no payload para ops e para o PDF da A40.l22.
+const RETAINED_BODY: Record<string, string> = {
+  "parecer.citacao_nao_confirmada":
+    "Antes de publicar, conferimos cada afirmação do parecer contra os seus números. Parte do conteúdo gerado não passou nessa conferência. Preferimos reter o parecer a publicar o que não podemos sustentar.",
+  "parecer.sigilo":
+    "Antes de publicar, revisamos o parecer gerado. Parte do conteúdo não passou nessa revisão. Preferimos reter o parecer a publicar o que não podemos sustentar.",
+  "parecer.conselho_vedado":
+    "Antes de publicar, revisamos o parecer gerado. Parte do conteúdo não passou nessa revisão. Preferimos reter o parecer a publicar o que não podemos sustentar.",
+};
+
+const RETAINED_FALLBACK = "O parecer deste relatório não foi publicado.";
+
+function ReprocessarParecerLink() {
+  return (
+    <p className="mt-2 text-sm">
+      <Link href="/pipeline" className="text-[var(--brand-primary)] underline">
+        Reprocessar o parecer
+      </Link>{" "}
+      <span className="text-[var(--surface-muted-foreground)]">
+        — refaz somente o parecer e usa sua chave de IA novamente.
+      </span>
+    </p>
+  );
+}
+
+function ParecerRetainedState({ reason }: { reason?: string }) {
+  // Motivo desconhecido cai no fallback — classe nova jamais apaga a seção.
+  const body = (reason && RETAINED_BODY[reason]) ?? RETAINED_FALLBACK;
+  return (
+    <div data-testid="parecer-retained">
+      <Alert severity="warning">
+        <p className="font-heading text-base font-semibold">
+          Parecer retido neste relatório
+        </p>
+        <p className="mt-1 text-sm">{body}</p>
+        {/* Delimitação de dano: sem ela o cliente generaliza a lacuna do add-on
+            para os números do relatório inteiro. */}
+        <p className="mt-1 text-sm">Os números das demais seções não mudam.</p>
+        <ReprocessarParecerLink />
+      </Alert>
+    </div>
+  );
+}
+
 interface ParecerBodyProps {
-  data: import("@/lib/api").PlannerReviewResponse;
+  content: import("@/lib/api").ParecerPlanejadorContent;
   workspaceId: string;
   onMutate: () => Promise<void>;
 }
 
-function ParecerBody({ data, workspaceId, onMutate }: ParecerBodyProps) {
-  const { content } = data;
+function ParecerBody({ content, workspaceId, onMutate }: ParecerBodyProps) {
   // Defensive: content.meta pode estar ausente em mocks/fixtures legados
   // ou em casos de erro de serialização parcial. Trate como gated=0 nesses casos.
   const gated = content.meta?.gated_counts ?? {
@@ -107,10 +159,7 @@ function ParecerBody({ data, workspaceId, onMutate }: ParecerBodyProps) {
           pontos={content.pontos_fortes}
           gatedCount={gated.pontos_fortes}
         />
-        <ParecerRisksTable
-          riscos={content.riscos}
-          gatedCount={gated.riscos}
-        />
+        <ParecerRisksTable riscos={content.riscos} gatedCount={gated.riscos} />
       </div>
 
       <ParecerHorizonteList
@@ -154,9 +203,9 @@ function FiduciaryDisclaimer() {
     >
       <strong className="font-semibold">Aviso fiduciário:</strong> Este parecer
       é orientativo, baseado nos dados disponíveis no momento da geração e não
-      constitui recomendação personalizada de investimento. Decisões patrimoniais
-      devem considerar contexto pessoal, fiscal e legal — quando aplicável,
-      consulte profissional habilitado.
+      constitui recomendação personalizada de investimento. Decisões
+      patrimoniais devem considerar contexto pessoal, fiscal e legal — quando
+      aplicável, consulte profissional habilitado.
     </aside>
   );
 }

@@ -11,13 +11,22 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ApiError,
   getPlannerReview,
+  type ParecerPlanejadorContent,
   type PlannerReviewResponse,
 } from "@/lib/api";
 
 export type PlannerReviewState =
   | { kind: "loading" }
   | { kind: "not_generated" }
-  | { kind: "ready"; data: PlannerReviewResponse }
+  // Gerado e retido por qualidade/política (ADR-366): 200 com `content: null`.
+  // Discriminado pelo `outcome` do payload, NÃO por 404 — 404 continua sendo
+  // ausência ("nunca rodou" / free), que é outra coisa e outra copy.
+  | { kind: "retained"; data: PlannerReviewResponse }
+  | {
+      kind: "ready";
+      data: PlannerReviewResponse;
+      content: ParecerPlanejadorContent;
+    }
   | { kind: "error"; message: string };
 
 export interface UsePlannerReviewResult {
@@ -32,6 +41,13 @@ function describeError(err: unknown): string {
   return "Erro ao carregar parecer.";
 }
 
+// `content` não-nulo é estreitado aqui, uma vez, em vez de em cada leitor.
+function toState(data: PlannerReviewResponse): PlannerReviewState {
+  return data.content
+    ? { kind: "ready", data, content: data.content }
+    : { kind: "retained", data };
+}
+
 async function _doFetch(
   workspaceId: string,
   reportId: string,
@@ -39,8 +55,7 @@ async function _doFetch(
 ): Promise<void> {
   setState({ kind: "loading" });
   try {
-    const data = await getPlannerReview(workspaceId, reportId);
-    setState({ kind: "ready", data });
+    setState(toState(await getPlannerReview(workspaceId, reportId)));
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
       setState({ kind: "not_generated" });

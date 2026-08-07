@@ -42,7 +42,10 @@ _os.environ.setdefault("MATHOMS_WORKSPACE_ROOT", str(_repo_root))
 from backend.app.core.database import SyncSessionLocal  # noqa: E402
 from backend.app.models.pipeline_artifact import PipelineArtifact  # noqa: E402
 from backend.app.models.pipeline_run import PipelineRun  # noqa: E402
-from backend.app.models.planner_review import PlannerReview  # noqa: E402
+from backend.app.models.planner_review import (  # noqa: E402
+    ParecerOutcome,
+    PlannerReview,
+)
 
 logger = logging.getLogger("mathoms.healthcheck.planner_review_orphan")
 _PARECER_STAGE = "E6-parecer"
@@ -113,6 +116,12 @@ def _find_e5_artifact_id(db: Session, *, workspace_id: str, run_id: str) -> Opti
     return row
 
 
+def _artifact_was_generated(artifact) -> bool:
+    """``_meta.status`` do artifact — o único discriminante de desfecho aqui."""
+    meta = artifact.content_json if isinstance(artifact.content_json, dict) else {}
+    return (meta.get("_meta") or {}).get("status") == "Gerado"
+
+
 def _retro_create_planner_review(db: Session, orphan: OrphanRow) -> Optional[str]:
     """Cria PlannerReview retroativo a partir do content_json do artifact."""
     artifact = db.get(PipelineArtifact, orphan.artifact_id)
@@ -130,12 +139,25 @@ def _retro_create_planner_review(db: Session, orphan: OrphanRow) -> Optional[str
     meta = (
         artifact.content_json.get("metadata", {}) if isinstance(artifact.content_json, dict) else {}
     )
+    if not _artifact_was_generated(artifact):
+        # ADR-366: sem esta guarda, um artifact de parecer RETIDO viraria row
+        # "Gerado" e a API serviria o placeholder de `empty_needs_review_output`.
+        # Hoje é inalcançável porque `_find_orphans` casa o stage legado sem
+        # `stage_aliases` (falso-verde nomeado na ADR §Consequências) — a guarda
+        # existe para que corrigir o filtro depois não abra a janela.
+        logger.warning(
+            "orphan_skipped_not_generated",
+            extra={"artifact_id": orphan.artifact_id, "run_id": orphan.pipeline_run_id},
+        )
+        return None
     review = PlannerReview(
         workspace_id=orphan.workspace_id,
         pipeline_run_id=orphan.pipeline_run_id,
         pipeline_artifact_id=orphan.artifact_id,
         e5_artifact_id=e5_id,
         status="Gerado",
+        # Backfill não sabe o desfecho: `nao_registrado` não afirma completude.
+        outcome=ParecerOutcome.nao_registrado.value,
         persona_hash=meta.get("persona_hash", "0" * 64),
         manifest_version=meta.get("manifest_version", "unknown"),
         schema_version=meta.get("schema_version", "unknown"),

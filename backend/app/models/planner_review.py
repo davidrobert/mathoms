@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import enum
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -24,6 +25,35 @@ VALID_PLANNER_REVIEW_STATUSES: frozenset[str] = frozenset(
 )
 
 VALID_TIERS: frozenset[str] = frozenset({"free", "premium"})
+
+
+# Eixo ORTOGONAL a ``status``: este é o desfecho da geração, aquele é publicação
+# (ADR-204 §D1). Não se fundem porque ``entregue_com_retencao`` é publicável —
+# como valor de ``status`` daria 409 no publish de um parecer publicável.
+class ParecerOutcome(str, enum.Enum):
+    """Desfecho da geração do parecer (ADR-366 §D1)."""
+
+    entregue = "entregue"
+    entregue_com_retencao = "entregue_com_retencao"
+    retido = "retido"
+    # Default de coluna: writer que não declara o desfecho não afirma completude.
+    nao_registrado = "nao_registrado"
+
+
+# Nasce argumento obrigatório do construtor do desfecho — nunca derivado de parse
+# de ``error_detail``, cuja prosa carrega o próprio termo §13 no ramo de sigilo.
+class ParecerRetentionReason(str, enum.Enum):
+    """Motivo client-facing da retenção, namespaced como ADR-272 (ADR-366 §D3)."""
+
+    citacao_nao_confirmada = "parecer.citacao_nao_confirmada"
+    sigilo = "parecer.sigilo"
+    conselho_vedado = "parecer.conselho_vedado"
+
+
+# ``retention_reason`` é NULL exatamente nesses desfechos (ADR-366 §D3).
+OUTCOMES_WITHOUT_REASON: frozenset[ParecerOutcome] = frozenset(
+    {ParecerOutcome.entregue, ParecerOutcome.nao_registrado}
+)
 
 
 class PlannerReview(Base):
@@ -88,6 +118,21 @@ class PlannerReview(Base):
     items_shown_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     items_gated_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
+    # Desfecho da geração (ADR-366 §D1). Default fail-honest: o writer que não
+    # declara não passa a afirmar completude.
+    outcome: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default=ParecerOutcome.nao_registrado.value,
+        server_default=ParecerOutcome.nao_registrado.value,
+    )
+    retention_reason: Mapped[Optional[str]] = mapped_column(String(48), nullable=True)
+    # Retenção por qualidade (ADR-295 per-item) — generation-scoped, ao contrário
+    # de ``items_shown_count``, que a API recomputa pós-tier (ADR-366 §D4).
+    items_dropped_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+
     # FinOps (ADR-208 + plano §Métricas). Money em cents (ADR-090).
     cost_usd_cents: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     tokens_in: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -133,5 +178,5 @@ class PlannerReview(Base):
     def __repr__(self) -> str:  # pragma: no cover
         return (
             f"<PlannerReview ws={self.workspace_id} run={self.pipeline_run_id} "
-            f"status={self.status} tier={self.tier_at_generation}>"
+            f"status={self.status} outcome={self.outcome} tier={self.tier_at_generation}>"
         )
