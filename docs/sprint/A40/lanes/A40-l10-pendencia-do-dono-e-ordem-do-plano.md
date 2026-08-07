@@ -7,7 +7,7 @@ plan: PLAN-report-trust
 status: open
 priority: P1
 branch_slug: a40-l10-pendencia-do-dono-e-ordem-do-plano
-adrs: ["[[ADR-365]]"]
+adrs: ["[[ADR-365]]", "[[ADR-367]]"]
 depends_on: ["[[A40.l9]]"]
 tags:
   - type/lane
@@ -357,15 +357,34 @@ zero wiring novo.
    `items` declarado no schema com `additionalProperties: false`. Prova derivada
    de `dataclasses.fields()` — não lista à mão. Asserção sobre a **string
    narrada**, com mutação nos dois sentidos.
-   **Pré-condição bloqueante do PR3, medida em 2026-08-06 (revisão de tamanho do
-   #1243):** o `code` que o PR2 entrega é **necessário e não suficiente**.
-   `build_default_tarefas_status` (`e5_serialization.py`) continua chaveando por
-   **posição** (`{str(i+1): "pendente"}`), e `tarefas_status` é lido pelo
-   frontend (`reports.ts`) e pelo manifest do parecer. Ou seja: **reordenar sem
-   antes trocar essa chave shipa a classe RV4-02 dentro do próprio PR3** — o
-   status que o dono registrou passa a apontar para outra tarefa. Não é fix de 5
-   linhas: é mudança de contrato cross-stack, com rebaseline de golden e de
-   snapshot. Ou o PR3 abre com essa troca, ou não reordena.
+   > ~~**Pré-condição bloqueante do PR3, medida em 2026-08-06:** `build_default_tarefas_status`
+   > chaveia por posição, e `tarefas_status` é lido pelo frontend e pelo manifest
+   > do parecer — reordenar sem trocar essa chave shipa a classe RV4-02 dentro do
+   > próprio PR3.~~
+   >
+   > **REFUTADA em 2026-08-07, antes de abrir o PR3.** Eu registrei esta
+   > pré-condição a partir da revisão de tamanho do #1243 **sem verificar o
+   > join** — e ela é falsa. O status do dono **nunca deriva da ordem de
+   > `pontos_urgentes`**:
+   >
+   > - O dono registra status em `Task` (`backend/app/models/task.py`), com
+   >   `number` preservando a numeração histórica do `tarefas.md` (1..43), único
+   >   por workspace. Vive no DB, não em posição de lista.
+   > - `parse_tarefas_md` produz `tarefas` **e** `tarefas_status` do **mesmo**
+   >   markdown, chaveados pelo número escrito no arquivo — e não olha
+   >   `pontos_urgentes`. Quando existe, `build_e5_output` usa esse par e o
+   >   fallback **não roda**.
+   > - Quando o fallback roda (sem `tarefas.md`), `build_default_tarefas` e
+   >   `build_default_tarefas_status` são gerados **juntos e consistentes** a
+   >   partir da mesma lista, e **todo** valor é `"pendente"` — permutar a ordem
+   >   é no-op semântico.
+   > - Ninguém indexa `pontos_urgentes[...]` por posição; o frontend só **tipa**
+   >   `tarefas_status` (`Record<string, unknown>`), não o renderiza.
+   >
+   > **Consequência:** o PR3 está **desbloqueado** e é menor do que eu havia
+   > escrito. Deixo a refutação tachada em vez de apagar, porque o erro é
+   > instrutivo: propaguei a conclusão de um revisor sem medir o elo que a
+   > sustentava — a mesma falha que esta lane vem corrigindo nos outros.
 3. **PR3 — ordenação + reserva.** Tier constante por regra, extraído para **um**
    helper puro compartilhado com `suggestion_rules` (não a terceira ordenação do
    mesmo domínio). Reserva: **piso 6 decide existência; `meses_alvo` gradua a

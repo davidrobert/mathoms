@@ -362,6 +362,7 @@
 | ADR-364 | adr | Proposto |  | Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem | `adr/364-remocao-de-row-e-mudanca-de-identidade.md` |
 | ADR-365 | adr | Proposto |  | Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais | `adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md` |
 | ADR-366 | adr | Proposto |  | Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação | `adr/366-desfecho-da-geracao-do-parecer-e-eixo-proprio.md` |
+| ADR-367 | adr | Proposto |  | Ordem do plano por irreversibilidade: tier constante por regra, e o alvo da reserva gradua sem mover o gatilho | `adr/367-ordem-do-plano-por-irreversibilidade.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -628,6 +629,7 @@
 | RULE-independencia-financeira | domain-rule |  |  |  | `reference/rules/rule-independencia-financeira.md` |
 | RULE-itcmd-estimated | domain-rule |  |  |  | `reference/rules/itcmd-estimated.md` |
 | RULE-life-insurance-coverage | domain-rule |  |  |  | `reference/rules/life-insurance-coverage.md` |
+| RULE-ordem-do-plano-por-irreversibilidade | domain-rule |  |  |  | `reference/rules/rule-ordem-do-plano-por-irreversibilidade.md` |
 | RULE-trs-efetiva | domain-rule |  |  |  | `reference/rules/rule-trs-efetiva.md` |
 | A10.0 | lane | shipped | A10 | ADRs Proposto batch (ADR-177..181) | `sprint/A10/lanes/A10-0-adrs-proposto-batch.md` |
 | A10.1 | lane | shipped | A10 | Dead-data deletion + ADR-168 narrativas órfãs | `sprint/A10/lanes/A10-1-dead-data-deletion-adr-168-narrativas-orfas.md` |
