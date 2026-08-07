@@ -179,6 +179,31 @@ class ParecerPlanejadorContent(BaseModel):
     meta: ParecerContentMeta
 
 
+# A ADR-366 §D6 enumerava TRÊS códigos e omitia `parecer_artifact_missing`, que o
+# router já produzia. Fechar o vocabulário nos 3 escritos faria o snapshot mentir
+# sobre o 4º — correção registrada na emenda de 2026-08-07 da própria ADR.
+class PlannerReviewAbsenceDetail(BaseModel):
+    """Corpo do 404 — por que não há parecer a servir (ADR-366 §D6)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    code: Literal[
+        "report_not_found",
+        "not_generated_yet",
+        "generation_unavailable",
+        "parecer_artifact_missing",
+    ]
+    message: str
+
+
+class PlannerReviewAbsence(BaseModel):
+    """Envelope do 404 — o FastAPI aninha o `detail` da ``HTTPException``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    detail: PlannerReviewAbsenceDetail
+
+
 class RetentionDetail(BaseModel):
     """Retenção por qualidade — classe FECHADA de motivo (ADR-366 §D3)."""
 

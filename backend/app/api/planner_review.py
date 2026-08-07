@@ -23,7 +23,11 @@ from backend.app.models.workspace import Workspace
 from backend.app.repositories.planner_review_repository import (
     PlannerReviewRepository,
 )
-from backend.app.schemas.dto.planner_review import PlannerReviewResponse, RetentionDetail
+from backend.app.schemas.dto.planner_review import (
+    PlannerReviewAbsence,
+    PlannerReviewResponse,
+    RetentionDetail,
+)
 from backend.app.services.audit import AuditAction
 from backend.app.services.pipeline.pipeline_service import resolve_llm_tier_async
 from backend.app.services.planner_review_tier_filter import apply_tier_filter
@@ -38,14 +42,51 @@ router = APIRouter(
 )
 
 
-def _not_generated() -> HTTPException:
+_ABSENCE_MESSAGES = {
+    "not_generated_yet": "Parecer ainda não gerado para este relatório.",
+    "generation_unavailable": "Não foi possível gerar o parecer neste processamento.",
+}
+
+_PARECER_STAGE = "review_finances_holistic"
+_PARECER_KEY = "parecer_planejador"
+
+_ABSENCE_RESPONSES = {
+    404: {
+        "model": PlannerReviewAbsence,
+        "description": "Sem parecer a servir — `code` diz por quê (ADR-366 §D6).",
+    }
+}
+
+
+def _absent(code: str) -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
-        detail={
-            "code": "not_generated_yet",
-            "message": "Parecer ainda não gerado para este relatório.",
-        },
+        detail={"code": code, "message": _ABSENCE_MESSAGES[code]},
     )
+
+
+# Quem discrimina é o SERVIDOR (ADR-366 §D6). A fonte é o artifact, não
+# `stage_logs`: `_needs_review_return` grava o artifact ANTES de devolver
+# `success: False` — inclusive nos 2 ramos de indisponibilidade —, e ele
+# sobrevive à degradação (`commit_artifacts_on_degrade`, ADR-357 §6).
+# Pós-A40.l20 PR2 o retido COM motivo tem row, então "sem row + com artifact"
+# isola exatamente "o run tentou e não há o que servir".
+async def _absence_code(db: AsyncSession, *, workspace_id: str, run_id: str) -> str:
+    """`generation_unavailable` se o run tentou; `not_generated_yet` se nem rodou."""
+    from sqlalchemy import select
+
+    from pipeline.artifact_store import stage_aliases
+
+    row = await db.execute(
+        select(PipelineArtifact.id).where(
+            PipelineArtifact.workspace_id == workspace_id,
+            PipelineArtifact.pipeline_run_id == run_id,
+            PipelineArtifact.stage.in_(stage_aliases(_PARECER_STAGE)),
+            PipelineArtifact.artifact_key == _PARECER_KEY,
+        )
+    )
+    tentou = row.scalar_one_or_none() is not None
+    return "generation_unavailable" if tentou else "not_generated_yet"
 
 
 async def _resolve_run_id(db: AsyncSession, *, workspace_id: str, report_id: str) -> str:
@@ -138,6 +179,7 @@ def _build_response(
 @router.get(
     "",
     response_model=PlannerReviewResponse,
+    responses=_ABSENCE_RESPONSES,
     dependencies=[
         Depends(
             record_access_audit(
@@ -156,7 +198,7 @@ async def get_planner_review(
     repo = PlannerReviewRepository(db)
     review = await repo.get_latest_for_run(workspace.id, run_id)
     if review is None:
-        raise _not_generated()
+        raise _absent(await _absence_code(db, workspace_id=workspace.id, run_id=run_id))
     return await _render_review(db, workspace_id=workspace.id, review=review)
 
 
@@ -260,6 +302,7 @@ async def _do_publish(
     "/publish",
     response_model=PlannerReviewResponse,
     status_code=status.HTTP_200_OK,
+    responses=_ABSENCE_RESPONSES,
     dependencies=[Depends(require_write_role)],
 )
 async def publish_planner_review(
@@ -273,6 +316,6 @@ async def publish_planner_review(
     repo = PlannerReviewRepository(db)
     review = await repo.get_latest_for_run(workspace.id, run_id)
     if review is None:
-        raise _not_generated()
+        raise _absent(await _absence_code(db, workspace_id=workspace.id, run_id=run_id))
     await _publish_if_allowed(db, repo, workspace_id=workspace.id, review=review)
     return await _render_review(db, workspace_id=workspace.id, review=review)

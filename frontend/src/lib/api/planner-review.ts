@@ -161,6 +161,13 @@ export type PlannerReviewStatus =
 export type ParecerOutcome =
   "entregue" | "entregue_com_retencao" | "retido" | "nao_registrado";
 
+/** Por que não há parecer a servir — quem discrimina é o SERVIDOR (ADR-366 §D6). */
+export type PlannerReviewAbsenceCode =
+  | "report_not_found"
+  | "not_generated_yet"
+  | "generation_unavailable"
+  | "parecer_artifact_missing";
+
 /** Motivo da retenção — classe FECHADA; nunca o `error_detail` cru (ADR-366 §D3). */
 export type ParecerRetentionReason =
   | "parecer.citacao_nao_confirmada"

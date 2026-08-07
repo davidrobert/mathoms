@@ -140,6 +140,32 @@ async def test_indisponibilidade_tecnica_nao_vira_row_pelo_caminho_do_run(seeded
     assert await _review_row(seeded) is None
 
 
+async def _codigo_de_ausencia(seed) -> str:
+    from backend.app.api.planner_review import _absence_code
+
+    async with seed["async_session"]() as s:
+        return await _absence_code(s, workspace_id=seed["ws_id"], run_id=seed["run_id"])
+
+
+@pytest.mark.asyncio
+async def test_indisponibilidade_responde_generation_unavailable(seeded):
+    """Sem row o 404 tem de dizer "tentamos e não deu", não "ainda não gerado"."""
+    # O discriminador é o artifact, não `stage_logs`: o produtor grava mesmo nos 2
+    # ramos de indisponibilidade, e ele sobrevive à degradação (ADR-357 §6).
+    _drive(seeded, _ParecerRetido(reason=None), stages=[_E5_STAGE, _PARECER])
+
+    assert await _review_row(seeded) is None
+    assert await _codigo_de_ausencia(seeded) == "generation_unavailable"
+
+
+@pytest.mark.asyncio
+async def test_run_que_nao_tentou_o_parecer_segue_not_generated_yet(seeded):
+    """Polaridade: sem esta, um `_absence_code` que sempre retorna o novo código passa."""
+    _drive(seeded, _ParecerRetido(), stages=[_E5_STAGE])
+
+    assert await _codigo_de_ausencia(seeded) == "not_generated_yet"
+
+
 # ───────────── portas 1 e 2: as duas condições que saíram do filtro ─────────────
 
 

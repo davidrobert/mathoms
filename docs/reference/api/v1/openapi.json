@@ -7679,6 +7679,46 @@
         "title": "PlannerFieldRequestTopResponse",
         "type": "object"
       },
+      "PlannerReviewAbsence": {
+        "additionalProperties": false,
+        "description": "Envelope do 404 \u2014 o FastAPI aninha o `detail` da ``HTTPException``.",
+        "properties": {
+          "detail": {
+            "$ref": "#/components/schemas/PlannerReviewAbsenceDetail"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "PlannerReviewAbsence",
+        "type": "object"
+      },
+      "PlannerReviewAbsenceDetail": {
+        "additionalProperties": false,
+        "description": "Corpo do 404 \u2014 por que n\u00e3o h\u00e1 parecer a servir (ADR-366 \u00a7D6).",
+        "properties": {
+          "code": {
+            "enum": [
+              "report_not_found",
+              "not_generated_yet",
+              "generation_unavailable",
+              "parecer_artifact_missing"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "PlannerReviewAbsenceDetail",
+        "type": "object"
+      },
       "PlannerReviewResponse": {
         "description": "Resposta do endpoint ``GET .../planner-review`` \u2014 metadados + conte\u00fado tipado.",
         "properties": {
@@ -23588,6 +23628,16 @@
             },
             "description": "Successful Response"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannerReviewAbsence"
+                }
+              }
+            },
+            "description": "Sem parecer a servir \u2014 `code` diz por qu\u00ea (ADR-366 \u00a7D6)."
+          },
           "422": {
             "content": {
               "application/json": {
@@ -23644,6 +23694,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannerReviewAbsence"
+                }
+              }
+            },
+            "description": "Sem parecer a servir \u2014 `code` diz por qu\u00ea (ADR-366 \u00a7D6)."
           },
           "422": {
             "content": {

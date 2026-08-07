@@ -156,6 +156,39 @@ async def test_get_returns_404_when_review_missing(auth_client, db):
 
 
 @pytest.mark.asyncio
+async def test_get_404_distingue_run_que_tentou_de_run_que_nao_rodou(auth_client, db):
+    """`generation_unavailable`: houve artifact e não há row — o run tentou (ADR-366 §D6)."""
+    from backend.app.models.workspace import Workspace
+
+    ws = (await db.execute(select(Workspace))).scalar_one()
+    run = await factories.make_run(db, workspace=ws)
+    report = await factories.make_report(db, workspace=ws, pipeline_run=run)
+    await _seed_parecer_artifact(db, workspace=ws, run=run)
+    await db.commit()
+
+    resp = await auth_client.get(f"/api/workspaces/{ws.id}/reports/{report.id}/planner-review")
+    assert resp.status_code == 404
+    assert resp.json()["detail"]["code"] == "generation_unavailable"
+    # A copy do 404 não pode carregar vocabulário de operador nem "LLM".
+    assert "LLM" not in resp.text and "error" not in resp.text
+
+
+async def _seed_parecer_artifact(db, *, workspace, run):
+    """Artifact do desfecho indisponível — o que `_needs_review_return` grava."""
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+
+    db.add(
+        PipelineArtifact(
+            workspace_id=workspace.id,
+            pipeline_run_id=run.id,
+            stage="review_finances_holistic",
+            artifact_key="parecer_planejador",
+            content_json={"_meta": {"status": "needs_review"}},
+        )
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_returns_404_when_report_missing(auth_client):
     """Endpoint retorna 404 quando report_id não existe no workspace."""
     ws_id = auth_client.ws_id  # type: ignore[attr-defined]
