@@ -56,7 +56,8 @@ def test_rows_removidas_de_fato_igualam_o_declarado() -> None:
     """O eixo que substitui `alvo_enderecavel`: o que saiu == o que o measure declarou."""
     entrada = _par()
 
-    saida, candidatos, removals = CrossDocumentCollapser().collapse(entrada)
+    saida, medicao, removals = CrossDocumentCollapser().collapse(entrada)
+    candidatos = medicao.candidates
 
     declarado = sum(c.removable_rows for c in candidatos if c.collapsible)
     assert _total_tx(entrada) - _total_tx(saida) == declarado == 1
@@ -73,7 +74,8 @@ def test_declarado_bate_com_removido_em_corpus_HETEROGENEO() -> None:
     for i, (n_nat, n_llm) in enumerate(formas):
         entrada += [_doc(n_nat, f"nat{i}.pdf"), _doc(n_llm, f"llm{i}.pdf", "llm")]
 
-    saida, candidatos, removals = CrossDocumentCollapser().collapse(entrada)
+    saida, medicao, removals = CrossDocumentCollapser().collapse(entrada)
+    candidatos = medicao.candidates
 
     removidas = _total_tx(entrada) - _total_tx(saida)
     declarado = sum(c.removable_rows for c in candidatos if c.collapsible)
@@ -86,7 +88,8 @@ def test_declarado_bate_com_removido_em_corpus_HETEROGENEO() -> None:
 def test_removal_declara_cents_ASSINADO_nao_magnitude() -> None:
     """`candidate.valor_cents` é magnitude (`abs`); o ledger grava assinado. Reusar a
     magnitude faria `_declared_dedup_cents` nunca fechar contra `val_in − val_out`."""
-    _saida, candidatos, removals = CrossDocumentCollapser().collapse(_par())
+    _saida, medicao, removals = CrossDocumentCollapser().collapse(_par())
+    candidatos = medicao.candidates
 
     assert candidatos[0].valor_cents == 10000  # magnitude, no candidato
     assert sum(r.count for r in removals) == 1
@@ -130,7 +133,7 @@ def test_collapse_e_idempotente() -> None:
 
     assert _total_tx(saida2) == _total_tx(saida1)
     assert removals2 == ()
-    assert [c for c in cand2 if c.collapsible] == []
+    assert [c for c in cand2.candidates if c.collapsible] == []
 
 
 def test_nao_muta_os_statements_de_entrada() -> None:
@@ -166,7 +169,53 @@ def test_grupo_bloqueado_nao_remove_row() -> None:
     statements = [_doc(1, "a.pdf"), _doc(1, "b.pdf", valor="-100.00")]
     statements[1].institution = "outro banco"
 
-    saida, candidatos, removals = CrossDocumentCollapser().collapse(statements)
+    saida, medicao, removals = CrossDocumentCollapser().collapse(statements)
 
-    assert candidatos[0].blocked_reason == "banco_conflitante"
+    assert medicao.candidates[0].blocked_reason == "banco_conflitante"
     assert (_total_tx(saida), removals) == (2, ())
+
+
+# ── corpus PRÉ-poda (ADR-364 · PR3b2) ──
+
+
+def test_corpus_do_collapse_contem_o_hash_da_row_REMOVIDA() -> None:
+    """A propriedade load-bearing: o corpus não pode perder o que o colapso removeu."""
+    # É onde os overrides em risco ancoram. Corpus derivado pós-poda faria o gate declarar
+    # "nenhum override casa o corpus" exatamente no caso em que ele precisa avisar.
+    from pipeline.domain.services.cross_document_collapser import _row_hash
+
+    entrada = [_doc(1, "a.pdf"), _doc(1, "llm.pdf", "llm")]
+    removida = [(s, tx) for s in entrada if s.source_document == "llm.pdf" for tx in s.transactions]
+    hash_removido = _row_hash(removida[0][1], removida[0][0])
+
+    _saida, medicao, removals = CrossDocumentCollapser().collapse(entrada)
+
+    assert sum(r.count for r in removals) == 1, "fixture não removeu nada — teste vira vácuo"
+    assert hash_removido in medicao.corpus_row_hashes
+
+
+def test_corpus_e_o_mesmo_em_measure_e_em_collapse() -> None:
+    """Os dois modos têm de enxergar o mesmo corpus — senão o gate muda com a flag."""
+    entrada = [_doc(2, "a.pdf"), _doc(1, "llm.pdf", "llm"), _doc(1, "solo.pdf")]
+
+    do_measure = CrossDocumentCollapser().measure(entrada)
+    _s, do_collapse, _r = CrossDocumentCollapser().collapse(entrada)
+
+    assert do_measure.corpus_row_hashes == do_collapse.corpus_row_hashes
+    assert do_measure.corpus_gate_digests == do_collapse.corpus_gate_digests
+
+
+def test_survivor_hash_e_de_row_NATIVA_e_sobrevive_ao_colapso() -> None:
+    """Alvo da re-ancoragem: apontar para a perna LLM mandaria o override para a row errada."""
+    from pipeline.domain.services.cross_document_collapser import _row_hash
+
+    entrada = [_doc(1, "a.pdf"), _doc(1, "llm.pdf", "llm")]
+    nativa = [(s, tx) for s in entrada if s.source_document == "a.pdf" for tx in s.transactions]
+
+    saida, medicao, _r = CrossDocumentCollapser().collapse(entrada)
+    sobrevivente = medicao.candidates[0].survivor_hash
+
+    assert sobrevivente == _row_hash(nativa[0][1], nativa[0][0])
+    assert sobrevivente in {
+        _row_hash(tx, s) for s in saida for tx in s.transactions
+    }, "survivor_hash aponta para row que NÃO sobreviveu"

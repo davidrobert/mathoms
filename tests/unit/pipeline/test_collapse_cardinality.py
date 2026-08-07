@@ -45,7 +45,7 @@ def _doc(n_tx: int, arquivo: str, metodo: str = "native") -> BankStatement:
 
 
 def _measure(statements):
-    return CrossDocumentCollapser().measure(statements)
+    return CrossDocumentCollapser().measure(statements).candidates
 
 
 def test_repeticao_no_mesmo_arquivo_e_dois_eventos() -> None:
