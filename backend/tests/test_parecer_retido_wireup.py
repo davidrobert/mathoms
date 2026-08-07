@@ -163,19 +163,28 @@ def test_filtro_recusa_a_rota_de_excecao(detail):
     assert _should_persist_planner_review(_PARECER, result) is False
 
 
-def test_filtro_recusa_o_skip_do_stage():
-    """`skipped` é ausência (free / sem chave / flag off / sem E5), não retenção."""
-    from pipeline.stages.parecer_planejador import run as parecer_run
-
-    detail = _skip_detail_do_produtor(parecer_run)
-    result = StageResult(stage=_PARECER, success=True, duration_ms=1.0, detail=detail)
+def test_filtro_recusa_skip_mesmo_quando_ele_ganha_campos_de_auditoria():
+    """A guarda `skipped` só é provável contra o refactor que ela existe para barrar."""
+    # Medido: com o skip de HOJE a guarda é indistinguível de código morto —
+    # `persona_hash` já o barraria, e removê-la não deixa teste vermelho. O refactor
+    # plausível é o espelho do que o PR1 fez no ramo irmão (pôs `_audit_detail` no
+    # retido porque a persistência precisava): um skip que passe a ecoar tier/custo.
+    # É aí que a guarda decide entre 404 honesto e row fabricada para quem não pagou.
+    detail = _skip_detail_do_produtor()
     assert detail.get("skipped") is True
+    assert "persona_hash" not in detail, "se isto mudar, `skipped` vira a única defesa"
+
+    result = StageResult(
+        stage=_PARECER, success=True, duration_ms=1.0, detail={**detail, **_audit_do_produtor()}
+    )
     assert _should_persist_planner_review(_PARECER, result) is False
 
 
-def _skip_detail_do_produtor(parecer_run) -> dict:
+def _skip_detail_do_produtor() -> dict:
     """Skip vindo do stage real (tier free, ADR-208 §D1) — não de dict escrito à mão."""
     from types import SimpleNamespace
+
+    from pipeline.stages.parecer_planejador import run as parecer_run
 
     class _StoreComE5:
         def read(self, *_a, **_kw) -> dict:
@@ -186,6 +195,13 @@ def _skip_detail_do_produtor(parecer_run) -> dict:
         config_overrides={"workspace_meta": {"tier": "free"}},
     )
     return parecer_run(ctx)
+
+
+def _audit_do_produtor() -> dict:
+    """Os 5 campos de auditoria, pelo produtor real do stage."""
+    from pipeline.stages.parecer_planejador import _audit_detail
+
+    return _audit_detail(_generation_result())
 
 
 def test_filtro_recusa_stage_que_nao_e_o_parecer():
