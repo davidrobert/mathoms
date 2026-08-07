@@ -83,9 +83,23 @@ celery_app.conf.update(
             "schedule": 86400.0,  # diário
         },
         # ADR-172 (W2-T04) — detector de runs travados.
+        # `expires` medido no co-design A40.l27: não há `task_routes`, então estas tasks
+        # competem com `pipeline.run` (`task_time_limit=3600`) numa fila só, com
+        # `worker_concurrency=2`. Dois runs longos famintam o reaper por até ~1h, e sem
+        # `expires` o beat acumula N cópias que rodam em sequência quando um slot libera —
+        # idempotentes, mas poluindo fila e log. Menor que o período: cópia velha morre.
         "detect-stuck-runs": {
             "task": "fin.detect_stuck_runs",
             "schedule": 300.0,  # 5min
+            "options": {"expires": 240},
+        },
+        # A40.l27 (ADR-359 §Deferimentos) — colhe run pré-dispatch sem dono. Mesmo
+        # período do detector acima; detecção worst-case = 300s + threshold (2min) — e
+        # ILIMITADA sob fila funda pelo mesmo motivo acima, o que o runbook declara.
+        "detect-undispatched-runs": {
+            "task": "fin.detect_undispatched_runs",
+            "schedule": 300.0,  # 5min
+            "options": {"expires": 240},
         },
         # ADR-239 D5 (A18 L3 P2) — refresh anual de FIPE em 15/Jan às 03h UTC
         # (todos vehicles ativos). Janeiro é alinhado com IRPF do exercício

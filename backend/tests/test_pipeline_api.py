@@ -427,3 +427,34 @@ async def test_trigger_from_stage_e3_does_not_pin_base_run(
     kwargs = mock_start.call_args.kwargs
     assert kwargs["base_run_id"] is None
     assert kwargs["base_run_fallback_stages"] == []
+
+
+# ---------------------------------------------------------------------------
+# A40.l27 — cancel de `resuming` PELO ENDPOINT
+# ---------------------------------------------------------------------------
+# A guarda de status é duplicada (use case `cancel_run` + service
+# `cancel_pipeline_run`). Testar só no service passaria verde com o endpoint ainda
+# respondendo 409 — verde-falso no critério de aceite da lane. Este teste vai pela porta.
+
+
+@pytest.mark.asyncio
+async def test_cancel_resuming_run_pelo_endpoint(auth_client_with_doc: AsyncClient):
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+
+    auth_client = auth_client_with_doc
+    with patch(_START):
+        trigger_resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run", json={}
+        )
+    run_id = trigger_resp.json()["id"]
+    with SyncSessionLocal() as db:
+        db.get(PipelineRun, run_id).status = PipelineRunStatus.resuming
+        db.commit()
+
+    with patch(_CANCEL, return_value=True):
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/runs/{run_id}/cancel"
+        )
+
+    assert resp.status_code == 200, resp.json()
