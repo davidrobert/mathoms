@@ -158,7 +158,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l7]] | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa incoerente | P1 | — | RV3-04, RV3-05, RV3-15, RV3-28 |
 | [[A40.l8]] | Cobertura do manifest do parecer (dado renderizado inalcançável) | P1 | — | RV3-08 |
 | [[A40.l9]] | Materialização de config run-scoped (input zerado silenciosamente) | **P1** | — | RV3-11 |
-| [[A40.l10]] | Ordem do plano + pendências do dono | P1 | l9 | RV3-07, RV3-10 |
+| [[A40.l10]] | Ordem do plano + pendências do dono | P1 | l9 | RV3-07, RV3-10, **RV4-02** (P0, admitido 2026-08-04) |
 | [[A40.l11]] | Cobertura e incerteza na tela | P2 | l3, l4 | RV3-13, RV3-14, RV3-29 · flip [[ADR-353]] |
 | [[A40.l12]] | Classificação incompleta distorce KPI | P1 | l1 | RV3-20, RV3-21 · flip [[ADR-351]] |
 | [[A40.l13]] | Copy e design system | P2 | l4 | RV3-23, RV3-24, RV3-25 |
@@ -1000,7 +1000,7 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 
 ## ADRs
 
-Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-03** —
+Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-06** —
 não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
 31 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
 que ela **não** é superseded), as abertas por §Entregas fora de lane e as
@@ -1031,6 +1031,7 @@ emendadas por §Infra de CI tocada durante a sprint.
 | [[ADR-210]] | `Decidido` · **emendada** 2026-08-03 (re-baseline, não mudança de decisão) | — (§Infra de CI, #1160) | Saúde do test suite do CI. A §Ganhos afirmava `backend-tests ≈ 5min` desde 2026-05-14 e a mediana medida é **9,9min**; o adendo fixa a regra de dimensionamento do `timeout-minutes` (~2× da mediana; teto é detector de *hang*, não policial de performance) e rejeita sharding com a conta. Mesma família da emenda da [[ADR-111]]: **texto afirmando estado que não valia mais** |
 | [[ADR-320]] | `Decidido` · **emendada** 2026-08-03 (limite de garantia, não mudança de decisão) | — (§Infra de CI, #1161) | Hardening de CI/CD. A decisão 2 (SHA-pin das 4 actions de terceiro, [[A34.l14]]) pina o *código* da action, **não a imagem base** que uma action Docker builda em runtime — `CodelyTV/pr-size-labeler` fazia `FROM alpine:3.15` sem digest e derrubou um required check. A emenda veda `runs.using: docker` em job required e registra por que não há gate automático (o hook da [[ADR-249]] não alcança Dockerfile de terceiro). Mesma família da [[ADR-210]]: **garantia mais estreita do que o texto sugeria** |
 | [[ADR-278]] | `Decidido` · **não** superseded | — | `_hash_v1` congelado; a A40 não cria `_hash_v3` |
+| **[[ADR-365]]** | `Proposto` (aberta em #1243, **no mesmo PR da implementação**) · flip a `Decidido` **deferido para o PR de fecho da [[A40.l10]]**, por decisão do dono em 2026-08-06 — condição: verificação **renderizada**. Precedente de que o flip é do dono: [[ADR-361]] §Emenda | [[A40.l10]] | Elegibilidade e proveniência da premissa de uma recomendação são **eixos ortogonais**; retido sai do ranking mas é **declarado** por classe de motivo (6ª classe do §Critério de done do [[PLAN-report-trust]]). Origem: `pontos_urgentes` não lia `gap_qualitativo`, e o item de seguro de vida disparava para 100% dos workspaces sem apólice de pessoa — inclusive titular solteiro sem dependente econômico |
 
 ## Débito de método herdado da r3
 

@@ -26,6 +26,7 @@ _logger = logging.getLogger("mathoms.pipeline.e5_serialization")
 # Aliases para boundaries do output legacy (paridade com pattern de
 # ``ratios_calculator.py`` — Mapping[str, Any] não dispara P3).
 _GoalsPayload = Mapping[str, Any]
+_ItemPayload = Mapping[str, Any]
 _FontesPayload = Mapping[str, Decimal]
 
 # =============================================================================
@@ -147,6 +148,20 @@ def _coerce_number(val: Any) -> float:
 # =============================================================================
 # Default tarefas (fallback a partir de pontos_urgentes)
 # =============================================================================
+
+
+# ADR-365 §D4: `analyze()` devolve UMA lista; os dois arrays são projeções dela,
+# não stores. Colapsá-los no futuro é deletar um ramo daqui, não migrar dado.
+# Só `computavel` entra no ranking — o resto é declarado com o motivo, porque a
+# 6ª classe do gate de saída proíbe retenção de conselho sem declaração por
+# classe de motivo.
+def partition_pontos_urgentes(
+    itens: list[_ItemPayload],
+) -> tuple[list[_ItemPayload], list[_ItemPayload]]:
+    """Divide em ``(ranqueados, retidos)`` por ``elegibilidade``."""
+    ranqueados = [i for i in itens or [] if i.get("elegibilidade", "computavel") == "computavel"]
+    retidos = [i for i in itens or [] if i.get("elegibilidade", "computavel") != "computavel"]
+    return ranqueados, retidos
 
 
 def build_default_tarefas(pontos_urgentes: list[dict[str, Any]]) -> list[dict]:
@@ -272,6 +287,10 @@ class E5OutputInputs:
     # compute_protecao). None só em callers legados sem wiring; adapter
     # produz sempre (workspace sem apólice = KPIs zerados + gap qualitativo).
     protecao_patrimonial: dict[str, Any] | None = None
+    # ADR-365 §D4 — projeção irmã de `pontos_urgentes` (retidos do ranking, com
+    # a classe de motivo). Default vazio para caller legado; a paridade com o
+    # emissor é travada por teste derivado de `fields()`, não por inspeção.
+    pontos_urgentes_retidos: list[dict[str, Any]] = field(default_factory=list)
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -310,6 +329,7 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
         "previdencia_pgbl": inputs.previdencia,
         "pontos_fortes": inputs.pontos_fortes,
         "pontos_urgentes": inputs.pontos_urgentes,
+        "pontos_urgentes_retidos": list(inputs.pontos_urgentes_retidos),
         "investimentos": inputs.investimentos_classes,
         "equilibrio_cerbasi": inputs.equilibrio_cerbasi,
         "tarefas": tarefas,
