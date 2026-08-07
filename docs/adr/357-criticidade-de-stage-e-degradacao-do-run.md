@@ -2,9 +2,10 @@
 id: ADR-357
 type: adr
 title: "Criticidade de stage e degradação do run — add-on advisory não veta o entregável"
-status: Proposto
-phase: "A40"
+status: Decidido
+phase: "A40.l18"
 date: "2026-08-03"
+amended_at: ["2026-08-07"]
 relates_to:
   - "[[ADR-199]]"
   - "[[ADR-131]]"
@@ -16,7 +17,7 @@ superseded_by: []
 aliases: ["ADR 357", "stage criticality", "partial_failure alcancavel"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/backend
   - phase/a40
@@ -24,10 +25,19 @@ tags:
 
 # ADR-357 — Criticidade de stage e degradação do run
 
-**Status:** Proposto (A40) • **Data:** 2026-08-03 • **Relaciona** [[ADR-199]]
+**Status:** Decidido (A40.l18) • **Data:** 2026-08-03 • **Relaciona** [[ADR-199]]
 (parecer declarado "não-bloqueante"), [[ADR-131]] (`Report.analysis_artifact_id`),
 [[ADR-212]] (`ArtifactStore` DB-only), [[ADR-297]] (guarda de redelivery),
 [[ADR-291]] (`from_stage`).
+
+> **Emenda 2026-08-07 — flip `Proposto` → `Decidido (A40.l18)`.** A condição
+> declarada era o merge da lane, e o §Gate de saída da [[A40]] a qualificou em
+> 06/08: o que arma o flip é o **writer** (o PR2), não o PR1 que só adicionava o
+> enum. O PR2 mergeou em `b8460274` (#1258) e a lane está `shipped` — o flip
+> ficou pendente 1 dia, o mesmo modo de falha que o §Predicado da sprint vinha
+> pagando em `status` de lane. Quitado aqui pela [[A40.l20]] PR2, que implementa
+> contra este vocabulário (`degraded`, `partial_failure`, criticality) e teria
+> ficado descrevendo uma ADR proposta.
 
 ## Contexto
 

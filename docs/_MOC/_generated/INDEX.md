@@ -352,7 +352,7 @@
 | ADR-354 | adr | Proposto |  | Identidade de transação (K4) exclui atributos de proveniência do documento | `adr/354-identidade-transacao-exclui-proveniencia.md` |
 | ADR-355 | adr | Decidido |  | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages | `adr/355-intencao-sem-llm-propagada-ate-o-stage.md` |
 | ADR-356 | adr | Decidido |  | Precedência declarada do parágrafo de seção e CV9 como medida de entrega | `adr/356-precedencia-narrativa-secao-e-entrega.md` |
-| ADR-357 | adr | Proposto |  | Criticidade de stage e degradação do run — add-on advisory não veta o entregável | `adr/357-criticidade-de-stage-e-degradacao-do-run.md` |
+| ADR-357 | adr | Decidido |  | Criticidade de stage e degradação do run — add-on advisory não veta o entregável | `adr/357-criticidade-de-stage-e-degradacao-do-run.md` |
 | ADR-358 | adr | Proposto |  | Enforcement em produção exige budget de produção — e KR no plano onde ele age | `adr/358-enforcement-de-producao-exige-budget-de-producao.md` |
 | ADR-359 | adr | Decidido |  | Dispatch assíncrono falha alto; quem cria estado pendente compensa | `adr/359-dispatch-assincrono-falha-alto-e-quem-cria-estado-pendente-compensa.md` |
 | ADR-360 | adr | Decidido |  | Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO | `adr/360-seed-do-cone-monte-carlo-e-constante-de-modelo.md` |
@@ -361,7 +361,7 @@
 | ADR-363 | adr | Proposto |  | Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem | `adr/363-identidade-de-codigo-em-runtime-e-semvers-ornamentais.md` |
 | ADR-364 | adr | Proposto |  | Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem | `adr/364-remocao-de-row-e-mudanca-de-identidade.md` |
 | ADR-365 | adr | Proposto |  | Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais | `adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md` |
-| ADR-366 | adr | Proposto |  | Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação | `adr/366-desfecho-da-geracao-do-parecer-e-eixo-proprio.md` |
+| ADR-366 | adr | Decidido |  | Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação | `adr/366-desfecho-da-geracao-do-parecer-e-eixo-proprio.md` |
 | ADR-367 | adr | Proposto |  | Ordem do plano por irreversibilidade: tier constante por regra, e o alvo da reserva gradua sem mover o gatilho | `adr/367-ordem-do-plano-por-irreversibilidade.md` |
 | ADR-368 | adr | Proposto |  | Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão | `adr/368-ancorabilidade-do-exec-context-e-densidade-por-item.md` |
 | ADR-369 | adr | Decidido |  | Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) | `adr/369-rotulo-e-alvo-do-cone-de-if.md` |
@@ -845,7 +845,7 @@
 | A40.l18 | lane | shipped | A40 | Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável | `sprint/A40/lanes/A40-l18-criticidade-de-stage.md` |
 | A40.l19 | lane | shipped | A40 | Drift de enum de status: 4 valores existem em Python e não no tipo do DB | `sprint/A40/lanes/A40-l19-migration-drift-enum-status.md` |
 | A40.l2 | lane | in_progress | A40 | Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio | `sprint/A40/lanes/A40-l2-identidade-lancamento-cross-doc.md` |
-| A40.l20 | lane | in_progress | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
+| A40.l20 | lane | shipped | A40 | PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente | `sprint/A40/lanes/A40-l20-planner-review-retido.md` |
 | A40.l21 | lane | shipped | A40 | Leitores tolerantes a partial_failure: run que produziu relatório para de ser pintado como falha | `sprint/A40/lanes/A40-l21-leitores-tolerantes-partial-failure.md` |
 | A40.l22 | lane | open | A40 | Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF | `sprint/A40/lanes/A40-l22-superficie-de-degradacao.md` |
 | A40.l23 | lane | open | A40 | Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível | `sprint/A40/lanes/A40-l23-gate-ref-adr-em-prosa.md` |
