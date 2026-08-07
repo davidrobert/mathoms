@@ -851,7 +851,7 @@
 | A40.l24 | lane | shipped | A40 | Asserção "0 LLM" do gate F2 mede a camada errada — passa para o boundary do SDK | `sprint/A40/lanes/A40-l24-gate-0-llm-no-boundary-do-sdk.md` |
 | A40.l25 | lane | open | A40 | Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada | `sprint/A40/lanes/A40-l25-honestidade-do-cone-if.md` |
 | A40.l26 | lane | open | A40 | Cobertura do solver de prazo IF: aporte zero com retorno positivo converge, e o produto nunca mostrou | `sprint/A40/lanes/A40-l26-cobertura-do-solver-de-prazo-if.md` |
-| A40.l27 | lane | open | A40 | Órfão de dispatch: varredura de beat, cancel de `resuming` e read path de failure_reason | `sprint/A40/lanes/A40-l27-orfao-de-dispatch-residual.md` |
+| A40.l27 | lane | shipped | A40 | Órfão de dispatch: varredura de beat, cancel de `resuming` e read path de failure_reason | `sprint/A40/lanes/A40-l27-orfao-de-dispatch-residual.md` |
 | A40.l28 | lane | open | A40 | Idade-meta do cone é output do modelo, não pergunta da família — e o rótulo do percentil aponta para dois lados | `sprint/A40/lanes/A40-l28-idade-meta-e-rotulo-do-cone.md` |
 | A40.l29 | lane | open | A40 | Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente | `sprint/A40/lanes/A40-l29-editorial-do-ano-de-if.md` |
 | A40.l3 | lane | shipped | A40 | Janela canônica: todo número rotulado 12m lê janela_12m | `sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md` |
