@@ -4,7 +4,9 @@ type: lane
 title: "PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 1278
+ship_date: "2026-08-07"
 priority: P0
 branch_slug: a40-l20-planner-review-retido
 adrs:
@@ -16,13 +18,18 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/backend
   - area/frontend
 ---
 
 # A40.l20 — `planner-review-retido`
+
+> ✅ **Entregue em 2 PRs.** PR1: `0301f7a0` (#1250, 2026-08-06) — contrato,
+> DTO, guard de publish e estado de UI. PR2: #1278 (2026-08-07) — o wire-up no
+> orquestrador que dá **produtor** ao membro `retido`, mais `generation_unavailable`
+> e o gate de paridade dos vocabulários. Ver §Estado — PR2 entregue.
 
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Desbloqueia a [[A40.l22]] já
 > no **PR1**.
@@ -168,13 +175,40 @@ pontos fortes intitulados `"placeholder"` e um `diagnostico_geral` que manda
 conteúdo **fabricado** a um cliente premium, com `items_shown_count=3`. Daí
 `content: Optional`, decidido antes de carregar o artifact.
 
-### Pendente — PR2 (atrás do merge da [[A40.l18]])
+## Estado — PR2 entregue (2026-08-07)
 
-`_should_persist_planner_review` deixa de excluir o desfecho retido. Medido em
-2026-08-06: são **3** guards independentes, não 1 — a lane citava só
-`status == "needs_review"`. O 3º (`"persona_hash" in result.detail`) é o mais
-silencioso, e um PR2 que abra só a cláusula citada fica verde no diff e **morto em
-runtime**. O enriquecimento do detail que o fecha já entrou neste PR1.
+Canônica: [[ADR-366]], flipada para `Decidido (A40.l20)` neste PR com emenda
+datada. A [[ADR-357]] foi quitada junto (decisão do dono): estava `Proposto` com
+a condição já cumprida pelo merge da [[A40.l18]], e este PR implementa contra o
+vocabulário dela.
+
+**A medição de 06/08 apontava o lugar errado, e a de 07/08 corrigiu.** A lane
+dizia "3 guards em `_should_persist_planner_review`". A medição do PR2, contra
+`4d94dc2c`, encontrou que **o corpo daquela função era dead code** no caminho
+retido:
+
+| # | Porta | Veredito |
+|---|---|---|
+| 0a | `if outcome.delivered:` no `_record_stage_result` | **a única barreira real.** Parecer é `degradable`, retido devolve `success: False` ⇒ `StageOutcome.degraded`, cujo `.delivered` é `False` |
+| 1 | `not result.success` | barraria **se** a 0a fosse aberta sozinha — contrafactual |
+| 2 | `status == "needs_review"` | idem |
+| 3 | `"persona_hash" in detail` | **nunca barrou** — o PR1 pôs `_audit_detail` no retido. Fica, fechando a rota de exceção |
+| 0b | ramo `_record_stage_needs_review` | **não existe no caminho.** O `and` da guarda curto-circuita em `success=False`, e o stage nunca emite bloco `validation`. Nenhuma rota (resume / redelivery / retry / `from_stage` / cancel / exceção) chega lá |
+
+As 7 mutações foram executadas, não argumentadas: re-aninhar a persistência,
+re-adicionar cada condição, remover cada guarda e neutralizar `_is_persistable`
+deixam teste vermelho. A guarda `skipped` **sobreviveu na 1ª rodada** — era
+mascarada por `persona_hash` — e o teste foi reescrito até matá-la.
+
+**Escopo ampliado por decisão do dono**, porque o flip da ADR a tornaria
+descritiva de código inexistente: `generation_unavailable` (§D6) e o gate de
+paridade (§Consequências) entraram neste PR. Duas correções ao texto da ADR, na
+emenda: o §D6 omitia `parecer_artifact_missing`, que o router já produzia; e
+copiar o gate da [[A40.l18]] tal-e-qual dá verde-falso, porque o extrator dele
+não casa o ponto de `parecer.sigilo`.
+
+**Não entregue, e declarado:** a copy da UI para `generation_unavailable`. O hook
+**transporta** o código; escolher palavra por código é da [[A40.l22]].
 
 ### Achados nomeados, não corrigidos aqui
 

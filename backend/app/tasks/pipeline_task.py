@@ -1182,13 +1182,23 @@ def _record_stage_needs_review(
 _PARECER_STAGE_NAME = "review_finances_holistic"
 
 
+# `success` e `status == "needs_review"` saíram do filtro (ADR-366 · A40.l20 PR2):
+# o desfecho retido é EXATAMENTE `success: False` + `status: "needs_review"`, e
+# recusá-lo aqui é o que tornava o membro `retido` inalcançável. Discriminar
+# retenção-com-motivo de indisponibilidade técnica NÃO se duplica aqui — é
+# `_is_persistable` no domínio quem decide, com `retention_reason` (ADR-366 §D6).
+#
+# `persona_hash` continua fechando a rota de exceção: SystemExit/Exception no
+# runner produzem `detail=_with_tail(None)`, sem nenhum campo de auditoria, e a
+# persistência os indexa em colunas NOT NULL.
 def _should_persist_planner_review(stage_name: str, result) -> bool:
-    """Filtro: só persiste para stage parecer com result final success+full detail."""
+    """Filtro: stage do parecer com detail de geração — entregue OU retido."""
     if stage_name != _PARECER_STAGE_NAME:
         return False
-    if not result.success or not isinstance(result.detail, dict):
+    if not isinstance(result.detail, dict):
         return False
-    if result.detail.get("skipped") or result.detail.get("status") == "needs_review":
+    # `skipped` é ausência (free / sem chave / flag off / sem E5): nada foi gerado.
+    if result.detail.get("skipped"):
         return False
     return "persona_hash" in result.detail
 
@@ -1198,11 +1208,11 @@ def _persist_planner_review_if_applicable(run_id: str, stage_name: str, result) 
     if not _should_persist_planner_review(stage_name, result):
         return
     from backend.app.services.planner_review_persistence import (
-        persist_after_stage_success,
+        persist_after_stage_result,
     )
 
     with SyncSessionLocal() as db:
-        persist_after_stage_success(db, run_id=run_id, detail=result.detail)
+        persist_after_stage_result(db, run_id=run_id, detail=result.detail)
 
 
 def _summarize_per_doc_errors(detail) -> str | None:
@@ -1288,8 +1298,15 @@ def _record_stage_result(
             stage_log.errors = _summarize_per_doc_errors(result.detail)
         db.commit()
 
+    # FORA do ramo `delivered` (ADR-366 §Alternativas rejeitadas): o desfecho do
+    # parecer é eixo próprio e NÃO deriva do status do stage. Um parecer retido
+    # devolve `success: False`, o registry declara o stage `degradable`, e
+    # `StageOutcome.degraded.delivered` é False — era esta linha, não o filtro
+    # abaixo, que mantinha o membro `retido` inalcançável em produção. O artifact
+    # já está commitado neste ponto (`commit_artifacts_on_degrade`, ADR-357 §6).
+    _persist_planner_review_if_applicable(run_id, stage_name, result)
+
     if outcome.delivered:
-        _persist_planner_review_if_applicable(run_id, stage_name, result)
         publish_stage_completed(run_id, stage_name, completed_pct)
         return True
 

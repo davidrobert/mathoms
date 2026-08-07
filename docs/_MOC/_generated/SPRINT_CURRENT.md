@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-9 open · 2 in_progress.
+9 open · 1 in_progress.
 
 ## Open (9)
 
@@ -19,10 +19,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l5]] — Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite · priority P1 · branch `a40-l5-contrato-view-model-gate`
 - [[A40.l7]] — Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente · priority P1 · branch `a40-l7-navegacao-e-ponteiros`
 
-## In progress (2)
+## In progress (1)
 
 - [[A40.l2]] — Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio · priority P0 · branch `a40-l2-identidade-lancamento-cross-doc`
-- [[A40.l20]] — PlannerReview representa gerado-e-retido: hoje o estado é inalcançável e a UI mente · priority P0 · branch `a40-l20-planner-review-retido`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

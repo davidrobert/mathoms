@@ -2,9 +2,10 @@
 id: ADR-366
 type: adr
 title: "Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação"
-status: Proposto
-phase: "A40"
+status: Decidido
+phase: "A40.l20"
 date: "2026-08-06"
+amended_at: ["2026-08-07"]
 relates_to:
   - "[[ADR-204]]"
   - "[[ADR-357]]"
@@ -21,7 +22,7 @@ aliases:
   - "outcome do PlannerReview"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/backend
   - area/report
   - phase/a40
@@ -29,7 +30,41 @@ tags:
 
 # ADR-366 — Desfecho da geração do parecer é eixo próprio
 
-**Status:** Proposto (A40) • **Data:** 2026-08-06 • **Lane** [[A40.l20]]
+**Status:** Decidido (A40.l20) • **Data:** 2026-08-06 • **Lane** [[A40.l20]]
+
+> **Emenda 2026-08-07 — flip `Proposto` → `Decidido (A40.l20)`.** A condição
+> declarada no §Consequências era o merge do **PR2**, não do PR1: a tese "o
+> desfecho retido é estado distinto **e alcançável**" só ficava provada quando o
+> membro `retido` ganhasse produtor. Ganhou.
+>
+> **Quatro coisas que a execução mediu diferente do escrito**, registradas aqui
+> porque quem reler o texto abaixo merece saber onde ele erra:
+>
+> 1. **A barreira era UMA, e não estava no filtro.** O texto e a lane apontavam
+>    `_should_persist_planner_review`. A medição mostrou que o corpo dele era
+>    **dead code** no caminho retido: quem barrava era `if outcome.delivered:` no
+>    `_record_stage_result`, um andar acima. O parecer é `degradable`, o retido
+>    devolve `success: False`, logo `StageOutcome.degraded`, cujo `.delivered` é
+>    `False`. As duas condições do filtro (`success` e `status == "needs_review"`)
+>    barrariam **se** a de cima fosse aberta sozinha — contrafactuais, não causa.
+> 2. **`persona_hash` nunca barrou.** O PR1 já pusera `_audit_detail` no retorno
+>    do retido. A guarda fica, mas o que ela fecha é a **rota de exceção**, cujo
+>    detail não tem campo de auditoria algum.
+> 3. **O §D6 enumerava 3 códigos de 404 e omitia `parecer_artifact_missing`,** que
+>    o router já produzia. Fechar o vocabulário nos 3 escritos faria o snapshot
+>    OpenAPI mentir sobre o 4º. O `Literal` entregue tem os **quatro**. O
+>    discriminador de `generation_unavailable` é o **artifact**, não `stage_logs`:
+>    o produtor o grava mesmo nos ramos de indisponibilidade, e ele sobrevive à
+>    degradação — então "sem row + com artifact" isola o caso com exatidão.
+> 4. **Copiar o gate de paridade da [[A40.l18]] tal-e-qual produz verde-falso.** O
+>    §Consequências manda seguir aquele padrão; o extrator dele usa `[a-z_]+`, que
+>    não casa o ponto de `parecer.sigilo` nem a maiúscula de `Gerado`, e devolveria
+>    conjunto vazio comparado com conjunto vazio. O gate entregue corrige o
+>    character class e tem teste próprio contra essa mutação.
+>
+> **Não entregue, e por quê:** a copy da UI para `generation_unavailable`. O
+> §D6 já declarava que quem discrimina é o servidor e que o cliente chaveia na
+> [[A40.l22]]; o hook passa a **transportar** o código, sem escolher palavra.
 
 ## Contexto
 

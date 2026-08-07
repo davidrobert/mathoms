@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 309
-- **Proposto**: 47
+- **Decidido**: 311
+- **Proposto**: 45
 - **Roadmap**: 4
 
 ## Fundação
@@ -302,7 +302,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (15)
+### Decidido (16)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -319,14 +319,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-289]] — Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) · phase F1
 - [[ADR-290]] — Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion · phase A25
 - [[ADR-359]] — Dispatch assíncrono falha alto; quem cria estado pendente compensa · phase A40
+- [[ADR-366]] — Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação · phase A40.l20
 
-### Proposto (5)
+### Proposto (4)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
 - [[ADR-329]] — Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium
 - [[ADR-339]] — Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata
-- [[ADR-366]] — Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação · phase A40
 
 ## categorization
 
@@ -527,7 +527,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (54)
+### Decidido (55)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -580,11 +580,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-346]] — Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador · phase A39.l9
 - [[ADR-348]] — Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group · phase A39.l11
 - [[ADR-355]] — Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages · phase A40 (dívida independente da F2 do GO_SHELL)
+- [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40.l18
 - [[ADR-360]] — Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO · phase A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)
 - [[ADR-361]] — Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos · phase A40
 - [[ADR-369]] — Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) · phase A40.l28
 
-### Proposto (15)
+### Proposto (14)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -598,7 +599,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-352]] — Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante · phase pipeline-review r2 (RV2-26)
 - [[ADR-353]] — Confiança do diagnóstico comportamental condicionada à cobertura de categorização · phase pipeline-review r2 (RV2-21)
 - [[ADR-354]] — Identidade de transação (K4) exclui atributos de proveniência do documento · phase report-review r3 (RV3-01) · A40.l2
-- [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-364]] — Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem
 
