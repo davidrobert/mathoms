@@ -588,13 +588,19 @@ _CV_OPTIONAL_CHECKS = (
     _cv16_receita_natureza,
     _cv17_renda_passiva_conservacao,
 )
-_CV_ALWAYS_CHECKS = (
+# Classe de RENDER: só avaliável se as narrativas chegaram ao E5. Sem elas,
+# `generate_narratives` degradou (A40.l18 · ADR-357) e rodar estes checks
+# conflacionaria "a narrativa não veio" com "regressão de render" — o E5 não
+# carrega discriminador nenhum entre as duas causas.
+_CV_RENDER_CHECKS = (
     _cv9_summaries_delivery,
     _cv10_charts_completeness,
+    _cv14_monetary_format,
+)
+_CV_ALWAYS_CHECKS = (
     _cv11_tarefas_structure,
     _cv12_diagnostico,
     _cv13_score_label,
-    _cv14_monetary_format,
 )
 
 # Checks numéricos de conservação que PAUSAM o run como needs_review quando
@@ -615,6 +621,12 @@ def _conservation_validation(cv_results: list[CrossValidationResult]) -> dict:
     }
 
 
+def has_narrativas(e5: dict) -> bool:
+    """Narrativas chegaram ao E5 — predicado de avaliabilidade da classe de render."""
+    narr = e5.get("narrativas") or {}
+    return bool(narr.get("summaries")) and bool(narr.get("charts"))
+
+
 def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
     """Run all deterministic cross-validation checks on E5 data."""
     results: list[CrossValidationResult] = []
@@ -622,6 +634,8 @@ def run_cross_validation(e5: dict) -> list[CrossValidationResult]:
         result = check(e5)
         if result is not None:
             results.append(result)
+    if has_narrativas(e5):
+        results.extend(check(e5) for check in _CV_RENDER_CHECKS)
     for check in _CV_ALWAYS_CHECKS:
         results.append(check(e5))
     return results
@@ -710,13 +724,17 @@ def main_with_store(ctx, *, mode: str = "crossval") -> dict:
         print("  [ERRO] E5 artifact 'analise_financeira' não encontrado.")
         return {"success": False, "reason": "e5_not_found"}
 
-    narr = e5.get("narrativas", {})
-    has_narrativas = bool(narr.get("summaries")) and bool(narr.get("charts"))
-    if not has_narrativas:
-        print("  [ERRO] E5 sem narrativas. Execute E5.N antes de E7.")
-        return {"success": False, "reason": "missing_narrativas"}
-
-    print(f"  ✓ E5 JSON: {len(e5)} top-level keys, narrativas presentes")
+    # A40.l18 · ADR-357 §Delta item 4 — o early-return `missing_narrativas` foi
+    # REMOVIDO. Ele transformava a degradação de `generate_narratives` numa
+    # segunda lacuna: derrubava o E7 (e, com `stop_on_error=True` default,
+    # também o parecer, que vem depois em FULL_ORDER) e apagava a row em
+    # `reports`. A conservação não depende de narrativa nenhuma — só a classe
+    # de render depende, e essa agora skipa.
+    render_avaliado = has_narrativas(e5)
+    if render_avaliado:
+        print(f"  ✓ E5 JSON: {len(e5)} top-level keys, narrativas presentes")
+    else:
+        print("  [AVISO] E5 sem narrativas — classe de render (CV9/CV10/CV14) não avaliada.")
 
     cv_results = run_cross_validation(e5)
     passed = sum(1 for r in cv_results if r.passed)
@@ -744,6 +762,9 @@ def main_with_store(ctx, *, mode: str = "crossval") -> dict:
         "checks_failed": failed,
         "errors_count": len(errors_list),
         "warnings_count": len(warnings_list),
+        # Sem isto, `checks_total` menor é indistinguível de "checks passaram":
+        # quem ler o payload precisa saber que a classe de render não foi julgada.
+        "render_avaliado": render_avaliado,
         "validation": _conservation_validation(cv_results),
         "results": [r.to_dict() for r in cv_results],
     }

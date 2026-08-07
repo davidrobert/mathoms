@@ -85,12 +85,43 @@ def test_stage_run_fails_cleanly_without_e5(tmp_path: Path) -> None:
     assert result == {"success": False, "reason": "e5_not_found", "stage": "validate_cross"}
 
 
-def test_stage_run_fails_cleanly_without_narrativas(tmp_path: Path) -> None:
-    """E5 sem narrativas (E5.N não rodou) → reason `missing_narrativas`."""
+def _run_sem_narrativas(tmp_path: Path, e5: dict) -> dict:
     store = InMemoryArtifactStore()
-    store.seed("analyze_finances", "analise_financeira", {"score": {"valor": 0}})
-    result = validate_cross.run(_seeded_ctx(tmp_path, store))
-    assert result == {"success": False, "reason": "missing_narrativas", "stage": "validate_cross"}
+    store.seed("analyze_finances", "analise_financeira", e5)
+    return validate_cross.run(_seeded_ctx(tmp_path, store))
+
+
+def test_stage_run_sem_narrativas_nao_cascateia(tmp_path: Path) -> None:
+    """E5 sem narrativas → E7 ENTREGA, com a classe de render não avaliada."""
+    # Invertido em A40.l18 (ADR-357 §Delta item 4). Antes retornava
+    # ``{"success": False, "reason": "missing_narrativas"}``, o que fazia a
+    # degradação de ``generate_narratives`` derrubar o E7 junto — e, com
+    # ``stop_on_error=True`` (default), também o parecer, que vem depois em
+    # ``FULL_ORDER``. Uma lacuna virava três, mais a row ausente em ``reports``.
+    # Mantido como gate contra a reintrodução da cascata.
+    result = _run_sem_narrativas(tmp_path, {"score": {"valor": 0}})
+
+    assert result["success"] is True, "narrativa ausente não é não-entrega do E7"
+    assert result["render_avaliado"] is False
+    # A classe de render SKIPA em vez de reportar falha: CV9/CV10 vermelhos aqui
+    # conflacionariam "narrativa não veio" com "regressão de render".
+    assert {r["check_id"] for r in result["results"]}.isdisjoint({"CV9", "CV10", "CV14"})
+    assert result["validation"]["valid"] is True
+
+
+def test_conservacao_ainda_julga_sem_narrativas(tmp_path: Path) -> None:
+    """Sem narrativas, conservação falhando ainda invalida — canal ortogonal (ADR-357 §1)."""
+    # CV3 — aritmética do fluxo não fecha: receita - despesa != saldo.
+    result = _run_sem_narrativas(
+        tmp_path,
+        {
+            "score": {"valor": 0},
+            "fluxo_caixa": {"receita_total": 10000.0, "despesa_total": 3000.0, "saldo": 1.0},
+        },
+    )
+    assert result["success"] is True
+    assert result["render_avaliado"] is False
+    assert result["validation"]["valid"] is False
 
 
 def test_cv16_passa_quando_baldes_dentro_do_total() -> None:
