@@ -10,7 +10,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ## Open (7)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
-- [[A40.l18]] — Criticidade de stage: add-on advisory não veta o entregável; partial_failure alcançável · priority P0 · branch `a40-l18-criticidade-de-stage`
+- [[A40.l22]] — Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF · priority P0 · branch `a40-l22-superficie-de-degradacao`
 - [[A40.l23]] — Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível · priority P2 · branch `a40-l23-gate-ref-adr-em-prosa`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l26]] — Cobertura do solver de prazo IF: aporte zero com retorno positivo converge, e o produto nunca mostrou · priority P2 · branch `a40-l26-cobertura-do-solver-de-prazo-if`
