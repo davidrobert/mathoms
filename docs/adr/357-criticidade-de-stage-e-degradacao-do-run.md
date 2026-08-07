@@ -95,13 +95,42 @@ incompleta. O que destrói o entregável hoje são os três
 
 **Nenhuma chave nova no retorno do stage.** O stage continua dizendo "não
 entreguei" (`success: False`); o orquestrador combina `(retorno, criticality)` →
-`StageResult.outcome ∈ {completed, skipped, degraded, failed}`. Rejeitado o
-contrato `{"degraded": True}`: daria ao produtor o poder de silenciar a própria
-falha, e dois canais podem discordar (`degraded: True` num stage `required` →
-política indefinida).
+`outcome ∈ {completed, skipped, degraded, failed}`. Rejeitado o contrato
+`{"degraded": True}`: daria ao produtor o poder de silenciar a própria falha, e
+dois canais podem discordar (`degraded: True` num stage `required` → política
+indefinida).
 
-`{"skipped": True}` é normalizado para `outcome=skipped` no mesmo ato. O default
-atual (dict sem `"success"` ⇒ `completed`) é **preservado**.
+> **Corrigido 2026-08-07, ainda em `Proposto`, por medição na A40.l18 PR2.** A
+> forma anterior escrevia **`StageResult.outcome`** — campo do contrato. O
+> desfecho é **derivado pelo decisor** (`pipeline/stage_outcome.py::resolve_stage_outcome`,
+> consumido em `_execute_stages_loop`) e **não** é campo de `StageResult`.
+>
+> Dois motivos, o segundo mais forte que o primeiro. (a) Custo: o campo é
+> descartado por **5 construtores campo-a-campo** (`pipeline_client.py` ×3,
+> `pipeline-service/…/stage_executor.py`, `run_coordinator.py`) e pela struct Go
+> `contracts_gen.go` — executor InProcess veria o valor, executor HTTP veria
+> `None`, com a suíte verde; e quebra o gate de shape de
+> `tests/test_cli_run_stage.py`. (b) Contrato: `StageExecuteResponse` é o que o
+> **executor** devolve. Publicar `outcome` ali devolve ao produtor exatamente a
+> caneta que esta § tirou dele ao rejeitar `{"degraded": True}`.
+>
+> Regra que fica: **descritivo viaja em `detail`; dispositivo é derivado pelo
+> decisor.** É a mesma medição que valida `reason_class` em `output_summary`
+> (§Delta item 1) e que reprova o campo `outcome`.
+
+`{"skipped": True}` é normalizado para `outcome=skipped` no mesmo ato, e esse
+desfecho mapeia para **`PipelineStageStatus.completed`** — o default atual (dict
+sem `"success"` ⇒ `completed`) é **preservado**.
+
+> **Precisão de 2026-08-07 (A40.l18 PR2).** As duas frases acima estavam em
+> tensão: `{"skipped": True}` **é** um dict sem `"success"`, logo hoje já grava
+> `completed`. Mapear `outcome=skipped` para `PipelineStageStatus.skipped`
+> flipparia status **e** evento WS dos 5 early-returns de
+> `pipeline/stages/parecer_planejador.py` (flag off, sem E5, sem backend,
+> tier=free, sem API key) e dos `extract_*` sem documento — comportamento que
+> ship hoje. `PipelineStageStatus.skipped` já significa outra coisa: o
+> orquestrador decidiu **não rodar** o stage, gravado por `_record_stage_skip`
+> antes da execução. `outcome=skipped` fica descritivo.
 
 **A disposição é cega à FORMA da não-entrega.** As duas rotas do loop —
 `result is None` (exceção após retries) e `result.success is False` — mapeiam
@@ -143,6 +172,23 @@ jogada fora: `_exc_label` lê `exc.error_type` e o achata em string de display.
 - `run.failed_at_stage` **não** é populado em degradação (hoje o é para todo
   não-sucesso): `failed_at_stage` preenchido + status `partial_failure` mentiria
   para todo leitor futuro. Derive o stage degradado de `stage_logs`.
+- `run.failure_reason` **também** fica NULL em degradação.
+
+> **Acrescentado 2026-08-07 (A40.l18 PR2).** `failure_reason` é coluna viva
+> (`String(50)`) e o motivo não é só o argumento acima: é **vocabulário**.
+> `pipeline_failure_reasons.py` tem 4 membros — `heartbeat_timeout`,
+> `dispatch_failed`, `run_setup_failed`, `dispatch_unconfirmed` — e todos são
+> falhas de propriedade do **run** (ninguém dono, nunca rodou). Escrever
+> `StageFailureReason` no mesmo campo funde duas taxonomias sem discriminador, e
+> o `SELECT failure_reason, count(*)` do runbook passa a devolver histograma
+> misturado.
+>
+> Dos **4** writers de `failed_at_stage`, só os 2 de disposição de stage são
+> blindados (`_record_stage_result`, `_record_stage_exception`).
+> `_apply_task_crash_to_run` e o watchdog de `periodic_tasks.py` ficam intactos
+> de propósito: são falha real do run e já filtram por status não-terminal
+> (`_CRASH_RUN_STATUSES` / `status == running`), então nunca tocam um run
+> `partial_failure`. Blindar os 4 quebraria crash-recovery.
 
 ### 4. `degraded` entra em `_STAGE_DONE_STATUSES`
 
@@ -150,12 +196,72 @@ Sem isso, o redelivery Celery re-executa e **re-paga** o stage LLM já cobrado
 (US$ 0,48 no incidente) — reintroduz a regressão que a A37.l12 fechou, só no
 ramo degradado. É a linha mais importante do PR.
 
+Duas consequências medidas em 2026-08-07 (A40.l18 PR2), ambas implementadas:
+
+- **O marcador de redelivery publica o status REAL.**
+  `_publish_redelivered_stage_event` mandava tudo que não é `completed` para
+  `publish_stage_skipped(..., "LLM stage skipped (redelivery)")`. Com `degraded`
+  no set, um stage degradado redelivered seria anunciado como `skipped` — e
+  `status` é contrato lido por `pipelineRunOutcome.ts`, não prosa. Reusa o
+  evento (esta ADR recusa evento novo) com `status` parametrizado.
+  `stage_degraded` é nome de **log**, nunca de evento WS.
+- **O 3-way deriva da UNIÃO `flags da invocação ∪ stage_logs do run`.** A flag
+  local mede a **invocação**; a degradação é do **run**. `resume_pipeline_run`
+  re-despacha a task com o mesmo `run_id` e só os stages restantes — caminho
+  vivo, não exótico — e o redelivery pula stages concluídos pelo marcador; nos
+  dois casos as flags voltam limpas e o run finalizaria `completed` com um
+  `stage_log` `degraded` no banco. `has_failure` continua vindo da flag porque o
+  ramo de falha de commit de artefato grava `completed` no stage_log: só a união
+  cobre as duas direções.
+
+### 4b. Degradação **não** honra `stop_on_error`
+
+Os 3 degradáveis são os **3 últimos** de `FULL_ORDER`, nesta ordem —
+`generate_narratives → validate_cross → review_finances_holistic` — e o default
+do trigger e do resume é `stop_on_error=True`. Se o ramo degradado herdasse o
+`break`, degradar `generate_narratives` apagaria também a conferência de
+consistência **e o parecer que o cliente premium pagou**: uma lacuna virando
+três, criada pela própria lane que existe para matá-las. E a copy da l21
+(*"Relatório gerado, sem as análises e comentários"*) sub-declararia o resto.
+
+> **Acrescentado 2026-08-07 (A40.l18 PR2).** Não estava em nenhum critério de
+> aceite — veio do co-design. Fica na ADR, e não só no critério da lane, pelo
+> mesmo argumento com que a §1 se recusa a derivar contrato de critério de lane.
+> Não-entrega de stage `required` continua honrando `stop_on_error`.
+
 ### 5. Precondição do report é o artifact E5, não o status do run
 
 Reafirmação de [[ADR-131]]. `_create_report_from_output` já checa apenas a
 existência do artifact E5; o único gate é o `if not has_failure`. Nenhuma ADR
 declarava "report só de run completo" — o invariante não existia escrito.
 `_finalize_run` passa a ser 3-way e o post-processing roda em degradação.
+
+> **Precisado 2026-08-07 (A40.l18 PR2), três coisas que o texto não cobria.**
+>
+> **(a) `partial_failure` exige entregável.** Se o stage degradado é o que
+> deveria produzir a dependência (`validate_cross` devolvendo `e5_not_found`), o
+> run não tem E5, `_create_report_from_output` não acha artifact, e
+> `partial_failure` — *"terminal, entregue, com lacuna declarada"* — mentiria:
+> nada foi entregue. `_terminal_status` degrada para `failed` nesse caso. Isso
+> **não** fura a cegueira da §2: a cegueira é sobre a **forma da não-entrega do
+> STAGE**; *"o run entregou?"* é pergunta de **run**, respondida por evidência.
+> Rejeitado o caso especial `if reason == "e5_not_found": required` — é o
+> `if stage_name == _PARECER_STAGE_NAME` que esta ADR chama de precedente feio.
+>
+> **(b) O predicado tolera o base run.** `_find_latest_analysis_artifact` filtra
+> `pipeline_run_id == run_id`, mas em run só-de-cauda com `from_stage` o E5
+> pertence ao **base run** e é lido por fallback do store ([[ADR-291]]). O
+> predicado consulta `pipeline_run_id IN (run.id, run.base_run_id)`; filtrar só
+> pelo próprio reprovaria um run de cauda íntegro. `_find_latest_analysis_artifact`
+> **não** foi estendido — mudar criação de report para re-run de cauda é o
+> §Follow-ups item 5 da lane.
+>
+> **(c) O gate do post-processing é POSITIVO.** `if not has_failure` era
+> negativo, e negativo deixa passar todo status futuro sem decisão.
+> `_POST_PROCESS_STATUSES` nomeia `completed`, `partial_failure` e `cancelled` —
+> o último para **preservar** comportamento vivo: hoje o loop faz `break` com
+> `has_failure=False`, `_finalize_run` early-returna no status, e cancelar depois
+> de `analyze_finances` já gera relatório. Mudar isso é lane própria.
 
 ### 6. Artifact degradado é persistido, nunca publicado
 
@@ -167,11 +273,36 @@ opcional: o marcador terminal promete "artefatos persistidos", e marcar
 
 Os dois leitores já discriminam por `_meta.status == "Gerado"`.
 
-**Exceção travada:** commit-on-degrade só é seguro quando o stage escreve em
-**chave própria**. `generate_narratives` escreve em
-`analyze_finances`/`analise_financeira` — a mesma chave do E5 — e commitar merge
-parcial ali corrompe o deliverable. A política é declarada **por stage**, não
-derivada de `StageSpec.writes` (que é ficção para 2 dos 3 degradáveis).
+**Exceção travada:** commit-on-degrade só é seguro quando o artifact degradado
+tem **chave própria**, porque é ali que cabe o marcador `_meta.status` que os dois
+leitores usam para discriminar. `generate_narratives` escreve em
+`analyze_finances`/`analise_financeira` — a mesma chave do E5 — e ali não há onde
+pôr esse marcador sem mentir sobre um E5 que está **completo**. A política é
+declarada **por stage** (`StageSpec.commit_artifacts_on_degrade`), não derivada de
+`StageSpec.writes` (que é ficção para 2 dos 3 degradáveis).
+
+> **Justificativa substituída 2026-08-07 (A40.l18 PR2), decisão inalterada.** A
+> forma anterior dizia *"commitar merge parcial ali corrompe o deliverable"*.
+> **O merge parcial não é reproduzível hoje:** `generate_narratives` tem
+> exatamente **1** `store.write`, e ele é a última instrução antes do sucesso —
+> os dois `success: False` o precedem. Pior: a mutação in-place de `e5_data` que
+> antecede o write não chega ao banco de jeito nenhum, porque a coluna é `JSON`
+> **sem** `MutableDict`. Ou seja, a proteção que o texto anterior invocava é
+> fornecida por um **defeito de aliasing**, não pela política — e o dia em que
+> esse defeito for consertado, o vetor nasce de verdade.
+>
+> A decisão sobrevive; a razão não. Manter o texto original faria a próxima
+> pessoa travar a exceção sem travar a propriedade que a sustenta (a posição do
+> write), e o primeiro refactor que mova o write para cima reabriria o buraco em
+> silêncio.
+>
+> **Débito derivado, fora desta lane:** `DBArtifactStore._maybe_decrypt` devolve
+> `row.content_json` por **referência** e a coluna é `JSON` plain sem
+> `MutableDict` — `read → mutar in-place → write` na mesma `(stage, key)` é
+> **lost update silencioso** quando `ENCRYPT_PIPELINE_ARTIFACTS=False` (o default
+> `True` mascara, reconstruindo o dict). Dono `data-engineer`, ADR própria, e ela
+> **depende** desta §: consertar o aliasing sem a exceção travada em pé abre o
+> vetor de corrupção do deliverable.
 
 ### 7. Migration do drift de enum
 
@@ -217,6 +348,28 @@ já retenta `RETRYABLE_ERRORS` com backoff 30/60/120s e escalada de timeout
 > próxima pessoa deduzir que degradação implica dinheiro gasto — e desenhar
 > billing ou alerta em cima de uma premissa falsa.
 
+> **Vocabulário de retry corrigido 2026-08-07 (A40.l18 PR2), divergindo da
+> prescrição do §Delta item 5 da lane.** Aquele item mandava trocar `rate_limit`
+> por `ratelimit`, alegando que o primeiro *"nunca casa"* contra o rótulo
+> `ratelimiterror`. **Duas premissas erradas, medidas:** (a) `should_retry`
+> recebe `str(exc)[:2000]`, não o nome da classe — e o que chega ali é uma
+> `LLMError` que re-embrulha a mensagem do provider; (b) `_normalize` colapsa `_`
+> em espaço nos **dois** lados, então o corpo do erro (`rate_limit_error` →
+> `rate limit error`) casa `rate_limit` e **não** casa `ratelimit`. Aplicar a
+> prescrição seria a regressão.
+>
+> O gap real é outro e era silencioso: o **overload** da Anthropic (529 / 500
+> `overloaded_error`, o transiente mais comum em pico de capacidade) é mapeado por
+> litellm para `InternalServerError`, cuja mensagem não contém nenhum dos 5
+> padrões antigos. E a mensagem de timeout aparece em **duas** formas —
+> `classify_error` conhece ambas (`timeout` e `timed out`), a tabela de retry
+> conhecia uma. Acrescentados `overloaded`, `529` e `timed out`; nada removido.
+>
+> A **assimetria** segue não corrigida de propósito (§Follow-ups item 4 da lane):
+> nenhuma exceção do parecer chega a `_run_stage_with_retry`, porque
+> `parecer_orchestrator` converte tudo em `success: False` antes de sair. Para
+> aquele stage a tabela é inerte — religá-la re-pagaria o stage LLM já cobrado.
+
 ## Alternativas rejeitadas
 
 - **Contrato de retorno do stage (`{"degraded": True}`)** — criticidade viraria
@@ -247,6 +400,16 @@ já retenta `RETRYABLE_ERRORS` com backoff 30/60/120s e escalada de timeout
   > declara `status: PipelineStageStatus` em `PipelineStageLogResponse`, logo o
   > enum de stage é superfície pública de API. O raciocínio original cobriu só o
   > status de run.
+  >
+  > **Corrigido de novo 2026-08-07 — terceira revisão desta linha, por medição no
+  > PR2.** A previsão acima acertou a superfície e errou **quem paga**: o PR1
+  > (`4620cc04`/#1242) já declarou o membro Python, então `degraded` já está em
+  > `docs/reference/api/v1/openapi.json` e em `DB_SCHEMA_REFERENCE.md`. Medido no
+  > PR2: os dois `make` produzem **diff vazio**. Um revisor que leia "ganha
+  > exatamente `degraded`" ao pé da letra reprova o PR correto.
+  >
+  > Lição de forma: previsão de diff de snapshot precisa nomear **qual PR** paga,
+  > não só qual superfície muda. Esta linha errou 3× por omitir isso.
 - Débito nomeado, **não** corrigido aqui: `StageSpec.writes` é ficção para
   `generate_narratives` (declara chave própria, escreve na do E5) e
   `validate_cross` (declara chave, é read-only). `validate_full_order` valida um
