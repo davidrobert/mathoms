@@ -159,6 +159,32 @@ O gatilho **permanece** em `protecao_analyzer` — marcá-lo na camada de consel
 contido; removê-lo mudaria o payload `protecao_patrimonial` para os outros
 consumidores.
 
+### D7 — os três campos são `optional` no schema, e `additionalProperties: false` fica
+
+No `$defs/PontoUrgente`, `required` cobre **só** os 4 campos originais
+(`prioridade`, `acao`, `impacto`, `prazo`). `code`, `origem_premissa`,
+`elegibilidade` e `dado_faltante` são **opcionais**.
+
+**Por quê:** o produtor sempre os emite (`to_dict` os inclui com default), mas
+artefato antigo em `pipeline_artifacts` **não os tem** e **não é revalidado na
+leitura**. E o leitor implementa essa tolerância de propósito —
+`partition_pontos_urgentes` faz `i.get("elegibilidade", "computavel")`, para que
+ausência não vire retenção retroativa. **Schema exigindo o que o leitor perdoa é
+contrato que mente**, e a assimetria só apareceria quando alguém revalidasse um
+payload antigo.
+
+**`additionalProperties: false` permanece** — é ele, não o `required`, que compra
+o gate: barra campo novo sem declaração e valor fora do vocabulário. Afrouxar o
+`required` sem manter isso deixaria o bloco sem proteção nenhuma.
+
+**Como isto foi descoberto, porque a forma importa:** a primeira versão marcou os
+três como `required` e a **suíte local passou** — o modo default de validação é
+`warn` (`config/pipeline.json`). Quem pegou foi o passo `Pipeline JSON schema
+strict` do CI, que roda `MATHOMS_PIPELINE_SCHEMA_MODE=strict`. É a §Consequências
+desta ADR ("o schema passa a ser gate deste bloco") mordendo o próprio autor no
+primeiro uso — o que é o comportamento desejado, e vale registrar em vez de
+apagar.
+
 ## Alternativas consideradas
 
 1. **Um enum único de elegibilidade** — rejeitada em D1 (ranking de confiança
