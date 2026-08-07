@@ -39,7 +39,10 @@ from backend.app.models.transaction_override import TransactionOverride
 from backend.app.services.internal_ops.results import OpResult
 from pipeline.domain.services.cross_document_collapser import gate_key_digest
 
-_ACTION = "override.collapse_precondition"
+# Não há constante de ação de auditoria aqui: este gate **não escreve**. A `_ACTION` que
+# existia era resquício do desenho com `append_audit` por run, que o painel recusou — e
+# estrutura órfã apodrece e depois é adotada errada ([[ADR-364]] §Decisão 3, aplicada ao
+# próprio arquivo). A row de `internal_ops_audit` é do PR3e, quando o operador flippa a flag.
 # `tx_data` é `String(10)`, largura que acomoda `YYYY-MM-DD` E `DD/MM/YYYY` igualmente —
 # o tipo não discrimina, então a forma é contada, não presumida.
 _ISO = re.compile(r"\d{4}-\d{2}-\d{2}")

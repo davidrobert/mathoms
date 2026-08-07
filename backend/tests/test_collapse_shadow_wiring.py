@@ -161,6 +161,17 @@ def test_gate_nao_roda_sem_store_de_db(store):
     assert _e3_collapse_precondition(_Ctx("ws-qualquer"), store, resultado) is None
 
 
+def test_gate_falha_alto_se_o_resultado_do_stage_for_renomeado():
+    """Fail-open aqui deixaria o gate INERTE em silêncio — o mesmo furo que `_alvos` tinha."""
+    from scripts.reconcile_transactions import _e3_collapse_precondition
+
+    class _SemMedicao:
+        pass
+
+    with pytest.raises(AttributeError):
+        _e3_collapse_precondition(_Ctx("ws-qualquer"), object(), _SemMedicao())
+
+
 def test_main_with_store_chama_o_gate_e_anexa_ao_detail():
     """AST: o composition root chama o gate E o resultado entra no dict que vira
     ``output_summary``. Asserção sobre o service provaria o gate, não a fiação."""

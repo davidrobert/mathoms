@@ -1039,10 +1039,15 @@ def _e3_build_collapser(ctx, store):
 # pior: pareceria medição com corpus limpo. `scripts/**` está fora do gate de boundary
 # (`dev/check_pipeline_boundaries.py` cobre só `pipeline/`), e este módulo já consulta o DB
 # pela flag da sombra — produtor e consumidor no mesmo escopo léxico, nada viaja.
+#
+# `result.collapse_measurement` é acesso por ATRIBUTO, não `getattr(..., None)`:
+# `ReconciliationStoreResult` sempre tem o campo, e um default silencioso aqui reproduziria —
+# uma camada acima — exatamente o fail-open que este PR fechou em `_alvos` (rename ⇒ gate
+# inerte, sem sinal).
 def _e3_collapse_precondition(ctx, store, result) -> Optional[Dict[str, Any]]:
     """Gate de pré-condição do enforce, por run ([[ADR-364]] §5). Read-only, nunca bloqueia."""
-    medicao = getattr(result, "collapse_measurement", None)
-    if medicao is None or not medicao.corpus_gate_digests or ctx.workspace_id is None:
+    medicao = result.collapse_measurement
+    if not medicao.corpus_gate_digests or ctx.workspace_id is None:
         return None
     try:
         from backend.app.services.internal_ops import collapse_precondition
@@ -1052,10 +1057,7 @@ def _e3_collapse_precondition(ctx, store, result) -> Optional[Dict[str, Any]]:
     if not isinstance(store, DBArtifactStore):
         return None
     _op, report = collapse_precondition.evaluate(
-        store.session,
-        ctx.workspace_id,
-        medicao.candidates,
-        medicao.corpus_gate_digests,
+        store.session, ctx.workspace_id, medicao.candidates, medicao.corpus_gate_digests
     )
     return report.as_details()
 
