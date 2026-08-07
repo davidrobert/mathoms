@@ -15,10 +15,17 @@ from pipeline.domain.services.if_monte_carlo import (
     _MC_SEED,
     IFMonteCarloConfig,
     MonteCarloIFResult,
+    PrazoDeclarado,
     _lognormal_params,
     _simular_caminhos,
     run_monte_carlo_if,
 )
+
+
+def _prazo(anos: int, *, ano_base: int = 2026) -> PrazoDeclarado:
+    """Prazo declarado sintético — ADR-369 D2 substituiu a idade-meta derivada."""
+    return PrazoDeclarado(anos=anos, ano_alvo=ano_base + anos, declarado_em=f"{ano_base}-01-01")
+
 
 _META = 10_000_000.0
 _ANO_BASE = 2026
@@ -57,7 +64,7 @@ def _config(pv_ratio: float, pmt: float, sigma: float = 0.11) -> IFMonteCarloCon
 
 def _cone(cfg: IFMonteCarloConfig, idade_meta: int = 65) -> MonteCarloIFResult:
     return run_monte_carlo_if(
-        cfg, ano_base=_ANO_BASE, idade_titular_atual=_IDADE_ATUAL, idade_meta_if=idade_meta
+        cfg, ano_base=_ANO_BASE, prazo_declarado=_prazo(idade_meta - _IDADE_ATUAL)
     )
 
 
@@ -202,21 +209,37 @@ def test_taxa_de_sucesso_e_publicada_na_base_cheia():
 
 
 def test_familia_ja_independente_nao_le_probabilidade_zero():
-    """``horizonte_meta = 0`` devolvia 0,0 — sentinela lida como medição."""
-    # `prazo=0` faz `primeiro_true < 0` nunca ser verdadeiro, então quem já
-    # atingiu a meta lia "0% de chance de atingir IF". A meta está atingida em
-    # t=0, o que é independente da simulação — logo 1,0, e sem cone.
+    """``pv >= fv`` devolvia 0,0 — sentinela lida como medição (ADR-361 D8)."""
+    # A meta está atingida em t=0, o que independe da simulação — logo 1,0, e
+    # sem cone. O prazo declarado continua válido (10 anos à frente): o que se
+    # afirma aqui é sobre o patrimônio, não sobre a data.
     cfg = IFMonteCarloConfig(
         patrimonio_investivel=Decimal("6000000"),
         meta_if=Decimal("5000000"),
         aporte_mensal=Decimal("0"),
         ano_base=_ANO_BASE,
     )
-    resultado = run_monte_carlo_if(
-        cfg, ano_base=_ANO_BASE, idade_titular_atual=55, idade_meta_if=55
-    )
-    assert resultado.prob_if_ate_idade_meta == 1.0
+    resultado = run_monte_carlo_if(cfg, ano_base=_ANO_BASE, prazo_declarado=_prazo(10))
+    assert resultado.prob_if_ate_prazo_declarado == 1.0
     assert resultado.exibir_cone is False
+    assert resultado.motivo_sem_cone == "meta já atingida"
+
+
+def test_familia_ja_independente_com_prazo_vencido_ainda_emite_ausencia():
+    """Meta atingida não ressuscita um prazo vencido — são eixos distintos."""
+    # O caminho degenerado herda o prazo resolvido, então "1,0" só sai quando há
+    # alvo. Sem este teste, `_resultado_meta_atingida` poderia publicar 1,0 sobre
+    # uma data que passou — afirmação sobre pergunta que não se aplica.
+    cfg = IFMonteCarloConfig(
+        patrimonio_investivel=Decimal("6000000"),
+        meta_if=Decimal("5000000"),
+        aporte_mensal=Decimal("0"),
+        ano_base=_ANO_BASE,
+    )
+    vencido = PrazoDeclarado(anos=3, ano_alvo=_ANO_BASE - 3, declarado_em="2020-01-01")
+    resultado = run_monte_carlo_if(cfg, ano_base=_ANO_BASE, prazo_declarado=vencido)
+    assert resultado.prob_if_ate_prazo_declarado is None
+    assert resultado.motivo_sem_prazo_declarado == "prazo declarado já venceu"
     assert resultado.motivo_sem_cone == "meta já atingida"
 
 

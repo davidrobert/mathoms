@@ -8,8 +8,14 @@ import pytest
 
 from pipeline.domain.services.if_monte_carlo import (
     IFMonteCarloConfig,
+    PrazoDeclarado,
     run_monte_carlo_if,
 )
+
+
+def _prazo(anos: int, *, ano_base: int = 2026) -> PrazoDeclarado:
+    """Prazo declarado sintético — ADR-369 D2 substituiu a idade-meta derivada."""
+    return PrazoDeclarado(anos=anos, ano_alvo=ano_base + anos, declarado_em=f"{ano_base}-01-01")
 
 
 def _cfg_com_cone(pv: float = 800_000, fv: float = 2_000_000) -> IFMonteCarloConfig:
@@ -41,7 +47,7 @@ def _cfg_sem_cone() -> IFMonteCarloConfig:
 def test_caminho_paths_have_correct_shape():
     """Após run_monte_carlo_if com cone, len(caminho_p50) == config.horizonte_simulado_anos."""
     cfg = _cfg_com_cone()
-    result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
+    result = run_monte_carlo_if(cfg, ano_base=2026, prazo_declarado=_prazo(65 - 35))
 
     assert result.exibir_cone is True
     assert len(result.caminho_p50) == cfg.horizonte_simulado_anos
@@ -52,7 +58,7 @@ def test_caminho_paths_have_correct_shape():
 def test_caminho_paths_monotonically_plausible():
     """P90 patrimônio (percentil alto = otimista) >= P10 patrimônio (base = conservador) a cada ano."""
     cfg = _cfg_com_cone()
-    result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
+    result = run_monte_carlo_if(cfg, ano_base=2026, prazo_declarado=_prazo(65 - 35))
 
     assert result.exibir_cone is True
     for (ano_p10, v_p10), (ano_p90, v_p90) in zip(result.caminho_p10, result.caminho_p90):
@@ -63,7 +69,7 @@ def test_caminho_paths_monotonically_plausible():
 def test_cone_paths_empty_when_not_exibir():
     """Quando gate suprime cone, paths são tuplas vazias."""
     cfg = _cfg_sem_cone()
-    result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
+    result = run_monte_carlo_if(cfg, ano_base=2026, prazo_declarado=_prazo(65 - 35))
 
     assert result.exibir_cone is False
     assert result.caminho_p10 == ()

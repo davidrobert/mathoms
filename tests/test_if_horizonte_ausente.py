@@ -2,9 +2,11 @@
 
 A sentinela ``999`` de ``IFProjector._solve_prazo`` era somada à idade do
 titular e ao ano-base, e o resultado (idade 1040, ano 3025) chegava ao payload
-E5. Como ``if_monte_carlo`` está em ``_PRIORITY_ROOTS`` do catálogo de citação
-e ``idade_meta_usada`` é folha citável com hint "anos", o parecer podia ancorar
-uma recomendação em "IF aos 1040 anos" — métrica fabricada.
+E5. Como ``if_monte_carlo`` está em ``_PRIORITY_ROOTS`` do catálogo de citação e
+a idade-meta era folha citável com hint "anos", o parecer podia ancorar uma
+recomendação em "IF aos 1040 anos" — métrica fabricada. A ADR-369 D2 aposentou
+a idade-meta; o que este arquivo protege continua sendo o mesmo: o payload
+declara ausência, nunca fabrica um alvo.
 
 O workspace dogfood tem ``meta_aporte_mensal = 0``: é exatamente o caso que
 não converge, e por isso serve de fixture de regressão fim-a-fim.
@@ -59,11 +61,11 @@ def test_goals_nao_projeta_idade_nem_ano(e5_sem_convergencia):
     assert goals["ano_if"] is None
 
 
-def test_monte_carlo_nao_afirma_idade_meta(e5_sem_convergencia):
-    """Sem idade-meta não há 'probabilidade até a idade X' — nem alvo, nem prob."""
+def test_monte_carlo_nao_afirma_alvo(e5_sem_convergencia):
+    """Sem prazo declarado não há probabilidade a publicar — nem alvo, nem prob."""
     mc = e5_sem_convergencia["if_monte_carlo"]
-    assert mc["idade_meta_usada"] is None
-    assert mc["prob_if_ate_idade_meta"] is None
+    assert mc["prazo_declarado_anos"] is None
+    assert mc["prob_if_ate_prazo_declarado"] is None
 
 
 def test_cenario_conjuge_nao_projeta_horizonte(e5_sem_convergencia):
@@ -113,5 +115,5 @@ def test_idade_meta_ausente_nao_vira_ancora_citavel(e5_sem_convergencia):
     paths = {
         e.path for e in build_citation_catalog(e5_sem_convergencia, section_whitelist=whitelist)
     }
-    assert "$.if_monte_carlo.idade_meta_usada" not in paths
-    assert "$.if_monte_carlo.prob_if_ate_idade_meta" not in paths
+    assert "$.if_monte_carlo.prazo_declarado_anos" not in paths
+    assert "$.if_monte_carlo.prob_if_ate_prazo_declarado" not in paths

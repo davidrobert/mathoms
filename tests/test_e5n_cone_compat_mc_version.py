@@ -101,3 +101,25 @@ def test_major_de_duas_casas_nao_ordena_por_string():
     assert e5n._mc_major({"mc_version": "10.0"}) == 10
     assert e5n._mc_major({"mc_version": "3.0"}) == 3
     assert e5n._mc_major({}) == 1
+
+
+def test_probabilidade_pre_5_0_vira_ausencia_em_vez_de_ser_reaproveitada():
+    """A `prob` antiga media outra coisa — copiá-la para a chave nova é fabricar."""
+    # Artefato 4.0 tem `prob_if_ate_idade_meta`: P(o modelo bater a data que ele
+    # mesmo imprimiu). Publicá-la sob `prob_if_ate_prazo_declarado` faria o
+    # narrador dizer "os N anos que você declarou" sobre um número que nunca viu
+    # prazo declarado nenhum — exatamente a inversão que a ADR-369 D2 impede.
+    metrics = _metrics_do_bloco(_bloco_v4())
+    assert metrics["mc_prob_if_ate_prazo_declarado"] is None
+    assert metrics["mc_prazo_declarado_anos"] is None
+    assert "contrato anterior" in metrics["mc_motivo_sem_prazo_declarado"]
+
+
+def test_frase_de_artefato_pre_5_0_publica_o_cone_e_declara_a_ausencia():
+    """O cone (rename-only) sobrevive; a probabilidade não, e isso é dito."""
+    conclusao = _charts(_metrics_base() | _metrics_do_bloco(_bloco_v4()))
+    frase = conclusao["projecao_3cenarios"]["conclusion"]
+    assert f"meta em {_ANOS['central']}" in frase
+    assert "ainda não respondeu em quantos anos" in frase
+    # E nunca a frase determinística, que é a mais otimista do relatório.
+    assert "trajetória projetada aponta a meta para" not in frase
