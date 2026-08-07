@@ -222,17 +222,27 @@ def _render_grouped(entries: list[CatalogEntry]) -> str:
     return head + "\n" + "\n".join(lines)
 
 
-def render_citation_catalog(entries: list[CatalogEntry], *, max_bytes: int) -> str:
-    """Bloco markdown agrupado por raiz; trunca por entry (prioridade) sem órfãos."""
-    if not entries:
-        return ""
+# Extraído de ``render_citation_catalog`` (sem mudança de comportamento) porque
+# ancorabilidade é propriedade do catálogo **renderizado**, não do construído: medido em
+# 2026-08-07 no corpus sintético, `build_citation_catalog` devolve 29 entries e este corte
+# deixa 20 — a diferença entre 94% e 78% de cobertura. Um instrumento que consultasse o
+# construído ficaria verde-falso (A40.l30 item 2).
+def select_catalog_entries(entries: list[CatalogEntry], *, max_bytes: int) -> list[CatalogEntry]:
+    """Entries que CABEM no bloco — as que o modelo de fato recebe."""
     selected: list[CatalogEntry] = []
     for entry in entries:
         projection = _render_grouped(selected + [entry])
         if selected and len(projection.encode("utf-8")) > max_bytes:
             break
         selected.append(entry)
-    return _render_grouped(selected)
+    return selected
+
+
+def render_citation_catalog(entries: list[CatalogEntry], *, max_bytes: int) -> str:
+    """Bloco markdown agrupado por raiz; trunca por entry (prioridade) sem órfãos."""
+    if not entries:
+        return ""
+    return _render_grouped(select_catalog_entries(entries, max_bytes=max_bytes))
 
 
 __all__ = [
@@ -240,4 +250,5 @@ __all__ = [
     "ancora_format_hint",
     "build_citation_catalog",
     "render_citation_catalog",
+    "select_catalog_entries",
 ]

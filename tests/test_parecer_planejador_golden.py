@@ -61,6 +61,71 @@ def make_workspace_e5(
             "despesa_total": 480_000.0,
             "despesa_mensal_media": 40_000.0,
             "fluxo_liquido": 240_000.0,
+            # A40.l30 item 5 — os 3 blocos que #1004 acrescentou ao corpo e o holdout
+            # NÃO tinha. Sem eles o eval de US$ 26 responde "os gates ainda passam?" e
+            # não "o #1004 causou a queda?". Formas copiadas do PRODUTOR, não inventadas:
+            # `janela_12m` de scripts/analyze_finances.py:1455 e
+            # `receita_por_natureza` do e5_analysis.schema.json.
+            #
+            # ADR-330: re-bucketização derivada, soma == receita_total
+            # (480 + 180 + 48 + 12 = 720k).
+            "receita_por_natureza": {
+                "receita_pj": 480_000.0,
+                "receita_clt": 180_000.0,
+                "receita_aluguel": 48_000.0,
+                "receita_outras": 12_000.0,
+            },
+            # ADR-306: base canônica de mensalização. Aritmética interna, verificável:
+            # despesa_mensal_media 40k = despesa_consumo 32k + transferencia 8k (aporte);
+            # fluxo_liquido 15k = receita_recorrente_mensal 55k − despesa_mensal_media 40k;
+            # taxa_poupanca = (55k − 32k)/55k = 41,82% — base `despesa_consumo` (ex-aporte)
+            # pela ADR-333, que é a leitura de `ratios_calculator._despesa_consumo_mensal`.
+            "janela_12m": {
+                "periodo": "2025-01 a 2025-12",
+                "n_meses": 12,
+                "receita_recorrente_mensal": 55_000.0,
+                "despesa_mensal_media": 40_000.0,
+                "despesa_mensal_essencial": 28_000.0,
+                "despesa_consumo": 32_000.0,
+                "transferencia_patrimonial": 8_000.0,
+                "fluxo_liquido": 15_000.0,
+                "taxa_poupanca_recorrente": 41.82,
+                "taxa_poupanca_total": 41.82,
+                "despesas_por_categoria": {
+                    "Moradia": 132_000.0,
+                    "Alimentação": 72_000.0,
+                    "Transporte": 48_000.0,
+                    "Saúde": 60_000.0,
+                    "Educação": 72_000.0,
+                    "Lazer": 36_000.0,
+                },
+            },
+        },
+        # ADR-240 D8 · A28.l6 — contrato em config/schemas/protecao_patrimonial.schema.json
+        # (os 10 required). Cenário deliberado: patrimonial coberto, PESSOA sem evidência
+        # de cobertura — é o que faz `gap_qualitativo` ter conteúdo e casa com o alerta
+        # `seguro_vida_ausente` que o E5 base já emite. Prêmio/pct são STRING no schema.
+        "protecao_patrimonial": {
+            "premio_total_anual_brl": "18400.00",
+            "premio_decomposicao": {"residencial": "6400.00", "automovel": "12000.00"},
+            "pct_renda_anual": "2.56",
+            "bens_com_gap_cobertura": [],
+            "gap_qualitativo": [
+                {"tipo": "vida", "flag": True, "motivo": "sem apólice de pessoa nos documentos"},
+                {"tipo": "saude", "flag": True, "motivo": "sem apólice de pessoa nos documentos"},
+            ],
+            "apolices_vigentes": [
+                {
+                    "ramo": "residencial",
+                    "premio_anual_brl": "6400.00",
+                    "vigencia_fim": "2026-11-30",
+                },
+                {"ramo": "automovel", "premio_anual_brl": "12000.00", "vigencia_fim": "2026-09-15"},
+            ],
+            "apolices_vencendo": [],
+            "apolices_vencidas": [],
+            "corretoras_count": 1,
+            "seguradoras_count": 2,
         },
         "ratios": {
             "rentabilidade": {
