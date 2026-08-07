@@ -57,6 +57,29 @@ Renomear "Parcial" → **"Concluído com ressalva"**: "Parcial" responde *"quant
 rodou?"*; a pergunta do usuário é *"eu tenho relatório?"*. Ação primária **igual**
 à de `completed`, porque o resultado é o mesmo objeto.
 
+> **Delta 2026-08-06 (o que shipou difere da tabela em dois pontos).** A tabela é
+> o esboço pré-execução; o código a refinou e é ele que vale:
+>
+> - **Coluna Contexto.** A frase fixa *"Relatório gerado. O parecer do planejador
+>   não foi publicado."* mentiria nos outros 2 add-ons degradáveis
+>   ([[ADR-357]] §1). Shipou **derivada da etapa** em
+>   `frontend/src/app/(app)/pipeline/_components/degradedStage.ts`:
+>   `review_finances_holistic` → *"Relatório gerado, sem o parecer do
+>   planejador."* · `generate_narratives` → *"…sem as análises e comentários."* ·
+>   `validate_cross` → *"…sem a conferência de consistência dos números."* ·
+>   2+ degradadas → *"…sem algumas das análises finais."* · fallback →
+>   *"…com uma etapa final incompleta."*
+> - **A coluna lista só a ação PRIMÁRIA.** `failed` e `partial_failure` carregam
+>   também a secundária direcionada "Reprocessar a partir de {etapa}"
+>   (`from_stage`, sancionada por [[ADR-357]] §8) — afordância **pré-existente**
+>   do `FailedRunCard` que a l21 herdou e **estreitou**: no caminho degradado o
+>   re-run integral saiu, sobrou só o direcionado. A l21 não criou decisão de
+>   custo nova; reduziu a exposição.
+>
+> Superfície nova desta lane, para paridade com os paths da §Problema:
+> `frontend/src/app/(app)/pipeline/_components/PartialRunBanner.tsx` e
+> [`frontend/src/lib/pipelineRunOutcome.ts`](../../../../frontend/src/lib/pipelineRunOutcome.ts).
+
 `partial_failure` e `needs_review` são ambos `warning` — correto, mesma
 severidade. Diferencie por ícone e ação, não por cor (forma + cor + texto).
 
@@ -132,6 +155,24 @@ segunda fonte de verdade); registra a **receita**, que faltava:
   backend (um pina campo já emitido, outro é tripwire negativo).
 - Não há PR pareado a reverter junto.
 
+> **Delta 2026-08-06 (pós-#1242): o comando já não aplica limpo.** `4620cc04`
+> (PR1 da [[A40.l18]]) apagou o tripwire e o substituiu pelo gate permanente
+> `backend/tests/test_pipeline_status_enum_parity.py`. `git revert c8239386`
+> agora sai com **EXIT=1 e 6 conflitos**, dos quais **um só é código**:
+>
+> - `backend/tests/test_events.py` — o lado do revert é vazio. Resolva apagando
+>   `test_run_level_event_carries_status`, **ou** mantenha-o conscientemente como
+>   pin do campo `status` que a l18 ainda vai consumir. As duas resoluções deixam
+>   a suíte verde.
+> - `docs/_MOC/_generated/{DOC_STATS,INDEX,PLAN_PROGRESS,SPRINT_CURRENT}.md` —
+>   regerar com `python3 dev/build_doc_index.py`, não resolver à mão.
+> - esta própria lane — manter HEAD.
+>
+> O inventário "2 testes de backend" acima descreve `c8239386`, não `main`: em
+> `main` resta 1. **"Não há PR pareado" segue válido** — o PR1 da [[A40.l20]] não
+> mergeou, e o #1242 (membro de enum inerte + gate de paridade) se sustenta
+> sozinho.
+
 **"Risco zero" é sobre o status novo, não sobre o PR inteiro** (correção de
 2026-08-05). O PR carrega 5 mudanças de UX em statuses **vivos**, que o revert
 também desfaz — enumeradas aqui porque um revert cego as perderia em silêncio:
@@ -163,6 +204,13 @@ O leitor passou a depender de duas coisas que o writer precisa honrar:
    volta a pintar a fase de vermelho). Tripwire negativo em
    `backend/tests/test_events.py::test_degraded_stage_status_ainda_nao_existe`
    fica vermelho no PR que criar o membro do enum.
+
+   > **Cumprido em 2026-08-06 (#1242, PR1 da [[A40.l18]]).** O tripwire ficou
+   > vermelho, os 3 read sites foram reconferidos (já casam `degraded`) e o teste
+   > se auto-deletou como previsto. No lugar dele, gate **permanente** de
+   > paridade Python↔TS em `backend/tests/test_pipeline_status_enum_parity.py`.
+   > A cláusula imperativa acima **continua valendo** para o PR2 (o writer), que
+   > ainda não começou: quem grava o `stage_log` é ele.
 
 **Não coberto:** se a [[A40.l18]] inventar um nome de evento novo apesar da
 [[ADR-357]], `usePipelineWS.TERMINAL_EVENTS` não casa, `onRunFinished` nunca
