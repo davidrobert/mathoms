@@ -9481,6 +9481,9 @@
             ],
             "title": "Premissas Snapshot"
           },
+          "run_outcome": {
+            "$ref": "#/components/schemas/ReportRunOutcome"
+          },
           "score": {
             "anyOf": [
               {
@@ -9528,10 +9531,21 @@
           "id",
           "workspace_id",
           "title",
-          "created_at"
+          "created_at",
+          "run_outcome"
         ],
         "title": "ReportResponse",
         "type": "object"
+      },
+      "ReportRunOutcome": {
+        "description": "Desfecho do run sob a \u00f3tica do relat\u00f3rio.",
+        "enum": [
+          "complete",
+          "with_gap",
+          "unknown"
+        ],
+        "title": "ReportRunOutcome",
+        "type": "string"
       },
       "ReportSummaryDTO": {
         "properties": {

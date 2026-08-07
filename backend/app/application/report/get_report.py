@@ -12,6 +12,7 @@ from backend.app.services.report_lineage import (
     consumed_documents_for_run,
     workspace_ready_documents_summary,
 )
+from backend.app.services.report_run_outcome import outcome_for_report, run_outcomes_for
 
 
 async def get_report(workspace_id: str, report_id: str, *, db: AsyncSession) -> ReportResponse:
@@ -21,8 +22,10 @@ async def get_report(workspace_id: str, report_id: str, *, db: AsyncSession) -> 
     surname = (
         await db.execute(select(Workspace.family_surname).where(Workspace.id == workspace_id))
     ).scalar_one_or_none()
+    outcomes = await run_outcomes_for(db, [report.pipeline_run_id])
     return serialize_report(
         report,
+        run_outcome=outcome_for_report(report.pipeline_run_id, outcomes),
         source_document_count=doc_total,
         source_document_ids=doc_ids,
         consumed_document_count=consumed_total,

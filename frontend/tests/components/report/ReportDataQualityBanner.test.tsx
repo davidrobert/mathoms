@@ -50,7 +50,13 @@ function degradedData(): ReportAnalysisData {
 describe("<ReportDataQualityBanner />", () => {
   it("degradado: consolida os 4 sinais com CTAs de resolução", () => {
     mockNeedsReview.count = 13;
-    render(<ReportDataQualityBanner data={degradedData()} workspaceId="ws-1" />);
+    render(
+      <ReportDataQualityBanner
+        data={degradedData()}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
 
     const banner = screen.getByTestId("data-quality-banner");
     expect(banner.textContent).toMatch(/4 pendências afetam/);
@@ -62,15 +68,16 @@ describe("<ReportDataQualityBanner />", () => {
 
     expect(
       screen.getByRole("link", { name: "Reclassificar transações" }),
-    ).toHaveAttribute("href", "/transactions?category=nao_identificado&sort=valor_desc");
-    expect(screen.getByRole("link", { name: "Revisar documentos" })).toHaveAttribute(
+    ).toHaveAttribute(
       "href",
-      "/documents?filter=needs_review",
+      "/transactions?category=nao_identificado&sort=valor_desc",
     );
-    expect(screen.getByRole("link", { name: "Ver premissas adotadas" })).toHaveAttribute(
-      "href",
-      "#APP_B",
-    );
+    expect(
+      screen.getByRole("link", { name: "Revisar documentos" }),
+    ).toHaveAttribute("href", "/documents?filter=needs_review");
+    expect(
+      screen.getByRole("link", { name: "Ver premissas adotadas" }),
+    ).toHaveAttribute("href", "#APP_B");
     expect(
       screen.getByRole("link", { name: "Classificar em Configurações" }),
     ).toHaveAttribute("href", "/config?tab=members");
@@ -81,7 +88,13 @@ describe("<ReportDataQualityBanner />", () => {
     const data: ReportAnalysisData = {
       fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
     };
-    render(<ReportDataQualityBanner data={data} workspaceId="ws-1" />);
+    render(
+      <ReportDataQualityBanner
+        data={data}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
 
     expect(screen.queryByTestId("data-quality-banner")).not.toBeInTheDocument();
     const bar = screen.getByTestId("data-quality-clean");
@@ -94,9 +107,75 @@ describe("<ReportDataQualityBanner />", () => {
     const data: ReportAnalysisData = {
       fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
     };
-    render(<ReportDataQualityBanner data={data} workspaceId="ws-1" />);
+    render(
+      <ReportDataQualityBanner
+        data={data}
+        workspaceId="ws-1"
+        runOutcome="complete"
+      />,
+    );
     const banner = screen.getByTestId("data-quality-banner");
     expect(banner.textContent).toMatch(/1 pendência afeta/);
     expect(banner.textContent).toMatch(/1 documento aguarda revisão/);
+  });
+  // ─── A40.l18 · ADR-357 — supressão da afirmação positiva ───
+
+  it("run degradado: NÃO afirma que está limpo", () => {
+    // O par com o teste "limpo" acima é o controle positivo. Sem ele,
+    // `toHaveCount(0)` passaria também se o banner não montasse por outro motivo.
+    mockNeedsReview.count = 0;
+    const data: ReportAnalysisData = {
+      fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
+    };
+    render(
+      <ReportDataQualityBanner
+        data={data}
+        workspaceId="ws-1"
+        runOutcome="with_gap"
+      />,
+    );
+
+    expect(screen.queryByTestId("data-quality-clean")).not.toBeInTheDocument();
+    // A ressalva positiva é da A40.l22; aqui o slot fica vazio, não mentindo.
+    expect(screen.queryByTestId("data-quality-banner")).not.toBeInTheDocument();
+  });
+
+  it("run indeterminável: fail-closed, também não afirma", () => {
+    // `reports.pipeline_run_id` é `ondelete="SET NULL"`. Sem evidência do
+    // desfecho, a afirmação positiva não se sustenta.
+    mockNeedsReview.count = 0;
+    const data: ReportAnalysisData = {
+      fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
+    };
+    render(
+      <ReportDataQualityBanner
+        data={data}
+        workspaceId="ws-1"
+        runOutcome="unknown"
+      />,
+    );
+    expect(screen.queryByTestId("data-quality-clean")).not.toBeInTheDocument();
+  });
+
+  it("run degradado COM sinais: o alerta continua, com as N linhas", () => {
+    // A supressão gateia só a barra limpa. Incompleto não é falso — e pôr
+    // `runOutcome` no `count` renderizaria "1 pendência" com <ul> vazia.
+    mockNeedsReview.count = 2;
+    const data: ReportAnalysisData = {
+      fluxo_caixa: { despesas_por_categoria: { moradia: 1000 } },
+    };
+    render(
+      <ReportDataQualityBanner
+        data={data}
+        workspaceId="ws-1"
+        runOutcome="with_gap"
+      />,
+    );
+
+    const banner = screen.getByTestId("data-quality-banner");
+    expect(banner.textContent).toMatch(/2 documentos aguardam revisão/);
+    expect(
+      screen.getByLabelText("Pendências de qualidade de dados").children,
+    ).toHaveLength(1);
   });
 });

@@ -6,6 +6,7 @@ from typing import Any, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from backend.app.schemas.money import MoneyBRL
+from backend.app.services.report_run_outcome import ReportRunOutcome
 
 
 class ReportResponse(BaseModel):
@@ -38,6 +39,11 @@ class ReportResponse(BaseModel):
     # v2.F.3a — sobrenome da família para a capa do relatório (cover identity).
     # Lido de ``Workspace.family_surname``; ``None`` quando não definido.
     workspace_family_surname: Optional[str] = None
+    # A40.l18 · ADR-357 — desfecho do run, com polaridade POSITIVA: só
+    # ``complete`` autoriza o relatório a afirmar "sem pendências". OBRIGATÓRIO
+    # de propósito: campo opcional que chegue ``undefined`` (rollout, cache de
+    # cliente antigo, fixture velha) faria a supressão sumir em silêncio.
+    run_outcome: ReportRunOutcome
 
     model_config = {"from_attributes": True}
 

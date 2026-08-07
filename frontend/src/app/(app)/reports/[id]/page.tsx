@@ -54,7 +54,10 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
       })
       .catch((err) => {
         if (cancelled) return;
-        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        if (
+          err instanceof ApiError &&
+          (err.status === 401 || err.status === 403)
+        ) {
           router.replace("/login");
           return;
         }
@@ -95,15 +98,16 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
   // Estado 2: erro no metadados
   if (metadataError) {
     return (
-      <div
-        className="mx-auto max-w-2xl px-6 py-10"
-        data-report-pdf-error="1"
-      >
+      <div className="mx-auto max-w-2xl px-6 py-10" data-report-pdf-error="1">
         <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-6">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
           <div>
-            <p className="font-medium">Não foi possível carregar este relatório.</p>
-            <p className="mt-1 text-sm text-muted-foreground">{metadataError}</p>
+            <p className="font-medium">
+              Não foi possível carregar este relatório.
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {metadataError}
+            </p>
             <Button
               variant="outline"
               size="sm"
@@ -122,17 +126,14 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
   // Estado 3: relatório pré-F9 (sem analysis data) — não pode mais ser exibido
   if (report && !report.has_analysis_data) {
     return (
-      <div
-        className="mx-auto max-w-2xl px-6 py-10"
-        data-report-pdf-legacy="1"
-      >
+      <div className="mx-auto max-w-2xl px-6 py-10" data-report-pdf-legacy="1">
         <div className="space-y-4 rounded-lg border border-border bg-card p-6">
           <div>
             <p className="font-medium">Relatório indisponível</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Este relatório foi gerado antes do render nativo e não tem o
-              snapshot JSON necessário para visualização. Gere um novo
-              relatório a partir dos dados atuais.
+              snapshot JSON necessário para visualização. Gere um novo relatório
+              a partir dos dados atuais.
             </p>
           </div>
           <Button
@@ -160,9 +161,12 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
           reportPeriod={report!.period}
           reportCreatedAt={report!.created_at}
           pipelineRunId={report!.pipeline_run_id}
+          runOutcome={report!.run_outcome}
           sourceDocumentCount={report!.source_document_count}
           consumedDocumentCount={report!.consumed_document_count}
-          familySurname={report!.workspace_family_surname ?? workspace.family_surname}
+          familySurname={
+            report!.workspace_family_surname ?? workspace.family_surname
+          }
         />
       </ReportModeProvider>
     </TooltipProvider>
