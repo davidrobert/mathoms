@@ -205,6 +205,11 @@ atrás do merge dela — medido, ele reescreve os mesmos hunks de
 não do merge") tratava a dependência como de vocabulário. Mesma amarra da ordem
 reader-first: writer escorregando >1 sprint ⇒ reverte o leitor **e** o contrato.
 
+> ✅ **Cumprida em 2026-08-07, e a amarra se extinguiu.** PR1 `0301f7a0` (#1250) e
+> PR2 `039c1b6d` (#1278); a [[A40.l18]] entregou o writer em `b8460274` (#1258). Não
+> há mais reversão pareada a considerar na `date_target` — nem do leitor, nem do
+> contrato. A [[ADR-357]] e a [[ADR-366]] estão `Decidido`.
+
 ### KRs
 
 - **KR-0 · O entregável não se perde.** Todo run com artifact E5 válido produz

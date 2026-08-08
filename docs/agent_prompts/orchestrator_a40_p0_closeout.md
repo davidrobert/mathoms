@@ -1,6 +1,10 @@
 # Orquestrador — Sprint A40 "Report trust": fechamento das 3 P0 pegáveis
 
 > **Escopo:** [[A40.l2]] (restante) + [[A40.l20]] (restante) + [[A40.l22]].
+> **Estado em 2026-08-08: resta a Frente C.** A **A** foi consumida pelo #1276
+> (`b3b8a74b`) e a **B** pelo #1278 (`039c1b6d`); as duas §§ ficam como registro
+> datado, com os vereditos in-loco. Da [[A40.l2]] seguem abertos 3c1 · 3c2 · 3d
+> (destravado) · 3e.
 > **Criado:** 2026-08-07, contra `main @ 2571f203`. Os números de linha citados
 > abaixo foram **reverificados** nesse commit — se `main` andou, reverifique-os
 > antes de confiar (o mecanismo continua válido; o endereço, não necessariamente).
@@ -26,9 +30,9 @@ Não funda frentes: 1 branch, 1 PR. Pare e me pergunte se o escopo crescer para
 fora da §Aceite da frente.
 ```
 
-- **Frente A** = [[A40.l2]], restante do PR3b (a mais longa; dita o ritmo da sprint)
-- **Frente B** = [[A40.l20]] PR2 (a menor; comece por medir as portas)
-- **Frente C** = [[A40.l22]] (frontend + PDF; bloqueador do beta)
+- ✅ **Frente A** = [[A40.l2]], restante do PR3b — **consumida** (#1276, `b3b8a74b`)
+- ✅ **Frente B** = [[A40.l20]] PR2 — **consumida** (#1278, `039c1b6d`)
+- ⬜ **Frente C** = [[A40.l22]] (frontend + PDF; bloqueador do beta) — **a única pegável**
 
 As três rodam em paralelo em worktrees separados:
 
@@ -84,6 +88,9 @@ está liberada.
 **Paralelismo:** as três tocam árvores disjuntas (E3/backend-ops · orquestrador ·
 frontend+PDF). Rodam em paralelo sem merge-hell. **Ordem, se houver 1 slot só:**
 l2 → l20 → l22.
+
+> **Delta 2026-08-08.** O paralelismo se resolveu sem conflito: A e B mergearam no
+> mesmo dia (`b3b8a74b`, `039c1b6d`) e o rebase da B sobre a A foi limpo. Resta a C.
 
 ---
 
@@ -225,51 +232,67 @@ ele define. Ao mergear, **abra o brief do 3c2 junto** — ele é o long pole rea
 
 **Branch:** `agent/a40-l20-pr2/<ts>` · **P0** · a menor das três.
 
-### 🔴 Descoberta de 2026-08-07 que muda o escopo: são **4+ portas, não 3**
+> ✅ **CONSUMIDA em 2026-08-07** — PR [#1278](https://github.com/davidrobert/mathoms/pull/1278),
+> commit-merge `039c1b6d`, checks required verdes. **Não pegue esta frente.** O diagnóstico
+> abaixo fica como registro do que foi medido **antes** da execução — e a execução **refutou
+> duas linhas dele**, marcadas in-loco. Estado corrente: §Estado — PR2 entregue da
+> [[A40.l20]] (`shipped`), [[ADR-366]] e [[ADR-357]] `Decidido` com emenda datada.
+> **Os endereços de linha desta seção morreram** (o próprio PR moveu a função): re-derive
+> com `rg -n`, nunca confie no número.
+
+### ~~🔴 são **4+ portas, não 3**~~ — medido: **3 portas reais, e só UMA barrava**
+
+> **Corrigido pela execução (2026-08-07).** O heading e o parágrafo abaixo estavam errados
+> em duas frentes, e é o tipo de erro que esta sprint persegue: a lane apontava a função
+> errada, e este prompt somou uma porta que não existe. **Preservados porque foram o
+> diagnóstico que justificou o desenho**, com o veredito ao lado de cada linha.
 
 A lane mediu em 06/08 *"são 3 guards independentes, não 1"* e nomeou os 3 dentro
-de `_should_persist_planner_review`
-([`pipeline_task.py:1185`](../../backend/app/tasks/pipeline_task.py)). **Medi hoje
-e há pelo menos mais uma, acima delas** — e ela é a que o PR2 tem de abrir
-primeiro, senão o diff fica verde e o runtime morto (a mesma classe de defeito que
-a lane já nomeia, uma camada acima):
+de `_should_persist_planner_review`. **Medi hoje e há pelo menos mais uma, acima
+delas** — e ela é a que o PR2 tem de abrir primeiro, senão o diff fica verde e o
+runtime morto (a mesma classe de defeito que a lane já nomeia, uma camada acima):
 
-| # | Porta | Onde |
+| # | Porta | Veredito da execução |
 |---|---|---|
-| 0a | `if outcome.delivered:` — o **call site** só chama o persist quando o stage entregou. Stage **degradado** ⇒ `delivered=False` ⇒ persist **nunca chamado** | `pipeline_task.py:1291` |
-| 0b | O ramo `needs_review` desvia para `_record_stage_needs_review`, que **não chama o persist** | `pipeline_task.py:1128` |
-| 1 | `not result.success` | linha 1189 |
-| 2 | `detail["skipped"] or detail["status"] == "needs_review"` | linha 1191 |
-| 3 | `"persona_hash" in result.detail` | linha 1193 |
+| 0a | `if outcome.delivered:` — o **call site** só chama o persist quando o stage entregou. Stage **degradado** ⇒ `delivered=False` ⇒ persist **nunca chamado** | ✅ **certa, e era a ÚNICA barreira real.** Todo o corpo de `_should_persist_planner_review` era dead code neste caminho |
+| 0b | O ramo `needs_review` desvia para `_record_stage_needs_review`, que **não chama o persist** | ❌ **REFUTADA — não está no caminho.** A guarda é `if result.success and _has_validation_errors(...)`; o `and` curto-circuita em `success=False`, e o stage do parecer **nunca emite bloco `validation`**. Varridos resume / redelivery / retry / `from_stage` / cancel / exceção: nenhuma rota chega lá |
+| 1 | `not result.success` | ⚠️ contrafactual — barraria **se** a 0a fosse aberta sozinha. Deletada |
+| 2 | `detail["skipped"] or detail["status"] == "needs_review"` | ⚠️ idem, **na metade `needs_review`**. A metade `skipped` **fica** (é ausência: free / sem chave / flag off / sem E5) |
+| 3 | `"persona_hash" in result.detail` | ❌ **REFUTADA — já não barrava.** O PR1 pôs `_audit_detail` no retorno do retido. Fica, mas o que ela fecha é a **rota de exceção**, cujo detail não tem auditoria alguma |
 
 **Sinal de que o PR1 já preparou o andar de baixo:** `planner_review_persistence`
 tem `_derive_outcome` com `ParecerOutcome.retido` e a guarda
 `detail.get("status") != "needs_review" or bool(detail.get("retention_reason"))`.
 Ou seja, a persistência **já aceita** needs_review-com-motivo; quem não a alcança
-é o orquestrador.
+é o orquestrador. ✅ Confirmado — e por isso o filtro do orquestrador **não**
+duplica essa regra: quem decide indisponibilidade é o domínio.
 
-### Passo 1 — **medir antes de editar** (não presuma o caminho)
+### ~~Passo 1 — medir antes de editar~~ ✅ **CUMPRIDA — o resultado está no PR**
 
-Pós-[[A40.l18]], o parecer é add-on advisory e **degrada**. Mas o desfecho retido
-pode chegar por `needs_review` (via `_has_validation_errors`) **ou** por
-`degraded` — e possivelmente pelos dois, dependendo do motivo
-(`citacao_nao_confirmada` · `sigilo` · `conselho_vedado`). **Meça qual(is)**, com
-fixture que chama o caminho real do run, e **declare o resultado no PR**. Abrir
-só a porta que você supôs é como o PR2 fica morto em runtime.
+O desfecho retido chega **só por `degraded`**, nunca por `needs_review`: os cinco
+produtores de `_needs_review` convergem num retorno com `success: False`, e o
+registry declara o parecer `degradable`. A dúvida original ("por um, por outro, ou
+pelos dois?") tinha resposta única.
 
-### Aceite
+### ~~Aceite~~ ✅ cumprido — o que a execução acrescentou
 
-- Fixture com item de alta severidade + violação hard ⇒ row de `PlannerReview`
-  existe com `outcome` de retenção; API **200, não 404**.
-- **Prova por mutação em cada porta**: fechar qualquer uma delas de novo deixa um
-  teste vermelho. Porta sem teste próprio = porta que o próximo refactor fecha.
-- `retention_reason` é **argumento do construtor**, nunca derivado de parse de
-  `error_detail` — a prosa dele carrega o termo §13 no ramo de sigilo.
-- Nenhuma resposta da API vaza `error_detail` cru.
-- **Flip da [[ADR-366]]** `Proposto` → `Decidido` **neste PR** (a lane declara que
-  o flip é do PR2, não do PR1).
-- A lane autoriza **PR único** agora que a l18 está em `main`: *"o split é
-  permissão para paralelismo, não obrigação"*.
+- ✅ Row de `PlannerReview` com `outcome` de retenção pelo caminho real do run.
+- ✅ **7 mutações executadas, não argumentadas.** "Cada porta" = as 3 reais; a 0b
+  não ganha teste porque não tem código. **A guarda `skipped` sobreviveu à 1ª
+  rodada** — era mascarada por `persona_hash`, logo indistinguível de código
+  morto — e o teste foi reescrito até matá-la.
+- ✅ `retention_reason` segue argumento do construtor; nenhuma resposta de
+  `/planner-review` vaza `error_detail` cru.
+- ✅ **Flip da [[ADR-366]]**, mais o da [[ADR-357]] (decisão do dono: estava
+  `Proposto` com a condição já cumprida pelo writer da [[A40.l18]]).
+- ➕ **Escopo ampliado por decisão do dono**, porque o flip deixaria a ADR
+  descrevendo código inexistente: `generation_unavailable` (§D6, discriminado pelo
+  **artifact** — o produtor o grava mesmo nos ramos de indisponibilidade) e o
+  **gate de paridade** dos 4 vocabulários (`test_parecer_vocabulary_parity.py`).
+  Duas correções ao texto da ADR, na emenda: o §D6 omitia `parecer_artifact_missing`,
+  que o router já produzia; e copiar o gate da [[A40.l18]] tal-e-qual dá
+  verde-falso (o extrator dele usa `[a-z_]+`, que não casa o ponto de
+  `parecer.sigilo`).
 
 ### Não é escopo (nomeado, não corrigido)
 
@@ -278,6 +301,12 @@ só a porta que você supôs é como o PR2 fica morto em runtime.
 endpoint · `riscos_truncados` é 4ª subtração silenciosa (cap ≤12) · free tier cai
 na mesma copy que mente → **destino [[A40.l22]]**.
 
+➕ **Follow-up NOVO criado por este PR** — a **copy da UI para
+`generation_unavailable`**. O servidor discrimina e o hook `usePlannerReview`
+**transporta** o código (o estado `not_generated` ganhou `code:
+PlannerReviewAbsenceCode`, 4 valores); escolher a palavra por código é
+**[[A40.l22]]**, junto com o caso free tier, que é a outra metade da mesma mentira.
+
 ---
 
 ## 6. Frente C — [[A40.l22]] (superfície de degradação, inclusive PDF)
@@ -285,11 +314,27 @@ na mesma copy que mente → **destino [[A40.l22]]**.
 **Branch:** `agent/a40-l22-superficie-degradacao/<ts>` · **P0** ·
 **bloqueador de fato do beta** (6ª classe do §Gate de saída).
 
-### Primeira ação: flipe o `status`
+### ~~Primeira ação: flipe o `status`~~ — já feito; flipe para `in_progress` no pickup
 
-A lane está `blocked` e o bloqueador (PR1 da l20) caiu em 06/08. Flipe para
-`in_progress` no pickup — deixá-la `blocked` mantém uma P0 invisível no
-`SPRINT_CURRENT`.
+~~A lane está `blocked`~~ — **corrigido em 2026-08-07 pelo #1272**: está `open`, e
+a dependência ficou **terminal** em 07/08 com o merge do PR2 da [[A40.l20]]
+(#1278), então o `open` deixou de se apoiar na 2ª cláusula do §Predicado. No
+pickup, flipe para `in_progress`.
+
+### O que a Frente C herdou das outras duas (medido, não suposto)
+
+- ➕ **A copy por código de ausência.** O 404 do parecer agora discrimina 4
+  códigos (`report_not_found` · `not_generated_yet` · `generation_unavailable` ·
+  `parecer_artifact_missing`), tipados no OpenAPI, e o `usePlannerReview`
+  **transporta** o `code` no estado `not_generated` — sem escolher palavra. Escolher
+  é seu, junto com o caso **free tier**, que é a outra metade da mesma mentira.
+- ➕ **O estado `retained` e os contadores** já existem desde o PR1 da l20; o PR2
+  deu **produtor** ao `outcome == "retido"`, então a seção passa a receber o
+  estado de runs reais, não só de fixture.
+- ⚠️ **Gate de paridade novo:** `backend/tests/test_parecer_vocabulary_parity.py`
+  lê `frontend/src/lib/api/planner-review.ts` como texto. Membro novo em qualquer
+  vocabulário (incl. `PlannerReviewAbsenceCode`) sem as outras cópias fica
+  vermelho — atenção ao mexer nos tipos do cliente.
 
 ### Decisões já cravadas (não reabrir)
 
@@ -320,6 +365,14 @@ A lane está `blocked` e o bloqueador (PR1 da l20) caiu em 06/08. Flipe para
 - `<md`: nota vira linha própria; caption com 3 contadores não estoura.
 - **Rebaseline explícito** dos snapshots visuais (light+dark × estados novos) — o
   job visual não é bloqueante, então **não pode ficar para o próximo agente**.
+  > **Medido em 2026-08-07/08 e vale para 2 critérios seus:** o job
+  > `Frontend E2E (Playwright + backend real)` também **não gateia** — é opt-in
+  > pelo label `e2e` (`ci.yml`, job `frontend-e2e`) **e não entra** no
+  > `All checks green`. Ou seja, o PDF via `pdftotext` e o `a11y.@critical` só
+  > rodam se você puser o label, e mesmo vermelhos não seguram o merge. Adicionar
+  > o label **não re-dispara** o run — precisa de push novo. O smoke do parecer,
+  > que se auto-pulava, foi consertado no #1281; o job continuar não-bloqueante
+  > **não** foi corrigido e não tem dono.
   View-model novo ⇒ `MATHOMS_UPDATE_SNAPSHOT=1` no snapshot do view-model.
 - **Teste com humano (n=1):** o dono abre um relatório parcial **sem** ter visto o
   `/pipeline` e diz em 1 frase o que falta e o que fazer; e lê o PDF do estado
@@ -353,9 +406,14 @@ aguardando CI é `in_progress`, não `completed`.
 No merge, **no mesmo PR ou num docs-only imediatamente depois**:
 
 - `status` da lane → `shipped`.
-- ADR citada → `Decidido` (l20: [[ADR-366]]; l2: emenda datada na [[ADR-364]]).
+- ADR citada → `Decidido` (l20: ✅ [[ADR-366]] **e** [[ADR-357]], ambas no #1278 com
+  emenda datada; l2: ✅ emenda datada na [[ADR-364]]).
 - Se a frente destravou outra lane, **flipe o `blocked` dela** — é a manutenção
   que o §Predicado exige e que ninguém fez duas vezes nesta sprint.
+  > Verificado no fecho da B (2026-08-07): **nenhum alvo**. A única dependente da
+  > [[A40.l20]] é a [[A40.l22]], que já estava `open` desde #1272 — o gatilho dela
+  > era o PR1. Registrar a verificação é parte da manutenção: "não havia o que
+  > flipar" e "esqueci de flipar" são indistinguíveis sem esta linha.
 
 **Gates de doc antes de commitar doc:**
 
@@ -384,11 +442,13 @@ python3 dev/build_doc_index.py --check
 
 ## 9. Referências
 
-- Lanes: [[A40.l2]] · [[A40.l20]] · [[A40.l22]]
+- Lanes: [[A40.l2]] · [[A40.l20]] ✅ `shipped` (#1278) · [[A40.l22]] ⬜ `open`
 - Sprint: [`docs/sprint/A40/_README.md`](../sprint/A40/_README.md) §Gate de saída ·
   §Predicado do campo `status`
 - Plano: [[PLAN-report-trust]] §Gate de saída do dogfood
-- ADRs: [[ADR-354]] · [[ADR-357]] · [[ADR-359]] · [[ADR-364]] · [[ADR-365]] ·
-  [[ADR-366]]
+- ADRs: [[ADR-354]] · [[ADR-357]] (`Decidido`) · [[ADR-359]] · [[ADR-364]] ·
+  [[ADR-365]] · [[ADR-366]] (`Decidido`)
 - Instrumento: `dev/probe_collapse_adjudication.py` · `dev/ledger_collapse_layer.py` ·
-  `dev/certify_ledger_local.py`
+  `dev/certify_ledger_local.py` · `backend/tests/test_parecer_vocabulary_parity.py`
+  (paridade dos 4 vocabulários do parecer nas 3 cópias — lê o `.ts` do cliente;
+  membro novo em qualquer uma sem as outras fica vermelho)

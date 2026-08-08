@@ -210,17 +210,30 @@ não casa o ponto de `parecer.sigilo`.
 **Não entregue, e declarado:** a copy da UI para `generation_unavailable`. O hook
 **transporta** o código; escolher palavra por código é da [[A40.l22]].
 
-### Achados nomeados, não corrigidos aqui
+### Achados nomeados, não corrigidos aqui — **cada um com dono, 2026-08-07**
+
+> Esta lane é **terminal**. Achado sem receptor declarado dentro de lane `shipped`
+> é achado que morre: ninguém relê lane fechada procurando trabalho. Por isso cada
+> item abaixo ganhou destino no fecho do PR2, e os sem lane natural foram portados
+> para o §Inventário de follow-up do [`_README`](../_README.md) da sprint.
 
 - **Free tier cai na mesma copy que mente** — o stage recusa antes de gerar
   (`{"skipped": True}`), não há row, e o 404 vira "ainda não gerado". É a outra
   metade da mesma mentira; o flag da [[ADR-208]] §D2 que faria free gerar **não
-  existe em código**. Destino: [[A40.l22]].
+  existe em código**. → **[[A40.l22]]**, junto com a copy por código de ausência
+  que o PR2 criou (ver §Estado — PR2 entregue).
 - **`output_summary` de `stage_logs` expõe a prosa crua** por outro endpoint —
   o gate de não-vazamento desta lane cobre `/planner-review`, não aquele DTO.
+  **Agravado, não criado, pelo PR2:** o `reason` do desfecho retido carrega o
+  vocabulário de operador e, no ramo de sigilo, o próprio termo §13; ele viaja
+  para `stage_logs.output_summary` e sai por `GET /pipeline/runs/{id}`, cujo gate
+  de acesso é só `get_current_workspace` (qualquer membro, inclusive viewer).
+  → **sem lane; §Inventário de follow-up do `_README`**, com a nota de que a
+  correção provável é allowlist de chaves no `PipelineStageLogResponse`.
 - **`check_orphan_planner_artifacts` é falso-verde** — casa `stage == "E6-parecer"`
   sem `stage_aliases`, logo nunca encontra órfão. Ganhou a guarda de `_meta.status`
   neste PR para que corrigir o filtro depois não abra a janela; o filtro **não**
-  foi corrigido.
+  foi corrigido. → **[[A40.l23]]** (a lane de gates da sprint) — é gate que não
+  gateia, exatamente o objeto dela.
 - **`riscos_truncados` é uma 4ª subtração silenciosa** (cap ≤12), fora do
-  contador desta lane.
+  contador desta lane. → **sem lane; §Inventário de follow-up do `_README`**.

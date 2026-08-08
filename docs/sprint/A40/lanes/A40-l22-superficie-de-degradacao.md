@@ -26,11 +26,22 @@ tags:
 > e testa por fixture; o wire-up no orquestrador (PR2 da l20) não a gateia.
 >
 > `open`, não `in_progress`: ninguém a pegou ainda, e `in_progress` a faria
-> parecer tomada. O `depends_on` continua apontando para a [[A40.l20]] — que não
-> é terminal —, e é a **2ª cláusula** do §Predicado do campo `status` do
-> [`_README`](../_README.md) que sustenta o `open`: amarra explícita de entrega
-> parcial, escrita neste blockquote. Mesma forma da [[A40.l27]] e da própria l20.
+> parecer tomada. ~~O `depends_on` continua apontando para a [[A40.l20]] — que não
+> é terminal —, e é a **2ª cláusula** do §Predicado~~ — **desatualizado em
+> 2026-08-07**: a [[A40.l20]] virou `shipped` com o merge do PR2 (`039c1b6d`/#1278),
+> então o `depends_on` está **terminal** e o `open` passa a valer pela **1ª
+> cláusula** do §Predicado do campo `status` do [`_README`](../_README.md). A
+> amarra de entrega parcial se extingue: não há mais o que reverter em par.
 > Segue **P0** e **bloqueador de fato do beta**.
+>
+> ➕ **Recebido do PR2 da [[A40.l20]] (2026-08-07) — entra no escopo desta lane.**
+> A **copy por código de ausência**. O 404 do parecer passou a discriminar 4
+> códigos (`report_not_found` · `not_generated_yet` · `generation_unavailable` ·
+> `parecer_artifact_missing`), tipados no snapshot OpenAPI, e o `usePlannerReview`
+> **transporta** o código no estado `not_generated` (`code: PlannerReviewAbsenceCode`)
+> **sem escolher palavra** — de propósito: a escolha é de produto e é sua. Junte
+> com o **free tier**, que já era desta lane e é a outra metade da mesma mentira
+> (o stage recusa antes de gerar ⇒ sem row ⇒ 404 ⇒ "ainda não gerado").
 >
 > ⚠️ **Ficou `blocked` por um dia inteiro depois de desbloqueada** — ninguém flipa
 > o campo no merge da dependência, e nesse intervalo a lane sumiu do

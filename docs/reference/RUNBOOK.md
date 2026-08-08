@@ -272,7 +272,8 @@ Olhe **1×/semana**, em Métricas → *Degradação de etapas* (30d), três núm
    5 são mundos diferentes. Acima de ~10% investigue.
 2. **Por motivo.** `unknown` acima de ~20% do total significa que o mapeamento de
    `reason_class` não cobre os tipos reais — e toda a copy client-facing da
-   A40.l20 fica construída em cima de moeda ao ar. Revise
+   [[A40.l22]] fica construída em cima de moeda ao ar (a [[A40.l20]], citada aqui
+   até 2026-08-08, fechou em #1278 e é a produtora do estado, não da copy). Revise
    `backend/app/services/pipeline/stage_failure_reason.py`.
 3. **Por etapa.** `review_finances_holistic` degradando é visível ao cliente
    premium e custa API; `validate_cross` é grátis e invisível. A etapa decide se o
