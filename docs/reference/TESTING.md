@@ -393,15 +393,28 @@ CI pode rodar workflow `nightly-flaky-report.yml` (a criar) que lista tests com 
 **Política:** snapshots são artefatos versionados. Mudança em snapshot = mudança visual intencional. Requer revisão manual.
 
 **Onde vivem:**
-- `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/` — 32 PNGs: estratégico (S1–S4, S7–S10) + apêndices (APP_A–E) + cover + as 2 variantes de `S_parecer` (`parcial`, `retido`), cada um em light + dark. Linux-only via job `frontend-visual` (suffix `-linux.png`).
+- `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/` — 28 PNGs: estratégico (S1–S3, S7–S10) + apêndices (APP_A, APP_B, APP_D, APP_E) + cover + as 2 variantes de `S_parecer` (`parcial`, `retido`), cada um em light + dark. Linux-only via job `frontend-visual` (suffix `-linux.png`).
 - `frontend/tests/e2e/reports/__snapshots__/` — print PDF baseline.
+
+> **O spec tem 32 testes mas só 28 baselines.** `S4` e `APP_C` estão nas listas
+> do spec e **não** produzem PNG: a fixture `medium` não as faz montar
+> (`real_estate` ausente; `cenarios_conjuge` é `{}` — a chave existe, só vazia —
+> e sem `programa_milhas`), então as duas retornam `null` por hide-when-empty e
+> caem no skip. Não é buraco acidental: está declarado em
+> `SECTIONS_NOT_IN_MEDIUM_FIXTURE`, e qualquer OUTRA seção que não monte
+> **falha** em vez de pular verde (PR #1295). `S4` segue coberta
+> estruturalmente pelo `sections.fixtures.smoke.visual.spec.ts` em 4 fixtures;
+> `APP_C` não tem cobertura em teste algum.
 
 > **A contagem acima envelhece.** Ela já esteve errada nas duas direções ao mesmo
 > tempo: dizia 48 quando havia 52, e os 52 incluíam 20 baselines órfãs de modos
 > removidos (Tático/ADR-151, USA/ADR-168) que nada comparava —
 > `--update-snapshots` reescreve o que os testes produzem e **nunca poda o
-> resto**. Removidas no PR #1292. Ao mexer aqui, confira com
-> `ls <dir> | wc -l` em vez de confiar no número escrito.
+> resto**. Removidas no PR #1292 (T\*/U\*) e #1295 (`S4`/`APP_C`, que eram de
+> abril, de quando a fixture ainda ligava as seções). **O mecanismo que as
+> deixou apodrecer continua vivo:** nada cruza PNG em disco com teste existente,
+> então um modo removido no futuro produz órfãs de novo sem sinal. Ao mexer
+> aqui, confira com `ls <dir> | wc -l` em vez de confiar no número escrito.
 
 ### Por que **não** rodar local em macOS
 
