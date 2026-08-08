@@ -741,7 +741,6 @@ jobs:
       # sem Postgres/Redis/Celery — fixture mockada, 8 testes (contagem medida
       # com `npx playwright test <spec> --project=chromium --list`, não estimada).
       - name: Cache Playwright Chromium (report render)
-        if: needs.changes.outputs.report == 'true'
         id: pw-cache-report
         uses: actions/cache@v4
         with:
@@ -749,22 +748,34 @@ jobs:
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
 
       - name: Install Playwright Chromium (cache miss)
-        if: needs.changes.outputs.report == 'true' && steps.pw-cache-report.outputs.cache-hit != 'true'
+        if: steps.pw-cache-report.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Install Playwright OS deps (cache hit)
-        if: needs.changes.outputs.report == 'true' && steps.pw-cache-report.outputs.cache-hit == 'true'
+        if: steps.pw-cache-report.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
       - name: Install poppler-utils (camada de texto do PDF)
         # `pdftotext` é o instrumento do gate de conteúdo do PDF. Sem ele o
         # spec hard-falha em CI de propósito (`exigirPdftotext`): um skip aqui
         # seria verde sobre um PDF que ninguém mediu.
-        if: needs.changes.outputs.report == 'true'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
 
-      - name: Report render gate (janela canônica + degradação do parecer — tela + print)
-        if: needs.changes.outputs.report == 'true'
+      - name: Report render gate (janela canônica + degradação do parecer + inventário — tela + print)
+        # SEM `if: needs.changes.outputs.report` — aqui e nos 3 steps de setup
+        # acima (cache/install do Chromium, poppler). O filtro `report` é
+        # allowlist positiva e **falha aberta**: medido em 400 commits de `main`
+        # (desde 2026-05-01), 8 de 57 commits de frontend (14%) tocam a closure
+        # do relatório sem acioná-lo — entre eles `lib/goalPremissas.ts`, a
+        # mesma família `goals` cuja ausência apagou o card de Alocação por ~3
+        # meses (ADR-370). `components/report/**` importa 34 módulos de fora, e
+        # só 3 estão no filtro. Alargar a allowlist compraria 4 commits em 57
+        # (7%) e continuaria derivando a cada import novo — é a MESMA troca que
+        # o §dev_tools deste arquivo já recusou, pela mesma razão: a DIREÇÃO do
+        # erro importa. Tem de sair dos setups JUNTO: gate sem Chromium ou sem
+        # `pdftotext` não degrada para skip, hard-falha. O job inteiro já é
+        # gateado por `frontend`, então PR de backend/docs segue sem pagar
+        # nada; custo medido ~1,6 min nos ~90 runs/mês que hoje pulam.
         env:
           # `npm run dev` dispara `predev` → `codegen:check` → `python3 …`, e este
           # job é node-only (sem setup-python): o webServer do Playwright não
@@ -792,6 +803,7 @@ jobs:
             tests/e2e/reports/parecer-degradacao.@critical.spec.ts \
             tests/e2e/reports/print-chrome.@critical.spec.ts \
             tests/e2e/reports/print-text.@critical.spec.ts \
+            tests/e2e/reports/report-inventory.@critical.spec.ts \
             --project=chromium
 
       - name: Upload results (only on failure)
