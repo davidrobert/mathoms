@@ -116,6 +116,15 @@ l2 → l20 → l22.
 
 **Branch:** `agent/a40-l2-3b/<ts>` · **P0** · a mais longa das três.
 
+> ✅ **CONSUMIDA em 2026-08-07** — PR [#1276](https://github.com/davidrobert/mathoms/pull/1276),
+> commit-merge `b3b8a74b`, CI verde. **Não pegue esta frente.** O diagnóstico abaixo fica como
+> registro do que foi medido; os 5 itens da lista estão **todos corrigidos**, e um agente que
+> os tratar como pendentes vai procurar defeito que não existe mais. Estado corrente e
+> followups: §Ordem de trabalho e §Guarda anti-regressão da [[A40.l2]], e §Emenda de
+> 2026-08-07 da [[ADR-364]]. **Aberto em seguida:** 3c1 · 3c2 (brief pronto em
+> `docs/sprint/A40/tracks/a40-l2-3c2-superficie-do-colapso.md`) · 3d (**destravado** — dependia
+> do 3b) · 3e.
+
 ### Estado medido em `main @ 2571f203` (não re-derive)
 
 | Sub-PR | Estado |
@@ -123,11 +132,12 @@ l2 → l20 → l22.
 | 3a — a sombra | ✅ #1231 (`65464db6`) + follow-ups #1236, #1239 |
 | 3b1 — fonte única do digest | ✅ #1251 (`077fb7e9`) — `_gate_digest_da_chave` chama `gate_key_digest`, nunca inline |
 | 3b2 — `CollapseMeasurement` | ✅ #1256 (`4fdcf400`) — `corpus_gate_digests`, `corpus_row_hashes`, `survivor_hash` |
-| **3b restante** | ⬜ **é o seu PR** |
-| 3c1/3c2/3d/3e | ⬜ depois; 3d depende do 3b |
+| **3b restante** | ✅ **#1276 (`b3b8a74b`)** — era "o seu PR" quando isto foi escrito |
+| 3c1/3c2/3d/3e | ⬜ depois; **3d destravado** pelo merge do 3b |
 
-**O que ainda está no arquivo, verificado linha a linha em
-[`backend/app/services/internal_ops/collapse_precondition.py`](../../backend/app/services/internal_ops/collapse_precondition.py):**
+**~~O que ainda está no arquivo~~ — os 5 estavam no arquivo em `2571f203` e foram
+CORRIGIDOS no #1276.** Preservados porque são o diagnóstico que justificou o desenho, em
+[`backend/app/services/internal_ops/collapse_precondition.py`](../../backend/app/services/internal_ops/collapse_precondition.py):
 
 1. **`liberado` (linha 61) é `hits == 0 and sem_snapshot == 0`** — o predicado que
    o painel julgou **inalcançável por construção**: `gate_digest` é
@@ -145,6 +155,15 @@ l2 → l20 → l22.
 5. **Não existe chamador de produção.** `rg -n collapse_precondition --glob '*.py'`
    devolve **só testes**. A "chamada no composition root do stage" do escopo do 3b
    não foi feita.
+
+**Como cada um foi fechado no #1276** (para quem chegar aqui pelo histórico):
+1 e 4 → predicado cumulativo de 5 cláusulas (`medido` · `hits` · `sem_snapshot` ·
+`tx_data_nao_iso` · vivacidade **universal**), derivado de `clausulas_reprovadas()` como fonte
+única, com a adjudicação por `survivor_hash` que torna o gate alcançável · 2 → acesso por
+atributo, `AttributeError` alto · 3 → `corpus_digests` obrigatório · 5 → chamada em
+`main_with_store`, relatório em `pipeline_stage_logs.output_summary`. **9 provas de mutação**,
+todas vermelhas. **Ainda não medido, e agora pagando em produção:** custo do gate por run
+(ver [[A40.l2]] §"predicado FECHADO no PR3b; sobra o custo").
 
 ### O que o 3b entrega
 
