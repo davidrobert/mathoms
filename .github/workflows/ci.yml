@@ -252,11 +252,21 @@ jobs:
               - '!.claude/**'
               - '!_archive/**'
               - '!_scratch/**'
-            # `report` é subset de `frontend` que gateia os 4 steps de
-            # render do relatório DENTRO de `frontend-checks` (A40.l3 ·
-            # ADR-306 D1): cache + instalação do Playwright Chromium e o
-            # próprio "Report render gate". Como `frontend-checks` está em
-            # `all-green.needs`, esses steps bloqueiam merge quando rodam.
+            # ⚠️ **`report` não gateia mais NADA — o output ficou sem
+            # consumidor em 2026-08-08.** Este comentário descrevia os steps
+            # de render dentro de `frontend-checks` (A40.l3 · ADR-306 D1), e
+            # o #1301 removeu o `if:` dos quatro, pela razão certa: allowlist
+            # positiva falha aberta, e 8 de 57 commits de frontend tocavam a
+            # closure do relatório sem acionar o filtro (racional completo no
+            # bloco do próprio step). O que ficou para trás foi a declaração:
+            # `grep -rn "needs.changes.outputs.report" .github/workflows/`
+            # devolve zero usos — só menções em comentário.
+            #
+            # Ou seja, os ~25 globs abaixo e o output da linha 143 são hoje
+            # **documentação do que é superfície do relatório**, não gate.
+            # Mantidos de propósito enquanto a decisão de removê-los (ou de
+            # dar-lhes consumidor novo) não é tomada por quem fez o #1301 —
+            # mas não os leia como se bloqueassem alguma coisa.
             #
             # **Este output NÃO aciona `frontend-visual`.** Aquele job não
             # lê `needs.changes.outputs.report` e não tem path filter algum:
