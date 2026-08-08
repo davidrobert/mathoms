@@ -387,10 +387,11 @@ carrega handoff — fica só o registro acima de que a base não vem do campo
   documentados, suprimir `teto_sugerido`/`folga_pct` e declarar janela
   insuficiente. É o espírito de D3 na camada de apresentação, ainda não aplicado.
 - **Nenhum sinal pós-merge desde 2026-06-15**: `Nightly` está
-  `disabled_manually` e o `push: main` foi removido do `ci.yml`, mas
-  `ci.yml:36-37` continua afirmando que o `main-smoke` cobre o drift. É drift de
-  decisão-vs-realidade mais grave que esta lane (owner-gated: reabilitar só o
-  cron diário custa ~84 min/mês).
+  `disabled_manually` e o `push: main` foi removido do `ci.yml`. Os comentários
+  que ainda alegavam a cobertura foram corrigidos em 2026-08-08 (#1293, #1300 e
+  o `PULL_REQUEST_TEMPLATE.md`), mas **isso não devolve sinal nenhum** — só para
+  de prometê-lo. O drift de decisão-vs-realidade segue aberto e é mais grave que
+  esta lane (owner-gated: reabilitar só o cron diário custa ~84 min/mês).
 - **`changes.outputs.report` tinha zero consumidores** desde que a ADR-210
   removeu o auto-trigger de `frontend-visual`. Esta lane passa a consumi-lo; a
   fiação já estava paga.
