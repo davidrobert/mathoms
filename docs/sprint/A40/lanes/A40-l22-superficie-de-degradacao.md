@@ -63,14 +63,14 @@ tags:
 > da palavra é de produto e é do dono, a lane fica pegável nesse item. O #1277
 > fecha a **retenção**; a **ausência** continua aberta.
 >
-> **Do §Critério de aceite, 2 itens ficam abertos e nenhum é fechável nesta lane:**
+> **Do §Critério de aceite, 2 itens ficaram abertos no #1277 — 1 já fechou:**
 >
-> - **A perna de PDF é parcial.** A ressalva do banner chega à camada de texto
->   (assertada por `pdftotext`, verde no CI); a nota da SEÇÃO não, em geometria
->   A4 — e nenhum `<h2>` de seção chega. Causa pré-existente no export, fora
->   desta lane; `test.fixme` nomeado em `print.@critical.spec.ts` marca o ponto
->   de retomada. Ver detalhe no item 2 abaixo.
-> - **Teste com humano (n=1)** — owner-gated, não executado.
+> - ~~**A perna de PDF é parcial.**~~ **Fechada em 2026-08-08**, ver o ✅ abaixo.
+>   Era: a ressalva do banner chegava à camada de texto (assertada por
+>   `pdftotext`, verde no CI); a nota da SEÇÃO não, em geometria A4 — e nenhum
+>   `<h2>` de seção chegava. A causa era pré-existente no export, e o
+>   `test.fixme` de `print.@critical.spec.ts` marcava o ponto de retomada.
+> - **Teste com humano (n=1)** — owner-gated, não executado. **Continua aberto.**
 >
 > **Duas medições da execução que o escopo escrito não previa** (detalhe no PR):
 >
@@ -98,7 +98,7 @@ tags:
 > instrução impossível quando o bloco é mais alto que a página, e o Chromium a
 > resolve **descartando** o excedente; (c) o `<main class="overflow-y-auto">` do
 > `AppShell` é scroll container, e scroll container não pagina — a última página
-> sumia. Camada de texto do PDF: **13.756 → 25.411 caracteres**. O `test.fixme`
+> sumia. Camada de texto do PDF: **13.756 → 26.261 caracteres**. O `test.fixme`
 > virou assert verde e o gate mudou de casa: `print-text.@critical.spec.ts`
 > roda no step `Report render gate` de `frontend-checks` (que está em
 > `all-green.needs`), não no `frontend-print-visual` opt-in por label. Além dos
