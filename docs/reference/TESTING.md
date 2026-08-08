@@ -486,6 +486,39 @@ antialiasing do canvas do chart.js.
 o CI**: o job fica `skipping` e o PR passa por omissão — o gate não valida a
 baseline que você acabou de trocar.
 
+### A baseline do PDF é uma família à parte
+
+`frontend/tests/e2e/reports/__snapshots__/report.print.pdf.png` **não** sai pelo
+fluxo acima: é outro job (`frontend-print-visual`), outro input de dispatch e
+outro artefato. Trocar `run_visual` por `run_print` no comando de cima não
+funciona — são flags distintas.
+
+```bash
+gh workflow run CI --ref agent/<slug>/<ts> \
+  -f run_print=true -f update_print_baseline=true
+gh run download <run-id> --name report-print-baseline-generated --dir /tmp/pdf
+cp /tmp/pdf/report.print.pdf.png frontend/tests/e2e/reports/__snapshots__/
+```
+
+Depois de commitar, **rode o job outra vez sem `update_print_baseline`**
+(`-f run_print=true` sozinho). Com a flag ligada o spec grava e retorna verde
+sem comparar nada: um run verde de regeneração não prova que a baseline nova
+passa no gate — só que ela foi escrita.
+
+> **O rosa da capa na baseline não é o produto.** O job converte o PDF com
+> `pdf-to-png-converter` (pdfjs), que não resolve o gradiente do cover nem
+> `background-clip: text`: a capa sai magenta e o subtítulo "Pessoal e
+> Patrimonial" some. Verificado em 2026-08-08 passando o **mesmo** PDF por
+> pdfjs e por Poppler (`pdftoppm -png`) — o segundo sai correto, azul-marinho e
+> com subtítulo. A baseline é fiel ao que o instrumento vê, que é o que o diff
+> compara. Se quiser inspecionar o PDF de verdade, use `pdftoppm`, não o PNG do
+> artefato.
+
+Este gate compara **só a primeira página**, por pixel. Conteúdo ausente da
+página 12 é invisível para ele — foi assim que o export truncou por meses. Quem
+cobre conteúdo é `print-text.@critical.spec.ts` (camada de texto via
+`pdftotext`), que roda no CI default dentro do step `Report render gate`.
+
 ### Tolerância — `maxDiffPixelRatio` proporcional
 
 Spec usa `maxDiffPixelRatio: 0.025` (2.5%) em vez de `maxDiffPixels` absoluto. Razão: chart.js canvas tem variance natural de 1-2% entre runs no mesmo runner Linux (antialiasing de paths, tooltip positioning, font hinting). Threshold absoluto de 200px (~0.007% em S2) gerava flake crônico.
