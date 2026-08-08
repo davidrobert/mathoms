@@ -59,7 +59,19 @@ on:
     # então a economia real seria ~0 e o `if:` extra só adicionaria
     # superfície. Fica o texto honesto — a mesma classe de erro que a
     # camada 4 da ADR-210 corrigiu (afirmar controle inexistente).
-    types: [opened, synchronize, reopened, ready_for_review]
+    #
+    # `labeled` (2026-08-08): sem ele, os jobs opt-in por label
+    # (`frontend-e2e`, `frontend-visual`, `frontend-print-visual`) só rodavam
+    # para quem lembrasse de aplicar o label ANTES do `opened` — label posto
+    # depois não redisparava nada e o job ficava `skipping`, verde por
+    # omissão. Foi um dos mecanismos que deixaram `report.print.pdf.png`
+    # congelada num error boundary por ~3,5 meses. Custo aceito: todo label
+    # aplicado após a criação do PR paga um ciclo de CI completo (ver
+    # §concurrency abaixo para por que ele não pode ser mais barato que isso).
+    # NÃO há cascata do labeler automático: `actions/labeler` e o size-labeler
+    # em `pr-quality.yml` escrevem com o `GITHUB_TOKEN` default, e o guard de
+    # recursão do GH não deixa evento emitido por ele disparar workflow.
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   # Trigger DORMENTE — Merge Queue do GitHub não está disponível neste repo
   # (private + conta User pessoal; precisaria de Organization + Enterprise
   # Cloud). Substituído por `.github/workflows/auto-update-prs.yml` que
@@ -96,7 +108,27 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancelar o run em voo é certo para `synchronize` (o código mudou, o
+  # resultado antigo não interessa) e ERRADO para `labeled` (o código é o
+  # mesmo). Sem esta exceção, aplicar um label no minuto 9 de um
+  # `backend-tests` de ~10 min mataria os ~7 jobs e reiniciaria do zero:
+  # minuto cancelado é faturado e cada reinício ainda paga o piso de 1 min
+  # por job. Com `false`, o run do label fica PENDING e começa quando o
+  # anterior terminar.
+  #
+  # `false` aqui não abre mão do dedupe: o GH cancela qualquer run PENDING do
+  # grupo quando outro entra na fila, independente desta flag — dois labels
+  # aplicados em sequência custam 1 run, não 2. E um `synchronize` posterior
+  # (que volta a cancelar) engole o pending sem perda de cobertura, porque o
+  # run do push já enxerga o label em `pull_request.labels`.
+  #
+  # Por que o run do label não pode ser mais barato (pular os jobs que o label
+  # não pede): `all-green` aceita `skipped` nos jobs de que depende, então um
+  # run em que tudo skipa reportaria `All checks green: success` e
+  # SOBRESCREVERIA um vermelho legítimo do run anterior no mesmo SHA — o
+  # required check do ruleset olha o último. Fail-open que merge-aria código
+  # quebrado por aplicar um label. O run completo é o preço de não ter isso.
+  cancel-in-progress: ${{ github.event.action != 'labeled' }}
 
 # A34.l13 (ADR-320): menor privilégio por default; jobs que precisam de mais
 # (changes/gitleaks: pull-requests read) elevam no próprio job.
@@ -1111,11 +1143,17 @@ jobs:
     # e corrigidas no #1290. Enquanto o nightly estiver desligado, este
     # gate só existe nos PRs que lembrarem de pedi-lo.
     #
-    # Para mudança deliberada no relatório, aplique o label `visual`.
-    # **Aplique na CRIAÇÃO do PR**: `labeled` não está em
-    # `on.pull_request.types`, então label posto depois não redispara o
-    # CI e o job fica `skipping` — verde por omissão, que é pior que
-    # vermelho.
+    # Para mudança deliberada no relatório, aplique o label `visual` — na
+    # criação do PR ou depois, indiferente desde 2026-08-08, quando `labeled`
+    # entrou em `on.pull_request.types`. Antes disso, label posto depois não
+    # redisparava o CI e o job ficava `skipping` (verde por omissão), o que
+    # tornava este gate refém de quem lembrasse do label no segundo certo.
+    # O run do label NÃO cancela o run em voo — ver §concurrency.
+    #
+    # O que continua NÃO sendo verdade: que vermelho aqui impeça merge. Este
+    # job não está em `all-green.needs`, então o resultado é informativo —
+    # mesma condição já medida para `frontend-e2e` (ADR-210 §Adendo
+    # 2026-07-31). Rodar é pré-condição de gatear, não gatear.
     name: Frontend visual snapshots (relatório nativo)
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -1214,6 +1252,9 @@ jobs:
     # tolerância 500px (PDF→PNG é mais barulhento que screenshot DOM).
     #
     # Opt-in via label `print` (PR) ou workflow_dispatch + `run_print=true`.
+    # Label aplicado depois da criação do PR redispara o CI desde 2026-08-08
+    # (`labeled` em `on.pull_request.types`); antes disso não, e esta baseline
+    # é justamente a que ficou 3,5 meses congelada num error boundary.
     # Mock-report cobre /api/v1/** sem precisar de backend real (Next em :3000).
     #
     # Baseline OS-específica (font rendering Chromium difere por OS); rode SÓ
