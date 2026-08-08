@@ -7,8 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.document import Document
 from backend.app.models.pipeline_artifact import PipelineArtifact
-from backend.app.models.pipeline_run import PipelineRun, PipelineStageLog
-from backend.app.models.stage_review import StageReview
+from backend.app.models.pipeline_run import PipelineRun
 from backend.app.services.internal_ops.audit import AuditRecord, append_audit
 from backend.app.services.internal_ops.delete_document import _resolve_blob_path
 from backend.app.services.internal_ops.results import OpResult
@@ -50,15 +49,16 @@ def _unlink_blobs(docs: list[Document]) -> tuple[int, list[str]]:
     return blobs_removed, failed
 
 
+# A versão anterior enumerava as tabelas-filhas à mão porque o
+# ``PRAGMA foreign_keys`` estava OFF. A lista ficou incompleta — ``reports``,
+# ``planner_review_metadata`` e ``pipeline_run_costs`` nunca entraram — e foi
+# assim que o expurgo de 2026-05-15 deixou 48 rows penduradas no DB de dogfood.
+# Enumerar filhas é a classe de erro; o grafo declarado nos models é a fonte.
 async def _delete_pipeline_data(db: AsyncSession, ws_ids: list[str], run_ids: list[str]) -> None:
-    """DELETEs explícitos — não dependemos de PRAGMA foreign_keys do SQLite."""
+    """Deleta só o pai; o grafo de FK cascateia o resto (ADR-371)."""
     if ws_ids:
         await db.execute(delete(PipelineArtifact).where(PipelineArtifact.workspace_id.in_(ws_ids)))
     if run_ids:
-        await db.execute(
-            delete(PipelineStageLog).where(PipelineStageLog.pipeline_run_id.in_(run_ids))
-        )
-        await db.execute(delete(StageReview).where(StageReview.pipeline_run_id.in_(run_ids)))
         await db.execute(delete(PipelineRun).where(PipelineRun.id.in_(run_ids)))
 
 

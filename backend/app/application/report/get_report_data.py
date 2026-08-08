@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.base.errors import NotFoundError
 from backend.app.application.report._common import fetch_report
+from backend.app.core.logging import get_logger
 from backend.app.schemas.snapshot_changelog import (
     changelog_entry_to_read,
     comparison_item_to_read,
@@ -25,8 +26,14 @@ from backend.app.services.report_lineage import (
 )
 from backend.app.services.security.crypto import read_artifact_content
 from backend.app.services.snapshot_pair_loader import load_snapshot_pair
+from pipeline.artifact_store import stage_aliases
 from pipeline.domain.services.snapshot_changelog import build_comparison
 from pipeline.domain.types.snapshot_changelog import SnapshotChangelogConfig
+
+logger = get_logger(__name__)
+
+# `E5` e `analyze_finances` são o mesmo stage (ADR-093).
+_ANALYSIS_STAGES = frozenset(stage_aliases("analyze_finances"))
 
 
 async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession) -> JSONResponse:
@@ -34,6 +41,7 @@ async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession
     artifact = report.analysis_artifact
     if artifact is None or not artifact.content_json:
         raise NotFoundError("Este relatório não tem JSON de análise associado.")
+    _assert_analysis_stage(report_id, artifact)
 
     payload = dict(read_artifact_content(artifact.content_json))
 
@@ -66,6 +74,27 @@ async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession
     payload["comparison_periods"] = periods
 
     return JSONResponse(content=payload)
+
+
+# Nada no schema afirma que `analysis_artifact_id` é um artefato de análise: a
+# FK aceita qualquer row de `pipeline_artifacts`, o write-path acerta por
+# construção e o read-path aceitava o que viesse. No DB de dogfood 21 relatórios
+# apontavam para E2/E3/E1.5a e eram servidos com HTTP 200 (ADR-371). O 404 é o
+# efeito; o sinal é o log — ausência calada seria só outra corrupção calada.
+def _assert_analysis_stage(report_id: str, artifact) -> None:
+    """404 + log quando a FK aponta para artefato que não é de análise."""
+    if artifact.stage in _ANALYSIS_STAGES:
+        return
+    logger.error(
+        "report.analysis_artifact_stage_mismatch",
+        extra={
+            "report_id": report_id,
+            "artifact_id": artifact.id,
+            "stage_encontrado": artifact.stage,
+            "stages_esperados": sorted(_ANALYSIS_STAGES),
+        },
+    )
+    raise NotFoundError("A análise deste relatório não está mais disponível.")
 
 
 async def _build_snapshot_diff(

@@ -14,6 +14,7 @@ from backend.app.services.internal_ops.scope import (
     resolve_scope_context,
     resolve_workspace_ids,
 )
+from backend.app.services.storage.artifact_references import referenced_artifact_ids_async
 
 __all__ = ["purge_reports"]
 
@@ -30,6 +31,16 @@ async def _delete_artifacts(db: AsyncSession, artifact_ids: list[int]) -> int:
         return 0
     result = await db.execute(delete(PipelineArtifact).where(PipelineArtifact.id.in_(artifact_ids)))
     return result.rowcount or 0
+
+
+async def _deletable_artifact_ids(db: AsyncSession, reports: list[Report]) -> list[int]:
+    """E5 dos reports purgados, menos os que outro dono ainda referencia — uma
+    publicação ou parecer com `RESTRICT` abortaria a transação inteira (ADR-371)."""
+    own = {r.analysis_artifact_id for r in reports if r.analysis_artifact_id is not None}
+    if not own:
+        return []
+    held = await referenced_artifact_ids_async(db, ignore_report_ids=[r.id for r in reports])
+    return sorted(own - held)
 
 
 def _build_summary(
@@ -75,7 +86,7 @@ async def _execute_purge(db: AsyncSession, reports: list[Report], artifact_ids: 
 async def _collect(db: AsyncSession, scope: PurgeScope) -> tuple[list[Report], list[int], dict]:
     ws_ids = await resolve_workspace_ids(db, scope)
     reports = await _target_reports(db, ws_ids)
-    artifact_ids = [r.analysis_artifact_id for r in reports if r.analysis_artifact_id is not None]
+    artifact_ids = await _deletable_artifact_ids(db, reports)
     ctx = await resolve_scope_context(db, scope)
     summary = _build_summary(
         reports,

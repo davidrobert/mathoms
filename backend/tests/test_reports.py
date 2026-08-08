@@ -1,6 +1,9 @@
 """Tests for report endpoints — list, get, data, pdf (F9 · ADR-076 · ADR-129 · ADR-131)."""
 
+import importlib
+import logging
 import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -328,6 +331,74 @@ async def test_get_report_data_returns_json_payload(
     assert "source_document_count" in lin
     assert "source_document_ids" in lin
     assert isinstance(lin["source_document_ids"], list)
+
+
+class _Coletor(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.registros: list[logging.LogRecord] = []
+
+    def emit(self, record):
+        self.registros.append(record)
+
+
+# Handler no próprio logger + `disabled=False`: o caplog do pytest fica cego
+# quando outro módulo da suíte reconfigura logging (dictConfig desliga os
+# loggers existentes, e `logger.error` retorna antes de tocar handler algum).
+# `import_module` e não `from ... import` porque o `__init__` do pacote
+# reexporta a *função* `get_report_data`, que sombrearia o módulo homônimo.
+@contextmanager
+def _captura_erros_do_read_path():
+    """Coleta LogRecords ERROR emitidos pelo módulo `get_report_data`."""
+    mod = importlib.import_module("backend.app.application.report.get_report_data")
+    handler = _Coletor()
+    anterior = (mod.logger.level, mod.logger.disabled)
+    mod.logger.addHandler(handler)
+    mod.logger.setLevel(logging.ERROR)
+    mod.logger.disabled = False
+    try:
+        yield handler.registros
+    finally:
+        mod.logger.removeHandler(handler)
+        mod.logger.setLevel(anterior[0])
+        mod.logger.disabled = anterior[1]
+
+
+async def _aponta_report_para_stage_errado(db, rid: str) -> None:
+    """Simula id de artifact reusado: a FK passa a resolver para um E2."""
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.models.report import Report
+
+    report = await db.get(Report, rid)
+    intruso = PipelineArtifact(
+        workspace_id=report.workspace_id,
+        pipeline_run_id=report.pipeline_run_id,
+        stage="E2-extratos",
+        artifact_key="c6bank_extratoconta_202601",
+        content_json={"transacoes": []},
+    )
+    db.add(intruso)
+    await db.flush()
+    report.analysis_artifact_id = intruso.id
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_get_report_data_rejeita_artifact_de_stage_errado(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    """ADR-371: id reusado apontava para E2 e era servido com 200; agora 404 + log."""
+    rid = await _seed_report(
+        auth_client, analysis_payload={"periodo_dados": "202601"}, tmp_path=tmp_path, db=db
+    )
+    await _aponta_report_para_stage_errado(db, rid)
+
+    with _captura_erros_do_read_path() as registros:
+        resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
+
+    assert resp.status_code == 404
+    assert [r.message for r in registros] == ["report.analysis_artifact_stage_mismatch"]
+    assert registros[0].stage_encontrado == "E2-extratos"
 
 
 @pytest.mark.asyncio
