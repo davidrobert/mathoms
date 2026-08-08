@@ -13,6 +13,7 @@ relates_to:
   - "[[ADR-180]]"
   - "[[ADR-097]]"
   - "[[ADR-102]]"
+  - "[[ADR-372]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -68,7 +69,7 @@ tags:
 
 **Decisão: nenhuma — registro de estado, com a escolha explicitamente em aberto.** As duas saídas são legítimas e a escolha é de design, não de quem instalou a medição:
 
-1. **Recalibrar os tokens `-on-tint`** para ≥ 7:1 (o caso vinculante é light Anexo V, 5,60) e então ligar `wcag2aaa` no helper do axe. Custo: mexe em paleta compartilhada — os pares `-on-tint` têm 18 call-sites ([[ADR-076]]), então não é mudança local deste card.
+1. **Recalibrar os tokens `-on-tint`** para ≥ 7:1 (o caso vinculante é light Anexo V, 5,60) e então ligar `wcag2aaa` no helper do axe. Custo: mexe em paleta compartilhada — os pares `-on-tint` têm 18 call-sites e ADR canônica própria ([[ADR-372]], que registra os valores e por que cada par difere da base em exatamente um tema), então não é mudança local deste card.
 2. **Corrigir o critério para AA**, que é o que o produto de fato entrega e verifica em três mecanismos independentes.
 
 Enquanto a decisão não sai, o texto "A11y AAA" acima deve ser lido como **AA verificado + AAA aspiracional não medido**. Dono da decisão: `product-designer`. Não foi gateado em AAA de propósito — gate que reprova hoje deixaria `main` vermelha por uma decisão de paleta ainda não tomada.

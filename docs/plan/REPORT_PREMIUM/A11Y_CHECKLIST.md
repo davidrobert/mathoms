@@ -62,6 +62,15 @@ só intenção.
   WCAG diretamente.
 - Drag & drop do Kanban com teclado (T3) — comportamento que axe não
   detecta.
+- **Nível AAA (7:1) em qualquer lugar.** Todos os gates desta página medem
+  **AA**: o helper do axe monta `withTags` até `wcag21aa` (a regra
+  `color-contrast-enhanced` não roda), a auditoria do Lighthouse é AA, e os
+  gates de token usam 4,5. Onde uma ADR pedir "A11y AAA" — hoje a [[ADR-236]],
+  para o `<CascataFiscalCard/>` — leia como **AA verificado + AAA aspiracional
+  não medido**; a emenda de 2026-08-08 daquela ADR mediu os 4 pares do badge
+  (5,60–6,21:1, passam AA e reprovam AAA) e deixou a escolha em aberto com o
+  `product-designer`. Recalibrar para AAA mexeria nos tokens de [[ADR-372]] e
+  alcançaria os 18 call-sites, não só aquele card.
 - **Tema dark nas varreduras POR SEÇÃO.** A de página inteira roda nos dois
   temas desde 2026-08-08; as por-seção seguem medindo só light. Uma violação
   exclusiva do dark **é pega** (a de página inteira contém o DOM de todas as
