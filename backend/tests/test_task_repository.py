@@ -41,6 +41,7 @@ from backend.app.schemas.dto.task import TaskFilters
 from backend.tests.factories.builders import (
     make_task,
     make_task_suggestion,
+    make_user,
     make_workspace,
 )
 
@@ -491,15 +492,16 @@ async def test_suggestion_is_workspace_isolated(db: AsyncSession, two_workspaces
 async def test_suggestion_save_after_mutation(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     sugg = await make_task_suggestion(db, workspace=ws_a, status="pending")
+    reviewer = await make_user(db)
     await db.commit()
 
     repo = TaskSuggestionRepository(db)
     sugg.status = "approved"
-    sugg.reviewed_by = "user-1"
+    sugg.reviewed_by = reviewer.id
     await repo.save(sugg)
     await db.commit()
 
     re_read = await repo.get_by_id(ws_a.id, sugg.id)
     assert re_read is not None
     assert re_read.status == "approved"
-    assert re_read.reviewed_by == "user-1"
+    assert re_read.reviewed_by == reviewer.id

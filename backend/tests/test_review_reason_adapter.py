@@ -19,6 +19,8 @@ from backend.app.models.pipeline_run import (
     PipelineStageStatus,
 )
 from backend.app.models.review_reason import ReviewReason
+from backend.app.models.user import User
+from backend.app.models.workspace import Workspace
 from backend.app.tasks.pipeline_task import (
     _REVIEW_REASON_ROW_CAP,
     _materialize_review_reasons,
@@ -89,7 +91,36 @@ def _explain_plan(db, *, ws_id: str, run_id: str, code: str) -> str:
     return " ".join(str(r) for r in plan).lower()
 
 
+def _seed_workspace(db, ws_id: str) -> None:
+    """Workspace + owner reais — as FKs de `pipeline_runs` e `review_reasons`
+    são enforçadas desde que o pragma foreign_keys ficou ON (ADR-371).
+    Idempotente: `_seed_document` e `_seed_run` podem pedir o mesmo ws."""
+    if db.get(Workspace, ws_id) is not None:
+        return
+    user = User(
+        id=str(uuid.uuid4()),
+        email=f"reason-{uuid.uuid4().hex[:8]}@test.com",
+        hashed_password="x",
+        full_name="Review Reason Fixture",
+    )
+    db.add(user)
+    db.flush()
+    db.add(Workspace(id=ws_id, name="WS review_reason", owner_id=user.id))
+    db.commit()
+
+
+@pytest.fixture
+def ws_run(sync_db) -> tuple[str, str]:
+    """`(workspace_id, run_id)` já materializados no DB."""
+    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+    _seed_workspace(sync_db, ws_id)
+    sync_db.add(PipelineRun(id=run_id, workspace_id=ws_id, status=PipelineRunStatus.running))
+    sync_db.commit()
+    return ws_id, run_id
+
+
 def _seed_run(db, *, run_id: str, ws_id: str, log_id: str) -> None:
+    _seed_workspace(db, ws_id)
     db.add(PipelineRun(id=run_id, workspace_id=ws_id, status=PipelineRunStatus.running))
     db.add(
         PipelineStageLog(
@@ -103,8 +134,8 @@ def _seed_run(db, *, run_id: str, ws_id: str, log_id: str) -> None:
 
 
 @pytest.mark.asyncio
-async def test_consolidates_same_code_to_single_row(sync_db) -> None:
-    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+async def test_consolidates_same_code_to_single_row(sync_db, ws_run) -> None:
+    ws_id, run_id = ws_run
     reasons = [
         _reason("extract.missing_required_field", occ=1),
         _reason("extract.missing_required_field", occ=1),
@@ -125,8 +156,8 @@ async def test_consolidates_same_code_to_single_row(sync_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_idempotent_across_calls_accumulates_count(sync_db) -> None:
-    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+async def test_idempotent_across_calls_accumulates_count(sync_db, ws_run) -> None:
+    ws_id, run_id = ws_run
     _materialize(sync_db, run_id, ws_id, [_reason("domain.validation_conflict", occ=2)])
     _materialize(sync_db, run_id, ws_id, [_reason("domain.validation_conflict", occ=5)])
     rows = _rows(sync_db, run_id)
@@ -135,8 +166,8 @@ async def test_idempotent_across_calls_accumulates_count(sync_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_distinct_codes_separate_rows(sync_db) -> None:
-    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+async def test_distinct_codes_separate_rows(sync_db, ws_run) -> None:
+    ws_id, run_id = ws_run
     reasons = [
         _reason("extract.missing_required_field"),
         _reason("domain.validation_conflict"),
@@ -149,8 +180,8 @@ async def test_distinct_codes_separate_rows(sync_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_cap_limits_new_rows(sync_db) -> None:
-    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+async def test_cap_limits_new_rows(sync_db, ws_run) -> None:
+    ws_id, run_id = ws_run
     over_cap = _REVIEW_REASON_ROW_CAP + 10
     reasons = [_reason(f"synthetic.code_{i}") for i in range(over_cap)]
     inserted = _materialize_review_reasons(
@@ -162,8 +193,8 @@ async def test_cap_limits_new_rows(sync_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_empty_code_payload_skipped(sync_db) -> None:
-    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+async def test_empty_code_payload_skipped(sync_db, ws_run) -> None:
+    ws_id, run_id = ws_run
     inserted = _materialize_review_reasons(
         sync_db,
         run_id=run_id,
@@ -177,8 +208,8 @@ async def test_empty_code_payload_skipped(sync_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_query_mae_uses_composite_index(sync_db) -> None:
-    ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
+async def test_query_mae_uses_composite_index(sync_db, ws_run) -> None:
+    ws_id, run_id = ws_run
     _materialize(sync_db, run_id, ws_id, [_reason("domain.validation_conflict", occ=4)])
     row = sync_db.execute(
         select(ReviewReason).where(
@@ -280,6 +311,7 @@ def test_issues_from_reasons_cap_with_sentinel() -> None:
 def _seed_document(db, ws_id: str, hash_prefix: str):
     from backend.app.models.document import Document, DocumentStatus, DocumentType
 
+    _seed_workspace(db, ws_id)
     doc = Document(
         workspace_id=ws_id,
         original_name="extrato.pdf",

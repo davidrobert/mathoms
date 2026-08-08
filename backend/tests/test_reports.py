@@ -75,6 +75,17 @@ async def _seed_report(
 
         session_ctx = _passthrough()
 
+    async def _ensure_run(session, ws_id: str, run_id: str) -> None:
+        """Materializa o PipelineRun — a FK de ``reports`` é enforçada (ADR-371)."""
+        existing = (
+            await session.execute(select(PipelineRun).where(PipelineRun.id == run_id))
+        ).scalar_one_or_none()
+        if existing is None:
+            session.add(
+                PipelineRun(id=run_id, workspace_id=ws_id, status=PipelineRunStatus.completed)
+            )
+            await session.flush()
+
     async with session_ctx as session:
         ws = (await session.execute(select(Workspace))).scalar_one()
 
@@ -83,19 +94,8 @@ async def _seed_report(
             # PipelineArtifact requer pipeline_run_id (FK NOT NULL); cria
             # um run sintético quando o caller não passou.
             run_id = pipeline_run_id or str(uuid.uuid4())
-            existing_run = (
-                await session.execute(select(PipelineRun).where(PipelineRun.id == run_id))
-            ).scalar_one_or_none()
-            if existing_run is None:
-                session.add(
-                    PipelineRun(
-                        id=run_id,
-                        workspace_id=ws.id,
-                        status=PipelineRunStatus.completed,
-                    )
-                )
-                await session.flush()
-                pipeline_run_id = run_id
+            await _ensure_run(session, ws.id, run_id)
+            pipeline_run_id = run_id
             artifact = PipelineArtifact(
                 workspace_id=ws.id,
                 pipeline_run_id=run_id,
@@ -106,6 +106,8 @@ async def _seed_report(
             session.add(artifact)
             await session.flush()
             artifact_id = artifact.id
+        elif pipeline_run_id is not None:
+            await _ensure_run(session, ws.id, pipeline_run_id)
 
         report = Report(
             id=str(uuid.uuid4()),
