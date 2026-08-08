@@ -15,10 +15,14 @@
     /* Numeradores em @page têm suporte irregular; margens A4 ficam alinhadas ao page.pdf() do backend. */
   }
 
-  /* ────── Hide shell chrome ────── */
+  /* ────── Hide shell chrome ──────
+   * `[data-export-toolbar]` entrou quando `footer` saiu do seletor genérico do
+   * `globals.css`: os botões "Baixar PDF"/"Copiar link" são affordance de tela
+   * e vinham escondidos por acidente daquela regra. */
   .sidebar-toc,
   .no-print,
-  [data-report-topnav] {
+  [data-report-topnav],
+  [data-export-toolbar] {
     display: none !important;
   }
 
@@ -36,20 +40,38 @@
     margin: 0 !important;
   }
 
-  /* ────── Card page-break safety ────── */
+  /* ────── Quebra de página ──────
+   * `break-inside: avoid` num bloco mais alto que a página útil (A4 menos as
+   * margens de `pdf_renderer.py` ≈ 1009px) é uma instrução impossível, e o
+   * Chromium a resolve descartando o excedente: o conteúdo some do PDF sem
+   * erro nem sinal. Medido em 2026-08-08 — seção, card e tabela tinham `avoid`
+   * e o PDF parava no meio do relatório.
+   *
+   * Regra: `avoid` só em bloco cuja altura NÃO depende do volume de dados do
+   * usuário — linha de tabela, gráfico. Seção, card e tabela crescem com os
+   * dados; a fixture do gate não prova nada sobre a carteira de quem tem 40
+   * ativos, então para eles a quebra tem de ser permitida por padrão.
+   * Invariante gateado por `print-text.@critical.spec.ts`. */
   [class*="card-variant-"] {
-    break-inside: avoid;
-    page-break-inside: avoid;
+    break-inside: auto;
+    page-break-inside: auto;
     margin-bottom: 8pt;
   }
 
-  /* ────── Section headers get break-before ────── */
   [data-report-section] {
     break-before: auto;
-    break-inside: avoid;
+    break-inside: auto;
   }
   [data-report-section]:first-of-type {
     break-before: avoid;
+  }
+
+  /* Unidades atômicas de altura limitada — aqui o `avoid` é satisfazível. */
+  tr,
+  [data-chart-canvas],
+  .chart-print-img {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   p,
@@ -68,10 +90,12 @@
     height: auto;
   }
 
-  /* ────── Tables ────── */
+  /* ────── Tables ──────
+   * Tabela longa quebra entre linhas e repete o cabeçalho — idioma canônico
+   * de impressão. `avoid` na tabela inteira truncava o glossário do Apêndice A. */
   table {
-    break-inside: avoid;
-    page-break-inside: avoid;
+    break-inside: auto;
+    page-break-inside: auto;
     font-size: 9pt;
   }
   thead {
