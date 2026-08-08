@@ -247,3 +247,46 @@ class TestResult:
         # Seguro é o único que dispara.
         assert len(out) == 1
         assert out[0].acao == "Contratar seguro de vida e invalidez"
+
+
+class TestDetalheNaoAfirmaVazioComCadastro:
+    """ADR-240 §Emenda 2026-08-08 — o `impacto` do item de seguro é lido pelo
+    cliente; não pode dizer "nenhuma apólice" para quem cadastrou apólice."""
+
+    def _protecao_com_cadastro(self, *, gap_flag: bool, gap_rationale: str) -> dict:
+        payload = _protecao([], gap_flag=gap_flag, gap_rationale=gap_rationale)
+        payload["escopo_cobertura"] = {
+            "premio_inclui_cadastro_manual": False,
+            "categorias_somente_no_cadastro": ["patrimonial"],
+            "veredito_pct_renda_suprimido": True,
+        }
+        return payload
+
+    def _seguro(self, protecao: dict):
+        out = PontosUrgentesAnalyzer().analyze(_ratios(), _reserva(), _pat(), protecao=protecao)
+        return [i for i in out if i.acao == "Contratar seguro de vida e invalidez"]
+
+    def test_gap_aberto_com_cadastro_nao_afirma_nenhuma_apolice(self):
+        protecao = self._protecao_com_cadastro(
+            gap_flag=True, gap_rationale="dependentes_menores_18"
+        )
+        seguro = self._seguro(protecao)
+        assert len(seguro) == 1
+        assert "nenhuma apólice identificada" not in seguro[0].impacto
+        assert "apólices cadastradas" in seguro[0].impacto
+
+    def test_pendente_de_dado_com_cadastro_tambem_nao_afirma_vazio(self):
+        protecao = self._protecao_com_cadastro(gap_flag=False, gap_rationale="sem family_members")
+        seguro = self._seguro(protecao)
+        assert len(seguro) == 1
+        assert "nenhuma apólice identificada" not in seguro[0].impacto
+
+    def test_sem_cadastro_a_copy_legada_e_preservada(self):
+        seguro = self._seguro(_protecao([], gap_flag=True, gap_rationale="dependentes_menores_18"))
+        assert len(seguro) == 1
+        assert "nenhuma apólice identificada" in seguro[0].impacto
+
+    def test_cobertura_de_vida_cadastrada_nao_emite_o_item(self):
+        """O gap fecha pela união — o conselho deixa de existir (ADR-167)."""
+        protecao = _protecao([], gap_flag=False, gap_rationale="cobertura_vida_cadastrada")
+        assert self._seguro(protecao) == []
