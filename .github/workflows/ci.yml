@@ -35,9 +35,16 @@ on:
   # Por quê: Ruleset `main-protection` exige `All checks green` pré-merge;
   # squash-merge linear de PR verde **não pode** introduzir resultado
   # diferente do que o PR já testou. Re-rodar em push:main custava ~50%
-  # dos minutos do CI (cada merge = 2 runs full). Drift cross-cutting que
-  # passa pelo PR é coberto pelo job `main-smoke` em nightly.yml
-  # (diário 06:00 UTC; janela máx ~24h, aceitável p/ solo-dev project).
+  # dos minutos do CI (cada merge = 2 runs full).
+  #
+  # A compensação para drift cross-cutting ERA o job `main-smoke` em
+  # nightly.yml (diário 06:00 UTC, janela ≤24h). **Ela não existe desde
+  # 2026-06-15**: o workflow `Nightly` está `disabled_manually`, e
+  # desabilitar no nível do workflow mata os 6 jobs de uma vez. Este
+  # comentário seguiu afirmando a cobertura por escrito até 2026-08-08 —
+  # a ADR-210 §"Premissa vencida" flagrou, e agora ele descreve o estado
+  # real em vez do pretendido. Reabilitar (só o cron diário, ~84 min/mês)
+  # é decisão do owner: docs/sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md.
   #
   # Se reabilitar virar necessidade (ex.: deploy automático em main), use
   # `workflow_call` e dispare via release.yml em vez de push:main full.
@@ -932,22 +939,36 @@ jobs:
   # `lighthouse` em PR.
 
   frontend-visual:
-    # Lane report-a11y-finalize item 3 — snapshots por seção (light+dark),
-    # ~50 baselines no projeto `visual` do Playwright. Baselines OS-
-    # específicas → roda só em runner Linux.
+    # Lane report-a11y-finalize item 3 — snapshots por seção (light+dark)
+    # no projeto `visual` do Playwright. Baselines OS-específicas → roda
+    # só em runner Linux. (Contagem de baselines vive no diretório, não
+    # aqui: número em comentário envelhece sem ninguém notar, que é
+    # exatamente o defeito que este bloco corrige.)
     #
     # **Mudança ADR-210 §camada 1 (2026-05-14):** auto-trigger por path
     # filter REMOVIDO; agora roda só com label `visual` ou
     # workflow_dispatch. Motivação: custo era ~3.5 min × ~30% dos PRs ≈
-    # ~$4/mês no overage. Cobertura de regressão preservada em nightly
-    # (`frontend-visual-full` em .github/workflows/nightly.yml) com
-    # janela de detecção ≤24h e issue auto-aberta em falha.
+    # ~$4/mês no overage.
     #
-    # Trade-off vs história: regressões visuais #147, #148, #150, #151
-    # escaparam em 2026-04 quando o gate era opt-in via label. Hoje a
-    # cobertura é diferente: nightly em main + issue auto + retenção 14d
-    # do diff artifact. Para mudanças deliberadas no relatório, adicione
-    # label `visual` no PR — gate volta a ser bloqueante.
+    # **A compensação prometida não existe.** O texto anterior dizia que
+    # a cobertura ficava preservada em `frontend-visual-full` (nightly)
+    # com janela ≤24h e issue automática. O workflow `Nightly` está
+    # `disabled_manually` desde 2026-06-15, então a Camada 1 caiu junto —
+    # e o mesmo argumento histórico que o bloco invocava (as regressões
+    # #147/#148/#150/#151, que escaparam em 2026-04 justamente com o gate
+    # opt-in) voltou a valer sem rede.
+    #
+    # Consequência medida: 10 baselines de seção (S1/S2/S3/S7/S10 ×
+    # light+dark) acumularam drift por ~2-3 meses sem sinal; foram
+    # descobertas em 2026-08-07 por acaso, ao rodar o job num PR alheio,
+    # e corrigidas no #1290. Enquanto o nightly estiver desligado, este
+    # gate só existe nos PRs que lembrarem de pedi-lo.
+    #
+    # Para mudança deliberada no relatório, aplique o label `visual`.
+    # **Aplique na CRIAÇÃO do PR**: `labeled` não está em
+    # `on.pull_request.types`, então label posto depois não redispara o
+    # CI e o job fica `skipping` — verde por omissão, que é pior que
+    # vermelho.
     name: Frontend visual snapshots (relatório nativo)
     runs-on: ubuntu-latest
     timeout-minutes: 25
