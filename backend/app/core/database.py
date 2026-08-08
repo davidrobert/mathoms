@@ -30,8 +30,12 @@ def _apply_sqlite_pragmas(dbapi_conn, _connection_record) -> None:
         cur.execute("PRAGMA journal_mode=WAL")
         cur.execute("PRAGMA synchronous=NORMAL")
         cur.execute(f"PRAGMA busy_timeout={_SQLITE_BUSY_TIMEOUT_MS}")
-        # foreign_keys intencionalmente fora do escopo deste fix — ligar
-        # expõe FK violations históricas em fixtures de teste. Tema separado.
+        # SQLite ignora todo `ON DELETE` sem este pragma. Com ele OFF, as FKs
+        # declaradas nos models eram decorativas e cada rotina de deleção tinha
+        # que reemular o grafo de FK à mão — foi assim que o expurgo de
+        # 2026-05-15 deixou 48 rows penduradas em `reports` /
+        # `planner_review_metadata` / `pipeline_run_costs` (ADR-371).
+        cur.execute("PRAGMA foreign_keys=ON")
     finally:
         cur.close()
 

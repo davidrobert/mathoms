@@ -23,6 +23,7 @@ from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.workspace import Workspace
 from backend.app.services.internal_ops.audit import AuditRecord, append_audit
 from backend.app.services.internal_ops.results import OpResult
+from backend.app.services.storage.artifact_references import referenced_artifact_ids_async
 from pipeline.stage_spec import (
     FULL_ORDER,
     resolve_stage_name,
@@ -44,23 +45,33 @@ def _cascade_stage_names(canonical_stage: str) -> list[str]:
     return sorted(set(descriptive) | set(legacy))
 
 
-async def _count_artifacts(db: AsyncSession, workspace_id: str, stages: list[str]) -> int:
+async def _artifact_ids(db: AsyncSession, workspace_id: str, stages: list[str]) -> list[int]:
     stmt = (
         select(PipelineArtifact.id)
         .where(PipelineArtifact.workspace_id == workspace_id)
         .where(PipelineArtifact.stage.in_(stages))
     )
-    rows = (await db.execute(stmt)).scalars().all()
-    return len(rows)
+    return list((await db.execute(stmt)).scalars().all())
 
 
-async def _execute_delete(db: AsyncSession, workspace_id: str, stages: list[str]) -> int:
-    stmt = (
-        delete(PipelineArtifact)
-        .where(PipelineArtifact.workspace_id == workspace_id)
-        .where(PipelineArtifact.stage.in_(stages))
+async def _split_by_reference(
+    db: AsyncSession, workspace_id: str, stages: list[str]
+) -> tuple[list[int], int]:
+    """`(deletáveis, preservados)`. Artefato referenciado por report / publicação
+    / parecer nunca entra no delete (ADR-371): `RESTRICT` abortaria o batch
+    inteiro e `SET NULL`/`CASCADE` destruiria o relatório antigo em silêncio."""
+    ids = await _artifact_ids(db, workspace_id, stages)
+    referenced = await referenced_artifact_ids_async(db)
+    deletable = [i for i in ids if i not in referenced]
+    return deletable, len(ids) - len(deletable)
+
+
+async def _execute_delete(db: AsyncSession, deletable_ids: list[int]) -> int:
+    if not deletable_ids:
+        return 0
+    result = await db.execute(
+        delete(PipelineArtifact).where(PipelineArtifact.id.in_(deletable_ids))
     )
-    result = await db.execute(stmt)
     await db.flush()
     return result.rowcount or 0
 
@@ -72,11 +83,13 @@ def _audit_reset(
     canonical_stage: str,
     stages_affected: list[str],
     deleted: int,
+    preserved: int,
 ) -> None:
     details = {
         "from_stage": canonical_stage,
         "stages_affected": stages_affected,
         "artifacts_deleted": deleted,
+        "artifacts_preserved_referenced": preserved,
     }
     record = AuditRecord(
         "pipeline.reset_from_stage", actor, "workspace", workspace_id, details=details
@@ -123,7 +136,8 @@ async def reset_workspace_from_stage(
         )
 
     stages_to_match = _cascade_stage_names(canonical_stage)
-    artifacts_affected = await _count_artifacts(db, workspace_id, stages_to_match)
+    deletable, preserved = await _split_by_reference(db, workspace_id, stages_to_match)
+    artifacts_affected = len(deletable)
     stages_descriptive = FULL_ORDER[FULL_ORDER.index(canonical_stage) :]
 
     if preview:
@@ -133,10 +147,11 @@ async def reset_workspace_from_stage(
             from_stage=canonical_stage,
             stages_affected=stages_descriptive,
             artifacts_affected=artifacts_affected,
+            artifacts_preserved_referenced=preserved,
         )
 
-    deleted = await _execute_delete(db, workspace_id, stages_to_match)
-    _audit_reset(db, actor, workspace_id, canonical_stage, stages_descriptive, deleted)
+    deleted = await _execute_delete(db, deletable)
+    _audit_reset(db, actor, workspace_id, canonical_stage, stages_descriptive, deleted, preserved)
     return OpResult.success(
         preview=False,
         workspace_id=workspace_id,
@@ -144,4 +159,5 @@ async def reset_workspace_from_stage(
         stages_affected=stages_descriptive,
         artifacts_affected=artifacts_affected,
         artifacts_deleted=deleted,
+        artifacts_preserved_referenced=preserved,
     )

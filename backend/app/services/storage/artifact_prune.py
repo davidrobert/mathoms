@@ -35,9 +35,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
-from backend.app.models.planner_review import PlannerReview
-from backend.app.models.report import Report
-from backend.app.models.report_publication import ReportPublication
+from backend.app.services.storage.artifact_references import referenced_artifact_ids
 from backend.app.services.storage.artifact_retention import ArtifactRetentionPolicy
 from backend.app.services.storage.artifact_tombstone import e2_tombstone_stage_names
 from pipeline.artifact_store import stage_aliases
@@ -160,20 +158,6 @@ def _rows_by_group(rows: Sequence[ArtifactMeta]) -> dict[_GroupKey, list[Artifac
     for members in groups.values():
         members.sort(key=lambda r: (r.created_at, r.id))
     return groups
-
-
-def referenced_artifact_ids(db: Session) -> frozenset[int]:
-    """Ids referenciados por reports / publicações / pareceres — nunca prunáveis."""
-    stmts = (
-        sa.select(Report.analysis_artifact_id).where(Report.analysis_artifact_id.is_not(None)),
-        sa.select(ReportPublication.artifact_id),
-        sa.select(PlannerReview.pipeline_artifact_id),
-        sa.select(PlannerReview.e5_artifact_id),
-    )
-    ids: set[int] = set()
-    for stmt in stmts:
-        ids.update(i for (i,) in db.execute(stmt) if i is not None)
-    return frozenset(ids)
 
 
 def mark_superseded_rows(db: Session, *, policy: ArtifactRetentionPolicy) -> int:

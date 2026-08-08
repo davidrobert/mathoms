@@ -12,7 +12,7 @@ from backend.app.services.internal_ops.audit import read_audit
 from backend.app.services.internal_ops.pipeline_reset import (
     reset_workspace_from_stage,
 )
-from backend.tests.factories import make_run, make_user, make_workspace
+from backend.tests.factories import make_report, make_run, make_user, make_workspace
 
 
 async def _make_artifact(db, *, run, stage: str, key: str) -> PipelineArtifact:
@@ -193,6 +193,63 @@ async def test_reset_matches_legacy_stage_rows_in_db(db) -> None:
     )
     assert remaining == []
     assert art_legacy.id is not None and art_descriptive.id is not None  # not None pre-delete
+
+
+async def _ws_com_relatorio_antigo(db):
+    """Workspace com E5 referenciado por report + 1 artefato solto no cascade."""
+    ws = await make_workspace(db, owner=await make_user(db))
+    run = await make_run(db, workspace=ws)
+    e5 = await _make_artifact(db, run=run, stage="analyze_finances", key="analise_financeira")
+    solto = await _make_artifact(db, run=run, stage="reconcile_transactions", key="itau")
+    report = await make_report(db, workspace=ws, pipeline_run=run, analysis_artifact_id=e5.id)
+    await db.commit()
+    return ws, e5, solto, report
+
+
+async def _ids_vivos(db, ws_id: str) -> set[int]:
+    stmt = select(PipelineArtifact).where(PipelineArtifact.workspace_id == ws_id)
+    return {r.id for r in await _scalars_all(db, stmt)}
+
+
+# Antes da guarda, reset a partir de `extract_baseline` apagava o E5 de **todos**
+# os runs históricos — em Postgres o `SET NULL` deixava o relatório antigo sem
+# análise (404 em `/reports/{id}/data`): perda de dado por ação de operador.
+@pytest.mark.asyncio
+async def test_reset_preserves_artifact_referenced_by_report(db) -> None:
+    """ADR-371: o E5 de um relatório antigo sobrevive ao reset do workspace."""
+    ws, e5, solto, report = await _ws_com_relatorio_antigo(db)
+
+    result = await reset_workspace_from_stage(
+        db, workspace_id=ws.id, from_stage="reconcile_transactions", actor="ops1", preview=False
+    )
+    await db.commit()
+
+    assert result.details["artifacts_deleted"] == 1  # só o `solto`
+    assert result.details["artifacts_preserved_referenced"] == 1
+    vivos = await _ids_vivos(db, ws.id)
+    assert e5.id in vivos and solto.id not in vivos
+    await db.refresh(report)
+    assert report.analysis_artifact_id == e5.id
+
+
+@pytest.mark.asyncio
+async def test_reset_preview_conta_preservados(db) -> None:
+    """A preview precisa dizer o que vai preservar — reset que preserva sem
+    avisar é a mesma classe de erro do purge que apaga sem avisar."""
+    user = await make_user(db)
+    ws = await make_workspace(db, owner=user)
+    run = await make_run(db, workspace=ws)
+    e5 = await _make_artifact(db, run=run, stage="analyze_finances", key="analise_financeira")
+    await make_report(db, workspace=ws, pipeline_run=run, analysis_artifact_id=e5.id)
+    await db.commit()
+
+    result = await reset_workspace_from_stage(
+        db, workspace_id=ws.id, from_stage="analyze_finances", actor="ops1", preview=True
+    )
+
+    assert result.ok
+    assert result.details["artifacts_affected"] == 0
+    assert result.details["artifacts_preserved_referenced"] == 1
 
 
 @pytest.mark.asyncio
