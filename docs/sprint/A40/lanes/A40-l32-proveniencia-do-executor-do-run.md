@@ -10,6 +10,7 @@ adrs:
   - "[[ADR-362]]"
   - "[[ADR-363]]"
   - "[[ADR-343]]"
+  - "[[ADR-371]]"
 depends_on: []
 tags:
   - type/lane
@@ -203,6 +204,20 @@ Todos por **medição**, com a mutação que os mata anotada:
 - **Coluna em `pipeline_runs`, tabela `run_executions`, backfill, bump de
   `SCHEMA_VERSION`, coluna per-artefato.** Rejeitados com medição na
   [[ADR-362]] §Alternativas rejeitadas.
+- **Snapshot de proveniência em `reports`.** Rejeitado na [[ADR-371]]
+  §Alternativas — é a mesma alternativa da [[ADR-362]] um nível acima, e não
+  sobrevive ao próprio propósito: quando o run é purgado, `pipeline_stage_logs`
+  vai junto, então guardar a string do run morto só permite dizer "foi o run X"
+  com X irresolúvel.
+
+> **Limite a declarar (2026-08-08, [[ADR-371]]).** O join
+> `report → pipeline_run_id → stage_logs.executor_revision` **só vale enquanto
+> o run existe**. No DB de dogfood, 16 relatórios têm `pipeline_run_id`
+> pendurado (expurgo de 2026-05-15) e para eles a pergunta "qual código
+> computou este run" é **irrespondível** — não por falta de instrumento, mas
+> porque o substrato foi deletado. A lane deve declarar esse limite em vez de
+> fabricar durabilidade, como a própria ADR-362 já faz para a camada
+> workspace-scoped (7/54 runs não atribuíveis).
 
 ## Prioridade: base honesta
 
