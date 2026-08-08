@@ -418,7 +418,13 @@ o último: o predicado antigo dizia `liberado` **hoje, no corpus real** — isto
 flip destrutivo com 1 de 5 overrides que ele não sabe julgar. Não era um risco teórico à
 espera de um workspace ruim; era o estado corrente do dogfood.
 
-#### O que ainda NÃO sabemos — medir antes de fechar o predicado do 3b
+#### ~~O que ainda NÃO sabemos — medir antes de fechar o predicado do 3b~~ → predicado FECHADO no PR3b; sobra o custo
+
+> ⚠️ **O que sobra deste bloco ficou MAIS urgente com o merge do 3b, não menos.** O gate
+> agora roda em **todo run** do E3 em produção ([[ADR-364]] §5), e o **custo por run continua
+> não medido** — o PR3b não o mediu. É o único item aberto aqui que já está pagando em
+> produção, e não tem dono declarado. Os dois abaixo seguem válidos como escrito; a
+> pergunta do predicado está resolvida (ver §RE-MEDIDO 2026-08-07).
 
 ~~**A adjudicação por hash está viva?**~~ — **medido acima em 2026-08-06.** O texto original dizia: Os "5 overrides julgáveis" da
 [[A40.l1]] significam "tem snapshot", **não** "tem âncora v2 que casa row do E3". Publicar
@@ -436,6 +442,20 @@ Também abertos: custo do gate por run (sha256 duplo sobre ~6,4k tx + SELECT na 
 do E3, que no SQLite compartilha write-lock) e **quantos workspaces têm `colapsaveis > 0`** — o
 mecanismo não é específico do dogfood, então tratar isto como número de dogfood **subestima a
 população**.
+
+**Estado dos dois em 2026-08-07, pós-3b:**
+
+| aberto | mudou com o 3b? |
+| --- | --- |
+| **custo do gate por run** | **sim, e para pior** — deixou de ser hipotético: o gate roda em produção a cada E3. O 3b acrescentou 2 `SELECT` em `transaction_overrides` na sessão de escrita do E3 (`_ativos` + `_quarentenados_atingidos`) e ~6 `gate_key_digest` por override ativo, sobre um corpus que no dogfood já é **5227 digests / 5560 row-hashes**. Não medido. **Medir antes do 3e**, junto do ensaio de rollback — é o run em que o custo passa a ter consequência |
+| quantos workspaces têm `colapsaveis > 0` | não — segue exatamente como escrito acima |
+
+**Removido no 3b, e o 3e precisa recriar:** a constante `_ACTION` do
+`collapse_precondition.py` (`"override.collapse_precondition"`) foi **deletada** — era
+resquício do desenho com `append_audit` por run, que o painel recusou, e estrutura órfã
+apodrece e depois é adotada errada ([[ADR-364]] §Decisão 3, aplicada ao próprio arquivo). O
+3e, que escreve **uma** row em `internal_ops_audit` quando o operador flippa a flag, define a
+ação **dele** — que é do flip, não da leitura, e portanto não deveria herdar este nome.
 
 ## Medição do PR1 contra o corpus real (2026-08-05) — a banda estava errada
 
@@ -896,8 +916,10 @@ construção. Por isso o aceite exige eixos que **não derivam da mesma chave**.
 
 ## Guarda anti-regressão
 
-Duas, e nenhuma é o vetor-golden de hash (que segue válido mas agora é trivial —
-o colapsador não toca hash):
+**Oito**, e nenhuma é o vetor-golden de hash (que segue válido mas agora é trivial —
+o colapsador não toca hash). A prosa dizia "Duas" enquanto a lista tinha cinco: contagem
+que não bate com o corpo é a mesma classe de defeito que esta lane persegue no código,
+e o PR3b acrescentou três.
 
 1. **Equivalência com o carrier da [[A40.l1]]:** todo candidato colapsável tem de
    ser `carrier-shaped` pela definição **única** de `carrier_signatures`, com as
@@ -920,6 +942,20 @@ o colapsador não toca hash):
 5. **Fiação da sombra** (`backend/tests/test_collapse_shadow_wiring.py`): 4 estados do
    predicado do store + flag em `DEFAULTS` **e** `OPERATOR_ONLY`. Flag fora de `DEFAULTS` faz
    `is_enabled_sync` devolver `False` **em silêncio** — o mesmo modo de falha uma camada acima.
+6. **AST na fiação do gate** (`test_collapse_shadow_wiring.py::test_main_with_store_chama_o_gate_e_anexa_ao_detail`,
+   PR3b): `main_with_store` **chama** `_e3_collapse_precondition` **e** o relatório entra no dict
+   que vira `output_summary`. Asserção sobre o service provaria o gate, não a **fiação** — e gate
+   escrito, testado em unidade e nunca chamado em produção é o defeito que esta sprint pagou na
+   [[A40.l20]]. **Irmã da guarda 3, e com o mesmo incentivo de deleção:** o PR do flip precisa
+   que o gate exista *e* seja alcançado; apagar esta guarda torna as duas coisas indistinguíveis.
+7. **Fail-loud dos dois leitores do candidato** (PR3b): `_alvos` acessa
+   `collapsible`/`gate_digest`/`survivor_hash` por **atributo** e `_e3_collapse_precondition` lê
+   `result.collapse_measurement` por atributo. Com `getattr(..., default)` — a forma anterior —
+   um rename dava `alvos = ∅ ⇒ hits = 0 ⇒ liberado=True` **em silêncio**, isto é, o gate
+   aprovava o flip destrutivo por ter deixado de saber ler o candidato. Precedente [[ADR-359]].
+8. **`evaluate()` sem default em `corpus_digests`** (PR3b): chamador que esquecesse o argumento
+   certificava vivacidade vazia. `test_evaluate_exige_corpus_digests` fica vermelho se o default
+   voltar.
 
 ## Achado adjacente medido no PR1 (não é escopo desta lane)
 
