@@ -172,6 +172,7 @@ jobs:
       pipeline: ${{ steps.filter.outputs.pipeline_any_changed }}
       pipeline_lib: ${{ steps.filter.outputs.pipeline_lib_any_changed }}
       any_code: ${{ steps.filter.outputs.any_code_any_changed }}
+      docs: ${{ steps.filter.outputs.docs_any_changed }}
       report: ${{ steps.filter.outputs.report_any_changed }}
       migration: ${{ steps.filter.outputs.migration_any_changed }}
       go: ${{ steps.filter.outputs.go_any_changed }}
@@ -284,6 +285,20 @@ jobs:
               - '!.claude/**'
               - '!_archive/**'
               - '!_scratch/**'
+            # Complemento exato das duas primeiras exclusões de `any_code`
+            # acima. Existe porque o vault tem 5+ gates de integridade
+            # (frontmatter, wikilinks, âncoras de ADR, sinal de emenda,
+            # `_generated` em sync) que vivem DENTRO do `pre-commit` e,
+            # portanto, dentro do `lint-all` — que era `if: any_code`, e
+            # `any_code` exclui `docs/**`. Resultado: em PR docs-only nada
+            # validava o vault, e wikilink quebrado ou `_generated`
+            # dessincronizado passava com `All checks green`.
+            # `*.md` (raiz), não `**/*.md`: espelha a exclusão de `any_code`,
+            # senão os 22 .md fora de `docs/` sairiam do lint-all e voltariam
+            # a cair no buraco pelo outro lado.
+            docs:
+              - 'docs/**'
+              - '*.md'
             # ⚠️ **`report` não gateia mais NADA — o output ficou sem
             # consumidor em 2026-08-08.** Este comentário descrevia os steps
             # de render dentro de `frontend-checks` (A40.l3 · ADR-306 D1), e
@@ -412,7 +427,11 @@ jobs:
     # Tighten 8→4min: observado 44s; 4min dá ~5× buffer e detecta hangs cedo.
     timeout-minutes: 4
     needs: changes
-    if: needs.changes.outputs.any_code == 'true'
+    # `|| docs` porque os gates do vault moram no `pre-commit` deste job e
+    # `any_code` exclui `docs/**` — ver o bloco `docs:` no filtro. Os steps
+    # todos são full-scan (`--all-files` / `always_run`), então rodar em PR
+    # docs-only não é desperdício: mede o repo inteiro, não o diff.
+    if: needs.changes.outputs.any_code == 'true' || needs.changes.outputs.docs == 'true'
     # actions: read + issues: read — o gate de liveness (ADR-210 §camada 4) lê
     # state/runs dos workflows agendados e a idade das Issues de alerta. Sem
     # elevar aqui o job herda `contents: read` do workflow e os demais escopos
@@ -486,9 +505,10 @@ jobs:
         # custaria 1 min faturado × ~900 runs/mês pelo arredondamento do GH,
         # que é exatamente o desperdício que a medição de 2026-07-30 achou.
         # Como step, custa ~2s do setup já pago.
-        # Consequência aceita: lint-all é `if: any_code == 'true'`, então PR
-        # docs-only não roda este gate — o cron diário em budget-alert.yml
-        # cobre esse resíduo (é lá que mora a detecção de repo parado).
+        # Resíduo fechado em 2026-08-08: o `if` do job passou a incluir
+        # `|| docs == 'true'`, então PR docs-only roda este gate também. O cron
+        # diário em budget-alert.yml continua sendo a rede para repo parado —
+        # PR nenhum roda quando ninguém abre PR.
         env:
           GH_TOKEN: ${{ github.token }}
           MATHOMS_PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
