@@ -715,19 +715,22 @@ jobs:
     # falha, type-check/Vitest não rodam).
     name: Frontend checks (ESLint + tsc + Vitest + report render)
     runs-on: ubuntu-latest
-    # Medido em 2026-08-08 (run 31255941106, PR que toca relatório): ESLint 10s ·
-    # tsc 22s · Vitest 3m31s · step de render 3m07s (43 testes: 41 passam, 2
-    # skipam declarados) · poppler 4s · npm ci 22s. Job inteiro 8m27s, dos quais
-    # 25s foram cache miss do Chromium — com hit, ~8m02s.
+    # Medido em 2026-08-08 (run 31257196485, cache HIT do Chromium): ESLint 9s ·
+    # tsc 22s · Vitest 3m12s · step de render 3m09s (44 testes: 42 passam, 2
+    # skipam declarados — `S4` e `APP_C`, ausentes da fixture `medium`) ·
+    # poppler 5s · npm ci 22s. Job inteiro **7m57s**. Com cache MISS do Chromium,
+    # +25s (medido no run 31255941106: 8m27s).
     #
-    # ATENÇÃO à margem: 8m27s contra o teto de 12min é ~30% de folga, abaixo dos
+    # ATENÇÃO à margem: 7m57s contra o teto de 12min é ~34% de folga, abaixo dos
     # ~40% que se considera confortável aqui. NÃO subir o teto por isso — o teto
-    # existe para pegar hang, e subi-lo para caber é esconder a erosão. O que
-    # cresceu não foi o render: o número anterior deste comentário (5m53s job /
-    # ~2min render / ~1m49s Vitest / ~43s ESLint) datava de antes do a11y entrar
-    # no step, e a comparação mostra que a maior parte do delta é **Vitest, que
-    # quase dobrou sozinho** (1m49s → 3m31s). O a11y respondeu por ~1min. Se a
-    # folga cair mais, o alvo de investigação é o Vitest, não este step.
+    # existe para pegar hang, e subi-lo para caber é esconder a erosão.
+    #
+    # De onde veio o crescimento: o número anterior deste comentário (5m53s job /
+    # ~2min render / ~1m49s Vitest / ~43s ESLint) datava de antes de `a11y` e
+    # `report-inventory` entrarem no step. Comparando, a maior parte do delta é
+    # **Vitest, que cresceu sozinho** (1m49s → 3m12s) sem que ninguém
+    # re-medisse — não é o render. Se a folga cair mais, o alvo de investigação
+    # é o Vitest.
     timeout-minutes: 12
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
