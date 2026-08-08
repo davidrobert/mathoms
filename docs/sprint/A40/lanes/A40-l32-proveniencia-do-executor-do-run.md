@@ -29,8 +29,9 @@ tags:
 > cláusula 2 do §Critério de admissão da A40: aquela governa achado **novo sem
 > dono**; esta lane já nasceu escrita, com ADR exigida e dono.
 
-> ✅ **F3 fechada em 2026-08-08 — PRs #1291 e #1297**, com uma regressão pelo
-> meio. A F3 shipou `executor_revision` dentro do dict `checks` do `/health` sem
+> ✅ **F3 entregue em 2026-08-05 (#1219, com #1220 e #1222 fechando achados de
+> auditoria) e saneada em 2026-08-08 (#1291, #1297)**, com uma regressão pelo
+> meio. O #1219 shipou `executor_revision` dentro do dict `checks` do `/health` sem
 > pô-lo no set `informational` que o agregado ignora: o valor é um sha de 12
 > chars ou `None`, nunca a string `"ok"`, então `status` virou `"degraded"` em
 > **toda** chamada — inclusive com Redis, Celery e DB sadios, e no CI via
@@ -46,6 +47,19 @@ tags:
 > `extra="allow"` **não filtra**, então o campo viajava ao cliente sem existir no
 > OpenAPI, e é agregado em `status` — quem visse `degraded` não achava a causa em
 > campo nenhum do contrato. Declarado + snapshot regenerado.
+>
+> ⚠️ **As 4 fases têm código em `main`, mas esta lane segue `status: open`**
+> (medido 2026-08-08): F0 em `dev/build_info.py` + preflight no Makefile · F1 na
+> migration `adr362execrev_executor_revision_stage_logs` + coluna no model · F2
+> com `executor_revision` no `MathomsJsonFormatter` e `run_meta` na skill de
+> review · F3 acima. **Enquanto ficar `open`, a lane aparece no
+> [`SPRINT_CURRENT`](../../../_MOC/_generated/SPRINT_CURRENT.md) como trabalho
+> pegável e outro agente a puxa achando que há
+> o que fazer.** Não flipei para `done` porque isso não é edição de doc: o
+> §Critério de aceite tem 9 itens **por medição** (anti-fabricação, atribuição de
+> crash, não-clobber, execução mista, largura da coluna em Postgres, degradação
+> sem a env, escopo não mente, delta de jobs, preflight morde) e existir código
+> não é o mesmo que critério verificado. Fechar a lane exige rodar essa medição.
 
 > **Origem:** pedido do dono em 2026-08-05 — "após rodar o pipeline do dogfood e
 > executar a `report-review`, não consigo identificar sobre qual versão do
