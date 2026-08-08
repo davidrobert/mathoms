@@ -35,6 +35,7 @@ import { dirname, join } from "node:path";
 import {
   mockReportPage,
   PARECER_ITENS_RETIDOS,
+  plannerReviewStub,
   waitForReportReady,
   type PlannerReviewFixture,
 } from "../helpers/mock-report";
@@ -66,7 +67,8 @@ const PROIBIDO_NO_PDF = [
 
 async function setupPrintReport(
   page: Page,
-  plannerReview: PlannerReviewFixture = "none",
+  /** Ausente = default do roteador (404 → empty state), como antes da A40.l22. */
+  plannerReview?: PlannerReviewFixture,
 ): Promise<void> {
   // Theme light é o padrão do PDF (impressão). Injeta antes de qualquer
   // navegação para evitar flash dark→light no PDF gerado.
@@ -74,7 +76,9 @@ async function setupPrintReport(
     localStorage.setItem("theme", "light");
   });
 
-  const { workspaceId, reportId } = await mockReportPage(page, { plannerReview });
+  const { workspaceId, reportId } = await mockReportPage(page, {
+    plannerReview: plannerReview ? plannerReviewStub(plannerReview) : undefined,
+  });
   await page.setViewportSize(VIEWPORT);
   await page.goto(`/reports/${reportId}?workspace=${workspaceId}&print=1`);
   await waitForReportReady(page);

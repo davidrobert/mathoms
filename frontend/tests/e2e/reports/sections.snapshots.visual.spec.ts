@@ -22,7 +22,11 @@
  * (em CI Linux, nunca local em macOS — pixel rendering diverge).
  */
 import { test, expect, type Page } from "@playwright/test";
-import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
+import {
+  mockReportPage,
+  plannerReviewStub,
+  waitForReportReady,
+} from "../helpers/mock-report";
 
 const VIEWPORT = { width: 1280, height: 800 };
 
@@ -141,7 +145,7 @@ test.describe("Snapshots — S_parecer degradado", () => {
       test(`S_parecer ${estado} — ${theme}`, async ({ page }) => {
         await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
         const { workspaceId, reportId } = await mockReportPage(page, {
-          plannerReview: estado,
+          plannerReview: plannerReviewStub(estado),
         });
         await page.setViewportSize(VIEWPORT);
         await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
