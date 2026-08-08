@@ -153,6 +153,7 @@ from pipeline.domain.services.previdencia_analyzer import (
 )
 from pipeline.domain.services.protecao_analyzer import FamilyMemberSnapshot
 from pipeline.domain.services.protecao_wiring import (
+    ProtecaoSources,
     compute_protecao_via_store,
     family_snapshots_from_config,
 )
@@ -709,10 +710,12 @@ class E5AnalyzerAdapter:
         #      identificada" só quando não há apólice vigente alguma).
         protecao = compute_protecao_via_store(
             store,
-            irpf_analyzer=irpf_analyzer,
-            patrimonio_full=patrimonio_full,
-            fluxo_legacy=fluxo_legacy,
-            fluxo_mensal_raw=fluxo_mensal,
+            ProtecaoSources(
+                irpf_analyzer=irpf_analyzer,
+                patrimonio_full=patrimonio_full,
+                fluxo_legacy=fluxo_legacy,
+                fluxo_mensal_raw=fluxo_mensal,
+            ),
             family_snapshots=self._family_snapshots,
             reference_date=self._reference_date,
             seguradoras_catalog=self._seguradoras_catalog,

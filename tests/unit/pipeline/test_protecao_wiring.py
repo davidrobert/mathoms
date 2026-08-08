@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.artifact_store import InMemoryArtifactStore  # noqa: E402
 from pipeline.domain.services.protecao_wiring import (  # noqa: E402
+    ProtecaoSources,
     build_fiscal_snapshot,
     build_patrimonio_snapshot,
     compute_protecao_via_store,
@@ -99,10 +100,10 @@ class TestComputeProtecaoViaStore:
     def _payload(self, store: InMemoryArtifactStore) -> dict:
         return compute_protecao_via_store(
             store,
-            irpf_analyzer=None,
-            patrimonio_full={"liquido": 1_000_000, "dividas": 50_000},
-            fluxo_legacy={"janela_12m": {"receita_recorrente_mensal": 20_000}},
-            fluxo_mensal_raw={},
+            ProtecaoSources(
+                patrimonio_full={"liquido": 1_000_000, "dividas": 50_000},
+                fluxo_legacy={"janela_12m": {"receita_recorrente_mensal": 20_000}},
+            ),
             family_snapshots=(),
             reference_date=_REF,
         )
