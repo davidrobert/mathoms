@@ -36,10 +36,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | domain-rule | (sem status) | 13 |
 | lane | blocked | 8 |
 | lane | cancelled | 2 |
-| lane | in_progress | 7 |
+| lane | in_progress | 6 |
 | lane | open | 12 |
 | lane | planned | 52 |
-| lane | shipped | 225 |
+| lane | shipped | 226 |
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 35 |
 | plan | done | 4 |

@@ -362,9 +362,14 @@ incidente expôs: contrato de criticidade de stage, `partial_failure` alcançáv
 o retido declarado na tela. É a §Frente 4 de [[PLAN-report-trust]] — leia lá a
 tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 
-> **Estado da Onda 3 em 2026-08-06.** [[A40.l21]] ✅ `c8239386` (#1232) ·
-> [[A40.l19]] ✅ `c9688111` (#1241) · [[A40.l18]] **PR1** ✅ `4620cc04` (#1242),
-> **PR2 (o writer) pendente** · [[A40.l20]] e [[A40.l22]] não iniciadas.
+> **Estado da Onda 3 — atualizado em 2026-08-08.** [[A40.l21]] ✅ `c8239386`
+> (#1232) · [[A40.l19]] ✅ `c9688111` (#1241) · [[A40.l18]] ✅ **PR1** `4620cc04`
+> (#1242) + **PR2** `b8460274` (#1258) · [[A40.l20]] **PR1** ✅ `0301f7a0`
+> (#1250), **PR2 (o wire-up no orquestrador) pendente** · [[A40.l22]] ✅ #1277,
+> `shipped` com resíduo declarado (perna de PDF parcial por defeito
+> pré-existente do export + teste com humano owner-gated — ver o blockquote da
+> lane). **A l20 é agora a única da Onda 3 não terminal**, e o flip da
+> [[ADR-366]] para `Decidido` é do PR2 dela.
 > A l19 subiu de posição na execução por ser **pré-condição dura** do PR2 da
 > l18 (`degraded` precisa existir no tipo do DB antes de qualquer `INSERT`), e o
 > gate que ela trouxe usa direção-subconjunto, o que tornou a ordem
