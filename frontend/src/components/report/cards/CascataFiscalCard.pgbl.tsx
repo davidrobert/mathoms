@@ -71,10 +71,12 @@ function SimplificadaFlag() {
   return (
     <div
       role="note"
-      className="flex items-start gap-2 rounded-md border-l-4 border-[var(--semantic-warning)] bg-[color-mix(in_srgb,var(--semantic-warning)_10%,transparent)] p-3 text-xs leading-relaxed"
+      className="flex items-start gap-2 rounded-md border-l-4 border-[var(--semantic-alert)] bg-[color-mix(in_srgb,var(--semantic-alert)_10%,transparent)] p-3 text-xs leading-relaxed"
     >
+      {/* Ícone sobre o tint da própria cor: 1.4.11 pede 3:1 e a base dava
+          1,93:1 em light. Ver nota igual em ProvenancePopover. */}
       <AlertTriangle
-        className="mt-0.5 h-4 w-4 shrink-0 text-[var(--semantic-warning)]"
+        className="mt-0.5 h-4 w-4 shrink-0 text-[var(--semantic-alert-on-tint)]"
         aria-hidden="true"
       />
       <p>

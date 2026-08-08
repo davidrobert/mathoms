@@ -238,7 +238,10 @@ describe("popover N2 — needs_review", () => {
     );
     const wrapper = band.closest("[data-provenance-needs-review]") as HTMLElement;
     expect(wrapper).not.toBeNull();
-    expect(wrapper.className).toContain("var(--semantic-warning)");
+    // `--semantic-alert` é o mesmo hex de `--semantic-warning`; o call-site foi
+    // normalizado para o trio canônico gain/loss/alert para o gate de contraste
+    // conseguir parear fundo↔texto por nome (dev/check_tint_contrast.py).
+    expect(wrapper.className).toContain("var(--semantic-alert)");
     expect(wrapper.querySelector("svg")).not.toBeNull();
   });
 });

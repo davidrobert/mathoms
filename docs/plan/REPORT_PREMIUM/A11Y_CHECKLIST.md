@@ -31,12 +31,17 @@ nesta tabela porque nenhuma seção tem regra específica.
 
 ## Cobertura automática (gates ativos em `main`)
 
-| Gate | Cobre | Onde | Severidade |
+A coluna **Bloqueia merge?** é o que importa: `@critical` no nome do
+arquivo não é gate — gate é estar num job que `all-green` exige. Medido em
+2026-08-08.
+
+| Gate | Cobre | Onde | Bloqueia merge? |
 |---|---|---|---|
-| `axe-core` por seção | 1.4.3 (parcial), 4.1.2 | [a11y.@critical.spec.ts](../../../frontend/tests/e2e/reports/a11y.@critical.spec.ts) | `critical+serious` (D1) |
-| Tab-order escopado a `[data-report-scope]` | 2.1.1, 2.4.3, 4.1.2 | [tab-order.@critical.spec.ts](../../../frontend/tests/e2e/reports/tab-order.@critical.spec.ts) | `@critical` (PR-blocking) |
-| Lighthouse CI (categoria `accessibility`) | 1.4.3, 2.4.7, 4.1.2 (mistura) | [lighthouserc.cjs](../../../frontend/lighthouserc.cjs) + job `frontend-lighthouse` | `error` em score < 0.95 (D2) |
-| Snapshots visuais por seção × tema | regressão estrutural light/dark (não substitui revisão humana de contraste em estados) | [sections.snapshots.visual.spec.ts](../../../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts) + job `frontend-visual` (opt-in) — ops em [REPORT_VISUAL_SNAPSHOTS.md](VISUAL_SNAPSHOTS.md) | `maxDiffPixels: 200` por seção |
+| `axe-core` por seção | 1.4.3 (parcial, só light), 4.1.2 | [a11y.@critical.spec.ts](../../../frontend/tests/e2e/reports/a11y.@critical.spec.ts) — step `Report render gate` de `frontend-checks` | **Sim** — `critical+serious` (D1) |
+| Contraste de texto sobre tint, por token | 1.4.3 no par (cor de texto, tint de fundo), sem depender de render | [cascataFiscalContrast.test.ts](../../../frontend/tests/components/report/cascataFiscalContrast.test.ts) + [parecerToneContrast.test.ts](../../../frontend/tests/components/report/parecerToneContrast.test.ts) — Vitest em `frontend-checks` | **Sim** — ≥ 4,5:1 |
+| Tab-order escopado a `[data-report-scope]` | 2.1.1, 2.4.3, 4.1.2 | [tab-order.@critical.spec.ts](../../../frontend/tests/e2e/reports/tab-order.@critical.spec.ts) | **Não** — só roda em `frontend-e2e`, que é opt-in por label `e2e` e está fora de `all-green.needs` |
+| Lighthouse CI (categoria `accessibility`) | 1.4.3, 2.4.7, 4.1.2 (mistura) | [lighthouserc.cjs](../../../frontend/lighthouserc.cjs) + job `frontend-lighthouse` | **Não** — o job migrou para `nightly.yml`, e o workflow `Nightly` está `disabled_manually`. Gate morto. |
+| Snapshots visuais por seção × tema | regressão estrutural light/dark (não substitui revisão humana de contraste em estados) | [sections.snapshots.visual.spec.ts](../../../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts) + job `frontend-visual` — ops em [REPORT_VISUAL_SNAPSHOTS.md](VISUAL_SNAPSHOTS.md) | **Não** — opt-in por label `visual` |
 | Gate empírico (one-shot) | meta-validação dos gates acima | [REPORT_A11Y_GATE_PROOF.md](A11Y_GATE_PROOF.md) | manual, 2026-04-25 |
 
 **O que NÃO está coberto automaticamente** (vai pra "checklist humano"):
@@ -50,6 +55,21 @@ nesta tabela porque nenhuma seção tem regra específica.
   WCAG diretamente.
 - Drag & drop do Kanban com teclado (T3) — comportamento que axe não
   detecta.
+- **Tema dark nas varreduras de seção.** O `a11y.@critical.spec.ts` injeta
+  tema só no bloco de `S_parecer`; as varreduras de página inteira e por
+  seção medem **light**. Uma violação que só exista no dark passa. Exemplo
+  vivo medido em 2026-08-08: `--semantic-loss` como texto sobre o próprio
+  tint de 15% dá 4,36:1 no dark (reprova) e 5,01:1 no light (passa) —
+  invisível para este gate.
+- **Combinação que a fixture `medium` não produz.** O gate mede o que
+  renderiza, e a fixture fixa um valor por campo. O badge Fator-R só sai
+  como `anexo_iii`; o branch `anexo_v` — que era o pior, 1,86:1 — nunca
+  foi varrido. É por isso que contraste sobre tint ganhou gate **por
+  token** (linha 2 da tabela acima) em vez de depender do axe: aquele
+  mede o par de cores, não a tela, e não tem como passar por ausência do
+  caso. Seções que a fixture não monta estão declaradas em
+  `SECTIONS_NOT_IN_MEDIUM_FIXTURE` (hoje `S4` e `APP_C`) — qualquer outra
+  que suma vira falha, não skip.
 
 ---
 

@@ -70,25 +70,33 @@ const SEVERITY_BAR_COLOR: Record<SeverityLevel, string> = {
   neutro: "var(--surface-muted-foreground)",
 };
 
+// `atencao` usa o par `-on-tint` mesmo sem tint aqui: o âmbar base sobre o card
+// branco dá 2,06:1 nestes 14px — o pior contraste do relatório, e era esta a
+// violação de S3. O par é só a variante legível da mesma cor, então serve nos
+// dois fundos. Os outros 3 membros passam com a cor base; `rebalancear` dá 6,47
+// light / 5,44 dark e fica como está — trocar seria mudança visual sem defeito.
 const SEVERITY_TEXT_CLASS: Record<SeverityLevel, string> = {
   alinhado: "text-[var(--surface-foreground)]",
-  atencao: "text-[var(--semantic-warning)]",
+  atencao: "text-[var(--semantic-alert-on-tint)]",
   rebalancear: "text-[var(--semantic-danger)]",
   neutro: "text-[var(--surface-muted-foreground)]",
 };
 
+// Texto sobre tint da própria cor — mesmo padrão dos badges em className, só que
+// por `style` inline. Na cor base dava 4,27:1 (alinhado, light), 1,87:1
+// (atencao, light) e 4,44:1 (rebalancear, dark).
 const BADGE_COLOR: Record<BadgeSeverity, { bg: string; fg: string }> = {
   alinhado: {
     bg: "color-mix(in srgb, var(--semantic-success) 12%, var(--surface-card))",
-    fg: "var(--semantic-success)",
+    fg: "var(--semantic-gain-on-tint)",
   },
   atencao: {
     bg: "color-mix(in srgb, var(--semantic-warning) 14%, var(--surface-card))",
-    fg: "var(--semantic-warning)",
+    fg: "var(--semantic-alert-on-tint)",
   },
   rebalancear: {
     bg: "color-mix(in srgb, var(--semantic-danger) 14%, var(--surface-card))",
-    fg: "var(--semantic-danger)",
+    fg: "var(--semantic-loss-on-tint)",
   },
   sem_alvo: {
     bg: "var(--surface-muted)",

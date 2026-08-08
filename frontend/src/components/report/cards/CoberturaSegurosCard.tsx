@@ -85,20 +85,20 @@ function deriveValidityRange(items: ProtectionItem[]): string | null {
 function StatusBadge({ status }: { status: RowStatus }) {
   if (status === "contracted") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--semantic-gain)]" aria-label="Contratado">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--semantic-gain-on-tint)]" aria-label="Contratado">
         <Check className="h-3 w-3" aria-hidden="true" /> Contratado
       </span>
     );
   }
   if (status === "partial") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--semantic-warning)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--semantic-warning)]" aria-label="Parcial">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--semantic-alert-on-tint)]" aria-label="Parcial">
         <CircleDashed className="h-3 w-3" aria-hidden="true" /> Parcial
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--semantic-loss)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--semantic-loss)]" aria-label="Ausente">
+    <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--semantic-loss)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--semantic-loss-on-tint)]" aria-label="Ausente">
       <X className="h-3 w-3" aria-hidden="true" /> Ausente
     </span>
   );
