@@ -769,8 +769,14 @@ jobs:
       # `all-green.needs` — vermelho lá não impede merge, e ficou skipped em
       # 12/12 runs recentes. Label delega gate a memória humana; path filter,
       # não. Classe distinta do que ADR-210 tirou do PR: sem baseline de pixel e
-      # sem Postgres/Redis/Celery — fixture mockada, 8 testes (contagem medida
-      # com `npx playwright test <spec> --project=chromium --list`, não estimada).
+      # sem Postgres/Redis/Celery — fixture mockada.
+      #
+      # Contagem NÃO fica fixada aqui: a seleção passou a ser diretório + tag
+      # (ver o step de render abaixo), então o número muda a cada spec novo — e
+      # é justamente isso que se quer. `--list` também não serve para medi-la:
+      # não enxerga `test.skip` condicional, e vários destes specs pulam por
+      # seção ausente na fixture. Medido em runtime em 2026-08-08: 11 arquivos,
+      # 56 testes selecionados, 1 skip declarado.
       - name: Cache Playwright Chromium (report render)
         id: pw-cache-report
         uses: actions/cache@v4
@@ -792,7 +798,7 @@ jobs:
         # seria verde sobre um PDF que ninguém mediu.
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
 
-      - name: Report render gate (janela canônica + parecer + inventário + a11y — tela + print)
+      - name: Report render gate (todo @critical de tests/e2e/reports — tela + print)
         # SEM `if: needs.changes.outputs.report` — aqui e nos 3 steps de setup
         # acima (cache/install do Chromium, poppler). O filtro `report` é
         # allowlist positiva e **falha aberta**: medido em 400 commits de `main`
@@ -819,33 +825,47 @@ jobs:
           # `npm run build && npm run start` (o `prebuild` chama o MESMO codegen,
           # e o build completo custa mais que o próprio gate).
           PLAYWRIGHT_WEB_SERVER_COMMAND: npx next dev --turbopack
-        # A40.l22 acrescenta `parecer-degradacao`: a superfície de print só é
-        # assertável em browser real, e o label `e2e` estava skipped em 12/12
-        # runs recentes — mesmo argumento da A40.l3 para este step existir.
-        # `print-chrome` entra pelo mesmo motivo: o gate de pixel do PDF é
-        # opt-in por label e comparava contra uma baseline que era um crash.
-        # `print-text` mede o PDF de fato (camada de texto via `pdftotext`), e
-        # não o DOM sob `emulateMedia`: a truncagem de 2026-08-07 passava verde
-        # no DOM. Os dois são complementares — `print-chrome` cobre o que NÃO
-        # pode sair no arquivo, `print-text` o que TEM de sair.
-        # `a11y` entra pelo mesmo argumento das anteriores, com um agravante: era
-        # `@critical` e não rodava em job NENHUM (só o Lighthouse cita a11y nos
-        # workflows), então as 3 falhas que ele carregava — 2 de fixture e 1
-        # violação real de contraste em S8 — viviam invisíveis. Mesmo modo de
-        # falha que o #1281 corrigiu no `planner-review-smoke`.
+        # SELEÇÃO POR DIRETÓRIO + TAG, não por allowlist enumerada. A lista
+        # explícita que existia aqui era o 4º remendo (A40.l3 abriu com 1 spec;
+        # A40.l22 somou 3; depois veio o `a11y`) e falhava aberta pela mesma
+        # razão que o filtro de path acima: spec novo em `tests/e2e/reports/`
+        # nascia FORA do gate, em silêncio. Medido em 2026-08-08, o custo dessa
+        # direção já tinha vencido — 6 specs `@critical` viviam ali sem rodar em
+        # job nenhum que bloqueasse merge, e 3 delas estavam quebradas há
+        # semanas por refactors que já haviam mergeado (`receita-despesa-chart`,
+        # `tab-order`, `a11y`). Mesmo argumento do §dev_tools deste arquivo: a
+        # DIREÇÃO do erro importa. Aqui o gate falha FECHADO — spec novo entra
+        # sozinho, e quem quiser ficar de fora precisa dizer por quê abaixo.
+        #
+        # `--grep` casa contra o path relativo ao `testDir` (`reports/x.spec.ts`)
+        # somado aos títulos, e é o mesmo mecanismo que os projects firefox/webkit
+        # já usam para o subconjunto crítico. `@critical` vive no NOME do arquivo
+        # neste repo, então a tag basta.
+        #
+        # Exclusão única, e ela é da mesma família do `--grep`: se o path mudar e
+        # a regex parar de casar, `print.@critical` volta a RODAR (vermelho
+        # barulhento), não some em silêncio.
+        #  · `print.@critical` — baseline de pixel do PDF, OS-específica
+        #    (font rendering do Chromium difere por OS) e regenerável só por
+        #    `workflow_dispatch`. Tem job próprio, `frontend-print-visual`,
+        #    opt-in por label `print`. Rodá-la aqui exigiria tratar este job
+        #    como dono da baseline. `print-chrome` e `print-text` continuam
+        #    DENTRO: medem conteúdo do PDF, não pixel, e não dependem de OS.
+        #
+        # `@critical` no nome do arquivo descreve INTENÇÃO, não gate — gate é
+        # estar num job que `all-green` exige. Mesmo modo de falha que o #1281
+        # corrigiu no `planner-review-smoke` e que o #1309 corrigiu no `a11y`.
+        # Selecionar pelo diretório é o que faz as duas coisas coincidirem.
+        #
         # Invocação única de propósito: o Playwright não para no primeiro erro
         # (não há `-x`/`maxFailures`), o reporter `github` anota por teste e o
         # junit sai no upload de falha — então os sinais já são independentes.
         # Um step separado só acrescentaria um 2º boot de webServer e disputa
         # pela porta 3000 (`reuseExistingServer: false` em CI).
         run: |
-          npx playwright test \
-            tests/e2e/reports/janela-canonica.@critical.spec.ts \
-            tests/e2e/reports/parecer-degradacao.@critical.spec.ts \
-            tests/e2e/reports/print-chrome.@critical.spec.ts \
-            tests/e2e/reports/print-text.@critical.spec.ts \
-            tests/e2e/reports/report-inventory.@critical.spec.ts \
-            tests/e2e/reports/a11y.@critical.spec.ts \
+          npx playwright test tests/e2e/reports/ \
+            --grep @critical \
+            --grep-invert 'reports/print\.@critical\.spec\.ts' \
             --project=chromium
 
       - name: Upload results (only on failure)
