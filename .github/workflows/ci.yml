@@ -749,7 +749,9 @@ jobs:
     name: Frontend checks (ESLint + tsc + Vitest + report render)
     runs-on: ubuntu-latest
     # Medido em 2026-08-08 (run 31258270516, cache MISS do Chromium): ESLint 9s ·
-    # tsc 22s · Vitest 3m29s · install do Chromium 25s · poppler 4s · npm ci 22s ·
+    # tsc 22s · Vitest 3m29s (ponto único; a mediana de 121 runs é 3m22s, com
+    # p25–p75 de 3m11s–3m30s — ver o bloco do Vitest abaixo antes de ler este
+    # número como tendência) · install do Chromium 25s · poppler 4s · npm ci 22s ·
     # step de render 3m53s (56 testes: 54 passam, 2 skipam declarados — `S4` e
     # `APP_C`, ausentes da fixture `medium`). Job inteiro **9m09s**; com cache
     # HIT, ~8m44s.
@@ -765,10 +767,73 @@ jobs:
     #    seleção passou de allowlist para diretório + tag, de 44 para 56 testes.
     #    Custo por teste caiu (4,3s → 4,2s): o gate ficou mais barato por unidade
     #    de cobertura, não mais caro.
-    #  · **Vitest +17s (3m12s → 3m29s) entre dois runs do MESMO dia**, sem
-    #    mudança que o explique. É a terceira medição seguida em que ele cresce
-    #    sozinho (1m49s → 3m12s → 3m29s) e já é o step mais caro do job. Se a
-    #    folga cair mais, o alvo de investigação é o Vitest, não este step.
+    #
+    # ── Vitest: o "+17s no mesmo dia" NÃO era sinal (investigado 2026-08-08) ──
+    # Este ledger afirmou que o Vitest era "a terceira medição seguida em que
+    # cresce sozinho (1m49s → 3m12s → 3m29s)". As três afirmações embutidas aí
+    # são falsas, e a série medida pela API mostra por quê.
+    #
+    # Amostra: TODOS os steps `Run Vitest` deste job em 160 runs de CI, filtrados
+    # para `success/success` (n=121, 2026-07-31 a 2026-08-08). Filtrar importa:
+    # 39 dos 40 descartados são `cancelled` — `cancel-in-progress` corta o step
+    # no meio e o deixa com 36s/51s/125s. Comparar um step cancelado com um
+    # completo mede nada, e é o que produz "queda" ou "salto" fantasma.
+    #  · mediana **202s**, p25 191s, p75 210s, min 120s, max 221s;
+    #  · o spread DENTRO de um único dia chega a **83s** (2026-08-08, n=67).
+    # Logo 3m12s (192s, ~p27) e 3m29s (209s, ~p70) são dois sorteios ordinários
+    # da mesma distribuição. O delta de +17s é ~1/5 do ruído do próprio dia.
+    #
+    #  1. "terceira medição seguida crescendo" — a sequência real deste ledger é
+    #     3m31s (run 31255941106, 11:53) → 3m12s (12:27) → 3m29s (12:55). Ele
+    #     DIMINUIU antes de subir; a série monótona saiu de escolher 3 pontos e
+    #     ignorar o 3m31s que o próprio ledger tinha escrito 90 min antes.
+    #  2. "1m49s" não era a linha de base recente. Entrou em f70dc77b/#297 em
+    #     **2026-05-16** como observação sem run citado, e foi copiada verbatim
+    #     por cada reescrita seguinte sem re-medição — 12 semanas de intervalo
+    #     apresentadas como se fossem o passo anterior. Medido na API, o Vitest
+    #     em 2026-05-20 ficava em 75–138s (mediana 129s, n=11).
+    #  3. "já é o step mais caro do job" — na média sim (Vitest 202s × render
+    #     148s em 30 runs), mas era falso no run aqui citado: 31258270516 teve
+    #     render 3m53s > Vitest 3m29s.
+    #
+    # O crescimento real (129s em maio → 202s hoje) é de 12 semanas, e é
+    # contagem de ARQUIVO, não de teste:
+    #  · arquivos que o Vitest roda: **102 → 153 (+50%)**;
+    #  · custo por arquivo: **1,26s → 1,32s** — praticamente constante;
+    #  · projeção só por contagem: 129s × 153/102 = **194s** contra 202s medidos.
+    # Ou seja, ~92% do delta é o número de arquivos; nada ficou mais lento por
+    # unidade de trabalho.
+    #
+    # O mecanismo é overhead FIXO por arquivo, medido localmente (10 cores,
+    # 153 arquivos / 1675 testes, 22,8s wall / ~190 CPU-s):
+    #     environment 57,0s · setup 43,3s · collect 31,6s · prepare 8,7s
+    #     transform 4,2s  |  execução dos testes: apenas **45,5s (24%)**
+    # São ~700–840ms de CPU por arquivo ANTES de qualquer teste rodar: cada
+    # arquivo monta um jsdom próprio (~350ms) e re-executa `tests/setup.ts`
+    # inteiro (~280ms: jest-dom, MSW, os `vi.mock` de next-intl/react-chartjs-2/
+    # WorkspaceProvider). Curva medida em N = 10/20/40/80/120/152 arquivos: o
+    # custo é linear em N com esse coeficiente. **Preço marginal de um arquivo
+    # de teste novo neste job: ~1,3s de wall-clock de CI, mesmo vazio.**
+    #
+    # Por que 3m22s (mediana) fica como custo legítimo em vez de "voltar para
+    # ~2min": os dois levers foram medidos e nenhum entrega isso hoje.
+    #  · `isolate: false` (reusaria o ambiente por worker — o lever grande):
+    #    **hangea**, >9min sem terminar. O setup global tem estado que não
+    #    sobrevive a compartilhar ambiente entre arquivos. Não é config-flip.
+    #  · `environment: "node"` nos ~45 arquivos sem JSX: hoje **quebra 30/30**
+    #    em `tests/lib/` porque `tests/setup.ts` toca `window.matchMedia` e
+    #    `Element.prototype` sem guarda. Guardando o setup, o ganho medido é
+    #    ~10,4 CPU-s de jsdom (~5% do total, ~10s de CI). Real, mas não fecha
+    #    os ~80s que faltariam para 2min.
+    # Nada disso é anti-padrão que `dev/check_test_health.py` (ADR-210) deixou
+    # passar: aquele gate varre `test_*.py` e nunca olhou para o Vitest. E
+    # dividir teste em mais arquivos é boa prática que por acaso custa CI —
+    # gate errado para o problema. O que falta é orçamento visível, não trava.
+    #
+    # Regra prática, então: a folga de 12min se paga em ~1,3s por arquivo de
+    # teste de frontend. Re-meça pela mediana de ≥10 runs `success/success` (a
+    # API expõe step a step), nunca por dois runs isolados — com p25–p75 de
+    # 191–210s, qualquer par de pontos "prova" o movimento que se quiser.
     timeout-minutes: 12
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
