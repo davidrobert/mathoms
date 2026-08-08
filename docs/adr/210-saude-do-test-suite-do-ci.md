@@ -462,9 +462,15 @@ a Camada 1 (`frontend-visual-full` em nightly, janela ≤24h + issue automática
 a Camada 2 (`main-smoke`, que substituiu o `push: main` removido do `ci.yml`)
 prometem **não existe desde 2026-06-15**: o workflow `Nightly` está
 `disabled_manually`, com os últimos runs agendados em failure em 2026-06-14/15.
-`ci.yml:36-37` continua afirmando por escrito que o `main-smoke` cobre o drift.
-Ou o owner reabilita **apenas** o cron diário `30 5 * * *` (~84 min/mês), ou a
-ADR e o comentário param de alegar cobertura. Reabilitar o nightly inteiro
+Os comentários do `ci.yml` continuavam afirmando a cobertura por escrito; essa
+metade foi executada em 2026-08-08 (#1293 no bloco `on:` e no job
+`frontend-visual`, #1300 no filtro `report:` do job `changes`) e o
+`PULL_REQUEST_TEMPLATE.md` saiu junto — nenhum texto do repo alega mais
+auto-trigger do gate visual. **A metade do owner segue aberta:** reabilitar
+**apenas** o cron diário `30 5 * * *` (~84 min/mês). Enquanto isso, a cobertura
+de pixel do relatório existe só nos PRs que lembrarem do label `visual` —
+custo medido em 2026-08-07: 10 baselines de seção driftaram ~2-3 meses sem
+sinal (#1290). Reabilitar o nightly inteiro
 (~480 min/mês, +24%) não é recomendado: entrega janela de até 24h para um defeito
 que o gate de PR pega em 2 min. Registrado como follow-up owner-gated em
 `docs/sprint/A40/lanes/A40-l3-janela-canonica-fluxo.md`.

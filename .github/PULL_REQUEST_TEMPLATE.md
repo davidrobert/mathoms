@@ -52,10 +52,13 @@ N/A.
   `frontend/src/app/reports/**`, `config/report_layout.yaml`,
   `design-tokens/**`, ou fixtures/specs do relatório. Histórico de
   regressão pós-merge (#147, #148, #150, #151) levou a este gate.
-  CI auto-trigger do `frontend-visual` em paths do relatório cobre
-  o pixel-diff; este checklist cobre o que o pixel não pega.
+  O pixel-diff **não roda sozinho**: a ADR-210 §camada 1 tirou o
+  auto-trigger por path, e desde 2026-06-15 o nightly que compensava
+  está `disabled_manually`. Sem o label, este checklist é a única
+  cobertura do relatório neste PR.
 -->
-- [ ] Job `frontend-visual` rodou e está verde (auto-trigger em paths do relatório). Falhou? Diff baixado em `report-visual-snapshots`, baseline atualizada via `gh workflow run CI -f run_visual=true -f update_visual_baselines=true` se a mudança é intencional.
+- [ ] Apliquei o label `visual` **na criação do PR** (posto depois, `labeled` não está em `on.pull_request.types`: o CI não redispara e o job fica `skipping` — verde por omissão).
+- [ ] Job `frontend-visual` rodou e está verde. Falhou? Diff baixado em `report-visual-snapshots`, baseline atualizada via `gh workflow run CI -f run_visual=true -f update_visual_baselines=true` se a mudança é intencional.
 - [ ] Mudança visível em UI? Invoquei o subagente `product-designer` para revisar copy / hierarquia / densidade / tokens (`Agent(subagent_type="product-designer", …)`). Justificativa caso N/A:
 - [ ] Validei manualmente em **light + dark** com pelo menos uma das fixtures de variância: `medium`, `long-strings`, `large-values`, `sparse-data` (`frontend/tests/e2e/fixtures/reports/`).
 - [ ] Não usei hex literal — toda cor via `var(--brand-*)` / `var(--surface-*)` / `var(--semantic-*)`.
