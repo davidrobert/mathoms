@@ -4,7 +4,7 @@ type: adr
 title: "Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma"
 status: Decidido
 date: "2026-08-08"
-relates_to: ["[[ADR-076]]", "[[ADR-117]]", "[[ADR-143]]"]
+relates_to: ["[[ADR-076]]", "[[ADR-117]]", "[[ADR-143]]", "[[ADR-236]]"]
 tags:
   - type/adr
   - status/decidido
@@ -106,6 +106,16 @@ Perde-se a localização por seção no vermelho. Detalhe e limites em
 nomes independentes para a mesma cor — duplicação que precede esta ADR. Expressar
 o par como `var(--semantic-alert-on-tint)` exigiria resolver indireção `var()`
 no gate e nos dois testes de token. Fica para quando houver segundo motivo.
+
+**Os valores de D1 são AA (4,5:1), e há uma decisão AAA em aberto sobre eles.**
+A [[ADR-236]] pede "UI A11y AAA" para o `<CascataFiscalCard/>`; a emenda de
+2026-08-08 daquela ADR mediu e registrou que o critério **nunca foi verificado**
+(o helper do `axe` monta `withTags` até `wcag21aa`, então a regra de 7:1 não
+roda) e que os 4 pares do badge Fator-R passam AA e reprovam AAA (5,60–6,21:1).
+Uma das duas saídas propostas lá é **recalibrar os tokens `-on-tint` para ≥ 7:1**
+— o que mudaria D1 desta ADR e alcançaria os 18 call-sites, não só aquele card.
+Enquanto a decisão não sai (dono: `product-designer`), o limiar canônico do par
+`-on-tint` é **AA**, e é isso que os três mecanismos medem.
 
 **Custo por call-site novo:** quem escrever badge com tint precisa lembrar do
 par. Mitigado por três caminhos — a regra no §Design System do `CLAUDE.md`, a
