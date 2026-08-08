@@ -15,6 +15,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 
 import { SParecerSection } from "@/components/report/sections/SParecer";
 import type { PlannerReviewResponse } from "@/lib/api";
+import { DELIMITACAO_DE_DANO } from "@/lib/parecerAusenciaCopy";
 import { server } from "../mocks/server";
 
 const API = "/api/v1";
@@ -320,19 +321,33 @@ describe("<SParecerSection /> @ADR-199", () => {
     ).toBeInTheDocument();
   });
 
-  // Uma copy POR código (A40.l22). Sem asserção por código, colapsar as 4 num
-  // texto só passa verde — e foi exatamente assim que a copy de "ainda não
-  // gerado" acabou servindo o caso premium-com-retenção, que ela mente.
-  it.each([
-    ["not_generated_yet", "Parecer não disponível neste relatório", false],
-    ["tier_gated", "Parecer não incluído no plano deste relatório", false],
-    ["generation_unavailable", "Parecer não foi concluído neste processamento", true],
-    [
-      "parecer_artifact_missing",
-      "Não conseguimos recuperar o parecer deste relatório",
-      true,
-    ],
-  ])("404 %s renderiza copy própria", async (code, titulo, reprocessavel) => {
+  // Uma copy POR código (A40.l22), porque as 4 AÇÕES são distintas — que é o
+  // teste do `RETAINED_BODY` (colapsar quando a ação é a mesma), não exceção a
+  // ele. Sem asserção por código, colapsar as 4 num texto só passa verde.
+  const CASOS = [
+    {
+      code: "not_generated_yet",
+      titulo: "Parecer não disponível neste relatório",
+      cta: null,
+    },
+    {
+      code: "tier_gated",
+      titulo: "Parecer exige uma chave de IA ativa",
+      cta: "Cadastrar sua chave de IA",
+    },
+    {
+      code: "generation_unavailable",
+      titulo: "Não conseguimos gerar o parecer deste relatório",
+      cta: "Reprocessar o parecer",
+    },
+    {
+      code: "parecer_artifact_missing",
+      titulo: "Não conseguimos recuperar o parecer deste relatório",
+      cta: "Reprocessar o parecer",
+    },
+  ] as const;
+
+  it.each(CASOS)("404 $code renderiza copy e CTA próprios", async ({ code, titulo, cta }) => {
     server.use(absence404(code));
 
     render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
@@ -342,10 +357,79 @@ describe("<SParecerSection /> @ADR-199", () => {
     });
     expect(screen.getByText(titulo)).toBeInTheDocument();
     expect(screen.getByTestId("parecer-empty")).toHaveAttribute("data-absence-code", code);
-    // CTA só onde o usuário PODE agir: oferecer "reprocessar" a quem está sem o
-    // add-on por plano manda repetir o que não vai mudar de resultado.
-    const cta = screen.queryByText("Reprocessar o parecer");
-    expect(cta === null).toBe(!reprocessavel);
+    // Título é heading: no PDF em A4 nenhum <h2> de seção chega, então este é o
+    // único rótulo do bloco naquela superfície (test.fixme em print.@critical).
+    expect(screen.getByRole("heading", { level: 3, name: titulo })).toBeInTheDocument();
+    for (const outro of CASOS.filter((c) => c.cta && c.cta !== cta)) {
+      expect(screen.queryByText(outro.cta!)).not.toBeInTheDocument();
+    }
+    if (cta) expect(screen.getByText(cta)).toBeInTheDocument();
+  });
+
+  // O cliente aprende UM idioma de delimitação — a mesma regra que o comentário
+  // do `ParecerRetencaoNota` já estabelece para a retenção. Três redações para o
+  // mesmo fato é o que faz o leitor achar que são fatos diferentes.
+  it.each(CASOS)("404 $code fecha com a delimitação de dano literal", async ({ code }) => {
+    server.use(absence404(code));
+
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("parecer-empty").textContent).toContain(
+      DELIMITACAO_DE_DANO,
+    );
+  });
+
+  // Falha e vazio não podem dividir o idioma visual: borda tracejada centralizada
+  // é "ainda não há nada aqui", e diria isso sobre uma geração que quebrou.
+  it.each(CASOS)("404 $code separa falha de vazio no peso visual", async ({ code }) => {
+    server.use(absence404(code));
+
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+    });
+    const ehFalha = code.startsWith("generation_") || code.startsWith("parecer_artifact");
+    const alerta = screen
+      .getByTestId("parecer-empty")
+      .closest("[data-alert-severity='warning']");
+    expect(alerta !== null).toBe(ehFalha);
+  });
+
+  // `tier` é BYOK, não plano: "premium" ⟺ chave de IA decriptável
+  // (`_classify_llm_config`). Enquadrar por plano acusaria de downgrade quem
+  // perdeu a chave numa rotação de FERNET_KEY.
+  it("tier_gated aponta para a chave de IA, não para uma compra", async () => {
+    server.use(absence404("tier_gated"));
+
+    const { container } = render(
+      <SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+    });
+    const link = container.querySelector('a[href^="/config"]');
+    expect(link).not.toBeNull();
+    expect(container.innerHTML).not.toMatch(/assinar|comprar|plano Free/i);
+  });
+
+  // "por um planejador" afirmaria agente humano e contradiria o disclaimer
+  // fiduciário que roda na MESMA seção.
+  it.each(CASOS)("404 $code não promete um planejador humano", async ({ code }) => {
+    server.use(absence404(code));
+
+    const { container } = render(
+      <SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+    });
+    expect(container.innerHTML).not.toMatch(/por um planejador|planejador (vai|irá)/i);
   });
 
   it("nenhuma copy de ausência promete o que a anterior prometia", async () => {

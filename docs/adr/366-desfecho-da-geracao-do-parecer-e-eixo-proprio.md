@@ -37,8 +37,17 @@ tags:
 >
 > O D6 abaixo estreita `not_generated_yet` para *"nunca tentou / **free** /
 > pendente"*. Os três casos compartilham a causa técnica — sem row, sem artifact
-> — mas **não compartilham a ação do usuário**: "free" pede *comprar*, "pendente"
-> pede *esperar*, e nenhuma frase é verdadeira para os dois. Como quem discrimina
+> — mas **não compartilham a ação do usuário**: "free" pede *cadastrar a chave de
+> IA*, "pendente" pede *esperar*, e nenhuma frase é verdadeira para os dois.
+>
+> **`free` aqui não é plano comercial** — e a revisão de copy (`product-designer`,
+> 2026-08-08) mostrou que tratá-lo como tal produz duas mentiras. `tier` é BYOK:
+> `_classify_llm_config` devolve `"premium"` ⟺ existe `LLMConfig` cuja
+> `api_key_encrypted` decripta para texto não-vazio, e cai para `"free"` inclusive
+> quando a `FERNET_KEY` foi rotacionada. Copy enquadrada por plano acusaria de
+> downgrade quem perdeu a credencial **por falha da plataforma**. A copy do estado
+> é enquadrada pelo **mecanismo** (chave de IA), registrado em COPY_GUIDELINES
+> §2.2 `@2026-08-08`. Como quem discrimina
 > é o servidor (é o próprio D6 que decide isso), dobrar aqui obrigava o cliente a
 > desdobrar — e ele não tem como: o tier só chega em `meta.tier_at_generation`,
 > que é exatamente o que falta no 404.
