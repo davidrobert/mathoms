@@ -45,6 +45,12 @@ class CollapseRemoval:
     valor_cents: int
     cross_source_count: int
     source: str | None = None
+    # `(("YYYY-MM", n), ...)` ordenado — o breakdown que o contador da S2 precisa ([[A40.l2]]
+    # §D6). LISTA de pares, nunca escalar nem mapa: `dev/golden_diff.py::is_monetary("meses")`
+    # devolve `True` (o sufixo `_meses` exige underscore), então escalar viraria ×100 e num
+    # mapa o próprio mês seria a chave. Como lista, o leaf `mes` é string e `to_cents` não se
+    # aplica. Vazio no modo sombra: só o enforce remove row.
+    meses: tuple[tuple[str, int], ...] = ()
 
 
 @dataclass(frozen=True)

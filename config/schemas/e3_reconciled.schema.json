@@ -27,16 +27,24 @@
       "minLength": 1
     },
     "titular": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "DEPRECATED (ADR-226 PR2) — use `titulares`. Mantido por compat."
     },
     "titulares": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": {
+        "type": "string"
+      },
       "description": "ADR-226 PR2 — lista de titulares; conta conjunta tem 2+."
     },
     "account_number": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "ADR-226 PR2 — account_number normalizado (digits-only) do extrato."
     },
     "moeda": {
@@ -45,7 +53,10 @@
     },
     "periodo_cobertura": {
       "type": "object",
-      "required": ["inicio", "fim"],
+      "required": [
+        "inicio",
+        "fim"
+      ],
       "properties": {
         "inicio": {
           "type": "string",
@@ -100,10 +111,21 @@
       "type": "object",
       "description": "ADR-347 — partição de remoções de tx por canal (ledger de conservação de contagem). Aditivo-opcional (PR1). Fecha tx_carregadas == transacoes_total + Σ remocoes[*].count.",
       "properties": {
-        "undated_drop": {"$ref": "#/$defs/remocao"},
-        "anachronic": {"$ref": "#/$defs/remocao"},
-        "intra_statement_dedup": {"$ref": "#/$defs/remocao"},
-        "cross_file_dedup": {"$ref": "#/$defs/remocao"}, "cross_document_collapse": {"$ref": "#/$defs/remocao"}
+        "undated_drop": {
+          "$ref": "#/$defs/remocao"
+        },
+        "anachronic": {
+          "$ref": "#/$defs/remocao"
+        },
+        "intra_statement_dedup": {
+          "$ref": "#/$defs/remocao"
+        },
+        "cross_file_dedup": {
+          "$ref": "#/$defs/remocao"
+        },
+        "cross_document_collapse": {
+          "$ref": "#/$defs/remocao_com_meses"
+        }
       },
       "additionalProperties": false
     }
@@ -112,10 +134,58 @@
   "$defs": {
     "remocao": {
       "type": "object",
-      "required": ["count", "valor_cents"],
+      "required": [
+        "count",
+        "valor_cents"
+      ],
       "properties": {
-        "count": {"type": "integer", "minimum": 0},
-        "valor_cents": {"type": "integer"}
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valor_cents": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "remocao_com_meses": {
+      "description": "Canal cross_document_collapse (A40.l2 PR3c1): `remocao` + breakdown mensal. `$def` próprio em vez de allOf sobre `remocao` porque `additionalProperties:false` do $ref rejeitaria a propriedade nova; e próprio em vez de estender `remocao` porque os outros 4 canais NÃO carregam mês — declarar lá convidaria o próximo a preencher.",
+      "type": "object",
+      "required": [
+        "count",
+        "valor_cents"
+      ],
+      "properties": {
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valor_cents": {
+          "type": "integer"
+        },
+        "meses": {
+          "description": "Lista ordenada, NUNCA escalar nem mapa: is_monetary('meses') é True em dev/golden_diff.py, então escalar viraria ×100 e num mapa o mês seria a chave. Como lista, o leaf `mes` é string. Omitida quando não houve colapso.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "mes",
+              "count"
+            ],
+            "properties": {
+              "mes": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}$"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        }
       },
       "additionalProperties": false
     }

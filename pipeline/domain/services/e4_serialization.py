@@ -93,6 +93,22 @@ def conferencia_signals(result: CategorizationResult) -> dict[str, str]:
     }
 
 
+# Chave OMITIDA quando não houve colapso — `None` explícito leria como "medi e deu zero", e
+# campo sempre presente mudaria o `sha256(json.dumps(e5_data))` da chave de cache do parecer,
+# forçando regeração integral da base num PR que corrige zero ([[ADR-173]] hard-stop).
+#
+# Viaja dentro de `fluxo_mensal_detalhado` porque é o payload E4 que o E5 já lê — e o E5
+# **não lê o E3** ([[A40.l2]] §Co-design do 3c1). Buscar no E3 a partir do E5 resolveria por
+# outra cadeia de fallback e poderia dar contador de um run com números de outro (classe do
+# resolver run-scoped da [[A40.l9]]).
+def _fluxo_com_consolidacao(result: CategorizationResult) -> dict:
+    """``fluxo_mensal_detalhado`` + o contador do colapso cross-documento, quando houve."""
+    fluxo = result.cash_flow.fluxo_mensal.to_legacy_dict()
+    if result.consolidacao_cross_documento:
+        fluxo["consolidacao_cross_documento"] = result.consolidacao_cross_documento
+    return fluxo
+
+
 def _despesas_with_conferencia(result: CategorizationResult) -> dict:
     """``despesas`` + bloco ``_lineage`` (metadata ADR-279, não contrato E4)."""
     despesas = result.cash_flow.despesas.to_legacy_dict()
@@ -113,7 +129,7 @@ def serialize_e4_artifacts(
     payloads: dict[str, dict] = {
         "receitas": result.cash_flow.receitas.to_legacy_dict(),
         "despesas": _despesas_with_conferencia(result),
-        "fluxo_mensal_detalhado": result.cash_flow.fluxo_mensal.to_legacy_dict(),
+        "fluxo_mensal_detalhado": _fluxo_com_consolidacao(result),
     }
     if patrimonio is not None:
         payloads["patrimonio"] = patrimonio

@@ -34,6 +34,7 @@ from pipeline.domain.services.cash_flow_builder import CashFlow, CashFlowBuilder
 
 _dedup_logger = logging.getLogger("mathoms.pipeline.dedup")
 from pipeline.domain.services.categorization_service import CategorizationRulesV2
+from pipeline.domain.services.e3_load_report import consolidacao_cross_documento
 from pipeline.domain.services.investments_consolidator import (
     ConsolidatedInvestments,
     InvestmentsConsolidator,
@@ -86,6 +87,9 @@ class CategorizationResult:
     investments: ConsolidatedInvestments
     accounts_loaded: int
     skipped_accounts: int = 0
+    # `{count, meses:[{mes,count}]}` ou ``None`` quando não houve colapso — ausência é o
+    # que mantém a chave de cache do parecer intacta na base inteira ([[ADR-173]]).
+    consolidacao_cross_documento: dict | None = None
 
 
 # =============================================================================
@@ -157,7 +161,11 @@ class E4CategorizerAdapter:
     # -- Loading --
 
     def load_reconciled_accounts(self, store: ArtifactStore) -> list[dict]:
-        """Lê os extratos E3 do store; keys visíveis sem payload legível abortam alto (ADR-291)."""
+        """Extratos E3 COM transações — a lista que o classificador consome."""
+        return [p for p in self.read_reconciled_payloads(store) if p.get("transacoes")]
+
+    def read_reconciled_payloads(self, store: ArtifactStore) -> list[dict]:
+        """Payloads E3 legíveis, **pré-filtro** de ``transacoes`` (ADR-291 aborta alto)."""
         keys = list(store.list_keys("reconcile_transactions"))
         payloads = [store.read("reconcile_transactions", key) for key in keys]
         readable = [p for p in payloads if isinstance(p, dict)]
@@ -170,7 +178,7 @@ class E4CategorizerAdapter:
                 "no run atual — from_stage sem fallback de base_run ou extratos "
                 "removidos do workspace; abortando em vez de zerar o relatório (ADR-291)"
             )
-        return [p for p in readable if p.get("transacoes")]
+        return readable
 
     def load_baseline(self, store: ArtifactStore) -> dict | None:
         """Lê baseline E1.5c do store; ``None`` se ausente."""
@@ -239,7 +247,11 @@ class E4CategorizerAdapter:
             para o ``main_with_store`` (Sessão A4b) quando o serializer
             legado existir.
         """
-        accounts = self.load_reconciled_accounts(store)
+        # Uma leitura só: `accounts` filtra `transacoes`, mas o agregado do colapso soma
+        # sobre `readable` — o statement zerado pelo colapso é o de maior `count` e sairia
+        # da conta justamente onde o colapso foi total.
+        readable = self.read_reconciled_payloads(store)
+        accounts = [p for p in readable if p.get("transacoes")]
         classified = self._classifier.classify_all(accounts)
         cash_flow = self._cash_flow_builder.build(classified)
 
@@ -268,4 +280,5 @@ class E4CategorizerAdapter:
             baseline=baseline_normalized,
             investments=investments,
             accounts_loaded=len(accounts),
+            consolidacao_cross_documento=consolidacao_cross_documento(readable),
         )
