@@ -18,6 +18,7 @@ supersedes:
   - "[[ADR-096]]"
 superseded_by: []
 aliases: ["ADR 212", "sunset disk artifact store", "DB-only artifacts"]
+amended_at: ["2026-08-08"]
 tags:
   - area/backend
   - area/pipeline
@@ -26,6 +27,15 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda ([[ADR-371]], 2026-08-08):** o `reset_workspace_from_stage` criado
+> no PR1b desta ADR deletava artefatos por `(workspace_id, stage)` **sem guarda
+> de referência** — um reset a partir de `extract_baseline` apagava o E5 de
+> todos os runs históricos do workspace, destruindo a análise de relatórios
+> antigos. A ADR-371 §D3/§D4 acrescenta a guarda (`artifact_references.py`,
+> compartilhada com o prune) e o campo `artifacts_preserved_referenced` na
+> preview/audit. O escopo amplo por workspace permanece correto — ver ADR-371
+> §D4 sobre por que escopar por run quebraria os stages workspace-scoped.
 
 ## Contexto
 

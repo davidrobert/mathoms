@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-361 ADRs (ADR-001 a ADR-370) em [`docs/adr/`](../../adr/).
+362 ADRs (ADR-001 a ADR-371) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 312
+- **Decidido**: 313
 - **Proposto**: 45
 - **Roadmap**: 4
 
@@ -357,9 +357,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## db
 
-### Decidido (1)
+### Decidido (2)
 
 - [[ADR-324]] — Poda de PropertyIdentity órfãs por supersessão reconciliada (soft-delete + re-aponte de override) · phase follow-up A28.l7
+- [[ADR-371]] — O grafo de FK é a fonte única da deleção: lista manual de tabelas-filhas é proibida sem gate
 
 ## docs
 

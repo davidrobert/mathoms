@@ -366,6 +366,7 @@
 | ADR-368 | adr | Proposto |  | Ancorabilidade do exec context: todo valor monetário visível é ancorável, e densidade mede-se por item e por delta de versão | `adr/368-ancorabilidade-do-exec-context-e-densidade-por-item.md` |
 | ADR-369 | adr | Decidido |  | Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) | `adr/369-rotulo-e-alvo-do-cone-de-if.md` |
 | ADR-370 | adr | Decidido |  | Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão | `adr/370-inventario-estrutural-do-relatorio.md` |
+| ADR-371 | adr | Decidido |  | O grafo de FK é a fonte única da deleção: lista manual de tabelas-filhas é proibida sem gate | `adr/371-grafo-de-fk-e-a-fonte-unica-da-delecao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
