@@ -199,6 +199,25 @@ def build_artifact_ledger(
     return {"tx_carregadas": carregadas, "remocoes": remocoes}
 
 
+# Consumidor do canal, ao lado do produtor de propósito: leitor noutro módulo re-deriva a
+# forma do payload e diverge em silêncio — a classe `keep_split` que esta lane já pagou.
+# Recebe os payloads **PRÉ-filtro de `transacoes`**: o statement da perna LLM que o colapso
+# ZERA é justamente o de maior `count`, e somar sobre a lista filtrada subconta exatamente
+# onde o colapso foi total — fechando VERDE, porque bate com o que o E4 enxerga.
+def consolidacao_cross_documento(payloads) -> dict | None:
+    """Agregado do canal do colapso sobre os E3 do run. ``None`` quando não houve colapso."""
+    total = 0
+    meses: Counter = Counter()
+    for p in payloads:
+        canal = (p.get("remocoes") or {}).get("cross_document_collapse") or {}
+        total += int(canal.get("count") or 0)
+        for item in canal.get("meses") or ():
+            meses[item["mes"]] += int(item["count"])
+    if not total:
+        return None
+    return {"count": total, "meses": [{"mes": m, "count": n} for m, n in sorted(meses.items())]}
+
+
 def attach_artifact_ledger(
     payload: dict, reconciled_stmts, load_stats, cross_removed, cross_cents, removals
 ) -> None:
