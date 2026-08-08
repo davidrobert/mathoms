@@ -425,8 +425,9 @@ relatório (#906 → congelado no #1290) e que a baseline do PDF congelou um err
 boundary por 3,5 meses.
 
 [[ADR-370]] fecha a classe com `report-inventory.@critical.spec.ts` +
-`report-inventory.expected.json` (14 seções, 40 cards): conjunto de cards por
-seção, em texto, varrido da estrutura do DOM. Card que some **falha por nome**.
+`report-inventory.expected.json`: conjunto de cards por seção, em texto, varrido
+da estrutura do DOM. Card que some **falha por nome**. (Contagem de propósito não
+escrita aqui — o JSON é a fonte, pelo mesmo motivo da ressalva de contagem acima.)
 
 Use-o como instrumento de atribuição: **se o inventário não mudou, a diferença de
 pixel é estilo/layout, não conteúdo.** Se mudou, o diff diz qual card.
