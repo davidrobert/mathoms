@@ -70,6 +70,51 @@ artefato que o cliente arquiva. Por isso o painel pediu P2, não P3.
 - Rótulo do disclosure derivado da composição real do `extra`.
 - Retítulo da seção incoerente + validador de hospedagem de componente.
 
+## Insumos entregues pelo PR #1286 (2026-08-08)
+
+O PR corrigiu o título da 2.5, que atribuía metodologia a uma marca de curso e
+por isso violava §13.1 (título novo: **`"Seguros — Cobertura Contratada"`**;
+o anterior está registrado em COPY_GUIDELINES §13.2 e em [[ADR-240]] §Emenda).
+Ao medir, produziu quatro achados que **caem nesta lane**. Não foram tratados lá
+para não abrir branch paralela sobre `report_layout.yaml`/`ReportShell`.
+
+1. **A âncora sem alvo (RV3-04) é pior do que "link morto": entrega copy.** Como
+   `buildNavGroups`/`tocGroups` não filtram `enabled`, o título de uma seção
+   desligada **chega renderizado ao cliente** — foi por aqui que a marca vazou.
+   Medido: 0 ocorrências no `innerText` desktop, mas **visível a 390px** com o
+   drawer do `FloatingNav` aberto. Consequência para o critério de aceite: o
+   assert de altura `> 0` **não pega** esse caso, porque as duas superfícies de
+   índice nascem fechadas (sidebar por `useReportTocOpen`; drawer só em `<lg`).
+   Para gatear de fato, use `textContent` da subárvore do `<dialog>`/`nav`, ou
+   monte o cenário mobile.
+
+2. **A deriva YAML↔componente é classe, não instância.** Além da 2.5 (alinhada
+   pelo #1286), divergem hoje: `plano_de_acao` (YAML "Plano de Ação — Decisões em
+   Vigor" vs componente "Plano de Ação"), `APP_B` ("Premissas Econômicas" vs
+   "Apêndice B — Premissas e Metodologia") e `APP_D` ("Referências e Recursos" vs
+   "Apêndice D — Referências e Fontes"). O TOC diz uma coisa e o heading diz
+   outra, no mesmo scroll. **Fix durável:** `ReportSection` deriva `title` do
+   `titleMap` do LAYOUT em vez de cada seção hardcodar — mata as 4 de uma vez e é
+   o "validador de hospedagem de componente" já no escopo.
+
+3. **Retítulo da S9 é o resíduo do #1286, e a cauda é que sai.** Com a 2.5 virando
+   "Seguros", a S9 ("Riscos e Proteção — **Seguros Críticos**") reintroduz a
+   colisão pela cauda. Recomendação do `financial-planner`, não executada:
+   `"Riscos e Sucessão — Lacunas de Proteção"`. Eixo honesto — 2.5 = *o que você
+   tem contratado*; S9 = *o que falta e o que acontece na transmissão* (sucessão/
+   ITCMD já mora lá, [[ADR-192]] D3). Mexer na S9 puxa rebaseline de snapshot **e**
+   de PDF, que o #1286 não devia carregar.
+
+4. **Antes de ligar `enabled: true`, resolva a contradição de evidência.** O
+   `gap_qualitativo` da 2.5 lê **só** apólice extraída de documento, enquanto a S9
+   lê o aggregate `Protection`. Workspace que cadastra apólice sem subir PDF vê
+   *"coberto"* na S9 e *"não identificamos apólice de vida ativa"* na 2.5 — no
+   mesmo relatório. É emenda a [[ADR-240]] D3 (afirmação de ausência sobre a
+   **união** das evidências), com dono `financial-planner` + `senior-cto`. Ligar a
+   seção antes disso põe a contradição no ar. Nota lateral do `product-designer`:
+   esse card mede "o que falta", que é o eixo declarado da S9 — vale decidir se
+   ele continua hospedado na 2.5.
+
 ## Critério de aceite
 
 - Assert bidirecional: toda entrada de nav/ToC tem seção habilitada e vice-versa.
