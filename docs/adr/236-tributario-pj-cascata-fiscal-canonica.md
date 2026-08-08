@@ -6,7 +6,7 @@ status: Decidido
 phase: A16.tributario-pj-cascata
 date: "2026-05-20"
 decided_at: "2026-05-21"
-amended_at: ["2026-07-15"]
+amended_at: ["2026-07-15", "2026-08-08"]
 relates_to:
   - "[[ADR-143]]"
   - "[[ADR-157]]"
@@ -35,6 +35,8 @@ tags:
 
 > **Emenda 2026-07-15 (CTO-05):** ver [§ Emenda 2026-07-15](#emenda-2026-07-15-cto-05--cascata-pj-com-perfil-incompleto-e-receita-detectada). Perfil PJ incompleto (`regime=None`) com entradas PJ detectadas no fluxo **suprime** a cascata zerada e emite CTA citando o valor observado + sinal `perfil_incompleto_com_receita`. Não deriva faturamento (pró-labore ≠ receita bruta).
 
+> **Emenda 2026-08-08 (medição):** ver [§ Emenda 2026-08-08](#emenda-2026-08-08--o-critério-a11y-aaa-não-é-verificado-por-nenhum-mecanismo). O critério "UI A11y AAA" desta ADR **não é verificado**: o axe roda com tags até `wcag21aa`, então a regra de 7:1 nunca executa. Medidos, os 4 pares do badge Fator-R passam AA e **reprovam AAA** (5,60–6,21:1). Decisão em aberto — recalibrar token ou corrigir o critério para AA.
+
 ## Emenda 2026-07-15 (CTO-05) — Cascata PJ com perfil incompleto e receita detectada
 
 **Contexto.** Dogfood 2026-07-15: a cascata renderizava `perfil_incompleto` com `receita_bruta = 0`, enquanto o bloco de fluxo mostrava ~R$ 1M de entradas PJ (pró-labore + lucros distribuídos, via `receita_por_natureza.receita_pj`, [[ADR-330]]). Duas superfícies do mesmo relatório se contradiziam: a seção fiscal negava o que o fluxo afirmava.
@@ -46,6 +48,32 @@ tags:
 3. **Sinal `perfil_incompleto_com_receita`** — emitido no objeto aberto `CascataOutput.signals` (tupla de strings; sem bump de schema — `tributario` não está no schema top-level `e5_analysis.schema.json`, flui via `GoalsBundle`). Serve de marcador de qualidade de dados (console interno / telemetria) para detectar workspaces com PJ ativa mas perfil não preenchido.
 
 **Onde.** `pipeline/domain/services/tributario/cascata_calculator.py` (`CascataOutput.receita_pj_detectada_anual` + `.signals`; `_output_fallback` captura `inp.receita_pj_anual`), `cascata_serialization.py` (passthrough automático via `asdict`), `pipeline/domain/services/narrativas/tributario_narrator.py` (`_narrate_perfil_pendente` ramifica com/sem valor detectado). Invariante mantido: nenhum número tributário derivado quando o regime é desconhecido.
+
+## Emenda 2026-08-08 — o critério "A11y AAA" não é verificado por nenhum mecanismo
+
+**Contexto.** Esta ADR pede **"UI A11y AAA"** em dois lugares — §Gates ("`<CascataFiscalCard/>` passa axe-core (zero violations) + Lighthouse ≥ 95") e a linha P5 da tabela de implementação. Medindo em 2026-08-08 (PR #1324), o nível AAA **nunca foi verificado**, e o mecanismo citado no próprio critério não consegue verificá-lo:
+
+- `frontend/tests/e2e/helpers/axe.ts` monta o `AxeBuilder` com `withTags(["wcag2a","wcag2aa","wcag21a","wcag21aa"])`. Sem `wcag2aaa`, a regra `color-contrast-enhanced` (7:1) **não roda** — "zero violations" prova AA. A auditoria de contraste do Lighthouse também é AA.
+- `dev/check_tint_contrast.py` usa `AA_TEXTO_PEQUENO = 4.5`.
+- `frontend/tests/components/report/cascataFiscalContrast.test.ts` usa 4,5.
+
+**Medição.** Badge Fator-R (`CascataFiscalCard.header.tsx`), texto `text-[0.65rem]` = 10,4px — abaixo de "large text", logo o limiar é 4,5 (AA) / 7 (AAA), não 3:1. Fundo é tint de 15% da cor base sobre `--surface-card`:
+
+| tema | variante | texto / fundo | razão | AA | AAA |
+|---|---|---|---|---|---|
+| light | Anexo III | `#166534` / `#DCECE2` | 5,82:1 | ✓ | ✗ |
+| light | Anexo V | `#984C11` / `#FDF1E7` | 5,60:1 | ✓ | ✗ |
+| dark | Anexo III | `#4ADE80` / `#254445` | 6,05:1 | ✓ | ✗ |
+| dark | Anexo V | `#FDBA74` / `#3F3F44` | 6,21:1 | ✓ | ✗ |
+
+**Decisão: nenhuma — registro de estado, com a escolha explicitamente em aberto.** As duas saídas são legítimas e a escolha é de design, não de quem instalou a medição:
+
+1. **Recalibrar os tokens `-on-tint`** para ≥ 7:1 (o caso vinculante é light Anexo V, 5,60) e então ligar `wcag2aaa` no helper do axe. Custo: mexe em paleta compartilhada — os pares `-on-tint` têm 18 call-sites ([[ADR-076]]), então não é mudança local deste card.
+2. **Corrigir o critério para AA**, que é o que o produto de fato entrega e verifica em três mecanismos independentes.
+
+Enquanto a decisão não sai, o texto "A11y AAA" acima deve ser lido como **AA verificado + AAA aspiracional não medido**. Dono da decisão: `product-designer`. Não foi gateado em AAA de propósito — gate que reprova hoje deixaria `main` vermelha por uma decisão de paleta ainda não tomada.
+
+**Onde.** Números reproduzíveis pela docstring de `frontend/tests/components/report/cascataFiscalContrast.test.ts`, que mede os 4 pares a cada run do job `frontend-checks` (required).
 
 ## Contexto
 
