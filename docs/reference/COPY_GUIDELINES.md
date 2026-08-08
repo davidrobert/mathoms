@@ -494,6 +494,14 @@ imprensa, pitch deck, comparativo competitivo, ToS / privacy policy:
 | "Estilo Cerbasi para casal" | "Planejamento patrimonial do casal" / "Decisão financeira a quatro mãos" |
 | "Equilíbrio Financeiro (Cerbasi)" | "Equilíbrio entre presente e futuro" / "Balanço presente-futuro" |
 | "Visão Cerbasi" (em alíquota / IRPF) | "Visão sobre renda total" / "Alíquota sobre renda total declarada" |
+| "Proteção Patrimonial — Pilar AUVP" (seção 2.5 do relatório) | "Seguros — Cobertura Contratada" (@2026-08-08) |
+
+> **Não troque "Pilar AUVP" por "Proteção Patrimonial" nu.** Em PT-BR o termo
+> lê primeiro como *blindagem patrimonial* (holding, sucessão, proteção contra
+> credores) e, no jargão SUSEP, como *ramo patrimonial* = bens **em oposição a**
+> pessoas. Sucessão/ITCMD mora na S9, e a V2 da [[ADR-240]] traz vida/saúde/AP —
+> o termo apontaria para a seção errada e envelheceria contra a feature.
+> Decisão co-desenhada `product-designer` + `financial-planner`, 2026-08-08.
 
 ### 13.3 Auditoria automática (CI gate)
 
@@ -507,6 +515,16 @@ todo arquivo staged dentro das surfaces user-facing cobertas:
   ([[ADR-183]], 2026-05-09); o sufixo `.md` é user-facing **somente** sob
   esse prefixo. Resto de `docs/` continua interno (atribuição §13.4
   permitida em ADRs, planos, runbooks).
+- `config/report_layout.yaml` — copy que nasce em config e chega à UI via
+  codegen ([[ADR-076]]). Cobertura adicionada em 2026-08-08, depois que o
+  título da seção 2.5 ("Proteção Patrimonial — Pilar AUVP") atravessou as
+  duas surfaces acima e chegou ao índice do relatório. Semântica **própria**,
+  em `dev/_sigilo_copy_yaml.py`: parse do YAML + varredura de todo valor
+  escalar (não de uma allowlist de chaves — `chart_titles` e
+  `navigation[].label` já são copy fora de `title`/`subtitle`/`label`). O
+  parser descarta comentário, então o rationale `#` do arquivo segue
+  atribuindo livremente (§13.4). `frontend/src/generated/` **não** entra:
+  derivado se gateia na fonte, mesma política de `docs/_MOC/_generated/`.
 
 Mesma lógica roda em CI via job `Lint (pre-commit + …)` — defense in depth.
 
@@ -539,26 +557,30 @@ scope automatizado: e-mail templates renderizados (quando
 materiais de imprensa em `.pdf`/`.pptx`. Expandir escopo do hook quando
 essas surfaces forem materializadas.
 
-**Ponto cego já materializado — copy que nasce em `config/` e chega ao
-cliente por codegen.** As surfaces acima ainda não existem; esta existe e
-vaza hoje. `config/report_layout.yaml` guarda `title`/`subtitle` de seção,
-que o [`dev/codegen_report_layout.py`](../../dev/codegen_report_layout.py)
+**Ponto cego de copy em `config/` — FECHADO em 2026-08-08 (PR #1286).**
+Declarado no PR #1284: `config/report_layout.yaml` guarda `title`/`subtitle`
+de seção, que o [`dev/codegen_report_layout.py`](../../dev/codegen_report_layout.py)
 transforma em `frontend/src/generated/report-layout.ts` e o relatório
-renderiza para o cliente. O hook não vê **nenhum** dos dois pontos: config
-não está na lista de surfaces cobertas, e `src/generated/` é excluído de
-propósito. Não é hit baselined — é furo de surface.
+renderiza para o cliente — e o hook não via **nenhum** dos dois pontos.
+Hoje a fonte é a 3ª surface de §13.3; o derivado segue fora de propósito.
 
-Instância medida em 2026-08-08 (PR #1281): a seção 2.5 se chama
-`"Proteção Patrimonial — Pilar AUVP"` e o título aparece duas vezes na rota
-`/reports/[id]` (heading da seção e entrada do índice). Enquanto o furo não
-fecha, **campo de copy em `config/report_layout.yaml` é user-facing e exige
-revisão manual §13**, apesar de morar em config.
+Duas afirmações daquela declaração **não se sustentaram na medição** e ficam
+corrigidas aqui, porque a versão errada induz a asserção errada:
 
-A varredura que de fato pega isso é E2E sobre texto renderizado —
-`frontend/tests/e2e/planner-review-smoke.spec.ts` assere os termos contra
-`page.locator("body").innerText()`. Usar texto visível e **não**
-`page.content()`: §13.4 permite atribuição em id/classe/atributo, e
-`data-section-id="m_auvp_desvio"` é legítimo — HTML cru gera falso-positivo.
+- *"o título aparece duas vezes (heading da seção e entrada do índice)"* —
+  **não.** A seção 2.5 nunca renderizou heading: `enabled: false` e fora de
+  `MIGRATED_SECTIONS`. As duas ocorrências no HTML eram a mesma entrada de
+  índice.
+- *"a varredura que de fato pega isso é E2E sobre `innerText`"* — **não.** As
+  duas superfícies de índice nascem fechadas (sidebar por default do
+  `useReportTocOpen`; drawer do `FloatingNav` só em `<lg`), então no viewport
+  desktop do spec o `innerText` tinha **zero** ocorrências. O termo só ficava
+  visível a 390px com o drawer aberto. A varredura E2E é útil para copy de
+  seção, mas **não cobre índice/nav**.
+
+A escolha de `innerText` em vez de `page.content()` continua correta e pelo
+motivo declarado: §13.4 permite atribuição em id/classe/atributo, e
+`data-section-id="M_AUVP_DESVIO"` é legítimo — HTML cru gera falso-positivo.
 
 Comando manual (debug ou auditoria ad-hoc):
 

@@ -17,7 +17,7 @@ export function S_ProtecaoSection({ data }: { data: ReportAnalysisData }) {
     return null;
   }
   return (
-    <ReportSection id="S_PROTECAO" title="Proteção Patrimonial — 4º Pilar">
+    <ReportSection id="S_PROTECAO" title="Seguros — Cobertura Contratada">
       <SectionSummary data={data} sectionId="S_PROTECAO" />
       <ProtecaoKpiHero data={protecao} />
       <h3 className="text-style-subtitle mt-6">Bens (V1: auto)</h3>
