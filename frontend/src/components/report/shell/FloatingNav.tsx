@@ -162,6 +162,7 @@ export function FloatingNav({
       <button
         ref={backTopBtnRef}
         type="button"
+        className="no-print"
         aria-label="Voltar ao topo"
         onClick={() => scrollTo("top")}
         data-visible={showBack}
@@ -176,6 +177,7 @@ export function FloatingNav({
       </button>
       <button
         type="button"
+        className="no-print"
         aria-label="Ir para o final"
         onClick={() => scrollTo("bottom")}
         data-visible={showBottom}
@@ -191,6 +193,7 @@ export function FloatingNav({
       {showIndexButton && (
         <button
           type="button"
+          className="no-print"
           aria-label="Abrir índice do relatório"
           onClick={openIndex}
           style={{
