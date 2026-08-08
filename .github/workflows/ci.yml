@@ -776,7 +776,7 @@ jobs:
       # é justamente isso que se quer. `--list` também não serve para medi-la:
       # não enxerga `test.skip` condicional, e vários destes specs pulam por
       # seção ausente na fixture. Medido em runtime em 2026-08-08: 11 arquivos,
-      # 56 testes selecionados, 1 skip declarado.
+      # 56 testes selecionados, 54 passam, 2 skips declarados (`S4`, `APP_C`).
       - name: Cache Playwright Chromium (report render)
         id: pw-cache-report
         uses: actions/cache@v4
