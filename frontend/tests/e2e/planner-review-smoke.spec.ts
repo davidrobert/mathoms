@@ -4,19 +4,45 @@
  * Cobre o caminho premium: relatório aberto → S_parecer renderizada →
  * hero presente → risco crítico visível → movimento P0 com CTA "Promover".
  *
- * Estratégia: intercepta o endpoint `GET .../planner-review` via
- * `page.route` para evitar dependência de pipeline completo. Conecta com
- * relatório real (fixture do `upload-pipeline-report.spec`) ou pula
- * graciosamente quando backend não está acessível.
+ * Estratégia: `mockReportPage` serve o relatório inteiro por `page.route`
+ * (mesma fixture dos specs em `tests/e2e/reports/`), e `plannerReview`
+ * injeta o payload premium abaixo. Sem backend, sem pipeline, sem listagem.
+ *
+ * Antes desta versão o spec navegava para `/reports` e, quando a listagem
+ * vinha vazia — o que é o normal no CI, cujo Postgres sobe limpo e cujo
+ * `ensureLoggedIn` cria só um workspace mínimo —, chamava `test.skip()`.
+ * Todos os asserts abaixo ficavam inalcançáveis e o gate passava verde sem
+ * exercitar nada. Um gate que se auto-pula não é gate: se o relatório não
+ * abrir, o teste tem de ficar vermelho.
  *
  * Tagged @critical → gate de deploy.
  */
 import { test, expect } from "@playwright/test";
-import { ensureLoggedIn } from "./helpers/auth";
+
+import {
+  MOCK_WORKSPACE_ID,
+  mockReportPage,
+  waitForReportReady,
+} from "./helpers/mock-report";
+
+const SIGILO_TERMS = ["perini", "cerbasi", "auvp"] as const;
+
+/**
+ * Débito §13 legado, declarado em vez de silenciado — mesmo padrão do
+ * burn-down em `dev/sigilo_terms_baseline.json`.
+ *
+ * `config/report_layout.yaml` titula a seção 2.5 de "Proteção Patrimonial —
+ * Pilar AUVP", e o título chega ao cliente duas vezes (heading da seção e
+ * entrada do índice). Trocar por copy conforme §13.2 mexe no layout canônico
+ * + nos dois codegens + nos baselines visuais — mudança de copy de produto,
+ * fora do escopo deste spec. Enquanto ela não vem, subtrair só a string
+ * conhecida mantém o resto da varredura viva: vazamento NOVO fica vermelho.
+ */
+const SIGILO_DEBT = /proteção patrimonial — pilar auvp/g;
 
 const PARECER_PAYLOAD = {
   id: "pr-smoke",
-  workspace_id: "ws-smoke",
+  workspace_id: MOCK_WORKSPACE_ID,
   pipeline_run_id: "run-smoke",
   status: "Gerado",
   persona_hash: "a".repeat(64),
@@ -99,36 +125,12 @@ const PARECER_PAYLOAD = {
 test.describe("Parecer do Planejador @critical", () => {
   test("relatório premium renderiza S_parecer com hero + risco + movimento P0", async ({
     page,
-    request,
-  }, info) => {
-    // Mock do endpoint do parecer antes de logar — captura primeira chamada.
-    await page.route(
-      /\/api\/v\d+\/workspaces\/[^/]+\/reports\/[^/]+\/planner-review$/,
-      async (route) => {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify(PARECER_PAYLOAD),
-        });
-      },
-    );
-
-    // Login fixture (cria workspace mínimo); navegação para `/reports` lista
-    // relatórios — se nenhum disponível, pula (smoke validate só renderer).
-    await ensureLoggedIn(page, request, info);
-    await page.goto("/reports");
-
-    // Procura primeiro relatório clicável (ou pula).
-    const firstReportLink = page.locator('a[href^="/reports/"]').first();
-    if (!(await firstReportLink.isVisible().catch(() => false))) {
-      test.skip(
-        true,
-        "Nenhum relatório listado — smoke do parecer exige relatório aberto",
-      );
-      return;
-    }
-    await firstReportLink.click();
-    await page.waitForLoadState("networkidle");
+  }) => {
+    const { workspaceId, reportId } = await mockReportPage(page, {
+      plannerReview: { status: 200, body: PARECER_PAYLOAD },
+    });
+    await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+    await waitForReportReady(page);
 
     // Hero do parecer presente
     const hero = page.getByTestId("parecer-hero");
@@ -136,25 +138,43 @@ test.describe("Parecer do Planejador @critical", () => {
     await expect(page.getByTestId("parecer-tier-badge")).toHaveText(/Premium/);
 
     // Risco crítico
-    await expect(
-      page.getByText("Concentração imobiliária 70%"),
-    ).toBeVisible();
+    await expect(page.getByText("Concentração imobiliária 70%")).toBeVisible();
 
     // Movimento P0 + CTA Promover
     const movimento = page.getByTestId("parecer-movimento-card").first();
     await expect(movimento).toBeVisible();
     await expect(movimento).toHaveAttribute("data-priority", "P0");
-    await expect(
-      page.getByTestId("movimento-promover").first(),
-    ).toBeVisible();
+    await expect(page.getByTestId("movimento-promover").first()).toBeVisible();
 
     // Disclaimer fiduciário
     await expect(page.getByTestId("parecer-disclaimer")).toBeVisible();
 
-    // Sigilo §13 — nenhuma menção a Perini/Cerbasi/AUVP no HTML renderizado
-    const html = (await page.content()).toLowerCase();
-    expect(html).not.toContain("perini");
-    expect(html).not.toContain("cerbasi");
-    expect(html).not.toContain("auvp");
+    // Sigilo §13 — o parecer é gerado por LLM com persona construída sobre
+    // Perini/Cerbasi/AUVP. Nome de metodologia vazando da geração para a copy
+    // do cliente é o risco que esta seção carrega; asserção estrita, sem
+    // exceção. Texto visível, não HTML: §13.4 permite atribuição em id/classe
+    // /docstring, e `data-section-id="m_auvp_desvio"` é exatamente isso.
+    const parecerText = (
+      await page.locator("section#S_parecer").innerText()
+    ).toLowerCase();
+    for (const termo of SIGILO_TERMS) {
+      expect(parecerText, `§13: "${termo}" na copy do parecer`).not.toContain(
+        termo,
+      );
+    }
+
+    // Resto do relatório: mesma regra, com o débito legado declarado abaixo.
+    // Sem esta varredura, vazamento em seção nova só apareceria em revisão
+    // manual — o hook `sigilo-terms` não alcança copy que nasce em
+    // `config/report_layout.yaml` (a surface dele é `frontend/src/{app,
+    // components}`; config e `src/generated/` ficam de fora).
+    const pageText = (await page.locator("body").innerText())
+      .toLowerCase()
+      .replace(SIGILO_DEBT, "");
+    for (const termo of SIGILO_TERMS) {
+      expect(pageText, `§13: "${termo}" na copy renderizada`).not.toContain(
+        termo,
+      );
+    }
   });
 });
