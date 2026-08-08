@@ -434,3 +434,22 @@ para todo cliente — porque o bundle não chega ao payload. A condição de ret
 **Não coberto por gate:** `frontend/tests/components/report/S9ProtectionCards.test.tsx`
 injeta o bundle direto na prop do card, então nenhum teste exercita o caminho do
 payload — a ausência de produtor é invisível à suíte.
+
+### Deferido — o parecer recebe `escopo_cobertura` sem instrução (dono: `prompt-engineer`, 2026-08-08)
+
+[`config/prompts/parecer_planejador.yaml`](../../config/prompts/parecer_planejador.yaml)
+projeta `$.protecao_patrimonial` inteiro na seção `riscos_protecao`, então o LLM
+**vê** `escopo_cobertura` — e não tem instrução para respeitá-lo. Nada garante que
+ele deixe de narrar a faixa Cerbasi quando `veredito_pct_renda_suprimido == true`.
+
+Não tratado aqui de propósito: instrução nova exige bump de `PROMPT_VERSION`
+(gate `prompt-version-bump`) e passagem pelo eval golden do parecer, que é o ciclo
+do `prompt-engineer` — não do PR que fechou o predicado de domínio.
+
+**Risco enquanto aberto é baixo, não nulo:** o veredito só é suprimido quando há
+cadastro `Protection` fora dos documentos, e nenhum workspace de hoje tem cadastro.
+O item vira urgente no primeiro workspace que cadastrar apólice em `/protecao`.
+
+**Condição de retomada:** instrução declarando que faixa/suficiência de prêmio não
+se emite quando `escopo_cobertura.veredito_pct_renda_suprimido` é verdadeiro +
+caso no eval golden cobrindo o payload suprimido.

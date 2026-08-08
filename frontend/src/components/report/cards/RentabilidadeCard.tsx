@@ -76,7 +76,7 @@ function TrsSuspeitaBanner() {
   return (
     <p
       role="alert"
-      className="mb-4 rounded-[var(--radius-card)] bg-[color-mix(in_srgb,var(--brand-warning)_14%,transparent)] px-3 py-2 text-sm text-[var(--brand-warning)]"
+      className="mb-4 rounded-[var(--radius-card)] bg-[color-mix(in_srgb,var(--brand-warning)_14%,transparent)] px-3 py-2 text-sm text-[var(--brand-warning-on-tint)]"
     >
       Valor acima do plausível para yield de carteira — revisar composição das
       fontes de renda passiva e do patrimônio gerador antes de usar este número.
@@ -172,7 +172,7 @@ function RentabilidadeFooter({
       {isDefasado && (
         <span
           aria-label="Dado defasado — atualize seu IRPF"
-          className="ml-1 inline-flex items-center rounded-full bg-[color-mix(in_srgb,var(--brand-warning)_18%,transparent)] px-2 py-0.5 text-[var(--brand-warning)]"
+          className="ml-1 inline-flex items-center rounded-full bg-[color-mix(in_srgb,var(--brand-warning)_18%,transparent)] px-2 py-0.5 text-[var(--brand-warning-on-tint)]"
         >
           Dado defasado
         </span>

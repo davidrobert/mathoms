@@ -29,6 +29,38 @@ tags:
 > cláusula 2 do §Critério de admissão da A40: aquela governa achado **novo sem
 > dono**; esta lane já nasceu escrita, com ADR exigida e dono.
 
+> ✅ **F3 entregue em 2026-08-05 (#1219, com #1220 e #1222 fechando achados de
+> auditoria) e saneada em 2026-08-08 (#1291, #1297)**, com uma regressão pelo
+> meio. O #1219 shipou `executor_revision` dentro do dict `checks` do `/health` sem
+> pô-lo no set `informational` que o agregado ignora: o valor é um sha de 12
+> chars ou `None`, nunca a string `"ok"`, então `status` virou `"degraded"` em
+> **toda** chamada — inclusive com Redis, Celery e DB sadios, e no CI via
+> `MATHOMS_BUILD_SHA: ${{ github.sha }}`. Blast radius zero (os healthchecks do
+> compose usam `curl -fsS`, e ninguém lê `status`), mas era fail-open no único
+> sinal sumarizante do endpoint. Corrigido no #1291, com emenda datada na
+> [[ADR-363]] declarando a revisão informacional para efeito do agregado.
+>
+> O #1297 fechou a lacuna que deixou a regressão invisível — **nenhum teste
+> asseria `status == "ok"`** — e, ao cobrir o payload pelo caminho HTTP, achou um
+> segundo defeito preexistente: `redis_cache` era emitido (quando
+> `REDIS_CACHE_URL != REDIS_URL`) sem estar declarado no `HealthResponse`.
+> `extra="allow"` **não filtra**, então o campo viajava ao cliente sem existir no
+> OpenAPI, e é agregado em `status` — quem visse `degraded` não achava a causa em
+> campo nenhum do contrato. Declarado + snapshot regenerado.
+>
+> ⚠️ **As 4 fases têm código em `main`, mas esta lane segue `status: open`**
+> (medido 2026-08-08): F0 em `dev/build_info.py` + preflight no Makefile · F1 na
+> migration `adr362execrev_executor_revision_stage_logs` + coluna no model · F2
+> com `executor_revision` no `MathomsJsonFormatter` e `run_meta` na skill de
+> review · F3 acima. **Enquanto ficar `open`, a lane aparece no
+> [`SPRINT_CURRENT`](../../../_MOC/_generated/SPRINT_CURRENT.md) como trabalho
+> pegável e outro agente a puxa achando que há
+> o que fazer.** Não flipei para `done` porque isso não é edição de doc: o
+> §Critério de aceite tem 9 itens **por medição** (anti-fabricação, atribuição de
+> crash, não-clobber, execução mista, largura da coluna em Postgres, degradação
+> sem a env, escopo não mente, delta de jobs, preflight morde) e existir código
+> não é o mesmo que critério verificado. Fechar a lane exige rodar essa medição.
+
 > **Origem:** pedido do dono em 2026-08-05 — "após rodar o pipeline do dogfood e
 > executar a `report-review`, não consigo identificar sobre qual versão do
 > repositório o relatório foi executado; e se houve avanços na `main` entre a
@@ -125,7 +157,21 @@ Todos por **medição**, com a mutação que os mata anotada:
 - **Degradação sem a env.** Sem `MATHOMS_BUILD_SHA`: processo **sobe**,
   `/health` devolve `null`, nenhum log carrega a chave (ausente, não
   `"unknown"`), e o entregável diz `desconhecido` **em destaque** — nunca linha
-  faltando.
+  faltando. **E `status` continua `"ok"`** — com a env setada também. *Mutação
+  que mata:* tirar `executor_revision` de `informational`. **Corrigido em
+  2026-08-08 (era o ponto cego que deixou a regressão passar):** o critério
+  mandava medir o **campo** e calava sobre o **agregado**, então a F3 satisfez o
+  critério e degradou o endpoint em toda chamada. Campo cujo valor saudável não
+  é literalmente `"ok"` pertence a `informational`; quem reimplementar esta fase
+  medindo só o valor de `executor_revision` reintroduz o defeito.
+- **Contrato do payload fecha nas duas direções.** Todo campo que `health()`
+  emite está declarado no `HealthResponse`, e todo campo declarado é emitido por
+  algum ramo. *Mutação que mata:* emitir check novo sem declarar (`extra="allow"`
+  não filtra — ele vaza ao cliente fora do OpenAPI) ou declarar campo que ramo
+  nenhum produz. Medir a 2ª direção em `response.json()` **não funciona**: o
+  `response_model` materializa o default de todo campo declarado, então o payload
+  HTTP traz `campo: null` mesmo sem o endpoint emitir — a fonte é o dict de
+  `health()`.
 - **Escopo não mente.** Run com `from_stage` ⇒ o entregável nomeia os stages
   herdados e o run de origem. *Mutação:* hardcodar `full`.
 - **Delta de jobs de CI = zero.**

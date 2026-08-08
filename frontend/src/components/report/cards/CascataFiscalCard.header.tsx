@@ -35,8 +35,8 @@ function FatorRBadge({
 }) {
   const isAnexoIII = faixa === "anexo_iii";
   const className = isAnexoIII
-    ? "bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] text-[var(--semantic-gain)]"
-    : "bg-[color-mix(in_srgb,var(--semantic-warning)_15%,transparent)] text-[var(--semantic-warning)]";
+    ? "bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] text-[var(--semantic-gain-on-tint)]"
+    : "bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] text-[var(--semantic-alert-on-tint)]";
   const label = isAnexoIII ? "Anexo III" : "Anexo V";
   const pctTxt = (pct * 100).toFixed(1).replace(".", ",");
   return (

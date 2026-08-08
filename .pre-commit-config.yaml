@@ -389,6 +389,19 @@ repos:
         pass_filenames: false
         files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|frontend/src/app/globals\.css|design-tokens/tokens\.json)$'
 
+      - id: tint-contrast
+        # Mede (não só proíbe) o par `text-[var(--X)]` sobre
+        # `bg-[color-mix(...var(--X)_N%,transparent)]`. Medir fecha a classe:
+        # token novo, percentual novo ou valor novo de tema entram no cálculo
+        # sozinhos. Proibir a forma reprovaria tint de 8-10%, que passa.
+        # O mesmo filtro de `check-css-var-references`: o veredito depende do
+        # call-site E do valor do token, então os dois precisam acionar.
+        name: "Texto sobre tint da mesma cor ≥ 4,5:1 (WCAG AA)"
+        entry: python3 dev/check_tint_contrast.py
+        language: system
+        pass_filenames: false
+        files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|design-tokens/tokens\.json)$'
+
       - id: report-layout-codegen
         name: "Report layout codegen (TS/Pydantic) em sync com YAML (ADR-076)"
         entry: python3 dev/codegen_report_layout.py --check

@@ -512,10 +512,17 @@ depender do olho, diff estrutural linha-a-linha (assinatura grayscale grosseira 
 `difflib.SequenceMatcher`) aponta as bandas inseridas/removidas e resiste ao
 antialiasing do canvas do chart.js.
 
-**Abra o PR já com o label `visual`.** `labeled` não está em
-`on.pull_request.types` do `ci.yml`, então label aplicado depois **não redispara
-o CI**: o job fica `skipping` e o PR passa por omissão — o gate não valida a
-baseline que você acabou de trocar.
+**Aplique o label `visual` no PR** — na criação ou depois, indiferente desde
+2026-08-08: `labeled` entrou em `on.pull_request.types` do `ci.yml` e o label
+posto depois redispara o CI ([[ADR-210]] §Emenda 2026-08-08). Até então não
+redisparava, o job ficava `skipping` e o PR passava por omissão sem que o gate
+olhasse a baseline recém-trocada. O run disparado pelo label **não** cancela o
+run em voo, mas é um ciclo de CI completo a mais — abrir o PR já com o label
+continua sendo o caminho barato.
+
+**Rodar não é gatear.** `frontend-visual` e `frontend-print-visual` não estão em
+`all-green.needs`, então vermelho neles não bloqueia merge: quem vai olhar o
+resultado é você. Confira o job antes de mergear um PR de rebaseline.
 
 ### A baseline do PDF é uma família à parte
 

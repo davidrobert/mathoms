@@ -55,9 +55,11 @@ N/A.
   O pixel-diff **não roda sozinho**: a ADR-210 §camada 1 tirou o
   auto-trigger por path, e desde 2026-06-15 o nightly que compensava
   está `disabled_manually`. Sem o label, este checklist é a única
-  cobertura do relatório neste PR.
+  cobertura do relatório neste PR. E o job não está em
+  `all-green.needs`: mesmo rodando e vermelho, ele não bloqueia o merge —
+  ler o resultado é com você.
 -->
-- [ ] Apliquei o label `visual` **na criação do PR** (posto depois, `labeled` não está em `on.pull_request.types`: o CI não redispara e o job fica `skipping` — verde por omissão).
+- [ ] Apliquei o label `visual` (na criação do PR ou depois, indiferente: `labeled` entrou em `on.pull_request.types` em 2026-08-08 e o label posto depois redispara o CI — ADR-210 §Adendo 2026-08-08). Sem o label o job não roda.
 - [ ] Job `frontend-visual` rodou e está verde. Falhou? Diff baixado em `report-visual-snapshots`, baseline atualizada via `gh workflow run CI -f run_visual=true -f update_visual_baselines=true` se a mudança é intencional.
 - [ ] Mudança visível em UI? Invoquei o subagente `product-designer` para revisar copy / hierarquia / densidade / tokens (`Agent(subagent_type="product-designer", …)`). Justificativa caso N/A:
 - [ ] Validei manualmente em **light + dark** com pelo menos uma das fixtures de variância: `medium`, `long-strings`, `large-values`, `sparse-data` (`frontend/tests/e2e/fixtures/reports/`).

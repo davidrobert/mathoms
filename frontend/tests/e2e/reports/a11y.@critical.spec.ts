@@ -5,9 +5,14 @@
  * em `critical+serious` (decisão D1). Cada seção visível recebe scan
  * isolado para que falha aponte direto o componente.
  *
- * Tagged @critical — bloqueia push em CI quando regredido.
+ * Roda no step `Report render gate` de `frontend-checks` (job que está em
+ * `all-green.needs`), logo bloqueia merge. Antes de 2026-08-08 a tag
+ * `@critical` era o único sinal de que isso deveria acontecer, e não
+ * acontecia: nenhum job executava este arquivo, e ele acumulou 3 falhas —
+ * 2 de fixture e 1 violação real de contraste em S8 — sem ninguém ver.
+ * `@critical` no nome não é gate; gate é estar num job exigido.
  */
-import { test } from "@playwright/test";
+import { test, type Page } from "@playwright/test";
 import { expectNoA11yViolations } from "../helpers/axe";
 import {
   mockReportPage,
@@ -24,20 +29,84 @@ const STRATEGIC_SECTIONS = [
   "V0", "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10", "S_parecer",
 ];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
+// Declarado aqui, e não junto do bloco de `S_parecer`: o `describe` de cima
+// consome no momento da coleta, e a `const` embaixo cairia na TDZ.
+const THEMES = ["light", "dark"] as const;
 // ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA removido.
 
-test.describe("Report a11y @critical", () => {
-  test("relatório completo (modo estratégico) sem violações critical+serious", async ({
-    page,
-  }) => {
-    const { workspaceId, reportId } = await mockReportPage(page);
-    await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
-    await waitForReportReady(page);
+/** Seções listadas acima que a fixture `medium` **não faz montar**.
+ *
+ * Mesma allowlist (e mesmos dois membros) de `sections.snapshots.visual.spec.ts`,
+ * pelo mesmo motivo — as duas retornam `null` por hide-when-empty:
+ * - `S4`    — `data.real_estate` ausente (ADR-216 Onda 6).
+ * - `APP_C` — `cenarios_conjuge` é `{}` e não há `programa_milhas`, logo
+ *   `hasCenarios`/`hasMilhas` são falsos (ADR-167). A chave `cenarios_conjuge`
+ *   **existe** na fixture, só está vazia: ler o topo do JSON dá a impressão de
+ *   que a seção monta.
+ *
+ * O #1295 fechou isso no spec visual e este ficou de fora — `S4` seguia em
+ * `STRATEGIC_SECTIONS` esperando um `waitForSelector` que só podia estourar, e
+ * o loop de apêndices pulava qualquer seção ausente com `test.skip` puro.
+ *
+ * É allowlist, não decoração: qualquer OUTRA seção que deixe de montar vira
+ * falha. Sem isso, regressão de render (seção sumiu por bug) viraria job verde
+ * — e um skip condicional passa verde num CI limpo, que é o modo de falha que
+ * já custou 4 meses de baselines órfãs aqui. */
+const SECTIONS_NOT_IN_MEDIUM_FIXTURE = new Set(["S4", "APP_C"]);
 
-    await expectNoA11yViolations(page, {
-      selector: '[data-report-scope]',
+/** Espera a seção montar, ou decide entre skip declarado e falha.
+ *
+ * O `waitFor` (e não um `count()` seco) é deliberado: em runner lento a seção
+ * pode montar depois do `data-report-ready`, e aí `count()===0` viraria um
+ * "não montou" **falso** — vermelho confuso, do tipo que ensina a ignorar o
+ * gate. O custo do wait só é pago pelas 2 seções declaradas ausentes. */
+async function waitForSectionOrSkip(
+  page: Page,
+  sectionId: string,
+): Promise<string | null> {
+  const selector = `section#${sectionId}[data-report-section]`;
+  const montou = await page
+    .locator(selector)
+    .waitFor({ state: "attached", timeout: 5_000 })
+    .then(() => true, () => false);
+  if (montou) return selector;
+  if (!SECTIONS_NOT_IN_MEDIUM_FIXTURE.has(sectionId)) {
+    throw new Error(
+      `seção ${sectionId} não montou com a fixture atual. Se isso for ` +
+        `deliberado, adicione-a a SECTIONS_NOT_IN_MEDIUM_FIXTURE; caso ` +
+        `contrário é regressão de render.`,
+    );
+  }
+  test.skip(true, `seção ${sectionId} não montada com a fixture medium`);
+  return null;
+}
+
+test.describe("Report a11y @critical", () => {
+  /** A varredura de página inteira roda nos DOIS temas; as por-seção, só em
+   *  light. Custo com o mesmo alcance: a página já contém o DOM de todas as
+   *  seções e o axe reporta o seletor do ofensor, então uma violação exclusiva
+   *  do dark é pega E localizada aqui, por 1 teste a mais em vez de 15. As
+   *  por-seção existem para encurtar o caminho até o componente no caso comum,
+   *  não para cobrir tema.
+   *
+   *  Era este o buraco: até 2026-08-08 nada media dark. `--semantic-loss` como
+   *  texto sobre o próprio tint de 15% dava 4,36:1 no dark e 5,01:1 no light —
+   *  reprova invisível, porque inspecionar o light concluía "loss está ok". E
+   *  foi esta varredura que achou `BADGE_COLOR` de `alocacaoCardParts`, que o
+   *  gate estático não vê (par montado por `style` inline, em linhas
+   *  separadas). */
+  for (const theme of THEMES) {
+    test(`relatório completo (modo estratégico) — ${theme} sem violações critical+serious`, async ({
+      page,
+    }) => {
+      await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
+      const { workspaceId, reportId } = await mockReportPage(page);
+      await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+      await waitForReportReady(page);
+
+      await expectNoA11yViolations(page, { selector: "[data-report-scope]" });
     });
-  });
+  }
 
   for (const sectionId of STRATEGIC_SECTIONS) {
     test(`seção ${sectionId} sem violações critical+serious`, async ({ page }) => {
@@ -45,8 +114,8 @@ test.describe("Report a11y @critical", () => {
       await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
       await waitForReportReady(page);
 
-      const selector = `section#${sectionId}[data-report-section]`;
-      await page.waitForSelector(selector, { timeout: 5_000 });
+      const selector = await waitForSectionOrSkip(page, sectionId);
+      if (!selector) return;
       await expectNoA11yViolations(page, { selector });
     });
   }
@@ -57,12 +126,8 @@ test.describe("Report a11y @critical", () => {
       await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
       await waitForReportReady(page);
 
-      const selector = `section#${sectionId}[data-report-section]`;
-      const exists = await page.locator(selector).count();
-      if (exists === 0) {
-        test.skip(true, `seção ${sectionId} não montada no modo padrão`);
-        return;
-      }
+      const selector = await waitForSectionOrSkip(page, sectionId);
+      if (!selector) return;
       await expectNoA11yViolations(page, { selector });
     });
   }
@@ -78,7 +143,6 @@ test.describe("Report a11y @critical", () => {
  * temas, porque o contraste é o que muda entre eles.
  */
 const PARECER_STATES: PlannerReviewFixture[] = ["retido", "parcial"];
-const THEMES = ["light", "dark"] as const;
 
 test.describe("S_parecer degradado — a11y @critical", () => {
   for (const plannerReview of PARECER_STATES) {
