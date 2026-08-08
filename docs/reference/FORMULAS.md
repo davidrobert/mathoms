@@ -278,6 +278,22 @@ pct_renda_anual = premio_total_anual_brl / renda_anual_liquida_brl
 
 Quando `renda_anual_liquida_brl == 0` → KPI ausente (não dividir por zero).
 
+**Escopo do numerador (ADR-240 §Emenda 2026-08-08).** A soma cobre **só** apólice
+extraída de documento. As duas fontes de cobertura não compartilham chave de
+identidade (o cadastro `Protection` não guarda `apolice_numero`), então uni-las
+arriscaria dupla-contagem — pior que omissão num KPI monetário. Consequência:
+
+```
+veredito_pct_renda_suprimido = categorias_somente_no_cadastro ≠ ∅
+```
+
+Com o veredito suprimido, o **valor** continua reportado e a **faixa não é
+emitida** — afirmar suficiência sobre soma sabidamente parcial é o mesmo erro que
+afirmar ausência sobre fonte única. O escopo é declarado no payload em
+`protecao_patrimonial.escopo_cobertura`; o consumidor de UI é
+[`ProtecaoKpiHero.tsx`](../../frontend/src/components/report/sections/SProtecao/ProtecaoKpiHero.tsx).
+Mesma regra vale para `protecao.premio_total_anual` (KPI G), que é o numerador.
+
 ### `protecao.gap_bem_auto` (KPI C V1)
 
 Por veículo segurado em apólice vigente:
@@ -299,6 +315,26 @@ quando `lmi_modo='fipe_percentual'`. Sinal:
 Quando `valor_fipe == 0` (veículo sem FIPE — depende de A18 L3) → bem sai da lista;
 UI mostra placeholder "FIPE pendente — refresh anual".
 
+### `protecao.tem_cobertura` (união das evidências — ADR-240 §Emenda 2026-08-08)
+
+Predicado compartilhado pelos dois flags do KPI F. Cobertura de uma categoria é
+afirmada sobre a **união** das fontes, nunca sobre uma só:
+
+```
+tem_cobertura(cat) = existe_apolice_extraida_com_cobertura(cat)
+                     OR existe_cadastro_vigente_na_categoria(cat)
+```
+
+Onde `existe_cadastro_vigente_na_categoria(cat)` percorre `Protection` (ADR-192)
+com `status == "Ativa"` e vigência contendo `data_referencia` (`ends_at` nulo =
+vitalícia). Vocabulário canônico da união: **apenas `vida` e `saude`** — só esses
+descrevem o mesmo produto nos dois lados. `acidentes` (documento) e `invalidez` /
+`patrimonial` / `rc_profissional` / `sucessorio` (cadastro) **não** entram: casar
+por semelhança faria uma apólice de acidentes silenciar o gap de vida.
+
+Implementação: [`pipeline/domain/services/cobertura_consolidada.py`](../../pipeline/domain/services/cobertura_consolidada.py)
+(`consolidar_cobertura` → `CoberturaConsolidada.tem_cobertura`).
+
 ### `protecao.flag_vida` (KPI F vida)
 
 ```
@@ -306,11 +342,13 @@ flag_vida = (
     has_dependentes_menores_18 OR
     has_conjuge_sem_renda_propria OR
     (passivo_total / patrimonio_liquido) > 0.30
-) AND NOT has_apolice_vida_ativa
+) AND NOT tem_cobertura("vida")
 ```
 
 Sem `family_members` (workspace zero-config) → `flag_vida=False` silenciosamente
-(gate G5 — degrada gracioso).
+(gate G5 — degrada gracioso). O `rationale` distingue a proveniência do
+fechamento: `apolice_vida_ativa` quando o documento sustenta, e
+`cobertura_vida_cadastrada` quando só o cadastro sustenta.
 
 ### `protecao.flag_saude` (KPI F saúde)
 
@@ -318,7 +356,7 @@ Sem `family_members` (workspace zero-config) → `flag_vida=False` silenciosamen
 flag_saude = (
     NOT has_deducao_saude_irpf AND
     NOT has_categoria_saude_e4_3_meses
-) AND NOT has_apolice_saude_ativa
+) AND NOT tem_cobertura("saude")
 ```
 
 Copy mais branda que vida (PJ comum cobre saúde). ADR-240 D3 detalha texto.
