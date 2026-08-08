@@ -715,10 +715,19 @@ jobs:
     # falha, type-check/Vitest não rodam).
     name: Frontend checks (ESLint + tsc + Vitest + report render)
     runs-on: ubuntu-latest
-    # ESLint observado ~43s; Vitest observado ~1m49s; step de render (A40.l3 +
-    # A40.l22) ~2min em PR que toca relatório, mais ~20s de poppler-utils. Job
-    # inteiro observado em 5m53s (2026-08-08). 12min dá buffer sem esconder
-    # hang real.
+    # Medido em 2026-08-08 (run 31255941106, PR que toca relatório): ESLint 10s ·
+    # tsc 22s · Vitest 3m31s · step de render 3m07s (43 testes: 41 passam, 2
+    # skipam declarados) · poppler 4s · npm ci 22s. Job inteiro 8m27s, dos quais
+    # 25s foram cache miss do Chromium — com hit, ~8m02s.
+    #
+    # ATENÇÃO à margem: 8m27s contra o teto de 12min é ~30% de folga, abaixo dos
+    # ~40% que se considera confortável aqui. NÃO subir o teto por isso — o teto
+    # existe para pegar hang, e subi-lo para caber é esconder a erosão. O que
+    # cresceu não foi o render: o número anterior deste comentário (5m53s job /
+    # ~2min render / ~1m49s Vitest / ~43s ESLint) datava de antes do a11y entrar
+    # no step, e a comparação mostra que a maior parte do delta é **Vitest, que
+    # quase dobrou sozinho** (1m49s → 3m31s). O a11y respondeu por ~1min. Se a
+    # folga cair mais, o alvo de investigação é o Vitest, não este step.
     timeout-minutes: 12
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
