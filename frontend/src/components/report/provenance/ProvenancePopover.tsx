@@ -63,12 +63,16 @@ function ConferiLancamentos({
 function NeedsReviewBand() {
   return (
     <div
-      className="mb-3 flex items-start gap-2 rounded-md bg-[color-mix(in_srgb,var(--semantic-warning)_15%,transparent)] p-2 text-xs"
+      className="mb-3 flex items-start gap-2 rounded-md bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] p-2 text-xs"
       data-provenance-needs-review
     >
+      {/* O ícone é objeto gráfico sobre o tint da própria cor — 1.4.11 pede
+          3:1, e a cor base dava 1,86:1 em light. Par `-on-tint` sobe para
+          5,60:1. Não é pareado por dev/check_tint_contrast.py (o `text-[…]`
+          vive no filho, não no className do fundo). */}
       <Clock
         aria-hidden="true"
-        className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--semantic-warning)]"
+        className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--semantic-alert-on-tint)]"
       />
       <p className="text-[var(--surface-popover-foreground)]">
         Ainda estou conferindo um detalhe deste número. Pode mudar levemente.

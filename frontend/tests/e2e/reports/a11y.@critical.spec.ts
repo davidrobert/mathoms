@@ -29,6 +29,9 @@ const STRATEGIC_SECTIONS = [
   "V0", "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10", "S_parecer",
 ];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
+// Declarado aqui, e não junto do bloco de `S_parecer`: o `describe` de cima
+// consome no momento da coleta, e a `const` embaixo cairia na TDZ.
+const THEMES = ["light", "dark"] as const;
 // ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA removido.
 
 /** Seções listadas acima que a fixture `medium` **não faz montar**.
@@ -79,17 +82,31 @@ async function waitForSectionOrSkip(
 }
 
 test.describe("Report a11y @critical", () => {
-  test("relatório completo (modo estratégico) sem violações critical+serious", async ({
-    page,
-  }) => {
-    const { workspaceId, reportId } = await mockReportPage(page);
-    await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
-    await waitForReportReady(page);
+  /** A varredura de página inteira roda nos DOIS temas; as por-seção, só em
+   *  light. Custo com o mesmo alcance: a página já contém o DOM de todas as
+   *  seções e o axe reporta o seletor do ofensor, então uma violação exclusiva
+   *  do dark é pega E localizada aqui, por 1 teste a mais em vez de 15. As
+   *  por-seção existem para encurtar o caminho até o componente no caso comum,
+   *  não para cobrir tema.
+   *
+   *  Era este o buraco: até 2026-08-08 nada media dark. `--semantic-loss` como
+   *  texto sobre o próprio tint de 15% dava 4,36:1 no dark e 5,01:1 no light —
+   *  reprova invisível, porque inspecionar o light concluía "loss está ok". E
+   *  foi esta varredura que achou `BADGE_COLOR` de `alocacaoCardParts`, que o
+   *  gate estático não vê (par montado por `style` inline, em linhas
+   *  separadas). */
+  for (const theme of THEMES) {
+    test(`relatório completo (modo estratégico) — ${theme} sem violações critical+serious`, async ({
+      page,
+    }) => {
+      await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
+      const { workspaceId, reportId } = await mockReportPage(page);
+      await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+      await waitForReportReady(page);
 
-    await expectNoA11yViolations(page, {
-      selector: '[data-report-scope]',
+      await expectNoA11yViolations(page, { selector: "[data-report-scope]" });
     });
-  });
+  }
 
   for (const sectionId of STRATEGIC_SECTIONS) {
     test(`seção ${sectionId} sem violações critical+serious`, async ({ page }) => {
@@ -126,7 +143,6 @@ test.describe("Report a11y @critical", () => {
  * temas, porque o contraste é o que muda entre eles.
  */
 const PARECER_STATES: PlannerReviewFixture[] = ["retido", "parcial"];
-const THEMES = ["light", "dark"] as const;
 
 test.describe("S_parecer degradado — a11y @critical", () => {
   for (const plannerReview of PARECER_STATES) {
