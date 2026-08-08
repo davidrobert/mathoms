@@ -715,10 +715,19 @@ jobs:
     # falha, type-check/Vitest não rodam).
     name: Frontend checks (ESLint + tsc + Vitest + report render)
     runs-on: ubuntu-latest
-    # ESLint observado ~43s; Vitest observado ~1m49s; step de render (A40.l3 +
-    # A40.l22) ~2min em PR que toca relatório, mais ~20s de poppler-utils. Job
-    # inteiro observado em 5m53s (2026-08-08). 12min dá buffer sem esconder
-    # hang real.
+    # Medido em 2026-08-08 (run 31255941106, PR que toca relatório): ESLint 10s ·
+    # tsc 22s · Vitest 3m31s · step de render 3m07s (43 testes: 41 passam, 2
+    # skipam declarados) · poppler 4s · npm ci 22s. Job inteiro 8m27s, dos quais
+    # 25s foram cache miss do Chromium — com hit, ~8m02s.
+    #
+    # ATENÇÃO à margem: 8m27s contra o teto de 12min é ~30% de folga, abaixo dos
+    # ~40% que se considera confortável aqui. NÃO subir o teto por isso — o teto
+    # existe para pegar hang, e subi-lo para caber é esconder a erosão. O que
+    # cresceu não foi o render: o número anterior deste comentário (5m53s job /
+    # ~2min render / ~1m49s Vitest / ~43s ESLint) datava de antes do a11y entrar
+    # no step, e a comparação mostra que a maior parte do delta é **Vitest, que
+    # quase dobrou sozinho** (1m49s → 3m31s). O a11y respondeu por ~1min. Se a
+    # folga cair mais, o alvo de investigação é o Vitest, não este step.
     timeout-minutes: 12
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
@@ -780,7 +789,7 @@ jobs:
         # seria verde sobre um PDF que ninguém mediu.
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
 
-      - name: Report render gate (janela canônica + degradação do parecer + inventário — tela + print)
+      - name: Report render gate (janela canônica + parecer + inventário + a11y — tela + print)
         # SEM `if: needs.changes.outputs.report` — aqui e nos 3 steps de setup
         # acima (cache/install do Chromium, poppler). O filtro `report` é
         # allowlist positiva e **falha aberta**: medido em 400 commits de `main`
@@ -816,6 +825,16 @@ jobs:
         # não o DOM sob `emulateMedia`: a truncagem de 2026-08-07 passava verde
         # no DOM. Os dois são complementares — `print-chrome` cobre o que NÃO
         # pode sair no arquivo, `print-text` o que TEM de sair.
+        # `a11y` entra pelo mesmo argumento das anteriores, com um agravante: era
+        # `@critical` e não rodava em job NENHUM (só o Lighthouse cita a11y nos
+        # workflows), então as 3 falhas que ele carregava — 2 de fixture e 1
+        # violação real de contraste em S8 — viviam invisíveis. Mesmo modo de
+        # falha que o #1281 corrigiu no `planner-review-smoke`.
+        # Invocação única de propósito: o Playwright não para no primeiro erro
+        # (não há `-x`/`maxFailures`), o reporter `github` anota por teste e o
+        # junit sai no upload de falha — então os sinais já são independentes.
+        # Um step separado só acrescentaria um 2º boot de webServer e disputa
+        # pela porta 3000 (`reuseExistingServer: false` em CI).
         run: |
           npx playwright test \
             tests/e2e/reports/janela-canonica.@critical.spec.ts \
@@ -823,6 +842,7 @@ jobs:
             tests/e2e/reports/print-chrome.@critical.spec.ts \
             tests/e2e/reports/print-text.@critical.spec.ts \
             tests/e2e/reports/report-inventory.@critical.spec.ts \
+            tests/e2e/reports/a11y.@critical.spec.ts \
             --project=chromium
 
       - name: Upload results (only on failure)

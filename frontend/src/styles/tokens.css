@@ -103,6 +103,8 @@
     --semantic-success: #15803D;
     --semantic-danger: #B91C1C;
     --semantic-warning: #F4A261;
+    --semantic-gain-on-tint: #166534;
+    --semantic-alert-on-tint: #984C11;
 
     --chart-1: #1A3A5C;
     --chart-2: #15803D;
@@ -170,6 +172,8 @@
     --semantic-success: #4ADE80;
     --semantic-danger: #FB7185;
     --semantic-warning: #FDBA74;
+    --semantic-gain-on-tint: #4ADE80;
+    --semantic-alert-on-tint: #FDBA74;
 
     --chart-1: #7EB8DA;
     --chart-2: #4ADE80;
@@ -438,6 +442,8 @@
     --color-success: var(--semantic-success);
     --color-danger: var(--semantic-danger);
     --color-warning: var(--semantic-warning);
+    --color-gain-on-tint: var(--semantic-gain-on-tint);
+    --color-alert-on-tint: var(--semantic-alert-on-tint);
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
     --color-chart-3: var(--chart-3);
