@@ -1,10 +1,15 @@
 # Orquestrador — Sprint A40 "Report trust": fechamento das 3 P0 pegáveis
 
 > **Escopo:** [[A40.l2]] (restante) + [[A40.l20]] (restante) + [[A40.l22]].
-> **Estado em 2026-08-08: resta a Frente C.** A **A** foi consumida pelo #1276
-> (`b3b8a74b`) e a **B** pelo #1278 (`039c1b6d`); as duas §§ ficam como registro
-> datado, com os vereditos in-loco. Da [[A40.l2]] seguem abertos 3c1 · 3c2 · 3d
-> (destravado) · 3e.
+> **Estado em 2026-08-08 (2ª atualização do dia): as 3 frentes estão consumidas.**
+> **A** pelo #1276 (`b3b8a74b`), **B** pelo #1278 (`039c1b6d`), **C** pelo #1277
+> (`23090211`). As três §§ ficam como registro datado, com os vereditos in-loco.
+> **Este prompt não é mais um roteador de pickup** — o que resta da [[A40.l2]]
+> (3c1 · 3c2 · 3d destravado · 3e) e o que resta da [[A40.l22]] (a copy por
+> código de ausência, recebida do PR2 da l20) vive nas **lanes**, não aqui.
+> Da Frente C: a lane segue `in_progress` de propósito, e a perna de PDF do
+> §Critério de aceite dela é **parcial** por defeito pré-existente do export —
+> ver §Fora do sprint do [`_README`](../sprint/A40/_README.md).
 > **Criado:** 2026-08-07, contra `main @ 2571f203`. Os números de linha citados
 > abaixo foram **reverificados** nesse commit — se `main` andou, reverifique-os
 > antes de confiar (o mecanismo continua válido; o endereço, não necessariamente).
@@ -32,7 +37,10 @@ fora da §Aceite da frente.
 
 - ✅ **Frente A** = [[A40.l2]], restante do PR3b — **consumida** (#1276, `b3b8a74b`)
 - ✅ **Frente B** = [[A40.l20]] PR2 — **consumida** (#1278, `039c1b6d`)
-- ⬜ **Frente C** = [[A40.l22]] (frontend + PDF; bloqueador do beta) — **a única pegável**
+- ✅ **Frente C** = [[A40.l22]] (frontend + PDF) — **consumida** (#1277, `23090211`).
+  A lane **não** virou `shipped`: recebeu escopo novo do PR2 da l20 (copy por
+  código de ausência + free tier), que o #1277 não cobre e cuja escolha de
+  palavra é do dono. **Nenhuma frente deste prompt é pegável.**
 
 As três rodam em paralelo em worktrees separados:
 
@@ -311,10 +319,31 @@ PlannerReviewAbsenceCode`, 4 valores); escolher a palavra por código é
 
 ## 6. Frente C — [[A40.l22]] (superfície de degradação, inclusive PDF)
 
+> ✅ **CONSUMIDA em 2026-08-08 — #1277 (`23090211`), CI de `main` verde.** Esta §
+> fica como **registro datado**: não é mais ordem de serviço. O que entrou: a
+> retenção declarada em 4 superfícies (nota no hero de `S_parecer`, 3º contador na
+> caption, 1 linha no `ReportDataQualityBanner` com "precisão"→"leitura", e
+> `HistoryRow` no `/pipeline`), mais gate bloqueante em `frontend-checks`, gate de
+> contraste em Vitest e `pdftotext` no job de print.
+>
+> **O que NÃO entrou, e por isso a lane segue `in_progress`:** a **copy por código
+> de ausência** + free tier (o ➕ abaixo) — escolha de palavra é do dono. Dois
+> itens do §Aceite ficam abertos: a perna de PDF da **seção** (parcial, por
+> truncagem pré-existente do export — registrada em §Fora do sprint do
+> [`_README`](../sprint/A40/_README.md)) e o teste com humano (n=1).
+>
+> **Duas correções ao que esta § afirmava**, medidas na execução: (a) o contador
+> de retenção é **escalar do parecer inteiro**, não por bucket, então a caption diz
+> *"N itens do parecer retidos"* e nunca *"N riscos"* — o exemplo `"2 riscos
+> retidos"` da linha `Retido` de COPY_GUIDELINES §2.2 é a forma que mente, e há
+> linha nova no §2.2 dizendo isso; (b) dar cobertura axe ao `ParecerBody` pela
+> primeira vez expôs **4** violações `serious` pré-existentes (ADR-199 Ato 5),
+> corrigidas no mesmo PR por reuso de token do ADR-117.
+
 **Branch:** `agent/a40-l22-superficie-degradacao/<ts>` · **P0** ·
 **bloqueador de fato do beta** (6ª classe do §Gate de saída).
 
-### ~~Primeira ação: flipe o `status`~~ — já feito; flipe para `in_progress` no pickup
+### ~~Primeira ação: flipe o `status`~~ — consumido; ver o blockquote acima
 
 ~~A lane está `blocked`~~ — **corrigido em 2026-08-07 pelo #1272**: está `open`, e
 a dependência ficou **terminal** em 07/08 com o merge do PR2 da [[A40.l20]]
