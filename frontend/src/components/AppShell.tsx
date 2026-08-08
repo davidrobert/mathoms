@@ -189,7 +189,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Button
         variant="outline"
         size="icon"
-        className="fixed left-3 top-3 z-40 h-10 w-10 shadow-md lg:hidden"
+        className="no-print fixed left-3 top-3 z-40 h-10 w-10 shadow-md lg:hidden"
         onClick={() => setMobileOpen(true)}
         aria-label="Abrir menu"
       >
