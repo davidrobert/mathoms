@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import fakeredis
-import fakeredis.aioredis
 import pytest
 from pydantic import ValidationError
 
 from backend.app.core import config as core_config
 from backend.app.schemas.health import HealthResponse
+from backend.tests.fakes import DeadCeleryApp, patch_healthy_dependencies
 
 _BASE = {
     "api": "ok",
@@ -71,54 +70,9 @@ async def test_endpoint_sem_env_reporta_none_e_responde(monkeypatch) -> None:
 # quebre aqui em vez de fail-open no único sinal sumarizante do endpoint.
 
 
-class _FakeCeleryInspect:
-    def active(self) -> dict:
-        return {"celery@fake": []}
-
-
-class _FakeCeleryControl:
-    def inspect(self, timeout: float | None = None) -> _FakeCeleryInspect:
-        return _FakeCeleryInspect()
-
-
-class _FakeCeleryApp:
-    control = _FakeCeleryControl()
-
-
-class _FakeConnection:
-    async def __aenter__(self) -> _FakeConnection:
-        return self
-
-    async def __aexit__(self, *exc_info: object) -> bool:
-        return False
-
-    async def execute(self, statement: object) -> None:
-        return None
-
-
-class _FakeEngine:
-    def connect(self) -> _FakeConnection:
-        return _FakeConnection()
-
-
 @pytest.fixture
 def dependencias_sadias(monkeypatch):
-    """Redis, Celery e DB respondendo — o cenário em que `status` deve ser "ok"."""
-    import redis.asyncio as aioredis
-
-    import backend.app.core.database as database_module
-    import backend.app.worker as worker_module
-
-    server = fakeredis.FakeServer()
-    monkeypatch.setattr(
-        aioredis,
-        "from_url",
-        lambda *a, **k: fakeredis.aioredis.FakeRedis(server=server, decode_responses=True),
-    )
-    monkeypatch.setattr(worker_module, "celery_app", _FakeCeleryApp())
-    monkeypatch.setattr(database_module, "engine", _FakeEngine())
-    # Setada, dispararia probe HTTP real de 2s; ambos os campos são informacionais.
-    monkeypatch.delenv("MATHOMS_PIPELINE_SERVICE_URL", raising=False)
+    patch_healthy_dependencies(monkeypatch)
 
 
 # Mutação que mata: remover `"executor_revision"` de `informational` — o estado
@@ -158,11 +112,8 @@ async def test_status_degradado_quando_dependencia_real_falha(
     import backend.app.worker as worker_module
     from backend.app.main import health
 
-    class _CeleryMorto:
-        control = None  # `.inspect` estoura AttributeError → check vira "error: ..."
-
     monkeypatch.setattr(core_config.settings, "BUILD_SHA", "aaaaaaaaaaaa", raising=False)
-    monkeypatch.setattr(worker_module, "celery_app", _CeleryMorto())
+    monkeypatch.setattr(worker_module, "celery_app", DeadCeleryApp())
     payload = await health()
 
     assert payload["celery"].startswith("error:")

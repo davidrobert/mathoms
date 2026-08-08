@@ -5142,6 +5142,17 @@
             "title": "Redis",
             "type": "string"
           },
+          "redis_cache": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redis Cache"
+          },
           "status": {
             "enum": [
               "ok",

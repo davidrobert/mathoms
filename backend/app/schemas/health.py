@@ -21,7 +21,11 @@ class HealthResponse(BaseModel):
     """
 
     # ``extra="allow"`` preserva compat caso o endpoint adicione novos
-    # checks no futuro sem exigir bump de versão da API.
+    # checks no futuro sem exigir bump de versão da API. O custo: campo extra
+    # NÃO é filtrado — viaja ao cliente sem existir no OpenAPI, e foi assim que
+    # ``redis_cache`` ficou fora do contrato. O gate é
+    # ``backend/tests/test_health_payload_contract.py``, que compara os campos
+    # emitidos por ``health()`` com os declarados aqui, nas duas direções.
     model_config = ConfigDict(extra="allow")
 
     api: Literal["ok"]
@@ -32,6 +36,11 @@ class HealthResponse(BaseModel):
     # nullable ali daria 500 e marcaria o container unhealthy.
     executor_revision: Optional[str] = None
     redis: str
+    # Presente só quando o cache tem instância própria (``REDIS_CACHE_URL`` ≠
+    # ``REDIS_URL``): broker noeviction × cache LRU são 2 hosts em prod, 1 em dev.
+    # Ausente ≠ ``None`` — em dev o campo simplesmente não é emitido. Conta para
+    # ``status``: é dependência, não campo descritivo (ADR-363 §Emenda 2026-08-08).
+    redis_cache: Optional[str] = None
     celery: str
     database: str
     artifact_store_mode: Literal["db", "disk"]
