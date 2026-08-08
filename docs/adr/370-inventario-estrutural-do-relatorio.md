@@ -76,16 +76,21 @@ opt-in por custo; isso não se estende a gate estrutural).
 - Quatro seções (`V0`, `S_parecer`, `plano_de_acao`, `APP_E`) entram com lista
   vazia: nelas o gate assere apenas que a **seção** ainda renderiza.
 
-## Descoberta registrada: `cards[].enabled` do layout é decorativo
+## Descoberta registrada: `cards[].enabled` e `charts[].enabled` são decorativos
 
-`config/report_layout.yaml` declara `cards[].id` + `enabled` e o cabeçalho do
-arquivo afirma controlar "quais seções, cards e charts aparecem no relatório".
-**Para o relatório inteiro, isso não é verdade hoje.** `MIGRATED_SECTIONS`
+`config/report_layout.yaml` declara `cards[].id`/`charts[].id` + `enabled`, e o
+cabeçalho do arquivo afirmava controlar "quais seções, cards e charts aparecem no
+relatório". **Para card e chart isso não é verdade hoje** — só `sections[].enabled`
+governa de fato (`selectSections(mode).filter((s) => s.enabled)` no `ReportShell`).
+
+`MIGRATED_SECTIONS`
 ([`MigratedSection.tsx:26`](../../frontend/src/components/report/MigratedSection.tsx))
-contém as 18 seções, e `ReportShell` só repassa `section.cards` para o
-`ReportSectionStub` — o ramo não-migrado, hoje inalcançável. Nenhum componente
-referencia id de card do layout (`rg` por `proventos_yield`,
-`hero_gap_protecao`, `contrafluxo`… não retorna nada em `frontend/src`).
+contém as 18 seções, e `ReportShell` só repassa `section.cards`/`section.charts`
+para o `ReportSectionStub` — o ramo não-migrado, hoje inalcançável. Nenhum
+componente referencia id de card/chart do layout (`rg` por `proventos_yield`,
+`hero_gap_protecao`, `contrafluxo`… não retorna nada em `frontend/src`); o
+`charts` que as seções consomem é `narrativas.charts`, texto do E5.N — outra
+coisa. O cabeçalho do YAML foi corrigido junto desta ADR.
 
 Consequência: pôr `alocacao_atual_vs_alvo: enabled: false` não removeria o card.
 Por isso o gate v1 é chaveado por **título renderizado**, não por id do layout:
