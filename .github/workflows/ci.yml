@@ -850,7 +850,9 @@ jobs:
         # erro importa. Tem de sair dos setups JUNTO: gate sem Chromium ou sem
         # `pdftotext` não degrada para skip, hard-falha. O job inteiro já é
         # gateado por `frontend`, então PR de backend/docs segue sem pagar
-        # nada; custo medido ~1,6 min nos ~90 runs/mês que hoje pulam.
+        # nada. O custo nos ~90 runs/mês que antes pulavam é o do step: **3m53s**
+        # medido em 2026-08-08 (run 31258270516) — não os ~1,6 min que esta
+        # linha dizia, número de quando o step rodava 1 spec.
         env:
           # `npm run dev` dispara `predev` → `codegen:check` → `python3 …`, e este
           # job é node-only (sem setup-python): o webServer do Playwright não

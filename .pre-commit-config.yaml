@@ -145,6 +145,17 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: run-artifact-fk-coverage
+        # ADR-371: enumerar tabelas-filhas à mão foi o que deixou 48 rows
+        # penduradas no expurgo de 2026-05-15. Full-scan dos models: barato
+        # (AST, sem import) e independente do diff, porque o ofensor entra
+        # como tabela nova, não como edição das existentes.
+        name: "FK para pipeline_runs/artifacts é classificada (ADR-371)"
+        entry: python3 dev/check_run_artifact_fk_coverage.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: forbidden-paths
         name: "Bloqueia paths sensíveis (storage/, .env, *.db, …)"
         entry: python dev/check_forbidden_paths.py

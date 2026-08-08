@@ -11,9 +11,15 @@
 # limpo. Positivo cobre cancelado, `failed` com E5 e qualquer status futuro de
 # graça.
 #
-# `unknown` é membro explícito, nunca ausência: `reports.pipeline_run_id` é
-# `ondelete="SET NULL"`, e um campo opcional que chega `undefined` faria a
-# supressão sumir em silêncio no rollout.
+# `unknown` é membro explícito, nunca ausência: um campo opcional que chega
+# `undefined` faria a supressão sumir em silêncio no rollout.
+#
+# **Não troque o `.get(rid, unknown)` de `outcome_for_report` por um join.**
+# O default não é redundância do `SET NULL` — é o que segura o caso em que a
+# coluna tem valor e o run não existe. Até 2026-08-08 o `PRAGMA foreign_keys`
+# estava OFF (ADR-371) e o `SET NULL` nunca disparou: 16 relatórios do DB de
+# dogfood carregam run_id pendurado, e é só esse default que os leva a
+# `unknown` em vez de KeyError.
 
 from __future__ import annotations
 
