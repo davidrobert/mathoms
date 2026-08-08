@@ -70,11 +70,19 @@ Havia **três emulações manuais divergentes** em produção:
 ## Decisão
 
 **D1 — `PRAGMA foreign_keys=ON` no engine SQLite.** Medido antes de decidir:
-**15 testes de 3344** quebravam, todos fabricando referência inexistente
-(`Report` sem `PipelineRun`, `reviewed_by="user-1"` sem usuário, `review_reason`
-sem workspace, store de artifact sem run). São os testes que ficavam mais
+**19 testes de 9400** quebravam — 15 em `backend/tests`, 4 em `tests/` — todos
+fabricando referência inexistente (`Report` sem `PipelineRun`,
+`reviewed_by="user-1"` sem usuário, `review_reason` sem workspace, store de
+artifact sem run, CLI com `--run-id` sintético). São os testes que ficavam mais
 honestos, não o pragma que ficava caro. Prod é Postgres, onde a FK sempre foi
 enforçada — o pragma fecha a divergência dev↔prod, não introduz regra nova.
+
+> Nota de método: os 4 de `tests/` só apareceram no CI. Localmente eles já
+> falhavam por outro motivo (ruído de SQL echo no stdout, com `DEBUG=True`
+> default), e a falha nova ficou escondida atrás da antiga. A verificação
+> "isso pré-existe em `main`?" feita com `git stash` deu falso-negativo porque
+> o pragma já estava **commitado** — stash não desfaz commit. Medir contra
+> `origin/main` exige `git checkout origin/main -- <arquivo>`.
 
 **D2 — O grafo declarado nos models é a única fonte de verdade da deleção.**
 Enumerar tabelas-filhas à mão é proibido. `purge_documents` passa a deletar só

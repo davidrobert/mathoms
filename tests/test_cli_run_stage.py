@@ -55,12 +55,47 @@ def artifact_db(tmp_path: Path) -> str:
     return f"sqlite+aiosqlite:///{db_path}"
 
 
+# `pipeline_artifacts` tem FK NOT NULL para `pipeline_runs`, e desde a ADR-371 o
+# `PRAGMA foreign_keys` está ON — ids sintéticos precisam de linha real. Cada
+# teste usa um `--run-id` próprio, então a materialização é idempotente e roda
+# nos dois pontos por onde o run entra: a store de seed e a chamada do CLI.
+def _add_workspace_if_missing(session) -> None:
+    from backend.app.models.user import User
+    from backend.app.models.workspace import Workspace
+
+    if session.get(Workspace, _WORKSPACE_ID) is not None:
+        return
+    owner = User(
+        id="user-cli", email="cli@test.local", hashed_password="x", full_name="CLI Fixture"
+    )
+    session.add(owner)
+    session.flush()
+    session.add(Workspace(id=_WORKSPACE_ID, name="WS CLI", owner_id=owner.id))
+
+
+def _ensure_parents(db_url: str, run_id: str) -> None:
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+
+    engine = create_engine(db_url.replace("+aiosqlite", ""))
+    with sessionmaker(bind=engine)() as session:
+        _add_workspace_if_missing(session)
+        if session.get(PipelineRun, run_id) is None:
+            status = PipelineRunStatus.running
+            session.add(PipelineRun(id=run_id, workspace_id=_WORKSPACE_ID, status=status))
+        session.commit()
+    engine.dispose()
+
+
 def _open_store(db_url: str, run_id: str):
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
     from backend.app.services.storage.db_artifact_store import DBArtifactStore
 
+    _ensure_parents(db_url, run_id)
     engine = create_engine(db_url.replace("+aiosqlite", ""))
     session = sessionmaker(bind=engine, expire_on_commit=False)()
     return session, DBArtifactStore(session, workspace_id=_WORKSPACE_ID, pipeline_run_id=run_id)
@@ -104,6 +139,8 @@ def _cli_env(db_url: str | None) -> dict[str, str]:
 
 
 def _run_cli(args: list[str], db_url: str | None) -> subprocess.CompletedProcess:
+    if db_url is not None and "--run-id" in args:
+        _ensure_parents(db_url, args[args.index("--run-id") + 1])
     cmd = [sys.executable, "-m", "pipeline.orchestrator", *args]
     return subprocess.run(
         cmd, capture_output=True, text=True, cwd=REPO_ROOT, env=_cli_env(db_url), timeout=180
