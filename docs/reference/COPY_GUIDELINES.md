@@ -494,6 +494,14 @@ imprensa, pitch deck, comparativo competitivo, ToS / privacy policy:
 | "Estilo Cerbasi para casal" | "Planejamento patrimonial do casal" / "Decisão financeira a quatro mãos" |
 | "Equilíbrio Financeiro (Cerbasi)" | "Equilíbrio entre presente e futuro" / "Balanço presente-futuro" |
 | "Visão Cerbasi" (em alíquota / IRPF) | "Visão sobre renda total" / "Alíquota sobre renda total declarada" |
+| "Proteção Patrimonial — Pilar AUVP" (seção 2.5 do relatório) | "Seguros — Cobertura Contratada" (@2026-08-08) |
+
+> **Não troque "Pilar AUVP" por "Proteção Patrimonial" nu.** Em PT-BR o termo
+> lê primeiro como *blindagem patrimonial* (holding, sucessão, proteção contra
+> credores) e, no jargão SUSEP, como *ramo patrimonial* = bens **em oposição a**
+> pessoas. Sucessão/ITCMD mora na S9, e a V2 da [[ADR-240]] traz vida/saúde/AP —
+> o termo apontaria para a seção errada e envelheceria contra a feature.
+> Decisão co-desenhada `product-designer` + `financial-planner`, 2026-08-08.
 
 ### 13.3 Auditoria automática (CI gate)
 
@@ -507,6 +515,16 @@ todo arquivo staged dentro das surfaces user-facing cobertas:
   ([[ADR-183]], 2026-05-09); o sufixo `.md` é user-facing **somente** sob
   esse prefixo. Resto de `docs/` continua interno (atribuição §13.4
   permitida em ADRs, planos, runbooks).
+- `config/report_layout.yaml` — copy que nasce em config e chega à UI via
+  codegen ([[ADR-076]]). Cobertura adicionada em 2026-08-08, depois que o
+  título da seção 2.5 ("Proteção Patrimonial — Pilar AUVP") atravessou as
+  duas surfaces acima e chegou ao índice do relatório. Semântica **própria**,
+  em `dev/_sigilo_copy_yaml.py`: parse do YAML + varredura de todo valor
+  escalar (não de uma allowlist de chaves — `chart_titles` e
+  `navigation[].label` já são copy fora de `title`/`subtitle`/`label`). O
+  parser descarta comentário, então o rationale `#` do arquivo segue
+  atribuindo livremente (§13.4). `frontend/src/generated/` **não** entra:
+  derivado se gateia na fonte, mesma política de `docs/_MOC/_generated/`.
 
 Mesma lógica roda em CI via job `Lint (pre-commit + …)` — defense in depth.
 

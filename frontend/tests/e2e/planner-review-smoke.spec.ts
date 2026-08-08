@@ -27,19 +27,6 @@ import {
 
 const SIGILO_TERMS = ["perini", "cerbasi", "auvp"] as const;
 
-/**
- * Débito §13 legado, declarado em vez de silenciado — mesmo padrão do
- * burn-down em `dev/sigilo_terms_baseline.json`.
- *
- * `config/report_layout.yaml` titula a seção 2.5 de "Proteção Patrimonial —
- * Pilar AUVP", e o título chega ao cliente duas vezes (heading da seção e
- * entrada do índice). Trocar por copy conforme §13.2 mexe no layout canônico
- * + nos dois codegens + nos baselines visuais — mudança de copy de produto,
- * fora do escopo deste spec. Enquanto ela não vem, subtrair só a string
- * conhecida mantém o resto da varredura viva: vazamento NOVO fica vermelho.
- */
-const SIGILO_DEBT = /proteção patrimonial — pilar auvp/g;
-
 const PARECER_PAYLOAD = {
   id: "pr-smoke",
   workspace_id: MOCK_WORKSPACE_ID,
@@ -163,14 +150,22 @@ test.describe("Parecer do Planejador @critical", () => {
       );
     }
 
-    // Resto do relatório: mesma regra, com o débito legado declarado abaixo.
-    // Sem esta varredura, vazamento em seção nova só apareceria em revisão
-    // manual — o hook `sigilo-terms` não alcança copy que nasce em
-    // `config/report_layout.yaml` (a surface dele é `frontend/src/{app,
-    // components}`; config e `src/generated/` ficam de fora).
-    const pageText = (await page.locator("body").innerText())
-      .toLowerCase()
-      .replace(SIGILO_DEBT, "");
+    // Resto do relatório: mesma regra, sem subtração.
+    //
+    // Havia aqui um `SIGILO_DEBT` que descontava "proteção patrimonial —
+    // pilar auvp" (título de `config/report_layout.yaml`). Medindo antes de
+    // remover: a string **nunca** chegava a este `innerText`. Ela vive na
+    // entrada 2.5 do índice, e no viewport desktop deste spec as duas
+    // superfícies de índice estão fechadas — sidebar por default
+    // (`useReportTocOpen`) e drawer do `FloatingNav` por ser `<lg`. Só
+    // aparecia a 390px, com o drawer aberto. Ou seja: a subtração era inerte,
+    // e esta varredura não gateia copy de índice.
+    //
+    // Quem gateia a classe é o hook `sigilo-terms`, que ganhou surface para
+    // YAML de copy (`dev/_sigilo_copy_yaml.py`) e cobre tanto a origem em
+    // config quanto a em `frontend/src/components`. O escopo real daqui é o
+    // texto visível do relatório no desktop — mantido estrito.
+    const pageText = (await page.locator("body").innerText()).toLowerCase();
     for (const termo of SIGILO_TERMS) {
       expect(pageText, `§13: "${termo}" na copy renderizada`).not.toContain(
         termo,
