@@ -35,6 +35,7 @@ Puro, sem I/O.
 from __future__ import annotations
 
 import hashlib
+from collections import Counter
 from dataclasses import dataclass, replace
 from typing import Iterable
 
@@ -336,17 +337,26 @@ def _tx_cents_signed(tx: Transaction) -> int:
     return int(decimal_cents(tx.amount.amount) * (-1 if tx.amount.amount < 0 else 1))
 
 
+def _agrega_por_source(drop: list[_Row]) -> dict[str | None, tuple[int, int, Counter]]:
+    """``{source: (count, cents_assinado, meses)}`` — uma passada só sobre as rows."""
+    agg: dict[str | None, list] = {}
+    for stmt, tx in drop:
+        bucket = agg.setdefault(stmt.source_document, [0, 0, Counter()])
+        bucket[0] += 1
+        bucket[1] += _tx_cents_signed(tx)
+        bucket[2][tx.date.strftime("%Y-%m")] += 1
+    return {src: (c, v, m) for src, (c, v, m) in agg.items()}
+
+
 def _removals_by_source(drop: list[_Row]) -> tuple[CollapseRemoval, ...]:
     """Uma ``CollapseRemoval`` por ``source_document`` — o ledger é per-group, então
     atribuição global não fecha."""
-    agg: dict[str | None, list[int]] = {}
-    for stmt, tx in drop:
-        bucket = agg.setdefault(stmt.source_document, [0, 0])
-        bucket[0] += 1
-        bucket[1] += _tx_cents_signed(tx)
+    agg = _agrega_por_source(drop)
     return tuple(
-        CollapseRemoval(_CANAL, count, cents, cross_source_count=count, source=src)
-        for src, (count, cents) in sorted(agg.items(), key=lambda kv: kv[0] or "")
+        CollapseRemoval(
+            _CANAL, c, v, cross_source_count=c, source=src, meses=tuple(sorted(m.items()))
+        )
+        for src, (c, v, m) in sorted(agg.items(), key=lambda kv: kv[0] or "")
     )
 
 

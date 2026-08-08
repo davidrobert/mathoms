@@ -234,9 +234,10 @@ derivação tem de ser alimentado pelos **dois produtores reais**.
 | **3a — a sombra** ✅ [#1231](https://github.com/davidrobert/mathoms/pull/1231) (`65464db6`) | colapsador em produção **measure-only** · `shadow_counts` PII-safe no log estruturado · flag `cross_document_collapse_measure_enabled` (`True`, `OPERATOR_ONLY`) | flag off |
 | **3b1 — fonte única do digest** ✅ [#1251](https://github.com/davidrobert/mathoms/pull/1251) (`077fb7e9`) | `_gate_digest_da_chave` chama `gate_key_digest`, nunca monta a tupla inline · teste de derivação alimentado pelos **dois produtores reais** (`test_gate_digest_paired_derivation.py`) | revert |
 | **3b2 — `CollapseMeasurement`** ✅ [#1256](https://github.com/davidrobert/mathoms/pull/1256) (`4fdcf400`) | corpus **pré-poda** no VO (`corpus_gate_digests`, `corpus_row_hashes`) · `survivor_hash` em `CollapseCandidate` | revert |
-| **3b — o gate** ✅ (este PR) | predicado corrigido (5 cláusulas cumulativas + adjudicação por hash) · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · parâmetro stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
-| **3c1 — o dado** (paralelo ao 3d) | carrier E3→E4→E5 · `meses` no `$defs/remocao` · campo **omitido** quando zero · nomes que sobrevivem ao `is_monetary` · emenda na [[ADR-347]] | campo ausente |
-| **3d — o drain** (depende do 3b) | re-ancora os condenados **enquanto as duas rows existem**; apply só do caso 1→1 | `orphaned_at` + re-run |
+| **3b — o gate** ✅ [#1276](https://github.com/davidrobert/mathoms/pull/1276) (`b3b8a74b`) | predicado corrigido (5 cláusulas cumulativas + adjudicação por hash) · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · parâmetro stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
+| **3c1a — o dado até o E4** 🚧 [#1288](https://github.com/davidrobert/mathoms/pull/1288) | `meses` no canal (`$def` próprio, não `allOf`) · agregado somado sobre `readable` · carrier E3→E4 em `fluxo_mensal_detalhado` · campo **omitido** quando zero | campo ausente |
+| **3c1b — o dado até o E5** | `FluxoCaixaEnricher` copia para `fluxo_caixa` **e projeta em `janela_12m`** · invariante de conservação fail-loud no E3 · emenda na [[ADR-347]] · rebaseline do snapshot | campo ausente |
+| **3d — o drain** (destravado pelo 3b) | re-ancora os condenados **enquanto as duas rows existem**; apply só do caso 1→1. ⚠️ **decisão de desenho pendente — ver §3d abaixo.** Brief: [`tracks/a40-l2-3d-drain.md`](../tracks/a40-l2-3d-drain.md) | `orphaned_at` + re-run |
 | **3c2 — a superfície** | contador da S2 · caption simétrico da V0 · rebaseline | render condicional |
 | **3e — o flip** | bloqueado pelos quatro; §Critério de saída abaixo | flag off |
 
@@ -264,6 +265,29 @@ define. O 3c foi partido porque atravessava pipeline+backend+frontend num diff.
 brief), não o 3d. ✅ Aberto em 2026-08-07:
 [`tracks/a40-l2-3c2-superficie-do-colapso.md`](../tracks/a40-l2-3c2-superficie-do-colapso.md).
 
+#### §3d — a decisão de desenho que trava o PR, aberta em 2026-08-08
+
+**O 3d está destravado (o 3b mergeou) e é da ONDA DESTA SPRINT — mas não é pegável sem
+fechar isto antes.** A lane diz *"o pipeline **emite**, o backend **decide**"* e não diz **por
+onde os candidatos chegam ao drain**. As duas leituras produzem produtos diferentes, e nenhuma
+é obviamente certa:
+
+| | **(a) o stage chama o drain** | **(b) o operador dispara, e o drain re-deriva** |
+|---|---|---|
+| como obtém os candidatos | do próprio run, como o gate já faz (`main_with_store` os tem em mãos) | re-executa o colapsador sobre o E3, pelo caminho `_rederive` do harness |
+| a favor | **zero segunda derivação** · re-ancora *enquanto as duas rows existem*, que é o requisito temporal da lane · reusa a fiação do 3b | preserva o **gesto humano** — a [[ADR-364]] §2 chama a re-ancoragem de *"mutar dado do usuário por heurística"* |
+| contra | **automação destrutiva silenciosa**: muta categorização do usuário a cada run, sem ação humana | **segunda derivação do colapsador** — a classe `keep_split` que esta lane já pagou **duas vezes** (§D5 e o follow-up #1236) |
+
+**Não decida sozinho.** É simultaneamente boundary (`senior-cto`) e produto — mutação de dado
+categorizado pelo usuário, logo gatilho de `financial-planner`. Co-design **antes** de codar,
+como o 3c1 fez (e o 3c1 mostrou que a rodada se paga: derrubou dois pontos do payload cravado).
+
+> ⚠️ **O apply path do 3d não tem dado real para exercitar.** O PR3b mediu **0 overrides
+> ancorados em row de candidato de colapso** no dogfood (4 `casou_corpus_fora_de_candidato`,
+> 1 `casou_nada`). As travas do drain têm de vir de **fixture sintética**, e o PR tem de
+> **dizer isso** — senão alguém lê "verde no dogfood" como prova de que o drain funciona.
+> Mesma armadilha que a escapatória de absolvição do 3b, e ela já foi declarada uma vez.
+
 #### Restrições duras do 3d, todas verificadas no código
 
 - **`_fresh_legacy` NÃO pode ser reusado**: revalida `natural_key_hash IS NULL` e devolve
@@ -281,10 +305,89 @@ brief), não o 3d. ✅ Aberto em 2026-08-07:
 `dev/golden_diff.py::is_monetary` é **monetário-por-default**: `count` está em
 `_NON_MONETARY_EXACT`, mas `lancamentos` e `valor_cents_credito` são classificados
 **monetários** ⇒ `to_cents` multiplica por 100 ⇒ snapshot e `delta_cents` saem **100× errados
-no mesmo PR** cujo aceite manda conferir com `golden_diff`. Payload decidido:
+no mesmo PR** cujo aceite manda conferir com `golden_diff`. ~~Payload decidido:
 `consolidacao_cross_documento = {count, meses, receitas_omitidas, despesas_omitidas}`, dinheiro
 em **reais** como o resto de `fluxo_caixa`, magnitudes separadas por direção, **nunca net
-assinado**.
+assinado**.~~ → **revisto no co-design de 2026-08-08, abaixo.**
+
+#### Co-design do 3c1 — 2026-08-08 (`data-engineer`): o payload cravado tinha dois furos
+
+Gatilho: contrato entre stages (E3→E4→E5) + `config/schemas/`. **Duas objeções procedem, e as
+duas eu verifiquei antes de aceitar.**
+
+**Objeção 1 — `receitas_omitidas`/`despesas_omitidas` são falsos POR CONSTRUÇÃO. Saem do 3c1.**
+O E3 conhece `direction` (**sinal**); o balde receita/despesa é do **E4**. A deriva já está
+medida e citada no docstring do produtor (`cross_document_collapser.py`): *"a direction do E4
+vem do balde enquanto a do E3 vem do sinal (4282/4320)"*. Pior: das rows fora do campo de
+visão do detector, **99,7% dos cents são transferência interna** — sem row em
+`receitas`/`despesas`. Um `receitas_omitidas` derivado do crédito E3 incluiria massa que
+**nunca esteve** em receita, e o planejador que reconciliasse *"declaramos R$ Y consolidados"*
+contra *"a receita caiu R$ X"* acharia X ≠ Y. **Número que não reconcilia é pior que nenhum**
+— vira prova de que o pipeline não sabe o que fez, exatamente contra a salvaguarda nº 1.
+A salvaguarda pede literalmente *"N lançamentos consolidados por sobreposição de documentos,
+em M meses"* — **count e meses, sem R$**. A magnitude foi acrescentada pela decisão de payload,
+não exigida pelo `financial-planner`. Volta como **item próprio**, e antes precisa resolver o
+dispatch v1/v2 do hash do E4 (`scripts/categorize_transactions.py` é flag-aware, `_row_hash`
+do colapsador é v2 incondicional ⇒ com a flag off o join por `survivor_hash` devolveria
+**zero em silêncio**, quarta instância nesta lane de identidade que fecha por construção).
+
+**Objeção 2 — `meses` escalar ou mapa é ×100, e ainda impede a projeção 12m.** Verificado:
+`is_monetary("meses")` devolve **`True`** (não está em `_NON_MONETARY_EXACT`, e o sufixo
+`_meses` exige o underscore). Escalar `7` vira `700`; mapa `{"2026-01": 3}` tem o **mês como
+chave** e o leaf também sai monetário. Só sobrevive como **lista**, onde o leaf `mes` é
+**string** (`to_cents` só se aplica a `int|float`) e `count` é exato não-monetário. E há razão
+de produto para a mesma forma: o headline é **12m** (`_compute_janela_12m` faz `meses[-12:]`)
+e o colapso é do **corpus inteiro** — contador de corpus cheio ao lado de agregado de 12 meses
+**não reconcilia**, falhando o mesmo teste que a salvaguarda exige. Com lista, o enricher
+projeta nas duas janelas onde já conhece `meses_12m`.
+
+**Payload do 3c1, corrigido:**
+
+```
+consolidacao_cross_documento = {
+  "count": <int>,
+  "meses": [{"mes": "YYYY-MM", "count": <int>}, ...]   # ordenado
+}
+```
+
+em `fluxo_caixa` **e** projetado em `janela_12m`. Zero edição no `golden_diff`.
+
+**Onde somar — e é onde eu ia errar.** `e4_categorizer_adapter.py` termina com
+`return [p for p in readable if p.get("transacoes")]`: o filtro descarta justamente o
+**statement da perna LLM zerado pelo colapso**, que é o artefato com o maior
+`cross_document_collapse.count`. Somar sobre a lista filtrada **subconta exatamente onde o
+colapso foi total — e fecha verde**, porque bate com o que o E4 enxerga. A soma vai sobre
+`readable` (pré-filtro). E `_channel_sums` (`e3_load_report.py`) deduplica por
+`source_document` **dentro** do grupo, não entre grupos ⇒ dois grupos que compartilhem um
+source contam o canal 2×. **Correção: não confiar na partição — fechar no E3 a invariante
+`Σ_artefatos remocoes.cross_document_collapse.count == Σ collapse_removals.count`,
+fail-loud**, mesma disciplina que a [[ADR-347]] aplicou ao `intra` ao parar de inferir por
+diferença.
+
+**Q2 decidida: o carrier transporta REMOÇÃO REAL, e fica dormant até o 3e.** A sombra é
+**outra grandeza**, não a mesma medida antes do tempo: `shadow_counts` soma `removable_rows`
+dos colapsáveis, a remoção real passa por `keep_split`/D5 — e as duas concordam **por acaso do
+corpus**, que é literalmente o bug que custou um dia na §D5 ("measure declara 453, mutação
+remove 593, suíte verde"). Publicar a sombra institucionalizaria aquela segunda derivação **na
+superfície do cliente**. Além disso, sob sombra `count=0` e as rows continuam lá: enfiar a
+sombra no ledger **quebra** o invariante `tx_carregadas == transacoes_total + Σ count`.
+**O big-bang do 3e não existe** desde que o 3c1 exercite o caminho sem publicá-lo: teste de
+execução com `collapse_enforce=True` **injetado no adapter** (nunca no call-site — a guarda 3
+por AST proíbe) + o harness imprimindo o mesmo contador **delegando ao produtor**.
+
+**Notas de schema, todas verificadas:** `$defs/remocao` do E3 é **compartilhado pelos 5
+canais** com `additionalProperties:false` ⇒ `meses` ali declararia que qualquer canal carrega
+meses; usar `$def` próprio via `allOf`. O root do E4 é `oneOf` (não `anyOf`) ⇒ nome que
+colidisse com `periodo`/`total_geral`/`dados`/`status` casaria 2 branches e daria **hard-fail**
+em strict. E `fluxo_caixa` no E5 **não tem** `additionalProperties:false` ⇒ dá para shipar sem
+declarar e o CI fica verde — declare mesmo assim, lembrando que **o gate real de schema é o
+golden de execução**, não o step strict, que roda sobre fixtures sintéticas.
+
+**Débito do PR3b que o co-design achou:** `scripts/reconcile_transactions.py`
+`_e3_log_collapse_shadow` ainda usa `getattr(result, "collapse_candidates", ())` — **terceiro
+leitor** da mesma classe fail-open que o 3b fechou em `_alvos` e em
+`_e3_collapse_precondition`. Rename ⇒ `candidatos=0` no log, em silêncio. Vai junto do 3c1,
+que já mexe nesse caminho.
 
 **Campo omitido quando `count == 0`** (precedente ADR-132 T2) — e o argumento decisivo não é
 estético: `parecer_orchestrator` mete `sha256(json.dumps(e5_data, sort_keys=True))` na chave de
