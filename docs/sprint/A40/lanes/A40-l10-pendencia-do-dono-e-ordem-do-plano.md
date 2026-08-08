@@ -119,7 +119,7 @@ queimaria a única janela de atenção do dono no item de menor valor.
   motivo declarado.
 - Fixture com regime ausente ⇒ item não some em silêncio: vira pendência com
   CTA. **Nota de medição (2026-08-05):** a pendência de regime **já existe
-  renderizada** — `CascataFiscalCard.tsx::PerfilPendenteState` (S8) nomeia os 4
+  renderizada** — `CascataFiscalCard.states.tsx::PerfilPendenteState` (S8) nomeia os 4
   campos que faltam e diz a quem pedir; veio com o card da cascata ([[ADR-236]],
   Sprint A16 L2 P5, #395), **não** com o CTO-05 (#973), que entregou a CTA no
   narrador (`tributario_narrator._narrate_perfil_pendente`). O que falta é
