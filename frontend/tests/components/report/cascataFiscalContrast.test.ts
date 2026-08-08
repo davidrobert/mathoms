@@ -16,7 +16,27 @@
  *
  * O que ele mata: alguém "simplifica" `--semantic-gain-on-tint` de volta para
  * `--semantic-gain` (dedup tentador — no dark os dois são o mesmo hex), e o
- * badge volta a 4,09:1 em light.
+ * badge volta a 4,09:1 em light. **O que executa esse kill é o teste de
+ * staleness**, não a medição: `VARIANTES` é cópia-à-mão, então medir sozinho
+ * ficaria verde sobre o par antigo enquanto o componente já shippava outro.
+ * Medido por mutação em 2026-08-08: trocar os dois tokens no call-site deixava
+ * este arquivo 15/15 verde. Mesmo padrão de anti-fantasma do `NAMED_PAIRS` em
+ * `dev/check_tint_contrast.py`, que falha em vez de medir entrada stale.
+ *
+ * Por que não delegar tudo ao gate Python: ele filtra por `is_same_color_pair`,
+ * isto é, só mede quando o token do texto é o do fundo (ou o `-on-tint` dele).
+ * Um par de cores **diferentes** — `text-[var(--brand-secondary)]` sobre tint de
+ * `gain`, digamos — ele pula de propósito, e a cópia-à-mão aqui não notaria.
+ * O staleness abaixo é o que cobre essa faixa.
+ *
+ * Limiar: 4,5:1 (WCAG AA, texto pequeno). A ADR-236 §Gates declara "UI A11y
+ * AAA", mas os três mecanismos existentes medem AA — o helper do axe para em
+ * `wcag21aa` (`tests/e2e/helpers/axe.ts`), então a regra `color-contrast-enhanced`
+ * nunca roda; o `check_tint_contrast.py` usa 4,5; e este arquivo também. Contra
+ * os 7:1 de AAA os quatro pares REPROVAM — light III 5,82 · light V 5,60 ·
+ * dark III 6,05 · dark V 6,21. Fechar essa diferença exige recalibrar token, que
+ * é decisão de design: registrado aqui para não se perder, não gateado aqui para
+ * não travar merge numa decisão que não é desta camada.
  *
  * Limite honesto: a aritmética assume o fundo real do badge — tint de 15% da
  * cor base sobre `--surface-card`. Se o componente trocar de fundo, isto deixa
@@ -28,6 +48,23 @@ import { describe, expect, it } from "vitest";
 
 const TOKENS_CSS = readFileSync(
   join(__dirname, "..", "..", "..", "src", "styles", "tokens.css"),
+  "utf-8",
+);
+
+/** O call-site do badge. Mora em `.header.tsx` desde o #1308, que extraiu o
+ *  preâmbulo de `CascataFiscalCard.tsx`. */
+const HEADER_TSX = readFileSync(
+  join(
+    __dirname,
+    "..",
+    "..",
+    "..",
+    "src",
+    "components",
+    "report",
+    "cards",
+    "CascataFiscalCard.header.tsx",
+  ),
   "utf-8",
 );
 
@@ -87,12 +124,34 @@ const AA_TEXTO_PEQUENO = 4.5;
  *  de "large text" (24px normal / 18,66px bold), então vale 4,5:1 e não 3:1. */
 const TINT_PCT = 15;
 
-/** Espelha `FatorRBadge` em `CascataFiscalCard.tsx`: fundo é tint da cor base,
- *  texto é o par `-on-tint`. */
+/** Espelha `FatorRBadge` em `CascataFiscalCard.header.tsx`: fundo é tint da cor
+ *  base, texto é o par `-on-tint`. A ordem é a do ternário — III, depois V. */
 const VARIANTES = [
   { faixa: "anexo_iii", bgToken: "semantic-gain", fgToken: "semantic-gain-on-tint" },
   { faixa: "anexo_v", bgToken: "semantic-alert", fgToken: "semantic-alert-on-tint" },
 ];
+
+/** Lê os pares `(bg, %, texto)` do `className` do badge, na ordem do arquivo. */
+function paresDoCallSite() {
+  const re =
+    /bg-\[color-mix\(in_srgb,var\(--([\w-]+)\)_(\d+)%,transparent\)\]\s+text-\[var\(--([\w-]+)\)\]/g;
+  return [...HEADER_TSX.matchAll(re)].map(([, bgToken, pct, fgToken]) => ({
+    bgToken,
+    pct: Number(pct),
+    fgToken,
+  }));
+}
+
+describe("a medição abaixo é sobre o par que o componente realmente usa", () => {
+  // Sem isto, `VARIANTES` é cópia-à-mão que envelhece em silêncio: o call-site
+  // troca de token e a medição segue verde sobre o par velho. Falhar aqui é o
+  // sinal de "atualize a cópia", não de "afrouxe o limiar".
+  it("`VARIANTES` casa com o `className` de `FatorRBadge`", () => {
+    expect(paresDoCallSite()).toEqual(
+      VARIANTES.map((v) => ({ bgToken: v.bgToken, pct: TINT_PCT, fgToken: v.fgToken })),
+    );
+  });
+});
 
 describe.each(["light", "dark"] as const)("badge Fator-R — %s", (theme) => {
   const card = () => tokenValue("surface-card", theme);
