@@ -838,6 +838,13 @@ jobs:
     if: |
       contains(github.event.pull_request.labels.*.name, 'e2e') ||
       (github.event_name == 'workflow_dispatch' && inputs.run_e2e)
+    # O step de comentário abaixo herdava `contents: read` do workflow e
+    # morria com "Resource not accessible by integration" — fail-open
+    # silencioso, porque ele só roda em `failure()`. Menor privilégio
+    # (ADR-320): eleva só o escopo de PR.
+    permissions:
+      contents: read
+      pull-requests: write
     services:
       postgres:
         image: postgres:16-alpine
@@ -892,16 +899,94 @@ jobs:
           # cascata (#644). Desabilita o throttle no backend de teste, como
           # backend/tests/conftest.py (_disable_register_rate_limit).
           MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR: "0"
+        shell: bash
         run: |
           uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
             > /tmp/uvicorn.log 2>&1 &
+          echo "UVICORN_PID=$!" >> "$GITHUB_ENV"
           # Worker Celery consome a fila do PipelineRun. Sem ele a task
           # fica "pending" indefinido (ADR-074 — pipeline assíncrono).
           celery -A backend.app.worker worker --loglevel=INFO --concurrency=2 \
             > /tmp/celery.log 2>&1 &
-          sleep 5
-          curl -sf http://127.0.0.1:8000/health \
-            || (echo "backend não subiu" && tail -50 /tmp/uvicorn.log && exit 1)
+          echo "CELERY_PID=$!" >> "$GITHUB_ENV"
+
+      # A espera é step próprio (billing do GH é por job; step é grátis) para
+      # que o nome na UI já diga qual subsistema não ficou pronto.
+      - name: Wait for backend HTTP (orçamento 90s)
+        shell: bash
+        run: |
+          # Era `sleep 5` + UMA tentativa de curl: quando o import da app
+          # (Fernet + SQLAlchemy + routers) passava de 5s no runner, o step
+          # falhava com o backend saudável e os steps de E2E ficavam
+          # `skipped` — job vermelho sem sinal de teste nenhum.
+          #
+          # Deadline em wall-clock, não em contagem de iterações: cada
+          # /health custa até ~2,5s (o handler faz `inspect(timeout=2.0)`),
+          # então contar voltas entregaria ~3× o orçamento contratado.
+          start=$(date +%s)
+          deadline=$((start + 90))
+          # --max-time é obrigatório, não higiene: /health pinga o Redis sem
+          # timeout de socket, então broker inalcançável penduraria o step
+          # até os 30 min do job.
+          until curl -sf --max-time 10 -o /dev/null http://127.0.0.1:8000/health; do
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              # As duas causas davam a mesma linha ("backend não subiu") e
+              # custavam o diagnóstico inteiro. `kill -0` dentro de `if` —
+              # solto ele abortaria sob `set -e` antes do echo.
+              if kill -0 "$UVICORN_PID" 2>/dev/null; then
+                echo "::error::uvicorn vivo (pid $UVICORN_PID) mas /health não respondeu dentro de 90s"
+              else
+                echo "::error::processo uvicorn morreu antes de responder /health"
+              fi
+              tail -50 /tmp/uvicorn.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+          # Sem o elapsed no caminho feliz o orçamento erode em silêncio e a
+          # próxima calibração vira palpite.
+          echo "backend HTTP pronto em $(( $(date +%s) - start ))s"
+
+      - name: Wait for Celery worker (orçamento 120s)
+        env:
+          # Mesmo motivo do step anterior: sem o prefixo MATHOMS_ o cliente
+          # cai no default localhost:6379 e nunca acha o broker do CI.
+          MATHOMS_REDIS_URL: redis://localhost:6380/0
+        shell: bash
+        run: |
+          # Nada verificava o worker, e ele é pré-requisito de `pipeline.run`
+          # — que os fluxos @critical exercitam. Sem esta espera o atraso do
+          # worker não some: reaparece como `toBeVisible` timeout no meio do
+          # Playwright, que é diagnóstico pior que step de setup vermelho.
+          #
+          # `inspect ping` é o probe canônico de worker deste repo (ADR-252
+          # D4, docker-compose.{dev,prod}.yml): round-trip pelo broker, sai
+          # ≠ 0 quando ninguém responde — sem parse de JSON. Ler
+          # `"celery": "ok"` do /health acoplaria a prontidão do worker à
+          # liveness da API e importaria o timeout de 2s daquele handler,
+          # que é orçamento de request, não de boot.
+          #
+          # Orçamento MAIOR que o do HTTP: o worker paga o mesmo import da
+          # app, mais conexão ao broker e declaração de fila, forkando 2
+          # processos nos mesmos vCPUs que o uvicorn disputa.
+          start=$(date +%s)
+          deadline=$((start + 120))
+          # `-t 5` por volta: sem `-d` o mailbox drena até o timeout mesmo
+          # com o worker vivo, então um `-t 120` numa tacada só bloquearia o
+          # orçamento inteiro em vez de sair no primeiro pong.
+          until celery -A backend.app.worker inspect ping -t 5; do
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              if kill -0 "$CELERY_PID" 2>/dev/null; then
+                echo "::error::celery vivo (pid $CELERY_PID) mas não respondeu ao ping dentro de 120s"
+              else
+                echo "::error::processo celery morreu antes de responder ao ping"
+              fi
+              tail -50 /tmp/celery.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "celery worker pronto em $(( $(date +%s) - start ))s"
 
       - name: Install frontend deps
         run: |
@@ -965,6 +1050,12 @@ jobs:
 
       - name: Comment PR com link do report em falha (F6.5F.9)
         if: failure() && github.event_name == 'pull_request'
+        # PR de fork recebe GITHUB_TOKEN read-only INDEPENDENTE do bloco
+        # `permissions:` acima. Como este step só roda em `failure()`, sem
+        # isto ele acrescentaria um segundo step vermelho de nome enganoso
+        # exatamente nos runs que se quer tornar legíveis. É diagnóstico,
+        # não gate.
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
