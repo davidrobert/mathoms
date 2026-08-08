@@ -197,3 +197,41 @@ describe("S_ProtecaoSection", () => {
     });
   });
 });
+
+describe("KPI B — escopo declarado (ADR-240 §Emenda 2026-08-08)", () => {
+  const escopoParcial = {
+    premio_inclui_cadastro_manual: false,
+    categorias_somente_no_cadastro: ["vida"],
+    veredito_pct_renda_suprimido: true,
+  };
+
+  function comEscopoParcial() {
+    return {
+      protecao_patrimonial: makeProtecao({ escopo_cobertura: escopoParcial }),
+    } as ReportAnalysisData;
+  }
+
+  it("emite o veredito de faixa quando o escopo documental é completo", () => {
+    render(<S_ProtecaoSection data={makeData()} />);
+    expect(screen.getByTestId("protecao-kpi-b-sinal")).toBeInTheDocument();
+    expect(screen.queryByTestId("protecao-kpi-b-escopo")).not.toBeInTheDocument();
+  });
+
+  it("suprime o veredito quando há cobertura fora dos documentos", () => {
+    render(<S_ProtecaoSection data={comEscopoParcial()} />);
+    expect(screen.queryByTestId("protecao-kpi-b-sinal")).not.toBeInTheDocument();
+    expect(screen.getByTestId("protecao-kpi-b-escopo")).toHaveTextContent(/não avaliamos a faixa/);
+  });
+
+  it("mantém o valor do KPI visível — suprime o julgamento, não o dado", () => {
+    render(<S_ProtecaoSection data={comEscopoParcial()} />);
+    expect(screen.getByTestId("protecao-kpi-b")).toHaveTextContent("2.38%");
+  });
+
+  it("artifact antigo sem o bloco segue emitindo o veredito", () => {
+    const semEscopo = makeProtecao();
+    delete semEscopo.escopo_cobertura;
+    render(<S_ProtecaoSection data={{ protecao_patrimonial: semEscopo } as ReportAnalysisData} />);
+    expect(screen.getByTestId("protecao-kpi-b-sinal")).toBeInTheDocument();
+  });
+});

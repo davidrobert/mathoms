@@ -6,6 +6,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Optional, Protocol, runtime_checkable
 
+from pipeline.domain.protection_bundle import ProtectionBundle
 from pipeline.domain.types.config import (
     CategorizationConfig,
     FamilyMembersConfig,
@@ -46,4 +47,9 @@ class ConfigStore(Protocol):
 
     def get_market_rate(self, pair: str, observed_at: date) -> Decimal:
         """Última cotação de ``pair`` em ``observed_at`` ou antes (A7.2b)."""
+        ...
+
+    def get_protection_bundle(self, workspace_id: str) -> ProtectionBundle:
+        """Apólices cadastradas pelo cliente (ADR-192 §D3, checkbox aberto até
+        ADR-240 §Emenda 2026-08-08). Sem row → bundle vazio, nunca ``None``."""
         ...

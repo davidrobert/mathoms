@@ -36,6 +36,19 @@ export interface ApoliceResumo {
   tipos_bem?: string[];
 }
 
+/**
+ * Escopo dos agregados monetários (ADR-240 §Emenda 2026-08-08).
+ *
+ * `premio_total_anual_brl` e `pct_renda_anual` somam só apólice extraída de
+ * documento. Com cobertura conhecida fora desse escopo o numerador é
+ * sabidamente parcial, e o veredito de faixa não pode ser emitido.
+ */
+export interface EscopoCobertura {
+  premio_inclui_cadastro_manual: boolean;
+  categorias_somente_no_cadastro: string[];
+  veredito_pct_renda_suprimido: boolean;
+}
+
 export interface ProtecaoPatrimonialData {
   premio_total_anual_brl: string;
   premio_decomposicao: Record<string, string>;
@@ -47,4 +60,6 @@ export interface ProtecaoPatrimonialData {
   apolices_vencidas: ApoliceResumo[];
   corretoras_count: number;
   seguradoras_count: number;
+  /** Ausente em artifacts gerados antes da emenda de 2026-08-08. */
+  escopo_cobertura?: EscopoCobertura;
 }

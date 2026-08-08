@@ -12,10 +12,12 @@ relates_to:
   - "[[ADR-143]]"
   - "[[ADR-145]]"
   - "[[ADR-189]]"
+  - "[[ADR-192]]"
   - "[[ADR-199]]"
   - "[[ADR-216]]"
   - "[[ADR-238]]"
   - "[[ADR-239]]"
+  - "[[ADR-365]]"
 supersedes: []
 superseded_by: []
 amended_at: ["2026-08-08"]
@@ -41,6 +43,14 @@ tags:
 > ainda escrevem "Proteção Patrimonial" — leia-os como o **nome de domínio
 > interno** (id `S_PROTECAO`, payload `protecao_patrimonial`, analyzer
 > homônimo), que permanece. Detalhe em §Emenda no fim.
+
+> **Emenda de domínio (2026-08-08):** o KPI F decidia **ausência** de cobertura
+> olhando só a apólice extraída de documento, ignorando a cadastrada pelo cliente
+> ([[ADR-192]]). A regra passa a ser: **predicado existencial sobre a união das
+> evidências; agregado monetário mantém seu escopo, declara-o, e suprime o
+> veredito derivado dele quando a união revela cobertura fora desse escopo.** O
+> gating do D3 KPI F abaixo é histórico — mecânica vigente em §Emenda 2026-08-08
+> (cobertura tem duas fontes).
 
 ## Contexto
 
@@ -318,10 +328,109 @@ duas surfaces que o hook cobria. O PR fecha o furo com surface própria
 apontaria para a seção que ele não titula; e a V2 desta ADR (D4: vida/saúde/AP)
 o tornaria ainda menos exato. Registro da substituição em COPY_GUIDELINES §13.2.
 
-**Não fecha D3.** Continua aberto que o KPI F (`gap_qualitativo`) afirma ausência
-de cobertura lendo **apenas** apólice extraída de documento, enquanto a S9 lê o
-aggregate `Protection` ([[ADR-192]] D1/D2) — workspace que cadastra apólice sem
-subir PDF vê "coberto" na S9 e "não identificamos" aqui. A correção de domínio
-(afirmação de ausência sobre a **união** das evidências) é emenda futura a D3,
-com dono `financial-planner` + `senior-cto`, e deve preceder o flip de
-`enabled: true` decidido na [[A40.l7]].
+**Não fechava D3** — fechado no mesmo dia, ver §Emenda seguinte. O que este PR
+registrou como pendência ("o KPI F afirma ausência lendo apenas apólice extraída,
+enquanto a S9 lê o aggregate `Protection`") ficou correto no diagnóstico e errado
+no cenário: a medição posterior mostrou que `data.protection_bundle` **não tem
+produtor**, então a S9 não dizia "coberto" — não dizia nada. Cenário corrigido e
+regra decidida na emenda abaixo.
+
+## Emenda 2026-08-08 — cobertura tem duas fontes; ausência é decidida sobre a união
+
+### Contexto da emenda
+
+Duas superfícies do produto afirmam coisas sobre cobertura de seguro a partir de
+fontes **disjuntas**:
+
+- **Seção 2.5 (`S_PROTECAO`)** — `ProtecaoInput` só enxerga apólice extraída de
+  documento (`extract_comprovantes_bens` → `protecao_wiring.load_apolices`) mais
+  evidência fiscal. É o que alimenta o KPI F.
+- **Aggregate `Protection`** ([[ADR-192]]) — apólice **cadastrada** pelo cliente
+  em `/protecao`. Alimentava só a própria página e o endpoint
+  `GET /workspaces/{id}/protection-bundle`.
+
+O cliente que cadastra apólice de vida e não sobe o PDF recebia *"não
+identificamos apólice de vida ativa"*. Afirmação falsa sobre o dado do próprio
+cliente é o pior erro possível numa seção de proteção.
+
+Medição de 2026-08-08 corrigiu a premissa original do achado. A contradição não
+era "S9 diz coberto, 2.5 diz ausente": `data.protection_bundle` **não tem
+produtor** — `get_report_data` injeta cinco chaves e nenhuma é o bundle, e o E5
+nunca o emitiu. As duas superfícies afirmavam ausência; a da S9 era
+incondicional. E o vazamento que **já chegava ao cliente** não era nenhuma das
+duas — era `pontos_urgentes`, que renderiza em todo relatório (a 2.5 está
+`enabled: false` e a S9 curto-circuita em `EmptyState`, RV4-24).
+
+### D10 — Predicado existencial sobre a união
+
+Toda afirmação de **ausência** de cobertura é calculada sobre
+`documento ∪ cadastro`. Módulo canônico:
+[`pipeline/domain/services/cobertura_consolidada.py`](../../pipeline/domain/services/cobertura_consolidada.py)
+(`consolidar_cobertura` → `CoberturaConsolidada`), com **proveniência por
+categoria** (`origens()`).
+
+O `rationale` do gap preserva `apolice_<cat>_ativa` quando o documento sustenta a
+cobertura e emite `cobertura_<cat>_cadastrada` quando só o cadastro sustenta —
+mesma decisão, proveniência distinguível. Consumidor: [[RULE-elegibilidade-da-recomendacao]].
+
+### D11 — Vocabulário deliberadamente parcial
+
+Só entram pares em que os dois lados descrevem o **mesmo produto**: `vida` e
+`saude`. `acidentes` (documento) e `invalidez` / `patrimonial` /
+`rc_profissional` / `sucessorio` (cadastro) ficam fora — casá-los por semelhança
+faria uma apólice de acidentes pessoais silenciar o gap de vida, que é fabricar
+cobertura. Categoria fora do vocabulário **não** fecha gap, mas **conta** para o
+escopo do D12.
+
+### D12 — Agregado monetário declara escopo; veredito é suprimido, não estimado
+
+`premio_total_anual_brl` (KPI G) e `pct_renda_anual` (KPI B) **não** somam o
+cadastro. As duas fontes não compartilham chave de identidade — o cadastro não
+guarda `apolice_numero` —, então unir arriscaria **dupla-contagem**, que num KPI
+de dinheiro é pior que omissão.
+
+No lugar da soma, o payload ganha `escopo_cobertura`:
+
+```json
+"escopo_cobertura": {
+  "premio_inclui_cadastro_manual": false,
+  "categorias_somente_no_cadastro": ["patrimonial"],
+  "veredito_pct_renda_suprimido": true
+}
+```
+
+Havendo cobertura conhecida fora do escopo somado, o numerador do KPI B é
+sabidamente parcial e **o veredito de faixa é suprimido**. Emiti-lo seria afirmar
+suficiência sobre soma incompleta — o mesmo erro, na direção oposta, que afirmar
+ausência sobre fonte única. O valor continua reportado; o julgamento, não.
+
+### Consequências
+
+- [[ADR-192]] §D3 fecha: `ConfigStore` ganha `get_protection_bundle` e o bundle
+  atravessa `E5AnalyzerAdapter` → `compute_protecao_via_store`. O checkbox estava
+  aberto desde 2026-05 — `DBConfigStore` tinha o método, o protocolo não, e não
+  havia call-site no pipeline.
+- Sem cadastro, o payload é **idêntico** ao pré-emenda (o golden do view-model
+  move 5 linhas aditivas).
+- Telemetria `mathoms.relatorio.protecao_rendered` ganha
+  `categorias_somente_no_cadastro`: alto e persistente indica ingestão perdendo
+  documento que o cliente já declarou ter.
+
+### Deferido — S9 continua sem produtor (dono: [[A40.l7]], 2026-08-08)
+
+`data.protection_bundle` segue órfã de propósito. Injetá-la agora colocaria na
+tela o `gap_analysis` de `protection_bundle_populator`, cujo predicado de
+dependente filtra `role == "dependente"` e **exclui `role == "filho"`** — defeito
+de cálculo registrado no §Deferido da [[A40.l7]] pareado com [[A40.l10]]. Ligar a
+fonte antes de corrigir o cálculo troca uma afirmação falsa por outra.
+
+**Aviso à [[A40.l7]]:** o escopo dessa lane inclui *"S9: empty state parcial, não
+total — renderizar o bundle de proteção mesmo sem o bloco de risco"*. Executado
+como está escrito, esse passo põe no ar `HeroGapProtecaoCard` com *"Nenhuma
+apólice cadastrada ainda"* e seis linhas *"Ausente"* em `CoberturaSegurosCard`,
+para todo cliente — porque o bundle não chega ao payload. A condição de retomada
+é: produtor do bundle **e** correção do predicado de dependente, no mesmo PR.
+
+**Não coberto por gate:** `frontend/tests/components/report/S9ProtectionCards.test.tsx`
+injeta o bundle direto na prop do card, então nenhum teste exercita o caminho do
+payload — a ausência de produtor é invisível à suíte.

@@ -17,8 +17,10 @@ relates_to:
   - "[[ADR-143]]"
   - "[[ADR-178]]"
   - "[[ADR-180]]"
+  - "[[ADR-240]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-08"]
 aliases: ["ADR 192"]
 tags:
   - area/backend
@@ -186,7 +188,7 @@ Susep/OAB).
 - [ ] Repo `ProtectionRepository` + 6 use cases em `backend/app/application/protections/` (`create`, `update`, `change_status`, `link_to_risk`, `unlink_from_risk`, `archive`).
 - [ ] Endpoints `POST/GET/PATCH /protections` + `GET /workspaces/{id}/protection-bundle` com `response_model` explícito (ADR-102 R18).
 - [ ] OpenAPI snapshot regenerado (`make update-openapi-snapshot`).
-- [ ] `ConfigStore` Protocol ([backend/app/services/db_config_store.py](../../backend/app/services/db_config_store.py)) com método `get_protection_bundle(workspace_id) -> ProtectionBundle`.
+- [x] `ConfigStore` Protocol com método `get_protection_bundle(workspace_id) -> ProtectionBundle` — fechado em 2026-08-08, ver §Emenda abaixo.
 - [ ] `pipeline/domain/services/protection/` com 5 calculators determinísticos + value objects tipados (`ProtectionInputs`, `CoverageRecommendation`, `ITCMDEstimate`) ADR-089/097.
 - [ ] 5 notas Domain Rule em `docs/reference/rules/` (`life-insurance-coverage`, `emergency-reserve-target`, `disability-coverage-gap`, `itcmd-estimated`, `compliance-risk-us-person`), cada uma com `canonical_adr: [[ADR-192]]` e `enforcer_modules` no frontmatter (schema `note-domain-rule.schema.json`).
 - [ ] `pipeline/domain/services/narrativas/charts_narrator.py:_narrate_riscos_decisoes` com guard para `_riscos_top3 == []` + remoção de "CPA expatriado" hardcoded; sinal `data_state` no payload.
@@ -208,3 +210,27 @@ Lane S9-Expansion (Sprint A11.W5) — track operacional em [docs/sprint/A11/trac
 - **T01** ✅ mergeado em `main` em 2026-05-11 ([#212](https://github.com/davidrobert/mathoms/pull/212), commit `2ec4254`).
 - **T02** ✅ mergeado no PR que carrega esta ADR como `Decidido` — entrega aggregate `Protection`, repositório, 6 use cases (`create_protection`, `get_protection`, `list_protections`, `update_protection`, `cancel_protection`, `link_to_risk` + `unlink_from_risk`), endpoints `POST/GET/PATCH/DELETE /protections` + `GET /protection-bundle`, `ProtectionBundle` TypedDict, adapter `_project_protection_bundle_sync/async`, redaction de logs e helpers PII.
 - **T03–T06** aguardam pickup; track lista status atualizado.
+
+## Emenda 2026-08-08 — §D3 fecha; o bundle não alcançava o pipeline
+
+O checkbox do `ConfigStore` ficou aberto por ~3 meses num estado que o texto
+desta ADR não previa: [`db_config_store.py`](../../backend/app/services/db_config_store.py)
+**tinha** `get_protection_bundle`, mas o método nunca entrou no protocolo
+[`pipeline/ports/config_store.py`](../../pipeline/ports/config_store.py) e não
+tinha call-site algum no pipeline. O aggregate `Protection` não alcançava stage
+nenhum — a projeção existia e não era consumida.
+
+O custo apareceu do outro lado: o KPI F de [[ADR-240]] decidia **ausência** de
+cobertura vendo só a apólice extraída de documento, e afirmava "não identificamos
+apólice de vida ativa" a quem havia cadastrado a apólice. A correção fechou o
+caminho protocolo → `E5AnalyzerAdapter` → `compute_protecao_via_store`. Regra de
+consumo em [[ADR-240]] §Emenda 2026-08-08.
+
+**Ainda aberto:** `data.protection_bundle` — lido por `S9RiscosSection.tsx` — não
+tem produtor. Nem o E5 o emite, nem `get_report_data` o injeta. O deferimento
+datado, com dono e condição de retomada, está em [[ADR-240]] §Deferido.
+
+**Aviso de leitura:** os demais checkboxes do §Critério de aceite estão
+desatualizados — aggregate, migration, repo, use cases e endpoints existem em
+`main` desde A11.W5 apesar de marcados `[ ]`. Não usar esta lista como medida de
+entrega.

@@ -2261,6 +2261,19 @@ def _load_seguradoras_catalog(ctx) -> dict[str, str]:
         return {}
 
 
+def _load_protection_bundle(ctx):
+    """Apólices cadastradas pelo cliente (ADR-192 §D3 · ADR-240 §Emenda 2026-08-08)."""
+    store = getattr(ctx, "config_store", None) if ctx is not None else None
+    workspace_id = getattr(ctx, "workspace_id", None) if ctx is not None else None
+    if store is None or not workspace_id:
+        return None
+    try:
+        return store.get_protection_bundle(workspace_id)
+    except Exception as exc:  # pragma: no cover — fallback transparente
+        print(f"  [warn] get_protection_bundle falhou ({exc}); gap de cobertura vê só documento")
+        return None
+
+
 def _e5_build_adapter(life_plan_content: str | None, ctx=None):
     """Carrega configs auxiliares + monta E5AnalyzerAdapter.
 
@@ -2336,6 +2349,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         property_classification_overrides=property_classification_overrides,
         imoveis_no_if=imoveis_no_if,
         seguradoras_catalog=_load_seguradoras_catalog(ctx),
+        protection_bundle=_load_protection_bundle(ctx),
     )
 
 
