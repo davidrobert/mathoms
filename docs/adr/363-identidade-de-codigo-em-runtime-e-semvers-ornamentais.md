@@ -5,7 +5,7 @@ title: "Identidade de código é fato de runtime injetado no deploy, não conte�
 status: Proposto
 phase: "A40"
 date: "2026-08-05"
-amended_at: ["2026-08-05", "2026-08-06"]
+amended_at: ["2026-08-05", "2026-08-06", "2026-08-08"]
 relates_to:
   - "[[ADR-362]]"
   - "[[ADR-249]]"
@@ -23,6 +23,12 @@ tags:
 ---
 
 # ADR-363 — Identidade de código é fato de runtime, não conteúdo da imagem
+
+> **Emenda 2026-08-08 (efeito colateral não decidido):** o campo novo do §2
+> entrou no dicionário `checks` do `/health` mas não no set `informational`
+> que o agregado ignora — e `status` passou a ser `"degraded"` em **toda**
+> chamada, inclusive com todas as dependências sadias. Esta ADR nunca decidiu
+> isso. Ver §Emenda 2026-08-08.
 
 > **Emenda 2026-08-05 (correção de premissa, não de decisão):** esta ADR foi
 > escrita como se houvesse deploy vivo — healthcheck derrubando container,
@@ -218,3 +224,39 @@ julgados). O que esta ADR afirmava errado:
   resolverem sob a mesma raiz, então o aviso nunca dispara. A afirmação de que
   "avisa no launch" (ADR-362 §5) fica **retirada**; o mecanismo real de
   detecção é o preflight, que compara o processo vivo com o HEAD.
+
+## Emenda 2026-08-08 — a revisão é informacional para o agregado do `/health`
+
+O §2 decidiu **acrescentar** `executor_revision` ao payload. A implementação o
+pôs em `checks`, o dicionário de onde sai o agregado:
+
+```python
+overall = "ok" if all(v == "ok" for k, v in checks.items() if k not in informational) else "degraded"
+```
+
+`executor_revision` não estava em `informational`, e o valor é um sha de 12
+chars ou `None` — **nunca** a string `"ok"`. Resultado: `status: "degraded"` em
+toda chamada, com Redis, Celery e DB sadios. No CI, idem, via
+`MATHOMS_BUILD_SHA: ${{ github.sha }}`. Nenhuma linha desta ADR decidiu tocar o
+agregado; foi efeito colateral, não decisão.
+
+**Decisão desta emenda:** `executor_revision` é **informacional** para efeito de
+`status`. A revisão do processo descreve *quem* respondeu, não *se* a
+dependência está de pé — a mesma categoria de `version`,
+`artifact_store_mode` e `pipeline_service_*`, que já estavam lá. Degradação
+continua a significar **dependência doente**: Redis, cache, Celery ou DB.
+
+Corolário — a regra que faltava estar escrita: **todo campo de `checks` cujo
+valor saudável não seja literalmente `"ok"` entra em `informational`.** Um campo
+descritivo esquecido não gera alarme barulhento; gera o oposto, um `"degraded"`
+constante que ninguém investiga.
+
+**Blast radius quando corrigido: zero.** Os healthchecks de `docker-compose`
+usam `curl -fsS`, que só olha o código HTTP; nenhum consumidor lê `status`. Não
+era incêndio — era fail-open no único sinal sumarizante do endpoint, invisível
+porque **nenhum teste asseria `status == "ok"`**. Essa ausência é a causa-raiz
+de recorrência, e foi ela que o fix fechou: o gate vive em
+`backend/tests/test_adr363_health_executor_revision.py` (agregado `"ok"` com
+dependências sadias + controle negativo com Celery morto), para que o próximo
+campo descritivo adicionado ao payload quebre o teste em vez de degradar o
+endpoint em silêncio.

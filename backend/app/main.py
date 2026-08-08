@@ -357,8 +357,14 @@ async def health() -> dict:
         await _probe_pipeline_service(pipeline_service_url) if pipeline_service_url else None
     )
 
+    # Todo campo de `checks` que NÃO seja um check de dependência (cujo valor
+    # saudável é literalmente `"ok"`) precisa entrar aqui — o agregado compara
+    # com `"ok"`, então um campo descritivo esquecido degrada o endpoint em toda
+    # chamada. Foi o que `executor_revision` (sha de 12 chars ou None, ADR-363
+    # §Emenda 2026-08-08) fez até 2026-08-08.
     informational = {
         "version",
+        "executor_revision",
         "artifact_store_mode",
         "pipeline_service_url",
         "pipeline_service_reachable",
