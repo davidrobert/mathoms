@@ -358,6 +358,39 @@ describe("IFMonteCarloBlock · premissas fallback (A28.l9)", () => {
 });
 
 /**
+ * O bloco de 4 stats de IF era gateado por `goals &&` — a truthiness do
+ * objeto inteiro. Como o E5 emite `goals` SEMPRE (dict, eventualmente só com
+ * `alocacao_alvo`), um workspace sem meta de IF caía no ramo verdadeiro e
+ * imprimia quatro placeholders vazios. O gate passa a olhar os campos que o
+ * bloco de fato lê.
+ */
+describe("<S7IndependenciaSection /> · gate do bloco de stats de IF", () => {
+  it("goals sem nenhum KPI de IF: bloco some em vez de imprimir 4 vazios", () => {
+    const data = makeData({
+      goals: { alocacao_alvo: { derived: { has_alvo: true } } },
+    } as Partial<ReportAnalysisData>);
+    render(<S7IndependenciaSection data={data} />);
+    expect(screen.queryByText("Meta IF")).toBeNull();
+    expect(screen.queryByText("Ano projetado")).toBeNull();
+    // O placeholder que o gate quebrado produzia — "Progresso" com 0,0%.
+    expect(screen.queryByText("Progresso")).toBeNull();
+  });
+
+  it("basta UM KPI presente para o bloco aparecer", () => {
+    const data = makeData({ goals: { if_pct: 30 } } as Partial<ReportAnalysisData>);
+    render(<S7IndependenciaSection data={data} />);
+    expect(screen.getByText("Meta IF")).toBeInTheDocument();
+    expect(screen.getByText("Progresso")).toBeInTheDocument();
+  });
+
+  it("goals completo continua renderizando o bloco (não-regressão)", () => {
+    render(<S7IndependenciaSection data={makeData()} />);
+    expect(screen.getByText("Meta IF")).toBeInTheDocument();
+    expect(screen.getByText("Gap")).toBeInTheDocument();
+  });
+});
+
+/**
  * A40.l4 (PD-20 · ADR-191 §Emenda FP-03) — o card de TRS efetiva lia
  * `goals.trs_pct`, chave que o payload NÃO tem (o E5 emite `goals.if_trs`),
  * então o `?? 5.0` disparava 100% das vezes: constante de código impressa

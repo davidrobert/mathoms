@@ -21,7 +21,10 @@ import type {
   ReportAnalysisData,
 } from "@/lib/api";
 import { Alert } from "../ui/Alert";
-import { computePremissasDegrade } from "../utils/dataQualitySignals";
+import {
+  computePremissasDegrade,
+  hasIfStats,
+} from "../utils/dataQualitySignals";
 import { IFConeConeChart } from "../charts/IFConeConeChart";
 import { useIrpfKpis } from "../hooks/useIrpfKpis";
 import {
@@ -75,7 +78,7 @@ export function S7IndependenciaSection({
         fallbackConclusion={deriveChartConclusion("renda_passiva", data)}
       />
 
-      {goals && (
+      {hasIfStats(goals) && (
         <div className="md:col-span-2 grid grid-cols-2 gap-4 md:grid-cols-4">
           <Stat label="Meta IF" value={<MonetaryValue value={goals.if_meta as number | undefined} compact />} />
           <Stat label="Progresso" value={`${((goals.if_pct as number) ?? 0).toFixed(1)}%`} />
