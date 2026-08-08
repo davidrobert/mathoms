@@ -87,8 +87,8 @@ function PremissasHeader({ premissas }: { premissas: PremissasEconomicasData }) 
   const snapshotLabel = safeFormatDate(premissas.snapshot_at);
   const statusCls =
     premissas.status === "completo"
-      ? "bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] text-[var(--semantic-gain)]"
-      : "bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] text-[var(--semantic-alert)]";
+      ? "bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] text-[var(--semantic-gain-on-tint)]"
+      : "bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] text-[var(--semantic-alert-on-tint)]";
   return (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
       <span className={`rounded px-2 py-0.5 font-semibold ${statusCls}`}>

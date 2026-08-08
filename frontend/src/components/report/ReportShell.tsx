@@ -322,7 +322,7 @@ export function ReportShell({
 
           {dataState.status === "error" && (
             <div className="max-w-[1120px] px-10 pt-8">
-              <div className="flex items-start gap-3 rounded-lg bg-[color-mix(in_srgb,var(--semantic-loss)_10%,transparent)] p-6 text-[var(--semantic-loss)]">
+              <div className="flex items-start gap-3 rounded-lg bg-[color-mix(in_srgb,var(--semantic-loss)_10%,transparent)] p-6 text-[var(--semantic-loss-on-tint)]">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
                   <p className="font-display font-medium">
