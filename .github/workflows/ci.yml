@@ -260,14 +260,25 @@ jobs:
             # Mudança no próprio workflow → roda tudo (mesma lógica de backend/frontend).
             report:
               - 'frontend/src/components/report/**'
-              - 'frontend/src/app/reports/**'
+              # `frontend/src/app/reports/**` esteve aqui e nunca casou nada: a
+              # rota real vive sob o route group `(app)`. Medido com picomatch
+              # em 2026-08-08. `**` no meio cobre o grupo sem depender de
+              # escapar os parênteses.
+              - 'frontend/src/app/**/reports/**'
               - 'frontend/src/lib/api/reports*.ts'
               - 'frontend/src/types/report*.ts'
               - 'frontend/src/generated/report-layout.ts'
               - 'frontend/tests/e2e/reports/**'
               - 'frontend/tests/e2e/fixtures/reports/**'
-              - 'frontend/tests/e2e/helpers/mock-report.ts'
+              - 'frontend/tests/e2e/helpers/**'
               - 'frontend/tests/shared/**'
+              # Superfície de impressão do PDF. O `@media print` do `globals.css`
+              # apagava todo `<header>` (logo, todo título de seção) e o
+              # `<main class="overflow-y-auto">` do `AppShell` clipava a última
+              # página — nenhum dos dois estava em filtro nenhum, então o PR que
+              # os quebrasse não acionava o gate que os cobre.
+              - 'frontend/src/app/globals.css'
+              - 'frontend/src/components/AppShell.tsx'
               # Encanamento do próprio gate de render (A40.l3): o webServer e o
               # override de comando vivem no config do Playwright, e a regra
               # `no-restricted-syntax` de janela vive no config do ESLint. PR que
@@ -685,8 +696,10 @@ jobs:
     # falha, type-check/Vitest não rodam).
     name: Frontend checks (ESLint + tsc + Vitest + report render)
     runs-on: ubuntu-latest
-    # ESLint observado ~43s; Vitest observado ~1m49s; step de render (A40.l3)
-    # ~2min em PR que toca relatório. 12min dá buffer sem esconder hang real.
+    # ESLint observado ~43s; Vitest observado ~1m49s; step de render (A40.l3 +
+    # A40.l22) ~2min em PR que toca relatório, mais ~20s de poppler-utils. Job
+    # inteiro observado em 5m53s (2026-08-08). 12min dá buffer sem esconder
+    # hang real.
     timeout-minutes: 12
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
@@ -743,6 +756,13 @@ jobs:
         if: needs.changes.outputs.report == 'true' && steps.pw-cache-report.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
+      - name: Install poppler-utils (camada de texto do PDF)
+        # `pdftotext` é o instrumento do gate de conteúdo do PDF. Sem ele o
+        # spec hard-falha em CI de propósito (`exigirPdftotext`): um skip aqui
+        # seria verde sobre um PDF que ninguém mediu.
+        if: needs.changes.outputs.report == 'true'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
       - name: Report render gate (janela canônica + degradação do parecer — tela + print)
         if: needs.changes.outputs.report == 'true'
         env:
@@ -762,11 +782,16 @@ jobs:
         # runs recentes — mesmo argumento da A40.l3 para este step existir.
         # `print-chrome` entra pelo mesmo motivo: o gate de pixel do PDF é
         # opt-in por label e comparava contra uma baseline que era um crash.
+        # `print-text` mede o PDF de fato (camada de texto via `pdftotext`), e
+        # não o DOM sob `emulateMedia`: a truncagem de 2026-08-07 passava verde
+        # no DOM. Os dois são complementares — `print-chrome` cobre o que NÃO
+        # pode sair no arquivo, `print-text` o que TEM de sair.
         run: |
           npx playwright test \
             tests/e2e/reports/janela-canonica.@critical.spec.ts \
             tests/e2e/reports/parecer-degradacao.@critical.spec.ts \
             tests/e2e/reports/print-chrome.@critical.spec.ts \
+            tests/e2e/reports/print-text.@critical.spec.ts \
             --project=chromium
 
       - name: Upload results (only on failure)
