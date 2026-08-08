@@ -393,8 +393,15 @@ CI pode rodar workflow `nightly-flaky-report.yml` (a criar) que lista tests com 
 **Política:** snapshots são artefatos versionados. Mudança em snapshot = mudança visual intencional. Requer revisão manual.
 
 **Onde vivem:**
-- `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/` — 48 PNGs (estratégico S1-S10 + apêndices APP_A-E + cover, light + dark). Linux-only via job `frontend-visual` (suffix `-linux.png`).
+- `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/` — 32 PNGs: estratégico (S1–S4, S7–S10) + apêndices (APP_A–E) + cover + as 2 variantes de `S_parecer` (`parcial`, `retido`), cada um em light + dark. Linux-only via job `frontend-visual` (suffix `-linux.png`).
 - `frontend/tests/e2e/reports/__snapshots__/` — print PDF baseline.
+
+> **A contagem acima envelhece.** Ela já esteve errada nas duas direções ao mesmo
+> tempo: dizia 48 quando havia 52, e os 52 incluíam 20 baselines órfãs de modos
+> removidos (Tático/ADR-151, USA/ADR-168) que nada comparava —
+> `--update-snapshots` reescreve o que os testes produzem e **nunca poda o
+> resto**. Removidas no PR #1292. Ao mexer aqui, confira com
+> `ls <dir> | wc -l` em vez de confiar no número escrito.
 
 ### Por que **não** rodar local em macOS
 
@@ -416,9 +423,13 @@ gh workflow run CI \
   -f run_visual=true \
   -f update_visual_baselines=true
 
-# 3. Aguardar conclusão (~5-7min). Job intencionalmente termina como
-#    `failure` quando --update-snapshots é passado — isso é esperado;
-#    o que importa é o artefato.
+# 3. Aguardar conclusão (~5-7min). O job termina `success` — se falhar,
+#    é falha REAL, leia o log.
+#    (Este doc afirmava até 2026-08-08 que `failure` era "esperado" com
+#    --update-snapshots. Nunca foi intencional: o step `Locate generated
+#    baselines (debug)` rodava `find frontend/tests` já dentro de
+#    `frontend/`, saía 1 em path inexistente e derrubava o job DEPOIS de
+#    o Playwright passar. Corrigido no #1277.)
 gh run view <run-id> --json conclusion --jq .conclusion
 
 # 4. Baixar artefato:
@@ -435,11 +446,32 @@ for f in $SRC/*.png; do
   cmp -s "$f" "$DST/$n" 2>/dev/null || echo "CHANGED: $n"
 done
 
-# 6. Copiar e commitar JUNTO com o código da mudança visual:
-cp $SRC/*.png $DST/
+# 6. Copiar SÓ as que mudaram (o passo 5 já as nomeou) e commitar JUNTO
+#    com o código da mudança visual:
+for n in <lista-do-passo-5>; do cp "$SRC/$n" "$DST/$n"; done
+git status --short   # tem de listar exatamente as do passo 5
 git add $DST/
 git commit -m "test(visual): refresh N baselines pós-<mudança>"
 ```
+
+**Antes do `git add`, abra os PNGs e olhe.** Um `--update-snapshots` verde não
+prova nada sobre o conteúdo: ele grava o que existe, inclusive uma tela de erro.
+A baseline do PDF ficou 3,5 meses sendo um screenshot do error boundary
+("Algo deu errado ao renderizar esta página"), commitada em 2026-04-27 sem
+ninguém abrir o arquivo — o gate comparava crash contra relatório e teria ficado
+**verde** se o relatório voltasse a crashar do mesmo jeito.
+
+**Justifique cada PNG no corpo do PR** — qual commit mudou o quê. Sem isso, um
+PR de rebaseline é laundering de drift: ele apaga a evidência de uma regressão
+com a mesma keystroke que apaga a de uma mudança intencional. Para atribuir sem
+depender do olho, diff estrutural linha-a-linha (assinatura grayscale grosseira +
+`difflib.SequenceMatcher`) aponta as bandas inseridas/removidas e resiste ao
+antialiasing do canvas do chart.js.
+
+**Abra o PR já com o label `visual`.** `labeled` não está em
+`on.pull_request.types` do `ci.yml`, então label aplicado depois **não redispara
+o CI**: o job fica `skipping` e o PR passa por omissão — o gate não valida a
+baseline que você acabou de trocar.
 
 ### Tolerância — `maxDiffPixelRatio` proporcional
 
