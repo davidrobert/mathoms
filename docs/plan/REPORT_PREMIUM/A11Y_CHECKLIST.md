@@ -37,8 +37,9 @@ arquivo não é gate — gate é estar num job que `all-green` exige. Medido em
 
 | Gate | Cobre | Onde | Bloqueia merge? |
 |---|---|---|---|
-| `axe-core` por seção | 1.4.3 (parcial, só light), 4.1.2 | [a11y.@critical.spec.ts](../../../frontend/tests/e2e/reports/a11y.@critical.spec.ts) — step `Report render gate` de `frontend-checks` | **Sim** — `critical+serious` (D1) |
-| Contraste de texto sobre tint, por token | 1.4.3 no par (cor de texto, tint de fundo), sem depender de render | [cascataFiscalContrast.test.ts](../../../frontend/tests/components/report/cascataFiscalContrast.test.ts) + [parecerToneContrast.test.ts](../../../frontend/tests/components/report/parecerToneContrast.test.ts) — Vitest em `frontend-checks` | **Sim** — ≥ 4,5:1 |
+| `axe-core` — página inteira (light **e dark**) + por seção (light) | 1.4.3, 4.1.2 | [a11y.@critical.spec.ts](../../../frontend/tests/e2e/reports/a11y.@critical.spec.ts) — step `Report render gate` de `frontend-checks` | **Sim** — `critical+serious` (D1) |
+| Contraste de texto sobre tint da mesma cor — **todos** os call-sites, por medição | 1.4.3 no par (cor de texto, tint de fundo), sem depender de render | [check_tint_contrast.py](../../../dev/check_tint_contrast.py) — pre-commit, e `pre-commit run --all-files` no job `lint-all` | **Sim** — ≥ 4,5:1 texto / 3:1 não-texto |
+| Contraste de pares nomeados (badge Fator-R, tons do parecer) | 1.4.3 em pares específicos, incluindo branch que fixture não alcança | [cascataFiscalContrast.test.ts](../../../frontend/tests/components/report/cascataFiscalContrast.test.ts) + [parecerToneContrast.test.ts](../../../frontend/tests/components/report/parecerToneContrast.test.ts) — Vitest em `frontend-checks` | **Sim** — ≥ 4,5:1 |
 | Tab-order escopado a `[data-report-scope]` | 2.1.1, 2.4.3, 4.1.2 | [tab-order.@critical.spec.ts](../../../frontend/tests/e2e/reports/tab-order.@critical.spec.ts) | **Não** — só roda em `frontend-e2e`, que é opt-in por label `e2e` e está fora de `all-green.needs` |
 | Lighthouse CI (categoria `accessibility`) | 1.4.3, 2.4.7, 4.1.2 (mistura) | [lighthouserc.cjs](../../../frontend/lighthouserc.cjs) + job `frontend-lighthouse` | **Não** — o job migrou para `nightly.yml`, e o workflow `Nightly` está `disabled_manually`. Gate morto. |
 | Snapshots visuais por seção × tema | regressão estrutural light/dark (não substitui revisão humana de contraste em estados) | [sections.snapshots.visual.spec.ts](../../../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts) + job `frontend-visual` — ops em [REPORT_VISUAL_SNAPSHOTS.md](VISUAL_SNAPSHOTS.md) | **Não** — opt-in por label `visual` |
@@ -55,12 +56,16 @@ arquivo não é gate — gate é estar num job que `all-green` exige. Medido em
   WCAG diretamente.
 - Drag & drop do Kanban com teclado (T3) — comportamento que axe não
   detecta.
-- **Tema dark nas varreduras de seção.** O `a11y.@critical.spec.ts` injeta
-  tema só no bloco de `S_parecer`; as varreduras de página inteira e por
-  seção medem **light**. Uma violação que só exista no dark passa. Exemplo
-  vivo medido em 2026-08-08: `--semantic-loss` como texto sobre o próprio
-  tint de 15% dá 4,36:1 no dark (reprova) e 5,01:1 no light (passa) —
-  invisível para este gate.
+- **Tema dark nas varreduras POR SEÇÃO.** A de página inteira roda nos dois
+  temas desde 2026-08-08; as por-seção seguem medindo só light. Uma violação
+  exclusiva do dark **é pega** (a de página inteira contém o DOM de todas as
+  seções, e o axe reporta o seletor do ofensor), mas o vermelho aponta a
+  página, não a seção. Escolha de custo: +1 teste em vez de +15, num job já em
+  8m27s de um teto de 12min.
+
+  Foi este o buraco que escondeu o achado da varredura de contraste:
+  `--semantic-loss` como texto sobre o próprio tint de 15% dava 4,36:1 no dark
+  e 5,01:1 no light, então inspecionar o light concluía "loss está ok".
 - **Combinação que a fixture `medium` não produz.** O gate mede o que
   renderiza, e a fixture fixa um valor por campo. O badge Fator-R só sai
   como `anexo_iii`; o branch `anexo_v` — que era o pior, 1,86:1 — nunca
@@ -70,6 +75,21 @@ arquivo não é gate — gate é estar num job que `all-green` exige. Medido em
   caso. Seções que a fixture não monta estão declaradas em
   `SECTIONS_NOT_IN_MEDIUM_FIXTURE` (hoje `S4` e `APP_C`) — qualquer outra
   que suma vira falha, não skip.
+
+### Os dois gates de contraste são complementares — nenhum fecha a classe sozinho
+
+O `check_tint_contrast.py` pareia **dentro de um `className`**. Não enxerga par
+montado por `style` inline com `bg` e `fg` em linhas separadas de um object
+literal: foi assim que `BADGE_COLOR` de `alocacaoCardParts.tsx` passou batido a
+4,44:1 no dark, e **quem achou foi a varredura dark do axe**. Esses casos, mais
+ícone colorido cujo `text-[…]` vive num elemento filho (1.4.11), entram como
+`NAMED_PAIRS` no gate — com checagem de staleness, para entrada cujo call-site
+trocou de token falhar em vez de medir fantasma.
+
+Na direção oposta, o axe mede **a tela que a fixture monta**, e um branch que a
+fixture não alcança nunca é varrido (`fator_r_faixa: "anexo_v"` era o pior par,
+1,86:1, e `medium.json` fixa `anexo_iii`). Gate que passa por **ausência do
+caso** não é gate — por isso o par de cores também é medido fora do render.
 
 ---
 
