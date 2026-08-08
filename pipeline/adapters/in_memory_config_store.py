@@ -6,6 +6,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Optional
 
+from pipeline.domain.protection_bundle import ProtectionBundle
 from pipeline.domain.types.config import (
     CategorizationConfig,
     FamilyMembersConfig,
@@ -30,6 +31,7 @@ class InMemoryConfigStore:
         transfer_config: Optional[TransferConfig] = None,
         fiscal_by_year: Optional[dict[int, FiscalParameters]] = None,
         market_rates: Optional[dict[tuple[str, date], Decimal]] = None,
+        protection_bundle: Optional[ProtectionBundle] = None,
     ) -> None:
         self._categorization = categorization
         self._family_members = family_members
@@ -38,6 +40,7 @@ class InMemoryConfigStore:
         self._transfer_config = transfer_config
         self._fiscal_by_year = fiscal_by_year or {}
         self._market_rates = market_rates or {}
+        self._protection_bundle: ProtectionBundle = protection_bundle or {}
 
     def get_categorization(self, workspace_id: str) -> Optional[CategorizationConfig]:
         del workspace_id
@@ -74,3 +77,7 @@ class InMemoryConfigStore:
                 f"InMemoryConfigStore: no market rate for pair={pair!r} on {observed_at.isoformat()}"
             )
         return rate
+
+    def get_protection_bundle(self, workspace_id: str) -> ProtectionBundle:
+        del workspace_id
+        return self._protection_bundle

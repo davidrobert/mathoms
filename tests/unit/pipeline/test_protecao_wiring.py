@@ -13,10 +13,12 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.artifact_store import InMemoryArtifactStore  # noqa: E402
+from pipeline.domain.services.protecao_analyzer import FamilyMemberSnapshot  # noqa: E402
 from pipeline.domain.services.protecao_wiring import (  # noqa: E402
     ProtecaoSources,
     build_fiscal_snapshot,
     build_patrimonio_snapshot,
+    cobertura_cadastrada,
     compute_protecao_via_store,
     family_snapshots_from_config,
     load_apolices,
@@ -208,3 +210,50 @@ class TestSnapshots:
 
         assert snap.has_categoria_saude_e4_3_meses is True
         assert snap.has_deducao_saude_irpf is False
+
+
+class TestCoberturaCadastrada:
+    """ADR-192 §D3 fecha em ADR-240 §Emenda 2026-08-08 — o cadastro chega ao KPI F."""
+
+    def _cadastro_vida(self) -> dict:
+        return {
+            "id": "p-vida",
+            "category": "vida",
+            "holder_family_member_id": None,
+            "insurer": "Seguradora Exemplo",
+            "coverage_brl_cents": 50_000_00,
+            "premium_monthly_brl_cents": 120_00,
+            "coverage_type": "term",
+            "starts_at": "2025-01-01",
+            "ends_at": "2027-01-01",
+            "status": "Ativa",
+        }
+
+    def _gap_vida(self, protection_bundle) -> dict:
+        payload = compute_protecao_via_store(
+            InMemoryArtifactStore(),
+            ProtecaoSources(patrimonio_full={"liquido": 1_000_000, "dividas": 500_000}),
+            family_snapshots=(FamilyMemberSnapshot(parentesco="conjuge", idade=40),),
+            reference_date=_REF,
+            protection_bundle=protection_bundle,
+        )
+        return [g for g in payload["gap_qualitativo"] if g["categoria"] == "vida"][0]
+
+    def test_bundle_ausente_ou_vazio_degrada_para_so_documento(self):
+        assert cobertura_cadastrada(None) == ()
+        assert cobertura_cadastrada({}) == ()
+        assert cobertura_cadastrada({"gap_analysis": {}}) == ()
+
+    def test_policies_do_bundle_viram_cobertura_cadastrada(self):
+        assert cobertura_cadastrada({"policies": [self._cadastro_vida()]}) == (
+            self._cadastro_vida(),
+        )
+
+    def test_apolice_cadastrada_fecha_o_gap_de_vida_via_store(self):
+        """Sem apólice extraída, o cadastro sozinho tem de fechar o gap."""
+        gap = self._gap_vida({"policies": [self._cadastro_vida()]})
+        assert gap["flag"] is False
+        assert gap["rationale"] == "cobertura_vida_cadastrada"
+
+    def test_sem_bundle_o_gap_de_vida_permanece_aberto(self):
+        assert self._gap_vida(None)["flag"] is True

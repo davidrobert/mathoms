@@ -20,6 +20,7 @@ from decimal import Decimal
 from typing import Any, Mapping, Optional
 
 from pipeline.artifact_store import ArtifactStore
+from pipeline.domain.protection_bundle import ProtectionBundle, ProtectionItem
 from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
 from pipeline.domain.services.protecao_analyzer import (
     FamilyMemberSnapshot,
@@ -212,6 +213,12 @@ class ProtecaoSources:
     fluxo_mensal_raw: dict = field(default_factory=dict)
 
 
+def cobertura_cadastrada(bundle: Optional[ProtectionBundle] = None) -> tuple[ProtectionItem, ...]:
+    """Apólices do aggregate ``Protection`` (ADR-192). Sem bundle → tupla vazia,
+    e o gap de cobertura degrada para só-documento (comportamento pré-emenda)."""
+    return tuple((bundle or {}).get("policies") or ())
+
+
 def compute_protecao_via_store(
     store: ArtifactStore,
     sources: ProtecaoSources,
@@ -219,11 +226,13 @@ def compute_protecao_via_store(
     family_snapshots: tuple[FamilyMemberSnapshot, ...],
     reference_date: date,
     seguradoras_catalog: Optional[Mapping[str, str]] = None,
+    protection_bundle: Optional[ProtectionBundle] = None,
 ) -> dict:
     """Payload ``protecao_patrimonial`` (ADR-240 D8) — sempre retorna (cenário G6-b);
     ``seguradoras_catalog`` (A37.l11) canonicaliza ``seguradora`` antes de contar."""
+    cadastro = cobertura_cadastrada(protection_bundle)
     inp = _protecao_input(
-        store, sources, family_snapshots, reference_date, seguradoras_catalog or {}
+        store, sources, family_snapshots, reference_date, seguradoras_catalog or {}, cadastro
     )
     return compute_protecao(inp)
 
@@ -234,6 +243,7 @@ def _protecao_input(
     family: tuple[FamilyMemberSnapshot, ...],
     ref: date,
     seguradoras_catalog: Mapping[str, str],
+    cadastro: tuple[ProtectionItem, ...],
 ) -> ProtecaoInput:
     renda = resolve_renda_anual_liquida(sources.irpf_analyzer, sources.fluxo_legacy)
     return ProtecaoInput(
@@ -245,4 +255,5 @@ def _protecao_input(
         patrimonio=build_patrimonio_snapshot(sources.patrimonio_full),
         fiscal=build_fiscal_snapshot(sources.irpf_analyzer, sources.fluxo_mensal_raw),
         seguradoras_catalog=seguradoras_catalog,
+        cobertura_cadastrada=cadastro,
     )
