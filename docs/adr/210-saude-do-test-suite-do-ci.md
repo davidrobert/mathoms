@@ -5,7 +5,8 @@ title: "Saúde do test suite do CI — gates, telemetria e ciclo de vida"
 status: Decidido
 phase: "Sprint A12 (test health · CI cost)"
 date: "2026-05-14"
-amended_at: ["2026-05-19", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-05"]
+amended_at:
+  ["2026-05-19", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-05", "2026-08-08"]
 relates_to:
   - "[[ADR-067]]"
   - "[[ADR-093]]"
@@ -27,6 +28,16 @@ tags:
 ---
 
 # ADR-210 — Saúde do test suite do CI
+
+> **Emenda (2026-08-08) — a Camada 1 delegava o gate a um label que não podia
+> ser aplicado a tempo:** o opt-in por label (`visual`, `print`, `e2e`) só
+> funcionava se o label existisse no instante do evento `opened`, porque
+> `labeled` não estava em `on.pull_request.types` do `ci.yml` — aplicado
+> depois, não redisparava nada e o job ficava `skipping`, verde por omissão.
+> `labeled` entra no trigger, com `cancel-in-progress` exceptuado para esse
+> evento. **Não reabre a decisão** (o opt-in continua sendo opt-in); torna
+> alcançável o que a Camada 1 já assumia como alcançável. Detalhe e custo no
+> §Adendo 2026-08-08.
 
 > **Emenda (2026-08-05) — revisão retroativa `sre-devops` do adendo 2026-08-03,
 > fecha `OWNER-GATED-active.md` "Revisão sre-devops da política de CI do
@@ -579,6 +590,60 @@ e só bumpar se o crescimento for de volume, como foi aqui.
 3. **Os ~9,6% de deriva por teste não foram atacados.** Abaixo do ruído de
    runner (±2min entre 9,0 e 12,3 na mesma semana); virar projeto de
    otimização de fixture exige sinal maior que esse.
+
+## Adendo 2026-08-08 — o opt-in por label vira alcançável
+
+**Não reabre a decisão.** A Camada 1 escolheu tirar do gate de PR os jobs de
+pixel e o E2E com backend real, e trocá-los por opt-in via label. O que este
+adendo corrige é que **o opt-in não tinha como ser exercido depois do
+`opened`**: `on.pull_request.types` listava `[opened, synchronize, reopened,
+ready_for_review]`, então aplicar o label num PR já aberto não emitia evento
+algum para o `ci.yml`, e o job seguia `skipping` — verde por omissão. O gate
+funcionava só para quem lembrasse do label no segundo exato da criação do PR.
+Foi um dos mecanismos que deixaram `report.print.pdf.png` congelada num error
+boundary por ~3,5 meses e 10 baselines de seção acumularem drift por 2-3 meses.
+
+### Decisão
+
+1. `labeled` entra em `on.pull_request.types` do `ci.yml`.
+2. `concurrency.cancel-in-progress` passa a
+   `${{ github.event.action != 'labeled' }}`.
+
+O item 2 não é cosmético. Com `cancel-in-progress: true` incondicional,
+aplicar um label com run em voo cancelaria os ~7 jobs — inclusive um
+`backend-tests` no minuto 9 de ~10 — e reiniciaria do zero. Minuto cancelado
+é faturado e cada reinício ainda paga o piso de 1 min por job; duas labels
+seriam dois ciclos. Com a exceção, o run do label fica PENDING e começa quando
+o anterior terminar.
+
+### O custo que fica, e por que não dá para pagar menos
+
+Todo label aplicado depois da criação do PR passa a custar **um ciclo de CI
+completo** — não só os jobs que o label pede. Fazer o run do label pular os
+demais jobs seria mais barato e é **fail-open**: `all-green` aceita `skipped`
+nos jobs de que depende, logo um run em que tudo skipa reportaria
+`All checks green: success` e sobrescreveria um vermelho legítimo do run
+anterior no mesmo SHA (o required check do ruleset olha o último). Aplicar um
+label viraria caminho para mergear código quebrado. O run completo é o preço
+de não abrir esse caminho.
+
+Três atenuantes medidos: (a) o GH cancela runs PENDING do mesmo grupo quando
+outro entra na fila, independente da flag — N labels em sequência custam 1 run;
+(b) um `synchronize` posterior engole o pending sem perda, porque o run do push
+já enxerga o label em `pull_request.labels`; (c) **não há cascata do labeler
+automático** — `actions/labeler@v5` e o size-labeler em `pr-quality.yml`
+escrevem com o `GITHUB_TOKEN` default, e evento emitido por ele não dispara
+workflow (guard de recursão do GH); além disso `visual`/`print`/`e2e` não estão
+em `.github/labeler.yml`, que só define as 10 `area:*` + `dependency`.
+
+### O que este adendo NÃO conserta
+
+`frontend-visual`, `frontend-print-visual` e `frontend-e2e` continuam **fora**
+de `all-green.needs` — vermelho neles não bloqueia merge. Rodar é pré-condição
+de gatear, não gatear. A medição do §Adendo 2026-07-31 (`frontend-e2e` skipped
+em 12/12 runs) tinha duas causas somadas; esta emenda remove uma. Ligar o gate
+de fato depende de os jobs terem sinal confiável primeiro — no caso do E2E, dos
+17 testes `@critical` vermelhos hoje.
 
 ## Referências
 
