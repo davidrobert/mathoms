@@ -107,6 +107,35 @@ describe.each(["light", "dark"] as const)("badge Fator-R — %s", (theme) => {
   });
 });
 
+/** `SEVERITY_TEXT_CLASS` de `alocacaoCardParts.tsx` — texto sobre o card, sem
+ *  tint. Entrou aqui porque o #1294 devolveu o card de Alocação ao render
+ *  depois de ~3 meses ausente, e com ele voltou `--semantic-alert` como texto
+ *  sobre branco: **2,06:1** nos 14px da célula de desvio, o pior contraste do
+ *  relatório. Os outros 3 membros passam com a cor base (17,85 / 6,47 / 4,76),
+ *  então só `atencao` troca de token. */
+const ALOCACAO_SEVERIDADES = [
+  { severidade: "alinhado", fgToken: "surface-foreground" },
+  { severidade: "atencao", fgToken: "semantic-alert-on-tint" },
+  { severidade: "rebalancear", fgToken: "semantic-danger" },
+  { severidade: "neutro", fgToken: "surface-muted-foreground" },
+];
+
+describe.each(["light", "dark"] as const)(
+  "desvio da Alocação sobre o card — %s",
+  (theme) => {
+    it.each(ALOCACAO_SEVERIDADES)("$severidade ≥ 4,5:1", (s) => {
+      const ratio = contrastRatio(
+        tokenValue(s.fgToken, theme),
+        tokenValue("surface-card", theme),
+      );
+      expect(
+        ratio,
+        `${s.severidade} em ${theme}: ${ratio.toFixed(2)}:1`,
+      ).toBeGreaterThanOrEqual(AA_TEXTO_PEQUENO);
+    });
+  },
+);
+
 describe("o par -on-tint não pode colapsar de volta na cor base", () => {
   // No dark os dois tokens SÃO o mesmo hex, então o dedup parece seguro e o
   // teste acima sozinho não explica por que o par existe. Estes dois mostram.
@@ -118,5 +147,14 @@ describe("o par -on-tint não pode colapsar de volta na cor base", () => {
     const ratio = contrastRatio(base, tint(base, tokenValue("surface-card", "light"), TINT_PCT));
     expect(ratio).toBeLessThan(AA_TEXTO_PEQUENO);
     expect(ratio).toBeCloseTo(esperado, 1);
+  });
+
+  it("`--semantic-alert` sobre o card **sem** tint é o pior caso: 2,06:1", () => {
+    const ratio = contrastRatio(
+      tokenValue("semantic-alert", "light"),
+      tokenValue("surface-card", "light"),
+    );
+    expect(ratio).toBeLessThan(AA_TEXTO_PEQUENO);
+    expect(ratio).toBeCloseTo(2.06, 1);
   });
 });

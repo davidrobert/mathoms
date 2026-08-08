@@ -72,7 +72,9 @@ const SEVERITY_BAR_COLOR: Record<SeverityLevel, string> = {
 
 const SEVERITY_TEXT_CLASS: Record<SeverityLevel, string> = {
   alinhado: "text-[var(--surface-foreground)]",
-  atencao: "text-[var(--semantic-warning)]",
+  // `--semantic-alert` sobre o card branco dá 2,06:1 nestes 14px — o pior
+  // contraste do relatório. Os outros 3 membros passam com a cor base.
+  atencao: "text-[var(--semantic-alert-on-tint)]",
   rebalancear: "text-[var(--semantic-danger)]",
   neutro: "text-[var(--surface-muted-foreground)]",
 };
