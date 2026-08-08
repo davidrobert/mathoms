@@ -46,10 +46,28 @@ const FIXTURES_DIR = join(__dirname, "..", "fixtures", "reports");
 export const MOCK_WORKSPACE_ID = "ws-fixture";
 export const MOCK_REPORT_ID = "report-fixture-medium";
 
+/** Resposta do `GET .../planner-review`. Ver `PLANNER_REVIEW_NOT_GENERATED`. */
+export interface PlannerReviewStub {
+  status: number;
+  body: unknown;
+}
+
+/** Default do roteador: parecer ausente → `<ParecerEmptyState/>` (ADR-199). */
+export const PLANNER_REVIEW_NOT_GENERATED: PlannerReviewStub = {
+  status: 404,
+  body: { detail: "not_generated_yet" },
+};
+
 interface MockOptions {
   reportId?: string;
   workspaceId?: string;
   fixture?: FixtureName;
+  /**
+   * Sobrescreve a resposta do parecer. Spec que asserta a S_parecer renderizada
+   * passa o payload aqui em vez de depender de um relatório real na listagem —
+   * sem isso o assert só alcança o estado vazio.
+   */
+  plannerReview?: PlannerReviewStub;
 }
 
 function loadFixture(name: FixtureName): unknown {
@@ -114,6 +132,7 @@ export async function mockReportPage(
   const workspaceId = opts.workspaceId ?? MOCK_WORKSPACE_ID;
   const reportId = opts.reportId ?? MOCK_REPORT_ID;
   const data = loadFixture(opts.fixture ?? "medium");
+  const plannerReview = opts.plannerReview ?? PLANNER_REVIEW_NOT_GENERATED;
 
   // Token para passar pelo auth gate da página
   await page.addInitScript(() => {
@@ -245,7 +264,7 @@ export async function mockReportPage(
     // renderizar `<ParecerEmptyState />` (estado canônico do
     // not_generated). Catch-all `{}` quebrava com "content.meta undefined".
     if (path.match(/\/reports\/[^/]+\/planner-review$/)) {
-      return json(route, { detail: "not_generated_yet" }, 404);
+      return json(route, plannerReview.body, plannerReview.status);
     }
 
     return json(route, {});
