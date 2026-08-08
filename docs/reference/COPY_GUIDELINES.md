@@ -539,6 +539,27 @@ scope automatizado: e-mail templates renderizados (quando
 materiais de imprensa em `.pdf`/`.pptx`. Expandir escopo do hook quando
 essas surfaces forem materializadas.
 
+**Ponto cego já materializado — copy que nasce em `config/` e chega ao
+cliente por codegen.** As surfaces acima ainda não existem; esta existe e
+vaza hoje. `config/report_layout.yaml` guarda `title`/`subtitle` de seção,
+que o [`dev/codegen_report_layout.py`](../../dev/codegen_report_layout.py)
+transforma em `frontend/src/generated/report-layout.ts` e o relatório
+renderiza para o cliente. O hook não vê **nenhum** dos dois pontos: config
+não está na lista de surfaces cobertas, e `src/generated/` é excluído de
+propósito. Não é hit baselined — é furo de surface.
+
+Instância medida em 2026-08-08 (PR #1281): a seção 2.5 se chama
+`"Proteção Patrimonial — Pilar AUVP"` e o título aparece duas vezes na rota
+`/reports/[id]` (heading da seção e entrada do índice). Enquanto o furo não
+fecha, **campo de copy em `config/report_layout.yaml` é user-facing e exige
+revisão manual §13**, apesar de morar em config.
+
+A varredura que de fato pega isso é E2E sobre texto renderizado —
+`frontend/tests/e2e/planner-review-smoke.spec.ts` assere os termos contra
+`page.locator("body").innerText()`. Usar texto visível e **não**
+`page.content()`: §13.4 permite atribuição em id/classe/atributo, e
+`data-section-id="m_auvp_desvio"` é legítimo — HTML cru gera falso-positivo.
+
 Comando manual (debug ou auditoria ad-hoc):
 
 ```bash
