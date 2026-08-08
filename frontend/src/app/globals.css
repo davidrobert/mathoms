@@ -150,17 +150,26 @@
 }
 
 @media print {
+  /* `header` e `footer` saíram desta lista em 2026-08-08: como seletores de
+   * elemento nunca tiveram alvo de chrome — o do app é `<aside>`+`<nav>`
+   * (`AppShell`) e o do relatório é `[data-report-topnav]`. O que atingiam era
+   * o `<header>` semântico de cada seção e card, e no PDF do relatório isso
+   * apagava TODOS os títulos de seção mais a caption de contadores do parecer.
+   * Chrome novo se marca com `.no-print`, não com o nome do elemento. */
   nav,
   .no-print,
-  header,
-  footer,
   .sidebar-toc {
     display: none !important;
   }
 
+  /* `overflow: visible` porque o `<main class="flex-1 overflow-y-auto">` do
+   * `AppShell` é um scroll container, e scroll container não pagina: o
+   * Chromium imprime só a altura de layout do fragmento e descarta o resto —
+   * a última página do PDF do relatório sumia. Em papel não existe scroll. */
   main {
     margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
   }
 
   .print-break-before {
