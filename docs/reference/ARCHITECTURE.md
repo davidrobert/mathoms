@@ -315,6 +315,7 @@ módulo enforcer.
 | Gap de cobertura de invalidez (Cerbasi · share renda ativa > 40% E cobertura < 60% renda) | `pipeline/domain/services/protection/disability_coverage.py::disability_coverage_gap` ([rule](rules/disability-coverage-gap.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
 | ITCMD estimado por UF (alíquota × patrimônio bruto, tabela injetada por `fiscal_parameters`) | `pipeline/domain/services/protection/itcmd_estimator.py::itcmd_estimated` ([rule](rules/itcmd-estimated.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
 | Compliance US-person (FBAR / FATCA / Estate Tax NRA, gate explícito por `us_tax_status`) | `pipeline/domain/services/protection/compliance_us_person.py::compliance_risk_us_person` ([rule](rules/compliance-risk-us-person.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
+| Ausência de cobertura de seguro (predicado existencial sobre documento ∪ cadastro; agregado monetário declara escopo e suprime veredito em vez de estimar) | `pipeline/domain/services/cobertura_consolidada.py::consolidar_cobertura` + `protecao_analyzer.py::_flag_vida`/`_flag_saude` | [ADR-240 §Emenda 2026-08-08](../adr/240-card-protecao-patrimonial-pilar-auvp.md) |
 | Elegibilidade e proveniência da premissa de uma recomendação (só `computavel` entra no ranking; retido é declarado) | `pipeline/domain/services/pontos_urgentes_analyzer.py::PontoUrgenteItem` + `e5_serialization.py::partition_pontos_urgentes` ([rule](rules/rule-elegibilidade-da-recomendacao.md)) | [ADR-365](../adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md) |
 | Ordem do plano de ação por tier de irreversibilidade (T0 ruína · T1 fragilidade · T2 alavancagem · T3 otimização; piso emite, alvo gradua) | `pipeline/domain/services/pontos_urgentes_analyzer.py::PontosUrgentesAnalyzer.analyze` ([rule](rules/rule-ordem-do-plano-por-irreversibilidade.md)) | [ADR-367](../adr/367-ordem-do-plano-por-irreversibilidade.md) |
 
@@ -350,7 +351,7 @@ classes abaixo. Origem: [[ADR-362]] e [[ADR-363]].
 
 | Identificador | Versiona | Onde vive |
 |---|---|---|
-| `executor_revision` ([[ADR-362]]) | o **processo** que executou um stage | coluna em `pipeline_stage_logs` |
+| `executor_revision` ([[ADR-362]]) | o **processo** que executou um stage | coluna em `pipeline_stage_logs` · campo de `/health` · todo record do `MathomsJsonFormatter` |
 | `seed_usado` / `n_simulacoes_usado` ([[ADR-360]]) | parâmetros efetivos da simulação | payload do artefato de análise |
 
 **Ornamental** — existe, não identifica código. Não usar como proveniência.

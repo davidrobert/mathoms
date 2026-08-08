@@ -65,6 +65,23 @@ describe("<CascataFiscalCard /> · Simples Anexo III", () => {
     expect(screen.getByText(/Fator-R 32,0% · Anexo III/i)).toBeInTheDocument();
   });
 
+  // Controle dos dois variantes do badge: o texto tem de sair no par
+  // `-on-tint`, não na cor base. `cascataFiscalContrast.test.ts` prova que a
+  // base reprova AA (4,09:1 no gain, 1,86:1 no alert); aqui provamos que o
+  // componente consome o token corrigido — inclusive no branch `anexo_v`, que
+  // nenhuma fixture E2E alcança (`medium.json` fixa `anexo_iii`).
+  it.each([
+    { faixa: "anexo_iii" as const, texto: "Fator-R 32,0% · Anexo III", token: "--semantic-gain-on-tint" },
+    { faixa: "anexo_v" as const, texto: "Fator-R 32,0% · Anexo V", token: "--semantic-alert-on-tint" },
+  ])("badge $faixa usa o token de texto legível sobre tint", ({ faixa, texto, token }) => {
+    render(
+      <CascataFiscalCard
+        tributario={buildBundle({ cascata: buildCascata({ fator_r_faixa: faixa }) })}
+      />,
+    );
+    expect(screen.getByText(texto).className).toContain(`text-[var(${token})]`);
+  });
+
   it("renderiza camadas da cascata com label DAS Simples Nacional", () => {
     render(<CascataFiscalCard tributario={buildBundle()} />);
     expect(screen.getByText(/Receita bruta PJ \(12m\)/i)).toBeInTheDocument();

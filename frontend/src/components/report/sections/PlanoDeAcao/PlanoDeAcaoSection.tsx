@@ -16,23 +16,27 @@ import type { Decision, DecisionStatus } from "@/lib/api";
 
 // ADR-076 · design tokens — substitui Tailwind literal por mix dos tokens
 // semânticos (color-mix gera fundo "soft" com 15% do token, texto sólido).
-// Mapeamento:
-//   Pendente   → --semantic-alert  (laranja, aguardando ação)
-//   Decidido   → --brand-info      (azul-teal, informativo)
-//   Executado  → --semantic-gain   (verde, sucesso)
-//   Descartado → --surface-muted-foreground (slate, neutro)
-//   Superseded → --brand-secondary (azul desaturado, "histórico")
+// O tint dá a cor do fundo; o TEXTO usa o par `-on-tint` do mesmo token, porque
+// a cor base sobre o próprio tint de 15% reprova AA em 4 dos 5 status (Pendente
+// dava 1,86:1 em light, Superseded 3,81:1 light e 4,40:1 dark). `brand-info` é
+// o único que passa na base. Gate: dev/check_tint_contrast.py.
+// Mapeamento (fundo → texto):
+//   Pendente   → --semantic-alert            (laranja, aguardando ação)
+//   Decidido   → --brand-info                (azul-teal, informativo)
+//   Executado  → --semantic-gain             (verde, sucesso)
+//   Descartado → --surface-muted-foreground  (slate, neutro)
+//   Superseded → --brand-secondary           (azul desaturado, "histórico")
 const STATUS_BADGE_CLASS: Record<DecisionStatus, string> = {
   Pendente:
-    "bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] text-[var(--semantic-alert)]",
+    "bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] text-[var(--semantic-alert-on-tint)]",
   Decidido:
     "bg-[color-mix(in_srgb,var(--brand-info)_15%,transparent)] text-[var(--brand-info)]",
   Executado:
-    "bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] text-[var(--semantic-gain)]",
+    "bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] text-[var(--semantic-gain-on-tint)]",
   Descartado:
-    "bg-[color-mix(in_srgb,var(--surface-muted-foreground)_15%,transparent)] text-[var(--surface-muted-foreground)]",
+    "bg-[color-mix(in_srgb,var(--surface-muted-foreground)_15%,transparent)] text-[var(--surface-muted-foreground-on-tint)]",
   Superseded:
-    "bg-[color-mix(in_srgb,var(--brand-secondary)_15%,transparent)] text-[var(--brand-secondary)]",
+    "bg-[color-mix(in_srgb,var(--brand-secondary)_15%,transparent)] text-[var(--brand-secondary-on-tint)]",
 };
 
 interface PlanoDeAcaoSectionProps {

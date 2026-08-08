@@ -3,8 +3,9 @@
  *
  * Garante que o usuário com teclado consegue:
  *  1. Localizar o skip-nav do relatório e usá-lo para focar `#report-main`.
- *  2. Encontrar os controles globais do shell (theme, mode, font-scale, TOC,
- *     FloatingNav) com accessible name não vazio.
+ *  2. Encontrar os controles globais do shell (aparência, mode, TOC,
+ *     FloatingNav) com accessible name não vazio — e, dentro do popover
+ *     `Aparência`, tema e tamanho de texto.
  *  3. Não encontrar nenhum controle interativo dentro do escopo do relatório
  *     (`[data-report-scope]`) sem accessible name.
  *
@@ -85,19 +86,35 @@ test.describe("Report tab-order @critical", () => {
     await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
     await waitForReportReady(page);
 
-    const expected = [
-      "Tema do relatório",
-      "Modo do relatório",
-      "Tamanho da fonte",
+    // Diretamente no shell. `Modo do relatório` saiu da lista: o `ModeToggle`
+    // que o expunha deixou de ser renderizado (#160 escondeu o tablist com um
+    // modo só, depois da remoção do Modo Tático e do Modo USA / ADR-168) e hoje
+    // só sobrevive como export do barrel `shell/index.ts`.
+    const noShell = [
+      "Aparência",
       "Navegação do relatório",
       "Voltar ao topo",
       "Ir para o final",
     ];
-    for (const label of expected) {
+    for (const label of noShell) {
       const locator = page.locator(`[aria-label="${label}"]`).first();
       await expect(
         locator,
         `controle com aria-label="${label}" deve existir no shell`,
+      ).toBeAttached();
+    }
+
+    // Tema e tamanho de texto migraram para dentro do popover `Aparência`
+    // (a3513888), que monta sob `{open && …}` — antes de abrir eles não estão
+    // no DOM, e asserir `toBeAttached` sobre o shell fechado media a ausência
+    // do popover, não a do controle.
+    await page.locator("[data-appearance-trigger]").click();
+    await expect(page.locator("[data-appearance-panel]")).toBeVisible();
+    for (const label of ["Tema do relatório", "Tamanho do texto"]) {
+      const locator = page.locator(`[aria-label="${label}"]`).first();
+      await expect(
+        locator,
+        `controle com aria-label="${label}" deve existir no popover Aparência`,
       ).toBeAttached();
     }
   });
