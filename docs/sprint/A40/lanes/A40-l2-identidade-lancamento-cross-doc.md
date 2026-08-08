@@ -234,9 +234,10 @@ derivação tem de ser alimentado pelos **dois produtores reais**.
 | **3a — a sombra** ✅ [#1231](https://github.com/davidrobert/mathoms/pull/1231) (`65464db6`) | colapsador em produção **measure-only** · `shadow_counts` PII-safe no log estruturado · flag `cross_document_collapse_measure_enabled` (`True`, `OPERATOR_ONLY`) | flag off |
 | **3b1 — fonte única do digest** ✅ [#1251](https://github.com/davidrobert/mathoms/pull/1251) (`077fb7e9`) | `_gate_digest_da_chave` chama `gate_key_digest`, nunca monta a tupla inline · teste de derivação alimentado pelos **dois produtores reais** (`test_gate_digest_paired_derivation.py`) | revert |
 | **3b2 — `CollapseMeasurement`** ✅ [#1256](https://github.com/davidrobert/mathoms/pull/1256) (`4fdcf400`) | corpus **pré-poda** no VO (`corpus_gate_digests`, `corpus_row_hashes`) · `survivor_hash` em `CollapseCandidate` | revert |
-| **3b — o gate** ✅ (este PR) | predicado corrigido (5 cláusulas cumulativas + adjudicação por hash) · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · parâmetro stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
-| **3c1 — o dado** (paralelo ao 3d) | carrier E3→E4→E5 · `meses` no `$defs/remocao` · campo **omitido** quando zero · nomes que sobrevivem ao `is_monetary` · emenda na [[ADR-347]] | campo ausente |
-| **3d — o drain** (depende do 3b) | re-ancora os condenados **enquanto as duas rows existem**; apply só do caso 1→1 | `orphaned_at` + re-run |
+| **3b — o gate** ✅ [#1276](https://github.com/davidrobert/mathoms/pull/1276) (`b3b8a74b`) | predicado corrigido (5 cláusulas cumulativas + adjudicação por hash) · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · parâmetro stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
+| **3c1a — o dado até o E4** 🚧 [#1288](https://github.com/davidrobert/mathoms/pull/1288) | `meses` no canal (`$def` próprio, não `allOf`) · agregado somado sobre `readable` · carrier E3→E4 em `fluxo_mensal_detalhado` · campo **omitido** quando zero | campo ausente |
+| **3c1b — o dado até o E5** | `FluxoCaixaEnricher` copia para `fluxo_caixa` **e projeta em `janela_12m`** · invariante de conservação fail-loud no E3 · emenda na [[ADR-347]] · rebaseline do snapshot | campo ausente |
+| **3d — o drain** (destravado pelo 3b) | re-ancora os condenados **enquanto as duas rows existem**; apply só do caso 1→1. ⚠️ **decisão de desenho pendente — ver §3d abaixo.** Brief: [`tracks/a40-l2-3d-drain.md`](../tracks/a40-l2-3d-drain.md) | `orphaned_at` + re-run |
 | **3c2 — a superfície** | contador da S2 · caption simétrico da V0 · rebaseline | render condicional |
 | **3e — o flip** | bloqueado pelos quatro; §Critério de saída abaixo | flag off |
 
@@ -263,6 +264,29 @@ define. O 3c foi partido porque atravessava pipeline+backend+frontend num diff.
 **O brief do 3c2 abre junto com o 3b** — ele é o long pole real (frontend + snapshot +
 brief), não o 3d. ✅ Aberto em 2026-08-07:
 [`tracks/a40-l2-3c2-superficie-do-colapso.md`](../tracks/a40-l2-3c2-superficie-do-colapso.md).
+
+#### §3d — a decisão de desenho que trava o PR, aberta em 2026-08-08
+
+**O 3d está destravado (o 3b mergeou) e é da ONDA DESTA SPRINT — mas não é pegável sem
+fechar isto antes.** A lane diz *"o pipeline **emite**, o backend **decide**"* e não diz **por
+onde os candidatos chegam ao drain**. As duas leituras produzem produtos diferentes, e nenhuma
+é obviamente certa:
+
+| | **(a) o stage chama o drain** | **(b) o operador dispara, e o drain re-deriva** |
+|---|---|---|
+| como obtém os candidatos | do próprio run, como o gate já faz (`main_with_store` os tem em mãos) | re-executa o colapsador sobre o E3, pelo caminho `_rederive` do harness |
+| a favor | **zero segunda derivação** · re-ancora *enquanto as duas rows existem*, que é o requisito temporal da lane · reusa a fiação do 3b | preserva o **gesto humano** — a [[ADR-364]] §2 chama a re-ancoragem de *"mutar dado do usuário por heurística"* |
+| contra | **automação destrutiva silenciosa**: muta categorização do usuário a cada run, sem ação humana | **segunda derivação do colapsador** — a classe `keep_split` que esta lane já pagou **duas vezes** (§D5 e o follow-up #1236) |
+
+**Não decida sozinho.** É simultaneamente boundary (`senior-cto`) e produto — mutação de dado
+categorizado pelo usuário, logo gatilho de `financial-planner`. Co-design **antes** de codar,
+como o 3c1 fez (e o 3c1 mostrou que a rodada se paga: derrubou dois pontos do payload cravado).
+
+> ⚠️ **O apply path do 3d não tem dado real para exercitar.** O PR3b mediu **0 overrides
+> ancorados em row de candidato de colapso** no dogfood (4 `casou_corpus_fora_de_candidato`,
+> 1 `casou_nada`). As travas do drain têm de vir de **fixture sintética**, e o PR tem de
+> **dizer isso** — senão alguém lê "verde no dogfood" como prova de que o drain funciona.
+> Mesma armadilha que a escapatória de absolvição do 3b, e ela já foi declarada uma vez.
 
 #### Restrições duras do 3d, todas verificadas no código
 
