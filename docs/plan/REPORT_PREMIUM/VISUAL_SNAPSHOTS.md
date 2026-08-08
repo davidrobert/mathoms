@@ -12,8 +12,14 @@ pegam.
 
 ## Por que é opt-in (label `visual` ou `workflow_dispatch`)
 
-- ~50 testes (24 seções × 2 temas) — roda em ~3-4 min, mas não vale
-  bloquear todo PR por isso. Maioria dos PRs não toca o renderer.
+- 32 testes neste spec (13 seções + cover + 2 estados de `S_parecer`, × 2
+  temas), dos quais 28 produzem baseline — `S4` e `APP_C` não montam com a
+  fixture `medium`. O projeto `visual` roda 42 no total, somando o
+  `sections.fixtures.smoke.visual.spec.ts`. ~3-4 min, mas não vale bloquear
+  todo PR por isso: a maioria não toca o renderer.
+  <!-- O "~50 testes (24 seções)" que estava aqui era da era Tático+USA
+       (ADR-151 / ADR-168) e ficou stale por ~4 meses. Contagem em doc
+       envelhece — confira no spec antes de citar. -->
 - Baselines são **OS-específicas** (chromium em Linux ≠ macOS por
   font hinting + sub-pixel antialiasing). Comitar baselines macOS em
   PR de dev quebra o CI Linux.
