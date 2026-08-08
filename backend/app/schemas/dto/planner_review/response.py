@@ -192,6 +192,7 @@ class PlannerReviewAbsenceDetail(BaseModel):
         "not_generated_yet",
         "generation_unavailable",
         "parecer_artifact_missing",
+        "tier_gated",
     ]
     message: str
 

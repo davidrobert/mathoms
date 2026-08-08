@@ -5,12 +5,15 @@
 // (não data_source do snapshot E5, igual a PlanoDeAcao). Renderer único
 // pós-ADR-129. CSS de print em `SParecer.print.css`.
 
+import Link from "next/link";
 import { useCallback } from "react";
 
 import { Alert } from "../../ui/Alert";
 import { ReportSection } from "../../ReportSection";
 import { parecerItensRetidos } from "../../utils/parecerRetencao";
 import { usePlannerReview } from "@/hooks/usePlannerReview";
+import type { ParecerAbsenceCode } from "@/lib/api";
+import { copyDaAusencia } from "@/lib/parecerAusenciaCopy";
 
 import { ParecerHeroDiagnostico } from "./ParecerHeroDiagnostico";
 import { ParecerHorizonteList } from "./ParecerHorizonteList";
@@ -42,7 +45,7 @@ export function SParecerSection({
             Carregando parecer…
           </p>
         )}
-        {state.kind === "not_generated" && <ParecerEmptyState />}
+        {state.kind === "not_generated" && <ParecerEmptyState code={state.code} />}
         {state.kind === "error" && (
           <p
             role="alert"
@@ -68,18 +71,50 @@ export function SParecerSection({
   );
 }
 
-function ParecerEmptyState() {
+function CadastrarChaveIaLink() {
+  return (
+    <p className="mt-2 text-sm">
+      <Link href="/config?tab=llm" className="text-[var(--brand-primary)] underline">
+        Cadastrar sua chave de IA
+      </Link>{" "}
+      <span className="text-[var(--surface-muted-foreground)]">
+        — destrava as etapas com IA do processamento.
+      </span>
+    </p>
+  );
+}
+
+// Peso visual segue a semântica: `falha` reusa o `Alert severity="warning"` do
+// `ParecerRetainedState` (mesma seção, mesma classe), e só `vazio` fica no card
+// tracejado — idioma de "ainda não há nada aqui", que mentiria sobre uma falha.
+function ParecerEmptyState({ code }: { code: ParecerAbsenceCode }) {
+  const { titulo, corpo, variante, cta } = copyDaAusencia(code);
+  const conteudo = (
+    <>
+      <h3 className="font-heading text-base font-semibold text-[var(--surface-foreground)]">
+        {titulo}
+      </h3>
+      <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">{corpo}</p>
+      {cta === "reprocessar" && <ReprocessarParecerLink />}
+      {cta === "chave_ia" && <CadastrarChaveIaLink />}
+    </>
+  );
+  if (variante === "falha") {
+    return (
+      <Alert severity="warning" className="mx-auto max-w-prose text-left">
+        <div data-testid="parecer-empty" data-absence-code={code}>
+          {conteudo}
+        </div>
+      </Alert>
+    );
+  }
   return (
     <div
-      className="rounded-[var(--radius-card)] border border-dashed border-[var(--surface-border)] p-6 text-center"
+      className="mx-auto max-w-prose rounded-[var(--radius-card)] border border-dashed border-[var(--surface-border)] p-6 text-left"
       data-testid="parecer-empty"
+      data-absence-code={code}
     >
-      <p className="font-heading text-base font-semibold text-[var(--surface-foreground)]">
-        Parecer ainda não gerado
-      </p>
-      <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">
-        Próximo relatório premium incluirá o parecer orientativo do planejador.
-      </p>
+      {conteudo}
     </div>
   );
 }

@@ -7713,7 +7713,8 @@
               "report_not_found",
               "not_generated_yet",
               "generation_unavailable",
-              "parecer_artifact_missing"
+              "parecer_artifact_missing",
+              "tier_gated"
             ],
             "title": "Code",
             "type": "string"
