@@ -284,6 +284,11 @@ mistura doc + código, a regra normal volta a valer.
   `InMemoryArtifactStore`), não `MagicMock` inline.
 - **DB em testes: nunca mocar.** SQLite em memória ou fixtures Alembic-aware
   (incidente histórico: mock/prod drift mascarou migration quebrada).
+- **Fixture materializa os pais da FK** (ADR-371). Com `PRAGMA foreign_keys`
+  ON, id sintético (`"ws-cli"`, `"user-1"`, `uuid4()` avulso) em coluna com FK
+  levanta `IntegrityError`. Crie a row-pai (workspace, run, user) ou use as
+  factories de `backend/tests/factories/`. Fixture que fabricava referência
+  inexistente era teste passando sobre estado impossível.
 - **Goldens de execução** (pós-A6c.3): runs canônicos com schema validation
   em `tests/test_e{3,4,5}_golden_execution.py`. Goldens de paridade
   legado↔novo (Caminho A vs Caminho B) foram descontinuados em A6c.3 quando
@@ -649,6 +654,25 @@ snapshot DB pré-deploy + revert PR + migration downgrade (runbook em
 janela ~30min RTO). Reset destrutivo de pipeline:
 `backend/app/services/internal_ops/pipeline_reset.py::reset_workspace_from_stage`
 (consumido pelo console interno, ADR-116).
+
+### O grafo de FK é a fonte única da deleção (ADR-371)
+
+`PRAGMA foreign_keys` está **ON** no engine SQLite desde 2026-08-08 — as FKs
+declaradas nos models são contrato enforçado, não decoração. Consequências
+que valem para código novo:
+
+- **Nunca enumere tabelas-filhas à mão** numa rotina de deleção. Delete o pai
+  e deixe o `ON DELETE` cascatear. A lista manual em `purge_documents`
+  esqueceu 3 tabelas e deixou 48 rows penduradas no DB de dogfood.
+- **Antes de deletar artefato, consulte
+  `backend/app/services/storage/artifact_references.py`.** É a fonte única do
+  que é intocável (referenciado por report / publicação / parecer). `RESTRICT`
+  aborta o batch inteiro; `SET NULL`/`CASCADE` destroem relatório publicado.
+- **Toda FK nova para `pipeline_runs`/`pipeline_artifacts` precisa ser
+  classificada** — `dev/check_run_artifact_fk_coverage.py` (pre-commit) exige
+  que FK para artifacts esteja em `REFERENCING_COLUMNS`, que toda FK declare
+  `ondelete=`, e que coluna que nomeia run/artifact sem FK tenha justificativa
+  no allowlist.
 
 ### Paths proibidos no git (enforçados por `dev/check_forbidden_paths.py`)
 

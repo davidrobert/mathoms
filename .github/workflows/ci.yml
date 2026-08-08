@@ -304,10 +304,11 @@ jobs:
             # lê `needs.changes.outputs.report` e não tem path filter algum:
             # desde ADR-210 §camada 1 (2026-05-14) roda só com o label
             # `visual` ou por workflow_dispatch. PR que toca superfície do
-            # relatório sem o label não roda snapshot de pixel — e o label
-            # precisa ser aplicado na CRIAÇÃO do PR, porque `labeled` não
-            # está em `on.pull_request.types` (posto depois, o job fica
-            # `skipping`: verde por omissão). Contexto no bloco do job.
+            # relatório sem o label não roda snapshot de pixel. O label pode
+            # ser aplicado a qualquer momento desde 2026-08-08 — `labeled`
+            # entrou em `on.pull_request.types` e redispara o CI; até então
+            # só valia se estivesse posto na criação do PR, senão o job
+            # ficava `skipping` (verde por omissão). Contexto no bloco do job.
             # Mudança no próprio workflow → roda tudo (mesma lógica de backend/frontend).
             report:
               - 'frontend/src/components/report/**'
