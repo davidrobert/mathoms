@@ -126,6 +126,15 @@ prosa em 3 lugares e mecanismo em nenhum.
 > tripwire ficaria verde medindo a camada errada. O que arma o tripwire é o
 > **writer**, não a lane.
 
+> **Tripwire DESCARREGADO em 2026-08-07 — não é mais avaliável na `date_target`.**
+> O writer da [[A40.l18]] mergeou (`b8460274`/#1258) e, no mesmo dia, o produtor do
+> desfecho retido também (`039c1b6d`/#1278, PR2 da [[A40.l20]]). Com isso: (a) os
+> read sites de `partial_failure` da [[A40.l21]] deixaram de ser dead code — há
+> writer; (b) a amarra de reverter o PR1 da [[A40.l20]] junto com a l21 se
+> extingue, porque a l20 é terminal. **Nada a fazer na `date_target` por este
+> tripwire.** Fica registrado em vez de apagado: um tripwire que some sem dizer
+> que foi desarmado é indistinguível de um que ninguém avaliou.
+
 **O que esta seção deliberadamente não faz:** não fixa "nada sai da A40" (decisão
 separada do dono, 2026-08-03, e mantida) nem transforma a data em critério de
 corte. Lane que atravessar a data segue na sprint; o que a data governa é o
@@ -176,7 +185,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l17]] | Custo e cache no caminho `needs_review` do parecer | P1 | — | incidente `2ded7aab` |
 | [[A40.l18]] | Criticidade de stage: add-on advisory não veta o entregável | **P0** | l21 | incidente `2ded7aab` · **[[ADR-357]]** |
 | [[A40.l19]] | Migration do drift de enum de status (4 valores) | P1 + gate de deploy | — | **[[ADR-357]]** §7 |
-| [[A40.l20]] | `PlannerReview` representa gerado-e-retido (destrava a UI) | **P0** | l18 (**PR2**; PR1 ✅ em paralelo) | **[[ADR-366]]** `Proposto` — eixo próprio, **sem** emenda na [[ADR-204]] |
+| [[A40.l20]] | `PlannerReview` representa gerado-e-retido (destrava a UI) | **P0** | l18 ✅ | **[[ADR-366]]** `Decidido` — eixo próprio, **sem** emenda na [[ADR-204]] |
 | [[A40.l21]] | Leitores tolerantes a `partial_failure` (reader-first) | **P0** | — | **[[ADR-357]]** §Consequências |
 | [[A40.l22]] | Superfície de degradação no relatório + PDF | **P0** | l20 | fatia premium da F11.5 · **bloqueador do beta** (6ª classe do gate de saída) |
 | [[A40.l23]] | Gate: ADR citada em prosa resolve para arquivo (reserva de ID é invisível) | P2 | — | classe exposta pela **[[ADR-345]]** |
@@ -361,6 +370,13 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 > gate que ela trouxe usa direção-subconjunto, o que tornou a ordem
 > l19 → l18 segura em todo instante. Com ela em `main`, o item 1 da [[A40.l27]]
 > também destravou.
+
+> **Estado da Onda 3 em 2026-08-07** (o snapshot acima é datado — **não o reescreva**).
+> [[A40.l18]] **PR2** ✅ `b8460274` (#1258) — o writer que faltava · [[A40.l20]] ✅
+> `0301f7a0` (#1250, PR1, 06/08) + `039c1b6d` (#1278, PR2, 07/08), `shipped` ·
+> [[A40.l22]] `open`, **a única P0 pegável da onda**. Com o PR2 da l20 em `main`, o
+> `depends_on` da l22 ficou **terminal** e o `open` dela deixou de se apoiar na 2ª
+> cláusula do §Predicado.
 
 **Ordem interna, e nenhuma das três é estética:**
 
@@ -906,6 +922,10 @@ item que tem só descrição evapora no fim da sprint.
 | **Pontos cegos do `dev/check_pipeline_log_pii.py`** | *nada* | ver §Fora do sprint |
 | **`banco` vazio em 20 grupos `extrato`** | *nada* | ver §Fora do sprint |
 | Obrigação de rótulo da [[ADR-306]] cumprida em **5 de 8** blocos com chave `janela` (correção final, 2026-08-05: os "2 de 8" e "4 de 8" anteriores estavam errados — `orcamento_prospectivo` conta, porque tem base declarada em texto impresso pela prosa do produtor, mesmo sem vir do campo `janela`; só `equilibrio_cerbasi`, `passive_income` e `reserva_emergencia` — tooltip não conta, [[ADR-306]] §Emenda A40.l3 — não cumprem) | [[A40.l3]] §Handoff | **item adotado** — [[A40.l11]] |
+| **Prosa crua de operador sai por `GET /pipeline/runs/{id}`** — `stage_logs.output_summary` serializa o dict inteiro sem allowlist; no ramo de sigilo o `reason` carrega o próprio termo §13, e o gate de acesso é só `get_current_workspace` | [[A40.l20]] §Achados (lane terminal) | **sem lane** — correção provável: allowlist de chaves no `PipelineStageLogResponse`. Aberto no fecho do PR2 (#1278) |
+| **`riscos_truncados` é 4ª subtração silenciosa** (cap ≤12), fora de todo contador | [[A40.l20]] §Achados (lane terminal) | **sem lane** |
+| **Job `frontend-e2e` não gateia** — opt-in pelo label `e2e` **e** fora do `All checks green`; PR com E2E vermelho mergeia (medido: #1278) | — | **sem lane** — candidata natural [[A40.l23]] (lane de gates). Aberto em 2026-08-07 |
+| **Step de notificação do `frontend-e2e` dá 403** (`actions/github-script` → `issues.createComment` sem `permissions`) — roda `if: failure()`, vira o `##[error]` mais visível e **mascara a causa real** | — | **sem lane** — o mínimo correto é `pull-requests: write`; em `workflow_dispatch` precisa de guard, porque `context.issue.number` é `undefined` |
 
 **Era a de maior consequência da lista, e agora tem lane — com o nome corrigido.**
 A [[A40.l16]] mede que o enforcement ficou dormente sob o prompt 2.1.0 (9,1% em 11
@@ -1098,7 +1118,7 @@ inferência de código. A [[A40.l7]] mantém o gate; a ferramenta só observa.
 
 ## ADRs
 
-Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-06** —
+Estado lido do campo `status:` de cada arquivo em `docs/adr/` em **2026-08-08** —
 não do que a lane prometeu. A tabela cobre as ADRs que o frontmatter `adrs:` das
 31 lanes referencia, mais a [[ADR-278]] (que nenhuma lane referencia: é a nota de
 que ela **não** é superseded), as abertas por §Entregas fora de lane e as
@@ -1110,7 +1130,8 @@ emendadas por §Infra de CI tocada durante a sprint.
 | [[ADR-337]] | `Decidido` · emenda na [[A40.l6]] | [[A40.l6]] | Critério 4 (gate de PII no view-model) não existe |
 | [[ADR-351]] | `Proposto` · flip na [[A40.l12]] | [[A40.l12]] | Retorno de principal não é renda recorrente |
 | [[ADR-353]] | `Proposto` · flip na [[A40.l11]] | [[A40.l11]] | Confiança do diagnóstico — **bloqueado** até o campo-portador ter consumidor |
-| [[ADR-357]] | `Proposto` · flip no merge da [[A40.l18]] | [[A40.l18]], [[A40.l19]], [[A40.l20]], [[A40.l21]] | Criticidade de stage e degradação do run — add-on advisory não veta o entregável. **A mais carregada da sprint: 4 lanes** |
+| [[ADR-357]] | `Decidido (A40.l18)` · **emendada** 2026-08-07 — flip quitado no PR2 da [[A40.l20]] (#1278), por decisão do dono: a condição (merge do **writer**, `b8460274`/#1258) já estava cumprida e a lane `shipped` | [[A40.l18]], [[A40.l19]], [[A40.l20]], [[A40.l21]] | Criticidade de stage e degradação do run — add-on advisory não veta o entregável. **A mais carregada da sprint: 4 lanes** |
+| **[[ADR-366]]** | `Decidido (A40.l20)` · **emendada** 2026-08-07 (flip no merge do PR2, #1278; a emenda registra **4** correções que a execução fez ao texto) | [[A40.l20]], [[A40.l22]] | Desfecho da geração do parecer é eixo próprio — `status` segue sendo publicação. O membro `retido` ganhou produtor no #1278; antes era inalcançável |
 | [[ADR-358]] | `Proposto` | [[A40.l16]], [[A40.l30]], [[A40.l31]] | Enforcement em produção exige budget de produção — e KR no plano onde ele age. A l30 fecha os defeitos **nº 2** (gate medido num plano, aplicado em outro — `_DENSITY_FLOOR`) e **nº 3** (detector inspeciona 3 campos dos 8+) que a ADR nomeia |
 | **[[ADR-341]]** | `Decidido` (A37.l1) · a [[A40.l30]] **estende**, não reabre | [[A40.l30]], [[A40.l31]] | Contrato do exec context do parecer. D1-D4 são exatamente o que #1004 mudou (cap 8192→16384, 6→10 seções, hints fora do corpo) — e o que dobrou a superfície monetária que o modelo vê sem ampliar a ancorável |
 | [[ADR-296]] | `Decidido` (A26.l9) | [[A40.l30]], [[A40.l31]] | Citação determinística: LLM emite `(claim, path, rótulo)` e o pipeline renderiza o valor. É a ADR cuja densidade mediana **11** foi medida no holdout sintético — o número que **não** deve ser confundido com o `5` do dogfood |
@@ -1123,7 +1144,7 @@ emendadas por §Infra de CI tocada durante a sprint.
 | [[ADR-345]] | `Roadmap` | [[A40.l23]] | Propagação do taint E2→E5 e selo de qualidade no read-path — adoção deferida; expôs a classe de reserva-de-ID invisível |
 | [[ADR-306]] | `Decidido` | [[A40.l15]] | Base temporal de mensalização no E5 — janela canônica 12m + rótulo por bloco |
 | [[ADR-240]] | `Decidido` | [[A40.l7]] | Card `S_PROTECAO` no relatório (pilar de proteção patrimonial) |
-| [[ADR-204]] | `Decidido` · emenda provável na [[A40.l20]] | [[A40.l20]] | Imutabilidade do parecer pós-publicação; §D1 é quem fixa o vocabulário de `PlannerReview.status` |
+| [[ADR-204]] | `Decidido` · **sem** emenda — falsificado no fecho da [[A40.l20]] (#1278): a [[ADR-366]] resolveu por eixo próprio (`outcome`), e `status` ficou intocado | [[A40.l20]] | Imutabilidade do parecer pós-publicação; §D1 é quem fixa o vocabulário de `PlannerReview.status` |
 | **[[ADR-359]]** | `Decidido` (#1154/#1155) | — (fora de lane) · residual em [[A40.l27]] · 2º consumidor da [[A40.l19]] | Dispatch assíncrono falha alto; quem cria estado pendente compensa. **Supersede** a cláusula de fallback da [[ADR-014]], que contradizia o corpo dela |
 | [[ADR-111]] | `Decidido` · **emendada** 2026-08-03 (correção factual, não mudança de decisão) | — | Stateless rigoroso. A afirmação "0 `threading.Thread` em app code" nasceu falsa em 2026-04-20; o enforcement passa a ser par (comportamento + `dev/check_stateless_primitives.py`) |
 | [[ADR-210]] | `Decidido` · **emendada** 2026-08-03 (re-baseline, não mudança de decisão) | — (§Infra de CI, #1160) | Saúde do test suite do CI. A §Ganhos afirmava `backend-tests ≈ 5min` desde 2026-05-14 e a mediana medida é **9,9min**; o adendo fixa a regra de dimensionamento do `timeout-minutes` (~2× da mediana; teto é detector de *hang*, não policial de performance) e rejeita sharding com a conta. Mesma família da emenda da [[ADR-111]]: **texto afirmando estado que não valia mais** |

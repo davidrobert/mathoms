@@ -46,7 +46,7 @@ Prompts reusáveis para sessões em que **um agente orquestrador** coordena espe
 | [`orchestrator_a26_consolidacao.md`](orchestrator_a26_consolidacao.md) | A26 Data Lineage · consolidação (flip strict + drops M2) — sprint `paused` 2026-07-03, retoma pós-gates de tráfego | ativo (2026-06-16) |
 | [`orchestrator_a28_report_trust-2026-07-06.md`](archive/orchestrator_a28_report_trust-2026-07-06.md) | A28 Report Trust · 11 lanes em 3 ondas (fórmulas E5 + loop de dados + apresentação honesta) — 11/11 shipped, sprint `done` | arquivado (2026-07-06) |
 | [`orchestrator_a33_autonoma-2026-07-08.md`](archive/orchestrator_a33_autonoma-2026-07-08.md) | A33 autonomia total · 8 lanes zero-owner (ADR-090 boundary LLM + fechamento A17 + nightly drift + retenção + OTLP + catálogo + taxonomy) — 8/8 shipped em ~20h, zero ações do owner, sprint `done` | arquivado (2026-07-08) |
-| [`orchestrator_a40_p0_closeout.md`](orchestrator_a40_p0_closeout.md) | A40 Report trust · as 3 P0 pegáveis em paralelo — l2 (PR3b, gate da pré-condição de colapso) + l20 PR2 (wire-up do desfecho retido) + l22 (superfície de degradação, inclusive PDF) | ativo (2026-08-07) |
+| [`orchestrator_a40_p0_closeout.md`](orchestrator_a40_p0_closeout.md) | A40 Report trust · as 3 P0 pegáveis em paralelo — l2 PR3b ✅ #1276 · l20 PR2 ✅ #1278 · **resta l22** (superfície de degradação, inclusive PDF), mais os sub-PRs 3c1/3c2/3d/3e da l2. As §§ consumidas ficam como registro datado | ativo (2026-08-08) |
 
 **Convenção:** instâncias do template viram `orchestrator_<scope>.md` em `docs/agent_prompts/`. Quando o escopo é entregue (todas as ADRs flippadas `Decidido`), arquivar em [`archive/`](archive/) com data: `git mv orchestrator_<scope>.md archive/orchestrator_<scope>-YYYY-MM-DD.md`.
 
