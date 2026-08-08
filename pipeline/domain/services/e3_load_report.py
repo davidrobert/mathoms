@@ -8,6 +8,7 @@ por artefato, count-balanced). Importa só módulos-folha — sem ciclo com o ad
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass, field
 
 from pipeline.domain.models.document import BankStatement
@@ -83,22 +84,35 @@ class LoadOutcome:
         self.exclusions.append(StatementExclusion(canal, count))
 
 
+# `meses` só neste canal, e OMITIDO quando vazio: `$defs/remocao` é compartilhado pelos 5
+# canais, então declarar `meses` lá afirmaria que qualquer canal carrega mês — falso, e
+# convite para o próximo preencher (A40.l2 §Co-design do 3c1).
+def _canal_colapso(collapse: tuple[int, int], meses: tuple[tuple[str, int], ...]) -> dict:
+    """Canal ``cross_document_collapse``, com o breakdown mensal quando houve colapso."""
+    canal = {"count": collapse[0], "valor_cents": collapse[1]}
+    if meses:
+        canal["meses"] = [{"mes": m, "count": n} for m, n in meses]
+    return canal
+
+
 def _remocoes(
     undated: int,
     anachronic: int,
     intra: tuple[int, int],
     cross: tuple[int, int],
     collapse: tuple[int, int],
+    collapse_meses: tuple[tuple[str, int], ...] = (),
 ) -> dict:
     """Partição de remoções por canal (ADR-347 + Emenda A40.l2). ``valor_cents``
     assinado; undated/anachronic ficam 0 — captura de valor é a montante do adapter
     (perda real), diferida ao PR2b (measure-then-emit)."""
+    colapso = _canal_colapso(collapse, collapse_meses)
     return {
         "undated_drop": {"count": undated, "valor_cents": 0},
         "anachronic": {"count": anachronic, "valor_cents": 0},
         "intra_statement_dedup": {"count": intra[0], "valor_cents": intra[1]},
         "cross_file_dedup": {"count": cross[0], "valor_cents": cross[1]},
-        "cross_document_collapse": {"count": collapse[0], "valor_cents": collapse[1]},
+        "cross_document_collapse": colapso,
     }
 
 
@@ -140,13 +154,27 @@ def _channel_sums(reconciled_stmts, chan_map: dict[str, tuple[int, int]]) -> tup
     return total, cents
 
 
+def _collapse_meses(reconciled_stmts, removals) -> tuple[tuple[str, int], ...]:
+    """Meses do canal do colapso, mesclados pelos ``source`` DISTINTOS do grupo."""
+    # Mesma dedup-por-source de `_channel_sums`: por statement re-somaria o mês quando dois
+    # statements compartilham arquivo. `Counter` mescla; a ordenação torna o payload
+    # determinístico, que é o que mantém a chave de cache do parecer estável entre runs.
+    fontes = {s.source_document for s in reconciled_stmts if s.source_document}
+    acc: Counter = Counter()
+    for r in removals or ():
+        if getattr(r, "canal", None) == "cross_document_collapse" and r.source in fontes:
+            acc.update(dict(getattr(r, "meses", ()) or ()))
+    return tuple(sorted(acc.items()))
+
+
 def _authoritative_remocoes(reconciled_stmts, removals, undated, anachronic, cross) -> dict:
     """Partição com canais AUTORITATIVOS (fatos declarados, nunca diferença)."""
     intra = _channel_sums(reconciled_stmts, _channel_by_source(removals, "intra_statement_dedup"))
     collapse = _channel_sums(
         reconciled_stmts, _channel_by_source(removals, "cross_document_collapse")
     )
-    return _remocoes(undated, anachronic, intra, cross, collapse)
+    meses = _collapse_meses(reconciled_stmts, removals)
+    return _remocoes(undated, anachronic, intra, cross, collapse, meses)
 
 
 def build_artifact_ledger(
