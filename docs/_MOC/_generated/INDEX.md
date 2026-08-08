@@ -367,6 +367,7 @@
 | ADR-369 | adr | Decidido |  | Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) | `adr/369-rotulo-e-alvo-do-cone-de-if.md` |
 | ADR-370 | adr | Decidido |  | Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão | `adr/370-inventario-estrutural-do-relatorio.md` |
 | ADR-371 | adr | Decidido |  | O grafo de FK é a fonte única da deleção: lista manual de tabelas-filhas é proibida sem gate | `adr/371-grafo-de-fk-e-a-fonte-unica-da-delecao.md` |
+| ADR-372 | adr | Decidido |  | Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma | `adr/372-par-on-tint-para-texto-sobre-tint-da-propria-cor.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -861,6 +862,7 @@
 | A40.l30 | lane | shipped | A40 | Ancorabilidade do exec context: o invariante que o #1004 furou sem nenhum teste vermelho | `sprint/A40/lanes/A40-l30-ancorabilidade-do-exec-context.md` |
 | A40.l31 | lane | planned | A40 | Gerador ancora em vez de digitar: correção guiada pelo mecanismo, com o eval como gate de saída | `sprint/A40/lanes/A40-l31-gerador-ancora-em-vez-de-digitar.md` |
 | A40.l32 | lane | open | A40 | Proveniência do executor: qual código computou este run | `sprint/A40/lanes/A40-l32-proveniencia-do-executor-do-run.md` |
+| A40.l33 | lane | in_progress | A40 | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | `sprint/A40/lanes/A40-l33-contraste-texto-sobre-tint.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | open | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |

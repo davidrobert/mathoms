@@ -84,6 +84,9 @@ só intenção.
 
 ### Os dois gates de contraste são complementares — nenhum fecha a classe sozinho
 
+> Decisão canônica do par `-on-tint` e do "medir em vez de proibir a forma":
+> [[ADR-372]]. Execução e itens deferidos: [[A40.l33]].
+
 O `check_tint_contrast.py` pareia **dentro de um `className`**. Não enxerga par
 montado por `style` inline com `bg` e `fg` em linhas separadas de um object
 literal: foi assim que `BADGE_COLOR` de `alocacaoCardParts.tsx` passou batido a
