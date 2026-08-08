@@ -36,6 +36,19 @@ TOKENS_CSS = ROOT / "frontend" / "src" / "styles" / "tokens.css"
 SRC = ROOT / "frontend" / "src"
 
 AA_TEXTO_PEQUENO = 4.5
+# 1.4.11 (objeto gráfico / ícone) — limiar mais baixo que texto, mas existe.
+AA_NAO_TEXTO = 3.0
+
+# Pares que o pareamento por `className` NÃO alcança: o tint está no elemento
+# pai e o `text-[…]` num filho (ícone colorido ao lado de prosa em foreground
+# neutro). Nomeados à mão porque inferir a relação pai↔filho exigiria parsear
+# JSX — e um par nomeado errado é mais fácil de auditar que um inferido errado.
+# Cada entrada é verificada contra o arquivo: se o call-site sumir ou trocar de
+# token, a entrada fica stale e o gate falha em vez de medir fantasma.
+NAMED_PAIRS = [
+    ("components/report/provenance/ProvenancePopover.tsx", "semantic-alert", 15, AA_NAO_TEXTO),
+    ("components/report/cards/CascataFiscalCard.pgbl.tsx", "semantic-alert", 10, AA_NAO_TEXTO),
+]
 
 # `--semantic-warning` e `--semantic-alert` são o mesmo hex, idem
 # danger/loss e success/gain. O par corrigido chama-se `<canônico>-on-tint`,
@@ -106,6 +119,7 @@ class TintPair(NamedTuple):
     fg_token: str
     bg_token: str
     pct: int
+    min_ratio: float = AA_TEXTO_PEQUENO
 
 
 def _pair_in_line(where: str, line: str) -> TintPair | None:
@@ -114,6 +128,22 @@ def _pair_in_line(where: str, line: str) -> TintPair | None:
     if not (bg and fg):
         return None
     return TintPair(where, fg.group(1), bg.group(1), int(bg.group(2)))
+
+
+def named_pairs() -> list[TintPair]:
+    """Pares nomeados (ícone em elemento filho) + checagem de staleness."""
+    out = []
+    for rel, bg_token, pct, min_ratio in NAMED_PAIRS:
+        fg_token = f"{canonical(bg_token)}-on-tint"
+        source = (SRC / rel).read_text(encoding="utf-8")
+        where = f"frontend/src/{rel} (par nomeado)"
+        if f"var(--{fg_token})" not in source:
+            raise SystemExit(
+                f"{where}: entrada stale em NAMED_PAIRS — o arquivo não usa mais "
+                f"--{fg_token}. Atualize ou remova a entrada."
+            )
+        out.append(TintPair(where, fg_token, bg_token, pct, min_ratio))
+    return out
 
 
 def _source_lines():
@@ -143,12 +173,12 @@ def _violation(pair: TintPair, theme: str, tokens: dict[str, str]) -> str | None
             f"(fg=--{pair.fg_token} bg=--{pair.bg_token}); gate não consegue medir"
         )
     ratio = contrast_ratio(fg, composite(bg_base, card, pair.pct))
-    if ratio >= AA_TEXTO_PEQUENO:
+    if ratio >= pair.min_ratio:
         return None
     return (
         f"{pair.where} — {ratio:.2f}:1 em {theme} "
         f"(text --{pair.fg_token} sobre tint {pair.pct}% de --{pair.bg_token}); "
-        f"mínimo {AA_TEXTO_PEQUENO}. Use o par --{canonical(pair.bg_token)}-on-tint."
+        f"mínimo {pair.min_ratio}. Use o par --{canonical(pair.bg_token)}-on-tint."
     )
 
 
@@ -166,7 +196,7 @@ def _report(failures: list[str], measured: int) -> None:
 def main() -> int:
     css = TOKENS_CSS.read_text(encoding="utf-8")
     themes = {t: token_map(css, t) for t in ("light", "dark")}
-    pairs = same_color_pairs()
+    pairs = same_color_pairs() + named_pairs()
     failures = [
         msg
         for pair in pairs
@@ -174,7 +204,12 @@ def main() -> int:
         if (msg := _violation(pair, theme, tokens))
     ]
     if not failures:
-        print(f"ok — {len(pairs)} par(es) texto-sobre-tint com contraste ≥ {AA_TEXTO_PEQUENO}:1")
+        nomeados = sum(1 for p in pairs if p.min_ratio != AA_TEXTO_PEQUENO)
+        print(
+            f"ok — {len(pairs)} par(es) sobre tint da mesma cor dentro do limiar "
+            f"({len(pairs) - nomeados} texto ≥ {AA_TEXTO_PEQUENO}:1, "
+            f"{nomeados} não-texto ≥ {AA_NAO_TEXTO}:1)"
+        )
         return 0
     _report(failures, len(pairs))
     return 1

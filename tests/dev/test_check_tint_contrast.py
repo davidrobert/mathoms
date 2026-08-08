@@ -67,6 +67,27 @@ def test_cores_genuinamente_diferentes_ficam_de_fora() -> None:
     assert not ctc.is_same_color_pair("surface-foreground", "surface-border")
 
 
+def test_pares_nomeados_cobrem_os_icones_com_limiar_de_nao_texto() -> None:
+    """Os 2 ícones que o pareamento por className não alcança (tint no pai,
+    `text-[…]` no filho) entram como par nomeado, sob 1.4.11 = 3:1."""
+    pares = ctc.named_pairs()
+    assert len(pares) == len(ctc.NAMED_PAIRS)
+    assert all(p.min_ratio == ctc.AA_NAO_TEXTO for p in pares)
+    assert all(p.fg_token.endswith("-on-tint") for p in pares)
+
+
+def test_entrada_nomeada_stale_falha(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Par nomeado cujo call-site trocou de token tem de falhar, não medir
+    fantasma — allowlist que sobrevive ao próprio motivo é fail-open."""
+    monkeypatch.setattr(
+        ctc,
+        "NAMED_PAIRS",
+        [("components/report/provenance/ProvenancePopover.tsx", "semantic-gain", 15, 3.0)],
+    )
+    with pytest.raises(SystemExit, match="stale"):
+        ctc.named_pairs()
+
+
 def test_par_que_reprova_e_reportado() -> None:
     """Cor base sobre o próprio tint de 15% — o defeito que criou o gate."""
     pair = ctc.TintPair("fake.tsx:1", "semantic-alert", "semantic-alert", 15)
