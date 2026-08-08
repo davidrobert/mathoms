@@ -11,6 +11,8 @@ import { Alert } from "../../ui/Alert";
 import { ReportSection } from "../../ReportSection";
 import { parecerItensRetidos } from "../../utils/parecerRetencao";
 import { usePlannerReview } from "@/hooks/usePlannerReview";
+import type { ParecerAbsenceCode } from "@/lib/api";
+import { copyDaAusencia } from "@/lib/parecerAusenciaCopy";
 
 import { ParecerHeroDiagnostico } from "./ParecerHeroDiagnostico";
 import { ParecerHorizonteList } from "./ParecerHorizonteList";
@@ -42,7 +44,7 @@ export function SParecerSection({
             Carregando parecer…
           </p>
         )}
-        {state.kind === "not_generated" && <ParecerEmptyState />}
+        {state.kind === "not_generated" && <ParecerEmptyState code={state.code} />}
         {state.kind === "error" && (
           <p
             role="alert"
@@ -68,18 +70,19 @@ export function SParecerSection({
   );
 }
 
-function ParecerEmptyState() {
+function ParecerEmptyState({ code }: { code: ParecerAbsenceCode }) {
+  const { titulo, corpo, reprocessavel } = copyDaAusencia(code);
   return (
     <div
       className="rounded-[var(--radius-card)] border border-dashed border-[var(--surface-border)] p-6 text-center"
       data-testid="parecer-empty"
+      data-absence-code={code}
     >
       <p className="font-heading text-base font-semibold text-[var(--surface-foreground)]">
-        Parecer ainda não gerado
+        {titulo}
       </p>
-      <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">
-        Próximo relatório premium incluirá o parecer orientativo do planejador.
-      </p>
+      <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">{corpo}</p>
+      {reprocessavel && <ReprocessarParecerLink />}
     </div>
   );
 }

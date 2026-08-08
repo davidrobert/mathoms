@@ -158,12 +158,46 @@ async def test_indisponibilidade_responde_generation_unavailable(seeded):
     assert await _codigo_de_ausencia(seeded) == "generation_unavailable"
 
 
+async def _set_tier(seed, tier: str) -> None:
+    """O `_seed` compartilhado não declara tier e cai no default `free` do model."""
+    from sqlalchemy import update
+
+    from backend.app.models.pipeline_run import PipelineRun
+
+    async with seed["async_session"]() as s:
+        await s.execute(
+            update(PipelineRun).where(PipelineRun.id == seed["run_id"]).values(tier_at_run=tier)
+        )
+        await s.commit()
+
+
 @pytest.mark.asyncio
-async def test_run_que_nao_tentou_o_parecer_segue_not_generated_yet(seeded):
+async def test_run_premium_que_nao_tentou_o_parecer_segue_not_generated_yet(seeded):
     """Polaridade: sem esta, um `_absence_code` que sempre retorna o novo código passa."""
+    await _set_tier(seeded, "premium")
     _drive(seeded, _ParecerRetido(), stages=[_E5_STAGE])
 
     assert await _codigo_de_ausencia(seeded) == "not_generated_yet"
+
+
+@pytest.mark.asyncio
+async def test_run_free_que_nao_tentou_o_parecer_e_tier_gated(seeded):
+    """Free e premium sem artifact eram O MESMO código — a copy da A40.l22 precisa dos dois."""
+    await _set_tier(seeded, "free")
+    _drive(seeded, _ParecerRetido(), stages=[_E5_STAGE])
+
+    assert await _codigo_de_ausencia(seeded) == "tier_gated"
+
+
+# Um run free COM artifact tentou de fato (override, re-run pós-downgrade): dizer
+# "não incluído no plano" ali mandaria comprar o que já foi executado.
+@pytest.mark.asyncio
+async def test_free_que_TENTOU_nao_e_tier_gated(seeded):
+    """Ordem das cláusulas: o artifact vence o tier. Sem esta, inverter a ordem passa."""
+    await _set_tier(seeded, "free")
+    _drive(seeded, _ParecerRetido(reason=None), stages=[_E5_STAGE, _PARECER])
+
+    assert await _codigo_de_ausencia(seeded) == "generation_unavailable"
 
 
 # ───────────── portas 1 e 2: as duas condições que saíram do filtro ─────────────

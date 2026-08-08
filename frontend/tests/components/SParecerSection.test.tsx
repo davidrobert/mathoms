@@ -300,25 +300,93 @@ describe("<SParecerSection /> — retenção parcial @A40.l22", () => {
   });
 });
 
+function absence404(code: string) {
+  return http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
+    HttpResponse.json({ detail: { code, message: "sem parecer" } }, { status: 404 }),
+  );
+}
+
 describe("<SParecerSection /> @ADR-199", () => {
   it("renderiza empty state quando endpoint retorna 404 not_generated_yet", async () => {
-    server.use(
-      http.get(`${API}/workspaces/:wsId/reports/:reportId/planner-review`, () =>
-        HttpResponse.json(
-          {
-            detail: { code: "not_generated_yet", message: "ainda não gerado" },
-          },
-          { status: 404 },
-        ),
-      ),
-    );
+    server.use(absence404("not_generated_yet"));
 
     render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
     });
-    expect(screen.getByText("Parecer ainda não gerado")).toBeInTheDocument();
+    expect(
+      screen.getByText("Parecer não disponível neste relatório"),
+    ).toBeInTheDocument();
+  });
+
+  // Uma copy POR código (A40.l22). Sem asserção por código, colapsar as 4 num
+  // texto só passa verde — e foi exatamente assim que a copy de "ainda não
+  // gerado" acabou servindo o caso premium-com-retenção, que ela mente.
+  it.each([
+    ["not_generated_yet", "Parecer não disponível neste relatório", false],
+    ["tier_gated", "Parecer não incluído no plano deste relatório", false],
+    ["generation_unavailable", "Parecer não foi concluído neste processamento", true],
+    [
+      "parecer_artifact_missing",
+      "Não conseguimos recuperar o parecer deste relatório",
+      true,
+    ],
+  ])("404 %s renderiza copy própria", async (code, titulo, reprocessavel) => {
+    server.use(absence404(code));
+
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+    });
+    expect(screen.getByText(titulo)).toBeInTheDocument();
+    expect(screen.getByTestId("parecer-empty")).toHaveAttribute("data-absence-code", code);
+    // CTA só onde o usuário PODE agir: oferecer "reprocessar" a quem está sem o
+    // add-on por plano manda repetir o que não vai mudar de resultado.
+    const cta = screen.queryByText("Reprocessar o parecer");
+    expect(cta === null).toBe(!reprocessavel);
+  });
+
+  it("nenhuma copy de ausência promete o que a anterior prometia", async () => {
+    server.use(absence404("not_generated_yet"));
+
+    const { container } = render(
+      <SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+    });
+    // A copy antiga afirmava entrega futura para QUALQUER ausência — falso para
+    // o premium cujo run tentou e não entregou. É o defeito que a lane fecha.
+    expect(container.innerHTML).not.toContain("Próximo relatório premium incluirá");
+  });
+
+  it("report_not_found vira erro, não ausência de parecer", async () => {
+    server.use(absence404("report_not_found"));
+
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    // Dizer "parecer não disponível" numa página cujo RELATÓRIO não resolve
+    // descreve o defeito errado para quem só pode agir sobre ele.
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-error")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("parecer-empty")).not.toBeInTheDocument();
+  });
+
+  it("código desconhecido segue caindo no conservador, não em erro", async () => {
+    server.use(absence404("codigo_que_o_cliente_ainda_nao_conhece"));
+
+    render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
+
+    // O servidor pode ganhar membro antes do cliente. Preservado de propósito:
+    // só o caso NOMEADO (`report_not_found`) mudou de destino.
+    await waitFor(() => {
+      expect(screen.getByTestId("parecer-empty")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("parecer-error")).not.toBeInTheDocument();
   });
 
   it("declara o parecer retido em vez de dizer que não foi gerado (ADR-366)", async () => {

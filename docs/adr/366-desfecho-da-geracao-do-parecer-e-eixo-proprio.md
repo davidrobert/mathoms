@@ -5,7 +5,7 @@ title: "Desfecho da geração do parecer é eixo próprio — `status` continua 
 status: Decidido
 phase: "A40.l20"
 date: "2026-08-06"
-amended_at: ["2026-08-07"]
+amended_at: ["2026-08-07", "2026-08-08"]
 relates_to:
   - "[[ADR-204]]"
   - "[[ADR-357]]"
@@ -31,6 +31,34 @@ tags:
 # ADR-366 — Desfecho da geração do parecer é eixo próprio
 
 **Status:** Decidido (A40.l20) • **Data:** 2026-08-06 • **Lane** [[A40.l20]]
+
+> **Emenda 2026-08-08 — o §D6 dobrava free em `not_generated_yet`, e a copy não
+> cabe nos dois.** Feita ao escrever a copy da [[A40.l22]] (decisão do dono).
+>
+> O D6 abaixo estreita `not_generated_yet` para *"nunca tentou / **free** /
+> pendente"*. Os três casos compartilham a causa técnica — sem row, sem artifact
+> — mas **não compartilham a ação do usuário**: "free" pede *comprar*, "pendente"
+> pede *esperar*, e nenhuma frase é verdadeira para os dois. Como quem discrimina
+> é o servidor (é o próprio D6 que decide isso), dobrar aqui obrigava o cliente a
+> desdobrar — e ele não tem como: o tier só chega em `meta.tier_at_generation`,
+> que é exatamente o que falta no 404.
+>
+> **`tier_gated` entra como 5º membro do vocabulário fechado.** Discriminador:
+> `PipelineRun.tier_at_run`, **não** o tier atual do workspace — a pergunta do 404
+> é por que ESTE relatório não tem parecer, e a resposta não muda quando o cliente
+> sobe de plano depois. Usar o tier atual faria um relatório antigo trocar de
+> motivo no upgrade, e a copy deriva do motivo.
+>
+> **Ordem das cláusulas é normativa:** o artifact vence o tier. Run free **com**
+> artifact tentou de fato (override, re-run pós-downgrade), e ali `tier_gated`
+> mandaria comprar o que já foi executado. Travado por teste próprio contra a
+> inversão.
+>
+> **Consequência fora desta ADR:** `report_not_found` sai do conjunto que a SEÇÃO
+> renderiza. Ele é membro legítimo do vocabulário do 404 — o relatório não existe
+> —, mas não é ausência de parecer, e a seção dizia *"parecer ainda não gerado"*
+> numa página cujo relatório não resolve. Vira estado de erro no cliente. Código
+> **desconhecido** segue caindo no conservador: só o caso nomeado mudou de destino.
 
 > **Emenda 2026-08-07 — flip `Proposto` → `Decidido (A40.l20)`.** A condição
 > declarada no §Consequências era o merge do **PR2**, não do PR1: a tese "o
@@ -203,6 +231,11 @@ cruza o boundary" fica enforçada **por tipo** — o `Optional` força erro de
 compilação no único consumidor TS.
 
 ### D6. Ausência continua 404, com vocabulário fechado de `code`
+
+> ⚠️ **Revisado pela §Emenda 2026-08-08:** o "free" abaixo saiu de
+> `not_generated_yet` e virou membro próprio (`tier_gated`), porque a ação do
+> usuário difere. O vocabulário fechado tem **5** membros; a lista abaixo é o
+> estado de 2026-08-06.
 
 `report_not_found` · `not_generated_yet` (estreitado para "nunca tentou / free /
 pendente") · `generation_unavailable` (**novo** — o run tentou e não houve

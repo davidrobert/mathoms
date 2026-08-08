@@ -45,6 +45,7 @@ router = APIRouter(
 _ABSENCE_MESSAGES = {
     "not_generated_yet": "Parecer ainda não gerado para este relatório.",
     "generation_unavailable": "Não foi possível gerar o parecer neste processamento.",
+    "tier_gated": "Parecer não incluído no plano deste processamento.",
 }
 
 _PARECER_STAGE = "review_finances_holistic"
@@ -72,7 +73,7 @@ def _absent(code: str) -> HTTPException:
 # Pós-A40.l20 PR2 o retido COM motivo tem row, então "sem row + com artifact"
 # isola exatamente "o run tentou e não há o que servir".
 async def _absence_code(db: AsyncSession, *, workspace_id: str, run_id: str) -> str:
-    """`generation_unavailable` se o run tentou; `not_generated_yet` se nem rodou."""
+    """`generation_unavailable` se tentou; `tier_gated` se o plano do run não incluía; senão `not_generated_yet`."""
     from sqlalchemy import select
 
     from pipeline.artifact_store import stage_aliases
@@ -85,8 +86,23 @@ async def _absence_code(db: AsyncSession, *, workspace_id: str, run_id: str) -> 
             PipelineArtifact.artifact_key == _PARECER_KEY,
         )
     )
-    tentou = row.scalar_one_or_none() is not None
-    return "generation_unavailable" if tentou else "not_generated_yet"
+    if row.scalar_one_or_none() is not None:
+        return "generation_unavailable"
+    return "tier_gated" if await _run_was_free(db, run_id) else "not_generated_yet"
+
+
+# `tier_at_run`, não o tier ATUAL do workspace: a pergunta do 404 é por que ESTE
+# relatório não tem parecer, e a resposta não muda quando o cliente sobe de plano
+# depois. Usar o tier atual faria um relatório antigo trocar de motivo no upgrade
+# — e a copy da A40.l22 deriva do motivo.
+async def _run_was_free(db: AsyncSession, run_id: str) -> bool:
+    """`True` se o run rodou no plano free (ADR-208 §D2: o stage recusa antes de gerar)."""
+    from sqlalchemy import select
+
+    from backend.app.models.pipeline_run import PipelineRun
+
+    row = await db.execute(select(PipelineRun.tier_at_run).where(PipelineRun.id == run_id))
+    return row.scalar_one_or_none() == "free"
 
 
 async def _resolve_run_id(db: AsyncSession, *, workspace_id: str, report_id: str) -> str:

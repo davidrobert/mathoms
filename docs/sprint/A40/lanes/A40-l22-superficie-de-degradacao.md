@@ -57,6 +57,42 @@ tags:
 > (`parecer-degradacao.@critical.spec.ts`, superfície de print por
 > `emulateMedia`), mais gate de contraste em Vitest e `pdftotext` no job de print.
 >
+> ✅ **Copy por código de ausência entregue em 2026-08-08 — decisão do dono.**
+> Fecha o ➕ recebido do PR2 da [[A40.l20]] **e** a metade free tier. Emenda datada
+> na [[ADR-366]] §D6 (o vocabulário fechado passa a ter 5 membros).
+>
+> | Código | Copy | CTA |
+> |---|---|---|
+> | `not_generated_yet` | "Parecer não disponível neste relatório" | — |
+> | `tier_gated` **(novo)** | "Parecer não incluído no plano deste relatório" | — |
+> | `generation_unavailable` | "Parecer não foi concluído neste processamento" | Reprocessar |
+> | `parecer_artifact_missing` | "Não conseguimos recuperar o parecer deste relatório" | Reprocessar |
+> | `report_not_found` | **sem copy** — vira estado de erro | — |
+>
+> **Uma copy por código, ao contrário do `RETAINED_BODY`**, que colapsa 3 motivos
+> numa frase de propósito. Lá o cliente age igual em todos; aqui não: dois não têm
+> ação e dois pedem reprocessar. Colapsar afirmaria *"não foi possível concluir"*
+> num estado em que o parecer **foi** concluído (`parecer_artifact_missing` tem row).
+>
+> **Três decisões que a execução tomou e o brief não previa:**
+>
+> 1. **`tier_gated` discrimina por `PipelineRun.tier_at_run`, não pelo tier atual.**
+>    Quem sobe para Premium depois continua sem parecer **neste** relatório; a copy
+>    aprovada dizia *"se você assinar o Premium"*, que seria falso para ele. A frase
+>    entregue fala do plano **do relatório**, verdadeira nos dois casos.
+> 2. **O CTA "Conhecer o Premium" foi cortado — não existe rota de upgrade no
+>    produto.** `rg` em `frontend/src/app/`: há `/plano` (plano financeiro), não
+>    plano comercial. Link sem destino é a âncora morta que a [[A40.l7]] existe
+>    para matar; a mensagem comercial fica no corpo, sem link. **Reabrir quando a
+>    rota existir.**
+> 3. **A ordem das cláusulas é normativa** (artifact vence tier), com teste contra
+>    a inversão: run free **com** artifact tentou de fato, e ali `tier_gated`
+>    mandaria comprar o que já foi executado.
+>
+> **Efeito colateral medido nos testes:** `make_run` defaulta `tier_at_run="free"`,
+> então 2 testes que asseriam `not_generated_yet` passaram a ver `tier_gated` — eles
+> mediam o tier sem dizer que mediam. Agora declaram o tier explicitamente.
+>
 > ⚠️ **`in_progress`, não `shipped`** — e a razão não é o resíduo abaixo: em
 > 2026-08-07 a lane **recebeu escopo novo** do PR2 da [[A40.l20]] (a copy por
 > código de ausência, ver o ➕ acima), que o #1277 **não** cobre. Como a escolha
