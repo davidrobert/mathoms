@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-360 ADRs (ADR-001 a ADR-369) em [`docs/adr/`](../../adr/).
+361 ADRs (ADR-001 a ADR-370) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 311
+- **Decidido**: 312
 - **Proposto**: 45
 - **Roadmap**: 4
 
@@ -387,7 +387,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## frontend
 
-### Decidido (8)
+### Decidido (9)
 
 - [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
 - [[ADR-152]] — `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) · phase Direção E · Onda 6
@@ -397,6 +397,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-168]] — Remoção do Modo USA do relatório · phase A8.4 PR4
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
 - [[ADR-356]] — Precedência declarada do parágrafo de seção e CV9 como medida de entrega · phase report-review r3 (RV3-03 · RV3-33) · A40.l4
+- [[ADR-370]] — Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão · phase A40
 
 ## gtm
 

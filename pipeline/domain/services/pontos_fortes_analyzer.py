@@ -245,8 +245,7 @@ class PontosFortesAnalyzer:
                 PontoForteItem(
                     titulo="Autonomia Financeira Sólida",
                     descricao=(
-                        f"Patrimônio financeiro cobre {autonomia:.0f} meses "
-                        "de despesas correntes."
+                        f"Patrimônio financeiro cobre {autonomia:.0f} meses de despesas correntes."
                     ),
                     icone="patrimony",
                 )

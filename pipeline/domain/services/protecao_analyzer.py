@@ -8,8 +8,12 @@ from datetime import date, timedelta
 from decimal import Decimal
 from typing import Literal, Mapping, Optional
 
+from pipeline.domain.protection_bundle import ProtectionItem
+from pipeline.domain.services.cobertura_consolidada import (
+    CoberturaConsolidada,
+    consolidar_cobertura,
+)
 from pipeline.domain.services.premio_decomposicao import (
-    coberturas_pessoa,
     premio_decomposicao,
     premio_total_anual,
 )
@@ -97,6 +101,11 @@ class ProtecaoInput:
     seguradoras_catalog: Mapping[str, str] = field(default_factory=dict)
     """Codes ``category=insurance`` → nome de exibição (A37.l11). Vazio degrada
     para normalização pura (sem unificação de variantes)."""
+
+    cobertura_cadastrada: tuple[ProtectionItem, ...] = ()
+    """Apólices do aggregate ``Protection`` (ADR-192). Entram nos predicados de
+    ausência (KPI F) e no escopo declarado do prêmio — nunca na soma dele
+    (ADR-240 §Emenda 2026-08-08). Vazio reproduz o comportamento pré-emenda."""
 
 
 # ===========================================================================
@@ -259,22 +268,26 @@ def _lmi_casco(bem_veiculo: dict, fipe_value: Decimal) -> Decimal:
 # ===========================================================================
 
 
-def _has_apolice_pessoa_cobertura(apolices_vigentes: list[dict], tipo_cov: str) -> bool:
-    """True quando há apólice vigente com cobertura pessoa do tipo (vida/saude/acidentes)."""
-    return any(
-        cov.get("tipo") == tipo_cov for a in apolices_vigentes for cov in coberturas_pessoa(a)
-    )
+def _rationale_coberto(categoria: str, cobertura: CoberturaConsolidada) -> str:
+    """Preserva o valor histórico quando o documento sustenta a cobertura."""
+    if "documento" in cobertura.origens(categoria):
+        return f"apolice_{categoria}_ativa"
+    return f"cobertura_{categoria}_cadastrada"
 
 
-def _flag_vida(inp: ProtecaoInput, apolices_vigentes: list[dict]) -> dict:
+def _flag_vida(inp: ProtecaoInput, cobertura: CoberturaConsolidada) -> dict:
     """Gating heurístico vida (ADR-240 KPI F). Sem family_members → False (G5)."""
     if not inp.family_members:
         return {"categoria": "vida", "flag": False, "rationale": "sem family_members"}
     risco = _detecta_risco_vida(inp.family_members, inp.patrimonio)
     if not risco:
         return {"categoria": "vida", "flag": False, "rationale": "sem gatilho"}
-    if _has_apolice_pessoa_cobertura(apolices_vigentes, "vida"):
-        return {"categoria": "vida", "flag": False, "rationale": "apolice_vida_ativa"}
+    if cobertura.tem_cobertura("vida"):
+        return {
+            "categoria": "vida",
+            "flag": False,
+            "rationale": _rationale_coberto("vida", cobertura),
+        }
     return {"categoria": "vida", "flag": True, "rationale": risco}
 
 
@@ -298,12 +311,16 @@ def _detecta_risco_vida(
     return None
 
 
-def _flag_saude(inp: ProtecaoInput, apolices_vigentes: list[dict]) -> dict:
+def _flag_saude(inp: ProtecaoInput, cobertura: CoberturaConsolidada) -> dict:
     """Gating heurístico saúde (ADR-240 KPI F)."""
     if inp.fiscal.has_deducao_saude_irpf or inp.fiscal.has_categoria_saude_e4_3_meses:
         return {"categoria": "saude", "flag": False, "rationale": "evidencia_pagamento_saude"}
-    if _has_apolice_pessoa_cobertura(apolices_vigentes, "saude"):
-        return {"categoria": "saude", "flag": False, "rationale": "apolice_saude_ativa"}
+    if cobertura.tem_cobertura("saude"):
+        return {
+            "categoria": "saude",
+            "flag": False,
+            "rationale": _rationale_coberto("saude", cobertura),
+        }
     return {"categoria": "saude", "flag": True, "rationale": "sem_evidencia_cobertura"}
 
 
@@ -378,10 +395,19 @@ def _emit_telemetry(payload: dict, seguradoras_fora_catalogo: int = 0) -> None:
             "has_apolice_vencendo": len(payload.get("apolices_vencendo") or []) > 0,
             "corretoras_count": payload.get("corretoras_count", 0),
             "seguradoras_count": payload.get("seguradoras_count", 0),
+            "categorias_somente_no_cadastro": _fora_do_escopo_count(payload),
             # Flag SOFT A37.l11 — codes fora do institution_catalog (catálogo esparso).
             "seguradoras_fora_catalogo": seguradoras_fora_catalogo,
         },
     )
+
+
+# ADR-240 §Emenda 2026-08-08 — alto e persistente indica ingestão perdendo
+# documento que o cliente já declarou ter no cadastro.
+def _fora_do_escopo_count(payload: dict) -> int:
+    """Quantas categorias de cobertura ficam fora do prêmio somado."""
+    escopo = payload.get("escopo_cobertura") or {}
+    return len(escopo.get("categorias_somente_no_cadastro") or [])
 
 
 def _flag_categoria(payload: dict, categoria: str) -> bool:
@@ -403,21 +429,38 @@ def _fora_catalogo_count(apolices: list[dict]) -> int:
     return sum(1 for a in apolices if a.get("_seguradora_fora_catalogo"))
 
 
+# ADR-240 §Emenda 2026-08-08 — `premio_total_anual_brl` e `pct_renda_anual`
+# somam só o que foi extraído de documento. Havendo cobertura conhecida fora
+# desse escopo, o numerador é sabidamente parcial e o veredito de faixa Cerbasi
+# é suprimido em vez de estimado: afirmar suficiência sobre soma incompleta é o
+# mesmo erro que afirmar ausência sobre fonte única.
+def _escopo_cobertura(cobertura: CoberturaConsolidada) -> dict:
+    """Escopo declarado dos agregados monetários do bloco."""
+    somente_cadastro = sorted(cobertura.categorias_somente_no_cadastro())
+    return {
+        "premio_inclui_cadastro_manual": False,
+        "categorias_somente_no_cadastro": somente_cadastro,
+        "veredito_pct_renda_suprimido": bool(somente_cadastro),
+    }
+
+
 def _protecao_payload(inp: ProtecaoInput, vigentes, vencendo, vencidas) -> dict:
     premio_total = premio_total_anual(vigentes)
     pct = _pct_renda(premio_total, inp.renda_anual_liquida_brl)
     decomp = premio_decomposicao(vigentes)
+    cobertura = consolidar_cobertura(vigentes, inp.cobertura_cadastrada, inp.data_referencia)
     return {
         "premio_total_anual_brl": str(premio_total.quantize(Decimal("0.01"))),
         "premio_decomposicao": {k: str(v.quantize(Decimal("0.01"))) for k, v in decomp.items()},
         "pct_renda_anual": _format_pct_renda(pct),
         "bens_com_gap_cobertura": _bens_com_gap_cobertura(vigentes, inp.vehicles_by_id),
-        "gap_qualitativo": [_flag_vida(inp, vigentes), _flag_saude(inp, vigentes)],
+        "gap_qualitativo": [_flag_vida(inp, cobertura), _flag_saude(inp, cobertura)],
         "apolices_vigentes": [apolice_resumo(a) for a in vigentes],
         "apolices_vencendo": [apolice_resumo(a) for a in vencendo],
         "apolices_vencidas": [apolice_resumo(a) for a in vencidas],
         "corretoras_count": _corretoras_count(vigentes),
         "seguradoras_count": _seguradoras_count(vigentes),
+        "escopo_cobertura": _escopo_cobertura(cobertura),
     }
 
 

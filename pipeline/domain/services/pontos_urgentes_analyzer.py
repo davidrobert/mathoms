@@ -135,14 +135,23 @@ def _gap_vida(protecao: Mapping[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-def _detalhe_apolices(vigentes: list[dict]) -> str:
-    if not vigentes:
-        return "nenhuma apólice identificada"
-    n = len(vigentes)
-    return (
-        f"{n} {pluralize(n, 'apólice vigente cobre', 'apólices vigentes cobrem')} bens "
-        "(auto/residencial), sem cobertura de vida identificada"
-    )
+# ADR-240 §Emenda 2026-08-08 — "nenhuma apólice identificada" é afirmação sobre
+# o patrimônio do cliente e vai no `impacto` do item mais vendável do plano.
+# Dizê-la olhando só o que foi extraído de documento é falso para quem cadastrou
+# apólice em `/protecao` sem subir o PDF.
+def _detalhe_apolices(protecao: Mapping[str, Any]) -> str:
+    """Descreve o universo de apólices conhecido, sem afirmar vazio indevidamente."""
+    vigentes = protecao.get("apolices_vigentes") or []
+    if vigentes:
+        n = len(vigentes)
+        return (
+            f"{n} {pluralize(n, 'apólice vigente cobre', 'apólices vigentes cobrem')} bens "
+            "(auto/residencial), sem cobertura de vida identificada"
+        )
+    escopo = protecao.get("escopo_cobertura") or {}
+    if escopo.get("categorias_somente_no_cadastro"):
+        return "sem cobertura de vida entre as apólices cadastradas"
+    return "nenhuma apólice identificada"
 
 
 def _seguro_vida_item(protecao: dict[str, Any] | None) -> PontoUrgenteItem | None:
@@ -153,7 +162,7 @@ def _seguro_vida_item(protecao: dict[str, Any] | None) -> PontoUrgenteItem | Non
     gap = _gap_vida(protecao)
     if gap is None:
         return _item_seguro_vida("nenhuma apólice identificada", "nao_verificavel")
-    detalhe = _detalhe_apolices(protecao.get("apolices_vigentes") or [])
+    detalhe = _detalhe_apolices(protecao)
     if not gap.get("flag"):
         return _sem_gap_vida(str(gap.get("rationale") or ""), detalhe)
     origem, eleg = _GAP_VIDA_TAXONOMIA.get(

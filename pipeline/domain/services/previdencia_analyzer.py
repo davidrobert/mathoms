@@ -173,8 +173,7 @@ _NOTA_PROXY_ANO_CORRENTE = (
 # no simplificado e invertia o conselho. Sem fabricar 12% hipotético (limite/aporte
 # ficam 0 — só a prosa cita a hipótese). Conformidade a ADR-305 D3.
 _NOTA_DIFERIMENTO = (
-    "Lembre que o PGBL difere o IR — o resgate é tributado; o benefício depende "
-    "da alíquota futura."
+    "Lembre que o PGBL difere o IR — o resgate é tributado; o benefício depende da alíquota futura."
 )
 _NOTA_SIMPLIFICADO = (
     "Declaração no modelo simplificado no ano-base {ano}: o desconto padrão "
@@ -206,7 +205,7 @@ def _nota_capacidade_irpf(cap: CapacidadePgblIRPF, restante: float) -> str:
     if cap.pgbl_status == PgblStatus.no_teto or (cap.pgbl_status is None and restante <= 0):
         return f"{_NOTA_NO_TETO.format(ano=ano)} {_NOTA_PROXY_ANO_CORRENTE}"
     capacidade = (
-        f"Capacidade PGBL restante do IRPF {ano}: R$ {restante:,.0f} " "(já descontado o aportado)."
+        f"Capacidade PGBL restante do IRPF {ano}: R$ {restante:,.0f} (já descontado o aportado)."
     )
     return f"{capacidade} {_NOTA_DIFERIMENTO} {_NOTA_PROXY_ANO_CORRENTE}"
 

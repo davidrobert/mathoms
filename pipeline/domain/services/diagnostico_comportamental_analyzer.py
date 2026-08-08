@@ -197,7 +197,7 @@ class DiagnosticoComportamentalAnalyzer:
                     DiagnosticoItem(
                         padrao="Alta dependência de receita pontual",
                         evidencia=(
-                            f"{one_time_pct:.0f}% da receita é não-recorrente " "(resgates, vendas)"
+                            f"{one_time_pct:.0f}% da receita é não-recorrente (resgates, vendas)"
                         ),
                         mudanca_sugerida=(
                             "Não contar com receita pontual para orçamento; "

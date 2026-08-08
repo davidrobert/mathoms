@@ -175,8 +175,7 @@ def extract_renda_passiva_from_text(content: str) -> float:
 
 # Não afirma "infinito": premissas nulas só põem o caso fora do ramo fechado.
 MOTIVO_PRAZO_INDEFINIDO = (
-    "prazo até a IF não projetável com as premissas atuais "
-    "(aporte mensal e/ou retorno real nulos)"
+    "prazo até a IF não projetável com as premissas atuais (aporte mensal e/ou retorno real nulos)"
 )
 
 

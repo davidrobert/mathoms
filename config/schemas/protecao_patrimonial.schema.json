@@ -25,11 +25,26 @@
       "type": "object",
       "description": "Decomposição do prêmio total por tipo de cobertura. Chaves canônicas V1 + V2 placeholder.",
       "properties": {
-        "auto": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
-        "residencial": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
-        "vida": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
-        "saude": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
-        "ap": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"}
+        "auto": {
+          "type": "string",
+          "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+        },
+        "residencial": {
+          "type": "string",
+          "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+        },
+        "vida": {
+          "type": "string",
+          "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+        },
+        "saude": {
+          "type": "string",
+          "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+        },
+        "ap": {
+          "type": "string",
+          "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+        }
       }
     },
     "pct_renda_anual": {
@@ -42,14 +57,40 @@
       "description": "KPI C V1 — gap LMI casco vs FIPE por veículo.",
       "items": {
         "type": "object",
-        "required": ["veiculo_id", "lmi_brl", "fipe_brl", "gap_pct", "sinal"],
+        "required": [
+          "veiculo_id",
+          "lmi_brl",
+          "fipe_brl",
+          "gap_pct",
+          "sinal"
+        ],
         "properties": {
-          "veiculo_id": {"type": "string"},
-          "veiculo_descricao": {"type": "string"},
-          "lmi_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
-          "fipe_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
-          "gap_pct": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,6})?$"},
-          "sinal": {"type": "string", "enum": ["ok", "atencao_branda", "atencao"]}
+          "veiculo_id": {
+            "type": "string"
+          },
+          "veiculo_descricao": {
+            "type": "string"
+          },
+          "lmi_brl": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+          },
+          "fipe_brl": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+          },
+          "gap_pct": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d{1,6})?$"
+          },
+          "sinal": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "atencao_branda",
+              "atencao"
+            ]
+          }
         }
       }
     },
@@ -58,27 +99,50 @@
       "description": "KPI F V1 — flags binárias (vida, saúde) com gating heurístico.",
       "items": {
         "type": "object",
-        "required": ["categoria", "flag", "rationale"],
+        "required": [
+          "categoria",
+          "flag",
+          "rationale"
+        ],
         "properties": {
-          "categoria": {"type": "string", "enum": ["vida", "saude", "rc_familiar", "rd_profissional", "ap"]},
-          "flag": {"type": "boolean"},
-          "rationale": {"type": "string"}
+          "categoria": {
+            "type": "string",
+            "enum": [
+              "vida",
+              "saude",
+              "rc_familiar",
+              "rd_profissional",
+              "ap"
+            ]
+          },
+          "flag": {
+            "type": "boolean"
+          },
+          "rationale": {
+            "type": "string"
+          }
         }
       }
     },
     "apolices_vigentes": {
       "type": "array",
-      "items": {"$ref": "#/$defs/ApoliceResumo"}
+      "items": {
+        "$ref": "#/$defs/ApoliceResumo"
+      }
     },
     "apolices_vencendo": {
       "type": "array",
       "description": "Apólices vigentes mas com vigencia_fim <= data_referencia + 30 dias.",
-      "items": {"$ref": "#/$defs/ApoliceResumo"}
+      "items": {
+        "$ref": "#/$defs/ApoliceResumo"
+      }
     },
     "apolices_vencidas": {
       "type": "array",
       "description": "Apólices com vigencia_fim < data_referencia (não filtradas — owner pode estar renovando).",
-      "items": {"$ref": "#/$defs/ApoliceResumo"}
+      "items": {
+        "$ref": "#/$defs/ApoliceResumo"
+      }
     },
     "corretoras_count": {
       "type": "integer",
@@ -88,23 +152,82 @@
     "seguradoras_count": {
       "type": "integer",
       "minimum": 0
+    },
+    "escopo_cobertura": {
+      "type": "object",
+      "description": "ADR-240 §Emenda 2026-08-08 — escopo dos agregados monetários. `premio_total_anual_brl` e `pct_renda_anual` somam só apólice extraída de documento; cobertura conhecida fora desse escopo suprime o veredito de faixa.",
+      "required": [
+        "premio_inclui_cadastro_manual",
+        "categorias_somente_no_cadastro",
+        "veredito_pct_renda_suprimido"
+      ],
+      "properties": {
+        "premio_inclui_cadastro_manual": {
+          "type": "boolean",
+          "description": "Sempre false em V1 — as fontes não compartilham chave de identidade, somar arriscaria dupla-contagem."
+        },
+        "categorias_somente_no_cadastro": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Cobertura ativa no aggregate `Protection` sem contrapartida nos documentos analisados."
+        },
+        "veredito_pct_renda_suprimido": {
+          "type": "boolean",
+          "description": "True quando o numerador do KPI B é sabidamente parcial — consumidor não emite faixa Cerbasi."
+        }
+      }
     }
   },
   "$defs": {
     "ApoliceResumo": {
       "type": "object",
-      "required": ["apolice_numero", "seguradora", "vigencia_inicio", "vigencia_fim", "premio_total_brl", "bens_count"],
+      "required": [
+        "apolice_numero",
+        "seguradora",
+        "vigencia_inicio",
+        "vigencia_fim",
+        "premio_total_brl",
+        "bens_count"
+      ],
       "properties": {
-        "apolice_numero": {"type": "string"},
-        "seguradora": {"type": "string"},
-        "seguradora_nome": {"type": "string", "description": "Display name via institution_catalog (A37.l11); fallback capitalizado do code. Opcional em artifacts pré-A37.l11."},
-        "vigencia_inicio": {"type": "string", "format": "date"},
-        "vigencia_fim": {"type": "string", "format": "date"},
-        "premio_total_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
-        "bens_count": {"type": "integer", "minimum": 0},
+        "apolice_numero": {
+          "type": "string"
+        },
+        "seguradora": {
+          "type": "string"
+        },
+        "seguradora_nome": {
+          "type": "string",
+          "description": "Display name via institution_catalog (A37.l11); fallback capitalizado do code. Opcional em artifacts pré-A37.l11."
+        },
+        "vigencia_inicio": {
+          "type": "string",
+          "format": "date"
+        },
+        "vigencia_fim": {
+          "type": "string",
+          "format": "date"
+        },
+        "premio_total_brl": {
+          "type": "string",
+          "pattern": "^-?\\d+(\\.\\d{1,2})?$"
+        },
+        "bens_count": {
+          "type": "integer",
+          "minimum": 0
+        },
         "tipos_bem": {
           "type": "array",
-          "items": {"type": "string", "enum": ["veiculo", "imovel", "pessoa"]}
+          "items": {
+            "type": "string",
+            "enum": [
+              "veiculo",
+              "imovel",
+              "pessoa"
+            ]
+          }
         }
       }
     }

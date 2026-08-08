@@ -14,11 +14,13 @@ degrada gracioso: KPI C (gap por veículo) sai vazio ("FIPE pendente").
 from __future__ import annotations
 
 import unicodedata
+from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
 from typing import Any, Mapping, Optional
 
 from pipeline.artifact_store import ArtifactStore
+from pipeline.domain.protection_bundle import ProtectionBundle, ProtectionItem
 from pipeline.domain.services.irpf_completude import resolve_ano_base_fiscal
 from pipeline.domain.services.protecao_analyzer import (
     FamilyMemberSnapshot,
@@ -199,44 +201,59 @@ def build_patrimonio_snapshot(patrimonio_full: dict) -> Optional[PatrimonioSnaps
 # =============================================================================
 
 
+# Agrupar é o que mantém `compute_protecao_via_store` legível conforme a lista
+# de inputs cresce — padrão de value object tipado de ADR-097 D3.
+@dataclass(frozen=True)
+class ProtecaoSources:
+    """Sub-resultados do ``E5AnalyzerAdapter`` que o bloco de proteção consome."""
+
+    irpf_analyzer: Any = None
+    patrimonio_full: dict = field(default_factory=dict)
+    fluxo_legacy: dict = field(default_factory=dict)
+    fluxo_mensal_raw: dict = field(default_factory=dict)
+
+
+def cobertura_cadastrada(bundle: Optional[ProtectionBundle] = None) -> tuple[ProtectionItem, ...]:
+    """Apólices do aggregate ``Protection`` (ADR-192). Sem bundle → tupla vazia,
+    e o gap de cobertura degrada para só-documento (comportamento pré-emenda)."""
+    return tuple((bundle or {}).get("policies") or ())
+
+
 def compute_protecao_via_store(
     store: ArtifactStore,
+    sources: ProtecaoSources,
     *,
-    irpf_analyzer,
-    patrimonio_full: dict,
-    fluxo_legacy: dict,
-    fluxo_mensal_raw: dict,
     family_snapshots: tuple[FamilyMemberSnapshot, ...],
     reference_date: date,
     seguradoras_catalog: Optional[Mapping[str, str]] = None,
+    protection_bundle: Optional[ProtectionBundle] = None,
 ) -> dict:
     """Payload ``protecao_patrimonial`` (ADR-240 D8) — sempre retorna (cenário G6-b);
     ``seguradoras_catalog`` (A37.l11) canonicaliza ``seguradora`` antes de contar."""
-    renda = resolve_renda_anual_liquida(irpf_analyzer, fluxo_legacy)
-    fiscal = build_fiscal_snapshot(irpf_analyzer, fluxo_mensal_raw)
-    catalog = seguradoras_catalog or {}
+    cadastro = cobertura_cadastrada(protection_bundle)
     inp = _protecao_input(
-        store, reference_date, renda, family_snapshots, patrimonio_full, fiscal, catalog
+        store, sources, family_snapshots, reference_date, seguradoras_catalog or {}, cadastro
     )
     return compute_protecao(inp)
 
 
 def _protecao_input(
     store: ArtifactStore,
-    ref: date,
-    renda: Decimal,
+    sources: ProtecaoSources,
     family: tuple[FamilyMemberSnapshot, ...],
-    patrimonio_full: dict,
-    fiscal: FiscalSnapshot,
+    ref: date,
     seguradoras_catalog: Mapping[str, str],
+    cadastro: tuple[ProtectionItem, ...],
 ) -> ProtecaoInput:
+    renda = resolve_renda_anual_liquida(sources.irpf_analyzer, sources.fluxo_legacy)
     return ProtecaoInput(
         apolices=load_apolices(store),
         vehicles_by_id={},
         data_referencia=ref,
         renda_anual_liquida_brl=renda,
         family_members=family,
-        patrimonio=build_patrimonio_snapshot(patrimonio_full),
-        fiscal=fiscal,
+        patrimonio=build_patrimonio_snapshot(sources.patrimonio_full),
+        fiscal=build_fiscal_snapshot(sources.irpf_analyzer, sources.fluxo_mensal_raw),
         seguradoras_catalog=seguradoras_catalog,
+        cobertura_cadastrada=cadastro,
     )

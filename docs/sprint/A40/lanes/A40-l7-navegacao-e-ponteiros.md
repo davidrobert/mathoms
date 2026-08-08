@@ -67,6 +67,28 @@ artefato que o cliente arquiva. Por isso o painel pediu P2, não P3.
   tiver dono.
 - S9: empty state **parcial**, não total — renderizar o bundle de proteção mesmo
   sem o bloco de risco.
+
+  > ⛔ **Este passo tem pré-requisito não atendido (medido 2026-08-08).**
+  > `data.protection_bundle` **não tem produtor**: o E5 não emite a chave e
+  > `get_report_data` não a injeta (só `_report_lineage`, `goals.premissas_snapshot`,
+  > `comparisons`, `changelog`, `comparison_periods`). Tirar a S9 do empty state
+  > hoje põe no ar `HeroGapProtecaoCard` com *"Nenhuma apólice cadastrada ainda"*
+  > e **seis linhas "Ausente"** em `CoberturaSegurosCard` — para todo cliente,
+  > inclusive quem cadastrou apólice em `/protecao`. Troca um silêncio por uma
+  > afirmação falsa sobre o dado do cliente.
+  >
+  > A suíte não vê: `S9ProtectionCards.test.tsx` injeta o bundle direto na prop
+  > do card; nenhum teste exercita o caminho do payload.
+  >
+  > **Condição de retomada** ([[ADR-240]] §Deferido): produtor do bundle **e**
+  > correção do predicado de dependente em `protection_bundle_populator`
+  > (filtra `role == "dependente"` e exclui `role == "filho"`, §Deferido da
+  > [[A40.l10]]) — no mesmo PR. Ligar a fonte antes de corrigir o cálculo troca
+  > uma afirmação falsa por outra.
+  >
+  > A afirmação de **ausência de cobertura** já foi unificada sobre
+  > `documento ∪ cadastro` em [[ADR-240]] §Emenda 2026-08-08, então a
+  > contradição 2.5 ↔ S9 não reaparece quando esta lane ligar a seção 2.5.
 - Rótulo do disclosure derivado da composição real do `extra`.
 - Retítulo da seção incoerente + validador de hospedagem de componente.
 
@@ -105,15 +127,23 @@ para não abrir branch paralela sobre `report_layout.yaml`/`ReportShell`.
    ITCMD já mora lá, [[ADR-192]] D3). Mexer na S9 puxa rebaseline de snapshot **e**
    de PDF, que o #1286 não devia carregar.
 
-4. **Antes de ligar `enabled: true`, resolva a contradição de evidência.** O
-   `gap_qualitativo` da 2.5 lê **só** apólice extraída de documento, enquanto a S9
-   lê o aggregate `Protection`. Workspace que cadastra apólice sem subir PDF vê
-   *"coberto"* na S9 e *"não identificamos apólice de vida ativa"* na 2.5 — no
-   mesmo relatório. É emenda a [[ADR-240]] D3 (afirmação de ausência sobre a
-   **união** das evidências), com dono `financial-planner` + `senior-cto`. Ligar a
-   seção antes disso põe a contradição no ar. Nota lateral do `product-designer`:
-   esse card mede "o que falta", que é o eixo declarado da S9 — vale decidir se
-   ele continua hospedado na 2.5.
+4. ~~**Antes de ligar `enabled: true`, resolva a contradição de evidência.**~~
+   **✅ Resolvido em 2026-08-08** — [[ADR-240]] §Emenda "cobertura tem duas
+   fontes". A afirmação de ausência passou a ser decidida sobre
+   `documento ∪ cadastro`; o KPI B declara escopo e cala o veredito de faixa
+   quando a soma é sabidamente parcial. **Esta lane não precisa mais tratar
+   disso antes do flip.**
+
+   Duas correções ao que este item afirmava: (a) a S9 **não** dizia "coberto" —
+   `data.protection_bundle` não tem produtor, então ela não dizia nada (ver o ⛔
+   no §Escopo acima, que é o que sobra desta pendência); (b) a manifestação que
+   **já chegava ao cliente** não era nenhuma das duas seções, e sim
+   `pontos_urgentes`, corrigida no mesmo PR.
+
+   Segue em aberto a nota lateral do `product-designer`: o `gap_qualitativo`
+   mede "o que falta", que é o eixo declarado da S9 — decidir se continua
+   hospedado na 2.5 é escolha de produto desta lane, agora sem risco de
+   contradição factual.
 
 ## Critério de aceite
 

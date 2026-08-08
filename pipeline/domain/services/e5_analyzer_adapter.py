@@ -42,6 +42,7 @@ from decimal import Decimal
 from typing import Any, Mapping
 
 from pipeline.artifact_store import ArtifactStore
+from pipeline.domain.protection_bundle import ProtectionBundle
 from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenariosConjugeAnalyzer,
     CenariosConjugeConfig,
@@ -153,6 +154,7 @@ from pipeline.domain.services.previdencia_analyzer import (
 )
 from pipeline.domain.services.protecao_analyzer import FamilyMemberSnapshot
 from pipeline.domain.services.protecao_wiring import (
+    ProtecaoSources,
     compute_protecao_via_store,
     family_snapshots_from_config,
 )
@@ -313,6 +315,7 @@ class E5AnalyzerAdapter:
         family_snapshots: tuple[FamilyMemberSnapshot, ...] = (),
         reference_date: date | None = None,
         seguradoras_catalog: Mapping[str, str] | None = None,
+        protection_bundle: ProtectionBundle | None = None,
     ) -> None:
         self._identity = member_identity or MemberIdentity(
             titular_key="david",
@@ -363,6 +366,9 @@ class E5AnalyzerAdapter:
         self._reference_date = reference_date or date.today()
         # A37.l11 — canonicalização de seguradora no bloco de proteção.
         self._seguradoras_catalog = dict(seguradoras_catalog or {})
+        # ADR-240 §Emenda 2026-08-08 — apólices cadastradas decidem ausência de
+        # cobertura junto com as extraídas. `None` degrada para só-documento.
+        self._protection_bundle = protection_bundle
 
     # -- Factory --
 
@@ -386,6 +392,7 @@ class E5AnalyzerAdapter:
         property_classification_overrides: dict[str, str] | None = None,
         imoveis_no_if: bool = True,
         seguradoras_catalog: Mapping[str, str] | None = None,
+        protection_bundle: ProtectionBundle | None = None,
     ) -> "E5AnalyzerAdapter":
         """Constrói o adapter com todas as configs + services instanciados.
 
@@ -514,6 +521,7 @@ class E5AnalyzerAdapter:
             family_snapshots=family_snapshots_from_config(family, reference_date or date.today()),
             reference_date=reference_date,
             seguradoras_catalog=seguradoras_catalog,
+            protection_bundle=protection_bundle,
         )
 
     # -- API --
@@ -709,13 +717,16 @@ class E5AnalyzerAdapter:
         #      identificada" só quando não há apólice vigente alguma).
         protecao = compute_protecao_via_store(
             store,
-            irpf_analyzer=irpf_analyzer,
-            patrimonio_full=patrimonio_full,
-            fluxo_legacy=fluxo_legacy,
-            fluxo_mensal_raw=fluxo_mensal,
+            ProtecaoSources(
+                irpf_analyzer=irpf_analyzer,
+                patrimonio_full=patrimonio_full,
+                fluxo_legacy=fluxo_legacy,
+                fluxo_mensal_raw=fluxo_mensal,
+            ),
             family_snapshots=self._family_snapshots,
             reference_date=self._reference_date,
             seguradoras_catalog=self._seguradoras_catalog,
+            protection_bundle=self._protection_bundle,
         )
         pontos_urgentes = self._pontos_urgentes.analyze(
             ratios_dict, reserva, patrimonio_full, protecao=protecao

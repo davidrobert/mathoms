@@ -50,10 +50,24 @@ seguro de vida deixa de ter predicado próprio e passa a mapear
 | `flag=False`, `rationale="sem family_members"` | sim | `cadastro_familia` | `pendente_de_dado` |
 | `flag=False`, `rationale="sem gatilho"` | **não** | — | — |
 | `flag=False`, `rationale="apolice_vida_ativa"` | não | — | — |
+| `flag=False`, `rationale="cobertura_vida_cadastrada"` | não | — | — |
 | bloco `protecao` ausente (caller legado) | sim | `derivado_e5` | `nao_verificavel` |
+
+`cobertura_vida_cadastrada` entrou em [[ADR-240]] §Emenda 2026-08-08: o gap
+fecha por apólice **cadastrada** pelo cliente (aggregate `Protection`) em vez de
+extraída de documento. Cai no mesmo ramo de `apolice_vida_ativa` — o conselho não
+existe, logo não há retenção a declarar. Distinguir os dois valores preserva a
+proveniência sem mudar o comportamento do ranking.
 
 `degenerada` é **transitório**: sai quando `renda_propria_brl` tiver produtor real
 e o predicado passar a ser dependência econômica em vez de `renda == 0`.
+
+**Copy do `impacto` não afirma vazio indevidamente.** O detalhe do item
+(`_detalhe_apolices`) descrevia o universo de apólices lendo só
+`apolices_vigentes` — o que é extraído de documento. Com cadastro presente e
+nenhum documento, dizia "nenhuma apólice identificada" ao cliente que acabara de
+cadastrar a apólice. Passa a consultar `protecao_patrimonial.escopo_cobertura`
+antes de afirmar ausência.
 
 **Enforcer.**
 - [`pipeline/domain/services/pontos_urgentes_analyzer.py`](../../../pipeline/domain/services/pontos_urgentes_analyzer.py) —

@@ -25,6 +25,12 @@ from backend.tests.fakes.family_member import (
     FakeVault,
 )
 from backend.tests.fakes.goal import FakeGoalRepository
+from backend.tests.fakes.health_dependencies import (
+    DeadCeleryApp,
+    FakeCeleryApp,
+    FakeEngine,
+    patch_healthy_dependencies,
+)
 from backend.tests.fakes.task import (
     FakeTaskAttachmentRepository,
     FakeTaskRepository,
@@ -32,9 +38,12 @@ from backend.tests.fakes.task import (
 )
 
 __all__ = [
+    "DeadCeleryApp",
+    "FakeCeleryApp",
     "FakeClassificationService",
     "FakeConfigBlobRepository",
     "FakeDocumentRepository",
+    "FakeEngine",
     "FakeFamilyMemberRepository",
     "FakeGlobalDefaultsLoader",
     "FakeGoalRepository",
@@ -42,4 +51,5 @@ __all__ = [
     "FakeTaskRepository",
     "FakeTaskSuggestionRepository",
     "FakeVault",
+    "patch_healthy_dependencies",
 ]

@@ -1,12 +1,25 @@
 # ==============================================================================
 # Report Layout Configuration — Relatório Financeiro Família Andrade Silva
 # ==============================================================================
-# Este arquivo controla quais seções, cards e charts aparecem no relatório,
-# em que ordem, e com que estilo visual.
+# Este arquivo controla quais SEÇÕES aparecem no relatório, em que ordem, e com
+# que estilo visual.
+#
+# ATENÇÃO — `cards[].enabled` e `charts[].enabled` NÃO governam o render
+# (medido 2026-08-08, ADR-370). `MIGRATED_SECTIONS`
+# (frontend/src/components/report/MigratedSection.tsx) contém TODAS as seções, e
+# o `ReportShell` só repassa `section.cards`/`section.charts` para o
+# `ReportSectionStub` — o ramo não-migrado, hoje inalcançável. Nenhum componente
+# React referencia id de card/chart deste arquivo (o `charts` que as seções leem
+# é `narrativas.charts`, texto do E5.N — outra coisa). Consequência prática: pôr
+# `enabled: false` num card ou chart **não o remove do relatório** — quem decide
+# é o `if` do próprio componente (hide-when-empty, ADR-167). Para card/chart,
+# esta lista é inventário documental + fonte do codegen, não chave de feature.
+# O gate que de fato pega card ausente é `report-inventory.@critical.spec.ts`
+# (ADR-370). Tornar esta lista load-bearing está em ADR-370 §Deferimento.
 #
 # REGRAS:
 #   - A ORDEM dos itens nas listas define a ordem no relatório
-#   - enabled: true/false liga ou desliga o elemento
+#   - enabled: true/false liga ou desliga SEÇÃO (para card, ver ATENÇÃO acima)
 #   - Cards são LIVRES para migrar entre seções (basta mover o bloco YAML)
 #   - variant: estilo visual do card (highlight|feature|success|warn|critical|
 #              primary|neutral|top-danger|top-accent)

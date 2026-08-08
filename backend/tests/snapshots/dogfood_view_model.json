@@ -658,6 +658,11 @@
     "apolices_vigentes": [],
     "bens_com_gap_cobertura": [],
     "corretoras_count": 0,
+    "escopo_cobertura": {
+      "categorias_somente_no_cadastro": [],
+      "premio_inclui_cadastro_manual": false,
+      "veredito_pct_renda_suprimido": false
+    },
     "gap_qualitativo": [
       {
         "categoria": "vida",

@@ -69,7 +69,7 @@ class OrcamentoProspectivoCalculator:
                 total=0.0,
                 media_mensal=0.0,
                 legenda=(
-                    "Orçamento prospectivo não disponível — sem meses de " "dados (num_months=0)."
+                    "Orçamento prospectivo não disponível — sem meses de dados (num_months=0)."
                 ),
             )
 
