@@ -352,13 +352,17 @@ repos:
         #      migrations): case-INSENSITIVE, sem strip — hit legado vive no
         #      baseline burn-down dev/sigilo_terms_baseline.json até a
         #      A34.l12/ADR-314; hit NOVO bloqueia. Prova G2: --all --no-baseline.
+        #   3. copy em YAML de config (config/report_layout.yaml): parse +
+        #      varredura dos valores escalares. O título de seção chega ao
+        #      TOC do relatório via codegen (ADR-076) e escapava das duas
+        #      surfaces acima — foi por aqui que "Pilar AUVP" vazou.
         # Mathoms não tem licença das marcas; uso público viola direito de
         # marca pessoal/curso (ADR-319).
         name: "Bloqueia menção pública de fontes metodológicas (§13 · ADR-319)"
         entry: python3 dev/check_sigilo_terms.py
         language: system
         pass_filenames: true
-        files: ^(frontend/src/(app|components)/.*\.(ts|tsx)|docs/.*\.md|config/prompts/.*\.ya?ml|backend/alembic/versions/.*\.py|(.*/)?README[^/]*)$
+        files: ^(frontend/src/(app|components)/.*\.(ts|tsx)|docs/.*\.md|config/prompts/.*\.ya?ml|config/report_layout\.yaml|backend/alembic/versions/.*\.py|(.*/)?README[^/]*)$
 
       - id: commit-msg-format
         name: "Valida prefixo de mensagem de commit"

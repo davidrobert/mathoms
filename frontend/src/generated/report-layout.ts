@@ -403,7 +403,7 @@ export const LAYOUT: ReportLayout = {
       },
       {
         "id": "S_PROTECAO",
-        "title": "Proteção Patrimonial — Pilar AUVP",
+        "title": "Seguros — Cobertura Contratada",
         "enabled": false,
         "summary": true,
         "summary_source": null,

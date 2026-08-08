@@ -235,8 +235,11 @@ estrategico:
     # → S3 (Investimentos). Reordenação S3↔S4 é débito P2.1 (visual review
     # exige snapshots novos; mantemos ordem atual para não quebrar diff de PDF).
     # Cards e charts em enabled:false até P3 (componente React) ligar.
+    # Título user-facing não atribui (§13.1): "Pilar AUVP" chegava ao cliente
+    # pelo TOC. "Seguros" em vez de "Proteção Patrimonial" porque o segundo
+    # lê como blindagem patrimonial (holding/sucessão) — que mora na S9.
     - id: "S_PROTECAO"
-      title: "Proteção Patrimonial — Pilar AUVP"
+      title: "Seguros — Cobertura Contratada"
       enabled: false  # P3 liga quando S_ProtecaoSection.tsx existir
       summary: true
       # E5.N não produz narrativa de proteção patrimonial (ADR-240 é card).

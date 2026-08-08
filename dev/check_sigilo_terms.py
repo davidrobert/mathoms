@@ -21,6 +21,10 @@ config rationale) é PERMITIDA — §13.4. Por isso este hook:
          pitch, comparativo competitivo). Suffix `.md` é user-facing
          **somente** sob esse prefixo; o resto de `docs/` continua interno
          (ADRs, planos, runbooks atribuem livremente — §13.4).
+       - `COPY_YAML_FILES` (`config/report_layout.yaml`) — copy que chega à
+         UI via codegen (ADR-076). Parse + varredura de valores em vez de
+         line-scan; internals e rationale em `dev/_sigilo_copy_yaml.py`.
+         `frontend/src/generated/` NÃO entra: derivado se gateia na fonte.
   2. Exclui paths internal-only conhecidos (types, api contract, generated,
      dev playground, variant-key components, barrel exports, `_README.md`
      de `docs/_marketing/` cuja função é descritiva interna).
@@ -66,6 +70,16 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from dev._sigilo_copy_yaml import (  # noqa: E402  (import depois de sys.path)
+    COPY_YAML_FILES,
+    is_copy_yaml,
+)
+from dev._sigilo_copy_yaml import (
+    find_hits as _yaml_copy_hits,
+)
 
 # ---------------------------------------------------------------------------
 # Padrões de detecção — case-sensitive com word boundary.
@@ -279,6 +293,11 @@ def check_file(path: Path) -> list[tuple[int, str, str]]:
     return _dedupe(raw_hits)
 
 
+def check_file_yaml_copy(path: Path) -> list[tuple[int, str, str]]:
+    """Hits §13.1 nos valores string de YAML de copy (config → codegen → UI)."""
+    return _dedupe(_yaml_copy_hits(path, FORBIDDEN_RE))
+
+
 def check_file_public(path: Path) -> list[tuple[int, str, str]]:
     """Hits do superset público — case-insensitive, sem strip de comentários (repo público não tem "atribuição interna"; A34.l5 · ADR-319)."""
     try:
@@ -346,7 +365,8 @@ def _collect_all_public_superset() -> list[Path]:
 def collect_files(args_files: list[str], scan_all: bool) -> list[Path]:
     """Resolve lista de arquivos a checar."""
     if scan_all:
-        return sorted({*_collect_all_user_facing(), *_collect_all_public_superset()})
+        copy_yaml = [p for rel in sorted(COPY_YAML_FILES) if (p := REPO_ROOT / rel).is_file()]
+        return sorted({*_collect_all_user_facing(), *_collect_all_public_superset(), *copy_yaml})
     files: list[Path] = []
     for fname in args_files:
         p = Path(fname)
@@ -446,6 +466,12 @@ def _user_facing_failures(candidates: list[Path]) -> list[tuple[Path, list[tuple
     return [(p, hits) for p in files if (hits := check_file(p))]
 
 
+def _copy_yaml_failures(candidates: list[Path]) -> list[tuple[Path, list[tuple[int, str, str]]]]:
+    """Hits em valores de YAML de copy (config → codegen → UI)."""
+    files = [p for p in candidates if is_copy_yaml(relpath(p))]
+    return [(p, hits) for p in files if (hits := check_file_yaml_copy(p))]
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
     candidates = collect_files(args.files, args.all or args.update_baseline)
@@ -457,7 +483,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Baseline de sigilo regenerado: {len(all_hit_paths)} paths.")
         return 0
 
-    failures = _user_facing_failures(candidates) + public_failures
+    failures = _user_facing_failures(candidates) + _copy_yaml_failures(candidates) + public_failures
     if baselined:
         print(f"ℹ {baselined} path(s) legados no baseline sigilo (A34.l12).", file=sys.stderr)
     if not failures:
