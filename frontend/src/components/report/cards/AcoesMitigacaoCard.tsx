@@ -31,13 +31,13 @@ function priorityLabel(p: ProtectionPriority | string): { text: string; classNam
   if (normalized === "alta") {
     return {
       text: "Alta",
-      className: "bg-[color-mix(in_srgb,var(--semantic-loss)_15%,transparent)] text-[var(--semantic-loss)]",
+      className: "bg-[color-mix(in_srgb,var(--semantic-loss)_15%,transparent)] text-[var(--semantic-loss-on-tint)]",
     };
   }
   if (normalized === "média" || normalized === "media") {
     return {
       text: "Média",
-      className: "bg-[color-mix(in_srgb,var(--semantic-warning)_15%,transparent)] text-[var(--semantic-warning)]",
+      className: "bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] text-[var(--semantic-alert-on-tint)]",
     };
   }
   return {

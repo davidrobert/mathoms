@@ -37,7 +37,7 @@ export function PontosUrgentesCard({
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold">{p.acao ?? `Ação ${i + 1}`}</p>
                   {p.prioridade && (
-                    <span className="rounded-full bg-[color-mix(in_srgb,var(--semantic-loss)_15%,transparent)] px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-[var(--semantic-loss)]">
+                    <span className="rounded-full bg-[color-mix(in_srgb,var(--semantic-loss)_15%,transparent)] px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-[var(--semantic-loss-on-tint)]">
                       {p.prioridade}
                     </span>
                   )}
