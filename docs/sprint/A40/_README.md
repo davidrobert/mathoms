@@ -362,14 +362,9 @@ incidente expôs: contrato de criticidade de stage, `partial_failure` alcançáv
 o retido declarado na tela. É a §Frente 4 de [[PLAN-report-trust]] — leia lá a
 tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 
-> **Estado da Onda 3 — atualizado em 2026-08-08.** [[A40.l21]] ✅ `c8239386`
-> (#1232) · [[A40.l19]] ✅ `c9688111` (#1241) · [[A40.l18]] ✅ **PR1** `4620cc04`
-> (#1242) + **PR2** `b8460274` (#1258) · [[A40.l20]] **PR1** ✅ `0301f7a0`
-> (#1250), **PR2 (o wire-up no orquestrador) pendente** · [[A40.l22]] ✅ #1277,
-> `shipped` com resíduo declarado (perna de PDF parcial por defeito
-> pré-existente do export + teste com humano owner-gated — ver o blockquote da
-> lane). **A l20 é agora a única da Onda 3 não terminal**, e o flip da
-> [[ADR-366]] para `Decidido` é do PR2 dela.
+> **Estado da Onda 3 em 2026-08-06.** [[A40.l21]] ✅ `c8239386` (#1232) ·
+> [[A40.l19]] ✅ `c9688111` (#1241) · [[A40.l18]] **PR1** ✅ `4620cc04` (#1242),
+> **PR2 (o writer) pendente** · [[A40.l20]] e [[A40.l22]] não iniciadas.
 > A l19 subiu de posição na execução por ser **pré-condição dura** do PR2 da
 > l18 (`degraded` precisa existir no tipo do DB antes de qualquer `INSERT`), e o
 > gate que ela trouxe usa direção-subconjunto, o que tornou a ordem
@@ -382,6 +377,18 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 > [[A40.l22]] `open`, **a única P0 pegável da onda**. Com o PR2 da l20 em `main`, o
 > `depends_on` da l22 ficou **terminal** e o `open` dela deixou de se apoiar na 2ª
 > cláusula do §Predicado.
+
+> **Estado da Onda 3 em 2026-08-08** (os dois snapshots acima são datados —
+> **não os reescreva**). [[A40.l22]] entregou a **superfície de degradação** em
+> #1277, e segue `in_progress`: em 07/08 ela recebeu do PR2 da [[A40.l20]] a
+> **copy por código de ausência** (4 códigos de 404 + free tier), que o #1277 não
+> cobre e cuja escolha de palavra é do dono. **A Onda 3 não fecha terminal por
+> esse item.** Do §Critério de aceite da l22, a perna de PDF é
+> **parcial** — a ressalva do banner chega à camada de texto do PDF, a nota da
+> seção não, por truncagem **pré-existente** do export (nenhum `<h2>` de seção
+> chega ao PDF hoje). Não é defeito da l22 e não tem lane; o ponto de retomada
+> está marcado como `test.fixme` em `print.@critical.spec.ts`. O teste com humano
+> (n=1) segue owner-gated.
 
 **Ordem interna, e nenhuma das três é estética:**
 
