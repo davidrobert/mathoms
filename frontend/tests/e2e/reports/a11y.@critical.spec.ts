@@ -5,9 +5,14 @@
  * em `critical+serious` (decisão D1). Cada seção visível recebe scan
  * isolado para que falha aponte direto o componente.
  *
- * Tagged @critical — bloqueia push em CI quando regredido.
+ * Roda no step `Report render gate` de `frontend-checks` (job que está em
+ * `all-green.needs`), logo bloqueia merge. Antes de 2026-08-08 a tag
+ * `@critical` era o único sinal de que isso deveria acontecer, e não
+ * acontecia: nenhum job executava este arquivo, e ele acumulou 3 falhas —
+ * 2 de fixture e 1 violação real de contraste em S8 — sem ninguém ver.
+ * `@critical` no nome não é gate; gate é estar num job exigido.
  */
-import { test } from "@playwright/test";
+import { test, type Page } from "@playwright/test";
 import { expectNoA11yViolations } from "../helpers/axe";
 import {
   mockReportPage,
@@ -25,6 +30,53 @@ const STRATEGIC_SECTIONS = [
 ];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
 // ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA removido.
+
+/** Seções listadas acima que a fixture `medium` **não faz montar**.
+ *
+ * Mesma allowlist (e mesmos dois membros) de `sections.snapshots.visual.spec.ts`,
+ * pelo mesmo motivo — as duas retornam `null` por hide-when-empty:
+ * - `S4`    — `data.real_estate` ausente (ADR-216 Onda 6).
+ * - `APP_C` — `cenarios_conjuge` é `{}` e não há `programa_milhas`, logo
+ *   `hasCenarios`/`hasMilhas` são falsos (ADR-167). A chave `cenarios_conjuge`
+ *   **existe** na fixture, só está vazia: ler o topo do JSON dá a impressão de
+ *   que a seção monta.
+ *
+ * O #1295 fechou isso no spec visual e este ficou de fora — `S4` seguia em
+ * `STRATEGIC_SECTIONS` esperando um `waitForSelector` que só podia estourar, e
+ * o loop de apêndices pulava qualquer seção ausente com `test.skip` puro.
+ *
+ * É allowlist, não decoração: qualquer OUTRA seção que deixe de montar vira
+ * falha. Sem isso, regressão de render (seção sumiu por bug) viraria job verde
+ * — e um skip condicional passa verde num CI limpo, que é o modo de falha que
+ * já custou 4 meses de baselines órfãs aqui. */
+const SECTIONS_NOT_IN_MEDIUM_FIXTURE = new Set(["S4", "APP_C"]);
+
+/** Espera a seção montar, ou decide entre skip declarado e falha.
+ *
+ * O `waitFor` (e não um `count()` seco) é deliberado: em runner lento a seção
+ * pode montar depois do `data-report-ready`, e aí `count()===0` viraria um
+ * "não montou" **falso** — vermelho confuso, do tipo que ensina a ignorar o
+ * gate. O custo do wait só é pago pelas 2 seções declaradas ausentes. */
+async function waitForSectionOrSkip(
+  page: Page,
+  sectionId: string,
+): Promise<string | null> {
+  const selector = `section#${sectionId}[data-report-section]`;
+  const montou = await page
+    .locator(selector)
+    .waitFor({ state: "attached", timeout: 5_000 })
+    .then(() => true, () => false);
+  if (montou) return selector;
+  if (!SECTIONS_NOT_IN_MEDIUM_FIXTURE.has(sectionId)) {
+    throw new Error(
+      `seção ${sectionId} não montou com a fixture atual. Se isso for ` +
+        `deliberado, adicione-a a SECTIONS_NOT_IN_MEDIUM_FIXTURE; caso ` +
+        `contrário é regressão de render.`,
+    );
+  }
+  test.skip(true, `seção ${sectionId} não montada com a fixture medium`);
+  return null;
+}
 
 test.describe("Report a11y @critical", () => {
   test("relatório completo (modo estratégico) sem violações critical+serious", async ({
@@ -45,8 +97,8 @@ test.describe("Report a11y @critical", () => {
       await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
       await waitForReportReady(page);
 
-      const selector = `section#${sectionId}[data-report-section]`;
-      await page.waitForSelector(selector, { timeout: 5_000 });
+      const selector = await waitForSectionOrSkip(page, sectionId);
+      if (!selector) return;
       await expectNoA11yViolations(page, { selector });
     });
   }
@@ -57,12 +109,8 @@ test.describe("Report a11y @critical", () => {
       await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
       await waitForReportReady(page);
 
-      const selector = `section#${sectionId}[data-report-section]`;
-      const exists = await page.locator(selector).count();
-      if (exists === 0) {
-        test.skip(true, `seção ${sectionId} não montada no modo padrão`);
-        return;
-      }
+      const selector = await waitForSectionOrSkip(page, sectionId);
+      if (!selector) return;
       await expectNoA11yViolations(page, { selector });
     });
   }
