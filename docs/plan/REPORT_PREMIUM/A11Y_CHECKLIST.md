@@ -35,11 +35,17 @@ A coluna **Bloqueia merge?** é o que importa: `@critical` no nome do
 arquivo não é gate — gate é estar num job que `all-green` exige. Medido em
 2026-08-08.
 
+Desde o #1318 as duas coisas coincidem **para specs em
+`frontend/tests/e2e/reports/`**: o step `Report render gate` seleciona por
+diretório + tag (`--grep @critical`), então spec a11y novo ali entra no gate
+sozinho, sem editar `ci.yml`. Fora desse diretório, `@critical` continua sendo
+só intenção.
+
 | Gate | Cobre | Onde | Bloqueia merge? |
 |---|---|---|---|
 | `axe-core` por seção | 1.4.3 (parcial, só light), 4.1.2 | [a11y.@critical.spec.ts](../../../frontend/tests/e2e/reports/a11y.@critical.spec.ts) — step `Report render gate` de `frontend-checks` | **Sim** — `critical+serious` (D1) |
 | Contraste de texto sobre tint, por token | 1.4.3 no par (cor de texto, tint de fundo), sem depender de render | [cascataFiscalContrast.test.ts](../../../frontend/tests/components/report/cascataFiscalContrast.test.ts) + [parecerToneContrast.test.ts](../../../frontend/tests/components/report/parecerToneContrast.test.ts) — Vitest em `frontend-checks` | **Sim** — ≥ 4,5:1 |
-| Tab-order escopado a `[data-report-scope]` | 2.1.1, 2.4.3, 4.1.2 | [tab-order.@critical.spec.ts](../../../frontend/tests/e2e/reports/tab-order.@critical.spec.ts) | **Não** — só roda em `frontend-e2e`, que é opt-in por label `e2e` e está fora de `all-green.needs` |
+| Tab-order escopado a `[data-report-scope]` | 2.1.1, 2.4.3, 4.1.2 | [tab-order.@critical.spec.ts](../../../frontend/tests/e2e/reports/tab-order.@critical.spec.ts) — step `Report render gate` de `frontend-checks` | **Sim** desde o #1318 — entrou sozinho quando a seleção do step virou diretório + tag. Estava quebrado enquanto ficou fora ([#1317](https://github.com/davidrobert/mathoms/pull/1317)) |
 | Lighthouse CI (categoria `accessibility`) | 1.4.3, 2.4.7, 4.1.2 (mistura) | [lighthouserc.cjs](../../../frontend/lighthouserc.cjs) + job `frontend-lighthouse` | **Não** — o job migrou para `nightly.yml`, e o workflow `Nightly` está `disabled_manually`. Gate morto. |
 | Snapshots visuais por seção × tema | regressão estrutural light/dark (não substitui revisão humana de contraste em estados) | [sections.snapshots.visual.spec.ts](../../../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts) + job `frontend-visual` — ops em [REPORT_VISUAL_SNAPSHOTS.md](VISUAL_SNAPSHOTS.md) | **Não** — opt-in por label `visual` |
 | Gate empírico (one-shot) | meta-validação dos gates acima | [REPORT_A11Y_GATE_PROOF.md](A11Y_GATE_PROOF.md) | manual, 2026-04-25 |

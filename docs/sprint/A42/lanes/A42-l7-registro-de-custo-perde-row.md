@@ -9,6 +9,7 @@ branch_slug: a42-l7-registro-de-custo-perde-row
 adrs:
   - "[[ADR-173]]"
   - "[[ADR-357]]"
+  - "[[ADR-371]]"
 depends_on:
   - "[[A40.l19]]"
 tags:
@@ -69,6 +70,16 @@ interpolação), e há precedente de correção já aplicada noutro módulo.
    skip não se apresente como trabalho concluído.
 6. **Reconciliar a verdade em memória contra a fonte única** ao fim do run, com a
    divergência reportada.
+7. **Decidir se `llm_call_log.pipeline_run_id` vira FK de verdade.** Hoje é
+   `String(36)` indexado, **sem `ForeignKey`** — referência solta. A [[ADR-371]]
+   §D7 ligou o gate `dev/check_run_artifact_fk_coverage.py`, que exige FK ou
+   justificativa; a coluna entrou no allowlist com a premissa *"telemetria de
+   custo sobrevive de propósito ao run, porque FinOps agrega por período e
+   cascatear apagaria o histórico"*. Essa premissa foi **herdada do código, não
+   verificada com o dono** — e esta lane é quem tem o contexto (é a dona do
+   hard-stop de orçamento) e já abre migration nessa tabela. Ou confirma o
+   allowlist com a razão registrada, ou adiciona a FK com o `ondelete` que a
+   retenção de custo exigir (provavelmente `SET NULL`, não `CASCADE`).
 
 ## Critério de aceite
 

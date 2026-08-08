@@ -156,3 +156,28 @@ qual) e vem depois, gated pelo dono.
   Comentário no módulo registra isso.
 - As 48 rows do DB de dogfood **continuam lá**. Limpeza é owner-gated; o
   diagnóstico e o detector existem, a mutação de dado não foi executada.
+
+## Deferimento datado (2026-08-08)
+
+**Dono: David Robert.** Dois itens saem desta ADR sem execução, cada um com
+condição de retomada explícita — não são esquecimento, são escopo declarado.
+
+**1. Limpeza das 48 rows do DB de dev.** Nenhum dado foi mutado. A operação
+correta é `UPDATE ... SET NULL` nas colunas penduradas — **não re-apontar**,
+porque os artefatos E5 originais foram deletados e não há como saber qual
+pertencia a qual relatório. Verificar antes e depois com:
+
+```
+sqlite3 mathoms.db "PRAGMA foreign_key_check;" | wc -l
+```
+
+*Condição de retomada:* decisão do dono. Não é urgente — os leitores degradam
+para `unknown` / 404 + log, e o gate impede que o estado cresça. Fazer antes de
+qualquer medição que dependa de proveniência de relatório antigo (ex.:
+[[A40.l32]]).
+
+**2. Premissa do allowlist de `llm_call_log.pipeline_run_id`.** A justificativa
+registrada em `dev/check_run_artifact_fk_coverage.py` (telemetria de custo
+sobrevive de propósito ao run) foi **inferida do código, não verificada**.
+*Condição de retomada:* transferida para a [[A42.l7]] §Decisão item 7 — ela é
+dona do hard-stop de orçamento e já abre migration nessa tabela.

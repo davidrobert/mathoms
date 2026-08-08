@@ -447,6 +447,37 @@ Roda no step `Report render gate` de `frontend-checks` (dentro de
 `all-green.needs`), **sem label e sem path filter** — ao contrário do gate de
 pixel, que é opt-in por label.
 
+### Como pôr um spec novo nesse gate: não faça nada
+
+Desde o #1318 o step seleciona por **diretório + tag**, não por allowlist:
+
+```
+npx playwright test tests/e2e/reports/ --grep @critical \
+  --grep-invert 'reports/print\.@critical\.spec\.ts' --project=chromium
+```
+
+Spec em `frontend/tests/e2e/reports/` com `@critical` no **nome do arquivo**
+entra sozinho. Não edite `ci.yml` — a lista enumerada que existia ali era o 4º
+remendo e falhava **aberta**: spec novo nascia fora do gate em silêncio. Quando
+a direção foi invertida, 6 `@critical` viviam no diretório sem rodar em job
+bloqueante nenhum e **3 estavam quebrados** por refactors já mergeados
+(`receita-despesa-chart`, `tab-order`, `a11y`) — nenhum por flake: 3 execuções
+de cada, falha determinística.
+
+Duas consequências que não são óbvias:
+
+- **`--grep` casa o path relativo ao `testDir`** (`reports/x.spec.ts`), não ao
+  repo — é por isso que a tag no nome do arquivo basta, e por isso que uma regex
+  começando em `tests/e2e/` não casa nada. Meça com `--list` antes de confiar.
+- **O gate é caro em relação ao que cobre, não em absoluto**: 3m53s para 56
+  testes (2026-08-08), 4,2s por teste. Spec que sai muito desse número merece
+  atenção antes de entrar — mas medida em runtime, porque `--list` não enxerga
+  `test.skip` condicional.
+
+Ficar de fora exige `--grep-invert` com justificativa comentada no workflow. Há
+uma exclusão hoje: `print.@critical.spec.ts`, baseline de **pixel** do PDF,
+OS-específica e com job próprio (`frontend-print-visual`).
+
 ### Por que **não** rodar local em macOS
 
 `sections.snapshots.visual.spec.ts` está documentado:
