@@ -351,7 +351,7 @@ classes abaixo. Origem: [[ADR-362]] e [[ADR-363]].
 
 | Identificador | Versiona | Onde vive |
 |---|---|---|
-| `executor_revision` ([[ADR-362]]) | o **processo** que executou um stage | coluna em `pipeline_stage_logs` |
+| `executor_revision` ([[ADR-362]]) | o **processo** que executou um stage | coluna em `pipeline_stage_logs` · campo de `/health` · todo record do `MathomsJsonFormatter` |
 | `seed_usado` / `n_simulacoes_usado` ([[ADR-360]]) | parâmetros efetivos da simulação | payload do artefato de análise |
 
 **Ornamental** — existe, não identifica código. Não usar como proveniência.
