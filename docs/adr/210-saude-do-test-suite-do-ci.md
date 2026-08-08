@@ -619,7 +619,18 @@ o anterior terminar.
 ### O custo que fica, e por que não dá para pagar menos
 
 Todo label aplicado depois da criação do PR passa a custar **um ciclo de CI
-completo** — não só os jobs que o label pede. Fazer o run do label pular os
+completo** — não só os jobs que o label pede. **Medido no PR #1315** (label
+`visual` aplicada 28s depois do `opened`, runs 31257143839 e 31257164016):
+**~29 min faturados** no ciclo extra, somando os 9 jobs não-skipados
+(`backend-tests` 11,8 · `frontend-checks` 6,9 · `frontend-visual` 4,0 ·
+`pipeline-tests` 2,1 · `lint-all` 1,8 · `go-test` 1,5 · `go-lint` 0,4 ·
+`changes` 0,2 · `all-green` 0,1). Ou seja: **4 min do job que se queria, ~25 min
+de acompanhamento**. É a razão de a orientação continuar sendo abrir o PR já
+com o label — e o número que o owner precisa para decidir se a Camada 1 vale
+mais que um gate por path filter, dado que a base mensal de Actions já roda
+perto do teto default do `budget-alert.yml`.
+
+Fazer o run do label pular os
 demais jobs seria mais barato e é **fail-open**: `all-green` aceita `skipped`
 nos jobs de que depende, logo um run em que tudo skipa reportaria
 `All checks green: success` e sobrescreveria um vermelho legítimo do run
