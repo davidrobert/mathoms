@@ -4,10 +4,12 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, CircleAlert, RefreshCw } from "lucide-react";
 import type { PipelineRunResponse } from "@/lib/api";
 import { formatDate, formatDuration, runStatusLabel, stageName } from "@/lib/format";
+import { frasePecasRetidas } from "@/lib/parecerRetencaoCopy";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { deriveFailedStage } from "./failedStage";
 import { degradedRunCaveat } from "./degradedStage";
+import { parecerItensRetidosNoRun } from "./parecerRetencao";
 
 /** `partial_failure` e `needs_review` são ambos `warning` — a silhueta do ícone
  *  é o que os separa a 12px (círculo = esteja ciente; triângulo = aja agora). */
@@ -39,6 +41,21 @@ function RunContextLine({ run }: { run: PipelineRunResponse }) {
   }
   if (run.status === "needs_review") {
     return <span className="text-xs text-warning">Revisão pendente</span>;
+  }
+  // A40.l22 — run que ENTREGOU o parecer com itens retidos. Fica por último:
+  // `partial_failure` acima já fala do parecer que não saiu, e um run pode
+  // ser as duas coisas (outro add-on degradou) — ali o caveat de degradação é
+  // o sinal mais forte e a retenção parcial aparece na seção do relatório.
+  const retidos = parecerItensRetidosNoRun(run);
+  if (retidos > 0) {
+    return (
+      <span
+        className="text-sm text-warning truncate"
+        data-testid="history-parecer-retido"
+      >
+        {frasePecasRetidas(retidos)} — o parecer deste relatório está incompleto.
+      </span>
+    );
   }
   return null;
 }
@@ -121,8 +138,14 @@ export function HistoryRow({
   triggering: boolean;
 }) {
   const isFailed = run.status === "failed";
+  // A40.l22 — o run com parecer parcialmente retido é `completed`: sem este
+  // termo a linha de contexto existiria e nunca renderizaria (falso-verde
+  // clássico — o componente pronto atrás de um gate que não abre).
   const hasContextLine =
-    isFailed || run.status === "partial_failure" || run.status === "needs_review";
+    isFailed ||
+    run.status === "partial_failure" ||
+    run.status === "needs_review" ||
+    parecerItensRetidosNoRun(run) > 0;
   const borderClass = highlighted
     ? "border-primary ring-1 ring-primary/40"
     : isFailed

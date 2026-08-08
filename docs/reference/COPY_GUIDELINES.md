@@ -123,6 +123,7 @@ Quando uma decisão terminológica nova surgir, adicione linha aqui com
 | Termo canônico | Definição (1 linha) | Capitalização | Abreviação aceita | Sinônimos a **evitar** |
 | --- | --- | --- | --- | --- |
 | **Retido** `@2026-08-06` | Conteúdo que o Mathoms gerou e **não publicou** por não passar na própria conferência de qualidade — sempre ligado ao objeto ("parecer retido", "2 riscos retidos na conferência") | minúsculo em corpo; sentence case em título de estado ("Parecer retido neste relatório") | — | `em revisão` (implica fila humana que não existe); `não publicado` (colide com o estado `Publicado` de [[ADR-204]], e seria falso no caso mais comum); `retenção` **sem objeto** (colide com retenção de IRRF, já user-facing no mesmo relatório); `suprimido`, `omitido`, `erro` |
+| **Itens do parecer retidos** `@2026-08-07` | Contador de retenção do parecer: é escalar do parecer INTEIRO (`retention.items_dropped_count`), e o enforcement remove risco **ou** sugestão — logo o objeto é "itens do parecer", nunca o bucket em cuja caption o número aparece | minúsculo em corpo | — | `N riscos retidos` (o exemplo da linha acima; falso quando o item retido foi uma sugestão, e a caption dele mora na tabela de riscos); `N itens retidos` **sem** "do parecer" (o leitor lê como itens da lista ao lado) |
 
 ---
 

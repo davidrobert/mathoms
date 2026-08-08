@@ -378,6 +378,18 @@ tese, os KRs (KR-0..KR-3), o tripwire T1 e os guardrails G1/G2.
 > `depends_on` da l22 ficou **terminal** e o `open` dela deixou de se apoiar na 2ª
 > cláusula do §Predicado.
 
+> **Estado da Onda 3 em 2026-08-08** (os dois snapshots acima são datados —
+> **não os reescreva**). [[A40.l22]] entregou a **superfície de degradação** em
+> #1277, e segue `in_progress`: em 07/08 ela recebeu do PR2 da [[A40.l20]] a
+> **copy por código de ausência** (4 códigos de 404 + free tier), que o #1277 não
+> cobre e cuja escolha de palavra é do dono. **A Onda 3 não fecha terminal por
+> esse item.** Do §Critério de aceite da l22, a perna de PDF é
+> **parcial** — a ressalva do banner chega à camada de texto do PDF, a nota da
+> seção não, por truncagem **pré-existente** do export (nenhum `<h2>` de seção
+> chega ao PDF hoje). Não é defeito da l22 e não tem lane; o ponto de retomada
+> está marcado como `test.fixme` em `print.@critical.spec.ts`. O teste com humano
+> (n=1) segue owner-gated.
+
 **Ordem interna, e nenhuma das três é estética:**
 
 - **[[A40.l21]] antes de [[A40.l18]]** (reader-first). Os **7** read sites de

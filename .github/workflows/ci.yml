@@ -736,7 +736,7 @@ jobs:
         if: needs.changes.outputs.report == 'true' && steps.pw-cache-report.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
-      - name: Report render gate (janela canônica — tela + superfície de print)
+      - name: Report render gate (janela canônica + degradação do parecer — tela + print)
         if: needs.changes.outputs.report == 'true'
         env:
           # `npm run dev` dispara `predev` → `codegen:check` → `python3 …`, e este
@@ -750,7 +750,14 @@ jobs:
           # `npm run build && npm run start` (o `prebuild` chama o MESMO codegen,
           # e o build completo custa mais que o próprio gate).
           PLAYWRIGHT_WEB_SERVER_COMMAND: npx next dev --turbopack
-        run: npx playwright test tests/e2e/reports/janela-canonica.@critical.spec.ts --project=chromium
+        # A40.l22 acrescenta `parecer-degradacao`: a superfície de print só é
+        # assertável em browser real, e o label `e2e` estava skipped em 12/12
+        # runs recentes — mesmo argumento da A40.l3 para este step existir.
+        run: |
+          npx playwright test \
+            tests/e2e/reports/janela-canonica.@critical.spec.ts \
+            tests/e2e/reports/parecer-degradacao.@critical.spec.ts \
+            --project=chromium
 
       - name: Upload results (only on failure)
         # Vitest junit XML só interessa em falha — em verde ninguém baixa.
@@ -993,11 +1000,16 @@ jobs:
 
       - name: Locate generated baselines (debug)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
+        # `working-directory: frontend` é default do job, então o path
+        # `frontend/tests` resolvia para `frontend/frontend/tests`: `find` saía 1
+        # em path inexistente e, com `shell: bash -e`, derrubava o JOB INTEIRO
+        # depois de o Playwright ter passado e a baseline ter subido. Medido na
+        # A40.l22 ao gerar as 4 baselines de `S_parecer` (run 31215930136).
         run: |
           echo "=== PNGs em tests/ que parecem snapshot ==="
-          find frontend/tests -name "*.png" 2>/dev/null | head -100
+          find tests -name "*.png" 2>/dev/null | head -100
           echo "=== diretórios -snapshots ou __snapshots__ ==="
-          find frontend/tests -type d \( -name "*-snapshots" -o -name "__snapshots__" \) 2>/dev/null
+          find tests -type d \( -name "*-snapshots" -o -name "__snapshots__" \) 2>/dev/null || true
 
       - name: Upload generated baselines (quando --update-snapshots foi passado)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
@@ -1076,12 +1088,21 @@ jobs:
         if: steps.pw-cache-print.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
+      # A40.l22 — `pdftotext` é o instrumento nomeado no critério da lane (é o
+      # que um terceiro usaria para ler o arquivo). Sem o pacote o teste
+      # SKIPA em silêncio, que é o falso-verde que o gate existe para evitar.
+      - name: Install Poppler (pdftotext)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
       - name: Run Playwright print spec (chromium)
         env:
           # `mock-report.ts` cobre /api/v1/** sem precisar de backend real;
           # webServer ainda precisa subir Next em :3000 (default Playwright).
           UPDATE_PRINT_BASELINE: ${{ github.event_name == 'workflow_dispatch' && inputs.update_print_baseline && '1' || '' }}
-        run: npm run test:e2e -- --project=chromium --grep "PDF visual diff"
+        # Dois describes no mesmo spec: diff de pixel (cego a conteúdo) +
+        # extração de texto via pdftotext. Grep só do primeiro deixaria o
+        # segundo sem job — teste escrito e nunca executado.
+        run: npm run test:e2e -- --project=chromium --grep "PDF visual diff|texto do PDF"
 
       - name: Upload generated baseline (quando UPDATE_PRINT_BASELINE=1)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_print_baseline

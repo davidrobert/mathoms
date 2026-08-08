@@ -10,6 +10,24 @@ import { axe } from "vitest-axe";
 import { HistoryRow } from "@/app/(app)/pipeline/_components/HistoryRow";
 import { makePartialRun, makeRun, makeStageLog } from "../factories";
 
+/** A40.l22 — run que ENTREGOU o parecer com itens retidos: `completed`, sem
+ *  stage degradado. Sem os dois, o teste passaria pelo caminho do
+ *  `partial_failure`, que já tinha linha de contexto antes desta lane. */
+function runComParecerParcial(dropped = 2) {
+  return makeRun({
+    status: "completed",
+    report_id: "report-parcial-1",
+    stage_logs: [
+      makeStageLog({ stage: "analyze_finances", status: "completed" }),
+      makeStageLog({
+        stage: "review_finances_holistic",
+        status: "completed",
+        output_summary: { evidencia_verification: { items_dropped: dropped } },
+      }),
+    ],
+  });
+}
+
 vi.mock("next/link", () => ({
   default: ({ children, href, ...rest }: any) => <a href={href} {...rest}>{children}</a>,
 }));
@@ -133,5 +151,58 @@ describe("<HistoryRow /> — ícone distingue os dois status warning", () => {
     expect(partial.querySelector("[data-slot='badge'] svg")?.outerHTML).not.toBe(
       review.querySelector("[data-slot='badge'] svg")?.outerHTML,
     );
+  });
+});
+
+describe("<HistoryRow /> — parecer parcialmente retido @A40.l22", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("run `completed` com itens retidos ganha linha de contexto", () => {
+    renderRow(runComParecerParcial(2));
+    const linha = screen.getByTestId("history-parecer-retido");
+    expect(linha).toHaveTextContent("2 itens do parecer retidos na conferência");
+    expect(linha).toHaveTextContent("o parecer deste relatório está incompleto");
+  });
+
+  it("badge segue 'Concluído' — o run entregou, não é ressalva de execução", () => {
+    renderRow(runComParecerParcial(2));
+    expect(screen.queryByText(/Falhou/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Relatório gerado, sem o parecer do planejador."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("run íntegro não ganha linha — o gate `completed` tinha de ser aberto", () => {
+    // Sem o termo novo em `hasContextLine`, a linha existiria e nunca
+    // renderizaria; sem este par negativo, o teste acima passaria mesmo se
+    // a linha aparecesse em TODO run.
+    renderRow(makeRun({ status: "completed", report_id: "report-ok" }));
+    expect(screen.queryByTestId("history-parecer-retido")).not.toBeInTheDocument();
+  });
+
+  it("não vaza vocabulário de operador do `output_summary`", () => {
+    const run = runComParecerParcial(2);
+    run.stage_logs[1].output_summary = {
+      evidencia_verification: { items_dropped: 2 },
+      reason: "evidencia unverified (severidade alta): risco:3",
+      retention_reason: "parecer.citacao_nao_confirmada",
+      reason_class: "llm_output_invalid",
+    };
+    const { container } = renderRow(run);
+    const html = container.innerHTML;
+    for (const leak of [
+      "evidencia unverified",
+      "parecer.citacao_nao_confirmada",
+      "llm_output_invalid",
+      "items_dropped",
+    ]) {
+      expect(html).not.toContain(leak);
+    }
+    expect(html).not.toMatch(/risco:\s*\d/i);
+  });
+
+  it("a11y: linha nova sem violação critical/serious", async () => {
+    const { container } = renderRow(runComParecerParcial(2));
+    assertNoSeriousViolations(await axe(container));
   });
 });

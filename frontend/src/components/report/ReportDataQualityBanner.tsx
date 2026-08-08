@@ -12,6 +12,8 @@ import {
 import { MonetaryValue } from "./MonetaryValue";
 import { Alert } from "./ui/Alert";
 import { useNeedsReviewCount } from "./hooks/useNeedsReviewCount";
+import { useParecerRetidoCount } from "./hooks/useParecerRetidoCount";
+import { frasePecasRetidas } from "@/lib/parecerRetencaoCopy";
 import {
   computeDataQualitySignals,
   type NaoIdentificadoShare,
@@ -32,14 +34,19 @@ import {
 export function ReportDataQualityBanner({
   data,
   workspaceId,
+  reportId,
   runOutcome,
 }: {
   data: ReportAnalysisData;
   workspaceId: string;
+  /** A40.l22 — necessário para o sinal de parecer parcialmente retido.
+   *  Ausente ⇒ sinal desligado (0), não banner quebrado. */
+  reportId?: string;
   runOutcome: ReportRunOutcome;
 }) {
   const needsReviewDocs = useNeedsReviewCount(workspaceId);
-  const signals = computeDataQualitySignals(data, needsReviewDocs);
+  const parecerRetidos = useParecerRetidoCount(workspaceId, reportId);
+  const signals = computeDataQualitySignals(data, needsReviewDocs, parecerRetidos);
 
   // A40.l18 · ADR-357 — a ordem dos guards importa. `runOutcome` NÃO entra em
   // `computeDataQualitySignals`: se entrasse no `count`, o `SignalsAlert`
@@ -83,9 +90,12 @@ function SignalsAlert({ signals }: { signals: ReportDataQualitySignals }) {
         severity="warning"
         icon={<AlertTriangle className="h-4 w-4" aria-hidden="true" />}
       >
+        {/* A40.l22 — "leitura", não "precisão": item retido afeta
+            COMPLETUDE, e a barra limpa deste mesmo componente já diz
+            "afetem a leitura". Uma palavra alinha os dois estados. */}
         <p className="font-medium">
           Qualidade dos dados — {n}{" "}
-          {n === 1 ? "pendência afeta" : "pendências afetam"} a precisão deste
+          {n === 1 ? "pendência afeta" : "pendências afetam"} a leitura deste
           relatório.
         </p>
         <ul
@@ -101,6 +111,9 @@ function SignalsAlert({ signals }: { signals: ReportDataQualitySignals }) {
           {signals.premissas && <PremissasRow degrade={signals.premissas} />}
           {signals.imoveisPendentes > 0 && (
             <ImoveisPendentesRow count={signals.imoveisPendentes} />
+          )}
+          {signals.parecerRetidos > 0 && (
+            <ParecerRetidoRow count={signals.parecerRetidos} />
           )}
         </ul>
       </Alert>
@@ -169,6 +182,21 @@ function ImoveisPendentesRow({ count }: { count: number }) {
         ? "imóvel sem classificação está"
         : "imóveis sem classificação estão"}{" "}
       fora do módulo de rentabilidade imobiliária.
+    </SignalRow>
+  );
+}
+
+/** A40.l22 — o único estado do parecer que ganha linha aqui.
+ *
+ * "Retido inteiro" fica fora de propósito: seção ausente é auto-evidente ao
+ * rolar, e o sinal é proporcional à INVISIBILIDADE, não à gravidade. Mesmo
+ * label de CTA da seção — o cliente aprende uma ação, não duas.
+ */
+function ParecerRetidoRow({ count }: { count: number }) {
+  return (
+    <SignalRow cta={{ href: "/pipeline", label: "Reprocessar o parecer" }}>
+      {frasePecasRetidas(count)} antes da publicação — a leitura do parecer fica
+      incompleta neste relatório.
     </SignalRow>
   );
 }

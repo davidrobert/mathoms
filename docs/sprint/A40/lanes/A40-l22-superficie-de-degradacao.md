@@ -4,7 +4,7 @@ type: lane
 title: "Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l22-superficie-de-degradacao
 adrs: []
@@ -13,7 +13,7 @@ depends_on:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/frontend
 ---
@@ -49,6 +49,46 @@ tags:
 > virou pegável. É o caso que o §Delta de 2026-08-06 do `_README` previu, agora
 > ocorrido; a [[A40.l18]] sofreu o simétrico (`open` stale pós-merge) no mesmo dia.
 >
+> ✅ **Superfície de degradação entregue em 2026-08-08 — PR #1277.** 4 superfícies
+> declaram a retenção lendo o MESMO contador: nota no hero de `S_parecer` ·
+> 3º contador na caption de `ParecerRisksTable` · 1 linha no
+> `ReportDataQualityBanner` (título "precisão"→"leitura", zero banner novo) ·
+> `HistoryRow` do `/pipeline`. Gate bloqueante em `frontend-checks`
+> (`parecer-degradacao.@critical.spec.ts`, superfície de print por
+> `emulateMedia`), mais gate de contraste em Vitest e `pdftotext` no job de print.
+>
+> ⚠️ **`in_progress`, não `shipped`** — e a razão não é o resíduo abaixo: em
+> 2026-08-07 a lane **recebeu escopo novo** do PR2 da [[A40.l20]] (a copy por
+> código de ausência, ver o ➕ acima), que o #1277 **não** cobre. Como a escolha
+> da palavra é de produto e é do dono, a lane fica pegável nesse item. O #1277
+> fecha a **retenção**; a **ausência** continua aberta.
+>
+> **Do §Critério de aceite, 2 itens ficam abertos e nenhum é fechável nesta lane:**
+>
+> - **A perna de PDF é parcial.** A ressalva do banner chega à camada de texto
+>   (assertada por `pdftotext`, verde no CI); a nota da SEÇÃO não, em geometria
+>   A4 — e nenhum `<h2>` de seção chega. Causa pré-existente no export, fora
+>   desta lane; `test.fixme` nomeado em `print.@critical.spec.ts` marca o ponto
+>   de retomada. Ver detalhe no item 2 abaixo.
+> - **Teste com humano (n=1)** — owner-gated, não executado.
+>
+> **Duas medições da execução que o escopo escrito não previa** (detalhe no PR):
+>
+> 1. **O contador de retenção é escalar do parecer inteiro**, não por bucket:
+>    `retention.items_dropped_count` é um número só, e o enforcement remove
+>    risco **ou** sugestão. A caption diz *"N itens do parecer retidos na
+>    conferência"*, não *"N riscos"* — atribuí-lo ao bucket em cuja caption ele
+>    mora afirmaria algo falso quando o item retido foi uma sugestão. Expor o
+>    breakdown por bucket exigiria coluna + migration, fora do §Aceite.
+> 2. **A perna de PDF do §Critério de aceite é parcial, e a causa é
+>    pré-existente.** A ressalva do banner chega à camada de texto do PDF
+>    (assertada por `pdftotext`); a nota da SEÇÃO não, em geometria A4 — e
+>    nenhum `<h2>` de seção chega (`"Parecer do Planejador"`,
+>    `"Síntese Estratégica"`, `"Apêndice"`: 0 ocorrências). Com
+>    `paperHeight: 300in` o mesmo run traz a nota, os pontos fortes e o
+>    diagnóstico. É defeito do export, não desta lane; o assert fica como
+>    `test.fixme` nomeado em `print.@critical.spec.ts`.
+
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fatia **premium/add-on** da
 > F11.5 — o caminho determinístico dela foi entregue na Sprint B (2026-04-17),
 > conforme `docs/reference/PHASES.md`. Estende A28.l9; **não** inventa banner.

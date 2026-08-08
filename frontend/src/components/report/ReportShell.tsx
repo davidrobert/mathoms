@@ -375,6 +375,7 @@ export function ReportShell({
                   <ReportDataQualityBanner
                     data={dataState.data}
                     workspaceId={workspaceId}
+                    reportId={reportId}
                     runOutcome={runOutcome}
                   />
                 )}

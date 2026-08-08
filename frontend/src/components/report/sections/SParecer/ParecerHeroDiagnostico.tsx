@@ -6,9 +6,13 @@
 
 import type { ParecerContentMeta } from "@/lib/api";
 
+import { ParecerRetencaoParcialNota } from "./ParecerRetencaoNota";
+
 interface ParecerHeroDiagnosticoProps {
   diagnostico: string;
   meta: ParecerContentMeta;
+  /** A40.l22 — itens retidos na conferência (0 = parecer íntegro). */
+  itensRetidos?: number;
 }
 
 function formatGeneratedAt(iso: string): string {
@@ -23,6 +27,7 @@ function formatGeneratedAt(iso: string): string {
 export function ParecerHeroDiagnostico({
   diagnostico,
   meta,
+  itensRetidos = 0,
 }: ParecerHeroDiagnosticoProps) {
   const isPremium = meta.tier_at_generation === "premium";
   return (
@@ -44,13 +49,19 @@ export function ParecerHeroDiagnostico({
           Diagnóstico geral
         </h3>
         <div className="flex items-center gap-2 text-xs">
+          {/* Par sólido do ADR-117 em vez de `color-mix(... transparent)`: o
+              fundo translúcido compositava com o tint de 4% do hero e derrubava
+              o contraste para 4,05:1 (axe serious, light). Com o par sólido o
+              valor deixa de depender do que está atrás — 4,57 light / 6,49 dark. */}
           <span
             className="inline-flex items-center rounded-full px-2 py-0.5 font-medium"
             style={{
               backgroundColor: isPremium
-                ? "color-mix(in srgb, var(--brand-accent) 12%, transparent)"
-                : "color-mix(in srgb, var(--brand-neutral) 12%, transparent)",
-              color: isPremium ? "var(--brand-accent)" : "var(--surface-muted-foreground)",
+                ? "var(--report-badge-green-bg)"
+                : "var(--report-badge-neutral-bg)",
+              color: isPremium
+                ? "var(--report-badge-green-text)"
+                : "var(--report-badge-neutral-text)",
             }}
             data-testid="parecer-tier-badge"
           >
@@ -61,6 +72,7 @@ export function ParecerHeroDiagnostico({
           </span>
         </div>
       </header>
+      <ParecerRetencaoParcialNota count={itensRetidos} />
       <p
         className="font-body text-base leading-relaxed text-[var(--surface-foreground)]"
         data-testid="parecer-diagnostico-body"

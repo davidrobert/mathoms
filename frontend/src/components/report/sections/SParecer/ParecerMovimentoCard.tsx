@@ -13,10 +13,29 @@ import { ParecerAncoraChips } from "./ParecerAncoraChips";
 import type { ImpactoTipo, Prioridade, Sugestao } from "@/lib/api";
 import { useSuggestionActions } from "@/hooks/useSuggestionActions";
 
-const PRIORIDADE_TONE: Record<Prioridade, { token: string; label: string }> = {
-  P0: { token: "var(--semantic-loss)", label: "Urgente" },
-  P1: { token: "var(--semantic-alert)", label: "Importante" },
-  P2: { token: "var(--semantic-info-financial)", label: "Oportunidade" },
+// Mesma separação de `SEVERIDADE_TONE` (A40.l22): `token` é decorativo (bolinha
+// + `border-left`), `textToken` é o rótulo. P1 em `--semantic-alert` sobre
+// `--surface-card` dava 2,06:1 a 10px — não aparecia no axe só porque nenhuma
+// fixture tinha sugestão P1, que é verde-por-fixture, não ausência de defeito.
+const PRIORIDADE_TONE: Record<
+  Prioridade,
+  { token: string; textToken: string; label: string }
+> = {
+  P0: {
+    token: "var(--semantic-loss)",
+    textToken: "var(--semantic-loss)",
+    label: "Urgente",
+  },
+  P1: {
+    token: "var(--semantic-alert)",
+    textToken: "var(--report-alert-warning-text)",
+    label: "Importante",
+  },
+  P2: {
+    token: "var(--semantic-info-financial)",
+    textToken: "var(--semantic-info-financial)",
+    label: "Oportunidade",
+  },
 };
 
 // ADR-220: label semântico do impacto por tipo. Evita "Impacto estimado: R$ X"
@@ -119,7 +138,7 @@ export function ParecerMovimentoCard({
           />
           <span
             className="text-[10px] font-semibold uppercase tracking-wide"
-            style={{ color: tone.token }}
+            style={{ color: tone.textToken }}
           >
             {sugestao.prioridade} · {tone.label}
           </span>

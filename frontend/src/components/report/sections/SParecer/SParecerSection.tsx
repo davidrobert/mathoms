@@ -5,16 +5,17 @@
 // (não data_source do snapshot E5, igual a PlanoDeAcao). Renderer único
 // pós-ADR-129. CSS de print em `SParecer.print.css`.
 
-import Link from "next/link";
 import { useCallback } from "react";
 
 import { Alert } from "../../ui/Alert";
 import { ReportSection } from "../../ReportSection";
+import { parecerItensRetidos } from "../../utils/parecerRetencao";
 import { usePlannerReview } from "@/hooks/usePlannerReview";
 
 import { ParecerHeroDiagnostico } from "./ParecerHeroDiagnostico";
 import { ParecerHorizonteList } from "./ParecerHorizonteList";
 import { ParecerMetricasTable } from "./ParecerMetricasTable";
+import { ReprocessarParecerLink } from "./ParecerRetencaoNota";
 import { ParecerRisksTable } from "./ParecerRisksTable";
 import { PontosFortesList } from "./PontosFortesList";
 import "./SParecer.print.css";
@@ -57,6 +58,7 @@ export function SParecerSection({
         {state.kind === "ready" && (
           <ParecerBody
             content={state.content}
+            itensRetidos={parecerItensRetidos(state.data)}
             workspaceId={workspaceId}
             onMutate={handleMutate}
           />
@@ -94,20 +96,10 @@ const RETAINED_BODY: Record<string, string> = {
     "Antes de publicar, revisamos o parecer gerado. Parte do conteúdo não passou nessa revisão. Preferimos reter o parecer a publicar o que não podemos sustentar.",
 };
 
-const RETAINED_FALLBACK = "O parecer deste relatório não foi publicado.";
-
-function ReprocessarParecerLink() {
-  return (
-    <p className="mt-2 text-sm">
-      <Link href="/pipeline" className="text-[var(--brand-primary)] underline">
-        Reprocessar o parecer
-      </Link>{" "}
-      <span className="text-[var(--surface-muted-foreground)]">
-        — refaz somente o parecer e usa sua chave de IA novamente.
-      </span>
-    </p>
-  );
-}
+// "retido", não "não foi publicado": COPY_GUIDELINES §2.2 `@2026-08-06` bane o
+// segundo por colidir com o estado `Publicado` da ADR-204 — e §11 põe o guia
+// acima do código.
+const RETAINED_FALLBACK = "O parecer deste relatório foi retido antes da publicação.";
 
 function ParecerRetainedState({ reason }: { reason?: string }) {
   // Motivo desconhecido cai no fallback — classe nova jamais apaga a seção.
@@ -130,11 +122,18 @@ function ParecerRetainedState({ reason }: { reason?: string }) {
 
 interface ParecerBodyProps {
   content: import("@/lib/api").ParecerPlanejadorContent;
+  /** A40.l22 — itens retidos na conferência (0 = parecer íntegro). */
+  itensRetidos: number;
   workspaceId: string;
   onMutate: () => Promise<void>;
 }
 
-function ParecerBody({ content, workspaceId, onMutate }: ParecerBodyProps) {
+function ParecerBody({
+  content,
+  itensRetidos,
+  workspaceId,
+  onMutate,
+}: ParecerBodyProps) {
   // Defensive: content.meta pode estar ausente em mocks/fixtures legados
   // ou em casos de erro de serialização parcial. Trate como gated=0 nesses casos.
   const gated = content.meta?.gated_counts ?? {
@@ -152,6 +151,7 @@ function ParecerBody({ content, workspaceId, onMutate }: ParecerBodyProps) {
       <ParecerHeroDiagnostico
         diagnostico={content.diagnostico_geral}
         meta={content.meta}
+        itensRetidos={itensRetidos}
       />
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -159,7 +159,11 @@ function ParecerBody({ content, workspaceId, onMutate }: ParecerBodyProps) {
           pontos={content.pontos_fortes}
           gatedCount={gated.pontos_fortes}
         />
-        <ParecerRisksTable riscos={content.riscos} gatedCount={gated.riscos} />
+        <ParecerRisksTable
+          riscos={content.riscos}
+          gatedCount={gated.riscos}
+          retidosCount={itensRetidos}
+        />
       </div>
 
       <ParecerHorizonteList

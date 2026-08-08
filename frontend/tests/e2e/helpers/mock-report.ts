@@ -58,6 +58,15 @@ export const PLANNER_REVIEW_NOT_GENERATED: PlannerReviewStub = {
   body: { detail: "not_generated_yet" },
 };
 
+/** A40.l22 — os 2 desfechos de degradação, como stub pronto.
+ *
+ * O contrato do `plannerReview` é o `PlannerReviewStub` cru (#1281), para o
+ * smoke poder injetar qualquer payload. Estes dois são atalhos nomeados: o
+ * DOM dos estados de degradação é longo, e replicá-lo em 4 specs garantiria
+ * deriva entre eles.
+ */
+export type PlannerReviewFixture = "retido" | "parcial";
+
 interface MockOptions {
   reportId?: string;
   workspaceId?: string;
@@ -68,6 +77,111 @@ interface MockOptions {
    * sem isso o assert só alcança o estado vazio.
    */
   plannerReview?: PlannerReviewStub;
+}
+
+/** Contagem única em toda a superfície de teste: seção, banner, `/pipeline` e
+ *  PDF têm de dizer o MESMO número, então ele não pode ser literal solto. */
+export const PARECER_ITENS_RETIDOS = 2;
+
+function parecerContent() {
+  const meta = {
+    tier_at_generation: "premium",
+    persona_hash: "a".repeat(64),
+    manifest_version: "1.0",
+    schema_version: "1.0",
+    model_id: "anthropic/claude-sonnet-4",
+    generated_at: "2026-08-07T12:00:00Z",
+    gated_counts: {
+      pontos_fortes: 0,
+      riscos: 0,
+      sugestoes_execucao: 0,
+      sugestoes_taticas: 0,
+      sugestoes_estrategicas: 0,
+      metricas: 0,
+      notas_metodologicas: 0,
+    },
+  };
+  const risco = (titulo: string) => ({
+    severidade: "Média",
+    titulo,
+    descricao: "Descrição sintética, sem valor monetário nem identificador.",
+    tema_canonico: "Alocação",
+    evidencia: null,
+    evidencia_path: null,
+    ancoras: [],
+    section_id: "S4",
+    confianca: "media",
+  });
+  // Uma sugestão por prioridade: `PRIORIDADE_TONE` tem 3 membros e o rótulo P1
+  // era o que falhava contraste. Fixture com um só valor deixaria o gate de
+  // a11y verde por AUSÊNCIA do caso, não por correção (A40.l22).
+  const sugestao = (prioridade: string, acao: string) => ({
+    prioridade,
+    acao,
+    impacto_qualitativo: "Reduz exposição concentrada sem alterar a liquidez.",
+    tema_canonico: "Alocação",
+    confianca: "media",
+    section_id: "S4",
+    suggestion_dedup_key: prioridade.toLowerCase().repeat(32).slice(0, 64),
+    impacto_estimado: null,
+    evidencia_path: null,
+    ancoras: [],
+  });
+  return {
+    version: "1.0",
+    diagnostico_geral:
+      "Família com reserva adequada e concentração de ativos acima do recomendado.",
+    pontos_fortes: [
+      {
+        titulo: "Reserva de emergência coberta",
+        descricao: "Liquidez suficiente para o horizonte declarado.",
+        tema_canonico: "Saúde de balanço",
+        section_id: "S1",
+      },
+    ],
+    // Uma de cada severidade que renderiza no top-5: Crítica e Média cobrem os
+    // dois `textToken` distintos de `SEVERIDADE_TONE`.
+    riscos: [
+      { ...risco("Concentração de ativos acima do teto"), severidade: "Crítica" },
+      risco("Cobertura de seguro insuficiente"),
+    ],
+    sugestoes_execucao: [sugestao("P0", "Redistribuir 15% da posição concentrada")],
+    sugestoes_taticas: [sugestao("P1", "Revisar o capital segurado do titular")],
+    sugestoes_estrategicas: [sugestao("P2", "Avaliar previdência complementar")],
+    metricas: [],
+    notas_metodologicas: [],
+    meta,
+  };
+}
+
+function parecerResponse(kind: PlannerReviewFixture) {
+  const parcial = kind === "parcial";
+  return {
+    id: "planner-review-fixture",
+    workspace_id: MOCK_WORKSPACE_ID,
+    pipeline_run_id: "run-fixture",
+    status: "Gerado",
+    persona_hash: "a".repeat(64),
+    manifest_version: "1.0",
+    schema_version: "1.0",
+    model_id: "anthropic/claude-sonnet-4",
+    tier_at_generation: "premium",
+    items_shown_count: parcial ? 3 : 0,
+    items_gated_count: 0,
+    cost_usd_cents: 42,
+    created_at: "2026-08-07T12:00:00Z",
+    published_at: null,
+    superseded_at: null,
+    supersedes_id: null,
+    superseded_by_id: null,
+    immutable_hash: null,
+    outcome: parcial ? "entregue_com_retencao" : "retido",
+    retention: {
+      reason: "parecer.citacao_nao_confirmada",
+      items_dropped_count: parcial ? PARECER_ITENS_RETIDOS : 0,
+    },
+    content: parcial ? parecerContent() : null,
+  };
 }
 
 function loadFixture(name: FixtureName): unknown {
@@ -263,6 +377,9 @@ export async function mockReportPage(
     // default não há parecer gerado; retornar 404 faz o componente
     // renderizar `<ParecerEmptyState />` (estado canônico do
     // not_generated). Catch-all `{}` quebrava com "content.meta undefined".
+    // A40.l22 — `plannerReview` troca o desfecho servido. O `ReportShell`
+    // consome o MESMO endpoint pelo banner, então a opção governa as duas
+    // superfícies com uma rota só.
     if (path.match(/\/reports\/[^/]+\/planner-review$/)) {
       return json(route, plannerReview.body, plannerReview.status);
     }
@@ -276,4 +393,9 @@ export async function mockReportPage(
 /** Espera o shell estar pronto (data-report-ready="true" no <article>). */
 export async function waitForReportReady(page: Page): Promise<void> {
   await page.waitForSelector('[data-report-ready="true"]', { timeout: 15_000 });
+}
+
+/** Stub do desfecho de degradação, para `mockReportPage({ plannerReview })`. */
+export function plannerReviewStub(kind: PlannerReviewFixture): PlannerReviewStub {
+  return { status: 200, body: parecerResponse(kind) };
 }

@@ -7,6 +7,7 @@
 import { AlertOctagon, AlertTriangle, Info } from "lucide-react";
 
 import { ParecerAncoraChips } from "./ParecerAncoraChips";
+import { frasePecasRetidas } from "@/lib/parecerRetencaoCopy";
 import type { Risco, Severidade } from "@/lib/api";
 
 const SEVERIDADE_RANK: Record<Severidade, number> = {
@@ -16,23 +17,37 @@ const SEVERIDADE_RANK: Record<Severidade, number> = {
   Baixa: 3,
 };
 
+// `token` pinta ícone, `border-left` e tint — todos decorativos (o ícone é
+// `aria-hidden` e a severidade também é texto), onde 3:1 basta. `textToken` é o
+// RÓTULO, que precisa de 4,5:1 a 10px. Só Média divergia: `--semantic-alert`
+// sobre o próprio tint dá 1,97 em light (medido por axe ao dar cobertura a
+// `ParecerBody` — A40.l22). Crítica/Alta 5,84 e Baixa 5,25 já passavam, e
+// mantêm `textToken = token` para a triagem por cor continuar de pé.
 const SEVERIDADE_TONE: Record<
   Severidade,
-  { token: string; Icon: typeof Info; label: string }
+  { token: string; textToken: string; Icon: typeof Info; label: string }
 > = {
   Crítica: {
     token: "var(--semantic-loss)",
+    textToken: "var(--semantic-loss)",
     Icon: AlertOctagon,
     label: "Crítica",
   },
-  Alta: { token: "var(--semantic-loss)", Icon: AlertOctagon, label: "Alta" },
+  Alta: {
+    token: "var(--semantic-loss)",
+    textToken: "var(--semantic-loss)",
+    Icon: AlertOctagon,
+    label: "Alta",
+  },
   Média: {
     token: "var(--semantic-alert)",
+    textToken: "var(--report-alert-warning-text)",
     Icon: AlertTriangle,
     label: "Média",
   },
   Baixa: {
     token: "var(--semantic-info-financial)",
+    textToken: "var(--semantic-info-financial)",
     Icon: Info,
     label: "Baixa",
   },
@@ -44,6 +59,11 @@ interface ParecerRisksTableProps {
   riscos: Risco[];
   /** Sinaliza teaser do tier free — exibido como caption "+N no Premium". */
   gatedCount?: number;
+  /** A40.l22 — itens retidos na conferência, escalar do parecer inteiro.
+   *  Contador ortogonal ao `gatedCount`: retido = qualidade (ação
+   *  reprocessar), gated = comercial (ação comprar). Somá-los apagaria a
+   *  diferença de ação. */
+  retidosCount?: number;
 }
 
 function sortBySeveridade(riscos: Risco[]): Risco[] {
@@ -55,6 +75,7 @@ function sortBySeveridade(riscos: Risco[]): Risco[] {
 export function ParecerRisksTable({
   riscos,
   gatedCount = 0,
+  retidosCount = 0,
 }: ParecerRisksTableProps) {
   if (riscos.length === 0 && gatedCount === 0) return null;
 
@@ -68,17 +89,20 @@ export function ParecerRisksTable({
       aria-labelledby="parecer-risks-title"
       data-testid="parecer-risks-table"
     >
-      <header className="mb-2 flex items-baseline justify-between gap-2">
+      {/* `<md` empilha: com 3 contadores a caption não cabe ao lado do h3. */}
+      <header className="mb-2 flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between md:gap-2">
         <h3
           id="parecer-risks-title"
           className="font-heading text-lg font-semibold text-[var(--surface-foreground)]"
         >
           Riscos identificados
         </h3>
-        <span className="text-xs text-[var(--surface-muted-foreground)]">
-          Mostrando {visible.length} de {riscos.length}
-          {gatedCount > 0 && ` · +${gatedCount} no Premium`}
-        </span>
+        <RisksCaption
+          visible={visible.length}
+          total={riscos.length}
+          gatedCount={gatedCount}
+          retidosCount={retidosCount}
+        />
       </header>
 
       <ul className="flex flex-col gap-2">
@@ -103,13 +127,60 @@ export function ParecerRisksTable({
   );
 }
 
+/** Caption dos 3 contadores.
+ *
+ * Cada contador em `<span>` próprio com `flex-wrap`, e o `·` separado e
+ * `aria-hidden`: a 12px o leitor lê posicionalmente ("5, 7, 2" ⇒ 5+2=7), então
+ * o substantivo de cada contador é o que separa "riscos" de "itens do parecer".
+ * Quebrar no meio de "itens do parecer retidos" reintroduziria a ambiguidade.
+ */
+function RisksCaption({
+  visible,
+  total,
+  gatedCount,
+  retidosCount,
+}: {
+  visible: number;
+  total: number;
+  gatedCount: number;
+  retidosCount: number;
+}) {
+  return (
+    <span
+      className="flex flex-wrap gap-x-2 text-xs text-[var(--surface-muted-foreground)]"
+      data-testid="parecer-risks-caption"
+    >
+      <span className="whitespace-nowrap">
+        Mostrando {visible} de {total} {total === 1 ? "risco" : "riscos"}
+      </span>
+      {retidosCount > 0 && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span data-testid="parecer-risks-caption-retidos">
+            {frasePecasRetidas(retidosCount)}
+          </span>
+        </>
+      )}
+      {gatedCount > 0 && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span className="whitespace-nowrap">+{gatedCount} no Premium</span>
+        </>
+      )}
+    </span>
+  );
+}
+
 function RiscoRow({ risco }: { risco: Risco }) {
   const tone = SEVERIDADE_TONE[risco.severidade];
   const Icon = tone.Icon;
+  // `role="article"` no `<li>` quebrava a estrutura da lista (axe `list`,
+  // serious): a `<ul>` passava a ter filho que não é `listitem`. O
+  // `aria-label` que ele carregava era redundante — severidade e título já
+  // são texto dentro do item. Medido ao dar cobertura axe a `ParecerBody`
+  // pela primeira vez (A40.l22): a seção só era escaneada no estado empty.
   return (
     <li
-      role="article"
-      aria-label={`Risco ${tone.label}: ${risco.titulo}`}
       className="flex items-start gap-3 rounded-md border border-[var(--surface-border)] border-l-[3px] px-4 py-3"
       style={{
         borderLeftColor: tone.token,
@@ -128,7 +199,7 @@ function RiscoRow({ risco }: { risco: Risco }) {
           </p>
           <span
             className="shrink-0 text-[10px] font-medium uppercase tracking-wide"
-            style={{ color: tone.token }}
+            style={{ color: tone.textToken }}
           >
             {tone.label}
           </span>
