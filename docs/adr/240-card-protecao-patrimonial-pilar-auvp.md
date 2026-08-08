@@ -18,11 +18,13 @@ relates_to:
   - "[[ADR-239]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-08"]
 aliases:
   - "ADR 240"
   - "S_PROTECAO"
   - "Proteção Patrimonial"
   - "Pilar AUVP Proteção"
+  - "Seguros — Cobertura Contratada"
 tags:
   - type/adr
   - status/decidido
@@ -33,6 +35,12 @@ tags:
   - methodology/perini
   - phase/a19
 ---
+
+> **Emenda de copy (2026-08-08, PR #1286):** o **título user-facing** da seção
+> passou a ser **"Seguros — Cobertura Contratada"**. Os esboços de layout abaixo
+> ainda escrevem "Proteção Patrimonial" — leia-os como o **nome de domínio
+> interno** (id `S_PROTECAO`, payload `protecao_patrimonial`, analyzer
+> homônimo), que permanece. Detalhe em §Emenda no fim.
 
 ## Contexto
 
@@ -281,3 +289,39 @@ Lane [[A19.l1]] entregue em 4 PRs squash-mergeados em `main` (todos CI verde):
 - **P2.1** — Reorderação S3↔S4 para ordem AUVP completa (`S2 → S_PROTECAO → S4 → S3 → S8`). Requer visual review explícito de snapshots PDF. Sub-task isolada.
 - **Card vida/saúde funcional V1** — schema + chips placeholder existem; tabela com capital segurado + beneficiários + rede credenciada fica em V2 (Sprint A20+ condicional a apólices reais de vida/saúde).
 - **`flag_vida` heurístico** — gating depende de `family_members` populado (gate G5 garante degradação graceful quando ausente). V2 pode integrar dependentes IRPF via E1.6.
+
+## Emenda 2026-08-08 — título user-facing deixa de atribuir metodologia
+
+**O que muda:** só o título renderizado da seção 2.5.
+
+| | Antes | Depois |
+| --- | --- | --- |
+| `config/report_layout.yaml` → TOC | "Proteção Patrimonial — Pilar AUVP" | **"Seguros — Cobertura Contratada"** |
+| `S_ProtecaoSection.tsx` → heading | "Proteção Patrimonial — 4º Pilar" | **"Seguros — Cobertura Contratada"** |
+
+**O que NÃO muda:** id `S_PROTECAO`, chave de payload `protecao_patrimonial`,
+`protecao_analyzer.py`, os KPIs G/B/F, o posicionamento entre S2 e S4, e toda a
+atribuição interna deste documento — §13.4 do
+[COPY_GUIDELINES](../reference/COPY_GUIDELINES.md) permite, e os esboços de
+layout acima seguem válidos como nome de domínio.
+
+**Por quê.** "Pilar AUVP" é marca de curso sem licença e chegava ao cliente pela
+entrada de índice do relatório — §13.1, bloqueante. O gate `sigilo-terms` não
+pegava: o título nasce em config e chega à UI por codegen ([[ADR-076]]), fora das
+duas surfaces que o hook cobria. O PR fecha o furo com surface própria
+(`dev/_sigilo_copy_yaml.py`).
+
+**Por que não "Proteção Patrimonial" nu** (recusado por `product-designer` +
+`financial-planner`): em PT-BR o termo lê primeiro como *blindagem patrimonial*
+(holding, sucessão, credores) e, no jargão SUSEP, como *ramo patrimonial* = bens
+**em oposição a** pessoas. Sucessão/ITCMD mora na S9 ([[ADR-192]]), então o termo
+apontaria para a seção que ele não titula; e a V2 desta ADR (D4: vida/saúde/AP)
+o tornaria ainda menos exato. Registro da substituição em COPY_GUIDELINES §13.2.
+
+**Não fecha D3.** Continua aberto que o KPI F (`gap_qualitativo`) afirma ausência
+de cobertura lendo **apenas** apólice extraída de documento, enquanto a S9 lê o
+aggregate `Protection` ([[ADR-192]] D1/D2) — workspace que cadastra apólice sem
+subir PDF vê "coberto" na S9 e "não identificamos" aqui. A correção de domínio
+(afirmação de ausência sobre a **união** das evidências) é emenda futura a D3,
+com dono `financial-planner` + `senior-cto`, e deve preceder o flip de
+`enabled: true` decidido na [[A40.l7]].
