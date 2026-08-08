@@ -67,13 +67,14 @@ def test_cores_genuinamente_diferentes_ficam_de_fora() -> None:
     assert not ctc.is_same_color_pair("surface-foreground", "surface-border")
 
 
-def test_pares_nomeados_cobrem_os_icones_com_limiar_de_nao_texto() -> None:
-    """Os 2 ícones que o pareamento por className não alcança (tint no pai,
-    `text-[…]` no filho) entram como par nomeado, sob 1.4.11 = 3:1."""
+def test_pares_nomeados_cobrem_o_que_o_pareamento_por_linha_nao_alcanca() -> None:
+    """Duas famílias entram como par nomeado: ícone em elemento filho (1.4.11 =
+    3:1) e `style` inline com bg/fg em linhas separadas (texto = 4,5:1)."""
     pares = ctc.named_pairs()
     assert len(pares) == len(ctc.NAMED_PAIRS)
-    assert all(p.min_ratio == ctc.AA_NAO_TEXTO for p in pares)
     assert all(p.fg_token.endswith("-on-tint") for p in pares)
+    limiares = {p.min_ratio for p in pares}
+    assert limiares == {ctc.AA_NAO_TEXTO, ctc.AA_TEXTO_PEQUENO}
 
 
 def test_entrada_nomeada_stale_falha(monkeypatch: pytest.MonkeyPatch) -> None:

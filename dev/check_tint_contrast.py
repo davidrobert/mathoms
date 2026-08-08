@@ -48,6 +48,15 @@ AA_NAO_TEXTO = 3.0
 NAMED_PAIRS = [
     ("components/report/provenance/ProvenancePopover.tsx", "semantic-alert", 15, AA_NAO_TEXTO),
     ("components/report/cards/CascataFiscalCard.pgbl.tsx", "semantic-alert", 10, AA_NAO_TEXTO),
+    # `alocacaoCardParts.BADGE_COLOR` monta o par por `style` inline, com `bg` e
+    # `fg` em linhas separadas de um object literal — o pareamento por linha não
+    # alcança, e a forma `color-mix(in srgb, …)` (com espaços) nem casa com o
+    # arbitrary value do Tailwind. Foi a varredura dark do axe que achou:
+    # `rebalancear` dava 4,44:1. Nomeados porque cobrir object literal por regex
+    # seria frágil o bastante para virar falso-verde.
+    ("components/report/cards/alocacaoCardParts.tsx", "semantic-gain", 12, AA_TEXTO_PEQUENO),
+    ("components/report/cards/alocacaoCardParts.tsx", "semantic-alert", 14, AA_TEXTO_PEQUENO),
+    ("components/report/cards/alocacaoCardParts.tsx", "semantic-loss", 14, AA_TEXTO_PEQUENO),
 ]
 
 # `--semantic-warning` e `--semantic-alert` são o mesmo hex, idem
