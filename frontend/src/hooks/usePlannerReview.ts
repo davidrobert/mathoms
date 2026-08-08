@@ -12,16 +12,16 @@ import {
   ApiError,
   getErrorCode,
   getPlannerReview,
+  type ParecerAbsenceCode,
   type ParecerPlanejadorContent,
-  type PlannerReviewAbsenceCode,
   type PlannerReviewResponse,
 } from "@/lib/api";
 
 export type PlannerReviewState =
   | { kind: "loading" }
-  // `code` diz QUAL ausência (ADR-366 §D6). O hook só transporta: escolher copy
-  // por código é da A40.l22, e inventá-la aqui seria decidir no lugar dela.
-  | { kind: "not_generated"; code: PlannerReviewAbsenceCode }
+  // `code` diz QUAL ausência (ADR-366 §D6). Nunca `report_not_found`: aquele diz
+  // que o RELATÓRIO não existe, não que o parecer falta, e vai para `error`.
+  | { kind: "not_generated"; code: ParecerAbsenceCode }
   // Gerado e retido por qualidade/política (ADR-366): 200 com `content: null`.
   // Discriminado pelo `outcome` do payload, NÃO por 404 — 404 continua sendo
   // ausência ("nunca rodou" / free), que é outra coisa e outra copy.
@@ -45,18 +45,25 @@ function describeError(err: unknown): string {
   return "Erro ao carregar parecer.";
 }
 
-const ABSENCE_CODES: readonly PlannerReviewAbsenceCode[] = [
-  "report_not_found",
+const SECTION_ABSENCE_CODES: readonly ParecerAbsenceCode[] = [
   "not_generated_yet",
   "generation_unavailable",
   "parecer_artifact_missing",
+  "tier_gated",
 ];
 
-// Código desconhecido cai no de sempre: o servidor pode ganhar membro antes do
-// cliente, e nesse intervalo a copy conservadora é melhor que estado indefinido.
-function absenceCode(err: ApiError): PlannerReviewAbsenceCode {
+// `report_not_found` sai por ser CONHECIDO e semanticamente errado aqui: ele diz
+// que o RELATÓRIO não existe, e a seção diria "parecer ainda não gerado" numa
+// página cujo relatório não resolve — descrevendo o defeito errado para quem só
+// pode agir sobre ele. Devolve `null` ⇒ estado de erro.
+//
+// Código DESCONHECIDO segue caindo no conservador, e a razão original continua
+// válida: o servidor pode ganhar membro antes do cliente, e nesse intervalo copy
+// genérica é melhor que erro. Só o caso nomeado muda de destino.
+function absenceCode(err: ApiError): ParecerAbsenceCode | null {
   const code = getErrorCode(err);
-  return ABSENCE_CODES.find((c) => c === code) ?? "not_generated_yet";
+  if (code === "report_not_found") return null;
+  return SECTION_ABSENCE_CODES.find((c) => c === code) ?? "not_generated_yet";
 }
 
 // `content` não-nulo é estreitado aqui, uma vez, em vez de em cada leitor.
@@ -76,8 +83,11 @@ async function _doFetch(
     setState(toState(await getPlannerReview(workspaceId, reportId)));
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
-      setState({ kind: "not_generated", code: absenceCode(err) });
-      return;
+      const code = absenceCode(err);
+      if (code) {
+        setState({ kind: "not_generated", code });
+        return;
+      }
     }
     setState({ kind: "error", message: describeError(err) });
   }

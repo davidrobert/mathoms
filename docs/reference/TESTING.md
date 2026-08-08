@@ -416,6 +416,37 @@ CI pode rodar workflow `nightly-flaky-report.yml` (a criar) que lista tests com 
 > então um modo removido no futuro produz órfãs de novo sem sinal. Ao mexer
 > aqui, confira com `ls <dir> | wc -l` em vez de confiar no número escrito.
 
+### O gate de inventário é o irmão em texto — leia-o antes de rebaselinar
+
+Diff de PNG não é revisável em PR, e é por isso que **rebaselinar é a saída
+natural quando um componente desaparece**: a baseline só encolhe e nada nomeia o
+que saiu. Foi assim que o card "Alocação · Atual vs Alvo" ficou ~3 meses fora do
+relatório (#906 → congelado no #1290) e que a baseline do PDF congelou um error
+boundary por 3,5 meses.
+
+[[ADR-370]] fecha a classe com `report-inventory.@critical.spec.ts` +
+`report-inventory.expected.json`: conjunto de cards por seção, em texto, varrido
+da estrutura do DOM. Card que some **falha por nome**. (Contagem de propósito não
+escrita aqui — o JSON é a fonte, pelo mesmo motivo da ressalva de contagem acima.)
+
+Use-o como instrumento de atribuição: **se o inventário não mudou, a diferença de
+pixel é estilo/layout, não conteúdo.** Se mudou, o diff diz qual card.
+
+Duas regras que não são convenção, são mecânica:
+
+- **`MATHOMS_UPDATE_INVENTORY=1` só ACRESCENTA.** Card novo é regenerável; card
+  que sai exige **apagar a linha à mão**, e a linha apagada aparece no diff. Sem
+  isso o arquivo seria a baseline PNG em texto — um comando que lava perda de
+  cobertura. O modo update também reprova remoção, para não dar verde local e
+  vermelho no CI.
+- **A fixture `medium` é superfície completa.** *"A fixture não tem o dado"* não
+  é justificativa para card ausente — é exatamente o defeito de origem. Ausência
+  legítima é remoção de produto, justificada no PR.
+
+Roda no step `Report render gate` de `frontend-checks` (dentro de
+`all-green.needs`), **sem label e sem path filter** — ao contrário do gate de
+pixel, que é opt-in por label.
+
 ### Por que **não** rodar local em macOS
 
 `sections.snapshots.visual.spec.ts` está documentado:
@@ -631,6 +662,7 @@ A: 1) tente reproduzir local com `--repeat-each=10`. 2) se confirmado, quarenten
 | Frontend E2E (chromium)            | `cd frontend && npm run test:e2e`                          |
 | Frontend E2E (cross-browser)       | `PW_CROSS_BROWSER=1 npm run test:e2e`                      |
 | Frontend E2E debug                 | `npm run test:e2e -- --debug`                              |
+| Inventário de cards (só ACRESCENTA) | `cd frontend && MATHOMS_UPDATE_INVENTORY=1 npx playwright test tests/e2e/reports/report-inventory.@critical.spec.ts --project=chromium` |
 | Sobe stack de teste (pg+redis)     | `./scripts/test_backend_up.sh`                             |
 | Reset DB de teste                  | `./scripts/test_backend_up.sh --reset`                     |
 | Derruba stack                      | `./scripts/test_backend_down.sh`                           |

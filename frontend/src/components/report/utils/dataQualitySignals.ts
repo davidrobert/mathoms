@@ -161,3 +161,18 @@ export function computeDataQualitySignals(
   };
   return { ...parcial, count: countActiveSignals(parcial) };
 }
+
+/** Chaves de KPI de IF que o bloco de stats da S7 realmente lê. */
+const IF_STAT_KEYS = ["if_meta", "if_pct", "ano_if", "if_gap"] as const;
+
+/** Há ao menos um KPI de IF para mostrar?
+ *
+ * O gate da S7 era a truthiness de `goals`, mas o E5 emite a chave SEMPRE
+ * (dict, eventualmente só com `alocacao_alvo`): workspace sem meta de IF
+ * caía no ramo verdadeiro e imprimia "—  0,0%  —  —". Hide-when-empty.
+ */
+export function hasIfStats(
+  goals: Record<string, unknown> | undefined,
+): goals is Record<string, unknown> {
+  return goals != null && IF_STAT_KEYS.some((key) => goals[key] != null);
+}

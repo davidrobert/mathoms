@@ -166,7 +166,15 @@ export type PlannerReviewAbsenceCode =
   | "report_not_found"
   | "not_generated_yet"
   | "generation_unavailable"
-  | "parecer_artifact_missing";
+  | "parecer_artifact_missing"
+  | "tier_gated";
+
+/**
+ * Subconjunto que a SEÇÃO sabe explicar. `report_not_found` fica de fora de
+ * propósito: ele diz que o RELATÓRIO não existe, e renderizar "parecer ainda não
+ * gerado" numa seção de um relatório inexistente descreve o defeito errado.
+ */
+export type ParecerAbsenceCode = Exclude<PlannerReviewAbsenceCode, "report_not_found">;
 
 /** Motivo da retenção — classe FECHADA; nunca o `error_detail` cru (ADR-366 §D3). */
 export type ParecerRetentionReason =

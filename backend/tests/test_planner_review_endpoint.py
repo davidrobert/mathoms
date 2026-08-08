@@ -147,12 +147,31 @@ async def test_get_returns_404_when_review_missing(auth_client, db):
     from backend.app.models.workspace import Workspace
 
     ws = (await db.execute(select(Workspace))).scalar_one()
-    run = await factories.make_run(db, workspace=ws)
+    # `tier_at_run` explícito: a factory default para `free`, que agora é OUTRO
+    # código. Deixar implícito faria este teste medir o tier sem dizer que mede.
+    run = await factories.make_run(db, workspace=ws, tier_at_run="premium")
     report = await factories.make_report(db, workspace=ws, pipeline_run=run)
     await db.commit()
     resp = await auth_client.get(f"/api/workspaces/{ws.id}/reports/{report.id}/planner-review")
     assert resp.status_code == 404
     assert resp.json()["detail"]["code"] == "not_generated_yet"
+
+
+@pytest.mark.asyncio
+async def test_get_404_tier_gated_quando_o_run_foi_free(auth_client, db):
+    """Free sem artifact deixa de ser `not_generated_yet` — são ações opostas (ADR-366 §D6)."""
+    from backend.app.models.workspace import Workspace
+
+    ws = (await db.execute(select(Workspace))).scalar_one()
+    run = await factories.make_run(db, workspace=ws, tier_at_run="free")
+    report = await factories.make_report(db, workspace=ws, pipeline_run=run)
+    await db.commit()
+
+    resp = await auth_client.get(f"/api/workspaces/{ws.id}/reports/{report.id}/planner-review")
+    assert resp.status_code == 404
+    assert resp.json()["detail"]["code"] == "tier_gated"
+    # Mesma guarda do `generation_unavailable`: nada de vocabulário de operador.
+    assert "LLM" not in resp.text and "error" not in resp.text
 
 
 @pytest.mark.asyncio

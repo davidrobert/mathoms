@@ -348,5 +348,78 @@
     "contador_nome": "Contabilidade Teste",
     "holding_prazo_meses": null,
     "_source": "fixture"
+  },
+  "goals": {
+    "alocacao_alvo": {
+      "rf_pos_pct": 20.0,
+      "rf_pre_pct": 10.0,
+      "rf_ipca_pct": 10.0,
+      "acoes_br_pct": 25.0,
+      "acoes_int_pct": 25.0,
+      "fiis_pct": 10.0,
+      "derived": {
+        "comparaveis": [
+          {
+            "classe": "renda_fixa",
+            "valor_brl": 350000.0,
+            "componentes": ["Renda Fixa"],
+            "atual_pct": 58.33,
+            "alvo_pct": 40.0,
+            "desvio_pp": 18.33,
+            "severity": "rebalancear"
+          },
+          {
+            "classe": "acoes_int",
+            "valor_brl": 60000.0,
+            "componentes": ["Internacional"],
+            "atual_pct": 10.0,
+            "alvo_pct": 25.0,
+            "desvio_pp": -15.0,
+            "severity": "rebalancear"
+          },
+          {
+            "classe": "fiis",
+            "valor_brl": 40000.0,
+            "componentes": ["FIIs"],
+            "atual_pct": 6.67,
+            "alvo_pct": 10.0,
+            "desvio_pp": -3.33,
+            "severity": "atencao"
+          },
+          {
+            "classe": "acoes_br",
+            "valor_brl": 150000.0,
+            "componentes": ["Ações BR"],
+            "atual_pct": 25.0,
+            "alvo_pct": 25.0,
+            "desvio_pp": 0.0,
+            "severity": "alinhado"
+          },
+          {
+            "classe": "fora_alvo",
+            "valor_brl": 0.0,
+            "componentes": [],
+            "atual_pct": 0.0,
+            "alvo_pct": 0.0,
+            "desvio_pp": 0.0,
+            "severity": "alinhado"
+          }
+        ],
+        "desvio_max_pct": 18.33,
+        "next_aporte_classe": "acoes_int",
+        "carteira_liquida_brl": 600000.0,
+        "caixa": {
+          "valor_brl": 100000.0,
+          "atual_pct_patrimonio": 6.67,
+          "alvo_pct": null,
+          "excesso_pp": null,
+          "sinal_excesso": false
+        },
+        "imoveis_fisicos_brl": 800000.0,
+        "has_alvo": true,
+        "rf_comparacao": "agregada",
+        "alvo_renormalizado_defensivo": false
+      }
+    }
   }
 }

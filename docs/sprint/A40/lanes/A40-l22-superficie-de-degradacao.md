@@ -57,6 +57,83 @@ tags:
 > (`parecer-degradacao.@critical.spec.ts`, superfície de print por
 > `emulateMedia`), mais gate de contraste em Vitest e `pdftotext` no job de print.
 >
+> ✅ **Copy por código de ausência entregue em 2026-08-08 — decisão do dono.**
+> Fecha o ➕ recebido do PR2 da [[A40.l20]] **e** a metade free tier. Emenda datada
+> na [[ADR-366]] §D6 (o vocabulário fechado passa a ter 5 membros).
+>
+> | Código | Copy | CTA |
+> |---|---|---|
+> | `not_generated_yet` | "Parecer não disponível neste relatório" | — (é o membro fallback) |
+> | `tier_gated` **(novo)** | "Parecer exige uma chave de IA ativa" | Cadastrar sua chave de IA → `/config` |
+> | `generation_unavailable` | "Não conseguimos gerar o parecer deste relatório" | Reprocessar |
+> | `parecer_artifact_missing` | "Não conseguimos recuperar o parecer deste relatório" | Atualizar a página **antes** de reprocessar |
+> | `report_not_found` | **sem copy** — vira estado de erro | — |
+>
+> **Uma copy por código porque as QUATRO AÇÕES são distintas** — que é o teste do
+> `RETAINED_BODY` (colapsar quando a **ação** é a mesma), não uma exceção a ele.
+>
+> ### 🔴 A revisão do `product-designer` derrubou a premissa central da 1ª versão
+>
+> A 1ª versão enquadrava `tier_gated` como **plano comercial** e cortava o CTA
+> alegando que não existe rota de upgrade. **Medido e refutado:** `tier` não é
+> comercial. `_classify_llm_config`
+> ([`pipeline_service.py:53`](../../../../backend/app/services/pipeline/pipeline_service.py))
+> devolve `"premium"` ⟺ existe `LLMConfig` cuja `api_key_encrypted` **decripta**
+> para texto não-vazio — é **BYOK** ([`PRODUCT.md`](../../../reference/PRODUCT.md) §4), custo zero para a
+> plataforma, pricing "Pendente" no §7. Três consequências:
+>
+> - **Não havia venda a perder** — o trade-off "receita vs. link morto" era falso
+>   dilema; não há o que comprar.
+> - **Não havia link morto** — o destino existe e está vivo: `/config` → aba LLM,
+>   que já tem a copy do caso (*"Configure uma chave de API para desbloquear as
+>   etapas com IA"*). Eu tinha matado o CTA **certo** pelo motivo errado.
+> - **O caso da `FERNET_KEY` rotacionada virava acusação** — `tier` cai para
+>   `free` quando a chave não decripta, e "seu plano não inclui" leria como
+>   downgrade quando quem perdeu a credencial foi a plataforma. Mesma classe de
+>   mentira que esta lane existe para matar, invertida.
+>
+> **Enquadramento final: pelo mecanismo (chave de IA), nunca pelo plano.**
+> Verdadeiro nos dois casos (nunca teve chave / chave inválida) e aponta para a
+> tela que resolve. Termo registrado em COPY_GUIDELINES §2.2 `@2026-08-08`.
+>
+> **Outras correções da revisão, todas aplicadas:**
+>
+> 1. **`falha` deixa de usar o idioma visual de `vazio`.** Borda tracejada
+>    centralizada é "ainda não há nada aqui" e mentia sobre uma geração que
+>    quebrou. Os 2 estados de falha passam a `<Alert severity="warning">` — o
+>    mesmo componente do `ParecerRetainedState`, mesma seção, mesma classe
+>    semântica. Zero token novo.
+> 2. **`parecer_artifact_missing` oferecia a ação CARA primeiro.** Em BYOK,
+>    "reprocessar" gasta a chave **do usuário** no provedor — e ali o conteúdo
+>    existe (há row); o que falhou foi servi-lo. A saída gratuita ("atualize a
+>    página") passa a vir antes.
+> 3. **`not_generated_yet` afirmava fato no passado** (*"foi gerado sem"*) sendo o
+>    membro **fallback** do vocabulário — recebe código desconhecido e
+>    workspace/report ausente. Vira presente (*"ainda não tem"*), pelo mesmo
+>    princípio que a [[ADR-366]] §D1 usa para `nao_registrado`: quem não sabe não
+>    passa a afirmar. Sem CTA pela mesma razão.
+> 4. **"por um planejador" afirmava agente humano** e contradizia o
+>    `FiduciaryDisclaimer` que roda na mesma seção. A copy descreve o que o parecer
+>    **faz**, nunca quem o escreve.
+> 5. **A delimitação de dano tinha 3 redações.** Unificada na frase já shipada e
+>    testada — *"Os números das demais seções não mudam."* —, exportada como
+>    constante e assertada nos 4 estados.
+> 6. **Título vira `<h3>`** (era `<p className="font-heading">`): em A4 nenhum
+>    `<h2>` de seção chega ao PDF, então este é o único rótulo do bloco lá.
+>
+> **A ordem das cláusulas é normativa** (artifact vence tier), com teste contra a
+> inversão: run free **com** artifact tentou de fato.
+>
+> ⚠️ **Verificação deixada em aberto pela revisão:** a migration `a1b2c3d4e5f6`
+> criou `tier_at_run` com `server_default="free"` — todo run anterior a ela lê
+> como free e renderiza `tier_gated`. O enquadramento por chave erra menos que o
+> por plano (não acusa de downgrade), mas se o dogfood tiver muitos runs antigos,
+> vale distinguir "free" de "não registrado" no discriminador.
+>
+> **Efeito colateral medido nos testes:** `make_run` defaulta `tier_at_run="free"`,
+> então 2 testes que asseriam `not_generated_yet` passaram a ver `tier_gated` — eles
+> mediam o tier sem dizer que mediam. Agora declaram o tier explicitamente.
+>
 > ⚠️ **`in_progress`, não `shipped`** — e a razão não é o resíduo abaixo: em
 > 2026-08-07 a lane **recebeu escopo novo** do PR2 da [[A40.l20]] (a copy por
 > código de ausência, ver o ➕ acima), que o #1277 **não** cobre. Como a escolha
