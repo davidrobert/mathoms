@@ -394,14 +394,27 @@ pickup, flipe para `in_progress`.
 - `<md`: nota vira linha própria; caption com 3 contadores não estoura.
 - **Rebaseline explícito** dos snapshots visuais (light+dark × estados novos) — o
   job visual não é bloqueante, então **não pode ficar para o próximo agente**.
-  > **Medido em 2026-08-07/08 e vale para 2 critérios seus:** o job
-  > `Frontend E2E (Playwright + backend real)` também **não gateia** — é opt-in
-  > pelo label `e2e` (`ci.yml`, job `frontend-e2e`) **e não entra** no
-  > `All checks green`. Ou seja, o PDF via `pdftotext` e o `a11y.@critical` só
-  > rodam se você puser o label, e mesmo vermelhos não seguram o merge. Adicionar
-  > o label **não re-dispara** o run — precisa de push novo. O smoke do parecer,
-  > que se auto-pulava, foi consertado no #1281; o job continuar não-bloqueante
-  > **não** foi corrigido e não tem dono.
+  > **Medido em 2026-08-07/08, e a maior parte disto foi resolvida em
+  > 2026-08-08 — leia antes de agir.** O que valia: o job `Frontend E2E
+  > (Playwright + backend real)` não gateia (opt-in pelo label `e2e`, fora do
+  > `All checks green`), então PDF via `pdftotext` e `a11y.@critical` só rodavam
+  > com label e nem vermelhos seguravam merge; e aplicar o label não
+  > re-disparava o run.
+  >
+  > O que mudou, na ordem: o smoke do parecer que se auto-pulava foi consertado
+  > no #1281; `print-text.@critical` entrou no step `Report render gate` de
+  > `frontend-checks` (dentro de `all-green.needs`) pela A40.l22; o
+  > `a11y.@critical` entrou no #1309 — **e estava quebrado**, 4 testes, o que
+  > ninguém via porque ele não rodava em job nenhum; o #1315 pôs `labeled` em
+  > `on.pull_request.types`, então label aplicado depois **passou** a
+  > re-disparar; e o #1318 trocou a allowlist do step por diretório + tag, de
+  > modo que todo `@critical` de `frontend/tests/e2e/reports/` gateia — exceto
+  > `print.@critical`, excluído por ser baseline de pixel OS-específica com job
+  > próprio.
+  >
+  > O que **continua** valendo: `frontend-e2e`, `frontend-visual` e
+  > `frontend-print-visual` seguem opt-in por label e fora do
+  > `All checks green`. Vermelho neles não segura merge, e ninguém é dono disso.
   View-model novo ⇒ `MATHOMS_UPDATE_SNAPSHOT=1` no snapshot do view-model.
 - **Teste com humano (n=1):** o dono abre um relatório parcial **sem** ter visto o
   `/pipeline` e diz em 1 frase o que falta e o que fazer; e lê o PDF do estado
