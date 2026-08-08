@@ -172,6 +172,19 @@ def test_gate_falha_alto_se_o_resultado_do_stage_for_renomeado():
         _e3_collapse_precondition(_Ctx("ws-qualquer"), object(), _SemMedicao())
 
 
+def test_log_da_sombra_falha_alto_se_o_resultado_for_renomeado():
+    """Terceiro leitor da mesma classe — era o único que sobrou com `getattr` (co-design 3c1)."""
+    # Fail-open aqui não derruba o run: só zera `candidatos` no log e a sombra some sem sinal,
+    # que é o modo de falha mais caro (a medição continua rodando e ninguém a lê).
+    from scripts.reconcile_transactions import _e3_log_collapse_shadow
+
+    class _SemCandidatos:
+        pass
+
+    with pytest.raises(AttributeError):
+        _e3_log_collapse_shadow(_Ctx("ws-qualquer"), _SemCandidatos())
+
+
 def test_main_with_store_chama_o_gate_e_anexa_ao_detail():
     """AST: o composition root chama o gate E o resultado entra no dict que vira
     ``output_summary``. Asserção sobre o service provaria o gate, não a fiação."""

@@ -1096,6 +1096,24 @@ não competem por capacidade, mas ficariam órfãos):
 | Revisão `sre-devops` da mudança de política de CI **não foi feita** | ⏳ **owner-gated** — ver [[OWNER-GATED]] | O CLAUDE.md §Protocolo de delegação lista "Política CI/CD … FinOps" como **gatilho obrigatório** de `sre-devops`. O #1160 mudou política de um job que é required check e escreveu numa ADR a regra de dimensionamento (~2× da mediana), **e mergeou sem essa revisão** — a sessão rodou sob instrução de não invocar subagente sem pedido explícito. Risco baixo no diff (comentário + flag de reporte + adendo de doc; a mudança de teto foi do #1157), mas a **regra de política** entrou sem o especialista. **Mesmo caso no #1161** (2ª sessão, mesma instrução): trocou action de terceiro por script `gh` no job required e escreveu regra de política na emenda da [[ADR-320]] ("Docker action vedada em job required"), também sem `sre-devops`. Decisão do dono: passar retroativo nos dois ou aceitar |
 | Mudança em `ci.yml` custa ~5 runs de CI para mergear | 📌 registrado, sem ação | `ci.yml` está em **todos** os path filters (por sanity contra regressão de filtro), então qualquer diff nele dispara a suíte completa; e o ruleset `main-protection` tem `strict_required_status_checks_policy: true`, então cada commit que entra em `main` durante a janela força re-run. Com main recebendo 6 commits em ~1h20 (multi-sessão), o #1160 pagou **5 ciclos completos** para um diff de 24 linhas + doc. Num orçamento a 544%, a lição operacional é **agrupar mudanças de `ci.yml`** num PR só, em janela de main parada — não shipar uma por vez |
 
+> ⚠️ **Generalização medida em 2026-08-08: não é só `ci.yml`.** A linha acima atribui os ~5
+> ciclos ao fato de `ci.yml` estar em todos os path filters. Mas a causa raiz é o
+> `strict_required_status_checks_policy` contra a **cadência de merge da main**, e ela atinge
+> **qualquer PR cujo CI seja mais lento que essa cadência** — sem `ci.yml` no diff. Medido no
+> [#1288](https://github.com/davidrobert/mathoms/pull/1288) (E3/E4 + testes, nada de CI):
+> `backend-tests` leva **~11min** e a main recebeu merge a cada **~10-15min** (10 commits em
+> 2h), então o PR terminou `BEHIND` **3 vezes seguidas** com todos os checks verdes,
+> rebase-e-repete sem convergir. Os PRs que ganham a corrida na mesma janela são os
+> **docs-only**, que pulam o job de backend.
+>
+> **A armadilha operacional é o auto-merge parecer resolvido.** `gh pr merge --auto` armado +
+> tudo verde lê como "vai mergear sozinho", e o PR fica parado indefinidamente esperando um
+> rebase que ninguém faz — o mesmo sintoma que esta sprint já viu em PR "aguardando CI".
+> **Como aplicar:** para PR que toca backend em janela de sprint movimentada, ou (a) mergear
+> em janela de main parada, ou (b) alguém rebaseia até convergir, ou (c) merge queue — que é
+> o único conserto estrutural. Rebasear em laço custa ~11min de CI **pago** por tentativa,
+> com odds inalteradas; a partir da 2ª falha, escalar em vez de repetir.
+
 ## Achado novo do painel (fora dos 33)
 
 > **Terceiro botão que mente, mesma classe, achado no co-design da [[A40.l30]]

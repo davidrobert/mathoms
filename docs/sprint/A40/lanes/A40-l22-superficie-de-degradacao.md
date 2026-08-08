@@ -109,6 +109,24 @@ tags:
 > mesmo passo (`frontend/src/app/reports/**` nunca casou a rota, que vive sob o
 > route group `(app)`; `globals.css` e `AppShell.tsx` não estavam em filtro
 > algum — justo os dois arquivos onde a truncagem morava).
+>
+> ✅ **Chrome de app deixou de ser assado no PDF — #1289, 2026-08-08.** Defeito
+> **distinto** dos dois itens do §Critério de aceite acima, e também
+> pré-existente (visível na baseline antiga): o toggle de sidebar do `AppShell`
+> e os FABs do `FloatingNav` chegavam ao PDF. O `<nav>` interno do FloatingNav
+> já caía no `nav { display: none }` do `@media print`; os **botões que o
+> abrem** viviam fora dele. Corrigido com `.no-print` — em **4** controles, não
+> nos 2 relatados: a 703px vazam também os dois FABs de scroll, invisíveis no
+> topo (`opacity: 0`) mas visíveis ao rolar, e os três FABs dividem o mesmo
+> `baseStyle`, então marcar só o visível deixaria os outros vazando sob outro
+> estado. Gate próprio em `print-chrome.@critical.spec.ts`, no mesmo step
+> `Report render gate`, com varredura **derivada** (todo `<button>` com
+> `position: fixed`) em vez de lista de `aria-label` — FAB novo cai no gate
+> sozinho, que foi exatamente o modo de falha original. **Instrumento não
+> óbvio:** o viewport do spec é a caixa de página A4 (**703px**), não a janela
+> (1280px) — ao imprimir, o Chromium reavalia media query contra a página, e a
+> 1280 os dois controles que de fato aparecem no PDF somem do teste, dando
+> verde sem o fix.
 
 > Onda 3 da A40 (§Frente 4 de [[PLAN-report-trust]]). Fatia **premium/add-on** da
 > F11.5 — o caminho determinístico dela foi entregue na Sprint B (2026-04-17),

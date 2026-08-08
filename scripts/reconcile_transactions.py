@@ -1174,9 +1174,12 @@ def _e3_write_sidecar_logs(ctx, written_filenames: List[str], result) -> None:
         )
 
 
+# Acesso por atributo, como `_alvos` e `_e3_collapse_precondition` (PR3b): TERCEIRO leitor da
+# mesma classe, e o único que ficou com `getattr(..., default)` — rename ⇒ `candidatos=0` no
+# log, em silêncio, e a sombra some sem ninguém notar. Achado do co-design do 3c1.
 def _e3_log_collapse_shadow(ctx, result) -> None:
     """Emite o agregado da sombra (ADR-364). Sem leitor a medição é CPU queimada."""
-    candidates = getattr(result, "collapse_candidates", ())
+    candidates = result.collapse_candidates
     if not candidates:
         return
     from pipeline.domain.services.cross_document_collapse_types import shadow_counts
