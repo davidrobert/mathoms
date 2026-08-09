@@ -258,7 +258,6 @@ def load_json(path: Path, required: bool = False) -> Dict[str, Any]:
 
 # A6d.2: extract_* helpers aceitam ``life_plan_content`` como parâmetro
 # (None → shell loader lê ``LIFE_PLAN_GOALS`` via disco como fallback).
-# Isso torna ``analyze_goals`` testável sem tocar em arquivo real.
 
 
 def _read_life_plan_content() -> str:
@@ -1165,94 +1164,6 @@ def analyze_patrimonio(
         "tabela_categorias": composicao,
         "fonte_investimentos": fonte_investimentos,
     }
-
-
-# ============================================================================
-# GOALS & IF ANALYSIS
-# ============================================================================
-
-
-def analyze_goals(
-    patrimonio: Dict[str, Any],
-    life_plan_content: str | None = None,
-) -> Dict[str, Any]:
-    """Analyze IF goals.
-
-    A6d.2: ``life_plan_content`` é o conteúdo de ``life_plan_goals.md``
-    lido uma vez pelo shell. Quando ``None``, os helpers ``extract_if_*``
-    caem para leitura direta do disco (back-compat).
-    """
-    print("[E5.2] Analyzing IF goals...")
-
-    if_meta = extract_if_target_from_life_plan(life_plan_content)
-    if_trs = extract_if_trs(life_plan_content)
-    investivel = patrimonio["investivel_efetivo"]
-
-    # IF monthly target (assuming TRS, derive monthly)
-    # TRS % per annum → monthly: TRS% / 12
-    if_trs_monthly = (if_trs / 100.0) / 12.0
-    if_trs_value = if_meta * if_trs_monthly
-
-    # Percentage achieved
-    if_pct = (investivel / if_meta * 100) if if_meta > 0 else 0.0
-
-    # Gap
-    if_gap = if_meta - investivel
-
-    # Prazo realista (juros compostos: PV crescendo + aportes mensais)
-    # Resolve para n em: PV*(1+r)^n + PMT*((1+r)^n - 1)/r = FV
-    # onde PV=investivel, PMT=aporte mensal, FV=if_meta, r=taxa mensal
-    # Load from goals.json with hardcoded fallback
-    _if_cfg = GOALS_CONFIG.get("independencia_financeira", {})
-    _aportes_cfg = GOALS_CONFIG.get("aportes", {})
-    aporte_mensal = safe_float(_aportes_cfg.get("meta_aporte_mensal", 0))
-    retorno_real_anual = safe_float(_if_cfg.get("retorno_real_anual_pct", 6.0)) / 100.0
-
-    r = (1 + retorno_real_anual) ** (1 / 12) - 1  # taxa mensal equivalente
-
-    if investivel >= if_meta:
-        prazo_anos = 0.0
-    elif r > 0 and aporte_mensal > 0:
-        # FV = PV*(1+r)^n + PMT*((1+r)^n - 1)/r
-        # Seja X = (1+r)^n => FV = PV*X + PMT*(X-1)/r
-        # FV = X*(PV + PMT/r) - PMT/r
-        # X = (FV + PMT/r) / (PV + PMT/r)
-        numerator = if_meta + aporte_mensal / r
-        denominator = investivel + aporte_mensal / r
-        if denominator > 0 and numerator / denominator > 0:
-            n_meses = math.log(numerator / denominator) / math.log(1 + r)
-            prazo_anos = max(0, n_meses / 12)
-        else:
-            prazo_anos = 999
-    else:
-        prazo_anos = 999
-
-    # Ages at IF
-    anos_restantes = int(prazo_anos)
-    david_idade_if = calculate_edad(_TITULAR_DOB) + anos_restantes
-    conjuge_idade_if = calculate_edad(_CONJUGE_DOB) + anos_restantes if _CONJUGE_DOB else None
-    ano_if = TODAY.year + anos_restantes
-
-    # Current passive income estimate (4% rule on investível)
-    # Taxa de retirada segura (regra dos 4%) — carregada de goals.json
-    taxa_retirada = safe_float(_if_cfg.get("taxa_retirada_segura_pct", 4.0)) / 100.0
-    renda_passiva_current = investivel * taxa_retirada / 12  # monthly
-
-    result = {
-        "if_meta": round(if_meta, 2),
-        "if_trs": round(if_trs, 2),
-        "if_trs_monthly_value": round(if_trs_value, 2),
-        "if_pct": round(if_pct, 2),
-        "if_gap": round(if_gap, 2),
-        "prazo_anos_realista": round(prazo_anos, 1),
-        f"idade_{_TITULAR_KEY}_if": david_idade_if,
-        "david_idade_if": david_idade_if,
-        "ano_if": ano_if,
-        "renda_passiva_estimada_4pct": round(renda_passiva_current, 2),
-    }
-    if conjuge_idade_if is not None:
-        result[f"idade_{_CONJUGE_KEY}_if"] = conjuge_idade_if
-    return result
 
 
 # ============================================================================
