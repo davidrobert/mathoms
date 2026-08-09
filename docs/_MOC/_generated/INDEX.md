@@ -853,7 +853,7 @@
 | A40.l22 | lane | in_progress | A40 | Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF | `sprint/A40/lanes/A40-l22-superficie-de-degradacao.md` |
 | A40.l23 | lane | shipped | A40 | Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível | `sprint/A40/lanes/A40-l23-gate-ref-adr-em-prosa.md` |
 | A40.l24 | lane | shipped | A40 | Asserção "0 LLM" do gate F2 mede a camada errada — passa para o boundary do SDK | `sprint/A40/lanes/A40-l24-gate-0-llm-no-boundary-do-sdk.md` |
-| A40.l25 | lane | open | A40 | Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada | `sprint/A40/lanes/A40-l25-honestidade-do-cone-if.md` |
+| A40.l25 | lane | in_progress | A40 | Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada | `sprint/A40/lanes/A40-l25-honestidade-do-cone-if.md` |
 | A40.l26 | lane | open | A40 | Cobertura do solver de prazo IF: aporte zero com retorno positivo converge, e o produto nunca mostrou | `sprint/A40/lanes/A40-l26-cobertura-do-solver-de-prazo-if.md` |
 | A40.l27 | lane | shipped | A40 | Órfão de dispatch: varredura de beat, cancel de `resuming` e read path de failure_reason | `sprint/A40/lanes/A40-l27-orfao-de-dispatch-residual.md` |
 | A40.l28 | lane | shipped | A40 | Idade-meta do cone é output do modelo, não pergunta da família — e o rótulo do percentil aponta para dois lados | `sprint/A40/lanes/A40-l28-idade-meta-e-rotulo-do-cone.md` |

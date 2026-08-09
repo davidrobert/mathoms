@@ -421,6 +421,7 @@
         "motivo_sem_prazo_declarado": {"type": ["string", "null"]},
         "prob_if_ate_horizonte_simulado": {"type": "number"},
         "sigma_usado": {"type": "number"},
+        "sigma_procedencia": {"type": "string", "enum": ["global", "workspace_override", "fallback_codigo"], "description": "A40.l25 — de onde veio `sigma_usado`, no padrão `fonte_origem` da ADR-219. `fallback_codigo` = constante do módulo, NAO premissa auditada."},
         "exibir_cone": {"type": "boolean"},
         "aporte_mensal_usado": {"type": "number"},
         "motivo_sem_cone": {"type": ["string", "null"]},
