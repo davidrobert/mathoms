@@ -776,10 +776,22 @@ jobs:
     # `APP_C`, ausentes da fixture `medium`). Job inteiro **9m09s**; com cache
     # HIT, ~8m44s.
     #
-    # ATENÇÃO à margem: 9m09s contra o teto de 12min é ~24% de folga (~27% com
-    # cache hit), abaixo dos ~40% que se considera confortável aqui. NÃO subir o
-    # teto por isso — o teto existe para pegar hang, e subi-lo para caber é
-    # esconder a erosão.
+    # ATENÇÃO à margem — mas leia pela série, não por este run. 9m09s dá ~24% de
+    # folga contra o teto de 12min, o que sugeriria estar abaixo dos ~40% que se
+    # considera confortável aqui. **É um ponto perto da cauda, não a tendência.**
+    # Medida a duração do JOB em 40 runs `success/success` (2026-08-08):
+    #   mediana 415s (6m55s, 58% do teto → folga 42%) · p25 390s · p75 486s
+    #   (8m06s, folga 32%) · máx 573s (9m33s, folga 20%)
+    # Ou seja: na tendência central a folga está DENTRO da faixa confortável; o
+    # aperto é real no p75 e na cauda. A afirmação anterior ("~24% de folga,
+    # abaixo dos ~40%") vinha de um run único com cache MISS do Chromium e
+    # sobreviveu a duas reescritas deste ledger sem re-medição — mesma classe de
+    # erro que o bloco do Vitest abaixo documenta.
+    # NÃO subir o teto de qualquer forma — o teto existe para pegar hang, e
+    # subi-lo para caber é esconder a erosão. Gatilho de reavaliação (ADR-210):
+    # mediana passar de 60% do teto; hoje 58%, a um passo. Não há emissor
+    # automático para este job — `dev/check_backend_job_duration_drift.py` roda
+    # sem `--job-name` e cobre só `backend-tests` (ADR-210 §Adendo 2026-08-08 b).
     #
     # De onde veio o crescimento, contra a medição anterior deste ledger (run
     # 31257196485, cache hit: job 7m57s / render 3m09s / Vitest 3m12s):

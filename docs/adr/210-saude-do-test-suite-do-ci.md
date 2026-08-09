@@ -29,6 +29,21 @@ tags:
 
 # ADR-210 — Saúde do test suite do CI
 
+> **Emenda (2026-08-08) — o watchdog de duração observa um job só, e o
+> "gatilho de 60%" não é avaliável a partir de um run:** o adendo 2026-08-05
+> declarou fechado o gap "gatilho de erosão sem emissor" com
+> `dev/check_backend_job_duration_drift.py`. Medido agora, `budget-alert.yml`
+> o invoca **sem `--job-name`**, então ele roda no default
+> `"Backend tests (backend/tests/)"` e observa **um** job — `frontend-checks`
+> não tem emissor, e a única forma de avaliar seu gatilho foi arqueologia
+> manual em 160 runs via API, o mesmo modo de falha que aquele adendo disse ter
+> eliminado. No caminho, a medição derrubou a própria premissa que motivou a
+> investigação: `frontend-checks` tem **mediana 6m55s (58% do teto)**, não os
+> 9m09s (76%) que o ledger do `ci.yml` citava de um run único perto da cauda.
+> **Não reabre a decisão** (o watchdog e a regra do teto seguem válidos);
+> corrige o alcance declarado e fixa o método de medição. Detalhe no
+> §Adendo 2026-08-08 (b).
+
 > **Emenda (2026-08-08) — a Camada 1 delegava o gate a um label que não podia
 > ser aplicado a tempo:** o opt-in por label (`visual`, `print`, `e2e`) só
 > funcionava se o label existisse no instante do evento `opened`, porque
@@ -656,6 +671,85 @@ em 12/12 runs) tinha duas causas somadas; esta emenda remove uma. Ligar o gate
 de fato depende de os jobs terem sinal confiável primeiro — no caso do E2E, dos
 17 testes `@critical` vermelhos hoje.
 
+## Adendo 2026-08-08 (b) — o watchdog observa um job, e como medir a série
+
+### O que aconteceu
+
+O ledger de `frontend-checks` no `ci.yml` afirmava que o step `Run Vitest` era
+"a terceira medição seguida em que cresce sozinho (1m49s → 3m12s → 3m29s)".
+Investigado (PR #1332), o salto não existe — mas o caminho até essa conclusão
+expôs dois limites desta ADR.
+
+### Limite 1 — o emissor de drift cobre um job, não a classe
+
+O §Adendo 2026-08-05 fechou `OWNER-GATED` "Revisão sre-devops da política de CI"
+constatando que o gatilho "reavaliar quando a mediana passar de 60% do teto"
+**não tinha emissor**, e que "a única forma de notar a erosão foi arqueologia
+manual em 56 jobs via API". A correção foi `dev/check_backend_job_duration_drift.py`
+como step em `budget-alert.yml`.
+
+Medido em 2026-08-08: `budget-alert.yml:285` chama o script **sem `--job-name`**,
+e `DEFAULT_JOB_NAME` é `"Backend tests (backend/tests/)"`. O watchdog observa,
+portanto, **um** job; `frontend-checks` não tem emissor, e avaliar seu gatilho
+custou arqueologia manual em **160 runs** via API — o mesmo modo de falha, no
+job seguinte.
+
+E o resultado mostra por que o emissor precisa ser automático: o gatilho de 60%
+**não é avaliável a partir de um run**. Medida a duração do job em 40 runs
+`success/success`, `frontend-checks` dá **mediana 415s = 6m55s (58% do teto de
+12min)**, p25 390s, p75 486s (8m06s, 68%), máx 573s (9m33s, 80%). O ledger do
+`ci.yml` afirmava "9m09s · ~24% de folga, abaixo dos ~40% confortáveis" a
+partir de **um** run — que teve cache MISS do Chromium e caiu perto da cauda.
+Pela mediana a folga é **42%**, dentro da faixa confortável; o aperto é real no
+p75 (32%) e na cauda (20%), não na tendência central. Um watchdog com a série
+teria dito isso; um humano lendo um run disse o contrário.
+
+O script já é parametrizável (`--job-name`), então o alcance é configuração,
+não código. **Estender o watchdog a `frontend-checks` fica deferido**, sem dono
+nem data: o `budget-alert.yml` abre/atualiza issue por job e a política de
+ruído de N issues concorrentes não foi decidida aqui. Condição de retomada: a
+mediana de `frontend-checks` passar de **60% do teto** — o gatilho que esta ADR
+já declara, hoje em 58%, ou seja, a um passo — ou o watchdog ganhar agregação
+multi-job. Enquanto não for feito, esta ADR **não** afirma cobertura de erosão
+para nenhum job além de `backend-tests`.
+
+### Limite 2 — medição de duração exige filtrar por conclusão
+
+Série de step de CI só é legível depois de descartar runs incompletos. Em 160
+runs deste repo, **40 não são `success/success` e 39 desses são `cancelled`** —
+quase 25% da amostra. `cancel-in-progress` corta o step no meio e o deixa com
+36s/51s/125s; misturar cancelado com completo fabrica salto e queda que não
+existem. Foi o que produziu a "tendência" do ledger, junto com dois vieses de
+leitura: a sequência real era 3m31s → 3m12s → 3m29s (**diminuiu** antes de
+subir), e o "1m49s" era de 2026-05-16, copiado verbatim por 12 semanas de
+reescritas sem run citado nem re-medição.
+
+Regra que passa a valer para qualquer afirmação de duração nesta ADR e nos
+ledgers de `ci.yml`: **mediana + p25/p75 de ≥10 runs `success/success`, nunca
+dois pontos**, e toda medição em comentário leva `run <id>` + data. Filtrados,
+os 121 runs `success/success` dão mediana 202s, p25–p75 191–210s, e spread de
+**83s dentro de um único dia** — o "+17s" flagrado era ~1/5 do ruído do dia.
+
+### Limite 3 — `check_test_health.py` não olha o frontend
+
+O gate da §Decisão 1 varre `test_*.py` (`d.rglob("test_*.py")`) e nunca
+inspecionou o Vitest. Nenhum anti-padrão "escapou" dele; o escopo sempre foi
+pytest. E o driver de custo do frontend **não é anti-padrão**: o step escala
+com o número de ARQUIVOS (cada um monta um jsdom próprio e re-executa
+`frontend/tests/setup.ts` inteiro — ~700–840ms de CPU antes de qualquer teste
+rodar; a execução dos testes é 24% do custo). De 102 para 153 arquivos, a
+custo por arquivo constante (1,26s → 1,32s), a contagem sozinha projeta 194s
+contra 202s medidos.
+
+Dividir teste em mais arquivos é boa prática que por acaso custa CI — **gate
+seria o instrumento errado**. O que falta é orçamento visível, e ele fica
+registrado como número: **~1,3s de wall-clock de CI por arquivo de teste de
+frontend, mesmo vazio**. Os dois levers foram medidos e nenhum é config-flip:
+`isolate: false` hangea (>9min, estado global do setup não sobrevive a
+compartilhar ambiente) e `environment: "node"` quebra 30/30 em `tests/lib/`
+porque o setup toca `window.matchMedia` e `Element.prototype` sem guarda
+(~5% de ganho se guardado).
+
 ## Referências
 
 - CLAUDE.md §Code style › Testes — comandos canônicos e fixtures.
@@ -663,7 +757,11 @@ de fato depende de os jobs terem sinal confiável primeiro — no caso do E2E, d
   `Run backend tests` `MARKER_FILTER`.
 - `.github/workflows/nightly.yml` job `main-smoke` — safety net Camada 2.
 - `.github/workflows/budget-alert.yml` — FinOps guardrail diário.
-- `dev/check_test_health.py` — heurísticas e exit codes.
+- `dev/check_test_health.py` — heurísticas e exit codes (escopo: `test_*.py`).
+- `dev/check_backend_job_duration_drift.py` — watchdog de erosão; `--job-name`
+  default cobre só `backend-tests` (§Adendo 2026-08-08 (b)).
+- `.github/workflows/ci.yml` job `frontend-checks` — ledger com a série medida
+  do `Run Vitest` e o preço marginal por arquivo de teste.
 - `backend/tests/conftest.py` — `_fast_bcrypt_for_tests` fixture.
 - ADR-067 — coverage progressivo (frontend).
 - ADR-093 — stage rename (origem do soft-fail).
