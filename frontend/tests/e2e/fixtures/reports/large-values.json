@@ -101,8 +101,8 @@
     "total_dividas": 23300000,
     "percentual_patrimonio": 36.3,
     "dividas": [
-      { "descricao": "Financiamento Imobiliário Comercial", "valor": 18500000, "taxa": 11.25 },
-      { "descricao": "Crédito Empresarial PJ", "valor": 4800000, "taxa": 13.75 }
+      { "descricao": "Financiamento Imobiliário Comercial", "saldo_devedor": 18500000, "taxa_juros": 11.25 },
+      { "descricao": "Crédito Empresarial PJ", "saldo_devedor": 4800000, "taxa_juros": 13.75 }
     ]
   },
   "previdencia_pgbl": {

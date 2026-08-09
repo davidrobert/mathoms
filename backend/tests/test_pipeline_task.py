@@ -658,7 +658,7 @@ class TestPersistAggregateSuggestions:
 
         # reserva 1.5 meses (< 3 → severity="danger") + gap de 30k
         snapshot = {
-            "reserva_emergencia": {"meses_cobertura": 1.5, "gap_brl": 30000.0},
+            "reserva_emergencia": {"cobertura_meses": 1.5, "gap_brl": 30000.0},
         }
         async with Session() as db:
             db.add(
@@ -712,7 +712,7 @@ class TestPersistAggregateSuggestions:
                     stage="E5",
                     artifact_key="analise_financeira",
                     content_json={
-                        "reserva_emergencia": {"meses_cobertura": 1.5, "gap_brl": 30000.0},
+                        "reserva_emergencia": {"cobertura_meses": 1.5, "gap_brl": 30000.0},
                     },
                 )
             )
@@ -777,7 +777,7 @@ class TestPersistAggregateSuggestions:
                     artifact_key="analise_financeira",
                     content_json={
                         # Reserva acima do alvo, sem outras regras
-                        "reserva_emergencia": {"meses_cobertura": 12.0, "gap_brl": 0.0},
+                        "reserva_emergencia": {"cobertura_meses": 12.0, "gap_brl": 0.0},
                     },
                 )
             )

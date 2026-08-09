@@ -120,7 +120,7 @@ def rule_reserva_insuficiente(
 ) -> SuggestionDraft | None:
     """Reserva < 6 meses (Perini/Cerbasi) — rationale enriquecido (Onda 10 #5)."""
     reserva = _as_dict(snapshot.get("reserva_emergencia"))
-    meses = _as_float(reserva.get("meses_cobertura"))
+    meses = _as_float(reserva.get("cobertura_meses"))
     if meses is None or meses >= cfg.reserva_target_meses:
         return None
     gap_brl = _as_decimal(reserva.get("gap_brl"))
