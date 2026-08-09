@@ -272,26 +272,41 @@ Levantado no co-design, **fora do escopo desta ADR**, com dono no owner:
    (`np.quantile(..., method="inverted_cdf")`).
 5. ~~**`idade_meta_usada: 1040`**~~ — **fechado** em #1158 (2026-08-03): prazo não
    projetável emite ausência com motivo em vez de sentinela 999 somada à idade.
-6. **`_solve_prazo` conflacia "inatingível" com "ramo não implementado"** — aberto
-   *pelo* #1158, que corrigiu a fabricação mas não a cobertura do solver. Com
-   `aporte == 0` e `r > 0`, `n = ln(FV/PV)/ln(1+r)` converge (dogfood: PV 13 M,
-   meta 100 M, 6% real → **~35 anos**); com `r == 0` e `aporte > 0`,
-   `n = (FV−PV)/PMT`. Os dois caem em ausência hoje, então **o produto está calado
-   sobre um prazo que sabe calcular**. Por isso o `motivo_prazo_indefinido` diz
-   "não projetável com as premissas atuais" e **não** afirma "inviável".
-   Preencher muda o prazo de workspaces reais → gatilho de `financial-planner`.
-   Lane: [[A40.l26]].
-7. **Terceira cópia do 999 em dead code:** `scripts/analyze_finances.py::analyze_goals`
-   (~L1226) mantém a sentinela e não tem call-site (`rg 'analyze_goals\('` → só a
-   definição). Remoção mecânica, fora do escopo do #1158. Sem dono; absorvida
-   como limpeza oportunista da [[A40.l26]].
+6. ~~**`_solve_prazo` conflacia "inatingível" com "ramo não implementado"**~~ —
+   **fechado** pela [[A40.l26]] / [[ADR-373]] (#1339, 2026-08-09), mas **não como
+   este item previa**. O ramo `r == 0 ∧ aporte > 0` passou a projetar; o ramo
+   `aporte == 0 ∧ r > 0` **continua ausente por decisão**, não por lacuna:
+   `goal.aporte_mensal.schema.json` exige `exclusiveMinimum: 0`, logo aporte zero
+   é sempre **ausência de insumo** e projetar sobre ele seria escolher a premissa
+   "você não aporta" em nome da família. O `motivo_prazo_indefinido` virou **dois**
+   motivos, nenhum dizendo "não projetável". O piso a aporte zero (~35 anos)
+   segue deferido — ver §Deferido da [[ADR-373]], que pareia com o item 1 acima.
+7. ~~**Terceira cópia do 999 em dead code**~~ — **fechado** na mesma passada:
+   `analyze_goals` deletado (81 linhas, zero call-sites).
 
-> **Estado do deferimento em 2026-08-03.** Os itens 3-5 fecharam no mesmo dia.
+> ~~**Estado do deferimento em 2026-08-03.** Os itens 3-5 fecharam no mesmo dia.
 > Sobram o **item 1** (precisão de exibição) e o **item 2** (`sigma` por perfil),
 > ambos na [[A40.l25]], e os **itens 6-7**, abertos *pelo* fix do item 5 e
-> carregados pela [[A40.l26]]. Marcar o que fechou evita afirmar dívida
+> carregados pela [[A40.l26]].~~ Marcar o que fechou evita afirmar dívida
 > inexistente; registrar o que o próprio fix abriu evita o inverso — fechar um
 > item e sair achando que a área está limpa.
+>
+> **Estado do deferimento em 2026-08-09.** Os itens **3-5 e 7 estão fechados**;
+> o **6 fechou com desfecho diferente do previsto** (ver acima). Sobram:
+>
+> - **item 1** (precisão de exibição) — a sub-parte "séries do cone fora do
+>   catálogo de citação" fechou no #1338; a faixa de 5 pp e a aposentadoria da
+>   manchete de ano **continuam abertas** na [[A40.l25]], que segue
+>   `in_progress` por isso;
+> - **item 2** (`sigma` por perfil) — aberto, mesma lane;
+> - **residual do item 6**: o piso a aporte zero exibido dentro do motivo, mais
+>   a decisão simétrica sobre o cone sob PMT = 0 — deferido na [[ADR-373]] e
+>   **carregado pela [[A40.l25]]**, porque a [[A40.l26]] fechou como `shipped` e
+>   lane `shipped` some do `SPRINT_CURRENT`.
+>
+> Os três remanescentes têm o **mesmo bloqueio**: mudam número exibido, e isso
+> exige a §Nota one-shot de recalibração desta ADR. Ela cobre cone e prazo de uma
+> vez — daí valer fechá-los juntos, não em série.
 
 ## Referências
 

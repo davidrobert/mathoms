@@ -12,9 +12,11 @@ adrs:
   - "[[ADR-360]]"
   - "[[ADR-219]]"
   - "[[ADR-237]]"
+  - "[[ADR-373]]"
 depends_on: []
 parallel_with:
   - "[[A40.l11]]"
+  - "[[A40.l26]]"
 tags:
   - type/lane
   - sprint/a40
@@ -119,6 +121,43 @@ follow-up nunca aterrissou.
    vigente; sem ela, o payload **declara o fallback** em vez de publicar a
    constante como se fosse auditada. `_SIGMA_POR_PERFIL` ou ganha consumidor ou
    é deletado — dead code que parece configuração é pior que ausência.
+4. **Carregado da [[A40.l26]] em 2026-08-09** — o piso de prazo a aporte zero,
+   exibido **dentro da frase** que nomeia a premissa e a alavanca, e a decisão
+   simétrica sobre o cone sob PMT = 0. Ver §Carga herdada abaixo.
+
+## Carga herdada da [[A40.l26]] (2026-08-09)
+
+A [[A40.l26]] fechou `shipped` (#1339 · [[ADR-373]]) deixando um §Deferimento
+vivo. **Lane `shipped` some do [`SPRINT_CURRENT`](../../../_MOC/_generated/SPRINT_CURRENT.md)**,
+então o item ficaria invisível para quem procura trabalho — o modo de falha que
+já prendeu 3 follow-ups na [[A40.l18]]. Por isso a carga passa para cá, que está
+`in_progress` e visível, em vez de ficar num ponteiro para lane fechada.
+
+O que entra:
+
+- **O piso a aporte zero.** No dogfood, `n = ln(FV/PV)/ln(1+r)` converge em
+  **~35 anos** e o produto está calado sobre ele. A [[ADR-373]] D2 decidiu **não**
+  publicá-lo sob `prazo_anos_realista` (seria escolher a premissa "você não
+  aporta" pela família, e corromperia o par declarado/realista da [[ADR-369]] D2)
+  — mas ele deve aparecer **dentro do motivo**, com a premissa explícita e a
+  alavanca nomeada na mesma frase. Chaves `prazo_anos_sem_aporte_novo` /
+  `ano_if_sem_aporte_novo` existem só para o narrador ler em vez de recalcular,
+  e **nunca** mapeiam para `ano_if` nem para o hero KPI. **Nunca a chave sem a
+  frase** — `$.goals` vai cru para o LLM do parecer, e chave solta vira "o prazo
+  até a IF é de 35 anos".
+- **A decisão simétrica sobre o cone.** O Monte Carlo **já publica** sob PMT = 0:
+  `prob_if_ate_horizonte_simulado` = 0,58 no dogfood, e só o gate `if_pct < 15%`
+  mantém o ano fora da tela. Fechar o lado determinístico e calar sobre este
+  deixa o produto inconsistente na direção oposta.
+- **Grade de sensibilidade** da premissa de retorno: 5% / 6% / 7% → 41,8 / 35,0
+  / 30,2 anos no perfil do dogfood. Publicar a fragilidade como fato, não como
+  descoberta futura.
+- **Verificação renderizada** de S7 + Apêndice C, pelo débito de método da r3.
+
+**Por que aqui e não numa lane nova:** é o mesmo bloqueio da l25. Os dois mudam
+número exibido, e número novo na tela exige a §Nota one-shot de recalibração da
+[[ADR-360]] — que cobre cone e prazo de uma vez. Duas lanes publicariam metade
+do aviso cada.
 
 ## Critério de aceite
 
