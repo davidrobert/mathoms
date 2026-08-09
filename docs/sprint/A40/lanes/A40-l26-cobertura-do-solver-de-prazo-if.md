@@ -171,9 +171,17 @@ chave sem a frase**"):
    premissa de retorno (5% / 6% / 7% → 41,8 / 35,0 / 30,2 anos no perfil do
    dogfood).
 
-**Condição de retomada:** quando a [[A40.l25]] abrir — ela toca o mesmo payload
-E5, e agrupar faz a frota pagar **uma** invalidação de cache do parecer em vez
-de duas.
+**Condição de retomada:** com a **metade deferida da [[A40.l25]]**, não com a
+lane inteira. Medido em 2026-08-08, depois de escrever este §: a l25 mergeou o
+#1338 e **segue `in_progress`** — ela shipou só o que corrige *procedência* e
+deferiu, pelo mesmo motivo, tudo que **muda número exibido**, porque isso
+dispara bump de `mc_version` + a nota de recalibração da [[ADR-360]] §Nota
+one-shot, cuja especificação depende de `product-designer`.
+
+Os dois deferimentos são o **mesmo bloqueio**: número novo na tela sem o aviso
+que a ADR-360 torna obrigatório. Agrupar não é só economia de cache do parecer —
+é publicar a nota **uma vez**, cobrindo o cone e o prazo juntos. Retomar antes
+disso entrega metade do aviso.
 
 ## Fora desta lane
 
