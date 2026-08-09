@@ -5,13 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-3 open · 6 in_progress.
+2 open · 6 in_progress.
 
-## Open (3)
+## Open (2)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · branch `a40-l29-editorial-do-ano-de-if`
-- [[A40.l32]] — Proveniência do executor: qual código computou este run · priority P1 · branch `a40-l32-proveniencia-do-executor-do-run`
 
 ## In progress (6)
 
