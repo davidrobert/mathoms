@@ -3,6 +3,7 @@ id: A40.l27
 type: lane
 title: "Órfão de dispatch: varredura de beat, cancel de `resuming` e read path de failure_reason"
 sprint: A40
+former_ids: ["A40.l25", "A40.l26"]
 plan: PLAN-report-trust
 status: shipped
 ship_pr: 1265

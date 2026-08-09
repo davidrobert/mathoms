@@ -576,12 +576,21 @@ repos:
         files: ^docs/.*\.md$
         pass_filenames: true
 
-      - id: doc-lane-plan-refs
-        name: "docs/: lane.plan aponta para PLAN existente"
-        entry: python3 dev/check_lane_plan_refs.py
+      - id: doc-graph-refs
+        # Aresta de frontmatter (depends_on/parallel_with/prompt/adrs/...) é
+        # invisível ao doc-links: ele apaga o frontmatter antes de extrair
+        # wikilinks. Precisa do índice global de ids ⇒ pass_filenames: false.
+        name: "docs/: FKs de frontmatter resolvem (lane.plan + arestas wikilink)"
+        entry: python3 dev/check_doc_graph_refs.py
         language: system
-        files: ^docs/(sprint/.*/lanes/.*\.md|plan/.*/_README\.md)$
+        files: ^docs/.*\.md$
         pass_filenames: false
+
+      - id: adr-prose-refs
+        name: "docs/: ADR-NNN citada em prosa resolve para arquivo (nunca reserve ID)"
+        entry: python3 dev/check_adr_prose_refs.py
+        language: system
+        files: ^(docs/.*\.md|CLAUDE\.md|\.claude/agents/.*\.md)$
 
       - id: doc-links
         name: "docs/: wikilinks [[X]] resolvem"

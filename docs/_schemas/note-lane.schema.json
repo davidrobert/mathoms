@@ -24,6 +24,14 @@
       "pattern": "^[A-Z]\\d+$",
       "description": "FK obrigatória para sprint. Ex.: A10, A6, F9."
     },
+    "former_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]\\d+[a-z]*(?:-[a-z][a-z0-9-]*)?(?:\\.[a-z0-9][a-z0-9-]*)*$"
+      },
+      "description": "Ids que esta lane teve antes de renumeração — torna a renumeração auditável (antes disso o único registro era blockquote em prosa, quando havia). ATENÇÃO: um id listado aqui PODE estar vivo hoje em OUTRA lane, porque foi realocado; é exatamente o que o campo registra, não uma colisão. Casos vivos: A40.l24 (nasceu A41.l1) e A40.l27 (l25→l26→l27 em #1167/#1170, com o PR aberto)."
+    },
     "plan": {
       "type": ["string", "null"],
       "pattern": "^PLAN-[a-z0-9-]+$",
