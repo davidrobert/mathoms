@@ -3,6 +3,7 @@ id: A40.l24
 type: lane
 title: "Asserção \"0 LLM\" do gate F2 mede a camada errada — passa para o boundary do SDK"
 sprint: A40
+former_ids: ["A41.l1"]
 plan: PLAN-go-shell
 status: shipped
 ship_pr: 1157

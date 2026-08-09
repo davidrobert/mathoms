@@ -8,7 +8,7 @@ priority: P1
 branch_slug: decision-code-autogen
 adrs:
   - "[[ADR-214]]"
-prompt: "[[decision-code-autogen]]"
+prompt: "[[TRACK-decision-code-autogen]]"
 depends_on: []
 parallel_with:
   - "[[A12.sunset-disk-artifact]]"

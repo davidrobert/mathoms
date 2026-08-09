@@ -4,7 +4,9 @@ type: lane
 title: "Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: shipped
+ship_pr: 1334
+ship_date: "2026-08-08"
 priority: P2
 branch_slug: a40-l23-gate-ref-adr-em-prosa
 adrs:
@@ -22,6 +24,46 @@ tags:
 
 > Onda 4 da A40. Fecha a **classe** que a [[ADR-345]] expôs — ela conserta a
 > instância.
+>
+> ## ✅ Entregue em 2026-08-08 — PR #1334, quatro gates
+>
+> Cada gate nasce **verde sobre a vault viva** e tem prova de mutação em
+> `tests/test_doc_graph_gates.py` (44 testes). Estado medido **antes** do PR,
+> e nº de testes que caem ao neutralizar cada gate:
+>
+> | Gate | Arquivo | Antes | Mutação |
+> |---|---|---|---|
+> | ADR-NNN em prosa resolve | `dev/check_adr_prose_refs.py` (novo) | 5.860 refs em prosa, **0 órfãs** | 2 vermelhos |
+> | Aresta de frontmatter resolve (item 1b) | `dev/check_doc_graph_refs.py` | **2 órfãs** — as duas nomeadas abaixo | 5 vermelhos |
+> | Coerência `path ↔ sprint` (item 2) | `dev/check_doc_filename_id.py` | 307 lanes, **0 incoerentes** | 1 vermelho |
+> | `former_ids` (item 3) | `docs/_schemas/note-lane.schema.json` | 2 renumerações, **0 registradas** | 1 vermelho |
+>
+> **Dois desvios do escopo escrito, ambos por medição — não por conveniência:**
+>
+> 1. **O gate de aresta cobre todos os tipos de nota, não só lane.** Medi que
+>    ampliar era de graça (continuam as mesmas 2 violações) e a classe — "o
+>    `check_doc_links` apaga o frontmatter antes de extrair wikilinks" — não é
+>    específica de lane.
+> 2. **7 campos de aresta, não 4.** `adrs_canonical` está **fora do schema** mas
+>    vive em 16 lanes, e `supersedes`/`superseded_by` são as arestas de ADR. A
+>    lista saiu de varredura da vault, não da memória do escopo.
+>
+> **`check_lane_plan_refs.py` foi renomeado, não duplicado** (o §Escopo abaixo
+> ainda o cita pelo nome antigo, como precedente de forma — era). `lane.plan`
+> sempre foi aresta cross-arquivo; manter dois arquivos duplicaria o parse de
+> frontmatter e o índice global. O check de `plan` está preservado e tem teste
+> próprio contra regressão.
+>
+> **Medição que o revisor deve conhecer:** a whitelist (`docs/DECISIONS.md` +
+> `docs/archive/**`) cobre **0 violações hoje**. É precaução de design sobre
+> superfícies congeladas, **não** peça que sustenta o verde — se um dia passar a
+> sustentar, é sinal de reserva-em-prosa viva, não de gate bem calibrado.
+>
+> **Não fechado aqui** (segue sem lane, registrado no §Inventário do [[A40]]):
+> o job `frontend-e2e` que não gateia, roteado a esta lane como "candidata
+> natural" em 2026-08-07. É política de CI (gatilho `sre-devops`), não gate de
+> grafo de doc — a lane entregou a classe que nomeia, e absorver o E2E aqui
+> misturaria dois eixos.
 
 ## Problema
 
@@ -87,7 +129,16 @@ não hipóteses. São ortogonais ao gate de ADR-em-prosa acima e podem ir em PR 
    com precedente exato de forma: **`dev/check_lane_plan_refs.py`** (69 linhas,
    `pass_filenames: false`, já valida a FK `lane.plan` cross-arquivo desta mesma
    maneira) — estenda para `depends_on`/`parallel_with`/`prompt`/`adrs`, ou crie
-   `dev/check_lane_graph_refs.py` irmão. **2 violações pré-existentes saem no
+   `dev/check_lane_graph_refs.py` irmão.
+
+   > ✅ **Feito em #1334 pela via "estenda".** O arquivo virou
+   > `dev/check_doc_graph_refs.py` (rename, não irmão — `lane.plan` sempre foi
+   > aresta, e um irmão duplicaria parse de frontmatter + índice global), com 7
+   > campos e **todos** os tipos de nota. Resolve pelo **mesmo**
+   > `build_id_index` do `check_doc_links`, então aresta de frontmatter e
+   > wikilink de corpo passaram a ter uma regra só.
+
+   **2 violações pré-existentes saem no
    mesmo PR** (senão o gate nasce vermelho):
    `docs/sprint/A11/lanes/A11-report-publication-month-closed.md` →
    `parallel_with: "[[A11.competitive-pierre]]"` (id nunca existiu) e
