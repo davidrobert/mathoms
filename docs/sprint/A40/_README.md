@@ -44,11 +44,20 @@ duplicação material medida — **o gate vigente mede a camada errada**.
 
 | KR | Métrica | Como se mede |
 |---|---|---|
-| **KR-A · Contrato de leitura** | Leituras órfãs conhecidas **5 → 0** *e* existe gate que hard-falha quando a sexta aparece | `dev/check_view_model_contract.py` (novo) cruzando schema E5 × tipos do frontend × readers Python. Prova do gate: fixture com chave órfã ⇒ EXIT≠0 |
+| **KR-A · Contrato de leitura** | ~~Leituras órfãs conhecidas **5 → 0**~~ → **2 → 0** (remedido, ver nota) *e* existe gate que hard-falha quando a próxima aparece | `dev/check_view_model_contract.py` (novo) cruzando schema E5 × tipos do frontend × readers Python. Prova do gate: fixture com chave órfã ⇒ EXIT≠0 |
 | **KR-B · Não-duplicação do razão** | Duplicação cross-grupo **não-explicada = 0** no corpus dogfood | Check cross-grupo em `dev/certify_ledger_local.py`. Baseline congelado pela [[A40.l1]] **antes** de qualquer fix. Anti-Goodhart: ocorrências whitelisted contadas em **linha separada**, nunca somadas ao numerador |
 | **KR-C · Entrega visível** | Nº de seções que **renderizam** parágrafo == nº de seções com narrativa **emitida** (hoje **0 de 16**) *e* 0 âncoras de nav sem alvo | Teste de render (Vitest/RTL) sobre payload golden + assert bidirecional nav↔seções em `ReportShell.tsx`. CV9 redefinido para medir **entrega**, não geração |
 | **KR-D · PII zero no entregue** | 0 violações no view-model; critério 4 da [[ADR-337]] existe e é executável | Gate de PII sobre o view-model. Fixture sintética com identificador de terceiro + matrícula + endereço ⇒ bloqueio no CI |
 | **KR-E · Honestidade da recomendação** | 0 recomendações no topo do plano cuja premissa o próprio payload contesta, sem pendência pareada | Predicado determinístico `premissa → campo E5` em teste sobre payload golden |
+
+> ⚠️ **O denominador da KR-A era falso — remedido em 2026-08-08 (#1336).** Dos 4
+> achados que a [[A40.l5]] listava, **dois não existiam** no momento da medição:
+> RV3-26 já estava corrigido e RV3-17 não é leitura órfã (`total_pontuais` é
+> lido de propósito, D6; o órfão é o inverso e pertence à [[A40.l15]]). Restavam
+> **2**, ambas fechadas no #1336. **A KR-A não fecha com isso**: falta o gate,
+> que é o outro termo do "e" — e o gate especificado depende de tipar o schema
+> E5 primeiro (ver §Estado da Onda 2). Registrado aqui porque fechar a sprint
+> citando "5 → 0" contaria dois itens inexistentes.
 
 **KR rejeitado deliberadamente:** cobertura (`N% dos achados fechados`) — mede
 burn-down, não valor, e trataria abreviação `k`/`M` como equivalente a dupla
@@ -154,7 +163,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (32)
+## Lanes (33)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -345,6 +354,25 @@ RV3-07** e porque é reincidência de um "FIXADO" falso.
 verde sem prova. A l5 vem **antes** das lanes de correção individual de contrato —
 senão cada uma é fixada uma vez e volta a divergir.
 
+> **Estado da Onda 2 em 2026-08-08.** [[A40.l5]] e [[A40.l7]] shipparam **parcial**
+> e seguem `in_progress` — cada uma parou num bloqueio **medido**, escrito na
+> própria lane:
+>
+> - **[[A40.l5]] — `845a4041` (#1336).** Fechou as **2** leituras órfãs reais
+>   (regra de reserva morta em produção + tabela de dívidas publicando vazio).
+>   Duas descobertas que a sprint precisa herdar: o inventário da lane estava
+>   **vencido** (ver KR-A abaixo) e o **codegen especificado não é construível**
+>   — 10 dos 35 blocos do schema E5 são `object` sem `properties`, inclusive os
+>   3 onde os achados moram. Pré-requisito antes de retomar: tipar esses blocos
+>   (contrato entre stages ⇒ gatilho `data-engineer`).
+> - **[[A40.l7]] — `ed7b1dc4` (#1337).** Fechou a âncora de nav sem alvo
+>   (RV3-04) com gate bidirecional dentro do `codegen_report_layout`. Decisão de
+>   produto tomada: **remover a entrada de nav**, não ligar `S_PROTECAO` — ligar
+>   publicaria "Nenhuma apólice cadastrada" para todo cliente, inclusive quem
+>   cadastrou. Seguem abertos: S9 empty state (⛔ sem produtor de
+>   `protection_bundle`), rótulo do disclosure, retítulo da S9 e o `title`
+>   derivado do `titleMap`.
+
 **[[A40.l30]] entra como instrumento que gateia esta onda** (aberta 2026-08-03,
 co-design `prompt-engineer`). Não é Onda 0 — a Onda 0 é "parar a sangria" e sua
 não-negociabilidade era *"medir exige run que completa"*, o que a [[A40.l16]] já
@@ -446,6 +474,14 @@ rebaseia sobre a [[A40.l22]] pela mesma regra de arquivo-compartilhado. **Mover 
 decisão do dono** — coloquei onde o critério declarado da sprint a coloca, não por
 preferência.
 
+> **[[A40.l23]] ✅ `shipped` 2026-08-08 — `058f190f` (#1334).** Quatro gates de
+> integridade do grafo de doc, cada um nascendo verde sobre a vault viva e com
+> prova de mutação: ADR-em-prosa resolve para arquivo (fecha a **classe** que a
+> [[ADR-345]] fechou na instância) · aresta de frontmatter resolve · coerência
+> `path ↔ sprint` · `former_ids`. **Nada sobra do escopo da lane** — o item
+> "job `frontend-e2e` não gateia", roteado a ela em 2026-08-07, foi
+> **explicitamente recusado** e re-roteado (ver §Inventário de follow-up).
+
 **[[A40.l26]] também fica fora das ondas** (aberta 2026-08-03; **`shipped` em
 2026-08-09 pelo #1339 · [[ADR-373]]** — o residual que ela não fechou foi
 transferido para a [[A40.l25]] §Carga herdada, porque lane `shipped` some do
@@ -461,6 +497,17 @@ residual das §Entregas fora de lane, cujo código já está em `main` ou em PR
 aberta. Não compartilha arquivo com nenhuma onda — `if_monte_carlo.py` +
 superfícies de exibição de S7 — e depende só de #1162 aterrissar. Sequenciá-la
 dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
+
+> **Estado em 2026-08-08 — `6b1076e7` (#1338), parcial, segue `in_progress`.**
+> Critério de corte declarado na lane: **entra o que corrige procedência, fica o
+> que muda número exibido**. Entraram os itens 2 e 3 — séries do cone fora do
+> catálogo de citação **por decisão** (antes era acidente de predicado) e
+> `sigma_procedencia` no payload + schema E5, com `_SIGMA_POR_PERFIL` (dead
+> code) deletado. **Nenhum número publicado mudou** — o snapshot do view-model
+> mudou 1 linha, conferida. Segue aberto o item 1 (probabilidade em faixa de
+> 5 pp + paridade Py↔TS), `sigma_anual` vindo de `premissas_economicas` e a
+> verificação renderizada da S7: os três mudam valor impresso e por isso
+> dependem da nota de recalibração re-especificada ([[ADR-369]]).
 
 **[[A40.l28]] e [[A40.l29]] seguem o critério da l25** (abertas 2026-08-03):
 mesmo residual, mesma dependência de #1162 aterrissar, fora das ondas pelo mesmo
@@ -939,7 +986,7 @@ item que tem só descrição evapora no fim da sprint.
 | Obrigação de rótulo da [[ADR-306]] cumprida em **5 de 8** blocos com chave `janela` (correção final, 2026-08-05: os "2 de 8" e "4 de 8" anteriores estavam errados — `orcamento_prospectivo` conta, porque tem base declarada em texto impresso pela prosa do produtor, mesmo sem vir do campo `janela`; só `equilibrio_cerbasi`, `passive_income` e `reserva_emergencia` — tooltip não conta, [[ADR-306]] §Emenda A40.l3 — não cumprem) | [[A40.l3]] §Handoff | **item adotado** — [[A40.l11]] |
 | **Prosa crua de operador sai por `GET /pipeline/runs/{id}`** — `stage_logs.output_summary` serializa o dict inteiro sem allowlist; no ramo de sigilo o `reason` carrega o próprio termo §13, e o gate de acesso é só `get_current_workspace` | [[A40.l20]] §Achados (lane terminal) | **sem lane** — correção provável: allowlist de chaves no `PipelineStageLogResponse`. Aberto no fecho do PR2 (#1278) |
 | **`riscos_truncados` é 4ª subtração silenciosa** (cap ≤12), fora de todo contador | [[A40.l20]] §Achados (lane terminal) | **sem lane** |
-| **Job `frontend-e2e` não gateia** — opt-in pelo label `e2e` **e** fora do `All checks green`; PR com E2E vermelho mergeia (medido: #1278) | — | **sem lane** — candidata natural [[A40.l23]] (lane de gates). Aberto em 2026-08-07 |
+| **Job `frontend-e2e` não gateia** — opt-in pelo label `e2e` **e** fora do `All checks green`; PR com E2E vermelho mergeia (medido: #1278) | — | **sem lane, e agora sem candidata** — a [[A40.l23]] shipou em #1334 e **recusou** absorvê-lo: é política de CI (gatilho `sre-devops`), não gate de grafo de doc. Reaberto sem dono em 2026-08-08. **Evidência nova a favor de atacá-lo:** no #1337 os jobs *Frontend visual snapshots* e *Frontend print visual diff* saíram `skipping` e a mudança **mergeou com a baseline visual nunca verificada** — o mesmo buraco, em outro job |
 | ~~**Step de notificação do `frontend-e2e` dá 403**~~ (`actions/github-script` → `issues.createComment` sem `permissions`) — rodava `if: failure()`, virava o `##[error]` mais visível e **mascarava a causa real** | — | **FECHADO** — #1283 (`04278c9d`, 2026-08-08): `permissions: {contents: read, pull-requests: write}` no job + `continue-on-error` (PR de fork recebe token read-only **independente** do bloco, e o step é diagnóstico, não gate). O guard de `workflow_dispatch` que esta linha pedia **já existia** — o `if:` do step sempre teve `&& github.event_name == 'pull_request'`, então `context.issue.number` nunca chega `undefined` ali. Verificado no runner: step verde e comentário entregue |
 | **O PDF exportado não contém as últimas seções nem NENHUM título de seção** — `pdftotext -layout` sobre o PDF do harness (geometria de `pdf_renderer.py`: A4, margens 15/12/15/12mm) devolve 0 ocorrências de `"Parecer do Planejador"`, `"Síntese Estratégica"` e `"Apêndice"`, e 0 da nota da S_parecer; com `paperHeight: 300in` o MESMO run traz a nota, os pontos fortes e o diagnóstico. Em media screen as 14 seções têm altura > 0 e sob `emulateMedia({media:"print"})` a nota é visível — logo **não é `display:none`**, é paginação/paint do `printToPDF` | [[A40.l22]] §Blockquote (`test.fixme` marca a retomada em `print.@critical.spec.ts`) | **PR em voo** — #1287 (*"o PDF exportado volta a conter todas as seções"*), aberto por esta medição. Enquanto não mergear, é o que torna a perna de PDF do §Critério de aceite da l22 **parcial**. Medido 2026-08-07/08 |
 | **A baseline do `frontend-print-visual` é um screenshot de CRASH** — `report.print.pdf.png` (2026-04-27) é o error boundary do React ("Algo deu errado ao renderizar esta página"), não um relatório. O gate nunca comparou relatório com relatório e é **fail-open**: se o relatório voltar a crashar do mesmo jeito, o job fica verde. Os 94.472px de divergência de hoje são crash-vs-relatório, **não** drift | — | **PR em voo** — #1290 (*"rebaselina 10 snapshots de seção com drift"*). Medido 2026-08-08 no fecho do #1277 |

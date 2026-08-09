@@ -39,7 +39,9 @@ tags:
 > Entra na A40 por casar com a **KR-E** (honestidade da recomendação): as duas
 > faces são números que afirmam precisão ou procedência que não têm.
 
-## ✅ Parcial entregue em 2026-08-08 — itens 2 e 3, sem mover número publicado
+## ✅ Parcial entregue em 2026-08-08 — PR #1338 (`6b1076e7`)
+
+### Itens 2 e 3, sem mover número publicado
 
 Critério de corte usado: **entrou o que corrige procedência; ficou o que muda
 número exibido.** Os itens que mexem no valor impresso disparam bump de

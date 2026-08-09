@@ -181,7 +181,9 @@ filtro deixa. **Não corrigido na l10 por custo**: acrescentar o path faz
 de orçamento de Actions estourado por contagem de jobs — é decisão com gatilho
 `sre-devops`, não carona de PR de narrativa.
 
-## ✅ Entregue em 2026-08-08 — as 2 leituras órfãs reais, com o gate de consumo ligado
+## ✅ Parcial entregue em 2026-08-08 — PR #1336 (`845a4041`)
+
+### As 2 leituras órfãs reais, com o gate de consumo ligado
 
 Fecha a metade da lane que era construível sem tocar o schema E5. O codegen
 segue aberto pelo pré-requisito medido acima.

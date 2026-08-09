@@ -34,7 +34,9 @@ tags:
 > mente) — **a l22 estende a caption desse mesmo componente**. Se as duas correrem
 > juntas, combine quem toca o arquivo, ou serialize l22 → l7.
 
-## ✅ Parcial entregue em 2026-08-08 — a âncora sem alvo (RV3-04) e o gate bidirecional
+## ✅ Parcial entregue em 2026-08-08 — PR #1337 (`ed7b1dc4`)
+
+### A âncora sem alvo (RV3-04) e o gate bidirecional
 
 Fecha a **metade da KR-C** que era construível: *"0 âncoras de nav sem alvo"*.
 A lane **segue aberta** — S9, rótulo do disclosure e retítulo não entraram.
@@ -89,12 +91,19 @@ contra "zero âncoras encontradas". **Não consegui rodá-lo**: neste worktree
 Typecheck passa; a execução fica para o CI. O §Débito de método desta sprint
 **não está satisfeito** por mim neste ponto — está declarado, não contornado.
 
-⚠️ **Baseline visual/print provavelmente precisa de rebaseline deliberado.** O
-TopNav perde uma entrada ("2.5"), então a faixa do topo muda de conteúdo. Pelo
-mesmo bloqueio acima não pude renderizar para conferir **nem** para regravar —
-e regravar baseline sem olhar é o anti-padrão registrado em #1290. Se
-*Frontend visual snapshots* falhar, a regravação é esperada, mas **tem de ser
-olhada**.
+⚠️ **A baseline visual/print MERGEOU SEM VERIFICAÇÃO — corrigindo o que esta
+seção dizia antes.** A redação anterior era *"se o job falhar, a regravação é
+esperada"*, o que pressupunha que o job rodaria. **Não rodou:** no #1337
+*Frontend visual snapshots* e *Frontend print visual diff* saíram ambos
+`skipping` (são opt-in por label, fora do `All checks green`). O TopNav perde a
+entrada "2.5", então a faixa do topo **mudou de conteúdo** e nenhuma baseline
+foi comparada nem regravada — nem por mim (o Turbopack não sobe neste worktree)
+nem pelo CI.
+
+**Follow-up com dono:** rodar os dois jobs num PR com o label `e2e`, **olhar** o
+diff e regravar se for só a entrada removida. Regravar sem olhar é o anti-padrão
+de #1290. O buraco de fundo — job de verificação que não gateia — está
+registrado no §Inventário de follow-up do [[A40]] e é gatilho `sre-devops`.
 
 **Não entrou:** S9 empty state parcial (⛔ pré-requisito não atendido, abaixo,
 intocado), rótulo do disclosure em `ParecerRisksTable.tsx:93`, retítulo da S9,
