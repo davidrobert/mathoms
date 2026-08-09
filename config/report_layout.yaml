@@ -96,9 +96,12 @@ navigation:
         - {section_id: "V0"}
         - {section_id: "S1", num: "1"}
         - {section_id: "S2", num: "2"}
-        # S_PROTECAO inserido pós-S2 (ordem AUVP, ADR-240 D1). Numeração 2.5
-        # — temporária até reordenação S3↔S4 (débito P2.1).
-        - {section_id: "S_PROTECAO", num: "2.5"}
+        # S_PROTECAO entra aqui (pós-S2, ordem AUVP · ADR-240 D1, num "2.5")
+        # QUANDO a seção for ligada. Enquanto `enabled: false`, a entrada NÃO
+        # pode existir: nav e ToC entregavam âncora morta — e o título da
+        # seção — em 100% dos relatórios (RV3-04, A40.l7). Reinserir no mesmo
+        # PR que flipa `enabled: true`; `validate_nav_targets` no codegen
+        # cobra os dois lados e falha antes de emitir.
         - {section_id: "S3", num: "3"}
     - label: "Detalhes"
       links:

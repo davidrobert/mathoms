@@ -176,10 +176,6 @@ export const LAYOUT: ReportLayout = {
             "num": "2"
           },
           {
-            "section_id": "S_PROTECAO",
-            "num": "2.5"
-          },
-          {
             "section_id": "S3",
             "num": "3"
           }
