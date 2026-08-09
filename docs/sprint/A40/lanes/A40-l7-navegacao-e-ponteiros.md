@@ -4,7 +4,7 @@ type: lane
 title: "Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l7-navegacao-e-ponteiros
 adrs: ["[[ADR-240]]"]
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/frontend
 ---
@@ -33,6 +33,63 @@ tags:
 > lane mexe em `ParecerRisksTable.tsx:93` (o rótulo *"de baixa severidade"* que
 > mente) — **a l22 estende a caption desse mesmo componente**. Se as duas correrem
 > juntas, combine quem toca o arquivo, ou serialize l22 → l7.
+
+## ✅ Parcial entregue em 2026-08-08 — a âncora sem alvo (RV3-04) e o gate bidirecional
+
+Fecha a **metade da KR-C** que era construível: *"0 âncoras de nav sem alvo"*.
+A lane **segue aberta** — S9, rótulo do disclosure e retítulo não entraram.
+
+**Decisão de produto tomada: remover a entrada de nav, não ligar a seção.**
+Das duas opções que o §Escopo autoriza, "ligar `S_PROTECAO`" está **impedida
+pelo ⛔ abaixo** — `data.protection_bundle` não tem produtor, então ligar
+publicaria "Nenhuma apólice cadastrada" e seis linhas "Ausente" para todo
+cliente, inclusive quem cadastrou apólice. Trocar silêncio por afirmação falsa
+é pior que o link morto. A entrada volta ao YAML **no mesmo PR** que flipar
+`enabled: true`, e o gate novo cobra os dois lados.
+
+**O gate mora dentro do codegen** (`dev/report_layout_nav_targets.py`, chamado
+por `codegen_report_layout.build()` **antes** de emitir), como o §Critério de
+aceite exige — gerado que já contém o defeito não é gate. É **bidirecional**:
+
+| Mutação | Resultado |
+|---|---|
+| seção `enabled: false` com link de nav vivo (= RV3-04) | ❌ `NavTargetError` |
+| link para id que não é seção nem apêndice | ❌ `NavTargetError` |
+| seção habilitada **sem** entrada de nav (direção inversa) | ❌ `NavTargetError` |
+| re-inserir exatamente o link de `S_PROTECAO` | ❌ barrado |
+
+Prova de mutação: neutralizar o gate derruba **3** dos 6 testes.
+
+**Achado que muda a polaridade do filtro — `V0` não é seção do YAML.** A
+seção "O que mudou" é renderizada pelo shell (`SHELL_SECTION_TITLES`) e
+**não tem entrada em `sections`**, por decisão registrada no próprio YAML.
+Filtrar nav por *"está no conjunto de habilitadas"* — a leitura literal do
+critério — **apagaria V0 do índice**. O filtro correto é por *desligado
+explicitamente*. O allowlist `SHELL_RENDERED_SECTIONS` tem paridade com o TSX
+travada por teste, para não apodrecer.
+
+**Verificação renderizada: escrita, não executada.** O teste E2E
+(`report-layout.@critical.spec.ts`) enumera `a[href^="#"]` das **duas**
+superfícies de índice sem depender de estarem abertas — a sidebar nasce
+fechada e o drawer só existe em `<lg`, que é o falso-verde apontado no
+§Insumos item 1 — e checa alvo existente com `height > 0`, mais uma guarda
+contra "zero âncoras encontradas". **Não consegui rodá-lo**: neste worktree
+`frontend/node_modules` é symlink para o repo principal e o Turbopack recusa
+(*"Symlink [project]/node_modules is invalid"*), então o dev server não sobe.
+Typecheck passa; a execução fica para o CI. O §Débito de método desta sprint
+**não está satisfeito** por mim neste ponto — está declarado, não contornado.
+
+⚠️ **Baseline visual/print provavelmente precisa de rebaseline deliberado.** O
+TopNav perde uma entrada ("2.5"), então a faixa do topo muda de conteúdo. Pelo
+mesmo bloqueio acima não pude renderizar para conferir **nem** para regravar —
+e regravar baseline sem olhar é o anti-padrão registrado em #1290. Se
+*Frontend visual snapshots* falhar, a regravação é esperada, mas **tem de ser
+olhada**.
+
+**Não entrou:** S9 empty state parcial (⛔ pré-requisito não atendido, abaixo,
+intocado), rótulo do disclosure em `ParecerRisksTable.tsx:93`, retítulo da S9,
+e o `title` derivado do `titleMap` (as 4 divergências YAML↔componente do
+§Insumos item 2).
 
 ## Problema
 

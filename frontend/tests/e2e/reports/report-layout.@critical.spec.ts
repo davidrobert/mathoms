@@ -95,6 +95,55 @@ test.describe("Report shell layout @critical", () => {
     ).toBeGreaterThanOrEqual(stacking.topnavZ);
   });
 
+  /** RV3-04 (A40.l7) — âncora de nav/ToC tem de ter alvo renderizado.
+   *
+   * `enabled: false` com entrada de nav viva entregava link morto em 100% dos
+   * relatórios. O gate estático vive no codegen (`validate_nav_targets`); este
+   * é a verificação RENDERIZADA que o §Débito de método da sprint exige — a
+   * lane não fecha sobre inferência de código.
+   *
+   * Enumera os anchors das DUAS superfícies de índice sem depender de elas
+   * estarem abertas: a sidebar nasce fechada (`useReportTocOpen`) e o drawer
+   * só existe em `<lg`, então um assert que só olhasse o visível passaria
+   * vazio — que é o modo de falha registrado no §Insumos da lane.
+   */
+  test("Toda âncora de nav/ToC aponta para alvo com altura > 0", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1512, height: 945 });
+    const { workspaceId, reportId } = await mockReportPage(page);
+    await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+    await waitForReportReady(page);
+
+    const result = await page.evaluate(() => {
+      const hrefs = new Set<string>();
+      document
+        .querySelectorAll<HTMLAnchorElement>('a[href^="#"]')
+        .forEach((a) => hrefs.add(a.getAttribute("href") as string));
+      const dead: string[] = [];
+      const flat: string[] = [];
+      for (const href of hrefs) {
+        if (href === "#") continue;
+        const target = document.querySelector(href);
+        if (!target) {
+          dead.push(href);
+        } else if (target.getBoundingClientRect().height <= 0) {
+          flat.push(href);
+        }
+      }
+      return { total: hrefs.size, dead, flat };
+    });
+
+    // Guarda contra verde vazio: se o seletor parar de achar âncora, o teste
+    // passaria sem medir nada.
+    expect(
+      result.total,
+      "nenhuma âncora encontrada — o índice mudou de marcação e o gate virou vácuo",
+    ).toBeGreaterThan(5);
+    expect(result.dead, "âncora de nav/ToC sem alvo no DOM").toEqual([]);
+    expect(result.flat, "alvo de âncora existe mas tem altura 0").toEqual([]);
+  });
+
   test('Desktop: "Voltar ao topo" aparece após scroll e funciona', async ({
     page,
   }) => {
