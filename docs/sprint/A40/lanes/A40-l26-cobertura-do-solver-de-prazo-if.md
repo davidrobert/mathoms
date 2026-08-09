@@ -150,7 +150,14 @@ discordarem sobre a mesma família.
 - [ ] Verificação renderizada (navegador ou `pdftotext`) do S7 e do Apêndice C —
       **não feita**, ver §Deferimento.
 
-## Deferimento (2026-08-08) — dono: quem pegar a [[A40.l25]]
+## Deferimento (2026-08-08) — **transferido para a [[A40.l25]] em 2026-08-09**
+
+> ⚠️ **Este § não é mais o dono do trabalho.** A lane fechou `shipped`, e lane
+> `shipped` some do [`SPRINT_CURRENT`](../../../_MOC/_generated/SPRINT_CURRENT.md):
+> deixar o item aqui o tornaria invisível para quem procura trabalho — o modo
+> de falha que já prendeu 3 follow-ups na [[A40.l18]]. Os itens abaixo estão
+> **escritos na [[A40.l25]] §Carga herdada**, que está `in_progress`. O texto
+> segue aqui como registro do porquê do corte, não como fila.
 
 Três itens saem desta lane por dependerem de copy nova e/ou do payload que a
 l25 já toca. O `financial-planner` sancionou o corte explicitamente ("se a copy

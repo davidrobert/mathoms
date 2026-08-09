@@ -446,7 +446,10 @@ rebaseia sobre a [[A40.l22]] pela mesma regra de arquivo-compartilhado. **Mover 
 decisão do dono** — coloquei onde o critério declarado da sprint a coloca, não por
 preferência.
 
-**[[A40.l26]] também fica fora das ondas** (aberta 2026-08-03): carrega o
+**[[A40.l26]] também fica fora das ondas** (aberta 2026-08-03; **`shipped` em
+2026-08-09 pelo #1339 · [[ADR-373]]** — o residual que ela não fechou foi
+transferido para a [[A40.l25]] §Carga herdada, porque lane `shipped` some do
+`SPRINT_CURRENT`): carregava o
 residual determinístico que o #1158 abriu ao fechar o §Def. 5 — `_solve_prazo`
 não implementa os ramos `aporte == 0, r > 0` e `r == 0, aporte > 0`, que
 convergem (~35 anos no dogfood). É P2 e não P0 porque o custo é **informação

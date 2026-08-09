@@ -141,8 +141,9 @@ guard; preencher um ramo só de um lado faria a S7 dizer "N anos" e o Apêndice 
 O **piso a aporte zero exibido dentro do motivo** (o "~35 anos" do dogfood),
 a decisão simétrica sobre o cone Monte Carlo — que **já publica** sob PMT = 0,
 com `prob_if_ate_horizonte_simulado` medido em 0,58 no dogfood — e a grade de
-sensibilidade da premissa de retorno. Condição de retomada e dono em
-[[A40.l26]] §Deferimento; pareia com a **metade deferida** da [[A40.l25]] —
-que shipou o #1338 e segue `in_progress` pelo mesmo bloqueio: número novo na
-tela exige a nota de recalibração da §Nota one-shot desta ADR-360, e ela
-cobre o cone e o prazo de uma vez só.
+sensibilidade da premissa de retorno. **O trabalho vive na [[A40.l25]]
+§Carga herdada** (transferido em 2026-08-09): a [[A40.l26]] fechou `shipped`,
+e lane `shipped` some do `SPRINT_CURRENT` — deixar o item lá o tornaria
+invisível. A l25 segue `in_progress` pelo mesmo bloqueio: número novo na tela
+exige a §Nota one-shot de recalibração da [[ADR-360]], que cobre o cone e o
+prazo de uma vez só.
