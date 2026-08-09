@@ -4,7 +4,7 @@ type: lane
 title: "Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l25-honestidade-do-cone-if
 adrs:
@@ -18,7 +18,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/pipeline
   - area/frontend
@@ -36,6 +36,42 @@ tags:
 >
 > Entra na A40 por casar com a **KR-E** (honestidade da recomendação): as duas
 > faces são números que afirmam precisão ou procedência que não têm.
+
+## ✅ Parcial entregue em 2026-08-08 — itens 2 e 3, sem mover número publicado
+
+Critério de corte usado: **entrou o que corrige procedência; ficou o que muda
+número exibido.** Os itens que mexem no valor impresso disparam bump de
+`mc_version` + a nota de recalibração, cuja especificação está *duas mudanças
+atrás* (o ⚠️ do §Critério de aceite) e depende de `product-designer`.
+Entregá-los sem isso publicaria número novo sem o aviso que a [[ADR-360]]
+§Nota one-shot torna obrigatório. Lane segue **`in_progress`**.
+
+**Item 2 — cone fora do catálogo de citação, por decisão.** Medido antes:
+`build_citation_catalog` produz **0 âncoras** para `caminho_p10/p50/p90` — o
+predicado `_is_money_leaf` não casa lista de pares. Era acidente. Agora é
+`_NAO_CITAVEL_ESTIMATIVA`, com teste que exercita **o caminho de exclusão**
+(não só o resultado), para que tornar a folha citável seja escolha explícita e
+não efeito colateral de mexer no predicado.
+
+**Item 3 — `sigma_usado` deixa de insinuar auditoria.** O payload publica
+`sigma_procedencia` (`global` | `workspace_override` | `fallback_codigo`), no
+padrão `fonte_origem` da [[ADR-219]], **declarado no schema E5** ao lado de
+`sigma_usado`. Hoje todo run emite `fallback_codigo`, que é a verdade: o
+adapter (`e5_analyzer_adapter.py:603`) não passa `sigma_anual`.
+
+`_SIGMA_POR_PERFIL` **foi deletado** — nunca teve consumidor (confirmado por
+varredura, e independentemente por RV4-29 e pela [[ADR-360]] §264), e dead code
+que parece configuração sugere parametrização por perfil que não existe.
+
+**Nenhum número publicado mudou.** O snapshot do view-model foi regravado com
+diff de **exatamente 1 linha** (o campo novo) — conferido linha a linha antes
+de commitar, não regravado às cegas.
+
+**Não entrou:** item 1 inteiro (probabilidade em faixa de 5 pp nas três
+superfícies + paridade Py↔TS), a leitura de `sigma_anual` a partir de
+`premissas_economicas` — que muda a **largura** do cone —, e a verificação
+renderizada da S7. Os três compartilham o mesmo bloqueio: mudam número exibido
+e por isso exigem a nota de recalibração re-especificada.
 
 ## Problema
 
