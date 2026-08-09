@@ -4,7 +4,7 @@ type: adr
 title: "Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem"
 status: Proposto
 date: "2026-08-06"
-amended_at: ["2026-08-07"]
+amended_at: ["2026-08-07", "2026-08-09"]
 tags:
   - type/adr
   - status/proposto
@@ -14,12 +14,14 @@ tags:
 
 # ADR-364 — Remover row no E3 é mudança de identidade para override
 
-> ⚠️ **Emendada em 2026-08-07.** Nenhuma §Decisão foi revogada. O que mudou é o
-> **mecanismo do gate** que a §Decisão 2 pressupunha: o predicado era inalcançável por
-> construção, e a saída natural de quem estivesse sob pressão de entrega seria afrouxá-lo.
-> Os itens **3** e **5** da §Estado de implementação saíram de ⬜ para ✅. Leia a §Emenda
-> antes de construir sobre `evaluate()` — a assinatura mudou e o predicado tem cinco
-> cláusulas, não duas.
+> ⚠️ **Emendada em 2026-08-07 e em 2026-08-09.** A emenda de 2026-08-07 corrigiu o
+> **mecanismo do gate** (predicado inalcançável por construção; cinco cláusulas, não
+> duas) e moveu os itens **3** e **5** da §Estado de implementação de ⬜ para ✅. A de
+> **2026-08-09 revoga o mecanismo da §Decisão 2**: a quitação deixa de ser re-ancoragem e
+> passa a ser **retenção** — o colapso não remove row cujo `gate_digest` tem override
+> ativo. A §Decisão 1 permanece intacta; a re-ancoragem fica **deferida** com gatilho
+> verificável. Não construa `ReanchorPlan`/`CollisionPlan` a partir do texto original da
+> §Decisão 2 — leia a §Emenda 2026-08-09 primeiro.
 
 ## Contexto
 
@@ -104,7 +106,7 @@ porque 4 dos 5 itens não têm código.
 | item | estado |
 |---|---|
 | **1** — remoção herda a restrição | decidido, sem código próprio (é premissa dos outros) |
-| **2** — quitação por re-ancoragem | ⬜ [[A40.l2]] PR3d |
+| **2** — quitação por **retenção** (re-ancoragem deferida, ver §Emenda 2026-08-09) | ⬜ [[A40.l2]] PR3d |
 | **3** — `RemovalTarget` com consumidor | ✅ PR3b — o consumidor é a **adjudicação do gate** (`survivor_hash` absolve o override que já ancora a row sobrevivente), não o drain |
 | **4** — flag de sombra `measure` | ✅ [#1231](https://github.com/davidrobert/mathoms/pull/1231) (`65464db6`) — em produção, `OPERATOR_ONLY`. A flag de **enforce** e a recusa do write-path são do PR3e |
 | **5** — gate todo run | ✅ PR3b — chamada em `main_with_store`, relatório em `pipeline_stage_logs.output_summary`, **não** `AuditRecord` por run (`append_audit` é `db.add` sem commit e o loop do `pipeline_task` faz *rollback* em falha, então a série que este item promove a gatilho de rollback nasceria com os **vermelhos apagados**). O `internal_ops_audit` recebe **uma** row quando o operador flippa a flag |
@@ -169,6 +171,95 @@ de que a absolvição funciona.
 eixos, incluindo ensaio de rollback medido), não re-ancora nada (PR3d) e não afrouxa
 `liberado` — a trave que o texto acima nomeia como incentivo permanece onde estava, mais
 apertada.
+
+## Emenda 2026-08-09 — a quitação passa a ser RETENÇÃO; a re-ancoragem fica deferida
+
+Fechada por co-design de 3 rodadas (2 refutadores adversariais + `financial-planner` +
+`senior-cto`). **A §Decisão 1 não muda.** O que muda é como ela é quitada.
+
+**1. O mecanismo: não colapsar, em vez de colapsar-e-re-ancorar.** O colapsador recebe
+por construtor um `OverrideRetentionGuard` congelado — os `gate_digest` dos overrides
+ativos do workspace — e **retém** toda chave cujo digest está nele. Zero leitura do E4,
+zero escrita em `transaction_overrides`, zero adjudicação.
+
+A propriedade obtida é **estritamente mais forte** que a da §Decisão 2 original:
+*"nenhuma row com override desaparece"* domina *"toda row removida tem seu override
+re-ancorado"*, e sai de uma subtração de conjunto em vez de um adjudicador de 6 passos.
+O trade-off que a §Decisão 2 aceitava — *"re-ancorar é mutar dado do usuário por
+heurística, mas é a mesma heurística que o colapso já executa"* — **está errado nos dois
+termos**: não é a mesma heurística (o colapso escolhe qual row descartar; a re-ancoragem
+escolhe a qual linha uma correção humana passa a se referir), e o adjudicador tinha
+**quatro defeitos medidos** antes de existir (item 4). Erro de retenção é sub-colapso
+**nomeado e contado**; erro de re-ancoragem é sobre-colapso **silencioso, irreversível e
+auto-atribuído** — o produto passa a exibir o badge `editado` numa linha que a família
+nunca tocou, e `_is_sticky` a imuniza contra a categorização automática para sempre.
+
+**2. Custo aceito, dito sem eufemismo.** Cada chave retida é uma duplicação **permanente**
+no razão — o defeito que a KR-B mede. A classe **não é fechada**: medido em 2026-08-09,
+441 rows de perna LLM sem gêmea nativa sobrevivem ao colapso (um grupo exige ≥2
+proveniências), chegam ao E4 e são override-áveis; 146 delas passam a alvo de remoção pela
+mutação de anexar a transação a um statement nativo real do mesmo banco. A retenção
+**vai crescer** — a cobertura do enforce erode com o tempo, e o número tem de ser lido,
+não presumido zero.
+
+**3. Contadores obrigatórios, com denominador.** Em `pipeline_stage_logs.output_summary`:
+`lido`, `overrides_ativos`, `sem_snapshot`, `candidatos`, `colapsaveis`,
+`retido_por_override_manual`, `retido_por_override_rule`, `reservatorio_llm_sem_gemea`.
+Zero-medido e zero-não-medido são estados **distintos** — foi o defeito que esta lane
+pagou quatro vezes. O guard degradado (`not lido` **ou** `sem_snapshot > 0`) degrada o
+run inteiro para **measure-only**: o alvo da degradação é sempre "retém tudo", nunca
+"colapsa tudo".
+
+**4. §Deferimento datado — 2026-08-09, dono A42.** O motor de re-ancoragem fica deferido
+com os quatro defeitos já nomeados, para que quem retomar não os redescubra:
+
+| defeito | conserto exigido antes de qualquer escrita |
+|---|---|
+| adjudicação por `gate_digest` | o digest é **direction-free** por desenho e `decimal_cents` é magnitude ⇒ +100 e −100 do mesmo dia colidem. Adjudicar por `key_digest` **e** exigir âncora = `hash` de um `RemovalTarget` com `hash_desaparece == True` |
+| `new_category` "em algum dos dois baldes" | `_apply_one_override` não move row de balde ⇒ tem de ser **o mesmo balde do sobrevivente** |
+| destino com cardinalidade ≠ 1 | exigir `\|rows(survivor)\| == \|rows(âncora)\|`, nunca `≥1` |
+| destino já ocupado | `unique=False` na migration da [[ADR-282]] ⇒ checar `destino_ocupado` antes de escrever |
+
+**Ordem de construção quando o gatilho disparar** — do mais barato ao mais perigoso, e
+**não** direto para o motor: (1) `retido[rule] > retido[manual]` ⇒ excluir `source='rule'`
+da retenção (a regra é keyword sobre a descrição normalizada, que é a própria chave de
+colapso: ela se reproduz sozinha no sobrevivente); (2) `retido[manual] ≥ 5% dos
+colapsáveis` por 2 runs ⇒ superfície da [[ADR-282]] §5, o usuário re-aplica; (3) quitação
+por **equivalência sem escrita** (colapsa quando já existe override ativo no sobrevivente
+com o mesmo `new_category`); (4) motor semântico, e só com o defeito de adjudicação
+fechado.
+
+**Gatilho verificável no código, não na memória:** `retido_por_override > 0` em qualquer
+workspace por 2 runs consecutivos **ou** `reservatorio_llm_sem_gemea` crescendo entre runs
+de referência. Os dois são campos de `output_summary` — consultáveis, não lembrados.
+
+**5. Correção de fato — o número `4282/4320` está publicado invertido e com a causa
+errada.** O comentário de `gate_key_digest` (e a §791 da [[A40.l2]]) afirma *"a direction
+do E4 vem do balde enquanto a do E3 vem do sinal (deriva medida 4282/4320)"*. Medido:
+**direction concorda 4320/4320**. O `4282/4320` é o **acerto**, e a divergência de 38 rows
+(0,9%) é de **proveniência**, disjunta do conjunto colapsável. A decisão de descartar
+`direction` do digest **permanece** — ela se sustenta sozinha em "gate que BLOQUEIA deve
+sobre-detectar" —, mas deixa de ter apoio empírico falso.
+
+**6. Correção de fato — o `gate_digest` não era derivável pelos dois lados.** O pipeline
+aplicava `normalize_descricao` **duas** vezes (a chave de colapso já a aplica, e
+`gate_key_digest` a aplicava de novo) enquanto o backend a aplicava **uma** (o snapshot
+guarda a descrição crua). A função **não é ponto fixo**: o regex de sufixo de roteamento
+está ancorado no fim da string e remove **um** sufixo por passada, então descrição com
+sufixos empilhados produz digests distintos nos dois lados — e o override **nunca**
+entraria no deny-set. Medido em 2026-08-09: 4 de 5 formas com sufixo empilhado divergem;
+exposição no corpus dogfood é **0/6398 rows** — inerte, e **por isso** invisível,
+exatamente como a divergência do `keep_split` sobreviveu à suíte. Conserto:
+`gate_key_digest` deixa de normalizar e passa a receber `descricao_norm`; cada lado
+normaliza **uma vez**. Passar a descrição **crua** dos dois lados **não** é alternativa:
+um grupo agrega rows cuja descrição crua difere por construção (é o que a [[ADR-255]]
+it.2 compra), então "a crua do grupo" não existe. Afeta também a cláusula
+`snapshot_casa_corpus` do gate já shipado, que sub-contava pela mesma classe.
+
+**7. O que esta emenda NÃO faz.** Não liga o enforce (§Critério de saída do 3e segue com
+os 9 eixos, incluindo ensaio de rollback medido). Não revoga a §Decisão 1, a §Decisão 3, a
+§Decisão 4 nem a §Decisão 5. Não autoriza quitação por destruição: o único ato que escreve
+`orphaned_at` continua sendo operador nominal, auditado, com a medição no corpo do PR.
 
 ## Consequências
 

@@ -237,7 +237,7 @@ derivação tem de ser alimentado pelos **dois produtores reais**.
 | **3b — o gate** ✅ [#1276](https://github.com/davidrobert/mathoms/pull/1276) (`b3b8a74b`) | predicado corrigido (5 cláusulas cumulativas + adjudicação por hash) · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · parâmetro stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
 | **3c1a — o dado até o E4** 🚧 [#1288](https://github.com/davidrobert/mathoms/pull/1288) | `meses` no canal (`$def` próprio, não `allOf`) · agregado somado sobre `readable` · carrier E3→E4 em `fluxo_mensal_detalhado` · campo **omitido** quando zero | campo ausente |
 | **3c1b — o dado até o E5** | `FluxoCaixaEnricher` copia para `fluxo_caixa` **e projeta em `janela_12m`** · invariante de conservação fail-loud no E3 · emenda na [[ADR-347]] · rebaseline do snapshot | campo ausente |
-| **3d — o drain** (destravado pelo 3b) | re-ancora os condenados **enquanto as duas rows existem**; apply só do caso 1→1. ⚠️ **decisão de desenho pendente — ver §3d abaixo.** Brief: [`tracks/a40-l2-3d-drain.md`](../tracks/a40-l2-3d-drain.md) | `orphaned_at` + re-run |
+| **3d — a retenção** (desenho fechado 2026-08-09) | o colapsador recebe `OverrideRetentionGuard` por construtor e **retém** chave cujo `gate_digest` tem override ativo. Zero escrita em `transaction_overrides`, zero re-ancoragem (deferida — [[ADR-364]] §Emenda 2026-08-09). **Depende do PR-A** (paridade do `gate_digest`). Brief: [`tracks/a40-l2-3d-drain.md`](../tracks/a40-l2-3d-drain.md) | flag off + re-run |
 | **3c2 — a superfície** | contador da S2 · caption simétrico da V0 · rebaseline | render condicional |
 | **3e — o flip** | bloqueado pelos quatro; §Critério de saída abaixo | flag off |
 
@@ -265,40 +265,106 @@ define. O 3c foi partido porque atravessava pipeline+backend+frontend num diff.
 brief), não o 3d. ✅ Aberto em 2026-08-07:
 [`tracks/a40-l2-3c2-superficie-do-colapso.md`](../tracks/a40-l2-3c2-superficie-do-colapso.md).
 
-#### §3d — a decisão de desenho que trava o PR, aberta em 2026-08-08
+#### §3d — FECHADO em 2026-08-09: a quitação é RETENÇÃO, não re-ancoragem
 
-**O 3d está destravado (o 3b mergeou) e é da ONDA DESTA SPRINT — mas não é pegável sem
-fechar isto antes.** A lane diz *"o pipeline **emite**, o backend **decide**"* e não diz **por
-onde os candidatos chegam ao drain**. As duas leituras produzem produtos diferentes, e nenhuma
-é obviamente certa:
+> ✅ **Decisão fechada** por co-design de 3 rodadas (5 medições read-only sobre o corpus +
+> 3 refutadores adversariais + `financial-planner` + `senior-cto`). **Não re-abrir.**
+> Canônica: [[ADR-364]] §Emenda 2026-08-09. Brief:
+> [`tracks/a40-l2-3d-drain.md`](../tracks/a40-l2-3d-drain.md).
 
-| | **(a) o stage chama o drain** | **(b) o operador dispara, e o drain re-deriva** |
-|---|---|---|
-| como obtém os candidatos | do próprio run, como o gate já faz (`main_with_store` os tem em mãos) | re-executa o colapsador sobre o E3, pelo caminho `_rederive` do harness |
-| a favor | **zero segunda derivação** · re-ancora *enquanto as duas rows existem*, que é o requisito temporal da lane · reusa a fiação do 3b | preserva o **gesto humano** — a [[ADR-364]] §2 chama a re-ancoragem de *"mutar dado do usuário por heurística"* |
-| contra | **automação destrutiva silenciosa**: muta categorização do usuário a cada run, sem ação humana | **segunda derivação do colapsador** — a classe `keep_split` que esta lane já pagou **duas vezes** (§D5 e o follow-up #1236) |
+A pergunta original era *"por onde os candidatos chegam ao drain — (a) o stage chama, ou (b)
+o operador dispara e o drain re-deriva?"*. **Ela deixou de existir: não há drain.** O
+colapsador recebe um `OverrideRetentionGuard` congelado por **construtor** e **retém** — não
+colapsa — toda chave cujo `gate_digest` tem override ativo. Zero leitura do E4, zero escrita
+em `transaction_overrides`, zero adjudicação.
 
-**Não decida sozinho.** É simultaneamente boundary (`senior-cto`) e produto — mutação de dado
-categorizado pelo usuário, logo gatilho de `financial-planner`. Co-design **antes** de codar,
-como o 3c1 fez (e o 3c1 mostrou que a rodada se paga: derrubou dois pontos do payload cravado).
+**Por que a re-ancoragem caiu.** O adjudicador de 6 passos que a rodada 2 havia fechado tinha
+**quatro defeitos medidos** antes de existir, achados por três lentes independentes:
+adjudicação por `gate_digest` (direction-free por desenho — `decimal_cents` é magnitude, logo
++100 e −100 do mesmo dia colidem, e a correção migraria de uma despesa para a receita gêmea);
+`new_category` "em algum dos dois baldes" (libera o kind-flip que existe para proibir);
+cardinalidade `≥1` no destino; destino já ocupado sem unique key. E a propriedade da retenção
+— *"nenhuma row com override desaparece"* — **domina** a que a re-ancoragem entregaria.
+Erro de retenção é sub-colapso **nomeado e contado**; erro de re-ancoragem é sobre-colapso
+**silencioso, irreversível e auto-atribuído** (o badge `editado` passa a aparecer numa linha
+que a família nunca tocou, e `_is_sticky` a imuniza contra a categorização automática para
+sempre). É a terceira aplicação coerente da doutrina que a §D5 e a salvaguarda 4 já fixaram.
 
-> ⚠️ **O apply path do 3d não tem dado real para exercitar.** O PR3b mediu **0 overrides
-> ancorados em row de candidato de colapso** no dogfood (4 `casou_corpus_fora_de_candidato`,
-> 1 `casou_nada`). As travas do drain têm de vir de **fixture sintética**, e o PR tem de
-> **dizer isso** — senão alguém lê "verde no dogfood" como prova de que o drain funciona.
-> Mesma armadilha que a escapatória de absolvição do 3b, e ela já foi declarada uma vez.
+**A classe é ABERTA — medido 2026-08-09, e é o que torna a retenção uma escolha.** Um grupo
+só se forma com ≥2 proveniências, então perna LLM **sem gêmea nativa** sobrevive ao colapso,
+chega ao E4 e é override-ável: **441 rows** no reservatório hoje, das quais **146 viram alvo
+de remoção** pela mutação de anexar a transação a um statement nativo real do mesmo banco
+(+44% sobre as 331 condenadas), **111 delas vivas no read-path agora**. O gesto que popula a
+classe é o produto funcionando — subir o próximo extrato. Também populam: run só-de-cauda
+(`from_stage=categorize_transactions` reconstrói o E4 a partir de um base pré-flip, com as
+duas pernas; 4 ocorrências medidas) e o `apply_learning_loop`, que cria override
+`source='rule'` a cada E4 sem gesto do usuário. **A retenção vai crescer; não presuma zero.**
+
+**O que a lane perde, dito sem eufemismo:** cada chave retida é uma duplicação **permanente**
+no razão — o defeito que a KR-B mede. O corte troca "override órfão" por "duplicação não
+corrigida", limitada pelo nº de overrides, e esse número sobe. É aceitável porque o dano é
+visível, contado e reversível pelo próprio usuário (desfazer o override, ou corrigir na linha
+que fica, faz a chave colapsar no run seguinte); o oposto não é.
+
+**Deferimento datado — 2026-08-09, dono A42.** O motor de re-ancoragem fica deferido com os
+quatro defeitos já nomeados e uma **ordem de construção** que não parte direto para o item
+caro. Gatilho verificável em `output_summary`, não na memória. Texto canônico na [[ADR-364]]
+§Emenda 2026-08-09 item 4.
 
 #### Restrições duras do 3d, todas verificadas no código
 
-- **`_fresh_legacy` NÃO pode ser reusado**: revalida `natural_key_hash IS NULL` e devolve
-  `None` para todo plano de colapso (cuja âncora é **não**-nula) ⇒ "0 aplicados" com a suíte
-  **verde**. Precisa de revalidador irmão que confira `natural_key_hash == <esperado>`.
-- **`_preflight` recusa com `cutover_already_active`** quando `override_natural_key_v2_enabled`
-  está ligada — que é exatamente o estado desta lane. Entry point irmão, com preflight próprio.
-- **Apply só do caso 1→1.** Colisão e ambiguidade ficam **report-only**: `_apply` chama
-  `_quarantine` e `_soft_delete_losers`, e reuso integral apagaria a categorização que o gate
-  protege — aprovação por destruição, contra a [[ADR-364]] §2 e contra o critério de aceite
-  desta lane. Trava: contagens de `orphaned_at`/`deleted_at` **iguais** antes e depois.
+As três restrições anteriores (`_fresh_legacy` revalidando `natural_key_hash IS NULL`,
+`_preflight` recusando com `cutover_already_active`, `_apply` chamando `_quarantine` +
+`_soft_delete_losers`) ficam **moot**: não há escrita. Medido: o módulo
+`backfill_override_identity` é **inutilizável em qualquer call-site** — `_legacy_overrides`
+filtra `natural_key_hash IS NULL` na origem, `_fresh_legacy` recusa âncora não-nula, e ele
+**não tem call-site de produção**. A [[ADR-364]] §Emenda 2026-08-09 registra isso; a
+§Consequências que prometia recuperabilidade post-hoc por esse módulo era falsa.
+
+As restrições que valem agora:
+
+- **Zero escrita em `transaction_overrides` pelo caminho do colapso**, provado por mutação.
+- **Guard por construtor, keyword-only, sem default** — `frozenset()` como deny-set é
+  fail-**open** na direção destrutiva. A trava é **gate AST sobre o call-site de produção**.
+- **A degradação aponta sempre para "retém tudo"**: `not lido` **ou** `sem_snapshot > 0` ⇒
+  run inteiro em measure-only. Nunca "colapsa tudo".
+- **`_alvos` exige `not c.retido_por_override`, por atributo** — sem isso a chave retida
+  mantém `liberado=False` para sempre, e uma correção de um usuário desligaria o enforce do
+  workspace inteiro.
+- **O produtor do guard é `collapse_precondition.from_active_overrides`** — nunca
+  re-implementar o predicado (a classe `keep_split`, já paga 2×).
+
+> ⚠️ **O guard não tem o que reter no dogfood.** O PR3b mediu **0 overrides ancorados em row
+> de candidato de colapso** (4 `casou_corpus_fora_de_candidato`, 1 `casou_nada`),
+> re-confirmado em 2026-08-09. As travas vêm de **fixture sintética**, e o PR tem de **dizer
+> isso**: *"o dogfood não prova o guard; ele prova que o guard ainda não teve o que reter."*
+
+#### 🔴 PR-A — pré-condição do 3d: o `gate_digest` não era derivável pelos dois lados
+
+Achado na verificação adversarial de 2026-08-09, atinge **código já mergeado** (#1276).
+`normalize_descricao` **não é ponto fixo** — o regex de sufixo de roteamento está ancorado no
+fim da string e remove **um** sufixo por passada. O pipeline a aplicava **duas** vezes (a
+chave de colapso já a aplica, e `gate_key_digest` a aplicava de novo); o backend, **uma** (o
+snapshot guarda a descrição crua). Medido, com os dois produtores reais:
+
+```
+'PIX RECEBIDO — SALARIOS PJ'             a6d472036d85  a6d472036d85   ok
+'PIX RECEBIDO — SALARIOS PJ — BOLETO'    a6d472036d85  6d4a7e6c6f44   DIVERGE
+'PAGTO — BOLETO — NFS 25'                c0c2c5eccdb2  8d3203e6d2cb   DIVERGE
+```
+
+Consequência: para descrição com sufixos empilhados o override **nunca** entra no deny-set ⇒
+a chave colapsa ⇒ a row some ⇒ **sem uma linha do 3d estar errada**. Afeta também a cláusula
+`snapshot_casa_corpus` do gate shipado, que sub-conta pela mesma classe. Exposição no dogfood:
+**0/6398 rows** — inerte, e **por isso** invisível, exatamente como a divergência do
+`keep_split` sobreviveu à suíte. O teste pareado que existe para pegar isso não pega: a
+fixture (`"compra mercado central"`) já é ponto fixo.
+
+**Conserto:** `gate_key_digest` **deixa de normalizar**; o parâmetro vira `descricao_norm` (o
+nome é o contrato); `_override_gate_digest` passa a normalizar uma vez. Passar a descrição
+**crua** dos dois lados **não** é alternativa — um `_KeyGroup` agrega rows cuja crua difere por
+construção (é o que a [[ADR-255]] it.2 compra), então "a crua do grupo" não existe. A fixture
+pareada ganha **≥2 sufixos empilhados**.
 
 #### Duas armadilhas de nome que o instrumento pune
 
@@ -316,9 +382,12 @@ Gatilho: contrato entre stages (E3→E4→E5) + `config/schemas/`. **Duas objeç
 duas eu verifiquei antes de aceitar.**
 
 **Objeção 1 — `receitas_omitidas`/`despesas_omitidas` são falsos POR CONSTRUÇÃO. Saem do 3c1.**
-O E3 conhece `direction` (**sinal**); o balde receita/despesa é do **E4**. A deriva já está
+O E3 conhece `direction` (**sinal**); o balde receita/despesa é do **E4**. ~~A deriva já está
 medida e citada no docstring do produtor (`cross_document_collapser.py`): *"a direction do E4
-vem do balde enquanto a do E3 vem do sinal (4282/4320)"*. Pior: das rows fora do campo de
+vem do balde enquanto a do E3 vem do sinal (4282/4320)"*.~~ → **este apoio caiu (2026-08-09):
+`4282/4320` é o acerto, não a deriva, e a `direction` concorda em 4320/4320; a divergência de
+0,9% é de proveniência. A Objeção 1 permanece válida pelo segundo motivo, abaixo, que é o
+decisivo.** Pior: das rows fora do campo de
 visão do detector, **99,7% dos cents são transferência interna** — sem row em
 `receitas`/`despesas`. Um `receitas_omitidas` derivado do crédito E3 incluiria massa que
 **nunca esteve** em receita, e o planejador que reconciliasse *"declaramos R$ Y consolidados"*
@@ -787,8 +856,13 @@ em produção).
   de hash, imune ao gate de discriminantes, sem PII cruzando o boundary.
 - **Polaridade:** gate que **bloqueia** deve **sobre-detectar** ⇒ o join **descarta
   `direction` e proveniência**. Over-match é adjudicável à mão em 5–12 rows;
-  under-match é override órfão em produção. Isso também absorve a deriva medida E3↔E4
-  (4282/4320 = 99,1%), que vem de `direction` (sinal vs balde).
+  under-match é override órfão em produção.
+  > 🔴 **Corrigido 2026-08-09.** A frase original citava *"a deriva medida E3↔E4
+  > (4282/4320 = 99,1%), que vem de `direction`"* como apoio. Os dois termos estão
+  > errados: `4282/4320` é o **acerto**, não a deriva, e a `direction` concorda em
+  > **4320/4320** — a divergência de 38 rows (0,9%) é de **proveniência**, disjunta do
+  > conjunto colapsável. A decisão de descartar `direction` **permanece**, sustentada
+  > sozinha pela polaridade acima. Ver [[ADR-364]] §Emenda 2026-08-09 item 5.
 - Override com `natural_key_hash IS NULL` **e** `orphaned_at IS NULL` (âncora
   indecidível) conta como **hit e bloqueia**. Hoje são 0.
 - Mora em `backend/app/services/internal_ops/collapse_precondition.py`, read-only,

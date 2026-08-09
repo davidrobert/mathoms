@@ -1,7 +1,7 @@
 ---
 id: TRACK-a40-l2-3d-drain
 type: track
-title: "Track A40.l2 PR3d — o drain: re-ancorar os overrides condenados antes do enforce"
+title: "Track A40.l2 PR3d — a retenção: não colapsar chave com override ativo"
 lane: "[[A40.l2]]"
 sprint: A40
 plan: PLAN-report-trust
@@ -17,82 +17,183 @@ tags:
   - area/pipeline
 ---
 
-# Track A40.l2 PR3d — o drain
+# Track A40.l2 PR3d — a retenção
 
 > **Destravado em 2026-08-07** pelo merge do PR3b ([#1276](https://github.com/davidrobert/mathoms/pull/1276),
 > `b3b8a74b`), que era sua única dependência. **É da onda desta sprint** — o §Gate de saída da
 > [[A40.l2]] faz o contador de 2 re-runs consecutivos só iniciar quando a lane estiver
 > terminal, e o 3d é pré-condição do 3e.
+>
+> **Desenho fechado em 2026-08-09** (co-design de 3 rodadas: 5 medições read-only + 3
+> refutadores adversariais + `financial-planner` + `senior-cto`). **Não re-abrir a §1** — ela
+> virou registro. Justificativa em [[ADR-364]] §Emenda 2026-08-09.
 
-**Não começa por código.** Há uma decisão de desenho aberta (§1) que muda o produto; fechá-la
-é o primeiro passo, e é co-design, não escolha do implementador.
+**Não há drain.** O colapsador recebe um guard congelado por construtor e **retém** — não
+colapsa — toda chave cujo `gate_digest` tem override ativo. Zero leitura do E4, zero escrita
+em `transaction_overrides`, zero re-ancoragem.
 
-## 1. 🔴 Primeiro passo: fechar de onde vêm os candidatos
+## 1. Registro — de onde vêm os candidatos (decisão fechada)
 
-A [[A40.l2]] diz *"o pipeline **emite**, o backend **decide**"* e **não diz por onde os
-candidatos chegam ao drain**. Duas leituras, produtos diferentes:
+**Decidido: nem (a) nem (b).** A pergunta original era por onde os candidatos chegariam ao
+drain; ela deixou de existir quando o drain saiu do desenho. O colapsador recebe o guard por
+**construtor** (`_e3_build_collapser`, `scripts/reconcile_transactions.py:1028-1034`, que já
+lê DB pela flag de measure) e a decisão de colapsar vira uma **subtração de conjunto**.
 
-| | **(a) o stage chama o drain** | **(b) o operador dispara, e o drain re-deriva** |
-|---|---|---|
-| candidatos | do próprio run, como o gate do 3b já faz | re-executa o colapsador (caminho `_rederive` do harness) |
-| a favor | zero segunda derivação · re-ancora *enquanto as duas rows existem* (requisito temporal da lane) · reusa a fiação do 3b | preserva o **gesto humano** — a [[ADR-364]] §2 chama a re-ancoragem de *"mutar dado do usuário por heurística"* |
-| contra | **automação destrutiva silenciosa** — muta categorização do usuário a cada run | **segunda derivação do colapsador**, a classe `keep_split` que esta lane pagou **2×** |
+Por que a re-ancoragem caiu: o adjudicador de 6 passos tinha **quatro defeitos medidos** antes
+de existir (adjudicação por `gate_digest`, que é direction-free e funde +100/−100; `new_category`
+"em algum dos dois baldes", que libera o kind-flip; cardinalidade `≥1` no destino; destino já
+ocupado sem unique key). E a propriedade da retenção — *"nenhuma row com override desaparece"* —
+é **estritamente mais forte** que a que a re-ancoragem entregaria. Detalhe e deferimento na
+[[ADR-364]] §Emenda 2026-08-09.
 
-**Gatilho duplo obrigatório:** `senior-cto` (boundary + composition root) **e**
-`financial-planner` (é mutação de dado categorizado pelo usuário). Em paralelo, 1 rodada de
-objeção, `senior-cto` fecha se persistir. Precedente de que a rodada se paga: o co-design do
-3c1 derrubou dois pontos do payload que já estavam cravados.
+**A classe é ABERTA** — medido 2026-08-09, e é o que torna a retenção uma escolha, não uma
+conveniência: 441 rows de perna LLM sem gêmea nativa sobrevivem ao colapso (grupo exige ≥2
+proveniências), chegam ao E4 e são override-áveis; **146 delas viram alvo de remoção** pela
+mutação de anexar a transação a um statement nativo real do mesmo banco. A retenção **vai
+crescer**, e a cobertura do enforce erode com o tempo. Não presuma zero.
 
-## 2. Restrições duras — verificadas no código, não presumidas
+## 2. Restrições duras — verificadas no código
 
-Todas em `backend/app/services/internal_ops/backfill_override_identity.py` (298 linhas):
+As três restrições anteriores (`_fresh_legacy`, `_preflight`, `_apply` destrutivo em
+`backfill_override_identity.py`) ficam **moot**: não há escrita. O módulo é inutilizável em
+qualquer call-site, e a [[ADR-364]] §Emenda 2026-08-09 registra isso. As restrições que valem:
 
-- **`_fresh_legacy` NÃO pode ser reusado.** Ele revalida `natural_key_hash is not None ⇒
-  return None`, e o override de colapso tem âncora **não-nula** por definição (é o hash da row
-  removida). Reuso ⇒ **"0 aplicados" com a suíte inteira verde**. Precisa de revalidador irmão
-  que confira `natural_key_hash == <esperado>`.
-- **`_preflight` recusa com `cutover_already_active`** quando `override_natural_key_v2_enabled`
-  está ligada — que é exatamente o estado desta lane. Entry point irmão, com preflight próprio.
-- **`_apply` chama `_quarantine` + `_soft_delete_losers`.** Reuso integral **apagaria a
-  categorização que o gate protege** — aprovação por destruição, contra a [[ADR-364]] §2.
-  **Apply só do caso 1→1**; colisão e ambiguidade ficam **report-only**.
+- **Zero escrita em `transaction_overrides` pelo caminho do colapso**, provado por mutação.
+  É a propriedade que torna o desenho defensável, e preserva o writer único de `orphaned_at`.
+- **Guard por construtor, keyword-only, sem default.** `frozenset()` como deny-set é
+  fail-**open** na direção destrutiva. A trava não é a assinatura — é **gate AST sobre o
+  call-site de produção**, no molde de `tests/unit/pipeline/test_collapse_shadow.py:76-99`.
+  Custo do "sem default": 21 call-sites de construtor, 2 de produção
+  (`scripts/reconcile_transactions.py:1034`, `dev/certify_ledger_local.py:203`) e 19 de teste
+  que passam a `OverrideRetentionGuard.sem_overrides()`.
+- **A degradação aponta sempre para "retém tudo".** `not lido` **ou** `sem_snapshot > 0` ⇒ o
+  run inteiro degrada para **measure-only**. Nunca "colapsa tudo". O ramo `sem_snapshot`
+  espelha a cláusula que `collapse_precondition.py:105-106` já aplica ao gate.
+- **`_alvos` exige `not c.retido_por_override`, por acesso a atributo** — nunca
+  `getattr(..., default)`, que é a classe fail-open que esta lane já pagou ([[ADR-359]]).
+  Sem isso, a chave retida mantém `liberado=False` **para sempre**: a proteção funcionando
+  impediria o conserto, e uma correção de um usuário desligaria o enforce do workspace inteiro.
+- **O produtor do guard é `collapse_precondition.from_active_overrides`** — reusa `_ativos` +
+  `_override_gate_digest`. **Nunca re-implementar o predicado** (a classe `keep_split`, que
+  esta lane pagou 2×).
 
-## 3. ⚠️ O apply path não tem dado real para exercitar
+### Contrato — a forma exata do VO
 
-O PR3b mediu no dogfood: **0 overrides ancorados em row de candidato de colapso**
-(4 `casou_corpus_fora_de_candidato`, 1 `casou_nada`, 0 em candidato). As travas do drain têm
-de vir de **fixture sintética**, e o PR tem de **dizer isso** — senão alguém lê "verde no
-dogfood" como prova de que o drain funciona. Mesma armadilha que a escapatória de absolvição
-do 3b, já declarada uma vez; repeti-la seria a terceira instância nesta lane.
+```python
+@dataclass(frozen=True)
+class OverrideRetentionGuard:
+    """Digests de override ativo que NÃO podem ser colapsados. Dado congelado, sem I/O."""
 
-**Re-meça antes de fechar o desenho:** `python3 dev/probe_collapse_adjudication.py <ws>`.
-"Vazio" é propriedade do corpus **e do tempo** ([[ADR-364]] §5) e override nasce
-continuamente. O probe recusa emitir veredito com corpus/overrides vazios (`INDETERMINADO`,
-exit 2) — **não contorne o guard**.
+    denied_digests: frozenset[str]
+    overrides_ativos: int                             # denominador
+    sem_snapshot: int                                 # digest devolveu None
+    denied_por_source: tuple[tuple[str, int], ...]    # (("manual", n), ("rule", m))
+    lido: bool                                        # separa "li e vazio" de "não li"
+
+    @property
+    def degradado(self) -> bool:
+        return (not self.lido) or bool(self.sem_snapshot)
+```
+
+`from_active_overrides` é o **único** caminho para `lido=True`; `nao_lido()` cobre
+`ImportError` / store ≠ `DBArtifactStore`; `sem_overrides()` **afirma** ausência (testes/CLI).
+O VO é dado puro em `pipeline/domain/services/` ([[ADR-089]] intacto); o produtor mora no
+backend e é importado **lazy em `scripts/`**, como `_e3_collapse_precondition` já faz.
+
+**O guard vale também em `measure()`.** Sem isso o gate pré-flip prediz órfãos que o
+enforce-com-guard não produziria, e o 3e fica bloqueado por um hipotético.
+
+## 3. ⚠️ O guard não tem o que reter no dogfood
+
+O PR3b mediu **0 overrides ancorados em row de candidato de colapso** (4
+`casou_corpus_fora_de_candidato`, 1 `casou_nada`), re-confirmado em 2026-08-09. As travas do
+guard têm de vir de **fixture sintética**, e o PR tem de **dizer isso** — senão alguém lê
+"verde no dogfood" como prova de que o guard funciona.
+
+**Frase obrigatória no corpo do PR:** *"o dogfood não prova o guard; ele prova que o guard
+ainda não teve o que reter."*
+
+**Re-meça antes de abrir:** `python3 dev/probe_collapse_adjudication.py <ws>`. "Vazio" é
+propriedade do corpus **e do tempo** ([[ADR-364]] §5). O probe recusa emitir veredito com
+corpus/overrides vazios (`INDETERMINADO`, exit 2) — **não contorne o guard**.
 
 ## Aceite
 
-- **Trava anti-destruição, medida:** `COUNT(*) WHERE orphaned_at IS NOT NULL` e
-  `WHERE deleted_at IS NOT NULL` em `transaction_overrides` **iguais** antes e depois. Se
-  subir → abortar e restaurar.
-- **Prova por mutação** em cada guarda: reusar `_fresh_legacy` deixa um teste vermelho;
-  reusar `_preflight` idem; aplicar caso ≠1→1 idem. Guarda sem teste próprio é guarda que o
-  próximo refactor remove.
-- Fixture sintética cobrindo 1→1 (aplica), colisão N→1 (report-only) e âncora indecidível
-  (report-only), **com a declaração de que o dogfood exercita zero delas**.
+**Seis travas por mutação, cada uma com a mutação plausível declarada** (a que um refactor
+faria):
+
+| trava | mutação | esperado |
+|---|---|---|
+| 1 | `lido=False` ⇒ colapsa >0 rows | vermelho |
+| 2 | apagar o ramo `sem_snapshot` do `degradado` | vermelho (fixture com override sem snapshot vê a chave colapsar) |
+| 3 | remover a subtração do deny-set | vermelho (chave com override colapsa) |
+| 4 | dar **default** ao `retention_guard` no construtor | vermelho por **gate AST** sobre `scripts/reconcile_transactions.py` |
+| 5 | `_alvos` volta a ignorar `retido_por_override` | vermelho (gate reprova com a proteção funcionando) |
+| 6 | trocar `keep_native` por `survivor_cardinality` em `keep_split` | vermelho pelo invariante `Σ removable_rows dos não-retidos == len(drop)` |
+
+- **Fixture sintética** cobrindo `retido_por_override`, `sem_snapshot > 0` e `lido=False`, com
+  a declaração explícita de que o dogfood exercita **zero** delas.
+- **Trava anti-destruição:** `COUNT(*) WHERE orphaned_at IS NOT NULL`, `WHERE deleted_at IS NOT
+  NULL` **e `COUNT(*) total`** iguais antes e depois. O total é obrigatório porque
+  `delete_override.py:87` é **hard delete** — a row some e os outros dois contadores não mexem.
+  Papel declarado no teste: prova de que o colapso **não é writer**, não prova de segurança.
+- **Invariante substituto do assert morto:** `Σ removable_rows dos candidatos NÃO retidos ==
+  len(drop)`, **dentro** de `collapse()` entre a declaração e o `_apply`. É a grandeza que o bug
+  do `keep_split` moveu (453 vs 593); `key_digest` não era — as duas chamadas são a mesma função
+  pura sobre o mesmo objeto, logo idênticas por construção.
+- **Revalidação TOCTOU:** re-leitura do guard em `main_with_store` **depois** de
+  `_e3_run_reconciliation`; se digest novo intersecta o conjunto colapsado, **levanta**. Exceção
+  ⇒ `result is None` ⇒ `_rollback_and_close_artifact_session` (`pipeline_task.py:1417-1419`), e
+  E3 é `criticality="required"`. **Não** usar `validation.valid=False`: esse caminho **commita**
+  e pausa (`:1449-1456`).
+- **Denominador junto do numerador** em `pipeline_stage_logs.output_summary` (nunca
+  `AuditRecord` — `append_audit` é `db.add` sem commit e o rollback do loop apagaria os
+  vermelhos): `{lido, overrides_ativos, sem_snapshot, candidatos, colapsaveis,
+  retido_por_override_manual, retido_por_override_rule, reservatorio_llm_sem_gemea}`.
+  `reservatorio_llm_sem_gemea` (441 hoje) é o **indicador antecedente**: sai da mesma passada de
+  `_group_by_key`, contando as chaves com **1** proveniência que o filtro `len(buckets) > 1`
+  descarta. Sem ele a lane mede 0 e conclui "vazio" pela terceira vez.
+- **`ReviewReason` informativo** (não bloqueante) por chave retida — é o canal que o planejador
+  B2B2C lê ao encontrar duas linhas idênticas e precisar saber se é bug ou política.
+  `needs_review` **não**: pausar o run por chave retida vira fricção, contra a salvaguarda nº 2.
+- **Nenhum texto novo na S2.** O contador da salvaguarda nº 1 continua verdadeiro sob retenção
+  (retenção é não-remoção: não entra no `count`). Copy de "M retidos porque você editou"
+  convidaria o usuário a apagar a própria correção para destravar a consolidação.
+- **Declarar no PR** que `retido_por_override` **sobre-conta por construção** (o `gate_digest` é
+  direction-free e funde +100/−100 do mesmo dia; sob retenção a polaridade inverte a favor —
+  over-match vira sub-colapso). **Não gatear nada nele.**
 - Nenhuma resposta de API vaza hash cru nem descrição de transação.
 - Resultado do probe **no corpo do PR**, mesmo que confirme o esperado.
 
+## Ordem
+
+- **PR-A (paridade do `gate_digest`) é pré-condição deste PR.** Sem ela o guard é cego para
+  descrição com sufixo de roteamento empilhado — `normalize_descricao` não é ponto fixo e era
+  aplicada 2× no pipeline contra 1× no backend ⇒ o override nunca entraria no deny-set e o
+  desenho ficaria decorativo. Conserto: `gate_key_digest` deixa de normalizar, o parâmetro vira
+  `descricao_norm`, o backend normaliza uma vez, e a fixture pareada ganha ≥2 sufixos empilhados.
+- **PR-C (3c1b) serializado antes deste.** Colisão em `scripts/reconcile_transactions.py`
+  (± `e3_reconciler_adapter.py`); 3c1b é menor e já especificado.
+- **PR-B (3c2) abre em paralelo** — é o long pole real da lane, com arquivos disjuntos.
+
 ## Não é escopo
 
+- **Re-ancoragem** — deferida com gatilho verificável ([[ADR-364]] §Emenda 2026-08-09 item 4).
+- Qualquer escrita em `transaction_overrides` · `absolvicao_viva` · produtor único de digest ·
+  `collapse_readpath.py` · leitura do E4 pelo pipeline · track novo.
+- **Superfície de órfão** da [[ADR-282]] §5 — lane própria P1, **não** pré-condição.
+- `quarantine_override` + a adjudicação nominal do 1 órfão pré-existente — são do **3e**, porque
+  é o ato que faz `liberado=True` e tem de ser revisado junto da decisão de ligar o enforce.
 - **Ligar o enforce** (3e) — exige os 9 eixos do §Critério de saída, incluindo **ensaio de
   rollback medido**; undo nunca executado é premissa, não propriedade.
-- O **custo do gate por run**, aberto e já pagando em produção — é item próprio da lane
-  (§"predicado FECHADO no PR3b; sobra o custo"), a medir antes do 3e.
+- O **custo do gate por run**, já aberto e pagando em produção — item próprio da lane.
 
 ## Referências
 
-- Lane: [[A40.l2]] §3d · §"Restrições duras do 3d" · §D5
-- ADRs: [[ADR-364]] (§2 quitação por re-ancoragem, §5 gate todo run) · [[ADR-282]] (a máquina
-  que já existe: `ReanchorPlan`, `CollisionPlan`, TOCTOU plan→apply, `orphaned_at IS NULL`)
+- Lane: [[A40.l2]] §3d · §D5 · §Salvaguardas de produto
+- ADRs: [[ADR-364]] (§Emenda 2026-08-09 — quitação por retenção; re-ancoragem deferida) ·
+  [[ADR-282]] (colunas de snapshot, `orphaned_at`, a superfície §5 prometida) · [[ADR-359]]
+  (fail-loud onde era fail-open)
 - Instrumento: `dev/probe_collapse_adjudication.py`
+- Molde do gate AST: `tests/unit/pipeline/test_collapse_shadow.py:76-99`
+- Teste pareado do digest (PR-A): `backend/tests/test_gate_digest_paired_derivation.py`
