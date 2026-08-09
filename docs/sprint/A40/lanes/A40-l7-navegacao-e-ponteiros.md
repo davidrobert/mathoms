@@ -68,7 +68,17 @@ critério — **apagaria V0 do índice**. O filtro correto é por *desligado
 explicitamente*. O allowlist `SHELL_RENDERED_SECTIONS` tem paridade com o TSX
 travada por teste, para não apodrecer.
 
-**Verificação renderizada: escrita, não executada.** O teste E2E
+**Verificação renderizada: rodou no CI e me corrigiu.** A 1ª versão do assert
+tratava *"âncora sem alvo no DOM"* como defeito único e falhou em **4** ids —
+`S4`, `S_IRPF_RENDA`, `S_IRPF_OTIMIZACAO`, `APP_C`. Nenhum é defeito: são seções
+**habilitadas** que o `hide-when-empty` ([[ADR-167]]) tira do ar porque a fixture
+de mock é esparsa. O assert conflava duas coisas — *"seção que nunca
+renderiza"* (defeito) e *"seção que não renderizou desta vez"* (comportamento).
+Corrigido: só falha âncora para seção **desligada ou inexistente**; alvo que
+existe e mede zero (classe RV3-05) segue falha dura, ali não há desculpa de
+hide-when-empty.
+
+**Contexto de execução:** O teste E2E
 (`report-layout.@critical.spec.ts`) enumera `a[href^="#"]` das **duas**
 superfícies de índice sem depender de estarem abertas — a sidebar nasce
 fechada e o drawer só existe em `<lg`, que é o falso-verde apontado no

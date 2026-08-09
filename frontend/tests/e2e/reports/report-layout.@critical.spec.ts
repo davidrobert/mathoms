@@ -10,6 +10,8 @@
  */
 import { test, expect } from "@playwright/test";
 
+import { LAYOUT } from "@/generated/report-layout";
+
 import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 
 test.describe("Report shell layout @critical", () => {
@@ -95,7 +97,8 @@ test.describe("Report shell layout @critical", () => {
     ).toBeGreaterThanOrEqual(stacking.topnavZ);
   });
 
-  /** RV3-04 (A40.l7) — âncora de nav/ToC tem de ter alvo renderizado.
+  /** RV3-04 (A40.l7) — âncora de nav/ToC não pode apontar para seção que o
+   * relatório nunca renderiza.
    *
    * `enabled: false` com entrada de nav viva entregava link morto em 100% dos
    * relatórios. O gate estático vive no codegen (`validate_nav_targets`); este
@@ -140,7 +143,27 @@ test.describe("Report shell layout @critical", () => {
       result.total,
       "nenhuma âncora encontrada — o índice mudou de marcação e o gate virou vácuo",
     ).toBeGreaterThan(5);
-    expect(result.dead, "âncora de nav/ToC sem alvo no DOM").toEqual([]);
+
+    // Ausente do DOM ≠ defeito: `hide-when-empty` (ADR-167) tira do ar seção
+    // HABILITADA cujo payload não tem dado, e a fixture de mock é esparsa de
+    // propósito. O defeito é âncora para seção que NUNCA renderiza — desligada
+    // no layout ou inexistente. Medido em CI: com a fixture atual somem S4,
+    // S_IRPF_RENDA, S_IRPF_OTIMIZACAO e APP_C, todas `enabled: true`.
+    const habilitadas = new Set(
+      [...LAYOUT.estrategico.sections, ...(LAYOUT.estrategico.appendices ?? [])]
+        .filter((s) => s.enabled)
+        .map((s) => s.id),
+    );
+    const naoRenderizavel = result.dead.filter(
+      (href) => !habilitadas.has(href.slice(1)) && href.slice(1) !== "V0",
+    );
+    expect(
+      naoRenderizavel,
+      "âncora aponta para seção desligada ou inexistente — nunca vai renderizar",
+    ).toEqual([]);
+
+    // Alvo que EXISTE mas mede zero é a classe RV3-05 (seção que colapsa):
+    // aqui não há desculpa de hide-when-empty, o elemento está no DOM.
     expect(result.flat, "alvo de âncora existe mas tem altura 0").toEqual([]);
   });
 
