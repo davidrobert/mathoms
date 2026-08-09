@@ -229,11 +229,7 @@ class ChartsNarrator:
                     f"Decomposição do gap de independência financeira ({fmt_currency(M['if_gap'])}), mostrando componentes de patrimônio atual, "
                     f"aportes acumulados e rentabilidade esperada até {M['if_ano']}."
                 ),
-                "conclusion": (
-                    f"Gap de {fmt_currency(M['if_gap'])} será fechado por aportes disciplinados "
-                    f"({fmt_currency(M['meta_aporte_mensal'])}/mês = {fmt_currency(M['aportes_acum_prazo'])} em {fmt_num(M['if_prazo_anos'], 0)} anos) "
-                    f"e rentabilidade real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. sobre patrimônio acumulado."
-                ),
+                "conclusion": _narrate_waterfall_if_conclusion(M),
             },
             "renda_passiva": {
                 "context": (
@@ -377,6 +373,24 @@ _ACTION_LINES: dict[tuple[bool, bool], str] = {
     (False, True): "Ação: contratação de seguro term {range}.",
     (False, False): "Ação: revisar mitigação de cada risco prioritário com corretor habilitado.",
 }
+
+
+def _narrate_waterfall_if_conclusion(M: Mapping[str, Any]) -> str:
+    """Sem aporte declarado, o gap NÃO é fechado por aportes (A40.l26 · ADR-373)."""
+    # A frase única afirmava "Gap de R$ 87,0M será fechado por aportes
+    # disciplinados (R$ 0,00/mês = R$ 0,00 em N/D anos)" para quem não declarou
+    # aporte — falsa e já visível na S1, antes de qualquer mudança no solver.
+    if not M.get("meta_aporte_mensal") or M.get("if_prazo_anos") is None:
+        return (
+            f"Gap de {fmt_currency(M['if_gap'])} até a meta. Quanto dele é fechado por aporte e "
+            f"quanto por rentabilidade depende do aporte mensal, que você ainda não declarou — "
+            f"a rentabilidade real considerada é {fmt_num(M['if_retorno_real_pct'], 0)}% a.a."
+        )
+    return (
+        f"Gap de {fmt_currency(M['if_gap'])} será fechado por aportes disciplinados "
+        f"({fmt_currency(M['meta_aporte_mensal'])}/mês = {fmt_currency(M['aportes_acum_prazo'])} em {fmt_num(M['if_prazo_anos'], 0)} anos) "
+        f"e rentabilidade real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. sobre patrimônio acumulado."
+    )
 
 
 def _fmt_seguro_vida_range(M: Mapping[str, Any]) -> str | None:

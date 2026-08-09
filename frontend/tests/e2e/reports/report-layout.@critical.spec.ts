@@ -10,6 +10,8 @@
  */
 import { test, expect } from "@playwright/test";
 
+import { LAYOUT } from "@/generated/report-layout";
+
 import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 
 test.describe("Report shell layout @critical", () => {
@@ -93,6 +95,76 @@ test.describe("Report shell layout @critical", () => {
       stacking.fabZ,
       `FAB z-index (${stacking.fabZ}) deve ser ≥ TopNav z-index (${stacking.topnavZ}) para não sumir atrás do header sticky`,
     ).toBeGreaterThanOrEqual(stacking.topnavZ);
+  });
+
+  /** RV3-04 (A40.l7) — âncora de nav/ToC não pode apontar para seção que o
+   * relatório nunca renderiza.
+   *
+   * `enabled: false` com entrada de nav viva entregava link morto em 100% dos
+   * relatórios. O gate estático vive no codegen (`validate_nav_targets`); este
+   * é a verificação RENDERIZADA que o §Débito de método da sprint exige — a
+   * lane não fecha sobre inferência de código.
+   *
+   * Enumera os anchors das DUAS superfícies de índice sem depender de elas
+   * estarem abertas: a sidebar nasce fechada (`useReportTocOpen`) e o drawer
+   * só existe em `<lg`, então um assert que só olhasse o visível passaria
+   * vazio — que é o modo de falha registrado no §Insumos da lane.
+   */
+  test("Toda âncora de nav/ToC aponta para alvo com altura > 0", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1512, height: 945 });
+    const { workspaceId, reportId } = await mockReportPage(page);
+    await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+    await waitForReportReady(page);
+
+    const result = await page.evaluate(() => {
+      const hrefs = new Set<string>();
+      document
+        .querySelectorAll<HTMLAnchorElement>('a[href^="#"]')
+        .forEach((a) => hrefs.add(a.getAttribute("href") as string));
+      const dead: string[] = [];
+      const flat: string[] = [];
+      for (const href of hrefs) {
+        if (href === "#") continue;
+        const target = document.querySelector(href);
+        if (!target) {
+          dead.push(href);
+        } else if (target.getBoundingClientRect().height <= 0) {
+          flat.push(href);
+        }
+      }
+      return { total: hrefs.size, dead, flat };
+    });
+
+    // Guarda contra verde vazio: se o seletor parar de achar âncora, o teste
+    // passaria sem medir nada.
+    expect(
+      result.total,
+      "nenhuma âncora encontrada — o índice mudou de marcação e o gate virou vácuo",
+    ).toBeGreaterThan(5);
+
+    // Ausente do DOM ≠ defeito: `hide-when-empty` (ADR-167) tira do ar seção
+    // HABILITADA cujo payload não tem dado, e a fixture de mock é esparsa de
+    // propósito. O defeito é âncora para seção que NUNCA renderiza — desligada
+    // no layout ou inexistente. Medido em CI: com a fixture atual somem S4,
+    // S_IRPF_RENDA, S_IRPF_OTIMIZACAO e APP_C, todas `enabled: true`.
+    const habilitadas = new Set(
+      [...LAYOUT.estrategico.sections, ...(LAYOUT.estrategico.appendices ?? [])]
+        .filter((s) => s.enabled)
+        .map((s) => s.id),
+    );
+    const naoRenderizavel = result.dead.filter(
+      (href) => !habilitadas.has(href.slice(1)) && href.slice(1) !== "V0",
+    );
+    expect(
+      naoRenderizavel,
+      "âncora aponta para seção desligada ou inexistente — nunca vai renderizar",
+    ).toEqual([]);
+
+    // Alvo que EXISTE mas mede zero é a classe RV3-05 (seção que colapsa):
+    // aqui não há desculpa de hide-when-empty, o elemento está no DOM.
+    expect(result.flat, "alvo de âncora existe mas tem altura 0").toEqual([]);
   });
 
   test('Desktop: "Voltar ao topo" aparece após scroll e funciona', async ({

@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-363 ADRs (ADR-001 a ADR-372) em [`docs/adr/`](../../adr/).
+364 ADRs (ADR-001 a ADR-373) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 314
+- **Decidido**: 315
 - **Proposto**: 45
 - **Roadmap**: 4
 
@@ -530,7 +530,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (55)
+### Decidido (56)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -587,6 +587,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-360]] — Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO · phase A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)
 - [[ADR-361]] — Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos · phase A40
 - [[ADR-369]] — Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) · phase A40.l28
+- [[ADR-373]] — Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade
 
 ### Proposto (14)
 

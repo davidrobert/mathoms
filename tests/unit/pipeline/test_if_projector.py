@@ -11,7 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.services.if_projector import (  # noqa: E402
-    MOTIVO_PRAZO_INDEFINIDO,
+    MOTIVO_SEM_TRAJETORIA,
     IFProjection,
     IFProjector,
     IFProjectorConfig,
@@ -150,7 +150,9 @@ class TestProject:
         assert p.prazo_anos_realista is None
         assert p.idade_titular_if is None
         assert p.ano_if is None
-        assert p.motivo_prazo_indefinido == MOTIVO_PRAZO_INDEFINIDO
+        # aporte 0 E retorno 0: é o caso SEM TRAJETÓRIA, o único que pode
+        # afirmar inviabilidade (ADR-373).
+        assert p.motivo_prazo_indefinido == MOTIVO_SEM_TRAJETORIA
 
     def test_idade_titular_increments_with_anos_restantes(self):
         p = IFProjector(_config()).project(investivel=1_000_000)

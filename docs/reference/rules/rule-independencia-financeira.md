@@ -23,9 +23,9 @@ tags:
 **Doutrina canônica.** Roadmap em [ADR-140](../../adr/140-goal-if-schema-v2-renda-passiva-atual-if-meta.md). `progresso_if = investivel_efetivo / if_meta_liquida × 100` é a métrica usada em score; `if_gap = MAX(0, if_meta_liquida − investivel_efetivo)`. Default `renda_passiva_atual_mensal_brl = 0` preserva v1 enquanto migrator não roda. Anti-dupla-contagem com `imoveis_no_if` está em [ADR-142](../../adr/142-toggle-imoveis-no-if-em-pipelinejson-invariante.md) — ver `RULE-imoveis-no-if`.
 
 **Enforcer.**
-- [`pipeline/domain/services/if_projector.py`](../../../pipeline/domain/services/if_projector.py) — `IFProjector`, projeção (`if_meta`, `if_pct`, `if_gap`, `prazo_anos_realista`) por juros compostos PV+PMT.
+- [`pipeline/domain/services/if_projector.py`](../../../pipeline/domain/services/if_projector.py) — `IFProjector`, projeção (`if_meta`, `if_pct`, `if_gap`, `prazo_anos_realista`) por juros compostos PV+PMT. `solve_prazo_anos` é a fonte única do prazo determinístico ([ADR-373](../../adr/373-prazo-if-projeta-capacidade-declarada.md)): o cenário de estresse do cônjuge delega a ela em vez de repetir a fórmula.
 - [`pipeline/domain/services/passive_income_calculator.py`](../../../pipeline/domain/services/passive_income_calculator.py) — alimenta `renda_passiva_atual` no schema v2 (TRS efetiva).
 
-**Fórmula.** Ver [FORMULAS.md §Independência Financeira](../FORMULAS.md#independência-financeira) — fórmulas bruta/líquida e gap.
+**Fórmula.** Ver [FORMULAS.md §Independência Financeira](../FORMULAS.md#independência-financeira) — fórmulas bruta/líquida e gap — e [§Tempo até a meta](../FORMULAS.md#tempo-até-a-meta--adr-373) para os ramos do prazo, incluindo o que é **retido por escolha** (aporte não declarado).
 
 **Metodologias.** Perini (Viver de Renda — IF como independência operacional, não independência absoluta) + AUVP (carteira que sustenta retirada calculada por classe).

@@ -24,6 +24,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from report_layout_nav_targets import validate_nav_targets
+
 ROOT = Path(__file__).resolve().parent.parent
 YAML_PATH = ROOT / "config" / "report_layout.yaml"
 SCHEMA_PATH = ROOT / "config" / "schemas" / "report_layout.schema.json"
@@ -421,6 +423,7 @@ def render_py(layout: dict[str, Any]) -> str:
 def build() -> tuple[str, str]:
     layout = load_yaml()
     validate(layout)
+    validate_nav_targets(layout)
     return render_ts(layout), render_py(layout)
 
 

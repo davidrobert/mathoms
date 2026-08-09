@@ -111,6 +111,36 @@ function shortLabel(title: string): string {
   return title.split(" — ")[0].trim();
 }
 
+/** Ids com `enabled: false` no YAML — a seção não é renderizada.
+ *
+ * RV3-04 (A40.l7): nav e TOC liam `LAYOUT.navigation` sem consultar `enabled`,
+ * então `S_PROTECAO` entregava âncora morta em 100% dos relatórios — e, pior,
+ * o **título** da seção desligada chegava renderizado ao cliente no drawer
+ * mobile. Vale para qualquer seção futura, não só esta.
+ */
+function disabledSectionIds(): Set<string> {
+  const declared = [
+    ...LAYOUT.estrategico.sections,
+    ...(LAYOUT.estrategico.appendices ?? []),
+  ];
+  return new Set(declared.filter((s) => !s.enabled).map((s) => s.id));
+}
+
+/** Remove links para seção desligada e grupos que ficam vazios.
+ *
+ * Filtra por **desligado explicitamente**, não por "ausente das sections":
+ * seções do shell (`SHELL_SECTION_TITLES`, hoje `V0`) existem no DOM sem
+ * entrada no YAML e passariam a sumir do índice sob a polaridade errada.
+ */
+function withoutDisabled<L extends { section_id: string }, G extends { links: L[] }>(
+  groups: G[],
+  disabled: Set<string>,
+): G[] {
+  return groups
+    .map((g) => ({ ...g, links: g.links.filter((l) => !disabled.has(l.section_id)) }))
+    .filter((g) => g.links.length > 0);
+}
+
 /** Converte LAYOUT.navigation (Fase 5) em grupos para ReportTopNav.
  *
  * Cai em fallback computacional (mesma lógica anterior) se o YAML não
@@ -120,12 +150,13 @@ function buildNavGroups(): {
   estrategico: NavGroup[];
 } {
   const titles = buildTitleMap();
+  const disabled = disabledSectionIds();
   const nav = LAYOUT.navigation;
   if (nav?.estrategico) {
     const mapGroup = (
       groups: NonNullable<typeof nav.estrategico>,
     ): NavGroup[] =>
-      groups.map((g) => ({
+      withoutDisabled(groups, disabled).map((g) => ({
         label: g.label,
         links: g.links.map((l) => ({
           id: l.section_id,
@@ -208,7 +239,7 @@ export function ReportShell({
     const nav = LAYOUT.navigation;
     const modeNav = nav?.[mode];
     if (modeNav) {
-      return modeNav.map((g) => ({
+      return withoutDisabled(modeNav, disabledSectionIds()).map((g) => ({
         label: g.label,
         entries: g.links.map((l) => ({
           id: l.section_id,

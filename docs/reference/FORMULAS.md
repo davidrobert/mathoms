@@ -25,6 +25,30 @@ fórmula ficar ambígua entre este doc, `methodology.md` e `scoring.json`,
 | IF meta líquida | `if_meta_liquida_brl = MAX(0, (renda_passiva_mensal_brl − renda_passiva_atual_mensal_brl) × 12 / (trs_pct/100))`. Operacional — quanto **falta** acumular. **Métrica usada em `progresso_if`.** | E5 JSON · `independencia_financeira.meta_liquida` |
 | Progresso IF (%) | `progresso_if_pct = investivel_efetivo / if_meta_liquida × 100` | E5 JSON · `goals.if_pct` · score |
 | Gap IF | `if_gap_brl = MAX(0, if_meta_liquida − investivel_efetivo)` | E5 JSON · `goals.if_gap` |
+| Prazo realista (anos) | Ver §Tempo até a meta abaixo — três ramos, um deles **retido por escolha** | E5 JSON · `goals.prazo_anos_realista` · `solve_prazo_anos` |
+
+### Tempo até a meta — [[ADR-373]]
+
+Com `PV = investivel_efetivo`, `FV = if_meta`, `PMT = meta_aporte_mensal` e
+`r = (1 + retorno_real_anual_pct/100)^(1/12) − 1` (taxa **mensal** equivalente):
+
+| Ramo | Condição | Fórmula | Resultado |
+| --- | --- | --- | --- |
+| Meta atingida | `PV ≥ FV` | — | `0` |
+| Composto | `PMT > 0` e `r > 0` | `n = ln((FV + PMT/r) / (PV + PMT/r)) / ln(1+r)` | anos = `n/12` |
+| Linear | `PMT > 0` e `r == 0` | `n = (FV − PV)/PMT` | anos = `n/12` |
+| **Retido** | `PMT == 0` e `r > 0` | `n = ln(FV/PV)/ln(1+r)` **converge** | `null` + motivo |
+| Sem trajetória | `PMT == 0` e `r == 0` (ou `PV == 0`) | não converge | `null` + motivo |
+
+O ramo **retido** é uma decisão de metodologia, não uma limitação: aporte zero
+não é declarável (`goal.aporte_mensal.schema.json` exige `exclusiveMinimum: 0`),
+logo é sempre ausência de insumo, e projetar sobre ele seria o produto escolher
+a premissa "você não aporta" em nome da família. Os dois motivos de ausência
+nomeiam o insumo que falta; só o de não-convergência afirma inviabilidade.
+
+Ausência de `retorno_real_anual_pct` cai no default de 6% (`default_if_absent`);
+`0` **declarado** permanece `0`. Confundir os dois faria o ramo linear projetar
+sobre premissa que ninguém escolheu.
 
 ## Política de base temporal (mensalização) — [[ADR-306]]
 
