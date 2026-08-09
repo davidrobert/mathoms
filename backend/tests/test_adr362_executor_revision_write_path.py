@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any
 
 import pytest
 from sqlalchemy import select
@@ -16,8 +18,29 @@ from backend.app.models.pipeline_run import (
     PipelineStageLog,
     PipelineStageStatus,
 )
-from backend.app.tasks.pipeline_task import _record_stage_running, _record_stage_skip
+from backend.app.tasks.pipeline_task import (
+    _record_stage_result,
+    _record_stage_running,
+    _record_stage_skip,
+)
 from backend.tests.factories.builders import make_user, make_workspace
+from pipeline.stage_outcome import StageOutcome
+
+
+@dataclass
+class _FakeStageResult:
+    """Campos de `StageResult` que o terminal lê."""
+
+    success: bool
+    detail: Any
+    error: str | None = None
+
+
+@pytest.fixture
+def silence_publish(monkeypatch):
+    """Pub/sub não é o objeto do teste; sem isto o terminal tenta falar com Redis."""
+    for name in ("publish_stage_completed", "publish_stage_failed"):
+        monkeypatch.setattr(f"backend.app.tasks.pipeline_task.{name}", lambda *a, **kw: None)
 
 
 async def _seed_run(db: AsyncSession) -> str:
@@ -134,24 +157,37 @@ async def test_sem_a_env_a_coluna_fica_null_e_o_stage_roda(
     assert rows[0].executor_revision is None
 
 
+def _terminate_stage(run_id: str, log_id: str, detail: dict) -> None:
+    """O terminal REAL — não uma cópia à mão do que ele faz."""
+    _record_stage_result(
+        run_id,
+        "reconcile_transactions",
+        log_id,
+        _FakeStageResult(success=True, detail=detail),
+        100,
+        50,
+        StageOutcome.completed,
+    )
+
+
+# A versão anterior deste teste atribuía `row.output_summary` no próprio corpo: o
+# terminal real podia passar a zerar a revisão que o INSERT gravou e o gate seguia
+# verde — medido por mutação (`stage_log.executor_revision = None` depois da
+# atribuição total sobrevivia). O ciclo INSERT → terminal é o contrato.
 @pytest.mark.asyncio
-async def test_atribuicao_total_de_output_summary_nao_apaga_a_revisao(
-    db: AsyncSession, pinned_revision
+async def test_o_terminal_real_nao_apaga_a_revisao(
+    db: AsyncSession, pinned_revision, silence_publish
 ) -> None:
     """Coluna > chave em JSON: é o que justifica a migration em vez de reusar `output_summary`."""
-    # Os 3 caminhos terminais de `pipeline_task` fazem
-    # `stage_log.output_summary = result.detail` — atribuição TOTAL. Uma chave
-    # posta no INSERT seria apagada; a coluna sobrevive.
     pinned_revision("cccccccccccc")
     run_id = await _seed_run(db)
-    _record_stage_running(run_id, "reconcile_transactions", str(uuid.uuid4()), _now(), 10)
+    log_id = str(uuid.uuid4())
+    _record_stage_running(run_id, "reconcile_transactions", log_id, _now(), 10)
 
-    row = (await _logs(db, run_id))[0]
-    row.output_summary = {"validation": "ok"}  # exatamente o que o terminal faz
-    row.status = PipelineStageStatus.completed
-    await db.commit()
+    _terminate_stage(run_id, log_id, {"validation": "ok"})
 
     refreshed = (await _logs(db, run_id))[0]
+    assert refreshed.status == PipelineStageStatus.completed
     assert refreshed.output_summary == {"validation": "ok"}
     assert refreshed.executor_revision == "cccccccccccc"
 

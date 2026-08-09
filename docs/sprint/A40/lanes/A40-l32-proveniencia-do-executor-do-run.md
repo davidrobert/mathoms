@@ -3,7 +3,7 @@ id: A40.l32
 type: lane
 title: "Proveniência do executor: qual código computou este run"
 sprint: A40
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l32-proveniencia-do-executor-do-run
 adrs:
@@ -15,7 +15,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/ci
   - area/pipeline
@@ -49,18 +49,15 @@ tags:
 > OpenAPI, e é agregado em `status` — quem visse `degraded` não achava a causa em
 > campo nenhum do contrato. Declarado + snapshot regenerado.
 >
-> ⚠️ **As 4 fases têm código em `main`, mas esta lane segue `status: open`**
-> (medido 2026-08-08): F0 em `dev/build_info.py` + preflight no Makefile · F1 na
-> migration `adr362execrev_executor_revision_stage_logs` + coluna no model · F2
-> com `executor_revision` no `MathomsJsonFormatter` e `run_meta` na skill de
-> review · F3 acima. **Enquanto ficar `open`, a lane aparece no
-> [`SPRINT_CURRENT`](../../../_MOC/_generated/SPRINT_CURRENT.md) como trabalho
-> pegável e outro agente a puxa achando que há
-> o que fazer.** Não flipei para `done` porque isso não é edição de doc: o
-> §Critério de aceite tem 9 itens **por medição** (anti-fabricação, atribuição de
-> crash, não-clobber, execução mista, largura da coluna em Postgres, degradação
-> sem a env, escopo não mente, delta de jobs, preflight morde) e existir código
-> não é o mesmo que critério verificado. Fechar a lane exige rodar essa medição.
+> ✅ **Medição rodada em 2026-08-08 — a lane fecha (`shipped`).** As 4 fases já tinham código
+> em `main` (F0 em `dev/build_info.py` + preflight no Makefile · F1 na migration
+> `adr362execrev_executor_revision_stage_logs` + coluna no model · F2 com
+> `executor_revision` no `MathomsJsonFormatter` e `run_meta` na skill de review ·
+> F3 acima), mas existir código não é critério verificado. Rodei **cada mutação
+> anotada no §Critério de aceite** e observei o gate. Resultado no
+> §Medição por mutação abaixo: **7 das 9 morreram de cara, 2 sobreviveram**, e
+> mais **3 mutações que o critério implica** (as que atacam o *entregável*) não
+> tinham gate nenhum. As 5 foram fechadas antes de flipar o status.
 
 > **Origem:** pedido do dono em 2026-08-05 — "após rodar o pipeline do dogfood e
 > executar a `report-review`, não consigo identificar sobre qual versão do
@@ -153,8 +150,18 @@ Todos por **medição**, com a mutação que os mata anotada:
   `COUNT(DISTINCT) == 2` e o entregável reporta **as duas**. *Mutação:*
   first-writer-wins ⇒ reporta uma.
 - **Largura da coluna.** INSERT com SHA de 40 chars + `-dirty` não estoura.
-  *Mutação:* `String(20)` ⇒ `DataError` em Postgres. Marcar como teste de
-  Postgres — SQLite não enforça largura e daria verde falso.
+  ~~*Mutação:* `String(20)` ⇒ `DataError` em Postgres. Marcar como teste de
+  Postgres — SQLite não enforça largura e daria verde falso.~~ **Critério
+  corrigido em 2026-08-08 por medição.** `String(20)` **sobrevive** — e não por
+  falha de gate: a defesa real nunca foi a largura da coluna. O
+  `normalize_executor_revision` trunca no boundary, então nada acima de 18 chars
+  (`12 + "-dirty"`) chega ao INSERT e `varchar(20)` seria seguro em Postgres
+  também. A mutação que **mata** é tirar a truncagem
+  (`sha[:_SHA_LEN]` → `sha`), e essa morde: `test_sha_de_40_chars_nao_estoura_a_coluna`
+  fica vermelho. O `String(48)` continua certo como 2ª camada, mas medir a
+  largura da coluna testaria a camada que não está segurando nada — e um teste
+  marcado como Postgres-only, num repo cuja suíte roda SQLite, seria um gate que
+  se auto-pula — verde no CI sem ter medido nada.
 - **Degradação sem a env.** Sem `MATHOMS_BUILD_SHA`: processo **sobe**,
   `/health` devolve `null`, nenhum log carrega a chave (ausente, não
   `"unknown"`), e o entregável diz `desconhecido` **em destaque** — nunca linha
@@ -180,6 +187,54 @@ Todos por **medição**, com a mutação que os mata anotada:
   o run ⇒ o preflight **avisa** antes de executar. *Mutação:* comparar o run
   passado em vez do processo vivo ⇒ não avisa (era o desenho original, e ele não
   diz nada sobre quem vai executar).
+
+## Medição por mutação (2026-08-08)
+
+Cada critério traz a mutação que o mata. Apliquei uma a uma no código de `main`,
+rodei o gate correspondente e observei a cor. **Verde sob mutação = o critério
+não tem gate**, por mais que o teste cite o mecanismo no nome.
+
+| Mutação anotada no critério | Gate | Veredito |
+|---|---|---|
+| Resolver vira `git rev-parse` em runtime | `test_adr362_..._write_path` | morre (6 falhas) |
+| Escrita sai do INSERT de `running` | idem | morre (4 falhas) |
+| Terminal real apaga a revisão | idem | **SOBREVIVIA** → fechada |
+| `revisions_in` vira first-writer-wins | `test_run_scope` | morre |
+| `String(48)` → `String(20)` | `test_..._write_path` | sobrevive — **critério estava errado**, ver acima |
+| `executor_revision` sai de `informational` | `test_adr363` + `test_health_payload_contract` | morre (4 falhas) |
+| Check novo emitido sem declarar | `test_health_payload_contract` | morre |
+| `scope_kind` hardcoda `full` | `test_run_scope` | morre (5 falhas) |
+| Preflight compara o run passado | `test_build_info` | morre (4 falhas) |
+
+**Delta de jobs de CI = zero**, medido: o conjunto de jobs de `ci.yml` no pai do
+#1212 e no HEAD é idêntico (`all-green backend-tests changes frontend-checks
+frontend-e2e frontend-print-visual frontend-visual go-lint go-test lint-all
+pipeline-tests`).
+
+### Os dois buracos achados, e as três mutações que o critério implica
+
+1. **Não-clobber sobrevivia** porque o teste **copiava à mão** o que o terminal
+   faz (`row.output_summary = {...}` escrito no próprio teste) em vez de chamar
+   `_record_stage_result`. Um terminal que passasse a zerar a coluna mantinha o
+   gate verde — medição por cópia-à-mão, que
+   não está amarrada ao call-site. Reescrito para rodar o ciclo real INSERT → terminal; agora duas mutações
+   morrem (zerar a coluna no terminal; trocar a coluna por chave em
+   `output_summary`).
+2. **Largura**: critério corrigido acima — a defesa é a truncagem, não a coluna.
+3. **O entregável não tinha gate.** Três critérios falam do que o `run_meta.md`
+   *afirma* ("reporta **as duas** revisões", "diz `desconhecido` **em destaque** —
+   nunca linha faltando", "nomeia os stages herdados e o run de origem"), mas o
+   bloco de proveniência morava em
+   `.claude/skills/pipeline-review/scripts/collect_review_inputs.py`, onde
+   nenhuma suíte alcança — o gap estrutural que esta lane já registrava como
+   débito adjacente. Medido: suprimir o aviso de execução mista, reportar só a
+   primeira revisão e apagar a linha de `desconhecido` **passavam verdes as
+   três**. O bloco migrou para [`dev/run_provenance.py`](../../../../dev/run_provenance.py)
+   — mesmo movimento que o helper de duração já tinha feito, e pelo mesmo motivo —
+   com [`tests/dev/test_run_provenance.py`](../../../../tests/dev/test_run_provenance.py)
+   cobrindo as três mutações mais o colapso do escalar sob execução mista.
+   **Isto não resolve o débito estrutural** de `.claude/skills/**` (segue com a
+   [[A42.l3]]): move apenas as ~40 linhas cujos critérios são desta lane.
 
 ## Fora desta lane
 
