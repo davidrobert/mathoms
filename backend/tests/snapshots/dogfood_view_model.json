@@ -427,6 +427,7 @@
     "prob_if_ate_horizonte_simulado": "0.577400",
     "prob_if_ate_prazo_declarado": null,
     "seed_usado": 360,
+    "sigma_procedencia": "fallback_codigo",
     "sigma_usado": "0.110000"
   },
   "investimentos": {

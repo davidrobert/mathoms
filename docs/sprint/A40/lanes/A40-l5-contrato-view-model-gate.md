@@ -4,7 +4,7 @@ type: lane
 title: "Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l5-contrato-view-model-gate
 adrs: []
@@ -12,7 +12,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/frontend
   - area/dx
@@ -67,6 +67,45 @@ payload não emite, **sem erro**, caindo em default/fallback silencioso.
 | RV3-26 | `goals.trs_pct` | `goals.if_trs` (cai em default **hardcoded**) |
 | RV3-12 | `d.valor` / `d.taxa` | `saldo_devedor` / `taxa_juros` |
 | RV3-17 | `total_pontuais` | `total_pontuais_janela` existe e não é lido |
+
+> ## ⚠️ Inventário remedido em 2026-08-08 — a tabela acima estava vencida
+>
+> Antes de codar, remedi os quatro (regra "achado com medição citada se
+> remede"). **Dois dos quatro não eram o que a tabela diz**, e a diferença muda
+> o desenho do gate — não só o numerador da KR-A:
+>
+> | Achado | Estado real medido em 2026-08-08 | Consequência |
+> |---|---|---|
+> | **RV3-09** | ✅ **Real, e pior que "leitura órfã".** O leitor é `pipeline/domain/services/suggestion_rules.py:123` — **Python, não frontend**. `reserva.get("meses_cobertura")` → sempre `None` → `if meses is None: return None`: `rule_reserva_insuficiente` **nunca disparou para nenhum workspace**. Não é campo mal renderizado, é regra de segurança morta | codegen TS **não alcança** este caso |
+> | **RV3-26** | ❌ **Já estava corrigido.** `S7IndependenciaSection.tsx:266-267` lê a chave certa e traz o comentário explicando que `goals.trs_pct` não existe e que o `?? 5.0` anterior mascarava | sai do numerador |
+> | **RV3-12** | ✅ **Real.** `EndividamentoCard.tsx:77,79` lia `d.valor`/`d.taxa` | tabela de dívidas publicava valor vazio + taxa `"—"` sempre |
+> | **RV3-17** | ❌ **Não é leitura órfã.** `fluxoJanela.ts:158` lê `total_pontuais` **de propósito** (D6: base full-period), documentado no próprio arquivo. O que existe é o **inverso** — `total_pontuais_janela` é emitido e não tem leitor —, e isso é escopo da [[A40.l15]] | sai daqui |
+>
+> **KR-A não parte de 5.** Partia de **2** leituras órfãs reais no momento da
+> medição, e as duas foram fechadas (ver §Entregue). Registrar isto importa: a
+> próxima lane que citar "5 → 0" estaria contando dois itens que não existem.
+>
+> ### O codegen especificado no §Escopo não é construível hoje
+>
+> A l5 propõe gerar `report-analysis.ts` **a partir do schema E5**. Medido:
+> **10 dos 35 blocos de topo** de `config/schemas/e5_analysis.schema.json` são
+> `{"type": "object"}` **sem `properties`** — entre eles `reserva_emergencia`,
+> `goals` e `consumo_consciente`, que são exatamente onde os achados moram.
+> Gerar desse schema produziria `reserva_emergencia?: Record<string, unknown>`,
+> e o `tsc` continuaria aceitando `d.valor` em silêncio: o gate nasceria
+> **verde e inútil**, que é a classe que esta lane existe para matar.
+>
+> **Pré-requisito, portanto: tipar esses blocos no schema E5 primeiro**
+> (contrato entre stages ⇒ gatilho `data-engineer`), e só então o codegen tem
+> de onde gerar. Deferido com dono, não silenciado.
+>
+> ### O que realmente desligava o `tsc` neste bloco
+>
+> Não era "o arquivo é escrito à mão" — era **`[key: string]: unknown`** dentro
+> de `dividas[]`. Com a index signature, `d.valor` compila mesmo com o tipo
+> correto ao lado. São 4 index signatures em `report-analysis.ts`; a de
+> `dividas[]` saiu nesta entrega. As outras 3 seguem abertas e são o alvo
+> natural da continuação desta lane.
 
 Dispersos, cada um recebe um fix pontual e **o quinto acontece na próxima
 release**. `frontend/src/types/report-analysis.ts` é escrito à mão — é a exceção
@@ -141,6 +180,38 @@ filtro deixa. **Não corrigido na l10 por custo**: acrescentar o path faz
 *Frontend checks* rodar em todo diff de fixture do pipeline, e a A40 tem histórico
 de orçamento de Actions estourado por contagem de jobs — é decisão com gatilho
 `sre-devops`, não carona de PR de narrativa.
+
+## ✅ Entregue em 2026-08-08 — as 2 leituras órfãs reais, com o gate de consumo ligado
+
+Fecha a metade da lane que era construível sem tocar o schema E5. O codegen
+segue aberto pelo pré-requisito medido acima.
+
+**RV3-09 — regra de segurança morta, revivida.** `suggestion_rules.py` passou a
+ler `cobertura_meses`. O que sustentava o defeito não era falta de teste: os
+três testes de reserva **passavam**, porque a fixture escrita à mão repetia a
+mesma crença errada do código. Por isso o teste novo é alimentado pelo
+**produtor** — o bloco `reserva_emergencia` do snapshot de dogfood — e não por
+dict literal. Prova de mutação: voltar a chave errada derruba **7** testes;
+antes derrubava **0**.
+
+**RV3-12 — tabela de dívidas volta a mostrar número.** `EndividamentoCard` lê
+`saldo_devedor`/`taxa_juros`, e o tipo passou a espelhar
+`e5_analysis.schema.json` **sem** a index signature. Isso liga o *gate de
+consumo* que o §Critério de aceite pede, com as duas fixturas exigidas:
+
+| Mutação | Antes | Agora |
+|---|---|---|
+| card volta a ler `d.valor` | compila | ❌ `TS2339` |
+| renomear a chave só no **tipo** (fixture (2) do critério) | compila | ❌ `TS2339` |
+
+**Fixtures E2E estavam ensinando o contrato errado.** `degraded.json`,
+`large-values.json` e `long-strings.json` traziam `valor`/`taxa` — o formato
+que produtor nenhum emite. Eram elas que faziam o E2E renderizar valores e o
+defeito parecer inexistente (o payload real, no snapshot de dogfood, sempre
+teve `saldo_devedor`/`taxa_juros`). Corrigidas para o formato do produtor.
+
+**Não entrou:** codegen + gate de sincronia (pré-requisito de schema acima),
+as outras 3 index signatures, e a re-verificação do RV3-31 contra o payload.
 
 ## Guarda anti-regressão
 

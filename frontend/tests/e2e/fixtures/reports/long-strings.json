@@ -94,13 +94,13 @@
     "dividas": [
       {
         "descricao": "Financiamento Imobiliário Sistema Price 360 meses Banco Tradicional Brasileiro",
-        "valor": 30000,
-        "taxa": 9.75
+        "saldo_devedor": 30000,
+        "taxa_juros": 9.75
       },
       {
         "descricao": "Cartão de Crédito Internacional Premium Anuidade Isenta Cashback Tier",
-        "valor": 20000,
-        "taxa": 14.5
+        "saldo_devedor": 20000,
+        "taxa_juros": 14.5
       }
     ]
   },

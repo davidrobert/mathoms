@@ -52,6 +52,15 @@ _NON_MONEY_MARKERS = ("pct", "percent", "count", "qtd", "n_imoveis")
 # Raízes top-level cujo conteúdo é score/ratio/comportamento — nunca R$ citável.
 _NON_MONEY_ROOTS = frozenset({"score", "ratios", "equilibrio_cerbasi"})
 
+# Séries do cone Monte Carlo — NÃO citáveis por decisão (A40.l25), não por
+# acidente de predicado. São estimativas com dispersão amostral de ~1,2% a
+# n=50k; citá-las daria ao parecer uma frase como "R$ 11.037.269,90" sobre um
+# número que muda de run para run dentro dessa faixa — precisão inventada sobre
+# projeção. Hoje `_is_money_leaf` já não casa lista de pares, então a exclusão
+# é redundante NA PRÁTICA; existe para que tornar a folha citável seja uma
+# escolha explícita e não um efeito colateral de mexer no predicado.
+_NAO_CITAVEL_ESTIMATIVA = frozenset({"caminho_p10", "caminho_p50", "caminho_p90"})
+
 # Densidade de citação esperada (narrative_hints), não valor R$ — prompt-engineer
 # 2026-06-16. Raiz fora desta lista cai no fim, truncada primeiro sob max_bytes.
 _PRIORITY_ROOTS = (
@@ -144,6 +153,8 @@ _MAX_LIST_ITEMS = 5
 def _leaf_paths_for(key: str, value: Any, prefix: str) -> Iterator[str]:
     """Paths citáveis de um par chave/valor (recursa em dicts E listas — A26.l7)."""
     if not key.isidentifier() or (prefix == "$" and key in _NON_MONEY_ROOTS):
+        return
+    if key in _NAO_CITAVEL_ESTIMATIVA:
         return
     path = f"{prefix}.{key}"
     if isinstance(value, Mapping):

@@ -201,7 +201,7 @@ async def test_regenerate_suggestions_idempotent(db, client):
         artifact_key="analise_financeira",
         content_json={
             "reserva_emergencia": {
-                "meses_cobertura": 1.0,
+                "cobertura_meses": 1.0,
                 "gap_brl": 9000.0,
             },
         },

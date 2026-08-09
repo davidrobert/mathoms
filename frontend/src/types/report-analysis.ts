@@ -135,11 +135,22 @@ export interface ReservaEmergenciaData {
 export interface EndividamentoData {
   total_dividas?: number;
   percentual_patrimonio?: number;
+  /**
+   * Espelha `endividamento.properties.dividas.items` de
+   * `config/schemas/e5_analysis.schema.json` — nomes do PRODUTOR
+   * (`EndividamentoAnalyzer.to_legacy_dict`), não apelidos.
+   *
+   * RV3-09/RV3-12 (A40.l5): declarava `valor`/`taxa`, que produtor nenhum
+   * emite, e o `[key: string]: unknown` fazia o `tsc` aceitar em silêncio —
+   * a tabela de dívidas renderizava valor vazio e taxa "—" para todo cliente.
+   * **Não reintroduza a index signature aqui**: é ela, não o arquivo ser
+   * escrito à mão, que desliga o gate de consumo neste bloco.
+   */
   dividas?: Array<{
     descricao: string;
-    valor: number;
-    taxa?: number;
-    [key: string]: unknown;
+    saldo_devedor: number;
+    parcela_mensal?: number | null;
+    taxa_juros?: number | null;
   }>;
   detalhe?: string;
 }

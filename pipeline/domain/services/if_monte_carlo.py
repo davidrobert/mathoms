@@ -10,11 +10,20 @@ from decimal import Decimal
 
 import numpy as np
 
-_SIGMA_POR_PERFIL: dict[str, float] = {
-    "conservador": 0.07,
-    "moderado": 0.11,
-    "agressivo": 0.15,
-}
+# `_SIGMA_POR_PERFIL` (0,07 / 0,11 / 0,15) foi DELETADO em A40.l25: nunca teve
+# consumidor — o adapter E5 não passa `sigma_anual` — e dead code que parece
+# configuração é pior que ausência, porque sugere que existe parametrização por
+# perfil quando todo workspace roda com a mesma constante. Parametrizar de
+# verdade (ler de `premissas_economicas`, ADR-219 D5) muda a LARGURA do cone e
+# portanto exige bump de `mc_version` + nota de recalibração — segue aberto na
+# lane. O que sai aqui é a mentira de procedência, não o número.
+
+_SIGMA_FALLBACK_CODIGO = 0.11
+
+# Procedência de `sigma_usado`, no padrão `fonte_origem` da ADR-219: enquanto o
+# adapter não passar `sigma_anual`, o payload DECLARA que usou a constante em
+# vez de publicá-la ao lado de `premissas_economicas` como se fosse auditada.
+_SIGMA_PROCEDENCIA_FALLBACK = "fallback_codigo"
 
 _GATE_IF_PCT_MIN = 0.15  # < 15% → não exibir cone
 
@@ -51,7 +60,10 @@ class IFMonteCarloConfig:
 
     patrimonio_investivel: Decimal
     meta_if: Decimal
-    sigma_anual: float = 0.11
+    sigma_anual: float = _SIGMA_FALLBACK_CODIGO
+    # Quem passar `sigma_anual` de premissa vigente sobrescreve para
+    # `global`/`workspace_override`; o default declara o que de fato roda.
+    sigma_procedencia: str = _SIGMA_PROCEDENCIA_FALLBACK
     retorno_real_esperado: float = 0.05
     n_simulacoes: int = _MC_N_SIMULACOES
     # ADR-369 D1 — janela de SIMULAÇÃO. O qualificador existe porque
@@ -109,6 +121,8 @@ class MonteCarloIFResult:
     prob_if_ate_prazo_declarado: float | None
     prazo_declarado_anos: int | None
     sigma_usado: float
+    # A40.l25 — `global` | `workspace_override` | `fallback_codigo`.
+    sigma_procedencia: str
     exibir_cone: bool
     # ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje).
     # Decimal por ADR-090; serializado como float no wire JSON pela e5_serialization.
@@ -325,6 +339,7 @@ def _campos_comuns(config: IFMonteCarloConfig, prazo: _PrazoResolvido) -> dict:
     """Campos que não dependem do resultado da simulação."""
     return {
         "sigma_usado": config.sigma_anual,
+        "sigma_procedencia": config.sigma_procedencia,
         "aporte_mensal_usado": config.aporte_mensal,
         **prazo.campos(),
         **_proveniencia(config),

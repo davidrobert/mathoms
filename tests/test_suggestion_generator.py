@@ -8,7 +8,9 @@ Valores fictícios — nunca dados reais (CLAUDE.md §Dados sensíveis).
 
 from __future__ import annotations
 
+import json
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -67,7 +69,7 @@ def test_trs_desalinhada_silent_in_acumulacao_phase(gen):
 
 def test_reserva_insuficiente_danger_below_3_meses(gen):
     snapshot = {
-        "reserva_emergencia": {"meses_cobertura": 1.5, "gap_brl": 9000.0},
+        "reserva_emergencia": {"cobertura_meses": 1.5, "gap_brl": 9000.0},
     }
     drafts = gen.generate(snapshot)
     d = next(d for d in drafts if d.kind == "reserva_insuficiente")
@@ -77,15 +79,52 @@ def test_reserva_insuficiente_danger_below_3_meses(gen):
 
 
 def test_reserva_warning_between_3_and_6_meses(gen):
-    snapshot = {"reserva_emergencia": {"meses_cobertura": 4.0, "gap_brl": 5000.0}}
+    snapshot = {"reserva_emergencia": {"cobertura_meses": 4.0, "gap_brl": 5000.0}}
     drafts = gen.generate(snapshot)
     d = next(d for d in drafts if d.kind == "reserva_insuficiente")
     assert d.severity == "warning"
 
 
 def test_reserva_at_target_skips(gen):
-    snapshot = {"reserva_emergencia": {"meses_cobertura": 6.0, "gap_brl": 0.0}}
+    snapshot = {"reserva_emergencia": {"cobertura_meses": 6.0, "gap_brl": 0.0}}
     assert all(d.kind != "reserva_insuficiente" for d in gen.generate(snapshot))
+
+
+# RV3-09 (A40.l5): a regra lia `meses_cobertura`, chave que produtor nenhum
+# emite, e devolvia None para todo workspace — regra de segurança morta em
+# produção. Os três testes acima ficaram VERDES o tempo todo porque a fixture
+# escrita à mão repetia a mesma crença errada do código. Por isso o teste
+# abaixo é alimentado pelo PRODUTOR (payload real do snapshot de dogfood), não
+# por dict literal: é o único que teria falhado.
+_DOGFOOD_SNAPSHOT = (
+    Path(__file__).resolve().parent.parent
+    / "backend"
+    / "tests"
+    / "snapshots"
+    / "dogfood_view_model.json"
+)
+
+
+def _reserva_do_produtor() -> dict:
+    """Bloco `reserva_emergencia` como o E5 realmente o emite."""
+    payload = json.loads(_DOGFOOD_SNAPSHOT.read_text(encoding="utf-8"))
+    return payload["reserva_emergencia"]
+
+
+def test_reserva_le_a_chave_que_o_produtor_emite():
+    """Trava a chave contra o produtor: `cobertura_meses` existe, o alias não."""
+    reserva = _reserva_do_produtor()
+    assert "cobertura_meses" in reserva
+    assert "meses_cobertura" not in reserva, "produtor mudou de chave; a regra vai morrer de novo"
+
+
+def test_reserva_insuficiente_dispara_sobre_payload_real(gen):
+    """Com o payload do produtor a regra tem de opinar — antes retornava None."""
+    reserva = {**_reserva_do_produtor(), "cobertura_meses": 1.5, "gap_brl": 9000.0}
+    drafts = gen.generate({"reserva_emergencia": reserva})
+    assert any(
+        d.kind == "reserva_insuficiente" for d in drafts
+    ), "regra inerte sobre o shape real do E5 (RV3-09)"
 
 
 def test_alocacao_fora_alvo_pega_pior_desvio(gen):
@@ -150,7 +189,7 @@ def test_ranking_severity_first_then_amount(gen):
             "taxa_retirada_efetiva_pct": 5.0,
             "if_pct": 60.0,  # A8.3: TRS desalinhada exige fase IF.
         },  # warning
-        "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},  # danger
+        "reserva_emergencia": {"cobertura_meses": 1.0, "gap_brl": 9000.0},  # danger
         "investimentos": {"desvios_alvo": [{"classe": "X", "desvio_pp": 30.0}]},  # info
         "fluxo_caixa": {"aporte_medio_3m": 100.0, "aporte_meta_mensal": 1000.0},  # warning
         "dolarizacao": {"cobertura_pct": 0.0, "meta_pct": 50.0},  # info
@@ -168,7 +207,7 @@ def test_cap_truncates_at_six(gen):
     """Se 5 regras dispararem, cap=6 não trunca; teste defensivo."""
     snapshot = {
         "goals": {"taxa_retirada_efetiva_pct": 5.0, "if_pct": 60.0},
-        "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},
+        "reserva_emergencia": {"cobertura_meses": 1.0, "gap_brl": 9000.0},
         "investimentos": {"desvios_alvo": [{"classe": "X", "desvio_pp": 30.0}]},
         "fluxo_caixa": {"aporte_medio_3m": 100.0, "aporte_meta_mensal": 1000.0},
         "dolarizacao": {"cobertura_pct": 0.0, "meta_pct": 50.0},
@@ -178,7 +217,7 @@ def test_cap_truncates_at_six(gen):
 
 
 def test_dedup_key_is_stable_across_runs(gen):
-    snapshot = {"reserva_emergencia": {"meses_cobertura": 1.5, "gap_brl": 9000.0}}
+    snapshot = {"reserva_emergencia": {"cobertura_meses": 1.5, "gap_brl": 9000.0}}
     d1 = gen.generate(snapshot)[0]
     d2 = gen.generate(snapshot)[0]
     assert d1.dedup_key == d2.dedup_key
@@ -186,8 +225,8 @@ def test_dedup_key_is_stable_across_runs(gen):
 
 def test_dedup_key_changes_with_material_diff(gen):
     """Reserva 1.5 meses (bucket 1to3) vs 4.0 meses (bucket 3to6) → keys diferentes."""
-    s1 = {"reserva_emergencia": {"meses_cobertura": 1.5, "gap_brl": 9000.0}}
-    s2 = {"reserva_emergencia": {"meses_cobertura": 4.0, "gap_brl": 5000.0}}
+    s1 = {"reserva_emergencia": {"cobertura_meses": 1.5, "gap_brl": 9000.0}}
+    s2 = {"reserva_emergencia": {"cobertura_meses": 4.0, "gap_brl": 5000.0}}
     d1 = next(d for d in gen.generate(s1) if d.kind == "reserva_insuficiente")
     d2 = next(d for d in gen.generate(s2) if d.kind == "reserva_insuficiente")
     assert d1.dedup_key != d2.dedup_key
@@ -235,7 +274,7 @@ def test_drafts_are_immutable():
 def test_reserva_rationale_enriquecido_com_gap_e_aporte(gen):
     """Regra 2 — gap + aporte mensal + ETA aparecem no rationale."""
     snapshot = {
-        "reserva_emergencia": {"meses_cobertura": 2.0, "gap_brl": 9000.0},
+        "reserva_emergencia": {"cobertura_meses": 2.0, "gap_brl": 9000.0},
         "fluxo_caixa": {"aporte_meta_mensal": 3000.0},
     }
     d = next(d for d in gen.generate(snapshot) if d.kind == "reserva_insuficiente")
@@ -248,7 +287,7 @@ def test_reserva_rationale_enriquecido_com_gap_e_aporte(gen):
 def test_reserva_rationale_degrada_quando_aporte_ausente(gen):
     """Sem fluxo_caixa, ainda funciona — só perde a parte de ETA."""
     snapshot = {
-        "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},
+        "reserva_emergencia": {"cobertura_meses": 1.0, "gap_brl": 9000.0},
     }
     d = next(d for d in gen.generate(snapshot) if d.kind == "reserva_insuficiente")
     assert "R$ 9.000,00" in d.rationale  # gap ainda aparece
@@ -540,7 +579,7 @@ def test_all_10_rules_can_coexist_under_cap(gen):
             "progresso_if_pct": 60.0,  # alvo da regra renda_passiva_real_baixa.
             "retorno_esperado_pct_aa": 8.0,
         },
-        "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},
+        "reserva_emergencia": {"cobertura_meses": 1.0, "gap_brl": 9000.0},
         "investimentos": {"desvios_alvo": [{"classe": "X", "desvio_pp": 30.0}]},
         "fluxo_caixa": {
             "aporte_medio_3m": 100.0,

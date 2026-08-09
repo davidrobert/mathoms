@@ -74,11 +74,11 @@ export function EndividamentoCard({
                     >
                       <td className="py-2">{d.descricao}</td>
                       <td className="py-2 text-right">
-                        <MonetaryValue value={d.valor} />
+                        <MonetaryValue value={d.saldo_devedor} />
                       </td>
                       <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                        {d.taxa !== undefined
-                          ? `${d.taxa.toFixed(2)}%`
+                        {d.taxa_juros != null
+                          ? `${d.taxa_juros.toFixed(2)}%`
                           : "—"}
                       </td>
                     </tr>

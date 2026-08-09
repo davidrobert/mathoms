@@ -38,6 +38,7 @@ def _cone_premissas(mc: MonteCarloIFResult) -> dict:
         "motivo_sem_prazo_declarado": mc.motivo_sem_prazo_declarado,
         "prob_if_ate_horizonte_simulado": mc.prob_if_ate_horizonte_simulado,
         "sigma_usado": mc.sigma_usado,
+        "sigma_procedencia": mc.sigma_procedencia,
         "exibir_cone": mc.exibir_cone,
         "aporte_mensal_usado": float(mc.aporte_mensal_usado),
         "motivo_sem_cone": mc.motivo_sem_cone,
