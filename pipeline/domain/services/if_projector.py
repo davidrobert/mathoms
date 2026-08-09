@@ -13,6 +13,17 @@ from datetime import date
 _TODAY_FALLBACK = date(2026, 4, 19)
 
 
+# `_serialize_if_goal` emite a chave com `None` quando o Goal não a traz, então
+# `.get(chave, default)` NUNCA dispara o default — e `_safe_float(None)` é 0,0.
+# Retorno real ausente virava "0% declarado", indistinguível da família que
+# escolheu não contar com o mercado (o schema aceita `minimum: 0`). Com o ramo
+# linear preenchido, essa confusão passaria a PROJETAR sobre premissa que
+# ninguém declarou (ADR-373 D3).
+def default_if_absent(val, default: float) -> float:
+    """Ausência cai no default; ``0`` declarado permanece ``0``."""
+    return default if val is None else _safe_float(val)
+
+
 def _safe_float(val) -> float:
     if val is None:
         return 0.0
@@ -123,7 +134,7 @@ class IFProjectorConfig:
             if_trs_pct=_safe_float(if_trs),
             titular_dob=titular_dob,
             taxa_retirada_segura_pct=_safe_float(goals_cfg.get("taxa_retirada_segura_pct", 4.0)),
-            retorno_real_anual_pct=_safe_float(goals_cfg.get("retorno_real_anual_pct", 6.0)),
+            retorno_real_anual_pct=default_if_absent(goals_cfg.get("retorno_real_anual_pct"), 6.0),
             aporte_mensal=_safe_float(aportes_cfg.get("meta_aporte_mensal", 0)),
             conjuge_dob=conjuge_dob,
             reference_date=reference_date or _TODAY_FALLBACK,
@@ -173,10 +184,55 @@ def extract_renda_passiva_from_text(content: str) -> float:
 # =============================================================================
 
 
-# Não afirma "infinito": premissas nulas só põem o caso fora do ramo fechado.
-MOTIVO_PRAZO_INDEFINIDO = (
-    "prazo até a IF não projetável com as premissas atuais (aporte mensal e/ou retorno real nulos)"
+# Dois motivos, não um (ADR-373). O texto anterior — "não projetável com as
+# premissas atuais (aporte mensal e/ou retorno real nulos)" — errava em três
+# frentes: "não projetável" é FALSO no caso comum (é projetável; escolhemos não
+# publicar sob o rótulo de capacidade), o "e/ou" empacotava situações distintas,
+# e nomeava a nossa incapacidade em vez do insumo que falta.
+MOTIVO_APORTE_NAO_DECLARADO = (
+    "você ainda não declarou quanto pretende aportar por mês, e o prazo até a meta "
+    "é consequência direta desse número"
 )
+MOTIVO_SEM_TRAJETORIA = (
+    "com o patrimônio parado (retorno real zero) e sem aporte mensal declarado, "
+    "não há trajetória até a meta"
+)
+
+
+def motivo_prazo_indefinido(*, aporte_mensal: float, r: float) -> str:
+    """Qual ausência é esta — só o 2º caso pode afirmar inviabilidade."""
+    return MOTIVO_SEM_TRAJETORIA if r == 0 else MOTIVO_APORTE_NAO_DECLARADO
+
+
+def solve_prazo_anos(
+    *,
+    investivel: float,
+    if_meta: float,
+    r: float,
+    aporte_mensal: float,
+) -> float | None:
+    """Anos até a meta resolvendo n em PV·(1+r)^n + PMT·((1+r)^n − 1)/r = FV."""
+    # Fonte única do prazo determinístico: o `CenariosConjugeAnalyzer` chamava uma
+    # segunda cópia da mesma fórmula, e preencher um ramo só num dos dois faria S7
+    # dizer "N anos" e o Apêndice C "não projetável" para a mesma família.
+    # Só projeta o que é CAPACIDADE declarada (ADR-373). Sem aporte declarado o
+    # prazo é calculável (capitalização pura) mas não sai daqui: seria o produto
+    # escolher a premissa "você não aporta" em nome da família e reportá-la como
+    # o prazo dela. `None` propaga; o chamador não inventa.
+    if investivel >= if_meta:
+        return 0.0
+    if aporte_mensal <= 0:
+        return None
+    if r == 0:
+        # Retorno real zero é DECLARÁVEL (`goal.if.schema.json`: `minimum: 0`) — a
+        # família que não conta com o mercado. Recusar a projeção linear seria o
+        # produto ser mais pessimista que o pessimismo declarado dela.
+        return (if_meta - investivel) / aporte_mensal / 12
+    numerator = if_meta + aporte_mensal / r
+    denominator = investivel + aporte_mensal / r
+    if denominator > 0 and numerator / denominator > 0:
+        return max(0.0, math.log(numerator / denominator) / math.log(1 + r) / 12)
+    return None
 
 
 @dataclass(frozen=True)
@@ -313,7 +369,11 @@ class IFProjector:
             ano_if=ano_if,
             renda_passiva_estimada_4pct=renda_passiva_current,
             retorno_esperado_pct_aa=cfg.retorno_real_anual_pct,
-            motivo_prazo_indefinido=None if prazo_anos is not None else MOTIVO_PRAZO_INDEFINIDO,
+            motivo_prazo_indefinido=(
+                None
+                if prazo_anos is not None
+                else motivo_prazo_indefinido(aporte_mensal=cfg.aporte_mensal, r=r)
+            ),
             tem_conjuge_datado=cfg.conjuge_dob is not None,
             titular_key=cfg.titular_key,
             conjuge_key=cfg.conjuge_key,
@@ -327,15 +387,6 @@ class IFProjector:
         r: float,
         aporte_mensal: float,
     ) -> float | None:
-        """Resolve n (meses) em PV*(1+r)^n + PMT*((1+r)^n - 1)/r = FV."""
-        # `None` fora do ramo fechado (r <= 0 ou aporte <= 0) — era a sentinela
-        # 999.0, que vazava somada à idade do titular. O chamador não inventa prazo.
-        if investivel >= if_meta:
-            return 0.0
-        if r > 0 and aporte_mensal > 0:
-            numerator = if_meta + aporte_mensal / r
-            denominator = investivel + aporte_mensal / r
-            if denominator > 0 and numerator / denominator > 0:
-                n_meses = math.log(numerator / denominator) / math.log(1 + r)
-                return max(0.0, n_meses / 12)
-        return None
+        return solve_prazo_anos(
+            investivel=investivel, if_meta=if_meta, r=r, aporte_mensal=aporte_mensal
+        )

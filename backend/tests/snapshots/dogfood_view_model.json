@@ -398,7 +398,7 @@
     "if_pct": "13.000000",
     "if_trs": "4.000000",
     "if_trs_monthly_value": 333333,
-    "motivo_prazo_indefinido": "prazo até a IF não projetável com as premissas atuais (aporte mensal e/ou retorno real nulos)",
+    "motivo_prazo_indefinido": "você ainda não declarou quanto pretende aportar por mês, e o prazo até a meta é consequência direta desse número",
     "prazo_anos_realista": null,
     "renda_passiva_estimada_4pct": 43333,
     "retorno_esperado_pct_aa": "6.000000"

@@ -102,6 +102,16 @@ LLM_SCHEMAS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
         "reabriria risco de reask storm (ADR-292/294) sem eval — reavaliar "
         "quando o schema churnar por outro motivo"
     ),
+    ("pipeline/domain/services/if_projector.py", "aporte_mensal"): (
+        "A40.l26 (ADR-373): o `IFProjector` é float end-to-end desde A5a — "
+        "`IFProjectorConfig.if_meta`/`aporte_mensal` e todo o `project()` já "
+        "eram float e são legado fora do alcance do gate (diff-based). Esta "
+        "entrada existe porque a lane DEDUPLICOU a fórmula do prazo numa função "
+        "só (`solve_prazo_anos`), e a linha re-aparece como adicionada. Nenhum "
+        "float monetário novo entrou: a conversão do projetor para Decimal é "
+        "lane própria, e fazê-la aqui misturaria refactor de tipo com mudança "
+        "de comportamento do prazo"
+    ),
 }
 # Campos não-monetários por NOME (confidence 0-1, rates, scores, pesos).
 # Bounds ge/le são consequência do nome (confidence), não critério próprio.

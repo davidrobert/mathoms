@@ -368,6 +368,7 @@
 | ADR-370 | adr | Decidido |  | Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão | `adr/370-inventario-estrutural-do-relatorio.md` |
 | ADR-371 | adr | Decidido |  | O grafo de FK é a fonte única da deleção: lista manual de tabelas-filhas é proibida sem gate | `adr/371-grafo-de-fk-e-a-fonte-unica-da-delecao.md` |
 | ADR-372 | adr | Decidido |  | Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma | `adr/372-par-on-tint-para-texto-sobre-tint-da-propria-cor.md` |
+| ADR-373 | adr | Decidido |  | Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade | `adr/373-prazo-if-projeta-capacidade-declarada.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -854,7 +855,7 @@
 | A40.l23 | lane | shipped | A40 | Gate: ADR citada em prosa tem de resolver para arquivo — reserva de ID é invisível | `sprint/A40/lanes/A40-l23-gate-ref-adr-em-prosa.md` |
 | A40.l24 | lane | shipped | A40 | Asserção "0 LLM" do gate F2 mede a camada errada — passa para o boundary do SDK | `sprint/A40/lanes/A40-l24-gate-0-llm-no-boundary-do-sdk.md` |
 | A40.l25 | lane | in_progress | A40 | Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada | `sprint/A40/lanes/A40-l25-honestidade-do-cone-if.md` |
-| A40.l26 | lane | open | A40 | Cobertura do solver de prazo IF: aporte zero com retorno positivo converge, e o produto nunca mostrou | `sprint/A40/lanes/A40-l26-cobertura-do-solver-de-prazo-if.md` |
+| A40.l26 | lane | shipped | A40 | Cobertura do solver de prazo IF: aporte zero com retorno positivo converge, e o produto nunca mostrou | `sprint/A40/lanes/A40-l26-cobertura-do-solver-de-prazo-if.md` |
 | A40.l27 | lane | shipped | A40 | Órfão de dispatch: varredura de beat, cancel de `resuming` e read path de failure_reason | `sprint/A40/lanes/A40-l27-orfao-de-dispatch-residual.md` |
 | A40.l28 | lane | shipped | A40 | Idade-meta do cone é output do modelo, não pergunta da família — e o rótulo do percentil aponta para dois lados | `sprint/A40/lanes/A40-l28-idade-meta-e-rotulo-do-cone.md` |
 | A40.l29 | lane | open | A40 | Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente | `sprint/A40/lanes/A40-l29-editorial-do-ano-de-if.md` |

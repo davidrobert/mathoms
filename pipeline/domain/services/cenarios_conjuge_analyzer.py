@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from datetime import date
 from typing import Any, Mapping
 
+from pipeline.domain.services.if_projector import default_if_absent, solve_prazo_anos
 from pipeline.domain.services.methodology_constants import (
     APORTE_REDUZIDO_FATOR_CONJUGE,
 )
@@ -81,7 +81,7 @@ class CenariosConjugeConfig:
 
         return cls(
             titular_dob=titular_dob,
-            retorno_real_anual_pct=_safe_float(if_cfg.get("retorno_real_anual_pct", 6.0)),
+            retorno_real_anual_pct=default_if_absent(if_cfg.get("retorno_real_anual_pct"), 6.0),
             aporte_base=_safe_float(aportes.get("meta_aporte_mensal", 0)),
             fator_reduzido=_APORTE_REDUZIDO_FATOR_DEFAULT,
             titular_key=titular_key,
@@ -218,15 +218,10 @@ class CenariosConjugeAnalyzer:
     @staticmethod
     def _compute_prazo(investivel: float, meta: float, r: float, aporte: float) -> float | None:
         """``None`` fora do ramo fechado — era a sentinela 999 (ver CenarioItem)."""
-        if investivel >= meta:
-            return 0.0
-        if r > 0 and aporte > 0:
-            numerator = meta + aporte / r
-            denominator = investivel + aporte / r
-            if denominator > 0 and numerator / denominator > 0:
-                n_meses = math.log(numerator / denominator) / math.log(1 + r)
-                return max(0.0, n_meses / 12)
-        return None
+        # Delega ao domínio (ADR-373): era uma 2ª cópia da mesma fórmula, e um ramo
+        # preenchido só de um lado faria S7 e o Apêndice C discordarem sobre a
+        # mesma família.
+        return solve_prazo_anos(investivel=investivel, if_meta=meta, r=r, aporte_mensal=aporte)
 
     def _resumo(self, aporte: float, prazo: float | None, ano_if: int | None) -> str:
         # A37.l14 (PD-11): f"{v:,.0f}" produzia milhar US ("R$ 13,200");
