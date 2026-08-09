@@ -96,6 +96,24 @@ def _check_lane(note_id: str, stem: str) -> str | None:
     return None
 
 
+def _check_lane_home(sprint: str | None, md_path: Path) -> str | None:
+    """Lane com `sprint: AXX` vive em `docs/sprint/AXX/lanes/` (A40.l23 item 2)."""
+    # Sem isto, mover lanes entre sprints trocando só o campo `sprint` passa nos
+    # cinco gates de doc — este gate é path-independent por construção — e o id
+    # passa a mentir sobre o dono. Medido em cópia isolada da vault, 2026-08-05.
+    if not isinstance(sprint, str):
+        return None
+    parent, grandparent = md_path.parent, md_path.parent.parent
+    if parent.name != "lanes":
+        return f"lane deveria viver em `docs/sprint/{sprint}/lanes/`, está em `{parent.name}/`"
+    if grandparent.name != sprint:
+        return (
+            f"lane declara `sprint: {sprint}` mas vive em "
+            f"`docs/sprint/{grandparent.name}/lanes/` — path e sprint têm de casar"
+        )
+    return None
+
+
 # ----------------------------------------------------------------------
 # Validação best-effort por tipo (warning)
 # ----------------------------------------------------------------------
@@ -182,7 +200,7 @@ def check_note(md_path: Path, fm: dict) -> tuple[str | None, str | None]:
         err = _check_adr(note_id, stem)
         return (err, None)
     if note_type == "lane":
-        err = _check_lane(note_id, stem)
+        err = _check_lane(note_id, stem) or _check_lane_home(fm.get("sprint"), md_path)
         return (err, None)
     if note_type == "plan":
         return (None, _check_plan(note_id, md_path))

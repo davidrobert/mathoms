@@ -7,7 +7,7 @@ status: shipped
 aliases: ["A11.REPORT_PUBLICATION", "A11 report publication"]
 priority: P1
 depends_on: []
-parallel_with: ["[[A11.w2]]", "[[A11.w5]]", "[[A11.competitive-pierre]]"]
+parallel_with: ["[[A11.w2]]", "[[A11.w5]]", "[[PLAN-competitive-pierre]]"]
 adrs_canonical:
   - "[[ADR-187]]"
 tags:
