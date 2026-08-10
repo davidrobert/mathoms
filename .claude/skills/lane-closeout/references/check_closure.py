@@ -47,8 +47,12 @@ DEFER_HEADING_RE = re.compile(
     re.I,
 )
 # `## Dependências e follow-up` planeja a lane; não defere trabalho. Sem esta
-# ressalva o check acusa toda lane da A21 (medido: 9 de 9).
-PLANNING_HEADING_RE = re.compile(r"(depend|pickup|dia 1|cronograma|sequência|sequencia)", re.I)
+# ressalva o check acusa toda lane da A21 (medido: 9 de 9). `## Por que existe
+# uma lane e não só o §Deferimentos da ADR` argumenta SOBRE o deferimento — é
+# meta, não conteúdo deferido (medido na A40.l27).
+PLANNING_HEADING_RE = re.compile(
+    r"(depend|pickup|dia 1|cronograma|sequência|sequencia|^#+\s*por qu[eê])", re.I
+)
 # Linha que roteia trabalho futuro a alguém. Sem isso, o deferimento é órfão.
 ROUTE_WORD_RE = re.compile(
     r"(candidat|dono\b|owner|próxim|proxim|assumir|herda|quem pega|vem depois|rotead)",
@@ -59,6 +63,20 @@ ROUTE_WORD_RE = re.compile(
 # justamente quem arrumou o órfão.
 INBOUND_RE = re.compile(
     r"(herdad|vind|recebid|absorvid|transferid|migrad|movid)\w*\s+d[aeo]s?\s+\[\[", re.I
+)
+# Texto riscado é declaração aposentada — a convenção de emenda datada da casa
+# preserva a frase antiga e a anula. Rota morta não é rota.
+STRIKETHROUGH_RE = re.compile(r"~~.+?~~", re.S)
+# A palavra de rota tem de GOVERNAR o wikilink, não só coabitar a linha. Medido
+# na A40: sem esta janela, `candidato colapsável` (termo técnico), `pela [[X]]`
+# (proveniência) e `Precedente exato: [[X]]` acusavam — 64% de falso-positivo.
+# 40 chars separa `Dono: [[X]]` (rota) de `Roteado em duas lanes …: [[X]]` (relato).
+ROUTE_WINDOW = 40
+# Parágrafo que JÁ declara o fechamento não está enganando ninguém — o doc que
+# diz "Dono do arquivo é a [[X]] (`shipped`) … fora da sprint por falta de dono
+# vivo" é exatamente a forma honesta que este check quer produzir.
+SELF_CLOSED_RE = re.compile(
+    r"(sem dono|falta de dono|`shipped`|shipou|não absorveu|nao absorveu|recusou)", re.I
 )
 WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)")
 LANE_COUNT_RE = re.compile(r"^(#{2,3}\s*Lanes)\s*\((\d+)\)", re.M)
@@ -138,10 +156,24 @@ def _lane_ids_from_paths(paths: list[str], lanes: dict[str, Lane]) -> list[str]:
     return sorted({by_path[p] for p in paths if p in by_path})
 
 
+def _merge_sha(pr: int) -> str:
+    """SHA do squash-merge do PR — casando o ASSUNTO, não o corpo.
+
+    `--grep` varre a mensagem inteira, então um PR que cita `#1265` no corpo
+    sequestrava a resolução (medido: `--pr 1265` devolvia o #1274).
+    """
+    needle = f"(#{pr})"
+    for row in _git(["log", "--format=%H%x09%s", "--max-count=4000", "origin/main"]).splitlines():
+        sha, _, subject = row.partition("\t")
+        if subject.endswith(needle):
+            return sha
+    return ""
+
+
 def resolve_from_pr(pr: int, lanes: dict[str, Lane]) -> list[str]:
     """Lanes do PR: as que declaram `ship_pr` + as cujo arquivo o merge tocou."""
     declared = [lane.id for lane in lanes.values() if lane.fm.get("ship_pr") == pr]
-    sha = _git(["log", "--format=%H", "-1", f"--grep=(#{pr})", "origin/main"]).strip()
+    sha = _merge_sha(pr)
     touched = _lane_ids_from_paths(
         _git(["show", "--name-only", "--format=", sha]).split() if sha else [], lanes
     )
@@ -256,6 +288,44 @@ def check_lane_counter(sprint: str) -> list[Finding]:
     ]
 
 
+def _routes_to(line: str, lane_id: str) -> bool:
+    """Palavra de rota governa este wikilink (janela curta antes dele)?"""
+    for match in re.finditer(rf"\[\[{re.escape(lane_id)}[\]|#]", line):
+        window = line[max(0, match.start() - ROUTE_WINDOW) : match.start()]
+        if ROUTE_WORD_RE.search(window):
+            return True
+    return False
+
+
+def _mask_struck(text: str) -> str:
+    """Neutraliza spans `~~…~~` preservando offsets — o risco pode cruzar linhas."""
+    return STRIKETHROUGH_RE.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), text)
+
+
+def _paragraph_at(lines: list[str], index: int) -> str:
+    start, end = index, index
+    while start > 0 and lines[start - 1].strip():
+        start -= 1
+    while end + 1 < len(lines) and lines[end + 1].strip():
+        end += 1
+    return "\n".join(lines[start : end + 1])
+
+
+def _dead_route_lines(doc: Path, lane_id: str) -> list[str]:
+    """Linhas que roteiam trabalho para `lane_id` sem já declarar o fechamento."""
+    text = doc.read_text(encoding="utf-8")
+    raw_lines, masked = text.splitlines(), _mask_struck(text).splitlines()
+    hits = []
+    for index, line in enumerate(masked):
+        # Linha de tabela lista estado; prosa roteia trabalho. Só prosa.
+        if line.lstrip().startswith("|") or not _routes_to(line, lane_id):
+            continue
+        if INBOUND_RE.search(line) or SELF_CLOSED_RE.search(_paragraph_at(masked, index)):
+            continue
+        hits.append(raw_lines[index])
+    return hits
+
+
 def check_dead_route_to_lane(lane: Lane) -> list[Finding]:
     """CLOSE-BLOCK: doc vivo ainda manda trabalho futuro para esta lane fechada."""
     if not lane.closed:
@@ -264,12 +334,7 @@ def check_dead_route_to_lane(lane: Lane) -> list[Finding]:
     for doc in sorted(SPRINT.glob("*/_README.md")) + sorted(SPRINT.glob("*/lanes/*.md")):
         if doc == lane.path:
             continue
-        for line in doc.read_text(encoding="utf-8").splitlines():
-            # Linha de tabela lista estado; prosa roteia trabalho. Só prosa.
-            if line.lstrip().startswith("|") or not ROUTE_WORD_RE.search(line):
-                continue
-            if lane.id not in WIKILINK_RE.findall(line) or INBOUND_RE.search(line):
-                continue
+        for raw in _dead_route_lines(doc, lane.id):
             out.append(
                 Finding(
                     "CLOSE-BLOCK-05",
@@ -277,7 +342,7 @@ def check_dead_route_to_lane(lane: Lane) -> list[Finding]:
                     lane.id,
                     _rel(doc),
                     f"rota de trabalho futuro aponta para `{lane.id}`, que está `{lane.status}`",
-                    line.strip()[:140],
+                    raw.strip()[:140],
                 )
             )
     return out

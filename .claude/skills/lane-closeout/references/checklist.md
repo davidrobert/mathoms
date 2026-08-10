@@ -81,3 +81,21 @@ invisível no `_README` · contador `## Lanes (N)` · rota para lane morta ·
 
 Se um desses acendeu, é finding pronto: corrija e siga. Se não acendeu, **não
 significa que a lane está fechada** — significa que a estrutura está.
+
+### Precisão do `CLOSE-BLOCK-05`, calibrada na A40 (2026-08-09)
+
+É a regra de menor precisão do conjunto, e já custou uma calibração inteira.
+Primeira rodada sobre as 33 lanes da A40: **11 hits, 4 verdadeiros — 64% de
+falso-positivo**, contra o critério de ≤20% desta skill. Três mecanismos
+resolveram, medidos sobre a vault inteira (30 → 4 hits):
+
+| Filtro | Mata | Por quê |
+|---|---|---|
+| Janela de 40 chars antes do wikilink | 13 | a palavra de rota tem de **governar** o link. `candidato colapsável` é termo técnico; `…, e quem é o owner?` vem depois do link |
+| Máscara de `~~riscado~~` (multilinha) | 4 | emenda datada risca e anula. Rota aposentada não é rota — e o risco real cruza 3 linhas |
+| `INBOUND` + parágrafo autodeclarado | 9 | `Carga herdada da [[X]]` é quem **recebeu**; parágrafo que já diz "sem dono vivo" está sendo honesto, não enganando |
+
+Se for mexer nela, **re-meça antes e depois** — 30 → 4 é o baseline, e
+`tests/dev/test_check_closure.py` guarda cada mecanismo com a mutação que o mata.
+Não afrouxe a janela para "pegar mais": foi exatamente o excesso que a tornou
+ignorável.
