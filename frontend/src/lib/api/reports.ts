@@ -95,6 +95,9 @@ export interface ReportAnalysisData {
   changelog?: ChangelogEntryRead[] | null;
   /** v3 (ADR-190 §Emenda) — períodos reais do par comparado. `null` no primeiro relatório. */
   comparison_periods?: ComparisonPeriodsRead | null;
+  /** A40.l2 §3c2b — os dois lados do par foram consolidados por métodos diferentes; sob
+   * `true` a V0 não afirma mérito em nenhuma célula de delta. */
+  comparison_base_changed?: boolean | null;
   /** F11.4a — injetado pelo GET /reports/{id}/data (não faz parte do E5 legado). */
   _report_lineage?: {
     pipeline_run_id: string | null;
