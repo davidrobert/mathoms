@@ -30,6 +30,7 @@ risco e o ``survivor_hash`` **adjudica**: quem já ancora a row que sobrevive n�
 from __future__ import annotations
 
 import re
+from collections import Counter
 from dataclasses import dataclass
 
 from sqlalchemy import select
@@ -38,6 +39,7 @@ from sqlalchemy.orm import Session
 from backend.app.models.transaction_override import TransactionOverride
 from backend.app.services.internal_ops.results import OpResult
 from pipeline.domain.services._tx_identity import normalize_descricao
+from pipeline.domain.services.cross_document_collapse_types import OverrideRetentionGuard
 from pipeline.domain.services.cross_document_collapser import gate_key_digest
 
 # Não há constante de ação de auditoria aqui: este gate **não escreve**. A `_ACTION` que
@@ -196,7 +198,13 @@ def _alvos(collapse_candidates) -> dict[str, frozenset[str]]:
     # `AttributeError` alto é a polaridade certa (precedente [[ADR-359]]).
     alvos: dict[str, set[str]] = {}
     for c in collapse_candidates:
-        if not (c.collapsible and c.gate_digest):
+        # `sera_colapsado` = colapsável E **não retido**. Sem a segunda metade, a chave que o
+        # guard reteve continuaria sendo alvo, o override seguiria `hit`, e `liberado` ficaria
+        # `False` PARA SEMPRE — a proteção funcionando impediria o conserto, e uma correção de
+        # um usuário desligaria o enforce do workspace inteiro. Acesso por ATRIBUTO, nunca
+        # `getattr(..., default)`: com default, rename em `CollapseCandidate` fazia
+        # `alvos = ∅ ⇒ hits = 0 ⇒ liberado=True` em silêncio ([[ADR-359]]).
+        if not (c.sera_colapsado and c.gate_digest):
             continue
         # `survivor_hash` vazio = "não há sobrevivente eleito" — nunca absolve ninguém.
         alvos.setdefault(c.gate_digest, set()).update(h for h in (c.survivor_hash,) if h)
@@ -256,3 +264,27 @@ def evaluate(
         "(re-ancore, quarentene, complete o snapshot ou re-rode a medição)"
     )
     return OpResult(ok=False, error=erro, details=report.as_details()), report
+
+
+# Reusa `_ativos` + `_override_gate_digest` — nunca re-implementa o predicado, que é a classe
+# `keep_split` que esta lane já pagou duas vezes. É o único caminho para `lido=True`.
+def from_active_overrides(db: Session, workspace_id: str) -> OverrideRetentionGuard:
+    """Produtor ÚNICO do guard de retenção ([[ADR-364]] §Emenda 2026-08-10)."""
+    ativos = _ativos(db, workspace_id)
+    digests: set[str] = set()
+    sem_snapshot = 0
+    por_source: Counter = Counter()
+    for o in ativos:
+        digest = _override_gate_digest(o)
+        if digest is None:
+            sem_snapshot += 1
+            continue
+        digests.add(digest)
+        por_source[o.source or "desconhecido"] += 1
+    return OverrideRetentionGuard(
+        denied_digests=frozenset(digests),
+        overrides_ativos=len(ativos),
+        sem_snapshot=sem_snapshot,
+        denied_por_source=tuple(sorted(por_source.items())),
+        lido=True,
+    )

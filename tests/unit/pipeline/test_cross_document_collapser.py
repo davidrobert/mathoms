@@ -22,6 +22,7 @@ from pipeline.domain.services._tx_identity import decimal_cents, normalize_descr
 from pipeline.domain.services.cross_document_collapser import (  # noqa: E402
     CrossDocumentCollapseConfig,
     CrossDocumentCollapser,
+    OverrideRetentionGuard,
     gate_key_digest,
 )
 
@@ -69,7 +70,11 @@ def _par_nativo_llm(**kw) -> list[BankStatement]:
 
 
 def _measure(statements: list[BankStatement], config=None):
-    return CrossDocumentCollapser(config).measure(statements).candidates
+    return (
+        CrossDocumentCollapser(config, retention_guard=OverrideRetentionGuard.sem_overrides())
+        .measure(statements)
+        .candidates
+    )
 
 
 def test_classe_medida_e_colapsavel_com_uma_row_removivel() -> None:
@@ -406,7 +411,9 @@ def test_adapter_sem_colapsador_injetado_e_inerte() -> None:
 def test_adapter_com_colapsador_reporta_candidato_e_nao_remove_nada() -> None:
     """Measure-only: o candidato aparece no traço e as 2 tx continuam no artefato."""
     sem = _reconcile_par_cross_documento(None)
-    com = _reconcile_par_cross_documento(CrossDocumentCollapser())
+    com = _reconcile_par_cross_documento(
+        CrossDocumentCollapser(retention_guard=OverrideRetentionGuard.sem_overrides())
+    )
 
     (candidato,) = com.collapse_candidates
     assert candidato.collapsible

@@ -1025,13 +1025,32 @@ def _e3_collapse_measure_enabled(ctx, store) -> bool:
     )
 
 
+# Mesmo padrão dos dois precedentes vivos em `main` (`_e3_collapse_precondition`,
+# `_e4_load_learned_rules`): import lazy + `isinstance(DBArtifactStore)` + `store.session`.
+def _e3_retention_guard(ctx, store):
+    """Guard de retenção lido do DB ([[ADR-364]] §Emenda 2026-08-10). Sem DB, `nao_lido()` —
+    que degrada o run para measure-only em vez de colapsar às cegas."""
+    from pipeline.domain.services.cross_document_collapse_types import OverrideRetentionGuard
+
+    try:
+        from backend.app.services.internal_ops.collapse_precondition import from_active_overrides
+        from backend.app.services.storage.db_artifact_store import DBArtifactStore
+    except ImportError:
+        return OverrideRetentionGuard.nao_lido()
+    if not isinstance(store, DBArtifactStore):
+        return OverrideRetentionGuard.nao_lido()
+    return from_active_overrides(store.session, ctx.workspace_id)
+
+
 def _e3_build_collapser(ctx, store):
     """Colapsador em modo SOMBRA — mede, nunca remove (``collapse_enforce`` fica False)."""
     if not _e3_collapse_measure_enabled(ctx, store):
         return None
     from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
 
-    return CrossDocumentCollapser()
+    # O guard vale também em `measure()`, de propósito: sem isso o gate pré-flip prediz
+    # órfãos que o enforce-com-guard não produziria, e o 3e ficaria bloqueado por hipotético.
+    return CrossDocumentCollapser(retention_guard=_e3_retention_guard(ctx, store))
 
 
 # Devolve `None` quando não houve medição — ausência de relatório é o sinal honesto de "não

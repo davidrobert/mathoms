@@ -7,7 +7,10 @@ predicado — o service importa daqui e re-exporta para não quebrar call-site.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
+
+from pipeline.domain.services._tx_identity import decimal_cents
 
 
 @dataclass(frozen=True)
@@ -105,10 +108,21 @@ class CollapseCandidate:
     # sem que o pipeline importe `dev/`.
     divergence: str = ""
     parciais: str = ""
+    # [[ADR-364]] §Emenda 2026-08-10 — a chave tem override ativo, logo NÃO colapsa neste run.
+    # Não é `blocked_reason`: aquele campo é do predicado do colapsador (propriedade do dado),
+    # este é estado externo do workspace. Confundi-los faria o gate ler "predicado reprovou"
+    # onde houve "usuário corrigiu", e a série do gate perderia a distinção.
+    retido_por_override: bool = False
 
     @property
     def collapsible(self) -> bool:
+        """Colapsável pelo PREDICADO. Retenção é ortogonal — ver `sera_colapsado`."""
         return self.blocked_reason is None and self.removable_rows > 0
+
+    @property
+    def sera_colapsado(self) -> bool:
+        """O que de fato acontece neste run: colapsável **e** não retido."""
+        return self.collapsible and not self.retido_por_override
 
     @property
     def rows_alcancadas_por_hash(self) -> int:
@@ -135,6 +149,109 @@ class CollapseCandidate:
             "removal_targets": [t.to_trace_dict() for t in self.removal_targets],
             "alvo_ambiguo": self.alvo_ambiguo,
             "blocked_reason": self.blocked_reason,
+            "retido_por_override": self.retido_por_override,
             "divergence": self.divergence,
             "parciais": self.parciais,
         }
+
+
+# `denied_digests` é DENY-list, não permit-list, porque só ela é computável sem os candidatos:
+# eles nascem dentro de `reconcile_via_store`, e o guard tem de existir no construtor para valer
+# também em `measure()` (senão o gate pré-flip prediz órfãos que o enforce-com-guard não produz).
+# `lido` é o que impede o vazio de significar duas coisas: "li e não há override" e "não consegui
+# ler" divergem no que o run deve fazer, e conjunto vazio sozinho não distingue — foi o defeito
+# de zero-ambíguo que esta lane já pagou quatro vezes.
+@dataclass(frozen=True)
+class OverrideRetentionGuard:
+    """Digests de override ativo que **não** colapsam ([[ADR-364]] §Emenda 2026-08-10). Dado
+    congelado, sem I/O: o produtor vive em `collapse_precondition.from_active_overrides` e é
+    injetado no composition root do stage."""
+
+    denied_digests: frozenset[str]
+    overrides_ativos: int
+    sem_snapshot: int
+    denied_por_source: tuple[tuple[str, int], ...]
+    lido: bool
+
+    @classmethod
+    def nao_lido(cls) -> "OverrideRetentionGuard":
+        """Store não-DB ou import indisponível — degrada o run para measure-only."""
+        return cls(frozenset(), 0, 0, (), lido=False)
+
+    @classmethod
+    def sem_overrides(cls) -> "OverrideRetentionGuard":
+        """AFIRMA ausência de override (testes, CLI). Diferente de `nao_lido`."""
+        return cls(frozenset(), 0, 0, (), lido=True)
+
+    # `sem_snapshot > 0` entra aqui porque `_override_gate_digest` devolve `None` para override
+    # sem as colunas da [[ADR-282]], e o read-path AINDA o aplica pelo hash v1: tratá-lo como
+    # "não existe override" faria a chave colapsar e a correção morrer. É condição de RUN, não de
+    # candidato — por construção não se sabe a qual chave ele pertence.
+    @property
+    def degradado(self) -> bool:
+        """Nada é removido: o alvo da degradação é "retém tudo", nunca "colapsa tudo"."""
+        return (not self.lido) or bool(self.sem_snapshot)
+
+    def retem(self, gate_digest: str) -> bool:
+        """`True` se esta chave tem override ativo e portanto **não** colapsa."""
+        return bool(gate_digest) and gate_digest in self.denied_digests
+
+    def to_trace_dict(self) -> dict:
+        """Contadores PII-free para `output_summary` — COM denominador: zero medido e zero
+        não-medido não podem imprimir o mesmo caractere."""
+        return {
+            "lido": self.lido,
+            "degradado": self.degradado,
+            "overrides_ativos": self.overrides_ativos,
+            "sem_snapshot": self.sem_snapshot,
+            "denied_digests": len(self.denied_digests),
+            "denied_por_source": dict(self.denied_por_source),
+        }
+
+
+class CorteDivergente(RuntimeError):
+    """O que o candidato DECLARA remover não é o que a mutação remove."""
+
+
+# Compara `removable_rows` contra o total podado — a grandeza que o bug do `keep_split` movia
+# (measure declarava 453 enquanto a mutação removia 593, com a suíte verde). NÃO compara
+# `key_digest` entre `measure()` e `collapse()`: as duas chamam as mesmas funções puras sobre o
+# mesmo objeto, logo são idênticas por identidade — assert que não pode disparar.
+def exige_paridade_de_corte(candidates, n_removidas: int) -> None:
+    """`Σ removable_rows dos não-retidos == rows efetivamente podadas`, fail-loud."""
+    declarado = sum(c.removable_rows for c in candidates if c.sera_colapsado)
+    if declarado != n_removidas:
+        raise CorteDivergente(
+            f"candidatos declaram {declarado} rows removíveis, a poda removeu {n_removidas}"
+        )
+
+
+def _tx_cents_signed(tx) -> int:
+    """Cents com SINAL — o ledger grava débito negativo (espelha `_tx_cents`)."""
+    return int(decimal_cents(tx.amount.amount) * (-1 if tx.amount.amount < 0 else 1))
+
+
+# O MÊS entra na chave porque decide o dono da remoção: `output_key` embute o período, então
+# arquivo de dois períodos vira dois grupos e sem o mês a mesma remoção é reivindicada pelos dois
+# (medido: 6 onde havia 3). `count` e `cents` somam na mesma iteração ⇒ partição exata nos dois.
+def _agrega_por_source_e_mes(drop: list) -> dict[tuple[str | None, str], tuple[int, int]]:
+    """``{(source, mes): (count, cents_assinado)}`` — uma passada sobre as rows."""
+    agg: dict[tuple[str | None, str], list[int]] = {}
+    for stmt, tx in drop:
+        bucket = agg.setdefault((stmt.source_document, tx.date.strftime("%Y-%m")), [0, 0])
+        bucket[0] += 1
+        bucket[1] += _tx_cents_signed(tx)
+    return {k: (c, v) for k, (c, v) in agg.items()}
+
+
+def removals_by_source(drop: list) -> tuple[CollapseRemoval, ...]:
+    """Uma ``CollapseRemoval`` por par ``(source_document, mês)`` — granularidade que a
+    atribuição precisa para ter **dono único** ([[ADR-347]] §Emenda 2026-08-10)."""
+    return tuple(
+        CollapseRemoval(
+            "cross_document_collapse", c, v, cross_source_count=c, source=src, meses=((mes, c),)
+        )
+        for (src, mes), (c, v) in sorted(
+            _agrega_por_source_e_mes(drop).items(), key=lambda kv: (kv[0][0] or "", kv[0][1])
+        )
+    )
