@@ -5,6 +5,8 @@ title: "Cobertura do solver de prazo IF: aporte zero com retorno positivo conver
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1339
+ship_date: "2026-08-08"
 priority: P2
 branch_slug: a40-l26-cobertura-do-solver-de-prazo-if
 adrs:

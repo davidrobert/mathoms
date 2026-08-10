@@ -5,6 +5,8 @@ title: "Desescalar number_in_prose: defeito de forma deixa de apagar conselho e 
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1159
+ship_date: "2026-08-03"
 priority: P0
 branch_slug: a40-l16-desescalar-number-in-prose
 adrs:
