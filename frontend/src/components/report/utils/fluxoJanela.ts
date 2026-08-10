@@ -132,6 +132,46 @@ export function resolveFluxoJanelaMensal(
   return readBloco(bloco12m, "12m") ?? readBloco(fluxo, "full");
 }
 
+/** A40.l2 — contador do colapso cross-documento **emparelhado com a base de onde
+ * saiu**. Existe como par pelo mesmo motivo que `ValorComJanela`: o colapso é do
+ * corpus inteiro e a S2 exibe mensalização de 12 meses, então um call site que
+ * lesse `fluxo_caixa.consolidacao_cross_documento` direto imprimiria contagem
+ * full ao lado de agregado 12m — o defeito que este módulo fecha. */
+export interface ConsolidacaoComJanela {
+  readonly count: number;
+  /** Meses DISTINTOS com consolidação nesta base — o "em M meses" da copy. */
+  readonly meses: number;
+  readonly rotulo: JanelaRotulo;
+}
+
+function readConsolidacao(
+  bloco: unknown,
+  fallbackTipo: "12m" | "full",
+): ConsolidacaoComJanela | null {
+  if (bloco == null || typeof bloco !== "object") return null;
+  const bruto = (bloco as Record<string, unknown>).consolidacao_cross_documento;
+  if (bruto == null || typeof bruto !== "object") return null;
+  const campos = bruto as Record<string, unknown>;
+  const count = numberAt(bruto, "count");
+  if (count === undefined || count <= 0) return null;
+  const meses = Array.isArray(campos.meses) ? campos.meses.length : 0;
+  return { count, meses, rotulo: rotuloDoBloco(bloco, fallbackTipo) };
+}
+
+/** Bloco `janela_12m` quando ele declara consolidação; senão o top-level `full`.
+ *
+ * A preferência espelha `resolveFluxoJanelaMensal` de propósito: a S2 mostra a
+ * janela de 12 meses, e o contador tem de reconciliar com o que está ao lado
+ * dele. `null` quando nenhum dos dois declara — que é o estado normal, porque o
+ * produtor OMITE o campo quando não houve consolidação. */
+export function resolveConsolidacaoCrossDoc(
+  fluxo: unknown,
+): ConsolidacaoComJanela | null {
+  if (fluxo == null || typeof fluxo !== "object") return null;
+  const bloco12m = (fluxo as Record<string, unknown>).janela_12m;
+  return readConsolidacao(bloco12m, "12m") ?? readConsolidacao(fluxo, "full");
+}
+
 /** Leitura de `consumo_consciente` (ADR-306 D1 + D6). Duas bases coexistem no
  * mesmo card e o seletor as devolve **já emparelhadas com o próprio rótulo**:
  *

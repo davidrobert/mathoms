@@ -7,6 +7,23 @@
  */
 import type { ChartSeries } from "./chart-series";
 
+/** A40.l2 — contador declarado do colapso cross-documento: quantos lançamentos
+ * foram consolidados por sobreposição de documentos, com breakdown por mês.
+ *
+ * **Ausente quando não houve consolidação** — o estado normal é não existir. A
+ * omissão é do produtor e é deliberada: o `sha256` do E5 é chave de cache do
+ * parecer e do section summary da S2, então chave incondicional regeraria os
+ * dois em toda a base ([[ADR-173]]).
+ *
+ * Aparece em DOIS blocos com bases diferentes — `fluxo_caixa` (corpus inteiro) e
+ * `fluxo_caixa.janela_12m` (só o que caiu na janela). Leia sempre pelo seletor
+ * de `utils/fluxoJanela.ts`, nunca direto: o invariante daquele módulo existe
+ * porque um valor full já foi renderizado sob rótulo `12m`. */
+export interface ConsolidacaoCrossDocumento {
+  count: number;
+  meses: Array<{ mes: string; count: number }>;
+}
+
 // Receitas (vive em fluxo_caixa, necessário no card de receitas de S1)
 export interface FluxoPorFonte {
   outras_receitas?: number;
@@ -50,6 +67,8 @@ export interface FluxoJanela12m {
   taxa_poupanca_recorrente?: number;
   taxa_poupanca_total?: number;
   despesas_por_categoria?: Record<string, number>;
+  /** A40.l2 — só o que foi consolidado DENTRO desta janela. */
+  consolidacao_cross_documento?: ConsolidacaoCrossDocumento;
 }
 
 export interface FluxoCaixaSummary {
@@ -79,4 +98,8 @@ export interface FluxoCaixaSummary {
     /** Onda v2.E.2 — séries por sub-categoria de despesa (1 dataset por categoria). */
     despesa_datasets?: ChartSeries[];
   };
+  /** A40.l2 — consolidado no CORPUS INTEIRO. Para exibir ao lado de agregado de
+   * 12 meses, use o do bloco `janela_12m` — misturar as bases é o defeito que o
+   * invariante de `utils/fluxoJanela.ts` fecha. */
+  consolidacao_cross_documento?: ConsolidacaoCrossDocumento;
 }

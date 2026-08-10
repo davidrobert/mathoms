@@ -70,6 +70,7 @@ import {
   deriveSectionSummary,
 } from "@/components/report/utils/conclusionUtils";
 import {
+  resolveConsolidacaoCrossDoc,
   resolveConsumoBases,
   resolveFluxoJanelaMensal,
 } from "@/components/report/utils/fluxoJanela";
@@ -355,6 +356,76 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     const lido = resolveFluxoJanelaMensal(irpf as FluxoCaixaSummary);
     expect(lido?.rotulo.tipo).toBe("irpf");
     expect(lido?.rotulo.anoIrpf).toBe("2024");
+  });
+
+  // ── A40.l2 — o contador do colapso entra sob o MESMO invariante ──
+  // O colapso é do corpus inteiro e a S2 exibe mensalização de 12 meses: ler
+  // `fluxo_caixa.consolidacao_cross_documento` direto imprimiria contagem full
+  // ao lado de agregado 12m, que é literalmente o defeito desta lane.
+
+  const comConsolidacao = (full: number, na12m: number | null) => {
+    const base = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
+    base.consolidacao_cross_documento = {
+      count: full,
+      meses: [
+        { mes: "2024-12", count: full - (na12m ?? 0) },
+        { mes: "2026-02", count: na12m ?? 0 },
+      ].filter((m) => m.count > 0),
+    };
+    const bloco12m = base.janela_12m as Record<string, unknown>;
+    if (na12m === null) delete bloco12m.consolidacao_cross_documento;
+    else
+      bloco12m.consolidacao_cross_documento = {
+        count: na12m,
+        meses: [{ mes: "2026-02", count: na12m }],
+      };
+    return base as FluxoCaixaSummary;
+  };
+
+  it("consolidação: prefere a janela 12m, e o rótulo é o do bloco lido", () => {
+    const lido = resolveConsolidacaoCrossDoc(comConsolidacao(11, 7));
+    expect(lido?.count).toBe(7); // NÃO 11 — o full não pode vazar sob rótulo 12m
+    expect(lido?.rotulo.tipo).toBe("12m");
+    expect(lido?.meses).toBe(1);
+  });
+
+  it("consolidação: sem o campo na janela 12m, degrada para full COM rótulo full", () => {
+    const lido = resolveConsolidacaoCrossDoc(comConsolidacao(11, null));
+    expect(lido?.count).toBe(11);
+    expect(lido?.rotulo.tipo).toBe("full");
+  });
+
+  it("consolidação: na degradação SEM campo `janela`, o fallbackTipo é quem rotula", () => {
+    // O teste acima NÃO exercita o `fallbackTipo`: a fixture declara
+    // `janela: "full"` no top-level, então o rótulo vem do CAMPO e trocar o
+    // fallback por `"12m"` deixava tudo verde — o mesmo laço que este arquivo
+    // já documenta ("preservar `janela: 'full'` fazia o ramo nunca rodar").
+    // Aqui a posição do bloco é a única evidência da base.
+    // Prova de mutação: `readConsolidacao(fluxo, "12m")` derruba este assert.
+    const degradado = comConsolidacao(11, null) as unknown as Record<string, unknown>;
+    delete degradado.janela;
+    delete degradado.janela_meses;
+
+    const lido = resolveConsolidacaoCrossDoc(degradado as FluxoCaixaSummary);
+
+    expect(lido?.count).toBe(11);
+    expect(lido?.rotulo.tipo).toBe("full");
+  });
+
+  it("consolidação ausente devolve null — é o estado normal, não um zero", () => {
+    // O produtor OMITE o campo quando não houve consolidação; um contador que
+    // renderizasse "0 lançamentos consolidados" afirmaria um fato que ninguém
+    // mediu naquele run.
+    expect(resolveConsolidacaoCrossDoc(fluxo)).toBeNull();
+    expect(resolveConsolidacaoCrossDoc(fluxoSemJanela12m())).toBeNull();
+    expect(resolveConsolidacaoCrossDoc(undefined)).toBeNull();
+  });
+
+  it("consolidação com count 0 devolve null, mesmo se o produtor emitir a chave", () => {
+    const zerado = JSON.parse(JSON.stringify(fluxo)) as Record<string, unknown>;
+    zerado.consolidacao_cross_documento = { count: 0, meses: [] };
+
+    expect(resolveConsolidacaoCrossDoc(zerado as FluxoCaixaSummary)).toBeNull();
   });
 });
 
