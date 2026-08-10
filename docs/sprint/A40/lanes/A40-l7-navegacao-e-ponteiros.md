@@ -246,13 +246,29 @@ permite decidir"*. Registrado como follow-up nº 7 abaixo.
 6. `docs/plan/REPORT_PREMIUM/EXEMPLO_DE_RELATORIO.html` segue com os títulos
    antigos. Precedente do #1286: a paridade daquele mockup é visual/estrutural,
    não lexical.
-7. **`frontend-e2e` acusa 8+ falhas em telas fora deste PR** (`/config`,
-   `/plano`, `/protecao`, dashboard, learning loop). O job é opt-in por label e
-   **não há execução recente em `main`** para servir de baseline, então não dá
-   para decidir se são pré-existentes. **Condição de retomada:** rodar o job uma
-   vez em `main` (workflow_dispatch) e comparar; se forem pré-existentes, o
-   achado é que o gate `@critical` está vermelho e ninguém vê — mesma classe do
-   §Follow-up do #1337. Gatilho `sre-devops`.
+7. **`frontend-e2e` está vermelho por seed/auth quebrada, e ninguém via.**
+   ⚠️ Este item dizia "não dá para decidir se são pré-existentes"; **agora dá,
+   e a resposta é que não são meus.** Duas evidências no mesmo commit
+   (`e8b8cb4e`, run `31417548894`):
+
+   - `[register] failed Error: Email já cadastrado` + `[login] failed
+     Error: Credenciais inválidas` no log do job ⇒ o usuário de fixture não é
+     criado, e **todo fluxo autenticado** cai junto. Isso explica de uma vez
+     `category-overrides`, `vault`, `plano-de-acao`, `plano-mobile`,
+     `property-finance`, `protection-cadastro`, `learning_loop` e `drill-down`
+     — features sem nenhuma relação entre si, exceto precisarem de login.
+   - **`print-text.@critical.spec.ts` falha no `frontend-e2e` e PASSA no
+     *Frontend checks*, no mesmo commit.** É o mesmo spec sobre o mesmo diff:
+     o que muda é o ambiente (backend real + login vs. fixture mockada). Se os
+     títulos novos quebrassem o spec, ele quebraria nos dois.
+
+   `All checks green` passou — o `frontend-e2e` **não gateia**, e é por isso que
+   um job inteiro pôde apodrecer sem sinal. Achado é da classe do §Follow-up do
+   #1337, agora com causa raiz nomeada em vez de suspeita. **Não corrigido
+   aqui**: consertar seed de E2E é `sre-devops` e não cabe de carona num PR de
+   navegação. **Condição de retomada:** corrigir o setup do usuário de fixture
+   e, no mesmo PR, decidir se o job entra no `All checks green` — vermelho que
+   não gateia é o que produziu este estado.
 
 ## Problema
 
