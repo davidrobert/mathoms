@@ -372,3 +372,103 @@ class TestAporteTransferencia:
         assert j["transferencia_patrimonial"] == 0.0
         assert j["despesa_consumo"] == j["despesa_total"] == 8_000.0
         assert j["taxa_poupanca_recorrente"] == 20.0  # (10k − 8k)/10k
+
+
+class TestConsolidacaoCrossDocumento:
+    """[[A40.l2]] PR3c1b — o contador do colapso atravessa E4→E5 e é projetado na janela 12m.
+    É o número que a S2 declara à família ("N lançamentos consolidados por sobreposição de
+    documentos, em M meses"); sem ele o agregado fica irreconciliável contra o extrato do
+    banco — veto de adoção B2B2C, salvaguarda nº 1 do `financial-planner`."""
+
+    @staticmethod
+    def _e4(meses_ordenados: list[str], consolidacao: dict | None = None) -> dict:
+        fluxo = {
+            "meses_ordenados": meses_ordenados,
+            "receitas": {"por_mes": {}},
+            "despesas": {"por_mes": {}},
+        }
+        if consolidacao is not None:
+            fluxo["consolidacao_cross_documento"] = consolidacao
+        return fluxo
+
+    def _legacy(self, meses_ordenados: list[str], consolidacao: dict | None = None) -> dict:
+        e4 = self._e4(meses_ordenados, consolidacao)
+        return (
+            FluxoCaixaEnricher().enrich(receitas={}, despesas={}, fluxo_mensal=e4).to_legacy_dict()
+        )
+
+    def test_contador_do_e4_chega_em_fluxo_caixa(self):
+        payload = {
+            "count": 7,
+            "meses": [{"mes": "2026-01", "count": 3}, {"mes": "2026-02", "count": 4}],
+        }
+
+        assert (
+            self._legacy(["2026-01", "2026-02"], payload)["consolidacao_cross_documento"] == payload
+        )
+
+    def test_projecao_12m_conta_so_o_que_caiu_dentro_da_janela(self):
+        meses = [f"2025-{m:02d}" for m in range(1, 13)] + ["2026-01", "2026-02"]
+        payload = {
+            "count": 11,
+            "meses": [
+                {"mes": "2024-12", "count": 4},  # antes da janela
+                {"mes": "2025-06", "count": 3},
+                {"mes": "2026-02", "count": 4},
+            ],
+        }
+
+        legacy = self._legacy(meses, payload)
+
+        assert legacy["consolidacao_cross_documento"]["count"] == 11  # corpus inteiro
+        assert legacy["janela_12m"]["consolidacao_cross_documento"]["count"] == 7  # só a janela
+
+    def test_projecao_e_por_INTERVALO_nao_por_pertinencia(self):
+        """`meses_ordenados` vem das transações SOBREVIVENTES: um mês cujo movimento era
+        majoritariamente a perna duplicada some da lista. Filtrar por pertinência descartaria
+        a remoção que aconteceu DENTRO da janela — e o contador deixaria de reconciliar."""
+        # 2025-06 NÃO está em `meses_ordenados`, mas está entre o primeiro e o último.
+        meses = ["2025-01", "2025-12"]
+        payload = {"count": 5, "meses": [{"mes": "2025-06", "count": 5}]}
+
+        janela = self._legacy(meses, payload)["janela_12m"]["consolidacao_cross_documento"]
+
+        assert janela is not None, "mês ausente de meses_ordenados sumiu da janela"
+        assert janela["count"] == 5
+
+    def test_campo_omitido_quando_o_e4_nao_tem_o_contador(self):
+        """Omissão não é estética: o sha256 do E5 inteiro é chave de cache do parecer E do
+        section summary da S2 — chave sempre presente regeraria os dois em toda a base."""
+        legacy = self._legacy(["2026-01"])
+
+        assert "consolidacao_cross_documento" not in legacy
+        assert "consolidacao_cross_documento" not in legacy["janela_12m"]
+
+    def test_count_zero_no_e4_tambem_omite(self):
+        legacy = self._legacy(["2026-01"], {"count": 0, "meses": []})
+
+        assert "consolidacao_cross_documento" not in legacy
+
+    def test_janela_sem_remocao_dentro_dela_omite_mas_full_declara(self):
+        meses = [f"2025-{m:02d}" for m in range(1, 13)] + ["2026-01", "2026-02"]
+        payload = {"count": 4, "meses": [{"mes": "2024-12", "count": 4}]}
+
+        legacy = self._legacy(meses, payload)
+
+        assert legacy["consolidacao_cross_documento"]["count"] == 4
+        assert "consolidacao_cross_documento" not in legacy["janela_12m"]
+
+    @pytest.mark.parametrize("classe", [FluxoCaixaEnriched, Janela12m])
+    def test_todo_campo_da_dataclass_e_emitido(self, classe):
+        """As duas dataclasses são construídas campo-a-campo, então campo novo se perde em
+        silêncio se o serializador não for atualizado. Derivar de `fields()` pega isso; a
+        lista à mão não pega."""
+        from dataclasses import fields
+
+        payload = {"count": 1, "meses": [{"mes": "2026-01", "count": 1}]}
+        legacy = self._legacy(["2026-01"], payload)
+        emitido = legacy if classe is FluxoCaixaEnriched else legacy["janela_12m"]
+        # `chart_*`/`por_fonte*`/`tabela_receitas` são remapeados para outros nomes no dict
+        # legado; o campo novo não é, então basta afirmar que ele aparece.
+        assert "consolidacao_cross_documento" in {f.name for f in fields(classe)}
+        assert "consolidacao_cross_documento" in emitido
