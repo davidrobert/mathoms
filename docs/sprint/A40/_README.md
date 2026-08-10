@@ -386,6 +386,22 @@ senão cada uma é fixada uma vez e volta a divergir.
 >   `protection_bundle`), rótulo do disclosure, retítulo da S9 e o `title`
 >   derivado do `titleMap`.
 
+> **Estado da Onda 2 em 2026-08-10** (o snapshot acima é datado — **não o
+> reescreva**). Segunda parcial da [[A40.l7]]; a [[A40.l5]] não avançou nesta
+> data além do co-design (ver o §Deferimento datado dela).
+>
+> - **[[A40.l7]] — #1355.** Fechou os itens 2 e 4: `ReportSection` perdeu o
+>   prop `title` e o `id` virou união literal do codegen, então **as duas
+>   formas do defeito são erro de compilação** — gate por construção, não por
+>   teste. Retítulo da S9 entrou junto, com cascata nos dois prompts. Lane
+>   segue `in_progress` (só o S9 empty state resta, e o ⛔ dele é intocado).
+>   **Duas correções que a sprint herda:** as divergências YAML↔componente
+>   eram **6**, não 4; e a premissa *"no PDF o rótulo fica ao lado das linhas
+>   que o desmentem"* é **falsa** — `SParecer.print.css` esconde o
+>   `<summary>` no print, então o dano do RV3-15 é na tela. O rótulo que de
+>   fato mentia no PDF era outro (`Mostrando 5 de 8 riscos` acima de 8 linhas
+>   impressas), e foi corrigido no mesmo PR.
+
 **[[A40.l30]] entra como instrumento que gateia esta onda** (aberta 2026-08-03,
 co-design `prompt-engineer`). Não é Onda 0 — a Onda 0 é "parar a sangria" e sua
 não-negociabilidade era *"medir exige run que completa"*, o que a [[A40.l16]] já
