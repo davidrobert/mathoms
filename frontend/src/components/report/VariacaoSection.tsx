@@ -63,8 +63,13 @@ function isPositiveForUser(item: ComparisonItemRead): boolean {
   return item.delta_signal === (item.direction_positive ?? "up");
 }
 
-function deltaColor(item: ComparisonItemRead): string {
-  if (item.delta_signal === "stable") return "var(--surface-muted-foreground)";
+// Sob base alterada NENHUMA célula afirma mérito: as duas pontas do par foram consolidadas
+// por métodos diferentes, e o que a cor chamaria de melhora pode ser só a mudança de método.
+// O glifo de direção permanece — em `unit: "brl"` o sinal do movimento vive só nele e na cor.
+function deltaColor(item: ComparisonItemRead, baseChanged: boolean): string {
+  if (baseChanged || item.delta_signal === "stable") {
+    return "var(--surface-muted-foreground)";
+  }
   return isPositiveForUser(item)
     ? "var(--semantic-success)"
     : "var(--semantic-danger)";
@@ -80,24 +85,35 @@ function deltaDisplayValue(item: ComparisonItemRead): string {
   return `${fmt1(Math.abs(item.delta_pct))}%`;
 }
 
+/** Magnitude do movimento sem sinal — a direção já vem no verbo ("subiu"/"caiu"). */
+function deltaSpokenValue(item: ComparisonItemRead): string {
+  const unit = item.unit ?? "brl";
+  if (unit === "pp" || unit === "meses") {
+    return formatUnitDelta(item.after - item.before, unit).replace(/^[+-]/, "");
+  }
+  if (item.delta_pct === null || !isFinite(item.delta_pct)) return "";
+  return `${fmt1(Math.abs(item.delta_pct))}%`;
+}
+
+/** Verbo do movimento; plural pt-BR pela heurística de narratives.py (última palavra em "s"). */
+function deltaMovementVerb(item: ComparisonItemRead): string {
+  const plural = /s$/i.test(item.section_label.trim().split(" ").pop() ?? "");
+  if (item.delta_signal === "up") return plural ? "subiram" : "subiu";
+  return plural ? "caíram" : "caiu";
+}
+
+// Paridade cor ≡ texto: a cor neutra e o nome acessível têm de cair juntos, senão o leitor
+// de tela ouve um julgamento que a tela não faz (ou o inverso).
+function deltaJudgment(item: ComparisonItemRead, baseChanged: boolean): string {
+  if (baseChanged) return BASE_CHANGED_JUDGMENT;
+  return isPositiveForUser(item) ? "avaliação boa" : "avaliação ruim";
+}
+
 // WCAG 1.4.1: a cor carrega julgamento independente da seta, então a célula Δ
 // verbaliza o julgamento para leitores de tela (padrão herdado da W2).
-function deltaAriaLabel(item: ComparisonItemRead): string {
-  // Heurística de plural pt-BR idêntica à de narratives.py (última palavra em "s").
-  const plural = /s$/i.test(item.section_label.trim().split(" ").pop() ?? "");
-  const movement =
-    item.delta_signal === "up"
-      ? plural ? "subiram" : "subiu"
-      : plural ? "caíram" : "caiu";
-  const unit = item.unit ?? "brl";
-  const value =
-    unit === "pp" || unit === "meses"
-      ? formatUnitDelta(item.after - item.before, unit).replace(/^[+-]/, "")
-      : item.delta_pct !== null && isFinite(item.delta_pct)
-        ? `${fmt1(Math.abs(item.delta_pct))}%`
-        : "";
-  const judgment = isPositiveForUser(item) ? "avaliação boa" : "avaliação ruim";
-  return `${[item.section_label, movement, value].filter(Boolean).join(" ")} — ${judgment}`;
+function deltaAriaLabel(item: ComparisonItemRead, baseChanged: boolean): string {
+  const falado = [item.section_label, deltaMovementVerb(item), deltaSpokenValue(item)];
+  return `${falado.filter(Boolean).join(" ")} — ${deltaJudgment(item, baseChanged)}`;
 }
 
 function buildSubtitle(previousLabel: string | null, currentLabel: string | null): string {
@@ -113,6 +129,14 @@ function buildHeadlineAria(delta: number, previousLabel: string | null): string 
   const direction = delta > 0 ? "a mais" : "a menos";
   return `Patrimônio líquido variou ${formatFullBRL(Math.abs(delta))} ${direction} ${since}`;
 }
+
+const BASE_CHANGED_NOTE_ID = "v0-base-changed-note";
+
+const BASE_CHANGED_JUDGMENT = "base de comparação alterada";
+
+const BASE_CHANGED_NOTE =
+  "A forma de consolidar lançamentos mudou entre os dois relatórios. As variações " +
+  "abaixo comparam bases diferentes e não indicam, por si, melhora ou piora.";
 
 const HEADLINE_CAPTION =
   "Mostramos a variação total do patrimônio no período. A separação entre " +
@@ -157,7 +181,13 @@ function HeadlineDelta({
   );
 }
 
-function IndicatorsTable({ items }: { readonly items: readonly ComparisonItemRead[] }) {
+function IndicatorsTable({
+  items,
+  baseChanged,
+}: {
+  readonly items: readonly ComparisonItemRead[];
+  readonly baseChanged: boolean;
+}) {
   return (
     <table
       data-testid="v0-indicators-table"
@@ -203,12 +233,14 @@ function IndicatorsTable({ items }: { readonly items: readonly ComparisonItemRea
                 )}
               </td>
               <td
-                aria-label={deltaAriaLabel(item)}
+                aria-describedby={baseChanged ? BASE_CHANGED_NOTE_ID : undefined}
+                aria-label={deltaAriaLabel(item, baseChanged)}
                 className="tabular-nums"
+                data-base-changed={baseChanged ? "true" : undefined}
                 style={{
                   padding: "8px",
                   textAlign: "right",
-                  color: deltaColor(item),
+                  color: deltaColor(item, baseChanged),
                   fontWeight: 600,
                 }}
               >
@@ -234,6 +266,7 @@ export function VariacaoSection({ data }: { readonly data: ReportAnalysisData })
   const changed = others.filter((c) => c.delta_signal !== "stable");
   const stableCount = others.length - changed.length;
 
+  const baseChanged = data.comparison_base_changed === true;
   const periods = data.comparison_periods ?? null;
   const currentLabel = periods ? formatPeriodLongPtBR(periods.current) : null;
   const previousLabel = periods ? formatPeriodLongPtBR(periods.previous) : null;
@@ -276,9 +309,28 @@ export function VariacaoSection({ data }: { readonly data: ReportAnalysisData })
           {buildSubtitle(previousLabel, currentLabel)}
         </p>
 
+        {/* Estado NOMEADO, nunca silêncio: sem esta nota a neutralização leria como
+          * "nada relevante mudou", que é a leitura oposta à verdadeira. */}
+        {baseChanged && (
+          <p
+            data-testid="v0-base-changed-note"
+            id={BASE_CHANGED_NOTE_ID}
+            style={{
+              margin: "var(--space-md, 12px) 0 0 0",
+              fontSize: "var(--report-font-size-sm, 12px)",
+              color: "var(--surface-muted-foreground)",
+              lineHeight: 1.4,
+            }}
+          >
+            {BASE_CHANGED_NOTE}
+          </p>
+        )}
+
         {headline && <HeadlineDelta item={headline} previousLabel={previousLabel} />}
 
-        {changed.length > 0 && <IndicatorsTable items={changed} />}
+        {changed.length > 0 && (
+          <IndicatorsTable items={changed} baseChanged={baseChanged} />
+        )}
 
         {stableCount > 0 && (
           <p
