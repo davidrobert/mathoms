@@ -83,6 +83,25 @@
     "receitas_totais": 240000,
     "despesas_totais": 168000,
     "saldo": 72000,
+    "consolidacao_cross_documento": {
+      "count": 11,
+      "meses": [
+        { "mes": "2025-11", "count": 4 },
+        { "mes": "2026-01", "count": 3 },
+        { "mes": "2026-03", "count": 4 }
+      ]
+    },
+    "janela_12m": {
+      "janela": "12m",
+      "janela_meses": 12,
+      "consolidacao_cross_documento": {
+        "count": 7,
+        "meses": [
+          { "mes": "2026-01", "count": 3 },
+          { "mes": "2026-03", "count": 4 }
+        ]
+      }
+    },
     "receita_despesa_mensal_detalhado": {
       "labels": [
         "26/01",
