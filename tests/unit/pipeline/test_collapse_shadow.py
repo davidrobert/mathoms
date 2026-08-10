@@ -16,7 +16,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.services.cross_document_collapse_types import (  # noqa: E402
+    OverrideRetentionGuard,
     shadow_counts,
+)
+from pipeline.domain.services.cross_document_collapser import (  # noqa: E402
+    CrossDocumentCollapser,
 )
 from tests.unit.pipeline.test_collapse_cardinality import _doc, _measure  # noqa: E402
 
@@ -97,3 +101,37 @@ def test_stage_de_producao_nunca_liga_o_enforce():
         assert arg is None or (
             isinstance(arg, ast.Constant) and arg.value is False
         ), "stage de produção passou collapse_enforce truthy — a sombra virou enforce"
+
+
+def _measurement(statements):
+    return CrossDocumentCollapser(retention_guard=OverrideRetentionGuard.sem_overrides()).measure(
+        statements
+    )
+
+
+# `retido_por_override` só enxerga o dano materializado. O reservatório é o ANTECEDENTE: no
+# corpus de dogfood são 441 rows de perna LLM sem gêmea nativa, que viram alvo no instante em
+# que o extrato daquela conta for ingerido. Sem publicá-lo, o gate do flip mede 0 num corpus
+# incompleto e conclui "vazio" — a terceira vez que esta lane cairia nisso.
+@pytest.mark.parametrize(
+    ("corpus", "esperado"),
+    [
+        (["llm"], 1),
+        (["native"], 0),
+        (["llm", "native"], 0),
+    ],
+    ids=["perna_llm_orfa_entra", "nativa_orfa_nunca_entra", "par_formado_sai_do_reservatorio"],
+)
+def test_reservatorio_conta_so_a_perna_llm_sem_gemea(corpus, esperado):
+    """Mutação: contar toda chave de proveniência única — a nativa solitária, que jamais vira
+    alvo (D5, row nativa nunca sai), inflaria o preditor e o gate leria fila onde não há."""
+    stmts = [_doc(1, f"{m}.json", metodo=m) for m in corpus]
+
+    assert _measurement(stmts).reservatorio_llm_sem_gemea == esperado
+
+
+def test_par_formado_e_candidato__o_reservatorio_zerou_por_promocao_nao_por_cegueira():
+    """Sem esta asserção o caso `par_formado` passaria verde num colapsador que não vê nada."""
+    m = _measurement([_doc(1, "llm.json", metodo="llm"), _doc(1, "native.json")])
+
+    assert len(m.candidates) == 1 and m.reservatorio_llm_sem_gemea == 0
