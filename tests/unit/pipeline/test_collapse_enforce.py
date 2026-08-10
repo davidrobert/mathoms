@@ -234,17 +234,20 @@ def test_survivor_hash_e_de_row_NATIVA_e_sobrevive_ao_colapso() -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Retenção por override ([[ADR-364]] §Emenda 2026-08-10 · A40.l2 3d)
+# Retenção por override ([[ADR-364]] §Emenda 2026-08-09 · A40.l2 3d)
 # ─────────────────────────────────────────────────────────────────────
 
 
-def _guard_que_retem(*digests: str) -> OverrideRetentionGuard:
+def _guard_que_retem(
+    *digests: str, origens: tuple[str, ...] = ("manual",)
+) -> OverrideRetentionGuard:
     return OverrideRetentionGuard(
         denied_digests=frozenset(digests),
         overrides_ativos=len(digests),
         sem_snapshot=0,
-        denied_por_source=(("manual", len(digests)),),
+        denied_por_source=tuple((o, len(digests)) for o in origens),
         lido=True,
+        sources_por_digest=tuple((d, origens) for d in digests),
     )
 
 
@@ -361,3 +364,27 @@ def test_paridade_de_corte_pega_declaracao_divergente_da_poda() -> None:
 
     with pytest.raises(CorteDivergente):
         exige_paridade_de_corte(medida.candidates, 0)  # declara 1, poda removeu 0
+
+
+# Sem este teste, zerar `retido_por_sources` no colapsador passa verde: os testes de contador
+# constroem `CollapseCandidate` à mão, com a origem já preenchida, e nunca exercitam quem a
+# produz. É a classe "teste nomeia o mecanismo sem exercitá-lo".
+def test_o_COLAPSADOR_anexa_a_origem_ao_candidato_retido() -> None:
+    """Mutação: `retido_por_sources=()` no `_candidate`. Fica vermelho aqui, só aqui."""
+    _saida, medicao, _removals = CrossDocumentCollapser(
+        retention_guard=_guard_que_retem(_digest_do_par(), origens=("manual", "rule"))
+    ).collapse(_par())
+
+    (candidato,) = medicao.candidates
+    assert candidato.retido_por_override is True
+    assert candidato.retido_por_sources == ("manual", "rule")
+
+
+def test_candidato_NAO_retido_nao_carrega_origem() -> None:
+    """Origem em candidato que colapsa faria o passo (1) contar chave que nunca foi retida."""
+    _saida, medicao, _removals = CrossDocumentCollapser(
+        retention_guard=_guard_que_retem("digest-de-outra-chave", origens=("rule",))
+    ).collapse(_par())
+
+    (candidato,) = medicao.candidates
+    assert candidato.retido_por_override is False and candidato.retido_por_sources == ()

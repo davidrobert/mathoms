@@ -86,7 +86,8 @@ def _buckets(statements):
     """``(rows, quantas_sobrevivem)`` por bucket de proveniência de cada candidato."""
     from pipeline.domain.services.cross_document_collapser import _group_by_key
 
-    for group in _group_by_key(statements):
+    grupos, _reservatorio = _group_by_key(statements)
+    for group in grupos:
         keep_native, keep_llm = group.keep_split()
         yield group.native_rows, keep_native
         yield group.llm_rows, keep_llm

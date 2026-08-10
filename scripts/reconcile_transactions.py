@@ -1028,7 +1028,7 @@ def _e3_collapse_measure_enabled(ctx, store) -> bool:
 # Mesmo padrão dos dois precedentes vivos em `main` (`_e3_collapse_precondition`,
 # `_e4_load_learned_rules`): import lazy + `isinstance(DBArtifactStore)` + `store.session`.
 def _e3_retention_guard(ctx, store):
-    """Guard de retenção lido do DB ([[ADR-364]] §Emenda 2026-08-10). Sem DB, `nao_lido()` —
+    """Guard de retenção lido do DB ([[ADR-364]] §Emenda 2026-08-09). Sem DB, `nao_lido()` —
     que degrada o run para measure-only em vez de colapsar às cegas."""
     from pipeline.domain.services.cross_document_collapse_types import OverrideRetentionGuard
 
@@ -1120,6 +1120,17 @@ def _e3_revalida_retencao(ctx, store, result):
 # Sem denominador, "0 retido" e "não medi" imprimem o mesmo caractere — a confusão que esta
 # lane pagou quatro vezes. `reservatorio_llm_sem_gemea` é o preditor: `retido_por_override` só
 # conta o dano materializado, o reservatório conta o que vira alvo quando o nativo for ingerido.
+# Separados porque o passo (1) da ordem de construção da re-ancoragem ([[ADR-364]] §Emenda
+# 2026-08-09) é `retido[rule] > retido[manual] ⇒ excluir source='rule'` — indecidível sobre o
+# agregado. `denied_por_source` não serve: conta OVERRIDES negados, não CANDIDATOS retidos.
+def _retidos_por_origem(candidates) -> Dict[str, int]:
+    retidos = [c for c in candidates if c.retido_por_override]
+    return {
+        f"retido_por_override_{origem}": sum(1 for c in retidos if origem in c.retido_por_sources)
+        for origem in ("manual", "rule")
+    }
+
+
 def _e3_collapse_retention(result, guard, *, instavel: bool) -> Optional[Dict[str, Any]]:
     """Contadores de retenção para `pipeline_stage_logs.output_summary`."""
     medicao = result.collapse_measurement
@@ -1130,6 +1141,7 @@ def _e3_collapse_retention(result, guard, *, instavel: bool) -> Optional[Dict[st
         "candidatos": len(medicao.candidates),
         "colapsaveis": sum(1 for c in medicao.candidates if c.sera_colapsado),
         "retido_por_override": sum(1 for c in medicao.candidates if c.retido_por_override),
+        **_retidos_por_origem(medicao.candidates),
         "reservatorio_llm_sem_gemea": medicao.reservatorio_llm_sem_gemea,
         "removals_publicadas": _e3_removals_do_colapso(result),
         "retencao_instavel": instavel,
