@@ -12,13 +12,14 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
-import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TS_SOURCE = REPO_ROOT / "frontend" / "src" / "components" / "report" / "utils" / "probabilidade.ts"
+PY_SOURCE = REPO_ROOT / "pipeline" / "domain" / "services" / "narrativas" / "probabilidade_fmt.py"
 
 # `n` do Monte Carlo (ADR-360): a probabilidade é sempre `k/n`, então este é o
 # domínio EXATO do estimador — não uma grade sintética que erra os boundaries.
@@ -58,13 +59,19 @@ def _roda_lado_ts(corpo: str) -> list[str]:
     return json.loads(proc.stdout)
 
 
+# Carrega o módulo-folha por CAMINHO, sem executar
+# `pipeline/domain/services/__init__.py` — que tem 34 imports e puxa
+# `pipeline.llm` → `pydantic`, ausente do ambiente do job de Lint. Importar o
+# narrador inteiro fazia este hook explodir com ModuleNotFoundError lá, e a
+# saída seria SKIP no Lint — que reintroduziria exatamente o buraco de cobertura
+# que este gate existe para fechar.
 def _roda_lado_py() -> list[str]:
-    sys.path.insert(0, str(REPO_ROOT))
-    from pipeline.domain.services.narrativas.projecao_if_narrator import (
-        _fmt_probabilidade,
-    )
-
-    return [_fmt_probabilidade(k / _N_SIMULACOES) for k in range(_N_SIMULACOES + 1)]
+    spec = importlib.util.spec_from_file_location("_probabilidade_fmt", PY_SOURCE)
+    if spec is None or spec.loader is None:
+        raise SystemExit(f"não consegui carregar {PY_SOURCE.relative_to(REPO_ROOT)}")
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return [modulo.fmt_probabilidade(k / _N_SIMULACOES) for k in range(_N_SIMULACOES + 1)]
 
 
 def main() -> int:
