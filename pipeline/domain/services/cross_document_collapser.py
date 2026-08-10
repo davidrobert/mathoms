@@ -401,6 +401,7 @@ class CrossDocumentCollapser:
         digest = _gate_digest_da_chave(group.key)
         return CollapseCandidate(
             **_campos_da_chave(group.key),
+            **self._retencao(digest),
             key_digest=_key_digest(group.key),
             gate_digest=digest,
             survivor_hash=_survivor_hash(group),
@@ -410,10 +411,18 @@ class CrossDocumentCollapser:
             removable_rows=sum(t.remover for t in targets),
             removal_targets=targets,
             blocked_reason=reason,
-            retido_por_override=not self._guard.degradado and self._guard.retem(digest),
             divergence=group.divergence,
             parciais=group.parciais,
         )
+
+    def _retencao(self, digest: str) -> dict:
+        """Retenção e sua ORIGEM, sempre juntas — origem sem retenção contaria chave que
+        colapsou, e retenção sem origem deixa o passo (1) da re-ancoragem sem instrumento."""
+        retido = not self._guard.degradado and self._guard.retem(digest)
+        return {
+            "retido_por_override": retido,
+            "retido_por_sources": self._guard.sources_de(digest) if retido else (),
+        }
 
     # Não existe endereço serializado de row (e nenhum `_hash_v3`): measure e agrupamento
     # rodam sobre a MESMA lista, no mesmo processo, então selecionar objetos basta.

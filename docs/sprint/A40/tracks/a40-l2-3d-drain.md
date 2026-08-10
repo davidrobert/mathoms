@@ -128,11 +128,15 @@ anti-destruição, gate AST do call-site.
 
 Dois desvios do §Aceite, ambos deliberados:
 
-- **`retido_por_override_manual` / `_rule` não saem separados.** O que se publica é o par
-  `denied_por_source` (o denominador, quebrado por origem, vindo do guard) mais
-  `retido_por_override` agregado. Separar o numerador por origem exigiria carregar a origem
-  do deny até o candidato, e a decisão de retenção não olha a origem — seria dado transportado
-  só para o relatório. `denied_por_source` responde a mesma pergunta no lado que importa.
+- ~~**`retido_por_override_manual` / `_rule` não saem separados.**~~ **Revertido em
+  2026-08-10, no mesmo dia.** O argumento original — "a decisão de retenção não olha a origem,
+  seria dado transportado só para o relatório" — ignorava que o passo **(1)** da ordem de
+  construção da re-ancoragem ([[ADR-364]] §Emenda 2026-08-09) é literalmente
+  `retido[rule] > retido[manual] ⇒ excluir source='rule'`. `denied_por_source` **não** responde
+  isso: conta OVERRIDES negados, e vários overrides colidem num único digest (a chave é
+  day-exact sobre descrição normalizada). O guard passou a carregar `sources_por_digest`, o
+  candidato carrega `retido_por_sources`, e os dois contadores saem no `output_summary`. As
+  origens **não são partição** — chave editada à mão *e* coberta por regra conta nas duas.
 - **`ReviewReason` por chave retida fica para o 3e.** Antes do flip a sombra não remove nada,
   então **toda** chave duplicada permanece duplicada — um aviso "esta ficou porque você editou"
   seria indistinguível das outras que ficaram porque não houve corte. O canal só carrega

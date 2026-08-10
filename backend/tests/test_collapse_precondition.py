@@ -402,3 +402,60 @@ async def test_liberado_e_derivado_das_clausulas_reprovadas() -> None:
     assert limpo.liberado and limpo.clausulas_reprovadas() == ()
     assert not sujo.liberado
     assert sujo.clausulas_reprovadas() == ("hits=2", "tx_data_nao_iso=1")
+
+
+# O passo (1) da ordem de construção da re-ancoragem ([[ADR-364]] §Emenda 2026-08-09) é
+# `retido[rule] > retido[manual] ⇒ excluir source='rule'`. Ele compara CANDIDATOS retidos por
+# origem — grandeza que `denied_por_source` não dá: aquele conta OVERRIDES, e vários overrides
+# colidem num único digest (a chave de colapso é day-exact sobre descrição normalizada).
+# Mutação: derivar a origem do candidato a partir de `denied_por_source`. Com dois overrides
+# numa chave só, o passo (1) leria `retido[rule] == 2` onde há exatamente um candidato.
+async def test_sources_por_digest_atribui_origem_a_CHAVE_nao_a_override(db) -> None:
+    """Dois overrides `rule` sobre a mesma chave ⇒ 1 digest, 2 no `denied_por_source`."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as s:
+        _override(s, ws.id, titular="fulano", source="rule", transaction_hash="h1")
+        _override(s, ws.id, titular="beltrano", source="rule", transaction_hash="h2")
+        s.commit()
+
+        guard = collapse_precondition.from_active_overrides(s, ws.id)
+
+    assert dict(guard.denied_por_source) == {"rule": 2}
+    assert len(guard.denied_digests) == 1, "mesma data/valor/descrição ⇒ um digest só"
+    ((digest, origens),) = guard.sources_por_digest
+    assert origens == ("rule",) and digest in guard.denied_digests
+
+
+async def test_origens_distintas_na_mesma_chave_sobrevivem_as_duas(db) -> None:
+    """Mutação: guardar `str` em vez de conjunto — a segunda origem sobrescreveria a primeira,
+    e a chave contaria como puramente `rule` num caso em que o usuário também editou à mão."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as s:
+        _override(s, ws.id, titular="fulano", source="manual", transaction_hash="h1")
+        _override(s, ws.id, titular="beltrano", source="rule", transaction_hash="h2")
+        s.commit()
+
+        guard = collapse_precondition.from_active_overrides(s, ws.id)
+
+    ((_digest, origens),) = guard.sources_por_digest
+    assert origens == ("manual", "rule")
+    assert guard.sources_de(next(iter(guard.denied_digests))) == ("manual", "rule")
+
+
+async def test_digest_desconhecido_nao_tem_origem(db) -> None:
+    """`sources_de` de chave não negada devolve vazio — não `("desconhecido",)`, que leria
+    como "negada por origem que não sei", quando o certo é "não negada"."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as s:
+        _override(s, ws.id, titular="fulano")
+        s.commit()
+
+        guard = collapse_precondition.from_active_overrides(s, ws.id)
+
+    assert guard.sources_de("digest-que-nao-existe") == ()

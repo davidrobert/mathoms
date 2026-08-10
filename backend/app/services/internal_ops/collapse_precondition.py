@@ -268,23 +268,31 @@ def evaluate(
 
 # Reusa `_ativos` + `_override_gate_digest` — nunca re-implementa o predicado, que é a classe
 # `keep_split` que esta lane já pagou duas vezes. É o único caminho para `lido=True`.
-def from_active_overrides(db: Session, workspace_id: str) -> OverrideRetentionGuard:
-    """Produtor ÚNICO do guard de retenção ([[ADR-364]] §Emenda 2026-08-10)."""
-    ativos = _ativos(db, workspace_id)
-    digests: set[str] = set()
+def _indexa_por_digest(ativos) -> tuple[int, Counter, dict[str, set[str]]]:
+    """`(sem_snapshot, overrides por origem, origens por digest)` numa passada."""
     sem_snapshot = 0
     por_source: Counter = Counter()
+    sources: dict[str, set[str]] = {}
     for o in ativos:
         digest = _override_gate_digest(o)
         if digest is None:
             sem_snapshot += 1
             continue
-        digests.add(digest)
-        por_source[o.source or "desconhecido"] += 1
+        origem = o.source or "desconhecido"
+        por_source[origem] += 1
+        sources.setdefault(digest, set()).add(origem)
+    return sem_snapshot, por_source, sources
+
+
+def from_active_overrides(db: Session, workspace_id: str) -> OverrideRetentionGuard:
+    """Produtor ÚNICO do guard de retenção ([[ADR-364]] §Emenda 2026-08-09)."""
+    ativos = _ativos(db, workspace_id)
+    sem_snapshot, por_source, sources = _indexa_por_digest(ativos)
     return OverrideRetentionGuard(
-        denied_digests=frozenset(digests),
+        denied_digests=frozenset(sources),
         overrides_ativos=len(ativos),
         sem_snapshot=sem_snapshot,
         denied_por_source=tuple(sorted(por_source.items())),
         lido=True,
+        sources_por_digest=tuple((d, tuple(sorted(o))) for d, o in sorted(sources.items())),
     )
