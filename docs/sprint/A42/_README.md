@@ -246,7 +246,7 @@ superfície possui o achado):
 | Termo de marca metodológica vazando para o índice web | [[A40.l7]] | l7 já é dona do YAML de layout e do shell; alcança o usuário hoje |
 | Projeção de exclusão inerte por construção (override do dono sem efeito monetário) | [[PLAN-pipeline-review-r2]] Onda D | É a escalação de um achado que já vive lá, agora de `consistência` para `correção` |
 | Meta de independência conservadora descartada pelo adapter · cascade de custo de imóvel não plumbada · truncamento silencioso do bloco denso do parecer · alíquota ancorada em exercício incompleto | [[A40]] / [[PLAN-pipeline-review-r2]] | Eixos com dono ativo (l8/l25/l28/l30) |
-| YAML de layout que não governa o render · gate de chart que derruba a seção inteira | [[A40.l7]] | l7 já possui essas superfícies |
+| ~~YAML de layout que não governa o render~~ · gate de chart que derruba a seção inteira | [[A40.l7]] | l7 já possui essas superfícies. **A 1ª metade fechou** em 2026-08-10 (#1355): `ReportSection` perdeu o prop `title` e deriva de `sectionHeading(id)`, com o `id` como união literal do codegen — o YAML passou a governar o heading, e re-hardcodar é erro de compilação. Segue aberto o gate de chart |
 | Base do gráfico de despesas divergindo da conclusão | [[A40.l15]] | A trilha diz "deduplicar contra A40.l15 item 1, não abrir lane nova" |
 | Componente de proteção ausente do score | [[A40.l11]] | A trilha diz "não duplicar" |
 | Número monetário em formato en-US na prosa gerada | [[A40.l13]] | l13 já cria o gate de render monetário |

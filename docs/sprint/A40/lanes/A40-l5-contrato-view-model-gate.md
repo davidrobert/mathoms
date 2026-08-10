@@ -109,9 +109,18 @@ payload não emite, **sem erro**, caindo em default/fallback silencioso.
 >
 > Não era "o arquivo é escrito à mão" — era **`[key: string]: unknown`** dentro
 > de `dividas[]`. Com a index signature, `d.valor` compila mesmo com o tipo
-> correto ao lado. São 4 index signatures em `report-analysis.ts`; a de
-> `dividas[]` saiu nesta entrega. As outras 3 seguem abertas e são o alvo
+> correto ao lado. ~~São 4 index signatures em `report-analysis.ts`; a de
+> `dividas[]` saiu nesta entrega. As outras 3 seguem abertas~~ e são o alvo
 > natural da continuação desta lane.
+>
+> > ⚠️ **Números corrigidos em 2026-08-10 (closeout).** Eram **3
+> > declarações**, não 4, e restam **2**, não 3. A contagem original usou
+> > `rg "\[key: string\]"`, que casa também as **linhas de comentário** que
+> > citam a expressão (`report-analysis.ts:144` e `:491` são prosa, não
+> > declaração). Medição correta:
+> > `grep -cE '^\s*(readonly\s+)?\[key: string\]' frontend/src/types/report-analysis.ts`
+> > ⇒ **2** (linhas 376 e 497). Classe: contar com o padrão que casa a menção,
+> > não a declaração — a mesma que fez esta lane nascer com "5 → 0".
 
 Dispersos, cada um recebe um fix pontual e **o quinto acontece na próxima
 release**. `frontend/src/types/report-analysis.ts` é escrito à mão — é a exceção
