@@ -77,6 +77,62 @@ superfícies + paridade Py↔TS), a leitura de `sigma_anual` a partir de
 renderizada da S7. Os três compartilham o mesmo bloqueio: mudam número exibido
 e por isso exigem a nota de recalibração re-especificada.
 
+## ✅ Parcial entregue em 2026-08-10 — PR #1356
+
+### A nota de recalibração, que era o bloqueio de TODOS os itens restantes
+
+Critério de corte da parcial anterior mantido — **nenhum número publicado
+muda** — mas o que entrou agora é o **pré-requisito** dos que mudam. Todo item
+aberto desta lane esbarrava na mesma porta: número novo na tela exige a nota, e
+a nota estava especificada duas versões atrás. Com ela em `main`, o item 1
+(faixa de 5 pp), o `sigma_anual` de premissa vigente e a §Carga herdada deixam
+de estar individualmente bloqueados.
+
+**A spec foi re-especificada com `product-designer`, que achou um 4º defeito
+que a lane não previa.** A lane enumerava três ajustes obrigatórios; são
+quatro. Registrados como [[ADR-360]] §Emenda 2026-08-10:
+
+| Ajuste | O que mudou |
+|---|---|
+| (a) gatilho | Deixa de ser **lista de strings de versão** — `ausente/"2.0"` descrevia um mundo em que a corrente era `"3.0"`, e hoje é `"5.0"`. Vira **diff sobre um ledger** que cada major preenche ao nascer, com união no intervalo semiaberto `(anterior, atual]`, então workspace que **pula** versões recebe todas as facetas numa nota só |
+| (b) par | Não vale para todo número: o ano tem par (mesma pergunta, mudou o estimador); a probabilidade **não** tem, porque a [[ADR-369]] D2 trocou o **alvo**. O valor antigo dela não entra no payload nem na copy |
+| (c) direção | *"Sempre mais conservador"* deixa de valer. A copy declara os **dois sentidos** e nomeia o mecanismo (folga do plano), que é acionável — em vez de declarar direção, que seria falsa |
+| **(d) NOVO** | **O par é confundido dado↔modelo.** Entre dois relatórios mudam o modelo **e** os dados da família, e separar exigiria rodar o modelo antigo sobre dados novos — vedado pela [[ADR-360]] D4. Consequência: a nota **nunca** diz *"seu patrimônio não mudou"* (falso em relatório mensal), e a cláusula de atribuição só aparece quando a **competência** muda |
+
+**Onde a nota mora decide o custo.** No **view-model** (`get_report_data`),
+nunca no artefato E5: a chave de cache do parecer é `sha256` sobre o payload E5
+([[ADR-369]] §Alternativa A), então um campo novo lá cobraria **uma re-geração de
+parecer por workspace da frota inteira** para publicar um aviso de UI. A
+infraestrutura já existia — `load_snapshot_pair` devolve `(prev, curr)` com
+`content_json` e `period_yyyymm`, que é exatamente o insumo.
+
+**Falha fechada.** Sem report anterior, ou com o bloco do anterior **ilegível**,
+a nota cala — não há os dois lados e afirmar "mudou" seria fabricar.
+`mc_version` **ausente dentro de bloco legível** é o caso oposto: é evidência de
+v1, e dispara. É a distinção que um implementador colapsa e não pode.
+
+**Supressão por faceta e por par:** a nota nunca oferece movimento que não está
+na tela (`exibir_cone: false` ⇒ ano cala; sem prazo declarado ⇒ probabilidade
+cala; ano que não se moveu ⇒ faceta some). Zero facetas ⇒ nenhuma nota, o que
+mata o caso `3.0 → 4.0` (rename-only) sem caso especial.
+
+**Prova de mutação (contada):**
+
+| Mutação | Cai |
+|---|---|
+| tirar `5.0` do ledger (= o bump esquecido) | **3** testes de domínio + **6** de backend |
+| falha **aberta**: bloco ilegível passa a disparar como v1 | 2 testes |
+| supressão por par some (publicaria "de 2049 para 2049") | 1 teste |
+
+**Nenhum número publicado mudou, e o snapshot do view-model não moveu** — a
+nota é injetada na resposta da API, não no artefato E5 que o snapshot captura.
+
+**Não entrou** (e agora sem bloqueio de spec): item 1 (faixa de 5 pp nas três
+superfícies + paridade Py↔TS), `sigma_anual` de `premissas_economicas`, a
+§Carga herdada da [[A40.l26]], e a **verificação renderizada** de S7 — o
+worktree não sobe Playwright (`node_modules` é symlink, o Turbopack recusa),
+então o §Débito de método segue **declarado, não contornado**.
+
 ## Problema
 
 Duas faces independentes, mesmo arquivo-alvo (`if_monte_carlo.py` + superfícies
@@ -193,6 +249,12 @@ do aviso cada.
   > então afirmar monotonia seria falso. Registrado também no §Entregas fora de
   > lane do [[A40]]; esta cópia existe porque a implementação é desta lane, e
   > registro no lugar onde a dona não lê é registro invisível.
+  >
+  > ✅ **Fechado em 2026-08-10 (#1356)** — e eram **quatro** ajustes, não três:
+  > o `product-designer` mediu que o par ano-antigo→ano-novo é **confundido
+  > dado↔modelo**. Especificação vigente: [[ADR-360]] §Emenda 2026-08-10. Esta
+  > lista de três permanece como registro datado do que se sabia; **não é mais
+  > a spec**.
 
 ## Fora de escopo
 

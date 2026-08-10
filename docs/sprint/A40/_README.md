@@ -552,6 +552,23 @@ dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
 > verificação renderizada da S7: os três mudam valor impresso e por isso
 > dependem da nota de recalibração re-especificada ([[ADR-369]]).
 
+> **Estado em 2026-08-10 — #1356, segunda parcial, segue `in_progress`** (o
+> snapshot acima é datado — **não o reescreva**). Entrou **a nota de
+> recalibração**, que era o bloqueio comum de *todos* os itens restantes: com
+> ela em `main`, o item 1, o `sigma_anual` e a §Carga herdada da [[A40.l26]]
+> deixam de estar individualmente bloqueados. **Nenhum número publicado mudou**
+> e o snapshot do view-model não moveu — a nota é injetada na resposta da API,
+> não no artefato E5.
+>
+> **A sprint herda duas coisas.** (1) Os ajustes obrigatórios eram **quatro**,
+> não os três que a lane enumerava: o `product-designer` mediu que o par
+> ano-antigo→ano-novo é **confundido dado↔modelo** — entre dois relatórios
+> mudam o modelo E os dados da família —, então a nota nunca afirma nada sobre
+> a carteira do cliente, nem a negação disso. (2) O gatilho não pode ser lista
+> de versão: virou **ledger declarado por major**, com gate que avermelha em
+> bump sem entrada. Especificação vigente em [[ADR-360]] §Emenda 2026-08-10 —
+> a de 2026-08-05 está vencida.
+
 **[[A40.l28]] e [[A40.l29]] seguem o critério da l25** (abertas 2026-08-03):
 mesmo residual, mesma dependência de #1162 aterrissar, fora das ondas pelo mesmo
 motivo. São **disjuntas por camada** — a l28 é contrato (payload, schema,
