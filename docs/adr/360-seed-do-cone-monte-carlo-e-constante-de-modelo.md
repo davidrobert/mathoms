@@ -5,7 +5,7 @@ title: "Seed do cone Monte Carlo de IF é constante de modelo versionada, não e
 status: Decidido
 phase: "A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)"
 date: "2026-08-03"
-amended_at: ["2026-08-05"]
+amended_at: ["2026-08-05", "2026-08-10"]
 relates_to:
   - "[[ADR-237]]"
   - "[[ADR-219]]"
@@ -249,6 +249,75 @@ report anterior não vê nada. Owner do item de implementação: [[A40.l25]], qu
 dona do arquivo-alvo (`if_monte_carlo.py` + exibição de S7) e já registrava esta
 nota como pendência no seu §Critério de aceite — esta especificação remove o
 "pendente no dono".
+
+## Emenda — a especificação acima envelheceu duas versões (2026-08-10)
+
+> ⚠️ **Sinal:** a §Nota one-shot acima descreve um bloco de IF que não existe
+> mais. A [[ADR-369]] (#1268/#1269) deslocou o bloco mais duas vezes, e a
+> segunda é de **semântica**. Implementada em #1356 (A40.l25) com esta emenda,
+> co-design `product-designer`. **Leia esta seção, não a de 2026-08-05.**
+
+Quatro correções. As três primeiras a [[A40.l25]] já enumerava; a quarta saiu do
+co-design e invalida uma premissa da spec original.
+
+**(a) O gatilho deixa de ser lista de strings de versão.** `ausente ou "2.0"`
+cobre um mundo em que a versão corrente é `"3.0"`; hoje é `"5.0"`, e esta lane
+bumpa de novo. Lista enumerada fica stale a cada bump — é o defeito, não o
+parâmetro. Substituída por **diff sobre um ledger declarado por versão**
+(`_EFEITOS_POR_MC_VERSION` em `pipeline/domain/services/if_recalibracao.py`):
+cada major declara que facetas moveu, e as facetas exibidas são a união no
+intervalo semiaberto `(anterior, atual]` — workspace que **pula** versões recebe
+todas numa nota só. Bump sem entrada no ledger derruba
+`tests/test_if_recalibracao.py`.
+
+**(b) O par ano-antigo→ano-novo não basta, e não vale para todo número.** O
+elemento 1 da spec original assume que toda mudança tem par. Não tem: sob a
+[[ADR-369]] D2 a probabilidade passou a medir **o prazo declarado pela família**,
+não a data que o modelo imprimia. É outra pergunta, então os dois números são
+incomparáveis e **a probabilidade antiga nunca é publicada** — nem no payload,
+nem na copy. Regra que governa: *par de números só quando os dois respondem à
+mesma pergunta.*
+
+**(c) A direção "sempre mais conservador" deixa de valer.** O elemento 2 da spec
+original declarava monotonia. Sob a [[ADR-369]] a probabilidade pode **subir ou
+descer** conforme a folga entre o prazo declarado e o ritmo de aportes; afirmar
+monotonia seria falso. A copy declara os dois sentidos e nomeia o mecanismo
+(folga), que é acionável — em vez de declarar direção, que não é.
+
+**(d) O par é confundido dado↔modelo — premissa nova, não corolário.** A spec
+original trata a diferença entre dois relatórios como se isolasse a
+recalibração. Não isola: entre dois relatórios mudam **o modelo e os dados da
+família**. Separar exigiria rodar o modelo antigo sobre os dados novos, o que a
+§D4 desta ADR e a [[ADR-369]] D4 vedam (sem backfill). Consequências:
+
+- a nota **nunca** diz "seu patrimônio não mudou" — em relatório mensal é falso,
+  e é o tipo de frase que destrói a confiança que a nota existe para preservar;
+- o par continua, rotulado como *o que os dois documentos dizem*, com a
+  atribuição declarada como mista **apenas quando a competência muda**. Em re-run
+  do mesmo período a diferença é limpa e a cláusula some.
+
+**Onde a nota é composta.** No **view-model** (`get_report_data`), nunca no
+artefato E5. A chave de cache do parecer é `sha256` sobre o payload E5
+([[ADR-369]] §Alternativa A): um campo novo lá cobraria uma re-geração de parecer
+por workspace da frota inteira para publicar um aviso de UI.
+
+**Falha fechada.** Sem report anterior, ou com o bloco `if_monte_carlo` do
+anterior ilegível, a nota **cala** — não há os dois lados e afirmar "mudou" seria
+fabricar. `mc_version` **ausente dentro de bloco legível** é o caso oposto: é
+evidência de v1, e dispara.
+
+**Supressão.** Faceta só renderiza se o número dela está publicado neste
+relatório (`exibir_cone: false` ⇒ ano cala; sem prazo declarado ⇒ probabilidade
+cala), e faceta comparável cujo valor não se moveu some — a nota nunca oferece
+movimento que não está na tela. Zero facetas renderizáveis ⇒ nenhuma nota, o que
+mata o caso `3.0 → 4.0` (rename-only) sem caso especial.
+
+**Sem estado a persistir.** A nota some sozinha: assim que o cliente tem um
+relatório na versão corrente, o próximo tem `anterior == atual`, o intervalo é
+vazio e nada renderiza. Trade-off aceito: se o relatório anterior for
+**re-gerado** antes de o cliente ver a nota, ele a perde — a alternativa seria um
+flag "já mostrei" por workspace, que é estado mutável ([[ADR-111]]) para cobrir um
+caso raro.
 
 ## Deferimento datado — 2026-08-03
 

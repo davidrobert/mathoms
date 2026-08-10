@@ -81,6 +81,31 @@ export interface ChangelogEntryRead {
   delta_pct: number | null;
 }
 
+/** A40.l25 — faceta do bloco de IF que a recalibração moveu.
+ *
+ * `ano_cone` é comparável (par explícito); `probabilidade_alvo` NÃO é — mudou
+ * a pergunta (ADR-369 D2), então o payload não carrega o valor anterior e a
+ * copy recusa a comparação em vez de declarar direção.
+ */
+export type RecalibracaoFaceta =
+  | { faceta: "ano_cone"; ano_anterior: number; ano_novo: number }
+  | {
+      faceta: "probabilidade_alvo";
+      prazo_declarado_anos: number | null;
+      ano_alvo_declarado: number | null;
+    };
+
+/** A40.l25 — nota one-shot de recalibração (ADR-360 §Nota one-shot).
+ *
+ * Vive no view-model, nunca no artefato E5: a chave de cache do parecer é
+ * sha256 sobre o payload E5, e um campo novo lá re-geraria o parecer da frota.
+ */
+export interface RecalibracaoMcData {
+  facetas: RecalibracaoFaceta[];
+  periodo_anterior: string | null;
+  competencia_mudou: boolean;
+}
+
 /** F9 · ADR-076 — payload do GET /reports/{id}/data.
  *
  * Tipagem progressiva: as 24 chaves top-level do E5 JSON serão tipadas
@@ -98,6 +123,9 @@ export interface ReportAnalysisData {
   /** A40.l2 §3c2b — os dois lados do par foram consolidados por métodos diferentes; sob
    * `true` a V0 não afirma mérito em nenhuma célula de delta. */
   comparison_base_changed?: boolean | null;
+  /** A40.l25 — nota one-shot de recalibração da S7. `null` calа: sem relatório
+   * anterior, bloco anterior ilegível, ou nenhuma faceta renderizável. */
+  recalibracao_mc?: RecalibracaoMcData | null;
   /** F11.4a — injetado pelo GET /reports/{id}/data (não faz parte do E5 legado). */
   _report_lineage?: {
     pipeline_run_id: string | null;
