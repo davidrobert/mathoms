@@ -18,9 +18,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.models.document import BankStatement  # noqa: E402
 from pipeline.domain.models.transaction import Money, Transaction  # noqa: E402
+from pipeline.domain.services._tx_identity import decimal_cents, normalize_descricao  # noqa: E402
 from pipeline.domain.services.cross_document_collapser import (  # noqa: E402
     CrossDocumentCollapseConfig,
     CrossDocumentCollapser,
+    gate_key_digest,
 )
 
 _DIA = date(2026, 3, 30)
@@ -458,3 +460,30 @@ def test_reconcile_preserva_todo_campo_de_identidade() -> None:
         if f.name != "transactions" and getattr(entrada, f.name) != getattr(saida, f.name)
     ]
     assert perdidos == []
+
+
+# PEGA (medido por mutação): `_collapse_key` deixar de normalizar — a regressão do lado do
+# pipeline, apanhada onde é introduzida. NÃO PEGA, e é estrutural: `gate_key_digest` voltar a
+# normalizar por dentro, porque os dois lados desta igualdade passam por ela e a mutação move os
+# dois juntos — o mesmo vício de `test_collapse_enforce` comparar `measure` com `collapse`. Quem
+# cobra aquilo é `test_gate_digest_paired_derivation::test_gate_key_digest_nao_normaliza_o_argumento`,
+# onde também mora a paridade ponta-a-ponta (aqui `pipeline/**` não importa backend).
+def test_gate_digest_do_candidato_e_derivavel_da_descricao_CRUA() -> None:
+    """O consumidor só tem a descrição CRUA; se a projeção da chave não bater com a derivação
+    a partir dela, o join morre e o override some do deny-set em silêncio."""
+    crua = "Pagto — BOLETO — BOLETO"  # não-ponto-fixo: um sufixo sai por passada
+    assert normalize_descricao(crua) != normalize_descricao(normalize_descricao(crua))
+
+    (candidato,) = _measure(
+        [
+            _stmt(_tx(descricao=crua), tipo_conta="extratoconta", extraction_method="native"),
+            _stmt(_tx(descricao=crua), tipo_conta="extrato", titular=None, extraction_method="llm"),
+        ]
+    )
+
+    assert candidato.gate_digest == gate_key_digest(
+        data_iso=_DIA.isoformat(),
+        valor_cents=decimal_cents("-100.00"),
+        moeda="BRL",
+        descricao_norm=normalize_descricao(crua),
+    )

@@ -28,6 +28,7 @@ from backend.app.models.transaction_override import TransactionOverride
 from backend.app.services.internal_ops import collapse_precondition
 from backend.app.services.internal_ops.collapse_precondition import _override_gate_digest
 from backend.tests import factories
+from pipeline.domain.services._tx_identity import normalize_descricao
 from pipeline.domain.services.cross_document_collapse_types import (
     CollapseCandidate,
     RemovalTarget,
@@ -41,10 +42,15 @@ _DESC_CRUA = "Compra  Mercado"
 _SOBREVIVENTE = "h-sobrevivente"
 
 
+# `normalize_descricao` aqui espelha `_collapse_key`, que é quem normaliza no pipeline: o
+# candidato de produção nasce da chave de colapso, nunca da descrição crua. O override guarda
+# `tx_descricao` CRU e quem normaliza o lado dele é `_override_gate_digest` — é essa assimetria
+# que o teste tem de exercitar, não esconder.
 def _candidato(
     *, colapsavel: bool = True, descricao: str = _DESC_CRUA, sobrevivente: str = _SOBREVIVENTE
 ) -> CollapseCandidate:
-    digest = gate_key_digest(data_iso=_DATA, valor_cents=_CENTS, moeda=_MOEDA, descricao=descricao)
+    norm = normalize_descricao(descricao)
+    digest = gate_key_digest(data_iso=_DATA, valor_cents=_CENTS, moeda=_MOEDA, descricao_norm=norm)
     return CollapseCandidate(
         key_digest="ffffffffffff",
         gate_digest=digest,

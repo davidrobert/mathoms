@@ -23,12 +23,19 @@ from backend.app.services.internal_ops.collapse_precondition import _override_ga
 from backend.app.services.override_identity import inputs_from_classified_tx
 from pipeline.domain.models.document import BankStatement
 from pipeline.domain.models.transaction import Money, Transaction
-from pipeline.domain.services._tx_identity import HashInputs
-from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
+from pipeline.domain.services._tx_identity import HashInputs, normalize_descricao
+from pipeline.domain.services.cross_document_collapser import (
+    CrossDocumentCollapser,
+    gate_key_digest,
+)
 from pipeline.domain.services.transaction_classifier import ClassifiedTransaction
 
 _DATA = date(2026, 3, 30)
-_DESCRICAO = "compra mercado central"
+# NÃO-ponto-fixo de propósito: `normalize_descricao` remove UM sufixo de roteamento por passada
+# (regex ancorado em `\s*$`), então `N(D) != N(N(D))`. A fixture anterior era
+# "compra mercado central", que falha as DUAS propriedades exigidas abaixo — e é por isso que a
+# suíte inteira ficava verde sobre a divergência de normalização (2× no pipeline, 1× no backend).
+_DESCRICAO = "Pagto — BOLETO — BOLETO"
 _VALOR = "-100.00"
 _MOEDA = "BRL"
 
@@ -90,12 +97,38 @@ def _override_de(inputs: HashInputs) -> TransactionOverride:
     )
 
 
+def test_a_fixture_exercita_as_duas_mutacoes():
+    """Guard anti-vácuo: sem isto a fixture pode ser "arrumada" e os dois testes abaixo
+    passam a provar nada. Foi exatamente o que aconteceu — a fixture anterior era ponto
+    fixo, e por isso a divergência de normalização atravessou a suíte inteira."""
+    norm = normalize_descricao(_DESCRICAO)
+
+    assert norm != _DESCRICAO, "fixture já normalizada ⇒ cega para o backend passar o cru"
+    assert norm != normalize_descricao(norm), "fixture é ponto fixo ⇒ cega para a 2ª passada"
+
+
 def test_os_dois_produtores_reais_concordam_no_gate_digest():
-    """A mesma transação, pelos dois caminhos de produção, tem de dar o mesmo digest."""
+    """A mesma transação, pelos dois caminhos de produção, tem de dar o mesmo digest.
+
+    MUTAÇÃO que este teste pega: `_override_gate_digest` voltar a passar `tx_descricao` cru.
+    """
     do_backend = _override_gate_digest(_override_de(_inputs_do_backend()))
 
     assert do_backend is not None
     assert _digest_do_pipeline() == do_backend
+
+
+def test_gate_key_digest_nao_normaliza_o_argumento():
+    """MUTAÇÃO que a paridade acima NÃO pega: re-adicionar `normalize_descricao` dentro de
+    `gate_key_digest`. Com os dois lados normalizando, ambos passam a computar `N(N(D))` e
+    **concordam** — a paridade fica verde enquanto duas chaves de colapso distintas colidem
+    no mesmo digest. O nome do parâmetro é o contrato; este teste é quem o cobra."""
+    norm = normalize_descricao(_DESCRICAO)
+    chave = dict(data_iso=_DATA.isoformat(), valor_cents=10000, moeda=_MOEDA)
+
+    assert gate_key_digest(**chave, descricao_norm=norm) != gate_key_digest(
+        **chave, descricao_norm=normalize_descricao(norm)
+    ), "normalizar aqui é a 2ª passada — o argumento já chega normalizado"
 
 
 def test_moeda_com_espaco_nao_separa_os_lados():
