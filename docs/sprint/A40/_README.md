@@ -298,7 +298,13 @@ l22 seguem P0.
 > **simetria**, e ela é o que converte "convenção" em dívida datada: três
 > instâncias em dois dias, todas no mesmo campo, todas por flip manual que
 > ninguém faz no merge. O gate derivável de `depends_on` + `status` pega os dois
-> sentidos em ~10 linhas. **Continua não roteado** — candidato segue [[A40.l23]].
+> sentidos em ~10 linhas. ~~**Continua não roteado** — candidato segue [[A40.l23]].~~
+> **Atualizado 2026-08-09: a [[A40.l23]] shipou (#1334) e NÃO absorveu isto** — os
+> quatro gates dela são outros, e ela declara "nada sobra do escopo". Estado real:
+> o sentido `blocked` **com todas as deps `shipped`** existe desde o #1343 como
+> check *advisory* (`check_stale_blocked` em
+> `.claude/skills/lane-closeout/references/check_closure.py`), **não como gate**.
+> Falta o sentido inverso e a promoção a gate. **Sem dono.**
 
 > **Liberação 2026-08-07 — [[A40.l5]] e [[A40.l7]] passam a `open`.** Primeira vez
 > nesta sprint que a **1ª cláusula** do predicado (`planned` ⇒ liberação por-lane,
@@ -323,9 +329,16 @@ l22 seguem P0.
 na emenda da [[ADR-111]] (*afirmação de audit sem gate é dívida*). O predicado do
 `open` é derivável de `depends_on` + `status`, portanto gateável em ~10 linhas; a
 cláusula de amarra parcial exige campo novo no schema, que é gatilho
-`information-architect`. Candidato natural a hospedar: [[A40.l23]], que já é a
+`information-architect`. ~~Candidato natural a hospedar: [[A40.l23]], que já é a
 lane de gate de referência de doc e já é candidata a absorver o gate de
-autorreferência da §Pendência nº 12. **Não roteado nesta passada.**
+autorreferência da §Pendência nº 12.~~ **Não roteado nesta passada.**
+
+> **Atualizado 2026-08-09.** A [[A40.l23]] shipou em #1334 com **quatro** gates —
+> nenhum é este — e declara "nada sobra do escopo da lane". O candidato natural
+> deixou de existir: **este item está sem dono**. Metade do predicado (`blocked`
+> com todas as deps `shipped`) roda hoje como check advisory do `lane-closeout`
+> (#1343); o que falta é o sentido inverso **e** virar gate. A cláusula de amarra
+> parcial segue exigindo campo novo no schema — gatilho `information-architect`.
 
 ## Ondas
 
@@ -383,6 +396,12 @@ exatamente a mutação que passou verde em #1004 sem nenhum teste vermelho. Amar
 instrumento-antes-de-mutação que esta seção já declara para l1 → l2. A
 [[A40.l31]] (o fix, que gasta) fica **fora das ondas** e `planned`, atrás do
 diagnóstico da l30.
+
+> **[[A40.l30]] ✅ `shipped` 2026-08-07 — `5988c703` (#1262, PR3).** Drift de
+> ancoragem + re-medição das 66 execuções + [[ADR-368]]. O parágrafo acima é o
+> estado de 2026-08-03 e fica como registro. A amarra *"a l8 não mergeia sem o item
+> 2 da l30"* está **cumprida** pelo lado da l30. Entrega não estava citada aqui até
+> 2026-08-09.
 
 **Onda 3 — degradação honesta** (na ordem reader-first que esta seção declara:
 [[A40.l21]], [[A40.l18]], [[A40.l19]], [[A40.l20]], [[A40.l22]]). Fecha a classe que o
@@ -492,6 +511,14 @@ convergem (~35 anos no dogfood). É P2 e não P0 porque o custo é **informaçã
 retida**, não falsa: o #1158 já trocou a sentinela por ausência. Toca
 `if_projector.py`, disjunto da l25 (`if_monte_carlo.py`) — paralelas.
 
+**[[A40.l32]] também fica fora das ondas** (promovida da [[A42]] em 2026-08-05;
+**`shipped` em 2026-08-08 pelo #1335 · [[ADR-362]] · [[ADR-363]]**): proveniência
+do executor — qual código computou este run. Instrumento, sem custo de API. O
+#1335 fechou a lane **rodando a medição por mutação que ela própria exigia** (três
+mutações, dois buracos achados), e entregou `dev/run_provenance.py` + cobertura em
+`tests/dev/test_run_provenance.py`. Limite declarado na lane, não silenciado: o
+join da [[ADR-371]] (§Limite a declarar, 2026-08-08).
+
 **[[A40.l25]] fica fora das ondas, por definição** (aberta 2026-08-03): é o
 residual das §Entregas fora de lane, cujo código já está em `main` ou em PR
 aberta. Não compartilha arquivo com nenhuma onda — `if_monte_carlo.py` +
@@ -526,6 +553,10 @@ declarada na lane: se a l19 escorregar, ela entrega os itens 2-5 e **declara o i
 1 como não-entregue**, em vez de shipar predicado que quebra em Postgres.
 Colocação e escopo são sugestão do critério declarado da sprint — ver §Pendências
 de decisão nº 10.
+
+> **[[A40.l27]] ✅ `shipped` 2026-08-07 — `cd6fde12` (#1265, PR2).** `failure_reason`
+> no read path + runbook de run travado ([[ADR-172]]). O parágrafo acima é o estado
+> de 2026-08-03 e fica como registro. Entrega não estava citada aqui até 2026-08-09.
 
 **Precedência de corte:** nunca cortar [[A40.l16]] nem [[A40.l18]]. Cortáveis, em
 ordem: [[A40.l17]], marcador em `/reports` (já fora de escopo), dead-letter (já

@@ -4,6 +4,8 @@ type: lane
 title: "Proveniência do executor: qual código computou este run"
 sprint: A40
 status: shipped
+ship_pr: 1335
+ship_date: "2026-08-08"
 priority: P1
 branch_slug: a40-l32-proveniencia-do-executor-do-run
 adrs:

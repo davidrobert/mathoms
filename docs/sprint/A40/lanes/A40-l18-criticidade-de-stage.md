@@ -5,6 +5,8 @@ title: "Criticidade de stage: add-on advisory não veta o entregável; partial_f
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1258
+ship_date: "2026-08-07"
 priority: P0
 branch_slug: a40-l18-criticidade-de-stage
 adrs:
@@ -41,7 +43,13 @@ tags:
 > sentidos do §Predicado falharam no mesmo dia e pelo mesmo motivo** — o flip é
 > manual e ninguém o faz no merge. Registrado aqui como terceira instância, que é
 > o que autoriza gastar as ~10 linhas do gate derivável de `depends_on` +
-> `status` (candidato: [[A40.l23]]).
+> `status` ~~(candidato: [[A40.l23]])~~.
+>
+> **Emenda 2026-08-09:** a [[A40.l23]] shipou (#1334) com quatro gates — nenhum é
+> este — e declarou "nada sobra do escopo". O candidato caiu. Metade do predicado
+> (`blocked` com todas as deps `shipped`) existe desde o #1343 como check
+> **advisory** do `lane-closeout`, não como gate; o sentido inverso e a promoção a
+> gate seguem **sem dono**.
 >
 > Os 8 commits do PR2 cobrem o §Critério de aceite
 > inteiro **e** as duas condições de merge do §Decisões do dono:
@@ -267,7 +275,10 @@ de ADR é reservado em prosa (precedente [[ADR-356]]).
    filtra por `pipeline_run_id`, então o re-run não cria row em `reports`.
    Verificado que **não destrói** a existente; a dívida é o teste de regressão
    travando *"re-run de cauda nunca reduz `count(reports)`"* + a copy do CTA.
-   Dono: [[A40.l20]] PR2.
+   ~~Dono: [[A40.l20]] PR2.~~ **Órfã desde 2026-08-09:** a [[A40.l20]] shipou no
+   #1278 e o PR2 **não** cobriu isto — os arquivos dele são o produtor de `retido`
+   e seus testes; nenhum teste com esse invariante existe na suíte (medido por
+   varredura em `backend/tests/` e `tests/`). **Sem dono.**
 6. **`StageSpec.writes` é ficção** para `generate_narratives` (declara chave
    própria, escreve na do E5) e `validate_cross` (declara chave, é read-only).
    Débito já nomeado na [[ADR-357]] §Consequências, mantido. Medido no PR2: o
