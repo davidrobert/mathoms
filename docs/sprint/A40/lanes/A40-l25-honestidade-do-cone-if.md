@@ -133,6 +133,124 @@ superfícies + paridade Py↔TS), `sigma_anual` de `premissas_economicas`, a
 worktree não sobe Playwright (`node_modules` é symlink, o Turbopack recusa),
 então o §Débito de método segue **declarado, não contornado**.
 
+## ✅ Parcial entregue em 2026-08-10 (2ª do dia) — PR #1359
+
+### Um defeito que a lane não conhecia, achado ao medir o item 1
+
+Mesmo critério de corte das anteriores — **corrige procedência, não move
+número publicado** (exceto os 45 desfechos abaixo, que são correção de
+contradição interna, não recalibração).
+
+**As duas superfícies discordavam sobre o mesmo número.** O parágrafo do
+narrador (Python, `_fmt_probabilidade`) e a legenda do cone em S7 (TS,
+`formatProbability`) publicam o **mesmo campo** — `prob_if_ate_prazo_declarado`
+— e declaravam paridade em docstring **sem nunca terem sido comparados**.
+Medido no domínio real do estimador (`k/50000`, [[ADR-360]]):
+
+| | |
+|---|---|
+| desfechos possíveis | 50 001 |
+| **divergentes** | **45** (0,09%) |
+| exemplo | `k=1250` ⇒ parágrafo diz **2%**, legenda diz **3%** |
+
+A divergência era **unilateral** e o lado errado era o Python: `round()` é
+meio-para-**par**; `.toFixed(0)` do JS é meio-para-cima. Corrigido para
+meio-para-cima explícito nos dois (`floor(x + 0.5)`, idêntico em IEEE-754).
+
+> ⚠️ **Eu errei o diagnóstico na primeira passada e a mutação me corrigiu.**
+> Reverti o lado TS esperando que o gate acusasse; ele **passou** — porque
+> `toFixed(0)` já era meio-para-cima. Meu comentário de código chegou a
+> culpar o JS, com base num script de medição meu que estava errado. Refiz a
+> mutação com uma alteração **plausível** (`floor` sem o `+0.5`) e aí sim
+> acusou: 24 499 divergências.
+
+**Gate: hook de pre-commit, sem filtro de path.** `dev/check_probabilidade_parity.py`
+roda as duas implementações **reais** (a TS é extraída da fonte e avaliada no
+`node`, não reimplementada aqui) sobre os 50 001 desfechos. Sem filtro porque o
+par vive nos dois stacks: teste em `tests/` não roda em PR que só toca
+`frontend/`, e Vitest não roda em PR que só toca `pipeline/` — só o
+`pre-commit --all-files` do job *Lint* cobre as duas direções (precedente: a
+§Decisão do dono da [[A40.l5]]). Custo medido: **0,5 s**.
+
+**O gate de paridade sozinho seria insuficiente** — passaria se os dois lados
+derivassem juntos para a convenção errada. Por isso a **regra** (meio-para-cima
++ precedência dos guards `<1%`/`>99%`) ganhou teste **nos dois lados**.
+
+| Mutação | Cai |
+|---|---|
+| narrador volta a `round()` (o defeito original) | 45 divergências |
+| card vira meio-para-baixo (`floor` sem `+0.5`) | 24 499 |
+| guard `<1%` some de um lado | 499 |
+| a função TS é renomeada (gate viraria vácuo) | erro explícito, não silêncio |
+
+### A chave órfã que **eu** criei no #1338
+
+`sigma_procedencia` foi entregue na 1ª parcial para declarar procedência — e
+**não tinha nenhum leitor no frontend**. Emitir chave que ninguém lê é a classe
+da [[A40.l5]] (KR-A), e eu a criei enquanto fechava outra coisa. Como todo run
+emite `fallback_codigo` (o adapter não passa `sigma_anual`), a legenda afirmava
+*"volatilidade de 11% a.a."* como se fosse medida da carteira da família, em
+**100% dos relatórios**. Agora a frase qualifica: *"(padrão do modelo, não
+calibrada à sua carteira)"*.
+
+**Decisão: não reusar o `PremissasFallbackAlert`** — que era a recomendação do
+`financial-planner`. Ele é caixa **âmbar de degradação de dado** e, como o
+sigma é sempre a constante hoje, dispararia em 100% dos relatórios. Constante
+não-calibrada é *default declarado*, não degradação; equiparar as duas produz
+fadiga de alarme e diz que o relatório está pior do que está. A microcopy da
+ressalva é candidata a revisão do `product-designer` — está registrada aqui,
+não silenciada.
+
+## 📐 Co-design `financial-planner` — 2026-08-10: como o sigma vem da premissa
+
+Destrava o item 3. **Decisão: opção A** (`σ_p = Σ wᵢ σᵢ`), pesos da
+**alocação-alvo declarada**, abortando para `fallback_codigo` quando qualquer
+classe de peso positivo não tiver σ vigente.
+
+O argumento não é "A é mais precisa" — é que **A é limite superior
+demonstrável** (`σ_p ≤ Σwᵢσᵢ` vale para qualquer matriz de correlação), logo é
+afirmação verdadeira **sem conhecer o insumo que falta**, que é o que a
+[[ADR-219]] pede de premissa auditável. A opção B (correlação zero) foi
+**refutada por medição**: com os σ do seed vigente, ela devolve ~11,3% para a
+carteira agressiva — o mesmo número da constante, ou seja, apaga o risco
+exatamente onde ele é real.
+
+| Alvo declarado | A (`Σwσ`) | B (`√Σw²σ²`) | hoje |
+|---|---|---|---|
+| padrão | **10,8%** | 6,3% | 11% |
+| conservador | **1,8%** | 1,2% | 11% |
+| agressivo | **17,6%** | 11,3% | 11% |
+
+**O defeito não é o nível, é a invariância:** uma família 80% Tesouro Selic e
+uma 90% ações recebem hoje o mesmo cone. O intervalo real é ~2%–18%.
+
+Três especificações que um implementador colapsa e não pode: usar os `inputs`
+crus normalizados a 100 **incluindo caixa** (reusar `_normalize_alvo` exclui
+caixa e dá 11,9% em vez de 10,8%); `has_alvo: false` ⇒ `fallback_codigo`; e
+classe com peso > 0 e `status: indisponivel` ⇒ **abortar**, não renormalizar —
+o que **contradiz a [[ADR-219]] D4** e por isso exige emenda datada lá.
+
+**Ganho não-óbvio:** `_lognormal_params` subtrai ½σ²_log para preservar E[r], então
+σ carrega *drag de volatilidade* sobre o caminho central — a família
+conservadora é hoje penalizada por ~0,5%/ano de volatilidade que não tem, o que
+afasta `ano_if_cenario_central` do `prazo_anos_realista` determinístico exibido
+**na mesma seção**. Corrigir σ aproxima dois números que hoje se contradizem.
+
+**Não mover μ** (`retorno_real_esperado`) para a tabela: ele alimenta o prazo
+determinístico **e** o centro do cone, e trocar a fonte de um sem o outro
+dessincroniza dois números da mesma tela. μ é parâmetro do **plano**; σ é
+parâmetro de **mercado**.
+
+**Passos restantes** (a ordem é do co-design): (1) ✅ ressalva de fallback —
+entregue neste PR; (2) ADR nova `Proposto` com a fórmula + emenda datada na
+[[ADR-219]] D4; (3) agregação + campos de auditoria + bump `mc_version` → `"6.0"`,
+que só agora é legítimo porque o modelo de fato muda.
+
+**Não entrou:** a faixa de 5 pp. Ela **muda número exibido** e, sozinha, forçaria
+um bump de `mc_version` sem mudança de modelo — o que corromperia o significado
+do campo (é provenance do **modelo**, não da exibição). Vai junto com a
+agregação de σ, sob `6.0`, como o ledger da [[ADR-360]] §Emenda já prevê.
+
 ## Problema
 
 Duas faces independentes, mesmo arquivo-alvo (`if_monte_carlo.py` + superfícies
