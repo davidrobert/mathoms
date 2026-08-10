@@ -141,6 +141,31 @@ def _essencial_as_float(essencial: Decimal) -> float:
     return float(essencial.quantize(Decimal("0.01")))
 
 
+# Leitor TOLERANTE: artefato E4 anterior ao PR3c1a não tem a chave, e sob a flag de enforce
+# desligada ela também não aparece (campo omitido quando `count == 0`). Guarda de tipo em cada
+# nível, no padrão de `e5_lineage.conferencia_signals_from_e4` — o E5 não pode estourar lendo
+# artefato antigo.
+def _le_consolidacao(fluxo_mensal: dict | None) -> dict | None:
+    bruto = (fluxo_mensal or {}).get("consolidacao_cross_documento")
+    if not isinstance(bruto, dict) or not bruto.get("count"):
+        return None
+    meses = [m for m in (bruto.get("meses") or ()) if isinstance(m, dict) and m.get("mes")]
+    return {"count": int(bruto["count"]), "meses": meses}
+
+
+# Projeta por INTERVALO (`inicio <= mes <= fim`), nunca por pertinência a `meses_ordenados`:
+# essa lista é derivada das transações SOBREVIVENTES, então um mês cujo movimento era
+# majoritariamente a perna duplicada pode não estar nela — e a remoção que aconteceu DENTRO da
+# janela ficaria de fora do contador dela, produzindo o "não reconcilia" que a salvaguarda nº 1
+# da [[A40.l2]] existe para impedir. `"YYYY-MM"` ordena lexicograficamente == cronologicamente.
+def _projeta_consolidacao(consolidacao: dict | None, inicio: str, fim: str) -> dict | None:
+    if not consolidacao or not inicio:
+        return None
+    dentro = [m for m in consolidacao["meses"] if inicio <= m["mes"] <= fim]
+    count = sum(int(m["count"]) for m in dentro)
+    return {"count": count, "meses": dentro} if count else None
+
+
 @dataclass(frozen=True)
 class Janela12m:
     periodo: str
@@ -165,6 +190,9 @@ class Janela12m:
     # com os demais campos legados desta dataclass.
     despesa_mensal_essencial: Decimal = field(default_factory=lambda: Decimal("0"))
     despesas_por_categoria: dict[str, float] = field(default_factory=dict)
+    # [[A40.l2]] PR3c1b — contador do colapso cross-documento PROJETADO nesta janela.
+    # `None` quando não houve remoção aqui; a chave é OMITIDA do dict (ver `to_dict`).
+    consolidacao_cross_documento: dict | None = None
 
     def to_dict(self) -> dict:
         out = {"periodo": self.periodo, "n_meses": self.n_meses}
@@ -176,6 +204,8 @@ class Janela12m:
         out["despesas_por_categoria"] = {
             k: round(v, 2) for k, v in self.despesas_por_categoria.items()
         }
+        if self.consolidacao_cross_documento:
+            out["consolidacao_cross_documento"] = self.consolidacao_cross_documento
         return out
 
 
@@ -203,9 +233,16 @@ class FluxoCaixaEnriched:
     # por paridade com os demais campos desta dataclass.
     despesa_mensal_essencial: Decimal = field(default_factory=lambda: Decimal("0"))
     num_months: int = 0
+    # [[A40.l2]] PR3c1b — o contador que a S2 declara à família ("N lançamentos consolidados
+    # por sobreposição de documentos, em M meses"). `None` quando não houve remoção; a chave
+    # é OMITIDA do dict, e não é cosmética: `parecer_orchestrator` põe o sha256 do E5 INTEIRO
+    # na chave de cache, e `section_summary_orchestrator` faz o mesmo com o payload da S2 —
+    # chave sempre presente forçaria regeração dos dois em toda a base (hard-stop da
+    # [[ADR-173]], e o incidente de 2026-08-03 mostrou que regerar degrada).
+    consolidacao_cross_documento: dict | None = None
 
     def to_legacy_dict(self) -> dict:
-        return {
+        out = {
             "janela": "full",
             "janela_meses": self.num_months,
             "receita_total": round(self.receita_total, 2),
@@ -234,6 +271,9 @@ class FluxoCaixaEnriched:
             },
             "janela_12m": self.janela_12m.to_dict(),
         }
+        if self.consolidacao_cross_documento:
+            out["consolidacao_cross_documento"] = self.consolidacao_cross_documento
+        return out
 
 
 # =============================================================================
@@ -333,6 +373,7 @@ class FluxoCaixaEnricher:
             janela_12m=janela_12m,
             despesa_mensal_essencial=despesa_mensal_essencial,
             num_months=len(meses),
+            consolidacao_cross_documento=_le_consolidacao(fluxo_mensal),
         )
 
     # -- Helpers --
@@ -426,6 +467,7 @@ class FluxoCaixaEnricher:
         n_janela = min(cfg.janela_meses, len(meses))
         meses_12m = meses[-n_janela:] if n_janela > 0 else []
         inicio, fim = (meses_12m[0], meses_12m[-1]) if meses_12m else ("", "")
+        consolidacao = _projeta_consolidacao(_le_consolidacao(fluxo_mensal), inicio, fim)
 
         receita_por_mes = (fluxo_mensal or {}).get("receitas", {}).get("por_mes", {}) or {}
         despesa_por_mes = (fluxo_mensal or {}).get("despesas", {}).get("por_mes", {}) or {}
@@ -456,6 +498,7 @@ class FluxoCaixaEnricher:
             taxa_poupanca_total=_ratio_pct(rec_bruto - float(despesa_consumo), rec_bruto),
             despesa_mensal_essencial=despesa_mensal_essencial,
             despesas_por_categoria=desp_por_cat,
+            consolidacao_cross_documento=consolidacao,
         )
 
     def _accumulate_receita(
