@@ -132,16 +132,30 @@ export function resolveFluxoJanelaMensal(
   return readBloco(bloco12m, "12m") ?? readBloco(fluxo, "full");
 }
 
-/** A40.l2 — contador do colapso cross-documento **emparelhado com a base de onde
- * saiu**. Existe como par pelo mesmo motivo que `ValorComJanela`: o colapso é do
- * corpus inteiro e a S2 exibe mensalização de 12 meses, então um call site que
- * lesse `fluxo_caixa.consolidacao_cross_documento` direto imprimiria contagem
- * full ao lado de agregado 12m — o defeito que este módulo fecha. */
+/** A40.l2 — contador do colapso cross-documento, **cada base com o próprio
+ * rótulo**. Existe como par pelo mesmo motivo que `ValorComJanela`.
+ *
+ * Duas bases coexistem e as DUAS interessam, como em `resolveConsumoBases`: o
+ * colapso é do corpus inteiro (a unidade contra a qual a família reconcilia —
+ * ela envia *documentos*, não janelas), e a S2 também cita agregados de 12
+ * meses. A A40.l3 não proíbe dois números; proíbe um número sob o rótulo do
+ * outro. Devolver base única forçaria o call site a escolher — e a escolha
+ * errada é justamente a classe que aquela lane fechou. */
 export interface ConsolidacaoComJanela {
   readonly count: number;
   /** Meses DISTINTOS com consolidação nesta base — o "em M meses" da copy. */
   readonly meses: number;
   readonly rotulo: JanelaRotulo;
+}
+
+export interface ConsolidacaoBases {
+  /** Corpus inteiro. Presente sempre que houve consolidação. */
+  readonly corpus: ConsolidacaoComJanela;
+  /** Projeção na janela de mensalização. `null` quando a janela não declara
+   * rótulo resolvível — sem rótulo não há afirmação, doutrina de
+   * `describeJanelaEscopo`. `count: 0` é informação legítima e diferente de
+   * ausência: significa que os headlines mensais NÃO mudaram por causa disso. */
+  readonly janela: ConsolidacaoComJanela | null;
 }
 
 function readConsolidacao(
@@ -150,26 +164,29 @@ function readConsolidacao(
 ): ConsolidacaoComJanela | null {
   if (bloco == null || typeof bloco !== "object") return null;
   const bruto = (bloco as Record<string, unknown>).consolidacao_cross_documento;
-  if (bruto == null || typeof bruto !== "object") return null;
-  const campos = bruto as Record<string, unknown>;
-  const count = numberAt(bruto, "count");
-  if (count === undefined || count <= 0) return null;
+  const campos = (bruto ?? {}) as Record<string, unknown>;
+  const count = numberAt(bruto, "count") ?? 0;
   const meses = Array.isArray(campos.meses) ? campos.meses.length : 0;
   return { count, meses, rotulo: rotuloDoBloco(bloco, fallbackTipo) };
 }
 
-/** Bloco `janela_12m` quando ele declara consolidação; senão o top-level `full`.
- *
- * A preferência espelha `resolveFluxoJanelaMensal` de propósito: a S2 mostra a
- * janela de 12 meses, e o contador tem de reconciliar com o que está ao lado
- * dele. `null` quando nenhum dos dois declara — que é o estado normal, porque o
- * produtor OMITE o campo quando não houve consolidação. */
+/** As duas bases do contador, ou `null` quando não houve consolidação alguma —
+ * que é o estado normal, porque o produtor OMITE o campo. `null` nunca vira
+ * "0 lançamentos": zero renderizado afirmaria um fato que ninguém mediu. */
 export function resolveConsolidacaoCrossDoc(
   fluxo: unknown,
-): ConsolidacaoComJanela | null {
+): ConsolidacaoBases | null {
   if (fluxo == null || typeof fluxo !== "object") return null;
-  const bloco12m = (fluxo as Record<string, unknown>).janela_12m;
-  return readConsolidacao(bloco12m, "12m") ?? readConsolidacao(fluxo, "full");
+  const corpus = readConsolidacao(fluxo, "full");
+  if (!corpus || corpus.count <= 0) return null;
+  const naJanela = readConsolidacao(
+    (fluxo as Record<string, unknown>).janela_12m,
+    "12m",
+  );
+  // Rótulo irresolvível ⇒ sem frase de janela. O `readConsolidacao` já devolve
+  // o rótulo do bloco lido; o que falta checar é se aquele bloco existe.
+  const temBloco12m = (fluxo as Record<string, unknown>).janela_12m != null;
+  return { corpus, janela: temBloco12m ? naJanela : null };
 }
 
 /** Leitura de `consumo_consciente` (ADR-306 D1 + D6). Duas bases coexistem no

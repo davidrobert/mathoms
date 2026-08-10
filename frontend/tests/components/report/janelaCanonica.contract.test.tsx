@@ -382,25 +382,44 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
     return base as FluxoCaixaSummary;
   };
 
-  it("consolidação: prefere a janela 12m, e o rótulo é o do bloco lido", () => {
+  it("consolidação: as DUAS bases, cada uma com o rótulo do próprio bloco", () => {
     const lido = resolveConsolidacaoCrossDoc(comConsolidacao(11, 7));
-    expect(lido?.count).toBe(7); // NÃO 11 — o full não pode vazar sob rótulo 12m
-    expect(lido?.rotulo.tipo).toBe("12m");
-    expect(lido?.meses).toBe(1);
+
+    expect(lido?.corpus.count).toBe(11);
+    expect(lido?.corpus.rotulo.tipo).toBe("full");
+    expect(lido?.corpus.meses).toBe(2);
+    // NÃO 11: a contagem da janela é a projeção, e ela nunca herda o total.
+    expect(lido?.janela?.count).toBe(7);
+    expect(lido?.janela?.rotulo.tipo).toBe("12m");
   });
 
-  it("consolidação: sem o campo na janela 12m, degrada para full COM rótulo full", () => {
+  it("consolidação: janela sem o campo devolve count 0 — informação, não ausência", () => {
+    // Corpus > 0 com janela vazia é o caso que diz "os headlines mensais NÃO
+    // mudaram por causa disso". Colapsar isso em `null` apagaria justamente a
+    // frase que impede a família de atribuir à consolidação uma queda que ela
+    // não causou.
     const lido = resolveConsolidacaoCrossDoc(comConsolidacao(11, null));
-    expect(lido?.count).toBe(11);
-    expect(lido?.rotulo.tipo).toBe("full");
+
+    expect(lido?.corpus.count).toBe(11);
+    expect(lido?.janela?.count).toBe(0);
+    expect(lido?.janela?.rotulo.tipo).toBe("12m");
   });
 
-  it("consolidação: na degradação SEM campo `janela`, o fallbackTipo é quem rotula", () => {
-    // O teste acima NÃO exercita o `fallbackTipo`: a fixture declara
-    // `janela: "full"` no top-level, então o rótulo vem do CAMPO e trocar o
-    // fallback por `"12m"` deixava tudo verde — o mesmo laço que este arquivo
-    // já documenta ("preservar `janela: 'full'` fazia o ramo nunca rodar").
-    // Aqui a posição do bloco é a única evidência da base.
+  it("consolidação: sem bloco `janela_12m`, não há frase de janela", () => {
+    const semBloco = JSON.parse(JSON.stringify(fluxoSemJanela12m())) as Record<string, unknown>;
+    semBloco.consolidacao_cross_documento = { count: 4, meses: [{ mes: "2026-01", count: 4 }] };
+
+    const lido = resolveConsolidacaoCrossDoc(semBloco as FluxoCaixaSummary);
+
+    expect(lido?.corpus.count).toBe(4);
+    expect(lido?.janela).toBeNull();
+  });
+
+  it("consolidação: SEM campo `janela`, o fallbackTipo do corpus é quem rotula", () => {
+    // A fixture declara `janela: "full"` no top-level, então nos casos acima o
+    // rótulo vem do CAMPO e trocar o fallback deixaria tudo verde — o mesmo
+    // laço que este arquivo já documenta ("preservar `janela: 'full'` fazia o
+    // ramo nunca rodar"). Aqui a posição do bloco é a única evidência.
     // Prova de mutação: `readConsolidacao(fluxo, "12m")` derruba este assert.
     const degradado = comConsolidacao(11, null) as unknown as Record<string, unknown>;
     delete degradado.janela;
@@ -408,8 +427,8 @@ describe("seletores — rótulo acompanha o bloco de onde o valor saiu", () => {
 
     const lido = resolveConsolidacaoCrossDoc(degradado as FluxoCaixaSummary);
 
-    expect(lido?.count).toBe(11);
-    expect(lido?.rotulo.tipo).toBe("full");
+    expect(lido?.corpus.count).toBe(11);
+    expect(lido?.corpus.rotulo.tipo).toBe("full");
   });
 
   it("consolidação ausente devolve null — é o estado normal, não um zero", () => {
