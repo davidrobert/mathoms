@@ -224,6 +224,10 @@ class OverrideRetentionGuard:
     # re-ancoragem ([[ADR-364]] §Emenda 2026-08-09) compara retido[rule] contra
     # retido[manual] — sobre CANDIDATOS retidos, que só este mapa permite atribuir.
     sources_por_digest: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    # Override cujo `tx_data` não é ISO produz digest divergente do que o pipeline calcula:
+    # a chave dele NÃO é retida e ele é órfãnado em silêncio. Como `sem_snapshot`, é condição
+    # de RUN — não se sabe a qual chave pertence ([[ADR-364]] §Emenda 2026-08-10).
+    tx_data_nao_iso: int = 0
 
     @classmethod
     def nao_lido(cls) -> "OverrideRetentionGuard":
@@ -242,7 +246,7 @@ class OverrideRetentionGuard:
     @property
     def degradado(self) -> bool:
         """Nada é removido: o alvo da degradação é "retém tudo", nunca "colapsa tudo"."""
-        return (not self.lido) or bool(self.sem_snapshot)
+        return (not self.lido) or bool(self.sem_snapshot) or bool(self.tx_data_nao_iso)
 
     def retem(self, gate_digest: str) -> bool:
         """`True` se esta chave tem override ativo e portanto **não** colapsa."""
@@ -260,6 +264,7 @@ class OverrideRetentionGuard:
             "degradado": self.degradado,
             "overrides_ativos": self.overrides_ativos,
             "sem_snapshot": self.sem_snapshot,
+            "tx_data_nao_iso": self.tx_data_nao_iso,
             "denied_digests": len(self.denied_digests),
             "denied_por_source": dict(self.denied_por_source),
         }

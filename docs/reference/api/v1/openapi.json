@@ -2075,6 +2075,107 @@
         "title": "CategoryUpdateCommand",
         "type": "object"
       },
+      "CollapseEnforceResponse": {
+        "properties": {
+          "clausulas_reprovadas": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clausulas Reprovadas"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "liberado": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Liberado"
+          },
+          "pipeline_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pipeline Run Id"
+          },
+          "reservatorio_llm_sem_gemea": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reservatorio Llm Sem Gemea"
+          },
+          "retido_por_override": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retido Por Override"
+          },
+          "snapshot_casa_corpus": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Casa Corpus"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "enabled"
+        ],
+        "title": "CollapseEnforceResponse",
+        "type": "object"
+      },
+      "CollapseEnforceUpdate": {
+        "description": "Liga/desliga o enforce do colapso cross-documento (A40.l2 \u00a73e \u00b7 [[ADR-364]]).",
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "CollapseEnforceUpdate",
+        "type": "object"
+      },
       "ConfigExportResponse": {
         "description": "Export all configs for the workspace (DB values + defaults for unedited).",
         "properties": {
@@ -15491,6 +15592,91 @@
           }
         },
         "summary": "Admin Update Business Profile",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/workspaces/{workspace_id}/collapse-enforce": {
+      "patch": {
+        "description": "Liga/desliga o colapso cross-documento em enforce (A40.l2 \u00a73e \u00b7 [[ADR-364]]).",
+        "operationId": "admin_set_collapse_enforce_admin_workspaces__workspace_id__collapse_enforce_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollapseEnforceUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollapseEnforceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Set Collapse Enforce",
         "tags": [
           "admin"
         ]

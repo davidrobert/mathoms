@@ -499,6 +499,14 @@ Cumulativamente: (1) relatório `liberado=True` do **run de referência** — *o
 que EXECUTOU `reconcile_transactions`*, com limite de idade; "último run completado" está errado
 nas duas direções (runs `from_stage` completam sem executar E3; `needs_review` executa E3 sem
 completar). (2) `medido is True`.
+**⚠️ Revogado como cláusula do flip em 2026-08-10** ([[ADR-364]] §Emenda 2026-08-10): `medido`
+é `True` por construção em todo relatório que chega ao `output_summary`, e o eixo (1) deixou de
+ser `liberado=True` — a cláusula que o reprovava (`vivacidade`) não tem elo causal com o dano e
+virou contador na auditoria. O predicado do write-path passou a ser sobre o **mecanismo**:
+`lido ∧ ¬degradado ∧ ¬retencao_instavel ∧ sem_snapshot==0 ∧ tx_data_nao_iso==0`, lido do run de
+referência (último `PipelineStageLog` de `reconcile_transactions` com `collapse_retention`, ≤72h).
+**✅ Eixos (1), (2) e (9) entregues** em `internal_ops/set_collapse_enforce.py` +
+`PATCH /admin/workspaces/{id}/collapse-enforce`.
 
 > **📏 MEDIDO 2026-08-10, pós-3d** (`dev/probe_collapse_adjudication.py` + relatório do gate,
 > zero-write sobre o corpus de dogfood — a medição anterior era de 2026-08-07, **anterior** a
@@ -535,7 +543,13 @@ essa base — sem ele os seis passariam verdes sobre fixture já bloqueada por o
 exaustividade é **AST** sobre `_blocked_reason`/`_extraction_reason`: ramo novo sem caso deixa
 o teste vermelho, senão o eixo mediria "6 dos 6 que eu lembrei", não "6 dos 6 que existem". (7) Sentinela pós-flip com número e dono.
 (8) A guarda por AST de `d6f94949` é **estreitada**, nunca deletada — é a guarda que o PR do
-flip tem incentivo a apagar. (9) Flag de enforce em `DEFAULTS` **e** `OPERATOR_ONLY` no mesmo
+flip tem incentivo a apagar. **✅ Entregue 2026-08-10, e o furo era pior do que o
+eixo supunha:** medido, trocar o **default** da assinatura (`collapse_enforce=False` → `True`)
+deixava a suíte inteira verde — 6210 testes —, porque o gate aceita `arg is None` e o call-site
+de produção **omitia** o kwarg. Três travas: pin de `inspect.signature`, gate **comportamental**
+(a fiação real de produção sobre par colapsável, que é o que continua valendo quando a mutação
+migra para dentro do leitor da flag) e o AST estreitado — o stage agora é **obrigado** a passar
+exatamente `_e3_collapse_enforce_enabled(...)`, e `dev/certify_ledger_local.py` entrou no parse. (9) Flag de enforce em `DEFAULTS` **e** `OPERATOR_ONLY` no mesmo
 PR, com teste AST de que o único call-site de `set_flag` com ela é o service de ops gateado.
 (10) **A V0 não julga mudança de base.** Sob `comparison_base_changed`, nenhuma célula de delta
 usa `--semantic-success`/`--semantic-danger` e nenhum `aria-label` contém "avaliação" — teste no

@@ -278,6 +278,25 @@ class WorkspaceLLMBudgetResponse(BaseModel):
     remove_cap: bool
 
 
+class CollapseEnforceUpdate(BaseModel):
+    """Liga/desliga o enforce do colapso cross-documento (A40.l2 §3e · [[ADR-364]])."""
+
+    enabled: bool
+
+
+class CollapseEnforceResponse(BaseModel):
+    workspace_id: str
+    enabled: bool
+    # Observado no run de referência e REGISTRADO, não gateado — `liberado` deixou de ser
+    # a condição do write-path na §Emenda 2026-08-10 da ADR-364.
+    liberado: bool | None = None
+    clausulas_reprovadas: list[str] | None = None
+    snapshot_casa_corpus: int | None = None
+    reservatorio_llm_sem_gemea: int | None = None
+    retido_por_override: int | None = None
+    pipeline_run_id: str | None = None
+
+
 class WorkspaceLLMBudgetMonthDTO(BaseModel):
     """Snapshot mês-calendário UTC — mesma janela do hard-stop (ADR-173)."""
 

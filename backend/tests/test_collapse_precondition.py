@@ -459,3 +459,38 @@ async def test_digest_desconhecido_nao_tem_origem(db) -> None:
         guard = collapse_precondition.from_active_overrides(s, ws.id)
 
     assert guard.sources_de("digest-que-nao-existe") == ()
+
+
+# `tx_data` fora do ISO faz `_override_gate_digest` produzir digest divergente do que o
+# pipeline calcula sobre a mesma transação: a chave NÃO entra em `denied_digests`, não é
+# retida, e o override é órfãnado em silêncio. Por isso degrada o run inteiro
+# ([[ADR-364]] §Emenda 2026-08-10) — como `sem_snapshot`, é condição de RUN, porque não se
+# sabe a qual chave o override pertence.
+async def test_data_fora_do_iso_degrada_o_run(db) -> None:
+    """Mutação: tirar `tx_data_nao_iso` de `degradado`. O override é apagado em silêncio."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as s:
+        _override(s, ws.id, titular="fulano", tx_data="05/01/2026")
+        s.commit()
+
+        guard = collapse_precondition.from_active_overrides(s, ws.id)
+
+    assert guard.tx_data_nao_iso == 1
+    assert guard.degradado is True, "run com override de data ambígua colapsaria mesmo assim"
+    assert guard.to_trace_dict()["tx_data_nao_iso"] == 1
+
+
+async def test_data_iso_nao_degrada__o_controle_negativo(db) -> None:
+    """Sem este par, `degradado=True` constante passaria no teste acima."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as s:
+        _override(s, ws.id, titular="fulano")
+        s.commit()
+
+        guard = collapse_precondition.from_active_overrides(s, ws.id)
+
+    assert (guard.tx_data_nao_iso, guard.degradado) == (0, False)

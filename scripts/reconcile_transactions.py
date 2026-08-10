@@ -1025,6 +1025,26 @@ def _e3_collapse_measure_enabled(ctx, store) -> bool:
     )
 
 
+# O enforce REMOVE row. A flag nasce `False`, está em `OPERATOR_ONLY`, e o único caminho que
+# a liga é `internal_ops/set_collapse_enforce.py`, depois do preflight ([[ADR-364]] §Emenda
+# 2026-08-10). Aqui só se lê — o gate NÃO mora no pipeline: `liberado` é workspace-global e o
+# dano é por-chave, então uma cláusula reprovada desligaria o colapso de todos os candidatos.
+def _e3_collapse_enforce_enabled(ctx, store) -> bool:
+    """Flag de enforce do colapso cross-documento. Sem DB, sempre `False`."""
+    if ctx.workspace_id is None:
+        return False
+    try:
+        from backend.app.services.feature_flags_service import is_enabled_sync
+        from backend.app.services.storage.db_artifact_store import DBArtifactStore
+    except ImportError:
+        return False
+    if not isinstance(store, DBArtifactStore):
+        return False
+    return is_enabled_sync(
+        ctx.workspace_id, "cross_document_collapse_enforce_enabled", db=store.session
+    )
+
+
 # Mesmo padrão dos dois precedentes vivos em `main` (`_e3_collapse_precondition`,
 # `_e4_load_learned_rules`): import lazy + `isinstance(DBArtifactStore)` + `store.session`.
 def _e3_retention_guard(ctx, store):
@@ -1368,7 +1388,9 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     store = ctx.get_artifact_store()
     adapter, canon = _e3_build_adapter(
-        ctx, cross_document_collapser=_e3_build_collapser(ctx, store)
+        ctx,
+        cross_document_collapser=_e3_build_collapser(ctx, store),
+        collapse_enforce=_e3_collapse_enforce_enabled(ctx, store),
     )
 
     log_progress("E3.0", f"Workspace root: {ctx.root}")
