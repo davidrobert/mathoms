@@ -220,6 +220,24 @@ permite decidir"*. Registrado como follow-up nº 7 abaixo.
 
 **Não entrou:** item 1 (S9 empty state) — o ⛔ abaixo é o mesmo, intocado.
 
+> ### ⚠️ O RV3-28 foi endereçado pela metade — registrado no closeout
+>
+> O título desta lane nomeia RV3-28, e o §Parcial acima era **silencioso**
+> sobre ele. Fechado: a incoerência de **título** (heading e índice derivam da
+> mesma fonte; APP_B/APP_D/S9 retitulados). **Aberto, e é o núcleo do achado:**
+> a incoerência de **hospedagem**. Re-medido em 2026-08-10:
+>
+> ```
+> S8 | "Previdência — PGBL e Fiscalidade" | cards: []
+> S7 | "Independência Financeira — …"     | cards: ['previdencia_pgbl']
+> ```
+>
+> `PrevidenciaPgblCard` renderiza em `S7IndependenciaSection.tsx:103`. A seção
+> titulada pelo domínio **não hospeda o card** — que é exatamente o que o
+> achado descreve, e o que o §Escopo chama de *"validador de hospedagem de
+> componente"*. **Dono: esta lane.** Não confundir com o `title` derivado do
+> LAYOUT, que fecha a deriva de **nome**, não a de **lugar**.
+
 ### Follow-ups nomeados (com dono e condição de retomada)
 
 1. **`§{section_id}` chega cru ao cliente** (`ParecerRisksTable`: `§S9`,
