@@ -143,6 +143,14 @@
             "receita_aluguel": {"type": "number"},
             "receita_outras": {"type": "number"}
           }
+        },
+        "consolidacao_cross_documento": {"$ref": "#/$defs/ConsolidacaoCrossDocumento"},
+        "janela_12m": {
+          "type": "object",
+          "description": "A40.l2 PR3c1b: declarada só o suficiente para o contador do colapso — os demais campos da janela seguem não-declarados, como antes.",
+          "properties": {
+            "consolidacao_cross_documento": {"$ref": "#/$defs/ConsolidacaoCrossDocumento"}
+          }
         }
       }
     },
@@ -835,6 +843,25 @@
       },
       "required": ["prioridade", "acao", "impacto", "prazo"],
       "additionalProperties": false
+    },
+    "ConsolidacaoCrossDocumento": {
+      "type": "object",
+      "description": "A40.l2 PR3c1b: contador declarado do colapso cross-documento — N lançamentos removidos por sobreposição de documentos, com breakdown por mês. É o número que a S2 mostra à família; sem ele o agregado fica irreconciliável contra o extrato do banco (salvaguarda nº 1 do financial-planner). OMITIDO quando não houve remoção: presença incondicional mudaria o sha256 do E5, que é chave de cache do parecer E do section summary da S2, forçando regeração em toda a base (hard-stop da ADR-173). `meses` é LISTA de pares, nunca escalar nem mapa — dev/golden_diff.py::is_monetary('meses') devolve True, então escalar sairia ×100 no snapshot; como lista o leaf `mes` é string e to_cents não se aplica.",
+      "properties": {
+        "count": {"type": "integer", "minimum": 1},
+        "meses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "mes": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$"},
+              "count": {"type": "integer", "minimum": 1}
+            },
+            "required": ["mes", "count"]
+          }
+        }
+      },
+      "required": ["count", "meses"]
     }
   },
   "additionalProperties": true

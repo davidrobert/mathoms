@@ -3,7 +3,7 @@ id: ADR-347
 type: adr
 title: "Ledger de conservação de contagem de transações no E3 (declarar toda remoção/exclusão)"
 status: Proposto
-amended_at: ["2026-08-05"]
+amended_at: ["2026-08-05", "2026-08-10"]
 phase: A39
 date: "2026-07-24"
 relates_to:
@@ -36,6 +36,12 @@ tags:
 > ⚠️ **Emendada em 2026-08-05 (A40.l2 D3).** A partição de remoções ganhou o 5º
 > canal `cross_document_collapse`, e `intra_statement_dedup` deixou de ser inferido
 > por diferença. Ver §Emenda ao fim.
+
+> ⚠️ **Emendada em 2026-08-10 (A40.l2 PR3c1b).** A conservação **por artefato** é o
+> piso, não o teto: os dois lados da equação usam critérios de dedup diferentes e
+> podem inflar juntos, fechando verde com o número publicado falso. Medido. Se você
+> vai construir sobre o ledger por artefato, leia a §Emenda 2026-08-10 **antes** —
+> o predicado que detecta isso é run-level.
 
 ## Contexto
 
@@ -203,3 +209,68 @@ Correção adjacente: a agregação por source era dict-comprehension que
 partição (invariante 3) deve nascer sobre **5 canais**, não 4. `e2_to_e3` do
 harness passou a computar `count_out` pela partição completa quando `remocoes`
 existe — `transacoes_duplicadas_removidas` é só cross-file e subdeclarava.
+
+## Emenda — conservação por artefato é o PISO; o contador chega ao E5 · 2026-08-10
+
+Entregue no PR3c1b da [[A40.l2]]. **Nenhuma decisão acima foi revogada.** O que muda é o
+alcance do invariante e a descoberta de que a forma atual dele pode fechar verde sobre número
+falso.
+
+**1. O contador atravessa até o E5.** `consolidacao_cross_documento` (`{count, meses:[{mes,
+count}]}`) passa de `fluxo_mensal_detalhado` (E4) para `fluxo_caixa` do `analise_financeira`, e
+é **projetado** em `janela_12m`. A projeção é por **intervalo** (`inicio <= mes <= fim`), nunca
+por pertinência a `meses_ordenados`: essa lista deriva das transações **sobreviventes**, então
+um mês cujo movimento era majoritariamente a perna duplicada pode não estar nela, e filtrar por
+pertinência descartaria a remoção ocorrida **dentro** da janela — contador de corpus cheio ao
+lado de agregado de 12 meses que se contradizem é exatamente o "não reconcilia" que a
+salvaguarda nº 1 da lane existe para impedir. Campo **omitido** quando não há remoção, nos dois
+níveis: o `sha256` do E5 inteiro é chave de cache do parecer **e** do section summary da S2, e
+presença incondicional regeraria os dois em toda a base ([[ADR-173]]).
+
+**2. 🔴 A equação por artefato pode fechar com os dois lados inflados.** Medido em 2026-08-09,
+com as funções de produção:
+
+| medição | resultado |
+|---|---|
+| 1 `source` em 2 grupos (arquivo multi-período), 3 rows removidas | agregado publicado = **6** |
+| controle, `source` distinto por grupo | 5 = 5, correto |
+| `_stat_sums` sobre 2 statements do mesmo arquivo, 10 tx reais | `tx_carregadas` = **20** |
+
+Duas causas independentes, e a segunda é a perigosa. (a) `attach_artifact_ledger` recebe a
+lista **completa** de remoções para todo grupo, e `_channel_sums`/`_collapse_meses` filtram por
+`source_document`; como `output_key` inclui o **período**, um arquivo que cobre dois períodos é
+declarado nos dois. (b) `_stat_sums` soma `tx_carregadas` por **statement**, enquanto
+`_channel_sums` dedupa por **source distinto** — os dois lados da equação usam critérios de
+dedup diferentes, então inflam juntos e a conservação **por artefato fecha verde**.
+
+**Consequência de contrato: conservação por artefato é o piso, não o teto.** A soma dos ledgers
+publicados de um run tem de reproduzir exatamente os fatos declarados; cada remoção tem **dono
+único**, determinado por `(source, mês)`; e nenhum fato pode ser contado em dois artefatos. O
+predicado que detecta isso é **run-level** — o per-artefato é cego para ele por construção:
+
+```
+declarado[canal] = Σ_removals count          # os fatos
+publicado[canal] = Σ_ledgers  remocoes[canal]["count"]
+assert publicado == declarado                # `>` duplica, `<` perde; ambos abortam
+∀ (source, mes) declarado: Σ_grupos 1[reivindicado] == 1
+```
+
+Avaliado **depois** do loop de grupos e **antes** dos `store.write` — senão o run aborta com
+artefatos mentirosos já persistidos. Aborta, não degrada: o E3 é `criticality="required"` e o
+número publicado é o que a família reconcilia contra o extrato; publicar 6 onde há 3 é pior que
+não publicar.
+
+**3. §Deferimento datado — 2026-08-10, dono [[A40.l2]].** O conserto **não** entra no PR3c1b:
+é *fix* de conservação, não *feature* de carrier, e o diff cruza três arquivos com semântica de
+contrato. Sai em PR próprio, com a atribuição por `(source, mês)`
+(`_agrega_por_source`/`_removals_by_source` passam a emitir uma remoção por par, o que dá a
+partição exata de `count` **e** de `valor_cents` de graça, já que ambos são somados na mesma
+iteração por row) e o predicado acima. **O conserto é genérico, não específico do colapso:**
+`_channel_sums` e `_stat_sums` são compartilhados, logo `intra_statement_dedup` carrega a mesma
+dupla contagem latente.
+
+**Por que isto não corrompeu número publicado até hoje:** o canal só é populado sob
+`cross_document_collapse_enforce_enabled`, que é `False` em todo workspace e não tem call-site
+que o ligue (travado por AST). O defeito é real e latente — e é **pré-condição do flip**, porque
+o invariante prometido pelo §Faseamento, escrito sobre a forma atual, abortaria run legítimo
+(`6 == 3`) num arquivo multi-período, que é onboarding normal.

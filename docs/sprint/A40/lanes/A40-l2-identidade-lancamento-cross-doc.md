@@ -235,8 +235,9 @@ derivação tem de ser alimentado pelos **dois produtores reais**.
 | **3b1 — fonte única do digest** ✅ [#1251](https://github.com/davidrobert/mathoms/pull/1251) (`077fb7e9`) | `_gate_digest_da_chave` chama `gate_key_digest`, nunca monta a tupla inline · teste de derivação alimentado pelos **dois produtores reais** (`test_gate_digest_paired_derivation.py`) | revert |
 | **3b2 — `CollapseMeasurement`** ✅ [#1256](https://github.com/davidrobert/mathoms/pull/1256) (`4fdcf400`) | corpus **pré-poda** no VO (`corpus_gate_digests`, `corpus_row_hashes`) · `survivor_hash` em `CollapseCandidate` | revert |
 | **3b — o gate** ✅ [#1276](https://github.com/davidrobert/mathoms/pull/1276) (`b3b8a74b`) | predicado corrigido (5 cláusulas cumulativas + adjudicação por hash) · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · parâmetro stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
-| **3c1a — o dado até o E4** 🚧 [#1288](https://github.com/davidrobert/mathoms/pull/1288) | `meses` no canal (`$def` próprio, não `allOf`) · agregado somado sobre `readable` · carrier E3→E4 em `fluxo_mensal_detalhado` · campo **omitido** quando zero | campo ausente |
-| **3c1b — o dado até o E5** | `FluxoCaixaEnricher` copia para `fluxo_caixa` **e projeta em `janela_12m`** · invariante de conservação fail-loud no E3 · emenda na [[ADR-347]] · rebaseline do snapshot | campo ausente |
+| **3c1a — o dado até o E4** ✅ [#1288](https://github.com/davidrobert/mathoms/pull/1288) (`e1c1027c`) | `meses` no canal (`$def` próprio, não `allOf`) · agregado somado sobre `readable` · carrier E3→E4 em `fluxo_mensal_detalhado` · campo **omitido** quando zero. Fechou também o 3º leitor fail-open (`_e3_log_collapse_shadow` deixou de usar `getattr(..., default)`) | campo ausente |
+| **3c1b — o dado até o E5** | `FluxoCaixaEnricher` copia para `fluxo_caixa` **e projeta em `janela_12m`** (por **intervalo**, não pertinência) · `$def` no schema E5 · emenda na [[ADR-347]]. **O invariante de conservação saiu deste PR** — ver a linha abaixo | campo ausente |
+| **3c1c — conservação: dono único da remoção** (aberto 2026-08-10) | atribuição por `(source, mês)` + predicado **run-level** `publicado == declarado`. Pré-condição do 3e: o invariante na forma antiga abortaria run legítimo. Conserto **genérico** — `_channel_sums`/`_stat_sums` são compartilhados, `intra_statement_dedup` tem a mesma dupla latente. Detalhe: [[ADR-347]] §Emenda 2026-08-10 | revert |
 | **3d — a retenção** (desenho fechado 2026-08-09) | o colapsador recebe `OverrideRetentionGuard` por construtor e **retém** chave cujo `gate_digest` tem override ativo. Zero escrita em `transaction_overrides`, zero re-ancoragem (deferida — [[ADR-364]] §Emenda 2026-08-09). **Depende do PR-A** (paridade do `gate_digest`). Brief: [`tracks/a40-l2-3d-drain.md`](../tracks/a40-l2-3d-drain.md) | flag off + re-run |
 | **3c2 — a superfície** | contador da S2 · caption simétrico da V0 · rebaseline | render condicional |
 | **3e — o flip** | bloqueado pelos quatro; §Critério de saída abaixo | flag off |
@@ -452,11 +453,19 @@ em strict. E `fluxo_caixa` no E5 **não tem** `additionalProperties:false` ⇒ d
 declarar e o CI fica verde — declare mesmo assim, lembrando que **o gate real de schema é o
 golden de execução**, não o step strict, que roda sobre fixtures sintéticas.
 
-**Débito do PR3b que o co-design achou:** `scripts/reconcile_transactions.py`
-`_e3_log_collapse_shadow` ainda usa `getattr(result, "collapse_candidates", ())` — **terceiro
-leitor** da mesma classe fail-open que o 3b fechou em `_alvos` e em
-`_e3_collapse_precondition`. Rename ⇒ `candidatos=0` no log, em silêncio. Vai junto do 3c1,
-que já mexe nesse caminho.
+~~**Débito do PR3b que o co-design achou:** `_e3_log_collapse_shadow` ainda usa
+`getattr(result, "collapse_candidates", ())` — terceiro leitor fail-open.~~ → ✅ **fechado no
+próprio 3c1a** (`e1c1027c`): virou acesso por atributo. Mantido riscado porque a prosa acima
+ainda mandava fazê-lo no 3c1b, e item stale faz o próximo agente refazer trabalho.
+
+**§Deferimento datado — 2026-08-10, dono [[A40.l2]] — dois follow-ups que viviam só em prosa.**
+Promovidos a item com condição de retomada porque follow-up em parágrafo é invisível a
+`check_doc_links.py` e ao próximo agente:
+
+| item | condição de retomada |
+|---|---|
+| **A magnitude** (`receitas_omitidas`/`despesas_omitidas`, cortada do 3c1 pela Objeção 1) | depois de resolvido o dispatch v1/v2 do hash do E4 — hoje, com a flag off, o join por `survivor_hash` devolve **zero em silêncio** |
+| **Teste de execução com `collapse_enforce=True` injetado no adapter** (nunca no call-site — a guarda 3 por AST proíbe) | junto do 3c1c. É a cobertura que falta: os goldens passam hoje porque **nunca exercitam o campo**, então "rebaseline sem diff" não é sinal de pronto |
 
 **Campo omitido quando `count == 0`** (precedente ADR-132 T2) — e o argumento decisivo não é
 estético: `parecer_orchestrator` mete `sha256(json.dumps(e5_data, sort_keys=True))` na chave de
