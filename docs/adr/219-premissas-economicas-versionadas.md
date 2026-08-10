@@ -5,6 +5,7 @@ title: "Premissas Econômicas — tabela versionada, override por workspace e sn
 status: Decidido
 phase: A12
 date: "2026-05-15"
+amended_at: ["2026-08-10"]
 relates_to:
   - "[[ADR-097]]"
   - "[[ADR-116]]"
@@ -30,6 +31,13 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda 2026-08-10 ([[ADR-374]], lane [[A40.l25]]):** a §D4 previa que o
+> Monte Carlo *"omite a classe ou usa default conservador documentado"* quando
+> falta premissa. As duas saídas estão **erradas** e nenhum run as exercitou —
+> o σ do cone nunca vinha desta tabela. Ao ligar a fonte, a regra passa a ser
+> **abortar para `fallback_codigo`** se qualquer classe de peso positivo não
+> tiver σ vigente. Ver §Emenda dentro da D4.
 
 ## Contexto
 
@@ -178,12 +186,42 @@ honestamente:
 ```
 
 UI renderiza linhas `indisponivel` como warn explícito (não silencia):
-"esta classe não tem premissa vigente — projeção parcial". S7 Monte Carlo
-omite a classe ou usa default conservador documentado.
+"esta classe não tem premissa vigente — projeção parcial". ~~S7 Monte Carlo
+omite a classe ou usa default conservador documentado.~~
 
 Decisão (vs. alternativa "abortar emissão" ou "usar hard-coded default"):
 abortar tem UX terrível em produção; hard-coded silencioso mata
 auditabilidade. Status explícito força transparência.
+
+> ### Emenda 2026-08-10 — o Monte Carlo NÃO omite a classe nem usa default por classe
+>
+> A frase riscada acima previa duas saídas para o σ do cone quando falta premissa,
+> e **as duas estão erradas** — medido no co-design `financial-planner` da
+> [[A40.l25]], decidido em [[ADR-374]] D4.
+>
+> Quando esta D4 foi escrita, o σ do MC **não vinha desta tabela** (o adapter
+> nunca passou `sigma_anual`), então a frase descrevia um caminho hipotético e
+> nenhum run a exercitou. Ao ligar a fonte, ela vira decisão real:
+>
+> - **"Omite a classe"** significa excluir e renormalizar os pesos — o que
+>   redistribui silenciosamente o peso da classe faltante sobre as que têm
+>   premissa, enviesando σ numa direção **não declarada**. Se a faltante for a
+>   volátil (cripto, exótica), o viés é **para baixo**: o cone fica mais estreito
+>   por ausência de dado, que é a direção errada do erro.
+> - **"Default conservador documentado" por classe** exige uma constante por
+>   classe — a mesma mentira de procedência que a [[A40.l25]] está removendo,
+>   agora com granularidade maior e mais difícil de auditar.
+>
+> **Regra vigente:** a agregação é definida **se e somente se** toda classe de
+> **peso positivo** tem σ vigente. Faltando qualquer uma, o σ inteiro cai para
+> `fallback_codigo` — a constante do modelo, **declarada como tal** no payload
+> (`sigma_procedencia`) e na legenda da S7 (#1360). Peso zero não entra na soma,
+> então sua ausência é irrelevante: é aritmética, não threshold.
+>
+> Isto **não** relaxa o resto da D4 — o payload continua emitindo `status:
+> parcial` e as linhas `indisponivel`, e a UI continua mostrando o warn por
+> classe. O que muda é só o que o **σ do cone** faz com a lacuna: cala sobre a
+> carteira em vez de estimar sobre dado incompleto.
 
 ### D5 — Snapshot completo no payload E5
 

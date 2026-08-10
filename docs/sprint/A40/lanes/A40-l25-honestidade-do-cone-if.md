@@ -13,6 +13,7 @@ adrs:
   - "[[ADR-219]]"
   - "[[ADR-237]]"
   - "[[ADR-373]]"
+  - "[[ADR-374]]"
 depends_on: []
 parallel_with:
   - "[[A40.l11]]"
@@ -242,9 +243,38 @@ dessincroniza dois números da mesma tela. μ é parâmetro do **plano**; σ é
 parâmetro de **mercado**.
 
 **Passos restantes** (a ordem é do co-design): (1) ✅ ressalva de fallback —
-entregue neste PR; (2) ADR nova `Proposto` com a fórmula + emenda datada na
-[[ADR-219]] D4; (3) agregação + campos de auditoria + bump `mc_version` → `"6.0"`,
-que só agora é legítimo porque o modelo de fato muda.
+entregue neste PR; (2) ✅ **[[ADR-374]] `Proposto` + emenda datada na [[ADR-219]]
+D4 — PR #1364**; (3) agregação + campos de auditoria + bump `mc_version` →
+`"6.0"`, que só agora é legítimo porque o modelo de fato muda.
+
+### Passo 2 — o que a ADR-374 fixou (2026-08-10)
+
+**A contradição com a [[ADR-219]] D4 era real e foi resolvida por emenda, não por
+releitura.** A D4 mandava *"S7 Monte Carlo omite a classe ou usa default
+conservador documentado"*. As duas saídas estão erradas, e o motivo é que **nenhum
+run jamais as exercitou** — o σ do MC não vinha daquela tabela, então a frase
+descrevia caminho hipotético. Ao ligar a fonte, ela vira decisão real:
+
+- *omitir a classe* = excluir e **renormalizar** os pesos ⇒ redistribui o peso da
+  faltante sobre as que têm premissa, enviesando σ em direção não declarada. Se a
+  faltante for a volátil, o viés é **para baixo** — cone mais estreito por
+  ausência de dado, que é a direção errada do erro;
+- *default por classe* = uma constante por classe, a mesma mentira de procedência
+  que esta lane está removendo, com granularidade maior.
+
+**Regra vigente:** agregação definida **se e somente se** toda classe de peso
+positivo tem σ vigente; faltando qualquer uma, σ inteiro cai para
+`fallback_codigo`, declarado no payload e na legenda. Peso zero não entra na soma
+— é aritmética, não threshold.
+
+**Este passo não move número nenhum.** O que ele destrava é o passo 3, e o que
+ele fecha é a possibilidade de o passo 3 ser implementado contra uma D4 que diz
+o contrário.
+
+⚠️ **A ADR-374 nasce `Proposto` e o flip é do dono** — a fórmula muda a largura
+do cone de **toda a frota**, e o §Critério de aceite dela é o que prova que a
+invariância morreu (dois workspaces idênticos com alvos diferentes têm de
+produzir σ diferente).
 
 **Não entrou:** a faixa de 5 pp. Ela **muda número exibido** e, sozinha, forçaria
 um bump de `mc_version` sem mudança de modelo — o que corromperia o significado

@@ -369,6 +369,7 @@
 | ADR-371 | adr | Decidido |  | O grafo de FK é a fonte única da deleção: lista manual de tabelas-filhas é proibida sem gate | `adr/371-grafo-de-fk-e-a-fonte-unica-da-delecao.md` |
 | ADR-372 | adr | Decidido |  | Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma | `adr/372-par-on-tint-para-texto-sobre-tint-da-propria-cor.md` |
 | ADR-373 | adr | Decidido |  | Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade | `adr/373-prazo-if-projeta-capacidade-declarada.md` |
+| ADR-374 | adr | Proposto |  | Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado | `adr/374-sigma-do-cone-if-agrega-premissa-por-alvo-declarado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
