@@ -125,3 +125,45 @@ def test_projecao_probabilidade_guards(prob: float, esperado: str):
     }
     conclusion = _charts(m)["projecao_3cenarios"]["conclusion"]
     assert esperado in conclusion
+
+
+# A40.l25 — o parágrafo (Py) e a legenda do cone (TS) publicam o MESMO campo, e
+# discordavam em 45 dos 50 001 desfechos porque `round()` do Python é
+# meio-para-PAR. `dev/check_probabilidade_parity.py` trava a PARIDADE; estes
+# testes travam a REGRA, senão os dois lados podem derivar juntos e o gate de
+# paridade passa verde sobre a convenção errada.
+@pytest.mark.parametrize(
+    ("prob", "esperado"),
+    [
+        (0.025, "3%"),  # meio-para-cima; `round()` dava 2%
+        (0.045, "5%"),
+        (0.105, "11%"),
+        (0.024999, "2%"),  # abaixo do meio continua descendo
+        (0.31, "31%"),
+        (0.30, "30%"),
+    ],
+)
+def test_probabilidade_arredonda_meio_para_cima(prob: float, esperado: str) -> None:
+    from pipeline.domain.services.narrativas.projecao_if_narrator import (
+        _fmt_probabilidade,
+    )
+
+    assert _fmt_probabilidade(prob) == esperado
+
+
+@pytest.mark.parametrize(
+    ("prob", "esperado"),
+    [
+        (0.0, "0%"),
+        (1.0, "100%"),
+        (0.0001, "<1%"),
+        (0.9999, ">99%"),
+    ],
+)
+def test_guards_tem_precedencia_sobre_o_arredondamento(prob: float, esperado: str) -> None:
+    """`<1%` e `>99%` existem para não afirmar 0/100 sobre extremo (ADR-237)."""
+    from pipeline.domain.services.narrativas.projecao_if_narrator import (
+        _fmt_probabilidade,
+    )
+
+    assert _fmt_probabilidade(prob) == esperado

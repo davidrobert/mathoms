@@ -11,6 +11,9 @@ from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import fmt_currency, fmt_percent
+from pipeline.domain.services.narrativas.probabilidade_fmt import (
+    fmt_probabilidade as _fmt_probabilidade,
+)
 
 _MESES_PT = (
     "janeiro",
@@ -26,19 +29,6 @@ _MESES_PT = (
     "novembro",
     "dezembro",
 )
-
-
-def _fmt_probabilidade(prob: float) -> str:
-    """Paridade com formatProbability do S7 (ADR-237): guards <1% / >99%."""
-    if prob <= 0:
-        return "0%"
-    if prob >= 1:
-        return "100%"
-    if prob < 0.01:
-        return "<1%"
-    if prob > 0.99:
-        return ">99%"
-    return f"{round(prob * 100)}%"
 
 
 def _fmt_mes_ano(iso: str | None) -> str:
