@@ -43,6 +43,7 @@ from pipeline.domain.services.e3_load_report import (
     LoadOutcome,
     LoadStat,
     StatementExclusion,
+    atribui_removals_por_grupo,
     attach_artifact_ledger,
 )
 from pipeline.domain.services.e3_reconciliation_result import ReconciliationStoreResult
@@ -335,6 +336,13 @@ class E3ReconcilerAdapter:
 
         from pipeline.live_progress import emit_item_progress
 
+        # Dono único ANTES do primeiro `store.write`: se um fato declarado ficasse sem
+        # dono, o run abortaria com artefato mentiroso já persistido. Os dois canais que
+        # sofriam a dupla atribuição (`intra_statement_dedup` e `cross_document_collapse`)
+        # já estão em `removals` neste ponto; `cross_file_dedup` nasce dentro do loop e
+        # trafega por parâmetro, não por este mapa.
+        removals_do_grupo = atribui_removals_por_grupo(grouped, removals)
+
         written = 0
         merged_statements: list[BankStatement] = []
         items_total = len(grouped)
@@ -370,7 +378,16 @@ class E3ReconcilerAdapter:
                 if len(stmts) > 1:
                     payload["pipeline_stage"] = "E3"
             # ADR-347 PR1b — anexa o ledger de conservação (serializer-agnóstico).
-            attach_artifact_ledger(payload, stmts, outcome.load_stats, dup_removed, cents, removals)
+            # Só as remoções DESTE grupo: passar a lista completa fazia cada grupo
+            # reivindicar a remoção de todo source que ele contém (§Emenda 2026-08-10).
+            attach_artifact_ledger(
+                payload,
+                stmts,
+                outcome.load_stats,
+                dup_removed,
+                cents,
+                removals_do_grupo.get(key, ()),
+            )
             attach_cross_checksum(payload, merged_stmt, cross_by_key)
             merged_statements.append(merged_stmt)
             emit_item_progress(

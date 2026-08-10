@@ -225,3 +225,70 @@ def attach_artifact_ledger(
     payload |= build_artifact_ledger(
         reconciled_stmts, load_stats, cross_removed, cross_cents, removals
     )
+
+
+class ConservacaoQuebrada(RuntimeError):
+    """A soma dos ledgers publicados não reproduz os fatos declarados no run."""
+
+
+def _mes_da_removal(r) -> str | None:
+    """Mês único da remoção. `None` para canal sem breakdown (``DedupRemoval``)."""
+    meses = getattr(r, "meses", ()) or ()
+    return meses[0][0] if len(meses) == 1 else None
+
+
+def _periodo_do_grupo(stmts) -> tuple[str, str]:
+    inicios = [s.period_start for s in stmts if s.period_start]
+    fins = [s.period_end for s in stmts if s.period_end]
+    if not inicios or not fins:
+        return ("", "")
+    return (min(inicios).strftime("%Y-%m"), max(fins).strftime("%Y-%m"))
+
+
+# O fallback cobre canal sem breakdown de mês (`DedupRemoval`) e mês fora de toda janela
+# (fatura com período sentinel `999999`, borda) — determinístico, e o fato não se perde.
+def _dono_da_removal(r, candidatos: list[str], janelas: dict[str, tuple[str, str]]) -> str:
+    """Grupo cujo período cobre o mês da remoção; senão o primeiro em ordem canônica."""
+    mes = _mes_da_removal(r)
+    dentro = (k for k in candidatos if mes and janelas[k][0] <= mes <= janelas[k][1])
+    return next(dentro, candidatos[0])
+
+
+# Sem isto, `attach_artifact_ledger` recebe a lista completa e `_channel_sums` filtra por
+# `source_document`: como `output_key` embute o período, um arquivo que cobre dois períodos é
+# declarado nos DOIS grupos ([[ADR-347]] §Emenda 2026-08-10 — medido 6 onde havia 3). A
+# conservação POR ARTEFATO não enxerga isso: os dois lados da equação inflam juntos, porque
+# `_stat_sums` soma por statement enquanto `_channel_sums` dedupa por source.
+def atribui_removals_por_grupo(grupos, removals) -> dict[str, tuple]:
+    """Dono ÚNICO por remoção — cada fato declarado pertence a **um** grupo de artefato."""
+    itens = list(grupos.items())
+    janelas = {key: _periodo_do_grupo(stmts) for key, stmts in itens}
+    fontes = {key: {s.source_document for s in stmts if s.source_document} for key, stmts in itens}
+    out: dict[str, list] = {key: [] for key, _ in itens}
+
+    for r in removals or ():
+        src = getattr(r, "source", None)
+        candidatos = [key for key, _ in itens if src and src in fontes[key]]
+        if candidatos:
+            out[_dono_da_removal(r, candidatos, janelas)].append(r)
+
+    _exige_conservacao(removals, out)
+    return {key: tuple(v) for key, v in out.items()}
+
+
+def _exige_conservacao(removals, atribuido: dict[str, list]) -> None:
+    """``Σ atribuído == Σ declarado`` por canal. `>` duplicaria, `<` perderia."""
+    declarado: Counter = Counter()
+    for r in removals or ():
+        if getattr(r, "source", None):
+            declarado[r.canal] += r.count
+    publicado: Counter = Counter()
+    for lista in atribuido.values():
+        for r in lista:
+            publicado[r.canal] += r.count
+    if publicado != declarado:
+        raise ConservacaoQuebrada(
+            "atribuição de remoções não conserva por canal: "
+            f"declarado={dict(sorted(declarado.items()))} "
+            f"atribuido={dict(sorted(publicado.items()))}"
+        )
