@@ -8,6 +8,7 @@ sobre-colapsa apaga transação real.
 
 from __future__ import annotations
 
+import ast
 import sys
 from datetime import date
 from pathlib import Path

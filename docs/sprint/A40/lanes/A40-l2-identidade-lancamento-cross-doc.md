@@ -499,11 +499,21 @@ Cumulativamente: (1) relatório `liberado=True` do **run de referência** — *o
 que EXECUTOU `reconcile_transactions`*, com limite de idade; "último run completado" está errado
 nas duas direções (runs `from_stage` completam sem executar E3; `needs_review` executa E3 sem
 completar). (2) `medido is True`. (3) **Dois** runs consecutivos com `hits == 0` **depois** do
-drain — um run mede o próprio drain. (4) **Ensaio de rollback medido**: a §Não-decisão da
+drain — um run mede o próprio drain.
+**⚠️ Obsoleto NA LETRA desde 2026-08-09** — a §3d fechou decidindo que **não há drain**: a
+quitação é retenção, e nada é re-ancorado. "Depois do drain" nomeia evento que não ocorre, e
+`hits > 0` deixou de significar "override será órfãnado" (sob retenção a chave simplesmente
+não colapsa). **Não tentar satisfazer como escrito.** Quem reformula é o PR do 3e, junto da
+decisão de ligar o enforce — é lá que se define o que o gate ainda precisa observar depois que
+o dano que ele media virou impossível por construção. Os outros nove seguem valendo. (4) **Ensaio de rollback medido**: a §Não-decisão da
 [[ADR-364]] recusa rollout percentual porque "o undo existe", e undo nunca executado é premissa,
 não propriedade. (5) Identidade tripla do contador, tolerância zero. (6) Os **6/6** ramos de
 `blocked_reason` exercitados por fixture + controle negativo em CI — hoje a medição deu `0
-bloqueados`, isto é, 6 de 6 **inexercitados**. (7) Sentinela pós-flip com número e dono.
+bloqueados`, isto é, 6 de 6 **inexercitados**. **✅ Entregue 2026-08-10:** cada ramo é
+alcançado por **uma** mutação isolada sobre a mesma base colapsável, e o controle negativo é
+essa base — sem ele os seis passariam verdes sobre fixture já bloqueada por outra cláusula. A
+exaustividade é **AST** sobre `_blocked_reason`/`_extraction_reason`: ramo novo sem caso deixa
+o teste vermelho, senão o eixo mediria "6 dos 6 que eu lembrei", não "6 dos 6 que existem". (7) Sentinela pós-flip com número e dono.
 (8) A guarda por AST de `d6f94949` é **estreitada**, nunca deletada — é a guarda que o PR do
 flip tem incentivo a apagar. (9) Flag de enforce em `DEFAULTS` **e** `OPERATOR_ONLY` no mesmo
 PR, com teste AST de que o único call-site de `set_flag` com ela é o service de ops gateado.
