@@ -1,5 +1,6 @@
 "use client";
 
+import { ConsolidacaoCrossDocumentoNota } from "../ConsolidacaoCrossDocumentoNota";
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { SuggestionCalloutInline } from "./SuggestionCallout";
@@ -66,6 +67,12 @@ export function S2FluxoCaixaSection({
   return (
     <ReportSection id="S2" title="Fluxo de Caixa — Receitas e Despesas">
       <SectionSummary data={data} sectionId="S2" />
+      {/* Encostado no `SectionSummary` de propósito: ele é a afirmação que esta
+          nota qualifica ("Receita recorrente de X/mês sobre os últimos N meses
+          documentados"), e o leitor precisa da ressalva ANTES dos 4 charts que
+          mostram a consequência. Em print, header + summary + nota caem na
+          mesma página; no fim da seção a nota órfãozaria longe dos números. */}
+      <ConsolidacaoCrossDocumentoNota fluxo={fluxo} className="md:col-span-2" />
       {workspaceId && (
         <SuggestionCalloutInline sectionId="S2" workspaceId={workspaceId} />
       )}

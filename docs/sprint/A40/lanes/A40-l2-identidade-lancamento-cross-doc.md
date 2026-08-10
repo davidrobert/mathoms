@@ -969,10 +969,29 @@ esta lane passou o dia inteiro corrigindo.
 
 ### D6 — o caption da V0 é derivado do dado, não hardcoded
 
-Sem ele, o primeiro relatório pós-flip renderiza **"Receitas ▼19% — avaliação ruim"**
-(`VariacaoSection.deltaColor` + `deltaAriaLabel`), atribuído a nada. O produto passaria
-a **afirmar** que a família ganhou 19% menos — falso-positivo mais caro que o número
-que estamos corrigindo, porque o erro atual é otimista e este seria acusatório.
+> 🔴 **Emenda datada — 2026-08-10 (medido no PR3c2a).** O exemplo abaixo está **factualmente
+> errado nos dois termos**, e quem implementar o caption seguindo-o vai procurar uma linha que
+> não existe.
+>
+> **(a) A linha não é "Receitas".** `Receita Total` saiu da V0 na §Emenda de 2026-07-09 da
+> [[ADR-190]]: `sections_to_compare` tem **quatro** métricas — `M_PL`, `M_TAXA_POUPANCA`,
+> `M_RESERVA_MESES`, `M_AUVP_DESVIO` — e `get_report_data` instancia `SnapshotChangelogConfig()`
+> sem override. As linhas que o colapso de fato move são **Taxa de Poupança** (numerador e
+> denominador tocados: `(receita_recorrente − despesa_consumo)/receita_recorrente`) e **Reserva
+> de Emergência** (meses de cobertura).
+>
+> **(b) O falso-positivo pode ser ELOGIOSO, não só acusatório.** Dependendo da proporção entre
+> receita e despesa removidas, a Taxa de Poupança **sobe** — e a V0 renderiza `▲ avaliação boa`,
+> parabenizando a família por uma mudança de método. Isso é pior que o caso acusatório em um
+> aspecto: ninguém abre chamado por elogio, então o erro não é reportado.
+>
+> A **regra** da D6 (cruzar zero, derivado do dado) permanece válida e é o que o 3c2b implementa.
+> O que cai é só o exemplo.
+
+~~Sem ele, o primeiro relatório pós-flip renderiza **"Receitas ▼19% — avaliação ruim"**
+(`VariacaoSection.deltaColor` + `deltaAriaLabel`), atribuído a nada.~~ O produto passaria
+a **afirmar** que a família mudou de comportamento — falso-positivo mais caro que o número
+que estamos corrigindo, porque o erro atual é otimista e este seria atribuído a ela.
 
 **Regra:** presença de `consolidacao_cross_documento` no relatório atual **+** ausência
 no snapshot comparado ⇒ a base de comparação mudou ⇒ caption. **Derivado**, não flag de
@@ -981,9 +1000,20 @@ deixa resíduo a limpar depois do flip.
 
 **Sem suprimir cor** — o delta de patrimônio é legítimo e suprimir tudo distorce.
 
-**Débito registrado, não desta lane:** a V0 **julga** (`avaliação ruim`), o que é certo
-para movimento real e errado para mudança de método. A noção de **base não-comparável**
-pertence ao plano [SNAPSHOT_CHANGELOG_V3](../../../plan/SNAPSHOT_CHANGELOG_V3/_README.md); abrir item lá.
+**Débito registrado, não desta lane:** a V0 **julga** (`deltaColor` → `--semantic-success`/
+`--semantic-danger`; `deltaAriaLabel` → *"avaliação boa"* / *"avaliação ruim"*), o que é certo
+para movimento real e errado para mudança de método. **O caption não desarma isso** — ele
+contextualiza ao lado, e cor e `aria-label` continuam afirmando mérito por linha. A noção de
+**base não-comparável** pertence ao plano
+[SNAPSHOT_CHANGELOG_V3](../../../plan/SNAPSHOT_CHANGELOG_V3/_README.md); abrir item lá.
+
+> ⚠️ **Verificado em 2026-08-10: o item ainda NÃO existe lá.** Varredura do
+> `SNAPSHOT_CHANGELOG_V3/_README.md` acha uma única ocorrência adjacente — **W5-R2**
+> (*"série de KPI com mudança de metodologia entre ciclos quebra comparabilidade"*, mitigada por
+> marcador no chart) —, que é **risco da W5**, está `backlog, bloqueada por dado`, e trata de
+> série temporal, não do julgamento single-pair da V0. A instrução "abrir item lá" continua **por
+> fazer**, e é ela que decide se o enforce pode ligar com a V0 carimbando mérito sobre uma
+> mudança de base. **Decisão do dono.**
 
 **Escopo que a l2 NÃO fecha (atualizado pela D5):** a classe **inteira** de duplicação intra-proveniência cross-arquivo — **716 rows** (140 que o D4 removia + 576 que o colapsador retém por não haver perna LLM na chave). Inclui a duplicação em chave de **proveniência
 única** (buraco do `cross_file_dedup` com período na key) permanece aberta e é da
