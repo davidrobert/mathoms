@@ -149,7 +149,7 @@ test.describe("Report shell layout @critical", () => {
     // propósito. O defeito é âncora para seção que NUNCA renderiza — desligada
     // no layout ou inexistente. Medido em CI: com a fixture atual somem S4,
     // S_IRPF_RENDA, S_IRPF_OTIMIZACAO e APP_C, todas `enabled: true`.
-    const habilitadas = new Set(
+    const habilitadas = new Set<string>(
       [...LAYOUT.estrategico.sections, ...(LAYOUT.estrategico.appendices ?? [])]
         .filter((s) => s.enabled)
         .map((s) => s.id),

@@ -90,7 +90,11 @@ test.describe("S_parecer — retenção parcial @critical", () => {
     await expect(nota).toContainText("Os números das demais seções não mudam.");
 
     const caption = page.getByTestId("parecer-risks-caption");
-    await expect(caption).toContainText("Mostrando 2 de 2 riscos");
+    // A40.l7 — era "Mostrando 2 de 2 riscos". A partição saiu da caption: no
+    // PDF o print expande o `<details>` e as N linhas imprimem, então
+    // "Mostrando 5 de 8" era falso no artefato que o cliente arquiva. Quem
+    // declara a partição é o `<summary>`, que o print esconde.
+    await expect(caption).toContainText("2 riscos");
     await expect(caption).toContainText(
       `${PARECER_ITENS_RETIDOS} itens do parecer retidos`,
     );

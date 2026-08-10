@@ -110,6 +110,150 @@ intocado), rótulo do disclosure em `ParecerRisksTable.tsx:93`, retítulo da S9,
 e o `title` derivado do `titleMap` (as 4 divergências YAML↔componente do
 §Insumos item 2).
 
+## ✅ Parcial entregue em 2026-08-10 — PR #1355
+
+### Itens 2 e 4, com dois inventários refutados
+
+Fecha o que era construível sem produtor novo. **Só o item 1 (S9) resta**, e o
+⛔ dele segue intocado.
+
+> ### ⚠️ Inventário remedido em 2026-08-10 — dois pontos estavam vencidos
+>
+> | O que a lane afirmava | Medido em 2026-08-10 | Consequência |
+> |---|---|---|
+> | §Insumos item 2: **4** divergências YAML↔componente (`plano_de_acao`, `APP_B`, `APP_D` + a 2.5 já alinhada) | **6.** Faltavam `APP_A`, `APP_C`, `APP_E` — mas essas três são **só o prefixo** `"Apêndice X — "`, classe diferente das outras | mudou o desenho: o prefixo é convenção a **preservar** e compor, não deriva a eliminar |
+> | §Problema RV3-15: *"no PDF o print CSS expande tudo, então o rótulo fica ao lado das linhas que o desmentem"* | ❌ **Falso.** `SParecer.print.css:19-22` tem `details.parecer-details > summary { display: none }` dentro do `@media print` — o rótulo **não existe** no PDF | o dano é na **tela**, e é pior do que o descrito: o leitor lê "de baixa severidade", decide não expandir e **não lê uma Crítica**. Continua P2, por motivo diferente |
+>
+> **E apareceu um rótulo que de fato mente no PDF, que a lane não citava:** a
+> caption imprime `Mostrando 5 de 8 riscos` **acima das 8 linhas**, porque o
+> print expande o `<details>`. Está no artefato que o cliente arquiva, sem
+> disclosure que o desculpe. Corrigido no mesmo PR.
+
+**Item 4 — a fonte passa a ser única, e o gate é o compilador.** `ReportSection`
+perdeu o prop `title` e deriva de `sectionHeading(id)`; o `id` virou união
+literal emitida pelo codegen (`LayoutSectionId`). As duas formas do defeito —
+`title` hardcoded e id que não existe no layout — são **erro de compilação**.
+Gate por construção vale mais que teste: não há onde digitar um heading
+divergente.
+
+O prefixo de apêndice é composto **na borda de render**. No `buildTitleMap` (que
+alimenta nav e ToC) o título segue **nu** — com o prefixo lá, `shortLabel`
+cortaria em `" — "` e os cinco apêndices virariam "Apêndice A", "Apêndice B"…
+ao lado do badge que já diz a letra. É a regressão que o `product-designer`
+apontou e que a mutação M4 agora trava.
+
+Copy decidida com `product-designer` (as 3 divergências substantivas):
+
+| id | era | virou | por quê |
+|---|---|---|---|
+| `APP_B` | YAML "Premissas Econômicas" | **"Premissas e Metodologia"** | o título do YAML é o de um **card da própria seção** (`report-inventory.expected.json`), e omitia "Metas Vigentes" + "Pilares Metodológicos" |
+| `APP_D` | YAML "Referências e Recursos" | **"Referências e Fontes"** | não há recurso nem link; há referências (pilares) e fontes (lineage) |
+| `plano_de_acao` | heading "Plano de Ação" | **YAML vence** | a cauda "— Decisões em Vigor" impede ler o relatório como plano editável; nav não muda (`shortLabel` corta em `" — "`) |
+
+**Item 3 (retítulo da S9) entrou junto** — `"Riscos e Sucessão — Lacunas de
+Proteção"`, endossado sem ajuste. Entrou aqui porque puxa o mesmo rebaseline de
+snapshot e PDF; separar pagaria duas vezes. **Cascata obrigatória cumprida:**
+`config/prompts/section_summaries.yaml` (o `label` é o título que o LLM recebe
+para escrever o parágrafo da própria seção) e `config/prompts/parecer_planejador.yaml`
+(`title`; o `id: riscos_protecao` é identidade e **não** muda). Sem ela a
+divergência só migraria de YAML↔componente para YAML↔prompt.
+
+**Item 2 — copy sozinha não resolvia.** `sorted.slice(5)` é cego à severidade:
+com 6 riscos Críticos, o 6º ia para trás do disclosure. Agora **Crítica e Alta
+nunca colapsam** e o rótulo é derivado da composição real do conjunto escondido
+(`"Ver mais 3 riscos de severidade média e baixa"`). A caption passa a declarar
+só o total, que é verdadeiro nas duas mídias.
+
+**Prova de mutação (contada).** Antes desta entrega, mudar o heading de
+`APP_B`/`APP_D` derrubava **0** testes — os 154 arquivos da suíte passavam verde
+sobre a divergência, que é o sintoma de "a suíte concorda com o bug".
+
+| Mutação | Cai |
+|---|---|
+| `<ReportSection id="S1_TYPO">` | `TS2322` |
+| voltar a passar `title=` | `TS2322` (prop não existe) |
+| corte volta a `slice(TOP_LIMIT)` | 1 teste |
+| rótulo volta a `"de baixa severidade"` | 2 testes |
+| prefixo some do heading | 1 teste |
+| prefixo vaza para o mapa do índice | 1 teste |
+
+**Item 5 (baseline) — rodou, e o resultado corrige a leitura da lane.** O PR
+carrega `visual`, `print` e `e2e` de propósito. Os dois jobs visuais saíram
+**`pass`** — e isso **não** é o mesmo que "a mudança foi verificada":
+
+> ### ⚠️ O gate de pixel não consegue ver retítulo de seção (medido 2026-08-10)
+>
+> `sections.snapshots.visual.spec.ts` usa `maxDiffPixelRatio: 0.025` — 2,5% da
+> área da **seção inteira**. O `<h2>` da S9 mudou de *"Riscos e Proteção —
+> Seguros Críticos"* para *"Riscos e Sucessão — Lacunas de Proteção"*, e a
+> baseline `S9-{light,dark}-visual-linux.png` **passou sem diff acusado**: o
+> heading é uma faixa fina no topo de uma seção alta, muito abaixo do limiar.
+>
+> A tolerância foi calibrada para não perseguir antialiasing de canvas
+> (`chart.js`), e o comentário do arquivo declara a intenção — *"captura
+> mudanças estruturais (ex.: +35px de altura = 7% diff em S1)"*. **Mudança de
+> texto não é mudança estrutural sob essa métrica.** Consequência: o job de
+> snapshot **não gateia copy de heading**, e afirmar "verificado porque o
+> visual passou" seria falso.
+>
+> Isto **aprofunda** o §Follow-up do #1337, que atribuía o buraco a *"o job não
+> rodou"*. Rodando, ele ainda não vê a classe de mudança que esta lane produz.
+> Gatilho `sre-devops`, junto do item já registrado no §Inventário de follow-up
+> do [[A40]].
+
+**A verificação renderizada existe — é a camada de TEXTO, não a de pixel.**
+`print-text.@critical.spec.ts` (*"todo título de seção renderizado na tela chega
+ao PDF"*) roda no *Report render gate* dentro de **Frontend checks**, que é
+required, e passou com os títulos novos. É ela que satisfaz o §Débito de método
+para os headings, não o snapshot. Continuo **sem** conseguir rodar Playwright
+neste worktree (`node_modules` é symlink, o Turbopack recusa) — a execução foi
+do CI.
+
+**O E2E de fluxo pegou um spec meu que o worktree não alcançava:**
+`parecer-degradacao.@critical.spec.ts:93` fixava a caption antiga. Corrigido no
+mesmo PR. O job `frontend-e2e` acusou **outras** falhas — `category-overrides`,
+`plano-*`, `property-finance`, `protection-cadastro`, `learning_loop`,
+`drill-down` — em telas que este PR não toca. **Não afirmo que sejam
+pré-existentes:** o job é opt-in por label e não há execução recente em `main`
+para comparar, então a única leitura honesta é *"desconhecido, e o histórico não
+permite decidir"*. Registrado como follow-up nº 7 abaixo.
+
+**Não entrou:** item 1 (S9 empty state) — o ⛔ abaixo é o mesmo, intocado.
+
+### Follow-ups nomeados (com dono e condição de retomada)
+
+1. **`§{section_id}` chega cru ao cliente** (`ParecerRisksTable`: `§S9`,
+   `§S_IRPF_RENDA`). Numa lane chamada "navegação e **ponteiros**", é o ponteiro
+   menos legível do relatório, e o padrão contrário já existe em
+   `ParecerAncoraChips` ([[ADR-296]]). O `titleMap` desta lane é o insumo. **P3**,
+   `product-designer` — não entrou para não expandir escopo de um PR que já
+   move 4 headings.
+2. **`"Real Estate"` viola COPY_GUIDELINES §9** (inglês cru). Pior: `shortLabel`
+   descarta a parte em português e **mantém** a inglesa no TopNav. **P3**,
+   `product-designer`.
+3. **Pilares metodológicos duplicados** entre APP_B (prosa) e APP_D (tabela).
+   **Condição de retomada:** ao remover a tabela duplicada, retitular APP_D para
+   `"Fontes e Rastreabilidade"` **no mesmo PR** — titular hoje para um estado
+   futuro é o erro que o ⛔ da S9 evita.
+4. **Corpo do prompt da S9** (`section_summaries.yaml`, "mapeia riscos
+   prioritários (vida, invalidez, sucessório…)") pede alinhamento leve ao novo
+   eixo. Só o `label` foi sincronizado aqui — o corpo é gatilho
+   `prompt-engineer`, não carona deste PR.
+5. **`CoberturaSegurosCard` segue hospedado na S9** sob um título que agora diz
+   "Lacunas". Tolerável enquanto a 2.5 está desligada. **Condição de retomada:**
+   ao ligar `S_PROTECAO`, decidir no mesmo PR se a tabela sai da S9 — senão duas
+   seções mostram a mesma tabela sob títulos opostos.
+6. `docs/plan/REPORT_PREMIUM/EXEMPLO_DE_RELATORIO.html` segue com os títulos
+   antigos. Precedente do #1286: a paridade daquele mockup é visual/estrutural,
+   não lexical.
+7. **`frontend-e2e` acusa 8+ falhas em telas fora deste PR** (`/config`,
+   `/plano`, `/protecao`, dashboard, learning loop). O job é opt-in por label e
+   **não há execução recente em `main`** para servir de baseline, então não dá
+   para decidir se são pré-existentes. **Condição de retomada:** rodar o job uma
+   vez em `main` (workflow_dispatch) e comparar; se forem pré-existentes, o
+   achado é que o gate `@critical` está vermelho e ninguém vê — mesma classe do
+   §Follow-up do #1337. Gatilho `sre-devops`.
+
 ## Problema
 
 **Âncora sem alvo (RV3-04).** `S_PROTECAO` tem `enabled: false` com o componente
@@ -128,9 +272,14 @@ um domínio cujo card vive em **outra**. Julgar ponteiros contra um mapa incoere
 produz falso-positivo — por isso o retítulo vem junto.
 
 **Rótulo que mente (RV3-15).** `ParecerRisksTable.tsx:93` rotula o resto como "de
-baixa severidade" enquanto o `extra` inclui severidade média. **No PDF o print CSS
+baixa severidade" enquanto o `extra` inclui severidade média. ~~**No PDF o print CSS
 expande tudo**, então o rótulo fica ao lado das linhas que o desmentem — no
-artefato que o cliente arquiva. Por isso o painel pediu P2, não P3.
+artefato que o cliente arquiva.~~ Por isso o painel pediu P2, não P3.
+
+> ⚠️ **A frase riscada é falsa** — medido 2026-08-10, ver §Parcial acima. O
+> print **esconde** o `<summary>`. O achado continua P2 porque o dano é na
+> **tela** (o leitor não expande e não lê uma Crítica), e porque a caption
+> — essa sim — mentia no PDF.
 
 ## Escopo
 
@@ -194,6 +343,11 @@ para não abrir branch paralela sobre `report_layout.yaml`/`ReportShell`.
    outra, no mesmo scroll. **Fix durável:** `ReportSection` deriva `title` do
    `titleMap` do LAYOUT em vez de cada seção hardcodar — mata as 4 de uma vez e é
    o "validador de hospedagem de componente" já no escopo.
+
+   > ⚠️ **Eram 6, não 4** — medido 2026-08-10 (§Parcial acima). `APP_A`, `APP_C`
+   > e `APP_E` também divergiam, mas **só pelo prefixo** `"Apêndice X — "`, que
+   > é convenção a preservar. Entregue em #1355: o prop `title` deixou de
+   > existir, e o prefixo passou a ser composto na borda de render.
 
 3. **Retítulo da S9 é o resíduo do #1286, e a cauda é que sai.** Com a 2.5 virando
    "Seguros", a S9 ("Riscos e Proteção — **Seguros Críticos**") reintroduz a

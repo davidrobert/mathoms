@@ -79,10 +79,19 @@ def _collect_ids(sections: list[dict[str, Any]], key: str) -> list[str]:
     return seen
 
 
+# Vira união literal no TS, então `<ReportSection id="TYPO">` é erro de
+# compilação em vez de heading com o id cru na tela (A40.l7).
+def _section_and_appendix_ids(layout: dict[str, Any]) -> list[str]:
+    """Ids que o `<h2>` do relatório pode legitimamente titular."""
+    est = layout["estrategico"]
+    return [s["id"] for s in (est.get("sections") or []) + (est.get("appendices") or [])]
+
+
 def render_ts(layout: dict[str, Any]) -> str:
     all_sections = layout["estrategico"]["sections"]
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
+    all_section_ids = _section_and_appendix_ids(layout)
 
     as_json = json.dumps(layout, indent=2, ensure_ascii=False)
 
@@ -143,7 +152,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "}",
         "",
         "export interface SectionSpec {",
-        "  id: string;",
+        "  id: LayoutSectionId;",
         "  title: string;",
         "  enabled: boolean;",
         "  charts?: ChartSpec[];",
@@ -159,7 +168,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "}",
         "",
         "export interface AppendixSpec {",
-        "  id: string;",
+        "  id: LayoutSectionId;",
         "  title: string;",
         "  enabled: boolean;",
         "  optional?: boolean;",
@@ -227,6 +236,9 @@ def render_ts(layout: dict[str, Any]) -> str:
         "",
         f"export const ALL_CHART_IDS = {json.dumps(all_charts)} as const;",
         "export type ChartId = (typeof ALL_CHART_IDS)[number];",
+        "",
+        f"export const ALL_SECTION_IDS = {json.dumps(all_section_ids)} as const;",
+        "export type LayoutSectionId = (typeof ALL_SECTION_IDS)[number];",
         "",
     ]
     return "\n".join(lines)

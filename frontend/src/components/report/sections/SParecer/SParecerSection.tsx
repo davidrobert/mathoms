@@ -38,7 +38,7 @@ export function SParecerSection({
   }, [reload]);
 
   return (
-    <ReportSection id="S_parecer" title="Parecer do Planejador">
+    <ReportSection id="S_parecer">
       <div className="md:col-span-2 flex flex-col gap-6">
         {state.kind === "loading" && (
           <p className="text-sm text-[var(--surface-muted-foreground)]">

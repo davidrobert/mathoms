@@ -59,7 +59,7 @@ export function S1PatrimonioSection({ data }: S1Props) {
     : undefined;
 
   return (
-    <ReportSection id="S1" title="Patrimônio — Estrutura e Composição">
+    <ReportSection id="S1">
       <SectionSummary data={data} sectionId="S1" />
 
       {/* Charts */}

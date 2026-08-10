@@ -65,7 +65,7 @@ export function S2FluxoCaixaSection({
     : undefined;
 
   return (
-    <ReportSection id="S2" title="Fluxo de Caixa — Receitas e Despesas">
+    <ReportSection id="S2">
       <SectionSummary data={data} sectionId="S2" />
       {/* Encostado no `SectionSummary` de propósito: ele é a afirmação que esta
           nota qualifica ("Receita recorrente de X/mês sobre os últimos N meses

@@ -55,6 +55,31 @@ const SEVERIDADE_TONE: Record<
 
 const TOP_LIMIT = 5;
 
+/** Partição visível/colapsado — Crítica e Alta nunca colapsam. */
+// `slice(TOP_LIMIT)` era cego à severidade: com 6 riscos Críticos, o 6º ia
+// para trás de um `<summary>` que dizia "de baixa severidade" (A40.l7 · RV3-15).
+// O dano é na TELA — o leitor decide não expandir e não lê uma Crítica. No PDF
+// o summary é escondido por SParecer.print.css e as linhas imprimem todas.
+function partitionBySeveridade(riscos: Risco[]): { visible: Risco[]; extra: Risco[] } {
+  const sorted = sortBySeveridade(riscos);
+  const nuncaColapsa = sorted.filter((r) => SEVERIDADE_RANK[r.severidade] <= 1).length;
+  const corte = Math.max(TOP_LIMIT, nuncaColapsa);
+  return { visible: sorted.slice(0, corte), extra: sorted.slice(corte) };
+}
+
+/** Rótulo do disclosure, derivado da composição real do conjunto colapsado. */
+function fraseSeveridadesOcultas(extra: Risco[]): string {
+  const rotulos = [...new Set(sortBySeveridade(extra).map((r) => r.severidade))].map((s) =>
+    s.toLowerCase(),
+  );
+  const lista =
+    rotulos.length > 1
+      ? `${rotulos.slice(0, -1).join(", ")} e ${rotulos[rotulos.length - 1]}`
+      : rotulos[0];
+  const plural = extra.length > 1 ? "riscos" : "risco";
+  return `Ver mais ${extra.length} ${plural} de severidade ${lista}`;
+}
+
 interface ParecerRisksTableProps {
   riscos: Risco[];
   /** Sinaliza teaser do tier free — exibido como caption "+N no Premium". */
@@ -79,9 +104,7 @@ export function ParecerRisksTable({
 }: ParecerRisksTableProps) {
   if (riscos.length === 0 && gatedCount === 0) return null;
 
-  const sorted = sortBySeveridade(riscos);
-  const visible = sorted.slice(0, TOP_LIMIT);
-  const extra = sorted.slice(TOP_LIMIT);
+  const { visible, extra } = partitionBySeveridade(riscos);
 
   return (
     <section
@@ -98,7 +121,6 @@ export function ParecerRisksTable({
           Riscos identificados
         </h3>
         <RisksCaption
-          visible={visible.length}
           total={riscos.length}
           gatedCount={gatedCount}
           retidosCount={retidosCount}
@@ -114,7 +136,7 @@ export function ParecerRisksTable({
       {extra.length > 0 && (
         <details className="mt-3 parecer-details">
           <summary className="cursor-pointer text-xs font-medium text-[var(--brand-accent)] hover:underline">
-            Ver mais {extra.length} risco{extra.length > 1 ? "s" : ""} de baixa severidade
+            {fraseSeveridadesOcultas(extra)}
           </summary>
           <ul className="mt-2 flex flex-col gap-2">
             {extra.map((r, idx) => (
@@ -135,12 +157,10 @@ export function ParecerRisksTable({
  * Quebrar no meio de "itens do parecer retidos" reintroduziria a ambiguidade.
  */
 function RisksCaption({
-  visible,
   total,
   gatedCount,
   retidosCount,
 }: {
-  visible: number;
   total: number;
   gatedCount: number;
   retidosCount: number;
@@ -150,8 +170,11 @@ function RisksCaption({
       className="flex flex-wrap gap-x-2 text-xs text-[var(--surface-muted-foreground)]"
       data-testid="parecer-risks-caption"
     >
+      {/* Só o total: "Mostrando 5 de 8" era FALSO no PDF, onde o print expande
+          o `<details>` e as 8 linhas imprimem (A40.l7). Na tela nada se perde —
+          o `<summary>` logo abaixo já declara a partição. */}
       <span className="whitespace-nowrap">
-        Mostrando {visible} de {total} {total === 1 ? "risco" : "riscos"}
+        {total} {total === 1 ? "risco" : "riscos"}
       </span>
       {retidosCount > 0 && (
         <>

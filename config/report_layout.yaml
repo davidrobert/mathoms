@@ -489,7 +489,11 @@ estrategico:
     # obrigatório em cada card de cobertura recomendada.
     # --------------------------------------------------------------------------
     - id: "S9"
-      title: "Riscos e Proteção — Seguros Críticos"
+      # A40.l7: a 2.5 virou "Seguros — Cobertura Contratada" (#1286) e "Seguros"
+      # colidia nas duas. Eixo honesto: 2.5 = o que está contratado; S9 = o que
+      # falta e o que acontece na transmissão (sucessão/ITCMD já mora aqui,
+      # ADR-192 D3). Nav (`shortLabel`) passa a ler "Riscos e Sucessão".
+      title: "Riscos e Sucessão — Lacunas de Proteção"
       enabled: true
       summary: true
       summary_source: "s9"
@@ -598,7 +602,13 @@ estrategico:
       summary_source: null
       # APP_A já migrado em ApendiceASection.tsx — cards[] vazio (uso hand-coded)
     - id: "APP_B"
-      title: "Premissas Econômicas"
+      # A40.l7: era "Premissas Econômicas" — que é o título de um CARD desta
+      # mesma seção (report-inventory.expected.json), e deixava "Metas
+      # Vigentes" e "Pilares Metodológicos" fora do rótulo. Título nu: o
+      # prefixo "Apêndice B — " é composto no render (ReportSection), nunca
+      # aqui — com ele no YAML, `shortLabel` cortaria em " — " e o TopNav
+      # mostraria só "Apêndice B" ao lado do badge que já diz "B".
+      title: "Premissas e Metodologia"
       # Fase 10 entregou ApendiceBSection (ADR-117/122).
       enabled: true
       summary: true
@@ -621,7 +631,9 @@ estrategico:
       cards:
         - {id: "sensibilidade_ativos", enabled: true, variant: "feature", size: "full"}
     - id: "APP_D"
-      title: "Referências e Recursos"
+      # A40.l7: "Recursos" prometia link/download que a seção não tem. Os dois
+      # cards são Pilares Metodológicos (referências) + Lineage (fontes).
+      title: "Referências e Fontes"
       enabled: true
       summary: true
       summary_source: null

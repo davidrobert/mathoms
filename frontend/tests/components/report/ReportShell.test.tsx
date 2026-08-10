@@ -339,3 +339,44 @@ describe("MonetaryValue", () => {
     expect(container.textContent).toMatch(/1,50?\s?mi/);
   });
 });
+
+// A40.l7 §Insumos 2 — o heading era digitado em cada seção enquanto o índice
+// lia o YAML, e 6 divergiam. Estes testes travam a derivação: sem eles, mudar
+// o título do YAML muda o índice e deixa o heading para trás, em silêncio (a
+// suíte inteira passou verde na primeira medição desta lane).
+describe("sectionHeading — heading e índice saem da mesma fonte", () => {
+  it("seção comum usa o título do YAML sem prefixo", async () => {
+    const { sectionHeading, buildTitleMap } = await import(
+      "@/components/report/utils/sectionTitles"
+    );
+    const { LAYOUT } = await import("@/generated/report-layout");
+
+    for (const s of LAYOUT.estrategico.sections) {
+      expect(sectionHeading(s.id)).toBe(buildTitleMap()[s.id]);
+      expect(sectionHeading(s.id)).toBe(s.title);
+    }
+  });
+
+  it("apêndice compõe 'Apêndice X — ' e preserva o título nu por trás", async () => {
+    const { sectionHeading, buildTitleMap } = await import(
+      "@/components/report/utils/sectionTitles"
+    );
+    const { LAYOUT } = await import("@/generated/report-layout");
+
+    const apendices = LAYOUT.estrategico.appendices ?? [];
+    expect(apendices.length).toBeGreaterThan(0);
+    for (const a of apendices) {
+      expect(sectionHeading(a.id)).toMatch(/^Apêndice [A-Z] — /);
+      expect(sectionHeading(a.id).endsWith(a.title)).toBe(true);
+      // O prefixo é composto no render; no mapa que alimenta nav/ToC o título
+      // segue nu — com ele no mapa, `shortLabel` cortaria em " — " e o TopNav
+      // mostraria só "Apêndice B" ao lado do badge que já diz "B".
+      expect(buildTitleMap()[a.id]).toBe(a.title);
+    }
+  });
+
+  it("V0 é renderizada pelo shell e mesmo assim resolve título", async () => {
+    const { sectionHeading } = await import("@/components/report/utils/sectionTitles");
+    expect(sectionHeading("V0")).toBe("O que mudou");
+  });
+});

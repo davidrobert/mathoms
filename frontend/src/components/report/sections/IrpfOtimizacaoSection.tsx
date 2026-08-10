@@ -25,7 +25,7 @@ export function IrpfOtimizacaoSection({ data }: { data: ReportAnalysisData }) {
   if (!kpis) return null;
 
   return (
-    <ReportSection id="S_IRPF_OTIMIZACAO" title="Otimização Tributária">
+    <ReportSection id="S_IRPF_OTIMIZACAO">
       <IrpfPgblCapacidadeCard kpis={kpis} />
       {shouldRenderDependentes(kpis) && (
         <IrpfDependentesCard

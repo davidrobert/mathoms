@@ -20,7 +20,7 @@ export function S4RealEstateSection({ data }: { data: ReportAnalysisData }) {
   if (!realEstate) return null;
 
   return (
-    <ReportSection id="S4" title="Real Estate — Imóveis e Renda Passiva">
+    <ReportSection id="S4">
       <SectionSummary data={data} sectionId="S4" />
       <RealEstateYieldCard data={realEstate} />
     </ReportSection>

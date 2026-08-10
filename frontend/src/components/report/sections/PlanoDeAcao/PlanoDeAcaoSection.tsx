@@ -48,7 +48,7 @@ export function PlanoDeAcaoSection({ workspaceId }: PlanoDeAcaoSectionProps) {
   const { decisions, loading, error } = useDecisions(workspaceId);
 
   return (
-    <ReportSection id="plano_de_acao" title="Plano de Ação">
+    <ReportSection id="plano_de_acao">
       <div className="md:col-span-2 flex flex-col gap-4">
         <ManageInAcaoLink />
         {error ? (

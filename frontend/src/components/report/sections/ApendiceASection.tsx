@@ -94,7 +94,7 @@ function DefinitionTable({
 // produção faz.
 export function ApendiceASection({ data }: { data: ReportAnalysisData }) {
   return (
-    <ReportSection id="APP_A" title="Apêndice A — Definições e Siglas">
+    <ReportSection id="APP_A">
       <SectionSummary data={data} sectionId="APP_A" />
       <DefinitionTable
         title="Glossário de Termos Financeiros"

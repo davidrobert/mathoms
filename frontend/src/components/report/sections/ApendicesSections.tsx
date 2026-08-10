@@ -135,7 +135,7 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
       : null;
 
   return (
-    <ReportSection id="APP_B" title="Apêndice B — Premissas e Metodologia">
+    <ReportSection id="APP_B">
       <SectionSummary data={data} sectionId="APP_B" />
 
       <MetasVigentesCard snapshot={snapshot} />
@@ -244,7 +244,7 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
   }
 
   return (
-    <ReportSection id="APP_C" title="Apêndice C — Cenários de Estresse">
+    <ReportSection id="APP_C">
       {/* A40.l4: a APP_C é o único apêndice com parágrafo de abertura
           AUTORAL (tom CVM/Susep: "não são previsões"). O derivado dizia a
           mesma coisa mais pobre — "validar a margem de segurança do plano"
@@ -306,7 +306,7 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
   const lineage = data._report_lineage;
 
   return (
-    <ReportSection id="APP_D" title="Apêndice D — Referências e Fontes">
+    <ReportSection id="APP_D">
       <SectionSummary data={data} sectionId="APP_D" />
 
       <ReportCard variant="neutral" title="Pilares Metodológicos" size="half">
@@ -370,7 +370,7 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
  */
 export function ApendiceESection({ data }: { data: ReportAnalysisData }) {
   return (
-    <ReportSection id="APP_E" title="Apêndice E — Próximos Ciclos e Roadmap">
+    <ReportSection id="APP_E">
       <SectionSummary data={data} sectionId="APP_E" />
     </ReportSection>
   );

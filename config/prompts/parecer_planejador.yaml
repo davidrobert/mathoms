@@ -430,10 +430,12 @@ context_sections:
       - "Pendência regulatória (FBAR/8938 atrasada, contador sem definição) → risco severidade Alta."
 
   # --------------------------------------------------------------------------
-  # 8) Riscos e proteção (S9)
+  # 8) Riscos e sucessão (S9)
   # --------------------------------------------------------------------------
   - id: "riscos_protecao"
-    title: "Riscos e Proteção"
+    # `id` é identidade e NÃO muda; `title` é o vocabulário com que o parecer
+    # nomeia a S9 e acompanha o retítulo do layout (A40.l7).
+    title: "Riscos e Sucessão"
     aligned_with_layout: "S9"
     eviction_priority: 6
     blocks:

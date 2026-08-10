@@ -16,7 +16,7 @@ export function S8PrevidenciaSection({ data }: { data: ReportAnalysisData }) {
   const tributario = data.tributario as TributarioBundle | undefined;
 
   return (
-    <ReportSection id="S8" title="Previdência — PGBL e Fiscalidade">
+    <ReportSection id="S8">
       {/* ADR-356: o fallback determinístico é a camada 3 de <SectionSummary>;
           o bloco separado (com guarda `!narrativas?.["S8"]`) foi deletado —
           com render site único, o duplo-parágrafo é impossível. */}
