@@ -238,9 +238,8 @@ _Row = tuple[BankStatement, Transaction]
 # os dois divergiam em silêncio. Descartar `direction` é deliberado: gate que BLOQUEIA deve
 # sobre-detectar (o "4282/4320" da prosa antiga está invertido — [[ADR-364]] §Emenda 2026-08-09).
 def gate_key_digest(*, data_iso: str, valor_cents: int, moeda: str, descricao_norm: str) -> str:
-    """Digest da chave de colapso SEM ``direction`` e SEM proveniência — a chave do
-    **gate de override** ([[A40.l2]] D1). FONTE ÚNICA: o produtor (`_candidate`) e o
-    consumidor (`collapse_precondition`) chamam esta função, nenhum monta a tupla."""
+    """Chave do **gate de override** ([[A40.l2]] D1) — sem ``direction``, sem proveniência.
+    FONTE ÚNICA: `_candidate` e `collapse_precondition` chamam aqui, nenhum monta a tupla."""
     return _key_digest(
         (data_iso, int(valor_cents), (moeda or "").strip().upper(), descricao_norm or "")
     )
@@ -337,26 +336,27 @@ def _tx_cents_signed(tx: Transaction) -> int:
     return int(decimal_cents(tx.amount.amount) * (-1 if tx.amount.amount < 0 else 1))
 
 
-def _agrega_por_source(drop: list[_Row]) -> dict[str | None, tuple[int, int, Counter]]:
-    """``{source: (count, cents_assinado, meses)}`` — uma passada só sobre as rows."""
-    agg: dict[str | None, list] = {}
+# O MÊS entra na chave porque decide o dono da remoção: `output_key` embute o período, então
+# arquivo de dois períodos vira dois grupos e sem o mês a mesma remoção é reivindicada pelos dois
+# (medido: 6 onde havia 3). `count` e `cents` somam na mesma iteração ⇒ partição exata nos dois.
+def _agrega_por_source_e_mes(drop: list[_Row]) -> dict[tuple[str | None, str], tuple[int, int]]:
+    """``{(source, mes): (count, cents_assinado)}`` — uma passada sobre as rows."""
+    agg: dict[tuple[str | None, str], list[int]] = {}
     for stmt, tx in drop:
-        bucket = agg.setdefault(stmt.source_document, [0, 0, Counter()])
+        bucket = agg.setdefault((stmt.source_document, tx.date.strftime("%Y-%m")), [0, 0])
         bucket[0] += 1
         bucket[1] += _tx_cents_signed(tx)
-        bucket[2][tx.date.strftime("%Y-%m")] += 1
-    return {src: (c, v, m) for src, (c, v, m) in agg.items()}
+    return {k: (c, v) for k, (c, v) in agg.items()}
 
 
 def _removals_by_source(drop: list[_Row]) -> tuple[CollapseRemoval, ...]:
-    """Uma ``CollapseRemoval`` por ``source_document`` — o ledger é per-group, então
-    atribuição global não fecha."""
-    agg = _agrega_por_source(drop)
+    """Uma ``CollapseRemoval`` por par ``(source_document, mês)`` — granularidade que a
+    atribuição precisa para ter **dono único** ([[ADR-347]] §Emenda 2026-08-10)."""
     return tuple(
-        CollapseRemoval(
-            _CANAL, c, v, cross_source_count=c, source=src, meses=tuple(sorted(m.items()))
+        CollapseRemoval(_CANAL, c, v, cross_source_count=c, source=src, meses=((mes, c),))
+        for (src, mes), (c, v) in sorted(
+            _agrega_por_source_e_mes(drop).items(), key=lambda kv: (kv[0][0] or "", kv[0][1])
         )
-        for src, (c, v, m) in sorted(agg.items(), key=lambda kv: kv[0] or "")
     )
 
 

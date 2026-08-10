@@ -12,14 +12,19 @@ import sys
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.models.document import BankStatement  # noqa: E402
 from pipeline.domain.models.transaction import Money, Transaction  # noqa: E402
 from pipeline.domain.services.cross_document_collapser import CollapseRemoval  # noqa: E402
 from pipeline.domain.services.e3_load_report import (  # noqa: E402
+    ConservacaoQuebrada,
     LoadStat,
+    atribui_removals_por_grupo,
     build_artifact_ledger,
+    consolidacao_cross_documento,
 )
 from pipeline.domain.services.reconciliation_service import DedupRemoval  # noqa: E402
 
@@ -165,3 +170,186 @@ def test_sobre_declaracao_nao_passa_como_conservado() -> None:
     assert (r.count_in, r.count_out) == (100, 120)
     assert r.verdict == PERDA_SILENCIOSA
     assert "SOBRE-declaração" in r.detail
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Dono único da remoção ([[ADR-347]] §Emenda 2026-08-10 · A40.l2 3c1c)
+# ─────────────────────────────────────────────────────────────────────
+
+
+def _stmt_periodo(arquivo: str, inicio: date, fim: date) -> BankStatement:
+    return BankStatement(
+        institution="banco exemplo",
+        member_key="titular exemplo",
+        period_start=inicio,
+        period_end=fim,
+        currency="BRL",
+        transactions=[],
+        account_type="extratoconta",
+        source_document=arquivo,
+    )
+
+
+def _removal(mes: str, count: int, arquivo: str = "extrato-a.pdf") -> CollapseRemoval:
+    return CollapseRemoval(
+        "cross_document_collapse",
+        count,
+        -100 * count,
+        cross_source_count=count,
+        source=arquivo,
+        meses=((mes, count),),
+    )
+
+
+def _grupos_multi_periodo() -> dict:
+    """UM arquivo cobrindo DOIS períodos — `output_key` embute o período, então ele
+    vira dois grupos que compartilham o mesmo `source_document`."""
+    return {
+        "itau_BRL_202601_202601": [
+            _stmt_periodo("extrato-a.pdf", date(2026, 1, 1), date(2026, 1, 31))
+        ],
+        "itau_BRL_202602_202602": [
+            _stmt_periodo("extrato-a.pdf", date(2026, 2, 1), date(2026, 2, 28))
+        ],
+    }
+
+
+def test_arquivo_multi_periodo_nao_declara_a_mesma_remocao_duas_vezes():
+    """O defeito medido: 1 source em 2 grupos publicava 6 onde havia 3, porque cada
+    grupo reivindicava toda remoção do source que ele contém. O mês é quem decide."""
+    grupos = _grupos_multi_periodo()
+    removals = (_removal("2026-01", 2), _removal("2026-02", 1))
+
+    atribuido = atribui_removals_por_grupo(grupos, removals)
+    payloads = []
+    for key, stmts in grupos.items():
+        payload: dict = {}
+        payload |= build_artifact_ledger(stmts, {}, 0, 0, atribuido[key])
+        payloads.append(payload)
+
+    assert consolidacao_cross_documento(payloads) == {
+        "count": 3,
+        "meses": [{"mes": "2026-01", "count": 2}, {"mes": "2026-02", "count": 1}],
+    }
+
+
+def test_cada_remocao_tem_exatamente_um_dono():
+    grupos = _grupos_multi_periodo()
+    removals = (_removal("2026-01", 2), _removal("2026-02", 1))
+
+    atribuido = atribui_removals_por_grupo(grupos, removals)
+
+    donos = [(key, r.meses[0][0]) for key, lista in atribuido.items() for r in lista]
+    assert sorted(donos) == [
+        ("itau_BRL_202601_202601", "2026-01"),
+        ("itau_BRL_202602_202602", "2026-02"),
+    ]
+
+
+def test_mes_fora_de_todo_periodo_cai_no_fallback_e_nao_se_perde():
+    """Fatura com período sentinel ou borda de período: o mês não casa nenhuma janela.
+    O fato vai para o primeiro grupo em ordem canônica — determinístico e conservado."""
+    grupos = _grupos_multi_periodo()
+    removals = (_removal("2025-07", 4),)
+
+    atribuido = atribui_removals_por_grupo(grupos, removals)
+
+    total = sum(r.count for lista in atribuido.values() for r in lista)
+    assert total == 4
+    assert len(atribuido["itau_BRL_202601_202601"]) == 1
+
+
+def test_fato_sem_dono_aborta_em_vez_de_publicar_menos():
+    """Prova por mutação da guarda: source que não pertence a nenhum grupo faria a soma
+    publicada ficar ABAIXO da declarada — perda silenciosa, que é o que a ADR-347
+    existe para impedir. Aqui a guarda tem de falhar alto."""
+    grupos = _grupos_multi_periodo()
+    removals = (_removal("2026-01", 2, arquivo="arquivo-que-nenhum-grupo-tem.pdf"),)
+
+    with pytest.raises(ConservacaoQuebrada) as exc:
+        atribui_removals_por_grupo(grupos, removals)
+
+    assert "declarado" in str(exc.value) and "atribuido" in str(exc.value)
+
+
+def test_source_em_um_grupo_so_continua_atribuido_normalmente():
+    """Controle: sem multi-período o comportamento não muda."""
+    grupos = {
+        "itau_BRL_202601_202601": [_stmt_periodo("a.pdf", date(2026, 1, 1), date(2026, 1, 31))],
+        "c6_BRL_202601_202601": [_stmt_periodo("b.pdf", date(2026, 1, 1), date(2026, 1, 31))],
+    }
+    removals = (_removal("2026-01", 2, "a.pdf"), _removal("2026-01", 3, "b.pdf"))
+
+    atribuido = atribui_removals_por_grupo(grupos, removals)
+
+    assert sum(r.count for r in atribuido["itau_BRL_202601_202601"]) == 2
+    assert sum(r.count for r in atribuido["c6_BRL_202601_202601"]) == 3
+
+
+_ARQUIVO_ANUAL = "extrato-anual.pdf"
+
+
+def _e2_periodo(inicio: str, fim: str, transacoes: list[dict]) -> dict:
+    """E2 de UM arquivo cobrindo um período — o mesmo `arquivo_origem` nos dois."""
+    return {
+        "pipeline_stage": "E2",
+        "banco": "itau",
+        "tipo": "extrato",
+        "moeda": "BRL",
+        "periodo_inicio": inicio,
+        "periodo_fim": fim,
+        "arquivo_origem": _ARQUIVO_ANUAL,
+        "transacoes": transacoes,
+    }
+
+
+# Parâmetro com nome NÃO-monetário de propósito: `valor: float` casa o gate P5 (ADR-090 —
+# dinheiro nunca é float). A chave do dict segue `"valor"`, contrato do E2; o gate lê a anotação.
+def _tx_e2(dia: str, desc: str, quantia_reais: int) -> dict:
+    return {"data": dia, "descricao": desc, "valor": quantia_reais}
+
+
+# Trava o CALL-SITE, não o helper. Os testes acima provam `atribui_removals_por_grupo`
+# isolada — e passam verdes com o call-site voltando a passar a lista completa (medido por
+# mutação: publicado 2, declarado 1). O defeito vive na fiação, então a asserção tem de ser
+# sobre o artefato que o stage escreve.
+def _store_com_arquivo_em_dois_periodos():
+    from tests.unit.pipeline.test_e3_reconciler_adapter import InMemoryArtifactStore
+
+    store = InMemoryArtifactStore()
+    dup = [_tx_e2("2026-01-05", "MERCADO", -100), _tx_e2("2026-01-05", "MERCADO", -100)]
+    store.seed("E2-extratos", "anual_jan", _e2_periodo("2026-01-01", "2026-01-31", dup))
+    fev = [_tx_e2("2026-02-10", "UBER", -30)]
+    store.seed("E2-extratos", "anual_fev", _e2_periodo("2026-02-01", "2026-02-28", fev))
+    return store
+
+
+def _roda_stage_com_arquivo_em_dois_periodos():
+    """`(declarado_run_level, publicado_nos_ledgers)` do canal `intra_statement_dedup`."""
+    from pipeline.domain.services.e3_reconciler_adapter import E3ReconcilerAdapter
+    from pipeline.domain.services.reconciliation_service import ReconciliationConfig
+
+    store = _store_com_arquivo_em_dois_periodos()
+    result = E3ReconcilerAdapter(ReconciliationConfig(tolerance_days=3)).reconcile_via_store(store)
+
+    assert result["artifacts_written"] == 2, "fixture não produz 2 grupos — teste vira vácuo"
+    return (
+        sum(r.count for r in result.removals if r.canal == "intra_statement_dedup"),
+        sum(
+            store.read("E3", k)["remocoes"]["intra_statement_dedup"]["count"]
+            for k in store.list_keys("E3")
+        ),
+    )
+
+
+def test_o_STAGE_usa_a_atribuicao__nao_so_a_funcao_isolada():
+    """Um arquivo em dois períodos, com duplicata interna: `output_key` embute o período,
+    logo dois grupos compartilham `source_document` e antes do fix os dois declaravam a
+    mesma `DedupRemoval`."""
+    declarado, publicado = _roda_stage_com_arquivo_em_dois_periodos()
+
+    assert declarado == 1, "fixture não produz remoção intra — teste vira vácuo"
+    assert publicado == declarado, (
+        f"a soma dos ledgers publicados ({publicado}) não reproduz o declarado ({declarado}) — "
+        "o call-site voltou a passar a lista completa de removals"
+    )
