@@ -303,7 +303,7 @@ Risco de quebrar run de produção é **~zero em PR0–PR4** (modo `warn`; pior 
 
 | | O que faz | Por que nesta ordem |
 |---|---|---|
-| **PR0** | Inventário: carrega os E5 disponíveis e reporta, por bloco, chaves observadas + tipo Python **antes** da normalização + taxa de presença | Sem isso o aperto é redação, e a correção nº 1 acontece. Se só o dogfood estiver disponível, **declarar como limite** — amostra única não é medição |
+| ~~**PR0**~~ ✅ #1362 | Inventário: carrega os E5 disponíveis e reporta, por bloco, chaves observadas + tipo Python **antes** da normalização + taxa de presença | Sem isso o aperto é redação, e a correção nº 1 acontece. Se só o dogfood estiver disponível, **declarar como limite** — amostra única não é medição |
 | **PR1** | `tarefas_status` → `patternProperties`; `protecao_patrimonial` → `$ref` externo; os 4 arrays ganham `items` | Aditivo, nenhum consumidor muda |
 | **PR2** | `consumo_consciente` (o contrato já existe em `@dataclass`), `reserva_emergencia`, `goals` | `goals` por último: `_enrich_goals_with_passive_income` adiciona 7 chaves — tipar pelo input produz contrato incompleto |
 | **PR3** | `dev/codegen_report_analysis.py` + gate de sincronia (pre-commit) + gate de opacidade | Só agora o codegen tem de onde gerar |
@@ -315,6 +315,59 @@ reason, owner}` com razão e dono **obrigatórios**; inválido em bloco que tenh
 leitor TS; e **contador monotônico decrescente** (padrão de
 `dev/check_code_style_regression.py`), para que opacidade seja dívida com
 trajetória em vez de allowlist sem prazo — allowlist falha aberta.
+
+## ✅ PR0 entregue em 2026-08-10 — PR #1362 (o instrumento, não o aperto)
+
+`dev/inventory_e5_types.py` roda `categorize_transactions` + `analyze_finances`
+sobre as **3** fixtures sintéticas do golden e caminha o payload **cru**,
+registrando o tipo Python de cada folha. Emite só dot-path, nome de tipo e
+contagem — nunca valor, então é commit-safe e PII-zero por construção.
+
+Existe porque a fonte óbvia é a errada: o snapshot do view-model passa por
+`_normalize`, que converte float não-monetário em **string quantizada**. Tipar
+por ele escreveria `type: "string"` onde o wire tem `number`.
+
+### O que mediu
+
+| | |
+|---|---|
+| blocos de topo observados | **29** |
+| objetos opacos | **9** — confirma o co-design, e **refuta o "10"** original |
+| arrays sem `items` | **4** |
+| `reserva_emergencia` | **25 folhas** (o tipo manual do frontend declara 13 — a diferença É o achado) |
+| `goals` | **39 folhas**, 6 tipos incl. `NoneType` |
+
+**`programa_milhas` sai da fila de tipagem: 0 folhas em 3/3 cenários.** Confirma
+a suspeita do co-design (`inputs.programa_milhas or {}`). Não tipe — roteie como
+candidato a deleção, classe [[ADR-364]].
+
+**4 folhas genuinamente nuláveis** em `if_monte_carlo` (`ano_if_cenario_*`,
+`motivo_sem_cone`) ⇒ o schema precisa de `["integer","null"]` / `["string","null"]`,
+não do tipo simples.
+
+> ### ⚠️ Limites — declarados, não contornados
+>
+> 1. **Os 55 artefatos E5 reais do DB local são inacessíveis.** `content_json`
+>    está cifrado (`{"_encrypted": true, …}`) e a chave do vault não está no
+>    ambiente. **Não fui procurar a chave** — é credencial. Então o corpus é
+>    sintético: 3 cenários do produtor real, o que é melhor que a amostra única
+>    do snapshot, mas **não** é "artefato real" no sentido do §Critério de aceite
+>    do co-design. Owner-gated se quisermos fechar essa perna.
+> 2. **3 dos 4 arrays vêm vazios em 3/3 cenários** (`pontos_fortes`, `tarefas`,
+>    `diagnostico_comportamental`). O PR1 **não pode** tipar o `items` deles por
+>    observação — tem de vir da dataclass do produtor. Tipar sobre corpus vazio
+>    seria inventar contrato.
+> 3. **O instrumento tinha um falso-positivo e eu o corrigi antes de publicar.**
+>    A 1ª versão reportava `caminho_p10[][] → float, int` como "produtor
+>    inconsistente"; é **tupla posicional** `(ano, valor)`, e o walker colapsava
+>    as duas posições. Agora indexa (`[][0]`, `[][1]`). Sem essa correção, o PR1
+>    teria tipado uma união que não existe.
+> 4. **A 1ª versão também mentia sobre o tamanho do corpus.** Um
+>    `getattr(g, "_BASELINE_FIXTURE", None)` com default silencioso fazia o 2º
+>    cenário virar cópia do 1º — "3 cenários" sobre 1 amostra. Os nomes reais são
+>    `_BASELINE_MIN` / `_BASELINE_DIVERGENT`, e agora são referenciados direto:
+>    fixture que desaparecer quebra o script em vez de encolher o corpus em
+>    silêncio.
 
 ## Guarda anti-regressão
 
