@@ -7,6 +7,7 @@ Monte Carlo) têm regra de copy própria — ADR-361.
 
 from __future__ import annotations
 
+import math
 from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
@@ -28,6 +29,18 @@ _MESES_PT = (
 )
 
 
+# A divergência era UNILATERAL e o lado errado era este: `round()` do Python é
+# meio-para-PAR, enquanto `.toFixed(0)` do JS é meio-para-cima. Medido no
+# domínio real do estimador (`k/50000`, ADR-360), os dois discordavam em 45 dos
+# 50 001 desfechos — o parágrafo dizia "2%" e a legenda do cone dizia "3%" para
+# o MESMO campo, no mesmo relatório (A40.l25). Meio-para-cima é o que o leitor
+# espera de porcentagem, então o narrador é que se move. Gate:
+# `dev/check_probabilidade_parity.py`.
+def _meio_para_cima(pp: float) -> int:
+    """Ponto percentual arredondado meio-para-cima."""
+    return math.floor(pp + 0.5)
+
+
 def _fmt_probabilidade(prob: float) -> str:
     """Paridade com formatProbability do S7 (ADR-237): guards <1% / >99%."""
     if prob <= 0:
@@ -38,7 +51,7 @@ def _fmt_probabilidade(prob: float) -> str:
         return "<1%"
     if prob > 0.99:
         return ">99%"
-    return f"{round(prob * 100)}%"
+    return f"{_meio_para_cima(prob * 100)}%"
 
 
 def _fmt_mes_ano(iso: str | None) -> str:
