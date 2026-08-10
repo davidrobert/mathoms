@@ -466,6 +466,8 @@ Promovidos a item com condição de retomada porque follow-up em parágrafo é i
 |---|---|
 | **A magnitude** (`receitas_omitidas`/`despesas_omitidas`, cortada do 3c1 pela Objeção 1) | depois de resolvido o dispatch v1/v2 do hash do E4 — hoje, com a flag off, o join por `survivor_hash` devolve **zero em silêncio** |
 | **Teste de execução com `collapse_enforce=True` injetado no adapter** (nunca no call-site — a guarda 3 por AST proíbe) | junto do 3c1c. É a cobertura que falta: os goldens passam hoje porque **nunca exercitam o campo**, então "rebaseline sem diff" não é sinal de pronto |
+| **Identificador de método no artefato** — substitui o proxy de presença de `consolidacao_cross_documento` no gatilho do caption/neutralização da V0. O proxy erra em **um** caso, **uma vez por workspace**: o que adquire seu primeiro par sobreposto pós-flip cruza 0→N e acende o marcador sem mudança de método. Erro conservador (suprime julgamento a mais) | dono: [[PLAN-snapshot-changelog-v3]] §W6. Gatilho: **[[A42.l5]] abrir** **ou** a 2ª mudança de método do produto, o que vier antes. Verificável: existe `$def` de método no schema E5 **e** `_build_snapshot_diff` deixa de ler `fluxo_caixa.consolidacao_cross_documento` |
+| 🔴 **Path morto `reserva.cobertura_meses`** — o builder navega `reserva.cobertura_meses`, o E5 emite `reserva_emergencia`, e `M_RESERVA_MESES` **nunca renderizou em relatório nenhum**. Corrigir é certo, **e a ordem é bloqueante**: só depois do eixo (10), senão liga o falso-positivo **elogioso** (`+1,8 mês`, estrutural — remover despesa sempre aumenta a cobertura, numerador idêntico e denominador menor) | dono: [[PLAN-snapshot-changelog-v3]] §W6-R1. Gatilho: eixo (10) em `main`. Verificável: `M_RESERVA_MESES` aparece com valor não-nulo no payload de `/data` do dogfood |
 
 **Campo omitido quando `count == 0`** (precedente ADR-132 T2) — e o argumento decisivo não é
 estético: `parecer_orchestrator` mete `sha256(json.dumps(e5_data, sort_keys=True))` na chave de
@@ -505,6 +507,13 @@ bloqueados`, isto é, 6 de 6 **inexercitados**. (7) Sentinela pós-flip com núm
 (8) A guarda por AST de `d6f94949` é **estreitada**, nunca deletada — é a guarda que o PR do
 flip tem incentivo a apagar. (9) Flag de enforce em `DEFAULTS` **e** `OPERATOR_ONLY` no mesmo
 PR, com teste AST de que o único call-site de `set_flag` com ela é o service de ops gateado.
+(10) **A V0 não julga mudança de base.** Sob `comparison_base_changed`, nenhuma célula de delta
+usa `--semantic-success`/`--semantic-danger` e nenhum `aria-label` contém "avaliação" — teste no
+nível de **render** (payload não prova renderizado — `dedupeBySemanticKey`), cobrindo flip e
+**rollback**, com **paridade cor ≡ texto** asseverada e **prova por mutação** nos dois sentidos:
+tornar o gatilho por *presença* deixa teste vermelho, e `deltaColor` voltando a julgar sob base
+alterada deixa teste vermelho. Entregue no 3c2b; o eixo existe porque o PR do flip é justamente
+quem tem incentivo a não olhar para a V0 — mesma razão do eixo (8).
 
 #### ✅ MEDIDO 2026-08-06 — a adjudicação por hash está VIVA, e o resultado não é o previsto
 
@@ -998,22 +1007,53 @@ no snapshot comparado ⇒ a base de comparação mudou ⇒ caption. **Derivado**
 migração — generaliza para qualquer campo futuro que marque mudança de método, e não
 deixa resíduo a limpar depois do flip.
 
-**Sem suprimir cor** — o delta de patrimônio é legítimo e suprimir tudo distorce.
+~~**Sem suprimir cor** — o delta de patrimônio é legítimo e suprimir tudo distorce.~~
 
-**Débito registrado, não desta lane:** a V0 **julga** (`deltaColor` → `--semantic-success`/
+> 🔴 **Emenda datada — 2026-08-10 (M1/M2 medidos; decisão do `senior-cto`).** A linha riscada
+> acima está errada nos dois termos. **(a)** Não há cor de patrimônio a suprimir: a manchete do
+> M_PL é **neutra por design** desde a §Emenda 2026-07-09 da [[ADR-190]]. **(b)** M1 mediu
+> Δ **0,00** em `M_PL` e `M_AUVP_DESVIO` — elas nem entram na tabela (o filtro só admite
+> `changed`). "Suprimir tudo distorce" pressupunha um veredito verdadeiro competindo com o falso;
+> não existe.
+>
+> **Regra que vale:** sob base alterada, **nenhuma** linha da V0 afirma mérito — cor
+> `--surface-muted-foreground`, `aria-label` sem "avaliação", **glifo de direção preservado**
+> (em `unit: "brl"` o sinal existe só no glifo e na cor), marcador com `aria-describedby`
+> ancorando o caption. **Estado nomeado, nunca silêncio.**
+
+**✅ Resolvido no 3c2b — 2026-08-10.** A V0 **julgava** (`deltaColor` → `--semantic-success`/
 `--semantic-danger`; `deltaAriaLabel` → *"avaliação boa"* / *"avaliação ruim"*), o que é certo
-para movimento real e errado para mudança de método. **O caption não desarma isso** — ele
-contextualiza ao lado, e cor e `aria-label` continuam afirmando mérito por linha. A noção de
-**base não-comparável** pertence ao plano
-[SNAPSHOT_CHANGELOG_V3](../../../plan/SNAPSHOT_CHANGELOG_V3/_README.md); abrir item lá.
+para movimento real e errado para mudança de método. **O caption não desarmava isso** — não há
+`<caption>` nem `aria-describedby` associando o texto às células, e o nome acessível da célula
+terminava em "avaliação ruim" sem adjacência nenhuma.
 
-> ⚠️ **Verificado em 2026-08-10: o item ainda NÃO existe lá.** Varredura do
-> `SNAPSHOT_CHANGELOG_V3/_README.md` acha uma única ocorrência adjacente — **W5-R2**
-> (*"série de KPI com mudança de metodologia entre ciclos quebra comparabilidade"*, mitigada por
-> marcador no chart) —, que é **risco da W5**, está `backlog, bloqueada por dado`, e trata de
-> série temporal, não do julgamento single-pair da V0. A instrução "abrir item lá" continua **por
-> fazer**, e é ela que decide se o enforce pode ligar com a V0 carimbando mérito sobre uma
-> mudança de base. **Decisão do dono.**
+O deferimento original apoiava-se em *"o falso-positivo pode ser ELOGIOSO, e ninguém abre chamado
+por elogio"*. **M1 refutou isso neste corpus:** a Taxa de Poupança **desce** 14,37 pp e é a
+**única** linha renderizada da seção — acusação vermelha isolada. Premissa caída ⇒ deferimento
+reabre por regra, não por preferência.
+
+**Escopo:** a **porta** (par não-comparável como conceito do contrato de comparação) foi aberta
+como **W6** em [SNAPSHOT_CHANGELOG_V3](../../../plan/SNAPSHOT_CHANGELOG_V3/_README.md); o
+**adaptador** (a razão `consolidacao_cross_documento`) é desta lane. Fundido no 3c2b porque o
+lado `prev` que a regra emendada da D6 exige e o que a neutralização exige são **o mesmo
+booleano, no mesmo arquivo, na mesma função** — derivar duas vezes é a classe `keep_split` que
+esta lane já pagou uma vez. Custo marginal: ~40 linhas. Virou o **eixo (10)** do §Critério de
+saída.
+
+**Medição que fundamenta (M1, 2026-08-10 — probe zero-write rodando E3+E4+E5 duas vezes sobre o
+corpus dogfood, variando só `collapse_enforce`; o braço BEFORE reproduz o artefato E5 persistido
+ao decimal):**
+
+| métrica | toca? | before → after |
+|---|---|---|
+| `M_PL` | não | Δ **R$ 0,00** |
+| `M_TAXA_POUPANCA` | **numerador E denominador** | 34,01% → 19,64% (**−14,37 pp**, 4,8× o limiar) |
+| `M_RESERVA_MESES` | só o denominador | 12,3 → 14,1 meses — **mas nunca renderiza** (path morto, ver §Deferimento) |
+| `M_AUVP_DESVIO` | não | Δ **0** |
+
+`taxa = 1 − D/R` cai ⟺ a fração de receita removida excede a de despesa: medido **28,64%** contra
+**13,10%**. E a janela 12m é atingida bem mais forte que o período completo — o erro no superávit
+da janela não é +63%, é **+129%**.
 
 **Escopo que a l2 NÃO fecha (atualizado pela D5):** a classe **inteira** de duplicação intra-proveniência cross-arquivo — **716 rows** (140 que o D4 removia + 576 que o colapsador retém por não haver perna LLM na chave). Inclui a duplicação em chave de **proveniência
 única** (buraco do `cross_file_dedup` com período na key) permanece aberta e é da
