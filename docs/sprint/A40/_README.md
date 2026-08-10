@@ -601,6 +601,14 @@ dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
 > defeito atual **não é o nível, é a invariância**: o intervalo real dos alvos
 > declaráveis é ~2%–18% e todo mundo recebe 11%. Exige emenda datada na
 > [[ADR-219]] D4 (abortar contradiz "omite a classe ou usa default").
+>
+> **Passo 2 fechado em 2026-08-10 — #1364.** [[ADR-374]] nasce `Proposto` com a
+> fórmula, e a [[ADR-219]] D4 ganhou **emenda datada**: a frase *"omite a classe
+> ou usa default conservador documentado"* estava errada e **nenhum run a
+> exercitou**, porque o σ do MC não vinha daquela tabela. Não move número — o que
+> destrava é o passo 3 (agregação + `mc_version` 6.0), e o que impede é o passo 3
+> ser escrito contra uma D4 que diz o contrário. **Flip de `Proposto` →
+> `Decidido` é do dono:** a fórmula muda a largura do cone de toda a frota.
 
 **[[A40.l28]] e [[A40.l29]] seguem o critério da l25** (abertas 2026-08-03):
 mesmo residual, mesma dependência de #1162 aterrissar, fora das ondas pelo mesmo
