@@ -79,10 +79,9 @@ def test_sem_candidato_zera_sem_estourar(campo):
 # `dev/certify_ledger_local.py` entra no escopo: ele monta o mesmo adapter e estava fora do
 # parse, então ligar o enforce lá era invisível. `ast.Attribute` entra porque chamada por
 # módulo (`mod._e3_build_adapter(...)`) não é `ast.Name` e escapava do filtro.
-_FONTES_DO_ADAPTER = (
-    "scripts/reconcile_transactions.py",
-    "dev/certify_ledger_local.py",
-)
+_STAGE_DE_PRODUCAO = "scripts/reconcile_transactions.py"
+_HARNESS = "dev/certify_ledger_local.py"
+_LEITOR_DA_FLAG = "_e3_collapse_enforce_enabled"
 
 
 def _nome_chamado(func: ast.expr) -> str:
@@ -91,12 +90,11 @@ def _nome_chamado(func: ast.expr) -> str:
     return func.attr if isinstance(func, ast.Attribute) else ""
 
 
-def _enforce_args_do_stage() -> list[ast.expr | None]:
-    """Valor de ``collapse_enforce`` em cada chamada a ``_e3_build_adapter`` nas fontes."""
+def _enforce_args(fonte: str) -> list[ast.expr | None]:
+    """Valor de ``collapse_enforce`` em cada chamada a ``_e3_build_adapter`` na fonte."""
     raiz = Path(__file__).resolve().parents[3]
     return [
         next((kw.value for kw in node.keywords if kw.arg == "collapse_enforce"), None)
-        for fonte in _FONTES_DO_ADAPTER
         for node in ast.walk(ast.parse((raiz / fonte).read_text(encoding="utf-8")))
         if isinstance(node, ast.Call) and _nome_chamado(node.func) == "_e3_build_adapter"
     ]
@@ -117,18 +115,27 @@ def test_o_default_da_assinatura_e_False__o_gate_de_call_site_nao_alcanca_isso()
     assert assinatura.parameters["collapse_enforce"].default is False
 
 
-def test_stage_de_producao_nunca_liga_o_enforce():
-    """AST, não grep: o único caminho de produção monta o adapter em SOMBRA."""
-    # Sem isto, `collapse_enforce=True` no call-site passa verde — nenhum teste de unidade
-    # do colapsador exercita `main_with_store`, e a suíte segue passando enquanto produção
-    # começa a remover dado financeiro.
-    chamadas = _enforce_args_do_stage()
+# ESTREITADO no §3e, nunca deletado — é a guarda que o PR do flip tem incentivo a apagar.
+# Antes aceitava "kwarg ausente OU `False` literal"; agora o stage é OBRIGADO a passar
+# exatamente a leitura da flag. Ficou mais estrito em duas direções: kwarg omitido (que caía
+# no default, o furo medido) e qualquer expressão que não seja o leitor — `True`, `or True`,
+# helper renomeado — passam a reprovar.
+def test_o_stage_liga_o_enforce_SO_pela_flag():
+    chamadas = _enforce_args(_STAGE_DE_PRODUCAO)
 
     assert chamadas, "call-site sumiu — o teste passaria por vacuidade"
     for arg in chamadas:
+        assert (
+            isinstance(arg, ast.Call) and _nome_chamado(arg.func) == _LEITOR_DA_FLAG
+        ), f"stage decide o enforce fora de {_LEITOR_DA_FLAG}() — constante, expressão ou default"
+
+
+def test_o_harness_de_certificacao_nunca_liga_o_enforce():
+    """`dev/certify_ledger_local.py` mede sobre o corpus do usuário e estava fora do parse."""
+    for arg in _enforce_args(_HARNESS):
         assert arg is None or (
             isinstance(arg, ast.Constant) and arg.value is False
-        ), "stage de produção passou collapse_enforce truthy — a sombra virou enforce"
+        ), "o harness ligou o enforce sobre dado real"
 
 
 def _measurement(statements):
@@ -192,18 +199,28 @@ def _colapsador_como_o_stage_monta():
 def _roda_fiacao_de_producao() -> int:
     """`count` no canal do colapso depois de rodar o adapter que o STAGE monta."""
     from pipeline.domain.services.cross_document_collapse_types import CANAL_COLAPSO
-    from scripts.reconcile_transactions import _e3_build_adapter
+    from scripts.reconcile_transactions import (
+        _e3_build_adapter,
+        _e3_collapse_enforce_enabled,
+    )
     from tests.unit.pipeline.test_collapse_ledger_channel import _store_com_par_cross_documento
 
-    store = _store_com_par_cross_documento()
-    # `collapse_enforce` OMITIDO, exatamente como o call-site de produção — é por isso que a
-    # mutação do DEFAULT da assinatura cai aqui, e não no gate AST.
+    store, ctx = _store_com_par_cross_documento(), _CtxConfigs()
+    # Espelha o call-site de `main_with_store` LINHA POR LINHA, inclusive a leitura da flag.
+    # Omitir o kwarg aqui testaria só o default: a mutação `return True` dentro do leitor
+    # passaria verde, que é exatamente o furo que este arquivo existe para fechar.
     adapter, _canon = _e3_build_adapter(
-        _CtxConfigs(), cross_document_collapser=_colapsador_como_o_stage_monta()
+        ctx,
+        cross_document_collapser=_colapsador_como_o_stage_monta(),
+        collapse_enforce=_e3_collapse_enforce_enabled(ctx, store),
     )
     adapter.reconcile_via_store(store)
+    return _count_no_canal(store, CANAL_COLAPSO)
+
+
+def _count_no_canal(store, canal: str) -> int:
     return sum(
-        (store.read("E3", k)["remocoes"].get(CANAL_COLAPSO) or {}).get("count", 0)
+        (store.read("E3", k)["remocoes"].get(canal) or {}).get("count", 0)
         for k in store.list_keys("E3")
     )
 

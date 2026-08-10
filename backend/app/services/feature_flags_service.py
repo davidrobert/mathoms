@@ -36,9 +36,15 @@ from backend.app.models.feature_flag import FeatureFlag
 #   - flag de MEDIÇÃO: desligá-la cega o gate. Ele roda por run sobre o que o measure
 #     produz; sem medição não há `PreconditionReport`, e a ausência de sinal é
 #     indistinguível de sinal limpo — que é como se aprova enforce por vacuidade.
-OPERATOR_ONLY: frozenset[str] = frozenset({"cross_document_collapse_measure_enabled"})
+OPERATOR_ONLY: frozenset[str] = frozenset(
+    {"cross_document_collapse_measure_enabled", "cross_document_collapse_enforce_enabled"}
+)
 
 DEFAULTS: dict[str, bool] = {
+    # A40.l2 §3e — o colapso cross-documento REMOVE row. Nasce `False` e só a rota de ops
+    # a liga, depois do preflight ([[ADR-364]] §Emenda 2026-08-10). Inerte sem a flag de
+    # medição: `_e3_build_collapser` devolve `None` e o adapter exige as duas.
+    "cross_document_collapse_enforce_enabled": False,
     # F8.2 — backlog interativo de tarefas. Em F8.4 (cutover), vira default True
     # para todos. Por enquanto True porque a UI /plano-de-acao já está em produção
     # para Andrade Silva.

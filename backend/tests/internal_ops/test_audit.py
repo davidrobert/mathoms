@@ -121,6 +121,7 @@ _EXPECTED_MUTATION_AUDIT_ACTIONS = {
     "suggestion_backfill.py": "suggestions.backfill_supersede",
     "update_workspace_business_profile.py": "workspace.update_business_profile",
     "update_workspace_llm_budget.py": "workspace.update_llm_budget",
+    "set_collapse_enforce.py": "workspace.set_collapse_enforce",
 }
 
 _EXPECTED_AUTONOMOUS_ACTIONS = {"ops.login", "ops.login_failed", "ops.logout"}

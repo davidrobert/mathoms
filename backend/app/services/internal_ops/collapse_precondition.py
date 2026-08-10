@@ -289,6 +289,7 @@ def from_active_overrides(db: Session, workspace_id: str) -> OverrideRetentionGu
     ativos = _ativos(db, workspace_id)
     sem_snapshot, por_source, sources = _indexa_por_digest(ativos)
     return OverrideRetentionGuard(
+        tx_data_nao_iso=sum(1 for o in ativos if o.tx_data and not _ISO.fullmatch(o.tx_data)),
         denied_digests=frozenset(sources),
         overrides_ativos=len(ativos),
         sem_snapshot=sem_snapshot,

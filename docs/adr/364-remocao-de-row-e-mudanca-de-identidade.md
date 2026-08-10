@@ -4,7 +4,7 @@ type: adr
 title: "Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem"
 status: Proposto
 date: "2026-08-06"
-amended_at: ["2026-08-07", "2026-08-09"]
+amended_at: ["2026-08-07", "2026-08-09", "2026-08-10"]
 tags:
   - type/adr
   - status/proposto
@@ -21,7 +21,10 @@ tags:
 > passa a ser **retenção** — o colapso não remove row cujo `gate_digest` tem override
 > ativo. A §Decisão 1 permanece intacta; a re-ancoragem fica **deferida** com gatilho
 > verificável. Não construa `ReanchorPlan`/`CollisionPlan` a partir do texto original da
-> §Decisão 2 — leia a §Emenda 2026-08-09 primeiro.
+> §Decisão 2 — leia a §Emenda 2026-08-09 primeiro. A de **2026-08-10 corrige o predicado
+> do flip**: `liberado=True` deixa de ser a condição do write-path, porque a cláusula que
+> hoje o reprova não tem elo causal com o dano. Não implemente a §Decisão 4 pelo texto
+> original.
 
 ## Contexto
 
@@ -171,6 +174,66 @@ de que a absolvição funciona.
 eixos, incluindo ensaio de rollback medido), não re-ancora nada (PR3d) e não afrouxa
 `liberado` — a trave que o texto acima nomeia como incentivo permanece onde estava, mais
 apertada.
+
+## Emenda 2026-08-10 — o predicado do flip é sobre o MECANISMO, não sobre `liberado`
+
+> ⚠️ Substitui a condição do write-path fixada na §Decisão 4. A §Decisão 5 (o gate roda
+> todo run) permanece: ele continua sendo série temporal e gatilho de rollback.
+
+**O que motivou.** A medição do gate pós-3d (2026-08-10, corpus de dogfood, zero-write)
+deu `LIBERADO=False` com **uma única cláusula reprovando**:
+
+```
+guard: lido=True · ativos=5 · sem_snapshot=0 · degradado=False
+candidatos=331 · colapsáveis=331 · retidos=0 · reservatório_llm=441
+LIBERADO=False — reprovadas: ('vivacidade=4/5',)
+hits=0 · sem_snapshot=0 · tx_data_nao_iso=0 · medido=True
+```
+
+**`vivacidade` não observa o dano que esta ADR existe para impedir.** Um override cuja
+âncora não casa row nenhuma do E3 entra em `denied_digests` como qualquer outro, **retém**
+a chave dele, e não é alvo de nada — o dano é por-chave e ele não tem chave viva. Pior, a
+cláusula é vacuamente verdadeira em workspace sem override (`com_snapshot == 0 ⇒
+vivacidade_universal True`), de modo que `liberado=True` também significa "não observei
+nada". Autorizar por ela é autorizar por um número que não mede o risco.
+
+**Duas cláusulas saem por serem identidades, não critérios.** `medido` é `True` por
+construção em todo relatório que chega ao `output_summary` (o stage devolve `None` quando
+`corpus_gate_digests` é vazio). E `sem_snapshot == 0 ⇒ hits == 0`, porque `_alvos` já
+filtra `sera_colapsado`, que exclui o retido. Mantê-las no predicado seria contar a mesma
+observação duas vezes.
+
+**O predicado que passa a valer**, lido do run de referência — o `PipelineStageLog` mais
+recente de `reconcile_transactions` cujo `output_summary` contém `collapse_retention`,
+com no máximo 72h:
+
+| origem | cláusula | por que ela mede o dano |
+|---|---|---|
+| `collapse_retention` | `lido is True` | guard não lido ⇒ o run cortou às cegas |
+| `collapse_retention` | `degradado is False` | degradado ⇒ retenção inerte |
+| `collapse_retention` | `retencao_instavel is False` | override criado durante o run |
+| `collapse_precondition` | `sem_snapshot == 0` | override sem âncora não pode ser retido |
+| `collapse_precondition` | `tx_data_nao_iso == 0` | data fora do ISO ⇒ digest diverge ⇒ retenção falha |
+
+Leitura por **chave explícita**, `KeyError` alto: `.get(k, default)` reintroduz o
+fail-open que `_alvos` pagou para fechar. `liberado` e `clausulas_reprovadas` continuam
+sendo **registrados** na auditoria — deixam de bloquear, não de ser medidos.
+
+**`tx_data_nao_iso > 0` passa a degradar o run.** Com `tx_data` fora do ISO o digest do
+override diverge do que o pipeline calcula, a chave **não** é retida, e o override é
+órfãnado em silêncio. `sem_v2 > 0` **não** entra: override v1 com snapshot já entra em
+`denied_digests`, logo a chave já é retida — degradar ali seria over-degradação sem ganho.
+
+**Eixo (3) do §Critério de saída da [[A40.l2]] fica formalmente revogado.** Ele exigia
+"dois runs com `hits == 0` depois do drain", e não há drain desde a §Emenda 2026-08-09.
+`hits` é estruturalmente 0 sob guard não-degradado, então a condição era vácuo com
+aparência de rigor.
+
+**A quarentena do override órfão sai do caminho crítico do flip.** É higiene de row
+inerte, não pré-condição: `orphaned_at` tem writer único e **nenhum código o limpa**, e
+o falsificador da operação não pode falhar (`331/331/331` e `retidos=0` antes e depois).
+Escrita irreversível em dado do usuário para mudar a leitura de um instrumento é troca
+ruim. Quem quiser fazê-la, faça por higiene, desacoplada.
 
 ## Emenda 2026-08-09 — a quitação passa a ser RETENÇÃO; a re-ancoragem fica deferida
 
