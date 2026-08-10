@@ -287,13 +287,16 @@ sections:
       ```
 
   # --------------------------------------------------------------------------
-  # S9 — Riscos e Proteção — title canônico:
-  # "Riscos e Proteção — Seguros Críticos"
+  # S9 — Riscos e Sucessão — title canônico:
+  # "Riscos e Sucessão — Lacunas de Proteção"
   # Foco: top riscos prioritários + cobertura atual de seguros. Não
   # recomenda apólice específica.
   # --------------------------------------------------------------------------
   S9:
-    label: "Riscos e Proteção — Seguros Críticos"
+    # A40.l7 — o label é o título que o LLM recebe para escrever o parágrafo de
+    # abertura DESTA seção; stale aqui faz o heading dizer "Lacunas de Proteção"
+    # e o parágrafo logo abaixo falar de seguros.
+    label: "Riscos e Sucessão — Lacunas de Proteção"
     user_prompt: |
       Seção S9 — Mapa de riscos e cobertura.
 

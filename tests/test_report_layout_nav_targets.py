@@ -15,7 +15,9 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEV_DIR = REPO_ROOT / "dev"
-SHELL_TSX = REPO_ROOT / "frontend" / "src" / "components" / "report" / "ReportShell.tsx"
+SECTION_TITLES_TS = (
+    REPO_ROOT / "frontend" / "src" / "components" / "report" / "utils" / "sectionTitles.ts"
+)
 
 if str(DEV_DIR) not in sys.path:
     sys.path.insert(0, str(DEV_DIR))
@@ -89,7 +91,7 @@ def test_shell_rendered_sections_em_paridade_com_o_tsx() -> None:
 
     block = re.search(
         r"const SHELL_SECTION_TITLES: Record<string, string> = \{(.*?)\};",
-        SHELL_TSX.read_text(encoding="utf-8"),
+        SECTION_TITLES_TS.read_text(encoding="utf-8"),
         re.DOTALL,
     )
     assert block, "SHELL_SECTION_TITLES não encontrado — o parser precisa de ajuste"

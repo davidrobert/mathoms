@@ -60,7 +60,7 @@ export function S7IndependenciaSection({
   const pgblStrategy = getPgblCardStrategy(irpfKpis, derivePrimaryYear(labels));
 
   return (
-    <ReportSection id="S7" title="Independência Financeira — Projeção de Longo Prazo">
+    <ReportSection id="S7">
       <SectionSummary data={data} sectionId="S7" />
       {workspaceId && (
         <SuggestionCalloutInline sectionId="S7" workspaceId={workspaceId} />

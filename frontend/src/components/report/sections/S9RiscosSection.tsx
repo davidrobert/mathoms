@@ -90,7 +90,7 @@ export function S9RiscosSection({ data }: { data: ReportAnalysisData }) {
   const mitigationLegend = buildMitigationLegend(bundle);
 
   return (
-    <ReportSection id="S9" title="Riscos e Proteção — Seguros Críticos">
+    <ReportSection id="S9">
       {/* ADR-356: em empty state o <EmptyState/> abaixo JÁ é a mensagem
           ("sem riscos cadastrados não há análise de cobertura"). Imprimir o
           `s9` acima dele repetiria a mesma afirmação com wording diferente —

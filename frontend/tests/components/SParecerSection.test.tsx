@@ -166,9 +166,8 @@ function retainedResponse(
  *
  * `content` presente + `outcome: entregue_com_retencao` — o desfecho que hoje
  * chega à tela como um parecer íntegro, com a lacuna indetectável. `riscos`
- * ganha um 2º item para que a caption tenha "Mostrando 2 de 2" e a aritmética
- * "visíveis + retidos = total" fique **falsa** de propósito: é ela que o
- * substantivo de cada contador tem de impedir.
+ * ganha um 2º item para que a aritmética "riscos + retidos = total" fique
+ * **falsa** de propósito: é ela que o substantivo de cada contador impede.
  */
 function parcialResponse(dropped = 2): PlannerReviewResponse {
   const p = premiumResponse();
@@ -231,7 +230,11 @@ describe("<SParecerSection /> — retenção parcial @A40.l22", () => {
     render(<SParecerSection workspaceId={WS_ID} reportId={REPORT_ID} />);
 
     const caption = await screen.findByTestId("parecer-risks-caption");
-    expect(caption).toHaveTextContent("Mostrando 2 de 2 riscos");
+    // A40.l7 — era "Mostrando 2 de 2 riscos". A partição saiu da caption
+    // porque `Mostrando 5 de 8` é FALSO no PDF, onde o print expande o
+    // `<details>` e as 8 linhas imprimem. Quem declara a partição é o
+    // `<summary>`, que o print esconde.
+    expect(caption).toHaveTextContent("2 riscos");
     expect(caption).toHaveTextContent("2 itens do parecer retidos na conferência");
     expect(caption).toHaveTextContent("+3 no Premium");
     // O contador de retenção NÃO pode se apresentar como contador de riscos —
@@ -636,5 +639,80 @@ describe("<SParecerSection /> @ADR-199", () => {
     expect(
       screen.getByText(/não constitui recomendação personalizada/i),
     ).toBeInTheDocument();
+  });
+});
+
+// A40.l7 · RV3-15 — o `<details>` rotulava o resto como "de baixa severidade"
+// enquanto `slice(5)` era cego à severidade. O dano é na TELA: o leitor lê
+// "baixa", decide não expandir, e não lê uma Crítica. (No PDF o summary é
+// escondido por SParecer.print.css, então a premissa original da lane — "no
+// PDF o rótulo fica ao lado das linhas que o desmentem" — era falsa.)
+describe("ParecerRisksTable — o rótulo do disclosure não pode mentir", () => {
+  function risco(severidade: string, titulo: string) {
+    return {
+      severidade,
+      titulo,
+      descricao: "d",
+      tema_canonico: "t",
+      evidencia: null,
+      evidencia_path: null,
+      ancoras: [],
+      section_id: "S1",
+      confianca: "alta",
+    };
+  }
+
+  async function renderTable(riscos: ReturnType<typeof risco>[]) {
+    const { ParecerRisksTable } = await import(
+      "@/components/report/sections/SParecer/ParecerRisksTable"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return render(<ParecerRisksTable riscos={riscos as any} />);
+  }
+
+  it("6 Críticas: nenhuma colapsa — Crítica/Alta nunca ficam atrás do disclosure", async () => {
+    const { container } = await renderTable(
+      Array.from({ length: 6 }, (_, i) => risco("Crítica", `Crítico ${i}`)),
+    );
+    expect(container.querySelector("details")).toBeNull();
+    expect(container.querySelectorAll("li")).toHaveLength(6);
+  });
+
+  it("Média e Baixa escondidas: o rótulo nomeia as duas", async () => {
+    const riscos = [
+      ...Array.from({ length: 5 }, (_, i) => risco("Crítica", `C${i}`)),
+      risco("Média", "M1"),
+      risco("Baixa", "B1"),
+      risco("Baixa", "B2"),
+    ];
+    const { container } = await renderTable(riscos);
+    const summary = container.querySelector("summary");
+    expect(summary!.textContent).toBe("Ver mais 3 riscos de severidade média e baixa");
+  });
+
+  it("só Baixa escondida: singular e severidade única", async () => {
+    const riscos = [
+      ...Array.from({ length: 5 }, (_, i) => risco("Alta", `A${i}`)),
+      risco("Baixa", "B1"),
+    ];
+    const { container } = await renderTable(riscos);
+    expect(container.querySelector("summary")!.textContent).toBe(
+      "Ver mais 1 risco de severidade baixa",
+    );
+  });
+
+  it("caption declara o total, que é o que o PDF de fato imprime", async () => {
+    const riscos = [
+      ...Array.from({ length: 5 }, (_, i) => risco("Crítica", `C${i}`)),
+      risco("Baixa", "B1"),
+      risco("Baixa", "B2"),
+      risco("Baixa", "B3"),
+    ];
+    const { container } = await renderTable(riscos);
+    const caption = container.querySelector('[data-testid="parecer-risks-caption"]');
+    expect(caption!.textContent).toContain("8 riscos");
+    expect(caption!.textContent).not.toContain("Mostrando");
+    // No print o `<details>` expande: 8 linhas impressas sob a caption.
+    expect(container.querySelectorAll("li")).toHaveLength(8);
   });
 });

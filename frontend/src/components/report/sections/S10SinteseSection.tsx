@@ -17,7 +17,7 @@ export function S10SinteseSection({ data }: { data: ReportAnalysisData }) {
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
 
   return (
-    <ReportSection id="S10" title="Síntese Estratégica — Tarefas e Score">
+    <ReportSection id="S10">
       <SectionSummary data={data} sectionId="S10" />
 
       <div className="md:col-span-2">

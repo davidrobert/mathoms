@@ -1,9 +1,13 @@
 import { cn } from "@/lib/cn";
 import type { ReactNode } from "react";
 
+import type { LayoutSectionId } from "@/generated/report-layout";
+import { sectionHeading } from "./utils/sectionTitles";
+
 interface ReportSectionProps {
-  id: string;
-  title: string;
+  /** União literal do codegen: id fora do YAML não compila, então o heading
+   *  nunca cai no fallback que imprimiria o id cru na tela. */
+  id: LayoutSectionId;
   /** Mode gate — se setado e ≠ do modo ativo, a seção não é renderizada.
    *  Para F1.1 o gate é feito no shell (loop do layout); este prop é
    *  reservado para F3.2. */
@@ -17,13 +21,17 @@ interface ReportSectionProps {
  * Renderiza `<section id="...">` com h2 padronizado. O id é consumido pelo
  * TOC via IntersectionObserver (F3.1). A grade de cards fica sob este node
  * em um `<div className="grid md:grid-cols-2 gap-6">`.
+ *
+ * Não aceita `title`: o heading vem de `sectionHeading(id)`, mesma fonte que
+ * o índice consome. A ausência do prop é o gate — enquanto ele existia, 6
+ * seções digitavam heading divergente do ToC (A40.l7).
  */
 export function ReportSection({
   id,
-  title,
   children,
   className,
 }: ReportSectionProps) {
+  const title = sectionHeading(id);
   return (
     <section
       id={id}

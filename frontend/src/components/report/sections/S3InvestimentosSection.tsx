@@ -48,7 +48,7 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const alocacaoFooter = readNarrativeConclusion(charts, "alocacao_atual_vs_alvo");
 
   return (
-    <ReportSection id="S3" title="Investimentos — Carteira Financeira">
+    <ReportSection id="S3">
       <SectionSummary data={data} sectionId="S3" />
 
       <div className="md:col-span-2">

@@ -61,7 +61,7 @@ export interface ChangelogSpec {
 }
 
 export interface SectionSpec {
-  id: string;
+  id: LayoutSectionId;
   title: string;
   enabled: boolean;
   charts?: ChartSpec[];
@@ -77,7 +77,7 @@ export interface SectionSpec {
 }
 
 export interface AppendixSpec {
-  id: string;
+  id: LayoutSectionId;
   title: string;
   enabled: boolean;
   optional?: boolean;
@@ -626,7 +626,7 @@ export const LAYOUT: ReportLayout = {
       },
       {
         "id": "S9",
-        "title": "Riscos e Proteção — Seguros Críticos",
+        "title": "Riscos e Sucessão — Lacunas de Proteção",
         "enabled": true,
         "summary": true,
         "summary_source": "s9",
@@ -734,7 +734,7 @@ export const LAYOUT: ReportLayout = {
       },
       {
         "id": "APP_B",
-        "title": "Premissas Econômicas",
+        "title": "Premissas e Metodologia",
         "enabled": true,
         "summary": true,
         "summary_source": null,
@@ -772,7 +772,7 @@ export const LAYOUT: ReportLayout = {
       },
       {
         "id": "APP_D",
-        "title": "Referências e Recursos",
+        "title": "Referências e Fontes",
         "enabled": true,
         "summary": true,
         "summary_source": null,
@@ -978,3 +978,6 @@ export type CardId = (typeof ALL_CARD_IDS)[number];
 
 export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "protecao_premio_decomp", "top15_ativos", "cenarios_conjuge", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes"] as const;
 export type ChartId = (typeof ALL_CHART_IDS)[number];
+
+export const ALL_SECTION_IDS = ["S1", "S2", "S_PROTECAO", "S3", "S4", "S7", "S8", "S_IRPF_RENDA", "S_IRPF_OTIMIZACAO", "S9", "S10", "S_parecer", "plano_de_acao", "APP_A", "APP_B", "APP_C", "APP_D", "APP_E"] as const;
+export type LayoutSectionId = (typeof ALL_SECTION_IDS)[number];

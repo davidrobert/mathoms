@@ -20,6 +20,7 @@ import { ReportSection } from "./ReportSection";
 import { ReportSectionStub } from "./ReportSectionStub";
 import { useReportMode } from "./ReportModeProvider";
 import { MigratedSection, MIGRATED_SECTIONS } from "./MigratedSection";
+import { buildTitleMap } from "./utils/sectionTitles";
 import { SuggestionCalloutSummary } from "./sections/SuggestionCallout";
 import { VariacaoSection } from "./VariacaoSection";
 import { PerfilFamiliaCard, TitularesCard } from "./cards";
@@ -90,20 +91,6 @@ interface ReportShellProps {
 function selectSections(_mode: "estrategico"): SectionSpec[] {
   // ADR-168 (A8.4 PR4): Modo USA removido. Modo Estratégico é único.
   return LAYOUT.estrategico.sections;
-}
-
-/** Seções renderizadas pelo shell fora de `layout.sections` (padrão Sumário
- * Executivo). Títulos aqui alimentam nav/TOC quando o YAML só tem o anchor. */
-const SHELL_SECTION_TITLES: Record<string, string> = {
-  V0: "O que mudou",
-};
-
-/** Mapa section_id → title para lookup rápido (usado pelo buildNavGroups). */
-function buildTitleMap(): Record<string, string> {
-  const map: Record<string, string> = { ...SHELL_SECTION_TITLES };
-  for (const s of LAYOUT.estrategico.sections) map[s.id] = s.title;
-  for (const a of LAYOUT.estrategico.appendices ?? []) map[a.id] = a.title;
-  return map;
 }
 
 /** Encurta título da seção para uso no top-nav: "X — Y" → "X". */
@@ -436,11 +423,7 @@ export function ReportShell({
                       reportId={reportId}
                     />
                   ) : (
-                    <ReportSection
-                      key={section.id}
-                      id={section.id}
-                      title={section.title}
-                    >
+                    <ReportSection key={section.id} id={section.id}>
                       <ReportSectionStub
                         cardIds={(section.cards ?? [])
                           .filter((c) => c.enabled)
