@@ -17,7 +17,7 @@ def _canonical_content(scale: int) -> dict[str, Any]:
     return {
         "patrimonio": {"liquido": 100000 * scale, "bruto": 200000 * scale},
         "ratios": {"taxa_poupanca_recorrente_pct": 10.0 * scale},
-        "reserva": {"cobertura_meses": 6.0 * scale},
+        "reserva_emergencia": {"cobertura_meses": 6.0 * scale},
         "goals": {"alocacao_alvo": {"derived": {"desvio_max_pct": 4.0 * scale}}},
     }
 

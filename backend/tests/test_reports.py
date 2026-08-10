@@ -538,14 +538,14 @@ _PREV_CANONICAL = {
     "periodo_dados": "202601-202603",
     "patrimonio": {"liquido": 1_000_000.0, "bruto": 1_200_000.0},
     "ratios": {"taxa_poupanca_recorrente_pct": 20.0},
-    "reserva": {"cobertura_meses": 6.0},
+    "reserva_emergencia": {"cobertura_meses": 6.0},
     "goals": {"alocacao_alvo": {"derived": {"desvio_max_pct": 4.0}}},
 }
 _CURR_CANONICAL = {
     "periodo_dados": "202602-202604",
     "patrimonio": {"liquido": 1_100_000.0, "bruto": 1_300_000.0},
     "ratios": {"taxa_poupanca_recorrente_pct": 26.0},
-    "reserva": {"cobertura_meses": 6.2},
+    "reserva_emergencia": {"cobertura_meses": 6.2},
     "goals": {"alocacao_alvo": {"derived": {"desvio_max_pct": 9.0}}},
 }
 

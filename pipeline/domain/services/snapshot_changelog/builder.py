@@ -29,7 +29,10 @@ DEFAULT_SECTION_VALUE_PATHS: Mapping[str, str] = {
     "T5": "fluxo_caixa.despesa_total",
     "M_PL": "patrimonio.liquido",
     "M_TAXA_POUPANCA": "ratios.taxa_poupanca_recorrente_pct",
-    "M_RESERVA_MESES": "reserva.cobertura_meses",
+    # A chave de topo do E5 é `reserva_emergencia` (`e5_serialization.py`), nunca `reserva`:
+    # o path nasceu morto e M_RESERVA_MESES jamais renderizou em relatório algum. Gate da
+    # CLASSE — não desta linha — em `test_snapshot_changelog.py`.
+    "M_RESERVA_MESES": "reserva_emergencia.cobertura_meses",
     "M_AUVP_DESVIO": "goals.alocacao_alvo.derived.desvio_max_pct",
 }
 

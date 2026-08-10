@@ -353,3 +353,90 @@ def test_o_STAGE_usa_a_atribuicao__nao_so_a_funcao_isolada():
         f"a soma dos ledgers publicados ({publicado}) não reproduz o declarado ({declarado}) — "
         "o call-site voltou a passar a lista completa de removals"
     )
+
+
+# Deferimento vencido do §3d ([[A40.l2]]): o gate AST proíbe `collapse_enforce=True` no stage
+# de produção, e os goldens rodam em sombra — logo o caminho que REMOVE row só existia sob
+# `collapse()` isolado. Aqui o enforce é injetado no adapter e o stage roda inteiro: é a única
+# cobertura do que o flip vai executar.
+def _e2_conta(banco: str, tipo: str, arquivo: str, metodo: str, txs: list[dict]) -> dict:
+    payload = _e2_periodo("2026-01-01", "2026-01-31", txs)
+    # `extraido_por` é a chave do contrato E2 (`document.py:185`), não `extraction_method`:
+    # com o nome errado as duas pernas viram nativas e o predicado bloqueia em
+    # `par_nao_e_nativo_mais_llm` — o teste passaria medindo a ausência do par.
+    payload.update(
+        {"banco": banco, "tipo": tipo, "arquivo_origem": arquivo, "extraido_por": metodo}
+    )
+    return payload
+
+
+def _store_com_par_cross_documento():
+    """Mesma transação por duas proveniências do mesmo banco: nativa + perna LLM."""
+    from tests.unit.pipeline.test_e3_reconciler_adapter import InMemoryArtifactStore
+
+    tx = [_tx_e2("2026-01-05", "MERCADO", -100)]
+    store = InMemoryArtifactStore()
+    store.seed("E2-extratos", "nativo", _e2_conta("itau", "extratoconta", "ext.pdf", "native", tx))
+    store.seed("E2-llm", "llm", _e2_conta("itau", "extrato", "anual.pdf", "llm", list(tx)))
+    return store
+
+
+def _adapter_com_enforce(enforce: bool):
+    """Adapter com colapsador injetado — o composition root que o stage monta em produção."""
+    from pipeline.domain.services.cross_document_collapse_types import OverrideRetentionGuard
+    from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
+    from pipeline.domain.services.e3_reconciler_adapter import E3ReconcilerAdapter
+    from pipeline.domain.services.reconciliation_service import ReconciliationConfig
+
+    return E3ReconcilerAdapter(
+        ReconciliationConfig(tolerance_days=3),
+        cross_document_collapser=CrossDocumentCollapser(
+            retention_guard=OverrideRetentionGuard.sem_overrides()
+        ),
+        collapse_enforce=enforce,
+    )
+
+
+def _roda_stage_com_enforce(enforce: bool):
+    """`(publicado_no_canal, declarado_no_canal, txs, canais_com_remocao)`."""
+    from pipeline.domain.services.cross_document_collapse_types import CANAL_COLAPSO
+
+    store = _store_com_par_cross_documento()
+    result = _adapter_com_enforce(enforce).reconcile_via_store(store)
+    publicado, txs, canais = _le_ledgers(store, CANAL_COLAPSO)
+    declarado = sum(r.count for r in result.removals if r.canal == CANAL_COLAPSO)
+    return publicado, declarado, txs, canais
+
+
+def _le_ledgers(store, canal_alvo: str):
+    """`(count do canal alvo, total de txs, canais com remoção)` somados nos artefatos E3."""
+    chaves = store.list_keys("E3")
+    ledgers = [store.read("E3", k) for k in chaves]
+    return (
+        sum((a["remocoes"].get(canal_alvo) or {}).get("count", 0) for a in ledgers),
+        sum(len(a["transacoes"]) for a in ledgers),
+        {canal for a in ledgers for canal, v in a["remocoes"].items() if v.get("count")},
+    )
+
+
+def test_enforce_remove_a_row_e_o_ledger_publicado_reproduz_o_declarado():
+    """Mutação: `_apply` devolver os statements intactos. O ledger declara 1 e `txs` fica 2."""
+    publicado, declarado, txs, canais = _roda_stage_com_enforce(True)
+
+    assert declarado == 1, "fixture não produz corte cross-documento — teste vira vácuo"
+    assert publicado == declarado, f"ledger publicado {publicado} ≠ declarado {declarado}"
+    assert txs == 1, "a row duplicada sobreviveu ao enforce"
+    assert canais == {"cross_document_collapse"}
+
+
+# Medido ao escrever este teste, e vale registrar porque contraria a leitura ingênua do flip:
+# com as duas pernas na MESMA conta, o `cross_file_dedup` já removia a duplicata. Ligar o
+# enforce não muda o total de transações — muda quem DECLARA a remoção. O ganho medido da lane
+# (261 ocorrências, +19% de receita) vem de pares que caem em contas distintas, onde o
+# `cross_file_dedup` não alcança. Um teste que só olhasse `txs` leria "o enforce não faz nada".
+def test_na_sombra_o_cross_file_dedup_ja_removia__muda_a_ATRIBUICAO_nao_o_total():
+    """Controle negativo: sem ele, um enforce inerte passaria despercebido aqui."""
+    publicado, declarado, txs, canais = _roda_stage_com_enforce(False)
+
+    assert (publicado, declarado) == (0, 0), "a sombra declarou corte no canal do colapso"
+    assert txs == 1 and canais == {"cross_file_dedup"}
