@@ -5,7 +5,7 @@ title: "Snapshot changelog v3 — métricas, cadência, decomposição e direç�
 status: Decidido
 phase: A11
 date: "2026-05-11"
-amended_at: ["2026-07-09"]
+amended_at: ["2026-07-09", "2026-08-10"]
 relates_to:
   - "[[ADR-148]]"
   - "[[ADR-306]]"
@@ -33,6 +33,12 @@ tags:
 > obsoletado pela janela-12m da [[ADR-306]] e a primeira entrega é **MoM
 > uniforme**, e os paths da tabela D1 foram substituídos pelo mapeamento aos
 > campos E5 **reais**. Detalhe em §Emenda 2026-07-09 ao final.
+
+> ⚠️ **Emendada também em 2026-08-10 (A40.l2).** O julgamento por linha da V0
+> (`deltaColor` + `deltaAriaLabel`) passa a ser **suprimido sob mudança de base de
+> cálculo** — delta cuja composição não se conhece não se julga. É a mesma regra que
+> a emenda de 2026-07-09 já aplicou à manchete do M_PL, agora estendida às linhas.
+> Leia a §Emenda 2026-08-10 antes de mexer em `VariacaoSection`.
 
 ## Contexto
 
@@ -324,3 +330,43 @@ texto original e a realidade do dado/arquitetura:
    anterior"; seção V0 renderizada hardcoded após `ExecutiveSummarySection`
    (que não vive no YAML) e **antes** do banner de qualidade (A28); entrada
    de navegação "O que mudou" no grupo Visão geral.
+
+## Emenda 2026-08-10 — a V0 não julga mudança de base
+
+Decisão do `senior-cto` no co-design da [[A40.l2]] §D6, após medição. **Nenhuma decisão
+acima foi revogada** — esta estende às linhas da tabela o princípio que o item 4 da emenda
+de 2026-07-09 já aplicou à manchete.
+
+**1. O defeito.** `deltaColor` pinta `--semantic-success`/`--semantic-danger` e
+`deltaAriaLabel` anuncia *"avaliação boa"* / *"avaliação ruim"* por linha. Isso é correto
+para movimento real do dinheiro e **falso** quando a linha se move porque a base de cálculo
+mudou — correção de método, recalibração de threshold (W2-D4), mudança de janela canônica
+([[ADR-306]]).
+
+**2. Medido, não suposto.** No primeiro relatório pós-flip do colapso cross-documento da
+[[A40.l2]], sobre o corpus dogfood: `M_PL` e `M_AUVP_DESVIO` movem **0,00** (nem entram na
+tabela, cujo filtro só admite `changed`); `M_TAXA_POUPANCA` cai **14,37 pp** (34,01% →
+19,64%, 4,8× o limiar). A **única** linha renderizada da seção é uma acusação vermelha
+isolada, sem linha verde ao lado, atribuída a nada. O caso simétrico — elogio falso — é
+estrutural em `M_RESERVA_MESES` (remover despesa reduz o denominador e aumenta a cobertura),
+hoje inerte só porque o builder navega `reserva.cobertura_meses` e o E5 emite
+`reserva_emergencia`.
+
+**3. A regra.** Sob `comparison_base_changed`: cor → `--surface-muted-foreground`,
+`aria-label` **sem** cláusula de julgamento e com **estado nomeado**, **glifo de direção
+preservado** (em `unit: "brl"` o sinal existe só no glifo e na cor — neutralizar os dois
+apagaria a direção), e marcador na linha com `aria-describedby` ancorando o caption.
+**Estado nomeado, nunca silêncio.** A paridade cor ≡ texto que o risco R3 exige é asseverada
+por teste: sem gate ela se desfaz no próximo refactor, em verde.
+
+**4. Escopo report-level, não allow-list por métrica.** Classificar cada métrica como
+"a jusante do razão" acoplaria o changelog ao grafo de dependência do pipeline e **falharia
+em silêncio** quando alguém esquecesse de classificar uma métrica nova. Sobre-suprimir é a
+direção conservadora, e o custo medido é ≈ zero: o veredito do desvio AUVP sobrevive no card
+de alocação, com severidade nomeada própria.
+
+**5. O gatilho é proxy, e isso está declarado.** `comparison_base_changed` é derivado da
+presença de `fluxo_caixa.consolidacao_cross_documento` nos dois lados do par. Erra em um
+caso, uma vez por workspace (o que adquire seu primeiro par sobreposto pós-flip), na direção
+conservadora. O predicado correto — identificador de método no artefato — fica deferido na
+§W6 do [[PLAN-snapshot-changelog-v3]], com gatilho verificável.

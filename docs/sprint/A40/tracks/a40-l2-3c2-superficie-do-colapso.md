@@ -101,16 +101,30 @@ narrar a queda, a salvaguarda nº 1 **não** está cumprida por contador+caption
 - `golden_diff` conferido **com o sinal do delta declarado** (§Decisões nº 5 do sprint) — e
   com o resultado do `is_monetary` sobre cada chave nova declarado no PR.
 - Resultado da medição do item 3 (prosa da S2) **no corpo do PR**, com a pergunta ao dono se
-  a prosa narrar a queda.
+  a prosa narrar a queda. **Provável inerte** (os ids emitidos são `M_*`; os de seção são
+  `S1/S2/…`, logo `entry.section_id === sectionId` nunca casa) — mas isso é dedução de código,
+  não medição de render. Se renderizar, é **bloqueante pelo eixo (10)**: narrador de 14px vence
+  rodapé de 12px.
+- **Sob `comparison_base_changed`: nenhuma célula de delta com token semântico e nenhum
+  `aria-label` contendo "avaliação"**; glifo de direção **preservado** (em `unit: "brl"` o sinal
+  existe só no glifo e na cor); marcador com `aria-describedby` ancorando o caption. Teste de
+  **paridade cor ≡ texto** — a R3 exige paridade entre canais, não a existência de um julgamento,
+  e sem o gate ela se desfaz no próximo refactor, em verde. Mutação nos dois sentidos deixa teste
+  vermelho. É o **eixo (10)** do §Critério de saída do 3e.
 
 ## Não é escopo
 
 - Ligar o enforce (3e) — ele exige os 9 eixos do §Critério de saída, incluindo **ensaio de
   rollback medido**.
-- A V0 **julgar** (`avaliação ruim`) mudança de método em vez de movimento real: a noção de
-  **base não-comparável** pertence ao plano
-  [SNAPSHOT_CHANGELOG_V3](../../../plan/SNAPSHOT_CHANGELOG_V3/_README.md) — abrir item lá,
-  débito registrado, não desta lane.
+- ~~A V0 **julgar** (`avaliação ruim`) mudança de método em vez de movimento real: a noção de
+  **base não-comparável** pertence ao plano SNAPSHOT_CHANGELOG_V3 — abrir item lá, débito
+  registrado, não desta lane.~~ **Revogado 2026-08-10** — passou a ser **escopo do 3c2b**
+  ([[A40.l2]] §D6 §Emenda). A premissa do deferimento caiu na medição: a Taxa de Poupança
+  **desce** 14,37 pp e é a **única** linha renderizada da seção, então o falso-positivo é
+  acusatório e isolado, não elogioso. A **porta** genérica virou a
+  [W6 do plano](../../../plan/SNAPSHOT_CHANGELOG_V3/_README.md); o **adaptador** é deste PR,
+  porque o lado `prev` que o caption exige e o que a neutralização exige são o mesmo booleano,
+  na mesma função. Ver §Aceite.
 - A classe de duplicação intra-proveniência cross-arquivo (**716 rows**) — é da [[A42.l5]].
   Diga isso no PR3, senão alguém conclui que a classe estrutural fechou.
 

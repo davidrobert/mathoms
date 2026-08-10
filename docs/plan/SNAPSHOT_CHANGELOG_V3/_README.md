@@ -5,9 +5,9 @@ title: "Snapshot changelog v3 — métricas, cadência, decomposição e direç�
 status: in_progress
 sprint_origem: A11
 sprint_atual: null
-sprints_envolvidas: ["A11"]
+sprints_envolvidas: ["A11", "A40"]
 created_at: "2026-05-11"
-last_review: "2026-07-09"
+last_review: "2026-08-10"
 adrs_canonical:
   - "[[ADR-190]]"
   - "[[ADR-148]]"
@@ -308,6 +308,65 @@ global #4 deste plano.
 | W5-R2 | Série de KPI com mudança de metodologia entre ciclos (ex.: recalibração de threshold W2-D4) quebra comparabilidade | Snapshot imutável ([[ADR-187]]) congela o valor da época; anotar quebras de série no chart (marcador), nunca recalcular retroativo |
 | W5-R3 | Goodhart no KR (entregar só a linha "bonita" de poupança) | KR exige 2 KPIs **distintos**; seleção de KPIs é co-design, não default do dev |
 
+### W6 — Par não-comparável: julgamento sob mudança de método (✅ caso single-pair entregue 2026-08-10)
+
+**Status:** o caso **single-pair da V0** foi entregue por [[A40.l2]] (PR3c2b) — não é
+pendência. Permanece aberta a **generalização** do predicado (ver §Deferido abaixo). Registrado
+aqui porque a noção pertence ao **contrato de comparação**, não à lane que forneceu a primeira
+razão para ela existir.
+
+#### O que é (e por que existe)
+
+A V0 **julga** cada linha: `deltaColor` pinta `--semantic-success`/`--semantic-danger` e
+`deltaAriaLabel` anuncia literalmente *"avaliação boa"* / *"avaliação ruim"*
+(`VariacaoSection.tsx:66-71,85-101`). Isso é correto para movimento real do dinheiro e **falso**
+quando a linha se move porque a **base de cálculo mudou** — correção de método, recalibração de
+threshold (W2-D4), mudança de janela canônica ([[ADR-306]]).
+
+Origem medida: o colapso cross-documento de [[A40.l2]] remove lançamentos duplicados do razão.
+No primeiro relatório pós-flip do workspace dogfood, a **única** linha renderizada da seção é
+`Taxa de Poupança 34,0% → 19,6% ▼14,4 pp`, vermelha, com `aria-label` terminando em *"avaliação
+ruim"* — uma acusação isolada, sem linha verde ao lado, atribuída a nada. O caso **elogioso**
+existe e é estrutural (`M_RESERVA_MESES` sobe sempre que se remove despesa: numerador idêntico,
+denominador menor) — hoje inerte por defeito de path (o builder aponta `reserva.cobertura_meses`;
+o E5 emite `reserva_emergencia`).
+
+**Princípio:** delta cuja composição não se conhece **não se julga** — é o mesmo que a §Emenda
+2026-07-09 da [[ADR-190]] (item 4) já aplicou à manchete do M_PL ("julgar sem o waterfall induz
+erro"). Aqui a causa é *conhecida e não-meritória*, o que torna o caso mais forte, não mais fraco.
+
+#### Entregue (por [[A40.l2]] · PR3c2b)
+
+- `comparison_base_changed` derivado em `_build_snapshot_diff` (único escopo com `prev` e `curr`),
+  emitido report-level ao lado de `comparisons`/`changelog`/`comparison_periods`.
+- Sob `base_changed`: cor → `--surface-muted-foreground`, `aria-label` sem cláusula de
+  julgamento e com **estado nomeado**, glifo de direção **preservado**, marcador na linha com
+  `aria-describedby` ancorando o caption.
+- Teste de **paridade cor ≡ texto** (a R3 exige paridade entre canais, não a existência de um
+  julgamento; sem o gate ela se desfaz no próximo refactor, em verde).
+- Cruza zero nos **dois** sentidos: flip (0 → N) e rollback (N → 0).
+
+#### Deferido — o predicado genérico (dono: este plano · gatilho: [[A42.l5]] ou a 2ª mudança de método)
+
+O gatilho entregue usa `fluxo_caixa.consolidacao_cross_documento` como **proxy de método**. Ele
+erra em **um** caso, **uma vez por workspace**: o workspace que adquire seu primeiro par
+sobreposto pós-flip cruza 0 → N e acende o marcador sem que o método tenha mudado. Erro
+conservador (suprime julgamento a mais), não bloqueante.
+
+O predicado correto é um **identificador de método no artefato** (ausência ≡ legado; presente ≡
+`cross_doc_collapse_v1`), que dispara exatamente no flip e no rollback, nunca por variação de
+corpus, e generaliza para o marcador de quebra de série que a **W5-R2** vai precisar. Custa uma
+trinca E3→E4→E5 + `$def`. Gatilhos de especialista ao reabrir: `data-engineer` (contrato E5) +
+`product-designer` (copy do marcador).
+
+#### Riscos próprios
+
+| ID | Risco | Mitigação |
+|---|---|---|
+| W6-R1 | Alguém "conserta" o path morto `reserva.cobertura_meses` **antes** da neutralização e liga o falso-positivo **elogioso** (`+1,8 mês`, estrutural) | Ordem explícita: o conserto do path só depois de W6 shipada. Registrado no §Deferimento de [[A40.l2]] |
+| W6-R2 | Proxy de presença dá falso-positivo uma vez por workspace | Aceito e nomeado acima; direção conservadora. Fecha com o identificador de método |
+| W6-R3 | Neutralização report-level suprime veredito verdadeiro de métrica não-ledger no mesmo ciclo | Custo medido ≈ zero: o veredito do desvio AUVP vive no card de alocação com severidade própria. Allow-list por métrica **recusada** — acoplaria o changelog ao grafo de dependência do pipeline |
+
 ## Critério de aceite global do plano
 
 1. **ADR-190 Decidido em `main` ao final de W2.**
@@ -338,6 +397,11 @@ priorizadas mas ainda não datadas.
 
 ## Histórico
 
+- **2026-08-10:** aberta **W6** (par não-comparável sob mudança de método). Caso single-pair da
+  V0 entregue por [[A40.l2]] no mesmo dia; predicado genérico (identificador de método no
+  artefato) deferido com gatilho [[A42.l5]]. Emenda datada na [[ADR-190]]. Decisão do
+  `senior-cto` após medição M1/M2 refutar a premissa do deferimento original da §D6 da lane —
+  o falso-positivo previsto era elogioso; o medido é **acusatório e isolado**.
 - **2026-07-09:** janela de execução (co-design 4 especialistas:
   `financial-planner` + `product-manager` + `data-engineer` +
   `product-designer`; conflito PL-sem-decomposição resolvido em 1 rodada —
