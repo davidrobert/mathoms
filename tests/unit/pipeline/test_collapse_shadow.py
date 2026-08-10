@@ -76,17 +76,45 @@ def test_sem_candidato_zera_sem_estourar(campo):
     assert shadow_counts(())[campo] == 0
 
 
+# `dev/certify_ledger_local.py` entra no escopo: ele monta o mesmo adapter e estava fora do
+# parse, então ligar o enforce lá era invisível. `ast.Attribute` entra porque chamada por
+# módulo (`mod._e3_build_adapter(...)`) não é `ast.Name` e escapava do filtro.
+_FONTES_DO_ADAPTER = (
+    "scripts/reconcile_transactions.py",
+    "dev/certify_ledger_local.py",
+)
+
+
+def _nome_chamado(func: ast.expr) -> str:
+    if isinstance(func, ast.Name):
+        return func.id
+    return func.attr if isinstance(func, ast.Attribute) else ""
+
+
 def _enforce_args_do_stage() -> list[ast.expr | None]:
-    """Valor de ``collapse_enforce`` em cada chamada a ``_e3_build_adapter`` no stage."""
-    fonte = Path(__file__).resolve().parents[3] / "scripts" / "reconcile_transactions.py"
-    arvore = ast.parse(fonte.read_text(encoding="utf-8"))
+    """Valor de ``collapse_enforce`` em cada chamada a ``_e3_build_adapter`` nas fontes."""
+    raiz = Path(__file__).resolve().parents[3]
     return [
         next((kw.value for kw in node.keywords if kw.arg == "collapse_enforce"), None)
-        for node in ast.walk(arvore)
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id == "_e3_build_adapter"
+        for fonte in _FONTES_DO_ADAPTER
+        for node in ast.walk(ast.parse((raiz / fonte).read_text(encoding="utf-8")))
+        if isinstance(node, ast.Call) and _nome_chamado(node.func) == "_e3_build_adapter"
     ]
+
+
+# MEDIDO 2026-08-10: trocar o DEFAULT da assinatura (`collapse_enforce=False` → `True`) deixava
+# a suíte inteira verde — 6210 testes —, inclusive o gate abaixo. Ele aceita `arg is None`
+# porque o call-site de produção omite o kwarg, e nada pinava a assinatura. Um refactor que
+# mexesse no default ligaria remoção de dado financeiro em produção sem um único sinal.
+def test_o_default_da_assinatura_e_False__o_gate_de_call_site_nao_alcanca_isso():
+    """Mutação: `collapse_enforce=True` no `def`. Só este teste fica vermelho."""
+    import inspect
+
+    from scripts.reconcile_transactions import _e3_build_adapter
+
+    assinatura = inspect.signature(_e3_build_adapter)
+
+    assert assinatura.parameters["collapse_enforce"].default is False
 
 
 def test_stage_de_producao_nunca_liga_o_enforce():
@@ -135,3 +163,56 @@ def test_par_formado_e_candidato__o_reservatorio_zerou_por_promocao_nao_por_cegu
     m = _measurement([_doc(1, "llm.json", metodo="llm"), _doc(1, "native.json")])
 
     assert len(m.candidates) == 1 and m.reservatorio_llm_sem_gemea == 0
+
+
+# ─── Gate COMPORTAMENTAL: o que o AST não alcança ────────────────────────────────────────
+#
+# O AST prova o que está ESCRITO no call-site. Não prova o que o adapter FAZ. Quando o flip
+# trocar a constante por uma leitura de flag (`collapse_enforce=_e3_collapse_enforce_enabled(...)`),
+# a mutação plausível deixa de ser o call-site e passa a ser o interior do helper — `return True`,
+# `isinstance` invertido — e o AST fica cego para ela por construção. Este teste roda a fiação
+# real de produção sobre um par colapsável e mede o EFEITO no ledger.
+class _CtxConfigs:
+    """Configs mínimas que `_e3_build_adapter` carrega — nenhuma toca o colapso."""
+
+    workspace_id = "ws-teste"
+    pipeline_run_id = None
+
+    def load_config(self, nome: str):
+        return {} if nome != "pipeline.json" else {"reconciliation": {"tolerance_days": 3}}
+
+
+def _colapsador_como_o_stage_monta():
+    from pipeline.domain.services.cross_document_collapse_types import OverrideRetentionGuard
+    from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser
+
+    return CrossDocumentCollapser(retention_guard=OverrideRetentionGuard.sem_overrides())
+
+
+def _roda_fiacao_de_producao() -> int:
+    """`count` no canal do colapso depois de rodar o adapter que o STAGE monta."""
+    from pipeline.domain.services.cross_document_collapse_types import CANAL_COLAPSO
+    from scripts.reconcile_transactions import _e3_build_adapter
+    from tests.unit.pipeline.test_collapse_ledger_channel import _store_com_par_cross_documento
+
+    store = _store_com_par_cross_documento()
+    # `collapse_enforce` OMITIDO, exatamente como o call-site de produção — é por isso que a
+    # mutação do DEFAULT da assinatura cai aqui, e não no gate AST.
+    adapter, _canon = _e3_build_adapter(
+        _CtxConfigs(), cross_document_collapser=_colapsador_como_o_stage_monta()
+    )
+    adapter.reconcile_via_store(store)
+    return sum(
+        (store.read("E3", k)["remocoes"].get(CANAL_COLAPSO) or {}).get("count", 0)
+        for k in store.list_keys("E3")
+    )
+
+
+# Controle de não-vacuidade: `test_collapse_ledger_channel.py::test_enforce_remove_a_row_...`
+# prova que ESTA fixture produz corte quando o enforce é ligado. Sem esse par, o zero abaixo
+# seria indistinguível de "a fixture não tem o que colapsar".
+def test_a_fiacao_de_producao_nao_remove_nada_no_canal_do_colapso():
+    """Mutação: default `True` na assinatura de `_e3_build_adapter` — o AST passa verde nela."""
+    assert (
+        _roda_fiacao_de_producao() == 0
+    ), "a fiação de produção removeu row — a sombra virou enforce"
