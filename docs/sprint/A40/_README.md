@@ -581,6 +581,27 @@ dentro de uma onda seria acoplar sem motivo. Como l24: roda em paralelo.
 > bump sem entrada. Especificação vigente em [[ADR-360]] §Emenda 2026-08-10 —
 > a de 2026-08-05 está vencida.
 
+> **Estado em 2026-08-10 (2ª parcial do dia) — #1359.** Ao medir o item 1, saiu
+> um defeito que a lane não conhecia: o **parágrafo do narrador e a legenda do
+> cone discordavam sobre o mesmo campo** em 45 dos 50 001 desfechos possíveis
+> ("2%" contra "3%", no mesmo relatório). Os dois declaravam paridade em
+> docstring e nunca haviam sido comparados. Gate novo é **hook de pre-commit
+> sem filtro de path** — o par vive nos dois stacks e nenhum filtro cobre as
+> duas direções (precedente: §Decisão do dono da [[A40.l5]]).
+>
+> Fechada também uma **chave órfã criada pela 1ª parcial**: `sigma_procedencia`
+> era emitido sem nenhum leitor, então a legenda afirmava a volatilidade como
+> se fosse calibrada à carteira em 100% dos relatórios. É a classe da KR-A
+> nascendo dentro de outra lane — vale como aviso à sprint.
+>
+> **Co-design `financial-planner` destravou o item 3:** agregação `Σwσ` com
+> pesos do alvo declarado, porque é **limite superior demonstrável** e não
+> estimativa. A alternativa de correlação zero foi refutada por medição —
+> devolve ~11,3% para carteira agressiva, o mesmo número da constante. O
+> defeito atual **não é o nível, é a invariância**: o intervalo real dos alvos
+> declaráveis é ~2%–18% e todo mundo recebe 11%. Exige emenda datada na
+> [[ADR-219]] D4 (abortar contradiz "omite a classe ou usa default").
+
 **[[A40.l28]] e [[A40.l29]] seguem o critério da l25** (abertas 2026-08-03):
 mesmo residual, mesma dependência de #1162 aterrissar, fora das ondas pelo mesmo
 motivo. São **disjuntas por camada** — a l28 é contrato (payload, schema,

@@ -437,6 +437,24 @@ repos:
         # editar só o YAML não roda o gate.
         files: '^(config/prompts/chart_conclusions\.yaml|config/report_layout\.yaml|frontend/src/components/report/utils/conclusionUtils\.ts|frontend/src/components/report/sections/.*\.tsx|dev/check_chart_conclusion_parity\.py)$'
 
+      - id: probabilidade-parity
+        # A40.l25 — o parágrafo do narrador (Python) e a legenda do cone em S7
+        # (TS) publicam o MESMO campo (`prob_if_ate_prazo_declarado`), e os dois
+        # declaravam paridade em docstring sem nunca terem sido comparados.
+        # Medido no domínio real do estimador (`k/50000`): 45 dos 50 001
+        # desfechos rendiam "2%" no parágrafo e "3%" na legenda, no mesmo
+        # relatório. Causa: `round()` do Python é meio-para-PAR.
+        #
+        # SEM `files:` de propósito. O par vive nos dois stacks: um teste em
+        # `tests/` não roda em PR que só toca `frontend/`, e um Vitest não roda
+        # em PR que só toca `pipeline/`. Só o `pre-commit --all-files` do job
+        # Lint cobre as duas direções (precedente: decisão do dono na A40.l5).
+        # Custo medido: 0,5 s sobre os 50 001 desfechos.
+        name: "Probabilidade do MC: narrador (Py) ↔ card (TS) em paridade (A40.l25)"
+        entry: python3 dev/check_probabilidade_parity.py
+        language: system
+        pass_filenames: false
+
       - id: planner-manifest-coverage
         # ADR-200 §D3 (M1) + ADR-206 §6 (snapshot drift):
         # manifest do parecer ↔ E5 schema ↔ report_layout em sync.

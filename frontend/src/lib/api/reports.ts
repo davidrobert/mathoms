@@ -322,6 +322,11 @@ export interface IFMonteCarloData {
   /** Taxa de sucesso na janela SIMULADA (base cheia) — decide a censura. */
   prob_if_ate_horizonte_simulado?: number;
   sigma_usado: number;
+  /** A40.l25 — procedência de `sigma_usado`, padrão `fonte_origem` da ADR-219.
+   *  `fallback_codigo` = constante do modelo, NÃO calibrada à carteira: a
+   *  legenda tem de dizer isso, senão publica precisão que o número não tem.
+   *  Opcional para tolerar artefato anterior a #1338. */
+  sigma_procedencia?: "global" | "workspace_override" | "fallback_codigo" | null;
   exibir_cone: boolean;
   /** ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje). */
   aporte_mensal_usado?: number;

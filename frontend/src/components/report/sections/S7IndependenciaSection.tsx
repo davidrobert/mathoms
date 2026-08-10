@@ -22,6 +22,7 @@ import type {
   ReportAnalysisData,
 } from "@/lib/api";
 import { Alert } from "../ui/Alert";
+import { formatProbability } from "../utils/probabilidade";
 import {
   computePremissasDegrade,
   hasIfStats,
@@ -141,6 +142,10 @@ function Stat({
 }
 
 /** N3 — Bloco do cone de probabilidade Monte Carlo (P10/P50/P90). */
+// A40.l25 — `sigma_procedencia` é emitido desde #1338 e não tinha leitor; sem a
+// ressalva, a legenda afirma a volatilidade como se fosse medida da carteira.
+// Não usa `PremissasFallbackAlert`: âmbar é degradação de dado e acusaria 100%
+// dos relatórios — constante não-calibrada é default declarado, não degradação.
 function IFMonteCarloBlock({
   monteCarloIF,
   metaIf,
@@ -176,6 +181,9 @@ function IFMonteCarloBlock({
       <p className="mb-3 text-xs text-[var(--surface-muted-foreground)]">
         Projeção estocástica com volatilidade de{" "}
         {(monteCarloIF.sigma_usado * 100).toFixed(0)}% a.a.
+        {monteCarloIF.sigma_procedencia === "fallback_codigo" && (
+          <> (padrão do modelo, não calibrada à sua carteira)</>
+        )}
         {monteCarloIF.aporte_mensal_usado && monteCarloIF.aporte_mensal_usado > 0 ? (
           <>
             {" "}considerando aporte mensal de{" "}
@@ -253,15 +261,6 @@ function PremissasFallbackAlert({
   );
 }
 
-/** ADR-237 — formata probabilidade para evitar "0%" enganoso quando
- * prob ∈ (0, 1%), e "100%" quando prob ∈ (99%, 100%). */
-export function formatProbability(prob: number): string {
-  if (prob <= 0) return "0%";
-  if (prob >= 1) return "100%";
-  if (prob < 0.01) return "<1%";
-  if (prob > 0.99) return ">99%";
-  return `${(prob * 100).toFixed(0)}%`;
-}
 
 /**
  * Yield-alvo da carteira (ADR-191 §D3) — `ratios.rentabilidade.meta_pct`, a
@@ -494,3 +493,5 @@ export function trsTone(
   }
   return efetiva >= meta ? "positive" : "warning";
 }
+
+export { formatProbability };
