@@ -37,6 +37,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.transaction_override import TransactionOverride
 from backend.app.services.internal_ops.results import OpResult
+from pipeline.domain.services._tx_identity import normalize_descricao
 from pipeline.domain.services.cross_document_collapser import gate_key_digest
 
 # Não há constante de ação de auditoria aqui: este gate **não escreve**. A `_ACTION` que
@@ -133,6 +134,9 @@ class PreconditionReport:
         }
 
 
+# `tx_descricao` é gravado CRU (`build_hash_inputs` não normaliza) e `gate_key_digest` não
+# normaliza — logo esta é a única normalização deste lado, espelhando a única do pipeline (dentro
+# de `_collapse_key`). Passar o cru daqui era a metade backend da divergência.
 def _override_gate_digest(override: TransactionOverride) -> str | None:
     """Digest do override pelas colunas de snapshot; ``None`` se o snapshot falta."""
     if not override.tx_data or override.tx_valor_cents is None:
@@ -141,7 +145,7 @@ def _override_gate_digest(override: TransactionOverride) -> str | None:
         data_iso=override.tx_data,
         valor_cents=override.tx_valor_cents,
         moeda=override.tx_moeda or "",
-        descricao=override.tx_descricao,
+        descricao_norm=normalize_descricao(override.tx_descricao),
     )
 
 

@@ -181,9 +181,11 @@ def _survivor_hash(group: _KeyGroup) -> str:
     return _row_hash(tx, stmt)
 
 
+# `key[4]` JÁ é `normalize_descricao(tx.description)` — ver `_collapse_key`. Esta é a única
+# normalização do lado do pipeline; `gate_key_digest` não re-normaliza.
 def _gate_digest_da_chave(key: tuple) -> str:
     """Projeta a chave de colapso na chave do gate — via a função canônica, nunca inline."""
-    return gate_key_digest(data_iso=key[0], valor_cents=key[1], moeda=key[2], descricao=key[4])
+    return gate_key_digest(data_iso=key[0], valor_cents=key[1], moeda=key[2], descricao_norm=key[4])
 
 
 def _row_hash(tx: Transaction, stmt: BankStatement) -> str:
@@ -229,20 +231,18 @@ def _extraction_split(stmts: Iterable[BankStatement]) -> tuple[int, int, int]:
 _Row = tuple[BankStatement, Transaction]
 
 
-def gate_key_digest(*, data_iso: str, valor_cents: int, moeda: str, descricao: str | None) -> str:
+# NÃO normaliza: `descricao_norm` é o contrato e cada lado normaliza uma ÚNICA vez.
+# `normalize_descricao` não é ponto fixo (`_ROUTING_SUFFIX_RE` ancora em `\s*$` e tira um sufixo
+# por passada; `_DARF_DETAIL_RE` roda depois e expõe outro), então enquanto esta função
+# normalizava, o pipeline aplicava 2× — a chave de colapso já normaliza — contra 1× do backend, e
+# os dois divergiam em silêncio. Descartar `direction` é deliberado: gate que BLOQUEIA deve
+# sobre-detectar (o "4282/4320" da prosa antiga está invertido — [[ADR-364]] §Emenda 2026-08-09).
+def gate_key_digest(*, data_iso: str, valor_cents: int, moeda: str, descricao_norm: str) -> str:
     """Digest da chave de colapso SEM ``direction`` e SEM proveniência — a chave do
     **gate de override** ([[A40.l2]] D1). FONTE ÚNICA: o produtor (`_candidate`) e o
     consumidor (`collapse_precondition`) chamam esta função, nenhum monta a tupla."""
-    # Descartar `direction` é deliberado: gate que BLOQUEIA deve sobre-detectar, e a
-    # direction do E4 vem do balde enquanto a do E3 vem do sinal (deriva medida
-    # 4282/4320). O backend recompõe este digest das colunas de snapshot da
-    # [[ADR-282]] (`tx_data`, `tx_valor_cents`, `tx_moeda`, `tx_descricao`) — logo é
-    # imune a versão de hash e ao gate de discriminantes, sem PII cruzando o boundary.
-    # `.strip()` acompanha `_collapse_key`: sem ele as duas derivações divergiam para moeda com
-    # espaço. Inerte hoje (os dois chamadores passam dado já stripado) e por isso invisível —
-    # que é como a divergência do `keep_split` sobreviveu à suíte.
     return _key_digest(
-        (data_iso, int(valor_cents), (moeda or "").strip().upper(), normalize_descricao(descricao))
+        (data_iso, int(valor_cents), (moeda or "").strip().upper(), descricao_norm or "")
     )
 
 
