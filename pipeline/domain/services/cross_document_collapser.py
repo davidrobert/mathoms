@@ -55,7 +55,10 @@ from pipeline.domain.services.cross_document_collapse_types import (
     CollapseCandidate,
     CollapseMeasurement,
     CollapseRemoval,
+    OverrideRetentionGuard,
     RemovalTarget,
+    exige_paridade_de_corte,
+    removals_by_source,
 )
 
 __all__ = [
@@ -63,6 +66,7 @@ __all__ = [
     "CollapseRemoval",
     "CrossDocumentCollapseConfig",
     "CrossDocumentCollapser",
+    "OverrideRetentionGuard",
     "RemovalTarget",
     "gate_key_digest",
 ]
@@ -152,6 +156,17 @@ def _collapse_key(tx: Transaction, stmt: BankStatement) -> tuple:
         _direction(tx, stmt),
         normalize_descricao(tx.description),
     )
+
+
+def _campos_da_chave(key: tuple) -> dict:
+    """Os 4 campos do candidato que saem direto da chave de colapso."""
+    data, cents, moeda, direction, _ = key
+    return {
+        "mes": str(data)[:7],
+        "valor_cents": int(cents),
+        "moeda": str(moeda),
+        "direction": str(direction),
+    }
 
 
 def _key_digest(key: tuple) -> str:
@@ -331,35 +346,6 @@ class _KeyGroup:
 _CANAL = "cross_document_collapse"
 
 
-def _tx_cents_signed(tx: Transaction) -> int:
-    """Cents com SINAL — o ledger grava débito negativo (espelha `_tx_cents`)."""
-    return int(decimal_cents(tx.amount.amount) * (-1 if tx.amount.amount < 0 else 1))
-
-
-# O MÊS entra na chave porque decide o dono da remoção: `output_key` embute o período, então
-# arquivo de dois períodos vira dois grupos e sem o mês a mesma remoção é reivindicada pelos dois
-# (medido: 6 onde havia 3). `count` e `cents` somam na mesma iteração ⇒ partição exata nos dois.
-def _agrega_por_source_e_mes(drop: list[_Row]) -> dict[tuple[str | None, str], tuple[int, int]]:
-    """``{(source, mes): (count, cents_assinado)}`` — uma passada sobre as rows."""
-    agg: dict[tuple[str | None, str], list[int]] = {}
-    for stmt, tx in drop:
-        bucket = agg.setdefault((stmt.source_document, tx.date.strftime("%Y-%m")), [0, 0])
-        bucket[0] += 1
-        bucket[1] += _tx_cents_signed(tx)
-    return {k: (c, v) for k, (c, v) in agg.items()}
-
-
-def _removals_by_source(drop: list[_Row]) -> tuple[CollapseRemoval, ...]:
-    """Uma ``CollapseRemoval`` por par ``(source_document, mês)`` — granularidade que a
-    atribuição precisa para ter **dono único** ([[ADR-347]] §Emenda 2026-08-10)."""
-    return tuple(
-        CollapseRemoval(_CANAL, c, v, cross_source_count=c, source=src, meses=((mes, c),))
-        for (src, mes), (c, v) in sorted(
-            _agrega_por_source_e_mes(drop).items(), key=lambda kv: (kv[0][0] or "", kv[0][1])
-        )
-    )
-
-
 def _group_by_key(statements: Iterable[BankStatement]) -> list[_KeyGroup]:
     """Índice chave → rows, mantendo só chaves vivas em ≥2 proveniências."""
     index: dict[tuple, dict[tuple[str, str, str], list[_Row]]] = {}
@@ -373,8 +359,18 @@ def _group_by_key(statements: Iterable[BankStatement]) -> list[_KeyGroup]:
 class CrossDocumentCollapser:
     """Mede duplicação cross-documento no grão transação, pré-agrupamento."""
 
-    def __init__(self, config: CrossDocumentCollapseConfig | None = None) -> None:
+    # `retention_guard` é keyword-only e SEM default de propósito: default seria fail-open na
+    # direção destrutiva (colapsa sem saber se há override), e é o padrão que esta lane já pagou
+    # quatro vezes. `sem_overrides()` é como o caller AFIRMA ausência — verboso porque afirmar
+    # ausência deve custar uma palavra, não um silêncio.
+    def __init__(
+        self,
+        config: CrossDocumentCollapseConfig | None = None,
+        *,
+        retention_guard: OverrideRetentionGuard,
+    ) -> None:
         self._config = config or CrossDocumentCollapseConfig()
+        self._guard = retention_guard
 
     def measure(self, statements: Iterable[BankStatement]) -> CollapseMeasurement:
         """Candidatos + corpus. Devolve o VO para que o corpus NÃO possa ser obtido depois."""
@@ -412,23 +408,24 @@ class CrossDocumentCollapser:
             if n > 0
         )
 
+    # Sob guard degradado NADA é marcado retido: o gate volta à semântica antiga (mais estrita,
+    # bloqueia mais), que é a direção certa quando não se sabe o que há no workspace.
     def _candidate(self, group: _KeyGroup) -> CollapseCandidate:
         reason = self._blocked_reason(group)
         targets = () if reason else self._targets(group)
+        digest = _gate_digest_da_chave(group.key)
         return CollapseCandidate(
+            **_campos_da_chave(group.key),
             key_digest=_key_digest(group.key),
-            gate_digest=_gate_digest_da_chave(group.key),
+            gate_digest=digest,
             survivor_hash=_survivor_hash(group),
-            mes=str(group.key[0])[:7],
-            valor_cents=int(group.key[1]),
-            moeda=str(group.key[2]),
-            direction=str(group.key[3]),
             n_rows=len(group.rows),
             n_provenances=len(group.by_provenance),
             survivor_cardinality=group.survivor_cardinality,
             removable_rows=sum(t.remover for t in targets),
             removal_targets=targets,
             blocked_reason=reason,
+            retido_por_override=not self._guard.degradado and self._guard.retem(digest),
             divergence=group.divergence,
             parciais=group.parciais,
         )
@@ -436,21 +433,22 @@ class CrossDocumentCollapser:
     def collapse(
         self, statements: Iterable[BankStatement]
     ) -> tuple[tuple[BankStatement, ...], CollapseMeasurement, tuple[CollapseRemoval, ...]]:
+        # Não existe endereço serializado de row (e nenhum `_hash_v3`): measure e agrupamento
+        # rodam sobre a MESMA lista, no mesmo processo, então selecionar objetos basta.
         """Mede **e** remove, no MESMO passo — identidade de row é identidade de objeto."""
-        # Não existe endereço serializado de row (e nenhum `_hash_v3`): o measure e o
-        # agrupamento rodam sobre a MESMA lista, no mesmo processo, então selecionar
-        # objetos é suficiente. `RemovalTarget` fica sendo registro de decisão para o
-        # gate de override, não endereço de remoção.
         stmts = list(statements)
         groups = _group_by_key(stmts)
         candidates = tuple(sorted((self._candidate(g) for g in groups), key=lambda c: c.key_digest))
         # PRÉ-poda, e por isso derivado ANTES do `_apply` — ver `CollapseMeasurement`.
         gates, hashes = _corpus_digests(stmts)
-        drop = self._rows_to_drop(groups)
         medicao = CollapseMeasurement(
             candidates=candidates, corpus_gate_digests=gates, corpus_row_hashes=hashes
         )
-        return (self._apply(stmts, drop), medicao, _removals_by_source(drop))
+        if self._guard.degradado:  # measure-only — ver `OverrideRetentionGuard.degradado`
+            return (tuple(stmts), medicao, ())
+        drop = self._rows_to_drop(groups)
+        exige_paridade_de_corte(candidates, len(drop))
+        return (self._apply(stmts, drop), medicao, removals_by_source(drop))
 
     def _rows_to_drop(self, groups: list[_KeyGroup]) -> list[_Row]:
         """Rows a remover, escolhidas por ORDEM TOTAL DE CONTEÚDO (posição desempata)."""
@@ -458,6 +456,8 @@ class CrossDocumentCollapser:
         for group in groups:
             if self._blocked_reason(group):
                 continue
+            if self._guard.retem(_gate_digest_da_chave(group.key)):
+                continue  # override ativo nesta chave — retém o par até o usuário resolver
             out.extend(group.rows_to_drop())
         return out
 

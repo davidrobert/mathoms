@@ -19,7 +19,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.domain.models.document import BankStatement  # noqa: E402
 from pipeline.domain.models.transaction import Money, Transaction  # noqa: E402
-from pipeline.domain.services.cross_document_collapser import CrossDocumentCollapser  # noqa: E402
+from pipeline.domain.services.cross_document_collapser import (
+    CrossDocumentCollapser,
+    OverrideRetentionGuard,
+)  # noqa: E402
 
 
 def _tx(valor: str = "-100.00", desc: str = "compra mercado") -> Transaction:
@@ -45,6 +48,13 @@ def _par() -> list[BankStatement]:
     return [_doc(1, "marco.pdf"), _doc(1, "anual.pdf", "llm")]
 
 
+def _colapsa(statements, guard: OverrideRetentionGuard | None = None):
+    """`collapse()` afirmando ausência de override — o caso base destes testes."""
+    return CrossDocumentCollapser(
+        retention_guard=guard or OverrideRetentionGuard.sem_overrides()
+    ).collapse(statements)
+
+
 def _total_tx(stmts) -> int:
     return sum(len(s.transactions) for s in stmts)
 
@@ -56,7 +66,7 @@ def test_rows_removidas_de_fato_igualam_o_declarado() -> None:
     """O eixo que substitui `alvo_enderecavel`: o que saiu == o que o measure declarou."""
     entrada = _par()
 
-    saida, medicao, removals = CrossDocumentCollapser().collapse(entrada)
+    saida, medicao, removals = _colapsa(entrada)
     candidatos = medicao.candidates
 
     declarado = sum(c.removable_rows for c in candidatos if c.collapsible)
@@ -74,7 +84,7 @@ def test_declarado_bate_com_removido_em_corpus_HETEROGENEO() -> None:
     for i, (n_nat, n_llm) in enumerate(formas):
         entrada += [_doc(n_nat, f"nat{i}.pdf"), _doc(n_llm, f"llm{i}.pdf", "llm")]
 
-    saida, medicao, removals = CrossDocumentCollapser().collapse(entrada)
+    saida, medicao, removals = _colapsa(entrada)
     candidatos = medicao.candidates
 
     removidas = _total_tx(entrada) - _total_tx(saida)
@@ -88,7 +98,7 @@ def test_declarado_bate_com_removido_em_corpus_HETEROGENEO() -> None:
 def test_removal_declara_cents_ASSINADO_nao_magnitude() -> None:
     """`candidate.valor_cents` é magnitude (`abs`); o ledger grava assinado. Reusar a
     magnitude faria `_declared_dedup_cents` nunca fechar contra `val_in − val_out`."""
-    _saida, medicao, removals = CrossDocumentCollapser().collapse(_par())
+    _saida, medicao, removals = _colapsa(_par())
     candidatos = medicao.candidates
 
     assert candidatos[0].valor_cents == 10000  # magnitude, no candidato
@@ -101,7 +111,7 @@ def test_removal_e_agregado_por_source_document() -> None:
     entra: os dois arquivos nativos sobrepostos ficam (escopo da [[A42.l5]])."""
     statements = [_doc(1, "a.pdf"), _doc(1, "b.pdf"), _doc(1, "llm.pdf", "llm")]
 
-    _s, _c, removals = CrossDocumentCollapser().collapse(statements)
+    _s, _c, removals = _colapsa(statements)
 
     assert {r.source for r in removals} == {"llm.pdf"}
     assert all(r.canal == "cross_document_collapse" for r in removals)
@@ -117,8 +127,8 @@ def test_permutacao_de_statements_nao_muda_o_resultado(seed) -> None:
     embaralhado = list(base)
     random.Random(seed).shuffle(embaralhado)
 
-    ref, _c1, r1 = CrossDocumentCollapser().collapse(base)
-    alt, _c2, r2 = CrossDocumentCollapser().collapse(embaralhado)
+    ref, _c1, r1 = _colapsa(base)
+    alt, _c2, r2 = _colapsa(embaralhado)
 
     sobrevive = lambda s: sorted((x.source_document, len(x.transactions)) for x in s)  # noqa: E731
     assert sobrevive(ref) == sobrevive(alt)
@@ -127,9 +137,9 @@ def test_permutacao_de_statements_nao_muda_o_resultado(seed) -> None:
 
 def test_collapse_e_idempotente() -> None:
     """Re-rodar sobre a saída não remove mais nada (não há mais chave cross-prov)."""
-    saida1, _c, _r = CrossDocumentCollapser().collapse(_par())
+    saida1, _c, _r = _colapsa(_par())
 
-    saida2, cand2, removals2 = CrossDocumentCollapser().collapse(saida1)
+    saida2, cand2, removals2 = _colapsa(saida1)
 
     assert _total_tx(saida2) == _total_tx(saida1)
     assert removals2 == ()
@@ -140,7 +150,7 @@ def test_nao_muta_os_statements_de_entrada() -> None:
     """Cópias via `replace`; o original preserva as rows."""
     entrada = _par()
 
-    CrossDocumentCollapser().collapse(entrada)
+    _colapsa(entrada)
 
     assert _total_tx(entrada) == 2
 
@@ -156,7 +166,7 @@ def test_replace_preserva_campo_que_construtor_campo_a_campo_perderia() -> None:
     llm = _doc(3, "llm.pdf", "llm")
     llm.account_number_raw, llm.account_number_norm = "12345-6", "123456"
 
-    saida, _c, _r = CrossDocumentCollapser().collapse([nativa, llm])
+    saida, _c, _r = _colapsa([nativa, llm])
 
     sobrevivente = next(s for s in saida if s.source_document == "llm.pdf")
     assert len(sobrevivente.transactions) == 2  # perdeu 1 de 3 => passou pelo replace
@@ -169,7 +179,7 @@ def test_grupo_bloqueado_nao_remove_row() -> None:
     statements = [_doc(1, "a.pdf"), _doc(1, "b.pdf", valor="-100.00")]
     statements[1].institution = "outro banco"
 
-    saida, medicao, removals = CrossDocumentCollapser().collapse(statements)
+    saida, medicao, removals = _colapsa(statements)
 
     assert medicao.candidates[0].blocked_reason == "banco_conflitante"
     assert (_total_tx(saida), removals) == (2, ())
@@ -188,7 +198,7 @@ def test_corpus_do_collapse_contem_o_hash_da_row_REMOVIDA() -> None:
     removida = [(s, tx) for s in entrada if s.source_document == "llm.pdf" for tx in s.transactions]
     hash_removido = _row_hash(removida[0][1], removida[0][0])
 
-    _saida, medicao, removals = CrossDocumentCollapser().collapse(entrada)
+    _saida, medicao, removals = _colapsa(entrada)
 
     assert sum(r.count for r in removals) == 1, "fixture não removeu nada — teste vira vácuo"
     assert hash_removido in medicao.corpus_row_hashes
@@ -198,8 +208,10 @@ def test_corpus_e_o_mesmo_em_measure_e_em_collapse() -> None:
     """Os dois modos têm de enxergar o mesmo corpus — senão o gate muda com a flag."""
     entrada = [_doc(2, "a.pdf"), _doc(1, "llm.pdf", "llm"), _doc(1, "solo.pdf")]
 
-    do_measure = CrossDocumentCollapser().measure(entrada)
-    _s, do_collapse, _r = CrossDocumentCollapser().collapse(entrada)
+    do_measure = CrossDocumentCollapser(
+        retention_guard=OverrideRetentionGuard.sem_overrides()
+    ).measure(entrada)
+    _s, do_collapse, _r = _colapsa(entrada)
 
     assert do_measure.corpus_row_hashes == do_collapse.corpus_row_hashes
     assert do_measure.corpus_gate_digests == do_collapse.corpus_gate_digests
@@ -212,10 +224,140 @@ def test_survivor_hash_e_de_row_NATIVA_e_sobrevive_ao_colapso() -> None:
     entrada = [_doc(1, "a.pdf"), _doc(1, "llm.pdf", "llm")]
     nativa = [(s, tx) for s in entrada if s.source_document == "a.pdf" for tx in s.transactions]
 
-    saida, medicao, _r = CrossDocumentCollapser().collapse(entrada)
+    saida, medicao, _r = _colapsa(entrada)
     sobrevivente = medicao.candidates[0].survivor_hash
 
     assert sobrevivente == _row_hash(nativa[0][1], nativa[0][0])
     assert sobrevivente in {
         _row_hash(tx, s) for s in saida for tx in s.transactions
     }, "survivor_hash aponta para row que NÃO sobreviveu"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Retenção por override ([[ADR-364]] §Emenda 2026-08-10 · A40.l2 3d)
+# ─────────────────────────────────────────────────────────────────────
+
+
+def _guard_que_retem(*digests: str) -> OverrideRetentionGuard:
+    return OverrideRetentionGuard(
+        denied_digests=frozenset(digests),
+        overrides_ativos=len(digests),
+        sem_snapshot=0,
+        denied_por_source=(("manual", len(digests)),),
+        lido=True,
+    )
+
+
+def _digest_do_par() -> str:
+    """O `gate_digest` da chave que o par nativo+LLM forma."""
+    medida = CrossDocumentCollapser(retention_guard=OverrideRetentionGuard.sem_overrides()).measure(
+        _par()
+    )
+    (candidato,) = medida.candidates
+    return candidato.gate_digest
+
+
+# É estritamente mais forte que "toda row removida tem seu override re-ancorado", e sai de uma
+# subtração de conjunto em vez de um adjudicador semântico.
+def test_chave_com_override_ativo_NAO_colapsa() -> None:
+    """A propriedade central do 3d: nenhuma row com override desaparece."""
+    entrada = _par()
+
+    saida, medicao, removals = CrossDocumentCollapser(
+        retention_guard=_guard_que_retem(_digest_do_par())
+    ).collapse(entrada)
+
+    assert _total_tx(saida) == _total_tx(entrada), "row com override foi removida"
+    assert removals == ()
+    (candidato,) = medicao.candidates
+    assert candidato.retido_por_override is True
+    assert candidato.collapsible is True, "o predicado continua dizendo que colapsaria"
+    assert candidato.sera_colapsado is False, "mas neste run não colapsa"
+
+
+def test_chave_sem_override_colapsa_normalmente() -> None:
+    """Controle: a retenção é cirúrgica, não desliga o enforce."""
+    entrada = _par()
+
+    saida, medicao, removals = CrossDocumentCollapser(
+        retention_guard=_guard_que_retem("digest-de-outra-chave")
+    ).collapse(entrada)
+
+    assert _total_tx(saida) == _total_tx(entrada) - 1
+    assert sum(r.count for r in removals) == 1
+    (candidato,) = medicao.candidates
+    assert candidato.retido_por_override is False
+
+
+def test_guard_nao_lido_degrada_para_measure_only() -> None:
+    """ "Não consegui ler os overrides" NÃO pode significar "pode apagar tudo"."""
+    entrada = _par()
+
+    saida, medicao, removals = CrossDocumentCollapser(
+        retention_guard=OverrideRetentionGuard.nao_lido()
+    ).collapse(entrada)
+
+    assert _total_tx(saida) == _total_tx(entrada), "guard não-lido removeu row"
+    assert removals == ()
+    assert medicao.candidates, "a medição tem de continuar acontecendo"
+
+
+def test_override_sem_snapshot_degrada_o_RUN_inteiro() -> None:
+    """`_override_gate_digest` devolve `None` sem as colunas da [[ADR-282]], e o read-path
+    AINDA aplica esse override pelo hash v1 — tratá-lo como "não existe" faria a chave
+    colapsar e a correção morrer. É condição de RUN porque não se sabe a qual chave pertence."""
+    guard = OverrideRetentionGuard(
+        denied_digests=frozenset(),
+        overrides_ativos=1,
+        sem_snapshot=1,
+        denied_por_source=(),
+        lido=True,
+    )
+    entrada = _par()
+
+    saida, _, removals = CrossDocumentCollapser(retention_guard=guard).collapse(entrada)
+
+    assert _total_tx(saida) == _total_tx(entrada)
+    assert removals == ()
+    assert guard.degradado is True
+
+
+def test_sem_overrides_AFIRMA_ausencia_e_colapsa() -> None:
+    """`sem_overrides()` é diferente de `nao_lido()`: um afirma, o outro admite ignorância."""
+    entrada = _par()
+
+    saida, _, removals = _colapsa(entrada)
+
+    assert _total_tx(saida) == _total_tx(entrada) - 1
+    assert sum(r.count for r in removals) == 1
+    assert OverrideRetentionGuard.sem_overrides().degradado is False
+
+
+def test_contadores_do_guard_publicam_o_DENOMINADOR() -> None:
+    """Zero medido e zero não-medido não podem imprimir o mesmo caractere — foi o defeito
+    que esta lane pagou quatro vezes."""
+    lido = OverrideRetentionGuard.sem_overrides().to_trace_dict()
+    nao_lido = OverrideRetentionGuard.nao_lido().to_trace_dict()
+
+    assert lido["denied_digests"] == nao_lido["denied_digests"] == 0
+    assert lido["lido"] is True and nao_lido["lido"] is False
+    assert lido["degradado"] is False and nao_lido["degradado"] is True
+    assert "overrides_ativos" in lido and "sem_snapshot" in lido
+
+
+def test_paridade_de_corte_pega_declaracao_divergente_da_poda() -> None:
+    """Invariante que substitui o assert morto `measure() ≡ collapse()`: compara
+    `removable_rows` contra `len(drop)` — a grandeza que o bug do `keep_split` movia
+    (declarava 453, removia 593, suíte verde). Prova de mutação: trocar `keep_native` por
+    `survivor_cardinality` em `keep_split` derruba isto."""
+    from pipeline.domain.services.cross_document_collapse_types import (
+        CorteDivergente,
+        exige_paridade_de_corte,
+    )
+
+    medida = CrossDocumentCollapser(retention_guard=OverrideRetentionGuard.sem_overrides()).measure(
+        _par()
+    )
+
+    with pytest.raises(CorteDivergente):
+        exige_paridade_de_corte(medida.candidates, 0)  # declara 1, poda removeu 0

@@ -18,6 +18,7 @@ from pipeline.domain.models.document import BankStatement  # noqa: E402
 from pipeline.domain.models.transaction import Money, Transaction  # noqa: E402
 from pipeline.domain.services.cross_document_collapser import (  # noqa: E402
     CrossDocumentCollapser,
+    OverrideRetentionGuard,
     _row_hash,
 )
 
@@ -45,7 +46,11 @@ def _doc(n_tx: int, arquivo: str, metodo: str = "native") -> BankStatement:
 
 
 def _measure(statements):
-    return CrossDocumentCollapser().measure(statements).candidates
+    return (
+        CrossDocumentCollapser(retention_guard=OverrideRetentionGuard.sem_overrides())
+        .measure(statements)
+        .candidates
+    )
 
 
 def test_repeticao_no_mesmo_arquivo_e_dois_eventos() -> None:

@@ -26,6 +26,7 @@ from pipeline.domain.models.transaction import Money, Transaction
 from pipeline.domain.services._tx_identity import HashInputs, normalize_descricao
 from pipeline.domain.services.cross_document_collapser import (
     CrossDocumentCollapser,
+    OverrideRetentionGuard,
     gate_key_digest,
 )
 from pipeline.domain.services.transaction_classifier import ClassifiedTransaction
@@ -61,7 +62,7 @@ def _stmt(arquivo: str, *, llm: bool) -> BankStatement:
 def _digest_do_pipeline() -> str:
     """Produtor 1 — o colapsador, sobre os objetos de domínio do E3."""
     candidatos = (
-        CrossDocumentCollapser()
+        CrossDocumentCollapser(retention_guard=OverrideRetentionGuard.sem_overrides())
         .measure([_stmt("nativo.json", llm=False), _stmt("llm.json", llm=True)])
         .candidates
     )
