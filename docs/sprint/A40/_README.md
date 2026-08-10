@@ -378,6 +378,18 @@ senão cada uma é fixada uma vez e volta a divergir.
 >   — 10 dos 35 blocos do schema E5 são `object` sem `properties`, inclusive os
 >   3 onde os achados moram. Pré-requisito antes de retomar: tipar esses blocos
 >   (contrato entre stages ⇒ gatilho `data-engineer`).
+>
+> **Co-design da [[A40.l5]] rodou em 2026-08-10** (sem código; §Co-design da
+> lane). Três correções que a sprint herda: (1) "10 blocos opacos" erra nos
+> dois sentidos — a superfície real é **11**, porque há 4 **arrays sem
+> `items`** que desligam o `tsc` igual a `Record<string, unknown>`; (2) o
+> **snapshot de dogfood não serve como fonte de tipo escalar** (`_normalize`
+> converte float não-monetário em string quantizada), então tipar por ele
+> criaria a mesma classe da lane na dimensão *tipo*; (3) o gate `schema × TS`
+> precisa de uma **terceira perna** — `schema × produtor`, via golden de
+> execução em `strict` —, senão os dois lados ficam sincronizados e errados.
+> Ordem de trabalho PR0–PR5 registrada na lane, com o flip `warn → strict`
+> isolado em PR próprio (blast radius = run de cliente).
 > - **[[A40.l7]] — `ed7b1dc4` (#1337).** Fechou a âncora de nav sem alvo
 >   (RV3-04) com gate bidirecional dentro do `codegen_report_layout`. Decisão de
 >   produto tomada: **remover a entrada de nav**, não ligar `S_PROTECAO` — ligar

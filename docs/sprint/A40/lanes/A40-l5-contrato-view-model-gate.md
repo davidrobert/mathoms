@@ -99,6 +99,12 @@ payload não emite, **sem erro**, caindo em default/fallback silencioso.
 > (contrato entre stages ⇒ gatilho `data-engineer`), e só então o codegen tem
 > de onde gerar. Deferido com dono, não silenciado.
 >
+> ✅ **Co-design rodou em 2026-08-10** — ver §Co-design abaixo. **"10" está
+> errado nos dois sentidos**: `section_summaries` já é tipado, mas há **4
+> arrays sem `items`** que eu não contei e que desligam o `tsc` do mesmo jeito.
+> Superfície real: **11 blocos**. E o gate precisa de uma **terceira perna**
+> (`schema × produtor`), senão sincroniza os dois lados errados.
+>
 > ### O que realmente desligava o `tsc` neste bloco
 >
 > Não era "o arquivo é escrito à mão" — era **`[key: string]: unknown`** dentro
@@ -214,6 +220,92 @@ teve `saldo_devedor`/`taxa_juros`). Corrigidas para o formato do produtor.
 
 **Não entrou:** codegen + gate de sincronia (pré-requisito de schema acima),
 as outras 3 index signatures, e a re-verificação do RV3-31 contra o payload.
+
+## 📐 Co-design `data-engineer` — 2026-08-10 (decisão, sem código)
+
+O §Parcial de 2026-08-08 deferiu "tipar os blocos do schema E5 primeiro
+(gatilho `data-engineer`)". O co-design rodou. **Corrigiu a medição que a
+própria lane registrou** e mudou o desenho em três pontos. Nada foi
+implementado nesta data — isto é a decisão, e a ordem de trabalho abaixo é o
+que a retomada executa.
+
+### A contagem "10 blocos opacos" está errada nos dois sentidos
+
+| | |
+|---|---|
+| `section_summaries` **já é tipado** | tem `patternProperties` + `additionalProperties: false` ⇒ gera `Record<string,string>` correto. Sai da fila |
+| `previdencia_pgbl` **não tem contrato** | a `description` aponta ADR-277/305 em **prosa**, e o codegen não lê prosa. Eu havia contado como "tem contrato" — refutado |
+| `tarefas_status` sai da fila cara | dogfood mostra `{"1": str, "2": str}`; produtor é `build_default_tarefas_status(...) -> dict[str,str]`. É 1 linha de `patternProperties` |
+| **subcontei**: 4 arrays sem `items` | `pontos_fortes`, `tarefas`, `alertas`, `diagnostico_comportamental` geram `unknown[]`, que desliga o `tsc` **exatamente como** `Record<string, unknown>` |
+
+**Superfície real: 11 blocos** (7 campo-a-campo + 4 arrays), mais 2 linhas
+baratas. O número final "7 campo-a-campo" coincidiu com meu palpite; a
+**composição** não, e é ela que dimensiona o trabalho.
+
+### Três correções de desenho
+
+1. **O snapshot de dogfood não pode ser fonte de tipo escalar.** `_normalize`
+   em `test_report_view_model_snapshot.py` converte monetário → cents `int` e
+   float não-monetário → **string quantizada**. `cobertura_meses: "5.5"` no
+   snapshot é `5.5` **float** no wire. Tipar lendo o snapshot escreveria
+   `type: "string"` onde é `number` — criando a mesma classe desta lane, na
+   dimensão **tipo** em vez de **nome**. O snapshot vale para presença de
+   chave, nulabilidade e container; **não** para tipo.
+2. **O gate precisa de uma TERCEIRA perna.** `schema × TS` sincroniza os dois
+   lados errados se o schema for transcrito do consumidor — e a fixture (2) do
+   §Critério de aceite passaria verde. É literalmente o que já mordeu esta lane
+   (os 3 testes de reserva passavam porque a fixture repetia a crença errada do
+   código). A perna que falta é **`schema × produtor`**, via
+   `tests/test_e5_golden_execution.py` sob `MATHOMS_PIPELINE_SCHEMA_MODE=strict`.
+3. **"Substituir o `types/report-analysis.ts` manual pelo gerado" é
+   infactível** — ~40 exports, e boa parte (`ScoreFullData`, `DashboardData`,
+   `AporteItem`…) é **UI-derived**, produzida pelos adapters de
+   `components/report/utils/`, sem schema que a descreva. Tentar isso
+   literalmente termina reintroduzindo index signature "pra caber". **Decisão:
+   dois arquivos** — `generated/report-analysis.ts` (espelho 1:1, zero index
+   signature) + o manual encolhido para os tipos de UI.
+
+### Política, já decidida dentro do próprio schema
+
+`$defs.PontoUrgente` traz a decisão com medição citada (#1243): **`required: []`
++ `additionalProperties: false` por bloco**. Artefato antigo em
+`pipeline_artifacts` não é revalidado na leitura, então `required` contradiz a
+tolerância do leitor. Divergir disso criaria um segundo padrão no mesmo arquivo.
+
+**`additionalProperties` no topo fica `true`** — o payload E5 tem mais de um
+escritor (`generate_narratives.py` regrava mergeando), e fechar sem enumerar
+todos é verde no dogfood e warn-storm em produção. **Mas o codegen nunca emite
+index signature**, independentemente disso: `additionalProperties: true`
+significa *"outro stage pode adicionar chave"*, não *"o consumidor pode ler
+qualquer coisa"*. Traduzir `true → [key: string]: unknown` reintroduziria o
+defeito que o #1336 matou em `dividas[]`.
+
+### Ponteiro podre encontrado
+
+A `description` do topo do schema diz que o flip `warn → strict` é "W6-T01 do
+PLATFORM_REVIEW_PLAN.md". Aquele plano foi **arquivado** em 2026-07-08 e o
+W6-T01 fechou pela [[A40.l5]]… não: pela A23.l2, **com escopo diferente**
+(rebaseline de goldens). **O flip está sem dono hoje.**
+
+### §Deferimento datado — ordem de trabalho, dono: esta lane
+
+Risco de quebrar run de produção é **~zero em PR0–PR4** (modo `warn`; pior caso
+é log de drift). O risco aparece só no PR5 — que é o argumento para não juntá-lo.
+
+| | O que faz | Por que nesta ordem |
+|---|---|---|
+| **PR0** | Inventário: carrega os E5 disponíveis e reporta, por bloco, chaves observadas + tipo Python **antes** da normalização + taxa de presença | Sem isso o aperto é redação, e a correção nº 1 acontece. Se só o dogfood estiver disponível, **declarar como limite** — amostra única não é medição |
+| **PR1** | `tarefas_status` → `patternProperties`; `protecao_patrimonial` → `$ref` externo; os 4 arrays ganham `items` | Aditivo, nenhum consumidor muda |
+| **PR2** | `consumo_consciente` (o contrato já existe em `@dataclass`), `reserva_emergencia`, `goals` | `goals` por último: `_enrich_goals_with_passive_income` adiciona 7 chaves — tipar pelo input produz contrato incompleto |
+| **PR3** | `dev/codegen_report_analysis.py` + gate de sincronia (pre-commit) + gate de opacidade | Só agora o codegen tem de onde gerar |
+| **PR4** | `equilibrio_cerbasi`, `orcamento_prospectivo`, `previdencia_pgbl`, `programa_milhas` | `programa_milhas` é `{}` no dogfood: se PR0 confirmar em 100% dos runs, **não tipe** — roteie como candidato a deleção (classe [[ADR-364]]) |
+| **PR5** | Proposta `warn → strict`, com o drift medido em mãos + re-adoção do flip órfão | **Outra lane.** ADR própria + gatilho `sre-devops` (blast radius = run de cliente) |
+
+**Marcador de opacidade com polaridade corrigida:** `x-codegen: {opaque: true,
+reason, owner}` com razão e dono **obrigatórios**; inválido em bloco que tenha
+leitor TS; e **contador monotônico decrescente** (padrão de
+`dev/check_code_style_regression.py`), para que opacidade seja dívida com
+trajetória em vez de allowlist sem prazo — allowlist falha aberta.
 
 ## Guarda anti-regressão
 
