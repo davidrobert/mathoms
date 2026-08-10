@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.base.errors import NotFoundError
 from backend.app.application.report._common import fetch_report
+from backend.app.application.report.recalibracao_note import build_recalibracao_note
 from backend.app.core.logging import get_logger
 from backend.app.schemas.snapshot_changelog import (
     changelog_entry_to_read,
@@ -66,13 +67,9 @@ async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession
 
     # v2.8 (ADR-148): injeta comparisons/changelog via SnapshotChangelogBuilder.
     # v3 (ADR-190 §Emenda): + períodos reais do par para a moldura temporal da V0.
-    comparisons, changelog, periods, base_mudou = await _build_snapshot_diff(
-        db, workspace_id=workspace_id, current_artifact_id=artifact.id
+    payload.update(
+        await _build_snapshot_diff(db, workspace_id=workspace_id, current_artifact_id=artifact.id)
     )
-    payload["comparisons"] = comparisons
-    payload["changelog"] = changelog
-    payload["comparison_periods"] = periods
-    payload["comparison_base_changed"] = base_mudou
 
     return JSONResponse(content=payload)
 
@@ -103,8 +100,8 @@ async def _build_snapshot_diff(
     *,
     workspace_id: str,
     current_artifact_id: int,
-) -> tuple[list[dict] | None, list[dict] | None, dict[str, str] | None, bool]:
-    """Retorna ``(comparisons, changelog, comparison_periods, base_mudou)`` JSON-ready."""
+) -> dict:
+    """Chaves do view-model que dependem do par (anterior, atual), JSON-ready."""
     config = SnapshotChangelogConfig()
 
     def _run(session) -> tuple:
@@ -117,10 +114,27 @@ async def _build_snapshot_diff(
 
     result, prev, curr = await db.run_sync(_run)
     if not result.has_previous:
-        return None, None, None, False
+        return _SEM_PAR
     items = [comparison_item_to_read(it).model_dump(mode="json") for it in result.items]
     entries = [changelog_entry_to_read(en).model_dump(mode="json") for en in result.entries]
-    return items, entries, _periods_payload(prev, curr), _base_de_comparacao_mudou(prev, curr)
+    return {
+        "comparisons": items,
+        "changelog": entries,
+        "comparison_periods": _periods_payload(prev, curr),
+        "comparison_base_changed": _base_de_comparacao_mudou(prev, curr),
+        "recalibracao_mc": build_recalibracao_note(prev, curr),
+    }
+
+
+# Sem relatório anterior, nada do par existe — e a nota de recalibração CALA
+# (ADR-360 §Nota one-shot: sem report anterior ⇒ nunca mostra).
+_SEM_PAR: dict = {
+    "comparisons": None,
+    "changelog": None,
+    "comparison_periods": None,
+    "comparison_base_changed": False,
+    "recalibracao_mc": None,
+}
 
 
 def _consolidou_cross_documento(snapshot) -> bool:

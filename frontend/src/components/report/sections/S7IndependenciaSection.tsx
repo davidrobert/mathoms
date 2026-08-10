@@ -4,6 +4,7 @@ import { ReportCard } from "../ReportCard";
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { SuggestionCalloutInline } from "./SuggestionCallout";
+import { RecalibracaoMcNote } from "./RecalibracaoMcNote";
 import { PrevidenciaPgblCard, type PrevidenciaPgblData } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
@@ -65,6 +66,7 @@ export function S7IndependenciaSection({
       {workspaceId && (
         <SuggestionCalloutInline sectionId="S7" workspaceId={workspaceId} />
       )}
+      <RecalibracaoMcNote nota={data.recalibracao_mc ?? null} />
       <NarrativeChartCard
         chartId="projecao_3cenarios"
         title="Projeção Patrimonial — 3 Cenários"
