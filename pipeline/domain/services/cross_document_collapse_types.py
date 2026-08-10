@@ -152,11 +152,12 @@ class CollapseCandidate:
     # sem que o pipeline importe `dev/`.
     divergence: str = ""
     parciais: str = ""
-    # [[ADR-364]] §Emenda 2026-08-10 — a chave tem override ativo, logo NÃO colapsa neste run.
+    # [[ADR-364]] §Emenda 2026-08-09 — a chave tem override ativo, logo NÃO colapsa neste run.
     # Não é `blocked_reason`: aquele campo é do predicado do colapsador (propriedade do dado),
     # este é estado externo do workspace. Confundi-los faria o gate ler "predicado reprovou"
     # onde houve "usuário corrigiu", e a série do gate perderia a distinção.
     retido_por_override: bool = False
+    retido_por_sources: tuple[str, ...] = ()
 
     @property
     def collapsible(self) -> bool:
@@ -194,6 +195,7 @@ class CollapseCandidate:
             "alvo_ambiguo": self.alvo_ambiguo,
             "blocked_reason": self.blocked_reason,
             "retido_por_override": self.retido_por_override,
+            "retido_por_sources": list(self.retido_por_sources),
             "divergence": self.divergence,
             "parciais": self.parciais,
         }
@@ -207,7 +209,7 @@ class CollapseCandidate:
 # de zero-ambíguo que esta lane já pagou quatro vezes.
 @dataclass(frozen=True)
 class OverrideRetentionGuard:
-    """Digests de override ativo que **não** colapsam ([[ADR-364]] §Emenda 2026-08-10). Dado
+    """Digests de override ativo que **não** colapsam ([[ADR-364]] §Emenda 2026-08-09). Dado
     congelado, sem I/O: o produtor vive em `collapse_precondition.from_active_overrides` e é
     injetado no composition root do stage."""
 
@@ -216,6 +218,12 @@ class OverrideRetentionGuard:
     sem_snapshot: int
     denied_por_source: tuple[tuple[str, int], ...]
     lido: bool
+    # `denied_por_source` conta OVERRIDES por origem; este mapa liga cada digest às origens
+    # que o negaram. São grandezas distintas: vários overrides colidem num digest, e digest
+    # negado pode não casar candidato nenhum. O passo (1) da ordem de construção da
+    # re-ancoragem ([[ADR-364]] §Emenda 2026-08-09) compara retido[rule] contra
+    # retido[manual] — sobre CANDIDATOS retidos, que só este mapa permite atribuir.
+    sources_por_digest: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
     @classmethod
     def nao_lido(cls) -> "OverrideRetentionGuard":
@@ -239,6 +247,10 @@ class OverrideRetentionGuard:
     def retem(self, gate_digest: str) -> bool:
         """`True` se esta chave tem override ativo e portanto **não** colapsa."""
         return bool(gate_digest) and gate_digest in self.denied_digests
+
+    def sources_de(self, gate_digest: str) -> tuple[str, ...]:
+        """Origens (`manual`/`rule`) dos overrides que negam esta chave; vazio se não nega."""
+        return dict(self.sources_por_digest).get(gate_digest, ())
 
     def to_trace_dict(self) -> dict:
         """Contadores PII-free para `output_summary` — COM denominador: zero medido e zero

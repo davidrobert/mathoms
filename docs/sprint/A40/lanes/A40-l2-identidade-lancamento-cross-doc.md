@@ -465,9 +465,9 @@ Promovidos a item com condição de retomada porque follow-up em parágrafo é i
 | item | condição de retomada |
 |---|---|
 | **A magnitude** (`receitas_omitidas`/`despesas_omitidas`, cortada do 3c1 pela Objeção 1) | depois de resolvido o dispatch v1/v2 do hash do E4 — hoje, com a flag off, o join por `survivor_hash` devolve **zero em silêncio** |
-| **Teste de execução com `collapse_enforce=True` injetado no adapter** (nunca no call-site — a guarda 3 por AST proíbe) | junto do 3c1c. É a cobertura que falta: os goldens passam hoje porque **nunca exercitam o campo**, então "rebaseline sem diff" não é sinal de pronto |
+| **Teste de execução com `collapse_enforce=True` injetado no adapter** (nunca no call-site — a guarda 3 por AST proíbe) | junto do 3c1c. É a cobertura que falta: os goldens passam hoje porque **nunca exercitam o campo**, então "rebaseline sem diff" não é sinal de pronto | — ✅ **Quitado 2026-08-10.** O gate AST proíbe `collapse_enforce=True` no stage e os goldens rodam em sombra, então o caminho que REMOVE row só existia sob `collapse()` isolado. Agora o enforce é injetado no adapter e o stage roda inteiro. **Medido ao escrever:** com as duas pernas na MESMA conta o `cross_file_dedup` já removia — o enforce muda a ATRIBUIÇÃO de canal, não o total. O ganho da lane vem de pares em contas distintas.
 | **Identificador de método no artefato** — substitui o proxy de presença de `consolidacao_cross_documento` no gatilho do caption/neutralização da V0. O proxy erra em **um** caso, **uma vez por workspace**: o que adquire seu primeiro par sobreposto pós-flip cruza 0→N e acende o marcador sem mudança de método. Erro conservador (suprime julgamento a mais) | dono: [[PLAN-snapshot-changelog-v3]] §W6. Gatilho: **[[A42.l5]] abrir** **ou** a 2ª mudança de método do produto, o que vier antes. Verificável: existe `$def` de método no schema E5 **e** `_build_snapshot_diff` deixa de ler `fluxo_caixa.consolidacao_cross_documento` |
-| 🔴 **Path morto `reserva.cobertura_meses`** — o builder navega `reserva.cobertura_meses`, o E5 emite `reserva_emergencia`, e `M_RESERVA_MESES` **nunca renderizou em relatório nenhum**. Corrigir é certo, **e a ordem é bloqueante**: só depois do eixo (10), senão liga o falso-positivo **elogioso** (`+1,8 mês`, estrutural — remover despesa sempre aumenta a cobertura, numerador idêntico e denominador menor) | dono: [[PLAN-snapshot-changelog-v3]] §W6-R1. Gatilho: eixo (10) em `main`. Verificável: `M_RESERVA_MESES` aparece com valor não-nulo no payload de `/data` do dogfood |
+| 🔴 **Path morto `reserva.cobertura_meses`** — o builder navega `reserva.cobertura_meses`, o E5 emite `reserva_emergencia`, e `M_RESERVA_MESES` **nunca renderizou em relatório nenhum**. Corrigir é certo, **e a ordem é bloqueante**: só depois do eixo (10), senão liga o falso-positivo **elogioso** (`+1,8 mês`, estrutural — remover despesa sempre aumenta a cobertura, numerador idêntico e denominador menor) | dono: [[PLAN-snapshot-changelog-v3]] §W6-R1. Gatilho: eixo (10) em `main`. Verificável: `M_RESERVA_MESES` aparece com valor não-nulo no payload de `/data` do dogfood | — ✅ **Quitado 2026-08-10** (gatilho — eixo (10) em `main` — disparado no mesmo dia). O E5 emite `reserva_emergencia`, nunca `reserva`: o path nasceu morto e `M_RESERVA_MESES` jamais renderizou. Gate da **classe** em `test_snapshot_changelog.py`: toda chave de topo usada por `DEFAULT_SECTION_VALUE_PATHS` tem de existir em `properties` do schema E5.
 
 **Campo omitido quando `count == 0`** (precedente ADR-132 T2) — e o argumento decisivo não é
 estético: `parecer_orchestrator` mete `sha256(json.dumps(e5_data, sort_keys=True))` na chave de
@@ -498,7 +498,27 @@ se o conserto é da l2 ou vira lane é **do dono** — é mudança de escopo de 
 Cumulativamente: (1) relatório `liberado=True` do **run de referência** — *o run mais recente
 que EXECUTOU `reconcile_transactions`*, com limite de idade; "último run completado" está errado
 nas duas direções (runs `from_stage` completam sem executar E3; `needs_review` executa E3 sem
-completar). (2) `medido is True`. (3) **Dois** runs consecutivos com `hits == 0` **depois** do
+completar). (2) `medido is True`.
+
+> **📏 MEDIDO 2026-08-10, pós-3d** (`dev/probe_collapse_adjudication.py` + relatório do gate,
+> zero-write sobre o corpus de dogfood — a medição anterior era de 2026-08-07, **anterior** a
+> todo o §3d, e por isso não valia):
+>
+> ```
+> guard: lido=True · ativos=5 · sem_snapshot=0 · degradado=False · denied 5/5 manual
+> candidatos=331 · colapsáveis=331 · será_colapsado=331 · retidos=0 · reservatório_llm=441
+> LIBERADO=False — reprovadas: ('vivacidade=4/5',)
+> hits=0 · sem_snapshot=0 · tx_data_nao_iso=0 · snapshot_casa_corpus=4 · corpus=5227 · medido=True
+> ```
+>
+> **Uma única cláusula reprova.** `medido`, `hits`, `sem_snapshot` e `tx_data_nao_iso` passam;
+> a vivacidade universal falha 4/5 porque **um** override tem snapshot mas sua âncora não casa
+> row nenhuma do corpus E3 atual — órfão de fato, não defeito do gate. `retidos=0` confirma o
+> outro lado: nenhum override cai em candidato de colapso, então a retenção do §3d não tem o
+> que reter **hoje** (e o reservatório de 441 diz que isso muda com o tempo).
+>
+> **Consequência para o 3e:** o flip está bloqueado por **um override**, e o ato que o
+> destrava — `quarantine_override` sobre esse órfão — já estava atribuído a esta fase. (3) **Dois** runs consecutivos com `hits == 0` **depois** do
 drain — um run mede o próprio drain.
 **⚠️ Obsoleto NA LETRA desde 2026-08-09** — a §3d fechou decidindo que **não há drain**: a
 quitação é retenção, e nada é re-ancorado. "Depois do drain" nomeia evento que não ocorre, e

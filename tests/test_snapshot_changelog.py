@@ -429,3 +429,24 @@ def test_w2_threshold_rule_sem_limite_falha_cedo():
     """ThresholdRule() sem pct nem abs_brl → ValueError no boundary (ADR-097)."""
     with pytest.raises(ValueError, match="pct e/ou abs_brl"):
         ThresholdRule()
+
+
+# Gate da CLASSE, não da linha: `M_RESERVA_MESES` apontava para `reserva.cobertura_meses` e o
+# E5 emite `reserva_emergencia` — a métrica nunca renderizou em relatório nenhum, e nenhum
+# teste percebeu porque a ausência de fonte degrada para "métrica omitida", que é um estado
+# legítimo. Um path com chave de topo inexistente é indistinguível de dado ausente.
+def test_todo_path_de_secao_comeca_por_chave_REAL_do_schema_e5():
+    """Mutação: apontar qualquer path para uma chave de topo que o E5 não emite."""
+    import json
+    from pathlib import Path
+
+    from pipeline.domain.services.snapshot_changelog.builder import DEFAULT_SECTION_VALUE_PATHS
+
+    raiz = Path(__file__).resolve().parents[1]
+    schema = json.loads((raiz / "config/schemas/e5_analysis.schema.json").read_text())
+    topo = set(schema["properties"])
+
+    usadas = {path.split(".")[0] for path in DEFAULT_SECTION_VALUE_PATHS.values()}
+
+    assert usadas, "sem paths o teste passaria por vacuidade"
+    assert usadas <= topo, f"path aponta para chave que o E5 não emite: {sorted(usadas - topo)}"

@@ -1,4 +1,4 @@
-"""Travas de retenção do E3 ([[ADR-364]] §Emenda 2026-08-10, [[A40.l2]] §3d).
+"""Travas de retenção do E3 ([[ADR-364]] §Emenda 2026-08-09, [[A40.l2]] §3d).
 
 A janela TOCTOU e os contadores publicados. Cada teste nomeia a mutação que o derruba —
 sem isso a trava vira decoração, que é como a lane chegou aqui quatro vezes.
@@ -33,7 +33,9 @@ class _Result:
         self.removals = removals
 
 
-def _candidato(gate: str, *, colapsavel: bool = True) -> CollapseCandidate:
+def _candidato(
+    gate: str, *, colapsavel: bool = True, origens: tuple[str, ...] = ("manual",)
+) -> CollapseCandidate:
     return CollapseCandidate(
         key_digest=f"k-{gate}",
         gate_digest=gate,
@@ -48,6 +50,7 @@ def _candidato(gate: str, *, colapsavel: bool = True) -> CollapseCandidate:
         survivor_cardinality=1,
         removable_rows=1,
         retido_por_override=not colapsavel,
+        retido_por_sources=() if colapsavel else origens,
     )
 
 
@@ -192,3 +195,42 @@ def test_o_stage_publica_os_contadores_no_output_summary():
 
     assert _indice_da_chamada(_corpo_do_stage(), "_e3_collapse_retention") >= 0
     assert '"collapse_retention"' in fonte
+
+
+# O passo (1) da ordem de construção da re-ancoragem ([[ADR-364]] §Emenda 2026-08-09) compara
+# `retido[rule]` contra `retido[manual]`. Sem estes dois contadores ele é indecidível — foi o
+# desvio que o PR do 3d publicou (agregado + `denied_por_source`) e que este PR quita.
+def test_contadores_separam_a_origem_da_retencao():
+    """Mutação: emitir só o agregado. O passo (1) volta a não ter instrumento."""
+    result = _Result(
+        CollapseMeasurement(
+            candidates=(
+                _candidato("g1", colapsavel=False, origens=("rule",)),
+                _candidato("g2", colapsavel=False, origens=("manual",)),
+                _candidato("g3", colapsavel=False, origens=("manual", "rule")),
+                _candidato("g4"),
+            )
+        )
+    )
+
+    payload = _e3_collapse_retention(result, _guard(denied=["g1", "g2", "g3"]), instavel=False)
+
+    assert payload["retido_por_override"] == 3
+    assert payload["retido_por_override_rule"] == 2
+    assert payload["retido_por_override_manual"] == 2
+
+
+# Mutação: somar como partição (`manual` = total − `rule`). O passo (1) leria
+# `retido[manual] = 1` onde há 2, e desligaria `source='rule'` sobre comparação errada.
+def test_chave_negada_por_DUAS_origens_conta_nos_dois():
+    """Não são partições: uma chave editada à mão E coberta por regra pertence às duas."""
+    result = _Result(
+        CollapseMeasurement(
+            candidates=(_candidato("g1", colapsavel=False, origens=("manual", "rule")),)
+        )
+    )
+
+    payload = _e3_collapse_retention(result, _guard(denied=["g1"]), instavel=False)
+
+    assert payload["retido_por_override"] == 1
+    assert payload["retido_por_override_manual"] == payload["retido_por_override_rule"] == 1
