@@ -52,11 +52,14 @@ from pipeline.domain.services._tx_identity import (
     normalize_titular,
 )
 from pipeline.domain.services.cross_document_collapse_types import (
+    CANAL_COLAPSO,
     CollapseCandidate,
     CollapseMeasurement,
     CollapseRemoval,
     OverrideRetentionGuard,
     RemovalTarget,
+    _identity_collision,
+    conta_perna_llm_orfa,
     exige_paridade_de_corte,
     removals_by_source,
 )
@@ -108,28 +111,6 @@ class CrossDocumentCollapseConfig:
         if len(filled) <= 1:
             return True
         return any(filled <= group for group in self.alias_groups)
-
-
-def _strip_identity_suffix(value: str, suffixes: frozenset[str]) -> str:
-    """Remove o sufixo de moeda do fim do tipo; nunca reduz o tipo a string vazia."""
-    for suffix in sorted(suffixes):
-        if value.endswith(suffix) and len(value) > len(suffix):
-            return value[: -len(suffix)]
-    return value
-
-
-def _identity_collision(group: frozenset[str], suffixes: frozenset[str]) -> str | None:
-    """Tipo cujo sufixo de moeda é o ÚNICO discriminante contra outro membro do grupo."""
-    # Cada membro perde o SEU sufixo antes da comparação: strip de um sufixo só
-    # sobre o grupo inteiro não vê `...globalusd` vs `...globaleur` (stems ficam
-    # distintos em qualquer passada única).
-    by_stem: dict[str, str] = {}
-    for value in sorted(group):
-        stem = _strip_identity_suffix(value, suffixes)
-        if stem in by_stem:
-            return value
-        by_stem[stem] = value
-    return None
 
 
 def _provenance(stmt: BankStatement) -> tuple[str, str, str]:
@@ -343,17 +324,19 @@ class _KeyGroup:
         return "+".join(n for n in _PROVENANCE_FIELDS if _is_partial(self.field_values(n)))
 
 
-_CANAL = "cross_document_collapse"
+_CANAL = CANAL_COLAPSO
 
 
-def _group_by_key(statements: Iterable[BankStatement]) -> list[_KeyGroup]:
-    """Índice chave → rows, mantendo só chaves vivas em ≥2 proveniências."""
+# O reservatório sai da MESMA passada do índice, não de uma segunda derivação.
+def _group_by_key(statements: Iterable[BankStatement]) -> tuple[list[_KeyGroup], int]:
+    """`(grupos vivos em ≥2 proveniências, reservatório de perna LLM sem gêmea)`."""
     index: dict[tuple, dict[tuple[str, str, str], list[_Row]]] = {}
     for stmt in statements:
         for tx in stmt.transactions:
             buckets = index.setdefault(_collapse_key(tx, stmt), {})
             buckets.setdefault(_provenance(stmt), []).append((stmt, tx))
-    return [_KeyGroup(key, buckets) for key, buckets in index.items() if len(buckets) > 1]
+    grupos = [_KeyGroup(key, buckets) for key, buckets in index.items() if len(buckets) > 1]
+    return grupos, conta_perna_llm_orfa(index)
 
 
 class CrossDocumentCollapser:
@@ -377,12 +360,14 @@ class CrossDocumentCollapser:
         # Se o corpus fosse um método à parte, um caller poderia derivá-lo pós-colapso e
         # perder exatamente as rows removidas — onde os overrides em risco ancoram.
         stmts = list(statements)
-        candidates = [self._candidate(group) for group in _group_by_key(stmts)]
+        groups, reservatorio = _group_by_key(stmts)
+        candidates = [self._candidate(group) for group in groups]
         gates, hashes = _corpus_digests(stmts)
         return CollapseMeasurement(
             candidates=tuple(sorted(candidates, key=lambda c: c.key_digest)),
             corpus_gate_digests=gates,
             corpus_row_hashes=hashes,
+            reservatorio_llm_sem_gemea=reservatorio,
         )
 
     # O parâmetro `card` saiu daqui: era assinatura mentindo sobre a fonte do corte. O corpo
@@ -430,19 +415,22 @@ class CrossDocumentCollapser:
             parciais=group.parciais,
         )
 
+    # Não existe endereço serializado de row (e nenhum `_hash_v3`): measure e agrupamento
+    # rodam sobre a MESMA lista, no mesmo processo, então selecionar objetos basta.
     def collapse(
         self, statements: Iterable[BankStatement]
     ) -> tuple[tuple[BankStatement, ...], CollapseMeasurement, tuple[CollapseRemoval, ...]]:
-        # Não existe endereço serializado de row (e nenhum `_hash_v3`): measure e agrupamento
-        # rodam sobre a MESMA lista, no mesmo processo, então selecionar objetos basta.
         """Mede **e** remove, no MESMO passo — identidade de row é identidade de objeto."""
         stmts = list(statements)
-        groups = _group_by_key(stmts)
+        groups, reservatorio = _group_by_key(stmts)
         candidates = tuple(sorted((self._candidate(g) for g in groups), key=lambda c: c.key_digest))
         # PRÉ-poda, e por isso derivado ANTES do `_apply` — ver `CollapseMeasurement`.
         gates, hashes = _corpus_digests(stmts)
         medicao = CollapseMeasurement(
-            candidates=candidates, corpus_gate_digests=gates, corpus_row_hashes=hashes
+            candidates=candidates,
+            corpus_gate_digests=gates,
+            corpus_row_hashes=hashes,
+            reservatorio_llm_sem_gemea=reservatorio,
         )
         if self._guard.degradado:  # measure-only — ver `OverrideRetentionGuard.degradado`
             return (tuple(stmts), medicao, ())

@@ -1081,6 +1081,61 @@ def _e3_collapse_precondition(ctx, store, result) -> Optional[Dict[str, Any]]:
     return report.as_details()
 
 
+# A janela TOCTOU: `_e3_build_collapser` lê o guard ANTES da reconciliação, e o corte só se
+# consuma no commit da sessão de artefatos, lá no fim do stage. Override criado nesse intervalo
+# não foi visto pelo guard — e é justamente o instante em que o usuário está mexendo na
+# categorização daquele mês. `houve_corte` mede o EFEITO (removal publicada no canal), não a
+# intenção (`collapse_enforce`): na sombra a predição só envelheceu, e derrubar o run inteiro
+# por isso seria desproporcional; com corte aplicado, o override foi silenciosamente destruído.
+#
+# `raise` é a saída deliberada: exceção ⇒ `result is None` no `pipeline_task`, que faz
+# `_rollback_and_close_artifact_session` — o artefato inteiro volta atrás. `validation.valid=False`
+# NÃO serve aqui: aquele caminho **commita** o artefato e só depois pausa o run.
+def _e3_removals_do_colapso(result) -> int:
+    from pipeline.domain.services.cross_document_collapse_types import CANAL_COLAPSO
+
+    return sum(1 for r in result.removals if r.canal == CANAL_COLAPSO)
+
+
+def _e3_revalida_retencao(ctx, store, result):
+    """Releitura do guard após a reconciliação ([[ADR-364]] §Emenda). Devolve `(guard, instavel)`."""
+    medicao = result.collapse_measurement
+    colapsados = {c.gate_digest for c in medicao.candidates if c.sera_colapsado and c.gate_digest}
+    from pipeline.domain.services.cross_document_collapse_types import RetencaoInstavel
+
+    # Sem guarda `guard.lido` aqui: guard não lido degrada o colapsador para measure-only
+    # (`test_collapse_enforce.py::test_guard_nao_lido_degrada_para_measure_only`), e sem corte
+    # publicado este ramo não dispara. A guarda seria código morto — e `nao_lido()` nasce com
+    # `denied_digests` vazio de qualquer forma (travado no teste desta suíte).
+    guard = _e3_retention_guard(ctx, store)
+    invadidos = guard.denied_digests & colapsados
+    if invadidos and _e3_removals_do_colapso(result):
+        raise RetencaoInstavel(
+            f"{len(invadidos)} override(s) criados durante o E3 sobre chave colapsada; "
+            f"artefato descartado ({len(colapsados)} chaves cortadas neste run)"
+        )
+    return guard, bool(invadidos)
+
+
+# Sem denominador, "0 retido" e "não medi" imprimem o mesmo caractere — a confusão que esta
+# lane pagou quatro vezes. `reservatorio_llm_sem_gemea` é o preditor: `retido_por_override` só
+# conta o dano materializado, o reservatório conta o que vira alvo quando o nativo for ingerido.
+def _e3_collapse_retention(result, guard, *, instavel: bool) -> Optional[Dict[str, Any]]:
+    """Contadores de retenção para `pipeline_stage_logs.output_summary`."""
+    medicao = result.collapse_measurement
+    if not guard.lido and not medicao.candidates:
+        return None
+    return {
+        **guard.to_trace_dict(),
+        "candidatos": len(medicao.candidates),
+        "colapsaveis": sum(1 for c in medicao.candidates if c.sera_colapsado),
+        "retido_por_override": sum(1 for c in medicao.candidates if c.retido_por_override),
+        "reservatorio_llm_sem_gemea": medicao.reservatorio_llm_sem_gemea,
+        "removals_publicadas": _e3_removals_do_colapso(result),
+        "retencao_instavel": instavel,
+    }
+
+
 def _e3_build_adapter(ctx, *, cross_document_collapser=None, collapse_enforce=False):
     """Carrega configs + monta E3ReconcilerAdapter com domain services tipados."""
     from pipeline.domain.models.bank import BankCanonicalizer
@@ -1319,6 +1374,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
     )
 
     result = _e3_run_reconciliation(adapter, store, canon, ctx.pipeline_run_id)
+    guard, retencao_instavel = _e3_revalida_retencao(ctx, store, result)
     written_filenames = _e3_validate_outputs(store, ctx)
     _e3_write_sidecar_logs(ctx, written_filenames, result)
     _e3_log_warnings(result)
@@ -1333,6 +1389,9 @@ def main_with_store(ctx) -> Dict[str, Any]:
     precondicao = _e3_collapse_precondition(ctx, store, result)
     if precondicao:
         detail["collapse_precondition"] = precondicao
+    retencao = _e3_collapse_retention(result, guard, instavel=retencao_instavel)
+    if retencao:
+        detail["collapse_retention"] = retencao
     return detail
 
 

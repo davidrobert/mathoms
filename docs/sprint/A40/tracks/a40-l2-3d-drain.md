@@ -117,6 +117,32 @@ ainda não teve o que reter."*
 propriedade do corpus **e do tempo** ([[ADR-364]] §5). O probe recusa emitir veredito com
 corpus/overrides vazios (`INDETERMINADO`, exit 2) — **não contorne o guard**.
 
+## Entregue — 2026-08-10
+
+**Núcleo** (PR [#1351](https://github.com/davidrobert/mathoms/pull/1351), `319added`):
+`OverrideRetentionGuard` sem default no construtor, retenção por `gate_digest`, degradação
+para measure-only quando o guard não leu, `exige_paridade_de_corte`.
+
+**Travas** (commit `ea43c4a5`): revalidação TOCTOU, contadores publicados, trava
+anti-destruição, gate AST do call-site.
+
+Dois desvios do §Aceite, ambos deliberados:
+
+- **`retido_por_override_manual` / `_rule` não saem separados.** O que se publica é o par
+  `denied_por_source` (o denominador, quebrado por origem, vindo do guard) mais
+  `retido_por_override` agregado. Separar o numerador por origem exigiria carregar a origem
+  do deny até o candidato, e a decisão de retenção não olha a origem — seria dado transportado
+  só para o relatório. `denied_por_source` responde a mesma pergunta no lado que importa.
+- **`ReviewReason` por chave retida fica para o 3e.** Antes do flip a sombra não remove nada,
+  então **toda** chave duplicada permanece duplicada — um aviso "esta ficou porque você editou"
+  seria indistinguível das outras que ficaram porque não houve corte. O canal só carrega
+  informação depois que a ausência de colapso passa a ser exceção. **Gatilho:** primeiro run com
+  `collapse_enforce=True`.
+
+**Guarda `guard.lido` removida do TOCTOU.** Era código morto: guard não lido degrada o
+colapsador para measure-only, logo não há corte publicado e o ramo não dispara. O que sustenta
+isso é `nao_lido()` nascer sem digests — travado por teste próprio, com a mutação nomeada.
+
 ## Aceite
 
 **Seis travas por mutação, cada uma com a mutação plausível declarada** (a que um refactor

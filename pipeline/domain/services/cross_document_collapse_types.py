@@ -36,6 +36,47 @@ class RemovalTarget:
         return {"hash": self.hash, "remover": self.remover, "no_bucket": self.no_bucket}
 
 
+CANAL_COLAPSO = "cross_document_collapse"
+_METODO_LLM = "llm"
+
+
+# Rows de perna LLM em chave de proveniência ÚNICA: hoje sobrevivem porque o índice descarta
+# chave com uma só proveniência, e viram alvo no instante em que o documento nativo daquela
+# conta é ingerido. É o indicador ANTECEDENTE que `retido_por_override` não dá — aquele só vê
+# o dano materializado, e sem este a lane volta a medir 0 e a concluir "vazio" pela terceira vez.
+def _strip_identity_suffix(value: str, suffixes: frozenset[str]) -> str:
+    """Remove o sufixo de moeda do fim do tipo; nunca reduz o tipo a string vazia."""
+    for suffix in sorted(suffixes):
+        if value.endswith(suffix) and len(value) > len(suffix):
+            return value[: -len(suffix)]
+    return value
+
+
+def _identity_collision(group: frozenset[str], suffixes: frozenset[str]) -> str | None:
+    """Tipo cujo sufixo de moeda é o ÚNICO discriminante contra outro membro do grupo."""
+    # Cada membro perde o SEU sufixo antes da comparação: strip de um sufixo só
+    # sobre o grupo inteiro não vê `...globalusd` vs `...globaleur` (stems ficam
+    # distintos em qualquer passada única).
+    by_stem: dict[str, str] = {}
+    for value in sorted(group):
+        stem = _strip_identity_suffix(value, suffixes)
+        if stem in by_stem:
+            return value
+        by_stem[stem] = value
+    return None
+
+
+def conta_perna_llm_orfa(index: dict) -> int:
+    """Reservatório de colapso futuro, a partir do índice `chave → proveniência → rows`."""
+    return sum(
+        len(rows)
+        for buckets in index.values()
+        if len(buckets) == 1
+        for rows in buckets.values()
+        if rows and (rows[0][0].extraction_method or "").lower() == _METODO_LLM
+    )
+
+
 @dataclass(frozen=True)
 class CollapseRemoval:
     """Remoção declarada por statement — canal ``cross_document_collapse`` ([[ADR-347]])."""
@@ -67,6 +108,9 @@ class CollapseMeasurement:
     candidates: tuple = ()
     corpus_gate_digests: frozenset[str] = frozenset()
     corpus_row_hashes: frozenset[str] = frozenset()
+    # Rows de perna LLM em chave de proveniência única — viram candidato quando o documento
+    # nativo daquela conta chegar. Preditor da retenção futura; ver `_group_by_key`.
+    reservatorio_llm_sem_gemea: int = 0
 
 
 def shadow_counts(candidates) -> dict[str, int]:
@@ -248,10 +292,12 @@ def removals_by_source(drop: list) -> tuple[CollapseRemoval, ...]:
     """Uma ``CollapseRemoval`` por par ``(source_document, mês)`` — granularidade que a
     atribuição precisa para ter **dono único** ([[ADR-347]] §Emenda 2026-08-10)."""
     return tuple(
-        CollapseRemoval(
-            "cross_document_collapse", c, v, cross_source_count=c, source=src, meses=((mes, c),)
-        )
+        CollapseRemoval(CANAL_COLAPSO, c, v, cross_source_count=c, source=src, meses=((mes, c),))
         for (src, mes), (c, v) in sorted(
             _agrega_por_source_e_mes(drop).items(), key=lambda kv: (kv[0][0] or "", kv[0][1])
         )
     )
+
+
+class RetencaoInstavel(RuntimeError):
+    """Override criado ENTRE a leitura do guard e o commit do artefato (TOCTOU)."""
