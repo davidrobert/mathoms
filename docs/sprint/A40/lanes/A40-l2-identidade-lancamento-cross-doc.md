@@ -512,8 +512,11 @@ usa `--semantic-success`/`--semantic-danger` e nenhum `aria-label` contém "aval
 nível de **render** (payload não prova renderizado — `dedupeBySemanticKey`), cobrindo flip e
 **rollback**, com **paridade cor ≡ texto** asseverada e **prova por mutação** nos dois sentidos:
 tornar o gatilho por *presença* deixa teste vermelho, e `deltaColor` voltando a julgar sob base
-alterada deixa teste vermelho. Entregue no 3c2b; o eixo existe porque o PR do flip é justamente
-quem tem incentivo a não olhar para a V0 — mesma razão do eixo (8).
+alterada deixa teste vermelho. **✅ Entregue 2026-08-10** (PR do 3c2b): `comparison_base_changed` nasce como **diferença
+entre as pontas** — sob rollback é o lado *atual* que não tem o bloco, e gatilho por presença
+voltaria a julgar exatamente na volta. Cor e nome acessível caem juntos; glifo preservado; nota
+ancorada por `aria-describedby`. O eixo existe porque o PR do flip é justamente quem tem
+incentivo a não olhar para a V0 — mesma razão do eixo (8).
 
 #### ✅ MEDIDO 2026-08-06 — a adjudicação por hash está VIVA, e o resultado não é o previsto
 
