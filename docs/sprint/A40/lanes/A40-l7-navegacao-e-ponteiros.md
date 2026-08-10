@@ -177,11 +177,46 @@ sobre a divergência, que é o sintoma de "a suíte concorda com o bug".
 | prefixo some do heading | 1 teste |
 | prefixo vaza para o mapa do índice | 1 teste |
 
-**Item 5 (baseline) — endereçado, não resolvido por mim.** O PR carrega os
-labels `visual`, `print` e `e2e` de propósito, com pedido explícito de olhar o
-diff antes de regravar. **Não consigo rodar E2E/Playwright neste worktree** —
-`frontend/node_modules` é symlink e o Turbopack recusa; o §Débito de método
-segue **declarado, não contornado** para a verificação renderizada.
+**Item 5 (baseline) — rodou, e o resultado corrige a leitura da lane.** O PR
+carrega `visual`, `print` e `e2e` de propósito. Os dois jobs visuais saíram
+**`pass`** — e isso **não** é o mesmo que "a mudança foi verificada":
+
+> ### ⚠️ O gate de pixel não consegue ver retítulo de seção (medido 2026-08-10)
+>
+> `sections.snapshots.visual.spec.ts` usa `maxDiffPixelRatio: 0.025` — 2,5% da
+> área da **seção inteira**. O `<h2>` da S9 mudou de *"Riscos e Proteção —
+> Seguros Críticos"* para *"Riscos e Sucessão — Lacunas de Proteção"*, e a
+> baseline `S9-{light,dark}-visual-linux.png` **passou sem diff acusado**: o
+> heading é uma faixa fina no topo de uma seção alta, muito abaixo do limiar.
+>
+> A tolerância foi calibrada para não perseguir antialiasing de canvas
+> (`chart.js`), e o comentário do arquivo declara a intenção — *"captura
+> mudanças estruturais (ex.: +35px de altura = 7% diff em S1)"*. **Mudança de
+> texto não é mudança estrutural sob essa métrica.** Consequência: o job de
+> snapshot **não gateia copy de heading**, e afirmar "verificado porque o
+> visual passou" seria falso.
+>
+> Isto **aprofunda** o §Follow-up do #1337, que atribuía o buraco a *"o job não
+> rodou"*. Rodando, ele ainda não vê a classe de mudança que esta lane produz.
+> Gatilho `sre-devops`, junto do item já registrado no §Inventário de follow-up
+> do [[A40]].
+
+**A verificação renderizada existe — é a camada de TEXTO, não a de pixel.**
+`print-text.@critical.spec.ts` (*"todo título de seção renderizado na tela chega
+ao PDF"*) roda no *Report render gate* dentro de **Frontend checks**, que é
+required, e passou com os títulos novos. É ela que satisfaz o §Débito de método
+para os headings, não o snapshot. Continuo **sem** conseguir rodar Playwright
+neste worktree (`node_modules` é symlink, o Turbopack recusa) — a execução foi
+do CI.
+
+**O E2E de fluxo pegou um spec meu que o worktree não alcançava:**
+`parecer-degradacao.@critical.spec.ts:93` fixava a caption antiga. Corrigido no
+mesmo PR. O job `frontend-e2e` acusou **outras** falhas — `category-overrides`,
+`plano-*`, `property-finance`, `protection-cadastro`, `learning_loop`,
+`drill-down` — em telas que este PR não toca. **Não afirmo que sejam
+pré-existentes:** o job é opt-in por label e não há execução recente em `main`
+para comparar, então a única leitura honesta é *"desconhecido, e o histórico não
+permite decidir"*. Registrado como follow-up nº 7 abaixo.
 
 **Não entrou:** item 1 (S9 empty state) — o ⛔ abaixo é o mesmo, intocado.
 
@@ -211,6 +246,13 @@ segue **declarado, não contornado** para a verificação renderizada.
 6. `docs/plan/REPORT_PREMIUM/EXEMPLO_DE_RELATORIO.html` segue com os títulos
    antigos. Precedente do #1286: a paridade daquele mockup é visual/estrutural,
    não lexical.
+7. **`frontend-e2e` acusa 8+ falhas em telas fora deste PR** (`/config`,
+   `/plano`, `/protecao`, dashboard, learning loop). O job é opt-in por label e
+   **não há execução recente em `main`** para servir de baseline, então não dá
+   para decidir se são pré-existentes. **Condição de retomada:** rodar o job uma
+   vez em `main` (workflow_dispatch) e comparar; se forem pré-existentes, o
+   achado é que o gate `@critical` está vermelho e ninguém vê — mesma classe do
+   §Follow-up do #1337. Gatilho `sre-devops`.
 
 ## Problema
 
