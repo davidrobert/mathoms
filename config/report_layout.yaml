@@ -40,19 +40,18 @@
 # o renderer React (frontend/src/generated/report-layout.ts) e backend
 # (backend/app/generated/report_layout.py) a partir deste arquivo.
 #
-# TRÊS NÚMEROS DE VERSÃO COEXISTEM (não confundir):
+# DOIS NÚMEROS DE VERSÃO COEXISTEM (não confundir):
 #   1. `version` (abaixo, "1.2")          — schema do PRÓPRIO YAML; bump
 #                                            quando shape do layout muda
 #                                            (campos novos, breaks de codegen).
-#   2. `version_fallback` (no fim, "v5.3") — fallback do meta-card "Versão"
-#                                            da capa; ReportShell prefere
-#                                            `pkg.version` (package.json).
-#                                            Mantido por segurança ofline.
-#   3. `report_version` em config/pipeline.json ("6.1") — identificador
+#   2. `report_version` em config/pipeline.json ("6.1") — identificador
 #                                            do TEMPLATE de relatório que o
 #                                            E5 emite no JSON (não relacionado
 #                                            ao layout YAML). Bump quando
 #                                            mudam seções/charts produzidos.
+# O meta-card "Versão" da capa (e seu `version_fallback`) foi removido em
+# 2026-08-11: mostrava a versão do frontend no momento da VISUALIZAÇÃO, não
+# do run. Proveniência real é `executor_revision` (ADR-362) no colofão.
 # ==============================================================================
 
 version: "1.2"
@@ -70,14 +69,14 @@ cover:
   # title_key/subtitle_key null ⇒ shell usa displayTitle + period formatado.
   # v2.F.3 (2026-04-26): badge dinâmico se workspace_family_surname presente
   # ("Relatório · Família X"); meta agora mostra Família como primeiro card
-  # (condicional ao surname); rótulo Versão renderiza "Mathoms v{N}" via
-  # NEXT_PUBLIC_APP_VERSION; "Documentos" foi removido (não é insight do cover).
+  # (condicional ao surname); "Documentos" foi removido (não é insight do
+  # cover). "Versão" saiu em 2026-08-11 — era a versão do viewer, não do run;
+  # proveniência real (executor_revision, ADR-362) vive no colofão.
   meta:
     - label_key: "Família"
       conditional_on: "workspace_family_surname"
     - label_key: "Período"
     - label_key: "Gerado em"
-    - label_key: "Versão"
 
 # ==============================================================================
 # NAVEGAÇÃO STICKY (ADR-117 · Fase 5)
@@ -846,5 +845,3 @@ dark_mode:
     light:
       text_color: "#64748B"
       grid_color: "#E2E8F0"
-
-version_fallback: "v5.3"

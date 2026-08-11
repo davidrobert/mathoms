@@ -208,6 +208,7 @@ function buildReportResponse(
     consumed_document_ids: ["doc-1", "doc-2", "doc-3"],
     has_analysis_data: true,
     run_outcome: "complete",
+    executor_revision: "a1b2c3d4e5f6",
     premissas_snapshot: null,
   };
 }

@@ -160,8 +160,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                  'badge': 'Relatório Premium',
                  'meta': [   {'label_key': 'Família', 'conditional_on': 'workspace_family_surname'},
                              {'label_key': 'Período'},
-                             {'label_key': 'Gerado em'},
-                             {'label_key': 'Versão'}]},
+                             {'label_key': 'Gerado em'}]},
     'navigation': {   'estrategico': [   {   'label': 'Visão geral',
                                              'links': [   {'section_id': 'V0'},
                                                           {'section_id': 'perfil'},
@@ -653,8 +652,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                      'compare_col3_bg': '#1A2D1A',
                      'chart_theme': {   'dark': {'text_color': '#94A3B8', 'grid_color': '#334155'},
                                         'light': {   'text_color': '#64748B',
-                                                     'grid_color': '#E2E8F0'}}},
-    'version_fallback': 'v5.3'}
+                                                     'grid_color': '#E2E8F0'}}}}
 
 LAYOUT: ReportLayout = ReportLayout.model_validate(LAYOUT_DICT)
 

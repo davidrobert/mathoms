@@ -327,8 +327,6 @@
     "dark_mode": {
       "type": "object",
       "description": "Legado: cores hardcoded para dark mode. Será superseded por design-tokens em F9."
-    },
-
-    "version_fallback": {"type": "string"}
+    }
   }
 }

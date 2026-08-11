@@ -153,9 +153,6 @@ export const LAYOUT: ReportLayout = {
       },
       {
         "label_key": "Gerado em"
-      },
-      {
-        "label_key": "Versão"
       }
     ]
   },
@@ -972,8 +969,7 @@ export const LAYOUT: ReportLayout = {
         "grid_color": "#E2E8F0"
       }
     }
-  },
-  "version_fallback": "v5.3"
+  }
 } as ReportLayout;
 
 export const ALL_CARD_IDS = ["patrimonio_categorias", "posicao_informe_31_12", "exposicao_cambial", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "protecao_kpi_hero", "protecao_bens", "protecao_gap_qualitativo", "protecao_apolices", "alocacao_atual_vs_alvo", "kpi_rentabilidade", "proventos_yield", "estrategia_aporte", "contrafluxo", "real_estate_yield", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "irpf_dependentes_declarados", "irpf_dedutiveis_aplicados", "hero_gap_protecao", "cobertura_seguros", "sucessao", "acoes_mitigacao", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref"] as const;
