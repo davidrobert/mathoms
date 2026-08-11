@@ -1,13 +1,14 @@
 ---
 id: ADR-364
 type: adr
-title: "Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem"
-status: Proposto
+title: "Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por RETENÇÃO (re-ancoragem deferida)"
+status: Decidido
+phase: A40.l2
 date: "2026-08-06"
 amended_at: ["2026-08-07", "2026-08-09", "2026-08-10"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - phase/a40
 ---
@@ -103,15 +104,17 @@ importa; o contador visível na S2 dá o sinal de rollback de produto.
 
 ## Estado de implementação
 
-Registro de fato, **não** emenda — nenhuma decisão acima mudou. A ADR segue `Proposto`
-porque 4 dos 5 itens não têm código.
+Registro de fato, **não** emenda — nenhuma decisão acima mudou. **Atualizado em 2026-08-11:
+os cinco itens têm código e o enforce está LIGADO no dogfood** desde o run `bce49a91`
+(453 rows cortadas). O texto anterior — *"a ADR segue `Proposto` porque 4 dos 5 itens não têm
+código"* — deixou de ser verdade, e era o critério que ela mesma dava para o flip de status.
 
 | item | estado |
 |---|---|
 | **1** — remoção herda a restrição | decidido, sem código próprio (é premissa dos outros) |
-| **2** — quitação por **retenção** (re-ancoragem deferida, ver §Emenda 2026-08-09) | ⬜ [[A40.l2]] PR3d |
+| **2** — quitação por **retenção** (re-ancoragem deferida, ver §Emenda 2026-08-09) | ✅ [#1351](https://github.com/davidrobert/mathoms/pull/1351) (`319added`) + [#1352](https://github.com/davidrobert/mathoms/pull/1352) (`7a075d44`, trava TOCTOU + contadores) + [#1359](https://github.com/davidrobert/mathoms/pull/1359) (`9a700c4a`) — `OverrideRetentionGuard` por construtor, sem default |
 | **3** — `RemovalTarget` com consumidor | ✅ PR3b — o consumidor é a **adjudicação do gate** (`survivor_hash` absolve o override que já ancora a row sobrevivente), não o drain |
-| **4** — flag de sombra `measure` | ✅ [#1231](https://github.com/davidrobert/mathoms/pull/1231) (`65464db6`) — em produção, `OPERATOR_ONLY`. A flag de **enforce** e a recusa do write-path são do PR3e |
+| **4** — flag de sombra `measure` | ✅ [#1231](https://github.com/davidrobert/mathoms/pull/1231) (`65464db6`) — em produção, `OPERATOR_ONLY`. A flag de **enforce** e a recusa do write-path entraram em [#1362](https://github.com/davidrobert/mathoms/pull/1362) (`a3ceb0fd`): `cross_document_collapse_enforce_enabled` em `DEFAULTS` (`False`) **e** `OPERATOR_ONLY`, com preflight sobre o run de referência |
 | **5** — gate todo run | ✅ PR3b — chamada em `main_with_store`, relatório em `pipeline_stage_logs.output_summary`, **não** `AuditRecord` por run (`append_audit` é `db.add` sem commit e o loop do `pipeline_task` faz *rollback* em falha, então a série que este item promove a gatilho de rollback nasceria com os **vermelhos apagados**). O `internal_ops_audit` recebe **uma** row quando o operador flippa a flag |
 
 **Achado que a §Decisão 2 pressupunha e que não era verdade** (medido 2026-08-06, painel de 5

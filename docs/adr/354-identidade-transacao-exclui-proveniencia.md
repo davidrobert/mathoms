@@ -2,7 +2,7 @@
 id: ADR-354
 type: adr
 title: "Identidade de transação (K4) exclui atributos de proveniência do documento"
-status: Proposto
+status: Decidido
 phase: report-review r3 (RV3-01) · A40.l2
 date: "2026-07-30"
 amended_at: ["2026-08-05", "2026-08-05"]
@@ -13,7 +13,7 @@ relates_to:
   - "[[ADR-350]]"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
 ---
 

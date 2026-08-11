@@ -90,6 +90,23 @@ mergeado, ou flip declarado não-entregue. Sem esta cláusula, se o flip mergear
 em 1/2, alguém decide na hora se recomeça; é a pior decisão possível, tomada sob pressão de
 `date_target`.
 
+> **✅ Condição satisfeita em 2026-08-11 — #1368.** A [[A40.l2]] está `shipped` e o flip foi
+> **executado**, não só mergeado: run sombra `7acf0e47` → flag ligada (preflight passou,
+> `reprovadas=[]`) → run enforce `bce49a91`, com **453 rows cortadas**. O E3 mudou (6256 →
+> 5803 txs) e o E5 registrou o efeito (receita R$ 3.453.166,51 → R$ 2.802.646,11, **−18,8%**,
+> contra os +19% que a KR-B estimava). **O contador de 2 re-runs consecutivos pode iniciar.**
+>
+> Ressalva que a cláusula não previa: os dois runs usaram `SKIP_LLM=1`, então **o parecer não
+> rodou** (`review_finances_holistic: skipped`; as narrativas **rodaram**). O relatório
+> pós-colapso não serve parecer velho — o resolver é run-scoped ([[A40.l9]]), logo devolve
+> **ausência**. **O primeiro dos 2 re-runs tem de ser com LLM**, senão o contador conta sobre
+> relatório sem E6. Custo sob o hard-stop da [[ADR-173]].
+>
+> **A KR-B não é declarada por este flip.** Re-medida em 2026-08-11, a métrica literal (numerador
+> cross-grupo do `certify_ledger_local`) **segue 261**: o instrumento re-deriva o E3 a partir do
+> E2 em sombra e é cego ao enforce por construção. O que mudou é o E3 persistido e o E5. Item
+> com dono no §Residual da [[A40.l2]].
+
 **§Estado dos KRs — obrigação de leitura honesta.** Se o flip escorregar, a **KR-B é
 reportada não atingida**. É proibido ler as 261 ocorrências como "explicadas" por estarem
 **medidas** na sombra: medir não é corrigir, e contar sombra como explicação é Goodhart contra

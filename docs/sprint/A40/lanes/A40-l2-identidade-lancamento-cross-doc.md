@@ -5,6 +5,8 @@ title: "Identidade de lançamento cross-documento: tipo_conta com vocabulário d
 sprint: A40
 plan: PLAN-report-trust
 status: shipped
+ship_pr: 1368
+ship_date: "2026-08-11"
 priority: P0
 branch_slug: a40-l2-identidade-lancamento-cross-doc
 adrs: ["[[ADR-354]]", "[[ADR-364]]"]
@@ -112,7 +114,7 @@ ressuscite achando que são escopo pendente:
 **Sobreviveu:** colapso **por transação**, pré-agrupamento — e o alias-map do dono
 renasce como **allow-list do predicado de colapso**, não como canonicalização.
 
-## Escopo — 11 PRs, nenhum toca `_hash_v2`
+## Escopo — 11 PRs planejados (~29 mergeados, ver §Ordem de trabalho), nenhum toca `_hash_v2`
 
 `_hash_v1` está **congelado** ([[ADR-278]] D1) e `_hash_v2` é a chave de dedup
 **e** de re-ancoragem de `transaction_overrides`. O colapsador **seleciona rows**;
@@ -236,11 +238,11 @@ derivação tem de ser alimentado pelos **dois produtores reais**.
 | **3b2 — `CollapseMeasurement`** ✅ [#1256](https://github.com/davidrobert/mathoms/pull/1256) (`4fdcf400`) | corpus **pré-poda** no VO (`corpus_gate_digests`, `corpus_row_hashes`) · `survivor_hash` em `CollapseCandidate` | revert |
 | **3b — o gate** ✅ [#1276](https://github.com/davidrobert/mathoms/pull/1276) (`b3b8a74b`) | predicado corrigido (5 cláusulas cumulativas + adjudicação por hash) · `_alvos` fail-loud · `evaluate()` **sem default** · chamada no composition root do stage · relatório em `stage_logs` · parâmetro stale de `_targets` · emenda datada na [[ADR-364]] e na §D1 | revert |
 | **3c1a — o dado até o E4** ✅ [#1288](https://github.com/davidrobert/mathoms/pull/1288) (`e1c1027c`) | `meses` no canal (`$def` próprio, não `allOf`) · agregado somado sobre `readable` · carrier E3→E4 em `fluxo_mensal_detalhado` · campo **omitido** quando zero. Fechou também o 3º leitor fail-open (`_e3_log_collapse_shadow` deixou de usar `getattr(..., default)`) | campo ausente |
-| **3c1b — o dado até o E5** | `FluxoCaixaEnricher` copia para `fluxo_caixa` **e projeta em `janela_12m`** (por **intervalo**, não pertinência) · `$def` no schema E5 · emenda na [[ADR-347]]. **O invariante de conservação saiu deste PR** — ver a linha abaixo | campo ausente |
-| **3c1c — conservação: dono único da remoção** (aberto 2026-08-10) | atribuição por `(source, mês)` + predicado **run-level** `publicado == declarado`. Pré-condição do 3e: o invariante na forma antiga abortaria run legítimo. Conserto **genérico** — `_channel_sums`/`_stat_sums` são compartilhados, `intra_statement_dedup` tem a mesma dupla latente. Detalhe: [[ADR-347]] §Emenda 2026-08-10 | revert |
-| **3d — a retenção** (desenho fechado 2026-08-09) | o colapsador recebe `OverrideRetentionGuard` por construtor e **retém** chave cujo `gate_digest` tem override ativo. Zero escrita em `transaction_overrides`, zero re-ancoragem (deferida — [[ADR-364]] §Emenda 2026-08-09). **Depende do PR-A** (paridade do `gate_digest`). Brief: [`tracks/a40-l2-3d-drain.md`](../tracks/a40-l2-3d-drain.md) | flag off + re-run |
-| **3c2 — a superfície** | contador da S2 · caption simétrico da V0 · rebaseline | render condicional |
-| **3e — o flip** | bloqueado pelos quatro; §Critério de saída abaixo | flag off |
+| **3c1b — o dado até o E5** ✅ [#1347](https://github.com/davidrobert/mathoms/pull/1347) (`a1575f82`) | `FluxoCaixaEnricher` copia para `fluxo_caixa` **e projeta em `janela_12m`** (por **intervalo**, não pertinência) · `$def` no schema E5 · emenda na [[ADR-347]]. **O invariante de conservação saiu deste PR** — ver a linha abaixo | campo ausente |
+| **3c1c — conservação: dono único da remoção** ✅ [#1350](https://github.com/davidrobert/mathoms/pull/1350) (`6aecb9f8`) | atribuição por `(source, mês)` + predicado **run-level** `publicado == declarado`. Pré-condição do 3e: o invariante na forma antiga abortaria run legítimo. Conserto **genérico** — `_channel_sums`/`_stat_sums` são compartilhados, `intra_statement_dedup` tem a mesma dupla latente. Detalhe: [[ADR-347]] §Emenda 2026-08-10 | revert |
+| **3d — a retenção** ✅ [#1351](https://github.com/davidrobert/mathoms/pull/1351) (`319added`) + [#1352](https://github.com/davidrobert/mathoms/pull/1352) (`7a075d44`, trava TOCTOU) + [#1359](https://github.com/davidrobert/mathoms/pull/1359) (`9a700c4a`) | o colapsador recebe `OverrideRetentionGuard` por construtor e **retém** chave cujo `gate_digest` tem override ativo. Zero escrita em `transaction_overrides`, zero re-ancoragem (deferida — [[ADR-364]] §Emenda 2026-08-09). **Depende do PR-A** (paridade do `gate_digest`). Brief: [`tracks/a40-l2-3d-drain.md`](../tracks/a40-l2-3d-drain.md) | flag off + re-run |
+| **3c2 — a superfície** ✅ [#1348](https://github.com/davidrobert/mathoms/pull/1348) (`566f7ca0`, 3c2a) + [#1353](https://github.com/davidrobert/mathoms/pull/1353) (`179bb215`, 3c2b) | contador da S2 · a V0 deixa de julgar mérito sob base alterada · rebaseline | render condicional |
+| **3e — o flip** ✅ [#1362](https://github.com/davidrobert/mathoms/pull/1362) (`a3ceb0fd`, write-path) + [#1368](https://github.com/davidrobert/mathoms/pull/1368) (`7b738b96`, execução) | **executado em 2026-08-11** — ver §FLIP EXECUTADO | flag off + re-run |
 
 **Follow-ups do 3a, mergeados no mesmo dia — são consertos de defeito que ELE introduziu, e
 ficam registrados para que ninguém os leia como escopo pendente:**
@@ -493,7 +495,7 @@ anterior (−19,0%)"*. **Rodapé de 12px não vence narrador de 14px acima dele.
 `financial-planner` **não** está cumprida por contador+caption, e a prosa é bloqueante. Decidir
 se o conserto é da l2 ou vira lane é **do dono** — é mudança de escopo de lane P0.
 
-#### ✅✅ FLIP EXECUTADO — 2026-08-11, e a KR-B se confirma no número
+#### ✅✅ FLIP EXECUTADO — 2026-08-11 (e a KR-B **não** pode ser declarada por ele)
 
 **O enforce está LIGADO no dogfood.** Os três atos foram executados em sequência, com o
 código de `main` (`executor_revision` do worker: `9a1fd6fc6401`):
@@ -515,11 +517,29 @@ ENFORCE E5: receita R$ 2.802.646,11 · despesa R$ 1.888.946,81
 ENFORCE E5: consolidacao_cross_documento = {count: 453, meses: [8, 59, 42, 87, …]}
 ```
 
-**A receita caiu R$ 650.520,40 — −18,8%.** A KR-B estimava a inflação em **+19%**, e o número
-real bateu com a estimativa. As 261 ocorrências deixaram de ser projeção: o dobro-contado saiu
-do razão, e a superfície do §3c2a (`consolidacao_cross_documento`) está no payload com o
-breakdown por mês, então o relatório **declara** o que foi consolidado em vez de mudar em
-silêncio.
+**A receita caiu R$ 650.520,40 — −18,8%**, contra os **+19%** que a KR-B estimava de inflação.
+O dobro-contado saiu do razão, e a superfície do §3c2a (`consolidacao_cross_documento`) está no
+payload com o breakdown por mês, então o relatório **declara** o que foi consolidado em vez de
+mudar em silêncio.
+
+> ⚠️ **A KR-B NÃO está declarada atingida, e a primeira redação desta seção errava ao sugerir
+> que sim.** A métrica literal da KR-B é o **numerador cross-grupo** de
+> `dev/certify_ledger_local.py` (baseline 261). Re-medido **depois** do flip, em 2026-08-11:
+>
+> ```
+> não-explicada: 261 ocorrência(s) · Σ excesso 81 288 000 cents · [numerador KR-B]
+> ```
+>
+> **Continua 261 — e o instrumento é cego ao flip por construção.** `_rederive_e3` re-deriva o
+> E3 **a partir do E2** num `InMemoryArtifactStore`, com `collapse_enforce` **omitido** — que é
+> exatamente o que o gate AST de `test_collapse_shadow.py` obriga (o harness roda sobre o corpus
+> do usuário e nunca deve cortar). Logo o detector mede sempre o corpus **pré-colapso**, e
+> nenhum flip move esse número.
+>
+> O que o flip move é o E3 **persistido** e o E5 — medidos acima. Os dois são fatos distintos, e
+> tratar a queda de receita como prova da KR-B é usar oráculo a jusante no lugar da métrica
+> declarada. **Follow-up com dono** (§Residual abaixo): ou o instrumento passa a ler o E3
+> persistido do run, ou a KR-B troca de métrica por uma que observe o efeito do enforce.
 
 **`retido_por_override` = 0 nos dois runs**, com `retido_por_override_manual` e `_rule`
 também em 0: a retenção do §3d não teve o que reter neste corpus — e o
@@ -528,10 +548,16 @@ sentinela do eixo (7) observa.
 
 **Ressalvas honestas sobre este flip:**
 
-- Os dois runs usaram `from_stage=reconcile_transactions` e `SKIP_LLM=1`. **O parecer e as
-  narrativas não foram regenerados** — o E6 do relatório segue com o texto do run anterior,
-  produzido sobre a base pré-colapso. Regenerar custa LLM sob o hard-stop da [[ADR-173]] e é
-  decisão de orçamento do dono.
+- Os dois runs usaram `from_stage=reconcile_transactions` e `SKIP_LLM=1`. **O parecer não
+  rodou** (`review_finances_holistic: skipped`); as **narrativas rodaram**
+  (`generate_narratives: completed`, 3 seções / 10 summaries). Corrigindo o que a primeira
+  redação desta seção afirmou errado: o relatório pós-colapso **não** serve um parecer velho —
+  o resolver é run-scoped (entrega da [[A40.l9]]: `_resolve_run_id` →
+  `PlannerReviewRepository.get_latest_for_run`, UNIQUE por `(workspace, run)`), logo devolve
+  **ausência** (`not_generated_yet`). Pior de nomear, melhor de reputação: a base pós-colapso
+  não tem E6 nenhum. Regenerar custa LLM sob o hard-stop da [[ADR-173]] — o **primeiro dos 2
+  re-runs do §Gate de saída precisa ser com LLM**, senão o contador conta sobre relatório sem
+  parecer.
 - O ato (2) chamou o **service** direto, não a rota HTTP. O `require_internal_operator` não foi
   exercitado aqui — ele tem teste próprio em `backend/tests/`.
 - `superavit_total` e `investimentos_total` vêm `null` no E5 deste corpus, então a variação de
@@ -565,10 +591,20 @@ Logo a ativação é uma sequência de **três** atos, todos exigindo o stack lo
    pré-colapso e produz E4/E5 pelo método antigo — o relatório sairia misturando as duas
    bases. Orçar o cache-miss one-shot de parecer + narrativas (hard-stop [[ADR-173]]).
 
-**A l2 só é terminal depois do passo (3)**, pela cláusula de reinício do contador
-(`docs/sprint/A40/_README.md` §Gate de saída): o que zera o contador de 2 re-runs é o **E3
-mudar**, não o código mergear. Até lá, a lane fica `in_progress` com escopo de engenharia
-100% entregue — o que resta é operação.
+~~**A l2 só é terminal depois do passo (3)**~~ — **predicado emendado em 2026-08-11**, e a
+razão é interna a este próprio parágrafo: a premissa que ele enuncia (*"o que zera o contador
+de 2 re-runs é o **E3 mudar**, não o código mergear"*) foi **satisfeita** — o E3 mudou (6256 →
+5803 txs, 453 rows cortadas, run `bce49a91`). A conclusão *"só é terminal depois do passo (3)"*
+não segue dessa premissa: ela exigia um run **E0→E6**, que é condição do **contador**, não do
+terminal da lane. A cláusula da sprint que este parágrafo invocava como autoridade diz
+literalmente *"flip mergeado, ou flip declarado não-entregue"*
+(`docs/sprint/A40/_README.md:88-89`) — e o flip foi executado, não só mergeado.
+
+Consequência que fica declarada, porque o parágrafo original acertava em cobrá-la: o passo (3)
+**não** ocorreu como E0→E6 (`review_finances_holistic: skipped` no run `bce49a91`), então **o
+primeiro dos 2 re-runs do §Gate de saída tem de rodar com LLM**. Até lá o relatório
+pós-colapso não tem parecer (ausência por resolver run-scoped, não parecer velho) e **não
+conta** como re-run limpo.
 
 #### Critério de saída do enforce (3e) — os 4 eixos atuais não bastam
 
@@ -1369,6 +1405,19 @@ e o PR3b acrescentou três.
 8. **`evaluate()` sem default em `corpus_digests`** (PR3b): chamador que esquecesse o argumento
    certificava vivacidade vazia. `test_evaluate_exige_corpus_digests` fica vermelho se o default
    voltar.
+
+## Residual — o que fica aberto depois do `shipped`, com dono
+
+Levantado pelo `lane-closeout` em 2026-08-11 (camada 3, painel de 3 especialistas + verificação
+por citação dupla). Nenhum destes impede o terminal da lane; todos têm dono nomeado.
+
+| item | por quê fica | dono / gatilho |
+|---|---|---|
+| **A métrica da KR-B é cega ao flip** | `certify_ledger_local::_rederive_e3` re-deriva o E3 a partir do **E2**, com `collapse_enforce` omitido — o que o gate AST obriga, porque o harness roda sobre o corpus do usuário. Re-medido pós-flip: **numerador segue 261**. O efeito real está no E3 persistido e no E5 (−18,8%), que essa métrica não observa | **dono**: quem retomar a KR-B na A40. Ou o instrumento passa a ler o E3 **persistido** do run, ou a KR troca por métrica que veja o enforce. Decisão de PM, não de código |
+| **1º dos 2 re-runs precisa ser com LLM** | o run `bce49a91` teve `review_finances_holistic: skipped`, então o relatório pós-colapso não tem parecer (ausência, não texto velho) | **owner-gated** — custo LLM sob hard-stop [[ADR-173]] |
+| **Re-ancoragem de override** | deferida com os 4 defeitos nomeados | [[ADR-364]] §Emenda 2026-08-09 — gatilho `retido_por_override > 0` por 2 runs **ou** reservatório crescendo, ambos observáveis pela sentinela do eixo (7) |
+| **Quarentena do 1 override órfão** | `vivacidade=4/5` segue reprovando o gate legado; foi demovida a contador por decisão do dono | higiene, **desacoplada** do flip. `orphaned_at` não tem reversão em código |
+| **Identificador de método no artefato** | hoje o marcador da V0 é proxy (presença de `consolidacao_cross_documento`) | [[PLAN-snapshot-changelog-v3]] §W6 — gatilho: [[A42.l5]] abrir **ou** 2ª mudança de método |
 
 ## Achado adjacente medido no PR1 (não é escopo desta lane)
 
