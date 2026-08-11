@@ -420,6 +420,16 @@ senão cada uma é fixada uma vez e volta a divergir.
 > execução em `strict` —, senão os dois lados ficam sincronizados e errados.
 > Ordem de trabalho PR0–PR5 registrada na lane, com o flip `warn → strict`
 > isolado em PR próprio (blast radius = run de cliente).
+>
+> **PR0 ✅ #1363 · PR1 ✅ #1371 (2026-08-11).** O PR1 fechou os **4 arrays sem
+> `items`** (4 → 0) e levou os opacos de 9 → **7**, com cada `items` vindo do
+> **produtor** (o PR0 mediu que 3 dos 4 vêm vazios no corpus — tipar por
+> observação inventaria contrato). O achado maior foi outro: **o golden de
+> execução nunca validou schema** — `pipeline.json` era `{}`, `enabled` caía em
+> `False` e `validate_dict` short-circuitava para `True`. O `assert` era verde
+> vacuoso desde sempre, e só apareceu porque apertar o schema **não derrubava
+> teste nenhum**. Com isso a lane ganhou a **terceira perna do gate**
+> (`schema × produtor`) que o co-design exigia.
 > - **[[A40.l7]] — `ed7b1dc4` (#1337).** Fechou a âncora de nav sem alvo
 >   (RV3-04) com gate bidirecional dentro do `codegen_report_layout`. Decisão de
 >   produto tomada: **remover a entrada de nav**, não ligar `S_PROTECAO` — ligar
