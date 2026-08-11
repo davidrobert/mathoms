@@ -61,12 +61,17 @@ async def test_log_mais_recente_sem_revisao_vence_e_da_none(db):
     assert (await analysis_revisions_for(db, [rid]))[rid] is None
 
 
+# Documenta por que a query não carrega o par legado: a coluna
+# `executor_revision` nasceu depois do rename (F9.6), logo row de stage legado é
+# sempre NULL e consultá-lo daria o mesmo `None`. O par seria vocabulário legado
+# sem efeito — e o gate `test_no_legacy_stage_names` cobra isso.
 @pytest.mark.asyncio
-async def test_stage_legado_e5_tambem_e_consultado(db):
+async def test_run_de_stage_legado_da_none_sem_precisar_do_par_legado(db):
+    """Run pré-F9.6 responde `None` — a revisão dele não existe para ser lida."""
     ws = await make_workspace(db)
     run = await make_run(db, workspace=ws)
-    await make_stage_log(db, run=run, stage="E5", executor_revision="ccc333")
-    assert (await analysis_revisions_for(db, [run.id]))[run.id] == "ccc333"
+    await make_stage_log(db, run=run, stage="E5", executor_revision=None)
+    assert (await analysis_revisions_for(db, [run.id]))[run.id] is None
 
 
 @pytest.mark.asyncio

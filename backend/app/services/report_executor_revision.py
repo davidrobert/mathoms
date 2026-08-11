@@ -17,11 +17,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.pipeline_run import PipelineStageLog
 
-# Descritivo + legado (F9): rows com `executor_revision` preenchida são todas
-# pós-2026-08 (só existem com o nome descritivo), mas o par legado mantém a
-# consulta correta caso um row antigo "E5" seja o mais recente do run — o
-# valor dele (NULL) é a resposta honesta nesse caso.
-_ANALYSIS_STAGES: tuple[str, ...] = ("analyze_finances", "E5")
+# Só o nome descritivo — e o par legado NÃO é omissão. A coluna nasceu em
+# 2026-08 (ADR-362) e todo writer emite nome descritivo desde F9.6 (2026-07-06),
+# então um row de stage legado tem `executor_revision` NULL por construção:
+# consultá-lo devolveria o mesmo `None` que ignorá-lo. Medido no DB de dogfood
+# em 2026-08-11: 0 rows de stage legado, 77 descritivos.
+_ANALYSIS_STAGE = "analyze_finances"
 
 
 async def analysis_revisions_for(
@@ -38,7 +39,7 @@ async def analysis_revisions_for(
             PipelineStageLog.started_at,
         ).where(
             PipelineStageLog.pipeline_run_id.in_(ids),
-            PipelineStageLog.stage.in_(_ANALYSIS_STAGES),
+            PipelineStageLog.stage == _ANALYSIS_STAGE,
         )
     )
     latest = _latest_revision_by_run(rows.all())
