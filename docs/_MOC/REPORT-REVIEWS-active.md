@@ -182,3 +182,96 @@ três furos que valem mais que vários achados):
    cross-grupo por `(data, valor, descrição-normalizada, contraparte)`.
 5. **Ninguém renderizou tela nem PDF** — toda afirmação de `clareza-ux` é inferência de
    código cruzada com payload, e está rotulada como tal.
+
+## r4 — ws-1b9f2cf5-2026-08-11
+
+> Objeto: report `7a7d7115` sobre run `ee124571` (pré-existente, tier premium) ·
+> código `origin/main` **#1377**; captura de render sob o SHA do checkout de
+> execução, 6 commits atrás (gap medido: não toca as linhas citadas em
+> `clareza-ux`, ver §Débito de método) · lentes: 5 + braço cego · clusters: 7 ·
+> céticos: 7 (**2 CONFIRMADO / 3 PARCIAL / 3 REFUTADO**) · crítico de completude: sim.
+> Fechamento determinístico: 7 medições próprias do loop, das quais duas
+> **derrubaram achados do próprio loop** (a causalidade do RV4-01 estava invertida
+> na primeira passagem; a tabela de perda por truncagem estava errada por
+> conflação de janelas).
+> Disparada por report de uso: o card de receita por fonte parecia subcontar. **Procede.**
+> Cru + síntese com valores + render: `storage/<uuid>/reviews/<data>-<run8>/` (off-git).
+> Re-medição dos números de instância: scripts em `scratchpad/` do round folder.
+
+| Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
+|---|---|---|---|---|---|---|
+| RV4-01 — âncora da janela interativa derivada do **último label da série mensal** (`S1PatrimonioSection.tsx:57-58` via `parseChartMonthLabel`); lançamento com data futura estica a série além do mês corrente e a janela de média passa a cair sobre meses sem atividade. **Contrafactual medido: consertar só a âncora fecha 100% do gap** | correção | Crítico | P0 | CONFIRMADO | procede-aberto | owner: senior-cto · lane a abrir · **ordem obrigatória: RV4-01 antes de RV4-03** |
+| RV4-02 — o cliente é um **segundo motor de agregação**: `periodUtils.ts` re-deriva os três insumos de qualquer agregado (substrato via `GET /transactions`, predicado via `isIncomeCategory:106`, denominador via `getPeriodMonths:83`). Número nascido no cliente é **inauditável por construção** — fora de `explain_number`, `_lineage`, golden de execução, snapshot do view-model e verificação de ancorabilidade | consistência | Crítico | P0 | CONFIRMADO | procede-aberto | owner: senior-cto · **ADR `Proposto` a abrir** (alocar id na escrita) · relaciona [[ADR-306]] D2/D3, [[ADR-282]] · absorve RV4-01/03/05/06/07 e **fecha RV3-02 junto** |
+| RV4-03 — taxonomia de receita duplicada no cliente diverge do produtor: categoria de crédito fora do whitelist sai da receita **e entra no balde de despesa** (`aggregateDespesasMediaMensal` usa `!isIncomeCategory`), rendendo teto de gasto a partir de um recebimento. O comentário de cobertura em `ReceitasFonteCard.tsx:11-14` não podia ser verdadeiro: o pipeline não tem lista fechada de categorias de receita | correção | Crítico | P0 | CONFIRMADO | procede-aberto | owner: data-engineer · **anti-fix registrado**: corrigir isto antes de RV4-01 faz o divisor parecer validado e o gate fechar verde com o número ainda errado |
+| RV4-04 — três agregados distintos de "receita mensal" e três shares da mesma fonte convivem na mesma leitura, sem rótulo que reconcilie a base | consistência | Crítico | P0 | CONFIRMADO | procede-aberto | owner: product-designer + senior-cto · sintoma de RV4-02 + RV4-08 |
+| RV4-05 — o estado de carregamento do card de orçamento renderiza um **dataset completo alternativo** (bloco estático de janela `full`) em vez de esqueleto: `OrcamentoProspectivoCard.tsx:46-58` só aplica a guarda `anchorDate && !isLoading` depois de cair no fallback ⇒ conteúdo monetário **não-determinístico** entre superfícies do mesmo relatório | correção | Alto | P0 | CONFIRMADO | procede-aberto | owner: senior-cto · observado: tela e print num caminho, PDF de produção no outro |
+| RV4-06 — denominador de mensalização é a **constante do enum do toggle**, não os meses com dado ([[ADR-306]] D3 violado no consumidor; o gate de D2 vigia só o produtor) | correção | Alto | P0 | PARCIAL — fecha 41% do gap, não é o mecanismo dominante | procede-aberto | owner: senior-cto · rebaixado de Crítico pelo cético via contrafactual isolado |
+| RV4-07 — `page_size` no teto sem paginação; a resposta **já traz** `total` e um `summary` uncapped calculado antes do slice, e o hook descarta ambos (`usePeriodTransactions.ts:50`) ⇒ o fix mora no cliente, e o servidor já calcula o número certo | correção | Alto | P1 | PARCIAL — só janelas longas; janela default não trunca | procede-aberto | owner: senior-cto · fechado por medição de contrato |
+| RV4-08 — `fluxo_caixa.receita_por_natureza` (contrato em `config/schemas/e5_analysis.schema.json`, consumido por `parecer_ancorabilidade.py` e pelo prompt do parecer) tem **zero consumidores** em `frontend/src`; a tela re-deriva pior a mesma resposta | completude | Alto | P1 | CONFIRMADO | procede-aberto | owner: data-engineer · mesma família de RV3-02 |
+| RV4-09 — card de exposição cambial: default do endpoint V2 (`tier = v2.data?.tier ?? "empty"`) **afirma ausência de exposição** em vez de abster-se, sobrescrevendo o bloco do E5 que classifica em faixa de atenção; o parecer prescreve sobre o valor do E5 | correção | Alto | P1 | CONFIRMADO — a hipótese de "estado vazio, não asserção" foi testada e caiu | procede-aberto | owner: senior-cto + product-designer |
+| RV4-10 — rodapé do card declara meses que ele não mediu (expansão do próprio toggle); não existe estado para janela **parcial**, **truncada** ou **que termina no futuro** | clareza-ux | Alto | P1 | CONFIRMADO | procede-aberto | owner: product-designer · contrato de 5 estados especificado na síntese off-git |
+| RV4-11 — chips de evidência do parecer rotulam pelo **root do JSONPath**, então campos distintos do mesmo bloco recebem rótulo idêntico; o cross-check exige exatamente a identidade que produz o erro ⇒ verificação tautológica, todas as entradas `verified` | qualidade-llm | Alto | P1 | CONFIRMADO | procede-aberto | owner: prompt-engineer · mesma família de `nome de chave decide semântica` |
+| RV4-12 — sugestões do parecer não alcançam o Plano de Ação: a única rota automática lê uma chave do E5 **ausente do payload**, e nunca lê `parecer.sugestoes_*`; risco de severidade alta sem item acionável em nenhum horizonte | completude | Alto | P1 | CONFIRMADO ⚠️ **re-medir** | procede-aberto | owner: prompt-engineer + product-manager · **área com dono ativo**: [[PLAN-suggestion-lifecycle]] · medido antes de #1378, que mexeu nessas superfícies |
+| RV4-13 — o campo de rentabilidade guarda taxa de **retirada** efetiva e o parecer a promove a meta de **retorno**, emitindo risco de severidade alta e métrica-alvo a partir disso | solidez-financeira | Alto | P2 | CONFIRMADO | procede-aberto | owner: financial-planner · raiz determinística; nem prompt nem verificador podem detectar · [[ADR-191]] registra as duas taxas coexistirem, não a promoção |
+| RV4-14 — guardrail que rebaixa confiança sob premissa em fallback exige âncora num bloco que **nenhuma âncora do parecer toca** ⇒ cobertura zero por construção; os itens que dependem do bloco o citam em prosa, forma que o gate não lê | qualidade-llm | Médio | P2 | CONFIRMADO | procede-aberto | owner: prompt-engineer · correlato: `needs_review_triggered` é `False` literal |
+| RV4-15 — faixas do classificador comportamental no código divergem da legenda publicada no apêndice do próprio relatório; um rótulo do código não existe na legenda e uma faixa da legenda não existe no código | solidez-financeira | Médio | P2 | CONFIRMADO | procede-aberto | owner: financial-planner |
+| RV4-16 — `comparisons[].direction_positive` fixo em métrica **não-monotônica** (cobertura de reserva): piorar acima do alvo renderiza com sinal de melhora, na página que classifica a mesma métrica como excessiva | consistência | Médio | P2 | CONFIRMADO | procede-aberto | owner: data-engineer · polaridade tem de derivar do alvo, não do campo |
+| RV4-17 — classificador de pedido-de-campo do LLM resolve o path e ignora a **dimensão ano**, marcando como espúrio um pedido legítimo e **deletando-o** antes de gravar | qualidade-llm | Médio | P2 | CONFIRMADO | procede-aberto | owner: prompt-engineer |
+| RV4-18 — a composição líquida da reserva conta base maior que a carteira exibida na seção de investimentos; o acoplamento entre reduzir a classe e manter a cobertura não é divulgado | consistência | Médio | P2 | CONFIRMADO (residual de um cluster refutado) | procede-aberto | owner: financial-planner |
+| RV4-19 — separador decimal em duas convenções **na mesma tabela**: linhas usam `toFixed` (en-US) e a linha de total tem o valor pt-BR hardcoded | clareza-ux | Médio | P3 | CONFIRMADO | procede-aberto | owner: product-designer · viola §4.1 de COPY_GUIDELINES |
+
+**Ordem de ataque:** RV4-01 → RV4-03 → RV4-05 → RV4-06/07 → **RV4-02** (estrutural,
+absorve os anteriores e fecha RV3-02) → RV4-04/08/10. A inversão de RV4-01 e RV4-03
+produz gate verde com número errado — está registrada como anti-fix nas duas linhas.
+
+**Refutados / rebaixados nesta rodada** (taxa de refutação ≠ 0 é requisito de
+calibração, não acidente): projeção de IF apoiada em aporte irrealista —
+**REFUTADO**, o campo comparado era outra categoria e o aporte é meta declarada
+pelo dono, surfaçada como premissa; excedente de liquidez prescrito inexecutável —
+**REFUTADO**, o valor não existe no artefato (era aritmética do revisor) e o
+produto prescreve rebalanceamento por aporte sem vendas; cap de paginação explica
+o card da janela default — **REFUTADO**, a janela não trunca; duas janelas longas
+exibem número idêntico — **REFUTADO**, idêntico é o conjunto truncado, não o
+número renderizado; parecer desaparece na mídia print — **PARCIAL**, é estado de
+loading de fetch assíncrono e o artefato capturado é provavelmente timing do
+harness.
+
+**Q6 — direção sustentada, ordenação indeterminada.** O braço cego **divergiu** do
+parecer na recomendação nº 1, e a divergência não absolve nem condena: o braço
+cego é inadmissível duas vezes — dimensionou uma alavanca **contra o produtor**
+(o payload declara a capacidade inexistente por regime, e a superfície imprime
+"não se aplica"), e reciclou para desempate a premissa que a r3 já refutou em
+RV3-10. A direção do parecer tem terceiro braço independente no bloco
+determinístico de pontos urgentes. Mas a ordenação segue **indeterminada**: esse
+bloco tem n=1 (não é ranking, é item único) e as sugestões do parecer não têm
+critério encodado — prioridade e impacto qualitativo, sem delta esperado nem
+custo. **Subproduto material:** um leitor competente do mesmo payload fabricou, na
+primeira tentativa, uma dedução que o payload **suprime** — demonstração medida do
+risco que a [[ADR-375]] endereça, e evidência utilizável pela [[A40.l34]].
+
+**Positivos verificados:** CV 16/16 · as três superfícies de render geram sem
+truncagem e o PDF de produção sai íntegro · `receita_por_natureza` fecha com o
+total de receita ao centavo · **o parecer leu o número certo** (ancorou em campo
+determinístico da janela de 12m, não no card quebrado) — para receita, o parecer é
+a fonte confiável e o card é a derivação quebrada · limite previdenciário zerado
+sob modelo simplificado é decisão registrada ([[ADR-305]]) com prosa que inclui o
+pré-requisito · nenhuma âncora de navegação órfã · degradações de perfil
+tributário e de milhas são declaradas, não silenciosas.
+
+**Débito de método da r4:**
+1. **Achados não persistidos.** Os ~86 brutos e os clusters viveram só no contexto
+   do loop; 3 dos 5 gates de cobertura ficaram inauditáveis. Gravar `achados.md` +
+   `clusters.md` no round folder **antes** do passo cético.
+2. **Captura sob SHA diferente do citado.** O gap foi medido e não afeta as linhas
+   usadas — mas isso foi sorte, não método. Capturar sob o SHA que se vai citar.
+3. **Fechamento por reimplementação de lógica do cliente em outra linguagem** só
+   vale com âncora externa (o valor renderizado). Predição do espelho sem
+   observação é PARCIAL — foi assim que a tabela de perda por truncagem saiu
+   errada. Capturar **as quatro janelas do toggle**, não só a default.
+4. **Q5 medido no payload, não na superfície do agregado de decisões.** Exigir dump
+   do agregado + delta explícito sugestões ↔ decisões.
+5. **Braço cego sem travas.** Entregar a ele o índice de refutados da rodada
+   anterior e exigir que declare **qual campo do payload autoriza o sizing**.
+6. **Um cético morreu por limite de gasto de API** e seu cluster foi fechado pelo
+   loop principal. Painel sem orçamento reservado perde cluster silenciosamente —
+   e o loop só percebeu porque conferiu a lista de vereditos contra a de clusters.
