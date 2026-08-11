@@ -408,32 +408,15 @@ def test_taxa_poupanca_historico_curto_skips(gen):
     assert all(d.kind != "taxa_poupanca_caindo" for d in gen.generate(snapshot))
 
 
-def test_seguros_insuficientes_renda_pj_alta_sem_seguro(gen):
-    """Renda PJ > 50k AND vida_invalidez=False → danger."""
+# O snapshot abaixo é o que a regra deletada exigia; ele nunca existiu no E5 —
+# a chave canônica de proteção é `protecao_patrimonial` (ADR-240), e o produtor
+# único do conselho é `pontos_urgentes_analyzer._seguro_vida_item`.
+def test_seguros_nao_tem_produtor_deterministico(gen):
+    """FP-010 (ADR-161 §Emenda 2026-08-11) — regra removida, não re-adicionada."""
     snapshot = {
         "fluxo_caixa": {"renda_pj_mensal": 80_000.0},
         "seguros": {"vida_invalidez": False},
     }
-    drafts = gen.generate(snapshot)
-    d = next(d for d in drafts if d.kind == "seguros_insuficientes")
-    assert d.severity == "danger"
-    assert d.category == "protecao"
-    # Regressão: emitia S6 (seção queimada por design) — âncora morta no
-    # relatório e no backlink de /acao.
-    assert d.section_id == "S9"
-
-
-def test_seguros_com_protecao_skips(gen):
-    snapshot = {
-        "fluxo_caixa": {"renda_pj_mensal": 80_000.0},
-        "seguros": {"vida_invalidez": True},
-    }
-    assert all(d.kind != "seguros_insuficientes" for d in gen.generate(snapshot))
-
-
-def test_seguros_sem_campo_seguros_skips_silenciosamente(gen):
-    """Sem snapshot.seguros → não inferir ausência (falso-positivo)."""
-    snapshot = {"fluxo_caixa": {"renda_pj_mensal": 80_000.0}}
     assert all(d.kind != "seguros_insuficientes" for d in gen.generate(snapshot))
 
 
@@ -550,12 +533,10 @@ def test_all_v2_rules_have_dedup_key_stable_across_runs(gen):
         "endividamento": {"percentual_patrimonio": 35.0, "total_dividas": 350_000.0},
         "fluxo_caixa": {
             "taxa_poupanca_trimestral_historico": [30.0, 24.0, 18.0],
-            "renda_pj_mensal": 80_000.0,
             "despesa_essencial_historico": [10_000, 10_500, 10_800, 11_000, 11_300, 11_200],
             "renda_passiva_mensal_atual": 4_000.0,
             "despesa_mensal_media": 20_000.0,
         },
-        "seguros": {"vida_invalidez": False},
         "patrimonio": {"por_instituicao": {"btgpactual": 600_000.0, "itau": 200_000.0}},
         "inflacao": {"acumulada_pct_no_periodo": 5.0},
         "goals": {"progresso_if_pct": 60.0},
@@ -563,17 +544,16 @@ def test_all_v2_rules_have_dedup_key_stable_across_runs(gen):
     drafts1 = {d.kind: d.dedup_key for d in gen.generate(snapshot)}
     drafts2 = {d.kind: d.dedup_key for d in gen.generate(snapshot)}
     assert drafts1 == drafts2
-    # All 6 v2 rules fired
+    # As 5 regras v2 vivas dispararam (seguros_insuficientes removida — FP-010).
     assert "endividamento_perigoso" in drafts1
     assert "taxa_poupanca_caindo" in drafts1
-    assert "seguros_insuficientes" in drafts1
     assert "concentracao_instituicao" in drafts1
     assert "lifestyle_creep" in drafts1
     assert "renda_passiva_real_baixa" in drafts1
 
 
-def test_all_10_rules_can_coexist_under_cap(gen):
-    """Smoke: 10 regras possíveis (FP-003 removeu dolarizacao), cap=8 trunca para 8."""
+def test_all_9_rules_can_coexist_under_cap(gen):
+    """Smoke: 9 regras possíveis (FP-003 dolarizacao, FP-010 seguros), cap=8 trunca."""
     snapshot = {
         # v1
         "goals": {
@@ -600,7 +580,6 @@ def test_all_10_rules_can_coexist_under_cap(gen):
             "total_dividas": 350_000.0,
             "custo_medio_pct_aa": 18.0,
         },
-        "seguros": {"vida_invalidez": False},
         "patrimonio": {"por_instituicao": {"btgpactual": 600_000.0, "itau": 200_000.0}},
         "inflacao": {"acumulada_pct_no_periodo": 5.0},
     }
