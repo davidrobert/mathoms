@@ -438,6 +438,14 @@ senão cada uma é fixada uma vez e volta a divergir.
 >   `protection_bundle`), rótulo do disclosure, retítulo da S9 e o `title`
 >   derivado do `titleMap`.
 
+> **✅ [[A40.l7]] `shipped` em 2026-08-11 — #1375.** Fecha o RV3-28 na metade de
+> **nome**: a S8 passa de *"Previdência — PGBL e Fiscalidade"* para **"Carga
+> Tributária PJ — Regime e Base Dedutível"**, com cascata em 6 pontos (YAML,
+> prompt do parágrafo da seção, fallback determinístico, 2 cross-links, docstring).
+> **Não moveu o card de PGBL** — a S8 já hospeda o `PgblBlock`, e mover poria duas
+> bases contraditórias a 200px de distância. Grep de regressão: 0 ocorrências do
+> título antigo. **S9 → [[A40.l35]]** e **hospedagem do RV3-28 → [[A40.l34]]**.
+
 > **Estado da Onda 2 em 2026-08-10** (o snapshot acima é datado — **não o
 > reescreva**). Segunda parcial da [[A40.l7]]; a [[A40.l5]] não avançou nesta
 > data além do co-design (ver o §Deferimento datado dela).

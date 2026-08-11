@@ -4,20 +4,44 @@ type: lane
 title: "Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: a40-l7-navegacao-e-ponteiros
+ship_pr: 1375
+ship_date: "2026-08-11"
 adrs: ["[[ADR-240]]"]
 depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/frontend
 ---
 
 # A40.l7 — `navegacao-e-ponteiros` (RV3-04, RV3-05, RV3-15, RV3-28)
+
+> ## ✅ `shipped` em 2026-08-11 — três PRs, dois transferidos
+>
+> Os **4 bullets** do §Critério de aceite são sobre âncora de nav, e os quatro
+> estão satisfeitos **no código**, não na prosa: `validate_nav_targets` existe e
+> é importado por `codegen_report_layout` (falha **antes** de emitir), e o E2E
+> `report-layout.@critical` assere alvo com `getBoundingClientRect().height > 0`
+> nas duas superfícies de índice.
+>
+> | PR | O que fechou |
+> |---|---|
+> | **#1337** | RV3-04 — âncora sem alvo + gate bidirecional dentro do codegen |
+> | **#1355** | heading e índice passam a sair da mesma fonte (o prop `title` deixou de existir; id virou união literal) |
+> | **#1375** | RV3-28, metade de **nome** — retítulo da S8 + cascata de 6 pontos |
+>
+> **Transferido, não abandonado:** o **S9 empty state** foi para a [[A40.l35]] (com
+> o §Deferido da [[ADR-240]] trocando de dono) e a metade de **hospedagem** do
+> RV3-28 foi para a [[A40.l34]] — "mover o card" pressupõe que ele deve existir
+> com a base atual, e é a l34 que decide isso.
+>
+> Os 7 follow-ups do §Parcial de #1355 seguem com dono e condição de retomada.
+
 
 > 🔓 **Liberada em 2026-08-07 (decisão do dono)**, no mesmo par que a [[A40.l5]].
 > `depends_on` sempre foi vazio; faltava a liberação por-lane. Motivo: é o que
