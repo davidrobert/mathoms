@@ -97,9 +97,25 @@
     break-inside: auto;
     page-break-inside: auto;
     font-size: 9pt;
+    width: 100%;
   }
   thead {
     display: table-header-group;
+  }
+
+  /* No papel não existe rolagem: wrapper com `overflow-x: auto` não oferece
+   * gesto nenhum — apenas deixa de pintar o que passa da caixa, e a coluna
+   * some do arquivo que o cliente arquiva. Liberar o overflow só resolve
+   * junto com a quebra abaixo: sem ela o conteúdo continua largo e o corte
+   * passa a ser o da própria página. */
+  .overflow-x-auto,
+  [class*="overflow-x-"] {
+    overflow: visible !important;
+  }
+
+  th,
+  td {
+    overflow-wrap: anywhere;
   }
 
   /* ────── Typography refinements ────── */
