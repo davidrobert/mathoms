@@ -8,6 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.application.report._common import fetch_report, serialize_report
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.report import ReportResponse
+from backend.app.services.report_executor_revision import (
+    analysis_revisions_for,
+    revision_for_report,
+)
 from backend.app.services.report_lineage import (
     consumed_documents_for_run,
     workspace_ready_documents_summary,
@@ -23,9 +27,11 @@ async def get_report(workspace_id: str, report_id: str, *, db: AsyncSession) -> 
         await db.execute(select(Workspace.family_surname).where(Workspace.id == workspace_id))
     ).scalar_one_or_none()
     outcomes = await run_outcomes_for(db, [report.pipeline_run_id])
+    revisions = await analysis_revisions_for(db, [report.pipeline_run_id])
     return serialize_report(
         report,
         run_outcome=outcome_for_report(report.pipeline_run_id, outcomes),
+        executor_revision=revision_for_report(report.pipeline_run_id, revisions),
         source_document_count=doc_total,
         source_document_ids=doc_ids,
         consumed_document_count=consumed_total,

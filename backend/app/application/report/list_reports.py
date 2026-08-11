@@ -8,6 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.application.report._common import serialize_report
 from backend.app.models.report import Report
 from backend.app.schemas.report import ReportListResponse
+from backend.app.services.report_executor_revision import (
+    analysis_revisions_for,
+    revision_for_report,
+)
 from backend.app.services.report_lineage import (
     consumed_documents_for_run,
     workspace_ready_documents_summary,
@@ -15,7 +19,9 @@ from backend.app.services.report_lineage import (
 from backend.app.services.report_run_outcome import outcome_for_report, run_outcomes_for
 
 
-async def _serialize_one(db: AsyncSession, report: Report, *, doc_total, doc_ids, outcomes):
+async def _serialize_one(
+    db: AsyncSession, report: Report, *, doc_total, doc_ids, outcomes, revisions
+):
     consumed_total, consumed_ids = await consumed_documents_for_run(db, report.pipeline_run_id)
     return serialize_report(
         report,
@@ -24,6 +30,7 @@ async def _serialize_one(db: AsyncSession, report: Report, *, doc_total, doc_ids
         consumed_document_count=consumed_total,
         consumed_document_ids=consumed_ids,
         run_outcome=outcome_for_report(report.pipeline_run_id, outcomes),
+        executor_revision=revision_for_report(report.pipeline_run_id, revisions),
     )
 
 
@@ -33,10 +40,14 @@ async def list_reports(workspace_id: str, *, db: AsyncSession) -> ReportListResp
     )
     reports = list(result.scalars().all())
     doc_total, doc_ids = await workspace_ready_documents_summary(db, workspace_id)
-    # 2 queries para a página inteira — não uma por relatório.
-    outcomes = await run_outcomes_for(db, [r.pipeline_run_id for r in reports])
+    # 3 queries para a página inteira — não uma por relatório.
+    run_ids = [r.pipeline_run_id for r in reports]
+    outcomes = await run_outcomes_for(db, run_ids)
+    revisions = await analysis_revisions_for(db, run_ids)
     serialized = [
-        await _serialize_one(db, r, doc_total=doc_total, doc_ids=doc_ids, outcomes=outcomes)
+        await _serialize_one(
+            db, r, doc_total=doc_total, doc_ids=doc_ids, outcomes=outcomes, revisions=revisions
+        )
         for r in reports
     ]
     return ReportListResponse(reports=serialized, total=len(reports))
