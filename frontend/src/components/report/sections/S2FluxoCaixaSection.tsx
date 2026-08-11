@@ -31,13 +31,17 @@ import { deriveChartConclusion } from "../utils/conclusionUtils";
  * orcamento_prospectivo, consumo_consciente, diagnostico_comportamental,
  * equilibrio_cerbasi.
  */
+interface S2FluxoCaixaSectionProps {
+  data: ReportAnalysisData;
+  workspaceId?: string;
+  reportId?: string;
+}
+
 export function S2FluxoCaixaSection({
   data,
   workspaceId,
-}: {
-  data: ReportAnalysisData;
-  workspaceId?: string;
-}) {
+  reportId,
+}: S2FluxoCaixaSectionProps) {
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const orcamento = data.orcamento_prospectivo as
     | OrcamentoProspectivoData
@@ -74,7 +78,11 @@ export function S2FluxoCaixaSection({
           mesma página; no fim da seção a nota órfãozaria longe dos números. */}
       <ConsolidacaoCrossDocumentoNota fluxo={fluxo} className="md:col-span-2" />
       {workspaceId && (
-        <SuggestionCalloutInline sectionId="S2" workspaceId={workspaceId} />
+        <SuggestionCalloutInline
+          sectionId="S2"
+          workspaceId={workspaceId}
+          reportId={reportId}
+        />
       )}
 
       {/* Charts */}

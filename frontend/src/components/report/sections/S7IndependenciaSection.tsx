@@ -5,6 +5,7 @@ import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { SuggestionCalloutInline } from "./SuggestionCallout";
 import { RecalibracaoMcNote } from "./RecalibracaoMcNote";
+import { Stat } from "./S7Stat";
 import { PrevidenciaPgblCard, type PrevidenciaPgblData } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
@@ -42,14 +43,18 @@ const DEFASAGEM_INFO_THRESHOLD = 6;
 const DEFASAGEM_WARNING_THRESHOLD = 15;
 const APROXIMACAO_YIELD_RATIO = 0.7;
 
+interface S7IndependenciaSectionProps {
+  data: ReportAnalysisData;
+  workspaceId?: string;
+  reportId?: string;
+}
+
 /** F9 · F2.E — Seção S7 (Independência Financeira). */
 export function S7IndependenciaSection({
   data,
   workspaceId,
-}: {
-  data: ReportAnalysisData;
-  workspaceId?: string;
-}) {
+  reportId,
+}: S7IndependenciaSectionProps) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const previdencia = data.previdencia_pgbl as unknown as PrevidenciaPgblData | undefined;
@@ -65,7 +70,11 @@ export function S7IndependenciaSection({
     <ReportSection id="S7">
       <SectionSummary data={data} sectionId="S7" />
       {workspaceId && (
-        <SuggestionCalloutInline sectionId="S7" workspaceId={workspaceId} />
+        <SuggestionCalloutInline
+          sectionId="S7"
+          workspaceId={workspaceId}
+          reportId={reportId}
+        />
       )}
       <RecalibracaoMcNote nota={data.recalibracao_mc ?? null} />
       <NarrativeChartCard
@@ -110,34 +119,6 @@ export function S7IndependenciaSection({
         />
       </div>
     </ReportSection>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  sublabel,
-  tone = "neutral",
-}: {
-  label: React.ReactNode;
-  value: React.ReactNode;
-  sublabel?: React.ReactNode;
-  tone?: "neutral" | "positive" | "warning";
-}) {
-  const toneClass =
-    tone === "warning"
-      ? "border-[var(--semantic-warning)]"
-      : tone === "positive"
-        ? "border-[var(--semantic-success)]"
-        : "border-[var(--surface-border)]";
-  return (
-    <div className={`rounded-[var(--radius-card)] border ${toneClass} bg-[var(--surface-card)] p-4`}>
-      <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">{label}</p>
-      <p className="mt-1 text-lg font-semibold">{value}</p>
-      {sublabel && (
-        <div className="mt-1 text-xs text-[var(--surface-muted-foreground)]">{sublabel}</div>
-      )}
-    </div>
   );
 }
 

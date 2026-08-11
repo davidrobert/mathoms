@@ -3,8 +3,11 @@
 // Direção E · Onda 5 · ADR-153 — callout de Suggestion no relatório.
 //
 // Renderizado **inline** dentro de uma seção (S2/S7/...) filtrando
-// suggestions pelo `section_id`. Fora da seção, o agregador
-// `<SuggestionCalloutSummary/>` mostra a lista de "Próximos passos".
+// suggestions pelo `section_id` (e pelo `report_id` do relatório-fonte,
+// quando fornecido — PLAN-suggestion-lifecycle F5: o snapshot não deve
+// vazar estado live do inbox). Fora da seção, o agregador
+// `<SuggestionCalloutSummary/>` fecha o relatório com contagens + CTA
+// único para /acao — sem listar o inbox inteiro.
 //
 // No PDF (Playwright/server-side), os botões de ação não fazem
 // sentido — degradamos para nota cinza com ID. Detecção: se
@@ -78,6 +81,10 @@ interface SuggestionCalloutInlineProps {
   sectionId: string;
   /** Workspace para o link "Promover para ação". Vazio em PDF (degrada CTA). */
   workspaceId: string;
+  /** F5 (PLAN-suggestion-lifecycle) — quando fornecido, só sugestões
+   *  nascidas DESTE relatório aparecem inline; `report_id` null não passa.
+   *  Sem a prop, mantém o comportamento legado (inbox inteiro da seção). */
+  reportId?: string;
 }
 
 /** Callout inline — busca sugestões pendentes da seção e renderiza
@@ -86,10 +93,14 @@ interface SuggestionCalloutInlineProps {
 export function SuggestionCalloutInline({
   sectionId,
   workspaceId,
+  reportId,
 }: SuggestionCalloutInlineProps) {
   const { suggestions, loading } = useSuggestions(workspaceId, "Pendente");
   if (loading) return null;
-  const items = suggestions
+  const scoped = reportId
+    ? suggestions.filter((s) => s.report_id === reportId)
+    : suggestions;
+  const items = scoped
     .filter((s) => s.section_id === sectionId)
     .sort(suggestionPriorityComparator);
   if (items.length === 0) return null;
@@ -171,18 +182,31 @@ interface SuggestionCalloutSummaryProps {
   workspaceId: string;
 }
 
-/** Agregador "Próximos passos" — lista resumida no fim do relatório.
- *  ADR-290 F3: só acionáveis (danger+warning), mesmo ordering do /acao;
- *  `info` omitidas com indicação discreta. */
+/** F5 (PLAN-suggestion-lifecycle) — a frase de fechamento nunca lista
+ *  títulos: o relatório é snapshot e a lista era o inbox live vazando
+ *  para dentro do documento. Só contagens + 1 CTA. */
+function summarySentence(actionableCount: number, infoCount: number): string {
+  const acoes =
+    actionableCount === 1
+      ? "1 ação aguarda sua decisão"
+      : `${actionableCount} ações aguardam sua decisão`;
+  if (infoCount === 0) return `${acoes}.`;
+  const infos =
+    infoCount === 1
+      ? "1 sugestão informativa"
+      : `${infoCount} sugestões informativas`;
+  return `${acoes} — e ${infos}.`;
+}
+
+/** Bloco de fechamento "Próximos passos" — contagens + CTA único para
+ *  /acao, sem listar sugestões (F5; acionáveis = danger+warning, ADR-290). */
 export function SuggestionCalloutSummary({
   workspaceId,
 }: SuggestionCalloutSummaryProps) {
   const { suggestions, loading } = useSuggestions(workspaceId, "Pendente");
   if (loading || suggestions.length === 0) return null;
-  const sorted = [...suggestions].sort(suggestionPriorityComparator);
-  const actionable = sorted.filter(isActionable);
-  const infoCount = sorted.length - actionable.length;
-  if (actionable.length === 0 && infoCount === 0) return null;
+  const actionableCount = suggestions.filter(isActionable).length;
+  const infoCount = suggestions.length - actionableCount;
 
   return (
     <section
@@ -196,52 +220,16 @@ export function SuggestionCalloutSummary({
       >
         Próximos passos
       </h2>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {actionable.length === 1
-          ? "1 ação priorizada a partir deste relatório"
-          : `${actionable.length} ações priorizadas a partir deste relatório`}{" "}
-        — revise em{" "}
-        <Link href="/acao" className="font-medium underline hover:no-underline">
-          /acao
-        </Link>{" "}
-        para virarem decisões.
+      <p className="mt-2 text-sm text-muted-foreground">
+        {summarySentence(actionableCount, infoCount)}
       </p>
-      <ul className="mt-4 flex flex-col gap-2">
-        {actionable.map((s) => {
-          const variant =
-            SEVERITY_VARIANTS[s.severity] ?? SEVERITY_VARIANTS.info;
-          const Icon = variant.Icon;
-          return (
-            <li key={s.id} className="flex items-start gap-3">
-              <Icon
-                className="mt-0.5 h-3.5 w-3.5 shrink-0"
-                style={{ color: variant.tokenVar }}
-              />
-              <div className="flex-1">
-                <p className="text-sm font-medium">{s.title}</p>
-                <Link
-                  href={`#${s.section_id}`}
-                  className="text-[11px] text-muted-foreground hover:underline"
-                >
-                  Ver em contexto · §{s.section_id}
-                </Link>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      {infoCount > 0 && (
-        <p className="mt-4 text-[11px] text-muted-foreground">
-          +{" "}
-          {infoCount === 1
-            ? "1 sugestão informativa não listada aqui"
-            : `${infoCount} sugestões informativas não listadas aqui`}{" "}
-          —{" "}
-          <Link href="/acao?tab=inbox" className="underline hover:no-underline">
-            ver em /acao
-          </Link>
-        </p>
-      )}
+      <Link
+        href="/acao?tab=inbox"
+        className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-foreground hover:underline"
+      >
+        Revisar em /acao
+        <ArrowRight className="h-3.5 w-3.5" />
+      </Link>
     </section>
   );
 }
