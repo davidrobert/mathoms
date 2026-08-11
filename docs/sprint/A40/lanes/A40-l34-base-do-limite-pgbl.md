@@ -104,7 +104,7 @@ há o que explicar antes do rebaseline por esse motivo.
 
 ## Escopo
 
-Definido pelo co-design de 2026-08-11 e escrito na **[[ADR-375]] (`Proposto`)**,
+Definido pelo co-design de 2026-08-11 e escrito na **[[ADR-375]] (`Proposto`, #1377)**,
 que fecha o gate de "ADR antes de qualquer PR de implementação".
 
 O enquadramento mudou no co-design, e ficou **mais barato de defender**: a

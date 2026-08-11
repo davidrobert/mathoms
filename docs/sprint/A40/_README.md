@@ -235,7 +235,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l31]] | Gerador ancora em vez de digitar: correção guiada pelo mecanismo | P2 | l30 | par da l30 · **gasta** (re-eval ~US$ 26, owner-gated) · `planned` |
 | [[A40.l32]] | Proveniência do executor: qual código computou este run | P1 | — | promovida da [[A42]] · [[ADR-362]] · [[ADR-363]] · instrumento, sem custo de API |
 | [[A40.l33]] | Cache de citação por conteúdo, não por posição | P2 | — | aberta 2026-08-09 · estava fora desta tabela até 2026-08-11 |
-| [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | `in_progress` · **fora das ondas** · [[ADR-375]] `Proposto` escrita 2026-08-11 · supersede parcial [[ADR-196]] + [[ADR-277]] · 3 PRs a seguir · exceção da cláusula 2 (ver §Fora do sprint) |
+| [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | `in_progress` · **fora das ondas** · [[ADR-375]] `Proposto` escrita 2026-08-11 (#1377) · supersede parcial [[ADR-196]] + [[ADR-277]] · 3 PRs a seguir · exceção da cláusula 2 (ver §Fora do sprint) |
 | [[A40.l35]] | Bundle de proteção sobre insumos reais (5 zeros + 2 `False`) | P1 | — | spin-off da [[A40.l7]] 2026-08-11 · Onda 2 · [[A40.l11]] é consumidora |
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
