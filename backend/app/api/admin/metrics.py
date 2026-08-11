@@ -63,6 +63,7 @@ def _to_response(snap) -> MetricsResponse:
         pipeline_runs_by_status=snap.pipeline_runs_by_status,
         stages_degraded_by_reason=snap.stages_degraded_by_reason,
         stages_degraded_by_stage=snap.stages_degraded_by_stage,
+        collapse=snap.collapse,
     )
 
 

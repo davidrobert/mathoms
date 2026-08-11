@@ -112,6 +112,21 @@ export interface MetricsResponse {
   pipeline_runs_by_status: Record<string, number>;
   stages_degraded_by_reason: Record<string, number>;
   stages_degraded_by_stage: Record<string, number>;
+  /** A40.l2 eixo (7) — sentinela do colapso cross-documento. `runs` no payload porque
+   * "0 alertas" e "0 runs mediram" são estados distintos. */
+  collapse: CollapseSentinel;
+}
+
+export interface CollapseSentinel {
+  runs: number;
+  degradado: boolean;
+  retido_por_override: number | null;
+  retido_por_override_manual: number | null;
+  retido_por_override_rule: number | null;
+  reservatorio_llm_sem_gemea: number | null;
+  removals_publicadas: number | null;
+  /** `retencao_inerte` · `override_durante_o_run` · `retencao_recorrente` · `cobertura_erodindo` */
+  alertas: string[];
 }
 
 export interface UserWorkspace {

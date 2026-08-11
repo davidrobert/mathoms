@@ -17,6 +17,7 @@ from backend.app.models.document import Document
 from backend.app.models.pipeline_run import PipelineRun
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
+from backend.app.services.internal_ops.collapse_sentinel import collapse_sentinel
 from backend.app.services.internal_ops.degradation_metrics import (
     cutoff_for,
     degraded_stages,
@@ -43,6 +44,8 @@ class MetricsSnapshot:
     # `group_by` não pode virar campo vazio na tela.
     pipeline_runs_by_status: dict[str, int]
     stages_degraded_by_reason: dict[str, int]
+    # A40.l2 eixo (7) — sentinela do colapso cross-documento, com alertas nomeados.
+    collapse: dict
     stages_degraded_by_stage: dict[str, int]
 
 
@@ -121,5 +124,6 @@ async def get_metrics(db: AsyncSession, *, period_days: int = 30) -> MetricsSnap
         generated_at=datetime.now(timezone.utc).isoformat(),
         pipeline_runs_by_status=runs_by_status_counts,
         stages_degraded_by_reason=by_reason,
+        collapse=await collapse_sentinel(db, cutoff=cutoff),
         stages_degraded_by_stage=by_stage,
     )
