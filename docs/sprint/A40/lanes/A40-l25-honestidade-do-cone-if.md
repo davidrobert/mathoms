@@ -220,7 +220,7 @@ exatamente onde ele é real.
 |---|---|---|---|
 | padrão | **10,8%** | 6,3% | 11% |
 | conservador | **1,8%** | 1,2% | 11% |
-| agressivo | **17,6%** | 11,3% | 11% |
+| agressivo | **17,55%** | 11,28% | 11% |
 
 **O defeito não é o nível, é a invariância:** uma família 80% Tesouro Selic e
 uma 90% ações recebem hoje o mesmo cone. O intervalo real é ~2%–18%.
