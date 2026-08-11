@@ -349,7 +349,7 @@
 | ADR-351 | adr | Proposto |  | Retorno de principal de investimento não é renda recorrente (receita_investimento) | `adr/351-retorno-principal-investimento-nao-recorrente.md` |
 | ADR-352 | adr | Proposto |  | Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante | `adr/352-premio-decomposicao-por-cobertura.md` |
 | ADR-353 | adr | Proposto |  | Confiança do diagnóstico comportamental condicionada à cobertura de categorização | `adr/353-diagnostico-comportamental-confianca.md` |
-| ADR-354 | adr | Proposto |  | Identidade de transação (K4) exclui atributos de proveniência do documento | `adr/354-identidade-transacao-exclui-proveniencia.md` |
+| ADR-354 | adr | Decidido |  | Identidade de transação (K4) exclui atributos de proveniência do documento | `adr/354-identidade-transacao-exclui-proveniencia.md` |
 | ADR-355 | adr | Decidido |  | Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages | `adr/355-intencao-sem-llm-propagada-ate-o-stage.md` |
 | ADR-356 | adr | Decidido |  | Precedência declarada do parágrafo de seção e CV9 como medida de entrega | `adr/356-precedencia-narrativa-secao-e-entrega.md` |
 | ADR-357 | adr | Decidido |  | Criticidade de stage e degradação do run — add-on advisory não veta o entregável | `adr/357-criticidade-de-stage-e-degradacao-do-run.md` |
@@ -359,7 +359,7 @@
 | ADR-361 | adr | Decidido |  | Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos | `adr/361-percentil-do-cone-de-if-e-censurado-na-base-cheia.md` |
 | ADR-362 | adr | Proposto |  | Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade | `adr/362-revisao-do-executor-e-proveniencia-observada.md` |
 | ADR-363 | adr | Proposto |  | Identidade de código é fato de runtime injetado no deploy, não conteúdo da imagem | `adr/363-identidade-de-codigo-em-runtime-e-semvers-ornamentais.md` |
-| ADR-364 | adr | Proposto |  | Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem | `adr/364-remocao-de-row-e-mudanca-de-identidade.md` |
+| ADR-364 | adr | Decidido |  | Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por RETENÇÃO (re-ancoragem deferida) | `adr/364-remocao-de-row-e-mudanca-de-identidade.md` |
 | ADR-365 | adr | Proposto |  | Recomendação retida do ranking é declarada; proveniência da premissa e elegibilidade são eixos ortogonais | `adr/365-elegibilidade-e-proveniencia-da-premissa-de-recomendacao.md` |
 | ADR-366 | adr | Decidido |  | Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação | `adr/366-desfecho-da-geracao-do-parecer-e-eixo-proprio.md` |
 | ADR-367 | adr | Proposto |  | Ordem do plano por irreversibilidade: tier constante por regra, e o alvo da reserva gradua sem mover o gatilho | `adr/367-ordem-do-plano-por-irreversibilidade.md` |
@@ -1032,8 +1032,8 @@
 | TRACK-a25-suggestion-lifecycle | track | consumed | A25 | Track A25 — SUGGESTION_LIFECYCLE F1→F4: supersede-per-run, thesis_key, valores determinísticos, cap/ordering, backfill dogfood | `sprint/A25/tracks/a25-suggestion-lifecycle.md` |
 | TRACK-a3cli-benchmark | track | consumed |  | Track A3.cli.benchmark — gate empírico de cold start do run-stage (decide se Caminho 2 reabre antes do 1º PR Go) | `plan/GO_SHELL/tracks/a3cli-benchmark.md` |
 | TRACK-a3cli-orchestrator-cli | track | consumed |  | Track A3.cli — entry-point CLI run-stage no orchestrator + injeção DBArtifactStore (Fase 1) + OTel TRACEPARENT (Fase 2) | `plan/GO_SHELL/tracks/a3cli-orchestrator-cli.md` |
-| TRACK-a40-l2-3c2-superficie-do-colapso | track | ready | A40 | Track A40.l2 PR3c2 — a superfície do colapso cross-documento (contador da S2 + caption da V0) | `sprint/A40/tracks/a40-l2-3c2-superficie-do-colapso.md` |
-| TRACK-a40-l2-3d-drain | track | ready | A40 | Track A40.l2 PR3d — a retenção: não colapsar chave com override ativo | `sprint/A40/tracks/a40-l2-3d-drain.md` |
+| TRACK-a40-l2-3c2-superficie-do-colapso | track | consumed | A40 | Track A40.l2 PR3c2 — a superfície do colapso cross-documento (contador da S2 + caption da V0) | `sprint/A40/tracks/a40-l2-3c2-superficie-do-colapso.md` |
+| TRACK-a40-l2-3d-drain | track | consumed | A40 | Track A40.l2 PR3d — a retenção: não colapsar chave com override ativo | `sprint/A40/tracks/a40-l2-3d-drain.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |

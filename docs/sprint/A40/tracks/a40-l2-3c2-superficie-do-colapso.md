@@ -5,19 +5,24 @@ title: "Track A40.l2 PR3c2 — a superfície do colapso cross-documento (contado
 lane: "[[A40.l2]]"
 sprint: A40
 plan: PLAN-report-trust
-status: ready
+status: consumed
 created_at: "2026-08-07"
 agent_role: product-designer
 tags:
   - type/track
   - sprint/a40
-  - status/ready
+  - status/consumed
   - priority/p0
   - area/report
   - area/frontend
 ---
 
 # Track A40.l2 PR3c2 — a superfície do colapso cross-documento
+
+> ✅ **Consumido em 2026-08-10** por [#1348](https://github.com/davidrobert/mathoms/pull/1348) (`566f7ca0`, 3c2a — contador da S2) e [#1353](https://github.com/davidrobert/mathoms/pull/1353) (`179bb215`, 3c2b — a V0 deixa de julgar mérito sob base alterada).
+> O desenho abaixo é **histórico**: duas partes dele foram revogadas em co-design — as
+> magnitudes (`receitas_omitidas`/`despesas_omitidas`) viraram deferimento, e o *"sem
+> suprimir cor"* caiu com a §Emenda 2026-08-10 da D6. Leia a lane antes deste track.
 
 > **Aberto junto do PR3b**, como a [[A40.l2]] §"Ordem de trabalho" manda: o 3c2 é o **long
 > pole real** da lane (frontend + snapshot + brief), não o 3d. Abrir tarde é o que faz o
