@@ -276,6 +276,41 @@ do cone de **toda a frota**, e o §Critério de aceite dela é o que prova que a
 invariância morreu (dois workspaces idênticos com alvos diferentes têm de
 produzir σ diferente).
 
+### 🚫 Flip BLOQUEADO pela revisão do `financial-planner` — 2026-08-10 (PR #1365)
+
+O dono autorizou o flip **condicionado à aprovação** do `financial-planner`. A
+revisão **bloqueou**, e o motivo não foi infidelidade de redação (os sete números
+conferiram): **dois achados mudam o que a ADR afirma**, e `Decidido` é contrato.
+
+O decisivo: a D8 manda imprimir na S7 *"o cone sai mais largo que o provável,
+**nunca mais estreito**"* — e essa frase seria **falsa**.
+
+| Achado | Verificado por mim, independentemente |
+|---|---|
+| **Imóvel de renda está no pool simulado e o alvo não o descreve** | `patrimonio_calculator.py:194` → `investivel_efetivo = financeiro + cat2_efetivo`; `goal.alocacao_alvo.v2.schema.json` tem `additionalProperties: false` e **7 chaves, nenhuma de imóvel**. Pool 60/40 com alvo conservador: publicaria **1,80%** contra limite real de **5,08%** — cone **2,8× mais estreito**, e a falha concentra-se no ICP (aluguel + carteira defensiva) |
+| **Incoerência μ/σ** | Largura passa a refletir o alvo; centro não. Alvo conservador: σ = 1,80% com μ implícito de **3,2%** (`0,6·3,5 + 0,2·5,5 + 0,2·0`) contra plano de 6%. Cone **estreito** em torno de centro que a alocação não entrega — e estreiteza comunica confiança. Pior que hoje. `caixa_pct: 100` é declarável (`maximum: 100` em todo `_pct`) ⇒ σ = 0,5% |
+| **σ não vinha do snapshot** | `_e5_build_premissas_economicas` roda em `analyze_finances.py:2599`, **depois** do MC, com `as_of=TODAY`, enquanto o MC usa `_reference_date.year`. **Duas bases de tempo** ⇒ re-run após revisão de premissa dá cone diferente, que é a falha que a [[ADR-219]] D5 existe para prevenir |
+| **`removesuffix("_pct")` erra 3 de 7 chaves** | `rf_ipca`, `acoes_int`, `fiis` **não existem** em `economic_asset_class` ⇒ D4 abortaria e o resultado seria `fallback_codigo` em **100% dos runs**, com a feature parecendo entregue |
+| **A invariante de sanidade era mais fraca que o declarado** | Em pct, `1,5 ≤ 10,8 ≤ 22` passa: ela **não** pegava o erro de 100×, porque o erro nasce no handoff para o config, que é decimal |
+
+**Corrigido na ADR (edição, não re-decisão):** precondição de cobertura do pool em
+D1 + monotonia de `_lognormal_params`; **D9** novo (peso observado para imóvel,
+com a distinção de por que cripto **não** recebe o mesmo tratamento); **D10** novo
+(σ do snapshot, `as_of` = data de referência); D4 medido nos pesos finais + a nota
+de que é inalcançável por declaração sob o seed vigente; D6 com valor de base
+mista; D8 ganha a **quinta** declaração; mapa de nomes explícito; faixa corrigida
+para **0,5%–22%** (o "~2% a 18%" era o intervalo dos três exemplos e escondia o
+pior caso); critério de aceite em **17,55** e a invariante asserida no decimal
+consumido pelo config.
+
+**§Deferimento datado, com dono:** revisão trimestral de premissa move o cone da
+frota **sem bump de `mc_version`**, portanto invisível à nota do #1356 — e
+`effective_to` vencido derruba a família conservadora de 1,80% para 11% (**6×**)
+sem aviso. Condição de retomada: estender o gatilho do ledger com diff de
+`effective_from`. **O passo 3 não fecha sem isso decidido.**
+
+**O status segue `Proposto`.** Reenvio para revisão; o flip continua condicionado.
+
 **Não entrou:** a faixa de 5 pp. Ela **muda número exibido** e, sozinha, forçaria
 um bump de `mc_version` sem mudança de modelo — o que corromperia o significado
 do campo (é provenance do **modelo**, não da exibição). Vai junto com a
