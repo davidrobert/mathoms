@@ -24,12 +24,19 @@ export function S_ProtecaoSection({ data }: { data: ReportAnalysisData }) {
       <ProtecaoGapVeiculos bens={protecao.bens_com_gap_cobertura} />
       <ProtecaoGapQualitativo gaps={protecao.gap_qualitativo} />
       <ProtecaoApolices data={protecao} />
+      {/* A40.l7 — o texto anterior AFIRMAVA algo falso: dizia que a S8 "detalha
+          cobertura de previdência", e a S8 mostra renda tributável PF, limite de
+          12% e dedutibilidade — o lado FISCAL, não o de proteção. Trocar só o
+          nome da seção preservaria a mentira. O link text é idêntico ao
+          `shortLabel` e ao prefixo do <h2>, para o leitor procurar no índice a
+          mesma string que clicou. */}
       <p className="mt-4 text-style-caption text-muted" data-testid="protecao-crosslink-s8">
-        Cobertura de previdência (componente de proteção) está detalhada em{" "}
+        A base dedutível de PGBL está em{" "}
         <a href="#S8" className="underline">
-          S8 Previdência
-        </a>
-        .
+          Carga Tributária PJ
+        </a>{" "}
+        — previdência aparece neste relatório pelo lado fiscal. Coberturas de
+        risco embutidas no plano de previdência não entram nesta análise.
       </p>
     </ReportSection>
   );

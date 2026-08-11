@@ -5,7 +5,7 @@ import { SectionSummary } from "../SectionSummary";
 import { CascataFiscalCard } from "../cards/CascataFiscalCard";
 import type { ReportAnalysisData, TributarioBundle } from "@/lib/api";
 
-/** F9 · F2.F · ADR-117 — Seção S8 (Previdência — PGBL e Fiscalidade).
+/** F9 · F2.F · ADR-117 — Seção S8 (Carga Tributária PJ).
  *
  * Sprint A16 L2 P5 (ADR-236 §D5) — substitui `<NarrativeChartCard
  * chartId="impostos_pj"/>` por `<CascataFiscalCard/>` que renderiza a

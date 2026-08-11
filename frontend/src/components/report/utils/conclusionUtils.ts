@@ -223,7 +223,8 @@ const SECTION_SUMMARIES: Record<
   S3: () => "Carteira de investimentos: alocação atual, alvo e principais ativos.",
   S4: () => "Imóveis e renda passiva — rentabilidade comparada a benchmarks.",
   S7: () => "Independência financeira — projeção de longo prazo em 3 cenários.",
-  S8: () => "Estrutura tributária e previdenciária — PGBL, IR e eficiência fiscal.",
+  S8: () =>
+    "Carga tributária da PJ: regime declarado, impostos que incidem sobre o faturamento e base dedutível de PGBL.",
   S9: () => "Mapa de riscos e cobertura atual de seguros críticos.",
   S10: (data) => {
     const score = getPath(data, "score.valor") as number | undefined;

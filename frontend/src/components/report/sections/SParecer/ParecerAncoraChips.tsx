@@ -12,7 +12,11 @@ const ROTULO_LABEL: Record<string, string> = {
   patrimonio: "Patrimônio",
   fluxo_caixa: "Fluxo de caixa",
   investimentos: "Investimentos",
-  previdencia_pgbl: "Previdência",
+  // "Previdência" nu é o único item deste mapa que o COPY_GUIDELINES §2
+  // proíbe (ambíguo entre PGBL e VGBL). O rótulo é PROCEDÊNCIA do dado,
+  // não da seção — e "Previdência PGBL" é a string que o leitor encontra
+  // ao seguir a pista: é o title do PrevidenciaPgblCard (A40.l7).
+  previdencia_pgbl: "Previdência PGBL",
   irpf_kpis: "Imposto de renda",
   cenarios_conjuge: "Cenário do casal",
   consumo_consciente: "Consumo",
