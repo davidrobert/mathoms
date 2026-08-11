@@ -23,7 +23,7 @@ import { MigratedSection, MIGRATED_SECTIONS } from "./MigratedSection";
 import { buildTitleMap } from "./utils/sectionTitles";
 import { SuggestionCalloutSummary } from "./sections/SuggestionCallout";
 import { VariacaoSection } from "./VariacaoSection";
-import { PerfilFamiliaCard, TitularesCard } from "./cards";
+import { PerfilFamiliaSection } from "./PerfilFamiliaSection";
 import {
   ReportActions,
   ReportCover,
@@ -398,19 +398,18 @@ export function ReportShell({
                   />
                 )}
 
-                {/* Perfil da Família — modo estratégico, acima das seções */}
+                {/* Perfil da Família — seção do shell (id="perfil"): identidade
+                 * documental (CPF mascarado, ADR-259 §4) + narrativa do E5.N
+                 * num card único, acima das seções numeradas. */}
                 {mode === "estrategico" && (
-                  <PerfilFamiliaCard
+                  <PerfilFamiliaSection
                     narrativas={
                       dataState.data.narrativas as
                         Record<string, unknown> | undefined
                     }
+                    workspaceId={workspaceId}
+                    familySurname={familySurname}
                   />
-                )}
-
-                {/* Titulares — CPF mascarado por default (ADR-259 §4) */}
-                {mode === "estrategico" && (
-                  <TitularesCard workspaceId={workspaceId} />
                 )}
 
                 {enabledSections.map((section) =>

@@ -7,8 +7,7 @@
  *   - assume um shape de dados específico do DTO (`PatrimonioData`,
  *     `OrcamentoProspectivoData`, `EquilibrioCerbasiData`…);
  *   - delega o frame visual ao primitivo canônico `ReportCard`;
- *   - é importado por exatamente uma `sections/<S>.tsx` (ou pelo
- *     `ReportShell` no caso do `PerfilFamiliaCard`).
+ *   - é importado por exatamente uma `sections/<S>.tsx`.
  *
  * **Não migrar para `ui/`.** Primitivos em `ui/` são section-agnostic; os
  * cards aqui carregam lógica de domínio do relatório (ex.: tabela de
@@ -40,7 +39,6 @@ export { Top15AtivosCard } from "./Top15AtivosCard";
 export type { Top15AtivosData, TopAtivo } from "./Top15AtivosCard";
 export { OrcamentoProspectivoCard } from "./OrcamentoProspectivoCard";
 export { PatrimonioCategoriasCard } from "./PatrimonioCategoriasCard";
-export { PerfilFamiliaCard } from "./PerfilFamiliaCard";
 export { PosicaoInformeCard } from "./PosicaoInformeCard";
 export { PontosFortesCard } from "./PontosFortesCard";
 export { PontosUrgentesCard } from "./PontosUrgentesCard";
@@ -51,7 +49,6 @@ export { ProventosYieldCard } from "./ProventosYieldCard";
 export { ReceitasFonteCard } from "./ReceitasFonteCard";
 export { RentabilidadeCard } from "./RentabilidadeCard";
 export { ReservaEmergenciaCard } from "./ReservaEmergenciaCard";
-export { TitularesCard } from "./TitularesCard";
 export { IrpfRendaAnualCard } from "./IrpfRendaAnualCard";
 export { IrpfIrPagoCard } from "./IrpfIrPagoCard";
 export { IrpfSplitTrabalhoCapitalCard } from "./IrpfSplitTrabalhoCapitalCard";

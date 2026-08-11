@@ -67,12 +67,20 @@ export function CpfField({ workspaceId, memberId, memberName, cpfMasked, canReve
 
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      {/* aria-label em <span> genérico não é anunciado de forma confiável;
+       * o estado de mascaramento vai como texto sr-only e o valor visível
+       * fica aria-hidden. `nowrap` impede a máscara de partir no meio. */}
       <span
-        aria-label={valueLabel}
-        style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}
+        aria-hidden="true"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontVariantNumeric: "tabular-nums",
+          whiteSpace: "nowrap",
+        }}
       >
         {displayValue}
       </span>
+      <span className="sr-only">{valueLabel}</span>
 
       {canReveal && showRevealed && (
         <button
