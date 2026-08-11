@@ -222,6 +222,12 @@ auditabilidade. Status explícito força transparência.
 > parcial` e as linhas `indisponivel`, e a UI continua mostrando o warn por
 > classe. O que muda é só o que o **σ do cone** faz com a lacuna: cala sobre a
 > carteira em vez de estimar sobre dado incompleto.
+>
+> **E não contradiz a §Alternativas desta ADR**, que rejeita *"default hard-coded
+> silencioso"*. A diferença é a palavra **silencioso**: `fallback_codigo` é
+> declarado no payload (`sigma_procedencia`, #1338) **e** na legenda da S7
+> (#1360). Constante declarada é premissa auditável; constante calada é o que a
+> §Alternativas rejeitou.
 
 ### D5 — Snapshot completo no payload E5
 
