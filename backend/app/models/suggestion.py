@@ -10,17 +10,23 @@ Ciclo de vida (state machine simples — não event-sourced):
     Pendente ─accept──────► Aceita     ┐
     Pendente ─modify──────► Modificada │ → terminal (Decision criada)
     Pendente ─dismiss─────► Descartada ┘ (terminal, com `dismissed_reason`)
-    Pendente ─supersede───► Superseded   (terminal soft, ADR-290 — run novo
-                                          do parecer torna a tese obsoleta;
-                                          só origin='llm' kind='parecer_planejador')
+    Pendente ─supersede───► Superseded   (terminal soft — ADR-290 tese obsoleta;
+                                          ADR-376 expiração por parecer-fonte:
+                                          run novo do parecer expira TODAS as
+                                          pendentes de runs anteriores, inclusive
+                                          thesis_key NULL; só origin='llm'
+                                          kind='parecer_planejador')
 
 Re-geração via :func:`pipeline.domain.services.suggestion_generator`
 usa ``dedup_key`` para idempotência: hash determinístico que tolera
 flutuação pequena de valor monetário (bucket de R$1k) ou percentual
-(bucket de 5pp). ``uq_sugagg_ws_dedup_status`` é UNIQUE **full** de 3
-colunas `(workspace_id, dedup_key, status)` — migration `e9f0a1b2c3d4`;
-unicidade lógica por dedup_key entre statuses é responsabilidade do
-service layer (ADR-290 B2). Descartadas não bloqueiam re-aparecer após
+(bucket de 5pp). ``uq_sugagg_ws_dedup_ativa`` é índice único
+**parcial** `(workspace_id, dedup_key) WHERE status IN ('Pendente',
+'Aceita','Modificada')` — no máximo UMA row ativa por conteúdo, espelho
+do invariante do service (ADR-153 §2 / ADR-376 §D3). Migration
+`adr376expira` substitui o UNIQUE full de `e9f0a1b2c3d4`, que quebrava
+quando a mesma dedup_key era Superseded 2× (e no 2º descarte da mesma
+key, bug latente do caminho determinístico). Descartadas não bloqueiam re-aparecer após
 `DISMISS_RESPECT_WINDOW_DAYS` (90).
 
 Money em ``amount_brl_cents`` (BIGINT) — ADR-090. ``None`` quando a
@@ -40,7 +46,7 @@ from sqlalchemy import (
     Index,
     String,
     Text,
-    UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -91,6 +97,10 @@ VALID_SUGGESTION_CATEGORIES: frozenset[str] = frozenset(
     {"alvo_if", "carteira", "protecao", "comportamental", "endividamento"}
 )
 
+# ADR-376 §D4 — bucket temporal do parecer preservado na persistência.
+# NULL = origin='deterministic' (regras E5, sem horizonte) ou row legada.
+VALID_SUGGESTION_HORIZONS: frozenset[str] = frozenset({"execucao", "tatica", "estrategica"})
+
 
 class Suggestion(Base):
     """Sugestão imutável gerada por análise determinística do relatório."""
@@ -127,7 +137,22 @@ class Suggestion(Base):
     superseded_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    superseded_by_run_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    superseded_by_run_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("pipeline_runs.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    # ADR-376 §D4 — 'execucao' | 'tatica' | 'estrategica' (VALID_SUGGESTION_HORIZONS);
+    # NULL para origin='deterministic' e rows anteriores à migration.
+    horizon: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
+    # ADR-376 §D1 — run que criou a row; torna explícito o predicado "não foi
+    # criada pelo run atual" da expiração (antes garantido só pela ordem de
+    # execução). NULL = row pré-migration ou run expurgado.
+    pipeline_run_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("pipeline_runs.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="Pendente")
     accepted_decision_id: Mapped[Optional[str]] = mapped_column(
@@ -156,20 +181,23 @@ class Suggestion(Base):
     accepted_decision = relationship("Decision", foreign_keys=[accepted_decision_id])
 
     __table_args__ = (
-        # UNIQUE full de 3 colunas (ws, dedup_key, status) — migration
-        # e9f0a1b2c3d4. NÃO é índice parcial: a mesma dedup_key pode
-        # existir uma vez por status; quem garante unicidade lógica
-        # entre statuses é o service layer (ADR-290 B2).
         Index("ix_sugagg_workspace_id", "workspace_id"),
         Index("ix_sugagg_ws_status", "workspace_id", "status"),
         Index("ix_sugagg_ws_dedup", "workspace_id", "dedup_key"),
         Index("ix_sugagg_ws_section", "workspace_id", "section_id"),
         Index("ix_sugagg_ws_thesis", "workspace_id", "thesis_key"),
-        UniqueConstraint(
+        # ADR-376 §D3 — único parcial sobre os status ATIVOS: no máximo uma row
+        # ativa por conteúdo (fence do invariante ADR-153 §2, não decoração).
+        # Histórico (Superseded/Descartada) é ilimitado por design: a mesma
+        # dedup_key pode ser expirada N vezes ao longo dos runs (migration
+        # adr376expira; substitui uq_sugagg_ws_dedup_status full-unique).
+        Index(
+            "uq_sugagg_ws_dedup_ativa",
             "workspace_id",
             "dedup_key",
-            "status",
-            name="uq_sugagg_ws_dedup_status",
+            unique=True,
+            sqlite_where=text("status IN ('Pendente', 'Aceita', 'Modificada')"),
+            postgresql_where=text("status IN ('Pendente', 'Aceita', 'Modificada')"),
         ),
     )
 
