@@ -5,13 +5,15 @@ title: "Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZAC
 status: Decidido
 phase: "A12"
 date: "2026-05-12"
+amended_at: ["2026-08-11"]
 relates_to:
   - "[[ADR-157]]"
   - "[[ADR-189]]"
   - "[[ADR-194]]"
   - "[[ADR-195]]"
 supersedes: []
-superseded_by: []
+superseded_by:
+  - "[[ADR-375]]"
 aliases:
   - "ADR 196"
   - "PGBL reconciliação S7 IRPF"
@@ -26,6 +28,23 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> ### ⚠️ Emenda 2026-08-11 — supersedure parcial pela [[ADR-375]]
+>
+> **Cai:** §D1 na linha `irpfKpis = null`, §D5 na linha `default`, §D6 inteira,
+> e o §1 **caso 4**. **Permanece vigente:** §D2 (switch de modos), §D3, §D4, §4
+> (copy com sign-off G0) e §5.
+>
+> O §1 caso 4 afirmava *"Card A **subestima** espaço fiscal vs. a fonte
+> autoritativa"*. O erro não foi de sinal por descuido: foi declarar
+> **universal** uma direção que é função da composição da renda. Em renda
+> predominantemente CLT/tributável o proxy subestima; no arquétipo PJ com
+> pró-labore mínimo e distribuição grande ele **superestima por múltiplo**. A
+> razão é `(pró-labore + outras) ÷ (0,32 × receita_PJ)`, com erro ilimitado nos
+> dois lados — não há sinal a declarar.
+>
+> A §D6 (*"backend inalterado"*) deixou de valer: a mesma polaridade invertida
+> vive no Python (`PrevidenciaAnalyzer.analyze`).
 
 ## §1 — Contexto
 

@@ -5,6 +5,7 @@ title: "Previdência F1-O4: reconciliação da recomendação PGBL (não dedup d
 status: Decidido
 phase: A21.l4
 date: "2026-05-30"
+amended_at: ["2026-08-11"]
 relates_to:
   - "[[ADR-236]]"
   - "[[ADR-189]]"
@@ -12,7 +13,8 @@ relates_to:
   - "[[ADR-271]]"
   - "[[ADR-276]]"
 supersedes: []
-superseded_by: []
+superseded_by:
+  - "[[ADR-375]]"
 aliases:
   - "ADR 277"
   - "Reconciliação recomendação PGBL"
@@ -24,6 +26,17 @@ tags:
 ---
 
 # ADR-277 — Previdência F1-O4: reconciliação da recomendação PGBL
+
+> ### ⚠️ Emenda 2026-08-11 — supersedure parcial pela [[ADR-375]]
+>
+> **Cai:** a cláusula de §Escopo *"sem IRPF, comportamento idêntico ao atual
+> (fallback proxy)"* e o ramo `capacidade_irpf is None` que a implementa. O
+> proxy `receita_pj × 32%` não estava descalibrado — estava **invertido**:
+> aproxima o teto da distribuição **isenta**, que é o complemento da base PGBL.
+>
+> **Permanece vigente:** INV-PREV-2, INV-PREV-3, o boundary do value object
+> `CapacidadePgblIRPF` e `fonte_recomendacao` como campo de proveniência (o
+> valor `proxy_receita_pj` sai do vocabulário; o campo fica).
 
 **Status:** Decidido (Sprint A21, lane l4) • **Data:** 2026-05-30 • **Relaciona** [[ADR-236]] (base PGBL = renda tributável PF), [[ADR-189]] (capacidade/status PGBL), [[ADR-266]] (ano-base default), [[ADR-271]] (dedup investimentos), [[ADR-276]] (EntityDedupPolicy)
 
