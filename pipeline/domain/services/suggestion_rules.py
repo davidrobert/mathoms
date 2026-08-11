@@ -468,7 +468,9 @@ def rule_seguros_insuficientes(
         f"risco coberto."
     ).replace(",", ".")
     return SuggestionDraft(
-        section_id="S6",
+        # S5/S6 queimadas por design (report_layout.yaml §NOTA); lacuna de
+        # proteção ancora na S9 — Riscos e Sucessão.
+        section_id="S9",
         kind="seguros_insuficientes",
         severity="danger",
         title="Contratar seguro de vida e invalidez",

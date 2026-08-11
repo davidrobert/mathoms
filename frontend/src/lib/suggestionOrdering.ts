@@ -3,6 +3,7 @@
 // SuggestionCalloutSummary). Mapeamento de gates validado com
 // financial-planner 2026-06-12 (PLAN-suggestion-lifecycle §3 F3).
 
+import type { LayoutSectionId } from "@/generated/report-layout";
 import type { Suggestion, SuggestionSeverity } from "@/lib/api";
 
 /** Cap de display do inbox ativo: ≤12 acionáveis (danger+warning); o
@@ -23,7 +24,10 @@ const SEVERITY_RANK: Record<SuggestionSeverity, number> = {
 // renda pura; não forçar S7/alvo_if nele) · 5 fiscal · 6 default (fim:
 // errar para cima fabrica urgência falsa; severidade precede o gate,
 // então risco real nunca fica enterrado).
-const GATE_BY_SECTION: Record<string, number> = {
+// Chaveado por `LayoutSectionId` (codegen do report_layout.yaml) para que ID
+// inexistente ou queimado — S5/S6 — não entre no mapa: `tsc --noEmit` recusa.
+// Só o caminho `origin="llm"` chega aqui; determinística resolve por `category`.
+const GATE_BY_SECTION: Partial<Record<LayoutSectionId, number>> = {
   S9: 1,
   S1: 1,
   S2: 1,
@@ -48,7 +52,7 @@ export function methodologicalGate(s: Suggestion): number {
   if (s.origin === "deterministic" && s.category) {
     return GATE_BY_CATEGORY[s.category] ?? GATE_DEFAULT;
   }
-  return GATE_BY_SECTION[s.section_id] ?? GATE_DEFAULT;
+  return GATE_BY_SECTION[s.section_id as LayoutSectionId] ?? GATE_DEFAULT;
 }
 
 // Comparação apenas — nunca aritmética nem display (ADR-090: money é
