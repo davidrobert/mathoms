@@ -868,6 +868,8 @@
 | A40.l33 | lane | in_progress | A40 | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | `sprint/A40/lanes/A40-l33-contraste-texto-sobre-tint.md` |
 | A40.l34 | lane | in_progress | A40 | Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis | `sprint/A40/lanes/A40-l34-base-do-limite-pgbl.md` |
 | A40.l35 | lane | open | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
+| A40.l36 | lane | open | A40 | Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes | `sprint/A40/lanes/A40-l36-double-count-na-base-da-cascata-s8.md` |
+| A40.l37 | lane | blocked | A40 | A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 | `sprint/A40/lanes/A40-l37-tabela-de-ir-tem-tres-fontes.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
 | A40.l5 | lane | in_progress | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |

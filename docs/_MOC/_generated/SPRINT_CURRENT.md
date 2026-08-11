@@ -5,13 +5,14 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-3 open · 5 in_progress.
+4 open · 5 in_progress.
 
-## Open (3)
+## Open (4)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · branch `a40-l29-editorial-do-ano-de-if`
 - [[A40.l35]] — Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros · priority P1 · branch `a40-l35-bundle-de-protecao-sobre-insumos-reais`
+- [[A40.l36]] — Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes · priority P1 · branch `a40-l36-double-count-base-cascata-s8`
 
 ## In progress (5)
 
