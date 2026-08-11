@@ -179,19 +179,52 @@ class TestLooseMatchDoesNotCrossWorkspaces:
             assert record.workspace_id == ws2.id
 
 
+# Inverte o contrato da ADR-225 §3 (emendada em 2026-08-11): a ausência de
+# canonical inseria row nova a cada run, e o backfill que "cuidaria disso" era
+# revertido pelo run seguinte.
 class TestLowConfidenceInserts:
-    """endereco_canonical=None ainda gera row nova (sem mudança ADR-225)."""
+    """endereco_canonical=None agrupa por amostra bruta byte-exata (ADR-375)."""
 
-    def test_inserts_when_canonical_is_none(self, sync_db):
+    def test_same_descricao_reuses_identity_when_canonical_is_none(self, sync_db):
         ws = _seed_workspace(sync_db)
         lookup = _new_lookup(titular_key="x", codigo_rfb="12", endereco_canonical=None)
         with sync_db() as session:
             resolver = DBPropertyIdentityResolver(session=session)
             r1 = resolver.match_or_create(ws.id, lookup, 2023, "CASA Bairro Exemplo")
             r2 = resolver.match_or_create(ws.id, lookup, 2024, "CASA Bairro Exemplo")
-            # 2 rows distintas — backfill script ADR-225 §3 cuida pós-cutover.
-            assert r1.property_id != r2.property_id
+            assert r1.property_id == r2.property_id
             assert r1.low_confidence is True and r2.low_confidence is True
+
+    def test_different_descricao_still_inserts(self, sync_db):
+        ws = _seed_workspace(sync_db)
+        lookup = _new_lookup(titular_key="x", codigo_rfb="12", endereco_canonical=None)
+        with sync_db() as session:
+            resolver = DBPropertyIdentityResolver(session=session)
+            r1 = resolver.match_or_create(ws.id, lookup, 2023, "CASA Bairro Exemplo")
+            r2 = resolver.match_or_create(ws.id, lookup, 2024, "TERRENO Outro Bairro")
+            assert r1.property_id != r2.property_id
+
+    def test_empty_descricao_never_matches_another_empty(self, sync_db):
+        """Guard A3: descricao_sample é nullable — vazio não é identidade."""
+        ws = _seed_workspace(sync_db)
+        lookup = _new_lookup(titular_key="x", codigo_rfb="12", endereco_canonical=None)
+        with sync_db() as session:
+            resolver = DBPropertyIdentityResolver(session=session)
+            r1 = resolver.match_or_create(ws.id, lookup, 2023, "")
+            r2 = resolver.match_or_create(ws.id, lookup, 2024, "")
+            assert r1.property_id != r2.property_id
+
+    def test_descricao_integra_sobrevive_sem_truncagem(self, sync_db):
+        """Guard A4: a coluna guarda a descrição-fonte íntegra — truncar muda identidade."""
+        ws = _seed_workspace(sync_db)
+        lookup = _new_lookup(titular_key="x", codigo_rfb="12", endereco_canonical=None)
+        longa = "CASA " + ("descricao cartorial generica " * 20)
+        assert len(longa) > 255
+        with sync_db() as session:
+            resolver = DBPropertyIdentityResolver(session=session)
+            r1 = resolver.match_or_create(ws.id, lookup, 2023, longa)
+            row = session.get(PropertyIdentity, r1.property_id)
+            assert row.descricao_sample == longa
 
 
 class TestFuzzyMatchCanonicalProximity:
