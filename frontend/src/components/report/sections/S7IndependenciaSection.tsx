@@ -43,14 +43,18 @@ const DEFASAGEM_INFO_THRESHOLD = 6;
 const DEFASAGEM_WARNING_THRESHOLD = 15;
 const APROXIMACAO_YIELD_RATIO = 0.7;
 
+interface S7IndependenciaSectionProps {
+  data: ReportAnalysisData;
+  workspaceId?: string;
+  reportId?: string;
+}
+
 /** F9 · F2.E — Seção S7 (Independência Financeira). */
 export function S7IndependenciaSection({
   data,
   workspaceId,
-}: {
-  data: ReportAnalysisData;
-  workspaceId?: string;
-}) {
+  reportId,
+}: S7IndependenciaSectionProps) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const previdencia = data.previdencia_pgbl as unknown as PrevidenciaPgblData | undefined;
@@ -66,7 +70,11 @@ export function S7IndependenciaSection({
     <ReportSection id="S7">
       <SectionSummary data={data} sectionId="S7" />
       {workspaceId && (
-        <SuggestionCalloutInline sectionId="S7" workspaceId={workspaceId} />
+        <SuggestionCalloutInline
+          sectionId="S7"
+          workspaceId={workspaceId}
+          reportId={reportId}
+        />
       )}
       <RecalibracaoMcNote nota={data.recalibracao_mc ?? null} />
       <NarrativeChartCard
