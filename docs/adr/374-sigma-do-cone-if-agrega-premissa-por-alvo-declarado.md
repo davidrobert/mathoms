@@ -2,9 +2,10 @@
 id: ADR-374
 type: adr
 title: "Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado"
-status: Proposto
+status: Decidido
 phase: A40
 date: "2026-08-10"
+amended_at: ["2026-08-11"]
 relates_to:
   - "[[ADR-219]]"
   - "[[ADR-237]]"
@@ -19,7 +20,7 @@ superseded_by: []
 aliases: ["ADR 374", "sigma do cone", "volatilidade da projeção de IF"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
   - phase/a40
@@ -27,7 +28,19 @@ tags:
 
 # ADR-374 — Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado
 
-**Status:** Proposto (A40) • **Data:** 2026-08-10 • **Lane:** [[A40.l25]] •
+> **Flip `Proposto` → `Decidido` em 2026-08-11.** Autorizado pelo dono
+> **condicionado à aprovação do `financial-planner`**, que **bloqueou na 1ª
+> revisão** e aprovou na 2ª. O bloqueio não foi de fidelidade — os sete números
+> conferiram — e sim de duas afirmações que mudariam o que a ADR promete: imóvel
+> de renda está no pool simulado sem peso (D9), e a largura passaria a ser
+> calibrada com o centro não (D8, 5ª declaração). A 2ª revisão achou um defeito
+> **novo, introduzido pelo meu próprio conserto**: a precondição de D1 estava
+> redigida como *"cobrir o pool"*, o que é falso para família com cripto
+> material — cripto **está** em `investivel_efetivo` e não é declarável no alvo.
+> A redação vigente de D1 é a do revisor.
+
+
+**Status:** Decidido (A40) • **Data:** 2026-08-10 • **Lane:** [[A40.l25]] •
 **Co-design:** `financial-planner` (2026-08-10) • **Relaciona** [[ADR-219]] (a
 tabela versionada que existe para isso), [[ADR-237]] (o cone e seu orçamento de
 latência), [[ADR-360]] (seed + `mc_version` + nota one-shot), [[ADR-369]] (o alvo
@@ -53,7 +66,9 @@ decide o passo seguinte: **de onde o número vem quando existe premissa**.
 balanceada. O problema é que uma família 80% Tesouro Selic e uma 90% ações
 recebem **o mesmo cone**. Com os σ do seed vigente
 (`backend/app/scripts/seed_economic_assumptions.py`, 0,5% caixa a 22% ações BR),
-o intervalo real dos alvos declaráveis é **~2% a 18%**.
+o intervalo real dos alvos declaráveis é **0,5% a 22%** (todo `_pct` do schema
+aceita `maximum: 100`, então `caixa_pct: 100` e `acoes_br_pct: 100` são ambos
+declaráveis).
 
 ## Decisão
 
@@ -65,11 +80,16 @@ ponderada é um **limite superior demonstrável** — afirmação verdadeira sem
 conhecer o insumo que falta. É exatamente o que a [[ADR-219]] pede de uma
 premissa auditável.
 
-**Precondição, sem a qual o limite não é limite:** os pesos têm de **cobrir o
-pool simulado**, isto é `Σ wᵢ = 1` sobre as classes que compõem
-`patrimonio_investivel` (= `investivel_efetivo`). Peso que cobre parte do pool
-produz um número **menor** que o limite real, e a afirmação de D8 (*"nunca mais
-estreito"*) passa a ser falsa. É o que o D9 resolve para imóveis.
+**Precondição, sem a qual o limite não é limite:** `Σ wᵢ = 1` sobre as classes
+que o pool é assumido conter **prospectivamente** — não sobre a composição de
+hoje. Dela seguem, e não de preferência, as duas assimetrias desta ADR: classe
+que a família **pode** rebalancear (cripto, `Outros` — o `fora_alvo`) sai do
+vetor pela hipótese de convergência ao alvo declarado (D2); classe que ela **não
+pode** rebalancear por aporte (imóvel de renda) entra com peso **observado**
+(D9), porque para ela prospectivo ≡ observado. Onde a hipótese de convergência
+não se sustenta, o número deixa de ser limite superior — é por isso que a segunda
+declaração de D8 (os pesos são do **alvo**, não da carteira atual) é obrigatória
+e não decorativa.
 
 O limite **sobrevive à transformação log-normal**: `σ_log = √ln(1 + σ²/(1+r)²)`
 é monótona crescente em σ, então majorar σ majora `σ_log`, que é o parâmetro
@@ -147,7 +167,9 @@ o outro dessincroniza os dois. A divisão defensável: **μ é parâmetro do pla
 escolhe). A fragilidade de μ tem destino próprio na [[A40.l25]] (grade 5/6/7%).
 
 **D6 — Campos de auditoria no payload** (aditivos, schema em `warn`):
-`sigma_agregacao` (a hipótese adotada), `sigma_base_pesos`
+`sigma_agregacao` = `soma_ponderada_sem_desconto_de_correlacao` (valor
+**enumerado**, não string livre — senão cada call-site inventa a sua),
+`sigma_base_pesos`
 (`alocacao_alvo_declarada` **ou** `alocacao_alvo_declarada_mais_imoveis_observados`
 — ver D9; um valor único mentiria sobre base mista), e `sigma_procedencia` passa a
 resolver `workspace_override` quando **qualquer** classe contribuinte veio de
@@ -203,6 +225,11 @@ cobre (lá o determinismo é do seed, não do config).
 Implementação: reordenar para o snapshot preceder o adapter, ou injetar o resolver
 no adapter. `TODAY` não é aceitável como `as_of`.
 
+**Coerência com a [[ADR-219]] D6, para ninguém "consertar" de volta:** run cuja
+data de referência antecede o `effective_from` do seed resolve **nada** ⇒ D4 ⇒
+`fallback_codigo`. Isso é **correto** e concorda com *"não migra runs antigos"* —
+parece bug e não é.
+
 **D7 — `mc_version` → `"6.0"`**, com entrada no ledger de
 `if_recalibracao.py` (facetas `largura_cone` + `precisao_probabilidade`). O bump é
 legítimo porque o **modelo** muda — não é mudança de exibição.
@@ -211,7 +238,8 @@ legítimo porque o **modelo** muda — não é mudança de exibição.
 `product-designer`): fonte + vigência; que os pesos são do **alvo** e não da
 carteira atual; a hipótese de correlação em linguagem de cliente (*somamos o
 risco das classes sem descontar diversificação; o cone sai mais largo que o
-provável, nunca mais estreito*); o fallback quando `fallback_codigo`; e —
+provável, nunca mais estreito — **dado o alvo declarado***); o fallback quando
+`fallback_codigo`; e —
 **quinta, acrescentada pela revisão** — que **a largura é calibrada à alocação-
 alvo, mas o centro é a premissa do plano, não da alocação**.
 
@@ -265,8 +293,9 @@ o cone continua não respondendo à carteira, que é a mensagem inteira da seç�
   D8. Insumo recomendado: emitir `retorno_implicito_do_alvo_pct` pelos mesmos
   rows (zero I/O extra), **declarado e não gateado** — mesma postura de D2 sobre
   gaming, e insumo pronto para a grade 5/6/7% da [[A40.l25]].
-- **A faixa declarável é 0,5% a 22%, não "~2% a 18%"** — este último é o intervalo
-  dos três exemplos, e a imprecisão escondia justamente o pior caso.
+- A faixa declarável é **0,5% a 22%** (corrigido em §Contexto na revisão de
+  2026-08-11: a redação original dizia "~2% a 18%", que era o intervalo dos três
+  exemplos e escondia justamente o pior caso).
 - **Ganho não-óbvio:** `_lognormal_params` subtrai ½σ²_log para preservar E[r],
   então σ carrega *drag de volatilidade* sobre o caminho central. Com σ=11% e
   r=6% o drag é ~0,54%/ano; com σ=3%, ~0,04%. A família conservadora é hoje
@@ -290,9 +319,19 @@ o cone continua não respondendo à carteira, que é a mensagem inteira da seç�
   *nice-to-have* para pré-requisito de operação.
 - **Sanidade de unidade:** o seed é **pct** (`22.000`) e o config é **decimal**
   (`0.11`). Um `/100` esquecido dá σ = 1080% e um cone absurdo que passa em todo
-  teste de tipo.
+  teste de tipo. E `sigma_anual_pct` chega como **`str`** no snapshot
+  (`economic_assumptions_snapshot.py`), então a conversão é `str → Decimal`, não
+  só pct→decimal.
+- ⚠️ **D6 + D9 + D10 estouram o cache do parecer da frota inteira — custo único
+  de LLM.** A chave é `sha256` sobre o payload E5 ([[ADR-369]] §Alternativa A), e
+  foi exatamente por isso que o #1356 pôs a nota de recalibração no **view-model**:
+  para *não* cobrar re-geração por workspace. Aqui D6 adiciona campos e D9/D10
+  mudam o conteúdo de `premissas_economicas` e de `sigma_usado`. **Não é
+  re-decisão** — o bump de `mc_version` em D7 já implica re-emissão —, mas é
+  desembolso com **hard-stop de budget** ([[ADR-173]]) que quem agendar o passo 3
+  descobre em runtime se não estiver escrito aqui.
 
-## Deferimento datado — 2026-08-10
+## Deferimento datado — 2026-08-11
 
 **Revisão de premissa move o cone da frota SEM bump de `mc_version`, portanto
 invisível à nota de recalibração.** O gatilho da nota é diff sobre o ledger de
