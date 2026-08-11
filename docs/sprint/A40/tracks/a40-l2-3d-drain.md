@@ -5,19 +5,23 @@ title: "Track A40.l2 PR3d — a retenção: não colapsar chave com override ati
 lane: "[[A40.l2]]"
 sprint: A40
 plan: PLAN-report-trust
-status: ready
+status: consumed
 created_at: "2026-08-08"
 agent_role: senior-cto
 tags:
   - type/track
   - sprint/a40
-  - status/ready
+  - status/consumed
   - priority/p0
   - area/backend
   - area/pipeline
 ---
 
 # Track A40.l2 PR3d — a retenção
+
+> ✅ **Consumido em 2026-08-10** por [#1351](https://github.com/davidrobert/mathoms/pull/1351) (`319added`, a retenção), [#1352](https://github.com/davidrobert/mathoms/pull/1352) (`7a075d44`, travas TOCTOU + contadores) e [#1359](https://github.com/davidrobert/mathoms/pull/1359) (`9a700c4a`).
+> O título ainda diz *"drain"*: **não há drain** — a quitação é retenção
+> ([[ADR-364]] §Emenda 2026-08-09).
 
 > **Destravado em 2026-08-07** pelo merge do PR3b ([#1276](https://github.com/davidrobert/mathoms/pull/1276),
 > `b3b8a74b`), que era sua única dependência. **É da onda desta sprint** — o §Gate de saída da

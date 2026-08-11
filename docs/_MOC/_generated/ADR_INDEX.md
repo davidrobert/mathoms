@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 316
-- **Proposto**: 45
+- **Decidido**: 318
+- **Proposto**: 43
 - **Roadmap**: 4
 
 ## Fundação
@@ -530,7 +530,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (57)
+### Decidido (59)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -582,15 +582,17 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-344]] — Piso de materialidade no gate de conservação: roteamento sobre o caminho não-certificado (transitório) · phase A39.l10
 - [[ADR-346]] — Identidade de posição de renda variável (ticker+proprietário) + null-não-soma no consolidador · phase A39.l9
 - [[ADR-348]] — Determinismo da classificação LLM: temperature=0 + validação estrita de dest_group · phase A39.l11
+- [[ADR-354]] — Identidade de transação (K4) exclui atributos de proveniência do documento · phase report-review r3 (RV3-01) · A40.l2
 - [[ADR-355]] — Intenção "sem LLM" do run é propagada até o stage, não só até a lista de stages · phase A40 (dívida independente da F2 do GO_SHELL)
 - [[ADR-357]] — Criticidade de stage e degradação do run — add-on advisory não veta o entregável · phase A40.l18
 - [[ADR-360]] — Seed do cone Monte Carlo de IF é constante de modelo versionada, não entropia do SO · phase A40 (bloqueio nº 1 do gate de paridade F2 do GO_SHELL)
 - [[ADR-361]] — Percentil do cone de IF é quantil da base cheia com censura declarada, não mediana dos bem-sucedidos · phase A40
+- [[ADR-364]] — Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por RETENÇÃO (re-ancoragem deferida) · phase A40.l2
 - [[ADR-369]] — Rótulo e alvo do cone de IF: percentil vira cenário nomeado (4.0) e o prazo declarado pela família substitui o alvo do próprio modelo (5.0) · phase A40.l28
 - [[ADR-373]] — Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade
 - [[ADR-374]] — Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado · phase A40
 
-### Proposto (14)
+### Proposto (12)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -603,9 +605,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-351]] — Retorno de principal de investimento não é renda recorrente (receita_investimento) · phase ledger-certify r3
 - [[ADR-352]] — Decomposição do prêmio de seguro por cobertura (bottom-up), não por bem dominante · phase pipeline-review r2 (RV2-26)
 - [[ADR-353]] — Confiança do diagnóstico comportamental condicionada à cobertura de categorização · phase pipeline-review r2 (RV2-21)
-- [[ADR-354]] — Identidade de transação (K4) exclui atributos de proveniência do documento · phase report-review r3 (RV3-01) · A40.l2
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
-- [[ADR-364]] — Remover row no E3 é mudança de identidade para override — herda a restrição da ADR-354 e a quita por re-ancoragem
 
 ### Roadmap (1)
 
