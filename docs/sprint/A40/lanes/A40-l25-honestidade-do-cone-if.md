@@ -134,7 +134,7 @@ superfícies + paridade Py↔TS), `sigma_anual` de `premissas_economicas`, a
 worktree não sobe Playwright (`node_modules` é symlink, o Turbopack recusa),
 então o §Débito de método segue **declarado, não contornado**.
 
-## ✅ Parcial entregue em 2026-08-10 (2ª do dia) — PR #1359
+## ✅ Parcial entregue em 2026-08-10 (2ª do dia) — PR #1360
 
 ### Um defeito que a lane não conhecia, achado ao medir o item 1
 
@@ -276,7 +276,7 @@ do cone de **toda a frota**, e o §Critério de aceite dela é o que prova que a
 invariância morreu (dois workspaces idênticos com alvos diferentes têm de
 produzir σ diferente).
 
-### 🚫 Flip BLOQUEADO pela revisão do `financial-planner` — 2026-08-10 (PR #1365)
+### 🚫→✅ Flip: BLOQUEADO na 1ª revisão (#1366), APROVADO na 2ª (#1369)
 
 O dono autorizou o flip **condicionado à aprovação** do `financial-planner`. A
 revisão **bloqueou**, e o motivo não foi infidelidade de redação (os sete números
@@ -309,7 +309,44 @@ frota **sem bump de `mc_version`**, portanto invisível à nota do #1356 — e
 sem aviso. Condição de retomada: estender o gatilho do ledger com diff de
 `effective_from`. **O passo 3 não fecha sem isso decidido.**
 
-**O status segue `Proposto`.** Reenvio para revisão; o flip continua condicionado.
+### ✅ Flip EXECUTADO em 2026-08-11 — `Proposto` → `Decidido`
+
+A 2ª revisão **aprovou**, e o flip saiu no mesmo commit das três condições que
+ela impôs. Confirmou os cinco achados fechados e destacou D10 + §Deferimento como
+"mais fortes do que eu pedi".
+
+**A 2ª revisão achou um defeito que EU introduzi ao consertar o primeiro** — e era
+exatamente o que eu havia pedido que ela caçasse. A precondição de D1 ficou
+redigida como *"os pesos têm de cobrir o pool simulado"*, e isso é **falso**:
+`patrimonio_calculator.py:42` mostra que **cripto entra em `investivel_efetivo`**
+(via `criptos` em `bens`), e cripto não é declarável no alvo v2. Para a família de
+30% em cripto — o exemplo da minha própria §Consequências — os pesos cobrem 70%
+do pool, então pela letra de D1 o número não seria limite superior e a frase de D8
+seria falsa. O implementador acertaria (D9 resolve a favor de peso zero), mas **a
+frase que carrega o argumento central estaria errada**.
+
+A redação vigente de D1 é a do revisor: `Σwᵢ = 1` sobre o que o pool é assumido
+conter **prospectivamente**, do que seguem as duas assimetrias — quem a família
+**pode** rebalancear (cripto, `fora_alvo`) sai do vetor pela hipótese de
+convergência; quem ela **não pode** (imóvel) entra com peso observado. E D8 escopa
+a 3ª declaração: *"nunca mais estreito — **dado o alvo declarado**"*.
+
+**Também no mesmo commit:** §Contexto corrigido na **fonte** para 0,5%–22% (a
+correção estava só anexada no fim, e o documento discutia consigo mesmo);
+`sigma_agregacao` ganhou valor **enumerado**; a emenda de que **D6+D9+D10 estouram
+o cache do parecer da frota** (custo único de LLM com hard-stop da [[ADR-173]] —
+não é re-decisão, porque o bump de `mc_version` já implica re-emissão, mas quem
+agendar o passo 3 descobriria em runtime); e a coerência de D10 com a [[ADR-219]]
+D6, para ninguém "consertar" `as_of` de volta para `TODAY`.
+
+**Colisão de proveniência corrigida:** esta lane citava a 2ª parcial como
+**#1359**, que é PR da [[A40.l2]] — trabalho de outra lane. O correto é **#1360**,
+onde paridade **e** legenda saíram juntas. (O revisor supôs que "no máximo uma"
+das citações estaria certa; na ADR as duas estavam, porque as duas coisas
+aterrissaram no mesmo PR.)
+
+**Só o passo 3 resta na face do σ** — e ele não fecha sem a decisão do
+§Deferimento sobre revisão de premissa mover o cone sem bump de `mc_version`.
 
 **Não entrou:** a faixa de 5 pp. Ela **muda número exibido** e, sozinha, forçaria
 um bump de `mc_version` sem mudança de modelo — o que corromperia o significado
