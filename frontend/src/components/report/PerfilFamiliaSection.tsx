@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import { listMembers, listMyWorkspaces, type FamilyMemberConfig } from "@/lib/api";
+import {
+  listMembers,
+  listMyWorkspaces,
+  type FamilyMemberConfig,
+} from "@/lib/api";
 import { ReportCard } from "./ReportCard";
 import { ReportSection } from "./ReportSection";
 import { CpfField } from "./ui/CpfField";
@@ -45,16 +49,18 @@ function parseParagraphs(html?: string): string[] {
     .filter(Boolean);
 }
 
+// `cpf_masked` já vem pronto de `GET /config/members` (ADR-259 §4) — sem
+// N+1 de fetch por membro. Membro sem CPF não entra: o dado documental do
+// roster é o par nome civil → CPF; o nome sozinho já vive na narrativa.
 async function resolveRoster(workspaceId: string): Promise<RosterState> {
-  // `cpf_masked` já vem pronto de `GET /config/members` (ADR-259 §4) — sem
-  // N+1 de fetch por membro. Membro sem CPF não entra: o dado documental do
-  // roster é o par nome civil → CPF; o nome sozinho já vive na narrativa.
   const [{ members }, { workspaces }] = await Promise.all([
     listMembers(workspaceId),
     listMyWorkspaces(),
   ]);
   const rows = members
-    .filter((m): m is FamilyMemberConfig & { id: string } => Boolean(m.id && m.cpf_masked))
+    .filter((m): m is FamilyMemberConfig & { id: string } =>
+      Boolean(m.id && m.cpf_masked),
+    )
     .sort((a, b) => a.order - b.order)
     .map((m) => ({
       id: m.id,
@@ -62,7 +68,8 @@ async function resolveRoster(workspaceId: string): Promise<RosterState> {
       role: m.role,
       cpfMasked: m.cpf_masked ?? null,
     }));
-  const isOwner = workspaces.find((w) => w.id === workspaceId)?.role === "owner";
+  const isOwner =
+    workspaces.find((w) => w.id === workspaceId)?.role === "owner";
   return { rows, isOwner };
 }
 
@@ -101,6 +108,85 @@ interface PerfilFamiliaSectionProps {
  * Hide-when-empty por metade: só roster, só narrativa, ou `null` quando ambos
  * faltam — a seção nunca deixa vazio fantasma no ritmo do relatório.
  */
+function RosterRow({
+  row,
+  workspaceId,
+  canReveal,
+}: {
+  row: MemberRow;
+  workspaceId: string;
+  canReveal: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <dt className="text-sm text-[var(--surface-foreground)]">
+        {row.name}
+        {ROLE_LABELS[row.role] && (
+          <span className="ml-2 text-xs text-[var(--surface-muted-foreground)]">
+            {ROLE_LABELS[row.role]}
+          </span>
+        )}
+      </dt>
+      <dd className="text-sm">
+        <CpfField
+          workspaceId={workspaceId}
+          memberId={row.id}
+          memberName={row.name}
+          cpfMasked={row.cpfMasked}
+          canReveal={canReveal}
+        />
+      </dd>
+    </div>
+  );
+}
+
+function RosterList({
+  roster,
+  workspaceId,
+  hasNarrativa,
+}: {
+  roster: RosterState;
+  workspaceId: string;
+  hasNarrativa: boolean;
+}) {
+  const divisor = hasNarrativa
+    ? " mb-5 border-b border-[var(--surface-border)] pb-5"
+    : "";
+  return (
+    <dl className={`flex flex-col gap-2${divisor}`}>
+      {roster.rows.map((row) => (
+        <RosterRow
+          key={row.id}
+          row={row}
+          workspaceId={workspaceId}
+          canReveal={roster.isOwner}
+        />
+      ))}
+    </dl>
+  );
+}
+
+function NarrativaColunas({ colunas }: { colunas: string[][] }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 sm:gap-8">
+      {colunas.map((coluna, i) =>
+        coluna.length > 0 ? (
+          <div key={i} className="flex flex-col gap-3">
+            {coluna.map((paragrafo, j) => (
+              <p
+                key={j}
+                className="text-sm leading-relaxed text-[var(--surface-foreground)]"
+              >
+                {paragrafo}
+              </p>
+            ))}
+          </div>
+        ) : null,
+      )}
+    </div>
+  );
+}
+
 export function PerfilFamiliaSection({
   narrativas,
   workspaceId,
@@ -108,68 +194,29 @@ export function PerfilFamiliaSection({
 }: PerfilFamiliaSectionProps) {
   const roster = useRoster(workspaceId);
   const perfil = narrativas?.["perfil_familia"] as PerfilEntry | undefined;
-  const colunas = [parseParagraphs(perfil?.left), parseParagraphs(perfil?.right)];
+  const colunas = [
+    parseParagraphs(perfil?.left),
+    parseParagraphs(perfil?.right),
+  ];
   const hasNarrativa = colunas.some((c) => c.length > 0);
   const hasRoster = (roster?.rows.length ?? 0) > 0;
-
   if (!hasNarrativa && !hasRoster) return null;
 
   const surname = familySurname?.trim();
-  const title = surname ? `A Família ${surname}` : "A Família";
-
   return (
     <ReportSection id="perfil">
-      <ReportCard variant="primary" title={title}>
+      <ReportCard
+        variant="primary"
+        title={surname ? `A Família ${surname}` : "A Família"}
+      >
         {roster && hasRoster && (
-          <dl
-            className={`flex flex-col gap-2${
-              hasNarrativa ? " mb-5 border-b border-[var(--surface-border)] pb-5" : ""
-            }`}
-          >
-            {roster.rows.map((row) => (
-              <div
-                key={row.id}
-                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1"
-              >
-                <dt className="text-sm text-[var(--surface-foreground)]">
-                  {row.name}
-                  {ROLE_LABELS[row.role] && (
-                    <span className="ml-2 text-xs text-[var(--surface-muted-foreground)]">
-                      {ROLE_LABELS[row.role]}
-                    </span>
-                  )}
-                </dt>
-                <dd className="text-sm">
-                  <CpfField
-                    workspaceId={workspaceId}
-                    memberId={row.id}
-                    memberName={row.name}
-                    cpfMasked={row.cpfMasked}
-                    canReveal={roster.isOwner}
-                  />
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <RosterList
+            roster={roster}
+            workspaceId={workspaceId}
+            hasNarrativa={hasNarrativa}
+          />
         )}
-        {hasNarrativa && (
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-8">
-            {colunas.map((coluna, i) =>
-              coluna.length > 0 ? (
-                <div key={i} className="flex flex-col gap-3">
-                  {coluna.map((paragrafo, j) => (
-                    <p
-                      key={j}
-                      className="text-sm leading-relaxed text-[var(--surface-foreground)]"
-                    >
-                      {paragrafo}
-                    </p>
-                  ))}
-                </div>
-              ) : null,
-            )}
-          </div>
-        )}
+        {hasNarrativa && <NarrativaColunas colunas={colunas} />}
       </ReportCard>
     </ReportSection>
   );

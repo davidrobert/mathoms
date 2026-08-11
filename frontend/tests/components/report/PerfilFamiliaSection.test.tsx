@@ -30,7 +30,9 @@ interface MemberStub {
   accounts: unknown[];
 }
 
-function member(partial: Partial<MemberStub> & Pick<MemberStub, "id" | "full_name">): MemberStub {
+function member(
+  partial: Partial<MemberStub> & Pick<MemberStub, "id" | "full_name">,
+): MemberStub {
   return {
     key: partial.id,
     short_name: partial.full_name,
@@ -42,18 +44,23 @@ function member(partial: Partial<MemberStub> & Pick<MemberStub, "id" | "full_nam
   };
 }
 
-function mockMembersAndRole(members: MemberStub[], role: "owner" | "member" | "viewer") {
+const WORKSPACE_BASE = {
+  id: WS,
+  name: "WS",
+  family_surname: null,
+  joined_at: "2026-01-01T00:00:00Z",
+};
+
+function mockMembersAndRole(
+  members: MemberStub[],
+  role: "owner" | "member" | "viewer",
+) {
   server.use(
     http.get(`${API}/workspaces/${WS}/config/members`, () =>
       HttpResponse.json({ members, total: members.length }),
     ),
     http.get(`${API}/me/workspaces`, () =>
-      HttpResponse.json({
-        workspaces: [
-          { id: WS, name: "WS", family_surname: null, role, joined_at: "2026-01-01T00:00:00Z" },
-        ],
-        total: 1,
-      }),
+      HttpResponse.json({ workspaces: [{ ...WORKSPACE_BASE, role }], total: 1 }),
     ),
   );
 }
@@ -66,9 +73,16 @@ afterEach(() => server.resetHandlers());
 
 describe("PerfilFamiliaSection", () => {
   it("renderiza h2 da seção + card personalizado com o sobrenome", async () => {
-    mockMembersAndRole([member({ id: "m1", full_name: "David Robert" })], "owner");
+    mockMembersAndRole(
+      [member({ id: "m1", full_name: "David Robert" })],
+      "owner",
+    );
     render(
-      <PerfilFamiliaSection narrativas={NARRATIVAS} workspaceId={WS} familySurname="Ferreira" />,
+      <PerfilFamiliaSection
+        narrativas={NARRATIVAS}
+        workspaceId={WS}
+        familySurname="Ferreira"
+      />,
     );
 
     expect(
@@ -77,22 +91,47 @@ describe("PerfilFamiliaSection", () => {
     expect(
       screen.getByRole("heading", { level: 3, name: "A Família Ferreira" }),
     ).toBeInTheDocument();
-    expect(document.getElementById("perfil")).toHaveAttribute("data-report-section");
+    expect(document.getElementById("perfil")).toHaveAttribute(
+      "data-report-section",
+    );
   });
 
   it("sem sobrenome (null/vazio) o título é 'A Família', sem espaço pendurado", () => {
     mockMembersAndRole([], "owner");
-    render(<PerfilFamiliaSection narrativas={NARRATIVAS} workspaceId={WS} familySurname="  " />);
+    render(
+      <PerfilFamiliaSection
+        narrativas={NARRATIVAS}
+        workspaceId={WS}
+        familySurname="  "
+      />,
+    );
 
-    expect(screen.getByRole("heading", { level: 3, name: "A Família" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: "A Família" }),
+    ).toBeInTheDocument();
   });
 
   it("roster ordena por `order` e rotula pelo `role` — dependente nunca vira 'Titular'", async () => {
     mockMembersAndRole(
       [
-        member({ id: "m3", full_name: "Theo Ferreira", role: "filho", order: 2 }),
-        member({ id: "m1", full_name: "David Robert", role: "titular", order: 0 }),
-        member({ id: "m2", full_name: "Mariana Ferreira", role: "conjuge", order: 1 }),
+        member({
+          id: "m3",
+          full_name: "Theo Ferreira",
+          role: "filho",
+          order: 2,
+        }),
+        member({
+          id: "m1",
+          full_name: "David Robert",
+          role: "titular",
+          order: 0,
+        }),
+        member({
+          id: "m2",
+          full_name: "Mariana Ferreira",
+          role: "conjuge",
+          order: 1,
+        }),
       ],
       "owner",
     );
@@ -112,7 +151,12 @@ describe("PerfilFamiliaSection", () => {
     mockMembersAndRole(
       [
         member({ id: "m1", full_name: "David Robert" }),
-        member({ id: "m2", full_name: "Mariana Ferreira", cpf_masked: null, role: "conjuge" }),
+        member({
+          id: "m2",
+          full_name: "Mariana Ferreira",
+          cpf_masked: null,
+          role: "conjuge",
+        }),
       ],
       "owner",
     );
@@ -123,11 +167,16 @@ describe("PerfilFamiliaSection", () => {
   });
 
   it("sem narrativa, roster sozinho renderiza a seção", async () => {
-    mockMembersAndRole([member({ id: "m1", full_name: "David Robert" })], "owner");
+    mockMembersAndRole(
+      [member({ id: "m1", full_name: "David Robert" })],
+      "owner",
+    );
     render(<PerfilFamiliaSection narrativas={{}} workspaceId={WS} />);
 
     expect(await screen.findByText("David Robert")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Perfil da Família" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Perfil da Família" }),
+    ).toBeInTheDocument();
   });
 
   it("com narrativa e sem membro com CPF, renderiza só a prosa (sem <dl>)", async () => {
@@ -136,7 +185,9 @@ describe("PerfilFamiliaSection", () => {
       <PerfilFamiliaSection narrativas={NARRATIVAS} workspaceId={WS} />,
     );
 
-    expect(screen.getByText("Titular, 40 anos, é engenheiro.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Titular, 40 anos, é engenheiro."),
+    ).toBeInTheDocument();
     await waitFor(() => expect(container.querySelector("dl")).toBeNull());
   });
 
@@ -145,19 +196,28 @@ describe("PerfilFamiliaSection", () => {
       http.get(`${API}/workspaces/${WS}/config/members`, () =>
         HttpResponse.json({ detail: "boom" }, { status: 500 }),
       ),
-      http.get(`${API}/me/workspaces`, () => HttpResponse.json({ workspaces: [], total: 0 })),
+      http.get(`${API}/me/workspaces`, () =>
+        HttpResponse.json({ workspaces: [], total: 0 }),
+      ),
     );
-    const { container } = render(<PerfilFamiliaSection narrativas={{}} workspaceId={WS} />);
+    const { container } = render(
+      <PerfilFamiliaSection narrativas={{}} workspaceId={WS} />,
+    );
 
     await waitFor(() => expect(container).toBeEmptyDOMElement());
   });
 
   it("member/viewer não tem o botão 'Ver completo'", async () => {
-    mockMembersAndRole([member({ id: "m1", full_name: "David Robert" })], "viewer");
+    mockMembersAndRole(
+      [member({ id: "m1", full_name: "David Robert" })],
+      "viewer",
+    );
     render(<PerfilFamiliaSection narrativas={{}} workspaceId={WS} />);
 
     await screen.findByText("David Robert");
-    expect(screen.queryByRole("button", { name: /ver cpf completo/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /ver cpf completo/i }),
+    ).toBeNull();
   });
 
   it("não emite tags <p> literais (parse, não dangerouslySetInnerHTML)", () => {
