@@ -3,49 +3,101 @@
   "title": "E5 Analysis",
   "description": "Schema do artefato analise_financeira-5_analysis.json. Declara blocos top-level produzidos por build_e5_output (pipeline/domain/services/e5_serialization.py). Mantém additionalProperties=true por enquanto — flip para strict é W6-T01 do PLATFORM_REVIEW_PLAN.md. Convenção numérica de percentual (ADR-209): todo campo *_pct, pct_*, percentual_* neste schema é valor ABSOLUTO (44.7 = 44,7%); valores > 100 e < 1 são válidos. Exceções legadas serializadas como string com 2 casas decimais ou 'N/D': ratios.rentabilidade_pct, ratios.aliquota_efetiva_ir_pct, irpf_kpis.aliquota_sobre_tributavel_pct, irpf_kpis.aliquota_sobre_total_pct.",
   "type": "object",
-  "required": ["score", "patrimonio", "fluxo_caixa"],
+  "required": [
+    "score",
+    "patrimonio",
+    "fluxo_caixa"
+  ],
   "properties": {
-    "periodo_dados": {"type": "string"},
-    "data_analise": {"type": "string"},
+    "periodo_dados": {
+      "type": "string"
+    },
+    "data_analise": {
+      "type": "string"
+    },
     "_lineage": {
       "type": "object",
       "description": "Lineage field-level inline (ADR-279 · A24.l5 walking skeleton). fields é mapa field→entry via additionalProperties. value é STRING decimal com 2 casas — escapa do to_cents/manifesto do golden_diff. Zero timestamp/UUID; inputs com sort canônico (stage, artifact_key, field). member_hashes vazio em agregados baseline-fed; obrigatório em transaction-fed (l6/F5).",
-      "required": ["lineage_version", "fields"],
+      "required": [
+        "lineage_version",
+        "fields"
+      ],
       "additionalProperties": false,
       "properties": {
-        "lineage_version": {"type": "string"},
+        "lineage_version": {
+          "type": "string"
+        },
         "fields": {
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": ["value", "label", "transform", "rule_ref", "edge_type", "inputs"],
+            "required": [
+              "value",
+              "label",
+              "transform",
+              "rule_ref",
+              "edge_type",
+              "inputs"
+            ],
             "additionalProperties": false,
             "properties": {
-              "value": {"type": "string"},
-              "label": {"type": "string"},
-              "transform": {"type": "string"},
+              "value": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "transform": {
+                "type": "string"
+              },
               "rule_ref": {
                 "type": "object",
-                "required": ["adr", "ref"],
+                "required": [
+                  "adr",
+                  "ref"
+                ],
                 "additionalProperties": false,
                 "properties": {
-                  "adr": {"type": "string"},
-                  "ref": {"type": "string"}
+                  "adr": {
+                    "type": "string"
+                  },
+                  "ref": {
+                    "type": "string"
+                  }
                 }
               },
-              "edge_type": {"type": "string"},
-              "signals": {"type": "object"},
-              "member_hashes": {"type": "array", "items": {"type": "string"}},
+              "edge_type": {
+                "type": "string"
+              },
+              "signals": {
+                "type": "object"
+              },
+              "member_hashes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "inputs": {
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": ["stage", "artifact_key", "field"],
+                  "required": [
+                    "stage",
+                    "artifact_key",
+                    "field"
+                  ],
                   "additionalProperties": false,
                   "properties": {
-                    "stage": {"type": "string"},
-                    "artifact_key": {"type": "string"},
-                    "field": {"type": "string"}
+                    "stage": {
+                      "type": "string"
+                    },
+                    "artifact_key": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -57,32 +109,72 @@
     "score": {
       "type": "object",
       "description": "ADR-217: score patrimonial canônico (service puro em pipeline/domain/services/score_calculator.py). score_version trava a fórmula no payload — bump exige ADR sucessora. Renderer ScoreCard consome via components[i].status para distinguir 'emitted' (dado presente) de 'absent_normalized' (componente declarado mas sem dado — peso vira penalidade natural).",
-      "required": ["valor", "classificacao"],
+      "required": [
+        "valor",
+        "classificacao"
+      ],
       "properties": {
-        "valor": {"type": "number", "minimum": 0, "maximum": 10},
-        "max": {"type": "number"},
-        "classificacao": {"type": "string"},
+        "valor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "max": {
+          "type": "number"
+        },
+        "classificacao": {
+          "type": "string"
+        },
         "score_version": {
           "type": "string",
           "description": "ADR-217 D3: identificador da fórmula. '1.0-legacy' = fórmula 5 componentes pré-ADR-218 (Cerbasi/Perini). Bump quando ADR sucessora alterar pesos/composição."
         },
-        "formula": {"type": "string"},
+        "formula": {
+          "type": "string"
+        },
         "componentes": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["nome", "valor", "peso", "nota"],
+            "required": [
+              "nome",
+              "valor",
+              "peso",
+              "nota"
+            ],
             "properties": {
-              "code": {"type": "string"},
-              "nome": {"type": "string"},
-              "valor": {"type": ["number", "string"]},
-              "peso": {"type": "number"},
-              "nota": {"type": "number"},
+              "code": {
+                "type": "string"
+              },
+              "nome": {
+                "type": "string"
+              },
+              "valor": {
+                "type": [
+                  "number",
+                  "string"
+                ]
+              },
+              "peso": {
+                "type": "number"
+              },
+              "nota": {
+                "type": "number"
+              },
               "status": {
                 "type": "string",
-                "enum": ["emitted", "absent_normalized", "absent_penalized"]
+                "enum": [
+                  "emitted",
+                  "absent_normalized",
+                  "absent_penalized"
+                ]
               },
-              "unidade": {"type": ["string", "null"]}
+              "unidade": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
             }
           }
         }
@@ -91,22 +183,43 @@
     "patrimonio": {
       "type": "object",
       "description": "A23.l2 (data-lineage): campos monetários consumidos pelas invariantes de conservação ficam declarados aqui antes do flip→strict (W6-T01) — liquido == bruto − dividas; bruto == Σ composicao[].valor (por balde).",
-      "required": ["bruto", "liquido"],
+      "required": [
+        "bruto",
+        "liquido"
+      ],
       "properties": {
-        "bruto": {"type": "number"},
-        "liquido": {"type": "number"},
-        "dividas": {"type": "number"},
-        "caixa_total_brl": {"type": "number", "description": "CTO-02: caixa TOTAL (BRL + ME convertida). Alias legado do rename removido em CTO-08 (A37.l15)."},
-        "caixa_me_brl": {"type": "number", "description": "CTO-02: parcela do caixa em moeda estrangeira (subconjunto de caixa_total_brl)."},
+        "bruto": {
+          "type": "number"
+        },
+        "liquido": {
+          "type": "number"
+        },
+        "dividas": {
+          "type": "number"
+        },
+        "caixa_total_brl": {
+          "type": "number",
+          "description": "CTO-02: caixa TOTAL (BRL + ME convertida). Alias legado do rename removido em CTO-08 (A37.l15)."
+        },
+        "caixa_me_brl": {
+          "type": "number",
+          "description": "CTO-02: parcela do caixa em moeda estrangeira (subconjunto de caixa_total_brl)."
+        },
         "composicao": {
           "type": "array",
           "description": "Decomposição patrimonial por balde (Σ valor == bruto). Cada item: categoria + valor + pct.",
           "items": {
             "type": "object",
             "properties": {
-              "categoria": {"type": "string"},
-              "valor": {"type": "number"},
-              "pct": {"type": "number"}
+              "categoria": {
+                "type": "string"
+              },
+              "valor": {
+                "type": "number"
+              },
+              "pct": {
+                "type": "number"
+              }
             }
           }
         },
@@ -118,8 +231,16 @@
           "type": "object",
           "description": "ADR-346 (A39.l9): posições RV sem valor de mercado que deflacionam o PL (fora do fallback IRPF). count + tickers para o card carregar a ressalva de forma acionável.",
           "properties": {
-            "count": {"type": "integer", "minimum": 0},
-            "tickers": {"type": "array", "items": {"type": "string"}}
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "tickers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -127,29 +248,59 @@
     "fluxo_caixa": {
       "type": "object",
       "description": "A23.l2 (data-lineage): campos da invariante de conservação de fluxo declarados antes do flip→strict (W6-T01) — fluxo_liquido == receita_total − despesa_total. ADR-306: rótulo de janela obrigatório (janela + janela_meses) — política de base temporal de mensalização.",
-      "required": ["janela", "janela_meses"],
+      "required": [
+        "janela",
+        "janela_meses"
+      ],
       "properties": {
-        "receita_total": {"type": "number"},
-        "despesa_total": {"type": "number"},
-        "fluxo_liquido": {"type": "number"},
-        "janela": {"type": "string", "enum": ["full", "12m"]},
-        "janela_meses": {"type": "integer", "minimum": 0},
+        "receita_total": {
+          "type": "number"
+        },
+        "despesa_total": {
+          "type": "number"
+        },
+        "fluxo_liquido": {
+          "type": "number"
+        },
+        "janela": {
+          "type": "string",
+          "enum": [
+            "full",
+            "12m"
+          ]
+        },
+        "janela_meses": {
+          "type": "integer",
+          "minimum": 0
+        },
         "receita_por_natureza": {
           "type": "object",
           "description": "ADR-330: re-bucketização derivada de receita por natureza (fora de por_fonte). receita_pj = pró-labore + lucros distribuídos; receita_outras é resíduo; soma == receita_total (cents).",
           "properties": {
-            "receita_pj": {"type": "number"},
-            "receita_clt": {"type": "number"},
-            "receita_aluguel": {"type": "number"},
-            "receita_outras": {"type": "number"}
+            "receita_pj": {
+              "type": "number"
+            },
+            "receita_clt": {
+              "type": "number"
+            },
+            "receita_aluguel": {
+              "type": "number"
+            },
+            "receita_outras": {
+              "type": "number"
+            }
           }
         },
-        "consolidacao_cross_documento": {"$ref": "#/$defs/ConsolidacaoCrossDocumento"},
+        "consolidacao_cross_documento": {
+          "$ref": "#/$defs/ConsolidacaoCrossDocumento"
+        },
         "janela_12m": {
           "type": "object",
           "description": "A40.l2 PR3c1b: declarada só o suficiente para o contador do colapso — os demais campos da janela seguem não-declarados, como antes.",
           "properties": {
-            "consolidacao_cross_documento": {"$ref": "#/$defs/ConsolidacaoCrossDocumento"}
+            "consolidacao_cross_documento": {
+              "$ref": "#/$defs/ConsolidacaoCrossDocumento"
+            }
           }
         }
       }
@@ -161,7 +312,9 @@
         "rentabilidade": {
           "description": "Card Rentabilidade — TRS efetiva + contexto + cobertura essencial via renda passiva (ADR-191 §D3/D4). 'null' apenas quando passive_income é omitido (caller decide).",
           "oneOf": [
-            {"type": "null"},
+            {
+              "type": "null"
+            },
             {
               "type": "object",
               "required": [
@@ -175,15 +328,24 @@
               "properties": {
                 "valor_pct": {
                   "description": "TRS efetiva (% a.a.) — percentual absoluto (4.7 = 4,7% a.a., ADR-209). 'null' quando status indica indisponibilidade. status 'suspeito' (guardrail A28.l2: TRS > threshold ~8% a.a.) mantém o valor calculado, mas sinaliza revisar composição — nunca publicar sem flag. Valores < 1 (ex.: 0.5) são válidos para rentabilidades reais baixas.",
-                  "type": ["number", "null"]
+                  "type": [
+                    "number",
+                    "null"
+                  ]
                 },
                 "ano_base": {
                   "description": "Ano-base IRPF do dado consumido.",
-                  "type": ["integer", "null"]
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
                 },
                 "defasagem_meses": {
                   "description": "Meses entre 01-jan(ano_base+1) e reference_date — flag de envelhecimento.",
-                  "type": ["integer", "null"]
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
                 },
                 "meta_pct": {
                   "description": "Meta de referência consagrada (default 5.0 = 5,0% a.a.) — percentual absoluto (ADR-209).",
@@ -191,11 +353,20 @@
                 },
                 "cobertura_despesa_essencial_pct": {
                   "description": "renda_passiva_mensal / custo_essencial_mensal × 100 — percentual absoluto (ADR-209). Valores > 100 são válidos e esperados (ex.: 350.0 = renda passiva cobre 3,5× a despesa). 'null' quando status = 'sem_irpf' | 'gerador_zero' | 'sem_dados_essencial'.",
-                  "type": ["number", "null"]
+                  "type": [
+                    "number",
+                    "null"
+                  ]
                 },
                 "status": {
                   "type": "string",
-                  "enum": ["ok", "sem_irpf", "gerador_zero", "sem_dados_essencial", "suspeito"]
+                  "enum": [
+                    "ok",
+                    "sem_irpf",
+                    "gerador_zero",
+                    "sem_dados_essencial",
+                    "suspeito"
+                  ]
                 }
               }
             }
@@ -206,25 +377,52 @@
     "goals": {
       "type": "object"
     },
-    "orcamento_prospectivo": {"type": "object"},
-    "reserva_emergencia": {"type": "object"},
+    "orcamento_prospectivo": {
+      "type": "object"
+    },
+    "reserva_emergencia": {
+      "type": "object"
+    },
     "endividamento": {
       "type": "object",
       "description": "EndividamentoAnalyzer.to_legacy_dict (A37.l4 · DE-07): ausência de parcela/taxa é null, nunca sentinela 'N/D' string ou 0.0 em campo numérico. taxa_juros numérica é percentual absoluto (ADR-209).",
       "properties": {
-        "total_dividas": {"type": "number"},
-        "percentual_patrimonio": {"type": "number"},
-        "detalhe": {"type": "string"},
+        "total_dividas": {
+          "type": "number"
+        },
+        "percentual_patrimonio": {
+          "type": "number"
+        },
+        "detalhe": {
+          "type": "string"
+        },
         "dividas": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["descricao", "saldo_devedor"],
+            "required": [
+              "descricao",
+              "saldo_devedor"
+            ],
             "properties": {
-              "descricao": {"type": "string"},
-              "saldo_devedor": {"type": "number"},
-              "parcela_mensal": {"type": ["number", "null"]},
-              "taxa_juros": {"type": ["number", "null"]}
+              "descricao": {
+                "type": "string"
+              },
+              "saldo_devedor": {
+                "type": "number"
+              },
+              "parcela_mensal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "taxa_juros": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
             }
           }
         }
@@ -234,31 +432,128 @@
       "type": "object",
       "description": "Recomendação PGBL (ADR-277/305). ano_base (int|null) é o mesmo ano-base fiscal de irpf_kpis.ano_base — invariante ADR-305 D4; null no caminho proxy_receita_pj. nota_degradacao espelha irpf_kpis.ano_base_nota_degradacao."
     },
-    "pontos_fortes": {"type": "array"},
+    "pontos_fortes": {
+      "type": "array",
+      "description": "Produtor: PontosFortesAnalyzer.to_dict (A40.l5 PR1).",
+      "items": {
+        "type": "object",
+        "description": "Ponto forte identificado.",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "icone": {
+            "type": "string"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
     "pontos_urgentes": {
       "type": "array",
       "description": "A40.l10 / ADR-365 — recomendacoes do plano com premissa SUSTENTADA (elegibilidade == computavel). Valor novo em origem_premissa/elegibilidade = membro no Literal de pontos_urgentes_analyzer + entrada neste enum + linha na RULE-elegibilidade-da-recomendacao. `prazo` NAO e orfao: leitores sao backend/app/services/dashboard_service.py (GET /dashboard) e o manifest do parecer, que injeta $.pontos_urgentes raw.",
-      "items": {"$ref": "#/$defs/PontoUrgente"}
+      "items": {
+        "$ref": "#/$defs/PontoUrgente"
+      }
     },
     "pontos_urgentes_retidos": {
       "type": "array",
       "description": "A40.l10 / ADR-365 D4 — recomendacoes retiradas do ranking, com a classe de motivo declarada (6a classe do Criterio de done do PLAN-report-trust: nenhuma retencao de conselho sem declaracao por classe de motivo). Projecao da mesma lista de pontos_urgentes, nao store. Deliberadamente FORA do whitelist do parecer: injetar item degenerado no contexto do LLM amplificaria o que a taxonomia existe para conter.",
-      "items": {"$ref": "#/$defs/PontoUrgente"}
+      "items": {
+        "$ref": "#/$defs/PontoUrgente"
+      }
     },
-    "equilibrio_cerbasi": {"type": "object"},
-    "tarefas": {"type": "array"},
-    "tarefas_status": {"type": "object"},
-    "alertas": {"type": "array"},
-    "consumo_consciente": {"type": "object"},
-    "diagnostico_comportamental": {"type": "array"},
+    "equilibrio_cerbasi": {
+      "type": "object"
+    },
+    "tarefas": {
+      "type": "array",
+      "description": "Tarefas do plano. Produtor: build_default_tarefas ou parse_tarefas_md. `additionalProperties` fica ABERTO: o caminho parse_tarefas_md nao foi medido, e fechar sobre um produtor so quebraria o outro (A40.l5 PR1).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "n": {
+            "type": "integer"
+          },
+          "t": {
+            "type": "string"
+          },
+          "p": {
+            "type": "string"
+          },
+          "e": {
+            "type": "string"
+          },
+          "impacto": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    },
+    "tarefas_status": {
+      "type": "object",
+      "description": "Status por indice de tarefa. Produtor: build_default_tarefas_status -> {str(i+1): 'pendente'} (A40.l5 PR1).",
+      "patternProperties": {
+        "^[0-9]+$": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "alertas": {
+      "type": "array",
+      "description": "Alertas de domínio. Produtor: build_alertas -> list[str] (A40.l5 PR1).",
+      "items": {
+        "type": "string"
+      }
+    },
+    "consumo_consciente": {
+      "type": "object"
+    },
+    "diagnostico_comportamental": {
+      "type": "array",
+      "description": "Produtor: DiagnosticoComportamentalAnalyzer.to_dict (A40.l5 PR1).",
+      "items": {
+        "type": "object",
+        "description": "Padrao comportamental observado.",
+        "properties": {
+          "padrao": {
+            "type": "string"
+          },
+          "evidencia": {
+            "type": "string"
+          },
+          "mudanca_sugerida": {
+            "type": "string"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
     "diagnostico_confianca": {
       "type": "object",
       "properties": {
-        "nivel": {"enum": ["alta", "parcial", "insuficiente"]},
-        "share_nao_identificado_pct": {"type": "number"}
+        "nivel": {
+          "enum": [
+            "alta",
+            "parcial",
+            "insuficiente"
+          ]
+        },
+        "share_nao_identificado_pct": {
+          "type": "number"
+        }
       }
     },
-    "programa_milhas": {"type": "object"},
+    "programa_milhas": {
+      "type": "object"
+    },
     "exposicao_cambial": {
       "type": "object",
       "description": "Exposição cambial (Bloco G plan/RESIDENCIA_E_USO; produzido por exposicao_cambial_analyzer): caixa em moeda estrangeira + ativos com lastro internacional, em BRL. CONCEITO DISTINTO da alocação internacional (A37.l9): exposição cambial mede posições EM MOEDA ESTRANGEIRA sobre investivel_financeiro (posições atuais + caixa); alocação internacional mede a classe 'Internacional' da tabela sobre a carteira financeira da tabela. Numerador E denominador diferem — nunca fundir os dois números.",
@@ -276,19 +571,34 @@
           "items": {
             "type": "object",
             "properties": {
-              "moeda": {"type": "string"},
-              "valor_brl": {"type": "number"},
-              "share_pct": {"type": "number"},
-              "pct_total_cambial": {"type": "number"}
+              "moeda": {
+                "type": "string"
+              },
+              "valor_brl": {
+                "type": "number"
+              },
+              "share_pct": {
+                "type": "number"
+              },
+              "pct_total_cambial": {
+                "type": "number"
+              }
             }
           }
         },
         "tier": {
           "type": "string",
-          "enum": ["verde", "amarelo", "vermelho", "empty"],
+          "enum": [
+            "verde",
+            "amarelo",
+            "vermelho",
+            "empty"
+          ],
           "description": "Tier canônico: verde >=10%, amarelo 5-10%, vermelho <5%, empty sem posições."
         },
-        "detalhes": {"type": "array"}
+        "detalhes": {
+          "type": "array"
+        }
       }
     },
     "narrativas": {
@@ -298,15 +608,22 @@
         "perfil_familia": {
           "type": "object",
           "properties": {
-            "left": {"type": "string"},
-            "right": {"type": "string"}
+            "left": {
+              "type": "string"
+            },
+            "right": {
+              "type": "string"
+            }
           }
         },
         "summaries": {
           "type": "object",
           "description": "Parágrafo de abertura por dimensão, STRING (o renderer normaliza em resolveSectionSummary; objeto aqui cai para a camada seguinte em vez de imprimir [object Object]). Chave→seção NÃO é lowercase do id: o mapa canônico é `summary_source` em config/report_layout.yaml (`s2` é o parágrafo de score, não da S2/Fluxo de Caixa), e o mapa ESPERADO é declarado em tests/fixtures/narrativas/e5n_destinations.json. Chave sem destino tem de estar em ORPHAN_SUMMARY_KEYS com razão escrita. Gates: CV9 (4 predicados de entrega) + o par de testes sobre a fixture compartilhada.",
           "patternProperties": {
-            "^s([1-9]|10)$": {"type": "string", "minLength": 1}
+            "^s([1-9]|10)$": {
+              "type": "string",
+              "minLength": 1
+            }
           },
           "additionalProperties": false
         },
@@ -316,9 +633,19 @@
           "additionalProperties": {
             "type": "object",
             "properties": {
-              "context": {"type": "string"},
-              "conclusion": {"type": "string"},
-              "data_state": {"type": "string", "enum": ["ok", "empty"]}
+              "context": {
+                "type": "string"
+              },
+              "conclusion": {
+                "type": "string"
+              },
+              "data_state": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "empty"
+                ]
+              }
             }
           }
         }
@@ -328,7 +655,9 @@
       "type": "object",
       "description": "Camada 1 da precedência (ADR-356): parágrafo de seção gerado por LLM (ADR-144 §3), opt-in via MATHOMS_LLM_SECTION_SUMMARIES, default OFF. Chave é o id da seção em MAIÚSCULA (`S1`), valor é string — sem shape {context, conclusion}.",
       "patternProperties": {
-        "^[A-Z][A-Z0-9_]*$": {"type": "string"}
+        "^[A-Z][A-Z0-9_]*$": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -342,15 +671,26 @@
         },
         "ano_base_completude": {
           "type": "string",
-          "enum": ["completo", "provisorio", "incompleto", "mudanca_estrutural"],
+          "enum": [
+            "completo",
+            "provisorio",
+            "incompleto",
+            "mudanca_estrutural"
+          ],
           "description": "ADR-266: estado do ano_base_default. mudanca_estrutural é reservado para confirmação humana futura — analyzer nunca retorna automaticamente."
         },
         "completude_motivo": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "ADR-266: explicação textual quando ano_base_completude != completo (ex.: 'Falta declaração de CPF ***-XX (presente em ano-base anterior).')."
         },
         "ano_base_nota_degradacao": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "ADR-305 D3: nota explícita quando existe ano-base mais recente que o escolhido (ex.: 'Cálculo sobre o ano-base 2024; 2025 incompleto — Falta declaração de CPF ***-XX.'). null quando o ano escolhido é o mais recente disponível."
         },
         "anos_completude_por_ano": {
@@ -358,7 +698,12 @@
           "description": "ADR-266: estado de completude por ano-base disponível, consumido pelo RendaEvolucaoChart para estilo distinto em anos provisorio/incompleto.",
           "additionalProperties": {
             "type": "string",
-            "enum": ["completo", "provisorio", "incompleto", "mudanca_estrutural"]
+            "enum": [
+              "completo",
+              "provisorio",
+              "incompleto",
+              "mudanca_estrutural"
+            ]
           }
         }
       }
@@ -367,29 +712,69 @@
       "type": "object",
       "description": "DE-02 (R3.4b) + A37.l7 PR-2: renda passiva observada via IRPF. Invariante de conservação (ADR-191 + ADR-336): renda_passiva_anual_brl == Σ(renda_passiva_por_fonte_brl) — o dict é auto-conservativo, só yield recorrente. Os componentes excluídos do numerador da TRS por design vivem em irmãos explícitos: renda_ativa_pj_excluida_brl (distribuição de lucros da PJ do titular ≈ renda de trabalho, ADR-191) e ganho_capital_excluido_brl (realização one-time, ADR-336).",
       "properties": {
-        "status": {"type": "string"},
-        "renda_passiva_anual_brl": {"type": "number"},
-        "renda_passiva_mensal_brl": {"type": "number"},
+        "status": {
+          "type": "string"
+        },
+        "renda_passiva_anual_brl": {
+          "type": "number"
+        },
+        "renda_passiva_mensal_brl": {
+          "type": "number"
+        },
         "renda_passiva_por_fonte_brl": {
           "type": "object",
           "properties": {
-            "dividendos": {"type": "number"},
-            "jcp": {"type": "number"},
-            "aplicacoes": {"type": "number"},
-            "exterior": {"type": "number"},
-            "alugueis": {"type": "number"}
+            "dividendos": {
+              "type": "number"
+            },
+            "jcp": {
+              "type": "number"
+            },
+            "aplicacoes": {
+              "type": "number"
+            },
+            "exterior": {
+              "type": "number"
+            },
+            "alugueis": {
+              "type": "number"
+            }
           },
           "additionalProperties": false
         },
-        "renda_ativa_pj_excluida_brl": {"type": "number"},
-        "ganho_capital_excluido_brl": {"type": "number"},
-        "patrimonio_gerador_brl": {"type": "number"},
-        "trs_efetiva_pct": {"type": "number"},
-        "ano_referencia_irpf": {"type": ["integer", "null"]},
-        "defasagem_meses": {"type": ["integer", "null"]},
-        "acumuladores_pct_gerador": {"type": "number"},
-        "janela": {"type": "string"},
-        "janela_meses": {"type": "integer"}
+        "renda_ativa_pj_excluida_brl": {
+          "type": "number"
+        },
+        "ganho_capital_excluido_brl": {
+          "type": "number"
+        },
+        "patrimonio_gerador_brl": {
+          "type": "number"
+        },
+        "trs_efetiva_pct": {
+          "type": "number"
+        },
+        "ano_referencia_irpf": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "defasagem_meses": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "acumuladores_pct_gerador": {
+          "type": "number"
+        },
+        "janela": {
+          "type": "string"
+        },
+        "janela_meses": {
+          "type": "integer"
+        }
       }
     },
     "proventos_por_ativo": {
@@ -398,50 +783,185 @@
       "items": {
         "type": "object",
         "properties": {
-          "ticker": {"type": "string"},
-          "ano_base": {"type": "integer"},
-          "total_proventos_brl": {"type": "number"},
-          "ir_retido_brl": {"type": "number"},
-          "renda_liquida_brl": {"type": "number"},
-          "custo_total_brl": {"type": ["number", "null"]},
-          "valor_mercado_brl": {"type": ["number", "null"]},
-          "yield_on_cost_pct": {"type": ["number", "null"]},
-          "yield_on_market_pct": {"type": ["number", "null"]}
+          "ticker": {
+            "type": "string"
+          },
+          "ano_base": {
+            "type": "integer"
+          },
+          "total_proventos_brl": {
+            "type": "number"
+          },
+          "ir_retido_brl": {
+            "type": "number"
+          },
+          "renda_liquida_brl": {
+            "type": "number"
+          },
+          "custo_total_brl": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "valor_mercado_brl": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "yield_on_cost_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "yield_on_market_pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
         },
-        "required": ["ticker", "ano_base", "total_proventos_brl", "renda_liquida_brl"]
+        "required": [
+          "ticker",
+          "ano_base",
+          "total_proventos_brl",
+          "renda_liquida_brl"
+        ]
       }
     },
     "if_monte_carlo": {
       "type": "object",
       "description": "Cone Monte Carlo de IF (ADR-237 + ADR-360 + ADR-361 + ADR-369). Reprodutível: seed é constante de modelo versionada, não entropia do SO — mesmo input produz o mesmo cone. Os anos do cone são quantis do TEMPO na BASE CHEIA com censura à direita: ano_if_cenario_* é null quando prob_if_ate_horizonte_simulado não sustenta o percentil (piso k% + 5pp de folga), e o irmão _censurado distingue isso de 'cone não simulado'. Regra de leitura: exibir_cone governa o bloco; _censurado só é significativo com exibir_cone=true. ATENÇÃO ao par de nomes: ano_if_cenario_favoravel é o ano mais CEDO, enquanto caminho_p10 é a série de patrimônio mais BAIXA (cenário adverso) — por isso os anos deixaram de usar pXX (ADR-369 D1) e as séries mantiveram. mc_version ausente = artefato v1 (pré-ADR-360, não-seedado, n=10k, percentil dos sobreviventes); '2.0' = seedado, percentil dos sobreviventes; '3.0' = seedado, percentil censurado — o mesmo p50_ano_if NÃO é comparável entre 2.0 e 3.0; '4.0' = 3.0 com as chaves RENOMEADAS, valores idênticos e comparáveis a 3.0; '5.0' = a probabilidade mede o PRAZO DECLARADO pela família (prob_if_ate_prazo_declarado, ancorado em ano absoluto via a data da declaração) em vez da idade que o próprio projetor determinístico produziu — mudança de semântica, logo INCOMPARÁVEL com 4.0, e por isso prob_if_ate_idade_meta/idade_meta_usada foram removidas em vez de reaproveitadas. prob_if_ate_prazo_declarado é null nos três estados de ausência (prazo não declarado, prazo vencido, meta já atingida sem alvo), sempre com motivo_sem_prazo_declarado. prazo_declarado_truncado=true significa que o prazo declarado excede a janela simulada e a probabilidade publicada é a da janela — um PISO, porque truncar só remove sucessos. Séries caminho_* têm dispersão amostral de ~1,2% e não são valor citável.",
       "properties": {
-        "ano_if_cenario_favoravel": {"type": ["integer", "null"]},
-        "ano_if_cenario_favoravel_censurado": {"type": "boolean"},
-        "ano_if_cenario_central": {"type": ["integer", "null"]},
-        "ano_if_cenario_central_censurado": {"type": "boolean"},
-        "ano_if_cenario_adverso": {"type": ["integer", "null"]},
-        "ano_if_cenario_adverso_censurado": {"type": "boolean"},
-        "prob_if_ate_prazo_declarado": {"type": ["number", "null"]},
-        "prazo_declarado_anos": {"type": ["integer", "null"], "minimum": 1, "maximum": 50},
-        "ano_alvo_declarado": {"type": ["integer", "null"]},
-        "declarado_em": {"type": ["string", "null"]},
-        "prazo_declarado_truncado": {"type": "boolean"},
-        "motivo_sem_prazo_declarado": {"type": ["string", "null"]},
-        "prob_if_ate_horizonte_simulado": {"type": "number"},
-        "sigma_usado": {"type": "number"},
-        "sigma_procedencia": {"type": "string", "enum": ["global", "workspace_override", "fallback_codigo"], "description": "A40.l25 — de onde veio `sigma_usado`, no padrão `fonte_origem` da ADR-219. `fallback_codigo` = constante do módulo, NAO premissa auditada."},
-        "exibir_cone": {"type": "boolean"},
-        "aporte_mensal_usado": {"type": "number"},
-        "motivo_sem_cone": {"type": ["string", "null"]},
-        "caminho_p10": {"type": "array"},
-        "caminho_p50": {"type": "array"},
-        "caminho_p90": {"type": "array"},
-        "mc_version": {"type": "string"},
-        "seed_usado": {"type": ["integer", "null"]},
-        "n_simulacoes_usado": {"type": "integer"},
-        "horizonte_simulado_anos": {"type": "integer", "description": "Janela da SIMULAÇÃO (40 anos). Qualificada porque horizonte_anos sem qualificador já nomeia o prazo declarado pela família no Goal IF, que é outro número (ADR-369 D1)."}
+        "ano_if_cenario_favoravel": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "ano_if_cenario_favoravel_censurado": {
+          "type": "boolean"
+        },
+        "ano_if_cenario_central": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "ano_if_cenario_central_censurado": {
+          "type": "boolean"
+        },
+        "ano_if_cenario_adverso": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "ano_if_cenario_adverso_censurado": {
+          "type": "boolean"
+        },
+        "prob_if_ate_prazo_declarado": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "prazo_declarado_anos": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 50
+        },
+        "ano_alvo_declarado": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "declarado_em": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prazo_declarado_truncado": {
+          "type": "boolean"
+        },
+        "motivo_sem_prazo_declarado": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prob_if_ate_horizonte_simulado": {
+          "type": "number"
+        },
+        "sigma_usado": {
+          "type": "number"
+        },
+        "sigma_procedencia": {
+          "type": "string",
+          "enum": [
+            "global",
+            "workspace_override",
+            "fallback_codigo"
+          ],
+          "description": "A40.l25 — de onde veio `sigma_usado`, no padrão `fonte_origem` da ADR-219. `fallback_codigo` = constante do módulo, NAO premissa auditada."
+        },
+        "exibir_cone": {
+          "type": "boolean"
+        },
+        "aporte_mensal_usado": {
+          "type": "number"
+        },
+        "motivo_sem_cone": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "caminho_p10": {
+          "type": "array"
+        },
+        "caminho_p50": {
+          "type": "array"
+        },
+        "caminho_p90": {
+          "type": "array"
+        },
+        "mc_version": {
+          "type": "string"
+        },
+        "seed_usado": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "n_simulacoes_usado": {
+          "type": "integer"
+        },
+        "horizonte_simulado_anos": {
+          "type": "integer",
+          "description": "Janela da SIMULAÇÃO (40 anos). Qualificada porque horizonte_anos sem qualificador já nomeia o prazo declarado pela família no Goal IF, que é outro número (ADR-369 D1)."
+        }
       },
-      "required": ["exibir_cone", "mc_version", "seed_usado", "n_simulacoes_usado", "horizonte_simulado_anos", "prob_if_ate_horizonte_simulado", "ano_if_cenario_favoravel_censurado", "ano_if_cenario_central_censurado", "ano_if_cenario_adverso_censurado", "prazo_declarado_truncado"]
+      "required": [
+        "exibir_cone",
+        "mc_version",
+        "seed_usado",
+        "n_simulacoes_usado",
+        "horizonte_simulado_anos",
+        "prob_if_ate_horizonte_simulado",
+        "ano_if_cenario_favoravel_censurado",
+        "ano_if_cenario_central_censurado",
+        "ano_if_cenario_adverso_censurado",
+        "prazo_declarado_truncado"
+      ]
     },
     "premissas_economicas": {
       "type": "object",
@@ -449,7 +969,10 @@
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["completo", "parcial"]
+          "enum": [
+            "completo",
+            "parcial"
+          ]
         },
         "snapshot_at": {
           "type": "string",
@@ -459,20 +982,69 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["classe_auvp", "status"],
+            "required": [
+              "classe_auvp",
+              "status"
+            ],
             "properties": {
-              "classe_auvp": {"type": "string"},
-              "status": {"type": "string", "enum": ["emitted", "indisponivel"]},
-              "retorno_real_esperado_pct_anual": {"type": ["string", "null"]},
-              "sigma_anual_pct": {"type": ["string", "null"]},
-              "fonte": {"type": ["string", "null"]},
-              "fonte_origem": {
-                "type": ["string", "null"],
-                "enum": ["global", "workspace_override", null]
+              "classe_auvp": {
+                "type": "string"
               },
-              "effective_from": {"type": ["string", "null"], "format": "date"},
-              "justificativa": {"type": ["string", "null"]},
-              "razao_indisponivel": {"type": ["string", "null"]}
+              "status": {
+                "type": "string",
+                "enum": [
+                  "emitted",
+                  "indisponivel"
+                ]
+              },
+              "retorno_real_esperado_pct_anual": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sigma_anual_pct": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fonte": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fonte_origem": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "global",
+                  "workspace_override",
+                  null
+                ]
+              },
+              "effective_from": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date"
+              },
+              "justificativa": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "razao_indisponivel": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
             }
           }
         }
@@ -484,37 +1056,64 @@
       "properties": {
         "labels": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "description": "Nomes dos cenários — atualmente fixo em ['Sem renda do cônjuge']."
         },
         "aportes": {
           "type": "array",
-          "items": {"type": "number", "minimum": 0},
+          "items": {
+            "type": "number",
+            "minimum": 0
+          },
           "description": "Aporte mensal em BRL para cada cenário, paralelo a labels/prazos_if/anos_if."
         },
         "prazos_if": {
           "type": "array",
-          "items": {"type": ["number", "null"], "minimum": 0},
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
           "description": "Prazo até IF em anos. null = não projetável (aporte=0 ou retorno=0 com investivel<meta); era a sentinela 999, que propagava para anos_if/idade_titular."
         },
         "anos_if": {
           "type": "array",
-          "items": {"type": ["integer", "null"]},
+          "items": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
           "description": "Ano calendário projetado da IF (reference_date.year + prazo_if); null quando prazos_if é null."
         },
         "premissas": {
           "type": "object",
           "description": "Premissas usadas no cálculo (meta_if, investivel_atual, retorno_real_anual_pct, aporte_base, fator_reduzido, salario_conjuge_clt_brl). ADR-338: chave role-keyed salario_conjuge_clt_brl (era dinâmica por nome).",
           "properties": {
-            "meta_if": {"type": "number"},
-            "investivel_atual": {"type": "number"},
+            "meta_if": {
+              "type": "number"
+            },
+            "investivel_atual": {
+              "type": "number"
+            },
             "retorno_real_anual_pct": {
               "type": "number",
               "description": "Retorno real anual esperado em % — percentual absoluto (4.0 = 4,0% a.a., ADR-209)."
             },
-            "aporte_base": {"type": "number"},
-            "fator_reduzido": {"type": "number"},
-            "salario_conjuge_clt_brl": {"type": "number", "minimum": 0}
+            "aporte_base": {
+              "type": "number"
+            },
+            "fator_reduzido": {
+              "type": "number"
+            },
+            "salario_conjuge_clt_brl": {
+              "type": "number",
+              "minimum": 0
+            }
           }
         },
         "cenarios": {
@@ -522,15 +1121,44 @@
           "description": "Lista detalhada de cada cenário. CenarioItem.to_dict() inclui chave dinâmica idade_<titular_key> além dos campos fixos.",
           "items": {
             "type": "object",
-            "required": ["nome", "aporte_mensal", "prazo_if_anos", "ano_if", "resumo"],
+            "required": [
+              "nome",
+              "aporte_mensal",
+              "prazo_if_anos",
+              "ano_if",
+              "resumo"
+            ],
             "properties": {
-              "nome": {"type": "string", "minLength": 1},
-              "aporte_mensal": {"type": "number", "minimum": 0},
-              "prazo_if_anos": {"type": ["number", "null"], "minimum": 0},
-              "ano_if": {"type": ["integer", "null"]},
-              "resumo": {"type": "string", "minLength": 1},
+              "nome": {
+                "type": "string",
+                "minLength": 1
+              },
+              "aporte_mensal": {
+                "type": "number",
+                "minimum": 0
+              },
+              "prazo_if_anos": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "ano_if": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "resumo": {
+                "type": "string",
+                "minLength": 1
+              },
               "idade_titular": {
-                "type": ["integer", "null"],
+                "type": [
+                  "integer",
+                  "null"
+                ],
                 "minimum": 0,
                 "maximum": 120,
                 "description": "ADR-338: role-keyed (era idade_<nome>). Idade do titular no ano IF projetado; null quando prazo_if_anos é null. O upper bound de 120 fecha a porta para a sentinela legada (age + 999 = 1040)."
@@ -542,7 +1170,14 @@
       "patternProperties": {
         "^idade_[a-z_][a-z0-9_]*_if$": {
           "type": "array",
-          "items": {"type": ["integer", "null"], "minimum": 0, "maximum": 120},
+          "items": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 120
+          },
           "description": "ADR-338: role-keyed idade_titular_if (o pattern legado ainda casa; nome do membro nunca em chave). Idade do titular projetada por cenário; null quando o prazo não é projetável. O upper bound de 120 fecha a porta para a sentinela legada (age + 999 = 1040)."
         }
       }
@@ -555,7 +1190,11 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["categoria", "valor", "pct"],
+            "required": [
+              "categoria",
+              "valor",
+              "pct"
+            ],
             "properties": {
               "categoria": {
                 "type": "string",
@@ -572,19 +1211,26 @@
                   "Outros"
                 ]
               },
-              "valor": {"type": "number"},
+              "valor": {
+                "type": "number"
+              },
               "pct": {
                 "type": "number",
                 "description": "Percentual absoluto da classe sobre o TOTAL INVESTIDO (financeiro + imóveis de investimento; 44.7 = 44,7%, ADR-209). Soma do array ~100. Rótulo de base obrigatório nos renderers: '% do total investido' (A37.l9)."
               },
               "pct_carteira_financeira": {
-                "type": ["number", "null"],
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "description": "Percentual absoluto da classe sobre a CARTEIRA FINANCEIRA (total - imóveis físicos; A37.l9). null para 'Imóveis Investimento' (fora da base) e carteira financeira vazia. Peso de classe financeira (Internacional/RF/RV/FII) cita-se SEMPRE desta base, nunca da base com imóvel físico."
               }
             }
           }
         },
-        "total": {"type": "number"},
+        "total": {
+          "type": "number"
+        },
         "total_financeiro": {
           "type": "number",
           "description": "Subtotal financeiro da tabela (total - Imóveis Investimento) — denominador de pct_carteira_financeira. Decomposição por construção: total = total_financeiro + total_imoveis_investimento (A37.l9)."
@@ -595,7 +1241,9 @@
         },
         "fonte": {
           "type": "string",
-          "enum": ["irpf_bens"],
+          "enum": [
+            "irpf_bens"
+          ],
           "description": "Fonte dos dados da tabela/top_ativos: bens IRPF do baseline (foto 31/12 do ano-base). Difere de patrimonio.fonte_investimentos (posições atuais quando disponíveis) — as duas superfícies medem fotos distintas e podem divergir legitimamente (A37.l9)."
         },
         "top_ativos": {
@@ -615,8 +1263,15 @@
               "tipo_origem"
             ],
             "properties": {
-              "posicao": {"type": "integer", "minimum": 1, "maximum": 15},
-              "nome": {"type": "string", "minLength": 1},
+              "posicao": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 15
+              },
+              "nome": {
+                "type": "string",
+                "minLength": 1
+              },
               "classe": {
                 "type": "string",
                 "enum": [
@@ -632,16 +1287,29 @@
                   "Outros"
                 ]
               },
-              "membro": {"type": "string"},
-              "instituicao": {"type": "string"},
-              "valor": {"type": "number", "minimum": 0},
+              "membro": {
+                "type": "string"
+              },
+              "instituicao": {
+                "type": "string"
+              },
+              "valor": {
+                "type": "number",
+                "minimum": 0
+              },
               "pct_carteira": {
                 "type": "number",
                 "minimum": 0,
                 "maximum": 100,
                 "description": "Percentual absoluto do ativo sobre a carteira total (44.7 = 44,7%, ADR-209)."
               },
-              "tipo_origem": {"type": "string", "enum": ["investimento", "imovel"]}
+              "tipo_origem": {
+                "type": "string",
+                "enum": [
+                  "investimento",
+                  "imovel"
+                ]
+              }
             },
             "additionalProperties": false
           }
@@ -651,12 +1319,21 @@
           "description": "Instituições de investimento agrupadas por membro (produzido por InstituicoesPorMembroAnalyzer; lê o mesmo bens_por_membro de TopAtivosAnalyzer).",
           "items": {
             "type": "object",
-            "required": ["membro", "instituicoes"],
+            "required": [
+              "membro",
+              "instituicoes"
+            ],
             "properties": {
-              "membro": {"type": "string", "minLength": 1},
+              "membro": {
+                "type": "string",
+                "minLength": 1
+              },
               "instituicoes": {
                 "type": "array",
-                "items": {"type": "string", "minLength": 1},
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
                 "uniqueItems": true
               }
             },
@@ -675,11 +1352,17 @@
       "description": "Cap rate líquido + benchmarks + concentração para card S4 (ADR-216 · Onda 2). Produzido por pipeline/domain/services/real_estate_metrics.py::result_to_payload. Cascade D9 de fontes: cada componente em componentes_calculo carrega `origem` + `confidence` para auditoria/UI. ADR-209: campos *_pct são percentuais absolutos (1.7 = 1,7%). Wire monetário: number (alinhado ao resto do E5; débito de migração para Decimal string rastreado em PLATFORM_REVIEW).",
       "properties": {
         "cap_rate_liquido_pct": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "description": "Cap rate líquido agregado da carteira de imóveis de investimento. `null` quando sem imóveis ou valor_total = 0."
         },
         "cap_rate_bruto_pct": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "description": "Cap rate bruto (aluguel/valor) — mantido para auditoria/tooltip; não é o número em destaque do card (ADR-216 D1)."
         },
         "concentracao_pct": {
@@ -696,14 +1379,36 @@
           "patternProperties": {
             "^[a-z_]+$": {
               "type": "object",
-              "required": ["valor", "origem", "confidence"],
+              "required": [
+                "valor",
+                "origem",
+                "confidence"
+              ],
               "properties": {
-                "valor": {"type": "number"},
+                "valor": {
+                  "type": "number"
+                },
                 "origem": {
                   "type": "string",
-                  "enum": ["informe", "irpf", "e3", "e4", "manual", "pro_rata", "none", "default"]
+                  "enum": [
+                    "informe",
+                    "irpf",
+                    "e3",
+                    "e4",
+                    "manual",
+                    "pro_rata",
+                    "none",
+                    "default"
+                  ]
                 },
-                "confidence": {"type": "string", "enum": ["high", "medium", "low"]}
+                "confidence": {
+                  "type": "string",
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                }
               },
               "additionalProperties": false
             }
@@ -712,34 +1417,68 @@
         "benchmarks": {
           "type": "object",
           "description": "Tríade de benchmarks já normalizada para líquido (CDI/NTNB/IFIX). `as_of_date` congela a data da observação para idempotência (data-engineer review 2026-05-15).",
-          "required": ["cdi_liquido_pct", "ntnb_liquido_pct", "ifix_yield_pct", "as_of_date"],
+          "required": [
+            "cdi_liquido_pct",
+            "ntnb_liquido_pct",
+            "ifix_yield_pct",
+            "as_of_date"
+          ],
           "properties": {
-            "cdi_liquido_pct": {"type": "number"},
-            "ntnb_liquido_pct": {"type": "number"},
-            "ifix_yield_pct": {"type": "number"},
-            "as_of_date": {"type": "string", "format": "date"}
+            "cdi_liquido_pct": {
+              "type": "number"
+            },
+            "ntnb_liquido_pct": {
+              "type": "number"
+            },
+            "ifix_yield_pct": {
+              "type": "number"
+            },
+            "as_of_date": {
+              "type": "string",
+              "format": "date"
+            }
           },
           "additionalProperties": false
         },
         "spreads_pp": {
           "type": "object",
           "description": "Spread em pontos percentuais (sinal natural: positivo = imóvel ganha do benchmark).",
-          "required": ["vs_cdi", "vs_ntnb", "vs_ifix"],
+          "required": [
+            "vs_cdi",
+            "vs_ntnb",
+            "vs_ifix"
+          ],
           "properties": {
-            "vs_cdi": {"type": "number"},
-            "vs_ntnb": {"type": "number"},
-            "vs_ifix": {"type": "number"}
+            "vs_cdi": {
+              "type": "number"
+            },
+            "vs_ntnb": {
+              "type": "number"
+            },
+            "vs_ifix": {
+              "type": "number"
+            }
           },
           "additionalProperties": false
         },
         "spread_brl_anual": {
           "type": "object",
           "description": "Spread em R$/ano absoluto: valor_total × spread_pp / 100. UI usa este para mensagem ('R$ −228k/ano vs CDI').",
-          "required": ["vs_cdi", "vs_ntnb", "vs_ifix"],
+          "required": [
+            "vs_cdi",
+            "vs_ntnb",
+            "vs_ifix"
+          ],
           "properties": {
-            "vs_cdi": {"type": "number"},
-            "vs_ntnb": {"type": "number"},
-            "vs_ifix": {"type": "number"}
+            "vs_cdi": {
+              "type": "number"
+            },
+            "vs_ntnb": {
+              "type": "number"
+            },
+            "vs_ifix": {
+              "type": "number"
+            }
           },
           "additionalProperties": false
         },
@@ -748,35 +1487,149 @@
           "description": "Imóveis de investimento ordenados por valor descendente. Filtro: classification ∈ {locado, comercial, especulacao} (ADR-216 D8 · ADR-215 enum).",
           "items": {
             "type": "object",
-            "required": ["property_id", "descricao", "classification", "valor_imovel", "status_contrato", "origem_aluguel"],
+            "required": [
+              "property_id",
+              "descricao",
+              "classification",
+              "valor_imovel",
+              "status_contrato",
+              "origem_aluguel"
+            ],
             "properties": {
-              "property_id": {"type": "string"},
-              "descricao": {"type": "string"},
-              "classification": {"type": "string", "enum": ["locado", "comercial", "especulacao"]},
-              "valor_imovel": {"type": "number"},
-              "valor_imovel_origem": {"type": "string", "enum": ["irpf", "mercado"]},
-              "aluguel_mensal_bruto": {"type": ["number", "null"]},
-              "taxa_administracao_mensal": {"type": ["number", "null"]},
-              "iptu_mensal": {"type": ["number", "null"]},
-              "condominio_mensal": {"type": ["number", "null"]},
-              "ir_retido_mensal": {"type": "number"},
-              "meses_locado_no_ano": {"type": ["integer", "null"], "minimum": 0, "maximum": 12},
-              "vacancia_pct_empirica": {"type": ["number", "null"]},
-              "cap_rate_bruto_pct": {"type": ["number", "null"]},
-              "cap_rate_liquido_pct": {"type": ["number", "null"]},
-              "gap_reajuste_pct": {"type": ["number", "null"]},
+              "property_id": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              },
+              "classification": {
+                "type": "string",
+                "enum": [
+                  "locado",
+                  "comercial",
+                  "especulacao"
+                ]
+              },
+              "valor_imovel": {
+                "type": "number"
+              },
+              "valor_imovel_origem": {
+                "type": "string",
+                "enum": [
+                  "irpf",
+                  "mercado"
+                ]
+              },
+              "aluguel_mensal_bruto": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "taxa_administracao_mensal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "iptu_mensal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "condominio_mensal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "ir_retido_mensal": {
+                "type": "number"
+              },
+              "meses_locado_no_ano": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 12
+              },
+              "vacancia_pct_empirica": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cap_rate_bruto_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cap_rate_liquido_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "gap_reajuste_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "status_contrato": {
                 "type": "string",
-                "enum": ["atualizado", "reajuste_pendente", "sem_renda", "desconhecido"]
+                "enum": [
+                  "atualizado",
+                  "reajuste_pendente",
+                  "sem_renda",
+                  "desconhecido"
+                ]
               },
-              "indice_reajuste": {"type": ["string", "null"]},
-              "data_ultimo_reajuste": {"type": ["string", "null"]},
-              "endereco_canonical": {"type": ["string", "null"]},
-              "imobiliaria_cnpj": {"type": ["string", "null"]},
-              "imobiliaria_nome": {"type": ["string", "null"]},
+              "indice_reajuste": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "data_ultimo_reajuste": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "endereco_canonical": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "imobiliaria_cnpj": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "imobiliaria_nome": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "origem_aluguel": {
                 "type": "string",
-                "enum": ["informe", "irpf", "e3", "e4", "manual", "pro_rata", "none", "default"]
+                "enum": [
+                  "informe",
+                  "irpf",
+                  "e3",
+                  "e4",
+                  "manual",
+                  "pro_rata",
+                  "none",
+                  "default"
+                ]
               }
             },
             "additionalProperties": false
@@ -787,12 +1640,25 @@
           "description": "Imóveis filtrados (classification != investimento) — transparência no UI (data-engineer 2026-05-15).",
           "items": {
             "type": "object",
-            "required": ["property_id", "descricao", "classification", "motivo"],
+            "required": [
+              "property_id",
+              "descricao",
+              "classification",
+              "motivo"
+            ],
             "properties": {
-              "property_id": {"type": "string"},
-              "descricao": {"type": "string"},
-              "classification": {"type": "string"},
-              "motivo": {"type": "string"}
+              "property_id": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              },
+              "classification": {
+                "type": "string"
+              },
+              "motivo": {
+                "type": "string"
+              }
             },
             "additionalProperties": false
           }
@@ -802,7 +1668,11 @@
           "description": "Alertas canônicos (FORMULAS.md §Alertas). Gerados snapshot (não temporal) em v1.",
           "items": {
             "type": "object",
-            "required": ["code", "severity", "context"],
+            "required": [
+              "code",
+              "severity",
+              "context"
+            ],
             "properties": {
               "code": {
                 "type": "string",
@@ -813,8 +1683,17 @@
                   "contrato_reajuste_pendente"
                 ]
               },
-              "severity": {"type": "string", "enum": ["info", "warning", "critical"]},
-              "context": {"type": "string"}
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "warning",
+                  "critical"
+                ]
+              },
+              "context": {
+                "type": "string"
+              }
             },
             "additionalProperties": false
           }
@@ -823,7 +1702,7 @@
       "additionalProperties": false
     },
     "protecao_patrimonial": {
-      "type": "object",
+      "$ref": "protecao_patrimonial.schema.json",
       "description": "Proteção patrimonial (ADR-240 D8 · A28.l6): apólices de extract_comprovantes_bens → compute_protecao. Sempre presente pós-wiring (workspace sem apólice = KPIs zerados + gap_qualitativo, cenário G6-b). Contrato completo em protecao_patrimonial.schema.json (validado no hook pós-write)."
     }
   },
@@ -832,36 +1711,84 @@
       "type": "object",
       "description": "Item de recomendação do plano (ADR-365). Mesmo shape nos dois arrays — eles são projeções da MESMA lista produzida por PontosUrgentesAnalyzer.analyze, particionada por elegibilidade em e5_serialization.partition_pontos_urgentes. `code`/`origem_premissa`/`elegibilidade` sao OPCIONAIS de proposito: o produtor sempre os emite, mas artefato antigo em pipeline_artifacts nao os tem e nao e revalidado na leitura — e o leitor os trata como ausentes==computavel (partition_pontos_urgentes). Marcar required contradiria essa tolerancia, e o modo strict do CI pega (medido no #1243). `additionalProperties: false` fica: e ele que barra campo novo sem schema.",
       "properties": {
-        "prioridade": {"type": "string"},
-        "acao": {"type": "string"},
-        "impacto": {"type": "string"},
-        "prazo": {"type": "string"},
-        "code": {"type": "string"},
-        "origem_premissa": {"enum": ["cadastro_familia", "documento_ingerido", "derivado_e5"]},
-        "elegibilidade": {"enum": ["computavel", "nao_verificavel", "degenerada", "pendente_de_dado"]},
-        "dado_faltante": {"type": ["string", "null"]}
+        "prioridade": {
+          "type": "string"
+        },
+        "acao": {
+          "type": "string"
+        },
+        "impacto": {
+          "type": "string"
+        },
+        "prazo": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "origem_premissa": {
+          "enum": [
+            "cadastro_familia",
+            "documento_ingerido",
+            "derivado_e5"
+          ]
+        },
+        "elegibilidade": {
+          "enum": [
+            "computavel",
+            "nao_verificavel",
+            "degenerada",
+            "pendente_de_dado"
+          ]
+        },
+        "dado_faltante": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       },
-      "required": ["prioridade", "acao", "impacto", "prazo"],
+      "required": [
+        "prioridade",
+        "acao",
+        "impacto",
+        "prazo"
+      ],
       "additionalProperties": false
     },
     "ConsolidacaoCrossDocumento": {
       "type": "object",
       "description": "A40.l2 PR3c1b: contador declarado do colapso cross-documento — N lançamentos removidos por sobreposição de documentos, com breakdown por mês. É o número que a S2 mostra à família; sem ele o agregado fica irreconciliável contra o extrato do banco (salvaguarda nº 1 do financial-planner). OMITIDO quando não houve remoção: presença incondicional mudaria o sha256 do E5, que é chave de cache do parecer E do section summary da S2, forçando regeração em toda a base (hard-stop da ADR-173). `meses` é LISTA de pares, nunca escalar nem mapa — dev/golden_diff.py::is_monetary('meses') devolve True, então escalar sairia ×100 no snapshot; como lista o leaf `mes` é string e to_cents não se aplica.",
       "properties": {
-        "count": {"type": "integer", "minimum": 1},
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        },
         "meses": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "mes": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$"},
-              "count": {"type": "integer", "minimum": 1}
+              "mes": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}$"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              }
             },
-            "required": ["mes", "count"]
+            "required": [
+              "mes",
+              "count"
+            ]
           }
         }
       },
-      "required": ["count", "meses"]
+      "required": [
+        "count",
+        "meses"
+      ]
     }
   },
   "additionalProperties": true

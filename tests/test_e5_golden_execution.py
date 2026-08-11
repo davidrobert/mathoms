@@ -83,6 +83,13 @@ _FAMILY_E5 = {
 def _write_e5_config(tmp_path: Path, *, expense_keywords: dict | None = None) -> None:
     cfg = tmp_path / "config"
     cfg.mkdir(parents=True, exist_ok=True)
+    # `_schema_to_validate` le de `CONFIG_DIR/schemas/`, e o CONFIG_DIR aqui e o
+    # tmp. Sem esta copia, `schema_path.exists()` e False e `validate_dict` faz
+    # SHORT-CIRCUIT para True: o assert de schema passa sem validar nada.
+    # Medido em A40.l5 PR1 por mutacao — apertar o schema no repo nao derrubava
+    # teste nenhum. Copiar os schemas reais faz o golden validar o contrato de
+    # producao, que e a terceira perna do gate (schema x PRODUTOR).
+    shutil.copytree(_REPO / "config" / "schemas", cfg / "schemas", dirs_exist_ok=True)
     cat = {
         "expense_keywords": expense_keywords or {},
         "income_keywords": {"renda": ["PIX"]},
@@ -98,7 +105,17 @@ def _write_e5_config(tmp_path: Path, *, expense_keywords: dict | None = None) ->
         json.dumps(_FAMILY_E5, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
+    # `{}` fazia `schema_validation.enabled` cair no default False, e
+    # `_schema_to_validate` short-circuitava para True: o assert de schema
+    # abaixo era VERDE VACUOSO — apertar o schema no repo nao derrubava teste
+    # nenhum (medido por mutacao, A40.l5 PR1). Ligar a validacao aqui e o que
+    # torna este golden a terceira perna do gate (schema x PRODUTOR).
+    (cfg / "pipeline.json").write_text(
+        json.dumps(
+            {"schema_validation": {"enabled": True, "mode": "strict", "mode_overrides": {}}}
+        ),
+        encoding="utf-8",
+    )
     (cfg / "goals.json").write_text(
         json.dumps(_GOALS_MIN, ensure_ascii=False, indent=2),
         encoding="utf-8",
@@ -175,12 +192,13 @@ def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
     )
     assert "caixa" in derived and "sinal_excesso" in derived["caixa"]
 
-    jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads(
-        (_REPO / "config" / "schemas" / "e5_analysis.schema.json").read_text(encoding="utf-8")
-    )
-    jsonschema.validate(payload, schema)
-
+    # `jsonschema.validate(payload, schema)` cru NAO e o validador de producao:
+    # ele nao tem o registry que resolve `$ref` cross-file por filename
+    # (`_load_schema_resources`), entao mede um contrato mais fraco e diferente
+    # do que o hook de escrita aplica. Medido em A40.l5 PR1: ao trocar
+    # `protecao_patrimonial` por `$ref`, o cru quebrou com `Unresolvable`
+    # enquanto `validate_dict` passava. Usar so o de producao.
+    pytest.importorskip("jsonschema")
     from scripts.pipeline_common import validate_dict
 
     assert validate_dict(payload, "e5_analysis.schema.json") is True
@@ -203,11 +221,10 @@ def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
     assert fc.get("receita_total", 0) > 0
     assert fc.get("despesa_total", 0) > 0
 
-    jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads(
-        (_REPO / "config" / "schemas" / "e5_analysis.schema.json").read_text(encoding="utf-8")
-    )
-    jsonschema.validate(payload, schema)
+    pytest.importorskip("jsonschema")
+    from scripts.pipeline_common import validate_dict
+
+    assert validate_dict(payload, "e5_analysis.schema.json") is True
 
     assert_qa_log_md(e5_tenant_mixed_cashflow)
 
@@ -227,11 +244,10 @@ def test_e5_execution_with_baseline_patrimonial(e5_tenant_with_baseline: Path):
     assert payload["patrimonio"]["liquido"] == 400_000.0
     assert payload["patrimonio"]["dividas"] == 100_000.0
 
-    jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads(
-        (_REPO / "config" / "schemas" / "e5_analysis.schema.json").read_text(encoding="utf-8")
-    )
-    jsonschema.validate(payload, schema)
+    pytest.importorskip("jsonschema")
+    from scripts.pipeline_common import validate_dict
+
+    assert validate_dict(payload, "e5_analysis.schema.json") is True
 
     assert_qa_log_md(e5_tenant_with_baseline)
 
