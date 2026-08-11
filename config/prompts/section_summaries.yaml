@@ -256,14 +256,14 @@ sections:
 
   # --------------------------------------------------------------------------
   # S8 — Previdência / Tributário — title canônico:
-  # "Previdência — PGBL e Fiscalidade"
+  # "Carga Tributária PJ — Regime e Base Dedutível"
   # Foco: alíquota efetiva PJ, eficiência fiscal, pendências (holding,
   # CPA expat, etc.).
   # --------------------------------------------------------------------------
   S8:
-    label: "Previdência — PGBL e Fiscalidade"
+    label: "Carga Tributária PJ — Regime e Base Dedutível"
     user_prompt: |
-      Seção S8 — Estrutura tributária e previdenciária.
+      Seção S8 — Carga tributária da PJ.
 
       Esta seção mostra a eficiência fiscal: regime tributário PJ vigente,
       alíquota efetiva apurada, ações pendentes (holding, PGBL, CPA

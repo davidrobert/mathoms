@@ -542,7 +542,7 @@ export const LAYOUT: ReportLayout = {
       },
       {
         "id": "S8",
-        "title": "Previdência — PGBL e Fiscalidade",
+        "title": "Carga Tributária PJ — Regime e Base Dedutível",
         "enabled": true,
         "summary": true,
         "summary_source": "s8",

@@ -272,6 +272,67 @@ permite decidir"*. Registrado como follow-up nº 7 abaixo.
    achado é que o gate `@critical` está vermelho e ninguém vê — mesma classe do
    §Follow-up do #1337. Gatilho `sre-devops`.
 
+## ✅ RV3-28 (metade de nome) entregue em 2026-08-11 — PR #1375
+
+Último item da lane. Copy do `product-designer`, decisão estrutural do
+`financial-planner` (**opção B: retitular, NÃO mover o card**).
+
+**Por que não mover.** A S8 **já hospeda PGBL** — o `PgblBlock` dentro do
+`CascataFiscalCard` mostra "Renda tributável PF/ano" + "Limite PGBL (12%)". O
+título não era promessa vazia, era **mal-nomeada**. E previdência é *wrapper*,
+não classe de ativo (posição do método de referência, §13): nenhuma seção do
+relatório deve ter nome de produto financeiro — todas as outras são nomeadas
+pela **pergunta** da família.
+
+| | antes | agora |
+|---|---|---|
+| heading (`<h2>`) | *"Previdência — PGBL e Fiscalidade"* | **"Carga Tributária PJ — Regime e Base Dedutível"** |
+| índice (`shortLabel`) | *"Previdência"* | **"Carga Tributária PJ"** |
+
+*"Regime"* e não *"Cascata"*: o card logo abaixo já se chama *"Tributário PJ ·
+Cascata Fiscal"*, e repetir seria o **mesmo defeito que o `APP_B` teve no
+#1355** — título de seção igual ao de um card contido nela. *"PJ"* é o único
+discriminador contra as `S_IRPF_*`, que são o lado **pessoa física declarada**.
+
+**Cascata completa, no mesmo PR** — retítulo que deixa ponteiro mentindo é troca
+de mentira, não correção:
+
+1. `report_layout.yaml` (o heading **e** o índice derivam daqui desde o #1355).
+2. `section_summaries.yaml` — o `label` é o título que o LLM recebe para escrever
+   o parágrafo **da própria seção**.
+3. `conclusionUtils.ts` — o fallback determinístico (camada 3) que **abre a
+   seção** quando as camadas 1-2 faltam. Sem isto o retítulo seria cosmético.
+4. `S_ProtecaoSection.tsx` — **o texto antigo afirmava algo falso**: dizia que a
+   S8 *"detalha cobertura de previdência"*, e a S8 mostra o lado **fiscal**.
+   Trocar só o nome preservaria a mentira.
+5. `ParecerAncoraChips.tsx` — `"Previdência"` nu é o único item do mapa que o
+   COPY_GUIDELINES §2 proíbe (ambíguo PGBL/VGBL). Vira `"Previdência PGBL"`.
+6. Docstring do `S8PrevidenciaSection` — descrevia a seção errada.
+
+**Grep de regressão: 0 ocorrências** de `"S8 Previdência"`, de
+`previdencia_pgbl: "Previdência"` nu e do título antigo, fora de teste.
+
+> ### ⚠️ Dois handoffs que NÃO são copy — o retítulo os deixa mentindo
+>
+> Nomeados pelo `product-designer`; **não** entram neste PR porque mudam o que o
+> LLM vê, não como algo se chama. Gatilho `prompt-engineer`:
+>
+> 1. **`section_summary_orchestrator.py:281`** — `_SECTION_KEYS["S8"] =
+>    ("previdencia_pgbl", "ratios")`. O parágrafo LLM da S8 é escrito a partir do
+>    payload do card de **PGBL**, que não está na seção. Retitular sem isto troca
+>    a mentira de camada — da visível para a invisível. A chave de substituição
+>    existe e é top-level: `e5_data["tributario"]`.
+> 2. **`parecer_planejador.yaml:399-401`** — bucket `previdencia_irpf`, `title:
+>    "Previdência e Eficiência Fiscal"`, `aligned_with_layout: "S8"`. Depois do
+>    retítulo **nenhuma seção reivindica "Previdência"**, então o alinhamento
+>    aponta para um capítulo que não existe. Decisão adicional (S8, ou
+>    `S_IRPF_OTIMIZACAO`, ou dividir) é `financial-planner`.
+>
+> **Nota factual, sem ação:** `report_layout.yaml` declara `charts:
+> [impostos_pj]` na S8, e a seção não renderiza `NarrativeChartCard` nenhum desde
+> a [[ADR-236]] §D5 — narrativa gerada, com testes, e **sem leitor**. Mesma classe
+> do RV3-28 pelo lado de charts; território da [[A40.l5]].
+
 ## 🔀 Duas transferências escritas — 2026-08-11 (closeout)
 
 Decisão do `product-manager` ao abrir as lanes novas. **Sem estas duas linhas a
