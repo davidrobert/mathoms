@@ -154,41 +154,11 @@ def test_summaries_s9_plural_when_multiple_riscos():
     assert "3 riscos prioritários" in s9
 
 
-# ── perfil_familia (imóveis no <p>) ────────────────────────────────────
-
-
-def _narrate_perfil(n_imoveis: int) -> dict[str, str]:
-    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
-    metrics = _build_metrics()
-    metrics["n_imoveis"] = n_imoveis
-    return PerfilFamiliaNarrator(ctx).narrate(metrics, _FAMILY_BASE, today=date(2026, 4, 20))
-
-
-def test_perfil_familia_singular_when_one_imovel():
-    right = _narrate_perfil(1)["right"]
-    # n=1: sem breakdown — "1 imóvel," (vírgula imediata, ressalva financial-planner)
-    assert "1 imóvel," in right
-    assert "1 imóveis" not in right
-
-
-def test_perfil_familia_plural_when_multiple_imoveis():
-    right = _narrate_perfil(3)["right"]
-    assert "3 imóveis " in right
-
-
-def test_perfil_familia_omits_breakdown_when_one_imovel():
-    """Ressalva financial-planner: `1 imóvel (R$ X residência + R$ Y investimento)`
-    é contraditório (2 papéis num só imóvel). n=1 deve omitir o parêntese."""
-    right = _narrate_perfil(1)["right"]
-    assert "1 imóvel," in right
-    assert "residência +" not in right
-    assert "investimento)" not in right
-
-
-def test_perfil_familia_keeps_breakdown_when_multiple_imoveis():
-    right = _narrate_perfil(2)["right"]
-    assert "residência +" in right
-    assert "investimento)" in right
+# A gramática de imóveis do `perfil_familia` (singular/plural + breakdown com
+# n≥2) morreu com `perfil_familia.right` — emenda ADR-356, 2026-08-11. Os 4
+# testes asseriam literais de uma string que o narrador não emite mais; a
+# contagem de imóveis é da S4 (A40.l6). Deletados em vez de mantidos rodando,
+# por ADR-210 §test pós-cutover órfão.
 
 
 # ── charts.bubble_riscos (escape designer review) ──────────────────────

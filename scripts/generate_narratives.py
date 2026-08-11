@@ -8,6 +8,7 @@ Metrics are loaded dynamically from E5 JSON at runtime.
 import json
 import re
 import unicodedata
+from datetime import date as _dt_date
 from decimal import Decimal
 from pathlib import Path
 from statistics import median
@@ -843,7 +844,23 @@ def validate_narrativas(narrativas_obj):
     return _validate_narrativas_impl(narrativas_obj, cenarios_section_key=_KEY_CENARIOS_SECTION)
 
 
-def build_narrativas():
+# Idade impressa no perfil tem de ser a idade no período do relatório: com o
+# relógio de parede, re-renderizar relatório antigo muda o número e a fixture
+# byte-exata vira vermelha sozinha na virada de aniversário. ``None`` quando o
+# campo falta ou não parseia — o chamador decide o fallback, nunca um default
+# silencioso (classe do `.get(k, default)` morto).
+def _today_from_data_analise(e5_data: dict | None) -> _dt_date | None:
+    """Data de referência do run (``data_analise`` do E5) como ``date``."""
+    raw = (e5_data or {}).get("data_analise")
+    if not isinstance(raw, str):
+        return None
+    try:
+        return _dt_date.fromisoformat(raw[:10])
+    except ValueError:
+        return None
+
+
+def build_narrativas(*, today: _dt_date | None = None):
     """Constrói o objeto ``narrativas`` completo — delega para
     :class:`pipeline.domain.services.narrativas.E5NarrativasBuilder`
     (A6d.3.2, Caminho B puro).
@@ -856,7 +873,7 @@ def build_narrativas():
     from pipeline.domain.services.narrativas import E5NarrativasBuilder
 
     builder = E5NarrativasBuilder.from_family_config(FAMILY)
-    return builder.build(METRICS, FAMILY)
+    return builder.build(METRICS, FAMILY, today=today)
 
 
 def _e5n_print_header(ctx, store) -> None:
@@ -896,8 +913,8 @@ def _e5n_load_metrics(
     return METRICS
 
 
-def _e5n_build_and_validate() -> tuple[dict | None, list[str]]:
-    narrativas = build_narrativas()
+def _e5n_build_and_validate(e5_data: dict | None = None) -> tuple[dict | None, list[str]]:
+    narrativas = build_narrativas(today=_today_from_data_analise(e5_data))
     print(f"✓ Built narrativas with {len(narrativas)} main sections")
     is_valid, errors = validate_narrativas(narrativas)
     if not is_valid:
@@ -1094,7 +1111,7 @@ def main_with_store(ctx) -> dict:
     goals_cfg = ctx.load_config("goals.json")
     _e5n_refresh_tributario(ctx, goals_cfg)
     _e5n_load_metrics(e5_data, cambio_usd_brl=cambio_usd_brl, goals_cfg=goals_cfg)
-    narrativas, errors = _e5n_build_and_validate()
+    narrativas, errors = _e5n_build_and_validate(e5_data)
     if narrativas is None:
         return {"success": False, "reason": "validation_failed", "errors": errors}
 
