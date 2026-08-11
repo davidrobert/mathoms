@@ -493,6 +493,37 @@ anterior (−19,0%)"*. **Rodapé de 12px não vence narrador de 14px acima dele.
 `financial-planner` **não** está cumprida por contador+caption, e a prosa é bloqueante. Decidir
 se o conserto é da l2 ou vira lane é **do dono** — é mudança de escopo de lane P0.
 
+#### ✅ Os 10 eixos fecharam em 2026-08-10/11 — e o flip exige TRÊS atos, não um
+
+**Todos os dez eixos do §Critério de saída estão fechados** (PRs #1352, #1353, #1354, #1359,
+#1361, #1362, #1365). A flag `cross_document_collapse_enforce_enabled` existe, nasce `False`,
+está em `OPERATOR_ONLY`, e o write-path com preflight está em `main`.
+
+**O que "ligar" exige, medido em 2026-08-11 — e a ordem NÃO é óbvia:**
+
+O preflight foi executado contra o dogfood e devolveu `medicao_ausente`. Isso **não** é
+defeito: `collapse_retention` nasceu no `output_summary` em 2026-08-10 (#1352) e **nenhum run
+do dogfood rodou desde então**, logo não existe run de referência. O gate está funcionando —
+ele recusa autorizar sobre uma medição que não existe, que é exatamente o fail-closed que a
+§Emenda 2026-08-10 desenhou.
+
+Logo a ativação é uma sequência de **três** atos, todos exigindo o stack local de pé:
+
+1. **Run do E3 em sombra**, com o código atual. Publica `collapse_retention` +
+   `collapse_precondition` no `output_summary`. Determinístico, custo LLM zero.
+2. **`PATCH /admin/workspaces/{id}/collapse-enforce`** com `{"enabled": true}`. O preflight lê
+   o run do passo (1); pela medição de 2026-08-10 as cinco cláusulas passam (`lido=True`,
+   `degradado=False`, `retencao_instavel=False`, `sem_snapshot=0`, `tx_data_nao_iso=0`), e
+   `liberado=False` — reprovado só por `vivacidade` — vai para a auditoria **sem bloquear**.
+3. **Run FULL (E0→E6)**. `from_stage` pinado em `base_run_id` pré-flip consome o E3
+   pré-colapso e produz E4/E5 pelo método antigo — o relatório sairia misturando as duas
+   bases. Orçar o cache-miss one-shot de parecer + narrativas (hard-stop [[ADR-173]]).
+
+**A l2 só é terminal depois do passo (3)**, pela cláusula de reinício do contador
+(`docs/sprint/A40/_README.md` §Gate de saída): o que zera o contador de 2 re-runs é o **E3
+mudar**, não o código mergear. Até lá, a lane fica `in_progress` com escopo de engenharia
+100% entregue — o que resta é operação.
+
 #### Critério de saída do enforce (3e) — os 4 eixos atuais não bastam
 
 Cumulativamente: (1) relatório `liberado=True` do **run de referência** — *o run mais recente
