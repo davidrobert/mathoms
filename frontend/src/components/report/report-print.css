@@ -118,6 +118,20 @@
     overflow-wrap: anywhere;
   }
 
+  /* ...mas número NUNCA quebra. Medido em 2026-08-11: sem esta regra o `anywhere`
+   * acima partia a célula Δ do V0 em "52,0" + "%" em linhas diferentes — o valor
+   * continuava no papel, e ainda assim uma busca por "52,0%" no PDF não o
+   * achava. Quem encolhe a tabela é o rótulo; valor monetário e percentual são
+   * átomos. `tabular-nums`/`font-mono` são o marcador de "isto é número" no
+   * relatório (ADR-076 §Valores monetários). */
+  td.tabular-nums,
+  th.tabular-nums,
+  td .tabular-nums,
+  .font-mono {
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+
   /* ────── Typography refinements ────── */
   body {
     font-size: 10pt !important;
