@@ -95,6 +95,16 @@ em 1/2, alguém decide na hora se recomeça; é a pior decisão possível, tomad
 > `reprovadas=[]`) → run enforce `bce49a91`, com **453 rows cortadas**. O E3 mudou (6256 →
 > 5803 txs) e o E5 registrou o efeito (receita R$ 3.453.166,51 → R$ 2.802.646,11, **−18,8%**,
 > contra os +19% que a KR-B estimava). **O contador de 2 re-runs consecutivos pode iniciar.**
+
+> ### ⚠️ Estendida em 2026-08-11 — a [[A40.l34]] e a [[A40.l35]] entram na mesma cláusula
+>
+> Pelo argumento **mecânico** da l2, não por gravidade: as duas mutam o **E5**, a
+> montante de todo run E0→E6. A l34 muda a base do limite PGBL publicado (sinal
+> `↓`); a l35 liga cinco insumos hoje zerados no bundle de proteção.
+>
+> **O contador de 2 re-runs só inicia depois que a l2, a l34 e a l35 estiverem
+> terminais** — entregues, ou declaradas não-entregues. Iniciar antes mede um
+> relatório que a sprint ainda vai mudar.
 >
 > Ressalva que a cláusula não previa: os dois runs usaram `SKIP_LLM=1`, então **o parecer não
 > rodou** (`review_finances_holistic: skipped`; as narrativas **rodaram**). O relatório
@@ -180,7 +190,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (33)
+## Lanes (35)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -224,6 +234,9 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l30]] | Ancorabilidade do exec context: o invariante que o #1004 furou sem teste vermelho | P1 | — | causa viva pós-[[A40.l16]] · **instrumento, US$ 0** · gateia a [[A40.l8]] · co-design `prompt-engineer` |
 | [[A40.l31]] | Gerador ancora em vez de digitar: correção guiada pelo mecanismo | P2 | l30 | par da l30 · **gasta** (re-eval ~US$ 26, owner-gated) · `planned` |
 | [[A40.l32]] | Proveniência do executor: qual código computou este run | P1 | — | promovida da [[A42]] · [[ADR-362]] · [[ADR-363]] · instrumento, sem custo de API |
+| [[A40.l33]] | Cache de citação por conteúdo, não por posição | P2 | — | aberta 2026-08-09 · estava fora desta tabela até 2026-08-11 |
+| [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | spun off da [[A40.l7]] 2026-08-11 · **fora das ondas** · falsifica [[ADR-196]] §1 caso 4 · exceção da cláusula 2 (ver §Fora do sprint) |
+| [[A40.l35]] | Bundle de proteção sobre insumos reais (5 zeros + 2 `False`) | P1 | — | spin-off da [[A40.l7]] 2026-08-11 · Onda 2 · [[A40.l11]] é consumidora |
 
 ## Predicado do campo `status` de lane (decisão do dono, 2026-08-03)
 
@@ -1186,6 +1199,27 @@ renumeração 2× da l27 não foi falha de gate (ele disparou no rebase), é pro
 de **alocação**, que o `former_ids` (l23 item 3) audita.
 
 ## Fora do sprint (disposição explícita)
+
+> ### Uso da exceção da cláusula 2 da [[A42]] — [[A40.l34]], 2026-08-11
+>
+> A [[A42]] §Critério de admissão cláusula 2 exige registrar o **custo** quando
+> uma lane entra na sprint corrente pela exceção. Registrado: a **l34** é P0 que
+> alcança o usuário, nenhuma lane viva possui `previdencia_analyzer.py`, e a
+> espera pela promoção da A42 é **circular** — a A42 só promove com `A40 → done`,
+> e a A40 **não pode ir a `done` com este achado aberto**, porque "Limite PGBL
+> (12%)" publicado em duas seções sobre bases incompatíveis é ocorrência da 2ª
+> classe do §Critério de done do [[PLAN-report-trust]] (*contradição
+> cross-seção*).
+>
+> Consequência declarada: **admitir a l34 não atrasa o gate de saída — é
+> pré-condição dele.** A `date_target` escorrega, e isso custa zero
+> mecanicamente: o único gatilho computável que ela governava (tripwire da
+> [[A40.l21]]) foi descarregado em 2026-08-07.
+>
+> A **l35** entra pela cláusula 1 (o destino é quem possui a superfície): a
+> [[ADR-240]] §Deferido já nomeava a [[A40.l7]] como dona, e a A42 **não pode**
+> admiti-la — a cláusula 3 admite por camada (ingestão / razão / store /
+> instrumento) e a l35 é E5 + entrega de relatório.
 
 - **RV3-19** (métrica do parecer fabricável) — já tem dono ativo com co-design em
   [[PLAN-pipeline-review-r2]] §Onda C; a medição da r3 mostra **10/10 valores
