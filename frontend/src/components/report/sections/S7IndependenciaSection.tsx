@@ -5,6 +5,7 @@ import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { SuggestionCalloutInline } from "./SuggestionCallout";
 import { RecalibracaoMcNote } from "./RecalibracaoMcNote";
+import { Stat } from "./S7Stat";
 import { PrevidenciaPgblCard, type PrevidenciaPgblData } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
@@ -110,34 +111,6 @@ export function S7IndependenciaSection({
         />
       </div>
     </ReportSection>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  sublabel,
-  tone = "neutral",
-}: {
-  label: React.ReactNode;
-  value: React.ReactNode;
-  sublabel?: React.ReactNode;
-  tone?: "neutral" | "positive" | "warning";
-}) {
-  const toneClass =
-    tone === "warning"
-      ? "border-[var(--semantic-warning)]"
-      : tone === "positive"
-        ? "border-[var(--semantic-success)]"
-        : "border-[var(--surface-border)]";
-  return (
-    <div className={`rounded-[var(--radius-card)] border ${toneClass} bg-[var(--surface-card)] p-4`}>
-      <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">{label}</p>
-      <p className="mt-1 text-lg font-semibold">{value}</p>
-      {sublabel && (
-        <div className="mt-1 text-xs text-[var(--surface-muted-foreground)]">{sublabel}</div>
-      )}
-    </div>
   );
 }
 
