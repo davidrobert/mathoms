@@ -4,7 +4,7 @@ type: lane
 title: "Identidade de lançamento cross-documento: tipo_conta com vocabulário divergente + titular vazio"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a40-l2-identidade-lancamento-cross-doc
 adrs: ["[[ADR-354]]", "[[ADR-364]]"]
@@ -12,7 +12,7 @@ depends_on: ["[[A40.l1]]"]
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
 ---
@@ -493,7 +493,53 @@ anterior (−19,0%)"*. **Rodapé de 12px não vence narrador de 14px acima dele.
 `financial-planner` **não** está cumprida por contador+caption, e a prosa é bloqueante. Decidir
 se o conserto é da l2 ou vira lane é **do dono** — é mudança de escopo de lane P0.
 
-#### ✅ Os 10 eixos fecharam em 2026-08-10/11 — e o flip exige TRÊS atos, não um
+#### ✅✅ FLIP EXECUTADO — 2026-08-11, e a KR-B se confirma no número
+
+**O enforce está LIGADO no dogfood.** Os três atos foram executados em sequência, com o
+código de `main` (`executor_revision` do worker: `9a1fd6fc6401`):
+
+| ato | resultado |
+|---|---|
+| (1) run E3 em sombra (`7acf0e47`) | publicou `collapse_retention` — o run de referência que o preflight exigia |
+| (2) `set_collapse_enforce(enabled=True)` | **preflight PASSOU**: `reprovadas=[]`, `idade_ok=True`. `liberado=False` (`vivacidade=4/5`) foi para a auditoria **sem bloquear**, exatamente como a §Emenda desenhou |
+| (3) run E3 em enforce (`bce49a91`) | **453 rows cortadas** |
+
+**O efeito medido, E3 e E5:**
+
+```
+SOMBRA  E3: 106 artefatos · 6256 txs · 0 cortadas
+ENFORCE E3: 106 artefatos · 5803 txs · 453 cortadas
+
+SOMBRA  E5: receita R$ 3.453.166,51 · despesa R$ 2.051.306,41
+ENFORCE E5: receita R$ 2.802.646,11 · despesa R$ 1.888.946,81
+ENFORCE E5: consolidacao_cross_documento = {count: 453, meses: [8, 59, 42, 87, …]}
+```
+
+**A receita caiu R$ 650.520,40 — −18,8%.** A KR-B estimava a inflação em **+19%**, e o número
+real bateu com a estimativa. As 261 ocorrências deixaram de ser projeção: o dobro-contado saiu
+do razão, e a superfície do §3c2a (`consolidacao_cross_documento`) está no payload com o
+breakdown por mês, então o relatório **declara** o que foi consolidado em vez de mudar em
+silêncio.
+
+**`retido_por_override` = 0 nos dois runs**, com `retido_por_override_manual` e `_rule`
+também em 0: a retenção do §3d não teve o que reter neste corpus — e o
+`reservatorio_llm_sem_gemea = 441` diz que isso muda com o tempo, que é justamente o que a
+sentinela do eixo (7) observa.
+
+**Ressalvas honestas sobre este flip:**
+
+- Os dois runs usaram `from_stage=reconcile_transactions` e `SKIP_LLM=1`. **O parecer e as
+  narrativas não foram regenerados** — o E6 do relatório segue com o texto do run anterior,
+  produzido sobre a base pré-colapso. Regenerar custa LLM sob o hard-stop da [[ADR-173]] e é
+  decisão de orçamento do dono.
+- O ato (2) chamou o **service** direto, não a rota HTTP. O `require_internal_operator` não foi
+  exercitado aqui — ele tem teste próprio em `backend/tests/`.
+- `superavit_total` e `investimentos_total` vêm `null` no E5 deste corpus, então a variação de
+  superávit **não** foi medida; o que se afirma acima é receita e despesa.
+
+#### Os 10 eixos e a ordem de ativação (histórico)
+
+✅ Os 10 eixos fecharam em 2026-08-10/11 — e o flip exige TRÊS atos, não um
 
 **Todos os dez eixos do §Critério de saída estão fechados** (PRs #1352, #1353, #1354, #1359,
 #1361, #1362, #1365). A flag `cross_document_collapse_enforce_enabled` existe, nasce `False`,
