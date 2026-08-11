@@ -2,9 +2,13 @@ import { LAYOUT } from "@/generated/report-layout";
 
 /** Seções renderizadas pelo shell fora de `layout.sections` (padrão Sumário
  * Executivo). Títulos aqui alimentam nav/TOC quando o YAML só tem o anchor. */
-export const SHELL_SECTION_TITLES: Record<string, string> = {
+export const SHELL_SECTION_TITLES = {
   V0: "O que mudou",
-};
+  perfil: "Perfil da Família",
+} as const satisfies Record<string, string>;
+
+/** Ids que o shell renderiza — `ReportSection` os aceita além dos do YAML. */
+export type ShellSectionId = keyof typeof SHELL_SECTION_TITLES;
 
 /** Mapa section_id → title do LAYOUT, sem prefixo de apêndice. */
 // É o título que as duas superfícies de índice (TopNav e ToC) consomem, via

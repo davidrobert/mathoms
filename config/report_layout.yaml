@@ -94,6 +94,12 @@ navigation:
         # não numerada — padrão do Sumário Executivo. Título vem de
         # SHELL_SECTION_TITLES no ReportShell (não há section YAML p/ V0).
         - {section_id: "V0"}
+        # "perfil" — bloco de identidade da família (PerfilFamiliaSection):
+        # seção shell-level como o V0, não numerada, hide-when-empty (sem
+        # narrativa perfil_familia E sem membro com CPF ⇒ não renderiza).
+        # Título em SHELL_SECTION_TITLES (utils/sectionTitles.ts); id também
+        # declarado em dev/report_layout_nav_targets.py::SHELL_RENDERED_SECTIONS.
+        - {section_id: "perfil"}
         - {section_id: "S1", num: "1"}
         - {section_id: "S2", num: "2"}
         # S_PROTECAO entra aqui (pós-S2, ordem AUVP · ADR-240 D1, num "2.5")

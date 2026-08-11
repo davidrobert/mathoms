@@ -90,7 +90,7 @@ def test_shell_rendered_sections_em_paridade_com_o_tsx() -> None:
     import report_layout_nav_targets as gate
 
     block = re.search(
-        r"const SHELL_SECTION_TITLES: Record<string, string> = \{(.*?)\};",
+        r"const SHELL_SECTION_TITLES = \{(.*?)\} as const satisfies Record<string, string>;",
         SECTION_TITLES_TS.read_text(encoding="utf-8"),
         re.DOTALL,
     )
