@@ -8,7 +8,7 @@ status: planned
 priority: P2
 branch_slug: a40-l11-cobertura-e-incerteza-na-tela
 adrs: ["[[ADR-353]]"]
-depends_on: ["[[A40.l3]]", "[[A40.l4]]"]
+depends_on: ["[[A40.l3]]", "[[A40.l4]]", "[[A40.l35]]"]
 tags:
   - type/lane
   - sprint/a40
@@ -18,6 +18,11 @@ tags:
 ---
 
 # A40.l11 — `cobertura-e-incerteza-na-tela` (RV3-13, RV3-14, RV3-29)
+
+> **Dependência declarada em 2026-08-11 — [[A40.l35]].** Esta lane é dona de
+> *"componente de proteção ausente do score"*, e o bundle de proteção calcula
+> hoje sobre **5 insumos zerados**. Fixar o score antes da l35 o assenta sobre
+> `gap = R$ 0` e **fecha verde** sobre número falso.
 
 ## Problema
 

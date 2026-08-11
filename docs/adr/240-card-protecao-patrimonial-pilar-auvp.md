@@ -416,7 +416,7 @@ ausência sobre fonte única. O valor continua reportado; o julgamento, não.
   `categorias_somente_no_cadastro`: alto e persistente indica ingestão perdendo
   documento que o cliente já declarou ter.
 
-### Deferido — S9 continua sem produtor (dono: [[A40.l7]], 2026-08-08)
+### Deferido — S9 continua sem produtor (dono: [[A40.l35]] desde 2026-08-11; era [[A40.l7]], 2026-08-08)
 
 `data.protection_bundle` segue órfã de propósito. Injetá-la agora colocaria na
 tela o `gap_analysis` de `protection_bundle_populator`, cujo predicado de
@@ -430,6 +430,15 @@ como está escrito, esse passo põe no ar `HeroGapProtecaoCard` com *"Nenhuma
 apólice cadastrada ainda"* e seis linhas *"Ausente"* em `CoberturaSegurosCard`,
 para todo cliente — porque o bundle não chega ao payload. A condição de retomada
 é: produtor do bundle **e** correção do predicado de dependente, no mesmo PR.
+
+> **Dono transferido em 2026-08-11 para a [[A40.l35]]**, e o defeito é **maior**
+> do que este §Deferido descreve. O produtor **existe**
+> (`populate_protection_bundle`); o que ele calcula é que está errado —
+> `protection_bundle_populator` tem **5 zeros e 2 `False`** hardcoded com
+> `# TODO`, incluindo `gross_estate_brl_cents=0`, então o **ITCMD também sai
+> R$ 0**. Medido: com renda plumbada, a mesma família passa de `gap = R$ 0` para
+> `gap = R$ 4.500.000`. O predicado do `filho` é **secundário** — mesmo
+> corrigido, o ideal continua zero enquanto a renda for zero.
 
 **Não coberto por gate:** `frontend/tests/components/report/S9ProtectionCards.test.tsx`
 injeta o bundle direto na prop do card, então nenhum teste exercita o caminho do
