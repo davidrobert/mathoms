@@ -6831,6 +6831,12 @@
       },
       "MetricsResponse": {
         "properties": {
+          "collapse": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Collapse",
+            "type": "object"
+          },
           "documents_needs_review": {
             "title": "Documents Needs Review",
             "type": "integer"

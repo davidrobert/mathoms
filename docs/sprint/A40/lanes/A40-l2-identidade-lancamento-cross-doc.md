@@ -535,13 +535,46 @@ não colapsa). **Não tentar satisfazer como escrito.** Quem reformula é o PR d
 decisão de ligar o enforce — é lá que se define o que o gate ainda precisa observar depois que
 o dano que ele media virou impossível por construção. Os outros nove seguem valendo. (4) **Ensaio de rollback medido**: a §Não-decisão da
 [[ADR-364]] recusa rollout percentual porque "o undo existe", e undo nunca executado é premissa,
-não propriedade. (5) Identidade tripla do contador, tolerância zero. (6) Os **6/6** ramos de
+não propriedade.
+
+> **📏 EXECUTADO 2026-08-10** (`dev/probe_collapse_rollback.py`, zero-write: três passadas do
+> E3 sobre os payloads E2/baseline reais do dogfood em `InMemoryArtifactStore`, variando só o
+> enforce):
+>
+> ```
+> OFF  → artefatos=106 txs=6256 cortes=0
+> ON   → artefatos=106 txs=5803 cortes=453
+> OFF' → artefatos=106 txs=6256 cortes=0
+> VEREDITO: undo RECONSTRÓI o E3 (453 row(s) cortadas e devolvidas)
+> ```
+>
+> **453 rows** removidas pelo enforce e devolvidas integralmente. A comparação é campo-a-campo
+> em `transacoes`, `remocoes`, `saldo_final`, `total_creditos` e `total_debitos` — não é
+> contagem, é fingerprint. O probe recusa emitir verde com `cortes == 0` (INDETERMINADO): sem
+> corte real, provar a reconstrução seria provar o undo de nada.
+>
+> **Fora do escopo deste ensaio, de propósito:** a leitura da flag, que tem gate próprio
+> (AST + comportamental em `test_collapse_shadow.py`, write-path em
+> `test_collapse_enforce_write_path.py`). Este mede o **artefato**. ✅ **Eixo (4) fechado.** (5) Identidade tripla do contador, tolerância zero. (6) Os **6/6** ramos de
 `blocked_reason` exercitados por fixture + controle negativo em CI — hoje a medição deu `0
 bloqueados`, isto é, 6 de 6 **inexercitados**. **✅ Entregue 2026-08-10:** cada ramo é
 alcançado por **uma** mutação isolada sobre a mesma base colapsável, e o controle negativo é
 essa base — sem ele os seis passariam verdes sobre fixture já bloqueada por outra cláusula. A
 exaustividade é **AST** sobre `_blocked_reason`/`_extraction_reason`: ramo novo sem caso deixa
-o teste vermelho, senão o eixo mediria "6 dos 6 que eu lembrei", não "6 dos 6 que existem". (7) Sentinela pós-flip com número e dono.
+o teste vermelho, senão o eixo mediria "6 dos 6 que eu lembrei", não "6 dos 6 que existem". (7) Sentinela pós-flip com número e dono. **✅ Entregue 2026-08-10** em
+`internal_ops/collapse_sentinel.py`, exposta em `GET /admin/metrics` — **dono: o operador do
+console**. Sentinela em dashboard que ninguém abre é prosa, então ela entra onde as outras
+métricas de degradação já são lidas. Quatro alertas **nomeados**, porque número solto
+("reservatório = 460") não diz a ninguém se é para agir:
+>
+| alerta | limiar | origem do limiar |
+|---|---|---|
+| `retencao_inerte` | `degradado is True` em qualquer run da janela | guard degradado ⇒ nada é retido |
+| `override_durante_o_run` | `retencao_instavel is True` | a trava TOCTOU disparou |
+| `retencao_recorrente` | `retido_por_override > 0` em **2** runs | gatilho declarado da re-ancoragem ([[ADR-364]] §Emenda 2026-08-09). **Um** run é o usuário recategorizando agora — uso normal |
+| `cobertura_erodindo` | `reservatorio_llm_sem_gemea` cresceu na janela | "a retenção **vai** crescer … o número tem de ser lido, não presumido zero" (§Decisão 2) |
+
+`runs` vai no payload: "0 alertas" e "0 runs mediram" são estados distintos.
 (8) A guarda por AST de `d6f94949` é **estreitada**, nunca deletada — é a guarda que o PR do
 flip tem incentivo a apagar. **✅ Entregue 2026-08-10, e o furo era pior do que o
 eixo supunha:** medido, trocar o **default** da assinatura (`collapse_enforce=False` → `True`)

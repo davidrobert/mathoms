@@ -175,6 +175,9 @@ class MetricsResponse(BaseModel):
     # "não medido" precisam ser distinguíveis na tela.
     pipeline_runs_by_status: dict[str, int]
     stages_degraded_by_reason: dict[str, int]
+    # A40.l2 eixo (7). `runs` no payload porque "0 alertas" e "0 runs mediram" são estados
+    # distintos — a confusão de zero-ambíguo que a lane pagou quatro vezes.
+    collapse: dict = {}
     stages_degraded_by_stage: dict[str, int]
 
 
