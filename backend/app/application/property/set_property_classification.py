@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import Optional
 
+from sqlalchemy.exc import IntegrityError
+
+from backend.app.application.base.errors import ConflictError
 from backend.app.models import (
     CLASSIFICATION_RESIDENCIA_PRINCIPAL,
     RESIDENCIA_STATUS_OWNED,
@@ -30,6 +33,9 @@ async def set_property_classification(
     if identity is None:
         raise LookupError(f"property {property_id} não encontrado no workspace {workspace_id}")
 
+    if cmd.classification == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
+        await _reject_second_residencia_principal(workspace_id, property_id, repo=repo)
+
     override = await repo.upsert_override(
         workspace_id=workspace_id,
         property_id=property_id,
@@ -44,7 +50,18 @@ async def set_property_classification(
         if workspace is not None and workspace.residencia_status != RESIDENCIA_STATUS_OWNED:
             workspace.residencia_status = RESIDENCIA_STATUS_OWNED
 
-    await repo._db.commit()  # type: ignore[attr-defined]
+    try:
+        await repo._db.commit()  # type: ignore[attr-defined]
+    except IntegrityError as exc:
+        # Backstop do partial-unique uq_workspace_one_residencia_principal: o
+        # pre-check acima cobre o caso comum, mas duas requisições concorrentes
+        # passam por ele antes de qualquer commit.
+        await repo._db.rollback()  # type: ignore[attr-defined]
+        raise ConflictError(
+            "não foi possível salvar a classificação: outro imóvel já é a "
+            "residência principal deste workspace",
+            code="residencia_principal_conflict",
+        ) from exc
     await repo._db.refresh(override)  # type: ignore[attr-defined]
 
     return PropertyResponse(
@@ -59,3 +76,23 @@ async def set_property_classification(
         override_source=override.override_source,
         classification_set_at=override.updated_at,
     )
+
+
+async def _reject_second_residencia_principal(
+    workspace_id: str,
+    property_id: str,
+    *,
+    repo: PropertyRepository,
+) -> None:
+    """Recusa o 2º `residencia_principal` com mensagem acionável em vez de IntegrityError."""
+    overrides = await repo.list_overrides(workspace_id)
+    for pid, existing in overrides.items():
+        if pid == property_id:
+            continue
+        if existing.classification != CLASSIFICATION_RESIDENCIA_PRINCIPAL:
+            continue
+        raise ConflictError(
+            f"o imóvel {pid} já é a residência principal deste workspace; "
+            "reclassifique-o antes de marcar outro",
+            code="residencia_principal_conflict",
+        )
