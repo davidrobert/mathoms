@@ -272,6 +272,35 @@ permite decidir"*. Registrado como follow-up nº 7 abaixo.
    achado é que o gate `@critical` está vermelho e ninguém vê — mesma classe do
    §Follow-up do #1337. Gatilho `sre-devops`.
 
+## 🔀 Duas transferências escritas — 2026-08-11 (closeout)
+
+Decisão do `product-manager` ao abrir as lanes novas. **Sem estas duas linhas a
+l7 é infechável**, e o §Escopo abaixo continua reivindicando trabalho que já tem
+outro dono.
+
+| O que sai | Para onde | Por quê |
+|---|---|---|
+| **S9 empty state parcial** + o ⛔ inteiro | **[[A40.l35]]** | O §Deferido da [[ADR-240]] já trocou de dono (2026-08-11). Precedente de spin-off: [[A40.l15]] ← [[A40.l3]] |
+| **Metade de HOSPEDAGEM do RV3-28** | **[[A40.l34]]** | "Mover o card de PGBL para a S8" pressupõe que o card deve existir com a base atual — e **é a l34 que decide isso** |
+
+> ### ⚠️ O ⛔ do §Escopo abaixo está VENCIDO — leia a [[A40.l35]]
+>
+> Ele afirma que `data.protection_bundle` *"não tem produtor"*. **Falso, medido
+> em 2026-08-11:** o produtor existe (`populate_protection_bundle` →
+> `protection_bundle_adapter` → `build_protection_bundle_sync`). O que ele faz é
+> **calcular sobre zeros** — 5 zeros e 2 `False` hardcoded, incluindo
+> `gross_estate_brl_cents`, então o **ITCMD também sai R$ 0**. Rodando o
+> calculator real: `gap = R$ 0` hoje contra **R$ 4.500.000** com renda plumbada.
+>
+> A conclusão prática do ⛔ **não muda** (não ligar a S9 agora); o diagnóstico
+> sim, e é ele que a l35 herda.
+
+**O que resta nesta lane:** o RV3-28 na metade de **nome** — retítulo da S8 para
+`"Carga Tributária PJ — Regime e Base Dedutível"` (copy do `product-designer`) +
+os 2 cross-links + a cascata nos prompts. Feito isso, a l7 fecha `shipped`: os 4
+bullets do §Critério de aceite são sobre âncora de nav, e os 4 já foram
+satisfeitos por #1337 e #1355.
+
 ## Problema
 
 **Âncora sem alvo (RV3-04).** `S_PROTECAO` tem `enabled: false` com o componente
