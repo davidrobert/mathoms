@@ -102,8 +102,9 @@ payload não emite, **sem erro**, caindo em default/fallback silencioso.
 > ✅ **Co-design rodou em 2026-08-10** — ver §Co-design abaixo. **"10" está
 > errado nos dois sentidos**: `section_summaries` já é tipado, mas há **4
 > arrays sem `items`** que eu não contei e que desligam o `tsc` do mesmo jeito.
-> Superfície real: **11 blocos**. E o gate precisa de uma **terceira perna**
-> (`schema × produtor`), senão sincroniza os dois lados errados.
+> Superfície real: **11 blocos** (→ **7** depois do PR1, que fechou os 4
+> arrays). E o gate precisa de uma **terceira perna** (`schema × produtor`),
+> senão sincroniza os dois lados errados — entregue no PR1.
 >
 > ### O que realmente desligava o `tsc` neste bloco
 >
@@ -247,7 +248,7 @@ que a retomada executa.
 | `tarefas_status` sai da fila cara | dogfood mostra `{"1": str, "2": str}`; produtor é `build_default_tarefas_status(...) -> dict[str,str]`. É 1 linha de `patternProperties` |
 | **subcontei**: 4 arrays sem `items` | `pontos_fortes`, `tarefas`, `alertas`, `diagnostico_comportamental` geram `unknown[]`, que desliga o `tsc` **exatamente como** `Record<string, unknown>` |
 
-**Superfície real: 11 blocos** (7 campo-a-campo + 4 arrays), mais 2 linhas
+~~**Superfície real: 11 blocos** (7 campo-a-campo + 4 arrays)~~, mais 2 linhas
 baratas. O número final "7 campo-a-campo" coincidiu com meu palpite; a
 **composição** não, e é ela que dimensiona o trabalho.
 
@@ -333,7 +334,7 @@ por ele escreveria `type: "string"` onde o wire tem `number`.
 |---|---|
 | blocos de topo observados | **29** |
 | objetos opacos | **9** — confirma o co-design, e **refuta o "10"** original |
-| arrays sem `items` | **4** |
+| arrays sem `items` | **4** (→ **0** no PR1, ver abaixo) |
 | `reserva_emergencia` | **25 folhas** (o tipo manual do frontend declara 13 — a diferença É o achado) |
 | `goals` | **39 folhas**, 6 tipos incl. `NoneType` |
 
@@ -368,6 +369,60 @@ não do tipo simples.
 >    `_BASELINE_MIN` / `_BASELINE_DIVERGENT`, e agora são referenciados direto:
 >    fixture que desaparecer quebra o script em vez de encolher o corpus em
 >    silêncio.
+
+
+## ✅ PR1 entregue em 2026-08-11 — PR #1371
+
+Tipagem **aditiva**, nenhum consumidor muda. Re-medido depois do merge:
+
+| | antes do PR1 | agora |
+|---|---|---|
+| arrays sem `items` | 4 | **0** |
+| objetos opacos | 9 | **7** |
+
+Cada `items` veio do **produtor**, não de observação — o PR0 mediu que 3 dos 4
+arrays vêm vazios no corpus, então tipar por observação seria inventar contrato:
+`build_alertas → list[str]` · `PontosFortesAnalyzer.to_dict` ·
+`DiagnosticoComportamentalAnalyzer.to_dict` · `build_default_tarefas` ·
+`build_default_tarefas_status` · `protecao_patrimonial` → `$ref` para o schema
+que já existia.
+
+`tarefas` fica com `additionalProperties` **aberto** de propósito: `parse_tarefas_md`
+é um segundo produtor que **não foi medido**, e fechar sobre um só quebraria o outro.
+
+### O achado vale mais que a tipagem: o golden nunca validou schema
+
+`_write_e5_config` escrevia `pipeline.json` como **`{}`** ⇒
+`schema_validation.enabled` caía no default `False` ⇒ `_schema_to_validate` fazia
+**short-circuit para `True`**. O `assert validate_dict(...) is True` era **verde
+vacuoso desde sempre**, e só apareceu porque apertar o schema **não derrubava
+teste nenhum**. Cheguei a afirmar *"o produtor passa em strict"* — era falso, e a
+mutação corrigiu.
+
+Corrigido em três camadas: o `config/` temporário recebe os **schemas reais do
+repo**; a validação liga com `mode: strict` **fixo** (não depende de o CI lembrar
+de exportar env var); e os três `jsonschema.validate(payload, schema)` **crus**
+saem em favor de `validate_dict` — o cru **não tem o registry** que resolve `$ref`
+cross-file, então media contrato mais fraco e **diferente** do que o hook de
+escrita aplica.
+
+**Isto dá à lane a terceira perna do gate** que o co-design exigiu
+(`schema × PRODUTOR`). Prova de mutação: `alertas` exigindo `integer` derruba
+**3 testes**; antes da correção, **passava**.
+
+Achado lateral registrado: `validate_dict(payload, "e5_analysis")` — **sem** o
+sufixo `.schema.json` — devolve `True` em silêncio, porque o path não existe e o
+short-circuit assume "nada a validar". **Nome de schema errado = validação que
+não acontece.** Dono: esta lane, no PR3 (o gate de sincronia).
+
+**Ruído de formatação que eu introduzi e corrigi:** o primeiro commit reescreveu
+o JSON com `json.dumps(indent=2)` e **expandiu todos os objetos compactos de uma
+linha** — 1453 linhas de diff para tipar 6 blocos. Refeito com substituição
+cirúrgica: **63 linhas** (+56 −7). Lição: reescrever um JSON inteiro pelo parser
+é um formatter disfarçado.
+
+**Não entrou:** PR2 (`consumo_consciente`, `reserva_emergencia`, `goals`) e PR4 —
+os 7 opacos restantes. PR5 (`warn → strict` global) segue sendo outra lane.
 
 ## Guarda anti-regressão
 
