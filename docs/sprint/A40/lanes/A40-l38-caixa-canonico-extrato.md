@@ -4,7 +4,7 @@ type: lane
 title: "Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l38-caixa-canonico-extrato
 adrs:
@@ -13,7 +13,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/pipeline
   - area/financial-planning

@@ -130,6 +130,7 @@ from pipeline.domain.services.passive_income_calculator import (
 )
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
 from pipeline.domain.services.patrimonio_types import (
+    CaixaContaExcluida,
     CaixaDetalhe,
     MemberIdentity,
     PatrimonioConfig,
@@ -293,7 +294,6 @@ class E5AnalyzerAdapter:
         taxas: dict | None = None,
         cambio_usd_brl: Decimal | float | None = None,
         cambio_eur_brl: Decimal | float | None = None,
-        investment_banks: frozenset[str] | None = None,
         member_resolver: E5MemberResolver | None = None,
         fluxo_enricher: FluxoCaixaEnricher | None = None,
         if_projector: IFProjector | None = None,
@@ -333,15 +333,6 @@ class E5AnalyzerAdapter:
         self._taxas = taxas or {}
         self._cambio_usd_brl = float(cambio_usd_brl) if cambio_usd_brl is not None else None
         self._cambio_eur_brl = float(cambio_eur_brl) if cambio_eur_brl is not None else None
-        self._investment_banks = investment_banks or frozenset(
-            {
-                "btg pactual",
-                "rico",
-                "picpay",
-                "binance",
-                "xp",
-            }
-        )
         self._member_resolver = member_resolver or E5MemberResolver()
         self._fluxo_enricher = fluxo_enricher or FluxoCaixaEnricher()
         self._if_projector = if_projector
@@ -382,7 +373,6 @@ class E5AnalyzerAdapter:
         goals: dict | None = None,
         fiscal: dict | None = None,
         taxas: dict | None = None,
-        institutions: dict | None = None,
         titular_dob: date | None = None,
         conjuge_dob: date | None = None,
         reference_date: date | None = None,
@@ -402,7 +392,6 @@ class E5AnalyzerAdapter:
         ``cenarios_conjuge=None``).
 
         ``taxas`` fornece câmbios USD/EUR para valoração de caixa em ME.
-        ``institutions`` lista bancos de investimento (skip em caixa).
 
         A7.2b: ``fiscal_parameters`` (typed) tem prioridade sobre ``fiscal``
         (dict legacy). ``cambio_usd_brl`` / ``cambio_eur_brl`` (Decimal)
@@ -428,7 +417,6 @@ class E5AnalyzerAdapter:
         )
         reserva_cfg = ReservaEmergenciaConfig.from_scoring_json(scoring or {}, identity)
         score_cfg = FinancialScoreConfig.from_scoring_json(scoring or {})
-        investment_banks = cls._load_investment_banks(institutions)
 
         if_projector: IFProjector | None = None
         if_projector_config_built: IFProjectorConfig | None = None
@@ -473,7 +461,6 @@ class E5AnalyzerAdapter:
             taxas=taxas,
             cambio_usd_brl=cambio_usd_brl,
             cambio_eur_brl=cambio_eur_brl,
-            investment_banks=investment_banks,
             member_resolver=E5MemberResolver(member_cfg),
             fluxo_enricher=FluxoCaixaEnricher(
                 FluxoEnricherConfig.from_configs(categorization=categorization, scoring=scoring)
@@ -553,7 +540,9 @@ class E5AnalyzerAdapter:
 
         # 4. Caixa E3 (shell: lê tudo que está em E3 via store).
         # ADR-245: fallback baseline IRPF quando não há extrato USD/EUR em E3.
-        caixa_total, caixa_detalhes = self._load_caixa_from_e3(store, baseline=patrimonio_raw)
+        caixa_total, caixa_detalhes, caixa_exclusoes = self._load_caixa_from_e3(
+            store, baseline=patrimonio_raw
+        )
 
         # 5. Patrimônio completo (paridade com ``analyze_patrimonio`` legacy).
         patrimonio_full = self._patrimonio.calculate(
@@ -564,6 +553,8 @@ class E5AnalyzerAdapter:
                 caixa_detalhes=caixa_detalhes,
             )
         )
+        # ADR-376 §4 — exclusões de caixa com razão tipada, visíveis no payload.
+        patrimonio_full["caixa_exclusoes"] = [exc.to_dict() for exc in caixa_exclusoes]
 
         # 6a. IRPF + passive income (carteira de renda + TRS efetiva · A8.3).
         # A33.l4: informes anuais carregados 1× — alimentam os buckets
@@ -836,15 +827,6 @@ class E5AnalyzerAdapter:
             conjuge_nome=conjuge_nome,
         )
 
-    @staticmethod
-    def _load_investment_banks(institutions: dict | None) -> frozenset[str]:
-        """Carrega lista de bancos de investimento de ``institutions.json``."""
-        if institutions:
-            banks = institutions.get("investment_banks", []) or []
-            if banks:
-                return frozenset(b.lower() for b in banks if isinstance(b, str))
-        return frozenset({"btg pactual", "rico", "picpay", "binance", "xp"})
-
     # -- Helper de I/O (shell) --
 
     def _load_caixa_from_e3(
@@ -852,14 +834,15 @@ class E5AnalyzerAdapter:
         store: ArtifactStore,
         *,
         baseline: dict | None = None,
-    ) -> tuple[float, list[CaixaDetalhe]]:
+    ) -> tuple[float, list[CaixaDetalhe], list[CaixaContaExcluida]]:
         """Carrega saldos de caixa + moeda estrangeira de todos os E3 artifacts.
 
-        Classificação (paridade com ``_load_caixa_from_e3_saldos`` legado):
+        Classificação (ADR-376 — caixa canônico, sem denylist de instituição):
             - Conta corrente BRL → ``caixa``
             - Moeda estrangeira (USD/EUR) → ``moeda_estrangeira`` (→ BRL via taxas)
-            - Poupança / PJ / corretora / fatura → skip
-            - Banco de investimento → skip
+            - Fatura → não é conta (skip categórico)
+            - Poupança / PJ / saldo desconhecido → fora do caixa com razão
+              tipada (``CaixaContaExcluida``, 1 por conta) — nada some em silêncio
 
         Cambio resolution (A7.5): typed ``self._cambio_usd_brl`` /
         ``self._cambio_eur_brl`` (resolvidos via ``ConfigStore.get_market_rate``)
@@ -890,6 +873,7 @@ class E5AnalyzerAdapter:
             list(store.list_keys("reconcile_transactions")) if hasattr(store, "list_keys") else []
         )
         latest_per_account: dict[tuple[str, str, str, str], tuple[str, dict]] = {}
+        excluidas_por_conta: dict[tuple[str, str, str, str], CaixaContaExcluida] = {}
 
         for key in keys:
             data = store.read("reconcile_transactions", key) or {}
@@ -897,21 +881,32 @@ class E5AnalyzerAdapter:
             banco = (data.get("banco") or "").lower()
             moeda = (data.get("moeda") or "BRL").upper()
             saldo_raw = data.get("saldo_final")
-
-            if saldo_raw is None or data.get("saldo_final_unknown", False):
-                continue
-            if "fatura" in tipo_conta or "poupan" in tipo_conta or "pj" in tipo_conta:
-                continue
-            if banco in self._investment_banks:
-                continue
-
             titular = (data.get("titular") or "").lower()
             account_key = (banco, tipo_conta, moeda, titular)
+
+            if "fatura" in tipo_conta:
+                continue
+            motivo = _motivo_exclusao_caixa(tipo_conta, saldo_raw, data)
+            if motivo is not None:
+                excluidas_por_conta.setdefault(
+                    account_key,
+                    CaixaContaExcluida(
+                        banco=banco, tipo_conta=tipo_conta, moeda=moeda, motivo=motivo
+                    ),
+                )
+                continue
+
             period_end = (data.get("periodo_cobertura") or {}).get("fim") or ""
             tiebreak = (period_end, key)
             prev = latest_per_account.get(account_key)
             if prev is None or tiebreak > prev[0]:
                 latest_per_account[account_key] = (tiebreak, data)
+
+        # Conta com artifact de saldo desconhecido mas outro com saldo válido
+        # entra no caixa — a exclusão só vale se a conta ficou de fora mesmo.
+        excluidas = [
+            exc for k, exc in sorted(excluidas_por_conta.items()) if k not in latest_per_account
+        ]
 
         total_brl = 0.0
         posicoes: list[ExtratoPosicao] = []
@@ -961,7 +956,18 @@ class E5AnalyzerAdapter:
             total_brl += me_total
             detalhes.extend(me_detalhes)
 
-        return round(total_brl, 2), detalhes
+        return round(total_brl, 2), detalhes, excluidas
+
+
+def _motivo_exclusao_caixa(tipo_conta: str, saldo_raw, data: dict) -> str | None:
+    """Razão tipada de exclusão do caixa corrente (ADR-376 §4); ``None`` = elegível."""
+    if "poupan" in tipo_conta:
+        return "poupanca"
+    if "pj" in tipo_conta:
+        return "conta_pj"
+    if saldo_raw is None or data.get("saldo_final_unknown", False):
+        return "saldo_desconhecido"
+    return None
 
 
 # =============================================================================

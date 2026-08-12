@@ -191,6 +191,33 @@ class CaixaDetalhe:
         }
 
 
+# Nenhuma conta some do caixa em silêncio: cada exclusão de domínio remanescente
+# (poupança/PJ pendem de decisão de domínio; saldo desconhecido não é somável)
+# deixa rastro estruturado no payload. Fatura é skip categórico: não é conta.
+@dataclass(frozen=True)
+class CaixaContaExcluida:
+    """Conta E3 fora do caixa corrente, com razão tipada (ADR-376 §4 · ADR-097 D1)."""
+
+    banco: str
+    tipo_conta: str
+    moeda: str
+    motivo: str  # "poupanca" | "conta_pj" | "saldo_desconhecido"
+
+    def format(self) -> str:
+        return (
+            f"conta {self.banco} ({self.tipo_conta}, {self.moeda}) "
+            f"fora do caixa corrente: {self.motivo}"
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "banco": self.banco,
+            "tipo_conta": self.tipo_conta,
+            "moeda": self.moeda,
+            "motivo": self.motivo,
+        }
+
+
 @dataclass(frozen=True)
 class MarketValueResolution:
     """Resolução de valor de mercado para um imóvel (ADR-227 §D4)."""
