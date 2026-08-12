@@ -168,6 +168,9 @@ export const LAYOUT: ReportLayout = {
             "section_id": "V0"
           },
           {
+            "section_id": "perfil"
+          },
+          {
             "section_id": "S1",
             "num": "1"
           },

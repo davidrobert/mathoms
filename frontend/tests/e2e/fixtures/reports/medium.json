@@ -312,7 +312,10 @@
   ],
   "tarefas_status": {},
   "narrativas": {
-    "perfil_familia": "Família com perfil moderado, foco em independência financeira de longo prazo."
+    "perfil_familia": {
+      "left": "<p>Titular Sintético, 44 anos, é engenheiro de software com 20 anos de carreira, atuando como PJ no Simples Nacional.</p><p>Cônjuge Sintético, 39 anos, é enfermeira CLT com salário-base de R$ 8,3k/mês.</p><p>O primeiro filho do casal é peça central no planejamento sucessório da família.</p>",
+      "right": "<p>Plano de vida centrado na consolidação patrimonial e na independência financeira de longo prazo, com perfil moderado.</p><p>Meta de independência financeira com aportes mensais recorrentes e horizonte de 10 anos.</p>"
+    }
   },
   "tributario": {
     "regime": "simples",
