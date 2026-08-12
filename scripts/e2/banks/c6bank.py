@@ -12,6 +12,7 @@ try:
 except ImportError:
     pdfplumber = None
 
+from pipeline.domain.services.money_parsing import parse_valor_monetario
 from scripts.e2.common import (
     BANCO_C6,
     C6_CSV_LAYOUT,  # consumido pelo parser CSV; PDF migrou para text-based regex
@@ -644,10 +645,12 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     full_text,
                 )
                 if saldo_text_match:
-                    raw = saldo_text_match.group(1).replace(".", "").replace(",", ".")
+                    # Saldo em USD/EUR vem no formato US ("2,605.00"); o strip
+                    # incondicional de `.` deflacionava em 1000× (r5/M28).
+                    _saldo = parse_valor_monetario(saldo_text_match.group(1))
                     try:
-                        result["saldo_final"] = float(raw)
-                    except ValueError:
+                        result["saldo_final"] = float(_saldo)
+                    except TypeError:
                         pass
 
             if is_global_usd or is_global_eur:

@@ -131,6 +131,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: money-parsing
+        name: "Parse monetário só no parser canônico (ADR-090 · r5/M28)"
+        entry: python3 dev/check_money_parsing.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: enum-migration-parity
         name: "Membro de enum Python existe nas migrations (ADR-357 §7)"
         entry: python3 dev/check_enum_migration_parity.py

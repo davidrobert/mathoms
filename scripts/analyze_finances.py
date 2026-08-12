@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import scripts.pipeline_common as _pc
+from pipeline.domain.services.money_parsing import valor_monetario_float
 
 _logger = logging.getLogger("mathoms.pipeline.e5")
 
@@ -211,12 +212,11 @@ _KEY_INV_CONJUGE: str = "investimentos_"
 # ============================================================================
 
 
+# `float()` cru devolvia 0,0 para string pt-BR, e os call-sites de extração do plano
+# de vida compensavam com strip manual de `.` — que inflava ISO em 100× (r5/M28).
 def safe_float(val: Any) -> float:
     """Convert value to float, default to 0.0 if fails."""
-    try:
-        return float(val)
-    except (ValueError, TypeError):
-        return 0.0
+    return valor_monetario_float(val)
 
 
 def safe_int(val: Any) -> int:
@@ -300,8 +300,8 @@ def extract_if_target_from_life_plan(life_plan_content: str | None = None) -> fl
     if content:
         match = re.search(r"\*\*R\$\s*([\d.,]+)", content)
         if match:
-            val_str = match.group(1).replace(".", "").replace(",", ".")
-            return safe_float(val_str)
+            # Sem pre-strip: `safe_float` discrimina agrupador de decimal (r5/M28).
+            return safe_float(match.group(1))
 
     raise ValueError(
         "IF meta não encontrada em goals.json nem life_plan_goals.md. Configure 'independencia_financeira.if_meta' em config/goals.json."
@@ -340,8 +340,8 @@ def extract_renda_passiva_from_life_plan(life_plan_content: str | None = None) -
 
     match = re.search(r"Renda passiva atual:\s*R\$\s*([\d.,]+)", content, re.IGNORECASE)
     if match:
-        val_str = match.group(1).replace(".", "").replace(",", ".")
-        return safe_float(val_str)
+        # Sem pre-strip: `safe_float` discrimina agrupador de decimal (r5/M28).
+        return safe_float(match.group(1))
     return 0.0
 
 

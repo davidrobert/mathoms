@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import scripts.pipeline_common as _pc
+from pipeline.domain.services.money_parsing import parse_valor_monetario
 
 # =============================================================================
 # Paths
@@ -183,14 +184,15 @@ def parse_brl(text: str) -> Optional[float]:
         negative = True
         text = text.lstrip("(-").rstrip(")").strip()
 
-    original = text
-    text = text.replace(".", "").replace(",", ".")
-    try:
-        val = float(text)
-        return -val if negative else val
-    except ValueError:
-        log("E2-PARSE", "WARN", f"parse_brl: formato inesperado '{original}'")
+    # Extrato em moeda estrangeira chega no formato US ("2,605.00"); o strip
+    # incondicional de `.` que morava aqui deflacionava esses saldos em 1000×
+    # (r5/M28). O parser canônico decide pelo último separador.
+    parsed = parse_valor_monetario(text)
+    if parsed is None:
+        log("E2-PARSE", "WARN", f"parse_brl: formato inesperado '{text}'")
         return None
+    val = float(parsed)
+    return -val if negative else val
 
 
 # ADR-342 §Emenda A38.l14 — observação estruturada de dormência. Conta linhas

@@ -31,6 +31,7 @@ from pipeline.domain.services.llm_category_hint import (
     map_hint_to_expense_category,
     map_hint_to_income_category,
 )
+from pipeline.domain.services.money_parsing import valor_monetario_float
 from pipeline.domain.services.transaction_classifier_pj import (
     PJ_LABELS,
     RUN_CONTEXT_DISABLED,
@@ -75,18 +76,9 @@ def _coerce_valor(raw) -> float:
     Paridade com ``e4_categorize.process_transactions`` (linha 618-623).
     Valores não-numéricos retornam ``0.0``.
     """
-    if raw is None:
-        return 0.0
-    if isinstance(raw, (int, float)):
-        return float(raw)
-    if isinstance(raw, str):
-        try:
-            # BR: remove thousands separator and swap decimal comma.
-            s = raw.strip().replace(".", "").replace(",", ".")
-            return float(s)
-        except (ValueError, TypeError):
-            return 0.0
-    return 0.0
+    # O strip incondicional de `.` inflava valor ISO em 100× (r5/M28). A paridade
+    # com `categorize_transactions` é preservada: os dois delegam ao mesmo parser.
+    return valor_monetario_float(raw)
 
 
 def _normalize_tipo(tipo_raw, valor: float, tipo_conta: str) -> str | None:

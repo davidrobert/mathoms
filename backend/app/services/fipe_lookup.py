@@ -9,6 +9,8 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal, Optional, Protocol
 
+from pipeline.domain.services.money_parsing import parse_valor_monetario
+
 logger = logging.getLogger("mathoms.fipe.lookup")
 
 
@@ -235,15 +237,8 @@ def _quote_from_entry(fipe_code: str, entry) -> FipeQuote | FipeLookupError:
     )
 
 
+# A guarda daqui já estava correta; delega ao parser canônico para que exista uma
+# implementação só — foram 9 divergentes até a r5/M28.
 def _parse_brl_currency(raw: str) -> Optional[Decimal]:
     """'R$ 17.500,00' → Decimal('17500.00'); '17500.00' (ISO) também aceito."""
-    if not raw:
-        return None
-    cleaned = raw.replace("R$", "").replace(" ", "").strip()
-    if "," in cleaned:
-        # Formato BR: ponto=milhar, vírgula=decimal.
-        cleaned = cleaned.replace(".", "").replace(",", ".")
-    try:
-        return Decimal(cleaned)
-    except Exception:  # noqa: BLE001
-        return None
+    return parse_valor_monetario(raw)
