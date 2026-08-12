@@ -1,5 +1,5 @@
 ---
-id: ADR-378
+id: ADR-380
 type: adr
 title: "Nenhum card afirma ausência a partir de falha de carregamento"
 status: Decidido
@@ -12,7 +12,7 @@ relates_to:
   - "[[ADR-129]]"
 supersedes: []
 superseded_by: []
-aliases: ["ADR 378", "sem base ≠ zero", "indisponível ≠ vazio"]
+aliases: ["ADR 380", "sem base ≠ zero", "indisponível ≠ vazio"]
 tags:
   - type/adr
   - status/decidido
@@ -20,7 +20,7 @@ tags:
   - area/report
 ---
 
-# ADR-378 — Nenhum card afirma ausência a partir de falha de carregamento
+# ADR-380 — Nenhum card afirma ausência a partir de falha de carregamento
 
 ## Contexto
 

@@ -372,8 +372,10 @@
 | ADR-374 | adr | Decidido |  | Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado | `adr/374-sigma-do-cone-if-agrega-premissa-por-alvo-declarado.md` |
 | ADR-375 | adr | Proposto |  | Limite PGBL tem um produtor, e a prescrição exige evidência declarada | `adr/375-limite-pgbl-tem-um-produtor-e-a-prescricao-exige-evidencia-declarada.md` |
 | ADR-376 | adr | Decidido |  | Caixa corrente vem do último extrato reconciliado — sem denylist de instituição | `adr/376-caixa-corrente-vem-do-extrato-sem-denylist-de-instituicao.md` |
-| ADR-378 | adr | Decidido |  | Nenhum card afirma ausência a partir de falha de carregamento | `adr/378-card-nao-afirma-ausencia-a-partir-de-falha-de-carregamento.md` |
+| ADR-377 | adr | Proposto |  | Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa | `adr/377-janela-interativa-e-conjunto-fechado-pre-computado.md` |
+| ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |
 | ADR-379 | adr | Proposto |  | Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório | `adr/379-posicoes-do-card-exposicao-cambial-vem-do-e4-pinado-ao-run.md` |
+| ADR-380 | adr | Decidido |  | Nenhum card afirma ausência a partir de falha de carregamento | `adr/380-card-nao-afirma-ausencia-a-partir-de-falha-de-carregamento.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -879,6 +881,7 @@
 | A40.l40 | lane | open | A40 | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | `sprint/A40/lanes/A40-l40-identidade-institucional-cnpj-raiz.md` |
 | A40.l41 | lane | open | A40 | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k | `sprint/A40/lanes/A40-l41-frescor-cross-pool-fonte-inteira.md` |
 | A40.l42 | lane | open | A40 | Safra IRPF errada por ordenação de string: '31_12_2024' vence '2025' em max() lexicográfico | `sprint/A40/lanes/A40-l42-safra-irpf-ordenacao-de-chave.md` |
+| A40.l44 | lane | open | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
 | A40.l5 | lane | in_progress | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |

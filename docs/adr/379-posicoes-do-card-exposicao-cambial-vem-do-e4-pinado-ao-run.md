@@ -9,7 +9,7 @@ relates_to:
   - "[[ADR-224]]"
   - "[[ADR-215]]"
   - "[[ADR-212]]"
-  - "[[ADR-378]]"
+  - "[[ADR-380]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 379", "fonte das posições do V2", "exposição cambial E4"]

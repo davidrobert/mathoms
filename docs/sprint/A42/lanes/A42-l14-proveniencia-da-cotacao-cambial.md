@@ -8,7 +8,7 @@ priority: P1
 branch_slug: a42-l14-proveniencia-da-cotacao-cambial
 adrs:
   - "[[ADR-359]]"
-  - "[[ADR-378]]"
+  - "[[ADR-380]]"
 tags:
   - type/lane
   - sprint/a42

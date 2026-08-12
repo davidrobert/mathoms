@@ -9,7 +9,7 @@ branch_slug: a42-l13-elegibilidade-de-hedge-e-braco-de-ativos
 adrs:
   - "[[ADR-379]]"
   - "[[ADR-224]]"
-  - "[[ADR-378]]"
+  - "[[ADR-380]]"
 tags:
   - type/lane
   - sprint/a42

@@ -16440,7 +16440,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/cards/exposicao-cambial": {
       "get": {
-        "description": "Retorna exposi\u00e7\u00e3o cambial V2 recomputada read-time com catalog + overrides correntes.\n\n`report_id` pina o c\u00e1lculo ao run daquele relat\u00f3rio \u2014 sem ele o card exibiria a\nexposi\u00e7\u00e3o do run mais recente dentro de um documento de outra data.",
+        "description": "Retorna exposi\u00e7\u00e3o cambial V2 recomputada read-time com catalog + overrides correntes.",
         "operationId": "get_exposicao_cambial_api_v1_workspaces__workspace_id__cards_exposicao_cambial_get",
         "parameters": [
           {
