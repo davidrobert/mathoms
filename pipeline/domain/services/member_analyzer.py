@@ -31,6 +31,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Iterable
 
+from pipeline.domain.services.money_parsing import parse_valor_monetario
+
 # =============================================================================
 # Helpers internos
 # =============================================================================
@@ -41,27 +43,10 @@ def _safe_decimal(val: Any) -> Decimal:
 
     Aceita strings com vírgula como separador decimal (formato BR).
     """
-    if val is None:
-        return Decimal(0)
-    if isinstance(val, Decimal):
-        return val
-    if isinstance(val, (int, float)):
-        try:
-            return Decimal(str(val))
-        except (ValueError, ArithmeticError):
-            return Decimal(0)
-    if isinstance(val, str):
-        s = val.strip().replace("R$", "").strip()
-        if not s:
-            return Decimal(0)
-        # BR: remove milhar (.) e troca decimal (,) → .
-        if "," in s and s.count(",") == 1 and s.rfind(",") > s.rfind("."):
-            s = s.replace(".", "").replace(",", ".")
-        try:
-            return Decimal(s)
-        except (ValueError, ArithmeticError):
-            return Decimal(0)
-    return Decimal(0)
+    # Esta era a ÚNICA das 9 implementações com a guarda correta (r5/M28); virou
+    # o parser canônico. Contrato mantido: ausência devolve 0, não None.
+    parsed = parse_valor_monetario(val)
+    return Decimal(0) if parsed is None else parsed
 
 
 # =============================================================================

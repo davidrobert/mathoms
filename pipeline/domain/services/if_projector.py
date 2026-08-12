@@ -10,6 +10,8 @@ import re
 from dataclasses import dataclass
 from datetime import date
 
+from pipeline.domain.services.money_parsing import valor_monetario_float
+
 _TODAY_FALLBACK = date(2026, 4, 19)
 
 
@@ -25,16 +27,8 @@ def default_if_absent(val, default: float) -> float:
 
 
 def _safe_float(val) -> float:
-    if val is None:
-        return 0.0
-    if isinstance(val, (int, float)):
-        return float(val)
-    if isinstance(val, str):
-        try:
-            return float(val.replace(".", "").replace(",", "."))
-        except ValueError:
-            return 0.0
-    return 0.0
+    # O strip incondicional de `.` inflava valor ISO em 100× (r5/M28).
+    return valor_monetario_float(val)
 
 
 def _safe_int(val) -> int | None:

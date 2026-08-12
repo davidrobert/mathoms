@@ -29,6 +29,7 @@ try:
 except ImportError:
     _pc = None  # Fallback: standalone CLI execution
 
+from pipeline.domain.services.money_parsing import parse_valor_monetario
 
 # ============================================================================
 # LOAD CONFIGURATION FROM JSON FILES
@@ -718,11 +719,12 @@ def process_transactions(
             valor = tx.get("valor", 0.0)
             # Type validation for valor
             if isinstance(valor, str):
-                try:
-                    valor = float(valor.replace(".", "").replace(",", "."))
-                except (ValueError, TypeError):
+                # O strip incondicional de `.` que morava aqui inflava valor ISO
+                # em 100× (r5/M28); `parse_valor_monetario` discrimina pelo agrupador.
+                parsed = parse_valor_monetario(valor)
+                if parsed is None:
                     print(f"  [WARN] valor não-numérico: '{valor}' em {tx.get('descricao', '?')}")
-                    valor = 0.0
+                valor = 0.0 if parsed is None else float(parsed)
             tipo = tx.get("tipo")  # For faturas, may be missing (treat as debito)
             # v5.2: Normalize tipo to remove accents (E2/E3 may store "crédito"/"débito")
             if tipo is not None:

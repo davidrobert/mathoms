@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import scripts.pipeline_common as _pc
+from pipeline.domain.services.money_parsing import valor_monetario_float
 from pipeline.llm.schemas.e16_irpf_full import detect_pj_suffix
 
 # ============================================================================
@@ -91,18 +92,11 @@ GRUPO_MAP = {
 }
 
 
+# O strip incondicional de `.` que morava aqui inflava ISO em 100× (r5/M28):
+# `"243285.37"` → 24328537.0 → `valores_31_12` → patrimônio líquido e IF do hero.
 def safe_float(v: Any) -> float:
-    if v is None:
-        return 0.0
-    if isinstance(v, (int, float)):
-        return float(v)
-    if isinstance(v, str):
-        v = v.replace(".", "").replace(",", ".").strip()
-        try:
-            return float(v)
-        except ValueError:
-            return 0.0
-    return 0.0
+    """Valor do IRPF → float. `valor_brl` chega em ISO; documento, em pt-BR."""
+    return valor_monetario_float(v)
 
 
 def normalize_grupo(grupo: Any) -> str:

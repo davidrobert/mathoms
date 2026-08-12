@@ -20,6 +20,8 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Literal, Mapping
 
+from pipeline.domain.services.money_parsing import valor_monetario_float
+
 logger = logging.getLogger("mathoms.pipeline.patrimonio")
 
 # Período sentinel de fatura sem data (propaga E0→E2→E3); nunca é ano-base.
@@ -37,12 +39,11 @@ _CONSOLIDATED_LIST_KEYS = (
 )
 
 
+# `float()` cru devolvia ``default`` para string pt-BR (`"243.285,37"` → 0,0) — a
+# falha-espelho do ×100 (r5/M28): ali o dinheiro inflava, aqui desaparecia.
 def safe_float(val: Any, default: float = 0.0) -> float:
     """Converte ``val`` para ``float``; retorna ``default`` se falhar."""
-    try:
-        return float(val)
-    except (ValueError, TypeError):
-        return default
+    return valor_monetario_float(val, default=default)
 
 
 @dataclass(frozen=True)
