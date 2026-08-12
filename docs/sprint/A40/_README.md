@@ -291,17 +291,19 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l57]] | O parecer lê o contrato antigo do bloco PGBL: guardrail FP-04 morto e âncora que resolve `null` | P2 | — | aberta 2026-08-12 · handoff da [[A40.l7]] **agravado pelo PR2 da [[A40.l34]]** (#1394) · dono `prompt-engineer` · sobe a P1 se dogfood mostrar retenção espúria |
 | [[A40.l58]] | `schema_validation` warn → strict — o PR5 que a [[A40.l5]] declarou como outra lane | P2 | [[A40.l5]] | aberta 2026-08-12 · `blocked` (exige o drift medido dos PRs da l5) · ADR própria antes do PR · dono `sre-devops` |
 | [[A40.l59]] | A transição para `shipped` ganha gate: `ship_pr` no frontmatter e PR visível no `_README` | P2 | — | aberta 2026-08-12 · executa o gatilho de promoção da skill `lane-closeout` (3ª ocorrência + 10 lanes fora desta tabela na medição) · dono `information-architect` |
+| [[A40.l60]] | Conselho de seguro: cobertura recomendada sem ressalva fiduciária + string que afirma invalidez sem fonte | P1 | — | aberta 2026-08-12 no fecho da sessão S6/FP-010 (#1379/#1390) · funde 2 achados verificados (mesmo produtor, mesma classe fiduciária) · KR-E · PR2 com amarra de entrega parcial atrás da [[A40.l35]] · nasceu `l50`, passou por `l58`, renumerada 2× em rebase (ids tomados em `main`) |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
-> `ls docs/sprint/A40/lanes/*.md` dá **58**; esta tabela lista **58** — sincronizada
+> `ls docs/sprint/A40/lanes/*.md` dá **59**; esta tabela lista **59** — sincronizada
 > em 2026-08-12 (#1415). As **l47/l48/l49** (achados da r4, #1411) entraram na
 > passada do fechamento dos follow-ups, junto com l56–l59; as **6 restantes**
 > (**l38** caixa canônico #1391 · **l39** posição corrente/fiscal · **l40**
 > identidade institucional CNPJ raiz · **l41** frescor cross-pool · **l42** ·
 > **l44** janela declarada #1397/#1398) entraram no #1415, com prioridade e status
 > lidos do frontmatter de cada arquivo. A **l45** já havia entrado junto com as
-> lanes que os follow-ups dela originaram (l53–l55).
+> lanes que os follow-ups dela originaram (l53–l55). A **l60** entrou nesta
+> passada, já sincronizada.
 >
 > **Quem fechar a sprint tem de resolver isto:** lane fora desta tabela é invisível
 > ao **encerramento administrativo** (flip `sprint_status: done` + contador de
@@ -1315,6 +1317,28 @@ achados alegados (registrados como §Fantasmas na lane, para ninguém reabrir).
 | Forma do ramo de prazo ausente na S7 (preservar ao reescrever o §Escopo 1) | [[A40.l29]] | **lane** — a declaração de ausência já foi transferida em `849e372b`; a l29 não pode reintroduzir `fmt_num` cru |
 | `parcela_mensal`/`taxa_juros` sem valor numérico · branch `block` da RL2 inalcançável | `docs/sprint/A26/tracks/taxa-divida-numerica.md` | **track existente** (`ready`, P2) — **não** abrir item novo; as citações da track estão desatualizadas e a evidência que o painel citou é dead code |
 | `custo_medio_pct_aa` sem produtor mata o branch carry-trade | [[ADR-367]] + `rule-ordem-do-plano-por-irreversibilidade` | **já documentado** |
+
+## Inventário de achados órfãos da sessão de 2026-08-11/12 (S6/FP-010 + fix de CI)
+
+Fecho da sessão que entregou #1379 (âncora S6→S9 + gate de vocabulário), #1390
+(remoção da `rule_seguros_insuficientes`, FP-010) e #1385 (venv cache carrega o
+interpretador). Cada achado foi **re-verificado contra `main` em 2026-08-12**
+(9 verificadores independentes; 2 enunciados corrigidos, 1 sinal refutado) e
+triado pela regra da §Pendência 11: **destino é quem já possui o arquivo ou a
+superfície** — só 1 qualifica na exceção (P1 user-facing sem dono vivo) e
+nasceu lane.
+
+| Achado (enunciado corrigido) | Onde está | Destino |
+|---|---|---|
+| Conselho de cobertura sem ressalva fiduciária fora dos cards da S9 (card `pontos_urgentes`, narrativa `_S9_GAP_VIDA`, card `disclaimers` do APP_E sem componente) + string afirma *invalidez* com predicado só de *vida* | [[A40.l60]] | **lane** — funde os 2; PR2 com amarra parcial atrás da [[A40.l35]] |
+| Os extras de test-deps **rebaixam o lock a cada run** (`starlette` 1.3.1→0.52.1, `pytest` 9.0.3→8.4.2, medido em cache-HIT): o gatilho do item 3 da emenda 2026-08-11 disparou e `requirements-test.lock` deixou de ser opcional | [[ADR-254]] §Emenda 2026-08-12 | **emenda datada** — doença e remédio no mesmo lugar (registrar separado garantiria que ninguém pegasse a cura) |
+| Custo do `Ensure venv` em cache-HIT (sinal b da emenda 2026-08-11) | [[ADR-254]] §Emenda 2026-08-12 | **refutado por medição** — mediana 1s (n=14, máx 3s); MISS 4-7s. Registrado para ninguém re-investigar |
+| Composite action para os blocos de venv (7 sítios do pin `setup-uv` em 4 workflows) | [[ADR-254]] §Deferimento datado | **deferido com gatilho** — "próximo bump do pin"; a condição vivia só no corpo do PR #1385, o modo de falha que custou a re-investigação do #658 |
+| Prod builda em Python 3.12 (digest-pinado) e os jobs de teste rodam 3.13; o único job que casa interpretador com prod é o pip-audit — que nunca importa o código. Três docs afirmam "paridade com o Dockerfile" sem qualificar | [[ADR-254]] §Deferimento datado | **deferido com dono** (`sre-devops`) + qualificação das 3 afirmações no mesmo PR |
+| `SuggestionCalloutInline` montado em 2 de 12 seções habilitadas — o caso vivo é a **S3** (2 regras determinísticas ativas, nenhum hospedeiro); a premissa original (S9) venceu com a remoção FP-010 | [[PLAN-suggestion-lifecycle]] §Deferimentos datados | **deferido no plano dono da superfície** + correção da afirmação vencida ("S3 sozinha renderiza 71 cards") |
+| `GATE_BY_SECTION` sem gate de sincronia mapa↔layout ao habilitar seção (enunciado original "falha aberta em GATE_DEFAULT" estava **invertido** — o default 6 é deliberado, documentado e pinado por teste); decisão pendente só sobre S4 | [[PLAN-suggestion-lifecycle]] §Deferimentos datados | **deferido no plano dono da superfície** (P3) |
+| `data.protection_bundle` da S9 calcula sobre zeros / não chega ao payload | [[A40.l35]] (`open`, P1) + [[ADR-240]] §Deferido | **já tinha dono** — ponteiro, nada novo (enunciado "sem produtor" estava errado: o produtor existe) |
+| [[ADR-199]] afirma que o cross-linking via `SuggestionCalloutInline` "é automático nas seções fonte" (medido: 2 de 12) | [[ADR-199]] §Emenda 2026-08-12 | **emenda datada** — afirmação falsa em ADR Decidida orienta agente errado |
 
 ## Pendências de decisão — itens 11-12 (2026-08-03)
 

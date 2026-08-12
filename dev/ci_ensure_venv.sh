@@ -38,9 +38,12 @@ rebuild_if_broken() {
 install_deps() {
   local venv="$1"
   shift
-  # Ordem lock → extras é load-bearing: invertida, o lock rebaixaria o que os
-  # extras trouxeram. `uv pip install` não faz prune (isso é `uv pip sync`),
-  # então rodar o lock sempre não desinstala os extras.
+  # Ordem lock → extras decide quem VENCE, e hoje vencem os extras — medido:
+  # "schemathesis<4" rebaixa starlette 1.3.1 (lock) → 0.52.1 a cada run
+  # (ADR-254 §Emenda 2026-08-12). Não inverta sem requirements-test.lock:
+  # o lock re-subiria starlette acima do que schemathesis declara suportar.
+  # `uv pip install` não faz prune (isso é `uv pip sync`), então rodar o
+  # lock sempre não desinstala os extras.
   uv pip install --python "${venv}/bin/python3" --require-hashes -r requirements.lock
   if [ "$#" -gt 0 ]; then
     uv pip install --python "${venv}/bin/python3" "$@"

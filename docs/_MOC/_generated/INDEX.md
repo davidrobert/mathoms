@@ -905,6 +905,7 @@
 | A40.l58 | lane | blocked | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
 | A40.l59 | lane | open | A40 | A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README | `sprint/A40/lanes/A40-l59-gate-na-transicao-shipped.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
+| A40.l60 | lane | open | A40 | Conselho de seguro: cobertura recomendada sem ressalva fiduciária, e uma string que afirma invalidez sem fonte | `sprint/A40/lanes/A40-l60-ressalva-e-separacao-do-conselho-de-seguro.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
 | A40.l9 | lane | shipped | A40 | Materialização de config run-scoped: input zerado por resolver o run corrente antes do E4 existir | `sprint/A40/lanes/A40-l9-materializacao-config-run-scoped.md` |
