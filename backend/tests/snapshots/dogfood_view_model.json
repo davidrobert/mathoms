@@ -642,16 +642,16 @@
   ],
   "pontos_urgentes_retidos": [],
   "previdencia_pgbl": {
-    "aliquota_marginal": "0.000000",
+    "aliquota_marginal": null,
     "ano_base": null,
-    "aporte_mensal": 11520,
-    "economia_ir_anual": 0,
-    "fonte_recomendacao": "proxy_receita_pj",
-    "limite_pgbl_anual": 138240,
-    "nota": "Base: receita PJ anualizada R$ 36,000, lucro presumido 32%.",
+    "aporte_mensal": null,
+    "economia_ir_anual": null,
+    "fonte_recomendacao": null,
+    "limite_pgbl_anual": null,
+    "nota": "Não há IRPF processado para medir o seu espaço dedutível de PGBL. O limite de 12% incide sobre a renda tributável declarada na pessoa física — pró-labore e demais rendimentos tributáveis —, e lucros distribuídos não entram nessa base. Processe a declaração mais recente para que este número apareça.",
     "nota_degradacao": null,
-    "renda_tributavel_anual": 1152000,
-    "status": "Calculado"
+    "renda_tributavel_anual": null,
+    "status": "N/D"
   },
   "programa_milhas": {},
   "protecao_patrimonial": {
