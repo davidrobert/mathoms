@@ -200,7 +200,7 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 literalmente. Divergência de redação aqui **não** é defeito; divergência de
 `priority` ou de `depends_on` é.
 
-> **O limite dessa licença, medido em 2026-08-12 (#1422):** rótulo curto é
+> **O limite dessa licença, medido em 2026-08-12 (#1423):** rótulo curto é
 > *abreviação* do título da lane, não *outro assunto*. A linha da [[A40.l33]] dizia
 > "Cache de citação por conteúdo, não por posição" — tema de lane nenhuma — enquanto
 > o arquivo dela é contraste de texto sobre tint. Foi escrita de memória (#1372) com
@@ -265,7 +265,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l30]] | Ancorabilidade do exec context: o invariante que o #1004 furou sem teste vermelho | P1 | — | causa viva pós-[[A40.l16]] · **instrumento, US$ 0** · gateia a [[A40.l8]] · co-design `prompt-engineer` |
 | [[A40.l31]] | Gerador ancora em vez de digitar: correção guiada pelo mecanismo | P2 | l30 | par da l30 · **gasta** (re-eval ~US$ 26, owner-gated) · `planned` |
 | [[A40.l32]] | Proveniência do executor: qual código computou este run | P1 | — | promovida da [[A42]] · [[ADR-362]] · [[ADR-363]] · instrumento, sem custo de API |
-| [[A40.l33]] | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | P2 | — | `in_progress` · [[ADR-372]] (#1323) · §Deferido tem 3 itens datados; o nº 3 (`report_palette` espelha o mockup ou o uso? [[ADR-117]] na mesa) é o que a [[A40.l46]] item 2 executa · **título corrigido em 2026-08-12 (#1422)**: a linha dizia "Cache de citação por conteúdo, não por posição", assunto de nenhuma lane — foi escrita de memória no #1372 quando o arquivo `A40-l33-contraste-texto-sobre-tint.md` já existia |
+| [[A40.l33]] | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | P2 | — | `in_progress` · [[ADR-372]] (#1323) · §Deferido tem 3 itens datados; o nº 3 (`report_palette` espelha o mockup ou o uso? [[ADR-117]] na mesa) é o que a [[A40.l46]] item 2 executa · **título corrigido em 2026-08-12 (#1423)**: a linha dizia "Cache de citação por conteúdo, não por posição", assunto de nenhuma lane — foi escrita de memória no #1372 quando o arquivo `A40-l33-contraste-texto-sobre-tint.md` já existia |
 | [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | `in_progress` · **fora das ondas** · [[ADR-375]] `Proposto` escrita 2026-08-11 (#1377) · PR1 (faixa marginal) em #1383 · supersede parcial [[ADR-196]] + [[ADR-277]] · 3 PRs a seguir · exceção da cláusula 2 (ver §Fora do sprint) |
 | [[A40.l35]] | Bundle de proteção sobre insumos reais (5 zeros + 2 `False`) | P1 | — | spin-off da [[A40.l7]] 2026-08-11 · Onda 2 · [[A40.l11]] é consumidora |
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
