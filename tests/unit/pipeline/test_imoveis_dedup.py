@@ -403,3 +403,65 @@ class TestResolveDedupWinnerByPropertyId:
         snapshot = [dict(a), dict(b)]
         resolve_dedup_winner_by_property_id([a, b])
         assert [a, b] == snapshot
+
+
+class TestMergeSameCanonical:
+    """ADR-376 — grupos de canonical idêntico fundem; unidades distintas não."""
+
+    def _row(self, pid: str, canonical: str, descricao: str, codigo: str = "12") -> dict:
+        return _entry(
+            proprietario="titular exemplo",
+            valor_31_12=100000.0,
+            property_id=pid,
+            endereco_canonical=canonical,
+            codigo_rfb=codigo,
+            descricao=descricao,
+        )
+
+    def test_rows_do_mesmo_imovel_fundem_apesar_de_pids_distintos(self):
+        rows = [
+            self._row("pid-a", "mat:99999", "CASA - VIA EXEMPLO 100"),
+            self._row("pid-b", "mat:99999", "CASA - VIA EXEMPLO 100"),
+            self._row("pid-c", "mat:99999", "CASA - VIA EXEMPLO 100"),
+        ]
+        assert dedup_imoveis_consolidados(rows).count_after == 1
+
+    def test_unidades_distintas_do_mesmo_predio_nao_fundem(self):
+        """Anti-over-merge: o canonical não carrega complemento."""
+        rows = [
+            self._row("pid-a", "via exemplo 100", "APTO 81 - VIA EXEMPLO 100", codigo="11"),
+            self._row("pid-b", "via exemplo 100", "APTO 92 - VIA EXEMPLO 100", codigo="11"),
+        ]
+        assert dedup_imoveis_consolidados(rows).count_after == 2
+
+    def test_mesmo_complemento_funde(self):
+        rows = [
+            self._row("pid-a", "via exemplo 100", "APTO 81 - VIA EXEMPLO 100", codigo="11"),
+            self._row("pid-b", "via exemplo 100", "AP 81 - VIA EXEMPLO 100", codigo="11"),
+        ]
+        assert dedup_imoveis_consolidados(rows).count_after == 1
+
+    def test_codigos_especificos_conflitantes_nao_fundem(self):
+        rows = [
+            self._row("pid-a", "via exemplo 100", "CASA - VIA EXEMPLO 100", codigo="12"),
+            self._row("pid-b", "via exemplo 100", "APT - VIA EXEMPLO 100", codigo="11"),
+        ]
+        assert dedup_imoveis_consolidados(rows).count_after == 2
+
+    def test_passe_e_idempotente(self):
+        rows = [
+            self._row("pid-a", "mat:99999", "CASA - VIA EXEMPLO 100"),
+            self._row("pid-b", "mat:99999", "CASA - VIA EXEMPLO 100"),
+        ]
+        primeira = dedup_imoveis_consolidados(rows).imoveis
+        assert dedup_imoveis_consolidados(primeira).count_after == 1
+
+    def test_winner_map_aponta_todas_as_perdedoras_para_o_mesmo_vencedor(self):
+        rows = [
+            self._row("pid-a", "mat:99999", "CASA - VIA EXEMPLO 100"),
+            self._row("pid-b", "mat:99999", "CASA - VIA EXEMPLO 100"),
+            self._row("pid-c", "mat:99999", "CASA - VIA EXEMPLO 100"),
+        ]
+        winners = resolve_dedup_winner_by_property_id(rows)
+        assert len(set(winners.values())) == 1
+        assert set(winners) == {"pid-a", "pid-b", "pid-c"}
