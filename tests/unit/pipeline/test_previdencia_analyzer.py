@@ -88,52 +88,43 @@ class TestConfig:
 # =============================================================================
 
 
-class TestNoData:
-    def test_returns_nd_when_no_pj_income(self):
-        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=0))
+class TestSemCapacidadeDeclarada:
+    """Sem IRPF processado não há espaço dedutível a publicar (ADR-375 D3/D4).
+
+    Estas asserções substituem `TestCalculation`, que media o proxy
+    `receita_pj × 32%`. O proxy não estava descalibrado: aproximava o teto da
+    distribuição ISENTA, que é o complemento da base PGBL.
+    """
+
+    def test_prescricao_ausente_nao_zerada(self):
+        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000, num_months=12))
 
         assert r.status == "N/D"
-        assert r.renda_tributavel_anual == 0.0
-        assert r.limite_pgbl_anual == 0.0
-        assert r.aporte_mensal == 0.0
-        assert r.economia_ir_anual == 0.0
+        # Ausente, não `0.0`: "aporte sugerido R$ 0" continua sendo conselho.
+        assert r.aporte_mensal is None
+        assert r.economia_ir_anual is None
+        assert r.limite_pgbl_anual is None
+        assert r.renda_tributavel_anual is None
 
+    def test_receita_pj_nao_produz_mais_recomendacao(self):
+        """Regressão da polaridade: receita PJ alta era o gatilho da prescrição."""
+        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=5_000_000, num_months=12))
 
-# =============================================================================
-# Cálculo completo
-# =============================================================================
+        assert r.status == "N/D"
+        assert r.aporte_mensal is None
 
+    def test_nota_nomeia_o_insumo_que_falta(self):
+        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=0))
 
-class TestCalculation:
-    def test_lucro_presumido_applied_to_annualized_pj(self):
-        # 12 meses de receita PJ, 10k cada → 120k ano
-        # Lucro presumido 32% → 38.4k base tributável
-        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000, num_months=12))
+        assert "IRPF" in r.nota
+        assert "lucros distribuídos não entram" in r.nota
 
-        assert r.renda_tributavel_anual == pytest.approx(38_400.0)
-
-    def test_anualiza_quando_menos_de_12_meses(self):
-        # 6 meses, PJ total 60k → anualizado 120k → tributável 38.4k
-        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=60_000, num_months=6))
-
-        assert r.renda_tributavel_anual == pytest.approx(38_400.0)
-
-    def test_limite_pgbl_eh_12pct_da_base(self):
-        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000, num_months=12))
-
-        # 12% de 38.4k = 4.608
-        assert r.limite_pgbl_anual == pytest.approx(4_608.0)
-
-    def test_aporte_mensal_eh_limite_div_12(self):
-        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000, num_months=12))
-
-        assert r.aporte_mensal == pytest.approx(r.limite_pgbl_anual / 12)
-
-    def test_status_calculado_com_receita_pj(self):
+    def test_fonte_recomendacao_nao_afirma_proxy(self):
+        """O valor `proxy_receita_pj` saiu do vocabulário — inclusive como default."""
         r = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000))
 
-        assert r.status == "Calculado"
-        assert "PJ anualizada" in r.nota
+        assert r.fonte_recomendacao is None
+        assert PrevidenciaAnalysis(status="N/D", nota="x").fonte_recomendacao is None
 
 
 # =============================================================================
@@ -143,7 +134,7 @@ class TestCalculation:
 
 class TestAliquotaMarginal:
     def test_usa_fallback_quando_sem_faixas(self):
-        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000))
+        r = PrevidenciaAnalyzer().analyze({}, capacidade_irpf=_capacidade("4608"))
 
         # Default fallback 7.5%.
         assert r.aliquota_marginal == 7.5
@@ -164,8 +155,8 @@ class TestAliquotaMarginal:
                 }
             }
         )
-        # Base tributável 38,4k: acima de 24k, dentro da faixa cujo teto é 48k.
-        r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
+        # Renda declarada 38,4k: acima de 24k, dentro da faixa cujo teto é 48k.
+        r = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("4608"))
 
         assert r.aliquota_marginal == 15.0
 
@@ -185,7 +176,7 @@ class TestAliquotaMarginal:
             }
         )
         with pytest.raises(TabelaProgressivaInvalida, match="não tem faixa terminal"):
-            PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
+            PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("4608"))
 
     @pytest.mark.parametrize(
         "base_anual,esperado",
@@ -236,8 +227,8 @@ class TestAliquotaMarginal:
                 }
             }
         )
-        # Base 38.4k > 24k → última faixa (sem teto) 27.5%.
-        r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
+        # Renda 38.4k > 24k → última faixa (sem teto) 27.5%.
+        r = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("4608"))
 
         assert r.aliquota_marginal == 27.5
 
@@ -252,10 +243,10 @@ class TestEconomiaIR:
         cfg = PrevidenciaConfig.from_fiscal(
             {"irpf_tabela_progressiva": {"faixas": [{"limite_anual": None, "aliquota_pct": 27.5}]}}
         )
-        r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
+        r = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=_capacidade("4608"))
 
-        # limite 4608 × 27.5% ≈ 1267.2
-        assert r.economia_ir_anual == pytest.approx(1_267.2, rel=1e-3)
+        # capacidade restante 4608 × 27.5% = 1267.2 — exato, sem tolerância de float
+        assert r.economia_ir_anual == Decimal("1267.2")
 
 
 # =============================================================================
@@ -299,17 +290,17 @@ def _capacidade(restante: str, renda: str = "38400", ano: int = 2024) -> Capacid
 
 
 class TestReconciliacaoIRPF:
+    # O braço que comparava contra o teto bruto do proxy saiu junto com o proxy
+    # (ADR-375 D3). O invariante é sobre o valor PUBLICADO, não sobre a
+    # diferença entre dois produtores — e o teto bruto vira constante local.
     def test_inv_prev_3_recomenda_capacidade_restante_nao_teto_bruto(self):
-        """INV-PREV-3: com já_aportado > 0, recomenda a capacidade RESTANTE,
-        nunca o teto bruto que o proxy de receita PJ devolveria."""
-        proxy = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000, num_months=12))
-        recon = PrevidenciaAnalyzer().analyze(
-            _fluxo(pj=120_000, num_months=12), capacidade_irpf=_capacidade("608")
-        )
+        """INV-PREV-3: com já_aportado > 0, recomenda a capacidade RESTANTE."""
+        teto_bruto = 38_400.0 * 0.12
+        recon = PrevidenciaAnalyzer().analyze({}, capacidade_irpf=_capacidade("608"))
 
-        assert proxy.limite_pgbl_anual == pytest.approx(4_608.0)  # teto bruto
-        assert recon.limite_pgbl_anual == pytest.approx(608.0)  # restante real
-        assert recon.aporte_mensal * 12 <= recon.limite_pgbl_anual + 1e-6
+        assert recon.limite_pgbl_anual == Decimal("608")  # restante real
+        assert float(recon.limite_pgbl_anual) < teto_bruto
+        assert recon.aporte_mensal * 12 <= recon.limite_pgbl_anual
         assert recon.fonte_recomendacao == "irpf_capacidade"
 
     def test_inv_prev_3_no_teto_recomenda_zero(self):
@@ -328,12 +319,13 @@ class TestReconciliacaoIRPF:
 
         assert recon.economia_ir_anual == pytest.approx(275.0)
 
-    def test_sem_capacidade_mantem_proxy(self):
-        """Sem IRPF do titular → fallback ao proxy de receita PJ, sem mudança."""
+    def test_sem_capacidade_publica_ausencia(self):
+        """Era `test_sem_capacidade_mantem_proxy` — o contrato inverteu (ADR-375 D3)."""
         r = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000), capacidade_irpf=None)
 
-        assert r.fonte_recomendacao == "proxy_receita_pj"
-        assert r.limite_pgbl_anual == pytest.approx(4_608.0)
+        assert r.status == "N/D"
+        assert r.fonte_recomendacao is None
+        assert r.limite_pgbl_anual is None
 
 
 class TestINVPREV2:

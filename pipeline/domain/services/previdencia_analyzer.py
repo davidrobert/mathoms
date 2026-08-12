@@ -113,28 +113,38 @@ class CapacidadePgblIRPF:
     pgbl_status: PgblStatus | None = None  # RV2-03: ramifica a nota (simplificado ≠ teto)
 
 
+# `Decimal` em memória, `float` no wire: `to_legacy_dict` É a fronteira de
+# serialização do payload E5 (ADR-090 §consequências).
+def _round_ou_ausente(valor: Decimal | None) -> float | None:
+    return None if valor is None else float(round(valor, 2))
+
+
+# Os campos prescritivos nascem AUSENTES, não zerados (ADR-375 D4). `R$ 0` como
+# "aporte sugerido" continua sendo conselho, e um default numérico faz o card
+# voltar a publicar assim que alguém mudar o `def` — gate de call-site não
+# protege o default.
 @dataclass(frozen=True)
 class PrevidenciaAnalysis:
     status: str  # "Calculado" | "N/D"
     nota: str
-    renda_tributavel_anual: float
-    limite_pgbl_anual: float
-    aporte_mensal: float
-    aliquota_marginal: float
-    economia_ir_anual: float
-    fonte_recomendacao: str = "proxy_receita_pj"  # | "irpf_capacidade" (ADR-277)
-    ano_base: int | None = None  # ADR-305 D4: ano-base fiscal do cálculo (None no proxy)
+    renda_tributavel_anual: Decimal | None = None
+    limite_pgbl_anual: Decimal | None = None
+    aporte_mensal: Decimal | None = None
+    aliquota_marginal: float | None = None  # percentage, não money
+    economia_ir_anual: Decimal | None = None
+    fonte_recomendacao: str | None = None  # "irpf_capacidade" (ADR-277/375)
+    ano_base: int | None = None  # ADR-305 D4: ano-base fiscal do cálculo
     nota_degradacao: str | None = None  # ADR-305 D3
 
     def to_legacy_dict(self) -> dict:
         return {
             "status": self.status,
             "nota": self.nota,
-            "renda_tributavel_anual": round(self.renda_tributavel_anual, 2),
-            "limite_pgbl_anual": round(self.limite_pgbl_anual, 2),
-            "aporte_mensal": round(self.aporte_mensal, 2),
+            "renda_tributavel_anual": _round_ou_ausente(self.renda_tributavel_anual),
+            "limite_pgbl_anual": _round_ou_ausente(self.limite_pgbl_anual),
+            "aporte_mensal": _round_ou_ausente(self.aporte_mensal),
             "aliquota_marginal": self.aliquota_marginal,
-            "economia_ir_anual": round(self.economia_ir_anual, 2),
+            "economia_ir_anual": _round_ou_ausente(self.economia_ir_anual),
             "fonte_recomendacao": self.fonte_recomendacao,
             "ano_base": self.ano_base,
             "nota_degradacao": self.nota_degradacao,
@@ -147,6 +157,20 @@ class PrevidenciaAnalysis:
 
 
 _DEFAULT_NUM_MONTHS = 12
+
+_NOTA_SEM_CAPACIDADE = (
+    "Não há IRPF processado para medir o seu espaço dedutível de PGBL. O limite de "
+    "12% incide sobre a renda tributável declarada na pessoa física — pró-labore e "
+    "demais rendimentos tributáveis —, e lucros distribuídos não entram nessa base. "
+    "Processe a declaração mais recente para que este número apareça."
+)
+
+
+# Nomeia o insumo que falta, não a nossa incapacidade — e a ausência é ausência,
+# não zero: `R$ 0` num campo chamado "aporte sugerido" continua sendo conselho.
+def _sem_capacidade_declarada() -> PrevidenciaAnalysis:
+    return PrevidenciaAnalysis(status="N/D", nota=_NOTA_SEM_CAPACIDADE)
+
 
 # ADR-305 D3 (co-design financial-planner): a capacidade lida do IRPF é
 # retrospectiva — o número recomenda o ano-calendário CORRENTE via proxy.
@@ -211,76 +235,25 @@ class PrevidenciaAnalyzer:
         fluxo: dict[str, Any],
         capacidade_irpf: CapacidadePgblIRPF | None = None,
     ) -> PrevidenciaAnalysis:
-        """Recomenda aporte PGBL. Com IRPF do titular, ancora na capacidade
-        restante (já líquida do aportado, INV-PREV-3); sem IRPF, usa o proxy
-        de receita PJ (ADR-277)."""
-        if capacidade_irpf is not None:
-            return self._analyze_via_irpf(capacidade_irpf)
-        return self._analyze_via_proxy(fluxo)
+        """Espaço PGBL a partir da capacidade declarada no IRPF; sem ela, ausência."""
+        if capacidade_irpf is None:
+            return _sem_capacidade_declarada()
+        return self._analyze_via_irpf(capacidade_irpf)
 
     def _analyze_via_irpf(self, cap: CapacidadePgblIRPF) -> PrevidenciaAnalysis:
-        restante = max(0.0, float(cap.restante_anual))
-        renda_trib = float(cap.renda_tributavel_anual)
+        restante = max(Decimal("0"), cap.restante_anual)
         aliquota = self._aliquota_para(int(cap.renda_tributavel_anual * 100))
         return PrevidenciaAnalysis(
             status="Calculado",
-            nota=_nota_capacidade_irpf(cap, restante),
-            renda_tributavel_anual=renda_trib,
+            nota=_nota_capacidade_irpf(cap, float(restante)),
+            renda_tributavel_anual=cap.renda_tributavel_anual,
             limite_pgbl_anual=restante,
-            aporte_mensal=restante / 12.0,
+            aporte_mensal=restante / Decimal("12"),
             aliquota_marginal=aliquota,
-            economia_ir_anual=restante * (aliquota / 100.0),
+            economia_ir_anual=restante * Decimal(str(aliquota)) / Decimal("100"),
             fonte_recomendacao="irpf_capacidade",
             ano_base=cap.ano_base,
             nota_degradacao=cap.nota_degradacao,
-        )
-
-    def _analyze_via_proxy(self, fluxo: dict) -> PrevidenciaAnalysis:
-        # ADR-330: renda PJ vem do bloco canônico receita_por_natureza (fallback proxy;
-        # o path canônico é _analyze_via_irpf com renda tributável).
-        receita_pj = _safe_float(fluxo.get("receita_por_natureza", {}).get("receita_pj", 0))
-        num_months = len(
-            (fluxo.get("receita_despesa_mensal_detalhado", {}) or {}).get("labels", []) or []
-        )
-        if num_months == 0:
-            num_months = _DEFAULT_NUM_MONTHS
-
-        receita_pj_anual = receita_pj * (12 / num_months) if num_months > 0 else 0
-
-        cfg = self._config
-        lp_factor = cfg.lucro_presumido_pct / 100.0
-        pgbl_factor = cfg.pgbl_limite_pct / 100.0
-
-        renda_tributavel = receita_pj_anual * lp_factor
-
-        if renda_tributavel <= 0:
-            return PrevidenciaAnalysis(
-                status="N/D",
-                nota="Sem receita PJ identificada para cálculo de PGBL.",
-                renda_tributavel_anual=0.0,
-                limite_pgbl_anual=0.0,
-                aporte_mensal=0.0,
-                aliquota_marginal=0.0,
-                economia_ir_anual=0.0,
-            )
-
-        limite_pgbl = renda_tributavel * pgbl_factor
-
-        aliquota_marginal = self._aliquota_para(_to_cents(renda_tributavel))
-        economia_ir = limite_pgbl * (aliquota_marginal / 100.0)
-
-        lp_pct_display = int(cfg.lucro_presumido_pct)
-        return PrevidenciaAnalysis(
-            status="Calculado",
-            nota=(
-                f"Base: receita PJ anualizada R$ {receita_pj_anual:,.0f}, "
-                f"lucro presumido {lp_pct_display}%."
-            ),
-            renda_tributavel_anual=renda_tributavel,
-            limite_pgbl_anual=limite_pgbl,
-            aporte_mensal=limite_pgbl / 12.0,
-            aliquota_marginal=aliquota_marginal,
-            economia_ir_anual=economia_ir,
         )
 
     def _aliquota_para(self, base_calculo_anual_brl_cents: int) -> float:
