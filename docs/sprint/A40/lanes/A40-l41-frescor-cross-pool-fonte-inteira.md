@@ -4,7 +4,7 @@ type: lane
 title: "Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l41-frescor-cross-pool-fonte-inteira
 adrs:
@@ -14,7 +14,7 @@ depends_on: ["[[A40.l42]]"]
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/pipeline
   - area/financial-planning
@@ -70,3 +70,16 @@ provável de ~R$ 204k no bruto (~5,1%).
   `financial-planner`).
 - Datas: `data_referencia` sempre `YYYY-MM-DD` no produtor; gate rejeita
   `YYYY-MM`/`YYYYMM`/int.
+
+## PR-a (observacional) entregue — 2026-08-12 (PR #1419)
+
+`fonte_precedencia_arbiter` compara fontes inteiras por célula
+(instituição, membro) na ordem data-alvo → proximidade sem look-ahead →
+qualidade; publica veredito + contradições em `patrimonio.frescor_fontes`
+(sem valor monetário) e **não altera** nenhum número do PL — contrato com
+teste próprio sobre o caso real do dogfood (C6 2025-03-31 × IRPF 31/12/2025).
+
+**Gate de saída para o PR-b** (o observacional não fecha a lane): relatório
+veredito×atual por célula sobre o dogfood real, decisão de produto sobre
+`top_ativos` da fonte não adotada (`product-designer` + `financial-planner`),
+e só então o flip do consumo com rebaseline isolado e manifesto.

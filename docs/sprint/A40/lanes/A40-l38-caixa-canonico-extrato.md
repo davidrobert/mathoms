@@ -3,8 +3,10 @@ id: A40.l38
 type: lane
 title: "Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê"
 sprint: A40
+ship_date: "2026-08-12"
+ship_pr: 1391
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a40-l38-caixa-canonico-extrato
 adrs:
@@ -13,7 +15,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/pipeline
   - area/financial-planning
@@ -60,3 +62,22 @@ PR único (P0):
   de rebaseline.
 - Nenhuma conta some do caixa sem razão tipada emitida.
 - Suíte pipeline + backend verdes; manifesto de rebaseline no corpo do PR.
+
+## Fechamento — 2026-08-12 (PR #1391)
+
+Entregue: denylist `_investment_banks` deletada; caixa corrente vem do último
+extrato reconciliado por conta, contado 1×; exclusões remanescentes
+(poupança/PJ/saldo desconhecido) viram `CaixaContaExcluida` em
+`patrimonio.caixa_exclusoes`; gate de conservação exclusiva + tripwire de
+posição cash-like em `tests/test_e5_conservation_invariants.py` (polaridade
+provada por stash: os testes falham no código antigo). [[ADR-376]] flipada
+para `Decidido`.
+
+**Medição do mecanismo** (fixture): banco de corretora sem posição E4 entra no
+caixa. **Medição da instância** (dogfood, run `ee124571`): PicPay R$ 53.756,56
++ Rico R$ 35.365,24 = **R$ 89.121,80** que estavam fora do bruto — a
+verificação no run novo fica com o `pipeline-review` da próxima onda.
+
+**Deferido nesta lane** (datado, com dono): poupança e conta PJ no patrimônio
+corrente — `bradesco_extratopoupanca` R$ 4.359,28 segue fora do PL; é decisão
+de domínio (`financial-planner`), retomada junto da [[A40.l41]].

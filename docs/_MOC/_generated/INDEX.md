@@ -881,12 +881,12 @@
 | A40.l35 | lane | open | A40 | Bundle de proteção sobre insumos reais: a S9 calcularia cobertura e ITCMD sobre zeros | `sprint/A40/lanes/A40-l35-bundle-de-protecao-sobre-insumos-reais.md` |
 | A40.l36 | lane | open | A40 | Double-count potencial na base da cascata fiscal da S8: pró-labore pode entrar duas vezes | `sprint/A40/lanes/A40-l36-double-count-na-base-da-cascata-s8.md` |
 | A40.l37 | lane | blocked | A40 | A tabela de IR tem três fontes, e uma é hardcoded contra a ADR-135 | `sprint/A40/lanes/A40-l37-tabela-de-ir-tem-tres-fontes.md` |
-| A40.l38 | lane | in_progress | A40 | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | `sprint/A40/lanes/A40-l38-caixa-canonico-extrato.md` |
-| A40.l39 | lane | open | A40 | Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal | `sprint/A40/lanes/A40-l39-posicao-visoes-corrente-fiscal.md` |
+| A40.l38 | lane | shipped | A40 | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | `sprint/A40/lanes/A40-l38-caixa-canonico-extrato.md` |
+| A40.l39 | lane | in_progress | A40 | Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal | `sprint/A40/lanes/A40-l39-posicao-visoes-corrente-fiscal.md` |
 | A40.l4 | lane | shipped | A40 | Entrega de narrativas de seção + re-triagem dos 7 achados que passam a aparecer | `sprint/A40/lanes/A40-l4-entrega-narrativas-secao.md` |
-| A40.l40 | lane | open | A40 | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | `sprint/A40/lanes/A40-l40-identidade-institucional-cnpj-raiz.md` |
-| A40.l41 | lane | open | A40 | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k | `sprint/A40/lanes/A40-l41-frescor-cross-pool-fonte-inteira.md` |
-| A40.l42 | lane | open | A40 | Safra IRPF errada por ordenação de string: '31_12_2024' vence '2025' em max() lexicográfico | `sprint/A40/lanes/A40-l42-safra-irpf-ordenacao-de-chave.md` |
+| A40.l40 | lane | shipped | A40 | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | `sprint/A40/lanes/A40-l40-identidade-institucional-cnpj-raiz.md` |
+| A40.l41 | lane | in_progress | A40 | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k | `sprint/A40/lanes/A40-l41-frescor-cross-pool-fonte-inteira.md` |
+| A40.l42 | lane | shipped | A40 | Safra IRPF errada: baseline pegajoso — E1.5c re-consolida o próprio output do run anterior e ignora o E1.5 fresco | `sprint/A40/lanes/A40-l42-safra-irpf-baseline-pegajoso.md` |
 | A40.l43 | lane | shipped | A40 | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | `sprint/A40/lanes/A40-l43-perfil-familia-prosa-sobre-pessoas.md` |
 | A40.l44 | lane | in_progress | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
 | A40.l45 | lane | shipped | A40 | Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro | `sprint/A40/lanes/A40-l45-clipping-horizontal-caixa-estreita.md` |
