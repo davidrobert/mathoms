@@ -54,10 +54,12 @@ tags:
 5. **O vazamento atinge 3 superfícies, não só o `/acao`** — as pendentes são
    consultadas **live** (`status=Pendente`) também dentro do relatório:
    cards "Promover para ação" por seção (`SuggestionCalloutInline`,
-   `frontend/src/components/report/sections/SuggestionCallout.tsx:79` — S3
-   sozinha renderiza 71 cards hoje) e a seção "Próximos passos"
-   (`SuggestionCalloutSummary`, mesma file L157 — lista todas as 158
-   cross-section), ambas sem cap. A seção "Plano de Ação" do relatório
+   `frontend/src/components/report/sections/SuggestionCallout.tsx:79` —
+   ~~S3 sozinha renderiza 71 cards hoje~~ **correção 2026-08-12: falso — o
+   inline só é montado em S2 e S7; os 71 pendentes de S3 nunca tiveram
+   hospedeiro inline**, ver §Deferimentos datados 2026-08-12) e a seção
+   "Próximos passos" (`SuggestionCalloutSummary`, mesma file L157 — lista
+   todas as 158 cross-section), ambas sem cap. A seção "Plano de Ação" do relatório
    (`PlanoDeAcaoSection`) renderiza o aggregate `decisions` (ADR-136), **não**
    `suggestions` — 3 linhas no dogfood, fora do escopo deste plano.
 
@@ -316,6 +318,30 @@ janela é logada item a item para deixar rastro auditável.
 - **Timeline de histórico de pareceres** ("recomendava X em mai/26, atualizado
   para Y em ago/26") — auditoria fiduciária fora do inbox; `superseded_by_run_id`
   + `pipeline_run_id` (F5) são o substrato que ela vai consumir.
+
+### Deferimentos datados (2026-08-12 — verificação da sessão S6/FP-010)
+
+- **`SuggestionCalloutInline` montado em 2 de 12 seções habilitadas (S2, S7)**
+  — o caso vivo é a **S3**: 2 regras determinísticas ativas
+  (`alocacao_fora_alvo`, `concentracao_instituicao`) e nenhum hospedeiro
+  inline; a sugestão aparece só no "Próximos passos" e no `/acao`. A premissa
+  original do achado (S9, via sugestão de seguros do #1379) **venceu** — a
+  regra foi removida em FP-010 ([[ADR-161]] §Emenda) e hoje nenhuma regra
+  determinística emite S9. Decidir cobertura é decisão de produto por seção
+  (`product-designer` + `financial-planner`), não varredura mecânica — a
+  afirmação de [[ADR-199]] de que o cross-linking "é automático nas seções
+  fonte" foi corrigida por emenda em 2026-08-12. P2.
+- **`GATE_BY_SECTION` (`suggestionOrdering.ts`) não tem gate de sincronia
+  mapa↔layout** — habilitar seção nova no YAML manda as sugestões dela,
+  silenciosamente, para o `GATE_DEFAULT`. Reenunciado após verificação: o
+  default 6 é **deliberado, documentado e pinado por teste**
+  (`suggestionOrdering.test.ts` asserta `S_parecer → 6`); "falha aberta" do
+  enunciado original estava invertido — o default manda para o **fim** da
+  fila e a severidade precede o gate. O gate tri-camada de vocabulário
+  (`tests/unit/pipeline/test_suggestion_rules.py`) para na borda
+  Python/JSON-schema e não alcança o mapa TS. A única ausência com substância
+  é **S4** (Real Estate — hoje ranqueia atrás de fiscal); S10/S_parecer/
+  plano_de_acao são síntese/meta, fim da fila é defensável. P3.
 
 ## 4. Dependências e paralelismo
 

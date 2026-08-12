@@ -5,7 +5,7 @@ title: "Parecer do planejador (E6) supersede review_finances — aggregate Plann
 status: Decidido
 phase: "Ato 1 — fundação arquitetural do PLANNER_REVIEW"
 date: "2026-05-13"
-amended_at: ["2026-06-12", "2026-08-03"]
+amended_at: ["2026-06-12", "2026-08-03", "2026-08-12"]
 relates_to:
   - "[[ADR-024]]"
   - "[[ADR-026]]"
@@ -54,6 +54,11 @@ tags:
 > nomeados — o cache guarda **somente output aprovado** (veredito negativo não é
 > cacheável) e custo pertence ao envelope de **todo** retorno pós-chamada, com
 > `cost_known=False` quando não há registro. Ver §Emenda 2026-08-03 no fim.
+>
+> **Emenda 2026-08-12:** a frase do §D5 "cross-linking via
+> `<SuggestionCalloutInline>` é automático nas seções fonte" **não descreve o
+> renderer**: o inline é montado em **2 das 12** seções habilitadas (S2 e S7).
+> Ver §Emenda 2026-08-12 no fim.
 
 ## Contexto
 
@@ -161,6 +166,20 @@ Output validado por `config/schemas/parecer_planejador.schema.json`: 6+ sections
 - **Pricing exato (Premium tier)** — `gtm-strategist` fechou faixa R$ 79-149/mês BYOK em [[ADR-208]]; valor final + cobrança por workspace vs. por usuário pendente.
 - **Mapeamento `ancora_metodologica → tema_canonico`** (1:N) — `financial-planner` co-design no Ato 2 ([[ADR-207]]).
 - **Política de retenção pareceres `Superseded`** — `data-engineer` decide se TTL aplica ou se retém eternamente (default: reter, auditoria).
+
+## Emenda 2026-08-12 — o cross-linking do §D5 não é automático
+
+O §D5 afirma que o cross-linking via `<SuggestionCalloutInline sectionId="...">`
+"é automático nas seções fonte". **Medido em 2026-08-12: o componente é montado
+em 2 das 12 seções habilitadas** (S2 e S7 — `S2FluxoCaixaSection.tsx`,
+`S7IndependenciaSection.tsx`). Sugestão ancorada em qualquer outra seção
+(inclusive S3, que tem 2 regras determinísticas vivas) aparece apenas no
+`SuggestionCalloutSummary` ("Próximos passos") e no `/acao` — a âncora "Ver em
+contexto" resolve, mas a seção não hospeda o card. A frase orientou pelo menos
+uma decisão errada (a suposição de que re-ancorar uma sugestão em S9 lhe daria
+card inline, sessão S6/FP-010). Cobertura por seção é decisão de produto
+deferida em [[PLAN-suggestion-lifecycle]] §Deferimentos datados 2026-08-12; o
+reuso de aggregates do §D5 permanece integral.
 
 ## Emenda 2026-06-12 — `prompt_version` entra na cache key
 

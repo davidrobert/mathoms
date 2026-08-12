@@ -43,10 +43,10 @@ atualizada para refletir isso.
 
 | Consumidor | Arquivo | Modo |
 |---|---|---|
-| `Dockerfile` (build de imagem prod) | `requirements.lock` | `pip install --require-hashes` |
-| CI — jobs de teste (`ci.yml`, `nightly.yml`, smoke, monthly) | `requirements.lock` | `uv pip install --require-hashes` (paridade com prod) + test-deps inline (reportlab/xlwt/pytest-cov/pytest-xdist/fakeredis) |
-| CI — `security.yml` pip-audit | `requirements.lock` | auditoria de versões pinadas (precisa) |
-| Dev local | `requirements-dev.txt` (via `make setup`) | `pip install -e . -r requirements-dev.txt` |
+| `Dockerfile` (build de imagem prod) | `requirements.lock` | `pip install --require-hashes` — **Python 3.12** (digest-pinado) |
+| CI — jobs de teste (`ci.yml`, `nightly.yml`, smoke, monthly) | `requirements.lock` | `dev/ci_ensure_venv.sh` (`uv pip install --require-hashes`) + test-deps inline (reportlab/xlwt/pytest-cov/pytest-xdist/fakeredis/`schemathesis<4`) — **Python 3.13**. A paridade com prod é de **versões de pacote**, não de interpretador — e os extras **rebaixam o lock** (`starlette` 1.3.1→0.52.1 a cada run) até existir `requirements-test.lock` ([[ADR-254]] §Emenda 2026-08-12) |
+| CI — `security.yml` pip-audit | `requirements.lock` | auditoria de versões pinadas (precisa) — **Python 3.12**, o único job que casa o interpretador de prod (e não executa código) |
+| Dev local | `requirements-dev.txt` (via `make setup`) | `pip install -e . -r requirements-dev.txt` — **não** lista `pytest-xdist`/`fakeredis`/`schemathesis`: ambiente local ≠ CI até o `requirements-test.lock` unificar |
 
 > **Por que CI usa o lock (não os `.in`):** até 2026-06-18 o CI-tests instalava
 > dos `.in` loose (`>=`) com cache key só no hash dos `.in`. Resultado: o venv

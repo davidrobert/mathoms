@@ -5,7 +5,7 @@ title: "Python lockfile com hashes — pip-tools vs uv — Sprint A20"
 status: Decidido
 phase: A20.l10
 date: "2026-05-22"
-amended_at: ["2026-06-18", "2026-08-11"]
+amended_at: ["2026-06-18", "2026-08-11", "2026-08-12"]
 relates_to:
   - "[[ADR-228]]"
   - "[[ADR-230]]"
@@ -35,6 +35,12 @@ tags:
 > do interpretador**, e os dois steps de install viraram um só, sempre
 > executado (`dev/ci_ensure_venv.sh`) — ver §"Emenda 2026-08-11 — a key do venv
 > cache inclui o interpretador".
+>
+> **Emenda (2026-08-12):** o gatilho do item 3 da emenda anterior **disparou** —
+> os test-deps inline rebaixam o lock a cada run (`starlette` 1.3.1→0.52.1) e
+> `requirements-test.lock` deixou de ser opcional. Inclui a refutação medida do
+> sinal (b) e dois deferimentos datados (composite action; paridade de
+> interpretador prod↔CI) — ver §"Emenda 2026-08-12".
 
 ## Contexto
 
@@ -281,6 +287,72 @@ novo custa 1 min faturado de piso).
 
 **Não muda:** `--require-hashes`, o lock como fonte única, a ausência de
 `restore-keys`. Nenhuma dimensão de supply-chain foi afrouxada.
+
+## Emenda 2026-08-12 — o gatilho do item 3 disparou: os extras rebaixam o lock
+
+A emenda de 2026-08-11 (item 3) escreveu a condição: *"se o step passar a
+imprimir `Installed/Uninstalled` a cada run, os test-deps inline estão em
+conflito com o lock, e o `requirements-test.lock` (débito aberto) deixa de ser
+opcional"*. **Ela ocorreu** — medida em cache-HIT, em jobs independentes, e
+re-verificada à mão no log do job 93015190283:
+
+```
+- starlette==1.3.1     (o que o lock instalou)
++ starlette==0.52.1    (o que os extras rebaixaram)
+```
+
+`pytest` sofre o mesmo (9.0.3 → 8.4.2). Mecanismo: a ordem lock → extras
+deixa os **extras vencerem** — `"schemathesis<4"` resolve `starlette` um
+**major abaixo** do lock, então a suíte roda contra um `starlette` que a
+imagem de prod não embarca, e todo run em cache-hit faz o flip-flop
+(lock re-sobe, extras re-descem). A antecipação da emenda anterior ("churn/
+conflito") subestimou o modo de falha: é **rebaixamento de dependência de
+runtime na venv de teste**, não ruído de resolução. O comentário de
+`dev/ci_ensure_venv.sh` (§`install_deps`) descrevia a direção invertida
+("o lock rebaixaria o que os extras trouxeram") — corrigido junto com esta
+emenda.
+
+**Consequência:** `requirements-test.lock` (com hashes, mesma disciplina do
+`requirements.lock`) deixa de ser débito confortável. Escopo do remédio,
+medido: os 6 extras dos call sites de `dev/ci_ensure_venv.sh`, **mais** os 2
+`pip install reportlab` fora do script (`ci.yml` §pdf-smoke, `nightly.yml`
+§backup-drill), **mais** o drift de `requirements-dev.txt` (não lista
+`pytest-xdist`/`fakeredis`/`schemathesis` — `make setup` produz ambiente
+diferente do CI).
+
+**Refutação registrada (para ninguém re-investigar):** o sinal (b) da emenda
+anterior — custo do step `Ensure venv` em cache-HIT, limiar ~5s para reabrir a
+escolha de desenho — foi medido e **refutado**: mediana 1s (n=14, máx 3s);
+cache-MISS custa 4-7s. O desenho não reabre por custo.
+
+**Correção de leitura da "paridade":** a paridade que esta ADR promete entre
+CI e Dockerfile é de **versões de pacote** — e, enquanto o
+`requirements-test.lock` não existir, nem essa vale para `starlette`/`pytest`
+na venv de teste. Interpretador nunca foi paritário: prod builda em
+**Python 3.12** (digest-pinado via [[ADR-249]]), os jobs de teste rodam
+**3.13**, e o único job que casa o interpretador de prod é o `pip-audit`
+(`security.yml`) — exatamente o que nunca importa o código.
+
+### Deferimento datado — composite action dos blocos de venv (2026-08-12)
+
+A lógica de setup vive em `dev/ci_ensure_venv.sh`, mas o **bloco** (setup-python
++ setup-uv + cache + step) está replicado, e o pin SHA do `astral-sh/setup-uv`
+aparece **7×** em 4 workflows (`ci.yml` ×3 — o `lint-all` instala uv sem bloco
+de venv —, `nightly.yml` ×2, `planner-golden-monthly.yml`, `llm-cross-provider-smoke.yml`).
+Extrair composite em `.github/actions/` foi **deferido**: 4 dos 6 sítios de venv
+são workflows agendados que o CI de PR não exercita — um composite quebrado
+derrubaria todos sem sinal prévio. **Condição de retomada:** o próximo bump que
+tiver de tocar o pin (ou a key epoch) nos 7 pontos extrai o composite e valida
+os agendados via `workflow_dispatch` (os três têm). Gatilho: `sre-devops`.
+
+### Deferimento datado — paridade de interpretador prod↔CI (2026-08-12)
+
+Decidir se CI converge para 3.12 (paridade com prod) ou prod sobe para 3.13
+(forward-compat deliberado) — e, decidido, criar gate que amarre
+`ARG PYTHON_BASE` (Dockerfile) × `python-version` (workflows) para a divergência
+nunca voltar a ser implícita. Hoje ela não está escrita em lugar nenhum além
+desta emenda. Dono: `sre-devops`; se virar invariante, é ADR `Proposto`
+própria, não emenda.
 
 ## Referências externas
 
