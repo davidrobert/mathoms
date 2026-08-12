@@ -91,6 +91,11 @@ from pipeline.domain.services.fluxo_caixa_enricher import (
     FluxoCaixaEnricher,
     FluxoEnricherConfig,
 )
+from pipeline.domain.services.fonte_precedencia_arbiter import (
+    arbitrar_frescor,
+    fontes_de_irpf,
+    fontes_de_posicoes_atuais,
+)
 from pipeline.domain.services.if_monte_carlo import (
     IFMonteCarloConfig,
     MonteCarloIFResult,
@@ -567,6 +572,12 @@ class E5AnalyzerAdapter:
         )
         # ADR-376 §4 — exclusões de caixa com razão tipada, visíveis no payload.
         patrimonio_full["caixa_exclusoes"] = [exc.to_dict() for exc in caixa_exclusoes]
+        # ADR-383 §5 — árbitro de frescor em fase OBSERVACIONAL: emite veredito
+        # e contradições SEM alterar nenhum valor consumido pelo PL. O flip
+        # (PR-b da A40.l41) só ocorre após medir o efeito no dogfood real.
+        patrimonio_full["frescor_fontes"] = self._veredito_frescor(
+            patrimonio_raw, investimentos_raw
+        )
 
         # 6a. IRPF + passive income (carteira de renda + TRS efetiva · A8.3).
         # A33.l4: informes anuais carregados 1× — alimentam os buckets
@@ -838,6 +849,25 @@ class E5AnalyzerAdapter:
             titular_nome=titular_nome,
             conjuge_nome=conjuge_nome,
         )
+
+    # ADR-383 (A40.l41) — fase observacional: o pool atual declarado é sempre
+    # ``posicoes_atuais`` porque é o que `_compute_investimentos` prefere hoje
+    # (fallback IRPF só quando o total do membro é zero).
+    def _veredito_frescor(self, patrimonio_raw: dict, investimentos_raw: dict) -> dict:
+        e4 = fontes_de_posicoes_atuais(investimentos_raw, membro_default=self._identity.titular_key)
+        irpf = fontes_de_irpf(patrimonio_raw.get("investimentos_consolidados") or [])
+        atual = {(f.instituicao, f.membro): "posicoes_atuais" for f in e4}
+        veredito = arbitrar_frescor(
+            e4 + irpf,
+            data_alvo=self._reference_date.isoformat(),
+            pool_atual_por_celula=atual,
+        )
+        for contradicao in veredito.contradicoes:
+            _logger.warning(
+                "mathoms.pipeline.e5.frescor_contradicao",
+                extra={"contradicao": contradicao.to_dict()},
+            )
+        return veredito.to_payload()
 
     # -- Helper de I/O (shell) --
 
