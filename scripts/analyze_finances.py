@@ -2198,7 +2198,6 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
 
     categorization_cfg = _load_json_config(PROJECT_DIR / "config" / "categorization.json")
     taxas_cfg = _load_json_config(CONFIG_TAXAS)
-    institutions_cfg = _load_json_config(PROJECT_DIR / "config" / "institutions.json")
     goals_enriched = _merge_life_plan_into_goals(GOALS_CONFIG, life_plan_content)
 
     fiscal_parameters = None
@@ -2250,7 +2249,6 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         goals=goals_enriched,
         fiscal=FISCAL_CONFIG,
         taxas=taxas_cfg,
-        institutions=institutions_cfg,
         titular_dob=_TITULAR_DOB,
         conjuge_dob=_CONJUGE_DOB,
         reference_date=TODAY,
