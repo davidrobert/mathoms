@@ -248,3 +248,15 @@ class TestConservacaoINV_D1:
         # Imóvel funde (2023+2024 → corrente 2024=100k); Veículo intacto (20k).
         total_corrente = sum(_latest(d) for d in result.dividas)
         assert total_corrente == 120000.0
+
+
+class TestLatestValueFormatoMistoDeChave:
+    # A40.l42 — espelho do caso de investimentos: a fusão "casal" de dívida
+    # compara o saldo mais recente; max() lexicográfico sobre {"2025",
+    # "31_12_2024"} escolhia a safra velha e negava a fusão.
+    def test_divida_conjunta_funde_com_chave_legada_no_historico(self):
+        a = _entry(proprietario="david", saldo={"31_12_2024": 900.0, "2025": 300.0})
+        b = _entry(proprietario="mariana", saldo={"2025": 300.0})
+        result = dedup_dividas_consolidadas([a, b])
+        assert len(result.dividas) == 1
+        assert result.dividas[0]["proprietario"] == "casal"

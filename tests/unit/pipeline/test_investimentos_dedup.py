@@ -169,3 +169,18 @@ class TestIdentity:
         b = _entry(proprietario="david", valores={"2024": 2.0}, descricao="tesouro selic")
         result = dedup_investimentos_consolidados([a, b])
         assert result.count_after == 1
+
+
+class TestLatestValueFormatoMistoDeChave:
+    # A40.l42 — max() lexicográfico sobre chaves de formato misto fazia
+    # "31_12_2024" vencer "2025" ("3" > "2"), e a decisão de conta conjunta
+    # (fusão "casal" exige valor idêntico ao centavo) comparava a safra errada.
+    def test_conta_conjunta_funde_com_chave_legada_no_historico(self):
+        a = _entry(proprietario="david", valores={"31_12_2024": 500.0, "2025": 100.0})
+        b = _entry(proprietario="mariana", valores={"2025": 100.0})
+        result = dedup_investimentos_consolidados([a, b])
+        assert len(result.investimentos) == 1, (
+            "chave legada '31_12_YYYY' no histórico não pode mudar a safra usada "
+            "na decisão de conta conjunta"
+        )
+        assert result.investimentos[0]["proprietario"] == "casal"

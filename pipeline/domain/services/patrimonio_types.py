@@ -60,19 +60,26 @@ class AnoReferenciaDivergenceWarning:
         )
 
 
+# Aceita "YYYY" e legado "31_12_YYYY"; None para sentinel 999999 e chave
+# ilegível. Comparar chaves SEM este parse é bug: max() lexicográfico faz
+# "31_12_2024" vencer "2025" porque "3" > "2" (A40.l42).
+def parse_ano_31_12(key: object) -> int | None:
+    """Ano-base numa chave de ``valores_31_12``/``saldo_31_12`` (ADR-274)."""
+    if _SENTINEL_PERIODO in str(key):
+        return None
+    match = re.search(r"(?:19|20)\d{2}", str(key))
+    return int(match.group(0)) if match else None
+
+
 def _years_in_vals(vals: object) -> set[int]:
     """Anos 31/12 numa dict ``valores_31_12``/``saldo_31_12`` (ADR-274)."""
-    # Regex (?:19|20)\d{2} aceita "YYYY" e legado "31_12_YYYY"; exclui o
-    # sentinel 999999 (viraria 9999, fora do range de ano-base real).
     if not isinstance(vals, dict):
         return set()
     out: set[int] = set()
     for key in vals:
-        if _SENTINEL_PERIODO in str(key):
-            continue
-        match = re.search(r"(?:19|20)\d{2}", str(key))
-        if match:
-            out.add(int(match.group(0)))
+        ano = parse_ano_31_12(key)
+        if ano is not None:
+            out.add(ano)
     return out
 
 
