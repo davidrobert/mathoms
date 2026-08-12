@@ -91,11 +91,30 @@ Entregue no commit `37ba3af4`. Cada mudança tem causa própria — não é um
 - [x] Coluna Δ do V0 não se perde em nenhuma largura entre 390px e 1120px
       (varredura de 16 larguras; antes perdia a partir de 691px).
 - [x] PDF real inspecionado visualmente, não só pela camada de texto.
-- [ ] Gate permanente da classe em `frontend/tests/e2e/reports/` — varredura
-      derivada do DOM, com âncora anti-fail-open exigindo `[data-report-section]`
-      presente (sem ela, rota que crasha passa verde).
-- [ ] Baselines visuais: medir o delta e **olhar** os PNGs antes de rebaselinar;
-      regeneração só em runner Linux via dispatch com `run_visual=true`.
+- [x] Gate permanente em `overflow-horizontal.@critical.spec.ts` — varredura
+      derivada do DOM, âncora anti-fail-open exigindo `[data-report-section]`.
+      **Provado por mutação**, não por estar verde: revertido o `grid-cols-1`, o
+      gate acusa 239px em S3 e 132px em S4; revertido o `hidden sm:table`, acusa
+      a tabela visível no telefone.
+- [x] Baselines visuais: **nenhum rebaseline necessário** — medido, não suposto.
+      Os snapshots de seção rodam a 1280px, onde todas as regras novas caem no
+      ramo `sm:`/`md:` que já existia. Capturando as seções com o código pré e
+      pós-fix na mesma máquina, V0/S3/S8/S9 saem **byte a byte idênticas**; S1 e
+      S2 diferem, mas o controle (duas capturas do **mesmo** código) mostra que
+      elas também diferem de si mesmas — é ruído de canvas, não efeito do fix.
+- [x] `print.@critical` (diff de pixel do PDF) falha **localmente** com 19.133px
+      contra tolerância de 500 — e falha com o **mesmo número** no código
+      pré-fix. É divergência macOS × baseline de runner Linux; o fix não muda um
+      pixel dessa página. Quem decide é o CI.
+
+## Regressão encontrada na própria lane
+
+O primeiro commit fechou o vazamento e **abriu** um defeito mais sutil, pego só
+porque a verificação leu o PDF real em vez de confiar na tela: `overflow-wrap:
+anywhere` aplicado a `th`/`td` partia a célula Δ em `"52,0"` + `"%"` em linhas
+diferentes. O valor seguia impresso e, ainda assim, uma busca por `52,0%` no PDF
+não o achava — que é como um terceiro lê o arquivo. Corrigido em `abf93169`:
+quem encolhe a tabela é o rótulo; número é átomo.
 
 ## Fora de escopo
 
