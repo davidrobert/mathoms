@@ -4,7 +4,7 @@ type: lane
 title: "Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: a40-l43-perfil-familia-prosa
 adrs:
@@ -16,7 +16,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/frontend
@@ -180,6 +180,8 @@ para a seção nova.
    chave.
 
 ## Fechamento
+
+**Entregue em `849e372b` (PR #1386, squash em `main` 2026-08-12), CI verde.**
 
 - Medição bloqueante (§Escopo 4): `prazo_anos_realista: None` e `ano_if: None` em
   `backend/tests/snapshots/dogfood_view_model.json`. Re-medir com

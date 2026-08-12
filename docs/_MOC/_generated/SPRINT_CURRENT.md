@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-9 open · 7 in_progress.
+9 open · 6 in_progress.
 
 ## Open (9)
 
@@ -19,14 +19,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l42]] — Safra IRPF errada por ordenação de string: '31_12_2024' vence '2025' em max() lexicográfico · priority P1 · branch `a40-l42-safra-irpf-ordenacao-de-chave`
 - [[A40.l44]] — Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação · priority P0 · branch `a40-l41-janela-interativa-pre-computada`
 
-## In progress (7)
+## In progress (6)
 
 - [[A40.l22]] — Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF · priority P0 · branch `a40-l22-superficie-de-degradacao`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · branch `a40-l25-honestidade-do-cone-if`
 - [[A40.l33]] — Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição · priority P1 · branch `a40-l33-contraste-texto-sobre-tint`
 - [[A40.l34]] — Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis · priority P0 · branch `a40-l34-base-do-limite-pgbl`
 - [[A40.l38]] — Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê · priority P0 · branch `a40-l38-caixa-canonico-extrato`
-- [[A40.l43]] — Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse · priority P1 · branch `a40-l43-perfil-familia-prosa`
 - [[A40.l5]] — Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite · priority P1 · branch `a40-l5-contrato-view-model-gate`
 
 ---
