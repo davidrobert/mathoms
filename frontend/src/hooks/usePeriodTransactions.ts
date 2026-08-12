@@ -10,12 +10,20 @@ interface UsePeriodTransactionsResult {
   transactions: TransactionItem[];
   isLoading: boolean;
   error: string | null;
+  /** Lançamentos da janela inteira, incluindo os que não vieram na página. */
+  total: number;
+  /** `true` quando a janela tem mais lançamentos do que a página trouxe. */
+  isTruncated: boolean;
 }
 
 /**
  * Busca transações do workspace para o período selecionado.
  * Usa o endpoint GET /transactions com filtros date_from/date_to.
- * Máximo 500 transações por período (suficiente para uso familiar).
+ *
+ * Traz **uma** página de 500 e não pagina: janela maior que isso volta
+ * `isTruncated=true`, e o consumidor deve declarar a degradação em vez de
+ * agregar — somar só as 500 mais recentes derrubava a média mensal do card
+ * em 42% na janela 12M do corpus de dogfood (1634 lançamentos · RV4-07).
  *
  * `anchorDate` ancora o fim da janela no último mês com dados do dataset
  * (default: hoje). Sem âncora, dados antigos do workspace caem em janelas
@@ -27,6 +35,7 @@ export function usePeriodTransactions(
 ): UsePeriodTransactionsResult {
   const { workspace } = useWorkspace();
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +57,7 @@ export function usePeriodTransactions(
     })
       .then((res) => {
         setTransactions(res.transactions);
+        setTotal(res.total);
         setError(null);
       })
       .catch((err: unknown) => {
@@ -55,6 +65,7 @@ export function usePeriodTransactions(
           err instanceof Error ? err.message : "Erro ao carregar transações.",
         );
         setTransactions([]);
+        setTotal(0);
       })
       .finally(() => {
         setIsLoading(false);
@@ -64,5 +75,11 @@ export function usePeriodTransactions(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace, period, anchorKey]);
 
-  return { transactions, isLoading, error };
+  return {
+    transactions,
+    isLoading,
+    error,
+    total,
+    isTruncated: total > transactions.length,
+  };
 }

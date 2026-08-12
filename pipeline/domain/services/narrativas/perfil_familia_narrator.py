@@ -1,10 +1,16 @@
 """PerfilFamiliaNarrator — seção ``perfil_familia`` (A6d.3.2).
 
 Extraído de ``scripts/generate_narratives.build_narrativas`` (linhas 787-822
-do legado). Narra a apresentação da família em 2 colunas (left/right)
-com HTML simples (<p> apenas — validator rejeita <ul>, <li>, <table>).
+do legado). Narra a apresentação da família em ``left`` — prosa sobre as
+pessoas, com HTML simples (``<p>`` apenas — validator rejeita <ul>, <li>,
+<table>).
 
 Função pura sobre ``metrics`` + ``family`` + ``NarrativasContext``.
+
+``right`` foi removida (emenda ADR-356, 2026-08-11). Este narrador não
+publica valor monetário nem juízo qualitativo: o card é prosa sobre pessoas.
+Quem quiser o número tem a superfície que o possui — hero, S1, S7. Ver
+``E5NarrativasBuilder`` para a composição das outras seções.
 """
 
 from __future__ import annotations
@@ -13,14 +19,7 @@ from datetime import date as _date
 from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
-from pipeline.domain.services.narrativas.format_helpers import (
-    carteira_diversificacao_frase,
-    clause,
-    fmt_currency,
-    fmt_num,
-    fmt_percent,
-    pluralize,
-)
+from pipeline.domain.services.narrativas.format_helpers import clause, pluralize
 
 # Max chars per <p> — enforçado pelo validator E5.N (V_PERFIL_MAX_CHARS).
 PERFIL_MAX_CHARS = 300
@@ -65,11 +64,14 @@ def _filho_paragrafo(filho: Mapping[str, Any], cidadanias: str) -> str:
 
 
 class PerfilFamiliaNarrator:
-    """Narra ``perfil_familia.left`` e ``.right`` — apresentação familiar."""
+    """Narra ``perfil_familia.left`` — apresentação das pessoas da família."""
 
     def __init__(self, ctx: NarrativasContext):
         self._ctx = ctx
 
+    # ``today`` é a data de referência do run (``data_analise`` do E5), não o
+    # relógio de parede: idade impressa tem de ser a idade **no período do
+    # relatório**, senão re-renderizar um relatório antigo muda o número.
     def narrate(
         self,
         metrics: dict[str, Any],
@@ -77,10 +79,9 @@ class PerfilFamiliaNarrator:
         *,
         today: _date | None = None,
     ) -> dict[str, str]:
-        """Retorna ``{"left": str, "right": str}`` com HTML de 4 parágrafos cada."""
+        """Retorna ``{"left": str}`` — um ``<p>`` por pessoa, mais os pets."""
         today = today or _date.today()
         ctx = self._ctx
-        M = metrics
 
         fm = family.get("membros", {}) or {}
         _tit = fm.get(ctx.titular_key, {}) or {}
@@ -109,16 +110,6 @@ class PerfilFamiliaNarrator:
 
         _cidadanias = _filho.get("cidadania", []) or []
         _cidadanias_str = " e ".join(_cidadanias) if _cidadanias else ""
-
-        # `1 imóvel (R$ X residência + R$ Y investimento)` é semanticamente
-        # contraditório — soa como "2 papéis num único imóvel". Quando há
-        # ≥2 imóveis, a divisão informa; n=1 omitimos o breakdown.
-        # (Ressalva financial-planner review do bundle de followups.)
-        _imoveis_breakdown = (
-            f" ({fmt_currency(M['residencia'])} residência + {fmt_currency(M['imoveis_investimento'])} investimento)"
-            if M["n_imoveis"] >= 2
-            else ""
-        )
 
         # PD-01: cláusulas condicionais — campo vazio omite a cláusula inteira
         # (evita buracos de template: "é ()", "0 gatos", "residência na , ,").
@@ -160,50 +151,16 @@ class PerfilFamiliaNarrator:
             if _mar_esp and _mar_mestrado
             else clause("Especialista em ", _mar_esp) or clause("Mestre em ", _mar_mestrado)
         )
-        _sal_conj = M.get(ctx.key_sal_conjuge, 0)
-        _sal_clause = (
-            clause("CLT com salário-base de ", f"{fmt_currency(_sal_conj)}/mês")
-            if _sal_conj
-            else ""
-        )
+        # O salário-base do cônjuge saiu com a emenda ADR-356: é valor monetário
+        # (regra do narrador) e é PII de renda individual num artefato que a
+        # família mostra ao contador — mesma classe do endereço cortado na l4.
+        # A renda do casal vive na S2 (fluxo), agregada.
         _perfil_int_clause = clause("", _mar_perfil_int)
 
         _tit_desc = f"{_prof_clause}{_empresas_clause}{_formacao_clause}{_regime_clause}".rstrip()
-        _conj_desc = f"{_conj_prof_clause}{_esp_clause}{_sal_clause}{_perfil_int_clause}".rstrip()
+        _conj_desc = f"{_conj_prof_clause}{_esp_clause}{_perfil_int_clause}".rstrip()
         _p_tit = _membro_paragrafo(ctx.titular_nome, _titular_age, _tit_desc) if _tit else ""
         _p_conj = _membro_paragrafo(ctx.conjuge_nome, _conjuge_age, _conj_desc) if _conj else ""
         _p_filho = _filho_paragrafo(_filho, _cidadanias_str)
 
-        left = f"{_p_tit}{_p_conj}{_p_filho}{_pets_clause}"
-
-        # ADR-168 cleanup (Sprint A10.1): primeiro parágrafo reescrito sem
-        # EUA. Antes citava plano de mudança via visto F1/F2 + custo da
-        # fase USA — chaves dead-data do Modo USA removido em A8.4 PR4.
-        # Refoca em IF (já era o segundo parágrafo) e amplia panorama.
-        # Prazo ausente (era a sentinela 999 → "1040 anos, 3025"): a frase
-        # nomeia a premissa que falta em vez de projetar um número inventado.
-        _prazo = M.get("anos_para_if_calculo")
-        _prazo_frase = (
-            "as premissas atuais não permitem projetar um prazo realista"
-            if _prazo is None
-            else (
-                f"prazo realista de {_prazo} anos "
-                f"({ctx.titular_nome} {M[ctx.key_idade_titular_if]} anos, {M['if_ano']})"
-            )
-        )
-        right = (
-            f"<p>Meta de independência financeira de {fmt_currency(M['if_meta'])} (TRS {fmt_num(M['if_trs_pct'], 0)}%, "
-            f"renda passiva de {fmt_currency(M['if_renda_passiva_meta'])}/mês). "
-            f"Patrimônio investível atual de {fmt_currency(M['patrimonio_investivel'])} ({fmt_percent(M['progresso_if'])} da meta). "
-            f"Com aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a., "
-            f"{_prazo_frase}.</p>\n"
-            f"<p>Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])}: "
-            f"{M['n_imoveis']} {pluralize(M['n_imoveis'], 'imóvel', 'imóveis')}{_imoveis_breakdown}, "
-            f"carteiras {ctx.titular_nome} ({fmt_currency(M[ctx.key_inv_titular])}) e {ctx.conjuge_nome} ({fmt_currency(M[ctx.key_inv_conjuge])}). "
-            f"Endividamento de {fmt_percent(M['taxa_endividamento'])} — saudável.</p>\n"
-            f"<p>{carteira_diversificacao_frase(M['diversificacao'])}"
-            f"Score financeiro de {fmt_num(M['score'])}/10 ({M['score_label']}), com taxa de poupança recorrente de {fmt_percent(M['taxa_poupanca'])} "
-            f"e cobertura de {fmt_num(M['cobertura_meses'])} meses de despesas — base sólida para o plano IF.</p>"
-        )
-
-        return {"left": left, "right": right}
+        return {"left": f"{_p_tit}{_p_conj}{_p_filho}{_pets_clause}"}

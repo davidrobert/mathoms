@@ -11307,6 +11307,17 @@
             ],
             "title": "Dismissed Reason"
           },
+          "horizon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon"
+          },
           "id": {
             "title": "Id",
             "type": "string"

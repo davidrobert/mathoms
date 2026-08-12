@@ -21,9 +21,9 @@ class SuggestionGeneratorConfig:
     endividamento_max_pct_patrimonio: float = 30.0  # percentage (not money — ADR-090 ok)
     taxa_poupanca_drop_pp_per_quarter: float = 5.0
     taxa_poupanca_consecutive_quarters: int = 2
-    seguros_renda_pj_threshold_brl: float = (
-        50_000.0  # threshold (BRL constant, ratio-of-position context — ADR-090 ok)
-    )
+    # FP-010: `seguros_renda_pj_threshold_brl` removido com a regra que o lia
+    # (ADR-161 §Emenda 2026-08-11) — renda alta não é proxy de dependente
+    # econômico, e o predicado canônico de proteção vive na ADR-240.
     concentracao_max_pct: float = 40.0
     lifestyle_creep_inflation_multiplier: float = 1.5
     lifestyle_creep_months: int = 6

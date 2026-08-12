@@ -6,6 +6,7 @@ import logging
 from typing import Optional
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
@@ -272,8 +273,14 @@ def _do_persist(
     db.add(review)
     # Flush para garantir ``review.id`` disponível antes de FKs em field_requests.
     db.flush()
+    # Outcome tipado decide se o run pode expirar o inbox (ADR-378 §D1):
+    # retido não entregou nada — não pode apagar as ações do cliente.
     suggestion_stats = persist_suggestions_for_run(
-        db, workspace_id=workspace_id, run_id=run_id, parecer_artifact=parecer_artifact
+        db,
+        workspace_id=workspace_id,
+        run_id=run_id,
+        parecer_artifact=parecer_artifact,
+        outcome=_derive_outcome(detail),
     )
     field_requests_created = _persist_field_requests(
         db,
@@ -342,6 +349,14 @@ def _workspace_id_from_run(db: Session, run_id: str) -> Optional[str]:
     return row
 
 
+def _log_persist_conflict(workspace_id: str, run_id: str) -> None:
+    """Dois runs concorrentes disputando o conjunto Pendente (índice único parcial, ADR-378 §D3). Fail-closed: o run perdedor vira artifact órfão detectável — evento próprio distingue conflito de bug (revisão senior-cto M-2)."""
+    logger.warning(
+        "planner_review_persistence_conflict",
+        extra={"workspace_id": workspace_id, "run_id": run_id},
+    )
+
+
 def _safe_persist(db: Session, *, workspace_id: str, run_id: str, detail: dict) -> Optional[str]:
     """Wrap persist_planner_review com rollback/log em exceção (não propaga)."""
     try:
@@ -349,6 +364,10 @@ def _safe_persist(db: Session, *, workspace_id: str, run_id: str, detail: dict) 
             db, workspace_id=workspace_id, run_id=run_id, detail=detail
         )
         db.commit()
+    except IntegrityError:
+        db.rollback()
+        _log_persist_conflict(workspace_id, run_id)
+        return None
     except Exception:  # noqa: BLE001 — log e segue; artifact já está commitado
         db.rollback()
         logger.exception("planner_review_persistence_failed", extra={"run_id": run_id})

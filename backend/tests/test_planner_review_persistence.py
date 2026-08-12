@@ -240,9 +240,12 @@ def _seed_preexisting_suggestion(sync_session, workspace_id: str) -> None:
     sync_session.commit()
 
 
+# ADR-378 §D1: Pendente pré-existente com mesmo dedup_key é expirada e o run
+# vigente insere a row nova (rationale/valor atuais) — inverte o contrato
+# pré-376, que mantinha a antiga e skipava o insert.
 @pytest.mark.asyncio
-async def test_persist_skips_existing_suggestion_dedup(db, sync_session):
-    """Sugestão com mesmo dedup_key no workspace ⇒ não duplica (ADR-153)."""
+async def test_persist_expires_preexisting_and_reissues_fresh(db, sync_session):
+    """Pré-existente vira Superseded; a Pendente é a row fresca do run."""
     workspace = await factories.make_workspace(db)
     run = await factories.make_run(db, workspace=workspace)
     await make_artifacts(db, workspace, run)
@@ -252,12 +255,15 @@ async def test_persist_skips_existing_suggestion_dedup(db, sync_session):
         sync_session, workspace_id=workspace.id, run_id=run.id, detail=make_detail()
     )
     sync_session.commit()
-    suggestions = (
-        sync_session.execute(select(Suggestion).where(Suggestion.workspace_id == workspace.id))
-        .scalars()
-        .all()
-    )
-    assert len(suggestions) == 1  # Só a pré-existente (não duplicou)
+    rows = sync_session.execute(
+        select(Suggestion).where(Suggestion.workspace_id == workspace.id)
+    ).scalars()
+    by_status = {s.status: s for s in rows}
+    assert {st: s.title for st, s in by_status.items()} == {
+        "Superseded": "existente",
+        "Pendente": "contratar seguro de vida",
+    }
+    assert by_status["Pendente"].pipeline_run_id == run.id
 
 
 @pytest.mark.asyncio

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { formatPercent } from "@/lib/format";
 import { PeriodToggle } from "../PeriodToggle";
 import { usePeriodTransactions } from "@/hooks/usePeriodTransactions";
 import {
@@ -27,7 +28,8 @@ export function OrcamentoProspectivoCard({
   anchorDate?: Date;
 }) {
   const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading } = usePeriodTransactions(period, anchorDate);
+  const { transactions, isLoading, total: totalNaJanela, isTruncated } =
+    usePeriodTransactions(period, anchorDate);
 
   const numMonths = getPeriodMonths(period, anchorDate);
 
@@ -69,7 +71,18 @@ export function OrcamentoProspectivoCard({
       title="Orçamento Prospectivo Mensal"
       headerRight={<PeriodToggle value={period} onChange={setPeriod} />}
     >
-      {entries.length === 0 && !isLoading ? (
+      {isTruncated ? (
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          <strong className="font-semibold text-[var(--surface-foreground)]">
+            A janela {period.toUpperCase()} não cabe inteira neste card.
+          </strong>{" "}
+          Entraram os {transactions.length.toLocaleString("pt-BR")} lançamentos
+          mais recentes de {totalNaJanela.toLocaleString("pt-BR")} — os mais
+          antigos ficaram fora, e o teto por categoria apareceria abaixo do
+          real. Escolha uma janela mais curta para ver o número completo, ou
+          consulte a lista inteira em Transações.
+        </p>
+      ) : entries.length === 0 && !isLoading ? (
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Sem dados de orçamento neste período.
         </p>
@@ -103,7 +116,7 @@ export function OrcamentoProspectivoCard({
                         <MonetaryValue value={value} />
                       </td>
                       <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                        {pct.toFixed(1)}%
+                        {formatPercent(pct)}
                       </td>
                       <td
                         className="py-2 text-right font-mono tabular-nums"
@@ -126,7 +139,7 @@ export function OrcamentoProspectivoCard({
                     <MonetaryValue value={total} />
                   </td>
                   <td className="pt-3 text-right font-mono tabular-nums">
-                    100,0%
+                    {formatPercent(100)}
                   </td>
                   <td className="pt-3" />
                 </tr>

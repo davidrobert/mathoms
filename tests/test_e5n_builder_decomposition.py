@@ -268,16 +268,17 @@ def test_builder_summaries_has_s1_through_s10():
         assert isinstance(text, str) and text, f"{key} vazio"
 
 
-def test_builder_perfil_familia_has_left_and_right():
+def test_builder_perfil_familia_has_only_left():
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
     out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
     pf = out["perfil_familia"]
-    assert set(pf.keys()) == {"left", "right"}
-    assert "<p>" in pf["left"] and "<p>" in pf["right"]
+    # Emenda ADR-356: `right` morreu. A chave não volta por acidente — quem
+    # reintroduzir uma segunda coluna quebra aqui.
+    assert set(pf.keys()) == {"left"}
+    assert "<p>" in pf["left"]
     # Não pode conter tags proibidas pelo validator.
-    for side in ("left", "right"):
-        assert "<table" not in pf[side].lower()
-        assert "<ul" not in pf[side].lower()
+    assert "<table" not in pf["left"].lower()
+    assert "<ul" not in pf["left"].lower()
 
 
 def test_builder_charts_has_all_17_required_keys():
@@ -459,7 +460,7 @@ def test_sub_narrators_are_exported():
     ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
 
     pf = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
-    assert "left" in pf and "right" in pf
+    assert "left" in pf
 
 
 def test_perfil_familia_omite_clausulas_com_campo_vazio():
@@ -475,7 +476,7 @@ def test_perfil_familia_omite_clausulas_com_campo_vazio():
     }
     ctx = NarrativasContext.from_family_config(family_vazia)
     pf = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), family_vazia, today=date(2026, 4, 20))
-    blob = pf["left"] + pf["right"]
+    blob = pf["left"]
     assert "é ()" not in blob
     assert "0 gato" not in blob and "0 gatos" not in blob
     assert "residência em ," not in blob and "residência em ." not in blob

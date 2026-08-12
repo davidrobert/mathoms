@@ -431,7 +431,7 @@ vira ADR: é **emenda datada em [[ADR-218]]** + linha em `FORMULAS.md`.
   |---|---|---|
   | `dedupeBySemanticKey` (`curadoriaDestaques.ts`) descarta item da lista **sem declarar** — colapso por regex sobre texto, *first-wins*, então a **ordem** decide quem sobrevive | [[A40.l22]] | **registrado pelo destino** (§Escopo herdado da A40.l10). É a mesma classe da l22, só que no frontend e sem passar pelo produtor |
   | `rule_reserva_insuficiente` está **morta** (`meses_cobertura` × `cobertura_meses`) | [[A40.l5]] | **já registrado** — é o RV3-09, e a l5 o usa como fixture (2) do gate de contrato |
-  | `rule_seguros_insuficientes` emite título **byte-idêntico** ao do analyzer: dois produtores, mesma frase, mesmo usuário | **sem dono** | Nenhuma lane viva possui `suggestion_rules`. Este arquivo é o **emissor** e o destino não existe — não fabrico ownership. Cai naturalmente na lane de convergência que o §Estado-alvo da [[ADR-365]] condiciona; até lá, é dívida nomeada, não cauda anônima |
+  | `rule_seguros_insuficientes` emite título **byte-idêntico** ao do analyzer: dois produtores, mesma frase, mesmo usuário | **fechado 2026-08-11** | **A premissa registrada aqui venceu, e o desfecho é outro.** Medição de 2026-08-11: não eram dois produtores vivos — o do `suggestion_rules` estava **morto** (lia `snapshot["seguros"]`, chave ausente do schema E5; zero rows no dogfood) e ainda emitia `section_id="S6"`, seção queimada por design. Resolvido por **remoção**, não por convergência: a regra foi deletada ([[ADR-161]] §Emenda FP-010), sobrando o produtor canônico `_seguro_vida_item` (predicado ADR-240 KPI F). Não transferido para a lane de convergência da [[ADR-365]] — não havia o que convergir |
 
 ## Residual medido — achado novo, sem lane
 

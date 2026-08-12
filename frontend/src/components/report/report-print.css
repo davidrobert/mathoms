@@ -135,4 +135,13 @@
   [role="progressbar"] > div {
     -webkit-print-color-adjust: exact !important;
   }
+
+  /* ────── Prosa do perfil: 1 coluna no papel (A40.l43) ──────
+     Fragmentar multi-coluna em quebra de página é bug conhecido do Chromium, e
+     este repo já tem cicatriz de PDF truncado por instrução de quebra
+     impossível. O papel não tem gesto de rolagem: coluna partida ao meio da
+     página perde leitura sem sinal. */
+  [data-perfil-prosa] {
+    columns: 1 !important;
+  }
 }

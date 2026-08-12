@@ -112,8 +112,7 @@ class SummariesNarrator:
                 f"ritmo de {fmt_currency(M['aporte_cambial_mensal'])}/mês alcança a meta em {M['meses_para_cambial']} meses."
             ),
             "s7": (
-                f"Meta de independência financeira de {fmt_currency(M['if_meta'])} em {M['if_ano']}. "
-                f"Gap atual de {fmt_currency(M['if_gap'])} com prazo realista de {fmt_num(M['if_prazo_anos'])} anos "
+                f"{_s7_meta_e_prazo(M)} "
                 f"à taxa de aporte {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. "
                 f"Renda passiva estimada ({fmt_num(M['taxa_retirada_segura_pct'], 0)}% retirada segura): {fmt_currency(M['renda_passiva_4pct'])}/mês."
             ),
@@ -272,6 +271,26 @@ def _s8_contador_clause(M: Mapping[str, Any]) -> str:
         return "Contador cadastrado. "
     canal = f" {M['contador_canal']}" if M.get("contador_canal") else ""
     return f"Contador cadastrado ({fmt_currency(mensal)}/mês{canal}). "
+
+
+# Frase transferida do ``perfil_familia.right`` com a emenda ADR-356
+# (2026-08-11): era o único lugar entregue que declarava a ausência de prazo
+# (A40.l26), e a S7 — dona do prazo — imprimia ``fmt_num(None)`` → "prazo
+# realista de N/D anos" e ``em None``. Placeholder afirma prazo que não existe.
+def _s7_meta_e_prazo(M: Mapping[str, Any]) -> str:
+    """Meta de IF + prazo — nomeia a premissa que falta em vez de placeholder."""
+    meta = fmt_currency(M["if_meta"])
+    gap = fmt_currency(M["if_gap"])
+    prazo, ano = M["if_prazo_anos"], M["if_ano"]
+    if prazo is None or ano is None:
+        return (
+            f"Meta de independência financeira de {meta}. Gap atual de {gap}; "
+            "as premissas atuais não permitem projetar um prazo realista"
+        )
+    return (
+        f"Meta de independência financeira de {meta} em {ano}. "
+        f"Gap atual de {gap} com prazo realista de {fmt_num(prazo)} anos"
+    )
 
 
 def _summary_s8(M: Mapping[str, Any], contador_clause: str, holding_clause: str) -> str:

@@ -75,6 +75,25 @@ describe("<ReceitasFonteCard />", () => {
     expect(body.queryByText("outras_receitas")).toBeNull();
   });
 
+  it("percentual em pt-BR na tabela inteira, linhas e total (RV4-19)", () => {
+    // O total era literal `100,0%` (pt-BR) ao lado de linhas em `toFixed(1)`
+    // (en-US): duas convenções na MESMA tabela. Ancorar as duas pontas impede
+    // que a convergência divirja de novo por um lado só.
+    mockUsePeriodTransactions.mockReturnValue({
+      transactions: [tx("receita_clt", 8000), tx("receita_aluguel", 2000)],
+      isLoading: false,
+      error: null,
+    });
+
+    render(<ReceitasFonteCard fluxo={undefined} />);
+
+    const body = within(screen.getByRole("table"));
+    expect(body.getByText("80,0%")).toBeInTheDocument();
+    expect(body.getByText("20,0%")).toBeInTheDocument();
+    expect(body.getByText("100,0%")).toBeInTheDocument();
+    expect(body.queryByText(/\d\.\d%/)).toBeNull();
+  });
+
   it("fallback E5 estático (por_fonte) — renderiza labels para todas as categorias", () => {
     mockUsePeriodTransactions.mockReturnValue({
       transactions: [],
@@ -138,6 +157,24 @@ describe("<ReceitasFonteCard />", () => {
     const body = within(table);
     expect(body.getByText("CLT")).toBeInTheDocument();
     expect(body.getByText("receita_categoria_nova")).toBeInTheDocument();
+  });
+
+  it("janela truncada declara degradação em vez de exibir a média (RV4-07)", () => {
+    // 500 de 1634 lançamentos: a média por fonte sairia 42% abaixo da real.
+    mockUsePeriodTransactions.mockReturnValue({
+      transactions: [tx("receita_clt", 8000), tx("receita_aluguel", 3000)],
+      isLoading: false,
+      error: null,
+      total: 1634,
+      isTruncated: true,
+    });
+
+    const { container } = render(<ReceitasFonteCard fluxo={undefined} />);
+
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getByText(/não cabe inteira neste card/)).toBeInTheDocument();
+    expect(container.textContent).toContain("1.634");
+    expect(container.textContent).toContain("mais antigos ficaram fora");
   });
 
   it("render vazio quando não há transações nem por_fonte", () => {

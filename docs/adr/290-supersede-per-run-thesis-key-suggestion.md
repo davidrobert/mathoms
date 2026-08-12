@@ -11,10 +11,12 @@ relates_to:
   - "[[ADR-208]]"
   - "[[ADR-269]]"
   - "[[ADR-279]]"
+  - "[[ADR-378]]"
 supersedes: []
 superseded_by: []
+amended_at: ["2026-08-11"]
 aliases: ["ADR 290", "suggestion supersede", "thesis_key"]
-size_lines: 105
+size_lines: 130
 tags:
   - type/adr
   - status/decidido
@@ -23,6 +25,11 @@ tags:
 ---
 
 # ADR-290 — Supersede-per-run + thesis_key para `Suggestion` `origin=llm`
+
+> **Emendada em 2026-08-11 por [[ADR-378]]** — B1 (fallback `thesis_key
+> NULL` fora do supersede) e B3 (predicado por tese) foram substituídos por
+> expiração por parecer-fonte. Leia a §Emenda no fim deste arquivo antes de
+> usar B1/B3 como referência.
 
 **Status:** Decidido (A25) • **Data:** 2026-06-12 •
 **Plano:** [[PLAN-suggestion-lifecycle]]
@@ -104,3 +111,31 @@ efêmera ("último parecer vence"), distinta da determinística regra-based
   `tema_canonico`; ver [[PLAN-suggestion-lifecycle]] F4).
 - Telemetria por run (`created`/`superseded`/`skipped_dismiss`/
   `near_dup_candidates`) entra no mesmo PR do supersede.
+
+## Emenda 2026-08-11 — B1/B3 substituídos por expiração por parecer-fonte
+
+Medição do dogfood 8 semanas depois (26 runs): o supersede funciona para
+linhas **com** `thesis_key`, e é justamente o fallback de B1 que produziu o
+dano oposto — 7 pendentes de junho com `thesis_key = NULL`, imunes a
+supersede **por construção**, citando valores de um E5 que não existe mais.
+Fallback desenhado para proteger dados, aplicado a conselho, gerou
+recomendação sem prazo de validade.
+
+Além disso, `thesis_key` mostrou baixo poder discriminante: 3 pendentes de um
+mesmo run dividiram a chave sendo teses distintas — um único trio (tema
+"Alocação", seção `S3`, âncora metodológica) cobre alocação-alvo, exposição
+cambial e concentração imobiliária. O gate da F1 media reaparição (≥90%), não
+colisão — verde possível com a chave errada.
+
+[[ADR-378]] altera:
+
+- **B1** — `thesis_key = NULL` **não** protege mais a linha da expiração. A
+  chave permanece gravada, com papel restrito a janela de dismiss (B4) e
+  telemetria de near-dup.
+- **B3** — o predicado deixa de ser "tese ausente do run atual" e passa a ser
+  "não criada pelo run atual", com guard novo: run `retido` ou sem sugestões
+  não expira nada. As proteções fiduciárias de B3 (aceita/modificada/
+  descartada nunca expiram) seguem valendo integralmente.
+
+**Inalterados:** B2 (status `Superseded`, capitalizado — mas o UNIQUE full
+citado ali vira índice único parcial em ADR-378 §D3), B4, B5, B6, B7.

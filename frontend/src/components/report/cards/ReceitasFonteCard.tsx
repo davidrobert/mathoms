@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { formatPercent } from "@/lib/format";
 import { PeriodToggle } from "../PeriodToggle";
 import { usePeriodTransactions } from "@/hooks/usePeriodTransactions";
 import { aggregateReceitas, getPeriodMonths, type Period } from "@/lib/periodUtils";
@@ -40,7 +41,8 @@ export function ReceitasFonteCard({
   anchorDate?: Date;
 }) {
   const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading } = usePeriodTransactions(period, anchorDate);
+  const { transactions, isLoading, total: totalNaJanela, isTruncated } =
+    usePeriodTransactions(period, anchorDate);
 
   const numMonths = getPeriodMonths(period, anchorDate);
 
@@ -76,7 +78,18 @@ export function ReceitasFonteCard({
       title="Receitas por Fonte"
       headerRight={<PeriodToggle value={period} onChange={setPeriod} />}
     >
-      {displayEntries.length === 0 && !isLoading ? (
+      {isTruncated ? (
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          <strong className="font-semibold text-[var(--surface-foreground)]">
+            A janela {period.toUpperCase()} não cabe inteira neste card.
+          </strong>{" "}
+          Entraram os {transactions.length.toLocaleString("pt-BR")} lançamentos
+          mais recentes de {totalNaJanela.toLocaleString("pt-BR")} — os mais
+          antigos ficaram fora, e a média por fonte apareceria abaixo da real.
+          Escolha uma janela mais curta para ver o número completo, ou consulte
+          a lista inteira em Transações.
+        </p>
+      ) : displayEntries.length === 0 && !isLoading ? (
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Sem dados de receitas neste período.
         </p>
@@ -107,7 +120,7 @@ export function ReceitasFonteCard({
                       <MonetaryValue value={value} />
                     </td>
                     <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                      {pct.toFixed(1)}%
+                      {formatPercent(pct)}
                     </td>
                   </tr>
                 );
@@ -117,7 +130,9 @@ export function ReceitasFonteCard({
                 <td className="pt-3 text-right">
                   <MonetaryValue value={total} />
                 </td>
-                <td className="pt-3 text-right font-mono tabular-nums">100,0%</td>
+                <td className="pt-3 text-right font-mono tabular-nums">
+                  {formatPercent(100)}
+                </td>
               </tr>
             </tbody>
           </table>

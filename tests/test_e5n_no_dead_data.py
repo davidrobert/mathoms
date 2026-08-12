@@ -209,16 +209,16 @@ def test_seed_does_not_reference_dead_data_keys():
         )
 
 
+# Concatena TODO o texto produzido (perfil_familia.left, summaries.s1..10,
+# charts[*].context+conclusion). `perfil_familia.right` saiu na emenda ADR-356
+# (2026-08-11) — enumerá-la aqui era `.get` com default morto.
 def test_narrativas_output_contains_no_dead_data_substrings():
     """Output do builder de narrativas não menciona EUA/F1/F2/NCLEX/Green Card."""
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
     out = builder.build(_build_minimal_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
-
-    # Concatena TODO o texto produzido (perfil_familia.left/right, summaries.s1..10,
-    # charts[*].context+conclusion).
     all_text = ""
     pf = out.get("perfil_familia", {})
-    all_text += pf.get("left", "") + " " + pf.get("right", "")
+    all_text += pf.get("left", "")
     all_text += " ".join(out.get("summaries", {}).values())
     for chart in out.get("charts", {}).values():
         if isinstance(chart, dict):

@@ -86,9 +86,18 @@
     "consolidacao_cross_documento": {
       "count": 11,
       "meses": [
-        { "mes": "2025-11", "count": 4 },
-        { "mes": "2026-01", "count": 3 },
-        { "mes": "2026-03", "count": 4 }
+        {
+          "mes": "2025-11",
+          "count": 4
+        },
+        {
+          "mes": "2026-01",
+          "count": 3
+        },
+        {
+          "mes": "2026-03",
+          "count": 4
+        }
       ]
     },
     "janela_12m": {
@@ -97,8 +106,14 @@
       "consolidacao_cross_documento": {
         "count": 7,
         "meses": [
-          { "mes": "2026-01", "count": 3 },
-          { "mes": "2026-03", "count": 4 }
+          {
+            "mes": "2026-01",
+            "count": 3
+          },
+          {
+            "mes": "2026-03",
+            "count": 4
+          }
         ]
       }
     },
@@ -280,7 +295,7 @@
   },
   "equilibrio_cerbasi": {
     "presente": 0.55,
-    "futuro": 0.30,
+    "futuro": 0.3,
     "padrao_vida": 0.15
   },
   "cenarios_conjuge": {},
@@ -313,8 +328,7 @@
   "tarefas_status": {},
   "narrativas": {
     "perfil_familia": {
-      "left": "<p>Titular Sintético, 44 anos, é engenheiro de software com 20 anos de carreira, atuando como PJ no Simples Nacional.</p><p>Cônjuge Sintético, 39 anos, é enfermeira CLT com salário-base de R$ 8,3k/mês.</p><p>O primeiro filho do casal é peça central no planejamento sucessório da família.</p>",
-      "right": "<p>Plano de vida centrado na consolidação patrimonial e na independência financeira de longo prazo, com perfil moderado.</p><p>Meta de independência financeira com aportes mensais recorrentes e horizonte de 10 anos.</p>"
+      "left": "<p>Titular Sintético, 44 anos, é engenheiro de software com 20 anos de carreira, atuando como PJ no Simples Nacional.</p><p>Cônjuge Sintético, 39 anos, é enfermeira CLT com salário-base de R$ 8,3k/mês.</p><p>O primeiro filho do casal é peça central no planejamento sucessório da família.</p>"
     }
   },
   "tributario": {
@@ -384,7 +398,9 @@
           {
             "classe": "renda_fixa",
             "valor_brl": 350000.0,
-            "componentes": ["Renda Fixa"],
+            "componentes": [
+              "Renda Fixa"
+            ],
             "atual_pct": 58.33,
             "alvo_pct": 40.0,
             "desvio_pp": 18.33,
@@ -393,7 +409,9 @@
           {
             "classe": "acoes_int",
             "valor_brl": 60000.0,
-            "componentes": ["Internacional"],
+            "componentes": [
+              "Internacional"
+            ],
             "atual_pct": 10.0,
             "alvo_pct": 25.0,
             "desvio_pp": -15.0,
@@ -402,7 +420,9 @@
           {
             "classe": "fiis",
             "valor_brl": 40000.0,
-            "componentes": ["FIIs"],
+            "componentes": [
+              "FIIs"
+            ],
             "atual_pct": 6.67,
             "alvo_pct": 10.0,
             "desvio_pp": -3.33,
@@ -411,7 +431,9 @@
           {
             "classe": "acoes_br",
             "valor_brl": 150000.0,
-            "componentes": ["Ações BR"],
+            "componentes": [
+              "Ações BR"
+            ],
             "atual_pct": 25.0,
             "alvo_pct": 25.0,
             "desvio_pp": 0.0,

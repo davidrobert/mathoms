@@ -181,6 +181,28 @@ Observação lateral: um dos baldes de `patrimonio.composicao` chama-se
 nome próprio no relatório — a classe que a [[A40.l4]] fechou. Confirmado que o
 snapshot git-tracked não carrega dado de família.
 
+> **Medição de 2026-08-11 (da [[A40.l43]]) — o desligamento do `s3` não tinha
+> fechado a classe.** `carteira_diversificacao_frase` /
+> `categorias_ativos_sufixo` tinham **3 call sites**, e desligar o destino do `s3`
+> deixou vivo o que de fato chegava ao leitor:
+>
+> | call site | estado antes de 2026-08-11 |
+> | --- | --- |
+> | `summaries_narrator.py` (`s3`) | desligado por esta lane (`summary_source: null`) |
+> | `charts_narrator.py` (`patrimonio_doughnut.context`) | inerte — a S1 usa `getConclusion` derivado (deferimento [[ADR-356]] §D5) |
+> | `perfil_familia_narrator.py` (`right`) | **ENTREGUE**, no card logo abaixo do hero |
+>
+> A l38 removeu a chave `perfil_familia.right` inteira, então a frase morre **por
+> consequência** e o total de publicadores entregues vai a **zero**. A l38 não
+> introduziu afirmação substituta sobre diversificação/concentração: a política
+> continua sendo desta lane, exatamente como as perguntas acima a formulam.
+>
+> **O que isso muda para esta lane:** o eixo "corrigir ou desligar o `s3`" perdeu
+> urgência de contenção — nada afirma mais diversificação ao usuário — e virou a
+> pergunta de produto pura ("o que a S3 deve afirmar sobre a carteira?"). Se a
+> resposta for "nada", `carteira_diversificacao_frase` fica **órfã inteira** e o
+> destino é a [[A40.l14]] (remoção de helper sem consumidor).
+
 ## Gate de shipping (herdado do co-design — não flexibilizar)
 
 **Os três co-changes entram no MESMO PR que a troca do KPI.** Se não couberem, o
