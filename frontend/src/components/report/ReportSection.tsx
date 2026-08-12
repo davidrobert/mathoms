@@ -47,7 +47,7 @@ export function ReportSection({
         * até o max-content do filho mais largo, arrastando TODOS os irmãos —
         * inclusive no PDF, onde `md:` nunca casa (a caixa A4 é 703px). Era o que
         * empurrava o SectionSummary 263px para fora da caixa em S3/S4. */}
-      <div className="grid grid-cols-1 gap-6 [&>*]:min-w-0 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {children}
       </div>
     </section>

@@ -66,9 +66,10 @@ escopo:
 Entregue no commit `37ba3af4`. Cada mudança tem causa própria — não é um
 `min-w-0` espalhado:
 
-- **`ReportSection`** — `grid-cols-1` explícito + `[&>*]:min-w-0`. O track era
-  `auto` e crescia até o `max-content` do filho mais largo, arrastando os
-  irmãos; como vale abaixo de 768px, atingia o PDF inteiro ([[ADR-377]] D5).
+- **`ReportSection`** — `grid-cols-1` explícito. O track era `auto` e crescia
+  até o `max-content` do filho mais largo, arrastando os irmãos; como vale
+  abaixo de 768px, atingia o PDF inteiro ([[ADR-377]] D5). **Sem `min-w-0` nos
+  filhos**: ver §Regressão 2.
 - **`VariacaoSection` (V0)** — tabela vira lista rótulo/valor abaixo de `sm:`
   (640px, não 768px: a caixa A4 receberia a pilha sem precisar), com cor, glifo
   e `aria-label` preservados juntos ([[ADR-377]] D4). O rótulo passa a quebrar e
@@ -96,18 +97,15 @@ Entregue no commit `37ba3af4`. Cada mudança tem causa própria — não é um
       **Provado por mutação**, não por estar verde: revertido o `grid-cols-1`, o
       gate acusa 239px em S3 e 132px em S4; revertido o `hidden sm:table`, acusa
       a tabela visível no telefone.
-- [x] Baselines visuais: **nenhum rebaseline necessário** — medido, não suposto.
-      Os snapshots de seção rodam a 1280px, onde todas as regras novas caem no
-      ramo `sm:`/`md:` que já existia. Capturando as seções com o código pré e
-      pós-fix na mesma máquina, V0/S3/S8/S9 saem **byte a byte idênticas**; S1 e
-      S2 diferem, mas o controle (duas capturas do **mesmo** código) mostra que
-      elas também diferem de si mesmas — é ruído de canvas, não efeito do fix.
+- [x] Baselines visuais: **nenhum rebaseline necessário** — mas a primeira
+      resposta a esta pergunta estava **errada**, e o que a corrigiu foi o
+      controle. Ver §Regressão 2.
 - [x] `print.@critical` (diff de pixel do PDF) falha **localmente** com 19.133px
       contra tolerância de 500 — e falha com o **mesmo número** no código
       pré-fix. É divergência macOS × baseline de runner Linux; o fix não muda um
       pixel dessa página. Quem decide é o CI.
 
-## Regressão encontrada na própria lane
+## Regressão 1 — o `anywhere` partia número no papel
 
 O primeiro commit fechou o vazamento e **abriu** um defeito mais sutil, pego só
 porque a verificação leu o PDF real em vez de confiar na tela: `overflow-wrap:
@@ -127,3 +125,35 @@ quem encolhe a tabela é o rótulo; número é átomo.
   sobrevive porque a variante mobile é completa — por acidente, não por
   desenho. [[ADR-377]] D1 fixa a regra; a varredura dos call-sites existentes
   não entra nesta lane.
+
+## Regressão 2 — `min-w-0` desalinhou o gráfico, e só no Linux
+
+O job visual acusou S2 (light + dark) com **9,185%** de pixels divergentes,
+contra tolerância de 2,5%. Minha primeira leitura foi "baseline desatualizada,
+passivo herdado" — **errada**. O que decidiu foi o **controle**: disparar o mesmo
+job a partir de uma branch cortada de `origin/main` puro. Ele passou **verde**,
+logo a falha era da lane.
+
+O mecanismo só aparece no runner Linux: com `[&>*]:min-w-0` no grid, o card do
+gráfico passa a poder encolher abaixo do seu `max-content`; as barras do Chart.js
+ficaram **comprimidas à esquerda enquanto os rótulos do eixo seguiam até a
+direita** — gráfico desalinhado do próprio eixo, pior que o defeito que a lane foi
+corrigir. Em macOS a divergência era de 0,063% (só os FABs flutuantes), então
+medir só na minha máquina teria deixado passar.
+
+`[&>*]:min-w-0` foi **removido**: o gate de vazamento passa 6/6 sem ele, ou seja
+o `grid-cols-1` explícito sozinho já fecha a classe. Era supérfluo e caro.
+
+**Lições que valem além desta lane:**
+
+1. **`cmp` byte a byte em PNG é falso positivo** — dois encodes da mesma tela
+   diferem em bytes com **zero** pixel diferente. Foi o que me fez classificar
+   S1/S2/S3 como "ruído de canvas". Meça por pixel (limiar ~8/255) e olhe a
+   **caixa** da diferença: foi ela que mostrou que a mudança de 0,063% em macOS
+   era chrome flutuante, não o gráfico.
+2. **Diferença de plataforma não é só antialiasing.** Uma regra de layout
+   sensível a largura de fonte pode mudar de comportamento entre macOS e Linux.
+   Medir pré/pós na própria máquina responde "o que MUDOU aqui", não "o que o
+   gate vai ver".
+3. **O controle em `main` puro é o instrumento que decide** de quem é a falha.
+   Custa um dispatch de workflow e substitui qualquer argumentação.
