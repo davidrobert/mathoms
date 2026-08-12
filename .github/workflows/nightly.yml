@@ -91,6 +91,7 @@ jobs:
           ref: main
 
       - name: Setup Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -112,30 +113,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          # Mesma key dos jobs de ci.yml — reusa cache populado pelo
-          # último PR mergeado. Hit típico em main-smoke noturno.
-          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v7
+          # Mesma key dos jobs de ci.yml (interpretador + hash do lock) —
+          # reusa cache populado pelo último PR mergeado. Hit típico em
+          # main-smoke noturno. Ver ADR-254 §Emenda 2026-08-11.
+          key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
 
-      - name: Install Python deps (cache miss, via uv)
-        if: steps.venv-cache.outputs.cache-hit != 'true'
-        env:
-          VIRTUAL_ENV: ${{ github.workspace }}/.venv
-        run: |
-          [ -d .venv ] || uv venv .venv
-          uv pip install --require-hashes -r requirements.lock
-
-      - name: Garante test-deps no venv (sempre — cache pode não tê-los)
-        # O venv cache é compartilhado com ci.yml; dependendo de qual job o
-        # populou, pode não conter reportlab/xlwt/pytest-xdist/etc. Em cache
-        # HIT do venv o step acima é pulado → Pipeline/Backend tests quebram
-        # com ModuleNotFoundError (ex.: xlwt em test_e2_schema_strict_corpus).
-        # uv pip install é idempotente e rápido quando já satisfeito. Mesma
-        # classe do fix do pre-commit `--system` abaixo.
-        env:
-          VIRTUAL_ENV: ${{ github.workspace }}/.venv
-        run: |
-          [ -d .venv ] || uv venv .venv
-          uv pip install reportlab xlwt pytest-cov pytest-xdist fakeredis "schemathesis<4"
+      - name: Ensure venv (lock + test-deps)
+        # Step único, sempre executado — o predicado do script executa o
+        # interpretador, então venv restaurado inutilizável é reconstruído.
+        run: bash dev/ci_ensure_venv.sh reportlab xlwt pytest-cov pytest-xdist fakeredis "schemathesis<4"
 
       - name: Install system lint tools (sempre — não vão no venv cache)
         # pre-commit/ruff/jsonschema/pyyaml instalam no system python via
@@ -757,6 +743,7 @@ jobs:
           ref: main
 
       - name: Setup Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -771,16 +758,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v7
+          key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
 
-      - name: Install Python deps (cache miss, via uv)
-        if: steps.venv-cache.outputs.cache-hit != 'true'
-        env:
-          VIRTUAL_ENV: ${{ github.workspace }}/.venv
-        run: |
-          [ -d .venv ] || uv venv .venv
-          uv pip install --require-hashes -r requirements.lock
-          uv pip install pytest pytest-asyncio
+      - name: Ensure venv (lock + test-deps)
+        run: bash dev/ci_ensure_venv.sh pytest pytest-asyncio
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
