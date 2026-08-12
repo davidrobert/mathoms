@@ -1197,16 +1197,32 @@ escalado ao `senior-cto`) produziu achados vizinhos ao escopo. Os com dono foram
 roteados; o resto foi para a [[A40.l46]], aberta a pedido do dono para que nenhum
 evapore.
 
+**Elevado a P1 depois da medição:** 3 itens são defeito em **número ou prosa já
+entregues ao usuário**, não débito de forma. A verificação rodou 4 lentes e refutou 2
+achados alegados (registrados como §Fantasmas na lane, para ninguém reabrir).
+
 | Follow-up | Onde está | Tem destino? |
 |---|---|---|
+| **Score de endividamento com sinal INVERTIDO no default** — `invertido=False` no código vs `true` no `scoring.json`; medido: endiv 5% → nota **0,0**, endiv 50% → nota **10,0**. Alcançável por 3 call sites, um deles `backend/app/services/score_reader.py` | [[A40.l46]] §C1 | **lane** — fix é 1 char, mas muda score: gatilho `financial-planner` |
+| **`R$ 2,000` / `R$ 36,000` — separador de milhar dos EUA em prosa entregue** (`consumo_consciente.analise`, `previdencia_pgbl.nota` no snapshot do view-model). Em pt-BR lê "R$ 2" | [[A40.l46]] §C2 | **lane** |
+| **`.replace(",", ".")` na prosa inteira corrompe pontuação** — `suggestion_rules.py:574`; medido: *"da meta IF**.** mas a renda"*, 5 vírgulas gramaticais destruídas | [[A40.l46]] §C3 | **lane** |
+| **A causa-raiz que a l43 diagnosticou foi removida PELA METADE** — o validador ainda exige as **10** summaries não-vazias (`format_helpers.py:244-251`), e 4 delas são órfãs: o gate **obriga a fabricar prosa** para chaves que nenhuma superfície lê. Mesma regra, mesmo arquivo | [[A40.l46]] §C4 | **lane** — autocrítica da l43; destrava o fix dos landmines |
+| `renda_passiva.conclusion` imprime "Faltam R$ **-**X/mês" (subtração sem guarda de sinal) e o percentual não é clampado — **entregue** na S7 | [[A40.l46]] §I7 | **lane** — plausível, **não observado**; medir antes de escrever a copy |
+| Landmines de veredito sem limiar em chave **não entregue**: `s2` "endividamento controlado" (o produtor gated já existe e é entregue) · `top15_ativos` "Concentração em poucos ativos" · `patrimonio_doughnut.context` · `carteira_diversificacao_frase` com n=1 | [[A40.l46]] §I8 | **lane** — preferir deleção a reescrita; depende do §C4 |
+| Drift de comentário deixado pela própria l43 — `format_helpers.py:87` cita 3 call sites, 2 não existem mais | [[A40.l46]] §I9 | **lane** |
+| Parágrafo do filho: "do casal" incondicional (falso p/ titular solteiro) · 2º filho **desaparece** · juízo sucessório incondicional · idade omitida · membro `dependente` **invisível** | [[A40.l46]] §I1 | **lane** — inclui fechar o falso-verde do gate da l43, que mede 3 literais e não pega "peça central" |
+| `fmt_currency` contra COPY_GUIDELINES §4 (`k`/`M`, sinal, NBSP, piso de compactação) — **72 call sites** e **6 formatadores independentes**, incl. `dashboard_service._fmt_brl` com separador US | [[A40.l46]] §I2 | **lane própria** — e a §4 precisa de emenda para "prosa gerada", que hoje manda o impossível |
+| `taxa_endividamento`: `scoring.json` declara "% renda mensal comprometida" mas a fórmula é `dívidas/patrimônio bruto`; `FORMULAS.md` sem linha | [[A40.l46]] §I3 | **lane** — docs-only, não-breaking (nenhum consumidor lê `unidade`) |
+| 5 das 6 fixtures E2E têm o contrato morto — estados vazios do bloco de identidade nunca vistos em baseline | [[A40.l46]] §I4 | **lane** |
+| Heading order h1→h3→h2 + Sumário Executivo sem heading (gate axe é `critical+serious`, `heading-order` é `moderate`) | [[A40.l46]] §I5 | **lane** |
+| 6 lanes fora da tabela §Lanes (l38–l42, l44) — o §Gate de saída lê a tabela | [[A40.l46]] §I6 | **lane** (contador corrigido em #1405; a tabela, não) |
+| Substrato declarado de plano de vida — feature que o pedido original queria | [[A40.l46]] §F1 | **lane** — exige ADR `Proposto` com gatilho **PII**, e depende do §Escopo 2 da l29 |
 | `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l6]] | **quitado por remoção** — o aceite "fonte única" ficou insatisfazível; a l6 mantém só o lado da S4 |
 | Política de diversificação/concentração — o que a S3 afirma sobre a carteira | [[A40.l15]] | **lane** — a l43 mediu que os publicadores **entregues** foram a zero; a política segue da l15 |
 | Premissas de IF (TRS, retorno real, meta em R$, aporte-meta) sem superfície nenhuma no relatório | [[A40.l29]] §Escopo 2 | **lane** — `financial-planner` classificou como *requisito de leitura*, não redundância ([[ADR-306]] §D2) |
 | Forma do ramo de prazo ausente na S7 (preservar ao reescrever o §Escopo 1) | [[A40.l29]] | **lane** — a declaração de ausência já foi transferida em `849e372b`; a l29 não pode reintroduzir `fmt_num` cru |
-| 5 das 6 fixtures E2E têm o contrato morto — estados vazios do bloco de identidade nunca vistos em baseline | [[A40.l46]] §1 | **lane** |
-| Heading order h1→h3→h2 + Sumário Executivo sem heading (gate axe é `critical+serious`, `heading-order` é `moderate`) | [[A40.l46]] §2 | **lane** |
-| 6 lanes fora da tabela §Lanes (l38–l42, l44) — o §Gate de saída lê a tabela | [[A40.l46]] §3 | **lane** (contador corrigido em #1405; a tabela, não) |
-| Substrato declarado de plano de vida — feature que o pedido original queria | [[A40.l46]] §4 | **lane** — exige ADR `Proposto` com gatilho **PII**, e depende do §Escopo 2 da l29 para ter onde pousar |
+| `parcela_mensal`/`taxa_juros` sem valor numérico · branch `block` da RL2 inalcançável | `docs/sprint/A26/tracks/taxa-divida-numerica.md` | **track existente** (`ready`, P2) — **não** abrir item novo; as citações da track estão desatualizadas e a evidência que o painel citou é dead code |
+| `custo_medio_pct_aa` sem produtor mata o branch carry-trade | [[ADR-367]] + `rule-ordem-do-plano-por-irreversibilidade` | **já documentado** |
 
 ## Pendências de decisão — itens 11-12 (2026-08-03)
 
