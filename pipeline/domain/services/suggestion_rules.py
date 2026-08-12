@@ -445,43 +445,6 @@ def _quedas_consecutivas(serie: list[float], drop_pp: float, n_required: int) ->
     return consec >= n_required
 
 
-def rule_seguros_insuficientes(
-    snapshot: dict[str, Any], cfg: SuggestionGeneratorConfig
-) -> SuggestionDraft | None:
-    """Renda PJ alta sem seguro vida/invalidez (Cerbasi · proteção)."""
-    seguros = _as_dict(snapshot.get("seguros"))
-    if not seguros:
-        return None
-    fluxo = _as_dict(snapshot.get("fluxo_caixa"))
-    renda_pj = _as_float(fluxo.get("renda_pj_mensal")) or _as_float(
-        fluxo.get("receita_recorrente_mensal")
-    )
-    if renda_pj is None or renda_pj < cfg.seguros_renda_pj_threshold_brl:
-        return None
-    if seguros.get("vida_invalidez") is True:
-        return None
-    rationale = (
-        f"Renda PJ mensal de R$ {renda_pj:,.0f} sem cobertura de "
-        f"vida/invalidez detectada. Cerbasi: alta renda sem proteção é o "
-        f"ponto cego mais comum em famílias de empresários. Choque de saúde "
-        f"compromete o plano inteiro — seguro term é barato em relação ao "
-        f"risco coberto."
-    ).replace(",", ".")
-    return SuggestionDraft(
-        # S5/S6 queimadas por design (report_layout.yaml §NOTA); lacuna de
-        # proteção ancora na S9 — Riscos e Sucessão.
-        section_id="S9",
-        kind="seguros_insuficientes",
-        severity="danger",
-        title="Contratar seguro de vida e invalidez",
-        rationale=rationale,
-        dedup_key=_dedup_key(
-            "seguros_insuficientes",
-            bucket=_brl_bucket(_as_decimal(renda_pj), step=Decimal("10000")),
-        ),
-    )
-
-
 def rule_concentracao_instituicao(
     snapshot: dict[str, Any], cfg: SuggestionGeneratorConfig
 ) -> SuggestionDraft | None:
@@ -634,7 +597,12 @@ ALL_RULES = (
     # v2 (ADR-161)
     rule_endividamento_perigoso,
     rule_taxa_poupanca_caindo,
-    rule_seguros_insuficientes,
+    # FP-010: rule_seguros_insuficientes removida (ADR-161 §Emenda 2026-08-11).
+    # Lia `snapshot["seguros"]`, chave que o E5 nunca produziu — o enriquecimento
+    # previsto no Follow-up #1 foi superseded pela ADR-240, que entregou
+    # `protecao_patrimonial.gap_qualitativo`. Produtor único do conselho é
+    # `pontos_urgentes_analyzer._seguro_vida_item`, cujo predicado é o canônico
+    # (KPI F) e mais estreito: exige dependente econômico, não renda alta.
     rule_concentracao_instituicao,
     rule_lifestyle_creep,
     rule_renda_passiva_real_baixa,

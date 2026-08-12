@@ -42,6 +42,9 @@ KIND_TO_CATEGORY: dict[str, Category] = {
     # v2 (ADR-161 — Cerbasi/AUVP completos)
     "endividamento_perigoso": "endividamento",
     "taxa_poupanca_caindo": "comportamental",
+    # Sem produtor desde 2026-08-11 (FP-010 · ADR-161 §Emenda): o kind fica no
+    # vocabulário porque row histórica com ele precisa continuar legível — kind
+    # sem produtor é inerte, kind removido é mudança de contrato.
     "seguros_insuficientes": "protecao",
     "concentracao_instituicao": "carteira",
     "lifestyle_creep": "comportamental",
