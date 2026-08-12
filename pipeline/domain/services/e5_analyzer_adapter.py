@@ -532,9 +532,14 @@ class E5AnalyzerAdapter:
         # 2. Resolve membros do baseline.
         members = self._member_resolver.resolve(patrimonio_raw)
 
-        # 3. Enriquece fluxo.
+        # 3. Enriquece fluxo. `data_corte` vem do `reference_date` do run (nunca de
+        #    `date.today()` no ponto de uso): transação posterior sai dos agregados
+        #    realizados e vira `fluxo_caixa.provisionado`.
         fluxo_enriched = self._fluxo_enricher.enrich(
-            receitas=receitas, despesas=despesas, fluxo_mensal=fluxo_mensal
+            receitas=receitas,
+            despesas=despesas,
+            fluxo_mensal=fluxo_mensal,
+            data_corte=self._reference_date,
         )
         fluxo_legacy = fluxo_enriched.to_legacy_dict()
 

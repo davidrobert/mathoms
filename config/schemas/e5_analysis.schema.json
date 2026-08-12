@@ -247,12 +247,70 @@
     },
     "fluxo_caixa": {
       "type": "object",
-      "description": "A23.l2 (data-lineage): campos da invariante de conservação de fluxo declarados antes do flip→strict (W6-T01) — fluxo_liquido == receita_total − despesa_total. ADR-306: rótulo de janela obrigatório (janela + janela_meses) — política de base temporal de mensalização.",
+      "description": "A23.l2 (data-lineage): campos da invariante de conservação de fluxo declarados antes do flip→strict (W6-T01) — fluxo_liquido == receita_total − despesa_total. ADR-306: rótulo de janela obrigatório (janela + janela_meses) — política de base temporal de mensalização. Corte de provisionado: data_corte + provisionado obrigatórios — transação posterior ao corte não entra em nenhum agregado realizado, e o bloco irmão declara o que saiu.",
       "required": [
         "janela",
-        "janela_meses"
+        "janela_meses",
+        "data_corte",
+        "provisionado"
       ],
       "properties": {
+        "data_corte": {
+          "type": "string",
+          "format": "date",
+          "description": "Último dia realizado do run (derivado do reference_date). Transação com data posterior sai da série e dos agregados."
+        },
+        "provisionado": {
+          "type": "object",
+          "description": "Agregado das transações posteriores ao data_corte — fora de qualquer janela e de por_fonte. Existe para que o corte seja auditável (o valor não some, muda de bloco).",
+          "required": [
+            "data_corte",
+            "receita_brl",
+            "despesa_brl",
+            "por_fonte",
+            "por_categoria",
+            "transacoes",
+            "primeiro_mes",
+            "ultimo_mes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "data_corte": {
+              "type": "string",
+              "format": "date"
+            },
+            "receita_brl": {
+              "type": "number"
+            },
+            "despesa_brl": {
+              "type": "number"
+            },
+            "por_fonte": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            },
+            "por_categoria": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            },
+            "transacoes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "primeiro_mes": {
+              "type": ["string", "null"],
+              "pattern": "^[0-9]{4}-[0-9]{2}$"
+            },
+            "ultimo_mes": {
+              "type": ["string", "null"],
+              "pattern": "^[0-9]{4}-[0-9]{2}$"
+            }
+          }
+        },
         "receita_total": {
           "type": "number"
         },

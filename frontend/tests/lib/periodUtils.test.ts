@@ -8,6 +8,7 @@ import {
   getPeriodMonths,
   isIncomeCategory,
   parseChartMonthLabel,
+  resolveAnchorDate,
 } from "@/lib/periodUtils";
 
 describe("parseChartMonthLabel", () => {
@@ -74,6 +75,43 @@ describe("getPeriodDates with anchorDate", () => {
     const { date_to } = getPeriodDates("3m");
     const today = new Date().toISOString().split("T")[0];
     expect(date_to).toBe(today);
+  });
+});
+
+describe("resolveAnchorDate", () => {
+  it("usa data_corte quando a série chega até o mês do corte", () => {
+    const d = resolveAnchorDate(["26/07", "26/08"], "2026-08-11");
+    expect(d?.getFullYear()).toBe(2026);
+    expect(d?.getMonth()).toBe(7); // agosto
+    expect(d?.getDate()).toBe(11);
+  });
+
+  it("mantém o último label quando ele é anterior ao corte", () => {
+    // Corpus que termina antes de hoje: ancorar em hoje divide receita de 2
+    // meses por 3 — o mesmo defeito ao contrário.
+    const d = resolveAnchorDate(["26/05", "26/06"], "2026-08-11");
+    expect(d?.getMonth()).toBe(5); // junho
+    expect(d?.getDate()).toBe(30);
+  });
+
+  it("corta label posterior ao corte (relatório com transação futura)", () => {
+    const d = resolveAnchorDate(["26/07", "26/09"], "2026-08-11");
+    expect(d?.getMonth()).toBe(7);
+    expect(d?.getDate()).toBe(11);
+  });
+
+  it("cai no último label quando não há data_corte", () => {
+    const d = resolveAnchorDate(["26/07", "26/09"], undefined);
+    expect(d?.getMonth()).toBe(8); // setembro — comportamento antigo preservado
+  });
+
+  it("devolve undefined sem labels e sem corte", () => {
+    expect(resolveAnchorDate(undefined, undefined)).toBeUndefined();
+    expect(resolveAnchorDate([], undefined)).toBeUndefined();
+  });
+
+  it("usa data_corte mesmo sem labels", () => {
+    expect(resolveAnchorDate([], "2026-08-11")?.getDate()).toBe(11);
   });
 });
 

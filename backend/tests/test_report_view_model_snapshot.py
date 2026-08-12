@@ -43,7 +43,10 @@ _FAMILY = {
 # data_analise = data de hoje. `prob_if_ate_idade_meta` SAIU em ADR-360 (o Monte
 # Carlo passou a ser seedado) — não remascare: o mascaramento voltaria a esconder
 # exatamente a regressão que a ADR fecha.
-_VOLATILE_LEAVES = frozenset({"data_analise"})
+# `data_corte` é o mesmo caso de `data_analise`: o corte de provisionado ancora no
+# `reference_date` do run, que é hoje. O que ele MUDA (série cortada, bloco
+# `provisionado`) continua visível no snapshot — só o carimbo é mascarado.
+_VOLATILE_LEAVES = frozenset({"data_analise", "data_corte"})
 
 
 def _to_cents(value: Any) -> int:

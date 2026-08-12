@@ -71,7 +71,25 @@ export interface FluxoJanela12m {
   consolidacao_cross_documento?: ConsolidacaoCrossDocumento;
 }
 
+/** Transações posteriores ao `data_corte` (JCP provisionado, agendamento) —
+ * fora de toda janela e de `por_fonte`. O valor não some do relatório, muda de
+ * bloco: o realizado não pode ser esticado por uma data futura. */
+export interface FluxoProvisionado {
+  data_corte: string;
+  receita_brl: number;
+  despesa_brl: number;
+  por_fonte: Record<string, number>;
+  por_categoria: Record<string, number>;
+  transacoes: number;
+  primeiro_mes: string | null;
+  ultimo_mes: string | null;
+}
+
 export interface FluxoCaixaSummary {
+  /** Último dia realizado do run (ISO `YYYY-MM-DD`). Ausente em relatório
+   * anterior ao corte de provisionado. */
+  data_corte?: string;
+  provisionado?: FluxoProvisionado;
   /** ADR-306 D1 — rótulo da base de mensalização do bloco top-level ("full"). */
   janela?: string;
   /** ADR-306 D1 — meses documentados do bloco top-level. */

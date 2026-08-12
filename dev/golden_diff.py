@@ -37,6 +37,10 @@ _NON_MONETARY_EXACT = frozenset(
         "janela_n_meses",
         "transacoes_total",
         "transacoes_duplicadas_removidas",
+        # Contador do bloco `fluxo_caixa.provisionado` (corte de provisionado).
+        # Monetário-por-default leria `transacoes=4` como R$ 0,04 e reportaria
+        # delta_cents fantasma — mesma classe de `transacoes_total` acima.
+        "transacoes",
         "acumuladores_pct_gerador",
         "percentual_patrimonio",
         # ADR-369 D2 aposentou estas duas do contrato; ficam porque o diff também

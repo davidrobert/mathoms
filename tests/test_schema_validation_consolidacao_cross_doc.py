@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -34,7 +35,13 @@ def _fluxo_caixa_do_produtor(consolidacao: dict | None) -> dict:
     }
     if consolidacao is not None:
         e4["consolidacao_cross_documento"] = consolidacao
-    return FluxoCaixaEnricher().enrich(receitas={}, despesas={}, fluxo_mensal=e4).to_legacy_dict()
+    # `data_corte` espelha o que o E5 passa (adapter → reference_date): sem ele o
+    # produtor omite `data_corte`/`provisionado` e o payload deixa de ser o real.
+    return (
+        FluxoCaixaEnricher()
+        .enrich(receitas={}, despesas={}, fluxo_mensal=e4, data_corte=date(2026, 3, 1))
+        .to_legacy_dict()
+    )
 
 
 def _e5(fluxo_caixa: dict) -> dict:
