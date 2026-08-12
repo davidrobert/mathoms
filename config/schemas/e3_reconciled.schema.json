@@ -99,7 +99,13 @@
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": true
+        "additionalProperties": true,
+        "properties": {
+          "valor": {
+            "type": "number",
+            "description": "Valor da transação como NUMBER (nunca string). O invariante que faz o parse monetário do E4 ser no-op vive aqui, onde é consumido (review data-engineer do PR #1417)."
+          }
+        }
       }
     },
     "tx_carregadas": {

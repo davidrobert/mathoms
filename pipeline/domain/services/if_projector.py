@@ -10,7 +10,10 @@ import re
 from dataclasses import dataclass
 from datetime import date
 
-from pipeline.domain.services.money_parsing import valor_monetario_float
+from pipeline.domain.services.money_parsing import (
+    parse_valor_monetario,
+    valor_monetario_float,
+)
 
 _TODAY_FALLBACK = date(2026, 4, 19)
 
@@ -21,9 +24,16 @@ _TODAY_FALLBACK = date(2026, 4, 19)
 # escolheu não contar com o mercado (o schema aceita `minimum: 0`). Com o ramo
 # linear preenchido, essa confusão passaria a PROJETAR sobre premissa que
 # ninguém declarou (ADR-373 D3).
+# Testar só `val is None` deixava a sentinela passar: `ratios_calculator:156` emite
+# "N/D" de verdade, e "N/D" → 0,0 virava "0% declarado" → `r = 0` → ramo *Sem
+# trajetória* da ADR-373, ou seja o relatório AFIRMA inviabilidade por falha de leitura.
+# O parser distingue ausência (None) de zero declarado (review financial-planner, #1417).
 def default_if_absent(val, default: float) -> float:
-    """Ausência cai no default; ``0`` declarado permanece ``0``."""
-    return default if val is None else _safe_float(val)
+    """Ausência (incl. sentinela "N/D") cai no default; ``0`` declarado permanece ``0``."""
+    if val is None:
+        return default
+    parsed = parse_valor_monetario(val)
+    return default if parsed is None else float(parsed)
 
 
 def _safe_float(val) -> float:
@@ -333,7 +343,12 @@ class IFProjector:
         if_trs_value = cfg.if_meta * if_trs_monthly
 
         if_pct = (investivel / cfg.if_meta * 100) if cfg.if_meta > 0 else 0.0
-        if_gap = cfg.if_meta - investivel
+        # `FORMULAS.md:26-27` manda MAX(0, ·). Gap negativo é número que não existe no
+        # domínio ("precisa acumular menos que zero") e NÃO fica só no JSON:
+        # `summaries_narrator:283` e `charts_narrator:229,385,390` o formatam como moeda
+        # em prosa. O `WaterfallIfChart.tsx:39` já clampava no fallback — o frontend
+        # estava mais correto que o domínio (review financial-planner do PR #1417).
+        if_gap = max(0.0, cfg.if_meta - investivel)
 
         # Taxa mensal equivalente da anual composta.
         retorno_anual = cfg.retorno_real_anual_pct / 100.0

@@ -1,5 +1,9 @@
 """Parse canônico de valor monetário em string — as duas convenções do corpus."""
 
+# ESCOPO: **somente dinheiro**. Taxa, cotação, σ, valor de cota, percentual, peso e
+# contagem de meses NÃO passam por `parse_valor_monetario` — a regra dos 3 dígitos é
+# verdadeira para dinheiro e falsa para eles. Use `parse_taxa_ou_cotacao`.
+
 # O corpus real traz ISO (`"243285.37"`, emitido pelos nossos próprios stages) e pt-BR
 # (`"243.285,37"`, vindo de documento/LLM). Antes deste módulo havia 9 implementações
 # divergentes: 4 strippavam `.` incondicionalmente e inflavam ISO em 100×, 1 devolvia
@@ -32,12 +36,20 @@ def _limpar(raw: str) -> str:
 
 # `"5.000.000"` repete o ponto — decimal não repete. `"5.000"` tem exatamente 3 dígitos
 # depois, assinatura do agrupamento; `"243285.37"` tem 2, assinatura da decimal.
-# Ambíguo de verdade só sobra para valor com 3 casas decimais, que não ocorre em dinheiro.
+#
+# Grupo de milhar NUNCA tem zero à esquerda: `"0.025"` não é 25, é vinte e cinco
+# milésimos. Sem essa guarda, `pct_renda_anual` (contrato `^-?\d+(\.\d{1,6})?$`,
+# domínio 0..1 por ADR-240) virava 1000× (review data-engineer do PR #1417).
+#
+# Dinheiro com 3 casas decimais NÃO existe, mas taxa e cotação existem — e para elas
+# esta função está errada por construção. Use `parse_taxa_ou_cotacao`.
 def _e_agrupador(texto: str, sep: str) -> bool:
     """Separador é de milhar (não decimal) quando repete ou agrupa 3 dígitos."""
     if texto.count(sep) > 1:
         return True
-    return len(texto) - texto.rfind(sep) - 1 == 3
+    if len(texto) - texto.rfind(sep) - 1 != 3:
+        return False
+    return not texto[: texto.rfind(sep)].lstrip("+-").startswith("0")
 
 
 def _normalizar_separadores(texto: str) -> str:
@@ -85,4 +97,32 @@ def valor_monetario_float(raw: Any, default: float = 0.0) -> float:
     return default if valor is None else float(valor)
 
 
-__all__ = ["parse_valor_monetario", "valor_monetario_float"]
+# Taxa, cotação, σ, valor de cota e percentual têm 3+ decimais legítimos, então a regra
+# de agrupamento de `parse_valor_monetario` está ERRADA para eles: `"5,432"` é cotação
+# USD/BRL, não cinco mil e quatrocentos e trinta e dois. Aqui a vírgula é SEMPRE decimal
+# e ponto de milhar não é reconhecido — grandeza desse tipo não vem agrupada.
+#
+# Existe porque `sigma_anual_pct`/`retorno_real_esperado_pct_anual` viajam como `str`
+# sobre `Numeric(6,3)` (`economic_assumptions_snapshot.py:43-47`) e a ADR-374 §Sanidade
+# de unidade manda escrever a conversão `str → Decimal`. Sem esta função, quem
+# implementar a A40.l25 usaria o parser monetário e obteria σ = 22000%.
+def parse_taxa_ou_cotacao(raw: Any) -> Decimal | None:
+    """Taxa/cotação/percentual → ``Decimal``; a vírgula é sempre decimal."""
+    if raw is None or isinstance(raw, bool):
+        return None
+    if isinstance(raw, Decimal):
+        return raw
+    if isinstance(raw, (int, float)):
+        return Decimal(str(raw))
+    if not isinstance(raw, str):
+        return None
+    texto = _limpar(raw)
+    if texto.strip().lower() in _SENTINELAS_AUSENCIA:
+        return None
+    try:
+        return Decimal(texto.replace(",", "."))
+    except InvalidOperation:
+        return None
+
+
+__all__ = ["parse_taxa_ou_cotacao", "parse_valor_monetario", "valor_monetario_float"]
