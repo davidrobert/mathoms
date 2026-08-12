@@ -48,6 +48,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -62,16 +63,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-lock-${{ hashFiles('requirements.lock') }}-v7
+          key: venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-lock-${{ hashFiles('requirements.lock') }}-v8
 
-      - name: Install dependencies (cache miss, via uv)
-        if: steps.venv-cache.outputs.cache-hit != 'true'
-        env:
-          VIRTUAL_ENV: ${{ github.workspace }}/.venv
-        run: |
-          [ -d .venv ] || uv venv .venv
-          uv pip install --require-hashes -r requirements.lock
-          uv pip install pytest pytest-asyncio
+      - name: Ensure venv (lock + test-deps)
+        run: bash dev/ci_ensure_venv.sh pytest pytest-asyncio
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"

@@ -27,8 +27,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 | type | status | notas |
 | --- | --- | ---: |
-| adr | Decidido | 318 |
-| adr | Proposto | 45 |
+| adr | Decidido | 319 |
+| adr | Proposto | 44 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 252 |
@@ -36,8 +36,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | domain-rule | (sem status) | 13 |
 | lane | blocked | 9 |
 | lane | cancelled | 2 |
-| lane | in_progress | 10 |
-| lane | open | 13 |
+| lane | in_progress | 11 |
+| lane | open | 12 |
 | lane | planned | 52 |
 | lane | shipped | 230 |
 | marketing-draft | draft | 1 |

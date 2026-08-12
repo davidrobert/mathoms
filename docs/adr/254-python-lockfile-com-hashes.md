@@ -5,7 +5,7 @@ title: "Python lockfile com hashes — pip-tools vs uv — Sprint A20"
 status: Decidido
 phase: A20.l10
 date: "2026-05-22"
-amended_at: ["2026-06-18"]
+amended_at: ["2026-06-18", "2026-08-11"]
 relates_to:
   - "[[ADR-228]]"
   - "[[ADR-230]]"
@@ -30,6 +30,11 @@ tags:
 
 > **Emenda (2026-06-18):** jobs de teste do CI também passaram a instalar do
 > lock — ver §"Emenda 2026-06-18 — CI-tests também instala do lock".
+>
+> **Emenda (2026-08-11):** a key do venv cache passou a incluir a **versão exata
+> do interpretador**, e os dois steps de install viraram um só, sempre
+> executado (`dev/ci_ensure_venv.sh`) — ver §"Emenda 2026-08-11 — a key do venv
+> cache inclui o interpretador".
 
 ## Contexto
 
@@ -234,6 +239,48 @@ CI-tests agora instala `uv pip install --require-hashes -r requirements.lock` (p
 com o Dockerfile), cache key no hash do **lock**, **sem `restore-keys`** no bloco venv
 (o fallback de prefixo restaurava venv de lock divergente). Detalhe operacional no
 runbook [python_dependencies.md](../reference/runbooks/python_dependencies.md).
+
+## Emenda 2026-08-11 — a key do venv cache inclui o interpretador
+
+A emenda de 2026-06-18 fechou o eixo **pacote** (key no hash do `requirements.lock`,
+`--require-hashes`, sem `restore-keys`). Faltava o outro: o `.venv` é derivado de
+**dois** inputs, e o segundo — o **interpretador** — não estava na key.
+
+`uv venv` grava `.venv/bin/python3` como symlink **absoluto**. Quando a frota de
+runners troca de patch do Python (medido em 2026-08-11: `3.13.14` e `3.13.15`
+coexistindo em `ubuntu-24.04` na mesma janela de horas), o cache restaura um
+`.venv` cujo symlink dangla. O guard de então, `[ -d .venv ]`, via o **diretório**
+e não recriava; como `cache-hit == 'true'`, o step que instala o lock era pulado;
+o job morria em `Failed to inspect Python interpreter`. Duas branches distintas
+caíram junto — não é código, e re-run não resolve (restaura o mesmo cache).
+
+**Decisão:**
+
+1. **Key ganha a versão exata do interpretador** (`steps.setup-python.outputs.python-version`)
+   além do hash do lock. Entradas de patch diferente deixam de colidir; o custo é
+   no máximo uma entrada extra por lock durante rollout de frota, e colapsa
+   sozinha depois.
+2. **Um único step de install, sempre executado** (sem `if: cache-hit`), cujo
+   predicado **executa** o interpretador em vez de testar presença — `-x` pegaria
+   o symlink dangling, execução também pega tar truncado e stdlib faltando.
+   Venv inutilizável é apagado, recriado e reinstalado do lock, com `::warning::`
+   no log (self-heal silencioso é imposto invisível). A lógica vive em
+   `dev/ci_ensure_venv.sh`, consumida pelos 6 call sites — a duplicação de
+   *lógica* entre os dois steps antigos foi o que produziu este bug e o de `xlwt`
+   (#596).
+3. **`uv pip install` do lock em cache-hit são é auditoria, não re-resolução** —
+   o lock é lista plana de `==`, sem rede. Se o step passar a imprimir
+   `Installed/Uninstalled` a cada run, os test-deps inline estão em conflito com
+   o lock, e o `requirements-test.lock` (débito aberto) deixa de ser opcional.
+
+**Prova:** `dev/ci_ensure_venv.sh --self-test` monta venvs e os corrompe de três
+formas (symlink dangling, binário removido, diretório vazio), afirmando detecção
++ cura. Provado por mutação: com o predicado antigo (`[ -d ]`) o self-test fica
+**vermelho nos 3 casos**. Roda como step do `lint-all` (ADR-210 §camada 4 — job
+novo custa 1 min faturado de piso).
+
+**Não muda:** `--require-hashes`, o lock como fonte única, a ausência de
+`restore-keys`. Nenhuma dimensão de supply-chain foi afrouxada.
 
 ## Referências externas
 

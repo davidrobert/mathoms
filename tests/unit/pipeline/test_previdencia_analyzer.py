@@ -11,13 +11,33 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from decimal import Decimal  # noqa: E402
 
+from pipeline.domain.services.irpf_faixa_marginal import (  # noqa: E402
+    TabelaProgressivaInvalida,
+)
 from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
     CapacidadePgblIRPF,
-    IRPFBracket,
     PrevidenciaAnalysis,
     PrevidenciaAnalyzer,
     PrevidenciaConfig,
 )
+from pipeline.domain.types.config import FiscalParameters, IRPFBracket  # noqa: E402
+
+#: Tabela literal de ``fiscal_parameters`` (seed y3z4a5b6c7d8, anos 2024-2026).
+_FAIXAS_SEEDADAS = (
+    IRPFBracket(upper_brl_cents=2696320, aliquota_pct=Decimal("0.0"), deducao_brl_cents=0),
+    IRPFBracket(upper_brl_cents=3391980, aliquota_pct=Decimal("7.5"), deducao_brl_cents=0),
+    IRPFBracket(upper_brl_cents=4501260, aliquota_pct=Decimal("15.0"), deducao_brl_cents=0),
+    IRPFBracket(upper_brl_cents=5597616, aliquota_pct=Decimal("22.5"), deducao_brl_cents=0),
+    IRPFBracket(upper_brl_cents=None, aliquota_pct=Decimal("27.5"), deducao_brl_cents=0),
+)
+
+
+def _fiscal_seedado() -> FiscalParameters:
+    return FiscalParameters(
+        year=2026,
+        ir_brackets=_FAIXAS_SEEDADAS,
+        lucro_presumido_aliquota=Decimal("0.32"),
+    )
 
 
 def _fluxo(pj: float = 0, num_months: int = 12) -> dict:
@@ -57,8 +77,10 @@ class TestConfig:
             }
         )
         assert len(cfg.irpf_faixas) == 3
-        assert cfg.irpf_faixas[-1].limite_anual is None
-        assert cfg.irpf_faixas[-1].aliquota_pct == 27.5
+        # O dict legado declara reais; a config guarda centavos (IRPFBracket canônica).
+        assert cfg.irpf_faixas[0].upper_brl_cents == 2_400_000
+        assert cfg.irpf_faixas[-1].upper_brl_cents is None
+        assert cfg.irpf_faixas[-1].aliquota_pct == Decimal("27.5")
 
 
 # =============================================================================
@@ -126,12 +148,11 @@ class TestAliquotaMarginal:
         # Default fallback 7.5%.
         assert r.aliquota_marginal == 7.5
 
-    def test_sempre_aplica_ultima_faixa_sem_limite(self):
-        """Paridade com legado (e5_analyze.py:1671-1678): o loop não quebra
-        quando encontra a faixa correta; a última iteração (``limite=None``)
-        sobrescreve a alíquota. Efetivamente, qualquer renda com tabela que
-        tenha faixa ``None`` como última, recebe a alíquota dela.
-        """
+    # Era `test_sempre_aplica_ultima_faixa_sem_limite`, que asseverava o defeito
+    # (ADR-375 D7): o ramo `limite is None` atribuía sem guarda de renda, então a
+    # terminal vencia sempre e 27,5% ia para toda renda — inclusive a isenta.
+    def test_faixa_intermediaria_vence_a_terminal(self):
+        """Renda interior a faixa do meio, com terminal presente: vence a que CONTÉM."""
         cfg = PrevidenciaConfig.from_fiscal(
             {
                 "irpf_tabela_progressiva": {
@@ -143,28 +164,66 @@ class TestAliquotaMarginal:
                 }
             }
         )
-        # Base tributável 38.4k — última faixa (None, 27.5%) vence.
+        # Base tributável 38,4k: acima de 24k, dentro da faixa cujo teto é 48k.
         r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
 
-        assert r.aliquota_marginal == 27.5
+        assert r.aliquota_marginal == 15.0
 
-    def test_faixas_sem_ultima_none_usa_ultima_aplicavel(self):
-        """Quando não há faixa ``None``, comportamento é o esperado: a
-        última faixa cujo ``limite_anual < renda`` vence."""
+    # Era `test_faixas_sem_ultima_none_usa_ultima_aplicavel`, que consagrava o
+    # chute (devolvia a alíquota da faixa EXCEDIDA). Adivinhar em silêncio é o
+    # mecanismo que produziu este par de testes.
+    def test_tabela_sem_terminal_recusa_renda_acima_do_topo(self):
+        """Sem faixa terminal e acima do último teto não há faixa — recusa, não chuta."""
         cfg = PrevidenciaConfig.from_fiscal(
             {
                 "irpf_tabela_progressiva": {
                     "faixas": [
                         {"limite_anual": 24_000, "aliquota_pct": 7.5},
-                        {"limite_anual": 48_000, "aliquota_pct": 15.0},
+                        {"limite_anual": 30_000, "aliquota_pct": 15.0},
                     ]
                 }
             }
         )
-        # Base 38.4k > 24k mas < 48k → última faixa aplicável = 7.5%
-        r = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
+        with pytest.raises(TabelaProgressivaInvalida, match="não tem faixa terminal"):
+            PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=120_000, num_months=12))
 
-        assert r.aliquota_marginal == 7.5
+    @pytest.mark.parametrize(
+        "base_anual,esperado",
+        [
+            (11_520.00, 0.0),
+            (26_963.20, 0.0),
+            (26_963.21, 7.5),
+            (33_919.80, 7.5),
+            (33_919.81, 15.0),
+            (45_012.60, 15.0),
+            (45_012.61, 22.5),
+            (55_976.16, 22.5),
+            (55_976.17, 27.5),
+        ],
+    )
+    def test_fronteiras_da_tabela_seedada(self, base_anual, esperado):
+        """Teto inclusivo sobre a tabela real; as nove devolviam 27,5% antes do fix."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_seedado())
+
+        assert PrevidenciaAnalyzer(cfg)._aliquota_para(int(round(base_anual * 100))) == esperado
+
+    # Nenhum teste de `TestReconciliacaoIRPF` quebrava com a correção: todos usam
+    # config sem faixas ou tabela de banda única, que devolve o mesmo valor nos
+    # dois desenhos. Sem este, o fix não teria gate no ramo autoritativo.
+    def test_caminho_irpf_tambem_resolve_a_faixa(self):
+        """O ramo autoritativo usa a mesma regra — senão o fix não alcança quem declarou."""
+        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_seedado())
+        cap = CapacidadePgblIRPF(
+            restante_anual=Decimal("1000"),
+            renda_tributavel_anual=Decimal("20000"),
+            ano_base=2025,
+            fonte="irpf_pgbl_capacidade",
+        )
+
+        r = PrevidenciaAnalyzer(cfg).analyze({}, capacidade_irpf=cap)
+
+        assert r.aliquota_marginal == 0.0
+        assert r.economia_ir_anual == 0.0
 
     def test_ultima_faixa_sem_limite_captura_alta_renda(self):
         cfg = PrevidenciaConfig.from_fiscal(

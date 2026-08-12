@@ -2,8 +2,8 @@
 id: ADR-376
 type: adr
 title: "Caixa corrente vem do último extrato reconciliado — sem denylist de instituição"
-status: Proposto
-phase: A40
+status: Decidido
+phase: A40.l38
 date: "2026-08-11"
 relates_to:
   - "[[ADR-238]]"
@@ -16,7 +16,7 @@ superseded_by: []
 aliases: ["ADR 376", "caixa canônico", "denylist investment_banks"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/financial-planning
 ---

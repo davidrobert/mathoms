@@ -113,6 +113,57 @@ benignos.
    ```
 2. Valide (Tarefa 2) e commite ambos.
 
+## Falha: venv cacheado com interpretador ausente
+
+**Assinatura** (jobs `Pipeline tests` / `Backend tests` falhando em 20-40s):
+
+```
+error: Failed to inspect Python interpreter from active virtual environment at `.venv/bin/python3`
+  Caused by: Python interpreter not found at `/home/runner/work/mathoms/mathoms/.venv/bin/python3`
+```
+
+**Não é código.** O `.venv` é derivado de **dois** inputs — o `requirements.lock`
+e o **interpretador** — e até 2026-08-11 a cache key só codificava o primeiro.
+`uv venv` grava `.venv/bin/python3` como symlink **absoluto** para o interpretador
+do runner; quando a frota troca de patch (ex.: 3.13.14 → 3.13.15), o cache
+restaura um `.venv` cujo symlink dangla. O antigo guard `[ -d .venv ]` via o
+diretório e não recriava; com `cache-hit == 'true'` o install do lock era pulado,
+e o job morria no primeiro `uv pip install`.
+
+**Diagnóstico em 1 comando** — compare o `created_at` do venv com a versão do
+interpretador nas entradas `setup-uv-*`:
+
+```bash
+gh api "repos/davidrobert/mathoms/actions/caches?per_page=100" \
+  --jq '.actions_caches[] | select(.key|startswith("venv-")) | [.id,.ref,.created_at,.last_accessed_at] | @tsv'
+```
+
+Se houver entrada `setup-uv-…-3.13.X-pruned` com X diferente entre a criação e o
+último acesso do venv, é este caso.
+
+**Remediação (ordem importa):**
+
+1. Delete as entradas **por id** (`gh cache delete <key>` por chave pode pegar só
+   uma quando o mesmo key existe em refs diferentes):
+   ```bash
+   gh api -X DELETE repos/davidrobert/mathoms/actions/caches/<id>
+   ```
+2. **Só depois** re-rode: `gh run rerun <run_id> --failed`.
+
+> **Re-run sozinho NÃO resolve** — restaura o mesmo cache. Foi o que fez o
+> incidente de 2026-06-18 (#658) custar duas rodadas de investigação. Deletar
+> **não** salva job já em voo (ele já restaurou); cancele e re-dispare esses.
+> **Não delete as entradas `setup-uv-*`** — estão sadias, e removê-las encarece
+> cada rebuild com re-download de wheels.
+
+**Fix estrutural (2026-08-11, PR de `dev/ci_ensure_venv.sh`):** a key passou a
+incluir a versão exata do interpretador (`steps.setup-python.outputs.python-version`)
+e os dois steps de install viraram um só, sempre executado, cujo predicado
+**executa** o interpretador em vez de testar presença. Um venv restaurado
+inutilizável é apagado, reconstruído e reinstalado do lock, com `::warning::`
+no log. Se esse warning aparecer mais de ~2×/semana, a key ainda está incompleta
+— reabra a investigação.
+
 ## Dependabot
 
 Dependabot monitora os `.in` (ecossistema `pip` em `/` e `/backend`). Como o

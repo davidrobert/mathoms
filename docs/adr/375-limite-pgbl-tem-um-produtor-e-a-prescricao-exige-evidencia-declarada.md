@@ -5,6 +5,7 @@ title: "Limite PGBL tem um produtor, e a prescrição exige evidência declarada
 status: Proposto
 phase: A40
 date: "2026-08-11"
+amended_at: ["2026-08-11"]
 relates_to:
   - "[[ADR-236]]"
   - "[[ADR-135]]"
@@ -25,6 +26,40 @@ tags:
 ---
 
 # ADR-375 — Limite PGBL tem um produtor, e a prescrição exige evidência declarada
+
+> ### ⚠️ Emenda 2026-08-11 — quatro correções que a execução do PR1 impôs
+>
+> **1. "P1 não move golden" era contradição interna, e caiu.** §Custo dizia isso
+> e §Consequências exigia injetar as faixas na fixture *antes de qualquer medição
+> de delta*. As duas não valem juntas: cumprir o pré-requisito **é** mover o
+> golden. Medido sobre as 520 folhas do view-model: `injetar só` → 2 divergentes ·
+> `corrigir só` → **0** · `injetar + corrigir` → 2. O P1 entregou os três juntos,
+> e o delta declarado é `aliquota_marginal` 7,5% → 0% e `economia_ir_anual`
+> R$ 103,68 → R$ 0.
+>
+> **2. O mecanismo da cegueira do golden estava errado.** Não é que as suítes não
+> injetem arquivo fiscal — `write_e5_config` **copia** `parametros_fiscais.json`.
+> É que a fixture declara a tabela sob `faixas_mensais`, chave que nenhum leitor
+> do repo consome, e o analyzer recebia tupla vazia. A afirmação original ("as
+> suítes não injetam `ir_brackets`") era afirmação de ausência sobre fonte única.
+> A conclusão sobrevivia; o mecanismo, não.
+>
+> **3. O limite de isenção citado não é o que o DB tem.** O seed traz
+> `upper_brl_cents = 2696320` (**R$ 26.963,20**), não os R$ 27.110,40 desta ADR.
+> Os R$ 27.110,40 saem do **outro campo da mesma row** (`deducao_brl_cents` da
+> faixa de 7,5%, anualizada, ÷ 0,075). A row é internamente inconsistente. Para o
+> P1 é inócuo — a base do dogfood (R$ 11.520) é isenta sob os dois números — mas
+> ver §4.
+>
+> **4. Achado novo, e é bloqueante do D5.** `deducao_brl_cents` guarda a parcela a
+> deduzir **mensal** contra faixas **anuais** — mismatch auto-declarado como FLAG
+> na migration `e1f2a3b4c5d6`. Numa base de R$ 40.000/ano o erro é de R$ 4.195,84.
+> E **não se resolve com ×12**: anualizando, a tabela fica contínua a ≤ R$ 0,05 em
+> três fronteiras e abre um degrau de **R$ 11,04** em R$ 26.963,20 — as duas
+> opções que a migration oferece deixam a descontinuidade de pé. **O D5 (economia
+> diferencial `IR(base) − IR(base − aporte)`) não é implementável antes de a row
+> ser reconciliada.** Descartar a dedução segue correto para resolver **faixa**,
+> que é o que o P1 faz.
 
 > Esta ADR **não decide base nova**. A [[ADR-236]] já declarou canônica a base
 > do limite PGBL em 2026-05-21 e **condenou nominalmente** a fórmula que a S7

@@ -25,6 +25,7 @@ _spec.loader.exec_module(_golden_diff)
 is_monetary = _golden_diff.is_monetary
 
 from pipeline_golden_substrate import (  # noqa: E402
+    FAIXAS_IRPF_SEEDADAS,
     load_fixture,
     run_dogfood_pipeline,
     write_e5_config,
@@ -91,11 +92,15 @@ def _run_view_model(tmp_path: Path) -> dict:
     # A28.l1 — categorização mínima que exercita os caminhos canônicos da reserva:
     # receita PJ-dominante (meses_alvo 18) + despesa essencial documentada (ADR-306 §D4).
     # ADR-330/331: código E4 REAL (lucros_distribuidos), não o agregado fantasma receita_pj.
+    # A40.l34 — sem faixas, `PrevidenciaConfig` cai no fallback de 7,5% e o
+    # golden fica CEGO à regra de faixa marginal: o fix de ADR-375 D6 não movia
+    # um campo sequer. Com a tabela real, a base isenta do dogfood publica 0%.
     write_e5_config(
         tmp_path,
         family=_FAMILY,
         income_keywords={"lucros_distribuidos": ["PIX"]},
         expense_keywords={"alimentacao": ["MERCADO"]},
+        irpf_faixas=FAIXAS_IRPF_SEEDADAS,
     )
     e5 = run_dogfood_pipeline(
         tmp_path,

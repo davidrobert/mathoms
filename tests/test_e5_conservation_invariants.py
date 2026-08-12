@@ -55,6 +55,128 @@ def e5_payload(request, tmp_path: Path) -> dict:
     )
 
 
+# ADR-376 (A40.l38) — conservação EXCLUSIVA do caixa: todo banco com extrato
+# elegível entra no caixa exatamente 1× (sem denylist de instituição), e nenhum
+# banco com extrato elegível aparece também como posição cash-like no E4. A
+# elegibilidade é re-derivada aqui de forma independente (segunda testemunha).
+# Nível: ``analyze_via_store`` com posições E4 seeded — o harness E3-only de
+# ``run_e3_e4_e5`` produz ``has_current_positions=False`` e o caminho de caixa
+# nem executa (caixa residual do IRPF, ``detalhes=[]``).
+_CASH_LIKE_TIPOS = frozenset(
+    {"saldo", "saldo_em_conta", "caixa", "conta_corrente", "conta_pagamento", "cash"}
+)
+
+
+def _saldos_elegiveis_cents(e3_payloads: dict[str, dict]) -> int:
+    latest: dict[tuple, tuple[str, float]] = {}
+    for key, data in e3_payloads.items():
+        tipo = (data.get("tipo_conta") or "").lower()
+        if "fatura" in tipo or "poupan" in tipo or "pj" in tipo:
+            continue
+        if data.get("saldo_final") is None or data.get("saldo_final_unknown", False):
+            continue
+        acct = (
+            (data.get("banco") or "").lower(),
+            tipo,
+            (data.get("moeda") or "BRL").upper(),
+            (data.get("titular") or "").lower(),
+        )
+        fim = (data.get("periodo_cobertura") or {}).get("fim") or ""
+        if acct not in latest or (fim, key) > (latest[acct][0], ""):
+            latest[acct] = (fim, float(data["saldo_final"]))
+    return sum(_cents(saldo) for _, saldo in latest.values())
+
+
+def _assert_caixa_exclusivo(
+    patrimonio: dict, e3_payloads: dict[str, dict], e4_investimentos: dict
+) -> None:
+    detalhes = patrimonio.get("caixa_detalhes") or []
+    soma_detalhes = sum(_cents(d.get("valor_brl", 0)) for d in detalhes)
+    assert _cents(patrimonio["caixa_total_brl"]) == max(0, soma_detalhes)
+    assert soma_detalhes == _saldos_elegiveis_cents(e3_payloads)
+    bancos_caixa = {(d.get("conta") or "").split(" (")[0].lower() for d in detalhes}
+    for pos in e4_investimentos.get("dados", []) or []:
+        instituicao = (pos.get("instituicao") or "").lower()
+        if instituicao in bancos_caixa:
+            assert (pos.get("tipo") or "").lower() not in _CASH_LIKE_TIPOS, (
+                f"banco {instituicao!r} tem extrato elegível no caixa E também posição "
+                f"cash-like no E4 ({pos.get('nome')!r}) — dupla contagem; decida a "
+                f"precedência com produtor real (ADR-376 §3)"
+            )
+
+
+_E4_INVESTIMENTOS_STUB = {
+    "total_geral": 500_000,
+    "n_posicoes": 1,
+    "total_por_membro": {"david": 500_000},
+    "dados": [{"nome": "CDB Sintético", "instituicao": "itau", "tipo": "cdb", "membro": "david"}],
+}
+
+
+def _analyze_caixa(e3_payloads: dict[str, dict]) -> dict:
+    from pipeline.artifact_store import InMemoryArtifactStore
+    from pipeline.domain.services.e5_analyzer_adapter import E5AnalyzerAdapter
+
+    store = InMemoryArtifactStore()
+    store.seed("E4", "investimentos", _E4_INVESTIMENTOS_STUB)
+    for key, payload in e3_payloads.items():
+        store.seed("E3", key, payload)
+    return E5AnalyzerAdapter().analyze_via_store(store).patrimonio_full
+
+
+def test_caixa_conservation_exclusiva_inclui_banco_de_corretora():
+    """O extrato de banco 'de investimento' (PicPay) entra no caixa (ADR-376)."""
+    minimal = load_fixture(_E3_MIN)
+    picpay = dict(minimal, banco="picpay", saldo_final=750.0, transacoes=[], transacoes_total=0)
+    e3_payloads = {_e3_key(_E3_MIN): minimal, "picpay-conta": picpay}
+    patrimonio = _analyze_caixa(e3_payloads)
+    detalhes = patrimonio["caixa_detalhes"]
+    assert any(
+        d["conta"].lower().startswith("picpay") for d in detalhes
+    ), "fixture vacuosa — o banco de corretora precisa aparecer no caixa"
+    _assert_caixa_exclusivo(patrimonio, e3_payloads, _E4_INVESTIMENTOS_STUB)
+
+
+def test_caixa_exclusao_tipada_para_poupanca():
+    """Poupança fica fora do caixa COM razão tipada no payload (ADR-376 §4)."""
+    minimal = load_fixture(_E3_MIN)
+    poupanca = dict(
+        minimal,
+        banco="bradesco",
+        tipo_conta="extratopoupanca",
+        saldo_final=300.0,
+        transacoes=[],
+        transacoes_total=0,
+    )
+    e3_payloads = {_e3_key(_E3_MIN): minimal, "bradesco-poupanca": poupanca}
+    patrimonio = _analyze_caixa(e3_payloads)
+    _assert_caixa_exclusivo(patrimonio, e3_payloads, _E4_INVESTIMENTOS_STUB)
+    exclusoes = patrimonio.get("caixa_exclusoes") or []
+    assert [(e["banco"], e["motivo"]) for e in exclusoes] == [("bradesco", "poupanca")]
+
+
+def test_guard_cash_like_dispara_com_produtor_sintetico():
+    """Polaridade do gate: se um produtor E4 emitir posição cash-like para banco
+    com extrato elegível, ``_assert_caixa_exclusivo`` acusa (tripwire, não passa)."""
+    e3 = {
+        "picpay-conta": {
+            "banco": "picpay",
+            "tipo_conta": "extratoconta",
+            "moeda": "BRL",
+            "saldo_final": 100.0,
+        }
+    }
+    patrimonio = {
+        "caixa_total_brl": 100.0,
+        "caixa_detalhes": [{"conta": "picpay (extratoconta)", "valor_brl": 100.0, "moeda": "BRL"}],
+    }
+    e4_inv = {
+        "dados": [{"nome": "Saldo em conta", "instituicao": "picpay", "tipo": "saldo_em_conta"}]
+    }
+    with pytest.raises(AssertionError, match="dupla contagem"):
+        _assert_caixa_exclusivo(patrimonio, e3, e4_inv)
+
+
 def test_patrimonio_bruto_equals_sum_of_buckets(e5_payload: dict):
     """bruto == Σ composicao[].valor (decomposição patrimonial por balde)."""
     pat = e5_payload["patrimonio"]

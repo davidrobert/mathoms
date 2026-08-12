@@ -37,6 +37,10 @@ def _seed_apolice_auto_vigente(store: InMemoryArtifactStore) -> None:
     )
 
 
+def _seed_conta(store: InMemoryArtifactStore, key: str, **data) -> None:
+    store.seed("E3", key, {"tipo_conta": "extratoconta", "moeda": "BRL", **data})
+
+
 def _seed_minimal(store: InMemoryArtifactStore) -> None:
     store.seed(
         "E4",
@@ -444,7 +448,7 @@ class TestMoedaEstrangeiraFallback:
             ]
         }
 
-        total, detalhes = adapter._load_caixa_from_e3(store, baseline=baseline)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store, baseline=baseline)
 
         assert total == pytest.approx(35433.67, abs=0.01)  # 1000 BRL + 34433.67 IRPF
         assert any(d.tipo == "moeda_estrangeira_irpf" for d in detalhes)
@@ -475,7 +479,7 @@ class TestMoedaEstrangeiraFallback:
             ]
         }
 
-        total, detalhes = adapter._load_caixa_from_e3(store, baseline=baseline)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store, baseline=baseline)
 
         # Apenas o E3 USD entra; baseline IRPF não aplica fallback.
         assert all(d.tipo != "moeda_estrangeira_irpf" for d in detalhes)
@@ -576,7 +580,7 @@ class TestA6d33Wiring:
         store = InMemoryArtifactStore()
         _seed_minimal(store)
         adapter = E5AnalyzerAdapter()
-        total, detalhes = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 0.0
         assert detalhes == []
 
@@ -594,7 +598,7 @@ class TestA6d33Wiring:
             },
         )
         adapter = E5AnalyzerAdapter()
-        total, detalhes = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 5000.0
         assert len(detalhes) == 1
         assert detalhes[0].tipo == "caixa"
@@ -614,7 +618,7 @@ class TestA6d33Wiring:
             },
         )
         adapter = E5AnalyzerAdapter(taxas={"cambio_usd_brl": 5.50})
-        total, detalhes = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 5500.0
         assert detalhes[0].tipo == "moeda_estrangeira"
         assert detalhes[0].moeda == "USD"
@@ -626,25 +630,69 @@ class TestA6d33Wiring:
         store.seed("E3", "itau_poupanca", {"tipo_conta": "poupanca", "saldo_final": 999})
         store.seed("E3", "itau_pj", {"tipo_conta": "pj_corrente", "saldo_final": 999})
         adapter = E5AnalyzerAdapter()
-        total, _ = adapter._load_caixa_from_e3(store)
+        total, _, _ = adapter._load_caixa_from_e3(store)
         assert total == 0.0
 
-    def test_load_caixa_skips_investment_banks(self):
+    # Regressão do buraco medido no dogfood (ADR-376): a denylist por rótulo de
+    # instituição foi deletada — extrato reconciliado é a fonte canônica de
+    # caixa, sem exceção por identidade do banco (PicPay/Rico ficavam fora).
+    def test_load_caixa_inclui_banco_de_corretora_sem_denylist(self):
         store = InMemoryArtifactStore()
         _seed_minimal(store)
-        store.seed(
-            "E3",
-            "btg",
-            {
-                "tipo_conta": "cc",
-                "banco": "BTG Pactual",
-                "moeda": "BRL",
-                "saldo_final": 999,
-            },
+        _seed_conta(store, "picpay_extratoconta", banco="Picpay", saldo_final=999.0)
+        _seed_conta(store, "btgpactual_extratoconta", banco="Btgpactual", saldo_final=500.0)
+        total, detalhes, excluidas = E5AnalyzerAdapter()._load_caixa_from_e3(store)
+        assert total == 1499.0
+        assert {d.conta for d in detalhes} == {
+            "Picpay (extratoconta)",
+            "Btgpactual (extratoconta)",
+        }
+        assert excluidas == []
+
+    # ADR-376 §4: conta fora do caixa deixa razão tipada (1 por conta, mesmo com
+    # N artifacts); fatura é skip categórico (não é conta) e não gera exclusão.
+    def test_load_caixa_exclusoes_tipadas_poupanca_pj_saldo_desconhecido(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        _seed_conta(
+            store, "poup_a", banco="Bradesco", tipo_conta="extratopoupanca", saldo_final=100.0
         )
-        adapter = E5AnalyzerAdapter()
-        total, _ = adapter._load_caixa_from_e3(store)
-        assert total == 0.0
+        _seed_conta(
+            store, "poup_b", banco="Bradesco", tipo_conta="extratopoupanca", saldo_final=200.0
+        )
+        _seed_conta(store, "c6_pj", banco="C6bank", tipo_conta="pj_corrente", saldo_final=300.0)
+        _seed_conta(store, "nu_sem_saldo", banco="Nubank", saldo_final=None)
+        _seed_conta(store, "itau_fatura", banco="Itaú", tipo_conta="fatura", saldo_final=999)
+        total, detalhes, excluidas = E5AnalyzerAdapter()._load_caixa_from_e3(store)
+        assert (total, detalhes) == (0.0, [])
+        assert sorted((e.banco, e.motivo) for e in excluidas) == [
+            ("bradesco", "poupanca"),
+            ("c6bank", "conta_pj"),
+            ("nubank", "saldo_desconhecido"),
+        ]
+
+    # Conta com artifact de saldo desconhecido + artifact válido entra no caixa
+    # sem exclusão (a exclusão só vale se a conta ficou de fora mesmo).
+    def test_load_caixa_saldo_desconhecido_nao_exclui_conta_com_saldo_valido(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        _seed_conta(
+            store,
+            "itau_velho",
+            banco="Itaú",
+            saldo_final=None,
+            saldo_final_unknown=True,
+            periodo_cobertura={"inicio": "2026-01-01", "fim": "2026-01-31"},
+        )
+        _seed_conta(
+            store,
+            "itau_novo",
+            banco="Itaú",
+            saldo_final=42.0,
+            periodo_cobertura={"inicio": "2026-02-01", "fim": "2026-02-28"},
+        )
+        total, detalhes, excluidas = E5AnalyzerAdapter()._load_caixa_from_e3(store)
+        assert (total, len(detalhes), excluidas) == (42.0, 1, [])
 
     def test_load_caixa_skips_unknown_saldo(self):
         store = InMemoryArtifactStore()
@@ -661,7 +709,7 @@ class TestA6d33Wiring:
             },
         )
         adapter = E5AnalyzerAdapter()
-        total, _ = adapter._load_caixa_from_e3(store)
+        total, _, _ = adapter._load_caixa_from_e3(store)
         assert total == 0.0
 
     def test_load_caixa_dedupes_multiple_periods_same_account(self):
@@ -687,7 +735,7 @@ class TestA6d33Wiring:
                 },
             )
         adapter = E5AnalyzerAdapter()
-        total, detalhes = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 847.26
         assert len(detalhes) == 1
         assert detalhes[0].saldo_original == 847.26
@@ -733,7 +781,7 @@ class TestA6d33Wiring:
             },
         )
         adapter = E5AnalyzerAdapter()
-        total, detalhes = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 4000.0
         assert len(detalhes) == 3
 
@@ -772,16 +820,6 @@ class TestA6d33Wiring:
             {"prop-residencia"}
         )
 
-    def test_investment_banks_from_institutions(self):
-        institutions = {"investment_banks": ["Custom Broker", "Another Bank"]}
-        adapter = E5AnalyzerAdapter.from_configs(institutions=institutions)
-        assert "custom broker" in adapter._investment_banks
-        assert "another bank" in adapter._investment_banks
-
-    def test_investment_banks_default_when_institutions_empty(self):
-        adapter = E5AnalyzerAdapter.from_configs()
-        assert "btg pactual" in adapter._investment_banks
-
 
 class TestA75TypedCambio:
     """A7.5 — ``cambio_usd_brl``/``cambio_eur_brl`` typed têm prioridade sobre ``taxas`` dict."""
@@ -802,7 +840,7 @@ class TestA75TypedCambio:
             taxas={"cambio_usd_brl": 5.50},  # legacy
             cambio_usd_brl=Decimal("6.00"),  # typed prioritário
         )
-        total, detalhes = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 6000.0  # 1000 * 6.00 (typed), não 5500 (taxas)
         assert detalhes[0].valor_brl == 6000.0
 
@@ -822,7 +860,7 @@ class TestA75TypedCambio:
             taxas={"cambio_eur_brl": 6.00},
             cambio_eur_brl=Decimal("7.00"),
         )
-        total, detalhes = adapter._load_caixa_from_e3(store)
+        total, detalhes, _ = adapter._load_caixa_from_e3(store)
         assert total == 3500.0  # 500 * 7.00 (typed), não 3000 (taxas)
         assert detalhes[0].valor_brl == 3500.0
 
@@ -840,7 +878,7 @@ class TestA75TypedCambio:
             },
         )
         adapter = E5AnalyzerAdapter(taxas={"cambio_usd_brl": 5.50})
-        total, _ = adapter._load_caixa_from_e3(store)
+        total, _, _ = adapter._load_caixa_from_e3(store)
         assert total == 5500.0
 
     def test_default_cambio_when_neither_typed_nor_dict(self):
@@ -857,7 +895,7 @@ class TestA75TypedCambio:
             },
         )
         adapter = E5AnalyzerAdapter()
-        total, _ = adapter._load_caixa_from_e3(store)
+        total, _, _ = adapter._load_caixa_from_e3(store)
         assert total == 5800.0  # 1000 * 5.80 default
 
     def test_typed_cambio_accepts_float(self):
@@ -873,7 +911,7 @@ class TestA75TypedCambio:
             },
         )
         adapter = E5AnalyzerAdapter(cambio_usd_brl=5.75)
-        total, _ = adapter._load_caixa_from_e3(store)
+        total, _, _ = adapter._load_caixa_from_e3(store)
         assert total == 5750.0
 
     def test_from_configs_propagates_typed_cambio(self):
@@ -901,7 +939,7 @@ class TestA75TypedCambio:
             taxas={"cambio_usd_brl": 5.0},
             cambio_usd_brl=Decimal("6.50"),
         )
-        total, _ = adapter._load_caixa_from_e3(store)
+        total, _, _ = adapter._load_caixa_from_e3(store)
         assert total == 6500.0
 
 

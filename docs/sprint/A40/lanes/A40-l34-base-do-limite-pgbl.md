@@ -86,11 +86,16 @@ alheio). A substância vale; a afirmação literal, não.
    27,5%-para-todos, **com CI verde**, porque 2 testes asseveram 27,5%. Prova
    por mutação: corrigi a função, caem exatamente esses 2 — e ambos
    *especificam o defeito*, com docstring justificando "paridade com legado".
-3. **O golden é cego por construção.** Nem `test_report_view_model_snapshot.py`
-   nem `test_e5_golden_execution.py` injetam `ir_brackets` (medido: zero
-   ocorrências). Corrigir `_resolve_aliquota` **não move o golden** — o que
-   refuta o argumento de que o `↓` ficaria ambíguo entre lanes. Injetar faixas
-   reais na fixture virou **pré-requisito bloqueante**.
+3. **O golden é cego por construção.** Corrigir `_resolve_aliquota` **não move o
+   golden** — o que refuta o argumento de que o `↓` ficaria ambíguo entre lanes.
+   Injetar faixas reais na fixture virou **pré-requisito bloqueante**.
+
+   > **Corrigido em 2026-08-11 (PR1).** Eu havia escrito que as suítes "não
+   > injetam `ir_brackets` (zero ocorrências)". Falso como mecanismo:
+   > `write_e5_config` **copia** `parametros_fiscais.json`, e a fixture declara a
+   > tabela sob `faixas_mensais` — chave que nenhum leitor consome. Medi ausência
+   > de string nos `.py` de teste e concluí ausência de **dado**; é afirmação de
+   > ausência sobre fonte única.
 4. **A fixture do dogfood é o caso isento** — base tributável R$ 11.520/ano
    contra isenção de R$ 27.110,40. O relatório publica hoje `economia de IR/ano
    = R$ 103,68` para quem não paga IR. O `financial-planner` enquadrou como erro
@@ -186,6 +191,38 @@ Revisado pelo co-design de 2026-08-11. O anterior tinha um item **inexequível**
   ⇒ `↓`; `aliquota_marginal` no golden ⇒ de 7,5% (fallback) para a faixa real —
   que **na fixture do dogfood é 0%**, porque a base é isenta. Ambos `↓` neste
   substrato; um agregado esconderia que os fatores se movem por causas distintas.
+- A conferência é **manual**: `dev/golden_diff.py` não está em hook nem em job de
+  CI (medido 2026-08-11 — só `dev/compare_reviews.py`, `dev/ledger_conservation.py`
+  e `dev/ledger_certify_core.py` o importam). O que roda de fato é o assert do
+  snapshot. Escrever "conferido por `golden_diff`" como se fosse gate era
+  verdadeiro sobre o script e falso sobre o CI.
+
+## PR1 — entregue 2026-08-11 (#1383)
+
+`fix(pipeline)` `cc5d281e` + `test(golden)` `992bf0ad` + rebaseline `b5b96234`.
+
+A regra de faixa marginal saiu para [`irpf_faixa_marginal.py`](../../../../pipeline/domain/services/irpf_faixa_marginal.py),
+sobre a `IRPFBracket` **canônica** (centavos + `Decimal`). As 9 fronteiras do
+seed devolviam 27,5%; agora devolvem 0 / 7,5 / 15 / 22,5 / 27,5. Delta no golden:
+`aliquota_marginal` 7,5% → 0% e `economia_ir_anual` R$ 103,68 → R$ 0, em 520
+folhas comparadas — **2 divergentes, nenhuma outra**.
+
+Três defeitos morreram junto, nenhum deles no inventário: a segunda classe
+`IRPFBracket` (contrato incompatível, import errado compilava), o falsy-zero de
+`from_fiscal_parameters` (faixa de teto 0 virava terminal) e o float monetário
+nesse caminho.
+
+**O que o PR1 deliberadamente não fez:** o golden exercita `from_fiscal` (dict
+legado), não `from_fiscal_parameters` (produção) — nenhum teste de golden
+atravessa o construtor de produção, porque `ctx.config_store is None` em todos.
+Coberto por unit test, incluindo a regressão do falsy-zero. Fechar essa lacuna
+exige um fake de `config_store` no substrato, e não cabia aqui.
+
+**O que o PR2 herda, agora visível no golden:** `aporte_mensal` continua
+publicando R$ 115,20/mês ao lado de uma economia de R$ 0 — prescrição cujo
+benefício declarado é zero. E o **D5 está bloqueado**: `deducao_brl_cents` está
+em escala mensal contra faixas anuais, e nem o ×12 fecha (degrau de R$ 11,04 em
+R$ 26.963,20). Detalhe na §Emenda da [[ADR-375]].
 
 **Registro:**
 
