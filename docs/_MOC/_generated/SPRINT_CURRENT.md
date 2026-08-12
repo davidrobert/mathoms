@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-8 open · 7 in_progress.
+8 open · 8 in_progress.
 
 ## Open (8)
 
@@ -18,7 +18,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l41]] — Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k · priority P1 · branch `a40-l41-frescor-cross-pool-fonte-inteira`
 - [[A40.l42]] — Safra IRPF errada por ordenação de string: '31_12_2024' vence '2025' em max() lexicográfico · priority P1 · branch `a40-l42-safra-irpf-ordenacao-de-chave`
 
-## In progress (7)
+## In progress (8)
 
 - [[A40.l22]] — Superfície de degradação: o relatório declara o que foi retido, inclusive no PDF · priority P0 · branch `a40-l22-superficie-de-degradacao`
 - [[A40.l25]] — Honestidade do cone de IF: precisão de exibição e sigma apresentado como premissa auditada · priority P1 · branch `a40-l25-honestidade-do-cone-if`
@@ -26,6 +26,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l34]] — Base do limite PGBL: duas seções publicam 12% sobre bases que o relatório declara incompatíveis · priority P0 · branch `a40-l34-base-do-limite-pgbl`
 - [[A40.l38]] — Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê · priority P0 · branch `a40-l38-caixa-canonico-extrato`
 - [[A40.l44]] — Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação · priority P0 · branch `a40-l41-janela-interativa-pre-computada`
+- [[A40.l45]] — Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro · priority P1 · branch `a40-l45-clipping-horizontal-caixa-estreita`
 - [[A40.l5]] — Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite · priority P1 · branch `a40-l5-contrato-view-model-gate`
 
 ---
