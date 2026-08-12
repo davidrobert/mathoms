@@ -1,11 +1,11 @@
 ---
-id: A40.l43
+id: A40.l45
 type: lane
 title: "Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro"
 sprint: A40
 status: in_progress
 priority: P1
-branch_slug: a40-l43-clipping-horizontal-caixa-estreita
+branch_slug: a40-l45-clipping-horizontal-caixa-estreita
 adrs:
   - "[[ADR-379]]"
   - "[[ADR-076]]"
@@ -21,7 +21,7 @@ tags:
   - area/report
 ---
 
-# A40.l43 — `clipping-horizontal-caixa-estreita`
+# A40.l45 — `clipping-horizontal-caixa-estreita`
 
 ## Problema
 
