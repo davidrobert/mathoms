@@ -4610,12 +4610,30 @@
         "additionalProperties": false,
         "description": "Resposta do `GET /v1/workspaces/{ws}/cards/exposicao-cambial`.",
         "properties": {
+          "alvo_moeda_forte_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Quanto o piso verde representa em reais para este patrim\u00f4nio. Vem do backend para o threshold n\u00e3o passar a existir em dois lugares.",
+            "title": "Alvo Moeda Forte Brl"
+          },
           "ativos_contribuintes": {
             "items": {
               "$ref": "#/components/schemas/ExposicaoCambialAtivoDTO"
             },
             "title": "Ativos Contribuintes",
             "type": "array"
+          },
+          "base_disponivel": {
+            "description": "False = n\u00e3o houve base para calcular (artefato ausente, ou payload sem `patrimonio.caixa_detalhes`/denominador). Distingue 'n\u00e3o sei' de 'zero exposi\u00e7\u00e3o': sem isto, aus\u00eancia de dado vira afirma\u00e7\u00e3o de aus\u00eancia de exposi\u00e7\u00e3o na tela. Quando False, os campos de valor v\u00eam `null` \u2014 o zero falso fica infabric\u00e1vel no consumidor.",
+            "title": "Base Disponivel",
+            "type": "boolean"
           },
           "catalog_version": {
             "default": 1,
@@ -4628,8 +4646,15 @@
             "type": "string"
           },
           "pct_investivel_financeiro": {
-            "title": "Pct Investivel Financeiro",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Investivel Financeiro"
           },
           "por_moeda": {
             "items": {
@@ -4650,13 +4675,27 @@
             "title": "Source Run Id"
           },
           "tier": {
-            "title": "Tier",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tier"
           },
           "total_brl": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-            "title": "Total Brl",
-            "type": "string"
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Brl"
           },
           "workspace_id": {
             "title": "Workspace Id",
@@ -4665,10 +4704,8 @@
         },
         "required": [
           "workspace_id",
-          "total_brl",
-          "pct_investivel_financeiro",
+          "base_disponivel",
           "por_moeda",
-          "tier",
           "ativos_contribuintes",
           "computed_at"
         ],

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Optional
@@ -30,6 +31,18 @@ from pipeline.domain.services.asset_classifier import classify_asset
 
 THRESHOLD_VERDE_PCT = 10.0
 THRESHOLD_AMARELO_PCT = 5.0
+
+
+# `base_disponivel=False` significa "não sei", nunca "zero exposição" — sem essa
+# distinção, ausência de dado vira afirmação de ausência de exposição na tela.
+@dataclass(frozen=True)
+class _E5Inputs:
+    """Inputs lidos do E5 + se o payload trazia base para calcular."""
+
+    posicoes: list[dict]
+    caixa_detalhes: list[dict]
+    investivel_denom: Decimal
+    base_disponivel: bool
 
 
 def _tier_from_pct(pct: float, has_data: bool) -> str:
@@ -213,30 +226,55 @@ def _build_por_moeda_dtos(
     ]
 
 
-def _empty_response(workspace_id: str) -> ExposicaoCambialResponse:
+# Zero seria indistinguível de "família sem um centavo em moeda estrangeira" — foi
+# assim que o card passou a afirmar "100% denominado em real" sobre um patrimônio com
+# caixa em USD e EUR.
+def _sem_base_response(
+    workspace_id: str, artifact: Optional[PipelineArtifact] = None
+) -> ExposicaoCambialResponse:
+    """Sem base de cálculo: valores vêm `null`, nunca zero."""
+    run_id = str(artifact.pipeline_run_id) if artifact and artifact.pipeline_run_id else None
     return ExposicaoCambialResponse(
         workspace_id=workspace_id,
-        total_brl=Decimal("0.00"),
-        pct_investivel_financeiro=0.0,
+        base_disponivel=False,
+        total_brl=None,
+        pct_investivel_financeiro=None,
         por_moeda=[],
-        tier="empty",
+        tier=None,
         ativos_contribuintes=[],
-        source_run_id=None,
+        source_run_id=run_id,
         computed_at=datetime.now(timezone.utc),
     )
 
 
-def _extract_e5_inputs(artifact: PipelineArtifact) -> tuple[list[dict], list[dict], Decimal]:
+# O E5 publica agregados de investimento, não posições individuais — este braço fica
+# vazio até a fonte ser redefinida (ADR-224 §5 assume um `dados` que o payload nunca
+# trouxe; posições vivem no artefato E4).
+def _posicoes_do_payload(investimentos: Any) -> list[dict]:
+    """Posições individuais do payload E5, se houver."""
+    if not isinstance(investimentos, dict):
+        return []
+    dados = investimentos.get("dados")
+    return dados if isinstance(dados, list) else []
+
+
+# Até 2026-08 lia `patrimonio_full`/`investimentos_atuais` — nomes de variável interna
+# do domínio que o serializador renomeia na fronteira. Nenhum artefato jamais os teve,
+# então o card devolvia zero em silêncio.
+def _extract_e5_inputs(artifact: PipelineArtifact) -> _E5Inputs:
+    """Lê o payload E5 pelas chaves que `e5_serialization` de fato emite."""
     payload = read_artifact_content(artifact.content_json) or {}
-    patrimonio_full = payload.get("patrimonio_full") or {}
-    investimentos = payload.get("investimentos_atuais") or {}
-    posicoes = investimentos.get("dados") if isinstance(investimentos, dict) else []
-    return (
-        posicoes if isinstance(posicoes, list) else [],
-        patrimonio_full.get("caixa_detalhes") or [],
-        _to_decimal(
-            patrimonio_full.get("investivel_financeiro") or patrimonio_full.get("investivel")
-        ),
+    patrimonio = payload.get("patrimonio")
+    if not isinstance(patrimonio, dict):
+        return _E5Inputs([], [], Decimal(0), base_disponivel=False)
+    denom = _to_decimal(patrimonio.get("investivel_financeiro") or patrimonio.get("investivel"))
+    return _E5Inputs(
+        posicoes=_posicoes_do_payload(payload.get("investimentos")),
+        caixa_detalhes=patrimonio.get("caixa_detalhes") or [],
+        investivel_denom=denom,
+        # Presença da chave, não do conteúdo: lista vazia é "sem moeda estrangeira";
+        # chave ausente é drift de shape, e drift não pode virar "zero exposição".
+        base_disponivel="caixa_detalhes" in patrimonio and denom > Decimal(0),
     )
 
 
@@ -248,22 +286,35 @@ def _merge_por_moeda(*maps: dict[str, Decimal]) -> dict[str, Decimal]:
     return out
 
 
+def _metricas(por_moeda: dict[str, Decimal], denom: Decimal) -> tuple[Decimal, float]:
+    """Total em BRL e seu percentual sobre o investível financeiro."""
+    total = sum(por_moeda.values(), Decimal(0))
+    return total, float(total / denom * 100)
+
+
+def _alvo_verde(denom: Decimal) -> Decimal:
+    """Piso verde em reais — o threshold mora só aqui, nunca no componente."""
+    return round(denom * Decimal(str(THRESHOLD_VERDE_PCT)) / 100, 2)
+
+
+# Só o caso COM base: sem base é decidido no chamador, para o estado degradado não
+# depender de um campo esquecido na construção do DTO.
 def _build_response(
-    *,
     workspace_id: str,
     por_moeda: dict[str, Decimal],
-    investivel_denom: Decimal,
+    inputs: _E5Inputs,
     ativos: list[ExposicaoCambialAtivoDTO],
     artifact: PipelineArtifact,
 ) -> ExposicaoCambialResponse:
-    total = sum(por_moeda.values(), Decimal(0))
-    pct = float(total / investivel_denom * 100) if investivel_denom > Decimal(0) else 0.0
+    total, pct = _metricas(por_moeda, inputs.investivel_denom)
     return ExposicaoCambialResponse(
         workspace_id=workspace_id,
+        base_disponivel=True,
         total_brl=round(total, 2),
         pct_investivel_financeiro=round(pct, 2),
         por_moeda=_build_por_moeda_dtos(por_moeda, total),
         tier=_tier_from_pct(pct, has_data=total > Decimal(0)),
+        alvo_moeda_forte_brl=_alvo_verde(inputs.investivel_denom),
         ativos_contribuintes=ativos,
         source_run_id=str(artifact.pipeline_run_id) if artifact.pipeline_run_id else None,
         computed_at=datetime.now(timezone.utc),
@@ -272,13 +323,13 @@ def _build_response(
 
 async def _aggregate_all(
     artifact: PipelineArtifact, db: AsyncSession, workspace_id: str
-) -> tuple[dict[str, Decimal], list[ExposicaoCambialAtivoDTO], Decimal]:
-    posicoes, caixa_detalhes, investivel_denom = _extract_e5_inputs(artifact)
+) -> tuple[dict[str, Decimal], list[ExposicaoCambialAtivoDTO], _E5Inputs]:
+    inputs = _extract_e5_inputs(artifact)
     catalog = await _load_catalog(db, version=1)
     overrides = await _load_overrides(db, workspace_id)
-    por_caixa, caixa_dtos = _aggregate_caixa(caixa_detalhes)
-    por_ativos, ativo_dtos = _aggregate_positions(posicoes, catalog, overrides)
-    return _merge_por_moeda(por_caixa, por_ativos), caixa_dtos + ativo_dtos, investivel_denom
+    por_caixa, caixa_dtos = _aggregate_caixa(inputs.caixa_detalhes)
+    por_ativos, ativo_dtos = _aggregate_positions(inputs.posicoes, catalog, overrides)
+    return _merge_por_moeda(por_caixa, por_ativos), caixa_dtos + ativo_dtos, inputs
 
 
 def _to_override_response(row: WorkspaceAssetOverride) -> AssetOverrideResponse:
@@ -390,12 +441,14 @@ async def compute_exposicao_cambial_v2(
     """Recomputa exposição cambial em read-time usando catalog + overrides correntes."""
     artifact = await _load_latest_e5_artifact(db, workspace_id)
     if artifact is None:
-        return _empty_response(workspace_id)
-    por_moeda, ativos, investivel_denom = await _aggregate_all(artifact, db, workspace_id)
+        return _sem_base_response(workspace_id)
+    por_moeda, ativos, inputs = await _aggregate_all(artifact, db, workspace_id)
+    if not inputs.base_disponivel:
+        return _sem_base_response(workspace_id, artifact)
     return _build_response(
         workspace_id=workspace_id,
         por_moeda=por_moeda,
-        investivel_denom=investivel_denom,
+        inputs=inputs,
         ativos=ativos,
         artifact=artifact,
     )
