@@ -239,8 +239,14 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l35]] | Bundle de proteção sobre insumos reais (5 zeros + 2 `False`) | P1 | — | spin-off da [[A40.l7]] 2026-08-11 · Onda 2 · [[A40.l11]] é consumidora |
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
+| [[A40.l38]] | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | **P0** | — | `in_progress` · [[ADR-376]] · PR1 mergeado #1391 · linha adicionada em 2026-08-12 (#1415) — o PR de origem não atualizou a tabela |
+| [[A40.l39]] | Posição por instituição: o header "31/12" mente para 10 de 16 linhas — visão corrente vs fiscal | P1 | — | aberta pelo #1381 · [[ADR-382]] `Proposto` (#1401) · PR-a mergeado #1399 · linha adicionada em 2026-08-12 (#1415) |
+| [[A40.l40]] | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | P1 | — | aberta pelo #1381 · [[ADR-384]] `Proposto` (#1401) · PR em voo #1404 · linha adicionada em 2026-08-12 (#1415) |
+| [[A40.l41]] | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 | P1 | — | aberta pelo #1381 · [[ADR-383]] `Proposto` (#1401) · linha adicionada em 2026-08-12 (#1415) |
+| [[A40.l42]] | Safra IRPF errada por ordenação de string: '31_12_2024' vence '2025' em `max()` lexicográfico | P1 | — | aberta pelo #1381 · fix mergeado #1395 (`608163ef`, baseline pegajoso) · linha adicionada em 2026-08-12 (#1415) |
 | [[A40.l43]] | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | P1 | — | `shipped` `849e372b` (#1386) · achado do parecer de design · emenda [[ADR-356]] (regra: o narrador não publica valor nem juízo) · fecha por remoção o item de `n_imoveis` da [[A40.l6]] e a classe da [[A40.l15]] · transfere p/ [[A40.l29]] |
-| [[A40.l46]] | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant `feature` sem o DNA do mockup | P2 | — | aberta 2026-08-12 no fecho do #1382 · coleta os 2 achados sem dono da investigação do overlap · item 2 executa o deferimento da [[A40.l33]] §3 ([[ADR-117]] na mesa) |
+| [[A40.l44]] | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | **P0** | — | `in_progress` · [[ADR-377]] (#1397) · PR1 #1396 + PR2 #1398 mergeados · linha adicionada em 2026-08-12 (#1415) |
+| [[A40.l46]] | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant `feature` sem o DNA do mockup | P2 | — | aberta 2026-08-12 no fecho do #1382 · coleta os 2 achados sem dono da investigação do overlap · item 2 executa o deferimento da [[A40.l33]] §3 ([[ADR-117]] na mesa) · admissão retro-registrada 2026-08-12 (§Fora do sprint) |
 | [[A40.l47]] | Três números cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva | P1 | — | aberta 2026-08-12 (#1411, r4) · dono `financial-planner` · linha adicionada nesta passada — o #1411 não atualizou a tabela |
 | [[A40.l48]] | Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo | P2 | — | aberta 2026-08-12 (#1411, r4) · dono `data-engineer` · linha adicionada nesta passada |
 | [[A40.l49]] | Parecer: rótulo de evidência derivado do root do path + dois guardrails que não podem disparar | P1 | — | aberta 2026-08-12 (#1411, r4) · dono `prompt-engineer` · linha adicionada nesta passada |
@@ -257,34 +263,39 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
-> `ls docs/sprint/A40/lanes/*.md` dá **58**; esta tabela lista **52**.
-> As **l47/l48/l49** (achados da r4, #1411) entraram na tabela na passada do
-> fechamento dos follow-ups, junto com l56–l59.
+> `ls docs/sprint/A40/lanes/*.md` dá **58**; esta tabela lista **58** — sincronizada
+> em 2026-08-12 (#1415). As **l47/l48/l49** (achados da r4, #1411) entraram na
+> passada do fechamento dos follow-ups, junto com l56–l59; as **6 restantes**
+> (**l38** caixa canônico #1391 · **l39** posição corrente/fiscal · **l40**
+> identidade institucional CNPJ raiz · **l41** frescor cross-pool · **l42** ·
+> **l44** janela declarada #1397/#1398) entraram no #1415, com prioridade e status
+> lidos do frontmatter de cada arquivo. A **l45** já havia entrado junto com as
+> lanes que os follow-ups dela originaram (l53–l55).
 >
-> As **6 ausentes** foram abertas por PRs que não atualizaram a tabela e **não têm
-> dono nesta passada**: **l38** (caixa canônico, #1391), **l39** (posição
-> corrente/fiscal), **l40** (identidade institucional CNPJ raiz), **l41** (frescor
-> cross-pool), **l42**, **l44** (janela declarada, #1397/#1398). A **l45** saiu
-> desta lista em 2026-08-12 — entrou na tabela junto com as lanes que os
-> follow-ups dela originaram (l53–l55). Ficam nomeadas aqui em vez de silenciadas —
-> o id aponta o arquivo, então completar custa pouco.
+> **Quem fechar a sprint tem de resolver isto:** lane fora desta tabela é invisível
+> ao **encerramento administrativo** (flip `sprint_status: done` + contador de
+> lanes). A direção lane→tabela vira gate na [[A40.l59]].
 >
-> **Quem fechar a sprint tem de resolver isto:** o §Gate de saída lê esta tabela, e
-> lane fora dela é invisível ao encerramento. A direção lane→tabela vira gate na
-> [[A40.l59]]. Re-medir com:
->
-> ```
-> ls docs/sprint/A40/lanes/*.md | wc -l
-> rg -N '^\| \[\[A40\.l' docs/sprint/A40/_README.md | wc -l
-> ```
->
-> **Quem fechar a sprint tem de resolver isto:** o §Gate de saída lê esta tabela, e
-> lane fora dela é invisível ao encerramento. A direção lane→tabela vira gate na
-> [[A40.l59]]. Re-medir com:
+> *Correção de atribuição, 2026-08-12 (#1415):* a redação anterior dizia que "o
+> §Gate de saída lê esta tabela" — **não lê**. O §Gate de saída é enunciado sobre
+> as 6 classes e a propriedade das superfícies; amarrá-lo a esta tabela o tornaria
+> satisfazível por higiene de doc, que é o modo de falha que a própria sprint
+> persegue. Re-medir com:
 >
 > ```
 > ls docs/sprint/A40/lanes/*.md | wc -l
-> rg -N '^\| \[\[A40\.l' docs/sprint/A40/_README.md | wc -l
+> rg -No '^\| \[\[A40\.l[0-9]+\]\]' docs/sprint/A40/_README.md | sort -u | wc -l
+> ```
+>
+> *O `sort -u` não é enfeite (corrigido no #1415):* este arquivo tem **duas**
+> tabelas cuja linha começa com `| [[A40.lN]]` — esta e a das lanes da Onda 1 já em
+> `main` (§Onda 1: l1, l3, l4). Sem ele o comando devolvia **3 a mais** que o número
+> de lanes, e não batia com o que esta nota afirmava. Para saber **quais** faltam,
+> em vez do total — que é a pergunta acionável:
+>
+> ```
+> comm -23 <(rg -No '^id: A40\.l[0-9]+' docs/sprint/A40/lanes/*.md | sed 's/.*A40\.//' | sort -u) \
+>          <(rg -No '^\| \[\[A40\.l[0-9]+\]\]' docs/sprint/A40/_README.md | sed 's/.*A40\.//;s/\]\]//' | sort -u)
 > ```
 >
 > **Corolário de processo — 8 colisões de id numa sessão** (l38→l41→l43 na [[A40.l43]];
@@ -1362,6 +1373,20 @@ de repo.
 > [[ADR-240]] §Deferido já nomeava a [[A40.l7]] como dona, e a A42 **não pode**
 > admiti-la — a cláusula 3 admite por camada (ingestão / razão / store /
 > instrumento) e a l35 é E5 + entrega de relatório.
+
+> ### Retro-registro de admissão — [[A40.l46]], 2026-08-12
+>
+> A l46 nasceu na A40 em 2026-08-12 (#1407) **sem registrar admissão**, e não cabe
+> na exceção da cláusula 2 da [[A42]] §Critério de admissão: ela é **P2**, e a
+> exceção exige P0 que alcança o usuário. As outras portas também não a acolhiam —
+> a cláusula 3 não admite baseline de print em nenhuma das 4 camadas da A42, e
+> nenhuma lane viva possuía a superfície (l22 e l45, as donas naturais, já
+> shiparam). Fica registrada como **desvio consciente, não como precedente**: o
+> custo mecânico é zero (P2, fora das ondas, sem tocar `pipeline/**` — não zera o
+> contador de re-runs do §Gate de saída), e o que este registro compra é a cláusula
+> 2 continuar significando alguma coisa. Lane nova na A40 sem registro de admissão
+> é desvio **visível**, não prática. Próximo resíduo sem dono segue as cláusulas
+> 4–5 (plano temático vivo ou disposição explícita), não este atalho.
 
 - **RV3-19** (métrica do parecer fabricável) — já tem dono ativo com co-design em
   [[PLAN-pipeline-review-r2]] §Onda C; a medição da r3 mostra **10/10 valores
