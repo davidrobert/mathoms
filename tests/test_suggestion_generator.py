@@ -418,6 +418,9 @@ def test_seguros_insuficientes_renda_pj_alta_sem_seguro(gen):
     d = next(d for d in drafts if d.kind == "seguros_insuficientes")
     assert d.severity == "danger"
     assert d.category == "protecao"
+    # Regressão: emitia S6 (seção queimada por design) — âncora morta no
+    # relatório e no backlink de /acao.
+    assert d.section_id == "S9"
 
 
 def test_seguros_com_protecao_skips(gen):

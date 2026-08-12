@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
+import ast
+import json
+from collections.abc import Iterator
+from pathlib import Path
 
+import pytest
+import yaml
+
+import pipeline.domain.services.suggestion_rules as suggestion_rules_module
 from pipeline.domain.services.suggestion_config import SuggestionGeneratorConfig
 from pipeline.domain.services.suggestion_generator import SuggestionGenerator
 from pipeline.domain.services.suggestion_rules import (
@@ -12,7 +19,16 @@ from pipeline.domain.services.suggestion_rules import (
     rule_endividamento_perigoso,
     rule_renda_passiva_real_baixa,
 )
-from pipeline.domain.types.suggestion import KIND_TO_CATEGORY, VALID_KINDS
+from pipeline.domain.types.suggestion import (
+    KIND_TO_CATEGORY,
+    VALID_KINDS,
+    VALID_SECTION_IDS,
+    SuggestionDraft,
+)
+
+_REPO = Path(__file__).resolve().parents[3]
+_LAYOUT_YAML = _REPO / "config" / "report_layout.yaml"
+_PARECER_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
 
 
 @pytest.fixture
@@ -220,3 +236,92 @@ class TestE2ECenariosFundamentais:
         }
         kinds = {d.kind for d in gen.generate(snapshot)}
         assert "endividamento_perigoso" not in kinds
+
+
+# =============================================================================
+# Gate de vocabulário de `section_id` — 3 camadas, uma asserção cada
+#
+# Caso de origem: `rule_seguros_insuficientes` emitia "S6", ID queimado por
+# design (report_layout.yaml §NOTA, pós-ADR-168 que removeu o modo USA que os
+# ocupava). Efeito medido: âncora morta em `SuggestionCallout` ("Ver em
+# contexto · §S6") e no backlink `/reports/{id}#S6` de `/acao`.
+#
+# O que cada camada cobre:
+#   1. `SuggestionDraft.__post_init__` (runtime) — todo produtor executado,
+#      presente e futuro. Impede em vez de detectar.
+#   2. varredura AST desta suíte — regra nova cujo happy-path nenhum teste
+#      exercita (o construtor não roda, logo a camada 1 fica cega).
+#   3. drift `VALID_SECTION_IDS` ↔ layout ↔ enum do parecer — a cópia à mão
+#      no domínio (que existe porque domínio não faz I/O, ADR-089).
+#
+# Limite honesto: seção `enabled: true` ainda pode curto-circuitar em
+# <EmptyState/> (a S9 tem `summary_suppressed_by`, ADR-356 §D6). Verde aqui
+# significa "âncora existe", não "âncora é informativa".
+# =============================================================================
+
+
+def _enabled_layout_section_ids() -> frozenset[str]:
+    """Seções habilitadas de §estrategico.sections (apêndices são outra lista)."""
+    layout = yaml.safe_load(_LAYOUT_YAML.read_text(encoding="utf-8"))
+    return frozenset(s["id"] for s in layout["estrategico"]["sections"] if s.get("enabled"))
+
+
+def _parecer_schema_section_enum() -> frozenset[str]:
+    schema = json.loads(_PARECER_SCHEMA.read_text(encoding="utf-8"))
+    return frozenset(schema["$defs"]["section_id"]["enum"])
+
+
+def _section_id_keywords(source: str) -> Iterator[ast.keyword]:
+    calls = (n for n in ast.walk(ast.parse(source)) if isinstance(n, ast.Call))
+    for call in calls:
+        yield from (kw for kw in call.keywords if kw.arg == "section_id")
+
+
+def _emitted_section_id_literals() -> list[str]:
+    source = Path(suggestion_rules_module.__file__).read_text(encoding="utf-8")
+    literals: list[str] = []
+    for kw in _section_id_keywords(source):
+        if not (isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str)):
+            pytest.fail(
+                f"section_id não-literal na linha {kw.value.lineno} de "
+                "suggestion_rules.py — o gate de vocabulário exige literal string"
+            )
+        literals.append(kw.value.value)
+    return literals
+
+
+class TestSectionIdVocabulary:
+    def test_construtor_rejeita_secao_fora_do_vocabulario(self):
+        with pytest.raises(ValueError, match="section_id inválido"):
+            SuggestionDraft(
+                section_id="S6",
+                kind="seguros_insuficientes",
+                severity="danger",
+                title="t",
+                rationale="r",
+                dedup_key="abcd1234",
+            )
+
+    def test_toda_regra_emite_section_id_do_vocabulario(self):
+        literals = _emitted_section_id_literals()
+        # Anti-vacuidade: cada regra emite exatamente 1 draft com section_id
+        # keyword-literal. Divergência = emissão positional/dinâmica que este
+        # gate não enxerga — falhe alto em vez de passar vazio.
+        assert len(literals) == len(ALL_RULES), (
+            f"esperava {len(ALL_RULES)} emissões literais de section_id "
+            f"(1 por regra em ALL_RULES), encontrei {len(literals)}"
+        )
+        orfaos = sorted(set(literals) - VALID_SECTION_IDS)
+        assert not orfaos, f"section_id fora do vocabulário: {orfaos}"
+
+    def test_vocabulario_do_dominio_nao_deriva_do_layout(self):
+        """Cópia à mão em `types/suggestion.py` ↔ seções habilitadas do YAML."""
+        assert VALID_SECTION_IDS == _enabled_layout_section_ids()
+
+    def test_vocabulario_do_dominio_bate_com_enum_do_parecer(self):
+        """Mesmo vocabulário na superfície LLM (ADR-200) — âncora é a mesma."""
+        assert VALID_SECTION_IDS == _parecer_schema_section_enum()
+
+    def test_ids_queimados_nunca_voltam(self):
+        """S5/S6 reservados por design — reciclar quebra âncora histórica."""
+        assert not VALID_SECTION_IDS & {"S5", "S6"}
