@@ -72,6 +72,39 @@ Torná-lo obrigatório é lane própria.
 valer: *teste de binding que não atravessa o extrator do payload não prova
 binding*. Sem essa frase escrita, a lição some no diff.
 
+## Medição antes de implementar (dogfood, run `ee124571`, 2026-08-12)
+
+Rodei o agregador sobre as 18 posições reais do E4, com o catálogo e os overrides
+do DB, para saber o que ligar o braço produz **antes** de ligá-lo:
+
+| Cenário | Total | % do investível |
+|---|---|---|
+| Só caixa (hoje) | R$ 83.869,92 | 6,45% |
+| Caixa + ativos, como o resolver está | R$ 88.434,32 | 6,80% |
+| Caixa + ativos, cripto volátil fora | R$ 83.869,92 | **6,45%** |
+
+O braço de ativos contribuiria R$ 4.564,40 — **100% cripto** (Hashdex, BTC, ETH,
+ADA, AXS). Com a exclusão que o domínio pede, o número **não muda**: ligar a fonte
+é correção de mecanismo, não perseguição de tier.
+
+Três achados que a medição revelou e que mudam o escopo:
+
+1. **A exclusão de cripto não é um `if` — exige eixo novo.** Stablecoin conta como
+   proteção e cripto volátil não, mas `asset_catalog` dá `asset_class = "Cripto"`
+   para USDT/USDC/DAI **e** para BTC/ETH. Sem uma coluna de elegibilidade, excluir
+   por classe derruba a stablecoin junto. **Esta ADR fica bloqueada** até o eixo
+   existir: implementar só o encanamento entregaria um número que o domínio já
+   declarou errado.
+2. **Nenhuma das 18 posições casou o catálogo** — todas resolveram por
+   `fallback_classe`. O catálogo (21 entradas) está inerte para este workspace, e
+   o card promete no rodapé "ativos com lastro econômico não-BRL".
+3. **Fundos BDR ficam de fora e ninguém decidiu isso.** "Alaska Black FIC de FIA -
+   BDR NÍVEL I" (R$ 41.846,29) e "Western Asset BDR FIF" (R$ 28.764,28) somam
+   R$ 70.610,57 e classificam como `Fundos` → BRL. BDR replica ativo estrangeiro,
+   então o lastro econômico é externo — mas não há entrada de catálogo nem keyword
+   para BDR. Se contarem, a exposição deste workspace quase dobra. Questão de
+   domínio em aberto, não coberta pelo co-design de 2026-08-12.
+
 ## Consequências
 
 - O endpoint passa a depender de dois contratos de stage: rename em
