@@ -200,6 +200,37 @@ branches `agent/*` paralelas) **e** risco compartilhado.
 literalmente. Divergência de redação aqui **não** é defeito; divergência de
 `priority` ou de `depends_on` é.
 
+> **O limite dessa licença, medido em 2026-08-12 (#1423):** rótulo curto é
+> *abreviação* do título da lane, não *outro assunto*. A linha da [[A40.l33]] dizia
+> "Cache de citação por conteúdo, não por posição" — tema de lane nenhuma — enquanto
+> o arquivo dela é contraste de texto sobre tint. Foi escrita de memória (#1372) com
+> o arquivo já em disco, e sobreviveu a 4 passadas de sincronia porque todas
+> contaram **linhas** em vez de cruzar com o `title` da fonte. Quando esta tabela e
+> o frontmatter divergirem em *assunto*, a fonte é o frontmatter. Cruzamento:
+>
+> ```
+> python3 - <<'EOF'
+> import re, pathlib
+> rows = {}
+> for lid, label in re.findall(r"^\| \[\[A40\.(l\d+)\]\] \| ([^|]+?) \|",
+>                              pathlib.Path("docs/sprint/A40/_README.md").read_text(), re.M):
+>     rows.setdefault(lid, label)   # 1ª ocorrência = esta tabela; a 2ª é a da §Onda 1
+> for f in sorted(pathlib.Path("docs/sprint/A40/lanes").glob("*.md")):
+>     fm = f.read_text().split("---")[1]
+>     lid = re.search(r"^id: A40\.(l\d+)", fm, re.M).group(1)
+>     title = re.search(r'^title: "?(.+?)"?$', fm, re.M).group(1)
+>     if lid in rows and title[:25].lower() not in rows[lid].lower():
+>         print(f"{lid}: tabela={rows[lid][:45]!r} vs fonte={title[:45]!r}")
+> EOF
+> ```
+>
+> O `setdefault` importa: sem ele os ids da §Onda 1 (l1, l3, l4) rendem 3 falsos
+> positivos fixos, e lista que grita lobo é lista que alguém desliga. O corte em 25
+> chars é heurística e ainda lista ~13 abreviações legítimas junto com o defeito
+> real: serve para **triagem humana** — cada linha é uma pergunta ("isto é
+> abreviação ou outro assunto?"), nunca um veredito. Quando a [[A40.l59]] entregar o
+> gate de `ship_pr`, este cruzamento é candidato natural a entrar junto.
+
 | Lane | Título | Prio | depends_on | Achados |
 |---|---|---|---|---|
 | [[A40.l1]] | Instrumento: detector de duplicação cross-grupo + baseline congelado | P0 | — | débito de método r3 #4 (habilita l2) |
@@ -234,16 +265,16 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l30]] | Ancorabilidade do exec context: o invariante que o #1004 furou sem teste vermelho | P1 | — | causa viva pós-[[A40.l16]] · **instrumento, US$ 0** · gateia a [[A40.l8]] · co-design `prompt-engineer` |
 | [[A40.l31]] | Gerador ancora em vez de digitar: correção guiada pelo mecanismo | P2 | l30 | par da l30 · **gasta** (re-eval ~US$ 26, owner-gated) · `planned` |
 | [[A40.l32]] | Proveniência do executor: qual código computou este run | P1 | — | promovida da [[A42]] · [[ADR-362]] · [[ADR-363]] · instrumento, sem custo de API |
-| [[A40.l33]] | Cache de citação por conteúdo, não por posição | P2 | — | aberta 2026-08-09 · estava fora desta tabela até 2026-08-11 |
+| [[A40.l33]] | Contraste de texto sobre tint da própria cor: fecha a classe e gateia por medição | P2 | — | `in_progress` · [[ADR-372]] (#1323) · §Deferido tem 3 itens datados; o nº 3 (`report_palette` espelha o mockup ou o uso? [[ADR-117]] na mesa) é o que a [[A40.l46]] item 2 executa · **título corrigido em 2026-08-12 (#1423)**: a linha dizia "Cache de citação por conteúdo, não por posição", assunto de nenhuma lane — foi escrita de memória no #1372 quando o arquivo `A40-l33-contraste-texto-sobre-tint.md` já existia |
 | [[A40.l34]] | Base do limite PGBL: duas seções publicam 12% sobre bases incompatíveis | **P0** | — | `in_progress` · **fora das ondas** · [[ADR-375]] `Proposto` escrita 2026-08-11 (#1377) · PR1 (faixa marginal) em #1383 · supersede parcial [[ADR-196]] + [[ADR-277]] · 3 PRs a seguir · exceção da cláusula 2 (ver §Fora do sprint) |
 | [[A40.l35]] | Bundle de proteção sobre insumos reais (5 zeros + 2 `False`) | P1 | — | spin-off da [[A40.l7]] 2026-08-11 · Onda 2 · [[A40.l11]] é consumidora |
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
-| [[A40.l38]] | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | **P0** | — | `in_progress` · [[ADR-376]] · PR1 mergeado #1391 · linha adicionada em 2026-08-12 (#1415) — o PR de origem não atualizou a tabela |
-| [[A40.l39]] | Posição por instituição: o header "31/12" mente para 10 de 16 linhas — visão corrente vs fiscal | P1 | — | aberta pelo #1381 · [[ADR-382]] `Proposto` (#1401) · PR-a mergeado #1399 · linha adicionada em 2026-08-12 (#1415) |
-| [[A40.l40]] | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | P1 | — | aberta pelo #1381 · [[ADR-384]] `Proposto` (#1401) · PR em voo #1404 · linha adicionada em 2026-08-12 (#1415) |
-| [[A40.l41]] | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 | P1 | — | aberta pelo #1381 · [[ADR-383]] `Proposto` (#1401) · linha adicionada em 2026-08-12 (#1415) |
-| [[A40.l42]] | Safra IRPF errada por ordenação de string: '31_12_2024' vence '2025' em `max()` lexicográfico | P1 | — | aberta pelo #1381 · fix mergeado #1395 (`608163ef`, baseline pegajoso) · linha adicionada em 2026-08-12 (#1415) |
+| [[A40.l38]] | Caixa canônico: denylist de instituição suprime R$ 89k do bruto e a conservação não vê | **P0** | — | `shipped` (#1391) · [[ADR-376]] · linha adicionada em 2026-08-12 (#1415) — o PR de origem não atualizou a tabela |
+| [[A40.l39]] | Posição por instituição: o header "31/12" mente para 10 de 16 linhas — separar visão corrente da fiscal | P1 | — | `in_progress` · aberta pelo #1381 · [[ADR-382]] `Proposto` (#1401) · PR-a mergeado #1399 · linha adicionada em 2026-08-12 (#1415) |
+| [[A40.l40]] | Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre | P1 | — | `shipped` (#1404) · [[ADR-384]] (#1401) · linha adicionada em 2026-08-12 (#1415) |
+| [[A40.l41]] | Frescor cross-pool: posição stale de 2025-03 vale R$ 206k no bruto contra IRPF 31/12/2025 de R$ 2,4k | P1 | — | `in_progress` · aberta pelo #1381 · [[ADR-383]] `Proposto` (#1401) · linha adicionada em 2026-08-12 (#1415) |
+| [[A40.l42]] | Safra IRPF errada: baseline pegajoso — E1.5c re-consolida o próprio output do run anterior e ignora o E1.5 fresco | P1 | — | `shipped` (#1395) · aberta pelo #1381 · título e arquivo mudaram no #1421 (a raiz não era ordenação lexicográfica) · linha adicionada em 2026-08-12 (#1415) |
 | [[A40.l43]] | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | P1 | — | `shipped` `849e372b` (#1386) · achado do parecer de design · emenda [[ADR-356]] (regra: o narrador não publica valor nem juízo) · fecha por remoção o item de `n_imoveis` da [[A40.l6]] e a classe da [[A40.l15]] · transfere p/ [[A40.l29]] |
 | [[A40.l44]] | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | **P0** | — | `in_progress` · [[ADR-377]] (#1397) · PR1 #1396 + PR2 #1398 mergeados · linha adicionada em 2026-08-12 (#1415) |
 | [[A40.l46]] | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant `feature` sem o DNA do mockup | P2 | — | aberta 2026-08-12 no fecho do #1382 · coleta os 2 achados sem dono da investigação do overlap · item 2 executa o deferimento da [[A40.l33]] §3 ([[ADR-117]] na mesa) · admissão retro-registrada 2026-08-12 (§Fora do sprint) |

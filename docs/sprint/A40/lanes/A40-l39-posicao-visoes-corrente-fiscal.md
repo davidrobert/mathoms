@@ -104,3 +104,34 @@ travado por parágrafo de não-aditividade, `<details>` forçado aberto no print
 Âncora temporal única (defasagem e sazonalidade contra a data de geração do
 relatório, nunca `Date.now()`) e `md:` inativo no print (703px) são restrições
 do PR-b.
+
+## Bloqueadores do PR-b resolvidos por medição — 2026-08-12
+
+**1. O guard do `IrpfRendaSection` é real e mataria o CBE.**
+Confirmado em [IrpfRendaSection.tsx:28](../../../../frontend/src/components/report/sections/IrpfRendaSection.tsx):
+`if (!kpis) return null` — a seção inteira some quando o E5 não traz
+`irpf_kpis`. Informe financeiro é documento independente do IRPF (o
+`posicao_31_12_builder` não depende de `irpf_kpis`), então workspace com
+informe e sem declaração perderia o card fiscal **e o alerta CBE** — que é
+obrigação declaratória, não enfeite.
+
+Decisão para o PR-b: relaxar o guard para `kpis || fechamentoRows.length > 0`.
+Os KPIs e charts já fazem hide-when-empty individualmente, então a seção
+degrada para só o card fiscal sem código novo de fallback. Registrar como
+consequência na [[ADR-382]] antes de flipar para `Decidido`.
+
+**2. A footnote PTAX ficaria falsa no S1 — a taxa corrente é outra.**
+As linhas correntes em moeda estrangeira são convertidas pela cotação de
+mercado **da data do run**, não pela PTAX de 31/12:
+[analyze_finances.py:2248](../../../../scripts/analyze_finances.py) chama
+`ConfigStore.get_market_rate("USD/BRL", TODAY)` (e EUR/BRL), com `TODAY =
+date.today()` do run; `get_market_rate` devolve a última cotação com data
+`<= observed_at` ([db_config_store.py:128](../../../../backend/app/services/db_config_store.py)).
+Fallback: `taxas.cambio_usd_brl` / `cambio_eur_brl`, e por último os defaults
+codificados 5,80 / 6,35.
+
+Decisão para o PR-b: a footnote PTAX 31/12 vai **inteira** para o card fiscal;
+o S1 recebe footnote própria declarando a cotação de fechamento da data do
+relatório. Quando a conversão cair no default codificado, isso é degradação e
+pertence à superfície da [[A40.l22]] — não a uma footnote que afirma cotação
+de mercado que não houve.
