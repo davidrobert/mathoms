@@ -12,6 +12,10 @@ interface ReportSourceStripProps {
   generatedAtIso: string;
   /** F11.4a — UUID da execução do pipeline (GET report). */
   pipelineRunId?: string | null;
+  /** ADR-362 — revisão do executor no stage E5 do run. "revisão", não
+   * "versão": mesmo SHA não garante mesmo output (LLM, cache, câmbio do dia).
+   * `null`/`undefined` = executor não declarou — renderiza "—", nunca fabrica. */
+  executorRevision?: string | null;
   /** F11.4a — agregado de documentos prontos no workspace. */
   sourceDocumentCount?: number | null;
   /** Documentos efetivamente extraídos pela run que gerou o relatório. */
@@ -35,6 +39,7 @@ export function ReportSourceStrip({
   analysisPeriod,
   generatedAtIso,
   pipelineRunId,
+  executorRevision,
   sourceDocumentCount,
   consumedDocumentCount,
 }: ReportSourceStripProps) {
@@ -78,6 +83,13 @@ export function ReportSourceStrip({
           >
             Pipeline
           </Link>
+        </span>
+        <span className="text-[var(--surface-border)]" aria-hidden>·</span>
+        <span title="Código interno de quem gerou este documento; útil apenas em suporte.">
+          Revisão do sistema{" "}
+          <span className="font-mono tabular-nums">
+            {executorRevision ?? "—"}
+          </span>
         </span>
 
         {hasAuditDetails && (

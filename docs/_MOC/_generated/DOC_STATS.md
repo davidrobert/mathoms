@@ -5,13 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1140 notas indexadas pelo frontmatter em `docs/`.
+1143 notas indexadas pelo frontmatter em `docs/`.
 
 ## Por tipo
 
 | type | notas |
 | --- | ---: |
-| adr | 371 |
+| adr | 374 |
 | archive-index | 1 |
 | changelog-entry | 252 |
 | doc | 2 |
@@ -28,7 +28,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | type | status | notas |
 | --- | --- | ---: |
 | adr | Decidido | 320 |
-| adr | Proposto | 47 |
+| adr | Proposto | 50 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 252 |
@@ -36,8 +36,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | domain-rule | (sem status) | 13 |
 | lane | blocked | 9 |
 | lane | cancelled | 2 |
-| lane | in_progress | 11 |
-| lane | open | 13 |
+| lane | in_progress | 12 |
+| lane | open | 12 |
 | lane | planned | 54 |
 | lane | shipped | 231 |
 | marketing-draft | draft | 1 |

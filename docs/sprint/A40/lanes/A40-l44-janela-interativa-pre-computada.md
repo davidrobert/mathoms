@@ -4,7 +4,7 @@ type: lane
 title: "Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a40-l41-janela-interativa-pre-computada
 adrs:
@@ -72,7 +72,16 @@ A ordem **não é negociável** nos dois primeiros passos: corrigir a taxonomia
 antes da âncora faz o divisor parecer validado e o gate fechar verde com o número
 ainda errado — **anti-fix registrado** no RV4-03.
 
-### PR1 — corte de futuro no produtor
+### PR1 — corte de futuro no produtor — ✅ shipped
+
+> **Entregue 2026-08-12** — #1396 (`f1cad2e4`). O aceite foi cumprido por outro
+> caminho que o escrito aqui: o corte é **por transação** (`data > data_corte`),
+> não por filtro de `meses_ordenados`, e o denominador não mudou nesta PR —
+> `meses_com_dado` segue a convenção atual, de propósito, para o diff do golden
+> ser atribuível **só ao corte**. O que saiu do realizado virou o bloco irmão
+> `fluxo_caixa.provisionado`, e o snapshot de dogfood não moveu **nenhum valor
+> monetário** (a fixture não tem transação futura). Invariantes I5/I6/I7 em
+> tolerância zero; mutação que torna o corte no-op derruba 2 deles.
 
 `fluxo_caixa_enricher.py`: `meses_ordenados` deixa de entrar cru no denominador.
 Mês entra se tem **movimento** (receita ou despesa) e **não é posterior à data de
@@ -83,7 +92,11 @@ em `janela_meses` · delta declarado e conferido por `dev/golden_diff.py`, sinal
 esperado `↑` na média mensal (denominador cai) · **um delta, uma causa** — o corte
 do mês em curso está deferido justamente para não misturar as duas causas.
 
-### PR2 — guarda de truncagem
+### PR2 — guarda de truncagem — ✅ shipped
+
+> **Entregue 2026-08-12** — #1398 (`38a7742d`). Hook devolve `isTruncated`; os
+> dois cards suprimem a tabela e declaram a degradação (COPY_GUIDELINES §7.2).
+> Sem paginação, como planejado. Mutação derruba 5 testes.
 
 `usePeriodTransactions.ts:50` descarta `total` e `summary` que a resposta **já
 traz** (o `summary` é calculado antes do slice, no servidor). Passa a ler `total`
@@ -97,7 +110,11 @@ consumidores do hook; se `usePeriodTransactions` ficar órfão, **PR5 o deleta**
 
 **Aceite:** teste com `total` maior que a página ⇒ estado de truncagem, não média.
 
-### PR3 — ADR + emenda + lane (doc-only)
+### PR3 — ADR + emenda + lane (doc-only) — ✅ shipped
+
+> **Entregue 2026-08-11** — #1397 (`3fafe676`). Saiu **antes** do PR1 no fim,
+> não depois: CLAUDE.md §Política operacional exige ADR `Proposto` antes do PR
+> de implementação, e a ordem escrita aqui originalmente estava errada.
 
 [[ADR-377]] `Proposto`, emenda datada na [[ADR-306]] com `amended_at`, esta lane.
 Vem **depois** de PR1/PR2 porque aqueles conformam a um `Decidido` existente

@@ -9658,6 +9658,17 @@
             "title": "Created At",
             "type": "string"
           },
+          "executor_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Executor Revision"
+          },
           "has_analysis_data": {
             "default": false,
             "title": "Has Analysis Data",

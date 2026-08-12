@@ -165,14 +165,19 @@ test.describe("Snapshots — cover (hero)", () => {
   for (const theme of THEMES) {
     test(`cover — ${theme}`, async ({ page }) => {
       await setupReport(page, theme);
-      // ReportCover é um <section> separado fora do article. Achamos
-      // pelo aria-label do badge "Relatório Premium".
-      const cover = page.locator('text="Relatório Premium"').first();
-      const exists = await cover.count();
-      if (exists === 0) {
-        test.skip(true, "ReportCover não encontrada");
-        return;
-      }
+      // Controle positivo: o `<header data-report-cover>` do ReportCover.
+      // NÃO volte a procurar o texto do badge — de 2026-04-26 (v2.F.3b,
+      // `db6cf6f7`) a 2026-08-11 este teste procurou `text="Relatório Premium"`,
+      // string que o componente não pode produzir (o shell não passa `badge`,
+      // então `resolveBadge` devolve "Relatório · Família X" ou "Relatório
+      // Patrimonial"), e o `test.skip` engoliu 107 dias de cobertura da capa:
+      // as duas baselines seguiram commitadas sem nunca serem comparadas.
+      await page.waitForSelector("[data-report-cover]", { timeout: 10_000 });
+      // Os meta-cards são o conteúdo que a baseline precisa provar: sem eles
+      // montados, o screenshot congela um hero pela metade.
+      await page.waitForSelector("[data-report-cover] >> text=Gerado em", {
+        timeout: 10_000,
+      });
       // Captura a parte de cima do main (cover + premissas).
       // `clip` só é aceito em `expect(page).toHaveScreenshot`, não em locator —
       // usamos page-level clip para limitar à área do cover.

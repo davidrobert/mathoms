@@ -515,9 +515,11 @@ async def make_stage_log(
     output_summary: Optional[dict] = None,
     errors: Optional[str] = None,
     duration_ms: int = 1000,
+    executor_revision: Optional[str] = None,
+    started_at: Optional[datetime] = None,
 ) -> PipelineStageLog:
     _next("stage")
-    now = datetime.now(timezone.utc)
+    now = started_at or datetime.now(timezone.utc)
     log = PipelineStageLog(
         pipeline_run_id=run.id,
         stage=stage,
@@ -525,6 +527,7 @@ async def make_stage_log(
         output_summary=output_summary or {"processed": 1},
         errors=errors,
         duration_ms=duration_ms,
+        executor_revision=executor_revision,
         started_at=now,
         completed_at=now if status == "completed" else None,
     )

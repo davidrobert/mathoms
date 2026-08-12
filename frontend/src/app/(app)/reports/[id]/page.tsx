@@ -161,6 +161,7 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
           reportPeriod={report!.period}
           reportCreatedAt={report!.created_at}
           pipelineRunId={report!.pipeline_run_id}
+          executorRevision={report!.executor_revision}
           runOutcome={report!.run_outcome}
           sourceDocumentCount={report!.source_document_count}
           consumedDocumentCount={report!.consumed_document_count}
