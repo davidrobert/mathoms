@@ -163,14 +163,14 @@ describe("<VariacaoSection /> — V0 (ADR-190 §Emenda)", () => {
     expect(screen.queryByTestId("v0-headline")).toBeNull();
     expect(screen.queryByTestId("v0-headline-caption")).toBeNull();
     // As duas variantes coexistem no DOM — a CSS esconde uma por breakpoint
-    // (ADR-377 D4) e jsdom não aplica media query. Busca global acharia as duas,
+    // (ADR-378 D4) e jsdom não aplica media query. Busca global acharia as duas,
     // então cada uma é verificada no seu escopo.
     const tabela = screen.getByTestId("v0-indicators-table");
     expect(within(tabela).getByText("Taxa de Poupança")).toBeInTheDocument();
   });
 
   it("variante estreita: a lista carrega rótulo, Antes/Depois e Δ com glifo + aria", () => {
-    // Paridade exigida pela ADR-377 D4: cor, glifo e nome acessível caem juntos.
+    // Paridade exigida pela ADR-378 D4: cor, glifo e nome acessível caem juntos.
     // Sem esta cobertura, a lista podia perder o julgamento sem nada falhar.
     const data: ReportAnalysisData = {
       comparisons: [

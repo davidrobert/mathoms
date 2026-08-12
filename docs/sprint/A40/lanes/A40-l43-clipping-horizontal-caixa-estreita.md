@@ -7,7 +7,7 @@ status: in_progress
 priority: P1
 branch_slug: a40-l43-clipping-horizontal-caixa-estreita
 adrs:
-  - "[[ADR-377]]"
+  - "[[ADR-378]]"
   - "[[ADR-076]]"
   - "[[ADR-129]]"
 depends_on: []
@@ -68,11 +68,11 @@ Entregue no commit `37ba3af4`. Cada mudança tem causa própria — não é um
 
 - **`ReportSection`** — `grid-cols-1` explícito. O track era `auto` e crescia
   até o `max-content` do filho mais largo, arrastando os irmãos; como vale
-  abaixo de 768px, atingia o PDF inteiro ([[ADR-377]] D5). **Sem `min-w-0` nos
+  abaixo de 768px, atingia o PDF inteiro ([[ADR-378]] D5). **Sem `min-w-0` nos
   filhos**: ver §Regressão 2.
 - **`VariacaoSection` (V0)** — tabela vira lista rótulo/valor abaixo de `sm:`
   (640px, não 768px: a caixa A4 receberia a pilha sem precisar), com cor, glifo
-  e `aria-label` preservados juntos ([[ADR-377]] D4). O rótulo passa a quebrar e
+  e `aria-label` preservados juntos ([[ADR-378]] D4). O rótulo passa a quebrar e
   os valores não: o `min-content` da tabela no papel cai de **417px para 308px**,
   e a folga de 12px vira ~347px. Sai o `break-inside: avoid` inline, que
   contrariava a política escrita em `report-print.css`.
@@ -83,7 +83,7 @@ Entregue no commit `37ba3af4`. Cada mudança tem causa própria — não é um
 - **`globals.css`** — degrau dos `text-style-*` de KPI abaixo de 640px, escopado
   a `[data-report-mode]`: 42px de mono pedem ~314px e a caixa útil tem 310px.
 - **`report-print.css`** — no papel, `overflow: visible` nos wrappers e quebra
-  em `th`/`td` ([[ADR-377]] D3).
+  em `th`/`td` ([[ADR-378]] D3).
 
 ## Critério de aceite
 
@@ -123,7 +123,7 @@ quem encolhe a tabela é o rótulo; número é átomo.
 - **`hidden md:block` como classe.** Hoje `alocacaoCardParts` e
   `CoberturaSegurosCard` entregam ao papel a variante mobile; nesses dois o dado
   sobrevive porque a variante mobile é completa — por acidente, não por
-  desenho. [[ADR-377]] D1 fixa a regra; a varredura dos call-sites existentes
+  desenho. [[ADR-378]] D1 fixa a regra; a varredura dos call-sites existentes
   não entra nesta lane.
 
 ## Regressão 2 — `min-w-0` desalinhou o gráfico, e só no Linux

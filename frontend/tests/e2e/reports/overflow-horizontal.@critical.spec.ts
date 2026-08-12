@@ -13,7 +13,7 @@
  * 1. As duas superfícies são as CAIXAS ESTREITAS reais, não breakpoints
  *    bonitos: 390px é telefone, e 703px é a caixa de página A4 do
  *    `pdf_renderer.py` — o Chromium relayouta contra a página, não contra a
- *    janela, então `md:` (768px) NUNCA casa no PDF ([[ADR-377]]).
+ *    janela, então `md:` (768px) NUNCA casa no PDF ([[ADR-378]]).
  *
  * 2. A varredura é DERIVADA do DOM (todo nó dentro do `<article>`), não uma
  *    lista de seletores. Card novo cai no gate sozinho — foi exatamente o modo
