@@ -217,8 +217,11 @@ def validate_narrativas(
         pf = narrativas_obj["perfil_familia"]
         if "left" not in pf or not pf["left"]:
             errors.append("perfil_familia.left is missing or empty")
-        if "right" not in pf or not pf["right"]:
-            errors.append("perfil_familia.right is missing or empty")
+        # ``right`` NÃO é exigida (emenda ADR-356, 2026-08-11). A regra antiga
+        # obrigava a coluna a existir — logo proibia silêncio, e a saída de menor
+        # esforço sob essa restrição foi afirmar sem condição ("— saudável",
+        # "base sólida para o plano IF", "diversificada entre 1 categoria").
+        # Os loops abaixo seguem tolerando ``right`` em artefato antigo.
 
         for side in ["left", "right"]:
             if side in pf:

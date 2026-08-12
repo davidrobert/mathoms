@@ -151,6 +151,31 @@ def test_summaries_s8_omite_contador_e_holding_vazios():
     assert "pendente para ." not in s["s8"] and "pendente para 0" not in s["s8"]
 
 
+# Transferido do `perfil_familia.right` (emenda ADR-356, 2026-08-11). A S7 é
+# dona do prazo e imprimia `fmt_num(None)` → "prazo realista de N/D anos" e "em
+# None": placeholder afirma um prazo que não existe. O único lugar entregue que
+# nomeava a ausência era a coluna que morreu — e o payload de dogfood corrente
+# TEM `prazo_anos_realista: None`, então este é o ramo vivo, não hipotético.
+def test_summaries_s7_prazo_ausente_declara_a_premissa_que_falta():
+    """Prazo ausente nomeia a premissa que falta, nunca um placeholder."""
+    m = {**_build_metrics(), "if_prazo_anos": None, "if_ano": None}
+    s7 = SummariesNarrator(NarrativasContext.from_family_config(_FAMILY_BASE)).narrate(
+        m, _FAMILY_BASE, [], []
+    )["s7"]
+    assert "N/D" not in s7, s7
+    assert "em None" not in s7 and "None" not in s7, s7
+    assert "não permitem projetar um prazo realista" in s7, s7
+
+
+def test_summaries_s7_prazo_presente_mantem_a_frase_completa():
+    """Contraprova do guard acima: com prazo, a S7 segue afirmando prazo e ano."""
+    s7 = SummariesNarrator(NarrativasContext.from_family_config(_FAMILY_BASE)).narrate(
+        _build_metrics(), _FAMILY_BASE, [], []
+    )["s7"]
+    assert "prazo realista de" in s7, s7
+    assert "não permitem projetar" not in s7, s7
+
+
 def test_summaries_s5_viagens_zero_usa_empty_state():
     """PD-06: 0 viagens / faixa R$ 0–0 → empty-state, não '0 viagens/ano'."""
     m = {**_build_metrics(), "viagens_anuais_estimadas": 0, "custo_viagem_minimo": 0}
