@@ -190,7 +190,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (51 no disco · 41 nesta tabela — ver nota ao fim)
+## Lanes (54 no disco · 45 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -244,17 +244,22 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l51]] | Follow-ups órfãos da [[A40.l43]] — o que o co-design achou na vizinhança e ninguém ataca | P2 (proposta) | — | aberta 2026-08-12 a pedido do dono · lane de **registro**: cada item com medição citada + fix mínimo, para não evaporar no fim da sprint · prioridade/onda são gatilho de `product-manager` |
 
 | [[A40.l50]] | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | P1 | — | aberta 2026-08-12 · resíduo do #1393 (`d1b7c97c`) · 18 achados sobreviveram a refutação adversarial, 2 refutados · contém **P0 fora do card** (`consolidate_baseline` re-consolida run anterior; rodapé PTAX afirma conversão que não houve) · 5 questões de domínio sem dono · [[ADR-379]] bloqueada por dependência de ordem |
+| [[A40.l45]] | Clipping horizontal em caixa ≤700px: o dado saía do relatório sem rastro (mobile 390 · A4 703) | P1 | — | `shipped` `70407cc3` (#1387) · [[ADR-381]] · gate novo `overflow-horizontal.@critical` provado por mutação · residuais → [[A40.l53]] [[A40.l54]] [[A40.l55]] |
+| [[A40.l53]] | Gate visual de seções cego: S2 flaky (5–6% intra-commit) + 6 baselines podres em `main` | P1 | — | aberta 2026-08-12 no fecho da [[A40.l45]] · **vizinha, não duplicata, da [[A40.l46]] item 1** (aquela é o job de PRINT/página 1; esta, o de snapshots por seção) · método de triagem `actual`×`actual` documentado na lane |
+| [[A40.l54]] | `hidden md:block` entrega ao papel a variante mobile: varredura + gate ([[ADR-381]] D1) | P2 | — | aberta 2026-08-12 · hoje o dado sobrevive por acidente em 2 call-sites (aloc./seguros) |
+| [[A40.l55]] | Medida de linha no papel: 100–110 cpl na prosa do A4 | P3 | — | aberta 2026-08-12 · polish de legibilidade; fix candidato `max-width: 90ch` em `@media print` |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
-> `ls docs/sprint/A40/lanes/*.md` dá **51**; esta tabela lista **41**.
+> `ls docs/sprint/A40/lanes/*.md` dá **54**; esta tabela lista **45**.
 >
-> As **10 ausentes** foram abertas por PRs que não atualizaram a tabela e **não têm
+> As **9 ausentes** foram abertas por PRs que não atualizaram a tabela e **não têm
 > dono nesta passada**: **l38** (caixa canônico, #1391), **l39** (posição
 > corrente/fiscal), **l40** (identidade institucional CNPJ raiz), **l41** (frescor
-> cross-pool), **l42**, **l44** (janela declarada, #1397/#1398), **l45** (clipping
-> caixa estreita, #1387 · [[ADR-381]]), **l47/l48/l49** (achados da r4 sem gatilho,
-> #1411). Ficam nomeadas aqui em vez de silenciadas — o id aponta o arquivo, então
+> cross-pool), **l42**, **l44** (janela declarada, #1397/#1398), **l47/l48/l49**
+> (achados da r4 sem gatilho, #1411). A **l45** saiu desta lista em 2026-08-12 —
+> entrou na tabela junto com as lanes que os follow-ups dela originaram (l53–l55).
+> Ficam nomeadas aqui em vez de silenciadas — o id aponta o arquivo, então
 > completar custa pouco.
 >
 > **Quem fechar a sprint tem de resolver isto:** o §Gate de saída lê esta tabela, e
@@ -266,7 +271,8 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 > ```
 >
 > **Corolário de processo — 6 colisões de id numa sessão** (l38→l41→l43 na [[A40.l43]];
-> l46→l47→l50→l51 nesta). "Próximo id livre" medido na **tabela** mente enquanto ela
+> l46→l47→l50→l51 nesta; e as lanes de follow-up da [[A40.l45]] nasceram l50–l52 e
+> aterrissaram l53–l55). "Próximo id livre" medido na **tabela** mente enquanto ela
 > estiver defasada; e PR aberto não reserva id. Meça no **disco** e cruze com títulos
 > **e arquivos** de PR aberto, imediatamente antes do push:
 >
@@ -1180,6 +1186,10 @@ item que tem só descrição evapora no fim da sprint.
 | ~~**Step de notificação do `frontend-e2e` dá 403**~~ (`actions/github-script` → `issues.createComment` sem `permissions`) — rodava `if: failure()`, virava o `##[error]` mais visível e **mascarava a causa real** | — | **FECHADO** — #1283 (`04278c9d`, 2026-08-08): `permissions: {contents: read, pull-requests: write}` no job + `continue-on-error` (PR de fork recebe token read-only **independente** do bloco, e o step é diagnóstico, não gate). O guard de `workflow_dispatch` que esta linha pedia **já existia** — o `if:` do step sempre teve `&& github.event_name == 'pull_request'`, então `context.issue.number` nunca chega `undefined` ali. Verificado no runner: step verde e comentário entregue |
 | **O PDF exportado não contém as últimas seções nem NENHUM título de seção** — `pdftotext -layout` sobre o PDF do harness (geometria de `pdf_renderer.py`: A4, margens 15/12/15/12mm) devolve 0 ocorrências de `"Parecer do Planejador"`, `"Síntese Estratégica"` e `"Apêndice"`, e 0 da nota da S_parecer; com `paperHeight: 300in` o MESMO run traz a nota, os pontos fortes e o diagnóstico. Em media screen as 14 seções têm altura > 0 e sob `emulateMedia({media:"print"})` a nota é visível — logo **não é `display:none`**, é paginação/paint do `printToPDF` | [[A40.l22]] §Blockquote (`test.fixme` marca a retomada em `print.@critical.spec.ts`) | **PR em voo** — #1287 (*"o PDF exportado volta a conter todas as seções"*), aberto por esta medição. Enquanto não mergear, é o que torna a perna de PDF do §Critério de aceite da l22 **parcial**. Medido 2026-08-07/08 |
 | **A baseline do `frontend-print-visual` é um screenshot de CRASH** — `report.print.pdf.png` (2026-04-27) é o error boundary do React ("Algo deu errado ao renderizar esta página"), não um relatório. O gate nunca comparou relatório com relatório e é **fail-open**: se o relatório voltar a crashar do mesmo jeito, o job fica verde. Os 94.472px de divergência de hoje são crash-vs-relatório, **não** drift | — | **PR em voo** — #1290 (*"rebaselina 10 snapshots de seção com drift"*). Medido 2026-08-08 no fecho do #1277 |
+| **Gate `Frontend visual snapshots` está cego** — S2 varia 5,1–6,3% entre as 3 tentativas do MESMO commit (tolerância 2,5%) e `main` puro reprova em 6 baselines (controle 2× via dispatch). Escondeu uma regressão real da própria l45 atrás do ruído | [[A40.l45]] §Follow-up | **lane** — [[A40.l53]] (decisão do dono 2026-08-12: follow-ups da l45 viram lanes na A40) |
+| **`hidden md:block` entrega ao papel a variante mobile** ([[ADR-381]] D1) — 2 call-sites sobrevivem por acidente; o próximo some do PDF sem erro | [[A40.l45]] §Fora de escopo | **lane** — [[A40.l54]] |
+| **Medida de linha no papel** — 100–110 cpl na prosa do A4 (confortável: 45–75) | [[A40.l45]] §Fora de escopo (estava "transferido, sem dono" — o estado que evapora) | **lane** — [[A40.l55]] |
+| **Índices `_generated/` são contenção global + IDs sequenciais colidem sob paralelismo** — 8 renumerações de ID e 8 rebases entre a l45 e a abertura destas lanes (2026-08-11/12) | [[A40.l45]] (execução) | **§Pendências de decisão item 13** — política de repo, owner-gated |
 | ~~**Race no readiness do backend no `frontend-e2e`**~~ — o step "Start backend" fazia `sleep 5` fixo + UMA tentativa de `curl -sf /health`; quando a importação da app passava desse orçamento o job morria com "backend não subiu" e o Playwright **não rodava nenhum teste** (medido 2× consecutivas no #1277; o artefato `backend-logs` mostra uvicorn e celery subindo com sucesso). Mecanismo distinto da linha "não gateia" acima: ali o job não bloqueia; aqui ficava vermelho **sem carregar informação de teste** | — | **FECHADO** — #1283 (`04278c9d`, 2026-08-08), co-design `sre-devops`. Deadline em **wall-clock** (90s HTTP / 120s worker), não contagem de voltas: cada `/health` custa até ~2,5s porque o handler faz `celery inspect(timeout=2.0)` embutido, então `seq 1 60` contrataria 60s e entregaria ~180s. Mensagem ramifica por `kill -0` do PID ("morreu" vs. "vivo, não respondeu em Ns") com `tail` do log **do subsistema certo**, e o caminho feliz imprime o elapsed. **Além do pedido:** espera o worker Celery por `celery inspect ping` ([[ADR-252]] D4, mesmo probe do compose) — nada o verificava, e ele é pré-requisito de `pipeline.run`; sem isso o atraso do worker não somia, virava `toBeVisible` timeout no meio do Playwright. Deliberadamente **não** gateia no `status` do `/health` (ver linha nova abaixo). **O run de verificação reproduziu a corrida: 8s** — o `sleep 5` teria matado aquele run também |
 | **`GET /health` reporta `status: "degraded"` em toda chamada** — `executor_revision` entrou nos checks (`backend/app/main.py:304`) sem entrar no set `informational` (`:360`), e nunca é a string `"ok"`; em CI recebe `MATHOMS_BUILD_SHA`. **Nenhum teste assere o agregado** — é por isso que é invisível. Efeito colateral não decidido da implementação da [[ADR-363]] (a ADR não menciona o agregado), não dívida ambiente | — | **sem lane** — blast radius zero hoje (healthchecks do compose usam só HTTP 200; nada consome `status`), mas é fail-open no único sinal sumarizante do endpoint. Fix é indivisível em 3: `informational |= {"executor_revision"}` + teste do agregado (sem ele a armadilha se re-arma no próximo campo) + emenda datada na [[ADR-363]]. Descoberto em 2026-08-08 no #1283, que por isso gateia em HTTP 200 + `inspect ping` |
 | **`frontend-e2e` tem 17 testes `@critical` vermelhos** — com o probe do #1283 consertado o job voltou a *rodar*, e o resultado é 17 failed / 49 passed / 7 skipped (run 31247625227): `tab-order.@critical.spec.ts` não acha `aria-label="Tema do relatório"` no shell, `vault.spec.ts` não acha a mensagem de retry-unlock, entre outros | — | **sem lane** — é a **pré-condição** da linha "não gateia" acima: não se liga um gate com 17 vermelhos, então promover o job a required depende desta triagem, não do inverso. #1283 tornou o vermelho *legível*; não o resolveu. Medido 2026-08-08 |
@@ -1246,6 +1256,8 @@ achados alegados (registrados como §Fantasmas na lane, para ninguém reabrir).
 
 ## Pendências de decisão — itens 11-12 (2026-08-03)
 
+## Pendências de decisão — itens 11-13 (2026-08-03; item 13 em 2026-08-12)
+
 **11. Os follow-ups sem destino viram lane nesta sprint, ou disposição explícita
 de não-fazer?** — ✅ **RESOLVIDA 2026-08-05.** A ancorabilidade do exec context já
 tinha ido para [[A40.l30]]+[[A40.l31]] em 2026-08-03. Os **5** que restavam foram
@@ -1288,6 +1300,25 @@ mutação em `tests/test_doc_graph_gates.py`. Id duplicado (rabo da §Pendência
 **já tinha gate** em `check_doc_links` — pinado por teste no mesmo PR; a
 renumeração 2× da l27 não foi falha de gate (ele disparou no rebase), é problema
 de **alocação**, que o `former_ids` (l23 item 3) audita.
+
+**13. Os índices `docs/_MOC/_generated/` commitados são ponto de contenção
+global, e IDs sequenciais colidem sob paralelismo — muda a política, ou
+absorve-se o custo?** — aberta 2026-08-12, evidência das execuções da
+[[A40.l45]] e desta própria curadoria: **8 renumerações de ID** (ADR
+376→377→378→379→381; lane l38→l43→l45; e as lanes de follow-up nasceram
+l50→l53) e **8 rebases**, porque todo PR que cria lane/ADR reescreve os mesmos
+4 arquivos gerados, e `main` recebe commits mais rápido do que um ciclo de CI
+completa. O rabo da §Pendência 12 já nomeou a alocação como problema; isto é a
+medição da escala. Opções, sem decisão embutida: (a) gerar os índices **no CI**
+em vez de commitá-los (muda [[ADR-182]]); (b) merge driver `ours` +
+regeneração obrigatória no pre-commit (mantém o arquivo, mata o conflito);
+(c) manter como está e padronizar o custo — alocar ID **depois do último
+rebase, imediatamente antes do push**, lendo o teto de `origin/main` **e dos
+PRs abertos** (`git ls-tree` + `gh pr list`), nunca do `ls` local. A (c) já é
+prática registrada em memória de agente; elevá-la a texto do CLAUDE.md §ADRs
+inverte o conselho atual de "abrir PR cedo para reservar o ID", que sob
+paralelismo é contraproducente. **Owner-gated**: qualquer opção muda política
+de repo.
 
 ## Fora do sprint (disposição explícita)
 
