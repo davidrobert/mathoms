@@ -6,7 +6,9 @@
 
 from __future__ import annotations
 
+import ast
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 from pipeline.domain.services.narrativas import NarrativasContext, PerfilFamiliaNarrator
@@ -21,10 +23,31 @@ def _left(today: date = _TODAY) -> str:
 
 
 def test_perfil_nao_publica_valor_monetario_nem_percentual():
-    """Qualquer `R$`/`%` novo no perfil quebra aqui — sem depender do literal."""
+    """Qualquer `R$`/`US$`/`%` novo no perfil quebra aqui — sem depender do literal."""
     left = _left()
-    assert "R$" not in left, left
-    assert "%" not in left, left
+    for simbolo in ("R$", "US$", "%"):
+        assert simbolo not in left, f"{simbolo} em: {left}"
+
+
+# Gate ESTRUTURAL, complementar ao de saída: `fmt_num` formata sem símbolo, logo
+# publicar monetário por ela passaria pelo teste de string acima. Pegar no import
+# fecha a classe antes de a string existir — para publicar valor, alguém tem de
+# importar um formatador aqui, e isso quebra.
+def test_perfil_nao_importa_formatador_monetario():
+    """O módulo do narrador não importa `fmt_currency`/`fmt_usd`/`fmt_percent`/`fmt_num`."""
+    fonte = (
+        Path(__file__).resolve().parents[1]
+        / "pipeline/domain/services/narrativas/perfil_familia_narrator.py"
+    ).read_text(encoding="utf-8")
+    arvore = ast.parse(fonte)
+    importados = {
+        alias.name
+        for no in ast.walk(arvore)
+        if isinstance(no, ast.ImportFrom)
+        for alias in no.names
+    }
+    proibidos = {"fmt_currency", "fmt_usd", "fmt_percent", "fmt_num"}
+    assert not (importados & proibidos), importados & proibidos
 
 
 def test_perfil_nao_emite_juizo_qualitativo():

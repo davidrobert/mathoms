@@ -129,8 +129,10 @@ _EFEITO_DECLARADO: dict[tuple[str, ...], EfeitoDeclarado] = {
         23_100.0,
     ),
     ("independencia_financeira", "trs_pct"): _sem_efeito(
-        "yield-alvo/TRS é citado em `perfil_familia.right`, não em summary — o "
-        "s7 cita a SWR, que é outro conceito (ADR-191 §Emenda FP-03). O default "
+        "yield-alvo/TRS é citado em `charts.renda_passiva`, não em summary — o "
+        "s7 cita a SWR, que é outro conceito (ADR-191 §Emenda FP-03). Era "
+        "`perfil_familia.right` até a emenda ADR-356 (2026-08-11); a razão "
+        "apontava para superfície que deixou de existir. O default "
         "`5.0` do builder é inalcançável: `if_projector` levanta ValueError sem "
         "`trs_pct`, então o E5 nem chega ao E5.N.",
         8.0,
