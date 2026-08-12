@@ -43,19 +43,41 @@ O mesmo achado já estava registrado três vezes, sem dono: RV2-13 aqui, RV3-18 
 | 6 | 2ª residência principal devolve 409 em vez de 500 | `backend/app/api/properties.py` |
 | 7 | Dedup por hard-delete recusa apagar vencedora de supersessão | `dev/dedup_property_identity.py` |
 
-## Passo de ops pendente (owner-gated)
+## Sweep — aplicado em 2026-08-12, pós-merge de `a920541f`
 
-O sweep sobre o workspace de dogfood **não** roda junto com o merge. Ordem
-obrigatória, porque um worker com código antigo em voo reverteria tudo:
+Ordem obrigatória (worker com código antigo em voo reverteria a supersessão):
+merge do escopo explícito → worker recarregado → pipeline ocioso → dry-run lido
+por humano → `--apply` → re-rodar E1.5c/E5.
 
-1. Merge do escopo explícito em `main` e worker recarregado.
-2. Pipeline ocioso para o workspace.
-3. `python3 dev/backfill_property_supersession.py <workspace_id>` — dry-run, lido
-   por humano: conferir vencedor eleito por grupo e ausência de grupo abortado.
-4. Repetir com `--apply`.
-5. Re-rodar E1.5c → E5 e comparar o diff de `real_estate` e `patrimonio`.
+**Resultado medido:** 5 supersessões, 2 overrides migrados, 0 reativações, 0
+grupos abortados. O workspace passou de 11 identidades vivas para 6 — uma por
+imóvel real — e os 6 overrides passaram a apontar para rows vivas (antes, 2
+estavam presos em rows que os runs não resolviam mais).
+
+Re-medir com:
+
+```bash
+sqlite3 "$DB" "SELECT COUNT(*) FROM property_identity
+  WHERE workspace_id='<ws>' AND superseded_at IS NULL"
+```
 
 Reversão declarada: `--clear <property_id>`.
+
+### Pendente
+
+- **Re-rodar E1.5c → E5** para o relatório refletir os números novos. O
+  override recuperado devolve o imóvel locado ao portfólio de renda, o que
+  move `imoveis_geradores`, `investivel_efetivo` (o toggle da IF está ligado) e
+  o cap rate líquido — que cai **mais** que proporcionalmente, porque a
+  manutenção escala com o denominador. Não publique número projetado: leia
+  `real_estate.cap_rate_liquido_pct` de um run real.
+- **Diff de `alertas[]` antes/depois.** Com o cap rate corrigido, `spread_critico`
+  provavelmente dispara pela primeira vez, e `premissa_if_imoveis` (novo) tende a
+  disparar. Alerta novo é mudança visível ao usuário e precisa ser intencional.
+- **Regenerar ou invalidar o parecer E6**, que é derivado do E5: parecer velho com
+  números novos é contradição na mesma página. A [[ADR-235]] §5 proíbe recomendar
+  venda da nu-propriedade como solução de liquidez — instrução que nunca foi
+  exercitada, porque o imóvel chegava como `desconhecido`.
 
 ## Deferido
 
