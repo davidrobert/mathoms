@@ -36,6 +36,10 @@ from pipeline.domain.services.suggestion_generator import (
 )
 from pipeline.domain.types.suggestion import SuggestionDraft
 
+# Contrato de leitura (gate: dev/check_artifact_read_keys.py) — as chaves lidas do
+# payload precisam existir no schema do stage. Declarado, nunca inferido da query.
+ARTIFACT_CONTRACT = ("analyze_finances",)
+
 
 async def regenerate_for_report(
     *,

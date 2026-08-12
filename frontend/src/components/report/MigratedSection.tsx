@@ -48,7 +48,7 @@ export function MigratedSection({
 }: MigratedSectionProps) {
   switch (sectionId) {
     case "S1":
-      return <S1PatrimonioSection data={data} />;
+      return <S1PatrimonioSection data={data} reportId={reportId} />;
     case "S2":
       return (
         <S2FluxoCaixaSection

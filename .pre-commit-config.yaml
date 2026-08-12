@@ -156,6 +156,18 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: artifact-read-keys
+        # O card de exposição cambial leu `payload["patrimonio_full"]` por três meses:
+        # nome de variável interna do domínio, que o serializador renomeia na fronteira.
+        # O schema só é aplicado no write, `additionalProperties` é true e a fixture do
+        # teste fabricava o mesmo shape — nada acusava. Aqui o payload está certo e o
+        # LEITOR erra, então o instrumento é AST e não depende de fixture com dado.
+        name: "Chave lida de artefato existe no schema do stage produtor"
+        entry: python3 dev/check_artifact_read_keys.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: forbidden-paths
         name: "Bloqueia paths sensíveis (storage/, .env, *.db, …)"
         entry: python dev/check_forbidden_paths.py

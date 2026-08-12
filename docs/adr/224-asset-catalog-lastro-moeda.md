@@ -21,6 +21,7 @@ aliases:
   - "FU-2 exposicao cambial V2"
 amended_at:
   - "2026-07-27"
+  - "2026-08-12"
 tags:
   - area/methodology
   - area/persistence
@@ -37,6 +38,14 @@ tags:
 > valor canônico `valor_atual`, ticker canônico `ticker_norm`, sem campo `classe`.
 > V1 e V2 liam `valor`/`ticker` inexistentes → exposição cambial zerava ativos
 > internacionais (no-op silencioso desta ADR). Conformance; ver §Emenda ao final.
+
+> **Emenda 2026-08-12:** a premissa de fluxo de dado da §5 é falsa — o E5 **não**
+> publica `investimentos_atuais.dados`, e nunca publicou. O V2 devolveu zero de
+> 2026-05-19 a 2026-08-12. A fonte das posições passa a ser o artefato E4 pinado
+> ao run: ver [[ADR-379]]. **A emenda RV2-08 acima fica retratada** — ela declarou
+> conformidade validando com um teste que pula `_extract_e5_inputs`, então media o
+> binding interno enquanto o externo estava morto. Regra que passa a valer: *teste
+> de binding que não atravessa o extrator do payload não prova binding.*
 
 ## Contexto
 

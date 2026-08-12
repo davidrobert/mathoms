@@ -151,6 +151,10 @@ def _apply_acceptance(
     suggestion.accepted_at = datetime.now(timezone.utc)
 
 
+# Contrato de leitura (gate: dev/check_artifact_read_keys.py) — as chaves lidas do
+# payload precisam existir no schema do stage. Declarado, nunca inferido da query.
+ARTIFACT_CONTRACT = ("analyze_finances",)
+
 _SNAPSHOT_KPI_PATHS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("patrimonio_brl", ("patrimonio", "liquido")),
     ("if_progress_pct", ("goals", "progresso_if_pct")),

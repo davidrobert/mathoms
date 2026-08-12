@@ -374,6 +374,8 @@
 | ADR-376 | adr | Decidido |  | Caixa corrente vem do último extrato reconciliado — sem denylist de instituição | `adr/376-caixa-corrente-vem-do-extrato-sem-denylist-de-instituicao.md` |
 | ADR-377 | adr | Proposto |  | Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa | `adr/377-janela-interativa-e-conjunto-fechado-pre-computado.md` |
 | ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |
+| ADR-379 | adr | Proposto |  | Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório | `adr/379-posicoes-do-card-exposicao-cambial-vem-do-e4-pinado-ao-run.md` |
+| ADR-380 | adr | Decidido |  | Nenhum card afirma ausência a partir de falha de carregamento | `adr/380-card-nao-afirma-ausencia-a-partir-de-falha-de-carregamento.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -893,6 +895,8 @@
 | A42.l10 | lane | planned | A42 | Misclassificação na classificação amplifica o carrier de duplicação | `sprint/A42/lanes/A42-l10-misclassificacao-amplifica-carrier.md` |
 | A42.l11 | lane | planned | A42 | Enforce do checksum cross-source: fatura contra o débito de pagamento no extrato | `sprint/A42/lanes/A42-l11-enforce-cross-source-fatura-pagamento.md` |
 | A42.l12 | lane | planned | A42 | Estado de extração do documento: predicado único e lista de stages derivada do registry | `sprint/A42/lanes/A42-l12-predicado-unico-de-extracao.md` |
+| A42.l13 | lane | planned | A42 | Elegibilidade de hedge e o braço de ativos da exposição cambial | `sprint/A42/lanes/A42-l13-elegibilidade-de-hedge-e-braco-de-ativos.md` |
+| A42.l14 | lane | planned | A42 | Proveniência da cotação cambial: data na tela e fallback que não inventa número | `sprint/A42/lanes/A42-l14-proveniencia-da-cotacao-cambial.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
