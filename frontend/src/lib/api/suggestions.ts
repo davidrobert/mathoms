@@ -20,6 +20,12 @@ export type SuggestionSeverity = "info" | "warning" | "danger";
 
 export type SuggestionAggregateOrigin = "deterministic" | "llm";
 
+/** ADR-376 §D4 — horizonte temporal persistido da sugestão do parecer, no
+ * mesmo vocabulário dos 3 baldes do prompt (`sugestoes_execucao` /
+ * `_taticas` / `_estrategicas`). `null` em sugestão determinística
+ * (`origin: "deterministic"`) e em row anterior à migration. */
+export type SuggestionHorizon = "execucao" | "tatica" | "estrategica";
+
 export type SuggestionKind =
   // v1 (ADR-153)
   | "trs_desalinhada"
@@ -67,6 +73,10 @@ export interface Suggestion {
   /** ADR-161 — agrupamento semântico cross-kind. Null em registros pré-migration. */
   category: SuggestionCategory | string | null;
   origin: SuggestionAggregateOrigin | string;
+  /** ADR-376 §D4 — null é o caso comum (determinística/legada) e significa
+   *  "fila do agora", não "sem prazo": ver `isScheduled` em
+   *  `@/lib/suggestionOrdering`, cuja polaridade é positiva por isso. */
+  horizon: SuggestionHorizon | null;
   severity: SuggestionSeverity;
   title: string;
   rationale: string;

@@ -10,6 +10,8 @@ import { describe, expect, it } from "vitest";
 import type { Suggestion } from "@/lib/api";
 import {
   ACTIONABLE_DISPLAY_CAP,
+  FOCUS_GROUP_SIZE,
+  isScheduled,
   methodologicalGate,
   partitionForDisplay,
   suggestionPriorityComparator,
@@ -23,6 +25,7 @@ function makeSug(overrides: Partial<Suggestion> & { id: string }): Suggestion {
     kind: "parecer_planejador",
     category: null,
     origin: "llm",
+    horizon: null,
     severity: "warning",
     title: "t",
     rationale: "r",
@@ -105,6 +108,19 @@ describe("methodologicalGate", () => {
   });
 });
 
+describe("isScheduled", () => {
+  // A polaridade do gate (ADR-376 §D4). Escrever `horizon !== "execucao"` —
+  // a forma que "parece" equivalente — mandaria toda sugestão determinística
+  // (horizon null, a maioria do inbox) para "Agendadas", esvaziando a fila do
+  // agora. Este teste é o que separa os dois desenhos.
+  it("só tatica/estrategica são agendadas; null e execucao ficam no agora", () => {
+    expect(isScheduled(makeSug({ id: "t", horizon: "tatica" }))).toBe(true);
+    expect(isScheduled(makeSug({ id: "e", horizon: "estrategica" }))).toBe(true);
+    expect(isScheduled(makeSug({ id: "x", horizon: "execucao" }))).toBe(false);
+    expect(isScheduled(makeSug({ id: "n", horizon: null }))).toBe(false);
+  });
+});
+
 describe("partitionForDisplay", () => {
   it("info fica fora do cap; acionáveis acima de 12 vão pro overflow", () => {
     const actionable = Array.from({ length: 15 }, (_, i) =>
@@ -113,10 +129,11 @@ describe("partitionForDisplay", () => {
     const info = Array.from({ length: 4 }, (_, i) =>
       makeSug({ id: `i${i}`, severity: "info" }),
     );
-    const { primary, overflow, informative } = partitionForDisplay([...info, ...actionable]);
-    expect(primary).toHaveLength(ACTIONABLE_DISPLAY_CAP);
-    expect(overflow).toHaveLength(3);
-    expect(informative).toHaveLength(4);
+    const p = partitionForDisplay([...info, ...actionable]);
+    expect(p.focus).toHaveLength(FOCUS_GROUP_SIZE);
+    expect(p.focus.length + p.rest.length).toBe(ACTIONABLE_DISPLAY_CAP);
+    expect(p.overflow).toHaveLength(3);
+    expect(p.informative).toHaveLength(4);
   });
 
   it("overflow nunca contém danger (cap ≤2 danger garante topo)", () => {
@@ -127,8 +144,48 @@ describe("partitionForDisplay", () => {
     const warnings = Array.from({ length: 14 }, (_, i) =>
       makeSug({ id: `w${i}`, severity: "warning" }),
     );
-    const { primary, overflow } = partitionForDisplay([...warnings, ...dangers]);
-    expect(primary.slice(0, 2).map((s) => s.severity)).toEqual(["danger", "danger"]);
+    const { focus, overflow } = partitionForDisplay([...warnings, ...dangers]);
+    expect(focus.slice(0, 2).map((s) => s.severity)).toEqual(["danger", "danger"]);
     expect(overflow.every((s) => s.severity !== "danger")).toBe(true);
+  });
+
+  it("danger entra no focus mesmo chegando por último na lista de entrada", () => {
+    const warnings = Array.from({ length: 8 }, (_, i) =>
+      makeSug({ id: `w${i}`, severity: "warning" }),
+    );
+    const { focus } = partitionForDisplay([...warnings, makeSug({ id: "d", severity: "danger" })]);
+    expect(focus).toHaveLength(FOCUS_GROUP_SIZE);
+    expect(focus[0].id).toBe("d");
+  });
+
+  it("horizon null (determinística/legada) fica na fila do agora, não em scheduled", () => {
+    const p = partitionForDisplay([
+      makeSug({ id: "det", origin: "deterministic", horizon: null }),
+      makeSug({ id: "exec", horizon: "execucao" }),
+    ]);
+    expect(p.scheduled).toHaveLength(0);
+    expect(p.focus.map((s) => s.id).sort()).toEqual(["det", "exec"]);
+  });
+
+  it("tatica/estrategica saem da fila e não consomem o cap de 12", () => {
+    const agora = Array.from({ length: 12 }, (_, i) =>
+      makeSug({ id: `w${i}`, severity: "warning" }),
+    );
+    const agendadas = [
+      makeSug({ id: "t", horizon: "tatica" }),
+      makeSug({ id: "e", horizon: "estrategica" }),
+    ];
+    const p = partitionForDisplay([...agendadas, ...agora]);
+    expect(p.scheduled.map((s) => s.id).sort()).toEqual(["e", "t"]);
+    expect(p.overflow).toHaveLength(0);
+    expect(p.focus.length + p.rest.length).toBe(ACTIONABLE_DISPLAY_CAP);
+  });
+
+  it("info vai para informative mesmo com horizonte tático", () => {
+    const p = partitionForDisplay([
+      makeSug({ id: "i", severity: "info", horizon: "tatica" }),
+    ]);
+    expect(p.informative.map((s) => s.id)).toEqual(["i"]);
+    expect(p.scheduled).toHaveLength(0);
   });
 });

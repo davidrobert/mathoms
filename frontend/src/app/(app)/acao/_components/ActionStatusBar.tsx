@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { CheckCircle2, Lightbulb, ListTodo } from "lucide-react";
 
 import { useDecisions } from "@/hooks/useDecisions";
@@ -17,8 +18,12 @@ interface ActionStatusBarProps {
  * sugestões pendentes (do último relatório), tarefas com prazo nos
  * próximos 7 dias, decisões já decididas aguardando execução.
  *
- * Cada chip é clicável e leva à tab respectiva (futuro: deep-link
- * com `?tab=`). Por agora, é informativo.
+ * F5 (PLAN-suggestion-lifecycle) — os chips passam a ser links de fato.
+ * O docstring prometia isso desde a Onda 6, mas `StatusChip` renderizava
+ * `<span>`: contador que promete navegação e não navega treina o usuário
+ * a não clicar. O chip de decisões aponta para `/plano`, onde
+ * `DecisionsSection` de fato mora — /acao não tem tab de decisões, e o
+ * rótulo antigo sugeria que tinha.
  */
 export function ActionStatusBar({ workspaceId }: ActionStatusBarProps) {
   const { count: suggestions } = useSuggestionsCount(workspaceId);
@@ -37,44 +42,72 @@ export function ActionStatusBar({ workspaceId }: ActionStatusBarProps) {
         icon={Lightbulb}
         label="Sugestões pendentes"
         value={suggestions}
-        muted={suggestions === 0}
+        href="/acao?tab=inbox"
       />
-      <span aria-hidden className="h-4 w-px bg-border" />
+      <ChipDivider />
       <StatusChip
         icon={ListTodo}
         label="Tarefas — próximos 7 dias"
         value={upcoming.length}
-        muted={upcoming.length === 0}
+        href="/acao?tab=tarefas"
       />
-      <span aria-hidden className="h-4 w-px bg-border" />
+      <ChipDivider />
       <StatusChip
         icon={CheckCircle2}
-        label="Decisões a executar"
+        label="Decisões a executar em /plano"
         value={decisionsToExecute}
-        muted={decisionsToExecute === 0}
+        href="/plano"
       />
     </div>
   );
+}
+
+function ChipDivider() {
+  return <span aria-hidden className="h-4 w-px bg-border" />;
 }
 
 interface StatusChipProps {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: number;
-  muted: boolean;
+  /** Destino do chip quando `value > 0`. */
+  href: string;
 }
 
-function StatusChip({ icon: Icon, label, value, muted }: StatusChipProps) {
+const CHIP_CLASS = "inline-flex items-center gap-1.5";
+
+/** Zero fica não-clicável (muted, sem `<a>`): navegar para uma lista
+ *  vazia é uma promessa quebrada, e um link inerte no tab order só
+ *  adiciona parada sem destino para quem navega por teclado. */
+function StatusChip({ icon: Icon, label, value, href }: StatusChipProps) {
+  if (value === 0) {
+    return (
+      <span className={`${CHIP_CLASS} text-muted-foreground`}>
+        <ChipBody Icon={Icon} label={label} value={value} />
+      </span>
+    );
+  }
   return (
-    <span
-      className={[
-        "inline-flex items-center gap-1.5",
-        muted ? "text-muted-foreground" : "text-foreground",
-      ].join(" ")}
-    >
+    <Link href={href} className={`${CHIP_CLASS} text-foreground hover:underline`}>
+      <ChipBody Icon={Icon} label={label} value={value} />
+    </Link>
+  );
+}
+
+function ChipBody({
+  Icon,
+  label,
+  value,
+}: {
+  Icon: StatusChipProps["icon"];
+  label: string;
+  value: number;
+}) {
+  return (
+    <>
       <Icon className="h-3.5 w-3.5" />
       <span className="font-mono tabular-nums font-medium">{value}</span>
       <span className="text-xs">{label}</span>
-    </span>
+    </>
   );
 }
