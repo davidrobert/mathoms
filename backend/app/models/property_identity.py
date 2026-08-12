@@ -83,7 +83,7 @@ class PropertyIdentity(Base):
     endereco_canonical: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     first_seen_year: Mapped[int] = mapped_column(Integer, nullable=False)
     # Apesar do nome, é a descrição-fonte ÍNTEGRA da primeira observação — não
-    # é amostra nem truncagem. Load-bearing para identidade desde a ADR-375: o
+    # é amostra nem truncagem. Load-bearing para identidade desde a ADR-385: o
     # último nível da cascata casa por igualdade byte-exata deste campo quando
     # não há endereço canônico. Truncar aqui muda identidade em silêncio.
     descricao_sample: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

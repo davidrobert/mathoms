@@ -1,4 +1,4 @@
-"""ADR-375 — travessia da cadeia de supersessão (função pura, sem DB)."""
+"""ADR-385 — travessia da cadeia de supersessão (função pura, sem DB)."""
 
 from __future__ import annotations
 

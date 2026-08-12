@@ -17,7 +17,7 @@ tags:
 # Track — `property-identity-cross-era`
 
 > Executa a **Onda D / RV2-13** do [[PLAN-pipeline-review-r2]]. Decisões em
-> [[ADR-375]] (write-path) e [[ADR-376]] (escopo e sweep); emendas datadas em
+> [[ADR-385]] (write-path) e [[ADR-386]] (escopo e sweep); emendas datadas em
 > [[ADR-215]], [[ADR-225]], [[ADR-324]] e supersedure parcial da [[ADR-334]].
 
 ## Origem
@@ -61,7 +61,7 @@ Reversão declarada: `--clear <property_id>`.
 
 - **Rename `descricao_sample` → `descricao_fonte`** (dono: quem tocar identidade
   a seguir). A coluna guarda a descrição íntegra e virou chave de identidade
-  ([[ADR-375]] §5); o nome mente. Renomear junto com a mudança de semântica
+  ([[ADR-385]] §5); o nome mente. Renomear junto com a mudança de semântica
   destruiria a capacidade de bisect, então fica para migration própria.
 - **Invariante `imoveis ∩ excluded == ∅`** ([[ADR-334]] §3, não supersedida):
   segue vigente e não aplicada, rastreada como RV4-10.

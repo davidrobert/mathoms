@@ -1,4 +1,4 @@
-"""`InMemoryPropertySupersessionWriter` — fake nomeado para testes (ADR-324, ADR-376)."""
+"""`InMemoryPropertySupersessionWriter` — fake nomeado para testes (ADR-324, ADR-386)."""
 
 from __future__ import annotations
 

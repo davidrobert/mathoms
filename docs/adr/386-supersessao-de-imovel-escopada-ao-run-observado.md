@@ -1,5 +1,5 @@
 ---
-id: ADR-376
+id: ADR-386
 type: adr
 title: "Supersessão de PropertyIdentity é escopada ao que o run observou"
 status: Proposto
@@ -12,10 +12,10 @@ relates_to:
   - "[[ADR-282]]"
   - "[[ADR-324]]"
   - "[[ADR-334]]"
-  - "[[ADR-375]]"
+  - "[[ADR-385]]"
 supersedes: []
 superseded_by: []
-aliases: ["ADR 376", "supersessao escopada ao run", "reconcile_supersession observed_pids"]
+aliases: ["ADR 386", "supersessao escopada ao run", "reconcile_supersession observed_pids"]
 tags:
   - type/adr
   - status/proposto
@@ -23,9 +23,9 @@ tags:
   - area/pipeline
 ---
 
-# ADR-376 — Supersessão de imóvel é escopada ao que o run observou
+# ADR-386 — Supersessão de imóvel é escopada ao que o run observou
 
-> Origem: investigação de 2026-08-11. A [[ADR-375]] fecha o write-path; esta
+> Origem: investigação de 2026-08-11. A [[ADR-385]] fecha o write-path; esta
 > decide como o passivo já acumulado é colapsado sem voltar no run seguinte.
 
 ## Contexto
@@ -84,7 +84,7 @@ Havia ainda dois buracos que impediam o sweep de sequer formar os grupos:
    critério anterior mantinha a classificação da vencedora e descartava a do
    usuário em silêncio, mesmo quando a descartada era a mais recente.
 9. **Sweep único, não self-healing.** A prevenção mora no write-path
-   ([[ADR-375]]); a remediação é do passivo existente; o detector é o gatilho para
+   ([[ADR-385]]); a remediação é do passivo existente; o detector é o gatilho para
    re-rodar. Supersessão DB-wide no caminho quente compra pouco e vende risco de
    over-merge.
 

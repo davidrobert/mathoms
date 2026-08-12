@@ -6,7 +6,7 @@ status: Decidido
 phase: follow-up A28.l7
 date: "2026-07-09"
 amended_at: ["2026-08-11"]
-relates_to: ["[[ADR-215]]", "[[ADR-225]]", "[[ADR-246]]", "[[ADR-265]]", "[[ADR-276]]", "[[ADR-282]]", "[[ADR-334]]", "[[ADR-375]]", "[[ADR-376]]"]
+relates_to: ["[[ADR-215]]", "[[ADR-225]]", "[[ADR-246]]", "[[ADR-265]]", "[[ADR-276]]", "[[ADR-282]]", "[[ADR-334]]", "[[ADR-385]]", "[[ADR-386]]"]
 tags:
   - type/adr
   - status/decidido
@@ -26,7 +26,7 @@ tags:
 > por recência — empate descartava a classificação perdedora em silêncio. (c) A
 > §Decisão 5 **aborta** o grupo sem âncora no baseline em vez de degradar para
 > ordem estável, que inverte o vencedor. (d) A §Fora de escopo ("rows com canonical
-> ausente nunca agrupam — intencional, não bug") está **revogada** pela [[ADR-375]].
+> ausente nunca agrupam — intencional, não bug") está **revogada** pela [[ADR-385]].
 > Não implemente §2/§3/§5 pelo texto original.
 
 
@@ -45,7 +45,7 @@ era mais recente. E a eleição do vencedor passa a abortar o grupo sem âncora 
 baseline em vez de cair no default, porque o default é a armadilha — com valores
 vazios o sort estável degrada para `created_at` e elege a row errada.
 
-Detalhe em [[ADR-376]].
+Detalhe em [[ADR-386]].
 
 ## Contexto
 

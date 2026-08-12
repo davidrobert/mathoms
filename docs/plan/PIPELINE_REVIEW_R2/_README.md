@@ -95,7 +95,7 @@ Co-design: `prompt-engineer` **feito** (racional off-git + memória `project_rv2
 | Achado | Defeito (âncora) | ADR | Tipo | Status |
 |---|---|---|---|---|
 | RV2-04 | parecer `sugestoes_*` não consolidam em `tarefas[]` | — | contrato | aberto |
-| RV2-13 | identidade de imóvel fragmentada (property_id divergente) | [[ADR-375]] · [[ADR-376]] | conformance | em execução · [[TRACK-property-identity-cross-era]] |
+| RV2-13 | identidade de imóvel fragmentada (property_id divergente) | [[ADR-385]] · [[ADR-386]] | conformance | em execução · [[TRACK-property-identity-cross-era]] |
 | RV2-23 | `needs_review` pós-completed sem surface no view-model | — | fix | aberto |
 
 ## Coordenado — NÃO abrir PR aqui (workstream ativo)

@@ -1,8 +1,8 @@
-"""ADR-375 — toda row viva historicamente gravável continua alcançável pelo resolver."""
+"""ADR-385 — toda row viva historicamente gravável continua alcançável pelo resolver."""
 
 # O corpus congela as FORMAS de `endereco_canonical` que cada era do
 # canonicalizador chegou a gravar em produção, derivado da tabela de eras da
-# ADR-375 e não da memória de quem escreve: mudança futura em `canonicalize()`
+# ADR-385 e não da memória de quem escreve: mudança futura em `canonicalize()`
 # que órfã uma dessas formas quebra este teste até existir passe de sweep
 # correspondente. Formas anonimizadas — nenhum endereço, matrícula ou valor real.
 
@@ -22,7 +22,7 @@ from pipeline.domain.types.property_identity import PropertyLookupKey
 
 _BASE_TS = datetime(2026, 5, 16, tzinfo=timezone.utc)
 
-# era → forma gravada na coluna `endereco_canonical`. Ver §Tabela de eras da ADR-375.
+# era → forma gravada na coluna `endereco_canonical`. Ver §Tabela de eras da ADR-385.
 ERA_FORMS = [
     pytest.param("8 0", id="era1-prefixo-monetario"),
     pytest.param(None, id="era2-bypass-sem-canonical"),

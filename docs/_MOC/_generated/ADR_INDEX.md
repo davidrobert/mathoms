@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-377 ADRs (ADR-001 a ADR-384) em [`docs/adr/`](../../adr/).
+377 ADRs (ADR-001 a ADR-386) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -539,8 +539,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### Proposto (2)
 
-- [[ADR-375]] — Resolver de imóvel devolve row viva atravessando as eras do canonicalizador · phase A40
-- [[ADR-376]] — Supersessão de PropertyIdentity é escopada ao que o run observou · phase A40
+- [[ADR-385]] — Resolver de imóvel devolve row viva atravessando as eras do canonicalizador · phase A40
+- [[ADR-386]] — Supersessão de PropertyIdentity é escopada ao que o run observou · phase A40
 
 ## pipeline
 

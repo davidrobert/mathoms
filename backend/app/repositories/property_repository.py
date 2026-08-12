@@ -26,10 +26,10 @@ def live_property_identities_stmt(workspace_id: str):
 
 
 # O write-path precisa enxergar as supersedidas para atravessá-las pelo ponteiro
-# (ADR-375); filtrar no resolver reabriria o insert-por-run. Vive ao lado do
+# (ADR-385); filtrar no resolver reabriria o insert-por-run. Vive ao lado do
 # predicado de vivo para que "vivo" e "tudo" tenham um único lugar de escrita.
 def all_property_identities_stmt(workspace_id: str):
-    """Select de todas as identities do workspace, vivas e supersedidas (ADR-375)."""
+    """Select de todas as identities do workspace, vivas e supersedidas (ADR-385)."""
     return select(PropertyIdentity).where(PropertyIdentity.workspace_id == workspace_id)
 
 

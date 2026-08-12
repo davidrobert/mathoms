@@ -1,4 +1,4 @@
-"""Travessia da cadeia de supersessão de `PropertyIdentity` (ADR-375)."""
+"""Travessia da cadeia de supersessão de `PropertyIdentity` (ADR-385)."""
 
 from __future__ import annotations
 

@@ -38,7 +38,7 @@ a regra de copy (ausência ⇒ `—`).
 
 > **Dependência.** Parte dos zeros observados no dogfood não era ausência de dado:
 > era uma identidade duplicada carregando o override do usuário sem valor
-> associado ([[TRACK-property-identity-cross-era]] · [[ADR-375]]). Fechar só a
+> associado ([[TRACK-property-identity-cross-era]] · [[ADR-385]]). Fechar só a
 > exibição converteria a linha fantasma em `—` e deixaria o override preso vivo —
 > a lane ficaria verde sobre o defeito. Confirme o estado das identidades do
 > workspace de teste antes de medir esta lane.

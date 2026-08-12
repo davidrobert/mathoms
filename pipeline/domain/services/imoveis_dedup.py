@@ -232,7 +232,7 @@ def _pick_primary_key(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> tu
     return keys[0]
 
 
-# Passe 3 de 4 (ADR-376): grupos com canonical string-equal nunca fundiam — o
+# Passe 3 de 4 (ADR-386): grupos com canonical string-equal nunca fundiam — o
 # cross-código exige um lado genérico e o fuzzy recusa canon_a == canon_b. Como
 # entries com property_id viram um grupo cada, rows da mesma era ficavam
 # separadas para sempre. Mais tolerante que o cross-código e menos que o fuzzy,

@@ -17,7 +17,7 @@ relates_to:
   - "[[ADR-157]]"
   - "[[ADR-225]]"
   - "[[ADR-265]]"
-  - "[[ADR-375]]"
+  - "[[ADR-385]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -39,7 +39,7 @@ tags:
 > ⚠️ **Emendada em 2026-08-11.** A §5 ("heurística fuzzy é *assist*, nunca decide
 > sozinha") governa a **sugestão de residência principal na UI**, não o dedup de
 > identidade no pipeline: a [[ADR-265]] já pusera o fuzzy como nível automático da
-> cascata do resolver, e a [[ADR-375]] mantém esse desenho. Ler a §5 como proibição
+> cascata do resolver, e a [[ADR-385]] mantém esse desenho. Ler a §5 como proibição
 > de auto-merge no pipeline levaria o próximo revisor a classificar o dedup vigente
 > como violação.
 
@@ -53,7 +53,7 @@ humana é o guard-rail correto: errar ali muda a classificação declarada de um
 O dedup de identidade é outra coisa — decide se duas linhas descrevem o mesmo
 imóvel, e sua contrapartida de segurança é o guard de complemento, não confirmação
 humana por linha. Registrado aqui porque a [[ADR-265]] passou a usar fuzzy na
-cascata do resolver sem emendar esta §5, e a [[ADR-375]] amplia esse uso.
+cascata do resolver sem emendar esta §5, e a [[ADR-385]] amplia esse uso.
 
 ## Contexto
 

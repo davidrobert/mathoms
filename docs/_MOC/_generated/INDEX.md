@@ -371,9 +371,7 @@
 | ADR-373 | adr | Decidido |  | Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade | `adr/373-prazo-if-projeta-capacidade-declarada.md` |
 | ADR-374 | adr | Decidido |  | Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado | `adr/374-sigma-do-cone-if-agrega-premissa-por-alvo-declarado.md` |
 | ADR-375 | adr | Proposto |  | Limite PGBL tem um produtor, e a prescrição exige evidência declarada | `adr/375-limite-pgbl-tem-um-produtor-e-a-prescricao-exige-evidencia-declarada.md` |
-| ADR-375 | adr | Proposto |  | Resolver de imóvel devolve row viva atravessando as eras do canonicalizador | `adr/375-resolver-de-imovel-devolve-row-viva-atravessando-eras.md` |
 | ADR-376 | adr | Decidido |  | Caixa corrente vem do último extrato reconciliado — sem denylist de instituição | `adr/376-caixa-corrente-vem-do-extrato-sem-denylist-de-instituicao.md` |
-| ADR-376 | adr | Proposto |  | Supersessão de PropertyIdentity é escopada ao que o run observou | `adr/376-supersessao-de-imovel-escopada-ao-run-observado.md` |
 | ADR-377 | adr | Proposto |  | Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa | `adr/377-janela-interativa-e-conjunto-fechado-pre-computado.md` |
 | ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |
 | ADR-379 | adr | Proposto |  | Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório | `adr/379-posicoes-do-card-exposicao-cambial-vem-do-e4-pinado-ao-run.md` |
@@ -382,6 +380,8 @@
 | ADR-382 | adr | Proposto |  | Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 | `adr/382-visoes-corrente-e-fiscal-da-posicao-por-instituicao.md` |
 | ADR-383 | adr | Proposto |  | Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras | `adr/383-precedencia-temporal-de-fontes-patrimoniais.md` |
 | ADR-384 | adr | Proposto |  | Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback | `adr/384-identidade-institucional-por-cnpj-raiz.md` |
+| ADR-385 | adr | Proposto |  | Resolver de imóvel devolve row viva atravessando as eras do canonicalizador | `adr/385-resolver-de-imovel-devolve-row-viva-atravessando-eras.md` |
+| ADR-386 | adr | Proposto |  | Supersessão de PropertyIdentity é escopada ao que o run observou | `adr/386-supersessao-de-imovel-escopada-ao-run-observado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

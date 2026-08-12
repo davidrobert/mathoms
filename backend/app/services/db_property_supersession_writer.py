@@ -162,7 +162,7 @@ def _mark_superseded(row: PropertyIdentity, winner_id: str, now: datetime) -> bo
     return True
 
 
-# Row fora do escopo do run é absorvente (ADR-376): limpar aqui era o que
+# Row fora do escopo do run é absorvente (ADR-386): limpar aqui era o que
 # revertia, a cada E1.5c, a supersessão feita por sweep.
 def _clear_superseded(row: PropertyIdentity, observed_pids: frozenset[str]) -> bool:
     if row.id not in observed_pids:
@@ -191,7 +191,7 @@ def _loser_prevails(
 
 
 def _unreferenced_live(rows: list[PropertyIdentity], scope: SupersessionScope) -> int:
-    """Vivas que o run não observou — sinal de zumbi acumulando (ADR-376)."""
+    """Vivas que o run não observou — sinal de zumbi acumulando (ADR-386)."""
     return len([r for r in rows if r.superseded_at is None and r.id not in scope.observed_pids])
 
 

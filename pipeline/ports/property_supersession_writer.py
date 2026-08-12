@@ -1,4 +1,4 @@
-"""`PropertySupersessionWriter` — port de poda por supersessão de imóveis (ADR-324, ADR-376)."""
+"""`PropertySupersessionWriter` — port de poda por supersessão de imóveis (ADR-324, ADR-386)."""
 
 from __future__ import annotations
 
@@ -18,6 +18,6 @@ class PropertySupersessionWriter(Protocol):
         # ADR-324: estado superseded = função pura do dedup corrente — seta
         # nas perdedoras, limpa nas que deixaram de perder (flip-safe) e
         # re-aponta overrides da perdedora para o vencedor.
-        # ADR-376: tudo isso restrito a `scope.observed_pids`; row que o run não
+        # ADR-386: tudo isso restrito a `scope.observed_pids`; row que o run não
         # observou não é tocada, nem para setar nem para limpar.
         ...

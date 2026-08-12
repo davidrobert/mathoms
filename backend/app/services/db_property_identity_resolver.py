@@ -1,4 +1,4 @@
-"""``DBPropertyIdentityResolver`` — adapter SQLAlchemy do `PropertyIdentityResolver` (ADR-215, ADR-225, ADR-265, ADR-375)."""
+"""``DBPropertyIdentityResolver`` — adapter SQLAlchemy do `PropertyIdentityResolver` (ADR-215, ADR-225, ADR-265, ADR-385)."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ _logger = logging.getLogger("mathoms.property_identity")
 
 
 class DBPropertyIdentityResolver:
-    """Idempotent matching/creation de `PropertyIdentity` via cascata estrito→loose→fuzzy→amostra→insert (ADR-215, ADR-225 §2, ADR-265, ADR-375)."""
+    """Idempotent matching/creation de `PropertyIdentity` via cascata estrito→loose→fuzzy→amostra→insert (ADR-215, ADR-225 §2, ADR-265, ADR-385)."""
 
     def __init__(self, session: Session) -> None:
         self._session = session
@@ -36,7 +36,7 @@ class DBPropertyIdentityResolver:
         first_seen_year: int,
         descricao_sample: str,
     ) -> PropertyIdentityRecord:
-        """Match cascade: estrito → loose → fuzzy → amostra bruta → insert (ADR-375)."""
+        """Match cascade: estrito → loose → fuzzy → amostra bruta → insert (ADR-385)."""
         index = _WorkspaceIdentities(self._load_rows(workspace_id))
         existing = _cascade_match(index, lookup, descricao_sample)
         if existing is not None:
@@ -45,7 +45,7 @@ class DBPropertyIdentityResolver:
 
     def _load_rows(self, workspace_id: str) -> list[PropertyIdentity]:
         # Carrega vivas E supersedidas: a cascata atravessa o ponteiro em vez de
-        # filtrar (ADR-375). Filtrar deixaria a vencedora inalcançável quando a
+        # filtrar (ADR-385). Filtrar deixaria a vencedora inalcançável quando a
         # perdedora é quem casa, e o resolver inseriria row nova a cada run.
         stmt = all_property_identities_stmt(workspace_id)
         return list(self._session.execute(stmt).scalars().all())
@@ -154,7 +154,7 @@ def _candidates_fuzzy(
 def _candidates_by_descricao(
     index: _WorkspaceIdentities, lookup: PropertyLookupKey, descricao_sample: str
 ) -> list[PropertyIdentity]:
-    """Amostra bruta byte-exata — piso determinístico quando não há canonical (ADR-375)."""
+    """Amostra bruta byte-exata — piso determinístico quando não há canonical (ADR-385)."""
     if not descricao_sample:
         return []
     return [

@@ -1,4 +1,4 @@
-"""Tipos do reconcile de supersessão de `PropertyIdentity` (ADR-324, ADR-376)."""
+"""Tipos do reconcile de supersessão de `PropertyIdentity` (ADR-324, ADR-386)."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ class SupersessionOutcome:
 
 # `observed_pids` é o que torna a supersessão durável: fora dele o reconcile não
 # seta NEM limpa. Antes, limpar toda row ausente do mapa de perdedoras revertia,
-# a cada E1.5c, qualquer supersessão feita por sweep (ADR-376). A flip-safety da
+# a cada E1.5c, qualquer supersessão feita por sweep (ADR-386). A flip-safety da
 # ADR-324 sobrevive porque o flip só ocorre entre rows que o run observou.
 @dataclass(frozen=True)
 class SupersessionScope:
@@ -51,7 +51,7 @@ class SupersessionScope:
 
 # Tripwire de fonte desconhecida: se uma 5ª era começar a produzir identidades
 # que o run nunca referencia, isso aparece no log do E1.5c em vez de acumular
-# em silêncio por meses, como aconteceu com o passivo que originou a ADR-376.
+# em silêncio por meses, como aconteceu com o passivo que originou a ADR-386.
 @dataclass(frozen=True)
 class PropertyIdentityZombieWarning:
     """Identidades vivas que o run não referenciou."""

@@ -183,7 +183,7 @@ class TestLooseMatchDoesNotCrossWorkspaces:
 # canonical inseria row nova a cada run, e o backfill que "cuidaria disso" era
 # revertido pelo run seguinte.
 class TestLowConfidenceInserts:
-    """endereco_canonical=None agrupa por amostra bruta byte-exata (ADR-375)."""
+    """endereco_canonical=None agrupa por amostra bruta byte-exata (ADR-385)."""
 
     def test_same_descricao_reuses_identity_when_canonical_is_none(self, sync_db):
         ws = _seed_workspace(sync_db)

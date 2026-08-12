@@ -13,8 +13,8 @@ relates_to:
   - "[[ADR-143]]"
   - "[[ADR-324]]"
   - "[[ADR-334]]"
-  - "[[ADR-375]]"
-  - "[[ADR-376]]"
+  - "[[ADR-385]]"
+  - "[[ADR-386]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -37,7 +37,7 @@ tags:
 > implementada** e o gate que a §Riscos cita não existe no repo: fica revogada, não
 > deferida. (c) O gate (d) da §Gates ("low-confidence ainda cria row nova quando
 > canonical=None") deixa de valer — agrupar por amostra bruta byte-exata é decisão
-> da [[ADR-375]]. Não implemente a §Decisão 2 nem escreva teste contra a §Gates (d)
+> da [[ADR-385]]. Não implemente a §Decisão 2 nem escreva teste contra a §Gates (d)
 > pelo texto original.
 
 > ADR longa (>150 linhas) por design: estende [[ADR-215]] §3 (matching cross-IRPFs) sem reescrever §1/§2/§4/§5/§6, mas a coordenação canonicalizer ↔ resolver ↔ backfill script ↔ invariante E5 exige um único documento de referência.
@@ -49,8 +49,8 @@ O canonical ausente deixou de ser motivo para inserir row nova a cada run: a
 cascata ganhou um nível por amostra bruta byte-exata, e a supersessão passou a ser
 atravessada em vez de ignorada. O §3 desta ADR previa que um backfill cuidaria do
 passivo pós-cutover; ele cuidava, e o run seguinte desfazia — o escopo do reconcile
-era a tabela inteira. As duas metades do conserto vivem na ADR-375 (write-path) e
-na ADR-376 (escopo e sweep).
+era a tabela inteira. As duas metades do conserto vivem na ADR-385 (write-path) e
+na ADR-386 (escopo e sweep).
 
 A mitigação de corrida do §Decisão 2 item 3 é revogada por inexistência: não há
 `_reconcile_after_insert` no repo, e o arquivo de teste citado como gate nunca foi

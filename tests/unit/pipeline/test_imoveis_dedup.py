@@ -406,7 +406,7 @@ class TestResolveDedupWinnerByPropertyId:
 
 
 class TestMergeSameCanonical:
-    """ADR-376 — grupos de canonical idêntico fundem; unidades distintas não."""
+    """ADR-386 — grupos de canonical idêntico fundem; unidades distintas não."""
 
     def _row(self, pid: str, canonical: str, descricao: str, codigo: str = "12") -> dict:
         return _entry(

@@ -6,7 +6,7 @@ status: Proposto
 date: "2026-07-14"
 amended_at: ["2026-08-11"]
 superseded_by:
-  - "[[ADR-375]]"
+  - "[[ADR-385]]"
 relates_to:
   - "[[ADR-246]]"
   - "[[ADR-271]]"
@@ -20,7 +20,7 @@ tags:
 
 # ADR-334 — Dedup de imóvel deriva a chave inline
 
-> ⚠️ **Supersedida em parte em 2026-08-11 pela [[ADR-375]].** As §Decisões 1, 2 e 4
+> ⚠️ **Supersedida em parte em 2026-08-11 pela [[ADR-385]].** As §Decisões 1, 2 e 4
 > deixam de ser o caminho: persistir o canonical recomputado flipa a identidade das
 > rows sob `ORDER BY created_at`, e a resolução passa a ser por travessia da
 > supersessão mais amostra bruta byte-exata. **A §Decisão 3 (invariante
@@ -43,7 +43,7 @@ row mais antiga vencer o match, transformando a vencedora atual em zumbi — tro
 conjunto de duplicatas em vez de eliminá-lo.
 
 O remédio adotado corrige o dado uma vez, por supersessão com linhagem, e usa a
-chave derivada apenas como insumo de eleição do sweep. Ver [[ADR-375]] e [[ADR-376]].
+chave derivada apenas como insumo de eleição do sweep. Ver [[ADR-385]] e [[ADR-386]].
 
 ## Contexto
 

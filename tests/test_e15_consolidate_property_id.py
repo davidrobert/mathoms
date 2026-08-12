@@ -103,7 +103,7 @@ def test_consolidate_skips_enrichment_without_resolver(tmp_path):
         assert "property_id" not in e
 
 
-# O run declara o que observou (ADR-376); sem isso o reconcile trataria a tabela
+# O run declara o que observou (ADR-386); sem isso o reconcile trataria a tabela
 # inteira como escopo e reverteria a supersessão feita por sweep.
 def test_consolidate_reconciles_supersession_when_writer_injected(tmp_path):
     """ADR-324: step 3b passa o winner map da MESMA policy do dedup ao writer."""

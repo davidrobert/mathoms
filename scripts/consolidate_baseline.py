@@ -705,7 +705,7 @@ def _invoke_reconciliation(reconcile_fn, session_factory, workspace_id, consolid
 
 
 def _reconcile_property_supersession(ctx, imoveis_pre_dedup: list, titular_key) -> None:
-    """Reconcilia supersessão com a MESMA policy do dedup, escopada ao run (ADR-324, ADR-376)."""
+    """Reconcilia supersessão com a MESMA policy do dedup, escopada ao run (ADR-324, ADR-386)."""
     from pipeline.domain.services.imoveis_dedup import resolve_dedup_winner_by_property_id
     from pipeline.domain.types.property_supersession import SupersessionScope
 

@@ -117,7 +117,7 @@ def _single_override(session, ws_id: str) -> WorkspacePropertyOverride:
 
 
 def _reconcile(session, ws_id: str, winner_by_pid: dict, observed=None):
-    """Chama o writer com escopo observando o workspace inteiro (semântica pré-ADR-376)."""
+    """Chama o writer com escopo observando o workspace inteiro (semântica pré-ADR-386)."""
     from backend.app.models import PropertyIdentity
     from pipeline.domain.types.property_supersession import SupersessionScope
 
@@ -343,7 +343,7 @@ class TestSupersededInertia:
 
 
 class TestEscopoObservado:
-    """ADR-376 — fora do escopo do run, o estado de supersessão é absorvente."""
+    """ADR-386 — fora do escopo do run, o estado de supersessão é absorvente."""
 
     def test_zumbi_fora_do_escopo_nao_e_reativada(self, sync_db):
         ws_id, _ = _seed_workspace(sync_db)

@@ -212,7 +212,7 @@ def test_synthetic_entries_map_baseline_values():
 
 
 # A coluna guarda a forma da era em que a row nasceu; agrupar por ela deixaria
-# cada era num grupo isolado e o sweep não colapsaria nada (ADR-375 §Tabela de eras).
+# cada era num grupo isolado e o sweep não colapsaria nada (ADR-385 §Tabela de eras).
 _DESCRICAO_COM_MATRICULA = "CASA - VIA EXEMPLO 100, BAIRRO EXEMPLO - Matricula 99999"
 
 

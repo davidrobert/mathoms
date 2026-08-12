@@ -308,7 +308,7 @@ class TestEnd2End5at5LikeScenario:
 
 # Hard-delete de row apontada por superseded_by_id anula o ponteiro
 # (ON DELETE SET NULL) e o candidato órfão volta a ser pulado pela cascata,
-# reinserindo row a cada run — a classe da ADR-375 pela outra porta.
+# reinserindo row a cada run — a classe da ADR-385 pela outra porta.
 def test_aborta_ao_deletar_row_que_e_vencedora_de_supersessao(sync_db):
     from dev.dedup_property_identity import _merge_group
 

@@ -1,5 +1,5 @@
 ---
-id: ADR-375
+id: ADR-385
 type: adr
 title: "Resolver de imóvel devolve row viva atravessando as eras do canonicalizador"
 status: Proposto
@@ -12,11 +12,11 @@ relates_to:
   - "[[ADR-265]]"
   - "[[ADR-282]]"
   - "[[ADR-324]]"
-  - "[[ADR-376]]"
+  - "[[ADR-386]]"
 supersedes:
   - "[[ADR-334]]"
 superseded_by: []
-aliases: ["ADR 375", "identidade de imovel cross-era", "cascata descricao_sample"]
+aliases: ["ADR 385", "identidade de imovel cross-era", "cascata descricao_sample"]
 tags:
   - type/adr
   - status/proposto
@@ -24,11 +24,11 @@ tags:
   - area/pipeline
 ---
 
-# ADR-375 — Resolver de imóvel atravessa a supersessão em vez de ignorá-la
+# ADR-385 — Resolver de imóvel atravessa a supersessão em vez de ignorá-la
 
 > Origem: investigação de 2026-08-11 sobre imóveis repetidos na tela de
 > Configurações do workspace de dogfood. Fecha o write-path; o passivo já
-> acumulado é colapsado pela [[ADR-376]].
+> acumulado é colapsado pela [[ADR-386]].
 
 ## Contexto
 
@@ -47,7 +47,7 @@ Duas causas estruturais, ambas no write-path:
    tentar match algum, e o resolver **inseria row nova a cada run**. Esse
    comportamento estava testado como correto, apoiado na [[ADR-225]] §3 ("o
    backfill cuida disso pós-cutover") — mas o backfill era revertido pelo run
-   seguinte ([[ADR-376]]).
+   seguinte ([[ADR-386]]).
 
 ### Tabela de eras
 
@@ -97,7 +97,7 @@ de quem escreve.
    Recomputar no match é migração implícita a cada run e **flipa a identidade**:
    sob `ORDER BY created_at ASC`, a row mais antiga passaria a vencer e a que
    detém o valor do baseline viraria zumbi. Recomputar é insumo de eleição
-   in-memory no sweep ([[ADR-376]]), só.
+   in-memory no sweep ([[ADR-386]]), só.
 
 ## Disposição da [[ADR-334]]
 

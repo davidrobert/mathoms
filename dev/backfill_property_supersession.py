@@ -97,10 +97,10 @@ def _baseline_pids(baseline: dict | None) -> frozenset[str]:
 
 
 # A coluna `endereco_canonical` guarda a forma da ERA em que a row nasceu, e é
-# justamente a fragmentação que impede o agrupamento (ADR-375 §Tabela de eras).
+# justamente a fragmentação que impede o agrupamento (ADR-385 §Tabela de eras).
 # O sweep agrupa pela chave RECOMPUTADA da descrição-fonte — in-memory, nunca
 # persistida: gravá-la faria a row mais antiga vencer o match e trocaria o
-# conjunto de zumbis em vez de eliminá-lo (ADR-375 §Decisão 7).
+# conjunto de zumbis em vez de eliminá-lo (ADR-385 §Decisão 7).
 def _synthetic_entries(identities, baseline_payload: dict | None) -> list[dict]:
     """Espelha `_dedup_entries` do forward-path, com o canonical recomputado da descrição."""
     from pipeline.domain.services.endereco_canonicalizer import canonicalize
@@ -210,7 +210,7 @@ def _session_factory():
 
 
 # O sweep observa a tabela inteira do workspace — é justamente o que o
-# forward-path não faz (ADR-376). Sem declarar isso, as rows fora do escopo
+# forward-path não faz (ADR-386). Sem declarar isso, as rows fora do escopo
 # ficariam intocáveis e o sweep não teria efeito algum.
 def _apply(session, workspace_id: str, winner_by_pid: dict[str, str], identities) -> dict:
     from backend.app.services.db_property_supersession_writer import (
