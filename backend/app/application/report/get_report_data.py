@@ -34,6 +34,10 @@ from pipeline.domain.types.snapshot_changelog import SnapshotChangelogConfig
 logger = get_logger(__name__)
 
 # `E5` e `analyze_finances` são o mesmo stage (ADR-093).
+# Contrato de leitura (gate: dev/check_artifact_read_keys.py) — as chaves lidas do
+# payload precisam existir no schema do stage. Declarado, nunca inferido da query.
+ARTIFACT_CONTRACT = ("analyze_finances",)
+
 _ANALYSIS_STAGES = frozenset(stage_aliases("analyze_finances"))
 
 

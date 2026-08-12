@@ -41,9 +41,9 @@ function describeError(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.detail : fallback;
 }
 
-async function loadAll(workspaceId: string): Promise<InternalState> {
+async function loadAll(workspaceId: string, reportId?: string | null): Promise<InternalState> {
   try {
-    const [card, list] = await Promise.all([apiFetch(workspaceId), apiList(workspaceId)]);
+    const [card, list] = await Promise.all([apiFetch(workspaceId, reportId), apiList(workspaceId)]);
     return { data: card, overrides: list.overrides, loading: false, error: "" };
   } catch (err) {
     return { ...INITIAL, error: describeError(err, "Falha ao carregar exposição cambial") };
@@ -68,13 +68,16 @@ function buildMutators(
   return { declare, remove };
 }
 
-export function useExposicaoCambialV2(workspaceId: string | null): UseExposicaoCambialV2State {
+export function useExposicaoCambialV2(
+  workspaceId: string | null,
+  reportId?: string | null,
+): UseExposicaoCambialV2State {
   const [state, setState] = useState<InternalState>(INITIAL);
   const reload = useCallback(async () => {
     if (!workspaceId) return;
     setState((s) => ({ ...s, loading: true, error: "" }));
-    setState(await loadAll(workspaceId));
-  }, [workspaceId]);
+    setState(await loadAll(workspaceId, reportId));
+  }, [workspaceId, reportId]);
   useEffect(() => {
     void reload();
   }, [reload]);

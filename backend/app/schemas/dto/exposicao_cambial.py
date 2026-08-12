@@ -40,11 +40,28 @@ class ExposicaoCambialResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     workspace_id: str
-    total_brl: Decimal
+    base_disponivel: bool = Field(
+        ...,
+        description=(
+            "False = não houve base para calcular (artefato ausente, ou payload sem "
+            "`patrimonio.caixa_detalhes`/denominador). Distingue 'não sei' de 'zero "
+            "exposição': sem isto, ausência de dado vira afirmação de ausência de "
+            "exposição na tela. Quando False, os campos de valor vêm `null` — o zero "
+            "falso fica infabricável no consumidor."
+        ),
+    )
+    total_brl: Optional[Decimal] = None
     # taxa em [0..100], não monetária — share do investível financeiro
-    pct_investivel_financeiro: float
+    pct_investivel_financeiro: Optional[float] = None
     por_moeda: list[ExposicaoCambialPorMoedaDTO]
-    tier: str  # verde | amarelo | vermelho | empty
+    tier: Optional[str] = None  # verde | amarelo | vermelho | empty — None sem base
+    alvo_moeda_forte_brl: Optional[Decimal] = Field(
+        None,
+        description=(
+            "Quanto o piso verde representa em reais para este patrimônio. Vem do "
+            "backend para o threshold não passar a existir em dois lugares."
+        ),
+    )
     ativos_contribuintes: list[ExposicaoCambialAtivoDTO]
     catalog_version: int = 1
     source_run_id: Optional[str] = None
