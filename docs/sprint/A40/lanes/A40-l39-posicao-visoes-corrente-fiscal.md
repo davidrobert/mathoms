@@ -4,7 +4,7 @@ type: lane
 title: "Posição por instituição: o header '31/12' mente para 10 de 16 linhas — separar visão corrente da fiscal"
 sprint: A40
 plan: PLAN-report-trust
-status: open
+status: in_progress
 priority: P1
 branch_slug: a40-l39-posicao-visoes-corrente-fiscal
 adrs:
@@ -16,7 +16,7 @@ depends_on: ["[[A40.l38]]"]
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/pipeline
   - area/frontend
@@ -72,3 +72,35 @@ Dois PRs + ADR:
   (`check_view_model_contract`) antes do PR-a.
 - PR-a: goldens/snapshot idênticos exceto campos aditivos (sem `value_delta`
   monetário no manifesto).
+
+## PR-a entregue — 2026-08-12 (PR #1399)
+
+Plumbing mecânico no lugar: linhas de `posicao_31_12` e `CaixaDetalhe`
+carregam `data_referencia` (`YYYY-MM-DD`, fim de período — 31/12/ano_base nas
+linhas de informe, inclusive quando o override adota o informe),
+`data_referencia_precisao` e `id` estável. `Posicao3112Row` extraído para
+`types/posicao-31-12.ts`. Zero mudança de número.
+
+## PR-b — spec de UI recebida (`product-designer`, 2026-08-12)
+
+Duas metades commitáveis: (A) `PosicaoCorrenteCard` — coluna `Em` com
+`<time>`, badge de defasagem em faixas de meses fechados usando
+`color-mix(...)` + par `-on-tint` **no mesmo `className`** (a forma `/15` é
+invisível ao `check_tint_contrast`), nudge agregado, coluna `Fonte`
+condicional, `table-fixed`, deleta o `InformeVenceuNudge`; (B)
+`FechamentoFiscalCard` em `S_IRPF_RENDA` — CNPJ formatado como identificador
+até a [[A40.l40]] resolver o nome, CBE **fora** do `<details>` sazonal, total
+travado por parágrafo de não-aditividade, `<details>` forçado aberto no print.
+
+**Dois bloqueadores achados pela spec, a resolver no PR-b:**
+
+1. `IrpfRendaSection` retorna `null` sem `irpf_kpis` — workspace com informe e
+   sem IRPF perderia o card fiscal **e o alerta CBE** (obrigação legal).
+   Relaxar o guard para `kpis || fechamentoRows.length > 0`.
+2. A footnote PTAX 31/12 **não pode** ficar no S1 pós-split: o S1 converte
+   saldos correntes. Falta confirmar qual taxa o pipeline usa nas linhas
+   correntes em ME antes de escrever a footnote nova.
+
+Âncora temporal única (defasagem e sazonalidade contra a data de geração do
+relatório, nunca `Date.now()`) e `md:` inativo no print (703px) são restrições
+do PR-b.
