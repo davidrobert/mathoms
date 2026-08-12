@@ -201,14 +201,21 @@ def _session_factory():
     return sessionmaker(bind=create_engine(db_url, future=True), future=True)
 
 
-def _apply(session, workspace_id: str, winner_by_pid: dict[str, str]) -> dict:
+# O sweep observa a tabela inteira do workspace — é justamente o que o
+# forward-path não faz (ADR-376). Sem declarar isso, as rows fora do escopo
+# ficariam intocáveis e o sweep não teria efeito algum.
+def _apply(session, workspace_id: str, winner_by_pid: dict[str, str], identities) -> dict:
     from backend.app.services.db_property_supersession_writer import (
         DBPropertySupersessionWriter,
     )
+    from pipeline.domain.types.property_supersession import SupersessionScope
 
-    outcome = DBPropertySupersessionWriter(session).reconcile_supersession(
-        workspace_id, winner_by_pid
+    scope = SupersessionScope(
+        workspace_id=workspace_id,
+        winner_by_pid=winner_by_pid,
+        observed_pids=frozenset(ident.id for ident in identities),
     )
+    outcome = DBPropertySupersessionWriter(session).reconcile_supersession(scope)
     return {
         "superseded": outcome.superseded,
         "cleared": outcome.cleared,
@@ -241,17 +248,46 @@ def _process(workspace_id: str, dry_run: bool) -> dict:
             **_plan(identities, winner_by_pid, _baseline_pids(baseline)),
         }
         if not dry_run:
-            report["applied"] = _apply(session, workspace_id, winner_by_pid)
+            report["applied"] = _apply(session, workspace_id, winner_by_pid, identities)
         return report
 
 
-def main() -> int:
+def _clear_supersession(workspace_id: str, property_id: str) -> dict:
+    """Des-supersede uma row: reversão declarada, para não virar SQL manual em prod."""
+    with _session_factory()() as session:
+        identities = _load_identities(session, workspace_id)
+        alvo = next((i for i in identities if i.id == property_id), None)
+        if alvo is None:
+            raise BaselineUnreadableError(
+                f"property_id não encontrado no workspace: esperado um id de "
+                f"property_identity de {workspace_id}, veio {property_id!r}"
+            )
+        antes = alvo.superseded_by_id
+        alvo.superseded_at = None
+        alvo.superseded_by_id = None
+        session.commit()
+        return {"cleared": property_id, "era_superseded_by": antes}
+
+
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("workspace_id")
     parser.add_argument("--apply", action="store_true", help="executa (default: dry-run)")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--clear",
+        metavar="PROPERTY_ID",
+        help="reverte a supersessão de uma row (escape hatch de ops)",
+    )
+    return parser
+
+
+def main() -> int:
+    args = _build_parser().parse_args()
     try:
-        report = _process(args.workspace_id, dry_run=not args.apply)
+        if args.clear:
+            report = _clear_supersession(args.workspace_id, args.clear)
+        else:
+            report = _process(args.workspace_id, dry_run=not args.apply)
     except BaselineUnreadableError as exc:
         print(f"[FATAL] {exc}", file=sys.stderr)
         return 2

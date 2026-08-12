@@ -1,22 +1,21 @@
-"""`InMemoryPropertySupersessionWriter` — fake nomeado para testes (ADR-324)."""
+"""`InMemoryPropertySupersessionWriter` — fake nomeado para testes (ADR-324, ADR-376)."""
 
 from __future__ import annotations
 
-from typing import Mapping
-
-from pipeline.domain.types.property_supersession import SupersessionOutcome
+from pipeline.domain.types.property_supersession import (
+    SupersessionOutcome,
+    SupersessionScope,
+)
 
 
 class InMemoryPropertySupersessionWriter:
     """Registra chamadas de reconcile sem tocar DB (testes do E1.5c step 3b)."""
 
     def __init__(self) -> None:
-        self.calls: list[tuple[str, dict[str, str]]] = []
+        self.calls: list[SupersessionScope] = []
 
-    def reconcile_supersession(
-        self, workspace_id: str, winner_by_pid: Mapping[str, str]
-    ) -> SupersessionOutcome:
-        self.calls.append((workspace_id, dict(winner_by_pid)))
+    def reconcile_supersession(self, scope: SupersessionScope) -> SupersessionOutcome:
+        self.calls.append(scope)
         return SupersessionOutcome(0, 0, 0, 0)
 
 

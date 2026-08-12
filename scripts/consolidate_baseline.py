@@ -704,6 +704,45 @@ def _invoke_reconciliation(reconcile_fn, session_factory, workspace_id, consolid
         print(f"  [warn] vehicle reconciliation failed: {exc}")
 
 
+def _reconcile_property_supersession(ctx, imoveis_pre_dedup: list, titular_key) -> None:
+    """Reconcilia supersessão com a MESMA policy do dedup, escopada ao run (ADR-324, ADR-376)."""
+    from pipeline.domain.services.imoveis_dedup import resolve_dedup_winner_by_property_id
+    from pipeline.domain.types.property_supersession import SupersessionScope
+
+    # Escopo observado: só os pids que ESTE run enxergou. Fora dele o reconcile
+    # não toca — antes, limpar as ausentes revertia, a cada E1.5c, a supersessão
+    # feita por sweep.
+    scope = SupersessionScope(
+        workspace_id=ctx.workspace_id,
+        winner_by_pid=resolve_dedup_winner_by_property_id(
+            imoveis_pre_dedup, titular_key=titular_key
+        ),
+        observed_pids=frozenset(
+            str(e["property_id"]) for e in imoveis_pre_dedup if e.get("property_id")
+        ),
+    )
+    _print_supersession_outcome(
+        ctx.workspace_id, ctx.property_supersession_writer.reconcile_supersession(scope)
+    )
+
+
+def _print_supersession_outcome(workspace_id: str, outcome) -> None:
+    from pipeline.domain.types.property_supersession import PropertyIdentityZombieWarning
+
+    if outcome.changed:
+        print(
+            f"  [E1.5c] Supersessão de imóveis: {outcome.superseded} marcadas, "
+            f"{outcome.cleared} reativadas, "
+            f"{outcome.overrides_repointed + outcome.overrides_merged} overrides migrados"
+        )
+    if outcome.unreferenced_live:
+        print(
+            PropertyIdentityZombieWarning(
+                workspace_id=workspace_id, unreferenced_live=outcome.unreferenced_live
+            ).format()
+        )
+
+
 def main_with_store(ctx) -> dict:
     """E1.5c — consolida baseline patrimonial via ``ArtifactStore``.
 
@@ -795,23 +834,7 @@ def main_with_store(ctx) -> dict:
     # dedup acima — perdedoras marcam superseded_*, ex-perdedoras reativam
     # (flip-safe) e overrides migram para o vencedor.
     if ctx.property_supersession_writer is not None and ctx.workspace_id is not None:
-        from pipeline.domain.services.imoveis_dedup import (
-            resolve_dedup_winner_by_property_id,
-        )
-
-        _winner_by_pid = resolve_dedup_winner_by_property_id(
-            _imoveis_pre_dedup, titular_key=_titular_key
-        )
-        _supersession = ctx.property_supersession_writer.reconcile_supersession(
-            ctx.workspace_id, _winner_by_pid
-        )
-        if _supersession.changed:
-            print(
-                f"  [E1.5c] Supersessão de imóveis: {_supersession.superseded} marcadas, "
-                f"{_supersession.cleared} reativadas, "
-                f"{_supersession.overrides_repointed + _supersession.overrides_merged} "
-                f"overrides migrados"
-            )
+        _reconcile_property_supersession(ctx, _imoveis_pre_dedup, _titular_key)
 
     # 3c. Dedup de investimentos cross-IRPF (ADR-271). Dois eixos: cross-year
     #     (mesmo proprietário, anos sucessivos → une `valores_31_12`) e
