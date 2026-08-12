@@ -1277,7 +1277,9 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `dedup_key` | `VARCHAR(64)` | no | — | — |
 | `thesis_key` | `VARCHAR(64)` | yes | — | — |
 | `superseded_at` | `DATETIME` | yes | — | — |
-| `superseded_by_run_id` | `VARCHAR(36)` | yes | — | — |
+| `superseded_by_run_id` | `VARCHAR(36)` | yes | — | FK→pipeline_runs.id |
+| `horizon` | `VARCHAR(16)` | yes | — | — |
+| `pipeline_run_id` | `VARCHAR(36)` | yes | — | FK→pipeline_runs.id |
 | `status` | `VARCHAR(32)` | no | `'Pendente'` | — |
 | `accepted_decision_id` | `VARCHAR(36)` | yes | — | FK→decisions.id |
 | `dismissed_reason` | `VARCHAR(32)` | yes | — | — |
@@ -1289,9 +1291,10 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Constraints:**
 
 - FOREIGN KEY (accepted_decision_id) REFERENCES decisions.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (pipeline_run_id) REFERENCES pipeline_runs.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (report_id) REFERENCES reports.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (superseded_by_run_id) REFERENCES pipeline_runs.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
-- UNIQUE (workspace_id, dedup_key, status) — `uq_sugagg_ws_dedup_status`
 
 **Indexes:**
 
@@ -1300,6 +1303,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_sugagg_ws_section` (workspace_id, section_id)
 - `ix_sugagg_ws_status` (workspace_id, status)
 - `ix_sugagg_ws_thesis` (workspace_id, thesis_key)
+- UNIQUE `uq_sugagg_ws_dedup_ativa` (workspace_id, dedup_key)
 
 ### `task_attachments`
 
@@ -2689,6 +2693,8 @@ type Suggestion struct {
 	ThesisKey *string `db:"thesis_key" json:"thesis_key"`
 	SupersededAt *time.Time `db:"superseded_at" json:"superseded_at"`
 	SupersededByRunId *string `db:"superseded_by_run_id" json:"superseded_by_run_id"`
+	Horizon *string `db:"horizon" json:"horizon"`
+	PipelineRunId *string `db:"pipeline_run_id" json:"pipeline_run_id"`
 	Status string `db:"status" json:"status"`
 	AcceptedDecisionId *string `db:"accepted_decision_id" json:"accepted_decision_id"`
 	DismissedReason *string `db:"dismissed_reason" json:"dismissed_reason"`

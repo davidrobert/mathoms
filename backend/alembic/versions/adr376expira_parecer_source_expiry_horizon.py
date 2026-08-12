@@ -37,8 +37,53 @@ _LEGACY_UNIQUE = "uq_sugagg_ws_dedup_status"
 _ACTIVE_WHERE = "status IN ('Pendente', 'Aceita', 'Modificada')"
 
 
+# Snapshot do schema NO MOMENTO desta migration — não importar o model:
+# ele evolui e o batch "move and copy" recriaria a tabela com colunas
+# futuras. `copy_from` também é o que permite rodar em `--sql` offline
+# (batch com SQLite reflete a tabela viva sem ele).
+def _suggestions_snapshot() -> sa.Table:
+    return sa.Table(
+        "suggestions",
+        sa.MetaData(),
+        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column(
+            "workspace_id",
+            sa.String(36),
+            sa.ForeignKey("workspaces.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column("report_id", sa.String(36), sa.ForeignKey("reports.id", ondelete="SET NULL")),
+        sa.Column("section_id", sa.String(32), nullable=False),
+        sa.Column("kind", sa.String(64), nullable=False),
+        sa.Column("origin", sa.String(32), nullable=False),
+        sa.Column("severity", sa.String(16), nullable=False),
+        sa.Column("title", sa.String(500), nullable=False),
+        sa.Column("rationale", sa.Text, nullable=False),
+        sa.Column("amount_brl_cents", sa.BigInteger),
+        sa.Column("dedup_key", sa.String(64), nullable=False),
+        sa.Column("status", sa.String(32), nullable=False),
+        sa.Column(
+            "accepted_decision_id",
+            sa.String(36),
+            sa.ForeignKey("decisions.id", ondelete="SET NULL"),
+        ),
+        sa.Column("dismissed_reason", sa.String(32)),
+        sa.Column("accepted_at", sa.DateTime(timezone=True)),
+        sa.Column("dismissed_at", sa.DateTime(timezone=True)),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("category", sa.String(32)),
+        sa.Column("thesis_key", sa.String(64)),
+        sa.Column("superseded_at", sa.DateTime(timezone=True)),
+        sa.Column("superseded_by_run_id", sa.String(36)),
+        sa.UniqueConstraint("workspace_id", "dedup_key", "status", name=_LEGACY_UNIQUE),
+    )
+
+
 def upgrade() -> None:
-    with op.batch_alter_table("suggestions", schema=None) as batch_op:
+    with op.batch_alter_table(
+        "suggestions", schema=None, copy_from=_suggestions_snapshot()
+    ) as batch_op:
         batch_op.add_column(sa.Column("horizon", sa.String(length=16), nullable=True))
         batch_op.add_column(sa.Column("pipeline_run_id", sa.String(length=36), nullable=True))
         batch_op.create_foreign_key(
