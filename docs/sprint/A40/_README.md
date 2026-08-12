@@ -190,7 +190,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (37)
+## Lanes (44 no disco · 38 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -239,6 +239,16 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l35]] | Bundle de proteção sobre insumos reais (5 zeros + 2 `False`) | P1 | — | spin-off da [[A40.l7]] 2026-08-11 · Onda 2 · [[A40.l11]] é consumidora |
 | [[A40.l36]] | Double-count potencial na base da cascata da S8 (pró-labore 2×) | P1 | — | achado do co-design da [[A40.l34]] 2026-08-11 · **não medido ainda** — a lane começa confirmando ou refutando |
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
+| [[A40.l43]] | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | P1 | — | `shipped` `849e372b` (#1386) · achado do parecer de design · emenda [[ADR-356]] (regra: o narrador não publica valor nem juízo) · fecha por remoção o item de `n_imoveis` da [[A40.l6]] e a classe da [[A40.l15]] · transfere p/ [[A40.l29]] |
+
+> **Contador vs. disco (medido 2026-08-12).** `ls docs/sprint/A40/lanes/*.md` dá
+> **44**; esta tabela lista 38. As **6 ausentes** foram abertas por PRs que não
+> atualizaram a tabela e não têm dono nesta passada: **l38** (caixa canônico,
+> #1391), **l39** (posição corrente/fiscal), **l40** (identidade institucional
+> CNPJ raiz), **l41** (frescor cross-pool), **l42**, **l44** (janela declarada,
+> #1397/#1398). Ficam nomeadas aqui em vez de silenciadas — o id aponta o arquivo,
+> então completar custa pouco. Quem fechar a sprint tem de resolver isto: o §Gate
+> de saída lê esta tabela, e uma lane fora dela é invisível ao encerramento.
 
 ## Predicado do campo `status` de lane (decisão do dono, 2026-08-03)
 
@@ -1415,6 +1425,7 @@ emendadas por §Infra de CI tocada durante a sprint.
 | [[ADR-320]] | `Decidido` · **emendada** 2026-08-03 (limite de garantia, não mudança de decisão) | — (§Infra de CI, #1161) | Hardening de CI/CD. A decisão 2 (SHA-pin das 4 actions de terceiro, [[A34.l14]]) pina o *código* da action, **não a imagem base** que uma action Docker builda em runtime — `CodelyTV/pr-size-labeler` fazia `FROM alpine:3.15` sem digest e derrubou um required check. A emenda veda `runs.using: docker` em job required e registra por que não há gate automático (o hook da [[ADR-249]] não alcança Dockerfile de terceiro). Mesma família da [[ADR-210]]: **garantia mais estreita do que o texto sugeria** |
 | [[ADR-278]] | `Decidido` · **não** superseded | — | `_hash_v1` congelado; a A40 não cria `_hash_v3` |
 | **[[ADR-365]]** | `Proposto` (aberta em #1243, **no mesmo PR da implementação**) · flip a `Decidido` **deferido para o PR de fecho da [[A40.l10]]**, por decisão do dono em 2026-08-06 — condição: verificação **renderizada**. Precedente de que o flip é do dono: [[ADR-361]] §Emenda | [[A40.l10]] | Elegibilidade e proveniência da premissa de uma recomendação são **eixos ortogonais**; retido sai do ranking mas é **declarado** por classe de motivo (6ª classe do §Critério de done do [[PLAN-report-trust]]). Origem: `pontos_urgentes` não lia `gap_qualitativo`, e o item de seguro de vida disparava para 100% dos workspaces sem apólice de pessoa — inclusive titular solteiro sem dependente econômico |
+| [[ADR-356]] | `Decidido (A40.l4)` · **emendada 2 ×**: 2026-08-05 (flip + dono do deferimento do `s1`) e **2026-08-11** (#1386) | [[A40.l4]], [[A40.l43]] | A 2ª emenda **remove uma chave entregue** (`perfil_familia.right`) e a regra do validador que a exigia não-vazia — regra que proibia silêncio e por isso **selecionava** veredito incondicional ("— saudável" com endividamento de qualquer tamanho). Escreve a regra que fica: o narrador de `perfil_familia` não publica valor monetário nem juízo qualitativo. Precedente de que matar chave entregue não exige ADR nova: o desligamento do `s3` pela [[A40.l15]] |
 
 ## Débito de método herdado da r3
 
