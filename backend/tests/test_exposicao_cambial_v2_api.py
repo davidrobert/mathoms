@@ -119,6 +119,43 @@ async def test_sem_artefato_e5_declara_falta_de_base_e_nao_zero(auth_client: Asy
     assert data["source_run_id"] is None
 
 
+async def _seed_run_com_caixa(db, ws_id: str, quantia: str) -> PipelineArtifact:
+    """Um run com uma única conta em USD da quantia pedida."""
+    caixa = [{"conta": "Wise USD", "moeda": "USD", "valor_brl": quantia, "saldo_original": "1"}]
+    payload = _e5_payload(posicoes=[], caixa_detalhes=caixa, investivel=Decimal("500000"))
+    return await _seed_e5_artifact(db, ws_id, payload)
+
+
+async def _seed_report(db, ws_id: str, run_id) -> str:
+    from backend.app.models.report import Report
+
+    report = Report(workspace_id=ws_id, pipeline_run_id=run_id, title="Relatório antigo")
+    db.add(report)
+    await db.commit()
+    return report.id
+
+
+# Medido em 2026-08-12: sem pinagem, 83 de 84 relatórios exibiam a exposição de outro
+# momento patrimonial dentro de um documento que promete ser foto datada.
+@pytest.mark.asyncio
+async def test_card_usa_o_run_do_relatorio_e_nao_o_artefato_mais_recente(
+    auth_client: AsyncClient, db
+):
+    """Dois runs no mesmo workspace: pedir o relatório antigo devolve o número antigo."""
+    antigo = await _seed_run_com_caixa(db, auth_client.ws_id, "10000")
+    await _seed_run_com_caixa(db, auth_client.ws_id, "90000")
+    report_id = await _seed_report(db, auth_client.ws_id, antigo.pipeline_run_id)
+
+    url = f"/api/workspaces/{auth_client.ws_id}/cards/exposicao-cambial"
+    pinado = (await auth_client.get(f"{url}?report_id={report_id}")).json()
+    assert pinado["total_brl"] == "10000.00", "pinado deve trazer o run do relatório pedido"
+    assert pinado["source_run_id"] == str(antigo.pipeline_run_id)
+
+    # Sem report_id, resolve pelo relatório mais recente — nunca pelo artefato mais recente.
+    sem_pin = (await auth_client.get(url)).json()
+    assert sem_pin["source_run_id"] == str(antigo.pipeline_run_id)
+
+
 @pytest.mark.asyncio
 async def test_denominador_zero_nao_vira_zero_por_cento(auth_client: AsyncClient, db):
     """Com caixa em USD mas sem investível, o card não pode exibir valor cheio ao lado

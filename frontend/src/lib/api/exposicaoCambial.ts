@@ -71,10 +71,14 @@ export interface AssetOverrideListResponse {
 
 const BASE = (ws: string) => `/workspaces/${encodeURIComponent(ws)}/cards/exposicao-cambial`;
 
+/** `reportId` pina o cálculo ao run daquele relatório — sem ele o card mostra a
+ * exposição do run mais recente dentro de um documento de outra data. */
 export function fetchExposicaoCambialV2(
-  workspaceId: string
+  workspaceId: string,
+  reportId?: string | null
 ): Promise<ExposicaoCambialV2Response> {
-  return apiFetch<ExposicaoCambialV2Response>(BASE(workspaceId));
+  const qs = reportId ? `?report_id=${encodeURIComponent(reportId)}` : "";
+  return apiFetch<ExposicaoCambialV2Response>(`${BASE(workspaceId)}${qs}`);
 }
 
 export function listLastroOverrides(workspaceId: string): Promise<AssetOverrideListResponse> {

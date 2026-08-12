@@ -27,6 +27,8 @@ import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 interface S1Props {
   data: ReportAnalysisData;
+  /** Pina o card de exposição cambial ao run deste relatório (ADR-379). */
+  reportId?: string | null;
 }
 
 /** F9 · F2.A — Seção S1 (Patrimônio — Estrutura e Composição).
@@ -34,7 +36,7 @@ interface S1Props {
  * Renderiza 3 charts + 4 cards consumindo dados do E5 JSON. Hero KPI vive
  * em `<ExecutiveSummarySection>` antes de S1 (v2.F.2).
  */
-export function S1PatrimonioSection({ data }: S1Props) {
+export function S1PatrimonioSection({ data, reportId }: S1Props) {
   const patrimonio = data.patrimonio as PatrimonioData | undefined;
   const reserva = data.reserva_emergencia as ReservaEmergenciaData | undefined;
   const endividamento = data.endividamento as EndividamentoData | undefined;
@@ -99,7 +101,7 @@ export function S1PatrimonioSection({ data }: S1Props) {
         posicoes={patrimonio?.posicao_31_12}
         cbeObrigatorio={patrimonio?.cbe_obrigatorio ?? false}
       />
-      <ExposicaoCambialCardWithContext data={exposicaoCambial} />
+      <ExposicaoCambialCardWithContext data={exposicaoCambial} reportId={reportId} />
       <div className="md:col-span-2">
         <ReceitasFonteCard fluxo={fluxo} anchorDate={anchorDate} />
       </div>
@@ -111,7 +113,19 @@ export function S1PatrimonioSection({ data }: S1Props) {
 
 /** Wrapper que injeta `workspaceId` do context (ADR-224 PR-E). Fora do
  * provider (ex.: testes isolados), cai pra V1 sem regressão visual. */
-function ExposicaoCambialCardWithContext({ data }: { data: ExposicaoCambialData | undefined }) {
+function ExposicaoCambialCardWithContext({
+  data,
+  reportId,
+}: {
+  data: ExposicaoCambialData | undefined;
+  reportId?: string | null;
+}) {
   const { workspace } = useWorkspace();
-  return <ExposicaoCambialCard data={data} workspaceId={workspace?.id ?? null} />;
+  return (
+    <ExposicaoCambialCard
+      data={data}
+      workspaceId={workspace?.id ?? null}
+      reportId={reportId}
+    />
+  );
 }

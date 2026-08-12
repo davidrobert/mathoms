@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,14 +31,17 @@ logger = logging.getLogger("mathoms.exposicao_cambial")
 router = APIRouter(prefix="/workspaces/{workspace_id}/cards", tags=["cards"])
 
 
+# `report_id` pina o cálculo ao run daquele relatório — sem ele o card exibiria a
+# exposição do run mais recente dentro de um documento de outra data.
 @router.get("/exposicao-cambial", response_model=ExposicaoCambialResponse)
 async def get_exposicao_cambial(
+    report_id: Optional[str] = None,
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> ExposicaoCambialResponse:
     """Retorna exposição cambial V2 recomputada read-time com catalog + overrides correntes."""
-    response = await compute_exposicao_cambial_v2(workspace.id, db)
+    response = await compute_exposicao_cambial_v2(workspace.id, db, report_id)
     logger.info(
         "mathoms.exposicao_cambial.computed",
         extra={

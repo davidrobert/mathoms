@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models import PipelineArtifact
 from backend.app.models.asset_catalog import AssetCatalog, WorkspaceAssetOverride
+from backend.app.models.report import Report
 from backend.app.schemas.dto.exposicao_cambial import (
     AssetOverrideCommand,
     AssetOverrideResponse,
@@ -100,21 +101,34 @@ async def _load_overrides(db: AsyncSession, workspace_id: str) -> list[OverrideE
     ]
 
 
-async def _load_latest_e5_artifact(
-    db: AsyncSession, workspace_id: str
-) -> Optional[PipelineArtifact]:
+async def _run_do_relatorio(
+    db: AsyncSession, workspace_id: str, report_id: Optional[str] = None
+) -> Optional[str]:
+    """Run do relatório pedido; sem `report_id`, o do relatório mais recente."""
+    stmt = select(Report.pipeline_run_id).where(Report.workspace_id == workspace_id)
     stmt = (
-        select(PipelineArtifact)
-        .where(
-            PipelineArtifact.workspace_id == workspace_id,
-            # legado E5 ↔ descritivo (ADR-093, janela F9)
-            PipelineArtifact.stage.in_(stage_aliases("analyze_finances")),
-        )
-        .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
-        .limit(1)
+        stmt.where(Report.id == report_id) if report_id else stmt.order_by(Report.created_at.desc())
     )
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    return (await db.execute(stmt.limit(1))).scalar_one_or_none()
+
+
+# Nunca "o artefato mais recente do workspace": medido em 2026-08-12, isso fazia 83 de
+# 84 relatórios exibirem a exposição de outro momento patrimonial dentro de um documento
+# que promete ser uma foto datada.
+async def _load_e5_artifact(
+    db: AsyncSession, workspace_id: str, report_id: Optional[str] = None
+) -> Optional[PipelineArtifact]:
+    """E5 do run do relatório, com fallback para o mais recente se não houver relatório."""
+    run_id = await _run_do_relatorio(db, workspace_id, report_id)
+    stmt = select(PipelineArtifact).where(
+        PipelineArtifact.workspace_id == workspace_id,
+        # legado E5 ↔ descritivo (ADR-093, janela F9)
+        PipelineArtifact.stage.in_(stage_aliases("analyze_finances")),
+    )
+    if run_id is not None:
+        stmt = stmt.where(PipelineArtifact.pipeline_run_id == run_id)
+    stmt = stmt.order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc()).limit(1)
+    return (await db.execute(stmt)).scalar_one_or_none()
 
 
 def _fallback_classe(pos: dict, descricao: str | None) -> str:
@@ -440,10 +454,10 @@ async def list_asset_overrides(workspace_id: str, db: AsyncSession) -> list[Asse
 
 
 async def compute_exposicao_cambial_v2(
-    workspace_id: str, db: AsyncSession
+    workspace_id: str, db: AsyncSession, report_id: Optional[str] = None
 ) -> ExposicaoCambialResponse:
     """Recomputa exposição cambial em read-time usando catalog + overrides correntes."""
-    artifact = await _load_latest_e5_artifact(db, workspace_id)
+    artifact = await _load_e5_artifact(db, workspace_id, report_id)
     if artifact is None:
         return _sem_base_response(workspace_id)
     por_moeda, ativos, inputs = await _aggregate_all(artifact, db, workspace_id)

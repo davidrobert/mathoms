@@ -30,20 +30,35 @@ const v1Data: ExposicaoCambialData = {
   detalhes: [],
 };
 
-const v2Empty = {
+/** Base válida e zero MEDIDO — aí a afirmação de ausência é legítima ([[ADR-378]]). */
+const v2ZeroMedido = {
   workspace_id: WS,
+  base_disponivel: true,
   total_brl: "0.00",
   pct_investivel_financeiro: 0,
   por_moeda: [],
   tier: "empty" as const,
+  alvo_moeda_forte_brl: "50000.00",
   ativos_contribuintes: [],
   catalog_version: 1,
   source_run_id: null,
   computed_at: "2026-05-19T20:00:00Z",
 };
 
+/** Sem base: valores `null`. O card não pode afirmar nada a partir disto. */
+const v2SemBase = {
+  ...v2ZeroMedido,
+  base_disponivel: false,
+  total_brl: null,
+  pct_investivel_financeiro: null,
+  tier: null,
+  alvo_moeda_forte_brl: null,
+};
+
 const v2Data = {
   workspace_id: WS,
+  base_disponivel: true,
+  alvo_moeda_forte_brl: "50000.00",
   total_brl: "75000.00",
   pct_investivel_financeiro: 15.0,
   por_moeda: [{ moeda: "USD", valor_brl: "75000.00", share_pct: 100.0 }],
@@ -91,17 +106,38 @@ describe("ExposicaoCambialCard V2 mode (com workspaceId)", () => {
     expect(screen.getByText(/lastro não declarado/i)).toBeInTheDocument();
   });
 
-  it("V2 empty mostra mensagem '100% denominado em real'", async () => {
+  it("com base e zero medido, afirma ausência de exposição", async () => {
     server.use(
       http.get(`${API}/workspaces/${WS}/cards/exposicao-cambial`, () =>
-        HttpResponse.json(v2Empty),
+        HttpResponse.json(v2ZeroMedido),
       ),
       http.get(`${API}/workspaces/${WS}/cards/exposicao-cambial/overrides`, () =>
         HttpResponse.json({ workspace_id: WS, overrides: [] }),
       ),
     );
     render(<ExposicaoCambialCard data={v1Data} workspaceId={WS} />);
-    expect(await screen.findByText(/100% denominado em real/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Nenhum ativo com lastro fora do real/i),
+    ).toBeInTheDocument();
+    // A frase antiga afirmava sobre o PATRIMÔNIO e sobre DENOMINAÇÃO; o card mede
+    // lastro econômico do investível financeiro (ADR-378).
+    expect(screen.queryByText(/100% denominado em real/i)).not.toBeInTheDocument();
+  });
+
+  it("sem base no V2, mostra o número do V1 em vez de afirmar ausência", async () => {
+    server.use(
+      http.get(`${API}/workspaces/${WS}/cards/exposicao-cambial`, () =>
+        HttpResponse.json(v2SemBase),
+      ),
+      http.get(`${API}/workspaces/${WS}/cards/exposicao-cambial/overrides`, () =>
+        HttpResponse.json({ workspace_id: WS, overrides: [] }),
+      ),
+    );
+    render(<ExposicaoCambialCard data={v1Data} workspaceId={WS} />);
+    expect(await screen.findByText(/opção de declarar lastro/i)).toBeInTheDocument();
+    expect(screen.getByText("USD")).toBeInTheDocument();
+    expect(screen.queryByText(/100% denominado em real/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Nenhum ativo com lastro fora do real/i)).not.toBeInTheDocument();
   });
 
   it("clicar 'Declarar lastro' abre dropdown inline + salvar dispara POST", async () => {
@@ -138,5 +174,26 @@ describe("ExposicaoCambialCard V2 mode (com workspaceId)", () => {
     await user.selectOptions(select, "USD");
     await user.click(screen.getByText(/Salvar/i));
     await waitFor(() => expect(postCalled).toBe(true));
+  });
+
+  it("sem V1 e sem base no V2, declara indisponibilidade em vez de afirmar", async () => {
+    server.use(
+      http.get(`${API}/workspaces/${WS}/cards/exposicao-cambial`, () =>
+        HttpResponse.json(v2SemBase),
+      ),
+      http.get(`${API}/workspaces/${WS}/cards/exposicao-cambial/overrides`, () =>
+        HttpResponse.json({ workspace_id: WS, overrides: [] }),
+      ),
+    );
+    render(<ExposicaoCambialCard data={undefined} workspaceId={WS} />);
+    expect(await screen.findByText(/indisponível neste relatório/i)).toBeInTheDocument();
+    expect(screen.queryByText(/100% denominado em real/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/0,0%/)).not.toBeInTheDocument();
+  });
+
+  it("formata percentual com vírgula decimal (pt-BR)", () => {
+    render(<ExposicaoCambialCard data={v1Data} workspaceId={null} />);
+    expect(screen.getByText(/10,0% ·/)).toBeInTheDocument();
+    expect(screen.queryByText(/10\.0%/)).not.toBeInTheDocument();
   });
 });

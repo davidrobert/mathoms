@@ -20,6 +20,8 @@ interface ExposicaoCambialCardProps {
   data: ExposicaoCambialData | undefined;
   /** Quando presente, dispara fetch V2 + override UI (ADR-224 PR-E). */
   workspaceId?: string | null;
+  /** Pina o V2 ao run deste relatório (ADR-379). */
+  reportId?: string | null;
 }
 
 const TIER_LABEL: Record<string, string> = {
@@ -57,8 +59,12 @@ const LASTRO_SOURCE_CLASS: Record<LastroSource, string> = {
  * Quando `workspaceId` presente, fetch V2 via `useExposicaoCambialV2` substitui o
  * payload V1 (E5) e expõe botão "Declarar lastro" inline por ativo.
  */
-export function ExposicaoCambialCard({ data, workspaceId }: ExposicaoCambialCardProps) {
-  const v2 = useExposicaoCambialV2(workspaceId ?? null);
+export function ExposicaoCambialCard({
+  data,
+  workspaceId,
+  reportId,
+}: ExposicaoCambialCardProps) {
+  const v2 = useExposicaoCambialV2(workspaceId ?? null, reportId ?? null);
 
   // Autoridade do V2 vem de ter BASE, não de ter respondido. Enquanto o critério foi
   // "respondeu", uma resposta vazia apagou a exposição real e o card afirmou
