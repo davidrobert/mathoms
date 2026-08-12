@@ -12,7 +12,10 @@ try:
 except ImportError:
     pdfplumber = None
 
-from pipeline.domain.services.money_parsing import parse_valor_monetario
+from pipeline.domain.services.money_parsing import (
+    parse_taxa_ou_cotacao,
+    parse_valor_monetario,
+)
 from scripts.e2.common import (
     BANCO_C6,
     C6_CSV_LAYOUT,  # consumido pelo parser CSV; PDF migrou para text-based regex
@@ -130,6 +133,11 @@ def _c6_csv_apply_conservation_flags(
 # =============================================================================
 # Helpers — fatura CSV
 # =============================================================================
+
+
+def _as_float(v) -> Optional[float]:
+    """Decimal|None → float|None, preservando ausência."""
+    return None if v is None else float(v)
 
 
 def _parse_fatura_csv_number(text: str) -> Optional[float]:
@@ -648,9 +656,9 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     # Saldo em USD/EUR vem no formato US ("2,605.00"); o strip
                     # incondicional de `.` deflacionava em 1000× (r5/M28).
                     _saldo = parse_valor_monetario(saldo_text_match.group(1))
-                    try:
+                    if _saldo is not None:
                         result["saldo_final"] = float(_saldo)
-                    except TypeError:
+                    else:
                         pass
 
             if is_global_usd or is_global_eur:
@@ -985,7 +993,9 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
                             forex_info = {
                                 "moeda_original": forex_m.group(1),
                                 "valor_original": parse_brl(forex_m.group(2)),
-                                "cotacao": parse_brl(forex_m.group(3)),
+                                # Cotação tem 3+ decimais legítimos: `parse_brl("5,432")` devolvia 5432
+                                # (×1000). Grandeza de taxa não vem agrupada.
+                                "cotacao": _as_float(parse_taxa_ou_cotacao(forex_m.group(3))),
                             }
                             descricao = raw_desc[: forex_m.start()].strip()
 
