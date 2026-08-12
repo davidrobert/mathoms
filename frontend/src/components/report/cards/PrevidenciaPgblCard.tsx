@@ -26,8 +26,7 @@ const DISCLAIMER = (
   <>
     <strong>Não é recomendação:</strong> valor estimado sobre receita PJ;
     benefício fiscal real depende de regime tributário declarado, alíquota
-    efetiva, horizonte de resgate, taxa de administração e contribuição ao
-    INSS.
+    efetiva, horizonte de resgate, taxa de administração e contribuição ao INSS.
   </>
 );
 
@@ -73,11 +72,24 @@ export function PrevidenciaPgblCard({
     );
   }
 
+  // A40.l34 (ADR-375 D3/D4): sem IRPF processado o produtor publica AUSÊNCIA —
+  // `status: "N/D"` com os campos prescritivos nulos. O estado vem do payload, e
+  // não de um 7º modo, porque quem sabe se há evidência é quem a leu. Sem esta
+  // guarda o card cairia no `DefaultPrevidenciaCard` e renderizaria a grade
+  // prescritiva vazia, que é pior que qualquer um dos dois estados.
+  if (previdencia.status === "N/D" && previdencia.limite_pgbl_anual == null) {
+    return <SemEvidenciaDeclarada nota={previdencia.nota} />;
+  }
+
   if (mode === "informative-capacidade") {
-    return <InformativeCapacidade previdencia={previdencia} anoBase={anoBase} />;
+    return (
+      <InformativeCapacidade previdencia={previdencia} anoBase={anoBase} />
+    );
   }
   if (mode === "informative-simplificado") {
-    return <InformativeSimplificado previdencia={previdencia} anoBase={anoBase} />;
+    return (
+      <InformativeSimplificado previdencia={previdencia} anoBase={anoBase} />
+    );
   }
   if (mode === "informative-no-teto") {
     return <InformativeNoTeto previdencia={previdencia} anoBase={anoBase} />;
@@ -95,7 +107,15 @@ export function PrevidenciaPgblCard({
   );
 }
 
-function KpiCell({ label, value, tone }: { label: string; value: number | undefined; tone?: string }) {
+function KpiCell({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number | undefined;
+  tone?: string;
+}) {
   return (
     <div>
       <dt className="text-[var(--surface-muted-foreground)]">{label}</dt>
@@ -106,11 +126,21 @@ function KpiCell({ label, value, tone }: { label: string; value: number | undefi
   );
 }
 
-function PrevidenciaKpiGrid({ previdencia }: { previdencia: PrevidenciaPgblData }) {
+function PrevidenciaKpiGrid({
+  previdencia,
+}: {
+  previdencia: PrevidenciaPgblData;
+}) {
   return (
     <dl className="grid grid-cols-2 gap-4 text-sm md:grid-cols-3">
-      <KpiCell label="Renda tributável/ano" value={previdencia.renda_tributavel_anual} />
-      <KpiCell label="Limite PGBL/ano (12%)" value={previdencia.limite_pgbl_anual} />
+      <KpiCell
+        label="Renda tributável/ano"
+        value={previdencia.renda_tributavel_anual}
+      />
+      <KpiCell
+        label="Limite PGBL/ano (12%)"
+        value={previdencia.limite_pgbl_anual}
+      />
       <KpiCell label="Aporte sugerido/mês" value={previdencia.aporte_mensal} />
       {previdencia.economia_ir_anual !== undefined && (
         <KpiCell
@@ -158,8 +188,8 @@ function DefaultPrevidenciaCard({
 function InformativeSubtitle() {
   return (
     <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
-      Estimativa sobre receita PJ — informativo · veja capacidade declarada
-      em <CrossLink />
+      Estimativa sobre receita PJ — informativo · veja capacidade declarada em{" "}
+      <CrossLink />
     </p>
   );
 }
@@ -176,8 +206,8 @@ function InformativeCapacidade({
       <div className="space-y-3">
         <InformativeSubtitle />
         <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
-          Capacidade dedutível autoritativa está em <CrossLink /> (baseada
-          no IRPF {anoBase ?? "—"} declarado). Esta seção mostra apenas a
+          Capacidade dedutível autoritativa está em <CrossLink /> (baseada no
+          IRPF {anoBase ?? "—"} declarado). Esta seção mostra apenas a
           estimativa sobre receita PJ anualizada deste período (
           <strong>
             <MonetaryValue value={previdencia.limite_pgbl_anual} />
@@ -202,9 +232,9 @@ function InformativeSimplificado({
         <InformativeSubtitle />
         <NotApplicable />
         <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
-          Sua declaração de {anoBase ?? "—"} é pelo modelo simplificado, que
-          não permite dedução de PGBL. O potencial estimado sobre sua
-          receita PJ anualizada (
+          Sua declaração de {anoBase ?? "—"} é pelo modelo simplificado, que não
+          permite dedução de PGBL. O potencial estimado sobre sua receita PJ
+          anualizada (
           <strong>
             <MonetaryValue value={previdencia.renda_tributavel_anual} />
           </strong>
@@ -212,9 +242,9 @@ function InformativeSimplificado({
           <strong>
             <MonetaryValue value={previdencia.limite_pgbl_anual} />
           </strong>
-          /ano <em>caso houvesse migração para o modelo completo</em> —
-          decisão que depende de comparação anual com o desconto
-          simplificado da Receita.
+          /ano <em>caso houvesse migração para o modelo completo</em> — decisão
+          que depende de comparação anual com o desconto simplificado da
+          Receita.
         </p>
       </div>
     </ReportCard>
@@ -234,13 +264,32 @@ function InformativeNoTeto({
         <InformativeSubtitle />
         <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
           Em {anoBase ?? "—"} você esgotou os dedutíveis (12% da renda
-          tributável declarada — veja <CrossLink />). Capacidade adicional
-          só no próximo ano-base. Estimativa sobre receita PJ anualizada
-          deste período:{" "}
+          tributável declarada — veja <CrossLink />
+          ). Capacidade adicional só no próximo ano-base. Estimativa sobre
+          receita PJ anualizada deste período:{" "}
           <strong>
             <MonetaryValue value={previdencia.limite_pgbl_anual} />
           </strong>
           .
+        </p>
+      </div>
+    </ReportCard>
+  );
+}
+
+// A nota vem do produtor, não é reescrita aqui: quem sabe QUAL insumo falta é
+// quem tentou lê-lo. Reescrever a copy no renderer criaria um segundo lugar onde
+// a razão da ausência é decidida.
+function SemEvidenciaDeclarada({ nota }: { nota: string | undefined }) {
+  return (
+    <ReportCard variant="neutral" size="half" title="Previdência PGBL">
+      <div className="space-y-3">
+        <p
+          data-testid="pgbl-sem-evidencia"
+          className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]"
+        >
+          {nota ??
+            "Não há IRPF processado para medir o seu espaço dedutível de PGBL."}
         </p>
       </div>
     </ReportCard>
@@ -261,14 +310,15 @@ function InformativeSemRenda({
         <NotApplicable />
         <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
           Sua declaração de {anoBase ?? "—"} registrou apenas rendimentos
-          isentos ou de tributação exclusiva — PGBL deduz da base
-          tributável e não se aplica nesse cenário. A receita PJ
-          identificada no fluxo deste período (
+          isentos ou de tributação exclusiva — PGBL deduz da base tributável e
+          não se aplica nesse cenário. A receita PJ identificada no fluxo deste
+          período (
           <strong>
             <MonetaryValue value={previdencia.renda_tributavel_anual} />
           </strong>
           ) só geraria espaço dedutível se classificada como tributável no
-          próximo IRPF (<CrossLink />).
+          próximo IRPF (<CrossLink />
+          ).
         </p>
       </div>
     </ReportCard>

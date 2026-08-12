@@ -234,6 +234,34 @@ R$ 26.963,20). Detalhe na §Emenda da [[ADR-375]].
 - **Verificação renderizada** (§Débito de método da sprint). O gate de pixel não
   vê supressão de texto; a conferência é textual, com proximidade.
 
+## PR2 — entregue 2026-08-12 (#1394)
+
+Fecha a **polaridade invertida**: sem IRPF processado, o relatório para de
+prescrever. O proxy `receita_pj × 32%` foi **removido**, e sem capacidade
+declarada os campos prescritivos nascem **ausentes** — não zerados. No PR1 a
+economia deste workspace foi de R$ 103,68 para R$ 0; agora o campo não existe,
+que é a diferença entre *"a economia é zero"* e *"não temos como medir"*.
+
+Delta no golden: **8 campos**, todos em `previdencia_pgbl` — inclusive o
+`aporte_mensal` de R$ 115,20/mês que o PR1 tinha deixado visível ao lado de uma
+economia de R$ 0.
+
+No frontend, a guarda lê o **payload**, não um 7º modo do enum: um modo novo
+poria a decisão em dois lugares, e `getPgblCardStrategy` continuaria devolvendo
+`default` sem IRPF. Os testes entram por `mode="default"` de propósito — é o
+modo que rendia a prescrição.
+
+De brinde, os campos monetários viraram `Decimal` (ADR-090): o hook
+`float-money` é **diff-based**, então a linha grandfathered passou a valer ao
+ser tocada.
+
+**Fora de escopo, declarado:** D1 (S8 como dono único) e D2 (card com registro
+trocado) ficam no PR3; `getPgblCardStrategy` some junto com a matriz de 6 modos.
+O **D5 segue bloqueado** pela escala de `deducao_brl_cents`. E a pergunta de
+domínio — faixa marginal sobre base de cálculo ou sobre rendimento bruto? —
+segue **sem dono**: o `financial-planner` foi interrompido por limite de gasto
+da conta. Não afeta o PR2; afeta o PR3.
+
 ## Colisão declarada
 
 `S7IndependenciaSection.tsx` é tocado também pela [[A40.l25]] e pela [[A40.l29]].
