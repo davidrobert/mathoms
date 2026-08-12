@@ -140,6 +140,24 @@ describe("<ReceitasFonteCard />", () => {
     expect(body.getByText("receita_categoria_nova")).toBeInTheDocument();
   });
 
+  it("janela truncada declara degradação em vez de exibir a média (RV4-07)", () => {
+    // 500 de 1634 lançamentos: a média por fonte sairia 42% abaixo da real.
+    mockUsePeriodTransactions.mockReturnValue({
+      transactions: [tx("receita_clt", 8000), tx("receita_aluguel", 3000)],
+      isLoading: false,
+      error: null,
+      total: 1634,
+      isTruncated: true,
+    });
+
+    const { container } = render(<ReceitasFonteCard fluxo={undefined} />);
+
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getByText(/não cabe inteira neste card/)).toBeInTheDocument();
+    expect(container.textContent).toContain("1.634");
+    expect(container.textContent).toContain("mais antigos ficaram fora");
+  });
+
   it("render vazio quando não há transações nem por_fonte", () => {
     mockUsePeriodTransactions.mockReturnValue({
       transactions: [],

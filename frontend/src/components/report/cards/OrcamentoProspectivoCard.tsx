@@ -27,7 +27,8 @@ export function OrcamentoProspectivoCard({
   anchorDate?: Date;
 }) {
   const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading } = usePeriodTransactions(period, anchorDate);
+  const { transactions, isLoading, total: totalNaJanela, isTruncated } =
+    usePeriodTransactions(period, anchorDate);
 
   const numMonths = getPeriodMonths(period, anchorDate);
 
@@ -69,7 +70,18 @@ export function OrcamentoProspectivoCard({
       title="Orçamento Prospectivo Mensal"
       headerRight={<PeriodToggle value={period} onChange={setPeriod} />}
     >
-      {entries.length === 0 && !isLoading ? (
+      {isTruncated ? (
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          <strong className="font-semibold text-[var(--surface-foreground)]">
+            A janela {period.toUpperCase()} não cabe inteira neste card.
+          </strong>{" "}
+          Entraram os {transactions.length.toLocaleString("pt-BR")} lançamentos
+          mais recentes de {totalNaJanela.toLocaleString("pt-BR")} — os mais
+          antigos ficaram fora, e o teto por categoria apareceria abaixo do
+          real. Escolha uma janela mais curta para ver o número completo, ou
+          consulte a lista inteira em Transações.
+        </p>
+      ) : entries.length === 0 && !isLoading ? (
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Sem dados de orçamento neste período.
         </p>

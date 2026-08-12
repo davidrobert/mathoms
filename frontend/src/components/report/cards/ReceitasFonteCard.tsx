@@ -40,7 +40,8 @@ export function ReceitasFonteCard({
   anchorDate?: Date;
 }) {
   const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading } = usePeriodTransactions(period, anchorDate);
+  const { transactions, isLoading, total: totalNaJanela, isTruncated } =
+    usePeriodTransactions(period, anchorDate);
 
   const numMonths = getPeriodMonths(period, anchorDate);
 
@@ -76,7 +77,18 @@ export function ReceitasFonteCard({
       title="Receitas por Fonte"
       headerRight={<PeriodToggle value={period} onChange={setPeriod} />}
     >
-      {displayEntries.length === 0 && !isLoading ? (
+      {isTruncated ? (
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          <strong className="font-semibold text-[var(--surface-foreground)]">
+            A janela {period.toUpperCase()} não cabe inteira neste card.
+          </strong>{" "}
+          Entraram os {transactions.length.toLocaleString("pt-BR")} lançamentos
+          mais recentes de {totalNaJanela.toLocaleString("pt-BR")} — os mais
+          antigos ficaram fora, e a média por fonte apareceria abaixo da real.
+          Escolha uma janela mais curta para ver o número completo, ou consulte
+          a lista inteira em Transações.
+        </p>
+      ) : displayEntries.length === 0 && !isLoading ? (
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Sem dados de receitas neste período.
         </p>
