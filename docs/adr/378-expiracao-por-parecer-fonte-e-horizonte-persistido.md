@@ -1,5 +1,5 @@
 ---
-id: ADR-376
+id: ADR-378
 type: adr
 title: "Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou"
 status: Proposto
@@ -14,7 +14,7 @@ relates_to:
   - "[[ADR-366]]"
 supersedes: []
 superseded_by: []
-aliases: ["ADR 376", "expiração por parecer-fonte", "horizonte da sugestão"]
+aliases: ["ADR 378", "expiração por parecer-fonte", "horizonte da sugestão"]
 size_lines: 138
 tags:
   - type/adr
@@ -24,7 +24,7 @@ tags:
   - area/produto
 ---
 
-# ADR-376 — Expiração por parecer-fonte + horizonte persistido
+# ADR-378 — Expiração por parecer-fonte + horizonte persistido
 
 **Status:** Proposto • **Data:** 2026-08-11 •
 **Plano:** [[PLAN-suggestion-lifecycle]] §F5 • Estende [[ADR-290]]

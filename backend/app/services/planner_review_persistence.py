@@ -273,7 +273,7 @@ def _do_persist(
     db.add(review)
     # Flush para garantir ``review.id`` disponível antes de FKs em field_requests.
     db.flush()
-    # Outcome tipado decide se o run pode expirar o inbox (ADR-376 §D1):
+    # Outcome tipado decide se o run pode expirar o inbox (ADR-378 §D1):
     # retido não entregou nada — não pode apagar as ações do cliente.
     suggestion_stats = persist_suggestions_for_run(
         db,
@@ -350,7 +350,7 @@ def _workspace_id_from_run(db: Session, run_id: str) -> Optional[str]:
 
 
 def _log_persist_conflict(workspace_id: str, run_id: str) -> None:
-    """Dois runs concorrentes disputando o conjunto Pendente (índice único parcial, ADR-376 §D3). Fail-closed: o run perdedor vira artifact órfão detectável — evento próprio distingue conflito de bug (revisão senior-cto M-2)."""
+    """Dois runs concorrentes disputando o conjunto Pendente (índice único parcial, ADR-378 §D3). Fail-closed: o run perdedor vira artifact órfão detectável — evento próprio distingue conflito de bug (revisão senior-cto M-2)."""
     logger.warning(
         "planner_review_persistence_conflict",
         extra={"workspace_id": workspace_id, "run_id": run_id},

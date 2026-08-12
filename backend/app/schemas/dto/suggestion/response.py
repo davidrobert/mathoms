@@ -33,7 +33,7 @@ class SuggestionResponse(BaseModel):
     # parecer LLM emite `suggestion_dedup_key`; UI usa para resolver `id`
     # antes de chamar /accept ou /dismiss. Não é PII.
     dedup_key: str
-    # ADR-376 §D4 — 'execucao' | 'tatica' | 'estrategica'; None para
+    # ADR-378 §D4 — 'execucao' | 'tatica' | 'estrategica'; None para
     # origin='deterministic' e rows legadas. Gate de display no frontend é
     # "esconder se tatica/estrategica" (falha aberto p/ NULL), nunca
     # "mostrar se execucao".

@@ -1,4 +1,4 @@
-"""Semântica ADR-290 que sobrevive à ADR-376: retry do mesmo run é no-op (B6), aceitas/deterministic intocadas (B3/B5), janela de dismiss por tese não recria (B4), thesis_key persistido na escrita (B1). Expiração por parecer-fonte vive em test_adr376_expiry_lifecycle.py."""
+"""Semântica ADR-290 que sobrevive à ADR-378: retry do mesmo run é no-op (B6), aceitas/deterministic intocadas (B3/B5), janela de dismiss por tese não recria (B4), thesis_key persistido na escrita (B1). Expiração por parecer-fonte vive em test_adr378_expiry_lifecycle.py."""
 
 from __future__ import annotations
 
@@ -146,7 +146,7 @@ async def test_dismissed_thesis_within_window_not_recreated(db, sync_session):
 
 @pytest.mark.asyncio
 async def test_thesis_key_persisted_on_insert(db, sync_session):
-    """B1 — thesis_key gravado na escrita = sha256(ws|tema|section|ancora); lineage do run gravada (ADR-376 §D1)."""
+    """B1 — thesis_key gravado na escrita = sha256(ws|tema|section|ancora); lineage do run gravada (ADR-378 §D1)."""
     workspace = await factories.make_workspace(db)
     run1 = await make_run_with_acoes(db, workspace, [{"acao": "aumentar reserva"}])
     await db.commit()

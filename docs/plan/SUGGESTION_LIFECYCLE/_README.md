@@ -9,7 +9,7 @@ sprint_atual: A42
 sprints_envolvidas: [A25, A42]
 adrs_canonical:
   - "[[ADR-290]]"
-  - "[[ADR-376]]"
+  - "[[ADR-378]]"
 tags:
   - type/plan
   - status/in-progress
@@ -223,7 +223,7 @@ em commit separado.
 > F4. Diagnóstico co-assinado por `product-designer` (UX das duas listas) e
 > `financial-planner` (volume e risco fiduciário); desenho revisado por
 > `senior-cto` (guards B-1/B-2, escopo do índice parcial, sequência de PRs).
-> Canônica: [[ADR-376]] + emenda datada em [[ADR-290]].
+> Canônica: [[ADR-378]] + emenda datada em [[ADR-290]].
 
 **O que a medição mostrou** — 15 Pendentes (11 warning, 4 info, 0 danger):
 
@@ -242,14 +242,14 @@ em commit separado.
 
 **Entregas (4 PRs, nesta ordem — migration antes de comportamento):**
 
-- **PR-A (docs):** [[ADR-376]] `Proposto` + emenda datada em [[ADR-290]] +
+- **PR-A (docs):** [[ADR-378]] `Proposto` + emenda datada em [[ADR-290]] +
   esta §F5.
 - **PR-B1 (migration):** `horizon` + `pipeline_run_id` (FK `SET NULL`) + FK
   em `superseded_by_run_id` + swap do UNIQUE full pelo índice parcial
   `uq_sugagg_ws_dedup_ativa`; teste de migration assere que o recreate do
   batch preserva as 3 FKs de saída com `ondelete` correto.
 - **PR-B2 (lógica):** expiração por parecer-fonte com guard de `outcome`,
-  dup-check sobre status ativos, telemetria ampliada. [[ADR-376]] flippa para
+  dup-check sobre status ativos, telemetria ampliada. [[ADR-378]] flippa para
   `Decidido`.
 - **PR-C (relatório):** "Próximos passos" vira bloco de fechamento (contagem
   + 1 CTA, sem lista); `SuggestionCalloutInline` filtra
@@ -288,7 +288,7 @@ conta como Descartada.
 ### F6 — `action_slug` de vocabulário fechado (gatilho disparado, não hipótese)
 
 Deixou de ser "Later condicional" em 2026-08-11: a colisão intra-run foi
-**medida em 2** num run real ([[ADR-376]] §D5). `thesis_key` continua
+**medida em 2** num run real ([[ADR-378]] §D5). `thesis_key` continua
 governando a janela de dismiss (B4) — logo, com chave grossa, descartar uma
 tese silencia as vizinhas por 90 dias. Escopo: vocabulário fechado por seção
 no schema do parecer, bump de `PROMPT_VERSION`, eval golden de estabilidade,
@@ -323,7 +323,7 @@ janela é logada item a item para deixar rastro auditável.
 F0 (ADR-290 Proposto) ──► F1 (migration + supersede + telemetria + gate de chave) ──► F4 (backfill heurístico)
                      └──► F2 (paralela a F1; toca prompt/schema LLM, não DB)
 F1 + F2 ──► F3 (cap de geração entra junto de F2; ordering UI depois de F1)
-F1..F4 dogfood medido (2026-08-11) ──► F5 (ADR-376: expiração + horizonte + superfícies)
+F1..F4 dogfood medido (2026-08-11) ──► F5 (ADR-378: expiração + horizonte + superfícies)
 F5: PR-A (docs) ──► PR-B1 (migration) ──► PR-B2 (lógica) ──► PR-D (inbox)
                                      └──► PR-C (relatório; paralelo a B, arquivos disjuntos)
 F5 + colisão medida ──► F6 (action_slug + gate hard de colisão)

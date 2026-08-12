@@ -1,10 +1,10 @@
 """adr-376 expiração por parecer-fonte — horizon, run lineage, unique parcial
 
-Revision ID: adr376expira
+Revision ID: adr378expira
 Revises: a40l20parecerout
 Create Date: 2026-08-11
 
-ADR-376: (§D4) coluna ``horizon`` nullable (bucket temporal do parecer,
+ADR-378: (§D4) coluna ``horizon`` nullable (bucket temporal do parecer,
 descartado até aqui na persistência); (§D1) ``pipeline_run_id`` nullable
 com FK SET NULL — torna explícito o predicado "não foi criada pelo run
 atual" da expiração; FK SET NULL também em ``superseded_by_run_id``
@@ -14,7 +14,7 @@ substituição do UNIQUE full ``uq_sugagg_ws_dedup_status`` pelo índice
 ativo. Motivo: com "último parecer vence" a mesma dedup_key pode ser
 Superseded N vezes — o full unique quebrava na 2ª (e já quebrava no 2º
 descarte da mesma key no caminho determinístico). Sem backfill (a
-expiração ADR-376 limpa o legado no run entregue seguinte). Duplicatas
+expiração ADR-378 limpa o legado no run entregue seguinte). Duplicatas
 ativas pré-existentes: medidas em 2026-08-11 no dogfood = zero.
 
 Downgrade: destrutivo-documentado — antes de recriar o UNIQUE full,
@@ -27,7 +27,7 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "adr376expira"
+revision: str = "adr378expira"
 down_revision: Union[str, None] = "a40l20parecerout"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

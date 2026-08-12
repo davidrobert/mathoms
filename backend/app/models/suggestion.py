@@ -11,7 +11,7 @@ Ciclo de vida (state machine simples — não event-sourced):
     Pendente ─modify──────► Modificada │ → terminal (Decision criada)
     Pendente ─dismiss─────► Descartada ┘ (terminal, com `dismissed_reason`)
     Pendente ─supersede───► Superseded   (terminal soft — ADR-290 tese obsoleta;
-                                          ADR-376 expiração por parecer-fonte:
+                                          ADR-378 expiração por parecer-fonte:
                                           run novo do parecer expira TODAS as
                                           pendentes de runs anteriores, inclusive
                                           thesis_key NULL; só origin='llm'
@@ -23,8 +23,8 @@ flutuação pequena de valor monetário (bucket de R$1k) ou percentual
 (bucket de 5pp). ``uq_sugagg_ws_dedup_ativa`` é índice único
 **parcial** `(workspace_id, dedup_key) WHERE status IN ('Pendente',
 'Aceita','Modificada')` — no máximo UMA row ativa por conteúdo, espelho
-do invariante do service (ADR-153 §2 / ADR-376 §D3). Migration
-`adr376expira` substitui o UNIQUE full de `e9f0a1b2c3d4`, que quebrava
+do invariante do service (ADR-153 §2 / ADR-378 §D3). Migration
+`adr378expira` substitui o UNIQUE full de `e9f0a1b2c3d4`, que quebrava
 quando a mesma dedup_key era Superseded 2× (e no 2º descarte da mesma
 key, bug latente do caminho determinístico). Descartadas não bloqueiam re-aparecer após
 `DISMISS_RESPECT_WINDOW_DAYS` (90).
@@ -97,7 +97,7 @@ VALID_SUGGESTION_CATEGORIES: frozenset[str] = frozenset(
     {"alvo_if", "carteira", "protecao", "comportamental", "endividamento"}
 )
 
-# ADR-376 §D4 — bucket temporal do parecer preservado na persistência.
+# ADR-378 §D4 — bucket temporal do parecer preservado na persistência.
 # NULL = origin='deterministic' (regras E5, sem horizonte) ou row legada.
 VALID_SUGGESTION_HORIZONS: frozenset[str] = frozenset({"execucao", "tatica", "estrategica"})
 
@@ -142,10 +142,10 @@ class Suggestion(Base):
         ForeignKey("pipeline_runs.id", ondelete="SET NULL"),
         nullable=True,
     )
-    # ADR-376 §D4 — 'execucao' | 'tatica' | 'estrategica' (VALID_SUGGESTION_HORIZONS);
+    # ADR-378 §D4 — 'execucao' | 'tatica' | 'estrategica' (VALID_SUGGESTION_HORIZONS);
     # NULL para origin='deterministic' e rows anteriores à migration.
     horizon: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
-    # ADR-376 §D1 — run que criou a row; torna explícito o predicado "não foi
+    # ADR-378 §D1 — run que criou a row; torna explícito o predicado "não foi
     # criada pelo run atual" da expiração (antes garantido só pela ordem de
     # execução). NULL = row pré-migration ou run expurgado.
     pipeline_run_id: Mapped[Optional[str]] = mapped_column(
@@ -186,11 +186,11 @@ class Suggestion(Base):
         Index("ix_sugagg_ws_dedup", "workspace_id", "dedup_key"),
         Index("ix_sugagg_ws_section", "workspace_id", "section_id"),
         Index("ix_sugagg_ws_thesis", "workspace_id", "thesis_key"),
-        # ADR-376 §D3 — único parcial sobre os status ATIVOS: no máximo uma row
+        # ADR-378 §D3 — único parcial sobre os status ATIVOS: no máximo uma row
         # ativa por conteúdo (fence do invariante ADR-153 §2, não decoração).
         # Histórico (Superseded/Descartada) é ilimitado por design: a mesma
         # dedup_key pode ser expirada N vezes ao longo dos runs (migration
-        # adr376expira; substitui uq_sugagg_ws_dedup_status full-unique).
+        # adr378expira; substitui uq_sugagg_ws_dedup_status full-unique).
         Index(
             "uq_sugagg_ws_dedup_ativa",
             "workspace_id",

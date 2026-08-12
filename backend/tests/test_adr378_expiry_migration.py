@@ -1,4 +1,4 @@
-"""Tests da migration ``adr376expira``: colunas ``horizon``/``pipeline_run_id`` nullable, FKs SET NULL para pipeline_runs, e swap do UNIQUE full ``uq_sugagg_ws_dedup_status`` pelo índice único parcial ``uq_sugagg_ws_dedup_ativa`` (ADR-376 §D1/§D3/§D4); recreate do batch preserva as FKs de saída (revisão senior-cto A-2); downgrade dedup-a e restaura o full unique."""
+"""Tests da migration ``adr378expira``: colunas ``horizon``/``pipeline_run_id`` nullable, FKs SET NULL para pipeline_runs, e swap do UNIQUE full ``uq_sugagg_ws_dedup_status`` pelo índice único parcial ``uq_sugagg_ws_dedup_ativa`` (ADR-378 §D1/§D3/§D4); recreate do batch preserva as FKs de saída (revisão senior-cto A-2); downgrade dedup-a e restaura o full unique."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ ALEMBIC_INI = PROJECT_ROOT / "backend" / "alembic.ini"
 ALEMBIC_DIR = PROJECT_ROOT / "backend" / "alembic"
 
 PARENT_REVISION = "a40l20parecerout"
-TARGET_REVISION = "adr376expira"
+TARGET_REVISION = "adr378expira"
 
 NEW_COLUMNS = ("horizon", "pipeline_run_id")
 PARTIAL_UNIQUE = "uq_sugagg_ws_dedup_ativa"
@@ -41,7 +41,7 @@ def _alembic_config(async_url: str) -> Config:
 
 @pytest.fixture
 def alembic_engine(monkeypatch):
-    fd, db_path_str = tempfile.mkstemp(suffix=".db", prefix="adr376_test_")
+    fd, db_path_str = tempfile.mkstemp(suffix=".db", prefix="adr378_test_")
     os.close(fd)
     db_path = Path(db_path_str)
     async_url = f"sqlite+aiosqlite:///{db_path}"
@@ -107,7 +107,7 @@ def test_upgrade_adds_columns_and_partial_unique(alembic_engine):
         idx_sql = _index_sql(conn, PARTIAL_UNIQUE)
         assert idx_sql is not None
         assert "UNIQUE" in idx_sql.upper()
-        assert "WHERE" in idx_sql.upper(), "índice deve ser parcial (ADR-376 §D3)"
+        assert "WHERE" in idx_sql.upper(), "índice deve ser parcial (ADR-378 §D3)"
         for status in ("Pendente", "Aceita", "Modificada"):
             assert status in idx_sql
         assert "uq_sugagg_ws_dedup_status" not in _table_sql(conn)

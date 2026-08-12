@@ -240,7 +240,7 @@ def _seed_preexisting_suggestion(sync_session, workspace_id: str) -> None:
     sync_session.commit()
 
 
-# ADR-376 §D1: Pendente pré-existente com mesmo dedup_key é expirada e o run
+# ADR-378 §D1: Pendente pré-existente com mesmo dedup_key é expirada e o run
 # vigente insere a row nova (rationale/valor atuais) — inverte o contrato
 # pré-376, que mantinha a antiga e skipava o insert.
 @pytest.mark.asyncio

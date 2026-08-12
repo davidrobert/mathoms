@@ -1,4 +1,4 @@
-"""Ciclo de vida de Suggestion origin='llm' do parecer — expiração por parecer-fonte (ADR-376) sobre a base ADR-290 (thesis_key, janela de dismiss, guard run-level); consumido por planner_review_persistence."""
+"""Ciclo de vida de Suggestion origin='llm' do parecer — expiração por parecer-fonte (ADR-378) sobre a base ADR-290 (thesis_key, janela de dismiss, guard run-level); consumido por planner_review_persistence."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ _ZERO_STATS = {
 }
 
 
-# Run retido ou sem sugestões NÃO expira nada (ADR-376 §D1 guard): parecer que
+# Run retido ou sem sugestões NÃO expira nada (ADR-378 §D1 guard): parecer que
 # não entregou não pode apagar o inbox do cliente (revisão senior-cto B-1).
 def persist_suggestions_for_run(
     db: Session,
@@ -62,11 +62,11 @@ def persist_suggestions_for_run(
 # Flush entre expirar e inserir é obrigatório: sem ele, o INSERT de uma
 # dedup_key reafirmada pode ser emitido antes do UPDATE de status no
 # unit-of-work e violar o índice único parcial `uq_sugagg_ws_dedup_ativa`
-# (revisão senior-cto B-2, ADR-376).
+# (revisão senior-cto B-2, ADR-378).
 def _expire_and_reissue(
     db: Session, workspace_id: str, run_id: str, sugs: list[tuple[str, dict]]
 ) -> dict[str, int]:
-    """Fase destrutiva + fase de insert do run entregue (ADR-376 §D1/§D2)."""
+    """Fase destrutiva + fase de insert do run entregue (ADR-378 §D1/§D2)."""
     now = datetime.now(timezone.utc)
     pendings = _expirable_pendings(db, workspace_id=workspace_id, run_id=run_id)
     near_dups = _count_near_dup_candidates(pendings)
@@ -99,7 +99,7 @@ def _assemble_stats(
     near_dups: int,
     insert_counts: dict[str, int],
 ) -> dict[str, int]:
-    """Contadores KR4 (ADR-376 §D5) — `pending_after` é o único que enxerga "inbox esvaziou"."""
+    """Contadores KR4 (ADR-378 §D5) — `pending_after` é o único que enxerga "inbox esvaziou"."""
     return {
         **insert_counts,
         "suggestions_superseded": expired,
@@ -110,7 +110,7 @@ def _assemble_stats(
 
 
 def _iter_sugestoes(content_json: dict):
-    """Yields tuples (horizon, sug_dict) — horizon canônico preservado do bucket (ADR-376 §D4)."""
+    """Yields tuples (horizon, sug_dict) — horizon canônico preservado do bucket (ADR-378 §D4)."""
     for bucket, horizon in _HORIZON_BY_BUCKET.items():
         for sug in content_json.get(bucket, []) or []:
             yield horizon, sug
@@ -128,7 +128,7 @@ def _not_from_run(col, run_id: str):
 
 
 def _expirable_pendings(db: Session, *, workspace_id: str, run_id: str) -> list[Suggestion]:
-    """Pendentes do parecer de runs anteriores (ADR-376 §D1) — sem filtro de thesis_key: a fotografia que as originou não é mais a vigente, inclusive para rows com thesis_key NULL (zumbis pós-backfill F4)."""
+    """Pendentes do parecer de runs anteriores (ADR-378 §D1) — sem filtro de thesis_key: a fotografia que as originou não é mais a vigente, inclusive para rows com thesis_key NULL (zumbis pós-backfill F4)."""
     query = select(Suggestion).where(
         Suggestion.workspace_id == workspace_id,
         Suggestion.status == "Pendente",
@@ -152,7 +152,7 @@ def _count_near_dup_candidates(pendings: list[Suggestion]) -> int:
 
 
 def _expire_previous(pendings: list[Suggestion], *, run_id: str, now: datetime) -> set[str]:
-    """Marca Superseded TODAS as pendentes de pareceres anteriores — "último parecer vence" literal (ADR-376 §D1). Tese reafirmada é reinserida pelo run atual com rationale/valor vigentes (dedup_key não cobre rationale). Retorna as dedup_keys expiradas (alimenta o contador `reemitted`)."""
+    """Marca Superseded TODAS as pendentes de pareceres anteriores — "último parecer vence" literal (ADR-378 §D1). Tese reafirmada é reinserida pelo run atual com rationale/valor vigentes (dedup_key não cobre rationale). Retorna as dedup_keys expiradas (alimenta o contador `reemitted`)."""
     for p in pendings:
         p.status = "Superseded"
         p.superseded_at = now
@@ -161,7 +161,7 @@ def _expire_previous(pendings: list[Suggestion], *, run_id: str, now: datetime) 
 
 
 def _count_thesis_collisions(workspace_id: str, sugs: list[tuple[str, dict]]) -> int:
-    """Teses distintas (dedup_key ≠) sob o mesmo thesis_key DENTRO do run atual (ADR-376 §D5) — chave grossa demais é drift detectável, não surpresa. Gatilho medido em 2026-08-11: 2 colisões num run real → F6 (action_slug) nomeada no plano."""
+    """Teses distintas (dedup_key ≠) sob o mesmo thesis_key DENTRO do run atual (ADR-378 §D5) — chave grossa demais é drift detectável, não surpresa. Gatilho medido em 2026-08-11: 2 colisões num run real → F6 (action_slug) nomeada no plano."""
     by_thesis: dict[str, set[str]] = {}
     for _horizon, sug in sugs:
         thesis = _thesis_key_for(workspace_id, sug)
@@ -203,7 +203,7 @@ def _recently_dismissed_theses(db: Session, *, workspace_id: str, now: datetime)
 
 
 def _accepted_dedup_keys(db: Session, *, workspace_id: str) -> set[str]:
-    """dedup_keys já promovidas a Decision (Aceita/Modificada) — reemissão idêntica não vira Pendente nova enquanto a Decision existir. Alinha o caminho llm à política de dedup ADR-153 §2 (`_should_skip` do caminho determinístico usa o mesmo conjunto ativo); Superseded deixa de bloquear reafirmação (ADR-376 §D2)."""
+    """dedup_keys já promovidas a Decision (Aceita/Modificada) — reemissão idêntica não vira Pendente nova enquanto a Decision existir. Alinha o caminho llm à política de dedup ADR-153 §2 (`_should_skip` do caminho determinístico usa o mesmo conjunto ativo); Superseded deixa de bloquear reafirmação (ADR-378 §D2)."""
     rows = db.execute(
         select(Suggestion.dedup_key).where(
             Suggestion.workspace_id == workspace_id,
@@ -300,7 +300,7 @@ def _thesis_key_for(workspace_id: str, sug: dict) -> Optional[str]:
 def _build_suggestion(
     workspace_id: str, run_id: str, sug: dict, horizon: str, report_id: Optional[str] = None
 ) -> Suggestion:
-    """Constrói Suggestion(origin='llm') do run vigente (ADR-376 §D1/§D4)."""
+    """Constrói Suggestion(origin='llm') do run vigente (ADR-378 §D1/§D4)."""
     return Suggestion(
         workspace_id=workspace_id,
         report_id=report_id,

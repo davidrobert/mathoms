@@ -1,4 +1,4 @@
-"""Helpers compartilhados dos testes de ciclo de vida de Suggestion do parecer (ADR-290/ADR-376) — construção de artifact sintético, seed e leitura por status."""
+"""Helpers compartilhados dos testes de ciclo de vida de Suggestion do parecer (ADR-290/ADR-378) — construção de artifact sintético, seed e leitura por status."""
 
 from __future__ import annotations
 

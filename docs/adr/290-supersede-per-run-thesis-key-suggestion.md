@@ -11,7 +11,7 @@ relates_to:
   - "[[ADR-208]]"
   - "[[ADR-269]]"
   - "[[ADR-279]]"
-  - "[[ADR-376]]"
+  - "[[ADR-378]]"
 supersedes: []
 superseded_by: []
 amended_at: ["2026-08-11"]
@@ -26,7 +26,7 @@ tags:
 
 # ADR-290 — Supersede-per-run + thesis_key para `Suggestion` `origin=llm`
 
-> **Emendada em 2026-08-11 por [[ADR-376]]** — B1 (fallback `thesis_key
+> **Emendada em 2026-08-11 por [[ADR-378]]** — B1 (fallback `thesis_key
 > NULL` fora do supersede) e B3 (predicado por tese) foram substituídos por
 > expiração por parecer-fonte. Leia a §Emenda no fim deste arquivo antes de
 > usar B1/B3 como referência.
@@ -127,7 +127,7 @@ mesmo run dividiram a chave sendo teses distintas — um único trio (tema
 cambial e concentração imobiliária. O gate da F1 media reaparição (≥90%), não
 colisão — verde possível com a chave errada.
 
-[[ADR-376]] altera:
+[[ADR-378]] altera:
 
 - **B1** — `thesis_key = NULL` **não** protege mais a linha da expiração. A
   chave permanece gravada, com papel restrito a janela de dismiss (B4) e
@@ -138,4 +138,4 @@ colisão — verde possível com a chave errada.
   descartada nunca expiram) seguem valendo integralmente.
 
 **Inalterados:** B2 (status `Superseded`, capitalizado — mas o UNIQUE full
-citado ali vira índice único parcial em ADR-376 §D3), B4, B5, B6, B7.
+citado ali vira índice único parcial em ADR-378 §D3), B4, B5, B6, B7.

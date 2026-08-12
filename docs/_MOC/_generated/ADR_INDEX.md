@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-369 ADRs (ADR-001 a ADR-377) em [`docs/adr/`](../../adr/).
+369 ADRs (ADR-001 a ADR-378) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -327,7 +327,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
 - [[ADR-329]] — Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium
 - [[ADR-339]] — Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata
-- [[ADR-376]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
+- [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 
 ## categorization
 

@@ -1,4 +1,4 @@
-"""Expiração por parecer-fonte (ADR-376) — aceite F5 do PLAN-suggestion-lifecycle: run ENTREGUE expira todas as pendentes anteriores (inclusive thesis_key NULL) e insere o conjunto vigente; retido/vazio não expira; reafirmação re-entra fresca; contadores KR4."""
+"""Expiração por parecer-fonte (ADR-378) — aceite F5 do PLAN-suggestion-lifecycle: run ENTREGUE expira todas as pendentes anteriores (inclusive thesis_key NULL) e insere o conjunto vigente; retido/vazio não expira; reafirmação re-entra fresca; contadores KR4."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def sync_session() -> Generator[Session, None, None]:
         s.close()
 
 
-# ADR-376 §D1: dedup_key não cobre rationale/valor — manter a row antiga
+# ADR-378 §D1: dedup_key não cobre rationale/valor — manter a row antiga
 # preservaria conteúdo defasado (o contrato pré-376 mantinha a original).
 @pytest.mark.asyncio
 async def test_reappearing_same_wording_reissued_fresh(db, sync_session):
@@ -55,7 +55,7 @@ async def test_reappearing_same_wording_reissued_fresh(db, sync_session):
 
 @pytest.mark.asyncio
 async def test_accepted_dedup_key_blocks_reissue(db, sync_session):
-    """ADR-376 §D2: reemissão byte-idêntica de texto já Aceito é skipada como dup — a Decision carrega o trabalho; não nasce Pendente concorrente."""
+    """ADR-378 §D2: reemissão byte-idêntica de texto já Aceito é skipada como dup — a Decision carrega o trabalho; não nasce Pendente concorrente."""
     workspace = await factories.make_workspace(db)
     acao = "rever alocacao em renda fixa"
     run2 = await make_run_with_acoes(db, workspace, [{"acao": acao}])
@@ -72,7 +72,7 @@ async def test_accepted_dedup_key_blocks_reissue(db, sync_session):
 
 @pytest.mark.asyncio
 async def test_null_thesis_key_expired_on_delivered_run(db, sync_session):
-    """ADR-376 §D1: pendente com thesis_key NULL (zumbi pós-backfill F4) EXPIRA em run entregue — inverte o fallback pré-376 que a deixava imortal."""
+    """ADR-378 §D1: pendente com thesis_key NULL (zumbi pós-backfill F4) EXPIRA em run entregue — inverte o fallback pré-376 que a deixava imortal."""
     workspace = await factories.make_workspace(db)
     run2 = await make_run_with_acoes(db, workspace, [{"acao": "rever alocacao"}])
     await db.commit()
@@ -88,7 +88,7 @@ async def test_null_thesis_key_expired_on_delivered_run(db, sync_session):
 
 @pytest.mark.asyncio
 async def test_retido_run_does_not_expire_inbox(db, sync_session):
-    """ADR-376 §D1 guard (senior-cto B-1): run retido não entregou — pendentes anteriores sobrevivem e nada é inserido."""
+    """ADR-378 §D1 guard (senior-cto B-1): run retido não entregou — pendentes anteriores sobrevivem e nada é inserido."""
     workspace = await factories.make_workspace(db)
     run1 = await make_run_with_acoes(db, workspace, [{"acao": "aumentar reserva"}])
     run2 = await make_run_with_acoes(db, workspace, [{"acao": "rever alocacao"}])
@@ -122,7 +122,7 @@ async def test_empty_delivered_artifact_does_not_expire(db, sync_session):
 
 
 # 3 runs: X → X reafirmada → Y. O UNIQUE full antigo quebrava na 2ª Superseded
-# de mesma dedup_key; o índice parcial (só status ativos) permite (ADR-376 §D3).
+# de mesma dedup_key; o índice parcial (só status ativos) permite (ADR-378 §D3).
 @pytest.mark.asyncio
 async def test_same_dedup_key_superseded_twice_no_constraint_violation(db, sync_session):
     """2 Superseded com a MESMA dedup_key coexistem; Pendente final é só a do run 3."""
@@ -146,7 +146,7 @@ async def test_same_dedup_key_superseded_twice_no_constraint_violation(db, sync_
 
 @pytest.mark.asyncio
 async def test_horizon_persisted_per_bucket(db, sync_session):
-    """ADR-376 §D4: bucket do artifact vira horizon canônico na row — antes era descartado em _iter_sugestoes."""
+    """ADR-378 §D4: bucket do artifact vira horizon canônico na row — antes era descartado em _iter_sugestoes."""
     workspace = await factories.make_workspace(db)
     run1 = await make_run_with_acoes(
         db,
@@ -188,7 +188,7 @@ async def test_expire_insert_survives_no_autoflush(db, sync_session):
 # único contador que enxerga "inbox esvaziou" (senior-cto M-1).
 @pytest.mark.asyncio
 async def test_stats_counters_kr4(db, sync_session):
-    """KR4 (ADR-376 §D5): superseded/created/reemitted/pending_after/skipped_dup."""
+    """KR4 (ADR-378 §D5): superseded/created/reemitted/pending_after/skipped_dup."""
     workspace = await factories.make_workspace(db)
     run1 = await make_run_with_acoes(
         db, workspace, [{"acao": "aumentar reserva"}, {"acao": "rever alocacao"}]

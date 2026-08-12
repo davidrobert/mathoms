@@ -84,7 +84,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Status: `in_progress` · Sprint atual: A42
 - Sprints envolvidas: A25, A42
 - Lanes: _(sem lanes vinculadas por `plan:`)_
-- ADRs canônicas: [[ADR-290]], [[ADR-376]]
+- ADRs canônicas: [[ADR-290]], [[ADR-378]]
 
 ## Pausados (`paused`)
 
