@@ -23,12 +23,15 @@ def _erros(codigo: str, tmp_path: Path) -> list[str]:
     gate = _gate_module()
     alvo = tmp_path / "modulo_sob_teste.py"
     alvo.write_text(codigo, encoding="utf-8")
-    monkeyed = gate.REPO_ROOT
+    # Resolve o mapa com o REPO_ROOT real (ele lê o fonte do store por AST) antes de
+    # apontar a raiz para o tmp — senão o gate procura o arquivo dentro do tmp.
+    mapa = gate._schema_por_stage()
+    real = gate.REPO_ROOT
     try:
         gate.REPO_ROOT = tmp_path
-        return gate._analisa(alvo, gate._schema_por_stage())
+        return gate._analisa(alvo, mapa)
     finally:
-        gate.REPO_ROOT = monkeyed
+        gate.REPO_ROOT = real
 
 
 _LEITOR_CORRETO = """

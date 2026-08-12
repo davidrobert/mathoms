@@ -38,12 +38,20 @@ CONTRACT = "ARTIFACT_CONTRACT"
 ENXERTOS_DO_BACKEND = frozenset({"_report_lineage", "comparisons", "changelog"})
 
 
+# Lê o mapa por AST em vez de importar: o job de Lint roda em env enxuto (sem
+# pydantic), e importar `db_artifact_store` puxaria a app inteira. Mesmo motivo do
+# `check_run_artifact_fk_coverage.py` — gate barato, sem import.
 def _schema_por_stage() -> dict[str, str]:
-    """Reusa o mapa que o `DBArtifactStore` já aplica no write."""
-    sys.path.insert(0, str(REPO_ROOT))
-    from backend.app.services.storage.db_artifact_store import SCHEMA_BY_STAGE
-
-    return dict(SCHEMA_BY_STAGE)
+    """Mapa stage→schema, lido do fonte que o `DBArtifactStore` aplica no write."""
+    fonte = REPO_ROOT / "backend" / "app" / "services" / "storage" / "db_artifact_store.py"
+    tree = ast.parse(fonte.read_text(encoding="utf-8"))
+    for node in tree.body:
+        alvo = node.target if isinstance(node, ast.AnnAssign) else None
+        if isinstance(node, ast.Assign):
+            alvo = next((t for t in node.targets if isinstance(t, ast.Name)), None)
+        if isinstance(alvo, ast.Name) and alvo.id == "SCHEMA_BY_STAGE" and node.value:
+            return {str(k): str(v) for k, v in ast.literal_eval(node.value).items()}
+    raise SystemExit(f"SCHEMA_BY_STAGE não encontrado em {fonte}")
 
 
 def _propriedades(schema_file: str) -> set[str]:
