@@ -23,25 +23,9 @@ export interface PatrimonioCaixaDetalhe {
   fonte?: "extrato" | "informe_31_12" | string;
 }
 
-/** A33.l2 P4 (co-design product-designer 2026-07-07) — row do card
- * "Posição por instituição e moeda (31/12)" em S1. */
-export interface Posicao3112Row {
-  instituicao: string;
-  moeda: string;
-  /** Valor na moeda original — null para contas BRL (sem linha secundária). */
-  valor_original: number | null;
-  /** Valor convertido a BRL pela PTAX compra 31/12; null quando PTAX ausente. */
-  valor_brl: number | null;
-  fonte: "informe_31_12" | "extrato" | string;
-  /** Data ISO da cotação PTAX usada (footnote). */
-  ptax_data: string | null;
-  ptax_status: "applied" | "missing" | string | null;
-  /** Informe substituiu o saldo do extrato da virada de ano → nudge. */
-  informe_venceu_extrato: boolean;
-  divergencia_relevante: boolean;
-  ano_base: number | null;
-  tipo: string;
-}
+import type { Posicao3112Row } from "./posicao-31-12";
+
+export type { Posicao3112Row };
 
 export interface PatrimonioCategoria {
   categoria: string;

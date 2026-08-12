@@ -149,6 +149,8 @@ def test_caixa_detalhe_to_dict_rounds_to_2():
         "valor_brl": 720.0,
         "tipo": "moeda_estrangeira",
         "fonte": "extrato",
+        "data_referencia": None,
+        "data_referencia_precisao": "desconhecida",
     }
 
 
