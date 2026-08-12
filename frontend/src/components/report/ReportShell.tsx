@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
-import pkg from "../../../package.json";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
 import { formatPeriodCoverPtBR } from "@/lib/format";
@@ -79,6 +78,8 @@ interface ReportShellProps {
   reportCreatedAt: string;
   /** F11.4a — opcional; link para a execução no Pipeline. */
   pipelineRunId?: string | null;
+  /** ADR-362 — revisão do executor (stage E5) exibida no colofão; `null` → "—". */
+  executorRevision?: string | null;
   runOutcome: ReportRunOutcome;
   /** F11.4a — `sourceDocumentCount`: docs prontos no workspace (mutável); `consumedDocumentCount`: docs extraídos pela run (imutável). */
   sourceDocumentCount?: number | null;
@@ -189,6 +190,7 @@ export function ReportShell({
   reportPeriod,
   reportCreatedAt,
   pipelineRunId,
+  executorRevision,
   runOutcome,
   sourceDocumentCount,
   consumedDocumentCount,
@@ -251,7 +253,9 @@ export function ReportShell({
     const periodValue = formatPeriodCoverPtBR(
       analysisPeriodFromSnapshot ?? reportPeriod ?? null,
     );
-    const versionValue = pkg.version ? `Mathoms v${pkg.version}` : "Mathoms";
+    // O card "Versão" saiu de propósito: mostrava pkg.version do frontend no
+    // momento da visualização — não é fato do run. Proveniência real
+    // (executor_revision, ADR-362) vive no colofão (ReportSourceStrip).
     const surname = familySurname?.trim();
     const cards: CoverMeta[] = [];
     if (surname) {
@@ -260,7 +264,6 @@ export function ReportShell({
     cards.push(
       { label: "Período de referência", value: periodValue },
       { label: "Gerado em", value: generated },
-      { label: "Versão", value: versionValue },
     );
     return cards;
   }, [
@@ -462,6 +465,7 @@ export function ReportShell({
                 analysisPeriod={analysisPeriodFromSnapshot}
                 generatedAtIso={reportCreatedAt}
                 pipelineRunId={pipelineRunId}
+                executorRevision={executorRevision}
                 sourceDocumentCount={sourceDocumentCount}
                 consumedDocumentCount={consumedDocumentCount}
               />

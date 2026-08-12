@@ -30,6 +30,9 @@ export interface ReportResponse {
    * autoriza o relatório a AFIRMAR que não há pendências. Obrigatório: campo
    * opcional que chegasse `undefined` faria a supressão sumir em silêncio. */
   run_outcome: ReportRunOutcome;
+  /** ADR-362 — revisão do executor no stage E5 do run (colofão). `null` =
+   * executor não declarou (run pré-ADR-362, purgado) — a UI mostra "—". */
+  executor_revision: string | null;
 }
 
 /** Desfecho do run sob a ótica do relatório (espelha `ReportRunOutcome` do backend). */

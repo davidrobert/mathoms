@@ -44,6 +44,9 @@ class ReportResponse(BaseModel):
     # de propósito: campo opcional que chegue ``undefined`` (rollout, cache de
     # cliente antigo, fixture velha) faria a supressão sumir em silêncio.
     run_outcome: ReportRunOutcome
+    # ADR-362 — revisão do executor no stage E5 do run (colofão do relatório).
+    # ``None`` = executor não declarou (run pré-ADR-362, purgado) — UI mostra "—".
+    executor_revision: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
