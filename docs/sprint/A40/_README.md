@@ -241,6 +241,7 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
 | [[A40.l43]] | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | P1 | — | `shipped` `849e372b` (#1386) · achado do parecer de design · emenda [[ADR-356]] (regra: o narrador não publica valor nem juízo) · fecha por remoção o item de `n_imoveis` da [[A40.l6]] e a classe da [[A40.l15]] · transfere p/ [[A40.l29]] |
 | [[A40.l46]] | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant `feature` sem o DNA do mockup | P2 | — | aberta 2026-08-12 no fecho do #1382 · coleta os 2 achados sem dono da investigação do overlap · item 2 executa o deferimento da [[A40.l33]] §3 ([[ADR-117]] na mesa) |
+| [[A40.l47]] | Follow-ups órfãos da [[A40.l43]] — o que o co-design achou na vizinhança e ninguém ataca | P2 (proposta) | — | aberta 2026-08-12 a pedido do dono · lane de **registro**: cada item com medição citada + fix mínimo, para não evaporar no fim da sprint · prioridade/onda são gatilho de `product-manager` |
 
 | [[A40.l50]] | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | P1 | — | aberta 2026-08-12 · resíduo do #1393 (`d1b7c97c`) · 18 achados sobreviveram a refutação adversarial, 2 refutados · contém **P0 fora do card** (`consolidate_baseline` re-consolida run anterior; rodapé PTAX afirma conversão que não houve) · 5 questões de domínio sem dono · [[ADR-379]] bloqueada por dependência de ordem |
 
@@ -1187,6 +1188,25 @@ instrumento (denominador, invariante de ancorabilidade, re-medição retroativa 
 19 runs — tudo sem geração nova) e [[A40.l31]] é o fix, que gasta e fica atrás do
 diagnóstico. Lane única ficaria infechável, não por misturar medir com mudar, mas
 por **depender de sessão do dono no meio**.
+
+## Inventário de follow-up da sessão de 2026-08-11/12 — [[A40.l43]]
+
+Mesma convenção da seção acima: **um item ou tem lane, ou tem disposição escrita.**
+O co-design da l43 (`prompt-engineer` + `financial-planner` + `product-designer`,
+escalado ao `senior-cto`) produziu achados vizinhos ao escopo. Os com dono foram
+roteados; o resto foi para a [[A40.l46]], aberta a pedido do dono para que nenhum
+evapore.
+
+| Follow-up | Onde está | Tem destino? |
+|---|---|---|
+| `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l6]] | **quitado por remoção** — o aceite "fonte única" ficou insatisfazível; a l6 mantém só o lado da S4 |
+| Política de diversificação/concentração — o que a S3 afirma sobre a carteira | [[A40.l15]] | **lane** — a l43 mediu que os publicadores **entregues** foram a zero; a política segue da l15 |
+| Premissas de IF (TRS, retorno real, meta em R$, aporte-meta) sem superfície nenhuma no relatório | [[A40.l29]] §Escopo 2 | **lane** — `financial-planner` classificou como *requisito de leitura*, não redundância ([[ADR-306]] §D2) |
+| Forma do ramo de prazo ausente na S7 (preservar ao reescrever o §Escopo 1) | [[A40.l29]] | **lane** — a declaração de ausência já foi transferida em `849e372b`; a l29 não pode reintroduzir `fmt_num` cru |
+| 5 das 6 fixtures E2E têm o contrato morto — estados vazios do bloco de identidade nunca vistos em baseline | [[A40.l46]] §1 | **lane** |
+| Heading order h1→h3→h2 + Sumário Executivo sem heading (gate axe é `critical+serious`, `heading-order` é `moderate`) | [[A40.l46]] §2 | **lane** |
+| 6 lanes fora da tabela §Lanes (l38–l42, l44) — o §Gate de saída lê a tabela | [[A40.l46]] §3 | **lane** (contador corrigido em #1405; a tabela, não) |
+| Substrato declarado de plano de vida — feature que o pedido original queria | [[A40.l46]] §4 | **lane** — exige ADR `Proposto` com gatilho **PII**, e depende do §Escopo 2 da l29 para ter onde pousar |
 
 ## Pendências de decisão — itens 11-12 (2026-08-03)
 
