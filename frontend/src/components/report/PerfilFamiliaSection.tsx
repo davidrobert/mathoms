@@ -12,9 +12,12 @@ import { ReportSection } from "./ReportSection";
 import { CpfField } from "./ui/CpfField";
 
 interface PerfilEntry {
-  // Onda R2 (PD-01): o narrador emite `left`/`right` (2 colunas, HTML de parágrafos).
+  // Emenda ADR-356 (2026-08-11 · A40.l43): o narrador emite só `left` — prosa
+  // sobre as pessoas. A coluna `right` publicava patrimônio, meta de IF, score e
+  // taxa de poupança que o hero mostra logo acima, e a regra que a exigia
+  // não-vazia era o que produzia veredito incondicional. Chave não é mais lida:
+  // mantê-la opcional aqui deixaria ramo morto de leitura (ADR-356 §D4).
   left?: string;
-  right?: string;
 }
 
 interface MemberRow {
@@ -166,23 +169,30 @@ function RosterList({
   );
 }
 
-function NarrativaColunas({ colunas }: { colunas: string[][] }) {
+// `grid` particiona SIGNIFICADO; `columns` particiona ESPAÇO. O contrato
+// `left`/`right` encodava uma partição semântica (pessoas | números); removida a
+// metade numérica, o conteúdo é homogêneo e a partição vira tipográfica — um
+// `grid sm:grid-cols-2` com um filho deixaria coluna vazia, que em relatório
+// financeiro lê como "algo não carregou". Três detalhes obrigatórios: CSS columns
+// não honra `gap` de flex (margem vai no `<p>`), print força 1 coluna (fragmentar
+// multi-coluna em quebra de página é bug conhecido do Chromium), e ≤2 parágrafos
+// não se parte ao meio. Especificação do `product-designer` no co-design da l43.
+function NarrativaProsa({ paragrafos }: { paragrafos: string[] }) {
+  const duasColunas = paragrafos.length >= 3;
   return (
-    <div className="grid gap-3 sm:grid-cols-2 sm:gap-8">
-      {colunas.map((coluna, i) =>
-        coluna.length > 0 ? (
-          <div key={i} className="flex flex-col gap-3">
-            {coluna.map((paragrafo, j) => (
-              <p
-                key={j}
-                className="text-sm leading-relaxed text-[var(--surface-foreground)]"
-              >
-                {paragrafo}
-              </p>
-            ))}
-          </div>
-        ) : null,
-      )}
+    <div
+      data-perfil-prosa
+      className={
+        duasColunas
+          ? "sm:columns-2 sm:gap-8 [&>p]:break-inside-avoid [&>p:not(:last-child)]:mb-3"
+          : "flex max-w-[72ch] flex-col gap-3"
+      }
+    >
+      {paragrafos.map((paragrafo, i) => (
+        <p key={i} className="text-sm leading-relaxed text-[var(--surface-foreground)]">
+          {paragrafo}
+        </p>
+      ))}
     </div>
   );
 }
@@ -194,11 +204,8 @@ export function PerfilFamiliaSection({
 }: PerfilFamiliaSectionProps) {
   const roster = useRoster(workspaceId);
   const perfil = narrativas?.["perfil_familia"] as PerfilEntry | undefined;
-  const colunas = [
-    parseParagraphs(perfil?.left),
-    parseParagraphs(perfil?.right),
-  ];
-  const hasNarrativa = colunas.some((c) => c.length > 0);
+  const paragrafos = parseParagraphs(perfil?.left);
+  const hasNarrativa = paragrafos.length > 0;
   const hasRoster = (roster?.rows.length ?? 0) > 0;
   if (!hasNarrativa && !hasRoster) return null;
 
@@ -216,7 +223,7 @@ export function PerfilFamiliaSection({
             hasNarrativa={hasNarrativa}
           />
         )}
-        {hasNarrativa && <NarrativaColunas colunas={colunas} />}
+        {hasNarrativa && <NarrativaProsa paragrafos={paragrafos} />}
       </ReportCard>
     </ReportSection>
   );

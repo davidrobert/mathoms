@@ -121,12 +121,11 @@ seria fabricar.
 
 ## Fora de escopo
 
-- **Layout multi-coluna do card** (`md:columns-2` para o fluxo de parágrafos).
-  Deliberado: as **6/6** fixtures E2E emitem `narrativas.perfil_familia` como
-  *string*, então o card devolve `null` em todo run de Playwright e qualquer CSS
-  aqui teria **delta visual zero por construção**. Entra no PR que primeiro der
-  **baseline olhada** ao card — e esse zero é evidência do buraco de cobertura,
-  não de segurança.
+- ~~Layout multi-coluna~~ — **entrou nesta lane** depois que o #1382 corrigiu a
+  fixture `medium.json` e tornou o delta verificável. Ver §Colisão. As outras
+  **5** fixtures seguem emitindo `perfil_familia` como *string*, então a seção
+  ainda não aparece nelas: quem for tocar degradação/print do bloco de identidade
+  corrige as 5 e ganha a primeira baseline **olhada** dos estados vazios.
 - **Repor as premissas de IF** (TRS, retorno real, meta em R$, aporte-meta) — sem
   superfície no relatório hoje; destino é a [[A40.l29]] §Escopo 2. Ownership de
   superfície, não escolha de conteúdo.
@@ -148,40 +147,37 @@ seria fabricar.
   `heading-order` como `moderate` e o gate é `critical+serious`, então não pega.
   Lane própria.
 
-## Colisão declarada com o PR #1382 (ordem de merge importa)
+## Colisão com o PR #1382 — RESOLVIDA (ele mergeou primeiro, 2026-08-12)
 
-O PR **#1382** (`agent/report-perfil-identity-block`) **deleta**
-`PerfilFamiliaCard.tsx` e o substitui por `PerfilFamiliaSection.tsx`, fundindo "A
-Família" com o `TitularesCard` numa seção de identidade — exatamente o follow-up
-que o `product-designer` levantou no co-design **desta** lane (dois cards vizinhos
-respondendo "quem", com fontes distintas).
+O **#1382** fundiu "A Família" + `TitularesCard` numa seção de identidade
+(`PerfilFamiliaSection.tsx`, card deletado) — exatamente o follow-up que o
+`product-designer` levantou no co-design **desta** lane. Ele mergeou em
+`ad33d456` **antes** desta lane, e a seção nova **ainda consumia `right`**
+(`parseParagraphs(perfil?.right)`), o que teria produzido uma coluna vazia num
+`grid sm:grid-cols-2`.
 
-**O conflito não é só textual: a seção nova consome `right`.**
+Resolvido no rebase, no cenário "#1382 primeiro" que esta seção já previa: o lado
+de pipeline é disjunto e não mudou; o edit de frontend migrou do card deletado
+para a seção nova.
 
-```
-parseParagraphs(perfil?.left),
-parseParagraphs(perfil?.right),   // ← e esta lane remove a chave do produtor
-```
+**Duas coisas que o merge do #1382 mudou nesta lane:**
 
-Se os dois mergearem sem coordenação, o produtor deixa de emitir `right` e a seção
-renderiza **uma coluna vazia** num `grid sm:grid-cols-2` — que em relatório
-financeiro lê como "algo não carregou", o sinal errado num produto que agora
-declara degradação explicitamente ([[A40.l22]]).
-
-**Os dois PRs são complementares em mérito** — #1382 resolve a adjacência das duas
-superfícies de identidade; esta lane resolve o conteúdo duplicado. Juntos: seção de
-identidade única, sem coluna de números. Só a **ordem** precisa de decisão:
-
-- **Esta lane primeiro** → #1382 rebaseia removendo a leitura de `right` (uma
-  linha e o par de `parseParagraphs`). É melhoria para ele: a coluna de números
-  não pertence a uma seção de identidade, e o `product-designer` já disse isso.
-- **#1382 primeiro** → esta lane rebaseia aplicando a mesma mudança em
-  `PerfilFamiliaSection.tsx` em vez do card deletado; o lado de pipeline
-  (narrador, validador, S7, `today`) é **disjunto** e não muda.
-
-Preferência: **esta lane primeiro**, porque o lado de pipeline é o que carrega a
-decisão de contrato (emenda [[ADR-356]]) e o de frontend do #1382 é o que absorve
-mais barato. Decisão do dono.
+1. **O deferimento do layout caiu.** O `md:columns-2` estava fora de escopo porque
+   as 6/6 fixtures E2E emitiam `perfil_familia` como *string* e o delta visual
+   seria zero por construção. O #1382 **corrigiu `medium.json`** para
+   `{left,right}` — a seção passou a aparecer no e2e, logo remover `right`
+   deixaria coluna vazia **visível e verificável**. O motivo do deferimento morreu,
+   então o fluxo multi-coluna entrou aqui, com as 3 travas do `product-designer`:
+   margem no `<p>` (CSS columns não honra `gap` de flex), `columns: 1` no print
+   (fragmentar multi-coluna em quebra de página é bug do Chromium, e o repo já tem
+   cicatriz de PDF truncado), e ≤2 parágrafos em 1 coluna (workspace de 1 pessoa
+   não deve ter parágrafo único partido ao meio).
+2. **A fixture `medium.json` carregava afirmação fabricada.** O `right` que o
+   #1382 escreveu à mão dizia *"Plano de vida centrado na consolidação
+   patrimonial…"* — texto que o produtor **nunca** emitiu (o narrador emitia meta
+   de IF, patrimônio bruto, score). Fixture escrita à mão descrevendo mundo que o
+   produtor não produz é o anti-padrão que a [[A40.l3]] catalogou. Removida com a
+   chave.
 
 ## Fechamento
 

@@ -2,8 +2,11 @@
  * `PerfilFamiliaSection` — bloco de identidade fundido (ex-PerfilFamiliaCard +
  * ex-TitularesCard, ADR-259 §4): seção do shell `id="perfil"`, roster documental
  * (nome civil → CPF, ordenado por `order`, rótulo pelo `role` do cadastro) sobre
- * a narrativa left/right do E5.N. Matriz de vazio: só roster, só narrativa, ou
+ * a narrativa `left` do E5.N. Matriz de vazio: só roster, só narrativa, ou
  * null quando ambos faltam.
+ *
+ * `right` morreu na emenda ADR-356 (A40.l43): publicava os KPIs do hero e a
+ * regra que a exigia não-vazia produzia veredito incondicional.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
@@ -16,8 +19,7 @@ const API = "/api/v1";
 const WS = "ws-1";
 
 const LEFT = "<p>Titular, 40 anos, é engenheiro.</p>\n<p>Cônjuge, CLT.</p>";
-const RIGHT = "<p>Meta de IF de R$ 5M.</p>";
-const NARRATIVAS = { perfil_familia: { left: LEFT, right: RIGHT } };
+const NARRATIVAS = { perfil_familia: { left: LEFT } };
 
 interface MemberStub {
   id: string;
@@ -226,5 +228,53 @@ describe("PerfilFamiliaSection", () => {
       <PerfilFamiliaSection narrativas={NARRATIVAS} workspaceId={WS} />,
     );
     expect(container.textContent).not.toContain("<p>");
+  });
+
+  it("ignora `right` de artefato antigo — a chave não é mais lida", () => {
+    mockMembersAndRole([], "owner");
+    render(
+      <PerfilFamiliaSection
+        narrativas={{
+          perfil_familia: { left: LEFT, right: "<p>Meta de IF de R$ 5M.</p>" },
+        }}
+        workspaceId={WS}
+      />,
+    );
+    expect(screen.getByText("Titular, 40 anos, é engenheiro.")).toBeInTheDocument();
+    expect(screen.queryByText("Meta de IF de R$ 5M.")).not.toBeInTheDocument();
+  });
+
+  it("só `right` (artefato antigo, sem pessoas) não renderiza narrativa", async () => {
+    mockMembersAndRole([], "owner");
+    const { container } = render(
+      <PerfilFamiliaSection
+        narrativas={{ perfil_familia: { right: "<p>Meta de IF.</p>" } }}
+        workspaceId={WS}
+      />,
+    );
+    await waitFor(() => expect(container.firstChild).toBeNull());
+  });
+
+  // Nunca `grid` com um filho: coluna vazia em relatório financeiro lê como
+  // "algo não carregou". ≤2 parágrafos não se partem ao meio.
+  it("2 parágrafos ficam em 1 coluna; 3+ fluem em duas", () => {
+    mockMembersAndRole([], "owner");
+    const { container: curto } = render(
+      <PerfilFamiliaSection narrativas={NARRATIVAS} workspaceId={WS} />,
+    );
+    expect(curto.querySelector("[data-perfil-prosa]")?.className).not.toContain(
+      "columns-2",
+    );
+
+    const tres = "<p>Um.</p><p>Dois.</p><p>Três.</p>";
+    const { container: longo } = render(
+      <PerfilFamiliaSection
+        narrativas={{ perfil_familia: { left: tres } }}
+        workspaceId={WS}
+      />,
+    );
+    expect(longo.querySelector("[data-perfil-prosa]")?.className).toContain(
+      "sm:columns-2",
+    );
   });
 });
