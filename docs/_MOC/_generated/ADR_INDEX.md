@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-367 ADRs (ADR-001 a ADR-376) em [`docs/adr/`](../../adr/).
+368 ADRs (ADR-001 a ADR-377) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 319
-- **Proposto**: 44
+- **Proposto**: 45
 - **Roadmap**: 4
 
 ## Fundação
@@ -400,6 +400,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-356]] — Precedência declarada do parágrafo de seção e CV9 como medida de entrega · phase report-review r3 (RV3-03 · RV3-33) · A40.l4
 - [[ADR-370]] — Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão · phase A40
 - [[ADR-372]] — Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma
+
+### Proposto (1)
+
+- [[ADR-377]] — Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa · phase A40
 
 ## gtm
 

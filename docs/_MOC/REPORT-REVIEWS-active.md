@@ -200,8 +200,8 @@ três furos que valem mais que vários achados):
 
 | Código | Dimensão | Severidade | Prioridade | Veredito | Disposição | Trilha |
 |---|---|---|---|---|---|---|
-| RV4-01 — âncora da janela interativa derivada do **último label da série mensal** (`S1PatrimonioSection.tsx:57-58` via `parseChartMonthLabel`); lançamento com data futura estica a série além do mês corrente e a janela de média passa a cair sobre meses sem atividade. **Contrafactual medido: consertar só a âncora fecha 100% do gap** | correção | Crítico | P0 | CONFIRMADO | procede-aberto | owner: senior-cto · lane a abrir · **ordem obrigatória: RV4-01 antes de RV4-03** |
-| RV4-02 — o cliente é um **segundo motor de agregação**: `periodUtils.ts` re-deriva os três insumos de qualquer agregado (substrato via `GET /transactions`, predicado via `isIncomeCategory:106`, denominador via `getPeriodMonths:83`). Número nascido no cliente é **inauditável por construção** — fora de `explain_number`, `_lineage`, golden de execução, snapshot do view-model e verificação de ancorabilidade | consistência | Crítico | P0 | CONFIRMADO | procede-aberto | owner: senior-cto · **ADR `Proposto` a abrir** (alocar id na escrita) · relaciona [[ADR-306]] D2/D3, [[ADR-282]] · absorve RV4-01/03/05/06/07 e **fecha RV3-02 junto** |
+| RV4-01 — âncora da janela interativa derivada do **último label da série mensal** (`S1PatrimonioSection.tsx:57-58` via `parseChartMonthLabel`); lançamento com data futura estica a série além do mês corrente e a janela de média passa a cair sobre meses sem atividade. **Contrafactual medido: consertar só a âncora fecha 100% do gap** | correção | Crítico | P0 | CONFIRMADO | procede-aberto | owner: senior-cto · **[[A40.l44]]** PR1 · **ordem obrigatória: RV4-01 antes de RV4-03** |
+| RV4-02 — o cliente é um **segundo motor de agregação**: `periodUtils.ts` re-deriva os três insumos de qualquer agregado (substrato via `GET /transactions`, predicado via `isIncomeCategory:106`, denominador via `getPeriodMonths:83`). Número nascido no cliente é **inauditável por construção** — fora de `explain_number`, `_lineage`, golden de execução, snapshot do view-model e verificação de ancorabilidade | consistência | Crítico | P0 | CONFIRMADO | procede-aberto | owner: senior-cto · **[[ADR-377]]** `Proposto` (2026-08-11) + **[[A40.l44]]** · relaciona [[ADR-306]] D2/D3 · absorve RV4-01/03/05/06/07 e **fecha RV3-02 junto** |
 | RV4-03 — taxonomia de receita duplicada no cliente diverge do produtor: categoria de crédito fora do whitelist sai da receita **e entra no balde de despesa** (`aggregateDespesasMediaMensal` usa `!isIncomeCategory`), rendendo teto de gasto a partir de um recebimento. O comentário de cobertura em `ReceitasFonteCard.tsx:11-14` não podia ser verdadeiro: o pipeline não tem lista fechada de categorias de receita | correção | Crítico | P0 | CONFIRMADO | procede-aberto | owner: data-engineer · **anti-fix registrado**: corrigir isto antes de RV4-01 faz o divisor parecer validado e o gate fechar verde com o número ainda errado |
 | RV4-04 — três agregados distintos de "receita mensal" e três shares da mesma fonte convivem na mesma leitura, sem rótulo que reconcilie a base | consistência | Crítico | P0 | CONFIRMADO | procede-aberto | owner: product-designer + senior-cto · sintoma de RV4-02 + RV4-08 |
 | RV4-05 — o estado de carregamento do card de orçamento renderiza um **dataset completo alternativo** (bloco estático de janela `full`) em vez de esqueleto: `OrcamentoProspectivoCard.tsx:46-58` só aplica a guarda `anchorDate && !isLoading` depois de cair no fallback ⇒ conteúdo monetário **não-determinístico** entre superfícies do mesmo relatório | correção | Alto | P0 | CONFIRMADO | procede-aberto | owner: senior-cto · observado: tela e print num caminho, PDF de produção no outro |
@@ -223,6 +223,15 @@ três furos que valem mais que vários achados):
 **Ordem de ataque:** RV4-01 → RV4-03 → RV4-05 → RV4-06/07 → **RV4-02** (estrutural,
 absorve os anteriores e fecha RV3-02) → RV4-04/08/10. A inversão de RV4-01 e RV4-03
 produz gate verde com número errado — está registrada como anti-fix nas duas linhas.
+
+**Aberta 2026-08-11:** a [[A40.l44]] executa essa ordem em 6 PRs, sob a
+**[[ADR-377]]** `Proposto` (janela interativa é conjunto fechado pré-computado; o
+cliente seleciona, não recomputa) + emenda datada na [[ADR-306]] (mês documentado
+exclui futuro e mês em curso). Cobre RV4-01/02/03/05/06/07/08; RV4-04 e RV4-10
+ficam habilitados mas são copy/estados, com dono `product-designer` em lane
+própria. **Correção do registro na mesma data:** a linha do RV4-02 citava
+[[ADR-282]] — conferido, aquela ADR é sobre `natural_key` de override de
+transação e não tem relação com agregação no cliente; a citação saiu da linha.
 
 **Refutados / rebaixados nesta rodada** (taxa de refutação ≠ 0 é requisito de
 calibração, não acidente): projeção de IF apoiada em aporte irrealista —

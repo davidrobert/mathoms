@@ -5,7 +5,7 @@ title: "Política de base temporal de mensalização no E5 — janela canônica 
 status: Decidido
 phase: A28
 date: "2026-07-03"
-amended_at: ["2026-07-31"]
+amended_at: ["2026-07-31", "2026-08-11"]
 relates_to:
   - "[[ADR-191]]"
   - "[[ADR-090]]"
@@ -47,6 +47,13 @@ tags:
 > a folga rotulada com a janela — duas bases, dois rótulos impressos. Registrado
 > aqui para o próximo revisor não re-litigar a fronteira D1/D6 do zero, como a
 > A40.l3 fez.
+
+> **Emenda 2026-08-11 (A40.l44) — a definição de "mês documentado" do D3 muda.**
+> O proxy *"mês presente na série"* admite mês **futuro** e mês **em curso**, e os
+> dois envenenam o denominador de mensalização. A definição passa a exigir
+> **movimento**, **fechamento** e **não-posterioridade à data de corte do run** —
+> ver §Emenda 2026-08-11 no fim desta nota, com o deferimento datado da cláusula
+> de fechamento.
 
 ## Contexto
 
@@ -142,3 +149,45 @@ totais full-period por design (rastreabilidade da soma, não mensalização).
   consumidor não-migrado; ambiguidade pior que correção.
 - **Gap de calendário como zero no denominador** — reintroduz a diluição que
   originou o bug.
+
+## Emenda 2026-08-11 — mês documentado exclui futuro e mês em curso
+
+O **D3** operacionaliza "mês documentado" como *"mês presente na série E4"*, e
+declara o proxy como tal. O proxy admite duas classes de mês que **não são
+documentação de nada**:
+
+| Classe admitida | Como entra | O que faz no denominador |
+|---|---|---|
+| **Mês futuro** | lançamento com data de **pagamento** à frente (parcela, agendamento, fatura futura) estica `meses_ordenados` além do mês corrente | infla o denominador com meses **sem atividade** — mensaliza sobre período que ainda não aconteceu |
+| **Mês em curso** | o mês corrente entra parcial, com a fração de dias já decorrida | **dilui sempre para baixo**, e o viés é sistemático, não aleatório |
+
+Os dois erram na mesma direção — subestimam a média mensal — e o erro é maior
+quanto mais curta a janela. Foi o mecanismo dominante do RV4-01
+([[REPORT-REVIEWS-active]] §r4): a âncora da janela interativa saía da última
+label da série, e a série terminava no futuro.
+
+**A definição passa a ser:** mês presente na série **com qualquer movimento**
+(receita **ou** despesa), **fechado**, e **não posterior à data de corte do run**.
+
+Isto **não** afrouxa o D3 nem reintroduz gap-como-zero: mês de calendário sem
+movimento continua fora do denominador, como já estava. O que muda é que
+*presença na série* deixa de bastar — presença passa a exigir movimento **e**
+posição temporal válida.
+
+### Deferimento datado — cláusula de fechamento (2026-08-11)
+
+**Deferido:** a exclusão do **mês em curso**. **Dono:** `senior-cto` (owner dos
+RV4-01/RV4-06), em **lane própria a abrir**, não nesta emenda e não em ADR nova.
+
+**Por quê:** é **flip de denominador**. O corte de futuro — que a [[A40.l44]] PR1
+entrega — já move a média mensal de toda janela; empilhar o corte do mês em curso
+no mesmo PR produz um `↓` de golden **não atribuível**, e é precisamente a
+prática que a §Débito de método da [[A40]] proíbe (delta declarado por causa, um
+por vez).
+
+**Condição de retomada:** a [[A40.l44]] fechada, com o delta do corte de futuro
+declarado e conferido por `dev/golden_diff.py`.
+
+**Estado até lá — declarado, não enforçado:** o código exclui futuro e exige
+movimento; **não** exclui o mês em curso. Esta ADR descreve a política decidida,
+e este parágrafo existe para que ninguém a leia como descrição do código vigente.
