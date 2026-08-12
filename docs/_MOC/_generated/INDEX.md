@@ -891,6 +891,9 @@
 | A40.l44 | lane | in_progress | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
 | A40.l45 | lane | shipped | A40 | Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro | `sprint/A40/lanes/A40-l45-clipping-horizontal-caixa-estreita.md` |
 | A40.l46 | lane | open | A40 | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant feature sem o DNA do mockup | `sprint/A40/lanes/A40-l46-residuos-bloco-identidade-perfil.md` |
+| A40.l47 | lane | open | A40 | Três números do relatório cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva | `sprint/A40/lanes/A40-l47-semantica-de-taxa-faixa-e-base.md` |
+| A40.l48 | lane | open | A40 | Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo | `sprint/A40/lanes/A40-l48-polaridade-de-comparacao-nao-monotonica.md` |
+| A40.l49 | lane | open | A40 | Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar | `sprint/A40/lanes/A40-l49-parecer-rotulo-e-guardrails.md` |
 | A40.l5 | lane | in_progress | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
