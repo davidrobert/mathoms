@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-369 ADRs (ADR-001 a ADR-378) em [`docs/adr/`](../../adr/).
+369 ADRs (ADR-001 a ADR-379) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 319
-- **Proposto**: 46
+- **Decidido**: 320
+- **Proposto**: 45
 - **Roadmap**: 4
 
 ## Fundação
@@ -327,7 +327,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
 - [[ADR-329]] — Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium
 - [[ADR-339]] — Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata
-- [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
+- [[ADR-379]] — Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório · phase A40
 
 ## categorization
 
@@ -389,7 +389,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## frontend
 
-### Decidido (10)
+### Decidido (11)
 
 - [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
 - [[ADR-152]] — `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) · phase Direção E · Onda 6
@@ -401,10 +401,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-356]] — Precedência declarada do parágrafo de seção e CV9 como medida de entrega · phase report-review r3 (RV3-03 · RV3-33) · A40.l4
 - [[ADR-370]] — Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão · phase A40
 - [[ADR-372]] — Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma
-
-### Proposto (1)
-
-- [[ADR-377]] — Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa · phase A40
+- [[ADR-378]] — Nenhum card afirma ausência a partir de falha de carregamento · phase A40
 
 ## gtm
 
