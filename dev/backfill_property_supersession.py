@@ -96,8 +96,15 @@ def _baseline_pids(baseline: dict | None) -> frozenset[str]:
     return frozenset(str(e.get("property_id")) for e in entries if e.get("property_id"))
 
 
+# A coluna `endereco_canonical` guarda a forma da ERA em que a row nasceu, e é
+# justamente a fragmentação que impede o agrupamento (ADR-375 §Tabela de eras).
+# O sweep agrupa pela chave RECOMPUTADA da descrição-fonte — in-memory, nunca
+# persistida: gravá-la faria a row mais antiga vencer o match e trocaria o
+# conjunto de zumbis em vez de eliminá-lo (ADR-375 §Decisão 7).
 def _synthetic_entries(identities, baseline_payload: dict | None) -> list[dict]:
-    """Espelha `real_estate_e5_integration._dedup_entries` — mesmo AGRUPAMENTO do forward-path."""
+    """Espelha `_dedup_entries` do forward-path, com o canonical recomputado da descrição."""
+    from pipeline.domain.services.endereco_canonicalizer import canonicalize
+
     valores = {
         im.get("property_id"): im.get("valores_31_12") or {}
         for im in (baseline_payload or {}).get("imoveis_consolidados") or []
@@ -106,7 +113,8 @@ def _synthetic_entries(identities, baseline_payload: dict | None) -> list[dict]:
         {
             "property_id": ident.id,
             "codigo_rfb": ident.codigo_rfb,
-            "endereco_canonical": ident.endereco_canonical,
+            "endereco_canonical": canonicalize(ident.descricao_sample or "")
+            or ident.endereco_canonical,
             "descricao": ident.descricao_sample,
             "valores_31_12": valores.get(ident.id, {}),
         }

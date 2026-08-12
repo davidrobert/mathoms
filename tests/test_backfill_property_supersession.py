@@ -209,3 +209,51 @@ def test_synthetic_entries_map_baseline_values():
     entries = _synthetic_entries([_Ident("a"), _Ident("b")], baseline)
     assert entries[0]["valores_31_12"] == {"2024": 1000.0}
     assert entries[1]["valores_31_12"] == {}
+
+
+# A coluna guarda a forma da era em que a row nasceu; agrupar por ela deixaria
+# cada era num grupo isolado e o sweep não colapsaria nada (ADR-375 §Tabela de eras).
+_DESCRICAO_COM_MATRICULA = "CASA - VIA EXEMPLO 100, BAIRRO EXEMPLO - Matricula 99999"
+
+
+def _seed_workspace_vazio(session) -> str:
+    user = User(
+        id=str(uuid.uuid4()),
+        email=f"u-{uuid.uuid4().hex[:8]}@test.com",
+        hashed_password="x",
+        full_name="Test",
+    )
+    session.add(user)
+    session.flush()
+    ws = Workspace(id=str(uuid.uuid4()), name="Test WS", owner_id=user.id)
+    session.add(ws)
+    session.flush()
+    return ws.id
+
+
+def _seed_cluster_de_eras(db_file, formas: tuple) -> list:
+    with _session_factory(db_file)() as s:
+        ws_id = _seed_workspace_vazio(s)
+        for stored in formas:
+            s.add(
+                PropertyIdentity(
+                    id=str(uuid.uuid4()),
+                    workspace_id=ws_id,
+                    titular_key="titular",
+                    codigo_rfb="12",
+                    endereco_canonical=stored,
+                    first_seen_year=2023,
+                    descricao_sample=_DESCRICAO_COM_MATRICULA,
+                    created_at=datetime.now(timezone.utc),
+                )
+            )
+        s.commit()
+        return list(s.query(PropertyIdentity).filter_by(workspace_id=ws_id).all())
+
+
+def test_cluster_de_eras_agrupa_pela_chave_recomputada(db_file):
+    from dev.backfill_property_supersession import _synthetic_entries
+
+    identities = _seed_cluster_de_eras(db_file, ("8 0", None, "mat:99999"))
+    entries = _synthetic_entries(identities, None)
+    assert {e["endereco_canonical"] for e in entries} == {"mat:99999"}
