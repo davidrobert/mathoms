@@ -102,6 +102,24 @@ describe("<OrcamentoProspectivoCard />", () => {
     expect(body.getByText("Aporte em investimentos")).toBeInTheDocument();
   });
 
+  it("percentual em pt-BR na tabela inteira, linhas e total (RV4-19)", () => {
+    // Mesma divergência do card irmão: total literal pt-BR ao lado de linhas
+    // em `toFixed(1)`. `acum` fica de fora — é inteiro e já passa.
+    mockUsePeriodTransactions.mockReturnValue({
+      transactions: [tx("lazer", 750), tx("moradia", 250)],
+      isLoading: false,
+      error: null,
+    });
+
+    render(<OrcamentoProspectivoCard orcamento={undefined} />);
+
+    const body = within(screen.getByRole("table"));
+    expect(body.getByText("75,0%")).toBeInTheDocument();
+    expect(body.getByText("25,0%")).toBeInTheDocument();
+    expect(body.getByText("100,0%")).toBeInTheDocument();
+    expect(body.queryByText(/\d\.\d%/)).toBeNull();
+  });
+
   it("janela truncada declara degradação em vez de exibir o teto (RV4-07)", () => {
     // 500 de 1634 lançamentos: o teto por categoria sairia abaixo do real.
     mockUsePeriodTransactions.mockReturnValue({

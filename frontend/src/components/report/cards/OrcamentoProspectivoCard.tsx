@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { formatPercent } from "@/lib/format";
 import { PeriodToggle } from "../PeriodToggle";
 import { usePeriodTransactions } from "@/hooks/usePeriodTransactions";
 import {
@@ -115,7 +116,7 @@ export function OrcamentoProspectivoCard({
                         <MonetaryValue value={value} />
                       </td>
                       <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">
-                        {pct.toFixed(1)}%
+                        {formatPercent(pct)}
                       </td>
                       <td
                         className="py-2 text-right font-mono tabular-nums"
@@ -138,7 +139,7 @@ export function OrcamentoProspectivoCard({
                     <MonetaryValue value={total} />
                   </td>
                   <td className="pt-3 text-right font-mono tabular-nums">
-                    100,0%
+                    {formatPercent(100)}
                   </td>
                   <td className="pt-3" />
                 </tr>
