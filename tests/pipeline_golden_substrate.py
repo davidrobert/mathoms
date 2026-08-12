@@ -31,10 +31,33 @@ def _categorization(expense_keywords: dict | None, income_keywords: dict | None 
     }
 
 
-def _copy_legacy(cfg: Path) -> None:
+#: Tabela anual literal de ``fiscal_parameters`` (seed y3z4a5b6c7d8), em reais —
+#: a forma que ``PrevidenciaConfig.from_fiscal`` lê.
+FAIXAS_IRPF_SEEDADAS = [
+    {"limite_anual": 26_963.20, "aliquota_pct": 0.0},
+    {"limite_anual": 33_919.80, "aliquota_pct": 7.5},
+    {"limite_anual": 45_012.60, "aliquota_pct": 15.0},
+    {"limite_anual": 55_976.16, "aliquota_pct": 22.5},
+    {"limite_anual": None, "aliquota_pct": 27.5},
+]
+
+
+def _copy_legacy(cfg: Path, irpf_faixas: list[dict] | None) -> None:
     shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
     shutil.copy(_LEGACY_CONFIGS / "parametros_fiscais.json", cfg / "parametros_fiscais.json")
     shutil.copy(_LEGACY_CONFIGS / "taxas.json", cfg / "taxas.json")
+    if irpf_faixas is not None:
+        _injetar_faixas(cfg / "parametros_fiscais.json", irpf_faixas)
+
+
+# A fixture legada declara a tabela MENSAL pós-Lei 15.270 sob `faixas_mensais`,
+# chave que nenhum leitor do repo consome — por isso o analyzer caía no fallback
+# de 7,5%. Gravar `faixas` (anual, pré-Lei) no arquivo commitado faria um JSON
+# declarar duas leis; a injeção vive só no tmp da suíte que a pede (A40.l34).
+def _injetar_faixas(destino: Path, faixas: list[dict]) -> None:
+    fiscal = json.loads(destino.read_text(encoding="utf-8"))
+    fiscal.setdefault("irpf_tabela_progressiva", {})["faixas"] = faixas
+    _dump(destino, fiscal)
 
 
 def write_e5_config(
@@ -44,6 +67,7 @@ def write_e5_config(
     goals: dict | None = None,
     expense_keywords: dict | None = None,
     income_keywords: dict | None = None,
+    irpf_faixas: list[dict] | None = None,
 ) -> None:
     """Escreve config mínima de tenant para rodar E4/E5 isolado."""
     cfg = tmp_path / "config"
@@ -52,7 +76,7 @@ def write_e5_config(
     _dump(cfg / "family_members.json", family or _DEFAULT_FAMILY)
     _dump(cfg / "goals.json", goals or _DEFAULT_GOALS)
     (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
-    _copy_legacy(cfg)
+    _copy_legacy(cfg, irpf_faixas)
 
 
 def _seed_store(

@@ -641,10 +641,10 @@
   ],
   "pontos_urgentes_retidos": [],
   "previdencia_pgbl": {
-    "aliquota_marginal": "7.500000",
+    "aliquota_marginal": "0.000000",
     "ano_base": null,
     "aporte_mensal": 11520,
-    "economia_ir_anual": 10368,
+    "economia_ir_anual": 0,
     "fonte_recomendacao": "proxy_receita_pj",
     "limite_pgbl_anual": 138240,
     "nota": "Base: receita PJ anualizada R$ 36,000, lucro presumido 32%.",

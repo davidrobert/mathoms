@@ -13,6 +13,7 @@ from pipeline.domain.services.cenarios_conjuge_analyzer import (  # noqa: E402
     CenariosConjugeConfig,
 )
 from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
+    PrevidenciaAnalyzer,
     PrevidenciaConfig,
 )
 from pipeline.domain.types.config import FiscalParameters, IRPFBracket  # noqa: E402
@@ -47,13 +48,34 @@ class TestPrevidenciaFromFiscalParameters:
         # DB armazena 0.32 (DECIMAL); analyzer trabalha em pct (32.0)
         assert cfg.lucro_presumido_pct == 32.0
 
-    def test_brackets_converted_with_correct_units(self):
-        cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_2025())
-        # 2696320 cents → 26963.20 R$ anual
-        assert cfg.irpf_faixas[0].limite_anual == 26963.20
-        assert cfg.irpf_faixas[0].aliquota_pct == 0.0
-        assert cfg.irpf_faixas[-1].limite_anual is None
-        assert cfg.irpf_faixas[-1].aliquota_pct == 27.5
+    def test_brackets_passam_sem_conversao(self):
+        """As faixas do DB chegam intactas — sem round-trip por reais-float (ADR-375 D6)."""
+        # A conversão anterior para float perdia a faixa de teto 0 (`if
+        # b.upper_brl_cents` é falsy em zero), promovendo-a a terminal e dando a
+        # alíquota dela a toda renda.
+        fiscal = _fiscal_2025()
+        cfg = PrevidenciaConfig.from_fiscal_parameters(fiscal)
+        assert cfg.irpf_faixas is fiscal.ir_brackets
+        assert cfg.irpf_faixas[0].upper_brl_cents == 2696320
+        assert cfg.irpf_faixas[0].aliquota_pct == Decimal("0.0")
+        assert cfg.irpf_faixas[-1].upper_brl_cents is None
+        assert cfg.irpf_faixas[-1].aliquota_pct == Decimal("27.5")
+
+    def test_faixa_de_teto_zero_sobrevive(self):
+        """Regressão do falsy-zero: teto 0 é faixa real, não terminal."""
+        fiscal = FiscalParameters(
+            year=2025,
+            lucro_presumido_aliquota=Decimal("0.32"),
+            ir_brackets=(
+                IRPFBracket(upper_brl_cents=0, aliquota_pct=Decimal("0.0"), deducao_brl_cents=0),
+                IRPFBracket(
+                    upper_brl_cents=None, aliquota_pct=Decimal("27.5"), deducao_brl_cents=0
+                ),
+            ),
+        )
+        cfg = PrevidenciaConfig.from_fiscal_parameters(fiscal)
+        assert cfg.irpf_faixas[0].upper_brl_cents == 0
+        assert PrevidenciaAnalyzer(cfg)._aliquota_para(1) == 27.5
 
     def test_default_pgbl_pct_when_db_has_zero(self):
         cfg = PrevidenciaConfig.from_fiscal_parameters(_fiscal_2025())

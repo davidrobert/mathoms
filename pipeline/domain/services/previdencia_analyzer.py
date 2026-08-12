@@ -16,7 +16,12 @@ from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.services.irpf_analyzer import PgblStatus
-from pipeline.domain.types.config import FiscalParameters
+from pipeline.domain.services.irpf_faixa_marginal import resolve_faixa_marginal
+from pipeline.domain.types.config import FiscalParameters, IRPFBracket
+
+
+def _to_cents(reais: float) -> int:
+    return int(round(reais * 100))
 
 
 def _safe_float(val) -> float:
@@ -35,17 +40,6 @@ def _safe_float(val) -> float:
 # =============================================================================
 # Config (R9/ISP)
 # =============================================================================
-
-
-@dataclass(frozen=True)
-class IRPFBracket:
-    """Faixa da tabela progressiva IRPF.
-
-    ``limite_anual`` ``None`` representa a última faixa (sem teto).
-    """
-
-    limite_anual: float | None
-    aliquota_pct: float
 
 
 @dataclass(frozen=True)
@@ -78,8 +72,9 @@ class PrevidenciaConfig:
             limite = faixa.get("limite_anual")
             faixas.append(
                 IRPFBracket(
-                    limite_anual=_safe_float(limite) if limite is not None else None,
-                    aliquota_pct=_safe_float(faixa.get("aliquota_pct", 0)),
+                    upper_brl_cents=_to_cents(_safe_float(limite)) if limite is not None else None,
+                    aliquota_pct=Decimal(str(_safe_float(faixa.get("aliquota_pct", 0)))),
+                    deducao_brl_cents=0,
                 )
             )
         return cls(
@@ -91,18 +86,13 @@ class PrevidenciaConfig:
     @classmethod
     def from_fiscal_parameters(cls, fiscal: FiscalParameters) -> "PrevidenciaConfig":
         """Constrói config a partir de :class:`FiscalParameters` (ADR-135 · A7.2b)."""
-        faixas = tuple(
-            IRPFBracket(
-                limite_anual=(b.upper_brl_cents / 100.0) if b.upper_brl_cents else None,
-                aliquota_pct=float(b.aliquota_pct),
-            )
-            for b in fiscal.ir_brackets
-        )
+        # Passa-through: a conversão anterior para reais-float perdia a faixa cujo
+        # teto é 0 (`if b.upper_brl_cents` é falsy em zero), promovendo-a a terminal.
         lp_pct = float(fiscal.lucro_presumido_aliquota * Decimal("100"))
         return cls(
             lucro_presumido_pct=lp_pct or 32.0,
             pgbl_limite_pct=12.0,
-            irpf_faixas=faixas,
+            irpf_faixas=fiscal.ir_brackets,
         )
 
 
@@ -231,7 +221,7 @@ class PrevidenciaAnalyzer:
     def _analyze_via_irpf(self, cap: CapacidadePgblIRPF) -> PrevidenciaAnalysis:
         restante = max(0.0, float(cap.restante_anual))
         renda_trib = float(cap.renda_tributavel_anual)
-        aliquota = self._resolve_aliquota(renda_trib)
+        aliquota = self._aliquota_para(int(cap.renda_tributavel_anual * 100))
         return PrevidenciaAnalysis(
             status="Calculado",
             nota=_nota_capacidade_irpf(cap, restante),
@@ -276,7 +266,7 @@ class PrevidenciaAnalyzer:
 
         limite_pgbl = renda_tributavel * pgbl_factor
 
-        aliquota_marginal = self._resolve_aliquota(renda_tributavel)
+        aliquota_marginal = self._aliquota_para(_to_cents(renda_tributavel))
         economia_ir = limite_pgbl * (aliquota_marginal / 100.0)
 
         lp_pct_display = int(cfg.lucro_presumido_pct)
@@ -293,21 +283,12 @@ class PrevidenciaAnalyzer:
             economia_ir_anual=economia_ir,
         )
 
-    def _resolve_aliquota(self, renda_tributavel: float) -> float:
-        """Busca a alíquota marginal correspondente à renda anual.
-
-        Paridade com legado (linha 1671-1678): começa com a 1ª faixa, itera;
-        se renda > limite_anual, avança; a última faixa (``limite_anual=None``)
-        é selecionada automaticamente.
-        """
+    def _aliquota_para(self, base_calculo_anual_brl_cents: int) -> float:
+        """Alíquota marginal; sem tabela configurada, degrada para o fallback declarado."""
+        # A degradação por ausência de tabela é política do chamador, não da regra:
+        # o service recusa tabela vazia porque resolver faixa sem faixas é erro de
+        # config. Publicar prescrição sobre esse fallback é o que a ADR-375 D4 fecha.
         faixas = self._config.irpf_faixas
         if not faixas:
             return self._config.aliquota_fallback
-
-        aliquota = faixas[0].aliquota_pct
-        for faixa in faixas:
-            if faixa.limite_anual is not None and renda_tributavel > faixa.limite_anual:
-                aliquota = faixa.aliquota_pct
-            elif faixa.limite_anual is None:
-                aliquota = faixa.aliquota_pct
-        return aliquota
+        return float(resolve_faixa_marginal(base_calculo_anual_brl_cents, faixas))
