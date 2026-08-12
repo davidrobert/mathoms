@@ -18,6 +18,7 @@ from pipeline.domain.services.entity_dedup import (
     log_dedup,
     run_entity_dedup,
 )
+from pipeline.domain.services.patrimonio_types import parse_ano_31_12
 
 _CASAL_LABEL = "casal"
 
@@ -199,7 +200,8 @@ def _owner(entry: dict) -> str:
 def _latest_value(entry: dict) -> float:
     vals = entry.get("valores_31_12") or {}
     if isinstance(vals, dict) and vals:
-        latest = max(vals.keys())
+        # parse_ano_31_12: max() lexicográfico faz "31_12_2024" vencer "2025" (A40.l42).
+        latest = max(vals.keys(), key=lambda k: (parse_ano_31_12(k) or 0, str(k)))
         return _safe_float(vals.get(latest))
     return _safe_float(entry.get("valor", 0))
 

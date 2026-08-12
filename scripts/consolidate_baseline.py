@@ -759,11 +759,16 @@ def main_with_store(ctx) -> dict:
 
     store = ctx.get_artifact_store()
 
-    # 1. Carrega baseline — tenta E1.5c (re-run / já consolidado) e depois
-    #    E1.5 bruto. Ambos ficam em E2_extracts/ (convenção aceita — ver CLAUDE.md).
-    baseline = store.read("consolidate_baseline", "baseline_patrimonial")
+    # 1. Carrega o INSUMO primeiro. A ordem invertida (E1.5c antes de E1.5)
+    #    compunha com o fallback workspace-scoped do store (ADR-241) num
+    #    baseline PEGAJOSO: em run full, o read de E1.5c errava o run corrente,
+    #    caía no consolidado do run ANTERIOR e re-consolidava os itens velhos —
+    #    o E1.5 fresco (IRPF novo) nunca era consolidado (A40.l42; 40+ runs de
+    #    dogfood com o mesmo hash de itens). E1.5c fica como último recurso
+    #    (from_stage sem nenhum E1.5 no workspace).
+    baseline = store.read("extract_baseline", "baseline_patrimonial")
     if baseline is None:
-        baseline = store.read("extract_baseline", "baseline_patrimonial")
+        baseline = store.read("consolidate_baseline", "baseline_patrimonial")
 
     if baseline is None:
         return {
