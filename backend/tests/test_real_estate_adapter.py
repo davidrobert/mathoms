@@ -165,7 +165,8 @@ def test_build_inputs_irpf_pro_rata_proporcional_ao_valor():
     # pA = 2/3 do valor → 40000; pB = 1/3 → 20000
     assert map_inputs["pA"].aluguel_bruto_anual == Decimal("40000")
     assert map_inputs["pB"].aluguel_bruto_anual == Decimal("20000")
-    assert map_inputs["pA"].aluguel_origem == "irpf"
+    # Rateio do total da carteira é estimativa, não fonte declarada (ADR-216 D9).
+    assert map_inputs["pA"].aluguel_origem == "pro_rata"
     assert map_inputs["pA"].ir_carne_leao_anual == Decimal("11000")
     assert map_inputs["pB"].ir_carne_leao_anual == Decimal("5500")
 
@@ -209,7 +210,7 @@ def test_build_inputs_e4_fallback_quando_irpf_e_informe_ausentes():
     inputs = build_property_inputs([id_a], overrides, bens, sources, config=RealEstateConfig())
     # 12000 / 6 × 12 = 24000 anual
     assert inputs[0].aluguel_bruto_anual == Decimal("24000")
-    assert inputs[0].aluguel_origem == "e4"
+    assert inputs[0].aluguel_origem == "pro_rata"
 
 
 def test_build_inputs_sem_fontes_marca_origem_none():

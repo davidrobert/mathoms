@@ -162,5 +162,5 @@ def test_informe_sem_match_endereco_cai_para_proximo_fallback(db):
         informe_payloads=[_informe("Imóvel inexistente em outra cidade", "60000")],
     )
     im = payload["imoveis"][0]
-    assert im["origem_aluguel"] == "irpf"
+    assert im["origem_aluguel"] == "pro_rata"
     assert im["aluguel_mensal_bruto"] == pytest.approx(2000.0, abs=0.5)

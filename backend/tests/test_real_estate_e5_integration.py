@@ -222,7 +222,7 @@ def test_e4_receita_aluguel_usada_quando_irpf_sem_rendimentos_pf(db):
     imovel = payload["imoveis"][0]
     # 30000 já é anual (12 meses) → 2500/mês
     assert imovel["aluguel_mensal_bruto"] == pytest.approx(2500.0, rel=1e-2)
-    assert imovel["origem_aluguel"] == "e4"
+    assert imovel["origem_aluguel"] == "pro_rata"
 
 
 # ────────────────────────── Benchmarks ────────────────────────────────────────

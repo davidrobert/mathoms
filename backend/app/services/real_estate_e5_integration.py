@@ -65,7 +65,8 @@ def _calculate(
     # C11-Fase2 ([[ADR-340]]): concentração canônica base carteira — computada do
     # mesmo dict `patrimonio` que o RatiosCalculator usa (SSOT de fórmula), então
     # `real_estate.concentracao_pct` == `ratios.concentracao_imobiliaria`.
-    concentracao = compute_concentracao_imobiliaria_pct(e5_data.get("patrimonio", {}) or {})
+    patrimonio = e5_data.get("patrimonio", {}) or {}
+    concentracao = compute_concentracao_imobiliaria_pct(patrimonio)
     return calculate_for_workspace(
         db,
         identities=identities,
@@ -74,6 +75,9 @@ def _calculate(
         sources=_build_cascade_sources(irpf_payload, e5_data, informe_payloads, identities),
         concentracao_imobiliaria_pct=_to_decimal(concentracao),
         as_of_date=as_of_date or date.today(),
+        # Lido do payload do run, não do DB: o alerta fala do toggle que produziu
+        # ESTES números, e o workspace pode ter sido reconfigurado desde então.
+        imoveis_no_if=bool(patrimonio.get("imoveis_no_if")),
     )
 
 

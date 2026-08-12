@@ -133,9 +133,11 @@ def compute_alertas(
     benchmarks: BenchmarkRates,
     properties: list[PropertyInput],
     config: RealEstateConfig,
+    imoveis_no_if: bool = False,
 ) -> list[Alerta]:
     """Gera alertas canônicos (FORMULAS.md §Alertas)."""
     alertas: list[Alerta] = []
+    alertas.extend(_premissa_if_alerta(cap_rate_liquido_pct, config, imoveis_no_if))
 
     if concentracao_pct > config.concentracao_alerta_pct:
         conc_br = f"{concentracao_pct:.1f}".replace(".", ",")
@@ -201,6 +203,26 @@ def compute_alertas(
             )
 
     return alertas
+
+
+# O toggle da ADR-223 é opt-in do usuário e não deve ser flipado sozinho —
+# automatizar seria overreach. O que o produto deve é dizer que a premissa que
+# sustentava o opt-in deixou de valer segundo o próprio número dele.
+def _premissa_if_alerta(
+    cap_rate_liquido_pct: Decimal | None,
+    config: RealEstateConfig,
+    imoveis_no_if: bool,
+) -> list[Alerta]:
+    minimo = config.premissa_if_cap_rate_minimo_pct
+    if not imoveis_no_if or cap_rate_liquido_pct is None or cap_rate_liquido_pct >= minimo:
+        return []
+    contexto = (
+        f"Seus imóveis contam na independência financeira, mas rendem "
+        f"{f'{cap_rate_liquido_pct:.2f}'.replace('.', ',')}% líquido ao ano — abaixo dos "
+        f"{f'{minimo:.1f}'.replace('.', ',')}% que sustentam essa escolha. "
+        f"Revise em Configurações se eles devem seguir no cálculo."
+    )
+    return [Alerta(code="premissa_if_imoveis", severity="warning", context=contexto)]
 
 
 __all__ = ["aggregate_componentes", "compute_alertas"]

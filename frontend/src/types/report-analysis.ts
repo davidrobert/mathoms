@@ -195,7 +195,8 @@ export type RealEstateAlertaCode =
   | "concentracao_alta"
   | "spread_critico"
   | "aluguel_sem_dado"
-  | "contrato_reajuste_pendente";
+  | "contrato_reajuste_pendente"
+  | "premissa_if_imoveis";
 
 export interface RealEstateComponenteCalculo {
   readonly valor: number;
