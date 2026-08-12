@@ -134,6 +134,41 @@ test.describe("Report Premium · camada de texto do PDF @critical", () => {
     ).toBe(true);
   });
 
+  test("a primeira seção do relatório cola no conteúdo anterior (break-before)", async ({ page }) => {
+    await setupPrintReport(page);
+    await page.emulateMedia({ media: "print" });
+
+    const secoes = await page.evaluate(() =>
+      Array.from(
+        document.querySelectorAll<HTMLElement>("[data-report-section]"),
+      ).map((el) => ({
+        id: el.id || el.tagName,
+        breakBefore: getComputedStyle(el).breakBefore,
+      })),
+    );
+    await page.emulateMedia({ media: null });
+
+    // Regressão do seletor morto (achado IA 2026-08-11): a regra usava
+    // `:first-of-type`, que conta por TAG — o bloco de Premissas (primeiro
+    // <section> irmão, sem o atributo) fazia o seletor não casar NADA, e a
+    // primeira seção perdeu o `avoid` sem nenhum gate acusar.
+    expect(
+      secoes.length,
+      "nenhuma [data-report-section] no DOM de print — seletor ou fixture apodreceu",
+    ).toBeGreaterThan(5);
+    expect(
+      secoes[0].breakBefore,
+      `a primeira seção (#${secoes[0].id}) deve declarar break-before: avoid ` +
+        `(cola no hero/premissas em vez de abrir página nova meio vazia)`,
+    ).toBe("avoid");
+    for (const s of secoes.slice(1)) {
+      expect(
+        s.breakBefore,
+        `#${s.id} não deve herdar o avoid reservado à primeira seção`,
+      ).toBe("auto");
+    }
+  });
+
   test("nenhum bloco proíbe quebra sendo mais alto que a página", async ({ page }) => {
     await setupPrintReport(page, "parcial");
     // Larga como a coluna de impressão: a altura de um bloco na tela (1280px)

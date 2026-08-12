@@ -59,11 +59,18 @@
   }
 
   [data-report-section] {
-    break-before: auto;
+    break-before: avoid;
     break-inside: auto;
   }
-  [data-report-section]:first-of-type {
-    break-before: avoid;
+  /* Só a PRIMEIRA seção fica com o `avoid` acima — as demais retomam a
+   * quebra livre. O par substitui `[data-report-section]:first-of-type`,
+   * que não casava NADA: `:first-of-type` conta por tag, e o primeiro
+   * <section> irmão do <article> é o bloco de Premissas, que não carrega
+   * o atributo. O seletor de irmão expressa "primeiro COM o atributo" e
+   * sobrevive a blocos sem o atributo inseridos antes da primeira seção
+   * (gate: print-text.@critical.spec.ts §break-before). */
+  [data-report-section] ~ [data-report-section] {
+    break-before: auto;
   }
 
   /* Unidades atômicas de altura limitada — aqui o `avoid` é satisfazível. */
