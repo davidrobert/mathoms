@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-366 ADRs (ADR-001 a ADR-375) em [`docs/adr/`](../../adr/).
+367 ADRs (ADR-001 a ADR-376) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 318
-- **Proposto**: 44
+- **Proposto**: 45
 - **Roadmap**: 4
 
 ## Fundação
@@ -592,7 +592,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-373]] — Prazo até a IF projeta capacidade declarada; aporte ausente é retenção nomeada, não inviabilidade
 - [[ADR-374]] — Sigma do cone de IF agrega premissa vigente pelos pesos do alvo declarado · phase A40
 
-### Proposto (13)
+### Proposto (14)
 
 - [[ADR-321]] — Atribuição de membro no E3 — titular slug canônico como discriminante K4
 - [[ADR-323]] — Auto-fallback do executor HTTP para InProcess (circuit breaker do cutover Go)
@@ -607,6 +607,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-353]] — Confiança do diagnóstico comportamental condicionada à cobertura de categorização · phase pipeline-review r2 (RV2-21)
 - [[ADR-362]] — Revisão do executor é proveniência de processo observada, não garantia de reprodutibilidade · phase A40
 - [[ADR-375]] — Limite PGBL tem um produtor, e a prescrição exige evidência declarada · phase A40
+- [[ADR-376]] — Caixa corrente vem do último extrato reconciliado — sem denylist de instituição · phase A40
 
 ### Roadmap (1)
 
