@@ -25,8 +25,11 @@ import {
 // `comparisons` (medium.json inclui o bloco desde a V0).
 // A40.l22 — `S_parecer` entra aqui: o estado default é o empty (mock devolve
 // 404), e os dois estados novos ganham bloco próprio abaixo, com tema.
+// `perfil` (PR #1382) — bloco de identidade do shell: roster nome→CPF
+// mascarado (dl + reveal owner-only) sobre a narrativa do E5.N. Montava
+// só a metade narrativa até o mock servir `GET /config/members`.
 const STRATEGIC_SECTIONS = [
-  "V0", "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10", "S_parecer",
+  "V0", "perfil", "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10", "S_parecer",
 ];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
 // Declarado aqui, e não junto do bloco de `S_parecer`: o `describe` de cima

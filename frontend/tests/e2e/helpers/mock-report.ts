@@ -223,6 +223,50 @@ function buildWorkspace(workspaceId: string) {
   };
 }
 
+/** Roster do bloco de identidade (`PerfilFamiliaSection`, ADR-259 §4).
+ *
+ * Fora de ordem de propósito (order 2 servido antes do 1): o componente
+ * ordena por `order`, e servir já-ordenado deixaria o sort sem cobertura.
+ * O terceiro membro não tem CPF cadastrado — o roster deve omiti-lo (nome
+ * sem CPF já vive na narrativa). Máscaras sintéticas, PII-zero. */
+function buildMembers() {
+  return {
+    members: [
+      {
+        id: "member-conjuge",
+        key: "conjuge",
+        full_name: "Cônjuge Sintética",
+        short_name: "Cônjuge",
+        cpf_masked: "***.***.222-33",
+        role: "conjuge",
+        order: 2,
+        accounts: [],
+      },
+      {
+        id: "member-titular",
+        key: "titular",
+        full_name: "Titular Sintético",
+        short_name: "Titular",
+        cpf_masked: "***.***.111-22",
+        role: "titular",
+        order: 1,
+        accounts: [],
+      },
+      {
+        id: "member-dependente",
+        key: "dependente",
+        full_name: "Dependente Sintético",
+        short_name: "Dependente",
+        cpf_masked: null,
+        role: "dependente",
+        order: 3,
+        accounts: [],
+      },
+    ],
+    total: 3,
+  };
+}
+
 function buildUser() {
   return {
     id: "user-fixture",
@@ -277,6 +321,14 @@ export async function mockReportPage(
     }
     if (path === `/workspaces/${workspaceId}/reports/${reportId}/data`) {
       return json(route, data);
+    }
+    // PR #1382 (bloco de identidade) — roster nome→CPF mascarado da
+    // PerfilFamiliaSection. Sem esta rota o catch-all `{}` quebrava o
+    // `members.filter` e o componente degradava para só-narrativa: o <dl>
+    // ficava fora de TODA a superfície e2e (axe, tab-order, print) e os
+    // gates passavam por AUSÊNCIA do caso, não por correção.
+    if (path === `/workspaces/${workspaceId}/config/members`) {
+      return json(route, buildMembers());
     }
     if (path === `/workspaces/${workspaceId}/reports/${reportId}/notes`) {
       return json(route, {
