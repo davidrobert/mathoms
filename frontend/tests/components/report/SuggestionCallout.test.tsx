@@ -30,6 +30,7 @@ function makeSuggestion(overrides: Partial<Suggestion> = {}): Suggestion {
     kind: "reserva_insuficiente",
     category: "protecao",
     origin: "deterministic",
+    horizon: null,
     severity: "warning",
     title: "Reserva de emergência abaixo do alvo",
     rationale: "Cobertura menor que o alvo definido no plano.",
