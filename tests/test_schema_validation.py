@@ -51,7 +51,10 @@ _E5_BUILD_DEFAULTS = {
     "data_analise": "2026-04-19",
     "patrimonio": {"bruto": 1_500_000, "liquido": 1_200_000},
     "goals": {"if_meta": 5_000_000},
-    "fluxo": {"receita_total": 100_000, "janela": "full", "janela_meses": 12},
+    # Deriva do mínimo compartilhado: `build_e5_output` recebe, em produção, o
+    # dict enriquecido (`analyze_finances.py:2293`), que carrega `data_corte` +
+    # `provisionado`. Fixture literal aqui driftaria do schema no próximo required.
+    "fluxo": {**_FLUXO_MIN, "receita_total": 100_000, "janela_meses": 12},
     "ratios": {"taxa_poupanca_recorrente_pct": 30},
     "score": {"valor": 7.0, "classificacao": "Bom"},
     "orcamento": {"total": 5000},
