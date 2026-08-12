@@ -98,6 +98,33 @@ chega" é `após {ano_horizonte}` — a regra zero-vs-ausente da COPY_GUIDELINES
 3. Componente `IFFaixaAnos` com os 5 estados, `aria-label` que verbaliza o
    extremo aberto, `tabular-nums`, empilhamento em `<md`.
 
+> **Herdado da [[A40.l43]] (2026-08-11) — duas coisas chegam neste escopo.**
+>
+> **(a) A S7 já declara a ausência de prazo; o §Escopo 1 herda a forma.** A l38
+> mediu que, com `goals.prazo_anos_realista: None` no snapshot dogfood corrente, o
+> `s7` imprimia `fmt_num(None)` → `"prazo realista de N/D anos"` e `"em None"` —
+> placeholder afirmando prazo inexistente. Como a frase que **nomeava** a premissa
+> ausente vivia só no `perfil_familia.right` (removido pela l38, [[A40.l26]]), a
+> transferência foi bloqueante: `_s7_meta_e_prazo` em `summaries_narrator.py` agora
+> declara *"as premissas atuais não permitem projetar um prazo realista"*. Ao
+> reescrever o enunciado do §Escopo 1 ("no ritmo de R$ X/mês… o gap fecha em N
+> anos"), **preserve o ramo de ausência** — guard e contraprova em
+> `tests/test_narrativas_empty_field_guards.py`. Reintroduzir `fmt_num` cru sobre
+> `if_prazo_anos` volta o defeito.
+>
+> **(b) As premissas de IF não têm superfície no relatório, e o destino é o §Escopo
+> 2.** `if_meta` em R$, TRS, `if_retorno_real_pct` e `meta_aporte_mensal` eram
+> publicados no `perfil_familia.right` — o único lugar. Com a remoção, o relatório
+> imprime "58% da meta" e "14 anos (2040)" sem imprimir em lugar nenhum as
+> premissas que produzem esses números (o `ReportPremissasBlock` carrega hash,
+> período e contagem de metas, não estes valores). O `financial-planner` classificou
+> isso como **requisito de leitura**, não redundância — mesmo princípio de
+> [[ADR-306]] §D2 / [[A40.l3]]: o rótulo da base é texto impresso, porque tooltip
+> não sai no PDF. O §Escopo 2 já abre o slot; publicar a TRS na idade-meta ali
+> resolve o par (número projetado + premissa que o produz) na seção que os possui.
+> A l38 deliberadamente **não** repôs isso no card de perfil: ownership de
+> superfície, não escolha de conteúdo.
+
 ## Critério de aceite
 
 - Em nenhum estado a seção exibe dois anos de meta diferentes; grep de `if_ano`

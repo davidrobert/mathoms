@@ -5,7 +5,7 @@ title: "Precedência declarada do parágrafo de seção e CV9 como medida de ent
 status: Decidido
 phase: report-review r3 (RV3-03 · RV3-33) · A40.l4
 date: "2026-07-31"
-amended_at: ["2026-08-05"]
+amended_at: ["2026-08-05", "2026-08-11"]
 relates_to:
   - "[[ADR-144]]"
   - "[[ADR-122]]"
@@ -19,7 +19,7 @@ tags:
   - status/decidido
   - area/frontend
   - area/pipeline
-size_lines: 658
+size_lines: 782
 ---
 
 # ADR-356 — Precedência declarada do parágrafo de seção e CV9 como medida de entrega
@@ -29,6 +29,12 @@ size_lines: 658
 > `main` desde `6c5d9814` (#1139). Duas ressalvas ficam escritas: o critério de
 > aceite da lane foi **parcialmente** cumprido, e um §Deferimento troca de dono.
 > Ver §Emenda 2026-08-05.
+>
+> **Emenda 2026-08-11 (remoção de chave entregue + regra nova):** a chave
+> `perfil_familia.right` foi **removida** e `validate_narrativas` deixou de
+> exigi-la — a regra que obrigava a coluna a existir proibia silêncio e produzia
+> afirmação incondicional. Regra que fica: o narrador de `perfil_familia` não
+> publica valor monetário nem juízo qualitativo. Ver §Emenda 2026-08-11.
 
 ## Tamanho — por que não é split
 
@@ -709,3 +715,91 @@ número vem do payload, ou não é afirmado") com implementação-precedente em
 vive no mesmo módulo, no f-string do `s1`. A l5 é codegen + gate de contrato de
 frontend, e o campo tem consumidor e valor genuinamente zero: não é leitura órfã.
 Deixar na l5 decidiria a política de zero-como-valor em dois lugares.
+
+## Emenda 2026-08-11 — o `perfil_familia` não publica número nem veredito
+
+**A chave `perfil_familia.right` foi removida.** A coluna publicava, em prosa cinza
+de `text-sm`, os KPIs que o `HeroKpiGrid` entrega três blocos acima com hierarquia
+forte: meta de IF + TRS + investível + % da meta + aporte + retorno real + prazo;
+patrimônio bruto + `n_imoveis` + carteiras nominais + endividamento; diversificação
++ score + taxa de poupança + cobertura em meses. Auditado fato a fato, o conteúdo
+tinha dono entregue em outra superfície — hero, `s1`, `s7`, `PatrimonioCategoriasCard`
+— e o único fato órfão era a carteira por titular, que é tabular e cuja leitura
+sucessória exigiria regime de bens, que o produto não modela ([[ADR-246]] usa
+comunhão só para dedup de imóvel).
+
+**A causa raiz era o validador, não o autor do template.** `validate_narrativas`
+exigia `right` não-vazio: uma regra que **proíbe silêncio**. A saída de menor esforço
+sob essa restrição é afirmar sem condição, e foi o que a coluna fazia em três frases:
+
+- `"Endividamento de {x}% — saudável"`, incondicional. Com `taxa_endividamento_pct`
+  acima de `thresholds_alertas.endividamento_maximo_pct` (20, `config/scoring.json`),
+  o **mesmo PDF** dizia "saudável" no topo e emitia ponto urgente prioridade **Alta**
+  ("Reduzir endividamento") na S10 — contradição reproduzível, não viés de leitura.
+- `"base sólida para o plano IF"` — veredito composto de três métricas, nenhuma com
+  limiar, num card que não faz análise.
+- `carteira_diversificacao_frase(n)` → `"Carteira diversificada entre 1 categoria de
+  ativos"` com n=1, auto-contraditório; e o conceito já estava julgado (abaixo).
+
+Enquanto a regra vivesse, ela reproduziria o defeito na próxima mão. Por isso a
+emenda **remove a exigência** em vez de trocar o conteúdo que a satisfazia.
+
+**A regra que fica — de classe, não de instância:** o narrador de `perfil_familia`
+não publica valor monetário nem juízo qualitativo. O card é prosa sobre pessoas;
+quem quiser o número tem a superfície que o possui. Gates em
+`tests/test_perfil_familia_prosa_sobre_pessoas.py` (sem `R$`, sem `%`, sem adjetivo
+de saúde). Sem a regra escrita, o próximo agente re-adiciona uma segunda coluna com
+outros números — foi assim que esta nasceu.
+
+**O salário-base do cônjuge saiu do `left`** pela mesma regra e por §D9: é valor
+monetário e é PII de renda individual num artefato que a família mostra a terceiros
+— mesma classe do endereço cortado na [[A40.l4]]. A renda do casal vive na S2,
+agregada.
+
+**Diversificação: fecha a classe que a [[A40.l15]] abriu.** A l15 desligou a entrega
+do `s3` porque a frase contava `patrimonio.composicao` (baldes patrimoniais, um por
+membro) enquanto a tabela da S3 conta `investimentos.tabela_classes` — conceito
+errado, não número errado, e com 2 classes a afirmação honesta é *concentrada*, o que
+inverte o sinal. Desligar o destino deixou a **instância entregue** viva no
+`perfil_familia.right`, no topo do relatório: era o único publicador que chegava ao
+leitor. Morre aqui **por consequência**, sem afirmação substituta — a política de o
+que a S3 afirma sobre concentração continua sendo da l15. Se a l15 decidir que a S3
+não afirma nada, `carteira_diversificacao_frase` fica órfã inteira.
+
+**Transferência bloqueante — a declaração de ausência de prazo.** O `right` era o
+único lugar entregue que **nomeava a premissa que falta** em vez de projetar
+sentinela ("as premissas atuais não permitem projetar um prazo realista", [[A40.l26]]),
+e o snapshot de dogfood corrente tem `goals.prazo_anos_realista: None` e
+`goals.ano_if: None` — ramo **vivo**, não hipotético. Sem transferência, remover a
+coluna apagaria a correção da l26 e deixaria em pé o defeito irmão: a S7, dona do
+prazo, imprimia `fmt_num(None)` → `"prazo realista de N/D anos"` e `"em None"`.
+Placeholder afirma um prazo que não existe. A frase foi para `_s7_meta_e_prazo`
+(`summaries_narrator.py`), onde o prazo mora. Guard e contraprova em
+`tests/test_narrativas_empty_field_guards.py`.
+
+**`today` do perfil passa a vir de `data_analise`.** `_age` caía em `date.today()`
+porque o stage chamava `builder.build(METRICS, FAMILY)` sem `today`. Duas
+consequências: re-renderizar um relatório antigo mudava a idade impressa para o mesmo
+período, e a fixture byte-exata `tests/fixtures/narrativas/e5n_delivery.json` viraria
+vermelha sozinha na virada de aniversário de um membro sintético — com mensagem
+("produtor divergiu da fixture") que convida a regravar às cegas. `date.today()` fica
+como fallback explícito quando o campo falta; `_today_from_data_analise` devolve
+`None` em vez de inventar default, e há gate de **call site** (o narrador honrar o
+kwarg não prova que alguém o injeta).
+
+**O que esta emenda NÃO decide.** (a) O layout do card — `md:columns-2` para o fluxo
+de parágrafos foi deliberadamente **não** feito aqui: as 6 fixtures E2E emitem
+`narrativas.perfil_familia` como *string*, então o card devolve `null` em todo run de
+Playwright e qualquer CSS teria delta visual zero por construção. O card fica em uma
+coluna; o `columns-2` entra no PR que primeiro dá **baseline olhada** ao card. (b) As
+premissas ausentes do relatório (TRS, retorno real, meta em R$, aporte-meta não
+aparecem em superfície nenhuma, e o `ReportPremissasBlock` só carrega hash, período e
+contagem de metas) — o destino é a S7 via [[A40.l29]] §Escopo 2, não este card. (c)
+Substrato declarado de plano de vida: precisa de ADR `Proposto` própria, e o gatilho
+é PII (campo de texto livre autorado pelo usuário caindo verbatim no PDF é nova
+superfície das classes que §D9 removeu), não a forma do narrador.
+
+**`right` permanece declarada em `config/schemas/e5_analysis.schema.json`** como
+`{"type": "string"}` sem `required` — é tolerância de leitura para artefato antigo em
+`pipeline_artifacts`, não descrição do que o produtor emite. O validador segue
+aplicando os limites de tag e de 300 chars a `right` **quando presente**.

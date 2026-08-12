@@ -82,16 +82,31 @@ item em §Escopo herdado e devolveu a decisão ao dono, que o moveu para cá em
   "R$ 0,00", nem `—` dentro da frase); com valor real ⇒ afirmada. Prova por
   mutação: restaurar o f-string incondicional deixa o teste vermelho.
 
-### `perfil_familia.right` publica `n_imoveis` (da [[A40.l4]] §Residual)
+### ~~`perfil_familia.right` publica `n_imoveis`~~ — QUITADO POR REMOÇÃO (2026-08-11)
+
+> **Fechado sem a unificação que este item especificava.** A [[A40.l43]] removeu a
+> chave `perfil_familia.right` inteira (emenda [[ADR-356]], commit na branch
+> `a40-l43-perfil-familia-prosa`): o card de perfil deixou de publicar contagem de
+> imóveis — e qualquer outro número. O lado do perfil desta contradição cross-seção
+> **não existe mais**, então o aceite abaixo ficou **insatisfazível como escrito**
+> (não há `perfil_familia.right` para suprimir em paralelo com a S4).
+>
+> **O que sobra para esta lane:** só o lado da S4 — a tabela suprimir ou afirmar a
+> contagem conforme a fonte, decisão que já era desta lane. Não há mais "fonte
+> única" a estabelecer entre duas superfícies; há uma superfície.
+>
+> Registro aqui em vez de deleção porque o item veio da [[A40.l4]] §Residual e um
+> ponteiro que desaparece sem explicação vira drift na lane que o originou.
 
 Follow-up órfão da [[A40.l4]] §Residual: `perfil_familia.right` publica
 `{n_imoveis} imóvel/imóveis` de forma independente do card S4 — a mesma contagem
 que a l4 deixou de afirmar na tabela da S4 por já estar sob suspeita (fonte que não
 é a da seção). Contradição **cross-seção**, não intra-seção, e pré-existente à l4.
 
-- Fonte única: `perfil_familia.right` passa a ler a mesma contagem canônica que a
-  tabela da S4 usa — não reabre o cálculo, só corrige o consumo.
-- Critério de aceite: fixture com a S4 suprimindo a contagem (fonte suspeita) ⇒
-  `perfil_familia.right` também suprime, não afirma número órfão.
-- Verificação renderizada: card de perfil e tabela S4 no mesmo payload mostram o
-  mesmo número, ou os dois ausentes.
+- ~~Fonte única: `perfil_familia.right` passa a ler a mesma contagem canônica que a
+  tabela da S4 usa~~ — sem objeto: a chave foi removida.
+- ~~Critério de aceite: fixture com a S4 suprimindo a contagem (fonte suspeita) ⇒
+  `perfil_familia.right` também suprime~~ — insatisfazível; ver blockquote.
+- **Aceite vigente:** a tabela da S4 suprime a contagem quando a fonte é suspeita,
+  em vez de afirmar número órfão. Prova por mutação: restaurar o f-string
+  incondicional deixa o teste vermelho.
