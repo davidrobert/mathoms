@@ -13,7 +13,11 @@ from decimal import Decimal
 
 import pytest
 
-from pipeline.domain.services.money_parsing import parse_valor_monetario, valor_monetario_float
+from pipeline.domain.services.money_parsing import (
+    parse_taxa_ou_cotacao,
+    parse_valor_monetario,
+    valor_monetario_float,
+)
 
 # (entrada, esperado). Os 3 primeiros são os pares medidos no corpus de dogfood
 # que provaram o ×100: dígitos idênticos com a vírgula deslocada duas casas.
@@ -83,6 +87,44 @@ def test_agrupador_de_3_digitos_nao_e_lido_como_decimal():
     """`"5.000"` é cinco mil, não cinco. `"243285.37"` é decimal, não 24 milhões."""
     assert parse_valor_monetario("5.000") == Decimal("5000")
     assert parse_valor_monetario("243285.37") == Decimal("243285.37")
+
+
+@pytest.mark.parametrize(
+    "raw,esperado",
+    [("0.025", "0.025"), ("0.001", "0.001"), ("0.500", "0.500"), ("-0.750", "-0.750")],
+)
+def test_zero_a_esquerda_nunca_e_agrupador(raw, esperado):
+    # `protecao_patrimonial.pct_renda_anual` tem contrato `^-?\d+(\.\d{1,6})?$` e
+    # domínio 0..1 (ADR-240) — sem esta guarda virava 1000×.
+    """Grupo de milhar não tem zero líder: `"0.025"` é 25 milésimos, não 25."""
+    assert parse_valor_monetario(raw) == Decimal(esperado)
+
+
+class TestTaxaOuCotacao:
+    """Taxa/cotação/σ têm 3+ decimais legítimos — agrupamento NUNCA se aplica."""
+
+    @pytest.mark.parametrize(
+        "raw,esperado",
+        [
+            ("5,432", "5.432"),  # cotação USD/BRL — `parse_brl` devolvia 5432
+            ("5.4321", "5.4321"),  # PTAX escala 4
+            ("22.000", "22.000"),  # σ 22% a.a. em Numeric(6,3) — money leria 22000
+            ("0,995", "0.995"),
+            ("0.025", "0.025"),
+            ("6", "6"),
+        ],
+    )
+    def test_virgula_e_sempre_decimal(self, raw, esperado):
+        assert parse_taxa_ou_cotacao(raw) == Decimal(esperado)
+
+    def test_divergencia_deliberada_vs_parser_monetario(self):
+        """O mesmo texto tem leitura diferente por domínio — e isso é correto."""
+        assert parse_valor_monetario("22.000") == Decimal("22000")  # vinte e dois mil
+        assert parse_taxa_ou_cotacao("22.000") == Decimal("22.000")  # vinte e dois por cento
+
+    @pytest.mark.parametrize("raw", [None, "", "N/D"])
+    def test_ausencia_devolve_none(self, raw):
+        assert parse_taxa_ou_cotacao(raw) is None
 
 
 def test_numerico_passa_intacto():

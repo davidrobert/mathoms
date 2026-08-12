@@ -10,8 +10,14 @@
 # tinha (ou não) seu teste, e nenhum comparava as cópias. Teste fixa comportamento de
 # quem ele chama; gate impede a 10ª cópia de nascer.
 #
-# Detecção por AST — encadeamento contendo `.replace(".", "")` E `.replace(",", ".")`.
-# Não casa strip de pontuação em CPF/CNPJ nem formatação de saída (`.replace(".", ",")`).
+# Detecção por AST, coletando os pares por CORPO DE FUNÇÃO (não por cadeia) e resolvendo
+# separador em constante de módulo. Não casa strip de pontuação em CPF/CNPJ nem
+# formatação de saída (`.replace(".", ",")`, que é o inverso).
+#
+# LIMITE CONHECIDO, medido com 4 sondas: pega 3 de 4 reintroduções plausíveis
+# (encadeada, dois-statements, constante). NÃO pega `float(v)` cru em campo
+# monetário — é classe distinta, sem idioma para casar, e foi 1 dos 6 defeitos que
+# o PR #1417 corrigiu. Sondas versionadas em tests/unit/pipeline/test_check_money_parsing_gate.py.
 
 from __future__ import annotations
 
@@ -40,31 +46,61 @@ _STRIP_PONTO = (".", "")
 _VIRGULA_PARA_PONTO = (",", ".")
 
 
-def _replace_args(call: ast.Call) -> tuple[str, str] | None:
-    """`x.replace(a, b)` com a/b literais str → `(a, b)`; senão ``None``."""
+def _literal(no: ast.expr, consts: dict[str, str]) -> str | None:
+    """Literal str, ou nome que resolve para constante str de módulo."""
+    if isinstance(no, ast.Constant) and isinstance(no.value, str):
+        return no.value
+    if isinstance(no, ast.Name):
+        return consts.get(no.id)
+    return None
+
+
+def _replace_args(call: ast.Call, consts: dict[str, str]) -> tuple[str, str] | None:
+    """`x.replace(a, b)` com a/b resolvíveis para str → `(a, b)`; senão ``None``."""
     if not isinstance(call.func, ast.Attribute) or call.func.attr != "replace":
         return None
     if len(call.args) != 2:
         return None
-    primeiro, segundo = call.args
-    if not (isinstance(primeiro, ast.Constant) and isinstance(primeiro.value, str)):
+    primeiro = _literal(call.args[0], consts)
+    segundo = _literal(call.args[1], consts)
+    if primeiro is None or segundo is None:
         return None
-    if not (isinstance(segundo, ast.Constant) and isinstance(segundo.value, str)):
-        return None
-    return primeiro.value, segundo.value
+    return primeiro, segundo
 
 
-def _cadeia_de_replaces(call: ast.Call) -> list[tuple[str, str]]:
-    """Coleta os pares (de, para) de um encadeamento `x.replace().replace()`."""
-    pares: list[tuple[str, str]] = []
-    atual: ast.expr = call
-    while isinstance(atual, ast.Call):
-        par = _replace_args(atual)
-        if par is None:
-            break
-        pares.append(par)
-        atual = atual.func.value  # type: ignore[union-attr]
-    return pares
+def _atribuicao_str(node: ast.stmt) -> tuple[str, str] | None:
+    """`NOME = "literal"` → `(NOME, literal)`; senão ``None``."""
+    if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+        return None
+    alvo, valor = node.targets[0], node.value
+    if not isinstance(alvo, ast.Name) or not isinstance(valor, ast.Constant):
+        return None
+    return (alvo.id, valor.value) if isinstance(valor.value, str) else None
+
+
+def _constantes_de_modulo(tree: ast.Module) -> dict[str, str]:
+    """`NOME = "literal"` no topo do módulo — fecha a fuga por separador em constante."""
+    pares = (_atribuicao_str(node) for node in tree.body)
+    return dict(p for p in pares if p is not None)
+
+
+# Coletar por CORPO DE FUNÇÃO, não por cadeia: `s = v.replace(".", "")` seguido de
+# `s = s.replace(",", ".")` em statements separados é a mesma reintrodução e a versão
+# por-cadeia passava batido (medido com 4 sondas na review do PR #1417).
+def _pares_no_escopo(node: ast.AST, consts: dict[str, str]) -> list[tuple[int, tuple[str, str]]]:
+    """Todos os `(linha, (de, para))` de `.replace()` dentro deste escopo."""
+    chamadas = (c for c in ast.walk(node) if isinstance(c, ast.Call))
+    achados = ((c.lineno, _replace_args(c, consts)) for c in chamadas)
+    return [(linha, par) for linha, par in achados if par is not None]
+
+
+def _escopos(tree: ast.Module):
+    """Cada função é um escopo; o módulo entra sem os corpos de função (evita dupla)."""
+    funcs = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+    yield from funcs
+    dentro = {id(f) for f in funcs}
+    modulo = ast.Module(body=[s for s in tree.body if id(s) not in dentro], type_ignores=[])
+    yield modulo
 
 
 def violacoes(source: str, rel: str) -> list[str]:
@@ -72,16 +108,19 @@ def violacoes(source: str, rel: str) -> list[str]:
         tree = ast.parse(source)
     except SyntaxError as exc:
         return [f"{rel}:{exc.lineno}: não parseia ({exc.msg})"]
+    consts = _constantes_de_modulo(tree)
     achados = []
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Call):
-            continue
-        pares = _cadeia_de_replaces(node)
-        if _STRIP_PONTO in pares and _VIRGULA_PARA_PONTO in pares:
+    for escopo in _escopos(tree):
+        pares = _pares_no_escopo(escopo, consts)
+        formas = {p for _, p in pares}
+        if _STRIP_PONTO in formas and _VIRGULA_PARA_PONTO in formas:
+            linha = min(ln for ln, p in pares if p in (_STRIP_PONTO, _VIRGULA_PARA_PONTO))
+            nome = getattr(escopo, "name", "<módulo>")
             achados.append(
-                f"{rel}:{node.lineno}: parse monetário à mão "
-                '(`.replace(".", "").replace(",", ".")`) — infla valor ISO em 100×. '
-                "Use `pipeline.domain.services.money_parsing.parse_valor_monetario`."
+                f"{rel}:{linha}: parse monetário à mão em `{nome}` "
+                '(`.replace(".", "")` + `.replace(",", ".")`) — infla valor ISO em 100×. '
+                "Use `money_parsing.parse_valor_monetario` (dinheiro) ou "
+                "`parse_taxa_ou_cotacao` (taxa/cotação/percentual)."
             )
     return achados
 

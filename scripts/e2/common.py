@@ -166,7 +166,8 @@ def parse_brl(text: str) -> Optional[float]:
     """
     if not text:
         return None
-    text = str(text).strip()
+    original_raw = str(text)
+    text = original_raw.strip()
     for sym in ("R$", "US$", "EUR", "USD", "BRL", "$"):
         text = text.replace(sym, "")
     text = text.replace(" ", "").strip()
@@ -189,7 +190,9 @@ def parse_brl(text: str) -> Optional[float]:
     # (r5/M28). O parser canônico decide pelo último separador.
     parsed = parse_valor_monetario(text)
     if parsed is None:
-        log("E2-PARSE", "WARN", f"parse_brl: formato inesperado '{text}'")
+        # CLAUDE.md §Erros: a mensagem carrega o valor OFENSOR, e o ofensor é o raw
+        # que entrou na função — não o texto pós-strip de parênteses/sinal.
+        log("E2-PARSE", "WARN", f"parse_brl: formato inesperado '{original_raw}'")
         return None
     val = float(parsed)
     return -val if negative else val
