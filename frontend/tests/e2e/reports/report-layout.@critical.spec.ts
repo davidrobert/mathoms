@@ -11,6 +11,7 @@
 import { test, expect } from "@playwright/test";
 
 import { LAYOUT } from "@/generated/report-layout";
+import { SHELL_SECTION_TITLES } from "@/components/report/utils/sectionTitles";
 
 import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 
@@ -155,7 +156,8 @@ test.describe("Report shell layout @critical", () => {
         .map((s) => s.id),
     );
     const naoRenderizavel = result.dead.filter(
-      (href) => !habilitadas.has(href.slice(1)) && href.slice(1) !== "V0",
+      (href) =>
+        !habilitadas.has(href.slice(1)) && !(href.slice(1) in SHELL_SECTION_TITLES),
     );
     expect(
       naoRenderizavel,
@@ -165,6 +167,60 @@ test.describe("Report shell layout @critical", () => {
     // Alvo que EXISTE mas mede zero é a classe RV3-05 (seção que colapsa):
     // aqui não há desculpa de hide-when-empty, o elemento está no DOM.
     expect(result.flat, "alvo de âncora existe mas tem altura 0").toEqual([]);
+  });
+
+  /** Espinha de headings do documento (fix do bloco de identidade).
+   *
+   * Dois modos de falha reais: (a) card `<h3>` solto no `<article>` fora de
+   * qualquer seção — o outline o reparenta sob a seção anterior (o par
+   * A Família/Titulares lia como subitem de "O que mudou" quando o V0
+   * renderizava, e ficava órfão de h2 no 1º relatório); (b) salto de nível
+   * (h1→h3) que quebra bookmark de PDF e navegação por headings de AT.
+   * `heading-order` do axe é best-practice/moderate — fora do escopo do
+   * gate a11y duas vezes — então a classe é travada aqui.
+   */
+  test("Espinha de headings: um h1, sem salto de nível, h3 de card sempre dentro de seção", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1512, height: 945 });
+    const { workspaceId, reportId } = await mockReportPage(page);
+    await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+    await waitForReportReady(page);
+
+    const spine = await page.evaluate(() => {
+      const root = document.getElementById("report-main");
+      if (!root) return null;
+      const headings = Array.from(root.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+      const levels = headings.map((h) => Number(h.tagName.slice(1)));
+      const jumps: string[] = [];
+      for (let i = 1; i < levels.length; i++) {
+        if (levels[i] - levels[i - 1] > 1) {
+          jumps.push(
+            `h${levels[i - 1]} ("${headings[i - 1].textContent?.trim().slice(0, 40)}") → ` +
+              `h${levels[i]} ("${headings[i].textContent?.trim().slice(0, 40)}")`,
+          );
+        }
+      }
+      const orfaos = headings
+        .filter((h) => h.tagName === "H3" && !h.closest("[data-report-section]"))
+        .map((h) => h.textContent?.trim().slice(0, 40) ?? "<sem texto>");
+      return { total: levels.length, h1Count: levels.filter((l) => l === 1).length, jumps, orfaos };
+    });
+
+    if (!spine) throw new Error("#report-main não encontrado");
+    expect(
+      spine.total,
+      "nenhum heading encontrado — o relatório não renderizou (vacuidade, não sucesso)",
+    ).toBeGreaterThan(5);
+    expect(spine.h1Count, "o documento deve ter exatamente um h1 (a capa)").toBe(1);
+    expect(
+      spine.jumps,
+      "salto de nível de heading quebra o outline (bookmark de PDF, navegação por AT)",
+    ).toEqual([]);
+    expect(
+      spine.orfaos,
+      "h3 de card fora de [data-report-section] — o outline o reparenta sob a seção anterior",
+    ).toEqual([]);
   });
 
   test('Desktop: "Voltar ao topo" aparece após scroll e funciona', async ({

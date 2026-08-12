@@ -2,12 +2,12 @@ import { cn } from "@/lib/cn";
 import type { ReactNode } from "react";
 
 import type { LayoutSectionId } from "@/generated/report-layout";
-import { sectionHeading } from "./utils/sectionTitles";
+import { sectionHeading, type ShellSectionId } from "./utils/sectionTitles";
 
 interface ReportSectionProps {
-  /** União literal do codegen: id fora do YAML não compila, então o heading
-   *  nunca cai no fallback que imprimiria o id cru na tela. */
-  id: LayoutSectionId;
+  /** União literal do codegen + seções do shell: id fora das duas fontes não
+   *  compila, então o heading nunca cai no fallback que imprimiria o id cru. */
+  id: LayoutSectionId | ShellSectionId;
   /** Mode gate — se setado e ≠ do modo ativo, a seção não é renderizada.
    *  Para F1.1 o gate é feito no shell (loop do layout); este prop é
    *  reservado para F3.2. */

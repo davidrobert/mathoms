@@ -12,9 +12,9 @@ from __future__ import annotations
 from typing import Any
 
 # Seções que o shell renderiza sem entrada em `sections`/`appendices`. Espelha
-# SHELL_SECTION_TITLES em frontend/src/components/report/ReportShell.tsx; a
-# paridade é travada por tests/test_report_layout_nav_targets.py.
-SHELL_RENDERED_SECTIONS = frozenset({"V0"})
+# SHELL_SECTION_TITLES em frontend/src/components/report/utils/sectionTitles.ts;
+# a paridade é travada por tests/test_report_layout_nav_targets.py.
+SHELL_RENDERED_SECTIONS = frozenset({"V0", "perfil"})
 
 
 class NavTargetError(ValueError):
