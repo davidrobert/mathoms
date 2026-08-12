@@ -895,6 +895,7 @@
 | A40.l48 | lane | open | A40 | Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo | `sprint/A40/lanes/A40-l48-polaridade-de-comparacao-nao-monotonica.md` |
 | A40.l49 | lane | open | A40 | Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar | `sprint/A40/lanes/A40-l49-parecer-rotulo-e-guardrails.md` |
 | A40.l5 | lane | in_progress | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
+| A40.l50 | lane | open | A40 | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | `sprint/A40/lanes/A40-l50-abertos-da-investigacao-de-exposicao-cambial.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
@@ -906,8 +907,6 @@
 | A42.l10 | lane | planned | A42 | Misclassificação na classificação amplifica o carrier de duplicação | `sprint/A42/lanes/A42-l10-misclassificacao-amplifica-carrier.md` |
 | A42.l11 | lane | planned | A42 | Enforce do checksum cross-source: fatura contra o débito de pagamento no extrato | `sprint/A42/lanes/A42-l11-enforce-cross-source-fatura-pagamento.md` |
 | A42.l12 | lane | planned | A42 | Estado de extração do documento: predicado único e lista de stages derivada do registry | `sprint/A42/lanes/A42-l12-predicado-unico-de-extracao.md` |
-| A42.l13 | lane | planned | A42 | Elegibilidade de hedge e o braço de ativos da exposição cambial | `sprint/A42/lanes/A42-l13-elegibilidade-de-hedge-e-braco-de-ativos.md` |
-| A42.l14 | lane | planned | A42 | Proveniência da cotação cambial: data na tela e fallback que não inventa número | `sprint/A42/lanes/A42-l14-proveniencia-da-cotacao-cambial.md` |
 | A42.l2 | lane | planned | A42 | Parsers line-oriented: âncora de fidelidade e supressão que vira verdict do gate | `sprint/A42/lanes/A42-l2-ancora-fidelidade-e-verdict-do-gate.md` |
 | A42.l3 | lane | planned | A42 | Harness de certificação: falso-verde para dentro | `sprint/A42/lanes/A42-l3-harness-falso-verde-para-dentro.md` |
 | A42.l4 | lane | planned | A42 | Check que não consegue avaliar evapora da conta em vez de virar skipped | `sprint/A42/lanes/A42-l4-check-que-nao-avalia-evapora.md` |
