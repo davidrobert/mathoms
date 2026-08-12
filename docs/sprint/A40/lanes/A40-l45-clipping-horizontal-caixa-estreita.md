@@ -3,7 +3,7 @@ id: A40.l45
 type: lane
 title: "Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro"
 sprint: A40
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: a40-l45-clipping-horizontal-caixa-estreita
 adrs:
@@ -14,7 +14,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/frontend
   - area/design-system
@@ -60,6 +60,14 @@ escopo:
    **fronteira**: aparece a partir de ~691px, e uma captura de viewport estreito
    (media `screen`, onde o `px-10` continua valendo) o reproduz. O defeito é
    real; a superfície nomeada no brief é que estava trocada.
+
+## Desfecho — ✅ shipped
+
+Mergeado em `main` no commit `70407cc3` ([PR #1387](https://github.com/davidrobert/mathoms/pull/1387)),
+2026-08-12. `All checks green` verde. O job `Frontend visual snapshots` fica
+vermelho por passivo herdado + flakiness do `S2` — medido e explicado no
+§Follow-up; **nenhum dos 6 snapshots que ele acusa difere desta branch para
+`main` puro**, exceto o `S2`, cuja variação é do próprio gate.
 
 ## Escopo
 
