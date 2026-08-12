@@ -30,6 +30,11 @@ class InstitutionCatalog(Base):
     tax_regime: Mapped[str] = mapped_column(
         String(8), nullable=False, server_default="both", default="both"
     )
+    # ADR-384 — CNPJ-raiz (8 dígitos) da entidade BR emissora; resolvedor de
+    # maior precedência da identidade institucional. Index NÃO-único (holding
+    # e banco da mesma raiz coexistem — colisão resolve por category no
+    # matcher). NULL = sem entidade BR relevante (conta exterior).
+    cnpj_raiz: Mapped[Optional[str]] = mapped_column(String(8), nullable=True, index=True)
     metadata_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

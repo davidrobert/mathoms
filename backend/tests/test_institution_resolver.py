@@ -38,6 +38,7 @@ def _seed_catalog(session_factory, items: list[dict]) -> None:
                     name=item["name"],
                     default_parser=item.get("default_parser"),
                     category=item.get("category", "bank"),
+                    cnpj_raiz=item.get("cnpj_raiz"),
                     metadata_json=item.get("metadata_json") or {},
                     created_at=datetime.now(timezone.utc),
                     updated_at=datetime.now(timezone.utc),
@@ -128,3 +129,30 @@ class TestCacheBehavior:
         with sync_db() as s:
             refreshed = institution_resolver.resolve_institutions(s)
         assert set(refreshed.institutions.keys()) == {"itau", "c6bank"}
+
+
+class TestCnpjRaizAdr384:
+    def test_cache_key_versionada_ignora_payload_v1(self, sync_db, monkeypatch):
+        """ADR-384 §6: payload cacheado sob a chave v1 (sem cnpj_raiz) é
+        inalcançável — a chave nova nunca lê o formato velho."""
+        fake = FakeRedisClient()
+        fake.store["institution_catalog:global"] = (
+            '[{"code": "fantasma", "name": "Payload v1", "parser": null, "metadata": {}}]'
+        )
+        monkeypatch.setattr(institution_resolver, "_get_redis_safe", lambda: fake)
+        _seed_catalog(sync_db, [{"code": "itau", "name": "Itaú"}])
+        with sync_db() as s:
+            catalog = institution_resolver.resolve_institutions(s)
+        assert "fantasma" not in catalog.institutions
+        assert institution_resolver._CATALOG_CACHE_KEY == "institution_catalog:global:v2"
+
+    def test_cnpj_raiz_flui_do_row_ao_payload_cacheado(self, sync_db, monkeypatch):
+        fake = FakeRedisClient()
+        monkeypatch.setattr(institution_resolver, "_get_redis_safe", lambda: fake)
+        _seed_catalog(sync_db, [{"code": "itau", "name": "Itaú", "cnpj_raiz": "60701190"}])
+        with sync_db() as s:
+            catalog = institution_resolver.resolve_institutions(s)
+        assert catalog.institutions["itau"].metadata.get("cnpj_raiz") == "60701190"
+        with sync_db() as s:
+            cached = institution_resolver.resolve_institutions(s)
+        assert cached.institutions["itau"].metadata.get("cnpj_raiz") == "60701190"

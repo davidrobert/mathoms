@@ -2172,6 +2172,20 @@ def _load_seguradoras_catalog(ctx) -> dict[str, str]:
         return {}
 
 
+def _load_cnpj_raiz_map(ctx) -> dict[str, str]:
+    """Mapa ``cnpj_raiz → code`` do catálogo (ADR-384); vazio degrada p/ token."""
+    provider = getattr(ctx, "institution_catalog_provider", None) if ctx is not None else None
+    if provider is None:
+        return {}
+    from pipeline.llm.institution_catalog import cnpj_raiz_to_code
+
+    try:
+        return cnpj_raiz_to_code(provider)
+    except Exception as exc:  # pragma: no cover — fallback transparente
+        print(f"  [warn] cnpj_raiz_to_code falhou ({exc}); matcher segue por token de nome")
+        return {}
+
+
 def _load_protection_bundle(ctx):
     """Apólices cadastradas pelo cliente (ADR-192 §D3 · ADR-240 §Emenda 2026-08-08)."""
     store = getattr(ctx, "config_store", None) if ctx is not None else None
@@ -2259,6 +2273,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         imoveis_no_if=imoveis_no_if,
         seguradoras_catalog=_load_seguradoras_catalog(ctx),
         protection_bundle=_load_protection_bundle(ctx),
+        cnpj_raiz_to_code=_load_cnpj_raiz_map(ctx),
     )
 
 

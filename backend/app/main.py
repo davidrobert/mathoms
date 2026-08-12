@@ -83,6 +83,12 @@ setup_otel(service_name="mathoms-api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     instrument_fastapi(app)
+    # ADR-384 — caller real de deploy da invalidação do catálogo: seed novo
+    # (migration) entra em vigor no boot seguinte, não após 30d de TTL.
+    # Idempotente e falha-aberta (Redis ausente → no-op) — ADR-111 ok.
+    from backend.app.services.institution_resolver import invalidate_catalog
+
+    invalidate_catalog()
     yield
 
 
