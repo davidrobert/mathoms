@@ -56,10 +56,29 @@ def _realocate_overrides(session, dupe_id: str, canonical_id: str, dry_run: bool
     return count
 
 
+def _referenced_by_supersession(session, property_id: str) -> bool:
+    """True se alguma row aponta para esta como vencedora (ADR-375)."""
+    from sqlalchemy import select
+
+    from backend.app.models import PropertyIdentity
+
+    stmt = select(PropertyIdentity.id).where(PropertyIdentity.superseded_by_id == property_id)
+    return session.execute(stmt).first() is not None
+
+
+# Apagar a ponta de uma cadeia de supersessão a anula (ON DELETE SET NULL), e a
+# cascata do resolver pula candidato órfão por desenho — logo o run seguinte
+# volta a inserir, reabrindo a classe da ADR-375. O caminho é
+# dev/backfill_property_supersession.py, que preserva a linhagem.
 def _merge_group(session, members: list, dry_run: bool) -> dict:
     canonical, *dupes = members
     overrides_total = 0
     for d in dupes:
+        if _referenced_by_supersession(session, d.id):
+            raise SystemExit(
+                f"abortado: property_id {d.id} é vencedora de alguma supersessão; "
+                "delete-a apagaria a linhagem — use dev/backfill_property_supersession.py"
+            )
         overrides_total += _realocate_overrides(session, d.id, canonical.id, dry_run)
         if not dry_run:
             session.delete(d)
