@@ -126,7 +126,7 @@ diferentes. O valor seguia impresso e, ainda assim, uma busca por `52,0%` no PDF
 não o achava — que é como um terceiro lê o arquivo. Corrigido em `abf93169`:
 quem encolhe a tabela é o rótulo; número é átomo.
 
-## Follow-up com evidência — `S2` é flaky no gate visual
+## Follow-up com evidência — `S2` é flaky no gate visual → [[A40.l53]]
 
 Medido no run 31576243325: as **três tentativas do mesmo job**, mesmo commit,
 mesmo runner, diferem entre si em **5,1%, 5,6% e 6,3%** no `S2-dark`. A
@@ -155,12 +155,12 @@ runs **no mesmo runner** que deu para separar o que era desta lane (S2-light,
 - **Medida de linha no papel.** A 703px com corpo em 10pt a prosa fica com
   100–110 caracteres por linha (o confortável é 45–75). É legibilidade, não
   perda de dado — não se resolve com duas colunas, e sim com `max-width` em
-  `@media print`. Transferido, sem dono.
+  `@media print`. **→ [[A40.l55]]** (aberta 2026-08-12).
 - **`hidden md:block` como classe.** Hoje `alocacaoCardParts` e
   `CoberturaSegurosCard` entregam ao papel a variante mobile; nesses dois o dado
   sobrevive porque a variante mobile é completa — por acidente, não por
   desenho. [[ADR-381]] D1 fixa a regra; a varredura dos call-sites existentes
-  não entra nesta lane.
+  não entra nesta lane. **→ [[A40.l54]]** (aberta 2026-08-12).
 
 ## Regressão 2 — `min-w-0` desalinhou o gráfico, e só no Linux
 

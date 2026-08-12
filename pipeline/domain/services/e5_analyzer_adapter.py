@@ -135,6 +135,7 @@ from pipeline.domain.services.patrimonio_types import (
     MemberIdentity,
     PatrimonioConfig,
     PatrimonioInputs,
+    normalize_data_referencia,
     safe_float,
 )
 from pipeline.domain.services.pontos_fortes_analyzer import (
@@ -938,6 +939,8 @@ class E5AnalyzerAdapter:
 
             categoria = "moeda_estrangeira" if moeda != "BRL" else "caixa"
             total_brl += valor_brl
+            period_end = (data.get("periodo_cobertura") or {}).get("fim") or ""
+            data_ref, precisao = normalize_data_referencia(period_end)
             posicoes.append(
                 ExtratoPosicao(
                     detalhe=CaixaDetalhe(
@@ -946,9 +949,11 @@ class E5AnalyzerAdapter:
                         saldo_original=saldo,
                         valor_brl=valor_brl,
                         tipo=categoria,
+                        data_referencia=data_ref,
+                        data_referencia_precisao=precisao,
                     ),
                     banco=(data.get("banco") or "").lower(),
-                    period_end=(data.get("periodo_cobertura") or {}).get("fim") or "",
+                    period_end=period_end,
                 )
             )
 
