@@ -1,12 +1,12 @@
 ---
-id: A40.l46
+id: A40.l51
 type: lane
 title: "Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando"
 sprint: A40
 plan: PLAN-report-trust
 status: open
 priority: P1
-branch_slug: a40-l46-followups-orfaos
+branch_slug: a40-l51-followups-orfaos
 adrs:
   - "[[ADR-356]]"
   - "[[ADR-319]]"
@@ -23,7 +23,7 @@ tags:
   - area/financial-planning
 ---
 
-# A40.l46 — `followups-orfaos-da-l43`
+# A40.l51 — `followups-orfaos-da-l43`
 
 > **Aberta em 2026-08-12**, a pedido do dono: *"todos os follow-ups (ou achados que
 > estão em aberto) que não estão sendo atacados deveriam estar documentados em uma
@@ -242,6 +242,15 @@ um agente/humano lê para entender a métrica.
 - **Não confundir com C1**, que é o cálculo. Este é o rótulo.
 
 ### I4. As 5 fixtures E2E restantes têm o contrato morto
+
+> **Fronteira com a [[A40.l46]]** (aberta no mesmo dia, no fecho do #1382): ela é
+> dona de **provar o gate de print** — o job `frontend-print-visual` é label-gated e
+> **skipou em 4 PRs seguidos** no mesmo card, o #1386 desta sessão incluído. Este
+> item é dona do **insumo**: com as fixtures emitindo string, rodar o job não
+> revelaria os estados vazios, porque a seção não renderiza. **Complementares, não
+> duplicados** — a l46 responde "o gate está verde?", este responde "o gate está
+> olhando para algo?". Se executados juntos, a ordem é: fixtures primeiro, prova
+> depois.
 
 **Medido:** só `medium.json` emite `{left}`; `degraded`, `janela-divergente`,
 `large-values`, `long-strings` e `sparse-data` emitem **string**. Com string,

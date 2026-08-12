@@ -190,7 +190,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (44 no disco · 38 nesta tabela — ver nota ao fim)
+## Lanes (51 no disco · 41 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -241,20 +241,39 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
 | [[A40.l43]] | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | P1 | — | `shipped` `849e372b` (#1386) · achado do parecer de design · emenda [[ADR-356]] (regra: o narrador não publica valor nem juízo) · fecha por remoção o item de `n_imoveis` da [[A40.l6]] e a classe da [[A40.l15]] · transfere p/ [[A40.l29]] |
 | [[A40.l46]] | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant `feature` sem o DNA do mockup | P2 | — | aberta 2026-08-12 no fecho do #1382 · coleta os 2 achados sem dono da investigação do overlap · item 2 executa o deferimento da [[A40.l33]] §3 ([[ADR-117]] na mesa) |
-| [[A40.l47]] | Follow-ups órfãos da [[A40.l43]] — o que o co-design achou na vizinhança e ninguém ataca | P2 (proposta) | — | aberta 2026-08-12 a pedido do dono · lane de **registro**: cada item com medição citada + fix mínimo, para não evaporar no fim da sprint · prioridade/onda são gatilho de `product-manager` |
+| [[A40.l51]] | Follow-ups órfãos da [[A40.l43]] — o que o co-design achou na vizinhança e ninguém ataca | P2 (proposta) | — | aberta 2026-08-12 a pedido do dono · lane de **registro**: cada item com medição citada + fix mínimo, para não evaporar no fim da sprint · prioridade/onda são gatilho de `product-manager` |
 
 | [[A40.l50]] | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | P1 | — | aberta 2026-08-12 · resíduo do #1393 (`d1b7c97c`) · 18 achados sobreviveram a refutação adversarial, 2 refutados · contém **P0 fora do card** (`consolidate_baseline` re-consolida run anterior; rodapé PTAX afirma conversão que não houve) · 5 questões de domínio sem dono · [[ADR-379]] bloqueada por dependência de ordem |
 
-> **Contador vs. disco (re-medido 2026-08-12, quarta passada).**
-> `ls docs/sprint/A40/lanes/*.md` dá **50**; esta tabela lista **40** (l46 e l50
-> entraram junto com os arquivos). As **10 ausentes** foram abertas por PRs que não
-> atualizaram a tabela e não têm dono nesta passada: **l38** (caixa canônico, #1391),
-> **l39** (posição corrente/fiscal), **l40** (identidade institucional CNPJ raiz),
-> **l41** (frescor cross-pool), **l42**, **l44** (janela declarada, #1397/#1398),
-> **l45** (clipping caixa estreita, #1387 · [[ADR-381]]), **l47/l48/l49** (achados da
-> r4 sem gatilho, #1411). Ficam nomeadas aqui em vez de silenciadas — o id aponta o
-> arquivo, então completar custa pouco. Quem fechar a sprint tem de resolver isto: o §Gate
-> de saída lê esta tabela, e uma lane fora dela é invisível ao encerramento.
+> **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
+> manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
+> `ls docs/sprint/A40/lanes/*.md` dá **51**; esta tabela lista **41**.
+>
+> As **10 ausentes** foram abertas por PRs que não atualizaram a tabela e **não têm
+> dono nesta passada**: **l38** (caixa canônico, #1391), **l39** (posição
+> corrente/fiscal), **l40** (identidade institucional CNPJ raiz), **l41** (frescor
+> cross-pool), **l42**, **l44** (janela declarada, #1397/#1398), **l45** (clipping
+> caixa estreita, #1387 · [[ADR-381]]), **l47/l48/l49** (achados da r4 sem gatilho,
+> #1411). Ficam nomeadas aqui em vez de silenciadas — o id aponta o arquivo, então
+> completar custa pouco.
+>
+> **Quem fechar a sprint tem de resolver isto:** o §Gate de saída lê esta tabela, e
+> lane fora dela é invisível ao encerramento. Re-medir com:
+>
+> ```
+> ls docs/sprint/A40/lanes/*.md | wc -l
+> rg -N '^\| \[\[A40\.l' docs/sprint/A40/_README.md | wc -l
+> ```
+>
+> **Corolário de processo — 6 colisões de id numa sessão** (l38→l41→l43 na [[A40.l43]];
+> l46→l47→l50→l51 nesta). "Próximo id livre" medido na **tabela** mente enquanto ela
+> estiver defasada; e PR aberto não reserva id. Meça no **disco** e cruze com títulos
+> **e arquivos** de PR aberto, imediatamente antes do push:
+>
+> ```
+> rg -N '^id: A40\.l' docs/sprint/A40/lanes/*.md | sed 's/.*A40\.l//' | sort -n | tail -1
+> gh pr list --state open --limit 40 --json title -q '.[].title' | rg -o 'A40\.l[0-9]+'
+> ```
 
 ## Predicado do campo `status` de lane (decisão do dono, 2026-08-03)
 
@@ -1195,7 +1214,8 @@ Mesma convenção da seção acima: **um item ou tem lane, ou tem disposição e
 O co-design da l43 (`prompt-engineer` + `financial-planner` + `product-designer`,
 escalado ao `senior-cto`) produziu achados vizinhos ao escopo. Os com dono foram
 roteados; o resto foi para a [[A40.l46]], aberta a pedido do dono para que nenhum
-evapore.
+evapore. **Fronteira com a [[A40.l46]]** (mesma data, do fecho do #1382): ela prova o
+gate de print; o item §I4 da [[A40.l51]] conserta o insumo das fixtures.
 
 **Elevado a P1 depois da medição:** 3 itens são defeito em **número ou prosa já
 entregues ao usuário**, não débito de forma. A verificação rodou 4 lentes e refutou 2
@@ -1203,20 +1223,20 @@ achados alegados (registrados como §Fantasmas na lane, para ninguém reabrir).
 
 | Follow-up | Onde está | Tem destino? |
 |---|---|---|
-| **Score de endividamento com sinal INVERTIDO no default** — `invertido=False` no código vs `true` no `scoring.json`; medido: endiv 5% → nota **0,0**, endiv 50% → nota **10,0**. Alcançável por 3 call sites, um deles `backend/app/services/score_reader.py` | [[A40.l46]] §C1 | **lane** — fix é 1 char, mas muda score: gatilho `financial-planner` |
-| **`R$ 2,000` / `R$ 36,000` — separador de milhar dos EUA em prosa entregue** (`consumo_consciente.analise`, `previdencia_pgbl.nota` no snapshot do view-model). Em pt-BR lê "R$ 2" | [[A40.l46]] §C2 | **lane** |
-| **`.replace(",", ".")` na prosa inteira corrompe pontuação** — `suggestion_rules.py:574`; medido: *"da meta IF**.** mas a renda"*, 5 vírgulas gramaticais destruídas | [[A40.l46]] §C3 | **lane** |
-| **A causa-raiz que a l43 diagnosticou foi removida PELA METADE** — o validador ainda exige as **10** summaries não-vazias (`format_helpers.py:244-251`), e 4 delas são órfãs: o gate **obriga a fabricar prosa** para chaves que nenhuma superfície lê. Mesma regra, mesmo arquivo | [[A40.l46]] §C4 | **lane** — autocrítica da l43; destrava o fix dos landmines |
-| `renda_passiva.conclusion` imprime "Faltam R$ **-**X/mês" (subtração sem guarda de sinal) e o percentual não é clampado — **entregue** na S7 | [[A40.l46]] §I7 | **lane** — plausível, **não observado**; medir antes de escrever a copy |
-| Landmines de veredito sem limiar em chave **não entregue**: `s2` "endividamento controlado" (o produtor gated já existe e é entregue) · `top15_ativos` "Concentração em poucos ativos" · `patrimonio_doughnut.context` · `carteira_diversificacao_frase` com n=1 | [[A40.l46]] §I8 | **lane** — preferir deleção a reescrita; depende do §C4 |
-| Drift de comentário deixado pela própria l43 — `format_helpers.py:87` cita 3 call sites, 2 não existem mais | [[A40.l46]] §I9 | **lane** |
-| Parágrafo do filho: "do casal" incondicional (falso p/ titular solteiro) · 2º filho **desaparece** · juízo sucessório incondicional · idade omitida · membro `dependente` **invisível** | [[A40.l46]] §I1 | **lane** — inclui fechar o falso-verde do gate da l43, que mede 3 literais e não pega "peça central" |
-| `fmt_currency` contra COPY_GUIDELINES §4 (`k`/`M`, sinal, NBSP, piso de compactação) — **72 call sites** e **6 formatadores independentes**, incl. `dashboard_service._fmt_brl` com separador US | [[A40.l46]] §I2 | **lane própria** — e a §4 precisa de emenda para "prosa gerada", que hoje manda o impossível |
-| `taxa_endividamento`: `scoring.json` declara "% renda mensal comprometida" mas a fórmula é `dívidas/patrimônio bruto`; `FORMULAS.md` sem linha | [[A40.l46]] §I3 | **lane** — docs-only, não-breaking (nenhum consumidor lê `unidade`) |
-| 5 das 6 fixtures E2E têm o contrato morto — estados vazios do bloco de identidade nunca vistos em baseline | [[A40.l46]] §I4 | **lane** |
-| Heading order h1→h3→h2 + Sumário Executivo sem heading (gate axe é `critical+serious`, `heading-order` é `moderate`) | [[A40.l46]] §I5 | **lane** |
-| 6 lanes fora da tabela §Lanes (l38–l42, l44) — o §Gate de saída lê a tabela | [[A40.l46]] §I6 | **lane** (contador corrigido em #1405; a tabela, não) |
-| Substrato declarado de plano de vida — feature que o pedido original queria | [[A40.l46]] §F1 | **lane** — exige ADR `Proposto` com gatilho **PII**, e depende do §Escopo 2 da l29 |
+| **Score de endividamento com sinal INVERTIDO no default** — `invertido=False` no código vs `true` no `scoring.json`; medido: endiv 5% → nota **0,0**, endiv 50% → nota **10,0**. Alcançável por 3 call sites, um deles `backend/app/services/score_reader.py` | [[A40.l51]] §C1 | **lane** — fix é 1 char, mas muda score: gatilho `financial-planner` |
+| **`R$ 2,000` / `R$ 36,000` — separador de milhar dos EUA em prosa entregue** (`consumo_consciente.analise`, `previdencia_pgbl.nota` no snapshot do view-model). Em pt-BR lê "R$ 2" | [[A40.l51]] §C2 | **lane** |
+| **`.replace(",", ".")` na prosa inteira corrompe pontuação** — `suggestion_rules.py:574`; medido: *"da meta IF**.** mas a renda"*, 5 vírgulas gramaticais destruídas | [[A40.l51]] §C3 | **lane** |
+| **A causa-raiz que a l43 diagnosticou foi removida PELA METADE** — o validador ainda exige as **10** summaries não-vazias (`format_helpers.py:244-251`), e 4 delas são órfãs: o gate **obriga a fabricar prosa** para chaves que nenhuma superfície lê. Mesma regra, mesmo arquivo | [[A40.l51]] §C4 | **lane** — autocrítica da l43; destrava o fix dos landmines |
+| `renda_passiva.conclusion` imprime "Faltam R$ **-**X/mês" (subtração sem guarda de sinal) e o percentual não é clampado — **entregue** na S7 | [[A40.l51]] §I7 | **lane** — plausível, **não observado**; medir antes de escrever a copy |
+| Landmines de veredito sem limiar em chave **não entregue**: `s2` "endividamento controlado" (o produtor gated já existe e é entregue) · `top15_ativos` "Concentração em poucos ativos" · `patrimonio_doughnut.context` · `carteira_diversificacao_frase` com n=1 | [[A40.l51]] §I8 | **lane** — preferir deleção a reescrita; depende do §C4 |
+| Drift de comentário deixado pela própria l43 — `format_helpers.py:87` cita 3 call sites, 2 não existem mais | [[A40.l51]] §I9 | **lane** |
+| Parágrafo do filho: "do casal" incondicional (falso p/ titular solteiro) · 2º filho **desaparece** · juízo sucessório incondicional · idade omitida · membro `dependente` **invisível** | [[A40.l51]] §I1 | **lane** — inclui fechar o falso-verde do gate da l43, que mede 3 literais e não pega "peça central" |
+| `fmt_currency` contra COPY_GUIDELINES §4 (`k`/`M`, sinal, NBSP, piso de compactação) — **72 call sites** e **6 formatadores independentes**, incl. `dashboard_service._fmt_brl` com separador US | [[A40.l51]] §I2 | **lane própria** — e a §4 precisa de emenda para "prosa gerada", que hoje manda o impossível |
+| `taxa_endividamento`: `scoring.json` declara "% renda mensal comprometida" mas a fórmula é `dívidas/patrimônio bruto`; `FORMULAS.md` sem linha | [[A40.l51]] §I3 | **lane** — docs-only, não-breaking (nenhum consumidor lê `unidade`) |
+| 5 das 6 fixtures E2E têm o contrato morto — estados vazios do bloco de identidade nunca vistos em baseline | [[A40.l51]] §I4 | **lane** |
+| Heading order h1→h3→h2 + Sumário Executivo sem heading (gate axe é `critical+serious`, `heading-order` é `moderate`) | [[A40.l51]] §I5 | **lane** |
+| 6 lanes fora da tabela §Lanes (l38–l42, l44) — o §Gate de saída lê a tabela | [[A40.l51]] §I6 | **lane** (contador corrigido em #1405; a tabela, não) |
+| Substrato declarado de plano de vida — feature que o pedido original queria | [[A40.l51]] §F1 | **lane** — exige ADR `Proposto` com gatilho **PII**, e depende do §Escopo 2 da l29 |
 | `perfil_familia.right` publica `n_imoveis` (contradição cross-seção) | [[A40.l6]] | **quitado por remoção** — o aceite "fonte única" ficou insatisfazível; a l6 mantém só o lado da S4 |
 | Política de diversificação/concentração — o que a S3 afirma sobre a carteira | [[A40.l15]] | **lane** — a l43 mediu que os publicadores **entregues** foram a zero; a política segue da l15 |
 | Premissas de IF (TRS, retorno real, meta em R$, aporte-meta) sem superfície nenhuma no relatório | [[A40.l29]] §Escopo 2 | **lane** — `financial-planner` classificou como *requisito de leitura*, não redundância ([[ADR-306]] §D2) |

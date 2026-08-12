@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-13 open · 7 in_progress.
+14 open · 7 in_progress.
 
-## Open (13)
+## Open (14)
 
 - [[A40.l10]] — Ordem do plano com critério encodado + pendências acionáveis do dono · priority P1 · branch `a40-l10-pendencia-do-dono-e-ordem-do-plano`
 - [[A40.l29]] — Editorial do ano de IF: dois anos concorrentes, eixo em quando em vez de quanto, e a faixa sem componente · priority P2 · branch `a40-l29-editorial-do-ano-de-if`
@@ -22,6 +22,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[A40.l48]] — Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo · priority P2 · branch `a40-l48-polaridade-de-comparacao-nao-monotonica`
 - [[A40.l49]] — Parecer: rótulo de evidência derivado do root do path, e dois guardrails que não podem disparar · priority P1 · branch `a40-l49-parecer-rotulo-e-guardrails`
 - [[A40.l50]] — Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado · priority P1 · branch `a40-l50-abertos-exposicao-cambial`
+- [[A40.l51]] — Follow-ups órfãos da A40.l43: o que o co-design achou na vizinhança e ninguém está atacando · priority P1 · branch `a40-l51-followups-orfaos`
 
 ## In progress (7)
 
