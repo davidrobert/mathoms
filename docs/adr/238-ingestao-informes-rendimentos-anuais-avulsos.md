@@ -5,7 +5,7 @@ title: "Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financei
 status: Decidido
 phase: A17.informes-avulsos
 date: "2026-05-21"
-amended_at: ["2026-05-29"]
+amended_at: ["2026-05-29", "2026-08-12"]
 relates_to:
   - "[[ADR-157]]"
   - "[[ADR-216]]"
@@ -41,6 +41,11 @@ tags:
 
 > **Correção (2026-05-29):** `data_adesao` deixou de ser hard-fail em regime
 > regressivo — ver §"Correção — `data_adesao` não é hard-fail em regressivo".
+>
+> **Emenda (2026-08-12):** a cláusula de D5 "informe 31/12 vence extrato D+1"
+> foi superseded pela separação de visões da [[ADR-382]] — ver §"Emenda —
+> D5: a janela D+1 sai de cena (2026-08-12)". O restante de D5
+> (`FiscalAnalyzer` sobre `FiscalSource`) permanece vigente.
 
 ## Contexto
 
@@ -234,3 +239,24 @@ Lane [[A17.l1]] entregue em 5 PRs sequenciais (P1 → P5), todos squash-mergeado
 - V2 (alíquota PEPS): quando regressivo sem data, alíquota deve ser **indeterminada/intervalo (10%–35%)**, nunca chutar 35% — endossado por `financial-planner`.
 
 **Follow-up.** Eval golden live-LLM com duas classes — Classe A (informe com data → recall gate) e Classe B (informe sem data → precision gate: confirma `data_adesao=null` + `needs_review=true` sem alucinação). 100% sintético (sem PII). Fora do gate determinístico de CI; testes unitários determinísticos cobrem 100% da lógica de degradação (`tests/test_extract_informes_anuais_unit.py`, `tests/test_informe_previdencia_schema_unit.py`).
+
+## Emenda — D5: a janela D+1 sai de cena (2026-08-12)
+
+A cláusula de D5 *"informe 31/12 vence extrato D+1 quando há divergência"*
+nunca disparou em produção: a janela (`_period_in_janela_d1`) era avaliada
+sobre o **último** extrato da conta — em workspace com extratos correntes,
+o fim de período nunca cai em dez/ano-base ou jan/ano-base+1 — e o match por
+token de nome na descrição da conta casava 0 de 6 entries no dogfood.
+
+A [[ADR-382]] separa as visões (corrente datada por linha × fechamento
+fiscal 31/12): a pergunta deixa de ser "qual saldo vence" e passa a ser
+"qual visão a linha povoa" — a janela D+1 perde a razão de existir e
+`_period_in_janela_d1` deixa de ser regra de negócio. A precedência
+temporal entre fontes vira política geral na [[ADR-383]]; a identidade
+institucional que o match exigia vira resolução por CNPJ-raiz na
+[[ADR-384]].
+
+**Permanece vigente** em D5: `FiscalAnalyzer` polimórfico sobre
+`FiscalSource` e o snapshot 31/12 dos informes alimentando
+`consolidate_baseline`. D4 ("declaração entregue vence informe") permanece,
+agora explicitamente **dentro da mesma data-alvo** ([[ADR-383]] §2).

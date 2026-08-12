@@ -9,6 +9,7 @@ priority: P1
 branch_slug: a40-l41-frescor-cross-pool-fonte-inteira
 adrs:
   - "[[ADR-346]]"
+  - "[[ADR-383]]"
 depends_on: ["[[A40.l42]]"]
 tags:
   - type/lane

@@ -11,6 +11,7 @@ adrs:
   - "[[ADR-238]]"
   - "[[ADR-245]]"
   - "[[ADR-376]]"
+  - "[[ADR-382]]"
 depends_on: ["[[A40.l38]]"]
 tags:
   - type/lane
