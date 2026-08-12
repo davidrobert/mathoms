@@ -3,8 +3,10 @@ id: A40.l40
 type: lane
 title: "Identidade institucional por CNPJ-raiz: o matcher informe↔extrato casa 0 de 6 por nome livre"
 sprint: A40
+ship_date: "2026-08-12"
+ship_pr: 1404
 plan: PLAN-report-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a40-l40-identidade-institucional-cnpj-raiz
 adrs:
@@ -15,7 +17,7 @@ depends_on: []
 tags:
   - type/lane
   - sprint/a40
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
@@ -72,3 +74,24 @@ extração + `prompt-engineer` se necessário).
   aberta para o DB, nunca mapa vazio silencioso.
 - Gate: todo `code` com `category ∈ {bank, broker, exchange}` tem
   `cnpj_raiz`, verificado sobre as migrations (não sobre `create_all`).
+
+## Fechamento — 2026-08-12 (PR #1404)
+
+Entregue: coluna `cnpj_raiz String(8)` + index não-único + CHECK; seed com
+dupla derivação independente + âncoras de documentos fiscais reais; cascata
+`cnpj_raiz → token → sem match` no matcher; `InstitutionEntry.cnpj_raiz` via
+provider; cache versionado `:v2` + `invalidate_catalog()` no lifespan.
+
+Duas correções ao desenho original, achadas na execução:
+
+1. **Raiz mapeia para CONJUNTO de codes**, não code único — `rico` e
+   `xpinvestimentos` compartilham a raiz `02332886` (a Rico documenta que o
+   informe sai no CNPJ da XP, por incorporação). Um mapa 1:1 escolheria um e
+   vetaria o outro.
+2. **Alembic `--sql` offline renderiza param bound como `NULL`** — o seed usa
+   SQL literal validado por `assert` de formato.
+
+**Aberto**: `btgdigital` fica `NULL` (as duas derivações divergiram: CTVM
+`43815158` × banco `30306294`) — decidir quando um informe real do produto
+aparecer; hoje o fallback por token cobre. A allowlist do gate nomeia esse
+caso e o `bankofamerica` (conta US sem entidade BR emissora).
