@@ -190,7 +190,7 @@ computável do tripwire da [[A40.l21]]. Se a A40 não fechar até `2026-08-17`, 
 promovida da [[A41]] assim), não fundir. Registro em [[MOC-sprint-a42]] §Gatilho de
 promoção a `current`.
 
-## Lanes (54 no disco · 45 nesta tabela — ver nota ao fim)
+## Lanes (58 no disco · 52 nesta tabela — ver nota ao fim)
 
 Critério de agrupamento: **arquivo compartilhado** (evita merge-hell entre
 branches `agent/*` paralelas) **e** risco compartilhado.
@@ -241,40 +241,60 @@ literalmente. Divergência de redação aqui **não** é defeito; divergência d
 | [[A40.l37]] | A tabela de IR tem três fontes, e uma é hardcoded contra a [[ADR-135]] | P2 | — | achado do co-design da [[A40.l34]] 2026-08-11 · `blocked` por [[A40.l34]] (consome o resolver que nasce lá) |
 | [[A40.l43]] | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | P1 | — | `shipped` `849e372b` (#1386) · achado do parecer de design · emenda [[ADR-356]] (regra: o narrador não publica valor nem juízo) · fecha por remoção o item de `n_imoveis` da [[A40.l6]] e a classe da [[A40.l15]] · transfere p/ [[A40.l29]] |
 | [[A40.l46]] | Resíduos do bloco de identidade (perfil): baseline de print não provada + variant `feature` sem o DNA do mockup | P2 | — | aberta 2026-08-12 no fecho do #1382 · coleta os 2 achados sem dono da investigação do overlap · item 2 executa o deferimento da [[A40.l33]] §3 ([[ADR-117]] na mesa) |
-| [[A40.l51]] | Follow-ups órfãos da [[A40.l43]] — o que o co-design achou na vizinhança e ninguém ataca | P2 (proposta) | — | aberta 2026-08-12 a pedido do dono · lane de **registro**: cada item com medição citada + fix mínimo, para não evaporar no fim da sprint · prioridade/onda são gatilho de `product-manager` |
-
+| [[A40.l47]] | Três números cuja semântica não bate com o rótulo: taxa de retirada, faixa comportamental e base da reserva | P1 | — | aberta 2026-08-12 (#1411, r4) · dono `financial-planner` · linha adicionada nesta passada — o #1411 não atualizou a tabela |
+| [[A40.l48]] | Polaridade de comparação é fixa por métrica, mas cobertura de reserva não é monotônica no alvo | P2 | — | aberta 2026-08-12 (#1411, r4) · dono `data-engineer` · linha adicionada nesta passada |
+| [[A40.l49]] | Parecer: rótulo de evidência derivado do root do path + dois guardrails que não podem disparar | P1 | — | aberta 2026-08-12 (#1411, r4) · dono `prompt-engineer` · linha adicionada nesta passada |
 | [[A40.l50]] | Abertos da investigação de exposição cambial: inventário verificado do que não foi atacado | P1 | — | aberta 2026-08-12 · resíduo do #1393 (`d1b7c97c`) · 18 achados sobreviveram a refutação adversarial, 2 refutados · contém **P0 fora do card** (`consolidate_baseline` re-consolida run anterior; rodapé PTAX afirma conversão que não houve) · 5 questões de domínio sem dono · [[ADR-379]] bloqueada por dependência de ordem |
 | [[A40.l45]] | Clipping horizontal em caixa ≤700px: o dado saía do relatório sem rastro (mobile 390 · A4 703) | P1 | — | `shipped` `70407cc3` (#1387) · [[ADR-381]] · gate novo `overflow-horizontal.@critical` provado por mutação · residuais → [[A40.l53]] [[A40.l54]] [[A40.l55]] |
+| [[A40.l51]] | Follow-ups órfãos da [[A40.l43]] — o que o co-design achou na vizinhança e ninguém ataca | P2 (proposta) | — | aberta 2026-08-12 a pedido do dono · lane de **registro**: cada item com medição citada + fix mínimo, para não evaporar no fim da sprint · prioridade/onda são gatilho de `product-manager` |
 | [[A40.l53]] | Gate visual de seções cego: S2 flaky (5–6% intra-commit) + 6 baselines podres em `main` | P1 | — | aberta 2026-08-12 no fecho da [[A40.l45]] · **vizinha, não duplicata, da [[A40.l46]] item 1** (aquela é o job de PRINT/página 1; esta, o de snapshots por seção) · método de triagem `actual`×`actual` documentado na lane |
 | [[A40.l54]] | `hidden md:block` entrega ao papel a variante mobile: varredura + gate ([[ADR-381]] D1) | P2 | — | aberta 2026-08-12 · hoje o dado sobrevive por acidente em 2 call-sites (aloc./seguros) |
 | [[A40.l55]] | Medida de linha no papel: 100–110 cpl na prosa do A4 | P3 | — | aberta 2026-08-12 · polish de legibilidade; fix candidato `max-width: 90ch` em `@media print` |
+| [[A40.l56]] | A tabela fiscal de produção: row internamente inconsistente e nenhum golden a atravessa | P1 | — | aberta 2026-08-12 no fechamento dos follow-ups · desbloqueia [[ADR-375]] D5 · dono `data-engineer` · nasceu `l50`, renumerada no dia (o #1409 tomou o id em paralelo) |
+| [[A40.l57]] | O parecer lê o contrato antigo do bloco PGBL: guardrail FP-04 morto e âncora que resolve `null` | P2 | — | aberta 2026-08-12 · handoff da [[A40.l7]] **agravado pelo PR2 da [[A40.l34]]** (#1394) · dono `prompt-engineer` · sobe a P1 se dogfood mostrar retenção espúria |
+| [[A40.l58]] | `schema_validation` warn → strict — o PR5 que a [[A40.l5]] declarou como outra lane | P2 | [[A40.l5]] | aberta 2026-08-12 · `blocked` (exige o drift medido dos PRs da l5) · ADR própria antes do PR · dono `sre-devops` |
+| [[A40.l59]] | A transição para `shipped` ganha gate: `ship_pr` no frontmatter e PR visível no `_README` | P2 | — | aberta 2026-08-12 · executa o gatilho de promoção da skill `lane-closeout` (3ª ocorrência + 10 lanes fora desta tabela na medição) · dono `information-architect` |
 
 > **Contador vs. disco — re-medido por SCRIPT em 2026-08-12** (não à mão: a contagem
 > manual errou 3 vezes no mesmo dia, porque a sprint abriu 12 lanes em ~20h).
-> `ls docs/sprint/A40/lanes/*.md` dá **54**; esta tabela lista **45**.
+> `ls docs/sprint/A40/lanes/*.md` dá **58**; esta tabela lista **52**.
+> As **l47/l48/l49** (achados da r4, #1411) entraram na tabela na passada do
+> fechamento dos follow-ups, junto com l56–l59.
 >
-> As **9 ausentes** foram abertas por PRs que não atualizaram a tabela e **não têm
+> As **6 ausentes** foram abertas por PRs que não atualizaram a tabela e **não têm
 > dono nesta passada**: **l38** (caixa canônico, #1391), **l39** (posição
 > corrente/fiscal), **l40** (identidade institucional CNPJ raiz), **l41** (frescor
-> cross-pool), **l42**, **l44** (janela declarada, #1397/#1398), **l47/l48/l49**
-> (achados da r4 sem gatilho, #1411). A **l45** saiu desta lista em 2026-08-12 —
-> entrou na tabela junto com as lanes que os follow-ups dela originaram (l53–l55).
-> Ficam nomeadas aqui em vez de silenciadas — o id aponta o arquivo, então
-> completar custa pouco.
+> cross-pool), **l42**, **l44** (janela declarada, #1397/#1398). A **l45** saiu
+> desta lista em 2026-08-12 — entrou na tabela junto com as lanes que os
+> follow-ups dela originaram (l53–l55). Ficam nomeadas aqui em vez de silenciadas —
+> o id aponta o arquivo, então completar custa pouco.
 >
 > **Quem fechar a sprint tem de resolver isto:** o §Gate de saída lê esta tabela, e
-> lane fora dela é invisível ao encerramento. Re-medir com:
+> lane fora dela é invisível ao encerramento. A direção lane→tabela vira gate na
+> [[A40.l59]]. Re-medir com:
 >
 > ```
 > ls docs/sprint/A40/lanes/*.md | wc -l
 > rg -N '^\| \[\[A40\.l' docs/sprint/A40/_README.md | wc -l
 > ```
 >
-> **Corolário de processo — 6 colisões de id numa sessão** (l38→l41→l43 na [[A40.l43]];
-> l46→l47→l50→l51 nesta; e as lanes de follow-up da [[A40.l45]] nasceram l50–l52 e
-> aterrissaram l53–l55). "Próximo id livre" medido na **tabela** mente enquanto ela
-> estiver defasada; e PR aberto não reserva id. Meça no **disco** e cruze com títulos
-> **e arquivos** de PR aberto, imediatamente antes do push:
+> **Quem fechar a sprint tem de resolver isto:** o §Gate de saída lê esta tabela, e
+> lane fora dela é invisível ao encerramento. A direção lane→tabela vira gate na
+> [[A40.l59]]. Re-medir com:
+>
+> ```
+> ls docs/sprint/A40/lanes/*.md | wc -l
+> rg -N '^\| \[\[A40\.l' docs/sprint/A40/_README.md | wc -l
+> ```
+>
+> **Corolário de processo — 8 colisões de id numa sessão** (l38→l41→l43 na [[A40.l43]];
+> l46→l47→l50→l51 numa; as lanes de follow-up da [[A40.l45]] nasceram l50–l52 e
+> aterrissaram l53–l55; e as desta passada nasceram l50/l51, foram para l54/l55 e
+> aterrissaram **l56–l59** — duas colisões seguidas, a segunda já com o teto medido
+> em `origin/main`, porque o #1414 mergeou no intervalo entre a medição e o push).
+> "Próximo id livre" medido na **tabela** mente enquanto ela estiver defasada; e PR
+> aberto não reserva id. Meça no **disco** e cruze com títulos **e arquivos** de PR
+> aberto, imediatamente antes do push:
 >
 > ```
 > rg -N '^id: A40\.l' docs/sprint/A40/lanes/*.md | sed 's/.*A40\.l//' | sort -n | tail -1
@@ -1399,6 +1419,29 @@ de repo.
   como residual pós-r3: entra na próxima re-triagem com uma medição de entrada
   (delta entre as duas fontes no corpus dogfood); delta material ⇒ abre lane com a
   emenda; delta imaterial ⇒ `aceito-wontfix`.
+
+### Disposição dos follow-ups do fechamento — 2026-08-12
+
+Rodada pedida pelo dono: *todo follow-up aberto que não está numa lane nem sendo
+atacado ganha rota registrada*. Regra aplicada: **trabalho** vira lane
+específica agrupada por dono (precedente l46–l49 do mesmo dia); **decisão** vira
+pendência nomeada; **owner-gated** fica documentado na origem. Nenhum item vira
+lane-coletora — item com dono de mentira é o que reaparece como PR corretivo.
+
+| Item | Origem | Rota |
+|---|---|---|
+| Row de `fiscal_parameters` inconsistente (`deducao_brl_cents` mensal × faixa anual) — bloqueia [[ADR-375]] D5 | co-design [[A40.l34]] | **[[A40.l56]]** (P1) |
+| Nenhum golden atravessa `from_fiscal_parameters` (produção) | crítico do PR1 da l34 | **[[A40.l56]]** (mesmo dono, mesmo objeto) |
+| Parecer lê o contrato antigo do bloco PGBL (FP-04 morto · âncora `null` · resumo S8 · título do bucket) | handoff [[A40.l7]] + PR2 da l34 | **[[A40.l57]]** (P2, gatilho de subida declarado) |
+| `schema_validation` warn → strict | [[A40.l5]] §PR5 ("outra lane") | **[[A40.l58]]** (`blocked` por l5) |
+| "PR mergeado invisível no `_README`" (3ª ocorrência) + 10 lanes fora da tabela | fecho da l7 · nota do §Lanes | **[[A40.l59]]** (gate na transição) |
+| Faixa marginal: base de cálculo ou rendimento bruto? | co-design interrompido (limite de gasto) | **co-design do PR3 da [[A40.l34]]** — `financial-planner`; a assinatura do service só vira contrato público lá |
+| `dev/golden_diff.py` fora de hook e de CI | crítico do PR1 da l34 | **pendência de decisão do dono**: wire como gate ou declarar ferramenta manual — hoje a prosa de lanes o cita como se gateasse |
+| Vault key dos 55 E5 reais · `frontend-e2e` seed/auth · [[ADR-374]] §Deferimento | várias | **owner-gated**, documentados na origem — sem mudança |
+
+O que **não** entrou aqui por já ter rota: [[A40.l36]]/[[A40.l37]] (lanes desde
+2026-08-11), os PRs 2–4 da [[A40.l5]], a §Carga herdada da [[A40.l25]], e o PR3
+da [[A40.l34]] (em execução).
 
 ## Infra de CI tocada durante a sprint (não são lanes)
 
