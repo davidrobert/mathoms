@@ -45,6 +45,33 @@ export function parseChartMonthLabel(label: string): Date | null {
   return null;
 }
 
+function parseIsoDate(value: string | undefined): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec((value ?? "").trim());
+  if (!match) return null;
+  // Local, não `new Date(iso)`: a forma ISO é parseada como UTC e volta um dia
+  // atrás em fuso negativo — `parseChartMonthLabel` também constrói local.
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+/** Âncora do fim da janela de dados para os period toggles dos cards.
+ *
+ * `fluxo_caixa.data_corte` (E5) é o **teto**: a série mensal nunca passa dele.
+ * Quando o último label é anterior ao corte (corpus que termina antes de hoje),
+ * ele continua vencendo — ancorar em hoje dividiria receita de 2 meses por 3, que
+ * é o mesmo defeito ao contrário. Payload sem `data_corte` (relatório anterior ao
+ * corte de provisionado) cai no comportamento antigo: só o último label. */
+export function resolveAnchorDate(
+  labels: string[] | undefined,
+  dataCorte: string | undefined,
+): Date | undefined {
+  const last = labels?.length
+    ? parseChartMonthLabel(labels[labels.length - 1])
+    : null;
+  const corte = parseIsoDate(dataCorte);
+  if (!corte) return last ?? undefined;
+  return last && last < corte ? last : corte;
+}
+
 /** Retorna date_from e date_to (YYYY-MM-DD) para o período selecionado.
  * `anchorDate` ancora o `date_to` no fim da janela de dados (default: hoje). */
 export function getPeriodDates(

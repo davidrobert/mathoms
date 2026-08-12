@@ -22,7 +22,7 @@ import type {
   DiagnosticoComportamental,
   EquilibrioCerbasiData,
 } from "@/types/report-analysis";
-import { parseChartMonthLabel } from "@/lib/periodUtils";
+import { resolveAnchorDate } from "@/lib/periodUtils";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 /** F9 · F2.B — Seção S2 (Fluxo de Caixa — Receitas e Despesas).
@@ -60,13 +60,14 @@ export function S2FluxoCaixaSection({
   const getConclusion = (id: string): string | undefined =>
     deriveChartConclusion(id, data) ?? undefined;
 
-  /** Última label do dataset mensal vira anchor para period toggles dos cards
-   * — paridade com `usePeriodWindow` dos charts (evita janela vazia quando
-   * dados são mais antigos que "hoje"). */
-  const datasetLabels = fluxo?.receita_despesa_mensal_detalhado?.labels;
-  const anchorDate = datasetLabels && datasetLabels.length > 0
-    ? parseChartMonthLabel(datasetLabels[datasetLabels.length - 1]) ?? undefined
-    : undefined;
+  /** Anchor dos period toggles dos cards — paridade com `usePeriodWindow` dos
+   * charts. `fluxo_caixa.data_corte` limita a âncora ao último dia realizado; o
+   * último label continua vencendo quando é anterior (evita janela vazia com
+   * dados mais antigos que "hoje"). */
+  const anchorDate = resolveAnchorDate(
+    fluxo?.receita_despesa_mensal_detalhado?.labels,
+    fluxo?.data_corte,
+  );
 
   return (
     <ReportSection id="S2">

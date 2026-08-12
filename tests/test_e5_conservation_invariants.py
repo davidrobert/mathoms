@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -216,6 +217,111 @@ def test_receita_total_equals_recorrente_plus_one_time(e5_payload: dict):
     fc = e5_payload["fluxo_caixa"]
     split = _cents(fc["receita_recorrente"]) + _cents(fc["receita_one_time"])
     assert _cents(fc["receita_total"]) == split
+
+
+# I5-I7 — corte de provisionado. O headline e a série mensal têm que fechar entre
+# si (I5), a série não pode passar do `data_corte` (I6) e o bloco que saiu tem que
+# fechar consigo mesmo (I7). I6 é a que morde: sem o corte, uma receita com data
+# futura estica `labels` para depois de hoje e o card que ancora a janela no
+# último label divide receita de N meses por N+1.
+
+
+def _mensal(payload: dict) -> dict:
+    return payload["fluxo_caixa"]["receita_despesa_mensal_detalhado"]
+
+
+def _label_para_mes(label: str) -> str:
+    ano, mes = label.split("/")
+    return f"20{ano}-{mes}"
+
+
+def _assert_i5(payload: dict) -> None:
+    fc = payload["fluxo_caixa"]
+    mensal = _mensal(payload)
+    assert _cents(fc["receita_total"]) == sum(_cents(v) for v in mensal["totais_receita"])
+    assert _cents(fc["despesa_total"]) == sum(_cents(v) for v in mensal["totais_despesa"])
+
+
+def _assert_i6(payload: dict) -> None:
+    fc = payload["fluxo_caixa"]
+    labels = _mensal(payload)["labels"]
+    assert len(labels) == fc["janela_meses"]
+    if labels:
+        assert max(_label_para_mes(x) for x in labels) <= fc["data_corte"][:7]
+
+
+def _assert_i7(payload: dict) -> None:
+    prov = payload["fluxo_caixa"]["provisionado"]
+    assert _cents(prov["receita_brl"]) == sum(_cents(v) for v in prov["por_fonte"].values())
+    assert _cents(prov["despesa_brl"]) == sum(_cents(v) for v in prov["por_categoria"].values())
+
+
+def test_i5_headline_fecha_com_a_serie_mensal(e5_payload: dict):
+    _assert_i5(e5_payload)
+
+
+def test_i6_serie_nao_passa_do_data_corte(e5_payload: dict):
+    _assert_i6(e5_payload)
+
+
+def test_i7_provisionado_fecha_consigo_mesmo(e5_payload: dict):
+    _assert_i7(e5_payload)
+
+
+# `reference_date` INJETADA. O stage re-deriva `TODAY = date.today()` a cada run
+# (analyze_finances:119), então pinar o global não basta — congelamos o `date` do
+# módulo. Sem pinar, o corpus futuro viraria passado com o calendário e o teste
+# pararia de morder.
+_REFERENCE_DATE = date(2026, 2, 10)
+
+
+class _DataCongelada(date):
+    @classmethod
+    def today(cls) -> date:
+        return _REFERENCE_DATE
+
+
+_JCP_PROVISIONADO = {
+    "data": "2026-03-05",
+    "descricao": "PIX recebido JCP provisionado",
+    "valor": 500.0,
+}
+
+
+@pytest.fixture
+def e5_com_provisionado(tmp_path: Path, monkeypatch) -> dict:
+    """E5 sobre corpus com 1 receita datada DEPOIS do `data_corte` injetado."""
+    monkeypatch.setattr("scripts.analyze_finances.date", _DataCongelada)
+    e3 = load_fixture(_E3_MIXED)
+    e3["transacoes"] = [*e3["transacoes"], dict(_JCP_PROVISIONADO)]
+    e3["transacoes_total"] = len(e3["transacoes"])
+    e3["saldo_final"] = 570.0
+    e3["periodo_cobertura"]["fim"] = "2026-03-31"
+    write_e5_config(tmp_path, expense_keywords={"lazer": ["CINEMA"]})
+    return run_e3_e4_e5(tmp_path, e3_payloads={_e3_key(_E3_MIXED): e3})
+
+
+def test_i6_corta_transacao_futura_da_serie(e5_com_provisionado: dict):
+    fc = e5_com_provisionado["fluxo_caixa"]
+    assert fc["data_corte"] == _REFERENCE_DATE.isoformat()
+    _assert_i6(e5_com_provisionado)
+    assert _mensal(e5_com_provisionado)["labels"] == ["26/01"]
+
+
+def test_i5_e_i7_com_provisionado(e5_com_provisionado: dict):
+    _assert_i5(e5_com_provisionado)
+    _assert_i7(e5_com_provisionado)
+
+
+def test_provisionado_sai_do_realizado_sem_sumir(e5_com_provisionado: dict):
+    """A receita futura não entra em `por_fonte`/`receita_total` e é declarada à parte."""
+    fc = e5_com_provisionado["fluxo_caixa"]
+    prov = fc["provisionado"]
+    assert prov["transacoes"] == 1
+    assert _cents(prov["receita_brl"]) == _cents(_JCP_PROVISIONADO["valor"])
+    assert prov["primeiro_mes"] == prov["ultimo_mes"] == "2026-03"
+    assert _cents(fc["receita_total"]) == _cents(100.0)
+    assert _cents(prov["despesa_brl"]) == 0
 
 
 # DE-02 (R3.4b) + A37.l7 PR-2: conservação da renda passiva observada (ADR-191 +

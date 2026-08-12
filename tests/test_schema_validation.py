@@ -8,6 +8,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.pipeline_common import validate_artifact
+from tests.fixtures.e5_fluxo_minimo import (
+    FLUXO_CAIXA_MINIMO as _FLUXO_MIN,
+)
+from tests.fixtures.e5_fluxo_minimo import (
+    e5_com_instituicoes as _e5_with_instituicoes,
+)
+from tests.fixtures.e5_fluxo_minimo import (
+    e5_com_top_ativos as _e5_with_top_ativos,
+)
 
 _TOP_ATIVO_VALID = {
     "posicao": 1,
@@ -155,31 +164,6 @@ _CENARIOS_CONJUGE_VALID = {
 }
 
 
-def _e5_with_top_ativos(*items):
-    return {
-        "score": {"valor": 6.8, "classificacao": "Bom"},
-        "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-        "fluxo_caixa": {"receita_total": 80000, "janela": "full", "janela_meses": 0},
-        "investimentos": {
-            "tabela_classes": [{"categoria": "Renda Fixa", "valor": 800000, "pct": 80.0}],
-            "total": 1000000,
-            "top_ativos": list(items),
-        },
-    }
-
-
-def _e5_with_instituicoes(por_membro, n_imoveis=0):
-    return {
-        "score": {"valor": 6.8, "classificacao": "Bom"},
-        "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-        "fluxo_caixa": {"janela": "full", "janela_meses": 0},
-        "investimentos": {
-            "instituicoes_por_membro": por_membro,
-            "n_imoveis_total": n_imoveis,
-        },
-    }
-
-
 # ADR-283 — contrato por-transação E2 (audit AST dos 12 parsers em scripts/e2/banks/).
 _E2_EXTRACT_BASE = {
     "pipeline_stage": "E2",
@@ -301,7 +285,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {"receita_total": 80000, "janela": "full", "janela_meses": 0},
+            "fluxo_caixa": {**_FLUXO_MIN, "receita_total": 80000},
         }
         path = tmp_path / "test.json"
         path.write_text(json.dumps(data))
@@ -340,7 +324,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
+            "fluxo_caixa": _FLUXO_MIN,
             "cenarios_conjuge": _CENARIOS_CONJUGE_VALID,
         }
         path = tmp_path / "e5.json"
@@ -352,7 +336,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
+            "fluxo_caixa": _FLUXO_MIN,
             "cenarios_conjuge": {},
         }
         path = tmp_path / "e5.json"
@@ -365,7 +349,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
+            "fluxo_caixa": _FLUXO_MIN,
             "cenarios_conjuge": "not_an_object",
         }
         path = tmp_path / "e5.json"
@@ -382,7 +366,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
+            "fluxo_caixa": _FLUXO_MIN,
             "cenarios_conjuge": bad_cenario,
         }
         path = tmp_path / "e5.json"
@@ -401,7 +385,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
+            "fluxo_caixa": _FLUXO_MIN,
             "cenarios_conjuge": bad_cenario,
         }
         path = tmp_path / "e5.json"
@@ -414,7 +398,7 @@ class TestValidateArtifact:
         data = {
             "score": {"valor": 6.8, "classificacao": "Bom"},
             "patrimonio": {"bruto": 1_000_000, "liquido": 800_000},
-            "fluxo_caixa": {"janela": "full", "janela_meses": 0},
+            "fluxo_caixa": _FLUXO_MIN,
             "cenarios_conjuge": _cenarios_conjuge_with_titular("alice"),
         }
         path = tmp_path / "e5.json"

@@ -19,12 +19,14 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
+from datetime import date
 from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.services.essential_expense_calculator import (
     compute_custo_essencial_mensal,
 )
+from pipeline.domain.services.provisionado_cutoff import split_provisionado
 from pipeline.domain.services.receita_natureza import compute_receita_por_natureza
 
 
@@ -240,6 +242,10 @@ class FluxoCaixaEnriched:
     # chave sempre presente forçaria regeração dos dois em toda a base (hard-stop da
     # [[ADR-173]], e o incidente de 2026-08-03 mostrou que regerar degrada).
     consolidacao_cross_documento: dict | None = None
+    # Corte de provisionado: `None` só quando o caller não declarou `data_corte`
+    # (unit test do enricher). O E5 sempre declara — o adapter deriva de
+    # `reference_date`, e o schema exige as duas chaves em `fluxo_caixa`.
+    provisionado: dict | None = None
 
     def to_legacy_dict(self) -> dict:
         out = {
@@ -273,6 +279,9 @@ class FluxoCaixaEnriched:
         }
         if self.consolidacao_cross_documento:
             out["consolidacao_cross_documento"] = self.consolidacao_cross_documento
+        if self.provisionado is not None:
+            out["data_corte"] = self.provisionado["data_corte"]
+            out["provisionado"] = self.provisionado
         return out
 
 
@@ -319,7 +328,15 @@ class FluxoCaixaEnricher:
         receitas: dict[str, Any],
         despesas: dict[str, Any],
         fluxo_mensal: dict[str, Any],
+        *,
+        data_corte: date | None = None,
     ) -> FluxoCaixaEnriched:
+        realizado = split_provisionado(receitas, despesas, fluxo_mensal, data_corte=data_corte)
+        receitas, despesas, fluxo_mensal = (
+            realizado.receitas,
+            realizado.despesas,
+            realizado.fluxo_mensal,
+        )
         receita_total = _safe_float((receitas or {}).get("total_geral", 0))
         despesa_total = _safe_float((despesas or {}).get("total_geral", 0))
 
@@ -374,6 +391,9 @@ class FluxoCaixaEnricher:
             despesa_mensal_essencial=despesa_mensal_essencial,
             num_months=len(meses),
             consolidacao_cross_documento=_le_consolidacao(fluxo_mensal),
+            provisionado=(
+                realizado.provisionado.to_dict() if realizado.provisionado is not None else None
+            ),
         )
 
     # -- Helpers --

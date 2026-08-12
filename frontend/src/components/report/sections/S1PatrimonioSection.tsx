@@ -22,7 +22,7 @@ import type {
   EndividamentoData,
   FluxoCaixaSummary,
 } from "@/types/report-analysis";
-import { parseChartMonthLabel } from "@/lib/periodUtils";
+import { resolveAnchorDate } from "@/lib/periodUtils";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 interface S1Props {
@@ -51,12 +51,13 @@ export function S1PatrimonioSection({ data }: S1Props) {
   const getConclusion = (id: string): string | undefined =>
     deriveChartConclusion(id, data) ?? undefined;
 
-  /** Última label do dataset mensal vira anchor para period toggle do card de
-   * receitas — paridade com `usePeriodWindow` dos charts. */
-  const datasetLabels = fluxo?.receita_despesa_mensal_detalhado?.labels;
-  const anchorDate = datasetLabels && datasetLabels.length > 0
-    ? parseChartMonthLabel(datasetLabels[datasetLabels.length - 1]) ?? undefined
-    : undefined;
+  /** Anchor do period toggle do card de receitas — paridade com `usePeriodWindow`
+   * dos charts. `fluxo_caixa.data_corte` limita a âncora ao último dia realizado;
+   * sem ele (relatório antigo), cai no último label do dataset. */
+  const anchorDate = resolveAnchorDate(
+    fluxo?.receita_despesa_mensal_detalhado?.labels,
+    fluxo?.data_corte,
+  );
 
   return (
     <ReportSection id="S1">
