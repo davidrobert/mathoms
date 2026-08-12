@@ -25,18 +25,26 @@ const PREVIDENCIA_BASE: PrevidenciaPgblData = {
 
 describe("<PrevidenciaPgblCard /> · modo default", () => {
   it("renderiza grid de 4 KPIs + disclaimer 'Não é recomendação'", () => {
-    render(<PrevidenciaPgblCard previdencia={PREVIDENCIA_BASE} mode="default" />);
+    render(
+      <PrevidenciaPgblCard previdencia={PREVIDENCIA_BASE} mode="default" />,
+    );
     expect(screen.getByText(/Renda tributável\/ano/i)).toBeInTheDocument();
     expect(screen.getByText(/Limite PGBL\/ano \(12%\)/i)).toBeInTheDocument();
     expect(screen.getByText(/Aporte sugerido\/mês/i)).toBeInTheDocument();
     expect(screen.getByText(/Economia de IR\/ano/i)).toBeInTheDocument();
     expect(screen.getByText(/Não é recomendação:/i)).toBeInTheDocument();
-    expect(screen.getByText(/regime tributário declarado.*contribuição ao INSS/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/regime tributário declarado.*contribuição ao INSS/i),
+    ).toBeInTheDocument();
   });
 
   it("renderiza nota explicativa do cálculo quando presente", () => {
-    render(<PrevidenciaPgblCard previdencia={PREVIDENCIA_BASE} mode="default" />);
-    expect(screen.getByText(/Base: receita PJ anualizada/i)).toBeInTheDocument();
+    render(
+      <PrevidenciaPgblCard previdencia={PREVIDENCIA_BASE} mode="default" />,
+    );
+    expect(
+      screen.getByText(/Base: receita PJ anualizada/i),
+    ).toBeInTheDocument();
   });
 
   it("usa default mode quando prop mode omitido (compat legacy)", () => {
@@ -75,7 +83,9 @@ describe("<PrevidenciaPgblCard /> · modo default-defasado", () => {
         anoBase={2022}
       />,
     );
-    expect(screen.getByText(/Última declaração: 2022 · defasada/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Última declaração: 2022 · defasada/i),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Aporte sugerido\/mês/i)).toBeInTheDocument();
     expect(screen.getByText(/Não é recomendação:/i)).toBeInTheDocument();
   });
@@ -97,9 +107,13 @@ describe("<PrevidenciaPgblCard /> · modo informative-capacidade", () => {
     expect(
       screen.getByText(/Capacidade dedutível autoritativa está em/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/baseada no IRPF 2024 declarado/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/baseada no IRPF 2024 declarado/i),
+    ).toBeInTheDocument();
 
-    const crossLinks = screen.getAllByRole("link", { name: /Otimização Tributária/i });
+    const crossLinks = screen.getAllByRole("link", {
+      name: /Otimização Tributária/i,
+    });
     expect(crossLinks.length).toBeGreaterThan(0);
     expect(crossLinks[0]).toHaveAttribute("href", "#S_IRPF_OTIMIZACAO");
   });
@@ -114,9 +128,7 @@ describe("<PrevidenciaPgblCard /> · modo informative-simplificado", () => {
         anoBase={2024}
       />,
     );
-    expect(
-      screen.getByLabelText(/Métrica não aplicável/i),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Métrica não aplicável/i)).toBeInTheDocument();
     expect(
       screen.getByText(/declaração de 2024 é pelo modelo simplificado/i),
     ).toBeInTheDocument();
@@ -144,7 +156,9 @@ describe("<PrevidenciaPgblCard /> · modo informative-no-teto", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/Aporte sugerido\/mês/i)).not.toBeInTheDocument();
 
-    const crossLinks = screen.getAllByRole("link", { name: /Otimização Tributária/i });
+    const crossLinks = screen.getAllByRole("link", {
+      name: /Otimização Tributária/i,
+    });
     expect(crossLinks[0]).toHaveAttribute("href", "#S_IRPF_OTIMIZACAO");
   });
 });
@@ -158,15 +172,63 @@ describe("<PrevidenciaPgblCard /> · modo informative-sem-renda", () => {
         anoBase={2024}
       />,
     );
+    expect(screen.getByLabelText(/Métrica não aplicável/i)).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/Métrica não aplicável/i),
+      screen.getByText(
+        /apenas rendimentos isentos ou de tributação exclusiva/i,
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/apenas rendimentos isentos ou de tributação exclusiva/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/só geraria espaço dedutível se classificada como tributável/i),
+      screen.getByText(
+        /só geraria espaço dedutível se classificada como tributável/i,
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Aporte sugerido\/mês/i)).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * A40.l34 (ADR-375 D3/D4) — sem IRPF processado, o produtor publica ausência.
+ *
+ * O gate incide sobre `mode="default"` DE PROPÓSITO: é o modo que a estratégia
+ * devolve quando não há IRPF, e era ele que rendia a prescrição sobre a
+ * evidência mais fraca. Se a guarda for removida, estes testes caem — testar
+ * pelo modo informativo passaria verde com o defeito vivo.
+ */
+const SEM_EVIDENCIA: PrevidenciaPgblData = {
+  status: "N/D",
+  nota: "Não há IRPF processado para medir o seu espaço dedutível de PGBL. O limite de 12% incide sobre a renda tributável declarada na pessoa física — pró-labore e demais rendimentos tributáveis —, e lucros distribuídos não entram nessa base.",
+};
+
+describe("<PrevidenciaPgblCard /> · sem evidência declarada", () => {
+  it("não publica aporte sugerido nem economia de IR", () => {
+    render(<PrevidenciaPgblCard previdencia={SEM_EVIDENCIA} mode="default" />);
+
+    expect(screen.queryByText(/Aporte sugerido/i)).toBeNull();
+    expect(screen.queryByText(/Economia de IR/i)).toBeNull();
+    expect(screen.queryByText(/Limite PGBL/i)).toBeNull();
+  });
+
+  it("publica a nota do produtor, que nomeia o insumo que falta", () => {
+    render(<PrevidenciaPgblCard previdencia={SEM_EVIDENCIA} mode="default" />);
+
+    const nota = screen.getByTestId("pgbl-sem-evidencia");
+    expect(nota.textContent).toContain("IRPF");
+    expect(nota.textContent).toContain("lucros distribuídos não entram");
+  });
+
+  it("não sugere que o número é zero — a ausência não vira R$ 0,00", () => {
+    render(<PrevidenciaPgblCard previdencia={SEM_EVIDENCIA} mode="default" />);
+
+    expect(screen.queryByText(/R\$\s*0,00/)).toBeNull();
+  });
+
+  it("com capacidade declarada, o card volta a publicar normalmente", () => {
+    render(
+      <PrevidenciaPgblCard previdencia={PREVIDENCIA_BASE} mode="default" />,
+    );
+
+    expect(screen.queryByTestId("pgbl-sem-evidencia")).toBeNull();
+    expect(screen.getByText(/Aporte sugerido/i)).toBeTruthy();
   });
 });
