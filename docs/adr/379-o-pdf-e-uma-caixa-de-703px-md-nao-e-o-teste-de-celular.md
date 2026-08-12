@@ -1,5 +1,5 @@
 ---
-id: ADR-378
+id: ADR-379
 type: adr
 title: "O PDF é uma caixa de 703px: `md:` não é o teste de \"é celular\" no relatório"
 status: Decidido
@@ -13,7 +13,7 @@ tags:
   - area/report
 ---
 
-# ADR-378 — O PDF é uma caixa de 703px
+# ADR-379 — O PDF é uma caixa de 703px
 
 ## Contexto
 
