@@ -102,6 +102,26 @@ describe("<OrcamentoProspectivoCard />", () => {
     expect(body.getByText("Aporte em investimentos")).toBeInTheDocument();
   });
 
+  it("janela truncada declara degradação em vez de exibir o teto (RV4-07)", () => {
+    // 500 de 1634 lançamentos: o teto por categoria sairia abaixo do real.
+    mockUsePeriodTransactions.mockReturnValue({
+      transactions: [tx("mercado", -800), tx("transporte", -300)],
+      isLoading: false,
+      error: null,
+      total: 1634,
+      isTruncated: true,
+    });
+
+    const { container } = render(
+      <OrcamentoProspectivoCard orcamento={undefined} />,
+    );
+
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getByText(/não cabe inteira neste card/)).toBeInTheDocument();
+    expect(container.textContent).toContain("1.634");
+    expect(container.textContent).toContain("mais antigos ficaram fora");
+  });
+
   it("KR-B: nenhum label renderizado contém `_` nem inicia com minúscula-código", () => {
     mockUsePeriodTransactions.mockReturnValue({
       transactions: [],
