@@ -97,9 +97,13 @@ Entregue no commit `37ba3af4`. Cada mudança tem causa própria — não é um
       **Provado por mutação**, não por estar verde: revertido o `grid-cols-1`, o
       gate acusa 239px em S3 e 132px em S4; revertido o `hidden sm:table`, acusa
       a tabela visível no telefone.
-- [x] Baselines visuais: **nenhum rebaseline necessário** — mas a primeira
-      resposta a esta pergunta estava **errada**, e o que a corrigiu foi o
-      controle. Ver §Regressão 2.
+- [x] Baselines visuais: **nenhum rebaseline por conta desta lane**. Medido com
+      o controle rodado duas vezes (branch cortada de `origin/main`, job visual
+      via dispatch): o `main` de 2026-08-12 **já falha** em 6 snapshots
+      (`S2` ×2, `S3` ×2, `APP_A`, `S_parecer retido`) — passivo dos PRs recentes,
+      que não rodam o job (é opt-in por label). Comparando os `actual` dos dois
+      runs **no mesmo runner**, S3/APP_A/S_parecer dão **0 px** de diferença
+      entre `main` e esta branch. A S2 dava 9,5% e foi corrigida — ver §Regressão 2.
 - [x] `print.@critical` (diff de pixel do PDF) falha **localmente** com 19.133px
       contra tolerância de 500 — e falha com o **mesmo número** no código
       pré-fix. É divergência macOS × baseline de runner Linux; o fix não muda um
@@ -141,8 +145,19 @@ direita** — gráfico desalinhado do próprio eixo, pior que o defeito que a la
 corrigir. Em macOS a divergência era de 0,063% (só os FABs flutuantes), então
 medir só na minha máquina teria deixado passar.
 
-`[&>*]:min-w-0` foi **removido**: o gate de vazamento passa 6/6 sem ele, ou seja
-o `grid-cols-1` explícito sozinho já fecha a classe. Era supérfluo e caro.
+Duas rodadas até fechar, e a primeira atribuiu a causa errada:
+
+1. Removi `[&>*]:min-w-0` do grid — o gate seguia 6/6 sem ele (o `grid-cols-1`
+   explícito sozinho fecha a classe), mas **a S2 continuou divergindo ~9,5%**.
+2. O culpado era o **header do `ReportCard`**: `flex-wrap` + `min-w-0` aplicados
+   em **toda** largura. O header recalculava a caixa depois de o Chart.js
+   desenhar, e as barras ficavam comprimidas à esquerda com o eixo esticado até
+   a direita. Escopado para `max-sm:`, a S2 em 1280px volta a **0 px** de
+   diferença contra `main` — mesmas dimensões — e o gate de 390px segue 6/6.
+
+Regra que fica: mudança motivada por caixa estreita entra com `max-sm:`. Aplicar
+"de graça" em toda largura parece inofensivo e não é — o desktop tem canvas, e
+canvas não perdoa recálculo de caixa depois do render.
 
 **Lições que valem além desta lane:**
 
