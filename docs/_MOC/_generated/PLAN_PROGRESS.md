@@ -81,10 +81,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### PLAN-suggestion-lifecycle — Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos
 
-- Status: `in_progress` · Sprint atual: A25
-- Sprints envolvidas: A25
+- Status: `in_progress` · Sprint atual: A42
+- Sprints envolvidas: A25, A42
 - Lanes: _(sem lanes vinculadas por `plan:`)_
-- ADRs canônicas: [[ADR-290]]
+- ADRs canônicas: [[ADR-290]], [[ADR-378]]
 
 ## Pausados (`paused`)
 

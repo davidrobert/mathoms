@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-368 ADRs (ADR-001 a ADR-377) em [`docs/adr/`](../../adr/).
+369 ADRs (ADR-001 a ADR-378) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 319
-- **Proposto**: 45
+- **Proposto**: 46
 - **Roadmap**: 4
 
 ## Fundação
@@ -321,12 +321,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-359]] — Dispatch assíncrono falha alto; quem cria estado pendente compensa · phase A40
 - [[ADR-366]] — Desfecho da geração do parecer é eixo próprio — `status` continua sendo publicação · phase A40.l20
 
-### Proposto (4)
+### Proposto (5)
 
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-326]] — Colunas denormalizadas reports.score/patrimonio_liquido populadas a partir do artefato E5 (0–10, backfill)
 - [[ADR-329]] — Reclassificação re-tentável de documentos parkados por skip transitório (missing_api_key) no run premium
 - [[ADR-339]] — Dedup fuzzy de documento inclui o declarante — informes de casal não são duplicata
+- [[ADR-378]] — Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou · phase A42
 
 ## categorization
 

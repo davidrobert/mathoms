@@ -5,10 +5,11 @@ title: Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key
 status: in_progress
 created_at: 2026-06-12
 sprint_origem: A25
-sprint_atual: A25
-sprints_envolvidas: [A25]
+sprint_atual: A42
+sprints_envolvidas: [A25, A42]
 adrs_canonical:
   - "[[ADR-290]]"
+  - "[[ADR-378]]"
 tags:
   - type/plan
   - status/in-progress
@@ -76,9 +77,12 @@ tags:
 - **KR2 — Precisão de valor:** valor monetário citado em sugestão = escalar
   resolvido do payload E5 (tolerância de arredondamento a milhar); eval golden
   ≥98% match; divergência → `needs_review`.
-- **KR3 — Carga cognitiva (steady-state):** inbox ativo do `/acao` ≤ 12 itens
-  acionáveis (danger + warning), com ≤ 2 danger; `info` colapsado e fora do
-  cap. (Meta one-shot de backfill dogfood 158 → ≤14 vive no aceite de F4.)
+- **KR3 — Carga cognitiva (steady-state):** ~~inbox ativo do `/acao` ≤ 12
+  itens acionáveis~~ → **recalibrado na F5 (2026-08-11):** ≤12 vira teto de
+  segurança (passava verde com 11 itens indistinguíveis); o alvo é **≤3
+  acionáveis, teto 5**, com táticas/estratégicas visíveis fora do cap e
+  `info` colapsado. Danger segue ≤2. (Meta one-shot de backfill dogfood
+  158 → ≤14 vive no aceite de F4.)
 - **KR4 — Observabilidade:** todo run loga `suggestions_created`,
   `suggestions_superseded`, `skipped_dismiss`, `near_dup_candidates`;
   acúmulo vira drift detectável, não surpresa. **Instrumentado em F1**, no
@@ -131,7 +135,12 @@ em commit separado.
   (namespace `mathoms.pipeline.planner_review_persistence`).
 - **Gate de estabilidade da chave (mede R1 aqui, não só em F2):**
   `thesis_key` reaparece idêntico em 2 runs para ≥90% das teses; abaixo
-  disso, F1 não passa e F5 (`action_slug`) é antecipada.
+  disso, F1 não passa e `action_slug` é antecipada.
+  > **Status em 2026-08-11:** gate **permanece aberto**. A F5 remove a
+  > dependência do supersede em relação à chave (a expiração é ortogonal),
+  > mas **não fecha o gate** — ele é transferido para a F6, agora com o
+  > instrumento certo: reaparição não enxerga colisão, e a colisão
+  > intra-run foi medida em 2 num run real.
 
 ### F2 — Valores determinísticos no parecer (prompt + validação)
 
@@ -208,13 +217,105 @@ em commit separado.
 - Concorrência: rodar em janela sem pipeline ativo no workspace (ou skip de
   `created_at` > início do backfill). Documentar no runbook curto.
 
-### Later (fora do escopo de done deste plano) — V2 condicional
+### F5 — Expiração por parecer-fonte + horizonte + consolidação de superfícies (A42)
 
-- `action_slug` de vocabulário fechado por seção no schema do parecer
-  (dedup semântico determinístico e auditável; substitui `thesis_key` se o
-  gate de estabilidade de F1 falhar).
-- Timeline de histórico de pareceres ("recomendava X em mai/26, atualizado
-  para Y em jun/26") — auditoria fiduciária fora do inbox.
+> **Origem:** medição do dogfood em 2026-08-11, 8 semanas e 26 runs após a
+> F4. Diagnóstico co-assinado por `product-designer` (UX das duas listas) e
+> `financial-planner` (volume e risco fiduciário); desenho revisado por
+> `senior-cto` (guards B-1/B-2, escopo do índice parcial, sequência de PRs).
+> Canônica: [[ADR-378]] + emenda datada em [[ADR-290]].
+
+**O que a medição mostrou** — 15 Pendentes (11 warning, 4 info, 0 danger):
+
+1. 7 são de 2026-06-12 com `thesis_key = NULL` — **imunes a supersede por
+   construção** (fallback B1). Citam valores de junho contra o E5 de agosto:
+   risco fiduciário classificado como bloqueante.
+2. 3 pendentes de um mesmo run dividem `thesis_key` sendo teses distintas —
+   a chave não discrimina, e o gate da F1 (reaparição ≥90%) não enxerga
+   colisão.
+3. O horizonte (`execucao`/`tatica`/`estrategica`) era descartado na
+   persistência: o inbox tratava "faça agora" e "considere em 3 anos" como
+   equivalentes — causa estrutural das 11 acionáveis.
+4. O relatório renderizava o inbox **inteiro e live** ("Próximos passos")
+   dentro de um documento-snapshot, somando até 4 superfícies de ação
+   concorrentes na mesma página.
+
+**Entregas (4 PRs, nesta ordem — migration antes de comportamento):**
+
+- **PR-A (docs):** [[ADR-378]] `Proposto` + emenda datada em [[ADR-290]] +
+  esta §F5.
+- **PR-B1 (migration):** `horizon` + `pipeline_run_id` (FK `SET NULL`) + FK
+  em `superseded_by_run_id` + swap do UNIQUE full pelo índice parcial
+  `uq_sugagg_ws_dedup_ativa`; teste de migration assere que o recreate do
+  batch preserva as 3 FKs de saída com `ondelete` correto.
+- **PR-B2 (lógica):** expiração por parecer-fonte com guard de `outcome`,
+  dup-check sobre status ativos, telemetria ampliada. [[ADR-378]] flippa para
+  `Decidido`.
+- **PR-C (relatório):** "Próximos passos" vira bloco de fechamento (contagem
+  + 1 CTA, sem lista); `SuggestionCalloutInline` filtra
+  `report_id === reportId` — snapshot deixa de vazar estado live.
+- **PR-D (inbox `/acao`):** grupos "Decidir agora" (≤3) / "Nesta rodada" /
+  "Agendadas" (táticas + estratégicas, fora do cap) / "Informativas"; data no
+  card; `<MonetaryValue/>`; tokens semânticos no lugar de Tailwind literal;
+  chips da `ActionStatusBar` clicáveis.
+
+**Aceite por PR:**
+
+- **B1:** upgrade cria colunas + índice parcial com `WHERE` sobre os 3 status
+  ativos; 2 `Superseded` de mesma `dedup_key` coexistem; 2ª `Pendente` de
+  mesma key viola; FKs preservadas; downgrade dedup-a e restaura o full
+  unique (destrutivo-documentado).
+- **B2:** run entregue expira tudo do run anterior **inclusive
+  `thesis_key NULL`**; run `retido` e artifact vazio não expiram nada;
+  reafirmação re-entra com `rationale` novo; `Aceita` nunca expira; ordem
+  expirar→inserir sobrevive a `no_autoflush`; contadores KR4 batem
+  (`pending_after` incluído).
+- **C:** `/reports/[id]` renderiza ≤2 blocos que pedem ação (parecer + plano);
+  zero sugestão com `report_id ≠ reportId`; Summary sem `<li>`.
+- **D:** grupo de foco com ≤3 itens; acionável = `horizon` ∉
+  {`tatica`,`estrategica`} (gate falha **aberto** para `NULL`); nada
+  inalcançável em >1 clique (KR5).
+- **Transversal:** o dogfood só limpa com um run entregue (ou
+  `suggestion_backfill --apply` em `latest_batch`) — código mergeado não é
+  inbox limpo; a ação one-shot faz parte do done da lane.
+
+**KR3 recalibrado:** "≤12 acionáveis" era lido como alvo e passava verde com
+11 itens indistinguíveis. Vira **teto de segurança**; o alvo de steady-state
+é **≤3 acionáveis (teto 5)**, obtido pelo gate de horizonte, não por
+supressão — KR5 continua sendo o anti-Goodhart, e expiração de D1 **não**
+conta como Descartada.
+
+### F6 — `action_slug` de vocabulário fechado (gatilho disparado, não hipótese)
+
+Deixou de ser "Later condicional" em 2026-08-11: a colisão intra-run foi
+**medida em 2** num run real ([[ADR-378]] §D5). `thesis_key` continua
+governando a janela de dismiss (B4) — logo, com chave grossa, descartar uma
+tese silencia as vizinhas por 90 dias. Escopo: vocabulário fechado por seção
+no schema do parecer, bump de `PROMPT_VERSION`, eval golden de estabilidade,
+e gate hard "duas teses distintas sob a mesma chave no mesmo run". Depende de
+`prompt-engineer` (prompt + eval). Enquanto F6 não abre, a supressão por
+janela é logada item a item para deixar rastro auditável.
+
+### Deferimentos datados (2026-08-11)
+
+- **Dedup cross-aggregate `Suggestion` ↔ `Decision`** — sugestão equivalente a
+  uma `Decision` `Pendente` deveria entrar como atualização de `D0x`, não como
+  item novo (par observado no dogfood: "Categorizar as despesas sem
+  identificação" vs. `D03`). Fora do escopo da F5 porque exige política de
+  equivalência semântica; o contador `skipped_dup` mede a pressão real.
+  Retomar quando `skipped_dup` for consistentemente > 0 ou ao abrir F6.
+- **Re-apresentação de `Decision` estagnada** — decisões `Pendente` há >90
+  dias (3 no dogfood, desde maio) deveriam ser reafirmadas com medição de
+  aderência ou supersedidas explicitamente pelo parecer seguinte. Depende de
+  F6 para não gerar mais ruído com identidade fraca.
+- **Unificação do léxico de prioridade** — parecer diz P0/P1/P2
+  (Urgente/Importante/Oportunidade), callout diz danger/warning/info; o mesmo
+  item recebe dois rótulos na mesma página. É decisão de terminologia:
+  registrar em `COPY_GUIDELINES` §2.2 **antes** de mexer em `PRIORIDADE_TONE`
+  e `SEVERITY_VARIANTS`.
+- **Timeline de histórico de pareceres** ("recomendava X em mai/26, atualizado
+  para Y em ago/26") — auditoria fiduciária fora do inbox; `superseded_by_run_id`
+  + `pipeline_run_id` (F5) são o substrato que ela vai consumir.
 
 ## 4. Dependências e paralelismo
 
@@ -222,8 +323,16 @@ em commit separado.
 F0 (ADR-290 Proposto) ──► F1 (migration + supersede + telemetria + gate de chave) ──► F4 (backfill heurístico)
                      └──► F2 (paralela a F1; toca prompt/schema LLM, não DB)
 F1 + F2 ──► F3 (cap de geração entra junto de F2; ordering UI depois de F1)
-F1..F4 dogfood OK ──► Later (action_slug / timeline)
+F1..F4 dogfood medido (2026-08-11) ──► F5 (ADR-378: expiração + horizonte + superfícies)
+F5: PR-A (docs) ──► PR-B1 (migration) ──► PR-B2 (lógica) ──► PR-D (inbox)
+                                     └──► PR-C (relatório; paralelo a B, arquivos disjuntos)
+F5 + colisão medida ──► F6 (action_slug + gate hard de colisão)
 ```
+
+**Ordem B1 → B2 é de deploy, não estética:** se a lógica de D2 subir antes da
+constraint nova, a primeira reemissão de texto já supersedido levanta
+`IntegrityError`, `_safe_persist` faz rollback e o parecer inteiro se perde
+(artifact órfão). Constraint primeiro, comportamento depois.
 
 ## 5. Riscos
 

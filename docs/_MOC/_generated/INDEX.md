@@ -373,6 +373,7 @@
 | ADR-375 | adr | Proposto |  | Limite PGBL tem um produtor, e a prescrição exige evidência declarada | `adr/375-limite-pgbl-tem-um-produtor-e-a-prescricao-exige-evidencia-declarada.md` |
 | ADR-376 | adr | Decidido |  | Caixa corrente vem do último extrato reconciliado — sem denylist de instituição | `adr/376-caixa-corrente-vem-do-extrato-sem-denylist-de-instituicao.md` |
 | ADR-377 | adr | Proposto |  | Janela interativa do relatório é conjunto fechado pré-computado — o cliente seleciona, não recomputa | `adr/377-janela-interativa-e-conjunto-fechado-pre-computado.md` |
+| ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
