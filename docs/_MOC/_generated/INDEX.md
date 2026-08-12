@@ -376,6 +376,7 @@
 | ADR-378 | adr | Proposto |  | Expiração por parecer-fonte + horizonte persistido — sugestão do parecer tem validade igual à da fotografia que a originou | `adr/378-expiracao-por-parecer-fonte-e-horizonte-persistido.md` |
 | ADR-379 | adr | Proposto |  | Posições do card Exposição Cambial vêm do artefato E4, pinado ao run do relatório | `adr/379-posicoes-do-card-exposicao-cambial-vem-do-e4-pinado-ao-run.md` |
 | ADR-380 | adr | Decidido |  | Nenhum card afirma ausência a partir de falha de carregamento | `adr/380-card-nao-afirma-ausencia-a-partir-de-falha-de-carregamento.md` |
+| ADR-381 | adr | Decidido |  | O PDF é uma caixa de 703px: `md:` não é o teste de "é celular" no relatório | `adr/381-o-pdf-e-uma-caixa-de-703px-md-nao-e-o-teste-de-celular.md` |
 | ADR-382 | adr | Proposto |  | Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 | `adr/382-visoes-corrente-e-fiscal-da-posicao-por-instituicao.md` |
 | ADR-383 | adr | Proposto |  | Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras | `adr/383-precedencia-temporal-de-fontes-patrimoniais.md` |
 | ADR-384 | adr | Proposto |  | Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback | `adr/384-identidade-institucional-por-cnpj-raiz.md` |
@@ -886,6 +887,7 @@
 | A40.l42 | lane | open | A40 | Safra IRPF errada por ordenação de string: '31_12_2024' vence '2025' em max() lexicográfico | `sprint/A40/lanes/A40-l42-safra-irpf-ordenacao-de-chave.md` |
 | A40.l43 | lane | shipped | A40 | Card A Família: a coluna direita repetia o hero, e o validador exigia que ela existisse | `sprint/A40/lanes/A40-l43-perfil-familia-prosa-sobre-pessoas.md` |
 | A40.l44 | lane | in_progress | A40 | Janela interativa pré-computada: o cliente para de ser um segundo motor de agregação | `sprint/A40/lanes/A40-l44-janela-interativa-pre-computada.md` |
+| A40.l45 | lane | in_progress | A40 | Clipping horizontal em caixa ≤700px: o dado sai do relatório sem deixar rastro | `sprint/A40/lanes/A40-l45-clipping-horizontal-caixa-estreita.md` |
 | A40.l5 | lane | in_progress | A40 | Codegen do view-model + gate de contrato: mata a classe reader-lê-chave-que-ninguém-emite | `sprint/A40/lanes/A40-l5-contrato-view-model-gate.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
