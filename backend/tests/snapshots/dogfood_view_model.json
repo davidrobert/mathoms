@@ -565,6 +565,17 @@
     ],
     "dividas": 15000000,
     "fonte_investimentos": "irpf",
+    "frescor_fontes": {
+      "celulas": [
+        {
+          "data_referencia": "2024-12-31",
+          "instituicao": "bancoficticio",
+          "membro": "alex",
+          "pool_vencedor": "irpf"
+        }
+      ],
+      "contradicoes": []
+    },
     "imoveis_geradores": 0,
     "imoveis_investimento": 60000000,
     "imoveis_nao_geradores": 60000000,
