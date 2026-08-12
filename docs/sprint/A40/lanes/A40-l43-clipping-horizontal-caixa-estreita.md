@@ -118,6 +118,30 @@ diferentes. O valor seguia impresso e, ainda assim, uma busca por `52,0%` no PDF
 não o achava — que é como um terceiro lê o arquivo. Corrigido em `abf93169`:
 quem encolhe a tabela é o rótulo; número é átomo.
 
+## Follow-up com evidência — `S2` é flaky no gate visual
+
+Medido no run 31576243325: as **três tentativas do mesmo job**, mesmo commit,
+mesmo runner, diferem entre si em **5,1%, 5,6% e 6,3%** no `S2-dark`. A
+tolerância do spec é 2,5%, então esse snapshot reprova sozinho em qualquer PR
+que aplique o label `visual` — e de fato reprova em `main` puro.
+
+Não é ruído de antialiasing (que fica muito abaixo de 1%): é o Chart.js
+desenhando estados diferentes a cada render. O `setupReport` espera
+`waitForTimeout(500)`, e a animação do canvas só estabiliza entre ~900ms e
+~1200ms (medido por hash do `getImageData` em instantes crescentes) — a captura
+cai dentro da animação.
+
+Tentei fechar isso dentro desta lane trocando a espera fixa por espera até o
+canvas estabilizar, e **reverti**: a espera por estabilidade não eliminou a
+variação (o hash amostrado estabiliza antes do desenho terminar), e manter código
+apoiado numa hipótese que a própria medição derrubou é pior que não ter.
+Quem pegar precisa começar por aqui, não pelo timeout.
+
+Enquanto não for resolvido, o job é **fail-open na prática**: some no ruído a
+capacidade de distinguir regressão real. Foi só comparando os `actual` de dois
+runs **no mesmo runner** que deu para separar o que era desta lane (S2-light,
+9,9% → 0px) do que já estava em `main` (S3, APP_A, S_parecer: 0px de diferença).
+
 ## Fora de escopo
 
 - **Medida de linha no papel.** A 703px com corpo em 10pt a prosa fica com
