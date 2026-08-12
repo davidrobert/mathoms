@@ -190,6 +190,40 @@ async def test_put_classification_unknown_property_returns_404(auth_client: Asyn
 
 
 @pytest.mark.asyncio
+async def test_second_residencia_principal_returns_409_not_500(auth_client: AsyncClient, db):
+    """Partial-unique de residência principal vira 409 acionável, não IntegrityError → 500."""
+    primeira = await _seed_property(db, auth_client.ws_id)
+    segunda = await _seed_property(db, auth_client.ws_id, endereco_canonical="exemplo 200")
+
+    ok = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/properties/{primeira.id}/classification",
+        json={"classification": CLASSIFICATION_RESIDENCIA_PRINCIPAL},
+    )
+    assert ok.status_code == 200
+
+    conflito = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/properties/{segunda.id}/classification",
+        json={"classification": CLASSIFICATION_RESIDENCIA_PRINCIPAL},
+    )
+    assert conflito.status_code == 409
+    assert primeira.id in conflito.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_reclassifying_the_same_residencia_principal_is_idempotent(
+    auth_client: AsyncClient, db
+):
+    """O guard não pode bloquear a própria row já marcada (regressão do 409 falso)."""
+    p = await _seed_property(db, auth_client.ws_id)
+    for _ in range(2):
+        resp = await auth_client.put(
+            f"/api/workspaces/{auth_client.ws_id}/properties/{p.id}/classification",
+            json={"classification": CLASSIFICATION_RESIDENCIA_PRINCIPAL},
+        )
+        assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
 async def test_put_residencia_status_rented_clears_residencia_overrides(
     auth_client: AsyncClient, db
 ):

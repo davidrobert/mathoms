@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-375 ADRs (ADR-001 a ADR-384) em [`docs/adr/`](../../adr/).
+377 ADRs (ADR-001 a ADR-386) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 321
-- **Proposto**: 50
+- **Proposto**: 52
 - **Roadmap**: 4
 
 ## Fundação
@@ -536,6 +536,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-225]] — Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb · phase A12
 - [[ADR-262]] — Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
 - [[ADR-265]] — Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C) · phase A17.canonical-fuzzy
+
+### Proposto (2)
+
+- [[ADR-385]] — Resolver de imóvel devolve row viva atravessando as eras do canonicalizador · phase A40
+- [[ADR-386]] — Supersessão de PropertyIdentity é escopada ao que o run observou · phase A40
 
 ## pipeline
 

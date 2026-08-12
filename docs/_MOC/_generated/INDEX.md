@@ -380,6 +380,8 @@
 | ADR-382 | adr | Proposto |  | Posição por instituição tem duas visões — corrente (datada por linha) e fechamento fiscal 31/12 | `adr/382-visoes-corrente-e-fiscal-da-posicao-por-instituicao.md` |
 | ADR-383 | adr | Proposto |  | Precedência temporal de fontes patrimoniais: data-alvo → proximidade sem look-ahead → qualidade, sobre fontes inteiras | `adr/383-precedencia-temporal-de-fontes-patrimoniais.md` |
 | ADR-384 | adr | Proposto |  | Identidade institucional resolve por CNPJ-raiz para o code do catálogo — nome livre vira fallback | `adr/384-identidade-institucional-por-cnpj-raiz.md` |
+| ADR-385 | adr | Proposto |  | Resolver de imóvel devolve row viva atravessando as eras do canonicalizador | `adr/385-resolver-de-imovel-devolve-row-viva-atravessando-eras.md` |
+| ADR-386 | adr | Proposto |  | Supersessão de PropertyIdentity é escopada ao que o run observou | `adr/386-supersessao-de-imovel-escopada-ao-run-observado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -1129,6 +1131,7 @@
 | TRACK-pipeline-review-quick-unblock | track | consumed | A11 | Track Pipeline Review — Quick Unblock (caminho A) | `sprint/A11/tracks/pipeline-review-quick-unblock.md` |
 | TRACK-pipeline-review-screen | track | consumed | A11 | Track Pipeline Review — Tela de revisão real (caminho B) | `sprint/A11/tracks/pipeline-review-screen.md` |
 | TRACK-platform-review | track | consumed | A11 | Track Platform Review — Orquestração Multi-Agent (revisão + plano) | `sprint/A11/tracks/platform-review.md` |
+| TRACK-property-identity-cross-era | track | ready |  | Track — identidade de imóvel atravessa eras: write-path fechado, passivo colapsado por sweep | `plan/PIPELINE_REVIEW_R2/tracks/property-identity-cross-era.md` |
 | TRACK-public-release-flip | track | ready |  | Runbook — flip do repo para público + verificação pós-flip | `plan/PUBLIC_RELEASE/tracks/public-release-flip.md` |
 | TRACK-public-release-history-rewrite | track | ready |  | Runbook — rewrite de histórico git para release pública (git-filter-repo) | `plan/PUBLIC_RELEASE/tracks/public-release-history-rewrite.md` |
 | TRACK-real-estate-efficiency | track | consumed | A11 | Track — Real estate efficiency feature (ADR-160) | `sprint/A11/tracks/real-estate-efficiency.md` |

@@ -304,3 +304,25 @@ class TestEnd2End5at5LikeScenario:
                 .where(PropertyIdentity.workspace_id == ws.id)
             ).scalar()
             assert count == 2
+
+
+# Hard-delete de row apontada por superseded_by_id anula o ponteiro
+# (ON DELETE SET NULL) e o candidato órfão volta a ser pulado pela cascata,
+# reinserindo row a cada run — a classe da ADR-385 pela outra porta.
+def test_aborta_ao_deletar_row_que_e_vencedora_de_supersessao(sync_db):
+    from dev.dedup_property_identity import _merge_group
+
+    ws = _seed_workspace(sync_db)
+    vencedora = _seed_property(sync_db, ws, endereco_canonical="via exemplo 100")
+    canonical = _seed_property(sync_db, ws, endereco_canonical="via exemplo 100")
+    with sync_db() as s:
+        perdedora = _build_property(ws, endereco_canonical="via exemplo 100")
+        perdedora.superseded_at = datetime.now(timezone.utc)
+        perdedora.superseded_by_id = vencedora.id
+        s.add(perdedora)
+        s.commit()
+
+        alvo = s.get(PropertyIdentity, vencedora.id)
+        base = s.get(PropertyIdentity, canonical.id)
+        with pytest.raises(SystemExit, match="vencedora de alguma supersessão"):
+            _merge_group(s, [base, alvo], dry_run=False)

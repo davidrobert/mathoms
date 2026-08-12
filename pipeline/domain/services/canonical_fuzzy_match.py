@@ -47,7 +47,8 @@ def extract_complemento(descricao: str | None) -> str | None:
     return None
 
 
-def _complementos_divergem(a: str | None, b: str | None) -> bool:
+def complementos_divergem(a: str | None, b: str | None) -> bool:
+    """True quando ambos existem e diferem — unidades distintas do mesmo prédio."""
     if not a or not b:
         return False
     return a.strip().lower() != b.strip().lower()
@@ -76,7 +77,7 @@ def matches_fuzzy(
 ) -> bool:
     """True se mesmo imóvel via proximidade numérica (ADR-265)."""
     pair = _parsed_pair(canonical_a, canonical_b)
-    if pair is None or _complementos_divergem(complemento_a, complemento_b):
+    if pair is None or complementos_divergem(complemento_a, complemento_b):
         return False
     diff = abs(pair[0][1] - pair[1][1])
     if diff <= max_number_diff:
@@ -95,6 +96,7 @@ def _parsed_pair(a: str | None, b: str | None) -> tuple[tuple[str, int], tuple[s
 
 
 __all__ = [
+    "complementos_divergem",
     "extract_complemento",
     "matches_fuzzy",
 ]

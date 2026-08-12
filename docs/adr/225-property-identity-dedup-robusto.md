@@ -6,10 +6,15 @@ status: Decidido
 phase: A12
 date: "2026-05-19"
 decided_at: "2026-05-19"
+amended_at: ["2026-08-11"]
 relates_to:
   - "[[ADR-215]]"
   - "[[ADR-157]]"
   - "[[ADR-143]]"
+  - "[[ADR-324]]"
+  - "[[ADR-334]]"
+  - "[[ADR-385]]"
+  - "[[ADR-386]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -25,7 +30,32 @@ tags:
   - type/adr
 ---
 
+> ⚠️ **Emendada em 2026-08-11.** Três correções de mecanismo. (a) A cascata da
+> §1 gravou `endereco_canonical` inválido numa janela de produção — o regex de via
+> casava o `r` de um prefixo monetário — e as rows daquela janela seguem vivas.
+> (b) A §Decisão 2 item 3 ("insert + reconciliation read pós-insert") **nunca foi
+> implementada** e o gate que a §Riscos cita não existe no repo: fica revogada, não
+> deferida. (c) O gate (d) da §Gates ("low-confidence ainda cria row nova quando
+> canonical=None") deixa de valer — agrupar por amostra bruta byte-exata é decisão
+> da [[ADR-385]]. Não implemente a §Decisão 2 nem escreva teste contra a §Gates (d)
+> pelo texto original.
+
 > ADR longa (>150 linhas) por design: estende [[ADR-215]] §3 (matching cross-IRPFs) sem reescrever §1/§2/§4/§5/§6, mas a coordenação canonicalizer ↔ resolver ↔ backfill script ↔ invariante E5 exige um único documento de referência.
+
+
+## Emenda 2026-08-11 — canonical ausente passa a agrupar; a reconciliation read pós-insert nunca existiu
+
+O canonical ausente deixou de ser motivo para inserir row nova a cada run: a
+cascata ganhou um nível por amostra bruta byte-exata, e a supersessão passou a ser
+atravessada em vez de ignorada. O §3 desta ADR previa que um backfill cuidaria do
+passivo pós-cutover; ele cuidava, e o run seguinte desfazia — o escopo do reconcile
+era a tabela inteira. As duas metades do conserto vivem na ADR-385 (write-path) e
+na ADR-386 (escopo e sweep).
+
+A mitigação de corrida do §Decisão 2 item 3 é revogada por inexistência: não há
+`_reconcile_after_insert` no repo, e o arquivo de teste citado como gate nunca foi
+criado. Declarar mitigação inexistente é pior que declarar o risco em aberto, porque
+dá verde falso a quem audita.
 
 ## Contexto
 

@@ -11,6 +11,7 @@ from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.services.canonical_fuzzy_match import (
+    complementos_divergem,
     extract_complemento,
     matches_fuzzy,
 )
@@ -100,6 +101,7 @@ class _ImovelPolicy:
         as_dict = {key: group for key, group in grouped}
         order = [key for key, _ in grouped]
         _merge_cross_codigo(as_dict, order)
+        _merge_same_canonical(as_dict, order)
         _merge_fuzzy_via_num(as_dict, order)
         return [(key, as_dict[key]) for key in order]
 
@@ -228,6 +230,36 @@ def _pick_primary_key(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> tu
         if _group_codigos(grouped[key]) & _SPECIFIC_CODIGOS_RFB:
             return key
     return keys[0]
+
+
+# Passe 3 de 4 (ADR-386): grupos com canonical string-equal nunca fundiam — o
+# cross-código exige um lado genérico e o fuzzy recusa canon_a == canon_b. Como
+# entries com property_id viram um grupo cada, rows da mesma era ficavam
+# separadas para sempre. Mais tolerante que o cross-código e menos que o fuzzy,
+# então entra entre os dois (ordem restritivo→tolerante da ADR-265 §3).
+def _merge_same_canonical(grouped: dict[tuple, list[dict]], order: list[tuple]) -> None:
+    """Funde grupos de canonical idêntico sem códigos nem complementos conflitantes."""
+    for keys in _index_by_canonical(grouped, order).values():
+        if _should_merge_same_canonical(grouped, keys):
+            _consolidate_keys(grouped, order, keys)
+
+
+def _should_merge_same_canonical(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> bool:
+    if len(keys) <= 1:
+        return False
+    if _has_conflicting_specific_codigos_in_groups(grouped, keys):
+        return False
+    return not _has_diverging_complementos(grouped, keys)
+
+
+def _has_diverging_complementos(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> bool:
+    """Duas unidades do mesmo prédio: o canonical não carrega complemento."""
+    complementos = [_group_complemento(grouped[key]) for key in keys]
+    return any(
+        complementos_divergem(a, b)
+        for i, a in enumerate(complementos)
+        for b in complementos[i + 1 :]
+    )
 
 
 def _merge_fuzzy_via_num(grouped: dict[tuple, list[dict]], order: list[tuple]) -> None:

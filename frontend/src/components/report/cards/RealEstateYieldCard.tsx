@@ -289,6 +289,7 @@ function labelForAlerta(code: RealEstateAlerta["code"]): string {
   if (code === "concentracao_alta") return "Concentração elevada em imóveis";
   if (code === "spread_critico") return "Spread crítico vs renda fixa";
   if (code === "aluguel_sem_dado") return "Aluguel por imóvel estimado";
+  if (code === "premissa_if_imoveis") return "Imóveis na IF abaixo da premissa";
   return "Contrato com reajuste pendente";
 }
 

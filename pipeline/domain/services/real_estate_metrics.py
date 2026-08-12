@@ -53,6 +53,10 @@ class RealEstateConfig:
     spread_critico_pct_do_benchmark: Decimal = Decimal("0.70")
     spread_critico_concentracao_minima_pct: Decimal = Decimal("45.0")
     contrato_reajuste_pendente_meses: int = 12
+    # ADR-223: o opt-in de imóveis na IF pressupõe que o aluguel líquido renda
+    # mais que a TRS (~3% real/ano). Abaixo disso o produto estaria mantendo
+    # imóveis no numerador da IF sob uma premissa que ele próprio refuta.
+    premissa_if_cap_rate_minimo_pct: Decimal = Decimal("3.0")
 
 
 @dataclass(frozen=True)
@@ -169,7 +173,11 @@ class Alerta:
     """Alerta canônico (FORMULAS.md §Alertas)."""
 
     code: Literal[
-        "concentracao_alta", "spread_critico", "aluguel_sem_dado", "contrato_reajuste_pendente"
+        "concentracao_alta",
+        "spread_critico",
+        "aluguel_sem_dado",
+        "contrato_reajuste_pendente",
+        "premissa_if_imoveis",
     ]
     severity: Literal["info", "warning", "critical"]
     context: str
@@ -381,6 +389,10 @@ def _compute_property_metrics(
 _CLASSIFICATION_MOTIVO: dict[str, str] = {
     "residencia_principal": "Residência principal — não conta como investimento (cat_1).",
     "uso_pessoal": "Imóvel de uso pessoal/familiar — não gera renda de aluguel.",
+    "nu_proprietario": (
+        "Nu-propriedade com usufruto vitalício de terceiro — está no patrimônio, "
+        "mas não gera caixa nem está disponível para venda livre."
+    ),
     "desconhecido": "Classificação pendente — usuário precisa rotular em Configurações.",
 }
 
@@ -414,6 +426,7 @@ def calculate_real_estate_metrics(
     concentracao_imobiliaria_pct: Decimal,
     benchmarks: BenchmarkRates,
     config: RealEstateConfig | None = None,
+    imoveis_no_if: bool = False,
 ) -> RealEstateMetricsResult:
     """Calcula payload `real_estate` (ADR-216); ``concentracao_imobiliaria_pct`` é a concentração canônica base carteira (C11-Fase2 · [[ADR-340]]), computada 1× no SSOT e injetada — não recomputada aqui."""
     cfg = config or RealEstateConfig()
@@ -464,7 +477,7 @@ def calculate_real_estate_metrics(
             spread_brl_anual[label] = spread_brl
 
     alertas = compute_alertas(
-        cap_rate_liquido_pct, concentracao_pct, benchmarks, properties_sorted, cfg
+        cap_rate_liquido_pct, concentracao_pct, benchmarks, properties_sorted, cfg, imoveis_no_if
     )
 
     return RealEstateMetricsResult(

@@ -85,13 +85,21 @@ def _add_identity(session, ws_id: str, *, endereco: str = "rua exemplo 100") -> 
     return row.id
 
 
-def _add_override(session, ws_id: str, pid: str, classification: str, source: str) -> str:
+def _add_override(
+    session,
+    ws_id: str,
+    pid: str,
+    classification: str,
+    source: str,
+    updated_at: datetime | None = None,
+) -> str:
     row = WorkspacePropertyOverride(
         id=str(uuid.uuid4()),
         workspace_id=ws_id,
         property_id=pid,
         classification=classification,
         override_source=source,
+        updated_at=updated_at or datetime.now(timezone.utc),
     )
     session.add(row)
     session.flush()
@@ -108,6 +116,22 @@ def _single_override(session, ws_id: str) -> WorkspacePropertyOverride:
     ).scalar_one()
 
 
+def _reconcile(session, ws_id: str, winner_by_pid: dict, observed=None):
+    """Chama o writer com escopo observando o workspace inteiro (semântica pré-ADR-386)."""
+    from backend.app.models import PropertyIdentity
+    from pipeline.domain.types.property_supersession import SupersessionScope
+
+    if observed is None:
+        rows = session.query(PropertyIdentity).filter_by(workspace_id=ws_id).all()
+        observed = {r.id for r in rows} | set(winner_by_pid) | set(winner_by_pid.values())
+    scope = SupersessionScope(
+        workspace_id=ws_id,
+        winner_by_pid=winner_by_pid,
+        observed_pids=frozenset(observed),
+    )
+    return DBPropertySupersessionWriter(session).reconcile_supersession(scope)
+
+
 class TestReconcile:
     def test_marks_losers_and_keeps_lineage(self, sync_db):
         ws_id, _ = _seed_workspace(sync_db)
@@ -115,9 +139,7 @@ class TestReconcile:
             winner = _add_identity(s, ws_id)
             loser = _add_identity(s, ws_id, endereco="rua exemplo 100 v2")
             s.commit()
-            outcome = DBPropertySupersessionWriter(s).reconcile_supersession(
-                ws_id, {loser: winner, winner: winner}
-            )
+            outcome = _reconcile(s, ws_id, {loser: winner, winner: winner})
             assert outcome.superseded == 1 and outcome.cleared == 0
             row = _get(s, loser)
             assert row.superseded_at is not None
@@ -131,8 +153,8 @@ class TestReconcile:
             b = _add_identity(s, ws_id, endereco="rua exemplo 100 b")
             s.commit()
             writer = DBPropertySupersessionWriter(s)
-            writer.reconcile_supersession(ws_id, {b: a, a: a})
-            outcome = writer.reconcile_supersession(ws_id, {a: b, b: b})
+            _reconcile(s, ws_id, {b: a, a: a})
+            outcome = _reconcile(s, ws_id, {a: b, b: b})
             assert outcome.superseded == 1 and outcome.cleared == 1
             assert _get(s, b).superseded_at is None
             assert _get(s, a).superseded_by_id == b
@@ -144,8 +166,8 @@ class TestReconcile:
             loser = _add_identity(s, ws_id, endereco="rua exemplo 100 v2")
             s.commit()
             writer = DBPropertySupersessionWriter(s)
-            first = writer.reconcile_supersession(ws_id, {loser: winner})
-            second = writer.reconcile_supersession(ws_id, {loser: winner})
+            first = _reconcile(s, ws_id, {loser: winner})
+            second = _reconcile(s, ws_id, {loser: winner})
             assert first.changed and not second.changed
 
     def test_unknown_pids_are_ignored(self, sync_db):
@@ -153,9 +175,7 @@ class TestReconcile:
         with sync_db() as s:
             winner = _add_identity(s, ws_id)
             s.commit()
-            outcome = DBPropertySupersessionWriter(s).reconcile_supersession(
-                ws_id, {"nao-existe": winner, winner: "tambem-nao"}
-            )
+            outcome = _reconcile(s, ws_id, {"nao-existe": winner, winner: "tambem-nao"})
             assert not outcome.changed
 
 
@@ -167,7 +187,7 @@ class TestOverrideRepoint:
             loser = _add_identity(s, ws_id, endereco="v2")
             _add_override(s, ws_id, loser, CLASSIFICATION_LOCADO, OVERRIDE_SOURCE_USER_MANUAL)
             s.commit()
-            outcome = DBPropertySupersessionWriter(s).reconcile_supersession(ws_id, {loser: winner})
+            outcome = _reconcile(s, ws_id, {loser: winner})
             assert outcome.overrides_repointed == 1
             ov = _single_override(s, ws_id)
             assert ov.property_id == winner
@@ -181,7 +201,7 @@ class TestOverrideRepoint:
             _add_override(s, ws_id, winner, CLASSIFICATION_LOCADO, OVERRIDE_SOURCE_USER_MANUAL)
             _add_override(s, ws_id, loser, CLASSIFICATION_LOCADO, OVERRIDE_SOURCE_USER_MANUAL)
             s.commit()
-            outcome = DBPropertySupersessionWriter(s).reconcile_supersession(ws_id, {loser: winner})
+            outcome = _reconcile(s, ws_id, {loser: winner})
             assert outcome.overrides_merged == 1
             assert _single_override(s, ws_id).property_id == winner
             assert s.execute(select(AuditLog)).scalars().all() == []
@@ -196,7 +216,7 @@ class TestOverrideRepoint:
             )
             _add_override(s, ws_id, loser, CLASSIFICATION_LOCADO, OVERRIDE_SOURCE_USER_MANUAL)
             s.commit()
-            DBPropertySupersessionWriter(s).reconcile_supersession(ws_id, {loser: winner})
+            _reconcile(s, ws_id, {loser: winner})
             ov = _single_override(s, ws_id)
             assert ov.property_id == winner
             assert ov.classification == CLASSIFICATION_LOCADO
@@ -205,19 +225,46 @@ class TestOverrideRepoint:
             assert audit.action == "property_override.supersession_merge"
             assert audit.details["kept"] == CLASSIFICATION_LOCADO
 
-    def test_merge_conflict_tie_winner_prevails_with_audit(self, sync_db):
+    # Empate de trust prevalecia para a vencedora, o que descartava em silêncio
+    # a classificação mais recente do usuário. Desempata por recência (ADR-324
+    # emendada em 2026-08-11): mesma fonte, o único sinal de intenção é quando.
+    def test_merge_conflict_tie_desempata_pela_classificacao_mais_recente(self, sync_db):
         ws_id, _ = _seed_workspace(sync_db)
+        antigo = datetime(2026, 5, 20, tzinfo=timezone.utc)
+        recente = datetime(2026, 8, 11, tzinfo=timezone.utc)
         with sync_db() as s:
             winner = _add_identity(s, ws_id)
             loser = _add_identity(s, ws_id, endereco="v2")
-            _add_override(s, ws_id, winner, CLASSIFICATION_USO_PESSOAL, OVERRIDE_SOURCE_USER_MANUAL)
-            _add_override(s, ws_id, loser, CLASSIFICATION_LOCADO, OVERRIDE_SOURCE_USER_MANUAL)
+            _add_override(
+                s, ws_id, winner, CLASSIFICATION_USO_PESSOAL, OVERRIDE_SOURCE_USER_MANUAL, antigo
+            )
+            _add_override(
+                s, ws_id, loser, CLASSIFICATION_LOCADO, OVERRIDE_SOURCE_USER_MANUAL, recente
+            )
             s.commit()
-            DBPropertySupersessionWriter(s).reconcile_supersession(ws_id, {loser: winner})
+            _reconcile(s, ws_id, {loser: winner})
             ov = _single_override(s, ws_id)
-            assert ov.classification == CLASSIFICATION_USO_PESSOAL
+            assert ov.classification == CLASSIFICATION_LOCADO
             audit = s.execute(select(AuditLog)).scalar_one()
-            assert audit.details["kept"] == CLASSIFICATION_USO_PESSOAL
+            assert audit.details["kept"] == CLASSIFICATION_LOCADO
+            assert audit.details["dropped"] == CLASSIFICATION_USO_PESSOAL
+
+    def test_merge_conflict_tie_mantem_vencedora_quando_ela_e_a_mais_recente(self, sync_db):
+        ws_id, _ = _seed_workspace(sync_db)
+        antigo = datetime(2026, 5, 20, tzinfo=timezone.utc)
+        recente = datetime(2026, 8, 11, tzinfo=timezone.utc)
+        with sync_db() as s:
+            winner = _add_identity(s, ws_id)
+            loser = _add_identity(s, ws_id, endereco="v2")
+            _add_override(
+                s, ws_id, winner, CLASSIFICATION_USO_PESSOAL, OVERRIDE_SOURCE_USER_MANUAL, recente
+            )
+            _add_override(
+                s, ws_id, loser, CLASSIFICATION_LOCADO, OVERRIDE_SOURCE_USER_MANUAL, antigo
+            )
+            s.commit()
+            _reconcile(s, ws_id, {loser: winner})
+            assert _single_override(s, ws_id).classification == CLASSIFICATION_USO_PESSOAL
 
     def test_residencia_principal_merge_respects_partial_unique(self, sync_db):
         ws_id, _ = _seed_workspace(sync_db)
@@ -231,7 +278,7 @@ class TestOverrideRepoint:
                 s, ws_id, loser, CLASSIFICATION_RESIDENCIA_PRINCIPAL, OVERRIDE_SOURCE_USER_MANUAL
             )
             s.commit()
-            DBPropertySupersessionWriter(s).reconcile_supersession(ws_id, {loser: winner})
+            _reconcile(s, ws_id, {loser: winner})
             ov = _single_override(s, ws_id)
             assert ov.property_id == winner
             assert ov.classification == CLASSIFICATION_RESIDENCIA_PRINCIPAL
@@ -246,7 +293,7 @@ class TestSupersededInertia:
             winner = _add_identity(s, ws_id)
             loser = _add_identity(s, ws_id, endereco="v2")
             s.commit()
-            DBPropertySupersessionWriter(s).reconcile_supersession(ws_id, {loser: winner})
+            _reconcile(s, ws_id, {loser: winner})
         return ws_id, user_id, winner, loser
 
     def test_stmt_helper_excludes_superseded(self, sync_db):
@@ -293,3 +340,53 @@ class TestSupersededInertia:
                 if extracted is not None:
                     contents += extracted.read()
         assert loser.encode() in contents
+
+
+class TestEscopoObservado:
+    """ADR-386 — fora do escopo do run, o estado de supersessão é absorvente."""
+
+    def test_zumbi_fora_do_escopo_nao_e_reativada(self, sync_db):
+        ws_id, _ = _seed_workspace(sync_db)
+        with sync_db() as s:
+            vencedora = _add_identity(s, ws_id)
+            zumbi = _add_identity(s, ws_id, endereco="v2")
+            s.commit()
+            _reconcile(s, ws_id, {zumbi: vencedora})
+            # Run seguinte só observa a vencedora — era aqui que a supersessão
+            # feita por sweep era revertida.
+            outcome = _reconcile(s, ws_id, {}, observed={vencedora})
+            assert outcome.cleared == 0
+            assert _get(s, zumbi).superseded_at is not None
+            assert _get(s, zumbi).superseded_by_id == vencedora
+
+    def test_row_observada_que_deixou_de_perder_ainda_reativa(self, sync_db):
+        """Flip-safety da ADR-324 sobrevive dentro do escopo."""
+        ws_id, _ = _seed_workspace(sync_db)
+        with sync_db() as s:
+            a = _add_identity(s, ws_id)
+            b = _add_identity(s, ws_id, endereco="v2")
+            s.commit()
+            _reconcile(s, ws_id, {b: a})
+            outcome = _reconcile(s, ws_id, {}, observed={a, b})
+            assert outcome.cleared == 1
+            assert _get(s, b).superseded_at is None
+
+    def test_conta_vivas_nao_referenciadas_pelo_run(self, sync_db):
+        ws_id, _ = _seed_workspace(sync_db)
+        with sync_db() as s:
+            observada = _add_identity(s, ws_id)
+            _add_identity(s, ws_id, endereco="v2")
+            _add_identity(s, ws_id, endereco="v3")
+            s.commit()
+            outcome = _reconcile(s, ws_id, {}, observed={observada})
+            assert outcome.unreferenced_live == 2
+
+    def test_escopo_recusa_vencedor_fora_do_observado(self, sync_db):
+        from pipeline.domain.types.property_supersession import SupersessionScope
+
+        with pytest.raises(ValueError, match="fora de observed_pids"):
+            SupersessionScope(
+                workspace_id="ws",
+                winner_by_pid={"perdedora": "vencedora"},
+                observed_pids=frozenset({"perdedora"}),
+            )

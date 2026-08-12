@@ -161,7 +161,10 @@ def build_property_inputs(
             aluguel_anual = _quantize_brl(
                 aluguel_anual_irpf_total * valor_imovel / valor_total_investment
             )
-            aluguel_origem = "irpf"
+            # Rateio do total da carteira por valor — é estimativa (prioridade 4
+            # da cascade D9), não fonte declarada por imóvel. Rotular como
+            # "irpf" dava confiança média a um número que o produto inventou.
+            aluguel_origem = "pro_rata"
             ir_carne_leao = _quantize_brl(
                 ir_carne_leao_anual_irpf_total * valor_imovel / valor_total_investment
             )
@@ -177,7 +180,7 @@ def build_property_inputs(
                 else _ZERO
             )
             aluguel_anual = _quantize_brl(anual * valor_imovel / valor_total_investment)
-            aluguel_origem = "e4"
+            aluguel_origem = "pro_rata"
             ir_carne_leao = None  # adapter usa fallback do service (27,5%)
         else:
             aluguel_anual = None
@@ -236,6 +239,7 @@ def calculate_for_workspace(
     as_of_date: date,
     config: RealEstateConfig | None = None,
     cdi_ir_efetivo_pct: Decimal | None = None,
+    imoveis_no_if: bool = False,
 ) -> RealEstateMetricsResult:
     """Entry point: hidrata + busca benchmarks + chama service. Tudo no boundary backend/."""
     cfg = config or RealEstateConfig()
@@ -252,6 +256,7 @@ def calculate_for_workspace(
         concentracao_imobiliaria_pct=concentracao_imobiliaria_pct,
         benchmarks=benchmarks,
         config=cfg,
+        imoveis_no_if=imoveis_no_if,
     )
 
 
