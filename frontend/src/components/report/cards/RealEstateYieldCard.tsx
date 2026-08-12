@@ -158,6 +158,11 @@ function RealEstateImoveisTable({ imoveis }: { imoveis: readonly RealEstateImove
       <p className="mb-2 text-sm font-semibold text-[var(--surface-foreground)]">
         Detalhe por imóvel
       </p>
+      {/* Sem o wrapper as 5 colunas vazavam 108px do <article> em 390px, e a
+        * página não rola horizontalmente: as colunas Cap líq./Status ficavam
+        * inalcançáveis. No papel o `report-print.css` devolve `overflow:
+        * visible` — lá não há gesto de rolagem. */}
+      <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <caption className="sr-only">
           Imóveis de investimento ordenados por valor IRPF descendente — cap rate líquido por imóvel
@@ -177,6 +182,7 @@ function RealEstateImoveisTable({ imoveis }: { imoveis: readonly RealEstateImove
           ))}
         </tbody>
       </table>
+      </div>
       {imoveis.length > TABLE_PAGE && (
         <p className="mt-2 text-xs text-[var(--surface-muted-foreground)]">
           + {imoveis.length - TABLE_PAGE}{" "}

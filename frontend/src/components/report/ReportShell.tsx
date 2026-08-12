@@ -371,7 +371,7 @@ export function ReportShell({
                 />
               )}
               <article
-                className="max-w-[1120px] px-10 py-8 font-body text-[var(--surface-foreground)]"
+                className="max-w-[1120px] px-4 py-8 font-body text-[var(--surface-foreground)] sm:px-6 md:px-10"
                 data-report-mode={mode}
                 data-report-ready="true"
               >

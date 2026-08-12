@@ -43,7 +43,13 @@ export function ReportSection({
           {title}
         </h2>
       </header>
-      <div className="grid gap-6 md:grid-cols-2">{children}</div>
+      {/* `grid-cols-1` explícito, não implícito: sem ele o track é `auto` e cresce
+        * até o max-content do filho mais largo, arrastando TODOS os irmãos —
+        * inclusive no PDF, onde `md:` nunca casa (a caixa A4 é 703px). Era o que
+        * empurrava o SectionSummary 263px para fora da caixa em S3/S4. */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {children}
+      </div>
     </section>
   );
 }

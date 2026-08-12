@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-374 ADRs (ADR-001 a ADR-384) em [`docs/adr/`](../../adr/).
+375 ADRs (ADR-001 a ADR-384) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 320
+- **Decidido**: 321
 - **Proposto**: 50
 - **Roadmap**: 4
 
@@ -391,7 +391,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## frontend
 
-### Decidido (11)
+### Decidido (12)
 
 - [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
 - [[ADR-152]] — `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) · phase Direção E · Onda 6
@@ -404,6 +404,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-370]] — Inventário estrutural do relatório: a fixture canônica é superfície completa e card que sai exige linha apagada à mão · phase A40
 - [[ADR-372]] — Texto sobre tint da própria cor usa o par `-on-tint`, e o gate mede em vez de proibir a forma
 - [[ADR-380]] — Nenhum card afirma ausência a partir de falha de carregamento · phase A40
+- [[ADR-381]] — O PDF é uma caixa de 703px: `md:` não é o teste de "é celular" no relatório
 
 ### Proposto (1)
 

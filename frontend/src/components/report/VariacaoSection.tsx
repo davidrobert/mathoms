@@ -181,6 +181,103 @@ function HeadlineDelta({
   );
 }
 
+/** Antes/Depois exibido, por unidade — mesma regra nas duas variantes. */
+function valorExibido(item: ComparisonItemRead, ponta: "before" | "after") {
+  const unit = item.unit ?? "brl";
+  if (unit === "brl") return <MonetaryValue value={item[ponta]} />;
+  return formatUnitValue(item[ponta], unit);
+}
+
+/** Δ com glifo + valor. Cor e rótulo acessível ficam no elemento que o
+ *  hospeda: os três andam juntos nas duas variantes, senão a que perder um
+ *  deles vira perda de acessibilidade disfarçada de responsividade. */
+function DeltaCell({ item }: { readonly item: ComparisonItemRead }) {
+  return (
+    <>
+      <span aria-hidden="true" style={{ marginRight: 4 }}>
+        {SIGNAL_GLYPH[item.delta_signal]}
+      </span>
+      {deltaDisplayValue(item)}
+    </>
+  );
+}
+
+/** Abaixo de 640px a tabela de 4 colunas não cabe (min-content ~534px contra
+ *  262px úteis a 390px) e a página não rola: a coluna Δ ficava inalcançável.
+ *  O divisor é `sm:` e não `md:` porque a caixa de página A4 tem 703px — com
+ *  `md:` (768px) o PAPEL receberia esta pilha em vez da tabela. */
+function IndicatorsList({
+  items,
+  baseChanged,
+}: {
+  readonly items: readonly ComparisonItemRead[];
+  readonly baseChanged: boolean;
+}) {
+  return (
+    <ul
+      className="sm:hidden"
+      data-testid="v0-indicators-list"
+      style={{
+        listStyle: "none",
+        margin: "var(--space-lg, 16px) 0 0 0",
+        padding: 0,
+        fontSize: "var(--report-font-size-md, 14px)",
+      }}
+    >
+      {items.map((item) => (
+        <IndicatorListItem key={item.section_id} item={item} baseChanged={baseChanged} />
+      ))}
+    </ul>
+  );
+}
+
+function IndicatorListItem({
+  item,
+  baseChanged,
+}: {
+  readonly item: ComparisonItemRead;
+  readonly baseChanged: boolean;
+}) {
+  return (
+    <li
+      data-base-changed={baseChanged ? "true" : undefined}
+      data-delta-signal={item.delta_signal}
+      data-section-id={item.section_id}
+      style={{
+        borderTop: "1px solid var(--surface-border)",
+        padding: "10px 0",
+        overflowWrap: "anywhere",
+      }}
+    >
+      <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
+        <span style={{ fontWeight: 600 }}>{item.section_label}</span>
+        <span
+          aria-describedby={baseChanged ? BASE_CHANGED_NOTE_ID : undefined}
+          aria-label={deltaAriaLabel(item, baseChanged)}
+          className="tabular-nums"
+          style={{
+            color: deltaColor(item, baseChanged),
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <DeltaCell item={item} />
+        </span>
+      </div>
+      <div
+        className="tabular-nums"
+        style={{
+          color: "var(--surface-muted-foreground)",
+          fontSize: "var(--report-font-size-sm, 12px)",
+          marginTop: 2,
+        }}
+      >
+        Antes {valorExibido(item, "before")} · Depois {valorExibido(item, "after")}
+      </div>
+    </li>
+  );
+}
+
 function IndicatorsTable({
   items,
   baseChanged,
@@ -190,6 +287,7 @@ function IndicatorsTable({
 }) {
   return (
     <table
+      className="hidden sm:table"
       data-testid="v0-indicators-table"
       style={{
         width: "100%",
@@ -208,52 +306,60 @@ function IndicatorsTable({
         </tr>
       </thead>
       <tbody>
-        {items.map((item) => {
-          const unit = item.unit ?? "brl";
-          return (
-            <tr
-              key={item.section_id}
-              data-section-id={item.section_id}
-              data-delta-signal={item.delta_signal}
-              style={{ borderTop: "1px solid var(--surface-border)" }}
-            >
-              <td style={{ padding: "8px", fontWeight: 600 }}>{item.section_label}</td>
-              <td className="tabular-nums" style={{ padding: "8px", textAlign: "right" }}>
-                {unit === "brl" ? (
-                  <MonetaryValue value={item.before} />
-                ) : (
-                  formatUnitValue(item.before, unit)
-                )}
-              </td>
-              <td className="tabular-nums" style={{ padding: "8px", textAlign: "right" }}>
-                {unit === "brl" ? (
-                  <MonetaryValue value={item.after} />
-                ) : (
-                  formatUnitValue(item.after, unit)
-                )}
-              </td>
-              <td
-                aria-describedby={baseChanged ? BASE_CHANGED_NOTE_ID : undefined}
-                aria-label={deltaAriaLabel(item, baseChanged)}
-                className="tabular-nums"
-                data-base-changed={baseChanged ? "true" : undefined}
-                style={{
-                  padding: "8px",
-                  textAlign: "right",
-                  color: deltaColor(item, baseChanged),
-                  fontWeight: 600,
-                }}
-              >
-                <span aria-hidden="true" style={{ marginRight: 4 }}>
-                  {SIGNAL_GLYPH[item.delta_signal]}
-                </span>
-                {deltaDisplayValue(item)}
-              </td>
-            </tr>
-          );
-        })}
+        {items.map((item) => (
+          <IndicatorRow key={item.section_id} item={item} baseChanged={baseChanged} />
+        ))}
       </tbody>
     </table>
+  );
+}
+
+function IndicatorRow({
+  item,
+  baseChanged,
+}: {
+  readonly item: ComparisonItemRead;
+  readonly baseChanged: boolean;
+}) {
+  return (
+    <tr
+      data-section-id={item.section_id}
+      data-delta-signal={item.delta_signal}
+      style={{ borderTop: "1px solid var(--surface-border)" }}
+    >
+      {/* O rótulo quebra; os valores não. É o que faz a tabela caber na caixa
+        * A4 (703px) sem `table-layout: fixed`, que dividiria as colunas
+        * igualmente e partiria os valores monetários. */}
+      <td style={{ padding: "8px", fontWeight: 600, overflowWrap: "anywhere" }}>
+        {item.section_label}
+      </td>
+      <td
+        className="tabular-nums"
+        style={{ padding: "8px", textAlign: "right", whiteSpace: "nowrap" }}
+      >
+        {valorExibido(item, "before")}
+      </td>
+      <td
+        className="tabular-nums"
+        style={{ padding: "8px", textAlign: "right", whiteSpace: "nowrap" }}
+      >
+        {valorExibido(item, "after")}
+      </td>
+      <td
+        aria-describedby={baseChanged ? BASE_CHANGED_NOTE_ID : undefined}
+        aria-label={deltaAriaLabel(item, baseChanged)}
+        className="tabular-nums"
+        data-base-changed={baseChanged ? "true" : undefined}
+        style={{
+          padding: "8px",
+          textAlign: "right",
+          color: deltaColor(item, baseChanged),
+          fontWeight: 600,
+        }}
+      >
+        <DeltaCell item={item} />
+      </td>
+    </tr>
   );
 }
 
@@ -286,8 +392,6 @@ export function VariacaoSection({ data }: { readonly data: ReportAnalysisData })
           borderRadius: "var(--radius-card)",
           boxShadow: "var(--shadow-card)",
           padding: "var(--space-2xl, 24px)",
-          breakInside: "avoid",
-          pageBreakInside: "avoid",
         }}
       >
         <h2
@@ -329,7 +433,10 @@ export function VariacaoSection({ data }: { readonly data: ReportAnalysisData })
         {headline && <HeadlineDelta item={headline} previousLabel={previousLabel} />}
 
         {changed.length > 0 && (
-          <IndicatorsTable items={changed} baseChanged={baseChanged} />
+          <>
+            <IndicatorsTable items={changed} baseChanged={baseChanged} />
+            <IndicatorsList items={changed} baseChanged={baseChanged} />
+          </>
         )}
 
         {stableCount > 0 && (

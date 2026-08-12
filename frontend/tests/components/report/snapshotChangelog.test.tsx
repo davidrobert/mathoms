@@ -6,7 +6,7 @@
  * /SectionSnapshotDiff (deletados em W4-T07).
  */
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 
 import { VariacaoSection } from "@/components/report/VariacaoSection";
 import type { ComparisonItemRead, ReportAnalysisData } from "@/lib/api";
@@ -162,8 +162,47 @@ describe("<VariacaoSection /> — V0 (ADR-190 §Emenda)", () => {
     render(<VariacaoSection data={data} />);
     expect(screen.queryByTestId("v0-headline")).toBeNull();
     expect(screen.queryByTestId("v0-headline-caption")).toBeNull();
-    expect(screen.getByTestId("v0-indicators-table")).toBeInTheDocument();
-    expect(screen.getByText("Taxa de Poupança")).toBeInTheDocument();
+    // As duas variantes coexistem no DOM — a CSS esconde uma por breakpoint
+    // (ADR-381 D4) e jsdom não aplica media query. Busca global acharia as duas,
+    // então cada uma é verificada no seu escopo.
+    const tabela = screen.getByTestId("v0-indicators-table");
+    expect(within(tabela).getByText("Taxa de Poupança")).toBeInTheDocument();
+  });
+
+  it("variante estreita: a lista carrega rótulo, Antes/Depois e Δ com glifo + aria", () => {
+    // Paridade exigida pela ADR-381 D4: cor, glifo e nome acessível caem juntos.
+    // Sem esta cobertura, a lista podia perder o julgamento sem nada falhar.
+    const data: ReportAnalysisData = {
+      comparisons: [
+        makeItem({}),
+        makeItem({
+          section_id: "M_TAXA_POUPANCA",
+          section_label: "Taxa de Poupança",
+          before: 12.0,
+          after: 15.0,
+          delta_signal: "up",
+          direction_positive: "down",
+          unit: "pp",
+        }),
+      ],
+      comparison_periods: { current: "202604", previous: "202603" },
+    };
+    render(<VariacaoSection data={data} />);
+
+    const item = screen
+      .getByTestId("v0-indicators-list")
+      .querySelector('li[data-section-id="M_TAXA_POUPANCA"]');
+    expect(item).not.toBeNull();
+    expect(item!.textContent).toContain("Taxa de Poupança");
+    expect(item!.textContent).toContain("Antes 12,0%");
+    expect(item!.textContent).toContain("Depois 15,0%");
+
+    const delta = item!.querySelector("[aria-label]");
+    expect(delta!.textContent).toContain("▲");
+    expect(delta!.textContent).toContain("+3,0 pp");
+    // pp subindo com direction_positive=down é desfavorável — mesma regra da tabela.
+    expect(delta!.getAttribute("aria-label")).toContain("avaliação ruim");
+    expect(delta!.getAttribute("style")).toContain("--semantic-danger");
   });
 
   it("comparisons null (primeiro relatório) e vazio: seção não renderiza", () => {

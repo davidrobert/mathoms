@@ -97,9 +97,39 @@
     break-inside: auto;
     page-break-inside: auto;
     font-size: 9pt;
+    width: 100%;
   }
   thead {
     display: table-header-group;
+  }
+
+  /* No papel não existe rolagem: wrapper com `overflow-x: auto` não oferece
+   * gesto nenhum — apenas deixa de pintar o que passa da caixa, e a coluna
+   * some do arquivo que o cliente arquiva. Liberar o overflow só resolve
+   * junto com a quebra abaixo: sem ela o conteúdo continua largo e o corte
+   * passa a ser o da própria página. */
+  .overflow-x-auto,
+  [class*="overflow-x-"] {
+    overflow: visible !important;
+  }
+
+  th,
+  td {
+    overflow-wrap: anywhere;
+  }
+
+  /* ...mas número NUNCA quebra. Medido em 2026-08-11: sem esta regra o `anywhere`
+   * acima partia a célula Δ do V0 em "52,0" + "%" em linhas diferentes — o valor
+   * continuava no papel, e ainda assim uma busca por "52,0%" no PDF não o
+   * achava. Quem encolhe a tabela é o rótulo; valor monetário e percentual são
+   * átomos. `tabular-nums`/`font-mono` são o marcador de "isto é número" no
+   * relatório (ADR-076 §Valores monetários). */
+  td.tabular-nums,
+  th.tabular-nums,
+  td .tabular-nums,
+  .font-mono {
+    white-space: nowrap;
+    overflow-wrap: normal;
   }
 
   /* ────── Typography refinements ────── */

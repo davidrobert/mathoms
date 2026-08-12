@@ -39,14 +39,21 @@ export function ReportCard({
         className,
       )}
     >
+      {/* `flex-wrap` porque `shrink-0` + título longo não cabem lado a lado em
+        * 390px: o badge da S8 vazava 121px e o seletor de período da S2, 32px,
+        * ambos fora da caixa e sem rolagem para alcançá-los. Quebrar a linha
+        * preserva os dois; encolher o badge cortaria o texto dele. */}
       {(title || headerRight) && (
-        <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           {title && (
-            <h3 className="font-display text-lg font-semibold leading-tight">
+            <h3 className="min-w-0 font-display text-lg font-semibold leading-tight">
               {title}
             </h3>
           )}
-          {headerRight && <div className="shrink-0">{headerRight}</div>}
+          {/* `shrink-0` só a partir de 640px: em telefone ele fixava a largura no
+            * max-content e anulava o `flex-wrap` de quem vem dentro (os dois
+            * badges da S8 somam ~377px numa caixa de 310px). */}
+          {headerRight && <div className="min-w-0 sm:shrink-0">{headerRight}</div>}
         </div>
       )}
       {children}

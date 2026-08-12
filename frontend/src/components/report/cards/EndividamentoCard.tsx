@@ -38,7 +38,11 @@ export function EndividamentoCard({
             <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
               Total de dívidas
             </p>
-            <p className="mt-1 font-mono text-3xl font-semibold tabular-nums">
+            {/* Degrau em 640px: 36px de mono para 8 dígitos pedem ~345px e a
+              * caixa do card em 390px tem 262px. O degrau global de
+              * `globals.css` cobre os `text-style-*`; call-site que dimensiona
+              * com utilitário Tailwind precisa do seu. */}
+            <p className="mt-1 font-mono text-2xl font-semibold tabular-nums sm:text-3xl">
               <MonetaryValue
                 value={total}
                 provenance={{ fieldId: "endividamento.total_dividas" }}

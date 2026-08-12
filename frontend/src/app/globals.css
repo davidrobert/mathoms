@@ -149,6 +149,26 @@
   display: none !important;
 }
 
+/* Degrau tipográfico dos valores de destaque em telefone.
+ *
+ * `.text-style-kpi-value` são 42px de JetBrains Mono: "+R$ 41.918,51" pede
+ * ~314px e a caixa útil do relatório a 390px tem 310px — clipava em todo
+ * patrimônio de 6+ dígitos, no hero do V0 e nos demais KPIs. O corte é em
+ * 640px (não 768px) porque a caixa de página A4 tem 703px: com `md:` o PDF
+ * receberia a variante reduzida sem precisar.
+ *
+ * Vive aqui e não em `tokens.css` (GENERATED, sem suporte a media query) nem
+ * em `report-print.css` (só `@media print`; o defeito é de tela). */
+@media (max-width: 639px) {
+  [data-report-mode] .text-style-kpi-value {
+    font-size: var(--font-size-2xl);
+  }
+
+  [data-report-mode] .text-style-hero {
+    font-size: var(--font-size-3xl);
+  }
+}
+
 @media print {
   /* `header` e `footer` saíram desta lista em 2026-08-08: como seletores de
    * elemento nunca tiveram alvo de chrome — o do app é `<aside>`+`<nav>`
