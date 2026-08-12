@@ -900,6 +900,10 @@
 | A40.l53 | lane | open | A40 | Gate visual de seções está cego: S2 varia 5–6% entre tentativas do mesmo commit e `main` puro reprova em 6 baselines | `sprint/A40/lanes/A40-l53-gate-visual-secoes-cego.md` |
 | A40.l54 | lane | open | A40 | `hidden md:block` entrega ao papel a variante mobile: varredura dos call-sites e gate da classe (ADR-381 D1) | `sprint/A40/lanes/A40-l54-hidden-md-block-no-papel.md` |
 | A40.l55 | lane | open | A40 | Medida de linha no papel: prosa a 100–110 caracteres por linha no A4 | `sprint/A40/lanes/A40-l55-medida-de-linha-no-papel.md` |
+| A40.l56 | lane | open | A40 | A tabela fiscal de produção: a row é internamente inconsistente e nenhum golden a atravessa | `sprint/A40/lanes/A40-l56-tabela-fiscal-de-producao.md` |
+| A40.l57 | lane | open | A40 | O parecer lê o contrato antigo do bloco PGBL: guardrail com predicado morto e âncora que resolve null | `sprint/A40/lanes/A40-l57-parecer-le-contrato-antigo-do-pgbl.md` |
+| A40.l58 | lane | blocked | A40 | schema_validation warn → strict: o PR5 que a l5 declarou como outra lane | `sprint/A40/lanes/A40-l58-flip-do-schema-para-strict.md` |
+| A40.l59 | lane | open | A40 | A transição para `shipped` ganha gate: ship_pr no frontmatter e PR visível no _README | `sprint/A40/lanes/A40-l59-gate-na-transicao-shipped.md` |
 | A40.l6 | lane | planned | A40 | Cards de imóvel e dívida: PII cartorial, contrato de campo e zero-como-valor | `sprint/A40/lanes/A40-l6-cards-imovel-divida.md` |
 | A40.l7 | lane | shipped | A40 | Navegação e ponteiros: âncora sem alvo, seção que colapsa, mapa de seções incoerente | `sprint/A40/lanes/A40-l7-navegacao-e-ponteiros.md` |
 | A40.l8 | lane | planned | A40 | Cobertura do manifest do parecer: dado renderizado inalcançável pela narrativa | `sprint/A40/lanes/A40-l8-manifest-parecer-cobertura.md` |
