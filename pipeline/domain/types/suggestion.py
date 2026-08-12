@@ -52,6 +52,31 @@ VALID_KINDS = frozenset(KIND_TO_CATEGORY.keys())
 
 VALID_CATEGORIES = frozenset({"alvo_if", "carteira", "protecao", "comportamental", "endividamento"})
 
+# Vocabulário de âncora: seções `enabled: true` de `config/report_layout.yaml`
+# §estrategico.sections. Cópia à mão porque o domínio não faz I/O (ADR-089);
+# o drift contra o YAML e contra o enum de `parecer_planejador.schema.json` é
+# gateado em `tests/unit/pipeline/test_suggestion_rules.py`. S5/S6 são IDs
+# queimados por design (ADR-168 removeu o modo USA que os ocupava) e nunca
+# voltam — `section_id` órfão produz âncora morta no relatório e em /acao.
+# Apêndices (APP_A..APP_E) ficam fora: vivem em §estrategico.appendices e não
+# hospedam SuggestionCallout.
+VALID_SECTION_IDS = frozenset(
+    {
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S7",
+        "S8",
+        "S_IRPF_RENDA",
+        "S_IRPF_OTIMIZACAO",
+        "S9",
+        "S10",
+        "S_parecer",
+        "plano_de_acao",
+    }
+)
+
 
 @dataclass(frozen=True)
 class SuggestionDraft:
@@ -76,6 +101,10 @@ class SuggestionDraft:
             raise ValueError(f"origin inválida: {self.origin!r}")
         if not self.section_id or not self.title or not self.rationale:
             raise ValueError("section_id/title/rationale são obrigatórios e não-vazios")
+        if self.section_id not in VALID_SECTION_IDS:
+            raise ValueError(
+                f"section_id inválido: {self.section_id!r}; aceitos: {sorted(VALID_SECTION_IDS)}"
+            )
         if not self.dedup_key or len(self.dedup_key) < 8:
             raise ValueError("dedup_key precisa ≥ 8 chars")
         if self.category is not None and self.category not in VALID_CATEGORIES:
