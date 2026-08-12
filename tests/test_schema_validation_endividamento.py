@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.pipeline_common import validate_artifact  # noqa: E402
+from tests.fixtures.e5_fluxo_minimo import FLUXO_CAIXA_MINIMO as _FLUXO_MIN
 
 _DIVIDA_NULLS = {
     "descricao": "Financiamento imobiliário",
@@ -26,7 +27,7 @@ def _e5_with_endividamento(divida: dict) -> dict:
     return {
         "score": {"valor": 6.8, "classificacao": "Bom"},
         "patrimonio": {"bruto": 5000000, "liquido": 4000000},
-        "fluxo_caixa": {"janela": "full", "janela_meses": 0},
+        "fluxo_caixa": _FLUXO_MIN,
         "endividamento": {
             "total_dividas": 500000.0,
             "percentual_patrimonio": 10.0,

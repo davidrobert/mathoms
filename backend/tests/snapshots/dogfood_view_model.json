@@ -309,6 +309,7 @@
     "total_brl": 0
   },
   "fluxo_caixa": {
+    "data_corte": "<volatile>",
     "despesa_mensal_essencial": 150000,
     "despesa_mensal_media": 150000,
     "despesa_total": 150000,
@@ -344,6 +345,16 @@
     },
     "por_fonte_detalhado": {
       "Outras Receitas": 300000
+    },
+    "provisionado": {
+      "data_corte": "<volatile>",
+      "despesa_brl": 0,
+      "por_categoria": {},
+      "por_fonte": {},
+      "primeiro_mes": null,
+      "receita_brl": 0,
+      "transacoes": 0,
+      "ultimo_mes": null
     },
     "receita_despesa_mensal_detalhado": {
       "despesa_datasets": [
